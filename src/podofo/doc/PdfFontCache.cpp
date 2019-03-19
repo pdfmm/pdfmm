@@ -51,7 +51,6 @@
 
 #ifdef _WIN32
 
-//#include <windows.h>
 // Undefined stuff which Windows does
 // define that breaks our build
 // e.g. GetObject is defined to either GetObjectA or GetObjectW
@@ -62,6 +61,10 @@
 #ifdef CreateFont
 #undef CreateFont
 #endif // CreateFont
+
+#ifdef DrawText
+#undef DrawText
+#endif // DrawText
 
 #endif // _WIN32
 

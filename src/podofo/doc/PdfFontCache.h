@@ -44,23 +44,9 @@
 
 #ifdef _WIN32
 
-// to have LOGFONTA/LOGFONTW available
-#include <windows.h>
-
-// Undefined stuff which windows does
-// define that breaks are build
-// e.g. GetObject is defined to either GetObjectA or GetObjectW
-#ifdef GetObject
-#undef GetObject
-#endif // GetObject
-
-#ifdef CreateFont
-#undef CreateFont
-#endif // CreateFont
-
-#ifdef DrawText
-#undef DrawText
-#endif // DrawText
+ // to have LOGFONTA/LOGFONTW available
+typedef struct tagLOGFONTA LOGFONTA;
+typedef struct tagLOGFONTW LOGFONTW;
 
 #endif // __WIN32
 
