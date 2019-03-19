@@ -42,7 +42,7 @@
 #endif // _WIN32
 
 #include "PdfDefines.h"
-#include "PdfDataType.h"
+#include "PdfOwnedDataType.h"
 #include "PdfObject.h"
 
 namespace PoDoFo {
@@ -54,7 +54,7 @@ namespace PoDoFo {
  *
  *  \see PdfVariant
  */
-class PODOFO_API PdfArray : public PdfDataType {
+class PODOFO_API PdfArray : public PdfOwnedDataType {
  public:
     typedef size_t                                          size_type;
     typedef PdfObject                                       value_type;
@@ -126,6 +126,18 @@ class PODOFO_API PdfArray : public PdfDataType {
      */
     size_t GetStringIndex( const std::string& cmpString ) const;
 
+    /** Get the object at the given index out of the array.
+     *
+     * Lookup in the indirect objects as well, if the shallow object was a reference.
+     * The returned value is a pointer to the internal object in the dictionary
+     * so it MUST not be deleted.
+     *
+     *  \param idx
+     *  \returns pointer to the found value. NULL if the index was out of the boundaries
+     */
+    inline const PdfObject * FindAt( size_type idx ) const;
+    inline PdfObject * FindAt( size_type idx );
+
     /** Adds a PdfObject to the array
      *
      *  \param var add a PdfObject to the array
@@ -137,7 +149,7 @@ class PODOFO_API PdfArray : public PdfDataType {
 
     /** Remove all elements from the array
      */
-    inline void clear();
+    void clear();
 
     /** 
      *  \returns the size of the array
@@ -154,9 +166,10 @@ class PODOFO_API PdfArray : public PdfDataType {
 
     /**
      * Resize the internal vector.
-     * \param __n new size
+     * \param count new size
+     * \param value refernce value
      */
-    inline void resize(size_t __n, value_type __x = value_type());
+    void resize( size_t count, value_type val = value_type() );
     
     /**
      *  Returns a read/write iterator that points to the first
@@ -225,10 +238,10 @@ class PODOFO_API PdfArray : public PdfDataType {
                     const _InputIterator& __last);
 #endif
 
-    inline PdfArray::iterator insert(const iterator& __position, const PdfObject & val );
+    iterator insert( const iterator &pos, const PdfObject &val );
 
-    inline void erase( const iterator& pos );
-    inline void erase( const iterator& first, const iterator& last );
+    void erase( const iterator& pos );
+    void erase( const iterator& first, const iterator& last );
 
     inline void reserve(size_type __n);
 
@@ -281,19 +294,31 @@ class PODOFO_API PdfArray : public PdfDataType {
      */
     virtual void SetDirty( bool bDirty );
 
+ protected:
+     void SetOwner( PdfObject* pOwner );
+
+ private:
+    PdfObject * findAt(size_type idx) const;
+
  private:
     bool         m_bDirty; ///< Indicates if this object was modified after construction
     std::vector<PdfObject> m_objects;
 };
 
 // -----------------------------------------------------
-// 
+//
 // -----------------------------------------------------
-void PdfArray::Clear() 
+inline const PdfObject * PdfArray::FindAt( size_type idx ) const
 {
-    AssertMutable();
+    return findAt( idx );
+}
 
-    m_objects.clear();
+// -----------------------------------------------------
+//
+// -----------------------------------------------------
+inline PdfObject * PdfArray::FindAt( size_type idx )
+{
+    return findAt( idx );
 }
 
 // -----------------------------------------------------
@@ -301,7 +326,7 @@ void PdfArray::Clear()
 // -----------------------------------------------------
 size_t PdfArray::GetSize() const
 {
-    return this->size();
+    return m_objects.size();
 }
 
 // -----------------------------------------------------
@@ -309,20 +334,15 @@ size_t PdfArray::GetSize() const
 // -----------------------------------------------------
 void PdfArray::push_back( const PdfObject & var )
 {
-    AssertMutable();
-
-    m_objects.push_back( var );
-    m_bDirty = true;
+    insert( end(), var );
 }
 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-void PdfArray::clear()
+void PdfArray::Clear()
 {
-    AssertMutable();
-
-    m_objects.clear();
+    clear();
 }
 
 // -----------------------------------------------------
@@ -357,14 +377,6 @@ PdfObject& PdfArray::operator[](size_type __n)
 const PdfObject& PdfArray::operator[](size_type __n) const
 {
     return m_objects[__n];
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfArray::resize(size_t __n, value_type __x)
-{
-    m_objects.resize(__n, __x);
 }
 
 // -----------------------------------------------------
@@ -447,48 +459,26 @@ void PdfArray::insert(const PdfArray::iterator& __position,
 {
     AssertMutable();
 
-    m_objects.insert( __position, __first, __last );
+    PdfVecObjects *pOwner = GetObjectOwner();
+    iterator it1 = __first;
+    iterator it2 = __position;
+    for ( ; it1 != __last; it1++, it2++ )
+    {
+        it2 = m_objects.insert( it2, *it1 );
+        if ( pOwner != NULL )
+            it2->SetOwner( pOwner );
+    }
+
     m_bDirty = true;
 }
 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-PdfArray::iterator PdfArray::insert(const iterator& __position, const PdfObject & val )
+void PdfArray::reserve( size_type __n )
 {
     AssertMutable();
 
-    m_bDirty = true;
-    return m_objects.insert( __position, val );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfArray::erase( const iterator& pos )
-{
-    AssertMutable();
-
-    m_objects.erase( pos );
-    m_bDirty = true;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfArray::erase( const iterator& first, const iterator& last )
-{
-    AssertMutable();
-
-    m_objects.erase( first, last );
-    m_bDirty = true;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfArray::reserve(size_type __n)
-{
     m_objects.reserve( __n );
 }
 
