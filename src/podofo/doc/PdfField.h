@@ -105,7 +105,7 @@ class PODOFO_DOC_API PdfField {
 
     PdfField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc, bool bDefaultApperance );
 
-    PdfField( EPdfField eField, PdfAnnotation* pWidget );
+    PdfField( EPdfField eField, PdfObject* pObject, PdfAnnotation* pWidget );
 
     /** Create a copy of a PdfField object.
      *  Not the field on the page is copied - only the PdfField
@@ -174,6 +174,11 @@ class PODOFO_DOC_API PdfField {
     *  \returns the pointer to the created field
     */
     static PdfField * CreateField( PdfAnnotation* pWidget );
+
+    /** Create a PdfAcroForm dictionary object from an existing object
+    *  \returns the pointer to the created field
+    */
+    static PdfField * CreateField( PdfObject *pObject );
 
     /** Infer the field type from the given object
     *  \param pObject the object to infer the field type from
@@ -381,6 +386,8 @@ class PODOFO_DOC_API PdfField {
     void Init( PdfAcroForm* pParent );
 
     void AddAlternativeAction( const PdfName & rsName, const PdfAction & rAction );
+
+    static PdfField * createField( PdfObject* pObject, PdfAnnotation* pWidget );
 
  protected:
     PdfObject*     m_pObject;
@@ -603,7 +610,7 @@ class PODOFO_DOC_API PdfButton : public PdfField {
     };
     /** Create a new PdfButton
     */
-    PdfButton( EPdfField eField, PdfAnnotation* pWidget );
+    PdfButton( EPdfField eField, PdfObject* pObject, PdfAnnotation* pWidget );
 
     /** Create a new PdfButton
      */
@@ -692,7 +699,7 @@ class PODOFO_DOC_API PdfPushButton : public PdfButton {
  private:
     /** Create a new PdfPushButton
      */
-    PdfPushButton( PdfAnnotation* pWidget );
+    PdfPushButton( PdfObject* pObject, PdfAnnotation* pWidget );
 
  public:
     /** Create a new PdfPushButton
@@ -754,7 +761,7 @@ class PODOFO_DOC_API PdfCheckBox : public PdfButton {
  private:
     /** Create a new PdfCheckBox
      */
-    PdfCheckBox( PdfAnnotation* pWidget );
+    PdfCheckBox( PdfObject* pObject, PdfAnnotation* pWidget );
  public:
     /** Create a new PdfCheckBox
      */
@@ -823,7 +830,7 @@ class PODOFO_DOC_API PdfRadioButton : public PdfButton {
 private:
     /** Create a new PdfRadioButton
      */
-    PdfRadioButton( PdfAnnotation* pWidget );
+    PdfRadioButton( PdfObject *pObject, PdfAnnotation* pWidget );
 public:
     /** Create a new PdfRadioButton
      */
@@ -869,7 +876,7 @@ class PODOFO_DOC_API PdfTextField : public PdfField {
 private:
     /** Create a new PdfTextField
      */
-    PdfTextField( PdfAnnotation* pWidget );
+    PdfTextField( PdfObject *pObject, PdfAnnotation* pWidget );
  public:
     /** Create a new PdfTextField
      */
@@ -1157,7 +1164,7 @@ class PODOFO_DOC_API PdfListField : public PdfField {
     };
     /** Create a new PdfListField
      */
-    PdfListField( EPdfField eField, PdfAnnotation* pWidget );
+    PdfListField( EPdfField eField, PdfObject *pObject, PdfAnnotation* pWidget );
 
     /** Create a new PdfTextField
      */
@@ -1377,7 +1384,7 @@ class PODOFO_DOC_API PdfComboBox : public PdfListField {
  private:
     /** Create a new PdfComboBox
      */
-    PdfComboBox( PdfAnnotation* pWidget );
+    PdfComboBox( PdfObject *pObject, PdfAnnotation* pWidget );
  public:
     /** Create a new PdfTextField
      */
@@ -1442,7 +1449,7 @@ class PODOFO_DOC_API PdfListBox : public PdfListField {
  private:
     /** Create a new PdfListBox
      */
-     PdfListBox( PdfAnnotation* pWidget );
+     PdfListBox( PdfObject *pObject, PdfAnnotation* pWidget );
  public:
     /** Create a new PdfTextField
      */

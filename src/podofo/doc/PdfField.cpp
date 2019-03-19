@@ -108,8 +108,8 @@ PdfField::PdfField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, Pdf
 			  : ePdfAcroFormDefaultAppearance_BlackText12pt ));
 }
 
-PdfField::PdfField(EPdfField eField, PdfAnnotation * pWidget)
-    : m_pObject( pWidget->GetObject() ), m_pWidget( pWidget ), m_eField( eField )
+PdfField::PdfField( EPdfField eField, PdfObject *pObject, PdfAnnotation *pWidget )
+    : m_pObject( pObject ), m_pWidget( pWidget ), m_eField( eField )
 {
 }
 
@@ -119,25 +119,35 @@ PdfField::PdfField( const PdfField & rhs )
     this->operator=( rhs );
 }
 
-PdfField * PdfField::CreateField( PdfAnnotation * pWidget)
+PdfField * PdfField::CreateField( PdfObject *pObject )
 {
-    EPdfField type = GetFieldType( *pWidget->GetObject() );
+    return createField( pObject, NULL );
+}
+
+PdfField * PdfField::CreateField( PdfAnnotation *pWidget )
+{
+    return createField( pWidget->GetObject(), pWidget);
+}
+
+PdfField * PdfField::createField( PdfObject *pObject, PdfAnnotation *pWidget )
+{
+    EPdfField type = GetFieldType( *pObject );
     switch ( type )
     {
     case PoDoFo::ePdfField_PushButton:
-        return new PdfPushButton( pWidget );
+        return new PdfPushButton( pObject, pWidget );
     case PoDoFo::ePdfField_CheckBox:
-        return new PdfCheckBox(pWidget);
+        return new PdfCheckBox( pObject, pWidget );
     case PoDoFo::ePdfField_RadioButton:
-        return new PdfRadioButton(pWidget);
+        return new PdfRadioButton( pObject, pWidget );
     case PoDoFo::ePdfField_TextField:
-        return new PdfTextField(pWidget);
+        return new PdfTextField( pObject, pWidget );
     case PoDoFo::ePdfField_ComboBox:
-        return new PdfComboBox(pWidget);
+        return new PdfComboBox( pObject, pWidget );
     case PoDoFo::ePdfField_ListBox:
-        return new PdfListBox(pWidget);
+        return new PdfListBox( pObject, pWidget );
     case PoDoFo::ePdfField_Signature:
-        return new PdfSignatureField(pWidget);
+        return new PdfSignatureField( pObject, pWidget );
     default:
         PODOFO_RAISE_ERROR(ePdfError_InvalidEnumValue);
     }
@@ -505,8 +515,8 @@ void PdfField::AddAlternativeAction( const PdfName & rsName, const PdfAction & r
 
 /////////////////////////////////////////////////////////////////////////////
 
-PdfButton::PdfButton( EPdfField eField, PdfAnnotation * pWidget)
-    : PdfField( eField, pWidget )
+PdfButton::PdfButton( EPdfField eField, PdfObject* pObject, PdfAnnotation* pWidget )
+    : PdfField( eField, pObject, pWidget )
 {
 }
 
@@ -553,8 +563,8 @@ const PdfString PdfButton::GetCaption() const
 
 /////////////////////////////////////////////////////////////////////////////
 
-PdfPushButton::PdfPushButton( PdfAnnotation* pWidget )
-    : PdfButton( ePdfField_PushButton, pWidget )
+PdfPushButton::PdfPushButton( PdfObject* pObject, PdfAnnotation* pWidget )
+    : PdfButton( ePdfField_PushButton, pObject, pWidget )
 {
     // NOTE: We assume initialization was performed in the given object
 }
@@ -670,8 +680,8 @@ const PdfString PdfPushButton::GetAlternateCaption() const
 
 /////////////////////////////////////////////////////////////////////////////
 
-PdfCheckBox::PdfCheckBox( PdfAnnotation* pWidget )
-    : PdfButton( ePdfField_CheckBox, pWidget )
+PdfCheckBox::PdfCheckBox( PdfObject* pObject, PdfAnnotation* pWidget )
+    : PdfButton( ePdfField_CheckBox, pObject, pWidget )
 {
     // NOTE: We assume initialization was performed in the given object
 }
@@ -796,8 +806,8 @@ bool PdfCheckBox::IsChecked() const
 
 /////////////////////////////////////////////////////////////////////////////
 
-PdfTextField::PdfTextField( PdfAnnotation* pWidget )
-    : PdfField( ePdfField_TextField, pWidget )
+PdfTextField::PdfTextField( PdfObject *pObject, PdfAnnotation* pWidget )
+    : PdfField( ePdfField_TextField, pObject, pWidget )
 {
     // NOTE: We assume initialization was performed in the given object
 }
@@ -877,8 +887,8 @@ pdf_long  PdfTextField::GetMaxLen() const
 
 /////////////////////////////////////////////////////////////////////////////
 
-PdfListField::PdfListField( EPdfField eField, PdfAnnotation * pWidget )
-    : PdfField( eField, pWidget )
+PdfListField::PdfListField( EPdfField eField, PdfObject *pObject, PdfAnnotation * pWidget )
+    : PdfField( eField, pObject, pWidget )
 {
 
 }
@@ -976,7 +986,7 @@ const PdfString PdfListField::GetItem( int nIndex ) const
     if( item.IsArray() )
     {
         PdfArray &itemArray = item.GetArray();
-        if( itemArray.size() < 2 )
+        if( itemArray.size() < 2 ) 
         {
             PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
         }
@@ -1003,7 +1013,7 @@ const PdfString PdfListField::GetItemDisplayText( int nIndex ) const
     if( item.IsArray() )
     {
         PdfArray &itemArray = item.GetArray();
-        if( itemArray.size() < 2 )
+        if( itemArray.size() < 2 ) 
         {
             PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
         }
@@ -1032,7 +1042,7 @@ void PdfListField::SetSelectedItem( int nIndex )
 
 int PdfListField::GetSelectedItem() const
 {
-    PdfObject *valueObj = m_pObject->GetDictionary().FindKey( "V" );
+    PdfObject *valueObj = m_pObject->GetDictionary().FindKey( "V" ); 
     if( valueObj && !( valueObj->IsString() || valueObj->IsHexString() ) )
         return -1;
 
@@ -1054,8 +1064,8 @@ int PdfListField::GetSelectedItem() const
 
 /////////////////////////////////////////////////////////////////////////////
 
-PdfComboBox::PdfComboBox( PdfAnnotation* pWidget )
-    : PdfListField( ePdfField_ComboBox, pWidget )
+PdfComboBox::PdfComboBox( PdfObject *pObject, PdfAnnotation* pWidget )
+    : PdfListField( ePdfField_ComboBox, pObject, pWidget )
 {
     // NOTE: We assume initialization was performed in the given object
 }
@@ -1099,8 +1109,8 @@ PdfComboBox::PdfComboBox( const PdfField & rhs )
 
 /////////////////////////////////////////////////////////////////////////////
 
-PdfListBox::PdfListBox( PdfAnnotation* pWidget )
-    : PdfListField( ePdfField_ListBox, pWidget )
+PdfListBox::PdfListBox( PdfObject *pObject, PdfAnnotation* pWidget )
+    : PdfListField( ePdfField_ListBox, pObject, pWidget )
 {
     // NOTE: We assume initialization was performed in the given object
 }
@@ -1142,8 +1152,8 @@ PdfListBox::PdfListBox( const PdfField & rhs )
     }
 }
 
-PdfRadioButton::PdfRadioButton( PdfAnnotation* pWidget )
-    : PdfButton( ePdfField_RadioButton, pWidget )
+PdfRadioButton::PdfRadioButton( PdfObject *pObject, PdfAnnotation* pWidget )
+    : PdfButton( ePdfField_RadioButton, pObject, pWidget )
 {
     // NOTE: We assume initialization was performed in the given object
 }

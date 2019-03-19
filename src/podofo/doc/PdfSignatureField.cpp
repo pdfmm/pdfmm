@@ -57,8 +57,8 @@ PdfSignatureField::PdfSignatureField( PdfAnnotation* pWidget, PdfAcroForm* pPare
         Init();
 }
 
-PdfSignatureField::PdfSignatureField( PdfAnnotation* pWidget )
-	:PdfField( pWidget->GetObject(), pWidget )
+PdfSignatureField::PdfSignatureField( PdfObject* pObject, PdfAnnotation* pWidget )
+	: PdfField( PoDoFo::ePdfField_Signature, pObject, pWidget )
 {
     m_pSignatureObj = NULL;
 

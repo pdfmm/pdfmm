@@ -69,9 +69,10 @@ public:
 
     /** Creates a PdfSignatureField from an existing PdfAnnotation, which should
      *  be an annotation with a field type Sig.
+     *	\param pObject the object
      *	\param pWidget the annotation to create from
      */
-    PdfSignatureField( PdfAnnotation* pWidget );
+    PdfSignatureField( PdfObject* pObject, PdfAnnotation* pWidget );
 
     /** Set an appearance stream for this signature field
      *  to specify its visual appearance
