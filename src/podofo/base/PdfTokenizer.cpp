@@ -595,10 +595,12 @@ void PdfTokenizer::ReadDictionary( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
 {
     PdfVariant    val;
     PdfName       key;
-    PdfDictionary dict;
     EPdfTokenType eType;
     const char *  pszToken;
     std::auto_ptr<std::vector<char> > contentsHexBuffer;
+
+    rVariant = PdfDictionary();
+    PdfDictionary &dict = rVariant.GetDictionary();
 
     for( ;; )
     {
@@ -680,8 +682,6 @@ void PdfTokenizer::ReadDictionary( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
         val = string;
         dict.AddKey( "Contents", val );
     }
-
-    rVariant = dict;
 }
 
 void PdfTokenizer::ReadArray( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
@@ -689,7 +689,8 @@ void PdfTokenizer::ReadArray( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
     const char*   pszToken;
     EPdfTokenType eType;
     PdfVariant    var;
-    PdfArray      array;
+    rVariant = PdfArray();
+    PdfArray &array = rVariant.GetArray();
 
     for( ;; )
     {
@@ -704,8 +705,6 @@ void PdfTokenizer::ReadArray( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
         this->GetNextVariant( pszToken, eType, var, pEncrypt );
         array.push_back( var );
     }
-
-    rVariant = array;
 }
 
 void PdfTokenizer::ReadString( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
