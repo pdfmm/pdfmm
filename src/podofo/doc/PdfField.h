@@ -282,6 +282,10 @@ class PODOFO_DOC_API PdfField {
      */
     PdfString GetFieldName() const;
 
+    /** \returns the parents qualified name of this PdfField
+     */
+    PdfString GetFullFieldName() const;
+
     /**
      * Set the alternate name of this field which 
      * is used to display the fields name to the user

@@ -478,6 +478,28 @@ PdfString PdfField::GetFieldName() const
     return name->GetString();
 }
 
+PdfString PdfField::GetFullFieldName() const
+{
+    PdfString ret = PdfString::StringNull;
+    PdfObject *object = m_pObject;
+    while ( object )
+    {
+        PdfDictionary &dict = object->GetDictionary();
+        PdfObject *nameObj = dict.GetKey( "T" );
+        if ( nameObj != NULL )
+        {
+            PdfString name = nameObj->GetString();
+            if ( ret.IsValid() )
+                ret = PdfString::FromUtf8String( ret.GetStringUtf8() + "." + name.GetStringUtf8() );
+            else
+                ret = name.GetStringUtf8();
+        }
+        object = dict.FindKey( "Parent" );
+    }
+
+    return ret;
+}
+
 void PdfField::SetAlternateName( const PdfString & rsName )
 {
     m_pObject->GetDictionary().AddKey( PdfName("TU"), rsName );
