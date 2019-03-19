@@ -249,6 +249,11 @@ PdfString::~PdfString()
 {
 }
 
+PdfString PdfString::FromUtf8String( const std::string &str )
+{
+    return PdfString( ( const pdf_utf8 * )str.c_str(), str.size() );
+}
+
 void PdfString::SetHexData( const char* pszHex, pdf_long lLen, PdfEncrypt* pEncrypt )
 {
     AssertMutable();

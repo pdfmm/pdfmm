@@ -163,6 +163,12 @@ class PODOFO_API PdfString : public PdfDataType {
 
     ~PdfString();
 
+    /** Construct a new PdfString from an UTF-8 encoded string.
+     *
+     *  \param str an UTF-8 encoded string.
+     */
+    static PdfString FromUtf8String( const std::string &str );
+
     /** Set hex-encoded data as the strings data. 
      *  \param pszHex must be hex-encoded data.
      *  \param lLen   length of the hex-encoded data.
