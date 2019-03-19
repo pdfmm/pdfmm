@@ -76,7 +76,7 @@ void PdfSignatureField::SetAppearanceStream( PdfXObject* pObject, EPdfAnnotation
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    SetAppearanceStreamForObject( m_pObject, pObject, eAppearance, state );
+    m_pWidget->SetAppearanceStream( pObject, eAppearance, state );
     
     this->GetAppearanceCharacteristics( true );
 }
