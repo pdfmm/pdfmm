@@ -381,7 +381,9 @@ enum EPdfPageSize {
     ePdfPageSize_A6,              /**< DIN A6  */
     ePdfPageSize_Letter,          /**< Letter  */
     ePdfPageSize_Legal,           /**< Legal   */
-    ePdfPageSize_Tabloid          /**< Tabloid */
+    ePdfPageSize_Tabloid,         /**< Tabloid */
+
+    ePdfPageSize_Unknown = 0xff
 };
 
 /**
