@@ -41,8 +41,6 @@
 
 namespace PoDoFo {
 
-#define INITIAL_SIZE 4096
-
 class PdfOutputDevice;
 
 /** An interface for writing blocks of data to 
@@ -124,7 +122,8 @@ class PODOFO_API PdfFileOutputStream : public PdfOutputStream {
  */
 class PODOFO_API PdfMemoryOutputStream : public PdfOutputStream {
  public:
-    
+    static const pdf_long INITIAL_SIZE = 4096;
+
     /** 
      *  Construct a new PdfMemoryOutputStream
      *  \param lInitial initial size of the buffer
