@@ -93,6 +93,12 @@ public:
      */
     void SetSignature(const PdfData &signatureData);
 
+    /** Set the signer name
+    *
+    *  \param rsText the signer name
+    */
+    void SetSignerName(const PdfString & rsText);
+
     /** Set reason of the signature
      *
      *  \param rsText the reason of signature
@@ -121,6 +127,12 @@ public:
      *  \param perm document modification permission
      */
     void AddCertificationReference(PdfObject *pDocumentCatalog, EPdfCertPermission perm = ePdfCertPermission_NoPerms);
+
+    /** Get the signer name
+    *
+    *  \returns the found signer object
+    */
+    const PdfObject * GetSignerName() const;
 
     /** Get the reason of the signature
     *

@@ -88,6 +88,16 @@ void PdfSignatureField::Init()
     EnsureSignatureObject ();
 }
 
+void PdfSignatureField::SetSignerName(const PdfString & rsText)
+{
+    if (!m_pSignatureObj)
+    {
+        PODOFO_RAISE_ERROR(ePdfError_InvalidHandle);
+    }
+
+    m_pSignatureObj->GetDictionary().AddKey(PdfName("Name"), rsText);
+}
+
 void PdfSignatureField::SetSignatureReason(const PdfString & rsText)
 {
     if( !m_pSignatureObj )
@@ -249,6 +259,11 @@ const PdfObject * PdfSignatureField::GetSignatureLocation() const
 const PdfObject * PdfSignatureField::GetSignatureDate() const
 {
     return m_pSignatureObj->GetDictionary().GetKey("M");
+}
+
+const PdfObject * PdfSignatureField::GetSignerName() const
+{
+    return m_pSignatureObj->GetDictionary().GetKey("Name");
 }
 
 PdfObject* PdfSignatureField::GetSignatureObject( void ) const
