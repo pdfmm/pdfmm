@@ -158,6 +158,11 @@ class PODOFO_DOC_API PdfAnnotation : public PdfElement {
      */
     bool HasAppearanceStream() const;
 
+    /**
+    * \returns the appearance stream for this object
+    */
+    PdfObject * GetAppearanceStream( EPdfAnnotationAppearance eAppearance = ePdfAnnotationAppearance_Normal );
+
     /** Get the rectangle of this annotation.
      *  \returns a rectangle
      */

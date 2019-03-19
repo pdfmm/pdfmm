@@ -79,6 +79,8 @@ const char* PdfAnnotation::s_names[] = {
     NULL
 };
 
+static PdfName GetAppearanceName( EPdfAnnotationAppearance eAppearance );
+
 PdfAnnotation::PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRect & rRect, PdfVecObjects* pParent )
     : PdfElement( "Annot", pParent ), m_eAnnotation( eAnnot ), m_pAction( NULL ), m_pFileSpec( NULL ), m_pPage( pPage )
 {
@@ -235,6 +237,27 @@ void PdfAnnotation::SetAppearanceStream( PdfXObject* pObject, EPdfAnnotationAppe
 bool PdfAnnotation::HasAppearanceStream() const
 {
     return this->GetObject()->GetDictionary().HasKey( "AP" );
+}
+
+PdfObject * PdfAnnotation::GetAppearanceStream( EPdfAnnotationAppearance eAppearance )
+{
+    PdfObject *apObj = GetObject()->GetDictionary().GetKey( "AP" );
+    if ( apObj == NULL )
+        return NULL;
+
+    if ( !apObj->IsDictionary() )
+        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
+
+    PdfName apName = GetAppearanceName( eAppearance );
+    PdfObject *apObjInn = apObj->GetDictionary().GetKey( apName );
+    if ( apObjInn == NULL)
+        return NULL;
+
+    if ( !apObjInn->IsReference() )
+        return apObjInn;
+
+    PdfReference reference = apObjInn->GetReference();
+    return GetObject()->GetOwner()->GetObject( reference );
 }
 
 
@@ -425,4 +448,18 @@ void PdfAnnotation::SetColor()
     this->GetObject()->GetDictionary().AddKey( "C", c );
 }
 
+PdfName GetAppearanceName( EPdfAnnotationAppearance eAppearance )
+{
+    switch ( eAppearance )
+    {
+        case PoDoFo::ePdfAnnotationAppearance_Normal:
+            return PdfName( "N" );
+        case PoDoFo::ePdfAnnotationAppearance_Rollover:
+            return PdfName( "R" );
+        case PoDoFo::ePdfAnnotationAppearance_Down:
+            return PdfName( "D" );
+        default:
+            PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Invalid appearance type" );
+    }
+}
 };
