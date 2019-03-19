@@ -368,7 +368,7 @@ PdfObject& PdfArray::operator[](size_type __n)
 {
     AssertMutable();
 
-    return m_objects[__n];
+    return m_objects.at( __n );
 }
 
 // -----------------------------------------------------
@@ -376,7 +376,7 @@ PdfObject& PdfArray::operator[](size_type __n)
 // -----------------------------------------------------
 const PdfObject& PdfArray::operator[](size_type __n) const
 {
-    return m_objects[__n];
+    return m_objects.at( __n );
 }
 
 // -----------------------------------------------------
