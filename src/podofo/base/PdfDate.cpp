@@ -146,11 +146,14 @@ PdfDate::~PdfDate()
 
 void PdfDate::CreateStringRepresentation()
 {
-    const int   ZONE_STRING_SIZE = 6;
+    const int   ZONE1_STRING_SIZE = 6;
+    const int   ZONE2_STRING_SIZE = 3;
     const char* INVALIDDATE     = "INVALIDDATE";
 
-    char szZone[ZONE_STRING_SIZE];
+    char szZone1[ZONE1_STRING_SIZE];
+    char szZone2[ZONE2_STRING_SIZE] = { 0 };
     char szDate[PDF_DATE_BUFFER_SIZE];
+    char szDateW3C[W3C_DATE_BUFFER_SIZE];
 
     struct tm* pstm = localtime( &m_time );
     if( !pstm )
@@ -159,6 +162,7 @@ void PdfDate::CreateStringRepresentation()
         ss << "Invalid date specified with time_t value " << m_time << "\n";
         PdfError::DebugMessage( ss.str().c_str() );
         strcpy( m_szDate, INVALIDDATE );
+        strcpy( m_szDateW3C, INVALIDDATE );
         return;
     }
 
@@ -173,35 +177,42 @@ void PdfDate::CreateStringRepresentation()
     // assumes _timezone cannot include DST (mabri: documentation unclear IMHO)
 
     time_t time_off = cur_time - mktime( cur_gmt ); // interpreted as local
-    snprintf( szZone, ZONE_STRING_SIZE, "%+03d",
+    snprintf( szZone1, ZONE1_STRING_SIZE, "%+03d",
             static_cast<int>( time_off/3600 ) );
 #else
-    if( strftime( szZone, ZONE_STRING_SIZE, "%z", &stm ) == 0 )
+    if( strftime( szZone1, ZONE1_STRING_SIZE, "%z", &stm ) == 0 )
     {
         std::ostringstream ss;
         ss << "Generated invalid date from time_t value " << m_time
            << " (couldn't determine time zone)\n";
         PdfError::DebugMessage( ss.str().c_str() );
         strcpy( m_szDate, INVALIDDATE );
+        strcpy( m_szDateW3C, INVALIDDATE );
         return;
     }
 #endif
 
-    // only the first 3 characters are important for the pdf date representation
-    // e.g. +01 instead off +0100
-    szZone[3] = '\0';
-
-    if( strftime( szDate, PDF_DATE_BUFFER_SIZE, "D:%Y%m%d%H%M%S", &stm ) == 0 )
+    if( strftime( szDate, PDF_DATE_BUFFER_SIZE, "D:%Y%m%d%H%M%S", &stm ) == 0 ||
+        strftime( szDateW3C, W3C_DATE_BUFFER_SIZE, "%Y-%m-%dT%H:%M:%S", &stm ) == 0)
     {
         std::ostringstream ss;
         ss << "Generated invalid date from time_t value " << m_time
            << "\n";
         PdfError::DebugMessage( ss.str().c_str() );
         strcpy( m_szDate, INVALIDDATE );
+        strcpy( m_szDateW3C, INVALIDDATE );
         return;
     }
 
-    snprintf( m_szDate, PDF_DATE_BUFFER_SIZE, "%s%s'00'", szDate, szZone );
+
+    // only the first 3 characters are important for the pdf date representation
+    // e.g. +01 instead off +0100
+    strncat(szZone2, &szZone1[3], ZONE2_STRING_SIZE - 1);
+    szZone1[3] = '\0';
+
+    snprintf( m_szDate, PDF_DATE_BUFFER_SIZE, "%s%s'00'", szDate, szZone1 );
+    snprintf( m_szDateW3C, PDF_DATE_BUFFER_SIZE, strlen(szZone2) == 0 ? "%s%s" : "%s%s:%s",
+        szDateW3C, szZone1, szZone2);
     m_bValid = true;
 }
 

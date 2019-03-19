@@ -42,6 +42,9 @@
 // a PDF date has a maximum of 26 bytes incuding the terminating \0
 #define PDF_DATE_BUFFER_SIZE 26
 
+// a W3C date has a maximum of 26 bytes incuding the terminating \0
+#define W3C_DATE_BUFFER_SIZE 26
+
 namespace PoDoFo {
 
 /** This class is a date datatype as specified in the PDF 
@@ -113,6 +116,13 @@ class PODOFO_API PdfDate {
      */         
     inline void ToString( PdfString & rsString ) const;
 
+
+    /** The value returned is a W3C compliant date representation
+     *
+     *  \param rsString write the W3C date to a PdfString
+     */
+    inline void ToStringW3C(PdfString & rsString) const;
+
  private:
     /** Creates the internal string representation from
      *  a time_t value and writes it to m_szDate.
@@ -131,6 +141,7 @@ class PODOFO_API PdfDate {
  private:
     time_t m_time;
     char   m_szDate[PDF_DATE_BUFFER_SIZE + 1]; // include also room for a nul-terminator in the buffer
+    char   m_szDateW3C[W3C_DATE_BUFFER_SIZE + 1]; // include also room for a nul-terminator in the buffer
 
     bool   m_bValid;
 };
@@ -143,6 +154,11 @@ const time_t & PdfDate::GetTime() const
 void PdfDate::ToString( PdfString & rsString ) const
 {
     rsString = PdfString(  m_szDate );
+}
+
+void PdfDate::ToStringW3C(PdfString & rsString) const
+{
+    rsString = PdfString( m_szDateW3C );
 }
 
 bool PdfDate::IsValid() const
