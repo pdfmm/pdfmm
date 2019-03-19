@@ -102,6 +102,12 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
      */
     void SetImageColorSpace( EPdfColorSpace eColorSpace, const PdfArray *indexedData = NULL );
 
+    /** Get the color space of the image
+    *
+    *  \returns the color space of the image
+    */
+    EPdfColorSpace GetImageColorSpace();
+
     /** Set an ICC profile for this image.
      *
      *  \param pStream an input stream from which the ICC profiles data can be read

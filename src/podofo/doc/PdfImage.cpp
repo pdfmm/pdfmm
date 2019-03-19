@@ -126,6 +126,21 @@ void PdfImage::SetImageColorSpace( EPdfColorSpace eColorSpace, const PdfArray *i
     }
 }
 
+EPdfColorSpace PdfImage::GetImageColorSpace()
+{
+    PdfObject *colorSpace = GetObject()->GetIndirectKey("ColorSpace");
+    if (colorSpace == NULL)
+        return ePdfColorSpace_Unknown;
+
+    if (colorSpace->IsArray())
+        return ePdfColorSpace_Indexed;
+
+    if (colorSpace->IsName())
+        return PdfColor::GetColorSpaceForName(colorSpace->GetName());
+
+    return ePdfColorSpace_Unknown;
+}
+
 void PdfImage::SetImageICCProfile( PdfInputStream* pStream, long lColorComponents, EPdfColorSpace eAlternateColorSpace ) 
 {
     // Check lColorComponents for a valid value
