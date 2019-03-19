@@ -461,10 +461,11 @@ void PdfField::SetFieldName( const PdfString & rsName )
 
 PdfString PdfField::GetFieldName() const
 {
-    if( m_pObject->GetDictionary().HasKey( PdfName("T" ) ) )
-        return m_pObject->GetDictionary().GetKey( PdfName("T" ) )->GetString();
+    PdfObject *name = m_pObject->GetDictionary().FindKeyParent( "T" );
+    if( !name )
+        return PdfString::StringNull;
 
-    return PdfString::StringNull;
+    return name->GetString();
 }
 
 void PdfField::SetAlternateName( const PdfString & rsName )
@@ -961,64 +962,65 @@ void PdfListField::RemoveItem( int nIndex )
 
 const PdfString PdfListField::GetItem( int nIndex ) const
 {
-    PdfArray   opt;
-    
-    if( m_pObject->GetDictionary().HasKey( PdfName("Opt") ) )
-        opt = m_pObject->GetDictionary().GetKey( PdfName("Opt") )->GetArray();
-    
-    if( nIndex < 0 || nIndex > static_cast<int>(opt.size()) )
+    PdfObject *opt = m_pObject->GetDictionary().FindKey( "Opt" );
+    if ( opt == NULL )
+        return PdfString::StringNull;
+
+    PdfArray &optArray = opt->GetArray();
+    if ( nIndex < 0 || nIndex >= static_cast<int>( optArray.size() ) )
     {
         PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
     }
 
-    PdfVariant var = opt[nIndex];
-    if( var.IsArray() ) 
+    PdfObject &item = optArray[nIndex];
+    if( item.IsArray() )
     {
-        if( var.GetArray().size() < 2 ) 
+        PdfArray &itemArray = item.GetArray();
+        if( itemArray.size() < 2 )
         {
             PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
         }
         else
-            return var.GetArray()[0].GetString();
+            return itemArray[0].GetString();
     }
 
-    return var.GetString();
+    return item.GetString();
 }
 
 const PdfString PdfListField::GetItemDisplayText( int nIndex ) const
 {
-    PdfArray   opt;
-    
-    if( m_pObject->GetDictionary().HasKey( PdfName("Opt") ) )
-        opt = m_pObject->GetDictionary().GetKey( PdfName("Opt") )->GetArray();
-    
-    if( nIndex < 0 || nIndex >= static_cast<int>(opt.size()) )
+    PdfObject *opt = m_pObject->GetDictionary().FindKey( "Opt" );
+    if ( opt == NULL )
+        return PdfString::StringNull;
+
+    PdfArray &optArray = opt->GetArray();
+    if ( nIndex < 0 || nIndex >= static_cast<int>( optArray.size() ) )
     {
         PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
     }
 
-    PdfVariant var = opt[nIndex];
-    if( var.IsArray() ) 
+    PdfObject &item = optArray[nIndex];
+    if( item.IsArray() )
     {
-        if( var.GetArray().size() < 2 ) 
+        PdfArray &itemArray = item.GetArray();
+        if( itemArray.size() < 2 )
         {
             PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
         }
         else
-            return var.GetArray()[1].GetString();
+            return itemArray[1].GetString();
     }
 
-    return var.GetString();
+    return item.GetString();
 }
 
 size_t PdfListField::GetItemCount() const
 {
-    PdfArray   opt;
+    PdfObject *opt = m_pObject->GetDictionary().FindKey( "Opt" );
+    if ( opt == NULL )
+        return 0;
     
-    if( m_pObject->GetDictionary().HasKey( PdfName("Opt") ) )
-        opt = m_pObject->GetDictionary().GetKey( PdfName("Opt") )->GetArray();
-    
-    return opt.size();
+    return opt->GetArray().size();
 }
 
 void PdfListField::SetSelectedItem( int nIndex )
@@ -1030,18 +1032,20 @@ void PdfListField::SetSelectedItem( int nIndex )
 
 int PdfListField::GetSelectedItem() const
 {
-    if( m_pObject->GetDictionary().HasKey( PdfName("V") ) )
+    PdfObject *valueObj = m_pObject->GetDictionary().FindKey( "V" );
+    if( valueObj && !( valueObj->IsString() || valueObj->IsHexString() ) )
+        return -1;
+
+    PdfString value = valueObj->GetString();
+    PdfObject *opt = m_pObject->GetDictionary().FindKey( "Opt" );
+    if ( opt == NULL )
+        return -1;
+
+    PdfArray &optArray = opt->GetArray();
+    for (int i = 0; i < static_cast<int>( optArray.size() ); i++)
     {
-        PdfObject* pValue = m_pObject->GetDictionary().GetKey( PdfName("V") );
-        if( pValue->IsString() || pValue->IsHexString() )
-        {
-            PdfString value = pValue->GetString();
-            for( int i=0;i<static_cast<int>(this->GetItemCount());i++ ) 
-            {
-                if( this->GetItem( i ) == value )
-                    return i;
-            }
-        }
+        if ( optArray[i].GetString() == value )
+            return i;
     }
 
     return -1;
