@@ -41,7 +41,7 @@
 namespace PoDoFo {
 
 PdfArray::PdfArray()
-    : PdfArrayBaseClass(), PdfDataType(), m_bDirty( false )
+    : PdfDataType(), m_bDirty( false )
 {
 }
 
@@ -50,13 +50,13 @@ PdfArray::~PdfArray()
 }
 
 PdfArray::PdfArray( const PdfObject & var )
-    : PdfArrayBaseClass(), PdfDataType(), m_bDirty( false )
+    : PdfDataType(), m_bDirty( false )
 {
     this->push_back( var );
 }
 
 PdfArray::PdfArray( const PdfArray & rhs )
-    : PdfArrayBaseClass(rhs), PdfDataType(rhs), m_bDirty(rhs.m_bDirty)
+    : PdfDataType( rhs ), m_bDirty( rhs.m_bDirty ), m_objects( rhs.m_objects )
 {
     this->operator=( rhs );
 }
@@ -67,7 +67,7 @@ PdfArray& PdfArray::operator=(const PdfArray& rhs)
     if (this != &rhs)
     {
         m_bDirty = rhs.m_bDirty;
-        PdfArrayBaseClass::operator=( rhs );
+        m_objects = rhs.m_objects;
     }
     else
     {
