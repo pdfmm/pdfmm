@@ -43,6 +43,7 @@
 #include "PdfDefines.h"
 #include "PdfRefCountedBuffer.h"
 #include "PdfString.h"
+#include "PdfName.h"
 
 namespace PoDoFo {
 
@@ -51,7 +52,6 @@ class PdfData;
 class PdfDataType;
 class PdfDictionary;
 class PdfEncrypt;
-class PdfName;
 class PdfOutputDevice;
 class PdfString;
 class PdfReference;
@@ -275,6 +275,14 @@ class PODOFO_API PdfVariant {
      *  \return the value of the number
      */
     inline double GetReal() const;
+
+    /** Set the name value of this object
+    *  \param d the name value
+    *
+    *  This will set the dirty flag of this object.
+    *  \see IsDirty
+    */
+    inline void SetName( const PdfName &name );
 
     /** Set the string value of this object.
      * \param str the string value
@@ -738,6 +746,23 @@ PdfData & PdfVariant::GetRawData()
     // We need a c-style casts here to avoid crashes
     // because a reinterpret_cast might point to a different position.
     return *((PdfData*)m_Data.pData);
+}
+
+// -----------------------------------------------------
+//
+// -----------------------------------------------------
+void PdfVariant::SetName( const PdfName &name )
+{
+    DelayedLoad();
+
+    if ( !IsName() )
+    {
+        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
+    }
+
+    AssertMutable();
+    *((PdfName*)m_Data.pData) = name;
+    SetDirty( true );
 }
 
 // -----------------------------------------------------
