@@ -179,6 +179,7 @@ void PdfParser::Init()
 
     m_ePdfVersion     = ePdfVersion_Default;
 
+    m_magicOffset     = 0;
     m_nXRefOffset     = 0;
     m_nFirstObject    = 0;
     m_nNumObjects     = 0;
@@ -382,6 +383,19 @@ bool PdfParser::IsPdfFile()
 {
     const char* szPdfMagicStart = "%PDF-";
     int i;
+
+    m_device.Device()->Seek( 0, std::ios_base::beg );
+    while (true)
+    {
+        unsigned char c = ( unsigned char )m_device.Device()->Look();
+        if (!IsWhitespace( c ))
+            break;
+
+        // consume the whitespace
+        m_device.Device()->GetChar();
+    }
+
+    m_magicOffset = m_device.Device()->Tell();
 
     if( m_device.Device()->Read( m_buffer.GetBuffer(), PDF_MAGIC_LEN ) != PDF_MAGIC_LEN )
         return false;
@@ -667,7 +681,9 @@ void PdfParser::ReadXRef( pdf_long* pXRefOffset )
 			PODOFO_RAISE_ERROR( ePdfError_NoXRef );
 		}
     }
-    *pXRefOffset = this->GetNextNumber();
+
+    // Support also files with whitespace offset before magic start
+    *pXRefOffset = this->GetNextNumber() + m_magicOffset;
 }
 
 void PdfParser::ReadXRefContents( pdf_long lOffset, bool bPositionAtEnd )
@@ -907,7 +923,9 @@ void PdfParser::ReadXRefSubsection( pdf_int64 & nFirstObject, pdf_int64 & nNumOb
             // eol is a 2-character end-of-line sequence
             int read = sscanf( m_buffer.GetBuffer(), "%10" PDF_FORMAT_INT64 " %5" PDF_FORMAT_INT64 " %c%c%c",
                               &llOffset, &llGeneration, &cUsed, &empty1, &empty2 );
-            
+
+            // Support also files with whitespace offset before magic start
+            llOffset += m_magicOffset;
             if ( read != 5 || !CheckEOL( empty1, empty2 ) )
             {
                 // part of XrefEntry is missing, or i/o error

@@ -581,6 +581,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
 
     bool          m_bLoadOnDemand;
 
+    pdf_long      m_magicOffset;
     pdf_long      m_nXRefOffset;
     long          m_nFirstObject;
     long          m_nNumObjects;
