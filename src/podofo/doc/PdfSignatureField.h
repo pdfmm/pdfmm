@@ -122,6 +122,24 @@ public:
      */
     void AddCertificationReference(PdfObject *pDocumentCatalog, EPdfCertPermission perm = ePdfCertPermission_NoPerms);
 
+    /** Get the reason of the signature
+    *
+    *  \returns the found reason object
+    */
+    const PdfObject * GetSignatureReason() const;
+
+    /** Get the location of the signature
+    *
+    *  \returns the found location object
+    */
+    const PdfObject * GetSignatureLocation() const;
+
+    /** Get the date of the signature
+    *
+    *  \returns the found date object
+    */
+    const PdfObject * GetSignatureDate() const;
+
     /** Returns signature object for this signature field.
      *  It can be NULL, when the signature field was created
      *  from an existing annotation and it didn't have set it.

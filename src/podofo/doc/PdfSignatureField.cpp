@@ -236,6 +236,21 @@ void PdfSignatureField::AddCertificationReference( PdfObject* pDocumentCatalog, 
     m_pSignatureObj->GetDictionary().AddKey(PdfName("Reference"), PdfVariant(refers));
 }
 
+const PdfObject * PdfSignatureField::GetSignatureReason() const
+{
+    return m_pSignatureObj->GetDictionary().GetKey("Reason");
+}
+
+const PdfObject * PdfSignatureField::GetSignatureLocation() const
+{
+    return m_pSignatureObj->GetDictionary().GetKey("Location");
+}
+
+const PdfObject * PdfSignatureField::GetSignatureDate() const
+{
+    return m_pSignatureObj->GetDictionary().GetKey("M");
+}
+
 PdfObject* PdfSignatureField::GetSignatureObject( void ) const
 {
     return m_pSignatureObj;
