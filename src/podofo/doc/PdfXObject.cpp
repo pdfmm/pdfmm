@@ -265,6 +265,19 @@ PdfXObject::PdfXObject( PdfObject* pObject )
         m_rRect = PdfRect( this->GetObject()->GetIndirectKey( "BBox" )->GetArray() );
 }
 
+PdfRect PdfXObject::GetRect() const
+{
+    return m_rRect;
+}
+
+void PdfXObject::SetRect( const PdfRect & rect )
+{
+    PdfVariant array;
+    rect.ToVariant( array );
+    GetObject()->GetDictionary().AddKey( "BBox", array );
+    m_rRect = rect;
+}
+
 void PdfXObject::EnsureResourcesInitialized()
 {
     if ( m_pResources != NULL )

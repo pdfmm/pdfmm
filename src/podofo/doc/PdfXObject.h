@@ -105,6 +105,15 @@ class PODOFO_DOC_API PdfXObject : public PdfElement, public PdfCanvas {
 
     virtual ~PdfXObject() { }
 
+    /** Get the rectangle of this xobject
+    *  \returns a rectangle
+    */
+    PdfRect GetRect() const;
+
+    /** Set the rectangle of this xobject
+    *  \param rect a rectangle
+    */
+    void SetRect( const PdfRect &rect );
 
     /** Ensure resources initialized on this XObject
     */
