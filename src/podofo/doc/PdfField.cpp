@@ -171,8 +171,7 @@ EPdfField PdfField::GetFieldType(const PdfObject & rObject)
     if (fieldType == PdfName("Btn"))
     {
         pdf_int64 flags;
-        if ( !PdfField::GetFieldFlag( rObject , flags ))
-            PODOFO_RAISE_ERROR(ePdfError_NoNumber);
+        PdfField::GetFieldFlags( rObject , flags );
 
         if ( ( flags & PdfButton::ePdfButton_PushButton ) == PdfButton::ePdfButton_PushButton)
         {
@@ -188,12 +187,13 @@ EPdfField PdfField::GetFieldType(const PdfObject & rObject)
         }
     }
     else if (fieldType == PdfName("Tx"))
+    {
         eField = ePdfField_TextField;
+    }
     else if (fieldType == PdfName("Ch"))
     {
         pdf_int64 flags;
-        if (!PdfField::GetFieldFlag(rObject, flags))
-            PODOFO_RAISE_ERROR(ePdfError_NoNumber);
+        PdfField::GetFieldFlags(rObject, flags);
 
         if ( ( flags & PdfListField::ePdfListField_Combo ) == PdfListField::ePdfListField_Combo )
         {
@@ -205,7 +205,9 @@ EPdfField PdfField::GetFieldType(const PdfObject & rObject)
         }
     }
     else if (fieldType == PdfName("Sig"))
+    {
         eField = ePdfField_Signature;
+    }
 
     return eField;
 }
@@ -301,14 +303,14 @@ void PdfField::SetFieldFlag( long lValue, bool bSet )
 bool PdfField::GetFieldFlag( long lValue, bool bDefault ) const
 {
     pdf_int64 flag;
-    if ( !GetFieldFlag( *m_pObject, flag) )
+    if ( !GetFieldFlags( *m_pObject, flag) )
         return bDefault;
 
     return ( flag & lValue ) == lValue;
 }
 
 
-bool PdfField::GetFieldFlag( const PdfObject & rObject, pdf_int64 & lValue )
+bool PdfField::GetFieldFlags( const PdfObject & rObject, pdf_int64 & lValue )
 {
     pdf_int64 lCur = 0;
 
@@ -317,7 +319,8 @@ bool PdfField::GetFieldFlag( const PdfObject & rObject, pdf_int64 & lValue )
         lValue = rObject.GetDictionary().GetKey( PdfName("Ff") )->GetNumber();
         return true;
     }
-    
+
+    lValue = 0;
     return false;
 }
 
