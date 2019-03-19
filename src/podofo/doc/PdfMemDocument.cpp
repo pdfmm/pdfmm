@@ -529,11 +529,6 @@ void PdfMemDocument::WriteUpdate( const wchar_t* pszFilename )
 
 void PdfMemDocument::WriteUpdate( PdfOutputDevice* pDevice, bool bTruncate )
 {
-    if( !IsLoadedForUpdate() )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_NotLoadedForUpdate );
-    }
-
     if( !pDevice )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
