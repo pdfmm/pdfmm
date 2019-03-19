@@ -217,14 +217,15 @@ void PdfObject::WriteObject( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode,
 
     if( m_reference.IsIndirect() )
     {
-        if( (eWriteMode & ePdfWriteMode_Clean) == ePdfWriteMode_Clean ) 
+        // CHECK-ME We want to make this in all the cases for PDF/A Compatibility
+        //if( (eWriteMode & ePdfWriteMode_Clean) == ePdfWriteMode_Clean )
         {
             pDevice->Print( "%i %i obj\n", m_reference.ObjectNumber(), m_reference.GenerationNumber() );
         }
-        else 
-        {
-            pDevice->Print( "%i %i obj", m_reference.ObjectNumber(), m_reference.GenerationNumber() );
-        }
+        //else
+        //{
+        //    pDevice->Print( "%i %i obj", m_reference.ObjectNumber(), m_reference.GenerationNumber() );
+        //}
     }
 
     if( pEncrypt ) 
