@@ -265,6 +265,14 @@ PdfXObject::PdfXObject( PdfObject* pObject )
         m_rRect = PdfRect( this->GetObject()->GetIndirectKey( "BBox" )->GetArray() );
 }
 
+void PdfXObject::EnsureResourcesInitialized()
+{
+    if ( m_pResources != NULL )
+        return;
+
+    InitResources();
+}
+
 void PdfXObject::InitXObject( const PdfRect & rRect, const char* pszPrefix )
 {
     PdfVariant    var;
@@ -289,10 +297,7 @@ void PdfXObject::InitXObject( const PdfRect & rRect, const char* pszPrefix )
     this->GetObject()->GetDictionary().AddKey( "FormType", PdfVariant( static_cast<pdf_int64>(PODOFO_LL_LITERAL(1)) ) ); // only 1 is only defined in the specification.
     this->GetObject()->GetDictionary().AddKey( "Matrix", m_matrix );
 
-    // The PDF specification suggests that we send all available PDF Procedure sets
-    this->GetObject()->GetDictionary().AddKey( "Resources", PdfObject( PdfDictionary() ) );
-    m_pResources = this->GetObject()->GetDictionary().GetKey( "Resources" );
-    m_pResources->GetDictionary().AddKey( "ProcSet", PdfCanvas::GetProcSet() );
+    InitResources();
 
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /XOb for XObject.
@@ -303,6 +308,14 @@ void PdfXObject::InitXObject( const PdfRect & rRect, const char* pszPrefix )
 
     m_Identifier = PdfName( out.str().c_str() );
     m_Reference  = this->GetObject()->Reference();
+}
+
+void PdfXObject::InitResources()
+{
+    // The PDF specification suggests that we send all available PDF Procedure sets
+    this->GetObject()->GetDictionary().AddKey("Resources", PdfObject(PdfDictionary()));
+    m_pResources = this->GetObject()->GetDictionary().GetKey("Resources");
+    m_pResources->GetDictionary().AddKey("ProcSet", PdfCanvas::GetProcSet());
 }
 
 PdfXObject::PdfXObject( const char* pszSubType, PdfDocument* pParent, const char* pszPrefix )

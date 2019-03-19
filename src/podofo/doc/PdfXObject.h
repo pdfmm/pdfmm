@@ -105,6 +105,11 @@ class PODOFO_DOC_API PdfXObject : public PdfElement, public PdfCanvas {
 
     virtual ~PdfXObject() { }
 
+
+    /** Ensure resources initialized on this XObject
+    */
+    void EnsureResourcesInitialized();
+
     /** Get access to the contents object of this page.
      *  If you want to draw onto the page, you have to add 
      *  drawing commands to the stream of the Contents object.
@@ -153,6 +158,7 @@ class PODOFO_DOC_API PdfXObject : public PdfElement, public PdfCanvas {
 
  protected:
     void InitXObject( const PdfRect & rRect, const char* pszPrefix = NULL );
+    void InitResources();
 
     PdfXObject( const char* pszSubType, PdfDocument* pParent, const char* pszPrefix = NULL );
     PdfXObject( const char* pszSubType, PdfVecObjects* pParent, const char* pszPrefix = NULL );
