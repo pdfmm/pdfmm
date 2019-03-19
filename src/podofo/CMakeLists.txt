@@ -105,10 +105,10 @@ SET(PODOFO_DOC_SOURCES
   doc/PdfXObject.cpp
   )
 
-IF(WIN32)
+IF(WIN32 AND PODOFO_BUILD_SHARED)
     # If we build for windows systems, we also include the resource file
     SET(PODOFO_DOC_SOURCES ${PODOFO_DOC_SOURCES} doc/podofo-doc.rc)
-ENDIF(WIN32)
+ENDIF()
 
 SET(PODOFO_HEADERS
   podofo-base.h
