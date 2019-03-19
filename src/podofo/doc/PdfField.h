@@ -101,8 +101,11 @@ class PODOFO_DOC_API PdfField {
 
     PdfField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, PdfStreamedDocument* pDoc );
 
-    PdfField( EPdfField eField, PdfAnnotation* pWidget, PdfAcroForm* pParent, PdfDocument* pDoc);
-    PdfField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc, bool bDefaultApperance);
+    PdfField( EPdfField eField, PdfAnnotation* pWidget, PdfAcroForm* pParent, PdfDocument* pDoc );
+
+    PdfField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc, bool bDefaultApperance );
+
+    PdfField( EPdfField eField, PdfAnnotation* pWidget );
 
     /** Create a copy of a PdfField object.
      *  Not the field on the page is copied - only the PdfField
@@ -135,6 +138,13 @@ class PODOFO_DOC_API PdfField {
     bool GetFieldFlag( long lValue, bool bDefault ) const;
 
     /**
+    *  \param rObject the object to test for field flags
+    *  \param lValue is set with the flag if found
+    *  \returns true if flag is found
+    */
+    static bool GetFieldFlag( const PdfObject &rObject, pdf_int64 & lValue );
+
+    /**
      * \param bCreate create the dictionary if it does not exist
      *
      * \returns a pointer to the appearance characteristics dictionary
@@ -158,6 +168,18 @@ class PODOFO_DOC_API PdfField {
     PdfField( const PdfField & rhs );
 
     virtual ~PdfField() { }
+
+    /** Create a PdfAcroForm dictionary object from an existing annottion
+    *  \param pWidget the widget annotation of this field
+    *  \returns the pointer to the created field
+    */
+    static PdfField * CreateField( PdfAnnotation* pWidget );
+
+    /** Infer the field type from the given object
+    *  \param pObject the object to infer the field type from
+    *  \returns the inferred type
+    */
+    static EPdfField GetFieldType( const PdfObject &pObject );
 
     /** Get the page of this PdfField
      *
@@ -572,12 +594,16 @@ inline PdfObject* PdfField::GetFieldObject() const
 }
 
 class PODOFO_DOC_API PdfButton : public PdfField {
+    friend class PdfField;
  protected:
     enum { ePdfButton_NoToggleOff      = 0x0004000,
            ePdfButton_Radio            = 0x0008000,
            ePdfButton_PushButton       = 0x0010000,
            ePdfButton_RadioInUnison    = 0x2000000
     };
+    /** Create a new PdfButton
+    */
+    PdfButton( EPdfField eField, PdfAnnotation* pWidget );
 
     /** Create a new PdfButton
      */
@@ -662,6 +688,12 @@ inline bool PdfButton::IsRadioButton() const
  *  but can toggle actions.
  */
 class PODOFO_DOC_API PdfPushButton : public PdfButton {
+    friend class PdfField;
+ private:
+    /** Create a new PdfPushButton
+     */
+    PdfPushButton( PdfAnnotation* pWidget );
+
  public:
     /** Create a new PdfPushButton
      */
@@ -718,6 +750,11 @@ class PODOFO_DOC_API PdfPushButton : public PdfButton {
 /** A checkbox can be checked or unchecked by the user
  */
 class PODOFO_DOC_API PdfCheckBox : public PdfButton {
+    friend class PdfField;
+ private:
+    /** Create a new PdfCheckBox
+     */
+    PdfCheckBox( PdfAnnotation* pWidget );
  public:
     /** Create a new PdfCheckBox
      */
@@ -778,7 +815,37 @@ class PODOFO_DOC_API PdfCheckBox : public PdfButton {
     void AddAppearanceStream( const PdfName & rName, const PdfReference & rReference );
 };
 
-// TODO: Dominiks PdfRadioButton
+/** A radio button
+ * TODO: This is just a stub
+*/
+class PODOFO_DOC_API PdfRadioButton : public PdfButton {
+    friend class PdfField;
+private:
+    /** Create a new PdfRadioButton
+     */
+    PdfRadioButton( PdfAnnotation* pWidget );
+public:
+    /** Create a new PdfRadioButton
+     */
+    PdfRadioButton( PdfAnnotation* pWidget, PdfAcroForm* pParent );
+
+    /** Create a new PdfRadioButton
+     */
+    PdfRadioButton( PdfPage* pPage, const PdfRect & rRect, PdfAcroForm* pParent );
+
+    /** Create a new PdfRadioButton
+     */
+    PdfRadioButton( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc );
+
+    /** Create a new PdfRadioButton
+     */
+    PdfRadioButton( PdfPage* pPage, const PdfRect & rRect, PdfStreamedDocument* pDoc );
+
+    /** Create a PdfRadioButton from a PdfField
+     *  \param rhs a PdfField that is a radio button
+     */
+    PdfRadioButton( const PdfField & rhs);
+};
 
 /** A textfield in a PDF file.
  *  
@@ -788,6 +855,7 @@ class PODOFO_DOC_API PdfCheckBox : public PdfButton {
  *  as path to a file which is going to be submitted.
  */
 class PODOFO_DOC_API PdfTextField : public PdfField {
+    friend class PdfField;
  private:
     enum { ePdfTextField_MultiLine     = 0x0001000,
            ePdfTextField_Password      = 0x0002000,
@@ -798,6 +866,10 @@ class PODOFO_DOC_API PdfTextField : public PdfField {
            ePdfTextField_RichText      = 0x2000000
     };
 
+private:
+    /** Create a new PdfTextField
+     */
+    PdfTextField( PdfAnnotation* pWidget );
  public:
     /** Create a new PdfTextField
      */
@@ -1074,6 +1146,7 @@ inline bool PdfTextField::IsRichText() const
  *  \see PdfListBox
  */
 class PODOFO_DOC_API PdfListField : public PdfField {
+    friend class PdfField;
  protected:
     enum { ePdfListField_Combo         = 0x0020000,
            ePdfListField_Edit          = 0x0040000,
@@ -1082,6 +1155,9 @@ class PODOFO_DOC_API PdfListField : public PdfField {
            ePdfListField_NoSpellcheck  = 0x0400000,
            ePdfListField_CommitOnSelChange = 0x4000000
     };
+    /** Create a new PdfListField
+     */
+    PdfListField( EPdfField eField, PdfAnnotation* pWidget );
 
     /** Create a new PdfTextField
      */
@@ -1297,6 +1373,11 @@ inline bool PdfListField::IsCommitOnSelectionChange() const
 /** A combo box with a drop down list of items.
  */
 class PODOFO_DOC_API PdfComboBox : public PdfListField {
+    friend class PdfField;
+ private:
+    /** Create a new PdfComboBox
+     */
+    PdfComboBox( PdfAnnotation* pWidget );
  public:
     /** Create a new PdfTextField
      */
@@ -1357,6 +1438,11 @@ inline bool PdfComboBox::IsEditable() const
 /** A list box
  */
 class PODOFO_DOC_API PdfListBox : public PdfListField {
+    friend class PdfField;
+ private:
+    /** Create a new PdfListBox
+     */
+     PdfListBox( PdfAnnotation* pWidget );
  public:
     /** Create a new PdfTextField
      */

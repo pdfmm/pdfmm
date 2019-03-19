@@ -44,6 +44,7 @@
 #include "PdfPage.h"
 #include "PdfStreamedDocument.h"
 #include "PdfXObject.h"
+#include "PdfSignatureField.h"
 
 #include <sstream>
 
@@ -107,10 +108,106 @@ PdfField::PdfField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, Pdf
 			  : ePdfAcroFormDefaultAppearance_BlackText12pt ));
 }
 
+PdfField::PdfField(EPdfField eField, PdfAnnotation * pWidget)
+    : m_pObject( pWidget->GetObject() ), m_pWidget( pWidget ), m_eField( eField )
+{
+}
+
 PdfField::PdfField( const PdfField & rhs )
     : m_pObject( NULL ), m_pWidget( NULL ), m_eField( ePdfField_Unknown )
 {
     this->operator=( rhs );
+}
+
+PdfField * PdfField::CreateField( PdfAnnotation * pWidget)
+{
+    EPdfField type = GetFieldType( *pWidget->GetObject() );
+    switch ( type )
+    {
+    case PoDoFo::ePdfField_PushButton:
+        return new PdfPushButton( pWidget );
+    case PoDoFo::ePdfField_CheckBox:
+        return new PdfCheckBox(pWidget);
+    case PoDoFo::ePdfField_RadioButton:
+        return new PdfRadioButton(pWidget);
+    case PoDoFo::ePdfField_TextField:
+        return new PdfTextField(pWidget);
+    case PoDoFo::ePdfField_ComboBox:
+        return new PdfComboBox(pWidget);
+    case PoDoFo::ePdfField_ListBox:
+        return new PdfListBox(pWidget);
+    case PoDoFo::ePdfField_Signature:
+        return new PdfSignatureField(pWidget);
+    default:
+        PODOFO_RAISE_ERROR(ePdfError_InvalidEnumValue);
+    }
+}
+
+EPdfField PdfField::GetFieldType(const PdfObject & rObject)
+{
+    EPdfField eField = ePdfField_Unknown;
+
+    // ISO 32000:2008, Section 12.7.3.1, Table 220, Page #432.
+    const PdfObject *pFT = rObject.GetDictionary().GetKey(PdfName("FT"));
+
+    if (!pFT && rObject.GetDictionary().HasKey(PdfName("Parent")))
+    {
+        const PdfObject *pTemp = rObject.GetIndirectKey(PdfName("Parent"));
+        if (!pTemp)
+        {
+            PODOFO_RAISE_ERROR(ePdfError_InvalidDataType);
+        }
+
+        pFT = pTemp->GetDictionary().GetKey(PdfName("FT"));
+    }
+
+    if (!pFT)
+    {
+        PODOFO_RAISE_ERROR(ePdfError_NoObject);
+    }
+
+    const PdfName fieldType = pFT->GetName();
+
+    if (fieldType == PdfName("Btn"))
+    {
+        pdf_int64 flags;
+        if ( !PdfField::GetFieldFlag( rObject , flags ))
+            PODOFO_RAISE_ERROR(ePdfError_NoNumber);
+
+        if ( ( flags & PdfButton::ePdfButton_PushButton ) == PdfButton::ePdfButton_PushButton)
+        {
+            eField = ePdfField_PushButton;
+        }
+        else if ( ( flags & PdfButton::ePdfButton_Radio ) == PdfButton::ePdfButton_Radio)
+        {
+            eField = ePdfField_RadioButton;
+        }
+        else
+        {
+            eField = ePdfField_CheckBox;
+        }
+    }
+    else if (fieldType == PdfName("Tx"))
+        eField = ePdfField_TextField;
+    else if (fieldType == PdfName("Ch"))
+    {
+        pdf_int64 flags;
+        if (!PdfField::GetFieldFlag(rObject, flags))
+            PODOFO_RAISE_ERROR(ePdfError_NoNumber);
+
+        if ( ( flags & PdfListField::ePdfListField_Combo ) == PdfListField::ePdfListField_Combo )
+        {
+            eField = ePdfField_ComboBox;
+        }
+        else
+        {
+            eField = ePdfField_ListBox;
+        }
+    }
+    else if (fieldType == PdfName("Sig"))
+        eField = ePdfField_Signature;
+
+    return eField;
 }
 
 void PdfField::Init( PdfAcroForm* pParent )
@@ -165,47 +262,7 @@ void PdfField::Init( PdfAcroForm* pParent )
 PdfField::PdfField( PdfObject* pObject, PdfAnnotation* pWidget )
     : m_pObject( pObject ), m_pWidget( pWidget ), m_eField( ePdfField_Unknown )
 {
-    // ISO 32000:2008, Section 12.7.3.1, Table 220, Page #432.
-    const PdfObject *pFT = m_pObject->GetDictionary().GetKey(PdfName("FT") );
-
-    if (!pFT && m_pObject->GetDictionary().HasKey( PdfName ("Parent") ) )
-    {
-        const PdfObject *pTemp =  m_pObject->GetIndirectKey ( PdfName("Parent") );
-        if (!pTemp)
-        {
-            PODOFO_RAISE_ERROR (ePdfError_InvalidDataType);
-        }
-
-        pFT = pTemp->GetDictionary().GetKey( PdfName ("FT") );
-    }
-
-    if (!pFT)
-    {
-        PODOFO_RAISE_ERROR (ePdfError_NoObject);
-    }
-
-    const PdfName fieldType = pFT->GetName();
-
-    if( fieldType == PdfName("Btn") )
-    {
-        PdfButton button( *this );
-
-        if( button.IsPushButton() )
-            m_eField = ePdfField_PushButton;
-        else if( button.IsCheckBox() )
-            m_eField = ePdfField_CheckBox; 
-        else if (button.IsRadioButton() )
-            m_eField = ePdfField_RadioButton;
-    }
-    else if( fieldType == PdfName("Tx") )
-        m_eField = ePdfField_TextField;
-    else if( fieldType == PdfName("Ch") )
-    {
-        PdfListField listField( *this );
-        m_eField = listField.IsComboBox() ? ePdfField_ComboBox : ePdfField_ListBox;
-    }
-    else if( fieldType == PdfName("Sig") )
-        m_eField = ePdfField_Signature;
+    m_eField = GetFieldType( *pObject );
 }
 
 PdfObject* PdfField::GetAppearanceCharacteristics( bool bCreate ) const
@@ -243,16 +300,25 @@ void PdfField::SetFieldFlag( long lValue, bool bSet )
 
 bool PdfField::GetFieldFlag( long lValue, bool bDefault ) const
 {
+    pdf_int64 flag;
+    if ( !GetFieldFlag( *m_pObject, flag) )
+        return bDefault;
+
+    return ( flag & lValue ) == lValue;
+}
+
+
+bool PdfField::GetFieldFlag( const PdfObject & rObject, pdf_int64 & lValue )
+{
     pdf_int64 lCur = 0;
 
-    if( m_pObject->GetDictionary().HasKey( PdfName("Ff") ) )
+    if( rObject.GetDictionary().HasKey( PdfName("Ff") ) )
     {
-        lCur = m_pObject->GetDictionary().GetKey( PdfName("Ff") )->GetNumber();
-
-        return (lCur & lValue) == lValue; 
+        lValue = rObject.GetDictionary().GetKey( PdfName("Ff") )->GetNumber();
+        return true;
     }
     
-    return bDefault;
+    return false;
 }
 
 void PdfField::SetHighlightingMode( EPdfHighlightingMode eMode )
@@ -432,6 +498,11 @@ void PdfField::AddAlternativeAction( const PdfName & rsName, const PdfAction & r
 
 /////////////////////////////////////////////////////////////////////////////
 
+PdfButton::PdfButton( EPdfField eField, PdfAnnotation * pWidget)
+    : PdfField( eField, pWidget )
+{
+}
+
 PdfButton::PdfButton( EPdfField eField, PdfAnnotation* pWidget, PdfAcroForm* pParent )
     : PdfField( eField, pWidget, pParent )
 {
@@ -474,6 +545,12 @@ const PdfString PdfButton::GetCaption() const
 }
 
 /////////////////////////////////////////////////////////////////////////////
+
+PdfPushButton::PdfPushButton( PdfAnnotation* pWidget )
+    : PdfButton( ePdfField_PushButton, pWidget )
+{
+    // NOTE: We assume initialization was performed in the given object
+}
 
 PdfPushButton::PdfPushButton( PdfAnnotation* pWidget, PdfAcroForm* pParent )
     : PdfButton( ePdfField_PushButton, pWidget, pParent )
@@ -585,6 +662,12 @@ const PdfString PdfPushButton::GetAlternateCaption() const
 }
 
 /////////////////////////////////////////////////////////////////////////////
+
+PdfCheckBox::PdfCheckBox( PdfAnnotation* pWidget )
+    : PdfButton( ePdfField_CheckBox, pWidget )
+{
+    // NOTE: We assume initialization was performed in the given object
+}
 
 PdfCheckBox::PdfCheckBox( PdfAnnotation* pWidget, PdfAcroForm* pParent )
     : PdfButton( ePdfField_CheckBox, pWidget, pParent )
@@ -706,6 +789,12 @@ bool PdfCheckBox::IsChecked() const
 
 /////////////////////////////////////////////////////////////////////////////
 
+PdfTextField::PdfTextField( PdfAnnotation* pWidget )
+    : PdfField( ePdfField_TextField, pWidget )
+{
+    // NOTE: We assume initialization was performed in the given object
+}
+
 PdfTextField::PdfTextField( PdfAnnotation* pWidget, PdfAcroForm* pParent )
     : PdfField( ePdfField_TextField, pWidget, pParent )
 {
@@ -780,6 +869,12 @@ pdf_long  PdfTextField::GetMaxLen() const
 }
 
 /////////////////////////////////////////////////////////////////////////////
+
+PdfListField::PdfListField( EPdfField eField, PdfAnnotation * pWidget )
+    : PdfField( eField, pWidget )
+{
+
+}
 
 PdfListField::PdfListField( EPdfField eField, PdfAnnotation* pWidget, PdfAcroForm* pParent )
     : PdfField( eField, pWidget, pParent )
@@ -949,6 +1044,12 @@ int PdfListField::GetSelectedItem() const
 
 /////////////////////////////////////////////////////////////////////////////
 
+PdfComboBox::PdfComboBox( PdfAnnotation* pWidget )
+    : PdfListField( ePdfField_ComboBox, pWidget )
+{
+    // NOTE: We assume initialization was performed in the given object
+}
+
 PdfComboBox::PdfComboBox( PdfAnnotation* pWidget, PdfAcroForm* pParent )
     : PdfListField( ePdfField_ComboBox, pWidget, pParent )
 {
@@ -988,6 +1089,12 @@ PdfComboBox::PdfComboBox( const PdfField & rhs )
 
 /////////////////////////////////////////////////////////////////////////////
 
+PdfListBox::PdfListBox( PdfAnnotation* pWidget )
+    : PdfListField( ePdfField_ListBox, pWidget )
+{
+    // NOTE: We assume initialization was performed in the given object
+}
+
 PdfListBox::PdfListBox( PdfAnnotation* pWidget, PdfAcroForm* pParent )
     : PdfListField( ePdfField_ListBox, pWidget, pParent )
 {
@@ -1023,6 +1130,37 @@ PdfListBox::PdfListBox( const PdfField & rhs )
     {
         PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Field cannot be converted into a PdfTextField" );
     }
+}
+
+PdfRadioButton::PdfRadioButton( PdfAnnotation* pWidget )
+    : PdfButton( ePdfField_RadioButton, pWidget )
+{
+    // NOTE: We assume initialization was performed in the given object
+}
+
+PdfRadioButton::PdfRadioButton( PdfAnnotation * pWidget, PdfAcroForm * pParent )
+    : PdfButton( ePdfField_RadioButton, pWidget, pParent )
+{
+}
+
+PdfRadioButton::PdfRadioButton( PdfPage * pPage, const PdfRect & rRect, PdfAcroForm * pParent )
+    : PdfButton( ePdfField_RadioButton, pPage, rRect, pParent )
+{
+}
+
+PdfRadioButton::PdfRadioButton( PdfPage * pPage, const PdfRect & rRect, PdfDocument * pDoc )
+    : PdfButton( ePdfField_RadioButton, pPage, rRect, pDoc )
+{
+}
+
+PdfRadioButton::PdfRadioButton( PdfPage * pPage, const PdfRect & rRect, PdfStreamedDocument * pDoc )
+    : PdfButton( ePdfField_RadioButton, pPage, rRect, pDoc )
+{
+}
+
+PdfRadioButton::PdfRadioButton( const PdfField & rhs )
+    : PdfButton( rhs )
+{
 }
 
 };
