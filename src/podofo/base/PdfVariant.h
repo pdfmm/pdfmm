@@ -772,7 +772,10 @@ void PdfVariant::SetString(const PdfString &str)
 {
     DelayedLoad();
 
-    if (!IsString())
+    EPdfDataType dataType = GetDataType();
+
+    if ( ( str.IsHex() && dataType != ePdfDataType_HexString )
+        || ( !str.IsHex() && dataType != ePdfDataType_String ) )
     {
         PODOFO_RAISE_ERROR(ePdfError_InvalidDataType);
     }

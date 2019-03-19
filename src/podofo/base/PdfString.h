@@ -169,6 +169,19 @@ class PODOFO_API PdfString : public PdfDataType {
      */
     static PdfString FromUtf8String( const std::string &str );
 
+    /** Construct a new hex PdfString from a buffer
+     *
+     *  \param pbuffer char buffer
+     *  \param lLen length of the buffer
+     */
+    static PdfString CreateHexString( const char* pbuffer, pdf_long lLen );
+
+    /** Construct a new hex PdfString from a buffer
+     *
+     *  \param buffer string containing the buffer
+     */
+    static PdfString CreateHexString( const std::string &buffer );
+
     /** Set hex-encoded data as the strings data. 
      *  \param pszHex must be hex-encoded data.
      *  \param lLen   length of the hex-encoded data.

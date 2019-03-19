@@ -254,6 +254,28 @@ PdfString PdfString::FromUtf8String( const std::string &str )
     return PdfString( ( const pdf_utf8 * )str.c_str(), str.size() );
 }
 
+PdfString PdfString::CreateHexString( const char *pbuffer, pdf_long llen )
+{
+    if ( !pbuffer )
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+
+    PdfString ret;
+    ret.m_bHex = true;
+    PdfOutputDevice output( &ret.m_buffer );
+    output.Write( pbuffer, llen );
+    // Add 2 terminating zeros, as per convention supporting also unicode strings
+    output.Write( "\0\0", 2 );
+    return ret;
+}
+
+PdfString PdfString::CreateHexString( const std::string & buffer )
+{
+    if ( !buffer.size() )
+        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+
+    return CreateHexString( &buffer[0], buffer.size() );
+}
+
 void PdfString::SetHexData( const char* pszHex, pdf_long lLen, PdfEncrypt* pEncrypt )
 {
     AssertMutable();
