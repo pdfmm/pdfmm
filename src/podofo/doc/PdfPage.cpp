@@ -107,9 +107,7 @@ PdfPage::~PdfPage()
 
 void PdfPage::InitNewPage( const PdfRect & rSize )
 {
-    PdfVariant mediabox;
-    rSize.ToVariant( mediabox );
-    this->GetObject()->GetDictionary().AddKey( "MediaBox", mediabox );
+    SetMediaBox(rSize);
 
     // The PDF specification suggests that we send all available PDF Procedure sets
     this->GetObject()->GetDictionary().AddKey( "Resources", PdfObject( PdfDictionary() ) );
@@ -572,6 +570,13 @@ bool PdfPage::SetPageHeight(int newHeight)
     {
         return false;
     }
+}
+
+void PdfPage::SetMediaBox(const PdfRect & rSize)
+{
+    PdfVariant mediaBox;
+    rSize.ToVariant(mediaBox);
+    this->GetObject()->GetDictionary().AddKey("MediaBox", mediaBox);
 }
 
 void PdfPage::SetTrimBox( const PdfRect & rSize )

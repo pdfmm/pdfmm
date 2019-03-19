@@ -110,6 +110,11 @@ class PODOFO_DOC_API PdfPage : public PdfElement, public PdfCanvas {
      */
     bool SetPageHeight(int newHeight);
 
+    /** Set the mediabox in PDF Units
+    *  \param rSize a PdfRect specifying the mediabox of the page (i.e the /TrimBox key) in PDF units
+    */
+    void SetMediaBox(const PdfRect & rSize);
+
     /** Set the trimbox in PDF Units
      *  \param rSize a PdfRect specifying the trimbox of the page (i.e the /TrimBox key) in PDF units
      */
