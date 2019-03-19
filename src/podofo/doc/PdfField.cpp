@@ -312,16 +312,19 @@ bool PdfField::GetFieldFlag( long lValue, bool bDefault ) const
 
 bool PdfField::GetFieldFlags( const PdfObject & rObject, pdf_int64 & lValue )
 {
-    pdf_int64 lCur = 0;
+    const PdfDictionary &rDict = rObject.GetDictionary();
 
-    if( rObject.GetDictionary().HasKey( PdfName("Ff") ) )
+    const PdfObject *pFlagsObject = rDict.GetKey( "Ff" );
+    PdfObject *pParentObect;
+    if( pFlagsObject == NULL && ( ( pParentObect = rObject.GetIndirectKey( "Parent" ) ) == NULL
+        || ( pFlagsObject = pParentObect->GetDictionary().GetKey( "Ff" ) ) == NULL ) )
     {
-        lValue = rObject.GetDictionary().GetKey( PdfName("Ff") )->GetNumber();
-        return true;
+        lValue = 0;
+        return false;
     }
 
-    lValue = 0;
-    return false;
+    lValue = pFlagsObject->GetNumber();
+    return true;
 }
 
 void PdfField::SetHighlightingMode( EPdfHighlightingMode eMode )
