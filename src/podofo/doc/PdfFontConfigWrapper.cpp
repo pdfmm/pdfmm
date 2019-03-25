@@ -105,15 +105,17 @@ void PdfFontConfigWrapper::DerefBuffer()
     m_pFontConfig = NULL;
 }
 
-void PdfFontConfigWrapper::InitializeFontConfig() 
+void PdfFontConfigWrapper::InitializeFontConfig()
 {
 #if defined(PODOFO_HAVE_FONTCONFIG)
     if( !this->m_pFontConfig->m_bInitialized )
     {
         Util::PdfMutexWrapper mutex(m_FcMutex);
-        if( !this->m_pFontConfig->m_bInitialized ) 
+        if( !this->m_pFontConfig->m_bInitialized )
         {
-            this->m_pFontConfig->m_pFcConfig = static_cast<void*>(FcInitLoadConfigAndFonts());
+            // CLEAN-ME: Make it possibile to provide an instance of FcConfig
+            FcInit();
+            this->m_pFontConfig->m_pFcConfig = static_cast<void*>(FcConfigGetCurrent());
             this->m_pFontConfig->m_bInitialized = true;
         }
     }
