@@ -241,7 +241,7 @@ bool PdfAnnotation::HasAppearanceStream() const
 
 PdfObject * PdfAnnotation::GetAppearanceStream( EPdfAnnotationAppearance eAppearance )
 {
-    PdfObject *apObj = GetObject()->GetDictionary().GetKey( "AP" );
+    PdfObject *apObj = GetObject()->GetDictionary().FindKey( "AP" );
     if ( apObj == NULL )
         return NULL;
 
