@@ -61,11 +61,20 @@ class PODOFO_API PdfParser : public PdfTokenizer {
     friend class PdfWriter;
 
  public:
-    struct TXRefEntry {
-        inline TXRefEntry() : lOffset(0), lGeneration(0), cUsed('\x00'), bParsed(false) { }
+    enum EXRefEntryType
+    {
+        eXRefEntryType_Unknown = 0,
+        eXRefEntryType_InUse,
+        eXRefEntryType_Free,
+        eXRefEntryType_Compressed,
+    };
+
+    struct TXRefEntry
+    {
+        inline TXRefEntry() : lOffset(0), lGeneration(0), eType(eXRefEntryType_Unknown), bParsed(false) { }
         pdf_long lOffset;
         long lGeneration;
-        char cUsed;
+        EXRefEntryType eType;
         bool bParsed;
     };
 

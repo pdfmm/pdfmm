@@ -209,32 +209,44 @@ void PdfStream::BeginAppend( const TVecFilters & vecFilters, bool bClearExisting
 
     PODOFO_RAISE_LOGIC_IF( m_bAppend, "BeginAppend() failed because EndAppend() was not yet called!" );
 
-    if( m_pParent && m_pParent->GetOwner() )
-        m_pParent->GetOwner()->BeginAppendStream( this );
+    if( m_pParent )
+    {
+        // We must make sure the parent will be set dirty. All methods
+        // writing to the stream will call this method first
+        m_pParent->SetDirty( true );
+
+        PdfVecObjects *pOwner = m_pParent->GetOwner();
+        if ( pOwner )
+            pOwner->BeginAppendStream( this );
+    }
 
     if( !bClearExisting && this->GetLength() ) 
         this->GetFilteredCopy( &pBuffer, &lLen );
 
-    if( !vecFilters.size() && bDeleteFilters && m_pParent)
+    if ( m_pParent )
     {
-        m_pParent->GetDictionary().RemoveKey( PdfName::KeyFilter );
-    }
-    if( vecFilters.size() == 1 && m_pParent)
-    {
-        m_pParent->GetDictionary().AddKey( PdfName::KeyFilter, 
-                                           PdfName( PdfFilterFactory::FilterTypeToName( vecFilters.front() ) ) );
-    }
-    else if( vecFilters.size() > 1 && m_pParent)
-    {
-        PdfArray filters;
-        TCIVecFilters it = vecFilters.begin();
-        while( it != vecFilters.end() )
+        if( vecFilters.size() == 0 )
         {
-            filters.push_back( PdfName( PdfFilterFactory::FilterTypeToName( *it ) ) );
-            ++it;
+            if ( bDeleteFilters )
+                m_pParent->GetDictionary().RemoveKey( PdfName::KeyFilter );
         }
+        else if ( vecFilters.size() == 1 )
+        {
+            m_pParent->GetDictionary().AddKey( PdfName::KeyFilter, 
+                                               PdfName( PdfFilterFactory::FilterTypeToName( vecFilters.front() ) ) );
+        }
+        else // vecFilters.size() > 1
+        {
+            PdfArray filters;
+            TCIVecFilters it = vecFilters.begin();
+            while( it != vecFilters.end() )
+            {
+                filters.push_back( PdfName( PdfFilterFactory::FilterTypeToName( *it ) ) );
+                ++it;
+            }
         
-        m_pParent->GetDictionary().AddKey( PdfName::KeyFilter, filters );
+            m_pParent->GetDictionary().AddKey( PdfName::KeyFilter, filters );
+        }
     }
 
     this->BeginAppendImpl( vecFilters );

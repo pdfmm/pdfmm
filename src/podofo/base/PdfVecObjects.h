@@ -53,6 +53,8 @@ typedef std::deque<PdfReference>                 TPdfReferenceList;
 typedef TPdfReferenceList::iterator              TIPdfReferenceList;
 typedef TPdfReferenceList::const_iterator        TCIPdfReferenceList;
 
+typedef std::set<pdf_objnum>                     TPdfObjectNumList;
+
 typedef std::set<PdfReference>                   TPdfReferenceSet;
 typedef TPdfReferenceSet::iterator               TIPdfReferenceSet;
 typedef TPdfReferenceSet::const_iterator         TCIPdfReferenceSet;
@@ -270,6 +272,29 @@ class PODOFO_API PdfVecObjects {
     PdfObject* CreateObject( const PdfVariant & rVariant );
 
     /** Mark a reference as unused so that it can be reused for new objects.
+     *
+     *  Add the object only if the generation is the allowed range
+     *
+     *  \param rReference the reference to reuse
+     *  \returns true if the object was succesfully added
+     *
+     *  \see AddFreeObject
+     */
+    bool TryAddFreeObject( const PdfReference & rReference );
+
+    /** Mark a reference as unused so that it can be reused for new objects.
+     *
+     *  Add the object and increment the generation number. Add the object
+     *  only if the generation is the allowed range
+     *
+     *  \param rReference the reference to reuse
+     *  \returns the generation of the added free object
+     *
+     *  \see AddFreeObject
+     */
+    pdf_int32 SafeAddFreeObject( const PdfReference & rReference );
+
+    /** Mark a reference as unused so that it can be reused for new objects.
      *  \param rReference the reference to reuse
      *
      *  \see GetCanReuseObjectNumbers
@@ -457,7 +482,9 @@ class PODOFO_API PdfVecObjects {
      */
     void SetObjectCount( const PdfReference & rRef );
 
- private:    
+ private:
+    pdf_int32 TryAddFreeObject( pdf_objnum objnum, pdf_uint32 gennum );
+
     /** 
      * \returns the next free object reference
      */
@@ -493,6 +520,7 @@ class PODOFO_API PdfVecObjects {
 
     TVecObservers       m_vecObservers;
     TPdfReferenceList   m_lstFreeObjects;
+    TPdfObjectNumList   m_lstUnavailableObjects;
 
     PdfDocument*        m_pDocument;
 

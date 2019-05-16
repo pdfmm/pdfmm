@@ -43,6 +43,8 @@
 
 #include <algorithm>
 
+#define MAX_XREF_GEN_NUM    65535
+
 namespace {
 
 inline bool ObjectLittle( const PoDoFo::PdfObject* p1, const PoDoFo::PdfObject* p2 )
@@ -194,7 +196,7 @@ PdfObject* PdfVecObjects::RemoveObject( const PdfReference & ref, bool bMarkAsFr
     {
         pObj = *(it.first);
         if( bMarkAsFree )
-            this->AddFreeObject( pObj->Reference() );
+            this->SafeAddFreeObject( pObj->Reference() );
         m_vector.erase( it.first );
         return pObj;
     }
@@ -221,15 +223,30 @@ void PdfVecObjects::CollectGarbage( PdfObject* pTrailer )
 
 PdfReference PdfVecObjects::GetNextFreeObject()
 {
-    PdfReference ref( static_cast<unsigned int>(m_nObjectCount), 0 );
-
-    if( m_bCanReuseObjectNumbers && !m_lstFreeObjects.empty() )
+    // Try to first use list of free objects
+    if ( m_bCanReuseObjectNumbers && !m_lstFreeObjects.empty() )
     {
-        ref = m_lstFreeObjects.front();
+        PdfReference freeObjectRef = m_lstFreeObjects.front();
         m_lstFreeObjects.pop_front();
+        return freeObjectRef;
     }
 
-    return ref;
+    // If no free objects are available, create a new object with generation 0
+    pdf_gennum nextObjectNum = static_cast<pdf_gennum>( m_nObjectCount );
+    while ( true )
+    {
+        if ( ( nextObjectNum + 1 ) == m_nMaxReserveSize )
+            PODOFO_RAISE_ERROR_INFO( ePdfError_ValueOutOfRange , "Reached the maximum number of indirect objects");
+
+        // Check also if the object number it not available,
+        // e.g. it reached maximum generation number (65535)
+        if ( m_lstUnavailableObjects.find( nextObjectNum ) == m_lstUnavailableObjects.end() )
+            break;
+        
+        nextObjectNum++;
+    }
+
+    return PdfReference( nextObjectNum, 0 );
 }
 
 PdfObject* PdfVecObjects::CreateObject( const char* pszType )
@@ -252,6 +269,39 @@ PdfObject* PdfVecObjects::CreateObject( const PdfVariant & rVariant )
     this->push_back( pObj );
 
     return pObj;
+}
+
+pdf_int32 PdfVecObjects::SafeAddFreeObject( const PdfReference & rReference )
+{
+    // From 3.4.3 Cross-Reference Table:
+    // "When an indirect object is deleted, its cross-reference
+    // entry is marked free and it is added to the linked list
+    // of free entries.The entry’s generation number is incremented by
+    // 1 to indicate the generation number to be used the next time an
+    // object with that object number is created. Thus, each time
+    // the entry is reused, it is given a new generation number."
+    return TryAddFreeObject( rReference.ObjectNumber(), rReference.GenerationNumber() + 1 );
+}
+
+bool PdfVecObjects::TryAddFreeObject( const PdfReference & rReference )
+{
+    return TryAddFreeObject( rReference.ObjectNumber() , rReference.GenerationNumber() ) != -1;
+}
+
+pdf_int32 PdfVecObjects::TryAddFreeObject( pdf_objnum objnum, pdf_uint32 gennum )
+{
+    // Documentation 3.4.3 Cross-Reference Table states: "The maximum
+    // generation number is 65535; when a cross reference entry reaches
+    // this value, it is never reused."
+    // NOTE: gennum is uint32 to accomodate overflows from callers
+    if ( gennum >= MAX_XREF_GEN_NUM )
+    {
+        m_lstUnavailableObjects.insert( gennum );
+        return -1;
+    }
+
+    AddFreeObject( PdfReference( objnum, gennum ) );
+    return gennum;
 }
 
 void PdfVecObjects::AddFreeObject( const PdfReference & rReference )

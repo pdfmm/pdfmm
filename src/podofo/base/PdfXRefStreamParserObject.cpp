@@ -246,33 +246,38 @@ void PdfXRefStreamParserObject::ReadXRefStreamEntry( char* pBuffer, pdf_long, co
 
 
     //printf("OBJ=%i nData = [ %i %i %i ]\n", nObjNo, static_cast<int>(nData[0]), static_cast<int>(nData[1]), static_cast<int>(nData[2]) );
-    (*m_pOffsets)[nObjNo].bParsed = true;
+    PdfParser::TXRefEntry &entry = (*m_pOffsets)[nObjNo];
+    entry.bParsed = true;
+
+    // TABLE 3.15 Additional entries specific to a cross - reference stream dictionary
+    // /W array: "If the first element is zero, the type field is not present, and it defaults to type 1"
     switch( lW[0] == 0 ? 1 : nData[0] ) // nData[0] contains the type information of this entry
     {
+        // TABLE 3.16 Entries in a cross-reference stream
         case 0:
             // a free object
-            (*m_pOffsets)[nObjNo].lOffset     = nData[1];
-            (*m_pOffsets)[nObjNo].lGeneration = nData[2];
-            (*m_pOffsets)[nObjNo].cUsed       = 'f';
+            entry.lOffset     = nData[1];
+            entry.lGeneration = nData[2];
+            entry.eType       = PdfParser::eXRefEntryType_Free;
             break;
         case 1:
             // normal uncompressed object
-            (*m_pOffsets)[nObjNo].lOffset     = nData[1];
-            (*m_pOffsets)[nObjNo].lGeneration = nData[2];
-            (*m_pOffsets)[nObjNo].cUsed       = 'n';
+            entry.lOffset     = nData[1];
+            entry.lGeneration = nData[2];
+            entry.eType       = PdfParser::eXRefEntryType_InUse;
             break;
         case 2:
             // object that is part of an object stream
-            (*m_pOffsets)[nObjNo].lOffset     = nData[2]; // index in the object stream
-            (*m_pOffsets)[nObjNo].lGeneration = nData[1]; // object number of the stream
-            (*m_pOffsets)[nObjNo].cUsed       = 's';      // mark as stream
+            entry.lOffset     = nData[2]; // index in the object stream
+            entry.lGeneration = nData[1]; // object number of the stream
+            entry.eType       = PdfParser::eXRefEntryType_Compressed;
             break;
         default:
         {
             PODOFO_RAISE_ERROR( ePdfError_InvalidXRefType );
         }
     }
-    //printf("m_offsets = [ %i %i %c ]\n", (*m_pOffsets)[nObjNo].lOffset, (*m_pOffsets)[nObjNo].lGeneration, (*m_pOffsets)[nObjNo].cUsed );
+    //printf("m_offsets = [ %i %i %c ]\n", entry.lOffset, entry.lGeneration, entry.cUsed );
 }
 
 };

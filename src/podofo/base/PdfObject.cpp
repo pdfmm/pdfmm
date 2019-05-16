@@ -304,15 +304,12 @@ PdfStream* PdfObject::GetStream_NoDL()
         m_pStream = m_pOwner->CreateStream( this );
     }
 
-    SetDirty( true );
     return m_pStream;
 }
 
 const PdfStream* PdfObject::GetStream() const
 {
-    DelayedStreamLoad();
-
-    return m_pStream;
+    return const_cast<PdfObject*>( this )->GetStream();
 }
 
 void PdfObject::FlateCompressStream() 

@@ -69,6 +69,7 @@ class PODOFO_API PdfObject : public PdfVariant {
     friend class PdfArray;
     friend class PdfDictionary;
     friend class PdfDocument;
+    friend class PdfStream;
 
  public:
 
