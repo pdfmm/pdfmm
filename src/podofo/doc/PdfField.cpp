@@ -134,19 +134,21 @@ PdfField * PdfField::createField( PdfObject *pObject, PdfAnnotation *pWidget )
     EPdfField type = GetFieldType( *pObject );
     switch ( type )
     {
-    case PoDoFo::ePdfField_PushButton:
+    case ePdfField_Unknown:
+        return new PdfField( pObject, pWidget );
+    case ePdfField_PushButton:
         return new PdfPushButton( pObject, pWidget );
-    case PoDoFo::ePdfField_CheckBox:
+    case ePdfField_CheckBox:
         return new PdfCheckBox( pObject, pWidget );
-    case PoDoFo::ePdfField_RadioButton:
+    case ePdfField_RadioButton:
         return new PdfRadioButton( pObject, pWidget );
-    case PoDoFo::ePdfField_TextField:
+    case ePdfField_TextField:
         return new PdfTextField( pObject, pWidget );
-    case PoDoFo::ePdfField_ComboBox:
+    case ePdfField_ComboBox:
         return new PdfComboBox( pObject, pWidget );
-    case PoDoFo::ePdfField_ListBox:
+    case ePdfField_ListBox:
         return new PdfListBox( pObject, pWidget );
-    case PoDoFo::ePdfField_Signature:
+    case ePdfField_Signature:
         return new PdfSignatureField( pObject, pWidget );
     default:
         PODOFO_RAISE_ERROR(ePdfError_InvalidEnumValue);
@@ -158,26 +160,11 @@ EPdfField PdfField::GetFieldType(const PdfObject & rObject)
     EPdfField eField = ePdfField_Unknown;
 
     // ISO 32000:2008, Section 12.7.3.1, Table 220, Page #432.
-    const PdfObject *pFT = rObject.GetDictionary().GetKey(PdfName("FT"));
-
-    if (!pFT && rObject.GetDictionary().HasKey(PdfName("Parent")))
-    {
-        const PdfObject *pTemp = rObject.GetIndirectKey(PdfName("Parent"));
-        if (!pTemp)
-        {
-            PODOFO_RAISE_ERROR(ePdfError_InvalidDataType);
-        }
-
-        pFT = pTemp->GetDictionary().GetKey(PdfName("FT"));
-    }
-
+    const PdfObject *pFT = rObject.GetDictionary().FindKeyParent("FT");
     if (!pFT)
-    {
-        PODOFO_RAISE_ERROR(ePdfError_NoObject);
-    }
+        return ePdfField_Unknown;
 
     const PdfName fieldType = pFT->GetName();
-
     if (fieldType == PdfName("Btn"))
     {
         pdf_int64 flags;
