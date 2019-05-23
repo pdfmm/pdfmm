@@ -437,16 +437,16 @@ void PdfVecObjects::InsertReferencesIntoVector( const PdfObject* pObj, TVecRefer
     }
     else if( pObj->IsDictionary() )
     {
-        itKeys = pObj->GetDictionary().GetKeys().begin();
-        while( itKeys != pObj->GetDictionary().GetKeys().end() )
+        itKeys = pObj->GetDictionary().begin();
+        while( itKeys != pObj->GetDictionary().end() )
         {
-            if( (*itKeys).second->IsReference() )
-                InsertOneReferenceIntoVector( (*itKeys).second, pList );
+            if( itKeys->second.IsReference() )
+                InsertOneReferenceIntoVector( &itKeys->second, pList );
             // optimization as this is really slow:
             // Call only for dictionaries, references and arrays
-            else if( (*itKeys).second->IsArray() ||
-                (*itKeys).second->IsDictionary() )
-                InsertReferencesIntoVector( (*itKeys).second, pList );
+            else if( itKeys->second.IsArray() ||
+                itKeys->second.IsDictionary() )
+                InsertReferencesIntoVector( &itKeys->second, pList );
             
             ++itKeys;
         }
@@ -488,15 +488,15 @@ void PdfVecObjects::GetObjectDependencies( const PdfObject* pObj, TPdfReferenceL
     }
     else if( pObj->IsDictionary() )
     {
-        itKeys = pObj->GetDictionary().GetKeys().begin();
-        while( itKeys != pObj->GetDictionary().GetKeys().end() )
+        itKeys = pObj->GetDictionary().begin();
+        while( itKeys != pObj->GetDictionary().end() )
         {
             // optimization as this is really slow:
             // Call only for dictionaries, references and arrays
-            if( (*itKeys).second->IsArray() ||
-                (*itKeys).second->IsDictionary() ||
-                (*itKeys).second->IsReference() )
-                GetObjectDependencies( (*itKeys).second, pList );
+            if( itKeys->second.IsArray() ||
+                itKeys->second.IsDictionary() ||
+                itKeys->second.IsReference() )
+                GetObjectDependencies( &itKeys->second, pList );
             
             ++itKeys;
         }

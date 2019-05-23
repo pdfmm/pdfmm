@@ -73,9 +73,9 @@ public:
     }
 };
 
-typedef std::tr1::unordered_map<PdfName,PdfObject*, PdfNameHash>      TKeyMap;
+typedef std::tr1::unordered_map<PdfName,PdfObject, PdfNameHash>      TKeyMap;
 #else
-typedef std::map<PdfName,PdfObject*>      TKeyMap;
+typedef std::map<PdfName,PdfObject>      TKeyMap;
 #endif // PODOFO_USE_UNORDERED_MAP
 
 typedef TKeyMap::iterator                 TIKeyMap;
@@ -277,11 +277,13 @@ class PODOFO_API PdfDictionary : public PdfOwnedDataType {
     /** Get access to the internal map of keys.
      *
      * \returns all keys of this dictionary
+     * \deprecated use begin() or end() instead for iteration
      */
     inline const TKeyMap & GetKeys() const;
 
     /** Get access to the internal map of keys.
      * \returns all keys of this dictionary
+     * \deprecated use begin() or end() instead for iteration
      */
     inline TKeyMap & GetKeys();
 
@@ -308,6 +310,8 @@ class PODOFO_API PdfDictionary : public PdfOwnedDataType {
     virtual void SetDirty( bool bDirty );
 
  public:
+     TIKeyMap begin();
+     TIKeyMap end();
      TCIKeyMap begin() const;
      TCIKeyMap end() const;
 

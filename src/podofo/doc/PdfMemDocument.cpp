@@ -394,10 +394,10 @@ std::vector<PdfExtension> PdfMemDocument::GetPdfExtensions() const {
     if (pExtensions) {
 
         // Loop through all declared extensions
-        for (TKeyMap::const_iterator it = pExtensions->GetDictionary().GetKeys().begin(); it != pExtensions->GetDictionary().GetKeys().end(); ++it) {
+        for (TKeyMap::const_iterator it = pExtensions->GetDictionary().begin(); it != pExtensions->GetDictionary().end(); ++it) {
 
-            PdfObject *bv = it->second->GetIndirectKey("BaseVersion");
-            PdfObject *el = it->second->GetIndirectKey("ExtensionLevel");
+            PdfObject *bv = it->second.GetIndirectKey("BaseVersion");
+            PdfObject *el = it->second.GetIndirectKey("ExtensionLevel");
             
             if (bv && el && bv->IsName() && el->IsNumber()) {
 

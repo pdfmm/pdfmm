@@ -58,17 +58,7 @@ PdfDictionary::~PdfDictionary()
 
 const PdfDictionary & PdfDictionary::operator=( const PdfDictionary & rhs )
 {
-    TCIKeyMap it;
-
-    this->Clear();
-
-    it = rhs.m_mapKeys.begin();
-    while( it != rhs.m_mapKeys.end() )
-    {
-        m_mapKeys[(*it).first] = new PdfObject( *(*it).second );
-        ++it;
-    }
-
+    m_mapKeys = rhs.m_mapKeys;
     PdfOwnedDataType::operator=( rhs );
     m_bDirty = true;
     return *this;
@@ -93,11 +83,11 @@ bool PdfDictionary::operator==( const PdfDictionary& rhs ) const
     const TCIKeyMap rhsEnd = rhs.m_mapKeys.end();
     while ( thisIt != thisEnd && rhsIt != rhsEnd )
     {
-        if ( (*thisIt).first != (*rhsIt).first )
+        if ( thisIt->first != rhsIt->first )
             // Name mismatch. Since the keys are sorted that means that there's a key present
             // in one dictionary but not the other.
             return false;
-        if ( *(*thisIt).second != *(*rhsIt).second )
+        if ( thisIt->second != rhsIt->second )
             // Value mismatch on same-named keys.
             return false;
     }
@@ -114,15 +104,6 @@ void PdfDictionary::Clear()
 
     if( !m_mapKeys.empty() )
     {
-        TIKeyMap it;
-
-        it = m_mapKeys.begin();
-        while( it != m_mapKeys.end() )
-        {
-            delete (*it).second;
-            ++it;
-        }
-
         m_mapKeys.clear();
         m_bDirty = true;
     }
@@ -132,25 +113,16 @@ void PdfDictionary::AddKey( const PdfName & identifier, const PdfObject & rObjec
 {
     AssertMutable();
 
-    // Empty PdfNames are legal according to the PDF specification
-    // weird but true. As a reason we cannot throw an error here
-    /*
-    if( !identifier.GetLength() )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
-    }
-    */
-    PdfObject *objToInsert = new PdfObject(rObject);
-    std::pair<TKeyMap::iterator, bool> inserted = m_mapKeys.insert( std::make_pair( identifier, objToInsert ) );
+    // NOTE: Empty PdfNames are legal according to the PDF specification.
+    // Don't check for it
+
+    std::pair<TKeyMap::iterator, bool> inserted = m_mapKeys.insert( std::make_pair( identifier, rObject ) );
     if ( !inserted.second )
-    {
-        delete inserted.first->second;
-        inserted.first->second = objToInsert;
-    }
+        inserted.first->second = rObject;
 
     PdfVecObjects *pOwner = GetObjectOwner();
     if ( pOwner != NULL )
-        inserted.first->second->SetOwner( pOwner );
+        inserted.first->second.SetOwner( pOwner );
     m_bDirty = true;
 }
 
@@ -164,14 +136,11 @@ PdfObject * PdfDictionary::getKey( const PdfName & key ) const
     if( !key.GetLength() )
         return NULL;
 
-    TCIKeyMap it;
-
-    it = m_mapKeys.find( key );
-
+    TCIKeyMap it = m_mapKeys.find( key );
     if( it == m_mapKeys.end() )
         return NULL;
 
-    return (*it).second;
+    return &const_cast<PdfObject &>( it->second );
 }
 
 PdfObject * PdfDictionary::findKey( const PdfName &key ) const
@@ -265,25 +234,23 @@ PdfName PdfDictionary::GetKeyAsName( const PdfName & key ) const
 
 bool PdfDictionary::HasKey( const PdfName & key ) const
 {
-    if( !key.GetLength() )
-        return false;
-    
+    // NOTE: Empty PdfNames are legal according to the PDF specification.
+    // Don't check for it
+
     return ( m_mapKeys.find( key ) != m_mapKeys.end() );
 }
 
 bool PdfDictionary::RemoveKey( const PdfName & identifier )
 {
-    TKeyMap::iterator found = m_mapKeys.find( identifier );
-    if( found != m_mapKeys.end() )
-    {
-        AssertMutable();
-        delete found->second;
-        m_mapKeys.erase( found );
-        m_bDirty = true;
-        return true;
-    }
+    AssertMutable();
 
-    return false;
+    TKeyMap::iterator found = m_mapKeys.find( identifier );
+    if( found == m_mapKeys.end() )
+        return false;
+
+    m_mapKeys.erase( found );
+    m_bDirty = true;
+    return true;
 }
 
 void PdfDictionary::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, const PdfEncrypt* pEncrypt, const PdfName & keyStop ) const
@@ -325,17 +292,17 @@ void PdfDictionary::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, c
 
     while( itKeys != m_mapKeys.end() )
     {
-        if( (*itKeys).first != PdfName::KeyType )
+        if( itKeys->first != PdfName::KeyType )
         {
-            if( keyStop != PdfName::KeyNull && keyStop.GetLength() && (*itKeys).first == keyStop )
+            if( keyStop != PdfName::KeyNull && keyStop.GetLength() && itKeys->first == keyStop )
                 return;
 
-            (*itKeys).first.Write( pDevice, eWriteMode );
+            itKeys->first.Write( pDevice, eWriteMode );
             if( (eWriteMode & ePdfWriteMode_Clean) == ePdfWriteMode_Clean ) 
             {
                 pDevice->Write( " ", 1 ); // write a separator
             }
-            (*itKeys).second->Write( pDevice, eWriteMode, pEncrypt );
+            itKeys->second.Write( pDevice, eWriteMode, pEncrypt );
             if( (eWriteMode & ePdfWriteMode_Clean) == ePdfWriteMode_Clean ) 
             {
                 pDevice->Write( "\n", 1 );
@@ -356,10 +323,10 @@ bool PdfDictionary::IsDirty() const
     if( m_bDirty ) 
         return m_bDirty;
 
-    TKeyMap::const_iterator it = this->GetKeys().begin();
-    while( it != this->GetKeys().end() )
+    TKeyMap::const_iterator it = m_mapKeys.begin();
+    while( it != m_mapKeys.end() )
     {
-        if( (*it).second->IsDirty() )
+        if( it->second.IsDirty() )
             return true;
 
         ++it;
@@ -375,13 +342,23 @@ void PdfDictionary::SetDirty( bool bDirty )
     if( !m_bDirty )
     {
         // Propagate state to all subclasses
-        TKeyMap::iterator it = this->GetKeys().begin();
-        while( it != this->GetKeys().end() )
+        TKeyMap::iterator it = m_mapKeys.begin();
+        while( it != m_mapKeys.end() )
         {
-            (*it).second->SetDirty( m_bDirty );
+            it->second.SetDirty( m_bDirty );
             ++it;
         }
     }
+}
+
+TIKeyMap PdfDictionary::begin()
+{
+    return m_mapKeys.begin();
+}
+
+TIKeyMap PdfDictionary::end()
+{
+    return m_mapKeys.end();
 }
 
 TCIKeyMap PdfDictionary::begin() const
@@ -401,10 +378,10 @@ void PdfDictionary::SetOwner( PdfObject *pOwner )
     if ( pVecOwner != NULL )
     {
         // Set owmership for all children
-        TCIKeyMap it = this->begin();
-        TCIKeyMap end = this->end();
+        TIKeyMap it = this->begin();
+        TIKeyMap end = this->end();
         for ( ; it != end; it++ )
-            it->second->SetOwner( pVecOwner );
+            it->second.SetOwner( pVecOwner );
     }
 }
 
