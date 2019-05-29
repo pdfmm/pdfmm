@@ -71,11 +71,6 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#if defined(PODOFO_HAVE_FONTCONFIG)
-#include <fontconfig/fontconfig.h>
-#include "base/util/PdfMutexWrapper.h"
-#endif
-
 using namespace std;
 
 //us: I know the endian functions are redundant, but they are not availabe in a .h file, right?
@@ -276,12 +271,9 @@ static bool GetDataFromLPFONT( const LOGFONTA* inFont, char** outFontBuffer, uns
 PdfFontCache::PdfFontCache( PdfVecObjects* pParent )
     : m_pParent( pParent )
 {
-    Init();
-}
-
-PdfFontCache::PdfFontCache( const PdfFontConfigWrapper & rFontConfig, PdfVecObjects* pParent )
-    : m_pParent( pParent ), m_fontConfig( rFontConfig )
-{
+#if defined(PODOFO_HAVE_FONTCONFIG)
+    m_fontConfig = PdfFontConfigWrapper::GetInstance();
+#endif
     Init();
 }
 
@@ -820,53 +812,10 @@ PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList 
 
 #endif // _WIN32
 
-#if defined(PODOFO_HAVE_FONTCONFIG)
-std::string PdfFontCache::GetFontConfigFontPath( FcConfig* pConfig, const char* pszFontName, bool bBold, bool bItalic )
-{
-    FcPattern*  pattern;
-    FcPattern*  matched;
-    FcResult    result = FcResultMatch;
-    FcValue     v;
-    std::string sPath;
-    // Build a pattern to search using fontname, bold and italic
-    pattern = FcPatternBuild (0, FC_FAMILY, FcTypeString, pszFontName, 
-                              FC_WEIGHT, FcTypeInteger, (bBold ? FC_WEIGHT_BOLD : FC_WEIGHT_MEDIUM),
-                              FC_SLANT, FcTypeInteger, (bItalic ? FC_SLANT_ITALIC : FC_SLANT_ROMAN),  
-                              static_cast<char*>(0));
-
-    FcDefaultSubstitute( pattern );
-
-    if( !FcConfigSubstitute( pConfig, pattern, FcMatchFont ) )
-    {
-        FcPatternDestroy( pattern );
-        return sPath;
-    }
-
-    matched = FcFontMatch( pConfig, pattern, &result );
-    if( result != FcResultNoMatch )
-    {
-        result = FcPatternGet( matched, FC_FILE, 0, &v );
-        sPath = reinterpret_cast<const char*>(v.u.s);
-#ifdef PODOFO_VERBOSE_DEBUG
-        PdfError::LogMessage( eLogSeverity_Debug,
-                              "Got Font %s for for %s\n", sPath.c_str(), pszFontName );
-#endif // PODOFO_DEBUG
-    }
-
-    FcPatternDestroy( pattern );
-    FcPatternDestroy( matched );
-    return sPath;
-}
-
-#endif // PODOFO_HAVE_FONTCONFIG
-
 std::string PdfFontCache::GetFontPath( const char* pszFontName, bool bBold, bool bItalic )
 {
 #if defined(PODOFO_HAVE_FONTCONFIG)
-    Util::PdfMutexWrapper mutex(m_fontConfig.GetFontConfigMutex());
-    FcConfig* pFcConfig = static_cast<FcConfig*>(m_fontConfig.GetFontConfig());
-    std::string sPath   = this->GetFontConfigFontPath( pFcConfig,
-                                                       pszFontName, bBold, bItalic );
+    std::string sPath = m_fontConfig->GetFontConfigFontPath( pszFontName, bBold, bItalic );
 #else
     std::string sPath = "";
 #endif
@@ -936,5 +885,20 @@ const char *PdfFontCache::genSubsetBasename(void)
 
     return m_sSubsetBasename;
 }
+
+#ifdef PODOFO_HAVE_FONTCONFIG
+
+void PdfFontCache::SetFontConfigWrapper( PdfFontConfigWrapper * pFontConfig )
+{
+    if ( m_fontConfig == pFontConfig )
+        return;
+
+    if ( pFontConfig )
+        m_fontConfig = pFontConfig;
+    else
+        m_fontConfig = PdfFontConfigWrapper::GetInstance();
+}
+
+#endif // PODOFO_HAVE_FONTCONFIG
 
 };

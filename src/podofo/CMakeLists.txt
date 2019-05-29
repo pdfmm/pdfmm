@@ -71,7 +71,6 @@ SET(PODOFO_DOC_SOURCES
   doc/PdfFont.cpp
   doc/PdfFontCID.cpp
   doc/PdfFontCache.cpp
-  doc/PdfFontConfigWrapper.cpp
   doc/PdfFontFactory.cpp
   doc/PdfFontMetrics.cpp
   doc/PdfFontMetricsBase14.cpp
@@ -193,7 +192,6 @@ SET(PODOFO_DOC_HEADERS
   doc/PdfFont.h
   doc/PdfFontCID.h
   doc/PdfFontCache.h
-  doc/PdfFontConfigWrapper.h
   doc/PdfFontFactory.h
   doc/PdfFontFactoryBase14Data.h
   doc/PdfFontMetrics.h
@@ -227,6 +225,11 @@ SET(PODOFO_DOC_HEADERS
   doc/PdfTilingPattern.h
   doc/PdfXObject.h
   )
+
+IF(PODOFO_HAVE_FONTCONFIG)
+    list(APPEND PODOFO_DOC_HEADERS doc/PdfFontConfigWrapper.h)
+    list(APPEND PODOFO_DOC_SOURCES doc/PdfFontConfigWrapper.cpp)
+ENDIF()
 
 SET(PODOFO_HEADER_FILES
   ${PODOFO_HEADERS}

@@ -40,7 +40,9 @@
 #include "podofo/base/PdfEncodingFactory.h"
 
 #include "PdfFont.h"
+#ifdef PODOFO_HAVE_FONTCONFIG
 #include "PdfFontConfigWrapper.h"
+#endif
 
 #ifdef _WIN32
 
@@ -175,15 +177,6 @@ class PODOFO_DOC_API PdfFontCache {
      */
     PdfFontCache( PdfVecObjects* pParent );
 
-    /** Create an empty font cache 
-     *
-     *  \param rFontConfig provide a handle to fontconfig, as initializing a 
-     *         new fontconfig intance might be time consuming.
-     *  \param pParent a PdfVecObjects which is required
-     *                 to create new font objects
-     */
-    PdfFontCache( const PdfFontConfigWrapper & rFontConfig, PdfVecObjects* pParent );
-
     /** Destroy and empty the font cache
      */
     ~PdfFontCache();
@@ -303,22 +296,6 @@ class PODOFO_DOC_API PdfFontCache {
      */
 	void EmbedSubsetFonts();
 
-#if defined(PODOFO_HAVE_FONTCONFIG)
-    /** Get the path of a font file on a Unix system using fontconfig
-     *
-     *  This method is only available if PoDoFo was compiled with
-     *  fontconfig support. Make sure to lock any FontConfig mutexes before
-     *  calling this method by yourself!
-     *
-     *  \param pConfig a handle to an initialized fontconfig library
-     *  \param pszFontName name of the requested font
-     *  \param bBold if true find a bold font
-     *  \param bItalic if true find an italic font
-     *  \returns the path to the fontfile or an empty string
-     */
-    static std::string GetFontConfigFontPath( FcConfig* pConfig, const char* pszFontName, bool bBold, bool bItalic );
-#endif // defined(PODOFO_HAVE_FONTCONFIG)
-
     // Peter Petrov: 26 April 2008
     /** Returns the font library from font cache
      *
@@ -326,6 +303,7 @@ class PODOFO_DOC_API PdfFontCache {
      */
     inline FT_Library GetFontLibrary() const;
 
+#ifdef PODOFO_HAVE_FONTCONFIG
     /**
      * Set wrapper for the fontconfig library.
      * Useful to avoid initializing Fontconfig multiple times.
@@ -333,7 +311,8 @@ class PODOFO_DOC_API PdfFontCache {
      * This setter can be called until first use of Fontconfig
      * as the library is initialized at first use.
      */
-    inline void SetFontConfigWrapper(const PdfFontConfigWrapper & rFontConfig);
+    void SetFontConfigWrapper( PdfFontConfigWrapper * pFontConfig );
+#endif // PODOFO_HAVE_FONTCONFIG
 
  private:
     /**
@@ -424,7 +403,9 @@ class PODOFO_DOC_API PdfFontCache {
 
     PdfVecObjects*  m_pParent;               ///< Handle to parent for creating new fonts and objects
 
-    PdfFontConfigWrapper m_fontConfig;       ///< Handle to the fontconfig library
+#ifdef PODOFO_HAVE_FONTCONFIG
+    PdfFontConfigWrapper* m_fontConfig;
+#endif
 
     char m_sSubsetBasename[SUBSET_BASENAME_LEN + 2]; //< For genSubsetBasename()
 };
@@ -436,14 +417,6 @@ class PODOFO_DOC_API PdfFontCache {
 FT_Library PdfFontCache::GetFontLibrary() const
 {
     return this->m_ftLibrary;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline void PdfFontCache::SetFontConfigWrapper(const PdfFontConfigWrapper & rFontConfig)
-{
-    m_fontConfig = rFontConfig;
 }
 
 };

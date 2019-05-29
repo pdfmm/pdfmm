@@ -37,6 +37,7 @@
 #include "podofo/base/PdfDefines.h"
 #include "podofo/base/Pdf3rdPtyForwardDecl.h"
 #include "podofo/base/util/PdfMutex.h"
+#include <memory>
 
 namespace PoDoFo {
 
@@ -57,39 +58,32 @@ public:
     /**
      * Create a new FontConfigWrapper and initialize the fontconfig library.
      */
-    PdfFontConfigWrapper();
-
-    /**
-     * Copy an existing PdfFontConfigWrapper
-     */
-    PdfFontConfigWrapper(const PdfFontConfigWrapper & rhs);
+    PdfFontConfigWrapper( FcConfig* pConfig = NULL );
 
     ~PdfFontConfigWrapper();
 
-    /**
-     * Get access to the internal fontconfig handle.
-     * Accesses to this handle have to be synchronized using a mutex!
+    /** Get the path of a font file on a Unix system using fontconfig
      *
-     * \see GetFontConfigMutex
+     *  This method is only available if PoDoFo was compiled with
+     *  fontconfig support. Make sure to lock any FontConfig mutexes before
+     *  calling this method by yourself!
      *
-     * \returns a FcConfig handle (you can cast to FcConfig)
+     *  \param pConfig a handle to an initialized fontconfig library
+     *  \param pszFontName name of the requested font
+     *  \param bBold if true find a bold font
+     *  \param bItalic if true find an italic font
+     *  \returns the path to the fontfile or an empty string
      */
-    inline void * GetFontConfig();
+    std::string GetFontConfigFontPath(  const char* pszFontName, bool bBold, bool bItalic );
 
-#if defined(PODOFO_HAVE_FONTCONFIG)
-    /**
-     * Mutex which has to be used to synchronize uses of FontConfig
-     */
-    inline Util::PdfMutex & GetFontConfigMutex();
-#endif
+    FcConfig * GetFcConfig();
 
-    const PdfFontConfigWrapper & operator=(const PdfFontConfigWrapper & rhs);
+    static PdfFontConfigWrapper * GetInstance();
 
 private:
-    /**
-     * Destroy fontconfig reference if reference count is 0
-     */
-    void DerefBuffer();
+    // Disable copying
+    PdfFontConfigWrapper(const PdfFontConfigWrapper & rhs);
+    const PdfFontConfigWrapper & operator=(const PdfFontConfigWrapper & rhs);
 
     /**
      * Do the lazy initialization of fontconfig
@@ -97,45 +91,9 @@ private:
     void InitializeFontConfig();
 
 private:
-
-#if defined(PODOFO_HAVE_FONTCONFIG)
-    static Util::PdfMutex m_FcMutex;
-#endif
-
-    struct TRefCountedFontConfig {
-        void* m_pFcConfig;             ///< Handle to fontconfig on unix systems
-        long  m_lRefCount;
-        bool  m_bInitialized;          ///< Is fontconfig initialized yet?
+    std::auto_ptr<Util::PdfMutex> m_mutex;
+    FcConfig* m_pFcConfig;
     };
-
-    TRefCountedFontConfig* m_pFontConfig;
-};
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void* PdfFontConfigWrapper::GetFontConfig() 
-{
-    if( m_pFontConfig != NULL ) 
-    {
-        InitializeFontConfig();
-        return m_pFontConfig->m_pFcConfig;
-    } 
-    else 
-    {
-        return NULL;
-    }
-}
-
-#if defined(PODOFO_HAVE_FONTCONFIG)
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-Util::PdfMutex & PdfFontConfigWrapper::GetFontConfigMutex()
-{
-    return m_FcMutex;
-}
-#endif
 
 }; // PoDoFo
 

@@ -62,7 +62,6 @@
 #include "doc/PdfFileSpec.h"
 #include "doc/PdfFontCache.h"
 #include "doc/PdfFontCID.h"
-#include "doc/PdfFontConfigWrapper.h"
 #include "doc/PdfFontFactoryBase14Data.h"
 #include "doc/PdfFontFactory.h"
 #include "doc/PdfFont.h"

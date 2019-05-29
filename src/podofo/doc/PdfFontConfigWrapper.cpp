@@ -33,93 +33,83 @@
 
 #include "PdfFontConfigWrapper.h"
 
-#if defined(PODOFO_HAVE_FONTCONFIG)
 #include <fontconfig/fontconfig.h>
-#include "base/util/PdfMutexWrapper.h"
-#endif
+#include <base/util/PdfMutexWrapper.h>
 
 namespace PoDoFo {
 
-#if defined(PODOFO_HAVE_FONTCONFIG)
-Util::PdfMutex PdfFontConfigWrapper::m_FcMutex;
-#endif
-
-
-PdfFontConfigWrapper::PdfFontConfigWrapper()
-    : m_pFontConfig( NULL )
+PdfFontConfigWrapper::PdfFontConfigWrapper( FcConfig* pFcConfig )
+    : m_mutex(new Util::PdfMutex()), m_pFcConfig( pFcConfig )
 {
-#if defined(PODOFO_HAVE_FONTCONFIG)
-    this->m_pFontConfig = new TRefCountedFontConfig();
-    this->m_pFontConfig->m_lRefCount = 1;
-    this->m_pFontConfig->m_bInitialized = false;
-    this->m_pFontConfig->m_pFcConfig = NULL;
-#endif
-}
-
-PdfFontConfigWrapper::PdfFontConfigWrapper(const PdfFontConfigWrapper & rhs)
-    : m_pFontConfig( NULL )
-{
-    this->operator=(rhs);
 }
 
 PdfFontConfigWrapper::~PdfFontConfigWrapper()
 {
-    this->DerefBuffer();
-}
-
-const PdfFontConfigWrapper & PdfFontConfigWrapper::operator=(const PdfFontConfigWrapper & rhs)
-{
-    // Self assignment is a no-op
-    if (this == &rhs)
-        return rhs;
-
-    DerefBuffer();
-
-    this->m_pFontConfig = rhs.m_pFontConfig;
-    if( m_pFontConfig )
-    {
-        this->m_pFontConfig->m_lRefCount++;
-    }
-
-    return *this;
-}
-
-
-void PdfFontConfigWrapper::DerefBuffer()
-{
-    if ( m_pFontConfig && !(--m_pFontConfig->m_lRefCount) )
-    {
-#if defined(PODOFO_HAVE_FONTCONFIG)
-        if( this->m_pFontConfig->m_bInitialized )
-        {
-            Util::PdfMutexWrapper mutex(m_FcMutex);
-            FcConfigDestroy( static_cast<FcConfig*>(m_pFontConfig->m_pFcConfig) );
-        }
-#endif
-
-        delete m_pFontConfig;
-    }
-
-    // Whether or not it still exists, we no longer have anything to do with
-    // the buffer we just released our claim on.
-    m_pFontConfig = NULL;
+    Util::PdfMutexWrapper lock( *m_mutex );
+    if ( m_pFcConfig )
+        FcConfigDestroy( m_pFcConfig );
 }
 
 void PdfFontConfigWrapper::InitializeFontConfig()
-{
-#if defined(PODOFO_HAVE_FONTCONFIG)
-    if( !this->m_pFontConfig->m_bInitialized )
     {
-        Util::PdfMutexWrapper mutex(m_FcMutex);
-        if( !this->m_pFontConfig->m_bInitialized )
+    Util::PdfMutexWrapper lock( *m_mutex );
+    if ( m_pFcConfig )
+        return;
+
+    // Default initialize FontConfig
+    FcInit();
+    m_pFcConfig = FcConfigGetCurrent();
+}
+
+std::string PdfFontConfigWrapper::GetFontConfigFontPath( const char* pszFontName, bool bBold, bool bItalic )
+    {
+    InitializeFontConfig();
+
+    FcPattern*  pattern;
+    FcPattern*  matched;
+    FcResult    result = FcResultMatch;
+    FcValue     v;
+    std::string sPath;
+    // Build a pattern to search using fontname, bold and italic
+    pattern = FcPatternBuild (0, FC_FAMILY, FcTypeString, pszFontName,
+                              FC_WEIGHT, FcTypeInteger, (bBold ? FC_WEIGHT_BOLD : FC_WEIGHT_MEDIUM),
+                              FC_SLANT, FcTypeInteger, (bItalic ? FC_SLANT_ITALIC : FC_SLANT_ROMAN),
+                              static_cast<char*>(0));
+
+    FcDefaultSubstitute( pattern );
+
+    if( !FcConfigSubstitute( m_pFcConfig, pattern, FcMatchFont ) )
         {
-            // CLEAN-ME: Make it possibile to provide an instance of FcConfig
-            FcInit();
-            this->m_pFontConfig->m_pFcConfig = static_cast<void*>(FcConfigGetCurrent());
-            this->m_pFontConfig->m_bInitialized = true;
+        FcPatternDestroy( pattern );
+        return sPath;
         }
+
+    matched = FcFontMatch( m_pFcConfig, pattern, &result );
+    if( result != FcResultNoMatch )
+    {
+        result = FcPatternGet( matched, FC_FILE, 0, &v );
+        sPath = reinterpret_cast<const char*>(v.u.s);
+#ifdef PODOFO_VERBOSE_DEBUG
+        PdfError::LogMessage( eLogSeverity_Debug,
+                              "Got Font %s for for %s\n", sPath.c_str(), pszFontName );
+#endif // PODOFO_DEBUG
     }
-#endif
+
+    FcPatternDestroy( pattern );
+    FcPatternDestroy( matched );
+    return sPath;
+}
+
+FcConfig * PdfFontConfigWrapper::GetFcConfig()
+    {
+    InitializeFontConfig();
+    return m_pFcConfig;
+    }
+
+PdfFontConfigWrapper * PdfFontConfigWrapper::GetInstance()
+{
+    static PdfFontConfigWrapper wrapper;
+    return &wrapper;
 }
 
 };
