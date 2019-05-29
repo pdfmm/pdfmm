@@ -235,7 +235,7 @@ PdfReference PdfVecObjects::GetNextFreeObject()
     pdf_gennum nextObjectNum = static_cast<pdf_gennum>( m_nObjectCount );
     while ( true )
     {
-        if ( ( nextObjectNum + 1 ) == m_nMaxReserveSize )
+        if ( ( size_t )( nextObjectNum + 1 ) == m_nMaxReserveSize )
             PODOFO_RAISE_ERROR_INFO( ePdfError_ValueOutOfRange , "Reached the maximum number of indirect objects");
 
         // Check also if the object number it not available,
