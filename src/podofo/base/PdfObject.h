@@ -40,13 +40,13 @@
 #include "PdfReference.h"
 #include "PdfString.h"
 #include "PdfVariant.h"
+#include "PdfStream.h"
 
 namespace PoDoFo {
 
 class PdfEncrypt;
 class PdfObject;
 class PdfOutputDevice;
-class PdfStream;
 class PdfVecObjects;
 class PdfDictionary;
 class PdfArray;

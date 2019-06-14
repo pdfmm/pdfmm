@@ -33,23 +33,25 @@
 
 #include "PdfEncodingObjectFactory.h"
 
+#include <deque>
+
 #include "base/PdfDefinesPrivate.h"
 
 #include "base/PdfEncodingFactory.h"
 #include "base/PdfObject.h"
 #include "base/PdfVecObjects.h"
+#include "base/PdfContentsTokenizer.h"
 
 #include "PdfDifferenceEncoding.h"
 #include "PdfIdentityEncoding.h"
 #include "PdfCMapEncoding.h"
 
-//For temporary purpose
-
-#include <iostream>
 using namespace std;
 
 namespace PoDoFo
 {
+
+static bool isIdentityEncoding(const PdfObject &object, int &lastChar);
 
 const PdfEncoding *PdfEncodingObjectFactory::CreateEncoding (PdfObject *pObject, PdfObject *pToUnicode, bool bExplicitNames)
 {
@@ -81,7 +83,14 @@ const PdfEncoding *PdfEncodingObjectFactory::CreateEncoding (PdfObject *pObject,
     }
   	else if (pObject->HasStream ())
     {
-		return new PdfCMapEncoding(pObject, pToUnicode);
+        int lastChar;
+        if (isIdentityEncoding(*pObject, lastChar))
+            return new PdfIdentityEncoding(0, lastChar, true);
+
+        // TODO: If /ToUnicode is absent, and CID font is not identity, use the CID font's predefined character collection
+        // (/CIDSystemInfo<</Registry(XXX)/Ordering(XXX)/Supplement 0>>)
+
+        return new PdfCMapEncoding(pObject, pToUnicode);
     }
 
   	else if (pObject->IsDictionary ())
@@ -95,6 +104,61 @@ const PdfEncoding *PdfEncodingObjectFactory::CreateEncoding (PdfObject *pObject,
                              "Unsupported encoding detected!");
 
     //return NULL; Unreachable code
+}
+
+bool isIdentityEncoding(const PdfObject &object, int &lastChar)
+{
+    // Try to find and Adobe-Identity CID font
+    const PdfDictionary &dict = object.GetDictionary();
+    const PdfObject *CIDSystemInfo = dict.FindKey("CIDSystemInfo");
+    const PdfObject *registry;
+    const PdfObject *ordering;
+    if (CIDSystemInfo == NULL
+        || (registry = CIDSystemInfo->GetDictionary().FindKey("Registry")) == NULL
+        || registry->GetString() != "Adobe"
+        || (ordering = CIDSystemInfo->GetDictionary().FindKey("Ordering")) == NULL
+        || ordering->GetString() != "Identity" )
+    {
+        lastChar = 0;
+        return false;
+    }
+
+    char *streamBuffer;
+    pdf_long streamBufferLen;
+    object.GetStream()->GetFilteredCopy(&streamBuffer, &streamBufferLen);
+    PdfContentsTokenizer tokenizer(streamBuffer, streamBufferLen);
+    const char *token;
+    PdfVariant var;
+    PdfVariant prev;
+    EPdfContentsType tokenType;
+    lastChar = 0xFFFF;
+    while (tokenizer.ReadNext(tokenType, token, var))
+    {
+        if (tokenType == EPdfContentsType::ePdfContentsType_Keyword
+            && strcmp(token, "begincodespacerange") == 0)
+        {
+            int nEntries = (int)prev.GetNumber();
+            for (int i = 0; i < nEntries; i++)
+            {
+                // Skip lower bound for range
+                tokenizer.ReadNext(tokenType, token, var);
+                tokenizer.ReadNext(tokenType, token, var);
+            }
+
+            // Just read last range upper bound
+            PdfString str = var.GetString();
+            int32_t rangeEnd = 0;
+            size_t readCount = std::min(sizeof(rangeEnd), (size_t)str.GetLength());
+            // TODO: tge following looks wrong in Big Endian CPUs
+            memcpy(&rangeEnd, str.GetString(), readCount);
+            lastChar = (int)rangeEnd;
+            break;
+        }
+
+        prev = var;
+    }
+
+    return true;
 }
 
 };				/* namespace PoDoFo */

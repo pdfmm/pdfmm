@@ -243,8 +243,6 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library*, PdfObject* pObject )
 
         if ( pEncoding && pDescriptor ) // OC 18.08.2010: Avoid sigsegv
         {
-            // TODO: If /ToUnicode is absent, use the CID font's predefined character collection
-            // (/CIDSystemInfo<</Registry(XXX)/Ordering(XXX)/Supplement 0>>)
             const PdfEncoding* const pPdfEncoding =
                PdfEncodingObjectFactory::CreateEncoding( pEncoding, pObject->GetIndirectKey("ToUnicode") );
             
