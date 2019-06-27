@@ -133,7 +133,6 @@ inline char ToHex( const char byte )
 
     return s_pszHex[byte % 16];
 }
-
 void PdfFont::WriteStringToStream( const PdfString & rsString, PdfStream* pStream )
 {
     if( !m_pEncoding )
@@ -141,6 +140,13 @@ void PdfFont::WriteStringToStream( const PdfString & rsString, PdfStream* pStrea
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
+    stringstream ostream;
+    WriteStringToStream( rsString, ostream );
+    pStream->Append( ostream.str() );
+}
+
+void PdfFont::WriteStringToStream( const PdfString & rsString, ostream& rStream )
+{
     PdfRefCountedBuffer buffer = m_pEncoding->ConvertToEncoding( rsString, this );
     pdf_long  lLen    = 0;
     char* pBuffer = NULL;
@@ -148,9 +154,9 @@ void PdfFont::WriteStringToStream( const PdfString & rsString, PdfStream* pStrea
     std::auto_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );    
     pFilter->Encode( buffer.GetBuffer(), buffer.GetSize(), &pBuffer, &lLen );
 
-    pStream->Append( "<", 1 );
-    pStream->Append( pBuffer, lLen );
-    pStream->Append( ">", 1 );
+    rStream << "<";
+    rStream.write( pBuffer, lLen );
+    rStream << ">";
 
     podofo_free( pBuffer );
 }

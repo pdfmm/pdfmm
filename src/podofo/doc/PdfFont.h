@@ -34,6 +34,7 @@
 #ifndef _PDF_FONT_H_
 #define _PDF_FONT_H_
 
+#include <ostream>
 #include "podofo/base/PdfDefines.h"
 #include "podofo/base/PdfName.h"
 #include "podofo/base/PdfEncodingFactory.h"
@@ -202,7 +203,18 @@ class PODOFO_DOC_API PdfFont : public PdfElement {
      *  \param pStream the string will be appended to pStream without any leading
      *                 or following whitespaces.
      */
-    virtual void WriteStringToStream( const PdfString & rsString, PdfStream* pStream );
+    void WriteStringToStream( const PdfString & rsString, PdfStream * pStream );
+
+    /** Write a PdfString to a PdfStream in a format so that it can
+     *  be used with this font.
+     *  This is used by PdfPainter::DrawText to display a text string.
+     *  The following PDF operator will be Tj
+     *
+     *  \param rsString a unicode or ansi string which will be displayed
+     *  \param rStream the string will be appended to the stream without any leading
+     *                 or following whitespaces.
+     */
+    virtual void WriteStringToStream( const PdfString & rsString, std::ostream & rStream );
 
     // Peter Petrov 24 September 2008
     /** Embeds the font into PDF page

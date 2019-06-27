@@ -81,8 +81,10 @@ struct TLineElement
 class PODOFO_DOC_API PdfPainter {
  public:
     /** Create a new PdfPainter object.
+     *
+     *  \param saveRestore do save/restore state before appending
      */
-    PdfPainter();
+    PdfPainter( bool saveRestore = false );
 
     virtual ~PdfPainter();
 
@@ -761,12 +763,15 @@ class PODOFO_DOC_API PdfPainter {
      */
     inline unsigned short GetPrecision() const;
 
-
     /** Get current path string stream.
      * Stroke/Fill commands clear current path.
      * \returns std::ostringstream representing current path
      */
     inline std::ostringstream &GetCurrentPath(void);
+
+    /** Get current temporary stream
+     */
+    inline std::ostringstream & GetStream();
 
     /** Set rgb color that depend on color space setting, "cs" tag.
      *
@@ -840,7 +845,15 @@ class PODOFO_DOC_API PdfPainter {
         PdfString ExpandTabsPrivate( const C* pszText, pdf_long lStringLen, int nTabCnt, const C cTab, const C cSpace ) const;
 #endif
 
+ private:
+    void CheckCanvas();
+    void finishPage();
+
  protected:
+    /** Save/restore state before appending
+     */
+    bool m_saveRestore;
+
     /** All drawing operations work on this stream.
      *  This object may not be NULL. If it is NULL any function accessing it should
      *  return ERROR_PDF_INVALID_HANDLE
@@ -961,6 +974,11 @@ unsigned short PdfPainter::GetPrecision() const
 inline std::ostringstream &PdfPainter::GetCurrentPath(void)
 {
 	return m_curPath;
+}
+
+inline std::ostringstream & PdfPainter::GetStream()
+{
+    return m_oss;
 }
 
 // -----------------------------------------------------
