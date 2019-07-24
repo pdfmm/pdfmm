@@ -465,9 +465,9 @@ PdfString PdfField::GetFieldName() const
     return name->GetString();
 }
 
-PdfString PdfField::GetFullFieldName() const
+PdfString PdfField::GetFullFieldName(bool escapePartialNames) const
 {
-    PdfString ret = PdfString::StringNull;
+    std::string ret;
     PdfObject *object = m_pObject;
     while ( object )
     {
@@ -475,16 +475,35 @@ PdfString PdfField::GetFullFieldName() const
         PdfObject *nameObj = dict.GetKey( "T" );
         if ( nameObj != NULL )
         {
-            PdfString name = nameObj->GetString();
-            if ( ret.IsValid() )
-                ret = PdfString::FromUtf8String( ret.GetStringUtf8() + "." + name.GetStringUtf8() );
+            std::string name = nameObj->GetString().GetStringUtf8();
+
+            if (escapePartialNames)
+            {
+                // According to ISO 32000-1:2008, "12.7.3.2 Field Names":
+                // "Because the PERIOD is used as a separator for fully
+                // qualified names, a partial name shall not contain a
+                // PERIOD character."
+                // In case the partial name still has periods (effectively
+                // violating the standard and Pdf Reference) the fullname
+                // would be unintelligible, let's escape them with double
+                // dots "..", example "parent.partial..name"
+                size_t currpos = 0;
+                while ((currpos = name.find('.', currpos)) != std::string::npos)
+                {
+                    name.replace(currpos, 1, "..");
+                    currpos += 2;
+                }
+            }
+
+            if ( ret.length() == 0 )
+                ret = name;
             else
-                ret = name.GetStringUtf8();
+                ret.append(".").append(name);
         }
         object = dict.FindKey( "Parent" );
     }
 
-    return ret;
+    return PdfString::FromUtf8String(ret);
 }
 
 void PdfField::SetAlternateName( const PdfString & rsName )

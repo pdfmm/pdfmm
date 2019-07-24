@@ -283,8 +283,10 @@ class PODOFO_DOC_API PdfField {
     PdfString GetFieldName() const;
 
     /** \returns the parents qualified name of this PdfField
+     *
+     *  \param escapePartialNames escape non compliant partial names
      */
-    PdfString GetFullFieldName() const;
+    PdfString GetFullFieldName(bool escapePartialNames = false) const;
 
     /**
      * Set the alternate name of this field which 
