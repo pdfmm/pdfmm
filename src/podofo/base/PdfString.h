@@ -402,6 +402,7 @@ class PODOFO_API PdfString : public PdfDataType {
       *          returns false).
 	  */
 	 PdfRefCountedBuffer &GetBuffer(void);
+     const PdfRefCountedBuffer &GetBuffer(void) const;
 
     static const PdfString StringNull;
 

@@ -804,6 +804,11 @@ PdfRefCountedBuffer &PdfString::GetBuffer(void)
 	return m_buffer;
 }
 
+const PdfRefCountedBuffer &PdfString::GetBuffer(void) const
+{
+    return m_buffer;
+}
+
 #ifdef PODOFO_HAVE_UNISTRING_LIB
 
 pdf_long PdfString::ConvertUTF8toUTF16( const pdf_utf8* pszUtf8, pdf_utf16be* pszUtf16, pdf_long lLenUtf16 )
