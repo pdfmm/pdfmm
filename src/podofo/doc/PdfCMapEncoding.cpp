@@ -54,176 +54,14 @@ namespace PoDoFo
 {
 
 
-PdfCMapEncoding::PdfCMapEncoding (PdfObject * pObject, PdfObject * pToUnicode) : PdfEncoding(0x0000, 0xffff, pToUnicode), PdfElement(NULL, pObject), m_baseEncoding( eBaseEncoding_Font )
+PdfCMapEncoding::PdfCMapEncoding (PdfObject * pObject, PdfObject * pToUnicode)
+    : PdfEncoding(0x0000, 0xffff, pToUnicode == pObject ? NULL : pToUnicode), m_baseEncoding( eBaseEncoding_Font )
 {
+    // TODO: If /ToUnicode is absent, and CID font is not identity, use the CID font's predefined character collection
+    // (/CIDSystemInfo<</Registry(XXX)/Ordering(XXX)/Supplement 0>>)
+
     if (pObject && pObject->HasStream())
-    {
-        std::stack<std::string> stkToken;
-        pdf_uint16 loop = 0;
-        char *streamBuffer;
-        const char *streamToken = NULL;
-        EPdfTokenType *streamTokenType = NULL;
-        pdf_long streamBufferLen;
-        bool in_begincidrange = 0;
-        bool in_begincidchar = 0;
-        pdf_uint16 range_entries = 0;
-        pdf_uint16 char_entries = 0;
-        pdf_uint16 inside_hex_string = 0;
-        pdf_uint16 inside_array = 0;
-        pdf_uint16 range_start = 0;
-        pdf_uint16 range_end = 0;
-        pdf_uint16 i = 0;
-        pdf_utf16be firstvalue = 0;
-        const PdfStream *CIDStreamdata = pObject->GetStream ();
-        CIDStreamdata->GetFilteredCopy (&streamBuffer, &streamBufferLen);
-
-        PdfContentsTokenizer streamTokenizer (streamBuffer, streamBufferLen);
-        while (streamTokenizer.GetNextToken (streamToken, streamTokenType))
-        {
-            stkToken.push (streamToken);
-
-            if (strcmp (streamToken, ">") == 0)
-            {
-                if (inside_hex_string == 0)
-                    PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidStream, "CMap Error, got > before <")
-                    else
-                        inside_hex_string = 0;
-                
-                i++;
-
-            }
-
-            if (strcmp (streamToken, "]") == 0)
-            {
-                if (inside_array == 0)
-                    PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidStream, "CMap Error, got ] before [")
-                    else
-                        inside_array = 0;
-                
-                i++;
-
-            }
-            
-            if (in_begincidrange == 1)
-            {
-                if (loop < range_entries)
-                {
-                    if (inside_hex_string == 1)
-                    {
-                        pdf_utf16be num_value;
-                        std::stringstream ss;
-                        ss << std::hex << streamToken;
-                        ss >> num_value;
-                        if (i % 3 == 0)
-                            range_start = num_value;
-                        if (i % 3 == 1)
-                        {
-                            range_end = num_value;
-                        }
-                        if (i % 3 == 2)
-                        {
-                            for (int k = range_start; k <= range_end; k++)
-                            {
-                                m_cMap[k] = num_value;
-                                num_value++;
-                            }
-
-                            loop++;
-
-                        }
-                    }
-                }
-
-            }
-
-
-
-            if (in_begincidchar == 1)
-            {
-                if (loop < char_entries)
-                {
-                    if (inside_hex_string == 1)
-                    {
-                        pdf_utf16be num_value;
-                        std::stringstream ss;
-                        ss << std::hex << streamToken;
-                        ss >> num_value;
-                        if (i % 2 == 0)
-                        {
-                            firstvalue = num_value;
-                        }
-                        if (i % 2 == 1)
-                        {
-                            m_cMap[firstvalue] = num_value;
-                        }
-
-                    }
-
-                }
-
-            }
-
-
-            if (strcmp (streamToken, "<") == 0)
-            {
-                inside_hex_string = 1;
-            }
-
-
-
-            if (strcmp (streamToken, "[") == 0)
-            {
-                inside_array = 1;
-            }
-
-
-
-
-
-            
-            
-            if (strcmp (streamToken, "begincidrange") == 0)
-            {
-                i = loop = 0;
-                in_begincidrange = 1;
-                stkToken.pop ();
-                std::stringstream ss;
-                ss << std::hex << stkToken.top ();
-                ss >> range_entries;
-
-            }
-            
-            if (strcmp (streamToken, "endcidrange") == 0)
-            {
-                in_begincidrange = 0;
-                i = 0;
-            }
-            
-            if (strcmp (streamToken, "begincidchar") == 0)
-            {
-                i = loop = 0;
-                in_begincidchar = 1;
-                stkToken.pop ();
-                std::stringstream ss;
-                ss << std::hex << stkToken.top ();
-                ss >> char_entries;
-
-            }
-            
-            if (strcmp (streamToken, "endcidchar") == 0)
-            {
-                in_begincidchar = 0;
-                i = 0;
-            }
-
-
-
-        }
-        
-        podofo_free(streamBuffer);
-    }
-
-
+        ParseCMapObject(pObject, m_toUnicode, m_nFirstChar, m_nLastChar);
 }
 
 void PdfCMapEncoding::AddToDictionary(PdfDictionary &) const
@@ -259,80 +97,37 @@ const PdfEncoding* PdfCMapEncoding::GetBaseEncoding() const
     return pEncoding;
 }
 
-PdfString PdfCMapEncoding::ConvertToUnicode(const PdfString & rEncodedString, const PdfFont* pFont) const
+PdfString PdfCMapEncoding::ConvertToUnicode(const PdfString &rString, const PdfFont* pFont) const
 {
-
-    if(m_bToUnicodeIsLoaded)
+    if(IsToUnicodeLoaded())
     {
-      if(!m_toUnicode.empty())
-      {
-        
-        const pdf_uint8* pStr = reinterpret_cast<const pdf_uint8*>(rEncodedString.GetString());
-        const size_t lLen = rEncodedString.GetLength();
-        
-        pdf_utf16be* pszUtf16 = static_cast<pdf_utf16be*>(podofo_calloc(lLen, sizeof(pdf_utf16be)));
-        if( !pszUtf16 )
-        {
-          PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
-        }
-        
-        size_t lDstLen = 0;
-        pdf_utf16be lCID, lUnicodeValue;
-        pdf_uint8* const pCID = reinterpret_cast<pdf_uint8*>(&lCID);
-        for(size_t iSrc = 0 ; iSrc<lLen ;)
-        {
-          lCID = 0;
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-          pCID[0] = pStr[iSrc];
-#else
-          pCID[1] = pStr[iSrc];
-#endif // PODOFO_IS_LITTLE_ENDIAN
-
-          iSrc++;
-          
-          lUnicodeValue = this->GetUnicodeValue(lCID);
-
-          if (lUnicodeValue == 0)
-          {
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-            pCID[1] = pStr[iSrc];
-#else
-            pCID[0] = pStr[iSrc];
-#endif // PODOFO_IS_LITTLE_ENDIAN
-          
-            iSrc++;
-            lUnicodeValue = this->GetUnicodeValue(lCID);
-          }
-          
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-          pszUtf16[lDstLen] = (lUnicodeValue << 8) | (lUnicodeValue >> 8 );
-#else
-          pszUtf16[lDstLen] = lUnicodeValue;
-#endif // PODOFO_IS_LITTLE_ENDIAN
-          lDstLen++;
-        }
-        
-        PdfString ret( pszUtf16, lDstLen );
-        podofo_free( pszUtf16 );
-        
-        return ret;
-        
-      }
-      else
-        return PdfEncoding::ConvertToUnicode(rEncodedString, pFont);
+        return PdfEncoding::ConvertToUnicode(rString, pFont);
     }
     else
-        PODOFO_RAISE_ERROR( ePdfError_NotImplemented );
+    {
+        if (m_toUnicode.empty())
+            return PdfString("\0");
+
+        return convertToUnicode(rString, m_toUnicode, m_nLastChar > 0xFF ? 2 : 1 );
+    }
 }
 
 PdfRefCountedBuffer PdfCMapEncoding::ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const
 {
-    if(m_bToUnicodeIsLoaded)
+    if(IsToUnicodeLoaded())
     {
         return PdfEncoding::ConvertToEncoding(rString, pFont);
     }
     else
-        PODOFO_RAISE_ERROR( ePdfError_NotImplemented );
+    {
+        if (m_toUnicode.empty())
+            return PdfRefCountedBuffer();
+
+        if (rString.IsUnicode())
+            return convertToEncoding(rString, m_toUnicode, pFont);
+        else
+            return convertToEncoding(rString.ToUnicode(), m_toUnicode, pFont);
+    }
 }
 
 

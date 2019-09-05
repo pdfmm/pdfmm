@@ -37,6 +37,7 @@
 #include "PdfDefines.h"
 #include "PdfName.h"
 #include "PdfString.h"
+#include "PdfVariant.h"
 #include "util/PdfMutex.h"
 
 #include <iterator>
@@ -55,7 +56,11 @@ class PdfObject;
  * PdfEncoding can also be used to convert strings from a
  * PDF file back into a PdfString.
  */
-class PODOFO_API PdfEncoding {
+class PODOFO_API PdfEncoding
+{
+protected:
+    typedef std::map<pdf_uint16, pdf_uint32> UnicodeMap;
+
  protected:
     /** 
      *  Create a new PdfEncoding.
@@ -86,7 +91,7 @@ class PODOFO_API PdfEncoding {
 						 int, std::ptrdiff_t, 
 						 const int *, const int &> {
 #endif
-    public:
+public:
 	const_iterator( const PdfEncoding* pEncoding, int nCur )
 	    : m_pEncoding( pEncoding ), m_nCur( nCur )
 	{
@@ -220,23 +225,25 @@ class PODOFO_API PdfEncoding {
      */
     virtual pdf_utf16be GetCharCode( int nIndex ) const = 0;
 
- protected:
-    bool m_bToUnicodeIsLoaded;  ///< If true, ToUnicode has been parse
-                             
+public:
+    bool IsToUnicodeLoaded() const { return m_bToUnicodeIsLoaded; }
+
+ protected:      
+    static void GetUnicodeValue(pdf_utf16be src, const UnicodeMap &map, pdf_utf16be dest[2], int &chCount );
+    static pdf_utf16be GetCIDValue( pdf_utf16be src, const UnicodeMap &map );
+    static pdf_uint32 GetCodeFromVariant(const PdfVariant &var);
+    static PdfRefCountedBuffer convertToEncoding(const PdfString &rString, const UnicodeMap &map, const PdfFont* pFont);
+    static PdfString convertToUnicode(const PdfString &rString, const UnicodeMap &map, int unitSize);
+    static void ParseCMapObject(PdfObject* obj, UnicodeMap &map, int &firstChar, int &lastChar);
+
+    static void getUnicodeValue(pdf_uint16 src, const UnicodeMap &map, pdf_utf16be dest[2], int &chCount);
+    static pdf_utf16be getCIDValue( pdf_uint16 src, const UnicodeMap &map);
+
  private:
-    int     m_nFirstChar;   ///< The first defined character code
-    int     m_nLastChar;    ///< The last defined character code
-    PdfObject* m_pToUnicode;    ///< Pointer to /ToUnicode object, if any
- protected:
-    std::map<pdf_utf16be, pdf_utf16be> m_toUnicode;
-               
-    pdf_utf16be GetUnicodeValue( pdf_utf16be ) const;
- private:
-    
-    /** Parse the /ToUnicode object
-    */
-    void ParseToUnicode();
-    pdf_utf16be GetCIDValue( pdf_utf16be ) const;
+     bool m_bToUnicodeIsLoaded;  ///< If true, ToUnicode has been parsed
+     int m_nFirstChar;   ///< The first defined character code
+     int m_nLastChar;    ///< The last defined character code
+     UnicodeMap m_toUnicode;
 };
 
 // -----------------------------------------------------

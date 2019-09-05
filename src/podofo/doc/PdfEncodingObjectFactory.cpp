@@ -51,8 +51,6 @@ using namespace std;
 namespace PoDoFo
 {
 
-static bool isIdentityEncoding(const PdfObject &object, int &lastChar);
-
 const PdfEncoding *PdfEncodingObjectFactory::CreateEncoding (PdfObject *pObject, PdfObject *pToUnicode, bool bExplicitNames)
 {
     if (pObject->IsReference ())
@@ -78,87 +76,31 @@ const PdfEncoding *PdfEncodingObjectFactory::CreateEncoding (PdfObject *pObject,
             return PdfEncodingFactory::GlobalSymbolEncodingInstance ();
         else if (rName == PdfName ("ZapfDingbatsEncoding"))	// OC 13.08.2010
             return PdfEncodingFactory::GlobalZapfDingbatsEncodingInstance ();
-        else if (rName == PdfName ("Identity-H"))
+        // NOTE: Following seems not correct. Identity-H/V are predefined
+        // CMap names, not predefined encodings
+        else if (rName == PdfName("Identity-H"))
             return new PdfIdentityEncoding (0, 0xffff, true, pToUnicode);
+        else if (rName == PdfName("Identity-V"))
+            return new PdfIdentityEncoding(0, 0xffff, true, pToUnicode);
     }
-  	else if (pObject->HasStream ())
+  	else if ( pObject->IsDictionary() )
     {
-        int lastChar;
-        if (isIdentityEncoding(*pObject, lastChar))
-            return new PdfIdentityEncoding(0, lastChar, true);
+        PdfDictionary &dict = pObject->GetDictionary();
+        PdfObject *cmapName = dict.FindKey("CMapName");
+        if (cmapName != NULL && (cmapName->GetName() == "Identity-H"
+            || cmapName->GetName() == "Identity-V"))
+        {
+            return new PdfIdentityEncoding(0, 0xffff, true, pToUnicode);
+        }
 
-        // TODO: If /ToUnicode is absent, and CID font is not identity, use the CID font's predefined character collection
-        // (/CIDSystemInfo<</Registry(XXX)/Ordering(XXX)/Supplement 0>>)
+        if ( pObject->HasStream() )
+            return new PdfCMapEncoding(pObject, pToUnicode);
 
-        return new PdfCMapEncoding(pObject, pToUnicode);
+        return new PdfDifferenceEncoding(pObject, true, bExplicitNames);
     }
-
-  	else if (pObject->IsDictionary ())
-    {
-
-		return new PdfDifferenceEncoding (pObject, true, bExplicitNames);
-    }
-    
     
     PODOFO_RAISE_ERROR_INFO (ePdfError_InternalLogic,
                              "Unsupported encoding detected!");
-
-    //return NULL; Unreachable code
-}
-
-bool isIdentityEncoding(const PdfObject &object, int &lastChar)
-{
-    // Try to find and Adobe-Identity CID font
-    const PdfDictionary &dict = object.GetDictionary();
-    const PdfObject *CIDSystemInfo = dict.FindKey("CIDSystemInfo");
-    const PdfObject *registry;
-    const PdfObject *ordering;
-    if (CIDSystemInfo == NULL
-        || (registry = CIDSystemInfo->GetDictionary().FindKey("Registry")) == NULL
-        || registry->GetString() != "Adobe"
-        || (ordering = CIDSystemInfo->GetDictionary().FindKey("Ordering")) == NULL
-        || ordering->GetString() != "Identity" )
-    {
-        lastChar = 0;
-        return false;
-    }
-
-    char *streamBuffer;
-    pdf_long streamBufferLen;
-    object.GetStream()->GetFilteredCopy(&streamBuffer, &streamBufferLen);
-    PdfContentsTokenizer tokenizer(streamBuffer, streamBufferLen);
-    const char *token;
-    PdfVariant var;
-    PdfVariant prev;
-    EPdfContentsType tokenType;
-    lastChar = 0xFFFF;
-    while (tokenizer.ReadNext(tokenType, token, var))
-    {
-        if (tokenType == EPdfContentsType::ePdfContentsType_Keyword
-            && strcmp(token, "begincodespacerange") == 0)
-        {
-            int nEntries = (int)prev.GetNumber();
-            for (int i = 0; i < nEntries; i++)
-            {
-                // Skip lower bound for range
-                tokenizer.ReadNext(tokenType, token, var);
-                tokenizer.ReadNext(tokenType, token, var);
-            }
-
-            // Just read last range upper bound
-            PdfString str = var.GetString();
-            int32_t rangeEnd = 0;
-            size_t readCount = std::min(sizeof(rangeEnd), (size_t)str.GetLength());
-            // TODO: tge following looks wrong in Big Endian CPUs
-            memcpy(&rangeEnd, str.GetString(), readCount);
-            lastChar = (int)rangeEnd;
-            break;
-        }
-
-        prev = var;
-    }
-
-    return true;
 }
 
 };				/* namespace PoDoFo */

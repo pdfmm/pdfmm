@@ -42,7 +42,8 @@
 
 #include "doc/PdfFont.h"
 
-#include <stack>
+#include <algorithm>
+#include <deque>
 #include <stdlib.h>
 #include <string.h>
 #include <limits>
@@ -50,311 +51,360 @@
 #include "PdfArray.h"
 #include "doc/PdfDifferenceEncoding.h"
 
+#define SWAP_BYTES(n) ( n << 8 | n >> 8 )
+
 namespace PoDoFo {
 
 PdfEncoding::PdfEncoding( int nFirstChar, int nLastChar, PdfObject* pToUnicode )
-    : m_bToUnicodeIsLoaded(false), m_nFirstChar( nFirstChar ), m_nLastChar( nLastChar ), m_pToUnicode(pToUnicode)
+    : m_bToUnicodeIsLoaded(false), m_nFirstChar( nFirstChar ), m_nLastChar( nLastChar )
 {
     if( !(m_nFirstChar < m_nLastChar) )
     {
         PODOFO_RAISE_ERROR_INFO( ePdfError_ValueOutOfRange, "PdfEncoding: nFirstChar must be smaller than nLastChar" ); 
     }
-    
-    ParseToUnicode();
+
+    if (pToUnicode && pToUnicode->HasStream())
+    {
+        ParseCMapObject(pToUnicode, m_toUnicode, m_nFirstChar, m_nLastChar);
+        m_bToUnicodeIsLoaded = true;
+    }
 }
 
 PdfEncoding::~PdfEncoding()
 {
 
 }
-    
-PdfString PdfEncoding::ConvertToUnicode(const PdfString & rEncodedString, const PdfFont*) const
+PdfString PdfEncoding::ConvertToUnicode( const PdfString &rString, const PdfFont *pFont ) const
 {
-    
-    if(!m_toUnicode.empty())
-    {
-        
-        const pdf_utf16be* pStr = reinterpret_cast<const pdf_utf16be*>(rEncodedString.GetString());
-        const size_t lLen = rEncodedString.GetLength()/2;
-        pdf_utf16be lCID, lUnicodeValue;
-        
-        pdf_utf16be* pszUtf16 = static_cast<pdf_utf16be*>(podofo_calloc(lLen, sizeof(pdf_utf16be)));
-        if( !pszUtf16 )
-        {
-            PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
-        }
-        
-        for(size_t i = 0 ; i<lLen ; i++)
-        {
-            
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-            lCID = (pStr[i] << 8) | (pStr[i] >> 8 );
-#else
-            lCID = pStr[i];
-#endif // PODOFO_IS_LITTLE_ENDIAN
-            
-            lUnicodeValue = this->GetUnicodeValue(lCID);
-            
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-            pszUtf16[i] = (lUnicodeValue << 8) | (lUnicodeValue >> 8 );
-#else
-            pszUtf16[i] = lUnicodeValue;
-#endif // PODOFO_IS_LITTLE_ENDIAN
-        }
-        
-        PdfString ret( pszUtf16, lLen );
-        podofo_free( pszUtf16 );
-        
-        return ret;
-        
-    }
-    else
-        return(PdfString("\0"));
+    if (m_toUnicode.empty())
+        return PdfString("\0");
+
+    return convertToUnicode( rString, m_toUnicode, m_nLastChar > 0xFF ? 2 : 1 );
 }
 
-PdfRefCountedBuffer PdfEncoding::ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const
+PdfString PdfEncoding::convertToUnicode( const PdfString &rEncodedString, const UnicodeMap &map, int unitSize )
 {
-    if(!m_toUnicode.empty())
+    pdf_utf16be lUnicodeValue[2] = { 0 };
+    int chCount;
+
+    std::vector<pdf_utf16be> pszUtf16;
+
+    if (unitSize == 2)
     {
-        // Get the string in UTF-16be format
-        PdfString sStr = rString.ToUnicode();
-        const pdf_utf16be* pStr = sStr.GetUnicode();
-        pdf_utf16be lUnicodeValue, lCID;
-        
-        std::ostringstream out;
-        PdfLocaleImbue(out);
-        
-        while( *pStr )
+        const pdf_utf16be* pStr = rEncodedString.GetUnicode();
+        size_t lLen = rEncodedString.GetUnicodeLength();
+        pszUtf16.reserve(lLen);
+
+        for (size_t i = 0; i < lLen; i++)
         {
-            
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-            lUnicodeValue = (*pStr << 8) | (*pStr >> 8);
-#else
-            lUnicodeValue = *pStr;
-#endif // PODOFO_IS_LITTLE_ENDIAN
-            
-            lCID = this->GetCIDValue(lUnicodeValue);
-            if (lCID == 0 && pFont) {
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-                lCID = static_cast<pdf_utf16be>(pFont->GetFontMetrics()->GetGlyphId( (((*pStr & 0xff) << 8) | ((*pStr & 0xff00) >> 8)) ));
-#else
-                lCID = static_cast<pdf_utf16be>(pFont->GetFontMetrics()->GetGlyphId( *pStr ));
-#endif // PODOFO_IS_LITTLE_ENDIAN
-            }
-            
-            out << static_cast<unsigned char>((lCID & 0xff00) >> 8);
-            out << static_cast<unsigned char>(lCID & 0x00ff);
-            
-            ++pStr;
+            GetUnicodeValue(pStr[i], map, lUnicodeValue, chCount);
+
+            for (int i = 0; i < chCount; i++)
+                pszUtf16.push_back(lUnicodeValue[i]);
         }
-        
-        PdfRefCountedBuffer buffer( out.str().length() );
-        memcpy( buffer.GetBuffer(), out.str().c_str(), out.str().length() );
-        return buffer;
     }
     else
+    {
+        const char* pStr = rEncodedString.GetString();
+        size_t lLen = rEncodedString.GetLength();
+        pszUtf16.reserve(lLen * 2);
+        for (size_t i = 0; i < lLen; i++)
+        {
+            getUnicodeValue((pdf_uint16)pStr[i], map, lUnicodeValue, chCount);
+
+            for (int i = 0; i < chCount; i++)
+                pszUtf16.push_back(lUnicodeValue[i]);
+        }
+    }
+    
+    PdfString ret( pszUtf16.data(), pszUtf16.size() );
+    return ret;  
+}
+
+PdfRefCountedBuffer PdfEncoding::ConvertToEncoding( const PdfString &rString, const PdfFont* pFont ) const
+{
+    if (m_toUnicode.empty())
         return PdfRefCountedBuffer();
+
+    if ( rString.IsUnicode() )
+        return convertToEncoding( rString, m_toUnicode, pFont );
+    else
+        return convertToEncoding( rString.ToUnicode(), m_toUnicode, pFont );
 }
 
-void PdfEncoding::ParseToUnicode()
+PdfRefCountedBuffer PdfEncoding::convertToEncoding( const PdfString &rString, const UnicodeMap &map, const PdfFont *pFont )
 {
-    if (m_pToUnicode && m_pToUnicode->HasStream())
-    {
-        std::stack<std::string> stkToken;
-        pdf_uint16 loop = 0;
-        char *streamBuffer;
-        const char *streamToken = NULL;
-        EPdfTokenType *streamTokenType = NULL;
-        pdf_long streamBufferLen;
-        bool in_beginbfrange = 0;
-        bool in_beginbfchar = 0;
-        pdf_uint16 range_entries = 0;
-        pdf_uint16 char_entries = 0;
-        pdf_uint16 inside_hex_string = 0;
-        pdf_uint16 inside_array = 0;
-        pdf_uint16 range_start = 0;
-        pdf_uint16 range_end = 0;
-        pdf_uint16 i = 0;
-        pdf_utf16be firstvalue = 0;
-        const PdfStream *CIDStreamdata = m_pToUnicode->GetStream ();
-        CIDStreamdata->GetFilteredCopy (&streamBuffer, &streamBufferLen);
-        
-        PdfContentsTokenizer streamTokenizer (streamBuffer, streamBufferLen);
-        while (streamTokenizer.GetNextToken (streamToken, streamTokenType))
-        {
-            stkToken.push (streamToken);
-            
-            if (strcmp (streamToken, ">") == 0)
-            {
-                if (inside_hex_string == 0)
-                    PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidStream, "CMap Error, got > before <")
-                    else
-                        inside_hex_string = 0;
-                
-                if (inside_array == 0)
-                {
-                    i++;
-                }
-            }
-            
-            if (strcmp (streamToken, "]") == 0)
-            {
-                if (inside_array == 0)
-                    PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidStream, "CMap Error, got ] before [")
-                else
-                    inside_array = 0;
-                
-                i++;
-                loop++;
-            }
-            
-            if (in_beginbfrange == 1)
-            {
-                if (loop < range_entries)
-                {
-                    if (inside_hex_string == 1)
-                    {
-                        pdf_utf16be num_value;
-                        std::stringstream ss;
-                        ss << std::hex << streamToken;
-                        ss >> num_value;
-                        if (i % 3 == 0)
-                            range_start = num_value;
-                        if (i % 3 == 1)
-                        {
-                            range_end = num_value;
-                        }
-                        if (i % 3 == 2)
-                        {
-                            if (inside_array == 0)
-                            {
-                                for (int k = range_start; k <= range_end; k++)
-                                {
-                                    m_toUnicode[k] = num_value;
-                                    num_value++;
-                                }
-							
-                                loop++;
-                            }
-                            else
-                            {
-                                m_toUnicode[range_start] = num_value;
-                            }
-
-                            range_start++;
-                        }
-                    }
-                }
-            }
-            
-            if (in_beginbfchar == 1)
-            {
-                if (loop < char_entries)
-                {
-                    if (inside_hex_string == 1)
-                    {
-                        pdf_utf16be num_value;
-                        std::stringstream ss;
-                        ss << std::hex << streamToken;
-                        ss >> num_value;
-                        if (i % 2 == 0)
-                        {
-                            firstvalue = num_value;
-                        }
-                        if (i % 2 == 1)
-                        {
-                            m_toUnicode[firstvalue] = num_value;
-                        }
-                    }
-                }
-            }
-            
-            
-            if (strcmp (streamToken, "<") == 0)
-            {
-                inside_hex_string = 1;
-            }
-            
-            
-            
-            if (strcmp (streamToken, "[") == 0)
-            {
-                inside_array = 1;
-            }
-            
-            
-            if (strcmp (streamToken, "beginbfrange") == 0)
-            {
-                // need 2 entries - one to pop() and one for top()
-                if ( stkToken.size() < 2 )
-                {
-                    PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidStream, "CMap missing object number before beginbfrange");
-                }
-                
-                i = loop = 0;
-                in_beginbfrange = 1;
-                stkToken.pop ();
-                std::stringstream ss;
-                ss << std::hex << stkToken.top ();
-                ss >> range_entries;
-            }
-            
-            if (strcmp (streamToken, "endbfrange") == 0)
-            {
-                in_beginbfrange = 0;
-                i = 0;
-            }
-            
-            if (strcmp (streamToken, "beginbfchar") == 0)
-            {
-                // need 2 entries - one to pop() and one for top()
-                if ( stkToken.size() < 2 )
-                {
-                    PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidStream, "CMap missing object number before beginbfchar");
-                }
-                
-                i = loop = 0;
-                in_beginbfchar = 1;
-                stkToken.pop ();
-                std::stringstream ss;
-                ss << std::hex << stkToken.top ();
-                ss >> char_entries;
-            }
-            
-            if (strcmp (streamToken, "endbfchar") == 0)
-            {
-                in_beginbfchar = 0;
-                i = 0;
-            }
+    const pdf_utf16be* pStr = rString.GetUnicode();
+    pdf_utf16be lCID;
+    
+    std::ostringstream out;
+    PdfLocaleImbue(out);
+    
+    while( *pStr )
+    {            
+        lCID = GetCIDValue( *pStr, map );
+        if (lCID == 0 && pFont) {
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+            lCID = static_cast<pdf_utf16be>(pFont->GetFontMetrics()->GetGlyphId( (((*pStr & 0xff) << 8) | ((*pStr & 0xff00) >> 8)) ));
+#else
+            lCID = static_cast<pdf_utf16be>(pFont->GetFontMetrics()->GetGlyphId( *pStr ));
+#endif // PODOFO_IS_LITTLE_ENDIAN
         }
         
-        podofo_free(streamBuffer);
+        out << static_cast<unsigned char>((lCID & 0xff00) >> 8);
+        out << static_cast<unsigned char>(lCID & 0x00ff);
         
-        m_bToUnicodeIsLoaded = true;
+        ++pStr;
+    }
+    
+    PdfRefCountedBuffer buffer( out.str().length() );
+    memcpy( buffer.GetBuffer(), out.str().c_str(), out.str().length() );
+    return buffer;
+}
+
+void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, int &firstChar, int &lastChar)
+{
+    char *streamBuffer;
+    EPdfTokenType *streamTokenType = NULL;
+    pdf_long streamBufferLen;
+    const PdfStream *CIDStreamdata = obj->GetStream();
+    CIDStreamdata->GetFilteredCopy ( &streamBuffer, &streamBufferLen );
+
+    std::deque<std::unique_ptr<PdfVariant>> tokens;
+    const char *token;
+    std::unique_ptr<PdfVariant> var( new PdfVariant() );
+    EPdfContentsType tokenType;
+    PdfContentsTokenizer tokenizer( streamBuffer, streamBufferLen );
+
+    while ( tokenizer.ReadNext( tokenType, token, *var ) )
+    {
+        switch ( tokenType )
+        {
+            case ePdfContentsType_Keyword:
+            {
+                if (strcmp(token, "begincodespacerange") == 0)
+                {
+                    if (tokens.size() != 1)
+                        PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidStream, "CMap missing object number before begincodespacerange");
+
+                    int rangeCount = (int)tokens.front()->GetNumber();
+                    firstChar = std::numeric_limits<int>::max();
+                    lastChar = 0;
+                    for (int i = 0; i < rangeCount; i++)
+                    {
+                        tokenizer.ReadNext(tokenType, token, *var);
+                        pdf_uint32 lowerBound = GetCodeFromVariant(*var);
+                        if (lowerBound < firstChar)
+                            firstChar = (int)lowerBound;
+
+                        tokenizer.ReadNext(tokenType, token, *var);
+                        pdf_uint32 upperBound = GetCodeFromVariant(*var);
+                        if (upperBound > lastChar)
+                            lastChar = (int)upperBound;
+                    }
+                }
+                else if (strcmp(token, "beginbfrange") == 0)
+                {
+                    if ( tokens.size() != 1 )
+                        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidStream, "CMap missing object number before beginbfrange" );
+
+                    int rangeCount = (int)tokens.front()->GetNumber();
+                    for ( int i = 0; i < rangeCount; i++ )
+                    {
+                        tokenizer.GetNextVariant( *var, NULL );
+                        pdf_uint32 srcCodeLo = GetCodeFromVariant(*var);
+                        tokenizer.GetNextVariant( *var, NULL );
+                        pdf_uint32 srcCodeHi = GetCodeFromVariant(*var);
+                        unsigned rangeSize = srcCodeHi - srcCodeLo + 1;
+                        tokenizer.GetNextVariant( *var, NULL );
+                        if (var->IsArray())
+                        {
+                            PdfArray &arr = var->GetArray();
+                            for (unsigned i = 0; i < rangeSize; i++)
+                                map[srcCodeLo + i] = GetCodeFromVariant(arr[i]);
+                        }
+                        else
+                        {
+                            pdf_uint32 dstCIDLo = GetCodeFromVariant(*var);
+                            for (unsigned i = 0; i < rangeSize; i++)
+                                map[srcCodeLo + i] = dstCIDLo + i;
+                        }
+                    }
+
+                    if ( !tokenizer.ReadNext(tokenType, token, *var)
+                        || tokenType != ePdfContentsType_Keyword
+                        || strcmp( token, "endbfrange" ) != 0 )
+                    {
+                        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidStream, "CMap missing final endbfrange keyword" );
+                    }
+                }
+                else if ( strcmp( token, "beginbfchar" ) == 0 )
+                {
+                    if ( tokens.size() != 1 )
+                        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidStream, "CMap missing object number before beginbfchar" );
+
+                    int charCount = (int)tokens.front()->GetNumber();
+                    for ( int i = 0; i < charCount; i++ )
+                    {
+                        tokenizer.GetNextVariant(*var, NULL);
+                        pdf_uint32 code = GetCodeFromVariant(*var);
+                        tokenizer.GetNextVariant(*var, NULL);
+                        pdf_uint32 mappedcode = GetCodeFromVariant(*var);
+                        map[code] = mappedcode;
+                    }
+
+                    if ( !tokenizer.ReadNext(tokenType, token, *var )
+                        || tokenType != ePdfContentsType_Keyword
+                        || strcmp( token, "endbfchar" ) != 0)
+                    {
+                        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidStream, "CMap missing final endbfchar keyword" );
+                    }
+                }
+                else if (strcmp(token, "begincidrange") == 0)
+                {
+                    if (tokens.size() != 1)
+                        PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidStream, "CMap missing object number before begincidrange");
+
+                    int rangeCount = (int)tokens.front()->GetNumber();
+                    for (int i = 0; i < rangeCount; i++)
+                    {
+                        tokenizer.GetNextVariant(*var, NULL);
+                        pdf_uint32 srcCodeLo = GetCodeFromVariant(*var);
+                        tokenizer.GetNextVariant(*var, NULL);
+                        pdf_uint32 srcCodeHi = GetCodeFromVariant(*var);
+                        tokenizer.GetNextVariant(*var, NULL);
+                        pdf_uint32 dstCIDLo = GetCodeFromVariant(*var);
+
+                        unsigned rangeSize = srcCodeHi - srcCodeLo + 1;
+                        for (unsigned i = 0; i < rangeSize; i++)
+                            map[srcCodeLo + i] = dstCIDLo + 1;
+                    }
+
+                    if (!tokenizer.ReadNext(tokenType, token, *var)
+                        || tokenType != ePdfContentsType_Keyword
+                        || strcmp(token, "endcidrange") != 0)
+                    {
+                        PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidStream, "CMap missing final endcidrange keyword");
+                    }
+                }
+                else if (strcmp(token, "begincidchar") == 0)
+                {
+                    if (tokens.size() != 1)
+                        PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidStream, "CMap missing object number before begincidchar");
+
+                    int charCount = (int)tokens.front()->GetNumber();
+                    for (int i = 0; i < charCount; i++)
+                    {
+                        tokenizer.GetNextVariant(*var, NULL);
+                        pdf_uint32 code = GetCodeFromVariant(*var);
+                        tokenizer.GetNextVariant(*var, NULL);
+                        pdf_uint32 mappedcode = GetCodeFromVariant(*var);
+                        map[code] = mappedcode;
+                    }
+
+                    if (!tokenizer.ReadNext(tokenType, token, *var)
+                        || tokenType != ePdfContentsType_Keyword
+                        || strcmp(token, "endcidchar") != 0)
+                    {
+                        PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidStream, "CMap missing final endcidchar keyword");
+                    }
+                }
+
+                tokens.clear();
+                break;
+            }
+            case ePdfContentsType_Variant:
+            {
+                tokens.push_front( std::move( var ) );
+                var.reset( new PdfVariant() );
+                break;
+            }
+            default:
+                PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
+        }
+    }
+
+    podofo_free(streamBuffer);
+}
+
+void PdfEncoding::GetUnicodeValue( pdf_utf16be src, const UnicodeMap &map, pdf_utf16be dest[2], int &chCount )
+{
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+    getUnicodeValue( (pdf_uint16)SWAP_BYTES(src), map, dest, chCount );
+#else
+    getUnicodeValue( (pdf_uint16)src, map, dest, chCount );
+#endif
+}
+
+void PdfEncoding::getUnicodeValue( pdf_uint16 src, const UnicodeMap &map, pdf_utf16be dest[2], int & chCount )
+{
+    const std::map<pdf_uint16, pdf_uint32>::const_iterator found = map.find( src );
+    if ( found == map.end() )
+    {
+        chCount = 1;
+        dest[0] = 0;
+        return;
+    }
+    
+    pdf_uint32 code = found->second;
+    dest[0] = code & 0xFFFF;
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+    dest[0] = SWAP_BYTES( dest[0] );
+#endif
+    if (code > 0xFFFF)
+    {
+        dest[1] = ( pdf_utf16be )( code >> 16 );
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+        dest[1] = SWAP_BYTES( dest[1] );
+#endif
+        chCount = 2;
+    }
+    else
+    {
+        chCount = 1;
     }
 }
 
-pdf_utf16be PdfEncoding::GetUnicodeValue( pdf_utf16be  value ) const
+pdf_uint32 PdfEncoding::GetCodeFromVariant(const PdfVariant &var)
 {
-    if(!m_toUnicode.empty())
+    if (var.IsNumber())
+        return (pdf_uint32)var.GetNumber();
+
+    const PdfString &str = var.GetString();
+    pdf_uint32 ret = 0;
+    const char *arr = str.GetString();
+    int len = str.GetLength();
+    for (int i = 0; i < len; i++)
     {
-        const std::map<pdf_utf16be, pdf_utf16be>::const_iterator found = m_toUnicode.find(value);
-        return (found == m_toUnicode.end() ? 0 : found->second);
+        pdf_uint8 code = (pdf_uint8)arr[len - 1 - i];
+        ret += code << i * 8;
     }
-    
-    return 0;
+
+    return ret;
 }
 
-pdf_utf16be PdfEncoding::GetCIDValue( pdf_utf16be lUnicodeValue ) const
+pdf_utf16be PdfEncoding::GetCIDValue( pdf_utf16be lUnicodeValue, const UnicodeMap &map )
 {
-    if(!m_toUnicode.empty())
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+    return getCIDValue( (pdf_uint16)SWAP_BYTES(lUnicodeValue) , map );
+#else
+    return getCIDValue( (pdf_uint16)lUnicodeValue , map );
+#endif
+}
+
+pdf_utf16be PdfEncoding::getCIDValue( pdf_uint16 code, const UnicodeMap &map )
+{
+    // TODO: optimize
+    for (std::map<pdf_uint16, pdf_uint32>::const_iterator it = map.begin(); it != map.end(); ++it)
     {
-        // TODO: optimize
-        for(std::map<pdf_utf16be, pdf_utf16be>::const_iterator it = m_toUnicode.begin(); it != m_toUnicode.end(); ++it)
-            if(it->second == lUnicodeValue)
-                return it->first;
+        if ( it->second == code )
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+            return SWAP_BYTES( it->first );
+#else
+            return it->first;
+#endif
     }
-    
+
     return 0;
 }
     
@@ -422,7 +472,7 @@ pdf_utf16be PdfSimpleEncoding::GetCharCode( int nIndex ) const
 
 PdfString PdfSimpleEncoding::ConvertToUnicode( const PdfString & rEncodedString, const PdfFont* pFont) const
 {
-    if(m_bToUnicodeIsLoaded)
+    if( IsToUnicodeLoaded() )
     {
         return PdfEncoding::ConvertToUnicode(rEncodedString, pFont);
     }
@@ -464,7 +514,7 @@ PdfString PdfSimpleEncoding::ConvertToUnicode( const PdfString & rEncodedString,
 
 PdfRefCountedBuffer PdfSimpleEncoding::ConvertToEncoding( const PdfString & rString, const PdfFont* pFont) const
 {
-    if(m_bToUnicodeIsLoaded)
+    if( IsToUnicodeLoaded() )
     {
         return PdfEncoding::ConvertToEncoding(rString, pFont);
     }

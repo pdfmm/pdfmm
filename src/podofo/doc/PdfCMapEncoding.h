@@ -43,7 +43,7 @@
 
 namespace PoDoFo {
 
-class PODOFO_DOC_API PdfCMapEncoding: public PdfEncoding, private PdfElement{
+class PODOFO_DOC_API PdfCMapEncoding: public PdfEncoding {
 public:
     enum EBaseEncoding {
         eBaseEncoding_Font,      ///< Use The fonts encoding as base
@@ -52,7 +52,7 @@ public:
         eBaseEncoding_MacExpert  ///< Use MacExpertEncoding as base encoding
     };
 
-
+public:
     PdfCMapEncoding(PdfObject* pObject, PdfObject* pToUnicode = NULL);
     virtual PdfString ConvertToUnicode(const PdfString& rEncodedString, const PdfFont* pFont) const;
     virtual void AddToDictionary(PdfDictionary & rDictionary ) const;
@@ -62,10 +62,12 @@ public:
     virtual pdf_utf16be GetCharCode(int nIndex) const;
     virtual const PdfName & GetID() const;
     const PdfEncoding* GetBaseEncoding() const;
-private:
 
+private:
     EBaseEncoding m_baseEncoding;
-    std::map<pdf_utf16be, pdf_utf16be> m_cMap;
+    int     m_nFirstChar;   ///< The first defined character code
+    int     m_nLastChar;    ///< The last defined character code
+    UnicodeMap m_toUnicode;
 };
 
 }; /*PoDoFo namespace end*/

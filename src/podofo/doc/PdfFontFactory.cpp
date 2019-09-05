@@ -191,6 +191,7 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library*, PdfObject* pObject )
     PdfFont*        pFont       = NULL;
     PdfObject*      pDescriptor = NULL;
     PdfObject*      pEncoding   = NULL;
+    PdfObject*      pToUnicode = NULL;
 
     PdfVariant* pTypeKey = pObject->GetDictionary().GetKey( PdfName::KeyType );
     if ( NULL == pTypeKey )
@@ -333,14 +334,15 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library*, PdfObject* pObject )
     {
         pDescriptor = pObject->GetIndirectKey( "FontDescriptor" );
         pEncoding   = pObject->GetIndirectKey( "Encoding" );
+        pToUnicode   = pObject->GetIndirectKey("ToUnicode");
 
         if (!pEncoding)
-            pEncoding = pObject->GetIndirectKey( "ToUnicode" );
+            pEncoding = pToUnicode;
 
         if ( pEncoding && pDescriptor ) // OC 18.08.2010: Avoid sigsegv
         {
            const PdfEncoding* const pPdfEncoding = 
-               PdfEncodingObjectFactory::CreateEncoding( pEncoding, pObject->GetIndirectKey( "ToUnicode" ) );
+               PdfEncodingObjectFactory::CreateEncoding( pEncoding, pToUnicode );
 
            // OC 15.08.2010 BugFix: Parameter pObject added:
            pMetrics    = new PdfFontMetricsObject( pObject, pDescriptor, pPdfEncoding );

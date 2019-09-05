@@ -82,7 +82,7 @@ pdf_utf16be PdfIdentityEncoding::GetCharCode( int nIndex ) const
 
 PdfString PdfIdentityEncoding::ConvertToUnicode( const PdfString & rEncodedString, const PdfFont* pFont ) const
 {
-    if(!m_toUnicode.empty())
+    if( IsToUnicodeLoaded() )
     {
         return PdfEncoding::ConvertToUnicode(rEncodedString, pFont);
     }
@@ -95,7 +95,7 @@ PdfString PdfIdentityEncoding::ConvertToUnicode( const PdfString & rEncodedStrin
 
 PdfRefCountedBuffer PdfIdentityEncoding::ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const
 {
-    if(!m_toUnicode.empty())
+    if( IsToUnicodeLoaded() )
     {
         return PdfEncoding::ConvertToEncoding(rString, pFont);
     }
