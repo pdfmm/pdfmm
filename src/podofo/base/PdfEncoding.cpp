@@ -110,7 +110,7 @@ PdfString PdfEncoding::convertToUnicode( const PdfString &rEncodedString, const 
         pszUtf16.reserve(lLen * 2);
         for (size_t i = 0; i < lLen; i++)
         {
-            getUnicodeValue((pdf_uint16)pStr[i], map, lUnicodeValue, chCount);
+            getUnicodeValue((pdf_uint8)pStr[i], map, lUnicodeValue, chCount);
 
             for (int i = 0; i < chCount; i++)
                 pszUtf16.push_back(lUnicodeValue[i]);
