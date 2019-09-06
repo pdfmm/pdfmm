@@ -55,12 +55,12 @@ namespace PoDoFo
 
 
 PdfCMapEncoding::PdfCMapEncoding (PdfObject * pObject, PdfObject * pToUnicode)
-    : PdfEncoding(0x0000, 0xffff, pToUnicode == pObject ? NULL : pToUnicode), m_baseEncoding( eBaseEncoding_Font )
+    : PdfEncoding(0x0000, 0xffff, pToUnicode), m_baseEncoding( eBaseEncoding_Font )
 {
     // TODO: If /ToUnicode is absent, and CID font is not identity, use the CID font's predefined character collection
     // (/CIDSystemInfo<</Registry(XXX)/Ordering(XXX)/Supplement 0>>)
 
-    if (pObject && pObject->HasStream())
+    if (pObject && pObject != pToUnicode && pObject->HasStream())
         ParseCMapObject(pObject, m_toUnicode, m_nFirstChar, m_nLastChar);
 }
 
