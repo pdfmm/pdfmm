@@ -51,8 +51,11 @@
 namespace PoDoFo {
 
 PdfField::PdfField( EPdfField eField, PdfAnnotation* pWidget, PdfAcroForm* pParent )
-    : m_pObject( pWidget->GetObject() ), m_pWidget( pWidget ), m_eField( eField )
+    : m_pObject( pWidget ? pWidget->GetObject() : NULL ), m_pWidget( pWidget ), m_eField( eField )
 {
+    if (m_pObject == NULL)
+        m_pObject = pParent->GetDocument()->GetObjects()->CreateObject();
+
     Init( pParent );
 }
 
@@ -717,25 +720,21 @@ PdfCheckBox::PdfCheckBox( PdfObject* pObject, PdfAnnotation* pWidget )
 PdfCheckBox::PdfCheckBox( PdfAnnotation* pWidget, PdfAcroForm* pParent )
     : PdfButton( ePdfField_CheckBox, pWidget, pParent )
 {
-    Init();
 }
 
 PdfCheckBox::PdfCheckBox( PdfPage* pPage, const PdfRect & rRect, PdfAcroForm* pParent )
     : PdfButton( ePdfField_CheckBox, pPage, rRect, pParent )
 {
-    Init();
 }
 
 PdfCheckBox::PdfCheckBox( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc )
     : PdfButton( ePdfField_CheckBox, pPage, rRect, pDoc )
 {
-    Init();
 }
 
 PdfCheckBox::PdfCheckBox( PdfPage* pPage, const PdfRect & rRect, PdfStreamedDocument* pDoc )
     : PdfButton( ePdfField_CheckBox, pPage, rRect, pDoc )
 {
-    Init();
 }
 
 PdfCheckBox::PdfCheckBox( const PdfField & rhs )
@@ -745,48 +744,6 @@ PdfCheckBox::PdfCheckBox( const PdfField & rhs )
     {
         PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Field cannot be converted into a PdfCheckBox" );
     }
-}
-
-void PdfCheckBox::Init()
-{
-    double dWidth = PDF_MIN( m_pWidget->GetRect().GetWidth(), m_pWidget->GetRect().GetHeight() ) * 0.1;
-    dWidth = PDF_MAX( dWidth, 1.0 );
-    
-    // Date: 20/10/2007
-    // Prashanth Udupa.
-    // We expect PDF3DWidgetStyle to provide appearence streams. So we can comment this here.
-    /*if( !m_pWidget->HasAppearanceStream() )
-    {
-        // Create the default appearance stream
-        PdfRect    rect( 0.0, 0.0, m_pWidget->GetRect().GetWidth(), m_pWidget->GetRect().GetHeight() );
-        PdfXObject xObjOff( rect, m_pObject->GetOwner() );
-        PdfXObject xObjYes( rect, m_pObject->GetOwner() );
-        PdfPainter painter;
-        
-        painter.SetPage( &xObjOff );
-        painter.SetColor( 1.0, 1.0, 1.0 );
-        painter.FillRect( 0, xObjOff.GetPageSize().GetHeight(), xObjOff.GetPageSize().GetWidth(), xObjOff.GetPageSize().GetHeight()  );
-        painter.SetColor( 0.0, 0.0, 0.0 );
-        painter.SetStrokeWidth( dWidth );
-        painter.DrawRect( 0.0, m_pWidget->GetRect().GetHeight(), 
-                          m_pWidget->GetRect().GetWidth(), m_pWidget->GetRect().GetHeight() );
-        painter.FinishPage();
-
-        painter.SetPage( &xObjYes );
-        painter.SetColor( 1.0, 1.0, 1.0 );
-        painter.FillRect( 0, xObjYes.GetPageSize().GetHeight(), xObjYes.GetPageSize().GetWidth(), xObjYes.GetPageSize().GetHeight()  );
-        painter.SetColor( 0.0, 0.0, 0.0 );
-        painter.SetStrokeWidth( dWidth );
-        painter.DrawLine( 0.0, 0.0, m_pWidget->GetRect().GetWidth(), m_pWidget->GetRect().GetHeight() );
-        painter.DrawLine( 0.0, m_pWidget->GetRect().GetHeight(), m_pWidget->GetRect().GetWidth(), 0.0  );
-        painter.DrawRect( 0.0, m_pWidget->GetRect().GetHeight(), 
-                          m_pWidget->GetRect().GetWidth(), m_pWidget->GetRect().GetHeight() );
-        painter.FinishPage();
-
-        this->SetAppearanceChecked( xObjYes );
-        this->SetAppearanceUnchecked( xObjOff );
-        this->SetChecked( false );
-   }*/
 }
 
 void PdfCheckBox::AddAppearanceStream( const PdfName & rName, const PdfReference & rReference )

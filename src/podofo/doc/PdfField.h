@@ -818,7 +818,6 @@ class PODOFO_DOC_API PdfCheckBox : public PdfButton {
     bool IsChecked() const;
 
  private:
-    void Init();
 
     /** Add a appearance stream to this checkbox
      *
