@@ -180,6 +180,10 @@ class PODOFO_DOC_API PdfField {
     */
     static PdfField * CreateField( PdfObject *pObject );
 
+    PdfField * CreateChildField();
+
+    PdfField * CreateChildField(PdfPage &page, const PdfRect &rect);
+
     /** Infer the field type from the given object
     *  \param pObject the object to infer the field type from
     *  \returns the inferred type
@@ -389,11 +393,13 @@ class PODOFO_DOC_API PdfField {
      *
      *  \param pParent parent acro forms dictionary
      */
-    void Init( PdfAcroForm* pParent );
+    void Init( PdfAcroForm &pParent );
+    static void Init(PdfAcroForm &pParent, const PdfObject &pObject);
 
     void AddAlternativeAction( const PdfName & rsName, const PdfAction & rAction );
 
-    static PdfField * createField( PdfObject* pObject, PdfAnnotation* pWidget );
+    static PdfField * createField(EPdfField type, PdfObject* pObject, PdfAnnotation* pWidget );
+    PdfField * createChildField(PdfPage *page, const PdfRect &rect);
 
  protected:
     PdfObject*     m_pObject;
