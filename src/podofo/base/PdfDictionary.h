@@ -140,7 +140,7 @@ class PODOFO_API PdfDictionary : public PdfOwnedDataType {
      *  This will set the dirty flag of this object.
      *  \see IsDirty
      */
-    void AddKey( const PdfName & identifier, const PdfObject & rObject );
+    PdfObject & AddKey( const PdfName & identifier, const PdfObject & rObject );
 
     /** Add a key to the dictionary. If an existing key of this name exists,
      *  its value is replaced and the old value object will be deleted. The

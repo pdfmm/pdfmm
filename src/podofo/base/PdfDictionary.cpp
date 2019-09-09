@@ -109,7 +109,7 @@ void PdfDictionary::Clear()
     }
 }
 
-void PdfDictionary::AddKey( const PdfName & identifier, const PdfObject & rObject )
+PdfObject & PdfDictionary::AddKey( const PdfName & identifier, const PdfObject & rObject )
 {
     AssertMutable();
 
@@ -123,7 +123,9 @@ void PdfDictionary::AddKey( const PdfName & identifier, const PdfObject & rObjec
     PdfVecObjects *pOwner = GetObjectOwner();
     if ( pOwner != NULL )
         inserted.first->second.SetOwner( pOwner );
+
     m_bDirty = true;
+    return inserted.first->second;
 }
 
 void PdfDictionary::AddKey( const PdfName & identifier, const PdfObject* pObject )
