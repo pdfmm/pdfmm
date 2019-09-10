@@ -353,6 +353,10 @@ PdfAnnotation* PdfPage::CreateAnnotation( EPdfAnnotation eType, const PdfRect & 
     pObj->GetArray().push_back( ref );
     m_mapAnnotations[ref] = pAnnot;
 
+    // Default set print flag
+    auto flags = pAnnot->GetFlags();
+    pAnnot->SetFlags(flags | EPdfAnnotationFlags::ePdfAnnotationFlags_Print);
+
     return pAnnot;
 }
 
