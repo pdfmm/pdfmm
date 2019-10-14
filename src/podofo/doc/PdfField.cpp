@@ -255,25 +255,34 @@ EPdfField PdfField::GetFieldType(const PdfObject & rObject)
 void PdfField::Init(PdfAcroForm &pParent)
 {
     Init(pParent, *m_pObject);
+    PdfDictionary &dict = m_pObject->GetDictionary();
 
     switch( m_eField ) 
     {
-        case ePdfField_PushButton:
         case ePdfField_CheckBox:
+            dict.AddKey(PdfName("FT"), PdfName("Btn"));
+            break;
+        case ePdfField_PushButton:
+            dict.AddKey(PdfName("FT"), PdfName("Btn"));
+            dict.AddKey("Ff", PdfObject((pdf_int64)PdfButton::ePdfButton_PushButton));
+            break;
         case ePdfField_RadioButton:
-            m_pObject->GetDictionary().AddKey( PdfName("FT"), PdfName("Btn") );
+            dict.AddKey( PdfName("FT"), PdfName("Btn") );
+            dict.AddKey("Ff", PdfObject((pdf_int64)(PdfButton::ePdfButton_Radio | PdfButton::ePdfButton_NoToggleOff)));
             break;
         case ePdfField_TextField:
-            m_pObject->GetDictionary().AddKey( PdfName("FT"), PdfName("Tx") );
+            dict.AddKey( PdfName("FT"), PdfName("Tx") );
+            break;
+        case ePdfField_ListBox:
+            dict.AddKey(PdfName("FT"), PdfName("Ch"));
             break;
         case ePdfField_ComboBox:
-        case ePdfField_ListBox:
-            m_pObject->GetDictionary().AddKey( PdfName("FT"), PdfName("Ch") );
+            dict.AddKey(PdfName("FT"), PdfName("Ch"));
+            dict.AddKey("Ff", PdfObject((pdf_int64)PdfListField::ePdfListField_Combo));
             break;
         case ePdfField_Signature:
-            m_pObject->GetDictionary().AddKey( PdfName("FT"), PdfName("Sig") );
+            dict.AddKey( PdfName("FT"), PdfName("Sig") );
             break;
-
 
         case ePdfField_Unknown:
         default:
