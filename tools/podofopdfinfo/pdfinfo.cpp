@@ -175,7 +175,7 @@ void PdfInfo::OutputOneName( std::ostream& sOutStream, PoDoFo::PdfNamesTree* inT
     std::string str;
     while( it != keys.end() )
     {
-        (*it).second->ToString( str );
+        (*it).second.ToString( str );
         sOutStream << "\t-> " << (*it).first.GetName().c_str() << "=" << str << std::endl;
         ++it;
     }

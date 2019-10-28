@@ -983,7 +983,7 @@ int main( int argc, char* argv[] )
             if( !pTemporaryAnnot )
                 PODOFO_RAISE_ERROR_INFO( ePdfError_OutOfMemory, "Cannot allocate annotation object for existing signature field" );
 
-            pSignField = new PdfSignatureField( pTemporaryAnnot );
+            pSignField = new PdfSignatureField( pTemporaryAnnot->GetObject(), pTemporaryAnnot );
             if( !pSignField )
                 PODOFO_RAISE_ERROR_INFO( ePdfError_OutOfMemory, "Cannot allocate existing signature field object" );
 

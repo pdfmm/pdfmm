@@ -197,9 +197,9 @@ namespace PoDoFo
 					ret = new PdfObject( *obj );
 				}
 				TKeyMap resmap = obj->GetDictionary().GetKeys();
-				for ( TCIKeyMap itres = resmap.begin(); itres != resmap.end(); ++itres )
+				for ( TIKeyMap itres = resmap.begin(); itres != resmap.end(); ++itres )
 				{
-					PdfObject *o = itres->second;
+					PdfObject *o = &itres->second;
 					std::pair<std::set<PdfObject*>::iterator,bool> res = setMigrationPending.insert( o );
 					if (!res.second)
 					{
