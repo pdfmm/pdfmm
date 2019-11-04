@@ -517,6 +517,15 @@ PdfString PdfField::GetFieldName() const
     return name->GetString();
 }
 
+PdfString PdfField::GetFieldNameRaw() const
+{
+    PdfObject *name = m_pObject->GetDictionary().GetKey("T");
+    if (!name)
+        return PdfString::StringNull;
+
+    return name->GetString();
+}
+
 PdfString PdfField::GetFullFieldName(bool escapePartialNames) const
 {
     std::string ret;

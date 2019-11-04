@@ -286,6 +286,10 @@ class PODOFO_DOC_API PdfField {
      */
     PdfString GetFieldName() const;
 
+    /** \returns the field name of this PdfField at this level of the hierarchy
+     */
+    PdfString GetFieldNameRaw() const;
+
     /** \returns the parents qualified name of this PdfField
      *
      *  \param escapePartialNames escape non compliant partial names
