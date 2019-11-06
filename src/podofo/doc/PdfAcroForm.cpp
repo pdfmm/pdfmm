@@ -63,6 +63,15 @@ PdfAcroForm::PdfAcroForm( PdfDocument* pDoc, PdfObject* pObject, EPdfAcroFormDef
     Init( eDefaultAppearance );
 }
 
+PdfArray & PdfAcroForm::GetFieldsArray()
+{
+    PdfObject* pFields = GetObject()->GetDictionary().FindKey("Fields");
+    if (!pFields)
+        pFields = &GetObject()->GetDictionary().AddKey("Fields", PdfArray());;
+
+    return pFields->GetArray();
+}
+
 void PdfAcroForm::Init( EPdfAcroFormDefaulAppearance eDefaultAppearance )
 {
     // Add default appearance: black text, 12pt times 

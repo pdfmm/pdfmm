@@ -66,6 +66,8 @@ class PODOFO_DOC_API PdfAcroForm : public PdfElement {
 
     virtual ~PdfAcroForm() { }
 
+    PdfArray & GetFieldsArray();
+
     /** Get the document that is associated with this 
      *  acro forms dictionary.
      *
