@@ -397,8 +397,7 @@ class PODOFO_DOC_API PdfField {
      *
      *  \param pParent parent acro forms dictionary
      */
-    void Init( PdfAcroForm &pParent );
-    static void Init(PdfAcroForm &pParent, const PdfObject &pObject);
+    void Init( PdfAcroForm *pParent );
 
     void AddAlternativeAction( const PdfName & rsName, const PdfAction & rAction );
 

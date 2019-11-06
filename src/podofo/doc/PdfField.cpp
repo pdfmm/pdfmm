@@ -56,7 +56,7 @@ PdfField::PdfField( EPdfField eField, PdfAnnotation* pWidget, PdfAcroForm* pPare
     if (m_pObject == NULL)
         m_pObject = pParent->GetDocument()->GetObjects()->CreateObject();
 
-    Init(*pParent);
+    Init(pParent);
 }
 
 PdfField::PdfField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, PdfAcroForm* pParent )
@@ -65,7 +65,7 @@ PdfField::PdfField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, Pdf
     m_pWidget = pPage->CreateAnnotation( ePdfAnnotation_Widget, rRect );
     m_pObject = m_pWidget->GetObject();
 
-    Init(*pParent);
+    Init(pParent);
 }
 
 PdfField::PdfField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc )
@@ -74,7 +74,7 @@ PdfField::PdfField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, Pdf
     m_pWidget = pPage->CreateAnnotation( ePdfAnnotation_Widget, rRect );
     m_pObject = m_pWidget->GetObject();
 
-    Init(*pDoc->GetAcroForm());
+    Init(pDoc->GetAcroForm());
 }
 
 PdfField::PdfField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, PdfStreamedDocument* pDoc )
@@ -83,13 +83,13 @@ PdfField::PdfField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, Pdf
     m_pWidget = pPage->CreateAnnotation( ePdfAnnotation_Widget, rRect );
     m_pObject = m_pWidget->GetObject();
 
-    Init(*pDoc->GetAcroForm());
+    Init(pDoc->GetAcroForm());
 }
 
 PdfField::PdfField( EPdfField eField, PdfAnnotation* pWidget, PdfAcroForm* pParent, PdfDocument* pDoc)
     : m_pObject( pWidget->GetObject() ), m_pWidget( pWidget ), m_eField( eField )
 {
-    Init(*pParent);
+    Init(pParent);
     PdfObject* pFields = pParent->GetObject()->GetDictionary().GetKey( PdfName("Fields") );
     if( pFields && pFields->IsReference())  {
        PdfObject *pRefFld = pDoc->GetObjects()->GetObject(pFields->GetReference());
@@ -104,7 +104,7 @@ PdfField::PdfField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, Pdf
    m_pWidget = pPage->CreateAnnotation( ePdfAnnotation_Widget, rRect );
    m_pObject = m_pWidget->GetObject();
 
-   Init(*pDoc->GetAcroForm(true,
+   Init(pDoc->GetAcroForm(true,
 			  bAppearanceNone ? 
 			  ePdfAcroFormDefaultAppearance_None
 			  : ePdfAcroFormDefaultAppearance_BlackText12pt ));
@@ -159,8 +159,6 @@ PdfField * PdfField::createChildField(PdfPage *page, const PdfRect &rect)
         childObj = annot->GetObject();
         field = createField(type, childObj, annot);
     }
-
-    Init(*doc->GetAcroForm(), *childObj);
 
     auto &dict = m_pObject->GetDictionary();
     auto kids = dict.FindKey("Kids");
@@ -252,9 +250,15 @@ EPdfField PdfField::GetFieldType(const PdfObject & rObject)
     return eField;
 }
 
-void PdfField::Init(PdfAcroForm &pParent)
+void PdfField::Init(PdfAcroForm *pParent)
 {
-    Init(pParent, *m_pObject);
+    if (pParent != NULL)
+    {
+        // Insert into the parents kids array
+        PdfArray &fields = pParent->GetFieldsArray();
+        fields.push_back(m_pObject->Reference());
+    }
+
     PdfDictionary &dict = m_pObject->GetDictionary();
 
     switch( m_eField ) 
@@ -290,23 +294,6 @@ void PdfField::Init(PdfAcroForm &pParent)
             PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
         }
         break;
-    }
-}
-
-void PdfField::Init(PdfAcroForm &pParent, const PdfObject &pObject)
-{
-    // Insert into the parents kids array
-    PdfObject* pFields = pParent.GetObject()->GetDictionary().GetKey(PdfName("Fields"));
-    if (pFields)
-    {
-        if (!pFields->IsReference())
-        {
-            pFields->GetArray().push_back(pObject.Reference());
-        }
-    }
-    else
-    {
-        PODOFO_RAISE_ERROR(ePdfError_NoObject);
     }
 }
 
