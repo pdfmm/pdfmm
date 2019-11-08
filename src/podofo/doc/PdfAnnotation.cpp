@@ -239,27 +239,27 @@ bool PdfAnnotation::HasAppearanceStream() const
     return this->GetObject()->GetDictionary().HasKey( "AP" );
 }
 
-PdfObject * PdfAnnotation::GetAppearanceStream( EPdfAnnotationAppearance eAppearance )
+PdfObject * PdfAnnotation::GetAppearanceDictionary()
 {
-    PdfObject *apObj = GetObject()->GetDictionary().FindKey( "AP" );
-    if ( apObj == NULL )
-        return NULL;
-
-    if ( !apObj->IsDictionary() )
-        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
-
-    PdfName apName = GetAppearanceName( eAppearance );
-    PdfObject *apObjInn = apObj->GetDictionary().GetKey( apName );
-    if ( apObjInn == NULL)
-        return NULL;
-
-    if ( !apObjInn->IsReference() )
-        return apObjInn;
-
-    PdfReference reference = apObjInn->GetReference();
-    return GetObject()->GetOwner()->GetObject( reference );
+    return GetObject()->GetDictionary().FindKey("AP");
 }
 
+PdfObject * PdfAnnotation::GetAppearanceStream(EPdfAnnotationAppearance eAppearance, const PdfName & state)
+{
+    PdfObject *apObj = GetAppearanceDictionary();
+    if (apObj == NULL)
+        return NULL;
+
+    PdfName apName = GetAppearanceName(eAppearance);
+    PdfObject *apObjInn = apObj->GetDictionary().FindKey(apName);
+    if (apObjInn == NULL)
+        return NULL;
+
+    if (state.GetLength() == 0)
+        return apObjInn;
+
+    return apObjInn->GetDictionary().FindKey(state);
+}
 
 void PdfAnnotation::SetFlags( pdf_uint32 uiFlags )
 {
