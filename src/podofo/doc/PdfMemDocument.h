@@ -412,17 +412,6 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *  \returns true if the PDF document is linearized
      */
     bool IsLinearized() const { return m_bLinearized; }
-    
-    /** Get a reference to the sorted internal objects vector.
-     *  \returns the internal objects vector.
-     */
-    const PdfVecObjects & GetObjects() const { return *(PdfDocument::GetObjects()); }
-
-    /** Get a reference to the sorted internal objects vector.
-     *  This is an overloaded function for your convinience.
-     *  \returns the internal objects vector.
-     */
-    PdfVecObjects & GetObjects() { return *(PdfDocument::GetObjects()); }
 
     /** Get access to the internal Catalog dictionary
      *  or root object.

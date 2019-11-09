@@ -51,7 +51,6 @@ class PdfDictionary;
 class PdfFileSpec;
 class PdfFont;
 class PdfInfo;
-class PdfMemDocument;
 class PdfNamesTree;
 class PdfOutlines;
 class PdfPage;
@@ -345,15 +344,15 @@ class PODOFO_DOC_API PdfDocument {
      *  \param bAppendAll specifies whether pages and outlines are appended too
      *  \returns this document
      */
-    const PdfDocument & Append( const PdfMemDocument & rDoc, bool bAppendAll = true  );
+    const PdfDocument & Append( const PdfDocument & rDoc, bool bAppendAll = true  );
 
-    /** Inserts existing page from another PdfMemDocument to this document.
+    /** Inserts existing page from another PdfDocument to this document.
      *  \param rDoc the document to append from
      *  \param nPageIndex index of page to append (0-based), from rDoc
      *  \param nAtIndex index at which to add the page in this document
      *  \returns this document
      */
-    const PdfDocument &InsertExistingPageAt( const PdfMemDocument & rDoc, int nPageIndex, int nAtIndex);
+    const PdfDocument &InsertExistingPageAt( const PdfDocument & rDoc, int nPageIndex, int nAtIndex);
 
     /** Fill an existing empty PdfXObject from a page of another document.
      *  This will append the other document to this one.
@@ -363,7 +362,7 @@ class PODOFO_DOC_API PdfDocument {
      *  \param bUseTrimBox if true try to use page's TrimBox for size of PdfXObject
      *  \returns the bounding box
      */
-    PdfRect FillXObjectFromDocumentPage( PdfXObject * pXObj, const PdfMemDocument & rDoc, int nPage, bool bUseTrimBox );
+    PdfRect FillXObjectFromDocumentPage( PdfXObject * pXObj, const PdfDocument & rDoc, int nPage, bool bUseTrimBox );
 
     /** Fill an existing empty PdfXObject from an existing page from the current document.
      *  If you need a page from another document use FillXObjectFromDocumentPage(), or
@@ -552,22 +551,19 @@ class PODOFO_DOC_API PdfDocument {
      */
     virtual bool IsHighPrintAllowed() const = 0;
 
-    // Peter Petrov 26 April 2008    
     /** Get access to the internal vector of objects
      *  or root object.
      *  
      *  \returns the vector of objects
      */
-    inline PdfVecObjects* GetObjects();
+    inline PdfVecObjects & GetObjects() { return m_vecObjects; }
 
-    // Peter Petrov 26 April 2008
     /** Get access to the internal vector of objects
      *  or root object.
      *  
      *  \returns the vector of objects
      */
-    inline const PdfVecObjects* GetObjects() const;
-
+    inline const PdfVecObjects & GetObjects() const { return m_vecObjects; }
 #ifdef PODOFO_HAVE_FONTCONFIG
     /**
      * Set wrapper for the fontconfig library.
@@ -745,22 +741,6 @@ inline PdfObject* PdfDocument::GetTrailer()
 inline const PdfObject* PdfDocument::GetTrailer() const
 {
     return m_pTrailer;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline PdfVecObjects* PdfDocument::GetObjects()
-{
-    return &m_vecObjects;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline const PdfVecObjects* PdfDocument::GetObjects() const
-{
-    return &m_vecObjects;
 }
 
 // Peter Petrov 26 April 2008

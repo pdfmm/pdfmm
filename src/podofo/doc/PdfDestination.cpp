@@ -206,7 +206,7 @@ void PdfDestination::Init( PdfObject* pObject, PdfDocument* pDocument )
             " PdfDestination::Init of type %s", pObject->GetDataTypeString() );
         m_array = PdfArray(); // needed to prevent crash on method calls
         // needed for GetObject() use w/o checking its return value for NULL
-        m_pObject = pDocument->GetObjects()->CreateObject( m_array );
+        m_pObject = pDocument->GetObjects().CreateObject( m_array );
     }
     if ( bValueExpected )
     {

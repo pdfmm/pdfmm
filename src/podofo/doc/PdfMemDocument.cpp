@@ -203,7 +203,7 @@ void PdfMemDocument::InitFromParser( PdfParser* pParser )
     PdfInfo*   pInfoObj;
     if( !pInfo ) 
     {
-        pInfoObj = new PdfInfo( PdfDocument::GetObjects() );
+        pInfoObj = new PdfInfo( &PdfDocument::GetObjects() );
         pTrailer->GetDictionary().AddKey( "Info", pInfoObj->GetObject()->Reference() );
     }
     else 
@@ -252,7 +252,7 @@ void PdfMemDocument::Load( const char* pszFilename, bool bForUpdate )
 
     // Call parse file instead of using the constructor
     // so that m_pParser is initialized for encrypted documents
-    m_pParser = new PdfParser( PdfDocument::GetObjects() );
+    m_pParser = new PdfParser( &PdfDocument::GetObjects() );
     try {
         m_pParser->ParseFile( pszFilename, true );
         InitFromParser( m_pParser );
@@ -286,7 +286,7 @@ void PdfMemDocument::Load( const wchar_t* pszFilename, bool bForUpdate )
 
     // Call parse file instead of using the constructor
     // so that m_pParser is initialized for encrypted documents
-    m_pParser = new PdfParser( PdfDocument::GetObjects() );
+    m_pParser = new PdfParser( &PdfDocument::GetObjects() );
     m_pParser->ParseFile( pszFilename, true );
     InitFromParser( m_pParser );
 }
@@ -308,7 +308,7 @@ void PdfMemDocument::LoadFromBuffer( const char* pBuffer, long lLen, bool bForUp
 
     // Call parse file instead of using the constructor
     // so that m_pParser is initialized for encrypted documents
-    m_pParser = new PdfParser( PdfDocument::GetObjects() );
+    m_pParser = new PdfParser( &PdfDocument::GetObjects() );
     m_pParser->ParseFile( pBuffer, lLen, true );
     InitFromParser( m_pParser );
 }
@@ -324,7 +324,7 @@ void PdfMemDocument::LoadFromDevice( const PdfRefCountedInputDevice & rDevice, b
 
     // Call parse file instead of using the constructor
     // so that m_pParser is initialized for encrypted documents
-    m_pParser = new PdfParser( PdfDocument::GetObjects() );
+    m_pParser = new PdfParser( &PdfDocument::GetObjects() );
     m_pParser->ParseFile( rDevice, true );
     InitFromParser( m_pParser );
 }

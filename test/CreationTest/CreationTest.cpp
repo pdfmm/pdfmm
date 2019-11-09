@@ -605,7 +605,7 @@ void XObjectTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pPainter->Fill();
 
     // Das funktioniert immer
-    PdfXObject xObj1( "resources/Illust.pdf", 0, pDocument );
+    PdfXObject xObj1(PdfMemDocument("resources/Illust.pdf"), 0, pDocument);
     pPainter->DrawXObject( x + 90000 * CONVERSION_CONSTANT,
                            y - dHeight,
 						   &xObj1 );
@@ -640,7 +640,7 @@ void XObjectTest( PdfPainter* pPainter, PdfPage* pPage, PdfDocument* pDocument )
     pPainter->SetFont( pDocument->CreateFont( "Comic Sans MS" ) );
     pPainter->SetColor( 0.0, 0.0, 0.0 );
     pPainter->DrawText( 0, 1000 * CONVERSION_CONSTANT, "I am XObject 4." );
-    PdfXObject xObj5( "resources/Illust.pdf", 0, pDocument );
+    PdfXObject xObj5(PdfMemDocument("resources/Illust.pdf"), 0, pDocument );
     pPainter->DrawXObject( 5000 * CONVERSION_CONSTANT,
                            5000 * CONVERSION_CONSTANT,
                            &xObj5,

@@ -54,7 +54,7 @@ PdfField::PdfField( EPdfField eField, PdfAnnotation* pWidget, PdfAcroForm* pPare
     : m_pObject( pWidget ? pWidget->GetObject() : NULL ), m_pWidget( pWidget ), m_eField( eField )
 {
     if (m_pObject == NULL)
-        m_pObject = pParent->GetDocument()->GetObjects()->CreateObject();
+        m_pObject = pParent->GetDocument()->GetObjects().CreateObject();
 
     Init(pParent);
 }
@@ -92,7 +92,7 @@ PdfField::PdfField( EPdfField eField, PdfAnnotation* pWidget, PdfAcroForm* pPare
     Init(pParent);
     PdfObject* pFields = pParent->GetObject()->GetDictionary().GetKey( PdfName("Fields") );
     if( pFields && pFields->IsReference())  {
-       PdfObject *pRefFld = pDoc->GetObjects()->GetObject(pFields->GetReference());
+       PdfObject *pRefFld = pDoc->GetObjects().GetObject(pFields->GetReference());
        if(pRefFld)
          pRefFld->GetArray().push_back( m_pObject->Reference() );
     }
@@ -150,7 +150,7 @@ PdfField * PdfField::createChildField(PdfPage *page, const PdfRect &rect)
     PdfObject *childObj;
     if (page == nullptr)
     {
-        childObj = doc->GetObjects()->CreateObject();
+        childObj = doc->GetObjects().CreateObject();
         field = createField(type, childObj, nullptr);
     }
     else

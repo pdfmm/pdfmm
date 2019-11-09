@@ -96,13 +96,13 @@ void PdfAcroForm::Init( EPdfAcroFormDefaulAppearance eDefaultAppearance )
             this->GetObject()->GetDictionary().AddKey( PdfName("DR"), PdfDictionary() );
         pResource = this->GetObject()->GetDictionary().GetKey( PdfName("DR") );
         if( pResource->IsReference() )
-            pResource = m_pDocument->GetObjects()->GetObject( pResource->GetReference() );
+            pResource = m_pDocument->GetObjects().GetObject( pResource->GetReference() );
         
         if( !pResource->GetDictionary().HasKey( PdfName("Font") ) )
             pResource->GetDictionary().AddKey( PdfName("Font"), PdfDictionary() );
         pFontDict = pResource->GetDictionary().GetKey( PdfName("Font") );
         if( pFontDict->IsReference() )
-            pFontDict = m_pDocument->GetObjects()->GetObject( pFontDict->GetReference() );
+            pFontDict = m_pDocument->GetObjects().GetObject( pFontDict->GetReference() );
 
         pFontDict->GetDictionary().AddKey( pFont->GetIdentifier(), pFont->GetObject()->Reference() );
         

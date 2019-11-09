@@ -63,7 +63,7 @@ using namespace std;
 namespace PoDoFo {
 
 PdfImage::PdfImage( PdfVecObjects* pParent, const char* pszPrefix )
-    : PdfXObject( "Image", pParent, pszPrefix )
+    : PdfXObject( EPdfXObject::ePdfXObject_Image, pParent, pszPrefix )
 {
     m_rRect = PdfRect();
 
@@ -71,7 +71,7 @@ PdfImage::PdfImage( PdfVecObjects* pParent, const char* pszPrefix )
 }
 
 PdfImage::PdfImage( PdfDocument* pParent, const char* pszPrefix )
-    : PdfXObject( "Image", pParent, pszPrefix )
+    : PdfXObject( EPdfXObject::ePdfXObject_Image, pParent, pszPrefix )
 {
     m_rRect = PdfRect();
 
@@ -79,7 +79,7 @@ PdfImage::PdfImage( PdfDocument* pParent, const char* pszPrefix )
 }
 
 PdfImage::PdfImage( PdfObject* pObject )
-    : PdfXObject( "Image", pObject )
+    : PdfXObject( EPdfXObject::ePdfXObject_Image, pObject )
 {
     m_rRect.SetHeight( static_cast<double>(this->GetObject()->GetDictionary().GetKey( "Height" )->GetNumber()) );
     m_rRect.SetWidth ( static_cast<double>(this->GetObject()->GetDictionary().GetKey( "Width" )->GetNumber()) );

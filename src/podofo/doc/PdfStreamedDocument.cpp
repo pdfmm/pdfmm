@@ -69,7 +69,7 @@ PdfStreamedDocument::~PdfStreamedDocument()
 void PdfStreamedDocument::Init( PdfOutputDevice* pDevice, EPdfVersion eVersion, 
                                 PdfEncrypt* pEncrypt, EPdfWriteMode eWriteMode )
 {
-    m_pWriter = new PdfImmediateWriter( pDevice, this->GetObjects(), this->GetTrailer(), eVersion, pEncrypt, eWriteMode );
+    m_pWriter = new PdfImmediateWriter( pDevice, &this->GetObjects(), this->GetTrailer(), eVersion, pEncrypt, eWriteMode );
 }
 
 void PdfStreamedDocument::Close()
@@ -78,7 +78,7 @@ void PdfStreamedDocument::Close()
 	// makes sure pending subset-fonts are embedded
 	m_fontCache.EmbedSubsetFonts();
     
-    this->GetObjects()->Finish();
+    this->GetObjects().Finish();
 }
 
 

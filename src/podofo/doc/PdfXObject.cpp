@@ -42,7 +42,6 @@
 
 #include "PdfImage.h"
 #include "PdfPage.h"
-#include "PdfMemDocument.h"
 #include "PdfDocument.h"
 
 #include <sstream>
@@ -69,7 +68,7 @@ PdfXObject::PdfXObject( const PdfRect & rRect, PdfVecObjects* pParent, const cha
     InitXObject( rRect, pszPrefix );
 }
 
-PdfXObject::PdfXObject( const PdfMemDocument & rDoc, int nPage, PdfDocument* pParent, const char* pszPrefix, bool bUseTrimBox )
+PdfXObject::PdfXObject( const PdfDocument & rDoc, int nPage, PdfDocument* pParent, const char* pszPrefix, bool bUseTrimBox )
     : PdfElement( "XObject", pParent ), PdfCanvas(), m_pResources( NULL )
 {
     m_rRect = PdfRect();
@@ -85,80 +84,7 @@ PdfXObject::PdfXObject( const PdfMemDocument & rDoc, int nPage, PdfDocument* pPa
     // After filling set correct BBox, independent of rotation
     m_rRect = pParent->FillXObjectFromDocumentPage( this, rDoc, nPage, bUseTrimBox );
 
-    PdfVariant    var;
-    m_rRect.ToVariant( var );
-    this->GetObject()->GetDictionary().AddKey( "BBox", var );
-
- 	int rotation = rDoc.GetPage( nPage )->GetRotation();
-	// correct negative rotation
-	if ( rotation < 0 )
-		rotation = 360 + rotation;
-
-	// Swap offsets/width/height for vertical rotation
- 	switch ( rotation )
- 	{
- 		case 90:
- 		case 270:
- 		{
- 			double temp;
-			
-			temp = m_rRect.GetWidth();
- 			m_rRect.SetWidth( m_rRect.GetHeight() );
- 			m_rRect.SetHeight( temp );
-
-			temp = m_rRect.GetLeft();
- 			m_rRect.SetLeft( m_rRect.GetBottom() );
- 			m_rRect.SetBottom( temp );
- 		}
- 		break;
-        
- 		default:
-            break;
- 	}
- 
- 	// Build matrix for rotation and cropping
- 	double alpha = -rotation / 360.0 * 2.0 * PI;
-    
- 	double a, b, c, d, e, f;
-    
- 	a = cos( alpha );
- 	b = sin( alpha );
- 	c = -sin( alpha );
- 	d = cos( alpha );
- 
- 	switch ( rotation )
- 	{
- 		case 90:
- 			e = - m_rRect.GetLeft();
-			f = m_rRect.GetBottom() + m_rRect.GetHeight();
-            break;
-  
-  		case 180:
- 			e = m_rRect.GetLeft() + m_rRect.GetWidth();
- 			f = m_rRect.GetBottom() + m_rRect.GetHeight();
-            break;
-            
- 		case 270:
- 			e = m_rRect.GetLeft() + m_rRect.GetWidth();
- 			f = - m_rRect.GetBottom();
-            break;
- 
- 		case 0:
- 		default:
- 			e = - m_rRect.GetLeft();
- 			f = - m_rRect.GetBottom();
-            break;
- 	}
-
-    PdfArray      matrix;
-    matrix.push_back( PdfVariant( a ) );
-    matrix.push_back( PdfVariant( b ) );
-    matrix.push_back( PdfVariant( c ) );
-    matrix.push_back( PdfVariant( d ) );
-    matrix.push_back( PdfVariant( e ) );
-    matrix.push_back( PdfVariant( f ) );
-    
-    this->GetObject()->GetDictionary().AddKey( "Matrix", matrix );
+    InitAfterPageInsertion(rDoc, nPage);
 }
 
 PdfXObject::PdfXObject( PdfDocument *pDoc, int nPage, const char* pszPrefix, bool bUseTrimBox )
@@ -171,98 +97,193 @@ PdfXObject::PdfXObject( PdfDocument *pDoc, int nPage, const char* pszPrefix, boo
     // After filling set correct BBox, independent of rotation
     m_rRect = pDoc->FillXObjectFromExistingPage( this, nPage, bUseTrimBox );
 
-    PdfVariant    var;
-    m_rRect.ToVariant( var );
-    this->GetObject()->GetDictionary().AddKey( "BBox", var );
-
- 	int rotation = pDoc->GetPage( nPage )->GetRotation();
-	// correct negative rotation
-	if ( rotation < 0 )
-		rotation = 360 + rotation;
-
-	// Swap offsets/width/height for vertical rotation
- 	switch ( rotation )
- 	{
- 		case 90:
- 		case 270:
- 		{
- 			double temp;
-			
-			temp = m_rRect.GetWidth();
- 			m_rRect.SetWidth( m_rRect.GetHeight() );
- 			m_rRect.SetHeight( temp );
-
-			temp = m_rRect.GetLeft();
- 			m_rRect.SetLeft( m_rRect.GetBottom() );
- 			m_rRect.SetBottom( temp );
- 		}
- 		break;
-        
- 		default:
-            break;
- 	}
- 
- 	// Build matrix for rotation and cropping
- 	double alpha = -rotation / 360.0 * 2.0 * PI;
-    
- 	double a, b, c, d, e, f;
-    
- 	a = cos( alpha );
- 	b = sin( alpha );
- 	c = -sin( alpha );
- 	d = cos( alpha );
- 
- 	switch ( rotation )
- 	{
- 		case 90:
- 			e = - m_rRect.GetLeft();
-			f = m_rRect.GetBottom() + m_rRect.GetHeight();
-            break;
-  
-  		case 180:
- 			e = m_rRect.GetLeft() + m_rRect.GetWidth();
- 			f = m_rRect.GetBottom() + m_rRect.GetHeight();
-            break;
-            
- 		case 270:
- 			e = m_rRect.GetLeft() + m_rRect.GetWidth();
- 			f = - m_rRect.GetBottom();
-            break;
- 
- 		case 0:
- 		default:
- 			e = - m_rRect.GetLeft();
- 			f = - m_rRect.GetBottom();
-            break;
- 	}
-
-    PdfArray      matrix;
-    matrix.push_back( PdfVariant( a ) );
-    matrix.push_back( PdfVariant( b ) );
-    matrix.push_back( PdfVariant( c ) );
-    matrix.push_back( PdfVariant( d ) );
-    matrix.push_back( PdfVariant( e ) );
-    matrix.push_back( PdfVariant( f ) );
-    
-    this->GetObject()->GetDictionary().AddKey( "Matrix", matrix );
+    InitAfterPageInsertion(*pDoc, nPage);
 }
 
-PdfXObject::PdfXObject( PdfObject* pObject )
-    : PdfElement( "XObject", pObject ), PdfCanvas(), m_pResources( NULL )
+PdfXObject::PdfXObject(PdfObject* pObject)
+    : PdfElement("XObject", pObject), PdfCanvas(), m_pResources(NULL)
 {
-    ostringstream out;
-    PdfLocaleImbue(out);
-    // Implementation note: the identifier is always
-    // Prefix+ObjectNo. Prefix is /XOb for XObject.
-    out << "XOb" << this->GetObject()->Reference().ObjectNumber();
+    InitIdentifiers(getPdfXObjectType(*pObject));
+    m_pResources = pObject->GetIndirectKey("Resources");
 
-    
-    m_pResources = pObject->GetIndirectKey( "Resources" );
-    m_Identifier = PdfName( out.str().c_str() );
-    m_Reference  = this->GetObject()->Reference();
+    if (this->GetObject()->GetIndirectKey("BBox"))
+        m_rRect = PdfRect(this->GetObject()->GetIndirectKey("BBox")->GetArray());
+}
 
-    if( this->GetObject()->GetIndirectKey( "BBox" ) )
-        m_rRect = PdfRect( this->GetObject()->GetIndirectKey( "BBox" )->GetArray() );
+PdfXObject::PdfXObject(EPdfXObject subType, PdfDocument* pParent, const char* pszPrefix)
+    : PdfElement("XObject", pParent), m_pResources(NULL)
+{
+    InitIdentifiers(subType, pszPrefix);
+
+    this->GetObject()->GetDictionary().AddKey(PdfName::KeySubtype, PdfName(ToString(subType)));
+}
+
+PdfXObject::PdfXObject(EPdfXObject subType, PdfVecObjects* pParent, const char* pszPrefix)
+    : PdfElement("XObject", pParent), m_pResources(NULL)
+{
+    InitIdentifiers(subType, pszPrefix);
+
+    this->GetObject()->GetDictionary().AddKey(PdfName::KeySubtype, PdfName(ToString(subType)));
+}
+
+PdfXObject::PdfXObject(EPdfXObject subType, PdfObject* pObject)
+    : PdfElement("XObject", pObject), m_pResources(NULL)
+{
+    if (getPdfXObjectType(*pObject) != subType)
+    {
+        PODOFO_RAISE_ERROR(ePdfError_InvalidDataType);
+    }
+
+    InitIdentifiers(subType);
+}
+
+bool PdfXObject::TryCreateFromObject(PdfObject &obj, std::unique_ptr<PdfXObject>& xobj, EPdfXObject &type)
+{
+    auto typeObj = obj.GetDictionary().GetKey(PdfName::KeyType);
+    if (typeObj == nullptr
+        || !typeObj->IsName()
+        || typeObj->GetName().GetName() != "XObject")
+    {
+        xobj = nullptr;
+        type = EPdfXObject::ePdfXObject_Unknown;
+        return false;
+    }
+
+    type = getPdfXObjectType(obj);
+    switch (type)
+    {
+        case EPdfXObject::ePdfXObject_Form:
+        case EPdfXObject::ePdfXObject_PostScript:
+        {
+            xobj.reset(new PdfXObject(type, &obj));
+            return true;
+        }
+        case EPdfXObject::ePdfXObject_Image:
+        {
+            xobj.reset(new PdfImage(&obj));
+            return true;
+        }
+        default:
+        {
+            xobj = nullptr;
+            return false;
+        }
+    }
+}
+
+EPdfXObject PdfXObject::getPdfXObjectType(const PdfObject &obj)
+{
+    auto subTypeObj = obj.GetDictionary().GetKey(PdfName::KeySubtype);
+    if (subTypeObj == nullptr || !subTypeObj->IsName())
+        return ePdfXObject_Unknown;
+
+    auto subtype = obj.GetDictionary().GetKey(PdfName::KeySubtype)->GetName().GetName();
+    return FromString(subtype);
+}
+
+string PdfXObject::ToString(EPdfXObject type)
+{
+    switch (type)
+    {
+        case PoDoFo::ePdfXObject_Form:
+            return "Form";
+        case PoDoFo::ePdfXObject_Image:
+            return "Image";
+        case PoDoFo::ePdfXObject_PostScript:
+            return "PS";
+        default:
+            PODOFO_RAISE_ERROR(ePdfError_InvalidDataType);
+    }
+}
+
+EPdfXObject PdfXObject::FromString(const string &str)
+{
+    if (str == "Form")
+        return EPdfXObject::ePdfXObject_Form;
+    else if (str == "Image")
+        return EPdfXObject::ePdfXObject_Image;
+    else if (str == "PS")
+        return EPdfXObject::ePdfXObject_PostScript;
+    else
+        return EPdfXObject::ePdfXObject_Unknown;
+}
+
+void PdfXObject::InitAfterPageInsertion(const PdfDocument & rDoc, int nPage)
+{
+    PdfVariant    var;
+    m_rRect.ToVariant(var);
+    this->GetObject()->GetDictionary().AddKey("BBox", var);
+
+    int rotation = rDoc.GetPage(nPage)->GetRotation();
+    // correct negative rotation
+    if (rotation < 0)
+        rotation = 360 + rotation;
+
+    // Swap offsets/width/height for vertical rotation
+    switch (rotation)
+    {
+        case 90:
+        case 270:
+        {
+            double temp;
+
+            temp = m_rRect.GetWidth();
+            m_rRect.SetWidth(m_rRect.GetHeight());
+            m_rRect.SetHeight(temp);
+
+            temp = m_rRect.GetLeft();
+            m_rRect.SetLeft(m_rRect.GetBottom());
+            m_rRect.SetBottom(temp);
+        }
+        break;
+
+        default:
+            break;
+    }
+
+    // Build matrix for rotation and cropping
+    double alpha = -rotation / 360.0 * 2.0 * PI;
+
+    double a, b, c, d, e, f;
+
+    a = cos(alpha);
+    b = sin(alpha);
+    c = -sin(alpha);
+    d = cos(alpha);
+
+    switch (rotation)
+    {
+        case 90:
+            e = -m_rRect.GetLeft();
+            f = m_rRect.GetBottom() + m_rRect.GetHeight();
+            break;
+
+        case 180:
+            e = m_rRect.GetLeft() + m_rRect.GetWidth();
+            f = m_rRect.GetBottom() + m_rRect.GetHeight();
+            break;
+
+        case 270:
+            e = m_rRect.GetLeft() + m_rRect.GetWidth();
+            f = -m_rRect.GetBottom();
+            break;
+
+        case 0:
+        default:
+            e = -m_rRect.GetLeft();
+            f = -m_rRect.GetBottom();
+            break;
+    }
+
+    PdfArray      matrix;
+    matrix.push_back(PdfVariant(a));
+    matrix.push_back(PdfVariant(b));
+    matrix.push_back(PdfVariant(c));
+    matrix.push_back(PdfVariant(d));
+    matrix.push_back(PdfVariant(e));
+    matrix.push_back(PdfVariant(f));
+
+    this->GetObject()->GetDictionary().AddKey("Matrix", matrix);
 }
 
 PdfRect PdfXObject::GetRect() const
@@ -288,9 +309,7 @@ void PdfXObject::EnsureResourcesInitialized()
 
 void PdfXObject::InitXObject( const PdfRect & rRect, const char* pszPrefix )
 {
-    PdfVariant    var;
-    ostringstream out;
-    PdfLocaleImbue(out);
+    InitIdentifiers(EPdfXObject::ePdfXObject_Form, pszPrefix);
 
     // Initialize static data
     if( m_matrix.empty() )
@@ -304,13 +323,20 @@ void PdfXObject::InitXObject( const PdfRect & rRect, const char* pszPrefix )
         m_matrix.push_back( PdfVariant( static_cast<pdf_int64>(PODOFO_LL_LITERAL(0)) ) );
     }
 
+    PdfVariant    var;
     rRect.ToVariant( var );
     this->GetObject()->GetDictionary().AddKey( "BBox", var );
-    this->GetObject()->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("Form") );
+    this->GetObject()->GetDictionary().AddKey(PdfName::KeySubtype, PdfName(ToString(EPdfXObject::ePdfXObject_Form)));
     this->GetObject()->GetDictionary().AddKey( "FormType", PdfVariant( static_cast<pdf_int64>(PODOFO_LL_LITERAL(1)) ) ); // only 1 is only defined in the specification.
     this->GetObject()->GetDictionary().AddKey( "Matrix", m_matrix );
 
     InitResources();
+}
+
+void PdfXObject::InitIdentifiers(EPdfXObject subType, const char * pszPrefix)
+{
+    ostringstream out;
+    PdfLocaleImbue(out);
 
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /XOb for XObject.
@@ -321,6 +347,7 @@ void PdfXObject::InitXObject( const PdfRect & rRect, const char* pszPrefix )
 
     m_Identifier = PdfName( out.str().c_str() );
     m_Reference  = this->GetObject()->Reference();
+    m_type = subType;
 }
 
 void PdfXObject::InitResources()
@@ -329,61 +356,6 @@ void PdfXObject::InitResources()
     this->GetObject()->GetDictionary().AddKey("Resources", PdfObject(PdfDictionary()));
     m_pResources = this->GetObject()->GetDictionary().GetKey("Resources");
     m_pResources->GetDictionary().AddKey("ProcSet", PdfCanvas::GetProcSet());
-}
-
-PdfXObject::PdfXObject( const char* pszSubType, PdfDocument* pParent, const char* pszPrefix )
-    : PdfElement( "XObject", pParent ), m_pResources( NULL )
-{
-    ostringstream out;
-    PdfLocaleImbue(out);
-    // Implementation note: the identifier is always
-    // Prefix+ObjectNo. Prefix is /XOb for XObject.
-	if ( pszPrefix == NULL )
-	    out << "XOb" << this->GetObject()->Reference().ObjectNumber();
-	else
-	    out << pszPrefix << this->GetObject()->Reference().ObjectNumber();
-
-    m_Identifier = PdfName( out.str().c_str() );
-    m_Reference  = this->GetObject()->Reference();
-
-    this->GetObject()->GetDictionary().AddKey( PdfName::KeySubtype, PdfName( pszSubType ) );
-}
-
-PdfXObject::PdfXObject( const char* pszSubType, PdfVecObjects* pParent, const char* pszPrefix )
-    : PdfElement( "XObject", pParent ), m_pResources( NULL )
-{
-    ostringstream out;
-    PdfLocaleImbue(out);
-    // Implementation note: the identifier is always
-    // Prefix+ObjectNo. Prefix is /XOb for XObject.
-	if ( pszPrefix == NULL )
-	    out << "XOb" << this->GetObject()->Reference().ObjectNumber();
-	else
-	    out << pszPrefix << this->GetObject()->Reference().ObjectNumber();
-
-    m_Identifier = PdfName( out.str().c_str() );
-    m_Reference  = this->GetObject()->Reference();
-
-    this->GetObject()->GetDictionary().AddKey( PdfName::KeySubtype, PdfName( pszSubType ) );
-}
-
-PdfXObject::PdfXObject( const char* pszSubType, PdfObject* pObject )
-    : PdfElement( "XObject", pObject ), m_pResources( NULL ) 
-{
-    ostringstream out;
-    PdfLocaleImbue(out);
-
-    if( this->GetObject()->GetDictionary().GetKeyAsName( PdfName::KeySubtype ) != pszSubType ) 
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
-    }
-
-    // Implementation note: the identifier is always
-    // Prefix+ObjectNo. Prefix is /XOb for XObject.
-    out << "XOb" << this->GetObject()->Reference().ObjectNumber();
-
-    m_Identifier = PdfName( out.str().c_str() );
-    m_Reference  = this->GetObject()->Reference();
 }
 
 };

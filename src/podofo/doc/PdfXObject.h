@@ -34,6 +34,8 @@
 #ifndef _PDF_XOBJECT_H_
 #define _PDF_XOBJECT_H_
 
+#include <memory>
+
 #include "podofo/base/PdfDefines.h"
 #include "podofo/base/PdfArray.h"
 #include "podofo/base/PdfCanvas.h"
@@ -45,7 +47,14 @@ namespace PoDoFo {
 
 class PdfDictionary;
 class PdfObject;
-class PdfMemDocument;
+
+enum EPdfXObject
+{
+    ePdfXObject_Form,
+    ePdfXObject_Image,
+    ePdfXObject_PostScript,
+    ePdfXObject_Unknown = 0xff
+};
 
 /** A XObject is a content stream with several drawing commands and data
  *  which can be used throughout a PDF document.
@@ -85,7 +94,7 @@ class PODOFO_DOC_API PdfXObject : public PdfElement, public PdfCanvas {
 	 *  \param pszPrefix optional prefix for XObject-name
  	 *	\param bUseTrimBox if true try to use trimbox for size of xobject
      */
-    PdfXObject( const PdfMemDocument & rSourceDoc, int nPage, PdfDocument* pParent, const char* pszPrefix = NULL, bool bUseTrimBox = false );
+    PdfXObject( const PdfDocument & rSourceDoc, int nPage, PdfDocument* pParent, const char* pszPrefix = NULL, bool bUseTrimBox = false );
 
     /** Create a new XObject from an existing page
      * 
@@ -104,6 +113,17 @@ class PODOFO_DOC_API PdfXObject : public PdfElement, public PdfCanvas {
     PdfXObject( PdfObject* pObject );
 
     virtual ~PdfXObject() { }
+
+protected:
+    PdfXObject(EPdfXObject subType, PdfDocument* pParent, const char* pszPrefix = NULL);
+    PdfXObject(EPdfXObject subType, PdfVecObjects* pParent, const char* pszPrefix = NULL);
+    PdfXObject(EPdfXObject subType, PdfObject* pObject);
+
+public:
+    static bool TryCreateFromObject(PdfObject &obj, std::unique_ptr<PdfXObject> &xobj, EPdfXObject &type);
+
+    static std::string ToString(EPdfXObject type);
+    static EPdfXObject FromString(const std::string &str);
 
     /** Get the rectangle of this xobject
     *  \returns a rectangle
@@ -165,18 +185,20 @@ class PODOFO_DOC_API PdfXObject : public PdfElement, public PdfCanvas {
      */
     inline const PdfReference & GetObjectReference() const;
 
- protected:
-    void InitXObject( const PdfRect & rRect, const char* pszPrefix = NULL );
-    void InitResources();
+    EPdfXObject GetType() const { return m_type; }
 
-    PdfXObject( const char* pszSubType, PdfDocument* pParent, const char* pszPrefix = NULL );
-    PdfXObject( const char* pszSubType, PdfVecObjects* pParent, const char* pszPrefix = NULL );
-    PdfXObject( const char* pszSubType, PdfObject* pObject );
+ private:
+    static EPdfXObject getPdfXObjectType(const PdfObject &obj);
+    void InitXObject( const PdfRect & rRect, const char* pszPrefix );
+    void InitIdentifiers(EPdfXObject subType, const char* pszPrefix = NULL);
+    void InitAfterPageInsertion(const PdfDocument & rDoc, int page);
+    void InitResources();
 
  protected:
     PdfRect          m_rRect;
 
  private:
+    EPdfXObject      m_type;
     PdfArray         m_matrix;
 
     PdfObject*       m_pResources;

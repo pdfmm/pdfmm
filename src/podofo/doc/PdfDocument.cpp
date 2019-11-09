@@ -57,7 +57,6 @@
 #include "PdfFont.h"
 #include "PdfFontMetrics.h"
 #include "PdfInfo.h"
-#include "PdfMemDocument.h"
 #include "PdfNamesTree.h"
 #include "PdfOutlines.h"
 #include "PdfPage.h"
@@ -274,7 +273,7 @@ void PdfDocument::EmbedSubsetFonts()
 	m_fontCache.EmbedSubsetFonts();
 }
 
-const PdfDocument & PdfDocument::Append( const PdfMemDocument & rDoc, bool bAppendAll )
+const PdfDocument & PdfDocument::Append( const PdfDocument & rDoc, bool bAppendAll )
 {
     unsigned int difference = static_cast<unsigned int>(m_vecObjects.GetSize() + m_vecObjects.GetFreeObjects().size());
 
@@ -355,7 +354,7 @@ const PdfDocument & PdfDocument::Append( const PdfMemDocument & rDoc, bool bAppe
         
         // append all outlines
         PdfOutlineItem* pRoot       = this->GetOutlines();
-        PdfOutlines*    pAppendRoot = const_cast<PdfMemDocument&>(rDoc).GetOutlines( PoDoFo::ePdfDontCreateObject );
+        PdfOutlines*    pAppendRoot = const_cast<PdfDocument&>(rDoc).GetOutlines( PoDoFo::ePdfDontCreateObject );
         if( pAppendRoot && pAppendRoot->First() ) 
         {
             // only append outlines if appended document has outlines
@@ -372,7 +371,7 @@ const PdfDocument & PdfDocument::Append( const PdfMemDocument & rDoc, bool bAppe
     return *this;
 }
 
-const PdfDocument &PdfDocument::InsertExistingPageAt( const PdfMemDocument & rDoc, int nPageIndex, int nAtIndex)
+const PdfDocument &PdfDocument::InsertExistingPageAt( const PdfDocument & rDoc, int nPageIndex, int nAtIndex)
 {
 	/* copy of PdfDocument::Append, only restricts which page to add */
     unsigned int difference = static_cast<unsigned int>(m_vecObjects.GetSize() + m_vecObjects.GetFreeObjects().size());
@@ -450,7 +449,7 @@ const PdfDocument &PdfDocument::InsertExistingPageAt( const PdfMemDocument & rDo
 
     // append all outlines
     PdfOutlineItem* pRoot       = this->GetOutlines();
-    PdfOutlines*    pAppendRoot = const_cast<PdfMemDocument&>(rDoc).GetOutlines( PoDoFo::ePdfDontCreateObject );
+    PdfOutlines*    pAppendRoot = const_cast<PdfDocument&>(rDoc).GetOutlines( PoDoFo::ePdfDontCreateObject );
     if( pAppendRoot && pAppendRoot->First() ) 
     {
         // only append outlines if appended document has outlines
@@ -466,7 +465,7 @@ const PdfDocument &PdfDocument::InsertExistingPageAt( const PdfMemDocument & rDo
     return *this;
 }
 
-PdfRect PdfDocument::FillXObjectFromDocumentPage( PdfXObject * pXObj, const PdfMemDocument & rDoc, int nPage, bool bUseTrimBox )
+PdfRect PdfDocument::FillXObjectFromDocumentPage( PdfXObject * pXObj, const PdfDocument & rDoc, int nPage, bool bUseTrimBox )
 {
     unsigned int difference = static_cast<unsigned int>(m_vecObjects.GetSize() + m_vecObjects.GetFreeObjects().size());
     Append( rDoc, false );
@@ -528,13 +527,13 @@ PdfRect PdfDocument::FillXObjectFromPage( PdfXObject * pXObj, const PdfPage * pP
                 if ( it->IsReference() )
                 {
                     // TODO: not very efficient !!
-                    PdfObject*  pObj = GetObjects()->GetObject( it->GetReference() );
+                    PdfObject*  pObj = GetObjects().GetObject( it->GetReference() );
 
                     while (pObj!=NULL)
                     {
                         if (pObj->IsReference())    // Recursively look for the stream
                         {
-                            pObj = GetObjects()->GetObject( pObj->GetReference() );
+                            pObj = GetObjects().GetObject( pObj->GetReference() );
                         }
                         else if (pObj->HasStream())
                         {

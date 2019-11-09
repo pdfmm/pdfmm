@@ -736,7 +736,7 @@ PdfObject* PdfPage::GetOwnAnnotationsArray( bool bCreate, PdfDocument *pDocument
                PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle, "Object is a reference but does not have an owner!" );
             }
 
-            pObj = pDocument->GetObjects()->GetObject( pObj->GetReference() );
+            pObj = pDocument->GetObjects().GetObject( pObj->GetReference() );
          }
       }
 

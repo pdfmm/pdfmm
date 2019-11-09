@@ -526,7 +526,7 @@ static PdfObject* find_existing_signature_field( PdfAcroForm* pAcroForm, const P
     if( pFields )
     {
         if( pFields->GetDataType() == ePdfDataType_Reference )
-            pFields = pAcroForm->GetDocument()->GetObjects()->GetObject( pFields->GetReference() );
+            pFields = pAcroForm->GetDocument()->GetObjects().GetObject( pFields->GetReference() );
 
         if( pFields && pFields->GetDataType() == ePdfDataType_Array )
         {
@@ -537,7 +537,7 @@ static PdfObject* find_existing_signature_field( PdfAcroForm* pAcroForm, const P
                 // require references in the Fields array
                 if( it->GetDataType() == ePdfDataType_Reference )
                 {
-                    PdfObject *item = pAcroForm->GetDocument()->GetObjects()->GetObject( it->GetReference() );
+                    PdfObject *item = pAcroForm->GetDocument()->GetObjects().GetObject( it->GetReference() );
 
                     if( item && item->GetDictionary().HasKey( PdfName( "T" ) ) &&
                         item->GetDictionary().GetKey( PdfName( "T" ) )->GetString() == name )
