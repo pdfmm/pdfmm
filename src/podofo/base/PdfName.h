@@ -130,7 +130,9 @@ class PODOFO_API PdfName : public PdfDataType {
     {
     }
 
-    virtual ~PdfName();
+    std::string GetStringUtf8() const;
+
+    static PdfName FromUtf8String(const std::string &str);
 
     /** Write the name to an output device in PDF format.
      *  This is an overloaded member function.

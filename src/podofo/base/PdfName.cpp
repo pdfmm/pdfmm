@@ -33,127 +33,24 @@
 
 #include "PdfName.h"
 
+#include <utfcpp/utf8.h>
+
 #include "PdfOutputDevice.h"
 #include "PdfTokenizer.h"
 #include "PdfDefinesPrivate.h"
+#include "PdfEncoding.h"
 
-#include <string.h>
+using namespace std;
+using namespace PoDoFo;
 
-using PoDoFo::ePdfError_InvalidName;
-
-namespace {
-
-/**
- * This function writes a hex encoded representation of the character
- * `ch' to `buf', advancing the iterator by two steps.
- *
- * \warning no buffer length checking is performed, so MAKE SURE
- *          you have enough room for the two characters that
- *          will be written to the buffer.
- *
- * \param ch The character to write a hex representation of
- * \param buf An iterator (eg a char* or std::string::iterator) to write the
- *            characters to.  Must support the postfix ++, operator=(char) and
- *            dereference operators.
- */
 template<typename T>
-inline void hexchr(const unsigned char ch, T & it)
-{
-    *(it++) = "0123456789ABCDEF"[ch / 16];
-    *(it++) = "0123456789ABCDEF"[ch % 16];
-}
+void hexchr(const unsigned char ch, T & it);
 
-/** Escape the input string according to the PDF name
- *  escaping rules and return the result.
- *
- *  \param it Iterator referring to the start of the input string
- *            ( eg a `const char *' or a `std::string::iterator' )
- *  \param length Length of input string
- *  \returns Escaped string
- */
 template<typename T>
-static std::string EscapeName(T it, size_t length)
-{
-    // Scan the input string once to find out how much memory we need
-    // to reserve for the encoded result string. We could do this in one
-    // pass using a std::ostringstream instead, but it's a LOT slower.
-    T it2(it);
-    unsigned int outchars = 0;
-    for (size_t i = 0; i < length; ++i)
-    {
-        // Null chars are illegal in names, even escaped
-        if (*it2 == '\0')
-        {
-            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidName, "Null byte in PDF name is illegal");
-        }
-        else 
-        {
-            // Leave room for either just the char, or a #xx escape of it.
-            outchars += (::PoDoFo::PdfTokenizer::IsRegular(*it2) && 
-                         ::PoDoFo::PdfTokenizer::IsPrintable(*it2) && (*it2 != '#')) ? 1 : 3;
-        }
-        ++it2;
-    }
-    // Reserve it. We can't use reserve() because the GNU STL doesn't seem to
-    // do it correctly; the memory never seems to get allocated.
-    std::string buf;
-    buf.resize(outchars);
-    // and generate the encoded string
-    std::string::iterator bufIt(buf.begin());
-    for (size_t z = 0; z < length; ++z)
-    {
-        if (::PoDoFo::PdfTokenizer::IsRegular(*it) && 
-            ::PoDoFo::PdfTokenizer::IsPrintable(*it) && 
-            (*it != '#') )
-            *(bufIt++) = *it;
-        else
-        {
-            *(bufIt++) = '#';
-            hexchr(static_cast<unsigned char>(*it), bufIt);
-        }
-        ++it;
-    }
-    return buf;
-}
+std::string EscapeName(T it, size_t length);
 
-/** Interpret the passed string as an escaped PDF name
- *  and return the unescaped form.
- *
- *  \param it Iterator referring to the start of the input string
- *            ( eg a `const char *' or a `std::string::iterator' )
- *  \param length Length of input string
- *  \returns Unescaped string
- */
 template<typename T>
-static std::string UnescapeName(T it, size_t length)
-{
-    // We know the decoded string can be AT MOST
-    // the same length as the encoded one, so:
-    std::string buf;
-    buf.resize(length);
-    unsigned int incount = 0, outcount = 0;
-    while (incount++ < length)
-    {
-        if (*it == '#' && incount + 1 < length)
-        {
-            unsigned char hi = static_cast<unsigned char>(*(++it)); ++incount;
-            unsigned char low = static_cast<unsigned char>(*(++it)); ++incount;
-            hi  -= ( hi  < 'A' ? '0' : 'A'-10 );
-            low -= ( low < 'A' ? '0' : 'A'-10 );
-            buf[outcount++] = (hi << 4) | (low & 0x0F);
-        }
-        else
-            buf[outcount++] = *it;
-        ++it;
-    }
-    // Chop buffer off at number of decoded bytes
-    buf.resize(outcount);
-    return buf;
-}
-
-}; // End anonymous namespace
-
-namespace PoDoFo {
+std::string UnescapeName(T it, size_t length);
 
 const PdfName PdfName::KeyContents  = PdfName( "Contents" );
 const PdfName PdfName::KeyFlags     = PdfName( "Flags" );
@@ -164,10 +61,6 @@ const PdfName PdfName::KeySize      = PdfName( "Size" );
 const PdfName PdfName::KeySubtype   = PdfName( "Subtype" );
 const PdfName PdfName::KeyType      = PdfName( "Type" );
 const PdfName PdfName::KeyFilter    = PdfName( "Filter" );
-
-PdfName::~PdfName()
-{
-}
 
 PdfName PdfName::FromEscaped( const std::string & sName )
 {
@@ -183,6 +76,20 @@ PdfName PdfName::FromEscaped( const char * pszName, pdf_long ilen )
         ilen = strlen( pszName );
 
     return PdfName(UnescapeName(pszName, ilen));
+}
+
+string PdfName::GetStringUtf8() const
+{
+    return PdfDocEncoding::ConvertPdfDocEncodingToUTF8(m_Data);
+}
+
+PdfName PdfName::FromUtf8String(const string & u8str)
+{
+    PdfName ret;
+    if (!PdfDocEncoding::TryConvertUTF8ToPdfDocEncoding(u8str, ret.m_Data))
+        PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidName, "Characters in string must be PdfDocEncoding character set");
+
+    return ret;
 }
 
 void PdfName::Write( PdfOutputDevice* pDevice, EPdfWriteMode, const PdfEncrypt* ) const
@@ -216,5 +123,113 @@ bool PdfName::operator==( const char* rhs ) const
         return ( m_Data == std::string( rhs ) );
 }
 
-};
+/**
+ * This function writes a hex encoded representation of the character
+ * `ch' to `buf', advancing the iterator by two steps.
+ *
+ * \warning no buffer length checking is performed, so MAKE SURE
+ *          you have enough room for the two characters that
+ *          will be written to the buffer.
+ *
+ * \param ch The character to write a hex representation of
+ * \param buf An iterator (eg a char* or std::string::iterator) to write the
+ *            characters to.  Must support the postfix ++, operator=(char) and
+ *            dereference operators.
+ */
+template<typename T>
+void hexchr(const unsigned char ch, T & it)
+{
+    *(it++) = "0123456789ABCDEF"[ch / 16];
+    *(it++) = "0123456789ABCDEF"[ch % 16];
+}
 
+/** Escape the input string according to the PDF name
+ *  escaping rules and return the result.
+ *
+ *  \param it Iterator referring to the start of the input string
+ *            ( eg a `const char *' or a `std::string::iterator' )
+ *  \param length Length of input string
+ *  \returns Escaped string
+ */
+template<typename T>
+std::string EscapeName(T it, size_t length)
+{
+    // Scan the input string once to find out how much memory we need
+    // to reserve for the encoded result string. We could do this in one
+    // pass using a std::ostringstream instead, but it's a LOT slower.
+    T it2(it);
+    unsigned int outchars = 0;
+    for (size_t i = 0; i < length; ++i)
+    {
+        // Null chars are illegal in names, even escaped
+        if (*it2 == '\0')
+        {
+            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidName, "Null byte in PDF name is illegal");
+        }
+        else 
+        {
+            // Leave room for either just the char, or a #xx escape of it.
+            outchars += (PdfTokenizer::IsRegular(*it2) && 
+                         PdfTokenizer::IsPrintable(*it2) && (*it2 != '#')) ? 1 : 3;
+        }
+        ++it2;
+    }
+    // Reserve it. We can't use reserve() because the GNU STL doesn't seem to
+    // do it correctly; the memory never seems to get allocated.
+    std::string buf;
+    buf.resize(outchars);
+    // and generate the encoded string
+    std::string::iterator bufIt(buf.begin());
+    for (size_t z = 0; z < length; ++z)
+    {
+        if (PdfTokenizer::IsRegular(*it) &&
+            PdfTokenizer::IsPrintable(*it) &&
+            (*it != '#'))
+        {
+            *(bufIt++) = *it;
+        }
+        else
+        {
+            *(bufIt++) = '#';
+            hexchr(static_cast<unsigned char>(*it), bufIt);
+        }
+        ++it;
+    }
+    return buf;
+}
+
+/** Interpret the passed string as an escaped PDF name
+ *  and return the unescaped form.
+ *
+ *  \param it Iterator referring to the start of the input string
+ *            ( eg a `const char *' or a `std::string::iterator' )
+ *  \param length Length of input string
+ *  \returns Unescaped string
+ */
+template<typename T>
+std::string UnescapeName(T it, size_t length)
+{
+    // We know the decoded string can be AT MOST
+    // the same length as the encoded one, so:
+    std::string buf;
+    buf.reserve(length);
+    unsigned int incount = 0;
+    while (incount++ < length)
+    {
+        if (*it == '#' && incount + 1 < length)
+        {
+            unsigned char hi = static_cast<unsigned char>(*(++it)); ++incount;
+            unsigned char low = static_cast<unsigned char>(*(++it)); ++incount;
+            hi  -= ( hi  < 'A' ? '0' : 'A'-10 );
+            low -= ( low < 'A' ? '0' : 'A'-10 );
+            unsigned char codepoint = (hi << 4) | (low & 0x0F);
+            buf.push_back((char)codepoint);
+        }
+        else
+            buf.push_back(*it);
+
+        ++it;
+    }
+
+    return buf;
+}

@@ -502,6 +502,11 @@ class PODOFO_API PdfDocEncoding : public PdfSimpleEncoding {
 
     }
 
+public:
+    static bool TryConvertUTF8ToPdfDocEncoding(const std::string &u8str, std::string &pdfdocencstr);
+    static std::string ConvertPdfDocEncodingToUTF8(const std::string &pdfdocencstr);
+    static void ConvertPdfDocEncodingToUTF8(const std::string &pdfdocencstr, std::string &u8str);
+
  protected:
 
     /** Gets a table of 256 short values which are the 

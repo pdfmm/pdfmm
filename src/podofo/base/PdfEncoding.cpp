@@ -41,17 +41,22 @@
 #include "base/PdfContentsTokenizer.h"
 
 #include "doc/PdfFont.h"
+#include "doc/PdfDifferenceEncoding.h"
 
 #include <algorithm>
 #include <deque>
+#include <unordered_map>
 #include <stdlib.h>
 #include <string.h>
 #include <limits>
 #include <sstream>
+#include <utfcpp/utf8.h>
+
 #include "PdfArray.h"
-#include "doc/PdfDifferenceEncoding.h"
 
 #define SWAP_BYTES(n) ( n << 8 | n >> 8 )
+
+using namespace std;
 
 namespace PoDoFo {
 
@@ -580,6 +585,66 @@ char PdfSimpleEncoding::GetUnicodeCharCode(pdf_utf16be unicodeValue) const
 // -----------------------------------------------------
 // PdfDocEncoding
 // -----------------------------------------------------
+
+bool PdfDocEncoding::TryConvertUTF8ToPdfDocEncoding(const string &u8str, string &pdfdocencstr)
+{
+    struct Map : public unordered_map<uint16_t, char>
+    {
+        Map()
+        {
+            // Prepare UTF8 to PdfDocEncoding map
+            for (int i = 0; i < 256; i++)
+            {
+                uint16_t mapped = s_cEncoding[i];
+                if (mapped == 0x0000 && i != 0)   // Undefined, skip this
+                    continue;
+
+                (*this)[mapped] = (char)i;
+            }
+        }
+    };
+
+    static Map map;
+
+    pdfdocencstr.clear();
+
+    uint32_t cp = 0;
+    auto it = u8str.begin();
+    auto end = u8str.end();
+    while (it != end)
+    {
+        cp = utf8::next(it, end);
+        unordered_map<uint16_t, char>::iterator found;
+        if (cp > 0xFFFF || (found = map.find((uint16_t)cp)) == map.end())
+        {
+            // Code point out of range or not present in the map
+            pdfdocencstr.clear();
+            return false;
+        }
+
+        pdfdocencstr.push_back(found->second);
+    }
+
+    return true;
+}
+
+string PdfDocEncoding::ConvertPdfDocEncodingToUTF8(const string &pdfdocencstr)
+{
+    string ret;
+    ConvertPdfDocEncodingToUTF8(pdfdocencstr, ret);
+    return ret;
+}
+
+void PdfDocEncoding::ConvertPdfDocEncodingToUTF8(const std::string & pdfdocencstr, string & u8str)
+{
+    u8str.clear();
+    for (int i = 0; i < (int)pdfdocencstr.size(); i++)
+    {
+        char ch = pdfdocencstr[i];
+        uint16_t mappedCode = s_cEncoding[(unsigned char)ch];
+        utf8::append(mappedCode, u8str);
+    }
+}
 
 // -----------------------------------------------------
 // 
