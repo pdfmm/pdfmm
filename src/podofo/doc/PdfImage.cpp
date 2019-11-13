@@ -128,7 +128,7 @@ void PdfImage::SetImageColorSpace( EPdfColorSpace eColorSpace, const PdfArray *i
 
 EPdfColorSpace PdfImage::GetImageColorSpace()
 {
-    PdfObject *colorSpace = GetObject()->GetIndirectKey("ColorSpace");
+    PdfObject *colorSpace = GetObject()->GetDictionary().FindKey("ColorSpace");
     if (colorSpace == NULL)
         return ePdfColorSpace_Unknown;
 
