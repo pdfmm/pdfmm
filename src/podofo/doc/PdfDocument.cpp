@@ -497,7 +497,7 @@ PdfRect PdfDocument::FillXObjectFromPage( PdfXObject * pXObj, const PdfPage * pP
 
     // link resources from external doc to x-object
     if( pObj->IsDictionary() && pObj->GetDictionary().HasKey( "Resources" ) )
-        pXObj->GetContentsForAppending()->GetDictionary().AddKey( "Resources" , pObj->GetDictionary().GetKey( "Resources" ) );
+        pXObj->GetObject()->GetDictionary().AddKey( "Resources" , pObj->GetDictionary().GetKey( "Resources" ) );
 
     // copy top-level content from external doc to x-object
     if( pObj->IsDictionary() && pObj->GetDictionary().HasKey( "Contents" ) )
@@ -514,7 +514,7 @@ PdfRect PdfDocument::FillXObjectFromPage( PdfXObject * pXObj, const PdfPage * pP
             // copy array as one stream to xobject
             PdfArray pArray = pContents->GetArray();
 
-            PdfObject*  pObj = pXObj->GetContentsForAppending();
+            PdfObject*  pObj = pXObj->GetObject();
             PdfStream*  pObjStream = pObj->GetStream();
 
             TVecFilters vFilters;
@@ -567,7 +567,7 @@ PdfRect PdfDocument::FillXObjectFromPage( PdfXObject * pXObj, const PdfPage * pP
         else if( pContents->HasStream() )
         {
             // copy stream to xobject
-            PdfObject*  pObj = pXObj->GetContentsForAppending();
+            PdfObject*  pObj = pXObj->GetObject();
             PdfStream*  pObjStream = pObj->GetStream();
             PdfStream*  pcontStream = pContents->GetStream();
             char*       pcontStreamBuffer;

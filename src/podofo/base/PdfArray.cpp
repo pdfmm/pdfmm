@@ -60,9 +60,17 @@ PdfArray::~PdfArray()
 {
 }
 
+void PdfArray::RemoveAt(int index)
+{
+    if (index < 0 || index >= m_objects.size())
+        PODOFO_RAISE_ERROR_INFO(ePdfError_ValueOutOfRange, "Index is out of bounds");
+
+    m_objects.erase(m_objects.begin() + index);
+}
+
 PdfObject * PdfArray::findAt( size_type idx ) const
 {
-    PdfObject *obj = &const_cast<PdfArray *>( this )->m_objects[idx];
+    PdfObject *obj = &const_cast<PdfArray *>( this )->m_objects.at(idx);
     if ( obj->IsReference() )
         return GetIndirectObject( obj->GetReference() );
     else

@@ -326,7 +326,7 @@ void PdfAnnotation::SetDestination( const PdfDestination & rDestination )
 
 PdfDestination PdfAnnotation::GetDestination( PdfDocument* pDoc ) const
 {
-    return PdfDestination( this->GetNonConstObject()->GetDictionary().GetKey( "Dest" ), pDoc );
+    return PdfDestination(const_cast<PdfAnnotation &>(*this).GetObject()->GetDictionary().GetKey( "Dest" ), pDoc );
 }
 
 bool PdfAnnotation::HasDestination() const

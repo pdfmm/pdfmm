@@ -113,6 +113,7 @@ class PODOFO_DOC_API PdfElement {
      */
     PdfElement( EPdfDataType eExpectedDataType, PdfObject* pObject );
 
+    PdfElement(const PdfElement &element);
 
     /** Convert an enum or index to its string representation
      *  which can be written to the PDF file.
@@ -160,15 +161,9 @@ class PODOFO_DOC_API PdfElement {
      */
     PdfObject* CreateObject( const char* pszType = NULL );
 
-    /** Get access to the internal object.
-     *  Use this method if you need access to the internal 
-     *  object in a const-method without having to do a const cast.
-     *
-     *  \returns the internal PdfObject
-     */
-    inline PdfObject* GetNonConstObject() const;
+    PdfObject* GetNonConstObject() const;
 
- private:
+private:
     PdfObject* m_pObject;
 };
 
@@ -186,14 +181,6 @@ inline PdfObject* PdfElement::GetObject()
 inline const PdfObject* PdfElement::GetObject() const
 {
     return m_pObject;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline PdfObject* PdfElement::GetNonConstObject() const
-{
-    return const_cast<PdfElement*>(this)->m_pObject;
 }
 
 };

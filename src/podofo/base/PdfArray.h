@@ -34,13 +34,6 @@
 #ifndef _PDF_ARRAY_H_
 #define _PDF_ARRAY_H_
 
-#ifdef _WIN32
-#ifdef _MSC_VER
-// IC: VS2008 suppress dll warning
-#pragma warning(disable: 4275)
-#endif // _MSC_VER
-#endif // _WIN32
-
 #include "PdfDefines.h"
 #include "PdfOwnedDataType.h"
 #include "PdfObject.h"
@@ -93,7 +86,7 @@ class PODOFO_API PdfArray : public PdfOwnedDataType {
     /** 
      *  \returns the size of the array
      */
-    inline size_t GetSize() const;
+    inline int GetSize() const;
 
     /** Remove all elements from the array
      */
@@ -137,6 +130,8 @@ class PODOFO_API PdfArray : public PdfOwnedDataType {
      */
     inline const PdfObject * FindAt( size_type idx ) const;
     inline PdfObject * FindAt( size_type idx );
+
+    void RemoveAt(int index);
 
     /** Adds a PdfObject to the array
      *
@@ -227,16 +222,10 @@ class PODOFO_API PdfArray : public PdfOwnedDataType {
      */
     inline const_reverse_iterator rend() const;
 
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200    // workaround template-error in Visualstudio 6
-    inline void insert(iterator __position, 
-                       iterator __first,
-                       iterator __last);
-#else
     template<typename _InputIterator> 
-        void insert(const iterator& __position, 
+    void insert(const iterator& __position, 
                     const _InputIterator& __first,
                     const _InputIterator& __last);
-#endif
 
     iterator insert( const iterator &pos, const PdfObject &val );
 
@@ -324,9 +313,9 @@ inline PdfObject * PdfArray::FindAt( size_type idx )
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-size_t PdfArray::GetSize() const
+int PdfArray::GetSize() const
 {
-    return m_objects.size();
+    return (int)m_objects.size();
 }
 
 // -----------------------------------------------------
@@ -446,16 +435,10 @@ PdfArray::const_reverse_iterator PdfArray::rend() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200        // workaround template-error in Visualstudio 6
-void PdfArray::insert(PdfArray::iterator __position, 
-                      PdfArray::iterator __first,
-                      PdfArray::iterator __last)
-#else
 template<typename _InputIterator>
 void PdfArray::insert(const PdfArray::iterator& __position, 
                       const _InputIterator& __first,
                       const _InputIterator& __last)
-#endif
 {
     AssertMutable();
 

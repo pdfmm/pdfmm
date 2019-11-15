@@ -95,9 +95,12 @@ PdfElement::PdfElement( EPdfDataType eExpectedDataType, PdfObject* pObject )
     }
 }
 
-PdfElement::~PdfElement()
+PdfElement::PdfElement(const PdfElement & element)
 {
+    m_pObject = element.GetNonConstObject();
 }
+
+PdfElement::~PdfElement() { }
 
 const char* PdfElement::TypeNameForIndex( int i, const char** ppTypes, long lLen ) const
 {
@@ -124,6 +127,11 @@ int PdfElement::TypeNameToIndex( const char* pszType, const char** ppTypes, long
 PdfObject* PdfElement::CreateObject( const char* pszType )
 {
     return m_pObject->GetOwner()->CreateObject( pszType );
+}
+
+PdfObject * PdfElement::GetNonConstObject() const
+{
+    return const_cast<PdfElement*>(this)->m_pObject;
 }
 
 

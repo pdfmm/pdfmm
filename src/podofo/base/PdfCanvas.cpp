@@ -41,7 +41,7 @@
 
 namespace PoDoFo {
 
-const PdfArray PdfCanvas::GetProcSet()
+PdfArray PdfCanvas::GetProcSet()
 {
     PdfArray procset;
     procset.push_back( PdfName( "PDF" ) );

@@ -307,6 +307,16 @@ void PdfXObject::EnsureResourcesInitialized()
     InitResources();
 }
 
+PdfObject * PdfXObject::GetContents() const
+{
+    return const_cast<PdfXObject &>(*this).GetObject();
+}
+
+inline PdfStream & PdfXObject::GetStreamForAppending()
+{
+    return *GetObject()->GetStream();
+}
+
 void PdfXObject::InitXObject( const PdfRect & rRect, const char* pszPrefix )
 {
     InitIdentifiers(EPdfXObject::ePdfXObject_Form, pszPrefix);

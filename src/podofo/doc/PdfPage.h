@@ -52,11 +52,8 @@ class PdfDictionary;
 class PdfVecObjects;
 class PdfInputStream;
 
-typedef std::map<PdfReference,PdfAnnotation*> TMapAnnotation;
-typedef TMapAnnotation::iterator              TIMapAnnotation;
-typedef TMapAnnotation::const_iterator        TCIMapAnnotation;
 typedef std::map<PdfObject *,PdfAnnotation*>  TMapAnnotationDirect;
-typedef TMapAnnotationDirect::iterator        TIMapAnnotationDirect;
+typedef TMapAnnotationDirect::iterator        TIMapAnnotation;
 typedef TMapAnnotationDirect::const_iterator  TCIMapAnnotationDirect;
 
 /** PdfPage is one page in the pdf document. 
@@ -92,7 +89,7 @@ class PODOFO_DOC_API PdfPage : public PdfElement, public PdfCanvas {
     /** Get the current page size in PDF Units
      *  \returns a PdfRect containing the page size available for drawing
      */
-    inline virtual const PdfRect GetPageSize() const;
+    PdfRect GetSize() const override;
 
     // added by Petr P. Petrov 21 Febrary 2010
     /** Set the current page width in PDF Units
@@ -144,14 +141,7 @@ class PODOFO_DOC_API PdfPage : public PdfElement, public PdfCanvas {
      *  drawing commands to the stream of the Contents object.
      *  \returns a contents object
      */
-    virtual PdfObject* GetContents() const;
-
-    /** Get access an object that you can use to ADD drawing to.
-     *  If you want to draw onto the page, you have to add 
-     *  drawing commands to the stream of the Contents object.
-     *  \returns a contents object
-     */
-    virtual PdfObject* GetContentsForAppending() const;
+    PdfObject* GetContents() const override;
 
     /** Get access to the resources object of this page.
      *  This is most likely an internal object.
@@ -223,12 +213,12 @@ class PODOFO_DOC_API PdfPage : public PdfElement, public PdfCanvas {
      */
     void DeleteAnnotation( int index );
 
-    /** Delete the annotation object with reference ref from this page.
-     *  \param ref the reference of an annotation object of this page.
+    /** Delete the annotation with the given object
+     *  \param annotObj the object of an annotation
      *
      *  \see GetNumAnnots
      */
-    void DeleteAnnotation( const PdfReference & ref );
+    void DeleteAnnotation( PdfObject &annotObj );
 
     /** 
      * \returns the number of PdfFields on this page.
@@ -271,9 +261,6 @@ class PODOFO_DOC_API PdfPage : public PdfElement, public PdfCanvas {
      */
     inline const PdfObject* GetInheritedKey( const PdfName & rName ) const; 
 
-
-    PdfObject* GetOwnAnnotationsArray( bool bCreate, PdfDocument *pDocument);
-
     /** Set an ICC profile for this page
      *
      *  \param pszCSTag a ColorSpace tag
@@ -286,6 +273,7 @@ class PODOFO_DOC_API PdfPage : public PdfElement, public PdfCanvas {
     virtual void SetICCProfile( const char* pszCSTag, PdfInputStream* pStream, pdf_int64 nColorComponents,
                                 EPdfColorSpace eAlternateColorSpace = ePdfColorSpace_DeviceRGB );
  private:
+     PdfStream & GetStreamForAppending() override;
 
     /**
      * Initialize a new page object.
@@ -313,19 +301,15 @@ class PODOFO_DOC_API PdfPage : public PdfElement, public PdfCanvas {
      */
     const PdfObject* GetInheritedKeyFromObject( const char* inKey, const PdfObject* inObject, int depth = 0 ) const;
 
-    /** Get the annotations array.
-     *  \param bCreate if true the annotations array is created 
-     *                 if it does not exist.
-     *  \returns the annotations array or NULL if none exists.
-     */
-    PdfObject* GetAnnotationsArray( bool bCreate = false ) const;
+private:
+    PdfArray * GetAnnotationsArray() const;
+    PdfArray & GetOrCreateAnnotationsArray();
 
  private:
     PdfContents*   m_pContents;
     PdfObject*     m_pResources;
 
-    TMapAnnotation m_mapAnnotations;
-    TMapAnnotationDirect m_mapAnnotationsDirect;
+    TMapAnnotationDirect m_mapAnnotations;
 };
 
 // -----------------------------------------------------
@@ -334,14 +318,6 @@ class PODOFO_DOC_API PdfPage : public PdfElement, public PdfCanvas {
 inline PdfObject* PdfPage::GetResources() const
 {
     return m_pResources;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline const PdfRect PdfPage::GetPageSize() const
-{
-    return this->GetMediaBox();
 }
 
 // -----------------------------------------------------

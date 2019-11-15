@@ -95,7 +95,7 @@ PdfAction::PdfAction( PdfObject* pObject )
 }
 
 PdfAction::PdfAction( const PdfAction & rhs )
-    : PdfElement( "Action", rhs.GetNonConstObject() )
+    : PdfElement(rhs)
 {
     m_eType = static_cast<EPdfAction>(TypeNameToIndex( this->GetObject()->GetDictionary().GetKeyAsName( "S" ).GetName().c_str(), s_names, s_lNumActions, ePdfAction_Unknown ));
 }

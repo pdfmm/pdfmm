@@ -66,7 +66,7 @@ class PODOFO_API PdfCanvas {
      *  drawing commands to the stream of the Contents object.
      *  \returns a contents object
      */
-    virtual PdfObject* GetContentsForAppending() const = 0;
+    virtual PdfStream & GetStreamForAppending() = 0;
 
     /** Get access to the resources object of this page.
      *  This is most likely an internal object.
@@ -74,15 +74,15 @@ class PODOFO_API PdfCanvas {
      */
     virtual PdfObject* GetResources() const = 0;
 
-    /** Get the current page size in PDF Units
+    /** Get the current canvas size in PDF Units
      *  \returns a PdfRect containing the page size available for drawing
      */
-    virtual const PdfRect GetPageSize() const = 0;
+    virtual PdfRect GetSize() const = 0;
 
     /** Get a copy of procset PdfArray.
      *  \returns a procset PdfArray
      */
-    static const PdfArray GetProcSet();
+    static PdfArray GetProcSet();
 
 	/** Register a colourspace for a (separation) colour in the resource dictionary 
 	 *  of this page or XObbject so that it can be used for any following drawing 

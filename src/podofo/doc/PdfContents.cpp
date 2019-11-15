@@ -44,67 +44,47 @@
 
 #include <iostream>
 
-namespace PoDoFo {
+using namespace PoDoFo;
 
-PdfContents::PdfContents( PdfDocument* pParent )
-    : PdfElement( NULL, pParent )
+PdfContents::PdfContents(PdfPage &parent, PdfObject &obj)
+    : m_parent(&parent), m_object(&obj)
 {
-    mContObj = this->GetObject();
 }
 
-PdfContents::PdfContents( PdfVecObjects* pParent )
-    : PdfElement( NULL, pParent )
+PdfContents::PdfContents(PdfPage &parent) 
+    : m_parent(&parent), m_object(parent.GetObject()->GetOwner()->CreateObject(PdfArray()))
 {
-    mContObj = this->GetObject();
+    parent.GetObject()->GetDictionary().AddKey("Contents", m_object->Reference());
 }
 
-PdfContents::PdfContents( PdfObject* inObj )
-    // A PdfElement expects normally a dictionary
-    // But we may get here, a reference, a dictionary
-    // or an array. Therefore, tell PdfElement
-    // that we also want to accept the datatype of 
-    // the object we send in.
-    : PdfElement( inObj->GetDataType(), inObj )
+PdfObject * PdfContents::GetContents() const
 {
-    if ( this->GetObject()->GetDataType() == ePdfDataType_Reference )
-        mContObj = inObj->GetOwner()->GetObject( this->GetObject()->GetReference() );
-    else
-        mContObj = this->GetObject();
+    return m_object;
 }
 
-PdfContents::PdfContents( PdfPage* pParent ) 
-    : PdfElement( NULL, pParent->GetObject()->GetOwner() )
+PdfStream & PdfContents::GetStreamForAppending()
 {
-    // TODO: Maybe create this only on demand
-    pParent->GetObject()->GetDictionary().AddKey( "Contents", this->GetObject()->Reference() );
-    mContObj = this->GetObject();
-}
-
-PdfObject* PdfContents::GetContentsForAppending() const
-{
-//    if ( mContObj->GetDataType() == ePdfDataType_Stream || 
-//         mContObj->GetDataType() == ePdfDataType_Dictionary ) {
-
-    // Use PdfObject::HasStream() instead of the datatype ePdfDataType_Stream
-    // as large parts of the code rely on all PdfObjects having the datatype
-    // ePdfDataType_Dictionary wether they have a stream or not
-    if( mContObj->GetDataType() == ePdfDataType_Dictionary ) {
-        return mContObj;	// just return the stream itself
-    } else if ( mContObj->GetDataType() == ePdfDataType_Array ) {
-        /*
-          Create a new stream, add it to the array, return it
-        */
-        PdfObject*	newStm = mContObj->GetOwner()->CreateObject();
-        newStm->GetStream();
-        PdfReference	pdfr( newStm->Reference().ObjectNumber(), newStm->Reference().GenerationNumber() );
-        
-        PdfArray&	cArr = mContObj->GetArray();
-        cArr.push_back( pdfr );
-        return newStm;
-    } else {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
+    PdfArray *arr;
+    if (m_object->IsArray())
+    {
+        arr = &m_object->GetArray();
     }
-}
+    else if (m_object->IsDictionary())
+    {
+        // Create a /Contents array and put the current stream into it
+        auto newObjArray = m_parent->GetObject()->GetOwner()->CreateObject(PdfArray());
+        m_parent->GetObject()->GetDictionary().AddKey("Contents", newObjArray->Reference());
+        arr = &newObjArray->GetArray();
+        arr->push_back(m_object->Reference());
+        m_object = newObjArray;
+    }
+    else
+    {
+        PODOFO_RAISE_ERROR(ePdfError_InvalidDataType);
+    }
 
+    // Create a new stream, add it to the array, return it
+    PdfObject * newStm = m_object->GetOwner()->CreateObject();
+    arr->push_back(newStm->Reference());
+    return *newStm->GetStream();
 };
-

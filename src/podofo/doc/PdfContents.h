@@ -34,57 +34,36 @@
 #ifndef _PDF_CONTENTS_H_
 #define _PDF_CONTENTS_H_
 
-#include "podofo/base/PdfDefines.h"
 #include "PdfElement.h"
 
 namespace PoDoFo {
 
-class PdfObject;
 class PdfPage;
 
 /** A interface that provides a wrapper around "PDF content" -
 	the instructions that are used to draw on the PDF "canvas".
  */
-class PODOFO_DOC_API PdfContents : private PdfElement {
- public:
+class PODOFO_DOC_API PdfContents
+{
+public:
+    PdfContents(PdfPage &parent, PdfObject &obj);
 
-    /** Construct a new/empty set of contents in the owning objects
-     */
-    PdfContents( PdfDocument* pParent );
-
-    /** Construct a new/empty set of contents in the owning objects
-     */
-    PdfContents( PdfVecObjects* pParent );
-
-    /** Construct the contents from an existing PdfObject
-     */
-    PdfContents( PdfObject* inObj );
-
-    /** Create the contents for an existing page which does not yet 
-     *  have a contents object.
-     *
-     *  \param pParent a /Contents key will be added to this page 
-     *         and a contents object will be created.
-     */
-    PdfContents( PdfPage* pParent );
-
-    /** Virtual destructor - because ALL destructors should be...
-     */
-    virtual ~PdfContents() {};
+    PdfContents(PdfPage &parent);
 
     /** Get access to the raw contents object.
      *  It will either be a PdfStream or a PdfArray
      *  \returns a contents object
      */
-    virtual PdfObject* GetContents() const { return mContObj; }
+    PdfObject * GetContents() const;
 
     /** Get access to an object into which you can add contents
      *   at the end of the "stream".
      */
-    virtual PdfObject* GetContentsForAppending() const;
+    PdfStream & GetStreamForAppending();
 
- private:
-    PdfObject*	mContObj;
+private:
+    PdfObject *m_object;
+    PdfPage *m_parent;
 };
 
 };

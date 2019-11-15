@@ -61,7 +61,7 @@ PdfPage::PdfPage( const PdfRect & rSize, PdfVecObjects* pParent )
 PdfPage::PdfPage( PdfObject* pObject, const std::deque<PdfObject*> & rListOfParents )
     : PdfElement( "Page", pObject ), PdfCanvas()
 {
-    m_pResources = this->GetObject()->GetIndirectKey( "Resources" );
+    m_pResources = GetObject()->GetDictionary().FindKey( "Resources" );
     if( !m_pResources ) 
     {
         // Resources might be inherited
@@ -74,35 +74,26 @@ PdfPage::PdfPage( PdfObject* pObject, const std::deque<PdfObject*> & rListOfPare
         }
     }
 
-    PdfObject* pContents = this->GetObject()->GetIndirectKey( "Contents" );
-    if (pContents)
-    {
-        m_pContents = new PdfContents( pContents );
-    }
-    else
-    {
-        // Create object on demand
-        m_pContents =  NULL;
-    }
+    PdfObject* contents = GetObject()->GetDictionary().FindKey("Contents");
+    if (contents != nullptr)
+        m_pContents = new PdfContents(*this, *contents);
 }
 
 PdfPage::~PdfPage()
 {
-    TIMapAnnotation ait, aend = m_mapAnnotations.end();
+    TIMapAnnotation dit, dend = m_mapAnnotations.end();
 
-    for( ait = m_mapAnnotations.begin(); ait != aend; ait++ )
-    {
-        delete (*ait).second;
-    }
-
-    TIMapAnnotationDirect dit, dend = m_mapAnnotationsDirect.end();
-
-    for( dit = m_mapAnnotationsDirect.begin(); dit != dend; dit++ )
+    for( dit = m_mapAnnotations.begin(); dit != dend; dit++ )
     {
         delete (*dit).second;
     }
 
     delete m_pContents;	// just clears the C++ object from memory, NOT the PdfObject
+}
+
+PdfRect PdfPage::GetSize() const
+{
+    return this->GetMediaBox();
 }
 
 void PdfPage::InitNewPage( const PdfRect & rSize )
@@ -120,7 +111,7 @@ void PdfPage::CreateContents()
 {
     if( !m_pContents ) 
     {
-        m_pContents = new PdfContents( this );
+        m_pContents = new PdfContents(*this);
         this->GetObject()->GetDictionary().AddKey( PdfName::KeyContents, 
                                                    m_pContents->GetContents()->Reference());   
     }
@@ -136,14 +127,14 @@ PdfObject* PdfPage::GetContents() const
     return m_pContents->GetContents(); 
 }
 
-PdfObject* PdfPage::GetContentsForAppending() const
-{ 
-    if( !m_pContents ) 
+PdfStream & PdfPage::GetStreamForAppending()
+{
+    if (!m_pContents)
     {
         const_cast<PdfPage*>(this)->CreateContents();
     }
 
-    return m_pContents->GetContentsForAppending(); 
+    return m_pContents->GetStreamForAppending();
 }
 
 PdfRect PdfPage::CreateStandardPageSize( const EPdfPageSize ePageSize, bool bLandscape )
@@ -316,42 +307,40 @@ void PdfPage::SetRotation(int nRotation)
     this->GetObject()->GetDictionary().AddKey( "Rotate", PdfVariant(static_cast<pdf_int64>(nRotation)) );
 }
 
-PdfObject* PdfPage::GetAnnotationsArray( bool bCreate ) const
+PdfArray * PdfPage::GetAnnotationsArray() const
 {
-    PdfObject* pObj;
+    auto obj = const_cast<PdfPage &>(*this).GetObject()->GetDictionary().FindKey("Annots");
+    if (obj == nullptr)
+        return nullptr;
 
-    // check for it in the object itself
-    if ( this->GetObject()->GetDictionary().HasKey( "Annots" ) ) 
-    {
-        pObj = this->GetObject()->GetIndirectKey( "Annots" );
-        if( pObj && pObj->IsArray() )
-            return pObj;
-    }
-    else if( bCreate ) 
-    {
-        PdfArray array;
-        this->GetNonConstObject()->GetDictionary().AddKey( "Annots", array );
-        return const_cast<PdfObject*>(this->GetObject()->GetDictionary().GetKey( "Annots" ));
-    }
+    return &obj->GetArray();
+}
 
-    return NULL;
+PdfArray & PdfPage::GetOrCreateAnnotationsArray()
+{
+    auto &dict = GetObject()->GetDictionary();
+    PdfObject* pObj = dict.FindKey("Annots");
+
+    if (pObj == nullptr)
+        pObj = &dict.AddKey("Annots", PdfArray());
+
+    return pObj->GetArray();
 }
 
 int PdfPage::GetNumAnnots() const
 {
-    PdfObject* pObj = this->GetAnnotationsArray();
-
-    return pObj ? static_cast<int>(pObj->GetArray().size()) : 0;
+    auto *arr = GetAnnotationsArray();
+    return arr ? arr->GetSize() : 0;
 }
 
 PdfAnnotation* PdfPage::CreateAnnotation( EPdfAnnotation eType, const PdfRect & rRect )
 {
     PdfAnnotation* pAnnot = new PdfAnnotation( this, eType, rRect, this->GetObject()->GetOwner() );
-    PdfObject*     pObj   = this->GetAnnotationsArray( true );
     PdfReference   ref    = pAnnot->GetObject()->Reference();
 
-    pObj->GetArray().push_back( ref );
-    m_mapAnnotations[ref] = pAnnot;
+    auto &arr = GetOrCreateAnnotationsArray();
+    arr.push_back( ref );
+    m_mapAnnotations[pAnnot->GetObject()] = pAnnot;
 
     // Default set print flag
     auto flags = pAnnot->GetFlags();
@@ -365,44 +354,22 @@ PdfAnnotation* PdfPage::GetAnnotation( int index )
     PdfAnnotation* pAnnot;
     PdfReference   ref;
 
-    PdfObject*     pObj   = this->GetAnnotationsArray( false );
+    auto arr = GetAnnotationsArray();
 
-    if( !(pObj && pObj->IsArray()) )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
-    }
+    if (arr == nullptr)
+        PODOFO_RAISE_ERROR(ePdfError_InvalidHandle);
     
-    if( index < 0 && static_cast<unsigned int>(index) >= pObj->GetArray().size() )
+    if( index < 0 || index >= arr->GetSize() )
     {
         PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
     }
 
-    PdfObject* pItem = &(pObj->GetArray()[index]);
-    if( pItem->IsDictionary() )
+    auto obj = arr->FindAt(index);
+    pAnnot = m_mapAnnotations[obj];
+    if (!pAnnot)
     {
-        pAnnot = m_mapAnnotationsDirect[pItem];
-        if( !pAnnot )
-        {
-            pAnnot = new PdfAnnotation( pItem, this );
-            m_mapAnnotationsDirect[pItem] = pAnnot;
-        }
-    }
-    else
-    {
-        ref = pItem->GetReference();
-        pAnnot = m_mapAnnotations[ref];
-        if( !pAnnot )
-        {
-            pObj = this->GetObject()->GetOwner()->GetObject( ref );
-            if( !pObj )
-            {
-                PdfError::DebugMessage( "Error looking up object %i %i R\n", ref.ObjectNumber(), ref.GenerationNumber() );
-                PODOFO_RAISE_ERROR( ePdfError_NoObject );
-            }
-
-            pAnnot = new PdfAnnotation( pObj, this );
-            m_mapAnnotations[ref] = pAnnot;
-        }
+        pAnnot = new PdfAnnotation(obj, this);
+        m_mapAnnotations[obj] = pAnnot;
     }
 
     return pAnnot;
@@ -410,94 +377,69 @@ PdfAnnotation* PdfPage::GetAnnotation( int index )
 
 void PdfPage::DeleteAnnotation( int index )
 {
-    PdfObject* pObj = this->GetAnnotationsArray( false );
-    PdfObject* pItem;
+    auto arr = GetAnnotationsArray();
+    if (arr == nullptr)
+        return;
 
-    if( !(pObj && pObj->IsArray()) )
+    if (index < 0 || index >= arr->GetSize())
+        PODOFO_RAISE_ERROR(ePdfError_ValueOutOfRange);
+
+    auto pItem = arr->FindAt(index);
+    auto found = m_mapAnnotations.find(pItem);
+    if (found != m_mapAnnotations.end())
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
+        delete found->second;
+        m_mapAnnotations.erase(found);
     }
 
-    if( index < 0 && static_cast<unsigned int>(index) >= pObj->GetArray().size() )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
-    }
+    // Delete the PdfObject in the document
+    if (pItem->Reference().IsIndirect())
+        delete pItem->GetOwner()->RemoveObject(pItem->Reference());
 
-    pItem = &(pObj->GetArray()[index]);
-
-    if( pItem->IsDictionary() )
-    {
-        PdfAnnotation* pAnnot;
-
-        pObj->GetArray().erase( pObj->GetArray().begin() + index );
-
-        // delete any cached PdfAnnotations
-        pAnnot = m_mapAnnotationsDirect[pItem];
-        if( pAnnot )
-        {
-            delete pAnnot;
-            m_mapAnnotationsDirect.erase( pItem );
-        }
-    }
-    else
-    {
-        this->DeleteAnnotation( pItem->GetReference() );
-    }
+    // Delete the annotation from the annotation array.
+    // Has to be performed at last
+    arr->RemoveAt(index);
 }
 
-void PdfPage::DeleteAnnotation( const PdfReference & ref )
+void PdfPage::DeleteAnnotation(PdfObject &annotObj)
 {
-    PdfAnnotation*     pAnnot;
-    PdfArray::iterator it;
-    PdfObject*         pObj   = this->GetAnnotationsArray( false );
-    bool               bFound = false;
+    PdfArray *arr = GetAnnotationsArray();
+    if (arr == nullptr)
+        return;
 
     // find the array iterator pointing to the annotation, so it can be deleted later
-
-    if( !(pObj && pObj->IsArray()) )
+    int index = -1;
+    for (int i = 0; i < arr->GetSize(); i++)
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
-    }
-
-    it = pObj->GetArray().begin();
-    while( it != pObj->GetArray().end() ) 
-    {
-        if( (*it).IsReference() && (*it).GetReference() == ref ) 
+        auto obj = arr->FindAt(i);
+        if (&annotObj == obj)
         {
-            // Element may not be deleted from the array at this point, because doing
-            // this invalidates all PdfReferences references derived from the array.
-            // This includes the 'ref' parameter, when it is never copied by value,
-            // as it happens when this function is called via DeleteAnnotation( int )!
-            bFound = true;
+            index = i;
             break;
         }
-
-        ++it;
     }
 
-    // if no such annotation was found
-    // throw an error instead of deleting
-    // another object with this reference
-    if( !bFound ) 
+    if (index == -1)
     {
-        PODOFO_RAISE_ERROR( ePdfError_NoObject );
+        // The object was not found as annotation in this page
+        return;
     }
 
-    // delete any cached PdfAnnotations
-    pAnnot = m_mapAnnotations[ref];
-    if( pAnnot )
+    // Delete any cached PdfAnnotations
+    auto found = m_mapAnnotations.find((PdfObject *)&annotObj);
+    if (found != m_mapAnnotations.end())
     {
-        delete pAnnot;
-        m_mapAnnotations.erase( ref );
+        delete found->second;
+        m_mapAnnotations.erase(found);
     }
 
-    // delete the PdfObject in the file
-    delete this->GetObject()->GetOwner()->RemoveObject( ref );
+    // Delete the PdfObject in the document
+    if (annotObj.Reference().IsIndirect())
+        delete GetObject()->GetOwner()->RemoveObject(annotObj.Reference());
     
     // Delete the annotation from the annotation array.
-	// Has to be performed at last, since it will invalidate 'ref' when
-	// it was derived from the array itself and never copied by value!
-    pObj->GetArray().erase( it );
+	// Has to be performed at last
+    arr->RemoveAt(index);
 }
 
 // added by Petr P. Petrov 21 Febrary 2010
@@ -718,38 +660,6 @@ PdfObject* PdfPage::GetFromResources( const PdfName & rType, const PdfName & rKe
         }
     }
     
-    return NULL;
-}
-
-
-PdfObject* PdfPage::GetOwnAnnotationsArray( bool bCreate, PdfDocument *pDocument)
-{
-   PdfObject* pObj;
-
-   if ( this->GetObject()->GetDictionary().HasKey( "Annots" ) )  {
-      pObj = this->GetObject()->GetIndirectKey( "Annots" );
-        
-      if(!pObj) {
-         pObj = this->GetObject()->GetDictionary().GetKey("Annots");
-         if( pObj->IsReference() ) {
-            if( !pDocument ) {
-               PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle, "Object is a reference but does not have an owner!" );
-            }
-
-            pObj = pDocument->GetObjects().GetObject( pObj->GetReference() );
-         }
-      }
-
-      if( pObj && pObj->IsArray() )
-         return pObj;
-    }
-    else if( bCreate ) 
-    {
-        PdfArray array;
-        this->GetNonConstObject()->GetDictionary().AddKey( "Annots", array );
-        return const_cast<PdfObject*>(this->GetObject()->GetDictionary().GetKey( "Annots" ));
-    }
-
     return NULL;
 }
 

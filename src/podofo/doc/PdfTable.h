@@ -595,7 +595,7 @@ class PODOFO_DOC_API PdfTable {
      *                   to be set to the clipping rectangle
      *                   of the new page. If the new page has
      *                   no clipping rectangle set it to
-     *                   PdfRect( 0, 0, PdfPage::GetPageSize().GetWidth(), PdfPage::GetPageSize().GetHeight() )
+     *                   PdfRect( 0, 0, PdfPage::GetSize().GetWidth(), PdfPage::GetSize().GetHeight() )
      *  \param pCustom pointer to user defined data
      */
     typedef PdfPage* (*CreatePageCallback)( PdfRect & rClipRect, void* pCustom );

@@ -53,37 +53,22 @@ PdfContentsTokenizer::PdfContentsTokenizer( PdfCanvas* pCanvas )
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    PdfObject* pContents = pCanvas->GetContents();
-    if( pContents && pContents->IsArray()  )
+    PdfObject* contents = pCanvas->GetContents();
+    if (contents == nullptr)
+        PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidHandle, "/Contents handle is null");
+
+    if(contents->IsArray())
     {
-        PdfArray& a = pContents->GetArray();
-        for ( PdfArray::iterator it = a.begin(); it != a.end() ; ++it )
+        PdfArray& contentsArr = contents->GetArray();
+        for ( int i = 0; i < contentsArr.GetSize() ; ++i )
         {
-            if ( !(*it).IsReference() )
-            {
-                PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "/Contents array contained non-references" );
-
-            }
-
-            if ( !pContents->GetOwner()->GetObject( (*it).GetReference() ) )
-            {
-                // some damaged PDFs may have dangling references
-                PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "/Contents array NULL reference" );
-            }
-
-            m_lstContents.push_back( pContents->GetOwner()->GetObject( (*it).GetReference() ) );
+            auto streamObj = contentsArr.FindAt(i);
+            m_lstContents.push_back(streamObj);
         }
     }
-    else if ( pContents && pContents->HasStream() )
+    else if (contents->IsDictionary())
     {
-        m_lstContents.push_back( pContents );
-    }
-    else if ( pContents && pContents->IsDictionary() )
-    {
-        m_lstContents.push_back( pContents );
-        PdfError::LogMessage(eLogSeverity_Information,
-                  "PdfContentsTokenizer: found canvas-dictionary without stream => empty page");
-        // OC 18.09.2010 BugFix: Found an empty page in a PDF document:
+        // Pages are allowed to be empty, e.g.:
         //    103 0 obj
         //    <<
         //    /Type /Page
@@ -95,24 +80,29 @@ PdfContentsTokenizer::PdfContentsTokenizer( PdfCanvas* pCanvas )
         //    /Rotate 0
         //    >>
         //    endobj
+
+        // CLEAN-ME: We shouldn't insert dictionaries that don't have
+        // a stream. But the code in this class is pure shit and fails
+        // with an empty queue. Fix it so it will work in all cases
+        // and re-enable following lines
+        //if (contents->HasStream())
+            m_lstContents.push_back(contents);
     }
     else
     {
         PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Page /Contents not stream or array of streams" );
     }
 
-    if( m_lstContents.size() )
+    if (m_lstContents.size() != 0)
     {
-        SetCurrentContentsStream( m_lstContents.front() );
+        SetCurrentContentsStream( *m_lstContents.front() );
         m_lstContents.pop_front();
     }
 }
 
-void PdfContentsTokenizer::SetCurrentContentsStream( PdfObject* pObject )
+void PdfContentsTokenizer::SetCurrentContentsStream( PdfObject & pObject )
 {
-    PODOFO_RAISE_LOGIC_IF( pObject == NULL, "Content stream object == NULL!" );
-
-    PdfStream* pStream = pObject->GetStream();
+    PdfStream* pStream = pObject.GetStream();
 
 	PdfRefCountedBuffer buffer;
     PdfBufferOutputStream stream( &buffer );
@@ -128,7 +118,7 @@ bool PdfContentsTokenizer::GetNextToken( const char*& pszToken , EPdfTokenType* 
 		if( !m_lstContents.size() )
 			return false;
 
-		SetCurrentContentsStream( m_lstContents.front() );
+		SetCurrentContentsStream( *m_lstContents.front() );
 		m_lstContents.pop_front();
 		result = PdfTokenizer::GetNextToken(pszToken, peType);
 	}
@@ -165,7 +155,7 @@ bool PdfContentsTokenizer::ReadNext( EPdfContentsType& reType, const char*& rpsz
         {
         // We ran out of tokens in this stream. Switch to the next stream
         // and try again.
-            SetCurrentContentsStream( m_lstContents.front() );
+            SetCurrentContentsStream( *m_lstContents.front() );
             m_lstContents.pop_front();
             return ReadNext( reType, rpszKeyword, rVariant );
         }

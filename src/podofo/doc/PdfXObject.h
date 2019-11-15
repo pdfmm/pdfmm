@@ -139,26 +139,6 @@ public:
     */
     void EnsureResourcesInitialized();
 
-    /** Get access to the contents object of this page.
-     *  If you want to draw onto the page, you have to add 
-     *  drawing commands to the stream of the Contents object.
-     * 
-     *  The contents object is a this pointer in this case.
-     *
-     *  \returns a contents object
-     */
-    inline virtual PdfObject* GetContents() const;
-
-   /** Get access to the contents object of this page.
-     *  If you want to draw onto the page, you have to add 
-     *  drawing commands to the stream of the Contents object.
-     * 
-     *  The contents object is a this pointer in this case.
-     *
-     *  \returns a contents object
-     */
-    inline virtual PdfObject* GetContentsForAppending() const { return GetContents(); }
-
     /** Get access to the resources object of this page.
      *  This is most likely an internal object.
      *  \returns a resources object
@@ -168,7 +148,7 @@ public:
     /** Get the current page size in PDF Units
      *  \returns a PdfRect containing the page size available for drawing
      */
-    inline virtual const PdfRect GetPageSize() const;
+    inline virtual PdfRect GetSize() const;
 
     /** Get the identifier used for drawig this object
      *  \returns identifier
@@ -193,6 +173,8 @@ public:
     void InitIdentifiers(EPdfXObject subType, const char* pszPrefix = NULL);
     void InitAfterPageInsertion(const PdfDocument & rDoc, int page);
     void InitResources();
+    PdfObject* GetContents() const override;
+    PdfStream & GetStreamForAppending() override;
 
  protected:
     PdfRect          m_rRect;
@@ -210,15 +192,7 @@ public:
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline PdfObject* PdfXObject::GetContents() const
-{
-    return this->GetNonConstObject();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline PdfObject* PdfXObject::GetResources() const
+PdfObject* PdfXObject::GetResources() const
 {
     return m_pResources;
 }
@@ -226,7 +200,7 @@ inline PdfObject* PdfXObject::GetResources() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline const PdfRect PdfXObject::GetPageSize() const
+inline PdfRect PdfXObject::GetSize() const
 {
     return m_rRect;
 }

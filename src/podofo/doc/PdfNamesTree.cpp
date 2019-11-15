@@ -431,7 +431,7 @@ PdfObject* PdfNamesTree::GetRootNode( const PdfName & name, bool bCreate ) const
     if( !pObj && bCreate ) 
     {
         pObj = this->GetObject()->GetOwner()->CreateObject();
-        this->GetNonConstObject()->GetDictionary().AddKey( name, pObj->Reference() );
+        GetNonConstObject()->GetDictionary().AddKey( name, pObj->Reference() );
     }
 
     return pObj;

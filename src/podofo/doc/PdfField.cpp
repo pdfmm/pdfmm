@@ -696,12 +696,12 @@ void PdfPushButton::Init()
         
         painter.SetPage( &xObjOff );
         painter.SetColor( 0.5, 0.5, 0.5 );
-        painter.FillRect( 0, xObjOff.GetPageSize().GetHeight(), xObjOff.GetPageSize().GetWidth(), xObjOff.GetPageSize().GetHeight()  );
+        painter.FillRect( 0, xObjOff.GetSize().GetHeight(), xObjOff.GetSize().GetWidth(), xObjOff.GetSize().GetHeight()  );
         painter.FinishPage();
 
         painter.SetPage( &xObjYes );
         painter.SetColor( 1.0, 0.0, 0.0 );
-        painter.FillRect( 0, xObjYes.GetPageSize().GetHeight(), xObjYes.GetPageSize().GetWidth(), xObjYes.GetPageSize().GetHeight()  );
+        painter.FillRect( 0, xObjYes.GetSize().GetHeight(), xObjYes.GetSize().GetWidth(), xObjYes.GetSize().GetHeight()  );
         painter.FinishPage();
 
 

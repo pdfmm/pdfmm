@@ -76,14 +76,6 @@ namespace PoDoFo {
 static const long clPainterHighPrecision    = 15L;
 static const long clPainterDefaultPrecision = 3L;
 
-static inline void CheckDoubleRange( double val, double min, double max )
-{
-    if( val < min || val > max )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
-    }
-}
-
 static inline unsigned short SwapBytes(unsigned short val)
 {
 	return ((val & 0x00FF) << 8) | ((val & 0xFF00) >> 8);
@@ -108,8 +100,8 @@ static inline bool IsSpaceChar(pdf_utf16be ch)
 	return isspace( SwapCharBytesIfRequired(ch) & 0x00FF ) != 0;
 }
 
-PdfPainter::PdfPainter( bool saveRestore)
-: m_saveRestore( saveRestore ), m_pCanvas( NULL ), m_pPage( NULL ), m_pFont( NULL ),
+PdfPainter::PdfPainter(EPdfPainterFlags flags)
+: m_flags(flags), m_stream( NULL ), m_canvas( NULL ), m_pFont( NULL ),
   m_nTabWidth( 4 ), m_curColor( PdfColor( 0.0, 0.0, 0.0 ) ),
   m_isTextOpen( false ), m_oss(), m_curPath(), m_isCurColorICCDepend( false ), m_CSTag()
 {
@@ -142,156 +134,97 @@ PdfPainter::~PdfPainter()
     // Note that we can't do this for the user, since FinishPage() might
     // throw and we can't safely have that in a dtor. That also means
     // we can't throw here, but must abort.
-    if( m_pCanvas )
+    if( m_stream )
         PdfError::LogMessage( eLogSeverity_Error, 
                               "PdfPainter::~PdfPainter(): FinishPage() has to be called after a page is completed!" );
 
-    PODOFO_ASSERT( !m_pCanvas );
+    PODOFO_ASSERT( !m_stream );
 }
 
-void PdfPainter::SetPage( PdfCanvas* pPage )
+void PdfPainter::SetCanvas( PdfCanvas* canvas )
 {
-    // Ignore setting the same page twice
-    if( m_pPage == pPage )
+    // Ignore setting the same canvas twice
+    if( m_canvas == canvas)
         return;
 
-    finishPage();
+    finishDrawing();
 
-    m_pPage   = pPage;
-    m_pCanvas = pPage ? pPage->GetContentsForAppending()->GetStream() : NULL;
+    m_canvas = canvas;
+    m_stream = nullptr;
     currentTextRenderingMode = ePdfTextRenderingMode_Fill;
 }
 
-void PdfPainter::FinishPage()
+void PdfPainter::FinishDrawing()
 {
     try
     {
-        finishPage();
+        finishDrawing();
     }
     catch (PdfError & e)
     {
         // clean up, even in case of error
-        m_pCanvas = NULL;
-        m_pPage = NULL;
+        m_stream = NULL;
+        m_canvas = NULL;
 
         throw e;
     }
 
-    m_pCanvas = NULL;
-    m_pPage = NULL;
+    m_stream = NULL;
+    m_canvas = NULL;
     currentTextRenderingMode = ePdfTextRenderingMode_Fill;
 }
 
-void PdfPainter::finishPage()
+void PdfPainter::finishDrawing()
 {
-	if ( m_pCanvas )
+	if ( m_stream )
     {
-        if ( m_saveRestore )
+        if ((m_flags & EPdfPainterFlags::ePdfPainterFlags_NoSaveRestore) == 0)
         {
             PdfMemoryOutputStream memstream;
-            if ( m_pCanvas->GetLength() != 0 )
-                m_pCanvas->GetFilteredCopy( &memstream );
+            if ( m_stream->GetLength() != 0 )
+                m_stream->GetFilteredCopy( &memstream );
 
             size_t length = (size_t)memstream.GetLength();
             if ( length == 0 )
             {
-                m_pCanvas->BeginAppend( false );
+                m_stream->BeginAppend( false );
             }
             else
             {
                 std::shared_ptr<char> pageStreamCopy( memstream.TakeBuffer() );
-                m_pCanvas->BeginAppend( true );
-                m_pCanvas->Append( "q\n" );
-                m_pCanvas->Append( pageStreamCopy.get(), length );
-                m_pCanvas->Append( "Q\n" );
+                m_stream->BeginAppend( true );
+                m_stream->Append( "q\n" );
+                m_stream->Append( pageStreamCopy.get(), length );
+                m_stream->Append( "Q\n" );
             }
         }
         else
         {
             // GetLength() must be called before BeginAppend()
-            if ( m_pCanvas->GetLength() == 0 )
+            if ( m_stream->GetLength() == 0 )
             {
-                m_pCanvas->BeginAppend( false );
+                m_stream->BeginAppend( false );
             }
             else
             {
-                m_pCanvas->BeginAppend( false );
+                m_stream->BeginAppend( false );
                 // there is already content here - so let's assume we are appending
                 // as such, we MUST put in a "space" to separate whatever we do.
-                m_pCanvas->Append( "\n" );
+                m_stream->Append( "\n" );
             }
         }
 
-        m_pCanvas->Append( m_oss.str() );
-        m_pCanvas->EndAppend();
+        m_stream->Append( m_oss.str() );
+        m_stream->EndAppend();
     }
 
     // Reset temporary stream
     m_oss.str("");
 }
 
-void PdfPainter::SetStrokingGray( double g )
-{
-    CheckCanvas();
-    CheckDoubleRange( g, 0.0, 1.0 );
-
-    this->SetStrokingColor( PdfColor( g ) );
-}
-
-void PdfPainter::SetGray( double g )
-{
-    CheckCanvas();
-    CheckDoubleRange( g, 0.0, 1.0 );
-
-    this->SetColor( PdfColor( g ) );
-}
-
-void PdfPainter::SetStrokingColor( double r, double g, double b )
-{
-    CheckCanvas();
-
-    CheckDoubleRange( r, 0.0, 1.0 );
-    CheckDoubleRange( g, 0.0, 1.0 );
-    CheckDoubleRange( b, 0.0, 1.0 );
-
-    this->SetStrokingColor( PdfColor( r, g, b ) );
-}
-
-void PdfPainter::SetColor( double r, double g, double b )
-{
-    CheckCanvas();
-    CheckDoubleRange( r, 0.0, 1.0 );
-    CheckDoubleRange( g, 0.0, 1.0 );
-    CheckDoubleRange( b, 0.0, 1.0 );
-
-    this->SetColor( PdfColor( r, g, b ) );
-}
-
-void PdfPainter::SetStrokingColorCMYK( double c, double m, double y, double k )
-{
-    CheckCanvas();
-    CheckDoubleRange( c, 0.0, 1.0 );
-    CheckDoubleRange( m, 0.0, 1.0 );
-    CheckDoubleRange( y, 0.0, 1.0 );
-    CheckDoubleRange( k, 0.0, 1.0 );
-
-    this->SetStrokingColor( PdfColor( c, m, y, k ) );
-}
-
-void PdfPainter::SetColorCMYK( double c, double m, double y, double k )
-{
-    CheckCanvas();
-    CheckDoubleRange( c, 0.0, 1.0 );
-    CheckDoubleRange( m, 0.0, 1.0 );
-    CheckDoubleRange( y, 0.0, 1.0 );
-    CheckDoubleRange( k, 0.0, 1.0 );
-
-    this->SetColor( PdfColor( c, m, y, k ) );
-}
-
 void PdfPainter::SetStrokingShadingPattern( const PdfShadingPattern & rPattern )
 {
-    CheckCanvas();
+    CheckStream();
 
     this->AddToPageResources( rPattern.GetIdentifier(), rPattern.GetObject()->Reference(), PdfName("Pattern") );
 
@@ -300,7 +233,7 @@ void PdfPainter::SetStrokingShadingPattern( const PdfShadingPattern & rPattern )
 
 void PdfPainter::SetShadingPattern( const PdfShadingPattern & rPattern )
 {
-    CheckCanvas();
+    CheckStream();
 
     this->AddToPageResources( rPattern.GetIdentifier(), rPattern.GetObject()->Reference(), PdfName("Pattern") );
 
@@ -309,7 +242,7 @@ void PdfPainter::SetShadingPattern( const PdfShadingPattern & rPattern )
 
 void PdfPainter::SetStrokingTilingPattern( const PdfTilingPattern & rPattern )
 {
-    CheckCanvas();
+    CheckStream();
 
     this->AddToPageResources( rPattern.GetIdentifier(), rPattern.GetObject()->Reference(), PdfName("Pattern") );
 
@@ -318,14 +251,14 @@ void PdfPainter::SetStrokingTilingPattern( const PdfTilingPattern & rPattern )
 
 void PdfPainter::SetStrokingTilingPattern( const std::string &rPatternName )
 {
-    CheckCanvas();
+    CheckStream();
 
     m_oss << "/Pattern CS /" << rPatternName << " SCN" << std::endl;
 }
 
 void PdfPainter::SetTilingPattern( const PdfTilingPattern & rPattern )
 {
-    CheckCanvas();
+    CheckStream();
 
     this->AddToPageResources( rPattern.GetIdentifier(), rPattern.GetObject()->Reference(), PdfName("Pattern") );
 
@@ -334,14 +267,14 @@ void PdfPainter::SetTilingPattern( const PdfTilingPattern & rPattern )
 
 void PdfPainter::SetTilingPattern( const std::string &rPatternName )
 {
-    CheckCanvas();
+    CheckStream();
 
     m_oss << "/Pattern cs /" << rPatternName << " scn" << std::endl;
 }
 
 void PdfPainter::SetStrokingColor( const PdfColor & rColor )
 {
-    CheckCanvas();
+    CheckStream();
 
     switch( rColor.GetColorSpace() ) 
     {
@@ -363,11 +296,11 @@ void PdfPainter::SetStrokingColor( const PdfColor & rColor )
             m_oss << rColor.GetGrayScale() << " G" << std::endl;
             break;
         case ePdfColorSpace_Separation:
-			m_pPage->AddColorResource( rColor );
+			m_canvas->AddColorResource( rColor );
 			m_oss << "/ColorSpace" << PdfName( rColor.GetName() ).GetEscapedName() << " CS " << rColor.GetDensity() << " SCN" << std::endl;
             break;
         case ePdfColorSpace_CieLab:
-			m_pPage->AddColorResource( rColor );
+			m_canvas->AddColorResource( rColor );
 			m_oss << "/ColorSpaceCieLab" << " CS " 
 				  << rColor.GetCieL() << " " 
                   << rColor.GetCieA() << " " 
@@ -384,7 +317,7 @@ void PdfPainter::SetStrokingColor( const PdfColor & rColor )
 
 void PdfPainter::SetColor( const PdfColor & rColor )
 {
-    CheckCanvas();
+    CheckStream();
 
     m_isCurColorICCDepend = false;
 
@@ -409,11 +342,11 @@ void PdfPainter::SetColor( const PdfColor & rColor )
             m_oss << rColor.GetGrayScale() << " g" << std::endl;
             break;
         case ePdfColorSpace_Separation:
-			m_pPage->AddColorResource( rColor );
+			m_canvas->AddColorResource( rColor );
             m_oss << "/ColorSpace" << PdfName( rColor.GetName() ).GetEscapedName() << " cs " << rColor.GetDensity() << " scn" << std::endl;
             break;
         case ePdfColorSpace_CieLab:
-			m_pPage->AddColorResource( rColor );
+			m_canvas->AddColorResource( rColor );
 			m_oss << "/ColorSpaceCieLab" << " cs " 
 				  << rColor.GetCieL() << " " 
                   << rColor.GetCieA() << " " 
@@ -430,7 +363,7 @@ void PdfPainter::SetColor( const PdfColor & rColor )
 
 void PdfPainter::SetStrokeWidth( double dWidth )
 {
-    CheckCanvas();
+    CheckStream();
 
     m_oss << dWidth << " w" << std::endl;
 }
@@ -439,7 +372,7 @@ void PdfPainter::SetStrokeStyle( EPdfStrokeStyle eStyle, const char* pszCustom, 
 {
     bool have = false;
 
-    CheckCanvas();
+    CheckStream();
 
     if (eStyle != ePdfStrokeStyle_Custom) {
         m_oss << "[";
@@ -534,21 +467,21 @@ void PdfPainter::SetStrokeStyle( EPdfStrokeStyle eStyle, const char* pszCustom, 
 
 void PdfPainter::SetLineCapStyle( EPdfLineCapStyle eCapStyle )
 {
-    CheckCanvas();
+    CheckStream();
 
     m_oss << static_cast<int>(eCapStyle) << " J" << std::endl;
 }
 
 void PdfPainter::SetLineJoinStyle( EPdfLineJoinStyle eJoinStyle )
 {
-    CheckCanvas();
+    CheckStream();
 
     m_oss << static_cast<int>(eJoinStyle) << " j" << std::endl;
 }
 
 void PdfPainter::SetFont( PdfFont* pFont )
 {
-    CheckCanvas();
+    CheckStream();
 
     if( !pFont )
     {
@@ -560,7 +493,7 @@ void PdfPainter::SetFont( PdfFont* pFont )
 
 void PdfPainter::SetTextRenderingMode( EPdfTextRenderingMode mode )
 {
-    CheckCanvas();
+    CheckStream();
 
     if (mode == currentTextRenderingMode) {
         return;
@@ -573,14 +506,14 @@ void PdfPainter::SetTextRenderingMode( EPdfTextRenderingMode mode )
 
 void PdfPainter::SetCurrentTextRenderingMode( void )
 {
-    CheckCanvas();
+    CheckStream();
 
     m_oss << (int) currentTextRenderingMode << " Tr" << std::endl;
 }
 
 void PdfPainter::SetClipRect( double dX, double dY, double dWidth, double dHeight )
 {
-    CheckCanvas();
+    CheckStream();
 
     m_oss << dX << " "
           << dY << " "
@@ -598,14 +531,14 @@ void PdfPainter::SetClipRect( double dX, double dY, double dWidth, double dHeigh
 
 void PdfPainter::SetMiterLimit(double value)
 {
-    CheckCanvas();
+    CheckStream();
 
     m_oss << value << " M" << std::endl;
 }
 
 void PdfPainter::DrawLine( double dStartX, double dStartY, double dEndX, double dEndY )
 {
-    CheckCanvas();
+    CheckStream();
 
 	 m_curPath.str("");
     m_curPath
@@ -627,7 +560,7 @@ void PdfPainter::DrawLine( double dStartX, double dStartY, double dEndX, double 
 void PdfPainter::Rectangle( double dX, double dY, double dWidth, double dHeight,
                            double dRoundX, double dRoundY )
 { 
-    CheckCanvas();
+    CheckStream();
 
     if ( static_cast<int>(dRoundX) || static_cast<int>(dRoundY) ) 
     {
@@ -669,7 +602,7 @@ void PdfPainter::Ellipse( double dX, double dY, double dWidth, double dHeight )
     double dPointY[BEZIER_POINTS];
     int    i;
 
-    CheckCanvas();
+    CheckStream();
 
     ConvertRectToBezier( dX, dY, dWidth, dHeight, dPointX, dPointY );
 
@@ -705,7 +638,7 @@ void PdfPainter::Ellipse( double dX, double dY, double dWidth, double dHeight )
 
 void PdfPainter::Circle( double dX, double dY, double dRadius )
 {
-    CheckCanvas();
+    CheckStream();
 
     /* draw four Bezier curves to approximate a circle */
     MoveTo( dX + dRadius, dY );
@@ -731,9 +664,9 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText )
 
 void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long lStringLen )
 {
-    CheckCanvas();
+    CheckStream();
 
-    if( !m_pFont || !m_pPage || !sText.IsValid() )
+    if( !m_pFont || !m_canvas || !sText.IsValid() )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
@@ -821,9 +754,9 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
 
 void PdfPainter::BeginText( double dX, double dY )
 {
-    CheckCanvas();
+    CheckStream();
 
-    if( !m_pFont || !m_pPage ||  m_isTextOpen)
+    if( !m_pFont || !m_canvas ||  m_isTextOpen)
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
@@ -851,9 +784,9 @@ void PdfPainter::BeginText( double dX, double dY )
 
 void PdfPainter::MoveTextPos( double dX, double dY )
 {
-    CheckCanvas();
+    CheckStream();
 
-    if( !m_pFont || !m_pPage || !m_isTextOpen )
+    if( !m_pFont || !m_canvas || !m_isTextOpen )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
@@ -868,9 +801,9 @@ void PdfPainter::AddText( const PdfString & sText )
 
 void PdfPainter::AddText( const PdfString & sText, pdf_long lStringLen )
 {
-    CheckCanvas();
+    CheckStream();
 
-    if( !m_pFont || !m_pPage || !sText.IsValid() || !m_isTextOpen )
+    if( !m_pFont || !m_canvas || !sText.IsValid() || !m_isTextOpen )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
@@ -890,9 +823,9 @@ void PdfPainter::AddText( const PdfString & sText, pdf_long lStringLen )
 
 void PdfPainter::EndText()
 {
-    CheckCanvas();
+    CheckStream();
 
-    if( !m_pFont || !m_pPage || !m_isTextOpen )
+    if( !m_pFont || !m_canvas || !m_isTextOpen )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
@@ -904,9 +837,9 @@ void PdfPainter::EndText()
 void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double dHeight, const PdfString & rsText, 
                                     EPdfAlignment eAlignment, EPdfVerticalAlignment eVertical, bool bClip, bool bSkipSpaces )
 {
-    CheckCanvas();
+    CheckStream();
 
-    if( !m_pFont || !m_pPage || !rsText.IsValid() )
+    if( !m_pFont || !m_canvas || !rsText.IsValid() )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
@@ -956,9 +889,9 @@ void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double 
 
 std::vector<PdfString> PdfPainter::GetMultiLineTextAsLines( double dWidth, const PdfString & rsText, bool bSkipSpaces )
 {
-    CheckCanvas();
+    CheckStream();
 
-    if( !m_pFont || !m_pPage || !rsText.IsValid() )
+    if( !m_pFont || !m_canvas || !rsText.IsValid() )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
@@ -1133,9 +1066,9 @@ std::vector<PdfString> PdfPainter::GetMultiLineTextAsLines( double dWidth, const
 
 void PdfPainter::DrawTextAligned( double dX, double dY, double dWidth, const PdfString & rsText, EPdfAlignment eAlignment )
 {
-    CheckCanvas();
+    CheckStream();
 
-    if( !m_pFont || !m_pPage || !rsText.IsValid() )
+    if( !m_pFont || !m_canvas || !rsText.IsValid() )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
@@ -1164,9 +1097,9 @@ void PdfPainter::DrawTextAligned( double dX, double dY, double dWidth, const Pdf
 
 void PdfPainter::DrawGlyph( PdfMemDocument* pDocument, double dX, double dY, const char* pszGlyphname)
 {
-    CheckCanvas();
+    CheckStream();
     
-    if( !m_pFont || !m_pPage || !pszGlyphname )
+    if( !m_pFont || !m_canvas || !pszGlyphname )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
@@ -1298,13 +1231,13 @@ void PdfPainter::DrawGlyph( PdfMemDocument* pDocument, double dX, double dY, con
 void PdfPainter::DrawImage( double dX, double dY, PdfImage* pObject, double dScaleX, double dScaleY )
 {
     this->DrawXObject( dX, dY, pObject, 
-                       dScaleX * pObject->GetPageSize().GetWidth(), 
-                       dScaleY * pObject->GetPageSize().GetHeight() );
+                       dScaleX * pObject->GetSize().GetWidth(), 
+                       dScaleY * pObject->GetSize().GetHeight() );
 }
 
 void PdfPainter::DrawXObject( double dX, double dY, PdfXObject* pObject, double dScaleX, double dScaleY )
 {
-    CheckCanvas();
+    CheckStream();
 
     if( !pObject )
     {
@@ -1327,7 +1260,7 @@ void PdfPainter::DrawXObject( double dX, double dY, PdfXObject* pObject, double 
 
 void PdfPainter::ClosePath()
 {
-    CheckCanvas();
+    CheckStream();
 
 	 m_curPath << "h" << std::endl;
 
@@ -1336,7 +1269,7 @@ void PdfPainter::ClosePath()
 
 void PdfPainter::LineTo( double dX, double dY )
 {
-    CheckCanvas();
+    CheckStream();
     
 	 m_curPath
 			 << dX << " "
@@ -1350,7 +1283,7 @@ void PdfPainter::LineTo( double dX, double dY )
 
 void PdfPainter::MoveTo( double dX, double dY )
 {
-    CheckCanvas();
+    CheckStream();
     
     m_curPath
         << dX << " "
@@ -1364,7 +1297,7 @@ void PdfPainter::MoveTo( double dX, double dY )
 
 void PdfPainter::CubicBezierTo( double dX1, double dY1, double dX2, double dY2, double dX3, double dY3 )
 {
-    CheckCanvas();
+    CheckStream();
 
 	 m_curPath
          << dX1 << " "
@@ -1650,7 +1583,7 @@ bool PdfPainter::InternalArc(
 
 void PdfPainter::Close()
 {
-    CheckCanvas();
+    CheckStream();
 
     m_curPath << "h" << std::endl;
 
@@ -1659,7 +1592,7 @@ void PdfPainter::Close()
 
 void PdfPainter::Stroke()
 {
-    CheckCanvas();
+    CheckStream();
 
     m_curPath.str("");
 
@@ -1668,7 +1601,7 @@ void PdfPainter::Stroke()
 
 void PdfPainter::Fill(bool useEvenOddRule)
 {
-    CheckCanvas();
+    CheckStream();
 
     m_curPath.str("");
 
@@ -1680,7 +1613,7 @@ void PdfPainter::Fill(bool useEvenOddRule)
 
 void PdfPainter::FillAndStroke(bool useEvenOddRule)
 {
-    CheckCanvas();
+    CheckStream();
 
     m_curPath.str("");
 
@@ -1692,7 +1625,7 @@ void PdfPainter::FillAndStroke(bool useEvenOddRule)
 
 void PdfPainter::Clip( bool useEvenOddRule )
 {
-    CheckCanvas();
+    CheckStream();
     
     if ( useEvenOddRule )
         m_oss << "W* n\n";
@@ -1702,7 +1635,7 @@ void PdfPainter::Clip( bool useEvenOddRule )
 
 void PdfPainter::EndPath(void)
 {
-    CheckCanvas();
+    CheckStream();
 
     m_curPath << "n" << std::endl;
 
@@ -1711,26 +1644,26 @@ void PdfPainter::EndPath(void)
 
 void PdfPainter::Save()
 {
-    CheckCanvas();
+    CheckStream();
 
     m_oss << "q\n";
 }
 
 void PdfPainter::Restore()
 {
-    CheckCanvas();
+    CheckStream();
 
     m_oss << "Q\n";
 }
 
 void PdfPainter::AddToPageResources( const PdfName & rIdentifier, const PdfReference & rRef, const PdfName & rName )
 {
-    if( !m_pPage )
+    if( !m_canvas )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    m_pPage->AddResource( rIdentifier, rRef, rName );
+    m_canvas->AddResource( rIdentifier, rRef, rName );
 }
 
 void PdfPainter::ConvertRectToBezier( double dX, double dY, double dWidth, double dHeight, double pdPointX[], double pdPointY[] )
@@ -1795,7 +1728,7 @@ void PdfPainter::SetCurrentStrokingColor()
 
 void PdfPainter::SetTransformationMatrix( double a, double b, double c, double d, double e, double f )
 {
-    CheckCanvas();
+    CheckStream();
 
 	// Need more precision for transformation-matrix !!
 	std::streamsize oldPrecision = m_oss.precision(clPainterHighPrecision);
@@ -1810,7 +1743,7 @@ void PdfPainter::SetTransformationMatrix( double a, double b, double c, double d
 
 void PdfPainter::SetExtGState( PdfExtGState* inGState )
 {
-    CheckCanvas();
+    CheckStream();
 
     this->AddToPageResources( inGState->GetIdentifier(), inGState->GetObject()->Reference(), PdfName("ExtGState") );
     
@@ -1820,7 +1753,7 @@ void PdfPainter::SetExtGState( PdfExtGState* inGState )
 
 void PdfPainter::SetRenderingIntent( char* intent )
 {
-    CheckCanvas();
+    CheckStream();
 
     m_oss << "/" << intent
           << " ri" << std::endl;
@@ -1993,9 +1926,13 @@ PdfString PdfPainter::ExpandTabs( const PdfString & rsString, pdf_long lStringLe
 #endif
 }
 
-void PdfPainter::CheckCanvas()
+void PdfPainter::CheckStream()
 {
-    PODOFO_RAISE_LOGIC_IF( !m_pCanvas, "Call SetPage() first before doing drawing operations." );
+    if (m_stream != nullptr)
+        return;
+
+    PODOFO_RAISE_LOGIC_IF(m_canvas == nullptr, "Call SetCanvas() first before doing drawing operations.");
+    m_stream = &m_canvas->GetStreamForAppending();
 }
 
 } /* namespace PoDoFo */

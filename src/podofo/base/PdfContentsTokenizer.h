@@ -119,7 +119,7 @@ public:
      *
      *  \param pObject use the stream of this object for parsing
      */
-    void SetCurrentContentsStream( PdfObject* pObject );
+    void SetCurrentContentsStream( PdfObject &pObject );
     bool ReadInlineImgData(EPdfContentsType& reType, const char*& rpszKeyword, PoDoFo::PdfVariant & rVariant);
 
  private:

@@ -57,15 +57,10 @@ class PdfString;
 class PdfTilingPattern;
 class PdfXObject;
 
-struct TLineElement 
-{
-	TLineElement()
-		: pszStart( NULL ), lLen( 0L )
-	{
-	}
-
-	const char* pszStart;
-	pdf_long        lLen;
+enum EPdfPainterFlags {
+    ePdfPainterFlags_None = 0,
+    ePdfPainterFlags_Prepend,   // NOTE: Not yet working
+    ePdfPainterFlags_NoSaveRestore
 };
 
 /**
@@ -84,7 +79,7 @@ class PODOFO_DOC_API PdfPainter {
      *
      *  \param saveRestore do save/restore state before appending
      */
-    PdfPainter( bool saveRestore = false );
+    PdfPainter(EPdfPainterFlags flags = ePdfPainterFlags_None);
 
     virtual ~PdfPainter();
 
@@ -100,7 +95,7 @@ class PODOFO_DOC_API PdfPainter {
      *  \see FinishPage()
      *  \see GetPage()
      */
-    void SetPage( PdfCanvas* pPage );
+    void SetCanvas( PdfCanvas* pPage );
 
     /** Return the current page that is that on the painter.
      *
@@ -114,66 +109,11 @@ class PODOFO_DOC_API PdfPainter {
      */
     inline PdfStream* GetCanvas() const;
 
-    /** Finish drawing onto a page.
+    /** Finish drawing onto a canvas.
      * 
      *  This has to be called whenever a page has been drawn complete.
      */
-    void FinishPage();
-
-    /** Set the color for all following stroking operations
-     *  in grayscale colorspace. This operation used the 'G'
-     *  PDF operator.
-     *  \param g gray scale value in the range 0.0 - 1.0
-     */
-    void SetStrokingGray( double g );
-
-    /** Set the color for all following non-stroking operations
-     *  in grayscale colorspace. This operation used the 'g'
-     *  PDF operator.
-     *  \param g gray scale value in the range 0.0 - 1.0
-     */
-    void SetGray( double g );
-
-    /** Set the color for all following stroking operations
-     *  in rgb colorspace. This operation used the 'RG'
-     *  PDF operator.
-     *  \param r red value in the range 0.0 - 1.0
-     *  \param g green value in the range 0.0 - 1.0
-     *  \param b blue value in the range 0.0 - 1.0
-     */
-    void SetStrokingColor( double r, double g, double b );
-
-    /** Set the color for all following non-stroking operations
-     *  in rgb colorspace. This operation used the 'rg'
-     *  PDF operator.
-     *
-     *  This color is also used when drawing text.
-     *
-     *  \param r red value in the range 0.0 - 1.0
-     *  \param g green value in the range 0.0 - 1.0
-     *  \param b blue value in the range 0.0 - 1.0
-     */
-    void SetColor( double r, double g, double b );
-
-    /** Set the color for all following stroking operations
-     *  in cmyk colorspace. This operation used the 'K'
-     *  PDF operator.
-     *  \param c cyan value in the range 0.0 - 1.0
-     *  \param m magenta value in the range 0.0 - 1.0
-     *  \param y yellow value in the range 0.0 - 1.0
-     *  \param k black value in the range 0.0 - 1.0
-     */
-    void SetStrokingColorCMYK( double c, double m, double y, double k );
-
-    /** Set the color for all following non-stroking operations
-     *  in cmyk colorspace. This operation used the 'k'
-     *  PDF operator.
-     *  \param c cyan value in the range 0.0 - 1.0
-     *  \param m magenta value in the range 0.0 - 1.0
-     *  \param y yellow value in the range 0.0 - 1.0
-     *  \param k black value in the range 0.0 - 1.0
-     */
-    void SetColorCMYK( double c, double m, double y, double k );
+    void FinishDrawing();
 
     /** Set the shading pattern for all following stroking operations.
      *  This operation uses the 'SCN' PDF operator.
@@ -846,24 +786,22 @@ class PODOFO_DOC_API PdfPainter {
 #endif
 
  private:
-    void CheckCanvas();
-    void finishPage();
+    void CheckStream();
+    void finishDrawing();
 
  protected:
-    /** Save/restore state before appending
-     */
-    bool m_saveRestore;
+     EPdfPainterFlags m_flags;
 
     /** All drawing operations work on this stream.
      *  This object may not be NULL. If it is NULL any function accessing it should
      *  return ERROR_PDF_INVALID_HANDLE
      */
-    PdfStream* m_pCanvas;
+    PdfStream* m_stream;
 
     /** The page object is needed so that fonts etc. can be added
      *  to the page resource dictionary as appropriate.
      */
-    PdfCanvas* m_pPage;
+    PdfCanvas* m_canvas;
 
     /** Font for all drawing operations
      */
@@ -910,7 +848,7 @@ class PODOFO_DOC_API PdfPainter {
 // -----------------------------------------------------
 PdfCanvas* PdfPainter::GetPage() const
 {
-    return m_pPage;
+    return m_canvas;
 }
 
 // -----------------------------------------------------
@@ -918,7 +856,7 @@ PdfCanvas* PdfPainter::GetPage() const
 // -----------------------------------------------------
 PdfStream* PdfPainter::GetCanvas() const
 {
-    return m_pCanvas;
+    return m_stream;
 }
 
 // -----------------------------------------------------
