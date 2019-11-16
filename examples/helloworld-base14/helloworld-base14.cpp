@@ -112,7 +112,7 @@ void HelloWorld( const char* pszFilename )
 		 * Set the page as drawing target for the PdfPainter.
 		 * Before the painter can draw, a page has to be set first.
 		 */
-		painter.SetPage( pPage );
+		painter.SetCanvas( pPage );
 
 		/*
 		 * Create a PdfFont object using the font "Arial".
@@ -163,11 +163,11 @@ void HelloWorld( const char* pszFilename )
 		 * You can also use PdfPainterMM which takes coordinates in 1/1000th mm.
 		 *
 		 */
-		painter.DrawText( 56.69, pPage->GetPageSize().GetHeight() - 56.69, "Hello World!" );
+		painter.DrawText( 56.69, pPage->GetSize().GetHeight() - 56.69, "Hello World!" );
 
 		DemoBase14Fonts(painter, pPage, document);
 
-		painter.FinishPage();
+		painter.FinishDrawing();
 
 		/*
 		 * The last step is to close the document.
@@ -181,7 +181,7 @@ void HelloWorld( const char* pszFilename )
 		 * or who will get an assert in its destructor
 		 */
 		try {
-			painter.FinishPage();
+			painter.FinishDrawing();
 		} catch( ... ) {
 			/*
 			 * Ignore errors this time
@@ -276,8 +276,8 @@ const char * GetBase14FontName(int i)
 void DrawRedFrame(PdfPainter& painter, double x, double y, double width, double height)
 {
         // draw red box
-        painter.SetColor(1.0f, 0.0f, 0.0f);
-        painter.SetStrokingColor(1.0f, 0.0f, 0.0f);
+        painter.SetColor(PdfColor(1.0f, 0.0f, 0.0f));
+        painter.SetStrokingColor(PdfColor(1.0f, 0.0f, 0.0f));
         painter.DrawLine(x, y, x+width, y);
         if ( height > 0.0f )
         {
@@ -286,14 +286,14 @@ void DrawRedFrame(PdfPainter& painter, double x, double y, double width, double 
             painter.DrawLine(x, y+height, x+width, y+height);
         }
         // restore to black
-        painter.SetColor(0.0f, 0.0f, 0.0f);
-        painter.SetStrokingColor(0.0f, 0.0f, 0.0f);
+        painter.SetColor(PdfColor(0.0f, 0.0f, 0.0f));
+        painter.SetStrokingColor(PdfColor(0.0f, 0.0f, 0.0f));
 }
 
 
 void DemoBase14Fonts(PdfPainter& painter, PdfPage* pPage, PdfStreamedDocument& document)
 {
-	double x = 56,y = pPage->GetPageSize().GetHeight() - 56.69;
+	double x = 56,y = pPage->GetSize().GetHeight() - 56.69;
 	char text[255];
 	const char *demo_text = "abcdefgABCDEFG12345!#$%&+-@?        ";
 	double height=0.0f, width=0.0f;

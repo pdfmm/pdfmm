@@ -53,7 +53,7 @@ typedef std::deque<PdfReference>                 TPdfReferenceList;
 typedef TPdfReferenceList::iterator              TIPdfReferenceList;
 typedef TPdfReferenceList::const_iterator        TCIPdfReferenceList;
 
-typedef std::set<pdf_objnum>                     TPdfObjectNumList;
+typedef std::set<uint32_t>                     TPdfObjectNumList;
 
 typedef std::set<PdfReference>                   TPdfReferenceSet;
 typedef TPdfReferenceSet::iterator               TIPdfReferenceSet;
@@ -483,7 +483,7 @@ class PODOFO_API PdfVecObjects {
     void SetObjectCount( const PdfReference & rRef );
 
  private:
-    int32_t TryAddFreeObject( pdf_objnum objnum, uint32_t gennum );
+    int32_t TryAddFreeObject( uint32_t objnum, uint32_t gennum );
 
     /** 
      * \returns the next free object reference

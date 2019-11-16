@@ -183,7 +183,7 @@ void PdfFontCID::Init( bool bEmbed, bool bSubset )
     // Setting the CIDSystemInfo paras:
     pCIDSystemInfo->GetDictionary().AddKey( "Registry", PdfString("Adobe") );
     pCIDSystemInfo->GetDictionary().AddKey( "Ordering", PdfString("Identity") );
-    pCIDSystemInfo->GetDictionary().AddKey( "Supplement", PdfVariant(static_cast<int64_t>(PODOFO_LL_LITERAL(0))) );
+    pCIDSystemInfo->GetDictionary().AddKey( "Supplement", PdfVariant(static_cast<int64_t>(0)) );
 
         // The FontDescriptor, should be an indirect object:
         m_pDescendantFonts->GetDictionary().AddKey( "FontDescriptor", pDescriptor->Reference() );
@@ -207,13 +207,13 @@ void PdfFontCID::Init( bool bEmbed, bool bSubset )
     m_pMetrics->GetBoundingBox( array );
 
     pDescriptor->GetDictionary().AddKey( "FontName", this->GetBaseFont() );
-    pDescriptor->GetDictionary().AddKey( PdfName::KeyFlags, PdfVariant( static_cast<int64_t>(PODOFO_LL_LITERAL(32)) ) ); // TODO: 0 ????
+    pDescriptor->GetDictionary().AddKey( PdfName::KeyFlags, PdfVariant( static_cast<int64_t>(32) ) ); // TODO: 0 ????
     pDescriptor->GetDictionary().AddKey( "FontBBox", array );
     pDescriptor->GetDictionary().AddKey( "ItalicAngle", PdfVariant( static_cast<int64_t>(m_pMetrics->GetItalicAngle()) ) );
     pDescriptor->GetDictionary().AddKey( "Ascent", m_pMetrics->GetPdfAscent() );
     pDescriptor->GetDictionary().AddKey( "Descent", m_pMetrics->GetPdfDescent() );
     pDescriptor->GetDictionary().AddKey( "CapHeight", m_pMetrics->GetPdfAscent() ); // m_pMetrics->CapHeight() );
-    pDescriptor->GetDictionary().AddKey( "StemV", PdfVariant( static_cast<int64_t>(PODOFO_LL_LITERAL(1)) ) );               // m_pMetrics->StemV() );
+    pDescriptor->GetDictionary().AddKey( "StemV", PdfVariant( static_cast<int64_t>(1) ) );               // m_pMetrics->StemV() );
 
     // Peter Petrov 24 September 2008
     m_pDescriptor = pDescriptor;
@@ -300,11 +300,7 @@ void PdfFontCID::EmbedFont( PdfObject* pDescriptor )
                     PdfObject* cidSet = pDescriptor->GetOwner()->CreateObject();
                     TVecFilters vecFlate;
                     vecFlate.push_back(ePdfFilter_FlateDecode);
-#if (defined(_MSC_VER)  &&  _MSC_VER < 1700) || (defined(__BORLANDC__))	// MSC before VC11 has no data member, same as BorlandC
-                    PdfMemoryInputStream stream(reinterpret_cast<const char*>(&array[0]), array.size());
-#else
                     PdfMemoryInputStream stream(reinterpret_cast<const char*>(array.data()), array.size());
-#endif
 					cidSet->GetStream()->Set(&stream, vecFlate);
                     pDescriptor->GetDictionary().AddKey("CIDSet", cidSet->Reference());
 			}

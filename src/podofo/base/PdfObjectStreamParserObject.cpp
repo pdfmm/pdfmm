@@ -120,12 +120,12 @@ void PdfObjectStreamParserObject::ReadObjectsFromStream( char* pBuffer, pdf_long
 #endif
 		if (should_read)
         {
-			if(m_vecObjects->GetObject(PdfReference( static_cast<int>(lObj), PODOFO_LL_LITERAL(0) ))) 
+			if(m_vecObjects->GetObject(PdfReference( static_cast<uint32_t>(lObj), 0 ))) 
             {
                 PdfError::LogMessage( eLogSeverity_Warning, "Object: %" PDF_FORMAT_INT64 " 0 R will be deleted and loaded again.\n", lObj );
-                delete m_vecObjects->RemoveObject(PdfReference( static_cast<int>(lObj), PODOFO_LL_LITERAL(0) ),false);
+                delete m_vecObjects->RemoveObject(PdfReference( static_cast<uint32_t>(lObj), 0 ),false);
             }
-            m_vecObjects->insert_sorted( new PdfObject( PdfReference( static_cast<int>(lObj), PODOFO_LL_LITERAL(0) ), var ) );
+            m_vecObjects->insert_sorted( new PdfObject( PdfReference( static_cast<uint32_t>(lObj), 0 ), var ) );
 		}
 
         // move back to the position inside of the table of contents

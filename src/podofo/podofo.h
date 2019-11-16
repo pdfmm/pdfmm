@@ -76,7 +76,6 @@
 #include "doc/PdfFontType1.h"
 #include "doc/PdfFontType3.h"
 #include "doc/PdfFunction.h"
-#include "doc/PdfHintStream.h"
 #include "doc/PdfIdentityEncoding.h"
 #include "doc/PdfImage.h"
 #include "doc/PdfInfo.h"

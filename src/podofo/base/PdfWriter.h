@@ -52,8 +52,6 @@ class PdfParser;
 class PdfVecObjects;
 class PdfXRef;
 
-namespace NonPublic { class PdfHintStream; }
-
 /** The PdfWriter class writes a list of PdfObjects as PDF file.
  *  The XRef section (which is the required table of contents for any
  *  PDF file) is created automatically.
@@ -142,17 +140,6 @@ class PODOFO_API PdfWriter {
      *  \returns EPdfVersion version of the pdf document
      */
     EPdfVersion GetPdfVersion() const { return m_eVersion; }
-
-    /** Enabled linearization for this document.
-     *  I.e. optimize it for web usage. Default is false.
-     *  \param bLinearize if true create a web optimized PDF file
-     */
-    inline void SetLinearized( bool bLinearize );
-
-    /**
-     *  \returns true if this PDF file is web optimized.
-     */
-    inline bool GetLinearized() const;
 
     /** Create a XRef stream which is in some case
      *  more compact but requires at least PDF 1.5
@@ -276,49 +263,6 @@ class PODOFO_API PdfWriter {
     void Write( PdfOutputDevice* pDevice, bool bRewriteXRefTable );
 
  protected:
-    /** Writes a linearized PDF file
-     *  \param pDevice write to this output device
-     */       
-    void PODOFO_LOCAL WriteLinearized( PdfOutputDevice* pDevice );
-
-    /** Create a linearization dictionary for the current
-     *  document and return a pointer to it after inserting
-     *  it into the vector of PdfObjects
-     *
-     *  \returns a pointer to the linearization dictionary
-     */
-    PdfObject* CreateLinearizationDictionary() PODOFO_LOCAL;
-
-    /** Reorder and renumber all object as required for linearized PDF files.
-     *  This function is very slow.
-     *
-     *  \param pLinearize linearization dictionary
-     *  \param pHint primary hint stream dictionary
-     *  \param pPage first page to display in the document
-     *  \param ppLast the pointer will be initialized to the last object
-     *         belonging to the first page
-     */
-    //void ReorderObjectsLinearized( PdfObject* pLinearize, NonPublic::PdfHintStream* pHint, PdfPage* pPage, PdfObject** ppLast ) PODOFO_LOCAL;
-
-    /** Initialize m_pPagesTree with its correct value
-     *  Always call this function befre accessing the pages tree.
-     */
-    //void FetchPagesTree();
-
-    /** Find dependencies required for creating a linearized PDF of the catalog dictionary.
-     */
-    //void FindCatalogDependencies( PdfObject* pCatalog, const PdfName & rName, TPdfReferenceList* pList, bool bWithDependencies ) PODOFO_LOCAL;
-
-    /** Fill all keys in the linearization dictionary with their values
-     *  \param pLinearize a linearization dictionary
-     *  \param pHint the hint stream
-     *  \param pPage the first page in the linerarized PDF file
-     *  \param pLast pointer of the last object belonging to the first page
-     *  \param pVecXRefOffset xref table entries for previous entry
-     */
-    // void FillLinearizationDictionary( PdfObject* pLinearize, PdfOutputDevice* pDevice, PdfPage* pPage, PdfObject* pLast, NonPublic::PdfHintStream* pHint, TVecXRefOffset* pVecXRefOffset ) PODOFO_LOCAL;
-
- protected:
     PdfVecObjects*  m_vecObjects;
     PdfObject*      m_pTrailer;
 
@@ -335,8 +279,6 @@ class PODOFO_API PdfWriter {
     EPdfVersion     m_eVersion;
     int64_t       m_lPrevXRefOffset;
     bool            m_bIncrementalUpdate;
-
-    bool            m_bLinearized;
  
     /**
      * This value is required when writing
@@ -351,22 +293,6 @@ class PODOFO_API PdfWriter {
     size_t            m_lTrailerOffset;
     PdfVecObjects   m_vecLinearized;
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfWriter::SetLinearized( bool bLinearize )
-{
-    m_bLinearized = bLinearize;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfWriter::GetLinearized() const
-{
-    return m_bLinearized;
-}
 
 // -----------------------------------------------------
 // 

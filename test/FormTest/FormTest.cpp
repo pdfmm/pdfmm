@@ -31,12 +31,12 @@ using namespace PoDoFo;
 
 void CreateComplexForm( PdfPage* pPage, PdfStreamedDocument* pDoc )
 {
-    PdfRect rect = pPage->GetPageSize();
+    PdfRect rect = pPage->GetSize();
 
     PdfPainter painter;
     PdfFont*   pFont = pDoc->CreateFont( "Courier" );
 
-    painter.SetPage( pPage );
+    painter.SetCanvas( pPage );
     painter.SetFont( pFont );
 
     const char* pszTitle = "PoDoFo Sample Feedback Form";
@@ -133,7 +133,7 @@ void CreateComplexForm( PdfPage* pPage, PdfStreamedDocument* pDoc )
 
     buttonSend.SetMouseDownAction( actionSubmit );
 
-    painter.FinishPage();
+    painter.FinishDrawing();
 }
 
 void CreateSimpleForm( PdfPage* pPage, PdfStreamedDocument* pDoc )
@@ -141,10 +141,10 @@ void CreateSimpleForm( PdfPage* pPage, PdfStreamedDocument* pDoc )
     PdfPainter painter;
     PdfFont*   pFont = pDoc->CreateFont( "Courier" );
 
-    painter.SetPage( pPage );
+    painter.SetCanvas( pPage );
     painter.SetFont( pFont );
     painter.DrawText( 10000 * CONVERSION_CONSTANT, 280000 * CONVERSION_CONSTANT, "PoDoFo Interactive Form Fields Test" );
-    painter.FinishPage();
+    painter.FinishDrawing();
 
     PdfPushButton button( pPage, PdfRect( 10000 * CONVERSION_CONSTANT, 10000 * CONVERSION_CONSTANT,
                                           50000 * CONVERSION_CONSTANT, 50000 * CONVERSION_CONSTANT ), pDoc );
@@ -208,15 +208,7 @@ void FillTextField( PdfTextField & rField )
 
     std::string value;
     std::cout << "  Enter new value (if empty value is unchanged):" << std::endl;
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200 // Visual Studio 6
-	 {
-		 char buff[10240];
-		 if (gets(buff))
-			 value = buff;
-	 }
-#else
     getline( std::cin, value );
-#endif
 
     if( value.length() )
     {

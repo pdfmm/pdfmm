@@ -72,7 +72,7 @@ public:
         PoDoFo::PdfParser::ReadXRefContents( lOffset, bPositionAtEnd );
     }
 
-    void ReadXRefSubsection( PoDoFo::pdf_int64 nFirstObject, PoDoFo::pdf_int64 nNumObjects )
+    void ReadXRefSubsection( int64_t nFirstObject, int64_t nNumObjects )
     {
         // call protected method
         PoDoFo::PdfParser::ReadXRefSubsection( nFirstObject, nNumObjects );
@@ -483,8 +483,8 @@ void ParserTest::testReadXRefContents()
 
 void ParserTest::testReadXRefSubsection()
 {
-    PoDoFo::pdf_int64 nFirstObject = 0;
-    PoDoFo::pdf_int64 nNumObjects = 0;
+    int64_t nFirstObject = 0;
+    int64_t nNumObjects = 0;
     
     // TODO does ReadXRefSubsection with nNumObjects = 0 make sense ???
 
@@ -694,8 +694,8 @@ void ParserTest::testReadXRefSubsection()
         std::string strInputStream = "0000000000 65535 f\r\n";
         PoDoFo::PdfVecObjects objects;
         PdfParserTestWrapper parser( &objects, strInputStream.c_str(), strInputStream.length() );
-        nFirstObject = std::numeric_limits<PoDoFo::pdf_int64>::max();
-        nNumObjects = std::numeric_limits<PoDoFo::pdf_int64>::max();
+        nFirstObject = std::numeric_limits<int64_t>::max();
+        nNumObjects = std::numeric_limits<int64_t>::max();
         parser.ReadXRefSubsection( nFirstObject, nNumObjects );
         CPPUNIT_FAIL( "PdfError not thrown" );
     }
@@ -755,13 +755,13 @@ void ParserTest::testReadXRefSubsection()
         CPPUNIT_FAIL( "Wrong exception type" );
     }
     
-    // CVE-2017-5853 1.3 - nFirstObject = min value of pdf_int64
+    // CVE-2017-5853 1.3 - nFirstObject = min value of int64_t
     try
     {
         std::string strInputStream = " ";
         PoDoFo::PdfVecObjects objects;
         PdfParserTestWrapper parser( &objects, strInputStream.c_str(), strInputStream.length() );
-        nFirstObject = std::numeric_limits<PoDoFo::pdf_int64>::min();
+        nFirstObject = std::numeric_limits<int64_t>::min();
         nNumObjects = 1;
         parser.ReadXRefSubsection( nFirstObject, nNumObjects );
         CPPUNIT_FAIL( "PdfError not thrown" );
@@ -798,13 +798,13 @@ void ParserTest::testReadXRefSubsection()
         CPPUNIT_FAIL( "Wrong exception type" );
     }
     
-    // CVE-2017-5853 1.6 - nFirstObject = max value of pdf_int64
+    // CVE-2017-5853 1.6 - nFirstObject = max value of int64_t
     try
     {
         std::string strInputStream = " ";
         PoDoFo::PdfVecObjects objects;
         PdfParserTestWrapper parser( &objects, strInputStream.c_str(), strInputStream.length() );
-        nFirstObject = std::numeric_limits<PoDoFo::pdf_int64>::max();
+        nFirstObject = std::numeric_limits<int64_t>::max();
         nNumObjects = 1;
         parser.ReadXRefSubsection( nFirstObject, nNumObjects );
         CPPUNIT_FAIL( "PdfError not thrown" );
@@ -901,14 +901,14 @@ void ParserTest::testReadXRefSubsection()
         CPPUNIT_FAIL( "Wrong exception type" );
     }
     
-    // CVE-2017-5853 2.3 - nNumObjects = min value of pdf_int64
+    // CVE-2017-5853 2.3 - nNumObjects = min value of int64_t
     try
     {
         std::string strInputStream = " ";
         PoDoFo::PdfVecObjects objects;
         PdfParserTestWrapper parser( &objects, strInputStream.c_str(), strInputStream.length() );
         nFirstObject = 1;
-        nNumObjects = std::numeric_limits<PoDoFo::pdf_int64>::min();
+        nNumObjects = std::numeric_limits<int64_t>::min();
         parser.ReadXRefSubsection( nFirstObject, nNumObjects );
         CPPUNIT_FAIL( "PdfError not thrown" );
     }
@@ -945,14 +945,14 @@ void ParserTest::testReadXRefSubsection()
         CPPUNIT_FAIL( "Wrong exception type" );
     }
     
-    // CVE-2017-5853 2.6 - nNumObjects = max value of pdf_int64
+    // CVE-2017-5853 2.6 - nNumObjects = max value of int64_t
     try
     {
         std::string strInputStream = " ";
         PoDoFo::PdfVecObjects objects;
         PdfParserTestWrapper parser( &objects, strInputStream.c_str(), strInputStream.length() );
         nFirstObject = 1;
-        nNumObjects = std::numeric_limits<PoDoFo::pdf_int64>::max();
+        nNumObjects = std::numeric_limits<int64_t>::max();
         parser.ReadXRefSubsection( nFirstObject, nNumObjects );
         CPPUNIT_FAIL( "PdfError not thrown" );
     }
@@ -1008,7 +1008,7 @@ void ParserTest::testReadXRefSubsection()
     }
 
     // CVE-2017-5853 2.9 - finally - loop through a set of interesting bit patterns
-    static PoDoFo::pdf_uint64 s_values[] =
+    static uint64_t s_values[] =
     {
         //(1ull << 64) - 1,
         //(1ull << 64),
@@ -1060,7 +1060,7 @@ void ParserTest::testReadXRefSubsection()
         (1ull << 15),
         (1ull << 15) + 1,
 
-        (PoDoFo::pdf_uint64)-1,
+        (uint64_t)-1,
         0,
         1
     };

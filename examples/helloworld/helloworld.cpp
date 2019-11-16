@@ -107,7 +107,7 @@ void HelloWorld( const char* pszFilename )
 		 * Set the page as drawing target for the PdfPainter.
 		 * Before the painter can draw, a page has to be set first.
 		 */
-		painter.SetPage( pPage );
+		painter.SetCanvas( pPage );
 
 		/*
 		 * Create a PdfFont object using the font "Arial".
@@ -158,14 +158,14 @@ void HelloWorld( const char* pszFilename )
 		 * You can also use PdfPainterMM which takes coordinates in 1/1000th mm.
 		 *
 		 */
-		painter.DrawText( 56.69, pPage->GetPageSize().GetHeight() - 56.69, "Hello World!" );
+		painter.DrawText( 56.69, pPage->GetSize().GetHeight() - 56.69, "Hello World!" );
 
 		/*
 		 * Tell PoDoFo that the page has been drawn completely.
 		 * This required to optimize drawing operations inside in PoDoFo
 		 * and has to be done whenever you are done with drawing a page.
 		 */
-		painter.FinishPage();
+		painter.FinishDrawing();
 
 		/*
 		 * Set some additional information on the PDF file.
@@ -187,7 +187,7 @@ void HelloWorld( const char* pszFilename )
 		 * or who will get an assert in its destructor
 		 */
 		try {
-			painter.FinishPage();
+			painter.FinishDrawing();
 		} catch( ... ) {
 			/*
 			 * Ignore errors this time

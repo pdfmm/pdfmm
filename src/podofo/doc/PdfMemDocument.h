@@ -104,8 +104,6 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
     PdfMemDocument( const char* pszFilename, bool bForUpdate = false );
 
 #ifdef _WIN32
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200    // not for MS Visual Studio 6
-#else
     /** Construct a PdfMemDocument from an existing PDF (on disk)
      *  \param pszFilename filename of the file which is going to be parsed/opened
      *  \param bForUpdate whether to load for incremental update
@@ -124,7 +122,6 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *  \see SetPassword, WriteUpdate
      */
     PdfMemDocument( const wchar_t* pszFilename, bool bForUpdate = false );
-#endif
 #endif // _WIN32
 
     /** Close down/destruct the PdfMemDocument

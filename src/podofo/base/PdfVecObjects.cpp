@@ -232,7 +232,7 @@ PdfReference PdfVecObjects::GetNextFreeObject()
     }
 
     // If no free objects are available, create a new object with generation 0
-    pdf_gennum nextObjectNum = static_cast<pdf_gennum>( m_nObjectCount );
+    uint16_t nextObjectNum = static_cast<uint16_t>( m_nObjectCount );
     while ( true )
     {
         if ( ( size_t )( nextObjectNum + 1 ) == m_nMaxReserveSize )
@@ -288,7 +288,7 @@ bool PdfVecObjects::TryAddFreeObject( const PdfReference & rReference )
     return TryAddFreeObject( rReference.ObjectNumber() , rReference.GenerationNumber() ) != -1;
 }
 
-int32_t PdfVecObjects::TryAddFreeObject( pdf_objnum objnum, uint32_t gennum )
+int32_t PdfVecObjects::TryAddFreeObject( uint32_t objnum, uint32_t gennum )
 {
     // Documentation 3.4.3 Cross-Reference Table states: "The maximum
     // generation number is 65535; when a cross reference entry reaches

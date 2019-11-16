@@ -43,7 +43,6 @@
 
 #include <sstream>
 
-#include <wchar.h>
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_TRUETYPE_TABLES_H
@@ -983,33 +982,6 @@ double PdfFontMetrics::StringWidth( const pdf_utf16be* pszText, unsigned int nLe
 
     return dWidth;
 }
-
-#ifndef _WCHAR_T_DEFINED
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200    // not for MS Visual Studio 6
-#else
-double PdfFontMetrics::StringWidth( const wchar_t* pszText, unsigned int nLength ) const
-{
-    double dWidth = 0.0;
-
-    if( !pszText )
-        return dWidth;
-
-    if( !nLength )
-        nLength = static_cast<unsigned int>(wcslen( pszText ));
-
-    const wchar_t *localText = pszText;
-    for ( unsigned int i=0; i<nLength; i++ )
-    {
-        dWidth += CharWidth( static_cast<int>(*localText) );
-        if ( static_cast<int>(*localText) == 0x0020 )
-            dWidth += m_fWordSpace * this->GetFontScale() / 100.0;
-        localText++;
-    }
-
-    return dWidth;
-}
-#endif
-#endif
 
 EPdfFontType PdfFontMetrics::FontTypeFromFilename( const char* pszFilename )
 {

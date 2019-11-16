@@ -1,8 +1,7 @@
 
 IF(PODOFO_HAVE_CPPUNIT)
   INCLUDE_DIRECTORIES( ${PROJ_SOURCE_DIR}/src ${PROJ_BINARY_DIR}/src ${PROJ_BINARY_DIR}/src/os ${PROJ_BINARY_DIR}/src/os/${OROCOS_TARGET})
-  ADD_DEFINITIONS("-g")
-  
+
   # repeat for each test
   ADD_EXECUTABLE( podofo-test main.cpp ColorTest.cpp DeviceTest.cpp ElementTest.cpp EncodingTest.cpp EncryptTest.cpp 
 		  FilterTest.cpp FontTest.cpp NameTest.cpp PagesTreeTest.cpp PageTest.cpp PainterTest.cpp ParserTest.cpp

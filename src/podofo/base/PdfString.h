@@ -102,16 +102,15 @@ class PODOFO_API PdfString : public PdfDataType {
      */
     PdfString( const char* pszString, const PdfEncoding * const pEncoding = NULL );
 
+#ifdef WIN32
     /** Construct a new PdfString from a 0-terminated C-style string.
      *  The input string will be copied.
      *
      *  \param pszString the string to copy
      */
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200    // not for MS Visual Studio 6
-#else
-       PdfString( const wchar_t* pszString, pdf_long lLen = -1 );
-#endif
+    PdfString( const wchar_t* pszString, pdf_long lLen = -1 );
     void setFromWchar_t( const wchar_t* pszString, pdf_long lLen = -1 );
+#endif
 
     /** Construct a new PdfString from a string. 
      *  The input string will be copied.

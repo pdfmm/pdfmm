@@ -61,9 +61,9 @@ void PainterTest::testAppend()
     this->CompareStreamContent(pPage->GetContents()->GetStream(), pszExample1);
 
     PdfPainter painter;
-    painter.SetPage( pPage );
-    painter.SetColor( 1.0, 1.0, 1.0 );
-    painter.FinishPage();
+    painter.SetCanvas( pPage );
+    painter.SetColor( PdfColor(1.0, 1.0, 1.0) );
+    painter.FinishDrawing();
 
     std::string newContent = pszExample1;
     newContent += pszColor;

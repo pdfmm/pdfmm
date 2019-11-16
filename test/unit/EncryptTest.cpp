@@ -299,7 +299,7 @@ void EncryptTest::CreateEncryptedPdf( const char* pszFilename )
     PdfMemDocument  writer;
     PdfPage* pPage = writer.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
     PdfPainter painter;
-    painter.SetPage( pPage );
+    painter.SetCanvas( pPage );
 
     PdfFont* pFont = writer.CreateFont( "Arial", PdfEncodingFactory::GlobalWinAnsiEncodingInstance(), false );
     if( !pFont )
@@ -310,7 +310,7 @@ void EncryptTest::CreateEncryptedPdf( const char* pszFilename )
     pFont->SetFontSize( 16.0 );
     painter.SetFont( pFont );
     painter.DrawText( 100, 100, "Hello World" );
-    painter.FinishPage();
+    painter.FinishDrawing();
 
     writer.SetEncrypted( "user", "owner" );
     writer.Write( pszFilename );
@@ -360,9 +360,9 @@ void EncryptTest::testEnableAlgorithms()
 
     PdfObject object;
     object.GetDictionary().AddKey(PdfName("Filter"), PdfName("Standard"));
-    object.GetDictionary().AddKey(PdfName("V"), static_cast<pdf_int64>(4L));
-    object.GetDictionary().AddKey(PdfName("R"), static_cast<pdf_int64>(4L));
-    object.GetDictionary().AddKey(PdfName("P"), static_cast<pdf_int64>(1L));
+    object.GetDictionary().AddKey(PdfName("V"), static_cast<int64_t>(4L));
+    object.GetDictionary().AddKey(PdfName("R"), static_cast<int64_t>(4L));
+    object.GetDictionary().AddKey(PdfName("P"), static_cast<int64_t>(1L));
     object.GetDictionary().AddKey(PdfName("O"), PdfString(""));
     object.GetDictionary().AddKey(PdfName("U"), PdfString(""));
 

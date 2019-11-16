@@ -131,10 +131,7 @@ PdfParser::PdfParser( PdfVecObjects* pVecObjects, const char* pszFilename, bool 
     this->Init();
     this->ParseFile( pszFilename, bLoadOnDemand );
 }
-
-#ifdef _WIN32
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200    // not for MS Visual Studio 6
-#else
+#ifdef WIN32
 PdfParser::PdfParser( PdfVecObjects* pVecObjects, const wchar_t* pszFilename, bool bLoadOnDemand )
     : PdfTokenizer(), m_vecObjects( pVecObjects ), m_bStrictParsing( false )
 {
@@ -142,7 +139,6 @@ PdfParser::PdfParser( PdfVecObjects* pVecObjects, const wchar_t* pszFilename, bo
     this->ParseFile( pszFilename, bLoadOnDemand );
 }
 #endif
-#endif // _WIN32
 
 PdfParser::PdfParser( PdfVecObjects* pVecObjects, const char* pBuffer, long lLen, bool bLoadOnDemand )
     : PdfTokenizer(), m_vecObjects( pVecObjects ), m_bStrictParsing( false )
@@ -1254,7 +1250,7 @@ void PdfParser::ReadObjectsInternal()
                     {
                         PdfError::LogMessage( eLogSeverity_Warning, 
                                               "Treating object %i 0 R as a free object." );
-                        m_vecObjects->AddFreeObject( PdfReference( i, PODOFO_LL_LITERAL(1) ) );
+                        m_vecObjects->AddFreeObject( PdfReference( i, 1 ) );
                     }
                 }
             }
@@ -1265,7 +1261,7 @@ void PdfParser::ReadObjectsInternal()
         }
         else if( i != 0) // Unparsed
         {
-			m_vecObjects->AddFreeObject( PdfReference( i, PODOFO_LL_LITERAL(1) ) );
+			m_vecObjects->AddFreeObject( PdfReference( i, 1 ) );
         }
         // Ulrich Arnold 30.7.2009: the linked free list in the xref section is not always correct in pdf's
         //							(especially Illustrator) but Acrobat still accepts them. I've seen XRefs 

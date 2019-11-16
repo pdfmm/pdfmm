@@ -52,7 +52,7 @@ PdfPagesTree::PdfPagesTree( PdfVecObjects* pParent )
       m_cache( 0 )
 {
     GetObject()->GetDictionary().AddKey( "Kids", PdfArray() ); // kids->Reference() 
-    GetObject()->GetDictionary().AddKey( "Count", PdfObject( static_cast<int64_t>(PODOFO_LL_LITERAL(0)) ) );
+    GetObject()->GetDictionary().AddKey( "Count", PdfObject( static_cast<int64_t>(0) ) );
 }
 
 PdfPagesTree::PdfPagesTree( PdfObject* pPagesRoot )
@@ -419,8 +419,8 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pParent,
 		else
 		{
                     const PdfReference & rLogRef = pChild->Reference();
-                    pdf_objnum nLogObjNum = rLogRef.ObjectNumber();
-                    pdf_gennum nLogGenNum = rLogRef.GenerationNumber();
+                    uint32_t nLogObjNum = rLogRef.ObjectNumber();
+                    uint16_t nLogGenNum = rLogRef.GenerationNumber();
 		    PdfError::LogMessage( eLogSeverity_Critical,
                                           "Requesting page index %i. "
                         "Invalid datatype referenced in kids array: %s\n"

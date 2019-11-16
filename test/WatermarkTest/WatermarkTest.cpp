@@ -41,14 +41,14 @@ void WatermarkFile( const char* pszInFilename, const char* pszOutFilename )
             PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
         }
         
-        rect = pPage->GetPageSize();
+        rect = pPage->GetSize();
 
-        painter.SetPage( pPage );
-        painter.SetStrokingColor( 1.0, 0.0, 0.0 );
+        painter.SetCanvas( pPage );
+        painter.SetStrokingColor( PdfColor(1.0, 0.0, 0.0) );
         painter.SetStrokeWidth( 5 );
         painter.DrawLine( 0.0, 0.0, rect.GetWidth(), rect.GetHeight() );
         painter.DrawLine( 0, rect.GetHeight(), rect.GetWidth(), 0.0 );
-        painter.FinishPage();
+        painter.FinishDrawing();
     }
 
     printf("writing document back\n");

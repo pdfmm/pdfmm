@@ -38,22 +38,12 @@
 #error Include PdfDefinesPrivate.h instead
 #endif
 
-#if defined(__BORLANDC__) || defined( __TURBOC__)
-   // Borland Turbo C has a broken "<cmath>" but provides a usable "math.h"
-   // and it needs a bunch of other includes
-#  include <stdlib.h>
-#  include <stdio.h>
-#  include <string.h>
-#  include <math.h>
-#  include <time.h>
-#else
    // We can use the ISO C++ headers with other compilers
 #  include <cstdlib>
 #  include <cstdio>
 #  include <cmath>
 #  include <cstring>
 #  include <ctime>
-#endif
 
 
 #if PODOFO_HAVE_WINSOCK2_H
@@ -109,6 +99,48 @@
 namespace PoDoFo {
 namespace compat {
 
+#ifdef _MSC_VER
+#  define byteswap16(n) _byteswap_ushort(n)
+#  define byteswap32(n) _byteswap_ulong(n)
+#  define byteswap64(n) _byteswap_uint64(n)
+#else
+#  define byteswap16(n) __builtin_bswap16(n)
+#  define byteswap32(n) __builtin_bswap32(n)
+#  define byteswap64(n) __builtin_bswap64(n)
+#endif
+
+#ifdef PODOFO_IS_LITTLE_ENDIAN
+    inline uint16_t AsBigEndian(uint16_t n)
+    {
+        return byteswap16(n);
+    }
+
+    inline uint32_t AsBigEndian(uint32_t n)
+    {
+        return byteswap32(n);
+    }
+
+    inline uint64_t AsBigEndian(uint64_t n)
+    {
+        return byteswap64(n);
+    }
+#else
+    inline uint16_t AsBigEndian(uint16_t n)
+    {
+        return n;
+    }
+
+    inline uint32_t AsBigEndian(uint32_t n)
+    {
+        return n;
+    }
+
+    inline uint64_t AsBigEndian(uint64_t n)
+    {
+        return n;
+    }
+#endif
+
 // Case-insensitive string compare functions aren't very portable, and we must account
 // for several flavours.
 inline static int strcasecmp( const char * s1, const char * s2) {
@@ -139,57 +171,6 @@ inline static int strncasecmp( const char * s1, const char * s2, size_t n) {
 #endif
 }
 
-inline static double logb(double x) {
-#if defined(_WIN32) || defined(_WIN64)
-  return ::log(x);
-#else
-  return ::logb(x);
-#endif
-}
-
-/*
- * We define inline wrappers for htons and friends here so that
- * any issues with integer types can be contained to just this
- * source file.
- *
- * These functions are defined to do NOTHING when
- * host byte order == network byte order (ie: on big endian hosts)
- * so you do NOT need to #ifdef them. They'll be inlined and
- * then optimized out with any sane compiler and C library.
- */
-
-inline static uint32_t podofo_ntohl(uint32_t i) {
-#if defined(_WIN32) && defined(_MSC_VER)
-   return (uint32_t)( ntohl( i ) );
-#else
-   return static_cast<uint32_t>( ntohl( i ) );
-#endif // _WIN32
-}
-
-inline static uint16_t podofo_ntohs(uint16_t i) {
-#if defined(_WIN32) && defined(_MSC_VER)
-   return (uint16_t)( ntohs( i ) );
-#else
-   return static_cast<uint16_t>( ntohs( i ) );
-#endif // _WIN32
-}
-
-inline static uint32_t podofo_htonl(uint32_t i) {
-#if defined(_WIN32) && defined(_MSC_VER)
-    return (uint32_t)( htonl( i ) );
-#else
-    return static_cast<uint32_t>( htonl( i ) );
-#endif // _WIN32
-}
-
-inline static uint16_t podofo_htons(uint16_t i) {
-#if defined(_WIN32) && defined(_MSC_VER)
-    return (uint16_t)( htons( i ) );
-#else
-    return static_cast<uint16_t>( htons( i ) );
-#endif // _WIN32
-}
-
 };}; // end namespace PoDoFo::compat
 
 /*
@@ -212,58 +193,5 @@ inline static uint16_t podofo_htons(uint16_t i) {
 #define fseeko fseek
 #define ftello ftell
 #endif
-
-/**
- * \def PODOFO_UNUSED( x )
- * Make a certain variable to be unused
- * in the code, without getting a compiler
- * warning.
- */
-#ifndef _WIN32
-template <typename T>
-inline void podofo_unused(T &t) { (void)t; }
-#define PODOFO_UNUSED( x ) podofo_unused( x );
-#else
-#define PODOFO_UNUSED( x ) (void)x;
-#endif // _WIN32
-
-// OC 17.08.2010: Activate showing the correct source for Memory Leak Detection in Visual Studio:
-// See: <afx.h>  looking for _AFX_NO_DEBUG_CRT
-#ifdef _MSC_VER
-#if defined(_DEBUG) && defined(DEFINE_NEW_DEBUG_NEW)
-  // fuer crtdbg.h und malloc.h
-  #define _CRTDBG_MAP_ALLOC
-  #include <malloc.h>
-  #include <crtdbg.h>
-  void* operator new(size_t ai_NewSize, const char* ac_File_, int ai_Line);
-  void operator delete(void* av_Ptr_, const char* ac_File_, int ai_Line);
-  #define DEBUG_NEW new(__FILE__, __LINE__)
-  #define new DEBUG_NEW
-  // doesnt work:
-  // // _NEW_CRT is defined in <xdebug>
-  // // #define new _NEW_CRT
-#endif // _DEBUG
-#endif // _MSC_VER
-
-/**
- * \page PoDoFo PdfCompilerCompatPrivate Header
- * 
- * <b>PdfCompilerCompatPrivate.h</b> gathers up nastyness required for various
- * compiler compatibility into a central place. All compiler-specific defines,
- * wrappers, and the like should be included here and (if necessary) in
- * PdfCompilerCompatPrivate.cpp. If the must be visible to library users
- * they're put in PdfCompilerCompat.{cpp,h} instead.
- *
- * PdfCompilerCompatPrivate.h is private to PoDoFo's build process. It is not
- * used by library clients, the tools, or the unit tests. It is not installed
- * with PoDoFo and must never be visible in the public headers.
- *
- * Include PdfCompilerCompatPrivate.h in your .cpp sources, preferably after
- * including other PoDoFo headers.
- *
- * Please NEVER use symbols from this header or the PoDoFo::compat namespace in
- * a "using" directive. Always explicitly reference names so it's clear that
- * you're pulling them from the compat cruft.
- */
 
 #endif

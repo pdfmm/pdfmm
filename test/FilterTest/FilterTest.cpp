@@ -57,7 +57,7 @@ void test_filter( EPdfFilter eFilter, const char * pTestBuffer, const pdf_long l
     pdf_long   lEncoded;
     pdf_long   lDecoded;
 
-    std::auto_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( eFilter );
+    std::unique_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( eFilter );
     if( !pFilter.get() )
     {
         printf("!!! Filter %i not implemented.\n", eFilter);
@@ -97,9 +97,9 @@ void test_filter( EPdfFilter eFilter, const char * pTestBuffer, const pdf_long l
         }
     }
 
-    printf("\t-> Original Data Length: %" PDF_FORMAT_INT64 "\n", static_cast<pdf_int64>(lTestLength) );
-    printf("\t-> Encoded  Data Length: %" PDF_FORMAT_INT64 "\n", static_cast<pdf_int64>(lEncoded) );
-    printf("\t-> Decoded  Data Length: %" PDF_FORMAT_INT64 "\n", static_cast<pdf_int64>(lDecoded) );
+    printf("\t-> Original Data Length: %" PDF_FORMAT_INT64 "\n", static_cast<int64_t>(lTestLength) );
+    printf("\t-> Encoded  Data Length: %" PDF_FORMAT_INT64 "\n", static_cast<int64_t>(lEncoded) );
+    printf("\t-> Decoded  Data Length: %" PDF_FORMAT_INT64 "\n", static_cast<int64_t>(lDecoded) );
 
     if( static_cast<pdf_long>(lTestLength) != lDecoded )
     {
@@ -168,8 +168,8 @@ void test_filter_queue( const char* pBuffer, long lLen )
     pDecoded = stream2.TakeBuffer();
 
     printf("\t-> Original Data Length: %li\n", lLen );
-    printf("\t-> Encoded  Data Length: %" PDF_FORMAT_INT64 "\n", static_cast<pdf_int64>(lEncoded) );
-    printf("\t-> Decoded  Data Length: %" PDF_FORMAT_INT64 "\n", static_cast<pdf_int64>(lDecoded) );
+    printf("\t-> Encoded  Data Length: %" PDF_FORMAT_INT64 "\n", static_cast<int64_t>(lEncoded) );
+    printf("\t-> Decoded  Data Length: %" PDF_FORMAT_INT64 "\n", static_cast<int64_t>(lDecoded) );
 
     if( lDecoded != lLen )
     {
@@ -205,9 +205,9 @@ void test_stream( const char* pBuffer, pdf_long lLen )
     stream.Set( const_cast<char*>(pBuffer), lLen );
     stream.GetFilteredCopy( &pDecoded, &lDecoded );
 
-    printf("\t-> Original Data Length: %" PDF_FORMAT_INT64 "\n", static_cast<pdf_int64>(lLen) );
-    printf("\t-> Encoded  Data Length: %" PDF_FORMAT_UINT64 "\n", static_cast<pdf_uint64>(stream.GetLength()) );
-    printf("\t-> Decoded  Data Length: %" PDF_FORMAT_INT64 "\n", static_cast<pdf_int64>(lDecoded) );
+    printf("\t-> Original Data Length: %" PDF_FORMAT_INT64 "\n", static_cast<int64_t>(lLen) );
+    printf("\t-> Encoded  Data Length: %" PDF_FORMAT_UINT64 "\n", static_cast<uint64_t>(stream.GetLength()) );
+    printf("\t-> Decoded  Data Length: %" PDF_FORMAT_INT64 "\n", static_cast<int64_t>(lDecoded) );
 
     if( lDecoded != lLen )
     {
@@ -256,7 +256,7 @@ int main()
     char*    pLargeBuffer2 = static_cast<char*>(malloc( strlen(pszInputAscii85Lzw) * 6 ));
 
     try {
-        std::auto_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_ASCII85Decode );
+        std::unique_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_ASCII85Decode );
         pFilter->Decode( pszInputAscii85Lzw, strlen(pszInputAscii85Lzw),
                          &pLargeBuffer1, &lLargeBufer1 );
         pFilter->Encode( pLargeBuffer1, lLargeBufer1,
@@ -275,8 +275,8 @@ int main()
         if( static_cast<pdf_long>(strlen(pszInputAscii85Lzw)) != lLargeBufer2 )
         {
             fprintf( stderr, "ROACH Error: Decoded Length != Original Length\n");
-            fprintf( stderr, "ROACH Original: %" PDF_FORMAT_UINT64 "\n", static_cast<pdf_uint64>(strlen(pszInputAscii85Lzw)) );
-            fprintf( stderr, "ROACH Encode: %" PDF_FORMAT_INT64 "\n", static_cast<pdf_int64>(lLargeBufer2) );
+            fprintf( stderr, "ROACH Original: %" PDF_FORMAT_UINT64 "\n", static_cast<uint64_t>(strlen(pszInputAscii85Lzw)) );
+            fprintf( stderr, "ROACH Encode: %" PDF_FORMAT_INT64 "\n", static_cast<int64_t>(lLargeBufer2) );
             PODOFO_RAISE_ERROR( ePdfError_TestFailed );
         }
 

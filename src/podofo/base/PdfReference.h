@@ -40,15 +40,6 @@
 
 namespace PoDoFo {
 
-typedef uint32_t pdf_objnum;
-/* Technically a generation number must be able to represent 99999 so 65535 isn't good enough.
- * In practice Adobe's implementation notes suggest that they use a uint16 internally, and PDFs
- * with greater object numbers won't work on many viewers. So we'll stick with uint16.
- *
- * If you change this you'll need to change PdfReference::Write(...) to use the apppropriate
- * format, too. */
-typedef uint16_t pdf_gennum;
-
 class PdfOutputDevice;
 
 /**
@@ -75,7 +66,7 @@ class PODOFO_API PdfReference : public PdfDataType {
      * \param nObjectNo the object number
      * \param nGenerationNo the generation number
      */
-    PdfReference( const pdf_objnum nObjectNo, const pdf_gennum nGenerationNo )
+    PdfReference( const uint32_t nObjectNo, const uint16_t nGenerationNo )
         : m_nGenerationNo( nGenerationNo ), m_nObjectNo( nObjectNo )
     {
     }
@@ -137,22 +128,22 @@ class PODOFO_API PdfReference : public PdfDataType {
     /** Set the object number of this object
      *  \param o the new object number
      */
-    PODOFO_NOTHROW inline void SetObjectNumber( pdf_objnum o );
+    PODOFO_NOTHROW inline void SetObjectNumber( uint32_t o );
 
     /** Get the object number.
      *  \returns the object number of this PdfReference
      */
-    PODOFO_NOTHROW inline pdf_objnum ObjectNumber() const;
+    PODOFO_NOTHROW inline uint32_t ObjectNumber() const;
 
     /** Set the generation number of this object
      *  \param g the new generation number
      */
-    PODOFO_NOTHROW inline void SetGenerationNumber( const pdf_gennum g );
+    PODOFO_NOTHROW inline void SetGenerationNumber( const uint16_t g );
 
     /** Get the generation number.
      *  \returns the generation number of this PdfReference
      */
-    PODOFO_NOTHROW inline pdf_gennum GenerationNumber() const;
+    PODOFO_NOTHROW inline uint16_t GenerationNumber() const;
 
     /** Allows to check if a reference points to an indirect
      *  object.
@@ -166,13 +157,13 @@ class PODOFO_API PdfReference : public PdfDataType {
     PODOFO_NOTHROW inline bool IsIndirect() const;
 
  private:
-    // pdf_gennum (2 bytes) should appear before pdf_objnum (4 bytes)
+    // uint16_t (2 bytes) should appear before uint32_t (4 bytes)
     // because this reduces sizeof(PdfObject) from 64 bytes to 56 bytes
     // on 64-bit platforms by eliminating compiler alignment padding
     // order has no effect on structure size on 32-bit platforms
     // can save up 12.5% on some documents
-    pdf_gennum    m_nGenerationNo;
-    pdf_objnum    m_nObjectNo;
+    uint16_t    m_nGenerationNo;
+    uint32_t    m_nObjectNo;
 };
 
 // -----------------------------------------------------
@@ -212,7 +203,7 @@ inline bool PdfReference::operator!=( const PdfReference & rhs ) const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-void PdfReference::SetObjectNumber( pdf_objnum o )
+void PdfReference::SetObjectNumber( uint32_t o )
 {
     m_nObjectNo = o;
 }
@@ -220,7 +211,7 @@ void PdfReference::SetObjectNumber( pdf_objnum o )
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-pdf_objnum PdfReference::ObjectNumber() const
+uint32_t PdfReference::ObjectNumber() const
 {
     return m_nObjectNo;
 }
@@ -228,7 +219,7 @@ pdf_objnum PdfReference::ObjectNumber() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-void PdfReference::SetGenerationNumber( pdf_gennum g )
+void PdfReference::SetGenerationNumber( uint16_t g )
 {
     m_nGenerationNo = g;
 }
@@ -236,7 +227,7 @@ void PdfReference::SetGenerationNumber( pdf_gennum g )
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-pdf_gennum PdfReference::GenerationNumber() const
+uint16_t PdfReference::GenerationNumber() const
 {
     return m_nGenerationNo;
 }

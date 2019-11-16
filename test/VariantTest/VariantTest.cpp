@@ -124,11 +124,11 @@ int main()
     printf("This test tests the PdfVariant class.\n");
     printf("---\n");
 
-    std::auto_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
+    std::unique_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
 
     // testing strings
     TEST_SAFE_OP( Test( "(Hallo Welt!)", ePdfDataType_String ) );
-    TEST_SAFE_OP( Test( "(Hallo \\(schöne\\) Welt!)", ePdfDataType_String ) );
+    TEST_SAFE_OP( Test( "(Hallo \\(schÃ¶ne\\) Welt!)", ePdfDataType_String ) );
     TEST_SAFE_OP( Test( "(Balanced () brackets are (ok ()) in PDF Strings)", ePdfDataType_String,
                         "(Balanced \\(\\) brackets are \\(ok \\(\\)\\) in PDF Strings)" ) );
     TEST_SAFE_OP( Test( "()", ePdfDataType_String ) );

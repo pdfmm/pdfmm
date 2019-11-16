@@ -38,7 +38,7 @@ void BasicTypeTest::tearDown()
 
 void BasicTypeTest::testXrefOffsetTypeSize() 
 {
-    CPPUNIT_ASSERT_MESSAGE("pdf_uint64 is big enough to hold an xref entry", std::numeric_limits<pdf_uint64>::max() >= PODOFO_ULL_LITERAL(9999999999) );
+    CPPUNIT_ASSERT_MESSAGE("pdf_uint64 is big enough to hold an xref entry", std::numeric_limits<uint64_t>::max() >= 9999999999 );
 }
 
 void BasicTypeTest::testDefaultMaximumNumberOfObjects()

@@ -64,10 +64,10 @@ void CreateSimpleForm( PdfPage* pPage, PdfStreamedDocument* pDoc, const PdfData 
     PdfPainter painter;
     PdfFont*   pFont = pDoc->CreateFont( "Courier" );
 
-    painter.SetPage( pPage );
+    painter.SetCanvas( pPage );
     painter.SetFont( pFont );
     painter.DrawText( 10000 * CONVERSION_CONSTANT, 280000 * CONVERSION_CONSTANT, "PoDoFo Sign Test" );
-    painter.FinishPage();
+    painter.FinishDrawing();
 
 	PdfSignatureField signField( pPage, PdfRect( 70000 * CONVERSION_CONSTANT, 10000 * CONVERSION_CONSTANT,
                                        50000 * CONVERSION_CONSTANT, 50000 * CONVERSION_CONSTANT ), pDoc );

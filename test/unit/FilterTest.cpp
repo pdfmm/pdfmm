@@ -59,7 +59,7 @@ void FilterTest::TestFilter( EPdfFilter eFilter, const char * pTestBuffer, const
     pdf_long   lEncoded;
     pdf_long   lDecoded;
    
-    std::auto_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( eFilter );
+    std::unique_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( eFilter );
     if( !pFilter.get() )
     {
         printf("!!! Filter %i not implemented.\n", eFilter);
@@ -123,7 +123,7 @@ void FilterTest::testFilters()
 
 void FilterTest::testCCITT()
 {
-    std::auto_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_CCITTFaxDecode );
+    std::unique_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_CCITTFaxDecode );
     if( !pFilter.get() )
     {
         printf("!!! ePdfFilter_CCITTFaxDecode not implemented skipping test!\n");

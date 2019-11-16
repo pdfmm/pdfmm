@@ -38,14 +38,6 @@
 #include "PdfWriter.h"
 #include "PdfDefinesPrivate.h"
 
-#if defined(_AIX) || defined(__sun)
-#include <alloca.h>
-#elif defined(__APPLE__) || defined(__linux)
-#include <cstdlib>
-#elif defined(_WIN32)
-#include <malloc.h>
-#endif
-
 namespace PoDoFo {
 
 PdfXRefStream::PdfXRefStream( PdfVecObjects* pParent, PdfWriter* pWriter )
@@ -57,16 +49,12 @@ PdfXRefStream::PdfXRefStream( PdfVecObjects* pParent, PdfWriter* pWriter )
     m_offset    = 0;
 }
 
-PdfXRefStream::~PdfXRefStream()
-{
-}
-
 void PdfXRefStream::BeginWrite( PdfOutputDevice* )
 {
     m_pObject->GetStream()->BeginAppend();
 }
 
-void PdfXRefStream::WriteSubSection( PdfOutputDevice*, pdf_objnum first, uint32_t count )
+void PdfXRefStream::WriteSubSection( PdfOutputDevice*, uint32_t first, uint32_t count )
 {
     PdfError::DebugMessage("Writing XRef section: %u %u\n", first, count );
 
@@ -74,15 +62,11 @@ void PdfXRefStream::WriteSubSection( PdfOutputDevice*, pdf_objnum first, uint32_
     m_indeces.push_back( static_cast<int64_t>(count) );
 }
 
-void PdfXRefStream::WriteXRefEntry( PdfOutputDevice*, uint64_t offset, pdf_gennum generation, 
-                                    char cMode, pdf_objnum objectNumber ) 
+void PdfXRefStream::WriteXRefEntry( PdfOutputDevice*, uint64_t offset, uint16_t generation, 
+                                    char cMode, uint32_t objectNumber ) 
 {
     std::vector<char>	bytes(m_bufferLen);
-#if (defined(_MSC_VER)  &&  _MSC_VER < 1700) || (defined(__BORLANDC__))	// MSC before VC11 has no data member, same as BorlandC
-    char * buffer = &bytes[0];
-#else
     char * buffer = bytes.data();
-#endif
 
     if( cMode == 'n' && objectNumber == m_pObject->Reference().ObjectNumber() )
         m_offset = offset;
@@ -90,7 +74,7 @@ void PdfXRefStream::WriteXRefEntry( PdfOutputDevice*, uint64_t offset, pdf_gennu
     buffer[0]             = static_cast<char>( cMode == 'n' ? 1 : 0 );
     buffer[m_bufferLen-1] = static_cast<char>( cMode == 'n' ? 0 : generation );
 
-    const uint32_t offset_be = ::PoDoFo::compat::podofo_htonl(static_cast<uint32_t>(offset));
+    const uint32_t offset_be = ::PoDoFo::compat::AsBigEndian(static_cast<uint32_t>(offset));
     memcpy( &buffer[1], reinterpret_cast<const char*>(&offset_be), sizeof(uint32_t) );
 
     m_pObject->GetStream()->Append( buffer, m_bufferLen );

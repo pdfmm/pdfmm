@@ -63,10 +63,6 @@ class PdfXRefStream : public PdfXRef {
      */
     PdfXRefStream( PdfVecObjects* pParent, PdfWriter* pWriter );
 
-    /** Destruct the XRef table
-     */
-    virtual ~PdfXRefStream();
-
     /**
      * \returns the offset in the file at which the XRef table
      *          starts after it was written
@@ -91,7 +87,7 @@ class PdfXRefStream : public PdfXRef {
      *  @param nFirst the object number of the first object in this subsection
      *  @param nCount the number of entries in this subsection
      */
-    virtual void WriteSubSection( PdfOutputDevice* pDevice, pdf_objnum nFirst, uint32_t nCount );
+    virtual void WriteSubSection( PdfOutputDevice* pDevice, uint32_t nFirst, uint32_t nCount );
 
     /** Write a single entry to the XRef table
      *  
@@ -103,8 +99,8 @@ class PdfXRefStream : public PdfXRef {
      *  @param objectNumber the object number of the currently written object if cMode = 'n' 
      *                       otherwise undefined
      */
-    virtual void WriteXRefEntry( PdfOutputDevice* pDevice, uint64_t offset, pdf_gennum generation, 
-                                 char cMode, pdf_objnum objectNumber = 0 );
+    virtual void WriteXRefEntry( PdfOutputDevice* pDevice, uint64_t offset, uint16_t generation, 
+                                 char cMode, uint32_t objectNumber = 0 );
 
     /** Called at the end of writing the XRef table.
      *  Sub classes can overload this method to finish a XRef table.

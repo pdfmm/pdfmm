@@ -1050,7 +1050,7 @@ void PdfEncryptMD5Base::CreateEncryptionDictionary( PdfDictionary & rDictionary 
 		else
 #endif // PODOFO_HAVE_OPENSSL_NO_RC4
 			stdCf.AddKey( PdfName("CFM"), PdfName("AESV2") );
-        stdCf.AddKey( PdfName("Length"), static_cast<int64_t>(PODOFO_LL_LITERAL(16)) );
+        stdCf.AddKey( PdfName("Length"), static_cast<int64_t>(16) );
         
         rDictionary.AddKey( PdfName("O"), PdfString( reinterpret_cast<const char*>(this->GetOValue()), 32, true ) );
         rDictionary.AddKey( PdfName("U"), PdfString( reinterpret_cast<const char*>(this->GetUValue()), 32, true ) );
@@ -1062,23 +1062,23 @@ void PdfEncryptMD5Base::CreateEncryptionDictionary( PdfDictionary & rDictionary 
         rDictionary.AddKey( PdfName("StrF"), PdfName("StdCF") );
         rDictionary.AddKey( PdfName("StmF"), PdfName("StdCF") );
         
-        rDictionary.AddKey( PdfName("V"), static_cast<int64_t>(PODOFO_LL_LITERAL(4)) );
-        rDictionary.AddKey( PdfName("R"), static_cast<int64_t>(PODOFO_LL_LITERAL(4)) );
-        rDictionary.AddKey( PdfName("Length"), static_cast<int64_t>(PODOFO_LL_LITERAL(128)) );
+        rDictionary.AddKey( PdfName("V"), static_cast<int64_t>(4) );
+        rDictionary.AddKey( PdfName("R"), static_cast<int64_t>(4) );
+        rDictionary.AddKey( PdfName("Length"), static_cast<int64_t>(128) );
 		if(!m_bEncryptMetadata)
 			rDictionary.AddKey( PdfName("EncryptMetadata"), PdfVariant( false ) );
     }
 #ifndef PODOFO_HAVE_OPENSSL_NO_RC4
     else if(m_eAlgorithm == ePdfEncryptAlgorithm_RC4V1)
     {
-        rDictionary.AddKey( PdfName("V"), static_cast<int64_t>(PODOFO_LL_LITERAL(1)) );
+        rDictionary.AddKey( PdfName("V"), static_cast<int64_t>(1) );
         // Can be 2 or 3
         rDictionary.AddKey( PdfName("R"), static_cast<int64_t>(m_rValue) );
     }
     else if(m_eAlgorithm == ePdfEncryptAlgorithm_RC4V2)
     {
-        rDictionary.AddKey( PdfName("V"), static_cast<int64_t>(PODOFO_LL_LITERAL(2)) );
-        rDictionary.AddKey( PdfName("R"), static_cast<int64_t>(PODOFO_LL_LITERAL(3)) );
+        rDictionary.AddKey( PdfName("V"), static_cast<int64_t>(2) );
+        rDictionary.AddKey( PdfName("R"), static_cast<int64_t>(3) );
 		rDictionary.AddKey( PdfName("Length"), PdfVariant( static_cast<int64_t>(m_eKeyLength) ) );
     }
 #endif // PODOFO_HAVE_OPENSSL_NO_RC4
@@ -1690,12 +1690,12 @@ void PdfEncryptSHABase::CreateEncryptionDictionary( PdfDictionary & rDictionary 
     PdfDictionary cf;
     PdfDictionary stdCf;
     
-    rDictionary.AddKey( PdfName("V"), static_cast<int64_t>(PODOFO_LL_LITERAL(5)) );
-    rDictionary.AddKey( PdfName("R"), static_cast<int64_t>(PODOFO_LL_LITERAL(5)) );
-    rDictionary.AddKey( PdfName("Length"), static_cast<int64_t>(PODOFO_LL_LITERAL(256)) );
+    rDictionary.AddKey( PdfName("V"), static_cast<int64_t>(5) );
+    rDictionary.AddKey( PdfName("R"), static_cast<int64_t>(5) );
+    rDictionary.AddKey( PdfName("Length"), static_cast<int64_t>(256) );
     
     stdCf.AddKey( PdfName("CFM"), PdfName("AESV3") );
-    stdCf.AddKey( PdfName("Length"), static_cast<int64_t>(PODOFO_LL_LITERAL(32)) );
+    stdCf.AddKey( PdfName("Length"), static_cast<int64_t>(32) );
     
     rDictionary.AddKey( PdfName("O"), PdfString( reinterpret_cast<const char*>(this->GetOValue()), 48, true ) );
     rDictionary.AddKey( PdfName("OE"), PdfString( reinterpret_cast<const char*>(this->GetOEValue()), 32, true ) );

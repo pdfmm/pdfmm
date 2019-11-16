@@ -101,6 +101,7 @@ PdfString::PdfString( const char* pszString, const PdfEncoding * const pEncoding
         Init( pszString, strlen( pszString ) );
 }
 
+#ifdef WIN32
 PdfString::PdfString( const wchar_t* pszString, pdf_long lLen )
 {
     setFromWchar_t(pszString, lLen);
@@ -160,6 +161,7 @@ void PdfString::setFromWchar_t(const wchar_t* pszString, pdf_long lLen )
         }    
     }
 }
+#endif
 
 PdfString::PdfString( const char* pszString, pdf_long lLen, bool bHex, const PdfEncoding * const pEncoding )
     : m_bHex( bHex ), m_bUnicode( false ), m_pEncoding( pEncoding )
@@ -602,11 +604,7 @@ void PdfString::InitFromUtf8( const pdf_utf8* pszStringUtf8, pdf_long lLen )
     pdf_long        lBufLen = (lLen << 1) + sizeof(wchar_t);
     // twice as large buffer should always be enough
     std::vector<char>	bytes(lBufLen);
-#if (defined(_MSC_VER)  &&  _MSC_VER < 1700) || (defined(__BORLANDC__))	// MSC before VC11 has no data member, same as BorlandC
-    pdf_utf16be *pBuffer = reinterpret_cast<pdf_utf16be *>(&bytes[0]); 
-#else
-    pdf_utf16be *pBuffer = reinterpret_cast<pdf_utf16be *>(bytes.data()); 
-#endif
+    pdf_utf16be *pBuffer = reinterpret_cast<pdf_utf16be *>(bytes.data());
 
     lBufLen = PdfString::ConvertUTF8toUTF16( pszStringUtf8, lLen, pBuffer, lBufLen );
 

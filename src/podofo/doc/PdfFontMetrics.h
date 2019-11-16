@@ -111,19 +111,6 @@ class PODOFO_DOC_API PdfFontMetrics {
      */
     double StringWidth( const pdf_utf16be* pszText, unsigned int nLength = 0 ) const;
 
-#ifndef _WCHAR_T_DEFINED
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200    // not for MS Visual Studio 6
-#else
-    /** Retrieve the width of a given text string in PDF units when
-     *  drawn with the current font
-     *  \param pszText a text string of which the width should be calculated
-     *  \param nLength if != 0 only the width of the nLength first characters is calculated
-     *  \returns the width in PDF units
-     */
-    double StringWidth( const wchar_t* pszText, unsigned int nLength = 0 ) const;
-#endif
-#endif
-
     /** Retrieve the width of a given text string in 1/1000th mm when
      *  drawn with the current font
      *  \param pszText a text string of which the width should be calculated
@@ -139,19 +126,6 @@ class PODOFO_DOC_API PdfFontMetrics {
      *  \returns the width in 1/1000th mm
      */
     inline unsigned long StringWidthMM( const pdf_utf16be* pszText, unsigned int nLength = 0 ) const;
-
-#ifndef _WCHAR_T_DEFINED
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200    // not for MS Visual Studio 6
-#else
-    /** Retrieve the width of a given text string in 1/1000th mm when
-     *  drawn with the current font
-     *  \param pszText a text string of which the width should be calculated
-     *  \param nLength if != 0 only the width of the nLength first characters is calculated
-     *  \returns the width in 1/1000th mm
-     */
-    inline unsigned long StringWidthMM( const wchar_t* pszText, unsigned int nLength = 0 ) const;
-#endif
-#endif
 
     /** Retrieve the width of the given character in PDF units in the current font
      *  \param c character
@@ -430,19 +404,6 @@ unsigned long PdfFontMetrics::StringWidthMM( const pdf_utf16be* pszText, unsigne
 {
     return static_cast<unsigned long>(this->StringWidth( pszText, nLength ) / PODOFO_CONVERSION_CONSTANT);
 }
-
-// -----------------------------------------------------
-//
-// -----------------------------------------------------
-#ifndef _WCHAR_T_DEFINED
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200    // not for MS Visual Studio 6
-#else
-unsigned long PdfFontMetrics::StringWidthMM( const wchar_t* pszText, unsigned int nLength ) const
-{
-    return static_cast<unsigned long>(this->StringWidth( pszText, nLength ) / PODOFO_CONVERSION_CONSTANT);
-}
-#endif
-#endif
 
 // -----------------------------------------------------
 //

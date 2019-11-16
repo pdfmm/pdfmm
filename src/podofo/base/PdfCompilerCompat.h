@@ -47,13 +47,8 @@
 
 // Silence some annoying warnings from Visual Studio
 #ifdef _MSC_VER
-#if _MSC_VER <= 1200 // Visual Studio 6
-#pragma warning(disable: 4786)
-#pragma warning(disable: 4251)
-#elif _MSC_VER <= 1400 // Visual Studio 2005
 #pragma warning(disable: 4251)
 #pragma warning(disable: 4275)
-#endif // _MSC_VER
 #endif // _MSC_VER
 
 // Make sure that DEBUG is defined 
@@ -65,12 +60,7 @@
 #endif // DEBUG
 #endif // _DEBUG
 
-
-#if defined(__BORLANDC__) || defined( __TURBOC__)
-#  include <stddef.h>
-#else
-#  include <cstddef>
-#endif
+#include <cstddef>
 
 #if defined(TEST_BIG)
 #  define PODOFO_IS_BIG_ENDIAN
@@ -95,39 +85,16 @@
 #endif
 
 #if PODOFO_HAVE_CTYPE_H
-#include <ctype.h>
+#include <cctype>
 #endif
 
 #if PODOFO_HAVE_STRINGS_H
 #include <strings.h>
 #endif
 
-// alloca() is defined only in <cstdlib> on Mac OS X,
-// only in <malloc.h> on win32, and in both on Linux.
-#if defined(_WIN32)
-#include <malloc.h>
-#endif
-
 // Disable usage of min() and max() macros 
 #if defined(_WIN32) && !defined(__MINGW32__)
 #define NOMINMAX
-#endif
-
-/* 
- * Some elderly compilers, notably VC6, don't support LL literals.
- * In those cases we can use the oversized literal without any suffix.
- */
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200 // Visual Studio 6
-#  define PODOFO_LL_LITERAL(x) x
-#  define PODOFO_ULL_LITERAL(x) x
-#else
-#if defined(PODOFO_COMPILER_LACKS_LL_LITERALS)
-#  define PODOFO_LL_LITERAL(x) x
-#  define PODOFO_ULL_LITERAL(x) x
-#else
-#  define PODOFO_LL_LITERAL(x) x##LL
-#  define PODOFO_ULL_LITERAL(x) x##ULL
-#endif
 #endif
 
 // pdf_long is defined as ptrdiff_t . It's a pointer-sized signed quantity
@@ -176,11 +143,7 @@ namespace PoDoFo {
 //    static const char* __func__ = 'nameoffunction';
 // just after the opening brace of each function.
 //
-#if (defined(_MSC_VER)  &&  _MSC_VER <= 1200)
-#  define PODOFO__FUNCTION__ __FUNCTION__
-#elif defined(__BORLANDC__) || defined(__TURBOC__)
-#  define PODOFO__FUNCTION__ __FUNC__
-#elif defined(__GNUC__)
+#if defined(__GNUC__)
 #  define PODOFO__FUNCTION__ __PRETTY_FUNCTION__
 #else
 #  define PODOFO__FUNCTION__ __FUNCTION__

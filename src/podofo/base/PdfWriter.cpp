@@ -36,7 +36,6 @@
 #include "PdfData.h"
 #include "PdfDate.h"
 #include "PdfDictionary.h"
-//#include "PdfHintStream.h"
 #include "PdfObject.h"
 #include "PdfParser.h"
 #include "PdfParserObject.h"
@@ -61,7 +60,7 @@ PdfWriter::PdfWriter( PdfParser* pParser )
       m_eWriteMode( ePdfWriteMode_Compact ),
       m_lPrevXRefOffset( 0 ),
       m_bIncrementalUpdate( false ),
-      m_bLinearized( false ), m_lFirstInXRef( 0 ),
+      m_lFirstInXRef( 0 ),
       m_lLinearizedOffset(0),
       m_lLinearizedLastOffset(0),
       m_lTrailerOffset(0)
@@ -82,7 +81,7 @@ PdfWriter::PdfWriter( PdfVecObjects* pVecObjects, const PdfObject* pTrailer )
       m_eWriteMode( ePdfWriteMode_Compact ),
       m_lPrevXRefOffset( 0 ),
       m_bIncrementalUpdate( false ),
-      m_bLinearized( false ), m_lFirstInXRef( 0 ),
+      m_lFirstInXRef( 0 ),
       m_lLinearizedOffset(0),
       m_lLinearizedLastOffset(0),
       m_lTrailerOffset(0)
@@ -103,7 +102,7 @@ PdfWriter::PdfWriter( PdfVecObjects* pVecObjects )
       m_eWriteMode( ePdfWriteMode_Compact ),
       m_lPrevXRefOffset( 0 ),
       m_bIncrementalUpdate( false ),
-      m_bLinearized( false ), m_lFirstInXRef( 0 ),
+      m_lFirstInXRef( 0 ),
       m_lLinearizedOffset(0),
       m_lLinearizedLastOffset(0),
       m_lTrailerOffset(0)
@@ -162,55 +161,45 @@ void PdfWriter::Write( PdfOutputDevice* pDevice, bool bRewriteXRefTable )
         m_pEncrypt->CreateEncryptionDictionary( m_pEncryptObj->GetDictionary() );
     }
 
-    if( m_bLinearized ) 
-    {
+    PdfXRef* pXRef = m_bXRefStream ? new PdfXRefStream( m_vecObjects, this ) : new PdfXRef();
+
+    try {
+        if( !m_bIncrementalUpdate )
+            WritePdfHeader( pDevice );
+
+        WritePdfObjects( pDevice, *m_vecObjects, pXRef, bRewriteXRefTable );
+
         if( m_bIncrementalUpdate )
-            PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Cannot write an incremental update as a linearized document." );
+            pXRef->SetFirstEmptyBlock();
 
-        this->WriteLinearized( pDevice );
-    }
-    else
-    {
-        PdfXRef* pXRef = m_bXRefStream ? new PdfXRefStream( m_vecObjects, this ) : new PdfXRef();
-
-        try {
-            if( !m_bIncrementalUpdate )
-                WritePdfHeader( pDevice );
-
-            WritePdfObjects( pDevice, *m_vecObjects, pXRef, bRewriteXRefTable );
-
-            if( m_bIncrementalUpdate )
-                pXRef->SetFirstEmptyBlock();
-
-            pXRef->Write( pDevice );
+        pXRef->Write( pDevice );
+        
+        // XRef streams contain the trailer in the XRef
+        if( !m_bXRefStream ) 
+        {
+            PdfObject  trailer;
             
-            // XRef streams contain the trailer in the XRef
-            if( !m_bXRefStream ) 
-            {
-                PdfObject  trailer;
-                
-                // if we have a dummy offset we write also a prev entry to the trailer
-                FillTrailerObject( &trailer, pXRef->GetSize(), false );
-                
-                pDevice->Print("trailer\n");
-                trailer.WriteObject( pDevice, m_eWriteMode, NULL ); // Do not encrypt the trailer dictionary!!!
-            }
+            // if we have a dummy offset we write also a prev entry to the trailer
+            FillTrailerObject( &trailer, pXRef->GetSize(), false );
             
-            pDevice->Print( "startxref\n%" PDF_FORMAT_UINT64 "\n%%%%EOF\n", pXRef->GetOffset() );
-            delete pXRef;
-        } catch( PdfError & e ) {
-            // Make sure pXRef is always deleted
-            delete pXRef;
-            
-            // P.Zent: Delete Encryption dictionary (cannot be reused)
-            if(m_pEncryptObj) {
-                m_vecObjects->RemoveObject(m_pEncryptObj->Reference());
-                delete m_pEncryptObj;
-            }
-            
-            e.AddToCallstack( __FILE__, __LINE__ );
-            throw e;
+            pDevice->Print("trailer\n");
+            trailer.WriteObject( pDevice, m_eWriteMode, NULL ); // Do not encrypt the trailer dictionary!!!
         }
+        
+        pDevice->Print( "startxref\n%" PDF_FORMAT_UINT64 "\n%%%%EOF\n", pXRef->GetOffset() );
+        delete pXRef;
+    } catch( PdfError & e ) {
+        // Make sure pXRef is always deleted
+        delete pXRef;
+        
+        // P.Zent: Delete Encryption dictionary (cannot be reused)
+        if(m_pEncryptObj) {
+            m_vecObjects->RemoveObject(m_pEncryptObj->Reference());
+            delete m_pEncryptObj;
+        }
+        
+        e.AddToCallstack( __FILE__, __LINE__ );
+        throw e;
     }
     
     // P.Zent: Delete Encryption dictionary (cannot be reused)
@@ -269,85 +258,6 @@ void PdfWriter::WriteUpdate( PdfOutputDevice* pDevice, PdfInputDevice* pSourceIn
 
     // then write the changes
     this->Write (pDevice, bRewriteXRefTable );
-}
-
-void PdfWriter::WriteLinearized( PdfOutputDevice* /* pDevice */ )
-{
-    PODOFO_RAISE_ERROR( ePdfError_NotImplemented );
-
-    /*
-    PdfObject*      pLinearize  = NULL;
-    PdfPage*        pPage;
-    PdfObject*      pLast;
-    NonPublic::PdfHintStream*  pHint;
-    PdfOutputDevice length;
-    TVecXRefTable   vecXRef;
-    TVecXRefOffset  vecXRefOffset;
-    TIVecOffsets    it;
-
-    // prepare the document for linearization
-    this->FetchPagesTree();
-    pPage = m_pPagesTree->GetPage( 0 );
-    
-    pLinearize = CreateLinearizationDictionary();
-    pHint      = new NonPublic::PdfHintStream( m_vecObjects, m_pPagesTree );
-    
-    this->ReorderObjectsLinearized( pLinearize, pHint, pPage, &pLast );
-
-    // The file is prepared for linearization,
-    // so write it now.
-    WritePdfHeader( pDevice );
-
-    m_lLinearizedOffset = pDevice->GetLength();
-    pLinearize->WriteObject( pDevice );
-
-    // fill the XRef table with the objects
-    {
-        // Use nested scope and stack local for PdfOutputDevice
-        // rather than using a temporary to stop gcc's whining.
-        PdfOutputDevice o;
-        WritePdfObjects(&o, m_vecLinearized, &vecXRef );
-    }
-
-    // prepend the linearization dictionary to the XRef table
-    TXRefEntry entry;
-    entry.lOffset     = m_lLinearizedOffset;
-    entry.lGeneration = pLinearize->Reference().GenerationNumber();
-    entry.cUsed       = 'n';
-    
-    vecXRef[0].nCount++;
-    vecXRef[0].nFirst--; 
-    vecXRef[0].vecOffsets.insert( vecXRef[0].vecOffsets.begin(), entry );
-
-    // Calculate the length of the xref table
-    WritePdfTableOfContents( &vecXRef, &length, &vecXRefOffset, true, false );
-    
-    it = vecXRef[0].vecOffsets.begin(); 
-    it++; // skip the linearization dictionary, as it was written before the XRef table
-          // and does already have a correct offset
-    while( it != vecXRef[0].vecOffsets.end() )
-    {
-        (*it).lOffset += pDevice->GetLength() + length.GetLength();
-        m_lLinearizedLastOffset = (*it).lOffset;
-        ++it;
-    }
-    
-    vecXRefOffset.clear();
-    WritePdfTableOfContents( &vecXRef, pDevice, &vecXRefOffset, true, false );
-    vecXRef.clear();
-
-    WritePdfObjects( pDevice, m_vecLinearized, &vecXRef );
-    vecXRef.clear();
-
-    WritePdfObjects( pDevice, *m_vecObjects, &vecXRef );
-
-    if( m_bXRefStream )
-        WriteXRefStream( &vecXRef, pDevice );
-    else
-        WritePdfTableOfContents( &vecXRef, pDevice, &vecXRefOffset, false, m_bLinearized );
-
-    this->FillLinearizationDictionary( pLinearize, pDevice, pPage, pLast, pHint, &vecXRefOffset );
-    */
 }
 
 void PdfWriter::WritePdfHeader( PdfOutputDevice* pDevice )
@@ -448,124 +358,6 @@ void PdfWriter::WriteToBuffer( char** ppBuffer, pdf_long* pulLen )
     this->Write( &memDevice );
 }
 
-/*
-PdfObject* PdfWriter::CreateLinearizationDictionary()
-{
-    PdfObject*       pLinearize        = m_vecObjects->CreateObject();
-
-    // This will be overwritten later with valid data!
-    PdfVariant place_holder( PdfData( LINEARIZATION_PADDING ) );
-
-    PdfArray array;
-    array.push_back( place_holder );
-    array.push_back( place_holder );
-
-    pLinearize->GetDictionary().AddKey( "Linearized", 1.0 );  // Version
-    pLinearize->GetDictionary().AddKey( "L", place_holder );  // File length
-    pLinearize->GetDictionary().AddKey( "H", array );         // Hint stream offset and length as PdfArray
-    pLinearize->GetDictionary().AddKey( "E", place_holder );  // Offset of end of first page
-    pLinearize->GetDictionary().AddKey( "N",                  // Number of pages in the document 
-                                        static_cast<int64_t>(m_pPagesTree->GetTotalNumberOfPages()) );             
-    pLinearize->GetDictionary().AddKey( "O", place_holder );  // Object number of the first page
-    pLinearize->GetDictionary().AddKey( "T", place_holder );  // Offset of first entry in main cross reference table
-
-    return pLinearize;
-    }*/
-
-/*
-void PdfWriter::ReorderObjectsLinearized( PdfObject* pLinearize, NonPublic::PdfHintStream* pHint, PdfPage* pPage, PdfObject** ppLast ) 
-{
-    TPdfReferenceList   lstLinearizedGroup;
-    TPdfReferenceSet    setLinearizedGroup;
-    TCIPdfReferenceList it;
-    TIVecObjects        itObjects;
-    PdfObject*          pRoot;
-    PdfObject*          pTmp = NULL;
-    size_t        index, i;
-
-    // get the dependend objects that are required to display
-    // the first page. I.e. get all objects that have to be written
-    // at the start of the file.
-    // Add all depencies to lstLinearizedGroup
-    m_vecObjects->GetObjectDependencies( pPage->GetObject(), &lstLinearizedGroup );
-
-    // get the root dictionary, it has to be written at the top of the file too.
-    pRoot = m_vecObjects->GetObject( m_pTrailer->GetDictionary().GetKey( "Root" )->GetReference() );
-    // add the root dictionary
-    lstLinearizedGroup.push_back( pRoot->Reference() );
-    // add the first page itself
-    lstLinearizedGroup.push_back( pPage->GetObject()->Reference() );
-
-    // add several dependencies of the root dictionary
-    this->FindCatalogDependencies( pRoot, "ViewerPreferences", &lstLinearizedGroup, true );
-    this->FindCatalogDependencies( pRoot, "PageMode", &lstLinearizedGroup, true );
-    this->FindCatalogDependencies( pRoot, "Threads", &lstLinearizedGroup, false );
-    this->FindCatalogDependencies( pRoot, "OpenAction", &lstLinearizedGroup, true );
-    this->FindCatalogDependencies( pRoot, "AcroForm", &lstLinearizedGroup, false );
-    this->FindCatalogDependencies( pRoot, "Encrypt", &lstLinearizedGroup, true );
-
-    // add the hint stream
-    lstLinearizedGroup.push_back( pHint->GetObject()->Reference() );
-    // add the linearization dictionary
-    lstLinearizedGroup.push_back( pLinearize->Reference() );
-
-
-    // move all objects which are required to display the first page
-    // at the front of the vector of objects.
-    // We only swap objects inside of the vector to avoid reallocations.
-    // This is a fast operation therefore
-    i  = m_vecObjects->GetSize()-1;
-    it = lstLinearizedGroup.begin();
-
-    while( it != lstLinearizedGroup.end() )
-    {
-        index = m_vecObjects->GetIndex( *it );
-
-        if( index < i ) 
-        {
-            pTmp                   = (*m_vecObjects)[index];
-            (*m_vecObjects)[index] = (*m_vecObjects)[i];
-            (*m_vecObjects)[i]     = pTmp;
-        }
-
-        i--;
-        ++it;
-    }
-
-    // Renumber all objects according to their position in the vector.
-    // This is the slowest (only slow) operation when creating a 
-    // linearized PDF file. Garbage collection goes along with this step.
-    std::copy( lstLinearizedGroup.begin(), lstLinearizedGroup.end(), std::inserter(setLinearizedGroup, setLinearizedGroup.begin()) );
-    m_vecObjects->RenumberObjects( m_pTrailer, &setLinearizedGroup );
-
-    // reorder the objects in the file
-    itObjects = m_vecObjects->begin();
-    itObjects += m_vecObjects->GetSize() - setLinearizedGroup.size();
-    m_vecObjects->RemoveObject( itObjects );
-
-    while( itObjects != m_vecObjects->end() )
-    {
-        m_vecLinearized.push_back( *itObjects );
-        // reset the owner
-        (*itObjects)->SetOwner( m_vecObjects );
-        m_vecObjects->RemoveObject( itObjects ); 
-    }
-    
-    *ppLast = m_vecLinearized.GetBack();
-    }*/
-
- /*
-void PdfWriter::FindCatalogDependencies( PdfObject* pCatalog, const PdfName & rName, TPdfReferenceList* pList, bool bWithDependencies )
-{
-    if( pCatalog->GetDictionary().HasKey( rName ) && pCatalog->GetDictionary().GetKey( rName )->IsReference() )
-    {
-        if( bWithDependencies )
-            m_vecObjects->GetObjectDependencies( pCatalog->GetIndirectKey( rName ), pList );
-        else
-            pList->push_back( pCatalog->GetIndirectKey( rName )->Reference() );
-    }
-    }*/
-
 void PdfWriter::FillTrailerObject( PdfObject* pTrailer, pdf_long lSize, bool bOnlySizeKey ) const
 {
     pTrailer->GetDictionary().AddKey( PdfName::KeySize, static_cast<int64_t>(lSize) );
@@ -610,71 +402,6 @@ void PdfWriter::FillTrailerObject( PdfObject* pTrailer, pdf_long lSize, bool bOn
         }
     }
 }
-
-/*
-void PdfWriter::FetchPagesTree() 
-{
-    if( !m_pPagesTree )
-    {
-        // try to find the pages tree
-        PdfObject* pRoot = m_pTrailer->GetDictionary().GetKey( "Root" );
-
-        if( !pRoot || !pRoot->IsReference() )
-        {
-            PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
-        }
-
-        //printf("Fetching: %lu\n", pRoot->GetReference().ObjectNumber() );
-        //printf("Size    : %i\n", static_cast<int>(m_vecObjects->GetSize()) );
-        pRoot            = m_vecObjects->GetObject( pRoot->GetReference() );
-        if( !pRoot ) 
-        {
-            PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-        }
-
-        m_pPagesTree     = new PdfPagesTree( pRoot->GetIndirectKey( "Pages" ) );
-    }
-}
-*/
-
-/*
-void PdfWriter::FillLinearizationDictionary( PdfObject* pLinearize, PdfOutputDevice* pDevice, PdfPage* pPage, PdfObject* pLast, 
-NonPublic::PdfHintStream* pHint, TVecXRefOffset* pVecXRefOffset )
-{
-    long            lFileSize        = pDevice->GetLength();
-    PdfVariant      value( 0l );
-    PdfArray        hints;
-    PdfObject       trailer;
-
-    value.SetPaddingLength( LINEARIZATION_PADDING );
-
-    value.SetNumber( lFileSize );
-    pLinearize->GetDictionary().AddKey( "L", value );
-    value.SetNumber( pPage->GetObject()->Reference().ObjectNumber() );
-    pLinearize->GetDictionary().AddKey( "O", value );
-    value.SetNumber( m_lFirstInXRef );
-    pLinearize->GetDictionary().AddKey( "T", value );
-    value.SetNumber( m_lLinearizedLastOffset + pLast->GetObjectLength() );
-    pLinearize->GetDictionary().AddKey( "E", value );
-
-    value.SetNumber( m_lLinearizedOffset + pLinearize->GetObjectLength() );
-    hints.push_back( value );
-    value.SetNumber( pHint->GetObject()->GetObjectLength() );
-    hints.push_back( value );
-    pLinearize->GetDictionary().AddKey( "H", hints );
-
-    pDevice->Seek( m_lLinearizedOffset );
-    pLinearize->WriteObject( pDevice );
-    pDevice->Seek( lFileSize );
-
-    m_lPrevXRefOffset = pVecXRefOffset->back();
-    FillTrailerObject( &trailer, pLast->Reference().ObjectNumber()+1, false );
-
-    pDevice->Seek( m_lTrailerOffset );
-    trailer.WriteObject( pDevice );
-    pDevice->Seek( lFileSize );
-}
-*/
 
 void PdfWriter::CreateFileIdentifier( PdfString & identifier, const PdfObject* pTrailer, PdfString* pOriginalIdentifier ) const
 {

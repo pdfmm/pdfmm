@@ -83,7 +83,6 @@ SET(PODOFO_DOC_SOURCES
   doc/PdfFontType3.cpp
   doc/PdfFontType1Base14.cpp
   doc/PdfFunction.cpp
-  doc/PdfHintStream.cpp
   doc/PdfIdentityEncoding.cpp
   doc/PdfImage.cpp
   doc/PdfInfo.cpp
@@ -205,7 +204,6 @@ SET(PODOFO_DOC_HEADERS
   doc/PdfFontType3.h
   doc/PdfFontType1Base14.h
   doc/PdfFunction.h
-  doc/PdfHintStream.h
   doc/PdfIdentityEncoding.h
   doc/PdfImage.h
   doc/PdfInfo.h

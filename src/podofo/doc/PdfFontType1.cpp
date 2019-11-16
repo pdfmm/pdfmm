@@ -237,11 +237,7 @@ void PdfFontType1::EmbedSubsetFont()
 					dupFound = true;
 				}
 			}
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200 // Visual Studio 6
-			line.erase();
-#else
 			line.clear();
-#endif
 		}
 	}
 	inIndex += length;
@@ -267,11 +263,8 @@ void PdfFontType1::EmbedSubsetFont()
 		PdfType1EncryptEexec inCrypt;
 		
 		outIndex = outIndexStart;
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200 // Visual Studio 6
-		line.erase();
-#else
 		line.clear();
-#endif
+
 		foundSeacGlyph = false;
 		bool inCharString = false;
 		for ( int i = 0; i < length;  )
@@ -371,11 +364,7 @@ void PdfFontType1::EmbedSubsetFont()
 				// parse for /CharStrings = begin of glyphs
 				if ( line.find( "/CharStrings" ) != static_cast<size_t>(-1) )
 					inCharString = true;
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200 // Visual Studio 6
-				line.erase();
-#else
 				line.clear();
-#endif
 			}
 		}
 	} while ( foundSeacGlyph );

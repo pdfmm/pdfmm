@@ -31,10 +31,6 @@
  *   files in the program, then also delete it here.                       * 
  ***************************************************************************/
 
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200
-#pragma warning(disable: 4786)
-#endif
-
 #include <algorithm>
 #include <deque>
 #include <iostream>
@@ -103,15 +99,12 @@ PdfMemDocument::PdfMemDocument( const char* pszFilename, bool bForUpdate )
 }
 
 #ifdef _WIN32
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200    // not for MS Visual Studio 6
-#else
 PdfMemDocument::PdfMemDocument( const wchar_t* pszFilename, bool bForUpdate )
     : PdfDocument(), m_pEncrypt( NULL ), m_pParser( NULL ), m_bSoureHasXRefStream( false ), m_lPrevXRefOffset( -1 ),
       m_wchar_pszUpdatingFilename( NULL ), m_pszUpdatingFilename( NULL ), m_pUpdatingInputDevice( NULL )
 {
     this->Load( pszFilename, bForUpdate );
 }
-#endif
 #endif // _WIN32
 
 PdfMemDocument::~PdfMemDocument()

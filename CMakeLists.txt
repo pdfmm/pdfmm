@@ -123,10 +123,6 @@ IF(WIN32)
     # Microsoft deprecate certain POSIX functions that we use.
     # for now, turn off these warnings.
     ADD_DEFINITIONS(-D_CRT_SECURE_NO_DEPRECATE)
-    # We need a fake unistd.h for some libraries to build. They try to include <unistd.h>
-    # which is not available under win32 with MSVC++, but everything in unistd.h is defined,
-    # so an empty file solves the issue.
-    SET(EXTRA_INCLUDES ${PoDoFo_SOURCE_DIR}/vcincludes)
 ELSE(WIN32)
     SET(PLATFORM_SYSTEM_LIBRARIES)
     SET(EXTRA_INCLUDES)
@@ -393,11 +389,6 @@ ELSE(WIN32 OR PODOFO_BUILD_STATIC)
       )
 ENDIF(WIN32 OR PODOFO_BUILD_STATIC)
 
-#
-# Setup directories we will need
-#
-SET(MANDIR "share/man/")
-
 # Create the config file. It'll be appended to as the subdirs run though
 # then dependency information will be written to it at the end of the
 # build.
@@ -413,9 +404,7 @@ FILE(APPEND
 ADD_SUBDIRECTORY(src/podofo)
 IF(NOT PODOFO_BUILD_LIB_ONLY)
 ADD_SUBDIRECTORY(test)
-ADD_SUBDIRECTORY(tools)
 ADD_SUBDIRECTORY(examples)
-ADD_SUBDIRECTORY(man)
 ENDIF(NOT PODOFO_BUILD_LIB_ONLY)
 
 # Generate our configure file
