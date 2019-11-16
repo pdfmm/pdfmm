@@ -46,14 +46,14 @@ PdfFontConfigWrapper::PdfFontConfigWrapper( FcConfig* pFcConfig )
 
 PdfFontConfigWrapper::~PdfFontConfigWrapper()
 {
-    unique_lock<mutext> lock(m_mutex);
+    unique_lock<mutex> lock(m_mutex);
     if ( m_pFcConfig )
         FcConfigDestroy( m_pFcConfig );
 }
 
 void PdfFontConfigWrapper::InitializeFontConfig()
 {
-    unique_lock<mutext> lock(m_mutex);
+    unique_lock<mutex> lock(m_mutex);
     if ( m_pFcConfig )
         return;
 
