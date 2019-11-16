@@ -178,45 +178,6 @@ void PdfArray::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode,
     pDevice->Print( "]" );
 }
 
-bool PdfArray::ContainsString( const std::string& cmpString ) const
-{
-    bool foundIt = false;
-
-    TCIVariantList it(this->begin());
-    while( it != this->end() )
-    {
-        if( (*it).GetDataType() == ePdfDataType_String )
-        {
-            if ( (*it).GetString().GetString() == cmpString ) {
-                foundIt = true;
-                break;
-            }
-        }
-        
-        ++it;
-    }
-    
-    return foundIt;
-}
-
-size_t PdfArray::GetStringIndex( const std::string& cmpString ) const
-{
-    size_t foundIdx = std::numeric_limits<size_t>::max();
-    
-    for ( size_t i=0; i<this->size(); i++ ) {
-        if( (*this)[i].GetDataType() == ePdfDataType_String )
-        {
-            if ( (*this)[i].GetString().GetString() == cmpString ) 
-            {
-                foundIdx = i;
-                break;
-            }
-        }
-    }
-    
-    return foundIdx;
-}
-
 bool PdfArray::IsDirty() const
 {
     // If the array itself is dirty
