@@ -34,13 +34,13 @@
 #ifndef _PDF_ENCODING_H_
 #define _PDF_ENCODING_H_
 
+#include <unordered_map>
+
 #include "PdfDefines.h"
 #include "PdfName.h"
 #include "PdfString.h"
 #include "PdfVariant.h"
 #include "util/PdfMutex.h"
-
-#include <iterator>
 
 namespace PoDoFo {
 
@@ -59,7 +59,33 @@ class PdfObject;
 class PODOFO_API PdfEncoding
 {
 protected:
-    typedef std::map<pdf_uint16, pdf_uint32> UnicodeMap;
+
+    struct CodeIdentity
+    {
+        // RangeSize example <cd> -> 1, <00cd> -> 2
+        unsigned RangeSize;
+        uint32_t Code;
+    };
+
+
+    struct HashCodeIdentity
+    {
+        std::size_t operator()(const CodeIdentity &identity) const
+        {
+            return identity.RangeSize << 24 | identity.Code;
+        };
+    };
+
+    struct EqualCodeIdentity
+    {
+        bool operator()(const CodeIdentity &lhs, const CodeIdentity &rhs) const
+        {
+            return lhs.RangeSize == rhs.RangeSize && lhs.Code == rhs.Code;
+        }
+    };
+
+    // pp. 474-475 of PdfReference 1.7 "The value of dstString can be a string of up to 512 bytes"
+    typedef std::unordered_map<CodeIdentity, std::string, HashCodeIdentity, EqualCodeIdentity> UnicodeMap;
 
  protected:
     /** 
@@ -81,16 +107,10 @@ protected:
     virtual const PdfName & GetID() const = 0;
 
  public:
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200			// ab Visualstudio 6
-    class PODOFO_API const_iterator : public std::iterator<
-                                             std::forward_iterator_tag, 
-						 int, ptrdiff_t> {
-#else
     class PODOFO_API const_iterator : public std::iterator<
                                              std::forward_iterator_tag, 
 						 int, std::ptrdiff_t, 
 						 const int *, const int &> {
-#endif
 public:
 	const_iterator( const PdfEncoding* pEncoding, int nCur )
 	    : m_pEncoding( pEncoding ), m_nCur( nCur )
@@ -228,21 +248,18 @@ public:
 public:
     bool IsToUnicodeLoaded() const { return m_bToUnicodeIsLoaded; }
 
- protected:      
-    static void GetUnicodeValue(pdf_utf16be src, const UnicodeMap &map, pdf_utf16be dest[2], int &chCount );
-    static pdf_utf16be GetCIDValue( pdf_utf16be src, const UnicodeMap &map );
-    static pdf_uint32 GetCodeFromVariant(const PdfVariant &var);
+ protected:
+    static uint32_t GetCodeFromVariant(const PdfVariant &var);
+    static uint32_t PdfEncoding::GetCodeFromVariant(const PdfVariant &var, unsigned &codeSize);
     static PdfRefCountedBuffer convertToEncoding(const PdfString &rString, const UnicodeMap &map, const PdfFont* pFont);
-    static PdfString convertToUnicode(const PdfString &rString, const UnicodeMap &map, int unitSize);
-    static void ParseCMapObject(PdfObject* obj, UnicodeMap &map, int &firstChar, int &lastChar);
-
-    static void getUnicodeValue(pdf_uint16 src, const UnicodeMap &map, pdf_utf16be dest[2], int &chCount);
-    static pdf_utf16be getCIDValue( pdf_uint16 src, const UnicodeMap &map);
+    static PdfString convertToUnicode(const PdfString &rString, const UnicodeMap &map, unsigned maxCodeRangeSize);
+    static void ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &firstChar, char32_t &lastChar, unsigned &maxCodeRangeSize);
 
  private:
-     bool m_bToUnicodeIsLoaded;  ///< If true, ToUnicode has been parsed
-     int m_nFirstChar;   ///< The first defined character code
-     int m_nLastChar;    ///< The last defined character code
+     bool m_bToUnicodeIsLoaded; // If true, ToUnicode has been parsed
+     char32_t m_nFirstCode;     // The first defined character code
+     char32_t m_nLastCode;      // The last defined character code
+     unsigned m_maxCodeRangeSize;    // Size of in bytes of the bigger code range
      UnicodeMap m_toUnicode;
 };
 
@@ -267,7 +284,7 @@ inline bool PdfEncoding::operator==( const PdfEncoding & rhs ) const
 // -----------------------------------------------------
 inline int PdfEncoding::GetFirstChar() const
 {
-    return m_nFirstChar;
+    return m_nFirstCode;
 }
 
 // -----------------------------------------------------
@@ -275,7 +292,7 @@ inline int PdfEncoding::GetFirstChar() const
 // -----------------------------------------------------
 inline int PdfEncoding::GetLastChar() const
 {
-    return m_nLastChar;
+    return m_nLastCode;
 }
 
 // -----------------------------------------------------
@@ -828,7 +845,6 @@ class PODOFO_API PdfIso88592Encoding : public PdfWinAnsiEncoding
 };
 
 }; /* namespace PoDoFo */
-
 
 #endif // _PDF_ENCODING_H_
 

@@ -33,8 +33,6 @@
 
 #include "PdfName.h"
 
-#include <utfcpp/utf8.h>
-
 #include "PdfOutputDevice.h"
 #include "PdfTokenizer.h"
 #include "PdfDefinesPrivate.h"

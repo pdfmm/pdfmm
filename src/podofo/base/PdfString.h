@@ -161,8 +161,6 @@ class PODOFO_API PdfString : public PdfDataType {
      */
     PdfString( const PdfString & rhs );
 
-    ~PdfString();
-
     /** Construct a new PdfString from an UTF-8 encoded string.
      *
      *  \param str an UTF-8 encoded string.
@@ -359,32 +357,6 @@ class PODOFO_API PdfString : public PdfDataType {
      */
     bool operator!=(const PdfString& rhs) const { return !operator==(rhs); }
 
-#ifdef PODOFO_PUBLIC_STRING_HEX_CODEC // never set, impl. even says REMOVE :(
-    /** Converts this string to a hex-encoded string.
-     *  
-     *  If IsHex returns true, a copy of this string is returned
-     *  otherwise the string's data is hex-encoded and returned.
-     *
-     *  \returns a hex-encoded version of this string, or this string if it is
-     *           already hex-encoded.
-     *
-     *  \see IsHex
-     */
-    PdfString HexEncode() const; 
-
-    /** Converts this string to an ASCII string (not hex-encoded)
-     *  
-     *  If IsHex returns false, a copy of this string is returned,
-     *  otherwise the string's data is hex-decoded and returned.
-     *
-     *  \returns a plain version, which is not hex-encoded, of this string, or
-     *           this string if it is already a plain not hex-encoded string.
-     *
-     *  \see IsHex
-     */
-    PdfString HexDecode() const; 
-#endif
-
     /** Converts this string to a unicode string
      *  
      *  If IsUnicode() returns true a copy of this string is returned,
@@ -416,19 +388,12 @@ class PODOFO_API PdfString : public PdfDataType {
                                     pdf_utf8* pszUtf8, pdf_long lLenUtf8, 
                                     EPdfStringConversion eConversion = ePdfStringConversion_Strict );
 
+    /** Swap the bytes in the buffer (UTF-16BE -> UTF-16LE)
+     *  \param pBuf buffer
+     *  \param lLen length of buffer
+     */
+    static void SwapBytes(char* pBuf, pdf_long lLen);
  private:
-    /** Allocate m_lLen data for m_pszData if data
-     *  does not fit into m_pBuffer.
-     *  Otherwise m_pszData is set to point to 
-     *  m_pBuffer.
-     */
-    void Allocate();
-
-    /** Frees the internal buffer
-     *  if it was allocated using podofo_malloc()
-     */
-    void FreeBuffer();
-
     /** Construct a new PdfString from a 0-terminated string.
      * 
      *  The input string will be copied.
@@ -449,12 +414,6 @@ class PODOFO_API PdfString : public PdfDataType {
      *  
      */
     void InitFromUtf8( const pdf_utf8* pszStringUtf8, pdf_long lLen );
-
-    /** Swap the bytes in the buffer (UTF-16BE -> UTF-16LE)
-     *  \param pBuf buffer
-     *  \param lLen length of buffer
-     */
-    static void SwapBytes( char* pBuf, pdf_long lLen ); 
 
     /** Initialise the data member containing a
      *  UTF-8 version of this string.

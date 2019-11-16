@@ -41,17 +41,9 @@
 #include "PdfOutputDevice.h"
 #include "PdfDefinesPrivate.h"
 
-#if defined(_AIX) || defined(__sun)
-#include <alloca.h>
-#elif defined(__APPLE__) || defined(__linux)
 #include <cstdlib>
-#elif defined(_WIN32)
-#include <malloc.h>
-#endif
-
-#include <stdlib.h>
-#include <string.h>
-#include <wchar.h>
+#include <cstring>
+#include <cwchar>
 
 #ifdef PODOFO_HAVE_UNISTRING_LIB
 #include <unistr.h>
@@ -86,11 +78,7 @@ static const char* genStrEscMap()
 const char * const PdfString::m_escMap        = PdfStringNameSpace::genStrEscMap();
 
 const PdfString PdfString::StringNull        = PdfString();
-#ifdef _MSC_VER
 const char  PdfString::s_pszUnicodeMarker[]  = { static_cast<char>(0xFE), static_cast<char>(0xFF) };
-#else
-const char  PdfString::s_pszUnicodeMarker[]  = { static_cast<char>(0xFE), static_cast<char>(0xFF) };
-#endif
 const char* PdfString::s_pszUnicodeMarkerHex = "FEFF"; 
 
 
@@ -113,13 +101,10 @@ PdfString::PdfString( const char* pszString, const PdfEncoding * const pEncoding
         Init( pszString, strlen( pszString ) );
 }
 
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200    // not for MS Visual Studio 6
-#else
 PdfString::PdfString( const wchar_t* pszString, pdf_long lLen )
 {
     setFromWchar_t(pszString, lLen);
 }
-#endif
 
 void PdfString::setFromWchar_t(const wchar_t* pszString, pdf_long lLen )
 {
@@ -243,10 +228,6 @@ PdfString::PdfString( const PdfString & rhs )
     : PdfDataType(), m_bHex( false ), m_bUnicode( false ), m_pEncoding( NULL )
 {
     this->operator=( rhs );
-}
-
-PdfString::~PdfString()
-{
 }
 
 PdfString PdfString::FromUtf8String( const std::string &str )
@@ -703,63 +684,6 @@ const std::wstring PdfString::GetStringW() const
 }
 
 #endif // _WIN32
-
-#ifdef PODOFO_PUBLIC_STRING_HEX_CODEC // never set, Decode even says REMOVE :(
-PdfString PdfString::HexEncode() const
-{
-    if( this->IsHex() )
-        return *this;
-    else
-    {
-        std::auto_ptr<PdfFilter> pFilter;
-
-        pdf_long                  lLen  = (m_buffer.GetSize() - 1) << 1;
-        PdfString             str;
-        PdfRefCountedBuffer   buffer( lLen + 1 );
-        PdfMemoryOutputStream stream( buffer.GetBuffer(), lLen );
-
-        pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
-        pFilter->BeginEncode( &stream );
-        pFilter->EncodeBlock( m_buffer.GetBuffer(), (m_buffer.GetSize() - 1) );
-        pFilter->EndEncode();
-
-        buffer.GetBuffer()[buffer.GetSize()-1] = '\0';
-
-        str.m_buffer   = buffer;
-        str.m_bHex     = true;
-        str.m_bUnicode = m_bUnicode;
-
-        return str;
-    }
-} 
-
-// TODO: REMOVE
-PdfString PdfString::HexDecode() const
-{
-    if( !this->IsHex() )
-        return *this;
-    else
-    {
-        std::auto_ptr<PdfFilter> pFilter;
-
-        pdf_long                  lLen = m_buffer.GetSize() >> 1;
-        PdfString             str;
-        PdfRefCountedBuffer   buffer( lLen );
-        PdfMemoryOutputStream stream( buffer.GetBuffer(), lLen );
-
-        pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
-        pFilter->BeginDecode( &stream );
-        pFilter->DecodeBlock( m_buffer.GetBuffer(), m_buffer.GetSize() );
-        pFilter->EndDecode();
-
-        str.m_buffer   = buffer;
-        str.m_bHex     = false;
-        str.m_bUnicode = m_bUnicode;
-
-        return str;
-    }
-}
-#endif // PODOFO_PUBLIC_STRING_HEX_CODEC 
 
 PdfString PdfString::ToUnicode() const
 {

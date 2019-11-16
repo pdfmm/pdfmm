@@ -61,7 +61,7 @@ PdfCMapEncoding::PdfCMapEncoding (PdfObject * pObject, PdfObject * pToUnicode)
     // (/CIDSystemInfo<</Registry(XXX)/Ordering(XXX)/Supplement 0>>)
 
     if (pObject && pObject != pToUnicode && pObject->HasStream())
-        ParseCMapObject(pObject, m_toUnicode, m_nFirstChar, m_nLastChar);
+        ParseCMapObject(pObject, m_toUnicode, m_nFirstCode, m_nLastCode, m_maxCodeRangeSize);
 }
 
 void PdfCMapEncoding::AddToDictionary(PdfDictionary &) const
@@ -108,7 +108,7 @@ PdfString PdfCMapEncoding::ConvertToUnicode(const PdfString &rString, const PdfF
         if (m_toUnicode.empty())
             return PdfString("\0");
 
-        return convertToUnicode(rString, m_toUnicode, m_nLastChar > 0xFF ? 2 : 1 );
+        return convertToUnicode(rString, m_toUnicode, m_maxCodeRangeSize);
     }
 }
 

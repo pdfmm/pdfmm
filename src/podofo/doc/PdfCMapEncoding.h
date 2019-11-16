@@ -65,8 +65,9 @@ public:
 
 private:
     EBaseEncoding m_baseEncoding;
-    int     m_nFirstChar;   ///< The first defined character code
-    int     m_nLastChar;    ///< The last defined character code
+    char32_t m_nFirstCode;               // The first defined character code
+    char32_t m_nLastCode;                // The last defined character code
+    unsigned m_maxCodeRangeSize;         // Size of in bytes of the bigger code range
     UnicodeMap m_toUnicode;
 };
 

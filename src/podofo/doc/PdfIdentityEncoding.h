@@ -122,14 +122,6 @@ class PODOFO_DOC_API PdfIdentityEncoding : public PdfEncoding {
     inline virtual const PdfName & GetID() const;
     
  private:
-
-    /** Gets the unicode value from a char code in this font
-     *
-     *  \param lCharCode the character code (i.e. glyph id)
-     *
-     *  \returns an unicode value
-     */
-    pdf_utf16be GetUnicodeValue( pdf_utf16be lCharCode ) const;
     
     /** Gets the char code from a uniode value
      *
