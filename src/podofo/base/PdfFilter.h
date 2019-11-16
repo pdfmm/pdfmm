@@ -462,7 +462,7 @@ class PODOFO_API PdfFilterFactory {
  public:
     /** Create a filter from an enum.
      *
-     *  Ownership is transferred to the caller, who should let the auto_ptr
+     *  Ownership is transferred to the caller, who should let the unique_ptr
      *  the filter is returned in take care of freeing it when they're done
      *  with it.
      *
@@ -471,7 +471,7 @@ class PODOFO_API PdfFilterFactory {
      *  \returns a new PdfFilter allocated using new, or NULL if no
      *           filter is available for this type.
      */
-    static std::auto_ptr<PdfFilter> Create( const EPdfFilter eFilter );
+    static std::unique_ptr<PdfFilter> Create( const EPdfFilter eFilter );
 
     /** Create a PdfOutputStream that applies a list of filters 
      *  on all data written to it.

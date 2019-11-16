@@ -245,7 +245,7 @@ void PdfMemStream::FlateCompressStreamData()
     if( !m_lLength )
         return;
 
-    std::auto_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_FlateDecode );
+    std::unique_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_FlateDecode );
     if( pFilter.get() )
     {
         pFilter->Encode( m_buffer.GetBuffer(), m_buffer.GetSize(), &pBuffer, &lLen );

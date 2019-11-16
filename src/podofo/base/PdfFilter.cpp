@@ -131,7 +131,7 @@ class PdfFilteredEncodeStream : public PdfOutputStream{
 
 private:
     PdfOutputStream*         m_pOutputStream;
-    std::auto_ptr<PdfFilter> m_filter;
+    std::unique_ptr<PdfFilter> m_filter;
 };
 
 /** Create a filter that is a PdfOutputStream.
@@ -219,7 +219,7 @@ class PdfFilteredDecodeStream : public PdfOutputStream {
 
 private:
     PdfOutputStream*         m_pOutputStream;
-    std::auto_ptr<PdfFilter> m_filter;
+    std::unique_ptr<PdfFilter> m_filter;
     bool                     m_bFilterFailed;
 };
 
@@ -277,7 +277,7 @@ PdfFilterFactory::PdfFilterFactory()
 {
 }
 
-std::auto_ptr<PdfFilter> PdfFilterFactory::Create( const EPdfFilter eFilter ) 
+std::unique_ptr<PdfFilter> PdfFilterFactory::Create( const EPdfFilter eFilter ) 
 {
     PdfFilter* pFilter = NULL;
     switch( eFilter )
@@ -329,7 +329,7 @@ std::auto_ptr<PdfFilter> PdfFilterFactory::Create( const EPdfFilter eFilter )
             break;
     }
 
-    return std::auto_ptr<PdfFilter>(pFilter);
+    return std::unique_ptr<PdfFilter>(pFilter);
 }
 
 PdfOutputStream* PdfFilterFactory::CreateEncodeStream( const TVecFilters & filters, PdfOutputStream* pStream ) 

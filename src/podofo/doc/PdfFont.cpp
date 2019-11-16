@@ -151,7 +151,7 @@ void PdfFont::WriteStringToStream( const PdfString & rsString, ostream& rStream 
     pdf_long  lLen    = 0;
     char* pBuffer = NULL;
 
-    std::auto_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );    
+    std::unique_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );    
     pFilter->Encode( buffer.GetBuffer(), buffer.GetSize(), &pBuffer, &lLen );
 
     rStream << "<";

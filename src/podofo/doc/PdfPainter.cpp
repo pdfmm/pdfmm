@@ -742,7 +742,7 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
 
     /*
     char* pBuffer;
-    std::auto_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
+    std::unique_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
     pFilter->Encode( sString.GetString(), sString.GetLength(), &pBuffer, &lLen );
 
     m_oss.write( pBuffer, lLen );
