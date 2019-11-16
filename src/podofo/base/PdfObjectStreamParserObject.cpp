@@ -62,8 +62,8 @@ PdfObjectStreamParserObject::~PdfObjectStreamParserObject()
 
 void PdfObjectStreamParserObject::Parse(ObjectIdList const & list)
 {
-    pdf_int64 lNum   = m_pParser->GetDictionary().GetKeyAsLong( "N", 0 );
-    pdf_int64 lFirst = m_pParser->GetDictionary().GetKeyAsLong( "First", 0 );
+    int64_t lNum   = m_pParser->GetDictionary().GetKeyAsLong( "N", 0 );
+    int64_t lFirst = m_pParser->GetDictionary().GetKeyAsLong( "First", 0 );
     
     char* pBuffer;
     pdf_long lBufferLen;
@@ -80,20 +80,20 @@ void PdfObjectStreamParserObject::Parse(ObjectIdList const & list)
     }
 }
 
-void PdfObjectStreamParserObject::ReadObjectsFromStream( char* pBuffer, pdf_long lBufferLen, pdf_int64 lNum, pdf_int64 lFirst, ObjectIdList const & list)
+void PdfObjectStreamParserObject::ReadObjectsFromStream( char* pBuffer, pdf_long lBufferLen, int64_t lNum, int64_t lFirst, ObjectIdList const & list)
 {
     PdfRefCountedInputDevice device( pBuffer, lBufferLen );
     PdfTokenizer             tokenizer( device, m_buffer );
     PdfVariant               var;
     int                      i = 0;
 
-    while( static_cast<pdf_int64>(i) < lNum )
+    while( static_cast<int64_t>(i) < lNum )
     {
-        const pdf_int64 lObj     = tokenizer.GetNextNumber();
-        const pdf_int64 lOff     = tokenizer.GetNextNumber();
+        const int64_t lObj     = tokenizer.GetNextNumber();
+        const int64_t lOff     = tokenizer.GetNextNumber();
         const std::streamoff pos = device.Device()->Tell();
 
-        if( lFirst >= std::numeric_limits<pdf_int64>::max() - lOff )
+        if( lFirst >= std::numeric_limits<int64_t>::max() - lOff )
         {
             PODOFO_RAISE_ERROR_INFO( ePdfError_BrokenFile,
                                     "Object position out of max limit" );

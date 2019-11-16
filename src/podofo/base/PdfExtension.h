@@ -45,18 +45,18 @@ namespace PoDoFo {
         
     public:
         
-        PdfExtension(const char* ns, EPdfVersion baseVersion, pdf_int64 level):
+        PdfExtension(const char* ns, EPdfVersion baseVersion, int64_t level):
         _ns(ns), _baseVersion(baseVersion), _level(level) {}
         
         const std::string& getNamespace() const { return _ns; }
         EPdfVersion getBaseVersion() const { return _baseVersion; }
-        pdf_int64 getLevel() const { return _level; }
+        int64_t getLevel() const { return _level; }
         
     private:
         
         std::string _ns;
         EPdfVersion _baseVersion;
-        pdf_int64 _level;
+        int64_t _level;
     };
 }
 

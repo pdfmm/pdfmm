@@ -280,7 +280,7 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
      *  \param b blue RGB value of color that should be masked
      *  \param threshold colors are masked that are in the range [(r-threshold, r+threshold),(g-threshold, g+threshold),(b-threshold, b+threshold)]
      */
-    void SetImageChromaKeyMask(pdf_int64 r, pdf_int64 g, pdf_int64 b, pdf_int64 threshold = 0);
+    void SetImageChromaKeyMask(int64_t r, int64_t g, int64_t b, int64_t threshold = 0);
 
     /**
      * Apply an interpolation to the image if the source resolution

@@ -88,7 +88,7 @@ class PODOFO_API PdfVariant {
     /** Construct a PdfVariant that is a number.
      *  \param l the value of the number.
      */
-    PdfVariant( pdf_int64 l );
+    PdfVariant( int64_t l );
 
     /** Construct a PdfVariant that is a real number.
      *  \param d the value of the real number.
@@ -261,7 +261,7 @@ class PODOFO_API PdfVariant {
     /** Get the value of the object as long.
      *  \return the value of the number
      */
-    inline pdf_int64 GetNumber() const;
+    inline int64_t GetNumber() const;
 
     /** Set the value of this object as double
      *  \param d the value as double.
@@ -521,7 +521,7 @@ class PODOFO_API PdfVariant {
 
         bool       bBoolValue;
         double     dNumber;
-        pdf_int64      nNumber;
+        int64_t      nNumber;
     } UVariant;
 
     UVariant     m_Data;
@@ -536,7 +536,7 @@ class PODOFO_API PdfVariant {
      *  The type is unsigned because there's no negative value in the enum PdfDataType and
      *  to cleanly enable the ePdfDataType_Unknown value to be 0xff (as sentinel value).
      */
-    pdf_uint8 m_eDataType;
+    uint8_t m_eDataType;
 
     // No touchy. Only for use by PdfVariant's internal tracking of the delayed
     // loading state. Use DelayedLoadDone() to test this if you need to.
@@ -656,7 +656,7 @@ void PdfVariant::SetNumber( long l )
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-pdf_int64 PdfVariant::GetNumber() const
+int64_t PdfVariant::GetNumber() const
 {
     DelayedLoad();
 

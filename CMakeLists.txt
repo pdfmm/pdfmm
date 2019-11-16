@@ -36,6 +36,8 @@ if(POLICY CMP0033)
 CMAKE_POLICY(SET CMP0033 NEW) # https://cmake.org/cmake/help/v3.0/policy/CMP0033.html
 endif()
 
+set(CMAKE_CXX_STANDARD 14)
+
 # Load modules from our source tree too
 SET(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 
@@ -97,148 +99,11 @@ CHECK_INCLUDE_FILE("strings.h" PODOFO_HAVE_STRINGS_H)
 CHECK_INCLUDE_FILE("arpa/inet.h" PODOFO_HAVE_ARPA_INET_H) 
 CHECK_INCLUDE_FILE("winsock2.h" PODOFO_HAVE_WINSOCK2_H) 
 CHECK_INCLUDE_FILE("mem.h" PODOFO_HAVE_MEM_H) 
-CHECK_INCLUDE_FILE("ctype.h" PODOFO_HAVE_CTYPE_H) 
+CHECK_INCLUDE_FILE("ctype.h" PODOFO_HAVE_CTYPE_H)
 
-# Do some type size detection and provide yet another set of typedefs for fixed
-# font sizes. We can't use the c99 / c++0x uint32_t etc, because people use
-# ancient compilers that don't and will never support the standard.
-
-CHECK_INCLUDE_FILE("sys/types.h" PODOFO_HAVE_SYS_TYPES_H) 
-CHECK_INCLUDE_FILE("stdint.h" PODOFO_HAVE_STDINT_H) 
+CHECK_INCLUDE_FILE("sys/types.h" PODOFO_HAVE_SYS_TYPES_H)
 # See: http://msdn.microsoft.com/en-us/library/aa384264(VS.85).aspx
 CHECK_INCLUDE_FILE("BaseTsd.h" PODOFO_HAVE_BASETSD_H) 
-
-CHECK_TYPE_SIZE("long int" SZ_LONG)
-
-# We cache integer type detection results, and don't repeat them
-# (and overwrite the user's manual changes) if they've been done already.
-IF(NOT PDF_INT64_TYPENAME)
-  # I hate old compilers.
-  IF(PODOFO_HAVE_STDINT_H)
-    SET(pdfint8 "int8_t")
-    SET(pdfint16 "int16_t")
-    SET(pdfint32 "int32_t")
-    SET(pdfint64 "int64_t")
-    SET(pdfuint8 "uint8_t")
-    SET(pdfuint16 "uint16_t")
-    SET(pdfuint32 "uint32_t")
-    SET(pdfuint64 "uint64_t")
-    CHECK_TYPE_SIZE("int64_t" SZ_INT64)
-  ELSE(PODOFO_HAVE_STDINT_H)
-    # No stdint.h . Try BaseTsd.h windows types.
-    IF(PODOFO_HAVE_BASETSD_H)
-       # We have BaseTsd.h, so use those types.
-       SET(pdfint8  "signed char")
-       SET(pdfint16 "short")
-       SET(pdfint32 "INT32")
-       SET(pdfint64 "INT64")
-       SET(pdfuint8 "unsigned char")
-       SET(pdfuint16 "unsigned short")
-       SET(pdfuint32 "UINT32")
-       SET(pdfuint64 "UINT64")
-       CHECK_TYPE_SIZE("INT64" SZ_INT64)
-    ELSE(PODOFO_HAVE_BASETSD_H)
-       # No BaseTsd.h either. Assume the standard types, and go poking
-       # for a sane 64-bit integer.
-       #
-       # First, though, make sure sizeof(int) = 4 and if not, scream, because
-       # hopefully this case will never be hit and we'll never have to write
-       # the horrible code check for
-       CHECK_TYPE_SIZE("signed char"        SZ_TINY_INT)
-       CHECK_TYPE_SIZE("unsigned char"      SZ_TINY_UINT)
-       CHECK_TYPE_SIZE("short int"          SZ_SHORT_INT)
-       CHECK_TYPE_SIZE("int"                SZ_INT)
-       CHECK_TYPE_SIZE("unsigned short int" SZ_UINT)
-       CHECK_TYPE_SIZE("unsigned int"       SZ_SHORT_UINT)
-       SET(smallintsok SZ_INT == 4 AND SZ_UINT == 4 AND SZ_SHORT_INT == 2 AND SZ_SHORT_UINT == 2 AND SZ_TINY_INT == 1 AND SZ_TINY_UINT == 1)
-       IF(NOT smallintsok)
-         MESSAGE(FATAL "sizeof(int) != 4 and/or sizeof(short) != 2 and no stdint.h or BaseTsd.h found. We don't know how to cope with this.")
-       ENDIF(NOT smallintsok)
-       SET(pdfint8 "signed char")
-       SET(pdfint16 "short")
-       SET(pdfint32 "int")
-       SET(pdfuint8 "unsigned char")
-       SET(pdfuint16 "unsigned short")
-       SET(pdfuint32 "unsigned int")
-       # Now we just have to figure out what 64-bit integer type we can use.
-       #
-       # Do we have VC >= 6's __uint64 and __int64?
-       # See: http://icfun.blogspot.com/2008/04/use-of-int64-variable-in-c.html
-       CHECK_TYPE_SIZE("__int64" SZ___INT64)
-       CHECK_TYPE_SIZE("__uint64"  SZ___UINT64)
-       IF(SZ___INT64 == 8 AND SZ___UINT64 == 8)
-         # MS compiler, VC6 or newer without BaseTsd.h in SDK
-         SET(pdfint64 "__int64")
-         SET(pdfuint64 "__uint64")
-	 CHECK_TYPE_SIZE("__int64" SZ_INT64)
-       ELSE(SZ___INT64 AND SZ___UINT64)
-         # Still no luck. Old unix compiler, Borland, or some other monster?
-         # Are we lucky and sizeof(long) == 8?
-         CHECK_TYPE_SIZE("unsigned long int" SZ_ULONG)
-         IF(SZ_LONG == 8 AND SZ_ULONG == 8)
-           # Must be on a LP64 platform, sizeof(long) = 8
-           SET(pdfint64 "long int")
-           SET(pdfuint64 "unsigned long int")
-	   CHECK_TYPE_SIZE("long int" SZ_INT64)
-         ELSE(SZ_LONG == 8 AND SZ_ULONG == 8)
-           # See if the compiler implements "long long int", int64_t, int64,
-           # or _int64 (in this order, __int64 check already done)
-           IF(PODOFO_HAVE_SYS_TYPES_H)
-             SET(CMAKE_EXTRA_INCLUDE_FILES "sys/types.h")
-           ENDIF(PODOFO_HAVE_SYS_TYPES_H)
-           CHECK_TYPE_SIZE("long long int"          SZ_LONG_LONG)
-           CHECK_TYPE_SIZE("unsigned long long int" SZ_UNSIGNED_LONG_LONG)
-           IF(SZ_LONG_LONG == 8 AND SZ_UNSIGNED_LONG_LONG == 8)
-             SET(pdfint64 "long long int")
-             SET(pdfuint64 "unsigned long long int")
-             CHECK_TYPE_SIZE("long long int" SZ_INT64)
-           ELSE(SZ_LONG_LONG == 8 AND SZ_UNSIGNED_LONG_LONG == 8)
-             # The standard type int64_t is normally found in stdint.h,
-             # but use a type of this name anyway if present
-             CHECK_TYPE_SIZE("int64_t"       SZ_INT64_T)
-             CHECK_TYPE_SIZE("uint64_t"      SZ_UINT64_T)
-             IF(SZ_INT64_T AND SZ_UINT64_T)
-               SET(pdfint64 "int64_t")
-               SET(pdfuint64 "uint64_t")
-	       CHECK_TYPE_SIZE("int64_t" SZ_INT64)
-             ELSE(SZ_INT64_T AND SZ_UINT64_T)
-               CHECK_TYPE_SIZE("int64"                SZ_INT64)
-               CHECK_TYPE_SIZE("uint64"               SZ_UINT64)
-               IF(SZ_INT64 AND SZ_UINT64)
-                 SET(pdfint64 "int64")
-                 SET(pdfuint64 "uint64")
-		 CHECK_TYPE_SIZE("int64" SZ_INT64)
-               ELSE(SZ_INT64 AND SZ_UINT64)
-                 CHECK_TYPE_SIZE("_int64"                SZ__INT64)
-                 CHECK_TYPE_SIZE("_uint64"               SZ__UINT64)
-                 IF(SZ__INT64 AND SZ__UINT64)
-                   SET(pdfint64 "_int64")
-                   SET(pdfuint64 "_uint64")
-		   CHECK_TYPE_SIZE("_int64" SZ_INT64)
-                 ELSE(SZ__INT64 AND SZ__UINT64)
-                   MESSAGE("Oh my lord, your compiler doesn't seem to support any of the int64 type flavours we tried.")
-                   MESSAGE(WARNING "You must set the PDF_INTxx_TYPENAME and PDF_UINTxx_TYPENAME variables manually")
-                 ENDIF(SZ__INT64 AND SZ__UINT64)
-               ENDIF(SZ_INT64 AND SZ_UINT64)
-             ENDIF(SZ_INT64_T AND SZ_UINT64_T)
-           ENDIF(SZ_LONG_LONG == 8 AND SZ_UNSIGNED_LONG_LONG == 8)
-         ENDIF(SZ_LONG == 8 AND SZ_ULONG == 8)
-       ENDIF(SZ___INT64 AND SZ___UINT64)
-    ENDIF(PODOFO_HAVE_BASETSD_H)
-  ENDIF(PODOFO_HAVE_STDINT_H)
-  SET(CMAKE_EXTRA_INCLUDE_FILES)
-ENDIF(NOT PDF_INT64_TYPENAME)
-
-IF(NOT PDF_INT64_TYPENAME AND pdfint64)
-  SET(PDF_INT64_TYPENAME  "${pdfint64}" CACHE STRING "Name of detected 64-bit signed integer type to use")
-  SET(PDF_INT32_TYPENAME  "${pdfint32}" CACHE STRING "Name of detected 32-bit signed integer type to use")
-  SET(PDF_INT16_TYPENAME  "${pdfint16}" CACHE STRING "Name of detected 16-bit signed integer type to use")
-  SET(PDF_INT8_TYPENAME   "${pdfint8}" CACHE STRING "Name of detected 8-bit signed integer type to use")
-  SET(PDF_UINT64_TYPENAME "${pdfuint64}" CACHE STRING "Name of detected 64-bit unsigned integer type to use")
-  SET(PDF_UINT32_TYPENAME "${pdfuint32}" CACHE STRING "Name of detected 32-bit unsigned integer type to use")
-  SET(PDF_UINT16_TYPENAME "${pdfuint16}" CACHE STRING "Name of detected 16-bit unsigned integer type to use")
-  SET(PDF_UINT8_TYPENAME  "${pdfuint8}" CACHE STRING "Name of detected 8-bit unsigned integer type to use")
-ENDIF(NOT PDF_INT64_TYPENAME AND pdfint64)
 
 # Linux packagers want an uninstall target.
 CONFIGURE_FILE(

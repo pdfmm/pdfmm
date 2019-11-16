@@ -88,7 +88,7 @@ PdfVariant::PdfVariant( bool b )
     m_Data.bBoolValue = b;
 }
 
-PdfVariant::PdfVariant( pdf_int64 l )
+PdfVariant::PdfVariant( int64_t l )
 {
     Init();
     Clear();

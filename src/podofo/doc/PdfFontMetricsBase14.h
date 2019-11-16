@@ -73,12 +73,12 @@ public:
 	PdfFontMetricsBase14(const char   *mfont_name,
                          const PODOFO_CharData  *mwidths_table,
                          bool             mis_font_specific,
-                         pdf_int16         mascent,
-                         pdf_int16         mdescent,
-                         pdf_uint16        mx_height,
-                         pdf_uint16        mcap_height,
-                         pdf_int16         mstrikeout_pos,
-                         pdf_int16         munderline_pos,
+                         int16_t         mascent,
+                         int16_t         mdescent,
+                         uint16_t        mx_height,
+                         uint16_t        mcap_height,
+                         int16_t         mstrikeout_pos,
+                         int16_t         munderline_pos,
                          const PdfRect &  mbbox);
 
     ~PdfFontMetricsBase14();
@@ -252,10 +252,10 @@ private :
 	const char      *font_name;
     const PODOFO_CharData  *widths_table;
     bool             is_font_specific;
-    pdf_int16            ascent;
-    pdf_int16            descent;
-    pdf_uint16           x_height;
-    pdf_uint16           cap_height;
+    int16_t            ascent;
+    int16_t            descent;
+    uint16_t           x_height;
+    uint16_t           cap_height;
     PdfRect              bbox;
 
 	bool          m_bSymbol;  ///< Internal member to singnal a symbol font

@@ -185,7 +185,7 @@ class PODOFO_DOC_API PdfAnnotation : public PdfElement {
      *                 EPdfAnnotationFlags OR'ed together.
      *  \see GetFlags
      */
-    void SetFlags( pdf_uint32 uiFlags );
+    void SetFlags( uint32_t uiFlags );
 
     /** Get the flags of this annotation.
      *  \returns the flags which is an unsigned 32bit integer with different
@@ -193,7 +193,7 @@ class PODOFO_DOC_API PdfAnnotation : public PdfElement {
      *
      *  \see SetFlags
      */
-    pdf_uint32 GetFlags() const;
+    uint32_t GetFlags() const;
 
     /** Set the annotations border style.
      *  \param dHCorner horitzontal corner radius 

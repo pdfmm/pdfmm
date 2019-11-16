@@ -84,7 +84,7 @@ PdfObject::PdfObject( bool b )
     InitPdfObject();
 }
 
-PdfObject::PdfObject( pdf_int64 l )
+PdfObject::PdfObject( int64_t l )
     : PdfVariant( l )
 {
     InitPdfObject();
@@ -241,7 +241,7 @@ void PdfObject::WriteObject( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode,
         {
             // PdfFileStream handles encryption internally
             pdf_long lLength = pEncrypt->CalculateStreamLength(m_pStream->GetLength());
-            PdfVariant varLength = static_cast<pdf_int64>(lLength);
+            PdfVariant varLength = static_cast<int64_t>(lLength);
             *(const_cast<PdfObject*>(this)->GetIndirectKey( PdfName::KeyLength )) = varLength;
         }
     }

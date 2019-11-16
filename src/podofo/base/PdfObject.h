@@ -107,11 +107,11 @@ class PODOFO_API PdfObject : public PdfVariant {
     PdfObject( bool b );
 
     /** Construct a PdfObject with object and generation number -1
-     *  and a pdf_int64 as value.
+     *  and a int64_t as value.
      *
-     *  \param l the pdf_int64 value of this PdfObject
+     *  \param l the int64_t value of this PdfObject
      */
-    PdfObject( pdf_int64 l );
+    PdfObject( int64_t l );
 
     /** Construct a PdfObject with object and generation number -1
      *  and a double as value.

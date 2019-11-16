@@ -82,25 +82,25 @@ void PdfFontType1Base14::InitBase14Font( PdfFontMetrics* pMetrics )
     m_pMetrics->GetWidthArray( *pWidth, m_pEncoding->GetFirstChar(), m_pEncoding->GetLastChar(), m_pEncoding );
 
     this->GetObject()->GetDictionary().AddKey("Widths", pWidth->Reference() );
-    this->GetObject()->GetDictionary().AddKey("FirstChar", PdfVariant( static_cast<pdf_int64>(m_pEncoding->GetFirstChar()) ) );
-    this->GetObject()->GetDictionary().AddKey("LastChar", PdfVariant( static_cast<pdf_int64>(m_pEncoding->GetLastChar()) ) );
+    this->GetObject()->GetDictionary().AddKey("FirstChar", PdfVariant( static_cast<int64_t>(m_pEncoding->GetFirstChar()) ) );
+    this->GetObject()->GetDictionary().AddKey("LastChar", PdfVariant( static_cast<int64_t>(m_pEncoding->GetLastChar()) ) );
 
     m_pEncoding->AddToDictionary( this->GetObject()->GetDictionary() ); // Add encoding key
 //	pDescriptor->GetDictionary().AddKey( "FontName", this->GetBaseFont() );
     //pDescriptor->GetDictionary().AddKey( "FontWeight", (long)m_pMetrics->Weight() );
-//		pDescriptor->GetDictionary().AddKey( PdfName::KeyFlags, PdfVariant( static_cast<pdf_int64>(32LL) ) ); // TODO: 0 ????
+//		pDescriptor->GetDictionary().AddKey( PdfName::KeyFlags, PdfVariant( static_cast<int64_t>(32LL) ) ); // TODO: 0 ????
 //		pDescriptor->GetDictionary().AddKey( "FontBBox", array );
 	
     
 	
 		
-//			pDescriptor->GetDictionary().AddKey( "ItalicAngle", PdfVariant( static_cast<pdf_int64>(m_pMetrics->GetItalicAngle()) ) );
+//			pDescriptor->GetDictionary().AddKey( "ItalicAngle", PdfVariant( static_cast<int64_t>(m_pMetrics->GetItalicAngle()) ) );
 //			pDescriptor->GetDictionary().AddKey( "Ascent", m_pMetrics->GetPdfAscent() );
 //			pDescriptor->GetDictionary().AddKey( "Descent", m_pMetrics->GetPdfDescent() );
 //			pDescriptor->GetDictionary().AddKey( "CapHeight", m_pMetrics->GetPdfAscent() ); // m_pMetrics->CapHeight() );
 		 
 
-//		pDescriptor->GetDictionary().AddKey( "StemV", PdfVariant( static_cast<pdf_int64>(1LL) ) );               // m_pMetrics->StemV() );
+//		pDescriptor->GetDictionary().AddKey( "StemV", PdfVariant( static_cast<int64_t>(1LL) ) );               // m_pMetrics->StemV() );
 
 		// Peter Petrov 24 September 2008
 //		m_pDescriptor = pDescriptor;

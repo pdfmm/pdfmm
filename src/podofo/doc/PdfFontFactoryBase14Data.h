@@ -46,9 +46,9 @@
 namespace PoDoFo {
 
 struct PODOFO_CharData {
-    pdf_int16     char_cd;
-    pdf_uint16   unicode;  
-    pdf_int16     width;
+    int16_t     char_cd;
+    uint16_t   unicode;  
+    int16_t     width;
 } ;
 
 static const PODOFO_CharData CHAR_DATA_COURIER[316] = {

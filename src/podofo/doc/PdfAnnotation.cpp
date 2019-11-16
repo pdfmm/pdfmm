@@ -261,17 +261,17 @@ PdfObject * PdfAnnotation::GetAppearanceStream(EPdfAnnotationAppearance eAppeara
     return apObjInn->GetDictionary().FindKey(state);
 }
 
-void PdfAnnotation::SetFlags( pdf_uint32 uiFlags )
+void PdfAnnotation::SetFlags( uint32_t uiFlags )
 {
-    this->GetObject()->GetDictionary().AddKey( "F", PdfVariant( static_cast<pdf_int64>(uiFlags) ) );
+    this->GetObject()->GetDictionary().AddKey( "F", PdfVariant( static_cast<int64_t>(uiFlags) ) );
 }
 
-pdf_uint32 PdfAnnotation::GetFlags() const
+uint32_t PdfAnnotation::GetFlags() const
 {
     if( this->GetObject()->GetDictionary().HasKey( "F" ) )
-        return static_cast<pdf_uint32>(this->GetObject()->GetDictionary().GetKey( "F" )->GetNumber());
+        return static_cast<uint32_t>(this->GetObject()->GetDictionary().GetKey( "F" )->GetNumber());
 
-    return static_cast<pdf_uint32>(0);
+    return static_cast<uint32_t>(0);
 }
 
 void PdfAnnotation::SetBorderStyle( double dHCorner, double dVCorner, double dWidth )

@@ -158,35 +158,35 @@ inline static double logb(double x) {
  * then optimized out with any sane compiler and C library.
  */
 
-inline static pdf_uint32 podofo_ntohl(pdf_uint32 i) {
+inline static uint32_t podofo_ntohl(uint32_t i) {
 #if defined(_WIN32) && defined(_MSC_VER)
-   return (pdf_uint32)( ntohl( i ) );
+   return (uint32_t)( ntohl( i ) );
 #else
-   return static_cast<pdf_uint32>( ntohl( i ) );
+   return static_cast<uint32_t>( ntohl( i ) );
 #endif // _WIN32
 }
 
-inline static pdf_uint16 podofo_ntohs(pdf_uint16 i) {
+inline static uint16_t podofo_ntohs(uint16_t i) {
 #if defined(_WIN32) && defined(_MSC_VER)
-   return (pdf_uint16)( ntohs( i ) );
+   return (uint16_t)( ntohs( i ) );
 #else
-   return static_cast<pdf_uint16>( ntohs( i ) );
+   return static_cast<uint16_t>( ntohs( i ) );
 #endif // _WIN32
 }
 
-inline static pdf_uint32 podofo_htonl(pdf_uint32 i) {
+inline static uint32_t podofo_htonl(uint32_t i) {
 #if defined(_WIN32) && defined(_MSC_VER)
-    return (pdf_uint32)( htonl( i ) );
+    return (uint32_t)( htonl( i ) );
 #else
-    return static_cast<pdf_uint32>( htonl( i ) );
+    return static_cast<uint32_t>( htonl( i ) );
 #endif // _WIN32
 }
 
-inline static pdf_uint16 podofo_htons(pdf_uint16 i) {
+inline static uint16_t podofo_htons(uint16_t i) {
 #if defined(_WIN32) && defined(_MSC_VER)
-    return (pdf_uint16)( htons( i ) );
+    return (uint16_t)( htons( i ) );
 #else
-    return static_cast<pdf_uint16>( htons( i ) );
+    return static_cast<uint16_t>( htons( i ) );
 #endif // _WIN32
 }
 

@@ -752,7 +752,7 @@ pdf_long PdfString::ConvertUTF8toUTF16( const pdf_utf8* pszUtf8, pdf_long lLenUt
 
     u8_to_u16 (s, sLength, resultBuf, &resultBufLength);
 
-    pdf_long lBufferLen = PODOFO_MIN( static_cast<pdf_long>(resultBufLength + 1), lLenUtf16 );
+    pdf_long lBufferLen = std::min( static_cast<pdf_long>(resultBufLength + 1), lLenUtf16 );
     PdfRefCountedBuffer buffer(reinterpret_cast<char*>(pszUtf16), lBufferLen * sizeof(pdf_utf16be));
     buffer.SetTakePossesion(false);
     
@@ -804,7 +804,7 @@ pdf_long PdfString::ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, pdf_long lL
         return resultBufLength + 1;
     }
 
-    pdf_long lBufferLen = PODOFO_MIN( static_cast<pdf_long>(resultBufLength + 1), lLenUtf8 );
+    pdf_long lBufferLen = std::min( static_cast<pdf_long>(resultBufLength + 1), lLenUtf8 );
 
     // Make sure buffer is 0 terminated
     if ( static_cast<pdf_long>(resultBufLength + 1) <= lLenUtf8 )

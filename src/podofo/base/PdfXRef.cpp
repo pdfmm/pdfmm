@@ -103,7 +103,7 @@ PdfXRef::~PdfXRef()
 
 }
 
-void PdfXRef::AddObject( const PdfReference & rRef, pdf_uint64 offset, bool bUsed )
+void PdfXRef::AddObject( const PdfReference & rRef, uint64_t offset, bool bUsed )
 {
     TIVecXRefBlock     it = m_vecBlocks.begin();
     PdfXRef::TXRefItem item( rRef, offset );
@@ -143,7 +143,7 @@ void PdfXRef::Write( PdfOutputDevice* pDevice )
     const PdfReference*       pNextFree  = NULL;
 
     pdf_objnum nFirst = 0;
-    pdf_uint32 nCount = 0;
+    uint32_t nCount = 0;
 
     MergeBlocks();
 
@@ -269,10 +269,10 @@ const PdfReference* PdfXRef::GetNextFreeObject( PdfXRef::TCIVecXRefBlock itBlock
     return pRef;
 }
 
-pdf_uint32 PdfXRef::GetSize() const
+uint32_t PdfXRef::GetSize() const
 {
 
-    pdf_uint32 nCount = 0;
+    uint32_t nCount = 0;
     PdfXRef::TCIVecXRefBlock  it = m_vecBlocks.begin();
 
     while( it != m_vecBlocks.end() )
@@ -289,7 +289,7 @@ pdf_uint32 PdfXRef::GetSize() const
     pdf_objnum highObj  = lastBlock.items.size() ? lastBlock.items.back().reference.ObjectNumber() : 0;
     pdf_objnum highFree = lastBlock.freeItems.size() ? lastBlock.freeItems.back().ObjectNumber() : 0;
 
-    pdf_uint32 max = PDF_MAX( highObj, highFree );
+    uint32_t max = PDF_MAX( highObj, highFree );
 
     // From the PdfReference: /Size's value is 1 greater than the highes object number used in the file.
     return max+1;
@@ -332,7 +332,7 @@ void PdfXRef::BeginWrite( PdfOutputDevice* pDevice )
     pDevice->Print( "xref\n" );
 }
 
-void PdfXRef::WriteSubSection( PdfOutputDevice* pDevice, pdf_objnum nFirst, pdf_uint32 nCount )
+void PdfXRef::WriteSubSection( PdfOutputDevice* pDevice, pdf_objnum nFirst, uint32_t nCount )
 {
 #ifdef DEBUG
     PdfError::DebugMessage("Writing XRef section: %u %u\n", nFirst, nCount );
@@ -340,7 +340,7 @@ void PdfXRef::WriteSubSection( PdfOutputDevice* pDevice, pdf_objnum nFirst, pdf_
     pDevice->Print( "%u %u\n", nFirst, nCount );
 }
 
-void PdfXRef::WriteXRefEntry( PdfOutputDevice* pDevice, pdf_uint64 offset, 
+void PdfXRef::WriteXRefEntry( PdfOutputDevice* pDevice, uint64_t offset, 
                               pdf_gennum generation, char cMode, pdf_objnum ) 
 {
     pDevice->Print( "%0.10" PDF_FORMAT_UINT64 " %0.5hu %c \n", offset, generation, cMode );

@@ -484,7 +484,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      *  \param nFirstObject object number of the first object
      *  \param nNumObjects  how many objects should be read from this section
      */
-    void ReadXRefSubsection( pdf_int64 & nFirstObject, pdf_int64 & nNumObjects );
+    void ReadXRefSubsection( int64_t & nFirstObject, int64_t & nNumObjects );
 
     /** Reads a xref stream contens object
      *  \param lOffset read the stream from this offset

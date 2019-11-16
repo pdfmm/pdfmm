@@ -178,9 +178,9 @@ void PdfShadingPattern::Init( EPdfShadingPatternType eShadingType )
 
     // keys common to all shading directories
     PdfDictionary shading;
-    shading.AddKey( PdfName("ShadingType"), static_cast<pdf_int64>(eShadingType) );
+    shading.AddKey( PdfName("ShadingType"), static_cast<int64_t>(eShadingType) );
 
-    this->GetObject()->GetDictionary().AddKey( PdfName("PatternType"), static_cast<pdf_int64>(2L) ); // Shading pattern
+    this->GetObject()->GetDictionary().AddKey( PdfName("PatternType"), static_cast<int64_t>(2L) ); // Shading pattern
 	 if (eShadingType < ePdfShadingPatternType_FreeForm) {
     this->GetObject()->GetDictionary().AddKey( PdfName("Shading"), shading );
 	 } else {
@@ -571,20 +571,20 @@ void PdfTriangleShadingPattern::Init( double dX0, double dY0, const PdfColor &co
 	decode.push_back(miny);
 	decode.push_back(maxy);
 
-	decode.push_back(static_cast<pdf_int64>(0));
-	decode.push_back(static_cast<pdf_int64>(1));
-	decode.push_back(static_cast<pdf_int64>(0));
-	decode.push_back(static_cast<pdf_int64>(1));
-	decode.push_back(static_cast<pdf_int64>(0));
-	decode.push_back(static_cast<pdf_int64>(1));
+	decode.push_back(static_cast<int64_t>(0));
+	decode.push_back(static_cast<int64_t>(1));
+	decode.push_back(static_cast<int64_t>(0));
+	decode.push_back(static_cast<int64_t>(1));
+	decode.push_back(static_cast<int64_t>(0));
+	decode.push_back(static_cast<int64_t>(1));
 
 	PdfObject *shadingObject = this->GetObject()->GetIndirectKey(PdfName("Shading"));
 	PdfDictionary &shading = shadingObject->GetDictionary();
 
 	shading.AddKey( PdfName("ColorSpace"), PdfName("DeviceRGB") );
-	shading.AddKey( PdfName("BitsPerCoordinate"), static_cast<pdf_int64>(8));
-	shading.AddKey( PdfName("BitsPerComponent"), static_cast<pdf_int64>(8));
-	shading.AddKey( PdfName("BitsPerFlag"), static_cast<pdf_int64>(8));
+	shading.AddKey( PdfName("BitsPerCoordinate"), static_cast<int64_t>(8));
+	shading.AddKey( PdfName("BitsPerComponent"), static_cast<int64_t>(8));
+	shading.AddKey( PdfName("BitsPerFlag"), static_cast<int64_t>(8));
 	shading.AddKey( PdfName("Decode"), decode);
 
 	// f x y c1 c2 c3

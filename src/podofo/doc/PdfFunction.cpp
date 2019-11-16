@@ -60,7 +60,7 @@ PdfFunction::~PdfFunction()
 
 void PdfFunction::Init( EPdfFunctionType eType, const PdfArray & rDomain )
 {
-    this->GetObject()->GetDictionary().AddKey( PdfName("FunctionType"), static_cast<pdf_int64>(eType) );
+    this->GetObject()->GetDictionary().AddKey( PdfName("FunctionType"), static_cast<int64_t>(eType) );
     this->GetObject()->GetDictionary().AddKey( PdfName("Domain"), rDomain );
 
 }
@@ -82,13 +82,13 @@ void PdfSampledFunction::Init( const PdfArray & rDomain,  const PdfArray & rRang
 {
 	PdfArray Size;
 	for( int i = 0; i < rDomain.GetSize() / 2; i++ )
-		Size.push_back( PdfObject( static_cast<pdf_int64>(rDomain.GetSize() / 2L )) );
+		Size.push_back( PdfObject( static_cast<int64_t>(rDomain.GetSize() / 2L )) );
 
     this->GetObject()->GetDictionary().AddKey( PdfName("Domain"), rDomain );
     this->GetObject()->GetDictionary().AddKey( PdfName("Range"), rRange );
     this->GetObject()->GetDictionary().AddKey( PdfName("Size"), Size );
-    this->GetObject()->GetDictionary().AddKey( PdfName("Order"), PdfObject( static_cast<pdf_int64>(PODOFO_LL_LITERAL(1)) ) );
-    this->GetObject()->GetDictionary().AddKey( PdfName("BitsPerSample"), PdfObject( static_cast<pdf_int64>(PODOFO_LL_LITERAL(8)) ) );
+    this->GetObject()->GetDictionary().AddKey( PdfName("Order"), PdfObject( static_cast<int64_t>(PODOFO_LL_LITERAL(1)) ) );
+    this->GetObject()->GetDictionary().AddKey( PdfName("BitsPerSample"), PdfObject( static_cast<int64_t>(PODOFO_LL_LITERAL(8)) ) );
 
     this->GetObject()->GetStream()->BeginAppend();
     PdfFunction::Sample::const_iterator it = rlstSamples.begin();

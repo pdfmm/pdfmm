@@ -57,15 +57,15 @@ class PdfHintStream : public PdfElement {
      */
     //void Create( TVecXRefTable* pXRef );
 
-    /** Write a pdf_uint16 to the stream in big endian format.
+    /** Write a uint16_t to the stream in big endian format.
      *  \param val the value to write to the stream
      */
-    void WriteUInt16( pdf_uint16 val );
+    void WriteUInt16( uint16_t val );
 
-    /** Write a pdf_uint32 to the stream in big endian format.
+    /** Write a uint32_t to the stream in big endian format.
      *  \param val the value to write to the stream
      */
-    void WriteUInt32( pdf_uint32 );
+    void WriteUInt32( uint32_t );
 
  private:
     //void CreatePageHintTable( TVecXRefTable* pXRef );

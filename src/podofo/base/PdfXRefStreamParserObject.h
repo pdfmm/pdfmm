@@ -89,7 +89,7 @@ private:
      * \param rvecIndeces store the indeces hare
      * \param size default value from /Size key
      */
-    void GetIndeces( std::vector<pdf_int64> & rvecIndeces, pdf_int64 size );
+    void GetIndeces( std::vector<int64_t> & rvecIndeces, int64_t size );
 
     /**
      * Parse the stream contents
@@ -99,9 +99,9 @@ private:
      *
      * \see GetIndeces
      */
-    void ParseStream( const pdf_int64 nW[W_ARRAY_SIZE], const std::vector<pdf_int64> & rvecIndeces );
+    void ParseStream( const int64_t nW[W_ARRAY_SIZE], const std::vector<int64_t> & rvecIndeces );
 
-    void ReadXRefStreamEntry( char* pBuffer, pdf_long, const pdf_int64 lW[W_ARRAY_SIZE], int nObjNo );
+    void ReadXRefStreamEntry( char* pBuffer, pdf_long, const int64_t lW[W_ARRAY_SIZE], int nObjNo );
 private:
     pdf_long m_lNextOffset;
 

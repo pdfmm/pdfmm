@@ -271,7 +271,7 @@ PdfObject* PdfVecObjects::CreateObject( const PdfVariant & rVariant )
     return pObj;
 }
 
-pdf_int32 PdfVecObjects::SafeAddFreeObject( const PdfReference & rReference )
+int32_t PdfVecObjects::SafeAddFreeObject( const PdfReference & rReference )
 {
     // From 3.4.3 Cross-Reference Table:
     // "When an indirect object is deleted, its cross-reference
@@ -288,7 +288,7 @@ bool PdfVecObjects::TryAddFreeObject( const PdfReference & rReference )
     return TryAddFreeObject( rReference.ObjectNumber() , rReference.GenerationNumber() ) != -1;
 }
 
-pdf_int32 PdfVecObjects::TryAddFreeObject( pdf_objnum objnum, pdf_uint32 gennum )
+int32_t PdfVecObjects::TryAddFreeObject( pdf_objnum objnum, uint32_t gennum )
 {
     // Documentation 3.4.3 Cross-Reference Table states: "The maximum
     // generation number is 65535; when a cross reference entry reaches

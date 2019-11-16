@@ -333,7 +333,7 @@ void PdfMemDocument::LoadFromDevice( const PdfRefCountedInputDevice & rDevice, b
  *  \param ns  namespace of the extension
  *  \param level  level of the extension
  */
-void PdfMemDocument::AddPdfExtension( const char* ns, pdf_int64 level ) {
+void PdfMemDocument::AddPdfExtension( const char* ns, int64_t level ) {
     
     if (!this->HasPdfExtension(ns, level)) {
         
@@ -361,7 +361,7 @@ void PdfMemDocument::AddPdfExtension( const char* ns, pdf_int64 level ) {
  *  \param ns  namespace of the extension
  *  \param level  level of the extension
  */
-bool PdfMemDocument::HasPdfExtension( const char* ns, pdf_int64 level ) const {
+bool PdfMemDocument::HasPdfExtension( const char* ns, int64_t level ) const {
     
     PdfObject* pExtensions = this->GetCatalog()->GetIndirectKey("Extensions");
     
@@ -420,7 +420,7 @@ std::vector<PdfExtension> PdfMemDocument::GetPdfExtensions() const {
  *  \param ns  namespace of the extension
  *  \param level  level of the extension
  */
-void PdfMemDocument::RemovePdfExtension( const char* ns, pdf_int64 level ) {
+void PdfMemDocument::RemovePdfExtension( const char* ns, int64_t level ) {
     
     if (this->HasPdfExtension(ns, level))
         this->GetCatalog()->GetIndirectKey("Extensions")->GetDictionary().RemoveKey("ns");

@@ -332,20 +332,20 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *  \param ns  namespace of the extension
      *  \param level  level of the extension
      */
-    void AddPdfExtension( const char* ns, pdf_int64 level );
+    void AddPdfExtension( const char* ns, int64_t level );
     
     /** Checks whether the documents is tagged to imlpement a vendor-specific 
      *  extension to the current PDF version.
      *  \param ns  namespace of the extension
      *  \param level  level of the extension
      */
-    bool HasPdfExtension( const char* ns, pdf_int64 level ) const;
+    bool HasPdfExtension( const char* ns, int64_t level ) const;
     
     /** Remove a vendor-specific extension to the current PDF version.
      *  \param ns  namespace of the extension
      *  \param level  level of the extension
      */
-    void RemovePdfExtension( const char* ns, pdf_int64 level );
+    void RemovePdfExtension( const char* ns, int64_t level );
     
     /** Return the list of all vendor-specific extensions to the current PDF version.
      *  \param ns  namespace of the extension
@@ -641,7 +641,7 @@ private:
 
     bool m_bSoureHasXRefStream;
     EPdfVersion m_eSourceVersion;
-    pdf_int64 m_lPrevXRefOffset;
+    int64_t m_lPrevXRefOffset;
 #ifdef _WIN32
     wchar_t *m_wchar_pszUpdatingFilename;
 #endif

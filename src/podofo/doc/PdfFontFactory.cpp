@@ -305,7 +305,7 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library*, PdfObject* pObject )
            // Its extremely complicated to interpret the type1 font programs
            // so i try to determine if its a symbolic font by reading the FontDescriptor Flags
            // Flags & 4 --> Symbolic, Flags & 32 --> Nonsymbolic
-            pdf_int32 lFlags = static_cast<pdf_int32>(pDescriptor->GetDictionary().GetKeyAsLong( "Flags", 0L ));
+            int32_t lFlags = static_cast<int32_t>(pDescriptor->GetDictionary().GetKeyAsLong( "Flags", 0L ));
             if ( lFlags & 32 ) // Nonsymbolic, otherwise pEncoding remains NULL
                 pPdfEncoding = PdfEncodingFactory::GlobalStandardEncodingInstance();
         }

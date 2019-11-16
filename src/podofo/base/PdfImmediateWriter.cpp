@@ -123,7 +123,7 @@ void PdfImmediateWriter::Finish()
     this->WritePdfObjects( m_pDevice, *m_pParent, m_pXRef );
 
     // write the XRef
-    pdf_uint64 lXRefOffset = static_cast<pdf_uint64>( m_pDevice->Tell() );
+    uint64_t lXRefOffset = static_cast<uint64_t>( m_pDevice->Tell() );
     m_pXRef->Write( m_pDevice );
             
     // XRef streams contain the trailer in the XRef

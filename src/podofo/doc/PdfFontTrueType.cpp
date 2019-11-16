@@ -77,7 +77,7 @@ void PdfFontTrueType::EmbedFontFile( PdfObject* pDescriptor )
         // Set Length1 before creating the stream
         // as PdfStreamedDocument does not allow 
         // adding keys to an object after a stream was written
-        pContents->GetDictionary().AddKey( "Length1", PdfVariant( static_cast<pdf_int64>(lSize) ) );
+        pContents->GetDictionary().AddKey( "Length1", PdfVariant( static_cast<int64_t>(lSize) ) );
         pContents->GetStream()->Set( pBuffer, lSize );
     } 
     else 
@@ -88,7 +88,7 @@ void PdfFontTrueType::EmbedFontFile( PdfObject* pDescriptor )
         // Set Length1 before creating the stream
         // as PdfStreamedDocument does not allow 
         // adding keys to an object after a stream was written
-        pContents->GetDictionary().AddKey( "Length1", PdfVariant( static_cast<pdf_int64>(lSize) ) );
+        pContents->GetDictionary().AddKey( "Length1", PdfVariant( static_cast<int64_t>(lSize) ) );
         pContents->GetStream()->Set( &stream );
             
     }

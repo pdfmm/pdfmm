@@ -292,7 +292,7 @@ class PODOFO_API PdfVecObjects {
      *
      *  \see AddFreeObject
      */
-    pdf_int32 SafeAddFreeObject( const PdfReference & rReference );
+    int32_t SafeAddFreeObject( const PdfReference & rReference );
 
     /** Mark a reference as unused so that it can be reused for new objects.
      *  \param rReference the reference to reuse
@@ -483,7 +483,7 @@ class PODOFO_API PdfVecObjects {
     void SetObjectCount( const PdfReference & rRef );
 
  private:
-    pdf_int32 TryAddFreeObject( pdf_objnum objnum, pdf_uint32 gennum );
+    int32_t TryAddFreeObject( pdf_objnum objnum, uint32_t gennum );
 
     /** 
      * \returns the next free object reference

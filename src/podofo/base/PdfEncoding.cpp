@@ -104,7 +104,7 @@ PdfString PdfEncoding::convertToUnicode( const PdfString &rEncodedString, const 
          * longer codes until a match is found or all codespace ranges have been
          * tested. There will be at most one match because codespace ranges do not overlap.
          */
-        pdf_uint32 code = 0;
+        uint32_t code = 0;
         unsigned i = 1;
         for (; i <= maxCodeRangeSize; i++)
         {
@@ -387,7 +387,7 @@ uint32_t PdfEncoding::GetCodeFromVariant(const PdfVariant &var, unsigned &codeSi
 {
     if (var.IsNumber())
     {
-        pdf_int64 temp = var.GetNumber();
+        int64_t temp = var.GetNumber();
         uint32_t ret = (uint32_t)temp;
         codeSize = 0;
         while (temp != 0)
@@ -408,7 +408,7 @@ uint32_t PdfEncoding::GetCodeFromVariant(const PdfVariant &var, unsigned &codeSi
     int len = str.GetLength();
     for (int i = 0; i < len; i++)
     {
-        pdf_uint8 code = (pdf_uint8)arr[len - 1 - i];
+        uint8_t code = (uint8_t)arr[len - 1 - i];
         ret += code << i * 8;
     }
 
@@ -932,7 +932,7 @@ void PdfWinAnsiEncoding::AddToDictionary( PdfDictionary & rDictionary ) const
     {
         if (PdfWinAnsiEncoding::GetToUnicodeTable()[i] != this->GetToUnicodeTable()[i])
         {
-            arDifferences.push_back(PdfObject((pdf_int64)i));
+            arDifferences.push_back(PdfObject((int64_t)i));
             unsigned short shCode = this->GetToUnicodeTable()[i];
 #ifdef PODOFO_IS_LITTLE_ENDIAN
             shCode = ((shCode & 0x00FF) << 8) | ((shCode & 0xFF00) >> 8);

@@ -183,7 +183,7 @@ void PdfFontCID::Init( bool bEmbed, bool bSubset )
     // Setting the CIDSystemInfo paras:
     pCIDSystemInfo->GetDictionary().AddKey( "Registry", PdfString("Adobe") );
     pCIDSystemInfo->GetDictionary().AddKey( "Ordering", PdfString("Identity") );
-    pCIDSystemInfo->GetDictionary().AddKey( "Supplement", PdfVariant(static_cast<pdf_int64>(PODOFO_LL_LITERAL(0))) );
+    pCIDSystemInfo->GetDictionary().AddKey( "Supplement", PdfVariant(static_cast<int64_t>(PODOFO_LL_LITERAL(0))) );
 
         // The FontDescriptor, should be an indirect object:
         m_pDescendantFonts->GetDictionary().AddKey( "FontDescriptor", pDescriptor->Reference() );
@@ -207,13 +207,13 @@ void PdfFontCID::Init( bool bEmbed, bool bSubset )
     m_pMetrics->GetBoundingBox( array );
 
     pDescriptor->GetDictionary().AddKey( "FontName", this->GetBaseFont() );
-    pDescriptor->GetDictionary().AddKey( PdfName::KeyFlags, PdfVariant( static_cast<pdf_int64>(PODOFO_LL_LITERAL(32)) ) ); // TODO: 0 ????
+    pDescriptor->GetDictionary().AddKey( PdfName::KeyFlags, PdfVariant( static_cast<int64_t>(PODOFO_LL_LITERAL(32)) ) ); // TODO: 0 ????
     pDescriptor->GetDictionary().AddKey( "FontBBox", array );
-    pDescriptor->GetDictionary().AddKey( "ItalicAngle", PdfVariant( static_cast<pdf_int64>(m_pMetrics->GetItalicAngle()) ) );
+    pDescriptor->GetDictionary().AddKey( "ItalicAngle", PdfVariant( static_cast<int64_t>(m_pMetrics->GetItalicAngle()) ) );
     pDescriptor->GetDictionary().AddKey( "Ascent", m_pMetrics->GetPdfAscent() );
     pDescriptor->GetDictionary().AddKey( "Descent", m_pMetrics->GetPdfDescent() );
     pDescriptor->GetDictionary().AddKey( "CapHeight", m_pMetrics->GetPdfAscent() ); // m_pMetrics->CapHeight() );
-    pDescriptor->GetDictionary().AddKey( "StemV", PdfVariant( static_cast<pdf_int64>(PODOFO_LL_LITERAL(1)) ) );               // m_pMetrics->StemV() );
+    pDescriptor->GetDictionary().AddKey( "StemV", PdfVariant( static_cast<int64_t>(PODOFO_LL_LITERAL(1)) ) );               // m_pMetrics->StemV() );
 
     // Peter Petrov 24 September 2008
     m_pDescriptor = pDescriptor;
@@ -314,7 +314,7 @@ void PdfFontCID::EmbedFont( PdfObject* pDescriptor )
 			pDescriptor->GetDictionary().AddKey( "FontFile2", pContents->Reference() );
 
 			pdf_long lSize = buffer.GetSize();
-			pContents->GetDictionary().AddKey("Length1", PdfVariant(static_cast<pdf_int64>(lSize)));
+			pContents->GetDictionary().AddKey("Length1", PdfVariant(static_cast<int64_t>(lSize)));
 			pContents->GetStream()->Set(buffer.GetBuffer(), lSize);
 
 			fallback = false;
@@ -343,7 +343,7 @@ void PdfFontCID::EmbedFont( PdfObject* pDescriptor )
         // Set Length1 before creating the stream
         // as PdfStreamedDocument does not allow 
         // adding keys to an object after a stream was written
-        pContents->GetDictionary().AddKey( "Length1", PdfVariant( static_cast<pdf_int64>(lSize) ) );
+        pContents->GetDictionary().AddKey( "Length1", PdfVariant( static_cast<int64_t>(lSize) ) );
         pContents->GetStream()->Set( pBuffer, lSize );
     } 
     else 
@@ -354,7 +354,7 @@ void PdfFontCID::EmbedFont( PdfObject* pDescriptor )
         // Set Length1 before creating the stream
         // as PdfStreamedDocument does not allow 
         // adding keys to an object after a stream was written
-        pContents->GetDictionary().AddKey( "Length1", PdfVariant( static_cast<pdf_int64>(lSize) ) );
+        pContents->GetDictionary().AddKey( "Length1", PdfVariant( static_cast<int64_t>(lSize) ) );
         pContents->GetStream()->Set( &stream );
     }
     }
@@ -408,8 +408,8 @@ void PdfFontCID::CreateWidth( PdfObject* pFontDict ) const
 
         i = nMin;
         double    dCurWidth  = pdWidth[i];
-        pdf_int64 lCurIndex  = i++;
-        pdf_int64 lCurLength = 1L;
+        int64_t lCurIndex  = i++;
+        int64_t lCurLength = 1L;
         
         for( ;i<=nMax;i++ )
         {
@@ -420,20 +420,20 @@ void PdfFontCID::CreateWidth( PdfObject* pFontDict ) const
                 if( lCurLength > 1 ) 
                 {
                     array.push_back( lCurIndex );
-                    pdf_int64 temp = lCurIndex + lCurLength - 1;
+                    int64_t temp = lCurIndex + lCurLength - 1;
                     array.push_back( temp ); 
-                    array.push_back( static_cast<pdf_int64>(dCurWidth + 0.5) );
+                    array.push_back( static_cast<int64_t>(dCurWidth + 0.5) );
                 }
                 else
                 {
                     if( array.size() && array.back().IsArray() ) 
                     {
-                        array.back().GetArray().push_back( static_cast<pdf_int64>(dCurWidth + 0.5) );
+                        array.back().GetArray().push_back( static_cast<int64_t>(dCurWidth + 0.5) );
                     }
                     else
                     {
                         PdfArray tmp;
-                        tmp.push_back( static_cast<pdf_int64>(dCurWidth + 0.5) );
+                        tmp.push_back( static_cast<int64_t>(dCurWidth + 0.5) );
                         
                         array.push_back( lCurIndex );
                         array.push_back( tmp );
@@ -450,7 +450,7 @@ void PdfFontCID::CreateWidth( PdfObject* pFontDict ) const
         {
             array.push_back( lCurIndex = nMin );
             array.push_back( lCurIndex = nMax );
-            array.push_back( static_cast<pdf_int64>(dCurWidth + 0.5) );
+            array.push_back( static_cast<int64_t>(dCurWidth + 0.5) );
         }
         
         pFontDict->GetDictionary().AddKey( PdfName("W"), array ); 
@@ -729,14 +729,14 @@ void WidthExporter::update(GlyphWidths::const_iterator& it)
 {
     if (it->first == (_start + _count)) {
         /* continous gid */
-        if (static_cast<pdf_int64>(it->second - _width) != 0) {
+        if (static_cast<int64_t>(it->second - _width) != 0) {
             /* different width, so emit if previous range was with same width */
             if ((_count != 1) && _widths.empty()) {
                 emitSameWidth();
                 reset(it);
                 return;
             }
-            _widths.push_back(static_cast<pdf_int64>(_width + 0.5));
+            _widths.push_back(static_cast<int64_t>(_width + 0.5));
             _width = it->second;
             ++_count;
             return;
@@ -762,7 +762,7 @@ void WidthExporter::finish()
 {
     /* if there is a single glyph remaining, emit it as array */
     if (!_widths.empty() || (_count == 1)) {
-        _widths.push_back(static_cast<pdf_int64>(_width + 0.5));
+        _widths.push_back(static_cast<int64_t>(_width + 0.5));
         emitArrayWidths();
         return;
     }
@@ -771,29 +771,29 @@ void WidthExporter::finish()
 
 void WidthExporter::emitSameWidth()
 {
-    _output.push_back(static_cast<pdf_int64>(_start));
-    _output.push_back(static_cast<pdf_int64>(_start + _count - 1));
-    _output.push_back(static_cast<pdf_int64>(_width + 0.5));
+    _output.push_back(static_cast<int64_t>(_start));
+    _output.push_back(static_cast<int64_t>(_start + _count - 1));
+    _output.push_back(static_cast<int64_t>(_width + 0.5));
 }
 
 void WidthExporter::emitArrayWidths()
 {
-    _output.push_back(static_cast<pdf_int64>(_start));
+    _output.push_back(static_cast<int64_t>(_start));
     _output.push_back(_widths);
     _widths.Clear();
 }
 
 void WidthExporter::updateSBE(GlyphWidths::const_iterator& it)
 {
-    _output.push_back(static_cast<pdf_int64>(_width + 0.5));
+    _output.push_back(static_cast<int64_t>(_width + 0.5));
     while(++_start < it->first) {
-        _output.push_back(static_cast<pdf_int64>(0));
+        _output.push_back(static_cast<int64_t>(0));
     }
     reset(it);
 }
 void WidthExporter::finishSBE()
 {
-    _output.push_back(static_cast<pdf_int64>(_width + 0.5));
+    _output.push_back(static_cast<int64_t>(_width + 0.5));
 }
 
 static bool
@@ -913,8 +913,8 @@ createWidths(PdfObject* pFontDict, PdfFontMetrics* metrics, const std::set<pdf_u
             pFontDict->GetDictionary().AddKey( PdfName("Widths"), array );
 #endif          
         }
-        pFontDict->GetDictionary().AddKey("FirstChar", PdfVariant( static_cast<pdf_int64>(glyphWidths.begin()->first) ) );
-        pFontDict->GetDictionary().AddKey("LastChar",  PdfVariant( static_cast<pdf_int64>(glyphWidths.rbegin()->first) ) );
+        pFontDict->GetDictionary().AddKey("FirstChar", PdfVariant( static_cast<int64_t>(glyphWidths.begin()->first) ) );
+        pFontDict->GetDictionary().AddKey("LastChar",  PdfVariant( static_cast<int64_t>(glyphWidths.rbegin()->first) ) );
     }
 }
 

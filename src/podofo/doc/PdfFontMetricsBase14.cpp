@@ -44,12 +44,12 @@ namespace PoDoFo {
 PdfFontMetricsBase14::PdfFontMetricsBase14(const char      *mfont_name,
                                            const PODOFO_CharData  *mwidths_table,
                                            bool              mis_font_specific,
-                                           pdf_int16         mascent,
-                                           pdf_int16         mdescent,
-                                           pdf_uint16        mx_height,
-                                           pdf_uint16        mcap_height,
-                                           pdf_int16         mstrikeout_pos,
-                                           pdf_int16         munderline_pos,
+                                           int16_t         mascent,
+                                           int16_t         mdescent,
+                                           uint16_t        mx_height,
+                                           uint16_t        mcap_height,
+                                           int16_t         mstrikeout_pos,
+                                           int16_t         munderline_pos,
                                            const PdfRect &  mbbox)
     : PdfFontMetrics( ePdfFontType_Type1Base14, "", NULL),
       font_name(mfont_name),
@@ -259,7 +259,7 @@ void PdfFontMetricsBase14::GetWidthArray( PdfVariant & var, unsigned int nFirst,
         {
             unsigned short shCode = pEncoding->GetCharCode(i);
 
-            list.push_back(PdfObject( (pdf_int64)this->GetGlyphWidth(this->GetGlyphIdUnicode(shCode) )));
+            list.push_back(PdfObject( (int64_t)this->GetGlyphWidth(this->GetGlyphIdUnicode(shCode) )));
         }
         else
         {

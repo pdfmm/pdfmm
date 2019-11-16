@@ -146,10 +146,10 @@ void PdfSignOutputDevice::AdjustByteRange()
     // Get final position
     size_t sFileEnd = GetLength();
     PdfArray arr;
-    arr.push_back( PdfVariant(static_cast<pdf_int64>(0)) );
-    arr.push_back( PdfVariant(static_cast<pdf_int64>(m_sBeaconPos)) );
-    arr.push_back( PdfVariant(static_cast<pdf_int64>(m_sBeaconPos+m_pSignatureBeacon->data().size()+2) ) );
-    arr.push_back( PdfVariant(static_cast<pdf_int64>(sFileEnd-(m_sBeaconPos+m_pSignatureBeacon->data().size()+2)) ) );
+    arr.push_back( PdfVariant(static_cast<int64_t>(0)) );
+    arr.push_back( PdfVariant(static_cast<int64_t>(m_sBeaconPos)) );
+    arr.push_back( PdfVariant(static_cast<int64_t>(m_sBeaconPos+m_pSignatureBeacon->data().size()+2) ) );
+    arr.push_back( PdfVariant(static_cast<int64_t>(sFileEnd-(m_sBeaconPos+m_pSignatureBeacon->data().size()+2)) ) );
     std::string sPosition;
     PdfVariant(arr).ToString(sPosition, ePdfWriteMode_Compact);
     // Fill padding
@@ -197,7 +197,7 @@ size_t PdfSignOutputDevice::ReadForSignature(char* pBuffer, size_t lLen)
 	// Check if we are before beacon
 	if(pos<m_sBeaconPos)
 	{
-		size_t readSize = PODOFO_MIN(lLen, m_sBeaconPos-pos);
+		size_t readSize = std::min(lLen, m_sBeaconPos-pos);
 		if(readSize>0) {
 			numRead = m_pRealDevice->Read(pBuffer, readSize);
 			pBuffer += numRead;
@@ -212,7 +212,7 @@ size_t PdfSignOutputDevice::ReadForSignature(char* pBuffer, size_t lLen)
         m_pRealDevice->Seek( m_sBeaconPos + (m_pSignatureBeacon->data().size() + 2) );
     }
 	// read after beacon
-	lLen = PODOFO_MIN(lLen, m_pRealDevice->GetLength()-m_pRealDevice->Tell());
+	lLen = std::min(lLen, m_pRealDevice->GetLength()-m_pRealDevice->Tell());
 	if(lLen==0) return numRead;
 	return numRead+m_pRealDevice->Read(pBuffer, lLen);
 }

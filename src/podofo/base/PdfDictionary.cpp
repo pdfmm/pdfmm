@@ -183,7 +183,7 @@ PdfObject * PdfDictionary::findKeyParent( const PdfName & key ) const
     }
 }
 
-pdf_int64 PdfDictionary::GetKeyAsLong( const PdfName & key, pdf_int64 lDefault ) const
+int64_t PdfDictionary::GetKeyAsLong( const PdfName & key, int64_t lDefault ) const
 {
     const PdfObject* pObject = GetKey( key );
     

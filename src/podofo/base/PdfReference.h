@@ -40,14 +40,14 @@
 
 namespace PoDoFo {
 
-typedef pdf_uint32 pdf_objnum;
+typedef uint32_t pdf_objnum;
 /* Technically a generation number must be able to represent 99999 so 65535 isn't good enough.
  * In practice Adobe's implementation notes suggest that they use a uint16 internally, and PDFs
  * with greater object numbers won't work on many viewers. So we'll stick with uint16.
  *
  * If you change this you'll need to change PdfReference::Write(...) to use the apppropriate
  * format, too. */
-typedef pdf_uint16 pdf_gennum;
+typedef uint16_t pdf_gennum;
 
 class PdfOutputDevice;
 

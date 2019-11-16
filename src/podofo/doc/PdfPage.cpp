@@ -304,7 +304,7 @@ void PdfPage::SetRotation(int nRotation)
     if( nRotation != 0 && nRotation != 90 && nRotation != 180 && nRotation != 270 )
         PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
 
-    this->GetObject()->GetDictionary().AddKey( "Rotate", PdfVariant(static_cast<pdf_int64>(nRotation)) );
+    this->GetObject()->GetDictionary().AddKey( "Rotate", PdfVariant(static_cast<int64_t>(nRotation)) );
 }
 
 PdfArray * PdfPage::GetAnnotationsArray() const
@@ -663,7 +663,7 @@ PdfObject* PdfPage::GetFromResources( const PdfName & rType, const PdfName & rKe
     return NULL;
 }
 
-void PdfPage::SetICCProfile( const char *pszCSTag, PdfInputStream *pStream, pdf_int64 nColorComponents, EPdfColorSpace eAlternateColorSpace )
+void PdfPage::SetICCProfile( const char *pszCSTag, PdfInputStream *pStream, int64_t nColorComponents, EPdfColorSpace eAlternateColorSpace )
 {
     // Check nColorComponents for a valid value
     if ( nColorComponents != 1 &&

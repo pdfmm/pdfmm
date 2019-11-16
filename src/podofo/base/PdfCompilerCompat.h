@@ -79,7 +79,7 @@
 #endif
 
 #if PODOFO_HAVE_STDINT_H
-#include <stdint.h>
+#include <cstdint>
 #endif
 
 #if PODOFO_HAVE_BASETSD_H
@@ -113,30 +113,6 @@
 #define NOMINMAX
 #endif
 
-// Integer types - fixed size types guaranteed to work anywhere
-// because we detect the right underlying type name to use with
-// CMake. Use typedefs rather than macros for saner error messages
-// etc.
-namespace PoDoFo {
-    typedef PDF_INT8_TYPENAME  pdf_int8;
-    typedef PDF_INT16_TYPENAME  pdf_int16;
-    typedef PDF_INT32_TYPENAME  pdf_int32;
-    typedef PDF_INT64_TYPENAME  pdf_int64;
-    typedef PDF_UINT8_TYPENAME pdf_uint8;
-    typedef PDF_UINT16_TYPENAME pdf_uint16;
-    typedef PDF_UINT32_TYPENAME pdf_uint32;
-    typedef PDF_UINT64_TYPENAME pdf_uint64;
-};
-#undef PDF_INT8_TYPENAME
-#undef PDF_INT16_TYPENAME
-#undef PDF_INT32_TYPENAME
-#undef PDF_INT64_TYPENAME
-#undef PDF_UINT8_TYPENAME
-#undef PDF_UINT16_TYPENAME
-#undef PDF_UINT32_TYPENAME
-#undef PDF_UINT64_TYPENAME
-
-
 /* 
  * Some elderly compilers, notably VC6, don't support LL literals.
  * In those cases we can use the oversized literal without any suffix.
@@ -152,12 +128,6 @@ namespace PoDoFo {
 #  define PODOFO_LL_LITERAL(x) x##LL
 #  define PODOFO_ULL_LITERAL(x) x##ULL
 #endif
-#endif
-
-#if defined(_MSC_VER)  &&  _MSC_VER <= 1200 // Visual Studio 6
-#   define PODOFO_MIN(_a, _b) ((_a) < (_b) ? (_a) : (_b))
-#else
-#   define PODOFO_MIN(_a, _b) (std::min((_a), (_b)))
 #endif
 
 // pdf_long is defined as ptrdiff_t . It's a pointer-sized signed quantity

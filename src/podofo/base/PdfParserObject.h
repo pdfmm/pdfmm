@@ -138,7 +138,7 @@ class PODOFO_API PdfParserObject : public PdfObject, public PdfTokenizer {
      * \returns an offset in which the object is stored in the source device,
      *     or -1, if the object was created on demand.
      */
-    inline pdf_int64 GetOffset( void ) const;
+    inline int64_t GetOffset( void ) const;
 
  protected:
     /** Load all data of the object if load object on demand is enabled.
@@ -228,9 +228,9 @@ bool PdfParserObject::HasStreamToParse() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-pdf_int64 PdfParserObject::GetOffset( void ) const
+int64_t PdfParserObject::GetOffset( void ) const
 {
-	return static_cast<pdf_int64>(m_lOffset);
+	return static_cast<int64_t>(m_lOffset);
 }
 
 };

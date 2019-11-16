@@ -52,8 +52,8 @@ using namespace PoDoFo;
 namespace {
 
 struct TPageEntrySharedObjectInfo {
-    pdf_uint16 nIndex;
-    pdf_uint16 nNumerator;
+    uint16_t nIndex;
+    uint16_t nNumerator;
 };
 
 typedef std::vector<TPageEntrySharedObjectInfo>       TVecPageEntrySharedObjectInfo;
@@ -74,15 +74,15 @@ public:
         vecSharedObjects.resize( 0 );
     }
 
-    pdf_uint16 nObjectsPerPage;
-    pdf_uint16 nPageLength;
-    pdf_uint16 nSharedObjects;
+    uint16_t nObjectsPerPage;
+    uint16_t nPageLength;
+    uint16_t nSharedObjects;
 
     // item4 and item5:
     TVecPageEntrySharedObjectInfo vecSharedObjects;
 
-    pdf_uint16 nContentsOffset;
-    pdf_uint16 nContentsLength;
+    uint16_t nContentsOffset;
+    uint16_t nContentsLength;
 
 public:
     void Write( PoDoFo::NonPublic::PdfHintStream* pHint );
@@ -136,41 +136,41 @@ public:
     }
 
     // item1: The least number of objects in a page including the page itself
-    pdf_uint32 nLeastNumberOfObjects;
+    uint32_t nLeastNumberOfObjects;
     // item2: The location of the first pages page object
-    pdf_uint32 nFirstPageObject; // (*pXRef)[0].vecOffsets[ m_pPagesTree->GetPage( 0 )->Object()->Reference().ObjectNumber() ].lOffset;
+    uint32_t nFirstPageObject; // (*pXRef)[0].vecOffsets[ m_pPagesTree->GetPage( 0 )->Object()->Reference().ObjectNumber() ].lOffset;
     // item3: The number of bits needed to represent the difference between the 
     //        greatest and least number of objects in a page
-    pdf_uint16 nBitsPageObject; // (pdf_uint16)ceil( logb( (double)(max-least) ) );
+    uint16_t nBitsPageObject; // (uint16_t)ceil( logb( (double)(max-least) ) );
     // item4: The least length of a page in bytes
-    pdf_uint32 nLeastPageLength;
+    uint32_t nLeastPageLength;
     // item5: The number of bits needed to represent the greatest difference 
     //        between the greatest and the least length of a page in bytes
-    pdf_uint16 nBitsPageLength;
+    uint16_t nBitsPageLength;
     // item6: The least offset of the start of a content stream, relative
     //        to the beginning of a file. 
     // --> Always set to 0 by acrobat
-    pdf_uint32 nOffsetContentStream;
+    uint32_t nOffsetContentStream;
     // item7: The number of bits needed to represent the greatest difference 
     //        between the greatest and the least offset of a the start of a content
     //        stream relative to the beginning of a file
     // --> Always set to 0 by acrobat
-    pdf_uint16 nBitsContentStream;
+    uint16_t nBitsContentStream;
     // item8: The least content stream length
-    pdf_uint32 nLeastContentStreamLength;
+    uint32_t nLeastContentStreamLength;
     // item9: The number of bits needed to represent the greatest difference 
     //        between the greatest and the least length of a content stream
-    pdf_uint16 nBitsLeastContentStreamLength;
+    uint16_t nBitsLeastContentStreamLength;
     // item10: The number of bits needed to represent the greatest number
     //         of shared object references.
-    pdf_uint16 nBitsNumSharedObjects;
+    uint16_t nBitsNumSharedObjects;
     // item11: The number of bits needed to represent the nummerically 
     //         greatest shared object identifyer used by pages
-    pdf_uint16 nBitsGreatestSharedObject;
+    uint16_t nBitsGreatestSharedObject;
     // item12: 
-    pdf_uint16 nItem12;
+    uint16_t nItem12;
     // item13:
-    pdf_uint16 nItem13;
+    uint16_t nItem13;
 
     void Write( PoDoFo::NonPublic::PdfHintStream* pHint )
     {
@@ -204,13 +204,13 @@ public:
     {
     }
 
-    pdf_uint32 nFirstObjectNumber;
-    pdf_uint32 nFirstObjectLocation;
-    pdf_uint32 nNumSharedObjectsFirstPage;
-    pdf_uint32 nNumSharedObjects; // i.e. including nNumSharedObjectsFirstPage
-    pdf_uint16 nNumBits;
-    pdf_uint32 nLeastLength;
-    pdf_uint16 nNumBitsLengthDifference;
+    uint32_t nFirstObjectNumber;
+    uint32_t nFirstObjectLocation;
+    uint32_t nNumSharedObjectsFirstPage;
+    uint32_t nNumSharedObjects; // i.e. including nNumSharedObjectsFirstPage
+    uint16_t nNumBits;
+    uint32_t nLeastLength;
+    uint16_t nNumBitsLengthDifference;
 
 public:
     void Write( PoDoFo::NonPublic::PdfHintStream* pHint )
@@ -271,11 +271,11 @@ void PdfHintStream::CreatePageHintTable( TVecXRefTable* pXRef )
     PdfPageOffsetEntry  vecPages[nPageCount];
 #endif
 
-    pdf_uint32        max;
-    pdf_uint32        least = 0;
-    pdf_uint32        maxNumberOfObjects = 0;
-    pdf_uint32        maxPageLength      = 0;
-    pdf_uint32        value;
+    uint32_t        max;
+    uint32_t        least = 0;
+    uint32_t        maxNumberOfObjects = 0;
+    uint32_t        maxPageLength      = 0;
+    uint32_t        value;
     PdfReference      maxRef;
 
     for( i=0;i<nPageCount;i++ )
@@ -326,8 +326,8 @@ void PdfHintStream::CreatePageHintTable( TVecXRefTable* pXRef )
     }
 
     header.nFirstPageObject              = (*pXRef)[0].vecOffsets[ m_pPagesTree->GetPage( 0 )->GetObject()->Reference().ObjectNumber() ].lOffset;
-    header.nBitsPageObject               = (pdf_uint16)ceil( logb( static_cast<double>(maxNumberOfObjects-header.nLeastNumberOfObjects) ) );
-    header.nBitsPageLength               = (pdf_uint16)ceil( logb( static_cast<double>(maxPageLength - header.nLeastPageLength) ) );
+    header.nBitsPageObject               = (uint16_t)ceil( logb( static_cast<double>(maxNumberOfObjects-header.nLeastNumberOfObjects) ) );
+    header.nBitsPageLength               = (uint16_t)ceil( logb( static_cast<double>(maxPageLength - header.nLeastPageLength) ) );
     header.nOffsetContentStream          = 0; // acrobat sets this to 0 and ignores it
     header.nBitsContentStream            = 0; // acrobat sets this to 0 and ignores it
     header.nLeastContentStreamLength     = 0; // acrobat sets this to 0 and ignores it
@@ -358,13 +358,13 @@ void PdfHintStream::CreateSharedObjectHintTable()
 }
 */
 
-void PdfHintStream::WriteUInt16( pdf_uint16 val )
+void PdfHintStream::WriteUInt16( uint16_t val )
 {
     val = ::PoDoFo::compat::podofo_htons(val);
     this->GetObject()->GetStream()->Append( reinterpret_cast<char*>(&val), 2 );
 }
 
-void PdfHintStream::WriteUInt32( pdf_uint32 val )
+void PdfHintStream::WriteUInt32( uint32_t val )
 {
     val = ::PoDoFo::compat::podofo_htonl(val);
     this->GetObject()->GetStream()->Append( reinterpret_cast<char*>(&val), 4 );

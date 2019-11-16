@@ -52,7 +52,7 @@ PdfPagesTree::PdfPagesTree( PdfVecObjects* pParent )
       m_cache( 0 )
 {
     GetObject()->GetDictionary().AddKey( "Kids", PdfArray() ); // kids->Reference() 
-    GetObject()->GetDictionary().AddKey( "Count", PdfObject( static_cast<pdf_int64>(PODOFO_LL_LITERAL(0)) ) );
+    GetObject()->GetDictionary().AddKey( "Count", PdfObject( static_cast<int64_t>(PODOFO_LL_LITERAL(0)) ) );
 }
 
 PdfPagesTree::PdfPagesTree( PdfObject* pPagesRoot )
@@ -676,7 +676,7 @@ int PdfPagesTree::ChangePagesCount( PdfObject* pPageObj, int nDelta )
     if( 0 != nDelta ) 
     {
         cnt += nDelta ;
-        pPageObj->GetDictionary().AddKey( "Count", PdfVariant( static_cast<pdf_int64>(cnt) ) );
+        pPageObj->GetDictionary().AddKey( "Count", PdfVariant( static_cast<int64_t>(cnt) ) );
     }
 
     return cnt ;

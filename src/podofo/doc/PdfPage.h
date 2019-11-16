@@ -270,7 +270,7 @@ class PODOFO_DOC_API PdfPage : public PdfElement, public PdfCanvas {
      *
      *  \see PdfPainter::SetDependICCProfileColor()
      */
-    virtual void SetICCProfile( const char* pszCSTag, PdfInputStream* pStream, pdf_int64 nColorComponents,
+    virtual void SetICCProfile( const char* pszCSTag, PdfInputStream* pStream, int64_t nColorComponents,
                                 EPdfColorSpace eAlternateColorSpace = ePdfColorSpace_DeviceRGB );
  private:
      PdfStream & GetStreamForAppending() override;

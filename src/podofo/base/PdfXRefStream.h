@@ -71,7 +71,7 @@ class PdfXRefStream : public PdfXRef {
      * \returns the offset in the file at which the XRef table
      *          starts after it was written
      */
-    inline virtual pdf_uint64 GetOffset() const;
+    inline virtual uint64_t GetOffset() const;
 
  protected:
     /** Called at the start of writing the XRef table.
@@ -91,7 +91,7 @@ class PdfXRefStream : public PdfXRef {
      *  @param nFirst the object number of the first object in this subsection
      *  @param nCount the number of entries in this subsection
      */
-    virtual void WriteSubSection( PdfOutputDevice* pDevice, pdf_objnum nFirst, pdf_uint32 nCount );
+    virtual void WriteSubSection( PdfOutputDevice* pDevice, pdf_objnum nFirst, uint32_t nCount );
 
     /** Write a single entry to the XRef table
      *  
@@ -103,7 +103,7 @@ class PdfXRefStream : public PdfXRef {
      *  @param objectNumber the object number of the currently written object if cMode = 'n' 
      *                       otherwise undefined
      */
-    virtual void WriteXRefEntry( PdfOutputDevice* pDevice, pdf_uint64 offset, pdf_gennum generation, 
+    virtual void WriteXRefEntry( PdfOutputDevice* pDevice, uint64_t offset, pdf_gennum generation, 
                                  char cMode, pdf_objnum objectNumber = 0 );
 
     /** Called at the end of writing the XRef table.
@@ -121,13 +121,13 @@ class PdfXRefStream : public PdfXRef {
     PdfArray       m_indeces;
 
     size_t         m_bufferLen; ///< The length of the internal buffer for one XRef entry
-    pdf_uint64     m_offset;    ///< Offset of the XRefStream object
+    uint64_t     m_offset;    ///< Offset of the XRefStream object
 };
 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline pdf_uint64 PdfXRefStream::GetOffset() const
+inline uint64_t PdfXRefStream::GetOffset() const
 {
     return m_offset;
 }

@@ -143,21 +143,21 @@ void PdfTilingPattern::Init( EPdfTilingPatternType eTilingType,
 	PdfVariant var;
    rRect.ToVariant( var );
 
-	this->GetObject()->GetDictionary().AddKey( PdfName("PatternType"), static_cast<pdf_int64>(1L) ); // Tiling pattern
-	this->GetObject()->GetDictionary().AddKey( PdfName("PaintType"), static_cast<pdf_int64>(1L) ); // Colored
-	this->GetObject()->GetDictionary().AddKey( PdfName("TilingType"), static_cast<pdf_int64>(1L) ); // Constant spacing
+	this->GetObject()->GetDictionary().AddKey( PdfName("PatternType"), static_cast<int64_t>(1L) ); // Tiling pattern
+	this->GetObject()->GetDictionary().AddKey( PdfName("PaintType"), static_cast<int64_t>(1L) ); // Colored
+	this->GetObject()->GetDictionary().AddKey( PdfName("TilingType"), static_cast<int64_t>(1L) ); // Constant spacing
 	this->GetObject()->GetDictionary().AddKey( PdfName("BBox"), var );
-	this->GetObject()->GetDictionary().AddKey( PdfName("XStep"), static_cast<pdf_int64>(rRect.GetWidth()) );
-	this->GetObject()->GetDictionary().AddKey( PdfName("YStep"), static_cast<pdf_int64>(rRect.GetHeight()) );
+	this->GetObject()->GetDictionary().AddKey( PdfName("XStep"), static_cast<int64_t>(rRect.GetWidth()) );
+	this->GetObject()->GetDictionary().AddKey( PdfName("YStep"), static_cast<int64_t>(rRect.GetHeight()) );
 	this->GetObject()->GetDictionary().AddKey( PdfName("Resources"), PdfObject( PdfDictionary() ) );
 
 	if (offsetX < -1e-9 || offsetX > 1e-9 || offsetY < -1e-9 || offsetY > 1e-9) {
 		PdfArray array;
 
-		array.push_back (static_cast<pdf_int64>(1));
-		array.push_back (static_cast<pdf_int64>(0));
-		array.push_back (static_cast<pdf_int64>(0));
-		array.push_back (static_cast<pdf_int64>(1));
+		array.push_back (static_cast<int64_t>(1));
+		array.push_back (static_cast<int64_t>(0));
+		array.push_back (static_cast<int64_t>(0));
+		array.push_back (static_cast<int64_t>(1));
 		array.push_back (offsetX);
 		array.push_back (offsetY);
 

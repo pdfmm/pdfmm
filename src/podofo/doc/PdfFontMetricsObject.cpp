@@ -141,7 +141,7 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescri
 					if (length > static_cast<int>(m_width.GetSize())) {
 						m_width.resize(length, default_width);
 					}
-					pdf_int64 width = w[pos++].GetNumber();
+					int64_t width = w[pos++].GetNumber();
 					for (int i = start; i <= end; ++i)
 						m_width[i] = PdfVariant(width);
 				}

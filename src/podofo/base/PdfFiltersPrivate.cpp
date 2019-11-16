@@ -774,9 +774,9 @@ void PdfLZWFilter::DecodeBlockImpl( const char* pBuffer, pdf_long lLen )
     unsigned int       buffer_size = 0;
     const unsigned int buffer_max  = 24;
 
-    pdf_uint32         old         = 0;
-    pdf_uint32         code        = 0;
-    pdf_uint32         buffer      = 0;
+    uint32_t         old         = 0;
+    uint32_t         code        = 0;
+    uint32_t         buffer      = 0;
 
     TLzwItem           item;
 
@@ -794,7 +794,7 @@ void PdfLZWFilter::DecodeBlockImpl( const char* pBuffer, pdf_long lLen )
         while( buffer_size <= (buffer_max-8) && lLen )
         {
             buffer <<= 8;
-            buffer |= static_cast<pdf_uint32>(static_cast<unsigned char>(*pBuffer));
+            buffer |= static_cast<uint32_t>(static_cast<unsigned char>(*pBuffer));
             buffer_size += 8;
 
             ++pBuffer;

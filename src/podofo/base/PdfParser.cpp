@@ -484,7 +484,7 @@ void PdfParser::HasLinearizationDict()
         return;
     }
     
-    pdf_int64      lXRef      = -1;
+    int64_t      lXRef      = -1;
     lXRef = m_pLinearization->GetDictionary().GetKeyAsLong( "T", lXRef );
     if( lXRef == -1 )
     {
@@ -614,7 +614,7 @@ void PdfParser::ReadNextTrailer()
                 if( m_visitedXRefOffsets.find( lOffset ) == m_visitedXRefOffsets.end() )
                     ReadXRefContents( lOffset );
                 else
-                    PdfError::LogMessage( eLogSeverity_Warning, "XRef contents at offset %" PDF_FORMAT_INT64 " requested twice, skipping the second read\n", static_cast<pdf_int64>( lOffset ));
+                    PdfError::LogMessage( eLogSeverity_Warning, "XRef contents at offset %" PDF_FORMAT_INT64 " requested twice, skipping the second read\n", static_cast<int64_t>( lOffset ));
             } catch( PdfError & e ) {
                 e.AddToCallstack( __FILE__, __LINE__, "Unable to load /Prev xref entries." );
                 throw e;
@@ -694,8 +694,8 @@ void PdfParser::ReadXRefContents( pdf_long lOffset, bool bPositionAtEnd )
 {
     PdfRecursionGuard guard(m_nRecursionDepth);
 
-    pdf_int64 nFirstObject = 0;
-    pdf_int64 nNumObjects  = 0;
+    int64_t nFirstObject = 0;
+    int64_t nNumObjects  = 0;
 
     if( m_visitedXRefOffsets.find( lOffset ) != m_visitedXRefOffsets.end() )
     {
@@ -838,9 +838,9 @@ PdfParser::EXRefEntryType GetXRefEntryType( char c )
     }
 }
 
-void PdfParser::ReadXRefSubsection( pdf_int64 & nFirstObject, pdf_int64 & nNumObjects )
+void PdfParser::ReadXRefSubsection( int64_t & nFirstObject, int64_t & nNumObjects )
 {
-    pdf_int64 count = 0;
+    int64_t count = 0;
 
 #ifdef PODOFO_VERBOSE_DEBUG
     PdfError::DebugMessage("Reading XRef Section: %" PDF_FORMAT_INT64 " with %" PDF_FORMAT_INT64 " Objects.\n", nFirstObject, nNumObjects );
@@ -851,8 +851,8 @@ void PdfParser::ReadXRefSubsection( pdf_int64 & nFirstObject, pdf_int64 & nNumOb
     if ( nNumObjects < 0 )
         PODOFO_RAISE_ERROR_INFO( ePdfError_ValueOutOfRange, "ReadXRefSubsection: nNumObjects is negative" );
 
-    const pdf_int64 maxNum
-      = static_cast<pdf_int64>(PdfParser::s_nMaxObjects);
+    const int64_t maxNum
+      = static_cast<int64_t>(PdfParser::s_nMaxObjects);
 
     // overflow guard, fixes CVE-2017-5853 (signed integer overflow)
     // also fixes CVE-2017-6844 (buffer overflow) together with below size check
@@ -867,10 +867,10 @@ void PdfParser::ReadXRefSubsection( pdf_int64 & nFirstObject, pdf_int64 & nNumOb
               "There are more objects (%" PDF_FORMAT_INT64 ") in this XRef "
               "table than specified in the size key of the trailer directory "
               "(%" PDF_FORMAT_INT64 ")!\n", nFirstObject + nNumObjects,
-              static_cast<pdf_int64>( m_nNumObjects ));
+              static_cast<int64_t>( m_nNumObjects ));
         }
 
-        if ( static_cast<pdf_uint64>( nFirstObject ) + static_cast<pdf_uint64>( nNumObjects ) > static_cast<pdf_uint64>( std::numeric_limits<size_t>::max() ) )
+        if ( static_cast<uint64_t>( nFirstObject ) + static_cast<uint64_t>( nNumObjects ) > static_cast<uint64_t>( std::numeric_limits<size_t>::max() ) )
         {
             PODOFO_RAISE_ERROR_INFO( ePdfError_ValueOutOfRange,
                 "xref subsection's given entry numbers together too large" );
@@ -927,8 +927,8 @@ void PdfParser::ReadXRefSubsection( pdf_int64 & nFirstObject, pdf_int64 & nNumOb
             //  long lGeneration; // 64 bits on Mac64, Linux64; 32 bits on Win64, Mac32, Linux32, Win32
             //  char cUsed;       // always 8 bits
             //
-            pdf_int64 llOffset = 0;
-            pdf_int64 llGeneration = 0;
+            int64_t llOffset = 0;
+            int64_t llGeneration = 0;
             char cType = 0;
             
             // XRefEntry is defined in PDF spec section 7.5.4 Cross-Reference Table as
@@ -1367,7 +1367,7 @@ void PdfParser::ReadObjectFromStream( int nObjNo, int )
         if( entry.bParsed && entry.eType == eXRefEntryType_Compressed &&
 			m_offsets[i].lGeneration == nObjNo) 
         {
-            list.push_back(static_cast<pdf_int64>(i));
+            list.push_back(static_cast<int64_t>(i));
 		}
 	}
     

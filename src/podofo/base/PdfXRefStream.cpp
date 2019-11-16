@@ -51,7 +51,7 @@ namespace PoDoFo {
 PdfXRefStream::PdfXRefStream( PdfVecObjects* pParent, PdfWriter* pWriter )
     : m_pParent( pParent ), m_pWriter( pWriter ), m_pObject( NULL )
 {
-    m_bufferLen = 2 + sizeof( pdf_uint32 );
+    m_bufferLen = 2 + sizeof( uint32_t );
 
     m_pObject    = pParent->CreateObject( "XRef" );
     m_offset    = 0;
@@ -66,15 +66,15 @@ void PdfXRefStream::BeginWrite( PdfOutputDevice* )
     m_pObject->GetStream()->BeginAppend();
 }
 
-void PdfXRefStream::WriteSubSection( PdfOutputDevice*, pdf_objnum first, pdf_uint32 count )
+void PdfXRefStream::WriteSubSection( PdfOutputDevice*, pdf_objnum first, uint32_t count )
 {
     PdfError::DebugMessage("Writing XRef section: %u %u\n", first, count );
 
-    m_indeces.push_back( static_cast<pdf_int64>(first) );
-    m_indeces.push_back( static_cast<pdf_int64>(count) );
+    m_indeces.push_back( static_cast<int64_t>(first) );
+    m_indeces.push_back( static_cast<int64_t>(count) );
 }
 
-void PdfXRefStream::WriteXRefEntry( PdfOutputDevice*, pdf_uint64 offset, pdf_gennum generation, 
+void PdfXRefStream::WriteXRefEntry( PdfOutputDevice*, uint64_t offset, pdf_gennum generation, 
                                     char cMode, pdf_objnum objectNumber ) 
 {
     std::vector<char>	bytes(m_bufferLen);
@@ -90,8 +90,8 @@ void PdfXRefStream::WriteXRefEntry( PdfOutputDevice*, pdf_uint64 offset, pdf_gen
     buffer[0]             = static_cast<char>( cMode == 'n' ? 1 : 0 );
     buffer[m_bufferLen-1] = static_cast<char>( cMode == 'n' ? 0 : generation );
 
-    const pdf_uint32 offset_be = ::PoDoFo::compat::podofo_htonl(static_cast<pdf_uint32>(offset));
-    memcpy( &buffer[1], reinterpret_cast<const char*>(&offset_be), sizeof(pdf_uint32) );
+    const uint32_t offset_be = ::PoDoFo::compat::podofo_htonl(static_cast<uint32_t>(offset));
+    memcpy( &buffer[1], reinterpret_cast<const char*>(&offset_be), sizeof(uint32_t) );
 
     m_pObject->GetStream()->Append( buffer, m_bufferLen );
 }
@@ -100,9 +100,9 @@ void PdfXRefStream::EndWrite( PdfOutputDevice* pDevice )
 {
     PdfArray w;
 
-    w.push_back( static_cast<pdf_int64>(1) );
-    w.push_back( static_cast<pdf_int64>(sizeof(pdf_uint32)) );
-    w.push_back( static_cast<pdf_int64>(1) );
+    w.push_back( static_cast<int64_t>(1) );
+    w.push_back( static_cast<int64_t>(sizeof(uint32_t)) );
+    w.push_back( static_cast<int64_t>(1) );
 
     // Add our self to the XRef table
     this->WriteXRefEntry( pDevice, pDevice->Tell(), 0, 'n' );

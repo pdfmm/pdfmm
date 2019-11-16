@@ -114,9 +114,9 @@ void PdfFontType1::EmbedSubsetFont()
 		return;
 
     pdf_long    lSize    = 0;
-    pdf_int64   lLength1 = 0L;
-    pdf_int64   lLength2 = 0L;
-    pdf_int64   lLength3 = 0L;
+    int64_t   lLength1 = 0L;
+    int64_t   lLength2 = 0L;
+    int64_t   lLength3 = 0L;
     PdfObject*  pContents;
     const char* pBuffer;
     char*       pAllocated = NULL;
@@ -421,9 +421,9 @@ void PdfFontType1::EmbedSubsetFont()
 void PdfFontType1::EmbedFontFile( PdfObject* pDescriptor )
 {
     pdf_long    lSize    = 0;
-    pdf_int64   lLength1 = 0L;
-    pdf_int64   lLength2 = 0L;
-    pdf_int64   lLength3 = 0L;
+    int64_t   lLength1 = 0L;
+    int64_t   lLength2 = 0L;
+    int64_t   lLength3 = 0L;
     PdfObject*  pContents;
     const char* pBuffer;
     char*       pAllocated = NULL;

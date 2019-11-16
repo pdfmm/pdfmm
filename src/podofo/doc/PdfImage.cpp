@@ -154,7 +154,7 @@ void PdfImage::SetImageICCProfile( PdfInputStream* pStream, long lColorComponent
     // Create a colorspace object
     PdfObject* pIccObject = this->GetObject()->GetOwner()->CreateObject();
     pIccObject->GetDictionary().AddKey( PdfName("Alternate"), ColorspaceToName( eAlternateColorSpace ) ); 
-    pIccObject->GetDictionary().AddKey( PdfName("N"), static_cast<pdf_int64>(lColorComponents) );
+    pIccObject->GetDictionary().AddKey( PdfName("N"), static_cast<int64_t>(lColorComponents) );
     pIccObject->GetStream()->Set( pStream );
     
     // Add the colorspace to our image
@@ -185,9 +185,9 @@ void PdfImage::SetImageData( unsigned int nWidth, unsigned int nHeight,
     m_rRect.SetWidth( nWidth );
     m_rRect.SetHeight( nHeight );
 
-    this->GetObject()->GetDictionary().AddKey( "Width",  PdfVariant( static_cast<pdf_int64>(nWidth) ) );
-    this->GetObject()->GetDictionary().AddKey( "Height", PdfVariant( static_cast<pdf_int64>(nHeight) ) );
-    this->GetObject()->GetDictionary().AddKey( "BitsPerComponent", PdfVariant( static_cast<pdf_int64>(nBitsPerComponent) ) );
+    this->GetObject()->GetDictionary().AddKey( "Width",  PdfVariant( static_cast<int64_t>(nWidth) ) );
+    this->GetObject()->GetDictionary().AddKey( "Height", PdfVariant( static_cast<int64_t>(nHeight) ) );
+    this->GetObject()->GetDictionary().AddKey( "BitsPerComponent", PdfVariant( static_cast<int64_t>(nBitsPerComponent) ) );
 
     PdfVariant var;
     m_rRect.ToVariant( var );
@@ -202,9 +202,9 @@ void PdfImage::SetImageDataRaw( unsigned int nWidth, unsigned int nHeight,
     m_rRect.SetWidth( nWidth );
     m_rRect.SetHeight( nHeight );
 
-    this->GetObject()->GetDictionary().AddKey( "Width",  PdfVariant( static_cast<pdf_int64>(nWidth) ) );
-    this->GetObject()->GetDictionary().AddKey( "Height", PdfVariant( static_cast<pdf_int64>(nHeight) ) );
-    this->GetObject()->GetDictionary().AddKey( "BitsPerComponent", PdfVariant( static_cast<pdf_int64>(nBitsPerComponent) ) );
+    this->GetObject()->GetDictionary().AddKey( "Width",  PdfVariant( static_cast<int64_t>(nWidth) ) );
+    this->GetObject()->GetDictionary().AddKey( "Height", PdfVariant( static_cast<int64_t>(nHeight) ) );
+    this->GetObject()->GetDictionary().AddKey( "BitsPerComponent", PdfVariant( static_cast<int64_t>(nBitsPerComponent) ) );
 
     PdfVariant var;
     m_rRect.ToVariant( var );
@@ -547,8 +547,8 @@ void PdfImage::LoadFromTiffHandle(void* hInHandle) {
             if( bitsPixel == 1 )
             {
                 PdfArray decode;
-                decode.insert( decode.end(), PdfVariant( static_cast<pdf_int64>(0) ) );
-                decode.insert( decode.end(), PdfVariant( static_cast<pdf_int64>(1) ) );
+                decode.insert( decode.end(), PdfVariant( static_cast<int64_t>(0) ) );
+                decode.insert( decode.end(), PdfVariant( static_cast<int64_t>(1) ) );
                 this->GetObject()->GetDictionary().AddKey( PdfName("Decode"), decode );
                 this->GetObject()->GetDictionary().AddKey( PdfName("ImageMask"), PdfVariant( true ) );
                 this->GetObject()->GetDictionary().RemoveKey( PdfName("ColorSpace") );
@@ -568,8 +568,8 @@ void PdfImage::LoadFromTiffHandle(void* hInHandle) {
             if( bitsPixel == 1 )
             {
                 PdfArray decode;
-                decode.insert( decode.end(), PdfVariant( static_cast<pdf_int64>(1) ) );
-                decode.insert( decode.end(), PdfVariant( static_cast<pdf_int64>(0) ) );
+                decode.insert( decode.end(), PdfVariant( static_cast<int64_t>(1) ) );
+                decode.insert( decode.end(), PdfVariant( static_cast<int64_t>(0) ) );
                 this->GetObject()->GetDictionary().AddKey( PdfName("Decode"), decode );
                 this->GetObject()->GetDictionary().AddKey( PdfName("ImageMask"), PdfVariant( true ) );
                 this->GetObject()->GetDictionary().RemoveKey( PdfName("ColorSpace") );
@@ -607,8 +607,8 @@ void PdfImage::LoadFromTiffHandle(void* hInHandle) {
             int numColors = (1 << bitsPixel);
             
             PdfArray decode;
-            decode.insert( decode.end(), PdfVariant( static_cast<pdf_int64>(0) ) );
-            decode.insert( decode.end(), PdfVariant( static_cast<pdf_int64>(numColors-1) ) );
+            decode.insert( decode.end(), PdfVariant( static_cast<int64_t>(0) ) );
+            decode.insert( decode.end(), PdfVariant( static_cast<int64_t>(numColors-1) ) );
             this->GetObject()->GetDictionary().AddKey( PdfName("Decode"), decode );
             
             uint16 * rgbRed;
@@ -634,7 +634,7 @@ void PdfImage::LoadFromTiffHandle(void* hInHandle) {
             PdfArray array;
             array.push_back( PdfName("Indexed") );
             array.push_back( PdfName("DeviceRGB") );
-            array.push_back( static_cast<pdf_int64>(numColors-1) );
+            array.push_back( static_cast<int64_t>(numColors-1) );
             array.push_back( pIdxObject->Reference() );
             this->GetObject()->GetDictionary().AddKey( PdfName("ColorSpace"), array );
             
@@ -1225,7 +1225,7 @@ PdfName PdfImage::ColorspaceToName( EPdfColorSpace eColorSpace )
     return PdfColor::GetNameForColorSpace( eColorSpace ).GetName();
 }
 
-void PdfImage::SetImageChromaKeyMask(pdf_int64 r, pdf_int64 g, pdf_int64 b, pdf_int64 threshold)
+void PdfImage::SetImageChromaKeyMask(int64_t r, int64_t g, int64_t b, int64_t threshold)
 {
     PdfArray array;
     array.push_back(r - threshold);

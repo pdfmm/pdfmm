@@ -340,7 +340,7 @@ const PdfString & PdfOutlineItem::GetTitle() const
 
 void PdfOutlineItem::SetTextFormat( EPdfOutlineFormat eFormat )
 {
-    this->GetObject()->GetDictionary().AddKey( "F", static_cast<pdf_int64>(eFormat) );
+    this->GetObject()->GetDictionary().AddKey( "F", static_cast<int64_t>(eFormat) );
 }
 
 EPdfOutlineFormat PdfOutlineItem::GetTextFormat() const

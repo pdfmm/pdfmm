@@ -224,7 +224,7 @@ void PdfSignatureField::AddCertificationReference( PdfObject* pDocumentCatalog, 
 
     PdfObject *pTransParams = this->GetFieldObject()->GetOwner()->CreateObject( "TransformParams" );
     pTransParams->GetDictionary().AddKey(PdfName("V"), PdfName("1.2"));
-    pTransParams->GetDictionary().AddKey(PdfName("P"), PdfVariant((pdf_int64)perm));
+    pTransParams->GetDictionary().AddKey(PdfName("P"), PdfVariant((int64_t)perm));
     pSigRef->GetDictionary().AddKey(PdfName("TransformParams"), pTransParams);
 
     if (pDocumentCatalog != NULL)

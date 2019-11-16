@@ -118,7 +118,7 @@ const PdfStream & PdfStream::operator=( const PdfStream & rhs )
 
     if( m_pParent ) 
         m_pParent->GetDictionary().AddKey( PdfName::KeyLength, 
-                                           PdfVariant(static_cast<pdf_int64>(rhs.GetInternalBufferSize())));
+                                           PdfVariant(static_cast<int64_t>(rhs.GetInternalBufferSize())));
 
     return (*this);
 }

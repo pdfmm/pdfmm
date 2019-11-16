@@ -104,7 +104,7 @@ void PdfParserObject::ReadObjectNumber()
         pdf_long obj = this->GetNextNumber();
         pdf_long gen = this->GetNextNumber();
 
-        m_reference = PdfReference( static_cast<unsigned int>(obj), static_cast<pdf_uint16>(gen) );
+        m_reference = PdfReference( static_cast<unsigned int>(obj), static_cast<uint16_t>(gen) );
     } catch( PdfError & e ) {
         e.AddToCallstack( __FILE__, __LINE__, "Object and generation number cannot be read." );
         throw e;
@@ -248,7 +248,7 @@ void PdfParserObject::ParseStream()
     PODOFO_ASSERT( !DelayedStreamLoadDone() );
 #endif
 
-    pdf_int64         lLen  = -1;
+    int64_t         lLen  = -1;
     int          c;
 
     if( !m_device.Device() || !m_pOwner )

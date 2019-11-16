@@ -208,7 +208,7 @@ PdfTokenizer::~PdfTokenizer()
 bool PdfTokenizer::GetNextToken( const char*& pszToken , EPdfTokenType* peType )
 {
     int  c;
-    pdf_int64  counter  = 0;
+    int64_t  counter  = 0;
 
     // check first if there are queued tokens and return them first
     if( m_deqQueque.size() )
@@ -240,7 +240,7 @@ bool PdfTokenizer::GetNextToken( const char*& pszToken , EPdfTokenType* peType )
         *peType = ePdfTokenType_Token;
 
     while( (c = m_device.Device()->Look()) != EOF
-           && counter + 1 < static_cast<pdf_int64>(m_buffer.GetSize()) )
+           && counter + 1 < static_cast<int64_t>(m_buffer.GetSize()) )
     {
         // ignore leading whitespaces
         if( !counter && IsWhitespace( c ) )
@@ -467,9 +467,9 @@ EPdfDataType PdfTokenizer::DetermineDataType( const char* pszToken, EPdfTokenTyp
         else if( eDataType == ePdfDataType_Number )
         {
 #ifdef _WIN64
-            rVariant = PdfVariant( static_cast<pdf_int64>(_strtoui64( pszToken, NULL, 10 )) );
+            rVariant = PdfVariant( static_cast<int64_t>(_strtoui64( pszToken, NULL, 10 )) );
 #else
-            rVariant = PdfVariant( static_cast<pdf_int64>(strtol( pszToken, NULL, 10 )) );
+            rVariant = PdfVariant( static_cast<int64_t>(strtol( pszToken, NULL, 10 )) );
 #endif
             // read another two tokens to see if it is a reference
             // we cannot be sure that there is another token
@@ -509,7 +509,7 @@ EPdfDataType PdfTokenizer::DetermineDataType( const char* pszToken, EPdfTokenTyp
                 pszToken[0] == 'R' && pszToken[1] == '\0' )
             {
                 rVariant = PdfReference( static_cast<unsigned int>(rVariant.GetNumber()),
-                                         static_cast<const pdf_uint16>(l) );
+                                         static_cast<const uint16_t>(l) );
                 return ePdfDataType_Reference;
             }
             else

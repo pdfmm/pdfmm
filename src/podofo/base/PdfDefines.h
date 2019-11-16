@@ -75,7 +75,8 @@
 
 // Include common system files
 // (most are now pulled in my PdfCompilerCompat.h)
-#include <wchar.h>
+#include <cwchar>
+#include <cstdint>
 
 // Include common STL files
 #include <map>
@@ -122,7 +123,7 @@
 #include "podofoapi.h"
 
 #ifdef DEBUG
-#include <assert.h>
+#include <cassert>
 #define PODOFO_ASSERT( x ) assert( x );
 #else
 #define PODOFO_ASSERT( x ) do { if (!(x)) PODOFO_RAISE_ERROR_INFO(ePdfError_InternalLogic, #x); } while (false)
@@ -151,7 +152,7 @@
 namespace PoDoFo {
 
 /* Explicitly big-endian short, suitable for unicode text */
-typedef pdf_uint16     pdf_utf16be;
+typedef uint16_t     pdf_utf16be;
 /* Typedef to indicate utf-8 encoded data */
 typedef unsigned char  pdf_utf8;
 

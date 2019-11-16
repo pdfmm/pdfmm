@@ -220,7 +220,7 @@ class PODOFO_API PdfDictionary : public PdfOwnedDataType {
      */
     inline const PdfObject& MustGetKey( const PdfName & key ) const;
 
-    pdf_int64 GetKeyAsLong( const PdfName & key, pdf_int64 lDefault = 0 ) const;
+    int64_t GetKeyAsLong( const PdfName & key, int64_t lDefault = 0 ) const;
 
     double GetKeyAsReal( const PdfName & key, double dDefault = 0.0 ) const;
 

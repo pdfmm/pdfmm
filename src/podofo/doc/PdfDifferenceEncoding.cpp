@@ -2313,7 +2313,7 @@ bool PdfEncodingDifference::ContainsUnicodeValue( pdf_utf16be unicodeValue, char
 
 void PdfEncodingDifference::ToArray( PdfArray & rArray )
 {
-    pdf_int64 nLastCode = -2;
+    int64_t nLastCode = -2;
 
     rArray.Clear();
 
@@ -2404,7 +2404,7 @@ PdfDifferenceEncoding::PdfDifferenceEncoding( PdfObject* pObject, bool bAutoDele
         const PdfArray & rDifferences = this->GetObject()->GetIndirectKey( PdfName("Differences") )->GetArray();
         PdfArray::const_iterator it = rDifferences.begin();
 
-        pdf_int64 curCode = -1;
+        int64_t curCode = -1;
 
         while( it != rDifferences.end() ) 
         {
@@ -2574,7 +2574,7 @@ PdfString PdfDifferenceEncoding::ConvertToUnicode( const PdfString & rEncodedStr
     {
         PdfName     name;
         pdf_utf16be value;
-        //TODO: This method should take pdf_uint8 instead of int because of its
+        //TODO: This method should take uint8_t instead of int because of its
         // domain (0 to 255) for 1st param, but PoDoFo still has known security
         // issues so an API change is a Bad Thing (mabri: IMO at least) to do now.
         if( m_differences.Contains( static_cast<int>(pszInput[i]), name, value ) )

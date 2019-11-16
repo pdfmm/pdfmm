@@ -314,7 +314,7 @@ size_t PdfOutputDevice::Read( char* pBuffer, size_t lLen )
     {		
         if( m_ulPosition <= m_ulLength )
         {
-			numRead = PODOFO_MIN(lLen, m_ulLength-m_ulPosition);
+			numRead = std::min(lLen, m_ulLength-m_ulPosition);
             memcpy( pBuffer, m_pBuffer + m_ulPosition, numRead);
         }
     }
@@ -332,7 +332,7 @@ size_t PdfOutputDevice::Read( char* pBuffer, size_t lLen )
     {
         if( m_ulPosition <= m_ulLength )
 		{
-			numRead = PODOFO_MIN(lLen, m_ulLength-m_ulPosition);
+			numRead = std::min(lLen, m_ulLength-m_ulPosition);
             memcpy( pBuffer, m_pRefCountedBuffer->GetBuffer() + m_ulPosition, numRead );
 		}
     }

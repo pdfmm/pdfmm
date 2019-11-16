@@ -1128,7 +1128,7 @@ void PdfPainter::DrawGlyph( PdfMemDocument* pDocument, double dX, double dY, con
 			code++;
 	        
 			PdfArray diffs;
-			diffs.push_back( PdfVariant( static_cast<pdf_int64>( code ) ) );
+			diffs.push_back( PdfVariant( static_cast<int64_t>( code ) ) );
 			diffs.push_back( PdfName( pszGlyphname ) );
 	        
 			pEncoding->GetDictionary().AddKey( "Differences", diffs );
@@ -1139,9 +1139,9 @@ void PdfPainter::DrawGlyph( PdfMemDocument* pDocument, double dX, double dY, con
 			PdfArray & rWidthArr = pWidthObj->GetArray();
 			for ( unsigned int i = 0; i < rWidthArr.size(); i++ )
 			{
-				rWidthArr[i] = PdfVariant( static_cast<pdf_int64>( 0 ) );
+				rWidthArr[i] = PdfVariant( static_cast<int64_t>( 0 ) );
 			}
-			rWidthArr[code] = PdfVariant( static_cast<pdf_int64>( width ) );
+			rWidthArr[code] = PdfVariant( static_cast<int64_t>( width ) );
 
 			break;
 		}
@@ -1200,7 +1200,7 @@ void PdfPainter::DrawGlyph( PdfMemDocument* pDocument, double dX, double dY, con
 			// enter width of glyph
 			PdfObject* pWidthObj = pGlyphFontObj->GetIndirectKey( "Widths" );
 			PdfArray & rWidthArr = pWidthObj->GetArray();
-			rWidthArr[code] = PdfVariant( static_cast<pdf_int64>( width ) );
+			rWidthArr[code] = PdfVariant( static_cast<int64_t>( width ) );
 
 			break;
 		}
@@ -1890,7 +1890,7 @@ PdfString PdfPainter::ExpandTabs( const PdfString & rsString, pdf_long lStringLe
     if (lStringLen > rsString.GetCharacterLength())
     {
         PdfError::DebugMessage( "Requested to expand tabs in string of %" PDF_FORMAT_INT64 " chars, while it has only %" PDF_FORMAT_INT64 "; correcting the value\n",
-            static_cast<pdf_int64>( lStringLen ), static_cast<pdf_int64>( rsString.GetCharacterLength() ) );
+            static_cast<int64_t>( lStringLen ), static_cast<int64_t>( rsString.GetCharacterLength() ) );
 
         lStringLen = rsString.GetCharacterLength();
     }

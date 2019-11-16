@@ -142,7 +142,7 @@ class PODOFO_DOC_API PdfField {
     *  \param lValue is set with the flag if found
     *  \returns true if flag is found
     */
-    static bool GetFieldFlags( const PdfObject &rObject, pdf_int64 & lValue );
+    static bool GetFieldFlags( const PdfObject &rObject, int64_t & lValue );
 
     /**
      * \param bCreate create the dictionary if it does not exist

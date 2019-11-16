@@ -171,7 +171,7 @@ class PODOFO_API PdfWriter {
      *  The default is 0.
      *  \param lPrevXRefOffset the previous XRef table offset
      */
-    inline void SetPrevXRefOffset( pdf_int64 lPrevXRefOffset );
+    inline void SetPrevXRefOffset( int64_t lPrevXRefOffset );
 
     /** 
      *  \returns offset to the previous XRef table, as previously set
@@ -179,7 +179,7 @@ class PODOFO_API PdfWriter {
      *
      * \see SetPrevXRefOffset
      */
-    inline pdf_int64 GetPrevXRefOffset() const;
+    inline int64_t GetPrevXRefOffset() const;
 
     /** Set whether writing an incremental update.
      *  Default is false.
@@ -333,7 +333,7 @@ class PODOFO_API PdfWriter {
  private:
     EPdfWriteMode   m_eWriteMode;
     EPdfVersion     m_eVersion;
-    pdf_int64       m_lPrevXRefOffset;
+    int64_t       m_lPrevXRefOffset;
     bool            m_bIncrementalUpdate;
 
     bool            m_bLinearized;
@@ -389,7 +389,7 @@ bool PdfWriter::GetUseXRefStream() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-void PdfWriter::SetPrevXRefOffset( pdf_int64 lPrevXRefOffset )
+void PdfWriter::SetPrevXRefOffset( int64_t lPrevXRefOffset )
 {
     m_lPrevXRefOffset = lPrevXRefOffset;
 }
@@ -397,7 +397,7 @@ void PdfWriter::SetPrevXRefOffset( pdf_int64 lPrevXRefOffset )
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-pdf_int64 PdfWriter::GetPrevXRefOffset() const
+int64_t PdfWriter::GetPrevXRefOffset() const
 {
     return m_lPrevXRefOffset;
 }

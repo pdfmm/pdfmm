@@ -208,7 +208,7 @@ EPdfField PdfField::GetFieldType(const PdfObject & rObject)
     const PdfName fieldType = pFT->GetName();
     if (fieldType == PdfName("Btn"))
     {
-        pdf_int64 flags;
+        int64_t flags;
         PdfField::GetFieldFlags( rObject , flags );
 
         if ( ( flags & PdfButton::ePdfButton_PushButton ) == PdfButton::ePdfButton_PushButton)
@@ -230,7 +230,7 @@ EPdfField PdfField::GetFieldType(const PdfObject & rObject)
     }
     else if (fieldType == PdfName("Ch"))
     {
-        pdf_int64 flags;
+        int64_t flags;
         PdfField::GetFieldFlags(rObject, flags);
 
         if ( ( flags & PdfListField::ePdfListField_Combo ) == PdfListField::ePdfListField_Combo )
@@ -268,11 +268,11 @@ void PdfField::Init(PdfAcroForm *pParent)
             break;
         case ePdfField_PushButton:
             dict.AddKey(PdfName("FT"), PdfName("Btn"));
-            dict.AddKey("Ff", PdfObject((pdf_int64)PdfButton::ePdfButton_PushButton));
+            dict.AddKey("Ff", PdfObject((int64_t)PdfButton::ePdfButton_PushButton));
             break;
         case ePdfField_RadioButton:
             dict.AddKey( PdfName("FT"), PdfName("Btn") );
-            dict.AddKey("Ff", PdfObject((pdf_int64)(PdfButton::ePdfButton_Radio | PdfButton::ePdfButton_NoToggleOff)));
+            dict.AddKey("Ff", PdfObject((int64_t)(PdfButton::ePdfButton_Radio | PdfButton::ePdfButton_NoToggleOff)));
             break;
         case ePdfField_TextField:
             dict.AddKey( PdfName("FT"), PdfName("Tx") );
@@ -282,7 +282,7 @@ void PdfField::Init(PdfAcroForm *pParent)
             break;
         case ePdfField_ComboBox:
             dict.AddKey(PdfName("FT"), PdfName("Ch"));
-            dict.AddKey("Ff", PdfObject((pdf_int64)PdfListField::ePdfListField_Combo));
+            dict.AddKey("Ff", PdfObject((int64_t)PdfListField::ePdfListField_Combo));
             break;
         case ePdfField_Signature:
             dict.AddKey( PdfName("FT"), PdfName("Sig") );
@@ -320,7 +320,7 @@ PdfObject* PdfField::GetAppearanceCharacteristics( bool bCreate ) const
 
 void PdfField::SetFieldFlag( long lValue, bool bSet )
 {
-    pdf_int64 lCur = 0;
+    int64_t lCur = 0;
 
     if( m_pObject->GetDictionary().HasKey( PdfName("Ff") ) )
         lCur = m_pObject->GetDictionary().GetKey( PdfName("Ff") )->GetNumber();
@@ -338,7 +338,7 @@ void PdfField::SetFieldFlag( long lValue, bool bSet )
 
 bool PdfField::GetFieldFlag( long lValue, bool bDefault ) const
 {
-    pdf_int64 flag;
+    int64_t flag;
     if ( !GetFieldFlags( *m_pObject, flag) )
         return bDefault;
 
@@ -346,7 +346,7 @@ bool PdfField::GetFieldFlag( long lValue, bool bDefault ) const
 }
 
 
-bool PdfField::GetFieldFlags( const PdfObject & rObject, pdf_int64 & lValue )
+bool PdfField::GetFieldFlags( const PdfObject & rObject, int64_t & lValue )
 {
     const PdfDictionary &rDict = rObject.GetDictionary();
 
@@ -906,7 +906,7 @@ PdfString PdfTextField::GetText() const
 
 void PdfTextField::SetMaxLen( pdf_long nMaxLen )
 {
-    m_pObject->GetDictionary().AddKey( PdfName("MaxLen"), static_cast<pdf_int64>(nMaxLen) );
+    m_pObject->GetDictionary().AddKey( PdfName("MaxLen"), static_cast<int64_t>(nMaxLen) );
 }
 
 pdf_long  PdfTextField::GetMaxLen() const

@@ -181,7 +181,7 @@ void PdfFileSpec::EmbeddFile( PdfObject* pStream, const wchar_t* pszFilename ) c
 
     // Add additional information about the embedded file to the stream
     PdfDictionary params;
-    params.AddKey( "Size", static_cast<pdf_int64>(stream.GetFileLength()) );
+    params.AddKey( "Size", static_cast<int64_t>(stream.GetFileLength()) );
     // TODO: CreationDate and ModDate
     pStream->GetDictionary().AddKey("Params", params );
 }
@@ -290,7 +290,7 @@ void PdfFileSpec::EmbeddFile( PdfObject* pStream, const char* pszFilename ) cons
 
     // Add additional information about the embedded file to the stream
     PdfDictionary params;
-    params.AddKey( "Size", static_cast<pdf_int64>(stream.GetFileLength()) );
+    params.AddKey( "Size", static_cast<int64_t>(stream.GetFileLength()) );
     // TODO: CreationDate and ModDate
     pStream->GetDictionary().AddKey("Params", params );
 }
@@ -327,7 +327,7 @@ void PdfFileSpec::EmbeddFileFromMem( PdfObject* pStream, const unsigned char* da
 
     // Add additional information about the embedded file to the stream
     PdfDictionary params;
-    params.AddKey( "Size", static_cast<pdf_int64>(size) );
+    params.AddKey( "Size", static_cast<int64_t>(size) );
     pStream->GetDictionary().AddKey("Params", params );
 }
 

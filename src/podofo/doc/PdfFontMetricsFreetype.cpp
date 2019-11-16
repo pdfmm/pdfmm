@@ -328,7 +328,7 @@ void PdfFontMetricsFreetype::GetWidthArray( PdfVariant & var, unsigned int nFirs
 #ifdef PODOFO_IS_LITTLE_ENDIAN
                 shCode = ((shCode & 0x00FF) << 8) | ((shCode & 0xFF00) >> 8);
 #endif
-                list.push_back( PdfVariant( (pdf_int64)this->GetGlyphWidth(this->GetGlyphId(shCode)) ) );
+                list.push_back( PdfVariant( (int64_t)this->GetGlyphWidth(this->GetGlyphId(shCode)) ) );
                 continue;
             }
             else if( FT_Load_Char( m_pFace, i, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP ) == 0 )  // | FT_LOAD_NO_RENDER

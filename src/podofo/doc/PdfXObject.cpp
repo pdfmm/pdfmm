@@ -325,19 +325,19 @@ void PdfXObject::InitXObject( const PdfRect & rRect, const char* pszPrefix )
     if( m_matrix.empty() )
     {
         // This matrix is the same for all PdfXObjects so cache it
-        m_matrix.push_back( PdfVariant( static_cast<pdf_int64>(PODOFO_LL_LITERAL(1)) ) );
-        m_matrix.push_back( PdfVariant( static_cast<pdf_int64>(PODOFO_LL_LITERAL(0)) ) );
-        m_matrix.push_back( PdfVariant( static_cast<pdf_int64>(PODOFO_LL_LITERAL(0)) ) );
-        m_matrix.push_back( PdfVariant( static_cast<pdf_int64>(PODOFO_LL_LITERAL(1)) ) );
-        m_matrix.push_back( PdfVariant( static_cast<pdf_int64>(PODOFO_LL_LITERAL(0)) ) );
-        m_matrix.push_back( PdfVariant( static_cast<pdf_int64>(PODOFO_LL_LITERAL(0)) ) );
+        m_matrix.push_back( PdfVariant( static_cast<int64_t>(PODOFO_LL_LITERAL(1)) ) );
+        m_matrix.push_back( PdfVariant( static_cast<int64_t>(PODOFO_LL_LITERAL(0)) ) );
+        m_matrix.push_back( PdfVariant( static_cast<int64_t>(PODOFO_LL_LITERAL(0)) ) );
+        m_matrix.push_back( PdfVariant( static_cast<int64_t>(PODOFO_LL_LITERAL(1)) ) );
+        m_matrix.push_back( PdfVariant( static_cast<int64_t>(PODOFO_LL_LITERAL(0)) ) );
+        m_matrix.push_back( PdfVariant( static_cast<int64_t>(PODOFO_LL_LITERAL(0)) ) );
     }
 
     PdfVariant    var;
     rRect.ToVariant( var );
     this->GetObject()->GetDictionary().AddKey( "BBox", var );
     this->GetObject()->GetDictionary().AddKey(PdfName::KeySubtype, PdfName(ToString(EPdfXObject::ePdfXObject_Form)));
-    this->GetObject()->GetDictionary().AddKey( "FormType", PdfVariant( static_cast<pdf_int64>(PODOFO_LL_LITERAL(1)) ) ); // only 1 is only defined in the specification.
+    this->GetObject()->GetDictionary().AddKey( "FormType", PdfVariant( static_cast<int64_t>(PODOFO_LL_LITERAL(1)) ) ); // only 1 is only defined in the specification.
     this->GetObject()->GetDictionary().AddKey( "Matrix", m_matrix );
 
     InitResources();
