@@ -62,7 +62,7 @@ PdfArray::~PdfArray()
 
 void PdfArray::RemoveAt(int index)
 {
-    if (index < 0 || index >= m_objects.size())
+    if (index < 0 || index >= (int)m_objects.size())
         PODOFO_RAISE_ERROR_INFO(ePdfError_ValueOutOfRange, "Index is out of bounds");
 
     m_objects.erase(m_objects.begin() + index);
