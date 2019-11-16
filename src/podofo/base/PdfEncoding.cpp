@@ -79,8 +79,10 @@ PdfEncoding::~PdfEncoding() { }
 
 PdfString PdfEncoding::ConvertToUnicode( const PdfString &rString, const PdfFont *pFont ) const
 {
+    (void)pFont;
+
     if (m_toUnicode.empty())
-        return PdfString("\0");
+        return PdfString((const pdf_utf8 *)"", 0);
 
     return convertToUnicode( rString, m_toUnicode, m_maxCodeRangeSize);
 }
@@ -129,7 +131,7 @@ PdfString PdfEncoding::convertToUnicode( const PdfString &rEncodedString, const 
         }
     }
     
-    PdfString ret((pdf_utf8*)u8str.data(), u8str.size() );
+    PdfString ret((const pdf_utf8*)u8str.data(), u8str.size());
     return ret;
 }
 
@@ -146,13 +148,15 @@ PdfRefCountedBuffer PdfEncoding::ConvertToEncoding( const PdfString &rString, co
 
 PdfRefCountedBuffer PdfEncoding::convertToEncoding( const PdfString &rString, const UnicodeMap &map, const PdfFont *pFont )
 {
+    (void)rString;
+    (void)map;
+    (void)pFont;
     PODOFO_RAISE_ERROR(ePdfError_NotImplemented);
 }
 
 void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &firstChar, char32_t &lastChar, unsigned &maxCodeRangeSize)
 {
     char *streamBuffer;
-    EPdfTokenType *streamTokenType = NULL;
     pdf_long streamBufferLen;
     const PdfStream *CIDStreamdata = obj->GetStream();
     CIDStreamdata->GetFilteredCopy ( &streamBuffer, &streamBufferLen );
@@ -321,7 +325,7 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                         {
                             auto &mappedstr = map[{codeSize, srcCodeLo + i}];
                             mappedstr.clear();
-                            utf8::append(dstCIDLo + 1, mappedstr);
+                            utf8::append((char32_t)(dstCIDLo + 1), mappedstr);
                         }
                     }
 
@@ -490,7 +494,7 @@ PdfString PdfSimpleEncoding::ConvertToUnicode( const PdfString & rEncodedString,
         pdf_long           lLen           = rEncodedString.GetLength();
         
         if( lLen  <= 0 )
-            return PdfString(L"");
+            return PdfString((const pdf_utf8 *)"", 0);
         
         pdf_utf16be* pszStringUtf16 = static_cast<pdf_utf16be*>(podofo_calloc( (lLen + 1), sizeof(pdf_utf16be)));
         if( !pszStringUtf16 )

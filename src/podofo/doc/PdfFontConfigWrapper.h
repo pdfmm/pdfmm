@@ -91,7 +91,7 @@ private:
     void InitializeFontConfig();
 
 private:
-    std::auto_ptr<Util::PdfMutex> m_mutex;
+    std::unique_ptr<Util::PdfMutex> m_mutex;
     FcConfig* m_pFcConfig;
     };
 

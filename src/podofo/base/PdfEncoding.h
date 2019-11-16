@@ -250,7 +250,7 @@ public:
 
  protected:
     static uint32_t GetCodeFromVariant(const PdfVariant &var);
-    static uint32_t PdfEncoding::GetCodeFromVariant(const PdfVariant &var, unsigned &codeSize);
+    static uint32_t GetCodeFromVariant(const PdfVariant &var, unsigned &codeSize);
     static PdfRefCountedBuffer convertToEncoding(const PdfString &rString, const UnicodeMap &map, const PdfFont* pFont);
     static PdfString convertToUnicode(const PdfString &rString, const UnicodeMap &map, unsigned maxCodeRangeSize);
     static void ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &firstChar, char32_t &lastChar, unsigned &maxCodeRangeSize);

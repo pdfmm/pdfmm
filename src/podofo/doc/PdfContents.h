@@ -62,8 +62,8 @@ public:
     PdfStream & GetStreamForAppending();
 
 private:
-    PdfObject *m_object;
     PdfPage *m_parent;
+    PdfObject *m_object;
 };
 
 };
