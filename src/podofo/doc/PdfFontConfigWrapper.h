@@ -34,9 +34,10 @@
 #ifndef _PDF_FONT_CONFIG_WRAPPER_H_
 #define _PDF_FONT_CONFIG_WRAPPER_H_
 
+#include <mutex>
+
 #include "podofo/base/PdfDefines.h"
 #include "podofo/base/Pdf3rdPtyForwardDecl.h"
-#include "podofo/base/util/PdfMutex.h"
 #include <memory>
 
 namespace PoDoFo {
@@ -91,7 +92,7 @@ private:
     void InitializeFontConfig();
 
 private:
-    std::unique_ptr<Util::PdfMutex> m_mutex;
+    std::mutex m_mutex;
     FcConfig* m_pFcConfig;
     };
 

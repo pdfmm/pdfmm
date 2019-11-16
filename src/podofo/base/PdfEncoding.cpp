@@ -35,7 +35,6 @@
 
 #include "PdfDictionary.h"
 #include "PdfLocale.h"
-#include "util/PdfMutexWrapper.h"
 #include "PdfDefinesPrivate.h"
 #include "base/PdfStream.h"
 #include "base/PdfContentsTokenizer.h"
@@ -424,19 +423,18 @@ uint32_t PdfEncoding::GetCodeFromVariant(const PdfVariant &var, unsigned &codeSi
 // PdfSimpleEncoding
 // -----------------------------------------------------
 PdfSimpleEncoding::PdfSimpleEncoding( const PdfName & rName )
-    : PdfEncoding( 0, 255 ), m_mutex( new PoDoFo::Util::PdfMutex() ), m_name( rName ), m_pEncodingTable( NULL )
+    : PdfEncoding( 0, 255 ), m_name( rName ), m_pEncodingTable( NULL )
 {
 }
 
 PdfSimpleEncoding::~PdfSimpleEncoding() 
 {
     podofo_free( m_pEncodingTable );
-    delete m_mutex;
 }
 
 void PdfSimpleEncoding::InitEncodingTable() 
 {
-    Util::PdfMutexWrapper wrapper( *m_mutex );
+    unique_lock<mutex> lock(m_mutex);
 	// CVE-2017-7379 - previously lTableLength was 0xffff, but pdf_utf16be characters can be in range 0..0xffff so this
 	// caused out-by-one heap overflow when character 0xffff was encoded
     const long         lTableLength     = numeric_limits<pdf_utf16be>::max() + 1;

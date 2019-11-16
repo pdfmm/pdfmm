@@ -38,62 +38,14 @@
 #error Include PdfDefinesPrivate.h instead
 #endif
 
-   // We can use the ISO C++ headers with other compilers
 #  include <cstdlib>
 #  include <cstdio>
 #  include <cmath>
 #  include <cstring>
 #  include <ctime>
 
-
-#if PODOFO_HAVE_WINSOCK2_H
-#  ifdef PODOFO_MULTI_THREAD
-#    if defined(_WIN32) || defined(_WIN64)
-#      ifndef _WIN32_WINNT
-#        define _WIN32_WINNT 0x0400 // Make the TryEnterCriticalSection method available
-#        include <winsock2.h>       // This will include windows.h, so we have to define _WIN32_WINNT
-                                    // if we want to use threads later.
-#        undef _WIN32_WINNT 
-#      else
-#        include <winsock2.h>
-#      endif // _WIN32_WINNT
-#    endif // _WIN32 || _WIN64
-#  else
-#    include <winsock2.h>
-#  endif // PODOFO_MULTI_THREAD
-#endif
-
-#if PODOFO_HAVE_ARPA_INET_H
-#  include <arpa/inet.h>
-#endif
-
-#ifdef PODOFO_MULTI_THREAD
-#  if defined(_WIN32) || defined(_WIN64)
-#    if defined(_MSC_VER) && !defined(_WINSOCK2API_)
-#      error <winsock2.h> must be included before <windows.h>, config problem?
-#    endif
-#    ifndef _WIN32_WINNT
-#      define _WIN32_WINNT 0x0400 // Make the TryEnterCriticalSection method available
-#      include <windows.h>
-#      undef _WIN32_WINNT 
-#    else
-#      include <windows.h>
-#    endif // _WIN32_WINNT
-#  else
-#    include <pthread.h>
-#  endif // _WIN32
-#endif // PODOFO_MULTI_THREAD
-
-#if defined(_WIN32) || defined(_WIN64)
-#  if defined(GetObject)
-#    undef GetObject // Horrible windows.h macro definition that breaks things
-#  endif
-#  if defined(DrawText)
-#    undef DrawText // Horrible windows.h macro definition that breaks things
-#  endif
-#  if defined(CreateFont)
-#    undef CreateFont
-#  endif
+#ifndef WIN32
+#include <strings.h>
 #endif
 
 namespace PoDoFo {
@@ -143,28 +95,19 @@ namespace compat {
 
 // Case-insensitive string compare functions aren't very portable, and we must account
 // for several flavours.
-inline static int strcasecmp( const char * s1, const char * s2) {
-#if defined(_WIN32) || defined (_WIN64)
-#   if defined(_MSC_VER)
-        // MSVC++
-        return ::_stricmp(s1, s2);
-#   else
-        return ::stricmp(s1, s2);
-#   endif
+inline static int strcasecmp( const char * s1, const char * s2)
+{
+#if defined(WIN32)
+    return ::_stricmp(s1, s2);
 #else
-    // POSIX.1-2001
     return ::strcasecmp(s1, s2);
 #endif
 }
 
-inline static int strncasecmp( const char * s1, const char * s2, size_t n) {
-#if defined(_WIN32) || defined(_WIN64)
-#   if defined(_MSC_VER)
-        // MSVC++
-        return ::_strnicmp(s1, s2, n);
-#   else
-        return ::strnicmp(s1, s2, n);
-#   endif
+inline static int strncasecmp( const char * s1, const char * s2, size_t n)
+{
+#if defined(_MSC_VER)
+    return ::_strnicmp(s1, s2, n);
 #else
     // POSIX.1-2001
     return ::strncasecmp(s1, s2, n);

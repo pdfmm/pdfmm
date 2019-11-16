@@ -108,8 +108,6 @@ enum EPdfError {
     ePdfError_FreeType,                 /**< Error in FreeType */
     ePdfError_SignatureError,           /**< Error in signature */
 
-    ePdfError_MutexError,               /**< Error during a mutex operation */
-
     ePdfError_UnsupportedImageFormat,   /**< This image format is not supported by PoDoFo. */
     ePdfError_CannotConvertColor,       /**< This color format cannot be converted. */
 

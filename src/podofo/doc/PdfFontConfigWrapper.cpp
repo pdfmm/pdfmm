@@ -34,25 +34,26 @@
 #include "PdfFontConfigWrapper.h"
 
 #include <fontconfig/fontconfig.h>
-#include <base/util/PdfMutexWrapper.h>
+
+using namespace std;
 
 namespace PoDoFo {
 
 PdfFontConfigWrapper::PdfFontConfigWrapper( FcConfig* pFcConfig )
-    : m_mutex(new Util::PdfMutex()), m_pFcConfig( pFcConfig )
+    : m_pFcConfig( pFcConfig )
 {
 }
 
 PdfFontConfigWrapper::~PdfFontConfigWrapper()
 {
-    Util::PdfMutexWrapper lock( *m_mutex );
+    unique_lock<mutext> lock(m_mutex);
     if ( m_pFcConfig )
         FcConfigDestroy( m_pFcConfig );
 }
 
 void PdfFontConfigWrapper::InitializeFontConfig()
-    {
-    Util::PdfMutexWrapper lock( *m_mutex );
+{
+    unique_lock<mutext> lock(m_mutex);
     if ( m_pFcConfig )
         return;
 
@@ -62,7 +63,7 @@ void PdfFontConfigWrapper::InitializeFontConfig()
 }
 
 std::string PdfFontConfigWrapper::GetFontConfigFontPath( const char* pszFontName, bool bBold, bool bItalic )
-    {
+{
     InitializeFontConfig();
 
     FcPattern*  pattern;

@@ -166,14 +166,6 @@ SET(PODOFO_BASE_HEADERS
    base/podofoapi.h
    )
 
-SET(PODOFO_BASE_HEADERS2 
-    base/util/PdfMutex.h
-    base/util/PdfMutexImpl_noop.h
-    base/util/PdfMutexImpl_win32.h
-    base/util/PdfMutexImpl_pthread.h
-    base/util/PdfMutexWrapper.h
-    )
-
 SET(PODOFO_DOC_HEADERS
   doc/PdfAcroForm.h
   doc/PdfAction.h
@@ -232,7 +224,6 @@ ENDIF()
 SET(PODOFO_HEADER_FILES
   ${PODOFO_HEADERS}
   ${PODOFO_BASE_HEADERS}
-  ${PODOFO_BASE_HEADERS2}
   ${PODOFO_DOC_HEADERS}
   )
 

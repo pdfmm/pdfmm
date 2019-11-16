@@ -34,38 +34,36 @@
 #include "PdfEncodingFactory.h"
 
 #include "PdfEncoding.h"
-#include "util/PdfMutexWrapper.h"
 #include "PdfName.h"
 #include "PdfObject.h"
 #include "PdfDefinesPrivate.h"
 #include "doc/PdfIdentityEncoding.h"
 
+using namespace std;
+
 namespace PoDoFo {
 
-const PdfDocEncoding*      PdfEncodingFactory::s_pDocEncoding      = NULL;
-const PdfWinAnsiEncoding*  PdfEncodingFactory::s_pWinAnsiEncoding  = NULL;
-const PdfMacRomanEncoding* PdfEncodingFactory::s_pMacRomanEncoding = NULL;
-const PdfStandardEncoding*     PdfEncodingFactory::s_pStandardEncoding     = NULL; // OC 13.08.2010 New.
-const PdfMacExpertEncoding*    PdfEncodingFactory::s_pMacExpertEncoding    = NULL; // OC 13.08.2010 New.
-const PdfSymbolEncoding*       PdfEncodingFactory::s_pSymbolEncoding       = NULL; // OC 13.08.2010 New.
-const PdfZapfDingbatsEncoding* PdfEncodingFactory::s_pZapfDingbatsEncoding = NULL; // OC 13.08.2010 New.
-const PdfIdentityEncoding *    PdfEncodingFactory::s_pIdentityEncoding = NULL;
-const PdfWin1250Encoding *     PdfEncodingFactory::s_pWin1250Encoding = NULL;
-const PdfIso88592Encoding *    PdfEncodingFactory::s_pIso88592Encoding = NULL;
+const PdfDocEncoding *          PdfEncodingFactory::s_pDocEncoding          = nullptr;
+const PdfWinAnsiEncoding *      PdfEncodingFactory::s_pWinAnsiEncoding      = nullptr;
+const PdfMacRomanEncoding *     PdfEncodingFactory::s_pMacRomanEncoding     = nullptr;
+const PdfStandardEncoding *     PdfEncodingFactory::s_pStandardEncoding     = nullptr;
+const PdfMacExpertEncoding *    PdfEncodingFactory::s_pMacExpertEncoding    = nullptr;
+const PdfSymbolEncoding *       PdfEncodingFactory::s_pSymbolEncoding       = nullptr;
+const PdfZapfDingbatsEncoding * PdfEncodingFactory::s_pZapfDingbatsEncoding = nullptr;
+const PdfIdentityEncoding *     PdfEncodingFactory::s_pIdentityEncoding     = nullptr;
+const PdfWin1250Encoding *      PdfEncodingFactory::s_pWin1250Encoding      = nullptr;
+const PdfIso88592Encoding *     PdfEncodingFactory::s_pIso88592Encoding     = nullptr;
 
-Util::PdfMutex PdfEncodingFactory::s_mutex;
+mutex PdfEncodingFactory::s_mutex;
 
-PdfEncodingFactory::PdfEncodingFactory()
-{
-}
+PdfEncodingFactory::PdfEncodingFactory() { }
 	
 const PdfEncoding* PdfEncodingFactory::GlobalPdfDocEncodingInstance()
 {
-    if(!s_pDocEncoding) // First check
+    if(!s_pDocEncoding)
     {
-        Util::PdfMutexWrapper wrapper( PdfEncodingFactory::s_mutex ); 
-        
-        if(!s_pDocEncoding) // Double check
+        unique_lock<mutex> lock(s_mutex);
+        if(!s_pDocEncoding)
             s_pDocEncoding = new PdfDocEncoding();
     }
 
@@ -74,11 +72,10 @@ const PdfEncoding* PdfEncodingFactory::GlobalPdfDocEncodingInstance()
 
 const PdfEncoding* PdfEncodingFactory::GlobalWinAnsiEncodingInstance()
 {
-    if(!s_pWinAnsiEncoding) // First check
+    if(!s_pWinAnsiEncoding)
     {
-        Util::PdfMutexWrapper wrapper( PdfEncodingFactory::s_mutex ); 
-        
-        if(!s_pWinAnsiEncoding) // Double check
+        unique_lock<mutex> lock(s_mutex);
+        if(!s_pWinAnsiEncoding)
             s_pWinAnsiEncoding = new PdfWinAnsiEncoding();
     }
 
@@ -87,67 +84,58 @@ const PdfEncoding* PdfEncodingFactory::GlobalWinAnsiEncodingInstance()
 
 const PdfEncoding* PdfEncodingFactory::GlobalMacRomanEncodingInstance()
 {
-    if(!s_pMacRomanEncoding) // First check
+    if(!s_pMacRomanEncoding)
     {
-        Util::PdfMutexWrapper wrapper( PdfEncodingFactory::s_mutex ); 
-        
-        if(!s_pMacRomanEncoding) // Double check
+        unique_lock<mutex> lock(s_mutex);
+        if(!s_pMacRomanEncoding)
             s_pMacRomanEncoding = new PdfMacRomanEncoding();
     }
 
     return s_pMacRomanEncoding;
 }
 
-// OC 13.08.2010:
 const PdfEncoding* PdfEncodingFactory::GlobalStandardEncodingInstance()
 {
-    if(!s_pStandardEncoding) // First check
+    if(!s_pStandardEncoding)
     {
-        Util::PdfMutexWrapper wrapper( PdfEncodingFactory::s_mutex ); 
-        
-        if(!s_pStandardEncoding) // Double check
+        unique_lock<mutex> lock(s_mutex);
+        if(!s_pStandardEncoding)
             s_pStandardEncoding = new PdfStandardEncoding();
     }
     
     return s_pStandardEncoding;
 }
 
-// OC 13.08.2010:
 const PdfEncoding* PdfEncodingFactory::GlobalMacExpertEncodingInstance()
 {
-    if(!s_pMacExpertEncoding) // First check
+    if(!s_pMacExpertEncoding)
     {
-        Util::PdfMutexWrapper wrapper( PdfEncodingFactory::s_mutex ); 
-        
-        if(!s_pMacExpertEncoding) // Double check
+        unique_lock<mutex> lock(s_mutex);
+        if(!s_pMacExpertEncoding)
             s_pMacExpertEncoding = new PdfMacExpertEncoding();
     }
     
     return s_pMacExpertEncoding;
 }
 
-// OC 13.08.2010:
 const PdfEncoding* PdfEncodingFactory::GlobalSymbolEncodingInstance()
 {
-    if(!s_pSymbolEncoding) // First check
+    if(!s_pSymbolEncoding)
     {
-        Util::PdfMutexWrapper wrapper( PdfEncodingFactory::s_mutex ); 
-        
-        if(!s_pSymbolEncoding) // Double check
+        unique_lock<mutex> lock(s_mutex);
+        if(!s_pSymbolEncoding)
             s_pSymbolEncoding = new PdfSymbolEncoding();
     }
 
     return s_pSymbolEncoding;
 }
 
-// OC 13.08.2010:
 const PdfEncoding* PdfEncodingFactory::GlobalZapfDingbatsEncodingInstance()
 {
-    if(!s_pZapfDingbatsEncoding) // First check
+    if(!s_pZapfDingbatsEncoding)
     {
-        Util::PdfMutexWrapper wrapper( PdfEncodingFactory::s_mutex ); 
-        
-        if(!s_pZapfDingbatsEncoding) // Double check
+        unique_lock<mutex> lock(s_mutex);
+        if(!s_pZapfDingbatsEncoding)
             s_pZapfDingbatsEncoding = new PdfZapfDingbatsEncoding();
     }
     
@@ -156,11 +144,10 @@ const PdfEncoding* PdfEncodingFactory::GlobalZapfDingbatsEncodingInstance()
 
 const PdfEncoding* PdfEncodingFactory::GlobalIdentityEncodingInstance()
 {
-    if(!s_pIdentityEncoding) // First check
+    if(!s_pIdentityEncoding)
     {
-        Util::PdfMutexWrapper wrapper( PdfEncodingFactory::s_mutex ); 
-        
-        if(!s_pIdentityEncoding) // Double check
+        unique_lock<mutex> lock(s_mutex);
+        if(!s_pIdentityEncoding)
             s_pIdentityEncoding = new PdfIdentityEncoding( 0, 0xffff, false );
     }
 
@@ -169,11 +156,10 @@ const PdfEncoding* PdfEncodingFactory::GlobalIdentityEncodingInstance()
 
 const PdfEncoding* PdfEncodingFactory::GlobalWin1250EncodingInstance()
 {
-    if(!s_pWin1250Encoding) // First check
+    if(!s_pWin1250Encoding)
     {
-        Util::PdfMutexWrapper wrapper( PdfEncodingFactory::s_mutex ); 
-        
-        if(!s_pWin1250Encoding) // Double check
+        unique_lock<mutex> lock(s_mutex);
+        if(!s_pWin1250Encoding)
             s_pWin1250Encoding = new PdfWin1250Encoding();
     }
 
@@ -182,11 +168,10 @@ const PdfEncoding* PdfEncodingFactory::GlobalWin1250EncodingInstance()
 
 const PdfEncoding* PdfEncodingFactory::GlobalIso88592EncodingInstance()
 {
-    if(!s_pIso88592Encoding) // First check
+    if(!s_pIso88592Encoding)
     {
-        Util::PdfMutexWrapper wrapper( PdfEncodingFactory::s_mutex ); 
-        
-        if(!s_pIso88592Encoding) // Double check
+        unique_lock<mutex> lock(s_mutex);
+        if(!s_pIso88592Encoding)
             s_pIso88592Encoding = new PdfIso88592Encoding();
     }
 
@@ -197,64 +182,62 @@ int podofo_number_of_clients = 0;
 
 void PdfEncodingFactory::FreeGlobalEncodingInstances()
 {
-    Util::PdfMutexWrapper wrapper( PdfEncodingFactory::s_mutex ); 	
+    unique_lock<mutex> lock(s_mutex);	
     
     podofo_number_of_clients--;
     if (podofo_number_of_clients <= 0)
     {
-        Util::PdfMutexWrapper wrapper( PdfEncodingFactory::s_mutex ); 
-        
-        if (NULL != s_pMacRomanEncoding)
+        if (s_pMacRomanEncoding != nullptr)
         {
             delete s_pMacRomanEncoding;
         }
-        if (NULL != s_pWinAnsiEncoding)
+        if (s_pWinAnsiEncoding != nullptr)
         {
             delete s_pWinAnsiEncoding;
         }
-        if (NULL != s_pDocEncoding)
+        if (s_pDocEncoding != nullptr)
         {
             delete s_pDocEncoding;
         }
-        if (NULL != s_pStandardEncoding) // OC 13.08.2010
+        if (s_pStandardEncoding != nullptr)
         {
             delete s_pStandardEncoding;
         }
-        if (NULL != s_pMacExpertEncoding) // OC 13.08.2010
+        if (s_pMacExpertEncoding != nullptr)
         {
             delete s_pMacExpertEncoding;
         }
-        if (NULL != s_pSymbolEncoding) // OC 13.08.2010
+        if (s_pSymbolEncoding != nullptr)
         {
             delete s_pSymbolEncoding;
         }
-        if (NULL != s_pZapfDingbatsEncoding) // OC 13.08.2010
+        if (s_pZapfDingbatsEncoding != nullptr)
         {
             delete s_pZapfDingbatsEncoding;
         }
-        if (NULL != s_pIdentityEncoding)
+        if (s_pIdentityEncoding != nullptr)
         {
             delete s_pIdentityEncoding;
         }
-        if (NULL != s_pWin1250Encoding)
+        if (s_pWin1250Encoding != nullptr)
         {
             delete s_pWin1250Encoding;
         }
-        if (NULL != s_pIso88592Encoding)
+        if (s_pIso88592Encoding != nullptr)
         {
             delete s_pIso88592Encoding;
         }
 
-        s_pMacRomanEncoding     = NULL;
-        s_pWinAnsiEncoding      = NULL;
-        s_pDocEncoding          = NULL;
-        s_pStandardEncoding     = NULL; // OC 13.08.2010
-        s_pMacExpertEncoding    = NULL; // OC 13.08.2010
-        s_pSymbolEncoding       = NULL; // OC 13.08.2010
-        s_pZapfDingbatsEncoding = NULL; // OC 13.08.2010
-        s_pIdentityEncoding     = NULL;
-        s_pWin1250Encoding      = NULL;
-        s_pIso88592Encoding     = NULL;
+        s_pMacRomanEncoding     = nullptr;
+        s_pWinAnsiEncoding      = nullptr;
+        s_pDocEncoding          = nullptr;
+        s_pStandardEncoding     = nullptr;
+        s_pMacExpertEncoding    = nullptr;
+        s_pSymbolEncoding       = nullptr;
+        s_pZapfDingbatsEncoding = nullptr;
+        s_pIdentityEncoding     = nullptr;
+        s_pWin1250Encoding      = nullptr;
+        s_pIso88592Encoding     = nullptr;
     }
 }
 

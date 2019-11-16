@@ -94,17 +94,6 @@ ENDIF(WANT_LIB64)
 ENDIF(DEFINED LIB_SUFFIX)
 MESSAGE("Will install libraries to ${CMAKE_INSTALL_PREFIX}/${LIBDIRNAME}")
 
-# Some headers that tend to vary a bit
-CHECK_INCLUDE_FILE("strings.h" PODOFO_HAVE_STRINGS_H) 
-CHECK_INCLUDE_FILE("arpa/inet.h" PODOFO_HAVE_ARPA_INET_H) 
-CHECK_INCLUDE_FILE("winsock2.h" PODOFO_HAVE_WINSOCK2_H) 
-CHECK_INCLUDE_FILE("mem.h" PODOFO_HAVE_MEM_H) 
-CHECK_INCLUDE_FILE("ctype.h" PODOFO_HAVE_CTYPE_H)
-
-CHECK_INCLUDE_FILE("sys/types.h" PODOFO_HAVE_SYS_TYPES_H)
-# See: http://msdn.microsoft.com/en-us/library/aa384264(VS.85).aspx
-CHECK_INCLUDE_FILE("BaseTsd.h" PODOFO_HAVE_BASETSD_H) 
-
 # Linux packagers want an uninstall target.
 CONFIGURE_FILE(
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
@@ -117,8 +106,7 @@ ADD_CUSTOM_TARGET(uninstall "${CMAKE_COMMAND}"
 TEST_BIG_ENDIAN(TEST_BIG)
 
 IF(WIN32)
-    # We must explicitly link to the core win32 libraries, and we need winsock2
-    # to get some byte-order conversion routines too.
+    # We must explicitly link to the core win32 libraries
     SET(PLATFORM_SYSTEM_LIBRARIES kernel32 user32 gdi32 winspool comdlg32 advapi32 shell32 ole32 oleaut32 uuid ws2_32)
     # Microsoft deprecate certain POSIX functions that we use.
     # for now, turn off these warnings.
@@ -262,21 +250,6 @@ FIND_PACKAGE(OpenSSL)
 FIND_PACKAGE(FREETYPE REQUIRED)
 MESSAGE("Found freetype library at ${FREETYPE_LIBRARIES}, headers ${FREETYPE_INCLUDE_DIR}")
 
-FIND_PACKAGE(LIBSTLPORT)
-SET(stlport_libraries_if_use_stlport)
-IF(USE_STLPORT)
-	IF(LIBSTLPORT_FOUND)
-		MESSAGE("Using STLPort")
-		INCLUDE_DIRECTORIES(${LIBSTLPORT_HEADERS})
-		LINK_DIRECTORIES(${LIBSTLPORT_LIB})
-		SET(stlport_libraries_if_use_stlport stlport)
-		# Use the threaded STLPort
-		ADD_DEFINITIONS(-D_PTHREADS)
-	ELSE(LIBSTLPORT_FOUND)
-		MESSAGE(FATAL_ERROR "STLPort use requested, but STLPort not found.")
-	ENDIF(LIBSTLPORT_FOUND)
-ENDIF(USE_STLPORT)
-
 IF(WANT_FONTCONFIG)
 	FIND_PACKAGE(FONTCONFIG REQUIRED)
 	SET(PODOFO_HAVE_FONTCONFIG TRUE)
@@ -292,32 +265,6 @@ ELSE(WANT_FONTCONFIG)
 	FIND_PACKAGE(FONTCONFIG)
 	SET(PODOFO_LIB_FONTCONFIG:STRING)
 ENDIF(WANT_FONTCONFIG)
-
-IF(NOT PODOFO_BUILD_LIB_ONLY)
-FIND_PACKAGE(LUA)
-IF(LUA_FOUND)
-	# If we have lua, we can build podofoimpose.
-	MESSAGE("Lua found - PoDoFoImpose and PoDoFoColor will be built with Lua support")
-	MESSAGE(" * Lua include directory: ${LUA_INCLUDE_DIR}")
-	MESSAGE(" * Lua libraries: ${LUA_LIBRARIES}")
-	INCLUDE_DIRECTORIES(${LUA_INCLUDE_DIR})
-	SET(PODOFO_HAVE_LUA TRUE)
-ELSE(LUA_FOUND)
-	MESSAGE("Lua not found - PoDoFoImpose and PoDoFoColor will be built without Lua support")
-ENDIF(LUA_FOUND)
-ENDIF(NOT PODOFO_BUILD_LIB_ONLY)
-
-
-# Check if we should build a multithreaded version of PoDoFo
-IF(DEFINED PODOFO_NO_MULTITHREAD)
-  MESSAGE("Building non multithreaded version of PoDoFo.")
-  SET(PODOFO_MULTI_THREAD FALSE)
-ELSE(DEFINED PODOFO_NO_MULTITHREAD)
-  MESSAGE("Building multithreaded version of PoDoFo.")
-  SET(PODOFO_MULTI_THREAD TRUE)
-  FIND_PACKAGE(Threads)
-  SET(PLATFORM_SYSTEM_LIBRARIES ${CMAKE_THREAD_LIBS_INIT} ${PLATFORM_SYSTEM_LIBRARIES})
-ENDIF(DEFINED PODOFO_NO_MULTITHREAD)
 
 IF(WANT_BOOST)
     MESSAGE("Looking optional for Boost.")
@@ -366,7 +313,6 @@ SET(PODOFO_LIB_DEPENDS
   ${OPENSSL_LIBRARIES}
   ${LIBJPEG_LIBRARIES}
   ${PLATFORM_SYSTEM_LIBRARIES}
-  ${stlport_libraries_if_use_stlport}
   ${FREETYPE_LIBRARIES}
   ${PNG_LIBRARIES}
   ${TIFF_LIBRARIES}
@@ -384,9 +330,7 @@ IF(WIN32 OR PODOFO_BUILD_STATIC)
       ${PODOFO_LIB_DEPENDS}
       )
 ELSE(WIN32 OR PODOFO_BUILD_STATIC)
-  SET(PODOFO_LIB podofo
-      ${stlport_libraries_if_use_stlport}
-      )
+  SET(PODOFO_LIB podofo)
 ENDIF(WIN32 OR PODOFO_BUILD_STATIC)
 
 # Create the config file. It'll be appended to as the subdirs run though

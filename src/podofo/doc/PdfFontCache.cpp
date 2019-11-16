@@ -49,10 +49,11 @@
 
 #include <algorithm>
 
-#ifdef _WIN32
+#ifdef WIN32
+#define NOMINMAX
+#include <Windows.h>
 
-// Undefined stuff which Windows does
-// define that breaks our build
+// Undefined stuff which Windows does define that breaks our build
 // e.g. GetObject is defined to either GetObjectA or GetObjectW
 #ifdef GetObject
 #undef GetObject

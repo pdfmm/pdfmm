@@ -68,33 +68,10 @@
 #  define PODOFO_IS_LITTLE_ENDIAN
 #endif
 
-#if PODOFO_HAVE_STDINT_H
 #include <cstdint>
-#endif
-
-#if PODOFO_HAVE_BASETSD_H
-#include <BaseTsd.h>
-#endif
-
-#if PODOFO_HAVE_SYS_TYPES_H
-#include <sys/types.h>
-#endif
-
-#if PODOFO_HAVE_MEM_H
-#include <mem.h>
-#endif
-
-#if PODOFO_HAVE_CTYPE_H
-#include <cctype>
-#endif
 
 #if PODOFO_HAVE_STRINGS_H
 #include <strings.h>
-#endif
-
-// Disable usage of min() and max() macros 
-#if defined(_WIN32) && !defined(__MINGW32__)
-#define NOMINMAX
 #endif
 
 // pdf_long is defined as ptrdiff_t . It's a pointer-sized signed quantity
@@ -111,7 +88,6 @@ namespace PoDoFo {
     typedef ptrdiff_t pdf_long;
 };
 
-
 // Different compilers use different format specifiers for 64-bit integers
 // (yay!).  Use these macros with C's automatic string concatenation to handle
 // that ghastly quirk.
@@ -122,17 +98,11 @@ namespace PoDoFo {
 #  define PDF_FORMAT_INT64 "I64d"
 #  define PDF_FORMAT_UINT64 "I64u"
 #  define PDF_SIZE_FORMAT "Iu"
-#elif defined(SZ_INT64) && defined(SZ_LONG) && SZ_INT64 == SZ_LONG
-#  define PDF_FORMAT_INT64 "ld"
-#  define PDF_FORMAT_UINT64 "lu"
-#  define PDF_SIZE_FORMAT "zu"
 #else
 #  define PDF_FORMAT_INT64 "lld"
 #  define PDF_FORMAT_UINT64 "llu"
 #  define PDF_SIZE_FORMAT "zu"
 #endif
-
-
 
 // Different compilers express __FUNC__ in different ways and with different
 // capabilities. Try to find the best option.
@@ -148,24 +118,6 @@ namespace PoDoFo {
 #else
 #  define PODOFO__FUNCTION__ __FUNCTION__
 #endif
-
-#if defined(_WIN32)
-
-// Undefined stuff which windows does define that breaks the build
-// e.g. GetObject is defined to either GetObjectA or GetObjectW
-#ifdef GetObject
-#undef GetObject
-#endif // GetObject
-
-#ifdef CreateFont
-#undef CreateFont
-#endif // CreateFont
-
-#ifdef DrawText
-#undef DrawText
-#endif // DrawText
-
-#endif // defined(_WIN32)
 
 /**
  * \page PoDoFo PdfCompilerCompat Header

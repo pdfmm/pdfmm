@@ -34,8 +34,9 @@
 #ifndef _PDF_ENCODING_FACTORY_H_
 #define _PDF_ENCODING_FACTORY_H_
 
+#include <mutex>
+
 #include "PdfDefines.h"
-#include "util/PdfMutex.h"
 #include "string.h"
 
 namespace PoDoFo {
@@ -217,7 +218,7 @@ class PODOFO_API PdfEncodingFactory {
      */
     static const PdfIso88592Encoding* s_pIso88592Encoding;
 
-    static Util::PdfMutex s_mutex;
+    static std::mutex s_mutex;
 };
 
 }; /* namespace PoDoFo */

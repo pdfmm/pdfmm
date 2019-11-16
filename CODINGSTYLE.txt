@@ -308,8 +308,7 @@ simple editor settings.
     member, consider making it a member by pointer instead, initializing
     it in the object's ctor and destroying it it the dtor. That way you
     don't need to include the 3rd party's header to get access to their
-    type sizes in the PoDoFo headers, only in the .cpp files. See, for example,
-    PdfMutex.h .
+    type sizes in the PoDoFo headers, only in the .cpp files.
 
 4. Structure
 ============

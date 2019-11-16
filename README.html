@@ -15,7 +15,6 @@
 	<li><a href="#requirements">Requirements</a></li>
 	<li><a href="#installation">Installation</a>
 	<ol>
-		<li><a href="#stlport_support">STLPort support</a>
 		<li><a href="#boost_support">Boost support</a>
 		<li><a href="#installation_with_cmake">Installation with CMake</a>
 		<ol>
@@ -83,9 +82,7 @@ features. The following tools are currently available:</p>
     A powerful
     PDF <a href="http://en.wikipedia.org/wiki/Imposition">imposition</a>
     tool. It places pages from one or more source PDFs onto pages of a new PDF,
-    applying scaling and positioning. If you have lua5.1 development
-    libraries installed, it will be built with support for Lua plan files,
-    which allow for mighty PDF transformations.</li>
+    applying scaling and positioning.</li>
 
   <li><b>podofomerge</b> -
     Merges two PDF files into onw.</li>
@@ -169,21 +166,6 @@ the same compiler as your application. See <a href="#cmake_builds_on_windows">CM
 <p>Mac OS X users will need to use CMake to generate a conventional UNIX build
 with Makefiles, or may generate an XCode project with CMake. See the <a href="#cmake_builds_on_mac_os_x">Mac OS X
 	section</a> below, and the <a href="#installation_with_cmake">generic instructions for cmake builds</a></p>
-
-
-<h3><a name="stlport_support" />STLPort support</h3>
-
-<p>Don't know what STLPort is? Ignore it and skip this section. Packagers should
-not enable STLPort.</p>
-
-<p>If your project uses STLPort rather than your platform/toolset's native STL,
-you must configure PoDoFo to use STLPort as well. Use the -DUSE_STLPORT=1
-argument to configure. Do not enable STLPort for podofo unless you use it in
-your project; you will get an incompatible C++ STL leading to link errors,
-runtime crashes, or other problems.</p>
-
-<p>It is unnecessary and unwise to build PoDoFo against STLPort on any current
-major platform unless you have a specific reason to do so.</p>
 
 <h3><a name="boost_support" />Boost support</h3>
 
@@ -321,7 +303,7 @@ or DarwinPorts) you can skip the following section and update the
 to install the libjpeg, fontconfig, and freetype libraries. Once you've installed MacPorts, just run:</p>
 
 <pre>
-/opt/local/bin/port install fontconfig freetype jpeg tiff lua
+/opt/local/bin/port install fontconfig freetype jpeg tiff
 </pre>
 
 <p>MacPorts will automatically build the libraries and their dependencies, installing them in /opt/local.</p>
@@ -652,11 +634,6 @@ compatible.
       system and required on these systems for PoDoFo to work properly.</td>
   </tr>
   <tr>
-    <td><code>PODOFO_MULTI_THREAD</code></td>
-    <td>Will compile PoDoFo with threading support, e.g. mutex that lock
-      global variables.</td>
-  </tr>
-  <tr>
     <td><code>PODOFO_VERBOSE_DEBUG</code></td>
     <td>This will cause PoDoFo to write even more debug output to the commandline.</td>
   </tr>
@@ -671,10 +648,6 @@ compatible.
   <tr>
     <td><code>PODOFO_HAVE_TIFF_LIB</code></td>
     <td>If defined PoDoFo will use libTiff to read and decode TIFF images.</td>
-  </tr>
-  <tr>
-    <td><code>PODOFO_HAVE_LUA</code></td>
-    <td>If defined PoDoFoImpose will be built with Lua support for plan files.</td>
   </tr>
 </table>
 

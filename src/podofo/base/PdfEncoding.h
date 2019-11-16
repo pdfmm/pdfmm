@@ -34,13 +34,13 @@
 #ifndef _PDF_ENCODING_H_
 #define _PDF_ENCODING_H_
 
+#include <mutex>
 #include <unordered_map>
 
 #include "PdfDefines.h"
 #include "PdfName.h"
 #include "PdfString.h"
 #include "PdfVariant.h"
-#include "util/PdfMutex.h"
 
 namespace PoDoFo {
 
@@ -459,7 +459,7 @@ class PODOFO_API PdfSimpleEncoding : public PdfEncoding {
     virtual const pdf_utf16be* GetToUnicodeTable() const = 0;
 
  protected:
-    Util::PdfMutex * m_mutex;   ///< Mutex for the creation of the encoding table
+    std::mutex m_mutex;   ///< Mutex for the creation of the encoding table
     
  private:
     PdfName m_name;           ///< The name of the encoding
