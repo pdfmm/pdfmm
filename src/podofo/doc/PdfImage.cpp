@@ -35,6 +35,7 @@
 
 #include "base/PdfDefinesPrivate.h"
 
+#include "base/PdfVecObjects.h"
 #include "base/PdfArray.h"
 #include "base/PdfColor.h"
 #include "base/PdfStream.h"

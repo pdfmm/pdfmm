@@ -33,6 +33,7 @@
 
 #include "PdfObject.h"
 
+#include "PdfVecObjects.h"
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfEncrypt.h"

@@ -41,7 +41,6 @@
 namespace PoDoFo {
 
 class PdfEncrypt;
-class PdfParser;
 
 /**
  * A PdfParserObject constructs a PdfObject from a PDF file.

@@ -34,7 +34,9 @@
 #include "PdfPagesTree.h"
 
 #include "base/PdfDefinesPrivate.h"
+
 #include <algorithm>
+#include <sstream>
 
 #include "base/PdfArray.h"
 #include "base/PdfDictionary.h"

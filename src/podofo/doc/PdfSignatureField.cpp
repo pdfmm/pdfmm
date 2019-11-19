@@ -33,6 +33,8 @@
  ***************************************************************************/
 
 #include "PdfSignatureField.h"
+
+#include "base/PdfVecObjects.h"
 #include "../base/PdfDictionary.h"
 #include "../base/PdfData.h"
 

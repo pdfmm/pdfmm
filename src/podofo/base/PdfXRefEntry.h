@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2005 by Dominik Seichter                                *
+ *   Copyright (C) 2009 by Dominik Seichter                                *
  *   domseichter@web.de                                                    *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -31,71 +31,34 @@
  *   files in the program, then also delete it here.                       *
  ***************************************************************************/
 
-#include "PdfFontTrueType.h"
+#pragma once
 
-#include "base/PdfDefinesPrivate.h"
+#include <vector>
 
-#include "base/PdfVecObjects.h"
-#include "base/PdfArray.h"
-#include "base/PdfDictionary.h"
-#include "base/PdfName.h"
-#include "base/PdfStream.h"
-
-namespace PoDoFo {
-
-PdfFontTrueType::PdfFontTrueType( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 
-                                  PdfVecObjects* pParent, bool bEmbed )
-    : PdfFontSimple( pMetrics, pEncoding, pParent )
+namespace PoDoFo
 {
-    this->Init( bEmbed, PdfName("TrueType") );
-}
-
-PdfFontTrueType::PdfFontTrueType( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 
-                                  PdfObject* pObject )
-    : PdfFontSimple( pMetrics, pEncoding, pObject )
-{
-
-}
-
-void PdfFontTrueType::EmbedFontFile( PdfObject* pDescriptor )
-{
-    PdfObject* pContents;
-    pdf_long   lSize = 0;
-    
-    m_bWasEmbedded = true;    
-        
-    pContents = this->GetObject()->GetOwner()->CreateObject();
-    pDescriptor->GetDictionary().AddKey( "FontFile2", pContents->Reference() );
-
-    // if the data was loaded from memory - use it from there
-    // otherwise, load from disk
-    if ( m_pMetrics->GetFontDataLen() && m_pMetrics->GetFontData() ) 
+    enum EXRefEntryType
     {
-        // FIXME const_cast<char*> is dangerous if string literals may ever be passed
-        char* pBuffer = const_cast<char*>( m_pMetrics->GetFontData() );
-        lSize = m_pMetrics->GetFontDataLen();
-        
-        // Set Length1 before creating the stream
-        // as PdfStreamedDocument does not allow 
-        // adding keys to an object after a stream was written
-        pContents->GetDictionary().AddKey( "Length1", PdfVariant( static_cast<int64_t>(lSize) ) );
-        pContents->GetStream()->Set( pBuffer, lSize );
-    } 
-    else 
+        eXRefEntryType_Unknown = 0,
+        eXRefEntryType_InUse,
+        eXRefEntryType_Free,
+        eXRefEntryType_Compressed,
+    };
+
+    struct PdfXRefEntry
     {
-        PdfFileInputStream stream( m_pMetrics->GetFilename() );
-        lSize = stream.GetFileLength();
+        inline PdfXRefEntry() :
+            lOffset(0),
+            lGeneration(0),
+            eType(eXRefEntryType_Unknown),
+            bParsed(false) { }
+        pdf_long lOffset;
+        long lGeneration;
+        EXRefEntryType eType;
+        bool bParsed;
+    };
 
-        // Set Length1 before creating the stream
-        // as PdfStreamedDocument does not allow 
-        // adding keys to an object after a stream was written
-        pContents->GetDictionary().AddKey( "Length1", PdfVariant( static_cast<int64_t>(lSize) ) );
-        pContents->GetStream()->Set( &stream );
-            
-    }
-}
-
-
-
+    typedef std::vector<PdfXRefEntry>      TVecOffsets;
+    typedef TVecOffsets::iterator        TIVecOffsets;
+    typedef TVecOffsets::const_iterator  TCIVecOffsets;
 };
-

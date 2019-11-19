@@ -33,6 +33,7 @@
 
 #include "PdfAnnotation.h"
 
+#include "base/PdfVecObjects.h"
 #include "base/PdfDefinesPrivate.h"
 #include "base/PdfArray.h"
 #include "base/PdfDictionary.h"

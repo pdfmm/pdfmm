@@ -35,11 +35,9 @@
 #define _PDF_PARSER_H_
 
 #include "PdfDefines.h"
-#include "PdfTokenizer.h"
+#include "PdfXRefEntry.h"
 #include "PdfVecObjects.h"
-
-#define W_ARRAY_SIZE 3
-#define W_MAX_BYTES  4
+#include "PdfParserObject.h"
 
 namespace PoDoFo {
 
@@ -61,27 +59,6 @@ class PODOFO_API PdfParser : public PdfTokenizer {
     friend class PdfWriter;
 
  public:
-    enum EXRefEntryType
-    {
-        eXRefEntryType_Unknown = 0,
-        eXRefEntryType_InUse,
-        eXRefEntryType_Free,
-        eXRefEntryType_Compressed,
-    };
-
-    struct TXRefEntry
-    {
-        inline TXRefEntry() : lOffset(0), lGeneration(0), eType(eXRefEntryType_Unknown), bParsed(false) { }
-        pdf_long lOffset;
-        long lGeneration;
-        EXRefEntryType eType;
-        bool bParsed;
-    };
-
-    typedef std::vector<TXRefEntry>      TVecOffsets;
-    typedef TVecOffsets::iterator        TIVecOffsets;
-    typedef TVecOffsets::const_iterator  TCIVecOffsets;
-
     /** Create a new PdfParser object
      *  You have to open a PDF file using ParseFile later.
      *  \param pVecObjects vector to write the parsed PdfObjects to
@@ -598,8 +575,8 @@ class PODOFO_API PdfParser : public PdfTokenizer {
     TVecOffsets   m_offsets;
     PdfVecObjects* m_vecObjects;
 
-    PdfObject*    m_pTrailer;
-    PdfObject*    m_pLinearization;
+    PdfParserObject * m_pTrailer;
+    PdfParserObject * m_pLinearization;
     PdfEncrypt*   m_pEncrypt;
 
     bool          m_xrefSizeUnknown;

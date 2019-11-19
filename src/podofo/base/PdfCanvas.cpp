@@ -33,6 +33,7 @@
 
 #include "PdfCanvas.h"
 
+#include "PdfVecObjects.h"
 #include "PdfDictionary.h"
 #include "PdfName.h"
 #include "PdfColor.h"

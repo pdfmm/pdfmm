@@ -35,6 +35,7 @@
 
 #include "base/PdfDefinesPrivate.h"
 
+#include "base/PdfVecObjects.h"
 #include "base/PdfDictionary.h"
 #include "base/PdfName.h"
 #include "base/PdfObject.h"

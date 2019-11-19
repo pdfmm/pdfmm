@@ -36,7 +36,6 @@
 
 #include "PdfDefines.h"
 #include "PdfName.h"
-#include "PdfParser.h"
 #include "PdfReference.h"
 #include "PdfString.h"
 #include "PdfVariant.h"

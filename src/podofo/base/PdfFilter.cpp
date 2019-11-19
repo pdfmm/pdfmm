@@ -31,9 +31,11 @@
  *   files in the program, then also delete it here.                       *
  ***************************************************************************/
 
-#include "PdfDefines.h"
 #include "PdfFilter.h"
 
+#include <sstream>
+
+#include "PdfVecObjects.h"
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfFiltersPrivate.h"

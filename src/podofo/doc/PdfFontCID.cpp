@@ -33,9 +33,9 @@
 
 #include "PdfFontCID.h"
 
-#include "base/PdfDefines.h"
 #include "base/PdfDefinesPrivate.h"
 
+#include "base/PdfVecObjects.h"
 #include "base/PdfArray.h"
 #include "base/PdfDictionary.h"
 #include "base/PdfEncoding.h"

@@ -35,6 +35,7 @@
 #define _PDF_XREF_STREAM_PARSER_OBJECT_H_
 
 #include "PdfDefines.h"
+#include "PdfXRefEntry.h"
 #include "PdfParserObject.h"
 
 #define W_ARRAY_SIZE 3
@@ -42,16 +43,16 @@
 
 namespace PoDoFo {
 
+    class PdfVecObjects;
 /**
  * A utility class for PdfParser that can parse
  * an XRef stream object.
  *
  * It is mainly here to make PdfParser more modular.
  * This is only marked PODOFO_API for the benefit of the tests,
- * the class is for internal use only. It is deprecated, so
- * don't ever rely on it (i.e. externally or in PoDoFo tools).
+ * the class is for internal use only.
  */
-class PODOFO_DEPRECATED PODOFO_API PdfXRefStreamParserObject : public PdfParserObject {
+class PODOFO_API PdfXRefStreamParserObject : public PdfParserObject {
 public:
 
     /** Parse the object data from the given file handle starting at
@@ -62,8 +63,8 @@ public:
      *  \param rBuffer buffer to use for parsing to avoid reallocations
      *  \param pOffsets XRef entries are stored into this array
      */
-    PdfXRefStreamParserObject(PdfVecObjects* pCreator, const PdfRefCountedInputDevice & rDevice, 
-                              const PdfRefCountedBuffer & rBuffer, PdfParser::TVecOffsets* pOffsets );
+    PdfXRefStreamParserObject(PdfVecObjects* pCreator, const PdfRefCountedInputDevice & rDevice,
+                              const PdfRefCountedBuffer & rBuffer, TVecOffsets* pOffsets );
 
     ~PdfXRefStreamParserObject();
 
@@ -105,7 +106,7 @@ private:
 private:
     pdf_long m_lNextOffset;
 
-    PdfParser::TVecOffsets* m_pOffsets;
+    TVecOffsets* m_pOffsets;
 };
 
 // -----------------------------------------------------

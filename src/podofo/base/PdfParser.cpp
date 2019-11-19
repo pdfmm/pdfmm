@@ -41,7 +41,6 @@
 #include "PdfMemStream.h"
 #include "PdfObjectStreamParserObject.h"
 #include "PdfOutputDevice.h"
-#include "PdfParserObject.h"
 #include "PdfStream.h"
 #include "PdfVariant.h"
 #include "PdfXRefStreamParserObject.h"
@@ -61,20 +60,11 @@ using std::flush;
 #define PDF_XREF_ENTRY_SIZE 20
 #define PDF_XREF_BUF        512
 
-#if defined( PTRDIFF_MAX )
-#define PDF_LONG_MAX PTRDIFF_MAX
-#elif defined( __PTRDIFF_MAX__ )
-#define PDF_LONG_MAX __PTRDIFF_MAX__
-#else
-// only old compilers don't define PTRDIFF_MAX (all 32-bit only?)
-#define PDF_LONG_MAX INT_MAX
-#endif
-
 namespace PoDoFo {
 
 static bool CheckEOL(char e1, char e2);
 static bool CheckXRefEntryType( char c );
-static PdfParser::EXRefEntryType GetXRefEntryType( char c );
+static EXRefEntryType GetXRefEntryType( char c );
 
 const long nMaxNumIndirectObjects = (1L << 23) - 1L;
 long PdfParser::s_nMaxObjects = nMaxNumIndirectObjects;
@@ -465,7 +455,7 @@ void PdfParser::HasLinearizationDict()
     try {
         // Do not care for encryption here, as the linearization dictionary does not contain strings or streams
         // ... hint streams do, but we do not load the hintstream.
-        static_cast<PdfParserObject*>(m_pLinearization)->ParseFile( NULL );
+        m_pLinearization->ParseFile( NULL );
         if (! (m_pLinearization->IsDictionary() &&
                m_pLinearization->GetDictionary().HasKey( "Linearized" ) ) )
         {
@@ -643,7 +633,7 @@ void PdfParser::ReadTrailer()
             m_device.Device()->Seek( m_nXRefOffset );
 
             m_pTrailer = new PdfParserObject( m_vecObjects, m_device, m_buffer );
-            static_cast<PdfParserObject*>(m_pTrailer)->ParseFile( NULL, false );
+            m_pTrailer->ParseFile( NULL, false );
             return;
         }
     }
@@ -652,7 +642,7 @@ void PdfParser::ReadTrailer()
         m_pTrailer = new PdfParserObject( m_vecObjects, m_device, m_buffer );
         try {
             // Ignore the encryption in the trailer as the trailer may not be encrypted
-            static_cast<PdfParserObject*>(m_pTrailer)->ParseFile( NULL, true );
+            m_pTrailer->ParseFile( NULL, true );
         } catch( PdfError & e ) {
             e.AddToCallstack( __FILE__, __LINE__, "The trailer was found in the file, but contains errors." );
             throw e;
@@ -821,14 +811,14 @@ bool CheckXRefEntryType( char c )
     return c == 'n' || c == 'f';
 }
 
-PdfParser::EXRefEntryType GetXRefEntryType( char c )
+EXRefEntryType GetXRefEntryType( char c )
 {
     switch ( c )
     {
         case 'n':
-            return PdfParser::eXRefEntryType_InUse;
+            return EXRefEntryType::eXRefEntryType_InUse;
         case 'f':
-            return PdfParser::eXRefEntryType_Free;
+            return EXRefEntryType::eXRefEntryType_Free;
         default:
             PODOFO_RAISE_ERROR( ePdfError_InvalidXRef );
     }
@@ -914,7 +904,7 @@ void PdfParser::ReadXRefSubsection( int64_t & nFirstObject, int64_t & nNumObject
 
 		const int objID = static_cast<int>(nFirstObject+count);
 
-        TXRefEntry &entry = m_offsets[objID];
+        PdfXRefEntry &entry = m_offsets[objID];
         if( static_cast<size_t>(objID) < m_offsets.size() && !entry.bParsed )
         {
             // don't scan directly into m_offsets since TXRefEntry structure member sizes change between platforms and compilers
@@ -949,7 +939,7 @@ void PdfParser::ReadXRefSubsection( int64_t & nFirstObject, int64_t & nNumObject
             // Support also files with whitespace offset before magic start
             llOffset += m_magicOffset;
 
-            if ( llOffset > PDF_LONG_MAX )
+            if ( llOffset > PTRDIFF_MAX )
             {
                 // pdf_long max size is PTRDIFF_MAX, so throw error if llOffset too big
                 PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange ); 
@@ -1154,7 +1144,7 @@ void PdfParser::ReadObjectsInternal()
     // Read objects
     for( i=0; i < m_nNumObjects; i++ )
     {
-        TXRefEntry &entry = m_offsets[i];
+        PdfXRefEntry &entry = m_offsets[i];
 #ifdef PODOFO_VERBOSE_DEBUG
 		std::cerr << "ReadObjectsInteral\t" << i << " "
 			<< (entry.bParsed ? "parsed" : "unparsed") << " "
@@ -1279,7 +1269,7 @@ void PdfParser::ReadObjectsInternal()
     //
     for( i = 0; i < m_nNumObjects; i++ )
     {
-        TXRefEntry &entry = m_offsets[i];
+        PdfXRefEntry &entry = m_offsets[i];
         if( entry.bParsed && entry.eType == eXRefEntryType_Compressed ) // we have an compressed object stream
         {
 #if defined(PODOFO_VERBOSE_DEBUG)
@@ -1359,7 +1349,7 @@ void PdfParser::ReadObjectFromStream( int nObjNo, int )
 	PdfObjectStreamParserObject::ObjectIdList list;
     for( int i = 0; i < m_nNumObjects; i++ ) 
     {
-        TXRefEntry &entry = m_offsets[i];
+        PdfXRefEntry &entry = m_offsets[i];
         if( entry.bParsed && entry.eType == eXRefEntryType_Compressed &&
 			m_offsets[i].lGeneration == nObjNo) 
         {

@@ -161,6 +161,7 @@ SET(PODOFO_BASE_HEADERS
    base/PdfVersion.h
    base/PdfWriter.h
    base/PdfXRef.h
+   base/PdfXRefEntry.h
    base/PdfXRefStream.h
    base/PdfXRefStreamParserObject.h
    base/podofoapi.h

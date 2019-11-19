@@ -33,6 +33,7 @@
 
 #include "PdfXRefStreamParserObject.h"
 
+#include "PdfParser.h"
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfStream.h"
@@ -43,7 +44,7 @@
 namespace PoDoFo {
 
 PdfXRefStreamParserObject::PdfXRefStreamParserObject(PdfVecObjects* pCreator, const PdfRefCountedInputDevice & rDevice, 
-                                                     const PdfRefCountedBuffer & rBuffer, PdfParser::TVecOffsets* pOffsets )
+                                                     const PdfRefCountedBuffer & rBuffer, TVecOffsets* pOffsets )
     : PdfParserObject( pCreator, rDevice, rBuffer ), m_lNextOffset(-1L), m_pOffsets( pOffsets )
 {
 
@@ -246,7 +247,7 @@ void PdfXRefStreamParserObject::ReadXRefStreamEntry( char* pBuffer, pdf_long, co
 
 
     //printf("OBJ=%i nData = [ %i %i %i ]\n", nObjNo, static_cast<int>(nData[0]), static_cast<int>(nData[1]), static_cast<int>(nData[2]) );
-    PdfParser::TXRefEntry &entry = (*m_pOffsets)[nObjNo];
+    PdfXRefEntry &entry = (*m_pOffsets)[nObjNo];
     entry.bParsed = true;
 
     // TABLE 3.15 Additional entries specific to a cross - reference stream dictionary
@@ -258,19 +259,19 @@ void PdfXRefStreamParserObject::ReadXRefStreamEntry( char* pBuffer, pdf_long, co
             // a free object
             entry.lOffset     = nData[1];
             entry.lGeneration = nData[2];
-            entry.eType       = PdfParser::eXRefEntryType_Free;
+            entry.eType       = EXRefEntryType::eXRefEntryType_Free;
             break;
         case 1:
             // normal uncompressed object
             entry.lOffset     = nData[1];
             entry.lGeneration = nData[2];
-            entry.eType       = PdfParser::eXRefEntryType_InUse;
+            entry.eType       = EXRefEntryType::eXRefEntryType_InUse;
             break;
         case 2:
             // object that is part of an object stream
             entry.lOffset     = nData[2]; // index in the object stream
             entry.lGeneration = nData[1]; // object number of the stream
-            entry.eType       = PdfParser::eXRefEntryType_Compressed;
+            entry.eType       = EXRefEntryType::eXRefEntryType_Compressed;
             break;
         default:
         {

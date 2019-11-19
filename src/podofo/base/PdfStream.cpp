@@ -33,6 +33,7 @@
 
 #include "PdfStream.h"
 
+#include "PdfVecObjects.h"
 #include "PdfArray.h"
 #include "PdfFilter.h" 
 #include "PdfInputStream.h"
