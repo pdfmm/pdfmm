@@ -25,17 +25,6 @@ INCLUDE(CheckLibraryExists)
 INCLUDE(TestBigEndian)
 INCLUDE(CheckTypeSize)
 
-#
-# Setup CMake Policies
-#
-
-# Prefer files in CMAKE_MODULE_PATH over shipped ones in module directory
-CMAKE_POLICY(SET CMP0017 NEW) # https://cmake.org/cmake/help/v3.0/policy/CMP0017.html
-# Do not use export_library_dependencies() anymore
-if(POLICY CMP0033)
-CMAKE_POLICY(SET CMP0033 NEW) # https://cmake.org/cmake/help/v3.0/policy/CMP0033.html
-endif()
-
 set(CMAKE_CXX_STANDARD 14)
 
 # Load modules from our source tree too
