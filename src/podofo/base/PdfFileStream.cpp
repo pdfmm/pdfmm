@@ -39,6 +39,8 @@
 #include "PdfOutputDevice.h"
 #include "PdfOutputStream.h"
 #include "PdfDefinesPrivate.h"
+#include "PdfObject.h"
+#include "PdfDictionary.h"
 
 namespace PoDoFo {
 

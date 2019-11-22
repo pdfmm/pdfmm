@@ -35,11 +35,12 @@
 
 #include "PdfVecObjects.h"
 #include "PdfArray.h"
-#include "PdfFilter.h" 
+#include "PdfFilter.h"
 #include "PdfInputStream.h"
 #include "PdfOutputStream.h"
 #include "PdfOutputDevice.h"
 #include "PdfDefinesPrivate.h"
+#include "PdfDictionary.h"
 
 #include <iostream>
 
@@ -268,6 +269,38 @@ void PdfStream::EndAppend()
 
     if( m_pParent && m_pParent->GetOwner() )
         m_pParent->GetOwner()->EndAppendStream( this );
+}
+
+// -----------------------------------------------------
+//
+// -----------------------------------------------------
+void PdfStream::Set( const char* pszString )
+{
+    if( pszString )
+        Set( const_cast<char*>(pszString), strlen( pszString ) );
+}
+
+void PdfStream::Append( const char* pszString, size_t lLen )
+{
+    PODOFO_RAISE_LOGIC_IF( !m_bAppend, "Append() failed because BeginAppend() was not yet called!" );
+
+    this->AppendImpl( pszString, lLen );
+}
+
+void PdfStream::Append( const char* pszString )
+{
+    if( pszString )
+        Append( pszString, strlen( pszString ) );
+}
+
+void PdfStream::Append( const std::string& sString )
+{
+    Append( sString.c_str(), sString.length() );
+}
+
+bool PdfStream::IsAppending() const
+{
+    return m_bAppend;
 }
 
 };

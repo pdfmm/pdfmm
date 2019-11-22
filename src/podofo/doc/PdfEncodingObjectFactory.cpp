@@ -39,6 +39,7 @@
 
 #include "base/PdfEncodingFactory.h"
 #include "base/PdfObject.h"
+#include "base/PdfDictionary.h"
 #include "base/PdfVecObjects.h"
 #include "base/PdfContentsTokenizer.h"
 
