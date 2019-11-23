@@ -25,7 +25,7 @@ INCLUDE(CheckLibraryExists)
 INCLUDE(TestBigEndian)
 INCLUDE(CheckTypeSize)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 # Load modules from our source tree too
 SET(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
@@ -91,8 +91,21 @@ CONFIGURE_FILE(
 ADD_CUSTOM_TARGET(uninstall "${CMAKE_COMMAND}"
     -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake")
 
+SET(EXTRA_INCLUDES)
+
 # Check if we are big endian
 TEST_BIG_ENDIAN(TEST_BIG)
+
+CHECK_INCLUDE_FILE_CXX("optional" HAVE_STD_OPTIONAL)
+if (NOT HAVE_STD_OPTIONAL)
+    CHECK_INCLUDE_FILE_CXX("experimental/optional" HAVE_STD_EXPERIMENTAL_OPTIONAL)
+            message("${HAVE_STD_EXPERIMENTAL_OPTIONAL}")
+    if (NOT HAVE_STD_EXPERIMENTAL_OPTIONAL)
+        message(FATAL_ERROR "std::optional is required")
+    endif()
+    # Add shim to make experimental optional as std
+    list(APPEND EXTRA_INCLUDES ${PoDoFo_SOURCE_DIR}/compat/optional)
+endif()
 
 IF(WIN32)
     # We must explicitly link to the core win32 libraries
@@ -102,7 +115,6 @@ IF(WIN32)
     ADD_DEFINITIONS(-D_CRT_SECURE_NO_DEPRECATE)
 ELSE(WIN32)
     SET(PLATFORM_SYSTEM_LIBRARIES)
-    SET(EXTRA_INCLUDES)
 ENDIF(WIN32)
 
 IF(UNIX AND NOT PODOFO_NO_FONTMANAGER)
@@ -295,17 +307,17 @@ LINK_DIRECTORIES(
 # path for the libcrypto too, thus it's added here.
 #
 SET(PODOFO_LIB_DEPENDS
-  ${ZLIB_LIBRARIES}
   ${LIBIDN_LIBRARIES}
   ${LIBCRYPTO_LDFLAGS}
   ${LIBCRYPTO_LIBRARIES}
   ${OPENSSL_LIBRARIES}
   ${LIBJPEG_LIBRARIES}
-  ${PLATFORM_SYSTEM_LIBRARIES}
   ${FREETYPE_LIBRARIES}
   ${PNG_LIBRARIES}
   ${TIFF_LIBRARIES}
+  ${ZLIB_LIBRARIES}
   ${UNISTRING_LIBRARY}
+  ${PLATFORM_SYSTEM_LIBRARIES}
   )
 
 IF(FONTCONFIG_FOUND AND WANT_FONTCONFIG)
