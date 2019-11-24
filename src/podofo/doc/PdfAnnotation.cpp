@@ -87,7 +87,7 @@ PdfAnnotation::PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRe
 {
     PdfVariant    rect;
     PdfDate       date;
-    PdfString     sDate;
+
     const PdfName name( TypeNameForIndex( eAnnot, s_names, s_lNumActions ) );
 
     if( !name.GetLength() )
@@ -96,7 +96,7 @@ PdfAnnotation::PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRe
     }
 
     rRect.ToVariant( rect );
-    date.ToString( sDate );
+    PdfString sDate = date.ToString();
     
     this->GetObject()->GetDictionary().AddKey( PdfName::KeySubtype, name );
     this->GetObject()->GetDictionary().AddKey( PdfName::KeyRect, rect );

@@ -91,8 +91,6 @@ CONFIGURE_FILE(
 ADD_CUSTOM_TARGET(uninstall "${CMAKE_COMMAND}"
     -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake")
 
-SET(EXTRA_INCLUDES)
-
 # Check if we are big endian
 TEST_BIG_ENDIAN(TEST_BIG)
 
@@ -103,8 +101,6 @@ if (NOT HAVE_STD_OPTIONAL)
     if (NOT HAVE_STD_EXPERIMENTAL_OPTIONAL)
         message(FATAL_ERROR "std::optional is required")
     endif()
-    # Add shim to make experimental optional as std
-    list(APPEND EXTRA_INCLUDES ${PoDoFo_SOURCE_DIR}/compat/optional)
 endif()
 
 IF(WIN32)
@@ -288,9 +284,9 @@ INCLUDE_DIRECTORIES(BEFORE # before toolchain include dir (to ignore installed)
 INCLUDE_DIRECTORIES(
     ${PoDoFo_SOURCE_DIR}/src/podofo
 	${PoDoFo_SOURCE_DIR}/3rdparty/utfcpp/include
+	${PoDoFo_SOURCE_DIR}/3rdparty/date/include
     ${FREETYPE_INCLUDE_DIR}
     ${ZLIB_INCLUDE_DIR}
-    ${EXTRA_INCLUDES}
      )
 LINK_DIRECTORIES(
     ${PoDoFo_BINARY_DIR}/src/podofo

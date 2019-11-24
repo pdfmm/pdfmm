@@ -35,15 +35,9 @@
 #define _PDF_DATE_H_
 
 #include "PdfDefines.h"
+#include <podofo/compat/optional>
 #include "PdfString.h"
-
-#include <ctime>
-
-// a PDF date has a maximum of 26 bytes incuding the terminating \0
-#define PDF_DATE_BUFFER_SIZE 26
-
-// a W3C date has a maximum of 26 bytes incuding the terminating \0
-#define W3C_DATE_BUFFER_SIZE 26
+#include <date.h>
 
 namespace PoDoFo {
 
@@ -63,71 +57,48 @@ namespace PoDoFo {
  *  A date is a string of the form
  *  (D:YYYYMMDDHHmmSSOHH'mm')
  */
-class PODOFO_API PdfDate {
- public:
+class PODOFO_API PdfDate
+{
+public:
     /** Create a PdfDate object with the current date and time.
      */
     PdfDate();
 
     /** Create a PdfDate with a specified date and time
      *  \param t the date and time of this object
-     *  
-     *  Use IsValid to check wether the time_t could be 
-     *  converted to a valid PdfDate object.
      *
      *  \see IsValid()
      */
-    PdfDate( const time_t & t );
+    PdfDate(const date::local_seconds &secondsFromEpoch, const std::optional<std::chrono::minutes> &offsetFromUTC);
 
     /** Create a PdfDate with a specified date and time
      *  \param szDate the date and time of this object 
      *         in PDF format. It has to be a string of 
      *         the format  (D:YYYYMMDDHHmmSSOHH'mm').
-     *         Otherwise IsValid will return false.
-     *  
-     *  Use IsValid to check wether the string could be 
-     *  converted to a valid PdfDate object.
-     *
-     *  \see IsValid()
      */
     PdfDate( const PdfString & sDate );
-
-    /** Delete the PdfDate object
-     */
-    virtual ~PdfDate();
-
-    /** You can use this function to check wether the date
-     *  you passed to the constructor could be converted to
-     *  a valid pdf date string or a valid time_t.
-     *
-     *  \returns true if the PdfDate object is valid
-     */
-    inline bool IsValid() const;
 
     /** \returns the date and time of this PdfDate in 
      *  seconds since epoch.
      */
-    inline const time_t & GetTime() const;
+    const date::local_seconds & GetSecondsFromEpoch() const { return m_secondsFromEpoch; }
+
+    const std::optional<std::chrono::minutes> & GetOffset() const { return m_offesetFromUTC; }
 
     /** The value returned by this function can be used in any PdfObject
-     *  where a date is needed.
-     * 
-     *  \param rsString write the date to a PdfString
-     */         
-    inline void ToString( PdfString & rsString ) const;
-
+     *  where a date is needed
+     */
+    PdfString PdfDate::ToString() const;
 
     /** The value returned is a W3C compliant date representation
-     *
-     *  \param rsString write the W3C date to a PdfString
      */
-    inline void ToStringW3C(PdfString & rsString) const;
+    PdfString PdfDate::ToStringW3C() const;
 
- private:
+private:
     /** Creates the internal string representation from
      *  a time_t value and writes it to m_szDate.
      */
-    void CreateStringRepresentation();
+    PdfString createStringRepresentation(bool w3cstring) const;
 
     /** Parse fixed length number from string
      *  \param in string to read number from
@@ -138,34 +109,11 @@ class PODOFO_API PdfDate {
      */
     bool ParseFixLenNumber(const char *&in, unsigned int length, int min, int max, int &ret);
 
- private:
-    time_t m_time;
-    char   m_szDate[PDF_DATE_BUFFER_SIZE + 1]; // include also room for a nul-terminator in the buffer
-    char   m_szDateW3C[W3C_DATE_BUFFER_SIZE + 1]; // include also room for a nul-terminator in the buffer
-
-    bool   m_bValid;
+private:
+    date::local_seconds m_secondsFromEpoch;
+    std::optional<std::chrono::minutes> m_offesetFromUTC;
 };
-
-const time_t & PdfDate::GetTime() const
-{
-    return m_time;
-}
-
-void PdfDate::ToString( PdfString & rsString ) const
-{
-    rsString = PdfString(  m_szDate );
-}
-
-void PdfDate::ToStringW3C(PdfString & rsString) const
-{
-    rsString = PdfString( m_szDateW3C );
-}
-
-bool PdfDate::IsValid() const
-{
-    return m_bValid;
-}
 
 };
 
-#endif // _PDF_DATE_H_
+#endif

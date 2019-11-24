@@ -62,9 +62,7 @@ PdfInfo::~PdfInfo()
 void PdfInfo::Init( int eInitial )
 {
     PdfDate   date;
-    PdfString str;
-
-    date.ToString( str );
+    PdfString str = date.ToString();
     
     if( (eInitial & ePdfInfoInitial_WriteCreationTime) == ePdfInfoInitial_WriteCreationTime ) 
     {

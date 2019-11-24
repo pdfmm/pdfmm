@@ -65,10 +65,6 @@ inline void PdfVariant::Init()
     // Has to be set as Clear() depends on it
     m_eDataType = ePdfDataType_Null;
     m_bImmutable = false;
-
-#if defined(PODOFO_EXTRA_CHECKS)
-    m_bDelayedLoadInProgress=false;
-#endif
 }
 
 PdfVariant::PdfVariant()
@@ -202,9 +198,6 @@ void PdfVariant::Clear()
     }
 
     m_bDelayedLoadDone = true;
-#if defined(PODOFO_EXTRA_CHECKS)
-	m_bDelayedLoadInProgress = false;
-#endif
 	m_bDirty           = false; 
     m_eDataType        = ePdfDataType_Null;
     m_bImmutable       = false;

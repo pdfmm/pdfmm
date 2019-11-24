@@ -34,186 +34,198 @@
 #include "PdfDate.h"
 #include "PdfDefinesPrivate.h"
 
-#include <string.h>
-#include <sstream>
+#include <algorithm>
+#include <date.h>
 
-namespace PoDoFo {
+using namespace PoDoFo;
+namespace chrono = std::chrono;
+
+#if WIN32
+#define timegm _mkgmtime
+#endif
+
+// a PDF date has a maximum of 24 bytes incuding the terminating \0
+#define PDF_DATE_BUFFER_SIZE 24
+
+// a W3C date has a maximum of 26 bytes incuding the terminating \0
+#define W3C_DATE_BUFFER_SIZE 26
+
+#define PEEK_DATE_CHAR(str, zoneShift) if (*str == '\0')\
+{\
+    goto End;\
+}\
+else if (tryReadShiftChar(*str, zoneShift))\
+{\
+    str++;\
+    goto ParseShift;\
+}
+
+static int getLocalOffesetFromUTCMinutes();
+static bool tryReadShiftChar(char ch, int &zoneShift);
 
 PdfDate::PdfDate()
-    : m_bValid( false )
 {
-    m_time = time( &m_time );
-    CreateStringRepresentation();
+    m_offesetFromUTC = chrono::minutes(getLocalOffesetFromUTCMinutes());
+    // Cast now() to seconds. We assume system_clock epoch is
+    //  always 1970/1/1 UTC in all platforms, like in C++20
+    auto now = chrono::time_point_cast<chrono::seconds>(chrono::system_clock::now());
+    // We forget about realtionship with UTC, convert to local seconds
+    m_secondsFromEpoch = date::local_seconds(now.time_since_epoch());
 }
 
-PdfDate::PdfDate( const time_t & t )
-    : m_bValid( false )
+PdfDate::PdfDate(const date::local_seconds &secondsFromEpoch, const std::optional<chrono::minutes> &offsetFromUTC)
+    : m_secondsFromEpoch(secondsFromEpoch), m_offesetFromUTC(offsetFromUTC)
 {
-    m_time = t;
-    CreateStringRepresentation();
 }
 
-PdfDate::PdfDate( const PdfString & sDate )
-    : m_bValid( false )
+PdfDate::PdfDate(const PdfString &sDate)
 {
-    m_time = -1;
+    if (!sDate.IsValid())
+        PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidDataType, "Date is invalid");
 
-    if ( !sDate.IsValid() ) 
-    {
-        m_szDate[0] = 0;
-        return;
-    }
+    std::string date = sDate.GetStringUtf8();
 
-    strncpy(m_szDate,sDate.GetString(),PDF_DATE_BUFFER_SIZE);
+    int y = 0;
+    int m = 0;
+    int d = 0;
+    int h = 0;
+    int M = 0;
+    int s = 0;
 
-    struct tm _tm;
-    memset( &_tm, 0, sizeof(_tm) );
+    bool hasZoneShift = false;
     int nZoneShift = 0;
     int nZoneHour = 0;
     int nZoneMin = 0;
 
-    const char * pszDate = sDate.GetString();
-    if ( pszDate == NULL ) return;
-    if ( *pszDate == 'D' ) {
+    const char * pszDate = date.data();
+    if (pszDate == nullptr)
+        goto Error;
+
+    if (*pszDate == 'D')
+    {
         pszDate++;
-        if ( *pszDate++ != ':' ) return;
+        if (*pszDate++ != ':')
+            goto Error;
     }
 
-    if ( ParseFixLenNumber(pszDate,4,0,9999,_tm.tm_year) == false ) 
+    PEEK_DATE_CHAR(pszDate, nZoneShift);
+
+    if (!ParseFixLenNumber(pszDate,4,0,9999, y))
         return;
 
-    _tm.tm_year -= 1900;
-    if ( *pszDate != '\0' ) {
-        if ( ParseFixLenNumber(pszDate,2,1,12,_tm.tm_mon) == false ) 
-            return;
+    PEEK_DATE_CHAR(pszDate, nZoneShift);
 
-        _tm.tm_mon--;
-        if ( *pszDate != '\0' ) {
-            if ( ParseFixLenNumber(pszDate,2,1,31,_tm.tm_mday) == false ) return;
-            if ( *pszDate != '\0' ) {
-                if ( ParseFixLenNumber(pszDate,2,0,23,_tm.tm_hour) == false ) return;
-                if ( *pszDate != '\0' ) {
-                    if ( ParseFixLenNumber(pszDate,2,0,59,_tm.tm_min) == false ) return;
-                    if ( *pszDate != '\0' ) {
-                        if ( ParseFixLenNumber(pszDate,2,0,59,_tm.tm_sec) == false ) return;
-                        if ( *pszDate != '\0' ) {
-                            switch(*pszDate++) {
-                            case '+':
-                                nZoneShift = -1;
-                                break;
-                            case '-':
-                                nZoneShift = 1;
-                                break;
-                            case 'Z':
-                                nZoneShift = 0;
-                                break;
-                            default:
-                                return;
-                            }
-                            if ( ParseFixLenNumber(pszDate,2,0,59,nZoneHour) == false ) return;
-                            if ( *pszDate == '\'' ) {
-                                pszDate++;
-                                if ( ParseFixLenNumber(pszDate,2,0,59,nZoneMin) == false ) return;
-                                if ( *pszDate != '\'' ) return;
-                                pszDate++;
-                            }
-                        }
-                    }
-                }
+    if (!ParseFixLenNumber(pszDate,2,1,12, m))
+        goto Error;
+
+    PEEK_DATE_CHAR(pszDate, nZoneShift);
+
+    if (!ParseFixLenNumber(pszDate,2,1,31, d))
+        goto Error;
+
+    PEEK_DATE_CHAR(pszDate, nZoneShift);
+
+    if (!ParseFixLenNumber(pszDate,2,0,23, h))
+        goto Error;
+
+    PEEK_DATE_CHAR(pszDate, nZoneShift);
+
+    if (!ParseFixLenNumber(pszDate,2,0,59, M))
+        goto Error;
+
+    PEEK_DATE_CHAR(pszDate, nZoneShift);
+
+    if (!ParseFixLenNumber(pszDate,2,0,59, s))
+        goto Error;
+
+    PEEK_DATE_CHAR(pszDate, nZoneShift);
+
+ParseShift:
+    hasZoneShift = true;
+    if (nZoneShift != 0)
+    {
+        if (!ParseFixLenNumber(pszDate, 2, 0, 59, nZoneHour))
+            goto Error;
+
+        if (*pszDate == '\'')
+        {
+            pszDate++;
+            if (!ParseFixLenNumber(pszDate, 2, 0, 59, nZoneMin))
+                goto Error;
+            if (*pszDate != '\'') return;
+            pszDate++;
+        }
+    }
+
+    if (*pszDate != '\0')
+        goto Error;
+End:
+    m_secondsFromEpoch = date::local_days(date::year(y) / m / d) + chrono::hours(h) + chrono::minutes(M) + chrono::seconds(s);
+    if (hasZoneShift)
+        m_offesetFromUTC = nZoneShift * (chrono::hours(nZoneHour) + chrono::minutes(nZoneMin));
+
+    return;
+Error:
+    PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidDataType, "Date is invalid");
+}
+
+PdfString PdfDate::createStringRepresentation(bool w3cstring) const
+{
+    std::string date;
+    if (w3cstring)
+        date.resize(W3C_DATE_BUFFER_SIZE);
+    else
+        date.resize(PDF_DATE_BUFFER_SIZE);
+
+    auto dp = chrono::floor<date::days>(m_secondsFromEpoch);
+    date::year_month_day ymd{ dp };
+    date::hh_mm_ss<chrono::seconds> time{ chrono::floor<chrono::seconds>(m_secondsFromEpoch - dp) };
+    auto y = (int)ymd.year();
+    auto m = (unsigned)ymd.month();
+    auto d = (unsigned)ymd.day();
+    auto h = (unsigned)time.hours().count();
+    auto M = (unsigned)time.minutes().count();
+    auto s = (unsigned)time.seconds().count();
+
+    std::string offset;
+    if (m_offesetFromUTC.has_value())
+    {
+        int offsetFromUTC = m_offesetFromUTC.value().count();
+        bool plus = offsetFromUTC > 0 ? true : false;
+        offsetFromUTC = std::abs(offsetFromUTC);
+        unsigned offseth = offsetFromUTC / 60;
+        unsigned offsetm = offsetFromUTC % 60;
+        if (offsetFromUTC == 0)
+        {
+            offset = "Z";
+        }
+        else
+        {
+            if (w3cstring)
+            {
+                offset.resize(6);
+                snprintf(const_cast<char *>(offset.data()), offset.size() + 1, "%s%02lu:%02lu", plus ? "+" : "-", offseth, offsetm);
+            }
+            else
+            {
+                offset.resize(7);
+                snprintf(const_cast<char *>(offset.data()), offset.size() + 1, "%s%02lu'%02lu'", plus ? "+" : "-", offseth, offsetm);
             }
         }
     }
 
-    if ( *pszDate != '\0' ) 
+    if (w3cstring)
     {
-        return;
+        // e.g. "1998-12-23T19:52:07-08:00"
+        snprintf(date.data(), W3C_DATE_BUFFER_SIZE, "%04lu-%02lu-%02luT%02lu:%02lu:%02lu%s", y, m, d, h, M, s, offset.data());
+    }
+    else
+    {
+        // e.g. "D:19981223195207−08'00'"
+        snprintf(date.data(), PDF_DATE_BUFFER_SIZE, "D:%04lu%02lu%02lu%02lu%02lu%02lu%s", y, m, d, h, M, s, offset.data());
     }
 
-    // convert to 
-    m_time = mktime(&_tm);
-    if ( m_time == -1 ) 
-    {
-        return;
-    }
-
-    m_time += nZoneShift*(nZoneHour*3600 + nZoneMin*60);
-    m_bValid = true;
-}
-
-PdfDate::~PdfDate()
-{
-}
-
-void PdfDate::CreateStringRepresentation()
-{
-    const int   ZONE1_STRING_SIZE = 6;
-    const int   ZONE2_STRING_SIZE = 3;
-    const char* INVALIDDATE     = "INVALIDDATE";
-
-    char szZone1[ZONE1_STRING_SIZE];
-    char szZone2[ZONE2_STRING_SIZE] = { 0 };
-    char szDate[PDF_DATE_BUFFER_SIZE];
-    char szDateW3C[W3C_DATE_BUFFER_SIZE];
-
-    struct tm* pstm = localtime( &m_time );
-    if( !pstm )
-    {
-        std::ostringstream ss;
-        ss << "Invalid date specified with time_t value " << m_time << "\n";
-        PdfError::DebugMessage( ss.str().c_str() );
-        strcpy( m_szDate, INVALIDDATE );
-        strcpy( m_szDateW3C, INVALIDDATE );
-        return;
-    }
-
-    struct tm stm = *pstm;
-
-#ifdef _WIN32
-    // On win32, strftime with %z returns a verbose time zone name
-    // like "W. Australia Standard time". We use time/gmtime/mktime
-    // instead.
-    time_t cur_time = time( NULL );
-    struct tm* cur_gmt = gmtime( &cur_time );
-    // assumes _timezone cannot include DST (mabri: documentation unclear IMHO)
-
-    time_t time_off = cur_time - mktime( cur_gmt ); // interpreted as local
-    snprintf( szZone1, ZONE1_STRING_SIZE, "%+03d",
-            static_cast<int>( time_off/3600 ) );
-#else
-    if( strftime( szZone1, ZONE1_STRING_SIZE, "%z", &stm ) == 0 )
-    {
-        std::ostringstream ss;
-        ss << "Generated invalid date from time_t value " << m_time
-           << " (couldn't determine time zone)\n";
-        PdfError::DebugMessage( ss.str().c_str() );
-        strcpy( m_szDate, INVALIDDATE );
-        strcpy( m_szDateW3C, INVALIDDATE );
-        return;
-    }
-#endif
-
-    if( strftime( szDate, PDF_DATE_BUFFER_SIZE, "D:%Y%m%d%H%M%S", &stm ) == 0 ||
-        strftime( szDateW3C, W3C_DATE_BUFFER_SIZE, "%Y-%m-%dT%H:%M:%S", &stm ) == 0)
-    {
-        std::ostringstream ss;
-        ss << "Generated invalid date from time_t value " << m_time
-           << "\n";
-        PdfError::DebugMessage( ss.str().c_str() );
-        strcpy( m_szDate, INVALIDDATE );
-        strcpy( m_szDateW3C, INVALIDDATE );
-        return;
-    }
-
-
-    // only the first 3 characters are important for the pdf date representation
-    // e.g. +01 instead off +0100
-    strncat(szZone2, &szZone1[3], ZONE2_STRING_SIZE - 1);
-    szZone1[3] = '\0';
-
-    snprintf( m_szDate, PDF_DATE_BUFFER_SIZE, "%s%s'00'", szDate, szZone1 );
-    snprintf( m_szDateW3C, PDF_DATE_BUFFER_SIZE, strlen(szZone2) == 0 ? "%s%s" : "%s%s:%s",
-        szDateW3C, szZone1, szZone2);
-    m_bValid = true;
+    return PdfString(date.data());
 }
 
 
@@ -230,6 +242,42 @@ bool PdfDate::ParseFixLenNumber(const char *&in, unsigned int length, int min, i
     return true;
 }
 
-};
+PdfString PdfDate::ToString() const
+{
+    return createStringRepresentation(false);
+}
 
+PdfString PdfDate::ToStringW3C() const
+{
+    return createStringRepresentation(true);
+}
 
+// degski, https://stackoverflow.com/a/57520245/213871
+// We use this function because we don't have C++20
+// date library runtime support
+int getLocalOffesetFromUTCMinutes()
+{
+    time_t t = time(NULL);
+    struct tm * locg = localtime(&t);
+    struct tm locl;
+    memcpy(&locl, locg, sizeof(struct tm));
+    return (int)(timegm(locg) - mktime(&locl)) / 60;
+}
+
+bool tryReadShiftChar(char ch, int &zoneShift)
+{
+    switch (ch)
+    {
+        case '+':
+            zoneShift = 1;
+            return true;
+        case '-':
+            zoneShift = -1;
+            return true;
+        case 'Z':
+            zoneShift = 0;
+            return true;
+        default:
+            return false;
+    }
+}

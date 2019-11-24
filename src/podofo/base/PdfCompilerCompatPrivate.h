@@ -116,19 +116,6 @@ inline static int strncasecmp( const char * s1, const char * s2, size_t n)
 
 };}; // end namespace PoDoFo::compat
 
-/*
- * This is needed to enable compilation with VC++ on Windows, which likes to prefix
- * many functions with underscores.
- *
- * TODO: These should probably be inline wrappers instead, and we need to consolidate
- * hacks from the rest of the code where other _underscore_prefixed_names are checked
- * for here.
- */
-#ifdef _MSC_VER
-#define snprintf _snprintf
-#define vsnprintf _vsnprintf
-#endif
-
 #if defined(_WIN64)
 #define fseeko _fseeki64
 #define ftello _ftelli64

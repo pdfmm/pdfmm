@@ -454,9 +454,7 @@ void PdfWriter::CreateFileIdentifier( PdfString & identifier, const PdfObject* p
     else 
     {
         PdfDate   date;
-        PdfString dateString;
-
-        date.ToString( dateString );
+        PdfString dateString = date.ToString();
 
         pInfo = new PdfObject();
         pInfo->GetDictionary().AddKey( "CreationDate", dateString );

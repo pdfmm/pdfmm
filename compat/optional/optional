@@ -1,8 +1,0 @@
-// Small shim to include experimental <optional> header
-
-#include <experimental/optional>
-
-namespace std
-{
-    using namespace experimental;
-}

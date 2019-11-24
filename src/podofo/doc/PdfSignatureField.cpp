@@ -123,8 +123,7 @@ void PdfSignatureField::SetSignatureDate(const PdfDate &sigDate)
     {
         m_pSignatureObj->GetDictionary().RemoveKey(PdfName("M"));
     }
-	PdfString sDate;
-	sigDate.ToString(sDate);
+	PdfString sDate = sigDate.ToString();
     m_pSignatureObj->GetDictionary().AddKey(PdfName("M"), sDate);
 }
 

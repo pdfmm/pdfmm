@@ -346,13 +346,6 @@ class PODOFO_API PdfObject : public PdfVariant {
     // false). If true, deferred loading is not required or has been completed.
     mutable bool m_bDelayedStreamLoadDone;
 
-#if defined(PODOFO_EXTRA_CHECKS)
- protected:
-    PODOFO_NOTHROW bool DelayedStreamLoadInProgress() const { return m_bDelayedStreamLoadInProgress; }
-private:
-    mutable bool m_bDelayedStreamLoadInProgress;
-#endif
-
 	// Order of member variables has significant effect on sizeof(PdfObject) which
 	// is important in PDFs with many objects (PDF32000_2008.pdf has 750,000 PdfObjects),
 	// be very careful to test class sizes on 32-bit and 64-bit platforms when adding 

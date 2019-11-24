@@ -540,13 +540,6 @@ class PODOFO_API PdfVariant {
 
     // Helper for ctor
     PODOFO_NOTHROW void Init();
-
-#if defined(PODOFO_EXTRA_CHECKS)
-protected:
-    PODOFO_NOTHROW bool DelayedLoadInProgress() const { return m_bDelayedLoadInProgress; }
-private:
-    mutable bool m_bDelayedLoadInProgress;
-#endif
 };
 
 
@@ -555,24 +548,12 @@ private:
 // -----------------------------------------------------
 inline void PdfVariant::DelayedLoad() const
 {
-#if defined(PODOFO_EXTRA_CHECKS)
-    // Whoops! Delayed loading triggered during delayed loading. Someone probably
-    // used a public method that calls DelayedLoad() from a delayed load.
-    if (m_bDelayedLoadInProgress)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Recursive DelayedLoad() detected" );
-#endif
     if( !m_bDelayedLoadDone)
     {
-#if defined(PODOFO_EXTRA_CHECKS)
-        m_bDelayedLoadInProgress = true;
-#endif
         const_cast<PdfVariant*>(this)->DelayedLoadImpl();
         // Nothing was thrown, so if the implementer of DelayedLoadImpl()
         // following the rules we're done.
         m_bDelayedLoadDone = true;
-#if defined(PODOFO_EXTRA_CHECKS)
-        m_bDelayedLoadInProgress = false;
-#endif
         const_cast<PdfVariant*>(this)->AfterDelayedLoad( ( EPdfDataType )m_eDataType );
     }
 }
@@ -708,10 +689,7 @@ double PdfVariant::GetReal() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#endif // __GNUC__
+
 const PdfData & PdfVariant::GetRawData() const
 {
     DelayedLoad();
@@ -725,10 +703,6 @@ const PdfData & PdfVariant::GetRawData() const
     // because a reinterpret_cast might point to a different position.
     return *((PdfData*)m_Data.pData);
 }
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif // __GNUC__
-
 
 PdfData & PdfVariant::GetRawData()
 {

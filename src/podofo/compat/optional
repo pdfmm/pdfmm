@@ -1,0 +1,20 @@
+#ifndef _EXPERIMENTAL_OPTIONAL_H_
+#define _EXPERIMENTAL_OPTIONAL_H_
+
+#include <podofo/base/PdfCompilerCompat.h>
+
+#if HAVE_STD_EXPERIMENTAL_OPTIONAL
+
+// Small shim to include experimental <optional> header
+#include <experimental/optional>
+
+namespace std
+{
+    using namespace experimental;
+}
+
+#else // HAVE_STD_EXPERIMENTAL_OPTIONAL
+#include <optional>
+#endif // HAVE_STD_EXPERIMENTAL_OPTIONAL
+
+#endif // _EXPERIMENTAL_OPTIONAL_H_
