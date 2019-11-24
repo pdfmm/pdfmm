@@ -289,7 +289,7 @@ uint32_t PdfXRef::GetSize() const
     uint32_t highObj  = lastBlock.items.size() ? lastBlock.items.back().reference.ObjectNumber() : 0;
     uint32_t highFree = lastBlock.freeItems.size() ? lastBlock.freeItems.back().ObjectNumber() : 0;
 
-    uint32_t max = PDF_MAX( highObj, highFree );
+    uint32_t max = std::max( highObj, highFree );
 
     // From the PdfReference: /Size's value is 1 greater than the highes object number used in the file.
     return max+1;

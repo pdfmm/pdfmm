@@ -386,9 +386,9 @@ void PdfFontCID::CreateWidth( PdfObject* pFontDict ) const
         lGlyph = m_pMetrics->GetGlyphId( i );
         if( lGlyph )
         {
-            nMin = PDF_MIN( static_cast<long>(nMin), lGlyph );
-            nMax = PDF_MAX( static_cast<long>(nMax), lGlyph );
-            nMax = PDF_MIN( nMax, cAbsoluteMax );
+            nMin = std::min( static_cast<long>(nMin), lGlyph );
+            nMax = std::max( static_cast<long>(nMax), lGlyph );
+            nMax = std::min( nMax, cAbsoluteMax );
 
             if( lGlyph < cAbsoluteMax )
                 pdWidth[lGlyph] = m_pMetrics->GetGlyphWidth( lGlyph );
@@ -829,9 +829,9 @@ getGlyphWidths(PdfFontMetrics* pMetrics, const std::set<pdf_utf16be>& setUsed)
         lGlyph = pMetrics->GetGlyphId( *it );
         if( lGlyph )
         {
-            nMin = PDF_MIN( nMin, lGlyph );
-            nMax = PDF_MAX( nMax, lGlyph );
-            nMax = PDF_MIN( nMax, cAbsoluteMax );
+            nMin = std::min( nMin, lGlyph );
+            nMax = std::max( nMax, lGlyph );
+            nMax = std::min( nMax, cAbsoluteMax );
 
             if( lGlyph < cAbsoluteMax )
             {
@@ -867,9 +867,9 @@ getGlyphWidths(PdfFontMetrics* metrics, const std::set<pdf_utf16be>& setUsed, co
             /* XXX: If character code is not found in font, then do nothing */
             if( lGlyph )
             {
-                nMin = PDF_MIN( nMin, lGlyph );
-                nMax = PDF_MAX( nMax, lGlyph );
-                nMax = PDF_MIN( nMax, cAbsoluteMax );
+                nMin = std::min( nMin, lGlyph );
+                nMax = std::max( nMax, lGlyph );
+                nMax = std::min( nMax, cAbsoluteMax );
 
                 if( lGlyph < cAbsoluteMax )
                 {

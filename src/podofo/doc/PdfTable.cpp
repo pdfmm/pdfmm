@@ -194,7 +194,7 @@ void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter, const PdfRect &
                 {
                     double dScaleX = (pdColWidths[i])  / pImage->GetSize().GetWidth();
                     double dScaleY = (pdRowHeights[j] - 2.0 * dBorder) / pImage->GetSize().GetHeight();
-                    double dScale  = PDF_MIN( dScaleX, dScaleY );
+                    double dScale  = std::min( dScaleX, dScaleY );
 
                     dImageWidth = pImage->GetSize().GetWidth() * dScale;
 

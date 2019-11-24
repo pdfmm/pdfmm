@@ -113,7 +113,7 @@ pdf_long PdfMemoryOutputStream::Write( const char* pBuffer, pdf_long lLen )
         if( m_bOwnBuffer )
         {
             // a reallocation is required
-            m_lSize = PDF_MAX( (m_lLen + lLen), (m_lSize << 1 ) );
+            m_lSize = std::max( (m_lLen + lLen), (m_lSize << 1 ) );
             m_pBuffer = static_cast<char*>(podofo_realloc( m_pBuffer, m_lSize ));
             if( !m_pBuffer ) 
             {

@@ -481,27 +481,6 @@ static const char s_cDelimiters[] = {
     '\0' // end marker
 };
 
-/**
- * PDF_MAX(x,y)
- *
- * \returns the maximum of x and y
- */
-// Not actually a macro, because function-like macros are evil and
-// prone to nasty issues with double-evaluation of arguments.
-template <typename T> const T PDF_MAX ( const T a, const T b ) {
-  return (b<a)?a:b;
-}
-
-/**
- * PDF_MIN(x,y)
- * \returns the minimum of x and y
- */
-// Not actually a macro, because function-like macros are evil and
-// prone to nasty issues with double-evaluation of arguments.
-template <typename T> const T PDF_MIN ( const T a, const T b ) {
-  return (a<b)?a:b;
-}
-
 #ifndef PODOFO_CONVERSION_CONSTANT
 #define PODOFO_CONVERSION_CONSTANT 0.002834645669291339
 #endif // PODOFO_CONVERSION_CONSTANT

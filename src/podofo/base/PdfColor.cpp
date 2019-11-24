@@ -719,7 +719,7 @@ PdfColor PdfColor::ConvertToCMYK() const
             double dGreen = m_uColor.rgb[1];
             double dBlue  = m_uColor.rgb[2];
 
-            double dBlack   = PDF_MIN( 1.0-dRed, PDF_MIN( 1.0-dGreen, 1.0-dBlue ) );
+            double dBlack   = std::min( 1.0-dRed, std::min( 1.0-dGreen, 1.0-dBlue ) );
 
             double dCyan = 0.0;
             double dMagenta = 0.0;

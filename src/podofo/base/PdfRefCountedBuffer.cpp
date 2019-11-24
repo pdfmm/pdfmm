@@ -83,7 +83,7 @@ void PdfRefCountedBuffer::ReallyDetach( size_t lExtraLen )
         pBuffer->m_pHeapBuffer  = static_cast<char*>(podofo_calloc( lSize, sizeof(char) ));
     else
         pBuffer->m_pHeapBuffer = 0;
-    pBuffer->m_lBufferSize     = PDF_MAX( lSize, static_cast<size_t>(+TRefCountedBuffer::INTERNAL_BUFSIZE) );
+    pBuffer->m_lBufferSize     = std::max( lSize, static_cast<size_t>(+TRefCountedBuffer::INTERNAL_BUFSIZE) );
     pBuffer->m_bPossesion      = true;
 
     if( pBuffer->m_bOnHeap && !pBuffer->m_pHeapBuffer ) 
@@ -119,7 +119,7 @@ void PdfRefCountedBuffer::ReallyResize( const size_t lSize )
             // request lots of small resizes if they want, but these over allocations are not visible
             // to clients.
             //
-            const size_t lAllocSize = PDF_MAX(lSize, m_pBuffer->m_lBufferSize) << 1;
+            const size_t lAllocSize = std::max(lSize, m_pBuffer->m_lBufferSize) << 1;
             if ( m_pBuffer->m_bPossesion && m_pBuffer->m_bOnHeap )
             {
                 // We have an existing on-heap buffer that we own. Realloc()
@@ -170,7 +170,7 @@ void PdfRefCountedBuffer::ReallyResize( const size_t lSize )
             m_pBuffer->m_pHeapBuffer = 0;
         }
 
-        m_pBuffer->m_lBufferSize     = PDF_MAX( lSize, static_cast<size_t>(+TRefCountedBuffer::INTERNAL_BUFSIZE) );
+        m_pBuffer->m_lBufferSize     = std::max( lSize, static_cast<size_t>(+TRefCountedBuffer::INTERNAL_BUFSIZE) );
         m_pBuffer->m_bPossesion      = true;
 
         if( m_pBuffer->m_bOnHeap && !m_pBuffer->m_pHeapBuffer ) 
@@ -233,7 +233,7 @@ bool PdfRefCountedBuffer::operator<( const PdfRefCountedBuffer & rhs ) const
         return false;
     else
     {
-        int cmp = memcmp( m_pBuffer->GetRealBuffer(), rhs.m_pBuffer->GetRealBuffer(), PDF_MIN( m_pBuffer->m_lVisibleSize, rhs.m_pBuffer->m_lVisibleSize ) );
+        int cmp = memcmp( m_pBuffer->GetRealBuffer(), rhs.m_pBuffer->GetRealBuffer(), std::min( m_pBuffer->m_lVisibleSize, rhs.m_pBuffer->m_lVisibleSize ) );
         if (cmp == 0)
             // If one is a prefix of the other, ie they compare equal for the length of the shortest but one is longer,
             // the longer buffer is the greater one.
@@ -255,7 +255,7 @@ bool PdfRefCountedBuffer::operator>( const PdfRefCountedBuffer & rhs ) const
         return true;
     else
     {
-        int cmp = memcmp( m_pBuffer->GetRealBuffer(), rhs.m_pBuffer->GetRealBuffer(), PDF_MIN( m_pBuffer->m_lVisibleSize, rhs.m_pBuffer->m_lVisibleSize ) );
+        int cmp = memcmp( m_pBuffer->GetRealBuffer(), rhs.m_pBuffer->GetRealBuffer(), std::min( m_pBuffer->m_lVisibleSize, rhs.m_pBuffer->m_lVisibleSize ) );
         if (cmp == 0)
             // If one is a prefix of the other, ie they compare equal for the length of the shortest but one is longer,
             // the longer buffer is the greater one.
