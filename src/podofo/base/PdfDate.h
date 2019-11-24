@@ -88,11 +88,11 @@ public:
     /** The value returned by this function can be used in any PdfObject
      *  where a date is needed
      */
-    PdfString PdfDate::ToString() const;
+    PdfString ToString() const;
 
     /** The value returned is a W3C compliant date representation
      */
-    PdfString PdfDate::ToStringW3C() const;
+    PdfString ToStringW3C() const;
 
 private:
     /** Creates the internal string representation from

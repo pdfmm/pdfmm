@@ -204,12 +204,12 @@ PdfString PdfDate::createStringRepresentation(bool w3cstring) const
             if (w3cstring)
             {
                 offset.resize(6);
-                snprintf(const_cast<char *>(offset.data()), offset.size() + 1, "%s%02lu:%02lu", plus ? "+" : "-", offseth, offsetm);
+                snprintf(const_cast<char *>(offset.data()), offset.size() + 1, "%s%02u:%02u", plus ? "+" : "-", offseth, offsetm);
             }
             else
             {
                 offset.resize(7);
-                snprintf(const_cast<char *>(offset.data()), offset.size() + 1, "%s%02lu'%02lu'", plus ? "+" : "-", offseth, offsetm);
+                snprintf(const_cast<char *>(offset.data()), offset.size() + 1, "%s%02u'%02u'", plus ? "+" : "-", offseth, offsetm);
             }
         }
     }
@@ -217,12 +217,12 @@ PdfString PdfDate::createStringRepresentation(bool w3cstring) const
     if (w3cstring)
     {
         // e.g. "1998-12-23T19:52:07-08:00"
-        snprintf(date.data(), W3C_DATE_BUFFER_SIZE, "%04lu-%02lu-%02luT%02lu:%02lu:%02lu%s", y, m, d, h, M, s, offset.data());
+        snprintf(date.data(), W3C_DATE_BUFFER_SIZE, "%04u-%02u-%02uT%02u:%02u:%02u%s", y, m, d, h, M, s, offset.data());
     }
     else
     {
         // e.g. "D:19981223195207−08'00'"
-        snprintf(date.data(), PDF_DATE_BUFFER_SIZE, "D:%04lu%02lu%02lu%02lu%02lu%02lu%s", y, m, d, h, M, s, offset.data());
+        snprintf(date.data(), PDF_DATE_BUFFER_SIZE, "D:%04u%02u%02u%02u%02u%02u%s", y, m, d, h, M, s, offset.data());
     }
 
     return PdfString(date.data());
