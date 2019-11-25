@@ -930,13 +930,13 @@ private:
     /** Sets the max length in characters of this textfield
      *  \param nMaxLen the max length of this textfields in characters
      */
-    void SetMaxLen( pdf_long nMaxLen );
+    void SetMaxLen(int64_t nMaxLen);
 
     /** 
      * \returns the max length of this textfield in characters or -1
      *          if no max length was specified
      */
-    pdf_long GetMaxLen() const;
+    int64_t GetMaxLen() const;
 
     /**
      *  Create a multi-line text field that can contains multiple lines of text.

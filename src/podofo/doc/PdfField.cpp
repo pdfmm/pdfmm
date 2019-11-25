@@ -886,11 +886,11 @@ void PdfTextField::SetText( const PdfString & rsText )
     PdfName key = this->IsRichText() ? PdfName("RV") : PdfName("V");
 
     // if rsText is longer than maxlen, truncate it
-    pdf_long nMax = this->GetMaxLen();
+    int64_t nMax = this->GetMaxLen();
     if( nMax != -1 && rsText.GetLength() > nMax )
-        m_pObject->GetDictionary().AddKey( key, PdfString( rsText.GetString(), nMax ) );
-    else
-        m_pObject->GetDictionary().AddKey( key, rsText );
+        PODOFO_RAISE_ERROR_INFO(ePdfError_ValueOutOfRange, "Unable to set text larger MaxLen");
+
+    m_pObject->GetDictionary().AddKey( key, rsText );
 }
 
 PdfString PdfTextField::GetText() const
@@ -898,21 +898,25 @@ PdfString PdfTextField::GetText() const
     PdfName key = this->IsRichText() ? PdfName("RV") : PdfName("V");
     PdfString str;
 
-    if( m_pObject->GetDictionary().HasKey( key ) )
-        str = m_pObject->GetDictionary().GetKey( key )->GetString();
+    auto found = m_pObject->GetDictionary().FindKeyParent(key);
+    if (found == nullptr)
+        return str;
 
-    return str;
+    return found->GetString();
 }
 
-void PdfTextField::SetMaxLen( pdf_long nMaxLen )
+void PdfTextField::SetMaxLen(int64_t nMaxLen )
 {
-    m_pObject->GetDictionary().AddKey( PdfName("MaxLen"), static_cast<int64_t>(nMaxLen) );
+    m_pObject->GetDictionary().AddKey( PdfName("MaxLen"), nMaxLen);
 }
 
-pdf_long  PdfTextField::GetMaxLen() const
+int64_t PdfTextField::GetMaxLen() const
 {
-    return static_cast<pdf_long>(m_pObject->GetDictionary().HasKey( PdfName("MaxLen") ) ? 
-                                 m_pObject->GetDictionary().GetKey( PdfName("MaxLen") )->GetNumber() : -1);
+    auto found = m_pObject->GetDictionary().FindKeyParent("MaxLen");
+    if (found == nullptr)
+        return -1;
+
+    return found->GetNumber();
 }
 
 /////////////////////////////////////////////////////////////////////////////
