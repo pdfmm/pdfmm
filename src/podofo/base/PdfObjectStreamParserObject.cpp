@@ -43,7 +43,7 @@
 #include <limits>
 #include <algorithm>
 
-#if defined(PODOFO_VERBOSE_DEBUG)
+#ifndef VERBOSE_DEBUG_DISABLED
 #include <iostream>
 #endif
 
@@ -113,7 +113,7 @@ void PdfObjectStreamParserObject::ReadObjectsFromStream( char* pBuffer, pdf_long
 		else
 			variantTokenizer.GetNextVariant( var, m_pEncrypt );
 		bool should_read = std::find(list.begin(), list.end(), lObj) != list.end();
-#if defined(PODOFO_VERBOSE_DEBUG)
+#ifndef VERBOSE_DEBUG_DISABLED
         std::cerr << "ReadObjectsFromStream STREAM=" << m_pParser->Reference().ToString() <<
 			", OBJ=" << lObj <<
 			", " << (should_read ? "read" : "skipped") << std::endl;

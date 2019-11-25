@@ -127,13 +127,13 @@ void PdfParserObject::ParseFile( PdfEncrypt* pEncrypt, bool bIsTrailer )
     if( !bIsTrailer )
         ReadObjectNumber();
 
-#if defined(PODOFO_VERBOSE_DEBUG)
+#ifndef VERBOSE_DEBUG_DISABLED
     std::cerr << "Parsing object number: " << m_reference.ObjectNumber()
               << " " << m_reference.GenerationNumber() << " obj"
               << " " << m_lOffset << " offset"
               << " (DL: " << ( m_bLoadOnDemand ? "on" : "off" ) << ")"
               << endl;
-#endif // PODOFO_VERBOSE_DEBUG
+#endif // VERBOSE_DEBUG_DISABLED
 
     m_lOffset    = m_device.Device()->Tell();
     m_pEncrypt   = pEncrypt;
@@ -152,7 +152,7 @@ void PdfParserObject::ParseFile( PdfEncrypt* pEncrypt, bool bIsTrailer )
         // to be able to trigger the reading of not-yet-parsed indirect objects
         // such as might appear in a /Length key with an indirect reference.
 
-#if defined(PODOFO_EXTRA_CHECKS)
+#ifndef EXTRA_CHECKS_DISABLED
         // Sanity check - the variant base must be fully loaded now
         if (!DelayedLoadDone() )
         {
@@ -161,7 +161,7 @@ void PdfParserObject::ParseFile( PdfEncrypt* pEncrypt, bool bIsTrailer )
             // can't carry on.
             PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
         }
-#endif // PODOF_EXTRA_CHECKS
+#endif // EXTRA_CHECKS_DISABLED
     }
 }
 
@@ -170,7 +170,7 @@ void PdfParserObject::ParseFile( PdfEncrypt* pEncrypt, bool bIsTrailer )
 // or PdfObject method calls here.
 void PdfParserObject::ParseFileComplete( bool bIsTrailer )
 {
-#if defined(PODOFO_EXTRA_CHECKS)
+#ifndef EXTRA_CHECKS_DISABLED
     PODOFO_ASSERT( DelayedLoadInProgress() );
     PODOFO_ASSERT( !DelayedLoadDone() );
 #endif
@@ -228,7 +228,7 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
 // PdfVariant or PdfObject.
 void PdfParserObject::ParseStream()
 {
-#if defined(PODOFO_EXTRA_CHECKS)
+#ifndef EXTRA_CHECKS_DISABLED
     PODOFO_ASSERT( DelayedLoadDone() );
     PODOFO_ASSERT( DelayedStreamLoadInProgress() );
     PODOFO_ASSERT( !DelayedStreamLoadDone() );
@@ -347,7 +347,7 @@ void PdfParserObject::ParseStream()
 
 void PdfParserObject::DelayedLoadImpl()
 {
-#if defined(PODOFO_EXTRA_CHECKS)
+#ifndef EXTRA_CHECKS_DISABLED
     // DelayedLoadImpl() should only ever be called via DelayedLoad(),
     // which ensures that it is never called repeatedly.
     PODOFO_ASSERT( !DelayedLoadDone() );
@@ -362,7 +362,7 @@ void PdfParserObject::DelayedLoadImpl()
 
 void PdfParserObject::DelayedStreamLoadImpl()
 {
-#if defined(PODOFO_EXTRA_CHECKS)
+#ifndef EXTRA_CHECKS_DISABLED
     // DelayedLoad() must've been called, either directly earlier
     // or via DelayedStreamLoad. DelayedLoad() will throw if the load
     // failed, so if we're being called this condition must be true.

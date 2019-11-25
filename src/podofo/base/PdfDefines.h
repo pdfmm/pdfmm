@@ -89,17 +89,15 @@
 #include <boost/config.hpp>
 #endif // PODOFO_HAVE_BOOST
 
-/** \def PODOFO_VERBOSE_DEBUG
+/** \def VERBOSE_DEBUG_DISABLED
  *  Debug define. Enable it, if you need
  *  more debuf output to the commandline from PoDoFo
  *
- *  Setting PDF_VERBOSE_DEBUG will make PoDoFo
+ *  Setting VERBOSE_DEBUG_DISABLED will make PoDoFo
  *  EXTREMELY slow and verbose, so it's not practical
  *  even for regular debuggin.
  */
-#ifndef PODOFO_VERBOSE_DEBUG
-//#define PODOFO_VERBOSE_DEBUG
-#endif //PODOFO_VERBOSE_DEBUG
+#define VERBOSE_DEBUG_DISABLED
 
 // Should we do lots of extra (expensive) sanity checking?  You should not
 // define this on production builds because of the runtime cost and because it
@@ -109,9 +107,7 @@
 //
 // If you don't know you need this, avoid it.
 //
-#ifndef PODOFO_EXTRA_CHECKS
-//#define PODOFO_EXTRA_CHECKS
-#endif //PODOFO_EXTRA_CHECKS
+#define EXTRA_CHECKS_DISABLED
 
 // Error Handling Defines
 #include "PdfError.h"

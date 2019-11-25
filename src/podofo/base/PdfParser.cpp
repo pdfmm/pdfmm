@@ -1272,7 +1272,7 @@ void PdfParser::ReadObjectsInternal()
         PdfXRefEntry &entry = m_offsets[i];
         if( entry.bParsed && entry.eType == eXRefEntryType_Compressed ) // we have an compressed object stream
         {
-#if defined(PODOFO_VERBOSE_DEBUG)
+#ifndef VERBOSE_DEBUG_DISABLED
             if (m_bLoadOnDemand) cerr << "Demand loading on, but can't demand-load from object stream." << endl;
 #endif
             ReadObjectFromStream( static_cast<int>( entry.lGeneration ), 

@@ -147,7 +147,7 @@ PdfObject::PdfObject( const PdfObject & rhs )
     //if( rhs.m_pStream && m_pOwner )
     //    m_pStream = m_pOwner->CreateStream( *(rhs.m_pStream) );
 
-#if defined(PODOFO_EXTRA_CHECKS)
+#ifndef EXTRA_CHECKS_DISABLED
     // Must've been demand loaded or already done
     PODOFO_ASSERT( DelayedLoadDone() );
     PODOFO_ASSERT( DelayedStreamLoadDone() );
@@ -201,7 +201,7 @@ void PdfObject::InitPdfObject()
     m_bDelayedStreamLoadDone  = true;
     SetVariantOwner( GetDataType() );
 
-#if defined(PODOFO_EXTRA_CHECKS)
+#ifndef EXTRA_CHECKS_DISABLED
     m_bDelayedStreamLoadInProgress = false;
 #endif
 }
@@ -313,6 +313,48 @@ const PdfStream* PdfObject::GetStream() const
     return const_cast<PdfObject*>( this )->GetStream();
 }
 
+bool PdfObject::HasStream() const
+{
+    DelayedStreamLoad();
+
+    return (m_pStream != NULL);
+}
+
+void PdfObject::DelayedStreamLoad() const
+{
+    DelayedLoad();
+
+#ifndef EXTRA_CHECKS_DISABLED
+    if (m_bDelayedStreamLoadInProgress)
+        PODOFO_RAISE_ERROR_INFO(ePdfError_InternalLogic, "Recursive DelayedStreamLoad() detected");
+#endif
+
+    if (!m_bDelayedStreamLoadDone)
+    {
+#ifndef EXTRA_CHECKS_DISABLED
+        m_bDelayedStreamLoadInProgress = true;
+#endif
+        const_cast<PdfObject*>(this)->DelayedStreamLoadImpl();
+        // Nothing was thrown, so if the implementer of DelayedstreamLoadImpl() is
+        // following the rules we're done.
+        m_bDelayedStreamLoadDone = true;
+#ifndef EXTRA_CHECKS_DISABLED
+        m_bDelayedStreamLoadInProgress = false;
+#endif
+    }
+}
+
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+// Default implementation of virtual void DelayedStreamLoadImpl()
+// throws, since delayed loading of steams should not be enabled
+// except by types that support it.
+void PdfObject::DelayedStreamLoadImpl()
+{
+    PODOFO_RAISE_ERROR(ePdfError_InternalLogic);
+}
+
 void PdfObject::FlateCompressStream() 
 {
     // TODO: If the stream isn't already in memory, defer loading and compression until first read of the stream to save some memory.
@@ -351,7 +393,7 @@ const PdfObject & PdfObject::operator=( const PdfObject & rhs )
     //if( rhs.m_pStream )
     //    m_pStream = m_pOwner->CreateStream( *(rhs.m_pStream) );
 
-#if defined(PODOFO_EXTRA_CHECKS)
+#ifndef EXTRA_CHECKS_DISABLED
     // Must've been demand loaded or already done
     PODOFO_ASSERT( DelayedLoadDone() );
     PODOFO_ASSERT( DelayedStreamLoadDone() );

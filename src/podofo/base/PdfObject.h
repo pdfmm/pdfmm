@@ -227,7 +227,7 @@ class PODOFO_API PdfObject : public PdfVariant {
      * 
      *  \returns true if the object has a stream
      */
-    inline bool HasStream() const;
+    bool HasStream() const;
 
     /** This operator is required for sorting a list of 
      *  PdfObject instances. It compares the object number. If object numbers
@@ -283,7 +283,7 @@ class PODOFO_API PdfObject : public PdfVariant {
      *
      * For objects created in memory completely, this function does nothing.
      */
-    inline void DelayedStreamLoad() const;
+    void DelayedStreamLoad() const;
 
  protected:
     /** Flag any stream associated with the object as incompletely loaded,
@@ -307,7 +307,7 @@ class PODOFO_API PdfObject : public PdfVariant {
      *
      * Never call this method directly; use DelayedStreamLoad() instead.
      */
-    inline virtual void DelayedStreamLoadImpl();
+    virtual void DelayedStreamLoadImpl();
 
     /** Same as GetStream() but won't trigger a delayed load, so it's safe
      *  for use while a delayed load is in progress.
@@ -411,57 +411,12 @@ bool PdfObject::operator==( const PdfObject & rhs ) const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline bool PdfObject::HasStream() const
-{
-    DelayedStreamLoad();
-
-    return ( m_pStream != NULL );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
 PdfObject* PdfObject::MustGetIndirectKey( const PdfName & key ) const
 {
     PdfObject* obj = GetIndirectKey(key);
     if (!obj)
         PODOFO_RAISE_ERROR( ePdfError_NoObject );
     return obj;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-// Default implementation of virtual void DelayedStreamLoadImpl()
-// throws, since delayed loading of steams should not be enabled
-// except by types that support it.
-inline void PdfObject::DelayedStreamLoadImpl()
-{
-   PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
-}
-
-inline void PdfObject::DelayedStreamLoad() const
-{
-    DelayedLoad();
-
-#if defined(PODOFO_EXTRA_CHECKS)
-    if( m_bDelayedStreamLoadInProgress )
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Recursive DelayedStreamLoad() detected" );
-#endif
-
-    if( !m_bDelayedStreamLoadDone )
-    {
-#if defined(PODOFO_EXTRA_CHECKS)
-        m_bDelayedStreamLoadInProgress = true;
-#endif
-        const_cast<PdfObject*>(this)->DelayedStreamLoadImpl();
-        // Nothing was thrown, so if the implementer of DelayedstreamLoadImpl() is
-        // following the rules we're done.
-        m_bDelayedStreamLoadDone = true;
-#if defined(PODOFO_EXTRA_CHECKS)
-        m_bDelayedStreamLoadInProgress = false;
-#endif
-    }
 }
 
 };
