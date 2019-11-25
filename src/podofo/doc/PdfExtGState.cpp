@@ -77,10 +77,6 @@ PdfExtGState::PdfExtGState( PdfDocument* pParent )
     this->Init();
 }
 
-PdfExtGState::~PdfExtGState()
-{
-}
-
 void PdfExtGState::Init( void )
 {
 }

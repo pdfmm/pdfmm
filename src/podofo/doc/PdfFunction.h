@@ -65,8 +65,6 @@ public:
     typedef std::list<PdfFunction> List;
     typedef std::list<char> Sample;
 
-    virtual ~PdfFunction();
-
 protected:
     /** Create a new PdfFunction object.
      *

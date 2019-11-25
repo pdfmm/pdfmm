@@ -64,8 +64,6 @@ class PODOFO_DOC_API PdfAcroForm : public PdfElement {
     PdfAcroForm( PdfDocument* pDoc, PdfObject* pObject,
                  EPdfAcroFormDefaulAppearance eDefaultAppearance = ePdfAcroFormDefaultAppearance_BlackText12pt );
 
-    virtual ~PdfAcroForm() { }
-
     PdfArray & GetFieldsArray();
 
     /** Get the document that is associated with this 

@@ -72,11 +72,6 @@ PdfParserObject::PdfParserObject( const PdfRefCountedBuffer & rBuffer )
     InitPdfParserObject();
 }
 
-PdfParserObject::~PdfParserObject()
-{
-
-}
-
 void PdfParserObject::InitPdfParserObject()
 {
     m_bIsTrailer        = false;

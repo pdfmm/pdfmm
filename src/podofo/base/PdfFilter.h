@@ -212,7 +212,7 @@ class PODOFO_API PdfFilter {
      */
     virtual EPdfFilter GetType() const = 0;
 
-    PODOFO_NOTHROW inline PdfOutputStream* GetStream() const { return m_pOutputStream; }
+    inline PdfOutputStream* GetStream() const { return m_pOutputStream; }
 
  protected:
     /**
@@ -226,7 +226,7 @@ class PODOFO_API PdfFilter {
      * BeginEncode() or BeginDecode() are guaranteed to throw
      * without calling their virtual implementations.
      */
-    PODOFO_NOTHROW inline void FailEncodeDecode();
+    inline void FailEncodeDecode();
 
     /** Real implementation of BeginEncode(). NEVER call this method directly.
      *

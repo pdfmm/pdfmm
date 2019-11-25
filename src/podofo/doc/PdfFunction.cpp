@@ -53,11 +53,6 @@ PdfFunction::PdfFunction( EPdfFunctionType eType, const PdfArray & rDomain, PdfD
     Init( eType, rDomain );
 }
 
-PdfFunction::~PdfFunction()
-{
-
-}
-
 void PdfFunction::Init( EPdfFunctionType eType, const PdfArray & rDomain )
 {
     this->GetObject()->GetDictionary().AddKey( PdfName("FunctionType"), static_cast<int64_t>(eType) );

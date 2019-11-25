@@ -90,9 +90,7 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, PdfObject* pDescriptor )
 }
 */
 
-PdfFontMetrics::~PdfFontMetrics()
-{
-}
+PdfFontMetrics::~PdfFontMetrics() { }
 
 #if defined(__APPLE_CC__) && !defined(PODOFO_HAVE_FONTCONFIG) && !defined(PODOFO_NO_FONTMANAGER)
 FT_Error

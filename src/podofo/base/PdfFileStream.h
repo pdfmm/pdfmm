@@ -70,8 +70,6 @@ class PODOFO_API PdfFileStream : public PdfStream {
      */
     PdfFileStream( PdfObject* pParent, PdfOutputDevice* pDevice );
 
-    virtual ~PdfFileStream();
-
     /** Set an encryption object which is used to encrypt
      *  all data written to this stream.
      *

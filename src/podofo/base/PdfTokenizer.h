@@ -132,27 +132,27 @@ class PODOFO_API PdfTokenizer {
      *
      *  \returns true if it is a whitespace character otherwise false
      */
-    PODOFO_NOTHROW inline static bool IsWhitespace(const unsigned char ch);
+    inline static bool IsWhitespace(const unsigned char ch);
 
     /** Returns true if the given character is a delimiter
      *  according to the pdf reference
      *
      *  \returns true if it is a delimiter character otherwise false
      */
-    PODOFO_NOTHROW inline static bool IsDelimiter(const unsigned char ch);
+    inline static bool IsDelimiter(const unsigned char ch);
 
     /**
      * True if the passed character is a regular character according to the PDF
      * reference (Section 3.1.1, Character Set); ie it is neither a white-space
      * nor a delimeter character.
      */
-    PODOFO_NOTHROW inline static bool IsRegular(const unsigned char ch);
+    inline static bool IsRegular(const unsigned char ch);
 
     /**
      * True if the passed character is within the generally accepted "printable"
      * ASCII range.
      */
-    PODOFO_NOTHROW inline static bool IsPrintable(const unsigned char ch);
+    inline static bool IsPrintable(const unsigned char ch);
 
     /**
      * Get the hex value from a static map of a given hex character (0-9, A-F, a-f).
@@ -163,7 +163,7 @@ class PODOFO_API PdfTokenizer {
      *
      * \see HEX_NOT_FOUND
      */
-    PODOFO_NOTHROW inline static int GetHexValue(const unsigned char ch);
+    inline static int GetHexValue(const unsigned char ch);
 
     /**
      * Constant which is returned for invalid hex values.

@@ -78,9 +78,7 @@ ePdfEncryptAlgorithm_RC4V2 |
 ePdfEncryptAlgorithm_AESV2;
 #endif // PODOFO_HAVE_LIBIDN
 
-PdfEncrypt::~PdfEncrypt()
-{
-}
+PdfEncrypt::~PdfEncrypt() { }
     
 int PdfEncrypt::GetEnabledEncryptionAlgorithms()
 {
@@ -274,10 +272,6 @@ public:
     {
     }
     
-    virtual ~PdfRC4OutputStream()
-    {
-    }
-    
     /** Write data to the output stream
      *  
      *  \param pBuffer the data is read from this buffer
@@ -328,10 +322,6 @@ public:
     PdfRC4InputStream( PdfInputStream* pInputStream, unsigned char rc4key[256], unsigned char rc4last[256], 
                       unsigned char* key, int keylen )
     : m_pInputStream( pInputStream ), m_stream( rc4key, rc4last, key, keylen )
-    {
-    }
-    
-    virtual ~PdfRC4InputStream() 
     {
     }
     
@@ -450,10 +440,6 @@ class PdfAESInputStream : public PdfInputStream {
 public:
     PdfAESInputStream( PdfInputStream* pInputStream, unsigned char* key, int keylen )
     : m_pInputStream( pInputStream ), m_stream( key, keylen )
-    {
-    }
-    
-    virtual ~PdfAESInputStream() 
     {
     }
     

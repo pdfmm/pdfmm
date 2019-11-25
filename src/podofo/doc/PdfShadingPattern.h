@@ -61,8 +61,6 @@ enum EPdfShadingPatternType {
  */
 class PODOFO_DOC_API PdfShadingPattern : public PdfElement {
  public:
-    virtual ~PdfShadingPattern();
-
     /** Returns the identifier of this ShadingPattern how it is known
      *  in the pages resource dictionary.
      *  \returns PdfName containing the identifier (e.g. /Sh13)

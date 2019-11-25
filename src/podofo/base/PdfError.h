@@ -259,8 +259,6 @@ class PODOFO_EXCEPTION_API_DOXYGEN PdfError {
      *  \param rhs copy the contents of rhs into this object
      */
     PdfError( const PdfError & rhs );
-
-    virtual ~PdfError() throw();
     
     /** Assignment operator
      *  \param rhs another PdfError object
@@ -402,7 +400,7 @@ class PODOFO_EXCEPTION_API_DOXYGEN PdfError {
      *  \returns the name or NULL if no name for the specified
      *           error code is available.
      */
-    PODOFO_NOTHROW static const char* ErrorName( EPdfError eCode );
+    static const char* ErrorName( EPdfError eCode );
 
     /** Get the error message for a certain error code.
      *  \returns the error message or NULL if no error

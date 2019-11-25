@@ -233,12 +233,12 @@ class PODOFO_API PdfObject : public PdfVariant {
      *  PdfObject instances. It compares the object number. If object numbers
      *  are equal, the generation number is compared.
      */
-    PODOFO_NOTHROW inline bool operator<( const PdfObject & rhs ) const;
+    inline bool operator<( const PdfObject & rhs ) const;
 
     /** Comparison operator.
      *  Compares two PDF object instances only based on their object and generation number.
      */
-    PODOFO_NOTHROW inline bool operator==( const PdfObject & rhs ) const;
+    inline bool operator==( const PdfObject & rhs ) const;
 
     /** Get the owner of this object.
      *  \return the owner (if it wasn't changed anywhere, creator) of this object
@@ -356,7 +356,7 @@ class PODOFO_API PdfObject : public PdfVariant {
 	 PdfStream*     m_pStream;
 	 PdfVecObjects* m_pOwner;
 
-	 PODOFO_NOTHROW inline bool DelayedStreamLoadDone() const;
+	 inline bool DelayedStreamLoadDone() const;
 };
 
 // -----------------------------------------------------

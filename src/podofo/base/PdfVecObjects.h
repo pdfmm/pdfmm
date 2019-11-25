@@ -160,7 +160,7 @@ class PODOFO_API PdfVecObjects {
      */
     PdfVecObjects();
 
-    virtual ~PdfVecObjects();
+    ~PdfVecObjects();
 
     /** \returns a pointer to a PdfDocument that is the 
      *           parent of this vector.

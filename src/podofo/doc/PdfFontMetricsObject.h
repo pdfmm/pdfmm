@@ -56,8 +56,6 @@ class PODOFO_DOC_API PdfFontMetricsObject : public PdfFontMetrics {
      */
     PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescriptor, const PdfEncoding* const pEncoding );
 
-    virtual ~PdfFontMetricsObject();
-
     /** Create a width array for this font which is a required part
      *  of every font dictionary.
      *  \param var the final width array is written to this PdfVariant

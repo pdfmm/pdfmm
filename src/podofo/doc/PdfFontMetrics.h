@@ -53,7 +53,6 @@ class PODOFO_DOC_API PdfFontMetrics {
  public:
     PdfFontMetrics( EPdfFontType eFontType, const char* pszFilename, const char* pszSubsetPrefix );
 
-
     virtual ~PdfFontMetrics();
 
     /** Create a width array for this font which is a required part

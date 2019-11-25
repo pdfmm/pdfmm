@@ -112,8 +112,6 @@ class PODOFO_DOC_API PdfXObject : public PdfElement, public PdfCanvas {
      */
     PdfXObject( PdfObject* pObject );
 
-    virtual ~PdfXObject() { }
-
 protected:
     PdfXObject(EPdfXObject subType, PdfDocument* pParent, const char* pszPrefix = NULL);
     PdfXObject(EPdfXObject subType, PdfVecObjects* pParent, const char* pszPrefix = NULL);

@@ -96,8 +96,6 @@ class PODOFO_DOC_API PdfAction : public PdfElement {
      */
     PdfAction( EPdfAction eAction, PdfDocument* pParent );
 
-    virtual ~PdfAction() { }
-
     /** Create a PdfAction object from an existing 
      *  PdfObject
      */

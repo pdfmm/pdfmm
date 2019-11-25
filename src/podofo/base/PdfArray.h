@@ -75,8 +75,6 @@ class PODOFO_API PdfArray : public PdfOwnedDataType {
      */
     PdfArray( const PdfArray & rhs );
 
-    virtual ~PdfArray();
-
     /** assignment operator
      *
      *  \param rhs the array to assign

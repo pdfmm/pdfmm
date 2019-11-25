@@ -80,10 +80,6 @@ PdfShadingPattern::PdfShadingPattern( EPdfShadingPatternType eShadingType, PdfDo
     this->Init( eShadingType );
 }
 
-PdfShadingPattern::~PdfShadingPattern()
-{
-}
-
 void PdfShadingPattern::Init( EPdfShadingPatternType eShadingType )
 {
     /*

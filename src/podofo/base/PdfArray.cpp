@@ -56,10 +56,6 @@ PdfArray::PdfArray(const PdfArray & rhs)
 {
 }
 
-PdfArray::~PdfArray()
-{
-}
-
 void PdfArray::RemoveAt(int index)
 {
     if (index < 0 || index >= (int)m_objects.size())

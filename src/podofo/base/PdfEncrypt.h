@@ -206,7 +206,7 @@ public:
 
     /** Destruct the PdfEncrypt object
      */
-    virtual ~PdfEncrypt() = 0;
+    virtual ~PdfEncrypt();
 
     /** Generate encryption key from user and owner passwords and protection key
      *  
@@ -439,11 +439,6 @@ public:
     // copy constructor
     PdfEncryptSHABase(const PdfEncrypt &rhs);
     
-    /*
-     *	Destruct PdfEncryptAESV2 object
-     */ 
-    virtual ~PdfEncryptSHABase() {};
-    
     virtual PdfInputStream* CreateEncryptionInputStream( PdfInputStream* pInputStream ) = 0;
     virtual PdfOutputStream* CreateEncryptionOutputStream( PdfOutputStream* pOutputStream ) = 0;
     
@@ -569,11 +564,6 @@ public:
     // copy constructor
     PdfEncryptMD5Base(const PdfEncrypt &rhs);
     
-    /*
-     *	Destruct PdfEncryptAESV2 object
-     */ 
-    virtual ~PdfEncryptMD5Base() {};
-    
     virtual PdfInputStream* CreateEncryptionInputStream( PdfInputStream* pInputStream ) = 0;
     virtual PdfOutputStream* CreateEncryptionOutputStream( PdfOutputStream* pOutputStream ) = 0;
     
@@ -663,11 +653,6 @@ public:
                                  ePdfPermissions_HighPrint
                 );
     
-	/*
-	*	Destruct PdfEncryptAESV2 object
-	*/ 
-	virtual ~PdfEncryptAESV2() {};
-    
 	virtual PdfInputStream* CreateEncryptionInputStream( PdfInputStream* pInputStream );
 	virtual PdfOutputStream* CreateEncryptionOutputStream( PdfOutputStream* pOutputStream );
     
@@ -711,12 +696,7 @@ public:
                   ePdfPermissions_Accessible |
                   ePdfPermissions_DocAssembly |
                   ePdfPermissions_HighPrint
-                  );	
-    
-    /*
-     *	Destruct PdfEncryptAESV3 object
-     */ 
-    virtual ~PdfEncryptAESV3() {};
+                  );
     
     virtual PdfInputStream* CreateEncryptionInputStream( PdfInputStream* pInputStream );
     virtual PdfOutputStream* CreateEncryptionOutputStream( PdfOutputStream* pOutputStream );
@@ -766,11 +746,6 @@ public:
                                  ePdfPermissions_HighPrint,
                   EPdfEncryptAlgorithm eAlgorithm = ePdfEncryptAlgorithm_RC4V1,
                   EPdfKeyLength eKeyLength = ePdfKeyLength_40 );
-
-    /*
-     *	Destruct PdfEncryptRC4 object
-     */ 
-    virtual ~PdfEncryptRC4() {}
     
     virtual bool Authenticate( const std::string & password, const PdfString & documentId );
     

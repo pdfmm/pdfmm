@@ -73,8 +73,6 @@ class PODOFO_API PdfParserObject : public PdfObject, public PdfTokenizer {
      */
     explicit PdfParserObject( const PdfRefCountedBuffer & rBuffer );
 
-    virtual ~PdfParserObject();
-
     /** Parse the object data from the given file handle 
      *  If delayed loading is enabled, only the object and generation number
      *  is read now and everything else is read later.

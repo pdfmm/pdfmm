@@ -81,8 +81,6 @@ class PODOFO_API PdfReference : public PdfDataType {
         this->operator=( rhs );
     }
 
-    PODOFO_NOTHROW virtual ~PdfReference() { }
-
     /** Convert the reference to a string.
      *  \returns a string representation of the object.
      *
@@ -95,7 +93,7 @@ class PODOFO_API PdfReference : public PdfDataType {
      *
      * \param rhs the object to copy
      */
-    PODOFO_NOTHROW inline const PdfReference & operator=( const PdfReference & rhs );
+    inline const PdfReference & operator=( const PdfReference & rhs );
 
     /** Write the complete variant to an output device.
      *  This is an overloaded member function.
@@ -111,39 +109,39 @@ class PODOFO_API PdfReference : public PdfDataType {
      * Compare to PdfReference objects.
      * \returns true if both reference the same object
      */
-    PODOFO_NOTHROW inline bool operator==( const PdfReference & rhs ) const;
+    inline bool operator==( const PdfReference & rhs ) const;
 
     /** 
      * Compare to PdfReference objects.
      * \returns false if both reference the same object
      */
-    PODOFO_NOTHROW inline bool operator!=( const PdfReference & rhs ) const;
+    inline bool operator!=( const PdfReference & rhs ) const;
 
     /** 
      * Compare to PdfReference objects.
      * \returns true if this reference has a smaller object and generation number
      */
-    PODOFO_NOTHROW inline bool operator<( const PdfReference & rhs ) const;
+    inline bool operator<( const PdfReference & rhs ) const;
 
     /** Set the object number of this object
      *  \param o the new object number
      */
-    PODOFO_NOTHROW inline void SetObjectNumber( uint32_t o );
+    inline void SetObjectNumber( uint32_t o );
 
     /** Get the object number.
      *  \returns the object number of this PdfReference
      */
-    PODOFO_NOTHROW inline uint32_t ObjectNumber() const;
+    inline uint32_t ObjectNumber() const;
 
     /** Set the generation number of this object
      *  \param g the new generation number
      */
-    PODOFO_NOTHROW inline void SetGenerationNumber( const uint16_t g );
+    inline void SetGenerationNumber( const uint16_t g );
 
     /** Get the generation number.
      *  \returns the generation number of this PdfReference
      */
-    PODOFO_NOTHROW inline uint16_t GenerationNumber() const;
+    inline uint16_t GenerationNumber() const;
 
     /** Allows to check if a reference points to an indirect
      *  object.
@@ -154,7 +152,7 @@ class PODOFO_API PdfReference : public PdfDataType {
      *  \returns true if this reference is the reference of
      *           an indirect object.
      */
-    PODOFO_NOTHROW inline bool IsIndirect() const;
+    inline bool IsIndirect() const;
 
  private:
     // uint16_t (2 bytes) should appear before uint32_t (4 bytes)

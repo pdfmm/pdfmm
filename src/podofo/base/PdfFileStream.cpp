@@ -52,10 +52,6 @@ PdfFileStream::PdfFileStream( PdfObject* pParent, PdfOutputDevice* pDevice )
     m_pParent->GetDictionary().AddKey( PdfName::KeyLength, m_pLength->Reference() );
 }
 
-PdfFileStream::~PdfFileStream() 
-{
-}
-
 void PdfFileStream::Write( PdfOutputDevice*, PdfEncrypt* )
 {
 }

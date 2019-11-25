@@ -68,8 +68,6 @@ class PODOFO_DOC_API PdfExtGState : public PdfElement {
      */
     PdfExtGState( PdfDocument* pParent );
 
-    virtual ~PdfExtGState();
-
     /** Returns the identifier of this ExtGState how it is known
      *  in the pages resource dictionary.
      *  \returns PdfName containing the identifier (e.g. /ExtGS13)

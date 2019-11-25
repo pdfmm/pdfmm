@@ -450,7 +450,7 @@ class PODOFO_API PdfVariant {
      * and loading has completed. External callers should never need to
      * see this, it's an internal state flag only.
      */
-    PODOFO_NOTHROW inline bool DelayedLoadDone() const;
+    inline bool DelayedLoadDone() const;
 
     // Rather than having deferred load triggering disabled while deferred
     // loading is in progress, causing public methods to potentially return
@@ -539,7 +539,7 @@ class PODOFO_API PdfVariant {
     mutable bool m_bDelayedLoadDone;
 
     // Helper for ctor
-    PODOFO_NOTHROW void Init();
+    void Init();
 };
 
 

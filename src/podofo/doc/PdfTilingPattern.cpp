@@ -84,10 +84,6 @@ PdfTilingPattern::PdfTilingPattern( EPdfTilingPatternType eTilingType,
 		 doFill, fillR, fillG, fillB, offsetX, offsetY, pImage);
 }
 
-PdfTilingPattern::~PdfTilingPattern()
-{
-}
-
 void PdfTilingPattern::AddToResources(const PdfName &rIdentifier, const PdfReference &rRef, const PdfName &rName)
 {
 	PdfObject* pResource = GetObject()->GetDictionary().GetKey( "Resources" );

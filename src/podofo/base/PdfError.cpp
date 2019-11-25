@@ -118,10 +118,6 @@ PdfError::PdfError( const PdfError & rhs )
     this->operator=( rhs );
 }
 
-PdfError::~PdfError() throw()
-{
-}
-    
 const PdfError & PdfError::operator=( const PdfError & rhs )
 {
     m_error     = rhs.m_error;

@@ -188,24 +188,6 @@
     #define PODOFO_DEPRECATED
 #endif
 
-#ifdef __GNU__
-    /* gcc can do some additional optimisations on functions annotated as pure.
-     * See the documentation on __attribute__((pure)) in the gcc docs. */
-    #define PODOFO_PURE_FUNCTION    __attribute__((pure))
-    /* PODOFO_NOTHROW can be used to tell the compiler the annotated function is
-     * guaranteed not to throw. If it does throw, undefined behaviour will result,
-     * so be VERY careful with this. This is NOT the same as the PODOFO_NOTHROW qualifier
-     * (see CODINGSTYLE.txt) .*/
-    #define PODOFO_NOTHROW          __attribute__((nothrow))
-#else
-  #define PODOFO_PURE_FUNCTION
-    #ifdef _MSC_VER
-      #define PODOFO_NOTHROW        __declspec(nothrow)
-    #else
-      #define PODOFO_NOTHROW
-    #endif
-#endif
-
 // Peter Petrov 27 April 2008
 // Disable warnings
 #if defined(_WIN32) && defined(_MSC_VER)

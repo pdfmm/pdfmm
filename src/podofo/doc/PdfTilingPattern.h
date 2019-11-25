@@ -38,7 +38,6 @@ class PdfWriter;
  */
 class PODOFO_DOC_API PdfTilingPattern : public PdfElement {
  public:
-    virtual ~PdfTilingPattern();
 
     /** Returns the identifier of this TilingPattern how it is known
      *  in the pages resource dictionary.

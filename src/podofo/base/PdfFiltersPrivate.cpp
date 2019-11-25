@@ -929,10 +929,6 @@ PdfDCTFilter::PdfDCTFilter()
     memset( &m_jerr, 0, sizeof( struct jpeg_error_mgr ) );
 }
 
-PdfDCTFilter::~PdfDCTFilter()
-{
-}
-
 void PdfDCTFilter::BeginEncodeImpl()
 {
     PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
@@ -1243,10 +1239,6 @@ static toff_t dummy_size(thandle_t)
 // -------------------------------------------------------
 PdfCCITTFilter::PdfCCITTFilter()
     : m_tiff( NULL )
-{
-}
-
-PdfCCITTFilter::~PdfCCITTFilter()
 {
 }
 

@@ -188,10 +188,6 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescri
     m_bSymbol = false; // TODO
 }
 
-PdfFontMetricsObject::~PdfFontMetricsObject()
-{
-}
-
 const char* PdfFontMetricsObject::GetFontname() const
 {
     return m_sName.GetName().c_str();

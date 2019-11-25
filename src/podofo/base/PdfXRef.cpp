@@ -98,10 +98,7 @@ PdfXRef::PdfXRef()
 
 }
 
-PdfXRef::~PdfXRef() 
-{
-
-}
+PdfXRef::~PdfXRef() { }
 
 void PdfXRef::AddObject( const PdfReference & rRef, uint64_t offset, bool bUsed )
 {
