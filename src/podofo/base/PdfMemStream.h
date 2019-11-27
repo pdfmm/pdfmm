@@ -102,7 +102,7 @@ public:
      *
      *  \returns a read-only handle to the streams data
      */
-    inline const char* Get() const;
+    const char* Get() const;
 
     /** Get the stream's length. The length is that of the internal
      *  stream buffer, so (eg) for a Flate-compressed stream it will be
@@ -131,12 +131,12 @@ public:
     /** Required for the GetFilteredCopy implementation
      *  \returns a handle to the internal buffer
      */
-    virtual const char* GetInternalBuffer() const override;
+    const char* GetInternalBuffer() const override;
 
     /** Required for the GetFilteredCopy implementation
      *  \returns the size of the internal buffer
      */
-    virtual pdf_long GetInternalBufferSize() const override;
+    pdf_long GetInternalBufferSize() const override;
 
     /** Begin appending data to this stream.
      *  Clears the current stream contents.
