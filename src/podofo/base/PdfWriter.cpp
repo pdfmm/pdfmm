@@ -194,7 +194,7 @@ void PdfWriter::Write( PdfOutputDevice* pDevice, bool bRewriteXRefTable )
         
         // P.Zent: Delete Encryption dictionary (cannot be reused)
         if(m_pEncryptObj) {
-            m_vecObjects->RemoveObject(m_pEncryptObj->Reference());
+            m_vecObjects->RemoveObject(m_pEncryptObj->GetIndirectReference());
             delete m_pEncryptObj;
         }
         
@@ -204,7 +204,7 @@ void PdfWriter::Write( PdfOutputDevice* pDevice, bool bRewriteXRefTable )
     
     // P.Zent: Delete Encryption dictionary (cannot be reused)
     if(m_pEncryptObj) {
-        m_vecObjects->RemoveObject(m_pEncryptObj->Reference());
+        m_vecObjects->RemoveObject(m_pEncryptObj->GetIndirectReference());
         delete m_pEncryptObj;
     }
 }
@@ -283,12 +283,12 @@ void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const PdfVecObjects& 
                 {
                     const PdfParserObject *parserObject = dynamic_cast<const PdfParserObject *>(pObject);
                     // the reference looks like "0 0 R", while the object identifier like "0 0 obj", thus add two letters
-                    int objRefLength = pObject->Reference().ToString().length() + 2;
+                    int objRefLength = pObject->GetIndirectReference().ToString().length() + 2;
 
                     // the offset points just after the "0 0 obj" string
                     if( parserObject && parserObject->GetOffset() - objRefLength > 0)
                     {
-                        pXref->AddObject( pObject->Reference(), parserObject->GetOffset() - objRefLength, true );
+                        pXref->AddObject( pObject->GetIndirectReference(), parserObject->GetOffset() - objRefLength, true );
                         canSkip = true;
                     }
                 }
@@ -298,7 +298,7 @@ void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const PdfVecObjects& 
             }
         }
 
-        pXref->AddObject( pObject->Reference(), pDevice->Tell(), true );
+        pXref->AddObject( pObject->GetIndirectReference(), pDevice->Tell(), true );
 
         // Make sure that we do not encrypt the encryption dictionary!
         pObject->WriteObject( pDevice, m_eWriteMode, 
@@ -377,7 +377,7 @@ void PdfWriter::FillTrailerObject( PdfObject* pTrailer, pdf_long lSize, bool bOn
 
 
         if( m_pEncryptObj ) 
-            pTrailer->GetDictionary().AddKey( PdfName("Encrypt"), m_pEncryptObj->Reference() );
+            pTrailer->GetDictionary().AddKey( PdfName("Encrypt"), m_pEncryptObj->GetIndirectReference() );
 
         PdfArray array;
         // The ID is the same unless the PDF was incrementally updated

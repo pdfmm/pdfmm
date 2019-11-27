@@ -222,7 +222,7 @@ void PdfPainter::SetStrokingShadingPattern( const PdfShadingPattern & rPattern )
 {
     CheckStream();
 
-    this->AddToPageResources( rPattern.GetIdentifier(), rPattern.GetObject()->Reference(), PdfName("Pattern") );
+    this->AddToPageResources( rPattern.GetIdentifier(), rPattern.GetObject()->GetIndirectReference(), PdfName("Pattern") );
 
     m_oss << "/Pattern CS /" << rPattern.GetIdentifier().GetName() << " SCN" << std::endl;
 }
@@ -231,7 +231,7 @@ void PdfPainter::SetShadingPattern( const PdfShadingPattern & rPattern )
 {
     CheckStream();
 
-    this->AddToPageResources( rPattern.GetIdentifier(), rPattern.GetObject()->Reference(), PdfName("Pattern") );
+    this->AddToPageResources( rPattern.GetIdentifier(), rPattern.GetObject()->GetIndirectReference(), PdfName("Pattern") );
 
     m_oss << "/Pattern cs /" << rPattern.GetIdentifier().GetName() << " scn" << std::endl;
 }
@@ -240,7 +240,7 @@ void PdfPainter::SetStrokingTilingPattern( const PdfTilingPattern & rPattern )
 {
     CheckStream();
 
-    this->AddToPageResources( rPattern.GetIdentifier(), rPattern.GetObject()->Reference(), PdfName("Pattern") );
+    this->AddToPageResources( rPattern.GetIdentifier(), rPattern.GetObject()->GetIndirectReference(), PdfName("Pattern") );
 
     m_oss << "/Pattern CS /" << rPattern.GetIdentifier().GetName() << " SCN" << std::endl;
 }
@@ -256,7 +256,7 @@ void PdfPainter::SetTilingPattern( const PdfTilingPattern & rPattern )
 {
     CheckStream();
 
-    this->AddToPageResources( rPattern.GetIdentifier(), rPattern.GetObject()->Reference(), PdfName("Pattern") );
+    this->AddToPageResources( rPattern.GetIdentifier(), rPattern.GetObject()->GetIndirectReference(), PdfName("Pattern") );
 
     m_oss << "/Pattern cs /" << rPattern.GetIdentifier().GetName() << " scn" << std::endl;
 }
@@ -671,7 +671,7 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
     //m_pFont->EmbedFont();
 
     PdfString sString = this->ExpandTabs( sText, lStringLen );
-    this->AddToPageResources( m_pFont->GetIdentifier(), m_pFont->GetObject()->Reference(), PdfName("Font") );
+    this->AddToPageResources( m_pFont->GetIdentifier(), m_pFont->GetObject()->GetIndirectReference(), PdfName("Font") );
     if( m_pFont->IsSubsetting() )
     {
         m_pFont->AddUsedSubsettingGlyphs( sText, lStringLen );
@@ -757,7 +757,7 @@ void PdfPainter::BeginText( double dX, double dY )
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    this->AddToPageResources( m_pFont->GetIdentifier(), m_pFont->GetObject()->Reference(), PdfName("Font") );
+    this->AddToPageResources( m_pFont->GetIdentifier(), m_pFont->GetObject()->GetIndirectReference(), PdfName("Font") );
 
     m_oss << "BT" << std::endl << "/" << m_pFont->GetIdentifier().GetName()
           << " "  << m_pFont->GetFontSize()
@@ -1128,16 +1128,16 @@ void PdfPainter::DrawGlyph( PdfMemDocument* pDocument, double dX, double dY, con
 			diffs.push_back( PdfName( pszGlyphname ) );
 	        
 			pEncoding->GetDictionary().AddKey( "Differences", diffs );
-			pGlyphFontObj->GetDictionary().AddKey("Encoding", pEncoding->Reference() );
+			pGlyphFontObj->GetDictionary().AddKey("Encoding", pEncoding->GetIndirectReference() );
 
 			// clear Widths-array and enter width of this glyph
 			PdfObject* pWidthObj = pGlyphFontObj->GetIndirectKey( "Widths" );
 			PdfArray & rWidthArr = pWidthObj->GetArray();
 			for ( unsigned int i = 0; i < rWidthArr.size(); i++ )
 			{
-				rWidthArr[i] = PdfVariant( static_cast<int64_t>( 0 ) );
+				rWidthArr[i] = PdfObject( static_cast<int64_t>( 0 ) );
 			}
-			rWidthArr[code] = PdfVariant( static_cast<int64_t>( width ) );
+			rWidthArr[code] = PdfObject( static_cast<int64_t>( width ) );
 
 			break;
 		}
@@ -1196,7 +1196,7 @@ void PdfPainter::DrawGlyph( PdfMemDocument* pDocument, double dX, double dY, con
 			// enter width of glyph
 			PdfObject* pWidthObj = pGlyphFontObj->GetIndirectKey( "Widths" );
 			PdfArray & rWidthArr = pWidthObj->GetArray();
-			rWidthArr[code] = PdfVariant( static_cast<int64_t>( width ) );
+			rWidthArr[code] = PdfObject( static_cast<int64_t>( width ) );
 
 			break;
 		}
@@ -1741,7 +1741,7 @@ void PdfPainter::SetExtGState( PdfExtGState* inGState )
 {
     CheckStream();
 
-    this->AddToPageResources( inGState->GetIdentifier(), inGState->GetObject()->Reference(), PdfName("ExtGState") );
+    this->AddToPageResources( inGState->GetIdentifier(), inGState->GetObject()->GetIndirectReference(), PdfName("ExtGState") );
     
     m_oss << "/" << inGState->GetIdentifier().GetName()
           << " gs" << std::endl;

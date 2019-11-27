@@ -34,7 +34,7 @@ SET(PODOFO_BASE_SOURCES
   base/PdfMemoryManagement.cpp
   base/PdfName.cpp
   base/PdfObject.cpp
-  base/PdfObjectStreamParserObject.cpp
+  base/PdfObjectStreamParser.cpp
   base/PdfOutputDevice.cpp
   base/PdfOutputStream.cpp
   base/PdfParser.cpp
@@ -144,7 +144,7 @@ SET(PODOFO_BASE_HEADERS
    base/PdfMemoryManagement.h
    base/PdfName.h
    base/PdfObject.h
-   base/PdfObjectStreamParserObject.h
+   base/PdfObjectStreamParser.h
    base/PdfOutputDevice.h
    base/PdfOutputStream.h
    base/PdfParser.h

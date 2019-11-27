@@ -46,11 +46,12 @@ class PdfVecObjects;
 
 /**
  * A utility class for PdfParser that can parse
- * an object stream object.
+ * an object stream object (PDF Reference 1.7 3.4.6 Object Streams)
  *
  * It is mainly here to make PdfParser more modular.
  */
-class PdfObjectStreamParserObject {
+class PdfObjectStreamParser
+{
 public:
 	typedef std::vector<int64_t> ObjectIdList;
     /**
@@ -63,9 +64,7 @@ public:
      * \param rBuffer use this allocated buffer for caching
      * \param pEncrypt encryption object used to decrypt streams
      */
-    PdfObjectStreamParserObject(PdfParserObject* pParser, PdfVecObjects* pVecObjects, const PdfRefCountedBuffer & rBuffer, PdfEncrypt* pEncrypt );
-
-    ~PdfObjectStreamParserObject();
+    PdfObjectStreamParser(PdfParserObject* pParser, PdfVecObjects* pVecObjects, const PdfRefCountedBuffer & rBuffer, PdfEncrypt* pEncrypt );
 
     void Parse(ObjectIdList const &);
 

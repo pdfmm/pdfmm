@@ -81,7 +81,7 @@ PdfFontType1::PdfFontType1( PdfFontType1* pFont, PdfFontMetrics* pMetrics, const
 	m_Identifier = id;
 
 	// remove new FontDescriptor and use FontDescriptor of source font instead
-	PdfObject* pObj = pParent->RemoveObject( GetObject()->GetIndirectKey( "FontDescriptor" )->Reference() );
+	PdfObject* pObj = pParent->RemoveObject( GetObject()->GetIndirectKey( "FontDescriptor" )->GetIndirectReference() );
 	delete pObj;
 	GetObject()->GetDictionary().AddKey( "FontDescriptor", pFont->GetObject()->GetDictionary().GetKey( "FontDescriptor" ) );
 }
@@ -131,7 +131,7 @@ void PdfFontType1::EmbedSubsetFont()
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
         
-    m_pDescriptor->GetDictionary().AddKey( "FontFile", pContents->Reference() );
+    m_pDescriptor->GetDictionary().AddKey( "FontFile", pContents->GetIndirectReference() );
 
     // if the data was loaded from memory - use it from there
     // otherwise, load from disk
@@ -395,7 +395,7 @@ void PdfFontType1::EmbedSubsetFont()
 	outIndex += length;
 
 	// now embed
-	pContents->GetStream()->Set( reinterpret_cast<const char *>(outBuff), outIndex );
+	pContents->GetOrCreateStream().Set( reinterpret_cast<const char *>(outBuff), outIndex );
 
 	// cleanup memory
     if( pAllocated )
@@ -432,7 +432,7 @@ void PdfFontType1::EmbedFontFile( PdfObject* pDescriptor )
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
         
-    pDescriptor->GetDictionary().AddKey( "FontFile", pContents->Reference() );
+    pDescriptor->GetDictionary().AddKey( "FontFile", pContents->GetIndirectReference() );
 
     // if the data was loaded from memory - use it from there
     // otherwise, load from disk
@@ -528,7 +528,7 @@ void PdfFontType1::EmbedFontFile( PdfObject* pDescriptor )
 				pContents->GetDictionary().AddKey( "Length2", PdfVariant( lLength2 ) );
 				pContents->GetDictionary().AddKey( "Length3", PdfVariant( lLength3 ) );
 
-				pContents->GetStream()->Set( pBuffer, lSize - 2L );
+				pContents->GetOrCreateStream().Set( pBuffer, lSize - 2L );
 				if( pAllocated )
 					podofo_free( pAllocated );
 
@@ -557,7 +557,7 @@ void PdfFontType1::EmbedFontFile( PdfObject* pDescriptor )
 	lLength3 = lSize - lLength2 - lLength1;
     
 	// TODO: Pdf Supports only Type1 fonts with binary encrypted sections and not the hex format
-	pContents->GetStream()->Set( pBuffer, lSize );
+	pContents->GetOrCreateStream().Set( pBuffer, lSize );
     if( pAllocated )
         podofo_free( pAllocated );
 

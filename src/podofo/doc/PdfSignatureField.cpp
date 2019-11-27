@@ -282,7 +282,7 @@ void PdfSignatureField::EnsureSignatureObject( void )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
-    GetFieldObject()->GetDictionary().AddKey( "V" , m_pSignatureObj->Reference() );
+    GetFieldObject()->GetDictionary().AddKey( "V" , m_pSignatureObj->GetIndirectReference() );
 
     PdfDictionary &dict = m_pSignatureObj->GetDictionary();
 

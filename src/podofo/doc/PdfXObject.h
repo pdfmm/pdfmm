@@ -34,8 +34,6 @@
 #ifndef _PDF_XOBJECT_H_
 #define _PDF_XOBJECT_H_
 
-#include <memory>
-
 #include "podofo/base/PdfDefines.h"
 #include "podofo/base/PdfArray.h"
 #include "podofo/base/PdfCanvas.h"
@@ -177,12 +175,11 @@ public:
  protected:
     PdfRect          m_rRect;
 
- private:
+private:
+    bool             m_resourceInitialized;
     EPdfXObject      m_type;
     PdfArray         m_matrix;
-
     PdfObject*       m_pResources;
-
     PdfName          m_Identifier;
     PdfReference     m_Reference;
 };

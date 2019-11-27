@@ -88,7 +88,7 @@ void PdfImmediateWriter::WriteObject( const PdfObject* pObject )
 
     this->FinishLastObject();
 
-    m_pXRef->AddObject( pObject->Reference(), m_pDevice->Tell(), true );
+    m_pXRef->AddObject( pObject->GetIndirectReference(), m_pDevice->Tell(), true );
     pObject->WriteObject( m_pDevice, this->GetWriteMode(), m_pEncrypt );
     // Make sure, no one will add keys now to the object
     const_cast<PdfObject*>(pObject)->SetImmutable(true);
@@ -160,7 +160,7 @@ void PdfImmediateWriter::FinishLastObject()
         m_pDevice->Print( "\nendstream\n" );
         m_pDevice->Print( "endobj\n" );
         
-        delete m_pParent->RemoveObject( m_pLast->Reference(), false );
+        delete m_pParent->RemoveObject( m_pLast->GetIndirectReference(), false );
         m_pLast = NULL;
 
     }

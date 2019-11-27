@@ -90,8 +90,8 @@ PdfArray::iterator PdfArray::insert( const iterator &pos, const PdfObject &val )
     m_bDirty = true;
     iterator ret = m_objects.insert( pos, val );
     PdfVecObjects *pOwner = GetObjectOwner();
-    if ( pOwner != NULL )
-        ret->SetOwner( pOwner );
+    if (pOwner != nullptr)
+        ret->SetOwner(*pOwner);
     return ret;
 }
 
@@ -134,10 +134,10 @@ void PdfArray::resize( size_t count, value_type val )
     size_t currentSize = size();
     m_objects.resize( count, val );
     PdfVecObjects *pOwner = GetObjectOwner();
-    if ( pOwner != NULL )
+    if (pOwner != nullptr)
     {
         for ( size_t i = currentSize; i < count; i++ )
-            m_objects[i].SetOwner( pOwner );
+            m_objects[i].SetOwner(*pOwner);
     }
 
     m_bDirty = currentSize != count;
@@ -214,13 +214,13 @@ void PdfArray::SetOwner( PdfObject *pOwner )
 {
     PdfOwnedDataType::SetOwner( pOwner );
     PdfVecObjects *pVecOwner = pOwner->GetOwner();
-    if ( pVecOwner != NULL )
+    if ( pVecOwner != nullptr )
     {
         // Set owmership for all children
         PdfArray::iterator it = this->begin();
         PdfArray::iterator end = this->end();
         for ( ; it != end; it++ )
-            it->SetOwner( pVecOwner );
+            it->SetOwner(*pVecOwner);
     }
 }
 

@@ -37,7 +37,7 @@
 #include "PdfDefines.h"
 #include "PdfXRefEntry.h"
 #include "PdfVecObjects.h"
-#include "PdfParserObject.h"
+#include "PdfTokenizer.h"
 
 namespace PoDoFo {
 
@@ -47,6 +47,7 @@ typedef TMapObjects::const_iterator TCIMapObjects;
 
 class PdfEncrypt;
 class PdfString;
+class PdfParserObject;
 
 /**
  * PdfParser reads a PDF file into memory. 
@@ -269,7 +270,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
     /** Get the trailer dictionary
      *  which can be written unmodified to a pdf file.
      */
-    inline const PdfObject* GetTrailer() const;
+    const PdfObject* GetTrailer() const;
 
     /** \returns true if this PdfParser loads all objects on demand at
      *                the time they are accessed for the first time.
@@ -280,7 +281,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
 
     /** \returns whether the parsed document contains linearization tables
      */
-    bool IsLinearized() const { return m_pLinearization != NULL; }
+    bool IsLinearized() const;
 
     /** \returns the length of the file
      */
@@ -289,7 +290,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
     /** 
      * \returns true if this PdfWriter creates an encrypted PDF file
      */
-    bool GetEncrypted() const { return (m_pEncrypt != NULL); }
+    bool IsEncrypted() const;
 
     /** 
      * \returns the parsers encryption object or NULL if the read PDF file was not encrypted
@@ -624,14 +625,6 @@ int PdfParser::GetNumberOfIncrementalUpdates() const
 const PdfVecObjects* PdfParser::GetObjects() const
 {
     return m_vecObjects;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const PdfObject* PdfParser::GetTrailer() const
-{
-    return m_pTrailer;
 }
 
 // -----------------------------------------------------

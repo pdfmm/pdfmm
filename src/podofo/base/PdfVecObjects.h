@@ -90,10 +90,14 @@ typedef TVecObjects::const_iterator  TCIVecObjects;
  *  These class contains also advanced funtions for searching of PdfObject's
  *  in a PdfVecObject. 
  */
-class PODOFO_API PdfVecObjects {
+class PODOFO_API PdfVecObjects
+{
     friend class PdfWriter;
+    friend class PdfDocument;
+    friend class PdfParser;
+    friend class PdfObjectStreamParser;
 
- public:
+public:
     // An incomplete set of container typedefs, just enough to handle
     // the begin() and end() methods we wrap from the internal vector.
     // TODO: proper wrapper iterator class.
@@ -271,36 +275,6 @@ class PODOFO_API PdfVecObjects {
      */
     PdfObject* CreateObject( const PdfVariant & rVariant );
 
-    /** Mark a reference as unused so that it can be reused for new objects.
-     *
-     *  Add the object only if the generation is the allowed range
-     *
-     *  \param rReference the reference to reuse
-     *  \returns true if the object was succesfully added
-     *
-     *  \see AddFreeObject
-     */
-    bool TryAddFreeObject( const PdfReference & rReference );
-
-    /** Mark a reference as unused so that it can be reused for new objects.
-     *
-     *  Add the object and increment the generation number. Add the object
-     *  only if the generation is the allowed range
-     *
-     *  \param rReference the reference to reuse
-     *  \returns the generation of the added free object
-     *
-     *  \see AddFreeObject
-     */
-    int32_t SafeAddFreeObject( const PdfReference & rReference );
-
-    /** Mark a reference as unused so that it can be reused for new objects.
-     *  \param rReference the reference to reuse
-     *
-     *  \see GetCanReuseObjectNumbers
-     */
-    void AddFreeObject( const PdfReference & rReference );
-
     /** \returns a list of free references in this vector
      */
     inline const TPdfReferenceList & GetFreeObjects() const;
@@ -318,23 +292,6 @@ class PODOFO_API PdfVecObjects {
      *  \see CollectGarbage
      */
     void RenumberObjects( PdfObject* pTrailer, TPdfReferenceSet* pNotDelete = NULL, bool bDoGarbageCollection = false );
-
-    /** 
-     * \see insert_sorted
-     *
-     * Simple forward to insert sorted, as PdfVecObjects is always sorted.
-     */
-    void push_back( PdfObject* pObj );
-
-    /** Insert an object into this vector so that
-     *  the vector remains sorted w.r.t. 
-     *  the ordering based on object and generation numbers
-     *  m_bObjectCount will be increased for the object.
-     * 
-     *  \param pObj pointer to the object you want to insert
-     */
-    void insert_sorted( PdfObject *pObj );
-    
 
     /** 
      * Sort the objects in the vector based on their object and generation numbers
@@ -482,8 +439,51 @@ class PODOFO_API PdfVecObjects {
      */
     void SetObjectCount( const PdfReference & rRef );
 
- private:
+private:
+    /** Insert an object into this vector so that
+     *  the vector remains sorted w.r.t.
+     *  the ordering based on object and generation numbers
+     *  m_bObjectCount will be increased for the object.
+     *
+     *  \param pObj pointer to the object you want to insert
+     */
+    void AddObject(PdfObject* pObj);
+
+    /** Push an object with the givent reference. If one is existing, it will be replaced
+     */
+    void PushObject(PdfObject* pObj, const PdfReference &reference);
+
     int32_t TryAddFreeObject( uint32_t objnum, uint32_t gennum );
+
+    /** Mark a reference as unused so that it can be reused for new objects.
+     *
+     *  Add the object only if the generation is the allowed range
+     *
+     *  \param rReference the reference to reuse
+     *  \returns true if the object was succesfully added
+     *
+     *  \see AddFreeObject
+     */
+    bool TryAddFreeObject(const PdfReference & rReference);
+
+    /** Mark a reference as unused so that it can be reused for new objects.
+     *
+     *  Add the object and increment the generation number. Add the object
+     *  only if the generation is the allowed range
+     *
+     *  \param rReference the reference to reuse
+     *  \returns the generation of the added free object
+     *
+     *  \see AddFreeObject
+     */
+    int32_t SafeAddFreeObject(const PdfReference & rReference);
+
+    /** Mark a reference as unused so that it can be reused for new objects.
+     *  \param rReference the reference to reuse
+     *
+     *  \see GetCanReuseObjectNumbers
+     */
+    void AddFreeObject(const PdfReference & rReference);
 
     /** 
      * \returns the next free object reference
@@ -682,12 +682,8 @@ inline PdfObject* PdfVecObjects::GetBack()
 inline void PdfVecObjects::SetObjectCount( const PdfReference & rRef ) 
 {
     if( rRef.ObjectNumber() >= m_nObjectCount )
-    // Peter Petrov 18 September 2008
     {
-        // This was a bug.
-        //++m_nObjectCount;
-
-        // In fact "m_bObjectCount" is used for the next free object number.
+        // "m_bObjectCount" is used for the next free object number.
         // We need to use the greatest object number + 1 for the next free object number.
         // Otherwise, object number overlap would have occurred.
         m_nObjectCount = rRef.ObjectNumber() + 1;

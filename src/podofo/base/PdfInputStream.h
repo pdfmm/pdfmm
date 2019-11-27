@@ -153,7 +153,6 @@ class PODOFO_API PdfDeviceInputStream : public PdfInputStream {
      *  \param pDevice an input device
      */
     PdfDeviceInputStream( PdfInputDevice* pDevice );
-    ~PdfDeviceInputStream();
 
     /** Read data from the input stream
      *  

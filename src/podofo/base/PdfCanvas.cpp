@@ -79,7 +79,7 @@ void PdfCanvas::AddColorResource( const PdfColor & rColor )
 				// Build color-spaces for separation
                 PdfObject* csp = rColor.BuildColorSpace( GetContents()->GetOwner() );
  
-                AddResource( csPrefix + csName, csp->Reference(), PdfName("ColorSpace") );
+                AddResource( csPrefix + csName, csp->GetIndirectReference(), PdfName("ColorSpace") );
 			}
 		}
 		break;
@@ -94,7 +94,7 @@ void PdfCanvas::AddColorResource( const PdfColor & rColor )
 				// Build color-spaces for CIE-lab
                 PdfObject* csp = rColor.BuildColorSpace( GetContents()->GetOwner() );
 
-				AddResource( "ColorSpaceCieLab", csp->Reference(), PdfName("ColorSpace") );
+				AddResource( "ColorSpaceCieLab", csp->GetIndirectReference(), PdfName("ColorSpace") );
 			}
 		}
 		break;

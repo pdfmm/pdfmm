@@ -46,9 +46,9 @@ class PdfEncrypt;
  * A PdfParserObject constructs a PdfObject from a PDF file.
  * Parsing starts always at the current file position.
  */
-class PODOFO_API PdfParserObject : public PdfObject, public PdfTokenizer {
-
- public:
+class PODOFO_API PdfParserObject : public PdfObject, public PdfTokenizer
+{
+public:
     /** Parse the object data from the given file handle starting at
      *  the current position.
      *  \param pCreator pointer to a PdfVecObjects to resolve object references
@@ -85,6 +85,8 @@ class PODOFO_API PdfParserObject : public PdfObject, public PdfTokenizer {
      */
     void ParseFile( PdfEncrypt* pEncrypt, bool bIsTrailer = false );
 
+    void ForceStreamParse();
+
     /** Returns if this object has a stream object appended.
      *  which has to be parsed.
      *  \returns true if there is a stream
@@ -103,14 +105,6 @@ class PODOFO_API PdfParserObject : public PdfObject, public PdfTokenizer {
      *  \param bDelayed if true the object is loaded delayed.
      */
     inline void SetLoadOnDemand( bool bDelayed );
-
-    /** Set the object number of this object.
-     *  It is almost never necessary to use this call.
-     *  It is only included for usage in the PdfParser.
-     *
-     *  \param nObjNo the new object number of this object
-     */
-    inline void SetObjectNumber( unsigned int nObjNo );
 
     /** Tries to free all memory allocated by this
      *  PdfObject (variables and streams) and reads
@@ -142,23 +136,19 @@ class PODOFO_API PdfParserObject : public PdfObject, public PdfTokenizer {
      *  Reimplemented from PdfVariant. Do not call this directly, use
      *  DelayedLoad().
      */
-    virtual void DelayedLoadImpl();
+    void DelayedLoadImpl() override;
 
-    /** Load the stream of the object if it has one and if loading on demand is enabled.
-     *  Reimplemented from PdfObject. Do not call this directly, use
-     *  DelayedStreamLoad().
-     */
-    virtual void DelayedStreamLoadImpl();
-
-    /** Starts reading at the file position m_lStreamOffset and interprets all bytes
-     *  as contents of the objects stream.
-     *  It is assumed that the dictionary has a valid /Length key already.
-     *
-     *  Called from DelayedStreamLoadImpl(). Do not call directly.
-     */
-    void ParseStream();
+    void DelayedLoadStreamImpl() override;
 
  private:
+     /** Starts reading at the file position m_lStreamOffset and interprets all bytes
+      *  as contents of the objects stream.
+      *  It is assumed that the dictionary has a valid /Length key already.
+      *
+      *  Called from DelayedLoadStream(). Do not call directly.
+      */
+     void ParseStream();
+
     /** Initialize private members in this object with their default values
      */
     void InitPdfParserObject();
@@ -189,14 +179,6 @@ class PODOFO_API PdfParserObject : public PdfObject, public PdfTokenizer {
     bool m_bStream;
     pdf_long m_lStreamOffset;
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfParserObject::SetObjectNumber( unsigned int nObjNo )
-{
-    m_reference.SetObjectNumber( nObjNo );
-}
 
 // -----------------------------------------------------
 // 

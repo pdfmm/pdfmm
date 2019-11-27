@@ -41,9 +41,9 @@
 #define W_ARRAY_SIZE 3
 #define W_MAX_BYTES  4
 
-namespace PoDoFo {
-
-    class PdfVecObjects;
+namespace PoDoFo
+{
+// CHECK-ME: Consider make this class not inherit PdfParserObject and consider mark that final
 /**
  * A utility class for PdfParser that can parse
  * an XRef stream object.
@@ -52,7 +52,8 @@ namespace PoDoFo {
  * This is only marked PODOFO_API for the benefit of the tests,
  * the class is for internal use only.
  */
-class PODOFO_API PdfXRefStreamParserObject : public PdfParserObject {
+class PODOFO_API PdfXRefStreamParserObject : public PdfParserObject
+{
 public:
 
     /** Parse the object data from the given file handle starting at
@@ -65,8 +66,6 @@ public:
      */
     PdfXRefStreamParserObject(PdfVecObjects* pCreator, const PdfRefCountedInputDevice & rDevice,
                               const PdfRefCountedBuffer & rBuffer, TVecOffsets* pOffsets );
-
-    ~PdfXRefStreamParserObject();
 
     void Parse();
 

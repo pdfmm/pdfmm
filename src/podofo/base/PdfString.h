@@ -474,7 +474,7 @@ const char* PdfString::GetString() const
 // -----------------------------------------------------
 const pdf_utf16be* PdfString::GetUnicode() const
 {
-    return reinterpret_cast<pdf_utf16be*>(m_buffer.GetBuffer());
+    return reinterpret_cast<const pdf_utf16be*>(m_buffer.GetBuffer());
 }
 
 // -----------------------------------------------------

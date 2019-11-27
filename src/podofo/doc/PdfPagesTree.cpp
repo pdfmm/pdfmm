@@ -110,7 +110,7 @@ PdfPage* PdfPagesTree::GetPage( const PdfReference & ref )
     for( int i=0;i<this->GetTotalNumberOfPages();i++ ) 
     {
         PdfPage* pPage = this->GetPage( i );
-        if( pPage && pPage->GetObject()->Reference() == ref ) 
+        if( pPage && pPage->GetObject()->GetIndirectReference() == ref ) 
             return pPage;
     }
     
@@ -309,11 +309,6 @@ void PdfPagesTree::DeletePage( int nPageNumber )
     }
 }
 
-
-////////////////////////////////////////////////////
-// Private methods
-////////////////////////////////////////////////////
-
 PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pParent, 
                                       PdfObjectList & rLstParents ) 
 {
@@ -396,8 +391,8 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pParent,
                         { // off security vulnerability similar to CVE-2017-8054 (infinite recursion)
                             std::ostringstream oss;
                             oss << "Cycle in page tree: child in /Kids array of object "
-                                << ( *(rLstParents.rbegin()) )->Reference().ToString()
-                                << " back-references to object " << pChild->Reference()
+                                << ( *(rLstParents.rbegin()) )->GetIndirectReference().ToString()
+                                << " back-references to object " << pChild->GetIndirectReference()
                                 .ToString() << " one of whose descendants the former is.";
                             PODOFO_RAISE_ERROR_INFO( ePdfError_PageNotFound, oss.str() );
                         }
@@ -420,7 +415,7 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pParent,
                 }
 		else
 		{
-                    const PdfReference & rLogRef = pChild->Reference();
+                    const PdfReference & rLogRef = pChild->GetIndirectReference();
                     uint32_t nLogObjNum = rLogRef.ObjectNumber();
                     uint16_t nLogGenNum = rLogRef.GenerationNumber();
 		    PdfError::LogMessage( eLogSeverity_Critical,
@@ -487,7 +482,7 @@ int PdfPagesTree::GetPosInKids( PdfObject* pPageObj, PdfObject* pPageParent )
     int index = 0;
     while( it != rKids.end() ) 
     {
-        if( (*it).GetReference() == pPageObj->Reference() )
+        if( (*it).GetReference() == pPageObj->GetIndirectReference() )
         {
             //printf("Found at: %i \n", index );
             return index;
@@ -523,7 +518,7 @@ void PdfPagesTree::InsertPageIntoNode( PdfObject* pParent, const PdfObjectList &
 
     if( nIndex < 0 ) 
     {
-        newKids.push_back( pPage->Reference() );
+        newKids.push_back( pPage->GetIndirectReference() );
     }
 
     int i = 0;
@@ -532,7 +527,7 @@ void PdfPagesTree::InsertPageIntoNode( PdfObject* pParent, const PdfObjectList &
         newKids.push_back( *it );
 
         if( i == nIndex ) 
-            newKids.push_back( pPage->Reference() );
+            newKids.push_back( pPage->GetIndirectReference() );
 
         ++i;
         ++it;
@@ -557,7 +552,7 @@ void PdfPagesTree::InsertPageIntoNode( PdfObject* pParent, const PdfObjectList &
     } 
 
     // 3. add parent key to the page
-    pPage->GetDictionary().AddKey( PdfName("Parent"), pParent->Reference() );
+    pPage->GetDictionary().AddKey( PdfName("Parent"), pParent->GetIndirectReference() );
 }
 
 void PdfPagesTree::InsertPagesIntoNode( PdfObject* pParent, const PdfObjectList & rlstParents, 
@@ -585,7 +580,7 @@ void PdfPagesTree::InsertPagesIntoNode( PdfObject* pParent, const PdfObjectList 
         {
             for (std::vector<PdfObject*>::const_iterator itPages=vecPages.begin(); itPages!=vecPages.end(); ++itPages)
             {
-                newKids.push_back( (*itPages)->Reference() );    // Push all new kids at once
+                newKids.push_back( (*itPages)->GetIndirectReference() );    // Push all new kids at once
             }
             bIsPushedIn = true;
         }
@@ -597,7 +592,7 @@ void PdfPagesTree::InsertPagesIntoNode( PdfObject* pParent, const PdfObjectList 
     {
         for (std::vector<PdfObject*>::const_iterator itPages=vecPages.begin(); itPages!=vecPages.end(); ++itPages)
         {
-            newKids.push_back( (*itPages)->Reference() );    // Push all new kids at once
+            newKids.push_back( (*itPages)->GetIndirectReference() );    // Push all new kids at once
         }
         bIsPushedIn = true;
     }
@@ -614,7 +609,7 @@ void PdfPagesTree::InsertPagesIntoNode( PdfObject* pParent, const PdfObjectList 
     // 3. add parent key to each of the pages
     for (std::vector<PdfObject*>::const_iterator itPages=vecPages.begin(); itPages!=vecPages.end(); ++itPages)
     {
-        (*itPages)->GetDictionary().AddKey( PdfName("Parent"), pParent->Reference() );
+        (*itPages)->GetDictionary().AddKey( PdfName("Parent"), pParent->GetIndirectReference() );
     }
 }
 
@@ -656,7 +651,7 @@ void PdfPagesTree::DeletePageFromNode( PdfObject* pParent, const PdfObjectList &
             DeletePageNode( pParentOfNode, nKidsIndex );
 
             // Delete empty page nodes
-            delete this->GetObject()->GetOwner()->RemoveObject( (*itParents)->Reference() );
+            delete this->GetObject()->GetOwner()->RemoveObject( (*itParents)->GetIndirectReference() );
         }
 
         ++itParents;

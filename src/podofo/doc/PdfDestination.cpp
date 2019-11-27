@@ -91,7 +91,7 @@ PdfDestination::PdfDestination( const PdfPage* pPage, EPdfDestinationFit eFit )
         //PODOFO_RAISE_ERROR( ePdfError_InvalidKey );
     }
 
-    m_array.push_back( pPage->GetObject()->Reference() );
+    m_array.push_back( pPage->GetObject()->GetIndirectReference() );
     m_array.push_back( type );
     m_pObject = pPage->GetObject()->GetOwner()->CreateObject( m_array );
 }
@@ -102,7 +102,7 @@ PdfDestination::PdfDestination( const PdfPage* pPage, const PdfRect & rRect )
 
     rRect.ToVariant( var );
 
-    m_array.push_back( pPage->GetObject()->Reference() );
+    m_array.push_back( pPage->GetObject()->GetIndirectReference() );
     m_array.push_back( PdfName("FitR") );
     m_array.insert( m_array.end(), var.GetArray().begin(), var.GetArray().end() );
     m_pObject = pPage->GetObject()->GetOwner()->CreateObject( m_array );
@@ -110,7 +110,7 @@ PdfDestination::PdfDestination( const PdfPage* pPage, const PdfRect & rRect )
 
 PdfDestination::PdfDestination( const PdfPage* pPage, double dLeft, double dTop, double dZoom )
 {
-    m_array.push_back( pPage->GetObject()->Reference() );
+    m_array.push_back( pPage->GetObject()->GetIndirectReference() );
     m_array.push_back( PdfName("XYZ") );
     m_array.push_back( dLeft );
     m_array.push_back( dTop );
@@ -135,7 +135,7 @@ PdfDestination::PdfDestination( const PdfPage* pPage, EPdfDestinationFit eFit, d
         PODOFO_RAISE_ERROR( ePdfError_InvalidKey );
     }
 
-    m_array.push_back( pPage->GetObject()->Reference() );
+    m_array.push_back( pPage->GetObject()->GetIndirectReference() );
     m_array.push_back( type );
     m_array.push_back( dValue );
     m_pObject = pPage->GetObject()->GetOwner()->CreateObject( m_array );

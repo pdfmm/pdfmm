@@ -101,7 +101,7 @@ class PODOFO_API PdfRefCountedInputDevice {
     /** Get access to the file handle
      *  \returns the file handle
      */
-    inline PdfInputDevice* Device() const;
+    PdfInputDevice* Device() const;
 
     /** Copy an existing PdfRefCountedFile and increase
      *  the reference count
@@ -123,14 +123,6 @@ class PODOFO_API PdfRefCountedInputDevice {
 
     TRefCountedInputDevice* m_pDevice;
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline PdfInputDevice* PdfRefCountedInputDevice::Device() const
-{
-    return m_pDevice ? m_pDevice->m_pDevice : NULL;
-}
 
 };
 

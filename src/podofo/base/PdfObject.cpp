@@ -42,6 +42,7 @@
 #include "PdfStream.h"
 #include "PdfVariant.h"
 #include "PdfDefinesPrivate.h"
+#include "PdfMemStream.h"
 
 #include <sstream>
 #include <fstream>
@@ -50,7 +51,7 @@
 
 using namespace std;
 
-namespace PoDoFo {
+using namespace PoDoFo;
 
 PdfObject::PdfObject()
     : PdfVariant( PdfDictionary() )
@@ -65,12 +66,6 @@ PdfObject::PdfObject( const PdfReference & rRef, const char* pszType )
 
     if( pszType )
         this->GetDictionary().AddKey( PdfName::KeyType, PdfName( pszType ) );
-}
-
-PdfObject::PdfObject( const PdfReference & rRef, const PdfVariant & rVariant )
-    : PdfVariant( rVariant ), m_reference( rRef )
-{
-    InitPdfObject();
 }
 
 PdfObject::PdfObject( const PdfVariant & var )
@@ -128,59 +123,41 @@ PdfObject::PdfObject( const PdfDictionary & rDict )
 }
 
 // NOTE: Don't copy owner. Copied objects must be always detached.
-// Ownership will be set automatically elsewhere
+// Ownership will be set automatically elsewhere. Also don't copy
+// reference
 PdfObject::PdfObject( const PdfObject & rhs ) 
-    : PdfVariant( rhs ), m_reference( rhs.m_reference )
+    : PdfVariant( rhs )
 {
     InitPdfObject();
-
-    // DS: If you change this code, also change the assignment operator.
-    //     As the copy constructor is called very often,
-    //     it contains a copy of parts of the assignment code to be faster.
-    const_cast<PdfObject*>(&rhs)->DelayedStreamLoad();
-    m_bDelayedStreamLoadDone = rhs.DelayedStreamLoadDone();
-
-    // FIXME:
-    // Copying stream is currently broken:
-    // 1) PdfVecObjects::CreateStream( const PdfStream & ) is broken as it just returns NULL
-    // 2) Stream should be copyable also when m_pOwner is NULL (which is the case for copy constructor)
-    //if( rhs.m_pStream && m_pOwner )
-    //    m_pStream = m_pOwner->CreateStream( *(rhs.m_pStream) );
-
-#ifndef EXTRA_CHECKS_DISABLED
-    // Must've been demand loaded or already done
-    PODOFO_ASSERT( DelayedLoadDone() );
-    PODOFO_ASSERT( DelayedStreamLoadDone() );
-#endif
+    copyFrom(rhs);
 }
 
-PdfObject::~PdfObject()
+void PdfObject::ForceCreateStream()
 {
-    delete m_pStream;
-    m_pStream = NULL;
+    DelayedLoadStream();
+    forceCreateStream();
 }
 
-void PdfObject::SetOwner( PdfVecObjects* pVecObjects )
+void PdfObject::SetOwner(PdfVecObjects &pVecObjects)
 {
-    PODOFO_ASSERT( pVecObjects != NULL );
-    if ( m_pOwner == pVecObjects )
+    if ( m_pOwner == &pVecObjects )
     {
         // The inner owner for variant data objects is guaranteed to be same
         return;
     }
 
-    m_pOwner = pVecObjects;
-    if ( DelayedLoadDone() )
-        SetVariantOwner( GetDataType() );
+    m_pOwner = &pVecObjects;
+    SetVariantOwner();
 }
 
-void PdfObject::AfterDelayedLoad( EPdfDataType eDataType )
+void PdfObject::AfterDelayedLoad()
 {
-    SetVariantOwner( eDataType );
+    SetVariantOwner();
 }
 
-void PdfObject::SetVariantOwner( EPdfDataType eDataType )
+void PdfObject::SetVariantOwner()
 {
+    auto eDataType = GetDataType_NoDL();
     switch ( eDataType )
     {
         case ePdfDataType_Dictionary:
@@ -194,22 +171,23 @@ void PdfObject::SetVariantOwner( EPdfDataType eDataType )
     }
 }
 
+void PdfObject::FreeStream()
+{
+    m_pStream = nullptr;
+}
+
 void PdfObject::InitPdfObject()
 {
-    m_pStream                 = NULL;
-    m_pOwner                  = NULL;
-    m_bDelayedStreamLoadDone  = true;
-    SetVariantOwner( GetDataType() );
-
-#ifndef EXTRA_CHECKS_DISABLED
-    m_bDelayedStreamLoadInProgress = false;
-#endif
+    m_pStream = nullptr;
+    m_pOwner = nullptr;
+    m_DelayedLoadStreamDone = true;
+    SetVariantOwner();
 }
 
 void PdfObject::WriteObject( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode,
                              PdfEncrypt* pEncrypt, const PdfName & keyStop ) const
 {
-    DelayedStreamLoad();
+    DelayedLoadStream();
 
     if( !pDevice )
     {
@@ -234,16 +212,15 @@ void PdfObject::WriteObject( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode,
         pEncrypt->SetCurrentReference( m_reference );
     }
 
-    if( pEncrypt && m_pStream )
+    if( pEncrypt && m_pStream != nullptr )
     {
         // Set length if it is a key
-        PdfFileStream* pFileStream = dynamic_cast<PdfFileStream*>(m_pStream);
+        PdfFileStream* pFileStream = dynamic_cast<PdfFileStream*>(m_pStream.get());
         if( !pFileStream )
         {
             // PdfFileStream handles encryption internally
             pdf_long lLength = pEncrypt->CalculateStreamLength(m_pStream->GetLength());
-            PdfVariant varLength = static_cast<int64_t>(lLength);
-            *(const_cast<PdfObject*>(this)->GetIndirectKey( PdfName::KeyLength )) = varLength;
+            *(const_cast<PdfObject*>(this)->GetIndirectKey( PdfName::KeyLength )) = PdfObject(static_cast<int64_t>(lLength));
         }
     }
 
@@ -261,13 +238,22 @@ void PdfObject::WriteObject( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode,
     }
 }
 
+// REMOVE-ME
 PdfObject* PdfObject::GetIndirectKey( const PdfName & key ) const
 {
     if ( !this->IsDictionary() )
         return NULL;
 
-    // DominikS: TODO Remove const on GetIndirectKey
     return const_cast<PdfObject*>( this->GetDictionary().FindKey( key ) );
+}
+
+// REMOVE-ME
+PdfObject* PdfObject::MustGetIndirectKey(const PdfName & key) const
+{
+    PdfObject* obj = GetIndirectKey(key);
+    if (!obj)
+        PODOFO_RAISE_ERROR(ePdfError_NoObject);
+    return obj;
 }
 
 pdf_long PdfObject::GetObjectLength( EPdfWriteMode eWriteMode )
@@ -279,86 +265,82 @@ pdf_long PdfObject::GetObjectLength( EPdfWriteMode eWriteMode )
     return device.GetLength();
 }
 
-PdfStream* PdfObject::GetStream()
+PdfStream & PdfObject::GetOrCreateStream()
 {
-    DelayedStreamLoad();
-    return GetStream_NoDL();
-}
-
-PdfStream* PdfObject::GetStream_NoDL()
-{
-    if( !m_pStream )
-    {
-        if ( GetDataType() != ePdfDataType_Dictionary )
-        {
-            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Tried to get stream of non-dictionary object");
-	    }
-        if ( !m_reference.IsIndirect() )
-		{
-            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Tried to get stream of non-indirect PdfObject");
-		}
-        if( !m_pOwner ) 
-        {
-            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle, "Tried to create stream on PdfObject lacking owning document/PdfVecObjects" );
-        }
-
-        m_pStream = m_pOwner->CreateStream( this );
-    }
-
-    return m_pStream;
+    DelayedLoadStream();
+    return getOrCreateStream();
 }
 
 const PdfStream* PdfObject::GetStream() const
 {
-    return const_cast<PdfObject*>( this )->GetStream();
+    DelayedLoadStream();
+    return m_pStream.get();
+}
+
+PdfStream* PdfObject::GetStream()
+{
+    DelayedLoadStream();
+    return m_pStream.get();
 }
 
 bool PdfObject::HasStream() const
 {
-    DelayedStreamLoad();
-
-    return (m_pStream != NULL);
+    DelayedLoadStream();
+    return m_pStream != nullptr;
 }
 
-void PdfObject::DelayedStreamLoad() const
+PdfStream & PdfObject::getOrCreateStream()
+{
+    forceCreateStream();
+    return *m_pStream;
+}
+
+void PdfObject::forceCreateStream()
+{
+    if (m_pStream != nullptr)
+        return;
+
+    if (GetDataType() != ePdfDataType_Dictionary)
+    {
+        PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidDataType, "Tried to get stream of non-dictionary object");
+    }
+
+    if (m_pOwner == nullptr)
+        m_pStream.reset(new PdfMemStream(this));
+    else
+        m_pStream.reset(m_pOwner->CreateStream(this));
+}
+
+PdfStream * PdfObject::getStream()
+{
+    return m_pStream.get();
+}
+
+void PdfObject::DelayedLoadStream() const
 {
     DelayedLoad();
+    delayedLoadStream();
 
-#ifndef EXTRA_CHECKS_DISABLED
-    if (m_bDelayedStreamLoadInProgress)
-        PODOFO_RAISE_ERROR_INFO(ePdfError_InternalLogic, "Recursive DelayedStreamLoad() detected");
-#endif
+}
 
-    if (!m_bDelayedStreamLoadDone)
+void PdfObject::delayedLoadStream() const
+{
+    if (!m_DelayedLoadStreamDone)
     {
-#ifndef EXTRA_CHECKS_DISABLED
-        m_bDelayedStreamLoadInProgress = true;
-#endif
-        const_cast<PdfObject*>(this)->DelayedStreamLoadImpl();
-        // Nothing was thrown, so if the implementer of DelayedstreamLoadImpl() is
-        // following the rules we're done.
-        m_bDelayedStreamLoadDone = true;
-#ifndef EXTRA_CHECKS_DISABLED
-        m_bDelayedStreamLoadInProgress = false;
-#endif
+        const_cast<PdfObject &>(*this).DelayedLoadStreamImpl();
+        m_DelayedLoadStreamDone = true;
     }
 }
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-// Default implementation of virtual void DelayedStreamLoadImpl()
-// throws, since delayed loading of steams should not be enabled
-// except by types that support it.
-void PdfObject::DelayedStreamLoadImpl()
+void PdfObject::SetIndirectReference(const PdfReference &reference)
 {
-    PODOFO_RAISE_ERROR(ePdfError_InternalLogic);
+    m_reference = reference;
 }
 
 void PdfObject::FlateCompressStream() 
 {
     // TODO: If the stream isn't already in memory, defer loading and compression until first read of the stream to save some memory.
-    DelayedStreamLoad();
+    DelayedLoadStream();
 
     /*
     if( m_pStream )
@@ -366,40 +348,33 @@ void PdfObject::FlateCompressStream()
     */
 }
 
-const PdfObject & PdfObject::operator=( const PdfObject & rhs )
+const PdfObject & PdfObject::operator=(const PdfObject & rhs)
 {
-    if( &rhs == this)
+    if (&rhs == this)
         return *this;
 
-    // DS: If you change this code, also change the copy constructor.
-    //     As the copy constructor is called very often,
-    //     it contains a copy of parts of this code to be faster.
-
-    delete m_pStream;
-    m_pStream = NULL;
-
-    const_cast<PdfObject*>(&rhs)->DelayedStreamLoad();
-
-    // NOTE: Don't copy owner. Objects being assigned always keep current ownership
     PdfVariant::operator=(rhs);
-    m_reference     = rhs.m_reference;
-    m_bDelayedStreamLoadDone = rhs.DelayedStreamLoadDone();
-    SetVariantOwner( GetDataType() );
-
-    // FIXME:
-    // Copying stream is currently broken:
-    // 1) PdfVecObjects::CreateStream( const PdfStream & ) is broken as it just returns NULL
-    // 2) Stream should be copyable also when m_pOwner is NULL
-    //if( rhs.m_pStream )
-    //    m_pStream = m_pOwner->CreateStream( *(rhs.m_pStream) );
-
-#ifndef EXTRA_CHECKS_DISABLED
-    // Must've been demand loaded or already done
-    PODOFO_ASSERT( DelayedLoadDone() );
-    PODOFO_ASSERT( DelayedStreamLoadDone() );
-#endif
-
+    copyFrom(rhs);
     return *this;
+}
+
+// NOTE: Don't copy owner. Objects being assigned always keep current ownership
+void PdfObject::copyFrom(const PdfObject & rhs)
+{
+    // NOTE: Don't call rhs.DelayedLoad() here. It's implicitly
+    // called in PdfVariant assignment or copy constructor
+    rhs.delayedLoadStream();
+    m_reference = rhs.m_reference;
+    SetVariantOwner();
+
+    if (rhs.m_pStream)
+    {
+        auto &stream = getOrCreateStream();
+        stream = *rhs.m_pStream;
+    }
+
+    // Assume the delayed load of the stream is performed
+    m_DelayedLoadStreamDone = true;
 }
 
 pdf_long PdfObject::GetByteOffset( const char* pszKey, EPdfWriteMode eWriteMode )
@@ -421,4 +396,14 @@ pdf_long PdfObject::GetByteOffset( const char* pszKey, EPdfWriteMode eWriteMode 
     return device.GetLength();
 }
 
-};
+void PdfObject::EnableDelayedLoadingStream()
+{
+    m_DelayedLoadStreamDone = false;
+}
+
+void PdfObject::DelayedLoadStreamImpl()
+{
+    // Default implementation throws, since delayed loading of
+    // steams should not be enabled except by types that support it.
+    PODOFO_RAISE_ERROR(ePdfError_InternalLogic);
+}

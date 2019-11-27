@@ -100,7 +100,7 @@ PdfAnnotation::PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRe
     
     this->GetObject()->GetDictionary().AddKey( PdfName::KeySubtype, name );
     this->GetObject()->GetDictionary().AddKey( PdfName::KeyRect, rect );
-    this->GetObject()->GetDictionary().AddKey( "P", pPage->GetObject()->Reference() );
+    this->GetObject()->GetDictionary().AddKey( "P", pPage->GetObject()->GetIndirectReference() );
     this->GetObject()->GetDictionary().AddKey( "M", sDate );
 }
 
@@ -131,13 +131,16 @@ void PdfAnnotation::SetRect(const PdfRect & rRect)
     this->GetObject()->GetDictionary().AddKey( PdfName::KeyRect, rect );
 }
 
-void SetAppearanceStreamForObject( PdfObject* pForObject, PdfXObject* pObject, EPdfAnnotationAppearance eAppearance, const PdfName & state )
+void SetAppearanceStreamForObject( PdfObject* pForObject, PdfXObject* xobj, EPdfAnnotationAppearance eAppearance, const PdfName & state )
 {
+    // Setting an object as appearance stream requires osme resources to be created
+    xobj->EnsureResourcesInitialized();
+
     PdfDictionary dict;
     PdfDictionary internal;
     PdfName name;
 
-    if( !pForObject || !pObject )
+    if( !pForObject || !xobj )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
@@ -185,7 +188,7 @@ void SetAppearanceStreamForObject( PdfObject* pForObject, PdfXObject* pObject, E
                 PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
             }
 
-            objAP->GetDictionary().AddKey( name, pObject->GetObject()->Reference() );
+            objAP->GetDictionary().AddKey( name, xobj->GetObject()->GetIndirectReference() );
         }
         else
         {
@@ -197,11 +200,11 @@ void SetAppearanceStreamForObject( PdfObject* pForObject, PdfXObject* pObject, E
 
             if( objAP->GetDictionary().HasKey( name ) )
             {
-                objAP->GetDictionary().GetKey( name )->GetDictionary().AddKey( state, pObject->GetObject()->Reference() );
+                objAP->GetDictionary().GetKey( name )->GetDictionary().AddKey( state, xobj->GetObject()->GetIndirectReference() );
             }
             else
             {
-                internal.AddKey( state, pObject->GetObject()->Reference() );
+                internal.AddKey( state, xobj->GetObject()->GetIndirectReference() );
                 objAP->GetDictionary().AddKey( name, internal );
             }
         }
@@ -210,12 +213,12 @@ void SetAppearanceStreamForObject( PdfObject* pForObject, PdfXObject* pObject, E
     {
         if( !state.GetLength() )
         {
-            dict.AddKey( name, pObject->GetObject()->Reference() );
+            dict.AddKey( name, xobj->GetObject()->GetIndirectReference() );
             pForObject->GetDictionary().AddKey( "AP", dict );
         }
         else
         {
-            internal.AddKey( state, pObject->GetObject()->Reference() );
+            internal.AddKey( state, xobj->GetObject()->GetIndirectReference() );
             dict.AddKey( name, internal );
             pForObject->GetDictionary().AddKey( "AP", dict );
         }
@@ -341,7 +344,7 @@ void PdfAnnotation::SetAction( const PdfAction & rAction )
         delete m_pAction;
 
     m_pAction = new PdfAction( rAction );
-    this->GetObject()->GetDictionary().AddKey( "A", m_pAction->GetObject()->Reference() );
+    this->GetObject()->GetDictionary().AddKey( "A", m_pAction->GetObject()->GetIndirectReference() );
 }
 
 PdfAction* PdfAnnotation::GetAction() const
@@ -381,7 +384,7 @@ void PdfAnnotation::SetFileAttachement( const PdfFileSpec & rFileSpec )
         delete m_pFileSpec;
 
     m_pFileSpec = new PdfFileSpec( rFileSpec );
-    this->GetObject()->GetDictionary().AddKey( "FS", m_pFileSpec->GetObject()->Reference() );
+    this->GetObject()->GetDictionary().AddKey( "FS", m_pFileSpec->GetObject()->GetIndirectReference() );
 }
 
 PdfFileSpec* PdfAnnotation::GetFileAttachement() const

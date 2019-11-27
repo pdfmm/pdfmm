@@ -149,10 +149,6 @@ PdfDeviceInputStream::PdfDeviceInputStream( PdfInputDevice* pDevice )
 {
 }
 
-PdfDeviceInputStream::~PdfDeviceInputStream()
-{
-}
-
 pdf_long PdfDeviceInputStream::Read( char* pBuffer, pdf_long lLen, pdf_long* )
 {
     return m_pDevice->Read( pBuffer, lLen );

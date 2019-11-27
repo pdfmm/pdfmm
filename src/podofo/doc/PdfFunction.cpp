@@ -60,7 +60,6 @@ void PdfFunction::Init( EPdfFunctionType eType, const PdfArray & rDomain )
 
 }
 
-/////////////////////////////////////////////////////////////////////////////
 PdfSampledFunction::PdfSampledFunction( const PdfArray & rDomain,  const PdfArray & rRange, const PdfFunction::Sample & rlstSamples, PdfVecObjects* pParent )
     : PdfFunction( ePdfFunctionType_Sampled, rDomain, pParent )
 {
@@ -85,17 +84,16 @@ void PdfSampledFunction::Init( const PdfArray & rDomain,  const PdfArray & rRang
     this->GetObject()->GetDictionary().AddKey( PdfName("Order"), PdfObject( static_cast<int64_t>(1) ) );
     this->GetObject()->GetDictionary().AddKey( PdfName("BitsPerSample"), PdfObject( static_cast<int64_t>(8) ) );
 
-    this->GetObject()->GetStream()->BeginAppend();
+    this->GetObject()->GetOrCreateStream().BeginAppend();
     PdfFunction::Sample::const_iterator it = rlstSamples.begin();
     while( it != rlstSamples.end() )
     {
-        this->GetObject()->GetStream()->Append( & ( *it ), 1 );
+        this->GetObject()->GetOrCreateStream().Append( & ( *it ), 1 );
         ++it;
     }
-    this->GetObject()->GetStream()->EndAppend();
+    this->GetObject()->GetOrCreateStream().EndAppend();
 }
 
-/////////////////////////////////////////////////////////////////////////////
 PdfExponentialFunction::PdfExponentialFunction( const PdfArray & rDomain, const PdfArray & rC0, const PdfArray & rC1, double dExponent, PdfVecObjects* pParent )
     : PdfFunction( ePdfFunctionType_Exponential, rDomain, pParent )
 {
@@ -114,8 +112,6 @@ void PdfExponentialFunction::Init( const PdfArray & rC0, const PdfArray & rC1, d
     this->GetObject()->GetDictionary().AddKey( PdfName("C1"), rC1 );
     this->GetObject()->GetDictionary().AddKey( PdfName("N"), dExponent );
 }
-
-/////////////////////////////////////////////////////////////////////////////
 
 PdfStitchingFunction::PdfStitchingFunction( const PdfFunction::List & rlstFunctions, const PdfArray & rDomain, const PdfArray & rBounds, const PdfArray & rEncode, PdfVecObjects* pParent )
     : PdfFunction( ePdfFunctionType_Stitching, rDomain, pParent )
@@ -138,7 +134,7 @@ void PdfStitchingFunction::Init( const PdfFunction::List & rlstFunctions, const 
 
     while( it != rlstFunctions.end() )
     {
-        functions.push_back( (*it).GetObject()->Reference() );
+        functions.push_back( (*it).GetObject()->GetIndirectReference() );
         ++it;
     }
     

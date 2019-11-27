@@ -36,7 +36,7 @@
 #include "PdfInputDevice.h"
 #include "PdfDefinesPrivate.h"
 
-namespace PoDoFo {
+using namespace PoDoFo;
 
 PdfRefCountedInputDevice::PdfRefCountedInputDevice()
     : m_pDevice( NULL )
@@ -132,5 +132,7 @@ const PdfRefCountedInputDevice & PdfRefCountedInputDevice::operator=( const PdfR
     return *this;
 }
 
-
-};
+PdfInputDevice* PdfRefCountedInputDevice::Device() const
+{
+    return m_pDevice ? m_pDevice->m_pDevice : NULL;
+}

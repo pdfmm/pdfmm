@@ -102,11 +102,11 @@ PdfContentsTokenizer::PdfContentsTokenizer( PdfCanvas* pCanvas )
 
 void PdfContentsTokenizer::SetCurrentContentsStream( PdfObject & pObject )
 {
-    PdfStream* pStream = pObject.GetStream();
+    PdfStream &pStream = pObject.GetOrCreateStream();
 
 	PdfRefCountedBuffer buffer;
     PdfBufferOutputStream stream( &buffer );
-    pStream->GetFilteredCopy( &stream );
+    pStream.GetFilteredCopy(&stream);
 
     m_device = PdfRefCountedInputDevice( buffer.GetBuffer(), buffer.GetSize() );
 }

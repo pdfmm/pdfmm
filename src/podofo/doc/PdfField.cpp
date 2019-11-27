@@ -94,7 +94,7 @@ PdfField::PdfField( EPdfField eField, PdfAnnotation* pWidget, PdfAcroForm* pPare
     if( pFields && pFields->IsReference())  {
        PdfObject *pRefFld = pDoc->GetObjects().GetObject(pFields->GetReference());
        if(pRefFld)
-         pRefFld->GetArray().push_back( m_pObject->Reference() );
+         pRefFld->GetArray().push_back( m_pObject->GetIndirectReference() );
     }
 }
 
@@ -166,8 +166,8 @@ PdfField * PdfField::createChildField(PdfPage *page, const PdfRect &rect)
         kids = &dict.AddKey("Kids", PdfArray());
 
     auto &arr = kids->GetArray();
-    arr.push_back(childObj->Reference());
-    childObj->GetDictionary().AddKey("Parent", m_pObject->Reference());
+    arr.push_back(childObj->GetIndirectReference());
+    childObj->GetDictionary().AddKey("Parent", m_pObject->GetIndirectReference());
     return field;
 }
 
@@ -256,7 +256,7 @@ void PdfField::Init(PdfAcroForm *pParent)
     {
         // Insert into the parents kids array
         PdfArray &fields = pParent->GetFieldsArray();
-        fields.push_back(m_pObject->Reference());
+        fields.push_back(m_pObject->GetIndirectReference());
     }
 
     PdfDictionary &dict = m_pObject->GetDictionary();
@@ -586,10 +586,8 @@ void PdfField::AddAlternativeAction( const PdfName & rsName, const PdfAction & r
         m_pObject->GetDictionary().AddKey( PdfName("AA"), PdfDictionary() );
 
     PdfObject* pAA = m_pObject->GetDictionary().GetKey( PdfName("AA") );
-    pAA->GetDictionary().AddKey( rsName, rAction.GetObject()->Reference() );
+    pAA->GetDictionary().AddKey( rsName, rAction.GetObject()->GetIndirectReference() );
 }
-
-/////////////////////////////////////////////////////////////////////////////
 
 PdfButton::PdfButton( EPdfField eField, PdfObject* pObject, PdfAnnotation* pWidget )
     : PdfField( eField, pObject, pWidget )
@@ -636,8 +634,6 @@ const PdfString PdfButton::GetCaption() const
 
     return PdfString::StringNull;
 }
-
-/////////////////////////////////////////////////////////////////////////////
 
 PdfPushButton::PdfPushButton( PdfObject* pObject, PdfAnnotation* pWidget )
     : PdfButton( ePdfField_PushButton, pObject, pWidget )
@@ -754,8 +750,6 @@ const PdfString PdfPushButton::GetAlternateCaption() const
     return PdfString::StringNull;
 }
 
-/////////////////////////////////////////////////////////////////////////////
-
 PdfCheckBox::PdfCheckBox( PdfObject* pObject, PdfAnnotation* pWidget )
     : PdfButton( ePdfField_CheckBox, pObject, pWidget )
 {
@@ -805,12 +799,12 @@ void PdfCheckBox::AddAppearanceStream( const PdfName & rName, const PdfReference
 
 void PdfCheckBox::SetAppearanceChecked( const PdfXObject & rXObject )
 {
-    this->AddAppearanceStream( PdfName("Yes"), rXObject.GetObject()->Reference() );
+    this->AddAppearanceStream( PdfName("Yes"), rXObject.GetObject()->GetIndirectReference() );
 }
 
 void PdfCheckBox::SetAppearanceUnchecked( const PdfXObject & rXObject )
 {
-    this->AddAppearanceStream( PdfName("Off"), rXObject.GetObject()->Reference() );
+    this->AddAppearanceStream( PdfName("Off"), rXObject.GetObject()->GetIndirectReference() );
 }
 
 void PdfCheckBox::SetChecked( bool bChecked )
@@ -833,8 +827,6 @@ bool PdfCheckBox::IsChecked() const
 
     return false;
 }
-
-/////////////////////////////////////////////////////////////////////////////
 
 PdfTextField::PdfTextField( PdfObject *pObject, PdfAnnotation* pWidget )
     : PdfField( ePdfField_TextField, pObject, pWidget )
@@ -918,8 +910,6 @@ int64_t PdfTextField::GetMaxLen() const
 
     return found->GetNumber();
 }
-
-/////////////////////////////////////////////////////////////////////////////
 
 PdfListField::PdfListField( EPdfField eField, PdfObject *pObject, PdfAnnotation * pWidget )
     : PdfField( eField, pObject, pWidget )
@@ -1095,9 +1085,6 @@ int PdfListField::GetSelectedItem() const
     return -1;
 }
 
-
-/////////////////////////////////////////////////////////////////////////////
-
 PdfComboBox::PdfComboBox( PdfObject *pObject, PdfAnnotation* pWidget )
     : PdfListField( ePdfField_ComboBox, pObject, pWidget )
 {
@@ -1140,8 +1127,6 @@ PdfComboBox::PdfComboBox( const PdfField & rhs )
         PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Field cannot be converted into a PdfTextField" );
     }
 }
-
-/////////////////////////////////////////////////////////////////////////////
 
 PdfListBox::PdfListBox( PdfObject *pObject, PdfAnnotation* pWidget )
     : PdfListField( ePdfField_ListBox, pObject, pWidget )

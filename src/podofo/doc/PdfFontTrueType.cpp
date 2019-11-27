@@ -65,7 +65,7 @@ void PdfFontTrueType::EmbedFontFile( PdfObject* pDescriptor )
     m_bWasEmbedded = true;    
         
     pContents = this->GetObject()->GetOwner()->CreateObject();
-    pDescriptor->GetDictionary().AddKey( "FontFile2", pContents->Reference() );
+    pDescriptor->GetDictionary().AddKey( "FontFile2", pContents->GetIndirectReference() );
 
     // if the data was loaded from memory - use it from there
     // otherwise, load from disk
@@ -79,7 +79,7 @@ void PdfFontTrueType::EmbedFontFile( PdfObject* pDescriptor )
         // as PdfStreamedDocument does not allow 
         // adding keys to an object after a stream was written
         pContents->GetDictionary().AddKey( "Length1", PdfVariant( static_cast<int64_t>(lSize) ) );
-        pContents->GetStream()->Set( pBuffer, lSize );
+        pContents->GetOrCreateStream().Set( pBuffer, lSize );
     } 
     else 
     {
@@ -90,7 +90,7 @@ void PdfFontTrueType::EmbedFontFile( PdfObject* pDescriptor )
         // as PdfStreamedDocument does not allow 
         // adding keys to an object after a stream was written
         pContents->GetDictionary().AddKey( "Length1", PdfVariant( static_cast<int64_t>(lSize) ) );
-        pContents->GetStream()->Set( &stream );
+        pContents->GetOrCreateStream().Set( &stream );
             
     }
 }

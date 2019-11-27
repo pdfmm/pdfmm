@@ -104,7 +104,7 @@ void PdfAcroForm::Init( EPdfAcroFormDefaulAppearance eDefaultAppearance )
         if( pFontDict->IsReference() )
             pFontDict = m_pDocument->GetObjects().GetObject( pFontDict->GetReference() );
 
-        pFontDict->GetDictionary().AddKey( pFont->GetIdentifier(), pFont->GetObject()->Reference() );
+        pFontDict->GetDictionary().AddKey( pFont->GetIdentifier(), pFont->GetObject()->GetIndirectReference() );
         
         // Create DA key
         std::ostringstream oss;

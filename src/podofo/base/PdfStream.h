@@ -59,10 +59,9 @@ class PdfOutputStream;
  *  \see PdfMemoryStream
  *  \see PdfFileStream
  */
-class PODOFO_API PdfStream {
-
- public:
-
+class PODOFO_API PdfStream
+{
+public:
     /** The default filter to use when changing the stream content.
      *  It's a static member and applies to all newly created/changed streams.
      *  The default value is ePdfFilter_FlateDecode.
@@ -138,7 +137,7 @@ class PODOFO_API PdfStream {
      *                 if lLen = -1 read until the end of the input stream
      *                 was reached.
      */
-    void SetRawData( PdfInputStream* pStream, pdf_long lLen = -1 );
+    void SetRawData( PdfInputStream &pStream, pdf_long lLen = -1 );
 
     /** Start appending data to this stream.
      *
@@ -310,7 +309,12 @@ class PODOFO_API PdfStream {
      */
     virtual void EndAppendImpl() = 0;
 
- protected:
+    virtual void CopyFrom(const PdfStream &rhs);
+
+private:
+    PdfStream(const PdfStream & rhs) = delete;
+
+protected:
     PdfObject*          m_pParent;
 
     bool                m_bAppend;

@@ -82,7 +82,7 @@ void PdfFontType1Base14::InitBase14Font( PdfFontMetrics* pMetrics )
 
     m_pMetrics->GetWidthArray( *pWidth, m_pEncoding->GetFirstChar(), m_pEncoding->GetLastChar(), m_pEncoding );
 
-    this->GetObject()->GetDictionary().AddKey("Widths", pWidth->Reference() );
+    this->GetObject()->GetDictionary().AddKey("Widths", pWidth->GetIndirectReference() );
     this->GetObject()->GetDictionary().AddKey("FirstChar", PdfVariant( static_cast<int64_t>(m_pEncoding->GetFirstChar()) ) );
     this->GetObject()->GetDictionary().AddKey("LastChar", PdfVariant( static_cast<int64_t>(m_pEncoding->GetLastChar()) ) );
 

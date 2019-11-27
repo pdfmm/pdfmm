@@ -62,11 +62,10 @@
 #include "base/PdfMemStream.h"
 #include "base/PdfName.h"
 #include "base/PdfObject.h"
-#include "base/PdfObjectStreamParserObject.h"
+#include "base/PdfObjectStreamParser.h"
 #include "base/PdfOutputDevice.h"
 #include "base/PdfOutputStream.h"
 #include "base/PdfParser.h"
-#include "base/PdfParserObject.h"
 #include "base/PdfRect.h"
 #include "base/PdfRefCountedBuffer.h"
 #include "base/PdfRefCountedInputDevice.h"
@@ -79,6 +78,5 @@
 #include "base/PdfWriter.h"
 #include "base/PdfXRef.h"
 #include "base/PdfXRefStream.h"
-#include "base/PdfXRefStreamParserObject.h"
 
 #endif // _PODOFO_BASE_H_

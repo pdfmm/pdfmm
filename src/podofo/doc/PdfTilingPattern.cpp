@@ -54,7 +54,7 @@ PdfTilingPattern::PdfTilingPattern( EPdfTilingPatternType eTilingType,
 
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /Ft for fonts.
-    out << "Ptrn" << this->GetObject()->Reference().ObjectNumber();
+    out << "Ptrn" << this->GetObject()->GetIndirectReference().ObjectNumber();
     m_Identifier = PdfName( out.str().c_str() );
 
     this->Init( eTilingType, strokeR, strokeG, strokeB,
@@ -76,7 +76,7 @@ PdfTilingPattern::PdfTilingPattern( EPdfTilingPatternType eTilingType,
 
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /Ft for fonts.
-    out << "Ptrn" << this->GetObject()->Reference().ObjectNumber();
+    out << "Ptrn" << this->GetObject()->GetIndirectReference().ObjectNumber();
 
     m_Identifier = PdfName( out.str().c_str() );
 
@@ -234,7 +234,7 @@ void PdfTilingPattern::Init( EPdfTilingPatternType eTilingType,
 	std::string str = out.str();
 	PdfMemoryInputStream stream(str.c_str(), str.length());
 
-	this->GetObject()->GetStream()->Set(&stream, vecFlate);
+	GetObject()->GetOrCreateStream().Set(&stream, vecFlate);
 }
 
 }	// end namespace

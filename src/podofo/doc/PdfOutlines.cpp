@@ -52,7 +52,7 @@ PdfOutlineItem::PdfOutlineItem( const PdfString & sTitle, const PdfDestination &
       m_pFirst( NULL ), m_pLast( NULL ), m_pDestination( NULL ), m_pAction( NULL )
 {
     if( pParentOutline )
-        this->GetObject()->GetDictionary().AddKey( "Parent", pParentOutline->GetObject()->Reference() );
+        this->GetObject()->GetDictionary().AddKey( "Parent", pParentOutline->GetObject()->GetIndirectReference() );
 
     this->SetTitle( sTitle );
     this->SetDestination( rDest );
@@ -65,7 +65,7 @@ PdfOutlineItem::PdfOutlineItem( const PdfString & sTitle, const PdfAction & rAct
       m_pFirst( NULL ), m_pLast( NULL ), m_pDestination( NULL ), m_pAction( NULL )
 {
     if( pParentOutline )
-        this->GetObject()->GetDictionary().AddKey( "Parent", pParentOutline->GetObject()->Reference() );
+        this->GetObject()->GetDictionary().AddKey( "Parent", pParentOutline->GetObject()->GetIndirectReference() );
 
     this->SetTitle( sTitle );
     this->SetAction( rAction );
@@ -174,8 +174,8 @@ void PdfOutlineItem::InsertChildInternal( PdfOutlineItem* pItem, bool bCheckPare
     if( !m_pFirst )
         m_pFirst = m_pLast;
 
-    this->GetObject()->GetDictionary().AddKey( "First", m_pFirst->GetObject()->Reference() );
-    this->GetObject()->GetDictionary().AddKey( "Last",  m_pLast->GetObject()->Reference() );
+    this->GetObject()->GetDictionary().AddKey( "First", m_pFirst->GetObject()->GetIndirectReference() );
+    this->GetObject()->GetDictionary().AddKey( "Last",  m_pLast->GetObject()->GetIndirectReference() );
 }
 
 PdfOutlineItem* PdfOutlineItem::CreateNext ( const PdfString & sTitle, const PdfDestination & rDest )
@@ -191,7 +191,7 @@ PdfOutlineItem* PdfOutlineItem::CreateNext ( const PdfString & sTitle, const Pdf
     m_pNext = pItem;
     m_pNext->SetPrevious( this );
 
-    this->GetObject()->GetDictionary().AddKey( "Next", m_pNext->GetObject()->Reference() );
+    this->GetObject()->GetDictionary().AddKey( "Next", m_pNext->GetObject()->GetIndirectReference() );
 
     if( m_pParentOutline && !m_pNext->Next() ) 
         m_pParentOutline->SetLast( m_pNext );
@@ -212,7 +212,7 @@ PdfOutlineItem* PdfOutlineItem::CreateNext ( const PdfString & sTitle, const Pdf
     m_pNext = pItem;
     m_pNext->SetPrevious( this );
 
-    this->GetObject()->GetDictionary().AddKey( "Next", m_pNext->GetObject()->Reference() );
+    this->GetObject()->GetDictionary().AddKey( "Next", m_pNext->GetObject()->GetIndirectReference() );
 
     if( m_pParentOutline && !m_pNext->Next() ) 
         m_pParentOutline->SetLast( m_pNext );
@@ -224,7 +224,7 @@ void PdfOutlineItem::SetPrevious( PdfOutlineItem* pItem )
 {
     m_pPrev = pItem;
     if( m_pPrev )
-        this->GetObject()->GetDictionary().AddKey( "Prev", m_pPrev->GetObject()->Reference() );
+        this->GetObject()->GetDictionary().AddKey( "Prev", m_pPrev->GetObject()->GetIndirectReference() );
     else
         this->GetObject()->GetDictionary().RemoveKey( "Prev" );
 }
@@ -233,7 +233,7 @@ void PdfOutlineItem::SetNext( PdfOutlineItem* pItem )
 {
     m_pNext = pItem;
     if( m_pNext )
-        this->GetObject()->GetDictionary().AddKey( "Next", m_pNext->GetObject()->Reference() );
+        this->GetObject()->GetDictionary().AddKey( "Next", m_pNext->GetObject()->GetIndirectReference() );
     else
         this->GetObject()->GetDictionary().RemoveKey( "Next" );
 }
@@ -242,7 +242,7 @@ void PdfOutlineItem::SetLast( PdfOutlineItem* pItem )
 {
     m_pLast = pItem;
     if( m_pLast )
-        this->GetObject()->GetDictionary().AddKey( "Last",  m_pLast->GetObject()->Reference() );
+        this->GetObject()->GetDictionary().AddKey( "Last",  m_pLast->GetObject()->GetIndirectReference() );
     else 
         this->GetObject()->GetDictionary().RemoveKey( "Last" );
 }
@@ -251,7 +251,7 @@ void PdfOutlineItem::SetFirst( PdfOutlineItem* pItem )
 {
     m_pFirst = pItem;
     if( m_pFirst )
-        this->GetObject()->GetDictionary().AddKey( "First",  m_pFirst->GetObject()->Reference() );
+        this->GetObject()->GetDictionary().AddKey( "First",  m_pFirst->GetObject()->GetIndirectReference() );
     else 
         this->GetObject()->GetDictionary().RemoveKey( "First" );
 }
@@ -386,11 +386,6 @@ double PdfOutlineItem::GetTextColorBlue() const
 
     return 0.0;
 }
-
-
-///////////////////////////////////////////////////////////////////////////////////
-// PdfOutlines
-///////////////////////////////////////////////////////////////////////////////////
 
 PdfOutlines::PdfOutlines( PdfVecObjects* pParent )
     : PdfOutlineItem( pParent )

@@ -50,11 +50,6 @@ PdfXRefStreamParserObject::PdfXRefStreamParserObject(PdfVecObjects* pCreator, co
 
 }
 
-PdfXRefStreamParserObject::~PdfXRefStreamParserObject() 
-{
-
-}
-
 void PdfXRefStreamParserObject::Parse()
 {
     // Ignore the encryption in the XREF as the XREF stream must no be encrypted (see PDF Reference 3.4.7)
@@ -144,7 +139,7 @@ void PdfXRefStreamParserObject::ParseStream( const int64_t nW[W_ARRAY_SIZE], con
 
     const size_t entryLen  = static_cast<size_t>(nW[0] + nW[1] + nW[2]);
 
-    this->GetStream()->GetFilteredCopy( &pBuffer, &lBufferLen );
+    this->GetOrCreateStream().GetFilteredCopy( &pBuffer, &lBufferLen );
 
     
     std::vector<int64_t>::const_iterator it = rvecIndeces.begin();

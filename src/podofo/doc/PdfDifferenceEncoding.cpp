@@ -2424,8 +2424,8 @@ PdfDifferenceEncoding::PdfDifferenceEncoding( PdfObject* pObject, bool bAutoDele
 void PdfDifferenceEncoding::CreateID() 
 {
     std::ostringstream oss;
-    oss << "/DifferencesEncoding" << this->GetObject()->Reference().ObjectNumber() 
-        << "_" << this->GetObject()->Reference().GenerationNumber();
+    oss << "/DifferencesEncoding" << this->GetObject()->GetIndirectReference().ObjectNumber() 
+        << "_" << this->GetObject()->GetIndirectReference().GenerationNumber();
 
     m_id = PdfName( oss.str() );    
 }
@@ -2466,7 +2466,7 @@ void PdfDifferenceEncoding::Init()
 
 void PdfDifferenceEncoding::AddToDictionary( PdfDictionary & rDictionary ) const
 {
-    rDictionary.AddKey( PdfName("Encoding"), this->GetObject()->Reference() );
+    rDictionary.AddKey( PdfName("Encoding"), this->GetObject()->GetIndirectReference() );
 }
 
 pdf_utf16be PdfDifferenceEncoding::GetCharCode( int nIndex ) const

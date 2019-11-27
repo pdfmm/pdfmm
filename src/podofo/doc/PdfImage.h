@@ -79,8 +79,6 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
      */
     PdfImage( PdfObject* pObject );
 
-    ~PdfImage();
-
     /**
      * Get a list of all image formats supported by this PoDoFo build.
      *
@@ -178,7 +176,7 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
      *  \param pStream stream supplieding raw image data
      */
     void SetImageDataRaw( unsigned int nWidth, unsigned int nHeight, 
-                          unsigned int nBitsPerComponent, PdfInputStream* pStream );
+                          unsigned int nBitsPerComponent, PdfInputStream & pStream );
 
     /** Load the image data from a file
      *  \param pszFilename

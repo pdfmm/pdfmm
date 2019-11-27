@@ -201,9 +201,7 @@ PdfTokenizer::PdfTokenizer( const PdfRefCountedInputDevice & rDevice, const PdfR
     PdfLocaleImbue(m_doubleParser);
 }
 
-PdfTokenizer::~PdfTokenizer()
-{
-}
+PdfTokenizer::~PdfTokenizer() { }
 
 bool PdfTokenizer::GetNextToken( const char*& pszToken , EPdfTokenType* peType )
 {

@@ -117,7 +117,7 @@ void PdfFileSpec::Init( const wchar_t* pszFilename, bool bEmbedd, bool bStripPat
         pEmbeddedStream = this->CreateObject( "EmbeddedFile" );
         this->EmbeddFile( pEmbeddedStream, pszFilename );
 
-        ef.AddKey( "F",  pEmbeddedStream->Reference() );
+        ef.AddKey( "F",  pEmbeddedStream->GetIndirectReference() );
 
         this->GetObject()->GetDictionary().AddKey( "EF", ef );
     }
@@ -138,7 +138,7 @@ void PdfFileSpec::Init( const wchar_t* pszFilename, const unsigned char* data, p
     pEmbeddedStream = this->CreateObject( "EmbeddedFile" );
     this->EmbeddFileFromMem( pEmbeddedStream, data, size );
 
-    ef.AddKey( "F",  pEmbeddedStream->Reference() );
+    ef.AddKey( "F",  pEmbeddedStream->GetIndirectReference() );
 
     this->GetObject()->GetDictionary().AddKey( "EF", ef );
 }
@@ -177,7 +177,7 @@ PdfString PdfFileSpec::CreateFileSpecification( const wchar_t* pszFilename ) con
 void PdfFileSpec::EmbeddFile( PdfObject* pStream, const wchar_t* pszFilename ) const
 {
     PdfFileInputStream stream( pszFilename );
-    pStream->GetStream()->Set( &stream );
+    pStream->GetOrCreateStream().Set( &stream );
 
     // Add additional information about the embedded file to the stream
     PdfDictionary params;
@@ -228,7 +228,7 @@ void PdfFileSpec::Init( const char* pszFilename, bool bEmbedd, bool bStripPath )
         pEmbeddedStream = this->CreateObject( "EmbeddedFile" );
         this->EmbeddFile( pEmbeddedStream, pszFilename );
 
-        ef.AddKey( "F",  pEmbeddedStream->Reference() );
+        ef.AddKey( "F",  pEmbeddedStream->GetIndirectReference() );
 
         this->GetObject()->GetDictionary().AddKey( "EF", ef );
     }
@@ -247,7 +247,7 @@ void PdfFileSpec::Init( const char* pszFilename, const unsigned char* data, ptrd
     pEmbeddedStream = this->CreateObject( "EmbeddedFile" );
     this->EmbeddFileFromMem( pEmbeddedStream, data, size );
 
-    ef.AddKey( "F",  pEmbeddedStream->Reference() );
+    ef.AddKey( "F",  pEmbeddedStream->GetIndirectReference() );
 
     this->GetObject()->GetDictionary().AddKey( "EF", ef );
 }
@@ -286,7 +286,7 @@ PdfString PdfFileSpec::CreateFileSpecification( const char* pszFilename ) const
 void PdfFileSpec::EmbeddFile( PdfObject* pStream, const char* pszFilename ) const
 {
     PdfFileInputStream stream( pszFilename );
-    pStream->GetStream()->Set( &stream );
+    pStream->GetOrCreateStream().Set( &stream );
 
     // Add additional information about the embedded file to the stream
     PdfDictionary params;
@@ -323,7 +323,7 @@ const char *PdfFileSpec::MaybeStripPath( const char* pszFilename, bool bStripPat
 void PdfFileSpec::EmbeddFileFromMem( PdfObject* pStream, const unsigned char* data, ptrdiff_t size ) const
 {
     PdfMemoryInputStream memstream(reinterpret_cast<const char*>(data),size);
-    pStream->GetStream()->Set( &memstream );
+    pStream->GetOrCreateStream().Set( &memstream );
 
     // Add additional information about the embedded file to the stream
     PdfDictionary params;

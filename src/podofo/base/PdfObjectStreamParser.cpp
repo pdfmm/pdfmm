@@ -31,7 +31,7 @@
  *   files in the program, then also delete it here.                       *
  ***************************************************************************/
 
-#include "PdfObjectStreamParserObject.h"
+#include "PdfObjectStreamParser.h"
 
 #include "PdfDictionary.h"
 #include "PdfEncrypt.h"
@@ -49,25 +49,20 @@
 
 namespace PoDoFo {
 
-PdfObjectStreamParserObject::PdfObjectStreamParserObject(PdfParserObject* pParser, PdfVecObjects* pVecObjects, const PdfRefCountedBuffer & rBuffer, PdfEncrypt* pEncrypt )
+PdfObjectStreamParser::PdfObjectStreamParser(PdfParserObject* pParser, PdfVecObjects* pVecObjects, const PdfRefCountedBuffer & rBuffer, PdfEncrypt* pEncrypt )
     : m_pParser( pParser ), m_vecObjects( pVecObjects ), m_buffer( rBuffer ), m_pEncrypt( pEncrypt )
 {
 
 }
 
-PdfObjectStreamParserObject::~PdfObjectStreamParserObject()
-{
-
-}
-
-void PdfObjectStreamParserObject::Parse(ObjectIdList const & list)
+void PdfObjectStreamParser::Parse(ObjectIdList const & list)
 {
     int64_t lNum   = m_pParser->GetDictionary().GetKeyAsLong( "N", 0 );
     int64_t lFirst = m_pParser->GetDictionary().GetKeyAsLong( "First", 0 );
     
     char* pBuffer;
     pdf_long lBufferLen;
-    m_pParser->GetStream()->GetFilteredCopy( &pBuffer, &lBufferLen );
+    m_pParser->GetOrCreateStream().GetFilteredCopy( &pBuffer, &lBufferLen );
 
     try {
         this->ReadObjectsFromStream( pBuffer, lBufferLen, lNum, lFirst, list );
@@ -80,7 +75,7 @@ void PdfObjectStreamParserObject::Parse(ObjectIdList const & list)
     }
 }
 
-void PdfObjectStreamParserObject::ReadObjectsFromStream( char* pBuffer, pdf_long lBufferLen, int64_t lNum, int64_t lFirst, ObjectIdList const & list)
+void PdfObjectStreamParser::ReadObjectsFromStream( char* pBuffer, pdf_long lBufferLen, int64_t lNum, int64_t lFirst, ObjectIdList const & list)
 {
     PdfRefCountedInputDevice device( pBuffer, lBufferLen );
     PdfTokenizer             tokenizer( device, m_buffer );
@@ -108,7 +103,7 @@ void PdfObjectStreamParserObject::ReadObjectsFromStream( char* pBuffer, pdf_long
 #ifndef PODOFO_HAVE_OPENSSL_NO_RC4
 			|| m_pEncrypt->GetEncryptAlgorithm() == PdfEncrypt::ePdfEncryptAlgorithm_RC4V2 
 #endif // PODOFO_HAVE_OPENSSL_NO_RC4
-			                                                                              ) )
+		) )
 			variantTokenizer.GetNextVariant( var, 0 ); // Stream is already decrypted
 		else
 			variantTokenizer.GetNextVariant( var, m_pEncrypt );
@@ -120,12 +115,10 @@ void PdfObjectStreamParserObject::ReadObjectsFromStream( char* pBuffer, pdf_long
 #endif
 		if (should_read)
         {
-			if(m_vecObjects->GetObject(PdfReference( static_cast<uint32_t>(lObj), 0 ))) 
-            {
-                PdfError::LogMessage( eLogSeverity_Warning, "Object: %" PDF_FORMAT_INT64 " 0 R will be deleted and loaded again.\n", lObj );
-                delete m_vecObjects->RemoveObject(PdfReference( static_cast<uint32_t>(lObj), 0 ),false);
-            }
-            m_vecObjects->insert_sorted( new PdfObject( PdfReference( static_cast<uint32_t>(lObj), 0 ), var ) );
+            // The generation number of an object stream and of any
+            // compressed object is implicitly zero
+            PdfReference reference(static_cast<uint32_t>(lObj), 0);
+            m_vecObjects->PushObject(new PdfObject(var), reference);
 		}
 
         // move back to the position inside of the table of contents

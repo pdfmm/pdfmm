@@ -227,15 +227,6 @@ std::streamoff PdfInputDevice::Tell() const
     
 	return 0;
 }
-/*
-void PdfInputDevice::Seek( std::streamoff off, std::ios_base::seekdir dir )
-{
-    if (m_bIsSeekable)
-        m_pStream->seekg( off, dir );
-    else
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDeviceOperation, "Tried to seek an unseekable input device." );
-}
-*/
 
 void PdfInputDevice::Seek( std::streamoff off, std::ios_base::seekdir dir )
 {
@@ -244,6 +235,8 @@ void PdfInputDevice::Seek( std::streamoff off, std::ios_base::seekdir dir )
         if (m_pStream)
         {
             m_pStream->seekg( off, dir );
+            if (m_pStream->fail())
+                PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidDeviceOperation, "Failed to seek to given position in the memory stream");
         }
 
         if (m_pFile)

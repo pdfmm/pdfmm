@@ -1004,13 +1004,13 @@ PdfObject* PdfColor::BuildColorSpace( PdfVecObjects* pOwner ) const
                     csTintFunc->GetDictionary().AddKey( "Size", size );
 
                     PdfMemoryInputStream stream( data, 1*2 );
-                    csTintFunc->GetStream()->Set( &stream );
+                    csTintFunc->GetOrCreateStream().Set( &stream );
 
                     PdfArray csArr;
                     csArr.push_back( PdfName("Separation") );
                     csArr.push_back( PdfName( m_separationName ) );
                     csArr.push_back( PdfName("DeviceGray") );
-                    csArr.push_back( csTintFunc->Reference() );
+                    csArr.push_back( csTintFunc->GetIndirectReference() );
 
                     PdfObject* csp = pOwner->CreateObject( csArr );
 
@@ -1042,13 +1042,13 @@ PdfObject* PdfColor::BuildColorSpace( PdfVecObjects* pOwner ) const
                     csTintFunc->GetDictionary().AddKey( "Size", size );
 
                     PdfMemoryInputStream stream( data, 3*2 );
-                    csTintFunc->GetStream()->Set( &stream );
+                    csTintFunc->GetOrCreateStream().Set( &stream );
 
                     PdfArray csArr;
                     csArr.push_back( PdfName("Separation") );
                     csArr.push_back( PdfName( m_separationName ) );
                     csArr.push_back( PdfName("DeviceRGB") );
-                    csArr.push_back( csTintFunc->Reference() );
+                    csArr.push_back( csTintFunc->GetIndirectReference() );
 
                     PdfObject* csp = pOwner->CreateObject( csArr );
 
@@ -1087,10 +1087,10 @@ PdfObject* PdfColor::BuildColorSpace( PdfVecObjects* pOwner ) const
                     csArr.push_back( PdfName("Separation") );
                     csArr.push_back( PdfName( m_separationName ) );
                     csArr.push_back( PdfName("DeviceCMYK") );
-                    csArr.push_back( csTintFunc->Reference() );
+                    csArr.push_back( csTintFunc->GetIndirectReference() );
 
                     PdfMemoryInputStream stream( data, 4*2 );
-                    csTintFunc->GetStream()->Set( &stream ); // set stream as last, so that it will work with PdfStreamedDocument
+                    csTintFunc->GetOrCreateStream().Set( &stream ); // set stream as last, so that it will work with PdfStreamedDocument
 
                     PdfObject* csp = pOwner->CreateObject( csArr );
 
@@ -1122,13 +1122,13 @@ PdfObject* PdfColor::BuildColorSpace( PdfVecObjects* pOwner ) const
                     csTintFunc->GetDictionary().AddKey( "Size", size );
 
                     PdfMemoryInputStream stream( data, 3*2 );
-                    csTintFunc->GetStream()->Set( &stream );
+                    csTintFunc->GetOrCreateStream().Set( &stream );
 
                     PdfArray csArr;
                     csArr.push_back( PdfName("Separation") );
                     csArr.push_back( PdfName( m_separationName ) );
                     csArr.push_back( PdfName("Lab") );
-                    csArr.push_back( csTintFunc->Reference() );
+                    csArr.push_back( csTintFunc->GetIndirectReference() );
 
                     PdfObject* csp = pOwner->CreateObject( csArr );
 

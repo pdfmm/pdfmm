@@ -57,9 +57,7 @@ PdfStream::PdfStream( PdfObject* pParent )
 {
 }
 
-PdfStream::~PdfStream()
-{
-}
+PdfStream::~PdfStream() { }
 
 void PdfStream::GetFilteredCopy( PdfOutputStream* pStream ) const
 {
@@ -113,16 +111,23 @@ void PdfStream::GetFilteredCopy( char** ppBuffer, pdf_long* lLen ) const
     *ppBuffer = stream.TakeBuffer();
 }
 
-const PdfStream & PdfStream::operator=( const PdfStream & rhs )
+const PdfStream & PdfStream::operator=(const PdfStream & rhs)
+{
+    if (&rhs == this)
+        return *this;
+
+    CopyFrom(rhs);
+    return (*this);
+}
+
+void PdfStream::CopyFrom(const PdfStream &rhs)
 {
     PdfMemoryInputStream stream( rhs.GetInternalBuffer(), rhs.GetInternalBufferSize() );
-    this->SetRawData( &stream );
+    this->SetRawData( stream );
 
     if( m_pParent ) 
         m_pParent->GetDictionary().AddKey( PdfName::KeyLength, 
                                            PdfVariant(static_cast<int64_t>(rhs.GetInternalBufferSize())));
-
-    return (*this);
 }
 
 void PdfStream::Set( const char* szBuffer, pdf_long lLen, const TVecFilters & vecFilters )
@@ -165,7 +170,7 @@ void PdfStream::Set( PdfInputStream* pStream, const TVecFilters & vecFilters )
     this->EndAppend();
 }
 
-void PdfStream::SetRawData( PdfInputStream* pStream, pdf_long lLen )
+void PdfStream::SetRawData( PdfInputStream &pStream, pdf_long lLen )
 {
     const pdf_long   BUFFER_SIZE = 4096;
     char             buffer[BUFFER_SIZE];
@@ -178,14 +183,14 @@ void PdfStream::SetRawData( PdfInputStream* pStream, pdf_long lLen )
     if( lLen == -1 ) 
     {
         do {
-            lRead = pStream->Read( buffer, BUFFER_SIZE );
+            lRead = pStream.Read( buffer, BUFFER_SIZE );
             this->Append( buffer, lRead );
         } while( lRead > 0 );
     }
     else
     {
         do {
-            lRead = pStream->Read( buffer, std::min( BUFFER_SIZE, lLen ), &lLen );
+            lRead = pStream.Read( buffer, std::min( BUFFER_SIZE, lLen ), &lLen );
             lLen -= lRead;
             this->Append( buffer, lRead );
         } while( lLen && lRead > 0 );

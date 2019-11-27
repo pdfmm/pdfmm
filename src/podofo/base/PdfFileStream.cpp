@@ -42,18 +42,19 @@
 #include "PdfObject.h"
 #include "PdfDictionary.h"
 
-namespace PoDoFo {
+using namespace PoDoFo;
 
 PdfFileStream::PdfFileStream( PdfObject* pParent, PdfOutputDevice* pDevice )
     : PdfStream( pParent ), m_pDevice( pDevice ), m_pStream( NULL ), m_pDeviceStream( NULL ),
       m_pEncryptStream( NULL ), m_lLenInitial( 0 ), m_lLength( 0 ), m_pCurEncrypt( NULL )
 {
     m_pLength = pParent->GetOwner()->CreateObject( PdfVariant(static_cast<int64_t>(0)) );
-    m_pParent->GetDictionary().AddKey( PdfName::KeyLength, m_pLength->Reference() );
+    m_pParent->GetDictionary().AddKey( PdfName::KeyLength, m_pLength->GetIndirectReference() );
 }
 
 void PdfFileStream::Write( PdfOutputDevice*, PdfEncrypt* )
 {
+    PODOFO_RAISE_ERROR(ePdfError_NotImplemented);
 }
 
 void PdfFileStream::BeginAppendImpl( const TVecFilters & vecFilters )
@@ -118,7 +119,7 @@ void PdfFileStream::EndAppendImpl()
     {
         m_lLength = m_pCurEncrypt->CalculateStreamLength(m_lLength);
     }
-    m_pLength->SetNumber( static_cast<long>(m_lLength) );
+    m_pLength->SetNumber(static_cast<int64_t>(m_lLength));
 }
 
 void PdfFileStream::GetCopy( char**, pdf_long* ) const
@@ -135,8 +136,20 @@ void PdfFileStream::SetEncrypted( PdfEncrypt* pEncrypt )
 {
     m_pCurEncrypt = pEncrypt;
     if( m_pCurEncrypt )
-        m_pCurEncrypt->SetCurrentReference( m_pParent->Reference() );
+        m_pCurEncrypt->SetCurrentReference( m_pParent->GetIndirectReference() );
 }
 
-};
+pdf_long PdfFileStream::GetLength() const
+{
+    return m_lLength;
+}
 
+const char* PdfFileStream::GetInternalBuffer() const
+{
+    return NULL;
+}
+
+pdf_long PdfFileStream::GetInternalBufferSize() const
+{
+    return 0;
+}

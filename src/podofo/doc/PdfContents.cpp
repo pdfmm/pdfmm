@@ -54,7 +54,7 @@ PdfContents::PdfContents(PdfPage &parent, PdfObject &obj)
 PdfContents::PdfContents(PdfPage &parent) 
     : m_parent(&parent), m_object(parent.GetObject()->GetOwner()->CreateObject(PdfArray()))
 {
-    parent.GetObject()->GetDictionary().AddKey("Contents", m_object->Reference());
+    parent.GetObject()->GetDictionary().AddKey("Contents", m_object->GetIndirectReference());
 }
 
 PdfObject * PdfContents::GetContents() const
@@ -73,9 +73,9 @@ PdfStream & PdfContents::GetStreamForAppending()
     {
         // Create a /Contents array and put the current stream into it
         auto newObjArray = m_parent->GetObject()->GetOwner()->CreateObject(PdfArray());
-        m_parent->GetObject()->GetDictionary().AddKey("Contents", newObjArray->Reference());
+        m_parent->GetObject()->GetDictionary().AddKey("Contents", newObjArray->GetIndirectReference());
         arr = &newObjArray->GetArray();
-        arr->push_back(m_object->Reference());
+        arr->push_back(m_object->GetIndirectReference());
         m_object = newObjArray;
     }
     else
@@ -85,6 +85,6 @@ PdfStream & PdfContents::GetStreamForAppending()
 
     // Create a new stream, add it to the array, return it
     PdfObject * newStm = m_object->GetOwner()->CreateObject();
-    arr->push_back(newStm->Reference());
-    return *newStm->GetStream();
+    arr->push_back(newStm->GetIndirectReference());
+    return newStm->GetOrCreateStream();
 };

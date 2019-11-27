@@ -58,7 +58,7 @@ PdfShadingPattern::PdfShadingPattern( EPdfShadingPatternType eShadingType, PdfVe
 
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /Ft for fonts.
-    out << "Sh" << this->GetObject()->Reference().ObjectNumber();
+    out << "Sh" << this->GetObject()->GetIndirectReference().ObjectNumber();
     m_Identifier = PdfName( out.str().c_str() );
 
     this->Init( eShadingType );
@@ -74,7 +74,7 @@ PdfShadingPattern::PdfShadingPattern( EPdfShadingPatternType eShadingType, PdfDo
 
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /Ft for fonts.
-    out << "Sh" << this->GetObject()->Reference().ObjectNumber();
+    out << "Sh" << this->GetObject()->GetIndirectReference().ObjectNumber();
     m_Identifier = PdfName( out.str().c_str() );
 
     this->Init( eShadingType );
@@ -181,7 +181,7 @@ void PdfShadingPattern::Init( EPdfShadingPatternType eShadingType )
     this->GetObject()->GetDictionary().AddKey( PdfName("Shading"), shading );
 	 } else {
 		 PdfObject *shadingObject = this->GetObject()->GetOwner()->CreateObject(shading);
-		 this->GetObject()->GetDictionary().AddKey(PdfName("Shading"), shadingObject->Reference());
+		 this->GetObject()->GetDictionary().AddKey(PdfName("Shading"), shadingObject->GetIndirectReference());
 	 }
 }
 
@@ -243,7 +243,7 @@ void PdfAxialShadingPattern::Init( double dX0, double dY0, double dX1, double dY
 		{	
 			PdfObject * csp = rStart.BuildColorSpace( this->GetObject()->GetOwner() );
 
-			shading.AddKey( PdfName("ColorSpace"), csp->Reference() );
+			shading.AddKey( PdfName("ColorSpace"), csp->GetIndirectReference() );
 		}
 		break;
 
@@ -251,7 +251,7 @@ void PdfAxialShadingPattern::Init( double dX0, double dY0, double dX1, double dY
 		{
 			PdfObject * csp = rStart.BuildColorSpace( this->GetObject()->GetOwner() );
 
-			shading.AddKey( PdfName("ColorSpace"), csp->Reference() );
+			shading.AddKey( PdfName("ColorSpace"), csp->GetIndirectReference() );
 		}
 		break;
 
@@ -263,7 +263,7 @@ void PdfAxialShadingPattern::Init( double dX0, double dY0, double dX1, double dY
 	}
 
     shading.AddKey( PdfName("Coords"), coords );
-    shading.AddKey( PdfName("Function"), function.GetObject()->Reference() );
+    shading.AddKey( PdfName("Function"), function.GetObject()->GetIndirectReference() );
     shading.AddKey( PdfName("Extend"), extend );
 }
 
@@ -406,7 +406,7 @@ void PdfFunctionBaseShadingPattern::Init( const PdfColor & rLL, const PdfColor &
 
 			PdfObject * csp = rLL.BuildColorSpace( this->GetObject()->GetOwner() );
 
-			shading.AddKey( PdfName("ColorSpace"), csp->Reference() );
+			shading.AddKey( PdfName("ColorSpace"), csp->GetIndirectReference() );
 		}
 		break;
 
@@ -425,7 +425,7 @@ void PdfFunctionBaseShadingPattern::Init( const PdfColor & rLL, const PdfColor &
 
 			PdfObject * csp = rLL.BuildColorSpace( this->GetObject()->GetOwner() );
 
-			shading.AddKey( PdfName("ColorSpace"), csp->Reference() );
+			shading.AddKey( PdfName("ColorSpace"), csp->GetIndirectReference() );
 		}
 		break;
 
@@ -437,7 +437,7 @@ void PdfFunctionBaseShadingPattern::Init( const PdfColor & rLL, const PdfColor &
 	}
 
     PdfSampledFunction function( domain, range, samples, this->GetObject()->GetOwner() );
-    shading.AddKey( PdfName("Function"), function.GetObject()->Reference() );
+    shading.AddKey( PdfName("Function"), function.GetObject()->GetIndirectReference() );
     shading.AddKey( PdfName("Domain"), domain );
     shading.AddKey( PdfName("Matrix"), rMatrix );
 }
@@ -502,7 +502,7 @@ void PdfRadialShadingPattern::Init( double dX0, double dY0, double dR0, double d
 		{	
 			PdfObject * csp = rStart.BuildColorSpace( this->GetObject()->GetOwner() );
 
-			shading.AddKey( PdfName("ColorSpace"), csp->Reference() );
+			shading.AddKey( PdfName("ColorSpace"), csp->GetIndirectReference() );
 		}
 		break;
 
@@ -510,7 +510,7 @@ void PdfRadialShadingPattern::Init( double dX0, double dY0, double dR0, double d
 		{
 			PdfObject * csp = rStart.BuildColorSpace( this->GetObject()->GetOwner() );
 
-			shading.AddKey( PdfName("ColorSpace"), csp->Reference() );
+			shading.AddKey( PdfName("ColorSpace"), csp->GetIndirectReference() );
 		}
 		break;
 
@@ -522,7 +522,7 @@ void PdfRadialShadingPattern::Init( double dX0, double dY0, double dR0, double d
 	}
 
     shading.AddKey( PdfName("Coords"), coords );
-    shading.AddKey( PdfName("Function"), function.GetObject()->Reference() );
+    shading.AddKey( PdfName("Function"), function.GetObject()->GetIndirectReference() );
     shading.AddKey( PdfName("Extend"), extend );
 }
 
@@ -608,7 +608,7 @@ void PdfTriangleShadingPattern::Init( double dX0, double dY0, const PdfColor &co
 	buff[16] = static_cast<char>(255.0 * rgb2.GetGreen());
 	buff[17] = static_cast<char>(255.0 * rgb2.GetBlue());
 
-	shadingObject->GetStream()->Set(buff, len);
+	shadingObject->GetOrCreateStream().Set(buff, len);
 }
 
 }	// end namespace

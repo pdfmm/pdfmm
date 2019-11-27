@@ -403,7 +403,7 @@ void PdfString::Write ( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, cons
     pDevice->Print( m_bHex ? "<" : "(" );
     if( m_buffer.GetSize() && IsValid() )
     {
-        char* pBuf = m_buffer.GetBuffer();
+        const char* pBuf = m_buffer.GetBuffer();
         pdf_long  lLen = m_buffer.GetSize() - 2; // Cut off the trailing pair of zeros
 
         if( m_bHex ) 

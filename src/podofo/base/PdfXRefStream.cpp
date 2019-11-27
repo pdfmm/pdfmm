@@ -52,7 +52,7 @@ PdfXRefStream::PdfXRefStream( PdfVecObjects* pParent, PdfWriter* pWriter )
 
 void PdfXRefStream::BeginWrite( PdfOutputDevice* )
 {
-    m_pObject->GetStream()->BeginAppend();
+    m_pObject->GetOrCreateStream().BeginAppend();
 }
 
 void PdfXRefStream::WriteSubSection( PdfOutputDevice*, uint32_t first, uint32_t count )
@@ -69,7 +69,7 @@ void PdfXRefStream::WriteXRefEntry( PdfOutputDevice*, uint64_t offset, uint16_t 
     std::vector<char>	bytes(m_bufferLen);
     char * buffer = bytes.data();
 
-    if( cMode == 'n' && objectNumber == m_pObject->Reference().ObjectNumber() )
+    if( cMode == 'n' && objectNumber == m_pObject->GetIndirectReference().ObjectNumber() )
         m_offset = offset;
     
     buffer[0]             = static_cast<char>( cMode == 'n' ? 1 : 0 );
@@ -78,7 +78,7 @@ void PdfXRefStream::WriteXRefEntry( PdfOutputDevice*, uint64_t offset, uint16_t 
     const uint32_t offset_be = ::PoDoFo::compat::AsBigEndian(static_cast<uint32_t>(offset));
     memcpy( &buffer[1], reinterpret_cast<const char*>(&offset_be), sizeof(uint32_t) );
 
-    m_pObject->GetStream()->Append( buffer, m_bufferLen );
+    m_pObject->GetOrCreateStream().Append( buffer, m_bufferLen );
 }
 
 void PdfXRefStream::EndWrite( PdfOutputDevice* pDevice )
@@ -92,7 +92,7 @@ void PdfXRefStream::EndWrite( PdfOutputDevice* pDevice )
     // Add our self to the XRef table
     this->WriteXRefEntry( pDevice, pDevice->Tell(), 0, 'n' );
 
-    m_pObject->GetStream()->EndAppend();
+    m_pObject->GetOrCreateStream().EndAppend();
     m_pWriter->FillTrailerObject( m_pObject, this->GetSize(), false );
 
     m_pObject->GetDictionary().AddKey( "Index", m_indeces );

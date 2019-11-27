@@ -301,10 +301,15 @@ void PdfXObject::SetRect( const PdfRect & rect )
 
 void PdfXObject::EnsureResourcesInitialized()
 {
-    if ( m_pResources != NULL )
+    if (m_resourceInitialized)
         return;
 
-    InitResources();
+    if ( m_pResources == nullptr )
+        InitResources();
+
+    // A Form XObject must have a stream
+    GetObject()->ForceCreateStream();
+    m_resourceInitialized = true;
 }
 
 PdfObject * PdfXObject::GetContents() const
@@ -314,7 +319,7 @@ PdfObject * PdfXObject::GetContents() const
 
 inline PdfStream & PdfXObject::GetStreamForAppending()
 {
-    return *GetObject()->GetStream();
+    return GetObject()->GetOrCreateStream();
 }
 
 void PdfXObject::InitXObject( const PdfRect & rRect, const char* pszPrefix )
@@ -351,12 +356,12 @@ void PdfXObject::InitIdentifiers(EPdfXObject subType, const char * pszPrefix)
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /XOb for XObject.
 	if ( pszPrefix == NULL )
-	    out << "XOb" << this->GetObject()->Reference().ObjectNumber();
+	    out << "XOb" << this->GetObject()->GetIndirectReference().ObjectNumber();
 	else
-	    out << pszPrefix << this->GetObject()->Reference().ObjectNumber();
+	    out << pszPrefix << this->GetObject()->GetIndirectReference().ObjectNumber();
 
     m_Identifier = PdfName( out.str().c_str() );
-    m_Reference  = this->GetObject()->Reference();
+    m_Reference  = this->GetObject()->GetIndirectReference();
     m_type = subType;
 }
 

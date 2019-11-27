@@ -80,15 +80,10 @@ PdfImage::PdfImage( PdfObject* pObject )
     m_rRect.SetWidth ( static_cast<double>(this->GetObject()->GetDictionary().GetKey( "Width" )->GetNumber()) );
 }
 
-PdfImage::~PdfImage()
-{
-
-}
-
-     /* Example: { "JPEG", "TIFF", NULL }
-     *
-     * \returns a zero terminates list of all supported image formats
-     */
+/** Example: { "JPEG", "TIFF", NULL }
+ *
+ * \returns a zero terminates list of all supported image formats
+ */
 const char** PdfImage::GetSupportedFormats()
 {
     static const char* ppszFormats[] = {
@@ -150,18 +145,18 @@ void PdfImage::SetImageICCProfile( PdfInputStream* pStream, long lColorComponent
     PdfObject* pIccObject = this->GetObject()->GetOwner()->CreateObject();
     pIccObject->GetDictionary().AddKey( PdfName("Alternate"), ColorspaceToName( eAlternateColorSpace ) ); 
     pIccObject->GetDictionary().AddKey( PdfName("N"), static_cast<int64_t>(lColorComponents) );
-    pIccObject->GetStream()->Set( pStream );
+    pIccObject->GetOrCreateStream().Set( pStream );
     
     // Add the colorspace to our image
     PdfArray array;
     array.push_back( PdfName("ICCBased") );
-    array.push_back( pIccObject->Reference() );
+    array.push_back( pIccObject->GetIndirectReference() );
     this->GetObject()->GetDictionary().AddKey( PdfName("ColorSpace"), array );
 }
 
 void PdfImage::SetImageSoftmask( const PdfImage* pSoftmask )
 {
-	GetObject()->GetDictionary().AddKey( "SMask", pSoftmask->GetObject()->Reference() );
+	GetObject()->GetDictionary().AddKey( "SMask", pSoftmask->GetObject()->GetIndirectReference() );
 }
 
 void PdfImage::SetImageData( unsigned int nWidth, unsigned int nHeight, 
@@ -188,11 +183,11 @@ void PdfImage::SetImageData( unsigned int nWidth, unsigned int nHeight,
     m_rRect.ToVariant( var );
     this->GetObject()->GetDictionary().AddKey( "BBox", var );
 
-    this->GetObject()->GetStream()->Set( pStream, vecFilters );
+    this->GetObject()->GetOrCreateStream().Set( pStream, vecFilters );
 }
 
 void PdfImage::SetImageDataRaw( unsigned int nWidth, unsigned int nHeight, 
-                                unsigned int nBitsPerComponent, PdfInputStream* pStream )
+                                unsigned int nBitsPerComponent, PdfInputStream &pStream )
 {
     m_rRect.SetWidth( nWidth );
     m_rRect.SetHeight( nHeight );
@@ -205,7 +200,7 @@ void PdfImage::SetImageDataRaw( unsigned int nWidth, unsigned int nHeight,
     m_rRect.ToVariant( var );
     this->GetObject()->GetDictionary().AddKey( "BBox", var );
 
-    this->GetObject()->GetStream()->SetRawData( pStream, -1 );
+    this->GetObject()->GetOrCreateStream().SetRawData( pStream, -1 );
 }
 
 void PdfImage::LoadFromFile( const char* pszFilename )
@@ -407,7 +402,7 @@ void PdfImage::LoadFromJpegHandle( PdfFileInputStream* pInStream )
     this->GetObject()->GetDictionary().AddKey( PdfName::KeyFilter, PdfName( "DCTDecode" ) );
     // Do not apply any filters as JPEG data is already DCT encoded.
     fseeko( pInStream->GetHandle(), 0L, SEEK_SET );
-    this->SetImageDataRaw( cinfo.output_width, cinfo.output_height, 8, pInStream );
+    this->SetImageDataRaw( cinfo.output_width, cinfo.output_height, 8, *pInStream );
     
     (void) jpeg_destroy_decompress(&cinfo);
 }
@@ -473,7 +468,7 @@ void PdfImage::LoadFromJpegData(const unsigned char* pData, pdf_long dwLen)
     this->GetObject()->GetDictionary().AddKey( PdfName::KeyFilter, PdfName( "DCTDecode" ) );
     
     PdfMemoryInputStream fInpStream( (const char*)pData, (pdf_long) dwLen);
-    this->SetImageDataRaw( cinfo.output_width, cinfo.output_height, 8, &fInpStream );
+    this->SetImageDataRaw( cinfo.output_width, cinfo.output_height, 8, fInpStream );
     
     (void) jpeg_destroy_decompress(&cinfo);
 }
@@ -623,14 +618,14 @@ void PdfImage::LoadFromTiffHandle(void* hInHandle) {
             
             // Create a colorspace object
             PdfObject* pIdxObject = this->GetObject()->GetOwner()->CreateObject();
-            pIdxObject->GetStream()->Set( &stream );
+            pIdxObject->GetOrCreateStream().Set( &stream );
             
             // Add the colorspace to our image
             PdfArray array;
             array.push_back( PdfName("Indexed") );
             array.push_back( PdfName("DeviceRGB") );
             array.push_back( static_cast<int64_t>(numColors-1) );
-            array.push_back( pIdxObject->Reference() );
+            array.push_back( pIdxObject->GetIndirectReference() );
             this->GetObject()->GetDictionary().AddKey( PdfName("ColorSpace"), array );
             
             delete[] datap;

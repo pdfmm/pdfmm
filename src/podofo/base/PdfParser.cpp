@@ -39,7 +39,7 @@
 #include "PdfEncrypt.h"
 #include "PdfInputDevice.h"
 #include "PdfMemStream.h"
-#include "PdfObjectStreamParserObject.h"
+#include "PdfObjectStreamParser.h"
 #include "PdfOutputDevice.h"
 #include "PdfStream.h"
 #include "PdfVariant.h"
@@ -60,7 +60,7 @@ using std::flush;
 #define PDF_XREF_ENTRY_SIZE 20
 #define PDF_XREF_BUF        512
 
-namespace PoDoFo {
+using namespace PoDoFo;
 
 static bool CheckEOL(char e1, char e2);
 static bool CheckXRefEntryType( char c );
@@ -1098,8 +1098,8 @@ void PdfParser::ReadObjects()
                 delete pObject;
             } catch( PdfError & e ) {
                 std::ostringstream oss;
-                oss << "Error while loading object " << pObject->Reference().ObjectNumber() << " " 
-                    << pObject->Reference().GenerationNumber() << std::endl;
+                oss << "Error while loading object " << pObject->GetIndirectReference().ObjectNumber() << " " 
+                    << pObject->GetIndirectReference().GenerationNumber() << std::endl;
                 delete pObject;
 
                 e.AddToCallstack( __FILE__, __LINE__, oss.str().c_str() );
@@ -1162,7 +1162,7 @@ void PdfParser::ReadObjectsInternal()
                     if( !pObject )
                         PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
 
-                    const PdfReference &reference = pObject->Reference();
+                    const PdfReference &reference = pObject->GetIndirectReference();
                     if ( reference.GenerationNumber() != entry.lGeneration )
                     {
                         if ( m_bStrictParsing )
@@ -1195,19 +1195,19 @@ void PdfParser::ReadObjectsInternal()
 
                         // final pdf should not contain a linerization dictionary as it contents are invalid 
                         // as we change some objects and the final xref table
-                        if( m_pLinearization && nLast == static_cast<int>(m_pLinearization->Reference().ObjectNumber()) )
+                        if( m_pLinearization && nLast == static_cast<int>(m_pLinearization->GetIndirectReference().ObjectNumber()) )
                         {
                             m_vecObjects->SafeAddFreeObject( reference );
                             delete pObject;
                         }
                         else
-                            m_vecObjects->push_back( pObject );
+                            m_vecObjects->AddObject( pObject );
                     }
                     catch( PdfError & e )
                     {
                         std::ostringstream oss;
-                        oss << "Error while loading object " << pObject->Reference().ObjectNumber() 
-                            << " " << pObject->Reference().GenerationNumber() 
+                        oss << "Error while loading object " << pObject->GetIndirectReference().ObjectNumber() 
+                            << " " << pObject->GetIndirectReference().GenerationNumber() 
                             << " Offset = " << entry.lOffset
                             << " Index = " << i << std::endl;
                         delete pObject;
@@ -1291,10 +1291,7 @@ void PdfParser::ReadObjectsInternal()
              ++itObjects)
         {
             pObject = dynamic_cast<PdfParserObject*>(*itObjects);
-            // only parse streams for objects that have not yet parsed
-            // their streams
-            if( pObject && pObject->HasStreamToParse() && !pObject->HasStream() )
-                pObject->GetStream();
+            pObject->ForceStreamParse();
         }
     }
 
@@ -1346,7 +1343,7 @@ void PdfParser::ReadObjectFromStream( int nObjNo, int )
     }
     
 
-	PdfObjectStreamParserObject::ObjectIdList list;
+	PdfObjectStreamParser::ObjectIdList list;
     for( int i = 0; i < m_nNumObjects; i++ ) 
     {
         PdfXRefEntry &entry = m_offsets[i];
@@ -1357,7 +1354,7 @@ void PdfParser::ReadObjectFromStream( int nObjNo, int )
 		}
 	}
     
-    PdfObjectStreamParserObject pParserObject( pStream, m_vecObjects, m_buffer, m_pEncrypt );
+    PdfObjectStreamParser pParserObject( pStream, m_vecObjects, m_buffer, m_pEncrypt );
     pParserObject.Parse( list );
 }
 
@@ -1578,7 +1575,17 @@ bool PdfParser::HasXRefStream()
    return false;
 }
 
-};
+bool PdfParser::IsLinearized() const
+{
+    return m_pLinearization != nullptr;
+}
 
+bool PdfParser::IsEncrypted() const
+{
+    return m_pEncrypt != nullptr;
+}
 
-
+const PdfObject* PdfParser::GetTrailer() const
+{
+    return m_pTrailer;
+}

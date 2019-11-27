@@ -59,7 +59,7 @@ namespace PoDoFo {
 struct ObjectComparatorPredicate {
 public:
     inline bool operator()( const PdfObject* const & pObj, const PdfObject* const & pObj2 ) const { 
-        return pObj->Reference() < pObj2->Reference();  
+        return pObj->GetIndirectReference() < pObj2->GetIndirectReference();  
     }
     
     /*
@@ -85,7 +85,7 @@ public:
         }
     
     bool operator()(const PdfObject* p1) const { 
-        return p1 ? (p1->Reference() == m_ref ) : false;
+        return p1 ? (p1->GetIndirectReference() == m_ref ) : false;
     }
 
 private:
@@ -156,7 +156,7 @@ PdfObject* PdfVecObjects::GetObject( const PdfReference & ref ) const
 
     PdfObject refObj( ref, NULL );
     TCIVecObjects it = std::lower_bound( m_vector.begin(), m_vector.end(), &refObj, ObjectComparatorPredicate() );
-    if( it != m_vector.end() && (refObj.Reference() == (*it)->Reference()) )
+    if( it != m_vector.end() && (refObj.GetIndirectReference() == (*it)->GetIndirectReference()) )
     {
         return *it;
     }
@@ -196,7 +196,7 @@ PdfObject* PdfVecObjects::RemoveObject( const PdfReference & ref, bool bMarkAsFr
     {
         pObj = *(it.first);
         if( bMarkAsFree )
-            this->SafeAddFreeObject( pObj->Reference() );
+            this->SafeAddFreeObject( pObj->GetIndirectReference() );
         m_vector.erase( it.first );
         return pObj;
     }
@@ -253,9 +253,9 @@ PdfObject* PdfVecObjects::CreateObject( const char* pszType )
 {
     PdfReference ref = this->GetNextFreeObject();
     PdfObject*  pObj = new PdfObject( ref, pszType );
-    pObj->SetOwner( this );
+    pObj->SetOwner(*this);
 
-    this->push_back( pObj );
+    this->AddObject( pObj );
 
     return pObj;
 }
@@ -263,10 +263,11 @@ PdfObject* PdfVecObjects::CreateObject( const char* pszType )
 PdfObject* PdfVecObjects::CreateObject( const PdfVariant & rVariant )
 {
     PdfReference ref = this->GetNextFreeObject();
-    PdfObject*  pObj = new PdfObject( ref, rVariant );
-    pObj->SetOwner( this );    
+    PdfObject*  pObj = new PdfObject(rVariant);
+    pObj->SetIndirectReference(ref);
+    pObj->SetOwner(*this);    
 
-    this->push_back( pObj );
+    this->AddObject( pObj );
 
     return pObj;
 }
@@ -325,17 +326,24 @@ void PdfVecObjects::AddFreeObject( const PdfReference & rReference )
     }
 }
 
-void PdfVecObjects::push_back( PdfObject* pObj )
+void PdfVecObjects::PushObject(PdfObject * pObj, const PdfReference & reference)
 {
-    insert_sorted( pObj );
+    if (GetObject(reference))
+    {
+        PdfError::LogMessage(eLogSeverity_Warning, "Object: %" PDF_FORMAT_INT64 " 0 R will be deleted and loaded again.\n", reference.ObjectNumber());
+        delete RemoveObject(reference, false);
+    }
+
+    pObj->SetIndirectReference(reference);
+    AddObject(pObj);
 }
 
-void PdfVecObjects::insert_sorted( PdfObject* pObj )
+void PdfVecObjects::AddObject(PdfObject * pObj)
 {
-    SetObjectCount( pObj->Reference() );
-    pObj->SetOwner( this );
+    SetObjectCount(pObj->GetIndirectReference());
+    pObj->SetOwner( *this );
 
-    if( m_bSorted && !m_vector.empty() && pObj->Reference() < m_vector.back()->Reference() )
+    if( m_bSorted && !m_vector.empty() && pObj->GetIndirectReference() < m_vector.back()->GetIndirectReference() )
     {
         TVecObjects::iterator i_pos = 
             std::lower_bound(m_vector.begin(),m_vector.end(),pObj,ObjectLittle);
@@ -541,7 +549,7 @@ void PdfVecObjects::GarbageCollection( TVecReferencePointerList* pList, PdfObjec
 
     while( it != pList->end() )
     {
-        bContains = pNotDelete ? ( pNotDelete->find( m_vector[pos]->Reference() ) != pNotDelete->end() ) : false;
+        bContains = pNotDelete ? ( pNotDelete->find( m_vector[pos]->GetIndirectReference() ) != pNotDelete->end() ) : false;
         if( !(*it).size() && !bContains )
         {
             m_vector.erase( this->begin() + pos );

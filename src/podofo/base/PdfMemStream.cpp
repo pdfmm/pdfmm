@@ -42,23 +42,15 @@
 #include "PdfVariant.h"
 #include "PdfDefinesPrivate.h"
 
-#include <stdlib.h>
+#include <cstdlib>
 
-namespace PoDoFo {
+using namespace PoDoFo;
 
 PdfMemStream::PdfMemStream( PdfObject* pParent )
     : PdfStream( pParent ), m_pStream( NULL ), m_pBufferStream( NULL ), m_lLength( 0 )
 {
-}
-
-PdfMemStream::PdfMemStream( const PdfMemStream & rhs )
-    : PdfStream( NULL ), m_pStream( NULL ), m_pBufferStream( NULL ), m_lLength( 0 )
-{
-    operator=(rhs);
-}
-
-PdfMemStream::~PdfMemStream()
-{
+    if (m_pParent)
+        m_pParent->GetDictionary().AddKey(PdfName::KeyLength, PdfVariant(static_cast<int64_t>(0)));
 }
 
 void PdfMemStream::BeginAppendImpl( const TVecFilters & vecFilters )
@@ -237,6 +229,24 @@ void PdfMemStream::Uncompress()
     }
 }
 
+const PdfMemStream & PdfMemStream::operator=(const PdfStream & rhs)
+{
+    if (&rhs == this)
+        return *this;
+
+    CopyFrom(rhs);
+    return (*this);
+}
+
+const PdfMemStream & PdfMemStream::operator=(const PdfMemStream & rhs)
+{
+    if (&rhs == this)
+        return *this;
+
+    CopyFrom(rhs);
+    return (*this);
+}
+
 void PdfMemStream::FlateCompressStreamData()
 {
     char*            pBuffer;
@@ -257,19 +267,24 @@ void PdfMemStream::FlateCompressStreamData()
     }
 }
 
-const PdfStream & PdfMemStream::operator=( const PdfStream & rhs )
+void PdfMemStream::CopyFrom(const PdfStream & rhs)
 {
-    const PdfMemStream* pStream = dynamic_cast<const PdfMemStream*>(&rhs);
-    if( pStream )
-        m_buffer = pStream->m_buffer;
-    else
-        return PdfStream::operator=( rhs );
+    const PdfMemStream* memstream = dynamic_cast<const PdfMemStream*>(&rhs);
+    if (memstream == nullptr)
+    {
+        PdfStream::operator=(rhs);
+        return;
+    }
 
+    copyFrom(*memstream);
+}
+
+void PdfMemStream::copyFrom(const PdfMemStream &rhs)
+{
+    m_buffer = rhs.m_buffer;
     m_lLength = rhs.GetLength();
-    if( m_pParent ) 
-        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant( static_cast<int64_t>(m_lLength) ) );
-
-    return *this;
+    if (m_pParent)
+        m_pParent->GetDictionary().AddKey(PdfName::KeyLength, PdfVariant(static_cast<int64_t>(m_lLength)));
 }
 
 void PdfMemStream::Write( PdfOutputDevice* pDevice, PdfEncrypt* pEncrypt ) 
@@ -296,10 +311,22 @@ void PdfMemStream::Write( PdfOutputDevice* pDevice, PdfEncrypt* pEncrypt )
     pDevice->Print( "\nendstream\n" );
 }
 
-pdf_long PdfMemStream::GetLength() const
+const char* PdfMemStream::Get() const
+{
+    return m_buffer.GetBuffer();
+}
+
+const char* PdfMemStream::GetInternalBuffer() const
+{
+    return m_buffer.GetBuffer();
+}
+
+pdf_long PdfMemStream::GetInternalBufferSize() const
 {
     return m_lLength;
 }
 
-
-};
+pdf_long PdfMemStream::GetLength() const
+{
+    return m_lLength;
+}

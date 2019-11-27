@@ -184,7 +184,7 @@ bool PdfNameTreeNode::AddValue( const PdfString & key, const PdfObject & rValue 
             pChild->GetDictionary().AddKey( "Names", array );
             pChild->GetDictionary().AddKey( "Limits", limits );
 
-            PdfArray kids( pChild->Reference() );
+            PdfArray kids( pChild->GetIndirectReference() );
             this->GetObject()->GetDictionary().AddKey( "Kids", kids );
             m_bHasKids = true;
         }
@@ -226,8 +226,8 @@ void PdfNameTreeNode::SetLimits()
         else
             PdfError::LogMessage( eLogSeverity_Error, 
                                   "Object %i %si does not have Kids array.", 
-                                  this->GetObject()->Reference().ObjectNumber(), 
-                                  this->GetObject()->Reference().GenerationNumber() );
+                                  this->GetObject()->GetIndirectReference().ObjectNumber(), 
+                                  this->GetObject()->GetIndirectReference().GenerationNumber() );
     }
     else // has "Names"
     {
@@ -240,8 +240,8 @@ void PdfNameTreeNode::SetLimits()
         else
             PdfError::LogMessage( eLogSeverity_Error, 
                                   "Object %i %si does not have Names array.", 
-                                  this->GetObject()->Reference().ObjectNumber(), 
-                                  this->GetObject()->Reference().GenerationNumber() );
+                                  this->GetObject()->GetIndirectReference().ObjectNumber(), 
+                                  this->GetObject()->GetIndirectReference().GenerationNumber() );
     }
 
     if( m_pParent )
@@ -291,10 +291,10 @@ bool PdfNameTreeNode::Rebalance()
         PdfArray::iterator it = kids.begin();
         while( it != kids.end() ) 
         {
-            if( (*it).GetReference() == pChild1->Reference() )
+            if( (*it).GetReference() == pChild1->GetIndirectReference() )
             {
                 ++it;
-                it = kids.insert( it, pChild2->Reference() );
+                it = kids.insert( it, pChild2->GetIndirectReference() );
                 break;
             }
             
@@ -303,8 +303,8 @@ bool PdfNameTreeNode::Rebalance()
         
         if( it == kids.end() )
         {
-            kids.push_back( pChild1->Reference() );
-            kids.push_back( pChild2->Reference() );
+            kids.push_back( pChild1->GetIndirectReference() );
+            kids.push_back( pChild2->GetIndirectReference() );
         }
 
         if( m_pParent ) 
@@ -331,12 +331,9 @@ bool PdfNameTreeNode::Rebalance()
     return false;
 }
 
-///////////////////////////////////////////////////////////////////////
 
-/*
-  We use NULL for the PdfElement name, since the NamesTree dict
-  does NOT have a /Type key!
-*/
+// We use NULL for the PdfElement name, since the NamesTree dict
+//  does NOT have a /Type key!
 PdfNamesTree::PdfNamesTree( PdfVecObjects* pParent )
     : PdfElement( NULL, pParent ), m_pCatalog( NULL )
 {
@@ -432,7 +429,7 @@ PdfObject* PdfNamesTree::GetRootNode( const PdfName & name, bool bCreate ) const
     if( !pObj && bCreate ) 
     {
         pObj = this->GetObject()->GetOwner()->CreateObject();
-        GetNonConstObject()->GetDictionary().AddKey( name, pObj->Reference() );
+        GetNonConstObject()->GetDictionary().AddKey( name, pObj->GetIndirectReference() );
     }
 
     return pObj;
@@ -458,8 +455,8 @@ EPdfNameLimits PdfNamesTree::CheckLimits( const PdfObject* pObj, const PdfString
     else
     {
         PdfError::LogMessage( eLogSeverity_Debug, "Name tree object %lu %lu does not have a limits key!", 
-                              pObj->Reference().ObjectNumber(), 
-                              pObj->Reference().GenerationNumber() );
+                              pObj->GetIndirectReference().ObjectNumber(), 
+                              pObj->GetIndirectReference().GenerationNumber() );
     }
 
     return ePdfNameLimits_Inside;
@@ -511,8 +508,8 @@ void PdfNamesTree::AddToDictionary( PdfObject* pObj, PdfDictionary & rDict )
                 PdfError::LogMessage( eLogSeverity_Warning,
                                 "No reference in /Names array last element in "
                                 "object %lu %lu, possible\nexploit attempt!\n",
-                                pObj->Reference().ObjectNumber(),
-                                pObj->Reference().GenerationNumber() );
+                                pObj->GetIndirectReference().ObjectNumber(),
+                                pObj->GetIndirectReference().GenerationNumber() );
                 break;
             }
             rDict.AddKey( name, (*it) );

@@ -113,7 +113,7 @@ void PdfPage::CreateContents()
     {
         m_pContents = new PdfContents(*this);
         this->GetObject()->GetDictionary().AddKey( PdfName::KeyContents, 
-                                                   m_pContents->GetContents()->Reference());   
+                                                   m_pContents->GetContents()->GetIndirectReference());   
     }
 }
 
@@ -238,8 +238,8 @@ const PdfObject* PdfPage::GetInheritedKeyFromObject( const char* inKey, const Pd
         if( pObj == inObject )
         {
             std::ostringstream oss;
-            oss << "Object " << inObject->Reference().ObjectNumber() << " "
-                << inObject->Reference().GenerationNumber() << " references itself as Parent";
+            oss << "Object " << inObject->GetIndirectReference().ObjectNumber() << " "
+                << inObject->GetIndirectReference().GenerationNumber() << " references itself as Parent";
             PODOFO_RAISE_ERROR_INFO( ePdfError_BrokenFile, oss.str().c_str() );
         }
 
@@ -336,7 +336,7 @@ int PdfPage::GetNumAnnots() const
 PdfAnnotation* PdfPage::CreateAnnotation( EPdfAnnotation eType, const PdfRect & rRect )
 {
     PdfAnnotation* pAnnot = new PdfAnnotation( this, eType, rRect, this->GetObject()->GetOwner() );
-    PdfReference   ref    = pAnnot->GetObject()->Reference();
+    PdfReference   ref    = pAnnot->GetObject()->GetIndirectReference();
 
     auto &arr = GetOrCreateAnnotationsArray();
     arr.push_back( ref );
@@ -393,8 +393,8 @@ void PdfPage::DeleteAnnotation( int index )
     }
 
     // Delete the PdfObject in the document
-    if (pItem->Reference().IsIndirect())
-        delete pItem->GetOwner()->RemoveObject(pItem->Reference());
+    if (pItem->GetIndirectReference().IsIndirect())
+        delete pItem->GetOwner()->RemoveObject(pItem->GetIndirectReference());
 
     // Delete the annotation from the annotation array.
     // Has to be performed at last
@@ -434,8 +434,8 @@ void PdfPage::DeleteAnnotation(PdfObject &annotObj)
     }
 
     // Delete the PdfObject in the document
-    if (annotObj.Reference().IsIndirect())
-        delete GetObject()->GetOwner()->RemoveObject(annotObj.Reference());
+    if (annotObj.GetIndirectReference().IsIndirect())
+        delete GetObject()->GetOwner()->RemoveObject(annotObj.GetIndirectReference());
     
     // Delete the annotation from the annotation array.
 	// Has to be performed at last
@@ -453,9 +453,11 @@ bool PdfPage::SetPageWidth(int newWidth)
     // assign the value of the box from the array
     if ( pObjMediaBox && pObjMediaBox->IsArray() )
     {
+        auto &mediaBoxArr = pObjMediaBox->GetArray();
+
         // in PdfRect::FromArray(), the Left value is subtracted from Width
-        double dLeftMediaBox = pObjMediaBox->GetArray()[0].GetReal();
-        pObjMediaBox->GetArray()[2].SetReal( newWidth + dLeftMediaBox );
+        double dLeftMediaBox = mediaBoxArr[0].GetReal();
+        mediaBoxArr[2] = PdfObject( newWidth + dLeftMediaBox );
 
         PdfObject*   pObjCropBox;
 
@@ -464,9 +466,10 @@ bool PdfPage::SetPageWidth(int newWidth)
 
         if ( pObjCropBox && pObjCropBox->IsArray() )
         {
+            auto &cropBoxArr = pObjCropBox->GetArray();
             // in PdfRect::FromArray(), the Left value is subtracted from Width
-            double dLeftCropBox = pObjCropBox->GetArray()[0].GetReal();
-            pObjCropBox->GetArray()[2].SetReal( newWidth + dLeftCropBox );
+            double dLeftCropBox = cropBoxArr[0].GetReal();
+            cropBoxArr[2] = PdfObject( newWidth + dLeftCropBox );
             return true;
         }
         else
@@ -491,9 +494,10 @@ bool PdfPage::SetPageHeight(int newHeight)
     // assign the value of the box from the array
     if ( pObj && pObj->IsArray() )
     {
+        auto &mediaBoxArr = pObj->GetArray();
         // in PdfRect::FromArray(), the Bottom value is subtracted from Height
-        double dBottom = pObj->GetArray()[1].GetReal();
-        pObj->GetArray()[3].SetReal( newHeight + dBottom );
+        double dBottom = mediaBoxArr[1].GetReal();
+        mediaBoxArr[3] = PdfObject(newHeight + dBottom);
 
         PdfObject*   pObjCropBox;
 
@@ -502,9 +506,10 @@ bool PdfPage::SetPageHeight(int newHeight)
 
         if ( pObjCropBox && pObjCropBox->IsArray() )
         {
-        // in PdfRect::FromArray(), the Bottom value is subtracted from Height
-            double dBottomCropBox = pObjCropBox->GetArray()[1].GetReal();
-            pObjCropBox->GetArray()[3].SetReal( newHeight + dBottomCropBox );
+            auto &cropBoxArr = pObjCropBox->GetArray();
+            // in PdfRect::FromArray(), the Bottom value is subtracted from Height
+            double dBottomCropBox = cropBoxArr[1].GetReal();
+            cropBoxArr[3] = PdfObject( newHeight + dBottomCropBox );
             return true;
         }
         else
@@ -536,7 +541,7 @@ unsigned int PdfPage::GetPageNumber() const
 {
     unsigned int        nPageNumber = 0;
     PdfObject*          pParent     = this->GetObject()->GetIndirectKey( "Parent" );
-    PdfReference ref                = this->GetObject()->Reference();
+    PdfReference ref                = this->GetObject()->GetIndirectReference();
 
     // CVE-2017-5852 - prevent infinite loop if Parent chain contains a loop
     // e.g. pParent->GetIndirectKey( "Parent" ) == pParent or pParent->GetIndirectKey( "Parent" )->GetIndirectKey( "Parent" ) == pParent
@@ -558,7 +563,7 @@ unsigned int PdfPage::GetPageNumber() const
                 {
                     std::ostringstream oss;
                     oss << "Object " << (*it).GetReference().ToString() << " not found from Kids array "
-                        << pKids->Reference().ToString(); 
+                        << pKids->GetIndirectReference().ToString(); 
                     PODOFO_RAISE_ERROR_INFO( ePdfError_NoObject, oss.str() );
                 }
 
@@ -579,7 +584,7 @@ unsigned int PdfPage::GetPageNumber() const
             }
         }
 
-        ref     = pParent->Reference();
+        ref     = pParent->GetIndirectReference();
         pParent = pParent->GetIndirectKey( "Parent" );
         ++depth;
 
@@ -678,12 +683,12 @@ void PdfPage::SetICCProfile( const char *pszCSTag, PdfInputStream *pStream, int6
     PdfName nameForCS = PdfColor::GetNameForColorSpace( eAlternateColorSpace );
     iccObject->GetDictionary().AddKey( PdfName("Alternate"), nameForCS );
     iccObject->GetDictionary().AddKey( PdfName("N"), nColorComponents );
-    iccObject->GetStream()->Set( pStream );
+    iccObject->GetOrCreateStream().Set( pStream );
 
     // Add the colorspace
     PdfArray array;
     array.push_back( PdfName("ICCBased") );
-    array.push_back( iccObject->Reference() );
+    array.push_back( iccObject->GetIndirectReference() );
 
     PoDoFo::PdfDictionary iccBasedDictionary;
     iccBasedDictionary.AddKey( PdfName(pszCSTag), array );

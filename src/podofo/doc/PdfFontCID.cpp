@@ -77,7 +77,7 @@ static void createWidths(PdfObject* pFontDict, PdfFontMetrics* metrics, const st
 static GidToCodePoint getGidToCodePoint(const PdfEncoding* pEncoding, PdfFontMetrics* pMetrics, const std::set<pdf_utf16be>& setUsed, const UnicodeToIndex& unicodeToIndex);
 static GidToCodePoint getGidToCodePoint(const PdfEncoding* pEncoding, PdfFontMetrics* pMetrics, const std::set<pdf_utf16be>& setUsed);
 
-static void fillUnicodeStream( PdfStream* pStream , const GidToCodePoint& gidToCodePoint, int nFirstChar, int nLastChar, bool bSingleByteEncoding);
+static void fillUnicodeStream( PdfStream & pStream , const GidToCodePoint& gidToCodePoint, int nFirstChar, int nLastChar, bool bSingleByteEncoding);
 
 #define SWAP_UTF16BE(x) static_cast<pdf_utf16be>(((x << 8) & 0xFF00) | ((x >> 8) & 0x00FF))
 
@@ -147,7 +147,7 @@ void PdfFontCID::Init( bool bEmbed, bool bSubset )
     // Now setting each of the entries of the font
         this->GetObject()->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("TrueType"));
         this->GetObject()->GetDictionary().AddKey( "BaseFont", this->GetBaseFont() );
-        this->GetObject()->GetDictionary().AddKey( "FontDescriptor", pDescriptor->Reference() );
+        this->GetObject()->GetDictionary().AddKey( "FontDescriptor", pDescriptor->GetIndirectReference() );
 
         // The encoding is here usually a (Predefined) CMap from PdfIdentityEncoding:
         m_pEncoding->AddToDictionary( this->GetObject()->GetDictionary() );
@@ -167,7 +167,7 @@ void PdfFontCID::Init( bool bEmbed, bool bSubset )
         m_pDescendantFonts = this->GetObject()->GetOwner()->CreateObject("Font");
 
     // The DecendantFonts, should be an indirect object:
-    array.push_back( m_pDescendantFonts->Reference() );
+    array.push_back( m_pDescendantFonts->GetIndirectReference() );
     this->GetObject()->GetDictionary().AddKey( "DescendantFonts", array );
 
     // Setting the DescendantFonts paras
@@ -179,14 +179,14 @@ void PdfFontCID::Init( bool bEmbed, bool bSubset )
 
     // The CIDSystemInfo, should be an indirect object:
         PdfObject* pCIDSystemInfo = this->GetObject()->GetOwner()->CreateObject();
-    m_pDescendantFonts->GetDictionary().AddKey( "CIDSystemInfo", pCIDSystemInfo->Reference() );
+    m_pDescendantFonts->GetDictionary().AddKey( "CIDSystemInfo", pCIDSystemInfo->GetIndirectReference() );
     // Setting the CIDSystemInfo paras:
     pCIDSystemInfo->GetDictionary().AddKey( "Registry", PdfString("Adobe") );
     pCIDSystemInfo->GetDictionary().AddKey( "Ordering", PdfString("Identity") );
     pCIDSystemInfo->GetDictionary().AddKey( "Supplement", PdfVariant(static_cast<int64_t>(0)) );
 
         // The FontDescriptor, should be an indirect object:
-        m_pDescendantFonts->GetDictionary().AddKey( "FontDescriptor", pDescriptor->Reference() );
+        m_pDescendantFonts->GetDictionary().AddKey( "FontDescriptor", pDescriptor->GetIndirectReference() );
         m_pDescendantFonts->GetDictionary().AddKey( "CIDToGIDMap", PdfName("Identity") );
 
         if( !bSubset )
@@ -198,7 +198,7 @@ void PdfFontCID::Init( bool bEmbed, bool bSubset )
             PdfObject* pUnicode = this->GetObject()->GetOwner()->CreateObject();
 
             this->CreateCMap( pUnicode );
-            this->GetObject()->GetDictionary().AddKey( "ToUnicode", pUnicode->Reference() );
+            this->GetObject()->GetDictionary().AddKey( "ToUnicode", pUnicode->GetIndirectReference() );
         }
     }
 
@@ -273,16 +273,16 @@ void PdfFontCID::EmbedFont( PdfObject* pDescriptor )
         
                 PdfObject* pUnicode = this->GetObject()->GetOwner()->CreateObject();
                 GidToCodePoint gidToCodePoint = getGidToCodePoint( m_pEncoding, pMetrics, m_setUsed, unicodeToIndex);
-                fillUnicodeStream( pUnicode->GetStream(), gidToCodePoint, *m_setUsed.begin(), *m_setUsed.rbegin(), true);
-                this->GetObject()->GetDictionary().AddKey( "ToUnicode", pUnicode->Reference() );
+                fillUnicodeStream( pUnicode->GetOrCreateStream(), gidToCodePoint, *m_setUsed.begin(), *m_setUsed.rbegin(), true);
+                this->GetObject()->GetDictionary().AddKey( "ToUnicode", pUnicode->GetIndirectReference() );
             }
             else {
                 createWidths(m_pDescendantFonts, pMetrics, m_setUsed);
 
                 PdfObject* pUnicode = this->GetObject()->GetOwner()->CreateObject();
                 GidToCodePoint gidToCodePoint = getGidToCodePoint( m_pEncoding, pMetrics, m_setUsed);
-                fillUnicodeStream( pUnicode->GetStream(), gidToCodePoint, *m_setUsed.begin(), *m_setUsed.rbegin(), false);
-                this->GetObject()->GetDictionary().AddKey( "ToUnicode", pUnicode->Reference() );
+                fillUnicodeStream( pUnicode->GetOrCreateStream(), gidToCodePoint, *m_setUsed.begin(), *m_setUsed.rbegin(), false);
+                this->GetObject()->GetDictionary().AddKey( "ToUnicode", pUnicode->GetIndirectReference() );
             }
 
             PdfInputDevice input(pMetrics->GetFontData(), pMetrics->GetFontDataLen());
@@ -301,17 +301,17 @@ void PdfFontCID::EmbedFont( PdfObject* pDescriptor )
                     TVecFilters vecFlate;
                     vecFlate.push_back(ePdfFilter_FlateDecode);
                     PdfMemoryInputStream stream(reinterpret_cast<const char*>(array.data()), array.size());
-					cidSet->GetStream()->Set(&stream, vecFlate);
-                    pDescriptor->GetDictionary().AddKey("CIDSet", cidSet->Reference());
+					cidSet->GetOrCreateStream().Set(&stream, vecFlate);
+                    pDescriptor->GetDictionary().AddKey("CIDSet", cidSet->GetIndirectReference());
 			}
             }
 
             PdfObject *pContents = this->GetObject()->GetOwner()->CreateObject();
-			pDescriptor->GetDictionary().AddKey( "FontFile2", pContents->Reference() );
+			pDescriptor->GetDictionary().AddKey( "FontFile2", pContents->GetIndirectReference() );
 
 			pdf_long lSize = buffer.GetSize();
 			pContents->GetDictionary().AddKey("Length1", PdfVariant(static_cast<int64_t>(lSize)));
-			pContents->GetStream()->Set(buffer.GetBuffer(), lSize);
+			pContents->GetOrCreateStream().Set(buffer.GetBuffer(), lSize);
 
 			fallback = false;
 		}
@@ -327,7 +327,7 @@ void PdfFontCID::EmbedFont( PdfObject* pDescriptor )
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
         
-    pDescriptor->GetDictionary().AddKey( "FontFile2", pContents->Reference() );
+    pDescriptor->GetDictionary().AddKey( "FontFile2", pContents->GetIndirectReference() );
         
     // if the data was loaded from memory - use it from there
     // otherwise, load from disk
@@ -340,7 +340,7 @@ void PdfFontCID::EmbedFont( PdfObject* pDescriptor )
         // as PdfStreamedDocument does not allow 
         // adding keys to an object after a stream was written
         pContents->GetDictionary().AddKey( "Length1", PdfVariant( static_cast<int64_t>(lSize) ) );
-        pContents->GetStream()->Set( pBuffer, lSize );
+        pContents->GetOrCreateStream().Set( pBuffer, lSize );
     } 
     else 
     {
@@ -351,7 +351,7 @@ void PdfFontCID::EmbedFont( PdfObject* pDescriptor )
         // as PdfStreamedDocument does not allow 
         // adding keys to an object after a stream was written
         pContents->GetDictionary().AddKey( "Length1", PdfVariant( static_cast<int64_t>(lSize) ) );
-        pContents->GetStream()->Set( &stream );
+        pContents->GetOrCreateStream().Set( &stream );
     }
     }
 }
@@ -460,7 +460,7 @@ void PdfFontCID::CreateCMap( PdfObject* pUnicode ) const
     GidToCodePoint gidToCodePoint;
     if (fillGidToCodePoint(gidToCodePoint, m_pMetrics)) 
     {
-        fillUnicodeStream( pUnicode->GetStream(), gidToCodePoint, m_pEncoding->GetFirstChar(), m_pEncoding->GetLastChar(), m_pEncoding->IsSingleByteEncoding() );
+        fillUnicodeStream( pUnicode->GetOrCreateStream(), gidToCodePoint, m_pEncoding->GetFirstChar(), m_pEncoding->GetLastChar(), m_pEncoding->IsSingleByteEncoding() );
     }
 }
 
@@ -515,16 +515,15 @@ createUnicodeRanges(const GidToCodePoint& gidToCodePoint, int nFirstChar, int nL
     return vecRanges;
 }
 
-static void
-fillUnicodeStream( PdfStream* pStream , const GidToCodePoint& gidToCodePoint, int nFirstChar, int nLastChar, bool bSingleByteEncoding)
+static void fillUnicodeStream( PdfStream & pStream , const GidToCodePoint& gidToCodePoint, int nFirstChar, int nLastChar, bool bSingleByteEncoding)
 {
     std::ostringstream oss;
     std::ostringstream range;
 
     std::vector<TBFRange> vecRanges = createUnicodeRanges( gidToCodePoint, nFirstChar, nLastChar );
 
-    pStream->BeginAppend();
-    pStream->Append("/CIDInit /ProcSet findresource begin\n"
+    pStream.BeginAppend();
+    pStream.Append("/CIDInit /ProcSet findresource begin\n"
         "12 dict begin\n"
         "begincmap\n"
         "/CIDSystemInfo\n"
@@ -537,10 +536,10 @@ fillUnicodeStream( PdfStream* pStream , const GidToCodePoint& gidToCodePoint, in
         "1 begincodespacerange\n");
 
     if (bSingleByteEncoding)
-        pStream->Append("<00> <FF>\n");
+        pStream.Append("<00> <FF>\n");
     else
-        pStream->Append("<0000> <FFFF>\n");
-    pStream->Append("endcodespacerange\n");
+        pStream.Append("<0000> <FFFF>\n");
+    pStream.Append("endcodespacerange\n");
 
     int numberOfEntries = 0;
 
@@ -557,7 +556,7 @@ fillUnicodeStream( PdfStream* pStream , const GidToCodePoint& gidToCodePoint, in
             oss << range.str();
             oss << "endbfrange" << std::endl;
 
-            pStream->Append(oss.str());
+            pStream.Append(oss.str());
 
             oss.str("");
             range.str("");
@@ -600,14 +599,14 @@ fillUnicodeStream( PdfStream* pStream , const GidToCodePoint& gidToCodePoint, in
         oss << numberOfEntries << " beginbfrange" << std::endl;
         oss << range.str();
         oss << "endbfrange" << std::endl;
-        pStream->Append( oss.str().c_str() );
+        pStream.Append( oss.str().c_str() );
     }
 
-    pStream->Append("endcmap\n"
+    pStream.Append("endcmap\n"
         "CMapName currentdict /CMap defineresource pop\n"
         "end\n"
         "end\n");
-    pStream->EndAppend();
+    pStream.EndAppend();
 }
 
 static GidToCodePoint

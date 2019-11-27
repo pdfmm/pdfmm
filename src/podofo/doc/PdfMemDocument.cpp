@@ -197,12 +197,12 @@ void PdfMemDocument::InitFromParser( PdfParser* pParser )
     if( !pInfo ) 
     {
         pInfoObj = new PdfInfo( &PdfDocument::GetObjects() );
-        pTrailer->GetDictionary().AddKey( "Info", pInfoObj->GetObject()->Reference() );
+        pTrailer->GetDictionary().AddKey( "Info", pInfoObj->GetObject()->GetIndirectReference() );
     }
     else 
         pInfoObj = new PdfInfo( pInfo );
 
-    if( pParser->GetEncrypted() ) 
+    if( pParser->IsEncrypted() ) 
     {
         // All PdfParser instances have a pointer to a PdfEncrypt object.
         // So we have to take ownership of it (command the parser to give it).

@@ -56,10 +56,10 @@ class PdfObject;
  *
  *  A PdfMemStream is implicitly shared and can therefore be copied very quickly.
  */
-class PODOFO_API PdfMemStream : public PdfStream {
+class PODOFO_API PdfMemStream final : public PdfStream
+{
     friend class PdfVecObjects;
-
- public:
+public:
 
     /** Create a new PdfStream object which has a parent PdfObject.
      *  The stream will be deleted along with the parent.
@@ -68,19 +68,11 @@ class PODOFO_API PdfMemStream : public PdfStream {
      */
     PdfMemStream( PdfObject* pParent );
 
-    /** Create a shallow copy of a PdfStream object
-     *
-     *  \param rhs the object to clone
-     */
-    PdfMemStream( const PdfMemStream & rhs );
-
-    ~PdfMemStream();
-
     /** Write the stream to an output device
      *  \param pDevice write to this outputdevice.
      *  \param pEncrypt encrypt stream data using this object
      */
-    virtual void Write( PdfOutputDevice* pDevice, PdfEncrypt* pEncrypt = NULL );
+    void Write( PdfOutputDevice* pDevice, PdfEncrypt* pEncrypt = NULL ) override;
 
     /** Get a malloced buffer of the current stream.
      *  No filters will be applied to the buffer, so
@@ -92,13 +84,13 @@ class PODOFO_API PdfMemStream : public PdfStream {
      *  \param pBuffer pointer to where the buffer's address will be stored
      *  \param lLen    pointer to the buffer length (output parameter)
      */
-    virtual void GetCopy( char** pBuffer, pdf_long* lLen ) const;
+    void GetCopy( char** pBuffer, pdf_long* lLen ) const override;
 
     /** Get a copy of a the stream and write it to a PdfOutputStream
      *
      *  \param pStream data is written to this stream.
      */
-    virtual void GetCopy( PdfOutputStream* pStream ) const;
+    void GetCopy( PdfOutputStream* pStream ) const override;
 
     /** Get a read-only handle to the current stream data.
      *  The data will not be filtered before being returned, so (eg) calling
@@ -119,7 +111,7 @@ class PODOFO_API PdfMemStream : public PdfStream {
      *  \returns the length of the internal buffer
      *  \see Get()
      */
-    virtual pdf_long GetLength() const;
+    pdf_long GetLength() const override;
 
     /** This function compresses any currently set stream
      *  using the FlateDecode(ZIP) algorithm. JPEG compressed streams
@@ -132,34 +124,26 @@ class PODOFO_API PdfMemStream : public PdfStream {
      */
     void Uncompress();
 
-    /** Empty's the stream and set the streams buffer size to 0
-     */
-    void Empty();
-
-    /** Create a copy of a PdfStream object
-     *
-     *  \param rhs the object to clone
-     *  \returns a reference to this object
-     */
-    const PdfStream & operator=( const PdfStream & rhs );
+    const PdfMemStream & operator=(const PdfMemStream & rhs);
+    const PdfMemStream & operator=(const PdfStream & rhs);
 
  protected:
     /** Required for the GetFilteredCopy implementation
      *  \returns a handle to the internal buffer
      */
-    inline virtual const char* GetInternalBuffer() const;
+    virtual const char* GetInternalBuffer() const override;
 
     /** Required for the GetFilteredCopy implementation
      *  \returns the size of the internal buffer
      */
-    inline virtual pdf_long GetInternalBufferSize() const;
+    virtual pdf_long GetInternalBufferSize() const override;
 
     /** Begin appending data to this stream.
      *  Clears the current stream contents.
      *
      *  \param vecFilters use this filters to encode any data written to the stream.
      */
-    virtual void BeginAppendImpl( const TVecFilters & vecFilters );
+    void BeginAppendImpl( const TVecFilters & vecFilters ) override;
 
     /** Append a binary buffer to the current stream contents.
      *
@@ -170,18 +154,21 @@ class PODOFO_API PdfMemStream : public PdfStream {
      *  \see Append
      *  \see EndAppend
      */
-    virtual void AppendImpl( const char* pszString, size_t lLen ); 
+    void AppendImpl( const char* pszString, size_t lLen ) override;
 
     /** Finish appending data to the stream
      */
-    virtual void EndAppendImpl();
+    void EndAppendImpl() override;
+
+    void CopyFrom(const PdfStream &rhs) override;
+    void copyFrom(const PdfMemStream &rhs);
 
  private:
     /** Compress the current data using the FlateDecode (zlib) algorithm
      *  Expects that all filters are setup correctly.
      */
     void FlateCompressStreamData();
-
+    PdfMemStream(const PdfMemStream & rhs) = delete;
 
  private:
     PdfRefCountedBuffer    m_buffer;
@@ -190,30 +177,6 @@ class PODOFO_API PdfMemStream : public PdfStream {
 
     pdf_long               m_lLength;
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const char* PdfMemStream::Get() const
-{
-    return m_buffer.GetBuffer();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const char* PdfMemStream::GetInternalBuffer() const
-{
-    return m_buffer.GetBuffer();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-pdf_long PdfMemStream::GetInternalBufferSize() const
-{
-    return m_lLength;
-}
 
 };
 

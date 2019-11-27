@@ -431,7 +431,7 @@ void PdfArray::insert(const PdfArray::iterator& __position,
     {
         it2 = m_objects.insert( it2, *it1 );
         if ( pOwner != NULL )
-            it2->SetOwner( pOwner );
+            it2->SetOwner(*pOwner);
     }
 
     m_bDirty = true;

@@ -37,7 +37,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-namespace PoDoFo {
+using namespace PoDoFo;
 
 PdfRefCountedBuffer::PdfRefCountedBuffer( char* pBuffer, size_t lSize )
     : m_pBuffer( NULL )
@@ -52,6 +52,90 @@ PdfRefCountedBuffer::PdfRefCountedBuffer( char* pBuffer, size_t lSize )
         m_pBuffer->m_lVisibleSize  = lSize;
         m_pBuffer->m_bPossesion    = true;
     }
+}
+
+PdfRefCountedBuffer::PdfRefCountedBuffer()
+    : m_pBuffer(NULL)
+{
+}
+
+PdfRefCountedBuffer::PdfRefCountedBuffer(size_t lSize)
+    : m_pBuffer(NULL)
+{
+    this->Resize(lSize);
+}
+
+// We define the copy ctor separately to the assignment
+// operator since it's a *LOT* faster this way.
+PdfRefCountedBuffer::PdfRefCountedBuffer(const PdfRefCountedBuffer & rhs)
+    : m_pBuffer(rhs.m_pBuffer)
+{
+    if (m_pBuffer)
+        ++(m_pBuffer->m_lRefCount);
+}
+
+PdfRefCountedBuffer::~PdfRefCountedBuffer()
+{
+    DerefBuffer();
+}
+
+char * PdfRefCountedBuffer::GetBuffer()
+{
+    if (m_pBuffer == nullptr)
+        return nullptr;
+
+    return m_pBuffer->GetRealBuffer();
+}
+
+const char* PdfRefCountedBuffer::GetBuffer() const
+{
+    return const_cast<PdfRefCountedBuffer &>(*this).GetBuffer();
+}
+
+size_t PdfRefCountedBuffer::GetSize() const
+{
+    return m_pBuffer ? m_pBuffer->m_lVisibleSize : 0;
+}
+
+void PdfRefCountedBuffer::SetTakePossesion(bool bTakePossession)
+{
+    if (m_pBuffer)
+        m_pBuffer->m_bPossesion = bTakePossession;
+}
+
+bool PdfRefCountedBuffer::TakePossesion() const
+{
+    return m_pBuffer ? m_pBuffer->m_bPossesion : false;
+}
+
+void PdfRefCountedBuffer::Detach(size_t lExtraLen)
+{
+    if (m_pBuffer && m_pBuffer->m_lRefCount > 1L)
+        ReallyDetach(lExtraLen);
+}
+
+void PdfRefCountedBuffer::Resize(size_t lSize)
+{
+    if (m_pBuffer && m_pBuffer->m_lRefCount == 1L && static_cast<size_t>(m_pBuffer->m_lBufferSize) >= lSize)
+    {
+        // We have a solely owned buffer the right size already; no need to
+        // waste any time detaching or resizing it. Just let the client see
+        // more of it (or less if they're shrinking their view).
+        m_pBuffer->m_lVisibleSize = lSize;
+    }
+    else
+    {
+        ReallyResize(lSize);
+    }
+}
+
+void PdfRefCountedBuffer::DerefBuffer()
+{
+    if (m_pBuffer && !(--m_pBuffer->m_lRefCount))
+        FreeBuffer();
+    // Whether or not it still exists, we no longer have anything to do with
+    // the buffer we just released our claim on.
+    m_pBuffer = NULL;
 }
 
 void PdfRefCountedBuffer::FreeBuffer()
@@ -265,5 +349,7 @@ bool PdfRefCountedBuffer::operator>( const PdfRefCountedBuffer & rhs ) const
     }
 }
 
-
-};
+char * PdfRefCountedBuffer::TRefCountedBuffer::GetRealBuffer()
+{
+     return m_bOnHeap ? m_pHeapBuffer : &(m_sInternalBuffer[0]);
+}

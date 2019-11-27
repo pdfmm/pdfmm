@@ -58,9 +58,9 @@ class PdfOutputStream;
  *  \see PdfMemoryStream
  *  \see PdfFileStream
  */
-class PODOFO_API PdfFileStream : public PdfStream {
-
- public:
+class PODOFO_API PdfFileStream : public PdfStream
+{
+public:
     /** Create a new PdfFileStream object which has a parent PdfObject.
      *  The stream will be deleted along with the parent.
      *  This constructor will be called by PdfObject::Stream() for you.
@@ -81,7 +81,7 @@ class PODOFO_API PdfFileStream : public PdfStream {
      *  \param pDevice write to this outputdevice.
      *  \param pEncrypt encrypt stream data using this object
      */
-    virtual void Write( PdfOutputDevice* pDevice, PdfEncrypt* pEncrypt = NULL );
+    void Write( PdfOutputDevice* pDevice, PdfEncrypt* pEncrypt = NULL ) override;
 
     /** Get a malloced buffer of the current stream.
      *  No filters will be applied to the buffer, so
@@ -96,38 +96,38 @@ class PODOFO_API PdfFileStream : public PdfStream {
      *  \param pBuffer pointer to the buffer address (output parameter)
      *  \param lLen    pointer to the buffer length  (output parameter)
      */
-    virtual void GetCopy( char** pBuffer, pdf_long* lLen ) const;
+    void GetCopy( char** pBuffer, pdf_long* lLen ) const override;
 
     /** Get a copy of a the stream and write it to a PdfOutputStream
      *
      *  \param pStream data is written to this stream.
      */
-    virtual void GetCopy( PdfOutputStream* pStream ) const;
+    void GetCopy( PdfOutputStream* pStream ) const override;
 
     /** Get the streams length with all filters applied (eg the compressed
      *  length of a Flate compressed stream).
      *
      *  \returns the length of the stream with all filters applied
      */
-    inline virtual pdf_long GetLength() const;
+    pdf_long GetLength() const override;
 
  protected:
     /** Required for the GetFilteredCopy implementation
      *  \returns a handle to the internal buffer
      */
-    inline virtual const char* GetInternalBuffer() const;
+    const char* GetInternalBuffer() const override;
 
     /** Required for the GetFilteredCopy implementation
      *  \returns the size of the internal buffer
      */
-    inline virtual pdf_long GetInternalBufferSize() const;
+    virtual pdf_long GetInternalBufferSize() const override;
 
     /** Begin appending data to this stream.
      *  Clears the current stream contents.
      *
      *  \param vecFilters use this filters to encode any data written to the stream.
      */
-    virtual void BeginAppendImpl( const TVecFilters & vecFilters );
+    void BeginAppendImpl( const TVecFilters & vecFilters ) override;
 
     /** Append a binary buffer to the current stream contents.
      *
@@ -144,44 +144,24 @@ class PODOFO_API PdfFileStream : public PdfStream {
      */
     virtual void EndAppendImpl();
 
- private:
+private:
+    PdfFileStream(const PdfFileStream &stream) = delete;
+    const PdfFileStream & operator=(const PdfFileStream &stream) = delete;
+
+private:
     PdfOutputDevice* m_pDevice;
     PdfOutputStream* m_pStream;
     PdfOutputStream* m_pDeviceStream;
     PdfOutputStream* m_pEncryptStream;
 
-    pdf_long    m_lLenInitial;
-    pdf_long    m_lLength;
+    size_t m_lLenInitial;
+    size_t m_lLength;
     
 
     PdfObject*       m_pLength;
 
     PdfEncrypt*      m_pCurEncrypt;
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-pdf_long PdfFileStream::GetLength() const
-{
-    return m_lLength;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const char* PdfFileStream::GetInternalBuffer() const
-{
-    return NULL;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-pdf_long PdfFileStream::GetInternalBufferSize() const
-{
-    return 0;
-}
 
 };
 

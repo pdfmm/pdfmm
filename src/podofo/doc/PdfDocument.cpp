@@ -79,13 +79,13 @@ PdfDocument::PdfDocument(bool bEmpty)
     if( !bEmpty ) 
     {
         m_pTrailer = new PdfObject(); // The trailer is NO part of the vector of objects
-        m_pTrailer->SetOwner( &m_vecObjects );
+        m_pTrailer->SetOwner( m_vecObjects );
         m_pCatalog = m_vecObjects.CreateObject( "Catalog" );
         
         m_pInfo = new PdfInfo( &m_vecObjects );
         
-        m_pTrailer->GetDictionary().AddKey( "Root", m_pCatalog->Reference() );
-        m_pTrailer->GetDictionary().AddKey( "Info", m_pInfo->GetObject()->Reference() );
+        m_pTrailer->GetDictionary().AddKey( "Root", m_pCatalog->GetIndirectReference() );
+        m_pTrailer->GetDictionary().AddKey( "Info", m_pInfo->GetObject()->GetIndirectReference() );
 
         InitPagesTree();
     }
@@ -160,7 +160,7 @@ void PdfDocument::InitPagesTree()
     else
     {
         m_pPagesTree = new PdfPagesTree( &m_vecObjects );
-        m_pCatalog->GetDictionary().AddKey( "Pages", m_pPagesTree->GetObject()->Reference() );
+        m_pCatalog->GetDictionary().AddKey( "Pages", m_pPagesTree->GetObject()->GetIndirectReference() );
     }
 }
 
@@ -289,18 +289,17 @@ const PdfDocument & PdfDocument::Append( const PdfDocument & rDoc, bool bAppendA
     }
 
 	// append all objects first and fix their references
-    TCIVecObjects it           = rDoc.GetObjects().begin();
+    TCIVecObjects it = rDoc.GetObjects().begin();
     while( it != rDoc.GetObjects().end() )
     {
-        PdfObject* pObj = new PdfObject( PdfReference( 
-                                             static_cast<unsigned int>((*it)->Reference().ObjectNumber() + difference), (*it)->Reference().GenerationNumber() ), *(*it) );
-        m_vecObjects.push_back( pObj );
-
-        if( (*it)->IsDictionary() && (*it)->HasStream() )
-            *(pObj->GetStream()) = *((*it)->GetStream());
+        PdfReference reference(static_cast<uint32_t>((*it)->GetIndirectReference().ObjectNumber() + difference), (*it)->GetIndirectReference().GenerationNumber());
+        PdfObject* pObj = new PdfObject();
+        pObj->SetIndirectReference(reference);
+        m_vecObjects.AddObject(pObj);
+        *pObj = **it;
 
         PdfError::LogMessage( eLogSeverity_Information,
-                              "Fixing references in %i %i R by %i\n", pObj->Reference().ObjectNumber(), pObj->Reference().GenerationNumber(), difference );
+                              "Fixing references in %i %i R by %i\n", pObj->GetIndirectReference().ObjectNumber(), pObj->GetIndirectReference().GenerationNumber(), difference );
         FixObjectReferences( pObj, difference );
 
         ++it;
@@ -326,7 +325,7 @@ const PdfDocument & PdfDocument::Append( const PdfDocument & rDoc, bool bAppendA
                 oss << "No page " << i << " (the first is 0) found.";
                 PODOFO_RAISE_ERROR_INFO( ePdfError_PageNotFound, oss.str() );
             }
-            PdfObject*    pObj  = m_vecObjects.GetObject( PdfReference( pPage->GetObject()->Reference().ObjectNumber() + difference, pPage->GetObject()->Reference().GenerationNumber() ) );
+            PdfObject*    pObj  = m_vecObjects.GetObject( PdfReference( pPage->GetObject()->GetIndirectReference().ObjectNumber() + difference, pPage->GetObject()->GetIndirectReference().GenerationNumber() ) );
             if( pObj->IsDictionary() && pObj->GetDictionary().HasKey( "Parent" ) )
                 pObj->GetDictionary().RemoveKey( "Parent" );
 
@@ -357,7 +356,7 @@ const PdfDocument & PdfDocument::Append( const PdfDocument & rDoc, bool bAppendA
             while( pRoot && pRoot->Next() ) 
                 pRoot = pRoot->Next();
             
-            PdfReference ref( pAppendRoot->First()->GetObject()->Reference().ObjectNumber() + difference, pAppendRoot->First()->GetObject()->Reference().GenerationNumber() );
+            PdfReference ref( pAppendRoot->First()->GetObject()->GetIndirectReference().ObjectNumber() + difference, pAppendRoot->First()->GetObject()->GetIndirectReference().GenerationNumber() );
             pRoot->InsertChild( new PdfOutlines( m_vecObjects.GetObject( ref ) ) );
         }
     }
@@ -388,18 +387,18 @@ const PdfDocument &PdfDocument::InsertExistingPageAt( const PdfDocument & rDoc, 
     }
 
 	// append all objects first and fix their references
-    TCIVecObjects it           = rDoc.GetObjects().begin();
+    TCIVecObjects it = rDoc.GetObjects().begin();
     while( it != rDoc.GetObjects().end() )
     {
-        PdfObject* pObj = new PdfObject( PdfReference( 
-                                             static_cast<unsigned int>((*it)->Reference().ObjectNumber() + difference), (*it)->Reference().GenerationNumber() ), *(*it) );
-        m_vecObjects.push_back( pObj );
+        PdfReference reference(static_cast<uint32_t>((*it)->GetIndirectReference().ObjectNumber() + difference), (*it)->GetIndirectReference().GenerationNumber());
 
-        if( (*it)->IsDictionary() && (*it)->HasStream() )
-            *(pObj->GetStream()) = *((*it)->GetStream());
+        PdfObject* pObj = new PdfObject();
+        pObj->SetIndirectReference(reference);
+        m_vecObjects.AddObject(pObj);
+        *pObj = **it;
 
         PdfError::LogMessage( eLogSeverity_Information,
-                              "Fixing references in %i %i R by %i\n", pObj->Reference().ObjectNumber(), pObj->Reference().GenerationNumber(), difference );
+                              "Fixing references in %i %i R by %i\n", pObj->GetIndirectReference().ObjectNumber(), pObj->GetIndirectReference().GenerationNumber(), difference );
         FixObjectReferences( pObj, difference );
 
         ++it;
@@ -421,7 +420,7 @@ const PdfDocument &PdfDocument::InsertExistingPageAt( const PdfDocument & rDoc, 
         }
 
         PdfPage*      pPage = rDoc.GetPage( i );
-        PdfObject*    pObj  = m_vecObjects.GetObject( PdfReference( pPage->GetObject()->Reference().ObjectNumber() + difference, pPage->GetObject()->Reference().GenerationNumber() ) );
+        PdfObject*    pObj  = m_vecObjects.GetObject( PdfReference( pPage->GetObject()->GetIndirectReference().ObjectNumber() + difference, pPage->GetObject()->GetIndirectReference().GenerationNumber() ) );
         if( pObj->IsDictionary() && pObj->GetDictionary().HasKey( "Parent" ) )
             pObj->GetDictionary().RemoveKey( "Parent" );
 
@@ -452,7 +451,7 @@ const PdfDocument &PdfDocument::InsertExistingPageAt( const PdfDocument & rDoc, 
         while( pRoot && pRoot->Next() ) 
 	    pRoot = pRoot->Next();
     
-        PdfReference ref( pAppendRoot->First()->GetObject()->Reference().ObjectNumber() + difference, pAppendRoot->First()->GetObject()->Reference().GenerationNumber() );
+        PdfReference ref( pAppendRoot->First()->GetObject()->GetIndirectReference().ObjectNumber() + difference, pAppendRoot->First()->GetObject()->GetIndirectReference().GenerationNumber() );
         pRoot->InsertChild( new PdfOutlines( m_vecObjects.GetObject( ref ) ) );
     }
     
@@ -481,7 +480,7 @@ PdfRect PdfDocument::FillXObjectFromPage( PdfXObject * pXObj, const PdfPage * pP
 {
     // TODO: remove unused objects: page, ...
 
-    PdfObject*    pObj  = m_vecObjects.GetObject( PdfReference( pPage->GetObject()->Reference().ObjectNumber() + difference, pPage->GetObject()->Reference().GenerationNumber() ) );
+    PdfObject*    pObj  = m_vecObjects.GetObject( PdfReference( pPage->GetObject()->GetIndirectReference().ObjectNumber() + difference, pPage->GetObject()->GetIndirectReference().GenerationNumber() ) );
     PdfRect       box  = pPage->GetMediaBox();
 
     // intersect with crop-box
@@ -511,11 +510,11 @@ PdfRect PdfDocument::FillXObjectFromPage( PdfXObject * pXObj, const PdfPage * pP
             PdfArray pArray = pContents->GetArray();
 
             PdfObject*  pObj = pXObj->GetObject();
-            PdfStream*  pObjStream = pObj->GetStream();
+            PdfStream &pObjStream = pObj->GetOrCreateStream();
 
             TVecFilters vFilters;
             vFilters.push_back( ePdfFilter_FlateDecode );
-            pObjStream->BeginAppend( vFilters );
+            pObjStream.BeginAppend( vFilters );
 
             TIVariantList it;
             for(it = pArray.begin(); it != pArray.end(); it++)
@@ -533,13 +532,13 @@ PdfRect PdfDocument::FillXObjectFromPage( PdfXObject * pXObj, const PdfPage * pP
                         }
                         else if (pObj->HasStream())
                         {
-                            PdfStream*  pcontStream = pObj->GetStream();
+                            PdfStream &pcontStream = pObj->GetOrCreateStream();
 
                             char*       pcontStreamBuffer;
                             pdf_long    pcontStreamLength;
-                            pcontStream->GetFilteredCopy( &pcontStreamBuffer, &pcontStreamLength );
+                            pcontStream.GetFilteredCopy( &pcontStreamBuffer, &pcontStreamLength );
     
-                            pObjStream->Append( pcontStreamBuffer, pcontStreamLength );
+                            pObjStream.Append( pcontStreamBuffer, pcontStreamLength );
                             podofo_free( pcontStreamBuffer );
                             break;
                         }
@@ -554,28 +553,28 @@ PdfRect PdfDocument::FillXObjectFromPage( PdfXObject * pXObj, const PdfPage * pP
                 {
                     string str;
                     it->ToString( str );
-                    pObjStream->Append( str );
-                    pObjStream->Append( " " );
+                    pObjStream.Append( str );
+                    pObjStream.Append( " " );
                 }
             }
-            pObjStream->EndAppend();
+            pObjStream.EndAppend();
         }
         else if( pContents->HasStream() )
         {
             // copy stream to xobject
-            PdfObject*  pObj = pXObj->GetObject();
-            PdfStream*  pObjStream = pObj->GetStream();
-            PdfStream*  pcontStream = pContents->GetStream();
-            char*       pcontStreamBuffer;
-            pdf_long    pcontStreamLength;
+            PdfObject* pObj = pXObj->GetObject();
+            PdfStream &pObjStream = pObj->GetOrCreateStream();
+            PdfStream &pcontStream = pContents->GetOrCreateStream();
+            char* pcontStreamBuffer;
+            pdf_long pcontStreamLength;
 
             TVecFilters vFilters;
             vFilters.push_back( ePdfFilter_FlateDecode );
-            pObjStream->BeginAppend( vFilters );
-            pcontStream->GetFilteredCopy( &pcontStreamBuffer, &pcontStreamLength );
-            pObjStream->Append( pcontStreamBuffer, pcontStreamLength );
+            pObjStream.BeginAppend( vFilters );
+            pcontStream.GetFilteredCopy( &pcontStreamBuffer, &pcontStreamLength );
+            pObjStream.Append( pcontStreamBuffer, pcontStreamLength );
             podofo_free( pcontStreamBuffer );
-            pObjStream->EndAppend();
+            pObjStream.EndAppend();
         }
         else
         {
@@ -601,8 +600,8 @@ void PdfDocument::FixObjectReferences( PdfObject* pObject, int difference )
         {
             if( it->second.IsReference() )
             {
-                it->second = PdfReference( it->second.GetReference().ObjectNumber() + difference,
-                                              it->second.GetReference().GenerationNumber() );
+                it->second = PdfObject(PdfReference( it->second.GetReference().ObjectNumber() + difference,
+                                              it->second.GetReference().GenerationNumber() ));
             }
             else if( it->second.IsDictionary() || 
                      it->second.IsArray() )
@@ -621,8 +620,8 @@ void PdfDocument::FixObjectReferences( PdfObject* pObject, int difference )
         {
             if( (*it).IsReference() )
             {
-                (*it) = PdfReference( (*it).GetReference().ObjectNumber() + difference,
-                                      (*it).GetReference().GenerationNumber() );
+                *it = PdfObject(PdfReference( (*it).GetReference().ObjectNumber() + difference,
+                                      (*it).GetReference().GenerationNumber() ));
 
             }
             else if( (*it).IsDictionary() || 
@@ -634,8 +633,8 @@ void PdfDocument::FixObjectReferences( PdfObject* pObject, int difference )
     }
     else if( pObject->IsReference() )
     {
-        *pObject = PdfReference( pObject->GetReference().ObjectNumber() + difference,
-                                 pObject->GetReference().GenerationNumber() );
+        *pObject = PdfObject(PdfReference(pObject->GetReference().ObjectNumber() + difference,
+                pObject->GetReference().GenerationNumber() ));
     }
 }
 
@@ -828,7 +827,7 @@ PdfOutlines* PdfDocument::GetOutlines( bool bCreate )
             if ( !bCreate )	return NULL;
             
             m_pOutlines = new PdfOutlines( &m_vecObjects );
-            this->GetCatalog()->GetDictionary().AddKey( "Outlines", m_pOutlines->GetObject()->Reference() );
+            this->GetCatalog()->GetDictionary().AddKey( "Outlines", m_pOutlines->GetObject()->GetIndirectReference() );
         } else if ( pObj->GetDataType() != ePdfDataType_Dictionary ) {
             PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
         } else
@@ -852,7 +851,7 @@ PdfNamesTree* PdfDocument::GetNamesTree( bool bCreate )
 
             PdfNamesTree tmpTree ( &m_vecObjects );
             pObj = tmpTree.GetObject();
-            this->GetCatalog()->GetDictionary().AddKey( "Names", pObj->Reference() );
+            this->GetCatalog()->GetDictionary().AddKey( "Names", pObj->GetIndirectReference() );
             m_pNamesTree = new PdfNamesTree( pObj, this->GetCatalog() );
         } else if ( pObj->GetDataType() != ePdfDataType_Dictionary ) {
             PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
@@ -875,7 +874,7 @@ PdfAcroForm* PdfDocument::GetAcroForm( bool bCreate, EPdfAcroFormDefaulAppearanc
             if ( !bCreate )	return NULL;
             
             m_pAcroForms = new PdfAcroForm( this, eDefaultAppearance );
-            this->GetCatalog()->GetDictionary().AddKey( "AcroForm", m_pAcroForms->GetObject()->Reference() );
+            this->GetCatalog()->GetDictionary().AddKey( "AcroForm", m_pAcroForms->GetObject()->GetIndirectReference() );
         } else if ( pObj->GetDataType() != ePdfDataType_Dictionary ) {
             PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
         } else
@@ -888,7 +887,7 @@ PdfAcroForm* PdfDocument::GetAcroForm( bool bCreate, EPdfAcroFormDefaulAppearanc
 void PdfDocument::AddNamedDestination( const PdfDestination& rDest, const PdfString & rName )
 {
     PdfNamesTree* nameTree = GetNamesTree();
-    nameTree->AddValue( PdfName("Dests"), rName, rDest.GetObject()->Reference() );
+    nameTree->AddValue( PdfName("Dests"), rName, rDest.GetObject()->GetIndirectReference() );
 }
 
 void PdfDocument::AttachFile( const PdfFileSpec & rFileSpec )
@@ -900,7 +899,7 @@ void PdfDocument::AttachFile( const PdfFileSpec & rFileSpec )
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    pNames->AddValue( "EmbeddedFiles", rFileSpec.GetFilename(false), rFileSpec.GetObject()->Reference() );
+    pNames->AddValue( "EmbeddedFiles", rFileSpec.GetFilename(false), rFileSpec.GetObject()->GetIndirectReference() );
 }
     
 PdfFileSpec* PdfDocument::GetAttachment( const PdfString & rName )
@@ -933,7 +932,7 @@ void PdfDocument::SetTrailer( PdfObject* pObject )
     delete m_pTrailer;
     m_pTrailer = pObject;
     // Set owner so that GetIndirectKey will work
-    m_pTrailer->SetOwner( &m_vecObjects );
+    m_pTrailer->SetOwner( m_vecObjects );
 }
 
 };

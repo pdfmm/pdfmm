@@ -157,8 +157,8 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
 {
     char *streamBuffer;
     pdf_long streamBufferLen;
-    const PdfStream *CIDStreamdata = obj->GetStream();
-    CIDStreamdata->GetFilteredCopy ( &streamBuffer, &streamBufferLen );
+    PdfStream &CIDStreamdata = obj->GetOrCreateStream();
+    CIDStreamdata.GetFilteredCopy(&streamBuffer, &streamBufferLen);
 
     deque<unique_ptr<PdfVariant>> tokens;
     const char *token;

@@ -92,8 +92,8 @@ void PdfFontSimple::Init( bool bEmbed, const PdfName & rsSubType )
     this->GetObject()->GetDictionary().AddKey("LastChar", PdfVariant( static_cast<int64_t>(m_pEncoding->GetLastChar()) ) );
     m_pEncoding->AddToDictionary( this->GetObject()->GetDictionary() ); // Add encoding key
 
-    this->GetObject()->GetDictionary().AddKey("Widths", pWidth->Reference() );
-    this->GetObject()->GetDictionary().AddKey( "FontDescriptor", pDescriptor->Reference() );
+    this->GetObject()->GetDictionary().AddKey("Widths", pWidth->GetIndirectReference() );
+    this->GetObject()->GetDictionary().AddKey( "FontDescriptor", pDescriptor->GetIndirectReference() );
 
     m_pMetrics->GetBoundingBox( array );
 

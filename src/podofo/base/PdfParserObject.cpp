@@ -46,8 +46,7 @@
 #include <iostream>
 #include <sstream>
 
-namespace PoDoFo {
-
+using namespace PoDoFo;
 using namespace std;
 
 static const int s_nLenEndObj    = 6; // strlen("endobj");
@@ -58,7 +57,7 @@ PdfParserObject::PdfParserObject( PdfVecObjects* pCreator, const PdfRefCountedIn
                                   const PdfRefCountedBuffer & rBuffer, pdf_long lOffset )
     : PdfObject( PdfVariant::NullValue ), PdfTokenizer( rDevice, rBuffer ), m_pEncrypt( NULL )
 {
-    m_pOwner = pCreator;
+    SetOwner(*pCreator);
 
     InitPdfParserObject();
 
@@ -85,7 +84,7 @@ void PdfParserObject::InitPdfParserObject()
     // We rely heavily on the demand loading infrastructure whether or not
     // we *actually* delay loading.
     EnableDelayedLoading();
-    EnableDelayedStreamLoading();
+    EnableDelayedLoadingStream();
 
     m_lOffset           = -1;
 
@@ -95,11 +94,13 @@ void PdfParserObject::InitPdfParserObject()
 
 void PdfParserObject::ReadObjectNumber()
 {
+    PdfReference reference;
     try {
         pdf_long obj = this->GetNextNumber();
         pdf_long gen = this->GetNextNumber();
 
-        m_reference = PdfReference( static_cast<unsigned int>(obj), static_cast<uint16_t>(gen) );
+        reference = PdfReference(static_cast<uint32_t>(obj), static_cast<uint16_t>(gen));
+        SetIndirectReference(reference);
     } catch( PdfError & e ) {
         e.AddToCallstack( __FILE__, __LINE__, "Object and generation number cannot be read." );
         throw e;
@@ -108,8 +109,8 @@ void PdfParserObject::ReadObjectNumber()
     if( !this->IsNextToken( "obj" ))
     {
         std::ostringstream oss;
-        oss << "Error while reading object " << m_reference.ObjectNumber() << " " 
-            << m_reference.GenerationNumber() << ": Next token is not 'obj'." << std::endl; 
+        oss << "Error while reading object " << reference.ObjectNumber() << " "
+            << reference.GenerationNumber() << ": Next token is not 'obj'." << std::endl;
         PODOFO_RAISE_ERROR_INFO( ePdfError_NoObject, oss.str().c_str() );
     }
 }
@@ -151,18 +152,13 @@ void PdfParserObject::ParseFile( PdfEncrypt* pEncrypt, bool bIsTrailer )
         // TODO: support immediate loading of the stream here too. For that, we need
         // to be able to trigger the reading of not-yet-parsed indirect objects
         // such as might appear in a /Length key with an indirect reference.
-
-#ifndef EXTRA_CHECKS_DISABLED
-        // Sanity check - the variant base must be fully loaded now
-        if (!DelayedLoadDone() )
-        {
-            // We don't know what went wrong, but the internal state is
-            // broken or the API rules aren't being followed and we
-            // can't carry on.
-            PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
-        }
-#endif // EXTRA_CHECKS_DISABLED
     }
+}
+
+void PdfParserObject::ForceStreamParse()
+{
+    // It's really just a call to DelayedLoad
+    DelayedLoadStream();
 }
 
 // Only called via the demand loading mechanism
@@ -170,15 +166,11 @@ void PdfParserObject::ParseFile( PdfEncrypt* pEncrypt, bool bIsTrailer )
 // or PdfObject method calls here.
 void PdfParserObject::ParseFileComplete( bool bIsTrailer )
 {
-#ifndef EXTRA_CHECKS_DISABLED
-    PODOFO_ASSERT( DelayedLoadInProgress() );
-    PODOFO_ASSERT( !DelayedLoadDone() );
-#endif
     const char* pszToken;
 
     m_device.Device()->Seek( m_lOffset );
     if( m_pEncrypt )
-        m_pEncrypt->SetCurrentReference( m_reference );
+        m_pEncrypt->SetCurrentReference( GetIndirectReference() );
 
     // Do not call GetNextVariant directly,
     // but GetNextToken, to handle empty objects like:
@@ -228,16 +220,12 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
 // PdfVariant or PdfObject.
 void PdfParserObject::ParseStream()
 {
-#ifndef EXTRA_CHECKS_DISABLED
     PODOFO_ASSERT( DelayedLoadDone() );
-    PODOFO_ASSERT( DelayedStreamLoadInProgress() );
-    PODOFO_ASSERT( !DelayedStreamLoadDone() );
-#endif
 
     int64_t         lLen  = -1;
     int          c;
 
-    if( !m_device.Device() || !m_pOwner )
+    if( !m_device.Device() || GetOwner() == nullptr )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
@@ -273,7 +261,7 @@ void PdfParserObject::ParseStream()
     }
     else if( pObj && pObj->IsReference() )
     {
-        pObj = m_pOwner->GetObject( pObj->GetReference() );
+        pObj = GetOwner()->GetObject( pObj->GetReference() );
         if( !pObj )
         {
             PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle, "/Length key referenced indirect object that could not be loaded" );
@@ -290,21 +278,8 @@ void PdfParserObject::ParseStream()
 
         lLen = pObj->GetNumber();
 
-        // DS: This code makes no sense, 
-        //     as empty streams with length 0 are valid, too.
-        //if( !lLen )
-        //{
-        //    PODOFO_RAISE_ERROR( ePdfError_InvalidStreamLength );
-        //}
-
-        // we do not use indirect references for the length of the document
-        // DS: Even though do not remove the length key,
-        //     as 2 or more object might use the same object for key lengths.
-        //     Deleting the length object of the first object will make
-        //     all other objects non readable.
-        //     If you want those length object to be removed,
-        //     run the garbage collection of PdfVecObjects over your PDF.
-        //delete m_pOwner->RemoveObject( pObj->Reference() );
+        // Doo not remove the length object, as 2 or more object might use
+        // the same object for key lengths.
     }
     else
     {
@@ -328,13 +303,13 @@ void PdfParserObject::ParseStream()
 	}
     if( m_pEncrypt )
     {
-        m_pEncrypt->SetCurrentReference( m_reference );
+        m_pEncrypt->SetCurrentReference( GetIndirectReference() );
         PdfInputStream* pInput = m_pEncrypt->CreateEncryptionInputStream( &reader );
-        this->GetStream_NoDL()->SetRawData( pInput, static_cast<pdf_long>(lLen) );
+        getOrCreateStream().SetRawData( *pInput, static_cast<pdf_long>(lLen) );
         delete pInput;
     }
     else
-        this->GetStream_NoDL()->SetRawData( &reader, static_cast<pdf_long>(lLen) );
+        getOrCreateStream().SetRawData( reader, static_cast<pdf_long>(lLen) );
 
     this->SetDirty( false );
     /*
@@ -344,54 +319,31 @@ void PdfParserObject::ParseStream()
     */
 }
 
-
 void PdfParserObject::DelayedLoadImpl()
 {
-#ifndef EXTRA_CHECKS_DISABLED
-    // DelayedLoadImpl() should only ever be called via DelayedLoad(),
-    // which ensures that it is never called repeatedly.
-    PODOFO_ASSERT( !DelayedLoadDone() );
-    PODOFO_ASSERT( DelayedLoadInProgress() );
-#endif
-
     ParseFileComplete( m_bIsTrailer );
-
-    // If we complete without throwing DelayedLoadDone will be set
-    // for us.
 }
 
-void PdfParserObject::DelayedStreamLoadImpl()
+void PdfParserObject::DelayedLoadStreamImpl()
 {
-#ifndef EXTRA_CHECKS_DISABLED
-    // DelayedLoad() must've been called, either directly earlier
-    // or via DelayedStreamLoad. DelayedLoad() will throw if the load
-    // failed, so if we're being called this condition must be true.
-    PODOFO_ASSERT( DelayedLoadDone() );
+    PODOFO_ASSERT(getStream() == nullptr);
 
-    // Similarly, we should not be being called unless the stream isn't
-    // already loaded.
-    PODOFO_ASSERT( !DelayedStreamLoadDone() );
-    PODOFO_ASSERT( DelayedStreamLoadInProgress() );
-#endif
-
-    // Note: we can't use HasStream() here because it'll call DelayedStreamLoad()
-    // causing a nasty loop. test m_pStream directly instead.
-    if( this->HasStreamToParse() && !m_pStream )
+    // Note: we can't use HasStream() here because it'll call DelayedLoad()
+    if (HasStreamToParse())
     {
-        try {
-            this->ParseStream();
-        } catch( PdfError & e ) {
-            // TODO: track object ptr in error info so we don't have to do this memory-intensive
-            // formatting here.
+        try
+        {
+            ParseStream();
+        }
+        catch (PdfError & e)
+        {
             std::ostringstream s;
-            s << "Unable to parse the stream for object " << Reference().ObjectNumber() << ' '
-              << Reference().GenerationNumber() << " obj .";
-            e.AddToCallstack( __FILE__, __LINE__, s.str().c_str());
-            throw e;
+            s << "Unable to parse the stream for object " << GetIndirectReference().ObjectNumber() << ' '
+                << GetIndirectReference().GenerationNumber() << " obj .";
+            e.AddToCallstack(__FILE__, __LINE__, s.str().c_str());
+            throw;
         }
     }
-
-    // If we complete without throwing the stream will be flagged as loaded.
 }
 
 void PdfParserObject::FreeObjectMemory( bool bForce )
@@ -399,13 +351,8 @@ void PdfParserObject::FreeObjectMemory( bool bForce )
     if( this->IsLoadOnDemand() && (bForce || !this->IsDirty()) )
     {
         PdfVariant::Clear();
-
-        delete m_pStream;
-        m_pStream = NULL;
-
+        FreeStream();
         EnableDelayedLoading();
-        EnableDelayedStreamLoading();
+        EnableDelayedLoadingStream();
     }
 }
-
-};

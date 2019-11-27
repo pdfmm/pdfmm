@@ -333,12 +333,12 @@ void PdfFontCache::EmptyCache()
 PdfFont* PdfFontCache::GetFont( PdfObject* pObject )
 {
     TCISortedFontList it = m_vecFonts.begin();
-    const PdfReference & ref = pObject->Reference(); 
+    const PdfReference & ref = pObject->GetIndirectReference(); 
 
     // Search if the object is a cached normal font
     while( it != m_vecFonts.end() )
     {
-        if( (*it).m_pFont->GetObject()->Reference() == ref ) 
+        if( (*it).m_pFont->GetObject()->GetIndirectReference() == ref ) 
             return (*it).m_pFont;
 
         ++it;
@@ -348,7 +348,7 @@ PdfFont* PdfFontCache::GetFont( PdfObject* pObject )
     it = m_vecFontSubsets.begin();
     while( it != m_vecFontSubsets.end() )
     {
-        if( (*it).m_pFont->GetObject()->Reference() == ref ) 
+        if( (*it).m_pFont->GetObject()->GetIndirectReference() == ref ) 
             return (*it).m_pFont;
 
         ++it;
