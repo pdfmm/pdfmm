@@ -38,11 +38,12 @@
 #error Include PdfDefinesPrivate.h instead
 #endif
 
-#  include <cstdlib>
-#  include <cstdio>
-#  include <cmath>
-#  include <cstring>
-#  include <ctime>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <cstring>
+#include <ctime>
+#include <cinttypes>
 
 #ifndef WIN32
 #include <strings.h>

@@ -916,13 +916,13 @@ void PdfParser::ReadXRefSubsection( int64_t & nFirstObject, int64_t & nNumObject
             int64_t llOffset = 0;
             int64_t llGeneration = 0;
             char cType = 0;
-            
+
             // XRefEntry is defined in PDF spec section 7.5.4 Cross-Reference Table as
             // nnnnnnnnnn ggggg n eol
             // nnnnnnnnnn is 10-digit offset number with max value 9999999999 (bigger than 2**32 = 4GB)
             // ggggg is a 5-digit generation number with max value 99999 (smaller than 2**17)
             // eol is a 2-character end-of-line sequence
-            int read = sscanf( m_buffer.GetBuffer(), "%10" PDF_FORMAT_INT64 " %5" PDF_FORMAT_INT64 " %c%c%c",
+            int read = sscanf( m_buffer.GetBuffer(), "%10" SCNd64 " %5" SCNd64 " %c%c%c",
                               &llOffset, &llGeneration, &cType, &empty1, &empty2 );
 
             if ( !CheckXRefEntryType(cType) )
