@@ -161,7 +161,7 @@ void SetAppearanceStreamForObject( PdfObject* pForObject, PdfXObject* xobj, EPdf
     if( pForObject->GetDictionary().HasKey( "AP" ) )
     {
         PdfObject* objAP = pForObject->GetDictionary().GetKey( "AP" );
-        if( objAP->GetDataType() == ePdfDataType_Reference )
+        if( objAP->GetDataType() == EPdfDataType::Reference )
         {
             if( !objAP->GetOwner() )
             {
@@ -175,7 +175,7 @@ void SetAppearanceStreamForObject( PdfObject* pForObject, PdfXObject* xobj, EPdf
             }
         }
 
-        if( objAP->GetDataType() != ePdfDataType_Dictionary )
+        if( objAP->GetDataType() != EPdfDataType::Dictionary )
         {
             PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
         }
@@ -183,7 +183,7 @@ void SetAppearanceStreamForObject( PdfObject* pForObject, PdfXObject* xobj, EPdf
         if( !state.GetLength() )
         {
             // allow overwrite only reference by a reference
-            if( objAP->GetDictionary().HasKey( name ) && objAP->GetDictionary().GetKey( name )->GetDataType() != ePdfDataType_Reference )
+            if( objAP->GetDictionary().HasKey( name ) && objAP->GetDictionary().GetKey( name )->GetDataType() != EPdfDataType::Reference )
             {
                 PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
             }
@@ -193,7 +193,7 @@ void SetAppearanceStreamForObject( PdfObject* pForObject, PdfXObject* xobj, EPdf
         else
         {
             // when the state is defined, then the appearance is expected to be a dictionary
-            if( objAP->GetDictionary().HasKey( name ) && objAP->GetDictionary().GetKey( name )->GetDataType() != ePdfDataType_Dictionary )
+            if( objAP->GetDictionary().HasKey( name ) && objAP->GetDictionary().GetKey( name )->GetDataType() != EPdfDataType::Dictionary )
             {
                 PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
             }

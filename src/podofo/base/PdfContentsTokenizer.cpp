@@ -173,38 +173,38 @@ bool PdfContentsTokenizer::ReadNext( EPdfContentsType& reType, const char*& rpsz
 
     switch( eDataType )
     {
-        case ePdfDataType_Null:
-        case ePdfDataType_Bool:
-        case ePdfDataType_Number:
-        case ePdfDataType_Real:
+        case EPdfDataType::Null:
+        case EPdfDataType::Bool:
+        case EPdfDataType::Number:
+        case EPdfDataType::Real:
             // the data was already read into rVariant by the DetermineDataType function
             break;
 
-        case ePdfDataType_Reference:
+        case EPdfDataType::Reference:
         {
             // references are invalid in content streams
             PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "references are invalid in content streams" );
             break;
         }
 
-        case ePdfDataType_Dictionary:
+        case EPdfDataType::Dictionary:
             this->ReadDictionary( rVariant, NULL );
             break;
-        case ePdfDataType_Array:
+        case EPdfDataType::Array:
             this->ReadArray( rVariant, NULL );
             break;
-        case ePdfDataType_String:
+        case EPdfDataType::String:
             this->ReadString( rVariant, NULL );
             break;
-        case ePdfDataType_HexString:
+        case EPdfDataType::HexString:
             this->ReadHexString( rVariant, NULL );
             break;
-        case ePdfDataType_Name:
+        case EPdfDataType::Name:
             this->ReadName( rVariant );
             break;
 
-        case ePdfDataType_Unknown:
-        case ePdfDataType_RawData:
+        case EPdfDataType::Unknown:
+        case EPdfDataType::RawData:
         default:
             // Assume we have a keyword
             reType     = ePdfContentsType_Keyword;

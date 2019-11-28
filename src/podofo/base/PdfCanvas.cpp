@@ -130,7 +130,7 @@ void PdfCanvas::AddResource( const PdfName & rIdentifier, const PdfReference & r
     }
 
     // Peter Petrov: 18 December 2008. Bug fix
-	if (ePdfDataType_Reference == pResource->GetDictionary().GetKey( rName )->GetDataType())
+	if (EPdfDataType::Reference == pResource->GetDictionary().GetKey( rName )->GetDataType())
     {
         PdfObject *directObject = pResource->GetOwner()->GetObject(pResource->GetDictionary().GetKey( rName )->GetReference());
 

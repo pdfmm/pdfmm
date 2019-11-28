@@ -187,7 +187,7 @@ int64_t PdfDictionary::GetKeyAsLong( const PdfName & key, int64_t lDefault ) con
 {
     const PdfObject* pObject = GetKey( key );
     
-    if( pObject && pObject->GetDataType() == ePdfDataType_Number ) 
+    if( pObject && pObject->GetDataType() == EPdfDataType::Number ) 
     {
         return pObject->GetNumber();
     }
@@ -200,8 +200,8 @@ double PdfDictionary::GetKeyAsReal( const PdfName & key, double dDefault ) const
     const PdfObject* pObject = GetKey( key );
     
     if( pObject && (
-        pObject->GetDataType() == ePdfDataType_Real ||
-        pObject->GetDataType() == ePdfDataType_Number))
+        pObject->GetDataType() == EPdfDataType::Real ||
+        pObject->GetDataType() == EPdfDataType::Number))
     {
         return pObject->GetReal();
     }
@@ -213,7 +213,7 @@ bool PdfDictionary::GetKeyAsBool( const PdfName & key, bool bDefault ) const
 {
     const PdfObject* pObject = GetKey( key );
 
-    if( pObject && pObject->GetDataType() == ePdfDataType_Bool ) 
+    if( pObject && pObject->GetDataType() == EPdfDataType::Bool ) 
     {
         return pObject->GetBool();
     }
@@ -225,7 +225,7 @@ PdfName PdfDictionary::GetKeyAsName( const PdfName & key ) const
 {
     const PdfObject* pObject = GetKey( key );
 
-    if( pObject && pObject->GetDataType() == ePdfDataType_Name ) 
+    if( pObject && pObject->GetDataType() == EPdfDataType::Name ) 
     {
         return pObject->GetName();
     }

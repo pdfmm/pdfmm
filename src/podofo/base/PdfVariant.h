@@ -111,7 +111,7 @@ class PODOFO_API PdfVariant {
 
     /** Construct a PdfVariant object with array data.
      *  The variant will automatically get the datatype
-     *  ePdfDataType_Array. This constructor is the fastest
+     *  EPdfDataType::Array. This constructor is the fastest
      *  way to create a new PdfVariant that is an array.
      *
      *  \param tList a list of variants
@@ -138,14 +138,14 @@ class PODOFO_API PdfVariant {
 
     /** Clear all internal member variables and free the memory
      *  they have allocated.
-     *  Sets the datatype to ePdfDataType_Null
+     *  Sets the datatype to EPdfDataType::Null
      *
      *  This will reset the dirty flag of this object to be clean.
      *  \see IsDirty
      */
     void Clear();
 
-    /** \returns the datatype of this object or ePdfDataType_Unknown
+    /** \returns the datatype of this object or EPdfDataType::Unknown
      *  if it does not have a value.
      */
     EPdfDataType GetDataType() const;
@@ -155,49 +155,49 @@ class PODOFO_API PdfVariant {
      */
     const char * GetDataTypeString() const;
 
-    /** \returns true if this variant is a bool (i.e. GetDataType() == ePdfDataType_Bool)
+    /** \returns true if this variant is a bool (i.e. GetDataType() == EPdfDataType::Bool)
      */
-    inline bool IsBool() const { return GetDataType() == ePdfDataType_Bool; }
+    inline bool IsBool() const { return GetDataType() == EPdfDataType::Bool; }
 
-    /** \returns true if this variant is a number (i.e. GetDataType() == ePdfDataType_Number)
+    /** \returns true if this variant is a number (i.e. GetDataType() == EPdfDataType::Number)
      */
-    inline bool IsNumber() const { return GetDataType() == ePdfDataType_Number; }
+    inline bool IsNumber() const { return GetDataType() == EPdfDataType::Number; }
 
-    /** \returns true if this variant is a real (i.e. GetDataType() == ePdfDataType_Real)
+    /** \returns true if this variant is a real (i.e. GetDataType() == EPdfDataType::Real)
      */
-    inline bool IsReal() const { return GetDataType() == ePdfDataType_Real; }
+    inline bool IsReal() const { return GetDataType() == EPdfDataType::Real; }
 
-    /** \returns true if this variant is a string (i.e. GetDataType() == ePdfDataType_String)
+    /** \returns true if this variant is a string (i.e. GetDataType() == EPdfDataType::String)
      */
-    inline bool IsString() const { return GetDataType() == ePdfDataType_String; }
+    inline bool IsString() const { return GetDataType() == EPdfDataType::String; }
 
-    /** \returns true if this variant is a hex-string (i.e. GetDataType() == ePdfDataType_HexString)
+    /** \returns true if this variant is a hex-string (i.e. GetDataType() == EPdfDataType::HexString)
      */
-    inline bool IsHexString() const { return GetDataType() == ePdfDataType_HexString; }
+    inline bool IsHexString() const { return GetDataType() == EPdfDataType::HexString; }
 
-    /** \returns true if this variant is a name (i.e. GetDataType() == ePdfDataType_Name)
+    /** \returns true if this variant is a name (i.e. GetDataType() == EPdfDataType::Name)
      */
-    inline bool IsName() const { return GetDataType() == ePdfDataType_Name; }
+    inline bool IsName() const { return GetDataType() == EPdfDataType::Name; }
 
-    /** \returns true if this variant is an array (i.e. GetDataType() == ePdfDataType_Array)
+    /** \returns true if this variant is an array (i.e. GetDataType() == EPdfDataType::Array)
      */
-    inline bool IsArray() const { return GetDataType() == ePdfDataType_Array; }
+    inline bool IsArray() const { return GetDataType() == EPdfDataType::Array; }
 
-    /** \returns true if this variant is a dictionary (i.e. GetDataType() == ePdfDataType_Dictionary)
+    /** \returns true if this variant is a dictionary (i.e. GetDataType() == EPdfDataType::Dictionary)
      */
-    inline bool IsDictionary() const { return GetDataType() == ePdfDataType_Dictionary; }
+    inline bool IsDictionary() const { return GetDataType() == EPdfDataType::Dictionary; }
 
-    /** \returns true if this variant is raw data (i.e. GetDataType() == ePdfDataType_RawData
+    /** \returns true if this variant is raw data (i.e. GetDataType() == EPdfDataType::RawData
      */
-    inline bool IsRawData() const { return GetDataType() == ePdfDataType_RawData; }
+    inline bool IsRawData() const { return GetDataType() == EPdfDataType::RawData; }
 
-    /** \returns true if this variant is null (i.e. GetDataType() == ePdfDataType_Null)
+    /** \returns true if this variant is null (i.e. GetDataType() == EPdfDataType::Null)
      */
-    inline bool IsNull() const { return GetDataType() == ePdfDataType_Null; }
+    inline bool IsNull() const { return GetDataType() == EPdfDataType::Null; }
 
-    /** \returns true if this variant is a reference (i.e. GetDataType() == ePdfDataType_Reference)
+    /** \returns true if this variant is a reference (i.e. GetDataType() == EPdfDataType::Reference)
      */
-    inline bool IsReference() const { return GetDataType() == ePdfDataType_Reference; }
+    inline bool IsReference() const { return GetDataType() == EPdfDataType::Reference; }
        
     /** Write the complete variant to an output device.
      *  This is an overloaded member function.

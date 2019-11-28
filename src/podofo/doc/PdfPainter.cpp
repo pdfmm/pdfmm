@@ -1157,7 +1157,7 @@ void PdfPainter::DrawGlyph( PdfMemDocument* pDocument, double dX, double dY, con
 			TCIVariantList it = diffs.begin();
 			while( it != diffs.end() )
 			{
-				if( (*it).GetDataType() == ePdfDataType_Name )
+				if( (*it).GetDataType() == EPdfDataType::Name )
 				{
 					code++;
 					if ( (*it).GetName().GetName() == pszGlyphname )

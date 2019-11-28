@@ -95,7 +95,7 @@ void PdfTilingPattern::AddToResources(const PdfName &rIdentifier, const PdfRefer
 	if( !pResource->GetDictionary().HasKey( rName ) ) {
 		pResource->GetDictionary().AddKey( rName, PdfDictionary() );
 	}
-	if (ePdfDataType_Reference == pResource->GetDictionary().GetKey( rName )->GetDataType()) {
+	if (EPdfDataType::Reference == pResource->GetDictionary().GetKey( rName )->GetDataType()) {
 		PdfObject *directObject = pResource->GetOwner()->GetObject(pResource->GetDictionary().GetKey( rName )->GetReference());
 
 		if (0 == directObject) {

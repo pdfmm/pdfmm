@@ -160,10 +160,10 @@ void PdfObject::SetVariantOwner()
     auto eDataType = GetDataType_NoDL();
     switch ( eDataType )
     {
-        case ePdfDataType_Dictionary:
+        case EPdfDataType::Dictionary:
             static_cast<PdfOwnedDataType &>( GetDictionary_NoDL() ).SetOwner( this );
             break;
-        case ePdfDataType_Array:
+        case EPdfDataType::Array:
             static_cast<PdfOwnedDataType &>( GetArray_NoDL() ).SetOwner( this );
             break;
         default:
@@ -300,7 +300,7 @@ void PdfObject::forceCreateStream()
     if (m_pStream != nullptr)
         return;
 
-    if (GetDataType() != ePdfDataType_Dictionary)
+    if (GetDataType() != EPdfDataType::Dictionary)
     {
         PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidDataType, "Tried to get stream of non-dictionary object");
     }

@@ -828,7 +828,7 @@ PdfOutlines* PdfDocument::GetOutlines( bool bCreate )
             
             m_pOutlines = new PdfOutlines( &m_vecObjects );
             this->GetCatalog()->GetDictionary().AddKey( "Outlines", m_pOutlines->GetObject()->GetIndirectReference() );
-        } else if ( pObj->GetDataType() != ePdfDataType_Dictionary ) {
+        } else if ( pObj->GetDataType() != EPdfDataType::Dictionary ) {
             PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
         } else
             m_pOutlines = new PdfOutlines( pObj );
@@ -853,7 +853,7 @@ PdfNamesTree* PdfDocument::GetNamesTree( bool bCreate )
             pObj = tmpTree.GetObject();
             this->GetCatalog()->GetDictionary().AddKey( "Names", pObj->GetIndirectReference() );
             m_pNamesTree = new PdfNamesTree( pObj, this->GetCatalog() );
-        } else if ( pObj->GetDataType() != ePdfDataType_Dictionary ) {
+        } else if ( pObj->GetDataType() != EPdfDataType::Dictionary ) {
             PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
         } else
             m_pNamesTree = new PdfNamesTree( pObj, this->GetCatalog() );
@@ -875,7 +875,7 @@ PdfAcroForm* PdfDocument::GetAcroForm( bool bCreate, EPdfAcroFormDefaulAppearanc
             
             m_pAcroForms = new PdfAcroForm( this, eDefaultAppearance );
             this->GetCatalog()->GetDictionary().AddKey( "AcroForm", m_pAcroForms->GetObject()->GetIndirectReference() );
-        } else if ( pObj->GetDataType() != ePdfDataType_Dictionary ) {
+        } else if ( pObj->GetDataType() != EPdfDataType::Dictionary ) {
             PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
         } else
             m_pAcroForms = new PdfAcroForm( this, pObj, eDefaultAppearance );

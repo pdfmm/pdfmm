@@ -422,7 +422,7 @@ void PdfWriter::CreateFileIdentifier( PdfString & identifier, const PdfObject* p
 
         TCIVariantList it = idObj->GetArray().begin();
         if( it != idObj->GetArray().end() &&
-            it->GetDataType() == ePdfDataType_HexString )
+            it->GetDataType() == EPdfDataType::HexString )
         {
             PdfVariant var = (*it);
             *pOriginalIdentifier = var.GetString();

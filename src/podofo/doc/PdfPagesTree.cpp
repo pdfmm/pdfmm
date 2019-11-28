@@ -461,7 +461,7 @@ int PdfPagesTree::GetChildCount( const PdfObject* pNode ) const
 
     const PdfObject *pCount = pNode->GetIndirectKey( "Count" );
     if( pCount != 0 ) {
-        return (pCount->GetDataType() == PoDoFo::ePdfDataType_Number) ?  
+        return (pCount->GetDataType() == PoDoFo::EPdfDataType::Number) ?  
             static_cast<int>( pCount->GetNumber() ):0;
     } else {
         return 0;

@@ -191,20 +191,20 @@ const EPdfWriteMode ePdfWriteMode_Default = ePdfWriteMode_Compact;
  *
  * Remember to update PdfVariant::GetDataTypeString() when adding members here.
  */
-enum EPdfDataType {
-    ePdfDataType_Bool,                  /**< Boolean datatype: Accepts the values "true" and "false" */
-    ePdfDataType_Number,                /**< Number datatype for integer values */
-    ePdfDataType_Real,                  /**< Real datatype for floating point numbers */
-    ePdfDataType_String,                /**< String datatype in PDF file. Strings have the form (Hallo World!) in PDF files. \see PdfString */
-    ePdfDataType_HexString,             /**< HexString datatype in PDF file. Hex encoded strings have the form &lt;AF00BE&gt; in PDF files. \see PdfString */
-    ePdfDataType_Name,                  /**< Name datatype. Names are used as keys in dictionary to reference values. \see PdfName */
-    ePdfDataType_Array,                 /**< An array of other PDF data types. */
-    ePdfDataType_Dictionary,            /**< A dictionary associates keys with values. A key can have another dictionary as value. */
-    ePdfDataType_Null,                  /**< The null datatype is always null. */
-    ePdfDataType_Reference,             /**< The reference datatype contains references to PDF objects in the PDF file of the form 4 0 R. \see PdfObject */
-    ePdfDataType_RawData,               /**< Raw PDF data */
-
-    ePdfDataType_Unknown = 0xff         /**< The Datatype is unknown. The value is chosen to enable value storage in 8-bit unsigned integer. */
+enum class EPdfDataType : uint8_t
+{
+   Unknown = 0,         /**< The Datatype is unknown. The value is chosen to enable value storage in 8-bit unsigned integer. */
+   Bool,                  /**< Boolean datatype: Accepts the values "true" and "false" */
+   Number,                /**< Number datatype for integer values */
+   Real,                  /**< Real datatype for floating point numbers */
+   String,                /**< String datatype in PDF file. Strings have the form (Hallo World!) in PDF files. \see PdfString */
+   HexString,             /**< HexString datatype in PDF file. Hex encoded strings have the form &lt;AF00BE&gt; in PDF files. \see PdfString */
+   Name,                  /**< Name datatype. Names are used as keys in dictionary to reference values. \see PdfName */
+   Array,                 /**< An array of other PDF data types. */
+   Dictionary,            /**< A dictionary associates keys with values. A key can have another dictionary as value. */
+   Null,                  /**< The null datatype is always null. */
+   Reference,             /**< The reference datatype contains references to PDF objects in the PDF file of the form 4 0 R. \see PdfObject */
+   RawData,               /**< Raw PDF data */
 };
 
 /**

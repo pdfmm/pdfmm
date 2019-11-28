@@ -159,12 +159,12 @@ void PdfDestination::Init( PdfObject* pObject, PdfDocument* pDocument )
     bool bValueExpected = false;
     PdfObject* pValue = NULL;
 
-    if ( pObject->GetDataType() == ePdfDataType_Array ) 
+    if ( pObject->GetDataType() == EPdfDataType::Array ) 
     {
         m_array = pObject->GetArray();
         m_pObject = pObject;
     }
-    else if( pObject->GetDataType() == ePdfDataType_String ) 
+    else if( pObject->GetDataType() == EPdfDataType::String ) 
     {
         PdfNamesTree* pNames = pDocument->GetNamesTree( ePdfDontCreateObject );
         if( !pNames ) 
@@ -175,7 +175,7 @@ void PdfDestination::Init( PdfObject* pObject, PdfDocument* pDocument )
         pValue = pNames->GetValue( "Dests", pObject->GetString() );
         bValueExpected = true;
     }
-    else if( pObject->GetDataType() == ePdfDataType_Name )
+    else if( pObject->GetDataType() == EPdfDataType::Name )
     {
         PdfMemDocument* pMemDoc = dynamic_cast<PdfMemDocument*>(pDocument);
         if ( !pMemDoc )
