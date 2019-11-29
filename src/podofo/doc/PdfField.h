@@ -358,14 +358,14 @@ class PODOFO_DOC_API PdfField {
      *
      *  \param bExport if false this field cannot be exported by submit actions
      */
-    inline void SetExport( bool bExport );
+    inline void SetNoExport( bool bExport );
 
     /** 
      * \returns true if this field can be exported by submit actions
      *
      * \see SetExport
      */
-    inline bool IsExport() const;
+    inline bool IsNoExport() const;
 
     inline void SetMouseEnterAction( const PdfAction & rAction );
     inline void SetMouseLeaveAction( const PdfAction & rAction );
@@ -470,7 +470,7 @@ inline bool PdfField::IsRequired() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline void PdfField::SetExport( bool bExport )
+inline void PdfField::SetNoExport( bool bExport )
 {
     this->SetFieldFlag( static_cast<int>(ePdfField_NoExport), bExport );
 }
@@ -478,9 +478,9 @@ inline void PdfField::SetExport( bool bExport )
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-inline bool PdfField::IsExport() const
+inline bool PdfField::IsNoExport() const
 {
-    return this->GetFieldFlag( static_cast<int>(ePdfField_NoExport), true );
+    return this->GetFieldFlag( static_cast<int>(ePdfField_NoExport), false );
 }
 
 // -----------------------------------------------------
