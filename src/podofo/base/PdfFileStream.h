@@ -120,7 +120,7 @@ public:
     /** Required for the GetFilteredCopy implementation
      *  \returns the size of the internal buffer
      */
-    virtual pdf_long GetInternalBufferSize() const override;
+    pdf_long GetInternalBufferSize() const override;
 
     /** Begin appending data to this stream.
      *  Clears the current stream contents.
@@ -138,11 +138,11 @@ public:
      *  \see Append
      *  \see EndAppend
      */
-    virtual void AppendImpl( const char* pszString, size_t lLen ); 
+    void AppendImpl( const char* pszString, size_t lLen ) override; 
 
     /** Finish appending data to the stream
      */
-    virtual void EndAppendImpl();
+    void EndAppendImpl() override;
 
 private:
     PdfFileStream(const PdfFileStream &stream) = delete;

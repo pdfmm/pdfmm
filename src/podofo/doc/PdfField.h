@@ -107,15 +107,6 @@ class PODOFO_DOC_API PdfField {
 
     PdfField( EPdfField eField, PdfObject* pObject, PdfAnnotation* pWidget );
 
-    /** Create a copy of a PdfField object.
-     *  Not the field on the page is copied - only the PdfField
-     *  object referring to the field on the page is copied!
-     *
-     *  \param rhs the field to copy
-     *  \returns this field
-     */
-    //inline virtual const PdfField & operator=( const PdfField & rhs );
-
     /** 
      *  Set a bit in the field flags value of the fields dictionary.
      *

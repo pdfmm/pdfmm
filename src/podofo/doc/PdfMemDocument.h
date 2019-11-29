@@ -312,7 +312,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
     /** Get the write mode used for wirting the PDF
      *  \returns the write mode
      */
-    virtual EPdfWriteMode GetWriteMode() const { return m_eWriteMode; }
+    EPdfWriteMode GetWriteMode() const  override { return m_eWriteMode; }
 
     /** Set the PDF Version of the document. Has to be called before Write() to
      *  have an effect.
@@ -486,7 +486,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *
      *  \see PdfEncrypt to set own document permissions.
      */
-    inline virtual bool IsPrintAllowed() const; 
+    inline bool IsPrintAllowed() const override;
 
     /** Checks if modifiying this document (besides annotations, form fields or changing pages) is allowed.
      *  Every PDF consuming applications has to adhere this value!
@@ -495,7 +495,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *
      *  \see PdfEncrypt to set own document permissions.
      */
-    inline virtual bool IsEditAllowed() const;
+    inline bool IsEditAllowed() const override;;
 
     /** Checks if text and graphics extraction is allowed.
      *  Every PDF consuming applications has to adhere this value!
@@ -504,7 +504,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *
      *  \see PdfEncrypt to set own document permissions.
      */
-    inline virtual bool IsCopyAllowed() const;
+    inline bool IsCopyAllowed() const override;;
 
     /** Checks if it is allowed to add or modify annotations or form fields
      *  Every PDF consuming applications has to adhere this value!
@@ -513,7 +513,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *
      *  \see PdfEncrypt to set own document permissions.
      */
-    inline virtual bool IsEditNotesAllowed() const;
+    inline bool IsEditNotesAllowed() const override;;
 
     /** Checks if it is allowed to fill in existing form or signature fields
      *  Every PDF consuming applications has to adhere this value!
@@ -522,7 +522,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *
      *  \see PdfEncrypt to set own document permissions.
      */
-    inline virtual bool IsFillAndSignAllowed() const;
+    inline bool IsFillAndSignAllowed() const override;;
 
     /** Checks if it is allowed to extract text and graphics to support users with disabillities
      *  Every PDF consuming applications has to adhere this value!
@@ -531,7 +531,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *
      *  \see PdfEncrypt to set own document permissions.
      */
-    inline virtual bool IsAccessibilityAllowed() const;
+    inline bool IsAccessibilityAllowed() const override;;
 
     /** Checks if it is allowed to insert, create, rotate, delete pages or add bookmarks
      *  Every PDF consuming applications has to adhere this value!
@@ -540,7 +540,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *
      *  \see PdfEncrypt to set own document permissions.
      */
-    inline virtual bool IsDocAssemblyAllowed() const;
+    inline bool IsDocAssemblyAllowed() const override;
 
     /** Checks if it is allowed to print a high quality version of this document 
      *  Every PDF consuming applications has to adhere this value!
@@ -549,7 +549,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *
      *  \see PdfEncrypt to set own document permissions.
      */
-    inline virtual bool IsHighPrintAllowed() const;
+    inline bool IsHighPrintAllowed() const override;
 
     /** Tries to free all memory allocated by the given
      *  PdfObject (variables and streams) and reads

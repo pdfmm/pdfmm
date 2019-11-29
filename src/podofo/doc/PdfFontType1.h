@@ -91,24 +91,24 @@ class PdfFontType1 : public PdfFontSimple {
      *  \param sText the text string which should be printed (is not allowed to be NULL!)
      *  \param lStringLen draw only lLen characters of pszText
 	 */
-	virtual void AddUsedSubsettingGlyphs( const PdfString & sText, long lStringLen );
+	void AddUsedSubsettingGlyphs( const PdfString & sText, long lStringLen ) override;
 
   	/** Remember the glyphname in case of subsetting 
 	 *
      *  \param sGlyphName Name of the glyph to remember
      */
-    virtual void AddUsedGlyphname( const char* sGlyphName );
+    void AddUsedGlyphname( const char* sGlyphName ) override;
 
     /** Embeds pending subset-font into PDF page
      *
      */
-    virtual void EmbedSubsetFont();
+    void EmbedSubsetFont() override;
 
     /** Embed the font file directly into the PDF file.
      *
      *  \param pDescriptor font descriptor object
      */
-    virtual void EmbedFontFile( PdfObject* pDescriptor );
+    void EmbedFontFile( PdfObject* pDescriptor ) override;
 
  private:
 

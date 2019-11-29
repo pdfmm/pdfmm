@@ -139,12 +139,12 @@ public:
      *  This is most likely an internal object.
      *  \returns a resources object
      */
-    inline virtual PdfObject* GetResources() const;
+    inline PdfObject* GetResources() const override;
 
     /** Get the current page size in PDF Units
      *  \returns a PdfRect containing the page size available for drawing
      */
-    inline virtual PdfRect GetSize() const;
+    inline PdfRect GetSize() const override;
 
     /** Get the identifier used for drawig this object
      *  \returns identifier

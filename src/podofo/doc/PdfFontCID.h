@@ -78,10 +78,10 @@ class PdfFontCID : public PdfFont {
     /** Embeds the font into PDF page
      *
      */
-    virtual void EmbedFont();
+    void EmbedFont() override;
 
-	 virtual void EmbedSubsetFont();
-	 virtual void AddUsedSubsettingGlyphs (const PdfString &sText, long lStringLen);
+    void EmbedSubsetFont() override;
+    void AddUsedSubsettingGlyphs (const PdfString &sText, long lStringLen) override;
 
  private:
     /** Create the DW and W entries which contain
@@ -123,8 +123,8 @@ class PdfFontCID : public PdfFont {
     void MaybeUpdateBaseFontKey(void);
 
     /* to update "BaseFont" key */
-    virtual void SetBold( bool bBold );
-    virtual void SetItalic( bool bItalic );
+    void SetBold( bool bBold ) override;
+    void SetItalic( bool bItalic ) override;
 };
 
 };

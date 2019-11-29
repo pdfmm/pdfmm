@@ -76,7 +76,7 @@ class PdfFontSimple : public PdfFont {
     /** Embeds the font into PDF page
      *
      */
-    virtual void EmbedFont();
+    void EmbedFont() override;
 
  protected:
     /** Initialize this font object.

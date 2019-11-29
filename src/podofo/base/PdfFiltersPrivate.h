@@ -99,7 +99,7 @@ class PdfHexFilter : public PdfFilter {
      * 
      *  \returns true if the filter is able to encode data
      */
-    inline virtual bool CanEncode() const; 
+    inline bool CanEncode() const override; 
 
     /** Encode a block of data and write it to the PdfOutputStream
      *  specified by BeginEncodeImpl.
@@ -115,13 +115,13 @@ class PdfHexFilter : public PdfFilter {
      *  \see BeginEncodeImpl
      *  \see EndEncodeImpl
      */
-    virtual void EncodeBlockImpl( const char* pBuffer, pdf_long lLen );
+    void EncodeBlockImpl( const char* pBuffer, pdf_long lLen ) override;
 
     /** Check wether the decoding is implemented for this filter.
      * 
      *  \returns true if the filter is able to decode data
      */
-    inline virtual bool CanDecode() const; 
+    inline bool CanDecode() const override;
 
     /** Real implementation of `BeginDecode()'. NEVER call this method directly.
      *
@@ -132,7 +132,7 @@ class PdfHexFilter : public PdfFilter {
      *  that EndDecode() was called since the last BeginDecode()/DecodeBlock().
      *
      * \see BeginDecode */
-    virtual void BeginDecodeImpl( const PdfDictionary* );
+    void BeginDecodeImpl( const PdfDictionary* ) override;
 
     /** Real implementation of `DecodeBlock()'. NEVER call this method directly.
      *
@@ -149,7 +149,7 @@ class PdfHexFilter : public PdfFilter {
      *  EndDecode() has not been called since the last BeginDecode().
      *
      * \see DecodeBlock */
-    virtual void DecodeBlockImpl( const char* pBuffer, pdf_long lLen );
+    void DecodeBlockImpl( const char* pBuffer, pdf_long lLen ) override;
 
     /** Real implementation of `EndDecode()'. NEVER call this method directly.
      *
@@ -160,12 +160,12 @@ class PdfHexFilter : public PdfFilter {
      *  called, and ensures that BeginDecodeImpl() has been called.
      *
      * \see EndDecode */
-    virtual void EndDecodeImpl();
+    void EndDecodeImpl() override;
 
     /** GetType of this filter.
      *  \returns the GetType of this filter
      */
-    inline virtual EPdfFilter GetType() const;
+    inline EPdfFilter GetType() const;
 
  private:
     char m_cDecodedByte;
@@ -206,7 +206,7 @@ class PdfAscii85Filter : public PdfFilter {
      * 
      *  \returns true if the filter is able to encode data
      */
-    inline virtual bool CanEncode() const; 
+    inline bool CanEncode() const override; 
 
     /** Begin encoding data using this filter. Called by PdfFilter::BeginEncode.
      *
@@ -214,7 +214,7 @@ class PdfAscii85Filter : public PdfFilter {
      *  \see EndEncodeImpl
      *  \see PdfFilter::BeginEncode
      */
-    virtual void BeginEncodeImpl();
+    void BeginEncodeImpl() override;
 
     /** Encode a block of data and write it to the PdfOutputStream
      *  specified by BeginEncodeImpl.
@@ -230,7 +230,7 @@ class PdfAscii85Filter : public PdfFilter {
      *  \see BeginEncodeImpl
      *  \see EndEncodeImpl
      */
-    virtual void EncodeBlockImpl( const char* pBuffer, pdf_long lLen );
+    void EncodeBlockImpl( const char* pBuffer, pdf_long lLen ) override;
 
     /**
      *  Finish encoding of data.
@@ -238,13 +238,13 @@ class PdfAscii85Filter : public PdfFilter {
      *  \see BeginEncodeImpl
      *  \see EncodeBlockImpl
      */
-    virtual void EndEncodeImpl();
+    void EndEncodeImpl() override;
 
     /** Check wether the decoding is implemented for this filter.
      * 
      *  \returns true if the filter is able to decode data
      */
-    inline virtual bool CanDecode() const; 
+    inline bool CanDecode() const override;
 
     /** Real implementation of `BeginDecode()'. NEVER call this method directly.
      *
@@ -255,7 +255,7 @@ class PdfAscii85Filter : public PdfFilter {
      *  that EndDecode() was called since the last BeginDecode()/DecodeBlock().
      *
      * \see BeginDecode */
-    virtual void BeginDecodeImpl( const PdfDictionary* );
+    void BeginDecodeImpl( const PdfDictionary* ) override;
 
     /** Real implementation of `DecodeBlock()'. NEVER call this method directly.
      *
@@ -272,7 +272,7 @@ class PdfAscii85Filter : public PdfFilter {
      *  EndDecode() has not been called since the last BeginDecode().
      *
      * \see DecodeBlock */
-    virtual void DecodeBlockImpl( const char* pBuffer, pdf_long lLen );
+    void DecodeBlockImpl( const char* pBuffer, pdf_long lLen ) override;
 
     /** Real implementation of `EndDecode()'. NEVER call this method directly.
      *
@@ -283,12 +283,12 @@ class PdfAscii85Filter : public PdfFilter {
      *  called, and ensures that BeginDecodeImpl() has been called.
      *
      * \see EndDecode */
-    virtual void EndDecodeImpl();
+    void EndDecodeImpl() override;
 
     /** GetType of this filter.
      *  \returns the GetType of this filter
      */
-    inline virtual EPdfFilter GetType() const;
+    inline EPdfFilter GetType() const override;
 
  private:
     void EncodeTuple ( unsigned long tuple, int bytes );
@@ -325,8 +325,9 @@ EPdfFilter PdfAscii85Filter::GetType() const
 
 /** The flate filter.
  */
-class PdfFlateFilter : public PdfFilter {
- public:
+class PdfFlateFilter : public PdfFilter
+{
+public:
     PdfFlateFilter();
     virtual ~PdfFlateFilter();
 
@@ -334,7 +335,7 @@ class PdfFlateFilter : public PdfFilter {
      * 
      *  \returns true if the filter is able to encode data
      */
-    inline virtual bool CanEncode() const; 
+    inline bool CanEncode() const override;
 
     /** Begin encoding data using this filter. Called by PdfFilter::BeginEncode.
      *
@@ -342,7 +343,7 @@ class PdfFlateFilter : public PdfFilter {
      *  \see EndEncodeImpl
      *  \see PdfFilter::BeginEncode
      */
-    virtual void BeginEncodeImpl();
+    void BeginEncodeImpl() override;
 
     /** Encode a block of data and write it to the PdfOutputStream
      *  specified by BeginEncodeImpl.
@@ -358,7 +359,7 @@ class PdfFlateFilter : public PdfFilter {
      *  \see BeginEncodeImpl
      *  \see EndEncodeImpl
      */
-    virtual void EncodeBlockImpl( const char* pBuffer, pdf_long lLen );
+    void EncodeBlockImpl( const char* pBuffer, pdf_long lLen ) override;
 
     /**
      *  Finish encoding of data.
@@ -366,13 +367,13 @@ class PdfFlateFilter : public PdfFilter {
      *  \see BeginEncodeImpl
      *  \see EncodeBlockImpl
      */
-    virtual void EndEncodeImpl();
+    void EndEncodeImpl() override;
 
     /** Check wether the decoding is implemented for this filter.
      * 
      *  \returns true if the filter is able to decode data
      */
-    inline virtual bool CanDecode() const; 
+    inline bool CanDecode() const override;
 
     /** Real implementation of `BeginDecode()'. NEVER call this method directly.
      *
@@ -386,7 +387,7 @@ class PdfFlateFilter : public PdfFilter {
      *
      * \see BeginDecode 
      */
-    virtual void BeginDecodeImpl( const PdfDictionary* pDecodeParms );
+    void BeginDecodeImpl( const PdfDictionary* pDecodeParms ) override;
 
     /** Real implementation of `DecodeBlock()'. NEVER call this method directly.
      *
@@ -403,7 +404,7 @@ class PdfFlateFilter : public PdfFilter {
      *  EndDecode() has not been called since the last BeginDecode().
      *
      * \see DecodeBlock */
-    virtual void DecodeBlockImpl( const char* pBuffer, pdf_long lLen );
+    void DecodeBlockImpl( const char* pBuffer, pdf_long lLen ) override;
 
     /** Real implementation of `EndDecode()'. NEVER call this method directly.
      *
@@ -414,12 +415,12 @@ class PdfFlateFilter : public PdfFilter {
      *  called, and ensures that BeginDecodeImpl() has been called.
      *
      * \see EndDecode */
-    virtual void EndDecodeImpl();
+    void EndDecodeImpl() override;
 
     /** GetType of this filter.
      *  \returns the GetType of this filter
      */
-    inline virtual EPdfFilter GetType() const;
+    inline EPdfFilter GetType() const override;
 
  private:
     void EncodeBlockInternal( const char* pBuffer, pdf_long lLen, int nMode );
@@ -466,9 +467,9 @@ class PdfRLEFilter : public PdfFilter {
      * 
      *  \returns true if the filter is able to encode data
      */
-    inline virtual bool CanEncode() const; 
+    inline bool CanEncode() const override;
 
-    virtual void BeginEncodeImpl();
+    void BeginEncodeImpl() override;
 
     /** Encode a block of data and write it to the PdfOutputStream
      *  specified by BeginEncodeImpl.
@@ -484,7 +485,7 @@ class PdfRLEFilter : public PdfFilter {
      *  \see BeginEncodeImpl
      *  \see EndEncodeImpl
      */
-    virtual void EncodeBlockImpl( const char* pBuffer, pdf_long lLen );
+    void EncodeBlockImpl( const char* pBuffer, pdf_long lLen ) override;
 
     /**
      *  Finish encoding of data.
@@ -492,13 +493,13 @@ class PdfRLEFilter : public PdfFilter {
      *  \see BeginEncodeImpl
      *  \see EncodeBlockImpl
      */
-    virtual void EndEncodeImpl();
+    void EndEncodeImpl() override;
 
     /** Check wether the decoding is implemented for this filter.
      * 
      *  \returns true if the filter is able to decode data
      */
-    inline virtual bool CanDecode() const; 
+    inline bool CanDecode() const override;
 
     /** Real implementation of `BeginDecode()'. NEVER call this method directly.
      *
@@ -509,7 +510,7 @@ class PdfRLEFilter : public PdfFilter {
      *  that EndDecode() was called since the last BeginDecode()/DecodeBlock().
      *
      * \see BeginDecode */
-    virtual void BeginDecodeImpl( const PdfDictionary* );
+    void BeginDecodeImpl( const PdfDictionary* ) override;
 
     /** Real implementation of `DecodeBlock()'. NEVER call this method directly.
      *
@@ -526,12 +527,12 @@ class PdfRLEFilter : public PdfFilter {
      *  EndDecode() has not been called since the last BeginDecode().
      *
      * \see DecodeBlock */
-    virtual void DecodeBlockImpl( const char* pBuffer, pdf_long lLen );
+    void DecodeBlockImpl( const char* pBuffer, pdf_long lLen ) override;
 
     /** GetType of this filter.
      *  \returns the GetType of this filter
      */
-    inline virtual EPdfFilter GetType() const;
+    inline EPdfFilter GetType() const override;
 
  private:
     int m_nCodeLen;
@@ -581,7 +582,7 @@ class PdfLZWFilter : public PdfFilter {
      * 
      *  \returns true if the filter is able to encode data
      */
-    inline virtual bool CanEncode() const; 
+    inline bool CanEncode() const override;
 
     /** Begin encoding data using this filter. Called by PdfFilter::BeginEncode.
      *
@@ -589,7 +590,7 @@ class PdfLZWFilter : public PdfFilter {
      *  \see EndEncodeImpl
      *  \see PdfFilter::BeginEncode
      */
-    virtual void BeginEncodeImpl();
+    void BeginEncodeImpl() override;
 
     /** Encode a block of data and write it to the PdfOutputStream
      *  specified by BeginEncodeImpl.
@@ -605,7 +606,7 @@ class PdfLZWFilter : public PdfFilter {
      *  \see BeginEncodeImpl
      *  \see EndEncodeImpl
      */
-    virtual void EncodeBlockImpl( const char* pBuffer, pdf_long lLen );
+    void EncodeBlockImpl( const char* pBuffer, pdf_long lLen ) override;
 
     /**
      *  Finish encoding of data.
@@ -613,13 +614,13 @@ class PdfLZWFilter : public PdfFilter {
      *  \see BeginEncodeImpl
      *  \see EncodeBlockImpl
      */
-    virtual void EndEncodeImpl();
+    void EndEncodeImpl() override;
 
     /** Check wether the decoding is implemented for this filter.
      * 
      *  \returns true if the filter is able to decode data
      */
-    inline virtual bool CanDecode() const; 
+    inline bool CanDecode() const override;
 
     /** Real implementation of `BeginDecode()'. NEVER call this method directly.
      *
@@ -630,7 +631,7 @@ class PdfLZWFilter : public PdfFilter {
      *  that EndDecode() was called since the last BeginDecode()/DecodeBlock().
      *
      * \see BeginDecode */
-    virtual void BeginDecodeImpl( const PdfDictionary* );
+    void BeginDecodeImpl( const PdfDictionary* ) override;
 
     /** Real implementation of `DecodeBlock()'. NEVER call this method directly.
      *
@@ -647,7 +648,7 @@ class PdfLZWFilter : public PdfFilter {
      *  EndDecode() has not been called since the last BeginDecode().
      *
      * \see DecodeBlock */
-    virtual void DecodeBlockImpl( const char* pBuffer, pdf_long lLen );
+    void DecodeBlockImpl( const char* pBuffer, pdf_long lLen ) override;
 
     /** Real implementation of `EndDecode()'. NEVER call this method directly.
      *
@@ -658,12 +659,12 @@ class PdfLZWFilter : public PdfFilter {
      *  called, and ensures that BeginDecodeImpl() has been called.
      *
      * \see EndDecode */
-    virtual void EndDecodeImpl();
+    void EndDecodeImpl() override;
 
     /** GetType of this filter.
      *  \returns the GetType of this filter
      */
-    inline virtual EPdfFilter GetType() const;
+    inline EPdfFilter GetType() const override;
 
  private:
     /** Initialize an lzw table.
@@ -733,7 +734,7 @@ class PdfDCTFilter : public PdfFilter {
      * 
      *  \returns true if the filter is able to encode data
      */
-    inline virtual bool CanEncode() const; 
+    inline bool CanEncode() const override;
 
     /** Begin encoding data using this filter. Called by PdfFilter::BeginEncode.
      *
@@ -741,7 +742,7 @@ class PdfDCTFilter : public PdfFilter {
      *  \see EndEncodeImpl
      *  \see PdfFilter::BeginEncode
      */
-    virtual void BeginEncodeImpl();
+    void BeginEncodeImpl() override;
 
     /** Encode a block of data and write it to the PdfOutputStream
      *  specified by BeginEncodeImpl.
@@ -757,7 +758,7 @@ class PdfDCTFilter : public PdfFilter {
      *  \see BeginEncodeImpl
      *  \see EndEncodeImpl
      */
-    virtual void EncodeBlockImpl( const char* pBuffer, pdf_long lLen );
+    void EncodeBlockImpl( const char* pBuffer, pdf_long lLen ) override;
 
     /**
      *  Finish encoding of data.
@@ -765,13 +766,13 @@ class PdfDCTFilter : public PdfFilter {
      *  \see BeginEncodeImpl
      *  \see EncodeBlockImpl
      */
-    virtual void EndEncodeImpl();
+    void EndEncodeImpl() override;
 
     /** Check wether the decoding is implemented for this filter.
      * 
      *  \returns true if the filter is able to decode data
      */
-    inline virtual bool CanDecode() const; 
+    inline bool CanDecode() const override;
 
     /** Real implementation of `BeginDecode()'. NEVER call this method directly.
      *
@@ -782,7 +783,7 @@ class PdfDCTFilter : public PdfFilter {
      *  that EndDecode() was called since the last BeginDecode()/DecodeBlock().
      *
      * \see BeginDecode */
-    virtual void BeginDecodeImpl( const PdfDictionary* );
+    void BeginDecodeImpl( const PdfDictionary* ) override;
 
     /** Real implementation of `DecodeBlock()'. NEVER call this method directly.
      *
@@ -799,7 +800,7 @@ class PdfDCTFilter : public PdfFilter {
      *  EndDecode() has not been called since the last BeginDecode().
      *
      * \see DecodeBlock */
-    virtual void DecodeBlockImpl( const char* pBuffer, pdf_long lLen );
+    void DecodeBlockImpl( const char* pBuffer, pdf_long lLen ) override;
 
     /** Real implementation of `EndDecode()'. NEVER call this method directly.
      *
@@ -810,12 +811,12 @@ class PdfDCTFilter : public PdfFilter {
      *  called, and ensures that BeginDecodeImpl() has been called.
      *
      * \see EndDecode */
-    virtual void EndDecodeImpl();
+    void EndDecodeImpl() override;
 
     /** GetType of this filter.
      *  \returns the GetType of this filter
      */
-    inline virtual EPdfFilter GetType() const;
+    inline EPdfFilter GetType() const override;
 
  private:
     struct jpeg_decompress_struct m_cinfo;
@@ -864,7 +865,7 @@ class PdfCCITTFilter : public PdfFilter {
      * 
      *  \returns true if the filter is able to encode data
      */
-    inline virtual bool CanEncode() const; 
+    inline bool CanEncode() const override;
 
     /** Begin encoding data using this filter. Called by PdfFilter::BeginEncode.
      *
@@ -872,7 +873,7 @@ class PdfCCITTFilter : public PdfFilter {
      *  \see EndEncodeImpl
      *  \see PdfFilter::BeginEncode
      */
-    virtual void BeginEncodeImpl();
+    void BeginEncodeImpl() override;
 
     /** Encode a block of data and write it to the PdfOutputStream
      *  specified by BeginEncodeImpl.
@@ -888,7 +889,7 @@ class PdfCCITTFilter : public PdfFilter {
      *  \see BeginEncodeImpl
      *  \see EndEncodeImpl
      */
-    virtual void EncodeBlockImpl( const char* pBuffer, pdf_long lLen );
+    void EncodeBlockImpl( const char* pBuffer, pdf_long lLen ) override;
 
     /**
      *  Finish encoding of data.
@@ -896,13 +897,13 @@ class PdfCCITTFilter : public PdfFilter {
      *  \see BeginEncodeImpl
      *  \see EncodeBlockImpl
      */
-    virtual void EndEncodeImpl();
+    void EndEncodeImpl() override;
 
     /** Check wether the decoding is implemented for this filter.
      * 
      *  \returns true if the filter is able to decode data
      */
-    inline virtual bool CanDecode() const; 
+    inline bool CanDecode() const override;
 
     /** Real implementation of `BeginDecode()'. NEVER call this method directly.
      *
@@ -913,7 +914,7 @@ class PdfCCITTFilter : public PdfFilter {
      *  that EndDecode() was called since the last BeginDecode()/DecodeBlock().
      *
      * \see BeginDecode */
-    virtual void BeginDecodeImpl( const PdfDictionary* );
+    void BeginDecodeImpl( const PdfDictionary* ) override;
 
     /** Real implementation of `DecodeBlock()'. NEVER call this method directly.
      *
@@ -930,7 +931,7 @@ class PdfCCITTFilter : public PdfFilter {
      *  EndDecode() has not been called since the last BeginDecode().
      *
      * \see DecodeBlock */
-    virtual void DecodeBlockImpl( const char* pBuffer, pdf_long lLen );
+    void DecodeBlockImpl( const char* pBuffer, pdf_long lLen ) override;
 
     /** Real implementation of `EndDecode()'. NEVER call this method directly.
      *
@@ -941,12 +942,12 @@ class PdfCCITTFilter : public PdfFilter {
      *  called, and ensures that BeginDecodeImpl() has been called.
      *
      * \see EndDecode */
-    virtual void EndDecodeImpl();
+    void EndDecodeImpl() override;
 
     /** GetType of this filter.
      *  \returns the GetType of this filter
      */
-    inline virtual EPdfFilter GetType() const;
+    inline EPdfFilter GetType() const override;
 
  private:
     TIFF* m_tiff;

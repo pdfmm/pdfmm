@@ -147,47 +147,47 @@ class PODOFO_DOC_API PdfPage : public PdfElement, public PdfCanvas {
      *  This is most likely an internal object.
      *  \returns a resources object
      */
-    inline virtual PdfObject* GetResources() const;
+    inline PdfObject* GetResources() const override;
 
     /** Get the current MediaBox (physical page size) in PDF units.
      *  \returns PdfRect the page box
      */
-    virtual const PdfRect GetMediaBox() const { return GetPageBox( "MediaBox" ); }
+    const PdfRect GetMediaBox() const { return GetPageBox( "MediaBox" ); }
 
     /** Get the current CropBox (visible page size) in PDF units.
      *  \returns PdfRect the page box
      */
-    virtual const PdfRect GetCropBox() const { return GetPageBox( "CropBox" ); }
+    const PdfRect GetCropBox() const { return GetPageBox( "CropBox" ); }
 
     /** Get the current TrimBox (cut area) in PDF units.
      *  \returns PdfRect the page box
      */
-    virtual const PdfRect GetTrimBox() const { return GetPageBox( "TrimBox" ); }
+    const PdfRect GetTrimBox() const { return GetPageBox( "TrimBox" ); }
 
     /** Get the current BleedBox (extra area for printing purposes) in PDF units.
      *  \returns PdfRect the page box
      */
-    virtual const PdfRect GetBleedBox() const { return GetPageBox( "BleedBox" ); }
+    const PdfRect GetBleedBox() const { return GetPageBox( "BleedBox" ); }
 
     /** Get the current ArtBox in PDF units.
      *  \returns PdfRect the page box
      */
-    virtual const PdfRect GetArtBox() const { return GetPageBox( "ArtBox" ); }
+    const PdfRect GetArtBox() const { return GetPageBox( "ArtBox" ); }
 
     /** Get the current page rotation (if any).
      *  \returns int 0, 90, 180 or 270
      */
-    virtual int GetRotation() const;
+    int GetRotation() const;
 
     /** Set the current page rotation.
      *  \param iRotation Rotation to set to the page. Valid value are 0, 90, 180, 270.
      */
-    virtual void SetRotation(int nRotation);
+    void SetRotation(int nRotation);
         
     /** Get the number of annotations associated with this page
      * \ returns int number of annotations
      */
-    virtual int GetNumAnnots() const;
+    int GetNumAnnots() const;
 
     /** Create a new annotation to this page.
      *  \param eType the type of the annotation
@@ -270,7 +270,7 @@ class PODOFO_DOC_API PdfPage : public PdfElement, public PdfCanvas {
      *
      *  \see PdfPainter::SetDependICCProfileColor()
      */
-    virtual void SetICCProfile( const char* pszCSTag, PdfInputStream* pStream, int64_t nColorComponents,
+    void SetICCProfile( const char* pszCSTag, PdfInputStream* pStream, int64_t nColorComponents,
                                 EPdfColorSpace eAlternateColorSpace = ePdfColorSpace_DeviceRGB );
  private:
      PdfStream & GetStreamForAppending() override;

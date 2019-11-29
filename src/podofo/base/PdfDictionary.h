@@ -298,7 +298,7 @@ class PODOFO_API PdfDictionary : public PdfOwnedDataType {
      *  \returns true if the value is dirty and has been 
      *                modified since construction
      */
-    virtual bool IsDirty() const;
+    bool IsDirty() const override;
 
     /** Sets the dirty flag of this PdfVariant
      *
@@ -307,7 +307,7 @@ class PODOFO_API PdfDictionary : public PdfOwnedDataType {
      *
      *  \see IsDirty
      */
-    virtual void SetDirty( bool bDirty );
+    void SetDirty( bool bDirty ) override;
 
  public:
      TIKeyMap begin();

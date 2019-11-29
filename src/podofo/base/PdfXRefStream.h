@@ -67,7 +67,7 @@ class PdfXRefStream : public PdfXRef {
      * \returns the offset in the file at which the XRef table
      *          starts after it was written
      */
-    inline virtual uint64_t GetOffset() const;
+    inline uint64_t GetOffset() const override;
 
  protected:
     /** Called at the start of writing the XRef table.
@@ -77,7 +77,7 @@ class PdfXRefStream : public PdfXRef {
      *  @param pDevice the output device to which the XRef table 
      *                 should be written.
      */
-    virtual void BeginWrite( PdfOutputDevice* pDevice );
+    void BeginWrite( PdfOutputDevice* pDevice ) override;
 
     /** Begin an XRef subsection.
      *  All following calls of WriteXRefEntry belong to this XRef subsection.
@@ -87,7 +87,7 @@ class PdfXRefStream : public PdfXRef {
      *  @param nFirst the object number of the first object in this subsection
      *  @param nCount the number of entries in this subsection
      */
-    virtual void WriteSubSection( PdfOutputDevice* pDevice, uint32_t nFirst, uint32_t nCount );
+    void WriteSubSection( PdfOutputDevice* pDevice, uint32_t nFirst, uint32_t nCount ) override;
 
     /** Write a single entry to the XRef table
      *  
@@ -99,8 +99,8 @@ class PdfXRefStream : public PdfXRef {
      *  @param objectNumber the object number of the currently written object if cMode = 'n' 
      *                       otherwise undefined
      */
-    virtual void WriteXRefEntry( PdfOutputDevice* pDevice, uint64_t offset, uint16_t generation, 
-                                 char cMode, uint32_t objectNumber = 0 );
+    void WriteXRefEntry( PdfOutputDevice* pDevice, uint64_t offset, uint16_t generation, 
+                                 char cMode, uint32_t objectNumber = 0 ) override;
 
     /** Called at the end of writing the XRef table.
      *  Sub classes can overload this method to finish a XRef table.
@@ -108,7 +108,7 @@ class PdfXRefStream : public PdfXRef {
      *  @param pDevice the output device to which the XRef table 
      *                 should be written.
      */
-    virtual void EndWrite( PdfOutputDevice* pDevice );
+    void EndWrite( PdfOutputDevice* pDevice ) override;
 
  private:
     PdfVecObjects* m_pParent;

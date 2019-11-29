@@ -50,7 +50,7 @@ namespace PoDoFo
  * 2. Generate signature
  * 3. Insert new signature
  */
-class PODOFO_DOC_API PdfSignOutputDevice :public PdfOutputDevice 
+class PODOFO_DOC_API PdfSignOutputDevice : public PdfOutputDevice 
 {
 public:
     PdfSignOutputDevice(PdfOutputDevice *pRealDevice);
@@ -64,40 +64,41 @@ public:
      * 
      * \param lSignatureSize Total space reserved for signature
      */
-    virtual void SetSignatureSize(size_t lSignatureSize);
+    void SetSignatureSize(size_t lSignatureSize);
 
     /** Get expected size of signature.
      * 
 	 * If reserved size if zero no signatures will be added.
      * \return Total space reserved for signature.
      */
-	virtual size_t GetSignatureSize()const;
+	size_t GetSignatureSize()const;
 
     /** Return signature beacon
      * 
      */
-    virtual const PdfData *GetSignatureBeacon()const{ return m_pSignatureBeacon; }
+    const PdfData *GetSignatureBeacon() const { return m_pSignatureBeacon; }
 
-    virtual bool HasSignaturePosition()const { return m_bBeaconFound; }
+    bool HasSignaturePosition() const { return m_bBeaconFound; }
 
     /** Modify ByteRange entry according to signature position
      *
      */
-    virtual void AdjustByteRange();
+    void AdjustByteRange();
 
     /** Read data for signature
      */
-    virtual size_t ReadForSignature(char* pBuffer, size_t lLen);
+    size_t ReadForSignature(char* pBuffer, size_t lLen);
 
     /** Embed real signature in the PDF
      */
-    virtual void SetSignature(const PdfData &sigData);
+    void SetSignature(const PdfData &sigData);
 
-    virtual inline size_t GetLength() const
+    inline size_t GetLength() const override
     {
         return m_pRealDevice->GetLength();
     }
-    virtual void Print( const char* pszFormat, ... )
+
+    void Print( const char* pszFormat, ... ) override
     {
         va_list args;
         long lBytes;
@@ -111,21 +112,24 @@ public:
         va_end( args );
     }
     
-    virtual void Write( const char* pBuffer, size_t lLen );
-    virtual size_t Read( char* pBuffer, size_t lLen )
+    void Write( const char* pBuffer, size_t lLen ) override;
+
+    size_t Read( char* pBuffer, size_t lLen ) override
     {
         return m_pRealDevice->Read(pBuffer, lLen);
     }
-    virtual void Seek( size_t offset )
+
+    void Seek( size_t offset ) override
     {
         m_pRealDevice->Seek(offset);
     }
 
-    virtual inline size_t Tell() const
+    inline size_t Tell() const override
     {
         return m_pRealDevice->Tell();
     }
-    virtual void Flush()
+
+    void Flush() override
     {
         m_pRealDevice->Flush();
     }

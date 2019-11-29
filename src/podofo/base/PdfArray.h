@@ -98,8 +98,8 @@ class PODOFO_API PdfArray : public PdfOwnedDataType {
      *  \param pEncrypt an encryption object which is used to encrypt this object
      *                  or NULL to not encrypt this object
      */
-    virtual void Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, 
-                        const PdfEncrypt* pEncrypt = NULL ) const;
+    void Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, 
+                        const PdfEncrypt* pEncrypt = NULL ) const override;
 
     /** Get the object at the given index out of the array.
      *
@@ -254,7 +254,7 @@ class PODOFO_API PdfArray : public PdfOwnedDataType {
      *  \returns true if the value is dirty and has been 
      *                modified since construction
      */
-    virtual bool IsDirty() const;
+    bool IsDirty() const override;
 
     /** Sets the dirty flag of this PdfVariant
      *
@@ -263,7 +263,7 @@ class PODOFO_API PdfArray : public PdfOwnedDataType {
      *
      *  \see IsDirty
      */
-    virtual void SetDirty( bool bDirty );
+    void SetDirty( bool bDirty ) override;
 
  protected:
      void SetOwner( PdfObject* pOwner );

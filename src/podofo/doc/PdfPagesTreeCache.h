@@ -45,7 +45,7 @@ class PdfPage;
  *
  *  \see PdfCachedPagesTree
  */
-class PODOFO_DOC_API PdfPagesTreeCache
+class PODOFO_DOC_API PdfPagesTreeCache final
 {
 	typedef std::deque< PdfPage* > PdfPageList;
 
@@ -58,7 +58,7 @@ class PODOFO_DOC_API PdfPagesTreeCache
     
     /** Close/down destruct a PdfCachedPagesTree
      */
-    virtual ~PdfPagesTreeCache();
+    ~PdfPagesTreeCache();
 
     /** Return a PdfPage for the specified Page index
      *  The returned page is owned by the pages tree and
@@ -67,21 +67,21 @@ class PODOFO_DOC_API PdfPagesTreeCache
      *  \param nIndex page index, 0-based
      *  \returns a pointer to the requested page or NULL if it is not cached
      */
-    virtual PdfPage* GetPage( int nIndex );
+    PdfPage* GetPage( int nIndex );
 
     /**
      * Add a PdfPage object to the cache
      * @param nIndex index of the page
      * @param pPage page object
      */
-    virtual void AddPageObject( int nIndex, PdfPage* pPage );
+    void AddPageObject( int nIndex, PdfPage* pPage );
 
     /**
      * Add several PdfPage objects to the cache, replacing any existing at the given index
      * @param nIndex zero based index of where the first page will be placed
      * @param vecPages vector of the page objects to add
      */
-    virtual void AddPageObjects( int nIndex, std::vector<PdfPage*> vecPages );
+    void AddPageObjects( int nIndex, std::vector<PdfPage*> vecPages );
 
     /**
      * A page was inserted into the pagestree,
@@ -90,7 +90,7 @@ class PODOFO_DOC_API PdfPagesTreeCache
      * @param nAfterPageIndex zero based index of the page we are inserting after
 	 *         - may be one of the special values  from EPdfPageInsertionPoint.
      */
-    virtual void InsertPage( int nAfterPageIndex );
+    void InsertPage( int nAfterPageIndex );
 
     /**
      * Insert several pages into the pagestree, after the given index
@@ -100,25 +100,19 @@ class PODOFO_DOC_API PdfPagesTreeCache
 	 *         - may be one of the special values  from EPdfPageInsertionPoint.
      * @param nCount number of pages that were inserted
      */
-    virtual void InsertPages( int nAfterPageIndex, int nCount );
+    void InsertPages( int nAfterPageIndex, int nCount );
 
     /**
      * Delete a PdfPage from the cache
      * @param nIndex index of the page
      */
-    virtual void DeletePage( int nIndex );
+    void DeletePage( int nIndex );
 
     /**
      * Clear cache, i.e. remove all elements from the 
      * cache.
      */
-    virtual void ClearCache();
-
-private:
-    /**
-     * Avoid construction of empty objects
-     */
-    PdfPagesTreeCache() { }
+    void ClearCache();
 
 private:
     PdfPageList    m_deqPageObjs;

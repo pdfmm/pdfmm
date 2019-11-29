@@ -119,14 +119,14 @@ class PdfFilteredEncodeStream : public PdfOutputStream{
      *  \param pBuffer the data is read from this buffer
      *  \param lLen    the size of the buffer 
      */
-    virtual pdf_long Write( const char* pBuffer, pdf_long lLen )
+    pdf_long Write( const char* pBuffer, pdf_long lLen ) override
     {
         m_filter->EncodeBlock( pBuffer, lLen );
         
         return 0;
     }
 
-    virtual void Close() 
+    void Close() override
     {
         m_filter->EndEncode();
     }
@@ -184,7 +184,7 @@ class PdfFilteredDecodeStream : public PdfOutputStream {
      *  \param pBuffer the data is read from this buffer
      *  \param lLen    the size of the buffer 
      */
-    virtual pdf_long Write( const char* pBuffer, pdf_long lLen )
+    pdf_long Write( const char* pBuffer, pdf_long lLen ) override
     {
         try {
             m_filter->DecodeBlock( pBuffer, lLen );
@@ -199,7 +199,7 @@ class PdfFilteredDecodeStream : public PdfOutputStream {
         return 0;
     }
 
-    virtual void Close() 
+    void Close() override
     {
         try {
             if( !m_bFilterFailed ) 

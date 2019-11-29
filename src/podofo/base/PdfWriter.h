@@ -60,9 +60,9 @@ class PdfXRef;
  *
  *  Most users will want to use PdfDocument.
  */
-class PODOFO_API PdfWriter {
-
- public:
+class PODOFO_API PdfWriter
+{
+public:
     /** Create a PdfWriter object from a PdfParser object
      *  \param pParser a pdf parser object
      */

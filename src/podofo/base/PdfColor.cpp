@@ -441,25 +441,13 @@ PdfColorGray::PdfColorGray( double dGray ) :
 {
 }
 
-PdfColorGray::~PdfColorGray()
-{
-}
-
 PdfColorRGB::PdfColorRGB( double dRed, double dGreen, double dBlue )
     : PdfColor( dRed, dGreen, dBlue )
 {
 }
 
-PdfColorRGB::~PdfColorRGB()
-{
-}
-
 PdfColorCMYK::PdfColorCMYK( double dCyan, double dMagenta, double dYellow, double dBlack )
     : PdfColor( dCyan, dMagenta, dYellow, dBlack )
-{
-}
-
-PdfColorCMYK::~PdfColorCMYK()
 {
 }
 
@@ -476,10 +464,6 @@ PdfColorCieLab::PdfColorCieLab( double dCieL, double dCieA, double dCieB )
     m_uColor.lab[2] = dCieB;
 }
 
-PdfColorCieLab::~PdfColorCieLab()
-{
-}
-
 PdfColorSeparationAll::PdfColorSeparationAll()
   : PdfColor()
 {
@@ -493,10 +477,6 @@ PdfColorSeparationAll::PdfColorSeparationAll()
     m_uColor.cmyk[3] = 1.0;
 }
 
-PdfColorSeparationAll::~PdfColorSeparationAll()
-{
-}
-
 PdfColorSeparationNone::PdfColorSeparationNone()
   : PdfColor()
 {
@@ -508,10 +488,6 @@ PdfColorSeparationNone::PdfColorSeparationNone()
     m_uColor.cmyk[1] = 0.0;
     m_uColor.cmyk[2] = 0.0;
     m_uColor.cmyk[3] = 0.0;
-}
-
-PdfColorSeparationNone::~PdfColorSeparationNone()
-{
 }
 
 PdfColorSeparation::PdfColorSeparation( const std::string & sName, double dDensity, const PdfColor & alternateColor )
@@ -563,10 +539,6 @@ PdfColorSeparation::PdfColorSeparation( const std::string & sName, double dDensi
     m_eColorSpace = ePdfColorSpace_Separation;
     m_separationName = sName;
     m_separationDensity = dDensity;
-}
-
-PdfColorSeparation::~PdfColorSeparation()
-{
 }
 
 const PdfColor & PdfColor::operator=( const PdfColor & rhs )

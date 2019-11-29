@@ -54,13 +54,13 @@ public:
 
 public:
     PdfCMapEncoding(PdfObject* pObject, PdfObject* pToUnicode = NULL);
-    virtual PdfString ConvertToUnicode(const PdfString& rEncodedString, const PdfFont* pFont) const;
-    virtual void AddToDictionary(PdfDictionary & rDictionary ) const;
-    virtual PdfRefCountedBuffer ConvertToEncoding(const PdfString& rString, const PdfFont* pFont) const; 
-    virtual bool IsAutoDelete() const;
-    virtual bool IsSingleByteEncoding() const;
-    virtual pdf_utf16be GetCharCode(int nIndex) const;
-    virtual const PdfName & GetID() const;
+    PdfString ConvertToUnicode(const PdfString& rEncodedString, const PdfFont* pFont) const override;
+    void AddToDictionary(PdfDictionary & rDictionary ) const override;
+    PdfRefCountedBuffer ConvertToEncoding(const PdfString& rString, const PdfFont* pFont) const override;
+    bool IsAutoDelete() const override;
+    bool IsSingleByteEncoding() const override;
+    pdf_utf16be GetCharCode(int nIndex) const override;
+    const PdfName & GetID() const override;
     const PdfEncoding* GetBaseEncoding() const;
 
 private:

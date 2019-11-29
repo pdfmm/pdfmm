@@ -93,80 +93,80 @@ public:
      *  \param nLast last character code to be in the array
      *  \param pEncoding encoding for correct character widths. If not passed default (latin1) encoding is used
      */
-    virtual void GetWidthArray( PdfVariant & var, unsigned int nFirst, unsigned int nLast, const PdfEncoding* pEncoding = NULL ) const;
+    void GetWidthArray( PdfVariant & var, unsigned int nFirst, unsigned int nLast, const PdfEncoding* pEncoding = NULL ) const override;
 
     /** Get the width of a single glyph id
      *
      *  \returns the width of a single glyph id
      */
-    virtual double GetGlyphWidth( int nGlyphId ) const;
+    double GetGlyphWidth( int nGlyphId ) const override;
 
     /** Get the width of a single named glyph
      *
      *  \param pszGlyphname name of the glyph
      *  \returns the width of a single named glyph
      */
-	virtual double GetGlyphWidth( const char* pszGlyphname ) const;
+	double GetGlyphWidth( const char* pszGlyphname ) const override;
 
     /** Create the bounding box array as required by the PDF reference
      *  so that it can be written directly to a PDF file.
      * 
      *  \param array write the bounding box to this array.
      */
-    virtual void GetBoundingBox( PdfArray & array ) const;
+    void GetBoundingBox( PdfArray & array ) const override;
 
     /** Retrieve the width of the given character in PDF units in the current font
      *  \param c character
      *  \returns the width in PDF units
      */
-    virtual double CharWidth( unsigned char c ) const;
+    double CharWidth( unsigned char c ) const override;
 
     // Peter Petrov 20 March 2009
     /** Retrieve the width of the given character in PDF units in the current font
      *  \param c character
      *  \returns the width in PDF units
      */
-    virtual double UnicodeCharWidth( unsigned short c ) const;
+    double UnicodeCharWidth( unsigned short c ) const override;
 
     /** Retrieve the line spacing for this font
      *  \returns the linespacing in PDF units
      */
-    virtual double GetLineSpacing() const;
+    double GetLineSpacing() const override;
 
     /** Get the width of the underline for the current 
      *  font size in PDF units
      *  \returns the thickness of the underline in PDF units
      */
-    virtual double GetUnderlineThickness() const;
+    double GetUnderlineThickness() const override;
 
     /** Return the position of the underline for the current font
      *  size in PDF units
      *  \returns the underline position in PDF units
      */
-    virtual double GetUnderlinePosition() const;
+    double GetUnderlinePosition() const override;
 
     /** Return the position of the strikeout for the current font
      *  size in PDF units
      *  \returns the underline position in PDF units
      */
-    virtual double GetStrikeOutPosition() const;
+    double GetStrikeOutPosition() const override;
 
     /** Get the width of the strikeout for the current 
      *  font size in PDF units
      *  \returns the thickness of the strikeout in PDF units
      */
-    virtual double GetStrikeoutThickness() const;
+    double GetStrikeoutThickness() const override;
 
     /** Get a string with the postscript name of the font.
      *  \returns the postscript name of the font or NULL string if no postscript name is available.
      */
-    virtual const char* GetFontname() const;
+    const char* GetFontname() const override;
 
     /** Get the weight of this font.
      *  Used to build the font dictionay
      *  \returns the weight of this font (500 is normal).
      */
-    virtual  unsigned int GetWeight() const;
+    unsigned int GetWeight() const override;
 
     /** Get the ascent of this font in PDF
      *  units for the current font size.
@@ -175,7 +175,7 @@ public:
      *  
      *  \see GetPdfAscent
      */
-    virtual double GetAscent() const;
+    double GetAscent() const override;
 
     /** Get the ascent of this font
      *  Used to build the font dictionay
@@ -183,7 +183,7 @@ public:
      *  
      *  \see GetAscent
      */
-    virtual double GetPdfAscent() const;
+    double GetPdfAscent() const override;
 
     /** Get the descent of this font in PDF 
      *  units for the current font size.
@@ -193,7 +193,7 @@ public:
      *
      *  \see GetPdfDescent
      */
-    virtual double GetDescent() const;
+    double GetDescent() const override;
 
     /** Get the descent of this font
      *  Used to build the font dictionay
@@ -201,13 +201,13 @@ public:
      *
      *  \see GetDescent
      */
-    virtual double GetPdfDescent() const;
+    double GetPdfDescent() const override;
 
     /** Get the italic angle of this font.
      *  Used to build the font dictionay
      *  \returns the italic angle of this font.
      */
-    virtual int GetItalicAngle() const;
+    int GetItalicAngle() const override;
  
     /** Get the glyph id for a unicode character
      *  in the current font.
@@ -215,7 +215,7 @@ public:
      *  \param lUnicode the unicode character value
      *  \returns the glyhph id for the character or 0 if the glyph was not found.
      */
-    virtual long GetGlyphId( long lUnicode ) const;
+    long GetGlyphId( long lUnicode ) const override;
 
     /** Symbol fonts do need special treatment in a few cases.
      *  Use this method to check if the current font is a symbol
@@ -224,17 +224,17 @@ public:
      * 
      * \returns true if this is a symbol font
      */
-    virtual bool IsSymbol() const;
+    bool IsSymbol() const override;
 
     /** Get a pointer to the actual font data - if it was loaded from memory.
      *  \returns a binary buffer of data containing the font data
      */
-    virtual const char* GetFontData() const;
+    const char* GetFontData() const override;
 
     /** Get the length of the actual font data - if it was loaded from memory.
      *  \returns a the length of the font data
      */
-    virtual pdf_long GetFontDataLen() const;
+    pdf_long GetFontDataLen() const override;
 
     inline double GetCapHeight() const;
 

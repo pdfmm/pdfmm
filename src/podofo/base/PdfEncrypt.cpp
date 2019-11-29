@@ -277,7 +277,7 @@ public:
      *  \param pBuffer the data is read from this buffer
      *  \param lLen    the size of the buffer 
      */
-    virtual pdf_long Write( const char* pBuffer, pdf_long lLen )
+    pdf_long Write( const char* pBuffer, pdf_long lLen ) override
     {
         // Do not encode data with no length
         if( !lLen )
@@ -305,7 +305,7 @@ public:
      *  No more data may be written to the output device
      *  after calling close.
      */
-    virtual void Close() 
+    void Close() override
     {
     }
     
@@ -334,7 +334,7 @@ public:
      *  \returns the number of bytes read, -1 if an error ocurred
      *           and zero if no more bytes are available for reading.
      */
-    virtual pdf_long Read( char* pBuffer, pdf_long lLen, pdf_long* )
+    pdf_long Read( char* pBuffer, pdf_long lLen, pdf_long* ) override
     {
         // Do not encode data with no length
         if( !lLen )
@@ -453,7 +453,7 @@ public:
      *  \returns the number of bytes read, -1 if an error ocurred
      *           and zero if no more bytes are available for reading.
      */
-    virtual pdf_long Read( char* pBuffer, pdf_long lLen, pdf_long *pTotalLeft )
+    pdf_long Read( char* pBuffer, pdf_long lLen, pdf_long *pTotalLeft ) override
     {
         // Do not encode data with no length
         if( !lLen )
@@ -1006,7 +1006,7 @@ PdfEncryptMD5Base::GetMD5Binary(const unsigned char* data, int length, unsigned 
         PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error MD5-hashing data" );
 }
 
-void PdfEncryptMD5Base::GenerateInitialVector(unsigned char iv[AES_IV_LENGTH])
+void PdfEncryptMD5Base::GenerateInitialVector(unsigned char iv[])
 {
     GetMD5Binary(reinterpret_cast<const unsigned char*>(m_documentId.c_str()), 
                  static_cast<unsigned int>(m_documentId.length()), iv);
@@ -1663,7 +1663,7 @@ PdfEncryptSHABase::Authenticate(const std::string& documentID, const std::string
     return Authenticate(password, documentID);
 }
     
-void PdfEncryptSHABase::GenerateInitialVector(unsigned char iv[AES_IV_LENGTH])
+void PdfEncryptSHABase::GenerateInitialVector(unsigned char iv[])
 {
     for (int i=0; i<AES_IV_LENGTH; i++)
         iv[i] = rand()%255;

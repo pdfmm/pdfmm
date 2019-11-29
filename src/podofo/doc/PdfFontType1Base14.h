@@ -74,7 +74,7 @@ class PdfFontType1Base14 : public PdfFontSimple {
      *
      *  \param pDescriptor font descriptor object
      */
-    virtual void EmbedFontFile( PdfObject* pDescriptor );
+    void EmbedFontFile( PdfObject* pDescriptor ) override;
 
  private:
     void InitBase14Font( PdfFontMetrics* pMetrics );

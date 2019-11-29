@@ -370,7 +370,7 @@ class PODOFO_API PdfSimpleEncoding : public PdfEncoding {
      *
      *  \param rDictionary add the encoding to this dictionary
      */
-    virtual void AddToDictionary( PdfDictionary & rDictionary ) const;
+    void AddToDictionary( PdfDictionary & rDictionary ) const override;
 
     /** Convert a string that is encoded with this encoding
      *  to an unicode PdfString.
@@ -381,7 +381,7 @@ class PODOFO_API PdfSimpleEncoding : public PdfEncoding {
      *
      *  \returns an unicode PdfString.
      */
-    virtual PdfString ConvertToUnicode( const PdfString & rEncodedString, const PdfFont* pFont ) const;
+    PdfString ConvertToUnicode( const PdfString & rEncodedString, const PdfFont* pFont ) const override;
 
     /** Convert a unicode PdfString to a string encoded with this encoding.
      *
@@ -391,7 +391,7 @@ class PODOFO_API PdfSimpleEncoding : public PdfEncoding {
      *  \returns an encoded PdfRefCountedBuffer. The PdfRefCountedBuffer is treated as a series of bytes
      *           and is allowed to have 0 bytes. The returned buffer must not be a unicode string.
      */
-    virtual PdfRefCountedBuffer ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const;
+    PdfRefCountedBuffer ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const override;
 
     /** 
      * PdfSimpleEncoding subclasses are usuylla not auto-deleted, as
@@ -403,12 +403,12 @@ class PODOFO_API PdfSimpleEncoding : public PdfEncoding {
      * \see PdfFont::WinAnsiEncoding
      * \see PdfFont::MacRomanEncoding
      */
-    virtual bool IsAutoDelete() const;
+    bool IsAutoDelete() const override;
 
     /** 
      *  \returns true if this is a single byte encoding with a maximum of 256 values.
      */
-    inline virtual bool IsSingleByteEncoding() const;
+    inline bool IsSingleByteEncoding() const override;
 
     /** Get the name of this encoding.
      *  
@@ -428,7 +428,7 @@ class PODOFO_API PdfSimpleEncoding : public PdfEncoding {
      *
      *  Will throw an exception if nIndex is out of range.
      */
-    virtual pdf_utf16be GetCharCode( int nIndex ) const;
+    pdf_utf16be GetCharCode( int nIndex ) const override;
 
     char GetUnicodeCharCode(pdf_utf16be unicodeValue) const;
 
@@ -445,7 +445,7 @@ class PODOFO_API PdfSimpleEncoding : public PdfEncoding {
      *
      *  \returns a unique id for this encoding!
      */
-    inline virtual const PdfName & GetID() const;
+    inline const PdfName & GetID() const override;
 
     /** Gets a table of 256 short values which are the 
      *  big endian unicode code points that are assigned
@@ -535,7 +535,7 @@ public:
      *
      *  \returns an array of 256 big endian unicode code points
      */
-    virtual const pdf_utf16be* GetToUnicodeTable() const;
+    const pdf_utf16be* GetToUnicodeTable() const override;
 
  private:
     static const pdf_utf16be s_cEncoding[256]; ///< conversion table from DocEncoding to UTF16
@@ -578,7 +578,7 @@ class PODOFO_API PdfWinAnsiEncoding : public PdfSimpleEncoding {
      *
      *  \returns an array of 256 big endian unicode code points
      */
-    virtual const pdf_utf16be* GetToUnicodeTable() const;
+    const pdf_utf16be* GetToUnicodeTable() const override;
 
     /** Add this encoding object to a dictionary
      *  usually be adding an /Encoding key in font dictionaries.
@@ -589,7 +589,7 @@ class PODOFO_API PdfWinAnsiEncoding : public PdfSimpleEncoding {
      *
      *  \param rDictionary add the encoding to this dictionary
      */
-    virtual void AddToDictionary( PdfDictionary & rDictionary ) const;
+    void AddToDictionary( PdfDictionary & rDictionary ) const override;
 
  private:
     static const pdf_utf16be s_cEncoding[256]; ///< conversion table from WinAnsiEncoding to UTF16
@@ -624,7 +624,7 @@ class PODOFO_API PdfMacRomanEncoding : public PdfSimpleEncoding {
      *
      *  \returns an array of 256 big endian unicode code points
      */
-    virtual const pdf_utf16be* GetToUnicodeTable() const;
+    const pdf_utf16be* GetToUnicodeTable() const override;
 
  private:
     static const pdf_utf16be s_cEncoding[256]; ///< conversion table from MacRomanEncoding to UTF16
@@ -655,7 +655,7 @@ class PODOFO_API PdfMacExpertEncoding : public PdfSimpleEncoding {
      *
      *  \returns an array of 256 big endian unicode code points
      */
-    virtual const pdf_utf16be* GetToUnicodeTable() const;
+    const pdf_utf16be* GetToUnicodeTable() const override;
 
  private:
     static const pdf_utf16be s_cEncoding[256]; ///< conversion table from MacExpertEncoding to UTF16
@@ -691,7 +691,7 @@ class PODOFO_API PdfStandardEncoding : public PdfSimpleEncoding {
      *
      *  \returns an array of 256 big endian unicode code points
      */
-    virtual const pdf_utf16be* GetToUnicodeTable() const;
+    const pdf_utf16be* GetToUnicodeTable() const override;
 
  private:
     static const pdf_utf16be s_cEncoding[256]; ///< conversion table from StandardEncoding to UTF16
@@ -727,7 +727,7 @@ class PODOFO_API PdfSymbolEncoding : public PdfSimpleEncoding {
      *
      *  \returns an array of 256 big endian unicode code points
      */
-    virtual const pdf_utf16be* GetToUnicodeTable() const;
+    const pdf_utf16be* GetToUnicodeTable() const override;
 
  private:
     static const pdf_utf16be s_cEncoding[256]; ///< conversion table from SymbolEncoding to UTF16
@@ -763,7 +763,7 @@ class PODOFO_API PdfZapfDingbatsEncoding : public PdfSimpleEncoding {
      *
      *  \returns an array of 256 big endian unicode code points
      */
-    virtual const pdf_utf16be* GetToUnicodeTable() const;
+    const pdf_utf16be* GetToUnicodeTable() const override;
 
  private:
     static const pdf_utf16be s_cEncoding[256]; ///< conversion table from ZapfDingbatsEncoding to UTF16
@@ -786,7 +786,7 @@ class PODOFO_API PdfWin1250Encoding : public PdfWinAnsiEncoding
 
  protected:
 
-    virtual const PdfName & GetID() const
+    inline const PdfName & GetID() const override
     {
         return m_id;
     }
@@ -800,7 +800,7 @@ class PODOFO_API PdfWin1250Encoding : public PdfWinAnsiEncoding
      *
      *  \returns an array of 256 big endian unicode code points
      */
-    virtual const pdf_utf16be* GetToUnicodeTable() const;
+    const pdf_utf16be* GetToUnicodeTable() const override;
 
  private:
     static const pdf_utf16be s_cEncoding[256]; ///< conversion table from Win1250Encoding to UTF16
@@ -823,7 +823,7 @@ class PODOFO_API PdfIso88592Encoding : public PdfWinAnsiEncoding
 
  protected:
 
-    virtual const PdfName & GetID() const
+    inline const PdfName & GetID() const override
     {
         return m_id;
     }
@@ -837,7 +837,7 @@ class PODOFO_API PdfIso88592Encoding : public PdfWinAnsiEncoding
      *
      *  \returns an array of 256 big endian unicode code points
      */
-    virtual const pdf_utf16be* GetToUnicodeTable() const;
+    const pdf_utf16be* GetToUnicodeTable() const override;
 
  private:
     static const pdf_utf16be s_cEncoding[256]; ///< conversion table from Iso88592Encoding to UTF16

@@ -211,14 +211,15 @@ typedef TDequeErrorInfo::const_iterator TCIDequeErrorInfo;
  *  for the error codes which are values of the enum EPdfError,
  *  which are all codes PoDoFo uses (except the first and last one).
  */
-class PODOFO_EXCEPTION_API_DOXYGEN PdfError {
- public:
+class PODOFO_EXCEPTION_API_DOXYGEN PdfError final
+{
+public:
 
     // OC 17.08.2010 New to optionally replace stderr output by a callback:
     class LogMessageCallback
     {
     public:
-        virtual ~LogMessageCallback() {} // every class with virtual methods needs a virtual destructor
+        virtual ~LogMessageCallback() {}
         virtual void LogMessage( ELogSeverity eLogSeverity, const char* pszPrefix, const char* pszMsg, va_list & args ) = 0;
         virtual void LogMessage( ELogSeverity eLogSeverity, const wchar_t* pszPrefix, const wchar_t* pszMsg, va_list & args ) = 0;
     };

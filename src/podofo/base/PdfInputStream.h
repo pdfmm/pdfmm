@@ -96,7 +96,7 @@ class PODOFO_API PdfFileInputStream : public PdfInputStream {
      *  \returns the number of bytes read, -1 if an error ocurred
      *           and zero if no more bytes are available for reading.
      */
-    virtual pdf_long Read( char* pBuffer, pdf_long lLen, pdf_long* = 0 );
+    pdf_long Read( char* pBuffer, pdf_long lLen, pdf_long* = 0 ) override;
 
     /** Get the length of the file.
      *  \return the file length
@@ -134,7 +134,7 @@ class PODOFO_API PdfMemoryInputStream : public PdfInputStream {
      *  \returns the number of bytes read, -1 if an error ocurred
      *           and zero if no more bytes are available for reading.
      */
-    virtual pdf_long Read( char* pBuffer, pdf_long lLen, pdf_long* );
+    pdf_long Read( char* pBuffer, pdf_long lLen, pdf_long* ) override;;
 
  private:
     const char* m_pBuffer;
@@ -163,7 +163,7 @@ class PODOFO_API PdfDeviceInputStream : public PdfInputStream {
      *  \returns the number of bytes read, -1 if an error ocurred
      *           and zero if no more bytes are available for reading.
      */
-    virtual pdf_long Read( char* pBuffer, pdf_long lLen, pdf_long* );
+    pdf_long Read( char* pBuffer, pdf_long lLen, pdf_long* ) override;;
 
  private:
     PdfInputDevice* m_pDevice;

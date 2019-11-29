@@ -227,7 +227,7 @@ class PODOFO_DOC_API PdfDifferenceEncoding : public PdfEncoding, private PdfElem
      *
      *  \param rDictionary add the encoding to this dictionary
      */
-    virtual void AddToDictionary( PdfDictionary & rDictionary ) const;
+    void AddToDictionary( PdfDictionary & rDictionary ) const override;
 
     /** Convert a string that is encoded with this encoding
      *  to an unicode PdfString.
@@ -238,7 +238,7 @@ class PODOFO_DOC_API PdfDifferenceEncoding : public PdfEncoding, private PdfElem
      *
      *  \returns an unicode PdfString.
      */
-    virtual PdfString ConvertToUnicode( const PdfString & rEncodedString, const PdfFont* pFont ) const;
+    PdfString ConvertToUnicode( const PdfString & rEncodedString, const PdfFont* pFont ) const override;
 
     /** Convert a unicode PdfString to a string encoded with this encoding.
      *
@@ -248,18 +248,18 @@ class PODOFO_DOC_API PdfDifferenceEncoding : public PdfEncoding, private PdfElem
      *  \returns an encoded PdfRefCountedBuffer. The PdfRefCountedBuffer is treated as a series of bytes
      *           and is allowed to have 0 bytes. The returned buffer must not be a unicode string.
      */
-    virtual PdfRefCountedBuffer ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const;
+    PdfRefCountedBuffer ConvertToEncoding( const PdfString & rString, const PdfFont* pFont ) const override;
 
     /** 
      * \returns true if this encoding should be deleted automatically with the
      *          font.
      */
-    virtual bool IsAutoDelete() const;
+    bool IsAutoDelete() const override;
 
     /** 
      *  \returns true if this is a single byte encoding with a maximum of 256 values.
      */
-    virtual bool IsSingleByteEncoding() const;
+    bool IsSingleByteEncoding() const override;
 
     /** 
      * Get read-only access to the object containing the actual
@@ -281,7 +281,7 @@ class PODOFO_DOC_API PdfDifferenceEncoding : public PdfEncoding, private PdfElem
      *
      *  Will throw an exception if nIndex is out of range.
      */
-    virtual pdf_utf16be GetCharCode( int nIndex ) const;
+    pdf_utf16be GetCharCode( int nIndex ) const override;
 
  protected:
 
@@ -290,7 +290,7 @@ class PODOFO_DOC_API PdfDifferenceEncoding : public PdfEncoding, private PdfElem
      *
      *  \returns a unique id for this encoding!
      */
-    virtual const PdfName & GetID() const;
+    const PdfName & GetID() const override;
 
  private:
     /** Initialize this object

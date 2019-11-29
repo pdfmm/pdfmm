@@ -267,7 +267,7 @@ class PODOFO_DOC_API PdfSimpleTableModel : public PdfTableModel {
      *
      * \returns the contents string of this table cell
      */
-    inline virtual PdfString GetText ( int col, int row ) const;
+    inline PdfString GetText(int col, int row) const override;
 
     /** 
      * \param col the column of the table cell
@@ -275,7 +275,7 @@ class PODOFO_DOC_API PdfSimpleTableModel : public PdfTableModel {
      *
      * \returns the horizontal alignment of the contents in the cell
      */
-    inline virtual EPdfAlignment GetAlignment ( int col, int row ) const;
+    inline EPdfAlignment GetAlignment ( int col, int row ) const override;
 
     /** 
      * \param col the column of the table cell
@@ -283,7 +283,7 @@ class PODOFO_DOC_API PdfSimpleTableModel : public PdfTableModel {
      *
      * \returns the vertical alignment of the contents in the cell
      */
-    inline virtual EPdfVerticalAlignment GetVerticalAlignment ( int col, int row ) const;
+    inline EPdfVerticalAlignment GetVerticalAlignment ( int col, int row ) const override;
 
     /** 
      * \param col the column of the table cell
@@ -291,7 +291,7 @@ class PODOFO_DOC_API PdfSimpleTableModel : public PdfTableModel {
      *
      * \returns the font of this table cell or NULL to use the default font
      */
-    inline virtual PdfFont*  GetFont ( int col, int row ) const;
+    inline PdfFont*  GetFont ( int col, int row ) const override;
     
     /** 
      * \param col the column of the table cell
@@ -299,7 +299,7 @@ class PODOFO_DOC_API PdfSimpleTableModel : public PdfTableModel {
      *
      * \returns true if this cell has a background color
      */
-    inline virtual bool HasBackgroundColor( int col, int row ) const;
+    inline bool HasBackgroundColor( int col, int row ) const override;
 
     /** 
      * \param col the column of the table cell
@@ -307,7 +307,7 @@ class PODOFO_DOC_API PdfSimpleTableModel : public PdfTableModel {
      *
      * \returns the background color of the specified cell
      */
-    inline virtual PdfColor GetBackgroundColor( int col, int row ) const;
+    inline PdfColor GetBackgroundColor( int col, int row ) const override;
 
 
     /** 
@@ -316,7 +316,7 @@ class PODOFO_DOC_API PdfSimpleTableModel : public PdfTableModel {
      *
      * \returns the foreground (text) color of the specified cell
      */
-    inline virtual PdfColor GetForegroundColor( int col, int row ) const;
+    inline PdfColor GetForegroundColor( int col, int row ) const override;
 
     /** 
      * \param col the column of the table cell
@@ -324,7 +324,7 @@ class PODOFO_DOC_API PdfSimpleTableModel : public PdfTableModel {
      *
      * \returns true if the specified cell should use wordwrapping
      */
-    inline virtual bool HasWordWrap( int col, int row ) const;
+    inline bool HasWordWrap( int col, int row ) const override;
 
     /** 
      * \returns true if the table should have
@@ -334,12 +334,12 @@ class PODOFO_DOC_API PdfSimpleTableModel : public PdfTableModel {
      * Cell borders are always drawn using the current PdfPainter
      * settings.
      */
-    inline virtual bool HasBorders() const;
+    inline bool HasBorders() const override;
     
     /** 
      * \returns the stroke witdth of the border line
      */
-    inline virtual double GetBorderWidth() const;
+    inline double GetBorderWidth() const override;
 
     /**
      * \param col the column of the table cell
@@ -347,7 +347,7 @@ class PODOFO_DOC_API PdfSimpleTableModel : public PdfTableModel {
      *
      * \returns the border color 
      */
-    inline virtual PdfColor GetBorderColor( int col, int row ) const;
+    inline PdfColor GetBorderColor( int col, int row ) const override;
 
     /** 
      * \param col the column of the table cell
@@ -355,7 +355,7 @@ class PODOFO_DOC_API PdfSimpleTableModel : public PdfTableModel {
      *
      * \returns true if the table cell contains an image
      */
-    inline virtual bool HasImage( int col, int row ) const;
+    inline bool HasImage( int col, int row ) const override;
 
     /**
      * \param col the column of the table cell
@@ -363,7 +363,7 @@ class PODOFO_DOC_API PdfSimpleTableModel : public PdfTableModel {
      *
      * \returns the image for the specified cell or NULL if the cell has no image
      */     
-    inline virtual PdfImage* GetImage( int col, int row ) const;
+    inline PdfImage* GetImage( int col, int row ) const override;
 
  private:
     PdfFont*              m_pFont;

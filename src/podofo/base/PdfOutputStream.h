@@ -100,7 +100,7 @@ class PODOFO_API PdfFileOutputStream : public PdfOutputStream {
      *
      *  \returns the number of bytes written, -1 if an error ocurred
      */
-    virtual pdf_long Write( const char* pBuffer, pdf_long lLen );
+    pdf_long Write( const char* pBuffer, pdf_long lLen ) override;
 
     /** Close the PdfOutputStream.
      *  This method may throw exceptions and has to be called 
@@ -109,7 +109,7 @@ class PODOFO_API PdfFileOutputStream : public PdfOutputStream {
      *  No more data may be written to the output device
      *  after calling close.
      */
-    virtual void Close();
+    void Close() override;
 
  private:
     FILE* m_hFile;
@@ -137,7 +137,7 @@ class PODOFO_API PdfMemoryOutputStream : public PdfOutputStream {
      */
     PdfMemoryOutputStream( char* pBuffer, pdf_long lLen );
 
-    ~PdfMemoryOutputStream();
+    virtual ~PdfMemoryOutputStream();
 
     /** Write data to the output stream
      *  
@@ -146,7 +146,7 @@ class PODOFO_API PdfMemoryOutputStream : public PdfOutputStream {
      *
      *  \returns the number of bytes written, -1 if an error ocurred
      */
-    virtual pdf_long Write( const char* pBuffer, pdf_long lLen );
+    pdf_long Write( const char* pBuffer, pdf_long lLen ) override;
 
     /** Close the PdfOutputStream.
      *  This method may throw exceptions and has to be called 
@@ -155,7 +155,7 @@ class PODOFO_API PdfMemoryOutputStream : public PdfOutputStream {
      *  No more data may be written to the output device
      *  after calling close.
      */
-    virtual void Close() { }
+    void Close() override { }
 
     /** \returns the length of the written data
      */
@@ -218,7 +218,7 @@ class PODOFO_API PdfDeviceOutputStream : public PdfOutputStream {
      *
      *  \returns the number of bytes written, -1 if an error ocurred
      */
-    virtual pdf_long Write( const char* pBuffer, pdf_long lLen );
+    pdf_long Write( const char* pBuffer, pdf_long lLen ) override;
 
     /** Close the PdfOutputStream.
      *  This method may throw exceptions and has to be called 
@@ -227,7 +227,7 @@ class PODOFO_API PdfDeviceOutputStream : public PdfOutputStream {
      *  No more data may be written to the output device
      *  after calling close.
      */
-    virtual void Close() {}
+    void Close() override {}
 
  private:
     PdfOutputDevice* m_pDevice;
@@ -257,9 +257,9 @@ class PODOFO_API PdfBufferOutputStream : public PdfOutputStream {
      *
      *  \returns the number of bytes written, -1 if an error ocurred
      */
-    virtual pdf_long Write( const char* pBuffer, pdf_long lLen );
+    pdf_long Write( const char* pBuffer, pdf_long lLen ) override;
 
-    virtual void Close() 
+    virtual void Close() override
     {
     }
 

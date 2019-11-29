@@ -62,8 +62,9 @@ typedef TTokenizerQueque::const_iterator     TCITokenizerQueque;
 /**
  * A simple tokenizer for PDF files and PDF content streams
  */
-class PODOFO_API PdfTokenizer {
- public:
+class PODOFO_API PdfTokenizer
+{
+public:
     PdfTokenizer();
 
     PdfTokenizer( const char* pBuffer, size_t lLen );

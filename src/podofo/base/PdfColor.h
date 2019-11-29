@@ -417,10 +417,6 @@ class PODOFO_API PdfColorGray : public PdfColor {
      */
     explicit PdfColorGray( double dGray );
 
-    /** Class destructor.
-     */
-    virtual ~PdfColorGray();
-
  private:
     /** Default constructor, not implemented
      */
@@ -432,7 +428,7 @@ class PODOFO_API PdfColorGray : public PdfColor {
 
     /** Copy assignment operator, not implemented
      */
-    PdfColorGray& operator=(const PdfColorGray&);
+    PdfColorGray& operator=(const PdfColorGray&) = delete;
 };
 
 class PODOFO_API PdfColorRGB : public PdfColor {
@@ -446,10 +442,6 @@ class PODOFO_API PdfColorRGB : public PdfColor {
      */
     PdfColorRGB( double dRed, double dGreen, double dBlue );
 
-    /** Class destructor.
-     */
-    virtual ~PdfColorRGB();
-
  private:
     /** Default constructor, not implemented
      */
@@ -461,7 +453,7 @@ class PODOFO_API PdfColorRGB : public PdfColor {
 
     /** Copy assignment operator, not implemented
      */
-    PdfColorRGB& operator=(const PdfColorRGB&);
+    PdfColorRGB& operator=(const PdfColorRGB&) = delete;
 };
 
 class PODOFO_API PdfColorCMYK : public PdfColor {
@@ -477,10 +469,6 @@ class PODOFO_API PdfColorCMYK : public PdfColor {
      */
     PdfColorCMYK( double dCyan, double dMagenta, double dYellow, double dBlack );
 
-    /** Class destructor.
-     */
-    virtual ~PdfColorCMYK();
-
  private:
     /** Default constructor, not implemented
      */
@@ -492,7 +480,7 @@ class PODOFO_API PdfColorCMYK : public PdfColor {
 
     /** Copy assignment operator, not implemented
      */
-    PdfColorCMYK& operator=(const PdfColorCMYK&);
+    PdfColorCMYK& operator=(const PdfColorCMYK&) = delete;
 };
 
 class PODOFO_API PdfColorSeparationAll : public PdfColor {
@@ -504,10 +492,6 @@ class PODOFO_API PdfColorSeparationAll : public PdfColor {
      */
     PdfColorSeparationAll();
 
-    /** Class destructor.
-     */
-    virtual ~PdfColorSeparationAll();
-
  private:
     /** Copy constructor, not implemented
      */
@@ -515,7 +499,7 @@ class PODOFO_API PdfColorSeparationAll : public PdfColor {
 
     /** Copy assignment operator, not implemented
      */
-    PdfColorSeparationAll& operator=(const PdfColorSeparationAll&);
+    PdfColorSeparationAll& operator=(const PdfColorSeparationAll&) = delete;
 };
 
 class PODOFO_API PdfColorSeparationNone : public PdfColor {
@@ -527,10 +511,6 @@ class PODOFO_API PdfColorSeparationNone : public PdfColor {
      */
     PdfColorSeparationNone();
 
-    /** Class destructor.
-     */
-    virtual ~PdfColorSeparationNone();
-
  private:
     /** Copy constructor, not implemented
      */
@@ -538,7 +518,7 @@ class PODOFO_API PdfColorSeparationNone : public PdfColor {
 
     /** Copy assignment operator, not implemented
      */
-    PdfColorSeparationNone& operator=(const PdfColorSeparationNone&);
+    PdfColorSeparationNone& operator=(const PdfColorSeparationNone&) = delete;
 };
 
 class PODOFO_API PdfColorSeparation : public PdfColor {
@@ -553,10 +533,6 @@ class PODOFO_API PdfColorSeparation : public PdfColor {
      */
     PdfColorSeparation( const std::string & sName, double dDensity, const PdfColor & alternateColor );
 
-    /** Class destructor.
-     */
-    virtual ~PdfColorSeparation();
-
  private:
     /** Default constructor, not implemented
      */
@@ -568,7 +544,7 @@ class PODOFO_API PdfColorSeparation : public PdfColor {
 
     /** Copy assignment operator, not implemented
      */
-    PdfColorSeparation& operator=(const PdfColorSeparation&);
+    PdfColorSeparation& operator=(const PdfColorSeparation&) = delete;
 };
 
 class PODOFO_API PdfColorCieLab : public PdfColor {
@@ -583,10 +559,6 @@ class PODOFO_API PdfColorCieLab : public PdfColor {
      */
     PdfColorCieLab( double dCieL, double dCieA, double dCieB );
 
-    /** Class destructor.
-     */
-    virtual ~PdfColorCieLab();
-
  private:
     /** Default constructor, not implemented
      */
@@ -598,7 +570,7 @@ class PODOFO_API PdfColorCieLab : public PdfColor {
 
     /** Copy assignment operator, not implemented
      */
-    PdfColorCieLab& operator=(const PdfColorCieLab&);
+    PdfColorCieLab& operator=(const PdfColorCieLab&) = delete;
 };
 
 // -----------------------------------------------------

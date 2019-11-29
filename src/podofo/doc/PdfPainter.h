@@ -750,7 +750,7 @@ class PODOFO_DOC_API PdfPainter {
      *  \param rRef reference to the object you want to register
      *  \param rName register under this key in the resource dictionary
      */
-    virtual void AddToPageResources( const PdfName & rIdentifier, const PdfReference & rRef, const PdfName & rName );
+    void AddToPageResources( const PdfName & rIdentifier, const PdfReference & rRef, const PdfName & rName );
  
    /** Sets the color that was last set by the user as the current stroking color.
      *  You should always enclose this function by Save() and Restore()

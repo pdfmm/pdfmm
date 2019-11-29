@@ -40,7 +40,8 @@
 
 #include <string.h>
 
-namespace PoDoFo {
+namespace PoDoFo
+{
 
 class PdfDictionary;
 class PdfInputStream;
@@ -432,17 +433,18 @@ private:
  *
  */
 
-class PdfEncryptSHABase : public PdfEncrypt {
+class PdfEncryptSHABase : public PdfEncrypt
+{
 public:
     
     PdfEncryptSHABase() {};
     // copy constructor
     PdfEncryptSHABase(const PdfEncrypt &rhs);
     
-    virtual PdfInputStream* CreateEncryptionInputStream( PdfInputStream* pInputStream ) = 0;
-    virtual PdfOutputStream* CreateEncryptionOutputStream( PdfOutputStream* pOutputStream ) = 0;
+    PdfInputStream* CreateEncryptionInputStream( PdfInputStream* pInputStream ) = 0;
+    PdfOutputStream* CreateEncryptionOutputStream( PdfOutputStream* pOutputStream ) = 0;
     
-    virtual void CreateEncryptionDictionary( PdfDictionary & rDictionary ) const;
+    void CreateEncryptionDictionary( PdfDictionary & rDictionary ) const override;
     
     virtual bool Authenticate( const std::string & password, const PdfString & documentId ) = 0;
     
@@ -474,7 +476,7 @@ public:
 protected:
     
     /// Generate initial vector
-    virtual void GenerateInitialVector(unsigned char iv[16]);
+    void GenerateInitialVector(unsigned char iv[]);
     
     /// Compute encryption key to be used with AES-256
     void ComputeEncryptionKey();
@@ -567,7 +569,7 @@ public:
     virtual PdfInputStream* CreateEncryptionInputStream( PdfInputStream* pInputStream ) = 0;
     virtual PdfOutputStream* CreateEncryptionOutputStream( PdfOutputStream* pOutputStream ) = 0;
     
-    virtual void CreateEncryptionDictionary( PdfDictionary & rDictionary ) const;
+    void CreateEncryptionDictionary( PdfDictionary & rDictionary ) const override;
     
     virtual bool Authenticate( const std::string & password, const PdfString & documentId ) = 0;
     
@@ -599,7 +601,7 @@ public:
 protected:
     
     /// Generate initial vector
-    virtual void GenerateInitialVector(unsigned char iv[16]);
+    void GenerateInitialVector(unsigned char iv[]);
     
     /// Compute owner key
     void ComputeOwnerKey(unsigned char userPad[32], unsigned char ownerPad[32],
@@ -620,7 +622,7 @@ protected:
      *  \param objkey pointer to an array of at least MD5_HASHBYTES (=16) bytes length
      *  \param pnKeyLen pointer to an integer where the actual keylength is stored.
      */
-    virtual void CreateObjKey( unsigned char objkey[16], int* pnKeyLen ) const;
+    void CreateObjKey( unsigned char objkey[16], int* pnKeyLen ) const;
     
     unsigned char  m_rc4key[16];         ///< last RC4 key
     unsigned char  m_rc4last[256];       ///< last RC4 state table
@@ -653,22 +655,22 @@ public:
                                  ePdfPermissions_HighPrint
                 );
     
-	virtual PdfInputStream* CreateEncryptionInputStream( PdfInputStream* pInputStream );
-	virtual PdfOutputStream* CreateEncryptionOutputStream( PdfOutputStream* pOutputStream );
+	PdfInputStream* CreateEncryptionInputStream( PdfInputStream* pInputStream ) override;
+	PdfOutputStream* CreateEncryptionOutputStream( PdfOutputStream* pOutputStream ) override;
     
-    virtual bool Authenticate( const std::string & password, const PdfString & documentId );
+    bool Authenticate( const std::string & password, const PdfString & documentId ) override;
     
     /// Encrypt a character string
-    virtual void Encrypt(const unsigned char* inStr, pdf_long inLen,
-                         unsigned char* outStr, pdf_long outLen) const;
-    virtual void Decrypt(const unsigned char* inStr, pdf_long inLen,
-                         unsigned char* outStr, pdf_long &outLen) const;
+    void Encrypt(const unsigned char* inStr, pdf_long inLen,
+                 unsigned char* outStr, pdf_long outLen) const override;
+    void Decrypt(const unsigned char* inStr, pdf_long inLen,
+                 unsigned char* outStr, pdf_long &outLen) const override;
     
-    virtual void GenerateEncryptionKey(const PdfString & documentId);
+    void GenerateEncryptionKey(const PdfString & documentId) override;
     
-    virtual pdf_long CalculateStreamOffset() const;
+    pdf_long CalculateStreamOffset() const override;
     
-    virtual pdf_long CalculateStreamLength(pdf_long length) const;
+    pdf_long CalculateStreamLength(pdf_long length) const override;
 };
 
 #ifdef PODOFO_HAVE_LIBIDN    
@@ -698,22 +700,22 @@ public:
                   ePdfPermissions_HighPrint
                   );
     
-    virtual PdfInputStream* CreateEncryptionInputStream( PdfInputStream* pInputStream );
-    virtual PdfOutputStream* CreateEncryptionOutputStream( PdfOutputStream* pOutputStream );
+    PdfInputStream* CreateEncryptionInputStream( PdfInputStream* pInputStream ) override;
+    PdfOutputStream* CreateEncryptionOutputStream( PdfOutputStream* pOutputStream ) override;
     
-    virtual bool Authenticate( const std::string & password, const PdfString & documentId );
+    bool Authenticate( const std::string & password, const PdfString & documentId ) override;
     
     /// Encrypt a character string
-    virtual void Encrypt(const unsigned char* inStr, pdf_long inLen,
-                         unsigned char* outStr, pdf_long outLen) const;
-    virtual void Decrypt(const unsigned char* inStr, pdf_long inLen,
-                         unsigned char* outStr, pdf_long &outLen) const;
+    void Encrypt(const unsigned char* inStr, pdf_long inLen,
+                 unsigned char* outStr, pdf_long outLen) const override;
+    void Decrypt(const unsigned char* inStr, pdf_long inLen,
+                 unsigned char* outStr, pdf_long &outLen) const override;
     
-    virtual void GenerateEncryptionKey(const PdfString & documentId);
+    void GenerateEncryptionKey(const PdfString & documentId) override;
 
-    virtual pdf_long CalculateStreamOffset() const;
+    pdf_long CalculateStreamOffset() const override;
     
-    virtual pdf_long CalculateStreamLength(pdf_long length) const;
+    pdf_long CalculateStreamLength(pdf_long length) const override;
 };
 
 #endif // PODOFO_HAVE_LIBIDN
@@ -747,22 +749,22 @@ public:
                   EPdfEncryptAlgorithm eAlgorithm = ePdfEncryptAlgorithm_RC4V1,
                   EPdfKeyLength eKeyLength = ePdfKeyLength_40 );
     
-    virtual bool Authenticate( const std::string & password, const PdfString & documentId );
+    bool Authenticate( const std::string & password, const PdfString & documentId ) override;
     
     /// Encrypt a character string
-    virtual void Encrypt(const unsigned char* inStr, pdf_long inLen,
-                         unsigned char* outStr, pdf_long outLen) const;
-    virtual void Decrypt(const unsigned char* inStr, pdf_long inLen,
-                         unsigned char* outStr, pdf_long &outLen) const;
+    void Encrypt(const unsigned char* inStr, pdf_long inLen,
+                 unsigned char* outStr, pdf_long outLen) const;
+    void Decrypt(const unsigned char* inStr, pdf_long inLen,
+                 unsigned char* outStr, pdf_long &outLen) const;
 
-	virtual PdfInputStream* CreateEncryptionInputStream( PdfInputStream* pInputStream );
-	virtual PdfOutputStream* CreateEncryptionOutputStream( PdfOutputStream* pOutputStream );
+	PdfInputStream* CreateEncryptionInputStream( PdfInputStream* pInputStream );
+	PdfOutputStream* CreateEncryptionOutputStream( PdfOutputStream* pOutputStream );
     
-    virtual void GenerateEncryptionKey(const PdfString & documentId);
+    void GenerateEncryptionKey(const PdfString & documentId);
     
-    virtual pdf_long CalculateStreamOffset() const;
+    pdf_long CalculateStreamOffset() const;
     
-    virtual pdf_long CalculateStreamLength(pdf_long length) const;
+    pdf_long CalculateStreamLength(pdf_long length) const;
 };
 #endif // PODOFO_HAVE_OPENSSL_NO_RC4
 

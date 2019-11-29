@@ -60,7 +60,8 @@ enum EPdfContentsType {
  *
  *  This class is currently work in progress and subject to change!
  */
-class PODOFO_API PdfContentsTokenizer : public PdfTokenizer {
+class PODOFO_API PdfContentsTokenizer : public PdfTokenizer
+{
 public:
 
     /** Construct a PdfContentsTokenizer from an existing buffer.
@@ -83,8 +84,6 @@ public:
      *  \param pCanvas an object that hold a PDF contents stream
      */
     PdfContentsTokenizer( PdfCanvas* pCanvas );
-
-    virtual ~PdfContentsTokenizer() { }
 
     /** Read the next keyword or variant, returning true and setting reType if something was read.
      *  Either rpszKeyword or rVariant, but never both, have defined and usable values on
@@ -112,7 +111,7 @@ public:
      *
      */
     bool ReadNext( EPdfContentsType& reType, const char*& rpszKeyword, PoDoFo::PdfVariant & rVariant );
-    bool GetNextToken( const char *& pszToken, EPdfTokenType* peType = NULL);
+    bool GetNextToken( const char *& pszToken, EPdfTokenType* peType = NULL) override;
 
  private:
     /** Set another objects stream as the current stream for parsing
