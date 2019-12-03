@@ -114,7 +114,7 @@ class PdfFontType1 : public PdfFontSimple {
 
 	bool FindSeac( const unsigned char * buffer, int length );
 
-    pdf_long FindInBuffer( const char* pszNeedle, const char* pszHaystack, pdf_long lLen ) const;
+    ptrdiff_t FindInBuffer( const char* pszNeedle, const char* pszHaystack, size_t lLen ) const;
 
 	int m_bUsed[8];		// bitmask for usage if char 00..ff
 

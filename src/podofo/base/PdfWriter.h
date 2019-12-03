@@ -204,7 +204,7 @@ public:
      *                 child of this PdfWriter)
      *  \param pulOffset pointer to an unsigned long to save the offset
      */
-    void GetByteOffset( PdfObject* pObject, pdf_long* pulOffset );
+    void GetByteOffset( PdfObject* pObject, size_t* pulOffset );
 
     /** Write the whole document to a buffer in memory.
      *  
@@ -217,14 +217,14 @@ public:
      *
      *  \see Write
      */
-    void WriteToBuffer( char** ppBuffer, pdf_long* pulLen );
+    void WriteToBuffer( char** ppBuffer, size_t* pulLen );
 
     /** Add required keys to a trailer object
      *  \param pTrailer add keys to this object
      *  \param lSize number of objects in the PDF file
      *  \param bOnlySizeKey write only the size key
      */
-    void FillTrailerObject( PdfObject* pTrailer, pdf_long lSize, bool bOnlySizeKey ) const;
+    void FillTrailerObject( PdfObject* pTrailer, size_t lSize, bool bOnlySizeKey ) const;
 
  protected:
     /**

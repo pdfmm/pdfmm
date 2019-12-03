@@ -96,7 +96,7 @@ public:
      *  \param pBuffer pointer to the buffer address (output parameter)
      *  \param lLen    pointer to the buffer length  (output parameter)
      */
-    void GetCopy( char** pBuffer, pdf_long* lLen ) const override;
+    void GetCopy( char** pBuffer, size_t* lLen ) const override;
 
     /** Get a copy of a the stream and write it to a PdfOutputStream
      *
@@ -109,7 +109,7 @@ public:
      *
      *  \returns the length of the stream with all filters applied
      */
-    pdf_long GetLength() const override;
+    size_t GetLength() const override;
 
  protected:
     /** Required for the GetFilteredCopy implementation
@@ -120,7 +120,7 @@ public:
     /** Required for the GetFilteredCopy implementation
      *  \returns the size of the internal buffer
      */
-    pdf_long GetInternalBufferSize() const override;
+    size_t GetInternalBufferSize() const override;
 
     /** Begin appending data to this stream.
      *  Clears the current stream contents.

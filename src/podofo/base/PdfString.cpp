@@ -102,12 +102,17 @@ PdfString::PdfString( const char* pszString, const PdfEncoding * const pEncoding
 }
 
 #ifdef WIN32
-PdfString::PdfString( const wchar_t* pszString, pdf_long lLen )
+PdfString::PdfString(const wchar_t* pszString)
+{
+    setFromWchar_t(pszString, wcslen(pszString));
+}
+
+PdfString::PdfString( const wchar_t* pszString, size_t lLen )
 {
     setFromWchar_t(pszString, lLen);
 }
 
-void PdfString::setFromWchar_t(const wchar_t* pszString, pdf_long lLen )
+void PdfString::setFromWchar_t(const wchar_t* pszString, size_t lLen )
 {
     m_bHex = false;
     m_bUnicode = true;
@@ -115,10 +120,6 @@ void PdfString::setFromWchar_t(const wchar_t* pszString, pdf_long lLen )
 
     if( pszString )
     {
-        if (lLen == -1)
-        {
-            lLen = wcslen( pszString );
-        }
         if( sizeof(wchar_t) == 2 ) 
         {
             // We have UTF16
@@ -137,7 +138,7 @@ void PdfString::setFromWchar_t(const wchar_t* pszString, pdf_long lLen )
         else
         {
             // Try to convert to UTF8
-            pdf_long   lDest = 5 * lLen; // At max 5 bytes per UTF8 char
+            size_t lDest = 5 * (size_t)lLen; // At max 5 bytes per UTF8 char
             char*  pDest = static_cast<char*>(podofo_malloc( lDest ));
 			if (!pDest)
 			{
@@ -163,7 +164,7 @@ void PdfString::setFromWchar_t(const wchar_t* pszString, pdf_long lLen )
 }
 #endif
 
-PdfString::PdfString( const char* pszString, pdf_long lLen, bool bHex, const PdfEncoding * const pEncoding )
+PdfString::PdfString( const char* pszString, size_t lLen, bool bHex, const PdfEncoding * const pEncoding )
     : m_bHex( bHex ), m_bUnicode( false ), m_pEncoding( pEncoding )
 {
     if( pszString )
@@ -178,7 +179,7 @@ PdfString::PdfString( const pdf_utf8* pszStringUtf8 )
     m_sUtf8 = reinterpret_cast<const char*>(pszStringUtf8);
 }
 
-PdfString::PdfString( const pdf_utf8* pszStringUtf8, pdf_long lLen )
+PdfString::PdfString( const pdf_utf8* pszStringUtf8, size_t lLen )
     : m_bHex( false ), m_bUnicode( true ), m_pEncoding( NULL )
 {
     InitFromUtf8( pszStringUtf8, lLen );
@@ -189,7 +190,7 @@ PdfString::PdfString( const pdf_utf8* pszStringUtf8, pdf_long lLen )
 PdfString::PdfString( const pdf_utf16be* pszStringUtf16 )
     : m_bHex( false ), m_bUnicode( true ), m_pEncoding( NULL )
 {
-    pdf_long               lBufLen = 0;
+    size_t lBufLen = 0;
     const pdf_utf16be* pszCnt  = pszStringUtf16;
     
     while( *pszCnt )
@@ -206,10 +207,10 @@ PdfString::PdfString( const pdf_utf16be* pszStringUtf16 )
     m_buffer.GetBuffer()[lBufLen+1] = '\0';
 }
 
-PdfString::PdfString( const pdf_utf16be* pszStringUtf16, pdf_long lLen )
+PdfString::PdfString( const pdf_utf16be* pszStringUtf16, size_t lLen )
     : m_bHex( false ), m_bUnicode( true ), m_pEncoding( NULL )
 {
-    pdf_long               lBufLen = 0;
+    size_t lBufLen = 0;
     const pdf_utf16be* pszCnt  = pszStringUtf16;
     
     while( lLen-- )
@@ -237,7 +238,7 @@ PdfString PdfString::FromUtf8String( const std::string &str )
     return PdfString( ( const pdf_utf8 * )str.c_str(), str.size() );
 }
 
-PdfString PdfString::CreateHexString( const char *pbuffer, pdf_long llen )
+PdfString PdfString::CreateHexString( const char *pbuffer, size_t llen )
 {
     if ( !pbuffer )
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
@@ -259,7 +260,7 @@ PdfString PdfString::CreateHexString( const std::string & buffer )
     return CreateHexString( &buffer[0], buffer.size() );
 }
 
-void PdfString::SetHexData( const char* pszHex, pdf_long lLen, PdfEncrypt* pEncrypt )
+void PdfString::SetHexData( const char* pszHex, size_t lLen, PdfEncrypt* pEncrypt )
 {
     AssertMutable();
 
@@ -267,9 +268,6 @@ void PdfString::SetHexData( const char* pszHex, pdf_long lLen, PdfEncrypt* pEncr
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
-
-    if( lLen == -1 )
-        lLen = strlen( pszHex );
 
     // Allocate a buffer large enough for the hex decoded data
     // and the 2 terminating zeros
@@ -330,7 +328,7 @@ void PdfString::SetHexData( const char* pszHex, pdf_long lLen, PdfEncrypt* pEncr
     
     if( pEncrypt )
     {
-        pdf_long outBufferLen = m_buffer.GetSize() - 2 - pEncrypt->CalculateStreamOffset();
+        size_t outBufferLen = m_buffer.GetSize() - 2 - pEncrypt->CalculateStreamOffset();
         PdfRefCountedBuffer outBuffer(outBufferLen + 16 - (outBufferLen % 16));
         
         pEncrypt->Decrypt( reinterpret_cast<unsigned char*>(m_buffer.GetBuffer()),
@@ -370,8 +368,8 @@ void PdfString::Write ( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, cons
     // Now we are not encrypting the empty strings (was access violation)!
     if( pEncrypt && m_buffer.GetSize() && IsValid() )
     {
-        pdf_long nInputBufferLen = m_buffer.GetSize() - 2; // Cut off the trailing pair of zeros
-        pdf_long nUnicodeMarkerOffet = sizeof( PdfString::s_pszUnicodeMarker );
+        size_t nInputBufferLen = m_buffer.GetSize() - 2; // Cut off the trailing pair of zeros
+        size_t nUnicodeMarkerOffet = sizeof( PdfString::s_pszUnicodeMarker );
         if( m_bUnicode )
             nInputBufferLen += nUnicodeMarkerOffet;
         
@@ -385,7 +383,7 @@ void PdfString::Write ( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, cons
         else
             memcpy(pInputBuffer, m_buffer.GetBuffer(), nInputBufferLen);
         
-        pdf_long nOutputBufferLen = pEncrypt->CalculateStreamLength(nInputBufferLen);
+        size_t nOutputBufferLen = pEncrypt->CalculateStreamLength(nInputBufferLen);
         
         char* pOutputBuffer = new char [nOutputBufferLen];
         
@@ -404,7 +402,7 @@ void PdfString::Write ( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, cons
     if( m_buffer.GetSize() && IsValid() )
     {
         const char* pBuf = m_buffer.GetBuffer();
-        pdf_long  lLen = m_buffer.GetSize() - 2; // Cut off the trailing pair of zeros
+        size_t lLen = m_buffer.GetSize() - 2; // Cut off the trailing pair of zeros
 
         if( m_bHex ) 
         {
@@ -550,7 +548,7 @@ bool PdfString::operator==( const PdfString & rhs ) const
     return str1.m_buffer == str2.m_buffer;
 }
 
-void PdfString::Init( const char* pszString, pdf_long lLen )
+void PdfString::Init( const char* pszString, size_t lLen )
 {
     if( !pszString )
     {
@@ -594,14 +592,14 @@ void PdfString::Init( const char* pszString, pdf_long lLen )
     }
 }
 
-void PdfString::InitFromUtf8( const pdf_utf8* pszStringUtf8, pdf_long lLen )
+void PdfString::InitFromUtf8( const pdf_utf8* pszStringUtf8, size_t lLen )
 {
     if( !pszStringUtf8 )
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    pdf_long        lBufLen = (lLen << 1) + sizeof(wchar_t);
+    size_t lBufLen = (lLen << 1) + sizeof(wchar_t);
     // twice as large buffer should always be enough
     std::vector<char>	bytes(lBufLen);
     pdf_utf16be *pBuffer = reinterpret_cast<pdf_utf16be *>(bytes.data());
@@ -620,16 +618,15 @@ void PdfString::InitUtf8()
     if( this->IsUnicode() )
     {
         // we can convert UTF16 to UTF8
-        // UTF8 is at maximum 5 * characterlength.
-
-        pdf_long  lBufferLen = (5*this->GetUnicodeLength())+2;
-        char* pBuffer    = static_cast<char*>(podofo_calloc( lBufferLen, sizeof(char) ));
+        // UTF8 is at maximum 5 * characterlength
+        size_t lBufferLen = 5 * this->GetUnicodeLength() + 2;
+        char* pBuffer = static_cast<char*>(podofo_calloc( lBufferLen, sizeof(char) ));
         if( !pBuffer )
         {
             PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
         }
 
-        pdf_long lUtf8 = PdfString::ConvertUTF16toUTF8( reinterpret_cast<const pdf_utf16be*>(m_buffer.GetBuffer()), 
+        size_t lUtf8 = PdfString::ConvertUTF16toUTF8( reinterpret_cast<const pdf_utf16be*>(m_buffer.GetBuffer()),
                                                     this->GetUnicodeLength(), 
                                                     reinterpret_cast<pdf_utf8*>(pBuffer), lBufferLen, ePdfStringConversion_Lenient );
         if (lUtf8 + 1 > lBufferLen) // + 1 to account for 2 bytes termination here vs. 1 byte there
@@ -707,7 +704,7 @@ PdfString PdfString::ToUnicode() const
     }
 }
 
-void PdfString::SwapBytes( char* pBuf, pdf_long lLen ) 
+void PdfString::SwapBytes(char* pBuf, size_t lLen)
 {
     char  cSwap;
     while( lLen > 1 )
@@ -733,14 +730,14 @@ const PdfRefCountedBuffer &PdfString::GetBuffer(void) const
 
 #ifdef PODOFO_HAVE_UNISTRING_LIB
 
-pdf_long PdfString::ConvertUTF8toUTF16( const pdf_utf8* pszUtf8, pdf_utf16be* pszUtf16, pdf_long lLenUtf16 )
+size_t PdfString::ConvertUTF8toUTF16( const pdf_utf8* pszUtf8, pdf_utf16be* pszUtf16, size_t lLenUtf16 )
 {
     return pszUtf8 ? 
         PdfString::ConvertUTF8toUTF16( pszUtf8, strlen( reinterpret_cast<const char*>(pszUtf8) ), pszUtf16, lLenUtf16 ) : 0;
 }
 
-pdf_long PdfString::ConvertUTF8toUTF16( const pdf_utf8* pszUtf8, pdf_long lLenUtf8, 
-                                    pdf_utf16be* pszUtf16, pdf_long lLenUtf16,
+size_t PdfString::ConvertUTF8toUTF16( const pdf_utf8* pszUtf8, size_t lLenUtf8,
+                                    pdf_utf16be* pszUtf16, size_t lLenUtf16,
                                     EPdfStringConversion eConversion )
 {
     const uint8_t* s = reinterpret_cast<const uint8_t*>(pszUtf8);
@@ -750,7 +747,7 @@ pdf_long PdfString::ConvertUTF8toUTF16( const pdf_utf8* pszUtf8, pdf_long lLenUt
 
     u8_to_u16 (s, sLength, resultBuf, &resultBufLength);
 
-    pdf_long lBufferLen = std::min( static_cast<pdf_long>(resultBufLength + 1), lLenUtf16 );
+    size_t lBufferLen = std::min( resultBufLength + 1, lLenUtf16 );
     PdfRefCountedBuffer buffer(reinterpret_cast<char*>(pszUtf16), lBufferLen * sizeof(pdf_utf16be));
     buffer.SetTakePossesion(false);
     
@@ -765,9 +762,9 @@ pdf_long PdfString::ConvertUTF8toUTF16( const pdf_utf8* pszUtf8, pdf_long lLenUt
 }
 
 
-pdf_long PdfString::ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, pdf_utf8* pszUtf8, pdf_long lLenUtf8 )
+size_t PdfString::ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, pdf_utf8* pszUtf8, size_t lLenUtf8 )
 {
-    pdf_long               lLen      = 0;
+    size_t lLen = 0;
     const pdf_utf16be* pszStart = pszUtf16;
 
     while( *pszStart )
@@ -777,8 +774,8 @@ pdf_long PdfString::ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, pdf_utf8* p
 }
 
 // returns used, or if not enough memory passed in, needed length incl. 1 byte termination
-pdf_long PdfString::ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, pdf_long lLenUtf16, 
-                                    pdf_utf8* pszUtf8, pdf_long lLenUtf8, 
+size_t PdfString::ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, size_t lLenUtf16,
+                                    pdf_utf8* pszUtf8, size_t lLenUtf8,
                                     EPdfStringConversion eConversion  )
 {
     PdfRefCountedBuffer buffer(lLenUtf16 * sizeof(pdf_utf16be));
@@ -802,10 +799,10 @@ pdf_long PdfString::ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, pdf_long lL
         return resultBufLength + 1;
     }
 
-    pdf_long lBufferLen = std::min( static_cast<pdf_long>(resultBufLength + 1), lLenUtf8 );
+    size_t lBufferLen = std::min( resultBufLength + 1, lLenUtf8 );
 
     // Make sure buffer is 0 terminated
-    if ( static_cast<pdf_long>(resultBufLength + 1) <= lLenUtf8 )
+    if ( resultBufLength + 1 <= lLenUtf8 )
         pszUtf8[resultBufLength] = 0;
     else
         return resultBufLength + 1; // means: check for this in the caller to detect non-termination
@@ -971,14 +968,14 @@ bool isLegalUTF8Sequence(const pdf_utf8 *source, const pdf_utf8 *sourceEnd) {
 }
 
 
-pdf_long PdfString::ConvertUTF8toUTF16( const pdf_utf8* pszUtf8, pdf_utf16be* pszUtf16, pdf_long lLenUtf16 )
+size_t PdfString::ConvertUTF8toUTF16( const pdf_utf8* pszUtf8, pdf_utf16be* pszUtf16, size_t lLenUtf16 )
 {
     return pszUtf8 ? 
         PdfString::ConvertUTF8toUTF16( pszUtf8, strlen( reinterpret_cast<const char*>(pszUtf8) ), pszUtf16, lLenUtf16 ) : 0;
 }
 
-pdf_long PdfString::ConvertUTF8toUTF16( const pdf_utf8* pszUtf8, pdf_long lLenUtf8, 
-                                    pdf_utf16be* pszUtf16, pdf_long lLenUtf16,
+size_t PdfString::ConvertUTF8toUTF16( const pdf_utf8* pszUtf8, size_t lLenUtf8,
+                                    pdf_utf16be* pszUtf16, size_t lLenUtf16,
                                     EPdfStringConversion eConversion )
 {
     const pdf_utf8* source    = pszUtf8;
@@ -1061,16 +1058,16 @@ pdf_long PdfString::ConvertUTF8toUTF16( const pdf_utf8* pszUtf8, pdf_long lLenUt
 
     // swap to UTF-16be on LE systems
 #ifdef PODOFO_IS_LITTLE_ENDIAN
-    PdfString::SwapBytes( reinterpret_cast<char*>(pszUtf16), static_cast<pdf_long>(target - pszUtf16) << 1 );
+    PdfString::SwapBytes( reinterpret_cast<char*>(pszUtf16), static_cast<size_t>(target - pszUtf16) << 1 );
 #endif // PODOFO_IS_LITTLE_ENDIAN
 
     // return characters written
     return target - pszUtf16;
 }
 
-pdf_long PdfString::ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, pdf_utf8* pszUtf8, pdf_long lLenUtf8 )
+size_t PdfString::ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, pdf_utf8* pszUtf8, size_t lLenUtf8 )
 {
-    pdf_long               lLen      = 0;
+    size_t lLen = 0;
     const pdf_utf16be* pszStart = pszUtf16;
 
     while( *pszStart )
@@ -1079,8 +1076,8 @@ pdf_long PdfString::ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, pdf_utf8* p
     return ConvertUTF16toUTF8( pszUtf16, lLen, pszUtf8, lLenUtf8 );
 }
 
-pdf_long PdfString::ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, pdf_long lLenUtf16, 
-                                    pdf_utf8* pszUtf8, pdf_long lLenUtf8, 
+size_t PdfString::ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, size_t lLenUtf16,
+                                    pdf_utf8* pszUtf8, size_t lLenUtf8,
                                     EPdfStringConversion eConversion  )
 {
     bool               bOwnBuf   = false;

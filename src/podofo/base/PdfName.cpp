@@ -65,7 +65,7 @@ PdfName PdfName::FromEscaped( const std::string & sName )
     return PdfName(UnescapeName(sName.begin(), sName.length()));
 }
 
-PdfName PdfName::FromEscaped( const char * pszName, pdf_long ilen )
+PdfName PdfName::FromEscaped( const char * pszName, size_t ilen )
 {
     if( !pszName )
         return PdfName();

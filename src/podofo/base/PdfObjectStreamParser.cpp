@@ -61,7 +61,7 @@ void PdfObjectStreamParser::Parse(ObjectIdList const & list)
     int64_t lFirst = m_pParser->GetDictionary().GetKeyAsLong( "First", 0 );
     
     char* pBuffer;
-    pdf_long lBufferLen;
+    size_t lBufferLen;
     m_pParser->GetOrCreateStream().GetFilteredCopy( &pBuffer, &lBufferLen );
 
     try {
@@ -75,7 +75,7 @@ void PdfObjectStreamParser::Parse(ObjectIdList const & list)
     }
 }
 
-void PdfObjectStreamParser::ReadObjectsFromStream( char* pBuffer, pdf_long lBufferLen, int64_t lNum, int64_t lFirst, ObjectIdList const & list)
+void PdfObjectStreamParser::ReadObjectsFromStream( char* pBuffer, size_t lBufferLen, int64_t lNum, int64_t lFirst, ObjectIdList const & list)
 {
     PdfRefCountedInputDevice device( pBuffer, lBufferLen );
     PdfTokenizer             tokenizer( device, m_buffer );
@@ -86,7 +86,7 @@ void PdfObjectStreamParser::ReadObjectsFromStream( char* pBuffer, pdf_long lBuff
     {
         const int64_t lObj     = tokenizer.GetNextNumber();
         const int64_t lOff     = tokenizer.GetNextNumber();
-        const std::streamoff pos = device.Device()->Tell();
+        size_t pos = device.Device()->Tell();
 
         if( lFirst >= std::numeric_limits<int64_t>::max() - lOff )
         {

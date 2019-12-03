@@ -224,7 +224,7 @@ void PdfWriter::WriteUpdate( PdfOutputDevice* pDevice, PdfInputDevice* pSourceIn
     if( pSourceInputDevice )
     {
         // copy the original file content first
-        unsigned int uBufferLen = 65535;
+        size_t uBufferLen = 65535;
         char *pBuffer;
 
         while( pBuffer = reinterpret_cast<char *>( podofo_malloc( sizeof( char ) * uBufferLen) ), !pBuffer )
@@ -242,9 +242,7 @@ void PdfWriter::WriteUpdate( PdfOutputDevice* pDevice, PdfInputDevice* pSourceIn
 
             while( !pSourceInputDevice->Eof() )
             {
-                std::streamoff didRead;
-
-                didRead = pSourceInputDevice->Read( pBuffer, uBufferLen );
+                size_t didRead = pSourceInputDevice->Read( pBuffer, uBufferLen );
                 if( didRead > 0)
                     pDevice->Write( pBuffer, didRead );
             }
@@ -312,7 +310,7 @@ void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const PdfVecObjects& 
     }
 }
 
-void PdfWriter::GetByteOffset( PdfObject* pObject, pdf_long* pulOffset )
+void PdfWriter::GetByteOffset( PdfObject* pObject, size_t* pulOffset )
 {
     TCIVecObjects   it     = m_vecObjects->begin();
     PdfOutputDevice deviceHeader;
@@ -336,7 +334,7 @@ void PdfWriter::GetByteOffset( PdfObject* pObject, pdf_long* pulOffset )
     }
 }
 
-void PdfWriter::WriteToBuffer( char** ppBuffer, pdf_long* pulLen )
+void PdfWriter::WriteToBuffer( char** ppBuffer, size_t* pulLen )
 {
     PdfOutputDevice device;
 
@@ -358,7 +356,7 @@ void PdfWriter::WriteToBuffer( char** ppBuffer, pdf_long* pulLen )
     this->Write( &memDevice );
 }
 
-void PdfWriter::FillTrailerObject( PdfObject* pTrailer, pdf_long lSize, bool bOnlySizeKey ) const
+void PdfWriter::FillTrailerObject( PdfObject* pTrailer, size_t lSize, bool bOnlySizeKey ) const
 {
     pTrailer->GetDictionary().AddKey( PdfName::KeySize, static_cast<int64_t>(lSize) );
 

@@ -40,7 +40,9 @@
 #include <string.h>
 #include <wchar.h>
 
-namespace PoDoFo {
+using namespace PoDoFo;
+
+// TODO: Convert to use std::ifstream
 
 PdfFileInputStream::PdfFileInputStream( const char* pszFilename )
 {
@@ -70,7 +72,7 @@ PdfFileInputStream::~PdfFileInputStream()
         fclose( m_hFile );
 }
 
-pdf_long PdfFileInputStream::Read( char* pBuffer, pdf_long lLen, pdf_long* )
+size_t PdfFileInputStream::Read( char* pBuffer, size_t lLen, size_t* )
 {
     if( !pBuffer ) 
     {
@@ -86,10 +88,10 @@ pdf_long PdfFileInputStream::Read( char* pBuffer, pdf_long lLen, pdf_long* )
     return fread( pBuffer, sizeof(char), lLen, m_hFile );
 }
 
-pdf_long PdfFileInputStream::GetFileLength()
+size_t PdfFileInputStream::GetFileLength()
 {
-    pdf_long lOffset = ftello( m_hFile );
-    pdf_long lLen;
+    ssize_t lOffset = ftello( m_hFile );
+    ssize_t lLen;
 
     if( lOffset == -1 )
         PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDeviceOperation, "Failed to read current position in the file" );
@@ -104,7 +106,7 @@ pdf_long PdfFileInputStream::GetFileLength()
     if( fseeko( m_hFile, lOffset, SEEK_SET ) == -1 )
         PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDeviceOperation, "Failed to seek back to the previous position of the file" );
 
-    return lLen;
+    return (size_t)lLen;
 }
 
 FILE*
@@ -114,7 +116,7 @@ PdfFileInputStream::GetHandle()
 }
 
 
-PdfMemoryInputStream::PdfMemoryInputStream( const char* pBuffer, pdf_long lBufferLen )
+PdfMemoryInputStream::PdfMemoryInputStream( const char* pBuffer, size_t lBufferLen )
     : m_pBuffer( pBuffer ), m_pCur( pBuffer ), m_lBufferLen( lBufferLen )
 {
 
@@ -124,14 +126,14 @@ PdfMemoryInputStream::~PdfMemoryInputStream()
 {
 }
 
-pdf_long PdfMemoryInputStream::Read( char* pBuffer, pdf_long lLen, pdf_long* )
+size_t PdfMemoryInputStream::Read( char* pBuffer, size_t lLen, size_t* )
 {
     if( !pBuffer ) 
     {
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    pdf_long lRead = m_pCur - m_pBuffer;
+    size_t lRead = m_pCur - m_pBuffer;
 
     // return zero if EOF is reached
     if( lRead == m_lBufferLen ) 
@@ -149,9 +151,7 @@ PdfDeviceInputStream::PdfDeviceInputStream( PdfInputDevice* pDevice )
 {
 }
 
-pdf_long PdfDeviceInputStream::Read( char* pBuffer, pdf_long lLen, pdf_long* )
+size_t PdfDeviceInputStream::Read( char* pBuffer, size_t lLen, size_t* )
 {
-    return m_pDevice->Read( pBuffer, lLen );
+    return (size_t)m_pDevice->Read( pBuffer, lLen );
 }
-
-};

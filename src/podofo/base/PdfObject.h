@@ -194,7 +194,7 @@ public:
      *  \param eWriteMode additional options for writing the object
      *  \returns  the length of the object
      */
-    pdf_long GetObjectLength( EPdfWriteMode eWriteMode );
+    size_t GetObjectLength( EPdfWriteMode eWriteMode );
 
     /** Get an indirect reference to this object.
      *  \returns a PdfReference pointing to this object.
@@ -268,7 +268,7 @@ public:
      *  \param eWriteMode additional options for writing the PDF
      *  \returns the offset of the key 
      */
-    pdf_long GetByteOffset( const char* pszKey, EPdfWriteMode eWriteMode );
+    size_t GetByteOffset( const char* pszKey, EPdfWriteMode eWriteMode );
 
 protected:
     /** Set the owner of this object, i.e. the PdfVecObjects to which

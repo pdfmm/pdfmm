@@ -54,14 +54,12 @@ static const int s_nLenStream    = 6; // strlen("stream");
 //static const int s_nLenEndStream = 9; // strlen("endstream");
 
 PdfParserObject::PdfParserObject( PdfVecObjects* pCreator, const PdfRefCountedInputDevice & rDevice, 
-                                  const PdfRefCountedBuffer & rBuffer, pdf_long lOffset )
+                                  const PdfRefCountedBuffer & rBuffer, ssize_t lOffset )
     : PdfObject( PdfVariant::NullValue ), PdfTokenizer( rDevice, rBuffer ), m_pEncrypt( NULL )
 {
     SetOwner(*pCreator);
-
     InitPdfParserObject();
-
-    m_lOffset = lOffset == -1 ? m_device.Device()->Tell() : lOffset;
+    m_lOffset = lOffset < 0 ? m_device.Device()->Tell() : lOffset;
 }
 
 PdfParserObject::PdfParserObject( const PdfRefCountedBuffer & rBuffer )
@@ -69,39 +67,40 @@ PdfParserObject::PdfParserObject( const PdfRefCountedBuffer & rBuffer )
       m_pEncrypt( NULL )
 {
     InitPdfParserObject();
+    m_lOffset = -1;
 }
 
 void PdfParserObject::InitPdfParserObject()
 {
-    m_bIsTrailer        = false;
+    m_bIsTrailer = false;
 
     // Whether or not demand loading is disabled we still don't load
     // anything in the ctor. This just controls whether ::ParseFile(...)
     // forces an immediate demand load, or lets it genuinely happen
     // on demand.
-    m_bLoadOnDemand     = false;
+    m_bLoadOnDemand = false;
 
     // We rely heavily on the demand loading infrastructure whether or not
     // we *actually* delay loading.
     EnableDelayedLoading();
     EnableDelayedLoadingStream();
 
-    m_lOffset           = -1;
-
-    m_bStream           = false;
-    m_lStreamOffset     = 0;
+    m_bStream = false;
+    m_lStreamOffset = 0;
 }
 
 void PdfParserObject::ReadObjectNumber()
 {
     PdfReference reference;
-    try {
-        pdf_long obj = this->GetNextNumber();
-        pdf_long gen = this->GetNextNumber();
+    try
+    {
+        int64_t obj = this->GetNextNumber();
+        int64_t gen = this->GetNextNumber();
 
         reference = PdfReference(static_cast<uint32_t>(obj), static_cast<uint16_t>(gen));
         SetIndirectReference(reference);
-    } catch( PdfError & e ) {
+    } catch( PdfError & e )
+    {
         e.AddToCallstack( __FILE__, __LINE__, "Object and generation number cannot be read." );
         throw e;
     }
@@ -122,8 +121,8 @@ void PdfParserObject::ParseFile( PdfEncrypt* pEncrypt, bool bIsTrailer )
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
 
-    if( m_lOffset > -1 )
-        m_device.Device()->Seek( m_lOffset );
+    if (m_lOffset >= 0)
+        m_device.Device()->Seek(m_lOffset);
 
     if( !bIsTrailer )
         ReadObjectNumber();
@@ -136,8 +135,8 @@ void PdfParserObject::ParseFile( PdfEncrypt* pEncrypt, bool bIsTrailer )
               << endl;
 #endif // VERBOSE_DEBUG_DISABLED
 
-    m_lOffset    = m_device.Device()->Tell();
-    m_pEncrypt   = pEncrypt;
+    m_lOffset = m_device.Device()->Tell();
+    m_pEncrypt = pEncrypt;
     m_bIsTrailer = bIsTrailer;
 
     if( !m_bLoadOnDemand )
@@ -222,8 +221,8 @@ void PdfParserObject::ParseStream()
 {
     PODOFO_ASSERT( DelayedLoadDone() );
 
-    int64_t         lLen  = -1;
-    int          c;
+    int64_t lLen = -1;
+    int c;
 
     if( !m_device.Device() || GetOwner() == nullptr )
     {
@@ -252,7 +251,7 @@ void PdfParserObject::ParseStream()
         }
     } 
     
-    pdf_long fLoc = m_device.Device()->Tell();	// we need to save this, since loading the Length key could disturb it!
+    std::streamoff fLoc = m_device.Device()->Tell();	// we need to save this, since loading the Length key could disturb it!
 
     PdfObject* pObj = this->GetDictionary_NoDL().GetKey( PdfName::KeyLength );  
     if( pObj && pObj->IsNumber() )
@@ -305,11 +304,11 @@ void PdfParserObject::ParseStream()
     {
         m_pEncrypt->SetCurrentReference( GetIndirectReference() );
         PdfInputStream* pInput = m_pEncrypt->CreateEncryptionInputStream( &reader );
-        getOrCreateStream().SetRawData( *pInput, static_cast<pdf_long>(lLen) );
+        getOrCreateStream().SetRawData( *pInput, static_cast<ssize_t>(lLen) );
         delete pInput;
     }
     else
-        getOrCreateStream().SetRawData( reader, static_cast<pdf_long>(lLen) );
+        getOrCreateStream().SetRawData( reader, static_cast<ssize_t>(lLen) );
 
     this->SetDirty( false );
     /*

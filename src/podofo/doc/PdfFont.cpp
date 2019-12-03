@@ -148,7 +148,7 @@ void PdfFont::WriteStringToStream( const PdfString & rsString, PdfStream* pStrea
 void PdfFont::WriteStringToStream( const PdfString & rsString, ostream& rStream )
 {
     PdfRefCountedBuffer buffer = m_pEncoding->ConvertToEncoding( rsString, this );
-    pdf_long  lLen    = 0;
+    size_t lLen = 0;
     char* pBuffer = NULL;
 
     std::unique_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );    

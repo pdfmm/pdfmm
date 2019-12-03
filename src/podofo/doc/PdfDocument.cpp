@@ -534,8 +534,8 @@ PdfRect PdfDocument::FillXObjectFromPage( PdfXObject * pXObj, const PdfPage * pP
                         {
                             PdfStream &pcontStream = pObj->GetOrCreateStream();
 
-                            char*       pcontStreamBuffer;
-                            pdf_long    pcontStreamLength;
+                            char * pcontStreamBuffer;
+                            size_t pcontStreamLength;
                             pcontStream.GetFilteredCopy( &pcontStreamBuffer, &pcontStreamLength );
     
                             pObjStream.Append( pcontStreamBuffer, pcontStreamLength );
@@ -566,7 +566,7 @@ PdfRect PdfDocument::FillXObjectFromPage( PdfXObject * pXObj, const PdfPage * pP
             PdfStream &pObjStream = pObj->GetOrCreateStream();
             PdfStream &pcontStream = pContents->GetOrCreateStream();
             char* pcontStreamBuffer;
-            pdf_long pcontStreamLength;
+            size_t pcontStreamLength;
 
             TVecFilters vFilters;
             vFilters.push_back( ePdfFilter_FlateDecode );

@@ -52,8 +52,8 @@ namespace PoDoFo
             lGeneration(0),
             eType(eXRefEntryType_Unknown),
             bParsed(false) { }
-        pdf_long lOffset;
-        long lGeneration;
+        size_t lOffset;
+        uint32_t lGeneration;
         EXRefEntryType eType;
         bool bParsed;
     };

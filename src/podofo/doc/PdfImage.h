@@ -187,7 +187,7 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
      *  \param pData bytes
      *  \param dwLen number of bytes
      */
-    void LoadFromData(const unsigned char* pData, pdf_long dwLen);
+    void LoadFromData(const unsigned char* pData, size_t dwLen);
 
 #ifdef _WIN32
     /** Load the image data from a file
@@ -210,7 +210,7 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
      *  \param pData JPEG bytes
      *  \param dwLen number of bytes
      */
-    void LoadFromJpegData(const unsigned char* pData, pdf_long dwLen);
+    void LoadFromJpegData(const unsigned char* pData, size_t dwLen);
 
 #ifdef _WIN32
     /** Load the image data from a JPEG file
@@ -233,7 +233,7 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
      *  \param pData TIFF bytes
      *  \param dwLen number of bytes
      */
-    void LoadFromTiffData(const unsigned char* pData, pdf_long dwLen);
+    void LoadFromTiffData(const unsigned char* pData, size_t dwLen);
 
 #ifdef _WIN32
     /** Load the image data from a TIFF file
@@ -256,7 +256,7 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
      *  \param pData PNG bytes
      *  \param dwLen number of bytes
      */
-    void LoadFromPngData(const unsigned char* pData, pdf_long dwLen);
+    void LoadFromPngData(const unsigned char* pData, size_t dwLen);
 
 #ifdef _WIN32
     /** Load the image data from a PNG file

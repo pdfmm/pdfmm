@@ -485,7 +485,7 @@ const char* PdfFontMetricsFreetype::GetFontData() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-pdf_long PdfFontMetricsFreetype::GetFontDataLen() const
+size_t PdfFontMetricsFreetype::GetFontDataLen() const
 {
     return m_bufFontData.GetSize();
 }  

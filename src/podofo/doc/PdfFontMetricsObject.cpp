@@ -125,19 +125,19 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescri
 				if (second->IsArray()) {
 					PdfArray widths = second->GetArray();
 					++pos;
-					int length = start + static_cast<int>(widths.GetSize());
+					int length = start + widths.GetSize();
 					PODOFO_ASSERT (length >= start);
-					if (length > static_cast<int>(m_width.GetSize())) {
+					if (length > m_width.GetSize()) {
 						m_width.resize(length, default_width);
 					}
-					for (int i = 0; i < static_cast<int>(widths.GetSize()); ++i) {
+					for (int i = 0; i < widths.GetSize(); ++i) {
 						m_width[start + i] = widths[i];
 					}
 				} else {
 					int end = static_cast<int>(w[pos++].GetNumber());
 					int length = end + 1;
 					PODOFO_ASSERT (length >= start);
-					if (length > static_cast<int>(m_width.GetSize())) {
+					if (length > m_width.GetSize()) {
 						m_width.resize(length, default_width);
 					}
 					int64_t width = w[pos++].GetNumber();
@@ -199,7 +199,7 @@ void PdfFontMetricsObject::GetBoundingBox( PdfArray & array ) const
 double PdfFontMetricsObject::CharWidth( unsigned char c ) const
 {
     if( c >= m_nFirst && c <= m_nLast
-        && c - m_nFirst < static_cast<int>(m_width.GetSize()) )
+        && c - m_nFirst < m_width.GetSize())
     {
         double dWidth = m_width[c - m_nFirst].GetReal();
         
@@ -216,7 +216,7 @@ double PdfFontMetricsObject::CharWidth( unsigned char c ) const
 double PdfFontMetricsObject::UnicodeCharWidth( unsigned short c ) const
 {
     if( c >= m_nFirst && c <= m_nLast
-        && c - m_nFirst < static_cast<int>(m_width.GetSize()) )
+        && c - m_nFirst < m_width.GetSize())
     {
         double dWidth = m_width[c - m_nFirst].GetReal();
         
@@ -303,7 +303,7 @@ const char* PdfFontMetricsObject::GetFontData() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-pdf_long PdfFontMetricsObject::GetFontDataLen() const
+size_t PdfFontMetricsObject::GetFontDataLen() const
 {
     return 0;
 }  

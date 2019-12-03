@@ -66,8 +66,8 @@ static bool CheckEOL(char e1, char e2);
 static bool CheckXRefEntryType( char c );
 static EXRefEntryType GetXRefEntryType( char c );
 
-const long nMaxNumIndirectObjects = (1L << 23) - 1L;
-long PdfParser::s_nMaxObjects = nMaxNumIndirectObjects;
+constexpr size_t nMaxNumIndirectObjects = (1L << 23) - 1L;
+size_t PdfParser::s_nMaxObjects = nMaxNumIndirectObjects;
   
     
 class PdfRecursionGuard
@@ -478,7 +478,7 @@ void PdfParser::HasLinearizationDict()
     }
 
     // avoid moving to a negative file position here
-    m_device.Device()->Seek( (static_cast<pdf_long>(lXRef-PDF_XREF_BUF) > 0 ? static_cast<pdf_long>(lXRef-PDF_XREF_BUF) : PDF_XREF_BUF) );
+    m_device.Device()->Seek(static_cast<size_t>(lXRef-PDF_XREF_BUF) > 0 ? static_cast<size_t>(lXRef-PDF_XREF_BUF) : PDF_XREF_BUF);
     m_nXRefLinearizedOffset = m_device.Device()->Tell();
 
     if( m_device.Device()->Read( m_buffer.GetBuffer(), PDF_XREF_BUF ) != PDF_XREF_BUF )
@@ -513,7 +513,7 @@ void PdfParser::HasLinearizationDict()
         }
 
         {
-            m_nXRefLinearizedOffset = static_cast<pdf_long>(lXRef);
+            m_nXRefLinearizedOffset = static_cast<size_t>(lXRef);
             /*
             eCode = ReadXRefStreamContents();
             i     = 0;
@@ -581,7 +581,7 @@ void PdfParser::ReadNextTrailer()
                 m_nIncrementalUpdates++;
 
             try {
-                ReadXRefStreamContents( static_cast<pdf_long>(trailer.GetDictionary().GetKeyAsLong( "XRefStm", 0 )), false );
+                ReadXRefStreamContents( static_cast<size_t>(trailer.GetDictionary().GetKeyAsLong( "XRefStm", 0 )), false );
             } catch( PdfError & e ) {
                 e.AddToCallstack( __FILE__, __LINE__, "Unable to load /XRefStm xref stream." );
                 throw e;
@@ -595,7 +595,7 @@ void PdfParser::ReadNextTrailer()
             m_nIncrementalUpdates++;
 
             try {
-                pdf_long lOffset = static_cast<pdf_long>(trailer.GetDictionary().GetKeyAsLong( "Prev", 0 ));
+                size_t lOffset = static_cast<size_t>(trailer.GetDictionary().GetKeyAsLong( "Prev", 0 ));
 
                 if( m_visitedXRefOffsets.find( lOffset ) == m_visitedXRefOffsets.end() )
                     ReadXRefContents( lOffset );
@@ -653,7 +653,7 @@ void PdfParser::ReadTrailer()
     }
 }
 
-void PdfParser::ReadXRef( pdf_long* pXRefOffset )
+void PdfParser::ReadXRef(size_t* pXRefOffset )
 {
     FindToken( "startxref", PDF_XREF_BUF );
 
@@ -673,10 +673,10 @@ void PdfParser::ReadXRef( pdf_long* pXRefOffset )
     }
 
     // Support also files with whitespace offset before magic start
-    *pXRefOffset = this->GetNextNumber() + m_magicOffset;
+    *pXRefOffset = (size_t)this->GetNextNumber() + m_magicOffset;
 }
 
-void PdfParser::ReadXRefContents( pdf_long lOffset, bool bPositionAtEnd )
+void PdfParser::ReadXRefContents(size_t lOffset, bool bPositionAtEnd )
 {
     PdfRecursionGuard guard(m_nRecursionDepth);
 
@@ -699,7 +699,7 @@ void PdfParser::ReadXRefContents( pdf_long lOffset, bool bPositionAtEnd )
     
     size_t curPosition = m_device.Device()->Tell();
     m_device.Device()->Seek(0,std::ios_base::end);
-    std::streamoff fileSize = m_device.Device()->Tell();
+    size_t fileSize = m_device.Device()->Tell();
     m_device.Device()->Seek(curPosition,std::ios_base::beg);
 
     if (lOffset > fileSize)
@@ -867,7 +867,7 @@ void PdfParser::ReadXRefSubsection( int64_t & nFirstObject, int64_t & nNumObject
             try
             {
                 m_nNumObjects = static_cast<long>(nFirstObject+nNumObjects);
-                ResizeOffsets(nFirstObject + nNumObjects);
+                ResizeOffsets((size_t)(nFirstObject + nNumObjects));
 
             } catch (std::exception &) {
                 // If m_nNumObjects*sizeof(TXRefEntry) > std::numeric_limits<size_t>::max() then
@@ -907,14 +907,8 @@ void PdfParser::ReadXRefSubsection( int64_t & nFirstObject, int64_t & nNumObject
         PdfXRefEntry &entry = m_offsets[objID];
         if( static_cast<size_t>(objID) < m_offsets.size() && !entry.bParsed )
         {
-            // don't scan directly into m_offsets since TXRefEntry structure member sizes change between platforms and compilers
-            //
-            //  pdf_long lOffset; // pdf_long is ptrdiff_t: 64 bits on Mac64, Linux64, Win64; 32 bits on Mac32, Linux32, Win32
-            //  long lGeneration; // 64 bits on Mac64, Linux64; 32 bits on Win64, Mac32, Linux32, Win32
-            //  char cUsed;       // always 8 bits
-            //
-            int64_t llOffset = 0;
-            int64_t llGeneration = 0;
+            uint64_t llOffset = 0;
+            uint32_t llGeneration = 0;
             char cType = 0;
 
             // XRefEntry is defined in PDF spec section 7.5.4 Cross-Reference Table as
@@ -922,7 +916,7 @@ void PdfParser::ReadXRefSubsection( int64_t & nFirstObject, int64_t & nNumObject
             // nnnnnnnnnn is 10-digit offset number with max value 9999999999 (bigger than 2**32 = 4GB)
             // ggggg is a 5-digit generation number with max value 99999 (smaller than 2**17)
             // eol is a 2-character end-of-line sequence
-            int read = sscanf( m_buffer.GetBuffer(), "%10" SCNd64 " %5" SCNd64 " %c%c%c",
+            int read = sscanf( m_buffer.GetBuffer(), "%10" SCNu64 " %5" SCNu32 " %c%c%c",
                               &llOffset, &llGeneration, &cType, &empty1, &empty2 );
 
             if ( !CheckXRefEntryType(cType) )
@@ -941,12 +935,12 @@ void PdfParser::ReadXRefSubsection( int64_t & nFirstObject, int64_t & nNumObject
 
             if ( llOffset > PTRDIFF_MAX )
             {
-                // pdf_long max size is PTRDIFF_MAX, so throw error if llOffset too big
+                // max size is PTRDIFF_MAX, so throw error if llOffset too big
                 PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange ); 
             }
             
-            entry.lOffset = static_cast<pdf_long>( llOffset );
-            entry.lGeneration = static_cast<long>( llGeneration );
+            entry.lOffset = static_cast<size_t>( llOffset );
+            entry.lGeneration = llGeneration;
             entry.eType = eType;
             entry.bParsed = true;
         }
@@ -962,7 +956,7 @@ void PdfParser::ReadXRefSubsection( int64_t & nFirstObject, int64_t & nNumObject
 
 }
 
-void PdfParser::ReadXRefStreamContents( pdf_long lOffset, bool bReadOnlyTrailer )
+void PdfParser::ReadXRefStreamContents(size_t lOffset, bool bReadOnlyTrailer )
 {
     PdfRecursionGuard guard(m_nRecursionDepth);
 
@@ -982,7 +976,8 @@ void PdfParser::ReadXRefStreamContents( pdf_long lOffset, bool bReadOnlyTrailer 
     xrefObject.ReadXRefTable();
 
     // Check for a previous XRefStm or xref table
-    if(xrefObject.HasPrevious() && xrefObject.GetPreviousOffset() != lOffset) 
+    size_t previousOffset;
+    if(xrefObject.TryGetPreviousOffset(previousOffset) && previousOffset != lOffset)
     {
         try {
             m_nIncrementalUpdates++;
@@ -990,7 +985,7 @@ void PdfParser::ReadXRefStreamContents( pdf_long lOffset, bool bReadOnlyTrailer 
             // PDFs that have been through multiple PDF tools may have a mix of xref tables (ISO 32000-1 7.5.4) 
             // and XRefStm streams (ISO 32000-1 7.5.8.1) and in the Prev chain, 
             // so call ReadXRefContents (which deals with both) instead of ReadXRefStreamContents 
-            ReadXRefContents( xrefObject.GetPreviousOffset(), bReadOnlyTrailer );
+            ReadXRefContents(previousOffset, bReadOnlyTrailer );
         } catch(PdfError &e) {
             /* Be forgiving, the error happens when an entry in XRef stream points
                to a wrong place (offset) in the PDF file. */
@@ -1363,10 +1358,10 @@ const char* PdfParser::GetPdfVersionString() const
     return s_szPdfVersions[static_cast<int>(m_ePdfVersion)];
 }
 
-void PdfParser::FindToken( const char* pszToken, const long lRange )
+void PdfParser::FindToken( const char* pszToken, size_t lRange )
 {
 // James McGill 18.02.2011, offset read position to the EOF marker if it is not the last thing in the file
-    m_device.Device()->Seek( -m_lLastEOFOffset, std::ios_base::end );
+    m_device.Device()->Seek( -(std::streamoff)m_lLastEOFOffset, std::ios_base::end );
 
     std::streamoff nFileSize = m_device.Device()->Tell();
     if (nFileSize == -1)
@@ -1376,10 +1371,10 @@ void PdfParser::FindToken( const char* pszToken, const long lRange )
                 "Failed to seek to EOF when looking for xref");
     }
 
-    pdf_long lXRefBuf  = std::min( static_cast<pdf_long>(nFileSize), static_cast<pdf_long>(lRange) );
-    size_t   nTokenLen = strlen( pszToken );
+    size_t lXRefBuf = std::min( static_cast<size_t>(nFileSize), lRange );
+    size_t nTokenLen = strlen( pszToken );
 
-    m_device.Device()->Seek( -lXRefBuf, std::ios_base::cur );
+    m_device.Device()->Seek( -(std::streamoff)lXRefBuf, std::ios_base::cur );
     if( m_device.Device()->Read( m_buffer.GetBuffer(), lXRefBuf ) != lXRefBuf && !m_device.Device()->Eof() )
     {
         PODOFO_RAISE_ERROR( ePdfError_NoXRef );
@@ -1405,11 +1400,11 @@ void PdfParser::FindToken( const char* pszToken, const long lRange )
     }
 
 // James McGill 18.02.2011, offset read position to the EOF marker if it is not the last thing in the file
-    m_device.Device()->Seek( ((lXRefBuf-i)*-1)-m_lLastEOFOffset, std::ios_base::end );
+    m_device.Device()->Seek(-((std::streamoff)lXRefBuf - i) - m_lLastEOFOffset, std::ios_base::end);
 }
 
 // Peter Petrov 23 December 2008
-void PdfParser::FindToken2( const char* pszToken, const long lRange, size_t searchEnd )
+void PdfParser::FindToken2( const char* pszToken, const size_t lRange, size_t searchEnd )
 {
     m_device.Device()->Seek( searchEnd, std::ios_base::beg );
 
@@ -1421,10 +1416,10 @@ void PdfParser::FindToken2( const char* pszToken, const long lRange, size_t sear
                 "Failed to seek to EOF when looking for xref");
     }
 
-    pdf_long      lXRefBuf  = std::min( static_cast<pdf_long>(nFileSize), static_cast<pdf_long>(lRange) );
-    size_t        nTokenLen = strlen( pszToken );
+    size_t lXRefBuf = std::min( static_cast<size_t>(nFileSize), lRange );
+    size_t nTokenLen = strlen( pszToken );
 
-    m_device.Device()->Seek( -lXRefBuf, std::ios_base::cur );
+    m_device.Device()->Seek( -(std::streamoff)lXRefBuf, std::ios_base::cur );
     if( m_device.Device()->Read( m_buffer.GetBuffer(), lXRefBuf ) != lXRefBuf && !m_device.Device()->Eof() )
     {
         PODOFO_RAISE_ERROR( ePdfError_NoXRef );
@@ -1446,7 +1441,7 @@ void PdfParser::FindToken2( const char* pszToken, const long lRange, size_t sear
         PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
     }
 
-    m_device.Device()->Seek( searchEnd + (lXRefBuf-i)*-1, std::ios_base::beg );
+    m_device.Device()->Seek(searchEnd - ((std::streamoff)lXRefBuf - i), std::ios_base::beg );
 }
 
 const PdfString & PdfParser::GetDocumentId() 
@@ -1497,7 +1492,7 @@ void PdfParser::UpdateDocumentVersion()
     
 }
 
-void PdfParser::ResizeOffsets( pdf_long nNewSize )
+void PdfParser::ResizeOffsets(size_t nNewSize )
 {
     // allow caller to specify a max object count to avoid very slow load times on large documents
     if (nNewSize > s_nMaxObjects)
@@ -1530,7 +1525,7 @@ void PdfParser::CheckEOFMarker()
     else
     {
         // Search for the Marker from the end of the file
-        pdf_long lCurrentPos =  m_device.Device()->Tell();
+        size_t lCurrentPos = m_device.Device()->Tell();
         bool bFound = false;
         while (lCurrentPos>=0)
         {
@@ -1551,7 +1546,7 @@ void PdfParser::CheckEOFMarker()
 
         // Try and deal with garbage by offsetting the buffer reads in PdfParser from now on
         if (bFound)
-            m_lLastEOFOffset = (m_nFileSize - (m_device.Device()->Tell()-1)) + nEOFTokenLen;
+            m_lLastEOFOffset = (m_nFileSize - (m_device.Device()->Tell() - 1)) + nEOFTokenLen;
         else
             PODOFO_RAISE_ERROR( ePdfError_NoEOFToken );
     }

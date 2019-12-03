@@ -156,7 +156,7 @@ PdfRefCountedBuffer PdfEncoding::convertToEncoding( const PdfString &rString, co
 void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &firstChar, char32_t &lastChar, unsigned &maxCodeRangeSize)
 {
     char *streamBuffer;
-    pdf_long streamBufferLen;
+    size_t streamBufferLen;
     PdfStream &CIDStreamdata = obj->GetOrCreateStream();
     CIDStreamdata.GetFilteredCopy(&streamBuffer, &streamBufferLen);
 
@@ -489,9 +489,9 @@ PdfString PdfSimpleEncoding::ConvertToUnicode( const PdfString & rEncodedString,
     else
     {
         const pdf_utf16be* cpUnicodeTable = this->GetToUnicodeTable();
-        pdf_long           lLen           = rEncodedString.GetLength();
+        size_t lLen = rEncodedString.GetLength();
         
-        if( lLen  <= 0 )
+        if( lLen  == 0 )
             return PdfString((const pdf_utf8 *)"", 0);
         
         pdf_utf16be* pszStringUtf16 = static_cast<pdf_utf16be*>(podofo_calloc( (lLen + 1), sizeof(pdf_utf16be)));
@@ -501,7 +501,7 @@ PdfString PdfSimpleEncoding::ConvertToUnicode( const PdfString & rEncodedString,
         }
         
         const char* pszString = rEncodedString.GetString();
-        for( int i=0;i<lLen;i++ )
+        for(size_t i = 0 ; i < lLen ; i++)
         {
 #ifdef PODOFO_IS_BIG_ENDIAN
             pszStringUtf16[i] = cpUnicodeTable[ static_cast<unsigned char>(*pszString) ];
@@ -534,7 +534,7 @@ PdfRefCountedBuffer PdfSimpleEncoding::ConvertToEncoding( const PdfString & rStr
             const_cast<PdfSimpleEncoding*>(this)->InitEncodingTable();
         
         PdfString sSrc = rString.ToUnicode(); // make sure the string is unicode and not PdfDocEncoding!
-        pdf_long  lLen = sSrc.GetCharacterLength();
+        size_t lLen = sSrc.GetCharacterLength();
         
         if( !lLen )
             return PdfRefCountedBuffer();
@@ -549,7 +549,7 @@ PdfRefCountedBuffer PdfSimpleEncoding::ConvertToEncoding( const PdfString & rStr
         char*              pCur     = pDest;
         long               lNewLen  = 0L;
         
-        for( int i=0;i<lLen;i++ )
+        for (size_t i = 0; i < lLen; i++)
         {
             pdf_utf16be val = pszUtf16[i];
 #ifdef PODOFO_IS_LITTLE_ENDIAN

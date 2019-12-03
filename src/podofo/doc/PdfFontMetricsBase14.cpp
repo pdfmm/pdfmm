@@ -38,7 +38,7 @@
 
 #include "PdfFontFactoryBase14Data.h"
 
-namespace PoDoFo {
+using namespace PoDoFo;
 
 
 PdfFontMetricsBase14::PdfFontMetricsBase14(const char      *mfont_name,
@@ -275,9 +275,7 @@ const char* PdfFontMetricsBase14::GetFontData() const
     return NULL;
 }
 
-pdf_long PdfFontMetricsBase14::GetFontDataLen() const
+size_t PdfFontMetricsBase14::GetFontDataLen() const
 {
     return 0;
 }
-
-};

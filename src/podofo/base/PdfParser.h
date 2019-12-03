@@ -367,7 +367,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
     /**
      * \return maximum object count to read
      */
-    inline static long GetMaxObjectCount();
+    inline size_t GetMaxObjectCount();
     
     /**
      * Specify the maximum number of objects the parser should
@@ -383,9 +383,9 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      *
      * \param nMaxObjects set max number of objects
      */
-    inline static void SetMaxObjectCount( long nMaxObjects );
+    inline static void SetMaxObjectCount(size_t nMaxObjects );
 
-    inline pdf_long GetXRefOffset(void);
+    inline size_t GetXRefOffset(void);
     
     bool HasXRefStream();
 
@@ -399,7 +399,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      *  \param lRange range in bytes in which to search
      *                begining at the end of the file
      */
-    void FindToken( const char* pszToken, const long lRange );
+    void FindToken( const char* pszToken, size_t lRange );
 
     // Peter Petrov 23 December 2008
     /** Searches backwards from the specified position of the file
@@ -411,7 +411,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      *                begining at the specified position of the file
      *  \param searchEnd specifies position 
      */
-    void FindToken2( const char* pszToken, const long lRange, size_t searchEnd );
+    void FindToken2( const char* pszToken, size_t lRange, size_t searchEnd );
 
     /** Reads the xref sections and the trailers of the file
      *  in the correct order in the memory
@@ -438,7 +438,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      *  and saves its byteoffset to pXRefOffset.
      *  \param pXRefOffset store the byte offset of the xref section into this variable.
      */
-    void ReadXRef( pdf_long* pXRefOffset );
+    void ReadXRef(size_t* pXRefOffset );
 
     /** Reads the xref table from a pdf file.
      *  If there is no xref table, ReadXRefStreamContents() is called.
@@ -448,7 +448,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      *                        after the table, which allows reading
      *                        a following trailer dictionary.
      */
-    void ReadXRefContents( pdf_long lOffset, bool bPositionAtEnd = false );
+    void ReadXRefContents(size_t lOffset, bool bPositionAtEnd = false );
 
     /** Read a xref subsection
      *  
@@ -466,7 +466,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      *  \param bReadOnlyTrailer only the trailer is skipped over, the contents
      *         of the xref stream are not parsed
      */
-    void ReadXRefStreamContents( pdf_long lOffset, bool bReadOnlyTrailer );
+    void ReadXRefStreamContents(size_t lOffset, bool bReadOnlyTrailer );
 
     /** Reads all objects from the pdf into memory
      *  from the offsets listed in m_vecOffsets.
@@ -558,20 +558,20 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      *
      *  \param nNewSize new size of the vector
      */
-    void ResizeOffsets( pdf_long nNewSize );
+    void ResizeOffsets(size_t nNewSize );
     
  private:
     EPdfVersion   m_ePdfVersion;
 
     bool          m_bLoadOnDemand;
 
-    pdf_long      m_magicOffset;
-    pdf_long      m_nXRefOffset;
-    long          m_nFirstObject;
-    long          m_nNumObjects;
-    pdf_long      m_nXRefLinearizedOffset;
+    size_t        m_magicOffset;
+    size_t        m_nXRefOffset;
+    int           m_nFirstObject;
+    int           m_nNumObjects;
+    size_t        m_nXRefLinearizedOffset;
     size_t        m_nFileSize;
-    pdf_long      m_lLastEOFOffset;
+    size_t        m_lLastEOFOffset;
 
     TVecOffsets   m_offsets;
     PdfVecObjects* m_vecObjects;
@@ -590,9 +590,9 @@ class PODOFO_API PdfParser : public PdfTokenizer {
     int           m_nIncrementalUpdates;
     int           m_nRecursionDepth;
 
-    static long   s_nMaxObjects;
+    static size_t   s_nMaxObjects;
     
-    std::set<pdf_long> m_visitedXRefOffsets;
+    std::set<size_t> m_visitedXRefOffsets;
 };
 
 // -----------------------------------------------------
@@ -672,7 +672,7 @@ void PdfParser::SetIgnoreBrokenObjects( bool bBroken )
 // -----------------------------------------------------
 //
 // -----------------------------------------------------
-long PdfParser::GetMaxObjectCount()
+size_t PdfParser::GetMaxObjectCount()
 {
     return PdfParser::s_nMaxObjects;
 }
@@ -680,7 +680,7 @@ long PdfParser::GetMaxObjectCount()
 // -----------------------------------------------------
 //
 // -----------------------------------------------------
-void PdfParser::SetMaxObjectCount( long nMaxObjects )
+void PdfParser::SetMaxObjectCount( size_t nMaxObjects )
 {
     PdfParser::s_nMaxObjects = nMaxObjects;
 }
@@ -688,7 +688,7 @@ void PdfParser::SetMaxObjectCount( long nMaxObjects )
 // -----------------------------------------------------
 //
 // -----------------------------------------------------
-pdf_long PdfParser::GetXRefOffset()
+size_t PdfParser::GetXRefOffset()
 {
     return m_nXRefOffset;
 }

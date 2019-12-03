@@ -74,8 +74,7 @@ PdfOutputDevice::PdfOutputDevice( const char* pszFilename, bool bTruncate )
     if( !bTruncate )
     {
         m_pStream->seekp( 0, std::ios_base::end );
-
-        m_ulPosition = m_pStream->tellp();
+        m_ulPosition = (size_t)m_pStream->tellp();
         m_ulLength = m_ulPosition;
     }
 }
@@ -308,12 +307,12 @@ size_t PdfOutputDevice::Read( char* pBuffer, size_t lLen )
     }
     else if( m_pReadStream )
     {
-		size_t iPos = m_pReadStream->tellg();
+		size_t iPos = (size_t)m_pReadStream->tellg();
 		m_pReadStream->read( pBuffer, lLen );
 		if(m_pReadStream->fail()&&!m_pReadStream->eof()) {
 			PODOFO_RAISE_ERROR( ePdfError_InvalidDeviceOperation );
 		}
-		numRead = m_pReadStream->tellg();
+		numRead = (size_t)m_pReadStream->tellg();
 		numRead -= iPos;
     }
     else if( m_pRefCountedBuffer ) 

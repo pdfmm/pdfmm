@@ -60,7 +60,7 @@ PdfFontTrueType::PdfFontTrueType( PdfFontMetrics* pMetrics, const PdfEncoding* c
 void PdfFontTrueType::EmbedFontFile( PdfObject* pDescriptor )
 {
     PdfObject* pContents;
-    pdf_long   lSize = 0;
+    size_t lSize = 0;
     
     m_bWasEmbedded = true;    
         

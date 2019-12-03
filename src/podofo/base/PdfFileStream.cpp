@@ -122,7 +122,7 @@ void PdfFileStream::EndAppendImpl()
     m_pLength->SetNumber(static_cast<int64_t>(m_lLength));
 }
 
-void PdfFileStream::GetCopy( char**, pdf_long* ) const
+void PdfFileStream::GetCopy( char**, size_t* ) const
 {
     PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
 }
@@ -139,7 +139,7 @@ void PdfFileStream::SetEncrypted( PdfEncrypt* pEncrypt )
         m_pCurEncrypt->SetCurrentReference( m_pParent->GetIndirectReference() );
 }
 
-pdf_long PdfFileStream::GetLength() const
+size_t PdfFileStream::GetLength() const
 {
     return m_lLength;
 }
@@ -149,7 +149,7 @@ const char* PdfFileStream::GetInternalBuffer() const
     return NULL;
 }
 
-pdf_long PdfFileStream::GetInternalBufferSize() const
+size_t PdfFileStream::GetInternalBufferSize() const
 {
     return 0;
 }

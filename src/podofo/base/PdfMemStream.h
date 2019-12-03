@@ -84,7 +84,7 @@ public:
      *  \param pBuffer pointer to where the buffer's address will be stored
      *  \param lLen    pointer to the buffer length (output parameter)
      */
-    void GetCopy( char** pBuffer, pdf_long* lLen ) const override;
+    void GetCopy( char** pBuffer, size_t* lLen ) const override;
 
     /** Get a copy of a the stream and write it to a PdfOutputStream
      *
@@ -111,7 +111,7 @@ public:
      *  \returns the length of the internal buffer
      *  \see Get()
      */
-    pdf_long GetLength() const override;
+    size_t GetLength() const override;
 
     /** This function compresses any currently set stream
      *  using the FlateDecode(ZIP) algorithm. JPEG compressed streams
@@ -136,7 +136,7 @@ public:
     /** Required for the GetFilteredCopy implementation
      *  \returns the size of the internal buffer
      */
-    pdf_long GetInternalBufferSize() const override;
+    size_t GetInternalBufferSize() const override;
 
     /** Begin appending data to this stream.
      *  Clears the current stream contents.
@@ -171,11 +171,10 @@ public:
     PdfMemStream(const PdfMemStream & rhs) = delete;
 
  private:
-    PdfRefCountedBuffer    m_buffer;
-    PdfOutputStream*       m_pStream;
+    PdfRefCountedBuffer m_buffer;
+    PdfOutputStream* m_pStream;
     PdfBufferOutputStream* m_pBufferStream;
-
-    pdf_long               m_lLength;
+    size_t m_lLength;
 };
 
 };

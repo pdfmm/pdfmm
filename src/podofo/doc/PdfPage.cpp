@@ -327,7 +327,7 @@ PdfArray & PdfPage::GetOrCreateAnnotationsArray()
     return pObj->GetArray();
 }
 
-int PdfPage::GetNumAnnots() const
+int PdfPage::GetAnnotationCount() const
 {
     auto *arr = GetAnnotationsArray();
     return arr ? arr->GetSize() : 0;
@@ -349,7 +349,7 @@ PdfAnnotation* PdfPage::CreateAnnotation( EPdfAnnotation eType, const PdfRect & 
     return pAnnot;
 }
 
-PdfAnnotation* PdfPage::GetAnnotation( int index )
+PdfAnnotation* PdfPage::GetAnnotation(int index)
 {
     PdfAnnotation* pAnnot;
     PdfReference   ref;
@@ -359,7 +359,7 @@ PdfAnnotation* PdfPage::GetAnnotation( int index )
     if (arr == nullptr)
         PODOFO_RAISE_ERROR(ePdfError_InvalidHandle);
     
-    if( index < 0 || index >= arr->GetSize() )
+    if(index < 0 || index >= arr->GetSize())
     {
         PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
     }
@@ -375,7 +375,7 @@ PdfAnnotation* PdfPage::GetAnnotation( int index )
     return pAnnot;
 }
 
-void PdfPage::DeleteAnnotation( int index )
+void PdfPage::DeleteAnnotation(int index)
 {
     auto arr = GetAnnotationsArray();
     if (arr == nullptr)
@@ -537,9 +537,9 @@ void PdfPage::SetTrimBox( const PdfRect & rSize )
     this->GetObject()->GetDictionary().AddKey( "TrimBox", trimbox );
 }
 
-unsigned int PdfPage::GetPageNumber() const
+int PdfPage::GetPageNumber() const
 {
-    unsigned int        nPageNumber = 0;
+    int nPageNumber = 0;
     PdfObject*          pParent     = this->GetObject()->GetIndirectKey( "Parent" );
     PdfReference ref                = this->GetObject()->GetIndirectReference();
 
@@ -595,51 +595,6 @@ unsigned int PdfPage::GetPageNumber() const
     }
 
     return ++nPageNumber;
-}
-
-int PdfPage::GetNumFields() const
-{
-    int                  nCount  = 0;
-    int                  nAnnots = this->GetNumAnnots();
-    const PdfAnnotation* pAnnot  = NULL;
-    for( int i=0;i<nAnnots;i++ )
-    {
-        pAnnot = const_cast<PdfPage*>(this)->GetAnnotation( i );
-        // Count every widget annotation with a FieldType as PdfField
-        if( pAnnot->GetType() == ePdfAnnotation_Widget )
-            ++nCount;
-    }
-
-    return nCount;
-}
-
-PdfField PdfPage::GetField( int index )
-{
-    int            nCount  = 0;
-    int            nAnnots = this->GetNumAnnots();
-    PdfAnnotation* pAnnot  = NULL;
-    for( int i=0;i<nAnnots;i++ )
-    {
-        pAnnot = this->GetAnnotation( i );
-        // Count every widget annotation with a FieldType as PdfField
-        if( pAnnot->GetType() == ePdfAnnotation_Widget )
-        {
-            if( nCount == index )
-            {
-                return PdfField( pAnnot->GetObject(), pAnnot );
-            }
-            else
-                ++nCount;
-        }
-    }
-
-    PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
-}
-
-const PdfField PdfPage::GetField( int index ) const
-{
-    PdfField field = const_cast<PdfPage*>(this)->GetField( index );
-    return field;
 }
 
 PdfObject* PdfPage::GetFromResources( const PdfName & rType, const PdfName & rKey )

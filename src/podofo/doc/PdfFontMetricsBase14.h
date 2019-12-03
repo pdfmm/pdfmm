@@ -234,7 +234,7 @@ public:
     /** Get the length of the actual font data - if it was loaded from memory.
      *  \returns a the length of the font data
      */
-    pdf_long GetFontDataLen() const override;
+    size_t GetFontDataLen() const override;
 
     inline double GetCapHeight() const;
 

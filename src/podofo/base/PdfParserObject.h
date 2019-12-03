@@ -59,7 +59,7 @@ public:
      *                 if lOffset = -1, the object will be read from the current 
      *                 position in the file.
      */
-    PdfParserObject( PdfVecObjects* pCreator, const PdfRefCountedInputDevice & rDevice, const PdfRefCountedBuffer & rBuffer, pdf_long lOffset = -1 );
+    PdfParserObject( PdfVecObjects* pCreator, const PdfRefCountedInputDevice & rDevice, const PdfRefCountedBuffer & rBuffer, ssize_t lOffset = -1 );
 
     /** Parse the object data for an internal object.
      *  You have to call ParseDictionaryKeys as next function call.
@@ -173,11 +173,9 @@ public:
     // Outside callers should not be able to tell the difference between the two modes
     // of operation.
     bool m_bLoadOnDemand;
-
-    pdf_long m_lOffset;
-
+    ssize_t m_lOffset;
     bool m_bStream;
-    pdf_long m_lStreamOffset;
+    size_t m_lStreamOffset;
 };
 
 // -----------------------------------------------------

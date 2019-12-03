@@ -100,7 +100,7 @@ class PODOFO_API PdfInputDevice {
     /** Get the current position in file.
      *  /returns the current position in the file
      */
-    virtual std::streamoff Tell() const;
+    virtual size_t Tell() const;
 
     /** Get next char from stream.
      *  \returns the next character from the stream
@@ -129,7 +129,7 @@ class PODOFO_API PdfInputDevice {
      *           If reading was successfull the number of read bytes
      *           is equal to lLen.
      */
-    virtual std::streamoff Read( char* pBuffer, std::streamsize lLen );
+    virtual size_t Read( char* pBuffer, size_t lLen );
 
     /**
      * \return True if the stream is at EOF

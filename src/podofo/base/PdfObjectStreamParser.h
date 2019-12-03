@@ -69,7 +69,7 @@ public:
     void Parse(ObjectIdList const &);
 
 private:
-    void ReadObjectsFromStream( char* pBuffer, pdf_long lBufferLen, int64_t lNum, int64_t lFirst, ObjectIdList const &);
+    void ReadObjectsFromStream( char* pBuffer, size_t lBufferLen, int64_t lNum, int64_t lFirst, ObjectIdList const &);
 
 private:
     PdfParserObject* m_pParser;

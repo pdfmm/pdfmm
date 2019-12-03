@@ -250,7 +250,7 @@ class PODOFO_DOC_API PdfFontMetricsFreetype : public PdfFontMetrics {
     /** Get the length of the actual font data - if it was loaded from memory.
      *  \returns a the length of the font data
      */
-    pdf_long GetFontDataLen() const override;
+    size_t GetFontDataLen() const override;
 
     /** Get whether the internal font style flags contain the Bold flag.
      *  \returns whether the Bold style flag is set on the font

@@ -58,7 +58,7 @@ class PODOFO_API PdfInputStream {
      *  \returns the number of bytes read, -1 if an error ocurred
      *           and zero if no more bytes are available for reading.
      */
-    virtual pdf_long Read( char* pBuffer, pdf_long lLen, pdf_long *pTotalLeft = 0 ) = 0;
+    virtual size_t Read( char* pBuffer, size_t lLen, size_t *pTotalLeft = 0 ) = 0;
 
 };
 
@@ -96,12 +96,12 @@ class PODOFO_API PdfFileInputStream : public PdfInputStream {
      *  \returns the number of bytes read, -1 if an error ocurred
      *           and zero if no more bytes are available for reading.
      */
-    pdf_long Read( char* pBuffer, pdf_long lLen, pdf_long* = 0 ) override;
+    size_t Read( char* pBuffer, size_t lLen, size_t* = 0 ) override;
 
     /** Get the length of the file.
      *  \return the file length
      */
-    pdf_long GetFileLength();
+    size_t GetFileLength();
 
     /** Get the internal FILE handle.
      *  \return the internal FILE handle
@@ -122,7 +122,7 @@ class PODOFO_API PdfMemoryInputStream : public PdfInputStream {
      *  \param pBuffer buffer to read from
      *  \param lBufferLen length of the buffer
      */
-    PdfMemoryInputStream( const char* pBuffer, pdf_long lBufferLen );
+    PdfMemoryInputStream( const char* pBuffer, size_t lBufferLen );
     ~PdfMemoryInputStream();
 
     /** Read data from the input stream
@@ -134,12 +134,12 @@ class PODOFO_API PdfMemoryInputStream : public PdfInputStream {
      *  \returns the number of bytes read, -1 if an error ocurred
      *           and zero if no more bytes are available for reading.
      */
-    pdf_long Read( char* pBuffer, pdf_long lLen, pdf_long* ) override;;
+    size_t Read( char* pBuffer, size_t lLen, size_t* ) override;;
 
  private:
     const char* m_pBuffer;
     const char* m_pCur;
-    pdf_long        m_lBufferLen;
+    size_t m_lBufferLen;
 };
 
 /** An input stream that reads data from an input device
@@ -163,7 +163,7 @@ class PODOFO_API PdfDeviceInputStream : public PdfInputStream {
      *  \returns the number of bytes read, -1 if an error ocurred
      *           and zero if no more bytes are available for reading.
      */
-    pdf_long Read( char* pBuffer, pdf_long lLen, pdf_long* ) override;;
+    size_t Read( char* pBuffer, size_t lLen, size_t* ) override;;
 
  private:
     PdfInputDevice* m_pDevice;

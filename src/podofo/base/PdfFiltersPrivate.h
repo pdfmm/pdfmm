@@ -115,7 +115,7 @@ class PdfHexFilter : public PdfFilter {
      *  \see BeginEncodeImpl
      *  \see EndEncodeImpl
      */
-    void EncodeBlockImpl( const char* pBuffer, pdf_long lLen ) override;
+    void EncodeBlockImpl( const char* pBuffer, size_t lLen ) override;
 
     /** Check wether the decoding is implemented for this filter.
      * 
@@ -149,7 +149,7 @@ class PdfHexFilter : public PdfFilter {
      *  EndDecode() has not been called since the last BeginDecode().
      *
      * \see DecodeBlock */
-    void DecodeBlockImpl( const char* pBuffer, pdf_long lLen ) override;
+    void DecodeBlockImpl( const char* pBuffer, size_t lLen ) override;
 
     /** Real implementation of `EndDecode()'. NEVER call this method directly.
      *
@@ -230,7 +230,7 @@ class PdfAscii85Filter : public PdfFilter {
      *  \see BeginEncodeImpl
      *  \see EndEncodeImpl
      */
-    void EncodeBlockImpl( const char* pBuffer, pdf_long lLen ) override;
+    void EncodeBlockImpl( const char* pBuffer, size_t lLen ) override;
 
     /**
      *  Finish encoding of data.
@@ -272,7 +272,7 @@ class PdfAscii85Filter : public PdfFilter {
      *  EndDecode() has not been called since the last BeginDecode().
      *
      * \see DecodeBlock */
-    void DecodeBlockImpl( const char* pBuffer, pdf_long lLen ) override;
+    void DecodeBlockImpl( const char* pBuffer, size_t lLen ) override;
 
     /** Real implementation of `EndDecode()'. NEVER call this method directly.
      *
@@ -359,7 +359,7 @@ public:
      *  \see BeginEncodeImpl
      *  \see EndEncodeImpl
      */
-    void EncodeBlockImpl( const char* pBuffer, pdf_long lLen ) override;
+    void EncodeBlockImpl( const char* pBuffer, size_t lLen ) override;
 
     /**
      *  Finish encoding of data.
@@ -404,7 +404,7 @@ public:
      *  EndDecode() has not been called since the last BeginDecode().
      *
      * \see DecodeBlock */
-    void DecodeBlockImpl( const char* pBuffer, pdf_long lLen ) override;
+    void DecodeBlockImpl( const char* pBuffer, size_t lLen ) override;
 
     /** Real implementation of `EndDecode()'. NEVER call this method directly.
      *
@@ -423,7 +423,7 @@ public:
     inline EPdfFilter GetType() const override;
 
  private:
-    void EncodeBlockInternal( const char* pBuffer, pdf_long lLen, int nMode );
+    void EncodeBlockInternal( const char* pBuffer, size_t lLen, int nMode );
 
  private:
     unsigned char        m_buffer[PODOFO_FILTER_INTERNAL_BUFFER_SIZE];
@@ -485,7 +485,7 @@ class PdfRLEFilter : public PdfFilter {
      *  \see BeginEncodeImpl
      *  \see EndEncodeImpl
      */
-    void EncodeBlockImpl( const char* pBuffer, pdf_long lLen ) override;
+    void EncodeBlockImpl( const char* pBuffer, size_t lLen ) override;
 
     /**
      *  Finish encoding of data.
@@ -527,7 +527,7 @@ class PdfRLEFilter : public PdfFilter {
      *  EndDecode() has not been called since the last BeginDecode().
      *
      * \see DecodeBlock */
-    void DecodeBlockImpl( const char* pBuffer, pdf_long lLen ) override;
+    void DecodeBlockImpl( const char* pBuffer, size_t lLen ) override;
 
     /** GetType of this filter.
      *  \returns the GetType of this filter
@@ -606,7 +606,7 @@ class PdfLZWFilter : public PdfFilter {
      *  \see BeginEncodeImpl
      *  \see EndEncodeImpl
      */
-    void EncodeBlockImpl( const char* pBuffer, pdf_long lLen ) override;
+    void EncodeBlockImpl( const char* pBuffer, size_t lLen ) override;
 
     /**
      *  Finish encoding of data.
@@ -648,7 +648,7 @@ class PdfLZWFilter : public PdfFilter {
      *  EndDecode() has not been called since the last BeginDecode().
      *
      * \see DecodeBlock */
-    void DecodeBlockImpl( const char* pBuffer, pdf_long lLen ) override;
+    void DecodeBlockImpl( const char* pBuffer, size_t lLen ) override;
 
     /** Real implementation of `EndDecode()'. NEVER call this method directly.
      *
@@ -758,7 +758,7 @@ class PdfDCTFilter : public PdfFilter {
      *  \see BeginEncodeImpl
      *  \see EndEncodeImpl
      */
-    void EncodeBlockImpl( const char* pBuffer, pdf_long lLen ) override;
+    void EncodeBlockImpl( const char* pBuffer, size_t lLen ) override;
 
     /**
      *  Finish encoding of data.
@@ -800,7 +800,7 @@ class PdfDCTFilter : public PdfFilter {
      *  EndDecode() has not been called since the last BeginDecode().
      *
      * \see DecodeBlock */
-    void DecodeBlockImpl( const char* pBuffer, pdf_long lLen ) override;
+    void DecodeBlockImpl( const char* pBuffer, size_t lLen ) override;
 
     /** Real implementation of `EndDecode()'. NEVER call this method directly.
      *
@@ -889,7 +889,7 @@ class PdfCCITTFilter : public PdfFilter {
      *  \see BeginEncodeImpl
      *  \see EndEncodeImpl
      */
-    void EncodeBlockImpl( const char* pBuffer, pdf_long lLen ) override;
+    void EncodeBlockImpl( const char* pBuffer, size_t lLen ) override;
 
     /**
      *  Finish encoding of data.
@@ -931,7 +931,7 @@ class PdfCCITTFilter : public PdfFilter {
      *  EndDecode() has not been called since the last BeginDecode().
      *
      * \see DecodeBlock */
-    void DecodeBlockImpl( const char* pBuffer, pdf_long lLen ) override;
+    void DecodeBlockImpl( const char* pBuffer, size_t lLen ) override;
 
     /** Real implementation of `EndDecode()'. NEVER call this method directly.
      *

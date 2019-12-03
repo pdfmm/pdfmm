@@ -39,11 +39,6 @@
 #ifdef PODOFO_HAVE_LIBIDN
 // AES-256 dependencies :
 // SASL
-#if defined(_MSC_VER)
-// Fix missing posix "ssize_t" typedef in MSVC
-#include <BaseTsd.h>
-typedef SSIZE_T ssize_t;
-#endif
 #include <stringprep.h>
 #include <openssl/sha.h>
 #endif // PODOFO_HAVE_LIBIDN
@@ -229,16 +224,16 @@ public:
      *  \param pBuffer the input/output buffer. Data is read from this buffer and also stored here
      *  \param lLen    the size of the buffer 
      */
-    pdf_long Encrypt( char* pBuffer, pdf_long lLen )
+    size_t Encrypt( char* pBuffer, size_t lLen )
     {
         unsigned char k;
-        pdf_long t, i;
+        int t;
         
         // Do not encode data with no length
         if( !lLen )
             return lLen;
         
-        for (i = 0; i < lLen; i++ )
+        for (size_t i = 0; i < lLen; i++ )
         {
             m_a = (m_a + 1) % 256;
             t   = m_rc4[m_a];
@@ -257,8 +252,8 @@ public:
 private:
     unsigned char m_rc4[256];
     
-    int           m_a;
-    int           m_b;
+    int m_a;
+    int m_b;
     
 };
 
@@ -277,7 +272,7 @@ public:
      *  \param pBuffer the data is read from this buffer
      *  \param lLen    the size of the buffer 
      */
-    pdf_long Write( const char* pBuffer, pdf_long lLen ) override
+    size_t Write( const char* pBuffer, size_t lLen ) override
     {
         // Do not encode data with no length
         if( !lLen )
@@ -334,7 +329,7 @@ public:
      *  \returns the number of bytes read, -1 if an error ocurred
      *           and zero if no more bytes are available for reading.
      */
-    pdf_long Read( char* pBuffer, pdf_long lLen, pdf_long* ) override
+    size_t Read( char* pBuffer, size_t lLen, size_t* ) override
     {
         // Do not encode data with no length
         if( !lLen )
@@ -371,7 +366,7 @@ public:
      *  \param lLen       the size of the buffer 
      *  \param pTotalLeft total bytes left (needed for AES IV and padding)
      */
-    pdf_long Decrypt( unsigned char* pBuffer, pdf_long lLen, pdf_long* pTotalLeft )
+    size_t Decrypt( unsigned char* pBuffer, size_t lLen, size_t* pTotalLeft )
     {
 		if (pTotalLeft == 0)
 			PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error AES-decryption needs pTotalLeft" );
@@ -453,7 +448,7 @@ public:
      *  \returns the number of bytes read, -1 if an error ocurred
      *           and zero if no more bytes are available for reading.
      */
-    pdf_long Read( char* pBuffer, pdf_long lLen, pdf_long *pTotalLeft ) override
+    size_t Read( char* pBuffer, size_t lLen, size_t *pTotalLeft ) override
     {
         // Do not encode data with no length
         if( !lLen )
@@ -957,8 +952,8 @@ PdfEncryptRC4Base::~PdfEncryptRC4Base()
 
 void
 PdfEncryptRC4Base::RC4(const unsigned char* key, int keylen,
-                       const unsigned char* textin, pdf_long textlen,
-                       unsigned char* textout, pdf_long textoutlen)
+                       const unsigned char* textin, size_t textlen,
+                       unsigned char* textout, size_t textoutlen)
 {
     EVP_CIPHER_CTX* rc4 = m_rc4->getEngine();
     
@@ -1125,20 +1120,18 @@ bool PdfEncryptRC4::Authenticate( const std::string & password, const PdfString 
     return ok;
 }
 
-pdf_long PdfEncryptRC4::CalculateStreamOffset() const
+size_t PdfEncryptRC4::CalculateStreamOffset() const
 {
     return 0;
 }
 
-pdf_long
-PdfEncryptRC4::CalculateStreamLength(pdf_long length) const
+size_t PdfEncryptRC4::CalculateStreamLength(size_t length) const
 {
     return length;
 }
 
-void
-PdfEncryptRC4::Encrypt(const unsigned char* inStr, pdf_long inLen,
-                       unsigned char* outStr, pdf_long outLen) const
+void PdfEncryptRC4::Encrypt(const unsigned char* inStr, size_t inLen,
+                       unsigned char* outStr, size_t outLen) const
 {
     unsigned char objkey[MD5_DIGEST_LENGTH];
     int keylen;
@@ -1148,9 +1141,8 @@ PdfEncryptRC4::Encrypt(const unsigned char* inStr, pdf_long inLen,
     const_cast<PdfEncryptRC4*>(this)->RC4(objkey, keylen, inStr, inLen, outStr, outLen);
 }
 
-void
-PdfEncryptRC4::Decrypt(const unsigned char* inStr, pdf_long inLen,
-                       unsigned char* outStr, pdf_long &outLen) const
+void PdfEncryptRC4::Decrypt(const unsigned char* inStr, size_t inLen,
+                       unsigned char* outStr, size_t &outLen) const
 {
     Encrypt(inStr, inLen, outStr, outLen);
 }
@@ -1245,10 +1237,9 @@ PdfEncryptAESBase::~PdfEncryptAESBase()
     delete m_aes;
 }
 
-void
-PdfEncryptAESBase::BaseDecrypt(const unsigned char* key, int keyLen, const unsigned char* iv,
-                       const unsigned char* textin, pdf_long textlen,
-                       unsigned char* textout, pdf_long &outLen )
+void PdfEncryptAESBase::BaseDecrypt(const unsigned char* key, int keyLen, const unsigned char* iv,
+                       const unsigned char* textin, size_t textlen,
+                       unsigned char* textout, size_t &outLen )
 {
 	if ((textlen % 16) != 0)
 		PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error AES-decryption data length not a multiple of 16" );
@@ -1279,10 +1270,9 @@ PdfEncryptAESBase::BaseDecrypt(const unsigned char* key, int keyLen, const unsig
         PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error AES-decryption data final" );
 }
 
-void
-PdfEncryptAESBase::BaseEncrypt(const unsigned char* key, int keyLen, const unsigned char* iv,
-                       const unsigned char* textin, pdf_long textlen,
-                       unsigned char* textout, pdf_long ) // To avoid Wunused-parameter
+void PdfEncryptAESBase::BaseEncrypt(const unsigned char* key, int keyLen, const unsigned char* iv,
+                       const unsigned char* textin, size_t textlen,
+                       unsigned char* textout, size_t) // To avoid Wunused-parameter
 {
     EVP_CIPHER_CTX* aes = m_aes->getEngine();
     
@@ -1358,36 +1348,34 @@ bool PdfEncryptAESV2::Authenticate( const std::string & password, const PdfStrin
     return ok;
 }
     
-pdf_long PdfEncryptAESV2::CalculateStreamOffset() const
+size_t PdfEncryptAESV2::CalculateStreamOffset() const
 {
     return AES_IV_LENGTH;
 }
     
-void
-PdfEncryptAESV2::Encrypt(const unsigned char* inStr, pdf_long inLen,
-                         unsigned char* outStr, pdf_long outLen) const
+void PdfEncryptAESV2::Encrypt(const unsigned char* inStr, size_t inLen,
+                         unsigned char* outStr, size_t outLen) const
 {
     unsigned char objkey[MD5_DIGEST_LENGTH];
     int keylen;
     
     CreateObjKey( objkey, &keylen );
     
-    pdf_long offset = CalculateStreamOffset();
+    size_t offset = CalculateStreamOffset();
     const_cast<PdfEncryptAESV2*>(this)->GenerateInitialVector(outStr);
     
     const_cast<PdfEncryptAESV2*>(this)->BaseEncrypt(objkey, keylen, outStr, inStr, inLen, &outStr[offset], outLen-offset);
 }
 
-void
-PdfEncryptAESV2::Decrypt(const unsigned char* inStr, pdf_long inLen,
-                         unsigned char* outStr, pdf_long &outLen) const
+void PdfEncryptAESV2::Decrypt(const unsigned char* inStr, size_t inLen,
+                         unsigned char* outStr, size_t &outLen) const
 {
     unsigned char objkey[MD5_DIGEST_LENGTH];
     int keylen;
     
     CreateObjKey( objkey, &keylen );
     
-    pdf_long offset = CalculateStreamOffset();
+    size_t offset = CalculateStreamOffset();
 	if( inLen <= offset ) { // Is empty
 		outLen = 0;
 		return;
@@ -1436,10 +1424,9 @@ PdfEncryptAESV2::PdfEncryptAESV2(PdfString oValue, PdfString uValue, int pValue,
     memset(m_encryptionKey, 0 ,32);
 }
 
-pdf_long
-PdfEncryptAESV2::CalculateStreamLength(pdf_long length) const
+size_t PdfEncryptAESV2::CalculateStreamLength(size_t length) const
 {
-    pdf_long realLength = ((length + 15) & ~15) + AES_IV_LENGTH;
+    size_t realLength = ((length + 15) & ~15) + AES_IV_LENGTH;
     if (length % 16 == 0)
     {
         realLength += 16;
@@ -1637,7 +1624,7 @@ void
 PdfEncryptSHABase::ComputeEncryptionKey()
 {
     // Seed once for all
-    srand ( time(NULL) );
+    srand((unsigned)time(nullptr));
     
     for(int i=0; i< m_keyLength ; i++)
         m_encryptionKey[i] = rand()%255;
@@ -1850,26 +1837,25 @@ bool PdfEncryptAESV3::Authenticate( const std::string & password, const PdfStrin
     return ok;
 }
 
-pdf_long PdfEncryptAESV3::CalculateStreamOffset() const
+size_t PdfEncryptAESV3::CalculateStreamOffset() const
 {
     return AES_IV_LENGTH;
 }
 
-void
-PdfEncryptAESV3::Encrypt(const unsigned char* inStr, pdf_long inLen,
-                         unsigned char* outStr, pdf_long outLen) const
+void PdfEncryptAESV3::Encrypt(const unsigned char* inStr, size_t inLen,
+                         unsigned char* outStr, size_t outLen) const
 {
-    pdf_long offset = CalculateStreamOffset();
+    size_t offset = CalculateStreamOffset();
     const_cast<PdfEncryptAESV3*>(this)->GenerateInitialVector(outStr);
     
     const_cast<PdfEncryptAESV3*>(this)->BaseEncrypt(const_cast<unsigned char*>(m_encryptionKey), m_keyLength, outStr, inStr, inLen, &outStr[offset], outLen-offset);
 }
 
 void
-PdfEncryptAESV3::Decrypt(const unsigned char* inStr, pdf_long inLen,
-                         unsigned char* outStr, pdf_long &outLen) const
+PdfEncryptAESV3::Decrypt(const unsigned char* inStr, size_t inLen,
+                         unsigned char* outStr, size_t &outLen) const
 {
-    pdf_long offset = CalculateStreamOffset();
+    size_t offset = CalculateStreamOffset();
     
     const_cast<PdfEncryptAESV3*>(this)->BaseDecrypt(const_cast<unsigned char*>(m_encryptionKey), m_keyLength, inStr, &inStr[offset], inLen-offset, outStr, outLen);
 }
@@ -1912,10 +1898,9 @@ PdfEncryptAESV3::PdfEncryptAESV3(PdfString oValue,PdfString oeValue, PdfString u
     memset(m_encryptionKey, 0 ,32);
 }
 
-pdf_long
-PdfEncryptAESV3::CalculateStreamLength(pdf_long length) const
+size_t PdfEncryptAESV3::CalculateStreamLength(size_t length) const
 {
-    pdf_long realLength = ((length + 15) & ~15) + AES_IV_LENGTH;
+    size_t realLength = ((length + 15) & ~15) + AES_IV_LENGTH;
     if (length % 16 == 0)
     {
         realLength += 16;
@@ -1941,7 +1926,6 @@ PdfOutputStream* PdfEncryptAESV3::CreateEncryptionOutputStream( PdfOutputStream*
 // ----------------
 
 // C headers for MD5
-#include <sys/types.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>

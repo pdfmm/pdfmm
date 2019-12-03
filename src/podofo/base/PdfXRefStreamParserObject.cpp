@@ -41,11 +41,11 @@
 
 #include <limits>
 
-namespace PoDoFo {
+using namespace PoDoFo;
 
 PdfXRefStreamParserObject::PdfXRefStreamParserObject(PdfVecObjects* pCreator, const PdfRefCountedInputDevice & rDevice, 
                                                      const PdfRefCountedBuffer & rBuffer, TVecOffsets* pOffsets )
-    : PdfParserObject( pCreator, rDevice, rBuffer ), m_lNextOffset(-1L), m_pOffsets( pOffsets )
+    : PdfParserObject( pCreator, rDevice, rBuffer ), m_lNextOffset(-1), m_pOffsets( pOffsets )
 {
 
 }
@@ -80,7 +80,7 @@ void PdfXRefStreamParserObject::Parse()
 
     if( this->GetDictionary().HasKey("Prev") )
     {
-        m_lNextOffset = static_cast<pdf_long>(this->GetDictionary().GetKeyAsLong( "Prev", 0 ));
+        m_lNextOffset = static_cast<ssize_t>(this->GetDictionary().GetKeyAsLong( "Prev", 0 ));
     }
 }
 
@@ -116,8 +116,8 @@ void PdfXRefStreamParserObject::ReadXRefTable()
 
 void PdfXRefStreamParserObject::ParseStream( const int64_t nW[W_ARRAY_SIZE], const std::vector<int64_t> & rvecIndeces )
 {
-    char*        pBuffer;
-    pdf_long     lBufferLen;
+    char * pBuffer;
+    size_t lBufferLen;
 
     for(int64_t nLengthSum = 0, i = 0; i < W_ARRAY_SIZE; i++ )
     {
@@ -157,7 +157,7 @@ void PdfXRefStreamParserObject::ParseStream( const int64_t nW[W_ARRAY_SIZE], con
         //printf("nCount=%i\n", static_cast<int>(nCount));
         while( nCount > 0 )
         {
-            if( (pBuffer - pStart) >= lBufferLen ) 
+            if((size_t)(pBuffer - pStart) >= lBufferLen )
             {
                 PODOFO_RAISE_ERROR_INFO( ePdfError_NoXRef, "Invalid count in XRef stream" );
             }
@@ -215,7 +215,7 @@ void PdfXRefStreamParserObject::GetIndeces( std::vector<int64_t> & rvecIndeces, 
     }
 }
 
-void PdfXRefStreamParserObject::ReadXRefStreamEntry( char* pBuffer, pdf_long, const int64_t lW[W_ARRAY_SIZE], int nObjNo )
+void PdfXRefStreamParserObject::ReadXRefStreamEntry( char* pBuffer, size_t, const int64_t lW[W_ARRAY_SIZE], int nObjNo )
 {
     int              i;
     int64_t        z;
@@ -276,4 +276,9 @@ void PdfXRefStreamParserObject::ReadXRefStreamEntry( char* pBuffer, pdf_long, co
     //printf("m_offsets = [ %i %i %c ]\n", entry.lOffset, entry.lGeneration, entry.cUsed );
 }
 
-};
+bool PdfXRefStreamParserObject::TryGetPreviousOffset(size_t &previousOffset) const
+{
+    bool ret = m_lNextOffset != -1;
+    previousOffset = ret ? (size_t)m_lNextOffset : 0;
+    return ret;
+}

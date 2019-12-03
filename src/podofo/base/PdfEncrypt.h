@@ -356,30 +356,27 @@ public:
     /// Is metadata encrypted
     bool IsMetadataEncrypted() const { return m_bEncryptMetadata; }
     
-    /// Encrypt a wxString
-    //void Encrypt( std::string & str, pdf_long inputLen ) const;
-    
     /// Encrypt a character string
     // inStr: the input buffer
     // inLen: length of the input buffer
     // outStr: the output buffer
     // outLen: length of the output buffer
-    virtual void Encrypt(const unsigned char* inStr, pdf_long inLen,
-                         unsigned char* outStr, pdf_long outLen) const = 0;
+    virtual void Encrypt(const unsigned char* inStr, size_t inLen,
+                         unsigned char* outStr, size_t outLen) const = 0;
     
     /// Decrypt a character string
     // inStr: the input buffer
     // inLen: length of the input buffer
     // outStr: the output buffer
     // outLen: length of the output buffer
-    virtual void Decrypt(const unsigned char* inStr, pdf_long inLen,
-                         unsigned char* outStr, pdf_long &outLen) const = 0;
+    virtual void Decrypt(const unsigned char* inStr, size_t inLen,
+                         unsigned char* outStr, size_t &outLen) const = 0;
     
     /// Calculate stream size
-    virtual pdf_long CalculateStreamLength(pdf_long length) const = 0;
+    virtual size_t CalculateStreamLength(size_t length) const = 0;
 
     /// Calculate stream offset
-    virtual pdf_long CalculateStreamOffset() const = 0;
+    virtual size_t CalculateStreamOffset() const = 0;
     
 
     /** Set the reference of the object that is currently encrypted.
@@ -449,8 +446,8 @@ public:
     virtual bool Authenticate( const std::string & password, const PdfString & documentId ) = 0;
     
     /// Encrypt a character string
-    virtual void Encrypt(const unsigned char* inStr, pdf_long inLen,
-                         unsigned char* outStr, pdf_long outLen) const = 0;
+    virtual void Encrypt(const unsigned char* inStr, size_t inLen,
+                         unsigned char* outStr, size_t outLen) const = 0;
     
     virtual void GenerateEncryptionKey(const PdfString & documentId) = 0;
     
@@ -463,9 +460,9 @@ public:
     /// Get the Perms object value (encrypted protection)
     const unsigned char* GetPermsValue() const { return m_permsValue; }
 
-    virtual pdf_long CalculateStreamOffset() const = 0;
+    virtual size_t CalculateStreamOffset() const = 0;
     
-    virtual pdf_long CalculateStreamLength(pdf_long length) const = 0;
+    virtual size_t CalculateStreamLength(size_t length) const = 0;
     
     bool Authenticate(const std::string & documentID, const std::string & password,
                       const std::string & uValue, const std::string & ueValue,
@@ -521,11 +518,11 @@ protected:
     PdfEncryptAESBase();
     
     void BaseDecrypt(const unsigned char* key, int keylen, const unsigned char* iv,
-             const unsigned char* textin, pdf_long textlen,
-             unsigned char* textout, pdf_long &textoutlen);
+             const unsigned char* textin, size_t textlen,
+             unsigned char* textout, size_t &textoutlen);
     void BaseEncrypt(const unsigned char* key, int keylen, const unsigned char* iv,
-             const unsigned char* textin, pdf_long textlen,
-             unsigned char* textout, pdf_long textoutlen);
+             const unsigned char* textin, size_t textlen,
+             unsigned char* textout, size_t textoutlen);
     
     AESCryptoEngine*   m_aes;                ///< AES encryptor
 };
@@ -548,8 +545,8 @@ protected:
     
     /// AES encryption
     void RC4(const unsigned char* key, int keylen,
-             const unsigned char* textin, pdf_long textlen,
-             unsigned char* textout, pdf_long textoutlen);
+             const unsigned char* textin, size_t textlen,
+             unsigned char* textout, size_t textoutlen);
     
     RC4CryptoEngine*   m_rc4;                ///< AES encryptor
 };
@@ -574,8 +571,8 @@ public:
     virtual bool Authenticate( const std::string & password, const PdfString & documentId ) = 0;
     
     /// Encrypt a character string
-    virtual void Encrypt(const unsigned char* inStr, pdf_long inLen,
-                         unsigned char* outStr, pdf_long outLen) const = 0;
+    virtual void Encrypt(const unsigned char* inStr, size_t inLen,
+                         unsigned char* outStr, size_t outLen) const = 0;
     
     virtual void GenerateEncryptionKey(const PdfString & documentId) = 0;
     
@@ -587,9 +584,9 @@ public:
      */
     static PdfString GetMD5String( const unsigned char* pBuffer, int nLength );
     
-    virtual pdf_long CalculateStreamOffset() const = 0;
+    virtual size_t CalculateStreamOffset() const = 0;
     
-    virtual pdf_long CalculateStreamLength(pdf_long length) const = 0;
+    virtual size_t CalculateStreamLength(size_t length) const = 0;
     
     /// Calculate the binary MD5 message digest of the given data
     static void GetMD5Binary(const unsigned char* data, int length, unsigned char* digest);
@@ -661,16 +658,16 @@ public:
     bool Authenticate( const std::string & password, const PdfString & documentId ) override;
     
     /// Encrypt a character string
-    void Encrypt(const unsigned char* inStr, pdf_long inLen,
-                 unsigned char* outStr, pdf_long outLen) const override;
-    void Decrypt(const unsigned char* inStr, pdf_long inLen,
-                 unsigned char* outStr, pdf_long &outLen) const override;
+    void Encrypt(const unsigned char* inStr, size_t inLen,
+                 unsigned char* outStr, size_t outLen) const override;
+    void Decrypt(const unsigned char* inStr, size_t inLen,
+                 unsigned char* outStr, size_t &outLen) const override;
     
     void GenerateEncryptionKey(const PdfString & documentId) override;
     
-    pdf_long CalculateStreamOffset() const override;
+    size_t CalculateStreamOffset() const override;
     
-    pdf_long CalculateStreamLength(pdf_long length) const override;
+    size_t CalculateStreamLength(size_t length) const override;
 };
 
 #ifdef PODOFO_HAVE_LIBIDN    
@@ -706,16 +703,16 @@ public:
     bool Authenticate( const std::string & password, const PdfString & documentId ) override;
     
     /// Encrypt a character string
-    void Encrypt(const unsigned char* inStr, pdf_long inLen,
-                 unsigned char* outStr, pdf_long outLen) const override;
-    void Decrypt(const unsigned char* inStr, pdf_long inLen,
-                 unsigned char* outStr, pdf_long &outLen) const override;
+    void Encrypt(const unsigned char* inStr, size_t inLen,
+                 unsigned char* outStr, size_t outLen) const override;
+    void Decrypt(const unsigned char* inStr, size_t inLen,
+                 unsigned char* outStr, size_t &outLen) const override;
     
     void GenerateEncryptionKey(const PdfString & documentId) override;
 
-    pdf_long CalculateStreamOffset() const override;
+    size_t CalculateStreamOffset() const override;
     
-    pdf_long CalculateStreamLength(pdf_long length) const override;
+    size_t CalculateStreamLength(size_t length) const override;
 };
 
 #endif // PODOFO_HAVE_LIBIDN
@@ -752,19 +749,19 @@ public:
     bool Authenticate( const std::string & password, const PdfString & documentId ) override;
     
     /// Encrypt a character string
-    void Encrypt(const unsigned char* inStr, pdf_long inLen,
-                 unsigned char* outStr, pdf_long outLen) const;
-    void Decrypt(const unsigned char* inStr, pdf_long inLen,
-                 unsigned char* outStr, pdf_long &outLen) const;
+    void Encrypt(const unsigned char* inStr, size_t inLen,
+                 unsigned char* outStr, size_t outLen) const;
+    void Decrypt(const unsigned char* inStr, size_t inLen,
+                 unsigned char* outStr, size_t &outLen) const;
 
 	PdfInputStream* CreateEncryptionInputStream( PdfInputStream* pInputStream );
 	PdfOutputStream* CreateEncryptionOutputStream( PdfOutputStream* pOutputStream );
     
     void GenerateEncryptionKey(const PdfString & documentId);
     
-    pdf_long CalculateStreamOffset() const;
+    size_t CalculateStreamOffset() const;
     
-    pdf_long CalculateStreamLength(pdf_long length) const;
+    size_t CalculateStreamLength(size_t length) const;
 };
 #endif // PODOFO_HAVE_OPENSSL_NO_RC4
 

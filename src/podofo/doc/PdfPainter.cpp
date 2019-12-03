@@ -64,8 +64,8 @@
 #define BEZIER_POINTS 13
 
 /* 4/3 * (1-cos 45,A0(B)/sin 45,A0(B = 4/3 * sqrt(2) - 1 */
-#define ARC_MAGIC    0.552284749f
-#define PI           3.141592654f
+#define ARC_MAGIC    0.552284749
+#define PI           3.141592654
 
 namespace PoDoFo {
 
@@ -729,7 +729,7 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
     m_oss << m_pFont->GetFontScale() << " Tz" << std::endl;
 
     //if( m_pFont->GetFontCharSpace() != 0.0F )  - this value is kept between text blocks
-    m_oss << m_pFont->GetFontCharSpace() * m_pFont->GetFontSize() / 100.0 << " Tc" << std::endl;
+    m_oss << m_pFont->GetFontCharSpace() * (double)m_pFont->GetFontSize() / 100.0 << " Tc" << std::endl;
 
     m_oss << dX << std::endl
           << dY << std::endl << "Td ";
@@ -771,7 +771,7 @@ void PdfPainter::BeginText( double dX, double dY )
     m_oss << m_pFont->GetFontScale() << " Tz" << std::endl;
 
     //if( m_pFont->GetFontCharSpace() != 0.0F )  - this value is kept between text blocks
-    m_oss << m_pFont->GetFontCharSpace() * m_pFont->GetFontSize() / 100.0 << " Tc" << std::endl;
+    m_oss << m_pFont->GetFontCharSpace() * (double)m_pFont->GetFontSize() / 100.0 << " Tc" << std::endl;
 
     m_oss << dX << " " << dY << " Td" << std::endl ;
 
@@ -795,7 +795,7 @@ void PdfPainter::AddText( const PdfString & sText )
 	AddText( sText, sText.GetCharacterLength() );
 }
 
-void PdfPainter::AddText( const PdfString & sText, pdf_long lStringLen )
+void PdfPainter::AddText( const PdfString & sText, size_t lStringLen )
 {
     CheckStream();
 
@@ -903,9 +903,8 @@ std::vector<PdfString> PdfPainter::GetMultiLineTextAsLines( double dWidth, const
     const std::string& stringUtf8 = rsText.GetStringUtf8();
     std::vector<pdf_utf16be> stringUtf16(stringUtf8.length() + 1, 0);
     PODOFO_ASSERT( stringUtf16.size() > 0 );
-    const pdf_long converted = PdfString::ConvertUTF8toUTF16(
+    size_t converted = PdfString::ConvertUTF8toUTF16(
 	    reinterpret_cast<const pdf_utf8*>(stringUtf8.c_str()), &stringUtf16[0], stringUtf16.size());
-	//const pdf_long len = rsText.GetCharacterLength();
     PODOFO_ASSERT( converted == (rsText.GetCharacterLength() + 1) );
 
 	const pdf_utf16be* const stringUtf16Begin = &stringUtf16[0];
@@ -1424,14 +1423,16 @@ void PdfPainter::ArcTo( double inX, double inY, double inRadiusX, double inRadiu
     th1 = atan2 (y1 - yc, x1 - xc);
 
     th_arc = th1 - th0;
-    if (th_arc < 0 && sweep)        th_arc += 2 * PI;
-    else if (th_arc > 0 && !sweep)    th_arc -= 2 * PI;
+    if (th_arc < 0 && sweep)
+        th_arc += 2 * PI;
+    else if (th_arc > 0 && !sweep)
+        th_arc -= 2 * PI;
 
     n_segs = static_cast<int>(ceil (fabs (th_arc / (PI * 0.5 + 0.001))));
 
     for (i = 0; i < n_segs; i++) {
-        double nth0 = th0 + static_cast<double>(i) * th_arc / n_segs,
-               nth1 = th0 + static_cast<double>(i + 1) * th_arc / n_segs;
+        double nth0 = th0 + (double)i * th_arc / n_segs,
+               nth1 = th0 + ((double)i + 1) * th_arc / n_segs;
         double nsin_th = 0.0,
                 ncos_th = 0.0;
         double na00 = 0.0, 
@@ -1769,9 +1770,9 @@ void PdfPainter::SetDependICCProfileColor( const PdfColor &rColor, const std::st
 }
 
 template<typename C>
-PdfString PdfPainter::ExpandTabsPrivate( const C* pszText, pdf_long lStringLen, int nTabCnt, const C cTab, const C cSpace ) const
+PdfString PdfPainter::ExpandTabsPrivate( const C* pszText, size_t lStringLen, unsigned nTabCnt, const C cTab, const C cSpace ) const
 {
-    pdf_long lLen    = lStringLen + nTabCnt*(m_nTabWidth-1) + sizeof(C);
+    size_t lLen = lStringLen + nTabCnt * (m_nTabWidth - 1) + sizeof(C);
     C*   pszTab  = static_cast<C*>(podofo_calloc( lLen, sizeof(C) ));
 
     if( !pszTab )
@@ -1803,11 +1804,10 @@ PdfString PdfPainter::ExpandTabsPrivate( const C* pszText, pdf_long lStringLen, 
     return str;
 }
 
-PdfString PdfPainter::ExpandTabs( const PdfString & rsString, pdf_long lStringLen ) const
+PdfString PdfPainter::ExpandTabs( const PdfString & rsString, size_t lStringLen ) const
 {
-    int               nTabCnt  = 0;
-    int               i;
-    bool              bUnicode = rsString.IsUnicode();
+    unsigned nTabCnt  = 0;
+    bool bUnicode = rsString.IsUnicode();
     const pdf_utf16be cTab     = 0x0900;
     const pdf_utf16be cSpace   = 0x2000;
 
@@ -1825,13 +1825,13 @@ PdfString PdfPainter::ExpandTabs( const PdfString & rsString, pdf_long lStringLe
     // count the number of tabs in the string
     if( bUnicode ) 
     {
-        for( i=0;i<lStringLen;i++ )
+        for (size_t i = 0; i < lStringLen; i++)
             if( rsString.GetUnicode()[i] == cTab ) 
                 ++nTabCnt;
     }
     else
     {
-        for( i=0;i<lStringLen;i++ )
+        for (size_t i = 0; i < lStringLen; i++)
             if( rsString.GetString()[i] == '\t' )
                 ++nTabCnt;
     }

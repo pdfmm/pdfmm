@@ -219,7 +219,7 @@ void PdfObject::WriteObject( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode,
         if( !pFileStream )
         {
             // PdfFileStream handles encryption internally
-            pdf_long lLength = pEncrypt->CalculateStreamLength(m_pStream->GetLength());
+            size_t lLength = pEncrypt->CalculateStreamLength(m_pStream->GetLength());
             *(const_cast<PdfObject*>(this)->GetIndirectKey( PdfName::KeyLength )) = PdfObject(static_cast<int64_t>(lLength));
         }
     }
@@ -256,7 +256,7 @@ PdfObject* PdfObject::MustGetIndirectKey(const PdfName & key) const
     return obj;
 }
 
-pdf_long PdfObject::GetObjectLength( EPdfWriteMode eWriteMode )
+size_t PdfObject::GetObjectLength( EPdfWriteMode eWriteMode )
 {
     PdfOutputDevice device;
 
@@ -377,7 +377,7 @@ void PdfObject::copyFrom(const PdfObject & rhs)
     m_DelayedLoadStreamDone = true;
 }
 
-pdf_long PdfObject::GetByteOffset( const char* pszKey, EPdfWriteMode eWriteMode )
+size_t PdfObject::GetByteOffset( const char* pszKey, EPdfWriteMode eWriteMode )
 {
     PdfOutputDevice device;
 

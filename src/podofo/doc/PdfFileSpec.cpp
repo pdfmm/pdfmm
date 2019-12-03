@@ -103,9 +103,7 @@ PdfFileSpec::PdfFileSpec( const wchar_t* pszFilename, const unsigned char* data,
 void PdfFileSpec::Init( const wchar_t* pszFilename, bool bEmbedd, bool bStripPath) 
 {
     PdfObject* pEmbeddedStream;
-    PdfString filename;
-
-    filename.setFromWchar_t( MaybeStripPath( pszFilename, true) );
+    PdfString filename( MaybeStripPath( pszFilename, true) );
 
     this->GetObject()->GetDictionary().AddKey( "F", this->CreateFileSpecification( MaybeStripPath( pszFilename, bStripPath ) ) );
     this->GetObject()->GetDictionary().AddKey( "UF", filename.ToUnicode () );
@@ -126,9 +124,7 @@ void PdfFileSpec::Init( const wchar_t* pszFilename, bool bEmbedd, bool bStripPat
 void PdfFileSpec::Init( const wchar_t* pszFilename, const unsigned char* data, ptrdiff_t size, bool bStripPath)
 {
     PdfObject* pEmbeddedStream;
-    PdfString filename;
-
-    filename.setFromWchar_t( MaybeStripPath( pszFilename, true) );
+    PdfString filename( MaybeStripPath( pszFilename, true) );
 
     this->GetObject()->GetDictionary().AddKey( "F", this->CreateFileSpecification( MaybeStripPath( pszFilename, bStripPath ) ) );
     this->GetObject()->GetDictionary().AddKey( "UF", filename.ToUnicode() );

@@ -100,7 +100,7 @@ class PODOFO_DOC_API PdfFontMetrics {
      *  \param nLength if != 0 only the width of the nLength first characters is calculated
      *  \returns the width in PDF units
      */
-    double StringWidth( const char* pszText, pdf_long nLength = 0 ) const;
+    double StringWidth( const char* pszText, size_t nLength = 0 ) const;
 
     /** Retrieve the width of a given text string in PDF units when
      *  drawn with the current font
@@ -216,7 +216,7 @@ class PODOFO_DOC_API PdfFontMetrics {
     /** Get the length of the actual font data - if it was loaded from memory.
      *  \returns a the length of the font data
      */
-    virtual pdf_long GetFontDataLen() const = 0;
+    virtual size_t GetFontDataLen() const = 0;
 
     /** Get a string with the postscript name of the font.
      *  \returns the postscript name of the font or NULL string if no postscript name is available.

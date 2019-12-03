@@ -148,7 +148,7 @@ void PdfSignOutputDevice::AdjustByteRange()
     PdfArray arr;
     arr.push_back( PdfVariant(static_cast<int64_t>(0)) );
     arr.push_back( PdfVariant(static_cast<int64_t>(m_sBeaconPos)) );
-    arr.push_back( PdfVariant(static_cast<int64_t>(m_sBeaconPos+m_pSignatureBeacon->data().size()+2) ) );
+    arr.push_back( PdfVariant(static_cast<int64_t>(m_sBeaconPos + m_pSignatureBeacon->data().size() + 2) ) );
     arr.push_back( PdfVariant(static_cast<int64_t>(sFileEnd-(m_sBeaconPos+m_pSignatureBeacon->data().size()+2)) ) );
     std::string sPosition;
     PdfVariant(arr).ToString(sPosition, ePdfWriteMode_Compact);

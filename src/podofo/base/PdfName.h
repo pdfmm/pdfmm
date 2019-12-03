@@ -90,7 +90,7 @@ class PODOFO_API PdfName : public PdfDataType {
      *                 the name without the leading '/'.
      *  \param lLen    length of the name
      */
-    PdfName( const char* pszName, long lLen )
+    PdfName( const char* pszName, size_t lLen )
         : PdfDataType()
     {
         if( pszName ) m_Data.assign( pszName, lLen );
@@ -112,7 +112,7 @@ class PODOFO_API PdfName : public PdfDataType {
      *                 be a zero terminated string.
      *  \return A new PdfName
      */
-    static PdfName FromEscaped( const char * pszName, pdf_long ilength = 0 );
+    static PdfName FromEscaped( const char * pszName, size_t ilength = 0 );
 
     /** \return an escaped representation of this name
      *          without the leading / .

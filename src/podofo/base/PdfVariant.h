@@ -63,7 +63,8 @@ class PdfReference;
  *
  * TODO: domseichter: Make this class implicitly shared
  */
-class PODOFO_API PdfVariant {
+class PODOFO_API PdfVariant
+{
     friend class PdfArray;
     friend class PdfDictionary;
 

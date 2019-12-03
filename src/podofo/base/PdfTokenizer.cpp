@@ -347,7 +347,7 @@ bool PdfTokenizer::IsNextToken( const char* pszToken )
     return (strcmp( pszToken, pszRead ) == 0);
 }
 
-pdf_long PdfTokenizer::GetNextNumber()
+int64_t PdfTokenizer::GetNextNumber()
 {
     EPdfTokenType eType;
     const char* pszRead;
@@ -359,11 +359,7 @@ pdf_long PdfTokenizer::GetNextNumber()
     }
 
     char* end;
-#ifdef _WIN64
-    pdf_long l = _strtoui64( pszRead, &end, 10 );
-#else
-    pdf_long l = strtol( pszRead, &end, 10 );
-#endif
+    long long num = strtoll( pszRead, &end, 10 );
     if( end == pszRead )
     {
         // Don't consume the token
@@ -371,7 +367,7 @@ pdf_long PdfTokenizer::GetNextNumber()
         PODOFO_RAISE_ERROR_INFO( ePdfError_NoNumber, pszRead );
     }
 
-    return l;
+    return static_cast<int64_t>(num);
 }
 
 void PdfTokenizer::GetNextVariant( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
@@ -464,11 +460,7 @@ EPdfDataType PdfTokenizer::DetermineDataType( const char* pszToken, EPdfTokenTyp
         }
         else if( eDataType == EPdfDataType::Number )
         {
-#ifdef _WIN64
-            rVariant = PdfVariant( static_cast<int64_t>(_strtoui64( pszToken, NULL, 10 )) );
-#else
-            rVariant = PdfVariant( static_cast<int64_t>(strtol( pszToken, NULL, 10 )) );
-#endif
+            rVariant = PdfVariant( static_cast<int64_t>(strtoll( pszToken, NULL, 10 )) );
             // read another two tokens to see if it is a reference
             // we cannot be sure that there is another token
             // on the input device, so if we hit EOF just return
@@ -486,11 +478,7 @@ EPdfDataType PdfTokenizer::DetermineDataType( const char* pszToken, EPdfTokenTyp
 
 
             pszStart = pszToken;
-#ifdef _WIN64
-            pdf_long  l   = _strtoui64( pszStart, const_cast<char**>(&pszToken), 10 );
-#else
-            long  l   = strtol( pszStart, const_cast<char**>(&pszToken), 10 );
-#endif
+            long long l = strtoll( pszStart, const_cast<char**>(&pszToken), 10 );
             if( pszToken == pszStart )
             {
                 this->QuequeToken( pszStart, eSecondTokenType );
@@ -791,7 +779,7 @@ void PdfTokenizer::ReadString( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
     {
         if( pEncrypt )
         {
-            pdf_long outLen = m_vecBuffer.size() - pEncrypt->CalculateStreamOffset();
+            size_t outLen = m_vecBuffer.size() - pEncrypt->CalculateStreamOffset();
             char * outBuffer = new char[outLen + 16 - (outLen % 16)];
             pEncrypt->Decrypt( reinterpret_cast<unsigned char*>(&(m_vecBuffer[0])),
                               static_cast<unsigned int>(m_vecBuffer.size()),

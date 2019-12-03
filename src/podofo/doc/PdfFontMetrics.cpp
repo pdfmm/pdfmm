@@ -924,7 +924,7 @@ std::string PdfFontMetrics::GetFilenameForFont( const char* pszFontname )
 
 #endif // apple
 
-double PdfFontMetrics::StringWidth( const char* pszText, pdf_long nLength ) const
+double PdfFontMetrics::StringWidth( const char* pszText, size_t nLength ) const
 {
     double dWidth = 0.0;
 
@@ -935,11 +935,11 @@ double PdfFontMetrics::StringWidth( const char* pszText, pdf_long nLength ) cons
         nLength = strlen( pszText );
 
     const char *localText = pszText;
-    for ( pdf_long i=0; i<nLength; i++ )
+    for (size_t i = 0; i < nLength; i++)
     {
         dWidth += CharWidth( *localText );
         if (*localText == 0x20)
-            dWidth += m_fWordSpace * this->GetFontScale() / 100.0;
+            dWidth += m_fWordSpace * (double)GetFontScale() / 100.0;
         localText++;
     }
 
@@ -974,7 +974,7 @@ double PdfFontMetrics::StringWidth( const pdf_utf16be* pszText, unsigned int nLe
 #endif // PODOFO_IS_LITTLE_ENDIAN
         dWidth += UnicodeCharWidth( uChar );
         if ( uChar == 0x0020 )
-            dWidth += m_fWordSpace * this->GetFontScale() / 100.0;
+            dWidth += m_fWordSpace * (double)this->GetFontScale() / 100.0;
         localText++;
     }
 

@@ -54,7 +54,6 @@ extern "C" {
 #ifdef _WIN32		// For O_RDONLY
     // TODO: DS
 #else
-#include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #endif
@@ -132,7 +131,7 @@ public:
         podofo_free( m_pUpperLeftPixelComponents );
     }
 
-    void Decode( const char* pBuffer, pdf_long lLen, PdfOutputStream* pStream ) 
+    void Decode( const char* pBuffer, size_t lLen, PdfOutputStream* pStream )
     {
         if( m_nPredictor == 1 )
         {
@@ -283,7 +282,7 @@ PdfHexFilter::PdfHexFilter()
 {
 }
 
-void PdfHexFilter::EncodeBlockImpl( const char* pBuffer, pdf_long lLen )
+void PdfHexFilter::EncodeBlockImpl( const char* pBuffer, size_t lLen )
 {
     char data[2];
     while( lLen-- )
@@ -306,7 +305,7 @@ void PdfHexFilter::BeginDecodeImpl( const PdfDictionary* )
     m_bLow         = true;
 }
 
-void PdfHexFilter::DecodeBlockImpl( const char* pBuffer, pdf_long lLen )
+void PdfHexFilter::DecodeBlockImpl( const char* pBuffer, size_t lLen )
 {
     char val;
 
@@ -390,7 +389,7 @@ void PdfAscii85Filter::BeginEncodeImpl()
     m_tuple = 0;
 }
 
-void PdfAscii85Filter::EncodeBlockImpl( const char* pBuffer, pdf_long lLen )
+void PdfAscii85Filter::EncodeBlockImpl( const char* pBuffer, size_t lLen )
 {
     unsigned int  c;
     const char*   z = "z";
@@ -435,7 +434,7 @@ void PdfAscii85Filter::BeginDecodeImpl( const PdfDictionary* )
     m_tuple = 0;
 }
 
-void PdfAscii85Filter::DecodeBlockImpl( const char* pBuffer, pdf_long lLen )
+void PdfAscii85Filter::DecodeBlockImpl( const char* pBuffer, size_t lLen )
 {
     bool foundEndMarker = false;
 
@@ -550,12 +549,12 @@ void PdfFlateFilter::BeginEncodeImpl()
     }
 }
 
-void PdfFlateFilter::EncodeBlockImpl( const char* pBuffer, pdf_long lLen )
+void PdfFlateFilter::EncodeBlockImpl( const char* pBuffer, size_t lLen )
 {
     this->EncodeBlockInternal( pBuffer, lLen, Z_NO_FLUSH );
 }
 
-void PdfFlateFilter::EncodeBlockInternal( const char* pBuffer, pdf_long lLen, int nMode )
+void PdfFlateFilter::EncodeBlockInternal( const char* pBuffer, size_t lLen, int nMode )
 {
     int nWrittenData = 0;
 
@@ -610,7 +609,7 @@ void PdfFlateFilter::BeginDecodeImpl( const PdfDictionary* pDecodeParms )
     }
 }
 
-void PdfFlateFilter::DecodeBlockImpl( const char* pBuffer, pdf_long lLen )
+void PdfFlateFilter::DecodeBlockImpl( const char* pBuffer, size_t lLen )
 {
     int flateErr;
     int nWrittenData;
@@ -674,7 +673,7 @@ void PdfRLEFilter::BeginEncodeImpl()
     PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
 }
 
-void PdfRLEFilter::EncodeBlockImpl( const char*, pdf_long )
+void PdfRLEFilter::EncodeBlockImpl( const char*, size_t)
 {
     PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
 }
@@ -689,7 +688,7 @@ void PdfRLEFilter::BeginDecodeImpl( const PdfDictionary* )
     m_nCodeLen = 0;
 }
 
-void PdfRLEFilter::DecodeBlockImpl( const char* pBuffer, pdf_long lLen )
+void PdfRLEFilter::DecodeBlockImpl( const char* pBuffer, size_t lLen )
 {
     while( lLen-- )
     {
@@ -746,7 +745,7 @@ void PdfLZWFilter::BeginEncodeImpl()
     PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
 }
 
-void PdfLZWFilter::EncodeBlockImpl( const char*, pdf_long )
+void PdfLZWFilter::EncodeBlockImpl( const char*, size_t)
 {
     PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
 }
@@ -769,7 +768,7 @@ void PdfLZWFilter::BeginDecodeImpl( const PdfDictionary* pDecodeParms )
     InitTable();
 }
 
-void PdfLZWFilter::DecodeBlockImpl( const char* pBuffer, pdf_long lLen )
+void PdfLZWFilter::DecodeBlockImpl( const char* pBuffer, size_t lLen )
 {
     unsigned int       buffer_size = 0;
     const unsigned int buffer_max  = 24;
@@ -900,23 +899,21 @@ void PdfLZWFilter::InitTable()
 /*
  * Handlers for errors inside the JPeg library
  */
-extern "C" {
+extern "C"
+{
 void JPegErrorExit(j_common_ptr cinfo)
 {
-#if 1
-    char buffer[JMSG_LENGTH_MAX];
-
+    auto& error = *reinterpret_cast<std::string *>(cinfo->client_data);
+    error.resize(JMSG_LENGTH_MAX);
     /* Create the message */
-    (*cinfo->err->format_message) (cinfo, buffer);
-#endif
+    (*cinfo->err->format_message) (cinfo, error.data());
+
     jpeg_destroy(cinfo);
-    PODOFO_RAISE_ERROR_INFO( ePdfError_UnsupportedImageFormat, buffer);
 }
 
 void JPegErrorOutput(j_common_ptr, int)
 {
 }
-
 };
 
 /*
@@ -934,7 +931,7 @@ void PdfDCTFilter::BeginEncodeImpl()
     PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
 }
 
-void PdfDCTFilter::EncodeBlockImpl( const char*, pdf_long )
+void PdfDCTFilter::EncodeBlockImpl( const char*, size_t)
 {
     PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
 }
@@ -947,17 +944,21 @@ void PdfDCTFilter::EndEncodeImpl()
 void PdfDCTFilter::BeginDecodeImpl( const PdfDictionary* )
 { 
     // Setup variables for JPEGLib
+    std::string error;
+    m_cinfo.client_data = &error;
     m_cinfo.err = jpeg_std_error( &m_jerr );
     m_jerr.error_exit = &JPegErrorExit;
     m_jerr.emit_message = &JPegErrorOutput;
 
-
     jpeg_create_decompress( &m_cinfo );
+
+    if (error.length() != 0)
+        PODOFO_RAISE_ERROR_INFO(ePdfError_UnsupportedImageFormat, error);
 
     m_pDevice = new PdfOutputDevice( &m_buffer );
 }
 
-void PdfDCTFilter::DecodeBlockImpl( const char* pBuffer, pdf_long lLen )
+void PdfDCTFilter::DecodeBlockImpl( const char* pBuffer, size_t lLen )
 {
     m_pDevice->Write( pBuffer, lLen );
 }
@@ -1247,7 +1248,7 @@ void PdfCCITTFilter::BeginEncodeImpl()
     PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
 }
 
-void PdfCCITTFilter::EncodeBlockImpl( const char*, pdf_long )
+void PdfCCITTFilter::EncodeBlockImpl( const char*, size_t)
 {
     PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
 }
@@ -1321,7 +1322,7 @@ void PdfCCITTFilter::BeginDecodeImpl( const PdfDictionary* pDict )
 #pragma GCC diagnostic pop
 #endif
 
-void PdfCCITTFilter::DecodeBlockImpl( const char*, pdf_long )
+void PdfCCITTFilter::DecodeBlockImpl( const char*, size_t)
 {
     PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
 }

@@ -96,13 +96,14 @@ UnicodeToIndex getUnicodeToIndexTable(const PdfEncoding* pEncoding)
     return table;
 }
 
-class WidthExporter {
+class WidthExporter
+{
     PdfArray& _output;
     PdfArray _widths;    /* array of consecutive different widths */
 
-    long    _start;        /* glyphIndex of start range */
-    double  _width;
-    long    _count;        /* number of processed glyphIndex'es since start of range */
+    int _start;        /* glyphIndex of start range */
+    double _width;
+    int _count;        /* number of processed glyphIndex'es since start of range */
     /* methods */
     void reset(GlyphWidths::const_iterator& it);
     void emitSameWidth();
@@ -309,7 +310,7 @@ void PdfFontCID::EmbedFont( PdfObject* pDescriptor )
             PdfObject *pContents = this->GetObject()->GetOwner()->CreateObject();
 			pDescriptor->GetDictionary().AddKey( "FontFile2", pContents->GetIndirectReference() );
 
-			pdf_long lSize = buffer.GetSize();
+            size_t lSize = buffer.GetSize();
 			pContents->GetDictionary().AddKey("Length1", PdfVariant(static_cast<int64_t>(lSize)));
 			pContents->GetOrCreateStream().Set(buffer.GetBuffer(), lSize);
 
@@ -317,42 +318,43 @@ void PdfFontCID::EmbedFont( PdfObject* pDescriptor )
 		}
 	}
 
-	if (fallback) {
-		PdfObject* pContents;
-		pdf_long       lSize = 0;
+	if (fallback)
+    {
+        PdfObject* pContents;
+        size_t lSize = 0;
     
-    pContents = this->GetObject()->GetOwner()->CreateObject();
-    if( !pContents || !m_pMetrics )
-    {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
-    }
+        pContents = this->GetObject()->GetOwner()->CreateObject();
+        if( !pContents || !m_pMetrics )
+        {
+            PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        }
         
-    pDescriptor->GetDictionary().AddKey( "FontFile2", pContents->GetIndirectReference() );
+        pDescriptor->GetDictionary().AddKey( "FontFile2", pContents->GetIndirectReference() );
         
-    // if the data was loaded from memory - use it from there
-    // otherwise, load from disk
-    if ( m_pMetrics->GetFontDataLen() && m_pMetrics->GetFontData() ) 
-    {
-        // FIXME const_cast<char*> is dangerous if string literals may ever be passed
-        char* pBuffer = const_cast<char*>( m_pMetrics->GetFontData() );
-        lSize = m_pMetrics->GetFontDataLen();
-        // Set Length1 before creating the stream
-        // as PdfStreamedDocument does not allow 
-        // adding keys to an object after a stream was written
-        pContents->GetDictionary().AddKey( "Length1", PdfVariant( static_cast<int64_t>(lSize) ) );
-        pContents->GetOrCreateStream().Set( pBuffer, lSize );
-    } 
-    else 
-    {
-        PdfFileInputStream stream( m_pMetrics->GetFilename() );
-        lSize = stream.GetFileLength();
+        // if the data was loaded from memory - use it from there
+        // otherwise, load from disk
+        if ( m_pMetrics->GetFontDataLen() && m_pMetrics->GetFontData() ) 
+        {
+            // FIXME const_cast<char*> is dangerous if string literals may ever be passed
+            char* pBuffer = const_cast<char*>( m_pMetrics->GetFontData() );
+            lSize = m_pMetrics->GetFontDataLen();
+            // Set Length1 before creating the stream
+            // as PdfStreamedDocument does not allow 
+            // adding keys to an object after a stream was written
+            pContents->GetDictionary().AddKey( "Length1", PdfVariant( static_cast<int64_t>(lSize) ) );
+            pContents->GetOrCreateStream().Set( pBuffer, lSize );
+        } 
+        else 
+        {
+            PdfFileInputStream stream( m_pMetrics->GetFilename() );
+            lSize = stream.GetFileLength();
 
-        // Set Length1 before creating the stream
-        // as PdfStreamedDocument does not allow 
-        // adding keys to an object after a stream was written
-        pContents->GetDictionary().AddKey( "Length1", PdfVariant( static_cast<int64_t>(lSize) ) );
-        pContents->GetOrCreateStream().Set( &stream );
-    }
+            // Set Length1 before creating the stream
+            // as PdfStreamedDocument does not allow 
+            // adding keys to an object after a stream was written
+            pContents->GetDictionary().AddKey( "Length1", PdfVariant( static_cast<int64_t>(lSize) ) );
+            pContents->GetOrCreateStream().Set( &stream );
+        }
     }
 }
 
@@ -563,8 +565,8 @@ static void fillUnicodeStream( PdfStream & pStream , const GidToCodePoint& gidTo
             numberOfEntries = 0;
         }
 
-        pdf_long iStart = (*it).srcCode;
-        pdf_long iEnd   = (*it).srcCode + (*it).vecDest.size() - 1;
+        size_t iStart = (size_t)(*it).srcCode;
+        size_t iEnd   = (size_t)(*it).srcCode + (*it).vecDest.size() - 1;
 
         if (bSingleByteEncoding)
         {

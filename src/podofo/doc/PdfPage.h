@@ -125,7 +125,7 @@ class PODOFO_DOC_API PdfPage : public PdfElement, public PdfCanvas {
      *
      *  \see PdfPagesTree:GetTotalNumberOfPages()
      */
-    unsigned int GetPageNumber() const;
+    int GetPageNumber() const;
 
     /** Creates a PdfRect with the page size as values which is needed to create a PdfPage object
      *  from an enum which are defined for a few standard page sizes.
@@ -187,7 +187,7 @@ class PODOFO_DOC_API PdfPage : public PdfElement, public PdfCanvas {
     /** Get the number of annotations associated with this page
      * \ returns int number of annotations
      */
-    int GetNumAnnots() const;
+    int GetAnnotationCount() const;
 
     /** Create a new annotation to this page.
      *  \param eType the type of the annotation
@@ -202,46 +202,23 @@ class PODOFO_DOC_API PdfPage : public PdfElement, public PdfCanvas {
      *
      *  \returns a annotation object. The annotation object is owned by the PdfPage.
      *
-     *  \see GetNumAnnots
+     *  \see GetAnnotationCount
      */
-    PdfAnnotation* GetAnnotation( int index );
+    PdfAnnotation* GetAnnotation(int index);
 
     /** Delete the annotation with index index from this page.
      *  \param index the index of the annotation to delete
      *
-     *  \see GetNumAnnots
+     *  \see GetAnnotationCount
      */
-    void DeleteAnnotation( int index );
+    void DeleteAnnotation(int index);
 
     /** Delete the annotation with the given object
      *  \param annotObj the object of an annotation
      *
-     *  \see GetNumAnnots
+     *  \see GetAnnotationCount
      */
     void DeleteAnnotation( PdfObject &annotObj );
-
-    /** 
-     * \returns the number of PdfFields on this page.
-     */
-    int GetNumFields() const;
-
-    /** Get a PdfField with a certain index.
-     *  \param index of the PdfField (must be smaller than GetNumFields() )
-     *
-     *  \see GetNumFields
-     *
-     *  \returns a PdfField
-     */
-    PdfField GetField( int index );
-
-    /** Get a PdfField with a certain index.
-     *  \param index of the PdfField (must be smaller than GetNumFields() )
-     *
-     *  \see GetNumFields
-     *
-     *  \returns a constP dfField
-     */
-    const PdfField GetField( int index ) const;
 
     /** Get an element from the pages resources dictionary,
      *  using a type (category) and a key.

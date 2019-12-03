@@ -2592,7 +2592,7 @@ PdfRefCountedBuffer PdfDifferenceEncoding::ConvertToEncoding( const PdfString & 
     const PdfEncoding* pEncoding = GetBaseEncoding();
 
     pdf_utf16be* pszUtf16 = NULL;
-    pdf_long         lLen     = 0;
+    size_t lLen = 0;
 
     if( rString.IsUnicode() )
     {
@@ -2630,7 +2630,7 @@ PdfRefCountedBuffer PdfDifferenceEncoding::ConvertToEncoding( const PdfString & 
     char *pCur = pDest;
     long lNewLen = 0L;
 
-    for( int i=0;i<lLen;i++ ) 
+    for(size_t i = 0; i < lLen ; i++) 
     {
         pdf_utf16be val = pszUtf16[i];
 

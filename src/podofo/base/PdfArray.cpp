@@ -64,9 +64,12 @@ void PdfArray::RemoveAt(int index)
     m_objects.erase(m_objects.begin() + index);
 }
 
-PdfObject * PdfArray::findAt( size_type idx ) const
+PdfObject * PdfArray::findAt(int index) const
 {
-    PdfObject *obj = &const_cast<PdfArray *>( this )->m_objects.at(idx);
+    if (index < 0 || index >= (int)m_objects.size())
+        PODOFO_RAISE_ERROR_INFO(ePdfError_ValueOutOfRange, "Index is out of bounds");
+
+    PdfObject *obj = &const_cast<PdfArray *>(this)->m_objects[index];
     if ( obj->IsReference() )
         return GetIndirectObject( obj->GetReference() );
     else
@@ -127,11 +130,11 @@ PdfArray& PdfArray::operator=( const PdfArray &rhs )
     return *this;
 }
 
-void PdfArray::resize( size_t count, value_type val )
+void PdfArray::resize(size_t count, const PdfObject &val)
 {
     AssertMutable();
 
-    size_t currentSize = size();
+    size_t currentSize = m_objects.size();
     m_objects.resize( count, val );
     PdfVecObjects *pOwner = GetObjectOwner();
     if (pOwner != nullptr)

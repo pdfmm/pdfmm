@@ -92,7 +92,7 @@ public:
      *  \param lLen length of the buffer
      *  \param vecFilters a list of filters to use when appending data
      */
-    void Set( const char* szBuffer, pdf_long lLen, const TVecFilters & vecFilters );
+    void Set( const char* szBuffer, size_t lLen, const TVecFilters & vecFilters );
 
     /** Set a binary buffer as stream data.
      *  All data will be Flate-encoded.
@@ -100,7 +100,7 @@ public:
      *  \param szBuffer buffer containing the stream data
      *  \param lLen length of the buffer
      */
-    void Set( const char* szBuffer, pdf_long lLen );
+    void Set( const char* szBuffer, size_t lLen );
 
     /** Set a binary buffer whose contents are read from a PdfInputStream
      *  All data will be Flate-encoded.
@@ -137,7 +137,7 @@ public:
      *                 if lLen = -1 read until the end of the input stream
      *                 was reached.
      */
-    void SetRawData( PdfInputStream &pStream, pdf_long lLen = -1 );
+    void SetRawData( PdfInputStream &pStream, ssize_t lLen = -1 );
 
     /** Start appending data to this stream.
      *
@@ -228,7 +228,7 @@ public:
      *
      *  \returns the length of the internal buffer
      */
-    virtual pdf_long GetLength() const = 0;
+    virtual size_t GetLength() const = 0;
 
     /** Get a malloc()'d buffer of the current stream.
      *  No filters will be applied to the buffer, so
@@ -240,7 +240,7 @@ public:
      *  \param pBuffer pointer to the buffer
      *  \param lLen    pointer to the buffer length
      */
-    virtual void GetCopy( char** pBuffer, pdf_long* lLen ) const = 0;
+    virtual void GetCopy( char** pBuffer, size_t* lLen ) const = 0;
 
     /** Get a copy of a the stream and write it to a PdfOutputStream
      *
@@ -258,7 +258,7 @@ public:
      *  \param pBuffer pointer to the buffer
      *  \param lLen    pointer to the buffer length
      */
-    void GetFilteredCopy( char** pBuffer, pdf_long* lLen ) const;
+    void GetFilteredCopy( char** pBuffer, size_t* lLen ) const;
 
     /** Get a filtered copy of a the stream and write it to a PdfOutputStream
      *  
@@ -281,7 +281,7 @@ public:
     /** Required for the GetFilteredCopy() implementation
      *  \returns the size of the internal buffer
      */
-    virtual pdf_long GetInternalBufferSize() const = 0;
+    virtual size_t GetInternalBufferSize() const = 0;
 
     /** Begin appending data to this stream.
      *  Clears the current stream contents.

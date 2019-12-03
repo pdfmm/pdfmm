@@ -204,18 +204,18 @@ class PODOFO_DOC_API PdfFontMetricsObject : public PdfFontMetrics {
     /** Get the length of the actual font data - if it was loaded from memory.
      *  \returns a the length of the font data
      */
-    pdf_long GetFontDataLen() const override;
+    size_t GetFontDataLen() const override;
  
  private:
     /** default constructor, not implemented
      */
-    PdfFontMetricsObject(void);
+    PdfFontMetricsObject() = delete;
     /** copy constructor, not implemented
      */
-    PdfFontMetricsObject(const PdfFontMetricsObject& rhs);
+    PdfFontMetricsObject(const PdfFontMetricsObject& rhs) = delete;
     /** assignment operator, not implemented
      */
-    PdfFontMetricsObject& operator=(const PdfFontMetricsObject& rhs);
+    PdfFontMetricsObject& operator=(const PdfFontMetricsObject& rhs) = delete;
 
     //Private members:
 

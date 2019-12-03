@@ -115,7 +115,7 @@ public:
      *
      *  \returns a number read from the input device.
      */
-    pdf_long GetNextNumber();
+    int64_t GetNextNumber();
 
     /** Read the next variant from the current file position
      *  ignoring all comments.

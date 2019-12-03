@@ -279,7 +279,7 @@ void PdfImage::LoadFromFile( const wchar_t* pszFilename )
 }
 #endif // _WIN32
 
-void PdfImage::LoadFromData(const unsigned char* pData, pdf_long dwLen)
+void PdfImage::LoadFromData(const unsigned char* pData, size_t dwLen)
 {
     if (dwLen > 4) {
         unsigned char magic[4];
@@ -407,7 +407,7 @@ void PdfImage::LoadFromJpegHandle( PdfFileInputStream* pInStream )
     (void) jpeg_destroy_decompress(&cinfo);
 }
 
-void PdfImage::LoadFromJpegData(const unsigned char* pData, pdf_long dwLen)
+void PdfImage::LoadFromJpegData(const unsigned char* pData, size_t dwLen)
 {
     struct jpeg_decompress_struct cinfo;
     struct jpeg_error_mgr         jerr;
@@ -467,7 +467,7 @@ void PdfImage::LoadFromJpegData(const unsigned char* pData, pdf_long dwLen)
     // Set the filters key to DCTDecode
     this->GetObject()->GetDictionary().AddKey( PdfName::KeyFilter, PdfName( "DCTDecode" ) );
     
-    PdfMemoryInputStream fInpStream( (const char*)pData, (pdf_long) dwLen);
+    PdfMemoryInputStream fInpStream( (const char*)pData, dwLen);
     this->SetImageDataRaw( cinfo.output_width, cinfo.output_height, 8, fInpStream );
     
     (void) jpeg_destroy_decompress(&cinfo);
@@ -598,7 +598,7 @@ void PdfImage::LoadFromTiffHandle(void* hInHandle) {
             
             PdfArray decode;
             decode.insert( decode.end(), PdfVariant( static_cast<int64_t>(0) ) );
-            decode.insert( decode.end(), PdfVariant( static_cast<int64_t>(numColors-1) ) );
+            decode.insert( decode.end(), PdfVariant(static_cast<int64_t>(numColors) - 1));
             this->GetObject()->GetDictionary().AddKey( PdfName("Decode"), decode );
             
             uint16 * rgbRed;
@@ -624,7 +624,7 @@ void PdfImage::LoadFromTiffHandle(void* hInHandle) {
             PdfArray array;
             array.push_back( PdfName("Indexed") );
             array.push_back( PdfName("DeviceRGB") );
-            array.push_back( static_cast<int64_t>(numColors-1) );
+            array.push_back(static_cast<int64_t>(numColors) - 1);
             array.push_back( pIdxObject->GetIndirectReference() );
             this->GetObject()->GetDictionary().AddKey( PdfName("ColorSpace"), array );
             
@@ -727,8 +727,8 @@ struct tiffData
         tsize_t bytesRead = 0;
         if (length > _size - static_cast<tsize_t>(_pos))
         {
-            memcpy(data, &_data[_pos], _size - _pos);
-            bytesRead = _size - _pos;
+            memcpy(data, &_data[_pos], _size - (tsize_t)_pos);
+            bytesRead = _size - (tsize_t)_pos;
             _pos = _size;
         }
         else
@@ -822,7 +822,7 @@ void tiff_Unmap(thandle_t, tdata_t, toff_t)
 {
     return;
 };
-void PdfImage::LoadFromTiffData(const unsigned char* pData, pdf_long dwLen)
+void PdfImage::LoadFromTiffData(const unsigned char* pData, size_t dwLen)
 {
     TIFFSetErrorHandler(TIFFErrorWarningHandler);
     TIFFSetWarningHandler(TIFFErrorWarningHandler);
@@ -1046,7 +1046,7 @@ void pngReadData(png_structp pngPtr, png_bytep data, png_size_t length)
     a->read(data, length);
 }
 
-void PdfImage::LoadFromPngData(const unsigned char* pData, pdf_long dwLen)
+void PdfImage::LoadFromPngData(const unsigned char* pData, size_t dwLen)
 {
     if( !pData )
     {

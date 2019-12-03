@@ -1066,17 +1066,17 @@ void PdfListField::SetSelectedItem( int nIndex )
 
 int PdfListField::GetSelectedItem() const
 {
-    PdfObject *valueObj = m_pObject->GetDictionary().FindKey( "V" ); 
-    if( valueObj && !( valueObj->IsString() || valueObj->IsHexString() ) )
+    PdfObject *valueObj = m_pObject->GetDictionary().FindKey( "V" );
+    if( valueObj == nullptr || !( valueObj->IsString() || valueObj->IsHexString() ) )
         return -1;
 
     PdfString value = valueObj->GetString();
     PdfObject *opt = m_pObject->GetDictionary().FindKey( "Opt" );
-    if ( opt == NULL )
+    if ( opt == nullptr)
         return -1;
 
     PdfArray &optArray = opt->GetArray();
-    for (int i = 0; i < static_cast<int>( optArray.size() ); i++)
+    for (int i = 0; i < optArray.GetSize(); i++)
     {
         if ( optArray[i].GetString() == value )
             return i;

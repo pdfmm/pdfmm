@@ -433,7 +433,7 @@ class PODOFO_DOC_API PdfPainter {
      *  \see MoveTextPos()
      *  \see EndText()
      */
-	void AddText( const PdfString & sText, pdf_long lStringLen );
+	void AddText( const PdfString & sText, size_t lStringLen );
 
     /** Move position for text drawing on a page.
      *  You have to call BeginText before calling this function
@@ -775,10 +775,10 @@ class PODOFO_DOC_API PdfPainter {
      *  \returns an expanded copy of the passed string
      *  \see SetTabWidth
      */
-    PdfString ExpandTabs( const PdfString & rsString, pdf_long lLen ) const;
+    PdfString ExpandTabs( const PdfString & rsString, size_t lLen ) const;
     
     template<typename C>
-        PdfString ExpandTabsPrivate( const C* pszText, pdf_long lStringLen, int nTabCnt, const C cTab, const C cSpace ) const;
+        PdfString ExpandTabsPrivate( const C* pszText, size_t lStringLen, unsigned nTabCnt, const C cTab, const C cSpace ) const;
 
  private:
     void CheckStream();

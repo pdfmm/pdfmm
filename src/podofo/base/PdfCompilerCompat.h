@@ -74,19 +74,16 @@
 #include <strings.h>
 #endif
 
-// pdf_long is defined as ptrdiff_t . It's a pointer-sized signed quantity
-// used throughout the code for a variety of purposes.
-//
-// pdf_long is DEPRECATED. Please use one of the explicitly sized types
-// instead, or define a typedef that meaningfully describes what it's for.
-// Good choices in many cases include size_t (string and buffer sizes) and
-// ptrdiff_t (offsets and pointer arithmetic).
-//
-// pdf_long should not be used in new code.
-//
-namespace PoDoFo {
-    typedef ptrdiff_t pdf_long;
-};
+// Declare ssize_t as a signed alternative to size_t,
+// useful for example to provide optional size argument
+#if defined(_MSC_VER)
+ // Fix missing posix "ssize_t" typedef in MSVC
+#include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
+#else
+// Posix has sstize_t
+#include <sys/types.h>
+#endif
 
 // Different compilers use different format specifiers for 64-bit integers
 // (yay!).  Use these macros with C's automatic string concatenation to handle

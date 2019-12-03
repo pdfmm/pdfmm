@@ -114,10 +114,10 @@ void PdfFontType1::EmbedSubsetFont()
 	if ( !m_bIsSubsetting  ||  m_bWasEmbedded == true )
 		return;
 
-    pdf_long    lSize    = 0;
-    int64_t   lLength1 = 0L;
-    int64_t   lLength2 = 0L;
-    int64_t   lLength3 = 0L;
+    size_t      lSize    = 0;
+    ptrdiff_t   lLength1 = 0L;
+    ptrdiff_t   lLength2 = 0L;
+    ptrdiff_t   lLength3 = 0L;
     PdfObject*  pContents;
     const char* pBuffer;
     char*       pAllocated = NULL;
@@ -174,7 +174,7 @@ void PdfFontType1::EmbedSubsetFont()
             PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
         }
 
-        if( static_cast<pdf_long>( fread( pAllocated, sizeof( char ), lSize, hFile ) ) != lSize )
+        if(fread( pAllocated, sizeof( char ), lSize, hFile ) != lSize )
         {
             podofo_free( pAllocated );
             fclose( hFile );
@@ -403,17 +403,17 @@ void PdfFontType1::EmbedSubsetFont()
     delete[] outBuff;
 
 	// enter length in dictionary
-    pContents->GetDictionary().AddKey( "Length1", PdfVariant( lLength1 ) );
-    pContents->GetDictionary().AddKey( "Length2", PdfVariant( lLength2 ) );
-    pContents->GetDictionary().AddKey( "Length3", PdfVariant( lLength3 ) );
+    pContents->GetDictionary().AddKey( "Length1", PdfVariant(static_cast<int64_t>(lLength1)));
+    pContents->GetDictionary().AddKey( "Length2", PdfVariant(static_cast<int64_t>(lLength2)));
+    pContents->GetDictionary().AddKey( "Length3", PdfVariant(static_cast<int64_t>(lLength3)));
 }
 
 void PdfFontType1::EmbedFontFile( PdfObject* pDescriptor )
 {
-    pdf_long    lSize    = 0;
-    int64_t   lLength1 = 0L;
-    int64_t   lLength2 = 0L;
-    int64_t   lLength3 = 0L;
+    size_t      lSize    = 0;
+    ptrdiff_t   lLength1 = 0L;
+    ptrdiff_t   lLength2 = 0L;
+    ptrdiff_t   lLength3 = 0L;
     PdfObject*  pContents;
     const char* pBuffer;
     char*       pAllocated = NULL;
@@ -475,7 +475,7 @@ void PdfFontType1::EmbedFontFile( PdfObject* pDescriptor )
             PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
         }
 
-        if( static_cast<pdf_long>( fread( pAllocated, sizeof( char ), lSize, hFile ) ) != lSize )
+        if(fread( pAllocated, sizeof( char ), lSize, hFile ) != lSize )
         {
             podofo_free( pAllocated );
             fclose( hFile );
@@ -523,10 +523,10 @@ void PdfFontType1::EmbedFontFile( PdfObject* pDescriptor )
 				pBinary = &pBinary[lSegmentLength];
 				break;
 			case 3:									// end-of-file
-			  // First set pContents keys before writing stream, so that PdfTFontType1 works with streamed document
-			        pContents->GetDictionary().AddKey( "Length1", PdfVariant( lLength1 ) );
-				pContents->GetDictionary().AddKey( "Length2", PdfVariant( lLength2 ) );
-				pContents->GetDictionary().AddKey( "Length3", PdfVariant( lLength3 ) );
+			    // First set pContents keys before writing stream, so that PdfTFontType1 works with streamed document
+			    pContents->GetDictionary().AddKey("Length1", PdfVariant(static_cast<int64_t>(lLength1)));
+				pContents->GetDictionary().AddKey("Length2", PdfVariant(static_cast<int64_t>(lLength2)));
+				pContents->GetDictionary().AddKey("Length3", PdfVariant(static_cast<int64_t>(lLength3)));
 
 				pContents->GetOrCreateStream().Set( pBuffer, lSize - 2L );
 				if( pAllocated )
@@ -561,9 +561,9 @@ void PdfFontType1::EmbedFontFile( PdfObject* pDescriptor )
     if( pAllocated )
         podofo_free( pAllocated );
 
-    pContents->GetDictionary().AddKey( "Length1", PdfVariant( lLength1 ) );
-    pContents->GetDictionary().AddKey( "Length2", PdfVariant( lLength2 ) );
-    pContents->GetDictionary().AddKey( "Length3", PdfVariant( lLength3 ) );
+    pContents->GetDictionary().AddKey( "Length1", PdfVariant(static_cast<int64_t>(lLength1)));
+    pContents->GetDictionary().AddKey( "Length2", PdfVariant(static_cast<int64_t>(lLength2)));
+    pContents->GetDictionary().AddKey( "Length3", PdfVariant(static_cast<int64_t>(lLength3)));
 }
 
 bool PdfFontType1::FindSeac( const unsigned char * buffer, int length )
@@ -699,11 +699,11 @@ bool PdfFontType1::FindSeac( const unsigned char * buffer, int length )
 	return foundNewGlyph;
 }
 
-pdf_long PdfFontType1::FindInBuffer( const char* pszNeedle, const char* pszHaystack, pdf_long lLen ) const
+ptrdiff_t PdfFontType1::FindInBuffer( const char* pszNeedle, const char* pszHaystack, size_t lLen ) const
 {
     // if lNeedleLen is 0 the while loop will not be executed and we return -1
-    pdf_long lNeedleLen      = pszNeedle ? strlen( pszNeedle ) : 0; 
-    const char* pszEnd   = pszHaystack + lLen - lNeedleLen; 
+    size_t lNeedleLen = pszNeedle ? strlen( pszNeedle ) : 0;
+    const char* pszEnd = pszHaystack + lLen - lNeedleLen; 
     const char* pszStart = pszHaystack;
 
     if ( pszNeedle )

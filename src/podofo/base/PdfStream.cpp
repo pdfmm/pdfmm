@@ -85,7 +85,7 @@ void PdfStream::GetFilteredCopy( PdfOutputStream* pStream ) const
     }
 }
 
-void PdfStream::GetFilteredCopy( char** ppBuffer, pdf_long* lLen ) const
+void PdfStream::GetFilteredCopy( char** ppBuffer, size_t* lLen ) const
 {
     TVecFilters            vecFilters    = PdfFilterFactory::CreateFilterList( m_pParent );
     PdfMemoryOutputStream  stream;
@@ -130,14 +130,14 @@ void PdfStream::CopyFrom(const PdfStream &rhs)
                                            PdfVariant(static_cast<int64_t>(rhs.GetInternalBufferSize())));
 }
 
-void PdfStream::Set( const char* szBuffer, pdf_long lLen, const TVecFilters & vecFilters )
+void PdfStream::Set( const char* szBuffer, size_t lLen, const TVecFilters & vecFilters )
 {
     this->BeginAppend( vecFilters );
     this->Append( szBuffer, lLen );
     this->EndAppend();
 }
 
-void PdfStream::Set( const char* szBuffer, pdf_long lLen )
+void PdfStream::Set( const char* szBuffer, size_t lLen )
 {
     this->BeginAppend();
     this->Append( szBuffer, lLen );
@@ -157,8 +157,8 @@ void PdfStream::Set( PdfInputStream* pStream )
 void PdfStream::Set( PdfInputStream* pStream, const TVecFilters & vecFilters )
 {
     const int BUFFER_SIZE = 4096;
-    pdf_long      lLen        = 0;
-    char      buffer[BUFFER_SIZE];
+    size_t lLen = 0;
+    char buffer[BUFFER_SIZE];
 
     this->BeginAppend( vecFilters );
 
@@ -170,17 +170,17 @@ void PdfStream::Set( PdfInputStream* pStream, const TVecFilters & vecFilters )
     this->EndAppend();
 }
 
-void PdfStream::SetRawData( PdfInputStream &pStream, pdf_long lLen )
+void PdfStream::SetRawData( PdfInputStream &pStream, ssize_t lLen )
 {
-    const pdf_long   BUFFER_SIZE = 4096;
-    char             buffer[BUFFER_SIZE];
-    pdf_long         lRead;
-    TVecFilters      vecEmpty;
+    const size_t   BUFFER_SIZE = 4096;
+    char           buffer[BUFFER_SIZE];
+    size_t         lRead;
+    TVecFilters    vecEmpty;
 
     // TODO: DS, give begin append a size hint so that it knows
     //       how many data has to be allocated
     this->BeginAppend( vecEmpty, true, false );
-    if( lLen == -1 ) 
+    if( lLen < 0 ) 
     {
         do {
             lRead = pStream.Read( buffer, BUFFER_SIZE );
@@ -189,8 +189,10 @@ void PdfStream::SetRawData( PdfInputStream &pStream, pdf_long lLen )
     }
     else
     {
-        do {
-            lRead = pStream.Read( buffer, std::min( BUFFER_SIZE, lLen ), &lLen );
+        size_t sizeLeft;
+        do
+        {
+            lRead = pStream.Read( buffer, std::min( BUFFER_SIZE, (size_t)lLen ), &sizeLeft);
             lLen -= lRead;
             this->Append( buffer, lRead );
         } while( lLen && lRead > 0 );
@@ -212,7 +214,7 @@ void PdfStream::BeginAppend( bool bClearExisting )
 void PdfStream::BeginAppend( const TVecFilters & vecFilters, bool bClearExisting, bool bDeleteFilters )
 {
     char* pBuffer = NULL;
-    pdf_long lLen = 0; //RG: TODO Should this variable be initialised with 0 (line 225 may fall through without initialisation!)
+    size_t lLen = 0; //RG: TODO Should this variable be initialised with 0 (line 225 may fall through without initialisation!)
 
     PODOFO_RAISE_LOGIC_IF( m_bAppend, "BeginAppend() failed because EndAppend() was not yet called!" );
 

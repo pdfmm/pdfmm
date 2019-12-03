@@ -60,7 +60,7 @@ PdfContentsTokenizer::PdfContentsTokenizer( PdfCanvas* pCanvas )
     if(contents->IsArray())
     {
         PdfArray& contentsArr = contents->GetArray();
-        for ( int i = 0; i < contentsArr.GetSize() ; ++i )
+        for ( int i = 0; i < contentsArr.GetSize() ; i++ )
         {
             auto streamObj = contentsArr.FindAt(i);
             m_lstContents.push_back(streamObj);

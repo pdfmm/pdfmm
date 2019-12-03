@@ -44,6 +44,8 @@ namespace PoDoFo {
  *  Use it for all arrays that are written to a PDF file.
  *  
  *  A PdfArray can hold any PdfVariant.
+ *  NOTE: The stl compatible methods take size_t as parameter for size and indices.
+ *  Other methods take int
  *
  *  \see PdfVariant
  */
@@ -110,8 +112,8 @@ class PODOFO_API PdfArray : public PdfOwnedDataType {
      *  \param idx
      *  \returns pointer to the found value. NULL if the index was out of the boundaries
      */
-    inline const PdfObject * FindAt( size_type idx ) const;
-    inline PdfObject * FindAt( size_type idx );
+    inline const PdfObject * FindAt(int idx ) const;
+    inline PdfObject * FindAt(int idx );
 
     void RemoveAt(int index);
 
@@ -138,15 +140,15 @@ class PODOFO_API PdfArray : public PdfOwnedDataType {
      */
     inline bool empty() const;
 
-    inline PdfObject & operator[](size_type __n);
-    inline const PdfObject & operator[](size_type __n) const;
+    inline PdfObject & operator[](size_t n);
+    inline const PdfObject & operator[](size_t n) const;
 
     /**
      * Resize the internal vector.
      * \param count new size
      * \param value refernce value
      */
-    void resize( size_t count, value_type val = value_type() );
+    void resize(size_t count, const PdfObject &val = PdfObject());
     
     /**
      *  Returns a read/write iterator that points to the first
@@ -269,7 +271,7 @@ class PODOFO_API PdfArray : public PdfOwnedDataType {
      void SetOwner( PdfObject* pOwner );
 
  private:
-    PdfObject * findAt(size_type idx) const;
+    PdfObject * findAt(int idx) const;
 
  private:
     bool         m_bDirty; ///< Indicates if this object was modified after construction
@@ -279,7 +281,7 @@ class PODOFO_API PdfArray : public PdfOwnedDataType {
 // -----------------------------------------------------
 //
 // -----------------------------------------------------
-inline const PdfObject * PdfArray::FindAt( size_type idx ) const
+inline const PdfObject * PdfArray::FindAt(int idx) const
 {
     return findAt( idx );
 }
@@ -287,7 +289,7 @@ inline const PdfObject * PdfArray::FindAt( size_type idx ) const
 // -----------------------------------------------------
 //
 // -----------------------------------------------------
-inline PdfObject * PdfArray::FindAt( size_type idx )
+inline PdfObject * PdfArray::FindAt(int idx)
 {
     return findAt( idx );
 }
@@ -335,19 +337,19 @@ bool PdfArray::empty() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-PdfObject& PdfArray::operator[](size_type __n)
+PdfObject& PdfArray::operator[](size_t index)
 {
     AssertMutable();
 
-    return m_objects.at( __n );
+    return m_objects.at(index);
 }
 
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-const PdfObject& PdfArray::operator[](size_type __n) const
+const PdfObject& PdfArray::operator[](size_t index) const
 {
-    return m_objects.at( __n );
+    return m_objects.at(index);
 }
 
 // -----------------------------------------------------

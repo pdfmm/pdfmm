@@ -72,14 +72,9 @@ public:
     void ReadXRefTable();
 
     /**
-     * \returns true if there is a previous XRefStream
-     */
-    inline bool HasPrevious();
-
-    /**
      * \returns the offset of the previous XRef table
      */
-    inline pdf_long GetPreviousOffset();
+    bool TryGetPreviousOffset(size_t &previousOffset) const;
 
 private:
     /**
@@ -101,28 +96,12 @@ private:
      */
     void ParseStream( const int64_t nW[W_ARRAY_SIZE], const std::vector<int64_t> & rvecIndeces );
 
-    void ReadXRefStreamEntry( char* pBuffer, pdf_long, const int64_t lW[W_ARRAY_SIZE], int nObjNo );
-private:
-    pdf_long m_lNextOffset;
+    void ReadXRefStreamEntry( char* pBuffer, size_t, const int64_t lW[W_ARRAY_SIZE], int nObjNo );
 
+private:
+    ssize_t m_lNextOffset;
     TVecOffsets* m_pOffsets;
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline bool PdfXRefStreamParserObject::HasPrevious()
-{
-    return (m_lNextOffset != -1);
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline pdf_long PdfXRefStreamParserObject::GetPreviousOffset()
-{
-    return m_lNextOffset;
-}
 
 };
 
