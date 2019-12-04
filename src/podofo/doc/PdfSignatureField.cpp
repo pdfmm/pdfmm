@@ -249,21 +249,33 @@ void PdfSignatureField::AddCertificationReference( PdfObject* pDocumentCatalog, 
 
 const PdfObject * PdfSignatureField::GetSignatureReason() const
 {
+    if (m_pSignatureObj == nullptr)
+        return nullptr;
+
     return m_pSignatureObj->GetDictionary().GetKey("Reason");
 }
 
 const PdfObject * PdfSignatureField::GetSignatureLocation() const
 {
+    if (m_pSignatureObj == nullptr)
+        return nullptr;
+
     return m_pSignatureObj->GetDictionary().GetKey("Location");
 }
 
 const PdfObject * PdfSignatureField::GetSignatureDate() const
 {
+    if (m_pSignatureObj == nullptr)
+        return nullptr;
+
     return m_pSignatureObj->GetDictionary().GetKey("M");
 }
 
 const PdfObject * PdfSignatureField::GetSignerName() const
 {
+    if (m_pSignatureObj == nullptr)
+        return nullptr;
+
     return m_pSignatureObj->GetDictionary().GetKey("Name");
 }
 
@@ -274,7 +286,7 @@ PdfObject* PdfSignatureField::GetSignatureObject( void ) const
 
 void PdfSignatureField::EnsureSignatureObject( void )
 {
-    if( m_pSignatureObj )
+    if( m_pSignatureObj != nullptr )
         return;
 
     m_pSignatureObj = this->GetFieldObject()->GetOwner()->CreateObject( "Sig" );
