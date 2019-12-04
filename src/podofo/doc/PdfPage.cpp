@@ -329,8 +329,8 @@ PdfArray & PdfPage::GetOrCreateAnnotationsArray()
 
 int PdfPage::GetAnnotationCount() const
 {
-    auto *arr = GetAnnotationsArray();
-    return arr ? arr->GetSize() : 0;
+    auto arr = GetAnnotationsArray();
+    return arr == nullptr ? 0 : arr->GetSize();
 }
 
 PdfAnnotation* PdfPage::CreateAnnotation( EPdfAnnotation eType, const PdfRect & rRect )
