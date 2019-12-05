@@ -62,8 +62,8 @@ PdfContentsTokenizer::PdfContentsTokenizer( PdfCanvas* pCanvas )
         PdfArray& contentsArr = contents->GetArray();
         for ( int i = 0; i < contentsArr.GetSize() ; i++ )
         {
-            auto streamObj = contentsArr.FindAt(i);
-            m_lstContents.push_back(streamObj);
+            auto &streamObj = contentsArr.FindAt(i);
+            m_lstContents.push_back(&streamObj);
         }
     }
     else if (contents->IsDictionary())

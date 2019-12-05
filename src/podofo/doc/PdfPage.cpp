@@ -364,12 +364,12 @@ PdfAnnotation* PdfPage::GetAnnotation(int index)
         PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
     }
 
-    auto obj = arr->FindAt(index);
-    pAnnot = m_mapAnnotations[obj];
+    auto &obj = arr->FindAt(index);
+    pAnnot = m_mapAnnotations[&obj];
     if (!pAnnot)
     {
-        pAnnot = new PdfAnnotation(obj, this);
-        m_mapAnnotations[obj] = pAnnot;
+        pAnnot = new PdfAnnotation(&obj, this);
+        m_mapAnnotations[&obj] = pAnnot;
     }
 
     return pAnnot;
@@ -384,8 +384,8 @@ void PdfPage::DeleteAnnotation(int index)
     if (index < 0 || index >= arr->GetSize())
         PODOFO_RAISE_ERROR(ePdfError_ValueOutOfRange);
 
-    auto pItem = arr->FindAt(index);
-    auto found = m_mapAnnotations.find(pItem);
+    auto &pItem = arr->FindAt(index);
+    auto found = m_mapAnnotations.find(&pItem);
     if (found != m_mapAnnotations.end())
     {
         delete found->second;
@@ -393,8 +393,8 @@ void PdfPage::DeleteAnnotation(int index)
     }
 
     // Delete the PdfObject in the document
-    if (pItem->GetIndirectReference().IsIndirect())
-        delete pItem->GetOwner()->RemoveObject(pItem->GetIndirectReference());
+    if (pItem.GetIndirectReference().IsIndirect())
+        delete pItem.GetOwner()->RemoveObject(pItem.GetIndirectReference());
 
     // Delete the annotation from the annotation array.
     // Has to be performed at last
@@ -411,8 +411,9 @@ void PdfPage::DeleteAnnotation(PdfObject &annotObj)
     int index = -1;
     for (int i = 0; i < arr->GetSize(); i++)
     {
-        auto obj = arr->FindAt(i);
-        if (&annotObj == obj)
+        // CLEAN-ME: The following is ugly. Fix operator== in PdfOject and PdfVariant and use operator==
+        auto &obj = arr->FindAt(i);
+        if (&annotObj == &obj)
         {
             index = i;
             break;

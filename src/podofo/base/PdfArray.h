@@ -86,11 +86,11 @@ class PODOFO_API PdfArray : public PdfOwnedDataType {
     /** 
      *  \returns the size of the array
      */
-    inline int GetSize() const;
+    int GetSize() const;
 
     /** Remove all elements from the array
      */
-    inline void Clear();
+    void Clear();
 
     /** Write the array to an output device.
      *  This is an overloaded member function.
@@ -112,8 +112,8 @@ class PODOFO_API PdfArray : public PdfOwnedDataType {
      *  \param idx
      *  \returns pointer to the found value. NULL if the index was out of the boundaries
      */
-    inline const PdfObject * FindAt(int idx ) const;
-    inline PdfObject * FindAt(int idx );
+    const PdfObject & FindAt(int idx ) const;
+    PdfObject & FindAt(int idx );
 
     void RemoveAt(int index);
 
@@ -124,7 +124,7 @@ class PODOFO_API PdfArray : public PdfOwnedDataType {
      *  This will set the dirty flag of this object.
      *  \see IsDirty
      */
-    inline void push_back( const PdfObject & var );
+    void push_back( const PdfObject & var );
 
     /** Remove all elements from the array
      */
@@ -133,15 +133,15 @@ class PODOFO_API PdfArray : public PdfOwnedDataType {
     /** 
      *  \returns the size of the array
      */
-    inline size_t size() const;
+    size_t size() const;
 
     /**
      *  \returns true if the array is empty.
      */
-    inline bool empty() const;
+    bool empty() const;
 
-    inline PdfObject & operator[](size_t n);
-    inline const PdfObject & operator[](size_t n) const;
+    PdfObject & operator[](size_t n);
+    const PdfObject & operator[](size_t n) const;
 
     /**
      * Resize the internal vector.
@@ -155,95 +155,93 @@ class PODOFO_API PdfArray : public PdfOwnedDataType {
      *  element in the array.  Iteration is done in ordinary
      *  element order.
      */
-    inline iterator begin();
+    iterator begin();
 
     /**
      *  Returns a read-only (constant) iterator that points to the
      *  first element in the array.  Iteration is done in ordinary
      *  element order.
      */
-    inline const_iterator begin() const;
+    const_iterator begin() const;
 
     /**
      *  Returns a read/write iterator that points one past the last
      *  element in the array.  Iteration is done in ordinary
      *  element order.
      */
-    inline iterator end();
+    iterator end();
 
     /**
      *  Returns a read-only (constant) iterator that points one past
      *  the last element in the array.  Iteration is done in
      *  ordinary element order.
      */
-    inline const_iterator end() const;
+    const_iterator end() const;
 
     /**
      *  Returns a read/write reverse iterator that points to the
      *  last element in the array.  Iteration is done in reverse
      *  element order.
      */
-    inline reverse_iterator rbegin();
+    reverse_iterator rbegin();
 
     /**
      *  Returns a read-only (constant) reverse iterator that points
      *  to the last element in the array.  Iteration is done in
      *  reverse element order.
      */
-    inline const_reverse_iterator rbegin() const;
+    const_reverse_iterator rbegin() const;
 
     /**
      *  Returns a read/write reverse iterator that points to one
      *  before the first element in the array.  Iteration is done
      *  in reverse element order.
      */
-    inline reverse_iterator rend();
+    reverse_iterator rend();
 
     /**
      *  Returns a read-only (constant) reverse iterator that points
      *  to one before the first element in the array.  Iteration
      *  is done in reverse element order.
      */
-    inline const_reverse_iterator rend() const;
+    const_reverse_iterator rend() const;
 
-    template<typename _InputIterator> 
-    void insert(const iterator& __position, 
-                    const _InputIterator& __first,
-                    const _InputIterator& __last);
+    template<typename InputIterator> 
+    inline void insert(const iterator& pos, const InputIterator& first, const InputIterator& last);
 
     iterator insert( const iterator &pos, const PdfObject &val );
 
     void erase( const iterator& pos );
     void erase( const iterator& first, const iterator& last );
 
-    inline void reserve(size_type __n);
+    void reserve(size_type n);
 
     /**
      *  \returns a read/write reference to the data at the first
      *           element of the array.
      */
-    inline reference front();
+    reference front();
 
     /**
      *  \returns a read-only (constant) reference to the data at the first
      *           element of the array.
      */
-    inline const_reference front() const;
+    const_reference front() const;
 
     /**
      *  \returns a read/write reference to the data at the last
      *           element of the array.
      */
-    inline reference back();
+    reference back();
       
     /**
      *  \returns a read-only (constant) reference to the data at the
      *           last element of the array.
      */
-    inline const_reference back() const;
+    const_reference back() const;
 
-    inline bool operator==( const PdfArray & rhs ) const;
-    inline bool operator!=( const PdfArray & rhs ) const;
+    bool operator==( const PdfArray & rhs ) const;
+    bool operator!=( const PdfArray & rhs ) const;
 
     /** The dirty flag is set if this variant
      *  has been modified after construction.
@@ -271,165 +269,24 @@ class PODOFO_API PdfArray : public PdfOwnedDataType {
      void SetOwner( PdfObject* pOwner );
 
  private:
-    PdfObject * findAt(int idx) const;
+    PdfObject & findAt(int idx) const;
 
  private:
-    bool         m_bDirty; ///< Indicates if this object was modified after construction
+    bool m_bDirty;
     std::vector<PdfObject> m_objects;
 };
 
-// -----------------------------------------------------
-//
-// -----------------------------------------------------
-inline const PdfObject * PdfArray::FindAt(int idx) const
-{
-    return findAt( idx );
-}
-
-// -----------------------------------------------------
-//
-// -----------------------------------------------------
-inline PdfObject * PdfArray::FindAt(int idx)
-{
-    return findAt( idx );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-int PdfArray::GetSize() const
-{
-    return (int)m_objects.size();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfArray::push_back( const PdfObject & var )
-{
-    insert( end(), var );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfArray::Clear()
-{
-    clear();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-size_t PdfArray::size() const
-{
-    return m_objects.size();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfArray::empty() const
-{
-    return m_objects.empty();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-PdfObject& PdfArray::operator[](size_t index)
-{
-    AssertMutable();
-
-    return m_objects.at(index);
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const PdfObject& PdfArray::operator[](size_t index) const
-{
-    return m_objects.at(index);
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-PdfArray::iterator PdfArray::begin()
-{
-    return m_objects.begin();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-PdfArray::const_iterator PdfArray::begin() const
-{
-    return m_objects.begin();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-PdfArray::iterator PdfArray::end()
-{
-    return m_objects.end();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-PdfArray::const_iterator PdfArray::end() const
-{
-    return m_objects.end();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-PdfArray::reverse_iterator PdfArray::rbegin()
-{
-    return m_objects.rbegin();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-PdfArray::const_reverse_iterator PdfArray::rbegin() const
-{
-    return m_objects.rbegin();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-PdfArray::reverse_iterator PdfArray::rend()
-{
-    return m_objects.rend();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-PdfArray::const_reverse_iterator PdfArray::rend() const
-{
-    return m_objects.rend();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-template<typename _InputIterator>
-void PdfArray::insert(const PdfArray::iterator& __position, 
-                      const _InputIterator& __first,
-                      const _InputIterator& __last)
+template<typename InputIterator>
+void PdfArray::insert(const PdfArray::iterator& pos, 
+                      const InputIterator& first,
+                      const InputIterator& last)
 {
     AssertMutable();
 
     PdfVecObjects *pOwner = GetObjectOwner();
-    iterator it1 = __first;
-    iterator it2 = __position;
-    for ( ; it1 != __last; it1++, it2++ )
+    iterator it1 = first;
+    iterator it2 = pos;
+    for ( ; it1 != last; it1++, it2++ )
     {
         it2 = m_objects.insert( it2, *it1 );
         if ( pOwner != NULL )
@@ -437,66 +294,6 @@ void PdfArray::insert(const PdfArray::iterator& __position,
     }
 
     m_bDirty = true;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfArray::reserve( size_type __n )
-{
-    AssertMutable();
-
-    m_objects.reserve( __n );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-PdfObject & PdfArray::front()
-{
-    return m_objects.front();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const PdfObject & PdfArray::front() const
-{
-    return m_objects.front();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-PdfObject & PdfArray::back()
-{
-    return m_objects.back();
-}
-      
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const PdfObject & PdfArray::back() const
-{
-    return m_objects.back();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfArray::operator==( const PdfArray & rhs ) const
-{
-    //TODO: This operator does not check for m_bDirty. Add comparison or add explanation why it should not be there
-    return m_objects == rhs.m_objects;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfArray::operator!=( const PdfArray & rhs ) const
-{
-    //TODO: This operator does not check for m_bDirty. Add comparison or add explanation why it should not be there
-    return m_objects != rhs.m_objects;
 }
 
 typedef PdfArray                 TVariantList;

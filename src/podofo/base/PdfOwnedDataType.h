@@ -45,7 +45,8 @@ class PdfReference;
 /**
  * A PdfDataType object with PdfObject owner
  */
-class PODOFO_API PdfOwnedDataType : public PdfDataType {
+class PODOFO_API PdfOwnedDataType : public PdfDataType
+{
     friend class PdfObject;
 protected:
     /** Create a new PdfDataOwnedType.
@@ -67,7 +68,7 @@ public:
     PdfOwnedDataType & operator=( const PdfOwnedDataType &rhs );
 
 protected:
-    PdfObject * GetIndirectObject( const PdfReference &rReference ) const;
+    PdfObject & GetIndirectObject( const PdfReference &rReference ) const;
     PdfVecObjects * GetObjectOwner();
     virtual void SetOwner( PdfObject *pOwner );
 

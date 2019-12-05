@@ -1015,7 +1015,7 @@ const PdfString PdfListField::GetItem( int nIndex ) const
             PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
         }
         else
-            return itemArray.FindAt(0)->GetString();
+            return itemArray.FindAt(0).GetString();
     }
 
     return item.GetString();
@@ -1042,7 +1042,7 @@ const PdfString PdfListField::GetItemDisplayText( int nIndex ) const
             PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
         }
         else
-            return itemArray.FindAt(1)->GetString();
+            return itemArray.FindAt(1).GetString();
     }
 
     return item.GetString();
@@ -1077,7 +1077,7 @@ int PdfListField::GetSelectedIndex() const
     PdfArray &optArray = opt->GetArray();
     for (int i = 0; i < optArray.GetSize(); i++)
     {
-        auto& found = *optArray.FindAt(i);
+        auto& found = optArray.FindAt(i);
         if (found.IsString())
         {
             if (found.GetString() == value)
@@ -1086,7 +1086,7 @@ int PdfListField::GetSelectedIndex() const
         else if (found.IsArray())
         {
             auto& arr = found.GetArray();
-            if (arr.FindAt(0)->GetString() == value)
+            if (arr.FindAt(0).GetString() == value)
                 return i;
         }
         else

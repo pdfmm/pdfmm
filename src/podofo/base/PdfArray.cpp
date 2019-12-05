@@ -38,7 +38,7 @@
 
 #include <limits>
 
-namespace PoDoFo {
+using namespace PoDoFo;
 
 PdfArray::PdfArray()
     : m_bDirty( false )
@@ -64,14 +64,14 @@ void PdfArray::RemoveAt(int index)
     m_objects.erase(m_objects.begin() + index);
 }
 
-PdfObject * PdfArray::findAt(int index) const
+PdfObject & PdfArray::findAt(int index) const
 {
     if (index < 0 || index >= (int)m_objects.size())
         PODOFO_RAISE_ERROR_INFO(ePdfError_ValueOutOfRange, "Index is out of bounds");
 
-    PdfObject *obj = &const_cast<PdfArray *>(this)->m_objects[index];
-    if ( obj->IsReference() )
-        return GetIndirectObject( obj->GetReference() );
+    PdfObject &obj = const_cast<PdfArray *>(this)->m_objects[index];
+    if ( obj.IsReference() )
+        return GetIndirectObject( obj.GetReference() );
     else
         return obj;
 }
@@ -227,4 +227,134 @@ void PdfArray::SetOwner( PdfObject *pOwner )
     }
 }
 
-};
+const PdfObject & PdfArray::FindAt(int idx) const
+{
+    return findAt(idx);
+}
+
+PdfObject & PdfArray::FindAt(int idx)
+{
+    return findAt(idx);
+}
+
+int PdfArray::GetSize() const
+{
+    return (int)m_objects.size();
+}
+
+void PdfArray::push_back(const PdfObject& var)
+{
+    insert(end(), var);
+}
+
+void PdfArray::Clear()
+{
+    clear();
+}
+
+size_t PdfArray::size() const
+{
+    return m_objects.size();
+}
+
+bool PdfArray::empty() const
+{
+    return m_objects.empty();
+}
+
+PdfObject& PdfArray::operator[](size_t index)
+{
+    AssertMutable();
+
+    return m_objects.at(index);
+}
+
+const PdfObject& PdfArray::operator[](size_t index) const
+{
+    return m_objects.at(index);
+}
+
+PdfArray::iterator PdfArray::begin()
+{
+    return m_objects.begin();
+}
+
+PdfArray::const_iterator PdfArray::begin() const
+{
+    return m_objects.begin();
+}
+
+PdfArray::iterator PdfArray::end()
+{
+    return m_objects.end();
+}
+
+PdfArray::const_iterator PdfArray::end() const
+{
+    return m_objects.end();
+}
+
+PdfArray::reverse_iterator PdfArray::rbegin()
+{
+    return m_objects.rbegin();
+}
+
+PdfArray::const_reverse_iterator PdfArray::rbegin() const
+{
+    return m_objects.rbegin();
+}
+
+PdfArray::reverse_iterator PdfArray::rend()
+{
+    return m_objects.rend();
+}
+
+PdfArray::const_reverse_iterator PdfArray::rend() const
+{
+    return m_objects.rend();
+}
+
+void PdfArray::reserve(size_type n)
+{
+    AssertMutable();
+
+    m_objects.reserve(n);
+}
+
+PdfObject& PdfArray::front()
+{
+    return m_objects.front();
+}
+
+const PdfObject& PdfArray::front() const
+{
+    return m_objects.front();
+}
+
+PdfObject& PdfArray::back()
+{
+    return m_objects.back();
+}
+
+const PdfObject& PdfArray::back() const
+{
+    return m_objects.back();
+}
+
+bool PdfArray::operator==(const PdfArray& rhs) const
+{
+    if (this == &rhs)
+        return true;
+
+    // We don't check owner
+    return m_objects == rhs.m_objects;
+}
+
+bool PdfArray::operator!=(const PdfArray& rhs) const
+{
+    if (this == &rhs)
+        return false;
+
+    // We don't check owner
+    return m_objects != rhs.m_objects;
+}

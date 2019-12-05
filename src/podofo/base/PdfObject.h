@@ -199,7 +199,7 @@ public:
     /** Get an indirect reference to this object.
      *  \returns a PdfReference pointing to this object.
      */
-    inline const PdfReference & GetIndirectReference() const;
+    inline const PdfReference & GetIndirectReference() const { return m_reference; }
 
     /** Get a handle to a PDF stream object.
      *  If the PDF object does not have a stream,
@@ -233,17 +233,20 @@ public:
      *  PdfObject instances. It compares the object number. If object numbers
      *  are equal, the generation number is compared.
      */
-    inline bool operator<( const PdfObject & rhs ) const;
+    bool operator<( const PdfObject & rhs ) const;
 
+    // CHECK-ME: Investigate better on equality of PdfObject
+
+        // REWRITE-ME: The equality operator is pure shit
     /** Comparison operator.
      *  Compares two PDF object instances only based on their object and generation number.
      */
-    inline bool operator==( const PdfObject & rhs ) const;
+    bool operator==( const PdfObject & rhs ) const;
 
     /** Get the owner of this object.
      *  \return the owner (if it wasn't changed anywhere, creator) of this object
      */
-    inline PdfVecObjects* GetOwner() const;
+    inline PdfVecObjects* GetOwner() const { return m_pOwner; }
 
     /** Creates a copy of an existing PdfObject.
      *  All associated objects and streams will be copied along with the PdfObject.
@@ -323,26 +326,6 @@ protected:
     // Tracks whether deferred loading is still pending (in which case it'll be
     // false). If true, deferred loading is not required or has been completed.
 };
-
-const PdfReference & PdfObject::GetIndirectReference() const
-{
-    return m_reference;
-}
-
-inline PdfVecObjects* PdfObject::GetOwner() const
-{
-    return m_pOwner;
-}
-
-bool PdfObject::operator<( const PdfObject & rhs ) const
-{
-    return m_reference < rhs.m_reference;
-}
-
-bool PdfObject::operator==( const PdfObject & rhs ) const
-{
-    return (m_reference == rhs.m_reference);
-}
 
 };
 

@@ -72,6 +72,9 @@ bool PdfDictionary::operator==( const PdfDictionary& rhs ) const
     if ( m_mapKeys.size() != rhs.m_mapKeys.size() )
         return false;
 
+    // TOOD: Following is pure shit and obsolete. Two dictionaries are equal if all data is equal with operator==.
+    // Owner is not checked
+
     // It's not enough to test that our internal maps are equal, because
     // we store variants by pointer not value. However, since a dictionary's
     // keys are stored in a SORTED map, and there may be only one instance of
@@ -136,11 +139,11 @@ void PdfDictionary::AddKey( const PdfName & identifier, const PdfObject* pObject
 PdfObject * PdfDictionary::getKey( const PdfName & key ) const
 {
     if( !key.GetLength() )
-        return NULL;
+        return nullptr;
 
     TCIKeyMap it = m_mapKeys.find( key );
     if( it == m_mapKeys.end() )
-        return NULL;
+        return nullptr;
 
     return &const_cast<PdfObject &>( it->second );
 }
@@ -148,33 +151,33 @@ PdfObject * PdfDictionary::getKey( const PdfName & key ) const
 PdfObject * PdfDictionary::findKey( const PdfName &key ) const
 {
     PdfObject *obj = getKey( key );
-    if ( obj != NULL )
-    {
-        if ( obj->IsReference() )
-            return GetIndirectObject( obj->GetReference() );
-        else
-            return obj;
-    }
+    if (obj == nullptr)
+        return nullptr;
 
-    return NULL;
+    if (obj->IsReference())
+        return &GetIndirectObject(obj->GetReference());
+    else
+        return obj;
+
+    return nullptr;
 }
 
 PdfObject * PdfDictionary::findKeyParent( const PdfName & key ) const
 {
     PdfObject *obj = findKey( key );
-    if (obj == NULL)
+    if (obj == nullptr)
     {
         PdfObject *parent = findKey( "Parent" );
-        if ( parent == NULL )
+        if ( parent == nullptr )
         {
-            return NULL;
+            return nullptr;
         }
         else
         {
             if ( parent->IsDictionary() )
                 return parent->GetDictionary().findKeyParent( key );
             else
-                return NULL;
+                return nullptr;
         }
     }
     else

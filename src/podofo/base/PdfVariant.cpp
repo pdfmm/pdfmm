@@ -394,6 +394,11 @@ const char * PdfVariant::GetDataTypeString() const
     return "INVALID_TYPE_ENUM";
 }
 
+// REWRITE-ME: The equality operator is pure shit
+// test on type first then get.
+// Unkwnown -> return false always
+// Rawdata: easy check on bytes
+
 //
 // This is rather slow:
 //    - We set up to catch an exception

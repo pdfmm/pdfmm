@@ -34,8 +34,9 @@
 #include "PdfOwnedDataType.h"
 #include "PdfObject.h"
 #include "PdfVecObjects.h"
+#include <string>
 
-namespace PoDoFo {
+using namespace PoDoFo;
 
 PdfOwnedDataType::PdfOwnedDataType()
     : m_pOwner( NULL )
@@ -49,12 +50,16 @@ PdfOwnedDataType::PdfOwnedDataType( const PdfOwnedDataType &rhs )
 {
 }
 
-PdfObject * PdfOwnedDataType::GetIndirectObject( const PdfReference &rReference ) const
+PdfObject & PdfOwnedDataType::GetIndirectObject( const PdfReference &ref ) const
 {
     if ( m_pOwner == NULL )
         PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle, "Object is a reference but does not have an owner!" );
 
-    return m_pOwner->GetOwner()->GetObject( rReference );
+    auto ret = m_pOwner->GetOwner()->GetObject( ref );
+    if (ret == nullptr)
+        PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidHandle, "Can't find reference with objnum: " + std::to_string(ref.ObjectNumber()) + ", gennum: " + std::to_string(ref.GenerationNumber()));
+
+    return *ret;
 }
 
 void PdfOwnedDataType::SetOwner( PdfObject* pOwner )
@@ -74,5 +79,3 @@ PdfVecObjects * PdfOwnedDataType::GetObjectOwner()
 {
     return m_pOwner == NULL ? NULL : m_pOwner->GetOwner();
 }
-
-};

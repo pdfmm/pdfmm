@@ -407,3 +407,15 @@ void PdfObject::DelayedLoadStreamImpl()
     // steams should not be enabled except by types that support it.
     PODOFO_RAISE_ERROR(ePdfError_InternalLogic);
 }
+
+bool PdfObject::operator<(const PdfObject& rhs) const
+{
+    return m_reference < rhs.m_reference;
+}
+
+// REWRITE-ME: The equality operator is pure shit
+// Check owner,reference and pdfvariant value. Easy
+bool PdfObject::operator==(const PdfObject& rhs) const
+{
+    return (m_reference == rhs.m_reference);
+}
