@@ -129,7 +129,7 @@ public:
      * \returns an offset in which the object is stored in the source device,
      *     or -1, if the object was created on demand.
      */
-    inline int64_t GetOffset( void ) const;
+    inline ssize_t GetOffset( void ) const;
 
  protected:
     /** Load all data of the object if load object on demand is enabled.
@@ -205,9 +205,9 @@ bool PdfParserObject::HasStreamToParse() const
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-int64_t PdfParserObject::GetOffset( void ) const
+ssize_t PdfParserObject::GetOffset( void ) const
 {
-	return static_cast<int64_t>(m_lOffset);
+	return m_lOffset;
 }
 
 };

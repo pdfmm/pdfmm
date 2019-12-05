@@ -70,7 +70,7 @@ public:
      *  \param pBuffer pointer to a buffer
      *  \param lLen length of the buffer
      */
-    PdfContentsTokenizer( const char* pBuffer, long lLen )
+    PdfContentsTokenizer( const char* pBuffer, size_t lLen )
         : PoDoFo::PdfTokenizer( pBuffer, lLen ), m_readingInlineImgData(false)
     {
     }

@@ -179,7 +179,7 @@ void PdfFont::EmbedSubsetFont()
     PODOFO_RAISE_ERROR_INFO( ePdfError_NotImplemented, "Subsetting not implemented for this font type." );
 }
 
-void PdfFont::AddUsedSubsettingGlyphs( const PdfString & , long )
+void PdfFont::AddUsedSubsettingGlyphs( const PdfString & , size_t )
 {
 	//virtual function is only implemented in derived class
     PODOFO_RAISE_ERROR_INFO( ePdfError_NotImplemented, "Subsetting not implemented for this font type." );

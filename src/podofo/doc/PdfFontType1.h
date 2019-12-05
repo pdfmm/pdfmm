@@ -91,7 +91,7 @@ class PdfFontType1 : public PdfFontSimple {
      *  \param sText the text string which should be printed (is not allowed to be NULL!)
      *  \param lStringLen draw only lLen characters of pszText
 	 */
-	void AddUsedSubsettingGlyphs( const PdfString & sText, long lStringLen ) override;
+	void AddUsedSubsettingGlyphs( const PdfString & sText, size_t lStringLen ) override;
 
   	/** Remember the glyphname in case of subsetting 
 	 *

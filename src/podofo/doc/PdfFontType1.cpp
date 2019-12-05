@@ -86,7 +86,7 @@ PdfFontType1::PdfFontType1( PdfFontType1* pFont, PdfFontMetrics* pMetrics, const
 	GetObject()->GetDictionary().AddKey( "FontDescriptor", pFont->GetObject()->GetDictionary().GetKey( "FontDescriptor" ) );
 }
 
-void PdfFontType1::AddUsedSubsettingGlyphs( const PdfString & sText, long lStringLen )
+void PdfFontType1::AddUsedSubsettingGlyphs( const PdfString & sText, size_t lStringLen )
 {
 	if ( m_bIsSubsetting )
 	{
@@ -94,7 +94,7 @@ void PdfFontType1::AddUsedSubsettingGlyphs( const PdfString & sText, long lStrin
 		PODOFO_ASSERT( sText.IsUnicode() == false );
 		PODOFO_ASSERT( sText.IsHex() == false );
 		const unsigned char* strp = reinterpret_cast<const unsigned char *>(sText.GetString());	// must be unsigned for access to m_bUsed-array
-		for ( int i = 0; i < lStringLen; i++ )
+		for (size_t i = 0; i < lStringLen; i++)
 		{
 			m_bUsed[strp[i] / 32] |= 1 << (strp[i] % 32 ); 
 		}
@@ -217,7 +217,7 @@ void PdfFontType1::EmbedSubsetFont()
 			if ( line.find( "dup " ) != 0 )
 			{
 				memcpy( &outBuff[outIndex], line.c_str(), line.length() );
-				outIndex += line.length();
+				outIndex += (int)line.length();
 			}
 			else
 			{

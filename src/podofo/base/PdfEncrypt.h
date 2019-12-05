@@ -479,14 +479,14 @@ protected:
     void ComputeEncryptionKey();
     
     /// Generate the U and UE entries 
-    void ComputeUserKey(const unsigned char * userpswd, int len);
+    void ComputeUserKey(const unsigned char * userpswd, size_t len);
     
     /// Generate the O and OE entries 
-    void ComputeOwnerKey(const unsigned char * userpswd, int len);
+    void ComputeOwnerKey(const unsigned char * userpswd, size_t len);
     
     /// Preprocess password for use in EAS-256 Algorithm
     /// outBuf needs to be at least 127 bytes long
-    void PreprocessPassword( const std::string &password, unsigned char* outBuf, int &len);
+    void PreprocessPassword( const std::string &password, unsigned char* outBuf, size_t &len);
     
     unsigned char  m_ueValue[32];        ///< UE entry in pdf document
     unsigned char  m_oeValue[32];        ///< OE entry in pdf document

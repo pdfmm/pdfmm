@@ -879,7 +879,7 @@ void PdfTextField::SetText( const PdfString & rsText )
 
     // if rsText is longer than maxlen, truncate it
     int64_t nMax = this->GetMaxLen();
-    if( nMax != -1 && rsText.GetLength() > nMax )
+    if( nMax != -1 && rsText.GetLength() > (size_t)nMax )
         PODOFO_RAISE_ERROR_INFO(ePdfError_ValueOutOfRange, "Unable to set text larger MaxLen");
 
     m_pObject->GetDictionary().AddKey( key, rsText );

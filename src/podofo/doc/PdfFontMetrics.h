@@ -108,7 +108,7 @@ class PODOFO_DOC_API PdfFontMetrics {
      *  \param nLength if != 0 only the width of the nLength first characters is calculated
      *  \returns the width in PDF units
      */
-    double StringWidth( const pdf_utf16be* pszText, unsigned int nLength = 0 ) const;
+    double StringWidth( const pdf_utf16be* pszText, size_t nLength = 0 ) const;
 
     /** Retrieve the width of a given text string in 1/1000th mm when
      *  drawn with the current font
@@ -116,7 +116,7 @@ class PODOFO_DOC_API PdfFontMetrics {
      *  \param nLength if != 0 only the width of the nLength first characters is calculated
      *  \returns the width in 1/1000th mm
      */
-    inline unsigned long StringWidthMM( const char* pszText, unsigned int nLength = 0 ) const;
+    inline unsigned long StringWidthMM( const char* pszText, size_t nLength = 0 ) const;
 
     /** Retrieve the width of a given text string in 1/1000th mm when
      *  drawn with the current font
@@ -124,7 +124,7 @@ class PODOFO_DOC_API PdfFontMetrics {
      *  \param nLength if != 0 only the width of the nLength first characters is calculated
      *  \returns the width in 1/1000th mm
      */
-    inline unsigned long StringWidthMM( const pdf_utf16be* pszText, unsigned int nLength = 0 ) const;
+    inline unsigned long StringWidthMM( const pdf_utf16be* pszText, size_t nLength = 0 ) const;
 
     /** Retrieve the width of the given character in PDF units in the current font
      *  \param c character
@@ -391,7 +391,7 @@ double PdfFontMetrics::StringWidth( const PdfString & rsString ) const
 // -----------------------------------------------------
 //
 // -----------------------------------------------------
-unsigned long PdfFontMetrics::StringWidthMM( const char* pszText, unsigned int nLength ) const
+unsigned long PdfFontMetrics::StringWidthMM( const char* pszText, size_t nLength ) const
 {
     return static_cast<unsigned long>(this->StringWidth( pszText, nLength ) / PODOFO_CONVERSION_CONSTANT);
 }
@@ -399,7 +399,7 @@ unsigned long PdfFontMetrics::StringWidthMM( const char* pszText, unsigned int n
 // -----------------------------------------------------
 //
 // -----------------------------------------------------
-unsigned long PdfFontMetrics::StringWidthMM( const pdf_utf16be* pszText, unsigned int nLength ) const
+unsigned long PdfFontMetrics::StringWidthMM( const pdf_utf16be* pszText, size_t nLength ) const
 {
     return static_cast<unsigned long>(this->StringWidth( pszText, nLength ) / PODOFO_CONVERSION_CONSTANT);
 }

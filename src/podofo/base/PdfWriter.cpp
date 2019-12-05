@@ -281,7 +281,7 @@ void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const PdfVecObjects& 
                 {
                     const PdfParserObject *parserObject = dynamic_cast<const PdfParserObject *>(pObject);
                     // the reference looks like "0 0 R", while the object identifier like "0 0 obj", thus add two letters
-                    int objRefLength = pObject->GetIndirectReference().ToString().length() + 2;
+                    size_t objRefLength = pObject->GetIndirectReference().ToString().length() + 2;
 
                     // the offset points just after the "0 0 obj" string
                     if( parserObject && parserObject->GetOffset() - objRefLength > 0)

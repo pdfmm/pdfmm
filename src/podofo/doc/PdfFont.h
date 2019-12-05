@@ -231,7 +231,7 @@ class PODOFO_DOC_API PdfFont : public PdfElement {
      *
      *  \see IsSubsetting
      */
-    virtual void AddUsedSubsettingGlyphs( const PdfString & sText, long lStringLen );
+    virtual void AddUsedSubsettingGlyphs( const PdfString & sText, size_t lStringLen );
 
     /** Remember the glyphname in case of subsetting
      *

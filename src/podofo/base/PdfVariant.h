@@ -234,7 +234,7 @@ class PODOFO_API PdfVariant
      */
     bool GetBool() const;
 
-    /** Get the value of the object as long.
+    /** Get the value of the object as int64_t.
      *  \return the value of the number
      */
     int64_t GetNumber() const;
@@ -295,13 +295,13 @@ class PODOFO_API PdfVariant
      */
     void SetBool(bool b);
 
-    /** Set the value of this object as long
-     *  \param l the value as long.
+    /** Set the value of this object as int64_t
+     *  \param l the value as int64_t.
      *
      *  This will set the dirty flag of this object.
      *  \see IsDirty
      */
-    void SetNumber(long l);
+    void SetNumber(int64_t l);
 
     /** Set the value of this object as double
      *  \param d the value as double.

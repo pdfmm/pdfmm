@@ -1382,13 +1382,13 @@ void PdfParser::FindToken( const char* pszToken, size_t lRange )
 
     m_buffer.GetBuffer()[lXRefBuf] = '\0';
 
-    int i; // Do not make this unsigned, this will cause infinte loops in files without trailer
+    ssize_t i; // Do not make this unsigned, this will cause infinte loops in files without trailer
  
     // search backwards in the buffer in case the buffer contains null bytes
     // because it is right after a stream (can't use strstr for this reason)
     for( i = lXRefBuf - nTokenLen; i >= 0; i-- )
     {
-        if( strncmp( m_buffer.GetBuffer()+i, pszToken, nTokenLen ) == 0 )
+        if( strncmp( m_buffer.GetBuffer() + i, pszToken, nTokenLen ) == 0 )
         {
             break;
         }
@@ -1429,7 +1429,7 @@ void PdfParser::FindToken2( const char* pszToken, const size_t lRange, size_t se
 
     // search backwards in the buffer in case the buffer contains null bytes
     // because it is right after a stream (can't use strstr for this reason)
-    int i; // Do not use an unsigned variable here
+    ssize_t i; // Do not use an unsigned variable here
     for( i = lXRefBuf - nTokenLen; i >= 0; i-- )
         if( strncmp( m_buffer.GetBuffer()+i, pszToken, nTokenLen ) == 0 )
         {

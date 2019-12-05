@@ -457,9 +457,9 @@ unsigned long PdfFontTTFSubset::GetHmtxTableSize()
 	
 unsigned long PdfFontTTFSubset::GetCmapTableSize()
 {
-    unsigned long tableSize = 0; //(m_sCMap.ranges.size() + 1) * 4 * __LENGTH_WORD;
+    unsigned tableSize = 0; //(m_sCMap.ranges.size() + 1) * 4 * __LENGTH_WORD;
     tableSize += m_sCMap.segCount * 4 * __LENGTH_WORD + __LENGTH_WORD;
-    tableSize += m_sCMap.glyphArray.size() * __LENGTH_WORD;
+    tableSize += (unsigned long)m_sCMap.glyphArray.size() * __LENGTH_WORD;
     //std::cout << "cmapRanges: "<< m_sCMap.ranges.size() <<  " arraySize: " << m_sCMap.glyphArray.size() << std::endl;
     return 12ul + 14ul + tableSize;
 }

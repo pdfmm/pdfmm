@@ -84,7 +84,7 @@ void PdfPagesTreeCache::AddPageObjects( int nIndex, std::vector<PdfPage*> vecPag
         m_deqPageObjs.resize( nIndex + vecPages.size() + 1 );
     }
     
-    for (size_t i=0; i<vecPages.size(); ++i)
+    for (int i=0; i < (int)vecPages.size(); ++i)
     {
         // Delete any old pages if it is at the same position
         PdfPage* pOldPage = GetPage( nIndex + i );

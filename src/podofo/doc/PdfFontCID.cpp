@@ -244,12 +244,12 @@ void PdfFontCID::EmbedSubsetFont()
 	EmbedFont();
 }
 
-void PdfFontCID::AddUsedSubsettingGlyphs (const PdfString &sText, long lStringLen)
+void PdfFontCID::AddUsedSubsettingGlyphs (const PdfString &sText, size_t lStringLen)
 {
 	if (IsSubsetting()) {
         PdfString uniText = sText.ToUnicode();
         const pdf_utf16be *uniChars = uniText.GetUnicode();
-		for (long ii = 0; ii < lStringLen; ii++) {
+		for (size_t ii = 0; ii < lStringLen; ii++) {
             m_setUsed.insert(SWAP_UTF16BE(uniChars[ii]));
 		}
 	}

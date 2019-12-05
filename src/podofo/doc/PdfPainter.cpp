@@ -122,7 +122,7 @@ PdfPainter::PdfPainter(EPdfPainterFlags flags)
     currentTextRenderingMode = ePdfTextRenderingMode_Fill;
 }
 
-PdfPainter::~PdfPainter()
+PdfPainter::~PdfPainter() noexcept(false)
 {
 	// Throwing exceptions in C++ destructors is not allowed.
 	// Just log the error.

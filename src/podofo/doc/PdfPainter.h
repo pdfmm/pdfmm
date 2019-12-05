@@ -81,7 +81,7 @@ class PODOFO_DOC_API PdfPainter {
      */
     PdfPainter(EPdfPainterFlags flags = ePdfPainterFlags_None);
 
-    virtual ~PdfPainter();
+    virtual ~PdfPainter() noexcept(false);
 
     /** Set the page on which the painter should draw.
      *  The painter will draw of course on the pages

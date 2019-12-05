@@ -651,7 +651,7 @@ void PdfVariant::SetBool(bool b)
     SetDirty(true);
 }
 
-void PdfVariant::SetNumber(long l)
+void PdfVariant::SetNumber(int64_t l)
 {
     DelayedLoad();
 

@@ -237,7 +237,7 @@ void PdfMemDocument::Load( const char* pszFilename, bool bForUpdate )
 
     if( bForUpdate )
     {
-        int lLen = strlen( pszFilename );
+        size_t lLen = strlen( pszFilename );
         m_pszUpdatingFilename = static_cast<char *>( podofo_malloc( sizeof( char ) * ( lLen + 1 ) ) );
         memcpy( m_pszUpdatingFilename, pszFilename, lLen );
         m_pszUpdatingFilename[lLen] = '\0';
@@ -271,7 +271,7 @@ void PdfMemDocument::Load( const wchar_t* pszFilename, bool bForUpdate )
 
     if( bForUpdate )
     {
-        int lLen = wcslen( pszFilename );
+        size_t lLen = wcslen( pszFilename );
         m_wchar_pszUpdatingFilename = static_cast<wchar_t *>( podofo_malloc( sizeof( wchar_t ) * ( lLen + 1 ) ) );
         wmemcpy( m_wchar_pszUpdatingFilename, pszFilename, lLen );
         m_wchar_pszUpdatingFilename[lLen] = L'\0';

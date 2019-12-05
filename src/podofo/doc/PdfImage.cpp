@@ -832,7 +832,7 @@ void PdfImage::LoadFromTiffData(const unsigned char* pData, size_t dwLen)
         PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
     }
     
-    tiffData data(pData, dwLen);
+    tiffData data(pData, (tsize_t)dwLen);
     TIFF* hInHandle = TIFFClientOpen("Memory", "r", (thandle_t)&data,
                                      tiff_Read, tiff_Write, tiff_Seek, tiff_Close, tiff_Size,
                                      tiff_Map, tiff_Unmap);

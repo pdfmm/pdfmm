@@ -946,7 +946,7 @@ double PdfFontMetrics::StringWidth( const char* pszText, size_t nLength ) const
     return dWidth;
 }
 
-double PdfFontMetrics::StringWidth( const pdf_utf16be* pszText, unsigned int nLength ) const
+double PdfFontMetrics::StringWidth( const pdf_utf16be* pszText, size_t nLength ) const
 {
     double dWidth = 0.0;
     unsigned short uChar;
@@ -965,7 +965,7 @@ double PdfFontMetrics::StringWidth( const pdf_utf16be* pszText, unsigned int nLe
     }
 
     const pdf_utf16be* localText = pszText;
-    for ( unsigned int i=0; i<nLength; i++ )
+    for (size_t i = 0; i < nLength; i++)
     {
 #ifdef PODOFO_IS_LITTLE_ENDIAN
         uChar = static_cast<unsigned short>(((*localText & 0x00ff) << 8 | (*localText & 0xff00) >> 8));

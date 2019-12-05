@@ -232,7 +232,7 @@ void PdfPagesTree::InsertPages( int nAfterPageIndex, const std::vector<PdfObject
         InsertPagesIntoNode( pParent, lstParents, nKidsIndex, vecPages );
     }
 
-    m_cache.InsertPages( (bInsertBefore && nAfterPageIndex == 0) ? ePdfPageInsertionPoint_InsertBeforeFirstPage : nAfterPageIndex,  vecPages.size() );
+    m_cache.InsertPages( (bInsertBefore && nAfterPageIndex == 0) ? ePdfPageInsertionPoint_InsertBeforeFirstPage : nAfterPageIndex,  (int)vecPages.size() );
 }
 
 PdfPage* PdfPagesTree::CreatePage( const PdfRect & rSize )
@@ -603,7 +603,7 @@ void PdfPagesTree::InsertPagesIntoNode( PdfObject* pParent, const PdfObjectList 
     // 2. increase count
     for ( PdfObjectList::const_reverse_iterator itParents = rlstParents.rbegin(); itParents != rlstParents.rend(); ++itParents )
     {
-        this->ChangePagesCount( *itParents, vecPages.size() );
+        this->ChangePagesCount( *itParents, (int)vecPages.size() );
     } 
 
     // 3. add parent key to each of the pages

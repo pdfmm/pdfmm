@@ -398,7 +398,7 @@ public:
 			//  for (inl + cipher_block_size) bytes unless the cipher block size is 1 in which case inl bytes is sufficient."
 			// So we need to create a buffer that is bigger than lLen.
 			tempBuffer.resize( lLen + 16 );
-			status = EVP_DecryptUpdate( aes, &tempBuffer[0], &lOutLen, pBuffer + bufferOffset, lLen - bufferOffset );
+			status = EVP_DecryptUpdate(aes, &tempBuffer[0], &lOutLen, pBuffer + bufferOffset, (int)(lLen - bufferOffset));
 			memcpy( pBuffer, &tempBuffer[0], lOutLen );
 		}
 		if( status != 1 )
@@ -975,7 +975,7 @@ PdfEncryptRC4Base::RC4(const unsigned char* key, int keylen,
         PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error initializing RC4 encryption engine" );
     
     int dataOutMoved;
-    status = EVP_EncryptUpdate(rc4, textout, &dataOutMoved, textin, textlen);
+    status = EVP_EncryptUpdate(rc4, textout, &dataOutMoved, textin, (int)textlen);
     if(status != 1)
         PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error RC4-encrypting data" );
     
@@ -1259,7 +1259,7 @@ void PdfEncryptAESBase::BaseDecrypt(const unsigned char* key, int keyLen, const 
         PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error initializing AES decryption engine" );
     
 	int dataOutMoved;
-    status = EVP_DecryptUpdate(aes, textout, &dataOutMoved, textin, textlen);
+    status = EVP_DecryptUpdate(aes, textout, &dataOutMoved, textin, (int)textlen);
 	outLen = dataOutMoved;
     if(status != 1)
         PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error AES-decryption data" );
@@ -1289,7 +1289,7 @@ void PdfEncryptAESBase::BaseEncrypt(const unsigned char* key, int keyLen, const 
         PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error initializing AES encryption engine" );
     
     int dataOutMoved;
-    status = EVP_EncryptUpdate(aes, textout, &dataOutMoved, textin, textlen);
+    status = EVP_EncryptUpdate(aes, textout, &dataOutMoved, textin, (int)textlen);
     if(status != 1)
         PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error AES-encrypting data" );
     
@@ -1472,7 +1472,7 @@ PdfEncryptSHABase::PdfEncryptSHABase( const PdfEncrypt & rhs ) : PdfEncrypt(rhs)
     memcpy( m_oeValue, static_cast<const PdfEncryptSHABase*>(ptr)->m_oeValue, sizeof(unsigned char) * 32 );
 }
     
-void PdfEncryptSHABase::ComputeUserKey(const unsigned char * userpswd, int len)
+void PdfEncryptSHABase::ComputeUserKey(const unsigned char * userpswd, size_t len)
 {
     // Generate User Salts
     unsigned char vSalt[8];
@@ -1538,7 +1538,7 @@ void PdfEncryptSHABase::ComputeUserKey(const unsigned char * userpswd, int len)
     #endif
 }
 
-void PdfEncryptSHABase::ComputeOwnerKey(const unsigned char * ownerpswd, int len)
+void PdfEncryptSHABase::ComputeOwnerKey(const unsigned char * ownerpswd, size_t len)
 {
     // Generate User Salts
     unsigned char vSalt[8];
@@ -1604,7 +1604,7 @@ void PdfEncryptSHABase::ComputeOwnerKey(const unsigned char * ownerpswd, int len
     #endif
 }
 
-void PdfEncryptSHABase::PreprocessPassword( const std::string &password, unsigned char* outBuf, int &len)
+void PdfEncryptSHABase::PreprocessPassword( const std::string &password, unsigned char* outBuf, size_t&len)
 {
     char* password_sasl;
     
@@ -1613,7 +1613,7 @@ void PdfEncryptSHABase::PreprocessPassword( const std::string &password, unsigne
         PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidPassword, "Error processing password through SASLprep" );
     }
     
-    int l = strlen(password_sasl);
+    size_t l = strlen(password_sasl);
     len = l > 127 ? 127 : l;
     
     memcpy(outBuf, password_sasl, len);
@@ -1692,8 +1692,8 @@ PdfEncryptAESV3::GenerateEncryptionKey(const PdfString &)
     // Prepare passwords
     unsigned char userpswd[127];
     unsigned char ownerpswd[127];
-    int userpswdLen;
-    int ownerpswdLen;
+    size_t userpswdLen;
+    size_t ownerpswdLen;
     PreprocessPassword(m_userPass, userpswd, userpswdLen);
     PreprocessPassword(m_ownerPass, ownerpswd, ownerpswdLen);
     
@@ -1768,7 +1768,7 @@ bool PdfEncryptAESV3::Authenticate( const std::string & password, const PdfStrin
     
     // Prepare password
     unsigned char pswd_sasl[127];
-    int pswdLen;
+    size_t pswdLen;
     PreprocessPassword(password, pswd_sasl, pswdLen);
     
     // Test 1: is it the user key ?
