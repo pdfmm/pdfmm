@@ -67,12 +67,6 @@ typedef std::vector<TReferencePointerList  >     TVecReferencePointerList;
 typedef TVecReferencePointerList::iterator       TIVecReferencePointerList;
 typedef TVecReferencePointerList::const_iterator TCIVecReferencePointerList;
 
-/*
-typedef std::vector<PdfObject*>      TVecObjects;
-typedef TVecObjects::iterator        TIVecObjects;
-typedef TVecObjects::const_iterator  TCIVecObjects;
-*/
-
 typedef std::vector<PdfObject*>      TVecObjects;
 typedef TVecObjects::iterator        TIVecObjects;
 typedef TVecObjects::const_iterator  TCIVecObjects;
@@ -170,12 +164,12 @@ public:
      *           parent of this vector.
      *           Might be NULL if the vector has no parent.
      */
-    inline PdfDocument* GetParentDocument() const;
+    inline PdfDocument* GetParentDocument() const { return m_pDocument; }
 
     /** Sets a parent document of this vector
      *  \param pDocument the parent of this vector
      */
-    inline void SetParentDocument( PdfDocument* pDocument );
+    inline void SetParentDocument( PdfDocument* pDocument ) { m_pDocument = pDocument; }
 
     /** Enable/disable auto deletion.
      *  By default auto deletion is disabled.
@@ -183,13 +177,13 @@ public:
      *  \param bAutoDelete if true all objects will be deleted when the PdfVecObjects is 
      *         deleted.
      */
-    inline void SetAutoDelete( bool bAutoDelete );
+    inline void SetAutoDelete( bool bAutoDelete ) { m_bAutoDelete = bAutoDelete; }
 
     /** 
      *  \returns if autodeletion is enabled and all objects will be deleted when the PdfVecObjects is 
      *           deleted.
      */
-    inline bool AutoDelete() const;
+    inline bool IsAutoDelete() const { return m_bAutoDelete; }
 
     /** Enable/disable object numbers re-use.
      *  By default object numbers re-use is enabled.
@@ -203,7 +197,7 @@ public:
     /** 
      *  \returns whether can re-use free object numbers when creating new objects.
      */
-    inline bool GetCanReuseObjectNumbers() const;
+    inline bool GetCanReuseObjectNumbers() const { return m_bCanReuseObjectNumbers; }
 
     /** Removes all objects from the vector
      *  and resets it to the default state.
@@ -212,14 +206,14 @@ public:
      *  All observers are removed from the vector.
      *
      *  \see SetAutoDelete
-     *  \see AutoDelete
+     *  \see IsAutoDelete
      */
     void Clear();
 
     /** 
      *  \returns the size of the internal vector
      */
-    inline size_t GetSize() const;
+    size_t GetSize() const;
 
     /**
      *  \returns the highest object number in the vector 
@@ -277,7 +271,7 @@ public:
 
     /** \returns a list of free references in this vector
      */
-    inline const TPdfReferenceList & GetFreeObjects() const;
+    inline const TPdfReferenceList& GetFreeObjects() const { return m_lstFreeObjects; }
 
     /** 
      *  Renumbers all objects according to there current position in the vector.
@@ -307,7 +301,7 @@ public:
      * (without proper locking).
      * \param size Number of elements to allow to be reserved
      */
-    void SetMaxReserveSize(size_t size);
+    void SetMaxReserveSize(size_t size) { m_nMaxReserveSize = size; }
 
     /**
      * Gets the maximum number of elements Reserve() will work for (to fix
@@ -315,13 +309,13 @@ public:
      * The default is from Table C.1 in section C.2 of PDF32000_2008.pdf
      * (PDF 1.7 standard free version): 8388607.
      */
-    size_t GetMaxReserveSize() const;
+    size_t GetMaxReserveSize() const { return m_nMaxReserveSize; }
 
     /** 
      * Causes the internal vector to reserve space for size elements.
      * \param size reserve space for that much elements in the internal vector
      */
-    inline void Reserve( size_t size );
+    void Reserve( size_t size );
 
     /** Get a set with all references of objects that the passed object
      *  depends on.
@@ -335,7 +329,7 @@ public:
     /** Attach a new observer
      *  \param pObserver to attach
      */
-    inline void Attach( Observer* pObserver );
+    void Attach( Observer* pObserver );
     
     /** Detach an observer.
      *
@@ -347,7 +341,7 @@ public:
      *  
      *  \param pFactory a stream factory or NULL to reset to the default factory
      */
-    inline void SetStreamFactory( StreamFactory* pFactory );
+    void SetStreamFactory( StreamFactory* pFactory );
 
     /** Creates a stream object
      *  This method is a factory for PdfStream objects.
@@ -389,30 +383,30 @@ public:
     /** Iterator pointing at the begining of the vector
      *  \returns beginning iterator
      */
-    inline TIVecObjects begin();
+    TIVecObjects begin();
 
     /** Iterator pointing at the begining of the vector
      *  \returns beginning iterator
      */
-    inline TCIVecObjects begin() const;
+    TCIVecObjects begin() const;
 
     /** Iterator pointing at the end of the vector
      *  \returns ending iterator
      */
-    inline TIVecObjects end();
+    TIVecObjects end();
 
     /** Iterator pointing at the end of the vector
      *  \returns ending iterator
      */
-    inline TCIVecObjects end() const;
+    TCIVecObjects end() const;
 
-    inline PdfObject*& operator[](size_t index);
+    PdfObject*& operator[](size_t index);
 
     /** Get the last object in the vector
      *  \returns the last object in the vector or NULL 
      *           if the vector is emtpy.
      */
-    inline PdfObject* GetBack();
+    PdfObject* GetBack();
 
     /**
      * Deletes all objects that are not references by other objects
@@ -453,7 +447,7 @@ private:
      */
     void PushObject(PdfObject* pObj, const PdfReference &reference);
 
-    int32_t TryAddFreeObject( uint32_t objnum, uint32_t gennum );
+    int32_t tryAddFreeObject( uint32_t objnum, uint32_t gennum );
 
     /** Mark a reference as unused so that it can be reused for new objects.
      *
@@ -529,175 +523,6 @@ private:
 	std::string			m_sSubsetPrefix;		 ///< Prefix for BaseFont and FontName of subsetted font
     static size_t       m_nMaxReserveSize;
 };
-
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline size_t PdfVecObjects::GetSize() const
-{
-    return m_vector.size();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline void PdfVecObjects::SetMaxReserveSize(size_t size)
-{
-    m_nMaxReserveSize = size;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline size_t PdfVecObjects::GetMaxReserveSize() const
-{
-    return m_nMaxReserveSize;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline void PdfVecObjects::Reserve( size_t size )
-{
-    if( size <= m_nMaxReserveSize ) // Fix CVE-2018-5783
-    {
-        m_vector.reserve( size );
-    } 
-    else
-    {
-        PdfError::DebugMessage( "Call to PdfVecObjects::Reserve with %"
-                           PDF_SIZE_FORMAT" is over allowed limit of %"
-                           PDF_SIZE_FORMAT".\n", size, m_nMaxReserveSize );
-    }
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline PdfDocument* PdfVecObjects::GetParentDocument() const
-{
-    return m_pDocument;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline void PdfVecObjects::SetParentDocument( PdfDocument* pDocument )
-{
-    m_pDocument = pDocument;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline void PdfVecObjects::SetAutoDelete( bool bAutoDelete ) 
-{
-    m_bAutoDelete = bAutoDelete;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline bool PdfVecObjects::AutoDelete() const
-{
-    return m_bAutoDelete;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline bool PdfVecObjects::GetCanReuseObjectNumbers() const
-{
-    return m_bCanReuseObjectNumbers;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline const TPdfReferenceList & PdfVecObjects::GetFreeObjects() const
-{
-    return m_lstFreeObjects;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline void PdfVecObjects::Attach( Observer* pObserver )
-{
-    m_vecObservers.push_back( pObserver );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline void PdfVecObjects::SetStreamFactory( StreamFactory* pFactory )
-{
-    m_pStreamFactory = pFactory;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline TIVecObjects PdfVecObjects::begin()
-{
-    return m_vector.begin();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline TCIVecObjects PdfVecObjects::begin() const
-{
-    return m_vector.begin();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline TIVecObjects PdfVecObjects::end()
-{
-    return m_vector.end();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline TCIVecObjects PdfVecObjects::end() const
-{
-    return m_vector.end();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline PdfObject* PdfVecObjects::GetBack() 
-{ 
-    return m_vector.back(); 
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline void PdfVecObjects::SetObjectCount( const PdfReference & rRef ) 
-{
-    if( rRef.ObjectNumber() >= m_nObjectCount )
-    {
-        // "m_bObjectCount" is used for the next free object number.
-        // We need to use the greatest object number + 1 for the next free object number.
-        // Otherwise, object number overlap would have occurred.
-        m_nObjectCount = rRef.ObjectNumber() + 1;
-    }
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline PdfObject*& PdfVecObjects::operator[](size_t index) { return m_vector[index]; }
-
-//inline PdfObject const * & PdfVecObjects::operator[](int index) const { return m_vector[index]; }
-
-
 
 };
 

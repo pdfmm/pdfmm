@@ -33,6 +33,8 @@
 
 #include "PdfVecObjects.h"
 
+#include <algorithm>
+
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfMemStream.h"
@@ -41,31 +43,18 @@
 #include "PdfStream.h"
 #include "PdfDefinesPrivate.h"
 
-#include <algorithm>
+using namespace PoDoFo;
 
 #define MAX_XREF_GEN_NUM    65535
 
-namespace {
+static bool ObjectLittle(const PdfObject* p1, const PdfObject* p2);
 
-inline bool ObjectLittle( const PoDoFo::PdfObject* p1, const PoDoFo::PdfObject* p2 )
+struct ObjectComparatorPredicate
 {
-    return *p1 < *p2;
-}
-
-};
-
-namespace PoDoFo {
-
-struct ObjectComparatorPredicate {
 public:
     inline bool operator()( const PdfObject* const & pObj, const PdfObject* const & pObj2 ) const { 
         return pObj->GetIndirectReference() < pObj2->GetIndirectReference();  
-    }
-    
-    /*
-    inline bool operator()( PdfObject* const & pObj, const PdfReference & ref ) const { return pObj->Reference() < ref;  }
-    inline bool operator()( const PdfReference & ref, PdfObject* const & pObj ) const { return ref < pObj->Reference();  }
-    */
+    }  
 };
 
 
@@ -89,16 +78,11 @@ public:
     }
 
 private:
-    /** default constructor, not implemented
-     */
-    ObjectsComparator(void);
-    /** copy constructor, not implemented
-     */
-    ObjectsComparator(const ObjectsComparator& rhs);
-    /** assignment operator, not implemented
-     */
-    ObjectsComparator& operator=(const ObjectsComparator& rhs);
+    ObjectsComparator(void) = delete;
+    ObjectsComparator(const ObjectsComparator& rhs) = delete;
+    ObjectsComparator& operator=(const ObjectsComparator& rhs) = delete;
 
+private:
     const PdfReference m_ref;
 };
 
@@ -281,15 +265,15 @@ int32_t PdfVecObjects::SafeAddFreeObject( const PdfReference & rReference )
     // 1 to indicate the generation number to be used the next time an
     // object with that object number is created. Thus, each time
     // the entry is reused, it is given a new generation number."
-    return TryAddFreeObject( rReference.ObjectNumber(), rReference.GenerationNumber() + 1 );
+    return tryAddFreeObject( rReference.ObjectNumber(), rReference.GenerationNumber() + 1 );
 }
 
 bool PdfVecObjects::TryAddFreeObject( const PdfReference & rReference )
 {
-    return TryAddFreeObject( rReference.ObjectNumber() , rReference.GenerationNumber() ) != -1;
+    return tryAddFreeObject( rReference.ObjectNumber() , rReference.GenerationNumber() ) != -1;
 }
 
-int32_t PdfVecObjects::TryAddFreeObject( uint32_t objnum, uint32_t gennum )
+int32_t PdfVecObjects::tryAddFreeObject( uint32_t objnum, uint32_t gennum )
 {
     // Documentation 3.4.3 Cross-Reference Table states: "The maximum
     // generation number is 65535; when a cross reference entry reaches
@@ -673,6 +657,77 @@ void PdfVecObjects::SetCanReuseObjectNumbers( bool bCanReuseObjectNumbers )
     }
 }
 
-};
+size_t PdfVecObjects::GetSize() const
+{
+    return m_vector.size();
+}
+
+void PdfVecObjects::Reserve(size_t size)
+{
+    if (size <= m_nMaxReserveSize) // Fix CVE-2018-5783
+    {
+        m_vector.reserve(size);
+    }
+    else
+    {
+        PdfError::DebugMessage("Call to PdfVecObjects::Reserve with %"
+            PDF_SIZE_FORMAT" is over allowed limit of %"
+            PDF_SIZE_FORMAT".\n", size, m_nMaxReserveSize);
+    }
+}
+
+void PdfVecObjects::Attach(Observer* pObserver)
+{
+    m_vecObservers.push_back(pObserver);
+}
+
+void PdfVecObjects::SetStreamFactory(StreamFactory* pFactory)
+{
+    m_pStreamFactory = pFactory;
+}
+
+TIVecObjects PdfVecObjects::begin()
+{
+    return m_vector.begin();
+}
+
+TCIVecObjects PdfVecObjects::begin() const
+{
+    return m_vector.begin();
+}
+
+TIVecObjects PdfVecObjects::end()
+{
+    return m_vector.end();
+}
+
+TCIVecObjects PdfVecObjects::end() const
+{
+    return m_vector.end();
+}
+
+PdfObject* PdfVecObjects::GetBack()
+{
+    return m_vector.back();
+}
+
+void PdfVecObjects::SetObjectCount(const PdfReference& rRef)
+{
+    if (rRef.ObjectNumber() >= m_nObjectCount)
+    {
+        // "m_bObjectCount" is used for the next free object number.
+        // We need to use the greatest object number + 1 for the next free object number.
+        // Otherwise, object number overlap would have occurred.
+        m_nObjectCount = rRef.ObjectNumber() + 1;
+    }
+}
+
+PdfObject*& PdfVecObjects::operator[](size_t index) { return m_vector[index]; }
+
+
+bool ObjectLittle(const PdfObject* p1, const PdfObject* p2)
+{
+    return *p1 < *p2;
+}
 
 
