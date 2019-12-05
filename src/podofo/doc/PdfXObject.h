@@ -139,17 +139,17 @@ public:
      *  This is most likely an internal object.
      *  \returns a resources object
      */
-    inline PdfObject* GetResources() const override;
+    PdfObject* GetResources() const override;
 
     /** Get the current page size in PDF Units
      *  \returns a PdfRect containing the page size available for drawing
      */
-    inline PdfRect GetSize() const override;
+    PdfRect GetSize() const override;
 
     /** Get the identifier used for drawig this object
      *  \returns identifier
      */
-    inline const PdfName & GetIdentifier() const;
+    inline const PdfName& GetIdentifier() const { return m_Identifier; }
 
     /** Get the reference to the XObject in the PDF file
      *  without having to access the PdfObject.
@@ -159,9 +159,9 @@ public:
      *
      *  \returns the reference of the PdfObject for this XObject
      */
-    inline const PdfReference & GetObjectReference() const;
+    inline const PdfReference& GetObjectReference() const { return m_Reference; }
 
-    EPdfXObject GetType() const { return m_type; }
+    inline EPdfXObject GetType() const { return m_type; }
 
  private:
     static EPdfXObject getPdfXObjectType(const PdfObject &obj);
@@ -176,45 +176,12 @@ public:
     PdfRect          m_rRect;
 
 private:
-    bool             m_resourceInitialized;
     EPdfXObject      m_type;
     PdfArray         m_matrix;
     PdfObject*       m_pResources;
     PdfName          m_Identifier;
     PdfReference     m_Reference;
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-PdfObject* PdfXObject::GetResources() const
-{
-    return m_pResources;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline PdfRect PdfXObject::GetSize() const
-{
-    return m_rRect;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline const PdfName & PdfXObject::GetIdentifier() const
-{
-    return m_Identifier;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline const PdfReference & PdfXObject::GetObjectReference() const
-{
-    return m_Reference;
-}
 
 };
 

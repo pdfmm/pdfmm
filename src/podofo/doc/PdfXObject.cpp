@@ -46,11 +46,10 @@
 
 #include <sstream>
 
-#define PI           3.141592654f
+#define PI 3.141592654
 
 using namespace std;
-
-namespace PoDoFo {
+using namespace PoDoFo;
 
 PdfXObject::PdfXObject( const PdfRect & rRect, PdfDocument* pParent, const char* pszPrefix, bool bWithoutIdentifier )
     : PdfElement( "XObject", pParent ), PdfCanvas(), m_rRect( rRect ), m_pResources( NULL )
@@ -301,15 +300,11 @@ void PdfXObject::SetRect( const PdfRect & rect )
 
 void PdfXObject::EnsureResourcesInitialized()
 {
-    if (m_resourceInitialized)
-        return;
-
     if ( m_pResources == nullptr )
         InitResources();
 
     // A Form XObject must have a stream
     GetObject()->ForceCreateStream();
-    m_resourceInitialized = true;
 }
 
 PdfObject * PdfXObject::GetContents() const
@@ -373,4 +368,12 @@ void PdfXObject::InitResources()
     m_pResources->GetDictionary().AddKey("ProcSet", PdfCanvas::GetProcSet());
 }
 
-};
+PdfObject* PdfXObject::GetResources() const
+{
+    return m_pResources;
+}
+
+inline PdfRect PdfXObject::GetSize() const
+{
+    return m_rRect;
+}
