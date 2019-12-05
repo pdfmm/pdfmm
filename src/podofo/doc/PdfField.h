@@ -1238,13 +1238,13 @@ class PODOFO_DOC_API PdfListField : public PdfField {
     /** Sets the currently selected item
      *  \param nIndex index of the currently selected item
      */
-    void SetSelectedItem( int nIndex );
+    void SetSelectedIndex( int nIndex );
 
     /** Sets the currently selected item
      *
      *  \returns the selected item or -1 if no item was selected
      */
-    int GetSelectedItem() const;
+    int GetSelectedIndex() const;
     
 #if 0
     // TODO:

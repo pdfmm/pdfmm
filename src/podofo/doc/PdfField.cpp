@@ -1001,7 +1001,7 @@ const PdfString PdfListField::GetItem( int nIndex ) const
         return PdfString::StringNull;
 
     PdfArray &optArray = opt->GetArray();
-    if ( nIndex < 0 || nIndex >= static_cast<int>( optArray.size() ) )
+    if (nIndex < 0 || nIndex >= optArray.GetSize())
     {
         PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
     }
@@ -1015,7 +1015,7 @@ const PdfString PdfListField::GetItem( int nIndex ) const
             PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
         }
         else
-            return itemArray[0].GetString();
+            return itemArray.FindAt(0)->GetString();
     }
 
     return item.GetString();
@@ -1042,7 +1042,7 @@ const PdfString PdfListField::GetItemDisplayText( int nIndex ) const
             PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
         }
         else
-            return itemArray[1].GetString();
+            return itemArray.FindAt(1)->GetString();
     }
 
     return item.GetString();
@@ -1057,14 +1057,13 @@ size_t PdfListField::GetItemCount() const
     return opt->GetArray().size();
 }
 
-void PdfListField::SetSelectedItem( int nIndex )
+void PdfListField::SetSelectedIndex( int nIndex )
 {
     PdfString selected = this->GetItem( nIndex );
-
-    m_pObject->GetDictionary().AddKey( PdfName("V"), selected );
+    m_pObject->GetDictionary().AddKey( "V", selected );
 }
 
-int PdfListField::GetSelectedItem() const
+int PdfListField::GetSelectedIndex() const
 {
     PdfObject *valueObj = m_pObject->GetDictionary().FindKey( "V" );
     if( valueObj == nullptr || !( valueObj->IsString() || valueObj->IsHexString() ) )
@@ -1078,8 +1077,22 @@ int PdfListField::GetSelectedItem() const
     PdfArray &optArray = opt->GetArray();
     for (int i = 0; i < optArray.GetSize(); i++)
     {
-        if ( optArray[i].GetString() == value )
-            return i;
+        auto& found = *optArray.FindAt(i);
+        if (found.IsString())
+        {
+            if (found.GetString() == value)
+                return i;
+        }
+        else if (found.IsArray())
+        {
+            auto& arr = found.GetArray();
+            if (arr.FindAt(0)->GetString() == value)
+                return i;
+        }
+        else
+        {
+            PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidDataType, "Choice field item has invaid data type");
+        }
     }
 
     return -1;
