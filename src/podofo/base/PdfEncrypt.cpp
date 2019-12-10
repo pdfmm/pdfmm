@@ -380,7 +380,7 @@ public:
 			PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error AES-decryption data" );
 		if( lLen == *pTotalLeft ) {
 			// Last chunk of the stream
-			if( lLen == lOutLen ) {
+			if( lLen == (size_t)lOutLen ) {
 				// Buffer is full, so we need an other round for EVP_DecryptFinal_ex.
 				bOnlyFinalLeft = true;
 				*pTotalLeft += 16;

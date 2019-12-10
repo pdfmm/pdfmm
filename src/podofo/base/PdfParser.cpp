@@ -1270,8 +1270,7 @@ void PdfParser::ReadObjectsInternal()
 #ifndef VERBOSE_DEBUG_DISABLED
             if (m_bLoadOnDemand) cerr << "Demand loading on, but can't demand-load from object stream." << endl;
 #endif
-            ReadObjectFromStream( static_cast<int>( entry.lGeneration ), 
-                                  static_cast<int>( entry.lOffset ) );
+            ReadObjectFromStream(entry.lGeneration, static_cast<int>(entry.lOffset));
         }
     }
 
@@ -1316,7 +1315,7 @@ void PdfParser::SetPassword( const std::string & sPassword )
     ReadObjectsInternal();
 }
 
-void PdfParser::ReadObjectFromStream( int nObjNo, int )
+void PdfParser::ReadObjectFromStream( uint32_t nObjNo, int)
 {
     // check if we already have read all objects
     // from this stream
@@ -1525,7 +1524,7 @@ void PdfParser::CheckEOFMarker()
     else
     {
         // Search for the Marker from the end of the file
-        size_t lCurrentPos = m_device.Device()->Tell();
+        ssize_t lCurrentPos = m_device.Device()->Tell();
         bool bFound = false;
         while (lCurrentPos>=0)
         {
