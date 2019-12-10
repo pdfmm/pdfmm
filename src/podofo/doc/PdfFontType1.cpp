@@ -174,7 +174,7 @@ void PdfFontType1::EmbedSubsetFont()
             PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
         }
 
-        if(fread( pAllocated, sizeof( char ), lSize, hFile ) != lSize )
+        if(fread( pAllocated, sizeof( char ), lSize, hFile ) != (size_t)lSize )
         {
             podofo_free( pAllocated );
             fclose( hFile );
@@ -475,7 +475,7 @@ void PdfFontType1::EmbedFontFile( PdfObject* pDescriptor )
             PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
         }
 
-        if(fread( pAllocated, sizeof( char ), lSize, hFile ) != lSize )
+        if(fread( pAllocated, sizeof( char ), lSize, hFile ) != (size_t)lSize )
         {
             podofo_free( pAllocated );
             fclose( hFile );
