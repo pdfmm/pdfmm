@@ -52,8 +52,6 @@ enum class EPdfFontFlags
     Subsetting = 0x08
 };
 
-ENABLE_BITMASK_OPERATORS(EPdfFontFlags);
-
 /** This is a factory class which knows
  *  which implementation of PdfFont is required
  *  for a certain font type with certain features (like encoding).
@@ -122,6 +120,8 @@ class PODOFO_DOC_API PdfFontFactory {
 };
 
 };
+
+ENABLE_BITMASK_OPERATORS(PoDoFo::EPdfFontFlags);
 
 #endif /* _PDF_FONT_FACTORY_H_ */
 

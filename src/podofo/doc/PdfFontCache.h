@@ -148,8 +148,6 @@ enum class EFontCreationFlags
     Type1Subsetting = 2		///< Create subsetted type1-font, which includes only used characters
 };
 
-ENABLE_BITMASK_OPERATORS(EFontCreationFlags);
-
 /**
  * This class assists PdfDocument
  * with caching font information.
@@ -424,6 +422,8 @@ FT_Library PdfFontCache::GetFontLibrary() const
 }
 
 };
+
+ENABLE_BITMASK_OPERATORS(PoDoFo::EFontCreationFlags);
 
 #endif /* _PDF_FONT_CACHE_H_ */
 

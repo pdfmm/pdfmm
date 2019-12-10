@@ -112,8 +112,6 @@ enum class EPdfAnnotationFlags
     Unknow       = 0xffff
 };
 
-ENABLE_BITMASK_OPERATORS(EPdfAnnotationFlags);
-
 /**
  * Type of the annotation appearance.
  */
@@ -451,5 +449,7 @@ inline PdfPage* PdfAnnotation::GetPage() const
 }
 
 };
+
+ENABLE_BITMASK_OPERATORS(PoDoFo::EPdfAnnotationFlags);
 
 #endif /* _PDF_ANNOTATION_H_ */

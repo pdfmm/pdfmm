@@ -183,8 +183,6 @@ enum class EPdfWriteMode
     Clean = 0x02,   ///< Create a PDF that is readable in a text editor, i.e. insert spaces and linebreaks between tokens
 };
 
-ENABLE_BITMASK_OPERATORS(EPdfWriteMode);
-
 const EPdfWriteMode PdfWriteModeDefault = EPdfWriteMode::Compact;
 
 /**
@@ -289,6 +287,17 @@ enum class EPdfStrokeStyle
     DashDot,
     DashDotDot,
     Custom 
+};
+
+/**
+ * Enum to specifiy the initial information of the
+ * info dictionary.
+ */
+enum class EPdfInfoInitial
+{
+    WriteCreationTime = 0x01, ///< Write the creation time (current time). Default for new documents.
+    WriteModificationTime = 0x02, ///< Write the modification time (current time). Default for loaded documents.
+    WriteProducer = 0x04  ///< Write producer key. Default for new documents.
 };
 
 /**
@@ -498,6 +507,9 @@ static const char s_cDelimiters[] = {
 #endif // PODOFO_CONVERSION_CONSTANT
 
 }; // end namespace PoDoFo
+
+ENABLE_BITMASK_OPERATORS(PoDoFo::EPdfWriteMode);
+ENABLE_BITMASK_OPERATORS(PoDoFo::EPdfInfoInitial);
 
 /**
  * \mainpage

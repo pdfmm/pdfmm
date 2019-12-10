@@ -64,8 +64,6 @@ enum class EPdfPainterFlags
     NoSaveRestore = 2
 };
 
-ENABLE_BITMASK_OPERATORS(EPdfPainterFlags);
-
 /**
  * This class provides an easy to use painter object which allows you to draw on a PDF page
  * object.
@@ -944,6 +942,8 @@ void PdfPainter::DrawMultiLineText( const PdfRect & rRect, const PdfString & rsT
     this->DrawMultiLineText( rRect.GetLeft(), rRect.GetBottom(), rRect.GetWidth(), rRect.GetHeight(), 
                              rsText, eAlignment, eVertical, bClip, bSkipSpaces );
 }
+
+ENABLE_BITMASK_OPERATORS(PoDoFo::EPdfPainterFlags);
 
 };
 

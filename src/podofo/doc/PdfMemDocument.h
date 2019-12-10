@@ -381,7 +381,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *  \see PdfEncrypt
      */
     void SetEncrypted(const std::string & userPassword, const std::string & ownerPassword,
-        EPdfPermissions protection = PdfPermissionsDefault,
+        EPdfPermissions protection = EPdfPermissions::Default,
         EPdfEncryptAlgorithm eAlgorithm = EPdfEncryptAlgorithm::AESV2,
         EPdfKeyLength eKeyLength = EPdfKeyLength::L40 );
 

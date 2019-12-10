@@ -39,22 +39,10 @@
 #include "podofo/base/PdfDate.h"
 #include "PdfElement.h"
 
-namespace PoDoFo {
+namespace PoDoFo
+{
 
 class PdfString;
-
-/**
- * Enum to specifiy the initial information of the
- * info dictionary.
- */
-enum class EPdfInfoInitial
-{
-    WriteCreationTime = 0x01, ///< Write the creation time (current time). Default for new documents.
-    WriteModificationTime = 0x02, ///< Write the modification time (current time). Default for loaded documents.
-    WriteProducer = 0x04  ///< Write producer key. Default for new documents.
-};
-
-ENABLE_BITMASK_OPERATORS(EPdfInfoInitial);
 
 /** This class provides access to the documents
  *  info dictionary, which provides information
@@ -266,6 +254,5 @@ PdfDate PdfInfo::GetModDate() const
 }
 
 };
-
 
 #endif // _PDF_INFO_H_
