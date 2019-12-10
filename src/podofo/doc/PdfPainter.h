@@ -943,8 +943,8 @@ void PdfPainter::DrawMultiLineText( const PdfRect & rRect, const PdfString & rsT
                              rsText, eAlignment, eVertical, bClip, bSkipSpaces );
 }
 
-ENABLE_BITMASK_OPERATORS(PoDoFo::EPdfPainterFlags);
-
 };
+
+ENABLE_BITMASK_OPERATORS(PoDoFo::EPdfPainterFlags);
 
 #endif // _PDF_PAINTER_H_

@@ -615,21 +615,21 @@ inline bool PdfColor::operator==( const PdfColor & rhs ) const
             && m_separationDensity == rhs.m_separationDensity
             && m_separationName == rhs.m_separationName
             && m_eAlternateColorSpace == rhs.m_eAlternateColorSpace
-            && (m_eAlternateColorSpace == EPdfColorSpace::DeviceGray
-                    && m_uColor.gray == rhs.m_uColor.gray
-                || m_eAlternateColorSpace == EPdfColorSpace::DeviceRGB
+            && ((m_eAlternateColorSpace == EPdfColorSpace::DeviceGray
+                    && m_uColor.gray == rhs.m_uColor.gray)
+                || (m_eAlternateColorSpace == EPdfColorSpace::DeviceRGB
                     && m_uColor.rgb[0] == rhs.m_uColor.rgb[0]
                     && m_uColor.rgb[1] == rhs.m_uColor.rgb[1]
-                    && m_uColor.rgb[2] == rhs.m_uColor.rgb[2]
-                || m_eAlternateColorSpace == EPdfColorSpace::DeviceCMYK
+                    && m_uColor.rgb[2] == rhs.m_uColor.rgb[2])
+                || (m_eAlternateColorSpace == EPdfColorSpace::DeviceCMYK
                     && m_uColor.cmyk[0] == rhs.m_uColor.cmyk[0]
                     && m_uColor.cmyk[1] == rhs.m_uColor.cmyk[1]
                     && m_uColor.cmyk[2] == rhs.m_uColor.cmyk[2]
-                    && m_uColor.cmyk[3] == rhs.m_uColor.cmyk[3]
-                || m_eAlternateColorSpace == EPdfColorSpace::CieLab
+                    && m_uColor.cmyk[3] == rhs.m_uColor.cmyk[3])
+                || (m_eAlternateColorSpace == EPdfColorSpace::CieLab
                     && m_uColor.lab[0] == rhs.m_uColor.lab[0]
                     && m_uColor.lab[1] == rhs.m_uColor.lab[1]
-                    && m_uColor.lab[2] == rhs.m_uColor.lab[2]
+                    && m_uColor.lab[2] == rhs.m_uColor.lab[2])
             ))
         {
             return true;
