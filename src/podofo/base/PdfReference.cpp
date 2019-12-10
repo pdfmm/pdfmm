@@ -42,7 +42,7 @@ namespace PoDoFo {
 
 void PdfReference::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, const PdfEncrypt* ) const
 {
-    if( (eWriteMode & ePdfWriteMode_Compact) == ePdfWriteMode_Compact ) 
+    if( (eWriteMode & EPdfWriteMode::Compact) == EPdfWriteMode::Compact ) 
     {
         // Write space before the reference
         pDevice->Print( " %i %hi R", m_nObjectNo, m_nGenerationNo );

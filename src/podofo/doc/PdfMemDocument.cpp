@@ -69,8 +69,8 @@ PdfMemDocument::PdfMemDocument()
 #endif
       m_pszUpdatingFilename( NULL ), m_pUpdatingInputDevice( NULL )
 {
-    m_eVersion    = ePdfVersion_Default;
-    m_eWriteMode  = ePdfWriteMode_Default;
+    m_eVersion    = PdfVersionDefault;
+    m_eWriteMode  = PdfWriteModeDefault;
     m_bLinearized = false;
     m_eSourceVersion = m_eVersion;
 }
@@ -82,8 +82,8 @@ PdfMemDocument::PdfMemDocument(bool bOnlyTrailer)
 #endif
       m_pszUpdatingFilename( NULL ), m_pUpdatingInputDevice( NULL )
 {
-    m_eVersion    = ePdfVersion_Default;
-    m_eWriteMode  = ePdfWriteMode_Default;
+    m_eVersion    = PdfVersionDefault;
+    m_eWriteMode  = PdfWriteModeDefault;
     m_bLinearized = false;
     m_eSourceVersion = m_eVersion;
 }
@@ -126,7 +126,7 @@ void PdfMemDocument::Clear()
         m_pParser = NULL;
     }
 
-    m_eWriteMode  = ePdfWriteMode_Default;
+    m_eWriteMode  = PdfWriteModeDefault;
 
 #ifdef _WIN32
     if( m_wchar_pszUpdatingFilename )
@@ -182,13 +182,13 @@ void PdfMemDocument::InitFromParser( PdfParser* pParser )
         debug.Write("\n", 1); // OC 17.08.2010: Append Linefeed
         size_t siz = buf.GetSize();
         char*  ptr = buf.GetBuffer();
-        PdfError::LogMessage(eLogSeverity_Information, "%.*s", siz, ptr);
+        PdfError::LogMessage(ELogSeverity::Information, "%.*s", siz, ptr);
     }
 
     PdfObject* pCatalog = pTrailer->GetIndirectKey( "Root" );
     if( !pCatalog )
     {
-        PODOFO_RAISE_ERROR_INFO( ePdfError_NoObject, "Catalog object not found!" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::NoObject, "Catalog object not found!" );
     }
 
 
@@ -222,7 +222,7 @@ void PdfMemDocument::InitFromParser( PdfParser* pParser )
 
     if( m_pEncrypt && this->IsLoadedForUpdate() )
     {
-        PODOFO_RAISE_ERROR( ePdfError_CannotEncryptedForUpdate );
+        PODOFO_RAISE_ERROR( EPdfError::CannotEncryptedForUpdate );
     }
 }
 
@@ -230,7 +230,7 @@ void PdfMemDocument::Load( const char* pszFilename, bool bForUpdate )
 {
     if( !pszFilename || !pszFilename[0] )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     this->Clear();
@@ -250,7 +250,7 @@ void PdfMemDocument::Load( const char* pszFilename, bool bForUpdate )
         m_pParser->ParseFile( pszFilename, true );
         InitFromParser( m_pParser );
     } catch (PdfError& e) {
-        if ( e.GetError() != ePdfError_InvalidPassword )
+        if ( e.GetError() != EPdfError::InvalidPassword )
         {
             Clear(); // avoid m_pParser leak (issue #49)
             e.AddToCallstack( __FILE__, __LINE__, "Handler fixes issue #49" );
@@ -264,7 +264,7 @@ void PdfMemDocument::Load( const wchar_t* pszFilename, bool bForUpdate )
 {
     if( !pszFilename || !pszFilename[0] )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     this->Clear();
@@ -289,7 +289,7 @@ void PdfMemDocument::LoadFromBuffer( const char* pBuffer, long lLen, bool bForUp
 {
     if( !pBuffer || !lLen )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     this->Clear();
@@ -321,7 +321,7 @@ void PdfMemDocument::LoadFromDevice( const PdfRefCountedInputDevice & rDevice, b
     m_pParser->ParseFile( rDevice, true );
     InitFromParser( m_pParser );
 }
-    
+
 /** Add a vendor-specific extension to the current PDF version.
  *  \param ns  namespace of the extension
  *  \param level  level of the extension
@@ -333,7 +333,7 @@ void PdfMemDocument::AddPdfExtension( const char* ns, int64_t level ) {
         PdfObject* pExtensions = this->GetCatalog()->GetIndirectKey("Extensions");
         PdfDictionary newExtension;
         
-        newExtension.AddKey("BaseVersion", PdfName(s_szPdfVersionNums[m_eVersion]));
+        newExtension.AddKey("BaseVersion", PdfName(s_szPdfVersionNums[(int)m_eVersion]));
         newExtension.AddKey("ExtensionLevel", PdfVariant(level));
         
         if (pExtensions && pExtensions->IsDictionary()) {
@@ -484,12 +484,12 @@ void PdfMemDocument::WriteUpdate( const char* pszFilename )
 {
     if( !IsLoadedForUpdate() )
     {
-        PODOFO_RAISE_ERROR( ePdfError_NotLoadedForUpdate );
+        PODOFO_RAISE_ERROR( EPdfError::NotLoadedForUpdate );
     }
 
     if( !pszFilename )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     bool bTruncate = !m_pszUpdatingFilename || strcmp( m_pszUpdatingFilename, pszFilename) != 0;
@@ -504,12 +504,12 @@ void PdfMemDocument::WriteUpdate( const wchar_t* pszFilename )
 {
     if( !IsLoadedForUpdate() )
     {
-        PODOFO_RAISE_ERROR( ePdfError_NotLoadedForUpdate );
+        PODOFO_RAISE_ERROR( EPdfError::NotLoadedForUpdate );
     }
 
     if( !pszFilename )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     bool bTruncate = !m_wchar_pszUpdatingFilename || wcscmp( m_wchar_pszUpdatingFilename, pszFilename) != 0;
@@ -524,7 +524,7 @@ void PdfMemDocument::WriteUpdate( PdfOutputDevice* pDevice, bool bTruncate )
 {
     if( !pDevice )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     // makes sure pending subset-fonts are embedded
@@ -556,12 +556,12 @@ void PdfMemDocument::WriteUpdate( PdfOutputDevice* pDevice, bool bTruncate )
             this->GetCatalog()->GetDictionary().RemoveKey( PdfName( "Version" ) );
         }
 
-        if( this->GetPdfVersion() < ePdfVersion_1_0 || this->GetPdfVersion() > ePdfVersion_1_7 )
+        if( this->GetPdfVersion() < EPdfVersion::V1_0 || this->GetPdfVersion() > EPdfVersion::V1_7 )
         {
-            PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
+            PODOFO_RAISE_ERROR( EPdfError::ValueOutOfRange );
         }
 
-        this->GetCatalog()->GetDictionary().AddKey( PdfName( "Version" ), PdfName( s_szPdfVersionNums[this->GetPdfVersion()] ) );
+        this->GetCatalog()->GetDictionary().AddKey( PdfName( "Version" ), PdfName( s_szPdfVersionNums[(int)this->GetPdfVersion()] ) );
     }
 
     PdfInputDevice *pSourceContent = NULL;
@@ -590,7 +590,7 @@ void PdfMemDocument::WriteUpdate( PdfOutputDevice* pDevice, bool bTruncate )
             }
             else
             {
-                PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
+                PODOFO_RAISE_ERROR( EPdfError::InternalLogic );
             }
         }
 
@@ -673,8 +673,8 @@ const PdfMemDocument & PdfMemDocument::InsertPages( const PdfMemDocument & rDoc,
 }
 
 void PdfMemDocument::SetEncrypted( const std::string & userPassword, const std::string & ownerPassword, 
-                                   int protection, PdfEncrypt::EPdfEncryptAlgorithm eAlgorithm,
-                                   PdfEncrypt::EPdfKeyLength eKeyLength )
+                                   EPdfPermissions protection, EPdfEncryptAlgorithm eAlgorithm,
+                                   EPdfKeyLength eKeyLength )
 {
     delete m_pEncrypt;
 	m_pEncrypt = PdfEncrypt::CreatePdfEncrypt( userPassword, ownerPassword, protection, eAlgorithm, eKeyLength );
@@ -700,13 +700,13 @@ void PdfMemDocument::FreeObjectMemory( PdfObject* pObj, bool bForce )
 {
     if( !pObj ) 
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
     
     PdfParserObject* pParserObject = dynamic_cast<PdfParserObject*>(pObj);
     if( !pParserObject ) 
     {
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle, 
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidHandle, 
                                  "FreeObjectMemory works only on classes of type PdfParserObject." );
     }
 

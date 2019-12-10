@@ -64,7 +64,7 @@ PdfEncoding::PdfEncoding( int nFirstChar, int nLastChar, PdfObject* pToUnicode )
 {
     if( !(m_nFirstCode < m_nLastCode) )
     {
-        PODOFO_RAISE_ERROR_INFO( ePdfError_ValueOutOfRange, "PdfEncoding: nFirstChar must be smaller than nLastChar" ); 
+        PODOFO_RAISE_ERROR_INFO( EPdfError::ValueOutOfRange, "PdfEncoding: nFirstChar must be smaller than nLastChar" ); 
     }
 
     if (pToUnicode && pToUnicode->HasStream())
@@ -150,7 +150,7 @@ PdfRefCountedBuffer PdfEncoding::convertToEncoding( const PdfString &rString, co
     (void)rString;
     (void)map;
     (void)pFont;
-    PODOFO_RAISE_ERROR(ePdfError_NotImplemented);
+    PODOFO_RAISE_ERROR(EPdfError::NotImplemented);
 }
 
 void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &firstChar, char32_t &lastChar, unsigned &maxCodeRangeSize)
@@ -170,12 +170,12 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
     {
         switch ( tokenType )
         {
-            case ePdfContentsType_Keyword:
+            case EPdfContentsType::Keyword:
             {
                 if (strcmp(token, "begincodespacerange") == 0)
                 {
                     if (tokens.size() != 1)
-                        PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidStream, "CMap missing object number before begincodespacerange");
+                        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidStream, "CMap missing object number before begincodespacerange");
 
                     int rangeCount = (int)tokens.front()->GetNumber();
                     maxCodeRangeSize = 0;
@@ -204,7 +204,7 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                 else if (strcmp(token, "beginbfrange") == 0)
                 {
                     if ( tokens.size() != 1 )
-                        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidStream, "CMap missing object number before beginbfrange" );
+                        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidStream, "CMap missing object number before beginbfrange" );
 
                     int rangeCount = (int)tokens.front()->GetNumber();
                     for ( int i = 0; i < rangeCount; i++ )
@@ -227,7 +227,7 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                                 else if (dst.IsName()) // Not mentioned in tecnincal document #5014 but seems safe
                                     map[{ codeSize, srcCodeLo + i }] = dst.GetName().GetStringUtf8();
                                 else
-                                    PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidDataType, "beginbfrange: expected string or name inside array");
+                                    PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "beginbfrange: expected string or name inside array");
                             }
                         }
                         else if (var->IsHexString())
@@ -253,20 +253,20 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                             }
                         }
                         else
-                            PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidDataType, "beginbfrange: expected array, string or array");
+                            PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "beginbfrange: expected array, string or array");
                     }
 
                     if ( !tokenizer.ReadNext(tokenType, token, *var)
-                        || tokenType != ePdfContentsType_Keyword
+                        || tokenType != EPdfContentsType::Keyword
                         || strcmp( token, "endbfrange" ) != 0 )
                     {
-                        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidStream, "CMap missing final endbfrange keyword" );
+                        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidStream, "CMap missing final endbfrange keyword" );
                     }
                 }
                 else if ( strcmp( token, "beginbfchar" ) == 0 )
                 {
                     if ( tokens.size() != 1 )
-                        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidStream, "CMap missing object number before beginbfchar" );
+                        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidStream, "CMap missing object number before beginbfchar" );
 
                     int charCount = (int)tokens.front()->GetNumber();
                     for ( int i = 0; i < charCount; i++ )
@@ -293,20 +293,20 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                             mappedstr = var->GetName().GetStringUtf8();
                         }
                         else
-                            PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidDataType, "beginbfchar: expected number or name");
+                            PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "beginbfchar: expected number or name");
                     }
 
                     if ( !tokenizer.ReadNext(tokenType, token, *var )
-                        || tokenType != ePdfContentsType_Keyword
+                        || tokenType != EPdfContentsType::Keyword
                         || strcmp( token, "endbfchar" ) != 0)
                     {
-                        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidStream, "CMap missing final endbfchar keyword" );
+                        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidStream, "CMap missing final endbfchar keyword" );
                     }
                 }
                 else if (strcmp(token, "begincidrange") == 0)
                 {
                     if (tokens.size() != 1)
-                        PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidStream, "CMap missing object number before begincidrange");
+                        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidStream, "CMap missing object number before begincidrange");
 
                     int rangeCount = (int)tokens.front()->GetNumber();
                     for (int i = 0; i < rangeCount; i++)
@@ -329,16 +329,16 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                     }
 
                     if (!tokenizer.ReadNext(tokenType, token, *var)
-                        || tokenType != ePdfContentsType_Keyword
+                        || tokenType != EPdfContentsType::Keyword
                         || strcmp(token, "endcidrange") != 0)
                     {
-                        PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidStream, "CMap missing final endcidrange keyword");
+                        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidStream, "CMap missing final endcidrange keyword");
                     }
                 }
                 else if (strcmp(token, "begincidchar") == 0)
                 {
                     if (tokens.size() != 1)
-                        PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidStream, "CMap missing object number before begincidchar");
+                        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidStream, "CMap missing object number before begincidchar");
 
                     int charCount = (int)tokens.front()->GetNumber();
                     for (int i = 0; i < charCount; i++)
@@ -354,24 +354,24 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                     }
 
                     if (!tokenizer.ReadNext(tokenType, token, *var)
-                        || tokenType != ePdfContentsType_Keyword
+                        || tokenType != EPdfContentsType::Keyword
                         || strcmp(token, "endcidchar") != 0)
                     {
-                        PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidStream, "CMap missing final endcidchar keyword");
+                        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidStream, "CMap missing final endcidchar keyword");
                     }
                 }
 
                 tokens.clear();
                 break;
             }
-            case ePdfContentsType_Variant:
+            case EPdfContentsType::Variant:
             {
                 tokens.push_front( std::move( var ) );
                 var.reset( new PdfVariant() );
                 break;
             }
             default:
-                PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
+                PODOFO_RAISE_ERROR( EPdfError::InternalLogic );
         }
     }
 
@@ -400,7 +400,7 @@ uint32_t PdfEncoding::GetCodeFromVariant(const PdfVariant &var, unsigned &codeSi
         }
 
         if (codeSize > 2)
-            PODOFO_RAISE_ERROR_INFO(ePdfError_ValueOutOfRange, "PdfEncoding: unsupported code bigger than 16 bits");
+            PODOFO_RAISE_ERROR_INFO(EPdfError::ValueOutOfRange, "PdfEncoding: unsupported code bigger than 16 bits");
 
         return ret;
     }
@@ -445,7 +445,7 @@ void PdfSimpleEncoding::InitEncodingTable()
         m_pEncodingTable = static_cast<char*>(podofo_calloc(lTableLength, sizeof(char)));
 		if (!m_pEncodingTable)
 		{
-			PODOFO_RAISE_ERROR(ePdfError_OutOfMemory);
+			PODOFO_RAISE_ERROR(EPdfError::OutOfMemory);
 		}
 
         // fill the table with data
@@ -467,7 +467,7 @@ pdf_utf16be PdfSimpleEncoding::GetCharCode( int nIndex ) const
     if( nIndex < this->GetFirstChar() ||
         nIndex > this->GetLastChar() )
     {
-        PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
+        PODOFO_RAISE_ERROR( EPdfError::ValueOutOfRange );
     }
 
     const pdf_utf16be* cpUnicodeTable   = this->GetToUnicodeTable();
@@ -497,7 +497,7 @@ PdfString PdfSimpleEncoding::ConvertToUnicode( const PdfString & rEncodedString,
         pdf_utf16be* pszStringUtf16 = static_cast<pdf_utf16be*>(podofo_calloc( (lLen + 1), sizeof(pdf_utf16be)));
         if( !pszStringUtf16 )
         {
-            PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+            PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
         }
         
         const char* pszString = rEncodedString.GetString();
@@ -542,7 +542,7 @@ PdfRefCountedBuffer PdfSimpleEncoding::ConvertToEncoding( const PdfString & rStr
         char* pDest = static_cast<char*>(podofo_calloc( (lLen + 1), sizeof(char) ));
         if( !pDest )
         {
-            PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+            PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
         }
         
         const pdf_utf16be* pszUtf16 = sSrc.GetUnicode();

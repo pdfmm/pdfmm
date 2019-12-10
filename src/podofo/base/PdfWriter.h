@@ -299,8 +299,8 @@ public:
 // -----------------------------------------------------
 void PdfWriter::SetUseXRefStream( bool bStream )
 {
-    if( bStream && this->GetPdfVersion() < ePdfVersion_1_5 )
-        this->SetPdfVersion( ePdfVersion_1_5 );
+    if( bStream && this->GetPdfVersion() < EPdfVersion::V1_5 )
+        this->SetPdfVersion( EPdfVersion::V1_5 );
     m_bXRefStream = bStream;
 }
 

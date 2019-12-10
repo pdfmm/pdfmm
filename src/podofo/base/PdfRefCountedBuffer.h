@@ -183,7 +183,7 @@ public:
  private:
     struct TRefCountedBuffer
     {
-        enum { INTERNAL_BUFSIZE = 32 };
+        static constexpr unsigned INTERNAL_BUFSIZE = 32;
 
         // Convenience for buffer switching
         char * GetRealBuffer();

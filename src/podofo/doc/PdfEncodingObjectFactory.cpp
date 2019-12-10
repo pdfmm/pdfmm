@@ -100,7 +100,7 @@ const PdfEncoding *PdfEncodingObjectFactory::CreateEncoding (PdfObject *pObject,
         return new PdfDifferenceEncoding(pObject, true, bExplicitNames);
     }
     
-    PODOFO_RAISE_ERROR_INFO (ePdfError_InternalLogic,
+    PODOFO_RAISE_ERROR_INFO (EPdfError::InternalLogic,
                              "Unsupported encoding detected!");
 }
 

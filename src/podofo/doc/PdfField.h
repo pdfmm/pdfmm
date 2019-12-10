@@ -54,16 +54,17 @@ class PdfStreamedDocument;
 
 /** The type of PDF field
  */
-enum EPdfField {
-    ePdfField_PushButton, 
-    ePdfField_CheckBox,
-    ePdfField_RadioButton,
-    ePdfField_TextField,
-    ePdfField_ComboBox,
-    ePdfField_ListBox,
-    ePdfField_Signature,
+enum class EPdfField
+{
+    PushButton, 
+    CheckBox,
+    RadioButton,
+    TextField,
+    ComboBox,
+    ListBox,
+    Signature,
 
-    ePdfField_Unknown = 0xff
+    Unknown = 0xff
 };
 
 /** The possible highlighting modes
@@ -72,22 +73,28 @@ enum EPdfField {
  *  button is pressed.
  *
  *  The default value is 
- *  ePdfHighlightingMode_Invert
+ *  EPdfHighlightingMode::Invert
  */
-enum EPdfHighlightingMode {
-    ePdfHighlightingMode_None,           ///< Do no highlighting
-    ePdfHighlightingMode_Invert,         ///< Invert the PdfField
-    ePdfHighlightingMode_InvertOutline,  ///< Invert the fields border
-    ePdfHighlightingMode_Push,           ///< Display the fields down appearance (requires an additional appearance stream to be set)
+enum class EPdfHighlightingMode
+{
+    None,           ///< Do no highlighting
+    Invert,         ///< Invert the PdfField
+    InvertOutline,  ///< Invert the fields border
+    Push,           ///< Display the fields down appearance (requires an additional appearance stream to be set)
 
-    ePdfHighlightingMode_Unknown = 0xff
+    Unknown = 0xff
 };
 
-class PODOFO_DOC_API PdfField {
-    enum { ePdfField_ReadOnly       = 0x0001,
-           ePdfField_Required       = 0x0002,
-           ePdfField_NoExport       = 0x0004
-    };
+enum class EPdfFieldFlags
+{
+    ReadOnly = 0x0001,
+    Required = 0x0002,
+    NoExport = 0x0004
+};
+
+class PODOFO_DOC_API PdfField
+{
+
 
  protected:
     /** Create a new PdfAcroForm dictionary object
@@ -192,7 +199,7 @@ class PODOFO_DOC_API PdfField {
      *
      *  \param eMode the highliting mode
      *
-     *  The default value is ePdfHighlightingMode_Invert
+     *  The default value is EPdfHighlightingMode::Invert
      */
     void SetHighlightingMode( EPdfHighlightingMode eMode );
 
@@ -431,7 +438,7 @@ inline const PdfField & PdfField::operator=( const PdfField & rhs )
 // -----------------------------------------------------
 inline void PdfField::SetReadOnly( bool bReadOnly )
 {
-    this->SetFieldFlag( static_cast<int>(ePdfField_ReadOnly), bReadOnly );
+    this->SetFieldFlag( static_cast<int>(EPdfFieldFlags::ReadOnly), bReadOnly );
 }
 
 // -----------------------------------------------------
@@ -439,7 +446,7 @@ inline void PdfField::SetReadOnly( bool bReadOnly )
 // -----------------------------------------------------
 inline bool PdfField::IsReadOnly() const
 {
-    return this->GetFieldFlag( static_cast<int>(ePdfField_ReadOnly), false );
+    return this->GetFieldFlag( static_cast<int>(EPdfFieldFlags::ReadOnly), false );
 }
 
 // -----------------------------------------------------
@@ -447,7 +454,7 @@ inline bool PdfField::IsReadOnly() const
 // -----------------------------------------------------
 inline void PdfField::SetRequired( bool bRequired )
 {
-    this->SetFieldFlag( static_cast<int>(ePdfField_Required), bRequired );
+    this->SetFieldFlag( static_cast<int>(EPdfFieldFlags::Required), bRequired );
 }
 
 // -----------------------------------------------------
@@ -455,7 +462,7 @@ inline void PdfField::SetRequired( bool bRequired )
 // -----------------------------------------------------
 inline bool PdfField::IsRequired() const
 {
-    return this->GetFieldFlag( static_cast<int>(ePdfField_Required), false );
+    return this->GetFieldFlag( static_cast<int>(EPdfFieldFlags::Required), false );
 }
 
 // -----------------------------------------------------
@@ -463,7 +470,7 @@ inline bool PdfField::IsRequired() const
 // -----------------------------------------------------
 inline void PdfField::SetNoExport( bool bExport )
 {
-    this->SetFieldFlag( static_cast<int>(ePdfField_NoExport), bExport );
+    this->SetFieldFlag( static_cast<int>(EPdfFieldFlags::NoExport), bExport );
 }
 
 // -----------------------------------------------------
@@ -471,7 +478,7 @@ inline void PdfField::SetNoExport( bool bExport )
 // -----------------------------------------------------
 inline bool PdfField::IsNoExport() const
 {
-    return this->GetFieldFlag( static_cast<int>(ePdfField_NoExport), false );
+    return this->GetFieldFlag( static_cast<int>(EPdfFieldFlags::NoExport), false );
 }
 
 // -----------------------------------------------------
@@ -727,7 +734,7 @@ class PODOFO_DOC_API PdfPushButton : public PdfButton {
     /** Create a PdfPushButton from a PdfField 
      *  \param rhs a PdfField that is a push button button
      *
-     *  Raises an error if PdfField::GetType() != ePdfField_PushButton
+     *  Raises an error if PdfField::GetType() != EPdfField::PushButton
      */
     PdfPushButton( const PdfField & rhs );
 
@@ -788,7 +795,7 @@ class PODOFO_DOC_API PdfCheckBox : public PdfButton {
     /** Create a PdfCheckBox from a PdfField 
      *  \param rhs a PdfField that is a check box
      *
-     *  Raises an error if PdfField::GetType() != ePdfField_CheckBox
+     *  Raises an error if PdfField::GetType() != EPdfField::CheckBox
      */
     PdfCheckBox( const PdfField & rhs );
 
@@ -903,7 +910,7 @@ private:
      * 
      *  \param rhs a PdfField that is a PdfTextField
      *
-     *  Raises an error if PdfField::GetType() != ePdfField_TextField
+     *  Raises an error if PdfField::GetType() != EPdfField::TextField
      */
     PdfTextField( const PdfField & rhs );
 
@@ -1411,7 +1418,7 @@ class PODOFO_DOC_API PdfComboBox : public PdfListField {
      * 
      *  \param rhs a PdfField that is a PdfComboBox
      *
-     *  Raises an error if PdfField::GetType() != ePdfField_ComboBox
+     *  Raises an error if PdfField::GetType() != EPdfField::ComboBox
      */
     PdfComboBox( const PdfField & rhs );
 
@@ -1476,7 +1483,7 @@ class PODOFO_DOC_API PdfListBox : public PdfListField {
      * 
      *  \param rhs a PdfField that is a PdfComboBox
      *
-     *  Raises an error if PdfField::GetType() != ePdfField_ListBox
+     *  Raises an error if PdfField::GetType() != EPdfField::ListBox
      */
     PdfListBox( const PdfField & rhs );
 

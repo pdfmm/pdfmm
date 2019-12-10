@@ -155,7 +155,7 @@ void PdfRefCountedBuffer::ReallyDetach( size_t lExtraLen )
     if( !m_pBuffer )
     {
         // throw error rather than de-referencing NULL
-        PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
+        PODOFO_RAISE_ERROR( EPdfError::InternalLogic );
     }
     
     size_t lSize                 = m_pBuffer->m_lBufferSize + lExtraLen;
@@ -175,7 +175,7 @@ void PdfRefCountedBuffer::ReallyDetach( size_t lExtraLen )
         delete pBuffer;
         pBuffer = NULL;
 
-        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+        PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
     }
 
     memcpy( pBuffer->GetRealBuffer(), this->GetBuffer(), this->GetSize() );
@@ -211,7 +211,7 @@ void PdfRefCountedBuffer::ReallyResize( const size_t lSize )
                 void* temp = podofo_realloc( m_pBuffer->m_pHeapBuffer, lAllocSize );
                 if (!temp)
                 {
-                    PODOFO_RAISE_ERROR_INFO( ePdfError_OutOfMemory, "PdfRefCountedBuffer::Resize failed!" );
+                    PODOFO_RAISE_ERROR_INFO( EPdfError::OutOfMemory, "PdfRefCountedBuffer::Resize failed!" );
                 }
                 m_pBuffer->m_pHeapBuffer = static_cast<char*>(temp);
                 m_pBuffer->m_lBufferSize = lAllocSize;
@@ -223,7 +223,7 @@ void PdfRefCountedBuffer::ReallyResize( const size_t lSize )
                 char* pBuffer = static_cast<char*>(podofo_calloc( lAllocSize, sizeof(char) ));
                 if( !pBuffer ) 
                 {
-                    PODOFO_RAISE_ERROR_INFO( ePdfError_OutOfMemory, "PdfRefCountedBuffer::Resize failed!" );
+                    PODOFO_RAISE_ERROR_INFO( EPdfError::OutOfMemory, "PdfRefCountedBuffer::Resize failed!" );
                 }
                 // Only bother copying the visible portion of the buffer. It's completely incorrect
                 // to rely on anything more than that, and not copying it will help catch those errors.
@@ -262,7 +262,7 @@ void PdfRefCountedBuffer::ReallyResize( const size_t lSize )
             delete m_pBuffer;
             m_pBuffer = NULL;
 
-            PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+            PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
         }
     }
     m_pBuffer->m_lVisibleSize = lSize;

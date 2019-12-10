@@ -66,6 +66,68 @@ class RC4CryptoEngine;
 ///////////////////////////////////////////////////////////////////////////////
 
 
+/** A enum specifying a valid keylength for a PDF encryption key.
+ *  Keys must be in the range 40 to 128 bit and have to be a
+ *  multiple of 8.
+ *
+ *  Adobe Reader supports only keys with 40, 128 or 256 bits!
+ */
+enum class EPdfKeyLength
+{
+    L40 = 40,
+    L56 = 56,
+    L80 = 80,
+    L96 = 96,
+    L128 = 128,
+#ifdef PODOFO_HAVE_LIBIDN
+    L256 = 256
+#endif //PODOFO_HAVE_LIBIDN
+};
+
+/** Set user permissions/restrictions on a document
+ */
+enum class EPdfPermissions
+{
+    None = 0,
+    Print = 0x00000004,  ///< Allow printing the document
+    Edit = 0x00000008,  ///< Allow modifying the document besides annotations, form fields or chaning pages
+    Copy = 0x00000010,  ///< Allow text and graphic extraction
+    EditNotes = 0x00000020,  ///< Add or modify text annoations or form fields (if EPdfPermissions::Edit is set also allow to create interactive form fields including signature)
+    FillAndSign = 0x00000100,  ///< Fill in existing form or signature fields 
+    Accessible = 0x00000200,  ///< Extract text and graphics to support user with disabillities
+    DocAssembly = 0x00000400,  ///< Assemble the document: insert, create, rotate delete pages or add bookmarks
+    HighPrint = 0x00000800   ///< Print a high resolution version of the document
+};
+
+ENABLE_BITMASK_OPERATORS(EPdfPermissions);
+
+constexpr EPdfPermissions PdfPermissionsDefault = EPdfPermissions::Print
+    | EPdfPermissions::Edit
+    | EPdfPermissions::Copy
+    | EPdfPermissions::EditNotes
+    | EPdfPermissions::FillAndSign
+    | EPdfPermissions::Accessible
+    | EPdfPermissions::DocAssembly
+    | EPdfPermissions::HighPrint;
+
+/**
+ * The encryption algorithm.
+ */
+enum class EPdfEncryptAlgorithm
+{
+    None = 0,
+#ifndef PODOFO_HAVE_OPENSSL_NO_RC4
+    RC4V1 = 1, ///< RC4 Version 1 encryption using a 40bit key
+    RC4V2 = 2, ///< RC4 Version 2 encryption using a key with 40-128bit
+#endif // PODOFO_HAVE_OPENSSL_NO_RC4
+    AESV2 = 4, ///< AES encryption with a 128 bit key (PDF1.6)
+#ifdef PODOFO_HAVE_LIBIDN
+    AESV3 = 8 ///< AES encryption with a 256 bit key (PDF1.7 extension 3) - Support added by P. Zent
+#endif //PODOFO_HAVE_LIBIDN
+};
+
+ENABLE_BITMASK_OPERATORS(EPdfEncryptAlgorithm);
+
 /** A class that is used to encrypt a PDF file and 
  *  set document permisions on the PDF file.
  *
@@ -80,50 +142,6 @@ class PODOFO_API PdfEncrypt
 {
 public:
 
-    /** A enum specifying a valid keylength for a PDF encryption key.
-     *  Keys must be in the range 40 to 128 bit and have to be a 
-     *  multiple of 8.
-     *
-     *  Adobe Reader supports only keys with 40, 128 or 256 bits!
-     */
-    typedef enum {
-        ePdfKeyLength_40  = 40,
-        ePdfKeyLength_56  = 56,
-        ePdfKeyLength_80  = 80,
-        ePdfKeyLength_96  = 96,
-        ePdfKeyLength_128 = 128
-#ifdef PODOFO_HAVE_LIBIDN
-        ,ePdfKeyLength_256 = 256
-#endif //PODOFO_HAVE_LIBIDN
-    } EPdfKeyLength;
-
-    /** Set user permissions/restrictions on a document
-     */
-    typedef enum {
-        ePdfPermissions_Print		= 0x00000004,  ///< Allow printing the document
-        ePdfPermissions_Edit		= 0x00000008,  ///< Allow modifying the document besides annotations, form fields or chaning pages
-        ePdfPermissions_Copy		= 0x00000010,  ///< Allow text and graphic extraction
-        ePdfPermissions_EditNotes	= 0x00000020,  ///< Add or modify text annoations or form fields (if ePdfPermissions_Edit is set also allow to create interactive form fields including signature)
-        ePdfPermissions_FillAndSign	= 0x00000100,  ///< Fill in existing form or signature fields 
-        ePdfPermissions_Accessible	= 0x00000200,  ///< Extract text and graphics to support user with disabillities
-        ePdfPermissions_DocAssembly	= 0x00000400,  ///< Assemble the document: insert, create, rotate delete pages or add bookmarks
-        ePdfPermissions_HighPrint	= 0x00000800   ///< Print a high resolution version of the document
-    } EPdfPermissions;
-
-    /**
-     * The encryption algorithm.
-     */
-    typedef enum {
-#ifndef PODOFO_HAVE_OPENSSL_NO_RC4
-        ePdfEncryptAlgorithm_RC4V1 = 1, ///< RC4 Version 1 encryption using a 40bit key
-        ePdfEncryptAlgorithm_RC4V2 = 2, ///< RC4 Version 2 encryption using a key with 40-128bit
-#endif // PODOFO_HAVE_OPENSSL_NO_RC4
-        ePdfEncryptAlgorithm_AESV2 = 4  ///< AES encryption with a 128 bit key (PDF1.6)
-#ifdef PODOFO_HAVE_LIBIDN
-        ,ePdfEncryptAlgorithm_AESV3 = 8 ///< AES encryption with a 256 bit key (PDF1.7 extension 3) - Support added by P. Zent
-#endif //PODOFO_HAVE_LIBIDN
-    } EPdfEncryptAlgorithm;
-
     /** Create a PdfEncrypt object which can be used to encrypt a PDF file.
      * 
      *  \param userPassword the user password (if empty the user does not have 
@@ -133,23 +151,16 @@ public:
      *                    the users permissions for this document
      *  \param eAlgorithm the revision of the encryption algorithm to be used
      *  \param eKeyLength the length of the encryption key ranging from 40 to 128 bits 
-     *                    (only used if eAlgorithm == ePdfEncryptAlgorithm_RC4V2)
+     *                    (only used if eAlgorithm == EPdfEncryptAlgorithm::RC4V2)
      *
      *  \see GenerateEncryptionKey with the documentID to generate the real
      *       encryption key using this information
      */
-    static PdfEncrypt * CreatePdfEncrypt( const std::string & userPassword,
-                                          const std::string & ownerPassword, 
-                                          int protection = ePdfPermissions_Print | 
-                                          ePdfPermissions_Edit |
-                                          ePdfPermissions_Copy |
-                                          ePdfPermissions_EditNotes | 
-                                          ePdfPermissions_FillAndSign |
-                                          ePdfPermissions_Accessible |
-                                          ePdfPermissions_DocAssembly |
-                                          ePdfPermissions_HighPrint,
-                                          EPdfEncryptAlgorithm eAlgorithm = ePdfEncryptAlgorithm_AESV2, 
-                                          EPdfKeyLength eKeyLength = ePdfKeyLength_40 );
+    static PdfEncrypt * CreatePdfEncrypt(const std::string & userPassword,
+                                         const std::string & ownerPassword, 
+                                         EPdfPermissions protection = PdfPermissionsDefault,
+                                         EPdfEncryptAlgorithm eAlgorithm = EPdfEncryptAlgorithm::AESV2, 
+                                         EPdfKeyLength eKeyLength = EPdfKeyLength::L40);
 
     /** Initialize a PdfEncrypt object from an encryption dictionary in a PDF file.
      *
@@ -181,7 +192,7 @@ public:
      *
      * \return an or'ed together list of all enabled encryption algorithms
      */
-    static int GetEnabledEncryptionAlgorithms();
+    static EPdfEncryptAlgorithm GetEnabledEncryptionAlgorithms();
 
     /**
      * Specify the list of encryption algorithms that should be used by PoDoFo
@@ -193,7 +204,7 @@ public:
      * \see GetEnabledEncryptionAlgorithms
      * \see IsEncryptionEnabled
      */
-    static void SetEnabledEncryptionAlgorithms(int nEncryptionAlgorithms);
+    static void SetEnabledEncryptionAlgorithms(EPdfEncryptAlgorithm nEncryptionAlgorithms);
 
     /**
      * Test if a certain encryption algorithm is enabled for loading PDF documents.
@@ -345,7 +356,7 @@ public:
     const unsigned char* GetEncryptionKey() const { return m_encryptionKey; }
     
     /// Get the P object value (protection)
-    int32_t GetPValue() const { return m_pValue; }
+    EPdfPermissions GetPValue() const { return m_pValue; }
     
     /// Get the revision number of the encryption method
     int GetRevision() const { return m_rValue; }
@@ -390,8 +401,8 @@ public:
 
 protected:
     PdfEncrypt()
-        : m_eAlgorithm( ePdfEncryptAlgorithm_AESV2 ), m_keyLength( 0 ), m_rValue( 0 ), m_pValue( 0 ),
-        m_eKeyLength( ePdfKeyLength_128 ), m_bEncryptMetadata(true)
+        : m_eAlgorithm( EPdfEncryptAlgorithm::AESV2 ), m_keyLength( 0 ), m_rValue( 0 ), m_pValue( EPdfPermissions::None ),
+        m_eKeyLength( EPdfKeyLength::L128 ), m_bEncryptMetadata(true)
     {
         memset( m_uValue, 0, 48 );
         memset( m_oValue, 0, 48 );
@@ -406,7 +417,7 @@ protected:
     EPdfEncryptAlgorithm m_eAlgorithm;   ///< The used encryption algorithm
     int            m_keyLength;          ///< Length of encryption key
     int            m_rValue;             ///< Revision
-    int32_t      m_pValue;             ///< P entry in pdf document
+    EPdfPermissions m_pValue;             ///< P entry in pdf document
     EPdfKeyLength  m_eKeyLength;         ///< The key length
     std::string    m_userPass;           ///< User password
     std::string    m_ownerPass;          ///< Owner password
@@ -418,7 +429,7 @@ protected:
 	bool           m_bEncryptMetadata;   ///< Is metadata encrypted
     
 private:    
-    static int     s_nEnabledEncryptionAlgorithms; ///< Or'ed int containing the enabled encryption algorithms
+    static EPdfEncryptAlgorithm s_nEnabledEncryptionAlgorithms; ///< Or'ed int containing the enabled encryption algorithms
 };
 
 #ifdef PODOFO_HAVE_LIBIDN
@@ -467,7 +478,7 @@ public:
     bool Authenticate(const std::string & documentID, const std::string & password,
                       const std::string & uValue, const std::string & ueValue,
                       const std::string & oValue, const std::string & oeValue,
-                      int pValue, const std::string & permsValue,
+                      EPdfPermissions pValue, const std::string & permsValue,
                       int lengthValue, int rValue);
     
 protected:
@@ -593,7 +604,7 @@ public:
     
     bool Authenticate(const std::string & documentID, const std::string & password,
                       const std::string & uValue, const std::string & oValue,
-                      int pValue, int lengthValue, int rValue);
+                      EPdfPermissions pValue, int lengthValue, int rValue);
     
 protected:
     
@@ -611,7 +622,7 @@ protected:
     /// Compute encryption key and user key
     void ComputeEncryptionKey(const std::string & documentID,
                               unsigned char userPad[32], unsigned char ownerKey[32],
-                              int pValue, int keyLength, int revision,
+                              EPdfPermissions pValue, EPdfKeyLength keyLength, int revision,
                               unsigned char userKey[32], bool bEncryptMetadata);
     
     /** Create the encryption key for the current object.
@@ -638,19 +649,10 @@ public:
 	/*
 	*	Constructors of PdfEncryptAESV2
 	*/
-	PdfEncryptAESV2(PdfString oValue, PdfString uValue, int pValue, bool bEncryptMetadata);
+	PdfEncryptAESV2(PdfString oValue, PdfString uValue, EPdfPermissions pValue, bool bEncryptMetadata);
     PdfEncryptAESV2( const PdfEncrypt & rhs ) : PdfEncryptMD5Base(rhs) {}
-	PdfEncryptAESV2( const std::string & userPassword,
-                   const std::string & ownerPassword, 
-                   int protection = ePdfPermissions_Print | 
-                                 ePdfPermissions_Edit |
-                                 ePdfPermissions_Copy |
-                                 ePdfPermissions_EditNotes | 
-                                 ePdfPermissions_FillAndSign |
-                                 ePdfPermissions_Accessible |
-                                 ePdfPermissions_DocAssembly |
-                                 ePdfPermissions_HighPrint
-                );
+	PdfEncryptAESV2(const std::string & userPassword, const std::string & ownerPassword, 
+                    EPdfPermissions protection = PdfPermissionsDefault);
     
 	PdfInputStream* CreateEncryptionInputStream( PdfInputStream* pInputStream ) override;
 	PdfOutputStream* CreateEncryptionOutputStream( PdfOutputStream* pOutputStream ) override;
@@ -683,19 +685,10 @@ public:
     /*
      *	Constructors of PdfEncryptAESV3
      */
-    PdfEncryptAESV3(PdfString oValue, PdfString oeValue, PdfString uValue, PdfString ueValue, int pValue, PdfString permsValue);
-    PdfEncryptAESV3( const PdfEncrypt & rhs ) : PdfEncryptSHABase(rhs) {}
-    PdfEncryptAESV3( const std::string & userPassword,
-                  const std::string & ownerPassword, 
-                  int protection = ePdfPermissions_Print | 
-                  ePdfPermissions_Edit |
-                  ePdfPermissions_Copy |
-                  ePdfPermissions_EditNotes | 
-                  ePdfPermissions_FillAndSign |
-                  ePdfPermissions_Accessible |
-                  ePdfPermissions_DocAssembly |
-                  ePdfPermissions_HighPrint
-                  );
+    PdfEncryptAESV3(PdfString oValue, PdfString oeValue, PdfString uValue, PdfString ueValue, EPdfPermissions pValue, PdfString permsValue);
+    PdfEncryptAESV3(const PdfEncrypt & rhs) : PdfEncryptSHABase(rhs) {}
+    PdfEncryptAESV3(const std::string & userPassword, const std::string & ownerPassword, 
+                    EPdfPermissions protection = PdfPermissionsDefault);
     
     PdfInputStream* CreateEncryptionInputStream( PdfInputStream* pInputStream ) override;
     PdfOutputStream* CreateEncryptionOutputStream( PdfOutputStream* pOutputStream ) override;
@@ -731,20 +724,12 @@ public:
 	*	Constructors of PdfEncryptRC4 objects
 	*/
 	PdfEncryptRC4(PdfString oValue, PdfString uValue, 
-		int pValue, int rValue, EPdfEncryptAlgorithm eAlgorithm, long length, bool bEncryptMetadata);
+        EPdfPermissions pValue, int rValue, EPdfEncryptAlgorithm eAlgorithm, int length, bool bEncryptMetadata);
     PdfEncryptRC4( const PdfEncrypt & rhs ) : PdfEncryptMD5Base(rhs) {}
-	PdfEncryptRC4( const std::string & userPassword,
-                   const std::string & ownerPassword, 
-                   int protection = ePdfPermissions_Print | 
-                                 ePdfPermissions_Edit |
-                                 ePdfPermissions_Copy |
-                                 ePdfPermissions_EditNotes | 
-                                 ePdfPermissions_FillAndSign |
-                                 ePdfPermissions_Accessible |
-                                 ePdfPermissions_DocAssembly |
-                                 ePdfPermissions_HighPrint,
-                  EPdfEncryptAlgorithm eAlgorithm = ePdfEncryptAlgorithm_RC4V1,
-                  EPdfKeyLength eKeyLength = ePdfKeyLength_40 );
+	PdfEncryptRC4(const std::string & userPassword, const std::string & ownerPassword, 
+                  EPdfPermissions protection = PdfPermissionsDefault,
+                  EPdfEncryptAlgorithm eAlgorithm = EPdfEncryptAlgorithm::RC4V1,
+                  EPdfKeyLength eKeyLength = EPdfKeyLength::L40 );
     
     bool Authenticate( const std::string & password, const PdfString & documentId ) override;
     
@@ -768,7 +753,7 @@ public:
 // -----------------------------------------------------
 // 
 // -----------------------------------------------------
-PdfEncrypt::EPdfEncryptAlgorithm PdfEncrypt::GetEncryptAlgorithm() const
+EPdfEncryptAlgorithm PdfEncrypt::GetEncryptAlgorithm() const
 {
     return m_eAlgorithm;
 }
@@ -786,7 +771,7 @@ void PdfEncrypt::SetCurrentReference( const PdfReference & rRef )
 // -----------------------------------------------------
 bool PdfEncrypt::IsPrintAllowed() const
 {
-    return (m_pValue & ePdfPermissions_Print) == ePdfPermissions_Print;
+    return (m_pValue & EPdfPermissions::Print) == EPdfPermissions::Print;
 }
 
 // -----------------------------------------------------
@@ -794,7 +779,7 @@ bool PdfEncrypt::IsPrintAllowed() const
 // -----------------------------------------------------
 bool PdfEncrypt::IsEditAllowed() const
 {
-    return (m_pValue & ePdfPermissions_Edit) == ePdfPermissions_Edit;
+    return (m_pValue & EPdfPermissions::Edit) == EPdfPermissions::Edit;
 }
 
 // -----------------------------------------------------
@@ -802,7 +787,7 @@ bool PdfEncrypt::IsEditAllowed() const
 // -----------------------------------------------------
 bool PdfEncrypt::IsCopyAllowed() const
 {
-    return (m_pValue & ePdfPermissions_Copy) == ePdfPermissions_Copy;
+    return (m_pValue & EPdfPermissions::Copy) == EPdfPermissions::Copy;
 }
 
 // -----------------------------------------------------
@@ -810,7 +795,7 @@ bool PdfEncrypt::IsCopyAllowed() const
 // -----------------------------------------------------
 bool PdfEncrypt::IsEditNotesAllowed() const
 {
-    return (m_pValue & ePdfPermissions_EditNotes) == ePdfPermissions_EditNotes;
+    return (m_pValue & EPdfPermissions::EditNotes) == EPdfPermissions::EditNotes;
 }
 
 // -----------------------------------------------------
@@ -818,7 +803,7 @@ bool PdfEncrypt::IsEditNotesAllowed() const
 // -----------------------------------------------------
 bool PdfEncrypt::IsFillAndSignAllowed() const
 {
-    return (m_pValue & ePdfPermissions_FillAndSign) == ePdfPermissions_FillAndSign;
+    return (m_pValue & EPdfPermissions::FillAndSign) == EPdfPermissions::FillAndSign;
 }
 
 // -----------------------------------------------------
@@ -826,7 +811,7 @@ bool PdfEncrypt::IsFillAndSignAllowed() const
 // -----------------------------------------------------
 bool PdfEncrypt::IsAccessibilityAllowed() const
 {
-    return (m_pValue & ePdfPermissions_Accessible) == ePdfPermissions_Accessible;
+    return (m_pValue & EPdfPermissions::Accessible) == EPdfPermissions::Accessible;
 }
 
 // -----------------------------------------------------
@@ -834,7 +819,7 @@ bool PdfEncrypt::IsAccessibilityAllowed() const
 // -----------------------------------------------------
 bool PdfEncrypt::IsDocAssemblyAllowed() const
 {
-    return (m_pValue & ePdfPermissions_DocAssembly) == ePdfPermissions_DocAssembly;
+    return (m_pValue & EPdfPermissions::DocAssembly) == EPdfPermissions::DocAssembly;
 }
 
 // -----------------------------------------------------
@@ -842,7 +827,7 @@ bool PdfEncrypt::IsDocAssemblyAllowed() const
 // -----------------------------------------------------
 bool PdfEncrypt::IsHighPrintAllowed() const
 {
-    return (m_pValue & ePdfPermissions_HighPrint) == ePdfPermissions_HighPrint;
+    return (m_pValue & EPdfPermissions::HighPrint) == EPdfPermissions::HighPrint;
 }
 
 } //end namespace PoDoFo

@@ -85,7 +85,7 @@ PdfName PdfName::FromUtf8String(const string & u8str)
 {
     PdfName ret;
     if (!PdfDocEncoding::TryConvertUTF8ToPdfDocEncoding(u8str, ret.m_Data))
-        PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidName, "Characters in string must be PdfDocEncoding character set");
+        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidName, "Characters in string must be PdfDocEncoding character set");
 
     return ret;
 }
@@ -162,7 +162,7 @@ std::string EscapeName(T it, size_t length)
         // Null chars are illegal in names, even escaped
         if (*it2 == '\0')
         {
-            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidName, "Null byte in PDF name is illegal");
+            PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidName, "Null byte in PDF name is illegal");
         }
         else 
         {

@@ -465,7 +465,7 @@ void PdfSimpleTableModel::SetText( int col, int row, const PdfString & rsString 
 {
     if( !m_ppData || row >= m_nRows || col >= m_nCols )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     m_ppData[row][col] = rsString;

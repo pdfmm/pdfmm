@@ -191,13 +191,13 @@ void PdfObject::WriteObject( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode,
 
     if( !pDevice )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     if( m_reference.IsIndirect() )
     {
         // CHECK-ME We want to make this in all the cases for PDF/A Compatibility
-        //if( (eWriteMode & ePdfWriteMode_Clean) == ePdfWriteMode_Clean )
+        //if( (eWriteMode & EPdfWriteMode::Clean) == EPdfWriteMode::Clean )
         {
             pDevice->Print( "%i %i obj\n", m_reference.ObjectNumber(), m_reference.GenerationNumber() );
         }
@@ -252,7 +252,7 @@ PdfObject* PdfObject::MustGetIndirectKey(const PdfName & key) const
 {
     PdfObject* obj = GetIndirectKey(key);
     if (!obj)
-        PODOFO_RAISE_ERROR(ePdfError_NoObject);
+        PODOFO_RAISE_ERROR(EPdfError::NoObject);
     return obj;
 }
 
@@ -302,7 +302,7 @@ void PdfObject::forceCreateStream()
 
     if (GetDataType() != EPdfDataType::Dictionary)
     {
-        PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidDataType, "Tried to get stream of non-dictionary object");
+        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "Tried to get stream of non-dictionary object");
     }
 
     if (m_pOwner == nullptr)
@@ -383,12 +383,12 @@ size_t PdfObject::GetByteOffset( const char* pszKey, EPdfWriteMode eWriteMode )
 
     if( !pszKey )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     if( !this->GetDictionary().HasKey( pszKey ) )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidKey );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidKey );
     }
 
     this->Write( &device, eWriteMode, NULL, pszKey );
@@ -405,7 +405,7 @@ void PdfObject::DelayedLoadStreamImpl()
 {
     // Default implementation throws, since delayed loading of
     // steams should not be enabled except by types that support it.
-    PODOFO_RAISE_ERROR(ePdfError_InternalLogic);
+    PODOFO_RAISE_ERROR(EPdfError::InternalLogic);
 }
 
 bool PdfObject::operator<(const PdfObject& rhs) const

@@ -60,12 +60,12 @@ void PdfCanvas::AddColorResource( const PdfColor & rColor )
     
     if( !pResource )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
 	switch( rColor.GetColorSpace() )
 	{
-		case ePdfColorSpace_Separation:
+		case EPdfColorSpace::Separation:
 		{
 			std::string csPrefix( "ColorSpace" );
 			std::string csName = rColor.GetName();
@@ -84,7 +84,7 @@ void PdfCanvas::AddColorResource( const PdfColor & rColor )
 		}
 		break;
 
-		case ePdfColorSpace_CieLab:
+		case EPdfColorSpace::CieLab:
 		{
 			if ( 
 				! pResource->GetDictionary().HasKey( "ColorSpace" )	||
@@ -99,12 +99,12 @@ void PdfCanvas::AddColorResource( const PdfColor & rColor )
 		}
 		break;
 
-        case ePdfColorSpace_DeviceGray:
-        case ePdfColorSpace_DeviceRGB:
-        case ePdfColorSpace_DeviceCMYK:
-	case ePdfColorSpace_Indexed:
+        case EPdfColorSpace::DeviceGray:
+        case EPdfColorSpace::DeviceRGB:
+        case EPdfColorSpace::DeviceCMYK:
+	case EPdfColorSpace::Indexed:
             // No colorspace needed
-        case ePdfColorSpace_Unknown:
+        case EPdfColorSpace::Unknown:
 		default:
 		break;
 	}
@@ -114,14 +114,14 @@ void PdfCanvas::AddResource( const PdfName & rIdentifier, const PdfReference & r
 {
     if( !rName.GetLength() || !rIdentifier.GetLength() )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     PdfObject* pResource = this->GetResources();
     
     if( !pResource )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     if( !pResource->GetDictionary().HasKey( rName ) )
@@ -136,7 +136,7 @@ void PdfCanvas::AddResource( const PdfName & rIdentifier, const PdfReference & r
 
         if (0 == directObject)
         {
-            PODOFO_RAISE_ERROR( ePdfError_NoObject );
+            PODOFO_RAISE_ERROR( EPdfError::NoObject );
         }
 
         if( !directObject->GetDictionary().HasKey( rIdentifier ) )

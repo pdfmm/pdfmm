@@ -128,7 +128,7 @@ void PdfFontType1::EmbedSubsetFont()
     pContents = this->GetObject()->GetOwner()->CreateObject();
     if( !pContents )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
         
     m_pDescriptor->GetDictionary().AddKey( "FontFile", pContents->GetIndirectReference() );
@@ -145,33 +145,33 @@ void PdfFontType1::EmbedSubsetFont()
         FILE* hFile = fopen( m_pMetrics->GetFilename(), "rb" );
         if( !hFile )
         {
-            PODOFO_RAISE_ERROR_INFO( ePdfError_FileNotFound, m_pMetrics->GetFilename() );
+            PODOFO_RAISE_ERROR_INFO( EPdfError::FileNotFound, m_pMetrics->GetFilename() );
         }
 
         if( fseeko( hFile, 0L, SEEK_END ) == -1 )
         {
             fclose( hFile );
-            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDeviceOperation, "Failed to seek to the end of the file" );
+            PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDeviceOperation, "Failed to seek to the end of the file" );
         }
 
         lSize = ftello( hFile );
         if( lSize == -1 )
         {
             fclose( hFile );
-            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDeviceOperation, "Failed to read size of the file" );
+            PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDeviceOperation, "Failed to read size of the file" );
         }
 
         if( fseeko( hFile, 0L, SEEK_SET ) == -1 )
         {
             fclose( hFile );
-            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDeviceOperation, "Failed to seek to the beginning of the file" );
+            PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDeviceOperation, "Failed to seek to the beginning of the file" );
         }
 
         pAllocated = static_cast<char*>(podofo_calloc( lSize, sizeof(char) ));
         if( !pAllocated )
         {
             fclose( hFile );
-            PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+            PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
         }
 
         if(fread( pAllocated, sizeof( char ), lSize, hFile ) != lSize )
@@ -179,7 +179,7 @@ void PdfFontType1::EmbedSubsetFont()
             podofo_free( pAllocated );
             fclose( hFile );
 
-            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDeviceOperation, "Failed to read whole file into the memory" );
+            PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDeviceOperation, "Failed to read whole file into the memory" );
         }
 
         fclose( hFile );
@@ -429,7 +429,7 @@ void PdfFontType1::EmbedFontFile( PdfObject* pDescriptor )
     pContents = this->GetObject()->GetOwner()->CreateObject();
     if( !pContents )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
         
     pDescriptor->GetDictionary().AddKey( "FontFile", pContents->GetIndirectReference() );
@@ -446,33 +446,33 @@ void PdfFontType1::EmbedFontFile( PdfObject* pDescriptor )
         FILE* hFile = fopen( m_pMetrics->GetFilename(), "rb" );
         if( !hFile )
         {
-            PODOFO_RAISE_ERROR_INFO( ePdfError_FileNotFound, m_pMetrics->GetFilename() );
+            PODOFO_RAISE_ERROR_INFO( EPdfError::FileNotFound, m_pMetrics->GetFilename() );
         }
 
         if( fseeko( hFile, 0L, SEEK_END ) == -1 )
         {
             fclose( hFile );
-            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDeviceOperation, "Failed to seek to the end of the file" );
+            PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDeviceOperation, "Failed to seek to the end of the file" );
         }
 
         lSize = ftello( hFile );
         if( lSize == -1 )
         {
             fclose( hFile );
-            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDeviceOperation, "Failed to read size of the file" );
+            PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDeviceOperation, "Failed to read size of the file" );
         }
 
         if( fseeko( hFile, 0L, SEEK_SET ) == -1 )
         {
             fclose( hFile );
-            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDeviceOperation, "Failed to seek to the beginning of the file" );
+            PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDeviceOperation, "Failed to seek to the beginning of the file" );
         }
 
         pAllocated = static_cast<char*>(podofo_calloc( lSize, sizeof(char) ));
         if( !pAllocated )
         {
             fclose( hFile );
-            PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+            PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
         }
 
         if(fread( pAllocated, sizeof( char ), lSize, hFile ) != lSize )
@@ -480,7 +480,7 @@ void PdfFontType1::EmbedFontFile( PdfObject* pDescriptor )
             podofo_free( pAllocated );
             fclose( hFile );
 
-            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDeviceOperation, "Failed to read whole file into the memory" );
+            PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDeviceOperation, "Failed to read whole file into the memory" );
         }
 
         fclose( hFile );

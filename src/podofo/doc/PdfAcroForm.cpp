@@ -81,11 +81,11 @@ void PdfAcroForm::Init( EPdfAcroFormDefaulAppearance eDefaultAppearance )
     //this->GetObject()->GetDictionary().AddKey( PdfName("NeedAppearances"), PdfVariant(true) );
 
     if( !this->GetObject()->GetDictionary().HasKey("DA") && 
-        eDefaultAppearance == ePdfAcroFormDefaultAppearance_BlackText12pt )
+        eDefaultAppearance == EPdfAcroFormDefaulAppearance::BlackText12pt )
     {
         PdfFont* pFont = m_pDocument->CreateFont( "Helvetica", false,
                                                  PdfEncodingFactory::GlobalWinAnsiEncodingInstance(),
-                                                 PdfFontCache::eFontCreationFlags_AutoSelectBase14,
+                                                 EFontCreationFlags::AutoSelectBase14,
                                                  false );
         //PdfFont* pFont = m_pDocument->CreateFont( "Arial" );
         PdfObject* pResource;
@@ -124,7 +124,7 @@ int PdfAcroForm::GetCount()
     }
     else
     {
-        PODOFO_RAISE_ERROR( ePdfError_NoObject );
+        PODOFO_RAISE_ERROR( EPdfError::NoObject );
     }
 }
 */

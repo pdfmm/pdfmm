@@ -70,7 +70,7 @@ PdfDestination::PdfDestination( PdfObject* pObject, PdfVecObjects* pVecObjects )
     PdfDocument* pDocument = pVecObjects->GetParentDocument();
     if( !pDocument ) 
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidDataType );
     }
 
     Init( pObject, pDocument );
@@ -80,15 +80,15 @@ PdfDestination::PdfDestination( const PdfPage* pPage, EPdfDestinationFit eFit )
 {
     PdfName type = PdfName("Fit");
 
-    if( eFit == ePdfDestinationFit_Fit )
+    if( eFit == EPdfDestinationFit::Fit )
         type = PdfName("Fit");
-    else if( eFit == ePdfDestinationFit_FitB )
+    else if( eFit == EPdfDestinationFit::FitB )
         type = PdfName("FitB");
     else
     {
         // Peter Petrov 6 June 2008
         // silent mode
-        //PODOFO_RAISE_ERROR( ePdfError_InvalidKey );
+        //PODOFO_RAISE_ERROR( EPdfError::InvalidKey );
     }
 
     m_array.push_back( pPage->GetObject()->GetIndirectReference() );
@@ -122,17 +122,17 @@ PdfDestination::PdfDestination( const PdfPage* pPage, EPdfDestinationFit eFit, d
 {
     PdfName type;
 
-    if( eFit == ePdfDestinationFit_FitH )
+    if( eFit == EPdfDestinationFit::FitH )
         type = PdfName("FitH");
-    else if( eFit == ePdfDestinationFit_FitV )
+    else if( eFit == EPdfDestinationFit::FitV )
         type = PdfName("FitV");
-    else if( eFit == ePdfDestinationFit_FitBH )
+    else if( eFit == EPdfDestinationFit::FitBH )
         type = PdfName("FitBH");
-    else if( eFit == ePdfDestinationFit_FitBV )
+    else if( eFit == EPdfDestinationFit::FitBV )
         type = PdfName("FitBV");
     else
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidKey );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidKey );
     }
 
     m_array.push_back( pPage->GetObject()->GetIndirectReference() );
@@ -169,7 +169,7 @@ void PdfDestination::Init( PdfObject* pObject, PdfDocument* pDocument )
         PdfNamesTree* pNames = pDocument->GetNamesTree( ePdfDontCreateObject );
         if( !pNames ) 
         {
-            PODOFO_RAISE_ERROR( ePdfError_NoObject );
+            PODOFO_RAISE_ERROR( EPdfError::NoObject );
         }
             
         pValue = pNames->GetValue( "Dests", pObject->GetString() );
@@ -180,21 +180,21 @@ void PdfDestination::Init( PdfObject* pObject, PdfDocument* pDocument )
         PdfMemDocument* pMemDoc = dynamic_cast<PdfMemDocument*>(pDocument);
         if ( !pMemDoc )
         { 
-            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle,
+            PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidHandle,
                 "For reading from a document, only use PdfMemDocument." );
         }
 
         PdfObject* pCatalog = pMemDoc->GetCatalog();
         if ( !pCatalog )
         {
-            PODOFO_RAISE_ERROR( ePdfError_NoObject );
+            PODOFO_RAISE_ERROR( EPdfError::NoObject );
         }
  
         PdfObject* pDests = pCatalog->GetIndirectKey( PdfName( "Dests" ) );
         if( !pDests )
         {
             // The error code has been chosen for its distinguishability.
-            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidKey,
+            PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidKey,
                 "No PDF-1.1-compatible destination dictionary found." );
         }
         pValue = pDests->GetIndirectKey( pObject->GetName() );
@@ -202,7 +202,7 @@ void PdfDestination::Init( PdfObject* pObject, PdfDocument* pDocument )
     } 
     else
     {
-        PdfError::LogMessage( eLogSeverity_Error, "Unsupported object given to"
+        PdfError::LogMessage( ELogSeverity::Error, "Unsupported object given to"
             " PdfDestination::Init of type %s", pObject->GetDataTypeString() );
         m_array = PdfArray(); // needed to prevent crash on method calls
         // needed for GetObject() use w/o checking its return value for NULL
@@ -212,7 +212,7 @@ void PdfDestination::Init( PdfObject* pObject, PdfDocument* pDocument )
     {
         if( !pValue ) 
         {
-            PODOFO_RAISE_ERROR( ePdfError_InvalidName );
+            PODOFO_RAISE_ERROR( EPdfError::InvalidName );
         }
 
         if( pValue->IsArray() ) 
@@ -232,7 +232,7 @@ void PdfDestination::AddToDictionary( PdfDictionary & dictionary ) const
     // since we can only have EITHER a Dest OR an Action
     // we check for an Action, and if already present, we throw
     if ( dictionary.HasKey( PdfName( "A" ) ) )
-        PODOFO_RAISE_ERROR( ePdfError_ActionAlreadyPresent );
+        PODOFO_RAISE_ERROR( EPdfError::ActionAlreadyPresent );
 
     dictionary.RemoveKey( "Dest" );
     dictionary.AddKey( "Dest", m_pObject );
@@ -252,7 +252,7 @@ PdfPage* PdfDestination::GetPage( PdfVecObjects* pVecObjects )
     PdfDocument* pDoc = pVecObjects->GetParentDocument();
     if( !pDoc ) 
     {
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle,
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidHandle,
                                  "PdfVecObjects needs a parent PdfDocument to resolve pages." );
     }
      

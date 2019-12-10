@@ -63,7 +63,7 @@ PdfPagesTree::PdfPagesTree( PdfObject* pPagesRoot )
 {
     if( !this->GetObject() ) 
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 }
 
@@ -127,16 +127,16 @@ void PdfPagesTree::InsertPage( int nAfterPageIndex, PdfObject* pPage )
 {
     bool bInsertBefore = false;
 
-    if( ePdfPageInsertionPoint_InsertBeforeFirstPage == nAfterPageIndex )
+    if((int)EPdfPageInsertionPoint::InsertBeforeFirstPage == nAfterPageIndex )
     {
         bInsertBefore = true;
         nAfterPageIndex = 0;
     }
     else if( nAfterPageIndex < 0 ) 
     {
-        // Only ePdfPageInsertionPoint_InsertBeforeFirstPage is valid here
-        PdfError::LogMessage( eLogSeverity_Information,
-                              "Invalid argument to PdfPagesTree::InsertPage: %i (Only ePdfPageInsertionPoint_InsertBeforeFirstPage is valid here).",
+        // Only EPdfPageInsertionPoint::InsertBeforeFirstPage is valid here
+        PdfError::LogMessage( ELogSeverity::Information,
+                              "Invalid argument to PdfPagesTree::InsertPage: %i (Only EPdfPageInsertionPoint::InsertBeforeFirstPage is valid here).",
                               nAfterPageIndex );
         return;
     }
@@ -155,7 +155,7 @@ void PdfPagesTree::InsertPage( int nAfterPageIndex, PdfObject* pPage )
     {
         if( this->GetTotalNumberOfPages() != 0 ) 
         {
-            PdfError::LogMessage( eLogSeverity_Critical,
+            PdfError::LogMessage( ELogSeverity::Critical,
                                   "Cannot find page %i or page %i has no parents. Cannot insert new page.",
                                   nAfterPageIndex, nAfterPageIndex );
             return;
@@ -179,22 +179,22 @@ void PdfPagesTree::InsertPage( int nAfterPageIndex, PdfObject* pPage )
         InsertPageIntoNode( pParent, lstParents, nKidsIndex, pPage );
     }
 
-    m_cache.InsertPage( (bInsertBefore && nAfterPageIndex == 0) ? ePdfPageInsertionPoint_InsertBeforeFirstPage : nAfterPageIndex );
+    m_cache.InsertPage( (bInsertBefore && nAfterPageIndex == 0) ? (int)EPdfPageInsertionPoint::InsertBeforeFirstPage : nAfterPageIndex );
 }
 
 void PdfPagesTree::InsertPages( int nAfterPageIndex, const std::vector<PdfObject*>& vecPages )
 {
     bool bInsertBefore = false;
-    if( ePdfPageInsertionPoint_InsertBeforeFirstPage == nAfterPageIndex )
+    if((int)EPdfPageInsertionPoint::InsertBeforeFirstPage == nAfterPageIndex )
     {
         bInsertBefore = true;
         nAfterPageIndex = 0;
     }
     else if( nAfterPageIndex < 0 ) 
     {
-        // Only ePdfPageInsertionPoint_InsertBeforeFirstPage is valid here
-        PdfError::LogMessage( eLogSeverity_Information,
-                              "Invalid argument to PdfPagesTree::InsertPage: %i (Only ePdfPageInsertionPoint_InsertBeforeFirstPage is valid here).",
+        // Only EPdfPageInsertionPoint::InsertBeforeFirstPage is valid here
+        PdfError::LogMessage( ELogSeverity::Information,
+                              "Invalid argument to PdfPagesTree::InsertPage: %i (Only EPdfPageInsertionPoint::InsertBeforeFirstPage is valid here).",
                               nAfterPageIndex );
         return;
     }
@@ -210,7 +210,7 @@ void PdfPagesTree::InsertPages( int nAfterPageIndex, const std::vector<PdfObject
     {
         if( this->GetTotalNumberOfPages() != 0 ) 
         {
-            PdfError::LogMessage( eLogSeverity_Critical,
+            PdfError::LogMessage( ELogSeverity::Critical,
                                   "Cannot find page %i or page %i has no parents. Cannot insert new page.",
                                   nAfterPageIndex, nAfterPageIndex );
             return;
@@ -232,7 +232,7 @@ void PdfPagesTree::InsertPages( int nAfterPageIndex, const std::vector<PdfObject
         InsertPagesIntoNode( pParent, lstParents, nKidsIndex, vecPages );
     }
 
-    m_cache.InsertPages( (bInsertBefore && nAfterPageIndex == 0) ? ePdfPageInsertionPoint_InsertBeforeFirstPage : nAfterPageIndex,  (int)vecPages.size() );
+    m_cache.InsertPages( (bInsertBefore && nAfterPageIndex == 0) ? (int)EPdfPageInsertionPoint::InsertBeforeFirstPage : nAfterPageIndex,  (int)vecPages.size() );
 }
 
 PdfPage* PdfPagesTree::CreatePage( const PdfRect & rSize )
@@ -287,10 +287,10 @@ void PdfPagesTree::DeletePage( int nPageNumber )
 
     if( !pPageNode ) 
     {
-        PdfError::LogMessage( eLogSeverity_Information,
+        PdfError::LogMessage( ELogSeverity::Information,
                               "Invalid argument to PdfPagesTree::DeletePage: %i - Page not found\n",
                               nPageNumber );
-        PODOFO_RAISE_ERROR( ePdfError_PageNotFound );
+        PODOFO_RAISE_ERROR( EPdfError::PageNotFound );
     }
 
     if( lstParents.size() > 0 ) 
@@ -302,10 +302,10 @@ void PdfPagesTree::DeletePage( int nPageNumber )
     }
     else
     {
-        PdfError::LogMessage( eLogSeverity_Error,
+        PdfError::LogMessage( ELogSeverity::Error,
                               "PdfPagesTree::DeletePage: Page %i has no parent - cannot be deleted.\n",
                               nPageNumber );
-        PODOFO_RAISE_ERROR( ePdfError_PageNotFound );
+        PODOFO_RAISE_ERROR( EPdfError::PageNotFound );
     }
 }
 
@@ -314,19 +314,19 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pParent,
 {
     if( !pParent ) 
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     if( !pParent->GetDictionary().HasKey( PdfName("Kids") ) )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidKey );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidKey );
     }
 
     
     const PdfObject* pObj = pParent->GetIndirectKey( "Kids" );
     if( pObj == NULL || !pObj->IsArray() )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidDataType );
     }
 
     const PdfArray & rKidsArray = pObj->GetArray(); 
@@ -337,7 +337,7 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pParent,
     // use <= since nPageNum is 0-based
     if( static_cast<int>(numKids) <= nPageNum ) 
     {
-        PdfError::LogMessage( eLogSeverity_Critical,
+        PdfError::LogMessage( ELogSeverity::Critical,
 	    "Cannot retrieve page %i from a document with only %i pages.",
                               nPageNum, static_cast<int>(numKids) );
         return NULL;
@@ -357,7 +357,7 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pParent,
     {
         if(!(*it).IsReference() ) 
         {
-            PdfError::LogMessage( eLogSeverity_Critical, "Requesting page index %i. Invalid datatype in kids array: %s\n", 
+            PdfError::LogMessage( ELogSeverity::Critical, "Requesting page index %i. Invalid datatype in kids array: %s\n", 
                                   nPageNum, (*it).GetDataTypeString()); 
             return NULL;
         }
@@ -365,7 +365,7 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pParent,
                 PdfObject* pChild = GetRoot()->GetOwner()->GetObject( (*it).GetReference() );
                 if (!pChild) 
                 {
-                    PdfError::LogMessage( eLogSeverity_Critical, "Requesting page index %i. Child not found: %s\n", 
+                    PdfError::LogMessage( ELogSeverity::Critical, "Requesting page index %i. Child not found: %s\n", 
                                           nPageNum, (*it).GetReference().ToString().c_str()); 
                     return NULL;
                 }
@@ -394,7 +394,7 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pParent,
                                 << ( *(rLstParents.rbegin()) )->GetIndirectReference().ToString()
                                 << " back-references to object " << pChild->GetIndirectReference()
                                 .ToString() << " one of whose descendants the former is.";
-                            PODOFO_RAISE_ERROR_INFO( ePdfError_PageNotFound, oss.str() );
+                            PODOFO_RAISE_ERROR_INFO( EPdfError::PageNotFound, oss.str() );
                         }
 
                         return this->GetPageNode( nPageNum, pChild, rLstParents );
@@ -418,7 +418,7 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pParent,
                     const PdfReference & rLogRef = pChild->GetIndirectReference();
                     uint32_t nLogObjNum = rLogRef.ObjectNumber();
                     uint16_t nLogGenNum = rLogRef.GenerationNumber();
-		    PdfError::LogMessage( eLogSeverity_Critical,
+		    PdfError::LogMessage( ELogSeverity::Critical,
                                           "Requesting page index %i. "
                         "Invalid datatype referenced in kids array: %s\n"
                         "Reference to invalid object: %i %i R\n", nPageNum,
@@ -502,7 +502,7 @@ void PdfPagesTree::InsertPageIntoNode( PdfObject* pParent, const PdfObjectList &
 {
     if( !pParent || !pPage ) 
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     // 1. Add the reference of the new page to the kids array of pParent
@@ -560,7 +560,7 @@ void PdfPagesTree::InsertPagesIntoNode( PdfObject* pParent, const PdfObjectList 
 {
     if( !pParent || !vecPages.size() ) 
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     // 1. Add the reference of the new page to the kids array of pParent
@@ -618,7 +618,7 @@ void PdfPagesTree::DeletePageFromNode( PdfObject* pParent, const PdfObjectList &
 {
     if( !pParent || !pPage ) 
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     // 1. Delete the reference from the kids array of pParent
@@ -721,7 +721,7 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject,
     {
         if( nPageNum >= static_cast<int>(kidsArray.size()) )
         {
-            PdfError::LogMessage( eLogSeverity_Critical, "Requesting page index %i from array of size %i\n", nPageNum, kidsArray.size() );
+            PdfError::LogMessage( ELogSeverity::Critical, "Requesting page index %i from array of size %i\n", nPageNum, kidsArray.size() );
             nPageNum--;
         }
 

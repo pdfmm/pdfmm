@@ -62,6 +62,8 @@
 
 #include <cstddef>
 
+#include <podofo/compat/EnumFlags.h>
+
 #if defined(TEST_BIG)
 #  define PODOFO_IS_BIG_ENDIAN
 #else

@@ -81,7 +81,7 @@ PdfDate::PdfDate(const date::local_seconds &secondsFromEpoch, const std::optiona
 PdfDate::PdfDate(const PdfString &sDate)
 {
     if (!sDate.IsValid())
-        PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidDataType, "Date is invalid");
+        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "Date is invalid");
 
     std::string date = sDate.GetStringUtf8();
 
@@ -166,7 +166,7 @@ End:
 
     return;
 Error:
-    PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidDataType, "Date is invalid");
+    PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "Date is invalid");
 }
 
 PdfString PdfDate::createStringRepresentation(bool w3cstring) const

@@ -59,7 +59,7 @@ PdfArray::PdfArray(const PdfArray & rhs)
 void PdfArray::RemoveAt(int index)
 {
     if (index < 0 || index >= (int)m_objects.size())
-        PODOFO_RAISE_ERROR_INFO(ePdfError_ValueOutOfRange, "Index is out of bounds");
+        PODOFO_RAISE_ERROR_INFO(EPdfError::ValueOutOfRange, "Index is out of bounds");
 
     m_objects.erase(m_objects.begin() + index);
 }
@@ -67,7 +67,7 @@ void PdfArray::RemoveAt(int index)
 PdfObject & PdfArray::findAt(int index) const
 {
     if (index < 0 || index >= (int)m_objects.size())
-        PODOFO_RAISE_ERROR_INFO(ePdfError_ValueOutOfRange, "Index is out of bounds");
+        PODOFO_RAISE_ERROR_INFO(EPdfError::ValueOutOfRange, "Index is out of bounds");
 
     PdfObject &obj = const_cast<PdfArray *>(this)->m_objects[index];
     if ( obj.IsReference() )
@@ -153,7 +153,7 @@ void PdfArray::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode,
 
     int count = 1;
 
-    if( (eWriteMode & ePdfWriteMode_Clean) == ePdfWriteMode_Clean ) 
+    if( (eWriteMode & EPdfWriteMode::Clean) == EPdfWriteMode::Clean ) 
     {
         pDevice->Print( "[ " );
     }
@@ -165,7 +165,7 @@ void PdfArray::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode,
     while( it != this->end() )
     {
         (*it).Write( pDevice, eWriteMode, pEncrypt );
-        if( (eWriteMode & ePdfWriteMode_Clean) == ePdfWriteMode_Clean ) 
+        if( (eWriteMode & EPdfWriteMode::Clean) == EPdfWriteMode::Clean ) 
         {
             pDevice->Print( (count % 10 == 0) ? "\n" : " " );
         }

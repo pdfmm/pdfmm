@@ -189,14 +189,14 @@ void PdfVariant::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, cons
          m_eDataType == EPdfDataType::Name || 
          m_eDataType == EPdfDataType::RawData ) && !m_Data.pData )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     switch( m_eDataType ) 
     {
         case EPdfDataType::Bool:
         {
-            if( (eWriteMode & ePdfWriteMode_Compact) == ePdfWriteMode_Compact ) 
+            if( (eWriteMode & EPdfWriteMode::Compact) == EPdfWriteMode::Compact ) 
             {
                 pDevice->Write( " ", 1 ); // Write space before true or false
             }
@@ -209,7 +209,7 @@ void PdfVariant::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, cons
         }
         case EPdfDataType::Number:
         {
-            if( (eWriteMode & ePdfWriteMode_Compact) == ePdfWriteMode_Compact ) 
+            if( (eWriteMode & EPdfWriteMode::Compact) == EPdfWriteMode::Compact ) 
             {
                 pDevice->Write( " ", 1 ); // Write space before numbers
             }
@@ -219,7 +219,7 @@ void PdfVariant::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, cons
         }
         case EPdfDataType::Real:
         {
-            if( (eWriteMode & ePdfWriteMode_Compact) == ePdfWriteMode_Compact ) 
+            if( (eWriteMode & EPdfWriteMode::Compact) == EPdfWriteMode::Compact ) 
             {
                 pDevice->Write( " ", 1 ); // Write space before numbers
             }
@@ -233,7 +233,7 @@ void PdfVariant::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, cons
             std::string copy = oss.str();
             size_t len = copy.size();
 
-            if( (eWriteMode & ePdfWriteMode_Compact) == ePdfWriteMode_Compact && 
+            if( (eWriteMode & EPdfWriteMode::Compact) == EPdfWriteMode::Compact && 
                 copy.find('.') != string::npos )
             {
                 const char *str = copy.c_str();
@@ -264,7 +264,7 @@ void PdfVariant::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, cons
             break;
         case EPdfDataType::Null:
         {
-            if( (eWriteMode & ePdfWriteMode_Compact) == ePdfWriteMode_Compact ) 
+            if( (eWriteMode & EPdfWriteMode::Compact) == EPdfWriteMode::Compact ) 
             {
                 pDevice->Write( " ", 1 ); // Write space before null
             }
@@ -275,7 +275,7 @@ void PdfVariant::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, cons
         case EPdfDataType::Unknown:
         default:
         {
-            PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
+            PODOFO_RAISE_ERROR( EPdfError::InvalidDataType );
             break;
         }
     };
@@ -295,7 +295,7 @@ void PdfVariant::DelayedLoadImpl()
 {
     // Default implementation of virtual void DelayedLoadImpl() throws, since delayed
     // loading should not be enabled except by types that support it.
-    PODOFO_RAISE_ERROR(ePdfError_InternalLogic);
+    PODOFO_RAISE_ERROR(EPdfError::InternalLogic);
 }
 
 void PdfVariant::ToString( std::string & rsData, EPdfWriteMode eWriteMode ) const
@@ -425,12 +425,12 @@ bool PdfVariant::operator==( const PdfVariant & rhs ) const
     }
     catch ( PdfError& e )
     {
-        if (e.GetError() == ePdfError_InvalidDataType)
+        if (e.GetError() == EPdfError::InvalidDataType)
             return false;
         else
             throw e;
     }
-    PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Tried to compare unknown/raw variant" );
+    PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDataType, "Tried to compare unknown/raw variant" );
 }
 
 EPdfDataType PdfVariant::GetDataType() const
@@ -446,7 +446,7 @@ bool PdfVariant::GetBool() const
 
     if (!IsBool())
     {
-        PODOFO_RAISE_ERROR(ePdfError_InvalidDataType);
+        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
     }
 
     return m_Data.bBoolValue;
@@ -458,7 +458,7 @@ int64_t PdfVariant::GetNumber() const
 
     if (!IsReal() && !IsNumber())
     {
-        PODOFO_RAISE_ERROR(ePdfError_InvalidDataType);
+        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
     }
 
     if (IsReal())
@@ -473,7 +473,7 @@ double PdfVariant::GetReal() const
 
     if (!IsReal() && !IsNumber())
     {
-        PODOFO_RAISE_ERROR(ePdfError_InvalidDataType);
+        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
     }
 
     if (IsReal())
@@ -488,7 +488,7 @@ const PdfData & PdfVariant::GetRawData() const
 
     if (!IsRawData())
     {
-        PODOFO_RAISE_ERROR(ePdfError_InvalidDataType);
+        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
     }
     // Do not change this to an reinterpret_cast
     // We need a c-style casts here to avoid crashes
@@ -502,7 +502,7 @@ PdfData & PdfVariant::GetRawData()
 
     if (!IsRawData())
     {
-        PODOFO_RAISE_ERROR(ePdfError_InvalidDataType);
+        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
     }
     // Do not change this to an reinterpret_cast
     // We need a c-style casts here to avoid crashes
@@ -516,7 +516,7 @@ const PdfString & PdfVariant::GetString() const
 
     if (!IsString() && !IsHexString())
     {
-        PODOFO_RAISE_ERROR(ePdfError_InvalidDataType);
+        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
     }
     // Do not change this to an reinterpret_cast
     // We need a c-style casts here to avoid crashes
@@ -530,7 +530,7 @@ const PdfName & PdfVariant::GetName() const
 
     if (!IsName())
     {
-        PODOFO_RAISE_ERROR(ePdfError_InvalidDataType);
+        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
     }
 
     // Do not change this to an reinterpret_cast
@@ -552,7 +552,7 @@ const PdfArray & PdfVariant::GetArray_NoDL() const
     // already been triggered).
     if (m_eDataType != EPdfDataType::Array)
     {
-        PODOFO_RAISE_ERROR(ePdfError_InvalidDataType);
+        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
     }
 
     // Do not change this to an reinterpret_cast
@@ -574,7 +574,7 @@ PdfArray & PdfVariant::GetArray_NoDL()
     // already been triggered).
     if (m_eDataType != EPdfDataType::Array)
     {
-        PODOFO_RAISE_ERROR(ePdfError_InvalidDataType);
+        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
     }
 
     // Do not change this to an reinterpret_cast
@@ -596,7 +596,7 @@ const PdfDictionary & PdfVariant::GetDictionary_NoDL() const
     // already been triggered).
     if (m_eDataType != EPdfDataType::Dictionary)
     {
-        PODOFO_RAISE_ERROR(ePdfError_InvalidDataType);
+        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
     }
 
     // Do not change this to an reinterpret_cast
@@ -618,7 +618,7 @@ PdfDictionary & PdfVariant::GetDictionary_NoDL()
     // already been triggered).
     if (m_eDataType != EPdfDataType::Dictionary)
     {
-        PODOFO_RAISE_ERROR(ePdfError_InvalidDataType);
+        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
     }
 
     // Do not change this to an reinterpret_cast
@@ -633,7 +633,7 @@ const PdfReference & PdfVariant::GetReference() const
 
     if (!IsReference())
     {
-        PODOFO_RAISE_ERROR(ePdfError_InvalidDataType);
+        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
     }
 
     // Do not change this to an reinterpret_cast
@@ -648,7 +648,7 @@ void PdfVariant::SetBool(bool b)
 
     if (!IsBool())
     {
-        PODOFO_RAISE_ERROR(ePdfError_InvalidDataType);
+        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
     }
 
     AssertMutable();
@@ -662,7 +662,7 @@ void PdfVariant::SetNumber(int64_t l)
 
     if (!IsReal() && !IsNumber())
     {
-        PODOFO_RAISE_ERROR(ePdfError_InvalidDataType);
+        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
     }
 
     AssertMutable();
@@ -679,7 +679,7 @@ void PdfVariant::SetReal(double d)
 
     if (!IsReal() && !IsNumber())
     {
-        PODOFO_RAISE_ERROR(ePdfError_InvalidDataType);
+        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
     }
 
     AssertMutable();
@@ -696,7 +696,7 @@ void PdfVariant::SetName(const PdfName &name)
 
     if (!IsName())
     {
-        PODOFO_RAISE_ERROR(ePdfError_InvalidDataType);
+        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
     }
 
     AssertMutable();
@@ -713,7 +713,7 @@ void PdfVariant::SetString(const PdfString &str)
     if ((str.IsHex() && dataType != EPdfDataType::HexString)
         || (!str.IsHex() && dataType != EPdfDataType::String))
     {
-        PODOFO_RAISE_ERROR(ePdfError_InvalidDataType);
+        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
     }
 
     AssertMutable();
@@ -727,7 +727,7 @@ void PdfVariant::SetReference(const PdfReference &ref)
 
     if (IsReference())
     {
-        PODOFO_RAISE_ERROR(ePdfError_InvalidDataType);
+        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
     }
 
     AssertMutable();
@@ -828,7 +828,7 @@ void PdfVariant::AssertMutable() const
 {
     if (m_bImmutable)
     {
-        PODOFO_RAISE_ERROR(ePdfError_ChangeOnImmutable);
+        PODOFO_RAISE_ERROR(EPdfError::ChangeOnImmutable);
     }
 }
 

@@ -64,7 +64,7 @@ class PdfOutputDevice;
  *  Example of using PdfStreamedDocument:
  *
  *  PdfStreamedDocument document( "outputfile.pdf" );
- *  PdfPage* pPage = document.CreatePage( PdfPage::CreateStandardPageSize( ePdfPageSize_A4 ) );
+ *  PdfPage* pPage = document.CreatePage( PdfPage::CreateStandardPageSize( EPdfPageSize::A4 ) );
  *  PdfFont* pFont = document.CreateFont( "Arial" );
  *
  *  PdfPainter painter;
@@ -93,7 +93,7 @@ class PODOFO_DOC_API PdfStreamedDocument : public PdfDocument {
      *                  created document.
      *  \param eWriteMode additional options for writing the pdf
      */
-    PdfStreamedDocument( PdfOutputDevice* pDevice, EPdfVersion eVersion = ePdfVersion_Default, PdfEncrypt* pEncrypt = NULL, EPdfWriteMode eWriteMode = ePdfWriteMode_Default );
+    PdfStreamedDocument( PdfOutputDevice* pDevice, EPdfVersion eVersion = PdfVersionDefault, PdfEncrypt* pEncrypt = NULL, EPdfWriteMode eWriteMode = PdfWriteModeDefault );
 
     /** Create a new PdfStreamedDocument.
      *  All data is written to a file immediately.
@@ -107,7 +107,7 @@ class PODOFO_DOC_API PdfStreamedDocument : public PdfDocument {
      *                  created document.
      *  \param eWriteMode additional options for writing the pdf
      */
-    PdfStreamedDocument( const char* pszFilename, EPdfVersion eVersion = ePdfVersion_Default, PdfEncrypt* pEncrypt = NULL, EPdfWriteMode eWriteMode = ePdfWriteMode_Default );
+    PdfStreamedDocument( const char* pszFilename, EPdfVersion eVersion = PdfVersionDefault, PdfEncrypt* pEncrypt = NULL, EPdfWriteMode eWriteMode = PdfWriteModeDefault );
 
 #ifdef _WIN32
     /** Create a new PdfStreamedDocument.
@@ -126,7 +126,7 @@ class PODOFO_DOC_API PdfStreamedDocument : public PdfDocument {
      *  with unicode characters. On Unix systes you can also path
      *  UTF-8 to the const char* overload.
      */
-    PdfStreamedDocument( const wchar_t* pszFilename, EPdfVersion eVersion = ePdfVersion_Default, PdfEncrypt* pEncrypt = NULL, EPdfWriteMode eWriteMode = ePdfWriteMode_Default );
+    PdfStreamedDocument( const wchar_t* pszFilename, EPdfVersion eVersion = PdfVersionDefault, PdfEncrypt* pEncrypt = NULL, EPdfWriteMode eWriteMode = PdfWriteModeDefault );
 #endif // _WIN32
 
     ~PdfStreamedDocument();
@@ -236,7 +236,7 @@ class PODOFO_DOC_API PdfStreamedDocument : public PdfDocument {
      *                  created document.
      *  \param eWriteMode additional options for writing the pdf
      */
-    void Init( PdfOutputDevice* pDevice, EPdfVersion eVersion = ePdfVersion_Default, PdfEncrypt* pEncrypt = NULL, EPdfWriteMode eWriteMode = ePdfWriteMode_Default );
+    void Init( PdfOutputDevice* pDevice, EPdfVersion eVersion = PdfVersionDefault, PdfEncrypt* pEncrypt = NULL, EPdfWriteMode eWriteMode = PdfWriteModeDefault );
 
  private:
     PdfImmediateWriter* m_pWriter;

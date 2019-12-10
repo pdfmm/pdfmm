@@ -43,13 +43,15 @@
 
 namespace PoDoFo {
 
-class PODOFO_DOC_API PdfCMapEncoding: public PdfEncoding {
+class PODOFO_DOC_API PdfCMapEncoding: public PdfEncoding
+{
 public:
-    enum EBaseEncoding {
-        eBaseEncoding_Font,      ///< Use The fonts encoding as base
-        eBaseEncoding_WinAnsi,   ///< Use WinAnsiEncoding as base encoding
-        eBaseEncoding_MacRoman,  ///< Use MacRomanEncoding as base encoding
-        eBaseEncoding_MacExpert  ///< Use MacExpertEncoding as base encoding
+    enum class EBaseEncoding
+    {
+        Font,      ///< Use The fonts encoding as base
+        WinAnsi,   ///< Use WinAnsiEncoding as base encoding
+        MacRoman,  ///< Use MacRomanEncoding as base encoding
+        MacExpert  ///< Use MacExpertEncoding as base encoding
     };
 
 public:

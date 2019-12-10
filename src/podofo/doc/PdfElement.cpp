@@ -59,24 +59,24 @@ PdfElement::PdfElement( const char* pszType, PdfObject* pObject )
 {
     if( !pObject )         
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     m_pObject = pObject;
 
     if( !m_pObject->IsDictionary() ) 
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidDataType );
     }
 
     if( pszType
         && m_pObject->GetDictionary().HasKey( PdfName::KeyType )
         && m_pObject->GetDictionary().GetKeyAsName( PdfName::KeyType ) != pszType ) 
     {
-        PdfError::LogMessage( eLogSeverity_Debug, "Expected key %s but got key %s.", 
+        PdfError::LogMessage( ELogSeverity::Debug, "Expected key %s but got key %s.", 
                               pszType, m_pObject->GetDictionary().GetKeyAsName( PdfName::KeyType ).GetName().c_str() );
 
-        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidDataType );
     }
 }
 
@@ -84,14 +84,14 @@ PdfElement::PdfElement( EPdfDataType eExpectedDataType, PdfObject* pObject )
 {
     if( !pObject )         
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     m_pObject = pObject;
 
     if( m_pObject->GetDataType() != eExpectedDataType ) 
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidDataType );
     }
 }
 

@@ -2232,7 +2232,7 @@ void PdfEncodingDifference::AddDifference( int nCode, pdf_utf16be unicodeValue, 
 {
     if( nCode > 255 || nCode < 0 ) 
     {
-        PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
+        PODOFO_RAISE_ERROR( EPdfError::ValueOutOfRange );
     }
 
     TDifference dif;
@@ -2344,7 +2344,7 @@ PdfDifferenceEncoding::PdfDifferenceEncoding( const PdfEncodingDifference & rDif
     : PdfEncoding( 0x00, 0xff ), PdfElement( "Encoding", pParent ), 
       m_differences( rDifference ),
       m_bAutoDelete( bAutoDelete ), 
-      m_baseEncoding( eBaseEncoding_Font )
+      m_baseEncoding( EBaseEncoding::Font )
 {
     Init();
 }
@@ -2353,7 +2353,7 @@ PdfDifferenceEncoding::PdfDifferenceEncoding( const PdfEncodingDifference & rDif
     : PdfEncoding( 0x00, 0xff ), PdfElement( "Encoding", pParent ), 
       m_differences( rDifference ),
       m_bAutoDelete( bAutoDelete ), 
-      m_baseEncoding( eBaseEncoding_Font )
+      m_baseEncoding( EBaseEncoding::Font )
 {
     Init();
 }
@@ -2384,18 +2384,18 @@ PdfDifferenceEncoding::PdfDifferenceEncoding( PdfObject* pObject, bool bAutoDele
 {
     CreateID();
     
-    m_baseEncoding = eBaseEncoding_WinAnsi;
+    m_baseEncoding = EBaseEncoding::WinAnsi;
 
     if( this->GetObject()->GetDictionary().HasKey( PdfName("BaseEncoding") ) )
     {
         const PdfName & rBase = this->GetObject()->GetDictionary().GetKey( PdfName("BaseEncoding") )->GetName();
         
         if( rBase == PdfName("WinAnsiEncoding") )
-            m_baseEncoding = eBaseEncoding_WinAnsi;
+            m_baseEncoding = EBaseEncoding::WinAnsi;
         else if( rBase == PdfName("MacRomanEncoding") )
-            m_baseEncoding = eBaseEncoding_MacRoman;
+            m_baseEncoding = EBaseEncoding::MacRoman;
         else if( rBase == PdfName("MacExpertEncoding") )
-            m_baseEncoding = eBaseEncoding_MacExpert;
+            m_baseEncoding = EBaseEncoding::MacExpert;
     }    
 
     // Read the differences key
@@ -2436,21 +2436,21 @@ void PdfDifferenceEncoding::Init()
 
     switch( m_baseEncoding ) 
     {
-        case eBaseEncoding_WinAnsi:
+        case EBaseEncoding::WinAnsi:
             this->GetObject()->GetDictionary().AddKey( PdfName("BaseEncoding"),
                                                PdfName("WinAnsiEncoding") );
             break;
 
-        case eBaseEncoding_MacRoman:
+        case EBaseEncoding::MacRoman:
             this->GetObject()->GetDictionary().AddKey( PdfName("BaseEncoding"),
                                                PdfName("MacRomanEncoding") );
             break;
-        case eBaseEncoding_MacExpert:
+        case EBaseEncoding::MacExpert:
             this->GetObject()->GetDictionary().AddKey( PdfName("BaseEncoding"),
                                                PdfName("MacExpertEncoding") );
             break;
 
-        case eBaseEncoding_Font:
+        case EBaseEncoding::Font:
         default:
             break;
     }
@@ -2474,7 +2474,7 @@ pdf_utf16be PdfDifferenceEncoding::GetCharCode( int nIndex ) const
     if( nIndex < this->GetFirstChar() ||
         nIndex > this->GetLastChar() )
     {
-        PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
+        PODOFO_RAISE_ERROR( EPdfError::ValueOutOfRange );
     }
 
     PdfName     name;
@@ -2565,7 +2565,7 @@ PdfString PdfDifferenceEncoding::ConvertToUnicode( const PdfString & rEncodedStr
     pdf_utf16be* pszUtf16 = static_cast<pdf_utf16be*>(podofo_calloc(lLen, sizeof(pdf_utf16be)));
     if( !pszUtf16 )
     {
-        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+        PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
     }
 
     memcpy( pszUtf16, str.GetUnicode(), lLen * sizeof(pdf_utf16be) );
@@ -2602,7 +2602,7 @@ PdfRefCountedBuffer PdfDifferenceEncoding::ConvertToEncoding( const PdfString & 
         pszUtf16 = static_cast<pdf_utf16be*>(podofo_calloc(lLen,sizeof(pdf_utf16be)));
         if( !pszUtf16 )
         {
-            PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+            PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
         }
         memcpy( pszUtf16, rString.GetUnicode(), lLen * sizeof(pdf_utf16be) );
     }
@@ -2616,7 +2616,7 @@ PdfRefCountedBuffer PdfDifferenceEncoding::ConvertToEncoding( const PdfString & 
         pszUtf16 = static_cast<pdf_utf16be*>(podofo_calloc(lLen,sizeof(pdf_utf16be)));
         if( !pszUtf16 )
         {
-            PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+            PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
         }
         memcpy( pszUtf16, str.GetUnicode(), lLen * sizeof(pdf_utf16be) );
     }
@@ -2624,7 +2624,7 @@ PdfRefCountedBuffer PdfDifferenceEncoding::ConvertToEncoding( const PdfString & 
     char* pDest = static_cast<char*>(podofo_calloc( (lLen + 1), sizeof(char) ));
     if( !pDest ) 
     {
-        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+        PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
     }
 
     char *pCur = pDest;
@@ -2662,23 +2662,23 @@ const PdfEncoding* PdfDifferenceEncoding::GetBaseEncoding() const
 
     switch( m_baseEncoding ) 
     {
-        case eBaseEncoding_WinAnsi:
+        case EBaseEncoding::WinAnsi:
             pEncoding = PdfEncodingFactory::GlobalWinAnsiEncodingInstance();
             break;
 
-        case eBaseEncoding_MacRoman:
+        case EBaseEncoding::MacRoman:
             pEncoding = PdfEncodingFactory::GlobalMacRomanEncodingInstance();
             break;
 
-        case eBaseEncoding_MacExpert:
-        case eBaseEncoding_Font:
+        case EBaseEncoding::MacExpert:
+        case EBaseEncoding::Font:
         default:
             break;
     }
 
     if( !pEncoding ) 
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     return pEncoding;

@@ -139,6 +139,18 @@ struct TFontCacheElement {
 };
 
 /**
+ * Flags to control font creation.
+ */
+enum class EFontCreationFlags
+{
+    None = 0,				///< No special settings
+    AutoSelectBase14 = 1,	///< Create automatically a base14 font if the fontname matches one of them
+    Type1Subsetting = 2		///< Create subsetted type1-font, which includes only used characters
+};
+
+ENABLE_BITMASK_OPERATORS(EFontCreationFlags);
+
+/**
  * This class assists PdfDocument
  * with caching font information.
  *
@@ -154,21 +166,13 @@ struct TFontCacheElement {
  *
  * \see PdfDocument
  */
-class PODOFO_DOC_API PdfFontCache {
+class PODOFO_DOC_API PdfFontCache
+{
     typedef std::vector<TFontCacheElement>  TSortedFontList;
     typedef TSortedFontList::iterator       TISortedFontList;
     typedef TSortedFontList::const_iterator TCISortedFontList;
 
  public:
-
-    /**
-     * Flags to control font creation.
-     */
-    enum EFontCreationFlags {
-        eFontCreationFlags_None = 0,				///< No special settings
-        eFontCreationFlags_AutoSelectBase14 = 1,	///< Create automatically a base14 font if the fontname matches one of them
-        eFontCreationFlags_Type1Subsetting = 2		///< Create subsetted type1-font, which includes only used characters
-    };
 
     /** Create an empty font cache 
      *
@@ -216,7 +220,7 @@ class PODOFO_DOC_API PdfFontCache {
      *           not be created or found.
      */
     PdfFont* GetFont( const char* pszFontName, bool bBold, bool bItalic, bool bSymbolCharset,
-                      bool bEmbedd, EFontCreationFlags eFontCreationFlags = eFontCreationFlags_AutoSelectBase14,
+                      bool bEmbedd, EFontCreationFlags eFontCreationFlags = EFontCreationFlags::AutoSelectBase14,
                       const PdfEncoding * const = PdfEncodingFactory::GlobalWinAnsiEncodingInstance(), 
                       const char* pszFileName = NULL );
 

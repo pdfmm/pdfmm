@@ -44,7 +44,7 @@
 namespace PoDoFo {
 
 PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescriptor, const PdfEncoding* const pEncoding )
-    : PdfFontMetrics( ePdfFontType_Unknown, "", NULL ),
+    : PdfFontMetrics( EPdfFontType::Unknown, "", NULL ),
       m_pEncoding( pEncoding ), m_dDefWidth(0.0)
 {
     m_missingWidth = NULL;
@@ -87,7 +87,7 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescri
             }
             if( widths == NULL ) 
             {
-                PODOFO_RAISE_ERROR_INFO( ePdfError_NoObject, "Font object defines neither Widths, nor MissingWidth values!" );
+                PODOFO_RAISE_ERROR_INFO( EPdfError::NoObject, "Font object defines neither Widths, nor MissingWidth values!" );
             }
             m_missingWidth = widths;
         }
@@ -148,7 +148,7 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescri
 		}
 		m_nLast = m_width.GetSize() - 1;
     } else {
-        PODOFO_RAISE_ERROR_INFO( ePdfError_UnsupportedFontFormat, rSubType.GetEscapedName().c_str() );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::UnsupportedFontFormat, rSubType.GetEscapedName().c_str() );
 	}
     
     if ( pDescriptor ) {

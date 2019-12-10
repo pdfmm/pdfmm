@@ -55,7 +55,7 @@ namespace PoDoFo
 
 
 PdfCMapEncoding::PdfCMapEncoding (PdfObject * pObject, PdfObject * pToUnicode)
-    : PdfEncoding(0x0000, 0xffff, pToUnicode), m_baseEncoding( eBaseEncoding_Font )
+    : PdfEncoding(0x0000, 0xffff, pToUnicode), m_baseEncoding( EBaseEncoding::Font )
 {
     // TODO: If /ToUnicode is absent, and CID font is not identity, use the CID font's predefined character collection
     // (/CIDSystemInfo<</Registry(XXX)/Ordering(XXX)/Supplement 0>>)
@@ -75,23 +75,23 @@ const PdfEncoding* PdfCMapEncoding::GetBaseEncoding() const
 
     switch( m_baseEncoding ) 
     {
-        case eBaseEncoding_WinAnsi:
+        case EBaseEncoding::WinAnsi:
             pEncoding = PdfEncodingFactory::GlobalWinAnsiEncodingInstance();
             break;
 
-        case eBaseEncoding_MacRoman:
+        case EBaseEncoding::MacRoman:
             pEncoding = PdfEncodingFactory::GlobalMacRomanEncodingInstance();
             break;
 
-        case eBaseEncoding_MacExpert:
-        case eBaseEncoding_Font:
+        case EBaseEncoding::MacExpert:
+        case EBaseEncoding::Font:
         default:
             break;
     }
 
     if( !pEncoding ) 
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     return pEncoding;
@@ -148,7 +148,7 @@ pdf_utf16be PdfCMapEncoding::GetCharCode( int nIndex ) const
     if( nIndex < this->GetFirstChar() ||
        nIndex > this->GetLastChar() )
     {
-        PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
+        PODOFO_RAISE_ERROR( EPdfError::ValueOutOfRange );
     }
     
 #ifdef PODOFO_IS_LITTLE_ENDIAN
@@ -161,7 +161,7 @@ pdf_utf16be PdfCMapEncoding::GetCharCode( int nIndex ) const
 
 const PdfName & PdfCMapEncoding::GetID() const
 {
-    PODOFO_RAISE_ERROR( ePdfError_NotImplemented );
+    PODOFO_RAISE_ERROR( EPdfError::NotImplemented );
 }
 
 };

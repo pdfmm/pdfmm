@@ -79,7 +79,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      *                       This is faster if you do not need the complete PDF 
      *                       file in memory.
      *
-     *  This might throw a PdfError( ePdfError_InvalidPassword ) exception
+     *  This might throw a PdfError( EPdfError::InvalidPassword ) exception
      *  if a password is required to read this PDF.
      *  Call SetPassword() with the correct password in this case.
      *  
@@ -99,7 +99,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      *                       This is faster if you do not need the complete PDF 
      *                       file in memory.
      *
-     *  This might throw a PdfError( ePdfError_InvalidPassword ) exception
+     *  This might throw a PdfError( EPdfError::InvalidPassword ) exception
      *  if a password is required to read this PDF.
      *  Call SetPassword() with the correct password in this case.
      *  
@@ -124,7 +124,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      *                       This is faster if you do not need the complete PDF 
      *                       file in memory.
      *
-     *  This might throw a PdfError( ePdfError_InvalidPassword ) exception
+     *  This might throw a PdfError( EPdfError::InvalidPassword ) exception
      *  if a password is required to read this PDF.
      *  Call SetPassword() with the correct password in this case.
      *  
@@ -143,7 +143,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      *                       This is faster if you do not need the complete PDF 
      *                       file in memory.
      *
-     *  This might throw a PdfError( ePdfError_InvalidPassword ) exception
+     *  This might throw a PdfError( EPdfError::InvalidPassword ) exception
      *  if a password is required to read this PDF.
      *  Call SetPassword() with the correct password in this case.
      *  
@@ -166,7 +166,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      *                       file in memory.
      *
      *
-     *  This might throw a PdfError( ePdfError_InvalidPassword ) exception
+     *  This might throw a PdfError( EPdfError::InvalidPassword ) exception
      *  if a password is required to read this PDF.
      *  Call SetPassword() with the correct password in this case.
      *  
@@ -185,7 +185,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      *                       file in memory.
      *
      *
-     *  This might throw a PdfError( ePdfError_InvalidPassword ) exception
+     *  This might throw a PdfError( EPdfError::InvalidPassword ) exception
      *  if a password is required to read this PDF.
      *  Call SetPassword with the correct password in this case.
      *  
@@ -209,7 +209,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      *                       file in memory.
      *
      *
-     *  This might throw a PdfError( ePdfError_InvalidPassword ) exception
+     *  This might throw a PdfError( EPdfError::InvalidPassword ) exception
      *  if a password is required to read this PDF.
      *  Call SetPassword() with the correct password in this case.
      *  
@@ -227,7 +227,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      *                       file in memory.
      *
      *
-     *  This might throw a PdfError( ePdfError_InvalidPassword ) exception
+     *  This might throw a PdfError( EPdfError::InvalidPassword ) exception
      *  if a password is required to read this PDF.
      *  Call SetPassword() with the correct password in this case.
      *  
@@ -310,7 +310,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
     
 
     /** If you try to open an encrypted PDF file, which requires
-     *  a password to open, PoDoFo will throw a PdfError( ePdfError_InvalidPassword ) 
+     *  a password to open, PoDoFo will throw a PdfError( EPdfError::InvalidPassword ) 
      *  exception. 
      *  
      *  If you got such an exception, you have to set a password
@@ -322,7 +322,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
      *  PdfParser will immediately continue to read the PDF file.
      *
      *  \param sPassword a user or owner password which can be used to open an encrypted PDF file
-     *                   If the password is invalid, a PdfError( ePdfError_InvalidPassword ) exception is thrown!
+     *                   If the password is invalid, a PdfError( EPdfError::InvalidPassword ) exception is thrown!
      */
     void SetPassword( const std::string & sPassword );
 
@@ -452,7 +452,7 @@ class PODOFO_API PdfParser : public PdfTokenizer {
 
     /** Read a xref subsection
      *  
-     *  Throws ePdfError_NoXref if the number of objects read was not
+     *  Throws EPdfError::NoXref if the number of objects read was not
      *  the number specified by the subsection header (as passed in
      *  `nNumObjects').
      *

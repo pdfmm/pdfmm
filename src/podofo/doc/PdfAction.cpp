@@ -64,11 +64,11 @@ const char* PdfAction::s_names[] = {
 PdfAction::PdfAction( EPdfAction eAction, PdfVecObjects* pParent )
     : PdfElement( "Action", pParent ), m_eType( eAction )
 {
-    const PdfName type = PdfName( TypeNameForIndex( eAction, s_names, s_lNumActions ) );
+    const PdfName type = PdfName( TypeNameForIndex((int)eAction, s_names, s_lNumActions ) );
 
     if( !type.GetLength() )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     this->GetObject()->GetDictionary().AddKey( "S", type );
@@ -77,11 +77,11 @@ PdfAction::PdfAction( EPdfAction eAction, PdfVecObjects* pParent )
 PdfAction::PdfAction( EPdfAction eAction, PdfDocument* pParent )
     : PdfElement( "Action", pParent ), m_eType( eAction )
 {
-    const PdfName type = PdfName( TypeNameForIndex( eAction, s_names, s_lNumActions ) );
+    const PdfName type = PdfName( TypeNameForIndex((int)eAction, s_names, s_lNumActions ) );
 
     if( !type.GetLength() )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     this->GetObject()->GetDictionary().AddKey( "S", type );
@@ -91,13 +91,13 @@ PdfAction::PdfAction( PdfObject* pObject )
     // The typename /Action is optional for PdfActions
     : PdfElement( NULL, pObject )
 {
-    m_eType = static_cast<EPdfAction>(TypeNameToIndex( this->GetObject()->GetDictionary().GetKeyAsName( "S" ).GetName().c_str(), s_names, s_lNumActions, ePdfAction_Unknown ));
+    m_eType = static_cast<EPdfAction>(TypeNameToIndex( this->GetObject()->GetDictionary().GetKeyAsName( "S" ).GetName().c_str(), s_names, s_lNumActions, (int)EPdfAction::Unknown ));
 }
 
 PdfAction::PdfAction( const PdfAction & rhs )
     : PdfElement(rhs)
 {
-    m_eType = static_cast<EPdfAction>(TypeNameToIndex( this->GetObject()->GetDictionary().GetKeyAsName( "S" ).GetName().c_str(), s_names, s_lNumActions, ePdfAction_Unknown ));
+    m_eType = static_cast<EPdfAction>(TypeNameToIndex( this->GetObject()->GetDictionary().GetKeyAsName( "S" ).GetName().c_str(), s_names, s_lNumActions, (int)EPdfAction::Unknown ));
 }
 
 void PdfAction::SetURI( const PdfString & sUri )
@@ -141,7 +141,7 @@ void PdfAction::AddToDictionary( PdfDictionary & dictionary ) const
     // since we can only have EITHER a Dest OR an Action
     // we check for an Action, and if already present, we throw
     if ( dictionary.HasKey( PdfName( "Dest" ) ) )
-        PODOFO_RAISE_ERROR( ePdfError_ActionAlreadyPresent );
+        PODOFO_RAISE_ERROR( EPdfError::ActionAlreadyPresent );
 
     dictionary.RemoveKey( "A" );
     dictionary.AddKey( "A", this->GetObject() );

@@ -227,7 +227,7 @@ class PODOFO_API PdfVariant
      *  \param rsData the object string is returned in this object.
      *  \param eWriteMode additional options for writing to a string
      */
-    void ToString( std::string & rsData, EPdfWriteMode eWriteMode = ePdfWriteMode_Clean ) const;
+    void ToString( std::string & rsData, EPdfWriteMode eWriteMode = EPdfWriteMode::Clean ) const;
 
     /** Get the value if this object is a bool.
      *  \returns the bool value.

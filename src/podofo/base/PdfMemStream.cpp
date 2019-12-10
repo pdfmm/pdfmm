@@ -106,7 +106,7 @@ void PdfMemStream::GetCopy( char** pBuffer, size_t* lLen ) const
 {
     if( !pBuffer || !lLen )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     *pBuffer = static_cast<char*>(podofo_calloc( m_lLength, sizeof(char) ));
@@ -114,7 +114,7 @@ void PdfMemStream::GetCopy( char** pBuffer, size_t* lLen ) const
     
     if( !*pBuffer )
     {
-        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+        PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
     }
     
     memcpy( *pBuffer, m_buffer.GetBuffer(), m_lLength );
@@ -125,7 +125,7 @@ void PdfMemStream::GetCopy(PdfOutputStream * pStream) const
 {
 	if( !pStream)
 	{
-		PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+		PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
 	}
 	pStream->Write(m_buffer.GetBuffer(), m_lLength);
 }
@@ -140,7 +140,7 @@ void PdfMemStream::FlateCompress()
     PdfArray::const_iterator tciFilters;
     
     if( !m_lLength )
-        return; // ePdfError_ErrOk
+        return; // EPdfError::ErrOk
 
     // TODO: Handle DecodeParms
     if( m_pParent->GetDictionary().HasKey( "Filter" ) )
@@ -255,7 +255,7 @@ void PdfMemStream::FlateCompressStreamData()
     if( !m_lLength )
         return;
 
-    std::unique_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_FlateDecode );
+    std::unique_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( EPdfFilter::FlateDecode );
     if( pFilter.get() )
     {
         pFilter->Encode( m_buffer.GetBuffer(), m_buffer.GetSize(), &pBuffer, &lLen );
@@ -263,7 +263,7 @@ void PdfMemStream::FlateCompressStreamData()
     }
     else
     {
-        PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
+        PODOFO_RAISE_ERROR( EPdfError::UnsupportedFilter );
     }
 }
 

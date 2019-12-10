@@ -45,9 +45,10 @@ namespace PoDoFo {
 class PdfEncoding;
 class PdfOutputDevice;
 
-enum EPdfStringConversion {
-    ePdfStringConversion_Strict,
-    ePdfStringConversion_Lenient
+enum class EPdfStringConversion
+{
+    Strict,
+    Lenient
 };
 
 
@@ -377,12 +378,12 @@ class PODOFO_API PdfString : public PdfDataType {
     static size_t ConvertUTF8toUTF16( const pdf_utf8* pszUtf8, pdf_utf16be* pszUtf16, size_t lLenUtf16 );
     static size_t ConvertUTF8toUTF16( const pdf_utf8* pszUtf8, size_t lLenUtf8,
                                     pdf_utf16be* pszUtf16, size_t lLenUtf16,
-                                    EPdfStringConversion eConversion = ePdfStringConversion_Strict  );
+                                    EPdfStringConversion eConversion = EPdfStringConversion::Strict  );
 
     static size_t ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, pdf_utf8* pszUtf8, size_t lLenUtf8 );
     static size_t ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, size_t lLenUtf16,
                                     pdf_utf8* pszUtf8, size_t lLenUtf8,
-                                    EPdfStringConversion eConversion = ePdfStringConversion_Strict );
+                                    EPdfStringConversion eConversion = EPdfStringConversion::Strict );
 
     /** Swap the bytes in the buffer (UTF-16BE -> UTF-16LE)
      *  \param pBuf buffer
@@ -495,7 +496,7 @@ size_t PdfString::GetLength() const
 {
     if ( !IsValid() )
     {
-        PdfError::LogMessage( eLogSeverity_Error, "PdfString::GetLength invalid PdfString" );
+        PdfError::LogMessage( ELogSeverity::Error, "PdfString::GetLength invalid PdfString" );
         return 0;
     }
     
@@ -519,7 +520,7 @@ size_t PdfString::GetUnicodeLength() const
 {
     if ( !IsValid() )
     {
-        PdfError::LogMessage( eLogSeverity_Error, "PdfString::GetUnicodeLength invalid PdfString" );
+        PdfError::LogMessage( ELogSeverity::Error, "PdfString::GetUnicodeLength invalid PdfString" );
         return 0;
     }
     

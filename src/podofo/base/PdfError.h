@@ -55,74 +55,75 @@ namespace PoDoFo {
  * 
  *  \see PdfError
  */
-enum EPdfError {
-    ePdfError_ErrOk = 0,                /**< The default value indicating no error. */
+enum class EPdfError
+{
+    ErrOk = 0,                /**< The default value indicating no error. */
 
-    ePdfError_TestFailed,               /**< Used in PoDoFo tests, to indicate that a test failed for some reason. */
+    TestFailed,               /**< Used in PoDoFo tests, to indicate that a test failed for some reason. */
 
-    ePdfError_InvalidHandle,            /**< Null pointer was passed, but null pointer is not allowed. */
-    ePdfError_FileNotFound,             /**< A file was not found or cannot be opened. */
-    ePdfError_InvalidDeviceOperation,	/**< Tried to do something unsupported to an I/O device like seek a non-seekable input device */
-    ePdfError_UnexpectedEOF,            /**< End of file was reached but data was expected. */
-    ePdfError_OutOfMemory,              /**< Not enough memory to complete an operation. */
-    ePdfError_ValueOutOfRange,          /**< The specified memory is out of the allowed range. */
-    ePdfError_InternalLogic,            /**< An internal sanity check or assertion failed. */ 
-    ePdfError_InvalidEnumValue,         /**< An invalid enum value was specified. */
-    ePdfError_BrokenFile,               /**< The file content is broken. */
+    InvalidHandle,            /**< Null pointer was passed, but null pointer is not allowed. */
+    FileNotFound,             /**< A file was not found or cannot be opened. */
+    InvalidDeviceOperation,	/**< Tried to do something unsupported to an I/O device like seek a non-seekable input device */
+    UnexpectedEOF,            /**< End of file was reached but data was expected. */
+    OutOfMemory,              /**< Not enough memory to complete an operation. */
+    ValueOutOfRange,          /**< The specified memory is out of the allowed range. */
+    InternalLogic,            /**< An internal sanity check or assertion failed. */ 
+    InvalidEnumValue,         /**< An invalid enum value was specified. */
+    BrokenFile,               /**< The file content is broken. */
 
-    ePdfError_PageNotFound,             /**< The requested page could not be found in the PDF. */
+    PageNotFound,             /**< The requested page could not be found in the PDF. */
 
-    ePdfError_NoPdfFile,                /**< The file is no PDF file. */
-    ePdfError_NoXRef,                   /**< The PDF file has no or an invalid XRef table. */
-    ePdfError_NoTrailer,                /**< The PDF file has no or an invalid trailer. */
-    ePdfError_NoNumber,                 /**< A number was expected in the PDF file, but the read string is no number. */
-    ePdfError_NoObject,                 /**< A object was expected and none was found. */
-    ePdfError_NoEOFToken,               /**< The PDF file has no or an invalid EOF marker. */
+    NoPdfFile,                /**< The file is no PDF file. */
+    NoXRef,                   /**< The PDF file has no or an invalid XRef table. */
+    NoTrailer,                /**< The PDF file has no or an invalid trailer. */
+    NoNumber,                 /**< A number was expected in the PDF file, but the read string is no number. */
+    NoObject,                 /**< A object was expected and none was found. */
+    NoEOFToken,               /**< The PDF file has no or an invalid EOF marker. */
 
-    ePdfError_InvalidTrailerSize,       /**< The trailer size is invalid. */
-    ePdfError_InvalidLinearization,     /**< The linearization directory of a web-optimized PDF file is invalid. */
-    ePdfError_InvalidDataType,          /**< The passed datatype is invalid or was not recognized */
-    ePdfError_InvalidXRef,              /**< The XRef table is invalid */
-    ePdfError_InvalidXRefStream,        /**< A XRef steam is invalid */
-    ePdfError_InvalidXRefType,          /**< The XRef type is invalid or was not found */
-    ePdfError_InvalidPredictor,         /**< Invalid or unimplemented predictor */
-    ePdfError_InvalidStrokeStyle,       /**< Invalid stroke style during drawing */
-    ePdfError_InvalidHexString,         /**< Invalid hex string */
-    ePdfError_InvalidStream,            /**< The stream is invalid */
-    ePdfError_InvalidStreamLength,      /**< The stream length is invalid */
-    ePdfError_InvalidKey,               /**< The specified key is invalid */
-    ePdfError_InvalidName,              /**< The specified Name is not valid in this context */
-    ePdfError_InvalidEncryptionDict,    /**< The encryption dictionary is invalid or misses a required key */
-    ePdfError_InvalidPassword,          /**< The password used to open the PDF file was invalid */
-    ePdfError_InvalidFontFile,          /**< The font file is invalid */
-    ePdfError_InvalidContentStream,     /**< The content stream is invalid due to mismatched context pairing or other problems */
+    InvalidTrailerSize,       /**< The trailer size is invalid. */
+    InvalidLinearization,     /**< The linearization directory of a web-optimized PDF file is invalid. */
+    InvalidDataType,          /**< The passed datatype is invalid or was not recognized */
+    InvalidXRef,              /**< The XRef table is invalid */
+    InvalidXRefStream,        /**< A XRef steam is invalid */
+    InvalidXRefType,          /**< The XRef type is invalid or was not found */
+    InvalidPredictor,         /**< Invalid or unimplemented predictor */
+    InvalidStrokeStyle,       /**< Invalid stroke style during drawing */
+    InvalidHexString,         /**< Invalid hex string */
+    InvalidStream,            /**< The stream is invalid */
+    InvalidStreamLength,      /**< The stream length is invalid */
+    InvalidKey,               /**< The specified key is invalid */
+    InvalidName,              /**< The specified Name is not valid in this context */
+    InvalidEncryptionDict,    /**< The encryption dictionary is invalid or misses a required key */
+    InvalidPassword,          /**< The password used to open the PDF file was invalid */
+    InvalidFontFile,          /**< The font file is invalid */
+    InvalidContentStream,     /**< The content stream is invalid due to mismatched context pairing or other problems */
 
-    ePdfError_UnsupportedFilter,        /**< The requested filter is not yet implemented. */
-    ePdfError_UnsupportedFontFormat,    /**< This font format is not supported by PoDoFo. */
-    ePdfError_ActionAlreadyPresent,     /**< An Action was already present when trying to add a Destination */
-    ePdfError_WrongDestinationType,     /**< The requested field is not available for the given destination type */
+    UnsupportedFilter,        /**< The requested filter is not yet implemented. */
+    UnsupportedFontFormat,    /**< This font format is not supported by PoDoFo. */
+    ActionAlreadyPresent,     /**< An Action was already present when trying to add a Destination */
+    WrongDestinationType,     /**< The requested field is not available for the given destination type */
 
-    ePdfError_MissingEndStream,         /**< The required token endstream was not found. */
-    ePdfError_Date,                     /**< Date/time error */
-    ePdfError_Flate,                    /**< Error in zlib */
-    ePdfError_FreeType,                 /**< Error in FreeType */
-    ePdfError_SignatureError,           /**< Error in signature */
+    MissingEndStream,         /**< The required token endstream was not found. */
+    Date,                     /**< Date/time error */
+    Flate,                    /**< Error in zlib */
+    FreeType,                 /**< Error in FreeType */
+    SignatureError,           /**< Error in signature */
 
-    ePdfError_UnsupportedImageFormat,   /**< This image format is not supported by PoDoFo. */
-    ePdfError_CannotConvertColor,       /**< This color format cannot be converted. */
+    UnsupportedImageFormat,   /**< This image format is not supported by PoDoFo. */
+    CannotConvertColor,       /**< This color format cannot be converted. */
 
-    ePdfError_NotImplemented,           /**< This feature is currently not implemented. */
+    NotImplemented,           /**< This feature is currently not implemented. */
 
-    ePdfError_DestinationAlreadyPresent,/**< A destination was already present when trying to add an Action */
-    ePdfError_ChangeOnImmutable,        /**< Changing values on immutable objects is not allowed. */
+    DestinationAlreadyPresent,/**< A destination was already present when trying to add an Action */
+    ChangeOnImmutable,        /**< Changing values on immutable objects is not allowed. */
 
-    ePdfError_NotCompiled,              /**< This feature was disabled at compile time. */
+    NotCompiled,              /**< This feature was disabled at compile time. */
 
-    ePdfError_OutlineItemAlreadyPresent,/**< An outline item to be inserted was already in that outlines tree. */
-    ePdfError_NotLoadedForUpdate,       /**< The document had not been loaded for update. */
-    ePdfError_CannotEncryptedForUpdate, /**< Cannot load encrypted documents for update. */
+    OutlineItemAlreadyPresent,/**< An outline item to be inserted was already in that outlines tree. */
+    NotLoadedForUpdate,       /**< The document had not been loaded for update. */
+    CannotEncryptedForUpdate, /**< Cannot load encrypted documents for update. */
 
-    ePdfError_Unknown = 0xffff          /**< Unknown error */
+    Unknown = 0xffff          /**< Unknown error */
 };
 
 /**
@@ -130,15 +131,16 @@ enum EPdfError {
  *
  * \see PdfError::LogMessage
  */
-enum ELogSeverity {
-    eLogSeverity_Critical,            /**< Critical unexpected error */
-    eLogSeverity_Error,               /**< Error */
-    eLogSeverity_Warning,             /**< Warning */
-    eLogSeverity_Information,         /**< Information message */
-    eLogSeverity_Debug,               /**< Debug information */
-    eLogSeverity_None,                /**< No specified level */
+enum class ELogSeverity
+{
+    Critical,            /**< Critical unexpected error */
+    Error,               /**< Error */
+    Warning,             /**< Warning */
+    Information,         /**< Information message */
+    Debug,               /**< Debug information */
+    None,                /**< No specified level */
 
-    eLogSeverity_Unknown = 0xffff     /**< Unknown log level */
+    Unknown = 0xffff     /**< Unknown log level */
 };
 
 /** \def PODOFO_RAISE_ERROR( x )
@@ -163,7 +165,7 @@ enum ELogSeverity {
  *  Evaluate `x' as a binary predicate and if it is true, raise a logic error with the
  *  info string `y' .
  */
-#define PODOFO_RAISE_LOGIC_IF( x, y ) { if (x) throw ::PoDoFo::PdfError( ePdfError_InternalLogic, __FILE__, __LINE__, y ); };
+#define PODOFO_RAISE_LOGIC_IF( x, y ) { if (x) throw ::PoDoFo::PdfError( EPdfError::InternalLogic, __FILE__, __LINE__, y ); };
 
 class PODOFO_API PdfErrorInfo {
  public:
@@ -230,7 +232,7 @@ public:
      */
     static LogMessageCallback* SetLogMessageCallback(LogMessageCallback* fLogMessageCallback);
 
-    /** Create a PdfError object initialized to ePdfError_ErrOk.
+    /** Create a PdfError object initialized to EPdfError::ErrOk.
      */
     PdfError();
 
@@ -383,7 +385,7 @@ public:
     inline void AddToCallstack( const char* pszFile, int line, std::string sInformation );
 
     /** \returns true if an error code was set 
-     *           and false if the error code is ePdfError_ErrOk.
+     *           and false if the error code is EPdfError::ErrOk.
      */
     inline bool IsError() const;
 
@@ -553,7 +555,7 @@ void PdfError::SetErrorInformation( const wchar_t* pszInformation )
 // -----------------------------------------------------
 bool PdfError::IsError() const
 {
-    return (m_error != ePdfError_ErrOk);
+    return m_error != EPdfError::ErrOk;
 }
 
 };

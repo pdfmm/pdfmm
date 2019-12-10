@@ -77,7 +77,7 @@ PdfXObject::PdfXObject( const PdfDocument & rDoc, int nPage, PdfDocument* pParen
     // Implementation note: source document must be different from distination
     if ( pParent == reinterpret_cast<const PdfDocument*>(&rDoc) )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
+        PODOFO_RAISE_ERROR( EPdfError::InternalLogic );
     }
 
     // After filling set correct BBox, independent of rotation
@@ -130,7 +130,7 @@ PdfXObject::PdfXObject(EPdfXObject subType, PdfObject* pObject)
 {
     if (getPdfXObjectType(*pObject) != subType)
     {
-        PODOFO_RAISE_ERROR(ePdfError_InvalidDataType);
+        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
     }
 
     InitIdentifiers(subType);
@@ -144,20 +144,20 @@ bool PdfXObject::TryCreateFromObject(PdfObject &obj, std::unique_ptr<PdfXObject>
         || typeObj->GetName().GetName() != "XObject")
     {
         xobj = nullptr;
-        type = EPdfXObject::ePdfXObject_Unknown;
+        type = EPdfXObject::Unknown;
         return false;
     }
 
     type = getPdfXObjectType(obj);
     switch (type)
     {
-        case EPdfXObject::ePdfXObject_Form:
-        case EPdfXObject::ePdfXObject_PostScript:
+        case EPdfXObject::Form:
+        case EPdfXObject::PostScript:
         {
             xobj.reset(new PdfXObject(type, &obj));
             return true;
         }
-        case EPdfXObject::ePdfXObject_Image:
+        case EPdfXObject::Image:
         {
             xobj.reset(new PdfImage(&obj));
             return true;
@@ -174,7 +174,7 @@ EPdfXObject PdfXObject::getPdfXObjectType(const PdfObject &obj)
 {
     auto subTypeObj = obj.GetDictionary().GetKey(PdfName::KeySubtype);
     if (subTypeObj == nullptr || !subTypeObj->IsName())
-        return ePdfXObject_Unknown;
+        return EPdfXObject::Unknown;
 
     auto subtype = obj.GetDictionary().GetKey(PdfName::KeySubtype)->GetName().GetName();
     return FromString(subtype);
@@ -184,27 +184,27 @@ string PdfXObject::ToString(EPdfXObject type)
 {
     switch (type)
     {
-        case PoDoFo::ePdfXObject_Form:
+        case EPdfXObject::Form:
             return "Form";
-        case PoDoFo::ePdfXObject_Image:
+        case EPdfXObject::Image:
             return "Image";
-        case PoDoFo::ePdfXObject_PostScript:
+        case EPdfXObject::PostScript:
             return "PS";
         default:
-            PODOFO_RAISE_ERROR(ePdfError_InvalidDataType);
+            PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
     }
 }
 
 EPdfXObject PdfXObject::FromString(const string &str)
 {
     if (str == "Form")
-        return EPdfXObject::ePdfXObject_Form;
+        return EPdfXObject::Form;
     else if (str == "Image")
-        return EPdfXObject::ePdfXObject_Image;
+        return EPdfXObject::Image;
     else if (str == "PS")
-        return EPdfXObject::ePdfXObject_PostScript;
+        return EPdfXObject::PostScript;
     else
-        return EPdfXObject::ePdfXObject_Unknown;
+        return EPdfXObject::Unknown;
 }
 
 void PdfXObject::InitAfterPageInsertion(const PdfDocument & rDoc, int nPage)
@@ -319,7 +319,7 @@ inline PdfStream & PdfXObject::GetStreamForAppending()
 
 void PdfXObject::InitXObject( const PdfRect & rRect, const char* pszPrefix )
 {
-    InitIdentifiers(EPdfXObject::ePdfXObject_Form, pszPrefix);
+    InitIdentifiers(EPdfXObject::Form, pszPrefix);
 
     // Initialize static data
     if( m_matrix.empty() )
@@ -336,7 +336,7 @@ void PdfXObject::InitXObject( const PdfRect & rRect, const char* pszPrefix )
     PdfVariant    var;
     rRect.ToVariant( var );
     this->GetObject()->GetDictionary().AddKey( "BBox", var );
-    this->GetObject()->GetDictionary().AddKey(PdfName::KeySubtype, PdfName(ToString(EPdfXObject::ePdfXObject_Form)));
+    this->GetObject()->GetDictionary().AddKey(PdfName::KeySubtype, PdfName(ToString(EPdfXObject::Form)));
     this->GetObject()->GetDictionary().AddKey( "FormType", PdfVariant( static_cast<int64_t>(1) ) ); // only 1 is only defined in the specification.
     this->GetObject()->GetDictionary().AddKey( "Matrix", m_matrix );
 

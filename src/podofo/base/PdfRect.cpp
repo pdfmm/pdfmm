@@ -122,7 +122,7 @@ void PdfRect::FromArray( const PdfArray& inArray )
     }
     else 
     {
-        PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
+        PODOFO_RAISE_ERROR( EPdfError::ValueOutOfRange );
     }
 }
 

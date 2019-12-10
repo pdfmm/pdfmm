@@ -50,13 +50,14 @@ class PdfVecObjects;
  * The title of an outline item can be displayed
  * in different formating styles since PDF 1.4.
  */
-enum EPdfOutlineFormat {
-    ePdfOutlineFormat_Default    = 0x00,   /**< Default format */
-    ePdfOutlineFormat_Italic     = 0x01,   /**< Italic */
-    ePdfOutlineFormat_Bold       = 0x02,   /**< Bold */
-    ePdfOutlineFormat_BoldItalic = 0x03,   /**< Bold Italic */
+enum class EPdfOutlineFormat
+{
+    Default    = 0x00,   /**< Default format */
+    Italic     = 0x01,   /**< Italic */
+    Bold       = 0x02,   /**< Bold */
+    BoldItalic = 0x03,   /**< Bold Italic */
 
-    ePdfOutlineFormat_Unknown    = 0xFF
+    Unknown    = 0xFF
 };
 
 /**
@@ -93,7 +94,7 @@ class PODOFO_DOC_API PdfOutlineItem : public PdfElement {
     /** Inserts a new PdfOutlineItem as a child of this outline item.
      *  The former can't be in the same tree as this one, as the tree property
      *  would be broken. If this prerequisite is violated, a PdfError
-     *  exception (code ePdfError_OutlineItemAlreadyPresent) is thrown and
+     *  exception (code EPdfError::OutlineItemAlreadyPresent) is thrown and
      *  nothing is changed.
      *  The item inserted is not copied, i.e. Erase() calls affect the original!
      *  Therefore also shared ownership is in effect, i.e. deletion by where it

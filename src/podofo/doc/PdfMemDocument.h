@@ -92,7 +92,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *  \param pszFilename filename of the file which is going to be parsed/opened
      *  \param bForUpdate whether to load for incremental update
      *
-     *  This might throw a PdfError( ePdfError_InvalidPassword ) exception
+     *  This might throw a PdfError( EPdfError::InvalidPassword ) exception
      *  if a password is required to read this PDF.
      *  Call SetPassword with the correct password in this case.
      *
@@ -108,7 +108,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *  \param pszFilename filename of the file which is going to be parsed/opened
      *  \param bForUpdate whether to load for incremental update
      *
-     *  This might throw a PdfError( ePdfError_InvalidPassword ) exception
+     *  This might throw a PdfError( EPdfError::InvalidPassword ) exception
      *  if a password is required to read this PDF.
      *  Call SetPassword with the correct password in this case.
      *
@@ -133,7 +133,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *  \param pszFilename filename of the file which is going to be parsed/opened
      *  \param bForUpdate whether to load for incremental update
      *
-     *  This might throw a PdfError( ePdfError_InvalidPassword ) exception
+     *  This might throw a PdfError( EPdfError::InvalidPassword ) exception
      *  if a password is required to read this PDF.
      *  Call SetPassword with the correct password in this case.
      *
@@ -150,7 +150,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *  \param pszFilename filename of the file which is going to be parsed/opened
      *  \param bForUpdate whether to load for incremental update
      *
-     *  This might throw a PdfError( ePdfError_InvalidPassword ) exception
+     *  This might throw a PdfError( EPdfError::InvalidPassword ) exception
      *  if a password is required to read this PDF.
      *  Call SetPassword with the correct password in this case.
      *
@@ -172,7 +172,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *  \param lLen length of the buffer
      *  \param bForUpdate whether to load for incremental update
      *
-     *  This might throw a PdfError( ePdfError_InvalidPassword ) exception
+     *  This might throw a PdfError( EPdfError::InvalidPassword ) exception
      *  if a password is required to read this PDF.
      *  Call SetPassword with the correct password in this case.
      *
@@ -188,7 +188,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *  \param rDevice the input device containing the PDF
      *  \param bForUpdate whether to load for incremental update
      *
-     *  This might throw a PdfError( ePdfError_InvalidPassword ) exception
+     *  This might throw a PdfError( EPdfError::InvalidPassword ) exception
      *  if a password is required to read this PDF.
      *  Call SetPassword with the correct password in this case.
      *
@@ -351,7 +351,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
     std::vector<PdfExtension> GetPdfExtensions() const;
 
     /** If you try to open an encrypted PDF file, which requires
-     *  a password to open, PoDoFo will throw a PdfError( ePdfError_InvalidPassword ) 
+     *  a password to open, PoDoFo will throw a PdfError( EPdfError::InvalidPassword ) 
      *  exception. 
      *  
      *  If you got such an exception, you have to set a password
@@ -363,7 +363,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *  PdfParser will immediately continue to read the PDF file.
      *
      *  \param sPassword a user or owner password which can be used to open an encrypted PDF file
-     *                   If the password is invalid, a PdfError( ePdfError_InvalidPassword ) exception is thrown!
+     *                   If the password is invalid, a PdfError( EPdfError::InvalidPassword ) exception is thrown!
      */
     void SetPassword( const std::string & sPassword );
 
@@ -376,22 +376,14 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *                    the users permissions for this document
      *  \param eAlgorithm the revision of the encryption algorithm to be used
      *  \param eKeyLength the length of the encryption key ranging from 40 to 256 bits 
-     *                    (only used if eAlgorithm >= ePdfEncryptAlgorithm_RC4V2)
+     *                    (only used if eAlgorithm >= EPdfEncryptAlgorithm::RC4V2)
      *
      *  \see PdfEncrypt
      */
-    void SetEncrypted( const std::string & userPassword,
-                       const std::string & ownerPassword, 
-                       int protection = PdfEncrypt::ePdfPermissions_Print | 
-                                        PdfEncrypt::ePdfPermissions_Edit |
-                                        PdfEncrypt::ePdfPermissions_Copy |
-                                        PdfEncrypt::ePdfPermissions_EditNotes | 
-                                        PdfEncrypt::ePdfPermissions_FillAndSign |
-                                        PdfEncrypt::ePdfPermissions_Accessible |
-                                        PdfEncrypt::ePdfPermissions_DocAssembly |
-                                        PdfEncrypt::ePdfPermissions_HighPrint,
-                       PdfEncrypt::EPdfEncryptAlgorithm eAlgorithm = PdfEncrypt::ePdfEncryptAlgorithm_AESV2,
-                       PdfEncrypt::EPdfKeyLength eKeyLength = PdfEncrypt::ePdfKeyLength_40 );
+    void SetEncrypted(const std::string & userPassword, const std::string & ownerPassword,
+        EPdfPermissions protection = PdfPermissionsDefault,
+        EPdfEncryptAlgorithm eAlgorithm = EPdfEncryptAlgorithm::AESV2,
+        EPdfKeyLength eKeyLength = EPdfKeyLength::L40 );
 
     /** Encrypt the document during writing using a PdfEncrypt object
      *

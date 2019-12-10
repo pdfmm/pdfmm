@@ -85,15 +85,15 @@ PdfFontMetricsFreetype* PdfFontMetricsFreetype::CreateForSubsetting(FT_Library* 
             }
         }
         // throw an exception
-        PdfError::LogMessage( eLogSeverity_Critical, "FreeType returned the error %i when calling FT_Load_Sfnt_Table for font %s.", 
+        PdfError::LogMessage( ELogSeverity::Critical, "FreeType returned the error %i when calling FT_Load_Sfnt_Table for font %s.", 
                               err, pszFilename );
-        PODOFO_RAISE_ERROR( ePdfError_FreeType );
+        PODOFO_RAISE_ERROR( EPdfError::FreeType );
     }
     else {
         // throw an exception
-        PdfError::LogMessage( eLogSeverity_Critical, "FreeType returned the error %i when calling FT_New_Face for font %s.", 
+        PdfError::LogMessage( ELogSeverity::Critical, "FreeType returned the error %i when calling FT_New_Face for font %s.", 
                               err, pszFilename );
-        PODOFO_RAISE_ERROR( ePdfError_FreeType );
+        PODOFO_RAISE_ERROR( EPdfError::FreeType );
     }
     return 0;
 }
@@ -110,9 +110,9 @@ PdfFontMetricsFreetype::PdfFontMetricsFreetype( FT_Library* pLibrary, const char
     if ( err )
     {	
         // throw an exception
-        PdfError::LogMessage( eLogSeverity_Critical, "FreeType returned the error %i when calling FT_New_Face for font %s.", 
+        PdfError::LogMessage( ELogSeverity::Critical, "FreeType returned the error %i when calling FT_New_Face for font %s.", 
                               err, pszFilename );
-        PODOFO_RAISE_ERROR( ePdfError_FreeType );
+        PODOFO_RAISE_ERROR( EPdfError::FreeType );
     }
     
     InitFromFace(pIsSymbol);
@@ -122,7 +122,7 @@ PdfFontMetricsFreetype::PdfFontMetricsFreetype( FT_Library* pLibrary,
                                                 const char* pBuffer, unsigned int nBufLen,
                                                                 bool pIsSymbol,
                                                 const char* pszSubsetPrefix )
-    : PdfFontMetrics( ePdfFontType_Unknown, "", pszSubsetPrefix ),
+    : PdfFontMetrics( EPdfFontType::Unknown, "", pszSubsetPrefix ),
       m_pLibrary( pLibrary ),
       m_pFace( NULL ),
       m_bSymbol( pIsSymbol )
@@ -137,7 +137,7 @@ PdfFontMetricsFreetype::PdfFontMetricsFreetype( FT_Library* pLibrary,
                                                 const PdfRefCountedBuffer & rBuffer,
                                                                 bool pIsSymbol,
                                                 const char* pszSubsetPrefix ) 
-    : PdfFontMetrics( ePdfFontType_Unknown, "", pszSubsetPrefix ),
+    : PdfFontMetrics( EPdfFontType::Unknown, "", pszSubsetPrefix ),
       m_pLibrary( pLibrary ),
       m_pFace( NULL ),
       m_bSymbol( pIsSymbol ),
@@ -150,7 +150,7 @@ PdfFontMetricsFreetype::PdfFontMetricsFreetype( FT_Library* pLibrary,
                                                 FT_Face face, 
                                                                 bool pIsSymbol,
                                                 const char* pszSubsetPrefix  )
-    : PdfFontMetrics( ePdfFontType_TrueType, 
+    : PdfFontMetrics( EPdfFontType::TrueType, 
                       // Try to initialize the pathname from m_face
                       // so that font embedding will work
                       (face->stream ? 
@@ -161,7 +161,7 @@ PdfFontMetricsFreetype::PdfFontMetricsFreetype( FT_Library* pLibrary,
       m_bSymbol( pIsSymbol )
 {
     // asume true type
-    // m_eFontType = ePdfFontType_TrueType;
+    // m_eFontType = EPdfFontType::TrueType;
 
     InitFromFace(pIsSymbol);
 }
@@ -184,13 +184,13 @@ void PdfFontMetricsFreetype::InitFromBuffer(bool pIsSymbol)
     FT_Error error = FT_Open_Face( *m_pLibrary, &openArgs, 0, &m_pFace ); 
     if( error ) 
     {
-        PdfError::LogMessage( eLogSeverity_Critical, "FreeType returned the error %i when calling FT_New_Face for a buffered font.", error );
-        PODOFO_RAISE_ERROR( ePdfError_FreeType );
+        PdfError::LogMessage( ELogSeverity::Critical, "FreeType returned the error %i when calling FT_New_Face for a buffered font.", error );
+        PODOFO_RAISE_ERROR( EPdfError::FreeType );
     }
     else
     {
         // asume true type
-        this->SetFontType( ePdfFontType_TrueType );
+        this->SetFontType( EPdfFontType::TrueType );
     }
 
     InitFromFace(pIsSymbol);
@@ -198,10 +198,10 @@ void PdfFontMetricsFreetype::InitFromBuffer(bool pIsSymbol)
 
 void PdfFontMetricsFreetype::InitFromFace(bool pIsSymbol)
 {
-    if ( m_eFontType == ePdfFontType_Unknown ) {
+    if ( m_eFontType == EPdfFontType::Unknown ) {
         // We need to have identified the font type by this point
         // Unsupported font.
-        PODOFO_RAISE_ERROR_INFO( ePdfError_UnsupportedFontFormat, m_sFilename.c_str() );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::UnsupportedFontFormat, m_sFilename.c_str() );
     }
 
     m_nWeight             = 500;
@@ -275,7 +275,7 @@ void PdfFontMetricsFreetype::InitFontSizes()
 {
     if( !m_pFace )
     {
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle, "Cannot set font size on invalid font!" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidHandle, "Cannot set font size on invalid font!" );
     }
  
     float fSize = 1.0f;
@@ -313,7 +313,7 @@ void PdfFontMetricsFreetype::GetWidthArray( PdfVariant & var, unsigned int nFirs
 
     if( !m_pFace ) 
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     for( i=nFirst;i<=nLast;i++ )
@@ -337,7 +337,7 @@ void PdfFontMetricsFreetype::GetWidthArray( PdfVariant & var, unsigned int nFirs
                 list.push_back( PdfVariant( m_pFace->glyph->metrics.horiAdvance * 1000.0 / m_pFace->units_per_EM ) );
                 continue;
             }
-            //PODOFO_RAISE_ERROR( ePdfError_FreeType );
+            //PODOFO_RAISE_ERROR( EPdfError::FreeType );
             list.push_back( PdfVariant( 0.0 ) );
         }
     }
@@ -349,7 +349,7 @@ double PdfFontMetricsFreetype::GetGlyphWidth( int nGlyphId ) const
 {
     if( !m_pFace ) 
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     if( !FT_Load_Glyph( m_pFace, nGlyphId, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP ) )  // | FT_LOAD_NO_RENDER
@@ -370,7 +370,7 @@ void PdfFontMetricsFreetype::GetBoundingBox( PdfArray & array ) const
 {
     if( !m_pFace ) 
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     array.Clear();

@@ -89,10 +89,10 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
     static const char** GetSupportedFormats();
 
     /** Set the color space of this image. The default value is
-     *  ePdfColorSpace_DeviceRGB.
-     *  \param eColorSpace one of ePdfColorSpace_DeviceGray, ePdfColorSpace_DeviceRGB and
-     *                     ePdfColorSpace_DeviceCMYK, ePdfColorSpace_Indexed
-     *  \param indexedData this parameter is required only for ePdfColorSpace_Indexed and
+     *  EPdfColorSpace::DeviceRGB.
+     *  \param eColorSpace one of EPdfColorSpace::DeviceGray, EPdfColorSpace::DeviceRGB and
+     *                     EPdfColorSpace::DeviceCMYK, EPdfColorSpace::Indexed
+     *  \param indexedData this parameter is required only for EPdfColorSpace::Indexed and
      *       it contains string with one number and then color palette, like "/DeviceRGB 15 <000000 00FF00...>"
      *       or the string array can be a resource name.
      *
@@ -115,7 +115,7 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
      *  \see SetImageColorSpace to set an colorspace instead of an ICC profile for this image
      */
     void SetImageICCProfile( PdfInputStream* pStream, long lColorComponents, 
-                             EPdfColorSpace eAlternateColorSpace = ePdfColorSpace_DeviceRGB );
+                             EPdfColorSpace eAlternateColorSpace = EPdfColorSpace::DeviceRGB );
 
     //EPdfColorSpace GetImageColorSpace() const;
 

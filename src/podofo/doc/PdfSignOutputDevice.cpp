@@ -93,7 +93,7 @@ void PdfSignOutputDevice::SetSignatureSize(size_t lSignatureSize)
     char* pData = static_cast<char*>(podofo_malloc(lSignatureSize));
  	if (!pData)
  	{
- 		PODOFO_RAISE_ERROR(ePdfError_OutOfMemory);
+ 		PODOFO_RAISE_ERROR(EPdfError::OutOfMemory);
     }
     
     for(size_t i=0; i<lSignatureSize; i++)
@@ -112,18 +112,18 @@ size_t PdfSignOutputDevice::GetSignatureSize()const
 void PdfSignOutputDevice::SetSignature(const PdfData &sigData)
 {
     if(!m_bBeaconFound) {
-        PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
+        PODOFO_RAISE_ERROR( EPdfError::InternalLogic );
     }
     size_t maxSigSize = m_pSignatureBeacon->data().size();
     size_t sigByteSize = sigData.data().size();
     // check signature size
     if((sigByteSize*2)> maxSigSize) {
-        PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
+        PODOFO_RAISE_ERROR( EPdfError::ValueOutOfRange );
     }
     PdfString sig(sigData.data().c_str(), sigByteSize, true);
 
     m_pRealDevice->Seek(m_sBeaconPos);
-    sig.Write(m_pRealDevice, PoDoFo::ePdfWriteMode_Compact);
+    sig.Write(m_pRealDevice, PoDoFo::EPdfWriteMode::Compact);
     // insert padding
     size_t numPadding = maxSigSize-2*sigByteSize;
     if(numPadding>0) {
@@ -140,7 +140,7 @@ void PdfSignOutputDevice::SetSignature(const PdfData &sigData)
 void PdfSignOutputDevice::AdjustByteRange()
 {
     if(!m_bBeaconFound) {
-        PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
+        PODOFO_RAISE_ERROR( EPdfError::InternalLogic );
     }
 
     // Get final position
@@ -151,7 +151,7 @@ void PdfSignOutputDevice::AdjustByteRange()
     arr.push_back( PdfVariant(static_cast<int64_t>(m_sBeaconPos + m_pSignatureBeacon->data().size() + 2) ) );
     arr.push_back( PdfVariant(static_cast<int64_t>(sFileEnd-(m_sBeaconPos+m_pSignatureBeacon->data().size()+2)) ) );
     std::string sPosition;
-    PdfVariant(arr).ToString(sPosition, ePdfWriteMode_Compact);
+    PdfVariant(arr).ToString(sPosition, EPdfWriteMode::Compact);
     // Fill padding
     unsigned int sPosSize = sizeof("[ 0 1234567890 1234567890 1234567890]")-1;
     if(sPosition.size()<sPosSize)
@@ -190,7 +190,7 @@ void PdfSignOutputDevice::AdjustByteRange()
 size_t PdfSignOutputDevice::ReadForSignature(char* pBuffer, size_t lLen)
 {
     if(!m_bBeaconFound) {
-        PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
+        PODOFO_RAISE_ERROR( EPdfError::InternalLogic );
     }
 	size_t pos = m_pRealDevice->Tell();
 	size_t numRead = 0;

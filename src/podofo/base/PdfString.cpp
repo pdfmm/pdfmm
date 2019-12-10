@@ -142,7 +142,7 @@ void PdfString::setFromWchar_t(const wchar_t* pszString, size_t lLen )
             char*  pDest = static_cast<char*>(podofo_malloc( lDest ));
 			if (!pDest)
 			{
-				PODOFO_RAISE_ERROR(ePdfError_OutOfMemory);
+				PODOFO_RAISE_ERROR(EPdfError::OutOfMemory);
 			}
 
             size_t cnt   = wcstombs(pDest, pszString, lDest);
@@ -155,7 +155,7 @@ void PdfString::setFromWchar_t(const wchar_t* pszString, size_t lLen )
             else
             {
                 podofo_free( pDest );
-                PdfError e( ePdfError_InternalLogic, __FILE__, __LINE__ );
+                PdfError e( EPdfError::InternalLogic, __FILE__, __LINE__ );
                 e.SetErrorInformation( pszString );
                 throw e;
             }
@@ -241,7 +241,7 @@ PdfString PdfString::FromUtf8String( const std::string &str )
 PdfString PdfString::CreateHexString( const char *pbuffer, size_t llen )
 {
     if ( !pbuffer )
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
 
     PdfString ret;
     ret.m_bHex = true;
@@ -255,7 +255,7 @@ PdfString PdfString::CreateHexString( const char *pbuffer, size_t llen )
 PdfString PdfString::CreateHexString( const std::string & buffer )
 {
     if ( !buffer.size() )
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
 
     return CreateHexString( &buffer[0], buffer.size() );
 }
@@ -266,7 +266,7 @@ void PdfString::SetHexData( const char* pszHex, size_t lLen, PdfEncrypt* pEncryp
 
     if( !pszHex ) 
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     // Allocate a buffer large enough for the hex decoded data
@@ -466,7 +466,7 @@ bool PdfString::operator>( const PdfString & rhs ) const
 {
     if ( !this->IsValid() || !rhs.IsValid() )
     {
-        PdfError::LogMessage( eLogSeverity_Error, "PdfString::operator> LHS or RHS was invalid PdfString" );
+        PdfError::LogMessage( ELogSeverity::Error, "PdfString::operator> LHS or RHS was invalid PdfString" );
         return false;
     }
     
@@ -495,7 +495,7 @@ bool PdfString::operator<( const PdfString & rhs ) const
 {
     if ( !this->IsValid() || !rhs.IsValid() )
     {
-        PdfError::LogMessage( eLogSeverity_Error, "PdfString::operator< LHS or RHS was invalid PdfString" );
+        PdfError::LogMessage( ELogSeverity::Error, "PdfString::operator< LHS or RHS was invalid PdfString" );
         return false;
     }
     
@@ -524,12 +524,12 @@ bool PdfString::operator==( const PdfString & rhs ) const
 {
     if ( !this->IsValid() && !rhs.IsValid() )
     {
-        PdfError::LogMessage( eLogSeverity_Error, "PdfString::operator== LHS and RHS both invalid PdfStrings" );
+        PdfError::LogMessage( ELogSeverity::Error, "PdfString::operator== LHS and RHS both invalid PdfStrings" );
         return true;
     }
     else if ( !this->IsValid() || !rhs.IsValid() )
     {
-        PdfError::LogMessage( eLogSeverity_Error, "PdfString::operator== LHS or RHS was invalid PdfString" );
+        PdfError::LogMessage( ELogSeverity::Error, "PdfString::operator== LHS or RHS was invalid PdfString" );
         return false;
     }
 
@@ -552,7 +552,7 @@ void PdfString::Init( const char* pszString, size_t lLen )
 {
     if( !pszString )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     bool bUft16LE = false;
@@ -596,7 +596,7 @@ void PdfString::InitFromUtf8( const pdf_utf8* pszStringUtf8, size_t lLen )
 {
     if( !pszStringUtf8 )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     size_t lBufLen = (lLen << 1) + sizeof(wchar_t);
@@ -623,18 +623,18 @@ void PdfString::InitUtf8()
         char* pBuffer = static_cast<char*>(podofo_calloc( lBufferLen, sizeof(char) ));
         if( !pBuffer )
         {
-            PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+            PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
         }
 
         size_t lUtf8 = PdfString::ConvertUTF16toUTF8( reinterpret_cast<const pdf_utf16be*>(m_buffer.GetBuffer()),
                                                     this->GetUnicodeLength(), 
-                                                    reinterpret_cast<pdf_utf8*>(pBuffer), lBufferLen, ePdfStringConversion_Lenient );
+                                                    reinterpret_cast<pdf_utf8*>(pBuffer), lBufferLen, EPdfStringConversion::Lenient );
         if (lUtf8 + 1 > lBufferLen) // + 1 to account for 2 bytes termination here vs. 1 byte there
         {
             pBuffer = static_cast<char*>(podofo_realloc( pBuffer, lUtf8 + 1 ) );
             if( !pBuffer )
             {
-                PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+                PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
             }
             if (lUtf8 - 1 > lBufferLen)
                 lUtf8 = PdfString::ConvertUTF16toUTF8( reinterpret_cast<const pdf_utf16be*>(m_buffer.GetBuffer()),
@@ -658,7 +658,7 @@ const std::wstring PdfString::GetStringW() const
 {
     if ( !IsValid() )
     {
-        PdfError::LogMessage( eLogSeverity_Error, "PdfString::GetStringW invalid PdfString" );
+        PdfError::LogMessage( ELogSeverity::Error, "PdfString::GetStringW invalid PdfString" );
         return std::wstring();
     }
     
@@ -699,7 +699,7 @@ PdfString PdfString::ToUnicode() const
         // which means trying to convert an invalid string returns another invalid string
         // and in the special case where *this is PdfString::StringNull then ToUnicode()
         // returns PdfString::StringNull
-        PdfError::LogMessage( eLogSeverity_Error, "PdfString::ToUnicode invalid PdfString" );
+        PdfError::LogMessage( ELogSeverity::Error, "PdfString::ToUnicode invalid PdfString" );
         return *this;
     }
 }
@@ -795,7 +795,7 @@ size_t PdfString::ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, size_t lLenUt
     if (pReturnBuf != pResultBuf)
     {
         free(pReturnBuf); // allocated by libunistring, so don't use podofo_free()
-        PdfError::LogMessage( eLogSeverity_Warning, "Output string size too little to hold it\n" );
+        PdfError::LogMessage( ELogSeverity::Warning, "Output string size too little to hold it\n" );
         return resultBufLength + 1;
     }
 
@@ -988,12 +988,12 @@ size_t PdfString::ConvertUTF8toUTF16( const pdf_utf8* pszUtf8, size_t lLenUtf8,
 	unsigned long ch = 0;
 	unsigned short extraBytesToRead = trailingBytesForUTF8[*source];
 	if (source + extraBytesToRead >= sourceEnd) {
-	    PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "The UTF8 string was to short while converting from UTF8 to UTF16." );
+	    PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDataType, "The UTF8 string was to short while converting from UTF8 to UTF16." );
 	}
 
 	// Do this check whether lenient or strict
 	if (! isLegalUTF8(source, extraBytesToRead+1)) {
-	    PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "The UTF8 string was invalid while from UTF8 to UTF16." );
+	    PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDataType, "The UTF8 string was invalid while from UTF8 to UTF16." );
 	}
 
 	/*
@@ -1016,15 +1016,15 @@ size_t PdfString::ConvertUTF8toUTF16( const pdf_utf8* pszUtf8, size_t lLenUtf8,
 
 	if (target >= targetEnd) {
 	    source -= (extraBytesToRead+1); /* Back up source pointer! */
-	    PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+	    PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
 	}
 
 	if (ch <= UNI_MAX_BMP) { /* Target is a character <= 0xFFFF */
 	    /* UTF-16 surrogate values are illegal in UTF-32 */
 	    if (ch >= UNI_SUR_HIGH_START && ch <= UNI_SUR_LOW_END) {
-		if (eConversion == ePdfStringConversion_Strict) {
+		if (eConversion == EPdfStringConversion::Strict) {
 		    source -= (extraBytesToRead+1); /* return to the illegal value itself */
-                    PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
+                    PODOFO_RAISE_ERROR( EPdfError::InvalidDataType );
 		    break;
 		} else {
 		    *target++ = UNI_REPLACEMENT_CHAR;
@@ -1033,8 +1033,8 @@ size_t PdfString::ConvertUTF8toUTF16( const pdf_utf8* pszUtf8, size_t lLenUtf8,
 		*target++ = static_cast<pdf_utf16be>(ch); /* normal case */
 	    }
 	} else if (ch > UNI_MAX_UTF16) {
-	    if (eConversion == ePdfStringConversion_Strict) {
-                PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
+	    if (eConversion == EPdfStringConversion::Strict) {
+                PODOFO_RAISE_ERROR( EPdfError::InvalidDataType );
 
         //RG: TODO My compiler says that this is unreachable code!
 
@@ -1047,7 +1047,7 @@ size_t PdfString::ConvertUTF8toUTF16( const pdf_utf8* pszUtf8, size_t lLenUtf8,
 	    /* target is a character in range 0xFFFF - 0x10FFFF. */
 	    if (target + 1 >= targetEnd) {
 		source -= (extraBytesToRead+1); /* Back up source pointer! */
-                PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+                PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
 	    }
             
 	    ch -= halfBase;
@@ -1093,7 +1093,7 @@ size_t PdfString::ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, size_t lLenUt
     source  = new pdf_utf16be[lLenUtf16+1];
     if( !source )
     {
-        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+        PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
     }
     
     memcpy( const_cast<pdf_utf16be*>(source), pszUtf16, lLenUtf16 * sizeof(pdf_utf16be) );
@@ -1123,21 +1123,21 @@ size_t PdfString::ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, size_t lLenUt
                         ch = ((ch - UNI_SUR_HIGH_START) << halfShift)
                             + (ch2 - UNI_SUR_LOW_START) + halfBase;
                         ++source;
-                    } else if (eConversion == ePdfStringConversion_Strict) { /* it's an unpaired high surrogate */
+                    } else if (eConversion == EPdfStringConversion::Strict) { /* it's an unpaired high surrogate */
                         --source; /* return to the illegal value itself */
-                        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
+                        PODOFO_RAISE_ERROR( EPdfError::InvalidDataType );
                         break;
                     }
                 } else { /* We don't have the 16 bits following the high surrogate. */
                     --source; /* return to the high surrogate */
-                    PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+                    PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
                     break;
                 }
-            } else if (eConversion == ePdfStringConversion_Strict) {
+            } else if (eConversion == EPdfStringConversion::Strict) {
                 /* UTF-16 surrogate values are illegal in UTF-32 */
                 if (ch >= UNI_SUR_LOW_START && ch <= UNI_SUR_LOW_END) {
                     --source; /* return to the illegal value itself */
-                    PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
+                    PODOFO_RAISE_ERROR( EPdfError::InvalidDataType );
                     break;
                 }
             }
@@ -1159,7 +1159,7 @@ size_t PdfString::ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, size_t lLenUt
             if (target > targetEnd) {
                 source = oldSource; /* Back up source pointer! */
                 target -= bytesToWrite; 
-                PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+                PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
                 break;
             }
         

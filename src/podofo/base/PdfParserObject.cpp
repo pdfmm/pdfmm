@@ -110,7 +110,7 @@ void PdfParserObject::ReadObjectNumber()
         std::ostringstream oss;
         oss << "Error while reading object " << reference.ObjectNumber() << " "
             << reference.GenerationNumber() << ": Next token is not 'obj'." << std::endl;
-        PODOFO_RAISE_ERROR_INFO( ePdfError_NoObject, oss.str().c_str() );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::NoObject, oss.str().c_str() );
     }
 }
 
@@ -118,7 +118,7 @@ void PdfParserObject::ParseFile( PdfEncrypt* pEncrypt, bool bIsTrailer )
 {
     if( !m_device.Device() )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     if (m_lOffset >= 0)
@@ -181,7 +181,7 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
     
     if (!gotToken)
     {
-        PODOFO_RAISE_ERROR_INFO( ePdfError_UnexpectedEOF, "Expected variant." );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::UnexpectedEOF, "Expected variant." );
     }
 
     // Check if we have an empty object or data
@@ -195,7 +195,7 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
             bool gotToken = this->GetNextToken( pszToken );
             if (!gotToken)
             {
-                PODOFO_RAISE_ERROR_INFO( ePdfError_UnexpectedEOF, "Expected 'endobj' or (if dict) 'stream', got EOF." );
+                PODOFO_RAISE_ERROR_INFO( EPdfError::UnexpectedEOF, "Expected 'endobj' or (if dict) 'stream', got EOF." );
             }
             if( strncmp( pszToken, "endobj", s_nLenEndObj ) == 0 )
                 ; // nothing to do, just validate that the PDF is correct
@@ -207,7 +207,7 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
             }
             else
             {
-                PODOFO_RAISE_ERROR_INFO( ePdfError_NoObject, pszToken );
+                PODOFO_RAISE_ERROR_INFO( EPdfError::NoObject, pszToken );
             }
         }
     }
@@ -226,7 +226,7 @@ void PdfParserObject::ParseStream()
 
     if( !m_device.Device() || GetOwner() == nullptr )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     m_device.Device()->Seek( m_lStreamOffset );
@@ -263,16 +263,16 @@ void PdfParserObject::ParseStream()
         pObj = GetOwner()->GetObject( pObj->GetReference() );
         if( !pObj )
         {
-            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle, "/Length key referenced indirect object that could not be loaded" );
+            PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidHandle, "/Length key referenced indirect object that could not be loaded" );
         }
 
-        /*PdfError::LogMessage(eLogSeverity_Information,
+        /*PdfError::LogMessage(ELogSeverity::Information,
                              "Reading object %i 0 R with type: %s\n", 
                              pObj->Reference().ObjectNumber(), pObj->GetDataTypeString());*/
 
         if( !pObj->IsNumber() )
         {
-            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidStreamLength, "/Length key for stream referenced non-number" );
+            PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidStreamLength, "/Length key for stream referenced non-number" );
         }
 
         lLen = pObj->GetNumber();
@@ -282,7 +282,7 @@ void PdfParserObject::ParseStream()
     }
     else
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidStreamLength );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidStreamLength );
     }
 
     m_device.Device()->Seek( fLoc );	// reset it before reading!

@@ -57,43 +57,43 @@ namespace
 namespace PoDoFo {
 
 #ifdef PODOFO_HAVE_LIBIDN
-int PdfEncrypt::s_nEnabledEncryptionAlgorithms = 
+EPdfEncryptAlgorithm PdfEncrypt::s_nEnabledEncryptionAlgorithms =
 #ifndef PODOFO_HAVE_OPENSSL_NO_RC4
-ePdfEncryptAlgorithm_RC4V1 |
-ePdfEncryptAlgorithm_RC4V2 |
+EPdfEncryptAlgorithm::RC4V1 |
+EPdfEncryptAlgorithm::RC4V2 |
 #endif // PODOFO_HAVE_OPENSSL_NO_RC4
-ePdfEncryptAlgorithm_AESV2 |
-ePdfEncryptAlgorithm_AESV3;
+EPdfEncryptAlgorithm::AESV2 |
+EPdfEncryptAlgorithm::AESV3;
 #else // PODOFO_HAVE_LIBIDN
 int PdfEncrypt::s_nEnabledEncryptionAlgorithms =
 #ifndef PODOFO_HAVE_OPENSSL_NO_RC4
-ePdfEncryptAlgorithm_RC4V1 |
-ePdfEncryptAlgorithm_RC4V2 |
+EPdfEncryptAlgorithm::RC4V1 |
+EPdfEncryptAlgorithm::RC4V2 |
 #endif // PODOFO_HAVE_OPENSSL_NO_RC4
-ePdfEncryptAlgorithm_AESV2;
+EPdfEncryptAlgorithm::AESV2;
 #endif // PODOFO_HAVE_LIBIDN
 
 PdfEncrypt::~PdfEncrypt() { }
     
-int PdfEncrypt::GetEnabledEncryptionAlgorithms()
+EPdfEncryptAlgorithm PdfEncrypt::GetEnabledEncryptionAlgorithms()
 {
     return PdfEncrypt::s_nEnabledEncryptionAlgorithms;
 }
 
-void PdfEncrypt::SetEnabledEncryptionAlgorithms(int nEncryptionAlgorithms)
+void PdfEncrypt::SetEnabledEncryptionAlgorithms(EPdfEncryptAlgorithm nEncryptionAlgorithms)
 {
     PdfEncrypt::s_nEnabledEncryptionAlgorithms = nEncryptionAlgorithms;
 }
 
 bool PdfEncrypt::IsEncryptionEnabled(EPdfEncryptAlgorithm eAlgorithm)
 {
-    return (PdfEncrypt::s_nEnabledEncryptionAlgorithms & eAlgorithm) != 0;
+    return (PdfEncrypt::s_nEnabledEncryptionAlgorithms & eAlgorithm) != EPdfEncryptAlgorithm::None;
 }
 
   
 #ifdef PODOFO_HAVE_OPENSSL
 // Default value for P (permissions) = no permission
-#define PERMS_DEFAULT 0xFFFFF0C0
+#define PERMS_DEFAULT (EPdfPermissions)0xFFFFF0C0
 
 #define AES_IV_LENGTH 16
 
@@ -281,7 +281,7 @@ public:
         char* pOutputBuffer = static_cast<char*>(podofo_calloc( lLen, sizeof(char) ));
         if( !pOutputBuffer )
         {
-            PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+            PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
         }
         
         memcpy(pOutputBuffer, pBuffer, lLen);
@@ -369,25 +369,25 @@ public:
     size_t Decrypt( unsigned char* pBuffer, size_t lLen, size_t* pTotalLeft )
     {
 		if (pTotalLeft == 0)
-			PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error AES-decryption needs pTotalLeft" );
+			PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error AES-decryption needs pTotalLeft" );
 		if( lLen % 16 != 0 )
-			PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error AES-decryption data length not a multiple of 16" );
+			PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error AES-decryption data length not a multiple of 16" );
 		EVP_CIPHER_CTX* aes = m_aes->getEngine();
 		int lOutLen = 0, lStepOutLen;
 		int status = 1;
 		int bufferOffset = 0;
 		if( bFirstRead ) {
-			if( keyLen == PdfEncrypt::ePdfKeyLength_128/8 ) {
+			if( keyLen == (size_t)EPdfKeyLength::L128/8 ) {
 				status = EVP_DecryptInit_ex( aes, EVP_aes_128_cbc(), NULL, key, pBuffer );
 #ifdef PODOFO_HAVE_LIBIDN
-			} else if( keyLen == PdfEncrypt::ePdfKeyLength_256/8 ) {
+			} else if( keyLen == (size_t)EPdfKeyLength::L256/8 ) {
 				status = EVP_DecryptInit_ex( aes, EVP_aes_256_cbc(), NULL, key, pBuffer );
 #endif
 			} else {
-				PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Invalid AES key length" );
+				PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Invalid AES key length" );
 			}
 			if(status != 1)
-				PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error initializing AES encryption engine" );
+				PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error initializing AES encryption engine" );
 
 			bufferOffset = AES_IV_LENGTH;
 			bFirstRead = false;
@@ -402,7 +402,7 @@ public:
 			memcpy( pBuffer, &tempBuffer[0], lOutLen );
 		}
 		if( status != 1 )
-			PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error AES-decryption data" );
+			PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error AES-decryption data" );
 		if( lLen == *pTotalLeft ) {
 			// Last chunk of the stream
 			if( lLen == lOutLen ) {
@@ -412,7 +412,7 @@ public:
 			} else {
 				status = EVP_DecryptFinal_ex( aes, pBuffer + lOutLen, &lStepOutLen );
 				if( status != 1 )
-					PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error AES-decryption data padding" );
+					PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error AES-decryption data padding" );
 				lOutLen += lStepOutLen;
 			}
 		}
@@ -492,9 +492,9 @@ static unsigned char padding[] =
 "\x28\xBF\x4E\x5E\x4E\x75\x8A\x41\x64\x00\x4E\x56\xFF\xFA\x01\x08\x2E\x2E\x00\xB6\xD0\x68\x3E\x80\x2F\x0C\xA9\xFE\x64\x53\x69\x7A";
 
 PdfEncrypt *
-PdfEncrypt::CreatePdfEncrypt( const std::string & userPassword, 
+PdfEncrypt::CreatePdfEncrypt(const std::string & userPassword, 
                              const std::string & ownerPassword, 
-                             int protection,
+                             EPdfPermissions protection,
                              EPdfEncryptAlgorithm eAlgorithm, 
                              EPdfKeyLength eKeyLength )
 {
@@ -502,18 +502,18 @@ PdfEncrypt::CreatePdfEncrypt( const std::string & userPassword,
     
     switch (eAlgorithm)
     {
-        case ePdfEncryptAlgorithm_AESV2:
+        case EPdfEncryptAlgorithm::AESV2:
 	default:
             pdfEncrypt = new PdfEncryptAESV2(userPassword, ownerPassword, protection);
             break;
 #ifdef PODOFO_HAVE_LIBIDN
-        case ePdfEncryptAlgorithm_AESV3:
+        case EPdfEncryptAlgorithm::AESV3:
             pdfEncrypt = new PdfEncryptAESV3(userPassword, ownerPassword, protection);
             break;
 #endif // PODOFO_HAVE_LIBIDN
 #ifndef PODOFO_HAVE_OPENSSL_NO_RC4
-        case ePdfEncryptAlgorithm_RC4V2:           
-        case ePdfEncryptAlgorithm_RC4V1:
+        case EPdfEncryptAlgorithm::RC4V2:           
+        case EPdfEncryptAlgorithm::RC4V1:
             pdfEncrypt = new PdfEncryptRC4(userPassword, ownerPassword, protection, eAlgorithm, eKeyLength);
             break;
 #endif // PODOFO_HAVE_OPENSSL_NO_RC4
@@ -537,23 +537,23 @@ PdfEncrypt* PdfEncrypt::CreatePdfEncrypt( const PdfObject* pObject )
             oss << "Encryption dictionary does not have a key /Filter.";
         }
         
-        PODOFO_RAISE_ERROR_INFO( ePdfError_UnsupportedFilter, oss.str().c_str() );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::UnsupportedFilter, oss.str().c_str() );
     }
     
-    long lV;
+    int lV;
     int64_t lLength;
     int rValue;
-    int pValue;
+    EPdfPermissions pValue;
     PdfString oValue;
     PdfString uValue;
 	PdfName cfmName;
 	bool encryptMetadata = true;
     
     try {
-        lV     = static_cast<long>(pObject->GetDictionary().MustGetKey( PdfName("V") ).GetNumber());
+        lV     = static_cast<int>(pObject->GetDictionary().MustGetKey( PdfName("V") ).GetNumber());
         rValue = static_cast<int>( pObject->GetDictionary().MustGetKey( PdfName("R") ).GetNumber());
         
-        pValue = static_cast<int>( pObject->GetDictionary().MustGetKey( PdfName("P") ).GetNumber());
+        pValue = static_cast<EPdfPermissions>( pObject->GetDictionary().MustGetKey( PdfName("P") ).GetNumber());
         
         oValue =                   pObject->GetDictionary().MustGetKey( PdfName("O") ).GetString();        
         uValue =                   pObject->GetDictionary().MustGetKey( PdfName("U") ).GetString();
@@ -588,26 +588,26 @@ PdfEncrypt* PdfEncrypt::CreatePdfEncrypt( const PdfObject* pObject )
     
 #ifndef PODOFO_HAVE_OPENSSL_NO_RC4
     if( (lV == 1L) && (rValue == 2L || rValue == 3L)
-       && PdfEncrypt::IsEncryptionEnabled( ePdfEncryptAlgorithm_RC4V1 ) ) 
+       && PdfEncrypt::IsEncryptionEnabled( EPdfEncryptAlgorithm::RC4V1 ) ) 
     {
-        pdfEncrypt = new PdfEncryptRC4(oValue, uValue, pValue, rValue, ePdfEncryptAlgorithm_RC4V1, 40, encryptMetadata);
+        pdfEncrypt = new PdfEncryptRC4(oValue, uValue, pValue, rValue, EPdfEncryptAlgorithm::RC4V1, (int)EPdfKeyLength::L40, encryptMetadata);
     }
     else if( (((lV == 2L) && (rValue == 3L)) || cfmName == "V2")
-            && PdfEncrypt::IsEncryptionEnabled( ePdfEncryptAlgorithm_RC4V2 ) ) 
+            && PdfEncrypt::IsEncryptionEnabled( EPdfEncryptAlgorithm::RC4V2 ) ) 
     {
         // [Alexey] - lLength is int64_t. Please make changes in encryption algorithms
-        pdfEncrypt = new PdfEncryptRC4(oValue, uValue, pValue, rValue, ePdfEncryptAlgorithm_RC4V2, static_cast<int>(lLength), encryptMetadata);
+        pdfEncrypt = new PdfEncryptRC4(oValue, uValue, pValue, rValue, EPdfEncryptAlgorithm::RC4V2, static_cast<int>(lLength), encryptMetadata);
     }
     else 
 #endif // PODOFO_HAVE_OPENSSL_NO_RC4
     if( (lV == 4L) && (rValue == 4L)
-            && PdfEncrypt::IsEncryptionEnabled( ePdfEncryptAlgorithm_AESV2 ) ) 
+            && PdfEncrypt::IsEncryptionEnabled( EPdfEncryptAlgorithm::AESV2 ) ) 
     {
         pdfEncrypt = new PdfEncryptAESV2(oValue, uValue, pValue, encryptMetadata);      
     }
 #ifdef PODOFO_HAVE_LIBIDN
     else if( (lV == 5L) && (rValue == 5L) 
-            && PdfEncrypt::IsEncryptionEnabled( ePdfEncryptAlgorithm_AESV3 ) ) 
+            && PdfEncrypt::IsEncryptionEnabled( EPdfEncryptAlgorithm::AESV3 ) ) 
     {
         PdfString permsValue   = pObject->GetDictionary().GetKey( PdfName("Perms") )->GetString();
         PdfString oeValue      = pObject->GetDictionary().GetKey( PdfName("OE") )->GetString();
@@ -620,7 +620,7 @@ PdfEncrypt* PdfEncrypt::CreatePdfEncrypt( const PdfObject* pObject )
     {
         std::ostringstream oss;
         oss << "Unsupported encryption method Version=" << lV << " Revision=" << rValue;
-        PODOFO_RAISE_ERROR_INFO( ePdfError_UnsupportedFilter, oss.str().c_str() );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::UnsupportedFilter, oss.str().c_str() );
     }
     return pdfEncrypt;
 }
@@ -630,10 +630,10 @@ PdfEncrypt::CreatePdfEncrypt(const PdfEncrypt & rhs )
 {
     PdfEncrypt *pdfEncrypt = NULL;
     
-    if (rhs.m_eAlgorithm == ePdfEncryptAlgorithm_AESV2)
+    if (rhs.m_eAlgorithm == EPdfEncryptAlgorithm::AESV2)
         pdfEncrypt = new PdfEncryptAESV2(rhs);
 #ifdef PODOFO_HAVE_LIBIDN
-    else if (rhs.m_eAlgorithm == ePdfEncryptAlgorithm_AESV3)
+    else if (rhs.m_eAlgorithm == EPdfEncryptAlgorithm::AESV3)
         pdfEncrypt = new PdfEncryptAESV3(rhs);
 #endif // PODOFO_HAVE_LIBIDN
 #ifndef PODOFO_HAVE_OPENSSL_NO_RC4
@@ -710,7 +710,7 @@ PdfEncryptMD5Base::PadPassword(const std::string& password, unsigned char pswd[3
 bool
 PdfEncryptMD5Base::Authenticate(const std::string& documentID, const std::string& password,
                                 const std::string& uValue, const std::string& oValue,
-                                int pValue, int lengthValue, int rValue)
+                                EPdfPermissions pValue, int lengthValue, int rValue)
 {
     m_pValue = pValue;
     m_keyLength = lengthValue / 8;
@@ -733,13 +733,13 @@ PdfEncryptMD5Base::ComputeOwnerKey(unsigned char userPad[32], unsigned char owne
     MD5_CTX ctx;
     int status = MD5_Init(&ctx);
     if(status != 1)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error initializing MD5 hashing engine" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error initializing MD5 hashing engine" );
     status = MD5_Update(&ctx, ownerPad, 32);
     if(status != 1)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error MD5-hashing data" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error MD5-hashing data" );
     status = MD5_Final(digest,&ctx);
     if(status != 1)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error MD5-hashing data" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error MD5-hashing data" );
     
     if ((revision == 3) || (revision == 4))
     {
@@ -748,13 +748,13 @@ PdfEncryptMD5Base::ComputeOwnerKey(unsigned char userPad[32], unsigned char owne
         {
             status = MD5_Init(&ctx);
             if(status != 1)
-                PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error initializing MD5 hashing engine" );
+                PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error initializing MD5 hashing engine" );
             status = MD5_Update(&ctx, digest, keyLength);
             if(status != 1)
-                PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error MD5-hashing data" );
+                PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error MD5-hashing data" );
             status = MD5_Final(digest,&ctx);
             if(status != 1)
-                PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error MD5-hashing data" );
+                PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error MD5-hashing data" );
         }
         memcpy(ownerKey, userPad, 32);
         for (unsigned int i = 0; i < 20; ++i)
@@ -782,32 +782,32 @@ PdfEncryptMD5Base::ComputeOwnerKey(unsigned char userPad[32], unsigned char owne
 void
 PdfEncryptMD5Base::ComputeEncryptionKey(const std::string& documentId,
                                         unsigned char userPad[32], unsigned char ownerKey[32],
-                                        int pValue, int keyLength, int revision,
+                                        EPdfPermissions pValue, EPdfKeyLength keyLength, int revision,
                                         unsigned char userKey[32], bool encryptMetadata)
 {
     int j;
     int k;
-    m_keyLength = keyLength / 8;
+    m_keyLength = (int)keyLength / 8;
     
     MD5_CTX ctx;
     int status = MD5_Init(&ctx);
     if(status != 1)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error initializing MD5 hashing engine" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error initializing MD5 hashing engine" );
     status = MD5_Update(&ctx, userPad, 32);
     if(status != 1)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error MD5-hashing data" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error MD5-hashing data" );
     status = MD5_Update(&ctx, ownerKey, 32);
     if(status != 1)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error MD5-hashing data" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error MD5-hashing data" );
     
     unsigned char ext[4];
-    ext[0] = static_cast<unsigned char> ( pValue        & 0xff);
-    ext[1] = static_cast<unsigned char> ((pValue >>  8) & 0xff);
-    ext[2] = static_cast<unsigned char> ((pValue >> 16) & 0xff);
-    ext[3] = static_cast<unsigned char> ((pValue >> 24) & 0xff);
+    ext[0] = static_cast<unsigned char> (((unsigned)pValue >>  0) & 0xff);
+    ext[1] = static_cast<unsigned char> (((unsigned)pValue >>  8) & 0xff);
+    ext[2] = static_cast<unsigned char> (((unsigned)pValue >> 16) & 0xff);
+    ext[3] = static_cast<unsigned char> (((unsigned)pValue >> 24) & 0xff);
     status = MD5_Update(&ctx, ext, 4);
     if(status != 1)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error MD5-hashing data" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error MD5-hashing data" );
     
     unsigned int docIdLength = static_cast<unsigned int>(documentId.length());
     unsigned char* docId = NULL;
@@ -821,7 +821,7 @@ PdfEncryptMD5Base::ComputeEncryptionKey(const std::string& documentId,
         }
         status = MD5_Update(&ctx, docId, docIdLength);
         if(status != 1)
-            PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error MD5-hashing data" );
+            PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error MD5-hashing data" );
     }
     
     // If document metadata is not being encrypted, 
@@ -834,7 +834,7 @@ PdfEncryptMD5Base::ComputeEncryptionKey(const std::string& documentId,
     unsigned char digest[MD5_DIGEST_LENGTH];
     status = MD5_Final(digest,&ctx);
     if(status != 1)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error MD5-hashing data" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error MD5-hashing data" );
     
     // only use the really needed bits as input for the hash
     if (revision == 3 || revision == 4)
@@ -843,13 +843,13 @@ PdfEncryptMD5Base::ComputeEncryptionKey(const std::string& documentId,
         {
             status = MD5_Init(&ctx);
             if(status != 1)
-                PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error initializing MD5 hashing engine" );
+                PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error initializing MD5 hashing engine" );
             status = MD5_Update(&ctx, digest, m_keyLength);
             if(status != 1)
-                PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error MD5-hashing data" );
+                PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error MD5-hashing data" );
             status = MD5_Final(digest, &ctx);
             if(status != 1)
-                PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error MD5-hashing data" );
+                PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error MD5-hashing data" );
         }
     }
     
@@ -860,19 +860,19 @@ PdfEncryptMD5Base::ComputeEncryptionKey(const std::string& documentId,
     {
         status = MD5_Init(&ctx);
         if(status != 1)
-            PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error initializing MD5 hashing engine" );
+            PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error initializing MD5 hashing engine" );
         status = MD5_Update(&ctx, padding, 32);
         if(status != 1)
-            PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error MD5-hashing data" );
+            PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error MD5-hashing data" );
         if (docId != NULL)
         {
             status = MD5_Update(&ctx, docId, docIdLength);
             if(status != 1)
-                PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error MD5-hashing data" );
+                PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error MD5-hashing data" );
         }
         status = MD5_Final(digest, &ctx);
         if(status != 1)
-            PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error MD5-hashing data" );
+            PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error MD5-hashing data" );
         memcpy(userKey, digest, 16);
         for (k = 16; k < 32; ++k)
         {
@@ -921,7 +921,7 @@ void PdfEncryptMD5Base::CreateObjKey( unsigned char objkey[16], int* pnKeyLen ) 
     nkey[m_keyLength+3] = static_cast<unsigned char>(0xff &  g);
     nkey[m_keyLength+4] = static_cast<unsigned char>(0xff & (g >> 8));
     
-	if (m_eAlgorithm == ePdfEncryptAlgorithm_AESV2)
+	if (m_eAlgorithm == EPdfEncryptAlgorithm::AESV2)
     {
         // AES encryption needs some 'salt'
         nkeylen += 4;
@@ -958,30 +958,30 @@ PdfEncryptRC4Base::RC4(const unsigned char* key, int keylen,
     EVP_CIPHER_CTX* rc4 = m_rc4->getEngine();
     
     if(textlen != textoutlen)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error initializing RC4 encryption engine" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error initializing RC4 encryption engine" );
     
     // Don't set the key because we will modify the parameters
     int status = EVP_EncryptInit_ex(rc4, EVP_rc4(), NULL, NULL, NULL);
     if(status != 1)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error initializing RC4 encryption engine" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error initializing RC4 encryption engine" );
     
     status = EVP_CIPHER_CTX_set_key_length(rc4, keylen);
     if(status != 1)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error initializing RC4 encryption engine" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error initializing RC4 encryption engine" );
     
     // We finished modifying parameters so now we can set the key
     status = EVP_EncryptInit_ex(rc4, NULL, NULL, key, NULL);
     if(status != 1)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error initializing RC4 encryption engine" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error initializing RC4 encryption engine" );
     
     int dataOutMoved;
     status = EVP_EncryptUpdate(rc4, textout, &dataOutMoved, textin, (int)textlen);
     if(status != 1)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error RC4-encrypting data" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error RC4-encrypting data" );
     
     status = EVP_EncryptFinal_ex(rc4, &textout[dataOutMoved], &dataOutMoved);
     if(status != 1)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error RC4-encrypting data" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error RC4-encrypting data" );
 }
 #endif // PODOFO_HAVE_OPENSSL_NO_RC4
         
@@ -992,13 +992,13 @@ PdfEncryptMD5Base::GetMD5Binary(const unsigned char* data, int length, unsigned 
     MD5_CTX ctx;
     status = MD5_Init(&ctx);
     if(status != 1)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error initializing MD5 hashing engine" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error initializing MD5 hashing engine" );
     status = MD5_Update(&ctx, data, length);
     if(status != 1)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error MD5-hashing data" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error MD5-hashing data" );
     status = MD5_Final(digest,&ctx);
     if(status != 1)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error MD5-hashing data" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error MD5-hashing data" );
 }
 
 void PdfEncryptMD5Base::GenerateInitialVector(unsigned char iv[])
@@ -1020,13 +1020,13 @@ void PdfEncryptMD5Base::CreateEncryptionDictionary( PdfDictionary & rDictionary 
 {
     rDictionary.AddKey( PdfName("Filter"), PdfName("Standard") );
     
-    if(m_eAlgorithm == ePdfEncryptAlgorithm_AESV2 || !m_bEncryptMetadata)
+    if(m_eAlgorithm == EPdfEncryptAlgorithm::AESV2 || !m_bEncryptMetadata)
     {
         PdfDictionary cf;
         PdfDictionary stdCf;
         
 #ifndef PODOFO_HAVE_OPENSSL_NO_RC4
-		if(m_eAlgorithm == ePdfEncryptAlgorithm_RC4V2)
+		if(m_eAlgorithm == EPdfEncryptAlgorithm::RC4V2)
 			stdCf.AddKey( PdfName("CFM"), PdfName("V2") );
 		else
 #endif // PODOFO_HAVE_OPENSSL_NO_RC4
@@ -1050,13 +1050,13 @@ void PdfEncryptMD5Base::CreateEncryptionDictionary( PdfDictionary & rDictionary 
 			rDictionary.AddKey( PdfName("EncryptMetadata"), PdfVariant( false ) );
     }
 #ifndef PODOFO_HAVE_OPENSSL_NO_RC4
-    else if(m_eAlgorithm == ePdfEncryptAlgorithm_RC4V1)
+    else if(m_eAlgorithm == EPdfEncryptAlgorithm::RC4V1)
     {
         rDictionary.AddKey( PdfName("V"), static_cast<int64_t>(1) );
         // Can be 2 or 3
         rDictionary.AddKey( PdfName("R"), static_cast<int64_t>(m_rValue) );
     }
-    else if(m_eAlgorithm == ePdfEncryptAlgorithm_RC4V2)
+    else if(m_eAlgorithm == EPdfEncryptAlgorithm::RC4V2)
     {
         rDictionary.AddKey( PdfName("V"), static_cast<int64_t>(2) );
         rDictionary.AddKey( PdfName("R"), static_cast<int64_t>(3) );
@@ -1157,13 +1157,14 @@ PdfInputStream* PdfEncryptRC4::CreateEncryptionInputStream( PdfInputStream* pInp
     return new PdfRC4InputStream( pInputStream, m_rc4key, m_rc4last, objkey, keylen );
 }
 
-PdfEncryptRC4::PdfEncryptRC4(PdfString oValue, PdfString uValue, int pValue, int rValue, EPdfEncryptAlgorithm eAlgorithm, long length, bool encryptMetadata)
+PdfEncryptRC4::PdfEncryptRC4(PdfString oValue, PdfString uValue, EPdfPermissions pValue, int rValue,
+    EPdfEncryptAlgorithm eAlgorithm, int length, bool encryptMetadata)
 {
     m_pValue = pValue;
     m_rValue = rValue;
     m_eAlgorithm = eAlgorithm;
     m_eKeyLength = static_cast<EPdfKeyLength>(length);
-    m_keyLength  = length/8;
+    m_keyLength = length / 8;
 	m_bEncryptMetadata = encryptMetadata;
     memcpy( m_oValue, oValue.GetString(), 32 );
     memcpy( m_uValue, uValue.GetString(), 32 );
@@ -1174,7 +1175,7 @@ PdfEncryptRC4::PdfEncryptRC4(PdfString oValue, PdfString uValue, int pValue, int
     memset(m_encryptionKey, 0, 32);
 }
 
-PdfEncryptRC4::PdfEncryptRC4( const std::string & userPassword, const std::string & ownerPassword, int protection,
+PdfEncryptRC4::PdfEncryptRC4( const std::string & userPassword, const std::string & ownerPassword, EPdfPermissions protection,
                              EPdfEncryptAlgorithm eAlgorithm, EPdfKeyLength eKeyLength )
 {
     // setup object
@@ -1187,20 +1188,20 @@ PdfEncryptRC4::PdfEncryptRC4( const std::string & userPassword, const std::strin
     
     switch (eAlgorithm)
     {
-        case ePdfEncryptAlgorithm_RC4V2:
+        case EPdfEncryptAlgorithm::RC4V2:
             keyLength = keyLength - keyLength % 8;
             keyLength = (keyLength >= 40) ? ((keyLength <= 128) ? keyLength : 128) : 40;
             m_rValue = 3;
             m_keyLength = keyLength / 8;
             break;
-        case ePdfEncryptAlgorithm_RC4V1:
+        case EPdfEncryptAlgorithm::RC4V1:
         default:
             m_rValue = 2;
             m_keyLength = 40 / 8;
             break;
-        case ePdfEncryptAlgorithm_AESV2:
+        case EPdfEncryptAlgorithm::AESV2:
 #ifdef PODOFO_HAVE_LIBIDN
-        case ePdfEncryptAlgorithm_AESV3:
+        case EPdfEncryptAlgorithm::AESV3:
 #endif // PODOFO_HAVE_LIBIDN
             break;
     }
@@ -1242,32 +1243,32 @@ void PdfEncryptAESBase::BaseDecrypt(const unsigned char* key, int keyLen, const 
                        unsigned char* textout, size_t &outLen )
 {
 	if ((textlen % 16) != 0)
-		PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error AES-decryption data length not a multiple of 16" );
+		PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error AES-decryption data length not a multiple of 16" );
 
     EVP_CIPHER_CTX* aes = m_aes->getEngine();
     
     int status;
-    if(keyLen == PdfEncrypt::ePdfKeyLength_128/8)
+    if(keyLen == (int)EPdfKeyLength::L128/8)
         status = EVP_DecryptInit_ex(aes, EVP_aes_128_cbc(), NULL, key, iv);
 #ifdef PODOFO_HAVE_LIBIDN
-    else if (keyLen == PdfEncrypt::ePdfKeyLength_256/8)
+    else if (keyLen == (int)EPdfKeyLength::L256/8)
         status = EVP_DecryptInit_ex(aes, EVP_aes_256_cbc(), NULL, key, iv);
 #endif
     else
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Invalid AES key length" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Invalid AES key length" );
     if(status != 1)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error initializing AES decryption engine" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error initializing AES decryption engine" );
     
 	int dataOutMoved;
     status = EVP_DecryptUpdate(aes, textout, &dataOutMoved, textin, (int)textlen);
 	outLen = dataOutMoved;
     if(status != 1)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error AES-decryption data" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error AES-decryption data" );
     
     status = EVP_DecryptFinal_ex(aes, textout + outLen, &dataOutMoved);
 	outLen += dataOutMoved;
     if(status != 1)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error AES-decryption data final" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error AES-decryption data final" );
 }
 
 void PdfEncryptAESBase::BaseEncrypt(const unsigned char* key, int keyLen, const unsigned char* iv,
@@ -1277,25 +1278,25 @@ void PdfEncryptAESBase::BaseEncrypt(const unsigned char* key, int keyLen, const 
     EVP_CIPHER_CTX* aes = m_aes->getEngine();
     
     int status;
-    if(keyLen == PdfEncrypt::ePdfKeyLength_128/8)
+    if(keyLen == (int)EPdfKeyLength::L128/8)
         status = EVP_EncryptInit_ex(aes, EVP_aes_128_cbc(), NULL, key, iv);
 #ifdef PODOFO_HAVE_LIBIDN
-    else if (keyLen == PdfEncrypt::ePdfKeyLength_256/8)
+    else if (keyLen == (int)EPdfKeyLength::L256/8)
         status = EVP_EncryptInit_ex(aes, EVP_aes_256_cbc(), NULL, key, iv);
 #endif
     else
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Invalid AES key length" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Invalid AES key length" );
     if(status != 1)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error initializing AES encryption engine" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error initializing AES encryption engine" );
     
     int dataOutMoved;
     status = EVP_EncryptUpdate(aes, textout, &dataOutMoved, textin, (int)textlen);
     if(status != 1)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error AES-encrypting data" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error AES-encrypting data" );
     
     status = EVP_EncryptFinal_ex(aes, &textout[dataOutMoved], &dataOutMoved);
     if(status != 1)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error AES-encrypting data" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error AES-encrypting data" );
 }
     
 void
@@ -1384,16 +1385,16 @@ void PdfEncryptAESV2::Decrypt(const unsigned char* inStr, size_t inLen,
     const_cast<PdfEncryptAESV2*>(this)->BaseDecrypt(objkey, keylen, inStr, &inStr[offset], inLen-offset, outStr, outLen);
 }
     
-PdfEncryptAESV2::PdfEncryptAESV2( const std::string & userPassword, const std::string & ownerPassword, int protection) : PdfEncryptAESBase()
+PdfEncryptAESV2::PdfEncryptAESV2( const std::string & userPassword, const std::string & ownerPassword, EPdfPermissions protection) : PdfEncryptAESBase()
 {
     // setup object
     m_userPass = userPassword;
     m_ownerPass = ownerPassword;
-    m_eAlgorithm = ePdfEncryptAlgorithm_AESV2;
+    m_eAlgorithm = EPdfEncryptAlgorithm::AESV2;
     
     m_rValue = 4;
-    m_eKeyLength = ePdfKeyLength_128;
-    m_keyLength = ePdfKeyLength_128 / 8;
+    m_eKeyLength = EPdfKeyLength::L128;
+    m_keyLength = (int)EPdfKeyLength::L128 / 8;
     
     // Init buffers
     memset(m_rc4key, 0 ,16);
@@ -1406,13 +1407,13 @@ PdfEncryptAESV2::PdfEncryptAESV2( const std::string & userPassword, const std::s
     m_pValue = PERMS_DEFAULT | protection;
 }
     
-PdfEncryptAESV2::PdfEncryptAESV2(PdfString oValue, PdfString uValue, int pValue, bool encryptMetadata) : PdfEncryptAESBase()
+PdfEncryptAESV2::PdfEncryptAESV2(PdfString oValue, PdfString uValue, EPdfPermissions pValue, bool encryptMetadata) : PdfEncryptAESBase()
 {
     m_pValue = pValue;
-    m_eAlgorithm = ePdfEncryptAlgorithm_AESV2;
+    m_eAlgorithm = EPdfEncryptAlgorithm::AESV2;
     
-    m_eKeyLength = ePdfKeyLength_128;
-    m_keyLength  = ePdfKeyLength_128 / 8;
+    m_eKeyLength = EPdfKeyLength::L128;
+    m_keyLength  = (int)EPdfKeyLength::L128 / 8;
     m_rValue	 = 4;
 	m_bEncryptMetadata = encryptMetadata;
     memcpy( m_oValue, oValue.GetString(), 32 );
@@ -1452,7 +1453,7 @@ PdfOutputStream* PdfEncryptAESV2::CreateEncryptionOutputStream( PdfOutputStream*
      
      this->CreateObjKey( objkey, &keylen );*/
     
-    PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "CreateEncryptionOutputStream does not yet support AESV2" );
+    PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "CreateEncryptionOutputStream does not yet support AESV2" );
 }
     
 #ifdef PODOFO_HAVE_LIBIDN
@@ -1519,17 +1520,17 @@ void PdfEncryptSHABase::ComputeUserKey(const unsigned char * userpswd, size_t le
     
     int status = EVP_EncryptInit_ex(aes, EVP_aes_256_cbc(), NULL, hashValue, NULL);
     if(status != 1)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error initializing AES encryption engine" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error initializing AES encryption engine" );
     EVP_CIPHER_CTX_set_padding(aes, 0); // disable padding
     
     int dataOutMoved;
     status = EVP_EncryptUpdate(aes, m_ueValue, &dataOutMoved, m_encryptionKey, m_keyLength);
     if(status != 1)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error AES-encrypting data" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error AES-encrypting data" );
     
     status = EVP_EncryptFinal_ex(aes, &m_ueValue[dataOutMoved], &dataOutMoved);
     if(status != 1)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error AES-encrypting data" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error AES-encrypting data" );
     
     #ifdef PODOFO_HAVE_OPENSSL_1_1
     EVP_CIPHER_CTX_free(aes);
@@ -1585,17 +1586,17 @@ void PdfEncryptSHABase::ComputeOwnerKey(const unsigned char * ownerpswd, size_t 
     
     int status = EVP_EncryptInit_ex(aes, EVP_aes_256_cbc(), NULL, hashValue, NULL);
     if(status != 1)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error initializing AES encryption engine" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error initializing AES encryption engine" );
     EVP_CIPHER_CTX_set_padding(aes, 0); // disable padding
     
     int dataOutMoved;
     status = EVP_EncryptUpdate(aes, m_oeValue, &dataOutMoved, m_encryptionKey, m_keyLength);
     if(status != 1)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error AES-encrypting data" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error AES-encrypting data" );
     
     status = EVP_EncryptFinal_ex(aes, &m_oeValue[dataOutMoved], &dataOutMoved);
     if(status != 1)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error AES-encrypting data" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error AES-encrypting data" );
     
     #ifdef PODOFO_HAVE_OPENSSL_1_1
     EVP_CIPHER_CTX_free(aes);
@@ -1610,7 +1611,7 @@ void PdfEncryptSHABase::PreprocessPassword( const std::string &password, unsigne
     
     if (stringprep_profile(password.c_str(), &password_sasl, "SASLprep", STRINGPREP_NO_UNASSIGNED) != STRINGPREP_OK)
     {
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidPassword, "Error processing password through SASLprep" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidPassword, "Error processing password through SASLprep" );
     }
     
     size_t l = strlen(password_sasl);
@@ -1634,7 +1635,7 @@ bool
 PdfEncryptSHABase::Authenticate(const std::string& documentID, const std::string& password,
                                 const std::string& uValue, const std::string& ueValue,
                                 const std::string& oValue, const std::string& oeValue,
-                                int pValue, const std::string& permsValue,
+                                EPdfPermissions pValue, const std::string& permsValue,
                                 int lengthValue, int rValue)
 {
     m_pValue = pValue;
@@ -1709,10 +1710,10 @@ PdfEncryptAESV3::GenerateEncryptionKey(const PdfString &)
     // Compute Perms value
     unsigned char perms[16];
     // First 4 bytes = 32bits permissions
-    perms[3] = (m_pValue >> 24) & 0xff;
-    perms[2] = (m_pValue >> 16) & 0xff;
-    perms[1] = (m_pValue >> 8) & 0xff;
-    perms[0] = m_pValue & 0xff;
+    perms[3] = ((unsigned)m_pValue >> 24) & 0xff;
+    perms[2] = ((unsigned)m_pValue >> 16) & 0xff;
+    perms[1] = ((unsigned)m_pValue >> 8 ) & 0xff;
+    perms[0] = ((unsigned)m_pValue >> 0 ) & 0xff;
     // Placeholder for future versions that may need 64-bit permissions
     perms[4] = 0xff;
     perms[5] = 0xff;
@@ -1743,17 +1744,17 @@ PdfEncryptAESV3::GenerateEncryptionKey(const PdfString &)
     
     int status = EVP_EncryptInit_ex(aes, EVP_aes_256_ecb(), NULL, m_encryptionKey, NULL);
     if(status != 1)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error initializing AES encryption engine" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error initializing AES encryption engine" );
     EVP_CIPHER_CTX_set_padding(aes, 0); // disable padding
     
     int dataOutMoved;
     status = EVP_EncryptUpdate(aes, m_permsValue, &dataOutMoved, perms, 16);
     if(status != 1)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error AES-encrypting data" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error AES-encrypting data" );
     
     status = EVP_EncryptFinal_ex(aes, &m_permsValue[dataOutMoved], &dataOutMoved);
     if(status != 1)
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Error AES-encrypting data" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error AES-encrypting data" );
     
     #ifdef PODOFO_HAVE_OPENSSL_1_1
     EVP_CIPHER_CTX_free(aes);
@@ -1860,16 +1861,16 @@ PdfEncryptAESV3::Decrypt(const unsigned char* inStr, size_t inLen,
     const_cast<PdfEncryptAESV3*>(this)->BaseDecrypt(const_cast<unsigned char*>(m_encryptionKey), m_keyLength, inStr, &inStr[offset], inLen-offset, outStr, outLen);
 }
 
-PdfEncryptAESV3::PdfEncryptAESV3( const std::string & userPassword, const std::string & ownerPassword, int protection) : PdfEncryptAESBase()
+PdfEncryptAESV3::PdfEncryptAESV3( const std::string & userPassword, const std::string & ownerPassword, EPdfPermissions protection) : PdfEncryptAESBase()
 {
     // setup object
     m_userPass = userPassword;
     m_ownerPass = ownerPassword;
-    m_eAlgorithm = ePdfEncryptAlgorithm_AESV3;
+    m_eAlgorithm = EPdfEncryptAlgorithm::AESV3;
     
     m_rValue = 5;
-    m_eKeyLength = ePdfKeyLength_256;
-    m_keyLength = ePdfKeyLength_256 / 8;
+    m_eKeyLength = EPdfKeyLength::L256;
+    m_keyLength = (int)EPdfKeyLength::L256 / 8;
     
     // Init buffers
     memset(m_oValue, 0 ,48);
@@ -1882,13 +1883,13 @@ PdfEncryptAESV3::PdfEncryptAESV3( const std::string & userPassword, const std::s
     m_pValue = PERMS_DEFAULT | protection;
 }
 
-PdfEncryptAESV3::PdfEncryptAESV3(PdfString oValue,PdfString oeValue, PdfString uValue, PdfString ueValue, int pValue, PdfString permsValue) : PdfEncryptAESBase()
+PdfEncryptAESV3::PdfEncryptAESV3(PdfString oValue,PdfString oeValue, PdfString uValue, PdfString ueValue, EPdfPermissions pValue, PdfString permsValue) : PdfEncryptAESBase()
 {
     m_pValue = pValue;
-    m_eAlgorithm = ePdfEncryptAlgorithm_AESV3;
+    m_eAlgorithm = EPdfEncryptAlgorithm::AESV3;
     
-    m_eKeyLength = ePdfKeyLength_256;
-    m_keyLength  = ePdfKeyLength_256 / 8;
+    m_eKeyLength = EPdfKeyLength::L256;
+    m_keyLength  = (int)EPdfKeyLength::L256 / 8;
     m_rValue	 = 5;
     memcpy( m_oValue, oValue.GetString(), 48 );
     memcpy( m_oeValue, oeValue.GetString(), 32 );
@@ -1916,7 +1917,7 @@ PdfInputStream* PdfEncryptAESV3::CreateEncryptionInputStream( PdfInputStream* pI
 
 PdfOutputStream* PdfEncryptAESV3::CreateEncryptionOutputStream( PdfOutputStream* )
 {
-    PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "CreateEncryptionOutputStream does not yet support AESV3" );
+    PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "CreateEncryptionOutputStream does not yet support AESV3" );
 }
     
 #endif // PODOFO_HAVE_LIBIDN
@@ -2154,20 +2155,20 @@ PdfEncrypt::CreatePdfEncrypt( const std::string &,
                               EPdfEncryptAlgorithm, 
                               EPdfKeyLength )
 {
-    PODOFO_RAISE_ERROR_INFO( ePdfError_NotCompiled, "PdfEncrypt::CreatePdfEncrypt: Encryption support was disabled during compile time" );
+    PODOFO_RAISE_ERROR_INFO( EPdfError::NotCompiled, "PdfEncrypt::CreatePdfEncrypt: Encryption support was disabled during compile time" );
     return NULL;
 }
 
 PdfEncrypt* PdfEncrypt::CreatePdfEncrypt( const PdfObject* )
 {
-    PODOFO_RAISE_ERROR_INFO( ePdfError_NotCompiled, "PdfEncrypt::CreatePdfEncrypt: Encryption support was disabled during compile time" );
+    PODOFO_RAISE_ERROR_INFO( EPdfError::NotCompiled, "PdfEncrypt::CreatePdfEncrypt: Encryption support was disabled during compile time" );
     return NULL;
 }
 
 PdfEncrypt *
 PdfEncrypt::CreatePdfEncrypt(const PdfEncrypt & )  
 {
-    PODOFO_RAISE_ERROR_INFO( ePdfError_NotCompiled, "PdfEncrypt::CreatePdfEncrypt: Encryption support was disabled during compile time" );
+    PODOFO_RAISE_ERROR_INFO( EPdfError::NotCompiled, "PdfEncrypt::CreatePdfEncrypt: Encryption support was disabled during compile time" );
     return NULL;
 }
 

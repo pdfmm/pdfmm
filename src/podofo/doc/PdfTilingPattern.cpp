@@ -89,7 +89,7 @@ void PdfTilingPattern::AddToResources(const PdfName &rIdentifier, const PdfRefer
 	PdfObject* pResource = GetObject()->GetDictionary().GetKey( "Resources" );
 
 	if( !pResource ) {
-		PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+		PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
 	}
 
 	if( !pResource->GetDictionary().HasKey( rName ) ) {
@@ -99,7 +99,7 @@ void PdfTilingPattern::AddToResources(const PdfName &rIdentifier, const PdfRefer
 		PdfObject *directObject = pResource->GetOwner()->GetObject(pResource->GetDictionary().GetKey( rName )->GetReference());
 
 		if (0 == directObject) {
-         PODOFO_RAISE_ERROR( ePdfError_NoObject );
+         PODOFO_RAISE_ERROR( EPdfError::NoObject );
 		}
 
 		if( !directObject->GetDictionary().HasKey( rIdentifier ) )
@@ -116,12 +116,12 @@ void PdfTilingPattern::Init( EPdfTilingPatternType eTilingType,
 		 double offsetX, double offsetY,
 		 PdfImage *pImage)
 {
-	if (eTilingType == ePdfTilingPatternType_Image && pImage == NULL) {
-		PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+	if (eTilingType == EPdfTilingPatternType::Image && pImage == NULL) {
+		PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
 	}
 
-	if (eTilingType != ePdfTilingPatternType_Image && pImage != NULL) {
-		PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+	if (eTilingType != EPdfTilingPatternType::Image && pImage != NULL) {
+		PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
 	}
 
 	PdfRect rRect;
@@ -193,34 +193,34 @@ void PdfTilingPattern::Init( EPdfTilingPatternType eTilingType,
 		hhalf = rRect.GetHeight() / 2;
 
 		switch (eTilingType) {
-		case ePdfTilingPatternType_BDiagonal:
+		case EPdfTilingPatternType::BDiagonal:
 			out << left          << " " << bottom         << " m " << right         << " " << top            << " l ";
 			out << left - whalf  << " " << top - hhalf    << " m " << left + whalf  << " " << top + hhalf    << " l ";
 			out << right - whalf << " " << bottom - hhalf << " m " << right + whalf << " " << bottom + hhalf << " l" << std::endl;
 			break;
-		case ePdfTilingPatternType_Cross:
+		case EPdfTilingPatternType::Cross:
 			out << left          << " " << bottom + hhalf << " m " << right         << " " << bottom + hhalf << " l ";
 			out << left + whalf  << " " << bottom         << " m " << left + whalf  << " " << top            << " l" << std::endl;
 			break;
-		case ePdfTilingPatternType_DiagCross:
+		case EPdfTilingPatternType::DiagCross:
 			out << left          << " " << bottom         << " m " << right         << " " << top            << " l ";
 			out << left          << " " << top            << " m " << right         << " " << bottom         << " l" << std::endl;
 			break;
-		case ePdfTilingPatternType_FDiagonal:
+		case EPdfTilingPatternType::FDiagonal:
 			out << left          << " " << top            << " m " << right         << " " << bottom         << " l ";
 			out << left - whalf  << " " << bottom + hhalf << " m " << left + whalf  << " " << bottom - hhalf << " l ";
 			out << right - whalf << " " << top + hhalf    << " m " << right + whalf << " " << top - hhalf    << " l" << std::endl;
 			break;
-		case ePdfTilingPatternType_Horizontal:
+		case EPdfTilingPatternType::Horizontal:
 			out << left          << " " << bottom + hhalf << " m " << right         << " " << bottom + hhalf << " l ";
 			break;
-		case ePdfTilingPatternType_Vertical:
+		case EPdfTilingPatternType::Vertical:
 			out << left + whalf  << " " << bottom         << " m " << left + whalf  << " " << top            << " l" << std::endl;
 			break;
-		case ePdfTilingPatternType_Image:
+		case EPdfTilingPatternType::Image:
 			/* This is handled above, based on the 'pImage' variable */
 		default:
-			PODOFO_RAISE_ERROR (ePdfError_InvalidEnumValue);
+			PODOFO_RAISE_ERROR (EPdfError::InvalidEnumValue);
 			break;
 
 		}
@@ -229,7 +229,7 @@ void PdfTilingPattern::Init( EPdfTilingPatternType eTilingType,
 	}
 
 	TVecFilters vecFlate;
-	vecFlate.push_back( ePdfFilter_FlateDecode );
+	vecFlate.push_back( EPdfFilter::FlateDecode );
 
 	std::string str = out.str();
 	PdfMemoryInputStream stream(str.c_str(), str.length());

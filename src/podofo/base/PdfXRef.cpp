@@ -300,7 +300,7 @@ void PdfXRef::MergeBlocks()
     // Do not crash in case we have no blocks at all
     if( it == m_vecBlocks.end() )
     {
-	PODOFO_RAISE_ERROR( ePdfError_NoXRef );
+	PODOFO_RAISE_ERROR( EPdfError::NoXRef );
     }
 
     while( itNext != m_vecBlocks.end() )

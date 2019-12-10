@@ -59,7 +59,7 @@ void PdfFontSimple::Init( bool bEmbed, const PdfName & rsSubType )
 {
     if( !m_pEncoding )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     PdfObject*    pWidth;
@@ -70,7 +70,7 @@ void PdfFontSimple::Init( bool bEmbed, const PdfName & rsSubType )
     pWidth = this->GetObject()->GetOwner()->CreateObject();
     if( !pWidth )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     m_pMetrics->GetWidthArray( *pWidth, m_pEncoding->GetFirstChar(), m_pEncoding->GetLastChar(), m_pEncoding );
@@ -78,7 +78,7 @@ void PdfFontSimple::Init( bool bEmbed, const PdfName & rsSubType )
     pDescriptor = this->GetObject()->GetOwner()->CreateObject( "FontDescriptor" );
     if( !pDescriptor )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
 	std::string name;

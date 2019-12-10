@@ -55,7 +55,7 @@ static const char PdfIOLocale[] = "C";
  * PDF I/O. Avoid using this stream for anything that should be done in the
  * regional locale.
  *
- * \warning This method may throw ePdfError_InvalidDeviceOperation
+ * \warning This method may throw EPdfError::InvalidDeviceOperation
  *          if your STL does not support the locale string in PdfIOLocale .
  *
  * If you fail to call this on a stream you use for PDF I/O you will encounter

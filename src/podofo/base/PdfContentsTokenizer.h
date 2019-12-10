@@ -48,10 +48,11 @@ class PdfObject;
 
 /** An enum describing the type of a read token
  */
-enum EPdfContentsType {
-    ePdfContentsType_Keyword, /**< The token is a PDF keyword. */
-    ePdfContentsType_Variant, /**< The token is a PDF variant. A variant is usually a parameter to a keyword */
-    ePdfContentsType_ImageData /**< The "token" is raw inline image data found between ID and EI tags (see PDF ref section 4.8.6) */
+enum class EPdfContentsType
+{
+    Keyword, /**< The token is a PDF keyword. */
+    Variant, /**< The token is a PDF variant. A variant is usually a parameter to a keyword */
+    ImageData /**< The "token" is raw inline image data found between ID and EI tags (see PDF ref section 4.8.6) */
 };
 
 /** This class is a parser for content streams in PDF documents.
@@ -92,7 +93,7 @@ public:
      *  If EOF is encountered, returns false and leaves eType, pszKeyword and
      *  rVariant undefined.
      *
-     *  As a special case, reType may be set to ePdfContentsType_ImageData. In
+     *  As a special case, reType may be set to EPdfContentsType::ImageData. In
      *  this case rpszzKeyword is undefined, and rVariant contains a PdfData
      *  variant containing the byte sequence between the ID and BI keywords
      *  sans the one byte of leading- and trailing- white space. No filter
@@ -101,12 +102,12 @@ public:
      *  \param[out] reType will be set to either keyword or variant if true is returned. Undefined
      *              if false is returned.
      *
-     *  \param[out] rpszKeyword if pType is set to ePdfContentsType_Keyword this will point to the keyword,
+     *  \param[out] rpszKeyword if pType is set to EPdfContentsType::Keyword this will point to the keyword,
      *              otherwise the value is undefined. If set, the value points to memory owned by the
      *              PdfContentsTokenizer and must not be freed. The value is invalidated when ReadNext
      *              is next called or when the PdfContentsTokenizer is destroyed.
      *
-     *  \param[out] rVariant if pType is set to ePdfContentsType_Variant or ePdfContentsType_ImageData
+     *  \param[out] rVariant if pType is set to EPdfContentsType::Variant or EPdfContentsType::ImageData
      *              this will be set to the read variant, otherwise the value is undefined.
      *
      */

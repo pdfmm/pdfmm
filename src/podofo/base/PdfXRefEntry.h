@@ -37,12 +37,12 @@
 
 namespace PoDoFo
 {
-    enum EXRefEntryType
+    enum class EXRefEntryType
     {
-        eXRefEntryType_Unknown = 0,
-        eXRefEntryType_InUse,
-        eXRefEntryType_Free,
-        eXRefEntryType_Compressed,
+        Unknown = 0,
+        InUse,
+        Free,
+        Compressed,
     };
 
     struct PdfXRefEntry
@@ -50,7 +50,7 @@ namespace PoDoFo
         inline PdfXRefEntry() :
             lOffset(0),
             lGeneration(0),
-            eType(eXRefEntryType_Unknown),
+            eType(EXRefEntryType::Unknown),
             bParsed(false) { }
         size_t lOffset;
         uint32_t lGeneration;

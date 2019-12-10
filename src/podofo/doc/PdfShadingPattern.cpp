@@ -85,12 +85,12 @@ void PdfShadingPattern::Init( EPdfShadingPatternType eShadingType )
     /*
     switch( eShadingType ) 
     {
-        case ePdfShadingPatternType_FunctionBase:
+        case EPdfShadingPatternType::FunctionBase:
         {
-            PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
+            PODOFO_RAISE_ERROR( EPdfError::InternalLogic );
         }
             break;
-        case ePdfShadingPatternType_Radial:
+        case EPdfShadingPatternType::Radial:
         {
             PdfArray coords;
             coords.push_back( 0.0 );
@@ -145,29 +145,29 @@ void PdfShadingPattern::Init( EPdfShadingPatternType eShadingType )
             shading.AddKey( PdfName("Function"), function.GetObject()->Reference() );
             break;
         }
-        case ePdfShadingPatternType_FreeForm:
+        case EPdfShadingPatternType::FreeForm:
         {
-            PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
+            PODOFO_RAISE_ERROR( EPdfError::InternalLogic );
         }
             break;
-        case ePdfShadingPatternType_LatticeForm:
+        case EPdfShadingPatternType::LatticeForm:
         {
-            PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
+            PODOFO_RAISE_ERROR( EPdfError::InternalLogic );
         }
             break;
-        case ePdfShadingPatternType_CoonsPatch:
+        case EPdfShadingPatternType::CoonsPatch:
         {
-            PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
+            PODOFO_RAISE_ERROR( EPdfError::InternalLogic );
         }
             break;
-        case ePdfShadingPatternType_TensorProduct:
+        case EPdfShadingPatternType::TensorProduct:
         {
-            PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
+            PODOFO_RAISE_ERROR( EPdfError::InternalLogic );
         }
             break;
         default:
         {
-            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidEnumValue, "PdfShadingPattern::Init() failed because of an invalid shading pattern type." );
+            PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidEnumValue, "PdfShadingPattern::Init() failed because of an invalid shading pattern type." );
         }
         };
     */
@@ -177,7 +177,7 @@ void PdfShadingPattern::Init( EPdfShadingPatternType eShadingType )
     shading.AddKey( PdfName("ShadingType"), static_cast<int64_t>(eShadingType) );
 
     this->GetObject()->GetDictionary().AddKey( PdfName("PatternType"), static_cast<int64_t>(2L) ); // Shading pattern
-	 if (eShadingType < ePdfShadingPatternType_FreeForm) {
+	 if (eShadingType < EPdfShadingPatternType::FreeForm) {
     this->GetObject()->GetDictionary().AddKey( PdfName("Shading"), shading );
 	 } else {
 		 PdfObject *shadingObject = this->GetObject()->GetOwner()->CreateObject(shading);
@@ -186,13 +186,13 @@ void PdfShadingPattern::Init( EPdfShadingPatternType eShadingType )
 }
 
 PdfAxialShadingPattern::PdfAxialShadingPattern( double dX0, double dY0, double dX1, double dY1, const PdfColor & rStart, const PdfColor & rEnd, PdfVecObjects* pParent )
-    : PdfShadingPattern( ePdfShadingPatternType_Axial, pParent )
+    : PdfShadingPattern( EPdfShadingPatternType::Axial, pParent )
 {
     Init( dX0, dY0, dX1, dY1, rStart, rEnd );
 }
 
 PdfAxialShadingPattern::PdfAxialShadingPattern( double dX0, double dY0, double dX1, double dY1, const PdfColor & rStart, const PdfColor & rEnd, PdfDocument* pParent )
-    : PdfShadingPattern( ePdfShadingPatternType_Axial, pParent )
+    : PdfShadingPattern( EPdfShadingPatternType::Axial, pParent )
 {
     Init( dX0, dY0, dX1, dY1, rStart, rEnd );
 }
@@ -207,7 +207,7 @@ void PdfAxialShadingPattern::Init( double dX0, double dY0, double dX1, double dY
             
     if( rStart.GetColorSpace() != rEnd.GetColorSpace() )
     {
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Colorspace of start and end color in PdfAxialShadingPattern does not match." );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDataType, "Colorspace of start and end color in PdfAxialShadingPattern does not match." );
     }
 
     PdfArray c0 = rStart.ToArray();
@@ -227,19 +227,19 @@ void PdfAxialShadingPattern::Init( double dX0, double dY0, double dX1, double dY
 
 	switch( rStart.GetColorSpace() )
 	{
-		case ePdfColorSpace_DeviceRGB:
+		case EPdfColorSpace::DeviceRGB:
 	        shading.AddKey( PdfName("ColorSpace"), PdfName("DeviceRGB") );
 		break;
 
-		case ePdfColorSpace_DeviceCMYK:
+		case EPdfColorSpace::DeviceCMYK:
 		    shading.AddKey( PdfName("ColorSpace"), PdfName("DeviceCMYK") );
 		break;
 
-		case ePdfColorSpace_DeviceGray:
+		case EPdfColorSpace::DeviceGray:
 	        shading.AddKey( PdfName("ColorSpace"), PdfName("DeviceGray") );
 		break;
 
-		case ePdfColorSpace_CieLab:
+		case EPdfColorSpace::CieLab:
 		{	
 			PdfObject * csp = rStart.BuildColorSpace( this->GetObject()->GetOwner() );
 
@@ -247,7 +247,7 @@ void PdfAxialShadingPattern::Init( double dX0, double dY0, double dX1, double dY
 		}
 		break;
 
-		case ePdfColorSpace_Separation:
+		case EPdfColorSpace::Separation:
 		{
 			PdfObject * csp = rStart.BuildColorSpace( this->GetObject()->GetOwner() );
 
@@ -255,10 +255,10 @@ void PdfAxialShadingPattern::Init( double dX0, double dY0, double dX1, double dY
 		}
 		break;
 
-	case ePdfColorSpace_Indexed:
-        case ePdfColorSpace_Unknown:
+	case EPdfColorSpace::Indexed:
+        case EPdfColorSpace::Unknown:
 		default:
-	        PODOFO_RAISE_ERROR_INFO( ePdfError_CannotConvertColor, "Colorspace not supported in PdfAxialShadingPattern." );
+	        PODOFO_RAISE_ERROR_INFO( EPdfError::CannotConvertColor, "Colorspace not supported in PdfAxialShadingPattern." );
 		break;
 	}
 
@@ -268,13 +268,13 @@ void PdfAxialShadingPattern::Init( double dX0, double dY0, double dX1, double dY
 }
 
 PdfFunctionBaseShadingPattern::PdfFunctionBaseShadingPattern( const PdfColor & rLL, const PdfColor & rUL, const PdfColor & rLR, const PdfColor & rUR, const PdfArray & rMatrix, PdfVecObjects* pParent )
-    : PdfShadingPattern( ePdfShadingPatternType_FunctionBase, pParent )
+    : PdfShadingPattern( EPdfShadingPatternType::FunctionBase, pParent )
 {
     Init( rLL, rUL, rLR, rUR, rMatrix );
 }
 
 PdfFunctionBaseShadingPattern::PdfFunctionBaseShadingPattern( const PdfColor & rLL, const PdfColor & rUL, const PdfColor & rLR, const PdfColor & rUR, const PdfArray & rMatrix, PdfDocument* pParent )
-    : PdfShadingPattern( ePdfShadingPatternType_FunctionBase, pParent )
+    : PdfShadingPattern( EPdfShadingPatternType::FunctionBase, pParent )
 {
     Init( rLL, rUL, rLR, rUR, rMatrix );
 }
@@ -283,7 +283,7 @@ void PdfFunctionBaseShadingPattern::Init( const PdfColor & rLL, const PdfColor &
 {
     if( rLL.GetColorSpace() != rUL.GetColorSpace() || rUL.GetColorSpace() != rLR.GetColorSpace() || rLR.GetColorSpace() != rUR.GetColorSpace() )
     {
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Colorspace of start and end color in PdfFunctionBaseShadingPattern does not match." );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDataType, "Colorspace of start and end color in PdfFunctionBaseShadingPattern does not match." );
     }
 
     PdfArray domain;
@@ -298,7 +298,7 @@ void PdfFunctionBaseShadingPattern::Init( const PdfColor & rLL, const PdfColor &
 
 	switch ( rLL.GetColorSpace() )
 	{
-		case ePdfColorSpace_DeviceRGB:
+		case EPdfColorSpace::DeviceRGB:
 		{
 			range.push_back( 0.0 );
 			range.push_back( 1.0 );
@@ -327,7 +327,7 @@ void PdfFunctionBaseShadingPattern::Init( const PdfColor & rLL, const PdfColor &
 		}
 		break;
 
-		case ePdfColorSpace_DeviceCMYK:
+		case EPdfColorSpace::DeviceCMYK:
 		{
 			range.push_back( 0.0 );
 			range.push_back( 1.0 );
@@ -362,7 +362,7 @@ void PdfFunctionBaseShadingPattern::Init( const PdfColor & rLL, const PdfColor &
 		}
 		break;
 
-		case ePdfColorSpace_DeviceGray:
+		case EPdfColorSpace::DeviceGray:
 		{
 			range.push_back( 0.0 );
 			range.push_back( 1.0 );
@@ -379,7 +379,7 @@ void PdfFunctionBaseShadingPattern::Init( const PdfColor & rLL, const PdfColor &
 		}
 		break;
 
-		case ePdfColorSpace_CieLab:
+		case EPdfColorSpace::CieLab:
 		{
 			range.push_back( 0.0 );
 			range.push_back( 100.0 );
@@ -410,7 +410,7 @@ void PdfFunctionBaseShadingPattern::Init( const PdfColor & rLL, const PdfColor &
 		}
 		break;
 
-		case ePdfColorSpace_Separation:
+		case EPdfColorSpace::Separation:
 		{
 			range.push_back( 0.0 );
 			range.push_back( 1.0 );
@@ -429,10 +429,10 @@ void PdfFunctionBaseShadingPattern::Init( const PdfColor & rLL, const PdfColor &
 		}
 		break;
 
-        case ePdfColorSpace_Indexed:
-        case ePdfColorSpace_Unknown:
+        case EPdfColorSpace::Indexed:
+        case EPdfColorSpace::Unknown:
 		default:
-	        PODOFO_RAISE_ERROR_INFO( ePdfError_CannotConvertColor, "Colorspace not supported in PdfFunctionBaseShadingPattern." );
+	        PODOFO_RAISE_ERROR_INFO( EPdfError::CannotConvertColor, "Colorspace not supported in PdfFunctionBaseShadingPattern." );
 		break;
 	}
 
@@ -443,13 +443,13 @@ void PdfFunctionBaseShadingPattern::Init( const PdfColor & rLL, const PdfColor &
 }
 
 PdfRadialShadingPattern::PdfRadialShadingPattern( double dX0, double dY0, double dR0, double dX1, double dY1, double dR1, const PdfColor & rStart, const PdfColor & rEnd, PdfVecObjects* pParent )
-    : PdfShadingPattern( ePdfShadingPatternType_Radial, pParent )
+    : PdfShadingPattern( EPdfShadingPatternType::Radial, pParent )
 {
     Init( dX0, dY0, dR0, dX1, dY1, dR1, rStart, rEnd );
 }
 
 PdfRadialShadingPattern::PdfRadialShadingPattern( double dX0, double dY0, double dR0, double dX1, double dY1, double dR1, const PdfColor & rStart, const PdfColor & rEnd, PdfDocument* pParent )
-    : PdfShadingPattern( ePdfShadingPatternType_Radial, pParent )
+    : PdfShadingPattern( EPdfShadingPatternType::Radial, pParent )
 {
     Init( dX0, dY0, dR0, dX1, dY1, dR1, rStart, rEnd );
 }
@@ -466,7 +466,7 @@ void PdfRadialShadingPattern::Init( double dX0, double dY0, double dR0, double d
             
     if( rStart.GetColorSpace() != rEnd.GetColorSpace() )
     {
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Colorspace of start and end color in PdfRadialShadingPattern does not match." );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDataType, "Colorspace of start and end color in PdfRadialShadingPattern does not match." );
     }
 
     PdfArray c0 = rStart.ToArray();
@@ -486,19 +486,19 @@ void PdfRadialShadingPattern::Init( double dX0, double dY0, double dR0, double d
 
 	switch( rStart.GetColorSpace() )
 	{
-		case ePdfColorSpace_DeviceRGB:
+		case EPdfColorSpace::DeviceRGB:
 	        shading.AddKey( PdfName("ColorSpace"), PdfName("DeviceRGB") );
 		break;
 
-		case ePdfColorSpace_DeviceCMYK:
+		case EPdfColorSpace::DeviceCMYK:
 		    shading.AddKey( PdfName("ColorSpace"), PdfName("DeviceCMYK") );
 		break;
 
-		case ePdfColorSpace_DeviceGray:
+		case EPdfColorSpace::DeviceGray:
 	        shading.AddKey( PdfName("ColorSpace"), PdfName("DeviceGray") );
 		break;
 
-		case ePdfColorSpace_CieLab:
+		case EPdfColorSpace::CieLab:
 		{	
 			PdfObject * csp = rStart.BuildColorSpace( this->GetObject()->GetOwner() );
 
@@ -506,7 +506,7 @@ void PdfRadialShadingPattern::Init( double dX0, double dY0, double dR0, double d
 		}
 		break;
 
-		case ePdfColorSpace_Separation:
+		case EPdfColorSpace::Separation:
 		{
 			PdfObject * csp = rStart.BuildColorSpace( this->GetObject()->GetOwner() );
 
@@ -514,10 +514,10 @@ void PdfRadialShadingPattern::Init( double dX0, double dY0, double dR0, double d
 		}
 		break;
 
-        case ePdfColorSpace_Indexed:
-        case ePdfColorSpace_Unknown:
+        case EPdfColorSpace::Indexed:
+        case EPdfColorSpace::Unknown:
 		default:
-	        PODOFO_RAISE_ERROR_INFO( ePdfError_CannotConvertColor, "Colorspace not supported in PdfRadialShadingPattern." );
+	        PODOFO_RAISE_ERROR_INFO( EPdfError::CannotConvertColor, "Colorspace not supported in PdfRadialShadingPattern." );
 		break;
 	}
 
@@ -527,13 +527,13 @@ void PdfRadialShadingPattern::Init( double dX0, double dY0, double dR0, double d
 }
 
 PdfTriangleShadingPattern::PdfTriangleShadingPattern( double dX0, double dY0, const PdfColor &color0, double dX1, double dY1, const PdfColor &color1, double dX2, double dY2, const PdfColor &color2, PdfVecObjects* pParent )
-	: PdfShadingPattern( ePdfShadingPatternType_FreeForm, pParent )
+	: PdfShadingPattern( EPdfShadingPatternType::FreeForm, pParent )
 {
 	Init(dX0, dY0, color0, dX1, dY1, color1, dX2, dY2, color2 );
 }
 
 PdfTriangleShadingPattern::PdfTriangleShadingPattern( double dX0, double dY0, const PdfColor &color0, double dX1, double dY1, const PdfColor &color1, double dX2, double dY2, const PdfColor &color2, PdfDocument* pParent )
-	: PdfShadingPattern( ePdfShadingPatternType_FreeForm, pParent )
+	: PdfShadingPattern( EPdfShadingPatternType::FreeForm, pParent )
 {
 	Init(dX0, dY0, color0, dX1, dY1, color1, dX2, dY2, color2 );
 }
@@ -541,7 +541,7 @@ PdfTriangleShadingPattern::PdfTriangleShadingPattern( double dX0, double dY0, co
 void PdfTriangleShadingPattern::Init( double dX0, double dY0, const PdfColor &color0, double dX1, double dY1, const PdfColor &color1, double dX2, double dY2, const PdfColor &color2 )
 {
 	if (color0.GetColorSpace() != color1.GetColorSpace() || color0.GetColorSpace() != color2.GetColorSpace()) {
-		PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Colorspace of start and end color in PdfTriangleShadingPattern does not match." );
+		PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDataType, "Colorspace of start and end color in PdfTriangleShadingPattern does not match." );
 	}
 
 	PdfColor rgb0 = color0.ConvertToRGB();

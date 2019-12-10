@@ -53,28 +53,29 @@ class PdfVecObjects;
  *  Please make also sure that the action type you use is
  *  supported by the PDF version you are using.
  */
-enum EPdfAction {
-    ePdfAction_GoTo = 0,
-    ePdfAction_GoToR,
-    ePdfAction_GoToE,
-    ePdfAction_Launch,    
-    ePdfAction_Thread,
-    ePdfAction_URI,
-    ePdfAction_Sound,
-    ePdfAction_Movie,
-    ePdfAction_Hide,
-    ePdfAction_Named,
-    ePdfAction_SubmitForm,
-    ePdfAction_ResetForm,
-    ePdfAction_ImportData,
-    ePdfAction_JavaScript,
-    ePdfAction_SetOCGState,
-    ePdfAction_Rendition,
-    ePdfAction_Trans,
-    ePdfAction_GoTo3DView,
-    ePdfAction_RichMediaExecute,
+enum class EPdfAction
+{
+    GoTo = 0,
+    GoToR,
+    GoToE,
+    Launch,    
+    Thread,
+    URI,
+    Sound,
+    Movie,
+    Hide,
+    Named,
+    SubmitForm,
+    ResetForm,
+    ImportData,
+    JavaScript,
+    SetOCGState,
+    Rendition,
+    Trans,
+    GoTo3DView,
+    RichMediaExecute,
     
-    ePdfAction_Unknown = 0xff
+    Unknown = 0xff
 };
 
 /** An action that can be performed in a PDF document
@@ -101,12 +102,12 @@ class PODOFO_DOC_API PdfAction : public PdfElement {
      */
     PdfAction( PdfObject* pObject );
 
-    /** Set the URI of an ePdfAction_URI
+    /** Set the URI of an EPdfAction::URI
      *  \param sUri must be a correct URI as PdfString
      */
     void SetURI( const PdfString & sUri );
 
-    /** Get the URI of an ePdfAction_URI
+    /** Get the URI of an EPdfAction::URI
      *  \returns an URI
      */
     PdfString GetURI() const;

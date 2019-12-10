@@ -137,7 +137,7 @@ void PdfFont::WriteStringToStream( const PdfString & rsString, PdfStream* pStrea
 {
     if( !m_pEncoding )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     stringstream ostream;
@@ -151,7 +151,7 @@ void PdfFont::WriteStringToStream( const PdfString & rsString, ostream& rStream 
     size_t lLen = 0;
     char* pBuffer = NULL;
 
-    std::unique_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );    
+    std::unique_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( EPdfFilter::ASCIIHexDecode );    
     pFilter->Encode( buffer.GetBuffer(), buffer.GetSize(), &pBuffer, &lLen );
 
     rStream << "<";
@@ -176,19 +176,19 @@ void PdfFont::EmbedFont()
 void PdfFont::EmbedSubsetFont()
 {
 	//virtual function is only implemented in derived class
-    PODOFO_RAISE_ERROR_INFO( ePdfError_NotImplemented, "Subsetting not implemented for this font type." );
+    PODOFO_RAISE_ERROR_INFO( EPdfError::NotImplemented, "Subsetting not implemented for this font type." );
 }
 
 void PdfFont::AddUsedSubsettingGlyphs( const PdfString & , size_t )
 {
 	//virtual function is only implemented in derived class
-    PODOFO_RAISE_ERROR_INFO( ePdfError_NotImplemented, "Subsetting not implemented for this font type." );
+    PODOFO_RAISE_ERROR_INFO( EPdfError::NotImplemented, "Subsetting not implemented for this font type." );
 }
 
 void PdfFont::AddUsedGlyphname( const char * )
 {
 	//virtual function is only implemented in derived class
-    PODOFO_RAISE_ERROR_INFO( ePdfError_NotImplemented, "Subsetting not implemented for this font type." );
+    PODOFO_RAISE_ERROR_INFO( EPdfError::NotImplemented, "Subsetting not implemented for this font type." );
 }
 
 void PdfFont::SetBold( bool bBold )

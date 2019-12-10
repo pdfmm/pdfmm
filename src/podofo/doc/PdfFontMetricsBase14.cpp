@@ -51,7 +51,7 @@ PdfFontMetricsBase14::PdfFontMetricsBase14(const char      *mfont_name,
                                            int16_t         mstrikeout_pos,
                                            int16_t         munderline_pos,
                                            const PdfRect &  mbbox)
-    : PdfFontMetrics( ePdfFontType_Type1Base14, "", NULL),
+    : PdfFontMetrics( EPdfFontType::Type1Base14, "", NULL),
       font_name(mfont_name),
       widths_table(mwidths_table),
       is_font_specific(mis_font_specific),

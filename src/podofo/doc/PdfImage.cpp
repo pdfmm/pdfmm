@@ -58,23 +58,23 @@ using namespace std;
 namespace PoDoFo {
 
 PdfImage::PdfImage( PdfVecObjects* pParent, const char* pszPrefix )
-    : PdfXObject( EPdfXObject::ePdfXObject_Image, pParent, pszPrefix )
+    : PdfXObject( EPdfXObject::Image, pParent, pszPrefix )
 {
     m_rRect = PdfRect();
 
-    this->SetImageColorSpace( ePdfColorSpace_DeviceRGB );
+    this->SetImageColorSpace( EPdfColorSpace::DeviceRGB );
 }
 
 PdfImage::PdfImage( PdfDocument* pParent, const char* pszPrefix )
-    : PdfXObject( EPdfXObject::ePdfXObject_Image, pParent, pszPrefix )
+    : PdfXObject( EPdfXObject::Image, pParent, pszPrefix )
 {
     m_rRect = PdfRect();
 
-    this->SetImageColorSpace( ePdfColorSpace_DeviceRGB );
+    this->SetImageColorSpace( EPdfColorSpace::DeviceRGB );
 }
 
 PdfImage::PdfImage( PdfObject* pObject )
-    : PdfXObject( EPdfXObject::ePdfXObject_Image, pObject )
+    : PdfXObject( EPdfXObject::Image, pObject )
 {
     m_rRect.SetHeight( static_cast<double>(this->GetObject()->GetDictionary().GetKey( "Height" )->GetNumber()) );
     m_rRect.SetWidth ( static_cast<double>(this->GetObject()->GetDictionary().GetKey( "Width" )->GetNumber()) );
@@ -104,7 +104,7 @@ const char** PdfImage::GetSupportedFormats()
 
 void PdfImage::SetImageColorSpace( EPdfColorSpace eColorSpace, const PdfArray *indexedData )
 {
-    if (eColorSpace == ePdfColorSpace_Indexed) {
+    if (eColorSpace == EPdfColorSpace::Indexed) {
         PODOFO_RAISE_LOGIC_IF( !indexedData, "PdfImage::SetImageColorSpace: indexedData cannot be NULL for Indexed color space." );
 
         PdfArray array(*indexedData);
@@ -120,15 +120,15 @@ EPdfColorSpace PdfImage::GetImageColorSpace()
 {
     PdfObject *colorSpace = GetObject()->GetDictionary().FindKey("ColorSpace");
     if (colorSpace == NULL)
-        return ePdfColorSpace_Unknown;
+        return EPdfColorSpace::Unknown;
 
     if (colorSpace->IsArray())
-        return ePdfColorSpace_Indexed;
+        return EPdfColorSpace::Indexed;
 
     if (colorSpace->IsName())
         return PdfColor::GetColorSpaceForName(colorSpace->GetName());
 
-    return ePdfColorSpace_Unknown;
+    return EPdfColorSpace::Unknown;
 }
 
 void PdfImage::SetImageICCProfile( PdfInputStream* pStream, long lColorComponents, EPdfColorSpace eAlternateColorSpace ) 
@@ -138,7 +138,7 @@ void PdfImage::SetImageICCProfile( PdfInputStream* pStream, long lColorComponent
         lColorComponents != 3 &&  
         lColorComponents != 4 )
     {
-        PODOFO_RAISE_ERROR_INFO( ePdfError_ValueOutOfRange, "SetImageICCProfile lColorComponents must be 1,3 or 4!" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::ValueOutOfRange, "SetImageICCProfile lColorComponents must be 1,3 or 4!" );
     }
 
     // Create a colorspace object
@@ -163,7 +163,7 @@ void PdfImage::SetImageData( unsigned int nWidth, unsigned int nHeight,
                              unsigned int nBitsPerComponent, PdfInputStream* pStream )
 {
     TVecFilters vecFlate;
-    vecFlate.push_back( ePdfFilter_FlateDecode );
+    vecFlate.push_back( EPdfFilter::FlateDecode );
 
     this->SetImageData( nWidth, nHeight, nBitsPerComponent, pStream, vecFlate );
 }
@@ -235,7 +235,7 @@ void PdfImage::LoadFromFile( const char* pszFilename )
 #endif
 
 	}
-	PODOFO_RAISE_ERROR_INFO( ePdfError_UnsupportedImageFormat, pszFilename );
+	PODOFO_RAISE_ERROR_INFO( EPdfError::UnsupportedImageFormat, pszFilename );
 }
     
 #ifdef _WIN32
@@ -273,7 +273,7 @@ void PdfImage::LoadFromFile( const wchar_t* pszFilename )
 #endif
 	}
 
-	PdfError e( ePdfError_UnsupportedImageFormat, __FILE__, __LINE__ );
+	PdfError e( EPdfError::UnsupportedImageFormat, __FILE__, __LINE__ );
     e.SetErrorInformation( pszFilename );
     throw e;
 }
@@ -321,7 +321,7 @@ void PdfImage::LoadFromData(const unsigned char* pData, size_t dwLen)
 #endif
         
     }
-    PODOFO_RAISE_ERROR_INFO( ePdfError_UnsupportedImageFormat, "Unknown magic number" );
+    PODOFO_RAISE_ERROR_INFO( EPdfError::UnsupportedImageFormat, "Unknown magic number" );
 }
 
 #ifdef PODOFO_HAVE_JPEG_LIB
@@ -358,7 +358,7 @@ void PdfImage::LoadFromJpegHandle( PdfFileInputStream* pInStream )
     {
         (void) jpeg_destroy_decompress(&cinfo);
 
-        PODOFO_RAISE_ERROR( ePdfError_UnexpectedEOF );
+        PODOFO_RAISE_ERROR( EPdfError::UnexpectedEOF );
     }
 
     jpeg_start_decompress(&cinfo);
@@ -373,11 +373,11 @@ void PdfImage::LoadFromJpegHandle( PdfFileInputStream* pInStream )
     switch( cinfo.output_components )
     {
         case 3:
-            this->SetImageColorSpace( ePdfColorSpace_DeviceRGB );
+            this->SetImageColorSpace( EPdfColorSpace::DeviceRGB );
             break;
         case 4:
 	{
-	    this->SetImageColorSpace( ePdfColorSpace_DeviceCMYK );
+	    this->SetImageColorSpace( EPdfColorSpace::DeviceCMYK );
 	    // The jpeg-doc ist not specific in this point, but cmyk's seem to be stored
 	    // in a inverted fashion. Fix by attaching a decode array
 	    PdfArray decode;
@@ -394,7 +394,7 @@ void PdfImage::LoadFromJpegHandle( PdfFileInputStream* pInStream )
 	}
 	break;
         default:
-            this->SetImageColorSpace( ePdfColorSpace_DeviceGray );
+            this->SetImageColorSpace( EPdfColorSpace::DeviceGray );
             break;
     }
     
@@ -424,7 +424,7 @@ void PdfImage::LoadFromJpegData(const unsigned char* pData, size_t dwLen)
     {
         (void) jpeg_destroy_decompress(&cinfo);
 
-        PODOFO_RAISE_ERROR( ePdfError_UnexpectedEOF );
+        PODOFO_RAISE_ERROR( EPdfError::UnexpectedEOF );
     }
 
     jpeg_start_decompress(&cinfo);
@@ -439,11 +439,11 @@ void PdfImage::LoadFromJpegData(const unsigned char* pData, size_t dwLen)
     switch( cinfo.output_components )
     {
         case 3:
-            this->SetImageColorSpace( ePdfColorSpace_DeviceRGB );
+            this->SetImageColorSpace( EPdfColorSpace::DeviceRGB );
             break;
         case 4:
 	{
-	    this->SetImageColorSpace( ePdfColorSpace_DeviceCMYK );
+	    this->SetImageColorSpace( EPdfColorSpace::DeviceCMYK );
 	    // The jpeg-doc ist not specific in this point, but cmyk's seem to be stored
 	    // in a inverted fashion. Fix by attaching a decode array
 	    PdfArray decode;
@@ -460,7 +460,7 @@ void PdfImage::LoadFromJpegData(const unsigned char* pData, size_t dwLen)
 	}
 	break;
         default:
-            this->SetImageColorSpace( ePdfColorSpace_DeviceGray );
+            this->SetImageColorSpace( EPdfColorSpace::DeviceGray );
             break;
     }
     
@@ -515,19 +515,19 @@ void PdfImage::LoadFromTiffHandle(void* hInHandle) {
     if( TIFFIsTiled(hInTiffHandle) )
     {
         TIFFClose(hInTiffHandle);
-        PODOFO_RAISE_ERROR( ePdfError_UnsupportedImageFormat );
+        PODOFO_RAISE_ERROR( EPdfError::UnsupportedImageFormat );
     }
     
     if ( planarConfig != PLANARCONFIG_CONTIG && colorChannels != 1 )
     {
         TIFFClose(hInTiffHandle);
-        PODOFO_RAISE_ERROR( ePdfError_UnsupportedImageFormat );
+        PODOFO_RAISE_ERROR( EPdfError::UnsupportedImageFormat );
     }
     
     if ( orientation != ORIENTATION_TOPLEFT )
     {
         TIFFClose(hInTiffHandle);
-        PODOFO_RAISE_ERROR( ePdfError_UnsupportedImageFormat );
+        PODOFO_RAISE_ERROR( EPdfError::UnsupportedImageFormat );
     }
     
     switch(photoMetric)
@@ -544,11 +544,11 @@ void PdfImage::LoadFromTiffHandle(void* hInHandle) {
                 this->GetObject()->GetDictionary().RemoveKey( PdfName("ColorSpace") );
             }
             else if ( bitsPixel == 8  ||  bitsPixel == 16)
-                SetImageColorSpace(ePdfColorSpace_DeviceGray);
+                SetImageColorSpace(EPdfColorSpace::DeviceGray);
             else
             {
                 TIFFClose(hInTiffHandle);
-                PODOFO_RAISE_ERROR( ePdfError_UnsupportedImageFormat );
+                PODOFO_RAISE_ERROR( EPdfError::UnsupportedImageFormat );
             }
         }
             break;
@@ -565,11 +565,11 @@ void PdfImage::LoadFromTiffHandle(void* hInHandle) {
                 this->GetObject()->GetDictionary().RemoveKey( PdfName("ColorSpace") );
             }
             else if ( bitsPixel == 8  ||  bitsPixel == 16)
-                SetImageColorSpace(ePdfColorSpace_DeviceGray);
+                SetImageColorSpace(EPdfColorSpace::DeviceGray);
             else
             {
                 TIFFClose(hInTiffHandle);
-                PODOFO_RAISE_ERROR( ePdfError_UnsupportedImageFormat );
+                PODOFO_RAISE_ERROR( EPdfError::UnsupportedImageFormat );
             }
         }
             break;
@@ -578,18 +578,18 @@ void PdfImage::LoadFromTiffHandle(void* hInHandle) {
             if ( bitsPixel != 24 )
             {
                 TIFFClose(hInTiffHandle);
-                PODOFO_RAISE_ERROR( ePdfError_UnsupportedImageFormat );
+                PODOFO_RAISE_ERROR( EPdfError::UnsupportedImageFormat );
             }
-            SetImageColorSpace(ePdfColorSpace_DeviceRGB);
+            SetImageColorSpace(EPdfColorSpace::DeviceRGB);
             break;
             
         case PHOTOMETRIC_SEPARATED:
             if( bitsPixel != 32)
             {
                 TIFFClose(hInTiffHandle);
-                PODOFO_RAISE_ERROR( ePdfError_UnsupportedImageFormat );
+                PODOFO_RAISE_ERROR( EPdfError::UnsupportedImageFormat );
             }
-            SetImageColorSpace(ePdfColorSpace_DeviceCMYK);
+            SetImageColorSpace(EPdfColorSpace::DeviceCMYK);
             break;
             
         case PHOTOMETRIC_PALETTE:
@@ -634,7 +634,7 @@ void PdfImage::LoadFromTiffHandle(void* hInHandle) {
             
         default:
             TIFFClose(hInTiffHandle);
-            PODOFO_RAISE_ERROR( ePdfError_UnsupportedImageFormat );
+            PODOFO_RAISE_ERROR( EPdfError::UnsupportedImageFormat );
             break;
     }
     
@@ -644,7 +644,7 @@ void PdfImage::LoadFromTiffHandle(void* hInHandle) {
     if( !buffer )
     {
         TIFFClose(hInTiffHandle);
-        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+        PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
     }
     
     for(row = 0; row < height; row++)
@@ -654,7 +654,7 @@ void PdfImage::LoadFromTiffHandle(void* hInHandle) {
                             row) == (-1))
         {
             TIFFClose(hInTiffHandle);
-            PODOFO_RAISE_ERROR( ePdfError_UnsupportedImageFormat );
+            PODOFO_RAISE_ERROR( EPdfError::UnsupportedImageFormat );
         }
     }
     
@@ -677,14 +677,14 @@ void PdfImage::LoadFromTiff( const char* pszFilename )
     
     if( !pszFilename )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
     
     TIFF* hInfile = TIFFOpen(pszFilename, "rb");
     
     if( !hInfile )
     {
-        PODOFO_RAISE_ERROR_INFO( ePdfError_FileNotFound, pszFilename );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::FileNotFound, pszFilename );
     }
     
     LoadFromTiffHandle(hInfile);
@@ -699,21 +699,21 @@ void PdfImage::LoadFromTiff( const wchar_t* pszFilename )
     
     if( !pszFilename )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     TIFF* hInfile = TIFFOpenW(pszFilename, "rb");
 
     if( !hInfile )
     {
-		PdfError e( ePdfError_FileNotFound, __FILE__, __LINE__ );
+		PdfError e( EPdfError::FileNotFound, __FILE__, __LINE__ );
         e.SetErrorInformation( pszFilename );
         throw e;
     }
 
     LoadFromTiffHandle(hInfile);
 #else
-    PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+    PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
 #endif // TIFFLIB_VERSION
 }
 #endif // _WIN32
@@ -829,7 +829,7 @@ void PdfImage::LoadFromTiffData(const unsigned char* pData, size_t dwLen)
     
     if( !pData )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
     
     tiffData data(pData, (tsize_t)dwLen);
@@ -838,7 +838,7 @@ void PdfImage::LoadFromTiffData(const unsigned char* pData, size_t dwLen)
                                      tiff_Map, tiff_Unmap);
     if( !hInHandle )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
     LoadFromTiffHandle(hInHandle);
 }
@@ -865,26 +865,26 @@ void PdfImage::LoadFromPngHandle( PdfFileInputStream* pInStream )
     if( fread( header, 1, 8, hFile ) != 8 ||
         png_sig_cmp( header, 0, 8 ) )
     {
-        PODOFO_RAISE_ERROR_INFO( ePdfError_UnsupportedImageFormat, "The file could not be recognized as a PNG file." );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::UnsupportedImageFormat, "The file could not be recognized as a PNG file." );
     }
     
     png_structp pPng = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
     if( !pPng )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     png_infop pInfo = png_create_info_struct(pPng);
     if( !pInfo )
     {
         png_destroy_read_struct(&pPng, (png_infopp)NULL, (png_infopp)NULL);
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     if( setjmp(png_jmpbuf(pPng)) )
     {
         png_destroy_read_struct(&pPng, &pInfo, (png_infopp)NULL);
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     png_init_io(pPng, hFile);
@@ -951,7 +951,7 @@ void PdfImage::LoadFromPngHandle( PdfFileInputStream* pInStream )
     if( setjmp(png_jmpbuf(pPng)) ) 
     {
         png_destroy_read_struct(&pPng, &pInfo, (png_infopp)NULL);
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
 
@@ -959,13 +959,13 @@ void PdfImage::LoadFromPngHandle( PdfFileInputStream* pInStream )
     char* pBuffer = static_cast<char*>(podofo_calloc(lLen, sizeof(char)));
  	if (!pBuffer)
  	{
- 		PODOFO_RAISE_ERROR(ePdfError_OutOfMemory);
+ 		PODOFO_RAISE_ERROR(EPdfError::OutOfMemory);
  	}
 
     png_bytepp pRows = static_cast<png_bytepp>(podofo_calloc(height, sizeof(png_bytep)));
  	if (!pRows)
  	{
- 		PODOFO_RAISE_ERROR(ePdfError_OutOfMemory);
+ 		PODOFO_RAISE_ERROR(EPdfError::OutOfMemory);
     }
 
     for(unsigned int y=0; y<height; y++)
@@ -981,11 +981,11 @@ void PdfImage::LoadFromPngHandle( PdfFileInputStream* pInStream )
     switch( png_get_channels( pPng, pInfo ) )
     {
         case 3:
-            this->SetImageColorSpace( ePdfColorSpace_DeviceRGB );
+            this->SetImageColorSpace( EPdfColorSpace::DeviceRGB );
             break;
         case 4:
         {
-            this->SetImageColorSpace( ePdfColorSpace_DeviceCMYK );
+            this->SetImageColorSpace( EPdfColorSpace::DeviceCMYK );
             // The jpeg-doc ist not specific in this point, but cmyk's seem to be stored
             // in a inverted fashion. Fix by attaching a decode array
             PdfArray decode;
@@ -1002,7 +1002,7 @@ void PdfImage::LoadFromPngHandle( PdfFileInputStream* pInStream )
         }
         break;
         default:
-            this->SetImageColorSpace( ePdfColorSpace_DeviceGray );
+            this->SetImageColorSpace( EPdfColorSpace::DeviceGray );
             break;
     }
 
@@ -1050,7 +1050,7 @@ void PdfImage::LoadFromPngData(const unsigned char* pData, size_t dwLen)
 {
     if( !pData )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
     
     pngData data(pData, dwLen);
@@ -1058,26 +1058,26 @@ void PdfImage::LoadFromPngData(const unsigned char* pData, size_t dwLen)
     data.read(header, 8);
     if( png_sig_cmp(header, 0, 8) )
     {
-        PODOFO_RAISE_ERROR_INFO( ePdfError_UnsupportedImageFormat, "The file could not be recognized as a PNG file." );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::UnsupportedImageFormat, "The file could not be recognized as a PNG file." );
     }
     
     png_structp pPng = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
     if( !pPng )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
     
     png_infop pInfo = png_create_info_struct(pPng);
     if( !pInfo )
     {
         png_destroy_read_struct(&pPng, (png_infopp)NULL, (png_infopp)NULL);
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
     
     if( setjmp(png_jmpbuf(pPng)) )
     {
         png_destroy_read_struct(&pPng, &pInfo, (png_infopp)NULL);
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
     
     png_set_read_fn(pPng, (png_voidp)&data, pngReadData);
@@ -1144,7 +1144,7 @@ void PdfImage::LoadFromPngData(const unsigned char* pData, size_t dwLen)
     if( setjmp(png_jmpbuf(pPng)) )
     {
         png_destroy_read_struct(&pPng, &pInfo, (png_infopp)NULL);
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
     
     
@@ -1152,13 +1152,13 @@ void PdfImage::LoadFromPngData(const unsigned char* pData, size_t dwLen)
     char* pBuffer = static_cast<char*>(podofo_calloc(lLen, sizeof(char)));
  	if (!pBuffer)
  	{
- 		PODOFO_RAISE_ERROR(ePdfError_OutOfMemory);
+ 		PODOFO_RAISE_ERROR(EPdfError::OutOfMemory);
  	}
     
     png_bytepp pRows = static_cast<png_bytepp>(podofo_calloc(height, sizeof(png_bytep)));
     if (!pRows)
  	{
- 		PODOFO_RAISE_ERROR(ePdfError_OutOfMemory);
+ 		PODOFO_RAISE_ERROR(EPdfError::OutOfMemory);
     }
     
     for(unsigned int y=0; y<height; y++)
@@ -1174,11 +1174,11 @@ void PdfImage::LoadFromPngData(const unsigned char* pData, size_t dwLen)
     switch( png_get_channels( pPng, pInfo ) )
     {
         case 3:
-            this->SetImageColorSpace( ePdfColorSpace_DeviceRGB );
+            this->SetImageColorSpace( EPdfColorSpace::DeviceRGB );
             break;
         case 4:
         {
-            this->SetImageColorSpace( ePdfColorSpace_DeviceCMYK );
+            this->SetImageColorSpace( EPdfColorSpace::DeviceCMYK );
             // The jpeg-doc ist not specific in this point, but cmyk's seem to be stored
             // in a inverted fashion. Fix by attaching a decode array
             PdfArray decode;
@@ -1195,7 +1195,7 @@ void PdfImage::LoadFromPngData(const unsigned char* pData, size_t dwLen)
         }
             break;
         default:
-            this->SetImageColorSpace( ePdfColorSpace_DeviceGray );
+            this->SetImageColorSpace( EPdfColorSpace::DeviceGray );
             break;
     }
     

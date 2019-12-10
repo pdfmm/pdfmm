@@ -91,7 +91,7 @@ public:
      *  The caller has to podofo_free() the buffer.
      *
      *  This is currently not implemented for PdfFileStreams 
-     *  and will raise an ePdfError_InternalLogic exception
+     *  and will raise an EPdfError::InternalLogic exception
      *
      *  \param pBuffer pointer to the buffer address (output parameter)
      *  \param lLen    pointer to the buffer length  (output parameter)

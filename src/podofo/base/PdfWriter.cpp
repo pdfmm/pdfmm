@@ -57,7 +57,7 @@ namespace PoDoFo {
 PdfWriter::PdfWriter( PdfParser* pParser )
     : m_bXRefStream( false ), m_pEncrypt( NULL ), 
       m_pEncryptObj( NULL ), 
-      m_eWriteMode( ePdfWriteMode_Compact ),
+      m_eWriteMode( EPdfWriteMode::Compact ),
       m_lPrevXRefOffset( 0 ),
       m_bIncrementalUpdate( false ),
       m_lFirstInXRef( 0 ),
@@ -67,7 +67,7 @@ PdfWriter::PdfWriter( PdfParser* pParser )
 {
     if( !(pParser && pParser->GetTrailer()) )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     m_eVersion     = pParser->GetPdfVersion();
@@ -78,7 +78,7 @@ PdfWriter::PdfWriter( PdfParser* pParser )
 PdfWriter::PdfWriter( PdfVecObjects* pVecObjects, const PdfObject* pTrailer )
     : m_bXRefStream( false ), m_pEncrypt( NULL ), 
       m_pEncryptObj( NULL ), 
-      m_eWriteMode( ePdfWriteMode_Compact ),
+      m_eWriteMode( EPdfWriteMode::Compact ),
       m_lPrevXRefOffset( 0 ),
       m_bIncrementalUpdate( false ),
       m_lFirstInXRef( 0 ),
@@ -88,10 +88,10 @@ PdfWriter::PdfWriter( PdfVecObjects* pVecObjects, const PdfObject* pTrailer )
 {
     if( !pVecObjects || !pTrailer )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
-    m_eVersion     = ePdfVersion_Default;
+    m_eVersion     = PdfVersionDefault;
     m_pTrailer     = new PdfObject( *pTrailer );
     m_vecObjects   = pVecObjects;
 }
@@ -99,7 +99,7 @@ PdfWriter::PdfWriter( PdfVecObjects* pVecObjects, const PdfObject* pTrailer )
 PdfWriter::PdfWriter( PdfVecObjects* pVecObjects )
     : m_bXRefStream( false ), m_pEncrypt( NULL ), 
       m_pEncryptObj( NULL ), 
-      m_eWriteMode( ePdfWriteMode_Compact ),
+      m_eWriteMode( EPdfWriteMode::Compact ),
       m_lPrevXRefOffset( 0 ),
       m_bIncrementalUpdate( false ),
       m_lFirstInXRef( 0 ),
@@ -107,7 +107,7 @@ PdfWriter::PdfWriter( PdfVecObjects* pVecObjects )
       m_lLinearizedLastOffset(0),
       m_lTrailerOffset(0)
 {
-    m_eVersion     = ePdfVersion_Default;
+    m_eVersion     = PdfVersionDefault;
     m_pTrailer     = new PdfObject();
     m_vecObjects   = pVecObjects;
 }
@@ -148,7 +148,7 @@ void PdfWriter::Write( PdfOutputDevice* pDevice, bool bRewriteXRefTable )
 
     if( !pDevice )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     // setup encrypt dictionary
@@ -213,7 +213,7 @@ void PdfWriter::WriteUpdate( PdfOutputDevice* pDevice, PdfInputDevice* pSourceIn
 {
     if( !pDevice )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     // make sure it's set that this is an incremental update
@@ -235,7 +235,7 @@ void PdfWriter::WriteUpdate( PdfOutputDevice* pDevice, PdfInputDevice* pSourceIn
         }
 
         if( !pBuffer )
-            PODOFO_RAISE_ERROR (ePdfError_OutOfMemory);
+            PODOFO_RAISE_ERROR (EPdfError::OutOfMemory);
 
         try {
             pSourceInputDevice->Seek(0);
@@ -317,7 +317,7 @@ void PdfWriter::GetByteOffset( PdfObject* pObject, size_t* pulOffset )
 
     if( !pObject || !pulOffset )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     this->WritePdfHeader( &deviceHeader );
@@ -340,7 +340,7 @@ void PdfWriter::WriteToBuffer( char** ppBuffer, size_t* pulLen )
 
     if( !pulLen )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     this->Write( &device );
@@ -349,7 +349,7 @@ void PdfWriter::WriteToBuffer( char** ppBuffer, size_t* pulLen )
     *ppBuffer = static_cast<char*>(podofo_calloc( *pulLen, sizeof(char) ));
     if( !*ppBuffer )
     {
-        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+        PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
     }
 
     PdfOutputDevice memDevice( *ppBuffer, *pulLen );
@@ -446,7 +446,7 @@ void PdfWriter::CreateFileIdentifier( PdfString & identifier, const PdfObject* p
             oss << "Error while retrieving info dictionary: " 
                 << rRef.ObjectNumber() << " " 
                 << rRef.GenerationNumber() << " R" << std::endl;
-            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle, oss.str().c_str() );
+            PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidHandle, oss.str().c_str() );
         }
     }
     else 
@@ -468,7 +468,7 @@ void PdfWriter::CreateFileIdentifier( PdfString & identifier, const PdfObject* p
     if( !pBuffer )
     {
         delete pInfo;
-        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+        PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
     }
 
     PdfOutputDevice device( pBuffer, length.GetLength() );

@@ -55,7 +55,7 @@ void PdfLocaleImbue(std::ios_base& s)
         err << "Error reported by STL std::locale: \"" << e.what() << "\"";
         // The info string is copied by PdfError so we're ok to just:
         PODOFO_RAISE_ERROR_INFO(
-            ePdfError_InvalidDeviceOperation,
+            EPdfError::InvalidDeviceOperation,
             err.str().c_str()
             );
     }

@@ -137,23 +137,24 @@ inline size_t PdfEncodingDifference::GetCount() const
     return m_vecDifferences.size();
 }
 
+/**
+ * Defines the base encoding from which a
+ * PdfDifferenceEncoding differs.
+ */
+enum class EBaseEncoding
+{
+    Font,      ///< Use The fonts encoding as base
+    WinAnsi,   ///< Use WinAnsiEncoding as base encoding
+    MacRoman,  ///< Use MacRomanEncoding as base encoding
+    MacExpert  ///< Use MacExpertEncoding as base encoding
+};
+
 /** PdfDifferenceEncoding is an encoding, which is based
  *  on either the fonts encoding or a predefined encoding
  *  and defines differences to this base encoding.
  */
 class PODOFO_DOC_API PdfDifferenceEncoding : public PdfEncoding, private PdfElement {
  public:
-
-    /**
-     * Defines the base encoding from which a
-     * PdfDifferenceEncoding differs.
-     */
-    enum EBaseEncoding {
-        eBaseEncoding_Font,      ///< Use The fonts encoding as base
-        eBaseEncoding_WinAnsi,   ///< Use WinAnsiEncoding as base encoding
-        eBaseEncoding_MacRoman,  ///< Use MacRomanEncoding as base encoding
-        eBaseEncoding_MacExpert  ///< Use MacExpertEncoding as base encoding
-    };
 
     /** Create a new PdfDifferenceEncoding which is based on 
      *  the fonts encoding.

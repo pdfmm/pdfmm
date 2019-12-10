@@ -41,6 +41,12 @@
 
 namespace PoDoFo {
 
+enum class EPdfCertPermission
+{
+    NoPerms = 1,
+    FormFill = 2,
+    Annotations = 3,
+};
 
 /** Signature field
  */
@@ -51,12 +57,6 @@ protected:
 
     void Init();
 public:
-
-    typedef enum {
-        ePdfCertPermission_NoPerms = 1,
-        ePdfCertPermission_FormFill = 2,
-        ePdfCertPermission_Annotations = 3,
-    } EPdfCertPermission;
 
     /** Create a new PdfSignatureField
      */
@@ -80,7 +80,7 @@ public:
      *  \param eAppearance an appearance type to set
      *  \param state the state for which set it the pObject; states depend on the annotation type
      */
-    void SetAppearanceStream(PdfXObject *pObject, EPdfAnnotationAppearance eAppearance = ePdfAnnotationAppearance_Normal, const PdfName & state = "" );
+    void SetAppearanceStream(PdfXObject *pObject, EPdfAnnotationAppearance eAppearance = EPdfAnnotationAppearance::Normal, const PdfName & state = "" );
 
     /** Create space for signature
      *
@@ -127,7 +127,7 @@ public:
      *  \param pDocumentCatalog the catalog of current document
      *  \param perm document modification permission
      */
-    void AddCertificationReference(PdfObject *pDocumentCatalog, EPdfCertPermission perm = ePdfCertPermission_NoPerms);
+    void AddCertificationReference(PdfObject *pDocumentCatalog, EPdfCertPermission perm = EPdfCertPermission::NoPerms);
 
     /** Get the signer name
     *

@@ -46,12 +46,13 @@ class PdfObject;
 class PdfPage;
 class PdfRect;
 
-enum EPdfPageInsertionPoint {
-    ePdfPageInsertionPoint_InsertBeforeFirstPage	= -1,
-    ePdfPageInsertionPoint_InsertLastPage		= -2,
-    ePdfPageInsertionPoint_InsertAllPages		= -3,
-    ePdfPageInsertionPoint_InsertOddPagesOnly	= -4,
-    ePdfPageInsertionPoint_InsertEvenPagesOnly	= -5
+enum class EPdfPageInsertionPoint
+{
+    InsertBeforeFirstPage	= -1,
+    InsertLastPage		= -2,
+    InsertAllPages		= -3,
+    InsertOddPagesOnly	= -4,
+    InsertEvenPagesOnly	= -5
 };
 
 /** Class for managing the tree of Pages in a PDF document
@@ -125,7 +126,7 @@ class PODOFO_DOC_API PdfPagesTree : public PdfElement
      *  after the specified page index (zero based index)
      *
      *  \param nAfterPageIndex a zero based integer index specifying after what page to insert
-     *         - you need to pass ePdfPageInsertionPoint_InsertBeforeFirstPage if you want to insert before the first page.
+     *         - you need to pass EPdfPageInsertionPoint::InsertBeforeFirstPage if you want to insert before the first page.
      *         
      *  \param vecPages must be a vector of PdfObjects with type /Page
      */

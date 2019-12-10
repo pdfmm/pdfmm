@@ -64,7 +64,7 @@ class PODOFO_API PdfStream
 public:
     /** The default filter to use when changing the stream content.
      *  It's a static member and applies to all newly created/changed streams.
-     *  The default value is ePdfFilter_FlateDecode.
+     *  The default value is EPdfFilter::FlateDecode.
      */
     static enum EPdfFilter eDefaultFilter;
 

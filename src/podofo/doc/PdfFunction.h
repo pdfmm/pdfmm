@@ -46,11 +46,12 @@ class PdfArray;
 /**
  * The function type of a mathematical function in a PDF file. 
  */
-enum EPdfFunctionType {
-    ePdfFunctionType_Sampled     = 0, ///< A sampled function (Type1)
-    ePdfFunctionType_Exponential = 2, ///< An exponential interpolation function (Type2)
-    ePdfFunctionType_Stitching   = 3, ///< A stitching function (Type3)
-    ePdfFunctionType_PostScript  = 4  ///< A PostScript calculator function (Type4)
+enum class EPdfFunctionType
+{
+    Sampled     = 0, ///< A sampled function (Type1)
+    Exponential = 2, ///< An exponential interpolation function (Type2)
+    Stitching   = 3, ///< A stitching function (Type3)
+    PostScript  = 4  ///< A PostScript calculator function (Type4)
 };
 
 /** 

@@ -46,12 +46,12 @@ namespace PoDoFo {
 class PdfDictionary;
 class PdfObject;
 
-enum EPdfXObject
+enum class EPdfXObject
 {
-    ePdfXObject_Form,
-    ePdfXObject_Image,
-    ePdfXObject_PostScript,
-    ePdfXObject_Unknown = 0xff
+    Form,
+    Image,
+    PostScript,
+    Unknown = 0xff
 };
 
 /** A XObject is a content stream with several drawing commands and data

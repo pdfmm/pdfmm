@@ -90,7 +90,7 @@ void PdfObjectStreamParser::ReadObjectsFromStream( char* pBuffer, size_t lBuffer
 
         if( lFirst >= std::numeric_limits<int64_t>::max() - lOff )
         {
-            PODOFO_RAISE_ERROR_INFO( ePdfError_BrokenFile,
+            PODOFO_RAISE_ERROR_INFO( EPdfError::BrokenFile,
                                     "Object position out of max limit" );
         }
 
@@ -99,9 +99,9 @@ void PdfObjectStreamParser::ReadObjectsFromStream( char* pBuffer, size_t lBuffer
 
 		// use a second tokenizer here so that anything that gets dequeued isn't left in the tokenizer that reads the offsets and lengths
 	    PdfTokenizer variantTokenizer( device, m_buffer );
-		if( m_pEncrypt && (m_pEncrypt->GetEncryptAlgorithm() == PdfEncrypt::ePdfEncryptAlgorithm_AESV2
+		if( m_pEncrypt && (m_pEncrypt->GetEncryptAlgorithm() == EPdfEncryptAlgorithm::AESV2
 #ifndef PODOFO_HAVE_OPENSSL_NO_RC4
-			|| m_pEncrypt->GetEncryptAlgorithm() == PdfEncrypt::ePdfEncryptAlgorithm_RC4V2 
+			|| m_pEncrypt->GetEncryptAlgorithm() == EPdfEncryptAlgorithm::RC4V2
 #endif // PODOFO_HAVE_OPENSSL_NO_RC4
 		) )
 			variantTokenizer.GetNextVariant( var, 0 ); // Stream is already decrypted

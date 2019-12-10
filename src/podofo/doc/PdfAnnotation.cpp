@@ -88,11 +88,11 @@ PdfAnnotation::PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRe
     PdfVariant    rect;
     PdfDate       date;
 
-    const PdfName name( TypeNameForIndex( eAnnot, s_names, s_lNumActions ) );
+    const PdfName name( TypeNameForIndex( (int)eAnnot, s_names, s_lNumActions ) );
 
     if( !name.GetLength() )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     rRect.ToVariant( rect );
@@ -105,9 +105,9 @@ PdfAnnotation::PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRe
 }
 
 PdfAnnotation::PdfAnnotation( PdfObject* pObject, PdfPage* pPage )
-    : PdfElement( "Annot", pObject ), m_eAnnotation( ePdfAnnotation_Unknown ), m_pAction( NULL ), m_pFileSpec( NULL ), m_pPage( pPage )
+    : PdfElement( "Annot", pObject ), m_eAnnotation( EPdfAnnotation::Unknown ), m_pAction( NULL ), m_pFileSpec( NULL ), m_pPage( pPage )
 {
-    m_eAnnotation = static_cast<EPdfAnnotation>(TypeNameToIndex( this->GetObject()->GetDictionary().GetKeyAsName( PdfName::KeySubtype ).GetName().c_str(), s_names, s_lNumActions, ePdfAnnotation_Unknown ));
+    m_eAnnotation = static_cast<EPdfAnnotation>(TypeNameToIndex( this->GetObject()->GetDictionary().GetKeyAsName( PdfName::KeySubtype ).GetName().c_str(), s_names, s_lNumActions, (int)EPdfAnnotation::Unknown ));
 }
 
 PdfAnnotation::~PdfAnnotation()
@@ -142,18 +142,18 @@ void SetAppearanceStreamForObject( PdfObject* pForObject, PdfXObject* xobj, EPdf
 
     if( !pForObject || !xobj )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
-    if( eAppearance == ePdfAnnotationAppearance_Rollover )
+    if( eAppearance == EPdfAnnotationAppearance::Rollover )
     {
         name = "R";
     }
-    else if( eAppearance == ePdfAnnotationAppearance_Down )
+    else if( eAppearance == EPdfAnnotationAppearance::Down )
     {
         name = "D";
     }
-    else // ePdfAnnotationAppearance_Normal
+    else // EPdfAnnotationAppearance::Normal
     {
         name = "N";
     }
@@ -165,19 +165,19 @@ void SetAppearanceStreamForObject( PdfObject* pForObject, PdfXObject* xobj, EPdf
         {
             if( !objAP->GetOwner() )
             {
-                PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+                PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
             }
 
             objAP = objAP->GetOwner()->GetObject( objAP->GetReference() );
             if( !objAP )
             {
-                PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+                PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
             }
         }
 
         if( objAP->GetDataType() != EPdfDataType::Dictionary )
         {
-            PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
+            PODOFO_RAISE_ERROR( EPdfError::InvalidDataType );
         }
 
         if( !state.GetLength() )
@@ -185,7 +185,7 @@ void SetAppearanceStreamForObject( PdfObject* pForObject, PdfXObject* xobj, EPdf
             // allow overwrite only reference by a reference
             if( objAP->GetDictionary().HasKey( name ) && objAP->GetDictionary().GetKey( name )->GetDataType() != EPdfDataType::Reference )
             {
-                PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
+                PODOFO_RAISE_ERROR( EPdfError::InvalidDataType );
             }
 
             objAP->GetDictionary().AddKey( name, xobj->GetObject()->GetIndirectReference() );
@@ -195,7 +195,7 @@ void SetAppearanceStreamForObject( PdfObject* pForObject, PdfXObject* xobj, EPdf
             // when the state is defined, then the appearance is expected to be a dictionary
             if( objAP->GetDictionary().HasKey( name ) && objAP->GetDictionary().GetKey( name )->GetDataType() != EPdfDataType::Dictionary )
             {
-                PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
+                PODOFO_RAISE_ERROR( EPdfError::InvalidDataType );
             }
 
             if( objAP->GetDictionary().HasKey( name ) )
@@ -265,17 +265,17 @@ PdfObject * PdfAnnotation::GetAppearanceStream(EPdfAnnotationAppearance eAppeara
     return apObjInn->GetDictionary().FindKey(state);
 }
 
-void PdfAnnotation::SetFlags( uint32_t uiFlags )
+void PdfAnnotation::SetFlags(EPdfAnnotationFlags uiFlags)
 {
     this->GetObject()->GetDictionary().AddKey( "F", PdfVariant( static_cast<int64_t>(uiFlags) ) );
 }
 
-uint32_t PdfAnnotation::GetFlags() const
+EPdfAnnotationFlags PdfAnnotation::GetFlags() const
 {
     if( this->GetObject()->GetDictionary().HasKey( "F" ) )
-        return static_cast<uint32_t>(this->GetObject()->GetDictionary().GetKey( "F" )->GetNumber());
+        return static_cast<EPdfAnnotationFlags>(this->GetObject()->GetDictionary().GetKey( "F" )->GetNumber());
 
-    return static_cast<uint32_t>(0);
+    return EPdfAnnotationFlags::None;
 }
 
 void PdfAnnotation::SetBorderStyle( double dHCorner, double dVCorner, double dWidth )
@@ -405,11 +405,11 @@ PdfArray PdfAnnotation::GetQuadPoints() const
 
 void PdfAnnotation::SetQuadPoints( const PdfArray & rQuadPoints )
 {
-    if ( m_eAnnotation != ePdfAnnotation_Highlight &&
-         m_eAnnotation != ePdfAnnotation_Underline &&
-	 m_eAnnotation != ePdfAnnotation_Squiggly  &&
-	 m_eAnnotation != ePdfAnnotation_StrikeOut )
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Must be a text markup annotation (highlight, underline, squiggly or strikeout) to set quad points" );
+    if ( m_eAnnotation != EPdfAnnotation::Highlight &&
+         m_eAnnotation != EPdfAnnotation::Underline &&
+	 m_eAnnotation != EPdfAnnotation::Squiggly  &&
+	 m_eAnnotation != EPdfAnnotation::StrikeOut )
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Must be a text markup annotation (highlight, underline, squiggly or strikeout) to set quad points" );
 
     this->GetObject()->GetDictionary().AddKey( "QuadPoints", rQuadPoints );
 }
@@ -456,14 +456,14 @@ PdfName GetAppearanceName( EPdfAnnotationAppearance eAppearance )
 {
     switch ( eAppearance )
     {
-        case PoDoFo::ePdfAnnotationAppearance_Normal:
+        case PoDoFo::EPdfAnnotationAppearance::Normal:
             return PdfName( "N" );
-        case PoDoFo::ePdfAnnotationAppearance_Rollover:
+        case PoDoFo::EPdfAnnotationAppearance::Rollover:
             return PdfName( "R" );
-        case PoDoFo::ePdfAnnotationAppearance_Down:
+        case PoDoFo::EPdfAnnotationAppearance::Down:
             return PdfName( "D" );
         default:
-            PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Invalid appearance type" );
+            PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Invalid appearance type" );
     }
 }
 };

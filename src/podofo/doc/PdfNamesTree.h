@@ -45,10 +45,11 @@ class PdfObject;
 class PdfString;
 class PdfVecObjects;
 
-enum EPdfNameLimits {
-    ePdfNameLimits_Before,
-    ePdfNameLimits_Inside,
-    ePdfNameLimits_After
+enum class EPdfNameLimits
+{
+    Before,
+    Inside,
+    After
 };
 
 
@@ -94,9 +95,9 @@ class PODOFO_DOC_API PdfNamesTree : public PdfElement {
     bool HasValue( const PdfName & tree, const PdfString & key ) const;
 
     /** Tests wether a key is in the range of a limits entry of a name tree node
-     *  \returns ePdfNameLimits_Inside if the key is inside of the range
-     *  \returns ePdfNameLimits_After if the key is greater than the specified range
-     *  \returns ePdfNameLimits_Before if the key is smalelr than the specified range
+     *  \returns EPdfNameLimits::Inside if the key is inside of the range
+     *  \returns EPdfNameLimits::After if the key is greater than the specified range
+     *  \returns EPdfNameLimits::Before if the key is smalelr than the specified range
      *
      *  Internal use only.
      */

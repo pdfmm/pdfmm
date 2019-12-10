@@ -70,7 +70,7 @@ pdf_utf16be PdfIdentityEncoding::GetCharCode( int nIndex ) const
     if( nIndex < this->GetFirstChar() ||
 	nIndex > this->GetLastChar() )
     {
-	PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
+	PODOFO_RAISE_ERROR( EPdfError::ValueOutOfRange );
     }
 
 #ifdef PODOFO_IS_LITTLE_ENDIAN
@@ -126,7 +126,7 @@ PdfRefCountedBuffer PdfIdentityEncoding::ConvertToEncoding( const PdfString & rS
     }
     else
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     return PdfRefCountedBuffer();

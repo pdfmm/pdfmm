@@ -42,17 +42,17 @@
 
 #include <string.h>
 
-namespace PoDoFo {
+using namespace PoDoFo;
 
 PdfSignatureField::PdfSignatureField( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc )
-	:PdfField(PoDoFo::ePdfField_Signature, pPage, rRect, pDoc)
+	:PdfField(EPdfField::Signature, pPage, rRect, pDoc)
 {
     m_pSignatureObj = NULL;
     Init();
 }
 
 PdfSignatureField::PdfSignatureField( PdfAnnotation* pWidget, PdfAcroForm* pParent, PdfDocument* pDoc, bool bInit )
-	:PdfField(PoDoFo::ePdfField_Signature, pWidget,  pParent, pDoc)
+	:PdfField(EPdfField::Signature, pWidget,  pParent, pDoc)
 {
     m_pSignatureObj = NULL;
     if( bInit )
@@ -60,7 +60,7 @@ PdfSignatureField::PdfSignatureField( PdfAnnotation* pWidget, PdfAcroForm* pPare
 }
 
 PdfSignatureField::PdfSignatureField( PdfObject* pObject, PdfAnnotation* pWidget )
-	: PdfField( PoDoFo::ePdfField_Signature, pObject, pWidget )
+	: PdfField(EPdfField::Signature, pObject, pWidget )
 {
     m_pSignatureObj = NULL;
 
@@ -75,7 +75,7 @@ void PdfSignatureField::SetAppearanceStream( PdfXObject* pObject, EPdfAnnotation
 {
     if( !pObject )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     m_pWidget->SetAppearanceStream( pObject, eAppearance, state );
@@ -94,7 +94,7 @@ void PdfSignatureField::SetSignerName(const PdfString & rsText)
 {
     if (!m_pSignatureObj)
     {
-        PODOFO_RAISE_ERROR(ePdfError_InvalidHandle);
+        PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
     }
 
     m_pSignatureObj->GetDictionary().AddKey(PdfName("Name"), rsText);
@@ -104,7 +104,7 @@ void PdfSignatureField::SetSignatureReason(const PdfString & rsText)
 {
     if( !m_pSignatureObj )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
     if(m_pSignatureObj->GetDictionary().HasKey(PdfName("Reason")))
     {
@@ -117,7 +117,7 @@ void PdfSignatureField::SetSignatureDate(const PdfDate &sigDate)
 {
     if( !m_pSignatureObj )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
     if(m_pSignatureObj->GetDictionary().HasKey(PdfName("M")))
     {
@@ -134,7 +134,7 @@ void PdfSignatureField::SetSignature(const PdfData &sSignatureData)
     char* pData = static_cast<char*>(podofo_malloc( lSigLen + 2 ));
     if (!pData)
     {
-        PODOFO_RAISE_ERROR(ePdfError_OutOfMemory);
+        PODOFO_RAISE_ERROR(EPdfError::OutOfMemory);
     }
 
     pData[0] = '<';
@@ -145,7 +145,7 @@ void PdfSignatureField::SetSignature(const PdfData &sSignatureData)
     // Content of the signature
     if( !m_pSignatureObj )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
     // Remove old data
     if(m_pSignatureObj->GetDictionary().HasKey("ByteRange"))
@@ -168,7 +168,7 @@ void PdfSignatureField::SetSignatureLocation( const PdfString & rsText )
 {
     if( !m_pSignatureObj )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
     if(m_pSignatureObj->GetDictionary().HasKey(PdfName("Location")))
     {
@@ -181,7 +181,7 @@ void PdfSignatureField::SetSignatureCreator( const PdfName & creator )
 {
     if( !m_pSignatureObj )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     if( m_pSignatureObj->GetDictionary().HasKey( PdfName( "Prop_Build" ) ) )
@@ -212,7 +212,7 @@ void PdfSignatureField::AddCertificationReference( PdfObject* pDocumentCatalog, 
 {
     if( !m_pSignatureObj )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     if (m_pSignatureObj->GetDictionary().HasKey(PdfName("Reference")))
@@ -292,7 +292,7 @@ void PdfSignatureField::EnsureSignatureObject( void )
     m_pSignatureObj = this->GetFieldObject()->GetOwner()->CreateObject( "Sig" );
     if( !m_pSignatureObj )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
     GetFieldObject()->GetDictionary().AddKey( "V" , m_pSignatureObj->GetIndirectReference() );
 
@@ -300,6 +300,4 @@ void PdfSignatureField::EnsureSignatureObject( void )
 
     dict.AddKey( PdfName::KeyFilter, PdfName( "Adobe.PPKLite" ) );
     dict.AddKey( "SubFilter", PdfName( "adbe.pkcs7.detached" ) );
-}
-
 }

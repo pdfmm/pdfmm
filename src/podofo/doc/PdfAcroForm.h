@@ -41,9 +41,10 @@ namespace PoDoFo {
 
 class PdfDocument;
 
-enum EPdfAcroFormDefaulAppearance {
-  ePdfAcroFormDefaultAppearance_None, ///< Do not add a default appearrance
-  ePdfAcroFormDefaultAppearance_BlackText12pt ///< Add a default appearance with Arial embedded and black text 12pt if no other DA key is present
+enum  class EPdfAcroFormDefaulAppearance
+{
+    None, ///< Do not add a default appearrance
+    BlackText12pt ///< Add a default appearance with Arial embedded and black text 12pt if no other DA key is present
 };
 
 class PODOFO_DOC_API PdfAcroForm : public PdfElement {
@@ -54,7 +55,7 @@ class PODOFO_DOC_API PdfAcroForm : public PdfElement {
      *  \param eDefaultAppearance specifies if a default appearance should be added
      */
     PdfAcroForm( PdfDocument* pDoc, 
-                 EPdfAcroFormDefaulAppearance eDefaultAppearance = ePdfAcroFormDefaultAppearance_BlackText12pt );
+                 EPdfAcroFormDefaulAppearance eDefaultAppearance = EPdfAcroFormDefaulAppearance::BlackText12pt );
 
     /** Create a PdfAcroForm dictionary object from an existing PdfObject
      *  \param pDoc parent document
@@ -62,7 +63,7 @@ class PODOFO_DOC_API PdfAcroForm : public PdfElement {
      *  \param eDefaultAppearance specifies if a default appearance should be added
      */
     PdfAcroForm( PdfDocument* pDoc, PdfObject* pObject,
-                 EPdfAcroFormDefaulAppearance eDefaultAppearance = ePdfAcroFormDefaultAppearance_BlackText12pt );
+                 EPdfAcroFormDefaulAppearance eDefaultAppearance = EPdfAcroFormDefaulAppearance::BlackText12pt );
 
     PdfArray & GetFieldsArray();
 

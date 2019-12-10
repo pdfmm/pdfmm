@@ -43,21 +43,25 @@ namespace PoDoFo {
 
 class PdfString;
 
+/**
+ * Enum to specifiy the initial information of the
+ * info dictionary.
+ */
+enum class EPdfInfoInitial
+{
+    WriteCreationTime = 0x01, ///< Write the creation time (current time). Default for new documents.
+    WriteModificationTime = 0x02, ///< Write the modification time (current time). Default for loaded documents.
+    WriteProducer = 0x04  ///< Write producer key. Default for new documents.
+};
+
+ENABLE_BITMASK_OPERATORS(EPdfInfoInitial);
+
 /** This class provides access to the documents
  *  info dictionary, which provides information
  *  about the PDF document.
  */
 class PODOFO_DOC_API PdfInfo : public PdfElement {
  public:
-    /**
-     * Enum to specifiy the initial information of the 
-     * info dictionary.
-     */
-    enum EPdfInfoInitial {
-        ePdfInfoInitial_WriteCreationTime     = 0x01, ///< Write the creation time (current time). Default for new documents.
-        ePdfInfoInitial_WriteModificationTime = 0x02, ///< Write the modification time (current time). Default for loaded documents.
-        ePdfInfoInitial_WriteProducer         = 0x04  ///< Write producer key. Default for new documents.
-    };
 
     /** Create a new PdfInfo object
      *  \param pParent the parent of this object
@@ -65,7 +69,7 @@ class PODOFO_DOC_API PdfInfo : public PdfElement {
      *         writting initially to the information dictionary
      */
     PdfInfo( PdfVecObjects* pParent, 
-             int eInitial = ePdfInfoInitial_WriteCreationTime | ePdfInfoInitial_WriteProducer );
+        EPdfInfoInitial eInitial = EPdfInfoInitial::WriteCreationTime | EPdfInfoInitial::WriteProducer );
 
     /** Create a PdfInfo object from an existing
      *  object in the PDF file.
@@ -73,7 +77,7 @@ class PODOFO_DOC_API PdfInfo : public PdfElement {
      *  \param eInitial which information should be 
      *         writting initially to the information
      */
-    PdfInfo( PdfObject* pObject, int eInitial = ePdfInfoInitial_WriteModificationTime );
+    PdfInfo( PdfObject* pObject, EPdfInfoInitial eInitial = EPdfInfoInitial::WriteModificationTime );
 
     /** Destructor
      */
@@ -172,7 +176,7 @@ class PODOFO_DOC_API PdfInfo : public PdfElement {
      *  \param eInitial which information should be 
      *         writting initially to the information
      */
-    void Init( int eInitial );
+    void Init(EPdfInfoInitial eInitial);
 
     /** Get a value from the info dictionary as name
      *  \para rName the key to fetch from the info dictionary

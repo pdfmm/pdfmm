@@ -46,32 +46,34 @@ class PdfAction;
 class PdfPage;
 class PdfRect;
 
-enum EPdfDestinationFit {
-    ePdfDestinationFit_Fit,
-    ePdfDestinationFit_FitH,
-    ePdfDestinationFit_FitV,
-    ePdfDestinationFit_FitB,
-    ePdfDestinationFit_FitBH,
-    ePdfDestinationFit_FitBV,
+enum class EPdfDestinationFit
+{
+    Fit,
+    FitH,
+    FitV,
+    FitB,
+    FitBH,
+    FitBV,
 
-    ePdfDestinationFit_Unknown = 0xFF
+    Unknown = 0xFF
 };
 
 /** Destination type, as per 12.3.2.2 of the Pdf spec.
  *
  *  (see table 151 in the pdf spec)
  */
-enum EPdfDestinationType {
-  ePdfDestinationType_XYZ,
-  ePdfDestinationType_Fit,
-  ePdfDestinationType_FitH,
-  ePdfDestinationType_FitV,
-  ePdfDestinationType_FitR,
-  ePdfDestinationType_FitB,
-  ePdfDestinationType_FitBH,
-  ePdfDestinationType_FitBV,
-  
-  ePdfDestinationType_Unknown = 0xFF
+enum class EPdfDestinationType
+{
+    XYZ,
+    Fit,
+    FitH,
+    FitV,
+    FitR,
+    FitB,
+    FitBH,
+    FitBV,
+    
+    Unknown = 0xFF
 };
 
 /** A destination in a PDF file.
@@ -100,9 +102,9 @@ class PODOFO_DOC_API PdfDestination {
 
     /** Create a new PdfDestination with a page as destination
      *  \param pPage a page which is the destination 
-     *  \param eFit fit mode for the page. Must be ePdfDestinationFit_Fit or ePdfDestinationFit_FitB
+     *  \param eFit fit mode for the page. Must be EPdfDestinationFit::Fit or EPdfDestinationFit::FitB
      */
-    PdfDestination( const PdfPage* pPage, EPdfDestinationFit eFit = ePdfDestinationFit_Fit );
+    PdfDestination( const PdfPage* pPage, EPdfDestinationFit eFit = EPdfDestinationFit::Fit );
 
     /** Create a destination to a page with its contents magnified to fit into the given rectangle
      *  \param pPage a page which is the destination 
@@ -121,8 +123,8 @@ class PODOFO_DOC_API PdfDestination {
 
     /** Create a new destination to a page.
      *  \param pPage a page which is the destination 
-     *  \param eFit fit mode for the Page. Allowed values are ePdfDestinationFit_FitH,
-     *              ePdfDestinationFit_FitV, ePdfDestinationFit_FitBH, ePdfDestinationFit_FitBV
+     *  \param eFit fit mode for the Page. Allowed values are EPdfDestinationFit::FitH,
+     *              EPdfDestinationFit::FitV, EPdfDestinationFit::FitBH, EPdfDestinationFit::FitBV
      *  \param dValue value which is a required argument for the selected fit mode
      */
     PdfDestination( const PdfPage* pPage, EPdfDestinationFit eFit, double dValue );
@@ -297,20 +299,20 @@ inline const PdfArray &PdfDestination::GetArray() const
 inline EPdfDestinationType PdfDestination::GetType() const 
 {
     if ( !m_array.size() ) 
-        return ePdfDestinationType_Unknown;  
+        return EPdfDestinationType::Unknown;  
     
     PdfName tp = m_array[1].GetName();
     
-    if ( tp == PdfName("XYZ") ) return ePdfDestinationType_XYZ;
-    if ( tp == PdfName("Fit") ) return ePdfDestinationType_Fit;
-    if ( tp == PdfName("FitH") ) return ePdfDestinationType_FitH;
-    if ( tp == PdfName("FitV") ) return ePdfDestinationType_FitV;   
-    if ( tp == PdfName("FitR") ) return ePdfDestinationType_FitR; 
-    if ( tp == PdfName("FitB") ) return ePdfDestinationType_FitB; 
-    if ( tp == PdfName("FitBH") ) return ePdfDestinationType_FitBH; 
-    if ( tp == PdfName("FitBV") ) return ePdfDestinationType_FitBV; 
+    if ( tp == PdfName("XYZ") ) return EPdfDestinationType::XYZ;
+    if ( tp == PdfName("Fit") ) return EPdfDestinationType::Fit;
+    if ( tp == PdfName("FitH") ) return EPdfDestinationType::FitH;
+    if ( tp == PdfName("FitV") ) return EPdfDestinationType::FitV;   
+    if ( tp == PdfName("FitR") ) return EPdfDestinationType::FitR; 
+    if ( tp == PdfName("FitB") ) return EPdfDestinationType::FitB; 
+    if ( tp == PdfName("FitBH") ) return EPdfDestinationType::FitBH; 
+    if ( tp == PdfName("FitBV") ) return EPdfDestinationType::FitBV; 
     
-    return ePdfDestinationType_Unknown; 
+    return EPdfDestinationType::Unknown; 
 }
 
 // -----------------------------------------------------
@@ -320,11 +322,11 @@ inline double PdfDestination::GetDValue() const
 {
     EPdfDestinationType tp = GetType();
     
-    if ( tp != ePdfDestinationType_FitH
-         && tp != ePdfDestinationType_FitV
-         && tp != ePdfDestinationType_FitBH )
+    if ( tp != EPdfDestinationType::FitH
+         && tp != EPdfDestinationType::FitV
+         && tp != EPdfDestinationType::FitBH )
     {
-        PODOFO_RAISE_ERROR( ePdfError_WrongDestinationType );
+        PODOFO_RAISE_ERROR( EPdfError::WrongDestinationType );
     }
     
     return m_array[2].GetReal();
@@ -337,11 +339,11 @@ inline double PdfDestination::GetLeft() const
 {
     EPdfDestinationType tp = GetType();
     
-    if ( tp != ePdfDestinationType_FitV
-         && tp != ePdfDestinationType_XYZ
-         && tp != ePdfDestinationType_FitR )
+    if ( tp != EPdfDestinationType::FitV
+         && tp != EPdfDestinationType::XYZ
+         && tp != EPdfDestinationType::FitR )
     {
-        PODOFO_RAISE_ERROR( ePdfError_WrongDestinationType );
+        PODOFO_RAISE_ERROR( EPdfError::WrongDestinationType );
     }
     
     return m_array[2].GetReal();
@@ -352,9 +354,9 @@ inline double PdfDestination::GetLeft() const
 // -----------------------------------------------------
 inline PdfRect PdfDestination::GetRect() const
 {
-    if ( GetType() != ePdfDestinationType_FitR )
+    if ( GetType() != EPdfDestinationType::FitR )
     {
-        PODOFO_RAISE_ERROR( ePdfError_WrongDestinationType );
+        PODOFO_RAISE_ERROR( EPdfError::WrongDestinationType );
     }
     
     return PdfRect(m_array[2].GetReal(), m_array[3].GetReal(),
@@ -370,21 +372,21 @@ inline double PdfDestination::GetTop() const
     
     switch (tp) 
     { 
-        case ePdfDestinationType_XYZ:
+        case EPdfDestinationType::XYZ:
             return m_array[3].GetReal();
-        case ePdfDestinationType_FitH:
-        case ePdfDestinationType_FitBH:
+        case EPdfDestinationType::FitH:
+        case EPdfDestinationType::FitBH:
             return m_array[2].GetReal();
-        case ePdfDestinationType_FitR:
+        case EPdfDestinationType::FitR:
             return m_array[5].GetReal();
-        case ePdfDestinationType_Fit:
-        case ePdfDestinationType_FitV:
-        case ePdfDestinationType_FitB:
-        case ePdfDestinationType_FitBV:
-        case ePdfDestinationType_Unknown:
+        case EPdfDestinationType::Fit:
+        case EPdfDestinationType::FitV:
+        case EPdfDestinationType::FitB:
+        case EPdfDestinationType::FitBV:
+        case EPdfDestinationType::Unknown:
         default:
         {
-            PODOFO_RAISE_ERROR( ePdfError_WrongDestinationType );
+            PODOFO_RAISE_ERROR( EPdfError::WrongDestinationType );
         }
     };
 }
@@ -394,9 +396,9 @@ inline double PdfDestination::GetTop() const
 // -----------------------------------------------------
 inline double PdfDestination::GetZoom() const
 {
-    if ( GetType() != ePdfDestinationType_XYZ )
+    if ( GetType() != EPdfDestinationType::XYZ )
     {
-        PODOFO_RAISE_ERROR( ePdfError_WrongDestinationType );
+        PODOFO_RAISE_ERROR( EPdfError::WrongDestinationType );
     }
   
     return m_array[4].GetReal();

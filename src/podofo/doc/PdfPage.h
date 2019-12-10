@@ -248,7 +248,7 @@ class PODOFO_DOC_API PdfPage : public PdfElement, public PdfCanvas {
      *  \see PdfPainter::SetDependICCProfileColor()
      */
     void SetICCProfile( const char* pszCSTag, PdfInputStream* pStream, int64_t nColorComponents,
-                                EPdfColorSpace eAlternateColorSpace = ePdfColorSpace_DeviceRGB );
+                                EPdfColorSpace eAlternateColorSpace = EPdfColorSpace::DeviceRGB );
  private:
      PdfStream & GetStreamForAppending() override;
 

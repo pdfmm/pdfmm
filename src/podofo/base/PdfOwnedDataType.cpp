@@ -53,11 +53,11 @@ PdfOwnedDataType::PdfOwnedDataType( const PdfOwnedDataType &rhs )
 PdfObject & PdfOwnedDataType::GetIndirectObject( const PdfReference &ref ) const
 {
     if ( m_pOwner == NULL )
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle, "Object is a reference but does not have an owner!" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidHandle, "Object is a reference but does not have an owner!" );
 
     auto ret = m_pOwner->GetOwner()->GetObject( ref );
     if (ret == nullptr)
-        PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidHandle, "Can't find reference with objnum: " + std::to_string(ref.ObjectNumber()) + ", gennum: " + std::to_string(ref.GenerationNumber()));
+        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "Can't find reference with objnum: " + std::to_string(ref.ObjectNumber()) + ", gennum: " + std::to_string(ref.GenerationNumber()));
 
     return *ret;
 }

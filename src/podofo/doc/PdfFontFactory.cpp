@@ -59,14 +59,14 @@ PdfFontFactory::PdfFontFactory()
 {
 }
 
-PdfFont* PdfFontFactory::CreateFontObject( PdfFontMetrics* pMetrics, int nFlags, 
+PdfFont* PdfFontFactory::CreateFontObject( PdfFontMetrics* pMetrics, EPdfFontFlags nFlags,
                                            const PdfEncoding* pEncoding,
                                            PdfVecObjects* pParent )
 {
-    PdfFont*     pFont  = NULL;
-    EPdfFontType eType  = pMetrics->GetFontType();
-    bool         bEmbed = nFlags & ePdfFont_Embedded;
-    bool         bSubsetting = (nFlags & ePdfFont_Subsetting) != 0;
+    PdfFont * pFont  = NULL;
+    EPdfFontType eType = pMetrics->GetFontType();
+    bool bEmbed = (nFlags & EPdfFontFlags::Embedded) == EPdfFontFlags::Embedded;
+    bool bSubsetting = (nFlags & EPdfFontFlags::Subsetting) != EPdfFontFlags::Normal;
 
     try
     { 
@@ -74,8 +74,8 @@ PdfFont* PdfFontFactory::CreateFontObject( PdfFontMetrics* pMetrics, int nFlags,
         
         if( pFont ) 
         {
-            pFont->SetBold( nFlags & ePdfFont_Bold ? true : false );
-            pFont->SetItalic( nFlags & ePdfFont_Italic ? true : false );
+            pFont->SetBold((nFlags & EPdfFontFlags::Bold) == EPdfFontFlags::Bold ? true : false );
+            pFont->SetItalic((nFlags & EPdfFontFlags::Italic) == EPdfFontFlags::Italic ? true : false );
         }
         else
         {
@@ -131,7 +131,7 @@ PdfFont* PdfFontFactory::CreateFontForType( EPdfFontType eType, PdfFontMetrics* 
     {
         switch( eType ) 
         {
-            case ePdfFontType_TrueType:
+            case EPdfFontType::TrueType:
                 // Peter Petrov 30 April 2008 - added bEmbed parameter
 		        if (bSubsetting) {
 		            pFont = new PdfFontCID( pMetrics, pEncoding, pParent, bEmbed, true );
@@ -141,8 +141,8 @@ PdfFont* PdfFontFactory::CreateFontForType( EPdfFontType eType, PdfFontMetrics* 
 		        }
                 break;
                 
-            case ePdfFontType_Type1Pfa:
-            case ePdfFontType_Type1Pfb:
+            case EPdfFontType::Type1Pfa:
+            case EPdfFontType::Type1Pfb:
 				if ( bSubsetting )
 				{
 					// don't embed yet for subsetting
@@ -151,13 +151,13 @@ PdfFont* PdfFontFactory::CreateFontForType( EPdfFontType eType, PdfFontMetrics* 
 				else
 					pFont = new PdfFontType1( pMetrics, pEncoding, pParent, bEmbed );
                 break;
-            case ePdfFontType_Type3:
+            case EPdfFontType::Type3:
                 pFont = new PdfFontType3( pMetrics, pEncoding, pParent, bEmbed );
                 break;
-            case ePdfFontType_Unknown:
-            case ePdfFontType_Type1Base14:
+            case EPdfFontType::Unknown:
+            case EPdfFontType::Type1Base14:
             default:
-                PdfError::LogMessage( eLogSeverity_Error, "The font format is unknown. Fontname: %s Filename: %s\n", 
+                PdfError::LogMessage( ELogSeverity::Error, "The font format is unknown. Fontname: %s Filename: %s\n", 
                                       (pMetrics->GetFontname() ? pMetrics->GetFontname() : "<unknown>"),
                                       (pMetrics->GetFilename() ? pMetrics->GetFilename() : "<unknown>") );
         }
@@ -166,17 +166,17 @@ PdfFont* PdfFontFactory::CreateFontForType( EPdfFontType eType, PdfFontMetrics* 
     {
         switch( eType ) 
         {
-            case ePdfFontType_TrueType:
+            case EPdfFontType::TrueType:
                 // Peter Petrov 30 April 2008 - added bEmbed parameter
 					 pFont = new PdfFontCID( pMetrics, pEncoding, pParent, bEmbed, bSubsetting );
                 break;
-            case ePdfFontType_Type1Pfa:
-            case ePdfFontType_Type1Pfb:
-            case ePdfFontType_Type1Base14:
-            case ePdfFontType_Type3:
-            case ePdfFontType_Unknown:
+            case EPdfFontType::Type1Pfa:
+            case EPdfFontType::Type1Pfb:
+            case EPdfFontType::Type1Base14:
+            case EPdfFontType::Type3:
+            case EPdfFontType::Unknown:
             default:
-                PdfError::LogMessage( eLogSeverity_Error, 
+                PdfError::LogMessage( ELogSeverity::Error, 
                                       "The font format is unknown or no multibyte encoding defined. Fontname: %s Filename: %s\n", 
                                       (pMetrics->GetFontname() ? pMetrics->GetFontname() : "<unknown>"),
                                       (pMetrics->GetFilename() ? pMetrics->GetFilename() : "<unknown>") );
@@ -197,19 +197,19 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library*, PdfObject* pObject )
     PdfVariant* pTypeKey = pObject->GetDictionary().GetKey( PdfName::KeyType );
     if ( NULL == pTypeKey )
     {
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Font: No Type" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDataType, "Font: No Type" );
     }
 
     if( pTypeKey->GetName() != PdfName("Font") )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidDataType );
     }
 
     PdfVariant* pSubTypeKey = pObject->GetDictionary()
                             .GetKey( PdfName::KeySubtype );
     if ( NULL == pSubTypeKey )
     {
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Font: No SubType" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDataType, "Font: No SubType" );
     }
     const PdfName & rSubType = pSubTypeKey->GetName();
     if( rSubType == PdfName("Type0") ) 
@@ -221,7 +221,7 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library*, PdfObject* pObject )
         PdfObject* pDescendantObj = pObject->GetIndirectKey( "DescendantFonts" );
 
         if ( NULL == pDescendantObj )
-            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Type0 Font: No DescendantFonts" );
+            PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDataType, "Type0 Font: No DescendantFonts" );
         
         PdfArray & descendants  = pDescendantObj->GetArray();
         PdfObject* pFontObject = NULL;
@@ -268,7 +268,7 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library*, PdfObject* pObject )
            PdfObject* pBaseFont = NULL;
            pBaseFont = pObject->GetIndirectKey( "BaseFont" );
            if ( NULL == pBaseFont )
-               PODOFO_RAISE_ERROR_INFO( ePdfError_NoObject, "No BaseFont object found"
+               PODOFO_RAISE_ERROR_INFO( EPdfError::NoObject, "No BaseFont object found"
                                        " by reference in given object" );
            const char* pszBaseFontName = pBaseFont->GetName().GetName().c_str();
            const PdfFontMetricsBase14* pMetrics = PODOFO_Base14FontDef_FindBuiltinData(pszBaseFontName);
@@ -356,7 +356,7 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library*, PdfObject* pObject )
 
 EPdfFontType PdfFontFactory::GetFontType( const char* pszFilename )
 {
-    EPdfFontType eFontType = ePdfFontType_Unknown;
+    EPdfFontType eFontType = EPdfFontType::Unknown;
 
     // We check by file extension right now
     // which is not quite correct, but still better than before
@@ -365,15 +365,15 @@ EPdfFontType PdfFontFactory::GetFontType( const char* pszFilename )
     {
         const char* pszExtension = pszFilename + strlen( pszFilename ) - 3;
         if( PoDoFo::compat::strncasecmp( pszExtension, "ttf", 3 ) == 0 )
-            eFontType = ePdfFontType_TrueType;
+            eFontType = EPdfFontType::TrueType;
         else if( PoDoFo::compat::strncasecmp( pszExtension, "otf", 3 ) == 0 )
-            eFontType = ePdfFontType_TrueType;
+            eFontType = EPdfFontType::TrueType;
         else if( PoDoFo::compat::strncasecmp( pszExtension, "ttc", 3 ) == 0 )
-            eFontType = ePdfFontType_TrueType;
+            eFontType = EPdfFontType::TrueType;
         else if( PoDoFo::compat::strncasecmp( pszExtension, "pfa", 3 ) == 0 )
-            eFontType = ePdfFontType_Type1Pfa;
+            eFontType = EPdfFontType::Type1Pfa;
         else if( PoDoFo::compat::strncasecmp( pszExtension, "pfb", 3 ) == 0 )
-            eFontType = ePdfFontType_Type1Pfb;
+            eFontType = EPdfFontType::Type1Pfb;
     }
 
     return eFontType;
@@ -405,8 +405,8 @@ PdfFont *PdfFontFactory::CreateBase14Font(const char* pszFontName,
     PdfFont *pFont = new PdfFontType1Base14(
         new PdfFontMetricsBase14(*PODOFO_Base14FontDef_FindBuiltinData(pszFontName)), pEncoding, pParent);
     if (pFont) {
-        pFont->SetBold( eFlags & ePdfFont_Bold ? true : false );
-        pFont->SetItalic( eFlags & ePdfFont_Italic ? true : false );
+        pFont->SetBold((eFlags & EPdfFontFlags::Bold) == EPdfFontFlags::Bold ? true : false );
+        pFont->SetItalic((eFlags & EPdfFontFlags::Italic) == EPdfFontFlags::Italic ? true : false );
     }
     return pFont;
 }

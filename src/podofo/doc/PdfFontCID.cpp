@@ -290,7 +290,7 @@ void PdfFontCID::EmbedFont( PdfObject* pDescriptor )
 			PdfRefCountedBuffer buffer;
 			PdfOutputDevice output(&buffer);
 
-            PdfFontTTFSubset subset(&input, pMetrics, PdfFontTTFSubset::eFontFileType_TTF);
+            PdfFontTTFSubset subset(&input, pMetrics, EFontFileType::TTF);
 
             std::vector<unsigned char> array;
             subset.BuildFont(buffer, m_setUsed, array );
@@ -300,7 +300,7 @@ void PdfFontCID::EmbedFont( PdfObject* pDescriptor )
                 if (!array.empty()) {
                     PdfObject* cidSet = pDescriptor->GetOwner()->CreateObject();
                     TVecFilters vecFlate;
-                    vecFlate.push_back(ePdfFilter_FlateDecode);
+                    vecFlate.push_back(EPdfFilter::FlateDecode);
                     PdfMemoryInputStream stream(reinterpret_cast<const char*>(array.data()), array.size());
 					cidSet->GetOrCreateStream().Set(&stream, vecFlate);
                     pDescriptor->GetDictionary().AddKey("CIDSet", cidSet->GetIndirectReference());
@@ -326,7 +326,7 @@ void PdfFontCID::EmbedFont( PdfObject* pDescriptor )
         pContents = this->GetObject()->GetOwner()->CreateObject();
         if( !pContents || !m_pMetrics )
         {
-            PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+            PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
         }
         
         pDescriptor->GetDictionary().AddKey( "FontFile2", pContents->GetIndirectReference() );
@@ -371,7 +371,7 @@ void PdfFontCID::CreateWidth( PdfObject* pFontDict ) const
     double* pdWidth = static_cast<double*>(podofo_calloc( cAbsoluteMax, sizeof(double) ) );
     if( !pdWidth )
     {
-        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+        PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
     }
 
     for( i=0;i<cAbsoluteMax;i++ )

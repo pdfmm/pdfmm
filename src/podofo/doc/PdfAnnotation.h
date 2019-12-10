@@ -58,64 +58,70 @@ class PdfXObject;
  *  Please make also sure that the annotation type you use is
  *  supported by the PDF version you are using.
  */
-enum EPdfAnnotation {
-    ePdfAnnotation_Text = 0,                   // - supported
-    ePdfAnnotation_Link,                       // - supported
-    ePdfAnnotation_FreeText,       // PDF 1.3  // - supported
-    ePdfAnnotation_Line,           // PDF 1.3  // - supported
-    ePdfAnnotation_Square,         // PDF 1.3
-    ePdfAnnotation_Circle,         // PDF 1.3
-    ePdfAnnotation_Polygon,        // PDF 1.5
-    ePdfAnnotation_PolyLine,       // PDF 1.5
-    ePdfAnnotation_Highlight,      // PDF 1.3
-    ePdfAnnotation_Underline,      // PDF 1.3
-    ePdfAnnotation_Squiggly,       // PDF 1.4
-    ePdfAnnotation_StrikeOut,      // PDF 1.3
-    ePdfAnnotation_Stamp,          // PDF 1.3
-    ePdfAnnotation_Caret,          // PDF 1.5
-    ePdfAnnotation_Ink,            // PDF 1.3
-    ePdfAnnotation_Popup,          // PDF 1.3  // - supported
-    ePdfAnnotation_FileAttachement,// PDF 1.3
-    ePdfAnnotation_Sound,          // PDF 1.2
-    ePdfAnnotation_Movie,          // PDF 1.2
-    ePdfAnnotation_Widget,         // PDF 1.2  // - supported
-    ePdfAnnotation_Screen,         // PDF 1.5
-    ePdfAnnotation_PrinterMark,    // PDF 1.4
-    ePdfAnnotation_TrapNet,        // PDF 1.3
-    ePdfAnnotation_Watermark,      // PDF 1.6
-    ePdfAnnotation_3D,             // PDF 1.6
-    ePdfAnnotation_RichMedia,      // PDF 1.7 ADBE ExtensionLevel 3 ALX: Petr P. Petrov
-    ePdfAnnotation_WebMedia,       // PDF 1.7 IPDF ExtensionLevel 3
+enum class EPdfAnnotation
+{
+    Text = 0,                   // - supported
+    Link,                       // - supported
+    FreeText,       // PDF 1.3  // - supported
+    Line,           // PDF 1.3  // - supported
+    Square,         // PDF 1.3
+    Circle,         // PDF 1.3
+    Polygon,        // PDF 1.5
+    PolyLine,       // PDF 1.5
+    Highlight,      // PDF 1.3
+    Underline,      // PDF 1.3
+    Squiggly,       // PDF 1.4
+    StrikeOut,      // PDF 1.3
+    Stamp,          // PDF 1.3
+    Caret,          // PDF 1.5
+    Ink,            // PDF 1.3
+    Popup,          // PDF 1.3  // - supported
+    FileAttachement,// PDF 1.3
+    Sound,          // PDF 1.2
+    Movie,          // PDF 1.2
+    Widget,         // PDF 1.2  // - supported
+    Screen,         // PDF 1.5
+    PrinterMark,    // PDF 1.4
+    TrapNet,        // PDF 1.3
+    Watermark,      // PDF 1.6
+    Model3D,        // PDF 1.6
+    RichMedia,      // PDF 1.7 ADBE ExtensionLevel 3 ALX: Petr P. Petrov
+    WebMedia,       // PDF 1.7 IPDF ExtensionLevel 3
 
-    ePdfAnnotation_Unknown = 0xff
+    Unknown = 0xff
 };
 
 /** Flags that control the appearance of a PdfAnnotation.
  *  You can OR them together and pass it to 
  *  PdfAnnotation::SetFlags.
  */
-enum EPdfAnnotationFlags {
-    ePdfAnnotationFlags_Invisible    = 0x0001,
-    ePdfAnnotationFlags_Hidden       = 0x0002,
-    ePdfAnnotationFlags_Print        = 0x0004,
-    ePdfAnnotationFlags_NoZoom       = 0x0008,
-    ePdfAnnotationFlags_NoRotate     = 0x0010,
-    ePdfAnnotationFlags_NoView       = 0x0020,
-    ePdfAnnotationFlags_ReadOnly     = 0x0040,
-    ePdfAnnotationFlags_Locked       = 0x0080,
-    ePdfAnnotationFlags_ToggleNoView = 0x0100,
-    ePdfAnnotationFlags_LockedContents = 0x0200,
+enum class EPdfAnnotationFlags
+{
+    None         = 0x0000,
+    Invisible    = 0x0001,
+    Hidden       = 0x0002,
+    Print        = 0x0004,
+    NoZoom       = 0x0008,
+    NoRotate     = 0x0010,
+    NoView       = 0x0020,
+    ReadOnly     = 0x0040,
+    Locked       = 0x0080,
+    ToggleNoView = 0x0100,
+    LockedContents = 0x0200,
 
-    ePdfAnnotationFlags_Unknow       = 0xffff
+    Unknow       = 0xffff
 };
+
+ENABLE_BITMASK_OPERATORS(EPdfAnnotationFlags);
 
 /**
  * Type of the annotation appearance.
  */
-enum EPdfAnnotationAppearance {
-    ePdfAnnotationAppearance_Normal = 0, /**< Normal appearance */
-    ePdfAnnotationAppearance_Rollover,   /**< Rollover appearance; the default is ePdfAnnotationAppearance_Normal */
-    ePdfAnnotationAppearance_Down        /**< Down appearance; the default is ePdfAnnotationAppearance_Normal */
+enum class EPdfAnnotationAppearance
+{
+    Normal = 0, /**< Normal appearance */
+    Rollover,   /**< Rollover appearance; the default is EPdfAnnotationAppearance::Normal */
+    Down        /**< Down appearance; the default is EPdfAnnotationAppearance::Normal */
 };
 
 /** An annotation to a PdfPage 
@@ -151,7 +157,7 @@ class PODOFO_DOC_API PdfAnnotation : public PdfElement {
      *  \param eApperance an apperance type to set
      *  \param state the state for which set it the pObject; states depend on the annotation type
      */
-    void SetAppearanceStream( PdfXObject* pObject, EPdfAnnotationAppearance eAppearance = ePdfAnnotationAppearance_Normal, const PdfName & state = "" );
+    void SetAppearanceStream( PdfXObject* pObject, EPdfAnnotationAppearance eAppearance = EPdfAnnotationAppearance::Normal, const PdfName & state = "" );
 
     /** 
      * \returns true if this annotation has an appearance stream
@@ -168,7 +174,7 @@ class PODOFO_DOC_API PdfAnnotation : public PdfElement {
      *  \param eApperance an apperance type to get
      *  \param state a child state. Meaning depends on the annotation type
     */
-    PdfObject * GetAppearanceStream(EPdfAnnotationAppearance eAppearance = ePdfAnnotationAppearance_Normal, const PdfName & state = "");
+    PdfObject * GetAppearanceStream(EPdfAnnotationAppearance eAppearance = EPdfAnnotationAppearance::Normal, const PdfName & state = "");
 
     /** Get the rectangle of this annotation.
      *  \returns a rectangle
@@ -185,7 +191,7 @@ class PODOFO_DOC_API PdfAnnotation : public PdfElement {
      *                 EPdfAnnotationFlags OR'ed together.
      *  \see GetFlags
      */
-    void SetFlags( uint32_t uiFlags );
+    void SetFlags(EPdfAnnotationFlags uiFlags);
 
     /** Get the flags of this annotation.
      *  \returns the flags which is an unsigned 32bit integer with different
@@ -193,7 +199,7 @@ class PODOFO_DOC_API PdfAnnotation : public PdfElement {
      *
      *  \see SetFlags
      */
-    uint32_t GetFlags() const;
+    EPdfAnnotationFlags GetFlags() const;
 
     /** Set the annotations border style.
      *  \param dHCorner horitzontal corner radius 
@@ -301,7 +307,7 @@ class PODOFO_DOC_API PdfAnnotation : public PdfElement {
 
     /** Set a file attachment for this annotation.
      *  The type of this annotation has to be
-     *  ePdfAnnotation_FileAttachement for file 
+     *  EPdfAnnotation::FileAttachement for file 
      *  attachements to work.
      *
      *  \param rFileSpec a file specification

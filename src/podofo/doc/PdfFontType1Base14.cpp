@@ -68,7 +68,7 @@ void PdfFontType1Base14::InitBase14Font( PdfFontMetrics* pMetrics )
     
     if( !m_pEncoding )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     this->GetObject()->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("Type1"));
@@ -77,7 +77,7 @@ void PdfFontType1Base14::InitBase14Font( PdfFontMetrics* pMetrics )
     PdfObject *pWidth = this->GetObject()->GetOwner()->CreateObject();
     if( !pWidth )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     m_pMetrics->GetWidthArray( *pWidth, m_pEncoding->GetFirstChar(), m_pEncoding->GetLastChar(), m_pEncoding );

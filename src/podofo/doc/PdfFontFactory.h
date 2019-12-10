@@ -42,14 +42,17 @@ namespace PoDoFo {
 class PdfFontMetrics;
 class PdfVecObjects;
 
-enum EPdfFontFlags {
-    ePdfFont_Normal     = 0x00,
-    ePdfFont_Embedded   = 0x01,
-    ePdfFont_Bold       = 0x02,
-    ePdfFont_Italic     = 0x04,
-    ePdfFont_BoldItalic = ePdfFont_Bold | ePdfFont_Italic,
-    ePdfFont_Subsetting = 0x08
+enum class EPdfFontFlags
+{
+    Normal     = 0x00,
+    Embedded   = 0x01,
+    Bold       = 0x02,
+    Italic     = 0x04,
+    BoldItalic = Bold | Italic,
+    Subsetting = 0x08
 };
+
+ENABLE_BITMASK_OPERATORS(EPdfFontFlags);
 
 /** This is a factory class which knows
  *  which implementation of PdfFont is required
@@ -70,7 +73,7 @@ class PODOFO_DOC_API PdfFontFactory {
      *
      *  \returns a new PdfFont object or NULL
      */
-    static PdfFont* CreateFontObject( PdfFontMetrics* pMetrics, int nFlags, 
+    static PdfFont* CreateFontObject( PdfFontMetrics* pMetrics, EPdfFontFlags nFlags,
                                       const PdfEncoding* pEncoding, PdfVecObjects* pParent );
 
     /** Create a new PdfFont from an existing

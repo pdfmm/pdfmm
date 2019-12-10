@@ -82,19 +82,19 @@ bool PdfNameTreeNode::AddValue( const PdfString & key, const PdfObject & rValue 
         const PdfArray &         kids   = this->GetObject()->GetDictionary().GetKey("Kids")->GetArray();
         PdfArray::const_iterator it     = kids.begin();
         PdfObject*               pChild = NULL;
-        EPdfNameLimits           eLimits = ePdfNameLimits_Before; // RG: TODO Compiler complains that this variable should be initialised
+        EPdfNameLimits           eLimits = EPdfNameLimits::Before; // RG: TODO Compiler complains that this variable should be initialised
 
         while( it != kids.end() )
         {
             pChild = this->GetObject()->GetOwner()->GetObject( (*it).GetReference() );
             if( !pChild ) 
             {
-                PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+                PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
             }
 
             eLimits = PdfNamesTree::CheckLimits( pChild, key );
-            if( (eLimits == ePdfNameLimits_Before) || 
-                (eLimits == ePdfNameLimits_Inside) )
+            if( (eLimits == EPdfNameLimits::Before) || 
+                (eLimits == EPdfNameLimits::Inside) )
             {
                 break;
             }
@@ -108,10 +108,10 @@ bool PdfNameTreeNode::AddValue( const PdfString & key, const PdfObject & rValue 
             pChild = this->GetObject()->GetOwner()->GetObject( kids.back().GetReference() );
             if( !pChild ) 
             {
-                PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+                PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
             }
 
-            eLimits = ePdfNameLimits_After;
+            eLimits = EPdfNameLimits::After;
         }
                 
         PdfNameTreeNode child( this, pChild );
@@ -120,7 +120,7 @@ bool PdfNameTreeNode::AddValue( const PdfString & key, const PdfObject & rValue 
             // if a child insert the key in a way that the limits
             // are changed, we have to change our limits as well!
             // our parent has to change his parents too!
-            if( eLimits != ePdfNameLimits_Inside )
+            if( eLimits != EPdfNameLimits::Inside )
                 this->SetLimits();
             
             this->Rebalance();
@@ -224,7 +224,7 @@ void PdfNameTreeNode::SetLimits()
                 limits.push_back( pChild->GetDictionary().GetKey("Limits")->GetArray().back() );
         }
         else
-            PdfError::LogMessage( eLogSeverity_Error, 
+            PdfError::LogMessage( ELogSeverity::Error, 
                                   "Object %i %si does not have Kids array.", 
                                   this->GetObject()->GetIndirectReference().ObjectNumber(), 
                                   this->GetObject()->GetIndirectReference().GenerationNumber() );
@@ -238,7 +238,7 @@ void PdfNameTreeNode::SetLimits()
             limits.push_back( (*(this->GetObject()->GetDictionary().GetKey("Names")->GetArray().end()-2)) );
         }
         else
-            PdfError::LogMessage( eLogSeverity_Error, 
+            PdfError::LogMessage( ELogSeverity::Error, 
                                   "Object %i %si does not have Names array.", 
                                   this->GetObject()->GetIndirectReference().ObjectNumber(), 
                                   this->GetObject()->GetIndirectReference().GenerationNumber() );
@@ -349,7 +349,7 @@ void PdfNamesTree::AddValue( const PdfName & tree, const PdfString & key, const 
     PdfNameTreeNode root( NULL, this->GetRootNode( tree, true ) );    
     if( !root.AddValue( key, rValue ) )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
+        PODOFO_RAISE_ERROR( EPdfError::InternalLogic );
     }
 }
 
@@ -370,7 +370,7 @@ PdfObject* PdfNamesTree::GetValue( const PdfName & tree, const PdfString & key )
 
 PdfObject* PdfNamesTree::GetKeyValue( PdfObject* pObj, const PdfString & key ) const
 {
-    if( PdfNamesTree::CheckLimits( pObj, key ) != ePdfNameLimits_Inside )
+    if( PdfNamesTree::CheckLimits( pObj, key ) != EPdfNameLimits::Inside )
         return NULL;
 
     if( pObj->GetDictionary().HasKey("Kids") )
@@ -390,7 +390,7 @@ PdfObject* PdfNamesTree::GetKeyValue( PdfObject* pObj, const PdfString & key ) c
                     return pResult;
             }
             else
-                PdfError::LogMessage( eLogSeverity_Debug, "Object %lu %lu is child of nametree but was not found!", 
+                PdfError::LogMessage( ELogSeverity::Debug, "Object %lu %lu is child of nametree but was not found!", 
                                       (*it).GetReference().ObjectNumber(), 
                                       (*it).GetReference().GenerationNumber() );
 
@@ -447,19 +447,19 @@ EPdfNameLimits PdfNamesTree::CheckLimits( const PdfObject* pObj, const PdfString
         const PdfArray & limits = pObj->GetDictionary().GetKey("Limits")->GetArray();
 
         if( limits[0].GetString() > key )
-            return ePdfNameLimits_Before;
+            return EPdfNameLimits::Before;
 
         if( limits[1].GetString() < key )
-            return ePdfNameLimits_After;
+            return EPdfNameLimits::After;
     }
     else
     {
-        PdfError::LogMessage( eLogSeverity_Debug, "Name tree object %lu %lu does not have a limits key!", 
+        PdfError::LogMessage( ELogSeverity::Debug, "Name tree object %lu %lu does not have a limits key!", 
                               pObj->GetIndirectReference().ObjectNumber(), 
                               pObj->GetIndirectReference().GenerationNumber() );
     }
 
-    return ePdfNameLimits_Inside;
+    return EPdfNameLimits::Inside;
 }
 
 void PdfNamesTree::ToDictionary( const PdfName & tree, PdfDictionary& rDict )
@@ -483,7 +483,7 @@ void PdfNamesTree::AddToDictionary( PdfObject* pObj, PdfDictionary & rDict )
             if( pChild ) 
                 this->AddToDictionary( pChild, rDict );
             else
-                PdfError::LogMessage( eLogSeverity_Debug, "Object %lu %lu is child of nametree but was not found!\n", 
+                PdfError::LogMessage( ELogSeverity::Debug, "Object %lu %lu is child of nametree but was not found!\n", 
                                       (*it).GetReference().ObjectNumber(), 
                                       (*it).GetReference().GenerationNumber() );
 
@@ -505,7 +505,7 @@ void PdfNamesTree::AddToDictionary( PdfObject* pObj, PdfDictionary & rDict )
             // fixes (security) issue #39 in PoDoFo's tracker (sourceforge.net)
             if ( it == names.end() )
             {
-                PdfError::LogMessage( eLogSeverity_Warning,
+                PdfError::LogMessage( ELogSeverity::Warning,
                                 "No reference in /Names array last element in "
                                 "object %lu %lu, possible\nexploit attempt!\n",
                                 pObj->GetIndirectReference().ObjectNumber(),

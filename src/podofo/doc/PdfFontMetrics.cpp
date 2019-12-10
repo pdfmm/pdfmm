@@ -72,13 +72,13 @@ PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, PdfObject* pDescriptor )
     : m_sFilename( "" ), m_pLibrary( pLibrary ), m_pMetrics_base14(NULL),
       m_bSymbol( false ), m_fFontSize( 0.0f ),
       m_fFontScale( 100.0f ), m_fFontCharSpace( 0.0f ),
-      m_eFontType( ePdfFontType_Unknown )
+      m_eFontType( EPdfFontType::Unknown )
 {
     m_face = NULL;
 
     if( !pDescriptor )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     PdfName sName  = pDescriptor->GetDictionary().GetKey( "FontName" )->GetName();
@@ -985,7 +985,7 @@ EPdfFontType PdfFontMetrics::FontTypeFromFilename( const char* pszFilename )
 {
     EPdfFontType eFontType = PdfFontFactory::GetFontType( pszFilename );
 
-    if( eFontType == ePdfFontType_Unknown )
+    if( eFontType == EPdfFontType::Unknown )
         PdfError::DebugMessage( "Warning: Unrecognized FontFormat: %s\n", pszFilename );
 
     return eFontType;

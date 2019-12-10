@@ -98,7 +98,7 @@ const PdfErrorInfo & PdfErrorInfo::operator=( const PdfErrorInfo & rhs )
 
 PdfError::PdfError()
 {
-    m_error = ePdfError_ErrOk;
+    m_error = EPdfError::ErrOk;
 }
 
 PdfError::PdfError( const EPdfError & eCode, const char* pszFile, int line, 
@@ -162,31 +162,31 @@ void PdfError::PrintErrorMsg() const
 
     int i                = 0;
 
-    PdfError::LogErrorMessage( eLogSeverity_Error, "\n\nPoDoFo encountered an error. Error: %i %s\n", m_error, pszName ? pszName : "" );
+    PdfError::LogErrorMessage( ELogSeverity::Error, "\n\nPoDoFo encountered an error. Error: %i %s\n", m_error, pszName ? pszName : "" );
 
     if( pszMsg )
-        PdfError::LogErrorMessage( eLogSeverity_Error, "\tError Description: %s\n", pszMsg );
+        PdfError::LogErrorMessage( ELogSeverity::Error, "\tError Description: %s\n", pszMsg );
     
     if( m_callStack.size() )
-        PdfError::LogErrorMessage( eLogSeverity_Error, "\tCallstack:\n" );
+        PdfError::LogErrorMessage( ELogSeverity::Error, "\tCallstack:\n" );
 
     while( it != m_callStack.end() )
     {
         if( !(*it).GetFilename().empty() )
-            PdfError::LogErrorMessage( eLogSeverity_Error, "\t#%i Error Source: %s:%i\n", i, (*it).GetFilename().c_str(), (*it).GetLine() );
+            PdfError::LogErrorMessage( ELogSeverity::Error, "\t#%i Error Source: %s:%i\n", i, (*it).GetFilename().c_str(), (*it).GetLine() );
 
         if( !(*it).GetInformation().empty() )
-            PdfError::LogErrorMessage( eLogSeverity_Error, "\t\tInformation: %s\n", (*it).GetInformation().c_str() );
+            PdfError::LogErrorMessage( ELogSeverity::Error, "\t\tInformation: %s\n", (*it).GetInformation().c_str() );
 
         if( !(*it).GetInformationW().empty() )
-            PdfError::LogErrorMessage( eLogSeverity_Error, L"\t\tInformation: %s\n", (*it).GetInformationW().c_str() );
+            PdfError::LogErrorMessage( ELogSeverity::Error, L"\t\tInformation: %s\n", (*it).GetInformationW().c_str() );
 
         ++i;
         ++it;
     }
 
         
-    PdfError::LogErrorMessage( eLogSeverity_Error, "\n\n" );
+    PdfError::LogErrorMessage( ELogSeverity::Error, "\n\n" );
 }
 
 const char* PdfError::what() const
@@ -200,167 +200,167 @@ const char* PdfError::ErrorName( EPdfError eCode )
 
     switch( eCode ) 
     {
-        case ePdfError_ErrOk:
-            pszMsg = "ePdfError_ErrOk"; 
+        case EPdfError::ErrOk:
+            pszMsg = "EPdfError::ErrOk"; 
             break;
-        case ePdfError_TestFailed:
-            pszMsg = "ePdfError_TestFailed"; 
+        case EPdfError::TestFailed:
+            pszMsg = "EPdfError::TestFailed"; 
             break;
-        case ePdfError_InvalidHandle:
-            pszMsg = "ePdfError_InvalidHandle"; 
+        case EPdfError::InvalidHandle:
+            pszMsg = "EPdfError::InvalidHandle"; 
             break;
-        case ePdfError_FileNotFound:
-            pszMsg = "ePdfError_FileNotFound"; 
+        case EPdfError::FileNotFound:
+            pszMsg = "EPdfError::FileNotFound"; 
             break;
-        case ePdfError_InvalidDeviceOperation:
-            pszMsg = "ePdfError_InvalidDeviceOperation";
+        case EPdfError::InvalidDeviceOperation:
+            pszMsg = "EPdfError::InvalidDeviceOperation";
             break;
-        case ePdfError_UnexpectedEOF:
-            pszMsg = "ePdfError_UnexpectedEOF"; 
+        case EPdfError::UnexpectedEOF:
+            pszMsg = "EPdfError::UnexpectedEOF"; 
             break;
-        case ePdfError_OutOfMemory:
-            pszMsg = "ePdfError_OutOfMemory"; 
+        case EPdfError::OutOfMemory:
+            pszMsg = "EPdfError::OutOfMemory"; 
             break;
-        case ePdfError_ValueOutOfRange:
-            pszMsg = "ePdfError_ValueOutOfRange"; 
+        case EPdfError::ValueOutOfRange:
+            pszMsg = "EPdfError::ValueOutOfRange"; 
             break;
-        case ePdfError_InternalLogic:
-            pszMsg = "ePdfError_InternalLogic";
+        case EPdfError::InternalLogic:
+            pszMsg = "EPdfError::InternalLogic";
             break;
-        case ePdfError_InvalidEnumValue:
-            pszMsg = "ePdfError_InvalidEnumValue";
+        case EPdfError::InvalidEnumValue:
+            pszMsg = "EPdfError::InvalidEnumValue";
             break;
-        case ePdfError_BrokenFile:
-            pszMsg = "ePdfError_BrokenFile";
+        case EPdfError::BrokenFile:
+            pszMsg = "EPdfError::BrokenFile";
             break;
-        case ePdfError_PageNotFound:
-            pszMsg = "ePdfError_PageNotFound";
+        case EPdfError::PageNotFound:
+            pszMsg = "EPdfError::PageNotFound";
             break;
-        case ePdfError_NoPdfFile:
-            pszMsg = "ePdfError_NoPdfFile"; 
+        case EPdfError::NoPdfFile:
+            pszMsg = "EPdfError::NoPdfFile"; 
             break;
-        case ePdfError_NoXRef:
-            pszMsg = "ePdfError_NoXRef"; 
+        case EPdfError::NoXRef:
+            pszMsg = "EPdfError::NoXRef"; 
             break;
-        case ePdfError_NoTrailer:
-            pszMsg = "ePdfError_NoTrailer"; 
+        case EPdfError::NoTrailer:
+            pszMsg = "EPdfError::NoTrailer"; 
             break;
-        case ePdfError_NoNumber:
-            pszMsg = "ePdfError_NoNumber"; 
+        case EPdfError::NoNumber:
+            pszMsg = "EPdfError::NoNumber"; 
             break;
-        case ePdfError_NoObject:
-            pszMsg = "ePdfError_NoObject"; 
+        case EPdfError::NoObject:
+            pszMsg = "EPdfError::NoObject"; 
             break;
-        case ePdfError_NoEOFToken:
-            pszMsg = "ePdfError_NoEOFToken"; 
+        case EPdfError::NoEOFToken:
+            pszMsg = "EPdfError::NoEOFToken"; 
             break;
-        case ePdfError_InvalidTrailerSize:
-            pszMsg = "ePdfError_InvalidTrailerSize"; 
+        case EPdfError::InvalidTrailerSize:
+            pszMsg = "EPdfError::InvalidTrailerSize"; 
             break;
-        case ePdfError_InvalidLinearization:
-            pszMsg = "ePdfError_InvalidLinearization"; 
+        case EPdfError::InvalidLinearization:
+            pszMsg = "EPdfError::InvalidLinearization"; 
             break;
-        case ePdfError_InvalidDataType:
-            pszMsg = "ePdfError_InvalidDataType"; 
+        case EPdfError::InvalidDataType:
+            pszMsg = "EPdfError::InvalidDataType"; 
             break;
-        case ePdfError_InvalidXRef:
-            pszMsg = "ePdfError_InvalidXRef"; 
+        case EPdfError::InvalidXRef:
+            pszMsg = "EPdfError::InvalidXRef"; 
             break;
-        case ePdfError_InvalidXRefStream:
-            pszMsg = "ePdfError_InvalidXRefStream"; 
+        case EPdfError::InvalidXRefStream:
+            pszMsg = "EPdfError::InvalidXRefStream"; 
             break;
-        case ePdfError_InvalidXRefType:
-            pszMsg = "ePdfError_InvalidXRefType"; 
+        case EPdfError::InvalidXRefType:
+            pszMsg = "EPdfError::InvalidXRefType"; 
             break;
-        case ePdfError_InvalidPredictor:
-            pszMsg = "ePdfError_InvalidPredictor"; 
+        case EPdfError::InvalidPredictor:
+            pszMsg = "EPdfError::InvalidPredictor"; 
             break;
-        case ePdfError_InvalidStrokeStyle:
-            pszMsg = "ePdfError_InvalidStrokeStyle"; 
+        case EPdfError::InvalidStrokeStyle:
+            pszMsg = "EPdfError::InvalidStrokeStyle"; 
             break;
-        case ePdfError_InvalidHexString:
-            pszMsg = "ePdfError_InvalidHexString"; 
+        case EPdfError::InvalidHexString:
+            pszMsg = "EPdfError::InvalidHexString"; 
             break;
-        case ePdfError_InvalidStream:
-            pszMsg = "ePdfError_InvalidStream"; 
+        case EPdfError::InvalidStream:
+            pszMsg = "EPdfError::InvalidStream"; 
             break;
-        case ePdfError_InvalidStreamLength:
-            pszMsg = "ePdfError_InvalidStream"; 
+        case EPdfError::InvalidStreamLength:
+            pszMsg = "EPdfError::InvalidStream"; 
             break;
-        case ePdfError_InvalidKey:
-            pszMsg = "ePdfError_InvalidKey";
+        case EPdfError::InvalidKey:
+            pszMsg = "EPdfError::InvalidKey";
             break;
-        case ePdfError_InvalidName:
-            pszMsg = "ePdfError_InvalidName";
+        case EPdfError::InvalidName:
+            pszMsg = "EPdfError::InvalidName";
             break;
-        case ePdfError_InvalidEncryptionDict:
-            pszMsg = "ePdfError_InvalidEncryptionDict";    /**< The encryption dictionary is invalid or misses a required key */
+        case EPdfError::InvalidEncryptionDict:
+            pszMsg = "EPdfError::InvalidEncryptionDict";    /**< The encryption dictionary is invalid or misses a required key */
             break;
-        case ePdfError_InvalidPassword:                    /**< The password used to open the PDF file was invalid */
-            pszMsg = "ePdfError_InvalidPassword";
+        case EPdfError::InvalidPassword:                    /**< The password used to open the PDF file was invalid */
+            pszMsg = "EPdfError::InvalidPassword";
             break;
-        case ePdfError_InvalidFontFile:
-            pszMsg = "ePdfError_InvalidFontFile";
+        case EPdfError::InvalidFontFile:
+            pszMsg = "EPdfError::InvalidFontFile";
             break;
-        case ePdfError_InvalidContentStream:
-            pszMsg = "ePdfError_InvalidContentStream";
+        case EPdfError::InvalidContentStream:
+            pszMsg = "EPdfError::InvalidContentStream";
             break;
-        case ePdfError_UnsupportedFilter:
-            pszMsg = "ePdfError_UnsupportedFilter"; 
+        case EPdfError::UnsupportedFilter:
+            pszMsg = "EPdfError::UnsupportedFilter"; 
             break;
-        case ePdfError_UnsupportedFontFormat:    /**< This font format is not supported by PoDoFO. */
-            pszMsg = "ePdfError_UnsupportedFontFormat";
+        case EPdfError::UnsupportedFontFormat:    /**< This font format is not supported by PoDoFO. */
+            pszMsg = "EPdfError::UnsupportedFontFormat";
             break;
-        case ePdfError_ActionAlreadyPresent:
-            pszMsg = "ePdfError_ActionAlreadyPresent"; 
+        case EPdfError::ActionAlreadyPresent:
+            pszMsg = "EPdfError::ActionAlreadyPresent"; 
             break;
-        case ePdfError_WrongDestinationType:
-            pszMsg = "ePdfError_WrongDestinationType";
+        case EPdfError::WrongDestinationType:
+            pszMsg = "EPdfError::WrongDestinationType";
             break;
-        case ePdfError_MissingEndStream:
-            pszMsg = "ePdfError_MissingEndStream"; 
+        case EPdfError::MissingEndStream:
+            pszMsg = "EPdfError::MissingEndStream"; 
             break;
-        case ePdfError_Date:
-            pszMsg = "ePdfError_Date"; 
+        case EPdfError::Date:
+            pszMsg = "EPdfError::Date"; 
             break;
-        case ePdfError_Flate:
-            pszMsg = "ePdfError_Flate"; 
+        case EPdfError::Flate:
+            pszMsg = "EPdfError::Flate"; 
             break;
-        case ePdfError_FreeType:
-            pszMsg = "ePdfError_FreeType"; 
+        case EPdfError::FreeType:
+            pszMsg = "EPdfError::FreeType"; 
             break;
-        case ePdfError_SignatureError:
-            pszMsg = "ePdfError_SignatureError";
+        case EPdfError::SignatureError:
+            pszMsg = "EPdfError::SignatureError";
             break;
-        case ePdfError_UnsupportedImageFormat:    /**< This image format is not supported by PoDoFO. */
-            pszMsg = "ePdfError_UnsupportedImageFormat";
+        case EPdfError::UnsupportedImageFormat:    /**< This image format is not supported by PoDoFO. */
+            pszMsg = "EPdfError::UnsupportedImageFormat";
             break;
-        case ePdfError_CannotConvertColor:       /**< This color format cannot be converted. */
-            pszMsg = "ePdfError_CannotConvertColor";
+        case EPdfError::CannotConvertColor:       /**< This color format cannot be converted. */
+            pszMsg = "EPdfError::CannotConvertColor";
             break;
-        case ePdfError_NotImplemented:
-            pszMsg = "ePdfError_NotImplemented";
+        case EPdfError::NotImplemented:
+            pszMsg = "EPdfError::NotImplemented";
             break;
-        case ePdfError_NotCompiled:
-            pszMsg = "ePdfError_NotCompiled";
+        case EPdfError::NotCompiled:
+            pszMsg = "EPdfError::NotCompiled";
             break;
-        case ePdfError_DestinationAlreadyPresent:
-            pszMsg = "ePdfError_DestinationAlreadyPresent"; 
+        case EPdfError::DestinationAlreadyPresent:
+            pszMsg = "EPdfError::DestinationAlreadyPresent"; 
             break;
-        case ePdfError_ChangeOnImmutable:
-            pszMsg = "ePdfError_ChangeOnImmutable";
+        case EPdfError::ChangeOnImmutable:
+            pszMsg = "EPdfError::ChangeOnImmutable";
             break;
-        case ePdfError_OutlineItemAlreadyPresent:
-            pszMsg = "ePdfError_OutlineItemAlreadyPresent"; 
+        case EPdfError::OutlineItemAlreadyPresent:
+            pszMsg = "EPdfError::OutlineItemAlreadyPresent"; 
             break;
-        case ePdfError_NotLoadedForUpdate:
-            pszMsg = "ePdfError_NotLoadedForUpdate"; 
+        case EPdfError::NotLoadedForUpdate:
+            pszMsg = "EPdfError::NotLoadedForUpdate"; 
             break;
-        case ePdfError_CannotEncryptedForUpdate:
-            pszMsg = "ePdfError_CannotEncryptedForUpdate"; 
+        case EPdfError::CannotEncryptedForUpdate:
+            pszMsg = "EPdfError::CannotEncryptedForUpdate"; 
             break;
-        case ePdfError_Unknown:
-            pszMsg = "ePdfError_Unknown"; 
+        case EPdfError::Unknown:
+            pszMsg = "EPdfError::Unknown"; 
             break;
         default:
             break;
@@ -375,136 +375,136 @@ const char* PdfError::ErrorMessage( EPdfError eCode )
 
     switch( eCode ) 
     {
-        case ePdfError_ErrOk:
+        case EPdfError::ErrOk:
             pszMsg = "No error during execution.";
             break;
-        case ePdfError_TestFailed:
+        case EPdfError::TestFailed:
             pszMsg = "An error curred in an automatic test included in PoDoFo.";
             break;
-        case ePdfError_InvalidHandle:
+        case EPdfError::InvalidHandle:
             pszMsg = "A NULL handle was passed, but initialized data was expected.";
             break;
-        case ePdfError_FileNotFound:
+        case EPdfError::FileNotFound:
             pszMsg = "The specified file was not found.";
             break;
-        case ePdfError_InvalidDeviceOperation:
+        case EPdfError::InvalidDeviceOperation:
             pszMsg = "Tried to do something unsupported to an I/O device like seek a non-seekable input device";
             break;
-        case ePdfError_UnexpectedEOF:
+        case EPdfError::UnexpectedEOF:
             pszMsg = "End of file was reached unxexpectedly.";
             break;
-        case ePdfError_OutOfMemory:
+        case EPdfError::OutOfMemory:
             pszMsg = "PoDoFo is out of memory.";
             break;
-        case ePdfError_ValueOutOfRange:
+        case EPdfError::ValueOutOfRange:
             pszMsg = "The passed value is out of range.";
             break;
-        case ePdfError_InternalLogic:
+        case EPdfError::InternalLogic:
             pszMsg = "An internal error occurred.";
             break;
-        case ePdfError_InvalidEnumValue:
+        case EPdfError::InvalidEnumValue:
             pszMsg = "An invalid enum value was specified.";
             break;
-        case ePdfError_BrokenFile:
+        case EPdfError::BrokenFile:
             pszMsg = "The file content is broken.";
             break;
-        case ePdfError_PageNotFound:
+        case EPdfError::PageNotFound:
             pszMsg = "The requested page could not be found in the PDF.";
             break;
-        case ePdfError_NoPdfFile:
+        case EPdfError::NoPdfFile:
             pszMsg = "This is not a PDF file.";
             break;
-        case ePdfError_NoXRef:
+        case EPdfError::NoXRef:
             pszMsg = "No XRef table was found in the PDF file.";
             break;
-        case ePdfError_NoTrailer:
+        case EPdfError::NoTrailer:
             pszMsg = "No trailer was found in the PDF file.";
             break;
-        case ePdfError_NoNumber:
+        case EPdfError::NoNumber:
             pszMsg = "A number was expected but not found.";
             break;
-        case ePdfError_NoObject:
+        case EPdfError::NoObject:
             pszMsg = "A object was expected but not found.";
             break;
-        case ePdfError_NoEOFToken:
+        case EPdfError::NoEOFToken:
             pszMsg = "No EOF Marker was found in the PDF file.";
             break;
 
-        case ePdfError_InvalidTrailerSize:
-        case ePdfError_InvalidLinearization:
-        case ePdfError_InvalidDataType:
-        case ePdfError_InvalidXRef:
-        case ePdfError_InvalidXRefStream:
-        case ePdfError_InvalidXRefType:
-        case ePdfError_InvalidPredictor:
-        case ePdfError_InvalidStrokeStyle:
-        case ePdfError_InvalidHexString:
-        case ePdfError_InvalidStream:
-        case ePdfError_InvalidStreamLength:
-        case ePdfError_InvalidKey:
-        case ePdfError_InvalidName:
+        case EPdfError::InvalidTrailerSize:
+        case EPdfError::InvalidLinearization:
+        case EPdfError::InvalidDataType:
+        case EPdfError::InvalidXRef:
+        case EPdfError::InvalidXRefStream:
+        case EPdfError::InvalidXRefType:
+        case EPdfError::InvalidPredictor:
+        case EPdfError::InvalidStrokeStyle:
+        case EPdfError::InvalidHexString:
+        case EPdfError::InvalidStream:
+        case EPdfError::InvalidStreamLength:
+        case EPdfError::InvalidKey:
+        case EPdfError::InvalidName:
             break;
-        case ePdfError_InvalidEncryptionDict:
+        case EPdfError::InvalidEncryptionDict:
             pszMsg = "The encryption dictionary is invalid or misses a required key.";
             break;
-        case ePdfError_InvalidPassword:
+        case EPdfError::InvalidPassword:
             pszMsg = "The password used to open the PDF file was invalid.";
             break;
-        case ePdfError_InvalidFontFile:
+        case EPdfError::InvalidFontFile:
             pszMsg = "The font file is invalid.";
             break;
-        case ePdfError_InvalidContentStream:
+        case EPdfError::InvalidContentStream:
             pszMsg = "The content stream is invalid due to mismatched context pairing or other problems.";
             break;
-        case ePdfError_UnsupportedFilter:
+        case EPdfError::UnsupportedFilter:
             break;
-        case ePdfError_UnsupportedFontFormat:
+        case EPdfError::UnsupportedFontFormat:
             pszMsg = "This font format is not supported by PoDoFO.";
             break;
-        case ePdfError_DestinationAlreadyPresent:
-        case ePdfError_ActionAlreadyPresent:
+        case EPdfError::DestinationAlreadyPresent:
+        case EPdfError::ActionAlreadyPresent:
             pszMsg = "Outlines can have either destinations or actions."; 
             break;
-        case ePdfError_WrongDestinationType:
+        case EPdfError::WrongDestinationType:
             pszMsg = "The requested field is not available for the given destination type";
             break;
-        case ePdfError_MissingEndStream:
-        case ePdfError_Date:
+        case EPdfError::MissingEndStream:
+        case EPdfError::Date:
             break;
-        case ePdfError_Flate:
+        case EPdfError::Flate:
             pszMsg = "ZLib returned an error.";
             break;
-        case ePdfError_FreeType:
+        case EPdfError::FreeType:
             pszMsg = "FreeType returned an error.";
             break;
-        case ePdfError_SignatureError:
+        case EPdfError::SignatureError:
             pszMsg = "The signature contains an error.";
             break;
-        case ePdfError_UnsupportedImageFormat:
+        case EPdfError::UnsupportedImageFormat:
             pszMsg = "This image format is not supported by PoDoFO.";
             break;
-        case ePdfError_CannotConvertColor:
+        case EPdfError::CannotConvertColor:
             pszMsg = "This color format cannot be converted.";
             break;
-        case ePdfError_ChangeOnImmutable:
+        case EPdfError::ChangeOnImmutable:
             pszMsg = "Changing values on immutable objects is not allowed.";
             break;
-        case ePdfError_NotImplemented:
+        case EPdfError::NotImplemented:
             pszMsg = "This feature is currently not implemented.";
             break;
-        case ePdfError_NotCompiled:
+        case EPdfError::NotCompiled:
             pszMsg = "This feature was disabled during compile time.";
             break;
-        case ePdfError_OutlineItemAlreadyPresent:
+        case EPdfError::OutlineItemAlreadyPresent:
             pszMsg = "Given OutlineItem already present in destination tree.";
             break;
-        case ePdfError_NotLoadedForUpdate:
+        case EPdfError::NotLoadedForUpdate:
             pszMsg = "The document had not been loaded for update.";
             break;
-        case ePdfError_CannotEncryptedForUpdate:
+        case EPdfError::CannotEncryptedForUpdate:
             pszMsg = "Cannot load encrypted documents for update.";
             break;
-        case ePdfError_Unknown:
+        case EPdfError::Unknown:
             pszMsg = "Error code unknown.";
             break;
         default:
@@ -520,9 +520,9 @@ void PdfError::LogMessage( ELogSeverity eLogSeverity, const char* pszMsg, ... )
 		return;
 
 #ifdef DEBUG
-    const ELogSeverity eMinSeverity = eLogSeverity_Debug;
+    const ELogSeverity eMinSeverity = ELogSeverity::Debug;
 #else
-    const ELogSeverity eMinSeverity = eLogSeverity_Information;
+    const ELogSeverity eMinSeverity = ELogSeverity::Information;
 #endif // DEBUG
 
     // OC 17.08.2010 BugFix: Higher level is lower value
@@ -552,21 +552,21 @@ void PdfError::LogMessageInternal( ELogSeverity eLogSeverity, const char* pszMsg
 
     switch( eLogSeverity ) 
     {
-        case eLogSeverity_Error:
+        case ELogSeverity::Error:
             break;
-        case eLogSeverity_Critical:
+        case ELogSeverity::Critical:
 	    pszPrefix = "CRITICAL: ";
             break;
-        case eLogSeverity_Warning:
+        case ELogSeverity::Warning:
 	    pszPrefix = "WARNING: ";
             break;
-	case eLogSeverity_Information:
+	case ELogSeverity::Information:
             break;
-	case eLogSeverity_Debug:
+	case ELogSeverity::Debug:
 	    pszPrefix = "DEBUG: ";
             break;
-	case eLogSeverity_None:
-	case eLogSeverity_Unknown:
+	case ELogSeverity::None:
+	case ELogSeverity::Unknown:
         default:
             break;
     }
@@ -590,9 +590,9 @@ void PdfError::LogMessage( ELogSeverity eLogSeverity, const wchar_t* pszMsg, ...
 		return;
 
 #ifdef DEBUG
-    const ELogSeverity eMinSeverity = eLogSeverity_Debug;
+    const ELogSeverity eMinSeverity = ELogSeverity::Debug;
 #else
-    const ELogSeverity eMinSeverity = eLogSeverity_Information;
+    const ELogSeverity eMinSeverity = ELogSeverity::Information;
 #endif // DEBUG
 
     // OC 17.08.2010 BugFix: Higher level is lower value
@@ -632,21 +632,21 @@ void PdfError::LogMessageInternal( ELogSeverity eLogSeverity, const wchar_t* psz
 
     switch( eLogSeverity ) 
     {
-        case eLogSeverity_Error:
+        case ELogSeverity::Error:
             break;
-        case eLogSeverity_Critical:
+        case ELogSeverity::Critical:
 	    pszPrefix = L"CRITICAL: ";
             break;
-        case eLogSeverity_Warning:
+        case ELogSeverity::Warning:
 	    pszPrefix = L"WARNING: ";
             break;
-	case eLogSeverity_Information:
+	case ELogSeverity::Information:
             break;
-	case eLogSeverity_Debug:
+	case ELogSeverity::Debug:
 	    pszPrefix = L"DEBUG: ";
             break;
-	case eLogSeverity_None:
-	case eLogSeverity_Unknown:
+	case ELogSeverity::None:
+	case ELogSeverity::Unknown:
         default:
             break;
     }
@@ -677,7 +677,7 @@ void PdfError::DebugMessage( const char* pszMsg, ... )
     // OC 17.08.2010 New to optionally replace stderr output by a callback:
     if ( m_fLogMessageCallback != NULL )
     {
-        m_fLogMessageCallback->LogMessage(eLogSeverity_Debug, pszPrefix, pszMsg, args);
+        m_fLogMessageCallback->LogMessage(ELogSeverity::Debug, pszPrefix, pszMsg, args);
     }
     else
     {

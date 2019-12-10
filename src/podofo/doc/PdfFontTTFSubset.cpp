@@ -122,19 +122,19 @@ PdfFontTTFSubset::PdfFontTTFSubset( const char* pszFontFileName, PdfFontMetrics*
 
     if (PoDoFo::compat::strcasecmp(ext,"ttf") == 0)
     {
-        m_eFontFileType = eFontFileType_TTF;
+        m_eFontFileType = EFontFileType::TTF;
     }
     else if (PoDoFo::compat::strcasecmp(ext,"ttc") == 0)
     {
-        m_eFontFileType = eFontFileType_TTC;
+        m_eFontFileType = EFontFileType::TTC;
     }
     else if (PoDoFo::compat::strcasecmp(ext,"otf") == 0)
     {
-        m_eFontFileType = eFontFileType_OTF;
+        m_eFontFileType = EFontFileType::OTF;
     }
     else
     {
-        m_eFontFileType = eFontFileType_Unknown;
+        m_eFontFileType = EFontFileType::Unknown;
     }
 
     m_pDevice = new PdfInputDevice( pszFontFileName );
@@ -173,7 +173,7 @@ unsigned long PdfFontTTFSubset::GetTableOffset( unsigned long tag )
         if (it->tag == tag)
             return it->offset;
     }
-    PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "table missing" );
+    PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "table missing" );
 }
 
 void PdfFontTTFSubset::GetNumberOfGlyphs()
@@ -278,7 +278,7 @@ void PdfFontTTFSubset::InitTables()
     }
     if ((tableMask & 0x3f )!= 0x3f) {
         //std::cout << "ttfTables=" << std::hex << tableMask << std::dec << std::endl;
-        PODOFO_RAISE_ERROR_INFO( ePdfError_UnsupportedFontFormat, "Required TrueType table missing" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::UnsupportedFontFormat, "Required TrueType table missing" );
     }
     if ((tableMask & 0x0100 ) == 0x00) {
         tbl.tag = TTAG_cmap;
@@ -295,11 +295,11 @@ void PdfFontTTFSubset::GetStartOfTTFOffsets()
 {
     switch (m_eFontFileType)
     {
-        case eFontFileType_TTF:
-        case eFontFileType_OTF:
+        case EFontFileType::TTF:
+        case EFontFileType::OTF:
             m_ulStartOfTTFOffsets = 0x0;
             break;
-        case eFontFileType_TTC:
+        case EFontFileType::TTC:
         {
             unsigned long ulnumFace;
             GetData( 8,&ulnumFace,4);
@@ -309,9 +309,9 @@ void PdfFontTTFSubset::GetStartOfTTFOffsets()
             m_ulStartOfTTFOffsets = Big2Little(m_ulStartOfTTFOffsets);
         }
         break;
-        case eFontFileType_Unknown:
+        case EFontFileType::Unknown:
         default:
-            PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Invalid font type" );
+            PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Invalid font type" );
     }
 }
 
@@ -407,7 +407,7 @@ void PdfFontTTFSubset::LoadGID(GlyphContext& ctx, GID gid)
         }
         return;
     }
-    PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "GID out of range" );
+    PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "GID out of range" );
 }
 
 void PdfFontTTFSubset::LoadCompound(GlyphContext& ctx, unsigned long offset)
@@ -522,7 +522,7 @@ void PdfFontTTFSubset::FillGlyphArray(const CodePointToGid& usedCodes, GID gid, 
     CodePointToGid::const_iterator it = usedCodes.lower_bound(gid);
     do {
         if (it == usedCodes.end()) {
-            PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Unexpected" );
+            PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Unexpected" );
         }
         m_sCMap.glyphArray.push_back(it->second);
         ++it;
@@ -811,7 +811,7 @@ void PdfFontTTFSubset::WriteTables(PdfRefCountedBuffer& fontData)
     //std::cout << " finalSize=" << tableOffset << " alloced=" << fontData.GetSize() << std::endl;
     /* head table */
     if (!headOffset) {
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "'head' table missing" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "'head' table missing" );
     }
     TTFWriteUInt32(bufp + headOffset + 8, TableCheksum(bufp, tableLength) - 0xB1B0AFBA);
 }

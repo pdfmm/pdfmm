@@ -111,7 +111,7 @@ public:
         m_pPrev = static_cast<char*>(podofo_calloc( m_nRows, sizeof(char) ));
         if( !m_pPrev )
         {
-            PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+            PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
         }
 
         memset( m_pPrev, 0, sizeof(char) * m_nRows );
@@ -119,7 +119,7 @@ public:
         m_pUpperLeftPixelComponents = static_cast<char*>(podofo_calloc( m_nBpp, sizeof(char) ));
         if( !m_pUpperLeftPixelComponents )
         {
-            PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+            PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
         }
 
         memset( m_pUpperLeftPixelComponents, 0, sizeof(char) * m_nBpp );
@@ -162,7 +162,7 @@ public:
                         }
 
                         // TODO: implement tiff predictor for other than 8 BPC
-                        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidPredictor, "tiff predictors other than 8 BPC are not implemented" );
+                        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidPredictor, "tiff predictors other than 8 BPC are not implemented" );
                         break;
                     }
                     case 10: // png none
@@ -225,12 +225,12 @@ public:
                         break;
                     }
                     case 15: // png optimum
-                        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidPredictor, "png optimum predictor is not implemented" );
+                        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidPredictor, "png optimum predictor is not implemented" );
                         break;
                         
                     default:
                     {
-                        //PODOFO_RAISE_ERROR( ePdfError_InvalidPredictor );
+                        //PODOFO_RAISE_ERROR( EPdfError::InvalidPredictor );
                         break;
                     }
                 }
@@ -445,7 +445,7 @@ void PdfAscii85Filter::DecodeBlockImpl( const char* pBuffer, size_t lLen )
             default:
                 if ( *pBuffer < '!' || *pBuffer > 'u') 
                 {
-                    PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
+                    PODOFO_RAISE_ERROR( EPdfError::ValueOutOfRange );
                 }
 
                 m_tuple += ( *pBuffer - '!') * sPowers85[m_count++];
@@ -459,7 +459,7 @@ void PdfAscii85Filter::DecodeBlockImpl( const char* pBuffer, size_t lLen )
             case 'z':
                 if (m_count != 0 ) 
                 {
-                    PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
+                    PODOFO_RAISE_ERROR( EPdfError::ValueOutOfRange );
                 }
 
                 this->WidePut( 0, 4 );
@@ -469,7 +469,7 @@ void PdfAscii85Filter::DecodeBlockImpl( const char* pBuffer, size_t lLen )
                 --lLen;
                 if( lLen && *pBuffer != '>' ) 
                 {
-                    PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
+                    PODOFO_RAISE_ERROR( EPdfError::ValueOutOfRange );
                 }
                 foundEndMarker = true;
                 break;
@@ -545,7 +545,7 @@ void PdfFlateFilter::BeginEncodeImpl()
 
     if( deflateInit( &m_stream, Z_DEFAULT_COMPRESSION ) )
     {
-        PODOFO_RAISE_ERROR( ePdfError_Flate );
+        PODOFO_RAISE_ERROR( EPdfError::Flate );
     }
 }
 
@@ -568,7 +568,7 @@ void PdfFlateFilter::EncodeBlockInternal( const char* pBuffer, size_t lLen, int 
         if( deflate( &m_stream, nMode) == Z_STREAM_ERROR )
         {
             FailEncodeDecode();
-            PODOFO_RAISE_ERROR( ePdfError_Flate );
+            PODOFO_RAISE_ERROR( EPdfError::Flate );
         }
 
 
@@ -605,7 +605,7 @@ void PdfFlateFilter::BeginDecodeImpl( const PdfDictionary* pDecodeParms )
 
     if( inflateInit( &m_stream ) != Z_OK )
     {
-        PODOFO_RAISE_ERROR( ePdfError_Flate );
+        PODOFO_RAISE_ERROR( EPdfError::Flate );
     }
 }
 
@@ -626,11 +626,11 @@ void PdfFlateFilter::DecodeBlockImpl( const char* pBuffer, size_t lLen )
             case Z_DATA_ERROR:
             case Z_MEM_ERROR:
             {
-                PdfError::LogMessage( eLogSeverity_Error, "Flate Decoding Error from ZLib: %i\n", flateErr );
+                PdfError::LogMessage( ELogSeverity::Error, "Flate Decoding Error from ZLib: %i\n", flateErr );
                 (void)inflateEnd(&m_stream);
 
                 FailEncodeDecode();
-                PODOFO_RAISE_ERROR( ePdfError_Flate );
+                PODOFO_RAISE_ERROR( EPdfError::Flate );
             }
             default:
                 break;
@@ -670,17 +670,17 @@ PdfRLEFilter::PdfRLEFilter()
 
 void PdfRLEFilter::BeginEncodeImpl()
 {
-    PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
+    PODOFO_RAISE_ERROR( EPdfError::UnsupportedFilter );
 }
 
 void PdfRLEFilter::EncodeBlockImpl( const char*, size_t)
 {
-    PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
+    PODOFO_RAISE_ERROR( EPdfError::UnsupportedFilter );
 }
 
 void PdfRLEFilter::EndEncodeImpl()
 {
-    PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
+    PODOFO_RAISE_ERROR( EPdfError::UnsupportedFilter );
 }
 
 void PdfRLEFilter::BeginDecodeImpl( const PdfDictionary* )
@@ -742,17 +742,17 @@ PdfLZWFilter::~PdfLZWFilter()
 
 void PdfLZWFilter::BeginEncodeImpl()
 {
-    PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
+    PODOFO_RAISE_ERROR( EPdfError::UnsupportedFilter );
 }
 
 void PdfLZWFilter::EncodeBlockImpl( const char*, size_t)
 {
-    PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
+    PODOFO_RAISE_ERROR( EPdfError::UnsupportedFilter );
 }
 
 void PdfLZWFilter::EndEncodeImpl()
 {
-    PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
+    PODOFO_RAISE_ERROR( EPdfError::UnsupportedFilter );
 }
 
 void PdfLZWFilter::BeginDecodeImpl( const PdfDictionary* pDecodeParms )
@@ -824,7 +824,7 @@ void PdfLZWFilter::DecodeBlockImpl( const char* pBuffer, size_t lLen )
                 {
                     if (old >= m_table.size())
                     {
-                        PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
+                        PODOFO_RAISE_ERROR( EPdfError::ValueOutOfRange );
                     }
                     data = m_table[old].value;
                     data.push_back( m_character );
@@ -928,17 +928,17 @@ PdfDCTFilter::PdfDCTFilter()
 
 void PdfDCTFilter::BeginEncodeImpl()
 {
-    PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
+    PODOFO_RAISE_ERROR( EPdfError::UnsupportedFilter );
 }
 
 void PdfDCTFilter::EncodeBlockImpl( const char*, size_t)
 {
-    PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
+    PODOFO_RAISE_ERROR( EPdfError::UnsupportedFilter );
 }
 
 void PdfDCTFilter::EndEncodeImpl()
 {
-    PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
+    PODOFO_RAISE_ERROR( EPdfError::UnsupportedFilter );
 }
 
 void PdfDCTFilter::BeginDecodeImpl( const PdfDictionary* )
@@ -953,7 +953,7 @@ void PdfDCTFilter::BeginDecodeImpl( const PdfDictionary* )
     jpeg_create_decompress( &m_cinfo );
 
     if (error.length() != 0)
-        PODOFO_RAISE_ERROR_INFO(ePdfError_UnsupportedImageFormat, error);
+        PODOFO_RAISE_ERROR_INFO(EPdfError::UnsupportedImageFormat, error);
 
     m_pDevice = new PdfOutputDevice( &m_buffer );
 }
@@ -974,7 +974,7 @@ void PdfDCTFilter::EndDecodeImpl()
     {
         (void) jpeg_destroy_decompress(&m_cinfo);
 
-        PODOFO_RAISE_ERROR( ePdfError_UnexpectedEOF );
+        PODOFO_RAISE_ERROR( EPdfError::UnexpectedEOF );
     }
 
     jpeg_start_decompress(&m_cinfo);
@@ -990,7 +990,7 @@ void PdfDCTFilter::EndDecodeImpl()
     pOutBuffer = static_cast<char*>(podofo_calloc( lRowBytes, sizeof(char)) );
 	if (!pOutBuffer)
 	{
-		PODOFO_RAISE_ERROR(ePdfError_OutOfMemory);
+		PODOFO_RAISE_ERROR(EPdfError::OutOfMemory);
 	}
 
     while( m_cinfo.output_scanline < m_cinfo.output_height ) 
@@ -1021,7 +1021,7 @@ void PdfDCTFilter::EndDecodeImpl()
         }
         else
         {
-            PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "DCTDecode unknown components" );
+            PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "DCTDecode unknown components" );
         }
         
         GetStream()->Write( reinterpret_cast<char*>(pOutBuffer), lRowBytes );
@@ -1245,17 +1245,17 @@ PdfCCITTFilter::PdfCCITTFilter()
 
 void PdfCCITTFilter::BeginEncodeImpl()
 {
-    PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
+    PODOFO_RAISE_ERROR( EPdfError::UnsupportedFilter );
 }
 
 void PdfCCITTFilter::EncodeBlockImpl( const char*, size_t)
 {
-    PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
+    PODOFO_RAISE_ERROR( EPdfError::UnsupportedFilter );
 }
 
 void PdfCCITTFilter::EndEncodeImpl()
 {
-    PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
+    PODOFO_RAISE_ERROR( EPdfError::UnsupportedFilter );
 }
 
 #ifndef _MSC_VER
@@ -1268,7 +1268,7 @@ void PdfCCITTFilter::BeginDecodeImpl( const PdfDictionary* pDict )
 
     if( !pDict )
     {
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle, "PdfCCITTFilter required a DecodeParms dictionary" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidHandle, "PdfCCITTFilter required a DecodeParms dictionary" );
     } 
 
     m_tiff = TIFFClientOpen("podofo", "w", reinterpret_cast<thandle_t>(-1),
@@ -1277,7 +1277,7 @@ void PdfCCITTFilter::BeginDecodeImpl( const PdfDictionary* pDict )
 
     if( !m_tiff ) 
     {
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle, "TIFFClientOpen failed" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidHandle, "TIFFClientOpen failed" );
     }
 
     m_tiff->tif_mode = O_RDONLY;
@@ -1315,7 +1315,7 @@ void PdfCCITTFilter::BeginDecodeImpl( const PdfDictionary* pDict )
     */
 
 #else // DS_CCITT_DEVELOPMENT_CODE
-    PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
+    PODOFO_RAISE_ERROR( EPdfError::UnsupportedFilter );
 #endif // DS_CCITT_DEVELOPMENT_CODE
 }
 #ifndef _MSC_VER
@@ -1324,12 +1324,12 @@ void PdfCCITTFilter::BeginDecodeImpl( const PdfDictionary* pDict )
 
 void PdfCCITTFilter::DecodeBlockImpl( const char*, size_t)
 {
-    PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
+    PODOFO_RAISE_ERROR( EPdfError::UnsupportedFilter );
 }
 
 void PdfCCITTFilter::EndDecodeImpl()
 {
-    PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
+    PODOFO_RAISE_ERROR( EPdfError::UnsupportedFilter );
 }
 
 #endif // PODOFO_HAVE_TIFF_LIB

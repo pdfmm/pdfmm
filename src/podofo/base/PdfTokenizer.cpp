@@ -219,7 +219,7 @@ bool PdfTokenizer::GetNextToken( const char*& pszToken , EPdfTokenType* peType )
 
         if ( !m_buffer.GetBuffer() || m_buffer.GetSize() == 0)
         {
-            PODOFO_RAISE_ERROR(ePdfError_InvalidHandle);
+            PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
         }
 
         // make sure buffer is \0 terminated
@@ -231,11 +231,11 @@ bool PdfTokenizer::GetNextToken( const char*& pszToken , EPdfTokenType* peType )
 
     if( !m_device.Device() )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     if( peType )
-        *peType = ePdfTokenType_Token;
+        *peType = EPdfTokenType::Token;
 
     while( (c = m_device.Device()->Look()) != EOF
            && counter + 1 < static_cast<int64_t>(m_buffer.GetSize()) )
@@ -271,7 +271,7 @@ bool PdfTokenizer::GetNextToken( const char*& pszToken , EPdfTokenType* peType )
         else if( !counter && (c == '<' || c == '>' ) )
         {
             if( peType )
-                *peType = ePdfTokenType_Delimiter;
+                *peType = EPdfTokenType::Delimiter;
 
             // retrieve c really from stream
             c = m_device.Device()->GetChar();
@@ -309,7 +309,7 @@ bool PdfTokenizer::GetNextToken( const char*& pszToken , EPdfTokenType* peType )
                 // one-character tokens, so if we hit one we can just return it
                 // immediately.
                 if( peType )
-                    *peType = ePdfTokenType_Delimiter;
+                    *peType = EPdfTokenType::Delimiter;
                 break;
             }
         }
@@ -333,7 +333,7 @@ bool PdfTokenizer::IsNextToken( const char* pszToken )
 {
     if( !pszToken )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     const char* pszRead;
@@ -341,7 +341,7 @@ bool PdfTokenizer::IsNextToken( const char* pszToken )
 
     if (!gotToken)
     {
-        PODOFO_RAISE_ERROR( ePdfError_UnexpectedEOF );
+        PODOFO_RAISE_ERROR( EPdfError::UnexpectedEOF );
     }
 
     return (strcmp( pszToken, pszRead ) == 0);
@@ -355,7 +355,7 @@ int64_t PdfTokenizer::GetNextNumber()
 
     if( !gotToken )
     {
-        PODOFO_RAISE_ERROR_INFO( ePdfError_UnexpectedEOF, "Expected number" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::UnexpectedEOF, "Expected number" );
     }
 
     char* end;
@@ -364,7 +364,7 @@ int64_t PdfTokenizer::GetNextNumber()
     {
         // Don't consume the token
         this->QuequeToken( pszRead, eType );
-        PODOFO_RAISE_ERROR_INFO( ePdfError_NoNumber, pszRead );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::NoNumber, pszRead );
     }
 
     return static_cast<int64_t>(num);
@@ -378,7 +378,7 @@ void PdfTokenizer::GetNextVariant( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
 
    if (!gotToken)
    {
-       PODOFO_RAISE_ERROR_INFO( ePdfError_UnexpectedEOF, "Expected variant." );
+       PODOFO_RAISE_ERROR_INFO( EPdfError::UnexpectedEOF, "Expected variant." );
    }
 
    this->GetNextVariant( pszRead, eTokenType, rVariant, pEncrypt );
@@ -403,7 +403,7 @@ void PdfTokenizer::GetNextVariant( const char* pszToken, EPdfTokenType eType, Pd
 
 EPdfDataType PdfTokenizer::DetermineDataType( const char* pszToken, EPdfTokenType eTokenType, PdfVariant& rVariant )
 {
-    if( eTokenType == ePdfTokenType_Token )
+    if( eTokenType == EPdfTokenType::Token )
     {
         // check for the two special datatypes
         // null and boolean.
@@ -452,7 +452,7 @@ EPdfDataType PdfTokenizer::DetermineDataType( const char* pszToken, EPdfTokenTyp
             if( !(m_doubleParser >> dVal) )
             {
                 m_doubleParser.clear(); // clear error state
-                PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, pszToken );
+                PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDataType, pszToken );
             }
 
             rVariant = PdfVariant( dVal );
@@ -470,7 +470,7 @@ EPdfDataType PdfTokenizer::DetermineDataType( const char* pszToken, EPdfTokenTyp
             if (!gotToken)
                 // No next token, so it can't be a reference
                 return eDataType;
-            if( eSecondTokenType != ePdfTokenType_Token )
+            if( eSecondTokenType != EPdfTokenType::Token )
             {
                 this->QuequeToken( pszToken, eSecondTokenType );
                 return eDataType;
@@ -491,7 +491,7 @@ EPdfDataType PdfTokenizer::DetermineDataType( const char* pszToken, EPdfTokenTyp
             if (!gotToken)
                 // No third token, so it can't be a reference
                 return eDataType;
-            if( eThirdTokenType == ePdfTokenType_Token &&
+            if( eThirdTokenType == EPdfTokenType::Token &&
                 pszToken[0] == 'R' && pszToken[1] == '\0' )
             {
                 rVariant = PdfReference( static_cast<unsigned int>(rVariant.GetNumber()),
@@ -506,7 +506,7 @@ EPdfDataType PdfTokenizer::DetermineDataType( const char* pszToken, EPdfTokenTyp
             }
         }
     }
-    else if( eTokenType == ePdfTokenType_Delimiter )
+    else if( eTokenType == EPdfTokenType::Delimiter )
     {
         if( strncmp( "<<", pszToken, DICT_SEP_LENGTH ) == 0 )
             return EPdfDataType::Dictionary;
@@ -567,8 +567,8 @@ void PdfTokenizer::ReadDataType( EPdfDataType eDataType, PdfVariant& rVariant, P
 
         default:
         {
-            PdfError::LogMessage( eLogSeverity_Debug, "Got Datatype: %i\n", eDataType );
-            PODOFO_RAISE_ERROR( ePdfError_InvalidDataType );
+            PdfError::LogMessage( ELogSeverity::Debug, "Got Datatype: %i\n", eDataType );
+            PODOFO_RAISE_ERROR( EPdfError::InvalidDataType );
         }
     }
 }
@@ -589,9 +589,9 @@ void PdfTokenizer::ReadDictionary( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
         bool gotToken = this->GetNextToken( pszToken, &eType );
         if (!gotToken)
         {
-            PODOFO_RAISE_ERROR_INFO(ePdfError_UnexpectedEOF, "Expected dictionary key name or >> delim.");
+            PODOFO_RAISE_ERROR_INFO(EPdfError::UnexpectedEOF, "Expected dictionary key name or >> delim.");
         }
-        if( eType == ePdfTokenType_Delimiter && strncmp( ">>", pszToken, DICT_SEP_LENGTH ) == 0 )
+        if( eType == EPdfTokenType::Delimiter && strncmp( ">>", pszToken, DICT_SEP_LENGTH ) == 0 )
             break;
 
         this->GetNextVariant( pszToken, eType, val, pEncrypt );
@@ -602,7 +602,7 @@ void PdfTokenizer::ReadDictionary( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
         gotToken = this->GetNextToken( pszToken, &eType );
         if ( !gotToken )
         {
-            PODOFO_RAISE_ERROR_INFO( ePdfError_UnexpectedEOF, "Expected variant." );
+            PODOFO_RAISE_ERROR_INFO( EPdfError::UnexpectedEOF, "Expected variant." );
         }
 
         EPdfDataType eDataType = this->DetermineDataType( pszToken, eType, val );
@@ -639,7 +639,7 @@ void PdfTokenizer::ReadDictionary( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
             case EPdfDataType::Unknown:
             default:
             {
-                PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Unexpected data type" );
+                PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDataType, "Unexpected data type" );
             }
         }
 
@@ -679,9 +679,9 @@ void PdfTokenizer::ReadArray( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
         bool gotToken = this->GetNextToken( pszToken, &eType );
         if (!gotToken)
         {
-            PODOFO_RAISE_ERROR_INFO(ePdfError_UnexpectedEOF, "Expected array item or ] delim.");
+            PODOFO_RAISE_ERROR_INFO(EPdfError::UnexpectedEOF, "Expected array item or ] delim.");
         }
-        if( eType == ePdfTokenType_Delimiter && pszToken[0] == ']' )
+        if( eType == EPdfTokenType::Delimiter && pszToken[0] == ']' )
             break;
 
         this->GetNextVariant( pszToken, eType, var, pEncrypt );
@@ -852,7 +852,7 @@ void PdfTokenizer::ReadName( PdfVariant& rVariant )
     }
 
     bool gotToken = this->GetNextToken( pszToken, &eType );
-    if( !gotToken || eType != ePdfTokenType_Token )
+    if( !gotToken || eType != EPdfTokenType::Token )
     {
         // We got an empty name which is legal according to the PDF specification
         // Some weird PDFs even use them.

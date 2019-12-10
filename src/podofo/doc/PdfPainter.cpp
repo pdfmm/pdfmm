@@ -119,7 +119,7 @@ PdfPainter::PdfPainter(EPdfPainterFlags flags)
     lcy  = 
     lrx  = 
     lry  = 0.0;
-    currentTextRenderingMode = ePdfTextRenderingMode_Fill;
+    currentTextRenderingMode = EPdfTextRenderingMode::Fill;
 }
 
 PdfPainter::~PdfPainter() noexcept(false)
@@ -131,7 +131,7 @@ PdfPainter::~PdfPainter() noexcept(false)
     // throw and we can't safely have that in a dtor. That also means
     // we can't throw here, but must abort.
     if( m_stream )
-        PdfError::LogMessage( eLogSeverity_Error, 
+        PdfError::LogMessage( ELogSeverity::Error, 
                               "PdfPainter::~PdfPainter(): FinishPage() has to be called after a page is completed!" );
 
     PODOFO_ASSERT( !m_stream );
@@ -147,7 +147,7 @@ void PdfPainter::SetCanvas( PdfCanvas* canvas )
 
     m_canvas = canvas;
     m_stream = nullptr;
-    currentTextRenderingMode = ePdfTextRenderingMode_Fill;
+    currentTextRenderingMode = EPdfTextRenderingMode::Fill;
 }
 
 void PdfPainter::FinishDrawing()
@@ -167,14 +167,14 @@ void PdfPainter::FinishDrawing()
 
     m_stream = NULL;
     m_canvas = NULL;
-    currentTextRenderingMode = ePdfTextRenderingMode_Fill;
+    currentTextRenderingMode = EPdfTextRenderingMode::Fill;
 }
 
 void PdfPainter::finishDrawing()
 {
 	if ( m_stream )
     {
-        if ((m_flags & EPdfPainterFlags::ePdfPainterFlags_NoSaveRestore) == 0)
+        if ((m_flags & EPdfPainterFlags::NoSaveRestore) == EPdfPainterFlags::None)
         {
             PdfMemoryOutputStream memstream;
             if ( m_stream->GetLength() != 0 )
@@ -275,27 +275,27 @@ void PdfPainter::SetStrokingColor( const PdfColor & rColor )
     switch( rColor.GetColorSpace() ) 
     {
         default: 
-        case ePdfColorSpace_DeviceRGB:
+        case EPdfColorSpace::DeviceRGB:
             m_oss << rColor.GetRed()   << " "
                   << rColor.GetGreen() << " "
                   << rColor.GetBlue() 
                   << " RG" << std::endl;
             break;
-        case ePdfColorSpace_DeviceCMYK:
+        case EPdfColorSpace::DeviceCMYK:
             m_oss << rColor.GetCyan()    << " " 
                   << rColor.GetMagenta() << " " 
                   << rColor.GetYellow()  << " " 
                   << rColor.GetBlack() 
                   << " K" << std::endl;
             break;
-        case ePdfColorSpace_DeviceGray:
+        case EPdfColorSpace::DeviceGray:
             m_oss << rColor.GetGrayScale() << " G" << std::endl;
             break;
-        case ePdfColorSpace_Separation:
+        case EPdfColorSpace::Separation:
 			m_canvas->AddColorResource( rColor );
 			m_oss << "/ColorSpace" << PdfName( rColor.GetName() ).GetEscapedName() << " CS " << rColor.GetDensity() << " SCN" << std::endl;
             break;
-        case ePdfColorSpace_CieLab:
+        case EPdfColorSpace::CieLab:
 			m_canvas->AddColorResource( rColor );
 			m_oss << "/ColorSpaceCieLab" << " CS " 
 				  << rColor.GetCieL() << " " 
@@ -303,10 +303,10 @@ void PdfPainter::SetStrokingColor( const PdfColor & rColor )
                   << rColor.GetCieB() <<
 				  " SCN" << std::endl;
             break;
-        case ePdfColorSpace_Unknown:
-        case ePdfColorSpace_Indexed:
+        case EPdfColorSpace::Unknown:
+        case EPdfColorSpace::Indexed:
         {
-            PODOFO_RAISE_ERROR( ePdfError_CannotConvertColor );
+            PODOFO_RAISE_ERROR( EPdfError::CannotConvertColor );
         }
     }
 }
@@ -321,27 +321,27 @@ void PdfPainter::SetColor( const PdfColor & rColor )
     switch( rColor.GetColorSpace() ) 
     {
         default: 
-        case ePdfColorSpace_DeviceRGB:
+        case EPdfColorSpace::DeviceRGB:
             m_oss << rColor.GetRed()   << " "
                   << rColor.GetGreen() << " "
                   << rColor.GetBlue() 
                   << " rg" << std::endl;
             break;
-        case ePdfColorSpace_DeviceCMYK:
+        case EPdfColorSpace::DeviceCMYK:
             m_oss << rColor.GetCyan()    << " " 
                   << rColor.GetMagenta() << " " 
                   << rColor.GetYellow()  << " " 
                   << rColor.GetBlack() 
                   << " k" << std::endl;
             break;
-        case ePdfColorSpace_DeviceGray:
+        case EPdfColorSpace::DeviceGray:
             m_oss << rColor.GetGrayScale() << " g" << std::endl;
             break;
-        case ePdfColorSpace_Separation:
+        case EPdfColorSpace::Separation:
 			m_canvas->AddColorResource( rColor );
             m_oss << "/ColorSpace" << PdfName( rColor.GetName() ).GetEscapedName() << " cs " << rColor.GetDensity() << " scn" << std::endl;
             break;
-        case ePdfColorSpace_CieLab:
+        case EPdfColorSpace::CieLab:
 			m_canvas->AddColorResource( rColor );
 			m_oss << "/ColorSpaceCieLab" << " cs " 
 				  << rColor.GetCieL() << " " 
@@ -349,10 +349,10 @@ void PdfPainter::SetColor( const PdfColor & rColor )
                   << rColor.GetCieB() <<
 				  " scn" << std::endl;
 			break;
-        case ePdfColorSpace_Unknown:
-        case ePdfColorSpace_Indexed:
+        case EPdfColorSpace::Unknown:
+        case EPdfColorSpace::Indexed:
         {
-            PODOFO_RAISE_ERROR( ePdfError_CannotConvertColor );
+            PODOFO_RAISE_ERROR( EPdfError::CannotConvertColor );
         }
     }
 }
@@ -370,20 +370,20 @@ void PdfPainter::SetStrokeStyle( EPdfStrokeStyle eStyle, const char* pszCustom, 
 
     CheckStream();
 
-    if (eStyle != ePdfStrokeStyle_Custom) {
+    if (eStyle != EPdfStrokeStyle::Custom) {
         m_oss << "[";
     }
 
-    if (inverted && eStyle != ePdfStrokeStyle_Solid && eStyle != ePdfStrokeStyle_Custom) {
+    if (inverted && eStyle != EPdfStrokeStyle::Solid && eStyle != EPdfStrokeStyle::Custom) {
        m_oss << "0 ";
     }
 
     switch( eStyle )
     {
-        case ePdfStrokeStyle_Solid:
+        case EPdfStrokeStyle::Solid:
             have = true;
             break;
-        case ePdfStrokeStyle_Dash:
+        case EPdfStrokeStyle::Dash:
             have = true;
             if (scale >= 1.0 - 1e-5 && scale <= 1.0 + 1e-5) {
                 m_oss << "6 2";
@@ -395,7 +395,7 @@ void PdfPainter::SetStrokeStyle( EPdfStrokeStyle eStyle, const char* pszCustom, 
                 }
             }
             break;
-        case ePdfStrokeStyle_Dot:
+        case EPdfStrokeStyle::Dot:
             have = true;
             if (scale >= 1.0 - 1e-5 && scale <= 1.0 + 1e-5) {
                 m_oss << "2 2";
@@ -408,7 +408,7 @@ void PdfPainter::SetStrokeStyle( EPdfStrokeStyle eStyle, const char* pszCustom, 
                 }
             }
             break;
-        case ePdfStrokeStyle_DashDot:
+        case EPdfStrokeStyle::DashDot:
             have = true;
             if (scale >= 1.0 - 1e-5 && scale <= 1.0 + 1e-5) {
                 m_oss << "3 2 1 2";
@@ -421,7 +421,7 @@ void PdfPainter::SetStrokeStyle( EPdfStrokeStyle eStyle, const char* pszCustom, 
                 }
             }
             break;
-        case ePdfStrokeStyle_DashDotDot:
+        case EPdfStrokeStyle::DashDotDot:
             have = true;
             if (scale >= 1.0 - 1e-5 && scale <= 1.0 + 1e-5) {
                 m_oss << "3 1 1 1 1 1";
@@ -434,27 +434,27 @@ void PdfPainter::SetStrokeStyle( EPdfStrokeStyle eStyle, const char* pszCustom, 
                 }
             }
             break;
-        case ePdfStrokeStyle_Custom:
+        case EPdfStrokeStyle::Custom:
             have = pszCustom != NULL;
             if (have)
                 m_oss << pszCustom;
             break;
         default:
         {
-            PODOFO_RAISE_ERROR( ePdfError_InvalidStrokeStyle );
+            PODOFO_RAISE_ERROR( EPdfError::InvalidStrokeStyle );
         }
     }
 
     if( !have )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidStrokeStyle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidStrokeStyle );
     }
     
-    if (inverted && eStyle != ePdfStrokeStyle_Solid && eStyle != ePdfStrokeStyle_Custom) {
+    if (inverted && eStyle != EPdfStrokeStyle::Solid && eStyle != EPdfStrokeStyle::Custom) {
         m_oss << " 0";
     }
 
-    if (eStyle != ePdfStrokeStyle_Custom) {
+    if (eStyle != EPdfStrokeStyle::Custom) {
         m_oss << "] 0";
     }
 
@@ -481,7 +481,7 @@ void PdfPainter::SetFont( PdfFont* pFont )
 
     if( !pFont )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     m_pFont = pFont;
@@ -664,7 +664,7 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
 
     if( !m_pFont || !m_canvas || !sText.IsValid() )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     // Peter Petrov 25 September 2008
@@ -721,7 +721,7 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
           << " "  << m_pFont->GetFontSize()
           << " Tf" << std::endl;
 
-    if (currentTextRenderingMode != ePdfTextRenderingMode_Fill) {
+    if (currentTextRenderingMode != EPdfTextRenderingMode::Fill) {
         SetCurrentTextRenderingMode();
     }
 
@@ -738,7 +738,7 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long l
 
     /*
     char* pBuffer;
-    std::unique_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( ePdfFilter_ASCIIHexDecode );
+    std::unique_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( EPdfFilter::ASCIIHexDecode );
     pFilter->Encode( sString.GetString(), sString.GetLength(), &pBuffer, &lLen );
 
     m_oss.write( pBuffer, lLen );
@@ -754,7 +754,7 @@ void PdfPainter::BeginText( double dX, double dY )
 
     if( !m_pFont || !m_canvas ||  m_isTextOpen)
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     this->AddToPageResources( m_pFont->GetIdentifier(), m_pFont->GetObject()->GetIndirectReference(), PdfName("Font") );
@@ -763,7 +763,7 @@ void PdfPainter::BeginText( double dX, double dY )
           << " "  << m_pFont->GetFontSize()
           << " Tf" << std::endl;
 
-    if (currentTextRenderingMode != ePdfTextRenderingMode_Fill) {
+    if (currentTextRenderingMode != EPdfTextRenderingMode::Fill) {
         SetCurrentTextRenderingMode();
     }
 
@@ -784,7 +784,7 @@ void PdfPainter::MoveTextPos( double dX, double dY )
 
     if( !m_pFont || !m_canvas || !m_isTextOpen )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     m_oss << dX << " " << dY << " Td" << std::endl ;
@@ -801,7 +801,7 @@ void PdfPainter::AddText( const PdfString & sText, size_t lStringLen )
 
     if( !m_pFont || !m_canvas || !sText.IsValid() || !m_isTextOpen )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     PdfString sString = this->ExpandTabs( sText, lStringLen );
@@ -823,7 +823,7 @@ void PdfPainter::EndText()
 
     if( !m_pFont || !m_canvas || !m_isTextOpen )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     m_oss << "ET\n";
@@ -837,7 +837,7 @@ void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double 
 
     if( !m_pFont || !m_canvas || !rsText.IsValid() )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     // Peter Petrov 25 September 2008
@@ -860,11 +860,11 @@ void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double 
     switch( eVertical ) 
     {
         default:
-	    case ePdfVerticalAlignment_Top:
+	    case EPdfVerticalAlignment::Top:
             dY += dHeight; break;
-        case ePdfVerticalAlignment_Bottom:
+        case EPdfVerticalAlignment::Bottom:
             dY += m_pFont->GetFontMetrics()->GetLineSpacing() * vecLines.size(); break;
-        case ePdfVerticalAlignment_Center:
+        case EPdfVerticalAlignment::Center:
             dY += (dHeight - 
                    ((dHeight - (m_pFont->GetFontMetrics()->GetLineSpacing() * vecLines.size()))/2.0)); 
             break;
@@ -889,7 +889,7 @@ std::vector<PdfString> PdfPainter::GetMultiLineTextAsLines( double dWidth, const
 
     if( !m_pFont || !m_canvas || !rsText.IsValid() )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
      
     if( dWidth <= 0.0 ) // nonsense arguments
@@ -1065,7 +1065,7 @@ void PdfPainter::DrawTextAligned( double dX, double dY, double dWidth, const Pdf
 
     if( !m_pFont || !m_canvas || !rsText.IsValid() )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     // Peter Petrov 25 Septemer 2008
@@ -1077,12 +1077,12 @@ void PdfPainter::DrawTextAligned( double dX, double dY, double dWidth, const Pdf
     switch( eAlignment ) 
     {
         default:
-        case ePdfAlignment_Left:
+        case EPdfAlignment::Left:
             break;
-        case ePdfAlignment_Center:
+        case EPdfAlignment::Center:
             dX += (dWidth - m_pFont->GetFontMetrics()->StringWidth( rsText ) ) / 2.0;
             break;
-        case ePdfAlignment_Right:
+        case EPdfAlignment::Right:
             dX += (dWidth - m_pFont->GetFontMetrics()->StringWidth( rsText ) );
             break;
     }
@@ -1096,7 +1096,7 @@ void PdfPainter::DrawGlyph( PdfMemDocument* pDocument, double dX, double dY, con
     
     if( !m_pFont || !m_canvas || !pszGlyphname )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
 	PdfFont* pGlyphFont = NULL;
@@ -1236,7 +1236,7 @@ void PdfPainter::DrawXObject( double dX, double dY, PdfXObject* pObject, double 
 
     if( !pObject )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     // use OriginalReference() as the XObject might have been written to disk
@@ -1657,7 +1657,7 @@ void PdfPainter::AddToPageResources( const PdfName & rIdentifier, const PdfRefer
 {
     if( !m_canvas )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     m_canvas->AddResource( rIdentifier, rRef, rName );
@@ -1777,7 +1777,7 @@ PdfString PdfPainter::ExpandTabsPrivate( const C* pszText, size_t lStringLen, un
 
     if( !pszTab )
     {
-        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+        PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
     }
     
     int i = 0;

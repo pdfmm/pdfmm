@@ -122,7 +122,7 @@
 #include <cassert>
 #define PODOFO_ASSERT( x ) assert( x );
 #else
-#define PODOFO_ASSERT( x ) do { if (!(x)) PODOFO_RAISE_ERROR_INFO(ePdfError_InternalLogic, #x); } while (false)
+#define PODOFO_ASSERT( x ) do { if (!(x)) PODOFO_RAISE_ERROR_INFO(EPdfError::InternalLogic, #x); } while (false)
 #endif // DEBUG
 
 // By default, PoDoFo will use C++ locale support to ensure that
@@ -157,31 +157,35 @@ typedef unsigned char  pdf_utf8;
 /**
  * Enum to identify diferent versions of the PDF file format
  */
-enum EPdfVersion {
-    ePdfVersion_1_0 = 0,       /**< PDF 1.0 */
-    ePdfVersion_1_1,           /**< PDF 1.1 */
-    ePdfVersion_1_2,           /**< PDF 1.2 */  
-    ePdfVersion_1_3,           /**< PDF 1.3 */ 
-    ePdfVersion_1_4,           /**< PDF 1.4 */
-    ePdfVersion_1_5,           /**< PDF 1.5 */
-    ePdfVersion_1_6,           /**< PDF 1.6 */ 
-    ePdfVersion_1_7            /**< PDF 1.7 */ 
+enum class EPdfVersion
+{
+    V1_0 = 0,       /**< PDF 1.0 */
+    V1_1,           /**< PDF 1.1 */
+    V1_2,           /**< PDF 1.2 */  
+    V1_3,           /**< PDF 1.3 */ 
+    V1_4,           /**< PDF 1.4 */
+    V1_5,           /**< PDF 1.5 */
+    V1_6,           /**< PDF 1.6 */ 
+    V1_7            /**< PDF 1.7 */ 
 };
 
 /** The default PDF Version used by new PDF documents
  *  in PoDoFo. 
  */
-const EPdfVersion ePdfVersion_Default = ePdfVersion_1_3;
+constexpr EPdfVersion PdfVersionDefault = EPdfVersion::V1_3;
 
 /**
  * Specify additional options for writing the PDF.
  */
-enum EPdfWriteMode {
-    ePdfWriteMode_Compact = 0x01, ///< Try to write the PDF as compact as possible (Default)
-    ePdfWriteMode_Clean = 0x02,   ///< Create a PDF that is readable in a text editor, i.e. insert spaces and linebreaks between tokens
+enum class EPdfWriteMode
+{
+    Compact = 0x01, ///< Try to write the PDF as compact as possible (Default)
+    Clean = 0x02,   ///< Create a PDF that is readable in a text editor, i.e. insert spaces and linebreaks between tokens
 };
 
-const EPdfWriteMode ePdfWriteMode_Default = ePdfWriteMode_Compact;
+ENABLE_BITMASK_OPERATORS(EPdfWriteMode);
+
+const EPdfWriteMode PdfWriteModeDefault = EPdfWriteMode::Compact;
 
 /**
  * Every PDF datatype that can occur in a PDF file
@@ -210,127 +214,136 @@ enum class EPdfDataType : uint8_t
 /**
  * Every filter that can be used to encode a stream 
  * in a PDF file is referenced by an own enum value.
- * Common filters are ePdfFilter_FlateDecode (i.e. Zip) or
- * ePdfFilter_ASCIIHexDecode
+ * Common filters are EPdfFilter::FlateDecode (i.e. Zip) or
+ * EPdfFilter::ASCIIHexDecode
  */
-enum EPdfFilter {
-    ePdfFilter_None = -1,                 /**< Do not use any filtering */
-    ePdfFilter_ASCIIHexDecode,            /**< Converts data from and to hexadecimal. Increases size of the data by a factor of 2! \see PdfHexFilter */
-    ePdfFilter_ASCII85Decode,             /**< Converts to and from Ascii85 encoding. \see PdfAscii85Filter */
-    ePdfFilter_LZWDecode,                 
-    ePdfFilter_FlateDecode,               /**< Compress data using the Flate algorithm of ZLib. This filter is recommended to be used always. \see PdfFlateFilter */
-    ePdfFilter_RunLengthDecode,           /**< Run length decode data. \see PdfRLEFilter */
-    ePdfFilter_CCITTFaxDecode,
-    ePdfFilter_JBIG2Decode,
-    ePdfFilter_DCTDecode,
-    ePdfFilter_JPXDecode,
-    ePdfFilter_Crypt
+enum class EPdfFilter
+{
+    None = -1,                 /**< Do not use any filtering */
+    ASCIIHexDecode,            /**< Converts data from and to hexadecimal. Increases size of the data by a factor of 2! \see PdfHexFilter */
+    ASCII85Decode,             /**< Converts to and from Ascii85 encoding. \see PdfAscii85Filter */
+    LZWDecode,                 
+    FlateDecode,               /**< Compress data using the Flate algorithm of ZLib. This filter is recommended to be used always. \see PdfFlateFilter */
+    RunLengthDecode,           /**< Run length decode data. \see PdfRLEFilter */
+    CCITTFaxDecode,
+    JBIG2Decode,
+    DCTDecode,
+    JPXDecode,
+    Crypt
 };
 
 
 /**
  * Enum for the different font formats supported by PoDoFo
  */
-enum EPdfFontType {
-    ePdfFontType_TrueType,
-    ePdfFontType_Type1Pfa,
-    ePdfFontType_Type1Pfb,
-    ePdfFontType_Type1Base14,
-    ePdfFontType_Type3,
-    ePdfFontType_Unknown = 0xff
+enum class EPdfFontType
+{
+    TrueType,
+    Type1Pfa,
+    Type1Pfb,
+    Type1Base14,
+    Type3,
+    Unknown = 0xff
 };
 
 /** 
  * Enum for the colorspaces supported
  * by PDF.
  */
-enum EPdfColorSpace {
-    ePdfColorSpace_DeviceGray,        /**< Gray */
-    ePdfColorSpace_DeviceRGB,         /**< RGB  */
-    ePdfColorSpace_DeviceCMYK,        /**< CMYK */
-    ePdfColorSpace_Separation,        /**< Separation */
-    ePdfColorSpace_CieLab,            /**< CIE-Lab */
-    ePdfColorSpace_Indexed,           /**< Indexed */
-    ePdfColorSpace_Unknown = 0xff
+enum class EPdfColorSpace
+{
+    DeviceGray,        /**< Gray */
+    DeviceRGB,         /**< RGB  */
+    DeviceCMYK,        /**< CMYK */
+    Separation,        /**< Separation */
+    CieLab,            /**< CIE-Lab */
+    Indexed,           /**< Indexed */
+    Unknown = 0xff
 };
 
 /**
  * Enum for text rendering mode (Tr)
  */
-enum EPdfTextRenderingMode {
-    ePdfTextRenderingMode_Fill = 0,                 /**< Default mode, fill text */
-    ePdfTextRenderingMode_Stroke,                   /**< Stroke text */
-    ePdfTextRenderingMode_FillAndStroke,            /**< Fill, then stroke text */
-    ePdfTextRenderingMode_Invisible,                /**< Neither fill nor stroke text (invisible) */
-    ePdfTextRenderingMode_FillToClipPath,           /**< Fill text and add to path for clipping */
-    ePdfTextRenderingMode_StrokeToClipPath,         /**< Stroke text and add to path for clipping */
-    ePdfTextRenderingMode_FillAndStrokeToClipPath,  /**< Fill, then stroke text and add to path for clipping */
-    ePdfTextRenderingMode_ToClipPath,               /**< Add text to path for clipping */
-    ePdfTextRenderingMode_Unknown = 0xff
+enum class EPdfTextRenderingMode
+{
+    Fill = 0,                 /**< Default mode, fill text */
+    Stroke,                   /**< Stroke text */
+    FillAndStroke,            /**< Fill, then stroke text */
+    Invisible,                /**< Neither fill nor stroke text (invisible) */
+    FillToClipPath,           /**< Fill text and add to path for clipping */
+    StrokeToClipPath,         /**< Stroke text and add to path for clipping */
+    FillAndStrokeToClipPath,  /**< Fill, then stroke text and add to path for clipping */
+    ToClipPath,               /**< Add text to path for clipping */
+    Unknown = 0xff
 };
 
 /**
  * Enum for the different stroke styles that can be set
  * when drawing to a PDF file (mostly for line drawing).
  */
-enum EPdfStrokeStyle {
-    ePdfStrokeStyle_Solid,
-    ePdfStrokeStyle_Dash,
-    ePdfStrokeStyle_Dot,
-    ePdfStrokeStyle_DashDot,
-    ePdfStrokeStyle_DashDotDot,
-    ePdfStrokeStyle_Custom 
+enum class EPdfStrokeStyle
+{
+    Solid,
+    Dash,
+    Dot,
+    DashDot,
+    DashDotDot,
+    Custom 
 };
 
 /**
  * Enum for predefined tiling patterns.
  */
-enum EPdfTilingPatternType {
-    ePdfTilingPatternType_BDiagonal = 1,
-    ePdfTilingPatternType_Cross,
-    ePdfTilingPatternType_DiagCross,
-    ePdfTilingPatternType_FDiagonal,
-    ePdfTilingPatternType_Horizontal,
-    ePdfTilingPatternType_Vertical,
-    ePdfTilingPatternType_Image
+enum class EPdfTilingPatternType
+{
+    BDiagonal = 1,
+    Cross,
+    DiagCross,
+    FDiagonal,
+    Horizontal,
+    Vertical,
+    Image
 };
 
 /**
  * Enum for line cap styles when drawing.
  */
-enum EPdfLineCapStyle {
-    ePdfLineCapStyle_Butt    = 0,
-    ePdfLineCapStyle_Round   = 1,
-    ePdfLineCapStyle_Square  = 2
+enum class EPdfLineCapStyle
+{
+    Butt    = 0,
+    Round   = 1,
+    Square  = 2
 };
 
 /**
  * Enum for line join styles when drawing.
  */
-enum EPdfLineJoinStyle {
-    ePdfLineJoinStyle_Miter   = 0,
-    ePdfLineJoinStyle_Round   = 1,
-    ePdfLineJoinStyle_Bevel   = 2
+enum class EPdfLineJoinStyle
+{
+    Miter   = 0,
+    Round   = 1,
+    Bevel   = 2
 };
 
 /**
  * Enum for vertical text alignment
  */
-enum EPdfVerticalAlignment {
-    ePdfVerticalAlignment_Top    = 0,
-    ePdfVerticalAlignment_Center = 1,
-    ePdfVerticalAlignment_Bottom  = 2
+enum class EPdfVerticalAlignment
+{
+    Top    = 0,
+    Center = 1,
+    Bottom  = 2
 };
 
 /**
  * Enum for text alignment
  */
-enum EPdfAlignment {
-    ePdfAlignment_Left    = 0,
-    ePdfAlignment_Center  = 1,
-    ePdfAlignment_Right   = 2
+enum class EPdfAlignment
+{
+    Left    = 0,
+    Center  = 1,
+    Right   = 2
 };
-
 
 /**
  * List of defined Rendering intents
@@ -367,19 +380,20 @@ enum EPdfAlignment {
  *
  * \see PdfPage
  */
-enum EPdfPageSize {
-    ePdfPageSize_A0,              /**< DIN A0  */
-    ePdfPageSize_A1,              /**< DIN A1  */
-    ePdfPageSize_A2,              /**< DIN A2  */
-    ePdfPageSize_A3,              /**< DIN A3  */
-    ePdfPageSize_A4,              /**< DIN A4  */
-    ePdfPageSize_A5,              /**< DIN A5  */
-    ePdfPageSize_A6,              /**< DIN A6  */
-    ePdfPageSize_Letter,          /**< Letter  */
-    ePdfPageSize_Legal,           /**< Legal   */
-    ePdfPageSize_Tabloid,         /**< Tabloid */
+enum class EPdfPageSize
+{
+    A0,              /**< DIN A0  */
+    A1,              /**< DIN A1  */
+    A2,              /**< DIN A2  */
+    A3,              /**< DIN A3  */
+    A4,              /**< DIN A4  */
+    A5,              /**< DIN A5  */
+    A6,              /**< DIN A6  */
+    Letter,          /**< Letter  */
+    Legal,           /**< Legal   */
+    Tabloid,         /**< Tabloid */
 
-    ePdfPageSize_Unknown = 0xff
+    Unknown = 0xff
 };
 
 /**
@@ -389,14 +403,15 @@ enum EPdfPageSize {
  *
  * \see PdfDocument
  */
-enum EPdfPageMode {
-    ePdfPageModeDontCare,
-    ePdfPageModeUseNone,
-    ePdfPageModeUseThumbs,
-    ePdfPageModeUseBookmarks,
-    ePdfPageModeFullScreen,
-    ePdfPageModeUseOC,
-    ePdfPageModeUseAttachments
+enum class EPdfPageMode
+{
+    DontCare,
+    UseNone,
+    UseThumbs,
+    UseBookmarks,
+    FullScreen,
+    UseOC,
+    UseAttachments
 };
 
 /**
@@ -406,15 +421,16 @@ enum EPdfPageMode {
  *
  * \see PdfDocument
  */
-enum EPdfPageLayout {
-    ePdfPageLayoutIgnore,
-    ePdfPageLayoutDefault,
-    ePdfPageLayoutSinglePage,
-    ePdfPageLayoutOneColumn,
-    ePdfPageLayoutTwoColumnLeft,
-    ePdfPageLayoutTwoColumnRight,
-    ePdfPageLayoutTwoPageLeft,
-    ePdfPageLayoutTwoPageRight
+enum class EPdfPageLayout
+{
+    Ignore,
+    Default,
+    SinglePage,
+    OneColumn,
+    TwoColumnLeft,
+    TwoColumnRight,
+    TwoPageLeft,
+    TwoPageRight
 };
 
 /**

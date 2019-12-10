@@ -118,14 +118,14 @@ static bool GetFontFromCollection(HDC &hdc, char *&buffer, unsigned int &bufferL
     char *fileBuffer = (char*)podofo_malloc(fileLen);
     if (!fileBuffer)
     {
-        PODOFO_RAISE_ERROR(ePdfError_OutOfMemory);
+        PODOFO_RAISE_ERROR(EPdfError::OutOfMemory);
     }
 
     char *ttcBuffer = (char*)podofo_malloc(ttcLen);
     if (!ttcBuffer)
     {
         podofo_free(fileBuffer);
-        PODOFO_RAISE_ERROR(ePdfError_OutOfMemory);
+        PODOFO_RAISE_ERROR(EPdfError::OutOfMemory);
     }
 
     if (GetFontData(hdc, ttcf_const, 0, fileBuffer, fileLen) == GDI_ERROR)
@@ -160,7 +160,7 @@ static bool GetFontFromCollection(HDC &hdc, char *&buffer, unsigned int &bufferL
     {
         podofo_free(fileBuffer);
         podofo_free(ttcBuffer);
-        PODOFO_RAISE_ERROR(ePdfError_OutOfMemory);
+        PODOFO_RAISE_ERROR(EPdfError::OutOfMemory);
     }
     // copy font header and table index (offsets need to be still adjusted)
     memcpy(outBuffer, ttcBuffer, 12 + 16 * numTables);
@@ -215,7 +215,7 @@ static bool GetDataFromHFONT( HFONT hf, char** outFontBuffer, unsigned int& outF
         buffer = (char *) podofo_malloc( bufferLen );
 		if (!buffer)
 		{
-			PODOFO_RAISE_ERROR(ePdfError_OutOfMemory);
+			PODOFO_RAISE_ERROR(EPdfError::OutOfMemory);
 		}
 
         ok = GetFontData(hdc, 0, 0, buffer, (DWORD)bufferLen) != GDI_ERROR;
@@ -305,7 +305,7 @@ void PdfFontCache::Init(void)
     // Initialize all the fonts stuff
     if( FT_Init_FreeType( &m_ftLibrary ) )
     {
-        PODOFO_RAISE_ERROR( ePdfError_FreeType );
+        PODOFO_RAISE_ERROR( EPdfError::FreeType );
     }
 }
 
@@ -391,23 +391,23 @@ PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bBold, bool bItali
         
     if( it.first == it.second )
     {
-        if ( (eFontCreationFlags & eFontCreationFlags_AutoSelectBase14) 
+        if ( (eFontCreationFlags & EFontCreationFlags::AutoSelectBase14) == EFontCreationFlags::AutoSelectBase14
              && PODOFO_Base14FontDef_FindBuiltinData(pszFontName) )
         {
-            EPdfFontFlags eFlags = ePdfFont_Normal;
+            EPdfFontFlags eFlags = EPdfFontFlags::Normal;
             if( bBold )
             {
                 if( bItalic )
                 {
-                    eFlags = ePdfFont_BoldItalic;
+                    eFlags = EPdfFontFlags::BoldItalic;
                 }
                 else
                 {
-                    eFlags = ePdfFont_Bold;
+                    eFlags = EPdfFontFlags::Bold;
                 }
             }
             else if( bItalic )
-                eFlags = ePdfFont_Italic;
+                eFlags = EPdfFontFlags::Italic;
 
             pFont = PdfFontFactory::CreateBase14Font(pszFontName, eFlags,
                         pEncoding, m_pParent);
@@ -431,7 +431,7 @@ PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bBold, bool bItali
 
         if (!pFont)
         {
-            bool bSubsetting = (eFontCreationFlags & eFontCreationFlags_Type1Subsetting) != 0;
+            bool bSubsetting = (eFontCreationFlags & EFontCreationFlags::Type1Subsetting) != EFontCreationFlags::None;
             std::string sPath;
             if ( pszFileName == NULL )
                 sPath = this->GetFontPath( pszFontName, bBold, bItalic );
@@ -458,7 +458,7 @@ PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bBold, bool bItali
 
 #if !(defined(_WIN32) && !defined(PODOFO_NO_FONTMANAGER))
         if (!pFont)
-            PdfError::LogMessage( eLogSeverity_Critical, "No path was found for the specified fontname: %s\n", pszFontName );
+            PdfError::LogMessage( ELogSeverity::Critical, "No path was found for the specified fontname: %s\n", pszFontName );
 #endif             
 
     return pFont;
@@ -476,17 +476,17 @@ PdfFont* PdfFontCache::GetFont( const wchar_t* pszFontName, bool bBold, bool bIt
     size_t lMaxLen = wcslen(pszFontName) * 5;
 
     if (lMaxLen == 0) 
-        PODOFO_RAISE_ERROR_INFO(ePdfError_InternalLogic, "Font name is empty");
+        PODOFO_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Font name is empty");
         
     char* pmbFontName = static_cast<char*>(podofo_malloc(lMaxLen));
     if (!pmbFontName)
     {
-        PODOFO_RAISE_ERROR(ePdfError_OutOfMemory);
+        PODOFO_RAISE_ERROR(EPdfError::OutOfMemory);
     }
     if( wcstombs(pmbFontName, pszFontName, lMaxLen) == static_cast<size_t>(-1) )
     {
         podofo_free(pmbFontName);
-        PODOFO_RAISE_ERROR_INFO(ePdfError_InternalLogic, "Conversion to multibyte char failed");
+        PODOFO_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Conversion to multibyte char failed");
     }
 
     TFontCacheElement element;
@@ -551,7 +551,7 @@ PdfFont* PdfFontCache::GetFont( FT_Face face, bool bSymbolCharset, bool bEmbedd,
     std::string sName = FT_Get_Postscript_Name( face );
     if( sName.empty() )
     {
-        PdfError::LogMessage( eLogSeverity_Critical, "Could not retrieve fontname for font!\n" );
+        PdfError::LogMessage( ELogSeverity::Critical, "Could not retrieve fontname for font!\n" );
         return NULL;
     }
 
@@ -599,7 +599,7 @@ PdfFont* PdfFontCache::GetDuplicateFontType1( PdfFont * pFont, const char* pszSu
     }
 
     // Create a copy of the font
-    PODOFO_ASSERT( pFont->GetFontMetrics()->GetFontType() == ePdfFontType_Type1Pfb );
+    PODOFO_ASSERT( pFont->GetFontMetrics()->GetFontType() == EPdfFontType::Type1Pfb );
     PdfFontMetrics* pMetrics = new PdfFontMetricsFreetype( &m_ftLibrary, pFont->GetFontMetrics()->GetFilename(), pFont->GetFontMetrics()->IsSymbol() );
     PdfFont* newFont = new PdfFontType1( static_cast<PdfFontType1 *>(pFont), pMetrics, pszSuffix, m_pParent );
     if( newFont ) 
@@ -645,7 +645,7 @@ PdfFont* PdfFontCache::GetFontSubset( const char* pszFontName, bool bBold, bool 
 #if defined(_WIN32) && !defined(PODOFO_NO_FONTMANAGER)
                 return GetWin32Font( it.first, m_vecFontSubsets, pszFontName, bBold, bItalic, bSymbolCharset, true, pEncoding, true );
 #else       
-                PdfError::LogMessage( eLogSeverity_Critical, "No path was found for the specified fontname: %s\n", pszFontName );
+                PdfError::LogMessage( ELogSeverity::Critical, "No path was found for the specified fontname: %s\n", pszFontName );
                 return NULL;
 #endif // _WIN32
             }
@@ -735,7 +735,7 @@ PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList 
     if (lFontNameLen >= LF_FACESIZE)
         return NULL;
     if (lFontNameLen == 0)
-        PODOFO_RAISE_ERROR_INFO(ePdfError_InternalLogic, "Font name is empty");
+        PODOFO_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Font name is empty");
     
     memset(&(lf.lfFaceName), 0, LF_FACESIZE);
     wcscpy( static_cast<wchar_t*>(lf.lfFaceName), pszFontName );
@@ -778,13 +778,13 @@ PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList 
     char* pmbFontName = static_cast<char*>(podofo_malloc(lMaxLen));
     if( !pmbFontName )
     {
-        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+        PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
     }
 
     if( wcstombs( pmbFontName, logFont.lfFaceName, lMaxLen ) == static_cast<size_t>(-1) )
     {
         podofo_free( pmbFontName );
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InternalLogic, "Conversion to multibyte char failed" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Conversion to multibyte char failed" );
     }
 
     char*        pBuffer = NULL;
@@ -830,19 +830,19 @@ PdfFont* PdfFontCache::CreateFontObject( TISortedFontList itSorted, TSortedFontL
     PdfFont* pFont;
 
     try {
-        int nFlags = ePdfFont_Normal;
+        EPdfFontFlags nFlags = EPdfFontFlags::Normal;
 
         if ( bSubsetting )
-            nFlags |= ePdfFont_Subsetting;
+            nFlags |= EPdfFontFlags::Subsetting;
         
         if( bEmbedd )
-            nFlags |= ePdfFont_Embedded;
+            nFlags |= EPdfFontFlags::Embedded;
         
         if( bBold ) 
-            nFlags |= ePdfFont_Bold;
+            nFlags |= EPdfFontFlags::Bold;
 
         if( bItalic )
-            nFlags |= ePdfFont_Italic;
+            nFlags |= EPdfFontFlags::Italic;
         
         pFont    = PdfFontFactory::CreateFontObject( pMetrics, nFlags, pEncoding, m_pParent );
 
@@ -862,7 +862,7 @@ PdfFont* PdfFontCache::CreateFontObject( TISortedFontList itSorted, TSortedFontL
     } catch( PdfError & e ) {
         e.AddToCallstack( __FILE__, __LINE__ );
         e.PrintErrorMsg();
-        PdfError::LogMessage( eLogSeverity_Error, "Cannot initialize font: %s\n", pszFontName ? pszFontName : "" );
+        PdfError::LogMessage( ELogSeverity::Error, "Cannot initialize font: %s\n", pszFontName ? pszFontName : "" );
         return NULL;
     }
     

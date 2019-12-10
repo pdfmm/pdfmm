@@ -54,7 +54,7 @@ PdfFileStream::PdfFileStream( PdfObject* pParent, PdfOutputDevice* pDevice )
 
 void PdfFileStream::Write( PdfOutputDevice*, PdfEncrypt* )
 {
-    PODOFO_RAISE_ERROR(ePdfError_NotImplemented);
+    PODOFO_RAISE_ERROR(EPdfError::NotImplemented);
 }
 
 void PdfFileStream::BeginAppendImpl( const TVecFilters & vecFilters )
@@ -124,12 +124,12 @@ void PdfFileStream::EndAppendImpl()
 
 void PdfFileStream::GetCopy( char**, size_t* ) const
 {
-    PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
+    PODOFO_RAISE_ERROR( EPdfError::InternalLogic );
 }
 
 void PdfFileStream::GetCopy(PdfOutputStream*) const
 {
-	PODOFO_RAISE_ERROR( ePdfError_InternalLogic );
+	PODOFO_RAISE_ERROR( EPdfError::InternalLogic );
 }
 
 void PdfFileStream::SetEncrypted( PdfEncrypt* pEncrypt ) 

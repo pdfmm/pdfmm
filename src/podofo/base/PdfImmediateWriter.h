@@ -70,8 +70,8 @@ class PODOFO_API PdfImmediateWriter : private PdfWriter,
      *  @param eWriteMode additional options for writing the pdf
      */
     PdfImmediateWriter( PdfOutputDevice* pDevice, PdfVecObjects* pVecObjects, const PdfObject* pTrailer, 
-                        EPdfVersion eVersion = ePdfVersion_1_5, PdfEncrypt* pEncrypt = NULL,
-                        EPdfWriteMode eWriteMode = ePdfWriteMode_Default );
+                        EPdfVersion eVersion = EPdfVersion::V1_5, PdfEncrypt* pEncrypt = NULL,
+                        EPdfWriteMode eWriteMode = PdfWriteModeDefault );
 
     ~PdfImmediateWriter();
 

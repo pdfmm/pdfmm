@@ -54,7 +54,7 @@ PdfPage* PdfPagesTreeCache::GetPage( int nIndex )
 {
     if( nIndex < 0 || nIndex >= static_cast<int>(m_deqPageObjs.size()) ) 
     {
-        PdfError::LogMessage( eLogSeverity_Error,
+        PdfError::LogMessage( ELogSeverity::Error,
                               "PdfPagesTreeCache::GetPage( %i ) index out of range. Size of cache is %i\n",
                               nIndex, m_deqPageObjs.size() );
         return NULL;
@@ -97,7 +97,7 @@ void PdfPagesTreeCache::AddPageObjects( int nIndex, std::vector<PdfPage*> vecPag
 
 void PdfPagesTreeCache::InsertPage( int nAfterPageIndex ) 
 {
-    const int nBeforeIndex = ( nAfterPageIndex == ePdfPageInsertionPoint_InsertBeforeFirstPage ) ? 0 : nAfterPageIndex+1;
+    const int nBeforeIndex = ( nAfterPageIndex == (int)EPdfPageInsertionPoint::InsertBeforeFirstPage ) ? 0 : nAfterPageIndex+1;
 
     if( nBeforeIndex >= static_cast<int>(m_deqPageObjs.size()) )
         m_deqPageObjs.resize( nBeforeIndex + 1 );
@@ -107,7 +107,7 @@ void PdfPagesTreeCache::InsertPage( int nAfterPageIndex )
 
 void PdfPagesTreeCache::InsertPages( int nAfterPageIndex, int nCount ) 
 {
-    const int nBeforeIndex = ( nAfterPageIndex == ePdfPageInsertionPoint_InsertBeforeFirstPage ) ? 0 : nAfterPageIndex+1;
+    const int nBeforeIndex = ( nAfterPageIndex == (int)EPdfPageInsertionPoint::InsertBeforeFirstPage ) ? 0 : nAfterPageIndex+1;
 
     if( nBeforeIndex+nCount >= static_cast<int>(m_deqPageObjs.size()) )
         m_deqPageObjs.resize( nBeforeIndex + nCount + 1 );
@@ -120,7 +120,7 @@ void PdfPagesTreeCache::DeletePage( int nIndex )
 {
     if( nIndex < 0 || nIndex >= static_cast<int>(m_deqPageObjs.size()) ) 
     {
-        PdfError::LogMessage( eLogSeverity_Error,
+        PdfError::LogMessage( ELogSeverity::Error,
                               "PdfPagesTreeCache::DeletePage( %i ) index out of range. Size of cache is %i\n",
                               nIndex, m_deqPageObjs.size() );
         return;

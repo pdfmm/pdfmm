@@ -143,52 +143,52 @@ PdfRect PdfPage::CreateStandardPageSize( const EPdfPageSize ePageSize, bool bLan
 
     switch( ePageSize ) 
     {
-        case ePdfPageSize_A0:
+        case EPdfPageSize::A0:
             rect.SetWidth( 2384.0 );
             rect.SetHeight( 3370.0 );
             break;
 
-        case ePdfPageSize_A1:
+        case EPdfPageSize::A1:
             rect.SetWidth( 1684.0 );
             rect.SetHeight( 2384.0 );
             break;
 
-        case ePdfPageSize_A2:
+        case EPdfPageSize::A2:
             rect.SetWidth( 1191.0 );
             rect.SetHeight( 1684.0 );
             break;
             
-        case ePdfPageSize_A3:
+        case EPdfPageSize::A3:
             rect.SetWidth( 842.0 );
             rect.SetHeight( 1190.0 );
             break;
 
-        case ePdfPageSize_A4:
+        case EPdfPageSize::A4:
             rect.SetWidth( 595.0 );
             rect.SetHeight( 842.0 );
             break;
 
-        case ePdfPageSize_A5:
+        case EPdfPageSize::A5:
             rect.SetWidth( 420.0 );
             rect.SetHeight( 595.0 );
             break;
 
-        case ePdfPageSize_A6:
+        case EPdfPageSize::A6:
             rect.SetWidth( 297.0 );
             rect.SetHeight( 420.0 );
             break;
 
-        case ePdfPageSize_Letter:
+        case EPdfPageSize::Letter:
             rect.SetWidth( 612.0 );
             rect.SetHeight( 792.0 );
             break;
             
-        case ePdfPageSize_Legal:
+        case EPdfPageSize::Legal:
             rect.SetWidth( 612.0 );
             rect.SetHeight( 1008.0 );
             break;
 
-        case ePdfPageSize_Tabloid:
+        case EPdfPageSize::Tabloid:
             rect.SetWidth( 792.0 );
             rect.SetHeight( 1224.0 );
             break;
@@ -232,7 +232,7 @@ const PdfObject* PdfPage::GetInheritedKeyFromObject( const char* inKey, const Pd
         const int maxRecursionDepth = 1000;
 
         if ( depth > maxRecursionDepth )
-            PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
+            PODOFO_RAISE_ERROR( EPdfError::ValueOutOfRange );
 
         pObj = inObject->GetIndirectKey( "Parent" );
         if( pObj == inObject )
@@ -240,7 +240,7 @@ const PdfObject* PdfPage::GetInheritedKeyFromObject( const char* inKey, const Pd
             std::ostringstream oss;
             oss << "Object " << inObject->GetIndirectReference().ObjectNumber() << " "
                 << inObject->GetIndirectReference().GenerationNumber() << " references itself as Parent";
-            PODOFO_RAISE_ERROR_INFO( ePdfError_BrokenFile, oss.str().c_str() );
+            PODOFO_RAISE_ERROR_INFO( EPdfError::BrokenFile, oss.str().c_str() );
         }
 
         if( pObj )
@@ -302,7 +302,7 @@ int PdfPage::GetRotation() const
 void PdfPage::SetRotation(int nRotation)
 {
     if( nRotation != 0 && nRotation != 90 && nRotation != 180 && nRotation != 270 )
-        PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
+        PODOFO_RAISE_ERROR( EPdfError::ValueOutOfRange );
 
     this->GetObject()->GetDictionary().AddKey( "Rotate", PdfVariant(static_cast<int64_t>(nRotation)) );
 }
@@ -344,7 +344,7 @@ PdfAnnotation* PdfPage::CreateAnnotation( EPdfAnnotation eType, const PdfRect & 
 
     // Default set print flag
     auto flags = pAnnot->GetFlags();
-    pAnnot->SetFlags(flags | EPdfAnnotationFlags::ePdfAnnotationFlags_Print);
+    pAnnot->SetFlags(flags | EPdfAnnotationFlags::Print);
 
     return pAnnot;
 }
@@ -357,11 +357,11 @@ PdfAnnotation* PdfPage::GetAnnotation(int index)
     auto arr = GetAnnotationsArray();
 
     if (arr == nullptr)
-        PODOFO_RAISE_ERROR(ePdfError_InvalidHandle);
+        PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
     
     if(index < 0 || index >= arr->GetSize())
     {
-        PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
+        PODOFO_RAISE_ERROR( EPdfError::ValueOutOfRange );
     }
 
     auto &obj = arr->FindAt(index);
@@ -382,7 +382,7 @@ void PdfPage::DeleteAnnotation(int index)
         return;
 
     if (index < 0 || index >= arr->GetSize())
-        PODOFO_RAISE_ERROR(ePdfError_ValueOutOfRange);
+        PODOFO_RAISE_ERROR(EPdfError::ValueOutOfRange);
 
     auto &pItem = arr->FindAt(index);
     auto found = m_mapAnnotations.find(&pItem);
@@ -565,7 +565,7 @@ int PdfPage::GetPageNumber() const
                     std::ostringstream oss;
                     oss << "Object " << (*it).GetReference().ToString() << " not found from Kids array "
                         << pKids->GetIndirectReference().ToString(); 
-                    PODOFO_RAISE_ERROR_INFO( ePdfError_NoObject, oss.str() );
+                    PODOFO_RAISE_ERROR_INFO( EPdfError::NoObject, oss.str() );
                 }
 
                 if( pNode->GetDictionary().GetKey( PdfName::KeyType ) != NULL 
@@ -591,7 +591,7 @@ int PdfPage::GetPageNumber() const
 
         if ( depth > maxRecursionDepth )
         {
-            PODOFO_RAISE_ERROR_INFO( ePdfError_BrokenFile, "Loop in Parent chain" );
+            PODOFO_RAISE_ERROR_INFO( EPdfError::BrokenFile, "Loop in Parent chain" );
         }
     }
 
@@ -602,7 +602,7 @@ PdfObject* PdfPage::GetFromResources( const PdfName & rType, const PdfName & rKe
 {
     if( m_pResources == NULL ) // Fix CVE-2017-7381
     {
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidHandle, "No Resources" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidHandle, "No Resources" );
     } 
     if( m_pResources->GetDictionary().HasKey( rType ) ) 
     {
@@ -631,7 +631,7 @@ void PdfPage::SetICCProfile( const char *pszCSTag, PdfInputStream *pStream, int6
          nColorComponents != 3 &&
          nColorComponents != 4 )
     {
-        PODOFO_RAISE_ERROR_INFO( ePdfError_ValueOutOfRange, "SetICCProfile nColorComponents must be 1, 3 or 4!" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::ValueOutOfRange, "SetICCProfile nColorComponents must be 1, 3 or 4!" );
     }
 
     // Create a colorspace object

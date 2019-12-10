@@ -61,13 +61,13 @@ void PdfFunction::Init( EPdfFunctionType eType, const PdfArray & rDomain )
 }
 
 PdfSampledFunction::PdfSampledFunction( const PdfArray & rDomain,  const PdfArray & rRange, const PdfFunction::Sample & rlstSamples, PdfVecObjects* pParent )
-    : PdfFunction( ePdfFunctionType_Sampled, rDomain, pParent )
+    : PdfFunction( EPdfFunctionType::Sampled, rDomain, pParent )
 {
 	Init( rDomain, rRange, rlstSamples );
 }
 
 PdfSampledFunction::PdfSampledFunction( const PdfArray & rDomain,  const PdfArray & rRange, const PdfFunction::Sample & rlstSamples, PdfDocument* pParent )
-    : PdfFunction( ePdfFunctionType_Sampled, rDomain, pParent )
+    : PdfFunction( EPdfFunctionType::Sampled, rDomain, pParent )
 {
 	Init( rDomain, rRange, rlstSamples );
 }
@@ -95,13 +95,13 @@ void PdfSampledFunction::Init( const PdfArray & rDomain,  const PdfArray & rRang
 }
 
 PdfExponentialFunction::PdfExponentialFunction( const PdfArray & rDomain, const PdfArray & rC0, const PdfArray & rC1, double dExponent, PdfVecObjects* pParent )
-    : PdfFunction( ePdfFunctionType_Exponential, rDomain, pParent )
+    : PdfFunction( EPdfFunctionType::Exponential, rDomain, pParent )
 {
     Init( rC0, rC1, dExponent );
 }
 
 PdfExponentialFunction::PdfExponentialFunction( const PdfArray & rDomain, const PdfArray & rC0, const PdfArray & rC1, double dExponent, PdfDocument* pParent )
-    : PdfFunction( ePdfFunctionType_Exponential, rDomain, pParent )
+    : PdfFunction( EPdfFunctionType::Exponential, rDomain, pParent )
 {
     Init( rC0, rC1, dExponent );
 }
@@ -114,13 +114,13 @@ void PdfExponentialFunction::Init( const PdfArray & rC0, const PdfArray & rC1, d
 }
 
 PdfStitchingFunction::PdfStitchingFunction( const PdfFunction::List & rlstFunctions, const PdfArray & rDomain, const PdfArray & rBounds, const PdfArray & rEncode, PdfVecObjects* pParent )
-    : PdfFunction( ePdfFunctionType_Stitching, rDomain, pParent )
+    : PdfFunction( EPdfFunctionType::Stitching, rDomain, pParent )
 {
     Init( rlstFunctions, rBounds, rEncode );
 }
 
 PdfStitchingFunction::PdfStitchingFunction( const PdfFunction::List & rlstFunctions, const PdfArray & rDomain, const PdfArray & rBounds, const PdfArray & rEncode, PdfDocument* pParent )
-    : PdfFunction( ePdfFunctionType_Stitching, rDomain, pParent )
+    : PdfFunction( EPdfFunctionType::Stitching, rDomain, pParent )
 {
     Init( rlstFunctions, rBounds, rEncode );
 }

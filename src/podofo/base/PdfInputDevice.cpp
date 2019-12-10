@@ -50,20 +50,20 @@ PdfInputDevice::PdfInputDevice( const char* pszFilename )
     this->Init();
 
     if( !pszFilename ) 
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
 
     try
     {
         m_pFile = fopen(pszFilename, "rb");
         if( !m_pFile)
-            PODOFO_RAISE_ERROR_INFO( ePdfError_FileNotFound, pszFilename );
+            PODOFO_RAISE_ERROR_INFO( EPdfError::FileNotFound, pszFilename );
 
         m_StreamOwned = true;
     }
     catch(...)
     {
         // should probably check the exact error, but for now it's a good error
-        PODOFO_RAISE_ERROR_INFO( ePdfError_FileNotFound, pszFilename );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::FileNotFound, pszFilename );
     }
 }
 
@@ -73,7 +73,7 @@ PdfInputDevice::PdfInputDevice( const wchar_t* pszFilename )
     this->Init();
 
     if( !pszFilename ) 
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
 
     try
     {
@@ -81,7 +81,7 @@ PdfInputDevice::PdfInputDevice( const wchar_t* pszFilename )
         m_pFile = _wfopen(pszFilename, L"rb");
         if( !m_pFile)
         {
-            PdfError e( ePdfError_FileNotFound, __FILE__, __LINE__ );
+            PdfError e( EPdfError::FileNotFound, __FILE__, __LINE__ );
             e.SetErrorInformation( pszFilename );
             throw e;
         }
@@ -90,7 +90,7 @@ PdfInputDevice::PdfInputDevice( const wchar_t* pszFilename )
     catch(...)
     {
         // should probably check the exact error, but for now it's a good error
-        PdfError e( ePdfError_FileNotFound, __FILE__, __LINE__ );
+        PdfError e( EPdfError::FileNotFound, __FILE__, __LINE__ );
         e.SetErrorInformation( pszFilename );
         throw e;
     }
@@ -102,21 +102,21 @@ PdfInputDevice::PdfInputDevice( const char* pBuffer, size_t lLen )
     this->Init();
 
     if( !pBuffer ) 
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
 
     try
     {
         m_pStream = static_cast< std::istream* >( 
             new std::istringstream( std::string( pBuffer, lLen ), std::ios::binary ) );
         if( !m_pStream || !m_pStream->good() )
-            PODOFO_RAISE_ERROR( ePdfError_FileNotFound );
+            PODOFO_RAISE_ERROR( EPdfError::FileNotFound );
 
         m_StreamOwned = true;
     }
     catch(...)
     {
         // should probably check the exact error, but for now it's a good error
-        PODOFO_RAISE_ERROR( ePdfError_FileNotFound );
+        PODOFO_RAISE_ERROR( EPdfError::FileNotFound );
     }
     PdfLocaleImbue(*m_pStream);
 }
@@ -127,7 +127,7 @@ PdfInputDevice::PdfInputDevice( const std::istream* pInStream )
 
     m_pStream = const_cast< std::istream* >( pInStream );
     if( !m_pStream->good() )
-        PODOFO_RAISE_ERROR( ePdfError_FileNotFound );
+        PODOFO_RAISE_ERROR( EPdfError::FileNotFound );
 
     PdfLocaleImbue(*m_pStream);
 }
@@ -165,7 +165,7 @@ int PdfInputDevice::GetChar() const
     {
         int ch = m_pStream->get();
         if (m_pStream->fail() && !m_pStream->eof())
-            PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidDeviceOperation, "Failed to read the current character");
+            PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDeviceOperation, "Failed to read the current character");
 
         return ch;
     }
@@ -174,7 +174,7 @@ int PdfInputDevice::GetChar() const
     {
         int ch = fgetc(m_pFile);
         if (ferror(m_pFile))
-            PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidDeviceOperation, "Failed to read the current character");
+            PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDeviceOperation, "Failed to read the current character");
 
         return ch;
     }
@@ -188,7 +188,7 @@ int PdfInputDevice::Look() const
     {
         int ch = m_pStream->peek();
         if (m_pStream->fail() && !m_pStream->eof())
-            PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidDeviceOperation, "Failed to peek current character");
+            PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDeviceOperation, "Failed to peek current character");
 
         return ch;
     }
@@ -197,14 +197,14 @@ int PdfInputDevice::Look() const
     {
         ssize_t lOffset = ftello( m_pFile );
         if( lOffset == -1)
-            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDeviceOperation, "Failed to read the current file position" );
+            PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDeviceOperation, "Failed to read the current file position" );
 
         int ch = fgetc(m_pFile);
         if (ferror(m_pFile))
-            PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidDeviceOperation, "Failed to read the current character");
+            PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDeviceOperation, "Failed to read the current character");
 
         if(fseeko( m_pFile, lOffset, SEEK_SET ) == -1)
-            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDeviceOperation, "Failed to seek back to the previous position" );
+            PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDeviceOperation, "Failed to seek back to the previous position" );
         
         return ch;
     }
@@ -218,7 +218,7 @@ size_t PdfInputDevice::Tell() const
     {
         std::streamoff ret = m_pStream->tellg();
         if (m_pStream->fail())
-            PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidDeviceOperation, "Failed to get current position in the stream");
+            PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDeviceOperation, "Failed to get current position in the stream");
 
         return (size_t)ret;
     }
@@ -227,7 +227,7 @@ size_t PdfInputDevice::Tell() const
     {
         ssize_t lOffset = ftello(m_pFile);
         if (lOffset == -1)
-            PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidDeviceOperation, "Failed to read the current file position");
+            PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDeviceOperation, "Failed to read the current file position");
 
         return (size_t)lOffset;
     }
@@ -243,7 +243,7 @@ void PdfInputDevice::Seek( std::streamoff off, std::ios_base::seekdir dir )
         {
             m_pStream->seekg( off, dir );
             if (m_pStream->fail())
-                PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidDeviceOperation, "Failed to seek to given position in the stream");
+                PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDeviceOperation, "Failed to seek to given position in the stream");
         }
 
         if (m_pFile)
@@ -258,12 +258,12 @@ void PdfInputDevice::Seek( std::streamoff off, std::ios_base::seekdir dir )
                 whence = SEEK_END;
             
             if( fseeko( m_pFile, (ssize_t)off, whence ) == -1)
-                PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDeviceOperation, "Failed to seek to given position in the file" );
+                PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDeviceOperation, "Failed to seek to given position in the file" );
         }
     }
     else
     {
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDeviceOperation, "Tried to seek an unseekable input device." );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDeviceOperation, "Tried to seek an unseekable input device." );
     }
 }
 
@@ -274,7 +274,7 @@ size_t PdfInputDevice::Read( char* pBuffer, size_t lLen )
     {
         m_pStream->read( pBuffer, lLen );
         if (m_pStream->fail() && !m_pStream->eof())
-            PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidDeviceOperation, "Failed to read the amount of bytes requested");
+            PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDeviceOperation, "Failed to read the amount of bytes requested");
 
         return (size_t)m_pStream->gcount();
 	}
@@ -282,7 +282,7 @@ size_t PdfInputDevice::Read( char* pBuffer, size_t lLen )
 	{
 		size_t ret = fread(pBuffer, 1, (size_t)lLen, m_pFile);
         if (ferror(m_pFile))
-            PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidDeviceOperation, "Failed to read the amount of bytes requested");
+            PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDeviceOperation, "Failed to read the amount of bytes requested");
 
         return ret;
 	}

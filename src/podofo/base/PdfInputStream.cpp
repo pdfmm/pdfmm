@@ -49,7 +49,7 @@ PdfFileInputStream::PdfFileInputStream( const char* pszFilename )
     m_hFile = fopen( pszFilename, "rb" );
     if( !m_hFile ) 
     {
-        PODOFO_RAISE_ERROR_INFO( ePdfError_FileNotFound, pszFilename );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::FileNotFound, pszFilename );
     }
 }
 
@@ -59,7 +59,7 @@ PdfFileInputStream::PdfFileInputStream( const wchar_t* pszFilename )
     m_hFile = _wfopen( pszFilename, L"rb" );
     if( !m_hFile ) 
     {
-        PdfError e( ePdfError_FileNotFound, __FILE__, __LINE__ );
+        PdfError e( EPdfError::FileNotFound, __FILE__, __LINE__ );
         e.SetErrorInformation( pszFilename );
         throw e;
     }
@@ -76,7 +76,7 @@ size_t PdfFileInputStream::Read( char* pBuffer, size_t lLen, size_t* )
 {
     if( !pBuffer ) 
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     // return zero if EOF is reached
@@ -94,17 +94,17 @@ size_t PdfFileInputStream::GetFileLength()
     ssize_t lLen;
 
     if( lOffset == -1 )
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDeviceOperation, "Failed to read current position in the file" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDeviceOperation, "Failed to read current position in the file" );
 
     if( fseeko( m_hFile, 0L, SEEK_END ) == -1 )
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDeviceOperation, "Failed to seek at the end of the file" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDeviceOperation, "Failed to seek at the end of the file" );
 
     lLen = ftello( m_hFile );
     if( lLen == -1 )
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDeviceOperation, "Failed to read file length" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDeviceOperation, "Failed to read file length" );
 
     if( fseeko( m_hFile, lOffset, SEEK_SET ) == -1 )
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDeviceOperation, "Failed to seek back to the previous position of the file" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDeviceOperation, "Failed to seek back to the previous position of the file" );
 
     return (size_t)lLen;
 }
@@ -130,7 +130,7 @@ size_t PdfMemoryInputStream::Read( char* pBuffer, size_t lLen, size_t* )
 {
     if( !pBuffer ) 
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     size_t lRead = m_pCur - m_pBuffer;

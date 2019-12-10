@@ -58,24 +58,24 @@ void PdfXRefStreamParserObject::Parse()
     // Do some very basic error checking
     if( !this->GetDictionary().HasKey( PdfName::KeyType ) )
     {
-        PODOFO_RAISE_ERROR( ePdfError_NoXRef );
+        PODOFO_RAISE_ERROR( EPdfError::NoXRef );
     } 
 
     PdfObject* pObj = this->GetDictionary().GetKey( PdfName::KeyType );
     if( !pObj->IsName() || ( pObj->GetName() != "XRef" ) )
     {
-        PODOFO_RAISE_ERROR( ePdfError_NoXRef );
+        PODOFO_RAISE_ERROR( EPdfError::NoXRef );
     }
 
     if( !this->GetDictionary().HasKey( PdfName::KeySize ) 
         || !this->GetDictionary().HasKey( "W" ) )
     {
-        PODOFO_RAISE_ERROR( ePdfError_NoXRef );
+        PODOFO_RAISE_ERROR( EPdfError::NoXRef );
     } 
 
     if( !this->HasStreamToParse() )
     {
-        PODOFO_RAISE_ERROR( ePdfError_NoXRef );
+        PODOFO_RAISE_ERROR( EPdfError::NoXRef );
     }
 
     if( this->GetDictionary().HasKey("Prev") )
@@ -93,7 +93,7 @@ void PdfXRefStreamParserObject::ReadXRefTable()
     // all of them have to be integers
     if( !vWArray.IsArray() || vWArray.GetArray().size() != 3 )
     {
-        PODOFO_RAISE_ERROR( ePdfError_NoXRef );
+        PODOFO_RAISE_ERROR( EPdfError::NoXRef );
     }
 
 
@@ -102,7 +102,7 @@ void PdfXRefStreamParserObject::ReadXRefTable()
     {
         if( !vWArray.GetArray()[i].IsNumber() )
         {
-            PODOFO_RAISE_ERROR( ePdfError_NoXRef );
+            PODOFO_RAISE_ERROR( EPdfError::NoXRef );
         }
 
         nW[i] = static_cast<int64_t>(vWArray.GetArray()[i].GetNumber());
@@ -123,12 +123,12 @@ void PdfXRefStreamParserObject::ParseStream( const int64_t nW[W_ARRAY_SIZE], con
     {
         if ( nW[i] < 0 )
         {
-            PODOFO_RAISE_ERROR_INFO( ePdfError_NoXRef,
+            PODOFO_RAISE_ERROR_INFO( EPdfError::NoXRef,
                                     "Negative field length in XRef stream" );
         }
         if ( std::numeric_limits<int64_t>::max() - nLengthSum < nW[i] )
         {
-            PODOFO_RAISE_ERROR_INFO( ePdfError_NoXRef,
+            PODOFO_RAISE_ERROR_INFO( EPdfError::NoXRef,
                                     "Invalid entry length in XRef stream" );
         }
         else
@@ -159,7 +159,7 @@ void PdfXRefStreamParserObject::ParseStream( const int64_t nW[W_ARRAY_SIZE], con
         {
             if((size_t)(pBuffer - pStart) >= lBufferLen )
             {
-                PODOFO_RAISE_ERROR_INFO( ePdfError_NoXRef, "Invalid count in XRef stream" );
+                PODOFO_RAISE_ERROR_INFO( EPdfError::NoXRef, "Invalid count in XRef stream" );
             }
 
             //printf("nCount=%i ", static_cast<int>(nCount));
@@ -191,7 +191,7 @@ void PdfXRefStreamParserObject::GetIndeces( std::vector<int64_t> & rvecIndeces, 
         PdfVariant array = *(this->GetDictionary().GetKey( "Index" ));
         if( !array.IsArray() )
         {
-            PODOFO_RAISE_ERROR( ePdfError_NoXRef );
+            PODOFO_RAISE_ERROR( EPdfError::NoXRef );
         }
 
         TCIVariantList it = array.GetArray().begin();
@@ -211,7 +211,7 @@ void PdfXRefStreamParserObject::GetIndeces( std::vector<int64_t> & rvecIndeces, 
     // vecIndeces must be a multiple of 2
     if( rvecIndeces.size() % 2 != 0)
     {
-        PODOFO_RAISE_ERROR( ePdfError_NoXRef );
+        PODOFO_RAISE_ERROR( EPdfError::NoXRef );
     }
 }
 
@@ -225,11 +225,11 @@ void PdfXRefStreamParserObject::ReadXRefStreamEntry( char* pBuffer, size_t, cons
     {
         if( lW[i] > W_MAX_BYTES )
         {
-            PdfError::LogMessage( eLogSeverity_Error, 
+            PdfError::LogMessage( ELogSeverity::Error, 
                                   "The XRef stream dictionary has an entry in /W of size %i.\nThe maximum supported value is %i.\n", 
                                   lW[i], W_MAX_BYTES );
 
-            PODOFO_RAISE_ERROR( ePdfError_InvalidXRefStream );
+            PODOFO_RAISE_ERROR( EPdfError::InvalidXRefStream );
         }
         
         nData[i] = 0;
@@ -254,23 +254,23 @@ void PdfXRefStreamParserObject::ReadXRefStreamEntry( char* pBuffer, size_t, cons
             // a free object
             entry.lOffset     = nData[1];
             entry.lGeneration = nData[2];
-            entry.eType       = EXRefEntryType::eXRefEntryType_Free;
+            entry.eType       = EXRefEntryType::Free;
             break;
         case 1:
             // normal uncompressed object
             entry.lOffset     = nData[1];
             entry.lGeneration = nData[2];
-            entry.eType       = EXRefEntryType::eXRefEntryType_InUse;
+            entry.eType       = EXRefEntryType::InUse;
             break;
         case 2:
             // object that is part of an object stream
             entry.lOffset     = nData[2]; // index in the object stream
             entry.lGeneration = nData[1]; // object number of the stream
-            entry.eType       = EXRefEntryType::eXRefEntryType_Compressed;
+            entry.eType       = EXRefEntryType::Compressed;
             break;
         default:
         {
-            PODOFO_RAISE_ERROR( ePdfError_InvalidXRefType );
+            PODOFO_RAISE_ERROR( EPdfError::InvalidXRefType );
         }
     }
     //printf("m_offsets = [ %i %i %c ]\n", entry.lOffset, entry.lGeneration, entry.cUsed );

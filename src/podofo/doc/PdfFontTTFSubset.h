@@ -45,6 +45,17 @@ namespace PoDoFo {
 class PdfInputDevice;
 class PdfOutputDevice;
 
+/**
+ * Internal enum specifying the type of a fontfile.
+ */
+enum class EFontFileType
+{
+    TTF,    ///< TrueType Font
+    TTC,    ///< TrueType Collection
+    OTF,    ///< OpenType Font
+    Unknown ///< Unknown
+};
+
 // This code is based heavily on code by ZhangYang 
 // (张杨.国际) <zhang_yang@founder.com>
 //
@@ -56,19 +67,9 @@ class PdfOutputDevice;
  * certain glyphs from an existing font.
  *
  */
-class PODOFO_DOC_API PdfFontTTFSubset {
- public:
-    /**
-     * Internal enum specifying the type of a fontfile.
-     */
-    enum EFontFileType {
-        eFontFileType_TTF,    ///< TrueType Font
-        eFontFileType_TTC,    ///< TrueType Collection
-        eFontFileType_OTF,    ///< OpenType Font
-        eFontFileType_Unknown ///< Unknown
-    };
-
-
+class PODOFO_DOC_API PdfFontTTFSubset
+{
+public:
     /** Create a new PdfFontTTFSubset from an existing 
      *  TTF font file.
      *

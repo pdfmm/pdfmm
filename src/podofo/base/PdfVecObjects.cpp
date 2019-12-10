@@ -159,7 +159,7 @@ size_t PdfVecObjects::GetIndex( const PdfReference & ref ) const
 
     if( it.first == it.second )
     {
-        PODOFO_RAISE_ERROR( ePdfError_NoObject );
+        PODOFO_RAISE_ERROR( EPdfError::NoObject );
     }
 
     return (it.first - this->begin());
@@ -220,7 +220,7 @@ PdfReference PdfVecObjects::GetNextFreeObject()
     while ( true )
     {
         if ( ( size_t )( nextObjectNum + 1 ) == m_nMaxReserveSize )
-            PODOFO_RAISE_ERROR_INFO( ePdfError_ValueOutOfRange , "Reached the maximum number of indirect objects");
+            PODOFO_RAISE_ERROR_INFO( EPdfError::ValueOutOfRange , "Reached the maximum number of indirect objects");
 
         // Check also if the object number it not available,
         // e.g. it reached maximum generation number (65535)
@@ -314,7 +314,7 @@ void PdfVecObjects::PushObject(PdfObject * pObj, const PdfReference & reference)
 {
     if (GetObject(reference))
     {
-        PdfError::LogMessage(eLogSeverity_Warning, "Object: %" PDF_FORMAT_INT64 " 0 R will be deleted and loaded again.\n", reference.ObjectNumber());
+        PdfError::LogMessage(ELogSeverity::Warning, "Object: %" PDF_FORMAT_INT64 " 0 R will be deleted and loaded again.\n", reference.ObjectNumber());
         delete RemoveObject(reference, false);
     }
 
@@ -397,7 +397,7 @@ void PdfVecObjects::InsertOneReferenceIntoVector( const PdfObject* pObj, TVecRef
     {
         // ignore this reference
         return;
-        //PODOFO_RAISE_ERROR( ePdfError_NoObject );
+        //PODOFO_RAISE_ERROR( EPdfError::NoObject );
     }
     
     index = (it.first - this->begin());

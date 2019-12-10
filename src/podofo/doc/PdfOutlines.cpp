@@ -160,7 +160,7 @@ void PdfOutlineItem::InsertChildInternal( PdfOutlineItem* pItem, bool bCheckPare
         }
 
         if( pRoot == pRootOfThis ) // later NULL if check skipped for performance
-            PODOFO_RAISE_ERROR( ePdfError_OutlineItemAlreadyPresent );
+            PODOFO_RAISE_ERROR( EPdfError::OutlineItemAlreadyPresent );
     }
 
     if( m_pLast )
@@ -349,7 +349,7 @@ EPdfOutlineFormat PdfOutlineItem::GetTextFormat() const
     if( this->GetObject()->GetDictionary().HasKey( "F" ) )
         return static_cast<EPdfOutlineFormat>(this->GetObject()->GetIndirectKey( "F" )->GetNumber());
 
-    return ePdfOutlineFormat_Default;
+    return EPdfOutlineFormat::Default;
 }
 
 void PdfOutlineItem::SetTextColor( double r, double g, double b )

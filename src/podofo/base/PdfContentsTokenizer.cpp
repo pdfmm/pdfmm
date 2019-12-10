@@ -50,12 +50,12 @@ PdfContentsTokenizer::PdfContentsTokenizer( PdfCanvas* pCanvas )
 {
     if( !pCanvas ) 
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     PdfObject* contents = pCanvas->GetContents();
     if (contents == nullptr)
-        PODOFO_RAISE_ERROR_INFO(ePdfError_InvalidHandle, "/Contents handle is null");
+        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "/Contents handle is null");
 
     if(contents->IsArray())
     {
@@ -90,7 +90,7 @@ PdfContentsTokenizer::PdfContentsTokenizer( PdfCanvas* pCanvas )
     }
     else
     {
-        PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Page /Contents not stream or array of streams" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDataType, "Page /Contents not stream or array of streams" );
     }
 
     if (m_lstContents.size() != 0)
@@ -169,7 +169,7 @@ bool PdfContentsTokenizer::ReadNext( EPdfContentsType& reType, const char*& rpsz
     eDataType = this->DetermineDataType( pszToken, eTokenType, rVariant );
 
     // asume we read a variant unless we discover otherwise later.
-    reType = ePdfContentsType_Variant;
+    reType = EPdfContentsType::Variant;
 
     switch( eDataType )
     {
@@ -183,7 +183,7 @@ bool PdfContentsTokenizer::ReadNext( EPdfContentsType& reType, const char*& rpsz
         case EPdfDataType::Reference:
         {
             // references are invalid in content streams
-            PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "references are invalid in content streams" );
+            PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDataType, "references are invalid in content streams" );
             break;
         }
 
@@ -207,12 +207,12 @@ bool PdfContentsTokenizer::ReadNext( EPdfContentsType& reType, const char*& rpsz
         case EPdfDataType::RawData:
         default:
             // Assume we have a keyword
-            reType     = ePdfContentsType_Keyword;
+            reType     = EPdfContentsType::Keyword;
             rpszKeyword = pszToken;
             break;
     }
     std::string idKW ("ID");
-    if ((reType == ePdfContentsType_Keyword) && (idKW.compare(rpszKeyword) == 0) )
+    if ((reType == EPdfContentsType::Keyword) && (idKW.compare(rpszKeyword) == 0) )
         m_readingInlineImgData = true;
     return true;
 }
@@ -223,7 +223,7 @@ bool PdfContentsTokenizer::ReadInlineImgData( EPdfContentsType& reType, const ch
     int64_t  counter  = 0;
     if( !m_device.Device() )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     // consume the only whitespace between ID and data
@@ -247,7 +247,7 @@ bool PdfContentsTokenizer::ReadInlineImgData( EPdfContentsType& reType, const ch
                 m_device.Device()->Seek(-2, std::ios::cur); // put back "EI" 
                 m_buffer.GetBuffer()[counter] = '\0';
                 rVariant = PdfData(m_buffer.GetBuffer(), static_cast<size_t>(counter));
-                reType = ePdfContentsType_ImageData;
+                reType = EPdfContentsType::ImageData;
                 m_readingInlineImgData = false;
                 return true;
             }

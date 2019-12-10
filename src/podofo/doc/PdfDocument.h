@@ -132,7 +132,7 @@ class PODOFO_DOC_API PdfDocument {
      *  \returns PdfObject the AcroForm dictionary
      */
     PdfAcroForm* GetAcroForm( bool bCreate = ePdfCreateObject,
-                              EPdfAcroFormDefaulAppearance eDefaultAppearance = ePdfAcroFormDefaultAppearance_BlackText12pt);
+                              EPdfAcroFormDefaulAppearance eDefaultAppearance = EPdfAcroFormDefaulAppearance::BlackText12pt);
 
     /** Get access to the pages tree.
      *  Better use the GetPage() and CreatePage() methods.
@@ -168,7 +168,7 @@ class PODOFO_DOC_API PdfDocument {
      */
     PdfFont* CreateFont( const char* pszFontName, bool bSymbolCharset = false, 
                          const PdfEncoding * const pEncoding = PdfEncodingFactory::GlobalWinAnsiEncodingInstance(), 
-                         PdfFontCache::EFontCreationFlags eFontCreationFlags = PdfFontCache::eFontCreationFlags_AutoSelectBase14,
+                         EFontCreationFlags eFontCreationFlags = EFontCreationFlags::AutoSelectBase14,
                          bool bEmbedd = true );
 
     /** Creates a PdfFont object
@@ -186,7 +186,7 @@ class PODOFO_DOC_API PdfDocument {
      */
     PdfFont* CreateFont( const char* pszFontName, bool bBold, bool bItalic, bool bSymbolCharset = false,
                          const PdfEncoding * const pEncoding = PdfEncodingFactory::GlobalWinAnsiEncodingInstance(), 
-                         PdfFontCache::EFontCreationFlags eFontCreationFlags = PdfFontCache::eFontCreationFlags_AutoSelectBase14,
+                         EFontCreationFlags eFontCreationFlags = EFontCreationFlags::AutoSelectBase14,
                          bool bEmbedd = true, const char* pszFileName = NULL );
 
 #ifdef _WIN32

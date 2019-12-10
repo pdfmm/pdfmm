@@ -47,8 +47,8 @@
 namespace PoDoFo {
 
 PdfSimpleTableModel::PdfSimpleTableModel()
-    : m_pFont( NULL ), m_eAlignment( ePdfAlignment_Left ),
-      m_eVerticalAlignment( ePdfVerticalAlignment_Center ),
+    : m_pFont( NULL ), m_eAlignment( EPdfAlignment::Left ),
+      m_eVerticalAlignment( EPdfVerticalAlignment::Center ),
       m_bWordWrap( false), m_clForeground( 1.0 ),
       m_bBackground( false ), m_clBackground( 0.0 ),
       m_ppData( NULL ), m_nCols( 0 ), m_nRows( 0 ),
@@ -58,8 +58,8 @@ PdfSimpleTableModel::PdfSimpleTableModel()
 }
 
 PdfSimpleTableModel::PdfSimpleTableModel( int nCols, int nRows )
-    : m_pFont( NULL ), m_eAlignment( ePdfAlignment_Left ),
-      m_eVerticalAlignment( ePdfVerticalAlignment_Center ),
+    : m_pFont( NULL ), m_eAlignment( EPdfAlignment::Left ),
+      m_eVerticalAlignment( EPdfVerticalAlignment::Center ),
       m_bWordWrap( false ), m_clForeground( 1.0 ),
       m_bBackground( false ), m_clBackground( 0.0 ),
       m_nCols( nCols ), m_nRows( nRows ),
@@ -68,7 +68,7 @@ PdfSimpleTableModel::PdfSimpleTableModel( int nCols, int nRows )
     m_ppData = static_cast<PdfString**>(podofo_calloc( nRows, sizeof(PdfString*) ));
     if( !m_ppData )
     {
-        PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+        PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
     }
 
     for( int i=0;i<nRows;i++ ) 
@@ -109,7 +109,7 @@ void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter, const PdfRect &
 {
     if( !pPainter ) 
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     //RG: TODO Should dCurY variable be initialised with 0? (line 257 may fall through without initialisation!)
@@ -222,13 +222,13 @@ void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter, const PdfRect &
 					switch( m_pModel->GetVerticalAlignment( i, j ) ) 
 					{
 						default:
-						case ePdfVerticalAlignment_Top:
+						case EPdfVerticalAlignment::Top:
 							dVertical = 0.0;
 							break;
-						case ePdfVerticalAlignment_Center:
+						case EPdfVerticalAlignment::Center:
 							dVertical = (pdRowHeights[j] - pFont->GetFontMetrics()->GetLineSpacing()) / 2.0;
 							break;
-						case ePdfVerticalAlignment_Bottom:
+						case EPdfVerticalAlignment::Bottom:
 							dVertical = (pdRowHeights[j] - pFont->GetFontMetrics()->GetLineSpacing());
 							break;
 					}
@@ -280,7 +280,7 @@ void PdfTable::DrawHorizontalBorders( int nRow, double dX, double dY, PdfPainter
 {
     double dCurX = 0.0;
     pPainter->Save();
-    pPainter->SetLineCapStyle( ePdfLineCapStyle_Square );
+    pPainter->SetLineCapStyle( EPdfLineCapStyle::Square );
     for( int i=0;i<m_nCols;i++ )
     {
         pPainter->SetStrokingColor( m_pModel->GetBorderColor( i, nRow ) );

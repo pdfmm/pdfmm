@@ -100,7 +100,7 @@ class PdfFilteredEncodeStream : public PdfOutputStream{
 
         if( !m_filter.get() ) 
         {
-            PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
+            PODOFO_RAISE_ERROR( EPdfError::UnsupportedFilter );
         }
 
         m_filter->BeginEncode( pOutputStream );
@@ -165,7 +165,7 @@ class PdfFilteredDecodeStream : public PdfOutputStream {
         m_filter = PdfFilterFactory::Create( eFilter );
         if( !m_filter.get() ) 
         {
-            PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
+            PODOFO_RAISE_ERROR( EPdfError::UnsupportedFilter );
         }
 
         m_filter->BeginDecode( pOutputStream, pDecodeParms );
@@ -240,7 +240,7 @@ void PdfFilter::Encode( const char* pInBuffer, size_t lInLen, char** ppOutBuffer
 {
     if( !this->CanEncode() )
     {
-        PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
+        PODOFO_RAISE_ERROR( EPdfError::UnsupportedFilter );
     }
 
     PdfMemoryOutputStream stream;
@@ -258,7 +258,7 @@ void PdfFilter::Decode( const char* pInBuffer, size_t lInLen, char** ppOutBuffer
 {
     if( !this->CanDecode() )
     {
-        PODOFO_RAISE_ERROR( ePdfError_UnsupportedFilter );
+        PODOFO_RAISE_ERROR( EPdfError::UnsupportedFilter );
     }
 
     PdfMemoryOutputStream stream;
@@ -284,30 +284,30 @@ std::unique_ptr<PdfFilter> PdfFilterFactory::Create( const EPdfFilter eFilter )
     PdfFilter* pFilter = NULL;
     switch( eFilter )
     {
-        case ePdfFilter_None:
+        case EPdfFilter::None:
             break;
 
-        case ePdfFilter_ASCIIHexDecode:
+        case EPdfFilter::ASCIIHexDecode:
             pFilter = new PdfHexFilter();
             break;
             
-        case ePdfFilter_ASCII85Decode:
+        case EPdfFilter::ASCII85Decode:
             pFilter = new PdfAscii85Filter();
             break;
             
-        case ePdfFilter_LZWDecode:
+        case EPdfFilter::LZWDecode:
             pFilter = new PdfLZWFilter();
             break;
             
-        case ePdfFilter_FlateDecode:
+        case EPdfFilter::FlateDecode:
             pFilter = new PdfFlateFilter();
             break;
             
-        case ePdfFilter_RunLengthDecode:
+        case EPdfFilter::RunLengthDecode:
             pFilter = new PdfRLEFilter();
             break;
             
-        case ePdfFilter_DCTDecode:
+        case EPdfFilter::DCTDecode:
 #ifdef PODOFO_HAVE_JPEG_LIB
             pFilter = new PdfDCTFilter();
             break;
@@ -315,7 +315,7 @@ std::unique_ptr<PdfFilter> PdfFilterFactory::Create( const EPdfFilter eFilter )
             break;
 #endif // PODOFO_HAVE_JPEG_LIB
 
-        case ePdfFilter_CCITTFaxDecode:
+        case EPdfFilter::CCITTFaxDecode:
 #ifdef PODOFO_HAVE_TIFF_LIB
             pFilter = new PdfCCITTFilter();
             break;
@@ -324,9 +324,9 @@ std::unique_ptr<PdfFilter> PdfFilterFactory::Create( const EPdfFilter eFilter )
 #endif // PODOFO_HAVE_TIFF_LIB
 
 
-        case ePdfFilter_JBIG2Decode:
-        case ePdfFilter_JPXDecode:
-        case ePdfFilter_Crypt:
+        case EPdfFilter::JBIG2Decode:
+        case EPdfFilter::JPXDecode:
+        case EPdfFilter::Crypt:
         default:
             break;
     }
@@ -399,7 +399,7 @@ EPdfFilter PdfFilterFactory::FilterNameToType( const PdfName & name, bool bSuppo
         }        
     }
 
-    PODOFO_RAISE_ERROR_INFO( ePdfError_UnsupportedFilter, name.GetName().c_str() );
+    PODOFO_RAISE_ERROR_INFO( EPdfError::UnsupportedFilter, name.GetName().c_str() );
 }
 
 const char* PdfFilterFactory::FilterTypeToName( EPdfFilter eFilter )
@@ -442,14 +442,14 @@ TVecFilters PdfFilterFactory::CreateFilterList( const PdfObject* pObject )
                 PdfObject* pFilter = pObject->GetOwner()->GetObject( (*it).GetReference() );
                 if( pFilter == NULL ) 
                 {
-                    PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Filter array contained unexpected reference" );
+                    PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDataType, "Filter array contained unexpected reference" );
                 }
 
                 filters.push_back( PdfFilterFactory::FilterNameToType( pFilter->GetName() ) );
             }
             else 
             {
-                PODOFO_RAISE_ERROR_INFO( ePdfError_InvalidDataType, "Filter array contained unexpected non-name type" );
+                PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDataType, "Filter array contained unexpected non-name type" );
 			}
                 
             ++it;

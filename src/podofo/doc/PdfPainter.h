@@ -57,11 +57,14 @@ class PdfString;
 class PdfTilingPattern;
 class PdfXObject;
 
-enum EPdfPainterFlags {
-    ePdfPainterFlags_None = 0,
-    ePdfPainterFlags_Prepend,   // NOTE: Not yet working
-    ePdfPainterFlags_NoSaveRestore
+enum class EPdfPainterFlags
+{
+    None = 0,
+    Prepend = 1,   // NOTE: Not yet working
+    NoSaveRestore = 2
 };
+
+ENABLE_BITMASK_OPERATORS(EPdfPainterFlags);
 
 /**
  * This class provides an easy to use painter object which allows you to draw on a PDF page
@@ -79,7 +82,7 @@ class PODOFO_DOC_API PdfPainter {
      *
      *  \param saveRestore do save/restore state before appending
      */
-    PdfPainter(EPdfPainterFlags flags = ePdfPainterFlags_None);
+    PdfPainter(EPdfPainterFlags flags = EPdfPainterFlags::None);
 
     virtual ~PdfPainter() noexcept(false);
 
@@ -179,7 +182,7 @@ class PODOFO_DOC_API PdfPainter {
     /** Set the stoke style for all stroking operations.
      *  \param eStyle style of the stroking operations
      *  \param pszCustom a custom stroking style which is used when
-     *                   eStyle == ePdfStrokeStyle_Custom.
+     *                   eStyle == EPdfStrokeStyle::Custom.
       *  \param inverted inverted dash style (gaps for drawn spaces),
       *                  it is ignored for None, Solid and Custom styles
       *  \param scale scale factor of the stroke style
@@ -189,13 +192,13 @@ class PODOFO_DOC_API PdfPainter {
       *                        is used only if scale is not 1.0
      *
      *  Possible values:
-     *    ePdfStrokeStyle_None
-     *    ePdfStrokeStyle_Solid
-     *    ePdfStrokeStyle_Dash
-     *    ePdfStrokeStyle_Dot
-     *    ePdfStrokeStyle_DashDot
-     *    ePdfStrokeStyle_DashDotDot
-     *    ePdfStrokeStyle_Custom
+     *    EPdfStrokeStyle::None
+     *    EPdfStrokeStyle::Solid
+     *    EPdfStrokeStyle::Dash
+     *    EPdfStrokeStyle::Dot
+     *    EPdfStrokeStyle::DashDot
+     *    EPdfStrokeStyle::DashDotDot
+     *    EPdfStrokeStyle::Custom
      *
      */
     void SetStrokeStyle( EPdfStrokeStyle eStyle, const char* pszCustom = NULL, bool inverted = false, double scale = 1.0, bool subtractJoinCap = false );
@@ -204,9 +207,9 @@ class PODOFO_DOC_API PdfPainter {
      *  \param eCapStyle the cap style. 
      *
      *  Possible values:
-     *    ePdfLineCapStyle_Butt,
-     *    ePdfLineCapStyle_Round,
-     *    ePdfLineCapStyle_Square
+     *    EPdfLineCapStyle::Butt,
+     *    EPdfLineCapStyle::Round,
+     *    EPdfLineCapStyle::Square
      */
     void SetLineCapStyle( EPdfLineCapStyle eCapStyle );
 
@@ -214,9 +217,9 @@ class PODOFO_DOC_API PdfPainter {
      *  \param eJoinStyle the join style. 
      *
      *  Possible values:
-     *    ePdfLineJoinStyle_Miter
-     *    ePdfLineJoinStyle_Round
-     *    ePdfLineJoinStyle_Bevel
+     *    EPdfLineJoinStyle::Miter
+     *    EPdfLineJoinStyle::Round
+     *    EPdfLineJoinStyle::Bevel
      */
     void SetLineJoinStyle( EPdfLineJoinStyle eJoinStyle );
 
@@ -231,19 +234,19 @@ class PODOFO_DOC_API PdfPainter {
      *  \param mode What text rendering mode to use.
      *
      *  Possible values:
-     *    ePdfTextRenderingMode_Fill (default mode)
-     *    ePdfTextRenderingMode_Stroke
-     *    ePdfTextRenderingMode_FillAndStroke
-     *    ePdfTextRenderingMode_Invisible
-     *    ePdfTextRenderingMode_FillToClipPath
-     *    ePdfTextRenderingMode_StrokeToClipPath
-     *    ePdfTextRenderingMode_FillAndStrokeToClipPath
-     *    ePdfTextRenderingMode_ToClipPath
+     *    EPdfTextRenderingMode::Fill (default mode)
+     *    EPdfTextRenderingMode::Stroke
+     *    EPdfTextRenderingMode::FillAndStroke
+     *    EPdfTextRenderingMode::Invisible
+     *    EPdfTextRenderingMode::FillToClipPath
+     *    EPdfTextRenderingMode::StrokeToClipPath
+     *    EPdfTextRenderingMode::FillAndStrokeToClipPath
+     *    EPdfTextRenderingMode::ToClipPath
      */
     void SetTextRenderingMode( EPdfTextRenderingMode mode );
 
     /** Gets current text rendering mode.
-     *  Default mode is ePdfTextRenderingMode_Fill.
+     *  Default mode is EPdfTextRenderingMode::Fill.
      */
     inline EPdfTextRenderingMode GetTextRenderingMode(void) const;
 
@@ -351,8 +354,8 @@ class PODOFO_DOC_API PdfPainter {
      *  \param bSkipSpaces whether the trailing whitespaces should be skipped, so that next line doesn't start with whitespace
      */
     void DrawMultiLineText( double dX, double dY, double dWidth, double dHeight, 
-                            const PdfString & rsText, EPdfAlignment eAlignment = ePdfAlignment_Left,
-                            EPdfVerticalAlignment eVertical = ePdfVerticalAlignment_Top, bool bClip = true, bool bSkipSpaces = true );
+                            const PdfString & rsText, EPdfAlignment eAlignment = EPdfAlignment::Left,
+                            EPdfVerticalAlignment eVertical = EPdfVerticalAlignment::Top, bool bClip = true, bool bSkipSpaces = true );
 
     /** Draw multiline text into a rectangle doing automatic wordwrapping.
      *  The current font is used and SetFont has to be called at least once
@@ -365,8 +368,8 @@ class PODOFO_DOC_API PdfPainter {
      *  \param bClip set the clipping rectangle to the given rRect, otherwise no clipping is performed
      *  \param bSkipSpaces whether the trailing whitespaces should be skipped, so that next line doesn't start with whitespace
      */
-    inline void DrawMultiLineText( const PdfRect & rRect, const PdfString & rsText, EPdfAlignment eAlignment = ePdfAlignment_Left,
-                                   EPdfVerticalAlignment eVertical = ePdfVerticalAlignment_Top, bool bClip = true, bool bSkipSpaces = true );
+    inline void DrawMultiLineText( const PdfRect & rRect, const PdfString & rsText, EPdfAlignment eAlignment = EPdfAlignment::Left,
+                                   EPdfVerticalAlignment eVertical = EPdfVerticalAlignment::Top, bool bClip = true, bool bSkipSpaces = true );
 
     /** Gets the text divided into individual lines, using the current font and clipping rectangle.
      *

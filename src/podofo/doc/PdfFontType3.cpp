@@ -58,7 +58,7 @@ PdfFontType3::PdfFontType3( PdfFontMetrics* pMetrics, const PdfEncoding* const p
 
 void PdfFontType3::EmbedFontFile( PdfObject* /*pDescriptor*/ )
 {
-    PODOFO_RAISE_ERROR( ePdfError_UnsupportedFontFormat );
+    PODOFO_RAISE_ERROR( EPdfError::UnsupportedFontFormat );
 }
 };
 

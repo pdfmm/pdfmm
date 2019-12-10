@@ -53,7 +53,7 @@ PdfOutputDevice::PdfOutputDevice( const char* pszFilename, bool bTruncate )
 
     if( !pszFilename ) 
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     std::ios_base::openmode openmode = std::fstream::binary | std::ios_base::in | std::ios_base::out;
@@ -64,7 +64,7 @@ PdfOutputDevice::PdfOutputDevice( const char* pszFilename, bool bTruncate )
     if( pStream->fail() )
     {
         delete pStream;
-        PODOFO_RAISE_ERROR_INFO( ePdfError_FileNotFound, pszFilename );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::FileNotFound, pszFilename );
     }
 
     m_pStream = pStream;
@@ -86,13 +86,13 @@ PdfOutputDevice::PdfOutputDevice( const wchar_t* pszFilename, bool bTruncate )
 
     if( !pszFilename ) 
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     m_hFile = _wfopen( pszFilename, bTruncate ? L"w+b" : L"r+b" );
     if( !m_hFile )
     {
-        PdfError e( ePdfError_FileNotFound, __FILE__, __LINE__ );
+        PdfError e( EPdfError::FileNotFound, __FILE__, __LINE__ );
         e.SetErrorInformation( pszFilename );
         throw e;
     }
@@ -101,7 +101,7 @@ PdfOutputDevice::PdfOutputDevice( const wchar_t* pszFilename, bool bTruncate )
     {
         if( fseeko( m_hFile, 0, SEEK_END ) == -1 )
         {
-            PODOFO_RAISE_ERROR_INFO( ePdfError_ValueOutOfRange, "Failed to seek to the end of the file" );
+            PODOFO_RAISE_ERROR_INFO( EPdfError::ValueOutOfRange, "Failed to seek to the end of the file" );
         }
 
         m_ulPosition = ftello( m_hFile );
@@ -116,7 +116,7 @@ PdfOutputDevice::PdfOutputDevice( char* pBuffer, size_t lLen )
 
     if( !pBuffer )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     m_lBufferLen = lLen;
@@ -206,7 +206,7 @@ long PdfOutputDevice::PrintVLen( const char* pszFormat, va_list args )
 
     if( !pszFormat )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     if( m_hFile )
@@ -214,7 +214,7 @@ long PdfOutputDevice::PrintVLen( const char* pszFormat, va_list args )
         if( (lBytes = vfprintf( m_hFile, pszFormat, args )) < 0 )
         {
             perror( NULL );
-            PODOFO_RAISE_ERROR( ePdfError_UnexpectedEOF );
+            PODOFO_RAISE_ERROR( EPdfError::UnexpectedEOF );
         }
     }
     else
@@ -233,7 +233,7 @@ void PdfOutputDevice::PrintV( const char* pszFormat, long lBytes, va_list args )
 {
     if( !pszFormat )
     {
-        PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     if( m_pBuffer )
@@ -244,7 +244,7 @@ void PdfOutputDevice::PrintV( const char* pszFormat, long lBytes, va_list args )
         }
         else
         {
-            PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+            PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
         }
     }
     else if( m_pStream || m_pRefCountedBuffer )
@@ -254,7 +254,7 @@ void PdfOutputDevice::PrintV( const char* pszFormat, long lBytes, va_list args )
         char* data = m_printBuffer.GetBuffer();
         if( !data )
         {
-            PODOFO_RAISE_ERROR( ePdfError_OutOfMemory );
+            PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
         }
 
         vsnprintf( data, lBytes, pszFormat, args );
@@ -294,7 +294,7 @@ size_t PdfOutputDevice::Read( char* pBuffer, size_t lLen )
 		numRead = fread( pBuffer, sizeof(char), lLen, m_hFile );
 		if(ferror(m_hFile)!=0)
         {
-            PODOFO_RAISE_ERROR( ePdfError_InvalidDeviceOperation );
+            PODOFO_RAISE_ERROR( EPdfError::InvalidDeviceOperation );
         }		
     }
     else if( m_pBuffer )
@@ -310,7 +310,7 @@ size_t PdfOutputDevice::Read( char* pBuffer, size_t lLen )
 		size_t iPos = (size_t)m_pReadStream->tellg();
 		m_pReadStream->read( pBuffer, lLen );
 		if(m_pReadStream->fail()&&!m_pReadStream->eof()) {
-			PODOFO_RAISE_ERROR( ePdfError_InvalidDeviceOperation );
+			PODOFO_RAISE_ERROR( EPdfError::InvalidDeviceOperation );
 		}
 		numRead = (size_t)m_pReadStream->tellg();
 		numRead -= iPos;
@@ -334,7 +334,7 @@ void PdfOutputDevice::Write( const char* pBuffer, size_t lLen )
     {
         if( fwrite( pBuffer, sizeof(char), lLen, m_hFile ) != static_cast<size_t>(lLen) )
         {
-            PODOFO_RAISE_ERROR( ePdfError_UnexpectedEOF );
+            PODOFO_RAISE_ERROR( EPdfError::UnexpectedEOF );
         }
     }
     else if( m_pBuffer )
@@ -345,7 +345,7 @@ void PdfOutputDevice::Write( const char* pBuffer, size_t lLen )
         }
         else
         {
-            PODOFO_RAISE_ERROR_INFO( ePdfError_OutOfMemory, "Allocated buffer to small for PdfOutputDevice. Cannot write!"  );
+            PODOFO_RAISE_ERROR_INFO( EPdfError::OutOfMemory, "Allocated buffer to small for PdfOutputDevice. Cannot write!"  );
         }
     }
     else if( m_pStream )
@@ -370,14 +370,14 @@ void PdfOutputDevice::Seek( size_t offset )
     {
         if( fseeko( m_hFile, offset, SEEK_SET ) == -1 )
         {
-            PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
+            PODOFO_RAISE_ERROR( EPdfError::ValueOutOfRange );
         }
     }
     else if( m_pBuffer )
     {
         if( offset >= m_lBufferLen )
         {
-            PODOFO_RAISE_ERROR( ePdfError_ValueOutOfRange );
+            PODOFO_RAISE_ERROR( EPdfError::ValueOutOfRange );
         }
     }
     else if( m_pStream )
@@ -400,7 +400,7 @@ void PdfOutputDevice::Flush()
     {
         if( fflush( m_hFile ) )
         {
-            PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+            PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
         }
     }
     else if( m_pStream )

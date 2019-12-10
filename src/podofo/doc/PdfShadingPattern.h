@@ -45,14 +45,15 @@ class PdfObject;
 class PdfPage;
 class PdfWriter;
 
-enum EPdfShadingPatternType {
-    ePdfShadingPatternType_FunctionBase  = 1,    
-    ePdfShadingPatternType_Axial         = 2,
-    ePdfShadingPatternType_Radial        = 3,
-    ePdfShadingPatternType_FreeForm      = 4,
-    ePdfShadingPatternType_LatticeForm   = 5,
-    ePdfShadingPatternType_CoonsPatch    = 6,
-    ePdfShadingPatternType_TensorProduct = 7
+enum class EPdfShadingPatternType
+{
+    FunctionBase  = 1,    
+    Axial         = 2,
+    Radial        = 3,
+    FreeForm      = 4,
+    LatticeForm   = 5,
+    CoonsPatch    = 6,
+    TensorProduct = 7
 };
 
 /** 

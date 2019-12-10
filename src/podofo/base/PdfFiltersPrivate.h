@@ -193,7 +193,7 @@ bool PdfHexFilter::CanDecode() const
 // -----------------------------------------------------
 EPdfFilter PdfHexFilter::GetType() const
 {
-    return ePdfFilter_ASCIIHexDecode;
+    return EPdfFilter::ASCIIHexDecode;
 }
 
 /** The Ascii85 filter.
@@ -320,7 +320,7 @@ bool PdfAscii85Filter::CanDecode() const
 // -----------------------------------------------------
 EPdfFilter PdfAscii85Filter::GetType() const
 {
-    return ePdfFilter_ASCII85Decode;
+    return EPdfFilter::ASCII85Decode;
 }
 
 /** The flate filter.
@@ -453,7 +453,7 @@ bool PdfFlateFilter::CanDecode() const
 // -----------------------------------------------------
 EPdfFilter PdfFlateFilter::GetType() const
 {
-    return ePdfFilter_FlateDecode;
+    return EPdfFilter::FlateDecode;
 }
 
 
@@ -559,7 +559,7 @@ bool PdfRLEFilter::CanDecode() const
 // -----------------------------------------------------
 EPdfFilter PdfRLEFilter::GetType() const
 {
-    return ePdfFilter_RunLengthDecode;
+    return EPdfFilter::RunLengthDecode;
 }
 
 /** The LZW filter.
@@ -708,7 +708,7 @@ bool PdfLZWFilter::CanDecode() const
 // -----------------------------------------------------
 EPdfFilter PdfLZWFilter::GetType() const
 {
-    return ePdfFilter_LZWDecode;
+    return EPdfFilter::LZWDecode;
 }
 
 
@@ -847,7 +847,7 @@ bool PdfDCTFilter::CanDecode() const
 // -----------------------------------------------------
 EPdfFilter PdfDCTFilter::GetType() const
 {
-    return ePdfFilter_DCTDecode;
+    return EPdfFilter::DCTDecode;
 }
 #endif // PODOFO_HAVE_JPEG_LIB
 
@@ -974,7 +974,7 @@ bool PdfCCITTFilter::CanDecode() const
 // -----------------------------------------------------
 EPdfFilter PdfCCITTFilter::GetType() const
 {
-    return ePdfFilter_CCITTFaxDecode;
+    return EPdfFilter::CCITTFaxDecode;
 }
 #endif // PODOFO_HAVE_TIFF_LIB
 

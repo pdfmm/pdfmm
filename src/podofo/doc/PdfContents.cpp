@@ -80,7 +80,7 @@ PdfStream & PdfContents::GetStreamForAppending()
     }
     else
     {
-        PODOFO_RAISE_ERROR(ePdfError_InvalidDataType);
+        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
     }
 
     // Create a new stream, add it to the array, return it

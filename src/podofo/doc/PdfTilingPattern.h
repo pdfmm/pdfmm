@@ -58,14 +58,14 @@ class PODOFO_DOC_API PdfTilingPattern : public PdfElement {
      *  \param fillB fill color blue component
      *  \param offsetX tile offset on X axis
      *  \param offsetY tile offset on Y axis
-     *  \param pImage image to use - can be set only if eTilingType is ePdfTilingPatternType_Image
+     *  \param pImage image to use - can be set only if eTilingType is EPdfTilingPatternType::Image
      *  \param pParent parent vector of objects
      *  
-     *  \note stroke and fill colors are ignored if eTilingType is ePdfTilingPatternType_Image
+     *  \note stroke and fill colors are ignored if eTilingType is EPdfTilingPatternType::Image
      *
      *  \note fill color is ignored if doFill is false
      *
-     *  \note pImage is ignored for all but ePdfTilingPatternType_Image eTilingType types, where it cannot be NULL
+     *  \note pImage is ignored for all but EPdfTilingPatternType::Image eTilingType types, where it cannot be NULL
      *  
      */
     PdfTilingPattern( EPdfTilingPatternType eTilingType,
@@ -88,14 +88,14 @@ class PODOFO_DOC_API PdfTilingPattern : public PdfElement {
      *  \param fillB fill color blue component
      *  \param offsetX tile offset on X axis
      *  \param offsetY tile offset on Y axis
-     *  \param pImage image to use - can be set only if eTilingType is ePdfTilingPatternType_Image
+     *  \param pImage image to use - can be set only if eTilingType is EPdfTilingPatternType::Image
      *  \param pParent parent document
      *
-     *  \note stroke and fill colors are ignored if eTilingType is ePdfTilingPatternType_Image
+     *  \note stroke and fill colors are ignored if eTilingType is EPdfTilingPatternType::Image
      *
      *  \note fill color is ignored if doFill is false
      *
-     *  \note pImage is ignored for all but ePdfTilingPatternType_Image eTilingType types, where it cannot be NULL
+     *  \note pImage is ignored for all but EPdfTilingPatternType::Image eTilingType types, where it cannot be NULL
      *  
      */
     PdfTilingPattern( EPdfTilingPatternType eTilingType,

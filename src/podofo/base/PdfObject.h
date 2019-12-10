@@ -175,7 +175,7 @@ public:
      * was encountered.
      * REMOVE-ME
      * \returns the found value, which is never null
-     * \throws PdfError(ePdfError_NoObject) .
+     * \throws PdfError(EPdfError::NoObject) .
      */
     PdfObject* MustGetIndirectKey( const PdfName & key ) const;
 

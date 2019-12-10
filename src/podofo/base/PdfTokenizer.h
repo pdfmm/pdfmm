@@ -46,11 +46,11 @@ namespace PoDoFo {
 class PdfEncrypt;
 class PdfVariant;
 
-enum EPdfTokenType {
-    ePdfTokenType_Delimiter,
-    ePdfTokenType_Token,
-
-    ePdfTokenType_Unknown = 0xFF
+enum class EPdfTokenType
+{
+    Delimiter,
+    Token,
+    Unknown = 0xFF
 };
 
 typedef std::pair<std::string,EPdfTokenType> TTokenizerPair;
