@@ -56,7 +56,7 @@ EPdfEncryptAlgorithm::RC4V2 |
 EPdfEncryptAlgorithm::AESV2 |
 EPdfEncryptAlgorithm::AESV3;
 #else // PODOFO_HAVE_LIBIDN
-int PdfEncrypt::s_nEnabledEncryptionAlgorithms =
+EPdfEncryptAlgorithm PdfEncrypt::s_nEnabledEncryptionAlgorithms =
 #ifndef PODOFO_HAVE_OPENSSL_NO_RC4
 EPdfEncryptAlgorithm::RC4V1 |
 EPdfEncryptAlgorithm::RC4V2 |
