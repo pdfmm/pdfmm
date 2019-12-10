@@ -114,7 +114,7 @@ void PdfFontType1::EmbedSubsetFont()
 	if ( !m_bIsSubsetting  ||  m_bWasEmbedded == true )
 		return;
 
-    size_t      lSize    = 0;
+    ssize_t     lSize    = 0;
     ptrdiff_t   lLength1 = 0L;
     ptrdiff_t   lLength2 = 0L;
     ptrdiff_t   lLength3 = 0L;
@@ -138,7 +138,7 @@ void PdfFontType1::EmbedSubsetFont()
     if ( m_pMetrics->GetFontDataLen() && m_pMetrics->GetFontData() ) 
     {
         pBuffer = m_pMetrics->GetFontData();
-        lSize   = m_pMetrics->GetFontDataLen();
+        lSize   = (size_t)m_pMetrics->GetFontDataLen();
     }
     else
     {
@@ -410,7 +410,7 @@ void PdfFontType1::EmbedSubsetFont()
 
 void PdfFontType1::EmbedFontFile( PdfObject* pDescriptor )
 {
-    size_t      lSize    = 0;
+    ssize_t     lSize    = 0;
     ptrdiff_t   lLength1 = 0L;
     ptrdiff_t   lLength2 = 0L;
     ptrdiff_t   lLength3 = 0L;
@@ -439,7 +439,7 @@ void PdfFontType1::EmbedFontFile( PdfObject* pDescriptor )
     if ( m_pMetrics->GetFontDataLen() && m_pMetrics->GetFontData() ) 
     {
         pBuffer = m_pMetrics->GetFontData();
-        lSize   = m_pMetrics->GetFontDataLen();
+        lSize   = (size_t)m_pMetrics->GetFontDataLen();
     }
     else
     {
@@ -528,7 +528,7 @@ void PdfFontType1::EmbedFontFile( PdfObject* pDescriptor )
 				pContents->GetDictionary().AddKey("Length2", PdfVariant(static_cast<int64_t>(lLength2)));
 				pContents->GetDictionary().AddKey("Length3", PdfVariant(static_cast<int64_t>(lLength3)));
 
-				pContents->GetOrCreateStream().Set( pBuffer, lSize - 2L );
+				pContents->GetOrCreateStream().Set( pBuffer, (size_t)(lSize - 2) );
 				if( pAllocated )
 					podofo_free( pAllocated );
 
@@ -539,7 +539,7 @@ void PdfFontType1::EmbedFontFile( PdfObject* pDescriptor )
 	}
 
 	// Parse the font data buffer to get the values for length1, length2 and length3
-	lLength1 = FindInBuffer( "eexec", pBuffer, lSize );
+	lLength1 = FindInBuffer( "eexec", pBuffer, (size_t)lSize );
 	if( lLength1 > 0 )
 		lLength1 += 6; // 6 == eexec + lf
 	else
@@ -547,7 +547,7 @@ void PdfFontType1::EmbedFontFile( PdfObject* pDescriptor )
 
 	if( lLength1 )
 	{
-		lLength2 = FindInBuffer( "cleartomark", pBuffer, lSize );
+		lLength2 = FindInBuffer( "cleartomark", pBuffer, (size_t)lSize );
 		if( lLength2 > 0 )
 			lLength2 = lSize - lLength1 - 520; // 520 == 512 + strlen(cleartomark)
 		else
@@ -557,7 +557,7 @@ void PdfFontType1::EmbedFontFile( PdfObject* pDescriptor )
 	lLength3 = lSize - lLength2 - lLength1;
     
 	// TODO: Pdf Supports only Type1 fonts with binary encrypted sections and not the hex format
-	pContents->GetOrCreateStream().Set( pBuffer, lSize );
+	pContents->GetOrCreateStream().Set( pBuffer, (size_t)lSize );
     if( pAllocated )
         podofo_free( pAllocated );
 

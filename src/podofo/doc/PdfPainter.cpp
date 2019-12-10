@@ -658,7 +658,7 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText )
     this->DrawText( dX, dY, sText, static_cast<long>(sText.GetCharacterLength()) );
 }
 
-void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, long lStringLen )
+void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, size_t lStringLen )
 {
     CheckStream();
 
@@ -852,7 +852,7 @@ void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double 
         this->SetClipRect( dX, dY, dWidth, dHeight );
     }
 
-    PdfString   sString  = this->ExpandTabs( rsText, rsText.GetCharacterLength() );
+    PdfString sString = this->ExpandTabs( rsText );
 
 	std::vector<PdfString> vecLines = GetMultiLineTextAsLines( dWidth, sString, bSkipSpaces );
     double dLineGap = m_pFont->GetFontMetrics()->GetLineSpacing() - m_pFont->GetFontMetrics()->GetAscent() + m_pFont->GetFontMetrics()->GetDescent();
@@ -1804,17 +1804,17 @@ PdfString PdfPainter::ExpandTabsPrivate( const C* pszText, size_t lStringLen, un
     return str;
 }
 
-PdfString PdfPainter::ExpandTabs( const PdfString & rsString, size_t lStringLen ) const
+PdfString PdfPainter::ExpandTabs( const PdfString & rsString, ssize_t lStringLen ) const
 {
     unsigned nTabCnt  = 0;
     bool bUnicode = rsString.IsUnicode();
     const pdf_utf16be cTab     = 0x0900;
     const pdf_utf16be cSpace   = 0x2000;
 
-    if( lStringLen == -1 )
+    if( lStringLen < 0)
         lStringLen = rsString.GetCharacterLength();
 
-    if (lStringLen > rsString.GetCharacterLength())
+    if ((size_t)lStringLen > rsString.GetCharacterLength())
     {
         PdfError::DebugMessage( "Requested to expand tabs in string of %" PDF_FORMAT_INT64 " chars, while it has only %" PDF_FORMAT_INT64 "; correcting the value\n",
             static_cast<int64_t>( lStringLen ), static_cast<int64_t>( rsString.GetCharacterLength() ) );
@@ -1825,13 +1825,13 @@ PdfString PdfPainter::ExpandTabs( const PdfString & rsString, size_t lStringLen 
     // count the number of tabs in the string
     if( bUnicode ) 
     {
-        for (size_t i = 0; i < lStringLen; i++)
+        for (ssize_t i = 0; i < lStringLen; i++)
             if( rsString.GetUnicode()[i] == cTab ) 
                 ++nTabCnt;
     }
     else
     {
-        for (size_t i = 0; i < lStringLen; i++)
+        for (ssize_t i = 0; i < lStringLen; i++)
             if( rsString.GetString()[i] == '\t' )
                 ++nTabCnt;
     }

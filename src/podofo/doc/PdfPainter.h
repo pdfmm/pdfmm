@@ -335,7 +335,7 @@ class PODOFO_DOC_API PdfPainter {
      *
      *  \see SetFont()
      */
-    void DrawText( double dX, double dY, const PdfString & sText, long lLen );
+    void DrawText( double dX, double dY, const PdfString & sText, size_t lLen );
 
     /** Draw multiline text into a rectangle doing automatic wordwrapping.
      *  The current font is used and SetFont has to be called at least once
@@ -772,11 +772,11 @@ class PODOFO_DOC_API PdfPainter {
      *  using spaces.
      *
      *  \param rsString expand all tabs in this string using spaces
-     *  \param lLen use only lLen characters of rsString
+     *  \param lLen use only lLen characters of rsString. If negative use all string length
      *  \returns an expanded copy of the passed string
      *  \see SetTabWidth
      */
-    PdfString ExpandTabs( const PdfString & rsString, size_t lLen ) const;
+    PdfString ExpandTabs( const PdfString & rsString, ssize_t lLen = -1) const;
     
     template<typename C>
         PdfString ExpandTabsPrivate( const C* pszText, size_t lStringLen, unsigned nTabCnt, const C cTab, const C cSpace ) const;
