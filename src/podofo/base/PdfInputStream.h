@@ -58,7 +58,7 @@ class PODOFO_API PdfInputStream {
      *  \returns the number of bytes read, -1 if an error ocurred
      *           and zero if no more bytes are available for reading.
      */
-    virtual size_t Read( char* pBuffer, size_t lLen, size_t *pTotalLeft = 0 ) = 0;
+    virtual size_t Read( char* pBuffer, size_t lLen, size_t *pTotalLeft = nullptr ) = 0;
 
 };
 

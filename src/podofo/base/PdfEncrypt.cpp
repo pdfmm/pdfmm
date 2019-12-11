@@ -343,7 +343,7 @@ public:
      */
     size_t Decrypt( unsigned char* pBuffer, size_t lLen, size_t* pTotalLeft )
     {
-		if (pTotalLeft == 0)
+		if (pTotalLeft == nullptr)
 			PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error AES-decryption needs pTotalLeft" );
 		if( lLen % 16 != 0 )
 			PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error AES-decryption data length not a multiple of 16" );
