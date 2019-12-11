@@ -444,18 +444,7 @@ public:
     // copy constructor
     PdfEncryptSHABase(const PdfEncrypt &rhs);
     
-    PdfInputStream* CreateEncryptionInputStream( PdfInputStream* pInputStream ) = 0;
-    PdfOutputStream* CreateEncryptionOutputStream( PdfOutputStream* pOutputStream ) = 0;
-    
     void CreateEncryptionDictionary( PdfDictionary & rDictionary ) const override;
-    
-    virtual bool Authenticate( const std::string & password, const PdfString & documentId ) = 0;
-    
-    /// Encrypt a character string
-    virtual void Encrypt(const unsigned char* inStr, size_t inLen,
-                         unsigned char* outStr, size_t outLen) const = 0;
-    
-    virtual void GenerateEncryptionKey(const PdfString & documentId) = 0;
     
     /// Get the UE object value (user)
     const unsigned char* GetUEValue() const { return m_ueValue; }
@@ -466,10 +455,9 @@ public:
     /// Get the Perms object value (encrypted protection)
     const unsigned char* GetPermsValue() const { return m_permsValue; }
 
-    virtual size_t CalculateStreamOffset() const = 0;
-    
-    virtual size_t CalculateStreamLength(size_t length) const = 0;
-    
+    // NOTE: We must declare again without body otherwise the other Authenticate overload hides it
+    bool Authenticate(const std::string& password, const PdfString& documentId) override = 0;
+
     bool Authenticate(const std::string & documentID, const std::string & password,
                       const std::string & uValue, const std::string & ueValue,
                       const std::string & oValue, const std::string & oeValue,
@@ -568,19 +556,8 @@ public:
     PdfEncryptMD5Base() {};
     // copy constructor
     PdfEncryptMD5Base(const PdfEncrypt &rhs);
-    
-    virtual PdfInputStream* CreateEncryptionInputStream( PdfInputStream* pInputStream ) = 0;
-    virtual PdfOutputStream* CreateEncryptionOutputStream( PdfOutputStream* pOutputStream ) = 0;
-    
+
     void CreateEncryptionDictionary( PdfDictionary & rDictionary ) const override;
-    
-    virtual bool Authenticate( const std::string & password, const PdfString & documentId ) = 0;
-    
-    /// Encrypt a character string
-    virtual void Encrypt(const unsigned char* inStr, size_t inLen,
-                         unsigned char* outStr, size_t outLen) const = 0;
-    
-    virtual void GenerateEncryptionKey(const PdfString & documentId) = 0;
     
     /** Create a PdfString of MD5 data generated from a buffer in memory.
      *  \param pBuffer the buffer of which to calculate the MD5 sum
@@ -590,13 +567,12 @@ public:
      */
     static PdfString GetMD5String( const unsigned char* pBuffer, int nLength );
     
-    virtual size_t CalculateStreamOffset() const = 0;
-    
-    virtual size_t CalculateStreamLength(size_t length) const = 0;
-    
     /// Calculate the binary MD5 message digest of the given data
     static void GetMD5Binary(const unsigned char* data, int length, unsigned char* digest);
-    
+
+    // NOTE: We must declare again without body otherwise the other Authenticate overload hides it
+    bool Authenticate(const std::string& password, const PdfString& documentId) override = 0;
+
     bool Authenticate(const std::string & documentID, const std::string & password,
                       const std::string & uValue, const std::string & oValue,
                       EPdfPermissions pValue, int lengthValue, int rValue);
@@ -728,20 +704,21 @@ public:
     
     bool Authenticate( const std::string & password, const PdfString & documentId ) override;
     
-    /// Encrypt a character string
     void Encrypt(const unsigned char* inStr, size_t inLen,
-                 unsigned char* outStr, size_t outLen) const;
-    void Decrypt(const unsigned char* inStr, size_t inLen,
-                 unsigned char* outStr, size_t &outLen) const;
+                 unsigned char* outStr, size_t outLen) const override;
 
-	PdfInputStream* CreateEncryptionInputStream( PdfInputStream* pInputStream );
-	PdfOutputStream* CreateEncryptionOutputStream( PdfOutputStream* pOutputStream );
+    void Decrypt(const unsigned char* inStr, size_t inLen,
+                 unsigned char* outStr, size_t &outLen) const override;
+
+	PdfInputStream* CreateEncryptionInputStream(PdfInputStream* pInputStream) override;
     
-    void GenerateEncryptionKey(const PdfString & documentId);
+	PdfOutputStream* CreateEncryptionOutputStream(PdfOutputStream* pOutputStream) override;
     
-    size_t CalculateStreamOffset() const;
+    void GenerateEncryptionKey(const PdfString & documentId) override;
+
+    size_t CalculateStreamOffset() const override;
     
-    size_t CalculateStreamLength(size_t length) const;
+    size_t CalculateStreamLength(size_t length) const override;
 };
 #endif // PODOFO_HAVE_OPENSSL_NO_RC4
 }

@@ -36,7 +36,7 @@
 #include "PdfOutputDevice.h"
 #include "PdfDefinesPrivate.h"
 
-namespace PoDoFo {
+using namespace PoDoFo;
 
 PdfDictionary::PdfDictionary()
     : m_bDirty( false )
@@ -390,4 +390,55 @@ void PdfDictionary::SetOwner( PdfObject *pOwner )
     }
 }
 
-};
+const PdfObject * PdfDictionary::GetKey( const PdfName &key ) const
+{
+    return getKey(key);
+}
+
+PdfObject * PdfDictionary::GetKey( const PdfName &key )
+{
+    return getKey(key);
+}
+
+const PdfObject * PdfDictionary::FindKey( const PdfName &key ) const
+{
+    return findKey(key);
+}
+
+PdfObject * PdfDictionary::FindKey( const PdfName &key )
+{
+    return findKey(key);
+}
+
+const PdfObject* PdfDictionary::FindKeyParent( const PdfName &key ) const
+{
+    return findKeyParent(key);
+}
+
+PdfObject* PdfDictionary::FindKeyParent( const PdfName &key )
+{
+    return findKeyParent(key);
+}
+
+size_t PdfDictionary::GetSize() const
+{
+    return m_mapKeys.size();
+}
+
+const PdfObject& PdfDictionary::MustGetKey( const PdfName & key ) const
+{
+    const PdfObject* obj = GetKey( key );
+    if (!obj)
+        PODOFO_RAISE_ERROR( EPdfError::NoObject );
+    return *obj;
+}
+
+void PdfDictionary::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, const PdfEncrypt* pEncrypt ) const
+{
+    this->Write( pDevice, eWriteMode, pEncrypt, PdfName::KeyNull );
+}
+
+bool PdfDictionary::operator!=( const PdfDictionary& rhs ) const
+{
+    return !(*this == rhs);
+}

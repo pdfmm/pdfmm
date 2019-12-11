@@ -165,7 +165,7 @@ class PdfHexFilter : public PdfFilter {
     /** GetType of this filter.
      *  \returns the GetType of this filter
      */
-    inline EPdfFilter GetType() const;
+    inline EPdfFilter GetType() const override;
 
  private:
     char m_cDecodedByte;

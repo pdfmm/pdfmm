@@ -124,7 +124,7 @@ class PODOFO_API PdfDictionary : public PdfOwnedDataType {
     /**
      * \see operator==
      */
-    inline bool operator!=( const PdfDictionary& rhs ) const;
+    bool operator!=( const PdfDictionary& rhs ) const;
 
     /** Removes all keys from the dictionary
      */
@@ -165,7 +165,7 @@ class PODOFO_API PdfDictionary : public PdfOwnedDataType {
      * 
      *  \returns pointer to the found value, or 0 if the key was not found.
      */
-    inline const PdfObject* GetKey( const PdfName & key ) const;
+    const PdfObject* GetKey( const PdfName & key ) const;
 
     /** Get the key's value out of the dictionary.  This is an overloaded member
      * function.
@@ -178,7 +178,7 @@ class PODOFO_API PdfDictionary : public PdfOwnedDataType {
      * 
      *  \returns the found value, or 0 if the key was not found.
      */
-    inline PdfObject* GetKey( const PdfName & key );
+    PdfObject* GetKey( const PdfName & key );
 
     /** Get the keys value out of the dictionary
      *
@@ -189,8 +189,8 @@ class PODOFO_API PdfDictionary : public PdfOwnedDataType {
      *  \param key look for the key names pszKey in the dictionary
      *  \returns pointer to the found value or 0 if the key was not found.
      */
-    inline const PdfObject* FindKey( const PdfName & key ) const;
-    inline PdfObject* FindKey( const PdfName & key );
+    const PdfObject* FindKey( const PdfName & key ) const;
+    PdfObject* FindKey( const PdfName & key );
 
     /** Get the keys value out of the dictionary
      *
@@ -202,8 +202,8 @@ class PODOFO_API PdfDictionary : public PdfOwnedDataType {
      *  \param key look for the key names pszKey in the dictionary
      *  \returns pointer to the found value or 0 if the key was not found.
      */
-    inline const PdfObject* FindKeyParent( const PdfName & key ) const;
-    inline PdfObject* FindKeyParent( const PdfName & key );
+    const PdfObject* FindKeyParent( const PdfName & key ) const;
+    PdfObject* FindKeyParent( const PdfName & key );
 
     /** Get the key's value out of the dictionary.
      *
@@ -218,7 +218,7 @@ class PODOFO_API PdfDictionary : public PdfOwnedDataType {
      *  \returns reference to the found value (never 0).
      *  \throws PdfError(EPdfError::NoObject).
      */
-    inline const PdfObject& MustGetKey( const PdfName & key ) const;
+    const PdfObject& MustGetKey( const PdfName & key ) const;
 
     int64_t GetKeyAsLong( const PdfName & key, int64_t lDefault = 0 ) const;
 
@@ -255,7 +255,7 @@ class PODOFO_API PdfDictionary : public PdfOwnedDataType {
      *  \param pEncrypt an encryption object which is used to encrypt this object
      *                  or NULL to not encrypt this object
      */
-    inline void Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, const PdfEncrypt* pEncrypt = NULL ) const;
+    void Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, const PdfEncrypt* pEncrypt = NULL ) const override;
 
     /** Write the complete dictionary to a file.
      *
@@ -272,20 +272,7 @@ class PODOFO_API PdfDictionary : public PdfOwnedDataType {
     /**
     *  \returns the size of the internal map
     */
-    inline size_t GetSize() const;
-
-    /** Get access to the internal map of keys.
-     *
-     * \returns all keys of this dictionary
-     * \deprecated use begin() or end() instead for iteration
-     */
-    inline const TKeyMap & GetKeys() const;
-
-    /** Get access to the internal map of keys.
-     * \returns all keys of this dictionary
-     * \deprecated use begin() or end() instead for iteration
-     */
-    inline TKeyMap & GetKeys();
+    size_t GetSize() const;
 
     /** The dirty flag is set if this variant
      *  has been modified after construction.
@@ -316,7 +303,7 @@ class PODOFO_API PdfDictionary : public PdfOwnedDataType {
      TCIKeyMap end() const;
 
  protected:
-     void SetOwner( PdfObject* pOwner );
+     void SetOwner( PdfObject* pOwner ) override;
 
  private:
      PdfObject * getKey(const PdfName & key) const;
@@ -332,105 +319,6 @@ class PODOFO_API PdfDictionary : public PdfOwnedDataType {
 typedef std::vector<PdfDictionary*>      TVecDictionaries; 
 typedef	TVecDictionaries::iterator       TIVecDictionaries; 
 typedef	TVecDictionaries::const_iterator TCIVecDictionaries;
-
-// -----------------------------------------------------
-//
-// -----------------------------------------------------
-inline const PdfObject * PdfDictionary::GetKey( const PdfName &key ) const
-{
-    return getKey(key);
-}
-
-// -----------------------------------------------------
-//
-// -----------------------------------------------------
-inline PdfObject * PdfDictionary::GetKey( const PdfName &key )
-{
-    return getKey(key);
-}
-
-// -----------------------------------------------------
-//
-// -----------------------------------------------------
-inline const PdfObject * PdfDictionary::FindKey( const PdfName &key ) const
-{
-    return findKey(key);
-}
-
-// -----------------------------------------------------
-//
-// -----------------------------------------------------
-inline PdfObject * PdfDictionary::FindKey( const PdfName &key )
-{
-    return findKey(key);
-}
-
-// -----------------------------------------------------
-//
-// -----------------------------------------------------
-inline const PdfObject* PdfDictionary::FindKeyParent( const PdfName &key ) const
-{
-    return findKeyParent(key);
-}
-
-// -----------------------------------------------------
-//
-// -----------------------------------------------------
-inline PdfObject* PdfDictionary::FindKeyParent( const PdfName &key )
-{
-    return findKeyParent(key);
-}
-
-// -----------------------------------------------------
-//
-// -----------------------------------------------------
-size_t PdfDictionary::GetSize() const
-{
-    return m_mapKeys.size();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const TKeyMap & PdfDictionary::GetKeys() const 
-{ 
-    return m_mapKeys; 
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-TKeyMap & PdfDictionary::GetKeys() 
-{ 
-    return m_mapKeys; 
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const PdfObject& PdfDictionary::MustGetKey( const PdfName & key ) const
-{
-    const PdfObject* obj = GetKey( key );
-    if (!obj)
-        PODOFO_RAISE_ERROR( EPdfError::NoObject );
-    return *obj;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfDictionary::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, const PdfEncrypt* pEncrypt ) const 
-{ 
-    this->Write( pDevice, eWriteMode, pEncrypt, PdfName::KeyNull ); 
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfDictionary::operator!=( const PdfDictionary& rhs ) const
-{
-    return !(*this == rhs);
-}
 
 };
 

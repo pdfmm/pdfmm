@@ -266,7 +266,7 @@ class PODOFO_API PdfArray : public PdfOwnedDataType {
     void SetDirty( bool bDirty ) override;
 
  protected:
-     void SetOwner( PdfObject* pOwner );
+     void SetOwner( PdfObject* pOwner ) override;
 
  private:
     PdfObject & findAt(int idx) const;

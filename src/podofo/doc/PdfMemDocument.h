@@ -318,12 +318,12 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *  have an effect.
      *  \param eVersion  version of the pdf document
      */
-    void SetPdfVersion( EPdfVersion eVersion ) { m_eVersion = eVersion;}
+    inline void SetPdfVersion( EPdfVersion eVersion ) { m_eVersion = eVersion;}
 
     /** Get the PDF version of the document
      *  \returns EPdfVersion version of the pdf document
      */
-    EPdfVersion GetPdfVersion() const { return m_eVersion; }
+    inline EPdfVersion GetPdfVersion() const override { return m_eVersion; }
     
     /** Add a vendor-specific extension to the current PDF version.
      *  \param ns  namespace of the extension
@@ -394,13 +394,13 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
     /** 
      * \returns true if this PdfMemDocument creates an encrypted PDF file
      */
-    bool GetEncrypted() const { return (m_pEncrypt != NULL); }
+    inline bool GetEncrypted() const { return (m_pEncrypt != NULL); }
 
     /** Returns wether this PDF document is linearized, aka
      *  weboptimized
      *  \returns true if the PDF document is linearized
      */
-    bool IsLinearized() const { return m_bLinearized; }
+    inline bool IsLinearized() const override { return m_bLinearized; }
 
     /** Get access to the internal Catalog dictionary
      *  or root object.
