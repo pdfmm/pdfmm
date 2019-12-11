@@ -1157,7 +1157,7 @@ void PdfParser::ReadObjectsInternal()
                     if( !pObject )
                         PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
 
-                    const PdfReference &reference = pObject->GetIndirectReference();
+                    auto reference = pObject->GetIndirectReference();
                     if ( reference.GenerationNumber() != entry.lGeneration )
                     {
                         if ( m_bStrictParsing )
@@ -1175,17 +1175,19 @@ void PdfParser::ReadObjectsInternal()
                     pObject->SetLoadOnDemand( m_bLoadOnDemand );
                     try
                     {
-		            	pObject->ParseFile( m_pEncrypt );
-		            	if (m_pEncrypt && pObject->IsDictionary()) {
-		            		PdfObject* pObjType = pObject->GetDictionary().GetKey( PdfName::KeyType );
-		            		if( pObjType && pObjType->IsName() && pObjType->GetName() == "XRef" ) {
-		            			// XRef is never encrypted
-		            			delete pObject;
-		            			pObject = new PdfParserObject( m_vecObjects, m_device, m_buffer, entry.lOffset );
-		            			pObject->SetLoadOnDemand( m_bLoadOnDemand );
-		            			pObject->ParseFile( NULL );
-		            		}
-		            	}
+                        pObject->ParseFile( m_pEncrypt );
+                        if (m_pEncrypt && pObject->IsDictionary()) {
+                            PdfObject* pObjType = pObject->GetDictionary().GetKey( PdfName::KeyType );
+                            if( pObjType && pObjType->IsName() && pObjType->GetName() == "XRef" )
+                            {
+                                // XRef is never encrypted
+                                delete pObject;
+                                pObject = new PdfParserObject( m_vecObjects, m_device, m_buffer, entry.lOffset );
+                                reference = pObject->GetIndirectReference();
+                                pObject->SetLoadOnDemand( m_bLoadOnDemand );
+                                pObject->ParseFile( NULL );
+                            }
+                        }
                         nLast = reference.ObjectNumber();
 
                         // final pdf should not contain a linerization dictionary as it contents are invalid 
