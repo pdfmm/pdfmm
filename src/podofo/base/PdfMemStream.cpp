@@ -44,10 +44,11 @@
 
 #include <cstdlib>
 
+using namespace std;
 using namespace PoDoFo;
 
 PdfMemStream::PdfMemStream( PdfObject* pParent )
-    : PdfStream( pParent ), m_pStream( NULL ), m_pBufferStream( NULL ), m_lLength( 0 )
+    : PdfStream( pParent ), m_lLength( 0 )
 {
     if (m_pParent)
         m_pParent->GetDictionary().AddKey(PdfName::KeyLength, PdfVariant(static_cast<int64_t>(0)));
@@ -60,11 +61,11 @@ void PdfMemStream::BeginAppendImpl( const TVecFilters & vecFilters )
 
     if( vecFilters.size() )
     {
-        m_pBufferStream = new PdfBufferOutputStream( &m_buffer );
-        m_pStream       = PdfFilterFactory::CreateEncodeStream( vecFilters, m_pBufferStream );
+        m_pBufferStream = unique_ptr<PdfBufferOutputStream>(new PdfBufferOutputStream( &m_buffer ));
+        m_pStream = PdfFilterFactory::CreateEncodeStream( vecFilters, *m_pBufferStream );
     }
     else 
-        m_pStream = new PdfBufferOutputStream( &m_buffer );
+        m_pStream = unique_ptr<PdfBufferOutputStream>(new PdfBufferOutputStream( &m_buffer ));
 
 }
 
@@ -81,21 +82,19 @@ void PdfMemStream::EndAppendImpl()
 
         if( !m_pBufferStream )
         {
-            PdfBufferOutputStream* pBufferOutputStream = dynamic_cast<PdfBufferOutputStream*>(m_pStream);
+            PdfBufferOutputStream* pBufferOutputStream = dynamic_cast<PdfBufferOutputStream*>(m_pStream.get());
             if( pBufferOutputStream )
                 m_lLength = pBufferOutputStream->GetLength();
         }
 
-        delete m_pStream;
-        m_pStream = NULL;
+        m_pStream = nullptr;
     }
 
     if( m_pBufferStream ) 
     {
         m_pBufferStream->Close();
         m_lLength = m_pBufferStream->GetLength();
-        delete m_pBufferStream;
-        m_pBufferStream = NULL;
+        m_pBufferStream = nullptr;
     }
 
     if( m_pParent )

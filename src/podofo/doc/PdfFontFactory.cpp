@@ -157,7 +157,7 @@ PdfFont* PdfFontFactory::CreateFontForType( EPdfFontType eType, PdfFontMetrics* 
             case EPdfFontType::Unknown:
             case EPdfFontType::Type1Base14:
             default:
-                PdfError::LogMessage( ELogSeverity::Error, "The font format is unknown. Fontname: %s Filename: %s\n", 
+                PdfError::LogMessage( ELogSeverity::Error, "The font format is unknown. Fontname: %s Filename: %s", 
                                       (pMetrics->GetFontname() ? pMetrics->GetFontname() : "<unknown>"),
                                       (pMetrics->GetFilename() ? pMetrics->GetFilename() : "<unknown>") );
         }
@@ -177,7 +177,7 @@ PdfFont* PdfFontFactory::CreateFontForType( EPdfFontType eType, PdfFontMetrics* 
             case EPdfFontType::Unknown:
             default:
                 PdfError::LogMessage( ELogSeverity::Error, 
-                                      "The font format is unknown or no multibyte encoding defined. Fontname: %s Filename: %s\n", 
+                                      "The font format is unknown or no multibyte encoding defined. Fontname: %s Filename: %s", 
                                       (pMetrics->GetFontname() ? pMetrics->GetFontname() : "<unknown>"),
                                       (pMetrics->GetFilename() ? pMetrics->GetFilename() : "<unknown>") );
         }

@@ -42,7 +42,8 @@
 #include "PdfOutputStream.h"
 #include "PdfDefinesPrivate.h"
 
-namespace PoDoFo {
+using namespace std;
+using namespace PoDoFo;
 
 // All known filters
 static const char* aszFilters[] = {
@@ -334,13 +335,13 @@ std::unique_ptr<PdfFilter> PdfFilterFactory::Create( const EPdfFilter eFilter )
     return std::unique_ptr<PdfFilter>(pFilter);
 }
 
-PdfOutputStream* PdfFilterFactory::CreateEncodeStream( const TVecFilters & filters, PdfOutputStream* pStream ) 
+unique_ptr<PdfOutputStream> PdfFilterFactory::CreateEncodeStream(const TVecFilters& filters, PdfOutputStream & pStream)
 {
     TVecFilters::const_iterator it = filters.begin();
 
     PODOFO_RAISE_LOGIC_IF( !filters.size(), "Cannot create an EncodeStream from an empty list of filters" );
 
-    PdfFilteredEncodeStream* pFilter = new PdfFilteredEncodeStream( pStream, *it, false );
+    auto pFilter = new PdfFilteredEncodeStream( &pStream, *it, false );
     ++it;
 
     while( it != filters.end() ) 
@@ -349,10 +350,10 @@ PdfOutputStream* PdfFilterFactory::CreateEncodeStream( const TVecFilters & filte
         ++it;
     }
 
-    return pFilter;
+    return unique_ptr<PdfOutputStream>(pFilter);
 }
 
-PdfOutputStream* PdfFilterFactory::CreateDecodeStream( const TVecFilters & filters, PdfOutputStream* pStream,
+unique_ptr<PdfOutputStream> PdfFilterFactory::CreateDecodeStream( const TVecFilters & filters, PdfOutputStream & pStream,
                                                        const PdfDictionary* pDictionary ) 
 {
     TVecFilters::const_reverse_iterator it = filters.rbegin();
@@ -363,7 +364,7 @@ PdfOutputStream* PdfFilterFactory::CreateDecodeStream( const TVecFilters & filte
     if( pDictionary && pDictionary->HasKey( "DecodeParms" ) && pDictionary->GetKey( "DecodeParms" )->IsDictionary() )
         pDictionary = &(pDictionary->GetKey( "DecodeParms" )->GetDictionary());
 
-    PdfFilteredDecodeStream* pFilterStream = new PdfFilteredDecodeStream( pStream, *it, false, pDictionary );
+    PdfFilteredDecodeStream* pFilterStream = new PdfFilteredDecodeStream(&pStream, *it, false, pDictionary);
     ++it;
 
     while( it != filters.rend() ) 
@@ -372,7 +373,7 @@ PdfOutputStream* PdfFilterFactory::CreateDecodeStream( const TVecFilters & filte
         ++it;
     }
 
-    return pFilterStream;
+    return unique_ptr<PdfOutputStream>(pFilterStream);
 }
 
 EPdfFilter PdfFilterFactory::FilterNameToType( const PdfName & name, bool bSupportShortNames )
@@ -458,5 +459,3 @@ TVecFilters PdfFilterFactory::CreateFilterList( const PdfObject* pObject )
 
     return filters;
 }
-
-};

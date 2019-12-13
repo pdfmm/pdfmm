@@ -299,7 +299,7 @@ const PdfDocument & PdfDocument::Append( const PdfDocument & rDoc, bool bAppendA
         *pObj = **it;
 
         PdfError::LogMessage( ELogSeverity::Information,
-                              "Fixing references in %i %i R by %i\n", pObj->GetIndirectReference().ObjectNumber(), pObj->GetIndirectReference().GenerationNumber(), difference );
+                              "Fixing references in %i %i R by %i", pObj->GetIndirectReference().ObjectNumber(), pObj->GetIndirectReference().GenerationNumber(), difference );
         FixObjectReferences( pObj, difference );
 
         ++it;
@@ -398,7 +398,7 @@ const PdfDocument &PdfDocument::InsertExistingPageAt( const PdfDocument & rDoc, 
         *pObj = **it;
 
         PdfError::LogMessage( ELogSeverity::Information,
-                              "Fixing references in %i %i R by %i\n", pObj->GetIndirectReference().ObjectNumber(), pObj->GetIndirectReference().GenerationNumber(), difference );
+                              "Fixing references in %i %i R by %i", pObj->GetIndirectReference().ObjectNumber(), pObj->GetIndirectReference().GenerationNumber(), difference );
         FixObjectReferences( pObj, difference );
 
         ++it;

@@ -34,7 +34,7 @@
 #ifndef _PDF_CONTENTS_H_
 #define _PDF_CONTENTS_H_
 
-#include "PdfElement.h"
+#include <podofo/base/PdfCanvas.h>
 
 namespace PoDoFo {
 
@@ -59,7 +59,7 @@ public:
     /** Get access to an object into which you can add contents
      *   at the end of the "stream".
      */
-    PdfStream & GetStreamForAppending();
+    PdfStream & GetStreamForAppending(EPdfStreamAppendFlags flags);
 
 private:
     PdfPage *m_parent;

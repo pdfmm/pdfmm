@@ -250,7 +250,7 @@ class PODOFO_DOC_API PdfPage : public PdfElement, public PdfCanvas {
     void SetICCProfile( const char* pszCSTag, PdfInputStream* pStream, int64_t nColorComponents,
                                 EPdfColorSpace eAlternateColorSpace = EPdfColorSpace::DeviceRGB );
  private:
-     PdfStream & GetStreamForAppending() override;
+     PdfStream & GetStreamForAppending(EPdfStreamAppendFlags flags) override;
 
     /**
      * Initialize a new page object.
@@ -265,7 +265,7 @@ class PODOFO_DOC_API PdfPage : public PdfElement, public PdfCanvas {
      * Call this before accessing m_pContents as
      * the object is only created if needed.
      */
-    void CreateContents();
+    void EnsureContentsCreated() const;
 
     /** Get the bounds of a specified page box in PDF units.
      * This function is internal, since there are wrappers for all standard boxes

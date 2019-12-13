@@ -483,7 +483,7 @@ void PdfNamesTree::AddToDictionary( PdfObject* pObj, PdfDictionary & rDict )
             if( pChild ) 
                 this->AddToDictionary( pChild, rDict );
             else
-                PdfError::LogMessage( ELogSeverity::Debug, "Object %lu %lu is child of nametree but was not found!\n", 
+                PdfError::LogMessage( ELogSeverity::Debug, "Object %lu %lu is child of nametree but was not found!", 
                                       (*it).GetReference().ObjectNumber(), 
                                       (*it).GetReference().GenerationNumber() );
 
@@ -507,7 +507,7 @@ void PdfNamesTree::AddToDictionary( PdfObject* pObj, PdfDictionary & rDict )
             {
                 PdfError::LogMessage( ELogSeverity::Warning,
                                 "No reference in /Names array last element in "
-                                "object %lu %lu, possible\nexploit attempt!\n",
+                                "object %lu %lu, possible exploit attempt!",
                                 pObj->GetIndirectReference().ObjectNumber(),
                                 pObj->GetIndirectReference().GenerationNumber() );
                 break;

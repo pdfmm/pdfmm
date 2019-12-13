@@ -288,7 +288,7 @@ void PdfPagesTree::DeletePage( int nPageNumber )
     if( !pPageNode ) 
     {
         PdfError::LogMessage( ELogSeverity::Information,
-                              "Invalid argument to PdfPagesTree::DeletePage: %i - Page not found\n",
+                              "Invalid argument to PdfPagesTree::DeletePage: %i - Page not found",
                               nPageNumber );
         PODOFO_RAISE_ERROR( EPdfError::PageNotFound );
     }
@@ -303,7 +303,7 @@ void PdfPagesTree::DeletePage( int nPageNumber )
     else
     {
         PdfError::LogMessage( ELogSeverity::Error,
-                              "PdfPagesTree::DeletePage: Page %i has no parent - cannot be deleted.\n",
+                              "PdfPagesTree::DeletePage: Page %i has no parent - cannot be deleted.",
                               nPageNumber );
         PODOFO_RAISE_ERROR( EPdfError::PageNotFound );
     }
@@ -357,7 +357,7 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pParent,
     {
         if(!(*it).IsReference() ) 
         {
-            PdfError::LogMessage( ELogSeverity::Critical, "Requesting page index %i. Invalid datatype in kids array: %s\n", 
+            PdfError::LogMessage( ELogSeverity::Critical, "Requesting page index %i. Invalid datatype in kids array: %s", 
                                   nPageNum, (*it).GetDataTypeString()); 
             return NULL;
         }
@@ -365,7 +365,7 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pParent,
                 PdfObject* pChild = GetRoot()->GetOwner()->GetObject( (*it).GetReference() );
                 if (!pChild) 
                 {
-                    PdfError::LogMessage( ELogSeverity::Critical, "Requesting page index %i. Child not found: %s\n", 
+                    PdfError::LogMessage( ELogSeverity::Critical, "Requesting page index %i. Child not found: %s", 
                                           nPageNum, (*it).GetReference().ToString().c_str()); 
                     return NULL;
                 }
@@ -421,7 +421,7 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pParent,
 		    PdfError::LogMessage( ELogSeverity::Critical,
                                           "Requesting page index %i. "
                         "Invalid datatype referenced in kids array: %s\n"
-                        "Reference to invalid object: %i %i R\n", nPageNum,
+                        "Reference to invalid object: %i %i R", nPageNum,
                         pChild->GetDataTypeString(), nLogObjNum, nLogGenNum);
                     return NULL;
                 }
@@ -721,7 +721,7 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject,
     {
         if( nPageNum >= static_cast<int>(kidsArray.size()) )
         {
-            PdfError::LogMessage( ELogSeverity::Critical, "Requesting page index %i from array of size %i\n", nPageNum, kidsArray.size() );
+            PdfError::LogMessage( ELogSeverity::Critical, "Requesting page index %i from array of size %i", nPageNum, kidsArray.size() );
             nPageNum--;
         }
 

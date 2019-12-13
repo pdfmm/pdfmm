@@ -38,12 +38,12 @@
 
 #include "podofo/base/PdfRect.h"
 #include "podofo/base/PdfColor.h"
+#include <podofo/base/PdfCanvas.h>
 
 #include <sstream>
 
 namespace PoDoFo {
 
-class PdfCanvas;
 class PdfExtGState;
 class PdfFont;
 class PdfImage;
@@ -56,13 +56,6 @@ class PdfStream;
 class PdfString;
 class PdfTilingPattern;
 class PdfXObject;
-
-enum class EPdfPainterFlags
-{
-    None = 0,
-    Prepend = 1,   // NOTE: Not yet working
-    NoSaveRestore = 2
-};
 
 /**
  * This class provides an easy to use painter object which allows you to draw on a PDF page
@@ -80,7 +73,7 @@ class PODOFO_DOC_API PdfPainter {
      *
      *  \param saveRestore do save/restore state before appending
      */
-    PdfPainter(EPdfPainterFlags flags = EPdfPainterFlags::None);
+    PdfPainter(EPdfStreamAppendFlags flags = EPdfStreamAppendFlags::None);
 
     virtual ~PdfPainter() noexcept(false);
 
@@ -786,7 +779,7 @@ class PODOFO_DOC_API PdfPainter {
     void finishDrawing();
 
  protected:
-     EPdfPainterFlags m_flags;
+     EPdfStreamAppendFlags m_flags;
 
     /** All drawing operations work on this stream.
      *  This object may not be NULL. If it is NULL any function accessing it should
@@ -944,7 +937,5 @@ void PdfPainter::DrawMultiLineText( const PdfRect & rRect, const PdfString & rsT
 }
 
 };
-
-ENABLE_BITMASK_OPERATORS(PoDoFo::EPdfPainterFlags);
 
 #endif // _PDF_PAINTER_H_

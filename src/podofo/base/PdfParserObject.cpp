@@ -267,7 +267,7 @@ void PdfParserObject::ParseStream()
         }
 
         /*PdfError::LogMessage(ELogSeverity::Information,
-                             "Reading object %i 0 R with type: %s\n", 
+                             "Reading object %i 0 R with type: %s", 
                              pObj->Reference().ObjectNumber(), pObj->GetDataTypeString());*/
 
         if( !pObj->IsNumber() )

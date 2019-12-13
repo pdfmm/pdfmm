@@ -312,8 +312,9 @@ PdfObject * PdfXObject::GetContents() const
     return const_cast<PdfXObject &>(*this).GetObject();
 }
 
-inline PdfStream & PdfXObject::GetStreamForAppending()
+inline PdfStream & PdfXObject::GetStreamForAppending(EPdfStreamAppendFlags flags)
 {
+    (void)flags; // Flags have no use here
     return GetObject()->GetOrCreateStream();
 }
 

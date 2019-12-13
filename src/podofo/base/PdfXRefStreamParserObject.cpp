@@ -226,7 +226,7 @@ void PdfXRefStreamParserObject::ReadXRefStreamEntry( char* pBuffer, size_t, cons
         if( lW[i] > W_MAX_BYTES )
         {
             PdfError::LogMessage( ELogSeverity::Error, 
-                                  "The XRef stream dictionary has an entry in /W of size %i.\nThe maximum supported value is %i.\n", 
+                                  "The XRef stream dictionary has an entry in /W of size %i.\nThe maximum supported value is %i.", 
                                   lW[i], W_MAX_BYTES );
 
             PODOFO_RAISE_ERROR( EPdfError::InvalidXRefStream );

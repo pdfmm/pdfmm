@@ -483,7 +483,7 @@ class PODOFO_API PdfFilterFactory {
      *
      *  \see PdfFilterFactory::CreateFilterList
      */
-    static PdfOutputStream* CreateEncodeStream( const TVecFilters & filters, PdfOutputStream* pStream );
+    static std::unique_ptr<PdfOutputStream> CreateEncodeStream(const TVecFilters & filters, PdfOutputStream &pStream);
 
     /** Create a PdfOutputStream that applies a list of filters 
      *  on all data written to it.
@@ -500,8 +500,8 @@ class PODOFO_API PdfFilterFactory {
      *
      *  \see PdfFilterFactory::CreateFilterList
      */
-    static PdfOutputStream* CreateDecodeStream( const TVecFilters & filters, PdfOutputStream* pStream, 
-                                                const PdfDictionary* pDictionary = NULL );
+    static std::unique_ptr<PdfOutputStream> CreateDecodeStream(const TVecFilters & filters, PdfOutputStream &pStream,
+                                                const PdfDictionary* pDictionary = nullptr);
 
     /** Converts a filter name to the corresponding enum
      *  \param name of the filter without leading

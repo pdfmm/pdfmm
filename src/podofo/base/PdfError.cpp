@@ -162,31 +162,31 @@ void PdfError::PrintErrorMsg() const
 
     int i                = 0;
 
-    PdfError::LogErrorMessage( ELogSeverity::Error, "\n\nPoDoFo encountered an error. Error: %i %s\n", m_error, pszName ? pszName : "" );
+    PdfError::LogErrorMessage( ELogSeverity::Error, "\n\nPoDoFo encountered an error. Error: %i %s", m_error, pszName ? pszName : "" );
 
     if( pszMsg )
-        PdfError::LogErrorMessage( ELogSeverity::Error, "\tError Description: %s\n", pszMsg );
+        PdfError::LogErrorMessage( ELogSeverity::Error, "\tError Description: %s", pszMsg );
     
     if( m_callStack.size() )
-        PdfError::LogErrorMessage( ELogSeverity::Error, "\tCallstack:\n" );
+        PdfError::LogErrorMessage( ELogSeverity::Error, "\tCallstack:" );
 
     while( it != m_callStack.end() )
     {
         if( !(*it).GetFilename().empty() )
-            PdfError::LogErrorMessage( ELogSeverity::Error, "\t#%i Error Source: %s:%i\n", i, (*it).GetFilename().c_str(), (*it).GetLine() );
+            PdfError::LogErrorMessage( ELogSeverity::Error, "\t#%i Error Source: %s:%i", i, (*it).GetFilename().c_str(), (*it).GetLine() );
 
         if( !(*it).GetInformation().empty() )
-            PdfError::LogErrorMessage( ELogSeverity::Error, "\t\tInformation: %s\n", (*it).GetInformation().c_str() );
+            PdfError::LogErrorMessage( ELogSeverity::Error, "\t\tInformation: %s", (*it).GetInformation().c_str() );
 
         if( !(*it).GetInformationW().empty() )
-            PdfError::LogErrorMessage( ELogSeverity::Error, L"\t\tInformation: %s\n", (*it).GetInformationW().c_str() );
+            PdfError::LogErrorMessage( ELogSeverity::Error, L"\t\tInformation: %s", (*it).GetInformationW().c_str() );
 
         ++i;
         ++it;
     }
 
         
-    PdfError::LogErrorMessage( ELogSeverity::Error, "\n\n" );
+    PdfError::LogErrorMessage( ELogSeverity::Error, "\n" );
 }
 
 const char* PdfError::what() const
@@ -548,7 +548,7 @@ void PdfError::LogErrorMessage( ELogSeverity eLogSeverity, const char* pszMsg, .
 
 void PdfError::LogMessageInternal( ELogSeverity eLogSeverity, const char* pszMsg, va_list & args )
 {
-    const char* pszPrefix = NULL;
+    const char* pszPrefix = nullptr;
 
     switch( eLogSeverity ) 
     {
@@ -582,6 +582,8 @@ void PdfError::LogMessageInternal( ELogSeverity eLogSeverity, const char* pszMsg
         fprintf( stderr, "%s", pszPrefix );
 
     vfprintf( stderr, pszMsg, args );
+    fprintf(stderr, "\n");
+    fflush(stderr);
 }
 
 void PdfError::LogMessage( ELogSeverity eLogSeverity, const wchar_t* pszMsg, ... )

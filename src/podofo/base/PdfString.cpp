@@ -795,7 +795,7 @@ size_t PdfString::ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, size_t lLenUt
     if (pReturnBuf != pResultBuf)
     {
         free(pReturnBuf); // allocated by libunistring, so don't use podofo_free()
-        PdfError::LogMessage( ELogSeverity::Warning, "Output string size too little to hold it\n" );
+        PdfError::LogMessage( ELogSeverity::Warning, "Output string size too little to hold it" );
         return resultBufLength + 1;
     }
 

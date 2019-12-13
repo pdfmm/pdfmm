@@ -36,6 +36,8 @@
 
 #include "PdfDefines.h"
 
+#include <memory>
+
 #include "PdfStream.h"
 
 namespace PoDoFo {
@@ -150,9 +152,9 @@ private:
 
 private:
     PdfOutputDevice* m_pDevice;
-    PdfOutputStream* m_pStream;
-    PdfOutputStream* m_pDeviceStream;
-    PdfOutputStream* m_pEncryptStream;
+    std::unique_ptr<PdfOutputStream> m_pStream;
+    std::unique_ptr<PdfOutputStream> m_pDeviceStream;
+    std::unique_ptr<PdfOutputStream> m_pEncryptStream;
 
     size_t m_lLenInitial;
     size_t m_lLength;

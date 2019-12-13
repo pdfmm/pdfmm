@@ -40,7 +40,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-namespace PoDoFo {
+using namespace PoDoFo;
 
 PdfFileOutputStream::PdfFileOutputStream( const char* pszFilename )
 {
@@ -132,6 +132,13 @@ size_t PdfMemoryOutputStream::Write( const char* pBuffer, size_t lLen )
     return lLen;
 }
 
+char* PdfMemoryOutputStream::TakeBuffer()
+{
+    char* pBuffer = m_pBuffer;
+    m_pBuffer = NULL;
+    return pBuffer;
+}
+
 PdfDeviceOutputStream::PdfDeviceOutputStream( PdfOutputDevice* pDevice )
     : m_pDevice( pDevice )
 {
@@ -155,5 +162,3 @@ size_t PdfBufferOutputStream::Write( const char* pBuffer, size_t lLen )
     
     return lLen;
 }
-
-};

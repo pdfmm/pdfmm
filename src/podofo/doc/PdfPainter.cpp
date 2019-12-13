@@ -96,7 +96,7 @@ static inline bool IsSpaceChar(pdf_utf16be ch)
 	return isspace( SwapCharBytesIfRequired(ch) & 0x00FF ) != 0;
 }
 
-PdfPainter::PdfPainter(EPdfPainterFlags flags)
+PdfPainter::PdfPainter(EPdfStreamAppendFlags flags)
 : m_flags(flags), m_stream( NULL ), m_canvas( NULL ), m_pFont( NULL ),
   m_nTabWidth( 4 ), m_curColor( PdfColor( 0.0, 0.0, 0.0 ) ),
   m_isTextOpen( false ), m_oss(), m_curPath(), m_isCurColorICCDepend( false ), m_CSTag()
@@ -174,39 +174,38 @@ void PdfPainter::finishDrawing()
 {
 	if ( m_stream )
     {
-        if ((m_flags & EPdfPainterFlags::NoSaveRestore) == EPdfPainterFlags::None)
+        if ((m_flags & EPdfStreamAppendFlags::NoSaveRestore) == EPdfStreamAppendFlags::NoSaveRestore)
+        {
+            // GetLength() must be called before BeginAppend()
+            if (m_stream->GetLength() == 0)
+            {
+                m_stream->BeginAppend(false);
+            }
+            else
+            {
+                m_stream->BeginAppend(false);
+                // there is already content here - so let's assume we are appending
+                // as such, we MUST put in a "space" to separate whatever we do.
+                m_stream->Append("\n");
+            }
+        }
+        else
         {
             PdfMemoryOutputStream memstream;
             if ( m_stream->GetLength() != 0 )
                 m_stream->GetFilteredCopy( &memstream );
 
-            size_t length = (size_t)memstream.GetLength();
+            size_t length = memstream.GetLength();
             if ( length == 0 )
             {
                 m_stream->BeginAppend( false );
             }
             else
             {
-                std::shared_ptr<char> pageStreamCopy( memstream.TakeBuffer() );
                 m_stream->BeginAppend( true );
                 m_stream->Append( "q\n" );
-                m_stream->Append( pageStreamCopy.get(), length );
+                m_stream->Append(memstream.GetBuffer(), length );
                 m_stream->Append( "Q\n" );
-            }
-        }
-        else
-        {
-            // GetLength() must be called before BeginAppend()
-            if ( m_stream->GetLength() == 0 )
-            {
-                m_stream->BeginAppend( false );
-            }
-            else
-            {
-                m_stream->BeginAppend( false );
-                // there is already content here - so let's assume we are appending
-                // as such, we MUST put in a "space" to separate whatever we do.
-                m_stream->Append( "\n" );
             }
         }
 
@@ -1852,7 +1851,7 @@ void PdfPainter::CheckStream()
         return;
 
     PODOFO_RAISE_LOGIC_IF(m_canvas == nullptr, "Call SetCanvas() first before doing drawing operations.");
-    m_stream = &m_canvas->GetStreamForAppending();
+    m_stream = &m_canvas->GetStreamForAppending(m_flags);
 }
 
 } /* namespace PoDoFo */

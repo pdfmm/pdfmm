@@ -314,7 +314,7 @@ void PdfVecObjects::PushObject(PdfObject * pObj, const PdfReference & reference)
 {
     if (GetObject(reference))
     {
-        PdfError::LogMessage(ELogSeverity::Warning, "Object: %" PDF_FORMAT_INT64 " 0 R will be deleted and loaded again.\n", reference.ObjectNumber());
+        PdfError::LogMessage(ELogSeverity::Warning, "Object: %" PDF_FORMAT_INT64 " 0 R will be deleted and loaded again.", reference.ObjectNumber());
         delete RemoveObject(reference, false);
     }
 

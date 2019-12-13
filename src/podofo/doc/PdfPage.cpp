@@ -44,7 +44,7 @@
 
 #include "PdfDocument.h"
 
-namespace PoDoFo {
+using namespace PoDoFo;
 
 PdfPage::PdfPage( const PdfRect & rSize, PdfDocument* pParent )
     : PdfElement( "Page", pParent ), PdfCanvas(), m_pContents( NULL )
@@ -107,34 +107,27 @@ void PdfPage::InitNewPage( const PdfRect & rSize )
     m_pResources->GetDictionary().AddKey( "ProcSet", PdfCanvas::GetProcSet() );
 }
 
-void PdfPage::CreateContents() 
+void PdfPage::EnsureContentsCreated() const
 {
     if( !m_pContents ) 
     {
-        m_pContents = new PdfContents(*this);
-        this->GetObject()->GetDictionary().AddKey( PdfName::KeyContents, 
+        auto& page = const_cast<PdfPage&>(*this);
+        page.m_pContents = new PdfContents(page);
+        page.GetObject()->GetDictionary().AddKey( PdfName::KeyContents,
                                                    m_pContents->GetContents()->GetIndirectReference());   
     }
 }
 
 PdfObject* PdfPage::GetContents() const 
 { 
-    if( !m_pContents ) 
-    {
-        const_cast<PdfPage*>(this)->CreateContents();
-    }
-
+    EnsureContentsCreated();
     return m_pContents->GetContents(); 
 }
 
-PdfStream & PdfPage::GetStreamForAppending()
+PdfStream & PdfPage::GetStreamForAppending(EPdfStreamAppendFlags flags)
 {
-    if (!m_pContents)
-    {
-        const_cast<PdfPage*>(this)->CreateContents();
-    }
-
-    return m_pContents->GetStreamForAppending();
+    EnsureContentsCreated();
+    return m_pContents->GetStreamForAppending(flags);
 }
 
 PdfRect PdfPage::CreateStandardPageSize( const EPdfPageSize ePageSize, bool bLandscape )
@@ -652,6 +645,3 @@ void PdfPage::SetICCProfile( const char *pszCSTag, PdfInputStream *pStream, int6
     // Add the colorspace to resource
     GetResources()->GetDictionary().AddKey( PdfName("ColorSpace"), iccBasedDictionary );
 }
-
-
-};

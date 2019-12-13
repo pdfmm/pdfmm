@@ -170,7 +170,7 @@ public:
     void InitAfterPageInsertion(const PdfDocument & rDoc, int page);
     void InitResources();
     PdfObject* GetContents() const override;
-    PdfStream & GetStreamForAppending() override;
+    PdfStream & GetStreamForAppending(EPdfStreamAppendFlags flags) override;
 
  protected:
     PdfRect          m_rRect;

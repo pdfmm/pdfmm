@@ -55,7 +55,7 @@ PdfPage* PdfPagesTreeCache::GetPage( int nIndex )
     if( nIndex < 0 || nIndex >= static_cast<int>(m_deqPageObjs.size()) ) 
     {
         PdfError::LogMessage( ELogSeverity::Error,
-                              "PdfPagesTreeCache::GetPage( %i ) index out of range. Size of cache is %i\n",
+                              "PdfPagesTreeCache::GetPage( %i ) index out of range. Size of cache is %i",
                               nIndex, m_deqPageObjs.size() );
         return NULL;
     }
@@ -121,7 +121,7 @@ void PdfPagesTreeCache::DeletePage( int nIndex )
     if( nIndex < 0 || nIndex >= static_cast<int>(m_deqPageObjs.size()) ) 
     {
         PdfError::LogMessage( ELogSeverity::Error,
-                              "PdfPagesTreeCache::DeletePage( %i ) index out of range. Size of cache is %i\n",
+                              "PdfPagesTreeCache::DeletePage( %i ) index out of range. Size of cache is %i",
                               nIndex, m_deqPageObjs.size() );
         return;
     }

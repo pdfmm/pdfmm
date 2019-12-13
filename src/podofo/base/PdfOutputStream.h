@@ -157,9 +157,11 @@ class PODOFO_API PdfMemoryOutputStream : public PdfOutputStream {
      */
     void Close() override { }
 
+    inline const char * GetBuffer() const { return m_pBuffer; }
+
     /** \returns the length of the written data
      */
-    inline size_t GetLength() const;
+    inline size_t GetLength() const { return m_lLen; }
 
     /**
      *  \returns a handle to the internal buffer.
@@ -170,7 +172,7 @@ class PODOFO_API PdfMemoryOutputStream : public PdfOutputStream {
      *
      *  The caller has to free() the returned malloc()'ed buffer!
      */
-    inline char* TakeBuffer();
+    char* TakeBuffer();
 
  private:
     char* m_pBuffer;
@@ -178,24 +180,6 @@ class PODOFO_API PdfMemoryOutputStream : public PdfOutputStream {
     size_t m_lSize;
     bool m_bOwnBuffer;
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline size_t PdfMemoryOutputStream::GetLength() const
-{
-    return m_lLen;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline char* PdfMemoryOutputStream::TakeBuffer()
-{
-    char* pBuffer = m_pBuffer;
-    m_pBuffer = NULL;
-    return pBuffer;
-}
 
 /** An output stream that writes to a PdfOutputDevice
  */

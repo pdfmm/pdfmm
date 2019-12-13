@@ -600,7 +600,7 @@ void PdfParser::ReadNextTrailer()
                 if( m_visitedXRefOffsets.find( lOffset ) == m_visitedXRefOffsets.end() )
                     ReadXRefContents( lOffset );
                 else
-                    PdfError::LogMessage( ELogSeverity::Warning, "XRef contents at offset %" PDF_FORMAT_INT64 " requested twice, skipping the second read\n", static_cast<int64_t>( lOffset ));
+                    PdfError::LogMessage( ELogSeverity::Warning, "XRef contents at offset %" PDF_FORMAT_INT64 " requested twice, skipping the second read", static_cast<int64_t>( lOffset ));
             } catch( PdfError & e ) {
                 e.AddToCallstack( __FILE__, __LINE__, "Unable to load /Prev xref entries." );
                 throw e;
@@ -884,7 +884,7 @@ void PdfParser::ReadXRefSubsection( int64_t & nFirstObject, int64_t & nNumObject
     {
         PdfError::LogMessage( ELogSeverity::Error, "There are more objects (%" PDF_FORMAT_INT64
             " + %" PDF_FORMAT_INT64 " seemingly) in this XRef"
-            " table than supported by standard PDF, or it's inconsistent.\n",
+            " table than supported by standard PDF, or it's inconsistent.",
             nFirstObject, nNumObjects);
         PODOFO_RAISE_ERROR( EPdfError::InvalidXRef );
     }
@@ -950,7 +950,7 @@ void PdfParser::ReadXRefSubsection( int64_t & nFirstObject, int64_t & nNumObject
 
     if( count != nNumObjects )
     {
-        PdfError::LogMessage( ELogSeverity::Warning, "Count of readobject is %i. Expected %" PDF_FORMAT_INT64 ".\n", count, nNumObjects );
+        PdfError::LogMessage( ELogSeverity::Warning, "Count of readobject is %i. Expected %" PDF_FORMAT_INT64 ".", count, nNumObjects );
         PODOFO_RAISE_ERROR( EPdfError::NoXRef );
     }
 
@@ -1481,7 +1481,7 @@ void PdfParser::UpdateDocumentVersion()
                 if( pVersion->IsName() && pVersion->GetName().GetName() == s_szPdfVersionNums[i] )
                 {
                     PdfError::LogMessage( ELogSeverity::Information,
-                                          "Updating version from %s to %s\n", 
+                                          "Updating version from %s to %s", 
                                           s_szPdfVersionNums[static_cast<int>(m_ePdfVersion)],
                                           s_szPdfVersionNums[i] );
                     m_ePdfVersion = static_cast<EPdfVersion>(i);

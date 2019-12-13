@@ -551,7 +551,7 @@ PdfFont* PdfFontCache::GetFont( FT_Face face, bool bSymbolCharset, bool bEmbedd,
     std::string sName = FT_Get_Postscript_Name( face );
     if( sName.empty() )
     {
-        PdfError::LogMessage( ELogSeverity::Critical, "Could not retrieve fontname for font!\n" );
+        PdfError::LogMessage( ELogSeverity::Critical, "Could not retrieve fontname for font!" );
         return NULL;
     }
 
@@ -645,7 +645,7 @@ PdfFont* PdfFontCache::GetFontSubset( const char* pszFontName, bool bBold, bool 
 #if defined(_WIN32) && !defined(PODOFO_NO_FONTMANAGER)
                 return GetWin32Font( it.first, m_vecFontSubsets, pszFontName, bBold, bItalic, bSymbolCharset, true, pEncoding, true );
 #else       
-                PdfError::LogMessage( ELogSeverity::Critical, "No path was found for the specified fontname: %s\n", pszFontName );
+                PdfError::LogMessage( ELogSeverity::Critical, "No path was found for the specified fontname: %s", pszFontName );
                 return NULL;
 #endif // _WIN32
             }
@@ -862,7 +862,7 @@ PdfFont* PdfFontCache::CreateFontObject( TISortedFontList itSorted, TSortedFontL
     } catch( PdfError & e ) {
         e.AddToCallstack( __FILE__, __LINE__ );
         e.PrintErrorMsg();
-        PdfError::LogMessage( ELogSeverity::Error, "Cannot initialize font: %s\n", pszFontName ? pszFontName : "" );
+        PdfError::LogMessage( ELogSeverity::Error, "Cannot initialize font: %s", pszFontName ? pszFontName : "" );
         return NULL;
     }
     

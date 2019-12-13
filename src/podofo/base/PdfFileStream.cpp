@@ -42,11 +42,12 @@
 #include "PdfObject.h"
 #include "PdfDictionary.h"
 
+using namespace std;
 using namespace PoDoFo;
 
 PdfFileStream::PdfFileStream( PdfObject* pParent, PdfOutputDevice* pDevice )
-    : PdfStream( pParent ), m_pDevice( pDevice ), m_pStream( NULL ), m_pDeviceStream( NULL ),
-      m_pEncryptStream( NULL ), m_lLenInitial( 0 ), m_lLength( 0 ), m_pCurEncrypt( NULL )
+    : PdfStream( pParent ), m_pDevice( pDevice ),
+        m_lLenInitial( 0 ), m_lLength( 0 ), m_pCurEncrypt( nullptr )
 {
     m_pLength = pParent->GetOwner()->CreateObject( PdfVariant(static_cast<int64_t>(0)) );
     m_pParent->GetDictionary().AddKey( PdfName::KeyLength, m_pLength->GetIndirectReference() );
@@ -65,24 +66,24 @@ void PdfFileStream::BeginAppendImpl( const TVecFilters & vecFilters )
 
     if( vecFilters.size() )
     {
-        m_pDeviceStream = new PdfDeviceOutputStream( m_pDevice );
+        m_pDeviceStream = unique_ptr<PdfDeviceOutputStream>(new PdfDeviceOutputStream(m_pDevice));
         if( m_pCurEncrypt ) 
         {
-            m_pEncryptStream = m_pCurEncrypt->CreateEncryptionOutputStream( m_pDeviceStream );
-            m_pStream        = PdfFilterFactory::CreateEncodeStream( vecFilters, m_pEncryptStream );
+            m_pEncryptStream = unique_ptr<PdfOutputStream>(m_pCurEncrypt->CreateEncryptionOutputStream( m_pDeviceStream.get() ));
+            m_pStream = PdfFilterFactory::CreateEncodeStream( vecFilters, *m_pEncryptStream );
         }
         else
-            m_pStream        = PdfFilterFactory::CreateEncodeStream( vecFilters, m_pDeviceStream );
+            m_pStream = PdfFilterFactory::CreateEncodeStream( vecFilters, *m_pDeviceStream );
     }
     else 
     {
         if( m_pCurEncrypt ) 
         {
-            m_pDeviceStream = new PdfDeviceOutputStream( m_pDevice );
-            m_pStream       = m_pCurEncrypt->CreateEncryptionOutputStream( m_pDeviceStream );
+            m_pDeviceStream = unique_ptr<PdfDeviceOutputStream>(new PdfDeviceOutputStream( m_pDevice ));
+            m_pStream = unique_ptr<PdfOutputStream>(m_pCurEncrypt->CreateEncryptionOutputStream( m_pDeviceStream.get()));
         }
         else
-            m_pStream = new PdfDeviceOutputStream( m_pDevice );
+            m_pStream = unique_ptr<PdfDeviceOutputStream>(new PdfDeviceOutputStream( m_pDevice ));
     }
 }
 
@@ -96,22 +97,19 @@ void PdfFileStream::EndAppendImpl()
     if( m_pStream ) 
     {
         m_pStream->Close();
-        delete m_pStream;
-        m_pStream = NULL;
+        m_pStream = nullptr;
     }
 
     if( m_pEncryptStream ) 
     {
         m_pEncryptStream->Close();
-        delete m_pEncryptStream;
-        m_pEncryptStream = NULL;
+        m_pEncryptStream = nullptr;
     }
 
     if( m_pDeviceStream ) 
     {
         m_pDeviceStream->Close();
-        delete m_pDeviceStream;
-        m_pDeviceStream = NULL;
+        m_pDeviceStream = nullptr;
     }
 
     m_lLength = m_pDevice->GetLength() - m_lLenInitial;

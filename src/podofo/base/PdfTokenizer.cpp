@@ -567,7 +567,7 @@ void PdfTokenizer::ReadDataType( EPdfDataType eDataType, PdfVariant& rVariant, P
 
         default:
         {
-            PdfError::LogMessage( ELogSeverity::Debug, "Got Datatype: %i\n", eDataType );
+            PdfError::LogMessage( ELogSeverity::Debug, "Got Datatype: %i", eDataType );
             PODOFO_RAISE_ERROR( EPdfError::InvalidDataType );
         }
     }

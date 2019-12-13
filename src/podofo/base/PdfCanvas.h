@@ -44,6 +44,13 @@ class PdfObject;
 class PdfRect;
 class PdfColor;
 
+enum class EPdfStreamAppendFlags
+{
+    None = 0,
+    Prepend = 1,   // NOTE: Not yet working
+    NoSaveRestore = 2
+};
+
 /** A interface that provides the necessary features 
  *  for a painter to draw onto a PdfObject.
  */
@@ -66,7 +73,7 @@ class PODOFO_API PdfCanvas {
      *  drawing commands to the stream of the Contents object.
      *  \returns a contents object
      */
-    virtual PdfStream & GetStreamForAppending() = 0;
+    virtual PdfStream & GetStreamForAppending(EPdfStreamAppendFlags flags) = 0;
 
     /** Get access to the resources object of this page.
      *  This is most likely an internal object.
@@ -104,5 +111,7 @@ class PODOFO_API PdfCanvas {
 };
 
 };
+
+ENABLE_BITMASK_OPERATORS(PoDoFo::EPdfStreamAppendFlags);
 
 #endif /* _PDF_CANVAS_H_ */

@@ -61,53 +61,40 @@ PdfStream::~PdfStream() { }
 
 void PdfStream::GetFilteredCopy( PdfOutputStream* pStream ) const
 {
-    TVecFilters      vecFilters    = PdfFilterFactory::CreateFilterList( m_pParent );
+    TVecFilters vecFilters = PdfFilterFactory::CreateFilterList( m_pParent );
     if( vecFilters.size() )
     {
-        PdfOutputStream* pDecodeStream = PdfFilterFactory::CreateDecodeStream( vecFilters, pStream, 
-                                                                               m_pParent ? 
-                                                                               &(m_pParent->GetDictionary()) : NULL  );
-        try {
-            pDecodeStream->Write( const_cast<char*>(this->GetInternalBuffer()), this->GetInternalBufferSize() );
-            pDecodeStream->Close();
-        }
-        catch( PdfError & e ) 
-        {
-            delete pDecodeStream;
-            throw e;
-        }
-        delete pDecodeStream;
+        auto pDecodeStream = PdfFilterFactory::CreateDecodeStream( vecFilters, *pStream,
+            m_pParent ? &m_pParent->GetDictionary() : nullptr );
+
+        pDecodeStream->Write( const_cast<char*>(this->GetInternalBuffer()), this->GetInternalBufferSize() );
+        pDecodeStream->Close();
     }
     else
     {
-        // Also work on unencoded streams
         pStream->Write( const_cast<char*>(this->GetInternalBuffer()), this->GetInternalBufferSize() );
     }
 }
 
 void PdfStream::GetFilteredCopy( char** ppBuffer, size_t* lLen ) const
 {
-    TVecFilters            vecFilters    = PdfFilterFactory::CreateFilterList( m_pParent );
+    TVecFilters vecFilters = PdfFilterFactory::CreateFilterList( m_pParent );
     PdfMemoryOutputStream  stream;
     if( vecFilters.size() )
     {
-        // Use std::unique_ptr so that pDecodeStream is deleted 
-        // even in the case of an exception 
-        std::unique_ptr<PdfOutputStream> pDecodeStream( PdfFilterFactory::CreateDecodeStream( vecFilters, &stream, 
-                                                                                            m_pParent ? 
-                                                                                            &(m_pParent->GetDictionary()) : NULL  ) );
+        auto pDecodeStream = PdfFilterFactory::CreateDecodeStream( vecFilters, stream,
+            m_pParent ? &m_pParent->GetDictionary() : nullptr);
 
         pDecodeStream->Write( this->GetInternalBuffer(), this->GetInternalBufferSize() );
         pDecodeStream->Close();
     }
     else
     {
-        // Also work on unencoded streams
         stream.Write( const_cast<char*>(this->GetInternalBuffer()), this->GetInternalBufferSize() );
         stream.Close();
     }
 
-    *lLen     = stream.GetLength();
+    *lLen = stream.GetLength();
     *ppBuffer = stream.TakeBuffer();
 }
 

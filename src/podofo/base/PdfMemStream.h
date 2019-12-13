@@ -36,6 +36,8 @@
 
 #include "PdfDefines.h"
 
+#include <memory>
+
 #include "PdfStream.h"
 #include "PdfDictionary.h"
 #include "PdfRefCountedBuffer.h"
@@ -172,8 +174,8 @@ public:
 
  private:
     PdfRefCountedBuffer m_buffer;
-    PdfOutputStream* m_pStream;
-    PdfBufferOutputStream* m_pBufferStream;
+    std::unique_ptr<PdfOutputStream> m_pStream;
+    std::unique_ptr<PdfBufferOutputStream> m_pBufferStream;
     size_t m_lLength;
 };
 
