@@ -951,7 +951,7 @@ double PdfFontMetrics::StringWidth( const char* pszText, size_t nLength ) const
     const char* pEnd = pCurr + nLength;
     while (pCurr != pEnd)
     {
-        int width = 0;
+        double width = 0;
 
         /*
          * CMap Mapping, PDF Reference 1.7, pg. 453

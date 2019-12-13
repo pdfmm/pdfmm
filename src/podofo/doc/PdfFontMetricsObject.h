@@ -35,6 +35,9 @@
 #define _PDF_FONT_METRICS_OBJECT_H_
 
 #include "podofo/base/PdfDefines.h"
+
+#include <array>
+
 #include "podofo/base/PdfArray.h"
 #include "podofo/base/PdfName.h"
 #include "podofo/base/PdfString.h"
@@ -223,7 +226,7 @@ class PODOFO_DOC_API PdfFontMetricsObject : public PdfFontMetrics {
 
     PdfName       m_sName;
     PdfArray      m_bbox;
-    PdfArray      m_matrix;
+    std::array<double, 6> m_matrix;
     PdfArray      m_width;
     PdfObject    *m_missingWidth;
     int           m_nFirst;

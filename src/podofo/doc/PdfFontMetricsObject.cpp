@@ -51,6 +51,7 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescri
 
     const PdfName & rSubType = pFont->GetDictionary().GetKey( PdfName::KeySubtype )->GetName();
 
+    PdfObject* fontmatrix = nullptr;
     // OC 15.08.2010 BugFix: /FirstChar /LastChar /Widths are in the Font dictionary and not in the FontDescriptor
 	if ( rSubType == PdfName("Type1") || rSubType == PdfName("Type3") || rSubType == PdfName("TrueType") ) {
         if ( pDescriptor ) {
@@ -64,10 +65,10 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescri
             if (pFont->GetDictionary().HasKey( "FontBBox" ))
                 m_bbox         = pFont->GetIndirectKey( "FontBBox" )->GetArray();
         }
-        if (pFont->GetDictionary().HasKey( "FontMatrix" )) {
-            // Type3 fonts have a custom FontMatrix
-            m_matrix = pFont->GetIndirectKey( "FontMatrix" )->GetArray();
-        }
+
+        // Type3 fonts have a custom FontMatrix
+        fontmatrix = pFont->GetDictionary().FindKey( "FontMatrix" );
+
 		m_nFirst       = static_cast<int>(pFont->GetDictionary().GetKeyAsLong( "FirstChar", 0L ));
         m_nLast        = static_cast<int>(pFont->GetDictionary().GetKeyAsLong( "LastChar", 0L ));
         // OC 15.08.2010 BugFix: GetIndirectKey() instead of GetDictionary().GetKey() and "Widths" instead of "Width"
@@ -162,19 +163,21 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescri
         m_dPdfAscent   = 0.0;
         m_dPdfDescent  = 0.0;
     }
-    
-    if (m_matrix.size() == 0) {
-        // Default FontMatrix for all font types: [0.001 0 0 0.001 0 0]
-        m_matrix.push_back(0.001);
-        m_matrix.push_back(0.0);
-        m_matrix.push_back(0.0);
-        m_matrix.push_back(0.001);
-        m_matrix.push_back(0.0);
-        m_matrix.push_back(0.0);
+
+
+    if (fontmatrix == nullptr)
+    {
+        m_matrix = { 0.001, 0.0, 0.0, 0.001, 0, 0};
+    }
+    else
+    {
+        auto& fontmatrixArr = fontmatrix->GetArray();
+        for (int i = 0; i < 6; i++)
+            m_matrix[i] = fontmatrixArr[i].GetReal();
     }
     
-    m_dAscent      = m_dPdfAscent * m_matrix[3].GetReal();
-    m_dDescent     = m_dPdfDescent * m_matrix[3].GetReal();
+    m_dAscent      = m_dPdfAscent * m_matrix[3];
+    m_dDescent     = m_dPdfDescent * m_matrix[3];
     m_dLineSpacing = m_dAscent + m_dDescent;
     
     // Try to fine some sensible values
@@ -203,7 +206,7 @@ double PdfFontMetricsObject::CharWidth( unsigned char c ) const
     {
         double dWidth = m_width[c - m_nFirst].GetReal();
         
-        return (dWidth * m_matrix.front().GetReal() * this->GetFontSize() + this->GetFontCharSpace()) * this->GetFontScale() / 100.0;
+        return (dWidth * m_matrix[0] * m_fFontSize + m_fFontCharSpace) * m_fFontScale / 100.0;
 
     }
 
@@ -220,7 +223,7 @@ double PdfFontMetricsObject::UnicodeCharWidth( unsigned short c ) const
     {
         double dWidth = m_width[c - m_nFirst].GetReal();
         
-        return (dWidth * m_matrix.front().GetReal() * this->GetFontSize() + this->GetFontCharSpace()) * this->GetFontScale() / 100.0;
+        return (dWidth * m_matrix[0] * m_fFontSize + m_fFontCharSpace) * m_fFontScale / 100.0;
     }
 
     if( m_missingWidth != NULL )
@@ -237,7 +240,7 @@ void PdfFontMetricsObject::GetWidthArray( PdfVariant & var, unsigned int, unsign
 double PdfFontMetricsObject::GetGlyphWidth( int ) const
 {
     // TODO
-    return 0.0; // OC 13.08.2010 BugFix: Avoid microsoft compiler error
+    return 0.0;
 }
 
 double PdfFontMetricsObject::GetGlyphWidth( const char* ) const
@@ -249,7 +252,7 @@ double PdfFontMetricsObject::GetGlyphWidth( const char* ) const
 long PdfFontMetricsObject::GetGlyphId( long ) const
 {
     // TODO
-    return 0; // OC 13.08.2010 BugFix: Avoid microsoft compiler error
+    return 0;
 }
 
 // -----------------------------------------------------
@@ -257,7 +260,7 @@ long PdfFontMetricsObject::GetGlyphId( long ) const
 // -----------------------------------------------------
 double PdfFontMetricsObject::GetLineSpacing() const
 {
-    return m_dLineSpacing * this->GetFontSize();
+    return m_dLineSpacing * m_fFontSize;
 }
 
 // -----------------------------------------------------
@@ -265,7 +268,7 @@ double PdfFontMetricsObject::GetLineSpacing() const
 // -----------------------------------------------------
 double PdfFontMetricsObject::GetUnderlinePosition() const
 {
-    return m_dUnderlinePosition * this->GetFontSize();
+    return m_dUnderlinePosition * m_fFontSize;
 }
 
 // -----------------------------------------------------
@@ -273,7 +276,7 @@ double PdfFontMetricsObject::GetUnderlinePosition() const
 // -----------------------------------------------------
 double PdfFontMetricsObject::GetStrikeOutPosition() const
 {
-	return m_dStrikeOutPosition * this->GetFontSize();
+	return m_dStrikeOutPosition * m_fFontSize;
 }
 
 // -----------------------------------------------------
@@ -281,7 +284,7 @@ double PdfFontMetricsObject::GetStrikeOutPosition() const
 // -----------------------------------------------------
 double PdfFontMetricsObject::GetUnderlineThickness() const
 {
-    return m_dUnderlineThickness * this->GetFontSize();
+    return m_dUnderlineThickness * m_fFontSize;
 }
 
 // -----------------------------------------------------
@@ -289,7 +292,7 @@ double PdfFontMetricsObject::GetUnderlineThickness() const
 // -----------------------------------------------------
 double PdfFontMetricsObject::GetStrikeoutThickness() const
 {
-    return m_dStrikeOutThickness * this->GetFontSize();
+    return m_dStrikeOutThickness * m_fFontSize;
 }
 
 // -----------------------------------------------------
@@ -297,7 +300,7 @@ double PdfFontMetricsObject::GetStrikeoutThickness() const
 // -----------------------------------------------------
 const char* PdfFontMetricsObject::GetFontData() const
 {
-    return NULL;
+    return nullptr;
 }
 
 // -----------------------------------------------------
@@ -321,7 +324,7 @@ unsigned int PdfFontMetricsObject::GetWeight() const
 // -----------------------------------------------------
 double PdfFontMetricsObject::GetAscent() const
 {
-    return m_dAscent * this->GetFontSize();
+    return m_dAscent * m_fFontSize;
 }
 
 // -----------------------------------------------------
