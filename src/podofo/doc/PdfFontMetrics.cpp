@@ -50,7 +50,7 @@
 #define PODOFO_FIRST_READABLE 31
 #define PODOFO_WIDTH_CACHE_SIZE 256
 
-namespace PoDoFo {
+using namespace PoDoFo;
 
 #if defined(__APPLE_CC__) && !defined(PODOFO_HAVE_FONTCONFIG)
 #include <Carbon/Carbon.h>
@@ -926,14 +926,16 @@ std::string PdfFontMetrics::GetFilenameForFont( const char* pszFontname )
 
 double PdfFontMetrics::StringWidth( const char* pszText, size_t nLength ) const
 {
-    double dWidth = 0.0;
-
     if( !pszText )
-        return dWidth;
+        return 0;
 
     if( !nLength )
         nLength = strlen( pszText );
 
+    double dWidth = 0.0;
+
+    /*
+    // REMOVE-ME: This was present before and is garbage
     const char *localText = pszText;
     for (size_t i = 0; i < nLength; i++)
     {
@@ -941,6 +943,57 @@ double PdfFontMetrics::StringWidth( const char* pszText, size_t nLength ) const
         if (*localText == 0x20)
             dWidth += m_fWordSpace * (double)GetFontScale() / 100.0;
         localText++;
+    }
+    */
+    // TODO: CLEAN-ME, this sucks but it's towards the right solution!
+    // Probably PdfFontMetrics should just handle unicode values here and ligatures, *NOT* CIDs
+    const char* pCurr = pszText;
+    const char* pEnd = pCurr + nLength;
+    while (pCurr != pEnd)
+    {
+        int width = 0;
+
+        /*
+         * CMap Mapping, PDF Reference 1.7, pg. 453
+         * A sequence of one or more bytes is extracted from the string and matched against
+         * the codespace ranges in the CMap. That is, the first byte is matched against 1-byte
+         * codespace ranges; if no match is found, a second byte is extracted, and the 2-byte
+         * srcCode is matched against 2-byte codespace ranges. This process continues for successively
+         * longer codes until a match is found or all codespace ranges have been
+         * tested. There will be at most one match because codespace ranges do not overlap.
+         */
+        uint32_t code = 0;
+        unsigned i = 1;
+        for (; i <= 2 && pCurr != pEnd; i++)
+        {
+            code <<= 8;
+            code |= (uint8_t)*pCurr;
+
+            if (code == 0)
+            {
+                // REMOVE-ME: This condition is just wrong. Code 0 can be a valid CID here
+                pCurr++;
+                continue;
+            }
+
+            if (i == 1)
+                width = CharWidth((unsigned char)code);
+            else
+                width = UnicodeCharWidth((unsigned short)code);
+
+            if (width == 0)
+            {
+                pCurr++;
+                continue;
+            }
+
+            pCurr++;
+            break;
+        }
+
+        dWidth += width;
+        if (code == 0x20)
+            dWidth += m_fWordSpace * (double)GetFontScale() / 100.0;
     }
 
     return dWidth;
@@ -991,4 +1044,57 @@ EPdfFontType PdfFontMetrics::FontTypeFromFilename( const char* pszFilename )
     return eFontType;
 }
 
-};
+unsigned long PdfFontMetrics::CharWidthMM(unsigned char c) const
+{
+    return static_cast<unsigned long>(this->CharWidth(c) / PODOFO_CONVERSION_CONSTANT);
+}
+
+double PdfFontMetrics::StringWidth(const PdfString& rsString) const
+{
+    return (rsString.IsUnicode() ? this->StringWidth(rsString.GetUnicode(), rsString.GetUnicodeLength()) : this->StringWidth(rsString.GetString(), rsString.GetLength()));
+}
+
+unsigned long PdfFontMetrics::StringWidthMM(const char* pszText, size_t nLength) const
+{
+    return static_cast<unsigned long>(this->StringWidth(pszText, nLength) / PODOFO_CONVERSION_CONSTANT);
+}
+
+unsigned long PdfFontMetrics::StringWidthMM(const pdf_utf16be* pszText, size_t nLength) const
+{
+    return static_cast<unsigned long>(this->StringWidth(pszText, nLength) / PODOFO_CONVERSION_CONSTANT);
+}
+
+unsigned long PdfFontMetrics::GetLineSpacingMM() const
+{
+    return static_cast<unsigned long>(this->GetLineSpacing() / PODOFO_CONVERSION_CONSTANT);
+}
+
+long PdfFontMetrics::GetUnderlinePositionMM() const
+{
+    return static_cast<long>(this->GetUnderlinePosition() / PODOFO_CONVERSION_CONSTANT);
+}
+
+unsigned long PdfFontMetrics::GetStrikeOutPositionMM() const
+{
+    return static_cast<long>(this->GetStrikeOutPosition() / PODOFO_CONVERSION_CONSTANT);
+}
+
+unsigned long PdfFontMetrics::GetUnderlineThicknessMM() const
+{
+    return static_cast<unsigned long>(this->GetUnderlineThickness() / PODOFO_CONVERSION_CONSTANT);
+}
+
+unsigned long PdfFontMetrics::GetStrikeoutThicknessMM() const
+{
+    return static_cast<unsigned long>(this->GetStrikeoutThickness() / PODOFO_CONVERSION_CONSTANT);
+}
+
+const char* PdfFontMetrics::GetFilename() const
+{
+    return m_sFilename.c_str();
+}
+
+const char* PdfFontMetrics::GetSubsetFontnamePrefix() const
+{
+    return m_sFontSubsetPrefix.c_str();
+}
