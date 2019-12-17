@@ -38,16 +38,12 @@
 
 using namespace PoDoFo;
 
-PdfDictionary::PdfDictionary()
-    : m_bDirty( false )
-{
-}
+PdfDictionary::PdfDictionary() { }
 
 PdfDictionary::PdfDictionary( const PdfDictionary & rhs )
-    : PdfOwnedDataType()
+    : PdfContainerDataType()
 {
     this->operator=( rhs );
-    m_bDirty = false;
 }
 
 PdfDictionary::~PdfDictionary()
@@ -59,8 +55,7 @@ PdfDictionary::~PdfDictionary()
 const PdfDictionary & PdfDictionary::operator=( const PdfDictionary & rhs )
 {
     m_mapKeys = rhs.m_mapKeys;
-    PdfOwnedDataType::operator=( rhs );
-    m_bDirty = true;
+    PdfContainerDataType::operator=( rhs );
     return *this;
 }
 
@@ -101,6 +96,11 @@ bool PdfDictionary::operator==( const PdfDictionary& rhs ) const
     return true;
 }
 
+bool PdfDictionary::operator!=(const PdfDictionary& rhs) const
+{
+    return !(*this == rhs);
+}
+
 void PdfDictionary::Clear()
 {
     AssertMutable();
@@ -108,7 +108,7 @@ void PdfDictionary::Clear()
     if( !m_mapKeys.empty() )
     {
         m_mapKeys.clear();
-        m_bDirty = true;
+        SetDirty();
     }
 }
 
@@ -127,7 +127,7 @@ PdfObject & PdfDictionary::AddKey( const PdfName & identifier, const PdfObject &
     if (pOwner != nullptr)
         inserted.first->second.SetOwner(*pOwner);
 
-    m_bDirty = true;
+    SetDirty();
     return inserted.first->second;
 }
 
@@ -254,7 +254,7 @@ bool PdfDictionary::RemoveKey( const PdfName & identifier )
         return false;
 
     m_mapKeys.erase( found );
-    m_bDirty = true;
+    SetDirty();
     return true;
 }
 
@@ -320,13 +320,14 @@ void PdfDictionary::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, c
     pDevice->Print( ">>" );
 }
 
+// TODO: IsDirty in a container should be modified automatically by its children??? YES! And stop on first parent not dirty
 bool PdfDictionary::IsDirty() const
 {
     // If the dictionary itself is dirty
     // return immediately
     // otherwise check all children.
-    if( m_bDirty ) 
-        return m_bDirty;
+    if(PdfContainerDataType::IsDirty())
+        return true;
 
     TKeyMap::const_iterator it = m_mapKeys.begin();
     while( it != m_mapKeys.end() )
@@ -340,19 +341,14 @@ bool PdfDictionary::IsDirty() const
     return false;
 }
 
-void PdfDictionary::SetDirty( bool bDirty )
+void PdfDictionary::ResetDirtyInternal()
 {
-    m_bDirty = bDirty;
-
-    if( !m_bDirty )
+    // Propagate state to all sub objects
+    TKeyMap::iterator it = m_mapKeys.begin();
+    while( it != m_mapKeys.end() )
     {
-        // Propagate state to all subclasses
-        TKeyMap::iterator it = m_mapKeys.begin();
-        while( it != m_mapKeys.end() )
-        {
-            it->second.SetDirty( m_bDirty );
-            ++it;
-        }
+        it->second.SetDirty(false);
+        ++it;
     }
 }
 
@@ -378,7 +374,7 @@ TCIKeyMap PdfDictionary::end() const
 
 void PdfDictionary::SetOwner( PdfObject *pOwner )
 {
-    PdfOwnedDataType::SetOwner( pOwner );
+    PdfContainerDataType::SetOwner( pOwner );
     PdfVecObjects *pVecOwner = pOwner->GetOwner();
     if (pVecOwner != nullptr)
     {
@@ -436,9 +432,4 @@ const PdfObject& PdfDictionary::MustGetKey( const PdfName & key ) const
 void PdfDictionary::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, const PdfEncrypt* pEncrypt ) const
 {
     this->Write( pDevice, eWriteMode, pEncrypt, PdfName::KeyNull );
-}
-
-bool PdfDictionary::operator!=( const PdfDictionary& rhs ) const
-{
-    return !(*this == rhs);
 }

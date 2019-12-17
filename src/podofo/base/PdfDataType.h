@@ -47,15 +47,15 @@ class PdfOutputDevice;
  *  \see PdfName \see PdfArray \see PdfReference 
  *  \see PdfVariant \see PdfDictionary \see PdfString
  */
-class PODOFO_API PdfDataType {
-
- protected:
+class PODOFO_API PdfDataType
+{
+protected:
     /** Create a new PdfDataType.
      *  Can only be called by subclasses
      */
     PdfDataType();
 
- public:
+public:
     virtual ~PdfDataType();
 
     /** Write the complete datatype to a file.
@@ -65,91 +65,8 @@ class PODOFO_API PdfDataType {
      *                  or NULL to not encrypt this object
      */
     virtual void Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, const PdfEncrypt* pEncrypt = NULL ) const = 0;
-
-    /** The dirty flag is set if this variant
-     *  has been modified after construction.
-     *  
-     *  Usually the dirty flag is also set
-     *  if you call any non-const member function
-     *  as we cannot determine if you actually changed 
-     *  something or not.
-     *
-     *  \returns true if the value is dirty and has been 
-     *                modified since construction
-     */
-    virtual bool IsDirty() const;
-
-    /** Sets the dirty flag of this PdfVariant
-     *
-     *  \param bDirty true if this PdfVariant has been
-     *                modified from the outside
-     *
-     *  \see IsDirty
-     */
-    virtual void SetDirty( bool bDirty );
-
-    /**
-     * Sets this object to immutable,
-     * so that no keys can be edited or changed.
-     *
-     * @param bImmutable if true set the object to be immutable
-     *
-     * This is used by PdfImmediateWriter and PdfStreamedDocument so 
-     * that no keys can be added to an object after setting stream data on it.
-     *
-     */
-    inline void SetImmutable(bool bImmutable);
-
-    /**
-     * Retrieve if an object is immutable.
-     *
-     * This is used by PdfImmediateWriter and PdfStreamedDocument so 
-     * that no keys can be added to an object after setting stream data on it.
-     *
-     * @returns true if the object is immutable
-     */
-    inline bool GetImmutable() const;
-
-protected:
-    /**
-     *  Will throw an exception if called on an immutable object,
-     *  so this should be called before actually changing a value!
-     * 
-     */
-    inline void AssertMutable() const;
-
-private:
-    bool m_bImmutable;
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline void PdfDataType::SetImmutable(bool bImmutable)
-{
-    m_bImmutable = bImmutable;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline bool PdfDataType::GetImmutable() const 
-{
-    return m_bImmutable;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline void PdfDataType::AssertMutable() const
-{
-    if(m_bImmutable) 
-    {
-        PODOFO_RAISE_ERROR( EPdfError::ChangeOnImmutable );
-    }
-}
 
 }; // namespace PoDoFo
 
 #endif /* _PDF_DATATYPE_H_ */
-

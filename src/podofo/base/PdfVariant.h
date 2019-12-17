@@ -156,49 +156,49 @@ class PODOFO_API PdfVariant
      */
     const char * GetDataTypeString() const;
 
-    /** \returns true if this variant is a bool (i.e. GetDataType() == EPdfDataType::Bool)
+    /** \returns true if this variant is a bool
      */
-    inline bool IsBool() const { return GetDataType() == EPdfDataType::Bool; }
+    bool IsBool() const;
 
-    /** \returns true if this variant is a number (i.e. GetDataType() == EPdfDataType::Number)
+    /** \returns true if this variant is a number
      */
-    inline bool IsNumber() const { return GetDataType() == EPdfDataType::Number; }
+    bool IsNumber() const;
 
-    /** \returns true if this variant is a real (i.e. GetDataType() == EPdfDataType::Real)
+    /** \returns true if this variant is a real
      */
-    inline bool IsReal() const { return GetDataType() == EPdfDataType::Real; }
+    bool IsReal() const;
 
-    /** \returns true if this variant is a string (i.e. GetDataType() == EPdfDataType::String)
+    /** \returns true if this variant is a string
      */
-    inline bool IsString() const { return GetDataType() == EPdfDataType::String; }
+    bool IsString() const;
 
-    /** \returns true if this variant is a hex-string (i.e. GetDataType() == EPdfDataType::HexString)
+    /** \returns true if this variant is a hex-string
      */
-    inline bool IsHexString() const { return GetDataType() == EPdfDataType::HexString; }
+    bool IsHexString() const;
 
-    /** \returns true if this variant is a name (i.e. GetDataType() == EPdfDataType::Name)
+    /** \returns true if this variant is a name
      */
-    inline bool IsName() const { return GetDataType() == EPdfDataType::Name; }
+    bool IsName() const;
 
-    /** \returns true if this variant is an array (i.e. GetDataType() == EPdfDataType::Array)
+    /** \returns true if this variant is an array
      */
-    inline bool IsArray() const { return GetDataType() == EPdfDataType::Array; }
+    bool IsArray() const;
 
-    /** \returns true if this variant is a dictionary (i.e. GetDataType() == EPdfDataType::Dictionary)
+    /** \returns true if this variant is a dictionary
      */
-    inline bool IsDictionary() const { return GetDataType() == EPdfDataType::Dictionary; }
+    bool IsDictionary() const;
 
-    /** \returns true if this variant is raw data (i.e. GetDataType() == EPdfDataType::RawData
+    /** \returns true if this variant is raw data
      */
-    inline bool IsRawData() const { return GetDataType() == EPdfDataType::RawData; }
+    bool IsRawData() const;
 
-    /** \returns true if this variant is null (i.e. GetDataType() == EPdfDataType::Null)
+    /** \returns true if this variant is null
      */
-    inline bool IsNull() const { return GetDataType() == EPdfDataType::Null; }
+    bool IsNull() const;
 
-    /** \returns true if this variant is a reference (i.e. GetDataType() == EPdfDataType::Reference)
+    /** \returns true if this variant is a reference
      */
-    inline bool IsReference() const { return GetDataType() == EPdfDataType::Reference; }
+    bool IsReference() const;
        
     /** Write the complete variant to an output device.
      *  This is an overloaded member function.
@@ -350,8 +350,9 @@ class PODOFO_API PdfVariant
     /**
      * \see operator==
      */
-    inline bool operator!=( const PdfVariant & rhs) const;
+    bool operator!=( const PdfVariant & rhs) const;
 
+    // TODO: IsDirty in a container should be modified automatically by its children??? YES! And stop on first parent not dirty
     /** The dirty flag is set if this variant
      *  has been modified after construction.
      *  
@@ -386,7 +387,7 @@ class PODOFO_API PdfVariant
      *
      * \returns true if the object is immutable
      */
-    inline bool GetImmutable() const;
+    inline bool IsImmutable() const { return m_bImmutable; };
 
  protected:
 
@@ -424,14 +425,14 @@ class PODOFO_API PdfVariant
      *  If you want delayed loading you must ask for it. If you do so, call
      *  this method early in your ctor and be sure to override DelayedLoadImpl().
      */
-    inline void EnableDelayedLoading();
+    inline void EnableDelayedLoading() { m_bDelayedLoadDone = false; }
 
     /**
      * Returns true if delayed loading is disabled, or if it is enabled
      * and loading has completed. External callers should never need to
      * see this, it's an internal state flag only.
      */
-    inline bool DelayedLoadDone() const;
+    inline bool DelayedLoadDone() const { return m_bDelayedLoadDone; }
 
     /** Load all data of the object if delayed loading is enabled.
      *
@@ -535,26 +536,6 @@ private:
     // loading state. Use DelayedLoadDone() to test this if you need to.
     mutable bool m_bDelayedLoadDone;
 };
-
-bool PdfVariant::DelayedLoadDone() const
-{
-    return m_bDelayedLoadDone;
-}
-
-void PdfVariant::EnableDelayedLoading()
-{
-    m_bDelayedLoadDone = false;
-}
-
-bool PdfVariant::operator!=( const PdfVariant & rhs) const
-{
-    return !(*this == rhs);
-}
-
-bool PdfVariant::GetImmutable() const 
-{
-    return m_bImmutable;
-}
 
 };
 

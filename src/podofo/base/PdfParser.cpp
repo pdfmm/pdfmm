@@ -1478,7 +1478,7 @@ void PdfParser::UpdateDocumentVersion()
                     PODOFO_RAISE_ERROR( EPdfError::InvalidName );
                 }
                 
-                if( pVersion->IsName() && pVersion->GetName().GetName() == s_szPdfVersionNums[i] )
+                if( pVersion->IsName() && pVersion->GetName().GetString() == s_szPdfVersionNums[i] )
                 {
                     PdfError::LogMessage( ELogSeverity::Information,
                                           "Updating version from %s to %s", 

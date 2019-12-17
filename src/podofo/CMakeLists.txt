@@ -16,7 +16,7 @@ SET(PODOFO_BASE_SOURCES
   base/PdfContentsTokenizer.cpp
   base/PdfData.cpp
   base/PdfDataType.cpp
-  base/PdfOwnedDataType.cpp
+  base/PdfContainerDataType.cpp
   base/PdfDate.cpp
   base/PdfDictionary.cpp
   base/PdfEncoding.cpp
@@ -123,7 +123,7 @@ SET(PODOFO_BASE_HEADERS
    base/PdfContentsTokenizer.h
    base/PdfData.h
    base/PdfDataType.h
-   base/PdfOwnedDataType.h
+   base/PdfContainerDataType.h
    base/PdfDate.h
    base/PdfDefines.h
    base/PdfDefinesPrivate.h

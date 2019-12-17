@@ -172,7 +172,7 @@ void PdfTilingPattern::Init( EPdfTilingPatternType eTilingType,
           << rRect.GetHeight() << " "
           << rRect.GetLeft() << " " 
           << rRect.GetBottom() << " cm" << std::endl;
-		out << "/" << pImage->GetIdentifier().GetName() << " Do" << std::endl;
+		out << "/" << pImage->GetIdentifier().GetString() << " Do" << std::endl;
 	} else {
 		if (doFill) {
 			out << fillR << " " << fillG << " " << fillB << " rg" << " ";

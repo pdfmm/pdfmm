@@ -109,7 +109,7 @@ void PdfAcroForm::Init( EPdfAcroFormDefaulAppearance eDefaultAppearance )
         // Create DA key
         std::ostringstream oss;
         PdfLocaleImbue(oss);
-        oss << "0 0 0 rg /" << pFont->GetIdentifier().GetName() << " 12 Tf";
+        oss << "0 0 0 rg /" << pFont->GetIdentifier().GetString() << " 12 Tf";
         this->GetObject()->GetDictionary().AddKey( PdfName("DA"), PdfString( oss.str() ) );
     }
 }

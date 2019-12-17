@@ -41,18 +41,16 @@
 using namespace PoDoFo;
 
 PdfArray::PdfArray()
-    : m_bDirty( false )
 {
 }
 
 PdfArray::PdfArray( const PdfObject &var )
-    : m_bDirty( false )
 {
     this->push_back( var );
 }
 
 PdfArray::PdfArray(const PdfArray & rhs)
-    : PdfOwnedDataType( rhs ), m_bDirty( rhs.m_bDirty ), m_objects( rhs.m_objects )
+    : PdfContainerDataType(rhs), m_objects(rhs.m_objects)
 {
 }
 
@@ -83,14 +81,14 @@ void PdfArray::clear()
         return;
 
     m_objects.clear();
-    m_bDirty = true;
+    SetDirty();
 }
 
 PdfArray::iterator PdfArray::insert( const iterator &pos, const PdfObject &val )
 {
     AssertMutable();
 
-    m_bDirty = true;
+    SetDirty();
     iterator ret = m_objects.insert( pos, val );
     PdfVecObjects *pOwner = GetObjectOwner();
     if (pOwner != nullptr)
@@ -103,7 +101,7 @@ void PdfArray::erase( const iterator &pos )
     AssertMutable();
 
     m_objects.erase( pos );
-    m_bDirty = true;
+    SetDirty();
 }
 
 void PdfArray::erase( const iterator &first, const iterator &last )
@@ -111,16 +109,15 @@ void PdfArray::erase( const iterator &first, const iterator &last )
     AssertMutable();
 
     m_objects.erase( first, last );
-    m_bDirty = true;
+    SetDirty();
 }
  
 PdfArray& PdfArray::operator=( const PdfArray &rhs )
 {
     if (this != &rhs)
     {
-        m_bDirty = rhs.m_bDirty;
         m_objects = rhs.m_objects;
-        this->PdfOwnedDataType::operator=( rhs );
+        this->PdfContainerDataType::operator=( rhs );
     }
     else
     {
@@ -143,7 +140,8 @@ void PdfArray::resize(size_t count, const PdfObject &val)
             m_objects[i].SetOwner(*pOwner);
     }
 
-    m_bDirty = currentSize != count;
+    if (currentSize != count)
+        SetDirty();
 }
 
 void PdfArray::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, 
@@ -177,13 +175,14 @@ void PdfArray::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode,
     pDevice->Print( "]" );
 }
 
+// TODO: IsDirty in a container should be modified automatically by its children??? YES! And stop on first parent not dirty
 bool PdfArray::IsDirty() const
 {
     // If the array itself is dirty
     // return immediately
     // otherwise check all children.
-    if( m_bDirty )
-        return m_bDirty;
+    if( PdfContainerDataType::IsDirty() )
+        return true;
 
     PdfArray::const_iterator it(this->begin());
     while( it != this->end() )
@@ -197,25 +196,20 @@ bool PdfArray::IsDirty() const
     return false;
 }
 
-void PdfArray::SetDirty( bool bDirty )
+void PdfArray::ResetDirtyInternal()
 {
-    m_bDirty = bDirty;
-
-    if( !m_bDirty )
+    // Propagate state to all subclasses
+    PdfArray::iterator it(this->begin());
+    while( it != this->end() )
     {
-        // Propagate state to all subclasses
-        PdfArray::iterator it(this->begin());
-        while( it != this->end() )
-        {
-            (*it).SetDirty( m_bDirty );
-            ++it;
-        }
+        (*it).SetDirty(false);
+        ++it;
     }
 }
 
 void PdfArray::SetOwner( PdfObject *pOwner )
 {
-    PdfOwnedDataType::SetOwner( pOwner );
+    PdfContainerDataType::SetOwner( pOwner );
     PdfVecObjects *pVecOwner = pOwner->GetOwner();
     if ( pVecOwner != nullptr )
     {

@@ -84,7 +84,7 @@ void PdfFontSimple::Init( bool bEmbed, const PdfName & rsSubType )
 	std::string name;
 	if ( m_bIsSubsetting )
 		name = this->GetObject()->GetOwner()->GetNextSubsetPrefix();
-	name += this->GetBaseFont().GetName();
+	name += this->GetBaseFont().GetString();
 
     this->GetObject()->GetDictionary().AddKey( PdfName::KeySubtype, rsSubType );
     this->GetObject()->GetDictionary().AddKey("BaseFont", PdfName( name ) );

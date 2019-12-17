@@ -515,16 +515,24 @@ class PODOFO_API PdfDocEncoding : public PdfSimpleEncoding {
      */
     PdfDocEncoding()
         : PdfSimpleEncoding( PdfName("PdfDocEncoding") )
-    {
-
-    }
+    { }
 
 public:
-    static bool TryConvertUTF8ToPdfDocEncoding(const std::string &u8str, std::string &pdfdocencstr);
-    static std::string ConvertPdfDocEncodingToUTF8(const std::string &pdfdocencstr);
-    static void ConvertPdfDocEncodingToUTF8(const std::string &pdfdocencstr, std::string &u8str);
+    /** Check if the chars in the given utf-8 view are elegible for PdfDocEncofing conversion
+     *
+     * /param isPdfDocEncoding the given utf-8 string is coincident in PdfDocEncoding representation
+     */
+    static bool CheckValidUTF8ToPdfDocEcondingChars(const std::string_view &view, bool &isPdfDocEncodingEqual);
+    static bool IsPdfDocEncodingCoincidentToUTF8(const std::string_view& view);
+    static bool TryConvertUTF8ToPdfDocEncoding(const std::string_view& view, std::string &pdfdocencstr);
+    static std::string ConvertUTF8ToPdfDocEncoding(const std::string_view& view);
+    static std::string ConvertPdfDocEncodingToUTF8(const std::string_view& view, bool &isUTF8Equal);
+    static void ConvertPdfDocEncodingToUTF8(const std::string_view& view, std::string &u8str, bool& isUTF8Equal);
 
- protected:
+public:
+    static const std::unordered_map<uint16_t, char> & GetUTF8ToPdfEncodingMap();
+
+protected:
 
     /** Gets a table of 256 short values which are the 
      *  big endian unicode code points that are assigned
@@ -537,7 +545,7 @@ public:
      */
     const pdf_utf16be* GetToUnicodeTable() const override;
 
- private:
+private:
     static const pdf_utf16be s_cEncoding[256]; ///< conversion table from DocEncoding to UTF16
 
 };

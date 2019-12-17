@@ -1196,7 +1196,7 @@ EPdfColorSpace PdfColor::GetColorSpaceForName( const PdfName & rName )
     else
     {
         // TODO: other are not supported at the moment
-        PdfError::LogMessage( ELogSeverity::Information, "Unsupported colorspace name: %s", rName.GetName().c_str() );
+        PdfError::LogMessage( ELogSeverity::Information, "Unsupported colorspace name: %s", rName.GetString().c_str() );
     }
 
     return ePdfColorSpace;

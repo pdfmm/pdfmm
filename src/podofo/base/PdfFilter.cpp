@@ -400,7 +400,7 @@ EPdfFilter PdfFilterFactory::FilterNameToType( const PdfName & name, bool bSuppo
         }        
     }
 
-    PODOFO_RAISE_ERROR_INFO( EPdfError::UnsupportedFilter, name.GetName().c_str() );
+    PODOFO_RAISE_ERROR_INFO( EPdfError::UnsupportedFilter, name.GetString().c_str() );
 }
 
 const char* PdfFilterFactory::FilterTypeToName( EPdfFilter eFilter )

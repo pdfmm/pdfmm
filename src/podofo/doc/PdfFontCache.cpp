@@ -576,7 +576,7 @@ PdfFont* PdfFontCache::GetDuplicateFontType1( PdfFont * pFont, const char* pszSu
 {
     TCISortedFontList it = m_vecFonts.begin();
 
-    std::string id = pFont->GetIdentifier().GetName();
+    std::string id = pFont->GetIdentifier().GetString();
     id += pszSuffix;
 
     // Search if the object is a cached normal font

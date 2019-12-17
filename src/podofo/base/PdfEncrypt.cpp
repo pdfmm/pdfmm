@@ -524,7 +524,7 @@ PdfEncrypt* PdfEncrypt::CreatePdfEncrypt( const PdfObject* pObject )
         std::ostringstream oss;
         if( pObject->GetDictionary().HasKey( PdfName("Filter") ) )
         {
-            oss << "Unsupported encryption filter: " << pObject->GetDictionary().GetKey( PdfName("Filter" ) )->GetName().GetName();
+            oss << "Unsupported encryption filter: " << pObject->GetDictionary().GetKey( PdfName("Filter" ) )->GetName().GetString();
         }
         else
         {

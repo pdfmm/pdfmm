@@ -133,7 +133,7 @@ void PdfInfo::SetProducer( const PdfString & sProducer )
 
 void PdfInfo::SetTrapped(const PdfName & sTrapped)
 {
-	if((sTrapped.GetName() == "True" ) || (sTrapped.GetName() == "False" ))
+	if((sTrapped.GetString() == "True" ) || (sTrapped.GetString() == "False" ))
 		this->GetObject()->GetDictionary().AddKey( "Trapped", sTrapped );
 	else
 		this->GetObject()->GetDictionary().AddKey( "Trapped", PdfName( "Unknown" ) );

@@ -137,7 +137,6 @@ PdfVariant::PdfVariant( const PdfVariant & rhs )
 
 PdfVariant::~PdfVariant()
 {
-    m_bImmutable = false; // Destructor may change things, i.e. delete
     Clear();
 }
 
@@ -431,6 +430,12 @@ bool PdfVariant::operator==( const PdfVariant & rhs ) const
             throw e;
     }
     PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDataType, "Tried to compare unknown/raw variant" );
+}
+
+
+bool PdfVariant::operator!=(const PdfVariant& rhs) const
+{
+    return !(*this == rhs);
 }
 
 EPdfDataType PdfVariant::GetDataType() const
@@ -735,6 +740,7 @@ void PdfVariant::SetReference(const PdfReference &ref)
     SetDirty(true);
 }
 
+// TODO: IsDirty in a container should be modified automatically by its children??? YES! And stop on first parent not dirty
 bool PdfVariant::IsDirty() const
 {
     // If this is a object with
@@ -749,7 +755,7 @@ bool PdfVariant::IsDirty() const
         case EPdfDataType::Dictionary:
             // Arrays and Dictionaries
             // handle dirty status by themselfes
-            return m_Data.pData->IsDirty();
+            return static_cast<PdfContainerDataType &>(*m_Data.pData).IsDirty();
 
         case EPdfDataType::Bool:
         case EPdfDataType::Number:
@@ -779,7 +785,7 @@ void PdfVariant::SetDirty(bool bDirty)
             case EPdfDataType::Dictionary:
                 // Arrays and Dictionaries
                 // handle dirty status by themselfes
-                m_Data.pData->SetDirty(m_bDirty);
+                static_cast<PdfContainerDataType&>(*m_Data.pData).SetDirty();
 
             case EPdfDataType::Bool:
             case EPdfDataType::Number:
@@ -807,7 +813,7 @@ void PdfVariant::SetImmutable(bool bImmutable)
         case EPdfDataType::Dictionary:
             // Arrays and Dictionaries
             // handle dirty status by themselfes
-            m_Data.pData->SetImmutable(m_bImmutable);
+            static_cast<PdfContainerDataType&>(*m_Data.pData).SetImmutable(bImmutable);
 
         case EPdfDataType::Bool:
         case EPdfDataType::Number:
@@ -820,19 +826,73 @@ void PdfVariant::SetImmutable(bool bImmutable)
         case EPdfDataType::Null:
         case EPdfDataType::Unknown:
         default:
+            // Do nothing
             break;
-    };
+    }
 }
 
 void PdfVariant::AssertMutable() const
 {
-    if (m_bImmutable)
-    {
+    if (IsImmutable())
         PODOFO_RAISE_ERROR(EPdfError::ChangeOnImmutable);
-    }
 }
 
 void PdfVariant::AfterDelayedLoad()
 {
     // Do nothing
+}
+
+bool PdfVariant::IsBool() const
+{
+    return GetDataType() == EPdfDataType::Bool;
+}
+
+bool PdfVariant::IsNumber() const
+{
+    return GetDataType() == EPdfDataType::Number;
+}
+
+bool PdfVariant::IsReal() const
+{
+    return GetDataType() == EPdfDataType::Real;
+}
+
+bool PdfVariant::IsString() const
+{
+    return GetDataType() == EPdfDataType::String;
+}
+
+bool PdfVariant::IsHexString() const
+{
+    return GetDataType() == EPdfDataType::HexString;
+}
+
+bool PdfVariant::IsName() const
+{
+    return GetDataType() == EPdfDataType::Name;
+}
+
+bool PdfVariant::IsArray() const
+{
+    return GetDataType() == EPdfDataType::Array;
+}
+
+bool PdfVariant::IsDictionary() const
+{
+    return GetDataType() == EPdfDataType::Dictionary;
+}
+
+bool PdfVariant::IsRawData() const
+{
+    return GetDataType() == EPdfDataType::RawData;
+}
+
+bool PdfVariant::IsNull() const
+{
+    return GetDataType() == EPdfDataType::Null;
+}
+
+bool PdfVariant::IsReference() const
+{
+    return GetDataType() == EPdfDataType::Reference;
 }

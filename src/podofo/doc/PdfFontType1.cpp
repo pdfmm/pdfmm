@@ -76,7 +76,7 @@ PdfFontType1::PdfFontType1( PdfFontType1* pFont, PdfFontMetrics* pMetrics, const
 	  GetObject()->GetDictionary().AddKey( "BaseFont", pFont->GetObject()->GetDictionary().GetKey( "BaseFont" ) );
 
 	// set identifier
-	std::string id = pFont->GetIdentifier().GetName();
+	std::string id = pFont->GetIdentifier().GetString();
 	id += pszSuffix;
 	m_Identifier = id;
 
@@ -232,7 +232,7 @@ void PdfFontType1::EmbedSubsetFont()
 							outIndex += sprintf( reinterpret_cast<char *>( &outBuff[outIndex] ), 
 												 "dup %d /%s put\r", 
 												 i, 
-												 PdfDifferenceEncoding::UnicodeIDToName( GetEncoding()->GetCharCode(i) ).GetName().c_str() );
+												 PdfDifferenceEncoding::UnicodeIDToName( GetEncoding()->GetCharCode(i) ).GetString().c_str() );
 						}
 					}
 					dupFound = true;
@@ -312,7 +312,7 @@ void PdfFontType1::EmbedSubsetFont()
 				{
 					if ( 
 						(m_bUsed[code / 32] & (1 << (code % 32 ))) != 0	&&
-						strcmp( glyphName+1, PdfDifferenceEncoding::UnicodeIDToName( GetEncoding()->GetCharCode(code) ).GetName().c_str() ) == 0
+						strcmp( glyphName+1, PdfDifferenceEncoding::UnicodeIDToName( GetEncoding()->GetCharCode(code) ).GetString().c_str() ) == 0
                         )
 					{
 						useGlyph = true;
@@ -613,7 +613,7 @@ bool PdfFontType1::FindSeac( const unsigned char * buffer, int length )
 						{
 							// found seac command, use acquired code1 and code2 to get glyphname in standard-encoding
 							std::string name;
-							name = PdfDifferenceEncoding::UnicodeIDToName( stdEncoding->GetCharCode(code1) ).GetName().c_str();
+							name = PdfDifferenceEncoding::UnicodeIDToName( stdEncoding->GetCharCode(code1) ).GetString().c_str();
 							if ( m_sUsedGlyph.find( name ) == m_sUsedGlyph.end() )
 							{
 								// add new glyph
@@ -621,7 +621,7 @@ bool PdfFontType1::FindSeac( const unsigned char * buffer, int length )
 								foundNewGlyph = true;
 							}
 
-							name = PdfDifferenceEncoding::UnicodeIDToName( stdEncoding->GetCharCode(code2) ).GetName().c_str();
+							name = PdfDifferenceEncoding::UnicodeIDToName( stdEncoding->GetCharCode(code2) ).GetString().c_str();
 							if ( m_sUsedGlyph.find( name ) == m_sUsedGlyph.end() )
 							{
 								// add new glyph

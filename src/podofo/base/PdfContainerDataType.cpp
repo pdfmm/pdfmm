@@ -31,28 +31,36 @@
  *   files in the program, then also delete it here.                       *
  ***************************************************************************/
 
-#include "PdfOwnedDataType.h"
+#include "PdfContainerDataType.h"
+
+#include <string>
+#include <cassert>
 #include "PdfObject.h"
 #include "PdfVecObjects.h"
-#include <string>
 
 using namespace PoDoFo;
 
-PdfOwnedDataType::PdfOwnedDataType()
-    : m_pOwner( NULL )
+PdfContainerDataType::PdfContainerDataType()
+    : m_pOwner(nullptr), m_isImmutable(false), m_isDirty(false)
 {
 }
 
 // NOTE: Don't copy owner. Copied objects must be always detached.
 // Ownership will be set automatically elsewhere
-PdfOwnedDataType::PdfOwnedDataType( const PdfOwnedDataType &rhs )
-    : PdfDataType( rhs ), m_pOwner( NULL )
+PdfContainerDataType::PdfContainerDataType( const PdfContainerDataType&rhs )
+    : PdfDataType( rhs ), m_pOwner(nullptr), m_isImmutable(false), m_isDirty(false)
 {
 }
 
-PdfObject & PdfOwnedDataType::GetIndirectObject( const PdfReference &ref ) const
+void PdfContainerDataType::ResetDirty()
 {
-    if ( m_pOwner == NULL )
+    m_isDirty = false;
+    ResetDirtyInternal();
+}
+
+PdfObject & PdfContainerDataType::GetIndirectObject( const PdfReference &ref ) const
+{
+    if ( m_pOwner == nullptr)
         PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidHandle, "Object is a reference but does not have an owner!" );
 
     auto ret = m_pOwner->GetOwner()->GetObject( ref );
@@ -62,20 +70,34 @@ PdfObject & PdfOwnedDataType::GetIndirectObject( const PdfReference &ref ) const
     return *ret;
 }
 
-void PdfOwnedDataType::SetOwner( PdfObject* pOwner )
+void PdfContainerDataType::SetOwner( PdfObject* pOwner )
 {
-    PODOFO_ASSERT( pOwner != NULL );
+    PODOFO_ASSERT( pOwner != nullptr);
     m_pOwner = pOwner;
 }
 
-PdfOwnedDataType & PdfOwnedDataType::operator=( const PdfOwnedDataType & rhs )
+void PdfContainerDataType::SetDirty()
+{
+    m_isDirty = true;
+}
+
+PdfContainerDataType& PdfContainerDataType::operator=( const PdfContainerDataType& rhs )
 {
     // NOTE: Don't copy owner. Objects being assigned will keep current ownership
+    m_isDirty = true;
     PdfDataType::operator=( rhs );
     return *this;
 }
 
-PdfVecObjects * PdfOwnedDataType::GetObjectOwner()
+PdfVecObjects * PdfContainerDataType::GetObjectOwner()
 {
-    return m_pOwner == NULL ? NULL : m_pOwner->GetOwner();
+    return m_pOwner == nullptr ? nullptr : m_pOwner->GetOwner();
+}
+
+void PdfContainerDataType::AssertMutable() const
+{
+    if(IsImmutable()) 
+    {
+        PODOFO_RAISE_ERROR( EPdfError::ChangeOnImmutable );
+    }
 }

@@ -396,8 +396,8 @@ std::vector<PdfExtension> PdfMemDocument::GetPdfExtensions() const {
 
                 // Convert BaseVersion name to EPdfVersion
                 for(int i=0; i<=MAX_PDF_VERSION_STRING_INDEX; i++) {
-                    if(bv->GetName().GetName() == s_szPdfVersionNums[i]) {
-                        result.push_back(PdfExtension(it->first.GetName().c_str(), static_cast<EPdfVersion>(i), el->GetNumber()));
+                    if(bv->GetName().GetString() == s_szPdfVersionNums[i]) {
+                        result.push_back(PdfExtension(it->first.GetString().c_str(), static_cast<EPdfVersion>(i), el->GetNumber()));
                     }
                 }
             }

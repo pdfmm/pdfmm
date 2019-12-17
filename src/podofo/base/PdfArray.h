@@ -35,7 +35,7 @@
 #define _PDF_ARRAY_H_
 
 #include "PdfDefines.h"
-#include "PdfOwnedDataType.h"
+#include "PdfContainerDataType.h"
 #include "PdfObject.h"
 
 namespace PoDoFo {
@@ -49,8 +49,9 @@ namespace PoDoFo {
  *
  *  \see PdfVariant
  */
-class PODOFO_API PdfArray : public PdfOwnedDataType {
- public:
+class PODOFO_API PdfArray : public PdfContainerDataType
+{
+public:
     typedef size_t                                          size_type;
     typedef PdfObject                                       value_type;
     typedef value_type &                                    reference;
@@ -243,6 +244,7 @@ class PODOFO_API PdfArray : public PdfOwnedDataType {
     bool operator==( const PdfArray & rhs ) const;
     bool operator!=( const PdfArray & rhs ) const;
 
+    // TODO: IsDirty in a container should be modified automatically by its children??? YES! And stop on first parent not dirty
     /** The dirty flag is set if this variant
      *  has been modified after construction.
      *  
@@ -256,23 +258,14 @@ class PODOFO_API PdfArray : public PdfOwnedDataType {
      */
     bool IsDirty() const override;
 
-    /** Sets the dirty flag of this PdfVariant
-     *
-     *  \param bDirty true if this PdfVariant has been
-     *                modified from the outside
-     *
-     *  \see IsDirty
-     */
-    void SetDirty( bool bDirty ) override;
-
  protected:
+     void ResetDirtyInternal() override;
      void SetOwner( PdfObject* pOwner ) override;
 
  private:
     PdfObject & findAt(int idx) const;
 
  private:
-    bool m_bDirty;
     std::vector<PdfObject> m_objects;
 };
 
@@ -293,7 +286,7 @@ void PdfArray::insert(const PdfArray::iterator& pos,
             it2->SetOwner(*pOwner);
     }
 
-    m_bDirty = true;
+    SetDirty();
 }
 
 typedef PdfArray                 TVariantList;

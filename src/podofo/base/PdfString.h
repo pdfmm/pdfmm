@@ -76,9 +76,10 @@ enum class EPdfStringConversion
  *  The internal string buffer is guaranteed to be always terminated 
  *  by 2 zero ('\0') bytes.
  */
-class PODOFO_API PdfString : public PdfDataType {
- public:
-
+class PODOFO_API PdfString : public PdfDataType
+{
+    friend class PdfTokenizer;
+public:
     /** Create an empty and invalid string 
      */
     PdfString();
@@ -179,13 +180,6 @@ class PODOFO_API PdfString : public PdfDataType {
      *  \param buffer string containing the buffer
      */
     static PdfString CreateHexString( const std::string &buffer );
-
-    /** Set hex-encoded data as the strings data. 
-     *  \param pszHex must be hex-encoded data.
-     *  \param lLen   length of the hex-encoded data.
-     *  \param pEncrypt if !NULL, assume the hex data is encrypted and should be decrypted after hex-decoding.
-     */
-    void SetHexData( const char* pszHex, size_t lLen, PdfEncrypt* pEncrypt = NULL );
 
     /** The string is valid if no error in the constructor has occurred.
      *  The default constructor PdfString() creates an invalid string, as do
@@ -390,7 +384,15 @@ class PODOFO_API PdfString : public PdfDataType {
      *  \param lLen length of buffer
      */
     static void SwapBytes(char* pBuf, size_t lLen);
- private:
+
+private:
+    /** Set hex-encoded data as the strings data.
+     *  \param pszHex must be hex-encoded data.
+     *  \param lLen   length of the hex-encoded data.
+     *  \param pEncrypt if !NULL, assume the hex data is encrypted and should be decrypted after hex-decoding.
+     */
+    void SetHexData(const char* pszHex, size_t lLen, PdfEncrypt* pEncrypt = NULL);
+
     /** Construct a new PdfString from a 0-terminated string.
      * 
      *  The input string will be copied.

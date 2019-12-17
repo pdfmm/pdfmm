@@ -141,7 +141,7 @@ bool PdfXObject::TryCreateFromObject(PdfObject &obj, std::unique_ptr<PdfXObject>
     auto typeObj = obj.GetDictionary().GetKey(PdfName::KeyType);
     if (typeObj == nullptr
         || !typeObj->IsName()
-        || typeObj->GetName().GetName() != "XObject")
+        || typeObj->GetName().GetString() != "XObject")
     {
         xobj = nullptr;
         type = EPdfXObject::Unknown;
@@ -176,7 +176,7 @@ EPdfXObject PdfXObject::getPdfXObjectType(const PdfObject &obj)
     if (subTypeObj == nullptr || !subTypeObj->IsName())
         return EPdfXObject::Unknown;
 
-    auto subtype = obj.GetDictionary().GetKey(PdfName::KeySubtype)->GetName().GetName();
+    auto subtype = obj.GetDictionary().GetKey(PdfName::KeySubtype)->GetName().GetString();
     return FromString(subtype);
 }
 

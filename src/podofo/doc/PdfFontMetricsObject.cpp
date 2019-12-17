@@ -191,7 +191,7 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescri
 
 const char* PdfFontMetricsObject::GetFontname() const
 {
-    return m_sName.GetName().c_str();
+    return m_sName.GetString().c_str();
 }
 
 void PdfFontMetricsObject::GetBoundingBox( PdfArray & array ) const

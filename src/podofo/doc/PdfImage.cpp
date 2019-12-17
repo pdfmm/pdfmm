@@ -1212,7 +1212,7 @@ void PdfImage::LoadFromPngData(const unsigned char* pData, size_t dwLen)
 
 PdfName PdfImage::ColorspaceToName( EPdfColorSpace eColorSpace )
 {
-    return PdfColor::GetNameForColorSpace( eColorSpace ).GetName();
+    return PdfColor::GetNameForColorSpace( eColorSpace ).GetString();
 }
 
 void PdfImage::SetImageChromaKeyMask(int64_t r, int64_t g, int64_t b, int64_t threshold)

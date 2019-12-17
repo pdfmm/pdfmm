@@ -668,7 +668,7 @@ void PdfFontCID::MaybeUpdateBaseFontKey(void)
       return;
    }
 
-   std::string name = this->GetBaseFont().GetName();
+   std::string name = this->GetBaseFont().GetString();
    if (this->IsBold() && this->IsItalic()) {
       if (pFreetype->IsBold() && pFreetype->IsItalic()) {
          return;

@@ -223,7 +223,7 @@ void PdfPainter::SetStrokingShadingPattern( const PdfShadingPattern & rPattern )
 
     this->AddToPageResources( rPattern.GetIdentifier(), rPattern.GetObject()->GetIndirectReference(), PdfName("Pattern") );
 
-    m_oss << "/Pattern CS /" << rPattern.GetIdentifier().GetName() << " SCN" << std::endl;
+    m_oss << "/Pattern CS /" << rPattern.GetIdentifier().GetString() << " SCN" << std::endl;
 }
 
 void PdfPainter::SetShadingPattern( const PdfShadingPattern & rPattern )
@@ -232,7 +232,7 @@ void PdfPainter::SetShadingPattern( const PdfShadingPattern & rPattern )
 
     this->AddToPageResources( rPattern.GetIdentifier(), rPattern.GetObject()->GetIndirectReference(), PdfName("Pattern") );
 
-    m_oss << "/Pattern cs /" << rPattern.GetIdentifier().GetName() << " scn" << std::endl;
+    m_oss << "/Pattern cs /" << rPattern.GetIdentifier().GetString() << " scn" << std::endl;
 }
 
 void PdfPainter::SetStrokingTilingPattern( const PdfTilingPattern & rPattern )
@@ -241,7 +241,7 @@ void PdfPainter::SetStrokingTilingPattern( const PdfTilingPattern & rPattern )
 
     this->AddToPageResources( rPattern.GetIdentifier(), rPattern.GetObject()->GetIndirectReference(), PdfName("Pattern") );
 
-    m_oss << "/Pattern CS /" << rPattern.GetIdentifier().GetName() << " SCN" << std::endl;
+    m_oss << "/Pattern CS /" << rPattern.GetIdentifier().GetString() << " SCN" << std::endl;
 }
 
 void PdfPainter::SetStrokingTilingPattern( const std::string &rPatternName )
@@ -257,7 +257,7 @@ void PdfPainter::SetTilingPattern( const PdfTilingPattern & rPattern )
 
     this->AddToPageResources( rPattern.GetIdentifier(), rPattern.GetObject()->GetIndirectReference(), PdfName("Pattern") );
 
-    m_oss << "/Pattern cs /" << rPattern.GetIdentifier().GetName() << " scn" << std::endl;
+    m_oss << "/Pattern cs /" << rPattern.GetIdentifier().GetString() << " scn" << std::endl;
 }
 
 void PdfPainter::SetTilingPattern( const std::string &rPatternName )
@@ -716,7 +716,7 @@ void PdfPainter::DrawText( double dX, double dY, const PdfString & sText, size_t
         this->Restore();
     }
     
-    m_oss << "BT" << std::endl << "/" << m_pFont->GetIdentifier().GetName()
+    m_oss << "BT" << std::endl << "/" << m_pFont->GetIdentifier().GetString()
           << " "  << m_pFont->GetFontSize()
           << " Tf" << std::endl;
 
@@ -758,7 +758,7 @@ void PdfPainter::BeginText( double dX, double dY )
 
     this->AddToPageResources( m_pFont->GetIdentifier(), m_pFont->GetObject()->GetIndirectReference(), PdfName("Font") );
 
-    m_oss << "BT" << std::endl << "/" << m_pFont->GetIdentifier().GetName()
+    m_oss << "BT" << std::endl << "/" << m_pFont->GetIdentifier().GetString()
           << " "  << m_pFont->GetFontSize()
           << " Tf" << std::endl;
 
@@ -1158,7 +1158,7 @@ void PdfPainter::DrawGlyph( PdfMemDocument* pDocument, double dX, double dY, con
 				if( (*it).GetDataType() == EPdfDataType::Name )
 				{
 					code++;
-					if ( (*it).GetName().GetName() == pszGlyphname )
+					if ( (*it).GetName().GetString() == pszGlyphname )
 					{
 						foundIt = true;
 						break;
@@ -1248,7 +1248,7 @@ void PdfPainter::DrawXObject( double dX, double dY, PdfXObject* pObject, double 
           << dScaleY << " "
           << dX << " " 
           << dY << " cm" << std::endl
-          << "/" << pObject->GetIdentifier().GetName() << " Do" << std::endl << "Q" << std::endl;
+          << "/" << pObject->GetIdentifier().GetString() << " Do" << std::endl << "Q" << std::endl;
 	m_oss.precision(oldPrecision);
 }
 
@@ -1743,7 +1743,7 @@ void PdfPainter::SetExtGState( PdfExtGState* inGState )
 
     this->AddToPageResources( inGState->GetIdentifier(), inGState->GetObject()->GetIndirectReference(), PdfName("ExtGState") );
     
-    m_oss << "/" << inGState->GetIdentifier().GetName()
+    m_oss << "/" << inGState->GetIdentifier().GetString()
           << " gs" << std::endl;
 }
 

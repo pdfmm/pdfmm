@@ -225,7 +225,7 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                                 if (dst.IsHexString()) // pp. 475 PdfReference 1.7
                                     map[{ codeSize, srcCodeLo + i }] = getStringUtf8(dst.GetString());
                                 else if (dst.IsName()) // Not mentioned in tecnincal document #5014 but seems safe
-                                    map[{ codeSize, srcCodeLo + i }] = dst.GetName().GetStringUtf8();
+                                    map[{ codeSize, srcCodeLo + i }] = dst.GetName().GetString();
                                 else
                                     PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "beginbfrange: expected string or name inside array");
                             }
@@ -244,7 +244,7 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                         else if (var->IsName())
                         {
                             // As found in tecnincal document #5014
-                            string dstCodeLo = var->GetName().GetStringUtf8();
+                            string dstCodeLo = var->GetName().GetString();
                             char back = dstCodeLo.back();
                             for (unsigned i = 0; i < rangeSize; i++)
                             {
@@ -290,7 +290,7 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                         else if (var->IsName())
                         {
                             // As found in tecnincal document #5014
-                            mappedstr = var->GetName().GetStringUtf8();
+                            mappedstr = var->GetName().GetString();
                         }
                         else
                             PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "beginbfchar: expected number or name");
@@ -591,7 +591,105 @@ char PdfSimpleEncoding::GetUnicodeCharCode(pdf_utf16be unicodeValue) const
 // PdfDocEncoding
 // -----------------------------------------------------
 
-bool PdfDocEncoding::TryConvertUTF8ToPdfDocEncoding(const string &u8str, string &pdfdocencstr)
+bool PdfDocEncoding::CheckValidUTF8ToPdfDocEcondingChars(const string_view& view, bool& isPdfDocEncodingEqual)
+{
+    auto& map = GetUTF8ToPdfEncodingMap();
+
+    isPdfDocEncodingEqual = true;
+    char32_t cp = 0;
+    auto it = view.begin();
+    auto end = view.end();
+    while (it != end)
+    {
+        cp = utf8::next(it, end);
+        unordered_map<uint16_t, char>::const_iterator found;
+        if (cp > 0xFFFF || (found = map.find((uint16_t)cp)) == map.end())
+        {
+            // Code point out of range or not present in the map
+            isPdfDocEncodingEqual = false;
+            return false;
+        }
+
+        if (cp >= 0x80 || found->second != (char)cp) // >= 128 or different mapped code
+        {
+            // The utf-8 char is not coincident to PdfDocEncoding representation
+            isPdfDocEncodingEqual = false;
+        }
+    }
+
+    return true;
+}
+
+bool PdfDocEncoding::IsPdfDocEncodingCoincidentToUTF8(const std::string_view& view)
+{
+    for (size_t i = 0; i < view.length(); i++)
+    {
+        unsigned char ch = view[i];
+        if (ch != s_cEncoding[i])
+            return false;
+    }
+
+    return true;
+}
+
+string PdfDocEncoding::ConvertUTF8ToPdfDocEncoding(const std::string_view& view)
+{
+    string ret;
+    if (!TryConvertUTF8ToPdfDocEncoding(view, ret))
+        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "PdfDocEncoding:: Unsupported chars in converting utf-8 string");
+
+    return ret;
+}
+
+bool PdfDocEncoding::TryConvertUTF8ToPdfDocEncoding(const std::string_view& view, string &pdfdocencstr)
+{
+    auto& map = GetUTF8ToPdfEncodingMap();
+
+    pdfdocencstr.clear();
+
+    char32_t cp = 0;
+    auto it = view.begin();
+    auto end = view.end();
+    while (it != end)
+    {
+        cp = utf8::next(it, end);
+        unordered_map<uint16_t, char>::const_iterator found;
+        if (cp > 0xFFFF || (found = map.find((uint16_t)cp)) == map.end())
+        {
+            // Code point out of range or not present in the map
+            pdfdocencstr.clear();
+            return false;
+        }
+
+        pdfdocencstr.push_back(found->second);
+    }
+
+    return true;
+}
+
+string PdfDocEncoding::ConvertPdfDocEncodingToUTF8(const std::string_view& view, bool & isUTF8Equal)
+{
+    string ret;
+    ConvertPdfDocEncodingToUTF8(view, ret, isUTF8Equal);
+    return ret;
+}
+
+void PdfDocEncoding::ConvertPdfDocEncodingToUTF8(const std::string_view& view, string & u8str, bool& isUTF8Equal)
+{
+    u8str.clear();
+    isUTF8Equal = true;
+    for (size_t i = 0; i < view.length(); i++)
+    {
+        unsigned char ch = view[i];
+        uint16_t mappedCode = s_cEncoding[ch];
+        if (mappedCode >= 0x80 || ch != mappedCode) // >= 128 or different mapped code
+            isUTF8Equal = false;
+
+        utf8::append(mappedCode, u8str);
+    }
+}
+
+const unordered_map<uint16_t, char>& PoDoFo::PdfDocEncoding::GetUTF8ToPdfEncodingMap()
 {
     struct Map : public unordered_map<uint16_t, char>
     {
@@ -611,44 +709,7 @@ bool PdfDocEncoding::TryConvertUTF8ToPdfDocEncoding(const string &u8str, string 
 
     static Map map;
 
-    pdfdocencstr.clear();
-
-    char32_t cp = 0;
-    auto it = u8str.begin();
-    auto end = u8str.end();
-    while (it != end)
-    {
-        cp = utf8::next(it, end);
-        unordered_map<uint16_t, char>::iterator found;
-        if (cp > 0xFFFF || (found = map.find((uint16_t)cp)) == map.end())
-        {
-            // Code point out of range or not present in the map
-            pdfdocencstr.clear();
-            return false;
-        }
-
-        pdfdocencstr.push_back(found->second);
-    }
-
-    return true;
-}
-
-string PdfDocEncoding::ConvertPdfDocEncodingToUTF8(const string &pdfdocencstr)
-{
-    string ret;
-    ConvertPdfDocEncodingToUTF8(pdfdocencstr, ret);
-    return ret;
-}
-
-void PdfDocEncoding::ConvertPdfDocEncodingToUTF8(const string & pdfdocencstr, string & u8str)
-{
-    u8str.clear();
-    for (int i = 0; i < (int)pdfdocencstr.size(); i++)
-    {
-        char ch = pdfdocencstr[i];
-        uint16_t mappedCode = s_cEncoding[(unsigned char)ch];
-        utf8::append(mappedCode, u8str);
-    }
+    return map;
 }
 
 // -----------------------------------------------------

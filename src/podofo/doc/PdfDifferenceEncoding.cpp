@@ -2492,7 +2492,7 @@ pdf_utf16be PdfDifferenceEncoding::GetCharCode( int nIndex ) const
 
 pdf_utf16be PdfDifferenceEncoding::NameToUnicodeID( const PdfName & rName )
 {
-    const char* pszName = rName.GetName().c_str();
+    const char* pszName = rName.GetString().c_str();
 
     for( int i = 0; nameToUnicodeTab[i].name; ++i) 
     {

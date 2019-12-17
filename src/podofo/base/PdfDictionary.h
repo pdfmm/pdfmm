@@ -35,7 +35,7 @@
 #define _PDF_DICTIONARY_H_
 
 #include "PdfDefines.h"
-#include "PdfOwnedDataType.h"
+#include "PdfContainerDataType.h"
 
 #include "PdfName.h"
 #include "PdfObject.h"
@@ -69,7 +69,7 @@ public:
     {
         std::tr1::hash<std::string> hasher;
         
-        return hasher( v.GetName() );
+        return hasher( v.GetString() );
     }
 };
 
@@ -86,8 +86,9 @@ class PdfOutputDevice;
 /** The PDF dictionary data type of PoDoFo (inherits from PdfDataType,
  *  the base class for such representations)
  */
-class PODOFO_API PdfDictionary : public PdfOwnedDataType {
- public:
+class PODOFO_API PdfDictionary : public PdfContainerDataType
+{
+public:
     /** Create a new, empty dictionary
      */
     PdfDictionary();
@@ -274,6 +275,7 @@ class PODOFO_API PdfDictionary : public PdfOwnedDataType {
     */
     size_t GetSize() const;
 
+    // TODO: IsDirty in a container should be modified automatically by its children??? YES! And stop on first parent not dirty
     /** The dirty flag is set if this variant
      *  has been modified after construction.
      *  
@@ -287,15 +289,6 @@ class PODOFO_API PdfDictionary : public PdfOwnedDataType {
      */
     bool IsDirty() const override;
 
-    /** Sets the dirty flag of this PdfVariant
-     *
-     *  \param bDirty true if this PdfVariant has been
-     *                modified from the outside
-     *
-     *  \see IsDirty
-     */
-    void SetDirty( bool bDirty ) override;
-
  public:
      TIKeyMap begin();
      TIKeyMap end();
@@ -303,6 +296,7 @@ class PODOFO_API PdfDictionary : public PdfOwnedDataType {
      TCIKeyMap end() const;
 
  protected:
+     void ResetDirtyInternal() override;
      void SetOwner( PdfObject* pOwner ) override;
 
  private:
@@ -312,8 +306,6 @@ class PODOFO_API PdfDictionary : public PdfOwnedDataType {
 
  private: 
     TKeyMap      m_mapKeys; 
-
-    bool         m_bDirty; ///< Indicates if this object was modified after construction
 };
 
 typedef std::vector<PdfDictionary*>      TVecDictionaries; 

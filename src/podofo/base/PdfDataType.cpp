@@ -32,29 +32,9 @@
  ***************************************************************************/
 
 #include "PdfDataType.h"
-#include "PdfDefinesPrivate.h"
 
-namespace PoDoFo {
+using namespace PoDoFo;
 
-PdfDataType::PdfDataType()
-    : m_bImmutable(false)
-{
-}
+PdfDataType::PdfDataType() { }
 
-PdfDataType::~PdfDataType()
-{
-}
-
-bool PdfDataType::IsDirty() const
-{
-    return false;
-}
-
-void PdfDataType::SetDirty( bool )
-{
-    // Ignore
-}
-
-};
-
-
+PdfDataType::~PdfDataType() { }

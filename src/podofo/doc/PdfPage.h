@@ -302,7 +302,7 @@ inline PdfObject* PdfPage::GetResources() const
 // -----------------------------------------------------
 inline const PdfObject* PdfPage::GetInheritedKey( const PdfName & rName ) const
 {
-    return this->GetInheritedKeyFromObject( rName.GetName().c_str(), this->GetObject() );
+    return this->GetInheritedKeyFromObject( rName.GetString().c_str(), this->GetObject() );
 }
 
 };
