@@ -94,8 +94,6 @@ enum class EPdfFieldFlags
 
 class PODOFO_DOC_API PdfField
 {
-
-
  protected:
     /** Create a new PdfAcroForm dictionary object
      *  \param pParent parent of this action
@@ -150,6 +148,8 @@ class PODOFO_DOC_API PdfField
      */
     PdfObject* GetAppearanceCharacteristics( bool bCreate ) const;
 
+    void AssertTerminalField() const;
+
  public:
     /** Create a PdfAcroForm dictionary object from an existing PdfObject
      *	\param pObject the object to create from
@@ -192,7 +192,7 @@ class PODOFO_DOC_API PdfField
      *
      *  \returns the page of this PdfField
      */
-    inline PdfPage* GetPage() const;
+    PdfPage* GetPage() const;
 
     /** Set the highlighting mode which should be used when the user
      *  presses the mouse button over this widget.
@@ -278,21 +278,21 @@ class PODOFO_DOC_API PdfField
      *  
      *  \param rsName the field name of this pdf field
      */
-    void SetFieldName( const PdfString & rsName );
+    void SetName( const PdfString & rsName );
 
     /** \returns the field name of this PdfField
      */
-    PdfString GetFieldName() const;
+    PdfString GetName() const;
 
     /** \returns the field name of this PdfField at this level of the hierarchy
      */
-    PdfString GetFieldNameRaw() const;
+    PdfString GetNameRaw() const;
 
     /** \returns the parents qualified name of this PdfField
      *
      *  \param escapePartialNames escape non compliant partial names
      */
-    PdfString GetFullFieldName(bool escapePartialNames = false) const;
+    PdfString GetFullName(bool escapePartialNames = false) const;
 
     /**
      * Set the alternate name of this field which 
@@ -327,28 +327,28 @@ class PODOFO_DOC_API PdfField
      *
      *  \param bReadOnly specifies if this field is read-only.
      */
-    inline void SetReadOnly( bool bReadOnly );
+    void SetReadOnly( bool bReadOnly );
 
     /** 
      * \returns true if this field is read-only
      *
      * \see SetReadOnly
      */
-    inline bool IsReadOnly() const;
+    bool IsReadOnly() const;
 
     /** Required fields must have a value
      *  at the time the value is exported by a submit action
      * 
      *  \param bRequired if true this field requires a value for submit actions
      */
-    inline void SetRequired( bool bRequired );
+    void SetRequired( bool bRequired );
 
     /** 
      * \returns true if this field is required for submit actions
      *
      * \see SetRequired
      */
-    inline bool IsRequired() const;
+    bool IsRequired() const;
 
     /** Sets if this field can be exported by a submit action
      *
@@ -356,51 +356,48 @@ class PODOFO_DOC_API PdfField
      *
      *  \param bExport if false this field cannot be exported by submit actions
      */
-    inline void SetNoExport( bool bExport );
+    void SetNoExport( bool bExport );
 
     /** 
      * \returns true if this field can be exported by submit actions
      *
      * \see SetExport
      */
-    inline bool IsNoExport() const;
+    bool IsNoExport() const;
 
-    inline void SetMouseEnterAction( const PdfAction & rAction );
-    inline void SetMouseLeaveAction( const PdfAction & rAction );
-    inline void SetMouseDownAction( const PdfAction & rAction );
-    inline void SetMouseUpAction( const PdfAction & rAction );
+    void SetMouseEnterAction( const PdfAction & rAction );
+    void SetMouseLeaveAction( const PdfAction & rAction );
+    void SetMouseDownAction( const PdfAction & rAction );
+    void SetMouseUpAction( const PdfAction & rAction );
 
-    inline void SetFocusEnterAction( const PdfAction & rAction );
-    inline void SetFocusLeaveAction( const PdfAction & rAction );
+    void SetFocusEnterAction( const PdfAction & rAction );
+    void SetFocusLeaveAction( const PdfAction & rAction );
 
-    inline void SetPageOpenAction( const PdfAction & rAction );
-    inline void SetPageCloseAction( const PdfAction & rAction );
+    void SetPageOpenAction( const PdfAction & rAction );
+    void SetPageCloseAction( const PdfAction & rAction );
 
-    inline void SetPageVisibleAction( const PdfAction & rAction );
-    inline void SetPageInvisibleAction( const PdfAction & rAction );
+    void SetPageVisibleAction( const PdfAction & rAction );
+    void SetPageInvisibleAction( const PdfAction & rAction );
 
-    /* Peter Petrov 15 October 2008 */
-    inline void SetKeystrokeAction( const PdfAction & rAction );
-    inline void SetValidateAction( const PdfAction & rAction );
+    void SetKeystrokeAction( const PdfAction & rAction );
+    void SetValidateAction( const PdfAction & rAction );
     
     /** 
      * \returns the type of this field
      */
-    inline EPdfField GetType() const;
+    EPdfField GetType() const;
 
  private:
-
-    /** 
-     *  Initialize this PdfField.
-     *
-     *  \param pParent parent acro forms dictionary
-     */
     void Init( PdfAcroForm *pParent );
-
     void AddAlternativeAction( const PdfName & rsName, const PdfAction & rAction );
-
     static PdfField * createField(EPdfField type, PdfObject* pObject, PdfAnnotation* pWidget );
     PdfField * createChildField(PdfPage *page, const PdfRect &rect);
+
+ public:
+     PdfAnnotation* GetWidgetAnnotation() const;
+     PdfObject* GetFieldObject() const;
+     PdfDictionary& GetDictionary();
+     const PdfDictionary& GetDictionary() const;
 
  protected:
     PdfObject*     m_pObject;
@@ -408,11 +405,6 @@ class PODOFO_DOC_API PdfField
 
  private:
     EPdfField  m_eField;
-
-    // Peter Petrov 27 April 2008
- public:
-     inline PdfAnnotation* GetWidgetAnnotation() const;
-     inline PdfObject* GetFieldObject() const;
 };
 
 // -----------------------------------------------------
@@ -431,187 +423,6 @@ inline const PdfField & PdfField::operator=( const PdfField & rhs )
 
     return *this;
 }*/
-
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline void PdfField::SetReadOnly( bool bReadOnly )
-{
-    this->SetFieldFlag( static_cast<int>(EPdfFieldFlags::ReadOnly), bReadOnly );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline bool PdfField::IsReadOnly() const
-{
-    return this->GetFieldFlag( static_cast<int>(EPdfFieldFlags::ReadOnly), false );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline void PdfField::SetRequired( bool bRequired )
-{
-    this->SetFieldFlag( static_cast<int>(EPdfFieldFlags::Required), bRequired );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline bool PdfField::IsRequired() const
-{
-    return this->GetFieldFlag( static_cast<int>(EPdfFieldFlags::Required), false );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline void PdfField::SetNoExport( bool bExport )
-{
-    this->SetFieldFlag( static_cast<int>(EPdfFieldFlags::NoExport), bExport );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline bool PdfField::IsNoExport() const
-{
-    return this->GetFieldFlag( static_cast<int>(EPdfFieldFlags::NoExport), false );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline PdfPage* PdfField::GetPage() const
-{
-    return m_pWidget->GetPage();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline void PdfField::SetMouseEnterAction( const PdfAction & rAction )
-{
-    this->AddAlternativeAction( PdfName("E"), rAction );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline void PdfField::SetMouseLeaveAction( const PdfAction & rAction )
-{
-    this->AddAlternativeAction( PdfName("X"), rAction );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline void PdfField::SetMouseDownAction( const PdfAction & rAction )
-{
-    this->AddAlternativeAction( PdfName("D"), rAction );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline void PdfField::SetMouseUpAction( const PdfAction & rAction )
-{
-    this->AddAlternativeAction( PdfName("U"), rAction );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline void PdfField::SetFocusEnterAction( const PdfAction & rAction )
-{
-    this->AddAlternativeAction( PdfName("Fo"), rAction );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline void PdfField::SetFocusLeaveAction( const PdfAction & rAction )
-{
-    this->AddAlternativeAction( PdfName("BI"), rAction );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline void PdfField::SetPageOpenAction( const PdfAction & rAction )
-{
-    this->AddAlternativeAction( PdfName("PO"), rAction );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline void PdfField::SetPageCloseAction( const PdfAction & rAction )
-{
-    this->AddAlternativeAction( PdfName("PC"), rAction );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline void PdfField::SetPageVisibleAction( const PdfAction & rAction )
-{
-    this->AddAlternativeAction( PdfName("PV"), rAction );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline void PdfField::SetPageInvisibleAction( const PdfAction & rAction )
-{
-    this->AddAlternativeAction( PdfName("PI"), rAction );
-}
-
-/* Peter Petrov 15 October 2008 */
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline void PdfField::SetKeystrokeAction( const PdfAction & rAction )
-{
-    this->AddAlternativeAction( PdfName("K"), rAction);
-}
-
-/* Peter Petrov 15 October 2008 */
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline void PdfField::SetValidateAction( const PdfAction & rAction )
-{
-    this->AddAlternativeAction( PdfName("V"), rAction);
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline EPdfField PdfField::GetType() const
-{
-    return m_eField;
-}
-
-// Peter Petrov 27 April 2008
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline PdfAnnotation* PdfField::GetWidgetAnnotation() const
-{
-    return m_pWidget;
-}
-
-// Peter Petrov 27 April 2008
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline PdfObject* PdfField::GetFieldObject() const
-{
-    return m_pObject;
-}
 
 class PODOFO_DOC_API PdfButton : public PdfField {
     friend class PdfField;
@@ -1157,6 +968,7 @@ inline bool PdfTextField::IsRichText() const
     return this->GetFieldFlag( static_cast<int>(ePdfTextField_RichText), false );
 }
 
+// TODO: Multiselect
 /** A list of items in a PDF file.
  *  You cannot create this object directly, use
  *  PdfComboBox or PdfListBox instead.
@@ -1252,15 +1064,6 @@ class PODOFO_DOC_API PdfListField : public PdfField {
      *  \returns the selected item or -1 if no item was selected
      */
     int GetSelectedIndex() const;
-    
-#if 0
-    // TODO:
-#error "Only allow these if multiselect is true!"
-    void SetSelectedItems( ... );
-
-    PdfArray GetSelectedItems() ;
-#endif
-
 
     /** 
      * \returns true if this PdfListField is a PdfComboBox and false

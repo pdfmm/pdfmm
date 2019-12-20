@@ -48,7 +48,10 @@
 
 #include <sstream>
 
-namespace PoDoFo {
+using namespace std;
+using namespace PoDoFo;
+
+static string getFullName(const PdfObject* obj, bool escapePartialNames);
 
 PdfField::PdfField( EPdfField eField, PdfAnnotation* pWidget, PdfAcroForm* pParent )
     : m_pObject( pWidget ? pWidget->GetObject() : NULL ), m_pWidget( pWidget ), m_eField( eField )
@@ -318,6 +321,14 @@ PdfObject* PdfField::GetAppearanceCharacteristics( bool bCreate ) const
     return pMK;
 }
 
+void PdfField::AssertTerminalField() const
+{
+    auto& dict = GetDictionary();
+    if (dict.HasKey("Kids"))
+        PODOFO_RAISE_ERROR_INFO(EPdfError::InternalLogic, "This method can be called only on terminal field. Ensure this field has "
+            "not been retrieved from AcroFormFields collection or it's not a parent of terminal fields");
+}
+
 void PdfField::SetFieldFlag( long lValue, bool bSet )
 {
     int64_t lCur = 0;
@@ -490,12 +501,12 @@ void PdfField::SetBackgroundColor( double dCyan, double dMagenta, double dYellow
     pMK->GetDictionary().AddKey( PdfName("BG"), array );
 }
 
-void PdfField::SetFieldName( const PdfString & rsName )
+void PdfField::SetName( const PdfString & rsName )
 {
     m_pObject->GetDictionary().AddKey( PdfName("T"), rsName );
 }
 
-PdfString PdfField::GetFieldName() const
+PdfString PdfField::GetName() const
 {
     PdfObject *name = m_pObject->GetDictionary().FindKeyParent( "T" );
     if( !name )
@@ -504,7 +515,7 @@ PdfString PdfField::GetFieldName() const
     return name->GetString();
 }
 
-PdfString PdfField::GetFieldNameRaw() const
+PdfString PdfField::GetNameRaw() const
 {
     PdfObject *name = m_pObject->GetDictionary().GetKey("T");
     if (!name)
@@ -513,45 +524,9 @@ PdfString PdfField::GetFieldNameRaw() const
     return name->GetString();
 }
 
-PdfString PdfField::GetFullFieldName(bool escapePartialNames) const
+PdfString PdfField::GetFullName(bool escapePartialNames) const
 {
-    std::string ret;
-    PdfObject *object = m_pObject;
-    while ( object )
-    {
-        PdfDictionary &dict = object->GetDictionary();
-        PdfObject *nameObj = dict.GetKey( "T" );
-        if ( nameObj != NULL )
-        {
-            std::string name = nameObj->GetString().GetStringUtf8();
-
-            if (escapePartialNames)
-            {
-                // According to ISO 32000-1:2008, "12.7.3.2 Field Names":
-                // "Because the PERIOD is used as a separator for fully
-                // qualified names, a partial name shall not contain a
-                // PERIOD character."
-                // In case the partial name still has periods (effectively
-                // violating the standard and Pdf Reference) the fullname
-                // would be unintelligible, let's escape them with double
-                // dots "..", example "parent.partial..name"
-                size_t currpos = 0;
-                while ((currpos = name.find('.', currpos)) != std::string::npos)
-                {
-                    name.replace(currpos, 1, "..");
-                    currpos += 2;
-                }
-            }
-
-            if ( ret.length() == 0 )
-                ret = name;
-            else
-                ret.append(".").append(name);
-        }
-        object = dict.FindKey( "Parent" );
-    }
-
-    return PdfString::FromUtf8String(ret);
+    return PdfString::FromUtf8String(getFullName(m_pObject, escapePartialNames));
 }
 
 void PdfField::SetAlternateName( const PdfString & rsName )
@@ -587,6 +562,126 @@ void PdfField::AddAlternativeAction( const PdfName & rsName, const PdfAction & r
 
     PdfObject* pAA = m_pObject->GetDictionary().GetKey( PdfName("AA") );
     pAA->GetDictionary().AddKey( rsName, rAction.GetObject()->GetIndirectReference() );
+}
+
+void PdfField::SetReadOnly(bool bReadOnly)
+{
+    this->SetFieldFlag(static_cast<int>(EPdfFieldFlags::ReadOnly), bReadOnly);
+}
+
+bool PdfField::IsReadOnly() const
+{
+    return this->GetFieldFlag(static_cast<int>(EPdfFieldFlags::ReadOnly), false);
+}
+
+void PdfField::SetRequired(bool bRequired)
+{
+    this->SetFieldFlag(static_cast<int>(EPdfFieldFlags::Required), bRequired);
+}
+
+bool PdfField::IsRequired() const
+{
+    return this->GetFieldFlag(static_cast<int>(EPdfFieldFlags::Required), false);
+}
+
+void PdfField::SetNoExport(bool bExport)
+{
+    this->SetFieldFlag(static_cast<int>(EPdfFieldFlags::NoExport), bExport);
+}
+
+bool PdfField::IsNoExport() const
+{
+    return this->GetFieldFlag(static_cast<int>(EPdfFieldFlags::NoExport), false);
+}
+
+PdfPage* PdfField::GetPage() const
+{
+    return m_pWidget->GetPage();
+}
+
+void PdfField::SetMouseEnterAction(const PdfAction& rAction)
+{
+    this->AddAlternativeAction(PdfName("E"), rAction);
+}
+
+void PdfField::SetMouseLeaveAction(const PdfAction& rAction)
+{
+    this->AddAlternativeAction(PdfName("X"), rAction);
+}
+
+void PdfField::SetMouseDownAction(const PdfAction& rAction)
+{
+    this->AddAlternativeAction(PdfName("D"), rAction);
+}
+
+void PdfField::SetMouseUpAction(const PdfAction& rAction)
+{
+    this->AddAlternativeAction(PdfName("U"), rAction);
+}
+
+void PdfField::SetFocusEnterAction(const PdfAction& rAction)
+{
+    this->AddAlternativeAction(PdfName("Fo"), rAction);
+}
+
+void PdfField::SetFocusLeaveAction(const PdfAction& rAction)
+{
+    this->AddAlternativeAction(PdfName("BI"), rAction);
+}
+
+void PdfField::SetPageOpenAction(const PdfAction& rAction)
+{
+    this->AddAlternativeAction(PdfName("PO"), rAction);
+}
+
+void PdfField::SetPageCloseAction(const PdfAction& rAction)
+{
+    this->AddAlternativeAction(PdfName("PC"), rAction);
+}
+
+void PdfField::SetPageVisibleAction(const PdfAction& rAction)
+{
+    this->AddAlternativeAction(PdfName("PV"), rAction);
+}
+
+void PdfField::SetPageInvisibleAction(const PdfAction& rAction)
+{
+    this->AddAlternativeAction(PdfName("PI"), rAction);
+}
+
+void PdfField::SetKeystrokeAction(const PdfAction& rAction)
+{
+    this->AddAlternativeAction(PdfName("K"), rAction);
+}
+
+void PdfField::SetValidateAction(const PdfAction& rAction)
+{
+    this->AddAlternativeAction(PdfName("V"), rAction);
+}
+
+EPdfField PdfField::GetType() const
+{
+    return m_eField;
+}
+
+PdfAnnotation* PdfField::GetWidgetAnnotation() const
+{
+    return m_pWidget;
+}
+
+PdfObject* PdfField::GetFieldObject() const
+{
+    return m_pObject;
+}
+
+PdfDictionary& PdfField::GetDictionary()
+{
+    return m_pObject->GetDictionary();
+}
+
+const PdfDictionary& PdfField::GetDictionary() const
+{
+    return m_pObject->GetDictionary();
 }
 
 PdfButton::PdfButton( EPdfField eField, PdfObject* pObject, PdfAnnotation* pWidget )
@@ -875,6 +970,7 @@ void PdfTextField::Init()
 
 void PdfTextField::SetText( const PdfString & rsText )
 {
+    AssertTerminalField();
     PdfName key = this->IsRichText() ? PdfName("RV") : PdfName("V");
 
     // if rsText is longer than maxlen, truncate it
@@ -887,6 +983,7 @@ void PdfTextField::SetText( const PdfString & rsText )
 
 PdfString PdfTextField::GetText() const
 {
+    AssertTerminalField();
     PdfName key = this->IsRichText() ? PdfName("RV") : PdfName("V");
     PdfString str;
 
@@ -1059,12 +1156,14 @@ size_t PdfListField::GetItemCount() const
 
 void PdfListField::SetSelectedIndex( int nIndex )
 {
+    AssertTerminalField();
     PdfString selected = this->GetItem( nIndex );
     m_pObject->GetDictionary().AddKey( "V", selected );
 }
 
 int PdfListField::GetSelectedIndex() const
 {
+    AssertTerminalField();
     PdfObject *valueObj = m_pObject->GetDictionary().FindKey( "V" );
     if( valueObj == nullptr || !( valueObj->IsString() || valueObj->IsHexString() ) )
         return -1;
@@ -1215,4 +1314,44 @@ PdfRadioButton::PdfRadioButton( const PdfField & rhs )
 {
 }
 
-};
+string getFullName(const PdfObject* obj, bool escapePartialNames)
+{
+    string ret;
+    while (obj != nullptr)
+    {
+        const PdfDictionary& dict = obj->GetDictionary();
+        const PdfObject* nameObj = dict.GetKey("T");
+        if (nameObj != NULL)
+        {
+            string name = nameObj->GetString().GetStringUtf8();
+
+            if (escapePartialNames)
+            {
+                // According to ISO 32000-1:2008, "12.7.3.2 Field Names":
+                // "Because the PERIOD is used as a separator for fully
+                // qualified names, a partial name shall not contain a
+                // PERIOD character."
+                // In case the partial name still has periods (effectively
+                // violating the standard and Pdf Reference) the fullname
+                // would be unintelligible, let's escape them with double
+                // dots "..", example "parent.partial..name"
+                size_t currpos = 0;
+                while ((currpos = name.find('.', currpos)) != std::string::npos)
+                {
+                    name.replace(currpos, 1, "..");
+                    currpos += 2;
+                }
+            }
+
+            if (ret.length() == 0)
+                ret = name;
+            else
+                ret.append(".").append(name);
+        }
+
+        obj = dict.FindKey("Parent");
+    }
+
+    return ret;
+}
+
