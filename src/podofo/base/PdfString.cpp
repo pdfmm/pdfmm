@@ -45,10 +45,6 @@
 #include <cstring>
 #include <cwchar>
 
-#ifdef PODOFO_HAVE_UNISTRING_LIB
-#include <unistr.h>
-#endif /* PODOFO_HAVE_UNISTRING_LIB */
-
 namespace PoDoFo {
 
 namespace PdfStringNameSpace {
@@ -726,90 +722,6 @@ const PdfRefCountedBuffer &PdfString::GetBuffer(void) const
     return m_buffer;
 }
 
-#ifdef PODOFO_HAVE_UNISTRING_LIB
-
-size_t PdfString::ConvertUTF8toUTF16( const pdf_utf8* pszUtf8, pdf_utf16be* pszUtf16, size_t lLenUtf16 )
-{
-    return pszUtf8 ? 
-        PdfString::ConvertUTF8toUTF16( pszUtf8, strlen( reinterpret_cast<const char*>(pszUtf8) ), pszUtf16, lLenUtf16 ) : 0;
-}
-
-size_t PdfString::ConvertUTF8toUTF16( const pdf_utf8* pszUtf8, size_t lLenUtf8,
-                                    pdf_utf16be* pszUtf16, size_t lLenUtf16,
-                                    EPdfStringConversion eConversion )
-{
-    const uint8_t* s = reinterpret_cast<const uint8_t*>(pszUtf8);
-    uint16_t* resultBuf = reinterpret_cast<uint16_t*>(pszUtf16);
-    size_t sLength = lLenUtf8;
-    size_t resultBufLength = lLenUtf16*sizeof(pdf_utf16be);
-
-    u8_to_u16 (s, sLength, resultBuf, &resultBufLength);
-
-    size_t lBufferLen = std::min( resultBufLength + 1, lLenUtf16 );
-    PdfRefCountedBuffer buffer(reinterpret_cast<char*>(pszUtf16), lBufferLen * sizeof(pdf_utf16be));
-    buffer.SetTakePossesion(false);
-    
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-    SwapBytes( buffer.GetBuffer(), lBufferLen*sizeof(pdf_utf16be) );
-#endif // PODOFO_IS_LITTLE_ENDIAN
-
-    // Make sure buffer is 0 termnated
-    reinterpret_cast<pdf_utf16be*>(buffer.GetBuffer())[resultBufLength] = 0;
-    
-    return lBufferLen;
-}
-
-
-size_t PdfString::ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, pdf_utf8* pszUtf8, size_t lLenUtf8 )
-{
-    size_t lLen = 0;
-    const pdf_utf16be* pszStart = pszUtf16;
-
-    while( *pszStart )
-        ++lLen;
-
-    return ConvertUTF16toUTF8( pszUtf16, lLen, pszUtf8, lLenUtf8 );
-}
-
-// returns used, or if not enough memory passed in, needed length incl. 1 byte termination
-size_t PdfString::ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, size_t lLenUtf16,
-                                    pdf_utf8* pszUtf8, size_t lLenUtf8,
-                                    EPdfStringConversion eConversion  )
-{
-    PdfRefCountedBuffer buffer(lLenUtf16 * sizeof(pdf_utf16be));
-    memcpy( buffer.GetBuffer(), pszUtf16, lLenUtf16 * sizeof(pdf_utf16be) );
-
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-    SwapBytes( buffer.GetBuffer(), lLenUtf16*sizeof(pdf_utf16be) );
-#endif // PODOFO_IS_LITTLE_ENDIAN
-   
-    const uint16_t* s = reinterpret_cast<const uint16_t*>(buffer.GetBuffer());
-    uint8_t* pResultBuf = reinterpret_cast<pdf_utf8*>(pszUtf8);
-    
-    size_t sLength = lLenUtf16;
-    size_t resultBufLength = lLenUtf8;
-
-    uint8_t* pReturnBuf = u16_to_u8( s, sLength, pResultBuf, &resultBufLength );
-    if (pReturnBuf != pResultBuf)
-    {
-        free(pReturnBuf); // allocated by libunistring, so don't use podofo_free()
-        PdfError::LogMessage( ELogSeverity::Warning, "Output string size too little to hold it" );
-        return resultBufLength + 1;
-    }
-
-    size_t lBufferLen = std::min( resultBufLength + 1, lLenUtf8 );
-
-    // Make sure buffer is 0 terminated
-    if ( resultBufLength + 1 <= lLenUtf8 )
-        pszUtf8[resultBufLength] = 0;
-    else
-        return resultBufLength + 1; // means: check for this in the caller to detect non-termination
-    
-    return lBufferLen;
-}
-
-#else /* PODOFO_HAVE_UNISTRING_LIB */
-
 /*
  * The disclaimer below applies to the Unicode conversion
  * functions below. The functions where adapted for use in PoDoFo.
@@ -1206,8 +1118,5 @@ size_t PdfString::ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, size_t lLenUt
     similarly unrolled loops.
 
    --------------------------------------------------------------------- */
-
-#endif /* PODOFO_HAVE_UNISTRING_LIB */
-
 
 };
