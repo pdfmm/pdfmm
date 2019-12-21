@@ -60,7 +60,7 @@ const PdfName PdfName::KeyType      = PdfName( "Type" );
 const PdfName PdfName::KeyFilter    = PdfName( "Filter" );
 
 PdfName::PdfName()
-    : m_rawdata(std::make_shared<string>()), m_isUtf8Expanded(true)
+    : m_data(std::make_shared<string>()), m_isUtf8Expanded(true)
 {
 }
 
@@ -85,12 +85,12 @@ PdfName::PdfName(const std::string& str)
 }
 
 PdfName::PdfName(const PdfName& rhs)
-    : m_rawdata(rhs.m_rawdata), m_isUtf8Expanded(rhs.m_isUtf8Expanded), m_utf8String(rhs.m_utf8String)
+    : m_data(rhs.m_data), m_isUtf8Expanded(rhs.m_isUtf8Expanded), m_utf8String(rhs.m_utf8String)
 {
 }
 
 PdfName::PdfName(const shared_ptr<string>& rawdata)
-    : m_rawdata(rawdata), m_isUtf8Expanded(false)
+    : m_data(rawdata), m_isUtf8Expanded(false)
 {
 }
 
@@ -98,7 +98,7 @@ void PdfName::initFromUtf8String(const string_view& view)
 {
     if (view.length() == 0)
     {
-        m_rawdata = std::make_shared<string>();
+        m_data = std::make_shared<string>();
         m_isUtf8Expanded = true;
         return;
     }
@@ -109,11 +109,11 @@ void PdfName::initFromUtf8String(const string_view& view)
 
     if (isPdfDocEncodingEqual)
     {
-        m_rawdata = std::make_shared<string>(view);
+        m_data = std::make_shared<string>(view);
     }
     else
     {
-        m_rawdata = std::make_shared<string>(PdfDocEncoding::ConvertUTF8ToPdfDocEncoding(view));
+        m_data = std::make_shared<string>(PdfDocEncoding::ConvertUTF8ToPdfDocEncoding(view));
         m_utf8String = std::make_shared<string>(view);
     }
 
@@ -145,19 +145,19 @@ void PdfName::Write( PdfOutputDevice* pDevice, EPdfWriteMode, const PdfEncrypt* 
 {
     // Allow empty names, which are legal according to the PDF specification
     pDevice->Print( "/" );
-    if (m_rawdata->length() != 0)
+    if (m_data->length() != 0)
     {
-        string escaped = EscapeName(*m_rawdata);
+        string escaped = EscapeName(*m_data);
         pDevice->Write( escaped.c_str(), escaped.length() );
     }
 }
 
 string PdfName::GetEscapedName() const
 {
-    if (m_rawdata->length() == 0)
+    if (m_data->length() == 0)
         return string();
 
-    return EscapeName(*m_rawdata);
+    return EscapeName(*m_data);
 }
 
 void PdfName::expandUtf8String() const
@@ -167,7 +167,7 @@ void PdfName::expandUtf8String() const
         auto& name = const_cast<PdfName&>(*this);
         bool isUtf8Equal;
         auto utf8str = std::make_shared<string>();
-        PdfDocEncoding::ConvertPdfDocEncodingToUTF8(*m_rawdata, *utf8str, isUtf8Equal);
+        PdfDocEncoding::ConvertPdfDocEncodingToUTF8(*m_data, *utf8str, isUtf8Equal);
         if (!isUtf8Equal)
             name.m_utf8String = utf8str;
 
@@ -272,7 +272,7 @@ const string & PdfName::GetString() const
 {
     expandUtf8String();
     if (m_utf8String == nullptr)
-        return *m_rawdata;
+        return *m_data;
     else
         return *m_utf8String;
 }
@@ -281,14 +281,14 @@ size_t PdfName::GetLength() const
 {
     expandUtf8String();
     if (m_utf8String == nullptr)
-        return m_rawdata->length();
+        return m_data->length();
     else
         return m_utf8String->length();
 }
 
 const PdfName& PdfName::operator=(const PdfName& rhs)
 {
-    m_rawdata = rhs.m_rawdata;
+    m_data = rhs.m_data;
     m_isUtf8Expanded = rhs.m_isUtf8Expanded;
     m_utf8String = rhs.m_utf8String;
     return *this;
@@ -296,7 +296,7 @@ const PdfName& PdfName::operator=(const PdfName& rhs)
 
 bool PdfName::operator==(const PdfName& rhs) const
 {
-    return *this->m_rawdata == *rhs.m_rawdata;
+    return *this->m_data == *rhs.m_data;
 }
 
 bool PdfName::operator==(const char* str) const
@@ -317,7 +317,7 @@ bool PdfName::operator==(const string_view& view) const
 
 bool PdfName::operator!=(const PdfName& rhs) const
 {
-    return *this->m_rawdata != *rhs.m_rawdata;
+    return *this->m_data != *rhs.m_data;
 }
 
 bool PdfName::operator!=(const char* str) const
@@ -338,7 +338,7 @@ bool PdfName::operator!=(const string_view& view) const
 
 bool PdfName::operator<(const PdfName& rhs) const
 {
-    return *this->m_rawdata < *rhs.m_rawdata;
+    return *this->m_data < *rhs.m_data;
 }
 
 /**

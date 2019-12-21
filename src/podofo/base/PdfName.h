@@ -175,7 +175,10 @@ private:
     void initFromUtf8String(const std::string_view &view);
 
 private:
-    std::shared_ptr<std::string> m_rawdata; // The unescaped name raw data, without leading '/'
+    // The unescaped name raw data, without leading '/'.
+    // It can store also the utf8 expanded string, if coincident
+    std::shared_ptr<std::string> m_data;
+
     bool m_isUtf8Expanded;
     std::shared_ptr<std::string> m_utf8String;
 };
