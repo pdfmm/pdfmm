@@ -170,10 +170,6 @@ class PODOFO_API PdfVariant
      */
     bool IsString() const;
 
-    /** \returns true if this variant is a hex-string
-     */
-    bool IsHexString() const;
-
     /** \returns true if this variant is a name
      */
     bool IsName() const;
@@ -245,6 +241,7 @@ class PODOFO_API PdfVariant
     /** \returns the value of the object as string.
      */
     const PdfString & GetString() const;
+    bool TryGet(const PdfString *& str) const;
 
     /** \returns the value of the object as name
      */

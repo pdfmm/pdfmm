@@ -88,7 +88,7 @@ PdfVariant::PdfVariant( double d )
 PdfVariant::PdfVariant( const PdfString & rsString )
 {
     Init();
-    m_eDataType  = rsString.IsHex() ? EPdfDataType::HexString : EPdfDataType::String;
+    m_eDataType = EPdfDataType::String;
     m_Data.pData = new PdfString( rsString );
 }
 
@@ -149,7 +149,6 @@ void PdfVariant::Clear()
         case EPdfDataType::Dictionary:
         case EPdfDataType::Name:
         case EPdfDataType::String:
-        case EPdfDataType::HexString:
         case EPdfDataType::RawData:
         {
             if( m_Data.pData )
@@ -181,8 +180,7 @@ void PdfVariant::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, cons
 
     /* Check all handles first 
      */
-    if( (m_eDataType == EPdfDataType::HexString ||
-         m_eDataType == EPdfDataType::String ||
+    if( (m_eDataType == EPdfDataType::String ||
          m_eDataType == EPdfDataType::Array ||
          m_eDataType == EPdfDataType::Dictionary ||
          m_eDataType == EPdfDataType::Name || 
@@ -250,7 +248,6 @@ void PdfVariant::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, cons
             pDevice->Write( copy.c_str(), len );
             break;
         }
-        case EPdfDataType::HexString:
         case EPdfDataType::String:
         case EPdfDataType::Name:
         case EPdfDataType::Array:
@@ -344,7 +341,6 @@ const PdfVariant & PdfVariant::operator=( const PdfVariant & rhs )
             break;
         }
         case EPdfDataType::String:
-        case EPdfDataType::HexString:
         {
             if( rhs.m_Data.pData ) 
                 m_Data.pData = new PdfString( *(static_cast<PdfString*>(rhs.m_Data.pData)) );
@@ -381,7 +377,6 @@ const char * PdfVariant::GetDataTypeString() const
         case EPdfDataType::Number: return "Number";
         case EPdfDataType::Real: return "Real";
         case EPdfDataType::String: return "String";
-        case EPdfDataType::HexString: return "HexString";
         case EPdfDataType::Name: return "Name";
         case EPdfDataType::Array: return "Array";
         case EPdfDataType::Dictionary: return "Dictionary";
@@ -412,7 +407,6 @@ bool PdfVariant::operator==( const PdfVariant & rhs ) const
             case EPdfDataType::Number: return GetNumber() == rhs.GetNumber();
             case EPdfDataType::Real: return GetReal() == rhs.GetReal();
             case EPdfDataType::String: return GetString() == rhs.GetString();
-            case EPdfDataType::HexString: return GetString() == rhs.GetString();
             case EPdfDataType::Name: return GetName() == rhs.GetName();
             case EPdfDataType::Array: return GetArray() == rhs.GetArray();
             case EPdfDataType::Dictionary: return GetDictionary() == rhs.GetDictionary();
@@ -441,18 +435,15 @@ bool PdfVariant::operator!=(const PdfVariant& rhs) const
 EPdfDataType PdfVariant::GetDataType() const
 {
     DelayedLoad();
-
-    return static_cast<EPdfDataType>(m_eDataType);
+    return m_eDataType;
 }
 
 bool PdfVariant::GetBool() const
 {
     DelayedLoad();
 
-    if (!IsBool())
-    {
+    if (m_eDataType != EPdfDataType::Bool)
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
-    }
 
     return m_Data.bBoolValue;
 }
@@ -461,13 +452,14 @@ int64_t PdfVariant::GetNumber() const
 {
     DelayedLoad();
 
-    if (!IsReal() && !IsNumber())
+    if (!(m_eDataType == EPdfDataType::Number
+        || m_eDataType == EPdfDataType::Real))
     {
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
     }
 
-    if (IsReal())
-        return static_cast<long>(floor(m_Data.dNumber));
+    if (m_eDataType == EPdfDataType::Real)
+        return static_cast<int64_t>(std::round(m_Data.dNumber));
     else
         return m_Data.nNumber;
 }
@@ -476,28 +468,25 @@ double PdfVariant::GetReal() const
 {
     DelayedLoad();
 
-    if (!IsReal() && !IsNumber())
+    if (!(m_eDataType == EPdfDataType::Real
+        || m_eDataType == EPdfDataType::Number))
     {
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
     }
 
-    if (IsReal())
-        return m_Data.dNumber;
-    else
+    if (m_eDataType == EPdfDataType::Number)
         return static_cast<double>(m_Data.nNumber);
+    else
+        return m_Data.dNumber;
 }
 
 const PdfData & PdfVariant::GetRawData() const
 {
     DelayedLoad();
 
-    if (!IsRawData())
-    {
+    if (m_eDataType != EPdfDataType::RawData)
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
-    }
-    // Do not change this to an reinterpret_cast
-    // We need a c-style casts here to avoid crashes
-    // because a reinterpret_cast might point to a different position.
+
     return *((PdfData*)m_Data.pData);
 }
 
@@ -505,13 +494,9 @@ PdfData & PdfVariant::GetRawData()
 {
     DelayedLoad();
 
-    if (!IsRawData())
-    {
+    if (m_eDataType != EPdfDataType::RawData)
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
-    }
-    // Do not change this to an reinterpret_cast
-    // We need a c-style casts here to avoid crashes
-    // because a reinterpret_cast might point to a different position.
+
     return *((PdfData*)m_Data.pData);
 }
 
@@ -519,28 +504,32 @@ const PdfString & PdfVariant::GetString() const
 {
     DelayedLoad();
 
-    if (!IsString() && !IsHexString())
-    {
+    if (m_eDataType != EPdfDataType::String)
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
-    }
-    // Do not change this to an reinterpret_cast
-    // We need a c-style casts here to avoid crashes
-    // because a reinterpret_cast might point to a different position.
+
     return *((PdfString*)m_Data.pData);
+}
+
+bool PdfVariant::TryGet(const PdfString*& str) const
+{
+    DelayedLoad();
+    if (m_eDataType != EPdfDataType::String)
+    {
+        str = nullptr;
+        return false;
+    }
+
+    str = (PdfString*)m_Data.pData;
+    return true;
 }
 
 const PdfName & PdfVariant::GetName() const
 {
     DelayedLoad();
 
-    if (!IsName())
-    {
+    if (m_eDataType != EPdfDataType::Name)
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
-    }
 
-    // Do not change this to an reinterpret_cast
-    // We need a c-style casts here to avoid crashes
-    // because a reinterpret_cast might point to a different position.
     return *((PdfName*)m_Data.pData);
 }
 
@@ -552,17 +541,9 @@ const PdfArray & PdfVariant::GetArray() const
 
 const PdfArray & PdfVariant::GetArray_NoDL() const
 {
-    // Test against eDataType directly not GetDataType() since
-    // we don't want to trigger a delayed load (and if required one has
-    // already been triggered).
     if (m_eDataType != EPdfDataType::Array)
-    {
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
-    }
 
-    // Do not change this to an reinterpret_cast
-    // We need a c-style casts here to avoid crashes
-    // because a reinterpret_cast might point to a different position.
     return *((PdfArray*)m_Data.pData);
 }
 
@@ -574,17 +555,9 @@ PdfArray & PdfVariant::GetArray()
 
 PdfArray & PdfVariant::GetArray_NoDL()
 {
-    // Test against eDataType directly not GetDataType() since
-    // we don't want to trigger a delayed load (and if required one has
-    // already been triggered).
     if (m_eDataType != EPdfDataType::Array)
-    {
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
-    }
 
-    // Do not change this to an reinterpret_cast
-    // We need a c-style casts here to avoid crashes
-    // because a reinterpret_cast might point to a different position.
     return *((PdfArray*)m_Data.pData);
 }
 
@@ -596,17 +569,9 @@ const PdfDictionary & PdfVariant::GetDictionary() const
 
 const PdfDictionary & PdfVariant::GetDictionary_NoDL() const
 {
-    // Test against eDataType directly not GetDataType() since
-    // we don't want to trigger a delayed load (and if required one has
-    // already been triggered).
     if (m_eDataType != EPdfDataType::Dictionary)
-    {
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
-    }
 
-    // Do not change this to an reinterpret_cast
-    // We need a c-style casts here to avoid crashes
-    // because a reinterpret_cast might point to a different position.
     return *((PdfDictionary*)m_Data.pData);
 }
 
@@ -618,17 +583,9 @@ PdfDictionary & PdfVariant::GetDictionary()
 
 PdfDictionary & PdfVariant::GetDictionary_NoDL()
 {
-    // Test against eDataType directly not GetDataType() since
-    // we don't want to trigger a delayed load (and if required one has
-    // already been triggered).
     if (m_eDataType != EPdfDataType::Dictionary)
-    {
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
-    }
 
-    // Do not change this to an reinterpret_cast
-    // We need a c-style casts here to avoid crashes
-    // because a reinterpret_cast might point to a different position.
     return *((PdfDictionary*)m_Data.pData);
 }
 
@@ -636,10 +593,8 @@ const PdfReference & PdfVariant::GetReference() const
 {
     DelayedLoad();
 
-    if (!IsReference())
-    {
+    if (m_eDataType != EPdfDataType::Reference)
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
-    }
 
     // Do not change this to an reinterpret_cast
     // We need a c-style casts here to avoid crashes
@@ -649,29 +604,28 @@ const PdfReference & PdfVariant::GetReference() const
 
 void PdfVariant::SetBool(bool b)
 {
+    AssertMutable();
     DelayedLoad();
 
-    if (!IsBool())
-    {
+    if (m_eDataType != EPdfDataType::Bool)
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
-    }
 
-    AssertMutable();
     m_Data.bBoolValue = b;
     SetDirty(true);
 }
 
 void PdfVariant::SetNumber(int64_t l)
 {
+    AssertMutable();
     DelayedLoad();
 
-    if (!IsReal() && !IsNumber())
+    if (!(m_eDataType == EPdfDataType::Number
+        || m_eDataType == EPdfDataType::Real))
     {
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
     }
 
-    AssertMutable();
-    if (IsReal())
+    if (m_eDataType == EPdfDataType::Real)
         m_Data.dNumber = static_cast<double>(l);
     else
         m_Data.nNumber = l;
@@ -680,62 +634,55 @@ void PdfVariant::SetNumber(int64_t l)
 
 void PdfVariant::SetReal(double d)
 {
+    AssertMutable();
     DelayedLoad();
 
-    if (!IsReal() && !IsNumber())
+    if (!(m_eDataType == EPdfDataType::Real
+        || m_eDataType == EPdfDataType::Number))
     {
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
     }
 
-    AssertMutable();
-    if (IsReal())
-        m_Data.dNumber = d;
+    if (m_eDataType == EPdfDataType::Number)
+        m_Data.nNumber = static_cast<int64_t>(std::round(d));
     else
-        m_Data.nNumber = static_cast<long>(floor(d));
+        m_Data.dNumber = d;
+
     SetDirty(true);
 }
 
 void PdfVariant::SetName(const PdfName &name)
 {
+    AssertMutable();
     DelayedLoad();
 
-    if (!IsName())
-    {
+    if (m_eDataType != EPdfDataType::Name)
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
-    }
 
-    AssertMutable();
     *((PdfName*)m_Data.pData) = name;
     SetDirty(true);
 }
 
 void PdfVariant::SetString(const PdfString &str)
 {
+    AssertMutable();
     DelayedLoad();
 
-    EPdfDataType dataType = GetDataType();
-
-    if ((str.IsHex() && dataType != EPdfDataType::HexString)
-        || (!str.IsHex() && dataType != EPdfDataType::String))
-    {
+    if (m_eDataType != EPdfDataType::String)
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
-    }
 
-    AssertMutable();
     *((PdfString*)m_Data.pData) = str;
     SetDirty(true);
 }
 
 void PdfVariant::SetReference(const PdfReference &ref)
 {
+    AssertMutable();
     DelayedLoad();
 
-    if (IsReference())
-    {
+    if (m_eDataType != EPdfDataType::Reference)
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
-    }
 
-    AssertMutable();
     *((PdfReference*)m_Data.pData) = ref;
     SetDirty(true);
 }
@@ -760,7 +707,6 @@ bool PdfVariant::IsDirty() const
         case EPdfDataType::Bool:
         case EPdfDataType::Number:
         case EPdfDataType::Real:
-        case EPdfDataType::HexString:
         case EPdfDataType::String:
         case EPdfDataType::Name:
         case EPdfDataType::RawData:
@@ -791,7 +737,6 @@ void PdfVariant::SetDirty(bool bDirty)
             case EPdfDataType::Bool:
             case EPdfDataType::Number:
             case EPdfDataType::Real:
-            case EPdfDataType::HexString:
             case EPdfDataType::String:
             case EPdfDataType::Name:
             case EPdfDataType::RawData:
@@ -820,7 +765,6 @@ void PdfVariant::SetImmutable(bool bImmutable)
         case EPdfDataType::Bool:
         case EPdfDataType::Number:
         case EPdfDataType::Real:
-        case EPdfDataType::HexString:
         case EPdfDataType::String:
         case EPdfDataType::Name:
         case EPdfDataType::RawData:
@@ -835,7 +779,7 @@ void PdfVariant::SetImmutable(bool bImmutable)
 
 void PdfVariant::AssertMutable() const
 {
-    if (IsImmutable())
+    if (m_bImmutable)
         PODOFO_RAISE_ERROR(EPdfError::ChangeOnImmutable);
 }
 
@@ -846,55 +790,60 @@ void PdfVariant::AfterDelayedLoad()
 
 bool PdfVariant::IsBool() const
 {
-    return GetDataType() == EPdfDataType::Bool;
+    DelayedLoad();
+    return m_eDataType == EPdfDataType::Bool;
 }
 
 bool PdfVariant::IsNumber() const
 {
-    return GetDataType() == EPdfDataType::Number;
+    DelayedLoad();
+    return m_eDataType == EPdfDataType::Number;
 }
 
 bool PdfVariant::IsReal() const
 {
-    return GetDataType() == EPdfDataType::Real;
+    DelayedLoad();
+    return m_eDataType == EPdfDataType::Real;
 }
 
 bool PdfVariant::IsString() const
 {
-    return GetDataType() == EPdfDataType::String;
-}
-
-bool PdfVariant::IsHexString() const
-{
-    return GetDataType() == EPdfDataType::HexString;
+    DelayedLoad();
+    return m_eDataType == EPdfDataType::String;
 }
 
 bool PdfVariant::IsName() const
 {
-    return GetDataType() == EPdfDataType::Name;
+    DelayedLoad();
+    return m_eDataType == EPdfDataType::Name;
 }
 
 bool PdfVariant::IsArray() const
 {
-    return GetDataType() == EPdfDataType::Array;
+    DelayedLoad();
+    return m_eDataType == EPdfDataType::Array;
 }
 
 bool PdfVariant::IsDictionary() const
 {
-    return GetDataType() == EPdfDataType::Dictionary;
+    DelayedLoad();
+    return m_eDataType == EPdfDataType::Dictionary;
 }
 
 bool PdfVariant::IsRawData() const
 {
-    return GetDataType() == EPdfDataType::RawData;
+    DelayedLoad();
+    return m_eDataType == EPdfDataType::RawData;
 }
 
 bool PdfVariant::IsNull() const
 {
-    return GetDataType() == EPdfDataType::Null;
+    DelayedLoad();
+    return m_eDataType == EPdfDataType::Null;
 }
 
 bool PdfVariant::IsReference() const
 {
-    return GetDataType() == EPdfDataType::Reference;
+    DelayedLoad();
+    return m_eDataType == EPdfDataType::Reference;
 }

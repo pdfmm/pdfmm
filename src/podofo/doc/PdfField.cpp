@@ -1163,7 +1163,7 @@ int PdfListField::GetSelectedIndex() const
 {
     AssertTerminalField();
     PdfObject *valueObj = GetFieldObject()->GetDictionary().FindKey( "V" );
-    if( valueObj == nullptr || !( valueObj->IsString() || valueObj->IsHexString() ) )
+    if (valueObj == nullptr || !valueObj->IsString())
         return -1;
 
     PdfString value = valueObj->GetString();

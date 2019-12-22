@@ -201,7 +201,6 @@ enum class EPdfDataType : uint8_t
    Number,                /**< Number datatype for integer values */
    Real,                  /**< Real datatype for floating point numbers */
    String,                /**< String datatype in PDF file. Strings have the form (Hallo World!) in PDF files. \see PdfString */
-   HexString,             /**< HexString datatype in PDF file. Hex encoded strings have the form &lt;AF00BE&gt; in PDF files. \see PdfString */
    Name,                  /**< Name datatype. Names are used as keys in dictionary to reference values. \see PdfName */
    Array,                 /**< An array of other PDF data types. */
    Dictionary,            /**< A dictionary associates keys with values. A key can have another dictionary as value. */

@@ -48,9 +48,9 @@ class PdfVariant;
 
 enum class EPdfTokenType
 {
+    Unknown = 0,
     Delimiter,
-    Token,
-    Unknown = 0xFF
+    Literal,
 };
 
 typedef std::pair<std::string,EPdfTokenType> TTokenizerPair;
@@ -64,6 +64,26 @@ typedef TTokenizerQueque::const_iterator     TCITokenizerQueque;
  */
 class PODOFO_API PdfTokenizer
 {
+protected:
+    // This enum differs from regular PdfDataType in the sense
+    // it enumerates only data types that can be determined literally
+    // by the tokenization and specify better if the strings literals
+    // are regular or hex strings
+    enum class EPdfLiteralDataType
+    {
+        Unknown = 0,
+        Bool,
+        Number,
+        Real,
+        String,
+        HexString,
+        Name,
+        Array,
+        Dictionary,
+        Null,
+        Reference,
+    };
+
 public:
     PdfTokenizer();
 
@@ -133,27 +153,27 @@ public:
      *
      *  \returns true if it is a whitespace character otherwise false
      */
-    inline static bool IsWhitespace(const unsigned char ch);
+    static bool IsWhitespace(const unsigned char ch);
 
     /** Returns true if the given character is a delimiter
      *  according to the pdf reference
      *
      *  \returns true if it is a delimiter character otherwise false
      */
-    inline static bool IsDelimiter(const unsigned char ch);
+    static bool IsDelimiter(const unsigned char ch);
 
     /**
      * True if the passed character is a regular character according to the PDF
      * reference (Section 3.1.1, Character Set); ie it is neither a white-space
      * nor a delimeter character.
      */
-    inline static bool IsRegular(const unsigned char ch);
+    static bool IsRegular(const unsigned char ch);
 
     /**
      * True if the passed character is within the generally accepted "printable"
      * ASCII range.
      */
-    inline static bool IsPrintable(const unsigned char ch);
+    static bool IsPrintable(const unsigned char ch);
 
     /**
      * Get the hex value from a static map of a given hex character (0-9, A-F, a-f).
@@ -164,7 +184,7 @@ public:
      *
      * \see HEX_NOT_FOUND
      */
-    inline static int GetHexValue(const unsigned char ch);
+    static int GetHexValue(const unsigned char ch);
 
     /**
      * Constant which is returned for invalid hex values.
@@ -190,9 +210,7 @@ public:
      *
      *  \returns the expected datatype
      */
-    EPdfDataType DetermineDataType( const char* pszToken, EPdfTokenType eType, PdfVariant& rVariant );
-
-    void ReadDataType( EPdfDataType eDataType, PdfVariant& rVariant, PdfEncrypt* pEncrypt );
+    EPdfLiteralDataType DetermineDataType( const char* pszToken, EPdfTokenType eType, PdfVariant& rVariant );
 
     /** Read a dictionary from the input device
      *  and store it into a variant.
@@ -220,18 +238,11 @@ public:
 
     /** Read a hex string from the input device
      *  and store it into a variant.
-     * 
+     *
      *  \param rVariant store the hex string into this variable
      *  \param pEncrypt an encryption object which is used to decrypt strings during parsing
      */
-    void ReadHexString( PdfVariant& rVariant, PdfEncrypt* pEncrypt );
-
-    /** Read a hex string from the input device
-     *  and store it into a vector.
-     *
-     *  \param rVecBuffer store the hex string into this variable
-     */
-    void ReadHexString( std::vector<char> &rVecBuffer );
+    void ReadHexString(PdfVariant& rVariant, PdfEncrypt* pEncrypt);
 
     /** Read a name from the input device
      *  and store it into a variant.
@@ -253,11 +264,21 @@ public:
      */
     void QuequeToken( const char* pszToken, EPdfTokenType eType );
 
- protected:
+private:
+    void readDataType(EPdfLiteralDataType eDataType, PdfVariant& rVariant, PdfEncrypt* pEncrypt);
+
+    /** Read a hex string from the input device
+     *  and store it into a vector.
+     *
+     *  \param rVecBuffer store the hex string into this variable
+     */
+    void readHexString(std::vector<char>& rVecBuffer);
+
+protected:
     PdfRefCountedInputDevice m_device;
     PdfRefCountedBuffer      m_buffer;
 
- private:
+private:
     // 256-byte array mapping character ordinal values to a truth value
     // indicating whether or not they are whitespace according to the PDF
     // standard.
@@ -282,47 +303,6 @@ public:
     /// which is locale depend.
     std::istringstream m_doubleParser;
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline bool PdfTokenizer::IsWhitespace(const unsigned char ch)
-{
-    return ( PdfTokenizer::s_whitespaceMap[static_cast<size_t>(ch)] != 0 );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline bool PdfTokenizer::IsDelimiter(const unsigned char ch)
-{
-    return ( PdfTokenizer::s_delimiterMap[ch] != 0 );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline bool PdfTokenizer::IsRegular(const unsigned char ch)
-{
-    return !IsWhitespace(ch) && !IsDelimiter(static_cast<size_t>(ch));
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline bool PdfTokenizer::IsPrintable(const unsigned char ch)
-{
-    return ((ch > 32U) && (ch < 125U));
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline int PdfTokenizer::GetHexValue(const unsigned char ch)
-{
-    return PdfTokenizer::s_hexMap[static_cast<size_t>(ch)];
-}
-
 
 };
 

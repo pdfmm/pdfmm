@@ -43,7 +43,7 @@
 
 #include <iostream>
 
-namespace PoDoFo {
+using namespace PoDoFo;
 
 PdfContentsTokenizer::PdfContentsTokenizer( PdfCanvas* pCanvas )
     : PdfTokenizer(), m_readingInlineImgData(false)
@@ -131,7 +131,7 @@ bool PdfContentsTokenizer::ReadNext( EPdfContentsType& reType, const char*& rpsz
     if (m_readingInlineImgData)
         return ReadInlineImgData(reType, rpszKeyword, rVariant);
     EPdfTokenType eTokenType;
-    EPdfDataType  eDataType;
+    EPdfLiteralDataType eDataType;
     const char*   pszToken;
 
     // While officially the keyword pointer is undefined if not needed, it
@@ -173,38 +173,36 @@ bool PdfContentsTokenizer::ReadNext( EPdfContentsType& reType, const char*& rpsz
 
     switch( eDataType )
     {
-        case EPdfDataType::Null:
-        case EPdfDataType::Bool:
-        case EPdfDataType::Number:
-        case EPdfDataType::Real:
+        case EPdfLiteralDataType::Null:
+        case EPdfLiteralDataType::Bool:
+        case EPdfLiteralDataType::Number:
+        case EPdfLiteralDataType::Real:
             // the data was already read into rVariant by the DetermineDataType function
             break;
 
-        case EPdfDataType::Reference:
+        case EPdfLiteralDataType::Reference:
         {
             // references are invalid in content streams
             PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDataType, "references are invalid in content streams" );
             break;
         }
 
-        case EPdfDataType::Dictionary:
-            this->ReadDictionary( rVariant, NULL );
+        case EPdfLiteralDataType::Dictionary:
+            this->ReadDictionary( rVariant, nullptr );
             break;
-        case EPdfDataType::Array:
-            this->ReadArray( rVariant, NULL );
+        case EPdfLiteralDataType::Array:
+            this->ReadArray( rVariant, nullptr);
             break;
-        case EPdfDataType::String:
-            this->ReadString( rVariant, NULL );
+        case EPdfLiteralDataType::String:
+            this->ReadString( rVariant, nullptr);
             break;
-        case EPdfDataType::HexString:
-            this->ReadHexString( rVariant, NULL );
+        case EPdfLiteralDataType::HexString:
+            this->ReadHexString(rVariant, nullptr);
             break;
-        case EPdfDataType::Name:
+        case EPdfLiteralDataType::Name:
             this->ReadName( rVariant );
             break;
 
-        case EPdfDataType::Unknown:
-        case EPdfDataType::RawData:
         default:
             // Assume we have a keyword
             reType     = EPdfContentsType::Keyword;
@@ -212,7 +210,7 @@ bool PdfContentsTokenizer::ReadNext( EPdfContentsType& reType, const char*& rpsz
             break;
     }
     std::string idKW ("ID");
-    if ((reType == EPdfContentsType::Keyword) && (idKW.compare(rpszKeyword) == 0) )
+    if (reType == EPdfContentsType::Keyword && idKW.compare(rpszKeyword) == 0)
         m_readingInlineImgData = true;
     return true;
 }
@@ -274,4 +272,3 @@ bool PdfContentsTokenizer::ReadInlineImgData( EPdfContentsType& reType, const ch
     
     return false;
 }
-};
