@@ -405,7 +405,7 @@ bool PdfVariant::operator==( const PdfVariant & rhs ) const
         switch (m_eDataType) {
             case EPdfDataType::Bool: return GetBool() == rhs.GetBool();
             case EPdfDataType::Number: return GetNumber() == rhs.GetNumber();
-            case EPdfDataType::Real: return GetReal() == rhs.GetReal();
+            case EPdfDataType::Real: return GetRealStrict() == rhs.GetRealStrict();
             case EPdfDataType::String: return GetString() == rhs.GetString();
             case EPdfDataType::Name: return GetName() == rhs.GetName();
             case EPdfDataType::Array: return GetArray() == rhs.GetArray();
@@ -448,7 +448,7 @@ bool PdfVariant::GetBool() const
     return m_Data.bBoolValue;
 }
 
-int64_t PdfVariant::GetNumber() const
+int64_t PdfVariant::GetNumberLenient() const
 {
     DelayedLoad();
 
@@ -462,6 +462,16 @@ int64_t PdfVariant::GetNumber() const
         return static_cast<int64_t>(std::round(m_Data.dNumber));
     else
         return m_Data.nNumber;
+}
+
+int64_t PdfVariant::GetNumber() const
+{
+    DelayedLoad();
+
+    if (m_eDataType != EPdfDataType::Number)
+        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
+
+    return m_Data.nNumber;
 }
 
 double PdfVariant::GetReal() const
@@ -498,6 +508,16 @@ PdfData & PdfVariant::GetRawData()
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
 
     return *((PdfData*)m_Data.pData);
+}
+
+double PdfVariant::GetRealStrict() const
+{
+    DelayedLoad();
+
+    if (m_eDataType != EPdfDataType::Real)
+        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
+
+    return m_Data.dNumber;
 }
 
 const PdfString & PdfVariant::GetString() const
@@ -800,10 +820,16 @@ bool PdfVariant::IsNumber() const
     return m_eDataType == EPdfDataType::Number;
 }
 
-bool PdfVariant::IsReal() const
+bool PdfVariant::IsRealStrict() const
 {
     DelayedLoad();
     return m_eDataType == EPdfDataType::Real;
+}
+
+bool PdfVariant::IsNumberOrReal() const
+{
+    DelayedLoad();
+    return m_eDataType == EPdfDataType::Number || m_eDataType == EPdfDataType::Real;
 }
 
 bool PdfVariant::IsString() const

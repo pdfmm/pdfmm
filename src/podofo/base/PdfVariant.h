@@ -158,13 +158,19 @@ class PODOFO_API PdfVariant
      */
     bool IsBool() const;
 
-    /** \returns true if this variant is a number
+    /** \returns true if this variant is an integer
      */
     bool IsNumber() const;
 
     /** \returns true if this variant is a real
+     *
+     *  This method strictly check for a floating point number and return false on integer
      */
-    bool IsReal() const;
+    bool IsRealStrict() const;
+
+    /** \returns true if this variant is an integer or a floating point number
+     */
+    bool IsNumberOrReal() const;
 
     /** \returns true if this variant is a string
      */
@@ -229,14 +235,32 @@ class PODOFO_API PdfVariant
     bool GetBool() const;
 
     /** Get the value of the object as int64_t.
+     *
+     *  This method is lenient and narrows floating point numbers
+     *  \return the value of the number
+     */
+    int64_t GetNumberLenient() const;
+
+    /** Get the value of the object as int64_t
+     *
+     *  This method throws if the numer is a floating point number
      *  \return the value of the number
      */
     int64_t GetNumber() const;
 
-    /** Get the value of the object as double.
+    /** Get the value of the object as a floating point
+     *
+     *  This method is lenient and returns also strictly integral numbers
      *  \return the value of the number
      */
     double GetReal() const;
+
+    /** Get the value of the object as floating point number
+     *
+     *  This method throws if the numer is integer
+     *  \return the value of the number
+     */
+    double GetRealStrict() const;
 
     /** \returns the value of the object as string.
      */

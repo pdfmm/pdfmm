@@ -1282,7 +1282,7 @@ void PdfCCITTFilter::BeginDecodeImpl( const PdfDictionary* pDict )
 
     m_tiff->tif_mode = O_RDONLY;
 
-    TIFFSetField(m_tiff, TIFFTAG_IMAGEWIDTH,      pDict->GetKeyAsLong( PdfName("Columns"), 1728 )->GetNumber() );
+    TIFFSetField(m_tiff, TIFFTAG_IMAGEWIDTH,      pDict->GetKeyAsLong( PdfName("Columns"), 1728 ) );
     TIFFSetField(m_tiff, TIFFTAG_SAMPLESPERPIXEL, 1);
     TIFFSetField(m_tiff, TIFFTAG_BITSPERSAMPLE,   1);
     TIFFSetField(m_tiff, TIFFTAG_FILLORDER,       FILLORDER_LSB2MSB);
