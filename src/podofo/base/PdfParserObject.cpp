@@ -253,7 +253,7 @@ void PdfParserObject::ParseStream()
     
     std::streamoff fLoc = m_device.Device()->Tell();	// we need to save this, since loading the Length key could disturb it!
 
-    PdfObject* pObj = this->GetDictionary_NoDL().GetKey( PdfName::KeyLength );  
+    PdfObject* pObj = this->GetDictionaryInternal().GetKey( PdfName::KeyLength );  
     if( pObj && pObj->IsNumber() )
     {
         lLen = pObj->GetNumber();   
@@ -290,7 +290,7 @@ void PdfParserObject::ParseStream()
 
 	if( m_pEncrypt && !m_pEncrypt->IsMetadataEncrypted() ) {
 		// If metadata is not encrypted the Filter is set to "Crypt"
-		PdfObject* pFilterObj = this->GetDictionary_NoDL().GetKey( PdfName::KeyFilter );
+		PdfObject* pFilterObj = this->GetDictionaryInternal().GetKey( PdfName::KeyFilter );
 		if( pFilterObj && pFilterObj->IsArray() ) {
 			PdfArray filters = pFilterObj->GetArray();
 			for(PdfArray::iterator it = filters.begin(); it != filters.end(); it++) {

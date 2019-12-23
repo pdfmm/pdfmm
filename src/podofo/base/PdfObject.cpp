@@ -161,10 +161,10 @@ void PdfObject::SetVariantOwner()
     switch ( eDataType )
     {
         case EPdfDataType::Dictionary:
-            static_cast<PdfContainerDataType &>( GetDictionary_NoDL() ).SetOwner( this );
+            static_cast<PdfContainerDataType &>( GetDictionaryInternal() ).SetOwner( this );
             break;
         case EPdfDataType::Array:
-            static_cast<PdfContainerDataType &>( GetArray_NoDL() ).SetOwner( this );
+            static_cast<PdfContainerDataType &>( GetArrayInternal() ).SetOwner( this );
             break;
         default:
             break;

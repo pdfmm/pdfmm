@@ -223,7 +223,7 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                             for (unsigned i = 0; i < rangeSize; i++)
                             {
                                 auto &dst = arr[i];
-                                if (dst.TryGet(str) && str->IsHex()) // pp. 475 PdfReference 1.7
+                                if (dst.TryGetString(str) && str->IsHex()) // pp. 475 PdfReference 1.7
                                     map[{ codeSize, srcCodeLo + i }] = getStringUtf8(dst.GetString());
                                 else if (dst.IsName()) // Not mentioned in tecnincal document #5014 but seems safe
                                     map[{ codeSize, srcCodeLo + i }] = dst.GetName().GetString();
@@ -231,7 +231,7 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                                     PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "beginbfrange: expected string or name inside array");
                             }
                         }
-                        else if (var->TryGet(str) && str->IsHex())
+                        else if (var->TryGetString(str) && str->IsHex())
                         {
                             // pp. 474 PdfReference 1.7
                             string dstCodeLo = getStringUtf8(var->GetString());
@@ -273,7 +273,7 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                             mappedstr.clear();
                             utf8::append(dstCode, mappedstr);
                         }
-                        else if (var->TryGet(str) && str->IsHex())
+                        else if (var->TryGetString(str) && str->IsHex())
                         {
                             // pp. 474 PdfReference 1.7
                             mappedstr = getStringUtf8(var->GetString());

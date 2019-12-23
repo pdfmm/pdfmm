@@ -178,17 +178,6 @@ void PdfVariant::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, cons
 {
     DelayedLoad(); 
 
-    /* Check all handles first 
-     */
-    if( (m_eDataType == EPdfDataType::String ||
-         m_eDataType == EPdfDataType::Array ||
-         m_eDataType == EPdfDataType::Dictionary ||
-         m_eDataType == EPdfDataType::Name || 
-         m_eDataType == EPdfDataType::RawData ) && !m_Data.pData )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
-
     switch( m_eDataType ) 
     {
         case EPdfDataType::Bool:
@@ -248,14 +237,18 @@ void PdfVariant::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, cons
             pDevice->Write( copy.c_str(), len );
             break;
         }
+        case EPdfDataType::Reference:
+            m_Data.pData->Write(pDevice, eWriteMode, pEncrypt);
+            break;
         case EPdfDataType::String:
         case EPdfDataType::Name:
         case EPdfDataType::Array:
-        case EPdfDataType::Reference:
         case EPdfDataType::RawData:
+            checkHandle();
             m_Data.pData->Write( pDevice, eWriteMode, pEncrypt );
             break;
         case EPdfDataType::Dictionary:
+            checkHandle();
             static_cast<PdfDictionary*>(m_Data.pData)->Write( pDevice, eWriteMode, pEncrypt, keyStop );
             break;
         case EPdfDataType::Null:
@@ -319,38 +312,38 @@ const PdfVariant & PdfVariant::operator=( const PdfVariant & rhs )
         case EPdfDataType::Array:
         {
             if( rhs.m_Data.pData ) 
-                m_Data.pData = new PdfArray( *(static_cast<PdfArray*>(rhs.m_Data.pData)) );
+                m_Data.pData = new PdfArray(*static_cast<PdfArray*>(rhs.m_Data.pData));
             break;
         }
         case EPdfDataType::Reference:
         {
             if( rhs.m_Data.pData ) 
-                m_Data.pData = new PdfReference( *(static_cast<PdfReference*>(rhs.m_Data.pData)) );
+                m_Data.pData = new PdfReference(*static_cast<PdfReference*>(rhs.m_Data.pData));
             break;
         }
         case EPdfDataType::Dictionary:
         {
             if( rhs.m_Data.pData ) 
-                m_Data.pData = new PdfDictionary( *(static_cast<PdfDictionary*>(rhs.m_Data.pData)) );
+                m_Data.pData = new PdfDictionary(*static_cast<PdfDictionary*>(rhs.m_Data.pData));
             break;
         }
         case EPdfDataType::Name:
         {
             if( rhs.m_Data.pData ) 
-                m_Data.pData = new PdfName( *(static_cast<PdfName*>(rhs.m_Data.pData)) );
+                m_Data.pData = new PdfName(*static_cast<PdfName*>(rhs.m_Data.pData));
             break;
         }
         case EPdfDataType::String:
         {
             if( rhs.m_Data.pData ) 
-                m_Data.pData = new PdfString( *(static_cast<PdfString*>(rhs.m_Data.pData)) );
+                m_Data.pData = new PdfString(*static_cast<PdfString*>(rhs.m_Data.pData));
             break;
         }
             
         case EPdfDataType::RawData: 
         {
             if( rhs.m_Data.pData ) 
-                m_Data.pData = new PdfData( *(static_cast<PdfData*>(rhs.m_Data.pData)) );
+                m_Data.pData = new PdfData(*static_cast<PdfData*>(rhs.m_Data.pData));
             break;
         }
         case EPdfDataType::Bool:
@@ -440,97 +433,134 @@ EPdfDataType PdfVariant::GetDataType() const
 
 bool PdfVariant::GetBool() const
 {
-    DelayedLoad();
-
-    if (m_eDataType != EPdfDataType::Bool)
+    bool ret;
+    if (!TryGetBool(ret))
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
 
-    return m_Data.bBoolValue;
+    return ret;
+}
+
+bool PdfVariant::TryGetBool(bool& value) const
+{
+    DelayedLoad();
+    if (m_eDataType != EPdfDataType::Bool)
+    {
+        value = false;
+        return false;
+    }
+
+    value = m_Data.bBoolValue;
+    return true;
 }
 
 int64_t PdfVariant::GetNumberLenient() const
 {
-    DelayedLoad();
+    int64_t ret;
+    if (!TryGetNumberLenient(ret))
+        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
 
+    return ret;
+}
+
+bool PdfVariant::TryGetNumberLenient(int64_t& value) const
+{
+    DelayedLoad();
     if (!(m_eDataType == EPdfDataType::Number
         || m_eDataType == EPdfDataType::Real))
     {
-        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
+        value = 0;
+        return false;
     }
 
     if (m_eDataType == EPdfDataType::Real)
-        return static_cast<int64_t>(std::round(m_Data.dNumber));
+        value = static_cast<int64_t>(std::round(m_Data.dNumber));
     else
-        return m_Data.nNumber;
+        value = m_Data.nNumber;
+
+    return true;
 }
 
 int64_t PdfVariant::GetNumber() const
 {
-    DelayedLoad();
-
-    if (m_eDataType != EPdfDataType::Number)
+    int64_t ret;
+    if (!TryGetNumber(ret))
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
 
     return m_Data.nNumber;
 }
 
-double PdfVariant::GetReal() const
+bool PdfVariant::TryGetNumber(int64_t& value) const
 {
     DelayedLoad();
+    if (m_eDataType != EPdfDataType::Number)
+    {
+        value = 0;
+        return false;
+    }
 
+    value = m_Data.nNumber;
+    return true;
+}
+
+double PdfVariant::GetReal() const
+{
+    double ret;
+    if (!TryGetReal(ret))
+        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
+
+    return ret;
+}
+
+bool PdfVariant::TryGetReal(double& value) const
+{
+    DelayedLoad();
     if (!(m_eDataType == EPdfDataType::Real
         || m_eDataType == EPdfDataType::Number))
     {
-        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
+        value = 0;
+        return false;
     }
 
     if (m_eDataType == EPdfDataType::Number)
-        return static_cast<double>(m_Data.nNumber);
+        value = static_cast<double>(m_Data.nNumber);
     else
-        return m_Data.dNumber;
-}
+        value = m_Data.dNumber;
 
-const PdfData & PdfVariant::GetRawData() const
-{
-    DelayedLoad();
-
-    if (m_eDataType != EPdfDataType::RawData)
-        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
-
-    return *((PdfData*)m_Data.pData);
-}
-
-PdfData & PdfVariant::GetRawData()
-{
-    DelayedLoad();
-
-    if (m_eDataType != EPdfDataType::RawData)
-        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
-
-    return *((PdfData*)m_Data.pData);
+    return true;
 }
 
 double PdfVariant::GetRealStrict() const
 {
-    DelayedLoad();
-
-    if (m_eDataType != EPdfDataType::Real)
+    double ret;
+    if (!TryGetRealStrict(ret))
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
 
     return m_Data.dNumber;
 }
 
-const PdfString & PdfVariant::GetString() const
+bool PdfVariant::TryGetRealStrict(double& value) const
 {
     DelayedLoad();
+    if (m_eDataType != EPdfDataType::Real)
+    {
+        value = 0;
+        return false;
+    }
 
-    if (m_eDataType != EPdfDataType::String)
-        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
-
-    return *((PdfString*)m_Data.pData);
+    value = m_Data.dNumber;
+    return true;
 }
 
-bool PdfVariant::TryGet(const PdfString*& str) const
+const PdfString & PdfVariant::GetString() const
+{
+    const PdfString* ret;
+    if (!TryGetString(ret))
+        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
+
+    return *ret;
+}
+
+bool PdfVariant::TryGetString(const PdfString*& str) const
 {
     DelayedLoad();
     if (m_eDataType != EPdfDataType::String)
@@ -545,88 +575,168 @@ bool PdfVariant::TryGet(const PdfString*& str) const
 
 const PdfName & PdfVariant::GetName() const
 {
-    DelayedLoad();
+    const PdfName* ret;
+    if (!TryGetName(ret))
+        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
 
+    return *ret;
+}
+
+bool PdfVariant::TryGetName(const PdfName*& name) const
+{
+    DelayedLoad();
     if (m_eDataType != EPdfDataType::Name)
+    {
+        name = nullptr;
+        return false;
+    }
+
+    name = (PdfName*)m_Data.pData;
+    return true;
+}
+
+PdfReference PdfVariant::GetReference() const
+{
+    PdfReference ret;
+    if (!TryGetReference(ret))
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
 
-    return *((PdfName*)m_Data.pData);
+    return ret;
 }
 
-const PdfArray & PdfVariant::GetArray() const
-{
-    DelayedLoad();
-    return GetArray_NoDL();
-}
-
-const PdfArray & PdfVariant::GetArray_NoDL() const
-{
-    if (m_eDataType != EPdfDataType::Array)
-        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
-
-    return *((PdfArray*)m_Data.pData);
-}
-
-PdfArray & PdfVariant::GetArray()
-{
-    DelayedLoad();
-    return GetArray_NoDL();
-}
-
-PdfArray & PdfVariant::GetArray_NoDL()
-{
-    if (m_eDataType != EPdfDataType::Array)
-        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
-
-    return *((PdfArray*)m_Data.pData);
-}
-
-const PdfDictionary & PdfVariant::GetDictionary() const
-{
-    DelayedLoad();
-    return GetDictionary_NoDL();
-}
-
-const PdfDictionary & PdfVariant::GetDictionary_NoDL() const
-{
-    if (m_eDataType != EPdfDataType::Dictionary)
-        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
-
-    return *((PdfDictionary*)m_Data.pData);
-}
-
-PdfDictionary & PdfVariant::GetDictionary()
-{
-    DelayedLoad();
-    return GetDictionary_NoDL();
-}
-
-PdfDictionary & PdfVariant::GetDictionary_NoDL()
-{
-    if (m_eDataType != EPdfDataType::Dictionary)
-        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
-
-    return *((PdfDictionary*)m_Data.pData);
-}
-
-const PdfReference & PdfVariant::GetReference() const
+bool PdfVariant::TryGetReference(PdfReference& ref) const
 {
     DelayedLoad();
 
     if (m_eDataType != EPdfDataType::Reference)
+    {
+        ref = PdfReference();
+        return false;
+    }
+
+    ref = *(PdfReference*)m_Data.pData;
+    return true;
+}
+
+const PdfData& PdfVariant::GetRawData() const
+{
+    const PdfData* ret;
+    if (!TryGetRawData(ret))
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
 
-    // Do not change this to an reinterpret_cast
-    // We need a c-style casts here to avoid crashes
-    // because a reinterpret_cast might point to a different position.
-    return *((PdfReference*)m_Data.pData);
+    return *ret;
+}
+
+bool PdfVariant::TryGetRawData(const PdfData*& data) const
+{
+    DelayedLoad();
+
+    if (m_eDataType != EPdfDataType::RawData)
+    {
+        data = nullptr;
+        return false;
+    }
+
+    data = (PdfData*)m_Data.pData;
+    return true;
+}
+
+const PdfArray & PdfVariant::GetArray() const
+{
+    PdfArray* ret;
+    if (!tryGetArray(ret))
+        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
+
+    return *ret;
+}
+
+PdfArray & PdfVariant::GetArray()
+{
+    PdfArray* ret;
+    if (!tryGetArray(ret))
+        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
+
+    return *ret;
+}
+
+bool PdfVariant::TryGetArray(const PdfArray*& arr) const
+{
+    return tryGetArray(const_cast<PdfArray*&>(arr));
+}
+
+bool PdfVariant::TryGetArray(PdfArray*& arr)
+{
+    return tryGetArray(arr);
+}
+
+const PdfDictionary & PdfVariant::GetDictionary() const
+{
+    PdfDictionary* ret;
+    if (!tryGetDictionary(ret))
+        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
+
+    return *ret;
+}
+
+PdfDictionary & PdfVariant::GetDictionary()
+{
+    PdfDictionary* ret;
+    if (!tryGetDictionary(ret))
+        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
+
+    return *ret;
+}
+
+bool PdfVariant::TryGetDictionary(const PdfDictionary*& dict) const
+{
+    return tryGetDictionary(const_cast<PdfDictionary*&>(dict));
+}
+
+bool PdfVariant::TryGetDictionary(PdfDictionary*& dict)
+{
+    return tryGetDictionary(dict);
+}
+
+bool PdfVariant::tryGetDictionary(PdfDictionary*& dict) const
+{
+    DelayedLoad();
+    if (m_eDataType != EPdfDataType::Dictionary)
+    {
+        dict = nullptr;
+        return false;
+    }
+
+    dict = (PdfDictionary*)m_Data.pData;
+    return true;
+}
+
+bool PdfVariant::tryGetArray(PdfArray*& arr) const
+{
+    DelayedLoad();
+    if (m_eDataType != EPdfDataType::Array)
+    {
+        arr = nullptr;
+        return false;
+    }
+
+    arr = (PdfArray*)m_Data.pData;
+    return true;
+}
+
+PdfArray& PdfVariant::GetArrayInternal()
+{
+    return *(PdfArray*)m_Data.pData;
+}
+
+PdfDictionary & PdfVariant::GetDictionaryInternal()
+{
+    return *(PdfDictionary*)m_Data.pData;
 }
 
 void PdfVariant::SetBool(bool b)
 {
     AssertMutable();
     DelayedLoad();
-
     if (m_eDataType != EPdfDataType::Bool)
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
 
@@ -638,7 +748,6 @@ void PdfVariant::SetNumber(int64_t l)
 {
     AssertMutable();
     DelayedLoad();
-
     if (!(m_eDataType == EPdfDataType::Number
         || m_eDataType == EPdfDataType::Real))
     {
@@ -656,7 +765,6 @@ void PdfVariant::SetReal(double d)
 {
     AssertMutable();
     DelayedLoad();
-
     if (!(m_eDataType == EPdfDataType::Real
         || m_eDataType == EPdfDataType::Number))
     {
@@ -675,7 +783,6 @@ void PdfVariant::SetName(const PdfName &name)
 {
     AssertMutable();
     DelayedLoad();
-
     if (m_eDataType != EPdfDataType::Name)
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
 
@@ -687,7 +794,6 @@ void PdfVariant::SetString(const PdfString &str)
 {
     AssertMutable();
     DelayedLoad();
-
     if (m_eDataType != EPdfDataType::String)
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
 
@@ -699,7 +805,6 @@ void PdfVariant::SetReference(const PdfReference &ref)
 {
     AssertMutable();
     DelayedLoad();
-
     if (m_eDataType != EPdfDataType::Reference)
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
 
@@ -795,6 +900,12 @@ void PdfVariant::SetImmutable(bool bImmutable)
             // Do nothing
             break;
     }
+}
+
+void PdfVariant::checkHandle() const
+{
+    if (m_Data.pData == nullptr)
+        PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
 }
 
 void PdfVariant::AssertMutable() const

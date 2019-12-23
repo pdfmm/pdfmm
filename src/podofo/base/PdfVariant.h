@@ -233,6 +233,7 @@ class PODOFO_API PdfVariant
      *  \returns the bool value.
      */
     bool GetBool() const;
+    bool TryGetBool(bool& value) const;
 
     /** Get the value of the object as int64_t.
      *
@@ -240,6 +241,7 @@ class PODOFO_API PdfVariant
      *  \return the value of the number
      */
     int64_t GetNumberLenient() const;
+    bool TryGetNumberLenient(int64_t& value) const;
 
     /** Get the value of the object as int64_t
      *
@@ -247,6 +249,7 @@ class PODOFO_API PdfVariant
      *  \return the value of the number
      */
     int64_t GetNumber() const;
+    bool TryGetNumber(int64_t& value) const;
 
     /** Get the value of the object as a floating point
      *
@@ -254,6 +257,7 @@ class PODOFO_API PdfVariant
      *  \return the value of the number
      */
     double GetReal() const;
+    bool TryGetReal(double& value) const;
 
     /** Get the value of the object as floating point number
      *
@@ -261,50 +265,45 @@ class PODOFO_API PdfVariant
      *  \return the value of the number
      */
     double GetRealStrict() const;
+    bool TryGetRealStrict(double& value) const;
 
     /** \returns the value of the object as string.
      */
     const PdfString & GetString() const;
-    bool TryGet(const PdfString *& str) const;
+    bool TryGetString(const PdfString *& str) const;
 
     /** \returns the value of the object as name
      */
     const PdfName & GetName() const;
+    bool TryGetName(const PdfName*& str) const;
+
+    /** Get the reference values of this object.
+     *  \returns a PdfReference
+     */
+    PdfReference GetReference() const;
+    bool TryGetReference(PdfReference& ref) const;
+
+    /** Get the reference values of this object.
+     *  \returns a reference to the PdfData instance.
+     */
+    const PdfData& GetRawData() const;
+    bool TryGetRawData(const PdfData*& ref) const;
 
     /** Returns the value of the object as array
      *  \returns a array
      */
     const PdfArray & GetArray() const;
-
-    /** Returns the value of the object as array
-     *  \returns a array
-     */
     PdfArray & GetArray();
+    bool TryGetArray(const PdfArray*& arr) const;
+    bool TryGetArray(PdfArray*& arr);
 
     /** Returns the dictionary value of this object
      *  \returns a PdfDictionary
      */
-    const PdfDictionary & GetDictionary() const; 
-
-    /** Returns the dictionary value of this object
-     *  \returns a PdfDictionary
-     */
-    PdfDictionary & GetDictionary(); 
-
-    /** Get the reference values of this object.
-     *  \returns a PdfReference
-     */
-    const PdfReference & GetReference() const;
-
-    /** Get the reference values of this object.
-     *  \returns a reference to the PdfData instance.
-     */
-    const PdfData & GetRawData() const;
-
-    /** Get the reference values of this object.
-     *  \returns a reference to the PdfData instance.
-     */
-    PdfData & GetRawData();
+    const PdfDictionary & GetDictionary() const;
+    PdfDictionary & GetDictionary();
+    bool TryGetDictionary(const PdfDictionary *& dict) const;
+    bool TryGetDictionary(PdfDictionary*& dict);
 
     /** Set the value of this object as bool
      *  \param b the value as bool.
@@ -453,6 +452,8 @@ class PODOFO_API PdfVariant
      */
     inline bool DelayedLoadDone() const { return m_bDelayedLoadDone; }
 
+    inline EPdfDataType GetDataType_NoDL() const { return m_eDataType; }
+
     /** Load all data of the object if delayed loading is enabled.
      *
      * Never call this method directly; use DelayedLoad() instead.
@@ -474,34 +475,13 @@ class PODOFO_API PdfVariant
      */
     virtual void AfterDelayedLoad();
 
-    EPdfDataType GetDataType_NoDL() const { return m_eDataType; }
+    PdfDictionary & GetDictionaryInternal(); 
 
-    // Rather than having deferred load triggering disabled while deferred
-    // loading is in progress, causing public methods to potentially return
-    // invalid data, we provide special methods that won't trigger a deferred
-    // load for use during deferred loading. They're not for general use and
-    // not available for use except by subclasses.
-    //
-    /** Version of GetDictionary() that doesn't trigger a delayed load
-     *  \returns a PdfDictionary
-     */
-    const PdfDictionary & GetDictionary_NoDL() const; 
-
-    /** Version of GetDictionary() that doesn't trigger a delayed load
-     *  \returns a PdfDictionary
-     */
-    PdfDictionary & GetDictionary_NoDL(); 
-
-    /** Version of GetArray() that doesn't trigger a delayed load
-     *  \returns a PdfArray
-     */
-    const PdfArray & GetArray_NoDL() const;
-
-    /** Version of GetArray() that doesn't trigger a delayed load.
-     *  \returns a PdfArray
-     */
-    PdfArray & GetArray_NoDL();
+    PdfArray & GetArrayInternal();
 private:
+    void checkHandle() const;
+    bool tryGetDictionary(PdfDictionary*& dict) const;
+    bool tryGetArray(PdfArray*& arr) const;
     void Init();
 
 private:

@@ -73,6 +73,23 @@ public:
      */
     explicit PdfParserObject( const PdfRefCountedBuffer & rBuffer );
 
+    /** Tries to free all memory allocated by this
+     *  PdfObject (variables and streams) and reads
+     *  it from disk again if it is requested another time.
+     *
+     *  This will only work if load on demand is used.
+     *  If the object is dirty if will not be free'd.
+     *
+     *  \param bForce if true the object will be free'd
+     *                even if IsDirty() returns true.
+     *                So you will loose any changes made
+     *                to this object.
+     *
+     *  \see IsLoadOnDemand
+     *  \see IsDirty
+     */
+    void FreeObjectMemory(bool bForce = false);
+
     /** Parse the object data from the given file handle 
      *  If delayed loading is enabled, only the object and generation number
      *  is read now and everything else is read later.
@@ -91,37 +108,20 @@ public:
      *  which has to be parsed.
      *  \returns true if there is a stream
      */
-    inline bool HasStreamToParse() const;
+    inline bool HasStreamToParse() const { return m_bStream; }
 
     /** \returns true if this PdfParser loads all objects at
      *                the time they are accessed for the first time.
      *                The default is to load all object immediately.
      *                In this case false is returned.
      */
-    inline bool IsLoadOnDemand() const;
+    inline bool IsLoadOnDemand() const { return m_bLoadOnDemand; }
 
     /** Sets wether this object shall be loaded on demand
      *  when it's data is accessed for the first time.
      *  \param bDelayed if true the object is loaded delayed.
      */
-    inline void SetLoadOnDemand( bool bDelayed );
-
-    /** Tries to free all memory allocated by this
-     *  PdfObject (variables and streams) and reads
-     *  it from disk again if it is requested another time.
-     *
-     *  This will only work if load on demand is used.
-     *  If the object is dirty if will not be free'd.
-     *
-     *  \param bForce if true the object will be free'd
-     *                even if IsDirty() returns true.
-     *                So you will loose any changes made
-     *                to this object.
-     * 
-     *  \see IsLoadOnDemand
-     *  \see IsDirty
-     */
-    void FreeObjectMemory( bool bForce = false );
+    inline void SetLoadOnDemand( bool bDelayed ) { m_bLoadOnDemand = bDelayed; }
 
     /** Gets an offset in which the object beginning is stored in the file.
      *  Note the offset points just after the object identificator ("0 0 obj").
@@ -129,7 +129,7 @@ public:
      * \returns an offset in which the object is stored in the source device,
      *     or -1, if the object was created on demand.
      */
-    inline ssize_t GetOffset( void ) const;
+    inline ssize_t GetOffset() const { return m_lOffset; }
 
  protected:
     /** Load all data of the object if load object on demand is enabled.
@@ -177,38 +177,6 @@ public:
     bool m_bStream;
     size_t m_lStreamOffset;
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfParserObject::IsLoadOnDemand() const
-{
-    return m_bLoadOnDemand;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfParserObject::SetLoadOnDemand( bool bDelayed )
-{
-    m_bLoadOnDemand = bDelayed;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfParserObject::HasStreamToParse() const
-{
-    return m_bStream;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-ssize_t PdfParserObject::GetOffset( void ) const
-{
-	return m_lOffset;
-}
 
 };
 
