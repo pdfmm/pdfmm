@@ -186,63 +186,91 @@ PdfObject * PdfDictionary::findKeyParent( const PdfName & key ) const
     }
 }
 
-int64_t PdfDictionary::GetKeyAsLong( const PdfName & key, int64_t lDefault ) const
+bool PdfDictionary::GetKeyAsBool(const PdfName& key, bool default) const
 {
-    const PdfObject* pObject = GetKey( key );
-    
-    if( pObject && pObject->GetDataType() == EPdfDataType::Number ) 
-    {
-        return pObject->GetNumber();
-    }
+    auto pObject = findKey(key);
+    bool ret;
+    if (pObject == nullptr || !pObject->TryGetBool(ret))
+        return default;
 
-    return lDefault;
+    return ret;
 }
 
-double PdfDictionary::GetKeyAsReal( const PdfName & key, double dDefault ) const
+int64_t PdfDictionary::GetKeyAsNumber( const PdfName & key, int64_t default) const
 {
-    const PdfObject* pObject = GetKey( key );
-    
-    if( pObject && (
-        pObject->GetDataType() == EPdfDataType::Real ||
-        pObject->GetDataType() == EPdfDataType::Number))
-    {
-        return pObject->GetReal();
-    }
+    auto pObject = findKey(key);
+    int64_t ret;
+    if( pObject == nullptr || !pObject->TryGetNumber(ret))
+        return default;
 
-    return dDefault;
+    return ret;
 }
 
-bool PdfDictionary::GetKeyAsBool( const PdfName & key, bool bDefault ) const
+int64_t PdfDictionary::GetKeyAsNumberLenient(const PdfName& key, int64_t default) const
 {
-    const PdfObject* pObject = GetKey( key );
+    auto pObject = findKey(key);
+    int64_t ret;
+    if (pObject == nullptr || !pObject->TryGetNumberLenient(ret))
+        return default;
 
-    if( pObject && pObject->GetDataType() == EPdfDataType::Bool ) 
-    {
-        return pObject->GetBool();
-    }
-
-    return bDefault;
+    return ret;
 }
 
-PdfName PdfDictionary::GetKeyAsName( const PdfName & key ) const
+double PdfDictionary::GetKeyAsReal(const PdfName & key, double default) const
 {
-    const PdfObject* pObject = GetKey( key );
+    auto pObject = findKey(key);
+    double ret;
+    if (pObject == nullptr || !pObject->TryGetReal(ret))
+        return default;
 
-    if( pObject && pObject->GetDataType() == EPdfDataType::Name ) 
-    {
-        return pObject->GetName();
-    }
+    return ret;
+}
+
+double PdfDictionary::GetKeyAsRealStrict(const PdfName& key, double default) const
+{
+    auto pObject = findKey(key);
+    double ret;
+    if (pObject == nullptr || !pObject->TryGetRealStrict(ret))
+        return default;
+
+    return ret;
+}
+
+PdfName PdfDictionary::GetKeyAsName(const PdfName & key, const PdfName& default) const
+{
+    auto pObject = findKey(key);
+    const PdfName* ret;
+    if (pObject == nullptr || !pObject->TryGetName(ret))
+        return default;
     
-    return PdfName("");	// return an empty name
-        
+    return *ret;
+}
+
+PdfString PdfDictionary::GetKeyAsString(const PdfName& key, const PdfString& default) const
+{
+    auto pObject = findKey(key);
+    const PdfString* ret;
+    if (pObject == nullptr || !pObject->TryGetString(ret))
+        return default;
+
+    return *ret;
+}
+
+PdfReference PdfDictionary::GetKeyAsReference(const PdfName& key, const PdfReference& default) const
+{
+    auto pObject = findKey(key);
+    PdfReference ret;
+    if (pObject == nullptr || !pObject->TryGetReference(ret))
+        return default;
+
+    return ret;
 }
 
 bool PdfDictionary::HasKey( const PdfName & key ) const
 {
-    // NOTE: Empty PdfNames are legal according to the PDF specification.
-    // Don't check for it
-
-    return ( m_mapKeys.find( key ) != m_mapKeys.end() );
+    // NOTE: Empty PdfNames are legal according to the PDF specification,
+    // don't check for it
+    return m_mapKeys.find( key ) != m_mapKeys.end();
 }
 
 bool PdfDictionary::RemoveKey( const PdfName & identifier )

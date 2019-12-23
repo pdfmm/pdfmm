@@ -69,8 +69,8 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescri
         // Type3 fonts have a custom FontMatrix
         fontmatrix = pFont->GetDictionary().FindKey( "FontMatrix" );
 
-		m_nFirst       = static_cast<int>(pFont->GetDictionary().GetKeyAsLong( "FirstChar", 0L ));
-        m_nLast        = static_cast<int>(pFont->GetDictionary().GetKeyAsLong( "LastChar", 0L ));
+		m_nFirst       = static_cast<int>(pFont->GetDictionary().GetKeyAsNumber( "FirstChar", 0L ));
+        m_nLast        = static_cast<int>(pFont->GetDictionary().GetKeyAsNumber( "LastChar", 0L ));
         // OC 15.08.2010 BugFix: GetIndirectKey() instead of GetDictionary().GetKey() and "Widths" instead of "Width"
         PdfObject* widths = pFont->GetIndirectKey( "Widths" );
         
@@ -104,7 +104,7 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescri
 		m_nFirst = 0;
 		m_nLast = 0;
 
-		m_dDefWidth = static_cast<double>(pFont->GetDictionary().GetKeyAsLong( "DW", 1000L ));
+		m_dDefWidth = static_cast<double>(pFont->GetDictionary().GetKeyAsNumber( "DW", 1000L ));
 		PdfVariant default_width(m_dDefWidth);
 		PdfObject * pw = pFont->GetIndirectKey( "W" );
 
@@ -153,8 +153,8 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescri
 	}
     
     if ( pDescriptor ) {
-        m_nWeight      = static_cast<unsigned int>(pDescriptor->GetDictionary().GetKeyAsLong( "FontWeight", 400L ));
-        m_nItalicAngle = static_cast<int>(pDescriptor->GetDictionary().GetKeyAsLong( "ItalicAngle", 0L ));
+        m_nWeight      = static_cast<unsigned int>(pDescriptor->GetDictionary().GetKeyAsNumber( "FontWeight", 400L ));
+        m_nItalicAngle = static_cast<int>(pDescriptor->GetDictionary().GetKeyAsNumber( "ItalicAngle", 0L ));
         m_dPdfAscent   = pDescriptor->GetDictionary().GetKeyAsReal( "Ascent", 0.0 );
         m_dPdfDescent  = pDescriptor->GetDictionary().GetKeyAsReal( "Descent", 0.0 );
     } else {

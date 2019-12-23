@@ -221,13 +221,21 @@ public:
      */
     const PdfObject& MustGetKey( const PdfName & key ) const;
 
-    int64_t GetKeyAsLong( const PdfName & key, int64_t lDefault = 0 ) const;
+    bool GetKeyAsBool(const PdfName& key, bool default = false) const;
 
-    double GetKeyAsReal( const PdfName & key, double dDefault = 0.0 ) const;
+    int64_t GetKeyAsNumber(const PdfName & key, int64_t default = 0) const;
 
-    bool GetKeyAsBool( const PdfName & key, bool bDefault = false ) const;
+    int64_t GetKeyAsNumberLenient(const PdfName& key, int64_t default = 0) const;
 
-    PdfName GetKeyAsName( const PdfName & key ) const;
+    double GetKeyAsReal(const PdfName & key, double default = 0.0) const;
+
+    double GetKeyAsRealStrict(const PdfName& key, double default = 0.0) const;
+
+    PdfName GetKeyAsName(const PdfName& key, const PdfName& default = PdfName::KeyNull) const;
+
+    PdfString GetKeyAsString(const PdfName & key, const PdfString & default = PdfString::StringNull) const;
+
+    PdfReference GetKeyAsReference(const PdfName & key, const PdfReference & default = { }) const;
 
     /** Allows to check if a dictionary contains a certain key.
      * \param key look for the key named key.Name() in the dictionary

@@ -49,8 +49,9 @@ class PdfOutputDevice;
  *
  * This class is a indirect reference in a PDF file.
  */
-class PODOFO_API PdfReference : public PdfDataType {
- public:
+class PODOFO_API PdfReference : public PdfDataType
+{
+public:
     /**
      * Create a PdfReference with object number and generation number
      * initialized to 0.

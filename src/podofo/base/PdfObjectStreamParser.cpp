@@ -57,8 +57,8 @@ PdfObjectStreamParser::PdfObjectStreamParser(PdfParserObject* pParser, PdfVecObj
 
 void PdfObjectStreamParser::Parse(ObjectIdList const & list)
 {
-    int64_t lNum   = m_pParser->GetDictionary().GetKeyAsLong( "N", 0 );
-    int64_t lFirst = m_pParser->GetDictionary().GetKeyAsLong( "First", 0 );
+    int64_t lNum   = m_pParser->GetDictionary().GetKeyAsNumber( "N", 0 );
+    int64_t lFirst = m_pParser->GetDictionary().GetKeyAsNumber( "First", 0 );
     
     char* pBuffer;
     size_t lBufferLen;

@@ -87,11 +87,11 @@ class PdfPredictorDecoder {
 
 public:
     PdfPredictorDecoder( const PdfDictionary* pDecodeParms ) {
-        m_nPredictor   = static_cast<int>(pDecodeParms->GetKeyAsLong( "Predictor", 1L ));
-        m_nColors      = static_cast<int>(pDecodeParms->GetKeyAsLong( "Colors", 1L ));
-        m_nBPC         = static_cast<int>(pDecodeParms->GetKeyAsLong( "BitsPerComponent", 8L ));
-        m_nColumns     = static_cast<int>(pDecodeParms->GetKeyAsLong( "Columns", 1L ));
-        m_nEarlyChange = static_cast<int>(pDecodeParms->GetKeyAsLong( "EarlyChange", 1L ));
+        m_nPredictor   = static_cast<int>(pDecodeParms->GetKeyAsNumber( "Predictor", 1L ));
+        m_nColors      = static_cast<int>(pDecodeParms->GetKeyAsNumber( "Colors", 1L ));
+        m_nBPC         = static_cast<int>(pDecodeParms->GetKeyAsNumber( "BitsPerComponent", 8L ));
+        m_nColumns     = static_cast<int>(pDecodeParms->GetKeyAsNumber( "Columns", 1L ));
+        m_nEarlyChange = static_cast<int>(pDecodeParms->GetKeyAsNumber( "EarlyChange", 1L ));
 
         if( m_nPredictor >= 10)
         {

@@ -80,13 +80,13 @@ void PdfXRefStreamParserObject::Parse()
 
     if( this->GetDictionary().HasKey("Prev") )
     {
-        m_lNextOffset = static_cast<ssize_t>(this->GetDictionary().GetKeyAsLong( "Prev", 0 ));
+        m_lNextOffset = static_cast<ssize_t>(this->GetDictionary().GetKeyAsNumber( "Prev", 0 ));
     }
 }
 
 void PdfXRefStreamParserObject::ReadXRefTable() 
 {
-    int64_t  lSize   = this->GetDictionary().GetKeyAsLong( PdfName::KeySize, 0 );
+    int64_t  lSize   = this->GetDictionary().GetKeyAsNumber( PdfName::KeySize, 0 );
     PdfVariant vWArray = *(this->GetDictionary().GetKey( "W" ));
 
     // The pdf reference states that W is always an array with 3 entries

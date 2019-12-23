@@ -337,7 +337,7 @@ void PdfParser::ReadDocumentStructure()
 
     if( m_pTrailer->IsDictionary() && m_pTrailer->GetDictionary().HasKey( PdfName::KeySize ) )
     {
-        m_nNumObjects = static_cast<long>(m_pTrailer->GetDictionary().GetKeyAsLong( PdfName::KeySize ));
+        m_nNumObjects = static_cast<long>(m_pTrailer->GetDictionary().GetKeyAsNumber( PdfName::KeySize ));
     }
     else
     {
@@ -467,7 +467,7 @@ void PdfParser::HasLinearizationDict()
     }
     
     int64_t      lXRef      = -1;
-    lXRef = m_pLinearization->GetDictionary().GetKeyAsLong( "T", lXRef );
+    lXRef = m_pLinearization->GetDictionary().GetKeyAsNumber( "T", lXRef );
     if( lXRef == -1 )
     {
         PODOFO_RAISE_ERROR( EPdfError::InvalidLinearization );
@@ -577,7 +577,7 @@ void PdfParser::ReadNextTrailer()
                 m_nIncrementalUpdates++;
 
             try {
-                ReadXRefStreamContents( static_cast<size_t>(trailer.GetDictionary().GetKeyAsLong( "XRefStm", 0 )), false );
+                ReadXRefStreamContents( static_cast<size_t>(trailer.GetDictionary().GetKeyAsNumber( "XRefStm", 0 )), false );
             } catch( PdfError & e ) {
                 e.AddToCallstack( __FILE__, __LINE__, "Unable to load /XRefStm xref stream." );
                 throw e;
@@ -591,7 +591,7 @@ void PdfParser::ReadNextTrailer()
             m_nIncrementalUpdates++;
 
             try {
-                size_t lOffset = static_cast<size_t>(trailer.GetDictionary().GetKeyAsLong( "Prev", 0 ));
+                size_t lOffset = static_cast<size_t>(trailer.GetDictionary().GetKeyAsNumber( "Prev", 0 ));
 
                 if( m_visitedXRefOffsets.find( lOffset ) == m_visitedXRefOffsets.end() )
                     ReadXRefContents( lOffset );
