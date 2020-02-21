@@ -51,7 +51,7 @@
 using namespace std;
 using namespace PoDoFo;
 
-static string getFullName(const PdfObject* obj, bool escapePartialNames);
+void getFullName(const PdfObject* obj, bool escapePartialNames, string &fullname);
 
 PdfField::PdfField( EPdfField eField, PdfAnnotation* pWidget, PdfAcroForm* pParent )
     : m_pObject( pWidget ? pWidget->GetObject() : NULL ), m_pWidget( pWidget ), m_eField( eField )
@@ -526,7 +526,9 @@ PdfString PdfField::GetNameRaw() const
 
 PdfString PdfField::GetFullName(bool escapePartialNames) const
 {
-    return PdfString::FromUtf8String(getFullName(m_pObject, escapePartialNames));
+    string fullName;
+    getFullName(m_pObject, escapePartialNames, fullName);
+    return PdfString::FromUtf8String(fullName);
 }
 
 void PdfField::SetAlternateName( const PdfString & rsName )
@@ -1314,44 +1316,40 @@ PdfRadioButton::PdfRadioButton( const PdfField & rhs )
 {
 }
 
-string getFullName(const PdfObject* obj, bool escapePartialNames)
+void getFullName(const PdfObject* obj, bool escapePartialNames, string& fullname)
 {
-    string ret;
-    while (obj != nullptr)
+    const PdfDictionary& dict = obj->GetDictionary();
+    auto parent = dict.FindKey("Parent");;
+    if (parent != nullptr)
+        getFullName(parent, escapePartialNames, fullname);
+
+    const PdfObject* nameObj = dict.GetKey("T");
+    if (nameObj != NULL)
     {
-        const PdfDictionary& dict = obj->GetDictionary();
-        const PdfObject* nameObj = dict.GetKey("T");
-        if (nameObj != NULL)
+        string name = nameObj->GetString().GetStringUtf8();
+
+        if (escapePartialNames)
         {
-            string name = nameObj->GetString().GetStringUtf8();
-
-            if (escapePartialNames)
+            // According to ISO 32000-1:2008, "12.7.3.2 Field Names":
+            // "Because the PERIOD is used as a separator for fully
+            // qualified names, a partial name shall not contain a
+            // PERIOD character."
+            // In case the partial name still has periods (effectively
+            // violating the standard and Pdf Reference) the fullname
+            // would be unintelligible, let's escape them with double
+            // dots "..", example "parent.partial..name"
+            size_t currpos = 0;
+            while ((currpos = name.find('.', currpos)) != std::string::npos)
             {
-                // According to ISO 32000-1:2008, "12.7.3.2 Field Names":
-                // "Because the PERIOD is used as a separator for fully
-                // qualified names, a partial name shall not contain a
-                // PERIOD character."
-                // In case the partial name still has periods (effectively
-                // violating the standard and Pdf Reference) the fullname
-                // would be unintelligible, let's escape them with double
-                // dots "..", example "parent.partial..name"
-                size_t currpos = 0;
-                while ((currpos = name.find('.', currpos)) != std::string::npos)
-                {
-                    name.replace(currpos, 1, "..");
-                    currpos += 2;
-                }
+                name.replace(currpos, 1, "..");
+                currpos += 2;
             }
-
-            if (ret.length() == 0)
-                ret = name;
-            else
-                ret.append(".").append(name);
         }
 
-        obj = dict.FindKey("Parent");
+        if (fullname.length() == 0)
+            fullname = name;
+        else
+            fullname.append(".").append(name);
     }
-
-    return ret;
 }
 
