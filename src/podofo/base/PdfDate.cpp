@@ -35,7 +35,7 @@
 #include "PdfDefinesPrivate.h"
 
 #include <algorithm>
-#include <date.h>
+#include <date/date.h>
 
 using namespace PoDoFo;
 namespace chrono = std::chrono;

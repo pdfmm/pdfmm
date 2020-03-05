@@ -37,7 +37,7 @@
 #include "PdfDefines.h"
 #include <podofo/compat/optional>
 #include "PdfString.h"
-#include <date.h>
+#include <date/date.h>
 
 namespace PoDoFo {
 

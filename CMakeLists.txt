@@ -283,8 +283,7 @@ INCLUDE_DIRECTORIES(BEFORE # before toolchain include dir (to ignore installed)
 
 INCLUDE_DIRECTORIES(
     ${PoDoFo_SOURCE_DIR}/src/podofo
-	${PoDoFo_SOURCE_DIR}/3rdparty/utfcpp/include
-	${PoDoFo_SOURCE_DIR}/3rdparty/date/include
+	${PoDoFo_SOURCE_DIR}/3rdparty/include
     ${FREETYPE_INCLUDE_DIR}
     ${ZLIB_INCLUDE_DIR}
      )
