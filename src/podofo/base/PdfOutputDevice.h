@@ -34,7 +34,7 @@
 #ifndef _PDF_OUTPUT_DEVICE_H_
 #define _PDF_OUTPUT_DEVICE_H_
 
-#include <cstdarg>
+#include <string_view>
 #include <ostream>
 #include <iostream>
 
@@ -73,7 +73,7 @@ class PODOFO_API PdfOutputDevice {
      *  When the bTruncate is false, the device is automatically positioned
      *  to the end of the file.
      */
-    PdfOutputDevice( const char* pszFilename, bool bTruncate = true );
+    PdfOutputDevice( const std::string_view &filename, bool bTruncate = true );
 
 #ifdef _WIN32
     /** Construct a new PdfOutputDevice that writes all data to a file.
@@ -91,7 +91,7 @@ class PODOFO_API PdfOutputDevice {
      *  with unicode characters. On Unix systes you can also path
      *  UTF-8 to the const char* overload.
      */
-    PdfOutputDevice( const wchar_t* pszFilename, bool bTruncate = true );
+    PdfOutputDevice(const std::wstring_view& filename, bool bTruncate = true );
 #endif // _WIN32
 
     /** Construct a new PdfOutputDevice that writes all data to a memory buffer.

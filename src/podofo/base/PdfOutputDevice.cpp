@@ -38,7 +38,6 @@
 #include <fstream>
 #include <sstream>
 
-
 namespace PoDoFo {
 
 
@@ -47,24 +46,19 @@ PdfOutputDevice::PdfOutputDevice()
     this->Init();
 }
 
-PdfOutputDevice::PdfOutputDevice( const char* pszFilename, bool bTruncate )
+PdfOutputDevice::PdfOutputDevice(const std::string_view& filename, bool bTruncate )
 {
     this->Init();
-
-    if( !pszFilename ) 
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
 
     std::ios_base::openmode openmode = std::fstream::binary | std::ios_base::in | std::ios_base::out;
     if( bTruncate )
         openmode |= std::ios_base::trunc;
 
-    std::fstream *pStream = new std::fstream( pszFilename, openmode );
+    std::fstream *pStream = new std::fstream((std::string)filename, openmode );
     if( pStream->fail() )
     {
         delete pStream;
-        PODOFO_RAISE_ERROR_INFO( EPdfError::FileNotFound, pszFilename );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::FileNotFound, (std::string)filename);
     }
 
     m_pStream = pStream;
@@ -80,20 +74,15 @@ PdfOutputDevice::PdfOutputDevice( const char* pszFilename, bool bTruncate )
 }
 
 #ifdef _WIN32
-PdfOutputDevice::PdfOutputDevice( const wchar_t* pszFilename, bool bTruncate )
+PdfOutputDevice::PdfOutputDevice(const std::wstring_view& filename, bool bTruncate )
 {
     this->Init();
 
-    if( !pszFilename ) 
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
-
-    m_hFile = _wfopen( pszFilename, bTruncate ? L"w+b" : L"r+b" );
+    m_hFile = _wfopen(filename.data(), bTruncate ? L"w+b" : L"r+b" );
     if( !m_hFile )
     {
         PdfError e( EPdfError::FileNotFound, __FILE__, __LINE__ );
-        e.SetErrorInformation( pszFilename );
+        e.SetErrorInformation(filename.data());
         throw e;
     }
 
