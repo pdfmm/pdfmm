@@ -364,7 +364,7 @@ int64_t PdfTokenizer::GetNextNumber()
     {
         // Don't consume the token
         this->QuequeToken( pszRead, eType );
-        PODOFO_RAISE_ERROR_INFO( EPdfError::NoNumber, pszRead );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::NoNumber, "Could not read number" );
     }
 
     return static_cast<int64_t>(num);
