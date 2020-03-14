@@ -161,25 +161,41 @@ void PdfInputDevice::Close()
 
 int PdfInputDevice::GetChar() const
 {
+    int ch;
+    if (TryGetChar(ch))
+        return ch;
+    else
+        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDeviceOperation, "Failed to read the current character");
+}
+
+bool PdfInputDevice::TryGetChar(int &ch) const
+{
 	if (m_pStream)
     {
-        int ch = m_pStream->get();
-        if (m_pStream->fail() && !m_pStream->eof())
+        if (m_pStream->eof())
+            goto Exit;
+
+        ch = m_pStream->get();
+        if (m_pStream->fail())
             PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDeviceOperation, "Failed to read the current character");
 
-        return ch;
+        return true;
     }
-    
-	if (m_pFile)
+    else if (m_pFile)
     {
-        int ch = fgetc(m_pFile);
+        if (feof(m_pFile))
+            goto Exit;
+
+        ch = fgetc(m_pFile);
         if (ferror(m_pFile))
             PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDeviceOperation, "Failed to read the current character");
 
-        return ch;
+        return true;
     }
-    
-	return 0;
+
+Exit:
+    ch = 0;
+    return false;
 }
 
 int PdfInputDevice::Look() const 

@@ -107,6 +107,11 @@ class PODOFO_API PdfInputDevice {
      */
     virtual int GetChar() const;
 
+    /** Get next char from stream.
+     *  \returns the next character from the stream
+     */
+    virtual bool TryGetChar(int &ch) const;
+
     /** Peek at next char in stream.
      *  /returns the next char in the stream
      */

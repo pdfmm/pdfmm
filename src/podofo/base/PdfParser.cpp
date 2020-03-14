@@ -56,7 +56,8 @@ using std::cerr;
 using std::endl;
 using std::flush;
 
-#define PDF_MAGIC_LEN       8
+#define PDF_VERSION_LENGHT  3
+#define PDF_MAGIC_LENGHT    8
 #define PDF_XREF_ENTRY_SIZE 20
 #define PDF_XREF_BUF        512
 
@@ -65,11 +66,11 @@ using namespace PoDoFo;
 static bool CheckEOL(char e1, char e2);
 static bool CheckXRefEntryType( char c );
 static EXRefEntryType GetXRefEntryType( char c );
+static bool ReadMagicWord(char ch, int& charidx);
 
 constexpr size_t nMaxNumIndirectObjects = (1L << 23) - 1L;
 size_t PdfParser::s_nMaxObjects = nMaxNumIndirectObjects;
-  
-    
+
 class PdfRecursionGuard
 {
   // RAII recursion guard ensures m_nRecursionDepth is always decremented
@@ -371,39 +372,34 @@ void PdfParser::ReadDocumentStructure()
 
 bool PdfParser::IsPdfFile()
 {
-    const char* szPdfMagicStart = "%PDF-";
-    int i;
-
+    int i = 0;
     m_device.Device()->Seek( 0, std::ios_base::beg );
     while (true)
     {
-        unsigned char c = ( unsigned char )m_device.Device()->Look();
-        if (!IsWhitespace( c ))
-            break;
+        int ch;
+        if (!m_device.Device()->TryGetChar(ch))
+            return false;
 
-        // consume the whitespace
-        m_device.Device()->GetChar();
+        if (ReadMagicWord(ch, i))
+            break;
     }
 
-    m_magicOffset = m_device.Device()->Tell();
-
-    if( m_device.Device()->Read( m_buffer.GetBuffer(), PDF_MAGIC_LEN ) != PDF_MAGIC_LEN )
+    char version[PDF_VERSION_LENGHT];
+    if( m_device.Device()->Read(version, PDF_VERSION_LENGHT) != PDF_VERSION_LENGHT)
         return false;
 
-    if( strncmp( m_buffer.GetBuffer(), szPdfMagicStart, strlen( szPdfMagicStart ) ) != 0 )
-        return false;
-        
+    m_magicOffset = m_device.Device()->Tell() - PDF_MAGIC_LENGHT;
     // try to determine the excact PDF version of the file
-    for( i=0;i<=MAX_PDF_VERSION_STRING_INDEX;i++ )
+    for(i = 0; i <= MAX_PDF_VERSION_STRING_INDEX; i++)
     {
-        if( strncmp( m_buffer.GetBuffer(), s_szPdfVersions[i], PDF_MAGIC_LEN ) == 0 )
+        if( strncmp(version, s_szPdfVersionNums[i], PDF_VERSION_LENGHT) == 0 )
         {
             m_ePdfVersion = static_cast<EPdfVersion>(i);
-            break;
+            return true;
         }
     }
 
-    return true;
+    return false;
 }
 
 void PdfParser::HasLinearizationDict()
@@ -1584,4 +1580,46 @@ bool PdfParser::IsEncrypted() const
 const PdfObject* PdfParser::GetTrailer() const
 {
     return m_pTrailer;
+}
+
+// Read magic word keeping cursor
+bool ReadMagicWord(char ch, int& cursoridx)
+{
+    bool readchar;
+    switch (cursoridx)
+    {
+    case 0:
+        readchar = ch == '%';
+        break;
+    case 1:
+        readchar = ch == 'P';
+        break;
+    case 2:
+        readchar = ch == 'D';
+        break;
+    case 3:
+        readchar = ch == 'F';
+        break;
+    case 4:
+        readchar = ch == '-';
+        if (readchar)
+            return true;
+
+        break;
+    default:
+        throw std::exception();
+    }
+
+    if (readchar)
+    {
+        // Advance cursor
+        cursoridx++;
+    }
+    else
+    {
+        // Reset cursor
+        cursoridx = 0;
+    }
+
+    return false;
 }

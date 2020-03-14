@@ -448,7 +448,7 @@ const bool ePdfCreateObject = true;
 const bool ePdfDontCreateObject = false;
 
 // character constants
-#define MAX_PDF_VERSION_STRING_INDEX  7
+#define MAX_PDF_VERSION_STRING_INDEX  8
 
 // We use fixed bounds two dimensional arrays here so that
 // they go into the const data section of the library.
@@ -460,7 +460,8 @@ static const char s_szPdfVersions[][9] = {
     "%PDF-1.4",
     "%PDF-1.5",
     "%PDF-1.6",
-    "%PDF-1.7"
+    "%PDF-1.7",
+    "%PDF-2.0",
 };
 
 static const char s_szPdfVersionNums[][4] = {
@@ -471,7 +472,8 @@ static const char s_szPdfVersionNums[][4] = {
     "1.4",
     "1.5",
     "1.6",
-    "1.7"
+    "1.7",
+    "2.0",
 };
 
 /// PDF Reference, Section 3.1.1, Table 3.1, White-space characters
