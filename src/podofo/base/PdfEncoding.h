@@ -87,7 +87,7 @@ protected:
     // pp. 474-475 of PdfReference 1.7 "The value of dstString can be a string of up to 512 bytes"
     typedef std::unordered_map<CodeIdentity, std::string, HashCodeIdentity, EqualCodeIdentity> UnicodeMap;
 
- protected:
+protected:
     /** 
      *  Create a new PdfEncoding.
      *
@@ -106,7 +106,7 @@ protected:
      */
     virtual const PdfName & GetID() const = 0;
 
- public:
+public:
     class PODOFO_API const_iterator : public std::iterator<
                                              std::forward_iterator_tag, 
 						 int, std::ptrdiff_t, 
@@ -248,14 +248,17 @@ public:
 public:
     bool IsToUnicodeLoaded() const { return m_bToUnicodeIsLoaded; }
 
- protected:
+private:
+    static void handle_beginbfrange_String(UnicodeMap& map, uint32_t srcCodeLo, const std::string& dstCodeLo, unsigned codeSize, unsigned rangeSize);
+
+protected:
     static uint32_t GetCodeFromVariant(const PdfVariant &var);
     static uint32_t GetCodeFromVariant(const PdfVariant &var, unsigned &codeSize);
     static PdfRefCountedBuffer convertToEncoding(const PdfString &rString, const UnicodeMap &map, const PdfFont* pFont);
     static PdfString convertToUnicode(const PdfString &rString, const UnicodeMap &map, unsigned maxCodeRangeSize);
     static void ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &firstChar, char32_t &lastChar, unsigned &maxCodeRangeSize);
 
- private:
+private:
      bool m_bToUnicodeIsLoaded; // If true, ToUnicode has been parsed
      char32_t m_nFirstCode;     // The first defined character code
      char32_t m_nLastCode;      // The last defined character code

@@ -234,23 +234,13 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                         {
                             // pp. 474 PdfReference 1.7
                             string dstCodeLo = getStringUtf8(var->GetString());
-                            char back = dstCodeLo.back();
-                            for (unsigned i = 0; i < rangeSize; i++)
-                            {
-                                dstCodeLo.back() = back + i;
-                                map[{ codeSize, srcCodeLo + i }] = dstCodeLo;
-                            }
+                            handle_beginbfrange_String(map, srcCodeLo, dstCodeLo, codeSize, rangeSize);
                         }
                         else if (var->IsName())
                         {
                             // As found in tecnincal document #5014
                             string dstCodeLo = var->GetName().GetString();
-                            char back = dstCodeLo.back();
-                            for (unsigned i = 0; i < rangeSize; i++)
-                            {
-                                dstCodeLo.back() = back + i;
-                                map[{ codeSize, srcCodeLo + i }] = dstCodeLo;
-                            }
+                            handle_beginbfrange_String(map, srcCodeLo, dstCodeLo, codeSize, rangeSize);
                         }
                         else
                             PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "beginbfrange: expected array, string or array");
@@ -376,6 +366,41 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
     }
 
     podofo_free(streamBuffer);
+}
+
+void PdfEncoding::handle_beginbfrange_String(UnicodeMap& map, uint32_t srcCodeLo, const string& dstCodeLo, unsigned codeSize, unsigned rangeSize)
+{
+    char32_t back = U'\0';
+    auto it = dstCodeLo.begin();
+    auto end = dstCodeLo.end();
+    string newdstbase;
+    // Compute a destination string that has all code points except the last one
+    if (dstCodeLo.length() != 0)
+    {
+        while (true)
+        {
+            back = utf8::next(it, end);
+            if (it == end)
+                break;
+
+            utf8::append(back, newdstbase);
+        }
+    }
+
+    // Compute new destination string with last chracter/code point incremented by one
+    for (unsigned i = 0; i < rangeSize; i++)
+    {
+        string newdst = newdstbase;
+        char32_t newbackchar = back + i;
+        if (newbackchar != U'\0')
+        {
+            // NOTE: We don't skip invalid code points,
+            // Let's just hope they are not used
+            utf8::unchecked::append(back + i, std::back_inserter(newdst));
+        }
+
+        map[{ codeSize, srcCodeLo + i }] = newdst;
+    }
 }
 
 uint32_t PdfEncoding::GetCodeFromVariant(const PdfVariant &var)
