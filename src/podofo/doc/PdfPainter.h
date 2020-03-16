@@ -110,7 +110,7 @@ public:
      *
      *  \returns the current page canvas stream of the painter or NULL if none is set
      */
-    inline PdfStream* GetCanvas() const { m_stream; }
+    inline PdfStream* GetCanvas() const { return m_stream; }
 
     /** Finish drawing onto a canvas.
      * 
@@ -841,8 +841,8 @@ public:
         lrx, lry;							// "reflect points"
 };
 
-ENABLE_BITMASK_OPERATORS(PoDoFo::EPdfPainterFlags);
-
 }
+
+ENABLE_BITMASK_OPERATORS(PoDoFo::EPdfPainterFlags);
 
 #endif // _PDF_PAINTER_H_
