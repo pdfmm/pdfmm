@@ -47,8 +47,8 @@ class PdfColor;
 enum class EPdfStreamAppendFlags
 {
     None = 0,
-    Prepend = 1,   // NOTE: Not yet working
-    NoSaveRestore = 2
+    Prepend = 1,
+    NoPriorSaveRestore = 2
 };
 
 /** A interface that provides the necessary features 

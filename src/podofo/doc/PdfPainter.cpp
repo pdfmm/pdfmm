@@ -67,7 +67,7 @@
 #define ARC_MAGIC    0.552284749
 #define PI           3.141592654
 
-namespace PoDoFo {
+using namespace PoDoFo;
 
 static const long clPainterHighPrecision    = 15L;
 static const long clPainterDefaultPrecision = 3L;
@@ -96,7 +96,7 @@ static inline bool IsSpaceChar(pdf_utf16be ch)
 	return isspace( SwapCharBytesIfRequired(ch) & 0x00FF ) != 0;
 }
 
-PdfPainter::PdfPainter(EPdfStreamAppendFlags flags)
+PdfPainter::PdfPainter(EPdfPainterFlags flags)
 : m_flags(flags), m_stream( NULL ), m_canvas( NULL ), m_pFont( NULL ),
   m_nTabWidth( 4 ), m_curColor( PdfColor( 0.0, 0.0, 0.0 ) ),
   m_isTextOpen( false ), m_oss(), m_curPath(), m_isCurColorICCDepend( false ), m_CSTag()
@@ -174,7 +174,7 @@ void PdfPainter::finishDrawing()
 {
 	if ( m_stream )
     {
-        if ((m_flags & EPdfStreamAppendFlags::NoSaveRestore) == EPdfStreamAppendFlags::NoSaveRestore)
+        if ((m_flags & EPdfPainterFlags::NoSaveRestore) == EPdfPainterFlags::NoSaveRestore)
         {
             // GetLength() must be called before BeginAppend()
             if (m_stream->GetLength() == 0)
@@ -1851,8 +1851,35 @@ void PdfPainter::CheckStream()
         return;
 
     PODOFO_RAISE_LOGIC_IF(m_canvas == nullptr, "Call SetCanvas() first before doing drawing operations.");
-    m_stream = &m_canvas->GetStreamForAppending(m_flags);
+    m_stream = &m_canvas->GetStreamForAppending((EPdfStreamAppendFlags)(m_flags & (~EPdfPainterFlags::NoSaveRestore)));
 }
 
-} /* namespace PoDoFo */
+void PdfPainter::SetPrecision(unsigned short inPrec)
+{
+    m_oss.precision(inPrec);
+}
+
+unsigned short PdfPainter::GetPrecision() const
+{
+    return static_cast<unsigned short>(m_oss.precision());
+}
+
+void PdfPainter::SetClipRect(const PdfRect& rRect)
+{
+    this->SetClipRect(rRect.GetLeft(), rRect.GetBottom(), rRect.GetWidth(), rRect.GetHeight());
+}
+
+void PdfPainter::Rectangle(const PdfRect& rRect, double dRoundX, double dRoundY)
+{
+    this->Rectangle(rRect.GetLeft(), rRect.GetBottom(),
+        rRect.GetWidth(), rRect.GetHeight(),
+        dRoundX, dRoundY);
+}
+
+void PdfPainter::DrawMultiLineText(const PdfRect& rRect, const PdfString& rsText,
+    EPdfAlignment eAlignment, EPdfVerticalAlignment eVertical, bool bClip, bool bSkipSpaces)
+{
+    this->DrawMultiLineText(rRect.GetLeft(), rRect.GetBottom(), rRect.GetWidth(), rRect.GetHeight(),
+        rsText, eAlignment, eVertical, bClip, bSkipSpaces);
+}
 
