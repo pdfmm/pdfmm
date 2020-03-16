@@ -48,7 +48,7 @@ enum class EPdfStreamAppendFlags
 {
     None = 0,
     Prepend = 1,
-    NoPriorSaveRestore = 2
+    NoSaveRestorePrior = 2
 };
 
 /** A interface that provides the necessary features 

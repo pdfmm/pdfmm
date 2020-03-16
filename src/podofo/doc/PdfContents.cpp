@@ -83,7 +83,7 @@ PdfStream & PdfContents::GetStreamForAppending(EPdfStreamAppendFlags flags)
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
     }
 
-    if ((flags & EPdfStreamAppendFlags::NoPriorSaveRestore) == EPdfStreamAppendFlags::None)
+    if ((flags & EPdfStreamAppendFlags::NoSaveRestorePrior) == EPdfStreamAppendFlags::None)
     {
         // Record all content and readd into a new stream that
         // substitue all the previous streams

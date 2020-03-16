@@ -61,7 +61,7 @@ enum class EPdfPainterFlags
 {
     None = 0,
     Append = 1,
-    NoPriorSaveRestore = 2,
+    NoSaveRestorePrior = 2,
     NoSaveRestore = 4,
 };
 
