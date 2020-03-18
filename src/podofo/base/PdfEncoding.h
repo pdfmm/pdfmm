@@ -107,56 +107,6 @@ protected:
     virtual const PdfName & GetID() const = 0;
 
 public:
-    class PODOFO_API const_iterator : public std::iterator<
-                                             std::forward_iterator_tag, 
-						 int, std::ptrdiff_t, 
-						 const int *, const int &> {
-public:
-	const_iterator( const PdfEncoding* pEncoding, int nCur )
-	    : m_pEncoding( pEncoding ), m_nCur( nCur )
-	{
-	}
-
-	const_iterator( const const_iterator & rhs ) 
-	{
-	    this->operator=(rhs);
-	}
-
-	const const_iterator & operator=( const const_iterator & rhs ) 
-	{
-	    m_nCur      = rhs.m_nCur;
-	    m_pEncoding = rhs.m_pEncoding;
-
-	    return *this;
-	}
-
-	inline bool operator==( const const_iterator & rhs ) const
-	{
-	    return (m_nCur == rhs.m_nCur);
-	}
-
-	inline bool operator!=( const const_iterator & rhs ) const
-	{
-	    return (m_nCur != rhs.m_nCur);
-	}
-
-	inline pdf_utf16be operator*() const 
-	{
-	    return m_pEncoding->GetCharCode( m_nCur );
-	}
-	
-	inline const_iterator & operator++()
-	{
-	    m_nCur++;
-
-	    return *this;
-	}
-
-    private:
-	const PdfEncoding* m_pEncoding;
-	int                m_nCur;
-    };
-
     virtual ~PdfEncoding();
 
     /** Comparison operator.
@@ -216,20 +166,6 @@ public:
      * \returns the last character code that is defined for this encoding
      */
     inline int GetLastChar() const;
-
-    /** Iterate over all unicode character points in this
-     *  encoding, beginning with the first.
-     *
-     *  \returns iterator pointing to the first defined unicode character
-     */
-    inline const_iterator begin() const;
-
-    /** Iterate over all unicode character points in this
-     *  encoding, beginning with the first.
-     *
-     *  \returns iterator pointing at the end
-     */
-    inline const_iterator end() const;
 
     /** Get the unicode character code for this encoding
      *  at the position nIndex. nIndex is a position between
@@ -296,22 +232,6 @@ inline int PdfEncoding::GetFirstChar() const
 inline int PdfEncoding::GetLastChar() const
 {
     return m_nLastCode;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline PdfEncoding::const_iterator PdfEncoding::begin() const
-{
-    return PdfEncoding::const_iterator( this, this->GetFirstChar() );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline PdfEncoding::const_iterator PdfEncoding::end() const
-{
-    return PdfEncoding::const_iterator( this, this->GetLastChar() + 1 );
 }
 
 /**
