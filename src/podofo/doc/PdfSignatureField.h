@@ -52,10 +52,6 @@ enum class EPdfCertPermission
  */
 class PODOFO_DOC_API PdfSignatureField :public PdfField
 {
-protected:
-    PdfObject*     m_pSignatureObj;
-
-    void Init();
 public:
 
     /** Create a new PdfSignatureField
@@ -65,7 +61,7 @@ public:
     /** Create a new PdfSignatureField
      *  \param bInit creates a signature field with/without a /V key
      */
-    PdfSignatureField( PdfAnnotation* pWidget, PdfAcroForm* pParent, PdfDocument* pDoc, bool bInit = true);
+    PdfSignatureField( PdfAnnotation* pWidget, PdfAcroForm* pParent, PdfDocument* pDoc);
 
     /** Creates a PdfSignatureField from an existing PdfAnnotation, which should
      *  be an annotation with a field type Sig.
@@ -167,6 +163,12 @@ public:
      *  created from an existing annotation, which didn't have it set.
      */
     void EnsureSignatureObject( void );
+
+private:
+    void Init(PdfAcroForm &acroForm);
+
+private:
+    PdfObject* m_pSignatureObj;
 };
 
 }

@@ -38,6 +38,7 @@
 #include "../base/PdfDictionary.h"
 #include "../base/PdfData.h"
 
+#include "PdfDocument.h"
 #include "PdfXObject.h"
 
 #include <string.h>
@@ -48,15 +49,14 @@ PdfSignatureField::PdfSignatureField( PdfPage* pPage, const PdfRect & rRect, Pdf
 	:PdfField(EPdfField::Signature, pPage, rRect, pDoc)
 {
     m_pSignatureObj = NULL;
-    Init();
+    Init(*pDoc->GetAcroForm());
 }
 
-PdfSignatureField::PdfSignatureField( PdfAnnotation* pWidget, PdfAcroForm* pParent, PdfDocument* pDoc, bool bInit )
+PdfSignatureField::PdfSignatureField( PdfAnnotation* pWidget, PdfAcroForm* pParent, PdfDocument* pDoc)
 	:PdfField(EPdfField::Signature, pWidget,  pParent, pDoc)
 {
     m_pSignatureObj = NULL;
-    if( bInit )
-        Init();
+    Init(*pParent);
 }
 
 PdfSignatureField::PdfSignatureField( PdfObject* pObject, PdfAnnotation* pWidget )
@@ -83,11 +83,12 @@ void PdfSignatureField::SetAppearanceStream( PdfXObject* pObject, EPdfAnnotation
     this->GetAppearanceCharacteristics( true );
 }
 
-void PdfSignatureField::Init()
+void PdfSignatureField::Init(PdfAcroForm& acroForm)
 {
-    m_pSignatureObj = NULL;
-
-    EnsureSignatureObject ();
+    // TABLE 8.68 Signature flags: SignaturesExist (1) | AppendOnly (2)
+    // This will open signature panel when inspecting PDF with acrobat,
+    // even if the signature is unsigned
+    acroForm.GetObject()->GetDictionary().AddKey("SigFlags", PdfObject((int64_t)3));
 }
 
 void PdfSignatureField::SetSignerName(const PdfString & rsText)
@@ -291,9 +292,8 @@ void PdfSignatureField::EnsureSignatureObject( void )
 
     m_pSignatureObj = this->GetFieldObject()->GetOwner()->CreateObject( "Sig" );
     if( !m_pSignatureObj )
-    {
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
+
     GetFieldObject()->GetDictionary().AddKey( "V" , m_pSignatureObj->GetIndirectReference() );
 
     PdfDictionary &dict = m_pSignatureObj->GetDictionary();
