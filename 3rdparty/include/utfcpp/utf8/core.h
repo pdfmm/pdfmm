@@ -40,6 +40,7 @@ DEALINGS IN THE SOFTWARE.
 #endif
 
 #if UTF_CPP_CPLUSPLUS >= 201103L // C++ 11 or later
+    #include <cstdint>
     #define OVERRIDE override
     #define NOEXCEPT noexcept
 #else // C++ 98/03
@@ -50,12 +51,14 @@ DEALINGS IN THE SOFTWARE.
 
 namespace utf8
 {
+#if UTF_CPP_CPLUSPLUS < 201103L // C++ 98/03
     // The typedefs for 8-bit, 16-bit and 32-bit unsigned integers
     // You may need to change them to match your system.
     // These typedefs have the same names as ones from cstdint, or boost/cstdint
     typedef unsigned char   uint8_t;
     typedef unsigned short  uint16_t;
     typedef unsigned int    uint32_t;
+#endif
 
     enum endianess
     {
@@ -79,9 +82,6 @@ namespace internal
     // Maximum valid value for a Unicode code point
     const uint32_t CODE_POINT_MAX      = 0x0010ffffu;
 
-    #define IS_LITTLE_ENDIAN() ((*(const uint16_t *)"\0\1" >> 8) == 1)
-    #define IS_BIG_ENDIAN() ((*(const uint16_t *)"\1\0" >> 8) == 1)
-
     // Perform an runtime check to determine if byte swap is required
     // with the given endianess hint
     inline bool is_byte_swap_required(endianess hint)
@@ -89,9 +89,9 @@ namespace internal
         switch (hint)
         {
         case little_endian:
-            return IS_BIG_ENDIAN();
+            return (*(const uint16_t*)"\1\0" >> 8) == 1;
         case big_endian:
-            return IS_LITTLE_ENDIAN();
+            return (*(const uint16_t*)"\0\1" >> 8) == 1;
         default:
             throw std::runtime_error("Unexpected endianess hint");
         }
