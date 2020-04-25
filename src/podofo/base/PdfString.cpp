@@ -44,8 +44,9 @@
 #include <cstdlib>
 #include <cstring>
 #include <cwchar>
+#include <utfcpp/utf8.h>
 
-namespace PoDoFo {
+using namespace PoDoFo;
 
 namespace PdfStringNameSpace {
 
@@ -611,34 +612,8 @@ void PdfString::InitUtf8()
 {
     if( this->IsUnicode() )
     {
-        // we can convert UTF16 to UTF8
-        // UTF8 is at maximum 5 * characterlength
-        size_t lBufferLen = 5 * this->GetUnicodeLength() + 2;
-        char* pBuffer = static_cast<char*>(podofo_calloc( lBufferLen, sizeof(char) ));
-        if( !pBuffer )
-        {
-            PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
-        }
-
-        size_t lUtf8 = PdfString::ConvertUTF16toUTF8( reinterpret_cast<const pdf_utf16be*>(m_buffer.GetBuffer()),
-                                                    this->GetUnicodeLength(), 
-                                                    reinterpret_cast<pdf_utf8*>(pBuffer), lBufferLen, EPdfStringConversion::Lenient );
-        if (lUtf8 + 1 > lBufferLen) // + 1 to account for 2 bytes termination here vs. 1 byte there
-        {
-            pBuffer = static_cast<char*>(podofo_realloc( pBuffer, lUtf8 + 1 ) );
-            if( !pBuffer )
-            {
-                PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
-            }
-            if (lUtf8 - 1 > lBufferLen)
-                lUtf8 = PdfString::ConvertUTF16toUTF8( reinterpret_cast<const pdf_utf16be*>(m_buffer.GetBuffer()),
-                                                       this->GetUnicodeLength(), reinterpret_cast<pdf_utf8*>(pBuffer), lUtf8 + 1);
-        }
-
-        pBuffer[lUtf8 - 1] = '\0';
-        pBuffer[lUtf8] = '\0';
-        m_sUtf8 = pBuffer;
-        podofo_free( pBuffer );
+        const pdf_utf16be* buffer = reinterpret_cast<const pdf_utf16be*>(m_buffer.GetBuffer());
+        utf8::utf16to8(utf8::endianess::big_endian, buffer, buffer + this->GetUnicodeLength(), std::back_inserter(m_sUtf8));
     }
     else
     {
@@ -974,149 +949,3 @@ size_t PdfString::ConvertUTF8toUTF16( const pdf_utf8* pszUtf8, size_t lLenUtf8,
     // return characters written
     return target - pszUtf16;
 }
-
-size_t PdfString::ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, pdf_utf8* pszUtf8, size_t lLenUtf8 )
-{
-    size_t lLen = 0;
-    const pdf_utf16be* pszStart = pszUtf16;
-
-    while( *pszStart )
-        ++lLen;
-
-    return ConvertUTF16toUTF8( pszUtf16, lLen, pszUtf8, lLenUtf8 );
-}
-
-size_t PdfString::ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, size_t lLenUtf16,
-                                    pdf_utf8* pszUtf8, size_t lLenUtf8,
-                                    EPdfStringConversion eConversion  )
-{
-    bool               bOwnBuf   = false;
-    const pdf_utf16be* source    = pszUtf16;
-    const pdf_utf16be* sourceEnd = pszUtf16 + lLenUtf16 + 1; // point after the last element
-    
-    pdf_utf8* target    = pszUtf8;
-    pdf_utf8* targetEnd = pszUtf8 + lLenUtf8;
-
-    // swap to UTF-16be on LE systems
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-    bOwnBuf = true;
-    source  = new pdf_utf16be[lLenUtf16+1];
-    if( !source )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
-    }
-    
-    memcpy( const_cast<pdf_utf16be*>(source), pszUtf16, lLenUtf16 * sizeof(pdf_utf16be) );
-    
-    PdfString::SwapBytes( reinterpret_cast<char*>(const_cast<pdf_utf16be*>(source)), lLenUtf16 * sizeof(pdf_utf16be) );
-    pszUtf16  = source;
-    const_cast<pdf_utf16be*>(source)[lLenUtf16] = 0;
-    sourceEnd = pszUtf16 + lLenUtf16 + 1; // point after the last element
-#endif // PODOFO_IS_LITTLE_ENDIAN
-
-    try {
-        while (source < sourceEnd) {
-            unsigned long  ch;
-            unsigned short bytesToWrite = 0;
-            const unsigned long byteMask = 0xBF;
-            const unsigned long byteMark = 0x80; 
-            const pdf_utf16be* oldSource = source; /* In case we have to back up because of target overflow. */
-            ch = *source++;
-
-            /* If we have a surrogate pair, convert to UTF32 first. */
-            if (ch >= UNI_SUR_HIGH_START && ch <= UNI_SUR_HIGH_END) {
-                /* If the 16 bits following the high surrogate are in the source buffer... */
-                if (source < sourceEnd) {
-                    unsigned long ch2 = *source;
-                    /* If it's a low surrogate, convert to UTF32. */
-                    if (ch2 >= UNI_SUR_LOW_START && ch2 <= UNI_SUR_LOW_END) {
-                        ch = ((ch - UNI_SUR_HIGH_START) << halfShift)
-                            + (ch2 - UNI_SUR_LOW_START) + halfBase;
-                        ++source;
-                    } else if (eConversion == EPdfStringConversion::Strict) { /* it's an unpaired high surrogate */
-                        --source; /* return to the illegal value itself */
-                        PODOFO_RAISE_ERROR( EPdfError::InvalidDataType );
-                        break;
-                    }
-                } else { /* We don't have the 16 bits following the high surrogate. */
-                    --source; /* return to the high surrogate */
-                    PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
-                    break;
-                }
-            } else if (eConversion == EPdfStringConversion::Strict) {
-                /* UTF-16 surrogate values are illegal in UTF-32 */
-                if (ch >= UNI_SUR_LOW_START && ch <= UNI_SUR_LOW_END) {
-                    --source; /* return to the illegal value itself */
-                    PODOFO_RAISE_ERROR( EPdfError::InvalidDataType );
-                    break;
-                }
-            }
-            /* Figure out how many bytes the result will require */
-            if (ch < static_cast<unsigned long>(0x80)) {	     
-                bytesToWrite = 1;
-            } else if (ch < static_cast<unsigned long>(0x800)) {     
-                bytesToWrite = 2;
-            } else if (ch < static_cast<unsigned long>(0x10000)) {   
-                bytesToWrite = 3;
-            } else if (ch < static_cast<unsigned long>(0x110000)) {  
-                bytesToWrite = 4;
-            } else {			    
-                bytesToWrite = 3;
-                ch = UNI_REPLACEMENT_CHAR;
-            }
-
-            target += bytesToWrite;
-            if (target > targetEnd) {
-                source = oldSource; /* Back up source pointer! */
-                target -= bytesToWrite; 
-                PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
-                break;
-            }
-        
-            switch (bytesToWrite) { /* note: everything falls through. */
-                case 4: *--target = static_cast<pdf_utf8>((ch | byteMark) & byteMask); ch >>= 6;
-                // fall through
-                case 3: *--target = static_cast<pdf_utf8>((ch | byteMark) & byteMask); ch >>= 6;
-                // fall through
-                case 2: *--target = static_cast<pdf_utf8>((ch | byteMark) & byteMask); ch >>= 6;
-                // fall through
-                case 1: *--target = static_cast<pdf_utf8>(ch | firstByteMark[bytesToWrite]);
-            }
-            target += bytesToWrite;
-        }
-    }
-    catch( PdfError & e ) 
-    {
-        if( bOwnBuf )
-            delete[] const_cast<pdf_utf16be *>(pszUtf16);
-
-        throw e;
-    }
-
-    if( bOwnBuf )
-        delete[] const_cast<pdf_utf16be *>(pszUtf16);
-
-    // return bytes written
-    return target - pszUtf8;
-}
-
-/* ---------------------------------------------------------------------
-
-    Note A.
-    The fall-through switches in UTF-8 reading code save a
-    temp variable, some decrements & conditionals.  The switches
-    are equivalent to the following loop:
-	{
-	    int tmpBytesToRead = extraBytesToRead+1;
-	    do {
-		ch += *source++;
-		--tmpBytesToRead;
-		if (tmpBytesToRead) ch <<= 6;
-	    } while (tmpBytesToRead > 0);
-	}
-    In UTF-8 writing code, the switches on "bytesToWrite" are
-    similarly unrolled loops.
-
-   --------------------------------------------------------------------- */
-
-};

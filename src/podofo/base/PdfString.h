@@ -374,11 +374,6 @@ public:
                                     pdf_utf16be* pszUtf16, size_t lLenUtf16,
                                     EPdfStringConversion eConversion = EPdfStringConversion::Strict  );
 
-    static size_t ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, pdf_utf8* pszUtf8, size_t lLenUtf8 );
-    static size_t ConvertUTF16toUTF8( const pdf_utf16be* pszUtf16, size_t lLenUtf16,
-                                    pdf_utf8* pszUtf8, size_t lLenUtf8,
-                                    EPdfStringConversion eConversion = EPdfStringConversion::Strict );
-
     /** Swap the bytes in the buffer (UTF-16BE -> UTF-16LE)
      *  \param pBuf buffer
      *  \param lLen length of buffer
