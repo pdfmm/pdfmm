@@ -594,18 +594,12 @@ void PdfString::InitFromUtf8( const pdf_utf8* pszStringUtf8, size_t lLen )
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
-    size_t lBufLen = (lLen << 1) + sizeof(wchar_t);
-    // twice as large buffer should always be enough
-    std::vector<char>	bytes(lBufLen);
-    pdf_utf16be *pBuffer = reinterpret_cast<pdf_utf16be *>(bytes.data());
-
-    lBufLen = PdfString::ConvertUTF8toUTF16( pszStringUtf8, lLen, pBuffer, lBufLen );
-
-    lBufLen = lBufLen > 0 ? (lBufLen-1) << 1 : 0; // lBufLen is the number of characters, we need the number of bytes now!
-    m_buffer = PdfRefCountedBuffer( lBufLen + sizeof(pdf_utf16be) );
-    memcpy( m_buffer.GetBuffer(), reinterpret_cast<const char*>(pBuffer), lBufLen );
-    m_buffer.GetBuffer()[lBufLen] = '\0';
-    m_buffer.GetBuffer()[lBufLen+1] = '\0';
+    std::vector<pdf_utf16be> u16str;
+    utf8::utf8to16(utf8::endianess::big_endian, pszStringUtf8, pszStringUtf8 + lLen, std::back_inserter(u16str));
+    m_buffer = PdfRefCountedBuffer(u16str.size() * sizeof(pdf_utf16be) + sizeof(pdf_utf16be));
+    memcpy( m_buffer.GetBuffer(), reinterpret_cast<const char*>(u16str.data()), u16str.size() * sizeof(pdf_utf16be));
+    m_buffer.GetBuffer()[u16str.size() * sizeof(pdf_utf16be)] = '\0';
+    m_buffer.GetBuffer()[u16str.size() * sizeof(pdf_utf16be) + 1] = '\0';
 }
 
 void PdfString::InitUtf8()
@@ -850,102 +844,4 @@ bool isLegalUTF8Sequence(const pdf_utf8 *source, const pdf_utf8 *sourceEnd) {
 	return false;
     }
     return isLegalUTF8(source, length);
-}
-
-
-size_t PdfString::ConvertUTF8toUTF16( const pdf_utf8* pszUtf8, pdf_utf16be* pszUtf16, size_t lLenUtf16 )
-{
-    return pszUtf8 ? 
-        PdfString::ConvertUTF8toUTF16( pszUtf8, strlen( reinterpret_cast<const char*>(pszUtf8) ), pszUtf16, lLenUtf16 ) : 0;
-}
-
-size_t PdfString::ConvertUTF8toUTF16( const pdf_utf8* pszUtf8, size_t lLenUtf8,
-                                    pdf_utf16be* pszUtf16, size_t lLenUtf16,
-                                    EPdfStringConversion eConversion )
-{
-    const pdf_utf8* source    = pszUtf8;
-    const pdf_utf8* sourceEnd = pszUtf8 + lLenUtf8 + 1; // point after the last element
-    pdf_utf16be*    target    = pszUtf16;
-    pdf_utf16be*    targetEnd = pszUtf16 + lLenUtf16;
-
-    while (source < sourceEnd) 
-    {
-	unsigned long ch = 0;
-	unsigned short extraBytesToRead = trailingBytesForUTF8[*source];
-	if (source + extraBytesToRead >= sourceEnd) {
-	    PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDataType, "The UTF8 string was to short while converting from UTF8 to UTF16." );
-	}
-
-	// Do this check whether lenient or strict
-	if (! isLegalUTF8(source, extraBytesToRead+1)) {
-	    PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDataType, "The UTF8 string was invalid while from UTF8 to UTF16." );
-	}
-
-	/*
-	 * The cases all fall through. See "Note A" below.
-	 */
-	switch (extraBytesToRead) {
-	    case 5: ch += *source++; ch <<= 6; /* remember, illegal UTF-8 */
-            // fall through
-	    case 4: ch += *source++; ch <<= 6; /* remember, illegal UTF-8 */
-            // fall through
-	    case 3: ch += *source++; ch <<= 6;
-            // fall through
-	    case 2: ch += *source++; ch <<= 6;
-            // fall through
-	    case 1: ch += *source++; ch <<= 6;
-            // fall through
-	    case 0: ch += *source++;
-	}
-	ch -= offsetsFromUTF8[extraBytesToRead];
-
-	if (target >= targetEnd) {
-	    source -= (extraBytesToRead+1); /* Back up source pointer! */
-	    PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
-	}
-
-	if (ch <= UNI_MAX_BMP) { /* Target is a character <= 0xFFFF */
-	    /* UTF-16 surrogate values are illegal in UTF-32 */
-	    if (ch >= UNI_SUR_HIGH_START && ch <= UNI_SUR_LOW_END) {
-		if (eConversion == EPdfStringConversion::Strict) {
-		    source -= (extraBytesToRead+1); /* return to the illegal value itself */
-                    PODOFO_RAISE_ERROR( EPdfError::InvalidDataType );
-		    break;
-		} else {
-		    *target++ = UNI_REPLACEMENT_CHAR;
-		}
-	    } else {
-		*target++ = static_cast<pdf_utf16be>(ch); /* normal case */
-	    }
-	} else if (ch > UNI_MAX_UTF16) {
-	    if (eConversion == EPdfStringConversion::Strict) {
-                PODOFO_RAISE_ERROR( EPdfError::InvalidDataType );
-
-        //RG: TODO My compiler says that this is unreachable code!
-
-		source -= (extraBytesToRead+1); /* return to the start */
-		break; /* Bail out; shouldn't continue */
-	    } else {
-		*target++ = UNI_REPLACEMENT_CHAR;
-	    }
-	} else {
-	    /* target is a character in range 0xFFFF - 0x10FFFF. */
-	    if (target + 1 >= targetEnd) {
-		source -= (extraBytesToRead+1); /* Back up source pointer! */
-                PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
-	    }
-            
-	    ch -= halfBase;
-	    *target++ = static_cast<pdf_utf16be>((ch >> halfShift) + UNI_SUR_HIGH_START);
-	    *target++ = static_cast<pdf_utf16be>((ch & halfMask) + UNI_SUR_LOW_START);
-	}
-    }
-
-    // swap to UTF-16be on LE systems
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-    PdfString::SwapBytes( reinterpret_cast<char*>(pszUtf16), static_cast<size_t>(target - pszUtf16) << 1 );
-#endif // PODOFO_IS_LITTLE_ENDIAN
-
-    // return characters written
-    return target - pszUtf16;
 }

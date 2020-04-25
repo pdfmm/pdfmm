@@ -31,9 +31,12 @@
  *   files in the program, then also delete it here.                       *
  ***************************************************************************/
 
+#include <cstdlib>
 #include <iostream>
 #include <iomanip>
 #include <vector>
+
+#include <utfcpp/utf8.h>
 
 #include "PdfPainter.h"
 
@@ -57,9 +60,6 @@
 #include "PdfShadingPattern.h"
 #include "PdfTilingPattern.h"
 #include "PdfXObject.h"
-
-
-#include <stdlib.h>
 
 #define BEZIER_POINTS 13
 
@@ -910,11 +910,8 @@ std::vector<PdfString> PdfPainter::GetMultiLineTextAsLines( double dWidth, const
     // We will work with utf16 encoded string because it allows us 
     // fast and easy individual characters access    
     const std::string& stringUtf8 = rsText.GetStringUtf8();
-    std::vector<pdf_utf16be> stringUtf16(stringUtf8.length() + 1, 0);
-    PODOFO_ASSERT( stringUtf16.size() > 0 );
-    size_t converted = PdfString::ConvertUTF8toUTF16(
-	    reinterpret_cast<const pdf_utf8*>(stringUtf8.c_str()), &stringUtf16[0], stringUtf16.size());
-    PODOFO_ASSERT( converted == (rsText.GetCharacterLength() + 1) );
+    std::vector<pdf_utf16be> stringUtf16;
+    utf8::utf8to16(utf8::endianess::big_endian, stringUtf8.c_str(), stringUtf8.c_str() + stringUtf8.length(), std::back_inserter(stringUtf16));
 
 	const pdf_utf16be* const stringUtf16Begin = &stringUtf16[0];
     const pdf_utf16be* pszLineBegin = stringUtf16Begin;
