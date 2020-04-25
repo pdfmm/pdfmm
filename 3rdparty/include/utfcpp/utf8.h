@@ -31,4 +31,8 @@ DEALINGS IN THE SOFTWARE.
 #include "utf8/checked.h"
 #include "utf8/unchecked.h"
 
+#if __cplusplus >= 201103L
+#include "utf8/cpp11.h"
+#endif
+
 #endif // header guard
