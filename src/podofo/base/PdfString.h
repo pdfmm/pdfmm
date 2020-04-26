@@ -188,7 +188,7 @@ public:
      *  If it is valid it is safe to call all the other member functions.
      *  \returns true if this is a valid initialized PdfString
      */
-    inline bool IsValid() const;
+    bool IsValid() const;
 
     /** Check if this is a hex string.
      *  
@@ -198,7 +198,7 @@ public:
      *  \returns true if this is a hex string.
      *  \see GetString() will return the raw string contents (not hex-encoded)
      */
-    inline bool IsHex () const;
+    inline bool IsHex () const { return m_bHex; }
 
     /**
      * PdfStrings are either Latin1-encoded or UTF-16BE-encoded unicode strings.
@@ -207,7 +207,7 @@ public:
      *
      * \returns true if this is a unicode string.
      */
-    inline bool IsUnicode () const;
+    inline bool IsUnicode() const { return m_bUnicode; }
 
     /** The contents of the string can be read by this function.
      *
@@ -224,7 +224,7 @@ public:
      *  \see IsUnicode
      *  \see GetLength
      */
-    inline const char* GetString() const;
+    const char* GetString() const;
 
     /** The contents of the string can be read by this function.
      *
@@ -247,7 +247,7 @@ public:
      *  \see IsUnicode
      *  \see GetUnicodeLength
      */
-    inline const pdf_utf16be* GetUnicode() const;
+    const pdf_utf16be* GetUnicode() const;
 
     /** The contents of the string as UTF-8 string.
      *
@@ -260,7 +260,7 @@ public:
      *  \returns the string's contents always as UTF-8,
      *           returns NULL if PdfString::IsValid() returns false
      */
-    inline const std::string & GetStringUtf8() const;
+    const std::string & GetStringUtf8() const;
 
 #ifdef _WIN32
     /** The contents of the string as wide-character string.
@@ -279,7 +279,7 @@ public:
      *
      *  \see GetCharacterLength to determine the number of characters in the string
      */
-    inline size_t GetLength() const;
+    size_t GetLength() const;
 
     /** The length of the string data returned by GetUnicode() 
      *  in characters not including the terminating zero ('\0') bytes.
@@ -289,7 +289,7 @@ public:
      *
      *  \see GetCharacterLength to determine the number of characters in the string
      */
-    inline size_t GetUnicodeLength() const;
+    size_t GetUnicodeLength() const;
 
     /** Get the number of characters in the string.
      *  
@@ -302,7 +302,7 @@ public:
      *  \returns the number of characters in the string,
      *           returns zero if PdfString::IsValid() returns false
      */
-    inline size_t GetCharacterLength() const;
+    size_t GetCharacterLength() const;
 
     /** Write this PdfString in PDF format to a PdfOutputDevice.
      *  
@@ -429,97 +429,6 @@ private:
     std::string         m_sUtf8;                     ///< The UTF-8 version of the string's contents.
     const PdfEncoding*  m_pEncoding;                 ///< Encoding for non-unicode strings. NULL for unicode strings.
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfString::IsValid() const
-{
-    return (m_buffer.GetBuffer() != NULL);
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfString::IsHex () const
-{
-    return m_bHex;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfString::IsUnicode () const
-{
-    return m_bUnicode;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const char* PdfString::GetString() const
-{
-    return m_buffer.GetBuffer();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const pdf_utf16be* PdfString::GetUnicode() const
-{
-    return reinterpret_cast<const pdf_utf16be*>(m_buffer.GetBuffer());
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const std::string & PdfString::GetStringUtf8() const
-{
-    if( this->IsValid() && !m_sUtf8.length() && m_buffer.GetSize() - 2) 
-        const_cast<PdfString*>(this)->InitUtf8();
-
-    return m_sUtf8;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-size_t PdfString::GetLength() const
-{
-    if ( !IsValid() )
-    {
-        PdfError::LogMessage( ELogSeverity::Error, "PdfString::GetLength invalid PdfString" );
-        return 0;
-    }
-    
-    PODOFO_ASSERT( m_buffer.GetSize() >= 2 );
-    
-    return m_buffer.GetSize() - 2;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-size_t PdfString::GetCharacterLength() const
-{
-    return this->IsUnicode() ? this->GetUnicodeLength() : this->GetLength();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-size_t PdfString::GetUnicodeLength() const
-{
-    if ( !IsValid() )
-    {
-        PdfError::LogMessage( ELogSeverity::Error, "PdfString::GetUnicodeLength invalid PdfString" );
-        return 0;
-    }
-    
-    PODOFO_ASSERT( (m_buffer.GetSize() / sizeof(pdf_utf16be)) >= 1 );
-    
-    return (m_buffer.GetSize() / sizeof(pdf_utf16be)) - 1;
-}
 
 };
 
