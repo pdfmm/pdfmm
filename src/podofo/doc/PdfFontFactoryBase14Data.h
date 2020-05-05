@@ -4300,14 +4300,12 @@ static const PODOFO_CharData CHAR_DATA_SYMBOL[190] = {
 
 
 
-const int PODOFO_TRUE=1;
-const int PODOFO_FALSE=0;
 /*
 static const PdfFontMetricsBase14Rec  PODOFO_BUILTIN_FONTS[] = {
     {
         PODOFO_HPDF_FONT_COURIER,
         CHAR_DATA_COURIER,
-        PODOFO_FALSE,
+        false,
         629,
         -157,
         426,
@@ -4317,7 +4315,7 @@ static const PdfFontMetricsBase14Rec  PODOFO_BUILTIN_FONTS[] = {
     {
         PODOFO_HPDF_FONT_COURIER_BOLD,
         CHAR_DATA_COURIER_BOLD,
-        PODOFO_FALSE,
+        false,
         629,
         -157,
         439,
@@ -4327,7 +4325,7 @@ static const PdfFontMetricsBase14Rec  PODOFO_BUILTIN_FONTS[] = {
     {
         PODOFO_HPDF_FONT_COURIER_OBLIQUE,
         CHAR_DATA_COURIER_OBLIQUE,
-        PODOFO_FALSE,
+        false,
         629,
         -157,
         426,
@@ -4337,7 +4335,7 @@ static const PdfFontMetricsBase14Rec  PODOFO_BUILTIN_FONTS[] = {
     {
         PODOFO_HPDF_FONT_COURIER_BOLD_OBLIQUE,
         CHAR_DATA_COURIER_BOLD_OBLIQUE,
-        PODOFO_FALSE,
+        false,
         629,
         -157,
         439,
@@ -4347,7 +4345,7 @@ static const PdfFontMetricsBase14Rec  PODOFO_BUILTIN_FONTS[] = {
     {
         PODOFO_HPDF_FONT_HELVETICA,
         CHAR_DATA_HELVETICA,
-        PODOFO_FALSE,
+        false,
         718,
         -207,
         523,
@@ -4357,7 +4355,7 @@ static const PdfFontMetricsBase14Rec  PODOFO_BUILTIN_FONTS[] = {
     {
         PODOFO_HPDF_FONT_HELVETICA_BOLD,
         CHAR_DATA_HELVETICA_BOLD,
-        PODOFO_FALSE,
+        false,
         718,
         -207,
         532,
@@ -4367,7 +4365,7 @@ static const PdfFontMetricsBase14Rec  PODOFO_BUILTIN_FONTS[] = {
     {
         PODOFO_HPDF_FONT_HELVETICA_OBLIQUE,
         CHAR_DATA_HELVETICA_OBLIQUE,
-        PODOFO_FALSE,
+        false,
         718,
         -207,
         532,
@@ -4377,7 +4375,7 @@ static const PdfFontMetricsBase14Rec  PODOFO_BUILTIN_FONTS[] = {
     {
         PODOFO_HPDF_FONT_HELVETICA_BOLD_OBLIQUE,
         CHAR_DATA_HELVETICA_BOLD_OBLIQUE,
-        PODOFO_FALSE,
+        false,
         718,
         -207,
         532,
@@ -4387,7 +4385,7 @@ static const PdfFontMetricsBase14Rec  PODOFO_BUILTIN_FONTS[] = {
     {
         PODOFO_HPDF_FONT_TIMES_ROMAN,
         CHAR_DATA_TIMES_ROMAN,
-        PODOFO_FALSE,
+        false,
         683,
         -217,
         450,
@@ -4397,7 +4395,7 @@ static const PdfFontMetricsBase14Rec  PODOFO_BUILTIN_FONTS[] = {
     {
         PODOFO_HPDF_FONT_TIMES_BOLD,
         CHAR_DATA_TIMES_BOLD,
-        PODOFO_FALSE,
+        false,
         683,
         -217,
         461,
@@ -4407,7 +4405,7 @@ static const PdfFontMetricsBase14Rec  PODOFO_BUILTIN_FONTS[] = {
     {
         PODOFO_HPDF_FONT_TIMES_ITALIC,
         CHAR_DATA_TIMES_ITALIC,
-        PODOFO_FALSE,
+        false,
         683,
         -217,
         441,
@@ -4417,7 +4415,7 @@ static const PdfFontMetricsBase14Rec  PODOFO_BUILTIN_FONTS[] = {
     {
         PODOFO_HPDF_FONT_TIMES_BOLD_ITALIC,
         CHAR_DATA_TIMES_BOLD_ITALIC,
-        PODOFO_FALSE,
+        false,
         683,
         -217,
         462,
@@ -4427,7 +4425,7 @@ static const PdfFontMetricsBase14Rec  PODOFO_BUILTIN_FONTS[] = {
     {
         PODOFO_HPDF_FONT_SYMBOL,
         CHAR_DATA_SYMBOL,
-        PODOFO_TRUE,
+        true,
         0,
         0,
         0,
@@ -4437,7 +4435,7 @@ static const PdfFontMetricsBase14Rec  PODOFO_BUILTIN_FONTS[] = {
     {
         PODOFO_HPDF_FONT_ZAPF_DINGBATS,
         CHAR_DATA_ZAPF_DINGBATS,
-        PODOFO_TRUE,
+        true,
         0,
         0,
         0,
@@ -4447,7 +4445,7 @@ static const PdfFontMetricsBase14Rec  PODOFO_BUILTIN_FONTS[] = {
     {
         NULL,
         NULL,
-        PODOFO_FALSE,
+        false,
         0,
         0,
         0,
@@ -4461,7 +4459,7 @@ static const   PdfFontMetricsBase14   PODOFO_BUILTIN_FONTS[] = {
     PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_COURIER,
         CHAR_DATA_COURIER,
-        PODOFO_FALSE,
+        false,
         627,
         -373,
         426,
@@ -4473,7 +4471,7 @@ static const   PdfFontMetricsBase14   PODOFO_BUILTIN_FONTS[] = {
     PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_COURIER_BOLD,
         CHAR_DATA_COURIER_BOLD,
-        PODOFO_FALSE,
+        false,
         627,
         -373,
         439,
@@ -4485,7 +4483,7 @@ static const   PdfFontMetricsBase14   PODOFO_BUILTIN_FONTS[] = {
     PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_COURIER_OBLIQUE,
         CHAR_DATA_COURIER_OBLIQUE,
-        PODOFO_FALSE,
+        false,
         627,
         -373,
         426,
@@ -4497,7 +4495,7 @@ static const   PdfFontMetricsBase14   PODOFO_BUILTIN_FONTS[] = {
     PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_COURIER_BOLD_OBLIQUE,
         CHAR_DATA_COURIER_BOLD_OBLIQUE,
-        PODOFO_FALSE,
+        false,
         627,
         -373,
         439,
@@ -4509,7 +4507,7 @@ static const   PdfFontMetricsBase14   PODOFO_BUILTIN_FONTS[] = {
     PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_HELVETICA,
         CHAR_DATA_HELVETICA,
-        PODOFO_FALSE,
+        false,
         750,
         -250,
         523,
@@ -4521,7 +4519,7 @@ static const   PdfFontMetricsBase14   PODOFO_BUILTIN_FONTS[] = {
     PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_HELVETICA_BOLD,
         CHAR_DATA_HELVETICA_BOLD,
-        PODOFO_FALSE,
+        false,
         750,
         -250,
         532,
@@ -4533,7 +4531,7 @@ static const   PdfFontMetricsBase14   PODOFO_BUILTIN_FONTS[] = {
     PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_HELVETICA_OBLIQUE,
         CHAR_DATA_HELVETICA_OBLIQUE,
-        PODOFO_FALSE,
+        false,
         750,
         -250,
         532,
@@ -4545,7 +4543,7 @@ static const   PdfFontMetricsBase14   PODOFO_BUILTIN_FONTS[] = {
     PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_HELVETICA_BOLD_OBLIQUE,
         CHAR_DATA_HELVETICA_BOLD_OBLIQUE,
-        PODOFO_FALSE,
+        false,
         750,
         -250,
         532,
@@ -4557,7 +4555,7 @@ static const   PdfFontMetricsBase14   PODOFO_BUILTIN_FONTS[] = {
     PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_TIMES_ROMAN,
         CHAR_DATA_TIMES_ROMAN,
-        PODOFO_FALSE,
+        false,
         727,
         -273,
         450,
@@ -4569,7 +4567,7 @@ static const   PdfFontMetricsBase14   PODOFO_BUILTIN_FONTS[] = {
     PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_TIMES_BOLD,
         CHAR_DATA_TIMES_BOLD,
-        PODOFO_FALSE,
+        false,
         727,
         -273,
         461,
@@ -4581,7 +4579,7 @@ static const   PdfFontMetricsBase14   PODOFO_BUILTIN_FONTS[] = {
     PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_TIMES_ITALIC,
         CHAR_DATA_TIMES_ITALIC,
-        PODOFO_FALSE,
+        false,
         727,
         -273,
         441,
@@ -4593,7 +4591,7 @@ static const   PdfFontMetricsBase14   PODOFO_BUILTIN_FONTS[] = {
     PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_TIMES_BOLD_ITALIC,
         CHAR_DATA_TIMES_BOLD_ITALIC,
-        PODOFO_FALSE,
+        false,
         727,
         -273,
         462,
@@ -4605,7 +4603,7 @@ static const   PdfFontMetricsBase14   PODOFO_BUILTIN_FONTS[] = {
     PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_SYMBOL,
         CHAR_DATA_SYMBOL,
-        PODOFO_TRUE,
+        true,
         683,
         -217,
         462,
@@ -4617,7 +4615,7 @@ static const   PdfFontMetricsBase14   PODOFO_BUILTIN_FONTS[] = {
     PdfFontMetricsBase14(
         PODOFO_HPDF_FONT_ZAPF_DINGBATS,
         CHAR_DATA_ZAPF_DINGBATS,
-        PODOFO_TRUE,
+        true,
         683,
         -217,
         462,
@@ -4629,7 +4627,7 @@ static const   PdfFontMetricsBase14   PODOFO_BUILTIN_FONTS[] = {
     PdfFontMetricsBase14(
         NULL,
         NULL,
-        PODOFO_FALSE,
+        false,
         0,
         0,
         0,
