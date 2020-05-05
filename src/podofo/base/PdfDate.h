@@ -34,10 +34,11 @@
 #ifndef _PDF_DATE_H_
 #define _PDF_DATE_H_
 
+#include <chrono>
+
 #include "PdfDefines.h"
 #include <podofo/compat/optional>
 #include "PdfString.h"
-#include <date/date.h>
 
 namespace PoDoFo {
 
@@ -69,7 +70,7 @@ public:
      *
      *  \see IsValid()
      */
-    PdfDate(const date::local_seconds &secondsFromEpoch, const std::optional<std::chrono::minutes> &offsetFromUTC);
+    PdfDate(const std::chrono::seconds &secondsFromEpoch, const std::optional<std::chrono::minutes> &offsetFromUTC);
 
     /** Create a PdfDate with a specified date and time
      *  \param szDate the date and time of this object 
@@ -81,9 +82,9 @@ public:
     /** \returns the date and time of this PdfDate in 
      *  seconds since epoch.
      */
-    const date::local_seconds & GetSecondsFromEpoch() const { return m_secondsFromEpoch; }
+    const std::chrono::seconds & GetSecondsFromEpoch() const { return m_secondsFromEpoch; }
 
-    const std::optional<std::chrono::minutes> & GetOffset() const { return m_offesetFromUTC; }
+    const std::optional<std::chrono::minutes> & GetMinutesFromUtc() const { return m_minutesFromUtc; }
 
     /** The value returned by this function can be used in any PdfObject
      *  where a date is needed
@@ -110,8 +111,8 @@ private:
     bool ParseFixLenNumber(const char *&in, unsigned int length, int min, int max, int &ret);
 
 private:
-    date::local_seconds m_secondsFromEpoch;
-    std::optional<std::chrono::minutes> m_offesetFromUTC;
+    std::chrono::seconds m_secondsFromEpoch;
+    std::optional<std::chrono::minutes> m_minutesFromUtc;
 };
 
 };

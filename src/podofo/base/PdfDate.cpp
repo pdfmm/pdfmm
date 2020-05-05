@@ -65,16 +65,16 @@ static bool tryReadShiftChar(char ch, int &zoneShift);
 
 PdfDate::PdfDate()
 {
-    m_offesetFromUTC = chrono::minutes(getLocalOffesetFromUTCMinutes());
+    m_minutesFromUtc = chrono::minutes(getLocalOffesetFromUTCMinutes());
     // Cast now() to seconds. We assume system_clock epoch is
     //  always 1970/1/1 UTC in all platforms, like in C++20
     auto now = chrono::time_point_cast<chrono::seconds>(chrono::system_clock::now());
     // We forget about realtionship with UTC, convert to local seconds
-    m_secondsFromEpoch = date::local_seconds(now.time_since_epoch());
+    m_secondsFromEpoch = chrono::seconds(now.time_since_epoch());
 }
 
-PdfDate::PdfDate(const date::local_seconds &secondsFromEpoch, const std::optional<chrono::minutes> &offsetFromUTC)
-    : m_secondsFromEpoch(secondsFromEpoch), m_offesetFromUTC(offsetFromUTC)
+PdfDate::PdfDate(const chrono::seconds &secondsFromEpoch, const std::optional<chrono::minutes> &offsetFromUTC)
+    : m_secondsFromEpoch(secondsFromEpoch), m_minutesFromUtc(offsetFromUTC)
 {
 }
 
@@ -160,9 +160,12 @@ ParseShift:
     if (*pszDate != '\0')
         goto Error;
 End:
-    m_secondsFromEpoch = date::local_days(date::year(y) / m / d) + chrono::hours(h) + chrono::minutes(M) + chrono::seconds(s);
+    m_secondsFromEpoch = (date::local_days(date::year(y) / m / d) + chrono::hours(h) + chrono::minutes(M) + chrono::seconds(s)).time_since_epoch();
     if (hasZoneShift)
-        m_offesetFromUTC = nZoneShift * (chrono::hours(nZoneHour) + chrono::minutes(nZoneMin));
+    {
+        m_minutesFromUtc = nZoneShift * (chrono::hours(nZoneHour) + chrono::minutes(nZoneMin));
+        m_secondsFromEpoch -= *m_minutesFromUtc;
+    }
 
     return;
 Error:
@@ -177,30 +180,28 @@ PdfString PdfDate::createStringRepresentation(bool w3cstring) const
     else
         date.resize(PDF_DATE_BUFFER_SIZE);
 
-    auto dp = chrono::floor<date::days>(m_secondsFromEpoch);
-    date::year_month_day ymd{ dp };
-    date::hh_mm_ss<chrono::seconds> time{ chrono::floor<chrono::seconds>(m_secondsFromEpoch - dp) };
-    auto y = (int)ymd.year();
-    auto m = (unsigned)ymd.month();
-    auto d = (unsigned)ymd.day();
-    auto h = (unsigned)time.hours().count();
-    auto M = (unsigned)time.minutes().count();
-    auto s = (unsigned)time.seconds().count();
+    auto secondsFromEpoch = m_secondsFromEpoch;
 
     std::string offset;
-    if (m_offesetFromUTC.has_value())
+    unsigned y;
+    unsigned m;
+    unsigned d;
+    unsigned h;
+    unsigned M;
+    unsigned s;
+    if (m_minutesFromUtc.has_value())
     {
-        int offsetFromUTC = m_offesetFromUTC.value().count();
-        bool plus = offsetFromUTC > 0 ? true : false;
-        offsetFromUTC = std::abs(offsetFromUTC);
-        unsigned offseth = offsetFromUTC / 60;
-        unsigned offsetm = offsetFromUTC % 60;
-        if (offsetFromUTC == 0)
+        auto minutesFromUtc = *m_minutesFromUtc;
+        int minutesFromUtci = (int)minutesFromUtc.count();
+        unsigned offseth = std::abs(minutesFromUtci) / 60;
+        unsigned offsetm = std::abs(minutesFromUtci) % 60;
+        if (minutesFromUtci == 0)
         {
             offset = "Z";
         }
         else
         {
+            bool plus = minutesFromUtci > 0 ? true : false;
             if (w3cstring)
             {
                 offset.resize(6);
@@ -212,6 +213,32 @@ PdfString PdfDate::createStringRepresentation(bool w3cstring) const
                 snprintf(const_cast<char *>(offset.data()), offset.size() + 1, "%s%02u'%02u'", plus ? "+" : "-", offseth, offsetm);
             }
         }
+
+        // Assume sys time
+        auto secondsFromEpoch = (date::sys_seconds)(m_secondsFromEpoch + minutesFromUtc);
+        auto dp = date::floor<date::days>(secondsFromEpoch);
+        date::year_month_day ymd{ dp };
+        date::hh_mm_ss<chrono::seconds> time{ chrono::floor<chrono::seconds>(secondsFromEpoch - dp) };
+        y = (int)ymd.year();
+        m = (unsigned)ymd.month();
+        d = (unsigned)ymd.day();
+        h = (unsigned)time.hours().count();
+        M = (unsigned)time.minutes().count();
+        s = (unsigned)time.seconds().count();
+    }
+    else
+    {
+        // Assume local time
+        auto secondsFromEpoch = (date::local_seconds)m_secondsFromEpoch;
+        auto dp = date::floor<date::days>(secondsFromEpoch);
+        date::year_month_day ymd{ dp };
+        date::hh_mm_ss<chrono::seconds> time{ chrono::floor<chrono::seconds>(secondsFromEpoch - dp) };
+        y = (int)ymd.year();
+        m = (unsigned)ymd.month();
+        d = (unsigned)ymd.day();
+        h = (unsigned)time.hours().count();
+        M = (unsigned)time.minutes().count();
+        s = (unsigned)time.seconds().count();
     }
 
     if (w3cstring)
