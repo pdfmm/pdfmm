@@ -41,6 +41,8 @@
 #include <sstream>
 #include <iomanip>
 
+static void CreateRect(double x1, double y1, double x2, double y2,
+    double &left, double &bottom, double &width, double &height);
 static void NormalizeCoordinates( double &coord1, double &coord2 );
 
 namespace PoDoFo {
@@ -56,6 +58,13 @@ PdfRect::PdfRect( double dLeft, double dBottom, double dWidth, double dHeight )
     m_dLeft   = dLeft;
     m_dWidth  = dWidth;
     m_dHeight = dHeight;
+}
+
+PdfRect PdfRect::FromCorners(double x1, double y1, double x2, double y2)
+{
+    PdfRect rect;
+    CreateRect(x1, y1, x2, y2, rect.m_dLeft, rect.m_dBottom, rect.m_dWidth, rect.m_dHeight);
+    return rect;
 }
 
 PdfRect::PdfRect( const PdfArray& inArray )
@@ -111,19 +120,22 @@ void PdfRect::FromArray( const PdfArray& inArray )
         double x2 = inArray[2].GetReal();
         double y2 = inArray[3].GetReal();
 
-        // See Pdf Reference 1.7, 3.8.4 Rectangles
-        NormalizeCoordinates( x1, x2 );
-        NormalizeCoordinates( y1, y2 );
-
-        m_dLeft   = x1;
-        m_dBottom = y1;
-        m_dWidth  = x2 - x1;
-        m_dHeight = y2 - y1;
+        CreateRect(x1, y1, x2, y2, m_dLeft, m_dBottom, m_dWidth, m_dHeight);
     }
     else 
     {
         PODOFO_RAISE_ERROR( EPdfError::ValueOutOfRange );
     }
+}
+
+double PdfRect::GetRight() const
+{
+    return m_dLeft + m_dWidth;
+}
+
+double PdfRect::GetTop() const
+{
+    return m_dBottom + m_dHeight;
 }
 
 void PdfRect::Intersect( const PdfRect & rRect )
@@ -171,6 +183,18 @@ PdfRect & PdfRect::operator=( const PdfRect & rhs )
 }
 
 };
+
+void CreateRect(double x1, double y1, double x2, double y2, double& left, double& bottom, double& width, double& height)
+{
+    // See Pdf Reference 1.7, 3.8.4 Rectangles
+    NormalizeCoordinates(x1, x2);
+    NormalizeCoordinates(y1, y2);
+
+    left = x1;
+    bottom = y1;
+    width = x2 - x1;
+    height = y2 - y1;
+}
 
 void NormalizeCoordinates( double & coord1, double & coord2 )
 {

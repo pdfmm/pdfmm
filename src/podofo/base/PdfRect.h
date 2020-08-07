@@ -65,6 +65,12 @@ class PODOFO_API PdfRect {
     /** Copy constructor 
      */
     PdfRect( const PdfRect & rhs );
+
+public:
+    /** Create a PdfRect from a couple of arbitrary points
+     * \returns the created PdfRect
+     */
+    static PdfRect FromCorners(double x1, double y1, double x2, double y2);
     
     /** Converts the rectangle into an array
      *  based on PDF units and adds the array into an variant.
@@ -87,45 +93,55 @@ class PODOFO_API PdfRect {
      */
     void Intersect( const PdfRect & rRect );
 
+    /** Get the right coordinate of the rectangle
+     *  \returns bottom
+     */
+    double GetRight() const;
+
+    /** Get the top coordinate of the rectangle
+     *  \returns bottom
+     */
+    double GetTop() const;
+
 	/** Get the bottom coordinate of the rectangle
      *  \returns bottom
      */
-    inline double GetBottom() const;
+    inline double GetBottom() const { return m_dBottom; }
 
     /** Set the bottom coordinate of the rectangle
      *  \param dBottom
      */
-    inline void SetBottom( double dBottom );
+    inline void SetBottom(double dBottom) { m_dBottom = dBottom; }
 
     /** Get the left coordinate of the rectangle
      *  \returns left in PDF units
      */
-    inline double GetLeft() const;
+    inline double GetLeft() const { return m_dLeft; }
 
     /** Set the left coordinate of the rectangle
      *  \param lLeft in PDF units
      */
-    inline void SetLeft( double lLeft );
+    inline void SetLeft(double dLeft) { m_dLeft = dLeft; }
 
     /** Get the width of the rectangle
      *  \returns width in PDF units
      */
-    inline double GetWidth() const;
+    inline double GetWidth() const { return m_dWidth; }
 
     /** Set the width of the rectangle
      *  \param lWidth in PDF units
      */
-    inline void SetWidth( double lWidth );
+    inline void SetWidth(double dWidth) { m_dWidth = dWidth; }
 
     /** Get the height of the rectangle
      *  \returns height in PDF units
      */
-    inline double GetHeight() const;
+    inline double GetHeight() const { return m_dHeight; }
 
     /** Set the height of the rectangle
      *  \param lHeight in PDF units
      */
-    inline void SetHeight( double lHeight );
+    inline void SetHeight(double dHeight) { m_dHeight = dHeight; }
 
     PdfRect & operator=( const PdfRect & rhs );
 
@@ -135,70 +151,6 @@ class PODOFO_API PdfRect {
     double m_dWidth;
     double m_dHeight;
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-double PdfRect::GetBottom() const
-{
-    return m_dBottom;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfRect::SetBottom( double dBottom )
-{
-    m_dBottom = dBottom;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-double PdfRect::GetLeft() const
-{
-    return m_dLeft;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfRect::SetLeft( double dLeft )
-{
-    m_dLeft = dLeft;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-double PdfRect::GetWidth() const
-{
-    return m_dWidth;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfRect::SetWidth( double dWidth )
-{
-    m_dWidth = dWidth;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-double PdfRect::GetHeight() const
-{
-    return m_dHeight;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfRect::SetHeight( double dHeight )
-{
-    m_dHeight = dHeight;
-}
 
 };
 
