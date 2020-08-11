@@ -166,7 +166,8 @@ enum class EPdfVersion
     V1_4,           /**< PDF 1.4 */
     V1_5,           /**< PDF 1.5 */
     V1_6,           /**< PDF 1.6 */ 
-    V1_7            /**< PDF 1.7 */ 
+    V1_7,           /**< PDF 1.7 */
+    V2_0,           /**< PDF 1.7 */
 };
 
 /** The default PDF Version used by new PDF documents
