@@ -1222,14 +1222,14 @@ void PdfPainter::DrawGlyph( PdfMemDocument* pDocument, double dX, double dY, con
 	SetFont( m_pFont );
 }
 
-void PdfPainter::DrawImage( double dX, double dY, PdfImage* pObject, double dScaleX, double dScaleY )
+void PdfPainter::DrawImage( double dX, double dY, const PdfImage* pObject, double dScaleX, double dScaleY )
 {
     this->DrawXObject( dX, dY, pObject, 
-                       dScaleX * pObject->GetSize().GetWidth(), 
-                       dScaleY * pObject->GetSize().GetHeight() );
+                       dScaleX * pObject->GetRect().GetWidth(), 
+                       dScaleY * pObject->GetRect().GetHeight() );
 }
 
-void PdfPainter::DrawXObject( double dX, double dY, PdfXObject* pObject, double dScaleX, double dScaleY )
+void PdfPainter::DrawXObject( double dX, double dY, const PdfXObject* pObject, double dScaleX, double dScaleY )
 {
     CheckStream();
 

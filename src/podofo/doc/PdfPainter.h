@@ -483,7 +483,7 @@ public:
      *  \param dScaleX option scaling factor in x direction
      *  \param dScaleY option scaling factor in y direction
      */
-	void DrawImage( double dX, double dY, PdfImage* pObject, double dScaleX = 1.0, double dScaleY = 1.0);
+	void DrawImage( double dX, double dY, const PdfImage* pObject, double dScaleX = 1.0, double dScaleY = 1.0);
 
     /** Draw an XObject on the current page. For PdfImage use DrawImage.
      *
@@ -495,7 +495,7 @@ public:
      *
      *  \see DrawImage
      */
-    void DrawXObject( double dX, double dY, PdfXObject* pObject, double dScaleX = 1.0, double dScaleY = 1.0);
+    void DrawXObject( double dX, double dY, const PdfXObject* pObject, double dScaleX = 1.0, double dScaleY = 1.0);
 
     /** Closes the current path by drawing a line from the current point
      *  to the starting point of the path. Matches the PDF 'h' operator.

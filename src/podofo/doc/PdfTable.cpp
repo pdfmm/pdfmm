@@ -139,7 +139,7 @@ void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter, const PdfRect &
     else
     {
         m_curClipRect = PdfRect( 0.0, dX, 
-                                 pPainter->GetPage()->GetSize().GetWidth() - dX,
+                                 pPainter->GetPage()->GetRect().GetWidth() - dX,
                                  dY );
     }
 
@@ -192,11 +192,11 @@ void PdfTable::Draw( double dX, double dY, PdfPainter* pPainter, const PdfRect &
                 double dImageWidth = 0.0;
                 if( m_pModel->HasImage( i, j ) && pImage )
                 {
-                    double dScaleX = (pdColWidths[i])  / pImage->GetSize().GetWidth();
-                    double dScaleY = (pdRowHeights[j] - 2.0 * dBorder) / pImage->GetSize().GetHeight();
+                    double dScaleX = (pdColWidths[i])  / pImage->GetRect().GetWidth();
+                    double dScaleY = (pdRowHeights[j] - 2.0 * dBorder) / pImage->GetRect().GetHeight();
                     double dScale  = std::min( dScaleX, dScaleY );
 
-                    dImageWidth = pImage->GetSize().GetWidth() * dScale;
+                    dImageWidth = pImage->GetRect().GetWidth() * dScale;
 
                     pPainter->DrawImage( dX + dCurX, dY - dCurY + dBorder, pImage, dScale, dScale );
                 }
@@ -362,7 +362,7 @@ void PdfTable::CalculateTableSize( const double dX, const double dY, const PdfCa
             if( (dTableWidth <= 0.0) )
             {
                 // Remove the x border at both sides of the table!
-                dTableWidth = pCanvas->GetSize().GetWidth() - dX * 2.0;
+                dTableWidth = pCanvas->GetRect().GetWidth() - dX * 2.0;
             }
 
             dWidth = dTableWidth / static_cast<double>(m_nCols);

@@ -46,6 +46,8 @@
 
 using namespace PoDoFo;
 
+static int normalize(int value, int start, int end);
+
 PdfPage::PdfPage( const PdfRect & rSize, PdfDocument* pParent )
     : PdfElement( "Page", pParent ), PdfCanvas(), m_pContents( NULL )
 {
@@ -91,9 +93,24 @@ PdfPage::~PdfPage()
     delete m_pContents;	// just clears the C++ object from memory, NOT the PdfObject
 }
 
-PdfRect PdfPage::GetSize() const
+PdfRect PdfPage::GetRect() const
 {
     return this->GetMediaBox();
+}
+
+bool PdfPage::HasRotation(double &teta) const
+{
+    int rotationRaw = normalize(GetRotationRaw(), 0, 360);
+    if (rotationRaw == 0)
+    {
+        teta = 0;
+        return false;
+    }
+
+    // Convert to radians and make it a counterclockwise rotation,
+    // as common mathematical notation for rotations
+    teta = -rotationRaw * M_PI / 180;
+    return true;
 }
 
 void PdfPage::InitNewPage( const PdfRect & rSize )
@@ -281,18 +298,18 @@ const PdfRect PdfPage::GetPageBox( const char* inBox ) const
     return pageBox;
 }
 
-int PdfPage::GetRotation() const 
+int PdfPage::GetRotationRaw() const 
 { 
     int rot = 0;
     
     const PdfObject* pObj = GetInheritedKeyFromObject( "Rotate", this->GetObject() ); 
-    if ( pObj && pObj->IsNumber() )
+    if ( pObj && (pObj->IsNumber() || pObj->GetReal()) )
         rot = static_cast<int>(pObj->GetNumber());
     
     return rot;
 }
 
-void PdfPage::SetRotation(int nRotation)
+void PdfPage::SetRotationRaw(int nRotation)
 {
     if( nRotation != 0 && nRotation != 90 && nRotation != 180 && nRotation != 270 )
         PODOFO_RAISE_ERROR( EPdfError::ValueOutOfRange );
@@ -644,4 +661,14 @@ void PdfPage::SetICCProfile( const char *pszCSTag, PdfInputStream *pStream, int6
 
     // Add the colorspace to resource
     GetResources()->GetDictionary().AddKey( PdfName("ColorSpace"), iccBasedDictionary );
+}
+
+// https://stackoverflow.com/a/2021986/213871
+int normalize(int value, int start, int end)
+{
+    int width = end - start;
+    int offsetValue = value - start;   // value relative to 0
+
+    // + start to reset back to start of original range
+    return offsetValue - (offsetValue / width) * width + start;
 }

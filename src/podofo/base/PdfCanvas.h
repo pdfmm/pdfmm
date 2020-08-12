@@ -84,7 +84,13 @@ class PODOFO_API PdfCanvas {
     /** Get the current canvas size in PDF Units
      *  \returns a PdfRect containing the page size available for drawing
      */
-    virtual PdfRect GetSize() const = 0;
+    virtual PdfRect GetRect() const = 0;
+
+    /** Get the current canvas rotation
+     * \param teta counterclockwise rotation in radians
+     * \returns true if the canvas has a rotation
+     */
+    virtual bool HasRotation(double &teta) const = 0;
 
     /** Get a copy of procset PdfArray.
      *  \returns a procset PdfArray

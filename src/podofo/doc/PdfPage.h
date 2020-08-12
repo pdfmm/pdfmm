@@ -89,7 +89,13 @@ class PODOFO_DOC_API PdfPage : public PdfElement, public PdfCanvas {
     /** Get the current page size in PDF Units
      *  \returns a PdfRect containing the page size available for drawing
      */
-    PdfRect GetSize() const override;
+    PdfRect GetRect() const override;
+
+    /** Get the current page rotation
+     * \param teta counterclockwise rotation in radians
+     * \returns true if the page has a rotation
+     */
+    bool HasRotation(double& teta) const override;
 
     // added by Petr P. Petrov 21 Febrary 2010
     /** Set the current page width in PDF Units
@@ -174,15 +180,15 @@ class PODOFO_DOC_API PdfPage : public PdfElement, public PdfCanvas {
      */
     const PdfRect GetArtBox() const { return GetPageBox( "ArtBox" ); }
 
-    /** Get the current page rotation (if any).
+    /** Get the current page rotation (if any), it's a clockwise rotation
      *  \returns int 0, 90, 180 or 270
      */
-    int GetRotation() const;
+    int GetRotationRaw() const;
 
     /** Set the current page rotation.
      *  \param iRotation Rotation to set to the page. Valid value are 0, 90, 180, 270.
      */
-    void SetRotation(int nRotation);
+    void SetRotationRaw(int nRotation);
         
     /** Get the number of annotations associated with this page
      * \ returns int number of annotations

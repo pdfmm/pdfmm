@@ -70,7 +70,7 @@ class PdfOutputDevice;
  *  PdfPainter painter;
  *  painter.SetPage( pPage );
  *  painter.SetFont( pFont );
- *  painter.DrawText( 56.69, pPage->GetSize().GetHeight() - 56.69, "Hello World!" );
+ *  painter.DrawText( 56.69, pPage->GetRect().GetHeight() - 56.69, "Hello World!" );
  *  painter.FinishPage();
  *
  *  document.Close();

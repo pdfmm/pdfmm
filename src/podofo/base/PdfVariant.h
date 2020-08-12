@@ -34,8 +34,6 @@
 #ifndef _PDF_VARIANT_H_
 #define _PDF_VARIANT_H_
 
-#include <cmath>
-
 #include "PdfDefines.h"
 #include "PdfRefCountedBuffer.h"
 #include "PdfString.h"

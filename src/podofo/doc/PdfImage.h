@@ -313,7 +313,7 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
 // -----------------------------------------------------
 inline double PdfImage::GetWidth() const
 {
-    return this->GetSize().GetWidth();
+    return this->GetRect().GetWidth();
 }
 
 // -----------------------------------------------------
@@ -321,7 +321,7 @@ inline double PdfImage::GetWidth() const
 // -----------------------------------------------------
 inline double PdfImage::GetHeight() const
 {
-    return this->GetSize().GetHeight();
+    return this->GetRect().GetHeight();
 }
 
 };

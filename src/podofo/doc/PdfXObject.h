@@ -124,7 +124,13 @@ public:
     /** Get the rectangle of this xobject
     *  \returns a rectangle
     */
-    PdfRect GetRect() const;
+    PdfRect GetRect() const override;
+
+    /** Get the current canvas rotation
+     * \param teta ignored
+     * \returns always return false
+     */
+    bool HasRotation(double& teta) const override;
 
     /** Set the rectangle of this xobject
     *  \param rect a rectangle
@@ -140,11 +146,6 @@ public:
      *  \returns a resources object
      */
     PdfObject* GetResources() const override;
-
-    /** Get the current page size in PDF Units
-     *  \returns a PdfRect containing the page size available for drawing
-     */
-    PdfRect GetSize() const override;
 
     /** Get the identifier used for drawig this object
      *  \returns identifier

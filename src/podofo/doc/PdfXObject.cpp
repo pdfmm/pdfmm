@@ -213,7 +213,7 @@ void PdfXObject::InitAfterPageInsertion(const PdfDocument & rDoc, int nPage)
     m_rRect.ToVariant(var);
     this->GetObject()->GetDictionary().AddKey("BBox", var);
 
-    int rotation = rDoc.GetPage(nPage)->GetRotation();
+    int rotation = rDoc.GetPage(nPage)->GetRotationRaw();
     // correct negative rotation
     if (rotation < 0)
         rotation = 360 + rotation;
@@ -288,6 +288,12 @@ void PdfXObject::InitAfterPageInsertion(const PdfDocument & rDoc, int nPage)
 PdfRect PdfXObject::GetRect() const
 {
     return m_rRect;
+}
+
+bool PdfXObject::HasRotation(double& teta) const
+{
+    teta = 0;
+    return false;
 }
 
 void PdfXObject::SetRect( const PdfRect & rect )
@@ -372,9 +378,4 @@ void PdfXObject::InitResources()
 PdfObject* PdfXObject::GetResources() const
 {
     return m_pResources;
-}
-
-inline PdfRect PdfXObject::GetSize() const
-{
-    return m_rRect;
 }
