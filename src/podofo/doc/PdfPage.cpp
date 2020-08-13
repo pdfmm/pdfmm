@@ -31,9 +31,9 @@
  *   files in the program, then also delete it here.                       *
  ***************************************************************************/
 
-#include "PdfPage.h" 
-
 #include "base/PdfDefinesPrivate.h"
+
+#include "PdfPage.h"
 
 #include "base/PdfDictionary.h"
 #include "base/PdfRect.h"
