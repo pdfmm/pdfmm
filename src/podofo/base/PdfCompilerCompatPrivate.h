@@ -38,9 +38,9 @@
 #error Include PdfDefinesPrivate.h instead
 #endif
 
+#define _USE_MATH_DEFINES
 #include <cstdlib>
 #include <cstdio>
-#define _USE_MATH_DEFINES
 #include <cmath>
 #include <cstring>
 #include <ctime>
