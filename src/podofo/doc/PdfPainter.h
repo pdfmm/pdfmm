@@ -60,9 +60,18 @@ class PdfXObject;
 enum class EPdfPainterFlags
 {
     None = 0,
-    Append = 1,
+    /** Does nothing for now
+     */
+    Prepend = 1,
+    /** Do not perform a Save/Restore or previous content. Implies RawCoordinates
+     */
     NoSaveRestorePrior = 2,
+    /** Do not perform a Save/Restore of added content in this painting session
+     */
     NoSaveRestore = 4,
+    /** Does nothing for now
+     */
+    RawCoordinates = 8,
 };
 
 /**
@@ -714,7 +723,7 @@ public:
 
     /** Get current temporary stream
      */
-    inline std::ostringstream & GetStream() { return m_oss; }
+    inline std::ostringstream & GetStream() { return m_tmpStream; }
 
     /** Set rgb color that depend on color space setting, "cs" tag.
      *
@@ -820,7 +829,7 @@ public:
 
     /** temporary stream buffer 
      */
-    std::ostringstream  m_oss;
+    std::ostringstream  m_tmpStream;
 
     /** current path
      */
