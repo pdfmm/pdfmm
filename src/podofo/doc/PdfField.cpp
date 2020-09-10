@@ -53,52 +53,22 @@ using namespace PoDoFo;
 
 void getFullName(const PdfObject* obj, bool escapePartialNames, string &fullname);
 
-PdfField::PdfField( EPdfField eField, PdfAnnotation* pWidget, PdfAcroForm* pParent )
-    : m_pObject( pWidget ? pWidget->GetObject() : NULL ), m_pWidget( pWidget ), m_eField( eField )
-{
-    if (m_pObject == NULL)
-        m_pObject = pParent->GetDocument()->GetObjects().CreateObject();
-
-    Init(pParent);
-}
-
-PdfField::PdfField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, PdfAcroForm* pParent )
-    : m_eField( eField )
-{
-    m_pWidget = pPage->CreateAnnotation( EPdfAnnotation::Widget, rRect );
-    m_pObject = m_pWidget->GetObject();
-
-    Init(pParent);
-}
-
-PdfField::PdfField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc )
+PdfField::PdfField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect)
     : m_eField( eField )    
 {
     m_pWidget = pPage->CreateAnnotation( EPdfAnnotation::Widget, rRect );
     m_pObject = m_pWidget->GetObject();
-
-    Init(pDoc->GetAcroForm());
+    Init(pPage->GetDocument().GetAcroForm());
 }
 
-PdfField::PdfField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, PdfStreamedDocument* pDoc )
-    : m_eField( eField )
+PdfField::PdfField( EPdfField eField, PdfAnnotation* pWidget, PdfDocument &pDoc, bool insertInAcroform)
+    : m_eField(eField), m_pObject(pWidget ? pWidget->GetObject() : nullptr), m_pWidget( pWidget )
 {
-    m_pWidget = pPage->CreateAnnotation( EPdfAnnotation::Widget, rRect );
-    m_pObject = m_pWidget->GetObject();
+    auto parent = pDoc.GetAcroForm();
+    if (m_pObject == nullptr)
+        m_pObject = parent->GetDocument()->GetObjects().CreateObject();
 
-    Init(pDoc->GetAcroForm());
-}
-
-PdfField::PdfField( EPdfField eField, PdfAnnotation* pWidget, PdfAcroForm* pParent, PdfDocument* pDoc)
-    : m_pObject( pWidget->GetObject() ), m_pWidget( pWidget ), m_eField( eField )
-{
-    Init(pParent);
-    PdfObject* pFields = pParent->GetObject()->GetDictionary().GetKey( PdfName("Fields") );
-    if( pFields && pFields->IsReference())  {
-       PdfObject *pRefFld = pDoc->GetObjects().GetObject(pFields->GetReference());
-       if(pRefFld)
-         pRefFld->GetArray().push_back( m_pObject->GetIndirectReference() );
-    }
+    Init(insertInAcroform ? parent : nullptr);
 }
 
 PdfField::PdfField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc, bool bAppearanceNone)
@@ -255,15 +225,14 @@ EPdfField PdfField::GetFieldType(const PdfObject & rObject)
 
 void PdfField::Init(PdfAcroForm *pParent)
 {
-    if (pParent != NULL)
+    if (pParent != nullptr)
     {
         // Insert into the parents kids array
-        PdfArray &fields = pParent->GetFieldsArray();
+        PdfArray& fields = pParent->GetFieldsArray();
         fields.push_back(m_pObject->GetIndirectReference());
     }
 
     PdfDictionary &dict = m_pObject->GetDictionary();
-
     switch( m_eField ) 
     {
         case EPdfField::CheckBox:
@@ -686,34 +655,40 @@ const PdfDictionary& PdfField::GetDictionary() const
     return m_pObject->GetDictionary();
 }
 
+PdfButton::PdfButton(EPdfField eField, PdfAnnotation* pWidget, PdfDocument& doc, bool insertInAcrofrom)
+    : PdfField(eField, pWidget, doc, insertInAcrofrom)
+{
+}
+
 PdfButton::PdfButton( EPdfField eField, PdfObject* pObject, PdfAnnotation* pWidget )
     : PdfField( eField, pObject, pWidget )
 {
 }
 
-PdfButton::PdfButton( EPdfField eField, PdfAnnotation* pWidget, PdfAcroForm* pParent )
-    : PdfField( eField, pWidget, pParent )
-{
-}
-
-PdfButton::PdfButton( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, PdfAcroForm* pParent )
-    : PdfField( eField, pPage, rRect, pParent )
-{
-}
-
-PdfButton::PdfButton( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc )
-    : PdfField( eField, pPage, rRect, pDoc )
-{
-}
-
-PdfButton::PdfButton( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, PdfStreamedDocument* pDoc )
-    : PdfField( eField, pPage, rRect, pDoc )
+PdfButton::PdfButton( EPdfField eField, PdfPage* pPage, const PdfRect & rRect)
+    : PdfField( eField, pPage, rRect )
 {
 }
 
 PdfButton::PdfButton( const PdfField & rhs )
     : PdfField( rhs )
 {
+}
+
+bool PdfButton::IsPushButton() const
+{
+    return this->GetFieldFlag(static_cast<int>(ePdfButton_PushButton), false);
+}
+
+bool PdfButton::IsCheckBox() const
+{
+    return (!this->GetFieldFlag(static_cast<int>(ePdfButton_Radio), false) &&
+        !this->GetFieldFlag(static_cast<int>(ePdfButton_PushButton), false));
+}
+
+bool PdfButton::IsRadioButton() const
+{
+    return this->GetFieldFlag(static_cast<int>(ePdfButton_Radio), false);
 }
 
 void PdfButton::SetCaption( const PdfString & rsText )
@@ -738,26 +713,14 @@ PdfPushButton::PdfPushButton( PdfObject* pObject, PdfAnnotation* pWidget )
     // NOTE: We assume initialization was performed in the given object
 }
 
-PdfPushButton::PdfPushButton( PdfAnnotation* pWidget, PdfAcroForm* pParent )
-    : PdfButton( EPdfField::PushButton, pWidget, pParent )
+PdfPushButton::PdfPushButton(PdfAnnotation* pWidget, PdfDocument& pDoc, bool insertInAcroform)
+    : PdfButton(EPdfField::PushButton, pWidget, pDoc, insertInAcroform)
 {
     Init();
 }
 
-PdfPushButton::PdfPushButton( PdfPage* pPage, const PdfRect & rRect, PdfAcroForm* pParent )
-    : PdfButton( EPdfField::PushButton, pPage, rRect, pParent )
-{
-    Init();
-}
-
-PdfPushButton::PdfPushButton( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc )
-    : PdfButton( EPdfField::PushButton, pPage, rRect, pDoc )
-{
-    Init();
-}
-
-PdfPushButton::PdfPushButton( PdfPage* pPage, const PdfRect & rRect, PdfStreamedDocument* pDoc )
-    : PdfButton( EPdfField::PushButton, pPage, rRect, pDoc )
+PdfPushButton::PdfPushButton( PdfPage* pPage, const PdfRect & rRect)
+    : PdfButton( EPdfField::PushButton, pPage, rRect )
 {
     Init();
 }
@@ -853,23 +816,13 @@ PdfCheckBox::PdfCheckBox( PdfObject* pObject, PdfAnnotation* pWidget )
     // NOTE: We assume initialization was performed in the given object
 }
 
-PdfCheckBox::PdfCheckBox( PdfAnnotation* pWidget, PdfAcroForm* pParent )
-    : PdfButton( EPdfField::CheckBox, pWidget, pParent )
+PdfCheckBox::PdfCheckBox(PdfAnnotation* pWidget, PdfDocument& pDoc, bool insertInAcroform)
+    : PdfButton(EPdfField::CheckBox, pWidget, pDoc, insertInAcroform)
 {
 }
 
-PdfCheckBox::PdfCheckBox( PdfPage* pPage, const PdfRect & rRect, PdfAcroForm* pParent )
-    : PdfButton( EPdfField::CheckBox, pPage, rRect, pParent )
-{
-}
-
-PdfCheckBox::PdfCheckBox( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc )
-    : PdfButton( EPdfField::CheckBox, pPage, rRect, pDoc )
-{
-}
-
-PdfCheckBox::PdfCheckBox( PdfPage* pPage, const PdfRect & rRect, PdfStreamedDocument* pDoc )
-    : PdfButton( EPdfField::CheckBox, pPage, rRect, pDoc )
+PdfCheckBox::PdfCheckBox( PdfPage* pPage, const PdfRect & rRect)
+    : PdfButton( EPdfField::CheckBox, pPage, rRect )
 {
 }
 
@@ -884,13 +837,13 @@ PdfCheckBox::PdfCheckBox( const PdfField & rhs )
 
 void PdfCheckBox::AddAppearanceStream( const PdfName & rName, const PdfReference & rReference )
 {
-    if( !m_pObject->GetDictionary().HasKey( PdfName("AP") ) )
-        m_pObject->GetDictionary().AddKey( PdfName("AP"), PdfDictionary() );
+    if( !GetFieldObject()->GetDictionary().HasKey( PdfName("AP") ) )
+        GetFieldObject()->GetDictionary().AddKey( PdfName("AP"), PdfDictionary() );
 
-    if( !m_pObject->GetDictionary().GetKey( PdfName("AP") )->GetDictionary().HasKey( PdfName("N") ) )
-        m_pObject->GetDictionary().GetKey( PdfName("AP") )->GetDictionary().AddKey( PdfName("N"), PdfDictionary() );
+    if( !GetFieldObject()->GetDictionary().GetKey( PdfName("AP") )->GetDictionary().HasKey( PdfName("N") ) )
+        GetFieldObject()->GetDictionary().GetKey( PdfName("AP") )->GetDictionary().AddKey( PdfName("N"), PdfDictionary() );
 
-    m_pObject->GetDictionary().GetKey( PdfName("AP") )->
+    GetFieldObject()->GetDictionary().GetKey( PdfName("AP") )->
         GetDictionary().GetKey( PdfName("N") )->GetDictionary().AddKey( rName, rReference );
 }
 
@@ -906,13 +859,13 @@ void PdfCheckBox::SetAppearanceUnchecked( const PdfXObject & rXObject )
 
 void PdfCheckBox::SetChecked( bool bChecked )
 {
-    m_pObject->GetDictionary().AddKey( PdfName("V"), (bChecked ? PdfName("Yes") : PdfName("Off")) );
-    m_pObject->GetDictionary().AddKey( PdfName("AS"), (bChecked ? PdfName("Yes") : PdfName("Off")) );
+    GetFieldObject()->GetDictionary().AddKey( PdfName("V"), (bChecked ? PdfName("Yes") : PdfName("Off")) );
+    GetFieldObject()->GetDictionary().AddKey( PdfName("AS"), (bChecked ? PdfName("Yes") : PdfName("Off")) );
 }
 
 bool PdfCheckBox::IsChecked() const
 {
-    PdfDictionary dic = m_pObject->GetDictionary();
+    PdfDictionary dic = GetFieldObject()->GetDictionary();
 
     if (dic.HasKey(PdfName("V"))) {
         PdfName name = dic.GetKey( PdfName("V") )->GetName();
@@ -931,26 +884,14 @@ PdfTextField::PdfTextField( PdfObject *pObject, PdfAnnotation* pWidget )
     // NOTE: We assume initialization was performed in the given object
 }
 
-PdfTextField::PdfTextField( PdfAnnotation* pWidget, PdfAcroForm* pParent )
-    : PdfField( EPdfField::TextField, pWidget, pParent )
+PdfTextField::PdfTextField(PdfAnnotation* pWidget, PdfDocument& pDoc, bool insertInAcroform)
+    : PdfField(EPdfField::TextField, pWidget, pDoc, insertInAcroform)
 {
     Init();
 }
 
-PdfTextField::PdfTextField( PdfPage* pPage, const PdfRect & rRect, PdfAcroForm* pParent )
-    : PdfField( EPdfField::TextField, pPage, rRect, pParent )
-{
-    Init();
-}
-
-PdfTextField::PdfTextField( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc )
-    : PdfField( EPdfField::TextField, pPage, rRect, pDoc )
-{
-    Init();
-}
-
-PdfTextField::PdfTextField( PdfPage* pPage, const PdfRect & rRect, PdfStreamedDocument* pDoc )
-    : PdfField( EPdfField::TextField, pPage, rRect, pDoc )
+PdfTextField::PdfTextField( PdfPage* pPage, const PdfRect & rRect)
+    : PdfField( EPdfField::TextField, pPage, rRect )
 {
     Init();
 }
@@ -966,8 +907,8 @@ PdfTextField::PdfTextField( const PdfField & rhs )
 
 void PdfTextField::Init()
 {
-    if( !m_pObject->GetDictionary().HasKey( PdfName("DS") ) )
-        m_pObject->GetDictionary().AddKey( PdfName("DS"), PdfString("font: 12pt Helvetica") );
+    if( !GetFieldObject()->GetDictionary().HasKey( PdfName("DS") ) )
+        GetFieldObject()->GetDictionary().AddKey( PdfName("DS"), PdfString("font: 12pt Helvetica") );
 }
 
 void PdfTextField::SetText( const PdfString & rsText )
@@ -980,7 +921,7 @@ void PdfTextField::SetText( const PdfString & rsText )
     if( nMax != -1 && rsText.GetLength() > (size_t)nMax )
         PODOFO_RAISE_ERROR_INFO(EPdfError::ValueOutOfRange, "Unable to set text larger MaxLen");
 
-    m_pObject->GetDictionary().AddKey( key, rsText );
+    GetFieldObject()->GetDictionary().AddKey( key, rsText );
 }
 
 PdfString PdfTextField::GetText() const
@@ -989,7 +930,7 @@ PdfString PdfTextField::GetText() const
     PdfName key = this->IsRichText() ? PdfName("RV") : PdfName("V");
     PdfString str;
 
-    auto found = m_pObject->GetDictionary().FindKeyParent(key);
+    auto found = GetFieldObject()->GetDictionary().FindKeyParent(key);
     if (found == nullptr)
         return str;
 
@@ -998,46 +939,101 @@ PdfString PdfTextField::GetText() const
 
 void PdfTextField::SetMaxLen(int64_t nMaxLen )
 {
-    m_pObject->GetDictionary().AddKey( PdfName("MaxLen"), nMaxLen);
+    GetFieldObject()->GetDictionary().AddKey( PdfName("MaxLen"), nMaxLen);
 }
 
 int64_t PdfTextField::GetMaxLen() const
 {
-    auto found = m_pObject->GetDictionary().FindKeyParent("MaxLen");
+    auto found = GetFieldObject()->GetDictionary().FindKeyParent("MaxLen");
     if (found == nullptr)
         return -1;
 
     return found->GetNumber();
 }
 
+void PdfTextField::SetMultiLine(bool bMultiLine)
+{
+    this->SetFieldFlag(static_cast<int>(ePdfTextField_MultiLine), bMultiLine);
+}
+
+bool PdfTextField::IsMultiLine() const
+{
+    return this->GetFieldFlag(static_cast<int>(ePdfTextField_MultiLine), false);
+}
+
+void PdfTextField::SetPasswordField(bool bPassword)
+{
+    this->SetFieldFlag(static_cast<int>(ePdfTextField_Password), bPassword);
+}
+
+bool PdfTextField::IsPasswordField() const
+{
+    return this->GetFieldFlag(static_cast<int>(ePdfTextField_Password), false);
+}
+
+void PdfTextField::SetFileField(bool bFile)
+{
+    this->SetFieldFlag(static_cast<int>(ePdfTextField_FileSelect), bFile);
+}
+
+bool PdfTextField::IsFileField() const
+{
+    return this->GetFieldFlag(static_cast<int>(ePdfTextField_FileSelect), false);
+}
+
+void PdfTextField::SetSpellcheckingEnabled(bool bSpellcheck)
+{
+    this->SetFieldFlag(static_cast<int>(ePdfTextField_NoSpellcheck), !bSpellcheck);
+}
+
+bool PdfTextField::IsSpellcheckingEnabled() const
+{
+    return this->GetFieldFlag(static_cast<int>(ePdfTextField_NoSpellcheck), true);
+}
+
+void PdfTextField::SetScrollBarsEnabled(bool bScroll)
+{
+    this->SetFieldFlag(static_cast<int>(ePdfTextField_NoScroll), !bScroll);
+}
+
+bool PdfTextField::IsScrollBarsEnabled() const
+{
+    return this->GetFieldFlag(static_cast<int>(ePdfTextField_NoScroll), true);
+}
+
+void PdfTextField::SetCombs(bool bCombs)
+{
+    this->SetFieldFlag(static_cast<int>(ePdfTextField_Comb), bCombs);
+}
+
+bool PdfTextField::IsCombs() const
+{
+    return this->GetFieldFlag(static_cast<int>(ePdfTextField_Comb), false);
+}
+
+void PdfTextField::SetRichText(bool bRichText)
+{
+    this->SetFieldFlag(static_cast<int>(ePdfTextField_RichText), bRichText);
+}
+
+bool PdfTextField::IsRichText() const
+{
+    return this->GetFieldFlag(static_cast<int>(ePdfTextField_RichText), false);
+}
+
+PdfListField::PdfListField(EPdfField eField, PdfAnnotation* pWidget, PdfDocument& pDoc, bool insertInAcroform)
+    : PdfField(eField, pWidget, pDoc, insertInAcroform)
+{
+}
+
 PdfListField::PdfListField( EPdfField eField, PdfObject *pObject, PdfAnnotation * pWidget )
     : PdfField( eField, pObject, pWidget )
 {
-
 }
 
-PdfListField::PdfListField( EPdfField eField, PdfAnnotation* pWidget, PdfAcroForm* pParent )
-    : PdfField( eField, pWidget, pParent )
+PdfListField::PdfListField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect )
+    : PdfField( eField, pPage, rRect )
 {
-
-}
-
-PdfListField::PdfListField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, PdfAcroForm* pParent )
-    : PdfField( eField, pPage, rRect, pParent )
-{
-
-}
-
-PdfListField::PdfListField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc )
-    : PdfField( eField, pPage, rRect, pDoc )
-{
-
-}
-
-PdfListField::PdfListField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, PdfStreamedDocument* pDoc )
-    : PdfField( eField, pPage, rRect, pDoc )
-{
-
 }
 
 PdfListField::PdfListField( const PdfField & rhs ) 
@@ -1061,12 +1057,12 @@ void PdfListField::InsertItem( const PdfString & rsValue, const PdfString & rsDi
         var = array;
     }
 
-    if( m_pObject->GetDictionary().HasKey( PdfName("Opt") ) )
-        opt = m_pObject->GetDictionary().GetKey( PdfName("Opt") )->GetArray();
+    if(GetFieldObject()->GetDictionary().HasKey( PdfName("Opt") ) )
+        opt = GetFieldObject()->GetDictionary().GetKey( PdfName("Opt") )->GetArray();
 
     // TODO: Sorting
     opt.push_back( var );
-    m_pObject->GetDictionary().AddKey( PdfName("Opt"), opt );
+    GetFieldObject()->GetDictionary().AddKey( PdfName("Opt"), opt );
 
     /*
     m_pObject->GetDictionary().AddKey( PdfName("V"), rsValue );
@@ -1081,8 +1077,8 @@ void PdfListField::RemoveItem( int nIndex )
 {
     PdfArray   opt;
 
-    if( m_pObject->GetDictionary().HasKey( PdfName("Opt") ) )
-        opt = m_pObject->GetDictionary().GetKey( PdfName("Opt") )->GetArray();
+    if(GetFieldObject()->GetDictionary().HasKey( PdfName("Opt") ) )
+        opt = GetFieldObject()->GetDictionary().GetKey( PdfName("Opt") )->GetArray();
     
     if( nIndex < 0 || nIndex > static_cast<int>(opt.size()) )
     {
@@ -1090,12 +1086,12 @@ void PdfListField::RemoveItem( int nIndex )
     }
 
     opt.erase( opt.begin() + nIndex );
-    m_pObject->GetDictionary().AddKey( PdfName("Opt"), opt );
+    GetFieldObject()->GetDictionary().AddKey( PdfName("Opt"), opt );
 }
 
 const PdfString PdfListField::GetItem( int nIndex ) const
 {
-    PdfObject *opt = m_pObject->GetDictionary().FindKey( "Opt" );
+    PdfObject *opt = GetFieldObject()->GetDictionary().FindKey( "Opt" );
     if ( opt == NULL )
         return PdfString::StringNull;
 
@@ -1122,7 +1118,7 @@ const PdfString PdfListField::GetItem( int nIndex ) const
 
 const PdfString PdfListField::GetItemDisplayText( int nIndex ) const
 {
-    PdfObject *opt = m_pObject->GetDictionary().FindKey( "Opt" );
+    PdfObject *opt = GetFieldObject()->GetDictionary().FindKey( "Opt" );
     if ( opt == NULL )
         return PdfString::StringNull;
 
@@ -1149,7 +1145,7 @@ const PdfString PdfListField::GetItemDisplayText( int nIndex ) const
 
 size_t PdfListField::GetItemCount() const
 {
-    PdfObject *opt = m_pObject->GetDictionary().FindKey( "Opt" );
+    PdfObject *opt = GetFieldObject()->GetDictionary().FindKey( "Opt" );
     if ( opt == NULL )
         return 0;
     
@@ -1160,18 +1156,18 @@ void PdfListField::SetSelectedIndex( int nIndex )
 {
     AssertTerminalField();
     PdfString selected = this->GetItem( nIndex );
-    m_pObject->GetDictionary().AddKey( "V", selected );
+    GetFieldObject()->GetDictionary().AddKey( "V", selected );
 }
 
 int PdfListField::GetSelectedIndex() const
 {
     AssertTerminalField();
-    PdfObject *valueObj = m_pObject->GetDictionary().FindKey( "V" );
+    PdfObject *valueObj = GetFieldObject()->GetDictionary().FindKey( "V" );
     if( valueObj == nullptr || !( valueObj->IsString() || valueObj->IsHexString() ) )
         return -1;
 
     PdfString value = valueObj->GetString();
-    PdfObject *opt = m_pObject->GetDictionary().FindKey( "Opt" );
+    PdfObject *opt = GetFieldObject()->GetDictionary().FindKey( "Opt" );
     if ( opt == nullptr)
         return -1;
 
@@ -1199,38 +1195,67 @@ int PdfListField::GetSelectedIndex() const
     return -1;
 }
 
+bool PdfListField::IsComboBox() const
+{
+    return this->GetFieldFlag(static_cast<int>(ePdfListField_Combo), false);
+}
+
+void PdfListField::SetSpellcheckingEnabled(bool bSpellcheck)
+{
+    this->SetFieldFlag(static_cast<int>(ePdfListField_NoSpellcheck), !bSpellcheck);
+}
+
+bool PdfListField::IsSpellcheckingEnabled() const
+{
+    return this->GetFieldFlag(static_cast<int>(ePdfListField_NoSpellcheck), true);
+}
+
+void PdfListField::SetSorted(bool bSorted)
+{
+    this->SetFieldFlag(static_cast<int>(ePdfListField_Sort), bSorted);
+}
+
+bool PdfListField::IsSorted() const
+{
+    return this->GetFieldFlag(static_cast<int>(ePdfListField_Sort), false);
+}
+
+void PdfListField::SetMultiSelect(bool bMulti)
+{
+    this->SetFieldFlag(static_cast<int>(ePdfListField_MultiSelect), bMulti);
+}
+
+bool PdfListField::IsMultiSelect() const
+{
+    return this->GetFieldFlag(static_cast<int>(ePdfListField_MultiSelect), false);
+}
+
+void PdfListField::SetCommitOnSelectionChange(bool bCommit)
+{
+    this->SetFieldFlag(static_cast<int>(ePdfListField_CommitOnSelChange), bCommit);
+}
+
+bool PdfListField::IsCommitOnSelectionChange() const
+{
+    return this->GetFieldFlag(static_cast<int>(ePdfListField_CommitOnSelChange), false);
+}
+
 PdfComboBox::PdfComboBox( PdfObject *pObject, PdfAnnotation* pWidget )
     : PdfListField( EPdfField::ComboBox, pObject, pWidget )
 {
     // NOTE: We assume initialization was performed in the given object
 }
 
-PdfComboBox::PdfComboBox( PdfAnnotation* pWidget, PdfAcroForm* pParent )
-    : PdfListField( EPdfField::ComboBox, pWidget, pParent )
+PdfComboBox::PdfComboBox(PdfAnnotation* pWidget, PdfDocument& pDoc, bool insertInAcroform)
+    : PdfListField(EPdfField::ComboBox, pWidget, pDoc, insertInAcroform)
 {
-    this->SetFieldFlag( static_cast<int>(ePdfListField_Combo), true );        
-    m_pWidget->SetBorderStyle( 0.0, 0.0, 1.0 );
+    this->SetFieldFlag(static_cast<int>(ePdfListField_Combo), true);
 }
 
-PdfComboBox::PdfComboBox( PdfPage* pPage, const PdfRect & rRect, PdfAcroForm* pParent )
-    : PdfListField( EPdfField::ComboBox, pPage, rRect, pParent )
+PdfComboBox::PdfComboBox( PdfPage* pPage, const PdfRect & rRect)
+    : PdfListField( EPdfField::ComboBox, pPage, rRect )
 {
     this->SetFieldFlag( static_cast<int>(ePdfListField_Combo), true );        
-    m_pWidget->SetBorderStyle( 0.0, 0.0, 1.0 );
-}
-
-PdfComboBox::PdfComboBox( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc )
-    : PdfListField( EPdfField::ComboBox, pPage, rRect, pDoc )
-{
-    this->SetFieldFlag( static_cast<int>(ePdfListField_Combo), true );        
-    m_pWidget->SetBorderStyle( 0.0, 0.0, 1.0 );
-}
-
-PdfComboBox::PdfComboBox( PdfPage* pPage, const PdfRect & rRect, PdfStreamedDocument* pDoc )
-    : PdfListField( EPdfField::ComboBox, pPage, rRect, pDoc )
-{
-    this->SetFieldFlag( static_cast<int>(ePdfListField_Combo), true );        
-    m_pWidget->SetBorderStyle( 0.0, 0.0, 1.0 );
 }
 
 PdfComboBox::PdfComboBox( const PdfField & rhs )
@@ -1242,38 +1267,32 @@ PdfComboBox::PdfComboBox( const PdfField & rhs )
     }
 }
 
+void PdfComboBox::SetEditable(bool bEdit)
+{
+    this->SetFieldFlag(static_cast<int>(ePdfListField_Edit), bEdit);
+}
+
+bool PdfComboBox::IsEditable() const
+{
+    return this->GetFieldFlag(static_cast<int>(ePdfListField_Edit), false);
+}
+
 PdfListBox::PdfListBox( PdfObject *pObject, PdfAnnotation* pWidget )
     : PdfListField( EPdfField::ListBox, pObject, pWidget )
 {
     // NOTE: We assume initialization was performed in the given object
 }
 
-PdfListBox::PdfListBox( PdfAnnotation* pWidget, PdfAcroForm* pParent )
-    : PdfListField( EPdfField::ListBox, pWidget, pParent )
+PdfListBox::PdfListBox(PdfAnnotation* pWidget, PdfDocument& pDoc, bool insertInAcroform)
+    : PdfListField(EPdfField::ListBox, pWidget, pDoc, insertInAcroform)
 {
-    this->SetFieldFlag( static_cast<int>(ePdfListField_Combo), false );        
-    m_pWidget->SetBorderStyle( 0.0, 0.0, 1.0 );
+    this->SetFieldFlag(static_cast<int>(ePdfListField_Combo), false);
 }
 
-PdfListBox::PdfListBox( PdfPage* pPage, const PdfRect & rRect, PdfAcroForm* pParent )
-    : PdfListField( EPdfField::ListBox, pPage, rRect, pParent )
+PdfListBox::PdfListBox( PdfPage* pPage, const PdfRect & rRect)
+    : PdfListField( EPdfField::ListBox, pPage, rRect)
 {
-    this->SetFieldFlag( static_cast<int>(ePdfListField_Combo), false );        
-    m_pWidget->SetBorderStyle( 0.0, 0.0, 1.0 );
-}
-
-PdfListBox::PdfListBox( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc )
-    : PdfListField( EPdfField::ListBox, pPage, rRect, pDoc )
-{
-    this->SetFieldFlag( static_cast<int>(ePdfListField_Combo), false );        
-    m_pWidget->SetBorderStyle( 0.0, 0.0, 1.0 );
-}
-
-PdfListBox::PdfListBox( PdfPage* pPage, const PdfRect & rRect, PdfStreamedDocument* pDoc )
-    : PdfListField( EPdfField::ListBox, pPage, rRect, pDoc )
-{
-    this->SetFieldFlag( static_cast<int>(ePdfListField_Combo), false );        
-    m_pWidget->SetBorderStyle( 0.0, 0.0, 1.0 );
+    this->SetFieldFlag( static_cast<int>(ePdfListField_Combo), false );
 }
 
 PdfListBox::PdfListBox( const PdfField & rhs )
@@ -1291,23 +1310,13 @@ PdfRadioButton::PdfRadioButton( PdfObject *pObject, PdfAnnotation* pWidget )
     // NOTE: We assume initialization was performed in the given object
 }
 
-PdfRadioButton::PdfRadioButton( PdfAnnotation * pWidget, PdfAcroForm * pParent )
-    : PdfButton( EPdfField::RadioButton, pWidget, pParent )
+PdfRadioButton::PdfRadioButton(PdfAnnotation* pWidget, PdfDocument& pDoc, bool insertInAcroform)
+    : PdfButton(EPdfField::RadioButton, pWidget, pDoc, insertInAcroform)
 {
 }
 
-PdfRadioButton::PdfRadioButton( PdfPage * pPage, const PdfRect & rRect, PdfAcroForm * pParent )
-    : PdfButton( EPdfField::RadioButton, pPage, rRect, pParent )
-{
-}
-
-PdfRadioButton::PdfRadioButton( PdfPage * pPage, const PdfRect & rRect, PdfDocument * pDoc )
-    : PdfButton( EPdfField::RadioButton, pPage, rRect, pDoc )
-{
-}
-
-PdfRadioButton::PdfRadioButton( PdfPage * pPage, const PdfRect & rRect, PdfStreamedDocument * pDoc )
-    : PdfButton( EPdfField::RadioButton, pPage, rRect, pDoc )
+PdfRadioButton::PdfRadioButton( PdfPage * pPage, const PdfRect & rRect)
+    : PdfButton( EPdfField::RadioButton, pPage, rRect)
 {
 }
 

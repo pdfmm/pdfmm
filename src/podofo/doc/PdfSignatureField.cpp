@@ -40,30 +40,28 @@
 
 #include "PdfDocument.h"
 #include "PdfXObject.h"
+#include "PdfPage.h"
 
 #include <string.h>
 
 using namespace PoDoFo;
 
-PdfSignatureField::PdfSignatureField( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc )
-	:PdfField(EPdfField::Signature, pPage, rRect, pDoc)
+PdfSignatureField::PdfSignatureField( PdfPage* pPage, const PdfRect & rRect)
+	:PdfField(EPdfField::Signature, pPage, rRect), m_pSignatureObj(nullptr)
 {
-    m_pSignatureObj = NULL;
-    Init(*pDoc->GetAcroForm());
+
+    Init(*pPage->GetDocument().GetAcroForm());
 }
 
-PdfSignatureField::PdfSignatureField( PdfAnnotation* pWidget, PdfAcroForm* pParent, PdfDocument* pDoc)
-	:PdfField(EPdfField::Signature, pWidget,  pParent, pDoc)
+PdfSignatureField::PdfSignatureField( PdfAnnotation* pWidget, PdfDocument& pDoc, bool insertInAcroform)
+	: PdfField(EPdfField::Signature, pWidget, pDoc, insertInAcroform), m_pSignatureObj(nullptr)
 {
-    m_pSignatureObj = NULL;
-    Init(*pParent);
+    Init(*pDoc.GetAcroForm());
 }
 
 PdfSignatureField::PdfSignatureField( PdfObject* pObject, PdfAnnotation* pWidget )
-	: PdfField(EPdfField::Signature, pObject, pWidget )
+	: PdfField(EPdfField::Signature, pObject, pWidget ), m_pSignatureObj(nullptr)
 {
-    m_pSignatureObj = NULL;
-
     // do not call Init() here
     if( this->GetFieldObject()->GetDictionary().HasKey( "V" ) )
     {
@@ -78,7 +76,7 @@ void PdfSignatureField::SetAppearanceStream( PdfXObject* pObject, EPdfAnnotation
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
-    m_pWidget->SetAppearanceStream( pObject, eAppearance, state );
+    GetWidgetAnnotation()->SetAppearanceStream( pObject, eAppearance, state );
     
     this->GetAppearanceCharacteristics( true );
 }

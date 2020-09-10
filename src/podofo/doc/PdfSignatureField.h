@@ -56,12 +56,12 @@ public:
 
     /** Create a new PdfSignatureField
      */
-    PdfSignatureField( PdfPage* pPage, const PdfRect & rRect, PdfDocument* pDoc );
+    PdfSignatureField( PdfPage* pPage, const PdfRect & rRect);
 
     /** Create a new PdfSignatureField
      *  \param bInit creates a signature field with/without a /V key
      */
-    PdfSignatureField( PdfAnnotation* pWidget, PdfAcroForm* pParent, PdfDocument* pDoc);
+    PdfSignatureField( PdfAnnotation* pWidget, PdfDocument &pDoc, bool insertInAcroform);
 
     /** Creates a PdfSignatureField from an existing PdfAnnotation, which should
      *  be an annotation with a field type Sig.

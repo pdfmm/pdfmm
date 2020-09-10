@@ -57,8 +57,8 @@ class PdfVecObjects;
  *
  *  \see PdfPage \see PdfAction \see PdfAnnotation
  */
-class PODOFO_DOC_API PdfElement {
-
+class PODOFO_DOC_API PdfElement
+{
  public:
 
     virtual ~PdfElement();
@@ -66,14 +66,18 @@ class PODOFO_DOC_API PdfElement {
     /** Get access to the internal object
      *  \returns the internal PdfObject
      */
-    inline PdfObject* GetObject();
+    inline PdfObject* GetObject() { return m_pObject; }
 
     /** Get access to the internal object
      *  This is an overloaded member function.
      *
      *  \returns the internal PdfObject
      */
-    inline const PdfObject* GetObject() const;
+    inline const PdfObject* GetObject() const { return m_pObject; }
+
+    PdfDocument & GetDocument();
+
+    const PdfDocument & GetDocument() const;
 
  protected:
     /** Creates a new PdfElement 
@@ -166,22 +170,6 @@ class PODOFO_DOC_API PdfElement {
 private:
     PdfObject* m_pObject;
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline PdfObject* PdfElement::GetObject()
-{
-    return m_pObject;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline const PdfObject* PdfElement::GetObject() const
-{
-    return m_pObject;
-}
 
 };
 

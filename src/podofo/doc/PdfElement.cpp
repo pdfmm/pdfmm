@@ -43,7 +43,7 @@
 
 #include <string.h>
 
-namespace PoDoFo {
+using namespace PoDoFo;
 
 PdfElement::PdfElement( const char* pszType, PdfVecObjects* pParent )
 {
@@ -134,5 +134,12 @@ PdfObject * PdfElement::GetNonConstObject() const
     return const_cast<PdfElement*>(this)->m_pObject;
 }
 
+PdfDocument& PdfElement::GetDocument()
+{
+    return *m_pObject->GetOwner()->GetParentDocument();
+}
 
-};
+const PdfDocument& PdfElement::GetDocument() const
+{
+    return *m_pObject->GetOwner()->GetParentDocument();
+}
