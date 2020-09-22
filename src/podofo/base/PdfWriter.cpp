@@ -271,7 +271,7 @@ void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const PdfVecObjects& 
     {
         PdfObject *pObject = *itObjects;
 
-	if( m_bIncrementalUpdate )
+	    if( m_bIncrementalUpdate )
         {
             if( !pObject->IsDirty() )
             {
