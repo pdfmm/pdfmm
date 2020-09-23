@@ -81,7 +81,7 @@ public:
      *  \param pDevice write to this outputdevice.
      *  \param pEncrypt encrypt stream data using this object
      */
-    virtual void Write( PdfOutputDevice* pDevice, PdfEncrypt* pEncrypt = NULL ) = 0;
+    virtual void Write(PdfOutputDevice& pDevice, const PdfEncrypt* pEncrypt) = 0;
 
     /** Set a binary buffer as stream data.
      *

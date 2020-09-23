@@ -61,7 +61,7 @@ class PdfReference;
  *
  * TODO: domseichter: Make this class implicitly shared
  */
-class PODOFO_API PdfVariant
+class PODOFO_API PdfVariant final
 {
     friend class PdfArray;
     friend class PdfDictionary;
@@ -133,7 +133,7 @@ class PODOFO_API PdfVariant
      */
     PdfVariant( const PdfVariant & rhs );
 
-    virtual ~PdfVariant();
+    ~PdfVariant();
 
     /** Clear all internal member variables and free the memory
      *  they have allocated.
@@ -143,11 +143,6 @@ class PODOFO_API PdfVariant
      *  \see IsDirty
      */
     void Clear();
-
-    /** \returns the datatype of this object or EPdfDataType::Unknown
-     *  if it does not have a value.
-     */
-    EPdfDataType GetDataType() const;
 
     /** \returns a human readable string representation of GetDataType()
      *  The returned string must not be free'd.
@@ -200,28 +195,6 @@ class PODOFO_API PdfVariant
      */
     bool IsReference() const;
        
-    /** Write the complete variant to an output device.
-     *  This is an overloaded member function.
-     *
-     *  \param pDevice write the object to this device
-     *  \param eWriteMode additional options for writing this object
-     *  \param pEncrypt an encryption object which is used to encrypt this object
-     *                  or NULL to not encrypt this object
-     */
-    void Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, 
-                const PdfEncrypt* pEncrypt = NULL ) const;
-
-    /** Write the complete variant to an output device.
-     *  \param pDevice write the object to this device
-     *  \param eWriteMode additional options for writing this object
-     *  \param pEncrypt an encryption object which is used to encrypt this object
-     *                  or NULL to not encrypt this object
-     *  \param keyStop if not KeyNull and a key == keyStop is found
-     *                 writing will stop right before this key!
-     *                 if IsDictionary returns true.
-     */
-    virtual void Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, const PdfEncrypt* pEncrypt, const PdfName & keyStop ) const;
-
     /** Converts the current object into a string representation
      *  which can be written directly to a PDF file on disc.
      *  \param rsData the object string is returned in this object.
@@ -287,7 +260,9 @@ class PODOFO_API PdfVariant
      *  \returns a reference to the PdfData instance.
      */
     const PdfData& GetRawData() const;
-    bool TryGetRawData(const PdfData*& ref) const;
+    PdfData& GetRawData();
+    bool TryGetRawData(const PdfData*& data) const;
+    bool TryGetRawData(PdfData*& data);
 
     /** Returns the value of the object as array
      *  \returns a array
@@ -347,6 +322,15 @@ class PODOFO_API PdfVariant
 
     void SetReference(const PdfReference &ref);
 
+    /** Write the complete variant to an output device.
+     *  \param pDevice write the object to this device
+     *  \param eWriteMode additional options for writing this object
+     *  \param pEncrypt an encryption object which is used to encrypt this object
+     *                  or NULL to not encrypt this object
+     */
+    void Write(PdfOutputDevice& pDevice, EPdfWriteMode eWriteMode,
+        const PdfEncrypt* pEncrypt) const;
+
     /** Assign the values of another PdfVariant to this one.
      *  \param rhs an existing variant which is copied.
      *
@@ -370,116 +354,10 @@ class PODOFO_API PdfVariant
      */
     bool operator!=( const PdfVariant & rhs) const;
 
-    // TODO: IsDirty in a container should be modified automatically by its children??? YES! And stop on first parent not dirty
-    /** The dirty flag is set if this variant
-     *  has been modified after construction.
-     *  
-     *  Usually the dirty flag is also set
-     *  if you call any non-const member function
-     *  (e.g. GetDictionary()) as PdfVariant cannot
-     *  determine if you actually changed the dictionary
-     *  or not.
-     *
-     *  \returns true if the value is dirty and has been 
-     *                modified since construction
-     */
-    bool IsDirty() const;
+public:
+    inline EPdfDataType GetDataType() const { return m_eDataType; }
 
-    /**
-     * Sets this object to immutable,
-     * so that no keys can be edited or changed.
-     *
-     * @param bImmutable if true set the object to be immutable
-     *
-     * This is used by PdfImmediateWriter and PdfStreamedDocument so 
-     * that no keys can be added to an object after setting stream data on it.
-     *
-     */
-    void SetImmutable(bool bImmutable);
-
-    /**
-     * Retrieve if an object is immutable.
-     *
-     * This is used by PdfImmediateWriter and PdfStreamedDocument so 
-     * that no keys can be added to an object after setting stream data on it.
-     *
-     * \returns true if the object is immutable
-     */
-    inline bool IsImmutable() const { return m_bImmutable; };
-
- protected:
-
-    /**
-     *  Will throw an exception if called on an immutable object,
-     *  so this should be called before actually changing a value!
-     * 
-     */
-    void AssertMutable() const;
-
-    /** Sets the dirty flag of this PdfVariant
-     *
-     *  \param bDirty true if this PdfVariant has been
-     *                modified from the outside
-     *
-     *  \see IsDirty
-     */
-    void SetDirty( bool bDirty );
-
-    /**
-     * Dynamically load the contents of this object from a PDF file by calling
-     * the virtual method DelayedLoadImpl() if the object is not already loaded.
-     *
-     * For objects complete created in memory and those that do not support
-     * deferred loading this function does nothing, since deferred loading
-     * will not be enabled.
-     */
-    void DelayedLoad() const;
-
-    /** Flag the object  incompletely loaded.  DelayedLoad() will be called
-     *  when any method that requires more information than is currently
-     *  available is loaded.
-     *
-     *  All constructors initialize a PdfVariant with delayed loading disabled .
-     *  If you want delayed loading you must ask for it. If you do so, call
-     *  this method early in your ctor and be sure to override DelayedLoadImpl().
-     */
-    inline void EnableDelayedLoading() { m_bDelayedLoadDone = false; }
-
-    /**
-     * Returns true if delayed loading is disabled, or if it is enabled
-     * and loading has completed. External callers should never need to
-     * see this, it's an internal state flag only.
-     */
-    inline bool DelayedLoadDone() const { return m_bDelayedLoadDone; }
-
-    inline EPdfDataType GetDataType_NoDL() const { return m_eDataType; }
-
-    /** Load all data of the object if delayed loading is enabled.
-     *
-     * Never call this method directly; use DelayedLoad() instead.
-     *
-     * You should override this to control deferred loading in your subclass.
-     * Note that this method should not load any associated streams, just the
-     * base object.
-     *
-     * The default implementation throws. It should never be called, since
-     * objects that do not support delayed loading should not enable it.
-     *
-     * While this method is not `const' it may be called from a const context,
-     * so be careful what you mess with.
-     */
-    virtual void DelayedLoadImpl();
-
-    /** Called after delayed load
-     *  \param eDataType Detected data type
-     */
-    virtual void AfterDelayedLoad();
-
-    PdfDictionary & GetDictionaryInternal(); 
-
-    PdfArray & GetArrayInternal();
 private:
-    void checkHandle() const;
     bool tryGetDictionary(PdfDictionary*& dict) const;
     bool tryGetArray(PdfArray*& arr) const;
     void Init();
@@ -527,13 +405,7 @@ private:
     } UVariant;
 
     UVariant m_Data;
-    bool m_bDirty; // Indicates if this object was modified after construction
-    bool m_bImmutable; // Indicates if this object may be modified
     EPdfDataType m_eDataType;
-
-    // Only for use by PdfVariant's internal tracking of the delayed
-    // loading state. Use DelayedLoadDone() to test this if you need to.
-    mutable bool m_bDelayedLoadDone;
 };
 
 };

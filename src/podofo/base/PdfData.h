@@ -51,8 +51,9 @@ class PdfOutputDevice;
  *  This class is used in PoDoFo to pad PdfVariants.
  *
  */
-class PODOFO_API PdfData : public PdfDataType {
- public:
+class PODOFO_API PdfData : public PdfDataType
+{
+public:
     /**
      * Create a new PdfData object with valid PdfData
      *
@@ -95,7 +96,7 @@ class PODOFO_API PdfData : public PdfDataType {
      * PdfData cannot do any encryption for you. So the encryption object will
      * be ignored as it is also the case for the write mode!
      */
-    void Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, const PdfEncrypt* pEncrypt = NULL ) const;
+    void Write(PdfOutputDevice& pDevice, EPdfWriteMode eWriteMode, const PdfEncrypt* pEncrypt) const override;
 
     /** Copy an existing PdfData 
      *  \param rhs another PdfData to copy

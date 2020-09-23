@@ -183,7 +183,7 @@ void PdfWriter::Write( PdfOutputDevice* pDevice, bool bRewriteXRefTable )
             FillTrailerObject( &trailer, pXRef->GetSize(), false );
             
             pDevice->Print("trailer\n");
-            trailer.WriteObject( pDevice, m_eWriteMode, NULL ); // Do not encrypt the trailer dictionary!!!
+            trailer.Write(*pDevice, m_eWriteMode, nullptr); // Do not encrypt the trailer dictionary!!!
         }
         
         pDevice->Print( "startxref\n%" PDF_FORMAT_UINT64 "\n%%%%EOF\n", pXRef->GetOffset() );
@@ -299,38 +299,14 @@ void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const PdfVecObjects& 
         pXref->AddObject( pObject->GetIndirectReference(), pDevice->Tell(), true );
 
         // Make sure that we do not encrypt the encryption dictionary!
-        pObject->WriteObject( pDevice, m_eWriteMode, 
-                              (pObject == m_pEncryptObj ? NULL : m_pEncrypt) );
+        pObject->Write(*pDevice, m_eWriteMode, 
+                              pObject == m_pEncryptObj ? nullptr : m_pEncrypt);
     }
 
     TCIPdfReferenceList itFree, itFreeEnd = vecObjects.GetFreeObjects().end();
     for( itFree = vecObjects.GetFreeObjects().begin(); itFree != itFreeEnd; ++itFree )
     {
         pXref->AddObject( *itFree, 0, false );
-    }
-}
-
-void PdfWriter::GetByteOffset( PdfObject* pObject, size_t* pulOffset )
-{
-    TCIVecObjects   it     = m_vecObjects->begin();
-    PdfOutputDevice deviceHeader;
-
-    if( !pObject || !pulOffset )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
-
-    this->WritePdfHeader( &deviceHeader );
-
-    *pulOffset = deviceHeader.GetLength();
-
-    while( it != m_vecObjects->end() )
-    {
-        if( (*it) == pObject )
-            break;
-
-        *pulOffset += (*it)->GetObjectLength( m_eWriteMode );
-        ++it;
     }
 }
 
@@ -423,8 +399,7 @@ void PdfWriter::CreateFileIdentifier( PdfString & identifier, const PdfObject* p
         if( it != idObj->GetArray().end() &&
             it->TryGetString(str) && str->IsHex() )
         {
-            PdfVariant var = (*it);
-            *pOriginalIdentifier = var.GetString();
+            *pOriginalIdentifier = it->GetString();
             bOriginalIdentifierFound = true;
         }
     }
@@ -463,7 +438,7 @@ void PdfWriter::CreateFileIdentifier( PdfString & identifier, const PdfObject* p
     
     pInfo->GetDictionary().AddKey( "Location", PdfString("SOMEFILENAME") );
 
-    pInfo->WriteObject( &length, m_eWriteMode, NULL );
+    pInfo->Write(length, m_eWriteMode, nullptr);
 
     pBuffer = static_cast<char*>(podofo_calloc( length.GetLength(), sizeof(char) ));
     if( !pBuffer )
@@ -473,7 +448,7 @@ void PdfWriter::CreateFileIdentifier( PdfString & identifier, const PdfObject* p
     }
 
     PdfOutputDevice device( pBuffer, length.GetLength() );
-    pInfo->WriteObject( &device, m_eWriteMode, NULL );
+    pInfo->Write(device, m_eWriteMode, nullptr);
 
     // calculate the MD5 Sum
     identifier = PdfEncryptMD5Base::GetMD5String( reinterpret_cast<unsigned char*>(pBuffer),

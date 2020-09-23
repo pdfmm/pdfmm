@@ -141,14 +141,14 @@ PdfName PdfName::FromRaw(const string_view & rawcontent)
     return PdfName(std::make_shared<string>(rawcontent));
 }
 
-void PdfName::Write( PdfOutputDevice* pDevice, EPdfWriteMode, const PdfEncrypt* ) const
+void PdfName::Write( PdfOutputDevice& pDevice, EPdfWriteMode, const PdfEncrypt* ) const
 {
     // Allow empty names, which are legal according to the PDF specification
-    pDevice->Print( "/" );
+    pDevice.Print( "/" );
     if (m_data->length() != 0)
     {
         string escaped = EscapeName(*m_data);
-        pDevice->Write( escaped.c_str(), escaped.length() );
+        pDevice.Write( escaped.c_str(), escaped.length() );
     }
 }
 

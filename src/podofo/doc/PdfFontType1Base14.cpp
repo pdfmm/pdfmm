@@ -64,23 +64,17 @@ This is the font dictionary. It gets added to the page resources dictionary of t
 */
 void PdfFontType1Base14::InitBase14Font( PdfFontMetrics* pMetrics )
 {
-    PdfVariant    var;
-    
-    if( !m_pEncoding )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
+    if (!m_pEncoding)
+        PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
 
+    PdfVariant var;
+   
     this->GetObject()->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("Type1"));
     this->GetObject()->GetDictionary().AddKey("BaseFont", PdfName( pMetrics->GetFontname() ) );
 
-    PdfObject *pWidth = this->GetObject()->GetDocument()->GetObjects().CreateObject();
-    if( !pWidth )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
+    m_pMetrics->GetWidthArray(var, m_pEncoding->GetFirstChar(), m_pEncoding->GetLastChar(), m_pEncoding);
 
-    m_pMetrics->GetWidthArray( *pWidth, m_pEncoding->GetFirstChar(), m_pEncoding->GetLastChar(), m_pEncoding );
+    PdfObject *pWidth = this->GetObject()->GetDocument()->GetObjects().CreateObject(var);
 
     this->GetObject()->GetDictionary().AddKey("Widths", pWidth->GetIndirectReference() );
     this->GetObject()->GetDictionary().AddKey("FirstChar", PdfVariant( static_cast<int64_t>(m_pEncoding->GetFirstChar()) ) );

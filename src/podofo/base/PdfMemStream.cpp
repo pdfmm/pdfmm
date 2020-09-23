@@ -286,9 +286,9 @@ void PdfMemStream::copyFrom(const PdfMemStream &rhs)
         m_pParent->GetDictionary().AddKey(PdfName::KeyLength, PdfVariant(static_cast<int64_t>(m_lLength)));
 }
 
-void PdfMemStream::Write( PdfOutputDevice* pDevice, PdfEncrypt* pEncrypt ) 
+void PdfMemStream::Write(PdfOutputDevice& pDevice, const PdfEncrypt* pEncrypt)
 {
-    pDevice->Print( "stream\n" );
+    pDevice.Print( "stream\n" );
     if( pEncrypt ) 
     {
         size_t lLen = this->GetLength();
@@ -299,15 +299,15 @@ void PdfMemStream::Write( PdfOutputDevice* pDevice, PdfEncrypt* pEncrypt )
 
         pEncrypt->Encrypt( reinterpret_cast<const unsigned char*>(this->Get()), lLen,
                           reinterpret_cast<unsigned char*>(pOutputBuffer), nOutputLen);
-        pDevice->Write( pOutputBuffer, nOutputLen );
+        pDevice.Write( pOutputBuffer, nOutputLen );
 
         delete[] pOutputBuffer;
     }
     else
     {
-        pDevice->Write( this->Get(), this->GetLength() );
+        pDevice.Write( this->Get(), this->GetLength() );
     }
-    pDevice->Print( "\nendstream\n" );
+    pDevice.Print( "\nendstream\n" );
 }
 
 const char* PdfMemStream::Get() const

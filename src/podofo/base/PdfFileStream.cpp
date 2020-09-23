@@ -53,7 +53,7 @@ PdfFileStream::PdfFileStream( PdfObject* pParent, PdfOutputDevice* pDevice )
     m_pParent->GetDictionary().AddKey( PdfName::KeyLength, m_pLength->GetIndirectReference() );
 }
 
-void PdfFileStream::Write( PdfOutputDevice*, PdfEncrypt* )
+void PdfFileStream::Write(PdfOutputDevice&, const PdfEncrypt*)
 {
     PODOFO_RAISE_ERROR(EPdfError::NotImplemented);
 }

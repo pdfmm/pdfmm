@@ -86,12 +86,12 @@ void PdfXRefStreamParserObject::Parse()
 
 void PdfXRefStreamParserObject::ReadXRefTable() 
 {
-    int64_t  lSize   = this->GetDictionary().GetKeyAsNumber( PdfName::KeySize, 0 );
-    PdfVariant vWArray = *(this->GetDictionary().GetKey( "W" ));
+    int64_t lSize = this->GetDictionary().GetKeyAsNumber( PdfName::KeySize, 0 );
+    auto &arr = *(this->GetDictionary().GetKey( "W" ));
 
     // The pdf reference states that W is always an array with 3 entries
     // all of them have to be integers
-    if( !vWArray.IsArray() || vWArray.GetArray().size() != 3 )
+    if( !arr.IsArray() || arr.GetArray().size() != 3 )
     {
         PODOFO_RAISE_ERROR( EPdfError::NoXRef );
     }
@@ -100,12 +100,12 @@ void PdfXRefStreamParserObject::ReadXRefTable()
     int64_t nW[W_ARRAY_SIZE] = { 0, 0, 0 };
     for( int i=0;i<W_ARRAY_SIZE;i++ )
     {
-        if( !vWArray.GetArray()[i].IsNumber() )
+        if( !arr.GetArray()[i].IsNumber() )
         {
             PODOFO_RAISE_ERROR( EPdfError::NoXRef );
         }
 
-        nW[i] = static_cast<int64_t>(vWArray.GetArray()[i].GetNumber());
+        nW[i] = static_cast<int64_t>(arr.GetArray()[i].GetNumber());
     }
 
     std::vector<int64_t> vecIndeces;
@@ -188,14 +188,14 @@ void PdfXRefStreamParserObject::GetIndeces( std::vector<int64_t> & rvecIndeces, 
     // it is not required to have an index key though.
     if( this->GetDictionary().HasKey( "Index" ) )
     {
-        PdfVariant array = *(this->GetDictionary().GetKey( "Index" ));
-        if( !array.IsArray() )
+        auto& arr = *(this->GetDictionary().GetKey( "Index" ));
+        if( !arr.IsArray() )
         {
             PODOFO_RAISE_ERROR( EPdfError::NoXRef );
         }
 
-        TCIVariantList it = array.GetArray().begin();
-        while ( it != array.GetArray().end() )
+        TCIVariantList it = arr.GetArray().begin();
+        while ( it != arr.GetArray().end() )
         {
             rvecIndeces.push_back( (*it).GetNumber() );
             ++it;

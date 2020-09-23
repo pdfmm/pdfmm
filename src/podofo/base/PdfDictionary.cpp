@@ -286,40 +286,38 @@ bool PdfDictionary::RemoveKey( const PdfName & identifier )
     return true;
 }
 
-void PdfDictionary::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, const PdfEncrypt* pEncrypt, const PdfName & keyStop ) const
+void PdfDictionary::Write(PdfOutputDevice& pDevice, EPdfWriteMode eWriteMode,
+    const PdfEncrypt* pEncrypt) const
 {
     TCIKeyMap     itKeys;
 
     if( (eWriteMode & EPdfWriteMode::Clean) == EPdfWriteMode::Clean ) 
     {
-        pDevice->Print( "<<\n" );
+        pDevice.Print( "<<\n" );
     } 
     else
     {
-        pDevice->Print( "<<" );
+        pDevice.Print( "<<" );
     }
     itKeys     = m_mapKeys.begin();
-
-    if( keyStop != PdfName::KeyNull && keyStop.GetLength() && keyStop == PdfName::KeyType )
-        return;
 
     if( this->HasKey( PdfName::KeyType ) ) 
     {
         // Type has to be the first key in any dictionary
         if( (eWriteMode & EPdfWriteMode::Clean) == EPdfWriteMode::Clean ) 
         {
-            pDevice->Print( "/Type " );
+            pDevice.Print( "/Type " );
         }
         else
         {
-            pDevice->Print( "/Type" );
+            pDevice.Print( "/Type" );
         }
 
-        this->GetKey( PdfName::KeyType )->Write( pDevice, eWriteMode, pEncrypt );
+        this->GetKey( PdfName::KeyType )->GetVariant().Write( pDevice, eWriteMode, pEncrypt );
 
         if( (eWriteMode & EPdfWriteMode::Clean) == EPdfWriteMode::Clean ) 
         {
-            pDevice->Print( "\n" );
+            pDevice.Print( "\n" );
         }
     }
 
@@ -327,25 +325,22 @@ void PdfDictionary::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, c
     {
         if( itKeys->first != PdfName::KeyType )
         {
-            if( keyStop != PdfName::KeyNull && keyStop.GetLength() && itKeys->first == keyStop )
-                return;
-
-            itKeys->first.Write( pDevice, eWriteMode );
+            itKeys->first.Write(pDevice, eWriteMode, nullptr);
             if( (eWriteMode & EPdfWriteMode::Clean) == EPdfWriteMode::Clean ) 
             {
-                pDevice->Write( " ", 1 ); // write a separator
+                pDevice.Write( " ", 1 ); // write a separator
             }
-            itKeys->second.Write( pDevice, eWriteMode, pEncrypt );
+            itKeys->second.GetVariant().Write( pDevice, eWriteMode, pEncrypt );
             if( (eWriteMode & EPdfWriteMode::Clean) == EPdfWriteMode::Clean ) 
             {
-                pDevice->Write( "\n", 1 );
+                pDevice.Write( "\n", 1 );
             }
         }
         
         ++itKeys;
     }
 
-    pDevice->Print( ">>" );
+    pDevice.Print( ">>" );
 }
 
 // TODO: IsDirty in a container should be modified automatically by its children??? YES! And stop on first parent not dirty
@@ -455,9 +450,4 @@ const PdfObject& PdfDictionary::MustGetKey( const PdfName & key ) const
     if (!obj)
         PODOFO_RAISE_ERROR( EPdfError::NoObject );
     return *obj;
-}
-
-void PdfDictionary::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, const PdfEncrypt* pEncrypt ) const
-{
-    this->Write( pDevice, eWriteMode, pEncrypt, PdfName::KeyNull );
 }

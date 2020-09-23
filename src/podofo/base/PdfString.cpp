@@ -353,7 +353,7 @@ void PdfString::SetHexData( const char* pszHex, size_t lLen, PdfEncrypt* pEncryp
     }
 }
 
-void PdfString::Write ( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, const PdfEncrypt* pEncrypt ) const
+void PdfString::Write ( PdfOutputDevice& pDevice, EPdfWriteMode eWriteMode, const PdfEncrypt* pEncrypt ) const
 {
     // Strings in PDF documents may contain \0 especially if they are encrypted
     // this case has to be handled!
@@ -393,7 +393,7 @@ void PdfString::Write ( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, cons
         return;
     }
 
-    pDevice->Print( m_bHex ? "<" : "(" );
+    pDevice.Print( m_bHex ? "<" : "(" );
     if( m_buffer.GetSize() && IsValid() )
     {
         const char* pBuf = m_buffer.GetBuffer();
@@ -402,7 +402,7 @@ void PdfString::Write ( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, cons
         if( m_bHex ) 
         {
             if( m_bUnicode )
-                pDevice->Write( PdfString::s_pszUnicodeMarkerHex, 4 );
+                pDevice.Write( PdfString::s_pszUnicodeMarkerHex, 4 );
 
             char data[2];
             while( lLen-- )
@@ -413,7 +413,7 @@ void PdfString::Write ( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, cons
                 data[1]  = (*pBuf & 0x0F);
                 data[1] += (data[1] > 9 ? 'A' - 10 : '0');
                 
-                pDevice->Write( data, 2 );
+                pDevice.Write( data, 2 );
                 
                 ++pBuf;
             }
@@ -422,7 +422,7 @@ void PdfString::Write ( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, cons
         {
             if( m_bUnicode ) 
             {
-                pDevice->Write( PdfString::s_pszUnicodeMarker, sizeof( PdfString::s_pszUnicodeMarker ) );
+                pDevice.Write( PdfString::s_pszUnicodeMarker, sizeof( PdfString::s_pszUnicodeMarker ) );
             }
 
             while( lLen-- ) 
@@ -430,12 +430,12 @@ void PdfString::Write ( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, cons
                 const char & cEsc = m_escMap[static_cast<unsigned char>(*pBuf)];
                 if( cEsc != 0 ) 
                 {
-                    pDevice->Write( "\\", 1 );
-                    pDevice->Write( &cEsc, 1 );
+                    pDevice.Write( "\\", 1 );
+                    pDevice.Write( &cEsc, 1 );
                 }
                 else 
                 {
-                    pDevice->Write( &*pBuf, 1 );
+                    pDevice.Write( &*pBuf, 1 );
                 }
 
                 ++pBuf;
@@ -443,7 +443,7 @@ void PdfString::Write ( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, cons
         }
     }
 
-    pDevice->Print( m_bHex ? ">" : ")" );
+    pDevice.Print( m_bHex ? ">" : ")" );
 }
 
 const PdfString & PdfString::operator=( const PdfString & rhs )

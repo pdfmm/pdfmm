@@ -40,46 +40,11 @@
 #include "PdfName.h"
 #include "PdfObject.h"
 
-/**
- * PODOFO_USE_UNORDERED_MAP
- * 
- * If you set this define, PoDoFo
- * will use std::tr1::unordered_map instead
- * of std::map for PdfDictionary.
- *
- * Some benchmarking tests using callgrind have shown
- * that unordered_map is a little faster for writing and AddKey
- * but of course slower for GetKey and HasKey. As PdfDictionaries
- * are usually very small the difference for GetKey and HasKey is
- * not very large and should therefore be rarely noticeable.
- *
- * By default this define is not set and std::map will be used.
- */
-#ifdef PODOFO_USE_UNORDERED_MAP
-#include <tr1/unordered_map>
-#endif // PODOFO_USE_ORDERED_MAP
-
 namespace PoDoFo {
 
-#ifdef PODOFO_USE_UNORDERED_MAP
-class PdfNameHash : public std::unary_function<PdfName, size_t>
-{
-public:
-    size_t operator()( const PdfName& v ) const
-    {
-        std::tr1::hash<std::string> hasher;
-        
-        return hasher( v.GetString() );
-    }
-};
-
-typedef std::tr1::unordered_map<PdfName,PdfObject, PdfNameHash>      TKeyMap;
-#else
 typedef std::map<PdfName,PdfObject>      TKeyMap;
-#endif // PODOFO_USE_UNORDERED_MAP
-
-typedef TKeyMap::iterator                 TIKeyMap;
-typedef TKeyMap::const_iterator           TCIKeyMap;
+typedef TKeyMap::iterator                TIKeyMap;
+typedef TKeyMap::const_iterator          TCIKeyMap;
 
 class PdfOutputDevice;
 
@@ -264,19 +229,7 @@ public:
      *  \param pEncrypt an encryption object which is used to encrypt this object
      *                  or NULL to not encrypt this object
      */
-    void Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, const PdfEncrypt* pEncrypt = NULL ) const override;
-
-    /** Write the complete dictionary to a file.
-     *
-     *  \param pDevice write the object to this device
-     *  \param eWriteMode additional options for writing this object
-     *  \param pEncrypt an encryption object which is used to encrypt this object
-     *                  or NULL to not encrypt this object
-     *  \param keyStop if not KeyNull and a key == keyStop is found
-     *                 writing will stop right before this key!
-     */
-    void Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, 
-                const PdfEncrypt* pEncrypt, const PdfName & keyStop = PdfName::KeyNull ) const;
+    void Write( PdfOutputDevice& pDevice, EPdfWriteMode eWriteMode, const PdfEncrypt* pEncrypt ) const override;
 
     /**
     *  \returns the size of the internal map

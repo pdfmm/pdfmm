@@ -62,20 +62,13 @@ void PdfFontSimple::Init( bool bEmbed, const PdfName & rsSubType )
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
-    PdfObject*    pWidth;
-    PdfObject*    pDescriptor;
-    PdfVariant    var;
     PdfArray      array;
+    PdfVariant    var;
+    m_pMetrics->GetWidthArray(var, m_pEncoding->GetFirstChar(), m_pEncoding->GetLastChar(), m_pEncoding );
 
-    pWidth = this->GetObject()->GetDocument()->GetObjects().CreateObject();
-    if( !pWidth )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
+    PdfObject* pWidth = this->GetObject()->GetDocument()->GetObjects().CreateObject(var);
 
-    m_pMetrics->GetWidthArray( *pWidth, m_pEncoding->GetFirstChar(), m_pEncoding->GetLastChar(), m_pEncoding );
-
-    pDescriptor = this->GetObject()->GetDocument()->GetObjects().CreateObject( "FontDescriptor" );
+    PdfObject *pDescriptor = this->GetObject()->GetDocument()->GetObjects().CreateObject( "FontDescriptor" );
     if( !pDescriptor )
     {
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );

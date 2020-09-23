@@ -83,7 +83,7 @@ public:
      *  \param pDevice write to this outputdevice.
      *  \param pEncrypt encrypt stream data using this object
      */
-    void Write( PdfOutputDevice* pDevice, PdfEncrypt* pEncrypt = NULL ) override;
+    void Write(PdfOutputDevice& pDevice, const PdfEncrypt* pEncrypt) override;
 
     /** Get a malloced buffer of the current stream.
      *  No filters will be applied to the buffer, so

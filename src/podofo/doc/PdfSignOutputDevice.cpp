@@ -123,7 +123,7 @@ void PdfSignOutputDevice::SetSignature(const PdfData &sigData)
     PdfString sig(sigData.data().c_str(), sigByteSize, true);
 
     m_pRealDevice->Seek(m_sBeaconPos);
-    sig.Write(m_pRealDevice, PoDoFo::EPdfWriteMode::Compact);
+    sig.Write(*m_pRealDevice, PoDoFo::EPdfWriteMode::Compact, nullptr);
     // insert padding
     size_t numPadding = maxSigSize-2*sigByteSize;
     if(numPadding>0) {

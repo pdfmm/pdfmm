@@ -188,7 +188,7 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
     // Check if we have an empty object or data
     if( strncmp( pszToken, "endobj", s_nLenEndObj ) != 0 )
     {
-        this->GetNextVariant( pszToken, eTokenType, *this, m_pEncrypt );
+        this->GetNextVariant( pszToken, eTokenType, m_Variant, m_pEncrypt );
         this->SetDirty( false );
 
         if( !bIsTrailer )
@@ -198,10 +198,12 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
             {
                 PODOFO_RAISE_ERROR_INFO( EPdfError::UnexpectedEOF, "Expected 'endobj' or (if dict) 'stream', got EOF." );
             }
-            if( strncmp( pszToken, "endobj", s_nLenEndObj ) == 0 )
-                ; // nothing to do, just validate that the PDF is correct
-            // If it's a dictionary, it might have a stream, so check for that
-            else if( this->IsDictionary() && strncmp( pszToken, "stream", s_nLenStream ) == 0 )
+            if (strncmp(pszToken, "endobj", s_nLenEndObj) == 0)
+            {
+                // nothing to do, just validate that the PDF is correct
+                // If it's a dictionary, it might have a stream, so check for that
+            }
+            else if (m_Variant.IsDictionary() && strncmp( pszToken, "stream", s_nLenStream ) == 0 )
             {
                 m_bStream = true;
                 m_lStreamOffset = m_device.Device()->Tell(); // NOTE: whitespace after "stream" handle in stream parser!
@@ -254,7 +256,7 @@ void PdfParserObject::ParseStream()
     
     std::streamoff fLoc = m_device.Device()->Tell();	// we need to save this, since loading the Length key could disturb it!
 
-    PdfObject* pObj = this->GetDictionaryInternal().GetKey( PdfName::KeyLength );  
+    PdfObject* pObj = this->m_Variant.GetDictionary().GetKey( PdfName::KeyLength );  
     if( pObj && pObj->IsNumber() )
     {
         lLen = pObj->GetNumber();   
@@ -266,10 +268,6 @@ void PdfParserObject::ParseStream()
         {
             PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidHandle, "/Length key referenced indirect object that could not be loaded" );
         }
-
-        /*PdfError::LogMessage(ELogSeverity::Information,
-                             "Reading object %i 0 R with type: %s", 
-                             pObj->Reference().ObjectNumber(), pObj->GetDataTypeString());*/
 
         if( !pObj->IsNumber() )
         {
@@ -291,7 +289,7 @@ void PdfParserObject::ParseStream()
 
 	if( m_pEncrypt && !m_pEncrypt->IsMetadataEncrypted() ) {
 		// If metadata is not encrypted the Filter is set to "Crypt"
-		PdfObject* pFilterObj = this->GetDictionaryInternal().GetKey( PdfName::KeyFilter );
+		PdfObject* pFilterObj = this->m_Variant.GetDictionary().GetKey( PdfName::KeyFilter );
 		if( pFilterObj && pFilterObj->IsArray() ) {
 			PdfArray filters = pFilterObj->GetArray();
 			for(PdfArray::iterator it = filters.begin(); it != filters.end(); it++) {
@@ -350,7 +348,7 @@ void PdfParserObject::FreeObjectMemory( bool bForce )
 {
     if( this->IsLoadOnDemand() && (bForce || !this->IsDirty()) )
     {
-        PdfVariant::Clear();
+        Clear();
         FreeStream();
         EnableDelayedLoading();
         EnableDelayedLoadingStream();

@@ -194,7 +194,7 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library*, PdfObject* pObject )
     PdfObject*      pEncoding   = NULL;
     PdfObject*      pToUnicode = NULL;
 
-    PdfVariant* pTypeKey = pObject->GetDictionary().GetKey( PdfName::KeyType );
+    PdfObject* pTypeKey = pObject->GetDictionary().GetKey( PdfName::KeyType );
     if ( NULL == pTypeKey )
     {
         PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDataType, "Font: No Type" );
@@ -205,7 +205,7 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library*, PdfObject* pObject )
         PODOFO_RAISE_ERROR( EPdfError::InvalidDataType );
     }
 
-    PdfVariant* pSubTypeKey = pObject->GetDictionary()
+    PdfObject* pSubTypeKey = pObject->GetDictionary()
                             .GetKey( PdfName::KeySubtype );
     if ( NULL == pSubTypeKey )
     {

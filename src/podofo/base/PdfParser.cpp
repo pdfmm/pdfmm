@@ -111,7 +111,6 @@ class PdfRecursionGuard
 
 PdfParser::PdfParser( PdfVecObjects* pVecObjects )
     : PdfTokenizer(), m_vecObjects( pVecObjects ), m_bStrictParsing( false )
-
 {
     this->Init();
 }
@@ -242,15 +241,16 @@ void PdfParser::ParseFile( const PdfRefCountedInputDevice & rDevice, bool bLoadO
 
     m_bLoadOnDemand = bLoadOnDemand;
 
-    try {
-        if( !IsPdfFile() )
-        {
+    try
+    {
+        if(!IsPdfFile())
             PODOFO_RAISE_ERROR( EPdfError::NoPdfFile );
-        }
     
         ReadDocumentStructure();
         ReadObjects();
-    } catch( PdfError & e ) {
+    }
+    catch( PdfError & e )
+    {
         if( e.GetError() == EPdfError::InvalidPassword ) 
         {
             // Do not clean up, expect user to call ParseFile again
@@ -288,48 +288,63 @@ void PdfParser::Clear()
 
 void PdfParser::ReadDocumentStructure()
 {
-// Ulrich Arnold 8.9.2009, deactivated because of problems during reading xref's
+    // Ulrich Arnold 8.9.2009, deactivated because of problems during reading xref's
     // HasLinearizationDict();
     
     // position at the end of the file to search the xref table.
     m_device.Device()->Seek( 0, std::ios_base::end );
     m_nFileSize = m_device.Device()->Tell();
 
-// James McGill 18.02.2011, validate the eof marker and when not in strict mode accept garbage after it
-    try {
+    // James McGill 18.02.2011, validate the eof marker and when not in strict mode accept garbage after it
+    try
+    {
         CheckEOFMarker();
-    } catch( PdfError & e ) {
+    }
+    catch( PdfError & e )
+    {
         e.AddToCallstack( __FILE__, __LINE__, "EOF marker could not be found." );
         throw e;
     }
 
-    try {
+    try
+    {
         ReadXRef( &m_nXRefOffset );
-    } catch( PdfError & e ) {
+    }
+    catch( PdfError & e )
+    {
         e.AddToCallstack( __FILE__, __LINE__, "Unable to find startxref entry in file." );
         throw e;
     }
 
-    try {
+    try
+    {
         ReadTrailer();
-    } catch( PdfError & e ) {
+    }
+    catch( PdfError & e )
+    {
         e.AddToCallstack( __FILE__, __LINE__, "Unable to find trailer in file." );
         throw e;
     }
 
     if( m_pLinearization )
     {
-        try { 
+        try
+        { 
             ReadXRefContents( m_nXRefOffset, true );
-        } catch( PdfError & e ) {
+        }
+        catch( PdfError & e )
+        {
             e.AddToCallstack( __FILE__, __LINE__, "Unable to skip xref dictionary." );
             throw e;
         }
 
         // another trailer directory is to follow right after this XRef section
-        try {
+        try
+        {
             ReadNextTrailer();
-        } catch( PdfError & e ) {
+        }
+        catch( PdfError & e )
+        {
             if( e != EPdfError::NoTrailer )
                 throw e;
         }
@@ -348,26 +363,31 @@ void PdfParser::ReadDocumentStructure()
 
     if (m_nNumObjects > 0)
     {
-      ResizeOffsets( m_nNumObjects );
+        ResizeOffsets( m_nNumObjects );
     }
 
     if( m_pLinearization )
     {
-        try {
+        try
+        {
             ReadXRefContents( m_nXRefLinearizedOffset );
-        } catch( PdfError & e ) {
+        }
+        catch( PdfError & e )
+        {
             e.AddToCallstack( __FILE__, __LINE__, "Unable to read linearized XRef section." );
             throw e;
         }
     }
 
-    try {
+    try
+    {
         ReadXRefContents( m_nXRefOffset );
-    } catch( PdfError & e ) {
+    }
+    catch( PdfError & e )
+    {
         e.AddToCallstack( __FILE__, __LINE__, "Unable to load xref entries." );
         throw e;
     }
-
 }
 
 bool PdfParser::IsPdfFile()

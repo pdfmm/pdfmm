@@ -46,7 +46,6 @@
 
 #include <sstream>
 #include <fstream>
-
 #include <string.h>
 
 using namespace std;
@@ -54,13 +53,13 @@ using namespace std;
 using namespace PoDoFo;
 
 PdfObject::PdfObject()
-    : PdfVariant( PdfDictionary() )
+    : m_Variant( PdfDictionary() )
 {
     InitPdfObject();
 }
 
 PdfObject::PdfObject( const PdfReference & rRef, const char* pszType )
-    : PdfVariant( PdfDictionary() ), m_reference( rRef )
+    : m_Variant( PdfDictionary() ), m_reference( rRef )
 {
     InitPdfObject();
 
@@ -69,55 +68,55 @@ PdfObject::PdfObject( const PdfReference & rRef, const char* pszType )
 }
 
 PdfObject::PdfObject( const PdfVariant & var )
-    : PdfVariant( var )
+    : m_Variant( var )
 {
     InitPdfObject();
 }
 
 PdfObject::PdfObject( bool b )
-    : PdfVariant( b )
+    : m_Variant( b )
 {
     InitPdfObject();
 }
 
 PdfObject::PdfObject( int64_t l )
-    : PdfVariant( l )
+    : m_Variant( l )
 {
     InitPdfObject();
 }
 
 PdfObject::PdfObject( double d )
-    : PdfVariant( d )
+    : m_Variant( d )
 {
     InitPdfObject();
 }
 
 PdfObject::PdfObject( const PdfString & rsString )
-    : PdfVariant( rsString )
+    : m_Variant( rsString )
 {
     InitPdfObject();
 }
 
 PdfObject::PdfObject( const PdfName & rName )
-    : PdfVariant( rName )
+    : m_Variant( rName )
 {
     InitPdfObject();
 }
 
 PdfObject::PdfObject( const PdfReference & rRef )
-    : PdfVariant( rRef )
+    : m_Variant( rRef )
 {
     InitPdfObject();
 }
 
 PdfObject::PdfObject( const PdfArray & tList )
-    : PdfVariant( tList )
+    : m_Variant( tList )
 {
     InitPdfObject();
 }
 
 PdfObject::PdfObject( const PdfDictionary & rDict )
-    : PdfVariant( rDict )
+    : m_Variant( rDict )
 {
     InitPdfObject();
 }
@@ -126,7 +125,7 @@ PdfObject::PdfObject( const PdfDictionary & rDict )
 // Ownership will be set automatically elsewhere. Also don't copy
 // reference
 PdfObject::PdfObject( const PdfObject & rhs ) 
-    : PdfVariant( rhs )
+    : m_Variant( rhs )
 {
     InitPdfObject();
     copyFrom(rhs);
@@ -150,21 +149,34 @@ void PdfObject::SetDocument(PdfDocument& document)
     SetVariantOwner();
 }
 
-void PdfObject::AfterDelayedLoad()
+
+void PdfObject::DelayedLoad() const
 {
-    SetVariantOwner();
+    if (m_bDelayedLoadDone)
+        return;
+
+    const_cast<PdfObject&>(*this).DelayedLoadImpl();
+    m_bDelayedLoadDone = true;
+    const_cast<PdfObject&>(*this).SetVariantOwner();
+}
+
+void PdfObject::DelayedLoadImpl()
+{
+    // Default implementation of virtual void DelayedLoadImpl() throws, since delayed
+    // loading should not be enabled except by types that support it.
+    PODOFO_RAISE_ERROR(EPdfError::InternalLogic);
 }
 
 void PdfObject::SetVariantOwner()
 {
-    auto eDataType = GetDataType_NoDL();
+    auto eDataType = m_Variant.GetDataType();
     switch ( eDataType )
     {
         case EPdfDataType::Dictionary:
-            static_cast<PdfContainerDataType &>( GetDictionaryInternal() ).SetOwner( this );
+            static_cast<PdfContainerDataType &>(m_Variant.GetDictionary()).SetOwner( this );
             break;
         case EPdfDataType::Array:
-            static_cast<PdfContainerDataType &>( GetArrayInternal() ).SetOwner( this );
+            static_cast<PdfContainerDataType &>(m_Variant.GetArray()).SetOwner( this );
             break;
         default:
             break;
@@ -180,38 +192,35 @@ void PdfObject::InitPdfObject()
 {
     m_Document = nullptr;
     m_Parent = nullptr;
+    m_bDirty = false;
+    m_bImmutable = false;
+    m_bDelayedLoadDone = true;
     m_DelayedLoadStreamDone = true;
     m_pStream = nullptr;
     SetVariantOwner();
 }
 
-void PdfObject::WriteObject( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode,
-                             PdfEncrypt* pEncrypt, const PdfName & keyStop ) const
+void PdfObject::Write(PdfOutputDevice& pDevice, EPdfWriteMode eWriteMode,
+                      PdfEncrypt* pEncrypt) const
 {
+    DelayedLoad();
     DelayedLoadStream();
-
-    if( !pDevice )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
 
     if( m_reference.IsIndirect() )
     {
         // CHECK-ME We want to make this in all the cases for PDF/A Compatibility
         //if( (eWriteMode & EPdfWriteMode::Clean) == EPdfWriteMode::Clean )
         {
-            pDevice->Print( "%i %i obj\n", m_reference.ObjectNumber(), m_reference.GenerationNumber() );
+            pDevice.Print( "%i %i obj\n", m_reference.ObjectNumber(), m_reference.GenerationNumber() );
         }
         //else
         //{
-        //    pDevice->Print( "%i %i obj", m_reference.ObjectNumber(), m_reference.GenerationNumber() );
+        //    pDevice.Print( "%i %i obj", m_reference.ObjectNumber(), m_reference.GenerationNumber() );
         //}
     }
 
-    if( pEncrypt ) 
-    {
+    if(pEncrypt)
         pEncrypt->SetCurrentReference( m_reference );
-    }
 
     if( pEncrypt && m_pStream != nullptr )
     {
@@ -225,18 +234,14 @@ void PdfObject::WriteObject( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode,
         }
     }
 
-    this->Write( pDevice, eWriteMode, pEncrypt, keyStop );
-    pDevice->Print( "\n" );
+    m_Variant.Write(pDevice, eWriteMode, pEncrypt);
+    pDevice.Print("\n");
 
     if( m_pStream )
-    {
-        m_pStream->Write( pDevice, pEncrypt );
-    }
+        m_pStream->Write(pDevice, pEncrypt);
 
-    if( m_reference.IsIndirect() )
-    {
-        pDevice->Print( "endobj\n" );
-    }
+    if( m_reference.IsIndirect())
+        pDevice.Print("endobj\n");
 }
 
 // REMOVE-ME
@@ -261,7 +266,7 @@ size_t PdfObject::GetObjectLength( EPdfWriteMode eWriteMode )
 {
     PdfOutputDevice device;
 
-    this->WriteObject( &device, eWriteMode, NULL  );
+    this->Write( device, eWriteMode, nullptr );
 
     return device.GetLength();
 }
@@ -301,10 +306,8 @@ void PdfObject::forceCreateStream()
     if (m_pStream != nullptr)
         return;
 
-    if (GetDataType() != EPdfDataType::Dictionary)
-    {
+    if (m_Variant.GetDataType() != EPdfDataType::Dictionary)
         PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "Tried to get stream of non-dictionary object");
-    }
 
     if (m_Document == nullptr)
         m_pStream.reset(new PdfMemStream(this));
@@ -343,10 +346,8 @@ void PdfObject::FlateCompressStream()
     // TODO: If the stream isn't already in memory, defer loading and compression until first read of the stream to save some memory.
     DelayedLoadStream();
 
-    /*
-    if( m_pStream )
-        m_pStream->FlateCompress();
-    */
+    //if( m_pStream )
+    //    m_pStream->FlateCompress();
 }
 
 const PdfObject & PdfObject::operator=(const PdfObject & rhs)
@@ -354,8 +355,10 @@ const PdfObject & PdfObject::operator=(const PdfObject & rhs)
     if (&rhs == this)
         return *this;
 
-    PdfVariant::operator=(rhs);
+    rhs.DelayedLoad();
+    m_Variant = rhs.m_Variant;
     copyFrom(rhs);
+    SetDirty(true);
     return *this;
 }
 
@@ -378,25 +381,6 @@ void PdfObject::copyFrom(const PdfObject & rhs)
     m_DelayedLoadStreamDone = true;
 }
 
-size_t PdfObject::GetByteOffset( const char* pszKey, EPdfWriteMode eWriteMode )
-{
-    PdfOutputDevice device;
-
-    if( !pszKey )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
-
-    if( !this->GetDictionary().HasKey( pszKey ) )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidKey );
-    }
-
-    this->Write( &device, eWriteMode, NULL, pszKey );
-    
-    return device.GetLength();
-}
-
 void PdfObject::EnableDelayedLoadingStream()
 {
     m_DelayedLoadStreamDone = false;
@@ -409,8 +393,419 @@ void PdfObject::DelayedLoadStreamImpl()
     PODOFO_RAISE_ERROR(EPdfError::InternalLogic);
 }
 
+// TODO: IsDirty in a container should be modified automatically by its children??? YES! And stop on first parent not dirty
+bool PdfObject::IsDirty() const
+{
+    // If this is a object with
+    // stream, the streams dirty
+    // flag might be set.
+    if (m_bDirty)
+        return m_bDirty;
+
+    switch (m_Variant.GetDataType())
+    {
+    // Arrays and Dictionaries
+    // handle dirty status by themselfes
+    case EPdfDataType::Array:
+        return m_Variant.GetArray().IsDirty();
+    case EPdfDataType::Dictionary:
+        return m_Variant.GetDictionary().IsDirty();
+    case EPdfDataType::Bool:
+    case EPdfDataType::Number:
+    case EPdfDataType::Real:
+    case EPdfDataType::String:
+    case EPdfDataType::Name:
+    case EPdfDataType::RawData:
+    case EPdfDataType::Reference:
+    case EPdfDataType::Null:
+    case EPdfDataType::Unknown:
+    default:
+        return m_bDirty;
+    };
+}
+
+// FIXME: This is completely wrong and unsafe. PoDoFo does the same
+void PdfObject::SetDirty(bool bDirty)
+{
+    m_bDirty = bDirty;
+
+    if (!m_bDirty)
+    {
+        // Propogate new dirty state to subclasses
+        switch (m_Variant.GetDataType())
+        {
+            // Arrays and Dictionaries
+            // handle dirty status by themselfes
+        case EPdfDataType::Array:
+            m_Variant.GetArray().SetDirty();
+            break;
+        case EPdfDataType::Dictionary:
+            m_Variant.GetDictionary().SetDirty();
+            break;
+        case EPdfDataType::Bool:
+        case EPdfDataType::Number:
+        case EPdfDataType::Real:
+        case EPdfDataType::String:
+        case EPdfDataType::Name:
+        case EPdfDataType::RawData:
+        case EPdfDataType::Reference:
+        case EPdfDataType::Null:
+        case EPdfDataType::Unknown:
+        default:
+            break;
+        };
+    }
+}
+
+void PdfObject::SetImmutable(bool bImmutable)
+{
+    DelayedLoad();
+    m_bImmutable = bImmutable;
+
+    switch (m_Variant.GetDataType())
+    {
+    // Arrays and Dictionaries
+    // handle dirty status by themselfes
+    case EPdfDataType::Array:
+        m_Variant.GetArray().SetImmutable(bImmutable);
+        break;
+    case EPdfDataType::Dictionary:
+        m_Variant.GetDictionary().SetImmutable(bImmutable);
+        break;
+
+    case EPdfDataType::Bool:
+    case EPdfDataType::Number:
+    case EPdfDataType::Real:
+    case EPdfDataType::String:
+    case EPdfDataType::Name:
+    case EPdfDataType::RawData:
+    case EPdfDataType::Reference:
+    case EPdfDataType::Null:
+    case EPdfDataType::Unknown:
+    default:
+        // Do nothing
+        break;
+    }
+}
+
+PdfObject::operator const PdfVariant& () const
+{
+    DelayedLoad();
+    return m_Variant;
+}
+
+const PdfVariant& PdfObject::GetVariant() const
+{
+    DelayedLoad();
+    return m_Variant;
+}
+
+void PdfObject::Clear()
+{
+    DelayedLoad();
+    m_Variant.Clear();
+}
+
+EPdfDataType PdfObject::GetDataType() const
+{
+    DelayedLoad();
+    return m_Variant.GetDataType();
+}
+
+void PdfObject::ToString(std::string& rsData, EPdfWriteMode eWriteMode) const
+{
+    DelayedLoad();
+    m_Variant.ToString(rsData, eWriteMode);
+}
+
+bool PdfObject::GetBool() const
+{
+    DelayedLoad();
+    return m_Variant.GetBool();
+}
+
+bool PdfObject::TryGetBool(bool& value) const
+{
+    DelayedLoad();
+    return m_Variant.TryGetBool(value);
+}
+
+int64_t PdfObject::GetNumberLenient() const
+{
+    DelayedLoad();
+    return m_Variant.GetNumberLenient();
+}
+
+bool PdfObject::TryGetNumberLenient(int64_t& value) const
+{
+    DelayedLoad();
+    return m_Variant.TryGetNumberLenient(value);
+}
+
+int64_t PdfObject::GetNumber() const
+{
+    DelayedLoad();
+    return m_Variant.GetNumber();
+}
+
+bool PdfObject::TryGetNumber(int64_t& value) const
+{
+    DelayedLoad();
+    return m_Variant.TryGetNumber(value);
+}
+
+double PdfObject::GetReal() const
+{
+    DelayedLoad();
+    return m_Variant.GetReal();
+}
+
+bool PdfObject::TryGetReal(double& value) const
+{
+    DelayedLoad();
+    return m_Variant.TryGetReal(value);
+}
+
+const PdfData& PdfObject::GetRawData() const
+{
+    DelayedLoad();
+    return m_Variant.GetRawData();
+}
+
+PdfData& PdfObject::GetRawData()
+{
+    DelayedLoad();
+    return m_Variant.GetRawData();
+}
+
+bool PdfObject::TryGetRawData(const PdfData*& data) const
+{
+    DelayedLoad();
+    return m_Variant.TryGetRawData(data);
+}
+
+bool PdfObject::TryGetRawData(PdfData*& data)
+{
+    DelayedLoad();
+    return m_Variant.TryGetRawData(data);
+}
+
+double PdfObject::GetRealStrict() const
+{
+    DelayedLoad();
+    return m_Variant.GetRealStrict();
+}
+
+bool PdfObject::TryGetRealStrict(double& value) const
+{
+    DelayedLoad();
+    return m_Variant.TryGetRealStrict(value);
+}
+
+const PdfString& PdfObject::GetString() const
+{
+    DelayedLoad();
+    return m_Variant.GetString();
+}
+
+bool PdfObject::TryGetString(const PdfString*& str) const
+{
+    DelayedLoad();
+    return m_Variant.TryGetString(str);
+}
+
+const PdfName& PdfObject::GetName() const
+{
+    DelayedLoad();
+    return m_Variant.GetName();
+}
+
+bool PdfObject::TryGetName(const PdfName*& name) const
+{
+    DelayedLoad();
+    return m_Variant.TryGetName(name);
+}
+
+const PdfArray& PdfObject::GetArray() const
+{
+    DelayedLoad();
+    return m_Variant.GetArray();
+}
+
+PdfArray& PdfObject::GetArray()
+{
+    DelayedLoad();
+    return m_Variant.GetArray();
+}
+
+bool PdfObject::TryGetArray(const PdfArray*& arr) const
+{
+    DelayedLoad();
+    return m_Variant.TryGetArray(arr);
+}
+
+bool PdfObject::TryGetArray(PdfArray*& arr)
+{
+    DelayedLoad();
+    return m_Variant.TryGetArray(arr);
+}
+
+const PdfDictionary& PdfObject::GetDictionary() const
+{
+    DelayedLoad();
+    return m_Variant.GetDictionary();
+}
+
+PdfDictionary& PdfObject::GetDictionary()
+{
+    DelayedLoad();
+    return m_Variant.GetDictionary();
+}
+
+bool PdfObject::TryGetDictionary(const PdfDictionary*& dict) const
+{
+    DelayedLoad();
+    return m_Variant.TryGetDictionary(dict);
+}
+
+bool PdfObject::TryGetDictionary(PdfDictionary*& dict)
+{
+    DelayedLoad();
+    return m_Variant.TryGetDictionary(dict);
+}
+
+PdfReference PdfObject::GetReference() const
+{
+    DelayedLoad();
+    return m_Variant.GetReference();
+}
+
+bool PdfObject::TryGetReference(PdfReference& ref) const
+{
+    DelayedLoad();
+    return m_Variant.TryGetReference(ref);
+}
+
+void PdfObject::SetBool(bool b)
+{
+    AssertMutable();
+    DelayedLoad();
+    m_Variant.SetBool(b);
+    SetDirty(true);
+}
+
+void PdfObject::SetNumber(int64_t l)
+{
+    AssertMutable();
+    DelayedLoad();
+    m_Variant.SetNumber(l);
+    SetDirty(true);
+}
+
+void PdfObject::SetReal(double d)
+{
+    AssertMutable();
+    DelayedLoad();
+    m_Variant.SetReal(d);
+    SetDirty(true);
+}
+
+void PdfObject::SetName(const PdfName& name)
+{
+    AssertMutable();
+    DelayedLoad();
+    m_Variant.SetName(name);
+    SetDirty(true);
+}
+
+void PdfObject::SetString(const PdfString& str)
+{
+    AssertMutable();
+    DelayedLoad();
+    m_Variant.SetString(str);
+    SetDirty(true);
+}
+
+void PdfObject::SetReference(const PdfReference& ref)
+{
+    AssertMutable();
+    DelayedLoad();
+    m_Variant.SetReference(ref);
+    SetDirty(true);
+}
+
+const char* PdfObject::GetDataTypeString() const
+{
+    DelayedLoad();
+    return m_Variant.GetDataTypeString();
+}
+
+bool PdfObject::IsBool() const
+{
+    return GetDataType() == EPdfDataType::Bool;
+}
+
+bool PdfObject::IsNumber() const
+{
+    return GetDataType() == EPdfDataType::Number;
+}
+
+bool PdfObject::IsRealStrict() const
+{
+    return GetDataType() == EPdfDataType::Real;
+}
+
+bool PdfObject::IsNumberOrReal() const
+{
+    EPdfDataType eDataType = GetDataType();
+    return eDataType == EPdfDataType::Number || eDataType == EPdfDataType::Real;
+}
+
+bool PdfObject::IsString() const
+{
+    return GetDataType() == EPdfDataType::String;
+}
+
+bool PdfObject::IsName() const
+{
+    return GetDataType() == EPdfDataType::Name;
+}
+
+bool PdfObject::IsArray() const
+{
+    return GetDataType() == EPdfDataType::Array;
+}
+
+bool PdfObject::IsDictionary() const
+{
+    return GetDataType() == EPdfDataType::Dictionary;
+}
+
+bool PdfObject::IsRawData() const
+{
+    return GetDataType() == EPdfDataType::RawData;
+}
+
+bool PdfObject::IsNull() const
+{
+    return GetDataType() == EPdfDataType::Null;
+}
+
+bool PdfObject::IsReference() const
+{
+    return GetDataType() == EPdfDataType::Reference;
+}
+
+void PdfObject::AssertMutable() const
+{
+    if (m_bImmutable)
+        PODOFO_RAISE_ERROR(EPdfError::ChangeOnImmutable);
+}
+
 bool PdfObject::operator<(const PdfObject& rhs) const
 {
+    DelayedLoad();
+    rhs.DelayedLoad();
     return m_reference < rhs.m_reference;
 }
 
@@ -418,5 +813,14 @@ bool PdfObject::operator<(const PdfObject& rhs) const
 // Check owner,reference and pdfvariant value. Easy
 bool PdfObject::operator==(const PdfObject& rhs) const
 {
-    return (m_reference == rhs.m_reference);
+    DelayedLoad();
+    rhs.DelayedLoad();
+    return m_reference == rhs.m_reference;
+}
+
+bool PdfObject::operator!=(const PdfObject& rhs) const
+{
+    DelayedLoad();
+    rhs.DelayedLoad();
+    return !(*this == rhs);
 }

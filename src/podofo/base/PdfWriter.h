@@ -195,17 +195,6 @@ public:
      */
     bool GetEncrypted() const { return (m_pEncrypt != NULL); }
 
-    /** Calculate the byte offset of the object pObject in the PDF file
-     *  if the file was written to disk at the moment of calling this function.
-     *
-     *  This function is very calculation intensive!
-     *
-     *  \param pObject object to calculate the byte offset (has to be a 
-     *                 child of this PdfWriter)
-     *  \param pulOffset pointer to an unsigned long to save the offset
-     */
-    void GetByteOffset( PdfObject* pObject, size_t* pulOffset );
-
     /** Write the whole document to a buffer in memory.
      *  
      *  Better use a PdfOutputDevice that writes to a PdfRefCountedBuffer.

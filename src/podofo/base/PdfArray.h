@@ -101,8 +101,8 @@ public:
      *  \param pEncrypt an encryption object which is used to encrypt this object
      *                  or NULL to not encrypt this object
      */
-    void Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, 
-                        const PdfEncrypt* pEncrypt = NULL ) const override;
+    void Write(PdfOutputDevice& pDevice, EPdfWriteMode eWriteMode,
+        const PdfEncrypt* pEncrypt) const override;
 
     /** Get the object at the given index out of the array.
      *

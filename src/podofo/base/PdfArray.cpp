@@ -144,8 +144,8 @@ void PdfArray::resize(size_t count, const PdfObject &val)
         SetDirty();
 }
 
-void PdfArray::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, 
-                      const PdfEncrypt* pEncrypt ) const
+void PdfArray::Write(PdfOutputDevice& pDevice, EPdfWriteMode eWriteMode,
+    const PdfEncrypt* pEncrypt ) const
 {
     PdfArray::const_iterator it = this->begin();
 
@@ -153,26 +153,26 @@ void PdfArray::Write( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode,
 
     if( (eWriteMode & EPdfWriteMode::Clean) == EPdfWriteMode::Clean ) 
     {
-        pDevice->Print( "[ " );
+        pDevice.Print( "[ " );
     }
     else
     {
-        pDevice->Print( "[" );
+        pDevice.Print( "[" );
     }
 
     while( it != this->end() )
     {
-        (*it).Write( pDevice, eWriteMode, pEncrypt );
+        it->GetVariant().Write( pDevice, eWriteMode, pEncrypt );
         if( (eWriteMode & EPdfWriteMode::Clean) == EPdfWriteMode::Clean ) 
         {
-            pDevice->Print( (count % 10 == 0) ? "\n" : " " );
+            pDevice.Print( (count % 10 == 0) ? "\n" : " " );
         }
 
         ++it;
         ++count;
     }
 
-    pDevice->Print( "]" );
+    pDevice.Print( "]" );
 }
 
 // TODO: IsDirty in a container should be modified automatically by its children??? YES! And stop on first parent not dirty

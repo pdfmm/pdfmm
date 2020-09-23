@@ -61,11 +61,11 @@ class PdfDocument;
  * identified by an object number and a generation number which has to be
  * passed to the constructor.
  *
- * The object can be written to a file easily using the WriteObject() function.
+ * The object can be written to a file easily using the Write() function.
  *
- * \see WriteObject()
+ * \see Write()
  */
-class PODOFO_API PdfObject : public PdfVariant
+class PODOFO_API PdfObject
 {
     friend class PdfVecObjects;
     friend class PdfArray;
@@ -79,6 +79,8 @@ public:
      *  and the value of being an empty PdfDictionary.
      */
     PdfObject();
+
+    virtual ~PdfObject() { }
 
     /** Construct a new PDF object of type PdfDictionary.
      *
@@ -157,6 +159,199 @@ public:
      */
     PdfObject( const PdfObject & rhs );
 
+public:
+    /** Clear all internal member variables and free the memory
+     *  they have allocated.
+     *  Sets the datatype to EPdfDataType::Null
+     *
+     *  This will reset the dirty flag of this object to be clean.
+     *  \see IsDirty
+     */
+    void Clear();
+
+    /** \returns the datatype of this object or EPdfDataType::Unknown
+     *  if it does not have a value.
+     */
+    EPdfDataType GetDataType() const;
+
+    /** \returns a human readable string representation of GetDataType()
+     *  The returned string must not be free'd.
+     */
+    const char* GetDataTypeString() const;
+
+    /** \returns true if this variant is a bool
+     */
+    bool IsBool() const;
+
+    /** \returns true if this variant is a number
+     */
+    bool IsNumber() const;
+
+    /** \returns true if this variant is a real
+     *
+     *  This method strictly check for a floating point number and return false on integer
+     */
+    bool IsRealStrict() const;
+
+    /** \returns true if this variant is an integer or a floating point number
+     */
+    bool IsNumberOrReal() const;
+
+    /** \returns true if this variant is a string
+     */
+    bool IsString() const;
+
+    /** \returns true if this variant is a name
+     */
+    bool IsName() const;
+
+    /** \returns true if this variant is an array
+     */
+    bool IsArray() const;
+
+    /** \returns true if this variant is a dictionary
+     */
+    bool IsDictionary() const;
+
+    /** \returns true if this variant is raw data
+     */
+    bool IsRawData() const;
+
+    /** \returns true if this variant is null
+     */
+    bool IsNull() const;
+
+    /** \returns true if this variant is a reference
+     */
+    bool IsReference() const;
+
+    /** Converts the current object into a string representation
+     *  which can be written directly to a PDF file on disc.
+     *  \param rsData the object string is returned in this object.
+     *  \param eWriteMode additional options for writing to a string
+     */
+    void ToString(std::string& rsData, EPdfWriteMode eWriteMode = EPdfWriteMode::Clean) const;
+
+    /** Get the value if this object is a bool.
+     *  \returns the bool value.
+     */
+    bool GetBool() const;
+    bool TryGetBool(bool& value) const;
+
+    /** Get the value of the object as int64_t.
+     *
+     *  This method is lenient and narrows floating point numbers
+     *  \return the value of the number
+     */
+    int64_t GetNumberLenient() const;
+    bool TryGetNumberLenient(int64_t& value) const;
+
+    /** Get the value of the object as int64_t
+     *
+     *  This method throws if the numer is a floating point number
+     *  \return the value of the number
+     */
+    int64_t GetNumber() const;
+    bool TryGetNumber(int64_t& value) const;
+
+    /** Get the value of the object as a floating point
+     *
+     *  This method is lenient and returns also strictly integral numbers
+     *  \return the value of the number
+     */
+    double GetReal() const;
+    bool TryGetReal(double& value) const;
+
+    /** Get the value of the object as floating point number
+     *
+     *  This method throws if the numer is integer
+     *  \return the value of the number
+     */
+    double GetRealStrict() const;
+    bool TryGetRealStrict(double& value) const;
+
+    /** \returns the value of the object as string.
+     */
+    const PdfString& GetString() const;
+    bool TryGetString(const PdfString*& str) const;
+
+    /** \returns the value of the object as name
+     */
+    const PdfName& GetName() const;
+    bool TryGetName(const PdfName*& str) const;
+
+    /** Get the reference values of this object.
+     *  \returns a PdfReference
+     */
+    PdfReference GetReference() const;
+    bool TryGetReference(PdfReference& ref) const;
+
+    /** Get the reference values of this object.
+     *  \returns a reference to the PdfData instance.
+     */
+    const PdfData& GetRawData() const;
+    PdfData& GetRawData();
+    bool TryGetRawData(const PdfData*& data) const;
+    bool TryGetRawData(PdfData*& data);
+
+    /** Returns the value of the object as array
+     *  \returns a array
+     */
+    const PdfArray& GetArray() const;
+    PdfArray& GetArray();
+    bool TryGetArray(const PdfArray*& arr) const;
+    bool TryGetArray(PdfArray*& arr);
+
+    /** Returns the dictionary value of this object
+     *  \returns a PdfDictionary
+     */
+    const PdfDictionary& GetDictionary() const;
+    PdfDictionary& GetDictionary();
+    bool TryGetDictionary(const PdfDictionary*& dict) const;
+    bool TryGetDictionary(PdfDictionary*& dict);
+
+    /** Set the value of this object as bool
+     *  \param b the value as bool.
+     *
+     *  This will set the dirty flag of this object.
+     *  \see IsDirty
+     */
+    void SetBool(bool b);
+
+    /** Set the value of this object as int64_t
+     *  \param l the value as int64_t.
+     *
+     *  This will set the dirty flag of this object.
+     *  \see IsDirty
+     */
+    void SetNumber(int64_t l);
+
+    /** Set the value of this object as double
+     *  \param d the value as double.
+     *
+     *  This will set the dirty flag of this object.
+     *  \see IsDirty
+     */
+    void SetReal(double d);
+
+    /** Set the name value of this object
+    *  \param d the name value
+    *
+    *  This will set the dirty flag of this object.
+    *  \see IsDirty
+    */
+    void SetName(const PdfName& name);
+
+    /** Set the string value of this object.
+     * \param str the string value
+     *
+     * This will set the dirty flag of this object.
+     * \see IsDirty
+     */
+    void SetString(const PdfString& str);
+
+    void SetReference(const PdfReference& ref);
+
     void ForceCreateStream();
 
     /** Get the key's value out of the dictionary. If the key is a reference, 
@@ -188,8 +383,7 @@ public:
      *  \param keyStop if not KeyNull and a key == keyStop is found
      *                 writing will stop right before this key!
      */
-    void WriteObject( PdfOutputDevice* pDevice, EPdfWriteMode eWriteMode, PdfEncrypt* pEncrypt,
-                      const PdfName & keyStop = PdfName::KeyNull ) const;
+    void Write(PdfOutputDevice& pDevice, EPdfWriteMode eWriteMode, PdfEncrypt* pEncrypt) const;
 
     /** Get the length of the object in bytes if it was written to disk now.
      *  \param eWriteMode additional options for writing the object
@@ -225,27 +419,6 @@ public:
      */
     bool HasStream() const;
 
-    /** This operator is required for sorting a list of 
-     *  PdfObject instances. It compares the object number. If object numbers
-     *  are equal, the generation number is compared.
-     */
-    bool operator<( const PdfObject & rhs ) const;
-
-    // CHECK-ME: Investigate better on equality of PdfObject
-
-        // REWRITE-ME: The equality operator is pure shit
-    /** Comparison operator.
-     *  Compares two PDF object instances only based on their object and generation number.
-     */
-    bool operator==( const PdfObject & rhs ) const;
-
-    /** Creates a copy of an existing PdfObject.
-     *  All associated objects and streams will be copied along with the PdfObject.
-     *  \param rhs PdfObject to clone
-     *  \returns a reference to this object
-     */
-    const PdfObject & operator=( const PdfObject & rhs );
-
     /** This function compresses any currently set stream
      *  using the FlateDecode algorithm. JPEG compressed streams
      *  will not be compressed again using this function.
@@ -253,16 +426,58 @@ public:
      */
     void FlateCompressStream();
 
-    /** Calculate the byte offset of the key pszKey from the start of the object
-     *  if the object was written to disk at the moment of calling this function.
+    // TODO: IsDirty in a container should be modified automatically by its children??? YES! And stop on first parent not dirty
+    /** The dirty flag is set if this variant
+     *  has been modified after construction.
      *
-     *  This function is very calculation intensive!
+     *  Usually the dirty flag is also set
+     *  if you call any non-const member function
+     *  (e.g. GetDictionary()) as PdfVariant cannot
+     *  determine if you actually changed the dictionary
+     *  or not.
      *
-     *  \param pszKey  key to calculate the byte offset of
-     *  \param eWriteMode additional options for writing the PDF
-     *  \returns the offset of the key 
+     *  \returns true if the value is dirty and has been
+     *                modified since construction
      */
-    size_t GetByteOffset( const char* pszKey, EPdfWriteMode eWriteMode );
+    bool IsDirty() const;
+
+    /**
+     * Sets this object to immutable,
+     * so that no keys can be edited or changed.
+     *
+     * @param bImmutable if true set the object to be immutable
+     *
+     * This is used by PdfImmediateWriter and PdfStreamedDocument so
+     * that no keys can be added to an object after setting stream data on it.
+     *
+     */
+    void SetImmutable(bool bImmutable);
+
+    const PdfVariant& GetVariant() const;
+public:
+    /** This operator is required for sorting a list of
+     *  PdfObject instances. It compares the object number. If object numbers
+     *  are equal, the generation number is compared.
+     */
+    bool operator<(const PdfObject& rhs) const;
+
+    // CHECK-ME: Investigate better on equality of PdfObject
+
+        // REWRITE-ME: The equality operator is pure shit
+    /** Comparison operator.
+     *  Compares two PDF object instances only based on their object and generation number.
+     */
+    bool operator==(const PdfObject& rhs) const;
+    bool operator!=(const PdfObject& rhs) const;
+
+    /** Creates a copy of an existing PdfObject.
+     *  All associated objects and streams will be copied along with the PdfObject.
+     *  \param rhs PdfObject to clone
+     *  \returns a reference to this object
+     */
+    const PdfObject& operator=(const PdfObject& rhs);
+
+    operator const PdfVariant& () const;
 
 public:
     /** Get the document of this object.
@@ -277,7 +492,77 @@ public:
 
     inline const PdfContainerDataType* GetParent() const { return m_Parent; }
 
+    /**
+     * Retrieve if an object is immutable.
+     *
+     * This is used by PdfImmediateWriter and PdfStreamedDocument so
+     * that no keys can be added to an object after setting stream data on it.
+     *
+     * \returns true if the object is immutable
+     */
+    inline bool IsImmutable() const { return m_bImmutable; };
+
+
+    /** Flag the object  incompletely loaded.  DelayedLoad() will be called
+     *  when any method that requires more information than is currently
+     *  available is loaded.
+     *
+     *  All constructors initialize a PdfVariant with delayed loading disabled .
+     *  If you want delayed loading you must ask for it. If you do so, call
+     *  this method early in your ctor and be sure to override DelayedLoadImpl().
+     */
+    inline void EnableDelayedLoading() { m_bDelayedLoadDone = false; }
+
+    /**
+     * Returns true if delayed loading is disabled, or if it is enabled
+     * and loading has completed. External callers should never need to
+     * see this, it's an internal state flag only.
+     */
+    inline bool DelayedLoadDone() const { return m_bDelayedLoadDone; }
+
 protected:
+    /**
+     * Dynamically load the contents of this object from a PDF file by calling
+     * the virtual method DelayedLoadImpl() if the object is not already loaded.
+     *
+     * For objects complete created in memory and those that do not support
+     * deferred loading this function does nothing, since deferred loading
+     * will not be enabled.
+     */
+    void DelayedLoad() const;
+
+    /** Load all data of the object if delayed loading is enabled.
+     *
+     * Never call this method directly; use DelayedLoad() instead.
+     *
+     * You should override this to control deferred loading in your subclass.
+     * Note that this method should not load any associated streams, just the
+     * base object.
+     *
+     * The default implementation throws. It should never be called, since
+     * objects that do not support delayed loading should not enable it.
+     *
+     * While this method is not `const' it may be called from a const context,
+     * so be careful what you mess with.
+     */
+    virtual void DelayedLoadImpl();
+
+    /**
+     *  Will throw an exception if called on an immutable object,
+     *  so this should be called before actually changing a value!
+     *
+     */
+    void AssertMutable() const;
+
+    /** Sets the dirty flag of this PdfVariant
+     *
+     *  \param bDirty true if this PdfVariant has been
+     *                modified from the outside
+     *
+     *  \see IsDirty
+     */
+    void SetDirty(bool bDirty);
+
     /** Set the owner of this object, i.e. the PdfVecObjects to which
      *  this object belongs.
      *
@@ -286,8 +571,6 @@ protected:
     void SetDocument(PdfDocument &document);
 
     void SetIndirectReference(const PdfReference &reference);
-
-    void AfterDelayedLoad() override;
 
     void SetVariantOwner();
 
@@ -318,14 +601,16 @@ protected:
     // Shared initialization between all the ctors
     void InitPdfObject();
 
- private:
-     // Order of member variables has significant effect on sizeof(PdfObject) which
-     // is important in PDFs with many objects (PDF32000_2008.pdf has 750,000 PdfObjects),
-     // be very careful to test class sizes on 32-bit and 64-bit platforms when adding 
-     // or re-ordering objects.
-	 PdfReference m_reference;
+protected:
+    PdfVariant m_Variant;
+private:
+     PdfReference m_reference;
      PdfDocument* m_Document;
      PdfContainerDataType* m_Parent;
+     bool m_bDirty; // Indicates if this object was modified after construction
+     bool m_bImmutable; // Indicates if this object may be modified
+
+     mutable bool m_bDelayedLoadDone;
      mutable bool m_DelayedLoadStreamDone;
 	 std::unique_ptr<PdfStream> m_pStream;
     // Tracks whether deferred loading is still pending (in which case it'll be

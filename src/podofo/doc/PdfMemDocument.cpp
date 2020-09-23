@@ -178,7 +178,7 @@ void PdfMemDocument::InitFromParser( PdfParser* pParser )
      // debug.Write("\n", 1); // OC 17.08.2010: Append Linefeed
         PdfRefCountedBuffer buf;
         PdfOutputDevice debug( &buf );
-        pTrailer->Write( &debug, m_eWriteMode );
+        pTrailer->GetVariant().Write( debug, m_eWriteMode, nullptr );
         debug.Write("\n", 1); // OC 17.08.2010: Append Linefeed
         size_t siz = buf.GetSize();
         char*  ptr = buf.GetBuffer();

@@ -89,7 +89,7 @@ void PdfImmediateWriter::WriteObject( const PdfObject* pObject )
     this->FinishLastObject();
 
     m_pXRef->AddObject( pObject->GetIndirectReference(), m_pDevice->Tell(), true );
-    pObject->WriteObject( m_pDevice, this->GetWriteMode(), m_pEncrypt );
+    pObject->Write(*m_pDevice, this->GetWriteMode(), m_pEncrypt);
     // Make sure, no one will add keys now to the object
     const_cast<PdfObject*>(pObject)->SetImmutable(true);
 
@@ -135,7 +135,7 @@ void PdfImmediateWriter::Finish()
         FillTrailerObject( &trailer, m_pXRef->GetSize(), false );
         
         m_pDevice->Print("trailer\n");
-        trailer.WriteObject( m_pDevice, this->GetWriteMode(), NULL );
+        trailer.Write(*m_pDevice, this->GetWriteMode(), nullptr);
     }
     
     m_pDevice->Print( "startxref\n%" PDF_FORMAT_UINT64 "\n%%%%EOF\n", lXRefOffset );

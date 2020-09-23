@@ -39,7 +39,7 @@
 #include "PdfDefinesPrivate.h"
 #include "PdfDictionary.h"
 
-namespace PoDoFo {
+using namespace PoDoFo;
 
 PdfXRefStream::PdfXRefStream( PdfVecObjects* pParent, PdfWriter* pWriter )
     : m_pParent( pParent ), m_pWriter( pWriter ), m_pObject( NULL )
@@ -99,9 +99,6 @@ void PdfXRefStream::EndWrite( PdfOutputDevice* pDevice )
     m_pObject->GetDictionary().AddKey( "W", w );
 
     pDevice->Seek( static_cast<size_t>(m_offset) );
-    m_pObject->WriteObject( pDevice, m_pWriter->GetWriteMode(), NULL ); // DominikS: Requires encryption info??
+    m_pObject->Write(*pDevice, m_pWriter->GetWriteMode(), nullptr); // DominikS: Requires encryption info??
     m_indeces.Clear();
 }
-
-};
-

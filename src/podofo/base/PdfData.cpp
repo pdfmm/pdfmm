@@ -36,11 +36,9 @@
 #include "PdfOutputDevice.h"
 #include "PdfDefinesPrivate.h"
 
-namespace PoDoFo {
+using namespace PoDoFo;
 
-void PdfData::Write( PdfOutputDevice* pDevice, EPdfWriteMode, const PdfEncrypt* ) const
+void PdfData::Write(PdfOutputDevice& pDevice, EPdfWriteMode, const PdfEncrypt* ) const
 {
-    pDevice->Write( m_sData.c_str(), m_sData.length() );
+    pDevice.Write( m_sData.c_str(), m_sData.length() );
 }
-
-};
