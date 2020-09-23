@@ -33,7 +33,7 @@
 
 #include "PdfColor.h"
 
-#include "PdfVecObjects.h"
+#include <doc/PdfDocument.h>
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfLocale.h"
@@ -921,14 +921,14 @@ PdfColor PdfColor::FromArray( const PdfArray & rArray )
     PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDataType, "PdfColor::FromArray supports only GrayScale, RGB and CMYK colors." );
 }
 
-PdfObject* PdfColor::BuildColorSpace( PdfVecObjects* pOwner ) const
+PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
 {
     switch( m_eColorSpace )
     {
         case EPdfColorSpace::Separation:
         {
             // Build color-spaces for separation
-            PdfObject* csTintFunc = pOwner->CreateObject();
+            PdfObject* csTintFunc = document.GetObjects().CreateObject();
 
             csTintFunc->GetDictionary().AddKey( "BitsPerSample", static_cast<int64_t>(8) );
 
@@ -984,7 +984,7 @@ PdfObject* PdfColor::BuildColorSpace( PdfVecObjects* pOwner ) const
                     csArr.push_back( PdfName("DeviceGray") );
                     csArr.push_back( csTintFunc->GetIndirectReference() );
 
-                    PdfObject* csp = pOwner->CreateObject( csArr );
+                    PdfObject* csp = document.GetObjects().CreateObject( csArr );
 
                     return csp;
                 }
@@ -1022,7 +1022,7 @@ PdfObject* PdfColor::BuildColorSpace( PdfVecObjects* pOwner ) const
                     csArr.push_back( PdfName("DeviceRGB") );
                     csArr.push_back( csTintFunc->GetIndirectReference() );
 
-                    PdfObject* csp = pOwner->CreateObject( csArr );
+                    PdfObject* csp = document.GetObjects().CreateObject( csArr );
 
                     return csp;
                 }
@@ -1064,7 +1064,7 @@ PdfObject* PdfColor::BuildColorSpace( PdfVecObjects* pOwner ) const
                     PdfMemoryInputStream stream( data, 4*2 );
                     csTintFunc->GetOrCreateStream().Set( &stream ); // set stream as last, so that it will work with PdfStreamedDocument
 
-                    PdfObject* csp = pOwner->CreateObject( csArr );
+                    PdfObject* csp = document.GetObjects().CreateObject( csArr );
 
                     return csp;
                 }
@@ -1102,7 +1102,7 @@ PdfObject* PdfColor::BuildColorSpace( PdfVecObjects* pOwner ) const
                     csArr.push_back( PdfName("Lab") );
                     csArr.push_back( csTintFunc->GetIndirectReference() );
 
-                    PdfObject* csp = pOwner->CreateObject( csArr );
+                    PdfObject* csp = document.GetObjects().CreateObject( csArr );
 
                     return csp;
                 }
@@ -1148,7 +1148,7 @@ PdfObject* PdfColor::BuildColorSpace( PdfVecObjects* pOwner ) const
             labArr.push_back( PdfName("Lab") );
             labArr.push_back( labDict );
 
-            PdfObject* labp = pOwner->CreateObject( labArr );
+            PdfObject* labp = document.GetObjects().CreateObject( labArr );
 
             return labp;
         }

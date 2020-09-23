@@ -35,7 +35,7 @@
 
 #include "base/PdfDefinesPrivate.h"
 
-#include "base/PdfVecObjects.h"
+#include <doc/PdfDocument.h>
 #include "base/PdfArray.h"
 #include "base/PdfDictionary.h"
 #include "base/PdfName.h"
@@ -125,7 +125,7 @@ void PdfFontType1::EmbedSubsetFont()
 
     m_bWasEmbedded = true;
 
-    pContents = this->GetObject()->GetOwner()->CreateObject();
+    pContents = this->GetObject()->GetDocument()->GetObjects().CreateObject();
     if( !pContents )
     {
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
@@ -426,7 +426,7 @@ void PdfFontType1::EmbedFontFile( PdfObject* pDescriptor )
 
     m_bWasEmbedded = true;
 
-    pContents = this->GetObject()->GetOwner()->CreateObject();
+    pContents = this->GetObject()->GetDocument()->GetObjects().CreateObject();
     if( !pContents )
     {
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );

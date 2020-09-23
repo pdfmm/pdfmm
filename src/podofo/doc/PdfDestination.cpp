@@ -67,13 +67,7 @@ PdfDestination::PdfDestination( PdfObject* pObject, PdfDocument* pDocument )
 
 PdfDestination::PdfDestination( PdfObject* pObject, PdfVecObjects* pVecObjects )
 {
-    PdfDocument* pDocument = pVecObjects->GetParentDocument();
-    if( !pDocument ) 
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidDataType );
-    }
-
-    Init( pObject, pDocument );
+    Init( pObject, &pVecObjects->GetParentDocument());
 }
 
 PdfDestination::PdfDestination( const PdfPage* pPage, EPdfDestinationFit eFit )
@@ -93,7 +87,7 @@ PdfDestination::PdfDestination( const PdfPage* pPage, EPdfDestinationFit eFit )
 
     m_array.push_back( pPage->GetObject()->GetIndirectReference() );
     m_array.push_back( type );
-    m_pObject = pPage->GetObject()->GetOwner()->CreateObject( m_array );
+    m_pObject = pPage->GetObject()->GetDocument()->GetObjects().CreateObject( m_array );
 }
 
 PdfDestination::PdfDestination( const PdfPage* pPage, const PdfRect & rRect )
@@ -105,7 +99,7 @@ PdfDestination::PdfDestination( const PdfPage* pPage, const PdfRect & rRect )
     m_array.push_back( pPage->GetObject()->GetIndirectReference() );
     m_array.push_back( PdfName("FitR") );
     m_array.insert( m_array.end(), var.GetArray().begin(), var.GetArray().end() );
-    m_pObject = pPage->GetObject()->GetOwner()->CreateObject( m_array );
+    m_pObject = pPage->GetObject()->GetDocument()->GetObjects().CreateObject( m_array );
 }
 
 PdfDestination::PdfDestination( const PdfPage* pPage, double dLeft, double dTop, double dZoom )
@@ -115,7 +109,7 @@ PdfDestination::PdfDestination( const PdfPage* pPage, double dLeft, double dTop,
     m_array.push_back( dLeft );
     m_array.push_back( dTop );
     m_array.push_back( dZoom );
-    m_pObject = pPage->GetObject()->GetOwner()->CreateObject( m_array );
+    m_pObject = pPage->GetObject()->GetDocument()->GetObjects().CreateObject( m_array );
 }
 
 PdfDestination::PdfDestination( const PdfPage* pPage, EPdfDestinationFit eFit, double dValue )
@@ -138,7 +132,7 @@ PdfDestination::PdfDestination( const PdfPage* pPage, EPdfDestinationFit eFit, d
     m_array.push_back( pPage->GetObject()->GetIndirectReference() );
     m_array.push_back( type );
     m_array.push_back( dValue );
-    m_pObject = pPage->GetObject()->GetOwner()->CreateObject( m_array );
+    m_pObject = pPage->GetObject()->GetDocument()->GetObjects().CreateObject( m_array );
 }
 
 PdfDestination::PdfDestination( const PdfDestination & rhs )
@@ -248,15 +242,8 @@ PdfPage* PdfDestination::GetPage( PdfDocument* pDoc )
 }
 
 PdfPage* PdfDestination::GetPage( PdfVecObjects* pVecObjects )
-{
-    PdfDocument* pDoc = pVecObjects->GetParentDocument();
-    if( !pDoc ) 
-    {
-        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidHandle,
-                                 "PdfVecObjects needs a parent PdfDocument to resolve pages." );
-    }
-     
-    return this->GetPage( pDoc );
+{     
+    return this->GetPage( &pVecObjects->GetParentDocument());
 }
 
 };

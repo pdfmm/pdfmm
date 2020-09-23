@@ -39,7 +39,7 @@
 namespace PoDoFo {
 
 class PdfObject;
-class PdfVecObjects;
+class PdfDocument;
 class PdfReference;
 
 /**
@@ -57,13 +57,6 @@ protected:
     PdfContainerDataType( const PdfContainerDataType &rhs );
 
 public:
-    /** \returns a pointer to a PdfVecObjects that is the
-     *           owner of this data type.
-     *           Might be NULL if the data type has no owner.
-     */
-    inline const PdfObject* GetOwner() const { return m_pOwner; }
-    inline PdfObject* GetOwner() { return m_pOwner; }
-
     /** Sets the dirty flag of this container
      *
      *  \param bDirty true if this PdfVariant has been
@@ -73,29 +66,27 @@ public:
      */
     void SetDirty();
 
-    /**
-     * Sets this object to immutable,
-     * so that no keys can be edited or changed.
-     *
-     * @param bImmutable if true set the object to be immutable
-     *
-     * This is used by PdfImmediateWriter and PdfStreamedDocument so 
-     * that no keys can be added to an object after setting stream data on it.
-     *
-     */
-    void SetImmutable(bool immutable) { m_isImmutable = immutable; }
+    PdfContainerDataType & operator=( const PdfContainerDataType &rhs );
+
+public:
+    /** \returns a pointer to a PdfObject that is the
+ *           owner of this data type.
+ *           Might be NULL if the data type has no owner.
+ */
+    inline const PdfObject* GetOwner() const { return m_pOwner; }
+    inline PdfObject* GetOwner() { return m_pOwner; }
 
     // TODO: IsDirty in a container should be modified automatically by its children??? YES! And stop on first parent not dirty
     // When done, remove virtual
     /** The dirty flag is set if this container
      *  has been modified after construction.
-     *  
+     *
      *  Usually the dirty flag is also set
      *  if you call any non-const member function
-     *  as we cannot determine if you actually changed 
+     *  as we cannot determine if you actually changed
      *  something or not.
      *
-     *  \returns true if the value is dirty and has been 
+     *  \returns true if the value is dirty and has been
      *                modified since construction
      */
     virtual bool IsDirty() const { return m_isDirty; }
@@ -103,20 +94,30 @@ public:
     /**
      * Retrieve if an object is immutable.
      *
-     * This is used by PdfImmediateWriter and PdfStreamedDocument so 
+     * This is used by PdfImmediateWriter and PdfStreamedDocument so
      * that no keys can be added to an object after setting stream data on it.
      *
      * @returns true if the object is immutable
      */
     bool IsImmutable() const { return m_isImmutable; }
 
-    PdfContainerDataType & operator=( const PdfContainerDataType &rhs );
+    /**
+     * Sets this object to immutable,
+     * so that no keys can be edited or changed.
+     *
+     * @param bImmutable if true set the object to be immutable
+     *
+     * This is used by PdfImmediateWriter and PdfStreamedDocument so
+     * that no keys can be added to an object after setting stream data on it.
+     *
+     */
+    void SetImmutable(bool immutable) { m_isImmutable = immutable; }
 
 protected:
     void AssertMutable() const;
     virtual void ResetDirtyInternal() = 0;
     PdfObject & GetIndirectObject( const PdfReference &rReference ) const;
-    PdfVecObjects * GetObjectOwner();
+    PdfDocument * GetObjectDocument();
     virtual void SetOwner( PdfObject *pOwner );
 
 private:

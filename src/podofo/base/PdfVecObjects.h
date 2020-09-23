@@ -71,8 +71,6 @@ typedef std::vector<PdfObject*>      TVecObjects;
 typedef TVecObjects::iterator        TIVecObjects;
 typedef TVecObjects::const_iterator  TCIVecObjects;
 
-
-
 /** A STL vector of PdfObjects. I.e. a list of PdfObject classes.
  *  The PdfParser will read the PdfFile into memory and create 
  *  a PdfVecObjects of all dictionaries found in the PDF file.
@@ -100,13 +98,11 @@ public:
 
     /** Every observer of PdfVecObjects has to implement this interface.
      */
-    class PODOFO_API Observer {
+    class PODOFO_API Observer
+    {
         friend class PdfVecObjects;
-
     public:
-        virtual ~Observer()
-            {
-            }
+        virtual ~Observer() { }
 
         virtual void WriteObject( const PdfObject* pObject ) = 0;
             
@@ -133,11 +129,10 @@ public:
 
     /** This class is used to implement stream factories in PoDoFo.
      */
-    class PODOFO_API StreamFactory {
+    class PODOFO_API StreamFactory
+    {
     public:
-        virtual ~StreamFactory()
-            {
-            }
+        virtual ~StreamFactory(){ }
         
         /** Creates a stream object
          *
@@ -156,34 +151,9 @@ public:
  public:
     /** Default constuctor 
      */
-    PdfVecObjects();
+    PdfVecObjects(PdfDocument &document);
 
     ~PdfVecObjects();
-
-    /** \returns a pointer to a PdfDocument that is the 
-     *           parent of this vector.
-     *           Might be NULL if the vector has no parent.
-     */
-    inline PdfDocument* GetParentDocument() const { return m_pDocument; }
-
-    /** Sets a parent document of this vector
-     *  \param pDocument the parent of this vector
-     */
-    inline void SetParentDocument( PdfDocument* pDocument ) { m_pDocument = pDocument; }
-
-    /** Enable/disable auto deletion.
-     *  By default auto deletion is disabled.
-     *
-     *  \param bAutoDelete if true all objects will be deleted when the PdfVecObjects is 
-     *         deleted.
-     */
-    inline void SetAutoDelete( bool bAutoDelete ) { m_bAutoDelete = bAutoDelete; }
-
-    /** 
-     *  \returns if autodeletion is enabled and all objects will be deleted when the PdfVecObjects is 
-     *           deleted.
-     */
-    inline bool IsAutoDelete() const { return m_bAutoDelete; }
 
     /** Enable/disable object numbers re-use.
      *  By default object numbers re-use is enabled.
@@ -193,11 +163,6 @@ public:
      *  If set to false, the list of free object numbers is automatically cleared.
      */
     void SetCanReuseObjectNumbers( bool bCanReuseObjectNumbers );
-
-    /** 
-     *  \returns whether can re-use free object numbers when creating new objects.
-     */
-    inline bool GetCanReuseObjectNumbers() const { return m_bCanReuseObjectNumbers; }
 
     /** Removes all objects from the vector
      *  and resets it to the default state.
@@ -268,10 +233,6 @@ public:
      *  \returns PdfObject pointer to the new PdfObject
      */
     PdfObject* CreateObject( const PdfVariant & rVariant );
-
-    /** \returns a list of free references in this vector
-     */
-    inline const TPdfReferenceList& GetFreeObjects() const { return m_lstFreeObjects; }
 
     /** 
      *  Renumbers all objects according to there current position in the vector.
@@ -433,6 +394,36 @@ public:
      */
     void SetObjectCount( const PdfReference & rRef );
 
+public:
+    /** \returns a pointer to a PdfDocument that is the
+     *           parent of this vector.
+     *           Might be NULL if the vector has no parent.
+     */
+    inline PdfDocument& GetParentDocument() const { return *m_pDocument; }
+
+    /** Enable/disable auto deletion.
+     *  By default auto deletion is disabled.
+     *
+     *  \param bAutoDelete if true all objects will be deleted when the PdfVecObjects is
+     *         deleted.
+     */
+    inline void SetAutoDelete(bool bAutoDelete) { m_bAutoDelete = bAutoDelete; }
+
+    /**
+     *  \returns if autodeletion is enabled and all objects will be deleted when the PdfVecObjects is
+     *           deleted.
+     */
+    inline bool IsAutoDelete() const { return m_bAutoDelete; }
+
+    /**
+     *  \returns whether can re-use free object numbers when creating new objects.
+     */
+    inline bool GetCanReuseObjectNumbers() const { return m_bCanReuseObjectNumbers; }
+
+    /** \returns a list of free references in this vector
+     */
+    inline const TPdfReferenceList& GetFreeObjects() const { return m_lstFreeObjects; }
+
 private:
     /** Insert an object into this vector so that
      *  the vector remains sorted w.r.t.
@@ -504,7 +495,8 @@ private:
      */
     void GarbageCollection( TVecReferencePointerList* pList, PdfObject* pTrailer, TPdfReferenceSet* pNotDelete = NULL );
 
- private:
+private:
+    PdfDocument* m_pDocument;
     bool                m_bAutoDelete;
     bool                m_bCanReuseObjectNumbers;
     size_t              m_nObjectCount;
@@ -515,8 +507,6 @@ private:
     TVecObservers       m_vecObservers;
     TPdfReferenceList   m_lstFreeObjects;
     TPdfObjectNumList   m_lstUnavailableObjects;
-
-    PdfDocument*        m_pDocument;
 
     StreamFactory*      m_pStreamFactory;
 

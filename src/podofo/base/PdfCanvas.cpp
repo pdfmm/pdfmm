@@ -33,7 +33,7 @@
 
 #include "PdfCanvas.h"
 
-#include "PdfVecObjects.h"
+#include <doc/PdfDocument.h>
 #include "PdfDictionary.h"
 #include "PdfName.h"
 #include "PdfColor.h"
@@ -77,7 +77,7 @@ void PdfCanvas::AddColorResource( const PdfColor & rColor )
                 )
 			{
 				// Build color-spaces for separation
-                PdfObject* csp = rColor.BuildColorSpace( GetContents()->GetOwner() );
+                PdfObject* csp = rColor.BuildColorSpace(*GetContents()->GetDocument());
  
                 AddResource( csPrefix + csName, csp->GetIndirectReference(), PdfName("ColorSpace") );
 			}
@@ -92,7 +92,7 @@ void PdfCanvas::AddColorResource( const PdfColor & rColor )
 			   )
 			{
 				// Build color-spaces for CIE-lab
-                PdfObject* csp = rColor.BuildColorSpace( GetContents()->GetOwner() );
+                PdfObject* csp = rColor.BuildColorSpace(*GetContents()->GetDocument());
 
 				AddResource( "ColorSpaceCieLab", csp->GetIndirectReference(), PdfName("ColorSpace") );
 			}
@@ -132,7 +132,7 @@ void PdfCanvas::AddResource( const PdfName & rIdentifier, const PdfReference & r
     // Peter Petrov: 18 December 2008. Bug fix
 	if (EPdfDataType::Reference == pResource->GetDictionary().GetKey( rName )->GetDataType())
     {
-        PdfObject *directObject = pResource->GetOwner()->GetObject(pResource->GetDictionary().GetKey( rName )->GetReference());
+        PdfObject *directObject = pResource->GetDocument()->GetObjects().GetObject(pResource->GetDictionary().GetKey( rName )->GetReference());
 
         if (0 == directObject)
         {

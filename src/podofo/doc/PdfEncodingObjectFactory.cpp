@@ -37,10 +37,10 @@
 
 #include "base/PdfDefinesPrivate.h"
 
+#include <doc/PdfDocument.h>
 #include "base/PdfEncodingFactory.h"
 #include "base/PdfObject.h"
 #include "base/PdfDictionary.h"
-#include "base/PdfVecObjects.h"
 #include "base/PdfContentsTokenizer.h"
 
 #include "PdfDifferenceEncoding.h"
@@ -57,7 +57,7 @@ const PdfEncoding *PdfEncodingObjectFactory::CreateEncoding (PdfObject *pObject,
     if (pObject->IsReference ())
     {
         // resolve any references
-        pObject = pObject->GetOwner ()->GetObject (pObject->GetReference ());
+        pObject = pObject->GetDocument()->GetObjects().GetObject (pObject->GetReference ());
     }
 
     if (pObject->IsName ())

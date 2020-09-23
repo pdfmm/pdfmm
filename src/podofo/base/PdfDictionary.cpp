@@ -123,9 +123,9 @@ PdfObject & PdfDictionary::AddKey( const PdfName & identifier, const PdfObject &
     if ( !inserted.second )
         inserted.first->second = rObject;
 
-    PdfVecObjects *pOwner = GetObjectOwner();
-    if (pOwner != nullptr)
-        inserted.first->second.SetOwner(*pOwner);
+    auto document = GetObjectDocument();
+    if (document != nullptr)
+        inserted.first->second.SetDocument(*document);
 
     SetDirty();
     return inserted.first->second;
@@ -403,14 +403,14 @@ TCIKeyMap PdfDictionary::end() const
 void PdfDictionary::SetOwner( PdfObject *pOwner )
 {
     PdfContainerDataType::SetOwner( pOwner );
-    PdfVecObjects *pVecOwner = pOwner->GetOwner();
-    if (pVecOwner != nullptr)
+    auto document = pOwner->GetDocument();
+    if (document != nullptr)
     {
         // Set owmership for all children
         TIKeyMap it = this->begin();
         TIKeyMap end = this->end();
         for ( ; it != end; it++ )
-            it->second.SetOwner(*pVecOwner);
+            it->second.SetDocument(*document);
     }
 }
 

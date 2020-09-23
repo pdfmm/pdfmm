@@ -33,6 +33,7 @@
 
 #include "PdfParserObject.h"
 
+#include <doc/PdfDocument.h>
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfEncrypt.h"
@@ -57,7 +58,7 @@ PdfParserObject::PdfParserObject( PdfVecObjects* pCreator, const PdfRefCountedIn
                                   const PdfRefCountedBuffer & rBuffer, ssize_t lOffset )
     : PdfObject( PdfVariant::NullValue ), PdfTokenizer( rDevice, rBuffer ), m_pEncrypt( NULL )
 {
-    SetOwner(*pCreator);
+    SetDocument(pCreator->GetParentDocument());
     InitPdfParserObject();
     m_lOffset = lOffset < 0 ? m_device.Device()->Tell() : lOffset;
 }
@@ -224,7 +225,7 @@ void PdfParserObject::ParseStream()
     int64_t lLen = -1;
     int c;
 
-    if( !m_device.Device() || GetOwner() == nullptr )
+    if( !m_device.Device() || GetDocument() == nullptr )
     {
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
@@ -260,7 +261,7 @@ void PdfParserObject::ParseStream()
     }
     else if( pObj && pObj->IsReference() )
     {
-        pObj = GetOwner()->GetObject( pObj->GetReference() );
+        pObj = GetDocument()->GetObjects().GetObject( pObj->GetReference() );
         if( !pObj )
         {
             PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidHandle, "/Length key referenced indirect object that could not be loaded" );

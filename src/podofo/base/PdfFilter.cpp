@@ -35,7 +35,7 @@
 
 #include <sstream>
 
-#include "PdfVecObjects.h"
+#include <doc/PdfDocument.h>
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfFiltersPrivate.h"
@@ -440,7 +440,7 @@ TVecFilters PdfFilterFactory::CreateFilterList( const PdfObject* pObject )
             }
             else if ( (*it).IsReference() )
             {
-                PdfObject* pFilter = pObject->GetOwner()->GetObject( (*it).GetReference() );
+                PdfObject* pFilter = pObject->GetDocument()->GetObjects().GetObject( (*it).GetReference() );
                 if( pFilter == NULL ) 
                 {
                     PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDataType, "Filter array contained unexpected reference" );

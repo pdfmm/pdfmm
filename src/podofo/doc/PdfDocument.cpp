@@ -64,22 +64,21 @@ using namespace std;
 
 namespace PoDoFo {
 
-PdfDocument::PdfDocument(bool bEmpty)
-    : m_fontCache( &m_vecObjects ), 
-      m_pTrailer(NULL),
-      m_pCatalog(NULL),
-      m_pInfo(NULL),
-      m_pPagesTree( NULL ),
-      m_pAcroForms( NULL ),  
-      m_pOutlines( NULL ), 
-      m_pNamesTree( NULL )
+PdfDocument::PdfDocument(bool bEmpty) :
+    m_vecObjects(*this),
+    m_fontCache( &m_vecObjects ), 
+    m_pTrailer(NULL),
+    m_pCatalog(NULL),
+    m_pInfo(NULL),
+    m_pPagesTree( NULL ),
+    m_pAcroForms( NULL ),  
+    m_pOutlines( NULL ), 
+    m_pNamesTree( NULL )
 {
-    m_vecObjects.SetParentDocument( this );
-
     if( !bEmpty ) 
     {
         m_pTrailer = new PdfObject(); // The trailer is NO part of the vector of objects
-        m_pTrailer->SetOwner( m_vecObjects );
+        m_pTrailer->SetDocument( *this );
         m_pCatalog = m_vecObjects.CreateObject( "Catalog" );
         
         m_pInfo = new PdfInfo( &m_vecObjects );
@@ -109,7 +108,6 @@ void PdfDocument::Clear()
     }
 
     m_vecObjects.Clear();
-    m_vecObjects.SetParentDocument( this );
 
     if( m_pInfo ) 
     {
@@ -932,7 +930,7 @@ void PdfDocument::SetTrailer( PdfObject* pObject )
     delete m_pTrailer;
     m_pTrailer = pObject;
     // Set owner so that GetIndirectKey will work
-    m_pTrailer->SetOwner( m_vecObjects );
+    m_pTrailer->SetDocument( *this );
 }
 
 };

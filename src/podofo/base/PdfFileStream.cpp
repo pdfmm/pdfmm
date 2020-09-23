@@ -33,7 +33,7 @@
 
 #include "PdfFileStream.h"
 
-#include "PdfVecObjects.h"
+#include <doc/PdfDocument.h>
 #include "PdfEncrypt.h"
 #include "PdfFilter.h"
 #include "PdfOutputDevice.h"
@@ -49,7 +49,7 @@ PdfFileStream::PdfFileStream( PdfObject* pParent, PdfOutputDevice* pDevice )
     : PdfStream( pParent ), m_pDevice( pDevice ),
         m_lLenInitial( 0 ), m_lLength( 0 ), m_pCurEncrypt( nullptr )
 {
-    m_pLength = pParent->GetOwner()->CreateObject( PdfVariant(static_cast<int64_t>(0)) );
+    m_pLength = pParent->GetDocument()->GetObjects().CreateObject( PdfVariant(static_cast<int64_t>(0)) );
     m_pParent->GetDictionary().AddKey( PdfName::KeyLength, m_pLength->GetIndirectReference() );
 }
 
@@ -60,7 +60,7 @@ void PdfFileStream::Write( PdfOutputDevice*, PdfEncrypt* )
 
 void PdfFileStream::BeginAppendImpl( const TVecFilters & vecFilters )
 {
-    m_pParent->GetOwner()->WriteObject( m_pParent );
+    m_pParent->GetDocument()->GetObjects().WriteObject( m_pParent );
 
     m_lLenInitial = m_pDevice->GetLength();
 

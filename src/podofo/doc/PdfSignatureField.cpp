@@ -34,7 +34,7 @@
 
 #include "PdfSignatureField.h"
 
-#include "base/PdfVecObjects.h"
+#include <doc/PdfDocument.h>
 #include "../base/PdfDictionary.h"
 #include "../base/PdfData.h"
 
@@ -65,7 +65,7 @@ PdfSignatureField::PdfSignatureField( PdfObject* pObject, PdfAnnotation* pWidget
     // do not call Init() here
     if( this->GetFieldObject()->GetDictionary().HasKey( "V" ) )
     {
-        m_pSignatureObj = this->GetFieldObject()->GetOwner()->GetObject( this->GetFieldObject()->GetDictionary().GetKey( "V" )->GetReference() );
+        m_pSignatureObj = this->GetFieldObject()->GetDocument()->GetObjects().GetObject( this->GetFieldObject()->GetDictionary().GetKey( "V" )->GetReference() );
     }
 }
 
@@ -219,10 +219,10 @@ void PdfSignatureField::AddCertificationReference( PdfObject* pDocumentCatalog, 
         m_pSignatureObj->GetDictionary().RemoveKey(PdfName("Reference"));
     }
 
-    PdfObject *pSigRef = this->GetFieldObject()->GetOwner()->CreateObject( "SigRef" );
+    PdfObject *pSigRef = this->GetFieldObject()->GetDocument()->GetObjects().CreateObject( "SigRef" );
     pSigRef->GetDictionary().AddKey(PdfName("TransformMethod"), PdfName("DocMDP"));
 
-    PdfObject *pTransParams = this->GetFieldObject()->GetOwner()->CreateObject( "TransformParams" );
+    PdfObject *pTransParams = this->GetFieldObject()->GetDocument()->GetObjects().CreateObject( "TransformParams" );
     pTransParams->GetDictionary().AddKey(PdfName("V"), PdfName("1.2"));
     pTransParams->GetDictionary().AddKey(PdfName("P"), PdfVariant((int64_t)perm));
     pSigRef->GetDictionary().AddKey(PdfName("TransformParams"), pTransParams);
@@ -288,7 +288,7 @@ void PdfSignatureField::EnsureSignatureObject( void )
     if( m_pSignatureObj != nullptr )
         return;
 
-    m_pSignatureObj = this->GetFieldObject()->GetOwner()->CreateObject( "Sig" );
+    m_pSignatureObj = this->GetFieldObject()->GetDocument()->GetObjects().CreateObject( "Sig" );
     if( !m_pSignatureObj )
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
 

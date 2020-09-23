@@ -35,7 +35,7 @@
 
 #include "base/PdfDefinesPrivate.h"
 
-#include "base/PdfVecObjects.h"
+#include <doc/PdfDocument.h>
 #include "base/PdfArray.h"
 #include "base/PdfDictionary.h"
 #include "base/PdfName.h"
@@ -64,7 +64,7 @@ void PdfFontTrueType::EmbedFontFile( PdfObject* pDescriptor )
     
     m_bWasEmbedded = true;    
         
-    pContents = this->GetObject()->GetOwner()->CreateObject();
+    pContents = this->GetObject()->GetDocument()->GetObjects().CreateObject();
     pDescriptor->GetDictionary().AddKey( "FontFile2", pContents->GetIndirectReference() );
 
     // if the data was loaded from memory - use it from there

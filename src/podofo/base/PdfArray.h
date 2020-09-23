@@ -276,14 +276,14 @@ void PdfArray::insert(const PdfArray::iterator& pos,
 {
     AssertMutable();
 
-    PdfVecObjects *pOwner = GetObjectOwner();
+    auto document = GetObjectDocument();
     iterator it1 = first;
     iterator it2 = pos;
     for ( ; it1 != last; it1++, it2++ )
     {
         it2 = m_objects.insert( it2, *it1 );
-        if ( pOwner != NULL )
-            it2->SetOwner(*pOwner);
+        if (document != nullptr)
+            it2->SetDocument(*document);
     }
 
     SetDirty();

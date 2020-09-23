@@ -33,7 +33,7 @@
 
 #include "PdfObject.h"
 
-#include "PdfVecObjects.h"
+#include <doc/PdfDocument.h>
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfEncrypt.h"
@@ -138,15 +138,15 @@ void PdfObject::ForceCreateStream()
     forceCreateStream();
 }
 
-void PdfObject::SetOwner(PdfVecObjects &pVecObjects)
+void PdfObject::SetDocument(PdfDocument& document)
 {
-    if ( m_pOwner == &pVecObjects )
+    if (m_Document == &document)
     {
         // The inner owner for variant data objects is guaranteed to be same
         return;
     }
 
-    m_pOwner = &pVecObjects;
+    m_Document = &document;
     SetVariantOwner();
 }
 
@@ -178,9 +178,10 @@ void PdfObject::FreeStream()
 
 void PdfObject::InitPdfObject()
 {
-    m_pStream = nullptr;
-    m_pOwner = nullptr;
+    m_Document = nullptr;
+    m_Parent = nullptr;
     m_DelayedLoadStreamDone = true;
+    m_pStream = nullptr;
     SetVariantOwner();
 }
 
@@ -305,10 +306,10 @@ void PdfObject::forceCreateStream()
         PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "Tried to get stream of non-dictionary object");
     }
 
-    if (m_pOwner == nullptr)
+    if (m_Document == nullptr)
         m_pStream.reset(new PdfMemStream(this));
     else
-        m_pStream.reset(m_pOwner->CreateStream(this));
+        m_pStream.reset(m_Document->GetObjects().CreateStream(this));
 }
 
 PdfStream * PdfObject::getStream()

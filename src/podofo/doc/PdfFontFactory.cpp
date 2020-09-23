@@ -35,7 +35,7 @@
 
 #include "base/PdfDefinesPrivate.h"
 
-#include "base/PdfVecObjects.h"
+#include <doc/PdfDocument.h>
 #include "base/PdfArray.h"
 #include "base/PdfDictionary.h"
 #include "base/PdfEncoding.h"
@@ -232,7 +232,7 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library*, PdfObject* pObject )
             PdfObject &descendant = descendants[0];
             if ( descendant.IsReference() )
             {
-                pFontObject = pObject->GetOwner()->GetObject( descendant.GetReference() );
+                pFontObject = pObject->GetDocument()->GetObjects().GetObject( descendant.GetReference() );
                 pDescriptor = pFontObject->GetIndirectKey( "FontDescriptor" );
             }
             else

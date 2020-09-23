@@ -33,7 +33,7 @@
 
 #include "PdfStream.h"
 
-#include "PdfVecObjects.h"
+#include <doc/PdfDocument.h>
 #include "PdfArray.h"
 #include "PdfFilter.h"
 #include "PdfInputStream.h"
@@ -211,9 +211,9 @@ void PdfStream::BeginAppend( const TVecFilters & vecFilters, bool bClearExisting
         // writing to the stream will call this method first
         m_pParent->SetDirty( true );
 
-        PdfVecObjects *pOwner = m_pParent->GetOwner();
-        if ( pOwner )
-            pOwner->BeginAppendStream( this );
+        auto document = m_pParent->GetDocument();
+        if (document != nullptr)
+            document->GetObjects().BeginAppendStream( this );
     }
 
     if( !bClearExisting && this->GetLength() ) 
@@ -261,8 +261,9 @@ void PdfStream::EndAppend()
     m_bAppend = false;
     this->EndAppendImpl();
 
-    if( m_pParent && m_pParent->GetOwner() )
-        m_pParent->GetOwner()->EndAppendStream( this );
+    PdfDocument* document;
+    if( m_pParent && (document = m_pParent->GetDocument()) != nullptr )
+        document->GetObjects().EndAppendStream( this );
 }
 
 // -----------------------------------------------------

@@ -272,7 +272,7 @@ const PdfRect PdfPage::GetPageBox( const char* inBox ) const
     // Sometime page boxes are defined using reference objects
     while ( pObj && pObj->IsReference() )
     {
-        pObj = this->GetObject()->GetOwner()->GetObject( pObj->GetReference() );
+        pObj = this->GetObject()->GetDocument()->GetObjects().GetObject( pObj->GetReference() );
     }
 
     // assign the value of the box from the array
@@ -345,7 +345,7 @@ int PdfPage::GetAnnotationCount() const
 
 PdfAnnotation* PdfPage::CreateAnnotation( EPdfAnnotation eType, const PdfRect & rRect )
 {
-    PdfAnnotation* pAnnot = new PdfAnnotation( this, eType, rRect, this->GetObject()->GetOwner() );
+    PdfAnnotation* pAnnot = new PdfAnnotation( this, eType, rRect, &this->GetObject()->GetDocument()->GetObjects() );
     PdfReference   ref    = pAnnot->GetObject()->GetIndirectReference();
 
     auto &arr = GetOrCreateAnnotationsArray();
@@ -404,7 +404,7 @@ void PdfPage::DeleteAnnotation(int index)
 
     // Delete the PdfObject in the document
     if (pItem.GetIndirectReference().IsIndirect())
-        delete pItem.GetOwner()->RemoveObject(pItem.GetIndirectReference());
+        delete pItem.GetDocument()->GetObjects().RemoveObject(pItem.GetIndirectReference());
 
     // Delete the annotation from the annotation array.
     // Has to be performed at last
@@ -446,7 +446,7 @@ void PdfPage::DeleteAnnotation(PdfObject &annotObj)
 
     // Delete the PdfObject in the document
     if (annotObj.GetIndirectReference().IsIndirect())
-        delete GetObject()->GetOwner()->RemoveObject(annotObj.GetIndirectReference());
+        delete GetObject()->GetDocument()->GetObjects().RemoveObject(annotObj.GetIndirectReference());
     
     // Delete the annotation from the annotation array.
 	// Has to be performed at last
@@ -569,7 +569,7 @@ int PdfPage::GetPageNumber() const
 
             while( it != kids.end() && (*it).GetReference() != ref )
             {
-                PdfObject* pNode = this->GetObject()->GetOwner()->GetObject( (*it).GetReference() );
+                PdfObject* pNode = this->GetObject()->GetDocument()->GetObjects().GetObject( (*it).GetReference() );
                 if (!pNode)
                 {
                     std::ostringstream oss;
@@ -625,7 +625,7 @@ PdfObject* PdfPage::GetFromResources( const PdfName & rType, const PdfName & rKe
             if (pObj->IsReference())
             {
                 const PdfReference & ref = pType->GetDictionary().GetKey( rKey )->GetReference();
-                return this->GetObject()->GetOwner()->GetObject( ref );
+                return this->GetObject()->GetDocument()->GetObjects().GetObject( ref );
             }
             return pObj; // END
         }
@@ -645,7 +645,7 @@ void PdfPage::SetICCProfile( const char *pszCSTag, PdfInputStream *pStream, int6
     }
 
     // Create a colorspace object
-    PdfObject* iccObject = this->GetObject()->GetOwner()->CreateObject();
+    PdfObject* iccObject = this->GetObject()->GetDocument()->GetObjects().CreateObject();
     PdfName nameForCS = PdfColor::GetNameForColorSpace( eAlternateColorSpace );
     iccObject->GetDictionary().AddKey( PdfName("Alternate"), nameForCS );
     iccObject->GetDictionary().AddKey( PdfName("N"), nColorComponents );

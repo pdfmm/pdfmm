@@ -118,7 +118,7 @@ PdfField * PdfField::CreateChildField(PdfPage &page, const PdfRect &rect)
 PdfField * PdfField::createChildField(PdfPage *page, const PdfRect &rect)
 {
     EPdfField type = GetType();
-    auto doc = m_pObject->GetOwner()->GetParentDocument();
+    auto doc = m_pObject->GetDocument();
     PdfField *field;
     PdfObject *childObj;
     if (page == nullptr)

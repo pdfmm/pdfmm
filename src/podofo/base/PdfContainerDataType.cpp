@@ -35,6 +35,7 @@
 
 #include <string>
 #include <cassert>
+#include <doc/PdfDocument.h>
 #include "PdfObject.h"
 #include "PdfVecObjects.h"
 
@@ -63,7 +64,7 @@ PdfObject & PdfContainerDataType::GetIndirectObject( const PdfReference &ref ) c
     if ( m_pOwner == nullptr)
         PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidHandle, "Object is a reference but does not have an owner!" );
 
-    auto ret = m_pOwner->GetOwner()->GetObject( ref );
+    auto ret = m_pOwner->GetDocument()->GetObjects().GetObject( ref );
     if (ret == nullptr)
         PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "Can't find reference with objnum: " + std::to_string(ref.ObjectNumber()) + ", gennum: " + std::to_string(ref.GenerationNumber()));
 
@@ -89,9 +90,9 @@ PdfContainerDataType& PdfContainerDataType::operator=( const PdfContainerDataTyp
     return *this;
 }
 
-PdfVecObjects * PdfContainerDataType::GetObjectOwner()
+PdfDocument * PdfContainerDataType::GetObjectDocument()
 {
-    return m_pOwner == nullptr ? nullptr : m_pOwner->GetOwner();
+    return m_pOwner == nullptr ? nullptr : m_pOwner->GetDocument();
 }
 
 void PdfContainerDataType::AssertMutable() const

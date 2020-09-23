@@ -90,8 +90,13 @@ private:
 // It has to be defined here because of the one-definition rule.
 size_t PdfVecObjects::m_nMaxReserveSize = static_cast<size_t>(8388607); // cf. Table C.1 in section C.2 of PDF32000_2008.pdf
 
-PdfVecObjects::PdfVecObjects()
-    : m_bAutoDelete( false ), m_bCanReuseObjectNumbers( true ), m_nObjectCount( 1 ), m_bSorted( true ), m_pDocument( NULL ), m_pStreamFactory( NULL )
+PdfVecObjects::PdfVecObjects(PdfDocument& document) :
+    m_pDocument(&document),
+    m_bAutoDelete( false ),
+    m_bCanReuseObjectNumbers( true ),
+    m_nObjectCount( 1 ),
+    m_bSorted( true ),
+    m_pStreamFactory(nullptr)
 {
 }
 
@@ -129,8 +134,7 @@ void PdfVecObjects::Clear()
     m_bAutoDelete    = false;
     m_nObjectCount   = 1;
     m_bSorted        = true; // an emtpy vector is sorted
-    m_pDocument      = NULL;
-    m_pStreamFactory = NULL;
+    m_pStreamFactory = nullptr;
 }
 
 PdfObject* PdfVecObjects::GetObject( const PdfReference & ref ) const
@@ -138,14 +142,14 @@ PdfObject* PdfVecObjects::GetObject( const PdfReference & ref ) const
     if( !m_bSorted )
         const_cast<PdfVecObjects*>(this)->Sort();
 
-    PdfObject refObj( ref, NULL );
+    PdfObject refObj( ref, nullptr );
     TCIVecObjects it = std::lower_bound( m_vector.begin(), m_vector.end(), &refObj, ObjectComparatorPredicate() );
     if( it != m_vector.end() && (refObj.GetIndirectReference() == (*it)->GetIndirectReference()) )
     {
         return *it;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 size_t PdfVecObjects::GetIndex( const PdfReference & ref ) const
@@ -153,7 +157,7 @@ size_t PdfVecObjects::GetIndex( const PdfReference & ref ) const
     if( !m_bSorted )
         const_cast<PdfVecObjects*>(this)->Sort();
 
-    PdfObject refObj( ref, NULL );
+    PdfObject refObj( ref, nullptr);
     std::pair<TCIVecObjects,TCIVecObjects> it = 
         std::equal_range( m_vector.begin(), m_vector.end(), &refObj, ObjectComparatorPredicate() );
 
@@ -172,7 +176,7 @@ PdfObject* PdfVecObjects::RemoveObject( const PdfReference & ref, bool bMarkAsFr
 
 
     PdfObject*         pObj;
-    PdfObject refObj( ref, NULL );
+    PdfObject refObj( ref, nullptr);
     std::pair<TIVecObjects,TIVecObjects> it = 
         std::equal_range( m_vector.begin(), m_vector.end(), &refObj, ObjectComparatorPredicate() );
 
@@ -185,7 +189,7 @@ PdfObject* PdfVecObjects::RemoveObject( const PdfReference & ref, bool bMarkAsFr
         return pObj;
     }
     
-    return NULL;
+    return nullptr;
 }
 
 PdfObject* PdfVecObjects::RemoveObject( const TIVecObjects & it )
@@ -237,7 +241,7 @@ PdfObject* PdfVecObjects::CreateObject( const char* pszType )
 {
     PdfReference ref = this->GetNextFreeObject();
     PdfObject*  pObj = new PdfObject( ref, pszType );
-    pObj->SetOwner(*this);
+    pObj->SetDocument(*m_pDocument);
 
     this->AddObject( pObj );
 
@@ -249,7 +253,7 @@ PdfObject* PdfVecObjects::CreateObject( const PdfVariant & rVariant )
     PdfReference ref = this->GetNextFreeObject();
     PdfObject*  pObj = new PdfObject(rVariant);
     pObj->SetIndirectReference(ref);
-    pObj->SetOwner(*this);    
+    pObj->SetDocument(*m_pDocument);    
 
     this->AddObject( pObj );
 
@@ -325,7 +329,7 @@ void PdfVecObjects::PushObject(PdfObject * pObj, const PdfReference & reference)
 void PdfVecObjects::AddObject(PdfObject * pObj)
 {
     SetObjectCount(pObj->GetIndirectReference());
-    pObj->SetOwner( *this );
+    pObj->SetDocument(*m_pDocument);
 
     if( m_bSorted && !m_vector.empty() && pObj->GetIndirectReference() < m_vector.back()->GetIndirectReference() )
     {
@@ -459,7 +463,7 @@ void PdfVecObjects::GetObjectDependencies( const PdfObject* pObj, TPdfReferenceL
             pList->insert(itEqualRange.first, pObj->GetReference() );
 
             const PdfObject* referencedObject = this->GetObject(pObj->GetReference());
-            if( referencedObject != NULL )
+            if( referencedObject != nullptr)
             {
                 this->GetObjectDependencies( referencedObject, pList );
             }
@@ -584,7 +588,7 @@ void PdfVecObjects::WriteObject( PdfObject* pObject )
 
 PdfStream* PdfVecObjects::CreateStream( const PdfStream & )
 {
-    return NULL;
+    return nullptr;
 }
 
 void PdfVecObjects::Finish()

@@ -127,8 +127,9 @@ enum class EPdfAnnotationAppearance
  * 
  *  \see PdfPage::CreateAnnotation
  */
-class PODOFO_DOC_API PdfAnnotation : public PdfElement {
- public:
+class PODOFO_DOC_API PdfAnnotation : public PdfElement
+{
+public:
     /** Create a new annotation object
      *
      *  \param pPage the parent page of this annotation
@@ -400,18 +401,19 @@ class PODOFO_DOC_API PdfAnnotation : public PdfElement {
 
     void SetColor();
 
+public:
     /** Get the type of this annotation
      *  \returns the annotation type
      */
-    inline EPdfAnnotation GetType() const;
+    inline EPdfAnnotation GetType() const { return m_eAnnotation; }
 
     /** Get the page of this PdfField
      *
      *  \returns the page of this PdfField
      */
-    inline PdfPage* GetPage() const;
+    inline PdfPage* GetPage() const { return m_pPage; }
 
- private:
+private:
     /** Convert an annotation enum to its string representation
      *  which can be written to the PDF file.
      *  \returns the string representation or NULL for unsupported annotation types
@@ -431,22 +433,6 @@ class PODOFO_DOC_API PdfAnnotation : public PdfElement {
 
 // helper function, to avoid code duplication
 void SetAppearanceStreamForObject( PdfObject* pForObject, PdfXObject* pObject, EPdfAnnotationAppearance eAppearance, const PdfName & state );
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline EPdfAnnotation PdfAnnotation::GetType() const
-{
-    return m_eAnnotation;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline PdfPage* PdfAnnotation::GetPage() const
-{
-    return m_pPage;
-}
 
 };
 

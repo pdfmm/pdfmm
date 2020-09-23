@@ -35,7 +35,7 @@
 
 #include "base/PdfDefinesPrivate.h"
 
-#include "base/PdfVecObjects.h"
+#include <doc/PdfDocument.h>
 #include "base/PdfArray.h"
 #include "base/PdfDictionary.h"
 #include "base/PdfEncoding.h"
@@ -67,7 +67,7 @@ void PdfFontSimple::Init( bool bEmbed, const PdfName & rsSubType )
     PdfVariant    var;
     PdfArray      array;
 
-    pWidth = this->GetObject()->GetOwner()->CreateObject();
+    pWidth = this->GetObject()->GetDocument()->GetObjects().CreateObject();
     if( !pWidth )
     {
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
@@ -75,7 +75,7 @@ void PdfFontSimple::Init( bool bEmbed, const PdfName & rsSubType )
 
     m_pMetrics->GetWidthArray( *pWidth, m_pEncoding->GetFirstChar(), m_pEncoding->GetLastChar(), m_pEncoding );
 
-    pDescriptor = this->GetObject()->GetOwner()->CreateObject( "FontDescriptor" );
+    pDescriptor = this->GetObject()->GetDocument()->GetObjects().CreateObject( "FontDescriptor" );
     if( !pDescriptor )
     {
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
@@ -83,7 +83,7 @@ void PdfFontSimple::Init( bool bEmbed, const PdfName & rsSubType )
 
 	std::string name;
 	if ( m_bIsSubsetting )
-		name = this->GetObject()->GetOwner()->GetNextSubsetPrefix();
+		name = this->GetObject()->GetDocument()->GetObjects().GetNextSubsetPrefix();
 	name += this->GetBaseFont().GetString();
 
     this->GetObject()->GetDictionary().AddKey( PdfName::KeySubtype, rsSubType );

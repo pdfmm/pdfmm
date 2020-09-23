@@ -33,7 +33,7 @@
 
 #include "PdfAnnotation.h"
 
-#include "base/PdfVecObjects.h"
+#include <doc/PdfDocument.h>
 #include "base/PdfDefinesPrivate.h"
 #include "base/PdfArray.h"
 #include "base/PdfDictionary.h"
@@ -163,12 +163,13 @@ void SetAppearanceStreamForObject( PdfObject* pForObject, PdfXObject* xobj, EPdf
         PdfObject* objAP = pForObject->GetDictionary().GetKey( "AP" );
         if( objAP->GetDataType() == EPdfDataType::Reference )
         {
-            if( !objAP->GetOwner() )
+            auto document = objAP->GetDocument();
+            if(document == nullptr)
             {
                 PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
             }
 
-            objAP = objAP->GetOwner()->GetObject( objAP->GetReference() );
+            objAP = document->GetObjects().GetObject( objAP->GetReference() );
             if( !objAP )
             {
                 PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );

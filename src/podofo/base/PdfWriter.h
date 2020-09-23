@@ -277,7 +277,7 @@ public:
  private:
     EPdfWriteMode   m_eWriteMode;
     EPdfVersion     m_eVersion;
-    int64_t       m_lPrevXRefOffset;
+    int64_t         m_lPrevXRefOffset;
     bool            m_bIncrementalUpdate;
  
     /**
@@ -291,7 +291,6 @@ public:
     size_t            m_lLinearizedOffset;
     size_t            m_lLinearizedLastOffset;
     size_t            m_lTrailerOffset;
-    PdfVecObjects   m_vecLinearized;
 };
 
 // -----------------------------------------------------

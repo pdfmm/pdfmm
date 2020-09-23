@@ -35,7 +35,7 @@
 
 #include "base/PdfDefinesPrivate.h"
 
-#include "base/PdfVecObjects.h"
+#include <doc/PdfDocument.h>
 #include "base/PdfDictionary.h"
 #include "base/PdfName.h"
 #include "base/PdfObject.h"
@@ -120,7 +120,7 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescri
 				PdfObject * second = &w[pos];
 				if (second->IsReference()) {
 					// second do not have an associated owner; use the one in pw
-					second = pw->GetOwner()->GetObject(second->GetReference());
+					second = pw->GetDocument()->GetObjects().GetObject(second->GetReference());
 					PODOFO_ASSERT (!second->IsNull());
 				}
 				if (second->IsArray()) {

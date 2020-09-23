@@ -35,7 +35,7 @@
 
 #include "base/PdfDefinesPrivate.h"
 
-#include "base/PdfVecObjects.h"
+#include <doc/PdfDocument.h>
 #include "base/PdfArray.h"
 #include "base/PdfDictionary.h"
 #include "base/PdfObject.h"
@@ -80,13 +80,13 @@ PdfOutlineItem::PdfOutlineItem( PdfObject* pObject, PdfOutlineItem* pParentOutli
     if( this->GetObject()->GetDictionary().HasKey( "First" ) )
     {
         first    = this->GetObject()->GetDictionary().GetKey("First")->GetReference();
-        m_pFirst = new PdfOutlineItem( pObject->GetOwner()->GetObject( first ), this, NULL );
+        m_pFirst = new PdfOutlineItem( pObject->GetDocument()->GetObjects().GetObject( first ), this, NULL );
     }
 
     if( this->GetObject()->GetDictionary().HasKey( "Next" ) )
     {
         next     = this->GetObject()->GetDictionary().GetKey("Next")->GetReference();
-        PdfObject* pObj = pObject->GetOwner()->GetObject( next );
+        PdfObject* pObj = pObject->GetDocument()->GetObjects().GetObject( next );
 
         m_pNext  = new PdfOutlineItem( pObj, pParentOutline, this );
     }
@@ -113,7 +113,7 @@ PdfOutlineItem::~PdfOutlineItem()
 
 PdfOutlineItem* PdfOutlineItem::CreateChild( const PdfString & sTitle, const PdfDestination & rDest )
 {
-    PdfOutlineItem* pItem = new PdfOutlineItem( sTitle, rDest, this, this->GetObject()->GetOwner() );
+    PdfOutlineItem* pItem = new PdfOutlineItem( sTitle, rDest, this, &this->GetObject()->GetDocument()->GetObjects());
 
     this->InsertChildInternal( pItem, false );
 
@@ -180,7 +180,7 @@ void PdfOutlineItem::InsertChildInternal( PdfOutlineItem* pItem, bool bCheckPare
 
 PdfOutlineItem* PdfOutlineItem::CreateNext ( const PdfString & sTitle, const PdfDestination & rDest )
 {
-    PdfOutlineItem* pItem = new PdfOutlineItem( sTitle, rDest, m_pParentOutline, this->GetObject()->GetOwner() );
+    PdfOutlineItem* pItem = new PdfOutlineItem( sTitle, rDest, m_pParentOutline, &this->GetObject()->GetDocument()->GetObjects());
 
     if( m_pNext ) 
     {
@@ -201,7 +201,7 @@ PdfOutlineItem* PdfOutlineItem::CreateNext ( const PdfString & sTitle, const Pdf
 
 PdfOutlineItem* PdfOutlineItem::CreateNext ( const PdfString & sTitle, const PdfAction & rAction )
 {
-    PdfOutlineItem* pItem = new PdfOutlineItem( sTitle, rAction, m_pParentOutline, this->GetObject()->GetOwner() );
+    PdfOutlineItem* pItem = new PdfOutlineItem( sTitle, rAction, m_pParentOutline, &this->GetObject()->GetDocument()->GetObjects());
 
     if( m_pNext ) 
     {
@@ -399,7 +399,7 @@ PdfOutlines::PdfOutlines( PdfObject* pObject )
 
 PdfOutlineItem* PdfOutlines::CreateRoot( const PdfString & sTitle )
 {
-    return this->CreateChild( sTitle, PdfDestination( GetObject()->GetOwner() ) );
+    return this->CreateChild( sTitle, PdfDestination(&GetObject()->GetDocument()->GetObjects()));
 }
 
 };

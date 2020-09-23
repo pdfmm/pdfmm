@@ -35,9 +35,9 @@
 
 #include "base/PdfDefinesPrivate.h"
 
+#include <doc/PdfDocument.h>
 #include "base/PdfDictionary.h"
 #include "base/PdfObject.h"
-#include "base/PdfVecObjects.h"
 
 #include "PdfStreamedDocument.h"
 
@@ -126,7 +126,7 @@ int PdfElement::TypeNameToIndex( const char* pszType, const char** ppTypes, long
 }
 PdfObject* PdfElement::CreateObject( const char* pszType )
 {
-    return m_pObject->GetOwner()->CreateObject( pszType );
+    return m_pObject->GetDocument()->GetObjects().CreateObject( pszType );
 }
 
 PdfObject * PdfElement::GetNonConstObject() const
@@ -136,10 +136,10 @@ PdfObject * PdfElement::GetNonConstObject() const
 
 PdfDocument& PdfElement::GetDocument()
 {
-    return *m_pObject->GetOwner()->GetParentDocument();
+    return *m_pObject->GetDocument();
 }
 
 const PdfDocument& PdfElement::GetDocument() const
 {
-    return *m_pObject->GetOwner()->GetParentDocument();
+    return *m_pObject->GetDocument();
 }

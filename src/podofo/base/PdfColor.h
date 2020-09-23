@@ -42,7 +42,7 @@ namespace PoDoFo {
 
 class PdfArray;
 class PdfObject;
-class PdfVecObjects;
+class PdfDocument;
     
 /** A color object can represent either a grayscale
  *  value, a RGB color, a CMYK color, a separation color or
@@ -54,8 +54,9 @@ class PdfVecObjects;
  *  Derived classes PdfColorGray, PdfColorRGB, PdfColorCMYK, PdfColorSeparation
  *  and PdfColorCieLab are available for easy construction
  */
-class PODOFO_API PdfColor {
- public:
+class PODOFO_API PdfColor
+{
+public:
     /** Create a PdfColor object that is RGB black.
      */
     PdfColor();
@@ -389,7 +390,7 @@ class PODOFO_API PdfColor {
      *  \param pOwner a pointer to the owner of the generated object
      *  \returns a PdfObject pointer, which can be insert into resources, NULL if not needed
      */
-    PdfObject* BuildColorSpace( PdfVecObjects* pOwner ) const;
+    PdfObject* BuildColorSpace(PdfDocument& document) const;
 
  protected:
     union {

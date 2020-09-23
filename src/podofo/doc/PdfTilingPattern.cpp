@@ -22,6 +22,7 @@
 
 #include "base/PdfDefinesPrivate.h"
 
+#include <doc/PdfDocument.h>
 #include "base/PdfArray.h"
 #include "base/PdfColor.h"
 #include "base/PdfDictionary.h"
@@ -96,7 +97,7 @@ void PdfTilingPattern::AddToResources(const PdfName &rIdentifier, const PdfRefer
 		pResource->GetDictionary().AddKey( rName, PdfDictionary() );
 	}
 	if (EPdfDataType::Reference == pResource->GetDictionary().GetKey( rName )->GetDataType()) {
-		PdfObject *directObject = pResource->GetOwner()->GetObject(pResource->GetDictionary().GetKey( rName )->GetReference());
+		PdfObject *directObject = pResource->GetDocument()->GetObjects().GetObject(pResource->GetDictionary().GetKey( rName )->GetReference());
 
 		if (0 == directObject) {
          PODOFO_RAISE_ERROR( EPdfError::NoObject );

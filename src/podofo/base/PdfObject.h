@@ -41,6 +41,7 @@
 #include "PdfString.h"
 #include "PdfVariant.h"
 #include "PdfStream.h"
+#include "PdfContainerDataType.h"
 
 namespace PoDoFo {
 
@@ -196,11 +197,6 @@ public:
      */
     size_t GetObjectLength( EPdfWriteMode eWriteMode );
 
-    /** Get an indirect reference to this object.
-     *  \returns a PdfReference pointing to this object.
-     */
-    inline const PdfReference & GetIndirectReference() const { return m_reference; }
-
     /** Get a handle to a PDF stream object.
      *  If the PDF object does not have a stream,
      *  one will be created.
@@ -243,11 +239,6 @@ public:
      */
     bool operator==( const PdfObject & rhs ) const;
 
-    /** Get the owner of this object.
-     *  \return the owner (if it wasn't changed anywhere, creator) of this object
-     */
-    inline PdfVecObjects* GetOwner() const { return m_pOwner; }
-
     /** Creates a copy of an existing PdfObject.
      *  All associated objects and streams will be copied along with the PdfObject.
      *  \param rhs PdfObject to clone
@@ -273,13 +264,26 @@ public:
      */
     size_t GetByteOffset( const char* pszKey, EPdfWriteMode eWriteMode );
 
+public:
+    /** Get the document of this object.
+     *  \return the owner (if it wasn't changed anywhere, creator) of this object
+     */
+    inline PdfDocument* GetDocument() const { return m_Document; }
+
+    /** Get an indirect reference to this object.
+     *  \returns a PdfReference pointing to this object.
+     */
+    inline const PdfReference& GetIndirectReference() const { return m_reference; }
+
+    inline const PdfContainerDataType* GetParent() const { return m_Parent; }
+
 protected:
     /** Set the owner of this object, i.e. the PdfVecObjects to which
      *  this object belongs.
      *
      *  \param pVecObjects a vector of pdf objects
      */
-    void SetOwner(PdfVecObjects &pVecObjects);
+    void SetDocument(PdfDocument &document);
 
     void SetIndirectReference(const PdfReference &reference);
 
@@ -320,9 +324,10 @@ protected:
      // be very careful to test class sizes on 32-bit and 64-bit platforms when adding 
      // or re-ordering objects.
 	 PdfReference m_reference;
+     PdfDocument* m_Document;
+     PdfContainerDataType* m_Parent;
      mutable bool m_DelayedLoadStreamDone;
 	 std::unique_ptr<PdfStream> m_pStream;
-	 PdfVecObjects* m_pOwner;
     // Tracks whether deferred loading is still pending (in which case it'll be
     // false). If true, deferred loading is not required or has been completed.
 };

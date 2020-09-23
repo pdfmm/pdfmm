@@ -35,7 +35,7 @@
 
 #include "base/PdfDefinesPrivate.h"
 
-#include "base/PdfVecObjects.h"
+#include <doc/PdfDocument.h>
 #include "base/PdfDictionary.h"
 #include "base/PdfEncoding.h"
 #include "PdfFontMetricsBase14.h"
@@ -74,7 +74,7 @@ void PdfFontType1Base14::InitBase14Font( PdfFontMetrics* pMetrics )
     this->GetObject()->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("Type1"));
     this->GetObject()->GetDictionary().AddKey("BaseFont", PdfName( pMetrics->GetFontname() ) );
 
-    PdfObject *pWidth = this->GetObject()->GetOwner()->CreateObject();
+    PdfObject *pWidth = this->GetObject()->GetDocument()->GetObjects().CreateObject();
     if( !pWidth )
     {
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );

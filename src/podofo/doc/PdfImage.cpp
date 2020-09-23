@@ -35,8 +35,8 @@
 
 #include "base/PdfDefinesPrivate.h"
 
+#include <doc/PdfDocument.h>
 #include "base/PdfDictionary.h"
-#include "base/PdfVecObjects.h"
 #include "base/PdfArray.h"
 #include "base/PdfColor.h"
 #include "base/PdfStream.h"
@@ -142,7 +142,7 @@ void PdfImage::SetImageICCProfile( PdfInputStream* pStream, long lColorComponent
     }
 
     // Create a colorspace object
-    PdfObject* pIccObject = this->GetObject()->GetOwner()->CreateObject();
+    PdfObject* pIccObject = this->GetObject()->GetDocument()->GetObjects().CreateObject();
     pIccObject->GetDictionary().AddKey( PdfName("Alternate"), ColorspaceToName( eAlternateColorSpace ) ); 
     pIccObject->GetDictionary().AddKey( PdfName("N"), static_cast<int64_t>(lColorComponents) );
     pIccObject->GetOrCreateStream().Set( pStream );
@@ -617,7 +617,7 @@ void PdfImage::LoadFromTiffHandle(void* hInHandle) {
             PdfMemoryInputStream stream( datap, numColors*3 );
             
             // Create a colorspace object
-            PdfObject* pIdxObject = this->GetObject()->GetOwner()->CreateObject();
+            PdfObject* pIdxObject = this->GetObject()->GetDocument()->GetObjects().CreateObject();
             pIdxObject->GetOrCreateStream().Set( &stream );
             
             // Add the colorspace to our image

@@ -35,6 +35,7 @@
 
 #include "base/PdfDefinesPrivate.h"
 
+#include <doc/PdfDocument.h>
 #include "base/PdfArray.h"
 #include "base/PdfColor.h"
 #include "base/PdfDictionary.h"
@@ -180,7 +181,7 @@ void PdfShadingPattern::Init( EPdfShadingPatternType eShadingType )
 	 if (eShadingType < EPdfShadingPatternType::FreeForm) {
     this->GetObject()->GetDictionary().AddKey( PdfName("Shading"), shading );
 	 } else {
-		 PdfObject *shadingObject = this->GetObject()->GetOwner()->CreateObject(shading);
+		 PdfObject *shadingObject = this->GetObject()->GetDocument()->GetObjects().CreateObject(shading);
 		 this->GetObject()->GetDictionary().AddKey(PdfName("Shading"), shadingObject->GetIndirectReference());
 	 }
 }
@@ -221,7 +222,7 @@ void PdfAxialShadingPattern::Init( double dX0, double dY0, double dX1, double dY
     domain.push_back( 0.0 );
     domain.push_back( 1.0 );
 
-    PdfExponentialFunction function( domain, c0, c1, 1.0, this->GetObject()->GetOwner() );
+    PdfExponentialFunction function( domain, c0, c1, 1.0, this->GetObject()->GetDocument() );
 
     PdfDictionary & shading = this->GetObject()->GetDictionary().GetKey( PdfName("Shading") )->GetDictionary();
 
@@ -241,7 +242,7 @@ void PdfAxialShadingPattern::Init( double dX0, double dY0, double dX1, double dY
 
 		case EPdfColorSpace::CieLab:
 		{	
-			PdfObject * csp = rStart.BuildColorSpace( this->GetObject()->GetOwner() );
+			PdfObject * csp = rStart.BuildColorSpace( *this->GetObject()->GetDocument() );
 
 			shading.AddKey( PdfName("ColorSpace"), csp->GetIndirectReference() );
 		}
@@ -249,7 +250,7 @@ void PdfAxialShadingPattern::Init( double dX0, double dY0, double dX1, double dY
 
 		case EPdfColorSpace::Separation:
 		{
-			PdfObject * csp = rStart.BuildColorSpace( this->GetObject()->GetOwner() );
+			PdfObject * csp = rStart.BuildColorSpace( *this->GetObject()->GetDocument() );
 
 			shading.AddKey( PdfName("ColorSpace"), csp->GetIndirectReference() );
 		}
@@ -404,7 +405,7 @@ void PdfFunctionBaseShadingPattern::Init( const PdfColor & rLL, const PdfColor &
 			samples.insert( samples.end(), static_cast<char> ( rUR.GetCieA() +128 ) );
 			samples.insert( samples.end(), static_cast<char> ( rUR.GetCieB() +128 ) );
 
-			PdfObject * csp = rLL.BuildColorSpace( this->GetObject()->GetOwner() );
+			PdfObject * csp = rLL.BuildColorSpace( *this->GetObject()->GetDocument() );
 
 			shading.AddKey( PdfName("ColorSpace"), csp->GetIndirectReference() );
 		}
@@ -423,7 +424,7 @@ void PdfFunctionBaseShadingPattern::Init( const PdfColor & rLL, const PdfColor &
 
 			samples.insert( samples.end(), static_cast<char> ( rUR.GetDensity() *255.0 ) );
 
-			PdfObject * csp = rLL.BuildColorSpace( this->GetObject()->GetOwner() );
+			PdfObject * csp = rLL.BuildColorSpace( *this->GetObject()->GetDocument() );
 
 			shading.AddKey( PdfName("ColorSpace"), csp->GetIndirectReference() );
 		}
@@ -436,7 +437,7 @@ void PdfFunctionBaseShadingPattern::Init( const PdfColor & rLL, const PdfColor &
 		break;
 	}
 
-    PdfSampledFunction function( domain, range, samples, this->GetObject()->GetOwner() );
+    PdfSampledFunction function( domain, range, samples, this->GetObject()->GetDocument() );
     shading.AddKey( PdfName("Function"), function.GetObject()->GetIndirectReference() );
     shading.AddKey( PdfName("Domain"), domain );
     shading.AddKey( PdfName("Matrix"), rMatrix );
@@ -480,7 +481,7 @@ void PdfRadialShadingPattern::Init( double dX0, double dY0, double dR0, double d
     domain.push_back( 0.0 );
     domain.push_back( 1.0 );
 
-    PdfExponentialFunction function( domain, c0, c1, 1.0, this->GetObject()->GetOwner() );
+    PdfExponentialFunction function( domain, c0, c1, 1.0, this->GetObject()->GetDocument() );
 
     PdfDictionary & shading = this->GetObject()->GetDictionary().GetKey( PdfName("Shading") )->GetDictionary();
 
@@ -500,7 +501,7 @@ void PdfRadialShadingPattern::Init( double dX0, double dY0, double dR0, double d
 
 		case EPdfColorSpace::CieLab:
 		{	
-			PdfObject * csp = rStart.BuildColorSpace( this->GetObject()->GetOwner() );
+			PdfObject * csp = rStart.BuildColorSpace( *this->GetObject()->GetDocument() );
 
 			shading.AddKey( PdfName("ColorSpace"), csp->GetIndirectReference() );
 		}
@@ -508,7 +509,7 @@ void PdfRadialShadingPattern::Init( double dX0, double dY0, double dR0, double d
 
 		case EPdfColorSpace::Separation:
 		{
-			PdfObject * csp = rStart.BuildColorSpace( this->GetObject()->GetOwner() );
+			PdfObject * csp = rStart.BuildColorSpace( *this->GetObject()->GetDocument() );
 
 			shading.AddKey( PdfName("ColorSpace"), csp->GetIndirectReference() );
 		}

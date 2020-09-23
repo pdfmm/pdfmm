@@ -38,11 +38,11 @@
 #include <algorithm>
 #include <sstream>
 
+#include <doc/PdfDocument.h>
 #include "base/PdfArray.h"
 #include "base/PdfDictionary.h"
 #include "base/PdfObject.h"
 #include "base/PdfOutputDevice.h"
-#include "base/PdfVecObjects.h"
 
 #include "PdfPage.h"
 
@@ -237,7 +237,7 @@ void PdfPagesTree::InsertPages( int nAfterPageIndex, const std::vector<PdfObject
 
 PdfPage* PdfPagesTree::CreatePage( const PdfRect & rSize )
 {
-    PdfPage* pPage = new PdfPage( rSize, GetRoot()->GetOwner() );
+    PdfPage* pPage = new PdfPage( rSize, GetRoot()->GetDocument() );
 
     InsertPage( this->GetTotalNumberOfPages() - 1, pPage );
     m_cache.AddPageObject( this->GetTotalNumberOfPages(), pPage );
@@ -247,7 +247,7 @@ PdfPage* PdfPagesTree::CreatePage( const PdfRect & rSize )
 
 PdfPage* PdfPagesTree::InsertPage( const PdfRect & rSize, int atIndex)
 {
-    PdfPage* pPage = new PdfPage( rSize, GetRoot()->GetOwner() );
+    PdfPage* pPage = new PdfPage( rSize, GetRoot()->GetDocument());
 
     int pageCount;
     if ( atIndex < 0 )
@@ -267,7 +267,7 @@ void PdfPagesTree::CreatePages( const std::vector<PdfRect>& vecSizes )
     std::vector<PdfObject*> vecObjects;
     for (std::vector<PdfRect>::const_iterator it = vecSizes.begin(); it != vecSizes.end(); ++it)
     {
-        PdfPage* pPage = new PdfPage( (*it), GetRoot()->GetOwner() );
+        PdfPage* pPage = new PdfPage( (*it), GetRoot()->GetDocument());
         vecPages.push_back( pPage );
         vecObjects.push_back( pPage->GetObject() );
     }
@@ -362,7 +362,7 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pParent,
             return NULL;
         }
 
-                PdfObject* pChild = GetRoot()->GetOwner()->GetObject( (*it).GetReference() );
+                PdfObject* pChild = GetRoot()->GetDocument()->GetObjects().GetObject( (*it).GetReference() );
                 if (!pChild) 
                 {
                     PdfError::LogMessage( ELogSeverity::Critical, "Requesting page index %i. Child not found: %s", 
@@ -651,7 +651,7 @@ void PdfPagesTree::DeletePageFromNode( PdfObject* pParent, const PdfObjectList &
             DeletePageNode( pParentOfNode, nKidsIndex );
 
             // Delete empty page nodes
-            delete this->GetObject()->GetOwner()->RemoveObject( (*itParents)->GetIndirectReference() );
+            delete this->GetObject()->GetDocument()->GetObjects().RemoveObject( (*itParents)->GetIndirectReference() );
         }
 
         ++itParents;
