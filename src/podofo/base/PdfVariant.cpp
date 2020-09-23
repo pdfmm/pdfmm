@@ -786,6 +786,7 @@ void PdfVariant::SetDirty(bool bDirty)
                 // Arrays and Dictionaries
                 // handle dirty status by themselfes
                 static_cast<PdfContainerDataType&>(*m_Data.pData).SetDirty();
+                break;
 
             case EPdfDataType::Bool:
             case EPdfDataType::Number:
@@ -814,6 +815,7 @@ void PdfVariant::SetImmutable(bool bImmutable)
             // Arrays and Dictionaries
             // handle dirty status by themselfes
             static_cast<PdfContainerDataType&>(*m_Data.pData).SetImmutable(bImmutable);
+            break;
 
         case EPdfDataType::Bool:
         case EPdfDataType::Number:
