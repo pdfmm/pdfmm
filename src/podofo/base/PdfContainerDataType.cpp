@@ -55,14 +55,14 @@ PdfContainerDataType::PdfContainerDataType( const PdfContainerDataType&rhs )
 
 void PdfContainerDataType::ResetDirty()
 {
-    m_isDirty = false;
     ResetDirtyInternal();
+    m_isDirty = false;
 }
 
 PdfObject & PdfContainerDataType::GetIndirectObject( const PdfReference &ref ) const
 {
     if ( m_pOwner == nullptr)
-        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidHandle, "Object is a reference but does not have an owner!" );
+        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidHandle, "Object is a reference but does not have an owner" );
 
     auto ret = m_pOwner->GetDocument()->GetObjects().GetObject( ref );
     if (ret == nullptr)
@@ -80,6 +80,8 @@ void PdfContainerDataType::SetOwner( PdfObject* pOwner )
 void PdfContainerDataType::SetDirty()
 {
     m_isDirty = true;
+    if (m_pOwner != nullptr)
+        m_pOwner->SetDirty();
 }
 
 PdfContainerDataType& PdfContainerDataType::operator=( const PdfContainerDataType& rhs )
@@ -97,8 +99,6 @@ PdfDocument * PdfContainerDataType::GetObjectDocument()
 
 void PdfContainerDataType::AssertMutable() const
 {
-    if(IsImmutable()) 
-    {
+    if(IsImmutable())
         PODOFO_RAISE_ERROR( EPdfError::ChangeOnImmutable );
-    }
 }

@@ -100,7 +100,8 @@ void PdfParserObject::ReadObjectNumber()
 
         reference = PdfReference(static_cast<uint32_t>(obj), static_cast<uint16_t>(gen));
         SetIndirectReference(reference);
-    } catch( PdfError & e )
+    }
+    catch( PdfError & e )
     {
         e.AddToCallstack( __FILE__, __LINE__, "Object and generation number cannot be read." );
         throw e;
@@ -153,6 +154,8 @@ void PdfParserObject::ParseFile( PdfEncrypt* pEncrypt, bool bIsTrailer )
         // to be able to trigger the reading of not-yet-parsed indirect objects
         // such as might appear in a /Length key with an indirect reference.
     }
+
+    ResetDirty();
 }
 
 void PdfParserObject::ForceStreamParse()
@@ -189,7 +192,6 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
     if( strncmp( pszToken, "endobj", s_nLenEndObj ) != 0 )
     {
         this->GetNextVariant( pszToken, eTokenType, m_Variant, m_pEncrypt );
-        this->SetDirty( false );
 
         if( !bIsTrailer )
         {
@@ -308,18 +310,16 @@ void PdfParserObject::ParseStream()
     }
     else
         getOrCreateStream().SetRawData( reader, static_cast<ssize_t>(lLen) );
-
-    this->SetDirty( false );
-    /*
-    SAFE_OP( GetNextStringFromFile( ) );
-    if( strncmp( m_buffer.Buffer(), "endstream", s_nLenEndStream ) != 0 )
-        return ERROR_PDF_MISSING_ENDSTREAM;
-    */
 }
 
 void PdfParserObject::DelayedLoadImpl()
 {
     ParseFileComplete( m_bIsTrailer );
+}
+
+void PdfParserObject::AfterDelayedLoadImpl()
+{
+    ResetDirty();
 }
 
 void PdfParserObject::DelayedLoadStreamImpl()

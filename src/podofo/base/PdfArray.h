@@ -244,20 +244,6 @@ public:
     bool operator==( const PdfArray & rhs ) const;
     bool operator!=( const PdfArray & rhs ) const;
 
-    // TODO: IsDirty in a container should be modified automatically by its children??? YES! And stop on first parent not dirty
-    /** The dirty flag is set if this variant
-     *  has been modified after construction.
-     *  
-     *  Usually the dirty flag is also set
-     *  if you call any non-const member function
-     *  as we cannot determine if you actually changed 
-     *  something or not.
-     *
-     *  \returns true if the value is dirty and has been 
-     *                modified since construction
-     */
-    bool IsDirty() const override;
-
  protected:
      void ResetDirtyInternal() override;
      void SetOwner( PdfObject* pOwner ) override;

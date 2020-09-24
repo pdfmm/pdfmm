@@ -90,9 +90,11 @@ PdfArray::iterator PdfArray::insert( const iterator &pos, const PdfObject &val )
 
     SetDirty();
     iterator ret = m_objects.insert( pos, val );
+    ret->SetParent(this);
     auto document = GetObjectDocument();
     if (document != nullptr)
         ret->SetDocument(*document);
+
     return ret;
 }
 
@@ -134,10 +136,13 @@ void PdfArray::resize(size_t count, const PdfObject &val)
     size_t currentSize = m_objects.size();
     m_objects.resize( count, val );
     auto document = GetObjectDocument();
-    if (document != nullptr)
+
+    for (size_t i = currentSize; i < count; i++)
     {
-        for ( size_t i = currentSize; i < count; i++ )
-            m_objects[i].SetDocument(*document);
+        auto& obj = m_objects[i];
+        obj.SetParent(this);
+        if (document != nullptr)
+            obj.SetDocument(*document);
     }
 
     if (currentSize != count)
@@ -175,34 +180,13 @@ void PdfArray::Write(PdfOutputDevice& pDevice, EPdfWriteMode eWriteMode,
     pDevice.Print( "]" );
 }
 
-// TODO: IsDirty in a container should be modified automatically by its children??? YES! And stop on first parent not dirty
-bool PdfArray::IsDirty() const
-{
-    // If the array itself is dirty
-    // return immediately
-    // otherwise check all children.
-    if( PdfContainerDataType::IsDirty() )
-        return true;
-
-    PdfArray::const_iterator it(this->begin());
-    while( it != this->end() )
-    {
-        if( (*it).IsDirty() )
-            return true;
-
-        ++it;
-    }
-
-    return false;
-}
-
 void PdfArray::ResetDirtyInternal()
 {
     // Propagate state to all subclasses
     PdfArray::iterator it(this->begin());
     while( it != this->end() )
     {
-        (*it).SetDirty(false);
+        it->ResetDirty();
         ++it;
     }
 }

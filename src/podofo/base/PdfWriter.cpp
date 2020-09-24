@@ -270,24 +270,25 @@ void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const PdfVecObjects& 
     for( itObjects = vecObjects.begin(); itObjects !=  itObjectsEnd; ++itObjects )
     {
         PdfObject *pObject = *itObjects;
-
 	    if( m_bIncrementalUpdate )
         {
-            if( !pObject->IsDirty() )
+            if(!pObject->IsDirty())
             {
                 bool canSkip = !bRewriteXRefTable;
-
                 if( bRewriteXRefTable )
                 {
                     const PdfParserObject *parserObject = dynamic_cast<const PdfParserObject *>(pObject);
-                    // the reference looks like "0 0 R", while the object identifier like "0 0 obj", thus add two letters
-                    size_t objRefLength = pObject->GetIndirectReference().ToString().length() + 2;
-
-                    // the offset points just after the "0 0 obj" string
-                    if( parserObject && parserObject->GetOffset() - objRefLength > 0)
+                    if (parserObject)
                     {
-                        pXref->AddObject( pObject->GetIndirectReference(), parserObject->GetOffset() - objRefLength, true );
-                        canSkip = true;
+                        // the reference looks like "0 0 R", while the object identifier like "0 0 obj", thus add two letters
+                        size_t objRefLength = pObject->GetIndirectReference().ToString().length() + 2;
+
+                        // the offset points just after the "0 0 obj" string
+                        if (parserObject->GetOffset() - objRefLength > 0)
+                        {
+                            pXref->AddObject(pObject->GetIndirectReference(), parserObject->GetOffset() - objRefLength, true);
+                            canSkip = true;
+                        }
                     }
                 }
 

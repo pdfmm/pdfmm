@@ -1192,7 +1192,8 @@ void PdfParser::ReadObjectsInternal()
                     try
                     {
                         pObject->ParseFile( m_pEncrypt );
-                        if (m_pEncrypt && pObject->IsDictionary()) {
+                        if (m_pEncrypt && pObject->IsDictionary())
+                        {
                             PdfObject* pObjType = pObject->GetDictionary().GetKey( PdfName::KeyType );
                             if( pObjType && pObjType->IsName() && pObjType->GetName() == "XRef" )
                             {

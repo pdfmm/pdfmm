@@ -209,7 +209,7 @@ void PdfStream::BeginAppend( const TVecFilters & vecFilters, bool bClearExisting
     {
         // We must make sure the parent will be set dirty. All methods
         // writing to the stream will call this method first
-        m_pParent->SetDirty( true );
+        m_pParent->SetDirty();
 
         auto document = m_pParent->GetDocument();
         if (document != nullptr)

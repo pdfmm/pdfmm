@@ -72,6 +72,8 @@ class PODOFO_API PdfObject
     friend class PdfDictionary;
     friend class PdfDocument;
     friend class PdfStream;
+    friend class PdfContainerDataType;
+    friend class PdfObjectStreamParser;
 
 public:
 
@@ -405,6 +407,8 @@ public:
      */
     const PdfStream * GetStream() const;
 
+    bool IsIndirect() const;
+
     /** Get a handle to a const PDF stream object.
      *  If the PDF object does not have a stream,
      *  null is returned.
@@ -426,21 +430,6 @@ public:
      */
     void FlateCompressStream();
 
-    // TODO: IsDirty in a container should be modified automatically by its children??? YES! And stop on first parent not dirty
-    /** The dirty flag is set if this variant
-     *  has been modified after construction.
-     *
-     *  Usually the dirty flag is also set
-     *  if you call any non-const member function
-     *  (e.g. GetDictionary()) as PdfVariant cannot
-     *  determine if you actually changed the dictionary
-     *  or not.
-     *
-     *  \returns true if the value is dirty and has been
-     *                modified since construction
-     */
-    bool IsDirty() const;
-
     /**
      * Sets this object to immutable,
      * so that no keys can be edited or changed.
@@ -454,6 +443,7 @@ public:
     void SetImmutable(bool bImmutable);
 
     const PdfVariant& GetVariant() const;
+
 public:
     /** This operator is required for sorting a list of
      *  PdfObject instances. It compares the object number. If object numbers
@@ -480,6 +470,20 @@ public:
     operator const PdfVariant& () const;
 
 public:
+    /** The dirty flag is set if this variant
+     *  has been modified after construction.
+     *
+     *  Usually the dirty flag is also set
+     *  if you call any non-const member function
+     *  (e.g. GetDictionary()) as PdfVariant cannot
+     *  determine if you actually changed the dictionary
+     *  or not.
+     *
+     *  \returns true if the value is dirty and has been
+     *                modified since construction
+     */
+    inline bool PdfObject::IsDirty() const { return m_IsDirty; }
+
     /** Get the document of this object.
      *  \return the owner (if it wasn't changed anywhere, creator) of this object
      */
@@ -500,7 +504,7 @@ public:
      *
      * \returns true if the object is immutable
      */
-    inline bool IsImmutable() const { return m_bImmutable; };
+    inline bool IsImmutable() const { return m_IsImmutable; };
 
 
     /** Flag the object  incompletely loaded.  DelayedLoad() will be called
@@ -547,6 +551,10 @@ protected:
      */
     virtual void DelayedLoadImpl();
 
+    virtual void AfterDelayedLoadImpl();
+
+    virtual void DelayedLoadStreamImpl();
+
     /**
      *  Will throw an exception if called on an immutable object,
      *  so this should be called before actually changing a value!
@@ -554,14 +562,13 @@ protected:
      */
     void AssertMutable() const;
 
+    void ResetDirty();
+
     /** Sets the dirty flag of this PdfVariant
-     *
-     *  \param bDirty true if this PdfVariant has been
-     *                modified from the outside
      *
      *  \see IsDirty
      */
-    void SetDirty(bool bDirty);
+    void SetDirty();
 
     /** Set the owner of this object, i.e. the PdfVecObjects to which
      *  this object belongs.
@@ -569,8 +576,6 @@ protected:
      *  \param pVecObjects a vector of pdf objects
      */
     void SetDocument(PdfDocument &document);
-
-    void SetIndirectReference(const PdfReference &reference);
 
     void SetVariantOwner();
 
@@ -588,9 +593,13 @@ protected:
 
     void EnableDelayedLoadingStream();
 
-    virtual void DelayedLoadStreamImpl();
+    inline void SetIndirectReference(const PdfReference& reference) { m_reference = reference; }
 
- private:
+private:
+    void setDirty();
+
+    void afterDelayedLoad();
+
     /* See PdfVariant.h for a detailed explanation of this member, which is
      * here to prevent accidental construction of a PdfObject of integer type
      * when passing a pointer. */
@@ -601,14 +610,17 @@ protected:
     // Shared initialization between all the ctors
     void InitPdfObject();
 
+    inline void SetParent(PdfContainerDataType* parent) { m_Parent = parent; }
+
 protected:
     PdfVariant m_Variant;
+
 private:
      PdfReference m_reference;
      PdfDocument* m_Document;
      PdfContainerDataType* m_Parent;
-     bool m_bDirty; // Indicates if this object was modified after construction
-     bool m_bImmutable; // Indicates if this object may be modified
+     bool m_IsDirty; // Indicates if this object was modified after construction
+     bool m_IsImmutable; // Indicates if this object may be modified
 
      mutable bool m_bDelayedLoadDone;
      mutable bool m_DelayedLoadStreamDone;

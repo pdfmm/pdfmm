@@ -57,15 +57,6 @@ protected:
     PdfContainerDataType( const PdfContainerDataType &rhs );
 
 public:
-    /** Sets the dirty flag of this container
-     *
-     *  \param bDirty true if this PdfVariant has been
-     *                modified from the outside
-     *
-     *  \see IsDirty
-     */
-    void SetDirty();
-
     PdfContainerDataType & operator=( const PdfContainerDataType &rhs );
 
 public:
@@ -76,8 +67,6 @@ public:
     inline const PdfObject* GetOwner() const { return m_pOwner; }
     inline PdfObject* GetOwner() { return m_pOwner; }
 
-    // TODO: IsDirty in a container should be modified automatically by its children??? YES! And stop on first parent not dirty
-    // When done, remove virtual
     /** The dirty flag is set if this container
      *  has been modified after construction.
      *
@@ -89,7 +78,7 @@ public:
      *  \returns true if the value is dirty and has been
      *                modified since construction
      */
-    virtual bool IsDirty() const { return m_isDirty; }
+    bool IsDirty() const { return m_isDirty; }
 
     /**
      * Retrieve if an object is immutable.
@@ -119,9 +108,10 @@ protected:
     PdfObject & GetIndirectObject( const PdfReference &rReference ) const;
     PdfDocument * GetObjectDocument();
     virtual void SetOwner( PdfObject *pOwner );
-
+    void SetDirty();
 private:
     void ResetDirty();
+
 private:
     PdfObject *m_pOwner;
     bool m_isImmutable;

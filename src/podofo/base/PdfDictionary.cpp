@@ -123,6 +123,7 @@ PdfObject & PdfDictionary::AddKey( const PdfName & identifier, const PdfObject &
     if ( !inserted.second )
         inserted.first->second = rObject;
 
+    inserted.first->second.SetParent(this);
     auto document = GetObjectDocument();
     if (document != nullptr)
         inserted.first->second.SetDocument(*document);
@@ -343,34 +344,13 @@ void PdfDictionary::Write(PdfOutputDevice& pDevice, EPdfWriteMode eWriteMode,
     pDevice.Print( ">>" );
 }
 
-// TODO: IsDirty in a container should be modified automatically by its children??? YES! And stop on first parent not dirty
-bool PdfDictionary::IsDirty() const
-{
-    // If the dictionary itself is dirty
-    // return immediately
-    // otherwise check all children.
-    if(PdfContainerDataType::IsDirty())
-        return true;
-
-    TKeyMap::const_iterator it = m_mapKeys.begin();
-    while( it != m_mapKeys.end() )
-    {
-        if( it->second.IsDirty() )
-            return true;
-
-        ++it;
-    }
-
-    return false;
-}
-
 void PdfDictionary::ResetDirtyInternal()
 {
     // Propagate state to all sub objects
     TKeyMap::iterator it = m_mapKeys.begin();
     while( it != m_mapKeys.end() )
     {
-        it->second.SetDirty(false);
+        it->second.ResetDirty();
         ++it;
     }
 }
@@ -399,12 +379,14 @@ void PdfDictionary::SetOwner( PdfObject *pOwner )
 {
     PdfContainerDataType::SetOwner( pOwner );
     auto document = pOwner->GetDocument();
-    if (document != nullptr)
+
+    // Set owmership for all children
+    TIKeyMap it = this->begin();
+    TIKeyMap end = this->end();
+    for (; it != end; it++)
     {
-        // Set owmership for all children
-        TIKeyMap it = this->begin();
-        TIKeyMap end = this->end();
-        for ( ; it != end; it++ )
+        it->second.SetParent(this);
+        if (document != nullptr)
             it->second.SetDocument(*document);
     }
 }

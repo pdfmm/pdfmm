@@ -121,9 +121,9 @@ PdfObject::PdfObject( const PdfDictionary & rDict )
     InitPdfObject();
 }
 
-// NOTE: Don't copy owner. Copied objects must be always detached.
-// Ownership will be set automatically elsewhere. Also don't copy
-// reference
+// NOTE: Don't copy parent document/container. Copied objects must be
+// always detached. Ownership will be set automatically elsewhere.
+// Also don't copy reference
 PdfObject::PdfObject( const PdfObject & rhs ) 
     : m_Variant( rhs )
 {
@@ -141,7 +141,7 @@ void PdfObject::SetDocument(PdfDocument& document)
 {
     if (m_Document == &document)
     {
-        // The inner owner for variant data objects is guaranteed to be same
+        // The inner document for variant data objects is guaranteed to be same
         return;
     }
 
@@ -157,10 +157,23 @@ void PdfObject::DelayedLoad() const
 
     const_cast<PdfObject&>(*this).DelayedLoadImpl();
     m_bDelayedLoadDone = true;
-    const_cast<PdfObject&>(*this).SetVariantOwner();
+    const_cast<PdfObject&>(*this).afterDelayedLoad();
+}
+
+void PdfObject::afterDelayedLoad()
+{
+    SetVariantOwner();
+    AfterDelayedLoadImpl();
 }
 
 void PdfObject::DelayedLoadImpl()
+{
+    // Default implementation of virtual void DelayedLoadImpl() throws, since delayed
+    // loading should not be enabled except by types that support it.
+    PODOFO_RAISE_ERROR(EPdfError::InternalLogic);
+}
+
+void PdfObject::AfterDelayedLoadImpl()
 {
     // Default implementation of virtual void DelayedLoadImpl() throws, since delayed
     // loading should not be enabled except by types that support it.
@@ -192,8 +205,10 @@ void PdfObject::InitPdfObject()
 {
     m_Document = nullptr;
     m_Parent = nullptr;
-    m_bDirty = false;
-    m_bImmutable = false;
+    // NOTE: All in-memory objects are initially dirty. The flag
+    // get reset on read from or write to disk
+    m_IsDirty = true;
+    m_IsImmutable = false;
     m_bDelayedLoadDone = true;
     m_DelayedLoadStreamDone = true;
     m_pStream = nullptr;
@@ -242,6 +257,8 @@ void PdfObject::Write(PdfOutputDevice& pDevice, EPdfWriteMode eWriteMode,
 
     if( m_reference.IsIndirect())
         pDevice.Print("endobj\n");
+
+    const_cast<PdfObject&>(*this).ResetDirty();
 }
 
 // REMOVE-ME
@@ -281,6 +298,11 @@ const PdfStream* PdfObject::GetStream() const
 {
     DelayedLoadStream();
     return m_pStream.get();
+}
+
+bool PdfObject::IsIndirect() const
+{
+    return m_reference.IsIndirect();
 }
 
 PdfStream* PdfObject::GetStream()
@@ -324,7 +346,6 @@ void PdfObject::DelayedLoadStream() const
 {
     DelayedLoad();
     delayedLoadStream();
-
 }
 
 void PdfObject::delayedLoadStream() const
@@ -334,11 +355,6 @@ void PdfObject::delayedLoadStream() const
         const_cast<PdfObject &>(*this).DelayedLoadStreamImpl();
         m_DelayedLoadStreamDone = true;
     }
-}
-
-void PdfObject::SetIndirectReference(const PdfReference &reference)
-{
-    m_reference = reference;
 }
 
 void PdfObject::FlateCompressStream() 
@@ -358,11 +374,12 @@ const PdfObject & PdfObject::operator=(const PdfObject & rhs)
     rhs.DelayedLoad();
     m_Variant = rhs.m_Variant;
     copyFrom(rhs);
-    SetDirty(true);
+    SetDirty();
     return *this;
 }
 
-// NOTE: Don't copy owner. Objects being assigned always keep current ownership
+// NOTE: Don't copy parent document/container. Objects being assigned
+// always keep current ownership
 void PdfObject::copyFrom(const PdfObject & rhs)
 {
     // NOTE: Don't call rhs.DelayedLoad() here. It's implicitly
@@ -393,23 +410,19 @@ void PdfObject::DelayedLoadStreamImpl()
     PODOFO_RAISE_ERROR(EPdfError::InternalLogic);
 }
 
-// TODO: IsDirty in a container should be modified automatically by its children??? YES! And stop on first parent not dirty
-bool PdfObject::IsDirty() const
+void PdfObject::ResetDirty()
 {
-    // If this is a object with
-    // stream, the streams dirty
-    // flag might be set.
-    if (m_bDirty)
-        return m_bDirty;
-
+    // Propogate new dirty state to subclasses
     switch (m_Variant.GetDataType())
     {
     // Arrays and Dictionaries
     // handle dirty status by themselfes
     case EPdfDataType::Array:
-        return m_Variant.GetArray().IsDirty();
+        static_cast<PdfContainerDataType &>(m_Variant.GetArray()).ResetDirty();
+        break;
     case EPdfDataType::Dictionary:
-        return m_Variant.GetDictionary().IsDirty();
+        static_cast<PdfContainerDataType&>(m_Variant.GetDictionary()).ResetDirty();
+        break;
     case EPdfDataType::Bool:
     case EPdfDataType::Number:
     case EPdfDataType::Real:
@@ -420,47 +433,31 @@ bool PdfObject::IsDirty() const
     case EPdfDataType::Null:
     case EPdfDataType::Unknown:
     default:
-        return m_bDirty;
+        break;
     };
+
+    m_IsDirty = false;
 }
 
-// FIXME: This is completely wrong and unsafe. PoDoFo does the same
-void PdfObject::SetDirty(bool bDirty)
+void PdfObject::SetDirty()
 {
-    m_bDirty = bDirty;
+    // Reset parent if not indirect. Resetting will stop at
+    // first indirect anchestor
+    if (!IsIndirect() && m_Parent != nullptr)
+        m_Parent->SetDirty();
 
-    if (!m_bDirty)
-    {
-        // Propogate new dirty state to subclasses
-        switch (m_Variant.GetDataType())
-        {
-            // Arrays and Dictionaries
-            // handle dirty status by themselfes
-        case EPdfDataType::Array:
-            m_Variant.GetArray().SetDirty();
-            break;
-        case EPdfDataType::Dictionary:
-            m_Variant.GetDictionary().SetDirty();
-            break;
-        case EPdfDataType::Bool:
-        case EPdfDataType::Number:
-        case EPdfDataType::Real:
-        case EPdfDataType::String:
-        case EPdfDataType::Name:
-        case EPdfDataType::RawData:
-        case EPdfDataType::Reference:
-        case EPdfDataType::Null:
-        case EPdfDataType::Unknown:
-        default:
-            break;
-        };
-    }
+    setDirty();
+}
+
+void PdfObject::setDirty()
+{
+    m_IsDirty = true;
 }
 
 void PdfObject::SetImmutable(bool bImmutable)
 {
     DelayedLoad();
-    m_bImmutable = bImmutable;
+    m_IsImmutable = bImmutable;
 
     switch (m_Variant.GetDataType())
     {
@@ -691,7 +688,7 @@ void PdfObject::SetBool(bool b)
     AssertMutable();
     DelayedLoad();
     m_Variant.SetBool(b);
-    SetDirty(true);
+    SetDirty();
 }
 
 void PdfObject::SetNumber(int64_t l)
@@ -699,7 +696,7 @@ void PdfObject::SetNumber(int64_t l)
     AssertMutable();
     DelayedLoad();
     m_Variant.SetNumber(l);
-    SetDirty(true);
+    SetDirty();
 }
 
 void PdfObject::SetReal(double d)
@@ -707,7 +704,7 @@ void PdfObject::SetReal(double d)
     AssertMutable();
     DelayedLoad();
     m_Variant.SetReal(d);
-    SetDirty(true);
+    SetDirty();
 }
 
 void PdfObject::SetName(const PdfName& name)
@@ -715,7 +712,7 @@ void PdfObject::SetName(const PdfName& name)
     AssertMutable();
     DelayedLoad();
     m_Variant.SetName(name);
-    SetDirty(true);
+    SetDirty();
 }
 
 void PdfObject::SetString(const PdfString& str)
@@ -723,7 +720,7 @@ void PdfObject::SetString(const PdfString& str)
     AssertMutable();
     DelayedLoad();
     m_Variant.SetString(str);
-    SetDirty(true);
+    SetDirty();
 }
 
 void PdfObject::SetReference(const PdfReference& ref)
@@ -731,7 +728,7 @@ void PdfObject::SetReference(const PdfReference& ref)
     AssertMutable();
     DelayedLoad();
     m_Variant.SetReference(ref);
-    SetDirty(true);
+    SetDirty();
 }
 
 const char* PdfObject::GetDataTypeString() const
@@ -798,7 +795,7 @@ bool PdfObject::IsReference() const
 
 void PdfObject::AssertMutable() const
 {
-    if (m_bImmutable)
+    if (m_IsImmutable)
         PODOFO_RAISE_ERROR(EPdfError::ChangeOnImmutable);
 }
 
