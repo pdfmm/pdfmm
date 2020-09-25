@@ -52,7 +52,7 @@
 #include <iostream>
 #include <stdlib.h>
 
-namespace PoDoFo {
+using namespace PoDoFo;
 
 PdfWriter::PdfWriter( PdfParser* pParser )
     : m_bXRefStream( false ), m_pEncrypt( NULL ), 
@@ -267,19 +267,20 @@ void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const PdfVecObjects& 
 {
     TCIVecObjects itObjects, itObjectsEnd = vecObjects.end();
 
-    for( itObjects = vecObjects.begin(); itObjects !=  itObjectsEnd; ++itObjects )
+    for(PdfObject* pObject : vecObjects )
     {
-        PdfObject *pObject = *itObjects;
 	    if( m_bIncrementalUpdate )
         {
             if(!pObject->IsDirty())
             {
-                bool canSkip = !bRewriteXRefTable;
-                if( bRewriteXRefTable )
+                if (bRewriteXRefTable)
                 {
-                    const PdfParserObject *parserObject = dynamic_cast<const PdfParserObject *>(pObject);
-                    if (parserObject)
+                    PdfParserObject* parserObject = dynamic_cast<PdfParserObject*>(pObject);
+                    if (parserObject != nullptr)
                     {
+                        // Try to see if we can just write the reference to previous entry
+                        // without rewriting the entry
+
                         // the reference looks like "0 0 R", while the object identifier like "0 0 obj", thus add two letters
                         size_t objRefLength = pObject->GetIndirectReference().ToString().length() + 2;
 
@@ -287,13 +288,14 @@ void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const PdfVecObjects& 
                         if (parserObject->GetOffset() - objRefLength > 0)
                         {
                             pXref->AddObject(pObject->GetIndirectReference(), parserObject->GetOffset() - objRefLength, true);
-                            canSkip = true;
+                            continue;
                         }
                     }
                 }
-
-                if( canSkip )
+                else
+                {
                     continue;
+                }
             }
         }
 
@@ -468,5 +470,10 @@ void PdfWriter::SetEncrypted( const PdfEncrypt & rEncrypt )
 	m_pEncrypt = PdfEncrypt::CreatePdfEncrypt( rEncrypt );
 }
 
-};
+void PdfWriter::SetUseXRefStream(bool bStream)
+{
+    if (bStream && this->GetPdfVersion() < EPdfVersion::V1_5)
+        this->SetPdfVersion(EPdfVersion::V1_5);
+    m_bXRefStream = bStream;
+}
 

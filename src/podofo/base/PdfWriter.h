@@ -146,19 +146,19 @@ public:
      *  Default is false.
      *  \param bStream if true a XRef stream object will be created
      */
-    inline void SetUseXRefStream( bool bStream );
+    void SetUseXRefStream( bool bStream );
 
     /** 
      *  \returns wether a XRef stream is used or not
      */
-    inline bool GetUseXRefStream() const;
+    inline bool GetUseXRefStream() const { return m_bXRefStream; }
 
     /** Sets an offset to the previous XRef table. Set it to lower than
      *  or equal to 0, to not write a reference to the previous XRef table.
      *  The default is 0.
      *  \param lPrevXRefOffset the previous XRef table offset
      */
-    inline void SetPrevXRefOffset( int64_t lPrevXRefOffset );
+    inline void SetPrevXRefOffset(int64_t lPrevXRefOffset) { m_lPrevXRefOffset = lPrevXRefOffset; }
 
     /** 
      *  \returns offset to the previous XRef table, as previously set
@@ -166,18 +166,18 @@ public:
      *
      * \see SetPrevXRefOffset
      */
-    inline int64_t GetPrevXRefOffset() const;
+    inline int64_t GetPrevXRefOffset() const { return m_lPrevXRefOffset; }
 
     /** Set whether writing an incremental update.
      *  Default is false.
      *  \param bIncrementalUpdate if true an incremental update will be written
      */
-    inline void SetIncrementalUpdate( bool bIncrementalUpdate );
+    inline void SetIncrementalUpdate( bool bIncrementalUpdate ) { m_bIncrementalUpdate = bIncrementalUpdate; }
 
     /** 
      *  \returns whether writing an incremental update
      */
-    inline bool GetIncrementalUpdate( void ) const;
+    inline bool GetIncrementalUpdate( void ) const { return m_bIncrementalUpdate; }
 
     /** Get the file format version of the pdf
      *  \returns the file format version as string
@@ -281,56 +281,6 @@ public:
     size_t            m_lLinearizedLastOffset;
     size_t            m_lTrailerOffset;
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfWriter::SetUseXRefStream( bool bStream )
-{
-    if( bStream && this->GetPdfVersion() < EPdfVersion::V1_5 )
-        this->SetPdfVersion( EPdfVersion::V1_5 );
-    m_bXRefStream = bStream;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfWriter::GetUseXRefStream() const
-{
-    return m_bXRefStream;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfWriter::SetPrevXRefOffset( int64_t lPrevXRefOffset )
-{
-    m_lPrevXRefOffset = lPrevXRefOffset;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-int64_t PdfWriter::GetPrevXRefOffset() const
-{
-    return m_lPrevXRefOffset;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfWriter::SetIncrementalUpdate( bool bIncrementalUpdate )
-{
-    m_bIncrementalUpdate = bIncrementalUpdate;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfWriter::GetIncrementalUpdate( void ) const
-{
-    return m_bIncrementalUpdate;
-}
 
 };
 

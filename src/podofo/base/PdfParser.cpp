@@ -1170,9 +1170,6 @@ void PdfParser::ReadObjectsInternal()
                 if ( entry.lOffset > 0 )
                 {
                     pObject = new PdfParserObject( m_vecObjects, m_device, m_buffer, entry.lOffset );
-                    if( !pObject )
-                        PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
-
                     auto reference = pObject->GetIndirectReference();
                     if ( reference.GenerationNumber() != entry.lGeneration )
                     {

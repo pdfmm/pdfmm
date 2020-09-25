@@ -568,9 +568,9 @@ void PdfVecObjects::Detach( Observer* pObserver )
 
 PdfStream* PdfVecObjects::CreateStream( PdfObject* pParent )
 {
-    PdfStream* pStream = m_pStreamFactory ?
-        m_pStreamFactory->CreateStream( pParent ) :
-        new PdfMemStream( pParent );
+    PdfStream* pStream = m_pStreamFactory == nullptr ?
+        new PdfMemStream(pParent) :
+        m_pStreamFactory->CreateStream( pParent );
 
     return pStream;
 }
