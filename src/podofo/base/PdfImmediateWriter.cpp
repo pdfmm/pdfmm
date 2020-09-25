@@ -162,7 +162,6 @@ void PdfImmediateWriter::FinishLastObject()
         
         delete m_pParent->RemoveObject( m_pLast->GetIndirectReference(), false );
         m_pLast = NULL;
-
     }
 }
 

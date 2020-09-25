@@ -157,23 +157,10 @@ void PdfObject::DelayedLoad() const
 
     const_cast<PdfObject&>(*this).DelayedLoadImpl();
     m_bDelayedLoadDone = true;
-    const_cast<PdfObject&>(*this).afterDelayedLoad();
-}
-
-void PdfObject::afterDelayedLoad()
-{
-    SetVariantOwner();
-    AfterDelayedLoadImpl();
+    const_cast<PdfObject&>(*this).SetVariantOwner();
 }
 
 void PdfObject::DelayedLoadImpl()
-{
-    // Default implementation of virtual void DelayedLoadImpl() throws, since delayed
-    // loading should not be enabled except by types that support it.
-    PODOFO_RAISE_ERROR(EPdfError::InternalLogic);
-}
-
-void PdfObject::AfterDelayedLoadImpl()
 {
     // Default implementation of virtual void DelayedLoadImpl() throws, since delayed
     // loading should not be enabled except by types that support it.
@@ -237,15 +224,21 @@ void PdfObject::Write(PdfOutputDevice& pDevice, EPdfWriteMode eWriteMode,
     if(pEncrypt)
         pEncrypt->SetCurrentReference( m_reference );
 
-    if( pEncrypt && m_pStream != nullptr )
+    if (m_pStream != nullptr)
     {
         // Set length if it is a key
         PdfFileStream* pFileStream = dynamic_cast<PdfFileStream*>(m_pStream.get());
-        if( !pFileStream )
+        if(pFileStream == nullptr)
         {
-            // PdfFileStream handles encryption internally
-            size_t lLength = pEncrypt->CalculateStreamLength(m_pStream->GetLength());
-            *(const_cast<PdfObject*>(this)->GetIndirectKey( PdfName::KeyLength )) = PdfObject(static_cast<int64_t>(lLength));
+            // It's not a PdfFileStream. PdfFileStream handles length internally
+
+            size_t lLength = m_pStream->GetLength();
+            if (pEncrypt != nullptr)
+                lLength = pEncrypt->CalculateStreamLength(lLength);
+
+            // Add the key without triggering SetDirty
+            const_cast<PdfObject&>(*this).m_Variant.GetDictionary().
+                addKey(PdfName::KeyLength, PdfObject(static_cast<int64_t>(lLength)));
         }
     }
 
@@ -258,6 +251,7 @@ void PdfObject::Write(PdfOutputDevice& pDevice, EPdfWriteMode eWriteMode,
     if( m_reference.IsIndirect())
         pDevice.Print("endobj\n");
 
+    // After write we ca reset the dirty flag
     const_cast<PdfObject&>(*this).ResetDirty();
 }
 
@@ -412,6 +406,7 @@ void PdfObject::DelayedLoadStreamImpl()
 
 void PdfObject::ResetDirty()
 {
+    PODOFO_ASSERT(m_bDelayedLoadDone);
     // Propogate new dirty state to subclasses
     switch (m_Variant.GetDataType())
     {
@@ -436,7 +431,7 @@ void PdfObject::ResetDirty()
         break;
     };
 
-    m_IsDirty = false;
+    resetDirty();
 }
 
 void PdfObject::SetDirty()
@@ -452,6 +447,11 @@ void PdfObject::SetDirty()
 void PdfObject::setDirty()
 {
     m_IsDirty = true;
+}
+
+void PdfObject::resetDirty()
+{
+    m_IsDirty = false;
 }
 
 void PdfObject::SetImmutable(bool bImmutable)

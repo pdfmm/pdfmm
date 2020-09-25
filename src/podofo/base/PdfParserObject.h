@@ -138,8 +138,6 @@ public:
      */
     void DelayedLoadImpl() override;
 
-    void AfterDelayedLoadImpl() override;
-
     void DelayedLoadStreamImpl() override;
 
  private:

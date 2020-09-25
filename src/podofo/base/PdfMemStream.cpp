@@ -50,8 +50,6 @@ using namespace PoDoFo;
 PdfMemStream::PdfMemStream( PdfObject* pParent )
     : PdfStream( pParent ), m_lLength( 0 )
 {
-    if (m_pParent)
-        m_pParent->GetDictionary().AddKey(PdfName::KeyLength, PdfVariant(static_cast<int64_t>(0)));
 }
 
 void PdfMemStream::BeginAppendImpl( const TVecFilters & vecFilters )
@@ -96,9 +94,6 @@ void PdfMemStream::EndAppendImpl()
         m_lLength = m_pBufferStream->GetLength();
         m_pBufferStream = nullptr;
     }
-
-    if( m_pParent )
-        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, PdfVariant(static_cast<int64_t>(m_lLength) ) );
 }
 
 void PdfMemStream::GetCopy( char** pBuffer, size_t* lLen ) const
@@ -282,8 +277,6 @@ void PdfMemStream::copyFrom(const PdfMemStream &rhs)
 {
     m_buffer = rhs.m_buffer;
     m_lLength = rhs.GetLength();
-    if (m_pParent)
-        m_pParent->GetDictionary().AddKey(PdfName::KeyLength, PdfVariant(static_cast<int64_t>(m_lLength)));
 }
 
 void PdfMemStream::Write(PdfOutputDevice& pDevice, const PdfEncrypt* pEncrypt)

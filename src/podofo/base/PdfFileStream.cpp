@@ -113,10 +113,9 @@ void PdfFileStream::EndAppendImpl()
     }
 
     m_lLength = m_pDevice->GetLength() - m_lLenInitial;
-    if( m_pCurEncrypt ) 
-    {
+    if (m_pCurEncrypt)
         m_lLength = m_pCurEncrypt->CalculateStreamLength(m_lLength);
-    }
+
     m_pLength->SetNumber(static_cast<int64_t>(m_lLength));
 }
 

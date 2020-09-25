@@ -61,6 +61,7 @@ class PdfOutputStream;
  */
 class PODOFO_API PdfStream
 {
+    friend class PdfParserObject;
 public:
     /** The default filter to use when changing the stream content.
      *  It's a static member and applies to all newly created/changed streams.
@@ -137,7 +138,7 @@ public:
      *                 if lLen = -1 read until the end of the input stream
      *                 was reached.
      */
-    void SetRawData( PdfInputStream &pStream, ssize_t lLen = -1 );
+    void SetRawData(PdfInputStream& stream, ssize_t len = -1);
 
     /** Start appending data to this stream.
      *
@@ -272,7 +273,7 @@ public:
      */
     const PdfStream & operator=( const PdfStream & rhs );
 
- protected:
+protected:
     /** Required for the GetFilteredCopy() implementation
      *  \returns a handle to the internal buffer
      */
@@ -313,6 +314,10 @@ public:
 
 private:
     PdfStream(const PdfStream & rhs) = delete;
+
+    void SetRawData(PdfInputStream& stream, ssize_t len, bool markObjectDirty);
+
+    void BeginAppend(const TVecFilters& vecFilters, bool bClearExisting, bool bDeleteFilters, bool markObjectDirty);
 
 protected:
     PdfObject*          m_pParent;

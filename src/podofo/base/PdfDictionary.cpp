@@ -109,12 +109,23 @@ void PdfDictionary::Clear()
 PdfObject & PdfDictionary::AddKey( const PdfName & identifier, const PdfObject & rObject )
 {
     AssertMutable();
+    auto& added = addKey(identifier, rObject);
+    SetDirty();
+    return added;
+}
 
+void PdfDictionary::AddKey( const PdfName & identifier, const PdfObject* pObject )
+{
+    this->AddKey( identifier, *pObject );
+}
+
+PdfObject& PdfDictionary::addKey(const PdfName& identifier, const PdfObject& rObject)
+{
     // NOTE: Empty PdfNames are legal according to the PDF specification.
     // Don't check for it
 
-    std::pair<TKeyMap::iterator, bool> inserted = m_mapKeys.insert( std::make_pair( identifier, rObject ) );
-    if ( !inserted.second )
+    std::pair<TKeyMap::iterator, bool> inserted = m_mapKeys.insert(std::make_pair(identifier, rObject));
+    if (!inserted.second)
         inserted.first->second = rObject;
 
     inserted.first->second.SetParent(this);
@@ -122,13 +133,7 @@ PdfObject & PdfDictionary::AddKey( const PdfName & identifier, const PdfObject &
     if (document != nullptr)
         inserted.first->second.SetDocument(*document);
 
-    SetDirty();
     return inserted.first->second;
-}
-
-void PdfDictionary::AddKey( const PdfName & identifier, const PdfObject* pObject )
-{
-    this->AddKey( identifier, *pObject );
 }
 
 PdfObject * PdfDictionary::getKey( const PdfName & key ) const

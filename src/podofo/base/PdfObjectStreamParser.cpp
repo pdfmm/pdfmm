@@ -120,6 +120,8 @@ void PdfObjectStreamParser::ReadObjectsFromStream( char* pBuffer, size_t lBuffer
             PdfReference reference(static_cast<uint32_t>(lObj), 0);
             auto obj = new PdfObject(var);
             m_vecObjects->PushObject(obj, reference);
+
+            // The object has just been read, mark it not dirty right now
             obj->ResetDirty();
 		}
 

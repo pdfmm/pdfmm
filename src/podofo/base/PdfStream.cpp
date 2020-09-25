@@ -111,10 +111,6 @@ void PdfStream::CopyFrom(const PdfStream &rhs)
 {
     PdfMemoryInputStream stream( rhs.GetInternalBuffer(), rhs.GetInternalBufferSize() );
     this->SetRawData( stream );
-
-    if( m_pParent ) 
-        m_pParent->GetDictionary().AddKey( PdfName::KeyLength, 
-                                           PdfVariant(static_cast<int64_t>(rhs.GetInternalBufferSize())));
 }
 
 void PdfStream::Set( const char* szBuffer, size_t lLen, const TVecFilters & vecFilters )
@@ -156,8 +152,12 @@ void PdfStream::Set( PdfInputStream* pStream, const TVecFilters & vecFilters )
 
     this->EndAppend();
 }
+void PdfStream::SetRawData(PdfInputStream& stream, ssize_t len)
+{
+    SetRawData(stream, len, true);
+}
 
-void PdfStream::SetRawData( PdfInputStream &pStream, ssize_t lLen )
+void PdfStream::SetRawData(PdfInputStream& pStream, ssize_t lLen, bool markObjectDirty)
 {
     const size_t   BUFFER_SIZE = 4096;
     char           buffer[BUFFER_SIZE];
@@ -166,7 +166,7 @@ void PdfStream::SetRawData( PdfInputStream &pStream, ssize_t lLen )
 
     // TODO: DS, give begin append a size hint so that it knows
     //       how many data has to be allocated
-    this->BeginAppend( vecEmpty, true, false );
+    this->BeginAppend( vecEmpty, true, false, markObjectDirty);
     if( lLen < 0 ) 
     {
         do {
@@ -198,7 +198,12 @@ void PdfStream::BeginAppend( bool bClearExisting )
     this->BeginAppend( vecFilters, bClearExisting );
 }
 
-void PdfStream::BeginAppend( const TVecFilters & vecFilters, bool bClearExisting, bool bDeleteFilters )
+void PdfStream::BeginAppend(const TVecFilters& vecFilters, bool bClearExisting, bool bDeleteFilters)
+{
+    BeginAppend(vecFilters, bClearExisting, bDeleteFilters, true);
+}
+
+void PdfStream::BeginAppend(const TVecFilters& vecFilters, bool bClearExisting, bool bDeleteFilters, bool markObjectDirty)
 {
     char* pBuffer = NULL;
     size_t lLen = 0; //RG: TODO Should this variable be initialised with 0 (line 225 may fall through without initialisation!)
@@ -207,9 +212,12 @@ void PdfStream::BeginAppend( const TVecFilters & vecFilters, bool bClearExisting
 
     if( m_pParent )
     {
-        // We must make sure the parent will be set dirty. All methods
-        // writing to the stream will call this method first
-        m_pParent->SetDirty();
+        if (markObjectDirty)
+        {
+            // We must make sure the parent will be set dirty. All methods
+            // writing to the stream will call this method first
+            m_pParent->SetDirty();
+        }
 
         auto document = m_pParent->GetDocument();
         if (document != nullptr)

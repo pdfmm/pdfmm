@@ -49,9 +49,9 @@ class PdfXRef;
  */
 class PODOFO_API PdfImmediateWriter : private PdfWriter, 
     private PdfVecObjects::Observer, 
-    private PdfVecObjects::StreamFactory {
-
- public:
+    private PdfVecObjects::StreamFactory
+{
+public:
     /** Create a new PdfWriter that writes objects with streams immediately to a PdfOutputDevice
      *
      *  This has the advantage that large documents can be created without
@@ -89,26 +89,26 @@ class PODOFO_API PdfImmediateWriter : private PdfWriter,
     inline EPdfVersion GetPdfVersion() const;
 
  private:
-    void WriteObject( const PdfObject* pObject );
+    void WriteObject( const PdfObject* pObject ) override;
 
     /** Called when the PdfVecObjects we observer is deleted.
      */
-    void ParentDestructed();
+    void ParentDestructed() override;
 
     /** Finish the PDF file.
      *  I.e. write the XRef and close the output device.
      */
-    void Finish();
+    void Finish() override;
 
     /** Called whenever appending to a stream is started.
      *  \param pStream the stream object the user currently writes to.
      */
-    void BeginAppendStream( const PdfStream* pStream );
+    void BeginAppendStream( const PdfStream* pStream ) override;
     
     /** Called whenever appending to a stream has ended.
      *  \param pStream the stream object the user currently writes to.
      */
-    void EndAppendStream( const PdfStream* pStream );
+    void EndAppendStream( const PdfStream* pStream ) override;
 
     /** Creates a stream object
      *
@@ -116,7 +116,7 @@ class PODOFO_API PdfImmediateWriter : private PdfWriter,
      *
      *  \returns a new stream object 
      */
-    PdfStream* CreateStream( PdfObject* pParent );
+    PdfStream* CreateStream( PdfObject* pParent ) override;
 
     /** Assume the stream for the last object has
      *  been written complete.

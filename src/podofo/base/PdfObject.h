@@ -551,8 +551,6 @@ protected:
      */
     virtual void DelayedLoadImpl();
 
-    virtual void AfterDelayedLoadImpl();
-
     virtual void DelayedLoadStreamImpl();
 
     /**
@@ -562,13 +560,13 @@ protected:
      */
     void AssertMutable() const;
 
-    void ResetDirty();
-
     /** Sets the dirty flag of this PdfVariant
      *
      *  \see IsDirty
      */
     void SetDirty();
+
+    void resetDirty();
 
     /** Set the owner of this object, i.e. the PdfVecObjects to which
      *  this object belongs.
@@ -596,9 +594,9 @@ protected:
     inline void SetIndirectReference(const PdfReference& reference) { m_reference = reference; }
 
 private:
-    void setDirty();
+    void ResetDirty();
 
-    void afterDelayedLoad();
+    void setDirty();
 
     /* See PdfVariant.h for a detailed explanation of this member, which is
      * here to prevent accidental construction of a PdfObject of integer type

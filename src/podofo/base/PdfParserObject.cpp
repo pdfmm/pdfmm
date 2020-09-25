@@ -58,6 +58,8 @@ PdfParserObject::PdfParserObject( PdfVecObjects* pCreator, const PdfRefCountedIn
                                   const PdfRefCountedBuffer & rBuffer, ssize_t lOffset )
     : PdfObject( PdfVariant::NullValue ), PdfTokenizer( rDevice, rBuffer ), m_pEncrypt( NULL )
 {
+    // Parsed objects by definition are initially not dirty
+    resetDirty();
     SetDocument(pCreator->GetParentDocument());
     InitPdfParserObject();
     m_lOffset = lOffset < 0 ? m_device.Device()->Tell() : lOffset;
@@ -154,8 +156,6 @@ void PdfParserObject::ParseFile( PdfEncrypt* pEncrypt, bool bIsTrailer )
         // to be able to trigger the reading of not-yet-parsed indirect objects
         // such as might appear in a /Length key with an indirect reference.
     }
-
-    ResetDirty();
 }
 
 void PdfParserObject::ForceStreamParse()
@@ -301,25 +301,24 @@ void PdfParserObject::ParseStream()
 			}
 		}
 	}
+
+    // Set stream raw data without marking the object dirty
     if( m_pEncrypt )
     {
         m_pEncrypt->SetCurrentReference( GetIndirectReference() );
         PdfInputStream* pInput = m_pEncrypt->CreateEncryptionInputStream( &reader );
-        getOrCreateStream().SetRawData( *pInput, static_cast<ssize_t>(lLen) );
+        getOrCreateStream().SetRawData( *pInput, static_cast<ssize_t>(lLen), false );
         delete pInput;
     }
     else
-        getOrCreateStream().SetRawData( reader, static_cast<ssize_t>(lLen) );
+    {
+        getOrCreateStream().SetRawData(reader, static_cast<ssize_t>(lLen), false);
+    }
 }
 
 void PdfParserObject::DelayedLoadImpl()
 {
     ParseFileComplete( m_bIsTrailer );
-}
-
-void PdfParserObject::AfterDelayedLoadImpl()
-{
-    ResetDirty();
 }
 
 void PdfParserObject::DelayedLoadStreamImpl()

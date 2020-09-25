@@ -53,6 +53,7 @@ class PdfOutputDevice;
  */
 class PODOFO_API PdfDictionary : public PdfContainerDataType
 {
+    friend class PdfObject;
 public:
     /** Create a new, empty dictionary
      */
@@ -104,18 +105,7 @@ public:
      */
     PdfObject & AddKey( const PdfName & identifier, const PdfObject & rObject );
 
-    /** Add a key to the dictionary. If an existing key of this name exists,
-     *  its value is replaced and the old value object will be deleted. The
-     *  passed object is copied.
-     *
-     *  This is an overloaded member function.
-     *
-     *  \param identifier the key is identified by this name in the dictionary
-     *  \param pObject pointer to a variant object containing the data. The object is copied.
-     *
-     *  This will set the dirty flag of this object.
-     *  \see IsDirty
-     */
+    // REMOVE-ME
     void AddKey( const PdfName & identifier, const PdfObject* pObject );
 
     /** Get the key's value out of the dictionary.
@@ -243,6 +233,7 @@ public:
      void SetOwner( PdfObject* pOwner ) override;
 
  private:
+     PdfObject& PdfDictionary::addKey(const PdfName& identifier, const PdfObject& rObject);
      PdfObject * getKey(const PdfName & key) const;
      PdfObject * findKey(const PdfName & key) const;
      PdfObject * findKeyParent(const PdfName & key) const;
