@@ -46,12 +46,6 @@ PdfDictionary::PdfDictionary( const PdfDictionary & rhs )
     this->operator=( rhs );
 }
 
-PdfDictionary::~PdfDictionary()
-{
-    this->SetImmutable(false); // Destructor may change things, i.e. delete
-    this->Clear();
-}
-
 const PdfDictionary & PdfDictionary::operator=( const PdfDictionary & rhs )
 {
     m_mapKeys = rhs.m_mapKeys;
