@@ -76,7 +76,7 @@ void PdfStream::GetFilteredCopy( PdfOutputStream* pStream ) const
     }
 }
 
-void PdfStream::GetFilteredCopy( char** ppBuffer, size_t* lLen ) const
+void PdfStream::GetFilteredCopy(unique_ptr<char>& buffer, size_t& len) const
 {
     TVecFilters vecFilters = PdfFilterFactory::CreateFilterList( m_pParent );
     PdfMemoryOutputStream  stream;
@@ -94,8 +94,8 @@ void PdfStream::GetFilteredCopy( char** ppBuffer, size_t* lLen ) const
         stream.Close();
     }
 
-    *lLen = stream.GetLength();
-    *ppBuffer = stream.TakeBuffer();
+    buffer = unique_ptr<char>(stream.TakeBuffer());
+    len = stream.GetLength();
 }
 
 const PdfStream & PdfStream::operator=(const PdfStream & rhs)
@@ -205,9 +205,6 @@ void PdfStream::BeginAppend(const TVecFilters& vecFilters, bool bClearExisting, 
 
 void PdfStream::BeginAppend(const TVecFilters& vecFilters, bool bClearExisting, bool bDeleteFilters, bool markObjectDirty)
 {
-    char* pBuffer = NULL;
-    size_t lLen = 0; //RG: TODO Should this variable be initialised with 0 (line 225 may fall through without initialisation!)
-
     PODOFO_RAISE_LOGIC_IF( m_bAppend, "BeginAppend() failed because EndAppend() was not yet called!" );
 
     if( m_pParent )
@@ -224,8 +221,10 @@ void PdfStream::BeginAppend(const TVecFilters& vecFilters, bool bClearExisting, 
             document->GetObjects().BeginAppendStream( this );
     }
 
-    if( !bClearExisting && this->GetLength() ) 
-        this->GetFilteredCopy( &pBuffer, &lLen );
+    size_t lLen = 0;
+    unique_ptr<char> buffer;
+    if(!bClearExisting && this->GetLength()) 
+        this->GetFilteredCopy(buffer, lLen);
 
     if ( m_pParent )
     {
@@ -255,11 +254,8 @@ void PdfStream::BeginAppend(const TVecFilters& vecFilters, bool bClearExisting, 
 
     this->BeginAppendImpl( vecFilters );
     m_bAppend = true;
-    if( pBuffer ) 
-    {
-        this->Append( pBuffer, lLen );
-        podofo_free( pBuffer );
-    }
+    if(buffer)
+        this->Append(buffer.get(), lLen);
 }
 
 void PdfStream::EndAppend()

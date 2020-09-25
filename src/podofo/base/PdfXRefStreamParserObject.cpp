@@ -41,6 +41,7 @@
 
 #include <limits>
 
+using namespace std;
 using namespace PoDoFo;
 
 PdfXRefStreamParserObject::PdfXRefStreamParserObject(PdfVecObjects* pCreator, const PdfRefCountedInputDevice & rDevice, 
@@ -116,9 +117,6 @@ void PdfXRefStreamParserObject::ReadXRefTable()
 
 void PdfXRefStreamParserObject::ParseStream( const int64_t nW[W_ARRAY_SIZE], const std::vector<int64_t> & rvecIndeces )
 {
-    char * pBuffer;
-    size_t lBufferLen;
-
     for(int64_t nLengthSum = 0, i = 0; i < W_ARRAY_SIZE; i++ )
     {
         if ( nW[i] < 0 )
@@ -139,47 +137,33 @@ void PdfXRefStreamParserObject::ParseStream( const int64_t nW[W_ARRAY_SIZE], con
 
     const size_t entryLen  = static_cast<size_t>(nW[0] + nW[1] + nW[2]);
 
-    this->GetOrCreateStream().GetFilteredCopy( &pBuffer, &lBufferLen );
-
+    unique_ptr<char> buffer;
+    size_t lBufferLen;
+    this->GetOrCreateStream().GetFilteredCopy(buffer, lBufferLen);
     
     std::vector<int64_t>::const_iterator it = rvecIndeces.begin();
-    char* const pStart = pBuffer;
+    char* pBuffer = buffer.get();
     while( it != rvecIndeces.end() )
     {
         int64_t nFirstObj = *it; ++it;
         int64_t nCount    = *it; ++it;
 
-        //int64_t nFirstObjOrg = nFirstObj;
-        //int64_t nCountOrg = nCount;
-        
-        //printf("\n");
-        //printf("nFirstObj=%i\n", static_cast<int>(nFirstObj));
-        //printf("nCount=%i\n", static_cast<int>(nCount));
         while( nCount > 0 )
         {
-            if((size_t)(pBuffer - pStart) >= lBufferLen )
-            {
+            if((size_t)(pBuffer - buffer.get()) >= lBufferLen )
                 PODOFO_RAISE_ERROR_INFO( EPdfError::NoXRef, "Invalid count in XRef stream" );
-            }
 
-            //printf("nCount=%i ", static_cast<int>(nCount));
-            //printf("pBuffer=%li ", (long)(pBuffer - pStart));
-            //printf("pEnd=%li ", lBufferLen);
             if ( nFirstObj >= 0 && nFirstObj < static_cast<int64_t>(m_pOffsets->size()) 
                  && ! (*m_pOffsets)[static_cast<int>(nFirstObj)].bParsed)
             {
-	        ReadXRefStreamEntry( pBuffer, lBufferLen, nW, static_cast<int>(nFirstObj) );
+	            ReadXRefStreamEntry( pBuffer, lBufferLen, nW, static_cast<int>(nFirstObj) );
             }
 
 			nFirstObj++ ;
             pBuffer += entryLen;
             --nCount;
         }
-        //printf("Exp: nFirstObj=%i nFirstObjOrg + nCount=%i\n", nFirstObj - 1, nFirstObjOrg + nCountOrg - 1 );
-        //printf("===\n");
     }
-    podofo_free( pStart );
-
 }
 
 void PdfXRefStreamParserObject::GetIndeces( std::vector<int64_t> & rvecIndeces, int64_t size ) 

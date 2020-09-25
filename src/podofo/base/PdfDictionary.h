@@ -34,6 +34,8 @@
 #ifndef _PDF_DICTIONARY_H_
 #define _PDF_DICTIONARY_H_
 
+#include <map>
+
 #include "PdfDefines.h"
 #include "PdfContainerDataType.h"
 

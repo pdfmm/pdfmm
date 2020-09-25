@@ -34,6 +34,8 @@
 #ifndef _PDF_FONT_TYPE1_H_
 #define _PDF_FONT_TYPE1_H_
 
+#include <set>
+
 #include "podofo/base/PdfDefines.h"
 #include "PdfFontSimple.h"
 

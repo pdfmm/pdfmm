@@ -34,6 +34,8 @@
 #ifndef _PDF_PAGE_H_
 #define _PDF_PAGE_H_
 
+#include <map>
+
 #include "podofo/base/PdfDefines.h"
 
 #include "podofo/base/PdfArray.h"

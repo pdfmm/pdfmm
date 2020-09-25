@@ -39,9 +39,9 @@
 #include "base/PdfOutputDevice.h"
 
 #include <ft2build.h>
-#include FT_FREETYPE_H
-#include FT_TRUETYPE_TABLES_H
-#include FT_TRUETYPE_TAGS_H
+#include <freetype/freetype.h>
+#include <freetype/tttables.h>
+#include <freetype/tttags.h>
 
 #include <cstring>
 #include <iostream>

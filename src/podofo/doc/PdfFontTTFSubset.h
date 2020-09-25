@@ -34,11 +34,13 @@
 #ifndef _PDF_FONT_TTF_SUBSET_H_
 #define _PDF_FONT_TTF_SUBSET_H_
 
-#include "podofo/base/PdfDefines.h"
-#include "PdfFontMetrics.h"
-
 #include <string>
 #include <vector>
+#include <map>
+#include <set>
+
+#include "podofo/base/PdfDefines.h"
+#include "PdfFontMetrics.h"
 
 namespace PoDoFo {
 

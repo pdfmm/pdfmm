@@ -47,7 +47,8 @@
 #include <iostream>
 #endif
 
-namespace PoDoFo {
+using namespace std;
+using namespace PoDoFo;
 
 PdfObjectStreamParser::PdfObjectStreamParser(PdfParserObject* pParser, PdfVecObjects* pVecObjects, const PdfRefCountedBuffer & rBuffer, PdfEncrypt* pEncrypt )
     : m_pParser( pParser ), m_vecObjects( pVecObjects ), m_buffer( rBuffer ), m_pEncrypt( pEncrypt )
@@ -60,19 +61,12 @@ void PdfObjectStreamParser::Parse(ObjectIdList const & list)
     int64_t lNum   = m_pParser->GetDictionary().GetKeyAsNumber( "N", 0 );
     int64_t lFirst = m_pParser->GetDictionary().GetKeyAsNumber( "First", 0 );
     
-    char* pBuffer;
+    unique_ptr<char> buffer;
     size_t lBufferLen;
-    m_pParser->GetOrCreateStream().GetFilteredCopy( &pBuffer, &lBufferLen );
+    m_pParser->GetOrCreateStream().GetFilteredCopy(buffer, lBufferLen);
 
-    try {
-        this->ReadObjectsFromStream( pBuffer, lBufferLen, lNum, lFirst, list );
-        podofo_free( pBuffer );
-        m_pParser = NULL;
-
-    } catch( PdfError & rError ) {
-        podofo_free( pBuffer );
-        throw rError;
-    }
+    this->ReadObjectsFromStream(buffer.get(), lBufferLen, lNum, lFirst, list );
+    m_pParser = nullptr;
 }
 
 void PdfObjectStreamParser::ReadObjectsFromStream( char* pBuffer, size_t lBufferLen, int64_t lNum, int64_t lFirst, ObjectIdList const & list)
@@ -132,5 +126,3 @@ void PdfObjectStreamParser::ReadObjectsFromStream( char* pBuffer, size_t lBuffer
         ++i;
     }
 }
-
-}; 

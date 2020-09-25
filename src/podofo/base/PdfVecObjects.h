@@ -34,10 +34,10 @@
 #ifndef _PDF_VEC_OBJECTS_H_
 #define _PDF_VEC_OBJECTS_H_
 
+#include <set>
+#include <list>
 #include "PdfDefines.h"
 #include "PdfReference.h"
-
-#include <list>
 
 namespace PoDoFo {
 

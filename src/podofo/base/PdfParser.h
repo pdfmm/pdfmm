@@ -34,6 +34,8 @@
 #ifndef _PDF_PARSER_H_
 #define _PDF_PARSER_H_
 
+#include <set>
+#include <map>
 #include "PdfDefines.h"
 #include "PdfXRefEntry.h"
 #include "PdfVecObjects.h"

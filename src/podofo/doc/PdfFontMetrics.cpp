@@ -44,8 +44,8 @@
 #include <sstream>
 
 #include <ft2build.h>
-#include FT_FREETYPE_H
-#include FT_TRUETYPE_TABLES_H
+#include <freetype/freetype.h>
+#include <freetype/tttables.h>
 
 #define PODOFO_FIRST_READABLE 31
 #define PODOFO_WIDTH_CACHE_SIZE 256

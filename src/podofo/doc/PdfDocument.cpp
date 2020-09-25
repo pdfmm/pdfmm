@@ -532,12 +532,10 @@ PdfRect PdfDocument::FillXObjectFromPage( PdfXObject * pXObj, const PdfPage * pP
                         {
                             PdfStream &pcontStream = pObj->GetOrCreateStream();
 
-                            char * pcontStreamBuffer;
+                            unique_ptr<char> pcontStreamBuffer;
                             size_t pcontStreamLength;
-                            pcontStream.GetFilteredCopy( &pcontStreamBuffer, &pcontStreamLength );
-    
-                            pObjStream.Append( pcontStreamBuffer, pcontStreamLength );
-                            podofo_free( pcontStreamBuffer );
+                            pcontStream.GetFilteredCopy(pcontStreamBuffer, pcontStreamLength);
+                            pObjStream.Append(pcontStreamBuffer.get(), pcontStreamLength);
                             break;
                         }
                         else
@@ -563,15 +561,14 @@ PdfRect PdfDocument::FillXObjectFromPage( PdfXObject * pXObj, const PdfPage * pP
             PdfObject* pObj = pXObj->GetObject();
             PdfStream &pObjStream = pObj->GetOrCreateStream();
             PdfStream &pcontStream = pContents->GetOrCreateStream();
-            char* pcontStreamBuffer;
-            size_t pcontStreamLength;
 
             TVecFilters vFilters;
             vFilters.push_back( EPdfFilter::FlateDecode );
             pObjStream.BeginAppend( vFilters );
-            pcontStream.GetFilteredCopy( &pcontStreamBuffer, &pcontStreamLength );
-            pObjStream.Append( pcontStreamBuffer, pcontStreamLength );
-            podofo_free( pcontStreamBuffer );
+            unique_ptr<char> pcontStreamBuffer;
+            size_t pcontStreamLength;
+            pcontStream.GetFilteredCopy(pcontStreamBuffer, pcontStreamLength);
+            pObjStream.Append(pcontStreamBuffer.get(), pcontStreamLength);
             pObjStream.EndAppend();
         }
         else

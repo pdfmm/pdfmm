@@ -79,15 +79,9 @@
 #include <cstdint>
 
 // Include common STL files
-#include <map>
+#include <memory>
 #include <string>
 #include <vector>
-#include <set>
-
-// Include common BOOST settings 
-#ifdef PODOFO_HAVE_BOOST
-#include <boost/config.hpp>
-#endif // PODOFO_HAVE_BOOST
 
 /** \def VERBOSE_DEBUG_DISABLED
  *  Debug define. Enable it, if you need

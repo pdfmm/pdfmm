@@ -155,17 +155,17 @@ PdfRefCountedBuffer PdfEncoding::convertToEncoding( const PdfString &rString, co
 
 void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &firstChar, char32_t &lastChar, unsigned &maxCodeRangeSize)
 {
-    char *streamBuffer;
+    unique_ptr<char> streamBuffer;
     size_t streamBufferLen;
     PdfStream &CIDStreamdata = obj->GetOrCreateStream();
-    CIDStreamdata.GetFilteredCopy(&streamBuffer, &streamBufferLen);
+    CIDStreamdata.GetFilteredCopy(streamBuffer, streamBufferLen);
 
     deque<unique_ptr<PdfVariant>> tokens;
     const char *token;
     const PdfString* str;
     unique_ptr<PdfVariant> var( new PdfVariant() );
     EPdfContentsType tokenType;
-    PdfContentsTokenizer tokenizer( streamBuffer, streamBufferLen );
+    PdfContentsTokenizer tokenizer( streamBuffer.get(), streamBufferLen );
 
     while ( tokenizer.ReadNext( tokenType, token, *var ) )
     {
@@ -365,8 +365,6 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                 PODOFO_RAISE_ERROR( EPdfError::InternalLogic );
         }
     }
-
-    podofo_free(streamBuffer);
 }
 
 void PdfEncoding::handle_beginbfrange_String(UnicodeMap& map, uint32_t srcCodeLo, const string& dstCodeLo, unsigned codeSize, unsigned rangeSize)

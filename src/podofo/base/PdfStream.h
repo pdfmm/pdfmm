@@ -259,7 +259,7 @@ public:
      *  \param pBuffer pointer to the buffer
      *  \param lLen    pointer to the buffer length
      */
-    void GetFilteredCopy( char** pBuffer, size_t* lLen ) const;
+    void GetFilteredCopy(std::unique_ptr<char> &pBuffer, size_t& lLen) const;
 
     /** Get a filtered copy of a the stream and write it to a PdfOutputStream
      *  

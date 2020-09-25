@@ -33,6 +33,13 @@
 
 #include "PdfFontCID.h"
 
+#include <map>
+#include <iostream>
+#include <sstream>
+
+#include <ft2build.h>
+#include <freetype/freetype.h>
+
 #include "base/PdfDefinesPrivate.h"
 
 #include "doc/PdfDocument.h"
@@ -48,12 +55,6 @@
 #include "PdfFontTTFSubset.h"
 #include "base/PdfInputDevice.h"
 #include "base/PdfOutputDevice.h"
-
-#include <ft2build.h>
-#include FT_FREETYPE_H
-
-#include <iostream>
-#include <sstream>
 
 namespace PoDoFo {
 

@@ -70,7 +70,7 @@
 #endif // _WIN32
 
 #include <ft2build.h>
-#include FT_FREETYPE_H
+#include <freetype/freetype.h>
 
 using namespace std;
 
