@@ -66,7 +66,10 @@ class PODOFO_API PdfVariant final
     friend class PdfArray;
     friend class PdfDictionary;
 
- public:
+private:
+    PdfVariant(EPdfDataType type);
+
+public:
 
     static PdfVariant NullValue;
 
@@ -339,16 +342,12 @@ class PODOFO_API PdfVariant final
      */
     const PdfVariant & operator=( const PdfVariant & rhs );
 
-    // REWRITE-ME: The equality operator is pure shit
-
     /**
      * Test to see if the value contained by this variant is the same
      * as the value of the other variant.
      */
     bool operator==( const PdfVariant & rhs ) const;
 
-
-    // REWRITE-ME: The equality operator is pure shit
     /**
      * \see operator==
      */
@@ -360,7 +359,6 @@ public:
 private:
     bool tryGetDictionary(PdfDictionary*& dict) const;
     bool tryGetArray(PdfArray*& arr) const;
-    void Init();
 
 private:
     /**

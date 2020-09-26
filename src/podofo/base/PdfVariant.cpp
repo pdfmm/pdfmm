@@ -49,84 +49,69 @@ using namespace std;
 
 PdfVariant PdfVariant::NullValue;
 
-void PdfVariant::Init()
-{
-    memset(&m_Data, 0, sizeof(UVariant));
-    m_eDataType = EPdfDataType::Unknown;
-}
+PdfVariant::PdfVariant(EPdfDataType type)
+    : m_Data{ }, m_eDataType(type) { }
 
 PdfVariant::PdfVariant()
-{
-    Init();
-    m_eDataType = EPdfDataType::Null;
-}
+    : PdfVariant(EPdfDataType::Null) { }
 
 PdfVariant::PdfVariant( bool b )
+    : PdfVariant(EPdfDataType::Bool)
 {
-    Init();
-    m_eDataType       = EPdfDataType::Bool;
     m_Data.bBoolValue = b;
 }
 
 PdfVariant::PdfVariant( int64_t l )
+    : PdfVariant(EPdfDataType::Number)
 {
-    Init();
-    m_eDataType       = EPdfDataType::Number;
-    m_Data.nNumber    = l;
+    m_Data.nNumber = l;
 }
 
 PdfVariant::PdfVariant( double d )
+    : PdfVariant(EPdfDataType::Real)
 {
-    Init();
-    m_eDataType       = EPdfDataType::Real;
-    m_Data.dNumber    = d;    
+    m_Data.dNumber = d;    
 }
 
 PdfVariant::PdfVariant( const PdfString & rsString )
+    : PdfVariant(EPdfDataType::String)
 {
-    Init();
-    m_eDataType = EPdfDataType::String;
     m_Data.pData = new PdfString( rsString );
 }
 
 PdfVariant::PdfVariant( const PdfName & rName )
+    : PdfVariant(EPdfDataType::Name)
 {
-    Init();
-    m_eDataType  = EPdfDataType::Name;
     m_Data.pData = new PdfName( rName );
 }
 
 PdfVariant::PdfVariant( const PdfReference & rRef )
+    : PdfVariant(EPdfDataType::Reference)
 {
-    Init();
-    m_eDataType  = EPdfDataType::Reference;
     m_Data.pData = new PdfReference( rRef );
 }
 
 PdfVariant::PdfVariant( const PdfArray & rArray )
+    : PdfVariant(EPdfDataType::Array)
 {
-    Init();
-    m_eDataType  = EPdfDataType::Array;
     m_Data.pData = new PdfArray( rArray );
 }
 
 PdfVariant::PdfVariant( const PdfDictionary & rObj )
+    : PdfVariant(EPdfDataType::Dictionary)
 {
-    Init();
-    m_eDataType  = EPdfDataType::Dictionary;
     m_Data.pData = new PdfDictionary( rObj );
 }
 
 PdfVariant::PdfVariant( const PdfData & rData )
+    : PdfVariant(EPdfDataType::RawData)
 {
-    Init();
-    m_eDataType  = EPdfDataType::RawData;
     m_Data.pData = new PdfData( rData );
 }
 
 PdfVariant::PdfVariant( const PdfVariant & rhs )
+    : PdfVariant(EPdfDataType::Unknown)
 {
-    Init();
     this->operator=(rhs);
 }
 
@@ -147,10 +132,8 @@ void PdfVariant::Clear()
         case EPdfDataType::RawData:
         {
             if (m_Data.pData)
-            {
                 delete m_Data.pData;
-                m_Data.pData = nullptr;
-            }
+
             break;
         }
             
@@ -164,23 +147,12 @@ void PdfVariant::Clear()
             
     }
 
-    Init();
+    m_Data = { };
 }
 
 void PdfVariant::Write( PdfOutputDevice& pDevice, EPdfWriteMode eWriteMode,
     const PdfEncrypt* pEncrypt) const
 {
-    /* Check all handles first 
-     */
-    if( (m_eDataType == EPdfDataType::String ||
-         m_eDataType == EPdfDataType::Array ||
-         m_eDataType == EPdfDataType::Dictionary ||
-         m_eDataType == EPdfDataType::Name || 
-         m_eDataType == EPdfDataType::RawData ) && !m_Data.pData )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
-
     switch( m_eDataType ) 
     {
         case EPdfDataType::Bool:
@@ -234,17 +206,16 @@ void PdfVariant::Write( PdfOutputDevice& pDevice, EPdfWriteMode eWriteMode,
             pDevice.Write( copy.c_str(), len );
             break;
         }
-        case EPdfDataType::Reference:
-            m_Data.pData->Write(pDevice, eWriteMode, pEncrypt);
-            break;
         case EPdfDataType::String:
         case EPdfDataType::Name:
         case EPdfDataType::Array:
-        case EPdfDataType::RawData:
-            m_Data.pData->Write(pDevice, eWriteMode, pEncrypt );
-            break;
         case EPdfDataType::Dictionary:
-            static_cast<PdfDictionary*>(m_Data.pData)->Write(pDevice, eWriteMode, pEncrypt );
+        case EPdfDataType::Reference:
+        case EPdfDataType::RawData:
+            if (!m_Data.pData)
+                PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
+
+            m_Data.pData->Write(pDevice, eWriteMode, pEncrypt);
             break;
         case EPdfDataType::Null:
         {

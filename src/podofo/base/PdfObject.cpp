@@ -429,7 +429,7 @@ void PdfObject::ResetDirty()
     case EPdfDataType::Unknown:
     default:
         break;
-    };
+    }
 
     resetDirty();
 }
