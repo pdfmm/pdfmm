@@ -1568,14 +1568,13 @@ bool PdfParser::HasXRefStream()
    m_device.Device()->Tell();
    m_device.Device()->Seek( m_nXRefOffset );
    
-   if( !this->IsNextToken( "xref" ) )  {
-        //      if( m_ePdfVersion < EPdfVersion::V1_5 )
-        //		Ulrich Arnold 19.10.2009, found linearized 1.3-pdf's with trailer-info in xref-stream
-       if( m_ePdfVersion < EPdfVersion::V1_3 )  {
+   if( !this->IsNextToken( "xref" ) )
+   {
+       // Found linearized 1.3-pdf's with trailer-info in xref-stream
+       if( m_ePdfVersion < EPdfVersion::V1_3 )
            return false;
-       } else {
+       else
            return true;
-       }
    }
 
    return false;

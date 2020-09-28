@@ -568,7 +568,8 @@ void PdfMemDocument::WriteUpdate( PdfOutputDevice* pDevice, bool bTruncate )
     bool bFreeSourceContent = false;
     bool bRewriteXRefTable;
 
-    try {
+    try
+    {
         if( bTruncate )
         {
             if( m_pszUpdatingFilename )
@@ -605,7 +606,9 @@ void PdfMemDocument::WriteUpdate( PdfOutputDevice* pDevice, bool bTruncate )
             writer.SetPrevXRefOffset( m_lPrevXRefOffset );
 
         writer.WriteUpdate( pDevice, pSourceContent, bRewriteXRefTable );
-    } catch( PdfError & e ) {
+    }
+    catch( PdfError & e )
+    {
         if( bFreeSourceContent && pSourceContent )
             delete pSourceContent;
 

@@ -605,20 +605,13 @@ private:
      */
     void Clear();
 
-    /** Low level APIs for setting a viewer preference
-     *  \param whichPrefs the dictionary key to set
-     *  \param the object to be set
-     */
-    void SetViewerPreference( const PdfName& whichPref, const PdfObject & valueObj ) const;
-    void SetViewerPreference( const PdfName& whichPref, bool inValue ) const;
-
  private:
     // Prevent use of copy constructor and assignment operator.  These methods
     // should never be referenced (given that code referencing them outside
     // PdfMemDocument won't compile), and calling them will result in a link error
     // as they're not defined.
     explicit PdfMemDocument(const PdfMemDocument&);
-    PdfMemDocument& operator=(const PdfMemDocument&);
+    PdfMemDocument& operator=(const PdfMemDocument&) = delete;
 
     bool            m_bLinearized;
     EPdfVersion     m_eVersion;
