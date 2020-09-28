@@ -174,21 +174,21 @@ public:
      */
     const PdfObject& MustGetKey( const PdfName & key ) const;
 
-    bool GetKeyAsBool(const PdfName& key, bool default = false) const;
+    bool GetKeyAsBool(const PdfName& key, bool defvalue = false) const;
 
-    int64_t GetKeyAsNumber(const PdfName & key, int64_t default = 0) const;
+    int64_t GetKeyAsNumber(const PdfName & key, int64_t defvalue = 0) const;
 
-    int64_t GetKeyAsNumberLenient(const PdfName& key, int64_t default = 0) const;
+    int64_t GetKeyAsNumberLenient(const PdfName& key, int64_t defvalue = 0) const;
 
-    double GetKeyAsReal(const PdfName & key, double default = 0.0) const;
+    double GetKeyAsReal(const PdfName & key, double defvalue = 0.0) const;
 
-    double GetKeyAsRealStrict(const PdfName& key, double default = 0.0) const;
+    double GetKeyAsRealStrict(const PdfName& key, double defvalue = 0.0) const;
 
-    PdfName GetKeyAsName(const PdfName& key, const PdfName& default = PdfName::KeyNull) const;
+    PdfName GetKeyAsName(const PdfName& key, const PdfName& defvalue = PdfName::KeyNull) const;
 
-    PdfString GetKeyAsString(const PdfName & key, const PdfString & default = PdfString::StringNull) const;
+    PdfString GetKeyAsString(const PdfName & key, const PdfString & defvalue = PdfString::StringNull) const;
 
-    PdfReference GetKeyAsReference(const PdfName & key, const PdfReference & default = { }) const;
+    PdfReference GetKeyAsReference(const PdfName & key, const PdfReference & defvalue = { }) const;
 
     /** Allows to check if a dictionary contains a certain key.
      * \param key look for the key named key.Name() in the dictionary
