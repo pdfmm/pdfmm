@@ -201,7 +201,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
 
     /** Returns whether the document is fully loaded.
      */
-    inline bool IsLoaded( void ) const;
+    inline bool IsLoaded( void ) const { return m_pParser == nullptr; }
 
     /** Writes the complete document to a file
      *
@@ -302,7 +302,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *
      *  \see Write, WriteUpdate
      */
-    void WriteUpdate( PdfOutputDevice* pDevice, bool bTruncate = true );
+    void WriteUpdate(PdfOutputDevice& pDevice, bool truncate);
 
     /** Set the write mode to use when writing the PDF.
      *  \param eWriteMode write mode
@@ -394,7 +394,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
     /** 
      * \returns true if this PdfMemDocument creates an encrypted PDF file
      */
-    inline bool GetEncrypted() const { return (m_pEncrypt != NULL); }
+    inline bool IsEncrypted() const { return m_pEncrypt != nullptr; }
 
     /** Returns wether this PDF document is linearized, aka
      *  weboptimized
@@ -478,7 +478,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *
      *  \see PdfEncrypt to set own document permissions.
      */
-    inline bool IsPrintAllowed() const override;
+    bool IsPrintAllowed() const override;
 
     /** Checks if modifiying this document (besides annotations, form fields or changing pages) is allowed.
      *  Every PDF consuming applications has to adhere this value!
@@ -487,7 +487,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *
      *  \see PdfEncrypt to set own document permissions.
      */
-    inline bool IsEditAllowed() const override;;
+    bool IsEditAllowed() const override;
 
     /** Checks if text and graphics extraction is allowed.
      *  Every PDF consuming applications has to adhere this value!
@@ -496,7 +496,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *
      *  \see PdfEncrypt to set own document permissions.
      */
-    inline bool IsCopyAllowed() const override;;
+    bool IsCopyAllowed() const override;
 
     /** Checks if it is allowed to add or modify annotations or form fields
      *  Every PDF consuming applications has to adhere this value!
@@ -505,7 +505,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *
      *  \see PdfEncrypt to set own document permissions.
      */
-    inline bool IsEditNotesAllowed() const override;;
+    bool IsEditNotesAllowed() const override;
 
     /** Checks if it is allowed to fill in existing form or signature fields
      *  Every PDF consuming applications has to adhere this value!
@@ -514,7 +514,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *
      *  \see PdfEncrypt to set own document permissions.
      */
-    inline bool IsFillAndSignAllowed() const override;;
+    bool IsFillAndSignAllowed() const override;
 
     /** Checks if it is allowed to extract text and graphics to support users with disabillities
      *  Every PDF consuming applications has to adhere this value!
@@ -523,7 +523,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *
      *  \see PdfEncrypt to set own document permissions.
      */
-    inline bool IsAccessibilityAllowed() const override;;
+    bool IsAccessibilityAllowed() const override;
 
     /** Checks if it is allowed to insert, create, rotate, delete pages or add bookmarks
      *  Every PDF consuming applications has to adhere this value!
@@ -532,7 +532,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *
      *  \see PdfEncrypt to set own document permissions.
      */
-    inline bool IsDocAssemblyAllowed() const override;
+    bool IsDocAssemblyAllowed() const override;
 
     /** Checks if it is allowed to print a high quality version of this document 
      *  Every PDF consuming applications has to adhere this value!
@@ -541,7 +541,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *
      *  \see PdfEncrypt to set own document permissions.
      */
-    inline bool IsHighPrintAllowed() const override;
+    bool IsHighPrintAllowed() const override;
 
     /** Tries to free all memory allocated by the given
      *  PdfObject (variables and streams) and reads
@@ -585,7 +585,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
     /** 
      * \returns the parsers encryption object or NULL if the read PDF file was not encrypted
      */
-    inline const PdfEncrypt* GetEncrypt() const;
+    inline const PdfEncrypt* GetEncrypt() const { return m_pEncrypt; }
 
 private:
 
@@ -624,106 +624,7 @@ private:
     bool m_bSoureHasXRefStream;
     EPdfVersion m_eSourceVersion;
     int64_t m_lPrevXRefOffset;
-#ifdef _WIN32
-    wchar_t *m_wchar_pszUpdatingFilename;
-#endif
-    char *m_pszUpdatingFilename;
-    PdfRefCountedInputDevice *m_pUpdatingInputDevice;
-
-    inline bool IsLoadedForUpdate( void ) const;
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfMemDocument::IsLoaded( void ) const
-{
-    return m_pParser == NULL;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfMemDocument::IsPrintAllowed() const
-{
-    return m_pEncrypt ? m_pEncrypt->IsPrintAllowed() : true;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfMemDocument::IsEditAllowed() const
-{
-    return m_pEncrypt ? m_pEncrypt->IsEditAllowed() : true;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfMemDocument::IsCopyAllowed() const
-{
-    return m_pEncrypt ? m_pEncrypt->IsCopyAllowed() : true;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfMemDocument::IsEditNotesAllowed() const
-{
-    return m_pEncrypt ? m_pEncrypt->IsEditNotesAllowed() : true;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfMemDocument::IsFillAndSignAllowed() const
-{
-    return m_pEncrypt ? m_pEncrypt->IsFillAndSignAllowed() : true;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfMemDocument::IsAccessibilityAllowed() const
-{
-    return m_pEncrypt ? m_pEncrypt->IsAccessibilityAllowed() : true;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfMemDocument::IsDocAssemblyAllowed() const
-{
-    return m_pEncrypt ? m_pEncrypt->IsDocAssemblyAllowed() : true;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfMemDocument::IsHighPrintAllowed() const
-{
-    return m_pEncrypt ? m_pEncrypt->IsHighPrintAllowed() : true;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const PdfEncrypt* PdfMemDocument::GetEncrypt() const 
-{ 
-    return m_pEncrypt; 
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfMemDocument::IsLoadedForUpdate( void ) const
-{
-    return m_pszUpdatingFilename ||
-#ifdef _WIN32
-        m_wchar_pszUpdatingFilename ||
-#endif
-        m_pUpdatingInputDevice;
-}
 
 };
 

@@ -60,14 +60,10 @@
 
 using namespace std;
 
-namespace PoDoFo {
+using namespace PoDoFo;
 
 PdfMemDocument::PdfMemDocument()
-    : PdfDocument(), m_pEncrypt( NULL ), m_pParser( NULL ), m_bSoureHasXRefStream( false ), m_lPrevXRefOffset( -1 ),
-#ifdef _WIN32
-      m_wchar_pszUpdatingFilename( NULL ),
-#endif
-      m_pszUpdatingFilename( NULL ), m_pUpdatingInputDevice( NULL )
+    : PdfDocument(), m_pEncrypt( NULL ), m_pParser( NULL ), m_bSoureHasXRefStream( false ), m_lPrevXRefOffset( -1 )
 {
     m_eVersion    = PdfVersionDefault;
     m_eWriteMode  = PdfWriteModeDefault;
@@ -76,11 +72,7 @@ PdfMemDocument::PdfMemDocument()
 }
 
 PdfMemDocument::PdfMemDocument(bool bOnlyTrailer)
-    : PdfDocument(bOnlyTrailer), m_pEncrypt( NULL ), m_pParser( NULL ), m_bSoureHasXRefStream( false ), m_lPrevXRefOffset( -1 ),
-#ifdef _WIN32
-      m_wchar_pszUpdatingFilename( NULL ),
-#endif
-      m_pszUpdatingFilename( NULL ), m_pUpdatingInputDevice( NULL )
+    : PdfDocument(bOnlyTrailer), m_pEncrypt( NULL ), m_pParser( NULL ), m_bSoureHasXRefStream( false ), m_lPrevXRefOffset( -1 )
 {
     m_eVersion    = PdfVersionDefault;
     m_eWriteMode  = PdfWriteModeDefault;
@@ -89,19 +81,14 @@ PdfMemDocument::PdfMemDocument(bool bOnlyTrailer)
 }
 
 PdfMemDocument::PdfMemDocument( const char* pszFilename, bool bForUpdate )
-    : PdfDocument(), m_pEncrypt( NULL ), m_pParser( NULL ), m_bSoureHasXRefStream( false ), m_lPrevXRefOffset( -1 ),
-#ifdef _WIN32
-      m_wchar_pszUpdatingFilename( NULL ),
-#endif
-      m_pszUpdatingFilename( NULL ), m_pUpdatingInputDevice( NULL )
+    : PdfDocument(), m_pEncrypt( NULL ), m_pParser( NULL ), m_bSoureHasXRefStream( false ), m_lPrevXRefOffset( -1 )
 {
     this->Load( pszFilename, bForUpdate );
 }
 
 #ifdef _WIN32
 PdfMemDocument::PdfMemDocument( const wchar_t* pszFilename, bool bForUpdate )
-    : PdfDocument(), m_pEncrypt( NULL ), m_pParser( NULL ), m_bSoureHasXRefStream( false ), m_lPrevXRefOffset( -1 ),
-      m_wchar_pszUpdatingFilename( NULL ), m_pszUpdatingFilename( NULL ), m_pUpdatingInputDevice( NULL )
+    : PdfDocument(), m_pEncrypt( NULL ), m_pParser( NULL ), m_bSoureHasXRefStream( false ), m_lPrevXRefOffset( -1 )
 {
     this->Load( pszFilename, bForUpdate );
 }
@@ -128,25 +115,6 @@ void PdfMemDocument::Clear()
 
     m_eWriteMode  = PdfWriteModeDefault;
 
-#ifdef _WIN32
-    if( m_wchar_pszUpdatingFilename )
-    {
-        podofo_free( m_wchar_pszUpdatingFilename );
-        m_wchar_pszUpdatingFilename = NULL;
-    }
-#endif
-    if( m_pszUpdatingFilename )
-    {
-        podofo_free( m_pszUpdatingFilename );
-        m_pszUpdatingFilename = NULL;
-    }
-
-    if( m_pUpdatingInputDevice )
-    {
-        delete m_pUpdatingInputDevice;
-        m_pUpdatingInputDevice = NULL;
-    }
-
     m_bSoureHasXRefStream = false;
     m_lPrevXRefOffset = -1;
 
@@ -163,8 +131,6 @@ void PdfMemDocument::InitFromParser( PdfParser* pParser )
     m_bSoureHasXRefStream = pParser->HasXRefStream();
     m_lPrevXRefOffset = pParser->GetXRefOffset();
 
-    GetObjects().SetCanReuseObjectNumbers( !IsLoadedForUpdate() );
-
     PdfObject* pTrailer = new PdfObject( *(pParser->GetTrailer()) );
     this->SetTrailer ( pTrailer ); // Set immediately as trailer
                                    // so that pTrailer has an owner
@@ -172,14 +138,10 @@ void PdfMemDocument::InitFromParser( PdfParser* pParser )
 
     if(PdfError::DebugEnabled())
     {
-        // OC 17.08.2010: Avoid using cout here:
-     // PdfOutputDevice debug( &(std::cout) );
-     // pTrailer->Write( &debug );
-     // debug.Write("\n", 1); // OC 17.08.2010: Append Linefeed
         PdfRefCountedBuffer buf;
         PdfOutputDevice debug( &buf );
         pTrailer->GetVariant().Write( debug, m_eWriteMode, nullptr );
-        debug.Write("\n", 1); // OC 17.08.2010: Append Linefeed
+        debug.Write("\n", 1);
         size_t siz = buf.GetSize();
         char*  ptr = buf.GetBuffer();
         PdfError::LogMessage(ELogSeverity::Information, "%.*s", siz, ptr);
@@ -187,10 +149,7 @@ void PdfMemDocument::InitFromParser( PdfParser* pParser )
 
     PdfObject* pCatalog = pTrailer->GetIndirectKey( "Root" );
     if( !pCatalog )
-    {
         PODOFO_RAISE_ERROR_INFO( EPdfError::NoObject, "Catalog object not found!" );
-    }
-
 
     PdfObject* pInfo = pTrailer->GetIndirectKey( "Info" );
     PdfInfo*   pInfoObj;
@@ -219,29 +178,14 @@ void PdfMemDocument::InitFromParser( PdfParser* pParser )
     // It is only set to m_pParser so that SetPassword can work
     delete m_pParser;
     m_pParser = NULL;
-
-    if( m_pEncrypt && this->IsLoadedForUpdate() )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::CannotEncryptedForUpdate );
-    }
 }
 
 void PdfMemDocument::Load( const char* pszFilename, bool bForUpdate )
 {
     if( !pszFilename || !pszFilename[0] )
-    {
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
 
     this->Clear();
-
-    if( bForUpdate )
-    {
-        size_t lLen = strlen( pszFilename );
-        m_pszUpdatingFilename = static_cast<char *>( podofo_malloc( sizeof( char ) * ( lLen + 1 ) ) );
-        memcpy( m_pszUpdatingFilename, pszFilename, lLen );
-        m_pszUpdatingFilename[lLen] = '\0';
-    }
 
     // Call parse file instead of using the constructor
     // so that m_pParser is initialized for encrypted documents
@@ -269,14 +213,6 @@ void PdfMemDocument::Load( const wchar_t* pszFilename, bool bForUpdate )
 
     this->Clear();
 
-    if( bForUpdate )
-    {
-        size_t lLen = wcslen( pszFilename );
-        m_wchar_pszUpdatingFilename = static_cast<wchar_t *>( podofo_malloc( sizeof( wchar_t ) * ( lLen + 1 ) ) );
-        wmemcpy( m_wchar_pszUpdatingFilename, pszFilename, lLen );
-        m_wchar_pszUpdatingFilename[lLen] = L'\0';
-    }
-
     // Call parse file instead of using the constructor
     // so that m_pParser is initialized for encrypted documents
     m_pParser = new PdfParser( &PdfDocument::GetObjects() );
@@ -294,11 +230,6 @@ void PdfMemDocument::LoadFromBuffer( const char* pBuffer, long lLen, bool bForUp
 
     this->Clear();
 
-    if( bForUpdate )
-    {
-        m_pUpdatingInputDevice = new PdfRefCountedInputDevice( pBuffer, lLen );
-    }
-
     // Call parse file instead of using the constructor
     // so that m_pParser is initialized for encrypted documents
     m_pParser = new PdfParser( &PdfDocument::GetObjects() );
@@ -309,11 +240,6 @@ void PdfMemDocument::LoadFromBuffer( const char* pBuffer, long lLen, bool bForUp
 void PdfMemDocument::LoadFromDevice( const PdfRefCountedInputDevice & rDevice, bool bForUpdate )
 {
     this->Clear();
-
-    if( bForUpdate )
-    {
-        m_pUpdatingInputDevice = new PdfRefCountedInputDevice( rDevice );
-    }
 
     // Call parse file instead of using the constructor
     // so that m_pParser is initialized for encrypted documents
@@ -384,8 +310,8 @@ std::vector<PdfExtension> PdfMemDocument::GetPdfExtensions() const {
     
     PdfObject* pExtensions = this->GetCatalog()->GetIndirectKey("Extensions");
 
-    if (pExtensions) {
-
+    if (pExtensions)
+    {
         // Loop through all declared extensions
         for (TKeyMap::const_iterator it = pExtensions->GetDictionary().begin(); it != pExtensions->GetDictionary().end(); ++it) {
 
@@ -482,64 +408,31 @@ void PdfMemDocument::Write( PdfOutputDevice* pDevice )
 
 void PdfMemDocument::WriteUpdate( const char* pszFilename )
 {
-    if( !IsLoadedForUpdate() )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::NotLoadedForUpdate );
-    }
-
     if( !pszFilename )
-    {
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
 
-    bool bTruncate = !m_pszUpdatingFilename || strcmp( m_pszUpdatingFilename, pszFilename) != 0;
-
-    PdfOutputDevice device( pszFilename, bTruncate );
-
-    this->WriteUpdate( &device, bTruncate );
+    PdfOutputDevice device(pszFilename, false);
+    this->WriteUpdate(device, false);
 }
 
 #ifdef _WIN32
 void PdfMemDocument::WriteUpdate( const wchar_t* pszFilename )
 {
-    if( !IsLoadedForUpdate() )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::NotLoadedForUpdate );
-    }
-
     if( !pszFilename )
-    {
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
 
-    bool bTruncate = !m_wchar_pszUpdatingFilename || wcscmp( m_wchar_pszUpdatingFilename, pszFilename) != 0;
+    PdfOutputDevice device(pszFilename, false);
 
-    PdfOutputDevice device( pszFilename, bTruncate );
-
-    this->WriteUpdate( &device, bTruncate );
+    this->WriteUpdate(device, false);
 }
 #endif // _WIN32
 
-void PdfMemDocument::WriteUpdate( PdfOutputDevice* pDevice, bool bTruncate )
+void PdfMemDocument::WriteUpdate(PdfOutputDevice& pDevice, bool truncate)
 {
-    if( !pDevice )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
+    // TODO: Restore truncate support
 
     // makes sure pending subset-fonts are embedded
     m_fontCache.EmbedSubsetFonts();
-
-    /** TODO:
-     *  We will get problems here on linux,
-     *  if we write to the same filename we read the 
-     *  document from.
-     *  Because the PdfParserObjects will read there streams 
-     *  data from the file while we are writing it.
-     *  The problem is that the stream data won't exist at this time
-     *  as we truncated the file already to zero length by opening
-     *  it writeable.
-     */
 
     PdfWriter writer( &(this->GetObjects()), this->GetTrailer() );
     writer.SetPdfVersion( this->GetPdfVersion() );
@@ -564,60 +457,25 @@ void PdfMemDocument::WriteUpdate( PdfOutputDevice* pDevice, bool bTruncate )
         this->GetCatalog()->GetDictionary().AddKey( PdfName( "Version" ), PdfName( s_szPdfVersionNums[(int)this->GetPdfVersion()] ) );
     }
 
-    PdfInputDevice *pSourceContent = NULL;
-    bool bFreeSourceContent = false;
-    bool bRewriteXRefTable;
-
     try
     {
-        if( bTruncate )
-        {
-            if( m_pszUpdatingFilename )
-            {
-                pSourceContent = new PdfInputDevice( m_pszUpdatingFilename );
-                bFreeSourceContent = true;
-            }
-#ifdef _WIN32
-            else if( m_wchar_pszUpdatingFilename )
-            {
-                pSourceContent = new PdfInputDevice( m_wchar_pszUpdatingFilename );
-                bFreeSourceContent = true;
-            }
-#endif //_WIN32
-            else if( m_pUpdatingInputDevice && m_pUpdatingInputDevice->Device() )
-            {
-                pSourceContent = m_pUpdatingInputDevice->Device();
-                bFreeSourceContent = false;
-            }
-            else
-            {
-                PODOFO_RAISE_ERROR( EPdfError::InternalLogic );
-            }
-        }
-
         /* Rewrite the XRef table when the document is linearized or contains
          * an XRef stream, to make sure that the objects can be read properly.
          * Also do not reference the previous XRef table in such cases.
          */
-        bRewriteXRefTable = this->IsLinearized() || m_bSoureHasXRefStream;
+        bool bRewriteXRefTable = this->IsLinearized() || m_bSoureHasXRefStream;
         if( bRewriteXRefTable )
             writer.SetPrevXRefOffset( 0 );
         else
             writer.SetPrevXRefOffset( m_lPrevXRefOffset );
 
-        writer.WriteUpdate( pDevice, pSourceContent, bRewriteXRefTable );
+        writer.WriteUpdate(&pDevice, nullptr, bRewriteXRefTable );
     }
     catch( PdfError & e )
     {
-        if( bFreeSourceContent && pSourceContent )
-            delete pSourceContent;
-
         e.AddToCallstack( __FILE__, __LINE__ );
         throw e;
     }
-
-    if( bFreeSourceContent && pSourceContent )
-        delete pSourceContent;
 }
 
 PdfObject* PdfMemDocument::GetNamedObjectFromCatalog( const char* pszName ) const 
@@ -716,5 +574,42 @@ void PdfMemDocument::FreeObjectMemory( PdfObject* pObj, bool bForce )
     pParserObject->FreeObjectMemory( bForce );
 }
 
-};
+bool PdfMemDocument::IsPrintAllowed() const
+{
+    return m_pEncrypt ? m_pEncrypt->IsPrintAllowed() : true;
+}
 
+bool PdfMemDocument::IsEditAllowed() const
+{
+    return m_pEncrypt ? m_pEncrypt->IsEditAllowed() : true;
+}
+
+bool PdfMemDocument::IsCopyAllowed() const
+{
+    return m_pEncrypt ? m_pEncrypt->IsCopyAllowed() : true;
+}
+
+bool PdfMemDocument::IsEditNotesAllowed() const
+{
+    return m_pEncrypt ? m_pEncrypt->IsEditNotesAllowed() : true;
+}
+
+bool PdfMemDocument::IsFillAndSignAllowed() const
+{
+    return m_pEncrypt ? m_pEncrypt->IsFillAndSignAllowed() : true;
+}
+
+bool PdfMemDocument::IsAccessibilityAllowed() const
+{
+    return m_pEncrypt ? m_pEncrypt->IsAccessibilityAllowed() : true;
+}
+
+bool PdfMemDocument::IsDocAssemblyAllowed() const
+{
+    return m_pEncrypt ? m_pEncrypt->IsDocAssemblyAllowed() : true;
+}
+
+bool PdfMemDocument::IsHighPrintAllowed() const
+{
+    return m_pEncrypt ? m_pEncrypt->IsHighPrintAllowed() : true;
+}
