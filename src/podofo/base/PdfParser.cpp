@@ -68,8 +68,7 @@ static bool CheckXRefEntryType( char c );
 static EXRefEntryType GetXRefEntryType( char c );
 static bool ReadMagicWord(char ch, int& charidx);
 
-constexpr size_t nMaxNumIndirectObjects = (1L << 23) - 1L;
-size_t PdfParser::s_nMaxObjects = nMaxNumIndirectObjects;
+constexpr int64_t nMaxNumIndirectObjects = (1L << 23) - 1L;
 
 class PdfRecursionGuard
 {
@@ -853,12 +852,9 @@ void PdfParser::ReadXRefSubsection( int64_t & nFirstObject, int64_t & nNumObject
     if ( nNumObjects < 0 )
         PODOFO_RAISE_ERROR_INFO( EPdfError::ValueOutOfRange, "ReadXRefSubsection: nNumObjects is negative" );
 
-    const int64_t maxNum
-      = static_cast<int64_t>(PdfParser::s_nMaxObjects);
-
     // overflow guard, fixes CVE-2017-5853 (signed integer overflow)
     // also fixes CVE-2017-6844 (buffer overflow) together with below size check
-    if( (maxNum >= nNumObjects) && (nFirstObject <= maxNum - nNumObjects) )
+    if(nMaxNumIndirectObjects >= nNumObjects && nFirstObject <= (nMaxNumIndirectObjects - nNumObjects))
     {
         if( nFirstObject + nNumObjects > m_nNumObjects )
         {
@@ -1510,7 +1506,7 @@ void PdfParser::UpdateDocumentVersion()
 void PdfParser::ResizeOffsets(size_t nNewSize )
 {
     // allow caller to specify a max object count to avoid very slow load times on large documents
-    if (nNewSize > s_nMaxObjects)
+    if (nNewSize > nMaxNumIndirectObjects)
     {
         PODOFO_RAISE_ERROR_INFO( EPdfError::ValueOutOfRange,  "nNewSize is greater than m_nMaxObjects." );
     }
@@ -1593,6 +1589,13 @@ bool PdfParser::IsLinearized() const
 bool PdfParser::IsEncrypted() const
 {
     return m_pEncrypt != nullptr;
+}
+
+PdfEncrypt* PdfParser::TakeEncrypt()
+{
+    PdfEncrypt* pEncrypt = m_pEncrypt;
+    m_pEncrypt = NULL;
+    return pEncrypt;
 }
 
 const PdfObject* PdfParser::GetTrailer() const
