@@ -86,7 +86,6 @@
 #include "doc/PdfPagesTreeCache.h"
 #include "doc/PdfPagesTree.h"
 #include "doc/PdfPainter.h"
-#include "doc/PdfPainterMM.h"
 #include "doc/PdfShadingPattern.h"
 #include "doc/PdfSignatureField.h"
 #include "doc/PdfSignOutputDevice.h"

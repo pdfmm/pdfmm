@@ -93,7 +93,6 @@ SET(PODOFO_DOC_SOURCES
   doc/PdfPagesTree.cpp
   doc/PdfPagesTreeCache.cpp
   doc/PdfPainter.cpp
-  doc/PdfPainterMM.cpp
   doc/PdfShadingPattern.cpp
   doc/PdfSignOutputDevice.cpp
   doc/PdfSignatureField.cpp
@@ -207,7 +206,6 @@ SET(PODOFO_DOC_HEADERS
   doc/PdfPagesTree.h
   doc/PdfPagesTreeCache.h
   doc/PdfPainter.h
-  doc/PdfPainterMM.h
   doc/PdfShadingPattern.h
   doc/PdfSignOutputDevice.h
   doc/PdfSignatureField.h
