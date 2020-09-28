@@ -334,52 +334,175 @@ const char * PdfVariant::GetDataTypeString() const
             return "RawData";
         case EPdfDataType::Unknown:
             return "Unknown";
+        default:
+            return "INVALID_TYPE_ENUM";
     }
-    return "INVALID_TYPE_ENUM";
 }
 
-// REWRITE-ME: The equality operator is pure shit
-// test on type first then get.
-// Unkwnown -> return false always
-// Rawdata: easy check on bytes
-
-//
-// This is rather slow:
-//    - We set up to catch an exception
-//    - We throw & catch an exception whenever there's a type mismatch
-//
-bool PdfVariant::operator==( const PdfVariant & rhs ) const
+bool PdfVariant::operator==(const PdfVariant& rhs) const
 {
-    try
+    if (this == &rhs)
+        return true;
+
+    switch (m_eDataType)
     {
-        switch (m_eDataType)
-        {
-            case EPdfDataType::Bool: return GetBool() == rhs.GetBool();
-            case EPdfDataType::Number: return GetNumber() == rhs.GetNumber();
-            case EPdfDataType::Real: return GetRealStrict() == rhs.GetRealStrict();
-            case EPdfDataType::String: return GetString() == rhs.GetString();
-            case EPdfDataType::Name: return GetName() == rhs.GetName();
-            case EPdfDataType::Array: return GetArray() == rhs.GetArray();
-            case EPdfDataType::Dictionary: return GetDictionary() == rhs.GetDictionary();
-            case EPdfDataType::Null: return rhs.IsNull();
-            case EPdfDataType::Reference: return GetReference() == rhs.GetReference();
-            case EPdfDataType::RawData: /* fall through to end of func */ break;
-            case EPdfDataType::Unknown: /* fall through to end of func */ break;
-        }
-    }
-    catch ( PdfError& e )
+    case EPdfDataType::Bool:
     {
-        if (e.GetError() == EPdfError::InvalidDataType)
-            return false;
+        bool value;
+        if (rhs.TryGetBool(value))
+            return m_Data.bBoolValue == value;
         else
-            throw e;
+            return false;
     }
-    PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDataType, "Tried to compare unknown/raw variant" );
+    case EPdfDataType::Number:
+    {
+        int64_t value;
+        if (rhs.TryGetNumber(value))
+            return m_Data.nNumber == value;
+        else
+            return false;
+    }
+    case EPdfDataType::Real:
+    {
+        // NOTE: Real type equality semantics is strict
+        double value;
+        if (rhs.TryGetRealStrict(value))
+            return m_Data.dNumber == value;
+        else
+            return false;
+    }
+    case EPdfDataType::Reference:
+    {
+        PdfReference value;
+        if (rhs.TryGetReference(value))
+            return *(PdfReference*)m_Data.pData == value;
+        else
+            return false;
+    }
+    case EPdfDataType::String:
+    {
+        const PdfString* value;
+        if (rhs.TryGetString(value))
+            return *(PdfString*)m_Data.pData == *value;
+        else
+            return false;
+    }
+    case EPdfDataType::Name:
+    {
+        const PdfName* value;
+        if (rhs.TryGetName(value))
+            return *(PdfName*)m_Data.pData == *value;
+        else
+            return false;
+    }
+    case EPdfDataType::Array:
+    {
+        const PdfArray* value;
+        if (rhs.TryGetArray(value))
+            return *(PdfArray*)m_Data.pData == *value;
+        else
+            return false;
+    }
+    case EPdfDataType::Dictionary:
+    {
+        const PdfDictionary* value;
+        if (rhs.TryGetDictionary(value))
+            return *(PdfDictionary*)m_Data.pData == *value;
+        else
+            return false;
+    }
+    case EPdfDataType::RawData:
+        PODOFO_RAISE_ERROR_INFO(EPdfError::NotImplemented, "Equality not yet implemented for RawData");
+    case EPdfDataType::Null:
+        return m_eDataType == EPdfDataType::Null;
+    case EPdfDataType::Unknown:
+        return false;
+    default:
+        PODOFO_RAISE_ERROR(EPdfError::NotImplemented);
+    }
 }
 
 bool PdfVariant::operator!=(const PdfVariant& rhs) const
 {
-    return !(*this == rhs);
+    if (this != &rhs)
+        return true;
+
+    switch (m_eDataType)
+    {
+    case EPdfDataType::Bool:
+    {
+        bool value;
+        if (rhs.TryGetBool(value))
+            return m_Data.bBoolValue != value;
+        else
+            return true;
+    }
+    case EPdfDataType::Number:
+    {
+        int64_t value;
+        if (rhs.TryGetNumber(value))
+            return m_Data.nNumber != value;
+        else
+            return true;
+    }
+    case EPdfDataType::Real:
+    {
+        // NOTE: Real type equality semantics is strict
+        double value;
+        if (rhs.TryGetRealStrict(value))
+            return m_Data.dNumber != value;
+        else
+            return true;
+    }
+    case EPdfDataType::Reference:
+    {
+        PdfReference value;
+        if (rhs.TryGetReference(value))
+            return *(PdfReference*)m_Data.pData != value;
+        else
+            return true;
+    }
+    case EPdfDataType::String:
+    {
+        const PdfString* value;
+        if (rhs.TryGetString(value))
+            return *(PdfString*)m_Data.pData != *value;
+        else
+            return true;
+    }
+    case EPdfDataType::Name:
+    {
+        const PdfName* value;
+        if (rhs.TryGetName(value))
+            return *(PdfName*)m_Data.pData != *value;
+        else
+            return true;
+    }
+    case EPdfDataType::Array:
+    {
+        const PdfArray* value;
+        if (rhs.TryGetArray(value))
+            return *(PdfArray*)m_Data.pData != *value;
+        else
+            return true;
+    }
+    case EPdfDataType::Dictionary:
+    {
+        const PdfDictionary* value;
+        if (rhs.TryGetDictionary(value))
+            return *(PdfDictionary*)m_Data.pData != *value;
+        else
+            return true;
+    }
+    case EPdfDataType::RawData:
+        PODOFO_RAISE_ERROR_INFO(EPdfError::NotImplemented, "Disequality not yet implemented for RawData");
+    case EPdfDataType::Null:
+        return m_eDataType != EPdfDataType::Null;
+    case EPdfDataType::Unknown:
+        return true;
+    default:
+        PODOFO_RAISE_ERROR(EPdfError::NotImplemented);
+    }
 }
 
 bool PdfVariant::GetBool() const

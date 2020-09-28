@@ -451,14 +451,23 @@ public:
      */
     bool operator<(const PdfObject& rhs) const;
 
-    // CHECK-ME: Investigate better on equality of PdfObject
-
-        // REWRITE-ME: The equality operator is pure shit
-    /** Comparison operator.
-     *  Compares two PDF object instances only based on their object and generation number.
+    /** The equality operator with PdfObject checks for parent document and
+     * indirect reference first
      */
     bool operator==(const PdfObject& rhs) const;
+
+    /** The disequality operator with PdfObject checks for parent document and
+     * indirect reference first
+     */
     bool operator!=(const PdfObject& rhs) const;
+
+    /** The equality operator with PdfVariant checks equality with variant object only
+     */
+    bool operator==(const PdfVariant& rhs) const;
+
+    /** The disequality operator with PdfVariant checks disequality with variant object only
+     */
+    bool operator!=(const PdfVariant& rhs) const;
 
     /** Creates a copy of an existing PdfObject.
      *  All associated objects and streams will be copied along with the PdfObject.

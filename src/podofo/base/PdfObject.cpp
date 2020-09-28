@@ -801,23 +801,66 @@ void PdfObject::AssertMutable() const
 
 bool PdfObject::operator<(const PdfObject& rhs) const
 {
-    DelayedLoad();
-    rhs.DelayedLoad();
+    if (m_Document != rhs.m_Document)
+        PODOFO_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Can't compare objects with different parent document");
+
     return m_reference < rhs.m_reference;
 }
 
-// REWRITE-ME: The equality operator is pure shit
-// Check owner,reference and pdfvariant value. Easy
 bool PdfObject::operator==(const PdfObject& rhs) const
 {
-    DelayedLoad();
-    rhs.DelayedLoad();
-    return m_reference == rhs.m_reference;
+    if (this == &rhs)
+        return true;
+
+    if (m_Document != rhs.m_Document)
+        return false;
+
+    if (m_reference != rhs.m_reference)
+        return false;
+
+    if (m_Document == nullptr)
+    {
+        DelayedLoad();
+        rhs.DelayedLoad();
+        return m_Variant == rhs.m_Variant;
+    }
+    else
+    {
+        return m_reference == rhs.m_reference;
+    }
 }
 
 bool PdfObject::operator!=(const PdfObject& rhs) const
 {
+    if (this != &rhs)
+        return true;
+
+    if (m_Document != rhs.m_Document)
+        return true;
+
+    if (m_reference != rhs.m_reference)
+        return true;
+
+    if (m_Document == nullptr)
+    {
+        DelayedLoad();
+        rhs.DelayedLoad();
+        return m_Variant != rhs.m_Variant;
+    }
+    else
+    {
+        return m_reference != rhs.m_reference;
+    }
+}
+
+bool PdfObject::operator==(const PdfVariant& rhs) const
+{
     DelayedLoad();
-    rhs.DelayedLoad();
-    return !(*this == rhs);
+    return m_Variant == rhs;
+}
+
+bool PdfObject::operator!=(const PdfVariant& rhs) const
+{
+    DelayedLoad();
+    return m_Variant != rhs;
 }
