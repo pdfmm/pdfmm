@@ -82,8 +82,9 @@ static const char* aszShortFilters[] = {
  *  The passed output stream is owned by this PdfOutputStream
  *  and deleted along with it.
  */
-class PdfFilteredEncodeStream : public PdfOutputStream{
- public:
+class PdfFilteredEncodeStream : public PdfOutputStream
+{
+public:
     /** Create a filtered output stream.
      *
      *  All data written to this stream is encoded using the passed filter type
@@ -99,10 +100,8 @@ class PdfFilteredEncodeStream : public PdfOutputStream{
     {
         m_filter = PdfFilterFactory::Create( eFilter );
 
-        if( !m_filter.get() ) 
-        {
+        if( !m_filter.get() )
             PODOFO_RAISE_ERROR( EPdfError::UnsupportedFilter );
-        }
 
         m_filter->BeginEncode( pOutputStream );
 
@@ -120,11 +119,9 @@ class PdfFilteredEncodeStream : public PdfOutputStream{
      *  \param pBuffer the data is read from this buffer
      *  \param lLen    the size of the buffer 
      */
-    size_t Write( const char* pBuffer, size_t lLen ) override
+    void Write( const char* pBuffer, size_t lLen ) override
     {
         m_filter->EncodeBlock( pBuffer, lLen );
-        
-        return 0;
     }
 
     void Close() override
@@ -145,8 +142,9 @@ private:
  *  The passed output stream is owned by this PdfOutputStream
  *  and deleted along with it (optionally, see constructor).
  */
-class PdfFilteredDecodeStream : public PdfOutputStream {
- public:
+class PdfFilteredDecodeStream : public PdfOutputStream
+{
+public:
     /** Create a filtered output stream.
      *
      *  All data written to this stream is decoded using the passed filter type
@@ -185,24 +183,24 @@ class PdfFilteredDecodeStream : public PdfOutputStream {
      *  \param pBuffer the data is read from this buffer
      *  \param lLen    the size of the buffer 
      */
-    size_t Write( const char* pBuffer, size_t lLen ) override
+    void Write( const char* pBuffer, size_t lLen ) override
     {
-        try {
+        try
+        {
             m_filter->DecodeBlock( pBuffer, lLen );
         }
         catch( PdfError & e ) 
         {
             e.AddToCallstack( __FILE__, __LINE__ );
             m_bFilterFailed = true;
-            throw e;
+            throw;
         }
-
-        return 0;
     }
 
     void Close() override
     {
-        try {
+        try
+        {
             if( !m_bFilterFailed ) 
             {
                 m_filter->EndDecode();
@@ -215,7 +213,7 @@ class PdfFilteredDecodeStream : public PdfOutputStream {
                 << PdfFilterFactory::FilterTypeToName( m_filter->GetType() ) << ".\n";
             e.AddToCallstack( __FILE__, __LINE__, oss.str() );
             m_bFilterFailed = true;
-            throw e;
+            throw;
         }
 
     }
@@ -458,4 +456,137 @@ TVecFilters PdfFilterFactory::CreateFilterList( const PdfObject* pObject )
     }
 
     return filters;
+}
+
+void PdfFilter::BeginEncode(PdfOutputStream* pOutput)
+{
+    PODOFO_RAISE_LOGIC_IF(m_pOutputStream, "BeginEncode() on failed filter or without EndEncode()");
+    m_pOutputStream = pOutput;
+
+    try
+    {
+        BeginEncodeImpl();
+    }
+    catch (...)
+    {
+        // Clean up and close stream
+        this->FailEncodeDecode();
+        throw;
+    }
+}
+
+void PdfFilter::EncodeBlock(const char* pBuffer, size_t lLen)
+{
+    PODOFO_RAISE_LOGIC_IF(!m_pOutputStream, "EncodeBlock() without BeginEncode() or on failed filter");
+
+    try
+    {
+        EncodeBlockImpl(pBuffer, lLen);
+    }
+    catch (...)
+    {
+        // Clean up and close stream
+        this->FailEncodeDecode();
+        throw;
+    }
+}
+
+void PdfFilter::EndEncode()
+{
+    PODOFO_RAISE_LOGIC_IF(!m_pOutputStream, "EndEncode() without BeginEncode() or on failed filter");
+
+    try
+    {
+        EndEncodeImpl();
+    }
+    catch (...)
+    {
+        // Clean up and close stream
+        this->FailEncodeDecode();
+        throw;
+    }
+
+    m_pOutputStream->Close();
+    m_pOutputStream = NULL;
+}
+
+void PdfFilter::BeginDecode(PdfOutputStream* pOutput, const PdfDictionary* pDecodeParms)
+{
+    PODOFO_RAISE_LOGIC_IF(m_pOutputStream, "BeginDecode() on failed filter or without EndDecode()");
+    m_pOutputStream = pOutput;
+
+    try
+    {
+        BeginDecodeImpl(pDecodeParms);
+    }
+    catch (...)
+    {
+        // Clean up and close stream
+        this->FailEncodeDecode();
+        throw;
+    }
+}
+
+void PdfFilter::DecodeBlock(const char* pBuffer, size_t lLen)
+{
+    PODOFO_RAISE_LOGIC_IF(!m_pOutputStream, "DecodeBlock() without BeginDecode() or on failed filter")
+
+    try
+    {
+        DecodeBlockImpl(pBuffer, lLen);
+    }
+    catch (...)
+    {
+        // Clean up and close stream
+        this->FailEncodeDecode();
+        throw;
+    }
+}
+
+void PdfFilter::EndDecode()
+{
+    PODOFO_RAISE_LOGIC_IF(!m_pOutputStream, "EndDecode() without BeginDecode() or on failed filter")
+
+    try
+    {
+        EndDecodeImpl();
+    }
+    catch (PdfError& e)
+    {
+        e.AddToCallstack(__FILE__, __LINE__);
+        // Clean up and close stream
+        this->FailEncodeDecode();
+        throw;
+    }
+    try
+    { // introduced to fix issue #58
+        if (m_pOutputStream)
+        {
+            m_pOutputStream->Close();
+            m_pOutputStream = NULL;
+        }
+    }
+    catch (PdfError& e)
+    {
+        e.AddToCallstack(__FILE__, __LINE__, "Exception caught closing filter's output stream.\n");
+        // Closing stream failed, just get rid of it
+        m_pOutputStream = NULL;
+        throw;
+    }
+}
+
+void PdfFilter::FailEncodeDecode()
+{
+    if (m_pOutputStream != NULL) // OC 19.08.2010 BugFix: Sometimes FailEncodeDecode() is called twice
+        m_pOutputStream->Close(); // mabri: issue #58 seems fixed without exception safety here ...
+    m_pOutputStream = NULL;
+}
+
+PdfFilter::~PdfFilter()
+{
+    // Whoops! Didn't call EndEncode() before destroying the filter!
+    // Note that we can't do this for the user, since EndEncode() might
+    // throw and we can't safely have that in a dtor. That also means
+    // we can't throw here, but must abort.
+    assert(!m_pOutputStream);
 }

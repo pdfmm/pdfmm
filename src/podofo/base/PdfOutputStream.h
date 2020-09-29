@@ -46,8 +46,9 @@ class PdfOutputDevice;
 /** An interface for writing blocks of data to 
  *  a data source.
  */     
-class PODOFO_API PdfOutputStream {
- public:
+class PODOFO_API PdfOutputStream
+{
+public:
 
     virtual ~PdfOutputStream() { };
 
@@ -58,12 +59,12 @@ class PODOFO_API PdfOutputStream {
      *
      *  \returns the number of bytes written, -1 if an error ocurred
      */
-    virtual size_t Write( const char* pBuffer, size_t lLen ) = 0;
+    virtual void Write( const char* pBuffer, size_t lLen ) = 0;
 
     /**
      * Helper that writes a string via Write(const char*,long)
      */
-    inline size_t Write( const std::string & s );
+    void Write( const std::string & s );
 
     /** Close the PdfOutputStream.
      *  This method may throw exceptions and has to be called 
@@ -75,15 +76,11 @@ class PODOFO_API PdfOutputStream {
     virtual void Close() = 0;
 };
 
-inline size_t PdfOutputStream::Write( const std::string & s )
-{
-    return this->Write( s.data(), s.size() );
-}
-
 /** An output stream that writes data to a file
  */
-class PODOFO_API PdfFileOutputStream : public PdfOutputStream {
- public:
+class PODOFO_API PdfFileOutputStream : public PdfOutputStream
+{
+public:
     
     /** Open a file for writing data
      *  
@@ -100,7 +97,7 @@ class PODOFO_API PdfFileOutputStream : public PdfOutputStream {
      *
      *  \returns the number of bytes written, -1 if an error ocurred
      */
-    size_t Write( const char* pBuffer, size_t lLen ) override;
+    void Write( const char* pBuffer, size_t lLen ) override;
 
     /** Close the PdfOutputStream.
      *  This method may throw exceptions and has to be called 
@@ -120,8 +117,9 @@ class PODOFO_API PdfFileOutputStream : public PdfOutputStream {
  *
  *  DS: TODO: remove in favour of PdfBufferOutputStream.
  */
-class PODOFO_API PdfMemoryOutputStream : public PdfOutputStream {
- public:
+class PODOFO_API PdfMemoryOutputStream : public PdfOutputStream
+{
+public:
     static constexpr size_t INITIAL_SIZE = 4096;
 
     /** 
@@ -146,7 +144,7 @@ class PODOFO_API PdfMemoryOutputStream : public PdfOutputStream {
      *
      *  \returns the number of bytes written, -1 if an error ocurred
      */
-    size_t Write( const char* pBuffer, size_t lLen ) override;
+    void Write( const char* pBuffer, size_t lLen ) override;
 
     /** Close the PdfOutputStream.
      *  This method may throw exceptions and has to be called 
@@ -183,8 +181,9 @@ class PODOFO_API PdfMemoryOutputStream : public PdfOutputStream {
 
 /** An output stream that writes to a PdfOutputDevice
  */
-class PODOFO_API PdfDeviceOutputStream : public PdfOutputStream {
- public:
+class PODOFO_API PdfDeviceOutputStream : public PdfOutputStream
+{
+public:
     
     /** 
      *  Write to an already opened input device
@@ -200,7 +199,7 @@ class PODOFO_API PdfDeviceOutputStream : public PdfOutputStream {
      *
      *  \returns the number of bytes written, -1 if an error ocurred
      */
-    size_t Write( const char* pBuffer, size_t lLen ) override;
+    void Write( const char* pBuffer, size_t lLen ) override;
 
     /** Close the PdfOutputStream.
      *  This method may throw exceptions and has to be called 
@@ -219,8 +218,9 @@ class PODOFO_API PdfDeviceOutputStream : public PdfOutputStream {
  * 
  *  The PdfRefCountedBuffer is resized automatically if necessary.
  */
-class PODOFO_API PdfBufferOutputStream : public PdfOutputStream {
- public:
+class PODOFO_API PdfBufferOutputStream : public PdfOutputStream
+{
+public:
     
     /** 
      *  Write to an already opened input device
@@ -239,7 +239,7 @@ class PODOFO_API PdfBufferOutputStream : public PdfOutputStream {
      *
      *  \returns the number of bytes written, -1 if an error ocurred
      */
-    size_t Write( const char* pBuffer, size_t lLen ) override;
+    void Write( const char* pBuffer, size_t lLen ) override;
 
     virtual void Close() override
     {

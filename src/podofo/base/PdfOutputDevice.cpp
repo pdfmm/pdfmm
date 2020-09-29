@@ -321,7 +321,7 @@ void PdfOutputDevice::Write( const char* pBuffer, size_t lLen )
 {
     if( m_hFile )
     {
-        if( fwrite( pBuffer, sizeof(char), lLen, m_hFile ) != static_cast<size_t>(lLen) )
+        if( fwrite( pBuffer, sizeof(char), lLen, m_hFile ) != lLen )
         {
             PODOFO_RAISE_ERROR( EPdfError::UnexpectedEOF );
         }

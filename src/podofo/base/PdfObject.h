@@ -423,13 +423,6 @@ public:
      */
     bool HasStream() const;
 
-    /** This function compresses any currently set stream
-     *  using the FlateDecode algorithm. JPEG compressed streams
-     *  will not be compressed again using this function.
-     *  Entries to the filter dictionary will be added if necessary.
-     */
-    void FlateCompressStream();
-
     /**
      * Sets this object to immutable,
      * so that no keys can be edited or changed.

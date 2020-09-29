@@ -115,17 +115,6 @@ public:
      */
     size_t GetLength() const override;
 
-    /** This function compresses any currently set stream
-     *  using the FlateDecode(ZIP) algorithm. JPEG compressed streams
-     *  will not be compressed again using this function.
-     *  Entries to the filter dictionary will be added if necessary.
-     */
-    void FlateCompress();
-
-    /** This method removes all filters from the stream
-     */
-    void Uncompress();
-
     const PdfMemStream & operator=(const PdfMemStream & rhs);
     const PdfMemStream & operator=(const PdfStream & rhs);
 
@@ -166,10 +155,6 @@ public:
     void copyFrom(const PdfMemStream &rhs);
 
  private:
-    /** Compress the current data using the FlateDecode (zlib) algorithm
-     *  Expects that all filters are setup correctly.
-     */
-    void FlateCompressStreamData();
     PdfMemStream(const PdfMemStream & rhs) = delete;
 
  private:

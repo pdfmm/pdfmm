@@ -351,15 +351,6 @@ void PdfObject::delayedLoadStream() const
     }
 }
 
-void PdfObject::FlateCompressStream() 
-{
-    // TODO: If the stream isn't already in memory, defer loading and compression until first read of the stream to save some memory.
-    DelayedLoadStream();
-
-    //if( m_pStream )
-    //    m_pStream->FlateCompress();
-}
-
 const PdfObject & PdfObject::operator=(const PdfObject & rhs)
 {
     if (&rhs == this)

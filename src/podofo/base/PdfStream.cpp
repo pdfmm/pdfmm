@@ -48,7 +48,7 @@
 
 using namespace std;
 
-namespace PoDoFo {
+using namespace PoDoFo;
 
 enum EPdfFilter PdfStream::eDefaultFilter = EPdfFilter::FlateDecode;
 
@@ -270,9 +270,6 @@ void PdfStream::EndAppend()
         document->GetObjects().EndAppendStream( this );
 }
 
-// -----------------------------------------------------
-//
-// -----------------------------------------------------
 void PdfStream::Set( const char* pszString )
 {
     if( pszString )
@@ -301,5 +298,3 @@ bool PdfStream::IsAppending() const
 {
     return m_bAppend;
 }
-
-};

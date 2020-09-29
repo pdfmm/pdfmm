@@ -235,7 +235,8 @@ private:
 /** A PdfOutputStream that encrypt all data written
  *  using the RC4 encryption algorithm
  */
-class PdfRC4OutputStream : public PdfOutputStream {
+class PdfRC4OutputStream : public PdfOutputStream
+{
 public:
     PdfRC4OutputStream( PdfOutputStream* pOutputStream, unsigned char rc4key[256], unsigned char rc4last[256], unsigned char* key, int keylen )
     : m_pOutputStream( pOutputStream ), m_stream( rc4key, rc4last, key, keylen )
@@ -247,11 +248,11 @@ public:
      *  \param pBuffer the data is read from this buffer
      *  \param lLen    the size of the buffer 
      */
-    size_t Write( const char* pBuffer, size_t lLen ) override
+    void Write( const char* pBuffer, size_t lLen ) override
     {
         // Do not encode data with no length
         if( !lLen )
-            return lLen;
+            return;
         
         char* pOutputBuffer = static_cast<char*>(podofo_calloc( lLen, sizeof(char) ));
         if( !pOutputBuffer )
@@ -265,7 +266,6 @@ public:
         m_pOutputStream->Write( pOutputBuffer, lLen );
         
         podofo_free( pOutputBuffer );
-        return lLen;
     }
     
     /** Close the PdfOutputStream.

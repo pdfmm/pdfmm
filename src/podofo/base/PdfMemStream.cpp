@@ -99,9 +99,7 @@ void PdfMemStream::EndAppendImpl()
 void PdfMemStream::GetCopy( char** pBuffer, size_t* lLen ) const
 {
     if( !pBuffer || !lLen )
-    {
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
 
     *pBuffer = static_cast<char*>(podofo_calloc( m_lLength, sizeof(char) ));
     *lLen = m_lLength;
@@ -118,99 +116,9 @@ void PdfMemStream::GetCopy( char** pBuffer, size_t* lLen ) const
 void PdfMemStream::GetCopy(PdfOutputStream * pStream) const
 {
 	if( !pStream)
-	{
 		PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-	}
+
 	pStream->Write(m_buffer.GetBuffer(), m_lLength);
-}
-
-void PdfMemStream::FlateCompress()
-{
-    PdfObject*        pObj;
-    PdfVariant        vFilter( PdfName("FlateDecode" ) );
-    PdfVariant        vFilterList;
-    PdfArray          tFilters;
-
-    PdfArray::const_iterator tciFilters;
-    
-    if( !m_lLength )
-        return; // EPdfError::ErrOk
-
-    // TODO: Handle DecodeParms
-    if( m_pParent->GetDictionary().HasKey( "Filter" ) )
-    {
-        pObj = m_pParent->GetIndirectKey( "Filter" );
-
-        if( pObj->IsName() )
-        {
-            if( pObj->GetName() != "DCTDecode" && pObj->GetName() != "FlateDecode" )
-            {
-                tFilters.push_back( vFilter );
-                tFilters.push_back( *pObj );
-            }
-        }
-        else if( pObj->IsArray() )
-        {
-            tciFilters = pObj->GetArray().begin();
-
-            while( tciFilters != pObj->GetArray().end() )
-            {
-                if( (*tciFilters).IsName() )
-                {
-                    // do not compress DCTDecoded are already FlateDecoded streams again
-                    if( (*tciFilters).GetName() == "DCTDecode" || (*tciFilters).GetName() == "FlateDecode" )
-                    {
-                        return;
-                    }
-                }
-
-                ++tciFilters;
-            }
-
-            tFilters.push_back( vFilter );
-
-            tciFilters = pObj->GetArray().begin();
-
-            while( tciFilters != pObj->GetArray().end() )
-            {
-                tFilters.push_back( (*tciFilters) );
-                
-                ++tciFilters;
-            }
-        }
-        else
-            return;
-
-        vFilterList = PdfVariant( tFilters );
-        m_pParent->GetDictionary().AddKey( "Filter", vFilterList );
-
-        FlateCompressStreamData(); // throws an exception on error
-    }
-    else
-    {
-        m_pParent->GetDictionary().AddKey( "Filter", PdfName( "FlateDecode" ) );
-        FlateCompressStreamData();
-    }
-}
-
-void PdfMemStream::Uncompress()
-{    
-    TVecFilters  vecEmpty;
-    if( m_pParent && m_pParent->IsDictionary() && m_pParent->GetDictionary().HasKey( "Filter" ) && m_lLength )
-    {
-        size_t lLen;
-        unique_ptr<char> buffer;
-        this->GetFilteredCopy(buffer, lLen);
-
-        this->Set(buffer.get(), lLen, vecEmpty );
-        // free the memory allocated by GetFilteredCopy again.
-
-        m_pParent->GetDictionary().RemoveKey( "Filter" ); 
-        if( m_pParent->GetDictionary().HasKey( "DecodeParms" ) ) 
-        {
-            m_pParent->GetDictionary().RemoveKey( "DecodeParms" ); 
-        }
-    }
 }
 
 const PdfMemStream & PdfMemStream::operator=(const PdfStream & rhs)
@@ -229,26 +137,6 @@ const PdfMemStream & PdfMemStream::operator=(const PdfMemStream & rhs)
 
     CopyFrom(rhs);
     return (*this);
-}
-
-void PdfMemStream::FlateCompressStreamData()
-{
-    char * pBuffer;
-    size_t lLen;
-
-    if( !m_lLength )
-        return;
-
-    std::unique_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( EPdfFilter::FlateDecode );
-    if( pFilter.get() )
-    {
-        pFilter->Encode( m_buffer.GetBuffer(), m_buffer.GetSize(), &pBuffer, &lLen );
-        this->Set( pBuffer, lLen );
-    }
-    else
-    {
-        PODOFO_RAISE_ERROR( EPdfError::UnsupportedFilter );
-    }
 }
 
 void PdfMemStream::CopyFrom(const PdfStream & rhs)
