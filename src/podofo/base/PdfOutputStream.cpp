@@ -63,7 +63,8 @@ PdfFileOutputStream::~PdfFileOutputStream()
 
 void PdfFileOutputStream::Write( const char* pBuffer, size_t lLen )
 {
-    fwrite( pBuffer, sizeof(char), lLen, m_hFile );
+    if (fwrite(pBuffer, sizeof(char), lLen, m_hFile) != lLen)
+        PODOFO_RAISE_ERROR(EPdfError::UnexpectedEOF);
 }
 
 void PdfFileOutputStream::Close() 
