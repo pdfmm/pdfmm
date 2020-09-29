@@ -145,8 +145,8 @@ void PdfXRefStreamParserObject::ParseStream( const int64_t nW[W_ARRAY_SIZE], con
     char* pBuffer = buffer.get();
     while( it != rvecIndeces.end() )
     {
-        int64_t nFirstObj = *it; ++it;
-        int64_t nCount    = *it; ++it;
+        int64_t nFirstObj = *it++;
+        int64_t nCount = *it++;
 
         while( nCount > 0 )
         {
