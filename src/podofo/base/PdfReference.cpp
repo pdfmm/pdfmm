@@ -60,3 +60,29 @@ const std::string PdfReference::ToString() const
     return out.str();
 }
 
+const PdfReference& PdfReference::operator=(const PdfReference& rhs)
+{
+    m_nObjectNo = rhs.m_nObjectNo;
+    m_nGenerationNo = rhs.m_nGenerationNo;
+    return *this;
+}
+
+bool PdfReference::operator<(const PdfReference& rhs) const
+{
+    return m_nObjectNo == rhs.m_nObjectNo ? m_nGenerationNo < rhs.m_nGenerationNo : m_nObjectNo < rhs.m_nObjectNo;
+}
+
+bool PdfReference::operator==(const PdfReference& rhs) const
+{
+    return m_nObjectNo == rhs.m_nObjectNo && m_nGenerationNo == rhs.m_nGenerationNo;
+}
+
+bool PdfReference::operator!=(const PdfReference& rhs) const
+{
+    return !this->operator==(rhs);
+}
+
+bool PdfReference::IsIndirect() const
+{
+    return m_nObjectNo != 0 || m_nGenerationNo != 0;
+}

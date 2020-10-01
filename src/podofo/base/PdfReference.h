@@ -94,7 +94,7 @@ public:
      *
      * \param rhs the object to copy
      */
-    inline const PdfReference & operator=( const PdfReference & rhs );
+    const PdfReference & operator=( const PdfReference & rhs );
 
     /** Write the complete variant to an output device.
      *  This is an overloaded member function.
@@ -110,39 +110,19 @@ public:
      * Compare to PdfReference objects.
      * \returns true if both reference the same object
      */
-    inline bool operator==( const PdfReference & rhs ) const;
+    bool operator==( const PdfReference & rhs ) const;
 
     /** 
      * Compare to PdfReference objects.
      * \returns false if both reference the same object
      */
-    inline bool operator!=( const PdfReference & rhs ) const;
+    bool operator!=( const PdfReference & rhs ) const;
 
     /** 
      * Compare to PdfReference objects.
      * \returns true if this reference has a smaller object and generation number
      */
-    inline bool operator<( const PdfReference & rhs ) const;
-
-    /** Set the object number of this object
-     *  \param o the new object number
-     */
-    inline void SetObjectNumber( uint32_t o );
-
-    /** Get the object number.
-     *  \returns the object number of this PdfReference
-     */
-    inline uint32_t ObjectNumber() const;
-
-    /** Set the generation number of this object
-     *  \param g the new generation number
-     */
-    inline void SetGenerationNumber( const uint16_t g );
-
-    /** Get the generation number.
-     *  \returns the generation number of this PdfReference
-     */
-    inline uint16_t GenerationNumber() const;
+    bool operator<( const PdfReference & rhs ) const;
 
     /** Allows to check if a reference points to an indirect
      *  object.
@@ -153,7 +133,28 @@ public:
      *  \returns true if this reference is the reference of
      *           an indirect object.
      */
-    inline bool IsIndirect() const;
+    bool IsIndirect() const;
+
+public:
+    /** Set the object number of this object
+     *  \param o the new object number
+     */
+    inline void SetObjectNumber(uint32_t o) { m_nObjectNo = o; }
+
+    /** Get the object number.
+     *  \returns the object number of this PdfReference
+     */
+    inline uint32_t ObjectNumber() const { return m_nObjectNo; }
+
+    /** Set the generation number of this object
+     *  \param g the new generation number
+     */
+    inline void SetGenerationNumber(const uint16_t g) { m_nGenerationNo = g; }
+
+    /** Get the generation number.
+     *  \returns the generation number of this PdfReference
+     */
+    inline uint16_t GenerationNumber() const { return m_nGenerationNo; }
 
  private:
     // uint16_t (2 bytes) should appear before uint32_t (4 bytes)
@@ -164,80 +165,6 @@ public:
     uint16_t    m_nGenerationNo;
     uint32_t    m_nObjectNo;
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const PdfReference & PdfReference::operator=( const PdfReference & rhs )
-{
-    m_nObjectNo     = rhs.m_nObjectNo;
-    m_nGenerationNo = rhs.m_nGenerationNo;
-    return *this;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfReference::operator<( const PdfReference & rhs ) const
-{
-    return m_nObjectNo == rhs.m_nObjectNo ? m_nGenerationNo < rhs.m_nGenerationNo : m_nObjectNo < rhs.m_nObjectNo;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfReference::operator==( const PdfReference & rhs ) const
-{
-    return ( m_nObjectNo == rhs.m_nObjectNo && m_nGenerationNo == rhs.m_nGenerationNo);
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline bool PdfReference::operator!=( const PdfReference & rhs ) const
-{
-    return !this->operator==( rhs );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfReference::SetObjectNumber( uint32_t o )
-{
-    m_nObjectNo = o;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-uint32_t PdfReference::ObjectNumber() const
-{
-    return m_nObjectNo;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfReference::SetGenerationNumber( uint16_t g )
-{
-    m_nGenerationNo = g;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-uint16_t PdfReference::GenerationNumber() const
-{
-    return m_nGenerationNo;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfReference::IsIndirect() const
-{
-    return !( !m_nObjectNo && !m_nGenerationNo );
-}
 
 };
 
