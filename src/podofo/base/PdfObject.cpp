@@ -803,21 +803,18 @@ bool PdfObject::operator==(const PdfObject& rhs) const
     if (this == &rhs)
         return true;
 
-    if (m_Document != rhs.m_Document)
-        return false;
-
-    if (m_reference != rhs.m_reference)
-        return false;
-
-    if (m_Document == nullptr)
+    if (m_reference.IsIndirect())
     {
-        DelayedLoad();
-        rhs.DelayedLoad();
-        return m_Variant == rhs.m_Variant;
+        // If lhs is indirect, just check document and reference
+        return m_Document == rhs.m_Document &&
+            m_reference == rhs.m_reference;
     }
     else
     {
-        return m_reference == rhs.m_reference;
+        // Otherwise check variant
+        DelayedLoad();
+        rhs.DelayedLoad();
+        return m_Variant == rhs.m_Variant;
     }
 }
 
@@ -826,21 +823,18 @@ bool PdfObject::operator!=(const PdfObject& rhs) const
     if (this != &rhs)
         return true;
 
-    if (m_Document != rhs.m_Document)
-        return true;
-
-    if (m_reference != rhs.m_reference)
-        return true;
-
-    if (m_Document == nullptr)
+    if (m_reference.IsIndirect())
     {
-        DelayedLoad();
-        rhs.DelayedLoad();
-        return m_Variant != rhs.m_Variant;
+        // If lhs is indirect, just check document and reference
+        return m_Document != rhs.m_Document ||
+            m_reference != rhs.m_reference;
     }
     else
     {
-        return m_reference != rhs.m_reference;
+        // Otherwise check variant
+        DelayedLoad();
+        rhs.DelayedLoad();
+        return m_Variant != rhs.m_Variant;
     }
 }
 
