@@ -35,7 +35,8 @@
 
 #include "base/PdfDefinesPrivate.h"
 
-namespace PoDoFo {
+using namespace std;
+using namespace PoDoFo;
 
 PdfStreamedDocument::PdfStreamedDocument( PdfOutputDevice* pDevice, EPdfVersion eVersion, PdfEncrypt* pEncrypt, EPdfWriteMode eWriteMode )
     : m_pWriter( NULL ), m_pDevice( NULL ), m_pEncrypt( pEncrypt ), m_bOwnDevice( false )
@@ -43,21 +44,12 @@ PdfStreamedDocument::PdfStreamedDocument( PdfOutputDevice* pDevice, EPdfVersion 
     Init( pDevice, eVersion, pEncrypt, eWriteMode );
 }
 
-PdfStreamedDocument::PdfStreamedDocument( const char* pszFilename, EPdfVersion eVersion, PdfEncrypt* pEncrypt, EPdfWriteMode eWriteMode )
+PdfStreamedDocument::PdfStreamedDocument(const string_view& filename, EPdfVersion eVersion, PdfEncrypt* pEncrypt, EPdfWriteMode eWriteMode )
     : m_pWriter( NULL ), m_pEncrypt( pEncrypt ), m_bOwnDevice( true )
 {
-    m_pDevice = new PdfOutputDevice( pszFilename );
+    m_pDevice = new PdfOutputDevice(filename);
     Init( m_pDevice, eVersion, pEncrypt, eWriteMode );
 }
-
-#ifdef _WIN32
-PdfStreamedDocument::PdfStreamedDocument( const wchar_t* pszFilename, EPdfVersion eVersion, PdfEncrypt* pEncrypt, EPdfWriteMode eWriteMode )
-    : m_pWriter( NULL ), m_pEncrypt( pEncrypt ), m_bOwnDevice( true )
-{
-    m_pDevice = new PdfOutputDevice( pszFilename );
-    Init( m_pDevice, eVersion, pEncrypt, eWriteMode );
-}
-#endif // _WIN32
 
 PdfStreamedDocument::~PdfStreamedDocument()
 {
@@ -80,7 +72,3 @@ void PdfStreamedDocument::Close()
     
     this->GetObjects().Finish();
 }
-
-
-
-};

@@ -68,7 +68,7 @@ PdfImmediateWriter::PdfImmediateWriter( PdfOutputDevice* pDevice, PdfVecObjects*
     // start with writing the header
     this->SetPdfVersion( eVersion );
     this->SetWriteMode( eWriteMode );
-    this->WritePdfHeader( m_pDevice );
+    this->WritePdfHeader(*m_pDevice);
 
     m_pXRef = m_bXRefStream ? new PdfXRefStream( m_vecObjects, this ) : new PdfXRef();
 
@@ -120,11 +120,11 @@ void PdfImmediateWriter::Finish()
         m_pEncrypt->CreateEncryptionDictionary( m_pEncryptObj->GetDictionary() );
     }
 
-    this->WritePdfObjects( m_pDevice, *m_pParent, m_pXRef );
+    this->WritePdfObjects(*m_pDevice, *m_pParent, *m_pXRef);
 
     // write the XRef
     uint64_t lXRefOffset = static_cast<uint64_t>( m_pDevice->Tell() );
-    m_pXRef->Write( m_pDevice );
+    m_pXRef->Write(*m_pDevice);
             
     // XRef streams contain the trailer in the XRef
     if( !m_bXRefStream ) 

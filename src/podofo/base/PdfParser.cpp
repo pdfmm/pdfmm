@@ -1308,7 +1308,7 @@ void PdfParser::ReadObjectsInternal()
     UpdateDocumentVersion();
 }
 
-void PdfParser::SetPassword( const std::string & sPassword )
+void PdfParser::SetPassword( const std::string_view& sPassword )
 {
     if( !m_pEncrypt ) 
     {

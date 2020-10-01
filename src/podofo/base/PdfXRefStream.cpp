@@ -50,12 +50,12 @@ PdfXRefStream::PdfXRefStream( PdfVecObjects* pParent, PdfWriter* pWriter )
     m_offset    = 0;
 }
 
-void PdfXRefStream::BeginWrite( PdfOutputDevice* )
+void PdfXRefStream::BeginWrite( PdfOutputDevice& )
 {
     m_pObject->GetOrCreateStream().BeginAppend();
 }
 
-void PdfXRefStream::WriteSubSection( PdfOutputDevice*, uint32_t first, uint32_t count )
+void PdfXRefStream::WriteSubSection(PdfOutputDevice&, uint32_t first, uint32_t count )
 {
     PdfError::DebugMessage("Writing XRef section: %u %u\n", first, count );
 
@@ -63,7 +63,7 @@ void PdfXRefStream::WriteSubSection( PdfOutputDevice*, uint32_t first, uint32_t 
     m_indeces.push_back( static_cast<int64_t>(count) );
 }
 
-void PdfXRefStream::WriteXRefEntry( PdfOutputDevice*, uint64_t offset, uint16_t generation, 
+void PdfXRefStream::WriteXRefEntry(PdfOutputDevice&, uint64_t offset, uint16_t generation,
                                     char cMode, uint32_t objectNumber ) 
 {
     std::vector<char>	bytes(m_bufferLen);
@@ -81,7 +81,7 @@ void PdfXRefStream::WriteXRefEntry( PdfOutputDevice*, uint64_t offset, uint16_t 
     m_pObject->GetOrCreateStream().Append( buffer, m_bufferLen );
 }
 
-void PdfXRefStream::EndWrite( PdfOutputDevice* pDevice )
+void PdfXRefStream::EndWrite(PdfOutputDevice& device)
 {
     PdfArray w;
 
@@ -90,7 +90,7 @@ void PdfXRefStream::EndWrite( PdfOutputDevice* pDevice )
     w.push_back( static_cast<int64_t>(1) );
 
     // Add our self to the XRef table
-    this->WriteXRefEntry( pDevice, pDevice->Tell(), 0, 'n' );
+    this->WriteXRefEntry(device, device.Tell(), 0, 'n' );
 
     m_pObject->GetOrCreateStream().EndAppend();
     m_pWriter->FillTrailerObject( m_pObject, this->GetSize(), false );
@@ -98,7 +98,7 @@ void PdfXRefStream::EndWrite( PdfOutputDevice* pDevice )
     m_pObject->GetDictionary().AddKey( "Index", m_indeces );
     m_pObject->GetDictionary().AddKey( "W", w );
 
-    pDevice->Seek( static_cast<size_t>(m_offset) );
-    m_pObject->Write(*pDevice, m_pWriter->GetWriteMode(), nullptr); // DominikS: Requires encryption info??
+    device.Seek( static_cast<size_t>(m_offset) );
+    m_pObject->Write(device, m_pWriter->GetWriteMode(), nullptr); // DominikS: Requires encryption info??
     m_indeces.Clear();
 }

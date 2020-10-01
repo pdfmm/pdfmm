@@ -53,9 +53,9 @@ namespace PoDoFo {
  *  devices of your own for PoDoFo.
  *  Just overide the required virtual methods.
  */
-class PODOFO_API PdfOutputDevice {
- public:
-
+class PODOFO_API PdfOutputDevice
+{
+public:
     /** Construct a new PdfOutputDevice that does not write any data. Only the length
      *  of the data is counted.
      *
@@ -74,25 +74,6 @@ class PODOFO_API PdfOutputDevice {
      *  to the end of the file.
      */
     PdfOutputDevice( const std::string_view &filename, bool bTruncate = true );
-
-#ifdef _WIN32
-    /** Construct a new PdfOutputDevice that writes all data to a file.
-     *
-     *  \param pszFilename path to a file that will be opened and all data
-     *                     is written to this file.
-     *  \param bTruncate whether to truncate the file after open. This is useful
-     *                   for incremental updates, to not truncate the file when
-     *                   writing to the same file as the loaded. Default is true.
-     *
-     *  When the bTruncate is false, the device is automatically positioned
-     *  to the end of the file.
-     *
-     *  This is an overloaded member function to allow working
-     *  with unicode characters. On Unix systes you can also path
-     *  UTF-8 to the const char* overload.
-     */
-    PdfOutputDevice(const std::wstring_view& filename, bool bTruncate = true );
-#endif // _WIN32
 
     /** Construct a new PdfOutputDevice that writes all data to a memory buffer.
      *  The buffer will not be owned by this object and has to be allocated before.
@@ -140,7 +121,7 @@ class PODOFO_API PdfOutputDevice {
      *  
      *  \see Init
      */
-    virtual inline size_t GetLength() const;
+    virtual inline size_t GetLength() const { return m_ulLength; }
 
     /** Write to the PdfOutputDevice. Usage is as the usage of printf.
      * 
@@ -151,7 +132,9 @@ class PODOFO_API PdfOutputDevice {
      *
      *  \see Write
      */
-    virtual void Print( const char* pszFormat, ... );
+    void Print( const char* pszFormat, ... );
+
+    void Print(const char* pszFormat, va_list args);
 
     /** Write to the PdfOutputDevice. Usage is as the usage of printf.
      * 
@@ -164,19 +147,7 @@ class PODOFO_API PdfOutputDevice {
      *
      *  \see Write
      */
-    virtual void PrintV( const char* pszFormat, long lBytes, va_list argptr );
-
-    /**
-     * Determine the length of a format string in bytes
-     * when written using PrintV
-     *
-     * \param pszFormat format string
-     * \param args variable argument list
-     *
-     * \returns length in bytes
-     * \see PrintV
-     */
-    long PrintVLen( const char* pszFormat, va_list args );
+    virtual void PrintV( const char* pszFormat, size_t lBytes, va_list argptr );
 
     /** Write data to the buffer. Use this call instead of Print if you 
      *  want to write binary data to the PdfOutputDevice.
@@ -203,23 +174,20 @@ class PODOFO_API PdfOutputDevice {
     /** Get the current offset from the beginning of the file.
      *  \return the offset form the beginning of the file.
      */
-    virtual inline size_t Tell() const;
+    virtual inline size_t Tell() const { return m_ulPosition; }
 
     /** Flush the output files buffer to disk if this devices
      *  operates on a disk.
      */
     virtual void Flush();
 
- private: 
+private: 
     /** Initialize all private members
      */
     void Init();
 
- protected:
-    size_t        m_ulLength;
-
- private:
-    FILE*                m_hFile;
+private:
+    size_t               m_ulLength;
     char*                m_pBuffer;
     size_t               m_lBufferLen;
 
@@ -227,33 +195,10 @@ class PODOFO_API PdfOutputDevice {
     std::istream*        m_pReadStream;
     bool                 m_pStreamOwned;
 
-#if USE_CXX_LOCALE
-    std::locale          m_pStreamSavedLocale;
-#endif
-
-
-
     PdfRefCountedBuffer* m_pRefCountedBuffer;
     size_t               m_ulPosition;
-
-    PdfRefCountedBuffer  m_printBuffer;
+    std::string  m_printBuffer;
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-size_t PdfOutputDevice::GetLength() const
-{
-    return m_ulLength;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-size_t PdfOutputDevice::Tell() const
-{
-    return m_ulPosition;
-}
 
 };
 

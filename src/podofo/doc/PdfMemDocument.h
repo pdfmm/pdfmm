@@ -75,10 +75,11 @@ class PdfWriter;
  *  \see PdfParser
  *  \see PdfWriter
  */
-class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
+class PODOFO_DOC_API PdfMemDocument : public PdfDocument
+{
     friend class PdfWriter;
 
- public:
+public:
 
     /** Construct a new (empty) PdfMemDocument
      */
@@ -101,28 +102,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *  
      *  \see SetPassword, WriteUpdate
      */
-    PdfMemDocument( const char* pszFilename, bool bForUpdate = false );
-
-#ifdef _WIN32
-    /** Construct a PdfMemDocument from an existing PDF (on disk)
-     *  \param pszFilename filename of the file which is going to be parsed/opened
-     *  \param bForUpdate whether to load for incremental update
-     *
-     *  This might throw a PdfError( EPdfError::InvalidPassword ) exception
-     *  if a password is required to read this PDF.
-     *  Call SetPassword with the correct password in this case.
-     *
-     *  When the bForUpdate is set to true, the pszFilename is copied
-     *  for later use by WriteUpdate.
-     *  
-     *  This is an overloaded member function to allow working
-     *  with unicode characters. On Unix systems you can also path
-     *  UTF-8 to the const char* overload.
-     *
-     *  \see SetPassword, WriteUpdate
-     */
-    PdfMemDocument( const wchar_t* pszFilename, bool bForUpdate = false );
-#endif // _WIN32
+    PdfMemDocument(const std::string_view& filename);
 
     /** Close down/destruct the PdfMemDocument
      */
@@ -142,29 +122,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *  
      *  \see SetPassword, WriteUpdate, LoadFromBuffer, LoadFromDevice
      */
-    void Load( const char* pszFilename, bool bForUpdate = false );
-
-#ifdef _WIN32
-    /** Load a PdfMemDocument from a file
-     *
-     *  \param pszFilename filename of the file which is going to be parsed/opened
-     *  \param bForUpdate whether to load for incremental update
-     *
-     *  This might throw a PdfError( EPdfError::InvalidPassword ) exception
-     *  if a password is required to read this PDF.
-     *  Call SetPassword with the correct password in this case.
-     *
-     *  When the bForUpdate is set to true, the pszFilename is copied
-     *  for later use by WriteUpdate.
-     *  
-     *  This is an overloaded member function to allow working
-     *  with unicode characters. On Unix systems you can also path
-     *  UTF-8 to the const char* overload.
-     *
-     *  \see SetPassword, WriteUpdate, LoadFromBuffer, LoadFromDevice
-     */
-    void Load( const wchar_t* pszFilename, bool bForUpdate = false );
-#endif // _WIN32
+    void Load(const std::string_view& filename);
 
     /** Load a PdfMemDocument from a buffer in memory
      *
@@ -181,7 +139,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *  
      *  \see SetPassword, WriteUpdate, Load, LoadFromDevice
      */
-    void LoadFromBuffer( const char* pBuffer, long lLen, bool bForUpdate = false );
+    void LoadFromBuffer( const char* pBuffer, long lLen);
 
     /** Load a PdfMemDocument from a PdfRefCountedInputDevice
      *
@@ -197,7 +155,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *  
      *  \see SetPassword, WriteUpdate, Load, LoadFromBuffer
      */
-    void LoadFromDevice( const PdfRefCountedInputDevice & rDevice, bool bForUpdate = false );
+    void LoadFromDevice( const PdfRefCountedInputDevice & rDevice);
 
     /** Returns whether the document is fully loaded.
      */
@@ -211,23 +169,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *
      *  This is an overloaded member function for your convenience.
      */
-    void Write( const char* pszFilename );
-
-#ifdef _WIN32
-    /** Writes the complete document to a file
-     *
-     *  \param pszFilename filename of the document 
-     *
-     *  \see Write, WriteUpdate
-     *
-     *  This is an overloaded member function to allow working
-     *  with unicode characters. On Unix systems you can also path
-     *  UTF-8 to the const char* overload.
-     *
-     *  This is an overloaded member function for your convenience.
-     */
-    void Write( const wchar_t* pszFilename );
-#endif // _WIN32
+    void Write(const std::string_view& filename, PdfSaveOptions options = PdfSaveOptions::None);
 
     /** Writes the complete document to an output device
      *
@@ -235,7 +177,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *
      *  \see WriteUpdate
      */
-    void Write( PdfOutputDevice* pDevice );
+    void Write( PdfOutputDevice& pDevice, PdfSaveOptions options = PdfSaveOptions::None);
 
     /** Writes the document changes to a file
      *
@@ -255,33 +197,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *
      *  This is an overloaded member function for your convenience.
      */
-    void WriteUpdate( const char* pszFilename );
-
-#ifdef _WIN32
-    /** Writes the document changes to a file
-     *
-     *  \param pszFilename filename of the document 
-     *
-     *  Writes the document changes to a file as an incremental update.
-     *  The document should be loaded with bForUpdate = true, otherwise
-     *  an exception is thrown.
-     *
-     *  Beware when overwriting existing files. Plain file overwrite is allowed
-     *  only if the document was loaded with the same filename (and the same overloaded
-     *  function), otherwise the destination file cannot be the same as the source file,
-     *  because the destination file is truncated first and only then the source file
-     *  content is copied into it.
-     *
-     *  \see Write, WriteUpdate
-     *
-     *  This is an overloaded member function to allow working
-     *  with unicode characters. On Unix systems you can also path
-     *  UTF-8 to the const char* overload.
-     *
-     *  This is an overloaded member function for your convenience.
-     */
-    void WriteUpdate( const wchar_t* pszFilename );
-#endif // _WIN32
+    void WriteUpdate(const std::string_view& filename, PdfSaveOptions options = PdfSaveOptions::None);
 
     /** Writes the document changes to an output device
      *
@@ -302,7 +218,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *
      *  \see Write, WriteUpdate
      */
-    void WriteUpdate(PdfOutputDevice& pDevice, bool truncate);
+    void WriteUpdate(PdfOutputDevice& pDevice, PdfSaveOptions options = PdfSaveOptions::None);
 
     /** Set the write mode to use when writing the PDF.
      *  \param eWriteMode write mode
@@ -365,7 +281,7 @@ class PODOFO_DOC_API PdfMemDocument : public PdfDocument {
      *  \param sPassword a user or owner password which can be used to open an encrypted PDF file
      *                   If the password is invalid, a PdfError( EPdfError::InvalidPassword ) exception is thrown!
      */
-    void SetPassword( const std::string & sPassword );
+    void SetPassword( const std::string_view & sPassword );
 
     /** Encrypt the document during writing.
      *

@@ -73,10 +73,11 @@ class PdfXObject;
  *  \see PdfStreamedDocument
  *  \see PdfMemDocument
  */
-class PODOFO_DOC_API PdfDocument {
+class PODOFO_DOC_API PdfDocument
+{
     friend class PdfElement;
 
- public:
+public:
     /** Close down/destruct the PdfDocument
      */
     virtual ~PdfDocument();
@@ -96,14 +97,6 @@ class PODOFO_DOC_API PdfDocument {
      *  \returns true if the PDF document is linearized
      */
     virtual bool IsLinearized() const = 0;
-    
-    /** Get access to the internal Info dictionary
-     *  You can set the author, title etc. of the
-     *  document using the info dictionary.
-     *
-     *  \returns the info dictionary
-     */
-    PdfInfo* GetInfo() const { return m_pInfo; }
 
     /** Get access to the Outlines (Bookmarks) dictionary
      *  The returned outlines object is owned by the PdfDocument.
@@ -133,12 +126,6 @@ class PODOFO_DOC_API PdfDocument {
      */
     PdfAcroForm* GetAcroForm( bool bCreate = ePdfCreateObject,
                               EPdfAcroFormDefaulAppearance eDefaultAppearance = EPdfAcroFormDefaulAppearance::BlackText12pt);
-
-    /** Get access to the pages tree.
-     *  Better use the GetPage() and CreatePage() methods.
-     *  \returns the PdfPagesTree of this document.
-     */
-    inline PdfPagesTree* GetPagesTree() const;
 
     /** Get the total number of pages in a document
      *  \returns int number of pages
@@ -301,7 +288,7 @@ class PODOFO_DOC_API PdfDocument {
      *
      *  \returns the internal handle to the freetype library
      */
-    inline FT_Library GetFontLibrary() const;
+    FT_Library GetFontLibrary() const;
 	
     /** Embeds all pending subset fonts, is automatically done on Write().
      *  Just call explicitly in case the PdfDocument is needed as PdfXObject.
@@ -551,19 +538,6 @@ class PODOFO_DOC_API PdfDocument {
      */
     virtual bool IsHighPrintAllowed() const = 0;
 
-    /** Get access to the internal vector of objects
-     *  or root object.
-     *  
-     *  \returns the vector of objects
-     */
-    inline PdfVecObjects & GetObjects() { return m_vecObjects; }
-
-    /** Get access to the internal vector of objects
-     *  or root object.
-     *  
-     *  \returns the vector of objects
-     */
-    inline const PdfVecObjects & GetObjects() const { return m_vecObjects; }
 #ifdef PODOFO_HAVE_FONTCONFIG
     /**
      * Set wrapper for the fontconfig library.
@@ -572,10 +546,39 @@ class PODOFO_DOC_API PdfDocument {
      * This setter can be called until first use of Fontconfig
      * as the library is initialized at first use.
      */
-    inline void SetFontConfigWrapper( PdfFontConfigWrapper * pFontConfig );
+    void SetFontConfigWrapper( PdfFontConfigWrapper * pFontConfig );
 #endif
 
- protected:
+public:
+    /** Get access to the internal Info dictionary
+     *  You can set the author, title etc. of the
+     *  document using the info dictionary.
+     *
+     *  \returns the info dictionary
+     */
+    inline PdfInfo* GetInfo() const { return m_pInfo; }
+
+    /** Get access to the pages tree.
+     *  Better use the GetPage() and CreatePage() methods.
+     *  \returns the PdfPagesTree of this document.
+     */
+    inline PdfPagesTree* GetPagesTree() const { return m_pPagesTree; }
+
+    /** Get access to the internal vector of objects
+     *  or root object.
+     *
+     *  \returns the vector of objects
+     */
+    inline PdfVecObjects& GetObjects() { return m_vecObjects; }
+
+    /** Get access to the internal vector of objects
+     *  or root object.
+     *
+     *  \returns the vector of objects
+     */
+    inline const PdfVecObjects& GetObjects() const { return m_vecObjects; }
+
+protected:
     /** Construct a new (empty) PdfDocument
      *  \param bEmpty if true NO default objects (such as catalog) are created.
      */
@@ -587,42 +590,6 @@ class PODOFO_DOC_API PdfDocument {
      *  @param pInfo the new info object (will be owned by PdfDocument)
      */
     void SetInfo( PdfInfo* pInfo );
-
-    /** Get access to the internal Catalog dictionary
-     *  or root object.
-     *  
-     *  \returns PdfObject the documents catalog
-     */
-    inline PdfObject* GetCatalog();
-
-    /** Get access to the internal Catalog dictionary
-     *  or root object.
-     *  
-     *  \returns PdfObject the documents catalog
-     */
-    inline const PdfObject* GetCatalog() const;
-
-    /** Set the catalog of this PdfDocument
-     *  deleting the old one.
-     *
-     *  \param pObject the new catalog object
-     *         It will be owned by PdfDocument.
-     */
-    inline void SetCatalog( PdfObject* pObject );
-
-    /** Get access to the internal trailer dictionary
-     *  or root object.
-     *  
-     *  \returns PdfObject the documents catalog
-     */
-    inline PdfObject* GetTrailer();
-
-    /** Get access to the internal trailer dictionary
-     *  or root object.
-     *  
-     *  \returns PdfObject the documents catalog
-     */
-    inline const PdfObject* GetTrailer() const;
 
     /** Set the trailer of this PdfDocument
      *  deleting the old one.
@@ -669,7 +636,47 @@ class PODOFO_DOC_API PdfDocument {
      */
     void Clear();
 
- protected:
+protected:
+    /** Get access to the internal Catalog dictionary
+     *  or root object.
+     *
+     *  \returns PdfObject the documents catalog
+     */
+    inline PdfObject* GetCatalog() { return m_pCatalog; }
+
+    /** Get access to the internal Catalog dictionary
+     *  or root object.
+     *
+     *  \returns PdfObject the documents catalog
+     */
+    inline const PdfObject* GetCatalog() const { return m_pCatalog; }
+
+    /** Set the catalog of this PdfDocument
+     *  deleting the old one.
+     *
+     *  \param pObject the new catalog object
+     *         It will be owned by PdfDocument.
+     */
+     // m_pCatalog does not need to 
+     // be reowned as it should
+     // alread by part of m_vecObjects
+    inline void SetCatalog(PdfObject* pObject) { m_pCatalog = pObject; }
+
+    /** Get access to the internal trailer dictionary
+     *  or root object.
+     *
+     *  \returns PdfObject the documents catalog
+     */
+    inline PdfObject* GetTrailer() { return m_pTrailer; }
+
+    /** Get access to the internal trailer dictionary
+     *  or root object.
+     *
+     *  \returns PdfObject the documents catalog
+     */
+    inline const PdfObject* GetTrailer() const { return m_pTrailer; }
+
+protected:
     PdfFontCache    m_fontCache;
     PdfObject*      m_pTrailer;
     PdfObject*      m_pCatalog;
@@ -678,89 +685,18 @@ class PODOFO_DOC_API PdfDocument {
     PdfPagesTree*   m_pPagesTree;
     PdfAcroForm*    m_pAcroForms;
 
- private:
+private:
     // Prevent use of copy constructor and assignment operator.  These methods
     // should never be referenced (given that code referencing them outside
     // PdfDocument won't compile), and calling them will result in a link error
     // as they're not defined.
     explicit PdfDocument(const PdfDocument&);
-    PdfDocument& operator=(const PdfDocument&);
+    PdfDocument& operator=(const PdfDocument&) = delete;
 
     PdfVecObjects   m_vecObjects;
-   
-
     PdfOutlines*    m_pOutlines;
     PdfNamesTree*   m_pNamesTree;
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline PdfPagesTree* PdfDocument::GetPagesTree() const
-{
-    return m_pPagesTree;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline PdfObject* PdfDocument::GetCatalog()
-{
-    return m_pCatalog;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline const PdfObject* PdfDocument::GetCatalog() const
-{
-    return m_pCatalog;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline void PdfDocument::SetCatalog( PdfObject* pObject ) 
-{
-    m_pCatalog = pObject; // m_pCatalog does not need to 
-                          // be reowned as it should
-                          // alread by part of m_vecObjects
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline PdfObject* PdfDocument::GetTrailer()
-{
-    return m_pTrailer;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline const PdfObject* PdfDocument::GetTrailer() const
-{
-    return m_pTrailer;
-}
-
-// Peter Petrov 26 April 2008
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline FT_Library PdfDocument::GetFontLibrary() const
-{
-    return this->m_fontCache.GetFontLibrary();
-}
-
-#ifdef PODOFO_HAVE_FONTCONFIG
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline void PdfDocument::SetFontConfigWrapper( PdfFontConfigWrapper * pFontConfig )
-{
-    m_fontCache.SetFontConfigWrapper( pFontConfig );
-}
-#endif // PODOFO_HAVE_FONTCONFIG
 
 };
 

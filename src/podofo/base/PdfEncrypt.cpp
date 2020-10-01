@@ -683,7 +683,7 @@ PdfEncryptMD5Base::PdfEncryptMD5Base( const PdfEncrypt & rhs ) : PdfEncrypt(rhs)
 }
 
 void
-PdfEncryptMD5Base::PadPassword(const std::string& password, unsigned char pswd[32])
+PdfEncryptMD5Base::PadPassword(const std::string_view& password, unsigned char pswd[32])
 {
     size_t m = password.length();
     
@@ -1083,7 +1083,7 @@ PdfEncryptRC4::GenerateEncryptionKey(const PdfString & documentId)
                          m_oValue, m_pValue, m_eKeyLength, m_rValue, m_uValue, m_bEncryptMetadata);
 }
     
-bool PdfEncryptRC4::Authenticate( const std::string & password, const PdfString & documentId )
+bool PdfEncryptRC4::Authenticate( const std::string_view& password, const PdfString & documentId )
 {
     bool ok = false;
     
@@ -1312,7 +1312,7 @@ PdfEncryptAESV2::GenerateEncryptionKey(const PdfString & documentId)
                          m_oValue, m_pValue, m_eKeyLength, m_rValue, m_uValue, m_bEncryptMetadata);
 }
 
-bool PdfEncryptAESV2::Authenticate( const std::string & password, const PdfString & documentId )
+bool PdfEncryptAESV2::Authenticate( const std::string_view& password, const PdfString & documentId )
 {
     bool ok = false;
     
@@ -1599,11 +1599,11 @@ void PdfEncryptSHABase::ComputeOwnerKey(const unsigned char * ownerpswd, size_t 
     #endif
 }
 
-void PdfEncryptSHABase::PreprocessPassword( const std::string &password, unsigned char* outBuf, size_t&len)
+void PdfEncryptSHABase::PreprocessPassword( const std::string_view&password, unsigned char* outBuf, size_t&len)
 {
     char* password_sasl;
     
-    if (stringprep_profile(password.c_str(), &password_sasl, "SASLprep", STRINGPREP_NO_UNASSIGNED) != STRINGPREP_OK)
+    if (stringprep_profile(password.data(), &password_sasl, "SASLprep", STRINGPREP_NO_UNASSIGNED) != STRINGPREP_OK)
     {
         PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidPassword, "Error processing password through SASLprep" );
     }
@@ -1757,7 +1757,7 @@ PdfEncryptAESV3::GenerateEncryptionKey(const PdfString &)
     #endif
 }
 
-bool PdfEncryptAESV3::Authenticate( const std::string & password, const PdfString & )
+bool PdfEncryptAESV3::Authenticate( const std::string_view& password, const PdfString & )
 {
     bool ok = false;
     

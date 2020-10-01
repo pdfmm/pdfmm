@@ -49,9 +49,11 @@ class PdfOutputDevice;
  *
  * This is an internal class of PoDoFo used by PdfWriter.
  */
-class PdfXRef {
+class PdfXRef
+{
  protected:
-    struct TXRefItem{
+    struct TXRefItem
+    {
         TXRefItem( const PdfReference & rRef, const uint64_t & off ) 
             : reference( rRef ), offset( off )
             {
@@ -141,7 +143,7 @@ class PdfXRef {
      *  \param pDevice an output device (usually a PDF file)
      *
      */
-    void Write( PdfOutputDevice* pDevice );
+    void Write(PdfOutputDevice& device);
 
     /** Get the size of the XRef table.
      *  I.e. the highest object number + 1.
@@ -169,7 +171,7 @@ class PdfXRef {
      *  @param pDevice the output device to which the XRef table 
      *                 should be written.
      */
-    virtual void BeginWrite( PdfOutputDevice* pDevice );
+    virtual void BeginWrite( PdfOutputDevice& device);
 
     /** Begin an XRef subsection.
      *  All following calls of WriteXRefEntry belong to this XRef subsection.
@@ -179,7 +181,7 @@ class PdfXRef {
      *  @param nFirst the object number of the first object in this subsection
      *  @param nCount the number of entries in this subsection
      */
-    virtual void WriteSubSection( PdfOutputDevice* pDevice, uint32_t nFirst, uint32_t nCount );
+    virtual void WriteSubSection( PdfOutputDevice& device, uint32_t nFirst, uint32_t nCount );
 
     /** Write a single entry to the XRef table
      *  
@@ -191,7 +193,7 @@ class PdfXRef {
      *  @param objectNumber the object number of the currently written object if cMode = 'n' 
      *                       otherwise undefined
      */
-    virtual void WriteXRefEntry( PdfOutputDevice* pDevice, uint64_t offset, uint16_t generation, 
+    virtual void WriteXRefEntry( PdfOutputDevice& device, uint64_t offset, uint16_t generation,
                                  char cMode, uint32_t objectNumber = 0 );
 
     /** Called at the end of writing the XRef table.
@@ -200,7 +202,7 @@ class PdfXRef {
      *  @param pDevice the output device to which the XRef table 
      *                 should be written.
      */
-    virtual void EndWrite( PdfOutputDevice* pDevice );
+    virtual void EndWrite(PdfOutputDevice& device);
 
  private:
     const PdfReference* GetFirstFreeObject( PdfXRef::TCIVecXRefBlock itBlock, PdfXRef::TCIVecReferences itFree ) const;

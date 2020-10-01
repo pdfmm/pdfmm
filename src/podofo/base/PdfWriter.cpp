@@ -52,64 +52,52 @@
 #include <iostream>
 #include <stdlib.h>
 
+using namespace std;
 using namespace PoDoFo;
 
-PdfWriter::PdfWriter( PdfParser* pParser )
-    : m_bXRefStream( false ), m_pEncrypt( NULL ), 
-      m_pEncryptObj( NULL ), 
-      m_eWriteMode( EPdfWriteMode::Compact ),
-      m_lPrevXRefOffset( 0 ),
-      m_bIncrementalUpdate( false ),
-      m_lFirstInXRef( 0 ),
-      m_lLinearizedOffset(0),
-      m_lLinearizedLastOffset(0),
-      m_lTrailerOffset(0)
+PdfWriter::PdfWriter(PdfVecObjects* pVecObjects, const PdfObject* pTrailer, EPdfVersion version) :
+    m_vecObjects(pVecObjects),
+    m_pTrailer(pTrailer),
+    m_eVersion(version),
+    m_bXRefStream(false),
+    m_pEncrypt(NULL),
+    m_pEncryptObj(NULL),
+    m_saveOptions(PdfSaveOptions::None),
+    m_eWriteMode(EPdfWriteMode::Compact),
+    m_lPrevXRefOffset(0),
+    m_bIncrementalUpdate(false),
+    m_rewriteXRefTable(false),
+    m_lFirstInXRef(0),
+    m_lLinearizedOffset(0),
+    m_lLinearizedLastOffset(0),
+    m_lTrailerOffset(0)
 {
-    if( !(pParser && pParser->GetTrailer()) )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
+}
 
-    m_eVersion     = pParser->GetPdfVersion();
-    m_pTrailer     = new PdfObject( *(pParser->GetTrailer()) );
-    m_vecObjects   = pParser->m_vecObjects;
+PdfWriter::PdfWriter( PdfParser* pParser )
+    : PdfWriter(pParser->m_vecObjects, new PdfObject(*pParser->GetTrailer()), pParser->GetPdfVersion())
+{
 }
 
 PdfWriter::PdfWriter( PdfVecObjects* pVecObjects, const PdfObject* pTrailer )
-    : m_bXRefStream( false ), m_pEncrypt( NULL ), 
-      m_pEncryptObj( NULL ), 
-      m_eWriteMode( EPdfWriteMode::Compact ),
-      m_lPrevXRefOffset( 0 ),
-      m_bIncrementalUpdate( false ),
-      m_lFirstInXRef( 0 ),
-      m_lLinearizedOffset(0),
-      m_lLinearizedLastOffset(0),
-      m_lTrailerOffset(0)
+    : PdfWriter(pVecObjects, new PdfObject(*pTrailer), PdfVersionDefault)
 {
-    if( !pVecObjects || !pTrailer )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
-
-    m_eVersion     = PdfVersionDefault;
-    m_pTrailer     = new PdfObject( *pTrailer );
-    m_vecObjects   = pVecObjects;
 }
 
-PdfWriter::PdfWriter( PdfVecObjects* pVecObjects )
-    : m_bXRefStream( false ), m_pEncrypt( NULL ), 
-      m_pEncryptObj( NULL ), 
-      m_eWriteMode( EPdfWriteMode::Compact ),
-      m_lPrevXRefOffset( 0 ),
-      m_bIncrementalUpdate( false ),
-      m_lFirstInXRef( 0 ),
-      m_lLinearizedOffset(0),
-      m_lLinearizedLastOffset(0),
-      m_lTrailerOffset(0)
+PdfWriter::PdfWriter(PdfVecObjects* pVecObjects)
+    : PdfWriter(pVecObjects, new PdfObject(), PdfVersionDefault)
 {
-    m_eVersion     = PdfVersionDefault;
-    m_pTrailer     = new PdfObject();
-    m_vecObjects   = pVecObjects;
+}
+
+void PdfWriter::SetIncrementalUpdate(bool rewriteXRefTable)
+{
+    m_bIncrementalUpdate = true;
+    m_rewriteXRefTable = rewriteXRefTable;
+}
+
+const char* PoDoFo::PdfWriter::GetPdfVersionString() const
+{
+    return s_szPdfVersionNums[static_cast<int>(m_eVersion)];
 }
 
 PdfWriter::~PdfWriter()
@@ -121,35 +109,9 @@ PdfWriter::~PdfWriter()
     m_vecObjects   = NULL;
 }
 
-void PdfWriter::Write( const char* pszFilename )
-{
-    PdfOutputDevice device( pszFilename );
-
-    this->Write( &device );
-}
-
-#ifdef _WIN32
-void PdfWriter::Write( const wchar_t* pszFilename )
-{
-    PdfOutputDevice device( pszFilename );
-
-    this->Write( &device );
-}
-#endif // _WIN32
-
-void PdfWriter::Write( PdfOutputDevice* pDevice )
-{
-    this->Write( pDevice, false );
-}
-
-void PdfWriter::Write( PdfOutputDevice* pDevice, bool bRewriteXRefTable )
+void PdfWriter::Write(PdfOutputDevice& device)
 {
     CreateFileIdentifier( m_identifier, m_pTrailer, &m_originalIdentifier );
-
-    if( !pDevice )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
 
     // setup encrypt dictionary
     if( m_pEncrypt )
@@ -161,18 +123,23 @@ void PdfWriter::Write( PdfOutputDevice* pDevice, bool bRewriteXRefTable )
         m_pEncrypt->CreateEncryptionDictionary( m_pEncryptObj->GetDictionary() );
     }
 
-    PdfXRef* pXRef = m_bXRefStream ? new PdfXRefStream( m_vecObjects, this ) : new PdfXRef();
+    unique_ptr<PdfXRef> pXRef;
+    if (m_bXRefStream)
+        pXRef.reset(new PdfXRefStream(m_vecObjects, this));
+    else
+        pXRef.reset(new PdfXRef());
 
-    try {
+    try
+    {
         if( !m_bIncrementalUpdate )
-            WritePdfHeader( pDevice );
+            WritePdfHeader(device);
 
-        WritePdfObjects( pDevice, *m_vecObjects, pXRef, bRewriteXRefTable );
+        WritePdfObjects(device, *m_vecObjects, *pXRef);
 
         if( m_bIncrementalUpdate )
             pXRef->SetFirstEmptyBlock();
 
-        pXRef->Write( pDevice );
+        pXRef->Write(device);
         
         // XRef streams contain the trailer in the XRef
         if( !m_bXRefStream ) 
@@ -182,16 +149,14 @@ void PdfWriter::Write( PdfOutputDevice* pDevice, bool bRewriteXRefTable )
             // if we have a dummy offset we write also a prev entry to the trailer
             FillTrailerObject( &trailer, pXRef->GetSize(), false );
             
-            pDevice->Print("trailer\n");
-            trailer.Write(*pDevice, m_eWriteMode, nullptr); // Do not encrypt the trailer dictionary!!!
+            device.Print("trailer\n");
+            trailer.Write(device, m_eWriteMode, nullptr); // Do not encrypt the trailer dictionary!!!
         }
         
-        pDevice->Print( "startxref\n%" PDF_FORMAT_UINT64 "\n%%%%EOF\n", pXRef->GetOffset() );
-        delete pXRef;
-    } catch( PdfError & e ) {
-        // Make sure pXRef is always deleted
-        delete pXRef;
-        
+        device.Print( "startxref\n%" PDF_FORMAT_UINT64 "\n%%%%EOF\n", pXRef->GetOffset() );
+    }
+    catch( PdfError & e )
+    {   
         // P.Zent: Delete Encryption dictionary (cannot be reused)
         if(m_pEncryptObj) {
             m_vecObjects->RemoveObject(m_pEncryptObj->GetIndirectReference());
@@ -203,67 +168,19 @@ void PdfWriter::Write( PdfOutputDevice* pDevice, bool bRewriteXRefTable )
     }
     
     // P.Zent: Delete Encryption dictionary (cannot be reused)
-    if(m_pEncryptObj) {
+    if(m_pEncryptObj)
+    {
         m_vecObjects->RemoveObject(m_pEncryptObj->GetIndirectReference());
         delete m_pEncryptObj;
     }
 }
 
-void PdfWriter::WriteUpdate( PdfOutputDevice* pDevice, PdfInputDevice* pSourceInputDevice, bool bRewriteXRefTable )
+void PdfWriter::WritePdfHeader(PdfOutputDevice& device)
 {
-    if( !pDevice )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
-
-    // make sure it's set that this is an incremental update
-    m_bIncrementalUpdate = true;
-
-    // the source device can be NULL, then the output device
-    // is positioned at the end of the original file by the caller
-    if( pSourceInputDevice )
-    {
-        // copy the original file content first
-        size_t uBufferLen = 65535;
-        char *pBuffer;
-
-        while( pBuffer = reinterpret_cast<char *>( podofo_malloc( sizeof( char ) * uBufferLen) ), !pBuffer )
-        {
-            uBufferLen = uBufferLen / 2;
-            if( !uBufferLen )
-                break;
-        }
-
-        if( !pBuffer )
-            PODOFO_RAISE_ERROR (EPdfError::OutOfMemory);
-
-        try {
-            pSourceInputDevice->Seek(0);
-
-            while( !pSourceInputDevice->Eof() )
-            {
-                size_t didRead = pSourceInputDevice->Read( pBuffer, uBufferLen );
-                if( didRead > 0)
-                    pDevice->Write( pBuffer, didRead );
-            }
-
-            podofo_free( pBuffer );
-        } catch( PdfError & e ) {
-            podofo_free( pBuffer );
-            throw e;
-        }
-    }
-
-    // then write the changes
-    this->Write (pDevice, bRewriteXRefTable );
+    device.Print( "%s\n%%%s", s_szPdfVersions[static_cast<int>(m_eVersion)], PDF_MAGIC );
 }
 
-void PdfWriter::WritePdfHeader( PdfOutputDevice* pDevice )
-{
-    pDevice->Print( "%s\n%%%s", s_szPdfVersions[static_cast<int>(m_eVersion)], PDF_MAGIC );
-}
-
-void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const PdfVecObjects& vecObjects, PdfXRef* pXref, bool bRewriteXRefTable )
+void PdfWriter::WritePdfObjects(PdfOutputDevice& device, const PdfVecObjects& vecObjects, PdfXRef& xref)
 {
     TCIVecObjects itObjects, itObjectsEnd = vecObjects.end();
 
@@ -273,7 +190,7 @@ void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const PdfVecObjects& 
         {
             if(!pObject->IsDirty())
             {
-                if (bRewriteXRefTable)
+                if (m_rewriteXRefTable)
                 {
                     PdfParserObject* parserObject = dynamic_cast<PdfParserObject*>(pObject);
                     if (parserObject != nullptr)
@@ -287,7 +204,7 @@ void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const PdfVecObjects& 
                         // the offset points just after the "0 0 obj" string
                         if (parserObject->GetOffset() - objRefLength > 0)
                         {
-                            pXref->AddObject(pObject->GetIndirectReference(), parserObject->GetOffset() - objRefLength, true);
+                            xref.AddObject(pObject->GetIndirectReference(), parserObject->GetOffset() - objRefLength, true);
                             continue;
                         }
                     }
@@ -299,40 +216,18 @@ void PdfWriter::WritePdfObjects( PdfOutputDevice* pDevice, const PdfVecObjects& 
             }
         }
 
-        pXref->AddObject( pObject->GetIndirectReference(), pDevice->Tell(), true );
+        xref.AddObject( pObject->GetIndirectReference(), device.Tell(), true );
 
         // Make sure that we do not encrypt the encryption dictionary!
-        pObject->Write(*pDevice, m_eWriteMode, 
+        pObject->Write(device, m_eWriteMode, 
                               pObject == m_pEncryptObj ? nullptr : m_pEncrypt);
     }
 
     TCIPdfReferenceList itFree, itFreeEnd = vecObjects.GetFreeObjects().end();
     for( itFree = vecObjects.GetFreeObjects().begin(); itFree != itFreeEnd; ++itFree )
     {
-        pXref->AddObject( *itFree, 0, false );
+        xref.AddObject( *itFree, 0, false );
     }
-}
-
-void PdfWriter::WriteToBuffer( char** ppBuffer, size_t* pulLen )
-{
-    PdfOutputDevice device;
-
-    if( !pulLen )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
-
-    this->Write( &device );
-
-    *pulLen = device.GetLength();
-    *ppBuffer = static_cast<char*>(podofo_calloc( *pulLen, sizeof(char) ));
-    if( !*ppBuffer )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
-    }
-
-    PdfOutputDevice memDevice( *ppBuffer, *pulLen );
-    this->Write( &memDevice );
 }
 
 void PdfWriter::FillTrailerObject( PdfObject* pTrailer, size_t lSize, bool bOnlySizeKey ) const
@@ -371,11 +266,10 @@ void PdfWriter::FillTrailerObject( PdfObject* pTrailer, size_t lSize, bool bOnly
         // finally add the key to the trailer dictionary
         pTrailer->GetDictionary().AddKey( "ID", array );
 
-        if( m_lPrevXRefOffset > 0 )
+        if (!m_rewriteXRefTable && m_lPrevXRefOffset > 0)
         {
-            PdfVariant value( m_lPrevXRefOffset );
-
-            pTrailer->GetDictionary().AddKey( "Prev", value );
+            PdfVariant value(m_lPrevXRefOffset);
+            pTrailer->GetDictionary().AddKey("Prev", value);
         }
     }
 }
@@ -472,8 +366,8 @@ void PdfWriter::SetEncrypted( const PdfEncrypt & rEncrypt )
 
 void PdfWriter::SetUseXRefStream(bool bStream)
 {
-    if (bStream && this->GetPdfVersion() < EPdfVersion::V1_5)
+    if (bStream && m_eVersion < EPdfVersion::V1_5)
         this->SetPdfVersion(EPdfVersion::V1_5);
+
     m_bXRefStream = bStream;
 }
-

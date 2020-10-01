@@ -62,6 +62,9 @@ class PdfXRef;
  */
 class PODOFO_API PdfWriter
 {
+private:
+    PdfWriter(PdfVecObjects* pVecObjects, const PdfObject* pTrailer, EPdfVersion version);
+
 public:
     /** Create a PdfWriter object from a PdfParser object
      *  \param pParser a pdf parser object
@@ -77,69 +80,11 @@ public:
 
     virtual ~PdfWriter();
 
-    /** Writes the complete document to a PDF file.
-     *
-     *  \param pszFilename filename of a PDF file.
+    /** Internal implementation of the Write() call with the common code
+     *  \param pDevice write to this output device
+     *  \param bRewriteXRefTable whether will rewrite whole XRef table (used only if GetIncrementalUpdate() returns true)
      */
-    void Write( const char* pszFilename );
-
-#ifdef _WIN32
-    /** Writes the complete document to a PDF file.
-     *
-     *  \param pszFilename filename of a PDF file.
-     *
-     *  This is an overloaded member function to allow working
-     *  with unicode characters. On Unix systems you can also path
-     *  UTF-8 to the const char* overload.
-     */
-    void Write( const wchar_t* pszFilename );
-#endif // _WIN32
-
-    /** Writes the complete document to a PdfOutputDevice
-     *
-     *  \param pDevice write to the specified device
-     *
-     *  \see WriteUpdate
-     */
-    void Write( PdfOutputDevice* pDevice );
-
-    /** Writes the document changes to an output device
-     *
-     *  \param pDevice write to the specified device
-     *  \param pSourceInputDevice where to copy original content from; can be NULL
-     *  \param bRewriteXRefTable whether to rewrite whole XRef table
-     *
-     *  Writes an incremental update to the pDevice, using the pSourceInputDevice
-     *  content as the original file content.
-     *  When the pSourceInputDevice is NULL, the caller is responsible to have the pDevice
-     *  filled with the previous content and to have it positioned at the end of the stream.
-     *
-     *  Calling this also switches the writer to the incremental update mode.
-     *
-     *  \see SetIncrementalUpdate
-     */
-    void WriteUpdate( PdfOutputDevice* pDevice, PdfInputDevice* pSourceInputDevice, bool bRewriteXRefTable );
-
-    /** Set the write mode to use when writing the PDF.
-     *  \param eWriteMode write mode
-     */
-    void SetWriteMode( EPdfWriteMode eWriteMode ) { m_eWriteMode = eWriteMode; }
-
-    /** Get the write mode used for wirting the PDF
-     *  \returns the write mode
-     */
-    EPdfWriteMode GetWriteMode() const { return m_eWriteMode; }
-
-    /** Set the PDF Version of the document. Has to be called before Write() to
-     *  have an effect.
-     *  \param eVersion  version of the pdf document
-     */
-    void SetPdfVersion( EPdfVersion eVersion ) { m_eVersion = eVersion; }
-
-    /** Get the PDF version of the document
-     *  \returns EPdfVersion version of the pdf document
-     */
-    EPdfVersion GetPdfVersion() const { return m_eVersion; }
+    void Write(PdfOutputDevice& device);
 
     /** Create a XRef stream which is in some case
      *  more compact but requires at least PDF 1.5
@@ -147,8 +92,51 @@ public:
      *  \param bStream if true a XRef stream object will be created
      */
     void SetUseXRefStream( bool bStream );
+    
+    /** Set the written document to be encrypted using a PdfEncrypt object
+     *
+     *  \param rEncrypt an encryption object which is used to encrypt the written PDF file
+     */
+    void SetEncrypted( const PdfEncrypt & rEncrypt );
 
-    /** 
+
+    /** Add required keys to a trailer object
+     *  \param pTrailer add keys to this object
+     *  \param lSize number of objects in the PDF file
+     *  \param bOnlySizeKey write only the size key
+     */
+    void FillTrailerObject( PdfObject* pTrailer, size_t lSize, bool bOnlySizeKey ) const;
+
+public:
+    /** Get the file format version of the pdf
+     *  \returns the file format version as string
+     */
+    const char* GetPdfVersionString() const;
+
+    inline void SetSaveOptions(PdfSaveOptions saveOptions) { m_saveOptions = saveOptions; }
+
+    /** Set the write mode to use when writing the PDF.
+     *  \param eWriteMode write mode
+     */
+    inline void SetWriteMode(EPdfWriteMode eWriteMode) { m_eWriteMode = eWriteMode; }
+
+    /** Get the write mode used for wirting the PDF
+     *  \returns the write mode
+     */
+    inline EPdfWriteMode GetWriteMode() const { return m_eWriteMode; }
+
+    /** Set the PDF Version of the document. Has to be called before Write() to
+     *  have an effect.
+     *  \param eVersion  version of the pdf document
+     */
+    inline void SetPdfVersion(EPdfVersion eVersion) { m_eVersion = eVersion; }
+
+    /** Get the PDF version of the document
+     *  \returns EPdfVersion version of the pdf document
+     */
+    inline EPdfVersion GetPdfVersion() const { return m_eVersion; }
+
+    /**
      *  \returns wether a XRef stream is used or not
      */
     inline bool GetUseXRefStream() const { return m_bXRefStream; }
@@ -160,7 +148,7 @@ public:
      */
     inline void SetPrevXRefOffset(int64_t lPrevXRefOffset) { m_lPrevXRefOffset = lPrevXRefOffset; }
 
-    /** 
+    /**
      *  \returns offset to the previous XRef table, as previously set
      *     by SetPrevXRefOffset.
      *
@@ -172,50 +160,19 @@ public:
      *  Default is false.
      *  \param bIncrementalUpdate if true an incremental update will be written
      */
-    inline void SetIncrementalUpdate( bool bIncrementalUpdate ) { m_bIncrementalUpdate = bIncrementalUpdate; }
+    void SetIncrementalUpdate(bool rewriteXRefTable);
 
-    /** 
+    /**
      *  \returns whether writing an incremental update
      */
-    inline bool GetIncrementalUpdate( void ) const { return m_bIncrementalUpdate; }
+    inline bool GetIncrementalUpdate() const { return m_bIncrementalUpdate; }
 
-    /** Get the file format version of the pdf
-     *  \returns the file format version as string
-     */
-    const char* GetPdfVersionString() const { return s_szPdfVersionNums[static_cast<int>(m_eVersion)]; }
-    
-    /** Set the written document to be encrypted using a PdfEncrypt object
-     *
-     *  \param rEncrypt an encryption object which is used to encrypt the written PDF file
-     */
-    void SetEncrypted( const PdfEncrypt & rEncrypt );
-
-    /** 
+    /**
      * \returns true if this PdfWriter creates an encrypted PDF file
      */
-    bool GetEncrypted() const { return (m_pEncrypt != NULL); }
+    inline bool GetEncrypted() const { return m_pEncrypt != NULL; }
 
-    /** Write the whole document to a buffer in memory.
-     *  
-     *  Better use a PdfOutputDevice that writes to a PdfRefCountedBuffer.
-     *
-     *  \param ppBuffer where this points the address of the buffer will
-     *         be written after that being malloc()'d and the document
-     *         will be written to that buffer.
-     *  \param pulLen the buffer length will be returned in this parameter
-     *
-     *  \see Write
-     */
-    void WriteToBuffer( char** ppBuffer, size_t* pulLen );
-
-    /** Add required keys to a trailer object
-     *  \param pTrailer add keys to this object
-     *  \param lSize number of objects in the PDF file
-     *  \param bOnlySizeKey write only the size key
-     */
-    void FillTrailerObject( PdfObject* pTrailer, size_t lSize, bool bOnlySizeKey ) const;
-
- protected:
+protected:
     /**
      * Create a PdfWriter from a PdfVecObjects
      */
@@ -224,7 +181,7 @@ public:
     /** Writes the pdf header to the current file.
      *  \param pDevice write to this output device
      */       
-    void PODOFO_LOCAL WritePdfHeader( PdfOutputDevice* pDevice );
+    void WritePdfHeader(PdfOutputDevice& device);
 
     /** Write pdf objects to file
      *  \param pDevice write to this output device
@@ -232,7 +189,7 @@ public:
      *  \param pXref add all written objects to this XRefTable
      *  \param bRewriteXRefTable whether will rewrite whole XRef table (used only if GetIncrementalUpdate() returns true)
      */ 
-    void WritePdfObjects( PdfOutputDevice* pDevice, const PdfVecObjects& vecObjects, PdfXRef* pXref, bool bRewriteXRefTable = false ) PODOFO_LOCAL;
+    void WritePdfObjects(PdfOutputDevice& device, const PdfVecObjects& vecObjects, PdfXRef& xref);
 
     /** Creates a file identifier which is required in several
      *  PDF workflows. 
@@ -243,17 +200,11 @@ public:
      *  \param pTrailer trailer object
      *  \param pOriginalIdentifier write the original identifier (when using incremental update) to this string
      */
-    void CreateFileIdentifier( PdfString& identifier, const PdfObject* pTrailer, PdfString* pOriginalIdentifier = NULL ) const PODOFO_LOCAL;
+    void CreateFileIdentifier( PdfString& identifier, const PdfObject* pTrailer, PdfString* pOriginalIdentifier = NULL ) const;
 
-    /** Internal implementation of the Write() call with the common code
-     *  \param pDevice write to this output device
-     *  \param bRewriteXRefTable whether will rewrite whole XRef table (used only if GetIncrementalUpdate() returns true)
-     */ 
-    void Write( PdfOutputDevice* pDevice, bool bRewriteXRefTable );
-
- protected:
+protected:
     PdfVecObjects*  m_vecObjects;
-    PdfObject*      m_pTrailer;
+    const PdfObject* m_pTrailer;
 
     bool            m_bXRefStream;
 
@@ -263,11 +214,13 @@ public:
     PdfString       m_identifier;
     PdfString       m_originalIdentifier; // used for incremental update
 
- private:
+private:
+    PdfSaveOptions  m_saveOptions;
     EPdfWriteMode   m_eWriteMode;
     EPdfVersion     m_eVersion;
     int64_t         m_lPrevXRefOffset;
     bool            m_bIncrementalUpdate;
+    bool            m_rewriteXRefTable; // Only used if incremental update
  
     /**
      * This value is required when writing

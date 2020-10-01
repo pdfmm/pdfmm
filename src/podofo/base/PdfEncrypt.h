@@ -262,7 +262,7 @@ public:
      *  
      * \returns true if either the owner or user password matches password
      */
-    virtual bool Authenticate( const std::string & password, const PdfString & documentId ) = 0;
+    virtual bool Authenticate( const std::string_view & password, const PdfString & documentId ) = 0;
 
     /** Get the encryption algorithm of this object.
      * \returns the EPdfEncryptAlgorithm of this object
@@ -456,7 +456,7 @@ public:
     const unsigned char* GetPermsValue() const { return m_permsValue; }
 
     // NOTE: We must declare again without body otherwise the other Authenticate overload hides it
-    bool Authenticate(const std::string& password, const PdfString& documentId) override = 0;
+    bool Authenticate(const std::string_view& password, const PdfString& documentId) override = 0;
 
     bool Authenticate(const std::string & documentID, const std::string & password,
                       const std::string & uValue, const std::string & ueValue,
@@ -480,7 +480,7 @@ protected:
     
     /// Preprocess password for use in EAS-256 Algorithm
     /// outBuf needs to be at least 127 bytes long
-    void PreprocessPassword( const std::string &password, unsigned char* outBuf, size_t &len);
+    void PreprocessPassword(const std::string_view& password, unsigned char* outBuf, size_t &len);
     
     unsigned char  m_ueValue[32];        ///< UE entry in pdf document
     unsigned char  m_oeValue[32];        ///< OE entry in pdf document
@@ -571,7 +571,7 @@ public:
     static void GetMD5Binary(const unsigned char* data, int length, unsigned char* digest);
 
     // NOTE: We must declare again without body otherwise the other Authenticate overload hides it
-    bool Authenticate(const std::string& password, const PdfString& documentId) override = 0;
+    bool Authenticate(const std::string_view& password, const PdfString& documentId) override = 0;
 
     bool Authenticate(const std::string & documentID, const std::string & password,
                       const std::string & uValue, const std::string & oValue,
@@ -588,7 +588,7 @@ protected:
                          unsigned char ownerKey[32]);
     
     /// Pad a password to 32 characters
-    void PadPassword(const std::string& password, unsigned char pswd[32]);
+    void PadPassword(const std::string_view& password, unsigned char pswd[32]);
     
     /// Compute encryption key and user key
     void ComputeEncryptionKey(const std::string & documentID,
@@ -628,7 +628,7 @@ public:
 	PdfInputStream* CreateEncryptionInputStream( PdfInputStream* pInputStream ) override;
 	PdfOutputStream* CreateEncryptionOutputStream( PdfOutputStream* pOutputStream ) override;
     
-    bool Authenticate( const std::string & password, const PdfString & documentId ) override;
+    bool Authenticate( const std::string_view& password, const PdfString & documentId ) override;
     
     /// Encrypt a character string
     void Encrypt(const unsigned char* inStr, size_t inLen,
@@ -664,7 +664,7 @@ public:
     PdfInputStream* CreateEncryptionInputStream( PdfInputStream* pInputStream ) override;
     PdfOutputStream* CreateEncryptionOutputStream( PdfOutputStream* pOutputStream ) override;
     
-    bool Authenticate( const std::string & password, const PdfString & documentId ) override;
+    bool Authenticate( const std::string_view& password, const PdfString & documentId ) override;
     
     /// Encrypt a character string
     void Encrypt(const unsigned char* inStr, size_t inLen,
@@ -702,7 +702,7 @@ public:
                   EPdfEncryptAlgorithm eAlgorithm = EPdfEncryptAlgorithm::RC4V1,
                   EPdfKeyLength eKeyLength = EPdfKeyLength::L40 );
     
-    bool Authenticate( const std::string & password, const PdfString & documentId ) override;
+    bool Authenticate( const std::string_view& password, const PdfString & documentId ) override;
     
     void Encrypt(const unsigned char* inStr, size_t inLen,
                  unsigned char* outStr, size_t outLen) const override;

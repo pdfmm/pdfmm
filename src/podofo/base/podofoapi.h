@@ -62,17 +62,13 @@
  *     ...
  * };
  *
- * PODOFO_LOCAL can be used on members of a class exported with PODOFO_API
- * to omit some members from the symbol table on supporting platforms. This
- * helps keep the exported API cleaner and the symbol table smaller.
- *
  * To hide a given method in an otherwise exported class:
  *
  * class PODOFO_API Myclass
  * {
  *     // blah blah
  * private:
- *     void privateHelper() PODOFO_LOCAL;
+ *     void privateHelper();
  * };
  *
  * For information on the gcc visibility support see:
@@ -136,9 +132,6 @@
         #define PODOFO_API
         #define PODOFO_DOC_API
     #endif
-    /* PODOFO_LOCAL doesn't mean anything on win32, it's to exclude
-     * symbols from the export table with gcc4. */
-    #define PODOFO_LOCAL
 #else
     #if defined(PODOFO_HAVE_GCC_SYMBOL_VISIBILITY)
         /* Forces inclusion of a symbol in the symbol table, so
@@ -147,15 +140,10 @@
         #define PODOFO_DOC_API __attribute__ ((visibility("default")))
         /* Within a section exported with PODOFO_API, forces a symbol to be
            private to the library / app. Good for private members. */
-        #define PODOFO_LOCAL __attribute__ ((visibility("hidden")))
-        /* Forces even stricter hiding of methods/functions. The function must
-         * absolutely never be called from outside the module even via a function
-         * pointer.*/
         #define PODOFO_INTERNAL __attribute__ ((visibility("internal")))
     #else
         #define PODOFO_API
         #define PODOFO_DOC_API
-        #define PODOFO_LOCAL
         #define PODOFO_INTERNAL
     #endif
 #endif

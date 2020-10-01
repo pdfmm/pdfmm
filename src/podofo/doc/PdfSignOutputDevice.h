@@ -54,10 +54,7 @@ class PODOFO_DOC_API PdfSignOutputDevice : public PdfOutputDevice
 {
 public:
     PdfSignOutputDevice(PdfOutputDevice *pRealDevice);
-    PdfSignOutputDevice(const char* pszFilename);
-#ifdef WIN32
-    PdfSignOutputDevice( const wchar_t* pszFilename );
-#endif
+    PdfSignOutputDevice(const std::string_view &filename);
     virtual ~PdfSignOutputDevice();
 
     /** Set string to lookup for 
@@ -93,50 +90,24 @@ public:
      */
     void SetSignature(const PdfData &sigData);
 
-    inline size_t GetLength() const override
-    {
-        return m_pRealDevice->GetLength();
-    }
+    size_t GetLength() const override;
 
-    void Print( const char* pszFormat, ... ) override
-    {
-        va_list args;
-        long lBytes;
-        
-        va_start( args, pszFormat );
-        lBytes = m_pRealDevice->PrintVLen(pszFormat, args);
-        va_end( args );
-        
-        va_start( args, pszFormat );
-        m_pRealDevice->PrintV(pszFormat, lBytes, args);
-        va_end( args );
-    }
-    
+    void PrintV(const char* pszFormat, size_t lBytes, va_list args) override;
+
     void Write( const char* pBuffer, size_t lLen ) override;
 
-    size_t Read( char* pBuffer, size_t lLen ) override
-    {
-        return m_pRealDevice->Read(pBuffer, lLen);
-    }
+    size_t Read(char* pBuffer, size_t lLen) override;
 
-    void Seek( size_t offset ) override
-    {
-        m_pRealDevice->Seek(offset);
-    }
+    void Seek(size_t offset) override;
 
-    inline size_t Tell() const override
-    {
-        return m_pRealDevice->Tell();
-    }
+    size_t Tell() const override;
 
-    void Flush() override
-    {
-        m_pRealDevice->Flush();
-    }
+    void Flush() override;
 
 private:
     void Init();
 
+private:
     PdfOutputDevice* m_pRealDevice;
     bool m_bDevOwner;
     PdfData* m_pSignatureBeacon;

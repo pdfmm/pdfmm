@@ -62,7 +62,7 @@
 
 using namespace std;
 
-namespace PoDoFo {
+using namespace PoDoFo;
 
 PdfDocument::PdfDocument(bool bEmpty) :
     m_vecObjects(*this),
@@ -930,5 +930,17 @@ void PdfDocument::SetTrailer( PdfObject* pObject )
     m_pTrailer->SetDocument( *this );
 }
 
-};
+FT_Library PdfDocument::GetFontLibrary() const
+{
+    return this->m_fontCache.GetFontLibrary();
+}
 
+#ifdef PODOFO_HAVE_FONTCONFIG
+// -----------------------------------------------------
+// 
+// -----------------------------------------------------
+void PdfDocument::SetFontConfigWrapper(PdfFontConfigWrapper* pFontConfig)
+{
+    m_fontCache.SetFontConfigWrapper(pFontConfig);
+}
+#endif // PODOFO_HAVE_FONTCONFIG

@@ -80,19 +80,11 @@ PdfMemDocument::PdfMemDocument(bool bOnlyTrailer)
     m_eSourceVersion = m_eVersion;
 }
 
-PdfMemDocument::PdfMemDocument( const char* pszFilename, bool bForUpdate )
+PdfMemDocument::PdfMemDocument(const string_view& filename)
     : PdfDocument(), m_pEncrypt( NULL ), m_pParser( NULL ), m_bSoureHasXRefStream( false ), m_lPrevXRefOffset( -1 )
 {
-    this->Load( pszFilename, bForUpdate );
+    this->Load(filename);
 }
-
-#ifdef _WIN32
-PdfMemDocument::PdfMemDocument( const wchar_t* pszFilename, bool bForUpdate )
-    : PdfDocument(), m_pEncrypt( NULL ), m_pParser( NULL ), m_bSoureHasXRefStream( false ), m_lPrevXRefOffset( -1 )
-{
-    this->Load( pszFilename, bForUpdate );
-}
-#endif // _WIN32
 
 PdfMemDocument::~PdfMemDocument()
 {
@@ -180,9 +172,9 @@ void PdfMemDocument::InitFromParser( PdfParser* pParser )
     m_pParser = NULL;
 }
 
-void PdfMemDocument::Load( const char* pszFilename, bool bForUpdate )
+void PdfMemDocument::Load(const string_view& filename)
 {
-    if( !pszFilename || !pszFilename[0] )
+    if(filename.length() == 0)
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
 
     this->Clear();
@@ -190,10 +182,12 @@ void PdfMemDocument::Load( const char* pszFilename, bool bForUpdate )
     // Call parse file instead of using the constructor
     // so that m_pParser is initialized for encrypted documents
     m_pParser = new PdfParser( &PdfDocument::GetObjects() );
-    try {
-        m_pParser->ParseFile( pszFilename, true );
+    try
+    {
+        m_pParser->ParseFile(filename.data(), true );
         InitFromParser( m_pParser );
-    } catch (PdfError& e) {
+    } catch (PdfError& e)
+    {
         if ( e.GetError() != EPdfError::InvalidPassword )
         {
             Clear(); // avoid m_pParser leak (issue #49)
@@ -203,25 +197,7 @@ void PdfMemDocument::Load( const char* pszFilename, bool bForUpdate )
     }
 }
 
-#ifdef _WIN32
-void PdfMemDocument::Load( const wchar_t* pszFilename, bool bForUpdate )
-{
-    if( !pszFilename || !pszFilename[0] )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
-
-    this->Clear();
-
-    // Call parse file instead of using the constructor
-    // so that m_pParser is initialized for encrypted documents
-    m_pParser = new PdfParser( &PdfDocument::GetObjects() );
-    m_pParser->ParseFile( pszFilename, true );
-    InitFromParser( m_pParser );
-}
-#endif // _WIN32
-
-void PdfMemDocument::LoadFromBuffer( const char* pBuffer, long lLen, bool bForUpdate )
+void PdfMemDocument::LoadFromBuffer( const char* pBuffer, long lLen)
 {
     if( !pBuffer || !lLen )
     {
@@ -237,7 +213,7 @@ void PdfMemDocument::LoadFromBuffer( const char* pBuffer, long lLen, bool bForUp
     InitFromParser( m_pParser );
 }
 
-void PdfMemDocument::LoadFromDevice( const PdfRefCountedInputDevice & rDevice, bool bForUpdate )
+void PdfMemDocument::LoadFromDevice( const PdfRefCountedInputDevice & rDevice)
 {
     this->Clear();
 
@@ -345,7 +321,7 @@ void PdfMemDocument::RemovePdfExtension( const char* ns, int64_t level ) {
         this->GetCatalog()->GetIndirectKey("Extensions")->GetDictionary().RemoveKey("ns");
 }
 
-void PdfMemDocument::SetPassword( const std::string & sPassword )
+void PdfMemDocument::SetPassword( const std::string_view& sPassword )
 {
     PODOFO_RAISE_LOGIC_IF( !m_pParser, "SetPassword called without reading a PDF file." );
 
@@ -353,123 +329,61 @@ void PdfMemDocument::SetPassword( const std::string & sPassword )
     InitFromParser( m_pParser );
 }
 
-void PdfMemDocument::Write( const char* pszFilename )
+void PdfMemDocument::Write(const std::string_view& filename, PdfSaveOptions options)
 {
-    /** TODO:
-     *  We will get problems here on linux,
-     *  if we write to the same filename we read the 
-     *  document from.
-     *  Because the PdfParserObjects will read there streams 
-     *  data from the file while we are writing it.
-     *  The problem is that the stream data won't exist at this time
-     *  as we truncated the file already to zero length by opening
-     *  it writeable.
-     */
-
-    PdfOutputDevice device( pszFilename );
-
-    this->Write( &device );
+    PdfOutputDevice device(filename);
+    this->Write(device, options);
 }
 
-#ifdef _WIN32
-void PdfMemDocument::Write( const wchar_t* pszFilename )
+void PdfMemDocument::Write(PdfOutputDevice& device, PdfSaveOptions options)
 {
-    PdfOutputDevice device( pszFilename );
-
-    this->Write( &device );
-}
-#endif // _WIN32
-
-void PdfMemDocument::Write( PdfOutputDevice* pDevice ) 
-{
-    /** TODO:
-     *  We will get problems here on linux,
-     *  if we write to the same filename we read the 
-     *  document from.
-     *  Because the PdfParserObjects will read there streams 
-     *  data from the file while we are writing it.
-     *  The problem is that the stream data won't exist at this time
-     *  as we truncated the file already to zero length by opening
-     *  it writeable.
-     */
-
      // makes sure pending subset-fonts are embedded
     m_fontCache.EmbedSubsetFonts();
 
     PdfWriter writer( &(this->GetObjects()), this->GetTrailer() );
     writer.SetPdfVersion( this->GetPdfVersion() );
+    writer.SetSaveOptions(options);
     writer.SetWriteMode( m_eWriteMode );
 
     if( m_pEncrypt ) 
         writer.SetEncrypted( *m_pEncrypt );
 
-    writer.Write( pDevice );    
+    writer.Write(device);    
 }
 
-void PdfMemDocument::WriteUpdate( const char* pszFilename )
+void PdfMemDocument::WriteUpdate(const string_view& filename, PdfSaveOptions options)
 {
-    if( !pszFilename )
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-
-    PdfOutputDevice device(pszFilename, false);
-    this->WriteUpdate(device, false);
+    PdfOutputDevice device(filename, false);
+    this->WriteUpdate(device, options);
 }
 
-#ifdef _WIN32
-void PdfMemDocument::WriteUpdate( const wchar_t* pszFilename )
+void PdfMemDocument::WriteUpdate(PdfOutputDevice& device, PdfSaveOptions options)
 {
-    if( !pszFilename )
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-
-    PdfOutputDevice device(pszFilename, false);
-
-    this->WriteUpdate(device, false);
-}
-#endif // _WIN32
-
-void PdfMemDocument::WriteUpdate(PdfOutputDevice& pDevice, bool truncate)
-{
-    // TODO: Restore truncate support
-
     // makes sure pending subset-fonts are embedded
     m_fontCache.EmbedSubsetFonts();
-
     PdfWriter writer( &(this->GetObjects()), this->GetTrailer() );
+    writer.SetSaveOptions(options);
     writer.SetPdfVersion( this->GetPdfVersion() );
     writer.SetWriteMode( m_eWriteMode );
-    writer.SetIncrementalUpdate( true ); // PdfWriter::WriteUpdate() does it too, but let's make it explicit
+    writer.SetPrevXRefOffset(m_lPrevXRefOffset);
+
+    bool bRewriteXRefTable = m_bLinearized || m_bSoureHasXRefStream;
+    writer.SetIncrementalUpdate(bRewriteXRefTable);
 
     if( m_pEncrypt ) 
         writer.SetEncrypted( *m_pEncrypt );
 
     if( m_eSourceVersion < this->GetPdfVersion() && this->GetCatalog() && this->GetCatalog()->IsDictionary() )
     {
-        if( this->GetCatalog()->GetDictionary().HasKey( PdfName( "Version" ) ) )
-        {
-            this->GetCatalog()->GetDictionary().RemoveKey( PdfName( "Version" ) );
-        }
-
         if( this->GetPdfVersion() < EPdfVersion::V1_0 || this->GetPdfVersion() > EPdfVersion::V1_7 )
-        {
             PODOFO_RAISE_ERROR( EPdfError::ValueOutOfRange );
-        }
 
         this->GetCatalog()->GetDictionary().AddKey( PdfName( "Version" ), PdfName( s_szPdfVersionNums[(int)this->GetPdfVersion()] ) );
     }
 
     try
     {
-        /* Rewrite the XRef table when the document is linearized or contains
-         * an XRef stream, to make sure that the objects can be read properly.
-         * Also do not reference the previous XRef table in such cases.
-         */
-        bool bRewriteXRefTable = this->IsLinearized() || m_bSoureHasXRefStream;
-        if( bRewriteXRefTable )
-            writer.SetPrevXRefOffset( 0 );
-        else
-            writer.SetPrevXRefOffset( m_lPrevXRefOffset );
-
-        writer.WriteUpdate(&pDevice, nullptr, bRewriteXRefTable );
+        writer.Write(device);
     }
     catch( PdfError & e )
     {

@@ -52,8 +52,9 @@ class PdfWriter;
  *
  * This is an internal class of PoDoFo used by PdfWriter.
  */
-class PdfXRefStream : public PdfXRef {
- public:
+class PdfXRefStream : public PdfXRef
+{
+public:
     /** Create a new XRef table
      *
      *  \param pParent a vector of PdfObject is required
@@ -67,7 +68,7 @@ class PdfXRefStream : public PdfXRef {
      * \returns the offset in the file at which the XRef table
      *          starts after it was written
      */
-    inline uint64_t GetOffset() const override;
+    inline uint64_t GetOffset() const override { return m_offset; }
 
  protected:
     /** Called at the start of writing the XRef table.
@@ -77,7 +78,7 @@ class PdfXRefStream : public PdfXRef {
      *  @param pDevice the output device to which the XRef table 
      *                 should be written.
      */
-    void BeginWrite( PdfOutputDevice* pDevice ) override;
+    void BeginWrite(PdfOutputDevice& device) override;
 
     /** Begin an XRef subsection.
      *  All following calls of WriteXRefEntry belong to this XRef subsection.
@@ -87,7 +88,7 @@ class PdfXRefStream : public PdfXRef {
      *  @param nFirst the object number of the first object in this subsection
      *  @param nCount the number of entries in this subsection
      */
-    void WriteSubSection( PdfOutputDevice* pDevice, uint32_t nFirst, uint32_t nCount ) override;
+    void WriteSubSection(PdfOutputDevice& device, uint32_t nFirst, uint32_t nCount ) override;
 
     /** Write a single entry to the XRef table
      *  
@@ -99,7 +100,7 @@ class PdfXRefStream : public PdfXRef {
      *  @param objectNumber the object number of the currently written object if cMode = 'n' 
      *                       otherwise undefined
      */
-    void WriteXRefEntry( PdfOutputDevice* pDevice, uint64_t offset, uint16_t generation, 
+    void WriteXRefEntry(PdfOutputDevice& device, uint64_t offset, uint16_t generation,
                                  char cMode, uint32_t objectNumber = 0 ) override;
 
     /** Called at the end of writing the XRef table.
@@ -108,7 +109,7 @@ class PdfXRefStream : public PdfXRef {
      *  @param pDevice the output device to which the XRef table 
      *                 should be written.
      */
-    void EndWrite( PdfOutputDevice* pDevice ) override;
+    void EndWrite(PdfOutputDevice& device) override;
 
  private:
     PdfVecObjects* m_pParent;
@@ -119,14 +120,6 @@ class PdfXRefStream : public PdfXRef {
     size_t         m_bufferLen; ///< The length of the internal buffer for one XRef entry
     uint64_t     m_offset;    ///< Offset of the XRefStream object
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline uint64_t PdfXRefStream::GetOffset() const
-{
-    return m_offset;
-}
 
 };
 

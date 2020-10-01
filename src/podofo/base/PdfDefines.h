@@ -348,6 +348,11 @@ enum class EPdfAlignment
     Right   = 2
 };
 
+enum class PdfSaveOptions
+{
+    None,
+};
+
 /**
  * List of defined Rendering intents
  */

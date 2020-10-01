@@ -35,10 +35,7 @@
 #include "PdfSignOutputDevice.h"
 #include "../base/PdfArray.h"
 
-#include <string.h>
-
-namespace PoDoFo {
-
+using namespace PoDoFo;
 
 PdfSignOutputDevice::PdfSignOutputDevice(PdfOutputDevice *pRealDevice)
 {
@@ -46,21 +43,12 @@ PdfSignOutputDevice::PdfSignOutputDevice(PdfOutputDevice *pRealDevice)
     m_pRealDevice = pRealDevice;	
 }
 
-PdfSignOutputDevice::PdfSignOutputDevice(const char* pszFilename)
+PdfSignOutputDevice::PdfSignOutputDevice(const std::string_view& filename)
 {
     Init();
-    m_pRealDevice = new PdfOutputDevice(pszFilename);
+    m_pRealDevice = new PdfOutputDevice(filename);
     m_bDevOwner = true;
 }
-
-#ifdef WIN32
-PdfSignOutputDevice::PdfSignOutputDevice( const wchar_t* pszFilename )
-{
-    Init();
-    m_pRealDevice = new PdfOutputDevice(pszFilename);
-    m_bDevOwner = true;
-}
-#endif
 
 void PdfSignOutputDevice::Init()
 {
@@ -241,5 +229,32 @@ void PdfSignOutputDevice::Write( const char* pBuffer, size_t lLen )
     m_pRealDevice->Write(pBuffer, lLen);
 }
 
+size_t PdfSignOutputDevice::GetLength() const
+{
+    return m_pRealDevice->GetLength();
 }
 
+void PdfSignOutputDevice::PrintV(const char* pszFormat, size_t lBytes, va_list args)
+{
+    m_pRealDevice->PrintV(pszFormat, lBytes, args);
+}
+
+size_t PdfSignOutputDevice::Read(char* pBuffer, size_t lLen)
+{
+    return m_pRealDevice->Read(pBuffer, lLen);
+}
+
+void PdfSignOutputDevice::Seek(size_t offset)
+{
+    m_pRealDevice->Seek(offset);
+}
+
+size_t PdfSignOutputDevice::Tell() const
+{
+    return m_pRealDevice->Tell();
+}
+
+void PdfSignOutputDevice::Flush()
+{
+    m_pRealDevice->Flush();
+}

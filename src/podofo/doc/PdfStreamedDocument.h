@@ -75,11 +75,12 @@ class PdfOutputDevice;
  *
  *  document.Close();
  */
-class PODOFO_DOC_API PdfStreamedDocument : public PdfDocument {
+class PODOFO_DOC_API PdfStreamedDocument : public PdfDocument
+{
     friend class PdfImage;
     friend class PdfElement;
 
- public:
+public:
     /** Create a new PdfStreamedDocument.
      *  All data is written to an output device
      *  immediately.
@@ -107,27 +108,7 @@ class PODOFO_DOC_API PdfStreamedDocument : public PdfDocument {
      *                  created document.
      *  \param eWriteMode additional options for writing the pdf
      */
-    PdfStreamedDocument( const char* pszFilename, EPdfVersion eVersion = PdfVersionDefault, PdfEncrypt* pEncrypt = NULL, EPdfWriteMode eWriteMode = PdfWriteModeDefault );
-
-#ifdef _WIN32
-    /** Create a new PdfStreamedDocument.
-     *  All data is written to a file immediately.
-     *
-     *  \param pszFilename resulting PDF file
-     *  \param eVersion the PDF version of the document to write.
-     *                  The PDF version can only be set in the constructor
-     *                  as it is the first item written to the document on disk.
-     *  \param pEncrypt pointer to an encryption object or NULL. If not NULL
-     *                  the PdfEncrypt object will be copied and used to encrypt the
-     *                  created document.
-     *  \param eWriteMode additional options for writing the pdf
-     *
-     *  This is an overloaded member function to allow working
-     *  with unicode characters. On Unix systes you can also path
-     *  UTF-8 to the const char* overload.
-     */
-    PdfStreamedDocument( const wchar_t* pszFilename, EPdfVersion eVersion = PdfVersionDefault, PdfEncrypt* pEncrypt = NULL, EPdfWriteMode eWriteMode = PdfWriteModeDefault );
-#endif // _WIN32
+    PdfStreamedDocument(const std::string_view& filename, EPdfVersion eVersion = PdfVersionDefault, PdfEncrypt* pEncrypt = NULL, EPdfWriteMode eWriteMode = PdfWriteModeDefault );
 
     ~PdfStreamedDocument();
 

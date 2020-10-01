@@ -327,7 +327,7 @@ public:
      *  \param sPassword a user or owner password which can be used to open an encrypted PDF file
      *                   If the password is invalid, a PdfError( EPdfError::InvalidPassword ) exception is thrown!
      */
-    void SetPassword( const std::string & sPassword );
+    void SetPassword( const std::string_view & sPassword );
 
     /**
      * \returns true if strict parsing mode is enabled
