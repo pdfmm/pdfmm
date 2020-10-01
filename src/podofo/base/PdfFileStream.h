@@ -133,14 +133,14 @@ public:
 
     /** Append a binary buffer to the current stream contents.
      *
-     *  \param pszString a buffer
-     *  \param lLen length of the buffer
+     *  \param data a buffer
+     *  \param len length of the buffer
      *
      *  \see BeginAppend
      *  \see Append
      *  \see EndAppend
      */
-    void AppendImpl( const char* pszString, size_t lLen ) override; 
+    void AppendImpl(const char* data, size_t len) override; 
 
     /** Finish appending data to the stream
      */

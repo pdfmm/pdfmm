@@ -40,40 +40,20 @@
 #include <stdlib.h>
 #include <string.h>
 
+using namespace std;
 using namespace PoDoFo;
 
-void PdfOutputStream::Write(const std::string& s)
+void PdfOutputStream::Write(const std::string_view& view)
 {
-    this->Write(s.data(), s.size());
+    Write(view.data(), view.length());
 }
 
-PdfFileOutputStream::PdfFileOutputStream( const char* pszFilename )
+void PdfOutputStream::Write(const char* buffer, size_t len)
 {
-    m_hFile = fopen( pszFilename, "wb" );
-    if( !m_hFile ) 
-    {
-        PODOFO_RAISE_ERROR_INFO( EPdfError::FileNotFound, pszFilename );
-    }
-}
+    if (len == 0)
+        return;
 
-PdfFileOutputStream::~PdfFileOutputStream()
-{
-    Close();
-}
-
-void PdfFileOutputStream::Write( const char* pBuffer, size_t lLen )
-{
-    if (fwrite(pBuffer, sizeof(char), lLen, m_hFile) != lLen)
-        PODOFO_RAISE_ERROR(EPdfError::UnexpectedEOF);
-}
-
-void PdfFileOutputStream::Close() 
-{
-    if( m_hFile )
-    {
-        fclose( m_hFile );
-        m_hFile = NULL;
-    }
+    WriteImpl(buffer, len);
 }
 
 PdfMemoryOutputStream::PdfMemoryOutputStream(size_t lInitial )
@@ -91,15 +71,12 @@ PdfMemoryOutputStream::PdfMemoryOutputStream(size_t lInitial )
 PdfMemoryOutputStream::PdfMemoryOutputStream( char* pBuffer, size_t lLen )
     : m_lLen( 0 ), m_bOwnBuffer( false )
 {
-    if( !pBuffer ) 
-    {
+    if( !pBuffer )
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
 
     m_lSize   = lLen;
     m_pBuffer = pBuffer;
 }
-
 
 PdfMemoryOutputStream::~PdfMemoryOutputStream()
 {
@@ -107,24 +84,17 @@ PdfMemoryOutputStream::~PdfMemoryOutputStream()
         podofo_free( m_pBuffer );
 }
 
-void PdfMemoryOutputStream::Write( const char* pBuffer, size_t lLen )
+void PdfMemoryOutputStream::WriteImpl(const char* data, size_t len)
 {
-    if( !pBuffer ) 
-    {
-        return;
-    }
-
-    if( m_lLen + lLen > m_lSize ) 
+    if( m_lLen + len > m_lSize )
     {
         if( m_bOwnBuffer )
         {
             // a reallocation is required
-            m_lSize = std::max( (m_lLen + lLen), (m_lSize << 1 ) );
+            m_lSize = std::max(m_lLen + len, m_lSize << 1);
             m_pBuffer = static_cast<char*>(podofo_realloc( m_pBuffer, m_lSize ));
             if( !m_pBuffer ) 
-            {
                 PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
-            }
         }
         else
         {
@@ -132,14 +102,18 @@ void PdfMemoryOutputStream::Write( const char* pBuffer, size_t lLen )
         }
     }
 
-    memcpy( m_pBuffer + m_lLen, pBuffer, lLen );
-    m_lLen += lLen;
+    memcpy( m_pBuffer + m_lLen, data, len);
+    m_lLen += len;
+}
+
+void PdfMemoryOutputStream::Close()
+{
 }
 
 char* PdfMemoryOutputStream::TakeBuffer()
 {
     char* pBuffer = m_pBuffer;
-    m_pBuffer = NULL;
+    m_pBuffer = nullptr;
     return pBuffer;
 }
 
@@ -148,16 +122,29 @@ PdfDeviceOutputStream::PdfDeviceOutputStream( PdfOutputDevice* pDevice )
 {
 }
 
-void PdfDeviceOutputStream::Write( const char* pBuffer, size_t lLen )
+void PdfDeviceOutputStream::WriteImpl(const char* data, size_t len)
 {
-    m_pDevice->Write( pBuffer, lLen );
+    m_pDevice->Write(data, len);
 }
 
-void PdfBufferOutputStream::Write( const char* pBuffer, size_t lLen )
+void PdfDeviceOutputStream::Close()
 {
-    if( m_lLength + lLen >= m_pBuffer->GetSize()) 
-        m_pBuffer->Resize( m_lLength + lLen );
+}
 
-    memcpy( m_pBuffer->GetBuffer() + m_lLength, pBuffer, lLen );
-    m_lLength += lLen;
+PdfBufferOutputStream::PdfBufferOutputStream(PdfRefCountedBuffer* pBuffer)
+    : m_pBuffer(pBuffer), m_lLength(pBuffer->GetSize())
+{
+}
+
+void PdfBufferOutputStream::WriteImpl(const char* data, size_t len)
+{
+    if( m_lLength + len >= m_pBuffer->GetSize())
+        m_pBuffer->Resize( m_lLength + len);
+
+    memcpy( m_pBuffer->GetBuffer() + m_lLength, data, len);
+    m_lLength += len;
+}
+
+void PdfBufferOutputStream::Close()
+{
 }

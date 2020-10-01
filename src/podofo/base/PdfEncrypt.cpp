@@ -248,7 +248,7 @@ public:
      *  \param pBuffer the data is read from this buffer
      *  \param lLen    the size of the buffer 
      */
-    void Write( const char* pBuffer, size_t lLen ) override
+    void WriteImpl( const char* pBuffer, size_t lLen ) override
     {
         // Do not encode data with no length
         if( !lLen )

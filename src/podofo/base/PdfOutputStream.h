@@ -49,22 +49,20 @@ class PdfOutputDevice;
 class PODOFO_API PdfOutputStream
 {
 public:
-
     virtual ~PdfOutputStream() { };
 
     /** Write data to the output stream
      *  
      *  \param pBuffer the data is read from this buffer
-     *  \param lLen    the size of the buffer 
-     *
-     *  \returns the number of bytes written, -1 if an error ocurred
+     *  \param lLen    the size of the buffer
      */
-    virtual void Write( const char* pBuffer, size_t lLen ) = 0;
+    void Write(const char* buffer, size_t len);
 
-    /**
-     * Helper that writes a string via Write(const char*,long)
+    /** Write data to the output stream
+     *  
+     *  \param view the data is read from this buffer
      */
-    void Write( const std::string & s );
+    void Write(const std::string_view& view);
 
     /** Close the PdfOutputStream.
      *  This method may throw exceptions and has to be called 
@@ -74,48 +72,15 @@ public:
      *  after calling close.
      */
     virtual void Close() = 0;
-};
 
-/** An output stream that writes data to a file
- */
-class PODOFO_API PdfFileOutputStream : public PdfOutputStream
-{
-public:
-    
-    /** Open a file for writing data
-     *  
-     *  \param pszFilename the filename of the file to read
-     */
-    PdfFileOutputStream( const char* pszFilename );
-
-    virtual ~PdfFileOutputStream();
-
-    /** Write data to the output stream
-     *  
-     *  \param pBuffer the data is read from this buffer
-     *  \param lLen    the size of the buffer 
-     *
-     *  \returns the number of bytes written, -1 if an error ocurred
-     */
-    void Write( const char* pBuffer, size_t lLen ) override;
-
-    /** Close the PdfOutputStream.
-     *  This method may throw exceptions and has to be called 
-     *  before the descructor to end writing.
-     *
-     *  No more data may be written to the output device
-     *  after calling close.
-     */
-    void Close() override;
-
- private:
-    FILE* m_hFile;
+protected:
+    virtual void WriteImpl(const char* data, size_t len) = 0;
 };
 
 /** An output stream that writes data to a memory buffer
  *  If the buffer is to small, it will be enlarged automatically.
  *
- *  DS: TODO: remove in favour of PdfBufferOutputStream.
+ *  TODO: remove in favour of PdfBufferOutputStream.
  */
 class PODOFO_API PdfMemoryOutputStream : public PdfOutputStream
 {
@@ -137,15 +102,6 @@ public:
 
     virtual ~PdfMemoryOutputStream();
 
-    /** Write data to the output stream
-     *  
-     *  \param pBuffer the data is read from this buffer
-     *  \param lLen    the size of the buffer 
-     *
-     *  \returns the number of bytes written, -1 if an error ocurred
-     */
-    void Write( const char* pBuffer, size_t lLen ) override;
-
     /** Close the PdfOutputStream.
      *  This method may throw exceptions and has to be called 
      *  before the descructor to end writing.
@@ -153,7 +109,7 @@ public:
      *  No more data may be written to the output device
      *  after calling close.
      */
-    void Close() override { }
+    void Close() override;
 
     inline const char * GetBuffer() const { return m_pBuffer; }
 
@@ -171,6 +127,9 @@ public:
      *  The caller has to free() the returned malloc()'ed buffer!
      */
     char* TakeBuffer();
+
+protected:
+    void WriteImpl(const char* data, size_t len) override;
 
  private:
     char* m_pBuffer;
@@ -192,15 +151,6 @@ public:
      */
     PdfDeviceOutputStream( PdfOutputDevice* pDevice );
 
-    /** Write data to the output stream
-     *  
-     *  \param pBuffer the data is read from this buffer
-     *  \param lLen    the size of the buffer 
-     *
-     *  \returns the number of bytes written, -1 if an error ocurred
-     */
-    void Write( const char* pBuffer, size_t lLen ) override;
-
     /** Close the PdfOutputStream.
      *  This method may throw exceptions and has to be called 
      *  before the descructor to end writing.
@@ -208,7 +158,10 @@ public:
      *  No more data may be written to the output device
      *  after calling close.
      */
-    void Close() override {}
+    void Close() override;
+
+protected:
+    void WriteImpl(const char* data, size_t len) override;
 
  private:
     PdfOutputDevice* m_pDevice;
@@ -227,31 +180,17 @@ public:
      * 
      *  \param pBuffer data is written to this buffer
      */
-    PdfBufferOutputStream( PdfRefCountedBuffer* pBuffer )
-        : m_pBuffer( pBuffer ), m_lLength( pBuffer->GetSize() )
-    {
-    }
-    
-    /** Write data to the output stream
-     *  
-     *  \param pBuffer the data is read from this buffer
-     *  \param lLen    the size of the buffer 
-     *
-     *  \returns the number of bytes written, -1 if an error ocurred
-     */
-    void Write( const char* pBuffer, size_t lLen ) override;
+    PdfBufferOutputStream(PdfRefCountedBuffer* pBuffer);
 
-    virtual void Close() override
-    {
-    }
+    virtual void Close() override;
 
     /** 
      * \returns the length of the buffers contents
      */
-    inline size_t GetLength() const
-    {
-        return m_lLength;
-    }
+    inline size_t GetLength() const { return m_lLength; }
+
+protected:
+    void WriteImpl(const char* data, size_t len) override;
 
  private:
     PdfRefCountedBuffer* m_pBuffer;

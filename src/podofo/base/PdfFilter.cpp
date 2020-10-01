@@ -119,7 +119,7 @@ public:
      *  \param pBuffer the data is read from this buffer
      *  \param lLen    the size of the buffer 
      */
-    void Write( const char* pBuffer, size_t lLen ) override
+    void WriteImpl( const char* pBuffer, size_t lLen ) override
     {
         m_filter->EncodeBlock( pBuffer, lLen );
     }
@@ -183,7 +183,7 @@ public:
      *  \param pBuffer the data is read from this buffer
      *  \param lLen    the size of the buffer 
      */
-    void Write( const char* pBuffer, size_t lLen ) override
+    void WriteImpl(const char* pBuffer, size_t lLen) override
     {
         try
         {

@@ -89,19 +89,36 @@ public:
      * Use PdfFilterFactory::CreateFilterList() if you want to use the contents
      * of the stream dictionary's existing filter key.
      *
-     *  \param szBuffer buffer containing the stream data
+     *  \param view buffer containing the stream data
+     *  \param vecFilters a list of filters to use when appending data
+     */
+    void Set(const std::string_view& view, const TVecFilters& vecFilters);
+
+    /** Set a binary buffer as stream data.
+     *
+     * Use PdfFilterFactory::CreateFilterList() if you want to use the contents
+     * of the stream dictionary's existing filter key.
+     *
+     *  \param buffer buffer containing the stream data
      *  \param lLen length of the buffer
      *  \param vecFilters a list of filters to use when appending data
      */
-    void Set( const char* szBuffer, size_t lLen, const TVecFilters & vecFilters );
+    void Set(const char* buffer, size_t len, const TVecFilters& vecFilters);
 
     /** Set a binary buffer as stream data.
      *  All data will be Flate-encoded.
      *
-     *  \param szBuffer buffer containing the stream data
+     *  \param view buffer containing the stream data
+     */
+    void Set(const std::string_view& view);
+
+    /** Set a binary buffer as stream data.
+     *  All data will be Flate-encoded.
+     *
+     *  \param buffer buffer containing the stream data
      *  \param lLen length of the buffer
      */
-    void Set( const char* szBuffer, size_t lLen );
+    void Set(const char* buffer, size_t len);
 
     /** Set a binary buffer whose contents are read from a PdfInputStream
      *  All data will be Flate-encoded.
@@ -119,14 +136,6 @@ public:
      *  \param vecFilters a list of filters to use when appending data
      */
     void Set( PdfInputStream* pStream, const TVecFilters & vecFilters );
-
-    /** Set a null-terminated char* buffer as the stream's contents.
-     *
-     *  The string will be copied into a newly allocated buffer.
-     *  \param pszString a zero terminated string buffer containing only
-     *         ASCII text data
-     */
-    void Set( const char* pszString );
 
     /** Sets raw data for this stream which is read from an input stream.
      *  This method does neither encode nor decode the read data.
@@ -175,36 +184,24 @@ public:
      *
      *  Make sure BeginAppend() has been called before.
      *
-     *  \param pszString a buffer
-     *  \param lLen length of the buffer
+     *  \param view a buffer
      *
      *  \see BeginAppend
      *  \see EndAppend
      */
-    void Append( const char* pszString, size_t lLen );
+    void Append(const std::string_view& view);
 
-    /** Append a null-terminated string to the current stream contents.
+    /** Append a binary buffer to the current stream contents.
      *
      *  Make sure BeginAppend() has been called before.
      *
-     *  \param pszString a zero-terminated string buffer containing only
-     *         ASCII text data
+     *  \param buffer a buffer
+     *  \param len size of the buffer
      *
      *  \see BeginAppend
      *  \see EndAppend
      */
-    void Append( const char* pszString );
-
-    /** Append to the current stream contents.
-     *
-     *  Make sure BeginAppend() has been called before.
-     *
-     *  \param sString a std::string containing only ASCII text data
-     *
-     *  \see BeginAppend
-     *  \see EndAppend
-     */
-    void Append( const std::string& sString );
+    void Append(const char* buffer, size_t len);
 
     /** Finish appending data to this stream.
      *  BeginAppend() has to be called before this method.
@@ -222,7 +219,7 @@ public:
      *  \see BeginAppend
      *  \see Append
      */
-    inline bool IsAppending() const;
+    inline bool IsAppending() const { return m_bAppend; }
 
     /** Get the stream's length with all filters applied (e.g. if the stream is
      * Flate-compressed, the length of the compressed data stream).
@@ -297,14 +294,14 @@ protected:
 
     /** Append a binary buffer to the current stream contents.
      *
-     *  \param pszString a buffer
+     *  \param data a buffer
      *  \param lLen length of the buffer
      *
      *  \see BeginAppend
      *  \see Append
      *  \see EndAppend
      */
-    virtual void AppendImpl( const char* pszString, size_t lLen ) = 0; 
+    virtual void AppendImpl(const char* data, size_t len) = 0;
 
     /** Finish appending data to the stream
      */
@@ -314,6 +311,10 @@ protected:
 
 private:
     PdfStream(const PdfStream & rhs) = delete;
+
+    void append(const char* data, size_t len);
+
+    void endAppend();
 
     void SetRawData(PdfInputStream& stream, ssize_t len, bool markObjectDirty);
 

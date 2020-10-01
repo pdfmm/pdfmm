@@ -87,9 +87,9 @@ void PdfFileStream::BeginAppendImpl( const TVecFilters & vecFilters )
     }
 }
 
-void PdfFileStream::AppendImpl( const char* pszString, size_t lLen )
+void PdfFileStream::AppendImpl(const char* data, size_t len)
 {
-    m_pStream->Write( pszString, static_cast<long>(lLen) );
+    m_pStream->Write(data, len);
 }
 
 void PdfFileStream::EndAppendImpl()
@@ -143,7 +143,7 @@ size_t PdfFileStream::GetLength() const
 
 const char* PdfFileStream::GetInternalBuffer() const
 {
-    return NULL;
+    return nullptr;
 }
 
 size_t PdfFileStream::GetInternalBufferSize() const
