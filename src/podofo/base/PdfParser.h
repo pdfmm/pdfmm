@@ -90,31 +90,6 @@ public:
      */
     PdfParser( PdfVecObjects* pVecObjects, const char* pszFilename, bool bLoadOnDemand = true );
 
-#ifdef WIN32
-    /** Create a new PdfParser object and open a PDF file and parse
-     *  it into memory.
-     *
-     *  \param pVecObjects vector to write the parsed PdfObjects to
-     *  \param pszFilename filename of the file which is going to be parsed
-     *  \param bLoadOnDemand If true all objects will be read from the file at
-     *                       the time they are accessed first.
-     *                       If false all objects will be read immediately.
-     *                       This is faster if you do not need the complete PDF 
-     *                       file in memory.
-     *
-     *  This might throw a PdfError( EPdfError::InvalidPassword ) exception
-     *  if a password is required to read this PDF.
-     *  Call SetPassword() with the correct password in this case.
-     *  
-     *  This is an overloaded member function to allow working
-     *  with unicode characters. On Unix systems you can also pass
-     *  UTF-8 to the const char* overload.
-     *
-     *  \see SetPassword
-     */
-    PdfParser( PdfVecObjects* pVecObjects, const wchar_t* pszFilename, bool bLoadOnDemand = true );
-#endif // _WIN32
-
     /** Create a new PdfParser object and open a PDF file and parse
      *  it into memory.
      *
@@ -176,30 +151,6 @@ public:
      *  \see SetPassword
      */
     void ParseFile( const char* pszFilename, bool bLoadOnDemand = true );
-
-#ifdef _WIN32
-    /** Open a PDF file and parse it.
-     *
-     *  \param pszFilename filename of the file which is going to be parsed
-     *  \param bLoadOnDemand If true all objects will be read from the file at
-     *                       the time they are accesed first.
-     *                       If false all objects will be read immediately.
-     *                       This is faster if you do not need the complete PDF 
-     *                       file in memory.
-     *
-     *
-     *  This might throw a PdfError( EPdfError::InvalidPassword ) exception
-     *  if a password is required to read this PDF.
-     *  Call SetPassword with the correct password in this case.
-     *  
-     *  This is an overloaded member function to allow working
-     *  with unicode characters. On Unix systes you can also path
-     *  UTF-8 to the const char* overload.
-     *
-     *  \see SetPassword
-     */
-    void ParseFile( const wchar_t* pszFilename, bool bLoadOnDemand = true );
-#endif // _WIN32
 
     /** Open a PDF file and parse it.
      *

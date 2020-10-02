@@ -74,141 +74,6 @@ PdfFileSpec::PdfFileSpec( PdfObject* pObject )
 {
 }
 
-#ifdef _WIN32
-
-PdfFileSpec::PdfFileSpec( const wchar_t* pszFilename, bool bEmbedd, PdfDocument* pParent, bool bStripPath)
-    : PdfElement( "Filespec", pParent )
-{
-    Init( pszFilename, bEmbedd, bStripPath );
-}
-
-PdfFileSpec::PdfFileSpec( const wchar_t* pszFilename, bool bEmbedd, PdfVecObjects* pParent, bool bStripPath)
-    : PdfElement( "Filespec", pParent )
-{
-    Init( pszFilename, bEmbedd, bStripPath );
-}
-
-PdfFileSpec::PdfFileSpec( const wchar_t* pszFilename, const unsigned char* data, ptrdiff_t size, PdfVecObjects* pParent, bool bStripPath)
-    : PdfElement( "Filespec", pParent )
-{
-    Init( pszFilename, data, size, bStripPath );
-}
-
-PdfFileSpec::PdfFileSpec( const wchar_t* pszFilename, const unsigned char* data, ptrdiff_t size, PdfDocument* pParent, bool bStripPath)
-    : PdfElement( "Filespec", pParent )
-{
-    Init( pszFilename, data, size, bStripPath );
-}
-
-void PdfFileSpec::Init( const wchar_t* pszFilename, bool bEmbedd, bool bStripPath) 
-{
-    PdfObject* pEmbeddedStream;
-    PdfString filename( MaybeStripPath( pszFilename, true) );
-
-    this->GetObject()->GetDictionary().AddKey( "F", this->CreateFileSpecification( MaybeStripPath( pszFilename, bStripPath ) ) );
-    this->GetObject()->GetDictionary().AddKey( "UF", filename.ToUnicode () );
-
-    if( bEmbedd ) 
-    {
-        PdfDictionary ef;
-
-        pEmbeddedStream = this->CreateObject( "EmbeddedFile" );
-        this->EmbeddFile( pEmbeddedStream, pszFilename );
-
-        ef.AddKey( "F",  pEmbeddedStream->GetIndirectReference() );
-
-        this->GetObject()->GetDictionary().AddKey( "EF", ef );
-    }
-}
-
-void PdfFileSpec::Init( const wchar_t* pszFilename, const unsigned char* data, ptrdiff_t size, bool bStripPath)
-{
-    PdfObject* pEmbeddedStream;
-    PdfString filename( MaybeStripPath( pszFilename, true) );
-
-    this->GetObject()->GetDictionary().AddKey( "F", this->CreateFileSpecification( MaybeStripPath( pszFilename, bStripPath ) ) );
-    this->GetObject()->GetDictionary().AddKey( "UF", filename.ToUnicode() );
-
-    PdfDictionary ef;
-
-    pEmbeddedStream = this->CreateObject( "EmbeddedFile" );
-    this->EmbeddFileFromMem( pEmbeddedStream, data, size );
-
-    ef.AddKey( "F",  pEmbeddedStream->GetIndirectReference() );
-
-    this->GetObject()->GetDictionary().AddKey( "EF", ef );
-}
-
-PdfString PdfFileSpec::CreateFileSpecification( const wchar_t* pszFilename ) const
-{
-    std::ostringstream str;
-    size_t                nLen = wcslen( pszFilename );
-    char buff[5];
-
-    // Construct a platform independent file specifier
-    
-    for( size_t i=0;i<nLen;i++ ) 
-    {
-        wchar_t ch = pszFilename[i];
-        if (ch == L':' || ch == L'\\')
-            ch = L'/';
-        if ((ch >= L'a' && ch <= L'z') ||
-            (ch >= L'A' && ch <= L'Z') ||
-            (ch >= L'0' && ch <= L'9') ||
-             ch == L'_') {
-            str.put( ch & 0xFF );
-        } else if (ch == L'/') {
-            str.put( '\\' );
-            str.put( '\\' );
-            str.put( '/' );
-        } else {
-            sprintf(buff, "%04X", ch & 0xFFFF);
-            str << buff;
-        }
-    }
-
-    return PdfString( str.str() );
-}
-
-void PdfFileSpec::EmbeddFile( PdfObject* pStream, const wchar_t* pszFilename ) const
-{
-    PdfFileInputStream stream( pszFilename );
-    pStream->GetOrCreateStream().Set( &stream );
-
-    // Add additional information about the embedded file to the stream
-    PdfDictionary params;
-    params.AddKey( "Size", static_cast<int64_t>(stream.GetFileLength()) );
-    // TODO: CreationDate and ModDate
-    pStream->GetDictionary().AddKey("Params", params );
-}
-
-const wchar_t *PdfFileSpec::MaybeStripPath( const wchar_t* pszFilename, bool bStripPath ) const
-{
-    if (!bStripPath)
-    {
-        return pszFilename;
-    }
-
-    const wchar_t *lastFrom = pszFilename;
-    while (pszFilename && *pszFilename)
-    {
-        if (
-            #ifdef _WIN32
-            *pszFilename == L':' || *pszFilename == L'\\' ||
-            #endif // _WIN32
-            *pszFilename == L'/')
-        {
-            lastFrom = pszFilename + 1;
-        }
-
-        pszFilename++;
-    }
-
-    return lastFrom;
-}
-
-#endif // _WIN32
-
 void PdfFileSpec::Init( const char* pszFilename, bool bEmbedd, bool bStripPath ) 
 {
     PdfObject* pEmbeddedStream;
@@ -281,12 +146,14 @@ PdfString PdfFileSpec::CreateFileSpecification( const char* pszFilename ) const
 
 void PdfFileSpec::EmbeddFile( PdfObject* pStream, const char* pszFilename ) const
 {
+    size_t size = io::FileSize(pszFilename);
+
     PdfFileInputStream stream( pszFilename );
     pStream->GetOrCreateStream().Set( &stream );
 
     // Add additional information about the embedded file to the stream
     PdfDictionary params;
-    params.AddKey( "Size", static_cast<int64_t>(stream.GetFileLength()) );
+    params.AddKey("Size", static_cast<int64_t>(size));
     // TODO: CreationDate and ModDate
     pStream->GetDictionary().AddKey("Params", params );
 }
@@ -302,9 +169,9 @@ const char *PdfFileSpec::MaybeStripPath( const char* pszFilename, bool bStripPat
     while (pszFilename && *pszFilename)
     {
         if (
-            #ifdef _WIN32
+            #ifdef WIN32
             *pszFilename == ':' || *pszFilename == '\\' ||
-            #endif // _WIN32
+            #endif // WIN32
             *pszFilename == '/')
         {
             lastFrom = pszFilename + 1;

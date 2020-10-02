@@ -287,32 +287,20 @@ private:
 /** A PdfInputStream that decrypts all data read
  *  using the RC4 encryption algorithm
  */
-class PdfRC4InputStream : public PdfInputStream {
+class PdfRC4InputStream : public PdfInputStream
+{
 public:
     PdfRC4InputStream( PdfInputStream* pInputStream, unsigned char rc4key[256], unsigned char rc4last[256], 
                       unsigned char* key, int keylen )
     : m_pInputStream( pInputStream ), m_stream( rc4key, rc4last, key, keylen )
     {
     }
-    
-    /** Read data from the input stream
-     *  
-     *  \param pBuffer the data will be stored into this buffer
-     *  \param lLen    the size of the buffer and number of bytes
-     *                 that will be read
-     *
-     *  \returns the number of bytes read, -1 if an error ocurred
-     *           and zero if no more bytes are available for reading.
-     */
-    size_t Read( char* pBuffer, size_t lLen, size_t* ) override
+
+protected:
+    size_t ReadImpl(char* pBuffer, size_t lLen) override
     {
-        // Do not encode data with no length
-        if( !lLen )
-            return lLen;
-        
         m_pInputStream->Read( pBuffer, lLen );
         m_stream.Encrypt( pBuffer, lLen );
-        
         return lLen;
     }
     
@@ -406,31 +394,24 @@ private:
 /** A PdfAESInputStream that decrypts all data read
  *  using the AES encryption algorithm
  */
-class PdfAESInputStream : public PdfInputStream {
+class PdfAESInputStream : public PdfInputStream
+{
 public:
     PdfAESInputStream( PdfInputStream* pInputStream, unsigned char* key, int keylen )
     : m_pInputStream( pInputStream ), m_stream( key, keylen )
     {
     }
     
-    /** Read data from the input stream
-     *  
-     *  \param pBuffer    the data will be stored into this buffer
-     *  \param lLen       the size of the buffer and number of bytes
-     *                    that will be read
-     *  \param pTotalLeft total bytes left (needed for AES IV and padding)
-     *
-     *  \returns the number of bytes read, -1 if an error ocurred
-     *           and zero if no more bytes are available for reading.
-     */
-    size_t Read( char* pBuffer, size_t lLen, size_t *pTotalLeft ) override
+protected:
+    size_t ReadImpl( char* pBuffer, size_t lLen) override
     {
         // Do not encode data with no length
         if( !lLen )
             return lLen;
         
 		m_pInputStream->Read( pBuffer, lLen );
-        return m_stream.Decrypt( (unsigned char*)pBuffer, lLen, pTotalLeft );
+        size_t totalLeft;
+        return m_stream.Decrypt( (unsigned char*)pBuffer, lLen, &totalLeft );
     }
     
 private:

@@ -40,15 +40,17 @@
 #include <sstream>
 #include <stdexcept>
 
-namespace PoDoFo {
+using namespace PoDoFo;
 
-void PdfLocaleImbue(std::ios_base& s)
+void PoDoFo::PdfLocaleImbue(std::ios_base& s)
 {
-#if USE_CXX_LOCALE
     static const std::locale cachedLocale( PdfIOLocale );
-    try {
+    try
+    {
     	s.imbue( cachedLocale );
-    } catch (const std::runtime_error & e) {
+    }
+    catch (const std::runtime_error & e)
+    {
         std::ostringstream err;
         err << "Failed to set safe locale on stream being used for PDF I/O.";
         err << "Locale set was: \"" << PdfIOLocale << "\".";
@@ -59,7 +61,4 @@ void PdfLocaleImbue(std::ios_base& s)
             err.str().c_str()
             );
     }
-#endif
 }
-
-};

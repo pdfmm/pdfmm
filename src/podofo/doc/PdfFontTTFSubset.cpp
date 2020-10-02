@@ -47,7 +47,8 @@
 #include <iostream>
 #include <algorithm>
 
-namespace PoDoFo {
+using namespace std;
+using namespace PoDoFo;
 
 static const unsigned int __LENGTH_HEADER12      = 12;
 static const unsigned int __LENGTH_OFFSETTABLE16 = 16;
@@ -137,7 +138,7 @@ PdfFontTTFSubset::PdfFontTTFSubset( const char* pszFontFileName, PdfFontMetrics*
         m_eFontFileType = EFontFileType::Unknown;
     }
 
-    m_pDevice = new PdfInputDevice( pszFontFileName );
+    m_pDevice = new PdfInputDevice( (string_view)pszFontFileName );
 }
 
 PdfFontTTFSubset::PdfFontTTFSubset( PdfInputDevice* pDevice, PdfFontMetrics* pMetrics, EFontFileType eType, unsigned short nFaceIndex )
@@ -872,7 +873,3 @@ static unsigned int GetPadding(unsigned long ul)
     return ul;
 }
 #endif
-
-
-}; /* PoDoFo */
-

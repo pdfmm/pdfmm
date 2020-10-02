@@ -120,14 +120,6 @@ PdfParser::PdfParser( PdfVecObjects* pVecObjects, const char* pszFilename, bool 
     this->Init();
     this->ParseFile( pszFilename, bLoadOnDemand );
 }
-#ifdef WIN32
-PdfParser::PdfParser( PdfVecObjects* pVecObjects, const wchar_t* pszFilename, bool bLoadOnDemand )
-    : PdfTokenizer(), m_vecObjects( pVecObjects ), m_bStrictParsing( false )
-{
-    this->Init();
-    this->ParseFile( pszFilename, bLoadOnDemand );
-}
-#endif
 
 PdfParser::PdfParser( PdfVecObjects* pVecObjects, const char* pBuffer, long lLen, bool bLoadOnDemand )
     : PdfTokenizer(), m_vecObjects( pVecObjects ), m_bStrictParsing( false )
@@ -187,7 +179,7 @@ void PdfParser::ParseFile( const char* pszFilename, bool bLoadOnDemand )
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
-    PdfRefCountedInputDevice device( pszFilename, "rb" );
+    PdfRefCountedInputDevice device( pszFilename);
     if( !device.Device() )
     {
         PODOFO_RAISE_ERROR_INFO( EPdfError::FileNotFound, pszFilename );
@@ -195,26 +187,6 @@ void PdfParser::ParseFile( const char* pszFilename, bool bLoadOnDemand )
 
     this->ParseFile( device, bLoadOnDemand );
 }
-
-#ifdef _WIN32
-void PdfParser::ParseFile( const wchar_t* pszFilename, bool bLoadOnDemand )
-{
-    if( !pszFilename || !pszFilename[0] )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
-
-    PdfRefCountedInputDevice device( pszFilename, "rb" );
-    if( !device.Device() )
-    {
-		PdfError e( EPdfError::FileNotFound, __FILE__, __LINE__ );
-		e.SetErrorInformation( pszFilename );
-		throw e;
-	}
-
-    this->ParseFile( device, bLoadOnDemand );
-}
-#endif // _WIN32
 
 void PdfParser::ParseFile( const char* pBuffer, long lLen, bool bLoadOnDemand )
 {
@@ -446,9 +418,8 @@ void PdfParser::HasLinearizationDict()
     // Only fail if we read nothing, to allow files smaller than MAX_READ
     if( static_cast<size_t>(size) <= 0 )
     {
-        // Clear the error state from the bad read
-        m_device.Device()->Clear();
-        return; // Ignore Error Code: ERROR_PDF_NO_TRAILER;
+        // Ignore Error Code: ERROR_PDF_NO_TRAILER;
+        return;
     }
 
     //begin L.K
@@ -1025,7 +996,7 @@ bool PdfParser::QuickEncryptedCheck( const char* pszFilename )
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
-    m_device = PdfRefCountedInputDevice( pszFilename, "rb" );
+    m_device = PdfRefCountedInputDevice( pszFilename);
     if( !m_device.Device() )
     {
         //PODOFO_RAISE_ERROR_INFO( EPdfError::FileNotFound, pszFilename );

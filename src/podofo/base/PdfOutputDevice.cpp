@@ -34,7 +34,6 @@
 #include "PdfOutputDevice.h"
 #include "PdfRefCountedBuffer.h"
 #include "PdfDefinesPrivate.h"
-#include <utfcpp/utf8.h>
 
 #include <fstream>
 #include <sstream>
@@ -55,13 +54,7 @@ PdfOutputDevice::PdfOutputDevice(const std::string_view& filename, bool bTruncat
     if (bTruncate)
         openmode |= std::ios_base::trunc;
 
-#ifdef WIN32
-    auto filename16 = utf8::utf8to16((string)filename);
-    std::fstream* pStream = new std::fstream((wchar_t *)filename16.c_str(), openmode);
-#else
-    std::fstream* pStream = new std::fstream((string)filename, openmode);
-#endif
-
+    auto pStream = new fstream(io::open_fstream(filename, openmode));
     if( pStream->fail() )
     {
         delete pStream;

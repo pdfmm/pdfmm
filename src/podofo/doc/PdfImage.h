@@ -34,6 +34,8 @@
 #ifndef _PDF_IMAGE_H_
 #define _PDF_IMAGE_H_
 
+#include <cstdio>
+
 #include "podofo/base/PdfDefines.h"
 #include "podofo/base/PdfFilter.h"
 #include "PdfXObject.h"
@@ -128,12 +130,12 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
 	/** Get the width of the image when drawn in PDF units
      *  \returns the width in PDF units
      */
-    inline double GetWidth() const;
+    double GetWidth() const;
 
     /** Get the height of the image when drawn in PDF units
      *  \returns the height in PDF units
      */
-    inline double GetHeight() const;
+    double GetHeight() const;
 
     /** Set the actual image data from an input stream
      *  
@@ -181,7 +183,7 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
     /** Load the image data from a file
      *  \param pszFilename
      */
-    void LoadFromFile( const char* pszFilename );
+    void LoadFromFile(const std::string_view& filename);
     
     /** Load the image data from bytes
      *  \param pData bytes
@@ -189,22 +191,11 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
      */
     void LoadFromData(const unsigned char* pData, size_t dwLen);
 
-#ifdef _WIN32
-    /** Load the image data from a file
-     *  \param pszFilename
-     *
-     *  This is an overloaded member function to allow working
-     *  with unicode characters. On Unix systems you can also pass
-     *  UTF-8 to the const char* overload.
-     */
-    void LoadFromFile( const wchar_t* pszFilename );
-#endif // _WIN32
-
 #ifdef PODOFO_HAVE_JPEG_LIB
     /** Load the image data from a JPEG file
      *  \param pszFilename
      */
-    void LoadFromJpeg( const char* pszFilename );
+    void LoadFromJpeg(const std::string_view& filename);
 
     /** Load the image data from JPEG bytes
      *  \param pData JPEG bytes
@@ -212,22 +203,12 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
      */
     void LoadFromJpegData(const unsigned char* pData, size_t dwLen);
 
-#ifdef _WIN32
-    /** Load the image data from a JPEG file
-     *  \param pszFilename
-     *
-     *  This is an overloaded member function to allow working
-     *  with unicode characters. On Unix systems you can also pass
-     *  UTF-8 to the const char* overload.
-     */
-    void LoadFromJpeg( const wchar_t* pszFilename );
-#endif // _WIN32
 #endif // PODOFO_HAVE_JPEG_LIB
 #ifdef PODOFO_HAVE_TIFF_LIB
     /** Load the image data from a TIFF file
      *  \param pszFilename
      */
-    void LoadFromTiff( const char* pszFilename );
+    void LoadFromTiff(const std::string_view& filename);
     
     /** Load the image data from TIFF bytes
      *  \param pData TIFF bytes
@@ -235,39 +216,18 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
      */
     void LoadFromTiffData(const unsigned char* pData, size_t dwLen);
 
-#ifdef _WIN32
-    /** Load the image data from a TIFF file
-     *  \param pszFilename
-     *
-     *  This is an overloaded member function to allow working
-     *  with unicode characters. On Unix systems you can also pass
-     *  UTF-8 to the const char* overload.
-     */
-    void LoadFromTiff( const wchar_t* pszFilename );
-#endif // _WIN32
 #endif // PODOFO_HAVE_TIFF_LIB
 #ifdef PODOFO_HAVE_PNG_LIB
     /** Load the image data from a PNG file
      *  \param pszFilename
      */
-    void LoadFromPng( const char* pszFilename );
+    void LoadFromPng(const std::string_view& filename);
     
     /** Load the image data from PNG bytes
      *  \param pData PNG bytes
      *  \param dwLen number of bytes
      */
     void LoadFromPngData(const unsigned char* pData, size_t dwLen);
-
-#ifdef _WIN32
-    /** Load the image data from a PNG file
-     *  \param pszFilename
-     *
-     *  This is an overloaded member function to allow working
-     *  with unicode characters. On Unix systems you can also pass
-     *  UTF-8 to the const char* overload.
-     */
-    void LoadFromPng( const wchar_t* pszFilename );
-#endif // _WIN32
 #endif // PODOFO_HAVE_PNG_LIB
 
     /** Set an color/chroma-key mask on an image.
@@ -298,31 +258,15 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
     static PdfName ColorspaceToName( EPdfColorSpace eColorSpace );
 
 #ifdef PODOFO_HAVE_JPEG_LIB
-	void LoadFromJpegHandle( PdfFileInputStream* pInStream );
+	void LoadFromJpegHandle(FILE* pInStream, int &width, int &heigh);
 #endif // PODOFO_HAVE_JPEG_LIB
 #ifdef PODOFO_HAVE_TIFF_LIB
-    void LoadFromTiffHandle( void* pInStream );
+    void LoadFromTiffHandle(void* pInStream);
 #endif // PODOFO_HAVE_TIFF_LIB
 #ifdef PODOFO_HAVE_PNG_LIB
-	void LoadFromPngHandle( PdfFileInputStream* pInStream );
+	void LoadFromPngHandle(FILE* pInStream);
 #endif // PODOFO_HAVE_PNG_LIB
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline double PdfImage::GetWidth() const
-{
-    return this->GetRect().GetWidth();
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline double PdfImage::GetHeight() const
-{
-    return this->GetRect().GetHeight();
-}
 
 };
 

@@ -33,6 +33,9 @@
 
 #include "PdfImage.h"
 
+#include <utfcpp/utf8.h>
+#include <sstream>
+
 #include "base/PdfDefinesPrivate.h"
 
 #include <doc/PdfDocument.h>
@@ -41,10 +44,6 @@
 #include "base/PdfColor.h"
 #include "base/PdfStream.h"
 #include "base/PdfFiltersPrivate.h"
-
-#include <stdio.h>
-#include <wchar.h>
-#include <sstream>
 
 // TIFF and JPEG headers already included through "base/PdfFiltersPrivate.h",
 // although in opposite order (first JPEG, then TIFF), if available of course
@@ -55,7 +54,7 @@
 
 using namespace std;
 
-namespace PoDoFo {
+using namespace PoDoFo;
 
 PdfImage::PdfImage( PdfVecObjects* pParent, const char* pszPrefix )
     : PdfXObject( EPdfXObject::Image, pParent, pszPrefix )
@@ -203,17 +202,17 @@ void PdfImage::SetImageDataRaw( unsigned int nWidth, unsigned int nHeight,
     this->GetObject()->GetOrCreateStream().SetRawData( pStream, -1 );
 }
 
-void PdfImage::LoadFromFile( const char* pszFilename )
+void PdfImage::LoadFromFile(const string_view& filename)
 {
-    if( pszFilename && strlen( pszFilename ) > 3 )
+    if(filename.length() > 3)
     {
-        const char* pszExtension = pszFilename + strlen( pszFilename ) - 3;
+        const char* pszExtension = filename.data() + filename.length() - 3;
 
 #ifdef PODOFO_HAVE_TIFF_LIB
         if( PoDoFo::compat::strncasecmp( pszExtension, "tif", 3 ) == 0 ||
             PoDoFo::compat::strncasecmp( pszExtension, "iff", 3 ) == 0 ) // "tiff"
         {
-            LoadFromTiff( pszFilename );
+            LoadFromTiff(filename);
             return;
         }
 #endif
@@ -221,7 +220,7 @@ void PdfImage::LoadFromFile( const char* pszFilename )
 #ifdef PODOFO_HAVE_JPEG_LIB
         if( PoDoFo::compat::strncasecmp( pszExtension, "jpg", 3 ) == 0 )
         {
-            LoadFromJpeg( pszFilename );
+            LoadFromJpeg(filename);
             return;
         }
 #endif
@@ -229,55 +228,14 @@ void PdfImage::LoadFromFile( const char* pszFilename )
 #ifdef PODOFO_HAVE_PNG_LIB
         if( PoDoFo::compat::strncasecmp( pszExtension, "png", 3 ) == 0 )
         {
-            LoadFromPng( pszFilename );
+            LoadFromPng(filename);
             return;
         }
 #endif
 
 	}
-	PODOFO_RAISE_ERROR_INFO( EPdfError::UnsupportedImageFormat, pszFilename );
+	PODOFO_RAISE_ERROR_INFO( EPdfError::UnsupportedImageFormat, filename.data());
 }
-    
-#ifdef _WIN32
-void PdfImage::LoadFromFile( const wchar_t* pszFilename )
-{
-    if( pszFilename && wcslen( pszFilename ) > 3 )
-    {
-        const wchar_t* pszExtension = pszFilename + wcslen( pszFilename ) - 3;
-
-#ifdef PODOFO_HAVE_TIFF_LIB
-#if TIFFLIB_VERSION >= 20120922		// TiffOpenW needs at least version 4.0.3
-		if( _wcsnicmp( pszExtension, L"tif", 3 ) == 0 ||
-            _wcsnicmp( pszExtension, L"iff", 3 ) == 0 ) // "tiff"
-        {
-            LoadFromTiff( pszFilename );
-            return;
-        }
-#endif
-#endif
-
-#ifdef PODOFO_HAVE_JPEG_LIB
-        if( _wcsnicmp( pszExtension, L"jpg", 3 ) == 0 )
-        {
-            LoadFromJpeg( pszFilename );
-            return;
-        }
-#endif
-
-#ifdef PODOFO_HAVE_PNG_LIB
-        if( _wcsnicmp( pszExtension, L"png", 3 ) == 0 )
-        {
-            LoadFromPng( pszFilename );
-            return;
-        }
-#endif
-	}
-
-	PdfError e( EPdfError::UnsupportedImageFormat, __FILE__, __LINE__ );
-    e.SetErrorInformation( pszFilename );
-    throw e;
-}
-#endif // _WIN32
 
 void PdfImage::LoadFromData(const unsigned char* pData, size_t dwLen)
 {
@@ -326,22 +284,32 @@ void PdfImage::LoadFromData(const unsigned char* pData, size_t dwLen)
 
 #ifdef PODOFO_HAVE_JPEG_LIB
 
-void PdfImage::LoadFromJpeg( const char* pszFilename )
-    {
-    /* Constructor will throw exception */
-    PdfFileInputStream stream( pszFilename );
-    LoadFromJpegHandle( &stream );
-}
-
-#ifdef _WIN32
-void PdfImage::LoadFromJpeg( const wchar_t* pszFilename )
+void PdfImage::LoadFromJpeg(const string_view& filename)
 {
-    PdfFileInputStream stream( pszFilename );
-    LoadFromJpegHandle( &stream );
-}
-#endif // _WIN32
+    FILE* file = io::fopen(filename, "rb");
 
-void PdfImage::LoadFromJpegHandle( PdfFileInputStream* pInStream )
+    int width;
+    int height;
+    try
+    {
+        LoadFromJpegHandle(file, width, height);
+    }
+    catch (...)
+    {
+        fclose(file);
+        throw;
+    }
+
+    fclose(file);
+
+    // Set the filters key to DCTDecode
+    this->GetObject()->GetDictionary().AddKey(PdfName::KeyFilter, PdfName("DCTDecode"));
+    // Do not apply any filters as JPEG data is already DCT encoded.
+    PdfFileInputStream stream(filename);
+    this->SetImageDataRaw(width, height, 8, stream);
+}
+
+void PdfImage::LoadFromJpegHandle(FILE* pInStream, int &width, int &height)
 {
     struct jpeg_decompress_struct cinfo;
     struct jpeg_error_mgr         jerr;
@@ -352,7 +320,7 @@ void PdfImage::LoadFromJpegHandle( PdfFileInputStream* pInStream )
 
     jpeg_create_decompress(&cinfo);
 
-    jpeg_stdio_src(&cinfo, pInStream->GetHandle());
+    jpeg_stdio_src(&cinfo, pInStream);
 
     if( jpeg_read_header(&cinfo, TRUE) <= 0 )
     {
@@ -373,38 +341,36 @@ void PdfImage::LoadFromJpegHandle( PdfFileInputStream* pInStream )
     switch( cinfo.output_components )
     {
         case 3:
-            this->SetImageColorSpace( EPdfColorSpace::DeviceRGB );
+        {
+            this->SetImageColorSpace(EPdfColorSpace::DeviceRGB);
             break;
+        }
         case 4:
-	{
-	    this->SetImageColorSpace( EPdfColorSpace::DeviceCMYK );
-	    // The jpeg-doc ist not specific in this point, but cmyk's seem to be stored
-	    // in a inverted fashion. Fix by attaching a decode array
-	    PdfArray decode;
-	    decode.push_back( 1.0 );
-	    decode.push_back( 0.0 );
-	    decode.push_back( 1.0 );
-	    decode.push_back( 0.0 );
-	    decode.push_back( 1.0 );
-	    decode.push_back( 0.0 );
-	    decode.push_back( 1.0 );
-	    decode.push_back( 0.0 );
+	    {
+	        this->SetImageColorSpace( EPdfColorSpace::DeviceCMYK );
+	        // The jpeg-doc ist not specific in this point, but cmyk's seem to be stored
+	        // in a inverted fashion. Fix by attaching a decode array
+	        PdfArray decode;
+	        decode.push_back( 1.0 );
+	        decode.push_back( 0.0 );
+	        decode.push_back( 1.0 );
+	        decode.push_back( 0.0 );
+	        decode.push_back( 1.0 );
+	        decode.push_back( 0.0 );
+	        decode.push_back( 1.0 );
+	        decode.push_back( 0.0 );
 	    
-	    this->GetObject()->GetDictionary().AddKey( PdfName("Decode"), decode );
-	}
-	break;
-        default:
-            this->SetImageColorSpace( EPdfColorSpace::DeviceGray );
+	        this->GetObject()->GetDictionary().AddKey( PdfName("Decode"), decode );
             break;
+	    }
+        default:
+        {
+            this->SetImageColorSpace(EPdfColorSpace::DeviceGray);
+            break;
+        }
     }
-    
-    // Set the filters key to DCTDecode
-    this->GetObject()->GetDictionary().AddKey( PdfName::KeyFilter, PdfName( "DCTDecode" ) );
-    // Do not apply any filters as JPEG data is already DCT encoded.
-    fseeko( pInStream->GetHandle(), 0L, SEEK_SET );
-    this->SetImageDataRaw( cinfo.output_width, cinfo.output_height, 8, *pInStream );
-    
-    (void) jpeg_destroy_decompress(&cinfo);
+
+    (void)jpeg_destroy_decompress(&cinfo);
 }
 
 void PdfImage::LoadFromJpegData(const unsigned char* pData, size_t dwLen)
@@ -472,9 +438,11 @@ void PdfImage::LoadFromJpegData(const unsigned char* pData, size_t dwLen)
     
     (void) jpeg_destroy_decompress(&cinfo);
 }
+
 #endif // PODOFO_HAVE_JPEG_LIB
 
 #ifdef PODOFO_HAVE_TIFF_LIB
+
 static void TIFFErrorWarningHandler(const char*, const char*, va_list)
 {
     
@@ -666,57 +634,38 @@ void PdfImage::LoadFromTiffHandle(void* hInHandle) {
                  &stream);
     
     delete[] buffer;
-    
-    TIFFClose(hInTiffHandle);
 }
  
-void PdfImage::LoadFromTiff( const char* pszFilename )
+void PdfImage::LoadFromTiff(const string_view& filename)
 {
     TIFFSetErrorHandler(TIFFErrorWarningHandler);
     TIFFSetWarningHandler(TIFFErrorWarningHandler);
     
-    if( !pszFilename )
-    {
+    if(filename.length() == 0)
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
-    
-    TIFF* hInfile = TIFFOpen(pszFilename, "rb");
-    
-    if( !hInfile )
-    {
-        PODOFO_RAISE_ERROR_INFO( EPdfError::FileNotFound, pszFilename );
-    }
-    
-    LoadFromTiffHandle(hInfile);
-}
 
-#ifdef _WIN32
-void PdfImage::LoadFromTiff( const wchar_t* pszFilename )
-{
-#if TIFFLIB_VERSION >= 20120922		// TiffOpenW needs at least version 4.0.3
-    TIFFSetErrorHandler(TIFFErrorWarningHandler);
-    TIFFSetWarningHandler(TIFFErrorWarningHandler);
-    
-    if( !pszFilename )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
-
-    TIFF* hInfile = TIFFOpenW(pszFilename, "rb");
-
-    if( !hInfile )
-    {
-		PdfError e( EPdfError::FileNotFound, __FILE__, __LINE__ );
-        e.SetErrorInformation( pszFilename );
-        throw e;
-    }
-
-    LoadFromTiffHandle(hInfile);
+#ifdef WIN32
+    auto filename16 = utf8::utf8to16((string)filename);
+    TIFF* hInfile = TIFFOpenW((wchar_t*)filename16.c_str(), "rb");
 #else
-    PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-#endif // TIFFLIB_VERSION
+    TIFF* hInfile = TIFFOpen(pszFilename, "rb");
+#endif
+
+    if( !hInfile )
+        PODOFO_RAISE_ERROR_INFO( EPdfError::FileNotFound, filename.data() );
+
+    try
+    {
+        LoadFromTiffHandle(hInfile);
+    }
+    catch (...)
+    {
+        TIFFClose(hInfile);
+        throw;
+    }
+
+    TIFFClose(hInfile);
 }
-#endif // _WIN32
 
 struct tiffData
 {
@@ -842,25 +791,30 @@ void PdfImage::LoadFromTiffData(const unsigned char* pData, size_t dwLen)
     }
     LoadFromTiffHandle(hInHandle);
 }
+
 #endif // PODOFO_HAVE_TIFF_LIB
+
 #ifdef PODOFO_HAVE_PNG_LIB
-void PdfImage::LoadFromPng( const char* pszFilename )
+
+void PdfImage::LoadFromPng(const std::string_view& filename)
 {
-    PdfFileInputStream stream( pszFilename );
-    LoadFromPngHandle( &stream );
+    FILE* file = io::fopen(filename, "rb");
+
+    try
+    {
+        LoadFromPngHandle(file);
+    }
+    catch (...)
+    {
+        fclose(file);
+        throw;
+    }
+
+    fclose(file);
 }
 
-#ifdef _WIN32
-void PdfImage::LoadFromPng( const wchar_t* pszFilename )
+void PdfImage::LoadFromPngHandle(FILE* hFile)
 {
-    PdfFileInputStream stream( pszFilename );
-    LoadFromPngHandle( &stream );
-}
-#endif // _WIN32
-
-void PdfImage::LoadFromPngHandle( PdfFileInputStream* pInStream ) 
-{
-    FILE* hFile = pInStream->GetHandle();
     png_byte header[8];
     if( fread( header, 1, 8, hFile ) != 8 ||
         png_sig_cmp( header, 0, 8 ) )
@@ -1014,7 +968,6 @@ void PdfImage::LoadFromPngHandle( PdfFileInputStream* pInStream )
     podofo_free(pRows);
     
     png_destroy_read_struct(&pPng, &pInfo, (png_infopp)NULL);
-
 }
 
 struct pngData
@@ -1232,4 +1185,13 @@ void PdfImage::SetInterpolate(bool bValue)
 {
     this->GetObject()->GetDictionary().AddKey( "Interpolate", PdfVariant(bValue));
 }
-};
+
+double PdfImage::GetWidth() const
+{
+    return this->GetRect().GetWidth();
+}
+
+double PdfImage::GetHeight() const
+{
+    return this->GetRect().GetHeight();
+}

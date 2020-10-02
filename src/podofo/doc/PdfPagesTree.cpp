@@ -53,7 +53,7 @@ PdfPagesTree::PdfPagesTree( PdfVecObjects* pParent )
     : PdfElement( "Pages", pParent ),
       m_cache( 0 )
 {
-    GetObject()->GetDictionary().AddKey( "Kids", PdfArray() ); // kids->Reference() 
+    GetObject()->GetDictionary().AddKey( "Kids", PdfArray() );
     GetObject()->GetDictionary().AddKey( "Count", PdfObject( static_cast<int64_t>(0) ) );
 }
 
@@ -492,8 +492,8 @@ int PdfPagesTree::GetPosInKids( PdfObject* pPageObj, PdfObject* pPageParent )
         ++it;
     }
 
-    //printf("Not found %i 0 R in %i 0 R\n", pPageObj->Reference().ObjectNumber(),
-    //       pPageParent->Reference().ObjectNumber());
+    //printf("Not found %i 0 R in %i 0 R\n", pPageObj->GetIndirectReference().ObjectNumber(),
+    //       pPageParent->GetIndirectReference().ObjectNumber());
     return -1;
 }
 

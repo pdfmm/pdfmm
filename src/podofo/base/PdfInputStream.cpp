@@ -40,99 +40,45 @@
 #include <string.h>
 #include <wchar.h>
 
+using namespace std;
 using namespace PoDoFo;
 
-// TODO: Convert to use std::ifstream
-
-PdfFileInputStream::PdfFileInputStream( const char* pszFilename )
+size_t PdfInputStream::Read(char* buffer, size_t len)
 {
-    m_hFile = fopen( pszFilename, "rb" );
-    if( !m_hFile ) 
-    {
-        PODOFO_RAISE_ERROR_INFO( EPdfError::FileNotFound, pszFilename );
-    }
-}
-
-#ifdef _WIN32
-PdfFileInputStream::PdfFileInputStream( const wchar_t* pszFilename )
-{
-    m_hFile = _wfopen( pszFilename, L"rb" );
-    if( !m_hFile ) 
-    {
-        PdfError e( EPdfError::FileNotFound, __FILE__, __LINE__ );
-        e.SetErrorInformation( pszFilename );
-        throw e;
-    }
-}
-#endif // _WIN32
-
-PdfFileInputStream::~PdfFileInputStream()
-{
-    if( m_hFile )
-        fclose( m_hFile );
-}
-
-size_t PdfFileInputStream::Read( char* pBuffer, size_t lLen, size_t* )
-{
-    if( !pBuffer ) 
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
-
-    // return zero if EOF is reached
-    if( feof( m_hFile ) )
+    if (len == 0)
         return 0;
 
-    // return the number of bytes read and read the data
-    // into pBuffer
-    return fread( pBuffer, sizeof(char), lLen, m_hFile );
+    if (buffer == nullptr)
+        PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
+
+    return ReadImpl(buffer, len);
 }
 
-size_t PdfFileInputStream::GetFileLength()
+PdfFileInputStream::PdfFileInputStream(const string_view& filename)
+    : m_stream(io::open_ifstream(filename, ios_base::in | ios_base::binary))
 {
-    ssize_t lOffset = ftello( m_hFile );
-    ssize_t lLen;
-
-    if( lOffset == -1 )
-        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDeviceOperation, "Failed to read current position in the file" );
-
-    if( fseeko( m_hFile, 0L, SEEK_END ) == -1 )
-        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDeviceOperation, "Failed to seek at the end of the file" );
-
-    lLen = ftello( m_hFile );
-    if( lLen == -1 )
-        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDeviceOperation, "Failed to read file length" );
-
-    if( fseeko( m_hFile, lOffset, SEEK_SET ) == -1 )
-        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDeviceOperation, "Failed to seek back to the previous position of the file" );
-
-    return (size_t)lLen;
+    if(m_stream.fail())
+        PODOFO_RAISE_ERROR_INFO( EPdfError::FileNotFound, filename.data());
 }
 
-FILE*
-PdfFileInputStream::GetHandle()
+PdfFileInputStream::~PdfFileInputStream() { }
+
+size_t PdfFileInputStream::ReadImpl( char* pBuffer, size_t lLen)
 {
-    return m_hFile;
+    return io::Read(m_stream, pBuffer, lLen);
 }
-
 
 PdfMemoryInputStream::PdfMemoryInputStream( const char* pBuffer, size_t lBufferLen )
     : m_pBuffer( pBuffer ), m_pCur( pBuffer ), m_lBufferLen( lBufferLen )
 {
-
 }
 
 PdfMemoryInputStream::~PdfMemoryInputStream()
 {
 }
 
-size_t PdfMemoryInputStream::Read( char* pBuffer, size_t lLen, size_t* )
+size_t PdfMemoryInputStream::ReadImpl( char* pBuffer, size_t lLen)
 {
-    if( !pBuffer ) 
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
-
     size_t lRead = m_pCur - m_pBuffer;
 
     // return zero if EOF is reached
@@ -151,7 +97,7 @@ PdfDeviceInputStream::PdfDeviceInputStream( PdfInputDevice* pDevice )
 {
 }
 
-size_t PdfDeviceInputStream::Read( char* pBuffer, size_t lLen, size_t* )
+size_t PdfDeviceInputStream::ReadImpl( char* pBuffer, size_t lLen)
 {
     return (size_t)m_pDevice->Read( pBuffer, lLen );
 }

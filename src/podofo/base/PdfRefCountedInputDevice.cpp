@@ -36,61 +36,52 @@
 #include "PdfInputDevice.h"
 #include "PdfDefinesPrivate.h"
 
+using namespace std;
 using namespace PoDoFo;
 
 PdfRefCountedInputDevice::PdfRefCountedInputDevice()
-    : m_pDevice( NULL )
+    : m_pDevice(nullptr)
 {
 
 }
 
-PdfRefCountedInputDevice::PdfRefCountedInputDevice( const char* pszFilename, const char* )
-    : m_pDevice( NULL )
-{
-    m_pDevice              = new TRefCountedInputDevice();
-    m_pDevice->m_lRefCount = 1;
-
-    try {
-        m_pDevice->m_pDevice = new PdfInputDevice( pszFilename );
-    } catch( PdfError & rError ) {
-        delete m_pDevice;
-        throw rError;
-    }
-}
-
-#ifdef _WIN32
-PdfRefCountedInputDevice::PdfRefCountedInputDevice( const wchar_t* pszFilename, const char* )
-    : m_pDevice( NULL )
+PdfRefCountedInputDevice::PdfRefCountedInputDevice(const string_view &filename)
+    : m_pDevice(nullptr)
 {
     m_pDevice              = new TRefCountedInputDevice();
     m_pDevice->m_lRefCount = 1;
 
-    try {
-        m_pDevice->m_pDevice = new PdfInputDevice( pszFilename );
-    } catch( PdfError & rError ) {
+    try
+    {
+        m_pDevice->m_pDevice = new PdfInputDevice(filename);
+    }
+    catch( PdfError & rError )
+    {
         delete m_pDevice;
         throw rError;
     }
 }
-#endif // _WIN32
 
 PdfRefCountedInputDevice::PdfRefCountedInputDevice( const char* pBuffer, size_t lLen )
-    : m_pDevice( NULL )
+    : m_pDevice(nullptr)
 {
     m_pDevice              = new TRefCountedInputDevice();
     m_pDevice->m_lRefCount = 1;
 
 
-    try {
+    try
+    {
         m_pDevice->m_pDevice   = new PdfInputDevice( pBuffer, lLen );
-    } catch( PdfError & rError ) {
+    }
+    catch( PdfError & rError )
+    {
         delete m_pDevice;
         throw rError;
     }
 }
 
 PdfRefCountedInputDevice::PdfRefCountedInputDevice( PdfInputDevice* pDevice )
-    : m_pDevice( NULL )
+    : m_pDevice(nullptr)
 {
     m_pDevice              = new TRefCountedInputDevice();
     m_pDevice->m_lRefCount = 1;
@@ -98,7 +89,7 @@ PdfRefCountedInputDevice::PdfRefCountedInputDevice( PdfInputDevice* pDevice )
 }
 
 PdfRefCountedInputDevice::PdfRefCountedInputDevice( const PdfRefCountedInputDevice & rhs )
-    : m_pDevice( NULL )
+    : m_pDevice(nullptr)
 {
     this->operator=( rhs );
 }
@@ -116,7 +107,7 @@ void PdfRefCountedInputDevice::Detach()
         m_pDevice->m_pDevice->Close();
         delete m_pDevice->m_pDevice;
         delete m_pDevice;
-        m_pDevice = NULL;
+        m_pDevice = nullptr;
     }
 
 }
@@ -134,5 +125,5 @@ const PdfRefCountedInputDevice & PdfRefCountedInputDevice::operator=( const PdfR
 
 PdfInputDevice* PdfRefCountedInputDevice::Device() const
 {
-    return m_pDevice ? m_pDevice->m_pDevice : NULL;
+    return m_pDevice ? m_pDevice->m_pDevice : nullptr;
 }

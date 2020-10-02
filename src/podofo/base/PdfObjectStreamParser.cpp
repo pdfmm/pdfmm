@@ -31,6 +31,7 @@
  *   files in the program, then also delete it here.                       *
  ***************************************************************************/
 
+#include "PdfDefinesPrivate.h"
 #include "PdfObjectStreamParser.h"
 
 #include "PdfDictionary.h"
@@ -103,7 +104,7 @@ void PdfObjectStreamParser::ReadObjectsFromStream( char* pBuffer, size_t lBuffer
 			variantTokenizer.GetNextVariant( var, m_pEncrypt );
 		bool should_read = std::find(list.begin(), list.end(), lObj) != list.end();
 #ifndef VERBOSE_DEBUG_DISABLED
-        std::cerr << "ReadObjectsFromStream STREAM=" << m_pParser->Reference().ToString() <<
+        std::cerr << "ReadObjectsFromStream STREAM=" << m_pParser->GetIndirectReference().ToString() <<
 			", OBJ=" << lObj <<
 			", " << (should_read ? "read" : "skipped") << std::endl;
 #endif
@@ -120,7 +121,6 @@ void PdfObjectStreamParser::ReadObjectsFromStream( char* pBuffer, size_t lBuffer
 		}
 
         // move back to the position inside of the table of contents
-        device.Device()->Clear();
         device.Device()->Seek( pos );
 
         ++i;

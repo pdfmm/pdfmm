@@ -764,8 +764,8 @@ void PdfPushButton::Init()
         PdfDictionary dict;
         PdfDictionary internal;
 
-        internal.AddKey( "On", xObjYes.GetObject()->Reference() );
-        internal.AddKey( "Off", xObjOff.GetObject()->Reference() );
+        internal.AddKey( "On", xObjYes.GetObject()->GetIndirectReference() );
+        internal.AddKey( "Off", xObjOff.GetObject()->GetIndirectReference() );
     
         dict.AddKey( "N", internal );
 

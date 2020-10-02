@@ -39,6 +39,8 @@
 #endif
 
 #define _USE_MATH_DEFINES
+
+#include <fstream>
 #include <cstdlib>
 #include <cstdio>
 #include <cmath>
@@ -46,12 +48,7 @@
 #include <ctime>
 #include <cinttypes>
 
-#ifndef WIN32
-#include <strings.h>
-#endif
-
-namespace PoDoFo {
-namespace compat {
+namespace PoDoFo::compat {
 
 #ifdef _MSC_VER
 #  define byteswap16(n) _byteswap_ushort(n)
@@ -95,35 +92,11 @@ namespace compat {
     }
 #endif
 
-// Case-insensitive string compare functions aren't very portable, and we must account
-// for several flavours.
-inline static int strcasecmp( const char * s1, const char * s2)
-{
-#if defined(WIN32)
-    return ::_stricmp(s1, s2);
-#else
-    return ::strcasecmp(s1, s2);
-#endif
+
+// Case-insensitive string compare functions aren't very portable
+int strcasecmp(const char* s1, const char* s2);
+int strncasecmp(const char* s1, const char* s2, size_t n);
+
 }
 
-inline static int strncasecmp( const char * s1, const char * s2, size_t n)
-{
-#if defined(_MSC_VER)
-    return ::_strnicmp(s1, s2, n);
-#else
-    // POSIX.1-2001
-    return ::strncasecmp(s1, s2, n);
-#endif
-}
-
-};}; // end namespace PoDoFo::compat
-
-#if defined(_WIN64)
-#define fseeko _fseeki64
-#define ftello _ftelli64
-#else
-#define fseeko fseek
-#define ftello ftell
-#endif
-
-#endif
+#endif // _PDF_COMPILERCOMPAT_PRIVATE_H

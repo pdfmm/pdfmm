@@ -35,8 +35,7 @@
 #define _PDF_INPUT_DEVICE_H_
 
 #include <istream>
-#include <ios>
-#include <cstdio>
+#include <fstream>
 
 #include "PdfDefines.h"
 #include "PdfLocale.h"
@@ -50,28 +49,18 @@ namespace PoDoFo {
  *  devices of your own for PoDoFo.
  *  Just overide the required virtual methods.
  */
-class PODOFO_API PdfInputDevice {
- public:
+class PODOFO_API PdfInputDevice
+{
+private:
+    PdfInputDevice(bool isSeekable);
 
+public:
     /** Construct a new PdfInputDevice that reads all data from a file.
      *
      *  \param pszFilename path to a file that will be opened and all data
      *                     is read from this file.
      */
-    PdfInputDevice( const char* pszFilename );
-
-#ifdef _WIN32
-    /** Construct a new PdfInputDevice that reads all data from a file.
-     *
-     *  \param pszFilename path to a file that will be opened and all data
-     *                     is read from this file.
-     *
-     *  This is an overloaded member function to allow working
-     *  with unicode characters. On Unix systes you can also path
-     *  UTF-8 to the const char* overload.
-     */
-    PdfInputDevice( const wchar_t* pszFilename );
-#endif // _WIN32
+    explicit PdfInputDevice(const std::string_view& filename);
 
     /** Construct a new PdfInputDevice that reads all data from a memory buffer.
      *  The buffer will not be owned by this object - it is COPIED.
@@ -85,7 +74,7 @@ class PODOFO_API PdfInputDevice {
      *
      *  \param pInStream read from this std::istream
      */
-    PdfInputDevice( const std::istream* pInStream );
+    explicit PdfInputDevice( const std::istream* pInStream );
 
     /** Destruct the PdfInputDevice object and close any open files.
      */
@@ -139,79 +128,19 @@ class PODOFO_API PdfInputDevice {
     /**
      * \return True if the stream is at EOF
      */
-    inline virtual bool Eof() const;
-
-    /**
-     * \return True if there was an error in an I/O operation
-     */
-    inline virtual bool Bad() const;
-
-    /**
-     * Set the stream error state. By default, clears badbit, eofbit
-     * and failbit.
-     */
-    inline virtual void Clear( std::ios_base::iostate state = std::ios_base::goodbit) const;
+    virtual bool Eof() const;
 
     /**
      * \return True if the stream is seekable. Subclasses can control
      * this value with SetIsSeekable(bool) .
      */
-    inline bool IsSeekable() const;
- protected:
-    /**
-     * Control whether or or not this stream is flagged
-     * seekable.
-     */
-    inline void SetSeekable(bool bIsSeekable);
+    inline bool IsSeekable() const { return m_bIsSeekable; }
 
-    /** CAN NOT Construct a new PdfInputDevice without an input source. 
-     *  However subclasses may well need to do just that.
-     */
-    PdfInputDevice();
-
- private: 
-    /** Initialize all private members
-     */
-    void Init();
-
- private:
+private:
     std::istream* m_pStream;
-	  FILE *				m_pFile;
-    bool          m_StreamOwned;
-    bool          m_bIsSeekable;
+    bool m_StreamOwned;
+    bool m_bIsSeekable;
 };
-
-bool PdfInputDevice::IsSeekable() const
-{
-    return m_bIsSeekable;
-}
-
-void PdfInputDevice::SetSeekable(bool bIsSeekable)
-{
-    m_bIsSeekable = bIsSeekable;
-}
-
-bool PdfInputDevice::Bad() const
-{
-    if (m_pStream)
-        return m_pStream->bad();
-    return m_pFile != NULL;
-}
-
-bool PdfInputDevice::Eof() const
-{
-    if (m_pStream)
-        return m_pStream->eof();
-    if (m_pFile)
-        return feof(m_pFile) != 0;
-    return true;
-}
-
-void PdfInputDevice::Clear(std::ios_base::iostate state) const
-{
-    if (m_pStream)
-        m_pStream->clear(state);
-}
 
 };
 

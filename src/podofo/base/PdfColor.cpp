@@ -45,7 +45,7 @@
 #include <algorithm>
 #include <ctype.h>
 
-namespace PoDoFo {
+using namespace PoDoFo;
 
 /** A PdfNamedColor holds
  *  a PdfColor object and a name.
@@ -94,7 +94,7 @@ public:
      */
     inline bool operator<( const char* pszName ) const
     {
-        return pszName ? PoDoFo::compat::strcasecmp( m_pszName, pszName ) < 0 : true; 
+        return pszName ? compat::strcasecmp( m_pszName, pszName ) < 0 : true;
 	}
 
     /** Compare this color object to a PdfNamedColor comparing only the name.
@@ -104,7 +104,7 @@ public:
      */
     inline bool operator<( const PdfNamedColor & rhs ) const
     {
-        return rhs.GetName() ? PoDoFo::compat::strcasecmp( m_pszName, rhs.GetName() ) < 0 : true; 
+        return rhs.GetName() ? compat::strcasecmp( m_pszName, rhs.GetName() ) < 0 : true;
     }
 
 
@@ -1225,6 +1225,3 @@ PdfName PdfColor::GetNameForColorSpace( EPdfColorSpace eColorSpace )
     }
     
 }
-
-};
-

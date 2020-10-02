@@ -31,6 +31,7 @@
  *   files in the program, then also delete it here.                       *
  ***************************************************************************/
 
+#include "PdfDefinesPrivate.h"
 #include "PdfContainerDataType.h"
 
 #include <string>

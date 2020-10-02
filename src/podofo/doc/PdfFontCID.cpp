@@ -118,7 +118,7 @@ public:
     void finishSBE();
 };
 
-PdfFontCID::PdfFontCID( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfObject* pObject, bool PODOFO_UNUSED_PARAM(bEmbed) )
+PdfFontCID::PdfFontCID( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfObject* pObject, bool bEmbed )
     : PdfFont( pMetrics, pEncoding, pObject ), m_pDescendantFonts( NULL )
 {
     m_pDescriptor = NULL;
@@ -340,7 +340,7 @@ void PdfFontCID::EmbedFont( PdfObject* pDescriptor )
             // FIXME const_cast<char*> is dangerous if string literals may ever be passed
             char* pBuffer = const_cast<char*>( m_pMetrics->GetFontData() );
             lSize = m_pMetrics->GetFontDataLen();
-            // Set Length1 before creating the stream
+            // NOTE: Set Length1 before creating the stream
             // as PdfStreamedDocument does not allow 
             // adding keys to an object after a stream was written
             pContents->GetDictionary().AddKey( "Length1", PdfVariant( static_cast<int64_t>(lSize) ) );
@@ -348,13 +348,13 @@ void PdfFontCID::EmbedFont( PdfObject* pDescriptor )
         } 
         else 
         {
+            lSize = io::FileSize(m_pMetrics->GetFilename());
             PdfFileInputStream stream( m_pMetrics->GetFilename() );
-            lSize = stream.GetFileLength();
 
-            // Set Length1 before creating the stream
+            // NOTE: Set Length1 before creating the stream
             // as PdfStreamedDocument does not allow 
             // adding keys to an object after a stream was written
-            pContents->GetDictionary().AddKey( "Length1", PdfVariant( static_cast<int64_t>(lSize) ) );
+            pContents->GetDictionary().AddKey("Length1", PdfVariant(static_cast<int64_t>(lSize)));
             pContents->GetOrCreateStream().Set( &stream );
         }
     }
@@ -614,7 +614,7 @@ static void fillUnicodeStream( PdfStream & pStream , const GidToCodePoint& gidTo
 }
 
 static GidToCodePoint
-getGidToCodePoint(const PdfEncoding* PODOFO_UNUSED_PARAM(pEncoding), PdfFontMetrics* pMetrics, const std::set<pdf_utf16be>& setUsed, const UnicodeToIndex& unicodeToIndex)
+getGidToCodePoint(const PdfEncoding* pEncoding, PdfFontMetrics* pMetrics, const std::set<pdf_utf16be>& setUsed, const UnicodeToIndex& unicodeToIndex)
 {
     GidToCodePoint gidToCodePoint;
     pdf_utf16be codePoint;
@@ -642,7 +642,7 @@ getGidToCodePoint(const PdfEncoding* PODOFO_UNUSED_PARAM(pEncoding), PdfFontMetr
 }
 
 static GidToCodePoint
-getGidToCodePoint(const PdfEncoding* PODOFO_UNUSED_PARAM(pEncoding), PdfFontMetrics* pMetrics, const std::set<pdf_utf16be>& setUsed)
+getGidToCodePoint(const PdfEncoding* pEncoding, PdfFontMetrics* pMetrics, const std::set<pdf_utf16be>& setUsed)
 {
     GidToCodePoint gidToCodePoint;
     pdf_utf16be codePoint;
@@ -906,7 +906,7 @@ createWidths(PdfObject* pFontDict, PdfFontMetrics* metrics, const std::set<pdf_u
 #if USE_INDIRECT_WIDTHS         
             PdfObject* widthsObject = pFontDict->GetOwner()->CreateObject( array );
             if (widthsObject) {
-                pFontDict->GetDictionary().AddKey( PdfName("Widths"), widthsObject->Reference() );
+                pFontDict->GetDictionary().AddKey( PdfName("Widths"), widthsObject->GetIndirectReference() );
             }
 #else
             pFontDict->GetDictionary().AddKey( PdfName("Widths"), array );
@@ -938,7 +938,7 @@ createWidths(PdfObject* pFontDict, PdfFontMetrics* metrics, const std::set<pdf_u
 #if USE_INDIRECT_WIDTHS         
             PdfObject* widthsObject = pFontDict->GetOwner()->CreateObject( array );
             if (widthsObject) {
-                pFontDict->GetDictionary().AddKey( PdfName("W"), widthsObject->Reference() );
+                pFontDict->GetDictionary().AddKey( PdfName("W"), widthsObject->GetIndirectReference() );
             }
 #else
             pFontDict->GetDictionary().AddKey( PdfName("W"), array );

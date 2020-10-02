@@ -83,15 +83,14 @@ void PdfFontTrueType::EmbedFontFile( PdfObject* pDescriptor )
     } 
     else 
     {
+        lSize = io::FileSize(m_pMetrics->GetFilename());
         PdfFileInputStream stream( m_pMetrics->GetFilename() );
-        lSize = stream.GetFileLength();
 
-        // Set Length1 before creating the stream
+        // NOTE: Set Length1 before creating the stream
         // as PdfStreamedDocument does not allow 
         // adding keys to an object after a stream was written
         pContents->GetDictionary().AddKey( "Length1", PdfVariant( static_cast<int64_t>(lSize) ) );
         pContents->GetOrCreateStream().Set( &stream );
-            
     }
 }
 

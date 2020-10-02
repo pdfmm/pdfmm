@@ -34,6 +34,8 @@
 #ifndef _PDF_INPUT_STREAM_H_
 #define _PDF_INPUT_STREAM_H_
 
+#include <fstream>
+
 #include "PdfDefines.h"
 
 namespace PoDoFo {
@@ -43,80 +45,50 @@ class PdfInputDevice;
 /** An interface for reading blocks of data from an 
  *  a data source.
  */     
-class PODOFO_API PdfInputStream {
- public:
-
+class PODOFO_API PdfInputStream
+{
+public:
     virtual ~PdfInputStream() { };
 
     /** Read data from the input stream
-     *  
+     *
      *  \param pBuffer    the data will be stored into this buffer
      *  \param lLen       the size of the buffer and number of bytes
      *                    that will be read
-     *  \param pTotalLeft total bytes left (needed for AES IV and padding)
      *
-     *  \returns the number of bytes read, -1 if an error ocurred
-     *           and zero if no more bytes are available for reading.
+     *  \returns the number of bytes read
      */
-    virtual size_t Read( char* pBuffer, size_t lLen, size_t *pTotalLeft = nullptr ) = 0;
+    size_t Read(char* pBuffer, size_t lLen);
 
+protected:
+    virtual size_t ReadImpl( char* pBuffer, size_t lLen) = 0;
 };
 
 /** An input stream that reads data from a file
  */
-class PODOFO_API PdfFileInputStream : public PdfInputStream {
- public:
-    
+class PODOFO_API PdfFileInputStream : public PdfInputStream
+{
+public:
     /** Open a file for reading data
      *  
      *  \param pszFilename the filename of the file to read
      */
-    PdfFileInputStream( const char* pszFilename );
-
-#ifdef _WIN32
-    /** Open a file for reading data
-     *  
-     *  \param pszFilename the filename of the file to read
-     *
-     *  This is an overloaded member function to allow working
-     *  with unicode characters. On Unix systes you can also path
-     *  UTF-8 to the const char* overload.
-     */
-    PdfFileInputStream( const wchar_t* pszFilename );
-#endif // _WIN32
+    PdfFileInputStream(const std::string_view& filename);
 
     ~PdfFileInputStream();
 
-    /** Read data from the input stream
-     *  
-     *  \param pBuffer the data will be stored into this buffer
-     *  \param lLen    the size of the buffer and number of bytes
-     *                 that will be read
-     *
-     *  \returns the number of bytes read, -1 if an error ocurred
-     *           and zero if no more bytes are available for reading.
-     */
-    size_t Read( char* pBuffer, size_t lLen, size_t* = 0 ) override;
+protected:
+    size_t ReadImpl(char* pBuffer, size_t lLen) override;
 
-    /** Get the length of the file.
-     *  \return the file length
-     */
-    size_t GetFileLength();
-
-    /** Get the internal FILE handle.
-     *  \return the internal FILE handle
-     */
-    FILE* GetHandle();
-
- private:
-    FILE* m_hFile;
+private:
+    std::ifstream m_stream;
 };
 
 /** An input stream that reads data from a memory buffer
  */
-class PODOFO_API PdfMemoryInputStream : public PdfInputStream {
- public:
-    
+class PODOFO_API PdfMemoryInputStream : public PdfInputStream
+{
+public:
     /** Open a file for reading data
      *  
      *  \param pBuffer buffer to read from
@@ -125,18 +97,10 @@ class PODOFO_API PdfMemoryInputStream : public PdfInputStream {
     PdfMemoryInputStream( const char* pBuffer, size_t lBufferLen );
     ~PdfMemoryInputStream();
 
-    /** Read data from the input stream
-     *  
-     *  \param pBuffer the data will be stored into this buffer
-     *  \param lLen    the size of the buffer and number of bytes
-     *                 that will be read
-     *
-     *  \returns the number of bytes read, -1 if an error ocurred
-     *           and zero if no more bytes are available for reading.
-     */
-    size_t Read( char* pBuffer, size_t lLen, size_t* ) override;;
+protected:
+    size_t ReadImpl( char* pBuffer, size_t lLen) override;
 
- private:
+private:
     const char* m_pBuffer;
     const char* m_pCur;
     size_t m_lBufferLen;
@@ -144,9 +108,9 @@ class PODOFO_API PdfMemoryInputStream : public PdfInputStream {
 
 /** An input stream that reads data from an input device
  */
-class PODOFO_API PdfDeviceInputStream : public PdfInputStream {
- public:
-    
+class PODOFO_API PdfDeviceInputStream : public PdfInputStream
+{
+public:
     /** 
      *  Read from an alread opened input device
      * 
@@ -154,18 +118,10 @@ class PODOFO_API PdfDeviceInputStream : public PdfInputStream {
      */
     PdfDeviceInputStream( PdfInputDevice* pDevice );
 
-    /** Read data from the input stream
-     *  
-     *  \param pBuffer the data will be stored into this buffer
-     *  \param lLen    the size of the buffer and number of bytes
-     *                 that will be read
-     *
-     *  \returns the number of bytes read, -1 if an error ocurred
-     *           and zero if no more bytes are available for reading.
-     */
-    size_t Read( char* pBuffer, size_t lLen, size_t* ) override;;
+protected:
+    size_t ReadImpl( char* pBuffer, size_t lLen) override;;
 
- private:
+private:
     PdfInputDevice* m_pDevice;
 };
 

@@ -195,10 +195,9 @@ void PdfStream::SetRawData(PdfInputStream& pStream, ssize_t lLen, bool markObjec
     }
     else
     {
-        size_t sizeLeft;
         do
         {
-            lRead = pStream.Read( buffer, std::min( BUFFER_SIZE, (size_t)lLen ), &sizeLeft);
+            lRead = pStream.Read( buffer, std::min( BUFFER_SIZE, (size_t)lLen ));
             lLen -= lRead;
             this->append(buffer, lRead);
         }

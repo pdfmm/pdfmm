@@ -67,12 +67,6 @@
 #define PODOFO_MAKE_VERSION_STR(M,m,p) PODOFO_XSTR(PODOFO_MAKE_VERSION_STR_REAL(M,m,p))
 #define PODOFO_VERSION_STR PODOFO_MAKE_VERSION_STR(PODOFO_VERSION_MAJOR, PODOFO_VERSION_MINOR, PODOFO_VERSION_PATCH)
 
-#ifndef PODOFO_COMPILE_RC
-
-#ifndef PODOFO_UNUSED_PARAM
-#define PODOFO_UNUSED_PARAM(x)
-#endif
-
 // Include common system files
 // (most are now pulled in my PdfCompilerCompat.h)
 #include <cwchar>
@@ -83,26 +77,6 @@
 #include <string>
 #include <vector>
 
-/** \def VERBOSE_DEBUG_DISABLED
- *  Debug define. Enable it, if you need
- *  more debuf output to the commandline from PoDoFo
- *
- *  Setting VERBOSE_DEBUG_DISABLED will make PoDoFo
- *  EXTREMELY slow and verbose, so it's not practical
- *  even for regular debuggin.
- */
-#define VERBOSE_DEBUG_DISABLED
-
-// Should we do lots of extra (expensive) sanity checking?  You should not
-// define this on production builds because of the runtime cost and because it
-// might cause the library to abort() if it notices something nasty.
-// It may also change the size of some objects, and is thus not binary
-// compatible.
-//
-// If you don't know you need this, avoid it.
-//
-#define EXTRA_CHECKS_DISABLED
-
 // Error Handling Defines
 #include "PdfError.h"
 
@@ -111,23 +85,6 @@
 
 // Include API macro definitions
 #include "podofoapi.h"
-
-#ifdef DEBUG
-#include <cassert>
-#define PODOFO_ASSERT( x ) assert( x );
-#else
-#define PODOFO_ASSERT( x ) do { if (!(x)) PODOFO_RAISE_ERROR_INFO(EPdfError::InternalLogic, #x); } while (false)
-#endif // DEBUG
-
-// By default, PoDoFo will use C++ locale support to ensure that
-// it doesn't write bad PDF data - particularly floating point numbers.
-// If your standard library does not support locales this won't work, but
-// your STL probably writes all data in a POSIX-like way irrespective of
-// locale. If you set this to 0, you MUST use some other method to ensure
-// that streams used by PoDoFo will write data in a POSIX locale like manner.
-#ifndef USE_CXX_LOCALE
-#define USE_CXX_LOCALE 1
-#endif
 
 /**
  * \namespace PoDoFo
@@ -552,7 +509,5 @@ ENABLE_BITMASK_OPERATORS(PoDoFo::EPdfInfoInitial);
  * \verbinclude CODINGSTYLE.txt
  *
  */
-
-#endif // !PODOFO_COMPILE_RC
 
 #endif // _PDF_DEFINES_H_

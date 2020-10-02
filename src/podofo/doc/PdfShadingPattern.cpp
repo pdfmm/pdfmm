@@ -143,7 +143,7 @@ void PdfShadingPattern::Init( EPdfShadingPatternType eShadingType )
             PdfStitchingFunction function( list, domain, bounds, encode, this->GetObject()->GetOwner() );
 
             shading.AddKey( PdfName("Coords"), coords );
-            shading.AddKey( PdfName("Function"), function.GetObject()->Reference() );
+            shading.AddKey( PdfName("Function"), function.GetObject()->GetIndirectReference() );
             break;
         }
         case EPdfShadingPatternType::FreeForm:

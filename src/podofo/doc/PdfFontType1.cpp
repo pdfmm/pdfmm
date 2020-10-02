@@ -45,7 +45,8 @@
 
 #include <stdlib.h>
 
-namespace PoDoFo {
+using namespace std;
+using namespace PoDoFo;
 
 PdfFontType1::PdfFontType1( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 
                             PdfVecObjects* pParent, bool bEmbed, bool bSubsetting )
@@ -120,7 +121,7 @@ void PdfFontType1::EmbedSubsetFont()
     ptrdiff_t   lLength3 = 0L;
     PdfObject*  pContents;
     const char* pBuffer;
-    char*       pAllocated = NULL;
+    unique_ptr<char> pAllocated;
     int         i;
 
     m_bWasEmbedded = true;
@@ -142,49 +143,11 @@ void PdfFontType1::EmbedSubsetFont()
     }
     else
     {
-        FILE* hFile = fopen( m_pMetrics->GetFilename(), "rb" );
-        if( !hFile )
-        {
-            PODOFO_RAISE_ERROR_INFO( EPdfError::FileNotFound, m_pMetrics->GetFilename() );
-        }
-
-        if( fseeko( hFile, 0L, SEEK_END ) == -1 )
-        {
-            fclose( hFile );
-            PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDeviceOperation, "Failed to seek to the end of the file" );
-        }
-
-        lSize = ftello( hFile );
-        if( lSize == -1 )
-        {
-            fclose( hFile );
-            PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDeviceOperation, "Failed to read size of the file" );
-        }
-
-        if( fseeko( hFile, 0L, SEEK_SET ) == -1 )
-        {
-            fclose( hFile );
-            PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDeviceOperation, "Failed to seek to the beginning of the file" );
-        }
-
-        pAllocated = static_cast<char*>(podofo_calloc( lSize, sizeof(char) ));
-        if( !pAllocated )
-        {
-            fclose( hFile );
-            PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
-        }
-
-        if(fread( pAllocated, sizeof( char ), lSize, hFile ) != (size_t)lSize )
-        {
-            podofo_free( pAllocated );
-            fclose( hFile );
-
-            PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDeviceOperation, "Failed to read whole file into the memory" );
-        }
-
-        fclose( hFile );
-
-        pBuffer = pAllocated;
+        lSize = io::FileSize(m_pMetrics->GetFilename());
+        PdfInputDevice stream((string_view)m_pMetrics->GetFilename());
+        pAllocated.reset(new char[lSize]);
+        stream.Read(pAllocated.get(), lSize);
+        pBuffer = pAllocated.get();
     }
 
 	// Allocate buffer for subsetted font, worst case size is input size
@@ -398,8 +361,6 @@ void PdfFontType1::EmbedSubsetFont()
 	pContents->GetOrCreateStream().Set( reinterpret_cast<const char *>(outBuff), outIndex );
 
 	// cleanup memory
-    if( pAllocated )
-        podofo_free( pAllocated );
     delete[] outBuff;
 
 	// enter length in dictionary
@@ -416,7 +377,7 @@ void PdfFontType1::EmbedFontFile( PdfObject* pDescriptor )
     ptrdiff_t   lLength3 = 0L;
     PdfObject*  pContents;
     const char* pBuffer;
-    char*       pAllocated = NULL;
+    unique_ptr<char> pAllocated;
 
 	if (m_isBase14) 
 	{
@@ -443,49 +404,11 @@ void PdfFontType1::EmbedFontFile( PdfObject* pDescriptor )
     }
     else
     {
-        FILE* hFile = fopen( m_pMetrics->GetFilename(), "rb" );
-        if( !hFile )
-        {
-            PODOFO_RAISE_ERROR_INFO( EPdfError::FileNotFound, m_pMetrics->GetFilename() );
-        }
-
-        if( fseeko( hFile, 0L, SEEK_END ) == -1 )
-        {
-            fclose( hFile );
-            PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDeviceOperation, "Failed to seek to the end of the file" );
-        }
-
-        lSize = ftello( hFile );
-        if( lSize == -1 )
-        {
-            fclose( hFile );
-            PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDeviceOperation, "Failed to read size of the file" );
-        }
-
-        if( fseeko( hFile, 0L, SEEK_SET ) == -1 )
-        {
-            fclose( hFile );
-            PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDeviceOperation, "Failed to seek to the beginning of the file" );
-        }
-
-        pAllocated = static_cast<char*>(podofo_calloc( lSize, sizeof(char) ));
-        if( !pAllocated )
-        {
-            fclose( hFile );
-            PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
-        }
-
-        if(fread( pAllocated, sizeof( char ), lSize, hFile ) != (size_t)lSize )
-        {
-            podofo_free( pAllocated );
-            fclose( hFile );
-
-            PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDeviceOperation, "Failed to read whole file into the memory" );
-        }
-
-        fclose( hFile );
-
-        pBuffer = pAllocated;
+        lSize = io::FileSize(m_pMetrics->GetFilename());
+        PdfInputDevice stream((string_view)m_pMetrics->GetFilename());
+        pAllocated.reset(new char[lSize]);
+        stream.Read(pAllocated.get(), lSize);
+        pBuffer = pAllocated.get();
     }
 
 	// Remove binary segment headers from pfb
@@ -529,9 +452,6 @@ void PdfFontType1::EmbedFontFile( PdfObject* pDescriptor )
 				pContents->GetDictionary().AddKey("Length3", PdfVariant(static_cast<int64_t>(lLength3)));
 
 				pContents->GetOrCreateStream().Set( pBuffer, (size_t)(lSize - 2) );
-				if( pAllocated )
-					podofo_free( pAllocated );
-
 				return;
 			default:
 				break;
@@ -558,9 +478,6 @@ void PdfFontType1::EmbedFontFile( PdfObject* pDescriptor )
     
 	// TODO: Pdf Supports only Type1 fonts with binary encrypted sections and not the hex format
 	pContents->GetOrCreateStream().Set( pBuffer, (size_t)lSize );
-    if( pAllocated )
-        podofo_free( pAllocated );
-
     pContents->GetDictionary().AddKey( "Length1", PdfVariant(static_cast<int64_t>(lLength1)));
     pContents->GetDictionary().AddKey( "Length2", PdfVariant(static_cast<int64_t>(lLength2)));
     pContents->GetDictionary().AddKey( "Length3", PdfVariant(static_cast<int64_t>(lLength3)));
@@ -756,6 +673,3 @@ unsigned char PdfType1Encrypt::Decrypt( unsigned char cipher )
 
 	return plain;
 }
-
-};
-

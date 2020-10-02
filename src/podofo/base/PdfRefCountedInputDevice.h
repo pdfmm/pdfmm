@@ -52,27 +52,11 @@ class PODOFO_API PdfRefCountedInputDevice {
      */
     PdfRefCountedInputDevice();
 
-    /** Create a new PdfRefCountedInputDevice which reads from a file. 
-     *  The file is opened using fopen()
-     *  \param pszFilename a filename to be passed to fopen
-     *  \param pszMode a mode string that can be passed to fopen
-     */
-    PdfRefCountedInputDevice( const char* pszFilename, const char* pszMode );
-
-
-#ifdef _WIN32
-    /** Create a new PdfRefCountedInputDevice which reads from a file. 
-     *  The file is opened using fopen()
-     *  \param pszFilename a filename to be passed to fopen
-     *  \param pszMode a mode string that can be passed to fopen
+    /** Create a new PdfRefCountedInputDevice which reads from a file.
      *
-     *  This is an overloaded member function to allow working
-     *  with unicode characters. On Unix systes you can also path
-     *  UTF-8 to the const char* overload.
-     *
+     *  \param filename a filename
      */
-    PdfRefCountedInputDevice( const wchar_t* pszFilename, const char* pszMode );
-#endif // _WIN32
+    PdfRefCountedInputDevice(const std::string_view& filename);
 
     /** Create a new PdfRefCountedInputDevice which operates on a in memory buffer
      *  

@@ -61,13 +61,6 @@ class PODOFO_DOC_API PdfFileSpec : public PdfElement {
     PdfFileSpec( const char* pszFilename, const unsigned char* data, ptrdiff_t size, PdfVecObjects* pParent, bool bStripPath = false);
     PdfFileSpec( const char* pszFilename, const unsigned char* data, ptrdiff_t size, PdfDocument* pParent, bool bStripPath = false);
 
-#ifdef _WIN32
-    PdfFileSpec( const wchar_t* pszFilename, bool bEmbedd, PdfDocument* pParent, bool bStripPath = false );
-    PdfFileSpec( const wchar_t* pszFilename, bool bEmbedd, PdfVecObjects* pParent, bool bStripPath = false );
-    PdfFileSpec( const wchar_t* pszFilename, const unsigned char* data, ptrdiff_t size, PdfVecObjects* pParent, bool bStripPath = false);
-    PdfFileSpec( const wchar_t* pszFilename, const unsigned char* data, ptrdiff_t size, PdfDocument* pParent, bool bStripPath = false);
-#endif
-
     PdfFileSpec( PdfObject* pObject );
 
     /** Gets file name for the FileSpec
@@ -114,13 +107,6 @@ class PODOFO_DOC_API PdfFileSpec : public PdfElement {
      *     or \a pszFilename without a path part, if \a bStripPath is true
      */
     const char *MaybeStripPath( const char* pszFilename, bool bStripPath ) const;
-#ifdef _WIN32
-    void Init( const wchar_t* pszFilename, bool bEmbedd, bool bStripPath );
-    void Init( const wchar_t* pszFilename, const unsigned char* data, ptrdiff_t size, bool bStripPath );
-    PdfString CreateFileSpecification( const wchar_t* pszFilename ) const;
-    void EmbeddFile( PdfObject* pStream, const wchar_t* pszFilename ) const;
-    const wchar_t *MaybeStripPath( const wchar_t* pszFilename, bool bStripPath ) const;
-#endif
 
     /* Petr P. Petrov 17 September 2009*/
     /** Embeds the file from memory
