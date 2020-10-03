@@ -913,8 +913,11 @@ void PdfParser::ReadXRefSubsection( int64_t & nFirstObject, int64_t & nNumObject
                 PODOFO_RAISE_ERROR( EPdfError::InvalidXRef );
             }
 
-            // Support also files with whitespace offset before magic start
-            llOffset += m_magicOffset;
+            if (eType == EXRefEntryType::InUse)
+            {
+                // Support also files with whitespace offset before magic start
+                llOffset += m_magicOffset;
+            }
 
             if ( llOffset > PTRDIFF_MAX )
             {

@@ -18,6 +18,7 @@ SET(PODOFO_BASE_SOURCES
   base/PdfDataType.cpp
   base/PdfContainerDataType.cpp
   base/PdfDate.cpp
+  base/PdfDefinesPrivate.cpp
   base/PdfDictionary.cpp
   base/PdfEncoding.cpp
   base/PdfEncodingFactory.cpp
