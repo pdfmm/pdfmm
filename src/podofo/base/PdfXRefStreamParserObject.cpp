@@ -44,9 +44,9 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfXRefStreamParserObject::PdfXRefStreamParserObject(PdfVecObjects* pCreator, const PdfRefCountedInputDevice & rDevice, 
-                                                     const PdfRefCountedBuffer & rBuffer, TVecOffsets* pOffsets )
-    : PdfParserObject( pCreator, rDevice, rBuffer ), m_lNextOffset(-1), m_pOffsets( pOffsets )
+PdfXRefStreamParserObject::PdfXRefStreamParserObject(PdfDocument& document, const PdfRefCountedInputDevice & rDevice,
+                                                     const PdfRefCountedBuffer & rBuffer, TVecEntries& entries)
+    : PdfParserObject(document, rDevice, rBuffer), m_lNextOffset(-1), m_entries(&entries)
 {
 
 }
@@ -153,8 +153,8 @@ void PdfXRefStreamParserObject::ParseStream( const int64_t nW[W_ARRAY_SIZE], con
             if((size_t)(pBuffer - buffer.get()) >= lBufferLen )
                 PODOFO_RAISE_ERROR_INFO( EPdfError::NoXRef, "Invalid count in XRef stream" );
 
-            if ( nFirstObj >= 0 && nFirstObj < static_cast<int64_t>(m_pOffsets->size()) 
-                 && ! (*m_pOffsets)[static_cast<int>(nFirstObj)].bParsed)
+            if ( nFirstObj >= 0 && nFirstObj < static_cast<int64_t>(m_entries->size()) 
+                 && ! (*m_entries)[static_cast<int>(nFirstObj)].Parsed)
             {
 	            ReadXRefStreamEntry( pBuffer, lBufferLen, nW, static_cast<int>(nFirstObj) );
             }
@@ -201,11 +201,8 @@ void PdfXRefStreamParserObject::GetIndeces( std::vector<int64_t> & rvecIndeces, 
 
 void PdfXRefStreamParserObject::ReadXRefStreamEntry( char* pBuffer, size_t, const int64_t lW[W_ARRAY_SIZE], int nObjNo )
 {
-    int              i;
-    int64_t        z;
-    unsigned long    nData[W_ARRAY_SIZE];
-
-    for( i=0;i<W_ARRAY_SIZE;i++ )
+    uint64_t nData[W_ARRAY_SIZE];
+    for(int i = 0; i < W_ARRAY_SIZE; i++)
     {
         if( lW[i] > W_MAX_BYTES )
         {
@@ -217,47 +214,48 @@ void PdfXRefStreamParserObject::ReadXRefStreamEntry( char* pBuffer, size_t, cons
         }
         
         nData[i] = 0;
-        for( z=W_MAX_BYTES-lW[i];z<W_MAX_BYTES;z++ )
+        for(int64_t z = W_MAX_BYTES - lW[i]; z < W_MAX_BYTES; z++)
         {
             nData[i] = (nData[i] << 8) + static_cast<unsigned char>(*pBuffer);
             ++pBuffer;
         }
     }
 
-
-    //printf("OBJ=%i nData = [ %i %i %i ]\n", nObjNo, static_cast<int>(nData[0]), static_cast<int>(nData[1]), static_cast<int>(nData[2]) );
-    PdfXRefEntry &entry = (*m_pOffsets)[nObjNo];
-    entry.bParsed = true;
+    PdfXRefEntry &entry = (*m_entries)[nObjNo];
+    entry.Parsed = true;
 
     // TABLE 3.15 Additional entries specific to a cross - reference stream dictionary
     // /W array: "If the first element is zero, the type field is not present, and it defaults to type 1"
-    switch( lW[0] == 0 ? 1 : nData[0] ) // nData[0] contains the type information of this entry
+    uint64_t type;
+    if (lW[0] == 0)
+        type = 1;
+    else
+        type = nData[0]; // nData[0] contains the type information of this entry
+
+    switch (type)
     {
         // TABLE 3.16 Entries in a cross-reference stream
         case 0:
             // a free object
-            entry.lOffset     = nData[1];
-            entry.lGeneration = nData[2];
-            entry.eType       = EXRefEntryType::Free;
+            entry.ObjectNumber = nData[1];
+            entry.Generation = (uint32_t)nData[2];
+            entry.Type = EXRefEntryType::Free;
             break;
         case 1:
             // normal uncompressed object
-            entry.lOffset     = nData[1];
-            entry.lGeneration = nData[2];
-            entry.eType       = EXRefEntryType::InUse;
+            entry.Offset = nData[1];
+            entry.Generation = (uint32_t)nData[2];
+            entry.Type = EXRefEntryType::InUse;
             break;
         case 2:
             // object that is part of an object stream
-            entry.lOffset     = nData[2]; // index in the object stream
-            entry.lGeneration = nData[1]; // object number of the stream
-            entry.eType       = EXRefEntryType::Compressed;
+            entry.ObjectNumber = nData[1]; // object number of the stream
+            entry.Index = (uint32_t)nData[2]; // index in the object stream
+            entry.Type = EXRefEntryType::Compressed;
             break;
         default:
-        {
             PODOFO_RAISE_ERROR( EPdfError::InvalidXRefType );
-        }
     }
-    //printf("m_offsets = [ %i %i %c ]\n", entry.lOffset, entry.lGeneration, entry.cUsed );
 }
 
 bool PdfXRefStreamParserObject::TryGetPreviousOffset(size_t &previousOffset) const

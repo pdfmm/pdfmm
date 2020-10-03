@@ -67,7 +67,7 @@ PdfDestination::PdfDestination( PdfObject* pObject, PdfDocument* pDocument )
 
 PdfDestination::PdfDestination( PdfObject* pObject, PdfVecObjects* pVecObjects )
 {
-    Init( pObject, &pVecObjects->GetParentDocument());
+    Init( pObject, &pVecObjects->GetDocument());
 }
 
 PdfDestination::PdfDestination( const PdfPage* pPage, EPdfDestinationFit eFit )
@@ -243,7 +243,7 @@ PdfPage* PdfDestination::GetPage( PdfDocument* pDoc )
 
 PdfPage* PdfDestination::GetPage( PdfVecObjects* pVecObjects )
 {     
-    return this->GetPage( &pVecObjects->GetParentDocument());
+    return this->GetPage( &pVecObjects->GetDocument());
 }
 
 };

@@ -38,9 +38,6 @@
 #include "PdfXRefEntry.h"
 #include "PdfParserObject.h"
 
-#define W_ARRAY_SIZE 3
-#define W_MAX_BYTES  4
-
 namespace PoDoFo
 {
 // CHECK-ME: Consider make this class not inherit PdfParserObject and consider mark that final
@@ -54,18 +51,21 @@ namespace PoDoFo
  */
 class PODOFO_API PdfXRefStreamParserObject : public PdfParserObject
 {
+    static constexpr unsigned W_ARRAY_SIZE = 3;
+    static constexpr unsigned W_MAX_BYTES = 4;
+
 public:
 
     /** Parse the object data from the given file handle starting at
      *  the current position.
-     *  \param pCreator pointer to a PdfVecObjects to resolve object references
+     *  \param document document where to resolve object references
      *  \param rDevice an open reference counted input device which is positioned in
      *                 front of the object which is going to be parsed.
      *  \param rBuffer buffer to use for parsing to avoid reallocations
      *  \param pOffsets XRef entries are stored into this array
      */
-    PdfXRefStreamParserObject(PdfVecObjects* pCreator, const PdfRefCountedInputDevice & rDevice,
-                              const PdfRefCountedBuffer & rBuffer, TVecOffsets* pOffsets );
+    PdfXRefStreamParserObject(PdfDocument& document, const PdfRefCountedInputDevice & rDevice,
+                              const PdfRefCountedBuffer & rBuffer, TVecEntries& entries);
 
     void Parse();
 
@@ -100,7 +100,7 @@ private:
 
 private:
     ssize_t m_lNextOffset;
-    TVecOffsets* m_pOffsets;
+    TVecEntries* m_entries;
 };
 
 };

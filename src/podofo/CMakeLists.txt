@@ -13,10 +13,10 @@ SET(PODOFO_BASE_SOURCES
   base/PdfArray.cpp
   base/PdfCanvas.cpp
   base/PdfColor.cpp
+  base/PdfContainerDataType.cpp
   base/PdfContentsTokenizer.cpp
   base/PdfData.cpp
   base/PdfDataType.cpp
-  base/PdfContainerDataType.cpp
   base/PdfDate.cpp
   base/PdfDefinesPrivate.cpp
   base/PdfDictionary.cpp
@@ -51,6 +51,7 @@ SET(PODOFO_BASE_SOURCES
   base/PdfVecObjects.cpp
   base/PdfWriter.cpp
   base/PdfXRef.cpp
+  base/PdfXRefEntry.cpp
   base/PdfXRefStream.cpp
   base/PdfXRefStreamParserObject.cpp
   )

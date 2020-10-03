@@ -54,13 +54,13 @@ static const int s_nLenEndObj    = 6; // strlen("endobj");
 static const int s_nLenStream    = 6; // strlen("stream");
 //static const int s_nLenEndStream = 9; // strlen("endstream");
 
-PdfParserObject::PdfParserObject( PdfVecObjects* pCreator, const PdfRefCountedInputDevice & rDevice, 
+PdfParserObject::PdfParserObject(PdfDocument& document, const PdfRefCountedInputDevice & rDevice,
                                   const PdfRefCountedBuffer & rBuffer, ssize_t lOffset )
     : PdfObject( PdfVariant::NullValue ), PdfTokenizer( rDevice, rBuffer ), m_pEncrypt( NULL )
 {
     // Parsed objects by definition are initially not dirty
     resetDirty();
-    SetDocument(pCreator->GetParentDocument());
+    SetDocument(document);
     InitPdfParserObject();
     m_lOffset = lOffset < 0 ? m_device.Device()->Tell() : lOffset;
 }

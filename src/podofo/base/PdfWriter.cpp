@@ -59,9 +59,8 @@ PdfWriter::PdfWriter(PdfVecObjects* pVecObjects, const PdfObject* pTrailer, EPdf
     m_vecObjects(pVecObjects),
     m_pTrailer(pTrailer),
     m_eVersion(version),
-    m_bXRefStream(false),
+    m_UseXRefStream(false),
     m_pEncrypt(NULL),
-    m_pEncryptObj(NULL),
     m_saveOptions(PdfSaveOptions::None),
     m_eWriteMode(EPdfWriteMode::Compact),
     m_lPrevXRefOffset(0),
@@ -119,15 +118,15 @@ void PdfWriter::Write(PdfOutputDevice& device)
         m_pEncrypt->GenerateEncryptionKey( m_identifier );
 
         // Add our own Encryption dictionary
-        m_pEncryptObj = m_vecObjects->CreateObject();
+        m_pEncryptObj.reset(m_vecObjects->CreateObject());
         m_pEncrypt->CreateEncryptionDictionary( m_pEncryptObj->GetDictionary() );
     }
 
     unique_ptr<PdfXRef> pXRef;
-    if (m_bXRefStream)
-        pXRef.reset(new PdfXRefStream(m_vecObjects, this));
+    if (m_UseXRefStream)
+        pXRef.reset(new PdfXRefStream(*this, *m_vecObjects));
     else
-        pXRef.reset(new PdfXRef());
+        pXRef.reset(new PdfXRef(*this));
 
     try
     {
@@ -136,31 +135,18 @@ void PdfWriter::Write(PdfOutputDevice& device)
 
         WritePdfObjects(device, *m_vecObjects, *pXRef);
 
-        if( m_bIncrementalUpdate )
+        if ( m_bIncrementalUpdate )
             pXRef->SetFirstEmptyBlock();
 
         pXRef->Write(device);
-        
-        // XRef streams contain the trailer in the XRef
-        if( !m_bXRefStream ) 
-        {
-            PdfObject  trailer;
-            
-            // if we have a dummy offset we write also a prev entry to the trailer
-            FillTrailerObject( &trailer, pXRef->GetSize(), false );
-            
-            device.Print("trailer\n");
-            trailer.Write(device, m_eWriteMode, nullptr); // Do not encrypt the trailer dictionary!!!
-        }
-        
-        device.Print( "startxref\n%" PDF_FORMAT_UINT64 "\n%%%%EOF\n", pXRef->GetOffset() );
     }
     catch( PdfError & e )
     {   
         // P.Zent: Delete Encryption dictionary (cannot be reused)
-        if(m_pEncryptObj) {
+        if(m_pEncryptObj)
+        {
             m_vecObjects->RemoveObject(m_pEncryptObj->GetIndirectReference());
-            delete m_pEncryptObj;
+            m_pEncryptObj = nullptr;
         }
         
         e.AddToCallstack( __FILE__, __LINE__ );
@@ -171,7 +157,7 @@ void PdfWriter::Write(PdfOutputDevice& device)
     if(m_pEncryptObj)
     {
         m_vecObjects->RemoveObject(m_pEncryptObj->GetIndirectReference());
-        delete m_pEncryptObj;
+        m_pEncryptObj = nullptr;
     }
 }
 
@@ -218,9 +204,12 @@ void PdfWriter::WritePdfObjects(PdfOutputDevice& device, const PdfVecObjects& ve
 
         xref.AddObject( pObject->GetIndirectReference(), device.Tell(), true );
 
-        // Make sure that we do not encrypt the encryption dictionary!
-        pObject->Write(device, m_eWriteMode, 
-                              pObject == m_pEncryptObj ? nullptr : m_pEncrypt);
+        if (!xref.ShouldSkipWrite(pObject->GetIndirectReference()))
+        {
+            // Also make sure that we do not encrypt the encryption dictionary!
+            pObject->Write(device, m_eWriteMode,
+                pObject == m_pEncryptObj.get() ? nullptr : m_pEncrypt);
+        }
     }
 
     TCIPdfReferenceList itFree, itFreeEnd = vecObjects.GetFreeObjects().end();
@@ -369,5 +358,5 @@ void PdfWriter::SetUseXRefStream(bool bStream)
     if (bStream && m_eVersion < EPdfVersion::V1_5)
         this->SetPdfVersion(EPdfVersion::V1_5);
 
-    m_bXRefStream = bStream;
+    m_UseXRefStream = bStream;
 }

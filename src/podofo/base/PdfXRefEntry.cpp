@@ -31,54 +31,68 @@
  *   files in the program, then also delete it here.                       *
  ***************************************************************************/
 
-#pragma once
+#include "PdfXRefEntry.h"
 
-#include "PdfDefines.h"
-#include <vector>
+using namespace PoDoFo;
 
-namespace PoDoFo
+PdfXRefEntry::PdfXRefEntry() :
+    Unknown1(0),
+    Unknown2(0),
+    Type(EXRefEntryType::Unknown),
+    Parsed(false)
+{ }
+
+PdfXRefEntry PdfXRefEntry::CreateFree(uint32_t object, uint16_t generation)
 {
-    // Values cast directly to XRefStm binary representation
-    enum class EXRefEntryType : int8_t
+    PdfXRefEntry ret;
+    ret.ObjectNumber = object;
+    ret.Generation = generation;
+    ret.Type = EXRefEntryType::Free;
+    return ret;
+}
+
+PdfXRefEntry PdfXRefEntry::CreateInUse(uint64_t offset, uint16_t generation)
+{
+    PdfXRefEntry ret;
+    ret.Offset = offset;
+    ret.Generation = generation;
+    ret.Type = EXRefEntryType::InUse;
+    return ret;
+}
+
+PdfXRefEntry PdfXRefEntry::CreateCompressed(uint32_t object, unsigned index)
+{
+    PdfXRefEntry ret;
+    ret.ObjectNumber = object;
+    ret.Index = index;
+    ret.Type = EXRefEntryType::Compressed;
+    return ret;
+}
+
+char PoDoFo::XRefEntryType(EXRefEntryType type)
+{
+    switch (type)
     {
-        Unknown = -1,
-        Free = 0,
-        InUse = 1,
-        Compressed = 2,
-    };
+    case EXRefEntryType::Free:
+        return 'f';
+    case EXRefEntryType::InUse:
+        return 'n';
+    case EXRefEntryType::Unknown:
+    case EXRefEntryType::Compressed:
+    default:
+        PODOFO_RAISE_ERROR(EPdfError::InvalidEnumValue);
+    }
+}
 
-    struct PdfXRefEntry
+EXRefEntryType PoDoFo::XRefEntryTypeFromChar(char c)
+{
+    switch (c)
     {
-        PdfXRefEntry();
-
-        static PdfXRefEntry CreateFree(uint32_t object, uint16_t generation);
-
-        static PdfXRefEntry CreateInUse(uint64_t offset, uint16_t generation);
-
-        static PdfXRefEntry CreateCompressed(uint32_t object, unsigned index);
-
-        // The following aliasing should be allowed in C++
-        // https://stackoverflow.com/a/15278030/213871
-        union
-        {
-            uint64_t ObjectNumber;  // Object number in Free and Compressed entries
-            uint64_t Offset;        // Unsed in InUse entries
-            uint64_t Unknown1;
-        };
-        union
-        {
-            uint32_t Generation;    // The generation of the object in Free and InUse entries
-            uint32_t Index;         // Index of the object in the stream for Compressed entries
-            uint32_t Unknown2;
-        };
-        EXRefEntryType Type;
-        bool Parsed;
-    };
-
-    char XRefEntryType(EXRefEntryType type);
-    EXRefEntryType XRefEntryTypeFromChar(char c);
-
-    typedef std::vector<PdfXRefEntry> TVecEntries;
-    typedef TVecEntries::iterator TIVecEntries;
-    typedef TVecEntries::const_iterator TCIVecEntries;
-};
+    case 'f':
+        return EXRefEntryType::Free;
+    case 'n':
+        return EXRefEntryType::InUse;
+    default:
+        PODOFO_RAISE_ERROR(EPdfError::InvalidXRef);
+    }
+}

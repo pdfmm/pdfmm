@@ -37,12 +37,12 @@
 #include "PdfDefines.h"
 
 #include "PdfReference.h"
+#include "PdfXRefEntry.h"
 
 namespace PoDoFo {
 
-#define EMPTY_OBJECT_OFFSET   65535
-
 class PdfOutputDevice;
+class PdfWriter;
 
 /**
  * Creates an XRef table.
@@ -76,9 +76,10 @@ class PdfXRef
     typedef TVecReferences::iterator       TIVecReferences;
     typedef TVecReferences::const_iterator TCIVecReferences;
 
-    class PdfXRefBlock {
+    class PdfXRefBlock
+    {
     public:
-        PdfXRefBlock() 
+        PdfXRefBlock()
             : m_nFirst( 0 ), m_nCount( 0 )
         {
         }
@@ -121,7 +122,7 @@ class PdfXRef
  public:
     /** Create a new XRef table
      */
-    PdfXRef();
+    PdfXRef(PdfWriter& pWriter);
 
     /** Destruct the XRef table
      */
@@ -153,17 +154,24 @@ class PdfXRef
     uint32_t GetSize() const;
 
     /**
-     * \returns the offset in the file at which the XRef table
-     *          starts after it was written
-     */
-    inline virtual uint64_t GetOffset() const;
-
-    /**
      * Mark as empty block.
      */
     void SetFirstEmptyBlock();
 
- protected:
+    /** Should skip writing for this object
+     */
+    virtual bool ShouldSkipWrite(const PdfReference& rRef);
+
+public:
+    inline PdfWriter & GetWriter() const { return *m_writer; }
+
+    /**
+     * \returns the offset in the file at which the XRef table
+     *          starts after it was written
+     */
+    inline virtual uint64_t GetOffset() const { return m_offset; }
+
+protected:
     /** Called at the start of writing the XRef table.
      *  This method can be overwritten in subclasses
      *  to write a general header for the XRef table.
@@ -193,9 +201,16 @@ class PdfXRef
      *  @param objectNumber the object number of the currently written object if cMode = 'n' 
      *                       otherwise undefined
      */
-    virtual void WriteXRefEntry( PdfOutputDevice& device, uint64_t offset, uint16_t generation,
-                                 char cMode, uint32_t objectNumber = 0 );
+    virtual void WriteXRefEntry( PdfOutputDevice& device, const PdfXRefEntry& entry);
 
+    /**  Sub classes can overload this method to finish a XRef table.
+     *
+     *  @param pDevice the output device to which the XRef table
+     *                 should be written.
+     */
+    virtual void EndWriteImpl(PdfOutputDevice& device);
+
+private:
     /** Called at the end of writing the XRef table.
      *  Sub classes can overload this method to finish a XRef table.
      *
@@ -204,7 +219,6 @@ class PdfXRef
      */
     virtual void EndWrite(PdfOutputDevice& device);
 
- private:
     const PdfReference* GetFirstFreeObject( PdfXRef::TCIVecXRefBlock itBlock, PdfXRef::TCIVecReferences itFree ) const;
     const PdfReference* GetNextFreeObject( PdfXRef::TCIVecXRefBlock itBlock, PdfXRef::TCIVecReferences itFree ) const;
 
@@ -216,20 +230,13 @@ class PdfXRef
      */
     void MergeBlocks();
 
- private:
+protected:
+    TVecXRefBlock m_vecBlocks;
+
+private:
+    PdfWriter *m_writer;
     uint64_t m_offset;
-
- protected:
-    TVecXRefBlock  m_vecBlocks;
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline uint64_t PdfXRef::GetOffset() const
-{
-    return m_offset;
-}
 
 };
 

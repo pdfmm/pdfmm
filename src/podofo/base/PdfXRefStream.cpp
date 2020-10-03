@@ -41,64 +41,89 @@
 
 using namespace PoDoFo;
 
-PdfXRefStream::PdfXRefStream( PdfVecObjects* pParent, PdfWriter* pWriter )
-    : m_pParent( pParent ), m_pWriter( pWriter ), m_pObject( NULL )
-{
-    m_bufferLen = 2 + sizeof( uint32_t );
+#pragma pack(push, 1)
 
-    m_pObject    = pParent->CreateObject( "XRef" );
-    m_offset    = 0;
+// TODO: Handle for different byte size for object number/offset/generation
+struct XRefStreamEntry
+{
+    uint8_t Type;
+    uint32_t Variant; // Can be an object number or an offset
+    uint16_t Generation;
+};
+
+#pragma pack(pop)
+
+PdfXRefStream::PdfXRefStream(PdfWriter& writer, PdfVecObjects& parent) :
+    PdfXRef(writer),
+    m_pParent(&parent),
+    m_xrefStreamObj(parent.CreateObject("XRef")),
+    m_offset(-1)
+{
+}
+
+uint64_t PdfXRefStream::GetOffset() const
+{
+    if (m_offset < 0)
+        PODOFO_RAISE_ERROR_INFO(EPdfError::InternalLogic, "XRefStm has not been written yet");
+
+    return (uint64_t)m_offset;
+}
+
+bool PdfXRefStream::ShouldSkipWrite(const PdfReference& ref)
+{
+    // We handle writing for the XRefStm object
+    if (m_xrefStreamObj->GetIndirectReference() == ref)
+        return true;
+    else
+        return false;
 }
 
 void PdfXRefStream::BeginWrite( PdfOutputDevice& )
 {
-    m_pObject->GetOrCreateStream().BeginAppend();
+    m_xrefStreamObj->GetOrCreateStream().BeginAppend();
 }
 
 void PdfXRefStream::WriteSubSection(PdfOutputDevice&, uint32_t first, uint32_t count )
 {
-    PdfError::DebugMessage("Writing XRef section: %u %u\n", first, count );
-
     m_indeces.push_back( static_cast<int64_t>(first) );
     m_indeces.push_back( static_cast<int64_t>(count) );
 }
 
-void PdfXRefStream::WriteXRefEntry(PdfOutputDevice&, uint64_t offset, uint16_t generation,
-                                    char cMode, uint32_t objectNumber ) 
+void PdfXRefStream::WriteXRefEntry(PdfOutputDevice&, const PdfXRefEntry& entry)
 {
-    std::vector<char>	bytes(m_bufferLen);
-    char * buffer = bytes.data();
+    XRefStreamEntry stmEntry;
+    stmEntry.Type = static_cast<uint8_t>(entry.Type);
 
-    if( cMode == 'n' && objectNumber == m_pObject->GetIndirectReference().ObjectNumber() )
-        m_offset = offset;
-    
-    buffer[0]             = static_cast<char>( cMode == 'n' ? 1 : 0 );
-    buffer[m_bufferLen-1] = static_cast<char>( cMode == 'n' ? 0 : generation );
+    switch (entry.Type)
+    {
+    case EXRefEntryType::Free:
+        stmEntry.Variant = compat::AsBigEndian(static_cast<uint32_t>(entry.ObjectNumber));
+        break;
+    case EXRefEntryType::InUse:
+        stmEntry.Variant = compat::AsBigEndian(static_cast<uint32_t>(entry.Offset));
+        break;
+    default:
+        PODOFO_RAISE_ERROR(EPdfError::InvalidEnumValue);
+    }
 
-    const uint32_t offset_be = ::PoDoFo::compat::AsBigEndian(static_cast<uint32_t>(offset));
-    memcpy( &buffer[1], reinterpret_cast<const char*>(&offset_be), sizeof(uint32_t) );
-
-    m_pObject->GetOrCreateStream().Append( buffer, m_bufferLen );
+    stmEntry.Generation = compat::AsBigEndian(static_cast<uint16_t>(entry.Generation));
+    m_xrefStreamObj->GetOrCreateStream().Append((char *)&stmEntry, sizeof(XRefStreamEntry));
 }
 
-void PdfXRefStream::EndWrite(PdfOutputDevice& device)
+void PdfXRefStream::EndWriteImpl(PdfOutputDevice& device)
 {
+    m_xrefStreamObj->GetOrCreateStream().EndAppend();
+    GetWriter().FillTrailerObject( m_xrefStreamObj, this->GetSize(), false );
+
     PdfArray w;
+    w.push_back(static_cast<int64_t>(sizeof(XRefStreamEntry::Type)));
+    w.push_back(static_cast<int64_t>(sizeof(XRefStreamEntry::Variant)));
+    w.push_back(static_cast<int64_t>(sizeof(XRefStreamEntry::Generation)));
 
-    w.push_back( static_cast<int64_t>(1) );
-    w.push_back( static_cast<int64_t>(sizeof(uint32_t)) );
-    w.push_back( static_cast<int64_t>(1) );
+    m_xrefStreamObj->GetDictionary().AddKey( "Index", m_indeces );
+    m_xrefStreamObj->GetDictionary().AddKey( "W", w );
 
-    // Add our self to the XRef table
-    this->WriteXRefEntry(device, device.Tell(), 0, 'n' );
-
-    m_pObject->GetOrCreateStream().EndAppend();
-    m_pWriter->FillTrailerObject( m_pObject, this->GetSize(), false );
-
-    m_pObject->GetDictionary().AddKey( "Index", m_indeces );
-    m_pObject->GetDictionary().AddKey( "W", w );
-
-    device.Seek( static_cast<size_t>(m_offset) );
-    m_pObject->Write(device, m_pWriter->GetWriteMode(), nullptr); // DominikS: Requires encryption info??
-    m_indeces.Clear();
+    int64_t offset = (int64_t)device.Tell();
+    m_xrefStreamObj->Write(device, GetWriter().GetWriteMode(), nullptr); // CHECK-ME: Requires encryption info??
+    m_offset = offset;
 }

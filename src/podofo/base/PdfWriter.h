@@ -139,7 +139,7 @@ public:
     /**
      *  \returns wether a XRef stream is used or not
      */
-    inline bool GetUseXRefStream() const { return m_bXRefStream; }
+    inline bool GetUseXRefStream() const { return m_UseXRefStream; }
 
     /** Sets an offset to the previous XRef table. Set it to lower than
      *  or equal to 0, to not write a reference to the previous XRef table.
@@ -206,10 +206,10 @@ protected:
     PdfVecObjects*  m_vecObjects;
     const PdfObject* m_pTrailer;
 
-    bool            m_bXRefStream;
+    bool            m_UseXRefStream;
 
     PdfEncrypt*     m_pEncrypt;    ///< If not NULL encrypt all strings and streams and create an encryption dictionary in the trailer
-    PdfObject*      m_pEncryptObj; ///< Used to temporarly store the encryption dictionary
+    std::unique_ptr<PdfObject> m_pEncryptObj; ///< Used to temporarly store the encryption dictionary
 
     PdfString       m_identifier;
     PdfString       m_originalIdentifier; // used for incremental update

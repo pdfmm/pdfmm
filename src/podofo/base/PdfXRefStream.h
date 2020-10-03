@@ -43,7 +43,6 @@ namespace PoDoFo {
 
 class PdfOutputDevice;
 class PdfVecObjects;
-class PdfWriter;
 
 /**
  * Creates an XRef table that is a stream object.
@@ -62,13 +61,11 @@ public:
      *  \param pWriter is needed to fill the trailer directory
      *                 correctly which is included into the XRef
      */
-    PdfXRefStream( PdfVecObjects* pParent, PdfWriter* pWriter );
+    PdfXRefStream(PdfWriter &writer, PdfVecObjects& pParent);
 
-    /**
-     * \returns the offset in the file at which the XRef table
-     *          starts after it was written
-     */
-    inline uint64_t GetOffset() const override { return m_offset; }
+    uint64_t GetOffset() const override;
+
+    bool ShouldSkipWrite(const PdfReference& rRef) override;
 
  protected:
     /** Called at the start of writing the XRef table.
@@ -100,8 +97,7 @@ public:
      *  @param objectNumber the object number of the currently written object if cMode = 'n' 
      *                       otherwise undefined
      */
-    void WriteXRefEntry(PdfOutputDevice& device, uint64_t offset, uint16_t generation,
-                                 char cMode, uint32_t objectNumber = 0 ) override;
+    void WriteXRefEntry(PdfOutputDevice& device, const PdfXRefEntry& entry) override;
 
     /** Called at the end of writing the XRef table.
      *  Sub classes can overload this method to finish a XRef table.
@@ -109,16 +105,13 @@ public:
      *  @param pDevice the output device to which the XRef table 
      *                 should be written.
      */
-    void EndWrite(PdfOutputDevice& device) override;
+    void EndWriteImpl(PdfOutputDevice& device) override;
 
  private:
     PdfVecObjects* m_pParent;
-    PdfWriter*     m_pWriter;
-    PdfObject*     m_pObject;
-    PdfArray       m_indeces;
-
-    size_t         m_bufferLen; ///< The length of the internal buffer for one XRef entry
-    uint64_t     m_offset;    ///< Offset of the XRefStream object
+    PdfObject* m_xrefStreamObj;
+    PdfArray m_indeces;
+    int64_t m_offset;
 };
 
 };

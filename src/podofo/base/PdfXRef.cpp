@@ -31,15 +31,18 @@
  *   files in the program, then also delete it here.                       *
  ***************************************************************************/
 
+#include "PdfDefinesPrivate.h"
 #include "PdfXRef.h"
 
+#include "PdfObject.h"
 #include "PdfOutputDevice.h"
-#include "PdfDefinesPrivate.h"
+#include "PdfWriter.h"
 
 #include <algorithm>
 
-namespace PoDoFo {
+#define EMPTY_OBJECT_OFFSET 65535
 
+using namespace PoDoFo;
 
 bool PdfXRef::PdfXRefBlock::InsertItem( const TXRefItem & rItem, bool bUsed )
 {
@@ -92,8 +95,8 @@ bool PdfXRef::PdfXRefBlock::InsertItem( const TXRefItem & rItem, bool bUsed )
     return false;
 }
 
-PdfXRef::PdfXRef()
-    : m_offset( 0 )
+PdfXRef::PdfXRef(PdfWriter& writer)
+    : m_offset( 0 ), m_writer(&writer)
 {
 
 }
@@ -137,7 +140,7 @@ void PdfXRef::Write(PdfOutputDevice& device)
     PdfXRef::TCIVecXRefBlock  it         = m_vecBlocks.begin();
     PdfXRef::TCIVecXRefItems  itItems;
     PdfXRef::TCIVecReferences itFree;
-    const PdfReference*       pNextFree  = NULL;
+    const PdfReference*       pNextFree  = nullptr;
 
     uint32_t nFirst = 0;
     uint32_t nCount = 0;
@@ -165,7 +168,7 @@ void PdfXRef::Write(PdfOutputDevice& device)
         if( !nFirst ) 
         {
             const PdfReference* pFirstFree = this->GetFirstFreeObject( it, itFree );
-            this->WriteXRefEntry(device, pFirstFree ? pFirstFree->ObjectNumber() : 0, EMPTY_OBJECT_OFFSET, 'f' );
+            this->WriteXRefEntry(device, PdfXRefEntry::CreateFree(pFirstFree ? pFirstFree->ObjectNumber() : 0, EMPTY_OBJECT_OFFSET));
         }
 
         while( itItems != (*it).items.end() )
@@ -180,12 +183,11 @@ void PdfXRef::Write(PdfOutputDevice& device)
                 pNextFree = this->GetNextFreeObject( it, itFree );
                 
                 // write free object
-                this->WriteXRefEntry(device, pNextFree ? pNextFree->ObjectNumber() : 0, nGen, 'f' );
+                this->WriteXRefEntry(device, PdfXRefEntry::CreateFree(pNextFree ? pNextFree->ObjectNumber() : 0, nGen));
                 ++itFree;
             }
 
-            this->WriteXRefEntry(device, (*itItems).offset, (*itItems).reference.GenerationNumber(), 'n',
-                                  (*itItems).reference.ObjectNumber()  );
+            this->WriteXRefEntry(device, PdfXRefEntry::CreateInUse((*itItems).offset, (*itItems).reference.GenerationNumber()));
             ++itItems;
         }
 
@@ -198,7 +200,7 @@ void PdfXRef::Write(PdfOutputDevice& device)
             pNextFree = this->GetNextFreeObject( it, itFree );
             
             // write free object
-            this->WriteXRefEntry(device, pNextFree ? pNextFree->ObjectNumber() : 0, nGen, 'f' );
+            this->WriteXRefEntry(device, PdfXRefEntry::CreateFree(pNextFree ? pNextFree->ObjectNumber() : 0, nGen));
             ++itFree;
         }
 
@@ -210,7 +212,7 @@ void PdfXRef::Write(PdfOutputDevice& device)
 
 const PdfReference* PdfXRef::GetFirstFreeObject( PdfXRef::TCIVecXRefBlock itBlock, PdfXRef::TCIVecReferences itFree ) const 
 {
-    const PdfReference* pRef      = NULL;
+    const PdfReference* pRef = nullptr;
 
     // find the next free object
     while( itBlock != m_vecBlocks.end() )
@@ -237,7 +239,7 @@ const PdfReference* PdfXRef::GetFirstFreeObject( PdfXRef::TCIVecXRefBlock itBloc
 
 const PdfReference* PdfXRef::GetNextFreeObject( PdfXRef::TCIVecXRefBlock itBlock, PdfXRef::TCIVecReferences itFree ) const 
 {
-    const PdfReference* pRef      = NULL;
+    const PdfReference* pRef = nullptr;
 
     // check if itFree points to a valid free object at the moment
     if( itFree != (*itBlock).freeItems.end() )
@@ -337,14 +339,45 @@ void PdfXRef::WriteSubSection( PdfOutputDevice& device, uint32_t nFirst, uint32_
     device.Print( "%u %u\n", nFirst, nCount );
 }
 
-void PdfXRef::WriteXRefEntry( PdfOutputDevice& device, uint64_t offset,
-                              uint16_t generation, char cMode, uint32_t ) 
+void PdfXRef::WriteXRefEntry( PdfOutputDevice& device, const PdfXRefEntry& entry)
 {
-    device.Print( "%0.10" PDF_FORMAT_UINT64 " %0.5hu %c \n", offset, generation, cMode );
+    uint64_t variant;
+    switch (entry.Type)
+    {
+        case EXRefEntryType::Free:
+        {
+            variant = entry.ObjectNumber;
+            break;
+        }
+        case EXRefEntryType::InUse:
+        {
+            variant = entry.Offset;
+            break;
+        }
+        default:
+            PODOFO_RAISE_ERROR(EPdfError::InvalidEnumValue);
+    }
+
+    device.Print("%0.10" PDF_FORMAT_UINT64 " %0.5hu %c \n", variant, entry.Generation, XRefEntryType(entry.Type));
 }
 
-void PdfXRef::EndWrite( PdfOutputDevice& ) 
+void PdfXRef::EndWriteImpl(PdfOutputDevice& device)
 {
+    PdfObject  trailer;
+
+    // if we have a dummy offset we write also a prev entry to the trailer
+    m_writer->FillTrailerObject(&trailer, GetSize(), false);
+
+    device.Print("trailer\n");
+
+    // NOTE: Do not encrypt the trailer dictionary
+    trailer.Write(device, m_writer->GetWriteMode(), nullptr);
+}
+
+void PdfXRef::EndWrite(PdfOutputDevice& device)
+{
+    EndWriteImpl(device);
+    device.Print("startxref\n%" PDF_FORMAT_UINT64 "\n%%%%EOF\n", GetOffset());
 }
 
 void PdfXRef::SetFirstEmptyBlock() 
@@ -355,4 +388,8 @@ void PdfXRef::SetFirstEmptyBlock()
     m_vecBlocks.insert(m_vecBlocks.begin(), block );
 }
 
-};
+bool PdfXRef::ShouldSkipWrite(const PdfReference& rRef)
+{
+    // Nothing to skip writing for PdfXRef table
+    return false;
+}

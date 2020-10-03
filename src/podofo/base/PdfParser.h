@@ -506,7 +506,7 @@ public:
     size_t        m_nFileSize;
     size_t        m_lLastEOFOffset;
 
-    TVecOffsets   m_offsets;
+    TVecEntries   m_entries;
     PdfVecObjects* m_vecObjects;
 
     PdfParserObject * m_pTrailer;

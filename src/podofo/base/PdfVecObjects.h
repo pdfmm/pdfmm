@@ -399,7 +399,7 @@ public:
      *           parent of this vector.
      *           Might be NULL if the vector has no parent.
      */
-    inline PdfDocument& GetParentDocument() const { return *m_pDocument; }
+    inline PdfDocument& GetDocument() const { return *m_pDocument; }
 
     /** Enable/disable auto deletion.
      *  By default auto deletion is disabled.

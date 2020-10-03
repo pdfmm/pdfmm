@@ -70,7 +70,7 @@ PdfImmediateWriter::PdfImmediateWriter( PdfOutputDevice* pDevice, PdfVecObjects*
     this->SetWriteMode( eWriteMode );
     this->WritePdfHeader(*m_pDevice);
 
-    m_pXRef = m_bXRefStream ? new PdfXRefStream( m_vecObjects, this ) : new PdfXRef();
+    m_pXRef = m_UseXRefStream ? new PdfXRefStream(*this, *m_vecObjects) : new PdfXRef(*this);
 
 }
 
@@ -116,7 +116,7 @@ void PdfImmediateWriter::Finish()
     if( m_pEncrypt )
     {
         // Add our own Encryption dictionary
-        m_pEncryptObj = m_vecObjects->CreateObject();
+        m_pEncryptObj.reset(m_vecObjects->CreateObject());
         m_pEncrypt->CreateEncryptionDictionary( m_pEncryptObj->GetDictionary() );
     }
 
@@ -127,7 +127,7 @@ void PdfImmediateWriter::Finish()
     m_pXRef->Write(*m_pDevice);
             
     // XRef streams contain the trailer in the XRef
-    if( !m_bXRefStream ) 
+    if( !m_UseXRefStream )
     {
         PdfObject trailer;
         

@@ -65,7 +65,6 @@ using namespace PoDoFo;
 
 static bool CheckEOL(char e1, char e2);
 static bool CheckXRefEntryType( char c );
-static EXRefEntryType GetXRefEntryType( char c );
 static bool ReadMagicWord(char ch, int& charidx);
 
 constexpr int64_t nMaxNumIndirectObjects = (1L << 23) - 1L;
@@ -154,7 +153,7 @@ void PdfParser::Init()
     m_device          = PdfRefCountedInputDevice();
     m_pTrailer        = NULL;
     m_pLinearization  = NULL;
-    m_offsets.clear();
+    m_entries.clear();
 
     m_pEncrypt        = NULL;
 
@@ -241,7 +240,7 @@ void PdfParser::ParseFile( const PdfRefCountedInputDevice & rDevice, bool bLoadO
 void PdfParser::Clear()
 {
     m_setObjectStreams.clear();
-    m_offsets.clear();
+    m_entries.clear();
 
     m_device = PdfRefCountedInputDevice();
 
@@ -435,8 +434,8 @@ void PdfParser::HasLinearizationDict()
     while( *pszObj && (PdfTokenizer::IsWhitespace( *pszObj ) || (*pszObj >= '0' && *pszObj <= '9')) )
         --pszObj;
 
-    m_pLinearization = new PdfParserObject( m_vecObjects, m_device, linearizeBuffer,
-                                            pszObj - linearizeBuffer.GetBuffer() + 2 );
+    m_pLinearization = new PdfParserObject(m_vecObjects->GetDocument(), m_device, linearizeBuffer,
+                                            pszObj - linearizeBuffer.GetBuffer() + 2);
 
     try {
         // Do not care for encryption here, as the linearization dictionary does not contain strings or streams
@@ -547,7 +546,7 @@ void PdfParser::ReadNextTrailer()
     if( this->IsNextToken( "trailer" ) )
     //if( strcmp( m_buffer.GetBuffer(), "railer" ) == 0 )
     {
-        PdfParserObject trailer( m_vecObjects, m_device, m_buffer );
+        PdfParserObject trailer(m_vecObjects->GetDocument(), m_device, m_buffer);
         try {
             // Ignore the encryption in the trailer as the trailer may not be encrypted
             trailer.ParseFile( NULL, true );
@@ -618,14 +617,14 @@ void PdfParser::ReadTrailer()
             // and a trailer dictionary is not required
             m_device.Device()->Seek( m_nXRefOffset );
 
-            m_pTrailer = new PdfParserObject( m_vecObjects, m_device, m_buffer );
+            m_pTrailer = new PdfParserObject(m_vecObjects->GetDocument(), m_device, m_buffer);
             m_pTrailer->ParseFile( NULL, false );
             return;
         }
     }
     else 
     {
-        m_pTrailer = new PdfParserObject( m_vecObjects, m_device, m_buffer );
+        m_pTrailer = new PdfParserObject(m_vecObjects->GetDocument(), m_device, m_buffer);
         try {
             // Ignore the encryption in the trailer as the trailer may not be encrypted
             m_pTrailer->ParseFile( NULL, true );
@@ -797,19 +796,6 @@ bool CheckXRefEntryType( char c )
     return c == 'n' || c == 'f';
 }
 
-EXRefEntryType GetXRefEntryType( char c )
-{
-    switch ( c )
-    {
-        case 'n':
-            return EXRefEntryType::InUse;
-        case 'f':
-            return EXRefEntryType::Free;
-        default:
-            PODOFO_RAISE_ERROR( EPdfError::InvalidXRef );
-    }
-}
-
 void PdfParser::ReadXRefSubsection( int64_t & nFirstObject, int64_t & nNumObjects )
 {
     int64_t count = 0;
@@ -887,11 +873,11 @@ void PdfParser::ReadXRefSubsection( int64_t & nFirstObject, int64_t & nNumObject
 
 		const int objID = static_cast<int>(nFirstObject+count);
 
-        PdfXRefEntry &entry = m_offsets[objID];
-        if( static_cast<size_t>(objID) < m_offsets.size() && !entry.bParsed )
+        PdfXRefEntry &entry = m_entries[objID];
+        if( static_cast<size_t>(objID) < m_entries.size() && !entry.Parsed )
         {
-            uint64_t llOffset = 0;
-            uint32_t llGeneration = 0;
+            uint64_t variant = 0;
+            uint32_t generation = 0;
             char cType = 0;
 
             // XRefEntry is defined in PDF spec section 7.5.4 Cross-Reference Table as
@@ -900,12 +886,12 @@ void PdfParser::ReadXRefSubsection( int64_t & nFirstObject, int64_t & nNumObject
             // ggggg is a 5-digit generation number with max value 99999 (smaller than 2**17)
             // eol is a 2-character end-of-line sequence
             int read = sscanf( m_buffer.GetBuffer(), "%10" SCNu64 " %5" SCNu32 " %c%c%c",
-                              &llOffset, &llGeneration, &cType, &empty1, &empty2 );
+                              &variant, &generation, &cType, &empty1, &empty2 );
 
             if ( !CheckXRefEntryType(cType) )
                 PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidXRef, "Invalid used keyword, must be eiter 'n' or 'f'" );
 
-            EXRefEntryType eType = GetXRefEntryType( cType );
+            EXRefEntryType eType = XRefEntryTypeFromChar( cType );
 
             if ( read != 5 || !CheckEOL( empty1, empty2 ) )
             {
@@ -913,22 +899,37 @@ void PdfParser::ReadXRefSubsection( int64_t & nFirstObject, int64_t & nNumObject
                 PODOFO_RAISE_ERROR( EPdfError::InvalidXRef );
             }
 
-            if (eType == EXRefEntryType::InUse)
+            switch (eType)
             {
-                // Support also files with whitespace offset before magic start
-                llOffset += m_magicOffset;
+                case EXRefEntryType::Free:
+                {
+                    // The variant is the number of the next free object
+                    entry.ObjectNumber = variant;
+                    break;
+                }
+                case EXRefEntryType::InUse:
+                {
+                    // Support also files with whitespace offset before magic start
+                    variant += (uint64_t)m_magicOffset;
+                    if (variant > PTRDIFF_MAX)
+                    {
+                        // max size is PTRDIFF_MAX, so throw error if llOffset too big
+                        PODOFO_RAISE_ERROR(EPdfError::ValueOutOfRange);
+                    }
+
+                    entry.Offset = variant;
+                    break;
+                }
+                default:
+                {
+                    // This flow should have beeb alredy been cathed earlier
+                    PODOFO_ASSERT(false);
+                }
             }
 
-            if ( llOffset > PTRDIFF_MAX )
-            {
-                // max size is PTRDIFF_MAX, so throw error if llOffset too big
-                PODOFO_RAISE_ERROR( EPdfError::ValueOutOfRange ); 
-            }
-            
-            entry.lOffset = static_cast<size_t>( llOffset );
-            entry.lGeneration = llGeneration;
-            entry.eType = eType;
-            entry.bParsed = true;
+            entry.Generation = generation;
+            entry.Type = eType;
+            entry.Parsed = true;
         }
 
         count++;
@@ -948,11 +949,11 @@ void PdfParser::ReadXRefStreamContents(size_t lOffset, bool bReadOnlyTrailer )
 
     m_device.Device()->Seek( lOffset );
 
-    PdfXRefStreamParserObject xrefObject( m_vecObjects, m_device, m_buffer, &m_offsets );
+    PdfXRefStreamParserObject xrefObject(m_vecObjects->GetDocument(), m_device, m_buffer, m_entries );
     xrefObject.Parse();
 
     if( !m_pTrailer )
-        m_pTrailer = new PdfParserObject( m_vecObjects, m_device, m_buffer );
+        m_pTrailer = new PdfParserObject(m_vecObjects->GetDocument(), m_device, m_buffer );
 
     MergeTrailer( &xrefObject );
 
@@ -965,14 +966,17 @@ void PdfParser::ReadXRefStreamContents(size_t lOffset, bool bReadOnlyTrailer )
     size_t previousOffset;
     if(xrefObject.TryGetPreviousOffset(previousOffset) && previousOffset != lOffset)
     {
-        try {
+        try
+        {
             m_nIncrementalUpdates++;
 
             // PDFs that have been through multiple PDF tools may have a mix of xref tables (ISO 32000-1 7.5.4) 
             // and XRefStm streams (ISO 32000-1 7.5.8.1) and in the Prev chain, 
             // so call ReadXRefContents (which deals with both) instead of ReadXRefStreamContents 
             ReadXRefContents(previousOffset, bReadOnlyTrailer );
-        } catch(PdfError &e) {
+        }
+        catch(PdfError &e)
+        {
             /* Be forgiving, the error happens when an entry in XRef stream points
                to a wrong place (offset) in the PDF file. */
             if( e != EPdfError::NoNumber )
@@ -1015,8 +1019,8 @@ bool PdfParser::QuickEncryptedCheck( const char* pszFilename )
     }
 
     ReadDocumentStructure();
-    try {
-
+    try
+    {
         m_vecObjects->Reserve( m_nNumObjects );
 
         // Check for encryption and make sure that the encryption object
@@ -1026,7 +1030,9 @@ bool PdfParser::QuickEncryptedCheck( const char* pszFilename )
         {
             bEncryptStatus = true;
         }
-    } catch( PdfError & e ) {
+    }
+    catch( PdfError & e )
+    {
         m_bLoadOnDemand = bOldLoadOnDemand; // Restore load on demand behaviour
         e.AddToCallstack( __FILE__, __LINE__, "Unable to load objects from file." );
         throw e;
@@ -1056,7 +1062,7 @@ void PdfParser::ReadObjects()
         if( pEncrypt->IsReference() ) 
         {
             i = pEncrypt->GetReference().ObjectNumber();
-            if( i <= 0 || static_cast<size_t>( i ) >= m_offsets.size () )
+            if( i <= 0 || static_cast<size_t>( i ) >= m_entries.size () )
             {
                 std::ostringstream oss;
                 oss << "Encryption dictionary references a nonexistent object " << pEncrypt->GetReference().ObjectNumber() << " " 
@@ -1064,7 +1070,7 @@ void PdfParser::ReadObjects()
                 PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidEncryptionDict, oss.str().c_str() );
             }
 
-            pObject = new PdfParserObject( m_vecObjects, m_device, m_buffer, m_offsets[i].lOffset );
+            pObject = new PdfParserObject(m_vecObjects->GetDocument(), m_device, m_buffer, (ssize_t)m_entries[i].Offset);
             if( !pObject )
                 PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
 
@@ -1074,7 +1080,7 @@ void PdfParser::ReadObjects()
                 // Never add the encryption dictionary to m_vecObjects
                 // we create a new one, if we need it for writing
                 // m_vecObjects->push_back( pObject );
-                m_offsets[i].bParsed = false;
+                m_entries[i].Parsed = false;
                 m_pEncrypt = PdfEncrypt::CreatePdfEncrypt( pObject );
                 delete pObject;
             } catch( PdfError & e ) {
@@ -1125,7 +1131,7 @@ void PdfParser::ReadObjectsInternal()
     // Read objects
     for( i=0; i < m_nNumObjects; i++ )
     {
-        PdfXRefEntry &entry = m_offsets[i];
+        PdfXRefEntry &entry = m_entries[i];
 #ifdef PODOFO_VERBOSE_DEBUG
 		std::cerr << "ReadObjectsInteral\t" << i << " "
 			<< (entry.bParsed ? "parsed" : "unparsed") << " "
@@ -1133,15 +1139,17 @@ void PdfParser::ReadObjectsInternal()
 			<< entry.lOffset << " "
 			<< entry.lGeneration << std::endl;
 #endif
-        if ( entry.bParsed )
+        if ( entry.Parsed )
         {
-            if ( entry.eType == EXRefEntryType::InUse )
+            switch (entry.Type)
             {
-                if ( entry.lOffset > 0 )
+            case EXRefEntryType::InUse:
+            {
+                if ( entry.Offset > 0 )
                 {
-                    pObject = new PdfParserObject( m_vecObjects, m_device, m_buffer, entry.lOffset );
+                    pObject = new PdfParserObject(m_vecObjects->GetDocument(), m_device, m_buffer, (ssize_t)entry.Offset);
                     auto reference = pObject->GetIndirectReference();
-                    if ( reference.GenerationNumber() != entry.lGeneration )
+                    if ( reference.GenerationNumber() != entry.Generation )
                     {
                         if ( m_bStrictParsing )
                         {
@@ -1166,7 +1174,7 @@ void PdfParser::ReadObjectsInternal()
                             {
                                 // XRef is never encrypted
                                 delete pObject;
-                                pObject = new PdfParserObject( m_vecObjects, m_device, m_buffer, entry.lOffset );
+                                pObject = new PdfParserObject(m_vecObjects->GetDocument(), m_device, m_buffer, (ssize_t)entry.Offset);
                                 reference = pObject->GetIndirectReference();
                                 pObject->SetLoadOnDemand( m_bLoadOnDemand );
                                 pObject->ParseFile( NULL );
@@ -1189,7 +1197,7 @@ void PdfParser::ReadObjectsInternal()
                         std::ostringstream oss;
                         oss << "Error while loading object " << pObject->GetIndirectReference().ObjectNumber() 
                             << " " << pObject->GetIndirectReference().GenerationNumber() 
-                            << " Offset = " << entry.lOffset
+                            << " Offset = " << entry.Offset
                             << " Index = " << i << std::endl;
                         delete pObject;
 
@@ -1205,9 +1213,9 @@ void PdfParser::ReadObjectsInternal()
                         }
                     }
                 }
-                else if ( entry.lGeneration == 0 )
+                else if ( entry.Generation == 0 )
                 {
-                    assert ( entry.lOffset == 0 );
+                    assert ( entry.Offset == 0 );
                     // There are broken PDFs which add objects with 'n' 
                     // and 0 offset and 0 generation number
                     // to the xref table instead of using free objects
@@ -1224,10 +1232,17 @@ void PdfParser::ReadObjectsInternal()
                         m_vecObjects->AddFreeObject( PdfReference( i, 1 ) );
                     }
                 }
+                break;
             }
-            else if ( entry.eType == EXRefEntryType::Free && i != 0 )
+            case EXRefEntryType::Free:
             {
-                m_vecObjects->SafeAddFreeObject( PdfReference( i, entry.lGeneration ) );
+                // NOTE: We don't need entry.ObjectNumber, which is supposed to be
+                // the entry of the next free object
+                if (i != 0)
+                    m_vecObjects->SafeAddFreeObject( PdfReference( i, entry.Generation ) );
+
+                break;
+            }
             }
         }
         else if( i != 0) // Unparsed
@@ -1250,13 +1265,13 @@ void PdfParser::ReadObjectsInternal()
     //
     for( i = 0; i < m_nNumObjects; i++ )
     {
-        PdfXRefEntry &entry = m_offsets[i];
-        if( entry.bParsed && entry.eType == EXRefEntryType::Compressed ) // we have an compressed object stream
+        PdfXRefEntry &entry = m_entries[i];
+        if( entry.Parsed && entry.Type == EXRefEntryType::Compressed ) // we have an compressed object stream
         {
 #ifndef VERBOSE_DEBUG_DISABLED
             if (m_bLoadOnDemand) cerr << "Demand loading on, but can't demand-load from object stream." << endl;
 #endif
-            ReadObjectFromStream(entry.lGeneration, static_cast<int>(entry.lOffset));
+            ReadObjectFromStream((uint32_t)entry.ObjectNumber, static_cast<int>(entry.Index));
         }
     }
 
@@ -1301,16 +1316,17 @@ void PdfParser::SetPassword( const std::string_view& sPassword )
     ReadObjectsInternal();
 }
 
-void PdfParser::ReadObjectFromStream( uint32_t nObjNo, int)
+void PdfParser::ReadObjectFromStream( uint32_t nObjNo, int nIndex)
 {
+    (void)nIndex;
+    // CHECK-ME: The original code doesn't use nIndex. Why this works?
+
     // check if we already have read all objects
     // from this stream
     if( m_setObjectStreams.find( nObjNo ) != m_setObjectStreams.end() )
-    {
         return;
-    }
-    else
-        m_setObjectStreams.insert( nObjNo );
+
+    m_setObjectStreams.insert( nObjNo );
 
     // generation number of object streams is always 0
     PdfParserObject* pStream = dynamic_cast<PdfParserObject*>(m_vecObjects->GetObject( PdfReference( nObjNo, 0 ) ) );
@@ -1318,17 +1334,15 @@ void PdfParser::ReadObjectFromStream( uint32_t nObjNo, int)
     {
         std::ostringstream oss;
         oss << "Loading of object " << nObjNo << " 0 R failed!" << std::endl;
-
         PODOFO_RAISE_ERROR_INFO( EPdfError::NoObject, oss.str().c_str() );
     }
-    
 
 	PdfObjectStreamParser::ObjectIdList list;
     for( int i = 0; i < m_nNumObjects; i++ ) 
     {
-        PdfXRefEntry &entry = m_offsets[i];
-        if( entry.bParsed && entry.eType == EXRefEntryType::Compressed &&
-			m_offsets[i].lGeneration == nObjNo) 
+        PdfXRefEntry &entry = m_entries[i];
+        if( entry.Parsed && entry.Type == EXRefEntryType::Compressed &&
+			m_entries[i].ObjectNumber == nObjNo)
         {
             list.push_back(static_cast<int64_t>(i));
 		}
@@ -1485,7 +1499,7 @@ void PdfParser::ResizeOffsets(size_t nNewSize )
         PODOFO_RAISE_ERROR_INFO( EPdfError::ValueOutOfRange,  "nNewSize is greater than m_nMaxObjects." );
     }
     
-    m_offsets.resize( nNewSize );  
+    m_entries.resize( nNewSize );
 }
 
 void PdfParser::CheckEOFMarker()
