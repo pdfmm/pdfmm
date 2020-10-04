@@ -54,17 +54,15 @@ class PdfXRef
  protected:
     struct TXRefItem
     {
-        TXRefItem( const PdfReference & rRef, const uint64_t & off ) 
-            : reference( rRef ), offset( off )
-            {
-            }
+        TXRefItem( const PdfReference & rRef, uint64_t off ) 
+            : Reference( rRef ), Offset( off ) { }
 
-        PdfReference reference;
-        uint64_t   offset;
+        PdfReference Reference;
+        uint64_t Offset;
 
         bool operator<( const TXRefItem & rhs ) const
         {
-            return this->reference < rhs.reference;
+            return this->Reference < rhs.Reference;
         }
     };
 
@@ -76,57 +74,37 @@ class PdfXRef
     typedef TVecReferences::iterator       TIVecReferences;
     typedef TVecReferences::const_iterator TCIVecReferences;
 
-    class PdfXRefBlock
+    struct PdfXRefBlock
     {
-    public:
         PdfXRefBlock()
-            : m_nFirst( 0 ), m_nCount( 0 )
-        {
-        }
+            : First( 0 ), Count( 0 ) { }
 
-        PdfXRefBlock( const PdfXRefBlock & rhs )
-            : m_nFirst( 0 ), m_nCount( 0 )
-        {
-            this->operator=( rhs );
-        }
+        PdfXRefBlock(const PdfXRefBlock& rhs) = default;
         
         bool InsertItem( const TXRefItem & rItem, bool bUsed );
 
         bool operator<( const PdfXRefBlock & rhs ) const
         {
-            return m_nFirst < rhs.m_nFirst;
+            return First < rhs.First;
         }
 
-        const PdfXRefBlock & operator=( const PdfXRefBlock & rhs )
-        {
-            m_nFirst  = rhs.m_nFirst;
-            m_nCount  = rhs.m_nCount;
-            
-            items     = rhs.items;
-            freeItems = rhs.freeItems;
+        PdfXRefBlock& operator=(const PdfXRefBlock& rhs) = default;
 
-            return *this;
-        }
-
-        uint32_t   m_nFirst;
-        uint32_t   m_nCount;
-        
-        TVecXRefItems items;
-        TVecReferences freeItems;
+        uint32_t First;
+        uint32_t Count;
+        TVecXRefItems Items;
+        TVecReferences FreeItems;
     };
     
     typedef std::vector<PdfXRefBlock>      TVecXRefBlock;
     typedef TVecXRefBlock::iterator        TIVecXRefBlock;
     typedef TVecXRefBlock::const_iterator  TCIVecXRefBlock;
 
- public:
-    /** Create a new XRef table
-     */
+public:
     PdfXRef(PdfWriter& pWriter);
-
-    /** Destruct the XRef table
-     */
     virtual ~PdfXRef();
+
+public:
 
     /** Add an object to the XRef table.
      *  The object should have been written to an output device already.
@@ -230,10 +208,8 @@ private:
      */
     void MergeBlocks();
 
-protected:
-    TVecXRefBlock m_vecBlocks;
-
 private:
+    TVecXRefBlock m_vecBlocks;
     PdfWriter *m_writer;
     uint64_t m_offset;
 };
