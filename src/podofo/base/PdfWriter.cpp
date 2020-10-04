@@ -212,10 +212,9 @@ void PdfWriter::WritePdfObjects(PdfOutputDevice& device, const PdfVecObjects& ve
         }
     }
 
-    TCIPdfReferenceList itFree, itFreeEnd = vecObjects.GetFreeObjects().end();
-    for( itFree = vecObjects.GetFreeObjects().begin(); itFree != itFreeEnd; ++itFree )
+    for(auto& freeObjectRef : vecObjects.GetFreeObjects())
     {
-        xref.AddObject( *itFree, 0, false );
+        xref.AddObject(freeObjectRef, 0, false );
     }
 }
 
