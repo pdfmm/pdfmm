@@ -437,7 +437,7 @@ public:
      *  \param nIndex index of the object which should be parsed
      *
      */
-    void ReadObjectFromStream(uint32_t nObjNo, int nIndex);
+    void ReadCompressedObjectFromStream(uint32_t nObjNo, int nIndex);
 
     /** Checks the magic number at the start of the pdf file
      *  and sets the m_ePdfVersion member to the correct version

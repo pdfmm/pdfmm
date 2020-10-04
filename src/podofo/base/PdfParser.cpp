@@ -1271,7 +1271,7 @@ void PdfParser::ReadObjectsInternal()
 #ifndef VERBOSE_DEBUG_DISABLED
             if (m_bLoadOnDemand) cerr << "Demand loading on, but can't demand-load from object stream." << endl;
 #endif
-            ReadObjectFromStream((uint32_t)entry.ObjectNumber, static_cast<int>(entry.Index));
+            ReadCompressedObjectFromStream((uint32_t)entry.ObjectNumber, static_cast<int>(entry.Index));
         }
     }
 
@@ -1316,13 +1316,13 @@ void PdfParser::SetPassword( const std::string_view& sPassword )
     ReadObjectsInternal();
 }
 
-void PdfParser::ReadObjectFromStream( uint32_t nObjNo, int nIndex)
+void PdfParser::ReadCompressedObjectFromStream( uint32_t nObjNo, int nIndex)
 {
+    // NOTE: index of the compressed object is ignored since
+    // we eagerly read all the objects from the stream
     (void)nIndex;
-    // CHECK-ME: The original code doesn't use nIndex. Why this works?
 
-    // check if we already have read all objects
-    // from this stream
+    // If we already have read all objects from this stream just return
     if( m_setObjectStreams.find( nObjNo ) != m_setObjectStreams.end() )
         return;
 
