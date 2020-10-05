@@ -40,6 +40,7 @@
 #error PdfDefinesPrivate.h is only available for use in the core PoDoFo src/ build .cpp files
 #endif
 
+#include "PdfCompilerCompatPrivate.h"
 #include "PdfDefines.h"
 
 /** \def VERBOSE_DEBUG_DISABLED
@@ -68,8 +69,6 @@
 #else
 #define PODOFO_ASSERT( x ) do { if (!(x)) PODOFO_RAISE_ERROR_INFO(EPdfError::InternalLogic, #x); } while (false)
 #endif // DEBUG
-
-#include "PdfCompilerCompatPrivate.h"
 
 namespace io
 {

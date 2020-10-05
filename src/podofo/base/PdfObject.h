@@ -486,7 +486,7 @@ public:
      *  \returns true if the value is dirty and has been
      *                modified since construction
      */
-    inline bool PdfObject::IsDirty() const { return m_IsDirty; }
+    inline bool IsDirty() const { return m_IsDirty; }
 
     /** Get the document of this object.
      *  \return the owner (if it wasn't changed anywhere, creator) of this object
