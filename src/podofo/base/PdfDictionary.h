@@ -237,7 +237,7 @@ public:
      void SetOwner( PdfObject* pOwner ) override;
 
  private:
-     PdfObject& PdfDictionary::addKey(const PdfName& identifier, const PdfObject& rObject);
+     PdfObject& addKey(const PdfName& identifier, const PdfObject& rObject);
      PdfObject * getKey(const PdfName & key) const;
      PdfObject * findKey(const PdfName & key) const;
      PdfObject * findKeyParent(const PdfName & key) const;
