@@ -44,57 +44,6 @@
 
 using namespace PoDoFo;
 
-bool PdfXRef::PdfXRefBlock::InsertItem( const TXRefItem & rItem, bool bUsed )
-{
-    if( rItem.Reference.ObjectNumber() == First + Count ) 
-    {
-        // Insert at back
-        Count++;
-
-        if( bUsed ) 
-            Items.push_back( rItem );
-        else
-            FreeItems.push_back( rItem.Reference );
-
-        return true; // no sorting required
-    }
-    else if( rItem.Reference.ObjectNumber() == First - 1 )
-    {
-        // Insert at front 
-        First--;
-        Count++;
-        
-        // This is known to be slow, but should not occur actually
-        if( bUsed ) 
-            Items.insert( Items.begin(), rItem );
-        else
-            FreeItems.insert( FreeItems.begin(), rItem.Reference );
-
-        return true; // no sorting required
-    }
-    else if( rItem.Reference.ObjectNumber() > First - 1 &&
-             rItem.Reference.ObjectNumber() < First + Count ) 
-    {
-        // Insert at back
-        Count++;
-
-        if( bUsed ) 
-        {
-            Items.push_back( rItem );
-            std::sort( Items.begin(), Items.end() );
-        }
-        else
-        {
-            FreeItems.push_back( rItem.Reference );
-            std::sort( FreeItems.begin(), FreeItems.end() );
-        }
-
-        return true;
-    }
-
-    return false;
-}
-
 PdfXRef::PdfXRef(PdfWriter& writer)
     : m_offset( 0 ), m_writer(&writer)
 {
@@ -376,5 +325,56 @@ void PdfXRef::SetFirstEmptyBlock()
 bool PdfXRef::ShouldSkipWrite(const PdfReference& rRef)
 {
     // Nothing to skip writing for PdfXRef table
+    return false;
+}
+
+bool PdfXRef::PdfXRefBlock::InsertItem( const TXRefItem & rItem, bool bUsed )
+{
+    if( rItem.Reference.ObjectNumber() == First + Count ) 
+    {
+        // Insert at back
+        Count++;
+
+        if( bUsed ) 
+            Items.push_back( rItem );
+        else
+            FreeItems.push_back( rItem.Reference );
+
+        return true; // no sorting required
+    }
+    else if( rItem.Reference.ObjectNumber() == First - 1 )
+    {
+        // Insert at front 
+        First--;
+        Count++;
+        
+        // This is known to be slow, but should not occur actually
+        if( bUsed ) 
+            Items.insert( Items.begin(), rItem );
+        else
+            FreeItems.insert( FreeItems.begin(), rItem.Reference );
+
+        return true; // no sorting required
+    }
+    else if( rItem.Reference.ObjectNumber() > First - 1 &&
+             rItem.Reference.ObjectNumber() < First + Count ) 
+    {
+        // Insert at back
+        Count++;
+
+        if( bUsed ) 
+        {
+            Items.push_back( rItem );
+            std::sort( Items.begin(), Items.end() );
+        }
+        else
+        {
+            FreeItems.push_back( rItem.Reference );
+            std::sort( FreeItems.begin(), FreeItems.end() );
+        }
+
+        return true;
+    }
+
     return false;
 }
