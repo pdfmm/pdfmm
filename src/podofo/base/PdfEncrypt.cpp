@@ -1,6 +1,8 @@
 /*
  **********************************************************************
  ** Copyright (C) 1990, RSA Data Security, Inc. All rights reserved. **
+ **   Copyright (C) 2020 by Francesco Pretto                         **
+ **   ceztko@gmail.com                                               **
  **                                                                  **
  ** License to copy and use this software is granted provided that   **
  ** it is identified as the "RSA Data Security, Inc. MD5 Message     **

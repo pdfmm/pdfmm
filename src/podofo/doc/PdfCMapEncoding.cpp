@@ -1,6 +1,8 @@
 /***************************************************************************
  *   Copyright (C) 2011 by Dominik Seichter                                *
  *   domseichter@web.de                                                    *
+ *   Copyright (C) 2020 by Francesco Pretto                                *
+ *   ceztko@gmail.com                                                      *
  *                                                                         *
  *   Pdf CMAP encoding by kalyan                                           *
  *                                                                         *
