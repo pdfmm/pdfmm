@@ -42,39 +42,59 @@
 
 #define EMPTY_OBJECT_OFFSET 65535
 
+using namespace std;
 using namespace PoDoFo;
 
 PdfXRef::PdfXRef(PdfWriter& writer)
-    : m_offset( 0 ), m_writer(&writer)
+    : m_offset( 0 ), m_writer(&writer), m_maxObjNum(0)
 {
 
 }
 
 PdfXRef::~PdfXRef() { }
 
-void PdfXRef::AddObject( const PdfReference & rRef, uint64_t offset, bool bUsed )
+void PdfXRef::AddInUseObject(const PdfReference& ref, optional<uint64_t> offset)
 {
-    PdfXRef::TXRefItem item( rRef, offset );
-    bool bInsertDone = false;
+    AddObject(ref, offset, true);
+}
+
+void PdfXRef::AddFreeObject(const PdfReference& ref)
+{
+    AddObject(ref, std::nullopt, false);
+}
+
+void PdfXRef::AddObject(const PdfReference& ref, optional<uint64_t> offset, bool inUse)
+{
+    if (ref.ObjectNumber() > m_maxObjNum)
+        m_maxObjNum = ref.ObjectNumber();
+
+    if (inUse && offset == std::nullopt)
+    {
+        // Objects with no offset provided will not be written
+        // in the entry list
+        return;
+    }
+
+    bool insertDone = false;
 
     for (auto &block : m_vecBlocks)
     {
-        if(block.InsertItem( item, bUsed ) )
+        if(block.InsertItem(ref, offset, inUse) )
         {
-            bInsertDone = true;
+            insertDone = true;
             break;
         }
     }
 
-    if( !bInsertDone ) 
+    if( !insertDone ) 
     {
         PdfXRefBlock block;
-        block.First = rRef.ObjectNumber();
+        block.First = ref.ObjectNumber();
         block.Count = 1;
-        if( bUsed )
-            block.Items.push_back( item );
+        if( inUse )
+            block.Items.push_back(XRefItem(ref, offset.value()));
         else
-            block.FreeItems.push_back( rRef );
+            block.FreeItems.push_back( ref );
 
         m_vecBlocks.push_back( block );
         std::sort( m_vecBlocks.begin(), m_vecBlocks.end() );
@@ -209,21 +229,8 @@ const PdfReference* PdfXRef::GetNextFreeObject( PdfXRef::TCIVecXRefBlock itBlock
 
 uint32_t PdfXRef::GetSize() const
 {
-    if (m_vecBlocks.size() == 0)
-        return 0;
-
-    uint32_t nCount = 0;
-    for (auto& block : m_vecBlocks)
-        nCount += block.Count;
-
-    const PdfXRefBlock& lastBlock = m_vecBlocks.back();
-    uint32_t highObj = lastBlock.Items.size() ? lastBlock.Items.back().Reference.ObjectNumber() : 0;
-    uint32_t highFree = lastBlock.FreeItems.size() ? lastBlock.FreeItems.back().ObjectNumber() : 0;
-
-    uint32_t max = std::max( highObj, highFree );
-
     // From the PdfReference: /Size's value is 1 greater than the highes object number used in the file.
-    return max + 1;
+    return m_maxObjNum + 1;
 }
 
 void PdfXRef::MergeBlocks() 
@@ -328,49 +335,50 @@ bool PdfXRef::ShouldSkipWrite(const PdfReference& rRef)
     return false;
 }
 
-bool PdfXRef::PdfXRefBlock::InsertItem( const TXRefItem & rItem, bool bUsed )
+bool PdfXRef::PdfXRefBlock::InsertItem(const PdfReference& ref, std::optional<uint64_t> offset, bool inUse)
 {
-    if( rItem.Reference.ObjectNumber() == First + Count ) 
+    PODOFO_ASSERT(!inUse || offset.has_value());
+    if (ref.ObjectNumber() == First + Count)
     {
         // Insert at back
         Count++;
 
-        if( bUsed ) 
-            Items.push_back( rItem );
+        if (inUse)
+            Items.push_back(XRefItem(ref, offset.value()));
         else
-            FreeItems.push_back( rItem.Reference );
+            FreeItems.push_back(ref);
 
         return true; // no sorting required
     }
-    else if( rItem.Reference.ObjectNumber() == First - 1 )
+    else if (ref.ObjectNumber() == First - 1)
     {
         // Insert at front 
         First--;
         Count++;
-        
+
         // This is known to be slow, but should not occur actually
-        if( bUsed ) 
-            Items.insert( Items.begin(), rItem );
+        if (inUse)
+            Items.insert(Items.begin(), XRefItem(ref, offset.value()));
         else
-            FreeItems.insert( FreeItems.begin(), rItem.Reference );
+            FreeItems.insert(FreeItems.begin(), ref);
 
         return true; // no sorting required
     }
-    else if( rItem.Reference.ObjectNumber() > First - 1 &&
-             rItem.Reference.ObjectNumber() < First + Count ) 
+    else if (ref.ObjectNumber() > First - 1 &&
+        ref.ObjectNumber() < First + Count)
     {
         // Insert at back
         Count++;
 
-        if( bUsed ) 
+        if (inUse)
         {
-            Items.push_back( rItem );
-            std::sort( Items.begin(), Items.end() );
+            Items.push_back(XRefItem(ref, offset.value()));
+            std::sort(Items.begin(), Items.end());
         }
         else
         {
-            FreeItems.push_back( rItem.Reference );
-            std::sort( FreeItems.begin(), FreeItems.end() );
+            FreeItems.push_back(ref);
+            std::sort(FreeItems.begin(), FreeItems.end());
         }
 
         return true;

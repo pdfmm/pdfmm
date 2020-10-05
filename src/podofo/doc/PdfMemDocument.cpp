@@ -366,9 +366,8 @@ void PdfMemDocument::WriteUpdate(PdfOutputDevice& device, PdfSaveOptions options
     writer.SetPdfVersion( this->GetPdfVersion() );
     writer.SetWriteMode( m_eWriteMode );
     writer.SetPrevXRefOffset(m_lPrevXRefOffset);
-
-    bool bRewriteXRefTable = m_bLinearized || m_bSoureHasXRefStream;
-    writer.SetIncrementalUpdate(bRewriteXRefTable);
+    writer.SetUseXRefStream(m_bSoureHasXRefStream);
+    writer.SetIncrementalUpdate(m_bLinearized);
 
     if( m_pEncrypt ) 
         writer.SetEncrypted( *m_pEncrypt );

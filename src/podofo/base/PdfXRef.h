@@ -36,6 +36,8 @@
 
 #include "PdfDefines.h"
 
+#include <optional>
+
 #include "PdfReference.h"
 #include "PdfXRefEntry.h"
 
@@ -52,21 +54,21 @@ class PdfWriter;
 class PdfXRef
 {
  protected:
-    struct TXRefItem
+    struct XRefItem
     {
-        TXRefItem( const PdfReference & rRef, uint64_t off ) 
+        XRefItem( const PdfReference & rRef, uint64_t off ) 
             : Reference( rRef ), Offset( off ) { }
 
         PdfReference Reference;
         uint64_t Offset;
 
-        bool operator<( const TXRefItem & rhs ) const
+        bool operator<( const XRefItem & rhs ) const
         {
             return this->Reference < rhs.Reference;
         }
     };
 
-    typedef std::vector<TXRefItem>         TVecXRefItems;
+    typedef std::vector<XRefItem>         TVecXRefItems;
     typedef TVecXRefItems::iterator        TIVecXRefItems;
     typedef TVecXRefItems::const_iterator  TCIVecXRefItems;
 
@@ -81,7 +83,7 @@ class PdfXRef
 
         PdfXRefBlock(const PdfXRefBlock& rhs) = default;
         
-        bool InsertItem( const TXRefItem & rItem, bool bUsed );
+        bool InsertItem(const PdfReference& rRef, std::optional<uint64_t> offset, bool bUsed );
 
         bool operator<( const PdfXRefBlock & rhs ) const
         {
@@ -106,16 +108,25 @@ public:
 
 public:
 
-    /** Add an object to the XRef table.
+    /** Add an used object to the XRef table.
      *  The object should have been written to an output device already.
-     *  
+     *
      *  \param rRef reference of this object
+     *  \param offset the offset where on the device the object was written
+     *                if std::nullopt, the object will be accounted for
+     *                 trailer's /Size but not written in the entries list
+     */
+    void AddInUseObject(const PdfReference& rRef, std::optional<uint64_t> offset);
+
+    /** Add a free object to the XRef table.
+     *  
+     *  \param ref reference of this object
      *  \param offset the offset where on the device the object was written
      *  \param bUsed specifies wether this is an used or free object.
      *               Set this value to true for all normal objects and to false
      *               for free object references.
      */
-    void AddObject( const PdfReference & rRef, uint64_t offset, bool bUsed );
+    void AddFreeObject(const PdfReference& ref);
 
     /** Write the XRef table to an output device.
      * 
@@ -189,13 +200,15 @@ protected:
     virtual void EndWriteImpl(PdfOutputDevice& device);
 
 private:
+    void AddObject(const PdfReference& rRef, std::optional<uint64_t> offset, bool inUse);
+
     /** Called at the end of writing the XRef table.
      *  Sub classes can overload this method to finish a XRef table.
      *
      *  @param pDevice the output device to which the XRef table 
      *                 should be written.
      */
-    virtual void EndWrite(PdfOutputDevice& device);
+    void EndWrite(PdfOutputDevice& device);
 
     const PdfReference* GetFirstFreeObject( PdfXRef::TCIVecXRefBlock itBlock, PdfXRef::TCIVecReferences itFree ) const;
     const PdfReference* GetNextFreeObject( PdfXRef::TCIVecXRefBlock itBlock, PdfXRef::TCIVecReferences itFree ) const;
@@ -209,6 +222,7 @@ private:
     void MergeBlocks();
 
 private:
+    uint32_t m_maxObjNum;
     TVecXRefBlock m_vecBlocks;
     PdfWriter *m_writer;
     uint64_t m_offset;

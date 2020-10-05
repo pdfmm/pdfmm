@@ -190,19 +190,22 @@ void PdfWriter::WritePdfObjects(PdfOutputDevice& device, const PdfVecObjects& ve
                         // the offset points just after the "0 0 obj" string
                         if (parserObject->GetOffset() - objRefLength > 0)
                         {
-                            xref.AddObject(pObject->GetIndirectReference(), parserObject->GetOffset() - objRefLength, true);
+                            xref.AddInUseObject(pObject->GetIndirectReference(), parserObject->GetOffset() - objRefLength);
                             continue;
                         }
                     }
                 }
                 else
                 {
+                    // The object will not be output in the XRef entries but it will be
+                    // counted in trailer's /Size
+                    xref.AddInUseObject(pObject->GetIndirectReference(), std::nullopt);
                     continue;
                 }
             }
         }
 
-        xref.AddObject( pObject->GetIndirectReference(), device.Tell(), true );
+        xref.AddInUseObject( pObject->GetIndirectReference(), device.Tell());
 
         if (!xref.ShouldSkipWrite(pObject->GetIndirectReference()))
         {
@@ -214,7 +217,7 @@ void PdfWriter::WritePdfObjects(PdfOutputDevice& device, const PdfVecObjects& ve
 
     for(auto& freeObjectRef : vecObjects.GetFreeObjects())
     {
-        xref.AddObject(freeObjectRef, 0, false );
+        xref.AddFreeObject(freeObjectRef);
     }
 }
 

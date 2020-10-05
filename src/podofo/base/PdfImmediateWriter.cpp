@@ -88,7 +88,7 @@ void PdfImmediateWriter::WriteObject( const PdfObject* pObject )
 
     this->FinishLastObject();
 
-    m_pXRef->AddObject( pObject->GetIndirectReference(), m_pDevice->Tell(), true );
+    m_pXRef->AddInUseObject( pObject->GetIndirectReference(), m_pDevice->Tell());
     pObject->Write(*m_pDevice, this->GetWriteMode(), m_pEncrypt);
     // Make sure, no one will add keys now to the object
     const_cast<PdfObject*>(pObject)->SetImmutable(true);
