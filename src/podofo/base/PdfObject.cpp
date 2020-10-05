@@ -353,6 +353,10 @@ void PdfObject::delayedLoadStream() const
     }
 }
 
+// TODO1: Add const PdfObject & operator=(const PdfVariant& rhs)
+// TODO2: SetDirty only if the value to be added is different
+//        For value (numbers) types this is trivial.
+//        For dictionaries/lists maybe we can rely on auomatic dirty set
 const PdfObject & PdfObject::operator=(const PdfObject & rhs)
 {
     if (&rhs == this)
