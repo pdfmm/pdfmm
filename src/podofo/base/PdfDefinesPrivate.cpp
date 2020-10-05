@@ -38,7 +38,8 @@
 #include <utfcpp/utf8.h>
 
 #ifndef WIN32
-#include <cstrings>
+// NOTE: There's no <cstrings>, <strings.h> is a posix header
+#include <strings.h>
 #endif
 
 using namespace std;
