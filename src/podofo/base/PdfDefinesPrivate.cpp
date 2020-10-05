@@ -139,7 +139,7 @@ ifstream io::open_ifstream(const string_view& filename, ios_base::openmode mode)
     auto filename16 = utf8::utf8to16((string)filename);
     return std::ifstream((wchar_t*)filename16.c_str(), mode);
 #else
-    return std::ifstream((string)filename, openmode);
+    return std::ifstream((string)filename, mode);
 #endif
 }
 
@@ -149,7 +149,7 @@ ofstream io::open_ofstream(const string_view& filename, ios_base::openmode mode)
     auto filename16 = utf8::utf8to16((string)filename);
     return std::ofstream((wchar_t*)filename16.c_str(), mode);
 #else
-    return std::ofstream((string)filename, openmode);
+    return std::ofstream((string)filename, mode);
 #endif
 }
 
@@ -159,6 +159,6 @@ fstream io::open_fstream(const std::string_view& filename, std::ios_base::openmo
     auto filename16 = utf8::utf8to16((string)filename);
     return std::fstream((wchar_t*)filename16.c_str(), mode);
 #else
-    return std::fstream((string)filename, openmode);
+    return std::fstream((string)filename, mode);
 #endif
 }
