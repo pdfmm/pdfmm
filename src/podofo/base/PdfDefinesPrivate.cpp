@@ -45,6 +45,14 @@
 using namespace std;
 using namespace PoDoFo;
 
+int compat::vsnprintf(char* buffer, size_t count, const char* format, va_list argptr)
+{
+    auto old = std::locale::global(std::locale::classic());
+    int ret = std::vsnprintf(buffer, count, format, argptr);
+    std::locale::global(old);
+    return ret;
+}
+
 int compat::strcasecmp(const char* s1, const char* s2)
 {
 #if defined(WIN32)

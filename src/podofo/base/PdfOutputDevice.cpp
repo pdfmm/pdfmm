@@ -138,7 +138,7 @@ void PdfOutputDevice::Print( const char* pszFormat, ... )
 
 void PdfOutputDevice::Print(const char* pszFormat, va_list args)
 {
-    int rc = vsnprintf(nullptr, 0, pszFormat, args);
+    int rc = compat::vsnprintf(nullptr, 0, pszFormat, args);
     if (rc < 0)
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
 
@@ -156,7 +156,7 @@ void PdfOutputDevice::PrintV( const char* pszFormat, size_t lBytes, va_list args
     {
         if( m_ulPosition + lBytes <= m_lBufferLen )
         {
-            vsnprintf( m_pBuffer + m_ulPosition, m_lBufferLen - m_ulPosition, pszFormat, args );
+            compat::vsnprintf( m_pBuffer + m_ulPosition, m_lBufferLen - m_ulPosition, pszFormat, args );
         }
         else
         {
@@ -166,7 +166,7 @@ void PdfOutputDevice::PrintV( const char* pszFormat, size_t lBytes, va_list args
     else if( m_pStream || m_pRefCountedBuffer )
     {
         m_printBuffer.resize( lBytes );
-        vsnprintf(m_printBuffer.data(), lBytes + 1, pszFormat, args );
+        compat::vsnprintf(m_printBuffer.data(), lBytes + 1, pszFormat, args );
 
         if( m_pStream ) 
         {
