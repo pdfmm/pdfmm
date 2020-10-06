@@ -47,6 +47,7 @@
 #include <openssl/md5.h>
 #include <openssl/evp.h>
 
+using namespace std;
 using namespace PoDoFo;
 
 #ifdef PODOFO_HAVE_LIBIDN
@@ -75,8 +76,9 @@ namespace PoDoFo
 {
 
 // A class that holds the AES Crypto object
-class AESCryptoEngine {
-    public:
+class AESCryptoEngine
+{
+public:
     
         AESCryptoEngine()
         {
@@ -117,7 +119,8 @@ class AESCryptoEngine {
 #ifndef PODOFO_HAVE_OPENSSL_NO_RC4
 // A class that holds the RC4 Crypto object
 // Either CCCrpytor or EVP_CIPHER_CTX
-class RC4CryptoEngine {
+class RC4CryptoEngine
+{
 public:
     
     RC4CryptoEngine()
@@ -160,7 +163,8 @@ private:
  *  This is used in the input and output stream encryption implementation.
  *  Only the RC4 encryption algorithm is supported
  */
-class PdfRC4Stream {
+class PdfRC4Stream
+{
 public:
     PdfRC4Stream( unsigned char rc4key[256], unsigned char rc4last[256], unsigned char* key, const size_t keylen )
     : m_a( 0 ), m_b( 0 )
@@ -315,7 +319,8 @@ private:
 /** A class that can encrypt/decrpyt streamed data block wise
  *  This is used in the input and output stream encryption implementation.
  */
-class PdfAESStream : public PdfEncryptAESBase {
+class PdfAESStream : public PdfEncryptAESBase
+{
 public:
     PdfAESStream( unsigned char* key, const size_t keylen )
 		: keyLen( keylen ), bFirstRead( true ), bOnlyFinalLeft( false )
@@ -1124,14 +1129,14 @@ void PdfEncryptRC4::Decrypt(const unsigned char* inStr, size_t inLen,
     Encrypt(inStr, inLen, outStr, outLen);
 }
 
-PdfInputStream* PdfEncryptRC4::CreateEncryptionInputStream( PdfInputStream* pInputStream )
+unique_ptr<PdfInputStream> PdfEncryptRC4::CreateEncryptionInputStream( PdfInputStream* pInputStream )
 {
     unsigned char objkey[MD5_DIGEST_LENGTH];
     int keylen;
     
     this->CreateObjKey( objkey, &keylen );
     
-    return new PdfRC4InputStream( pInputStream, m_rc4key, m_rc4last, objkey, keylen );
+    return unique_ptr<PdfInputStream>(new PdfRC4InputStream(pInputStream, m_rc4key, m_rc4last, objkey, keylen));
 }
 
 PdfEncryptRC4::PdfEncryptRC4(PdfString oValue, PdfString uValue, EPdfPermissions pValue, int rValue,
@@ -1194,14 +1199,14 @@ PdfEncryptRC4::PdfEncryptRC4( const std::string & userPassword, const std::strin
     m_pValue = PERMS_DEFAULT | protection;
 }
 
-PdfOutputStream* PdfEncryptRC4::CreateEncryptionOutputStream( PdfOutputStream* pOutputStream )
+unique_ptr<PdfOutputStream> PdfEncryptRC4::CreateEncryptionOutputStream( PdfOutputStream* pOutputStream )
 {
     unsigned char objkey[MD5_DIGEST_LENGTH];
     int keylen;
     
     this->CreateObjKey( objkey, &keylen );
     
-    return new PdfRC4OutputStream( pOutputStream, m_rc4key, m_rc4last, objkey, keylen );
+    return unique_ptr<PdfOutputStream>(new PdfRC4OutputStream(pOutputStream, m_rc4key, m_rc4last, objkey, keylen));
 }
 #endif // PODOFO_HAVE_OPENSSL_NO_RC4
     
@@ -1413,17 +1418,17 @@ size_t PdfEncryptAESV2::CalculateStreamLength(size_t length) const
     return realLength;
 }
     
-PdfInputStream* PdfEncryptAESV2::CreateEncryptionInputStream( PdfInputStream* pInputStream )
+unique_ptr<PdfInputStream> PdfEncryptAESV2::CreateEncryptionInputStream( PdfInputStream* pInputStream )
 {
     unsigned char objkey[MD5_DIGEST_LENGTH];
     int keylen;
      
     this->CreateObjKey( objkey, &keylen );
 
-	return new PdfAESInputStream( pInputStream, objkey, keylen );
+	return unique_ptr<PdfInputStream>(new PdfAESInputStream(pInputStream, objkey, keylen));
 }
     
-PdfOutputStream* PdfEncryptAESV2::CreateEncryptionOutputStream( PdfOutputStream* )
+unique_ptr<PdfOutputStream> PdfEncryptAESV2::CreateEncryptionOutputStream( PdfOutputStream* )
 {
     /*unsigned char objkey[MD5_DIGEST_LENGTH];
      int keylen;
@@ -1887,12 +1892,12 @@ size_t PdfEncryptAESV3::CalculateStreamLength(size_t length) const
     return realLength;
 }
 
-PdfInputStream* PdfEncryptAESV3::CreateEncryptionInputStream( PdfInputStream* pInputStream )
+unique_ptr<PdfInputStream> PdfEncryptAESV3::CreateEncryptionInputStream( PdfInputStream* pInputStream )
 {
-	return new PdfAESInputStream( pInputStream, m_encryptionKey, 32 );
+	return unique_ptr<PdfInputStream>(new PdfAESInputStream( pInputStream, m_encryptionKey, 32 ));
 }
 
-PdfOutputStream* PdfEncryptAESV3::CreateEncryptionOutputStream( PdfOutputStream* )
+unique_ptr<PdfOutputStream> PdfEncryptAESV3::CreateEncryptionOutputStream( PdfOutputStream* )
 {
     PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "CreateEncryptionOutputStream does not yet support AESV3" );
 }
