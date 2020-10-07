@@ -1,8 +1,6 @@
 /*
  **********************************************************************
  ** Copyright (C) 1990, RSA Data Security, Inc. All rights reserved. **
- **   Copyright (C) 2020 by Francesco Pretto                         **
- **   ceztko@gmail.com                                               **
  **                                                                  **
  ** License to copy and use this software is granted provided that   **
  ** it is identified as the "RSA Data Security, Inc. MD5 Message     **
@@ -23,6 +21,33 @@
  ** documentation and/or software.                                   **
  **********************************************************************
  */
+
+ /***************************************************************************
+  *   Copyright (C) 2006 by Dominik Seichter                                *
+  *   domseichter@web.de                                                    *
+  *   Copyright (C) 2020 by Francesco Pretto                                *
+  *   ceztko@gmail.com                                                      *
+  *                                                                         *
+  *   This program is free software; you can redistribute it and/or modify  *
+  *   it under the terms of the GNU Library General Public License as       *
+  *   published by the Free Software Foundation; either version 2 of the    *
+  *   License, or (at your option) any later version.                       *
+  *                                                                         *
+  *   This program is distributed in the hope that it will be useful,       *
+  *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+  *   GNU General Public License for more details.                          *
+  *                                                                         *
+  *   You should have received a copy of the GNU Library General Public     *
+  *   License along with this program; if not, write to the                 *
+  *   Free Software Foundation, Inc.,                                       *
+  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+  ***************************************************************************/
+
+  // ---------------------------
+  // PdfEncrypt implementation
+  // Based on code from Ulrich Telle: http://wxcode.sourceforge.net/components/wxpdfdoc/
+  // ---------------------------
 
 // includes
 #include "PdfEncrypt.h"
@@ -71,6 +96,7 @@ EPdfEncryptAlgorithm::AESV2;
 #define PERMS_DEFAULT (EPdfPermissions)0xFFFFF0C0
 
 #define AES_IV_LENGTH 16
+#define AES_BLOCK_SIZE 16
 
 namespace PoDoFo
 {
@@ -244,8 +270,8 @@ private:
 class PdfRC4OutputStream : public PdfOutputStream
 {
 public:
-    PdfRC4OutputStream( PdfOutputStream* pOutputStream, unsigned char rc4key[256], unsigned char rc4last[256], unsigned char* key, int keylen )
-    : m_pOutputStream( pOutputStream ), m_stream( rc4key, rc4last, key, keylen )
+    PdfRC4OutputStream( PdfOutputStream& pOutputStream, unsigned char rc4key[256], unsigned char rc4last[256], unsigned char* key, int keylen )
+    : m_pOutputStream(&pOutputStream), m_stream( rc4key, rc4last, key, keylen )
     {
     }
     
@@ -256,10 +282,6 @@ public:
      */
     void WriteImpl( const char* pBuffer, size_t lLen ) override
     {
-        // Do not encode data with no length
-        if( !lLen )
-            return;
-        
         char* pOutputBuffer = static_cast<char*>(podofo_calloc( lLen, sizeof(char) ));
         if( !pOutputBuffer )
         {
@@ -296,107 +318,32 @@ private:
 class PdfRC4InputStream : public PdfInputStream
 {
 public:
-    PdfRC4InputStream( PdfInputStream* pInputStream, unsigned char rc4key[256], unsigned char rc4last[256], 
-                      unsigned char* key, int keylen )
-    : m_pInputStream( pInputStream ), m_stream( rc4key, rc4last, key, keylen )
+    PdfRC4InputStream( PdfInputStream& pInputStream, size_t inputLen, unsigned char rc4key[256], unsigned char rc4last[256], 
+                      unsigned char* key, int keylen ) :
+        m_pInputStream(&pInputStream),
+        m_inputLen(inputLen),
+        m_stream( rc4key, rc4last, key, keylen )
     {
     }
 
 protected:
-    size_t ReadImpl(char* pBuffer, size_t lLen) override
+    size_t ReadImpl(char* pBuffer, size_t lLen, bool &eof) override
     {
-        m_pInputStream->Read( pBuffer, lLen );
-        m_stream.Encrypt( pBuffer, lLen );
-        return lLen;
+        // CHECK-ME: The code has never been tested after refactor
+        // If it's correct, remove this warning
+        bool streameof;
+        size_t read = m_pInputStream->Read( pBuffer, std::min(lLen, m_inputLen), streameof);
+        m_inputLen -= read;
+        eof = streameof || m_inputLen == 0;
+        return m_stream.Encrypt( pBuffer, read);
     }
     
 private:
     PdfInputStream* m_pInputStream;
+    size_t m_inputLen;
     PdfRC4Stream    m_stream;
 };
 #endif // PODOFO_HAVE_OPENSSL_NO_RC4
-
-/** A class that can encrypt/decrpyt streamed data block wise
- *  This is used in the input and output stream encryption implementation.
- */
-class PdfAESStream : public PdfEncryptAESBase
-{
-public:
-    PdfAESStream( unsigned char* key, const size_t keylen )
-		: keyLen( keylen ), bFirstRead( true ), bOnlyFinalLeft( false )
-    {
-		memcpy( this->key, key, keylen );
-    }
-    
-    ~PdfAESStream() {}
-   
-    /** Decrypt a block
-     *  
-     *  \param pBuffer    the input/output buffer. Data is read from this buffer and also stored here
-     *  \param lLen       the size of the buffer 
-     *  \param pTotalLeft total bytes left (needed for AES IV and padding)
-     */
-    size_t Decrypt( unsigned char* pBuffer, size_t lLen, size_t* pTotalLeft )
-    {
-		if (pTotalLeft == nullptr)
-			PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error AES-decryption needs pTotalLeft" );
-		if( lLen % 16 != 0 )
-			PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error AES-decryption data length not a multiple of 16" );
-		EVP_CIPHER_CTX* aes = m_aes->getEngine();
-		int lOutLen = 0, lStepOutLen;
-		int status = 1;
-		int bufferOffset = 0;
-		if( bFirstRead ) {
-			if( keyLen == (size_t)EPdfKeyLength::L128/8 ) {
-				status = EVP_DecryptInit_ex( aes, EVP_aes_128_cbc(), NULL, key, pBuffer );
-#ifdef PODOFO_HAVE_LIBIDN
-			} else if( keyLen == (size_t)EPdfKeyLength::L256/8 ) {
-				status = EVP_DecryptInit_ex( aes, EVP_aes_256_cbc(), NULL, key, pBuffer );
-#endif
-			} else {
-				PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Invalid AES key length" );
-			}
-			if(status != 1)
-				PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error initializing AES encryption engine" );
-
-			bufferOffset = AES_IV_LENGTH;
-			bFirstRead = false;
-		}
-
-		if( !bOnlyFinalLeft ) {
-			// Quote openssl.org: "the decrypted data buffer out passed to EVP_DecryptUpdate() should have sufficient room
-			//  for (inl + cipher_block_size) bytes unless the cipher block size is 1 in which case inl bytes is sufficient."
-			// So we need to create a buffer that is bigger than lLen.
-			tempBuffer.resize( lLen + 16 );
-			status = EVP_DecryptUpdate(aes, &tempBuffer[0], &lOutLen, pBuffer + bufferOffset, (int)(lLen - bufferOffset));
-			memcpy( pBuffer, &tempBuffer[0], lOutLen );
-		}
-		if( status != 1 )
-			PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error AES-decryption data" );
-		if( lLen == *pTotalLeft ) {
-			// Last chunk of the stream
-			if( lLen == (size_t)lOutLen ) {
-				// Buffer is full, so we need an other round for EVP_DecryptFinal_ex.
-				bOnlyFinalLeft = true;
-				*pTotalLeft += 16;
-			} else {
-				status = EVP_DecryptFinal_ex( aes, pBuffer + lOutLen, &lStepOutLen );
-				if( status != 1 )
-					PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error AES-decryption data padding" );
-				lOutLen += lStepOutLen;
-			}
-		}
-		*pTotalLeft -= lLen - lOutLen; // AES makes the resulting buffer shorter (IV and padding)
-        return lOutLen;
-    }
-    
-private:
-	std::vector<unsigned char> tempBuffer;
-	unsigned char key[32];
-	const size_t keyLen;
-	bool bFirstRead;
-	bool bOnlyFinalLeft;
-};
 
 /** A PdfAESInputStream that decrypts all data read
  *  using the AES encryption algorithm
@@ -404,26 +351,121 @@ private:
 class PdfAESInputStream : public PdfInputStream
 {
 public:
-    PdfAESInputStream( PdfInputStream* pInputStream, unsigned char* key, int keylen )
-    : m_pInputStream( pInputStream ), m_stream( key, keylen )
+    PdfAESInputStream(PdfInputStream& pInputStream, size_t inputLen, unsigned char* key, size_t keylen) :
+        m_pInputStream(&pInputStream),
+        m_inputLen(inputLen),
+        m_inputEof(false),
+        m_init(true),
+        m_keyLen(keylen),
+        m_drainLeft(-1)
     {
+        m_ctx = EVP_CIPHER_CTX_new();
+        if (m_ctx == nullptr)
+            PODOFO_RAISE_ERROR(EPdfError::OutOfMemory);
+
+        memcpy(this->m_key, key, keylen);
     }
-    
-protected:
-    size_t ReadImpl( char* pBuffer, size_t lLen) override
+
+    ~PdfAESInputStream()
     {
-        // Do not encode data with no length
-        if( !lLen )
-            return lLen;
-        
-		m_pInputStream->Read( pBuffer, lLen );
-        size_t totalLeft;
-        return m_stream.Decrypt( (unsigned char*)pBuffer, lLen, &totalLeft );
+        EVP_CIPHER_CTX_free(m_ctx);
+    }
+
+protected:
+    size_t ReadImpl( char* buffer, size_t len, bool &eof) override
+    {
+        int outlen = 0;
+        if (m_inputEof)
+            goto DrainBuffer;
+
+        int rc;
+        if (m_init)
+        {
+            // Read the initialization vector separately first
+            char iv[AES_IV_LENGTH];
+            bool streameof;
+            size_t read = m_pInputStream->Read(iv, AES_IV_LENGTH, streameof);
+            if (read != AES_IV_LENGTH)
+                PODOFO_RAISE_ERROR_INFO(EPdfError::UnexpectedEOF, "Can't read enough bytes for AES IV");
+
+            const EVP_CIPHER* cipher;
+            switch (m_keyLen)
+            {
+                case (size_t)EPdfKeyLength::L128 / 8:
+                {
+                    cipher = EVP_aes_128_cbc();
+                    break;
+                }
+#ifdef PODOFO_HAVE_LIBIDN
+                case (size_t)EPdfKeyLength::L256 / 8:
+                {
+                    cipher = EVP_aes_256_cbc();
+                    break;
+                }
+#endif
+                default:
+                    PODOFO_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Invalid AES key length");
+            }
+
+            rc = EVP_DecryptInit_ex(m_ctx, cipher, nullptr, m_key, (unsigned char *)iv);
+            if (rc != 1)
+                PODOFO_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error initializing AES encryption engine");
+
+            m_inputLen -= AES_IV_LENGTH;
+            m_init = false;
+        }
+
+        bool streameof;
+        size_t read = m_pInputStream->Read(buffer, std::min(len, m_inputLen), streameof);
+        m_inputLen -= read;
+
+        // Quote openssl.org: "the decrypted data buffer out passed to EVP_DecryptUpdate() should have sufficient room
+        //  for (inl + cipher_block_size) bytes unless the cipher block size is 1 in which case inl bytes is sufficient."
+        // So we need to create a buffer that is bigger than lLen.
+        m_tempBuffer.resize(len + AES_BLOCK_SIZE);
+        rc = EVP_DecryptUpdate(m_ctx, m_tempBuffer.data(), &outlen, (unsigned char *)buffer, (int)read);
+
+        if (rc != 1)
+            PODOFO_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error AES-decryption data");
+
+        PODOFO_ASSERT((size_t)outlen <= len);
+        memcpy(buffer, m_tempBuffer.data(), (size_t)outlen);
+
+        if (m_inputLen == 0 || streameof)
+        {
+            m_inputEof = true;
+
+            int drainLeft;
+            rc = EVP_DecryptFinal_ex(m_ctx, m_tempBuffer.data(), &drainLeft);
+            if (rc != 1)
+                PODOFO_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error AES-decryption data padding");
+
+            m_drainLeft = (size_t)drainLeft;
+            goto DrainBuffer;
+        }
+
+        return outlen;
+
+    DrainBuffer:
+        size_t drainLen = std::min(len - outlen, m_drainLeft);
+        memcpy(buffer + outlen, m_tempBuffer.data(), drainLen);
+        m_drainLeft -= (int)drainLen;
+        if (m_drainLeft == 0)
+            eof = true;
+
+        return outlen + drainLen;
     }
     
 private:
+    EVP_CIPHER_CTX* m_ctx;
     PdfInputStream* m_pInputStream;
-    PdfAESStream m_stream;
+    size_t m_inputLen;
+    bool m_inputEof;
+    bool m_init;
+    unsigned char m_key[32];
+    size_t m_keyLen;
+    vector<unsigned char> m_tempBuffer;
+    size_t m_drainLeft;
 };
 
 }
@@ -444,31 +486,6 @@ bool PdfEncrypt::IsEncryptionEnabled(EPdfEncryptAlgorithm eAlgorithm)
 {
     return (PdfEncrypt::s_nEnabledEncryptionAlgorithms & eAlgorithm) != EPdfEncryptAlgorithm::None;
 }
-
-/***************************************************************************
- *   Copyright (C) 2006 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
-
-// ---------------------------
-// PdfEncrypt implementation
-// Based on code from Ulrich Telle: http://wxcode.sourceforge.net/components/wxpdfdoc/
-// ---------------------------
 
 static unsigned char padding[] =
 "\x28\xBF\x4E\x5E\x4E\x75\x8A\x41\x64\x00\x4E\x56\xFF\xFA\x01\x08\x2E\x2E\x00\xB6\xD0\x68\x3E\x80\x2F\x0C\xA9\xFE\x64\x53\x69\x7A";
@@ -654,6 +671,11 @@ PdfEncrypt::CheckKey(unsigned char key1[32], unsigned char key2[32])
     }
     
     return ok;
+}
+
+PdfEncryptMD5Base::PdfEncryptMD5Base()
+    : m_rc4key{ }, m_rc4last{ }
+{
 }
 
 PdfEncryptMD5Base::PdfEncryptMD5Base( const PdfEncrypt & rhs ) : PdfEncrypt(rhs)
@@ -1129,14 +1151,15 @@ void PdfEncryptRC4::Decrypt(const unsigned char* inStr, size_t inLen,
     Encrypt(inStr, inLen, outStr, outLen);
 }
 
-unique_ptr<PdfInputStream> PdfEncryptRC4::CreateEncryptionInputStream( PdfInputStream* pInputStream )
+unique_ptr<PdfInputStream> PdfEncryptRC4::CreateEncryptionInputStream( PdfInputStream& pInputStream, size_t inputLen)
 {
+    (void)inputLen;
     unsigned char objkey[MD5_DIGEST_LENGTH];
     int keylen;
     
     this->CreateObjKey( objkey, &keylen );
     
-    return unique_ptr<PdfInputStream>(new PdfRC4InputStream(pInputStream, m_rc4key, m_rc4last, objkey, keylen));
+    return unique_ptr<PdfInputStream>(new PdfRC4InputStream(pInputStream, inputLen, m_rc4key, m_rc4last, objkey, keylen));
 }
 
 PdfEncryptRC4::PdfEncryptRC4(PdfString oValue, PdfString uValue, EPdfPermissions pValue, int rValue,
@@ -1199,7 +1222,7 @@ PdfEncryptRC4::PdfEncryptRC4( const std::string & userPassword, const std::strin
     m_pValue = PERMS_DEFAULT | protection;
 }
 
-unique_ptr<PdfOutputStream> PdfEncryptRC4::CreateEncryptionOutputStream( PdfOutputStream* pOutputStream )
+unique_ptr<PdfOutputStream> PdfEncryptRC4::CreateEncryptionOutputStream(PdfOutputStream& pOutputStream)
 {
     unsigned char objkey[MD5_DIGEST_LENGTH];
     int keylen;
@@ -1359,7 +1382,9 @@ void PdfEncryptAESV2::Decrypt(const unsigned char* inStr, size_t inLen,
     CreateObjKey( objkey, &keylen );
     
     size_t offset = CalculateStreamOffset();
-	if( inLen <= offset ) { // Is empty
+	if( inLen <= offset )
+    {
+        // Is empty
 		outLen = 0;
 		return;
 	}
@@ -1418,17 +1443,17 @@ size_t PdfEncryptAESV2::CalculateStreamLength(size_t length) const
     return realLength;
 }
     
-unique_ptr<PdfInputStream> PdfEncryptAESV2::CreateEncryptionInputStream( PdfInputStream* pInputStream )
+unique_ptr<PdfInputStream> PdfEncryptAESV2::CreateEncryptionInputStream(PdfInputStream& pInputStream, size_t inputLen)
 {
     unsigned char objkey[MD5_DIGEST_LENGTH];
     int keylen;
      
     this->CreateObjKey( objkey, &keylen );
 
-	return unique_ptr<PdfInputStream>(new PdfAESInputStream(pInputStream, objkey, keylen));
+	return unique_ptr<PdfInputStream>(new PdfAESInputStream(pInputStream, inputLen, objkey, keylen));
 }
     
-unique_ptr<PdfOutputStream> PdfEncryptAESV2::CreateEncryptionOutputStream( PdfOutputStream* )
+unique_ptr<PdfOutputStream> PdfEncryptAESV2::CreateEncryptionOutputStream(PdfOutputStream&)
 {
     /*unsigned char objkey[MD5_DIGEST_LENGTH];
      int keylen;
@@ -1440,6 +1465,11 @@ unique_ptr<PdfOutputStream> PdfEncryptAESV2::CreateEncryptionOutputStream( PdfOu
     
 #ifdef PODOFO_HAVE_LIBIDN
     
+PdfEncryptSHABase::PdfEncryptSHABase()
+    : m_ueValue{ }, m_oeValue{ }, m_permsValue{ }
+{
+}
+
 PdfEncryptSHABase::PdfEncryptSHABase( const PdfEncrypt & rhs ) : PdfEncrypt(rhs)
 {
     const PdfEncrypt* ptr = &rhs;
@@ -1892,12 +1922,12 @@ size_t PdfEncryptAESV3::CalculateStreamLength(size_t length) const
     return realLength;
 }
 
-unique_ptr<PdfInputStream> PdfEncryptAESV3::CreateEncryptionInputStream( PdfInputStream* pInputStream )
+unique_ptr<PdfInputStream> PdfEncryptAESV3::CreateEncryptionInputStream( PdfInputStream& pInputStream, size_t inputLen)
 {
-	return unique_ptr<PdfInputStream>(new PdfAESInputStream( pInputStream, m_encryptionKey, 32 ));
+	return unique_ptr<PdfInputStream>(new PdfAESInputStream( pInputStream, inputLen, m_encryptionKey, 32 ));
 }
 
-unique_ptr<PdfOutputStream> PdfEncryptAESV3::CreateEncryptionOutputStream( PdfOutputStream* )
+unique_ptr<PdfOutputStream> PdfEncryptAESV3::CreateEncryptionOutputStream( PdfOutputStream&)
 {
     PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "CreateEncryptionOutputStream does not yet support AESV3" );
 }

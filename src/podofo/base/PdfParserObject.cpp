@@ -308,7 +308,7 @@ void PdfParserObject::ParseStream()
     if( m_pEncrypt )
     {
         m_pEncrypt->SetCurrentReference( GetIndirectReference() );
-        auto pInput = m_pEncrypt->CreateEncryptionInputStream( &reader );
+        auto pInput = m_pEncrypt->CreateEncryptionInputStream(reader, static_cast<size_t>(lLen));
         getOrCreateStream().SetRawData( *pInput, static_cast<ssize_t>(lLen), false );
     }
     else

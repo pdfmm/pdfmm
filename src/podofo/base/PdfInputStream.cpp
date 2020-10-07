@@ -45,15 +45,28 @@
 using namespace std;
 using namespace PoDoFo;
 
-size_t PdfInputStream::Read(char* buffer, size_t len)
+PdfInputStream::PdfInputStream() :
+    m_eof(false)
 {
+}
+
+size_t PdfInputStream::Read(char* buffer, size_t len, bool &eof)
+{
+    if (m_eof)
+    {
+        eof = true;
+        return 0;
+    }
+
     if (len == 0)
         return 0;
 
     if (buffer == nullptr)
         PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
 
-    return ReadImpl(buffer, len);
+    size_t ret = ReadImpl(buffer, len, m_eof);
+    eof = m_eof;
+    return ret;
 }
 
 PdfFileInputStream::PdfFileInputStream(const string_view& filename)
@@ -65,13 +78,15 @@ PdfFileInputStream::PdfFileInputStream(const string_view& filename)
 
 PdfFileInputStream::~PdfFileInputStream() { }
 
-size_t PdfFileInputStream::ReadImpl( char* pBuffer, size_t lLen)
+size_t PdfFileInputStream::ReadImpl( char* pBuffer, size_t lLen, bool& eof)
 {
-    return io::Read(m_stream, pBuffer, lLen);
+    size_t ret = io::Read(m_stream, pBuffer, lLen);
+    eof = m_stream.eof();
+    return ret;
 }
 
 PdfMemoryInputStream::PdfMemoryInputStream( const char* pBuffer, size_t lBufferLen )
-    : m_pBuffer( pBuffer ), m_pCur( pBuffer ), m_lBufferLen( lBufferLen )
+    : m_pBuffer( pBuffer ), m_lBufferLen( lBufferLen )
 {
 }
 
@@ -79,18 +94,13 @@ PdfMemoryInputStream::~PdfMemoryInputStream()
 {
 }
 
-size_t PdfMemoryInputStream::ReadImpl( char* pBuffer, size_t lLen)
+size_t PdfMemoryInputStream::ReadImpl( char* pBuffer, size_t lLen, bool& eof)
 {
-    size_t lRead = m_pCur - m_pBuffer;
-
-    // return zero if EOF is reached
-    if( lRead == m_lBufferLen ) 
-        return 0;
-
-    lLen = ( lRead + lLen <= m_lBufferLen ? lLen : m_lBufferLen - lRead );
-    memcpy( pBuffer, m_pCur, lLen );
-    m_pCur += lLen;
-    
+    lLen = std::min(m_lBufferLen, lLen);
+    memcpy(pBuffer, m_pBuffer, lLen);
+    m_lBufferLen -= lLen;
+    m_pBuffer += lLen;
+    eof = m_lBufferLen == 0;
     return lLen;
 }
 
@@ -99,7 +109,10 @@ PdfDeviceInputStream::PdfDeviceInputStream( PdfInputDevice* pDevice )
 {
 }
 
-size_t PdfDeviceInputStream::ReadImpl( char* pBuffer, size_t lLen)
+size_t PdfDeviceInputStream::ReadImpl( char* pBuffer, size_t lLen, bool& eof)
 {
-    return (size_t)m_pDevice->Read( pBuffer, lLen );
+    size_t ret = m_pDevice->Read( pBuffer, lLen );
+    eof = m_pDevice->Eof();
+    return ret;
+
 }

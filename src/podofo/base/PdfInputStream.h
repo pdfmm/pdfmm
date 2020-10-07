@@ -50,6 +50,7 @@ class PdfInputDevice;
 class PODOFO_API PdfInputStream
 {
 public:
+    PdfInputStream();
     virtual ~PdfInputStream() { };
 
     /** Read data from the input stream
@@ -57,13 +58,20 @@ public:
      *  \param pBuffer    the data will be stored into this buffer
      *  \param lLen       the size of the buffer and number of bytes
      *                    that will be read
+     *  \param eof        true if the stream reached eof
      *
      *  \returns the number of bytes read
      */
-    size_t Read(char* pBuffer, size_t lLen);
+    size_t Read(char* pBuffer, size_t lLen, bool &eof);
+
+public:
+    inline bool Eof() const { return m_eof; }
 
 protected:
-    virtual size_t ReadImpl( char* pBuffer, size_t lLen) = 0;
+    virtual size_t ReadImpl( char* pBuffer, size_t lLen, bool& eof) = 0;
+
+private:
+    bool m_eof;
 };
 
 /** An input stream that reads data from a file
@@ -80,7 +88,7 @@ public:
     ~PdfFileInputStream();
 
 protected:
-    size_t ReadImpl(char* pBuffer, size_t lLen) override;
+    size_t ReadImpl(char* pBuffer, size_t lLen, bool& eof) override;
 
 private:
     std::ifstream m_stream;
@@ -100,11 +108,10 @@ public:
     ~PdfMemoryInputStream();
 
 protected:
-    size_t ReadImpl( char* pBuffer, size_t lLen) override;
+    size_t ReadImpl( char* pBuffer, size_t lLen, bool& eof) override;
 
 private:
     const char* m_pBuffer;
-    const char* m_pCur;
     size_t m_lBufferLen;
 };
 
@@ -121,7 +128,7 @@ public:
     PdfDeviceInputStream( PdfInputDevice* pDevice );
 
 protected:
-    size_t ReadImpl( char* pBuffer, size_t lLen) override;;
+    size_t ReadImpl( char* pBuffer, size_t lLen, bool& eof) override;;
 
 private:
     PdfInputDevice* m_pDevice;

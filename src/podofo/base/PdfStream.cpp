@@ -156,18 +156,19 @@ void PdfStream::Set( PdfInputStream* pStream )
 
 void PdfStream::Set( PdfInputStream* pStream, const TVecFilters & vecFilters )
 {
-    const int BUFFER_SIZE = 4096;
+    constexpr size_t BUFFER_SIZE = 4096;
     size_t lLen = 0;
     char buffer[BUFFER_SIZE];
 
     this->BeginAppend( vecFilters );
 
+    bool eof;
     do
     {
-        lLen = pStream->Read( buffer, BUFFER_SIZE );
+        lLen = pStream->Read( buffer, BUFFER_SIZE, eof);
         this->append(buffer, lLen);
     }
-    while( lLen == BUFFER_SIZE );
+    while (!eof);
 
     this->endAppend();
 }
@@ -178,32 +179,34 @@ void PdfStream::SetRawData(PdfInputStream& stream, ssize_t len)
 
 void PdfStream::SetRawData(PdfInputStream& pStream, ssize_t lLen, bool markObjectDirty)
 {
-    const size_t   BUFFER_SIZE = 4096;
-    char           buffer[BUFFER_SIZE];
-    size_t         lRead;
-    TVecFilters    vecEmpty;
+    constexpr size_t BUFFER_SIZE = 4096;
+    char buffer[BUFFER_SIZE];
+    size_t lRead;
+    TVecFilters vecEmpty;
 
     // TODO: DS, give begin append a size hint so that it knows
     //       how many data has to be allocated
     this->BeginAppend( vecEmpty, true, false, markObjectDirty);
     if( lLen < 0 ) 
     {
+        bool eof;
         do
         {
-            lRead = pStream.Read( buffer, BUFFER_SIZE );
+            lRead = pStream.Read( buffer, BUFFER_SIZE, eof);
             this->append(buffer, lRead);
         }
-        while( lRead > 0 );
+        while (lLen > 0 && !eof);
     }
     else
     {
+        bool eof;
         do
         {
-            lRead = pStream.Read( buffer, std::min( BUFFER_SIZE, (size_t)lLen ));
+            lRead = pStream.Read(buffer, std::min( BUFFER_SIZE, (size_t)lLen), eof);
             lLen -= lRead;
             this->append(buffer, lRead);
         }
-        while( lLen && lRead > 0 );
+        while (lLen > 0 && !eof);
     }
 
     this->endAppend();
