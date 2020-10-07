@@ -94,15 +94,6 @@ ADD_CUSTOM_TARGET(uninstall "${CMAKE_COMMAND}"
 # Check if we are big endian
 TEST_BIG_ENDIAN(TEST_BIG)
 
-CHECK_INCLUDE_FILE_CXX("optional" HAVE_STD_OPTIONAL)
-if (NOT HAVE_STD_OPTIONAL)
-    CHECK_INCLUDE_FILE_CXX("experimental/optional" HAVE_STD_EXPERIMENTAL_OPTIONAL)
-            message("${HAVE_STD_EXPERIMENTAL_OPTIONAL}")
-    if (NOT HAVE_STD_EXPERIMENTAL_OPTIONAL)
-        message(FATAL_ERROR "std::optional is required")
-    endif()
-endif()
-
 IF(WIN32)
     # We must explicitly link to the core win32 libraries
     SET(PLATFORM_SYSTEM_LIBRARIES kernel32 user32 gdi32 winspool comdlg32 advapi32 shell32 ole32 oleaut32 uuid ws2_32)
@@ -161,15 +152,10 @@ ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 FIND_PACKAGE(ZLIB REQUIRED)
 MESSAGE("Found zlib headers in ${ZLIB_INCLUDE_DIR}, library at ${ZLIB_LIBRARIES}")
 
-FIND_PACKAGE(LIBCRYPTO)
+FIND_PACKAGE(OpenSSL REQUIRED)
+INCLUDE_DIRECTORIES(${OPENSSL_INCLUDE_DIR})
 
-IF(LIBCRYPTO_FOUND)
-	SET(PODOFO_HAVE_OPENSSL TRUE)
-	INCLUDE_DIRECTORIES(${LIBCRYPTO_INCLUDE_DIR})
-	MESSAGE("Found OpenSSL's libCrypto headers in ${LIBCRYPTO_INCLUDE_DIR}, library at ${LIBCRYPTO_LIBRARIES}")
-ELSE(LIBCRYPTO_FOUND)
-	MESSAGE("OpenSSL's libCrypto not found. Encryption support will be disabled")
-ENDIF(LIBCRYPTO_FOUND)
+message("OPENSSL_VERSION: ${OPENSSL_LIBRARIES}")
 
 FIND_PACKAGE(LIBIDN)
 
@@ -230,8 +216,6 @@ ENDIF(CppUnit_FOUND)
 
 ENDIF(NOT PODOFO_BUILD_LIB_ONLY)
 
-FIND_PACKAGE(OpenSSL)
-
 FIND_PACKAGE(Freetype REQUIRED)
 MESSAGE("Found freetype library at ${FREETYPE_LIBRARIES}, headers ${FREETYPE_INCLUDE_DIRS}")
 
@@ -285,14 +269,8 @@ LINK_DIRECTORIES(
 # will include these and the correct podofo target, so clients
 # should specify only PODOFO_LIB .
 #
-# The LIBCRYPTO_LDFLAGS is defined only if the libcrypto was found
-# by pkg-config, otherwise it will be empty. It can contain proper
-# path for the libcrypto too, thus it's added here.
-#
 SET(PODOFO_LIB_DEPENDS
   ${LIBIDN_LIBRARIES}
-  ${LIBCRYPTO_LDFLAGS}
-  ${LIBCRYPTO_LIBRARIES}
   ${OPENSSL_LIBRARIES}
   ${LIBJPEG_LIBRARIES}
   ${FREETYPE_LIBRARIES}
