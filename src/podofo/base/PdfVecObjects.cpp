@@ -35,6 +35,7 @@
 
 #include "PdfVecObjects.h"
 
+#include <stdexcept>
 #include <algorithm>
 
 #include "PdfArray.h"
@@ -45,6 +46,7 @@
 #include "PdfStream.h"
 #include "PdfDefinesPrivate.h"
 
+using namespace std;
 using namespace PoDoFo;
 
 #define MAX_XREF_GEN_NUM    65535
@@ -201,14 +203,13 @@ PdfObject* PdfVecObjects::RemoveObject( const TIVecObjects & it )
     return pObj;
 }
 
-void PdfVecObjects::CollectGarbage( PdfObject* pTrailer )
+void PdfVecObjects::CollectGarbage(PdfObject& trailer)
 {
     // We do not have any objects that have
     // to be on the top, like in a linearized PDF.
     // So we just use an empty list.
-    TPdfReferenceSet    setLinearizedGroup;
-
-    this->RenumberObjects( pTrailer, &setLinearizedGroup, true );
+    TPdfReferenceSet setLinearizedGroup;
+    this->RenumberObjects(trailer, &setLinearizedGroup, true );
 }
 
 PdfReference PdfVecObjects::GetNextFreeObject()
@@ -345,12 +346,14 @@ void PdfVecObjects::AddObject(PdfObject * pObj)
     }
 }
 
-void PdfVecObjects::RenumberObjects( PdfObject* pTrailer, TPdfReferenceSet* pNotDelete, bool bDoGarbageCollection )
+void PdfVecObjects::RenumberObjects(PdfObject& trailer, TPdfReferenceSet* pNotDelete, bool bDoGarbageCollection )
 {
-    TVecReferencePointerList  list;
+    throw runtime_error("Fixme, we don't support taking address of PdfReference anymore. See InsertOneReferenceIntoVector");
+
+    TVecReferencePointerList list;
     TIVecReferencePointerList it;
-    TIReferencePointerList    itList;
-    int                       i = 0;
+    TIReferencePointerList itList;
+    int i = 0;
 
     m_lstFreeObjects.clear();
 
@@ -359,18 +362,18 @@ void PdfVecObjects::RenumberObjects( PdfObject* pTrailer, TPdfReferenceSet* pNot
 
     // The following call slows everything down
     // optimization welcome
-    BuildReferenceCountVector( &list );
-    InsertReferencesIntoVector( pTrailer, &list );
+    BuildReferenceCountVector(list);
+    InsertReferencesIntoVector( trailer, list);
 
     if( bDoGarbageCollection )
     {
-        GarbageCollection( &list, pTrailer, pNotDelete );
+        GarbageCollection(list, trailer, pNotDelete );
     }
 
     it = list.begin();
     while( it != list.end() )
     {
-        PdfReference ref( i+1, 0 );
+        PdfReference ref(i + 1, 0);
         m_vector[i]->m_reference = ref;
 
         itList = (*it).begin();
@@ -388,135 +391,137 @@ void PdfVecObjects::RenumberObjects( PdfObject* pTrailer, TPdfReferenceSet* pNot
     
 }
 
-void PdfVecObjects::InsertOneReferenceIntoVector( const PdfObject* pObj, TVecReferencePointerList* pList )  
+void PdfVecObjects::InsertOneReferenceIntoVector( const PdfObject& obj, TVecReferencePointerList& list )  
 {
-    size_t                        index;
-
     PODOFO_RAISE_LOGIC_IF( !m_bSorted, 
                            "PdfVecObjects must be sorted before calling PdfVecObjects::InsertOneReferenceIntoVector!" );
     
     // we asume that pObj is a reference - no checking here because of speed
     std::pair<TCIVecObjects,TCIVecObjects> it = 
-        std::equal_range( m_vector.begin(), m_vector.end(), pObj, ObjectComparatorPredicate() );
+        std::equal_range( m_vector.begin(), m_vector.end(), &obj, ObjectComparatorPredicate() );
 
     if( it.first != it.second )
     {
         // ignore this reference
         return;
-        //PODOFO_RAISE_ERROR( EPdfError::NoObject );
     }
-    
-    index = (it.first - this->begin());
-    (*pList)[index].push_back( const_cast<PdfReference*>(&(pObj->GetReference() )) );
+
+    // FIX-ME: We don't support taking address of reference anynmore
+    ////size_t index = it.first - this->begin();
+    ////list[index].push_back( const_cast<PdfReference*>(&(obj.GetReference() )) );
 }
 
-void PdfVecObjects::InsertReferencesIntoVector( const PdfObject* pObj, TVecReferencePointerList* pList )
+void PdfVecObjects::InsertReferencesIntoVector(const PdfObject& obj, TVecReferencePointerList& list )
 {
     PdfArray::const_iterator   itArray;
     TCIKeyMap                  itKeys;
   
-    if( pObj->IsReference() )
+    if(obj.IsReference())
     {
-        InsertOneReferenceIntoVector( pObj, pList );
+        InsertOneReferenceIntoVector( obj, list );
     }
-    else if( pObj->IsArray() )
+    else if( obj.IsArray() )
     {
-        itArray = pObj->GetArray().begin(); 
-        while( itArray != pObj->GetArray().end() )
+        itArray = obj.GetArray().begin(); 
+        while( itArray != obj.GetArray().end() )
         {
             if( (*itArray).IsReference() )
-                InsertOneReferenceIntoVector( &(*itArray), pList );
+                InsertOneReferenceIntoVector(*itArray, list );
             else if( (*itArray).IsArray() ||
                      (*itArray).IsDictionary() )
-                InsertReferencesIntoVector( &(*itArray), pList );
+                InsertReferencesIntoVector(*itArray, list );
 
             ++itArray;
         }
     }
-    else if( pObj->IsDictionary() )
+    else if( obj.IsDictionary() )
     {
-        itKeys = pObj->GetDictionary().begin();
-        while( itKeys != pObj->GetDictionary().end() )
+        itKeys = obj.GetDictionary().begin();
+        while( itKeys != obj.GetDictionary().end() )
         {
             if( itKeys->second.IsReference() )
-                InsertOneReferenceIntoVector( &itKeys->second, pList );
+                InsertOneReferenceIntoVector(itKeys->second, list );
             // optimization as this is really slow:
             // Call only for dictionaries, references and arrays
             else if( itKeys->second.IsArray() ||
                 itKeys->second.IsDictionary() )
-                InsertReferencesIntoVector( &itKeys->second, pList );
+                InsertReferencesIntoVector(itKeys->second, list );
             
             ++itKeys;
         }
     }
 }
 
-void PdfVecObjects::GetObjectDependencies( const PdfObject* pObj, TPdfReferenceList* pList ) const
+void PdfVecObjects::GetObjectDependencies( const PdfObject& obj, TPdfReferenceList& list ) const
 {
     PdfArray::const_iterator   itArray;
     TCIKeyMap                  itKeys;
   
-    if( pObj->IsReference() )
+    if( obj.IsReference() )
     {
         std::pair<TPdfReferenceList::iterator, TPdfReferenceList::iterator> itEqualRange
-            = std::equal_range( pList->begin(), pList->end(), pObj->GetReference() );
+            = std::equal_range( list.begin(), list.end(), obj.GetReference() );
         if( itEqualRange.first == itEqualRange.second )
         {
-            pList->insert(itEqualRange.first, pObj->GetReference() );
+            list.insert(itEqualRange.first, obj.GetReference() );
 
-            const PdfObject* referencedObject = this->GetObject(pObj->GetReference());
+            const PdfObject* referencedObject = this->GetObject(obj.GetReference());
             if( referencedObject != nullptr)
             {
-                this->GetObjectDependencies( referencedObject, pList );
+                GetObjectDependencies( *referencedObject, list );
             }
         }
     }
-    else if( pObj->IsArray() )
+    else if( obj.IsArray() )
     {
-        itArray = pObj->GetArray().begin(); 
-        while( itArray != pObj->GetArray().end() )
+        itArray = obj.GetArray().begin(); 
+        while( itArray != obj.GetArray().end() )
         {
-            if( (*itArray).IsArray() ||
-                (*itArray).IsDictionary() ||
-                (*itArray).IsReference() )
-                GetObjectDependencies( &(*itArray), pList );
+            if( itArray->IsArray() ||
+                itArray->IsDictionary() ||
+                itArray->IsReference() )
+                GetObjectDependencies( *itArray, list );
 
             ++itArray;
         }
     }
-    else if( pObj->IsDictionary() )
+    else if( obj.IsDictionary() )
     {
-        itKeys = pObj->GetDictionary().begin();
-        while( itKeys != pObj->GetDictionary().end() )
+        itKeys = obj.GetDictionary().begin();
+        while( itKeys != obj.GetDictionary().end() )
         {
             // optimization as this is really slow:
             // Call only for dictionaries, references and arrays
             if( itKeys->second.IsArray() ||
                 itKeys->second.IsDictionary() ||
                 itKeys->second.IsReference() )
-                GetObjectDependencies( &itKeys->second, pList );
+                GetObjectDependencies( itKeys->second, list );
             
             ++itKeys;
         }
     }
 }
 
-void PdfVecObjects::BuildReferenceCountVector( TVecReferencePointerList* pList )
+void PdfVecObjects::BuildReferenceCountVector( TVecReferencePointerList& list )
 {
-    TCIVecObjects      it      = this->begin();
+    TCIVecObjects it = this->begin();
 
-    pList->clear();
-    pList->resize( !m_vector.empty() );
+    list.clear();
+    list.resize( !m_vector.empty() );
 
     while( it != this->end() )
     {
-        if( (*it)->IsReference() )
-            InsertOneReferenceIntoVector( *it, pList );
-        // optimization as this is really slow:
-        // Call only for dictionaries, references and arrays
-        else if( (*it)->IsArray() ||
-                 (*it)->IsDictionary() )
-            InsertReferencesIntoVector( *it, pList );
+        auto &obj = **it;
+        if (obj.IsReference())
+        {
+            InsertOneReferenceIntoVector(obj, list);
+        }
+        else if (obj.IsArray() || obj.IsDictionary())
+        {
+            // optimization as this is really slow:
+            // Call only for dictionaries, references and arrays
+            InsertReferencesIntoVector(obj, list);
+        }
 
         ++it;
     }
@@ -531,13 +536,13 @@ void PdfVecObjects::Sort()
     }
 }
 
-void PdfVecObjects::GarbageCollection( TVecReferencePointerList* pList, PdfObject*, TPdfReferenceSet* pNotDelete )
+void PdfVecObjects::GarbageCollection( TVecReferencePointerList& list, PdfObject&, TPdfReferenceSet* pNotDelete )
 {
-    TIVecReferencePointerList it        = pList->begin();
-    int                       pos       = 0;
-    bool                      bContains = false;
+    TIVecReferencePointerList it = list.begin();
+    int pos = 0;
+    bool bContains = false;
 
-    while( it != pList->end() )
+    while( it != list.end() )
     {
         bContains = pNotDelete ? ( pNotDelete->find( m_vector[pos]->GetIndirectReference() ) != pNotDelete->end() ) : false;
         if( !(*it).size() && !bContains )

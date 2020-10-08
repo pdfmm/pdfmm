@@ -248,7 +248,7 @@ public:
      *
      *  \see CollectGarbage
      */
-    void RenumberObjects( PdfObject* pTrailer, TPdfReferenceSet* pNotDelete = NULL, bool bDoGarbageCollection = false );
+    void RenumberObjects( PdfObject& pTrailer, TPdfReferenceSet* pNotDelete = nullptr, bool bDoGarbageCollection = false );
 
     /** 
      * Sort the objects in the vector based on their object and generation numbers
@@ -286,7 +286,7 @@ public:
      *  \param pList write the list of dependencies to this list
      *     
      */
-    void GetObjectDependencies( const PdfObject* pObj, TPdfReferenceList* pList ) const;
+    void GetObjectDependencies( const PdfObject& pObj, TPdfReferenceList& pList ) const;
 
 
     /** Attach a new observer
@@ -380,7 +380,7 @@ public:
      *
      * Warning this might be slow!
      */
-    void CollectGarbage( PdfObject* pTrailer );
+    void CollectGarbage( PdfObject& pTrailer );
 
 	/** Get next unique subset-prefix
      *
@@ -482,12 +482,12 @@ private:
      * for each object in this vector.
      * \param pList write all references to this list
      */
-    void BuildReferenceCountVector( TVecReferencePointerList* pList );
-    void InsertReferencesIntoVector( const PdfObject* pObj, TVecReferencePointerList* pList );
+    void BuildReferenceCountVector( TVecReferencePointerList& pList );
+    void InsertReferencesIntoVector( const PdfObject& pObj, TVecReferencePointerList& pList );
 
     /** Assumes that the PdfVecObjects is sorted
      */
-    void InsertOneReferenceIntoVector( const PdfObject* pObj, TVecReferencePointerList* pList );
+    void InsertOneReferenceIntoVector( const PdfObject& pObj, TVecReferencePointerList& pList );
 
     /** Delete all objects from the vector which do not have references to them selves
      *  \param pList must be a list created by BuildReferenceCountVector
@@ -495,7 +495,7 @@ private:
      *  \param pNotDelete a list of object which must not be deleted
      *  \see BuildReferenceCountVector
      */
-    void GarbageCollection( TVecReferencePointerList* pList, PdfObject* pTrailer, TPdfReferenceSet* pNotDelete = NULL );
+    void GarbageCollection( TVecReferencePointerList& pList, PdfObject& pTrailer, TPdfReferenceSet* pNotDelete = nullptr );
 
 private:
     PdfDocument* m_pDocument;
