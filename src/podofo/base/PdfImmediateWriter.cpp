@@ -45,24 +45,27 @@ namespace PoDoFo {
 PdfImmediateWriter::PdfImmediateWriter( PdfOutputDevice* pDevice, PdfVecObjects* pVecObjects, 
                                         const PdfObject* pTrailer, EPdfVersion eVersion, 
                                         PdfEncrypt* pEncrypt, EPdfWriteMode eWriteMode )
-    : PdfWriter( pVecObjects ), m_pParent( pVecObjects ), 
-      m_pDevice( pDevice ), m_pLast( NULL ), m_bOpenStream( false )
+    :
+    PdfWriter( pVecObjects, pTrailer),
+    m_pParent( pVecObjects ),
+    m_pDevice( pDevice ),
+    m_pLast( NULL ),
+    m_bOpenStream( false )
 {
-    if( m_pTrailer )
-        delete m_pTrailer;
-    m_pTrailer = new PdfObject( *pTrailer );
-
     // register as observer for PdfVecObjects
     m_pParent->Attach( this );
     // register as stream factory for PdfVecObjects
     m_pParent->SetStreamFactory( this );
 
-    this->CreateFileIdentifier( m_identifier, m_pTrailer );
+    PdfString identifier;
+    this->CreateFileIdentifier(identifier, pTrailer);
+    SetIdentifier(identifier);
+
     // setup encryption
     if( pEncrypt )
     {
         this->SetEncrypted( *pEncrypt );
-        m_pEncrypt->GenerateEncryptionKey( m_identifier );
+        pEncrypt->GenerateEncryptionKey(GetIdentifier());
     }
 
     // start with writing the header
@@ -70,7 +73,7 @@ PdfImmediateWriter::PdfImmediateWriter( PdfOutputDevice* pDevice, PdfVecObjects*
     this->SetWriteMode( eWriteMode );
     this->WritePdfHeader(*m_pDevice);
 
-    m_pXRef = m_UseXRefStream ? new PdfXRefStream(*this, *m_vecObjects) : new PdfXRef(*this);
+    m_pXRef = GetUseXRefStream() ? new PdfXRefStream(*this, GetObjects()) : new PdfXRef(*this);
 
 }
 
@@ -89,7 +92,7 @@ void PdfImmediateWriter::WriteObject( const PdfObject* pObject )
     this->FinishLastObject();
 
     m_pXRef->AddInUseObject( pObject->GetIndirectReference(), m_pDevice->Tell());
-    pObject->Write(*m_pDevice, this->GetWriteMode(), m_pEncrypt);
+    pObject->Write(*m_pDevice, this->GetWriteMode(), GetEncrypt());
     // Make sure, no one will add keys now to the object
     const_cast<PdfObject*>(pObject)->SetImmutable(true);
 
@@ -113,11 +116,11 @@ void PdfImmediateWriter::Finish()
     this->FinishLastObject();
 
     // setup encrypt dictionary
-    if( m_pEncrypt )
+    if( GetEncrypt() )
     {
         // Add our own Encryption dictionary
-        m_pEncryptObj.reset(m_vecObjects->CreateObject());
-        m_pEncrypt->CreateEncryptionDictionary( m_pEncryptObj->GetDictionary() );
+        SetEncryptObj(GetObjects().CreateObject());
+        GetEncrypt()->CreateEncryptionDictionary(GetEncryptObj()->GetDictionary() );
     }
 
     this->WritePdfObjects(*m_pDevice, *m_pParent, *m_pXRef);
@@ -130,7 +133,7 @@ void PdfImmediateWriter::Finish()
     PODOFO_RAISE_ERROR(EPdfError::NotImplemented);
 
     // XRef streams contain the trailer in the XRef
-    if( !m_UseXRefStream )
+    if( !GetUseXRefStream() )
     {
         PdfObject trailer;
         
@@ -177,8 +180,8 @@ void PdfImmediateWriter::BeginAppendStream( const PdfStream* pStream )
         PODOFO_ASSERT( !m_bOpenStream );
         m_bOpenStream = true;
 
-        if( m_pEncrypt )
-            const_cast<PdfFileStream*>(pFileStream)->SetEncrypted( m_pEncrypt );
+        if( GetEncrypt() )
+            const_cast<PdfFileStream*>(pFileStream)->SetEncrypted(GetEncrypt());
     }
 }
     

@@ -62,7 +62,7 @@ PdfWriter::PdfWriter(PdfVecObjects* pVecObjects, const PdfObject* pTrailer, EPdf
     m_pTrailer(pTrailer),
     m_eVersion(version),
     m_UseXRefStream(false),
-    m_pEncrypt(NULL),
+    m_pEncrypt(nullptr),
     m_saveOptions(PdfSaveOptions::None),
     m_eWriteMode(EPdfWriteMode::Compact),
     m_lPrevXRefOffset(0),
@@ -267,7 +267,7 @@ void PdfWriter::FillTrailerObject( PdfObject* pTrailer, size_t lSize, bool bOnly
     }
 }
 
-void PdfWriter::CreateFileIdentifier( PdfString & identifier, const PdfObject* pTrailer, PdfString* pOriginalIdentifier ) const
+void PdfWriter::CreateFileIdentifier(PdfString & identifier, const PdfObject* pTrailer, PdfString* pOriginalIdentifier ) const
 {
     PdfOutputDevice length;
     PdfObject*      pInfo;
@@ -349,6 +349,11 @@ void PdfWriter::CreateFileIdentifier( PdfString & identifier, const PdfObject* p
 
     if( pOriginalIdentifier && !bOriginalIdentifierFound )
         *pOriginalIdentifier = identifier;
+}
+
+void PdfWriter::SetEncryptObj(PdfObject* obj)
+{
+    m_pEncryptObj.reset(obj);
 }
 
 void PdfWriter::SetEncrypted( const PdfEncrypt & rEncrypt )

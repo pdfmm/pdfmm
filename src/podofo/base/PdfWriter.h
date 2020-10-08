@@ -204,22 +204,29 @@ protected:
      */
     void CreateFileIdentifier( PdfString& identifier, const PdfObject* pTrailer, PdfString* pOriginalIdentifier = NULL ) const;
 
-protected:
+    
+    const PdfObject& GetTrailer() { return *m_pTrailer; }
+    PdfVecObjects& GetObjects() { return *m_vecObjects; }
+    PdfEncrypt* GetEncrypt() { return m_pEncrypt; }
+    PdfObject* GetEncryptObj() { return m_pEncryptObj.get(); }
+    const PdfString & GetIdentifier() { return m_identifier; }
+    void SetIdentifier(const PdfString &identifier) { m_identifier = identifier; }
+    void SetEncryptObj(PdfObject* obj);
+private:
     PdfVecObjects*  m_vecObjects;
     const PdfObject* m_pTrailer;
+    EPdfVersion     m_eVersion;
 
     bool            m_UseXRefStream;
 
     PdfEncrypt*     m_pEncrypt;    ///< If not NULL encrypt all strings and streams and create an encryption dictionary in the trailer
     std::unique_ptr<PdfObject> m_pEncryptObj; ///< Used to temporarly store the encryption dictionary
 
-    PdfString       m_identifier;
-    PdfString       m_originalIdentifier; // used for incremental update
-
-private:
     PdfSaveOptions  m_saveOptions;
     EPdfWriteMode   m_eWriteMode;
-    EPdfVersion     m_eVersion;
+
+    PdfString       m_identifier;
+    PdfString       m_originalIdentifier; // used for incremental update
     int64_t         m_lPrevXRefOffset;
     bool            m_bIncrementalUpdate;
     bool            m_rewriteXRefTable; // Only used if incremental update
