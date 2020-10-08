@@ -101,7 +101,7 @@ void PdfXRefStreamParserObject::ReadXRefTable()
 
 
     int64_t nW[W_ARRAY_SIZE] = { 0, 0, 0 };
-    for( int i=0;i<W_ARRAY_SIZE;i++ )
+    for(unsigned i=0;i<W_ARRAY_SIZE;i++ )
     {
         if( !arr.GetArray()[i].IsNumber() )
         {
@@ -204,7 +204,7 @@ void PdfXRefStreamParserObject::GetIndeces( std::vector<int64_t> & rvecIndeces, 
 void PdfXRefStreamParserObject::ReadXRefStreamEntry( char* pBuffer, size_t, const int64_t lW[W_ARRAY_SIZE], int nObjNo )
 {
     uint64_t nData[W_ARRAY_SIZE];
-    for(int i = 0; i < W_ARRAY_SIZE; i++)
+    for(unsigned i = 0; i < W_ARRAY_SIZE; i++)
     {
         if( lW[i] > W_MAX_BYTES )
         {
