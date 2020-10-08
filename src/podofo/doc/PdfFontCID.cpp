@@ -123,6 +123,7 @@ public:
 PdfFontCID::PdfFontCID( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfObject* pObject, bool bEmbed )
     : PdfFont( pMetrics, pEncoding, pObject ), m_pDescendantFonts( NULL )
 {
+    (void)bEmbed;
     m_pDescriptor = NULL;
     /* this->Init( bEmbed, false ); No changes to dictionary */
     m_bWasEmbedded = true; /* embedding on this path is not allowed at all, so
@@ -618,6 +619,7 @@ static void fillUnicodeStream( PdfStream & pStream , const GidToCodePoint& gidTo
 static GidToCodePoint
 getGidToCodePoint(const PdfEncoding* pEncoding, PdfFontMetrics* pMetrics, const std::set<pdf_utf16be>& setUsed, const UnicodeToIndex& unicodeToIndex)
 {
+    (void)pEncoding;
     GidToCodePoint gidToCodePoint;
     pdf_utf16be codePoint;
     long lGlyph;
@@ -646,6 +648,7 @@ getGidToCodePoint(const PdfEncoding* pEncoding, PdfFontMetrics* pMetrics, const 
 static GidToCodePoint
 getGidToCodePoint(const PdfEncoding* pEncoding, PdfFontMetrics* pMetrics, const std::set<pdf_utf16be>& setUsed)
 {
+    (void)pEncoding;
     GidToCodePoint gidToCodePoint;
     pdf_utf16be codePoint;
     long lGlyph;

@@ -369,7 +369,7 @@ namespace internal
     };
 
     // Handle reading/writing of utf16 character, swapping byte if needed/requested
-    #define HANDLE_U16C(handler, x) handler::handle(static_cast<uint16_t>(x & 0xffff))
+    #define HANDLE_U16C(handler, x) handler::handle(static_cast<uint16_t>((x) & 0xffff))
 
 } // namespace utf8
 

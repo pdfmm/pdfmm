@@ -68,14 +68,14 @@ using namespace PoDoFo;
 
 PdfDocument::PdfDocument(bool bEmpty) :
     m_vecObjects(*this),
-    m_fontCache( &m_vecObjects ), 
     m_pTrailer(NULL),
     m_pCatalog(NULL),
     m_pInfo(NULL),
     m_pPagesTree( NULL ),
     m_pAcroForms( NULL ),  
     m_pOutlines( NULL ), 
-    m_pNamesTree( NULL )
+    m_pNamesTree( NULL ),
+    m_fontCache( &m_vecObjects )
 {
     if( !bEmpty ) 
     {

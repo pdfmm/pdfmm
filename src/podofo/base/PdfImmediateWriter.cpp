@@ -125,7 +125,10 @@ void PdfImmediateWriter::Finish()
     // write the XRef
     uint64_t lXRefOffset = static_cast<uint64_t>( m_pDevice->Tell() );
     m_pXRef->Write(*m_pDevice);
-            
+
+    // FIX-ME: The following is already done by PdfXRef now
+    PODOFO_RAISE_ERROR(EPdfError::NotImplemented);
+
     // XRef streams contain the trailer in the XRef
     if( !m_UseXRefStream )
     {

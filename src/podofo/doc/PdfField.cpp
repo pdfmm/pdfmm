@@ -86,12 +86,12 @@ PdfField::PdfField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect, Pdf
 }
 
 PdfField::PdfField( EPdfField eField, PdfObject *pObject, PdfAnnotation *pWidget )
-    : m_pObject( pObject ), m_pWidget( pWidget ), m_eField( eField )
+    : m_eField( eField ), m_pObject( pObject ), m_pWidget( pWidget )
 {
 }
 
 PdfField::PdfField( const PdfField & rhs )
-    : m_pObject( NULL ), m_pWidget( NULL ), m_eField( EPdfField::Unknown )
+    : m_eField( EPdfField::Unknown ), m_pObject( NULL ), m_pWidget( NULL )
 {
     this->operator=( rhs );
 }
@@ -272,7 +272,7 @@ void PdfField::Init(PdfAcroForm *pParent)
 }
 
 PdfField::PdfField( PdfObject* pObject, PdfAnnotation* pWidget )
-    : m_pObject( pObject ), m_pWidget( pWidget ), m_eField( EPdfField::Unknown )
+    : m_eField( EPdfField::Unknown ), m_pObject( pObject ), m_pWidget( pWidget )
 {
     m_eField = GetFieldType( *pObject );
 }

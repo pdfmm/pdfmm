@@ -63,15 +63,16 @@ typedef TVecFilters::const_iterator        TCIVecFilters;
  *  The output buffers are podofo_malloc()'ed in the functions and have
  *  to be podofo_free()'d by the caller.
  */
-class PODOFO_API PdfFilter {
- public:
+class PODOFO_API PdfFilter
+{
+public:
     /** Construct and initialize a new filter
      */
     PdfFilter();
 
     /** All classes with virtual functions need a virtual destructor
      */
-    inline virtual ~PdfFilter();
+    virtual ~PdfFilter();
 
     /** Check whether encoding is implemented for this filter.
      * 
@@ -107,7 +108,7 @@ class PODOFO_API PdfFilter {
      *  \see EncodeBlock
      *  \see EndEncode
      */
-    inline void BeginEncode( PdfOutputStream* pOutput );
+    void BeginEncode( PdfOutputStream* pOutput );
 
     /** Encode a block of data and write it to the PdfOutputStream
      *  specified by BeginEncode(). Ownership of the block is not taken
@@ -130,7 +131,7 @@ class PODOFO_API PdfFilter {
      *  \see BeginEncode
      *  \see EndEncode
      */
-    inline void EncodeBlock( const char* pBuffer, size_t lLen );
+    void EncodeBlock( const char* pBuffer, size_t lLen );
 
     /**
      *  Finish encoding of data and reset the stream's state.
@@ -138,7 +139,7 @@ class PODOFO_API PdfFilter {
      *  \see BeginEncode
      *  \see EncodeBlock
      */
-    inline void EndEncode();
+    void EndEncode();
 
     /** Check whether the decoding is implemented for this filter.
      * 
@@ -176,7 +177,7 @@ class PODOFO_API PdfFilter {
      *  \see DecodeBlock
      *  \see EndDecode
      */
-    inline void BeginDecode( PdfOutputStream* pOutput, const PdfDictionary* pDecodeParms = NULL );
+    void BeginDecode( PdfOutputStream* pOutput, const PdfDictionary* pDecodeParms = NULL );
 
     /** Decode a block of data and write it to the PdfOutputStream
      *  specified by BeginDecode(). Ownership of the block is not taken
@@ -199,7 +200,7 @@ class PODOFO_API PdfFilter {
      *  \see BeginDecode
      *  \see EndDecode
      */
-    inline void DecodeBlock( const char* pBuffer, size_t lLen );
+    void DecodeBlock( const char* pBuffer, size_t lLen );
 
     /**
      *  Finish decoding of data and reset the stream's state.
@@ -207,7 +208,7 @@ class PODOFO_API PdfFilter {
      *  \see BeginDecode
      *  \see DecodeBlock
      */
-    inline void EndDecode();
+    void EndDecode();
 
     /** Type of this filter.
      *  \returns the type of this filter
@@ -228,7 +229,7 @@ class PODOFO_API PdfFilter {
      * BeginEncode() or BeginDecode() are guaranteed to throw
      * without calling their virtual implementations.
      */
-    inline void FailEncodeDecode();
+    void FailEncodeDecode();
 
     /** Real implementation of BeginEncode(). NEVER call this method directly.
      *

@@ -334,6 +334,8 @@ protected:
     size_t ReadImpl( char* buffer, size_t len, bool &eof) override
     {
         int outlen = 0;
+        size_t drainLen;
+        size_t read;
         if (m_inputEof)
             goto DrainBuffer;
 
@@ -343,7 +345,7 @@ protected:
             // Read the initialization vector separately first
             char iv[AES_IV_LENGTH];
             bool streameof;
-            size_t read = m_pInputStream->Read(iv, AES_IV_LENGTH, streameof);
+            read = m_pInputStream->Read(iv, AES_IV_LENGTH, streameof);
             if (read != AES_IV_LENGTH)
                 PODOFO_RAISE_ERROR_INFO(EPdfError::UnexpectedEOF, "Can't read enough bytes for AES IV");
 
@@ -375,7 +377,7 @@ protected:
         }
 
         bool streameof;
-        size_t read = m_pInputStream->Read(buffer, std::min(len, m_inputLen), streameof);
+        read = m_pInputStream->Read(buffer, std::min(len, m_inputLen), streameof);
         m_inputLen -= read;
 
         // Quote openssl.org: "the decrypted data buffer out passed to EVP_DecryptUpdate() should have sufficient room
@@ -406,7 +408,7 @@ protected:
         return outlen;
 
     DrainBuffer:
-        size_t drainLen = std::min(len - outlen, m_drainLeft);
+        drainLen = std::min(len - outlen, m_drainLeft);
         memcpy(buffer + outlen, m_tempBuffer.data(), drainLen);
         m_drainLeft -= (int)drainLen;
         if (m_drainLeft == 0)

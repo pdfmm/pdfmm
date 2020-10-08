@@ -237,6 +237,15 @@ PdfFilter::PdfFilter()
 {
 }
 
+PdfFilter::~PdfFilter()
+{
+    // Whoops! Didn't call EndEncode() before destroying the filter!
+    // Note that we can't do this for the user, since EndEncode() might
+    // throw and we can't safely have that in a dtor. That also means
+    // we can't throw here, but must abort.
+    assert(!m_pOutputStream);
+}
+
 void PdfFilter::Encode( const char* pInBuffer, size_t lInLen, char** ppOutBuffer, size_t* plOutLen ) const
 {
     if( !this->CanEncode() )
@@ -582,13 +591,4 @@ void PdfFilter::FailEncodeDecode()
     if (m_pOutputStream != NULL) // OC 19.08.2010 BugFix: Sometimes FailEncodeDecode() is called twice
         m_pOutputStream->Close(); // mabri: issue #58 seems fixed without exception safety here ...
     m_pOutputStream = NULL;
-}
-
-PdfFilter::~PdfFilter()
-{
-    // Whoops! Didn't call EndEncode() before destroying the filter!
-    // Note that we can't do this for the user, since EndEncode() might
-    // throw and we can't safely have that in a dtor. That also means
-    // we can't throw here, but must abort.
-    assert(!m_pOutputStream);
 }

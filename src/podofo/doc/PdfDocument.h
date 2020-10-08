@@ -586,6 +586,8 @@ protected:
      */
     PdfDocument( bool bEmpty = false );
 
+    inline PdfFontCache & GetFontCache() { return m_fontCache; }
+
     /** Set the info object containing meta information.
      *  Deletes any old info object.
      *
@@ -678,15 +680,6 @@ protected:
      */
     inline const PdfObject* GetTrailer() const { return m_pTrailer; }
 
-protected:
-    PdfFontCache    m_fontCache;
-    PdfObject*      m_pTrailer;
-    PdfObject*      m_pCatalog;
-
-    PdfInfo*        m_pInfo;
-    PdfPagesTree*   m_pPagesTree;
-    PdfAcroForm*    m_pAcroForms;
-
 private:
     // Prevent use of copy constructor and assignment operator.  These methods
     // should never be referenced (given that code referencing them outside
@@ -695,9 +688,16 @@ private:
     explicit PdfDocument(const PdfDocument&);
     PdfDocument& operator=(const PdfDocument&) = delete;
 
+private:
     PdfVecObjects   m_vecObjects;
+    PdfObject*      m_pTrailer;
+    PdfObject*      m_pCatalog;
+    PdfInfo*        m_pInfo;
+    PdfPagesTree*   m_pPagesTree;
+    PdfAcroForm*    m_pAcroForms;
     PdfOutlines*    m_pOutlines;
     PdfNamesTree*   m_pNamesTree;
+    PdfFontCache    m_fontCache;
 };
 
 };

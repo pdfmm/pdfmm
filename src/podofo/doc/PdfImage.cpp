@@ -290,11 +290,9 @@ void PdfImage::LoadFromJpeg(const string_view& filename)
 {
     FILE* file = io::fopen(filename, "rb");
 
-    int width;
-    int height;
     try
     {
-        LoadFromJpegHandle(file, width, height);
+        LoadFromJpegHandle(file);
     }
     catch (...)
     {
@@ -308,10 +306,10 @@ void PdfImage::LoadFromJpeg(const string_view& filename)
     this->GetObject()->GetDictionary().AddKey(PdfName::KeyFilter, PdfName("DCTDecode"));
     // Do not apply any filters as JPEG data is already DCT encoded.
     PdfFileInputStream stream(filename);
-    this->SetImageDataRaw(width, height, 8, stream);
+    this->SetImageDataRaw((unsigned)m_rRect.GetWidth(), (unsigned)m_rRect.GetHeight(), 8, stream);
 }
 
-void PdfImage::LoadFromJpegHandle(FILE* pInStream, int &width, int &height)
+void PdfImage::LoadFromJpegHandle(FILE* pInStream)
 {
     struct jpeg_decompress_struct cinfo;
     struct jpeg_error_mgr         jerr;
@@ -650,7 +648,7 @@ void PdfImage::LoadFromTiff(const string_view& filename)
     auto filename16 = utf8::utf8to16((string)filename);
     TIFF* hInfile = TIFFOpenW((wchar_t*)filename16.c_str(), "rb");
 #else
-    TIFF* hInfile = TIFFOpen(pszFilename, "rb");
+    TIFF* hInfile = TIFFOpen(filename.data(), "rb");
 #endif
 
     if( !hInfile )

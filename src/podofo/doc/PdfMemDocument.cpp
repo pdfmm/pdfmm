@@ -340,7 +340,7 @@ void PdfMemDocument::Write(const std::string_view& filename, PdfSaveOptions opti
 void PdfMemDocument::Write(PdfOutputDevice& device, PdfSaveOptions options)
 {
      // makes sure pending subset-fonts are embedded
-    m_fontCache.EmbedSubsetFonts();
+    GetFontCache().EmbedSubsetFonts();
 
     PdfWriter writer( &(this->GetObjects()), this->GetTrailer() );
     writer.SetPdfVersion( this->GetPdfVersion() );
@@ -362,7 +362,7 @@ void PdfMemDocument::WriteUpdate(const string_view& filename, PdfSaveOptions opt
 void PdfMemDocument::WriteUpdate(PdfOutputDevice& device, PdfSaveOptions options)
 {
     // makes sure pending subset-fonts are embedded
-    m_fontCache.EmbedSubsetFonts();
+    GetFontCache().EmbedSubsetFonts();
     PdfWriter writer( &(this->GetObjects()), this->GetTrailer() );
     writer.SetSaveOptions(options);
     writer.SetPdfVersion( this->GetPdfVersion() );
@@ -464,7 +464,7 @@ void PdfMemDocument::SetEncrypted( const PdfEncrypt & pEncrypt )
 
 PdfFont* PdfMemDocument::GetFont( PdfObject* pObject )
 {
-    return m_fontCache.GetFont( pObject );
+    return GetFontCache().GetFont( pObject );
 }
 
 void PdfMemDocument::FreeObjectMemory( const PdfReference & rRef, bool bForce )

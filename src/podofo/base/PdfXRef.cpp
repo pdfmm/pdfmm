@@ -48,7 +48,7 @@ using namespace std;
 using namespace PoDoFo;
 
 PdfXRef::PdfXRef(PdfWriter& writer)
-    : m_offset( 0 ), m_writer(&writer), m_maxObjNum(0)
+    : m_maxObjNum(0), m_writer(&writer), m_offset( 0 )
 {
 
 }
@@ -331,8 +331,9 @@ void PdfXRef::SetFirstEmptyBlock()
     m_vecBlocks.insert(m_vecBlocks.begin(), block );
 }
 
-bool PdfXRef::ShouldSkipWrite(const PdfReference& rRef)
+bool PdfXRef::ShouldSkipWrite(const PdfReference& ref)
 {
+    (void)ref;
     // Nothing to skip writing for PdfXRef table
     return false;
 }

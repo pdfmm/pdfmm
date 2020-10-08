@@ -1245,6 +1245,12 @@ void PdfParser::ReadObjectsInternal()
 
                 break;
             }
+            case EXRefEntryType::Compressed:
+                // CHECK-ME
+                break;
+            default:
+                PODOFO_RAISE_ERROR(EPdfError::InvalidEnumValue);
+
             }
         }
         else if( i != 0) // Unparsed

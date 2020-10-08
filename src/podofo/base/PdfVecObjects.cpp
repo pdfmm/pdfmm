@@ -407,6 +407,7 @@ void PdfVecObjects::InsertOneReferenceIntoVector( const PdfObject& obj, TVecRefe
     }
 
     // FIX-ME: We don't support taking address of reference anynmore
+    (void)list;
     ////size_t index = it.first - this->begin();
     ////list[index].push_back( const_cast<PdfReference*>(&(obj.GetReference() )) );
 }
