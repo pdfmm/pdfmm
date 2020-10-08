@@ -30,6 +30,7 @@ DEALINGS IN THE SOFTWARE.
 
 #include "core.h"
 #include <stdexcept>
+#include "unchecked.h"
 
 namespace utf8
 {
@@ -37,12 +38,20 @@ namespace utf8
     class exception : public ::std::exception {
     };
 
+    class invalid_endianess_hint : public exception {
+        endianess hint;
+    public:
+        invalid_endianess_hint(endianess hint) : hint(hint) {}
+        virtual const char* what() const UTF_CPP_NOEXCEPT UTF_CPP_OVERRIDE { return "Invalid endianess hint"; }
+        endianess endianess_hint() const { return hint; }
+    };
+
     // Exceptions that may be thrown from the library functions.
     class invalid_code_point : public exception {
         uint32_t cp;
     public:
         invalid_code_point(uint32_t codepoint) : cp(codepoint) {}
-        virtual const char* what() const NOEXCEPT OVERRIDE { return "Invalid code point"; }
+        virtual const char* what() const UTF_CPP_NOEXCEPT UTF_CPP_OVERRIDE { return "Invalid code point"; }
         uint32_t code_point() const {return cp;}
     };
 
@@ -50,7 +59,7 @@ namespace utf8
         uint8_t u8;
     public:
         invalid_utf8 (uint8_t u) : u8(u) {}
-        virtual const char* what() const NOEXCEPT OVERRIDE { return "Invalid UTF-8"; }
+        virtual const char* what() const UTF_CPP_NOEXCEPT UTF_CPP_OVERRIDE { return "Invalid UTF-8"; }
         uint8_t utf8_octet() const {return u8;}
     };
 
@@ -58,14 +67,33 @@ namespace utf8
         uint16_t u16;
     public:
         invalid_utf16 (uint16_t u) : u16(u) {}
-        virtual const char* what() const NOEXCEPT OVERRIDE { return "Invalid UTF-16"; }
+        virtual const char* what() const UTF_CPP_NOEXCEPT UTF_CPP_OVERRIDE { return "Invalid UTF-16"; }
         uint16_t utf16_word() const {return u16;}
     };
 
     class not_enough_room : public exception {
     public:
-        virtual const char* what() const NOEXCEPT OVERRIDE { return "Not enough space"; }
+        virtual const char* what() const UTF_CPP_NOEXCEPT UTF_CPP_OVERRIDE { return "Not enough space"; }
     };
+
+    namespace internal
+    {
+        // Perform a runtime check to determine if byte swap is required
+        // with the given endianess hint
+        inline bool is_byte_swap_required(endianess hint)
+        {
+            int i = 1;
+            switch (hint)
+            {
+            case little_endian:
+                return *((char*)&i) == 0;
+            case big_endian:
+                return *((char*)&i) == 1;
+            default:
+                throw invalid_endianess_hint(hint);
+            }
+        }
+    }
 
     /// The library API - functions intended to be called by the users
 
@@ -201,6 +229,47 @@ namespace utf8
         return dist;
     }
 
+    template <typename swap_handler, typename u16bit_iterator, typename octet_iterator>
+    octet_iterator utf16to8_checked(u16bit_iterator start, u16bit_iterator end, octet_iterator result)
+    {
+        while (start != end) {
+            uint32_t cp = HANDLE_U16C(swap_handler, *start++);
+            // Take care of surrogate pairs first
+            if (utf8::internal::is_lead_surrogate(cp)) {
+                if (start != end) {
+                    uint32_t trail_surrogate = HANDLE_U16C(swap_handler, *start++);
+                    if (utf8::internal::is_trail_surrogate(trail_surrogate))
+                        cp = (cp << 10) + trail_surrogate + internal::SURROGATE_OFFSET;
+                    else
+                        throw invalid_utf16(static_cast<uint16_t>(trail_surrogate));
+                }
+                else
+                    throw invalid_utf16(static_cast<uint16_t>(cp));
+
+            }
+            // Lone trail surrogate
+            else if (utf8::internal::is_trail_surrogate(cp))
+                throw invalid_utf16(static_cast<uint16_t>(cp));
+
+            result = utf8::append(cp, result);
+        }
+        return result;
+    }
+
+    template <typename swap_handler, typename u16bit_iterator, typename octet_iterator>
+    u16bit_iterator utf8to16_checked(octet_iterator start, octet_iterator end, u16bit_iterator result)
+    {
+        while (start < end) {
+            uint32_t cp = utf8::next(start, end);
+            if (cp > 0xffff) { //make a surrogate pair
+                *result++ = HANDLE_U16C(swap_handler, (cp >> 10) + internal::LEAD_OFFSET);
+                *result++ = HANDLE_U16C(swap_handler, (cp & 0x3ff) + internal::TRAIL_SURROGATE_MIN);
+            }
+            else
+                *result++ = HANDLE_U16C(swap_handler, cp);
+        }
+        return result;
+    }
 
     template <typename u16bit_iterator, typename octet_iterator>
     octet_iterator utf16to8 (bool swapbytes, u16bit_iterator start, u16bit_iterator end, octet_iterator result)
@@ -220,22 +289,22 @@ namespace utf8
     template <typename u16bit_iterator, typename octet_iterator>
     octet_iterator utf16to8(u16bit_iterator start, u16bit_iterator end, octet_iterator result)
     {
-        return utf16to8(false, start, end, result);
+        return utf16to8_checked<unswapped>(start, end, result);
     }
 
     template <typename u16bit_iterator, typename octet_iterator>
     u16bit_iterator utf8to16 (bool swapbytes, octet_iterator start, octet_iterator end, u16bit_iterator result)
     {
         if (swapbytes)
-            return utf8to16_unchecked<swapped>(start, end, result);
+            return utf8to16_checked<swapped>(start, end, result);
         else
-            return utf8to16_unchecked<unswapped>(start, end, result);
+            return utf8to16_checked<unswapped>(start, end, result);
     }
 
     template <typename u16bit_iterator, typename octet_iterator>
     u16bit_iterator utf8to16(octet_iterator start, octet_iterator end, u16bit_iterator result)
     {
-        return utf8to16(false, start, end, result);
+        return utf8to16_checked<unswapped>(start, end, result);
     }
 
     template <typename u16bit_iterator, typename octet_iterator>
@@ -325,10 +394,6 @@ namespace utf8
     }; // class iterator
 
 } // namespace utf8
-
-#if UTF_CPP_CPLUSPLUS >= 201103L // C++ 11 or later
-#include "cpp11.h"
-#endif // C++ 11 or later
 
 #endif //header guard
 
