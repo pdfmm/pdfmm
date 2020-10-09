@@ -490,7 +490,7 @@ PdfTokenizer::EPdfLiteralDataType PdfTokenizer::DetermineDataType( const char* p
                 pszToken[0] == 'R' && pszToken[1] == '\0')
             {
                 rVariant = PdfReference(static_cast<unsigned int>(rVariant.GetNumber()),
-                    static_cast<const uint16_t>(l));
+                    static_cast<uint16_t>(l));
                 return EPdfLiteralDataType::Reference;
             }
             else
