@@ -132,17 +132,42 @@ void PdfOutputDevice::Print( const char* pszFormat, ... )
 {
     va_list args;
 	va_start( args, pszFormat );
-	Print(pszFormat, args);
-	va_end( args );
+    try
+    {
+	    Print(pszFormat, args);
+    }
+    catch (...)
+    {
+        va_end(args);
+        throw;
+    }
+	va_end(args);
 }
 
 void PdfOutputDevice::Print(const char* pszFormat, va_list args)
 {
+    // NOTE: The first vsnprintf call will modify the va_list in GCC
+    // so we must copy it first. Yes, it sucks. Yes, it's a shame
+    va_list argscopy;
+    va_copy(argscopy, args);
     int rc = compat::vsnprintf(nullptr, 0, pszFormat, args);
     if (rc < 0)
+    {
+        va_end(argscopy);
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
+    }
 
-    PrintV(pszFormat, (size_t)rc, args);
+    try
+    {
+        PrintV(pszFormat, (size_t)rc, argscopy);
+    }
+    catch (...)
+    {
+        va_end(argscopy);
+        throw;
+    }
+
+    va_end(argscopy);
 }
 
 void PdfOutputDevice::PrintV( const char* pszFormat, size_t lBytes, va_list args )
