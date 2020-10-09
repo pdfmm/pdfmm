@@ -90,12 +90,6 @@ PdfField::PdfField( EPdfField eField, PdfObject *pObject, PdfAnnotation *pWidget
 {
 }
 
-PdfField::PdfField( const PdfField & rhs )
-    : m_eField( EPdfField::Unknown ), m_pObject( NULL ), m_pWidget( NULL )
-{
-    this->operator=( rhs );
-}
-
 PdfField * PdfField::CreateField( PdfObject *pObject )
 {
     return createField(GetFieldType(*pObject), pObject, NULL );
@@ -672,11 +666,6 @@ PdfButton::PdfButton( EPdfField eField, PdfPage* pPage, const PdfRect & rRect)
 {
 }
 
-PdfButton::PdfButton( const PdfField & rhs )
-    : PdfField( rhs )
-{
-}
-
 bool PdfButton::IsPushButton() const
 {
     return this->GetFieldFlag(static_cast<int>(ePdfButton_PushButton), false);
@@ -725,15 +714,6 @@ PdfPushButton::PdfPushButton( PdfPage* pPage, const PdfRect & rRect)
     : PdfButton( EPdfField::PushButton, pPage, rRect )
 {
     Init();
-}
-
-PdfPushButton::PdfPushButton( const PdfField & rhs )
-    : PdfButton( rhs )
-{
-    if( this->GetType() != EPdfField::CheckBox )
-    {
-        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDataType, "Field cannot be converted into a PdfPushButton" );
-    }
 }
 
 void PdfPushButton::Init() 
@@ -828,15 +808,6 @@ PdfCheckBox::PdfCheckBox( PdfPage* pPage, const PdfRect & rRect)
 {
 }
 
-PdfCheckBox::PdfCheckBox( const PdfField & rhs )
-    : PdfButton( rhs )
-{
-    if( this->GetType() != EPdfField::CheckBox )
-    {
-        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDataType, "Field cannot be converted into a PdfCheckBox" );
-    }
-}
-
 void PdfCheckBox::AddAppearanceStream( const PdfName & rName, const PdfReference & rReference )
 {
     if( !GetFieldObject()->GetDictionary().HasKey( PdfName("AP") ) )
@@ -896,15 +867,6 @@ PdfTextField::PdfTextField( PdfPage* pPage, const PdfRect & rRect)
     : PdfField( EPdfField::TextField, pPage, rRect )
 {
     Init();
-}
-
-PdfTextField::PdfTextField( const PdfField & rhs )
-    : PdfField( rhs )
-{
-    if( this->GetType() != EPdfField::TextField )
-    {
-        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDataType, "Field cannot be converted into a PdfTextField" );
-    }
 }
 
 void PdfTextField::Init()
@@ -1035,11 +997,6 @@ PdfListField::PdfListField( EPdfField eField, PdfObject *pObject, PdfAnnotation 
 
 PdfListField::PdfListField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect )
     : PdfField( eField, pPage, rRect )
-{
-}
-
-PdfListField::PdfListField( const PdfField & rhs ) 
-    : PdfField( rhs )
 {
 }
 
@@ -1260,15 +1217,6 @@ PdfComboBox::PdfComboBox( PdfPage* pPage, const PdfRect & rRect)
     this->SetFieldFlag( static_cast<int>(ePdfListField_Combo), true );        
 }
 
-PdfComboBox::PdfComboBox( const PdfField & rhs )
-    : PdfListField( rhs )
-{
-    if( this->GetType() != EPdfField::ComboBox )
-    {
-        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDataType, "Field cannot be converted into a PdfTextField" );
-    }
-}
-
 void PdfComboBox::SetEditable(bool bEdit)
 {
     this->SetFieldFlag(static_cast<int>(ePdfListField_Edit), bEdit);
@@ -1297,15 +1245,6 @@ PdfListBox::PdfListBox( PdfPage* pPage, const PdfRect & rRect)
     this->SetFieldFlag( static_cast<int>(ePdfListField_Combo), false );
 }
 
-PdfListBox::PdfListBox( const PdfField & rhs )
-    : PdfListField( rhs )
-{
-    if( this->GetType() != EPdfField::ListBox )
-    {
-        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDataType, "Field cannot be converted into a PdfTextField" );
-    }
-}
-
 PdfRadioButton::PdfRadioButton( PdfObject *pObject, PdfAnnotation* pWidget )
     : PdfButton( EPdfField::RadioButton, pObject, pWidget )
 {
@@ -1319,11 +1258,6 @@ PdfRadioButton::PdfRadioButton(PdfAnnotation* pWidget, PdfDocument& pDoc, bool i
 
 PdfRadioButton::PdfRadioButton( PdfPage * pPage, const PdfRect & rRect)
     : PdfButton( EPdfField::RadioButton, pPage, rRect)
-{
-}
-
-PdfRadioButton::PdfRadioButton( const PdfField & rhs )
-    : PdfButton( rhs )
 {
 }
 

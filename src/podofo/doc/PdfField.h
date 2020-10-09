@@ -149,14 +149,6 @@ protected:
      */
     PdfField( PdfObject* pObject, PdfAnnotation* pWidget );
 
-    /** Create a copy of a PdfField object.
-     *  Not the field on the page is copied - only the PdfField
-     *  object referring to the field on the page is copied!
-     *
-     *  \param rhs the field to copy
-     */
-    PdfField( const PdfField & rhs );
-
     virtual ~PdfField() { }
 
     /** Create a PdfAcroForm dictionary object from an existing annottion
@@ -379,7 +371,9 @@ protected:
      */
     EPdfField GetType() const;
 
- private:
+private:
+    PdfField(const PdfField& rhs) = delete;
+
     void Init(PdfAcroForm *pParent);
     void AddAlternativeAction( const PdfName & rsName, const PdfAction & rAction );
     static PdfField * createField(EPdfField type, PdfObject* pObject, PdfAnnotation* pWidget );
@@ -422,14 +416,6 @@ class PODOFO_DOC_API PdfButton : public PdfField
     PdfButton( EPdfField eField, PdfPage* pPage, const PdfRect & rRect);
 
  public:
-
-    /** Create a PdfButton from a PdfField 
-     *  \param rhs a PdfField that is a button
-     *
-     *  Internal usage only.
-     */
-    PdfButton( const PdfField & rhs );
-
     /**
      * \returns true if this is a pushbutton
      */
@@ -478,13 +464,6 @@ public:
      */
     PdfPushButton( PdfPage* pPage, const PdfRect & rRect);
 
-    /** Create a PdfPushButton from a PdfField 
-     *  \param rhs a PdfField that is a push button button
-     *
-     *  Raises an error if PdfField::GetType() != EPdfField::PushButton
-     */
-    PdfPushButton( const PdfField & rhs );
-
     /** Set the rollover caption of this button
      *  which is displayed when the cursor enters the field
      *  without the mouse button being pressed
@@ -531,13 +510,6 @@ public:
     /** Create a new PdfCheckBox
      */
     PdfCheckBox( PdfPage* pPage, const PdfRect & rRect);
-
-    /** Create a PdfCheckBox from a PdfField 
-     *  \param rhs a PdfField that is a check box
-     *
-     *  Raises an error if PdfField::GetType() != EPdfField::CheckBox
-     */
-    PdfCheckBox( const PdfField & rhs );
 
     /** Set the appearance stream which is displayed when the checkbox
      *  is checked.
@@ -592,11 +564,6 @@ public:
     /** Create a new PdfRadioButton
      */
     PdfRadioButton( PdfPage* pPage, const PdfRect & rRect);
-
-    /** Create a PdfRadioButton from a PdfField
-     *  \param rhs a PdfField that is a radio button
-     */
-    PdfRadioButton( const PdfField & rhs);
 };
 
 /** A textfield in a PDF file.
@@ -634,14 +601,6 @@ public:
     /** Create a new PdfTextField
      */
     PdfTextField( PdfPage* pPage, const PdfRect & rRect);
-
-    /** Create a PdfTextField from a PdfField
-     * 
-     *  \param rhs a PdfField that is a PdfTextField
-     *
-     *  Raises an error if PdfField::GetType() != EPdfField::TextField
-     */
-    PdfTextField( const PdfField & rhs );
 
     /** Sets the text contents of this text field.
      *
@@ -809,15 +768,6 @@ protected:
     PdfListField( EPdfField eField, PdfPage* pPage, const PdfRect & rRect);
 
  public:
-    /** Create a PdfListField from a PdfField 
-     *  \param rhs a PdfField that is a list field
-     *
-     *  Internal usage only.
-     */
-    PdfListField( const PdfField & rhs );
-
-    //const PdfString & GetSelectedItem(); /// ???
-
     /**
      * Inserts a new item into the list
      *
@@ -939,14 +889,6 @@ public:
     /** Create a new PdfTextField
      */
     PdfComboBox( PdfPage* pPage, const PdfRect & rRect);
-
-    /** Create a PdfComboBox from a PdfField
-     * 
-     *  \param rhs a PdfField that is a PdfComboBox
-     *
-     *  Raises an error if PdfField::GetType() != EPdfField::ComboBox
-     */
-    PdfComboBox( const PdfField & rhs );
 
     /**
      * Sets the combobox to be editable

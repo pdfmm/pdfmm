@@ -170,8 +170,6 @@ void PdfWriter::WritePdfHeader(PdfOutputDevice& device)
 
 void PdfWriter::WritePdfObjects(PdfOutputDevice& device, const PdfVecObjects& vecObjects, PdfXRef& xref)
 {
-    TCIVecObjects itObjects, itObjectsEnd = vecObjects.end();
-
     for(PdfObject* pObject : vecObjects )
     {
 	    if( m_bIncrementalUpdate )

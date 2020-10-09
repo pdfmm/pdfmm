@@ -426,7 +426,7 @@ PdfTokenizer::EPdfLiteralDataType PdfTokenizer::DetermineDataType( const char* p
             {
                 eDataType = EPdfLiteralDataType::Real;
             }
-            else if( !(isdigit( static_cast<const unsigned char>(*pszStart) ) || *pszStart == '-' || *pszStart == '+' ) )
+            else if( !(isdigit( *pszStart ) || *pszStart == '-' || *pszStart == '+' ) )
             {
                 eDataType = EPdfLiteralDataType::Unknown;
                 break;
