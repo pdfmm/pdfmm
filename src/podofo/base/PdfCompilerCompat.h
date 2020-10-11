@@ -62,21 +62,10 @@
 #endif // DEBUG
 #endif // _DEBUG
 
+#include <cstdint>
 #include <cstddef>
 
 #include <podofo/compat/EnumFlags.h>
-
-#if defined(TEST_BIG)
-#  define PODOFO_IS_BIG_ENDIAN
-#else
-#  define PODOFO_IS_LITTLE_ENDIAN
-#endif
-
-#include <cstdint>
-
-#if PODOFO_HAVE_STRINGS_H
-#include <strings.h>
-#endif
 
 // Declare ssize_t as a signed alternative to size_t,
 // useful for example to provide optional size argument
@@ -85,7 +74,7 @@
 #include <BaseTsd.h>
 typedef SSIZE_T ssize_t;
 #else
-// Posix has sstize_t
+// Posix has ssize_t
 #include <sys/types.h>
 #endif
 

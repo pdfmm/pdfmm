@@ -50,6 +50,12 @@
 #include <ctime>
 #include <cinttypes>
 
+#if defined(TEST_BIG)
+#  define PODOFO_IS_BIG_ENDIAN
+#else
+#  define PODOFO_IS_LITTLE_ENDIAN
+#endif
+
  // Different compilers use different format specifiers for 64-bit integers
  // (yay!).  Use these macros with C's automatic string concatenation to handle
  // that ghastly quirk.
