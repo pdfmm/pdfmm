@@ -857,6 +857,7 @@ void PdfLZWFilter::DecodeBlockImpl( const char* pBuffer, size_t lLen )
                     case 2047:
                         ++m_code_len;
                         ++m_mask;
+                        break;
                     default:
                         break;
                 }
@@ -1265,7 +1266,7 @@ void PdfCCITTFilter::EndEncodeImpl()
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
 void PdfCCITTFilter::BeginDecodeImpl( const PdfDictionary* pDict )
-{ 
+{
 #ifdef DS_CCITT_DEVELOPMENT_CODE
 
     if( !pDict )
@@ -1317,6 +1318,7 @@ void PdfCCITTFilter::BeginDecodeImpl( const PdfDictionary* pDict )
     */
 
 #else // DS_CCITT_DEVELOPMENT_CODE
+    (void)pDict;
     PODOFO_RAISE_ERROR( EPdfError::UnsupportedFilter );
 #endif // DS_CCITT_DEVELOPMENT_CODE
 }

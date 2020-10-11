@@ -81,6 +81,16 @@ PdfImmediateWriter::~PdfImmediateWriter()
         GetObjects().Detach( this );
 }
 
+EPdfWriteMode PdfImmediateWriter::GetWriteMode() const
+{
+    return PdfWriter::GetWriteMode();
+}
+
+EPdfVersion PdfImmediateWriter::GetPdfVersion() const
+{
+    return PdfWriter::GetPdfVersion();
+}
+
 void PdfImmediateWriter::WriteObject( const PdfObject* pObject )
 {
     const int endObjLenght = 7;

@@ -100,17 +100,13 @@ public:
      */
     void BuildFont( PdfRefCountedBuffer& outputBuffer, const std::set<pdf_utf16be>& usedChars, std::vector<unsigned char>& cidSet );
 
- private:
-    /** Hide default constructor
-     */
-    PdfFontTTFSubset() : m_bOwnDevice( false ) {} 
-
+private:
     /** copy constructor, not implemented
      */
     PdfFontTTFSubset(const PdfFontTTFSubset& rhs);
     /** assignment operator, not implemented
      */
-    PdfFontTTFSubset& operator=(const PdfFontTTFSubset& rhs);
+    PdfFontTTFSubset& operator=(const PdfFontTTFSubset& rhs) = delete;
 
     void Init();
     
@@ -220,10 +216,10 @@ public:
     unsigned long GetLocaTableSize();
     unsigned long WriteLocaTable(char* bufp);
     unsigned long GetHmtxTableSize();
-    unsigned long WriteHmtxTable(char* bufp, unsigned long ulHmtxTableOffset);
     unsigned long CalculateSubsetSize();
     void WriteTables(PdfRefCountedBuffer& fontData);
 
+private:
     PdfFontMetrics* m_pMetrics;                ///< FontMetrics object which is required to convert unicode character points to glyph ids
     EFontFileType   m_eFontFileType;
     bool	        m_bIsLongLoca;

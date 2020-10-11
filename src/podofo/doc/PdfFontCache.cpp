@@ -200,6 +200,7 @@ static bool GetFontFromCollection(HDC &hdc, char *&buffer, unsigned int &bufferL
 
 static bool GetDataFromHFONT( HFONT hf, char** outFontBuffer, unsigned int& outFontBufferLen, const LOGFONTW* inFont )
 {
+    (void)inFont;
     HDC hdc = GetDC(0);
     if ( hdc == NULL ) return false;
     HGDIOBJ oldFont = SelectObject(hdc, hf);    // Petr Petrov (22 December 2009)
@@ -820,6 +821,9 @@ std::string PdfFontCache::GetFontPath( const char* pszFontName, bool bBold, bool
 #if defined(PODOFO_HAVE_FONTCONFIG)
     std::string sPath = m_fontConfig->GetFontConfigFontPath( pszFontName, bBold, bItalic );
 #else
+    (void)pszFontName;
+    (void)bBold;
+    (void)bItalic;
     std::string sPath = "";
 #endif
     return sPath;

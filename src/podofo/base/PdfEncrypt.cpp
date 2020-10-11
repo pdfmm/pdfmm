@@ -457,8 +457,6 @@ unique_ptr<PdfEncrypt> PdfEncrypt::CreatePdfEncrypt(const string_view & userPass
                              EPdfEncryptAlgorithm eAlgorithm, 
                              EPdfKeyLength eKeyLength )
 {
-    PdfEncrypt *pdfEncrypt = NULL;
-    
     switch (eAlgorithm)
     {
 #ifdef PODOFO_HAVE_LIBIDN
@@ -576,8 +574,6 @@ unique_ptr<PdfEncrypt> PdfEncrypt::CreatePdfEncrypt( const PdfObject* pObject )
 
 unique_ptr<PdfEncrypt> PdfEncrypt::CreatePdfEncrypt(const PdfEncrypt & rhs )  
 {
-    PdfEncrypt *pdfEncrypt = NULL;
-    
     if (rhs.m_eAlgorithm == EPdfEncryptAlgorithm::AESV2)
         return unique_ptr<PdfEncrypt>(new PdfEncryptAESV2(rhs));
 #ifdef PODOFO_HAVE_LIBIDN

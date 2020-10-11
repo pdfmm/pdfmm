@@ -92,9 +92,6 @@ inline void TTFWriteUInt16(char *bufp, unsigned short value)
 }
 
 //Get the number of bytes to pad the ul, because of 4-byte-alignment.
-#if UNUSED_CODE
-static unsigned int GetPadding(unsigned long ul);  
-#endif
 static unsigned long TableCheksum(const char* bufp, unsigned long size);
 static unsigned short xln2(unsigned short v);
 
@@ -856,20 +853,3 @@ void PdfFontTTFSubset::GetData(unsigned long offset, void* address, unsigned lon
     m_pDevice->Seek( offset );
     m_pDevice->Read( static_cast<char*>(address), sz );
 }
-
-
-#if UNUSED_CODE
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-static unsigned int GetPadding(unsigned long ul)
-{
-    ul &= 3;
-    if (ul != 0)
-    {
-        ul = 4-ul;
-    }
-    
-    return ul;
-}
-#endif

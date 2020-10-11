@@ -93,8 +93,6 @@ PdfDocument::~PdfDocument()
 
 void PdfDocument::Clear() 
 {
-    TIVecObjects     it     = m_vecObjects.begin();
-
     m_fontCache.EmptyCache();
     m_vecObjects.Clear();
     m_pCatalog = nullptr;
@@ -185,6 +183,12 @@ PdfFont* PdfDocument::CreateFontSubset( const char* pszFontName, bool bBold, boo
 PdfFont* PdfDocument::CreateFontSubset( const wchar_t* pszFontName, bool bBold, bool bItalic, bool bSymbolCharset,
                                         const PdfEncoding * const pEncoding)
 {
+
+    (void)pszFontName;
+    (void)bBold;
+    (void)bItalic;
+    (void)bSymbolCharset;
+    (void)pEncoding;
     PODOFO_RAISE_ERROR_INFO( EPdfError::Unknown, "Subsets are not yet implemented for unicode on windows." );
 }
 #endif // _WIN32
