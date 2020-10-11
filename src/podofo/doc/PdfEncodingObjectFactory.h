@@ -53,9 +53,9 @@ class PODOFO_DOC_API PdfEncodingObjectFactory {
      *  \param pToUnicode the optional ToUnicode dictionary
      *  \param bExplicitNames if true, glyph names are meaningless explicit keys on the font (used for Type3 fonts)
      *
-     *  \returns a PdfEncoding or NULL
+     *  \returns a PdfEncoding or nullptr
      */
-    static const PdfEncoding* CreateEncoding( PdfObject* pObject, PdfObject *pToUnicode = NULL, bool bExplicitNames = false );
+    static const PdfEncoding* CreateEncoding( PdfObject* pObject, PdfObject *pToUnicode = nullptr, bool bExplicitNames = false );
 
 private:
     /**

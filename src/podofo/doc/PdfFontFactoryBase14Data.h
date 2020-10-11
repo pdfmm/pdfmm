@@ -4443,8 +4443,8 @@ static const PdfFontMetricsBase14Rec  PODOFO_BUILTIN_FONTS[] = {
         {-1, -143, 981, 820}
     },
     {
-        NULL,
-        NULL,
+        nullptr,
+        nullptr,
         false,
         0,
         0,
@@ -4625,8 +4625,8 @@ static const   PdfFontMetricsBase14   PODOFO_BUILTIN_FONTS[] = {
         PdfRect(-1, -143, 981, 820)
     ),
     PdfFontMetricsBase14(
-        NULL,
-        NULL,
+        nullptr,
+        nullptr,
         false,
         0,
         0,

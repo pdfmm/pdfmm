@@ -263,7 +263,7 @@ bool PdfDate::ParseFixLenNumber(const char *&in, unsigned int length, int min, i
     ret = 0;
     for(unsigned int i=0;i<length;i++)
     {
-        if ( in == NULL || !isdigit(*in)) return false;
+        if ( in == nullptr || !isdigit(*in)) return false;
         ret = ret*10+ (*in-'0');
         in++;
     }
@@ -286,7 +286,7 @@ PdfString PdfDate::ToStringW3C() const
 // date library runtime support
 int getLocalOffesetFromUTCMinutes()
 {
-    time_t t = time(NULL);
+    time_t t = time(nullptr);
     struct tm * locg = localtime(&t);
     struct tm locl;
     memcpy(&locl, locg, sizeof(struct tm));

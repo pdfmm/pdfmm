@@ -65,7 +65,7 @@ class PODOFO_DOC_API PdfPagesTreeCache final
      *  deleted along with it.
      *
      *  \param nIndex page index, 0-based
-     *  \returns a pointer to the requested page or NULL if it is not cached
+     *  \returns a pointer to the requested page or nullptr if it is not cached
      */
     PdfPage* GetPage( int nIndex );
 

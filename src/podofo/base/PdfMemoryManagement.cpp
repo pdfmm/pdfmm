@@ -59,7 +59,7 @@ void* podofo_malloc( size_t size )
         Access via this pointer will generate a SIGSEGV exception.
 
 		Linux
-		Man: If size is 0, then malloc() returns either NULL, or a unique pointer value that can later be successfully passed to free().
+		Man: If size is 0, then malloc() returns either nullptr, or a unique pointer value that can later be successfully passed to free().
 
 		OS X
 		Man: Behaviour unspecified
@@ -67,7 +67,7 @@ void* podofo_malloc( size_t size )
 
 		Behaviour on Linux is interesting: http://www.unix.com/man-page/redhat/3/malloc/
 		Linux follows an optimistic memory allocation strategy. This means that when malloc()
-		returns non-NULL there is no guarantee that the memory really is available. In case it
+		returns non-nullptr there is no guarantee that the memory really is available. In case it
 		turns out that the system is out of memory, one or more processes will be killed by the
 		infamous OOM killer.
 	*/
@@ -91,7 +91,7 @@ void* podofo_calloc(size_t nmemb, size_t size)
         Access via this pointer will generate a SIGSEGV exception.
 
 		Linux
-		If size or nmemb is equal to 0 then calloc() returns either NULL, or a unique pointer value that can later be successfully passed to free().
+		If size or nmemb is equal to 0 then calloc() returns either nullptr, or a unique pointer value that can later be successfully passed to free().
 
 		OS X
 		Behaviour unspecified
@@ -120,7 +120,7 @@ void* podofo_calloc(size_t nmemb, size_t size)
 		nmemb > 0 && SIZE_MAX / nmemb < size) 
 	{
 		errno = ENOMEM;
-		return NULL;
+		return nullptr;
 	}
 
 	return calloc(nmemb, size);
@@ -132,18 +132,18 @@ void* podofo_realloc( void* buffer, size_t size )
 		realloc behaviour with size==0 is platform specific (and dangerous in Visual C++)
 	
 		Windows Visual C++
-		If size is zero, then the block pointed to by memblock is freed; the return value is NULL, and buffer is left pointing at a freed block.
-		NOTE: this is very dangerous, since NULL is also returned when there's not enough memory, but the block ISN'T freed
+		If size is zero, then the block pointed to by memblock is freed; the return value is nullptr, and buffer is left pointing at a freed block.
+		NOTE: this is very dangerous, since nullptr is also returned when there's not enough memory, but the block ISN'T freed
 
 		OpenBSD
 		If size is equal to 0, a unique pointer to an access protected, zero sized object is returned. 
         Access via this pointer will generate a SIGSEGV exception.
 
 		Linux
-		If size was equal to 0, either NULL or a pointer suitable to be passed to free() is returned.
+		If size was equal to 0, either nullptr or a pointer suitable to be passed to free() is returned.
 
 		OS X
-		If size is zero and buffer is not NULL, a new, minimum sized object is allocated and the original object is freed.	
+		If size is zero and buffer is not nullptr, a new, minimum sized object is allocated and the original object is freed.	
 	*/
 
 	if (size == 0)

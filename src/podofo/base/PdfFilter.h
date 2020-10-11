@@ -156,10 +156,10 @@ public:
      *  \param plOutLen pointer to where to write the output buffer's length  
      *  \param pDecodeParms optional pointer to a decode-parameters dictionary
      *                      containing additional information to decode
-     *                      the data. This pointer must be NULL if no
+     *                      the data. This pointer must be nullptr if no
      *                      decode-parameters dictionary is available.
      */
-    void Decode( const char* pInBuffer, size_t lInLen, char** ppOutBuffer, size_t* plOutLen, const PdfDictionary* pDecodeParms = NULL ) const;
+    void Decode( const char* pInBuffer, size_t lInLen, char** ppOutBuffer, size_t* plOutLen, const PdfDictionary* pDecodeParms = nullptr ) const;
 
     /** Begin progressively decoding data using this filter.
      *
@@ -177,7 +177,7 @@ public:
      *  \see DecodeBlock
      *  \see EndDecode
      */
-    void BeginDecode( PdfOutputStream* pOutput, const PdfDictionary* pDecodeParms = NULL );
+    void BeginDecode( PdfOutputStream* pOutput, const PdfDictionary* pDecodeParms = nullptr );
 
     /** Decode a block of data and write it to the PdfOutputStream
      *  specified by BeginDecode(). Ownership of the block is not taken
@@ -334,7 +334,7 @@ public:
      *
      *  \param eFilter return value of GetType() for filter to be created
      *
-     *  \returns a new PdfFilter allocated using new, or NULL if no
+     *  \returns a new PdfFilter allocated using new, or nullptr if no
      *           filter is available for this type.
      */
     static std::unique_ptr<PdfFilter> Create( const EPdfFilter eFilter );

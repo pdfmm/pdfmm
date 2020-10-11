@@ -89,12 +89,12 @@ public:
      *  \param eVersion the PDF version of the document to write.
      *                  The PDF version can only be set in the constructor
      *                  as it is the first item written to the document on disk.
-     *  \param pEncrypt pointer to an encryption object or NULL. If not NULL
+     *  \param pEncrypt pointer to an encryption object or nullptr. If not nullptr
      *                  the PdfEncrypt object will be copied and used to encrypt the
      *                  created document.
      *  \param eWriteMode additional options for writing the pdf
      */
-    PdfStreamedDocument( PdfOutputDevice& pDevice, EPdfVersion eVersion = PdfVersionDefault, PdfEncrypt* pEncrypt = NULL, EPdfWriteMode eWriteMode = PdfWriteModeDefault );
+    PdfStreamedDocument( PdfOutputDevice& pDevice, EPdfVersion eVersion = PdfVersionDefault, PdfEncrypt* pEncrypt = nullptr, EPdfWriteMode eWriteMode = PdfWriteModeDefault );
 
     /** Create a new PdfStreamedDocument.
      *  All data is written to a file immediately.
@@ -103,12 +103,12 @@ public:
      *  \param eVersion the PDF version of the document to write.
      *                  The PDF version can only be set in the constructor
      *                  as it is the first item written to the document on disk.
-     *  \param pEncrypt pointer to an encryption object or NULL. If not NULL
+     *  \param pEncrypt pointer to an encryption object or nullptr. If not nullptr
      *                  the PdfEncrypt object will be copied and used to encrypt the
      *                  created document.
      *  \param eWriteMode additional options for writing the pdf
      */
-    PdfStreamedDocument(const std::string_view& filename, EPdfVersion eVersion = PdfVersionDefault, PdfEncrypt* pEncrypt = NULL, EPdfWriteMode eWriteMode = PdfWriteModeDefault );
+    PdfStreamedDocument(const std::string_view& filename, EPdfVersion eVersion = PdfVersionDefault, PdfEncrypt* pEncrypt = nullptr, EPdfWriteMode eWriteMode = PdfWriteModeDefault );
 
     ~PdfStreamedDocument();
 
@@ -212,7 +212,7 @@ public:
      *  \param eVersion the PDF version of the document to write.
      *                  The PDF version can only be set in the constructor
      *                  as it is the first item written to the document on disk.
-     *  \param pEncrypt pointer to an encryption object or NULL. If not NULL
+     *  \param pEncrypt pointer to an encryption object or nullptr. If not nullptr
      *                  the PdfEncrypt object will be copied and used to encrypt the
      *                  created document.
      *  \param eWriteMode additional options for writing the pdf

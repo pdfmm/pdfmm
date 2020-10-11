@@ -65,7 +65,7 @@ class PODOFO_DOC_API PdfTilingPattern : public PdfElement {
      *
      *  \note fill color is ignored if doFill is false
      *
-     *  \note pImage is ignored for all but EPdfTilingPatternType::Image eTilingType types, where it cannot be NULL
+     *  \note pImage is ignored for all but EPdfTilingPatternType::Image eTilingType types, where it cannot be nullptr
      *  
      */
     PdfTilingPattern( EPdfTilingPatternType eTilingType,
@@ -95,7 +95,7 @@ class PODOFO_DOC_API PdfTilingPattern : public PdfElement {
      *
      *  \note fill color is ignored if doFill is false
      *
-     *  \note pImage is ignored for all but EPdfTilingPatternType::Image eTilingType types, where it cannot be NULL
+     *  \note pImage is ignored for all but EPdfTilingPatternType::Image eTilingType types, where it cannot be nullptr
      *  
      */
     PdfTilingPattern( EPdfTilingPatternType eTilingType,

@@ -77,7 +77,7 @@ public:
     /** Set an encryption object which is used to encrypt
      *  all data written to this stream.
      *
-     *  \param pEncrypt an encryption object or NULL if no encryption should be done
+     *  \param pEncrypt an encryption object or nullptr if no encryption should be done
      */
     void SetEncrypted( PdfEncrypt* pEncrypt ); 
 

@@ -58,7 +58,7 @@ const char* PdfAction::s_names[] = {
     "Rendition",
     "Trans",
     "GoTo3DView",
-    NULL
+    nullptr
 };
 
 PdfAction::PdfAction( EPdfAction eAction, PdfVecObjects* pParent )
@@ -89,7 +89,7 @@ PdfAction::PdfAction( EPdfAction eAction, PdfDocument* pParent )
 
 PdfAction::PdfAction( PdfObject* pObject )
     // The typename /Action is optional for PdfActions
-    : PdfElement( NULL, pObject )
+    : PdfElement( nullptr, pObject )
 {
     m_eType = static_cast<EPdfAction>(TypeNameToIndex( this->GetObject()->GetDictionary().GetKeyAsName( "S" ).GetString().c_str(), s_names, s_lNumActions, (int)EPdfAction::Unknown ));
 }
@@ -112,7 +112,7 @@ PdfString PdfAction::GetURI() const
 
 bool PdfAction::HasURI() const
 {
-    return (this->GetObject()->GetIndirectKey( "URI" ) != NULL);
+    return (this->GetObject()->GetIndirectKey( "URI" ) != nullptr);
 }
 
 void PdfAction::SetScript( const PdfString & sScript )

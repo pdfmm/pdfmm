@@ -98,13 +98,13 @@ public:
      *  ignoring all comments.
      *
      *  \param[out] pszToken On true return, set to a pointer to the read
-     *                     token (a NULL-terminated C string). The pointer is
+     *                     token (a nullptr-terminated C string). The pointer is
      *                     to memory owned by PdfTokenizer and must NOT be
      *                     freed.  The contents are invalidated on the next
      *                     call to GetNextToken(..) and by the destruction of
      *                     the PdfTokenizer. Undefined on false return.
      *
-     *  \param[out] peType On true return, if not NULL the type of the read token
+     *  \param[out] peType On true return, if not nullptr the type of the read token
      *                     will be stored into this parameter. Undefined on false
      *                     return.
      * 
@@ -113,7 +113,7 @@ public:
      *
      *  \see GetBuffer
      */
-    virtual bool GetNextToken( const char *& pszToken, EPdfTokenType* peType = NULL);
+    virtual bool GetNextToken( const char *& pszToken, EPdfTokenType* peType = nullptr);
 
     /** Reads the next token from the current file position
      *  ignoring all comments and compare the passed token
@@ -207,7 +207,7 @@ public:
     void GetNextVariant( const char* pszToken, EPdfTokenType eType, PdfVariant& rVariant, PdfEncrypt* pEncrypt );
 
     /** Determine the possible datatype of a token.
-     *  Numbers, reals, bools or NULL values are parsed directly by this function
+     *  Numbers, reals, bools or nullptr values are parsed directly by this function
      *  and saved to a variant.
      *
      *  \returns the expected datatype

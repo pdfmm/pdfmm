@@ -1139,7 +1139,7 @@ static struct {
   {0x007c, "|"},
   {0x007d, "}"},
   {0x007e, "~"},
-  { 0, NULL }
+  { 0, nullptr }
 };
 
 static struct {
@@ -2198,7 +2198,7 @@ static struct {
     {0xFB2B, "afii57695"},
     {0xFB35, "afii57723"},
     {0xFB4B, "afii57700"},
-    {0xFFFF, NULL}
+    {0xFFFF, nullptr}
 };
 
 PdfEncodingDifference::PdfEncodingDifference()
@@ -2379,7 +2379,7 @@ PdfDifferenceEncoding::PdfDifferenceEncoding( const PdfEncodingDifference & rDif
 }
 
 PdfDifferenceEncoding::PdfDifferenceEncoding( PdfObject* pObject, bool bAutoDelete, bool bExplicitNames )
-    : PdfEncoding( 0x00, 0xff ), PdfElement( NULL, pObject ),
+    : PdfEncoding( 0x00, 0xff ), PdfElement( nullptr, pObject ),
       m_bAutoDelete( bAutoDelete )
 {
     CreateID();
@@ -2512,7 +2512,7 @@ pdf_utf16be PdfDifferenceEncoding::NameToUnicodeID( const PdfName & rName )
         size_t length = strlen( pszName );
 
         // force base16 IF it's 4 characters line
-        pdf_utf16be val = static_cast<pdf_utf16be>(strtol( pszName, NULL, (length == 4 ? 16 : 10) ));
+        pdf_utf16be val = static_cast<pdf_utf16be>(strtol( pszName, nullptr, (length == 4 ? 16 : 10) ));
 
 #ifdef PODOFO_IS_LITTLE_ENDIAN
         return val = ((val & 0xff00) >> 8) | ((val & 0xff) << 8);
@@ -2591,7 +2591,7 @@ PdfRefCountedBuffer PdfDifferenceEncoding::ConvertToEncoding( const PdfString & 
 {
     const PdfEncoding* pEncoding = GetBaseEncoding();
 
-    pdf_utf16be* pszUtf16 = NULL;
+    pdf_utf16be* pszUtf16 = nullptr;
     size_t lLen = 0;
 
     if( rString.IsUnicode() )
@@ -2658,7 +2658,7 @@ PdfRefCountedBuffer PdfDifferenceEncoding::ConvertToEncoding( const PdfString & 
 
 const PdfEncoding* PdfDifferenceEncoding::GetBaseEncoding() const
 {
-    const PdfEncoding* pEncoding = NULL;
+    const PdfEncoding* pEncoding = nullptr;
 
     switch( m_baseEncoding ) 
     {

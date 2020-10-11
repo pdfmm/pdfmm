@@ -78,7 +78,7 @@ public:
      *  of the name tree.
      *  \param tree name of the tree to search for the key.
      *  \param key the key to search for
-     *  \returns the value of the key or NULL if the key was not found.
+     *  \returns the value of the key or nullptr if the key was not found.
      *           if the value is a reference, the object referenced by 
      *           this reference is returned.
      */
@@ -86,7 +86,7 @@ public:
 
     /** Tests wether a certain nametree has a value.
      *
-     *  It is generally faster to use GetValue and check for NULL
+     *  It is generally faster to use GetValue and check for nullptr
      *  as return value.
      *  
      *  \param tree name of the tree to search for the key.
@@ -141,14 +141,14 @@ public:
      *            - Renditions
      *
      *  \param bCreate if true the root node is created if it does not exists.
-     *  \returns the root node of the tree or NULL if it does not exists
+     *  \returns the root node of the tree or nullptr if it does not exists
      */
     PdfObject* GetRootNode( const PdfName & name, bool bCreate = false ) const;
 
     /** Recursively walk through the name tree and find the value for key.
      *  \param pObj the name tree 
      *  \param key the key to find a value for
-     *  \return the value for the key or NULL if it was not found
+     *  \return the value for the key or nullptr if it was not found
      */
     PdfObject* GetKeyValue( PdfObject* pObj, const PdfString & key ) const;
 

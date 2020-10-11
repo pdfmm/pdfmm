@@ -79,13 +79,13 @@ const char* PdfAnnotation::s_names[] = {
     "3D",             // PDF 1.6
     "RichMedia",      // PDF 1.7 ADBE ExtensionLevel 3 ALX: Petr P. Petrov
     "WebMedia",       // PDF 1.7 IPDF ExtensionLevel 1
-    NULL
+    nullptr
 };
 
 static PdfName GetAppearanceName( EPdfAnnotationAppearance eAppearance );
 
 PdfAnnotation::PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRect & rRect, PdfVecObjects* pParent )
-    : PdfElement( "Annot", pParent ), m_eAnnotation( eAnnot ), m_pAction( NULL ), m_pFileSpec( NULL ), m_pPage( pPage )
+    : PdfElement( "Annot", pParent ), m_eAnnotation( eAnnot ), m_pAction( nullptr ), m_pFileSpec( nullptr ), m_pPage( pPage )
 {
     PdfVariant    rect;
     PdfDate       date;
@@ -107,7 +107,7 @@ PdfAnnotation::PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRe
 }
 
 PdfAnnotation::PdfAnnotation( PdfObject* pObject, PdfPage* pPage )
-    : PdfElement( "Annot", pObject ), m_eAnnotation( EPdfAnnotation::Unknown ), m_pAction( NULL ), m_pFileSpec( NULL ), m_pPage( pPage )
+    : PdfElement( "Annot", pObject ), m_eAnnotation( EPdfAnnotation::Unknown ), m_pAction( nullptr ), m_pFileSpec( nullptr ), m_pPage( pPage )
 {
     m_eAnnotation = static_cast<EPdfAnnotation>(TypeNameToIndex( this->GetObject()->GetDictionary().GetKeyAsName( PdfName::KeySubtype ).GetString().c_str(), s_names, s_lNumActions, (int)EPdfAnnotation::Unknown ));
 }
@@ -254,13 +254,13 @@ PdfObject * PdfAnnotation::GetAppearanceDictionary()
 PdfObject * PdfAnnotation::GetAppearanceStream(EPdfAnnotationAppearance eAppearance, const PdfName & state)
 {
     PdfObject *apObj = GetAppearanceDictionary();
-    if (apObj == NULL)
-        return NULL;
+    if (apObj == nullptr)
+        return nullptr;
 
     PdfName apName = GetAppearanceName(eAppearance);
     PdfObject *apObjInn = apObj->GetDictionary().FindKey(apName);
-    if (apObjInn == NULL)
-        return NULL;
+    if (apObjInn == nullptr)
+        return nullptr;
 
     if (state.GetLength() == 0)
         return apObjInn;

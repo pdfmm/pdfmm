@@ -104,7 +104,7 @@ public:
      *  The returned outlines object is owned by the PdfDocument.
      * 
      *  \param bCreate create the object if it does not exist (ePdfCreateObject) 
-     *                 or return NULL if it does not exist
+     *                 or return nullptr if it does not exist
      *  \returns the Outlines/Bookmarks dictionary
      */
     PdfOutlines* GetOutlines( bool bCreate = ePdfCreateObject );
@@ -113,7 +113,7 @@ public:
      *  The returned PdfNamesTree object is owned by the PdfDocument.
      * 
      *  \param bCreate create the object if it does not exist (ePdfCreateObject) 
-     *                 or return NULL if it does not exist
+     *                 or return nullptr if it does not exist
      *  \returns the Names dictionary
      */
     PdfNamesTree* GetNamesTree( bool bCreate = ePdfCreateObject );
@@ -121,7 +121,7 @@ public:
     /** Get access to the AcroForm dictionary
      *  
      *  \param bCreate create the object if it does not exist (ePdfCreateObject) 
-     *                 or return NULL if it does not exist
+     *                 or return nullptr if it does not exist
      *  \param eDefaultAppearance specifies if a default appearence shall be created
      *
      *  \returns PdfObject the AcroForm dictionary
@@ -176,7 +176,7 @@ public:
     PdfFont* CreateFont( const char* pszFontName, bool bBold, bool bItalic, bool bSymbolCharset = false,
                          const PdfEncoding * const pEncoding = PdfEncodingFactory::GlobalWinAnsiEncodingInstance(), 
                          EFontCreationFlags eFontCreationFlags = EFontCreationFlags::AutoSelectBase14,
-                         bool bEmbedd = true, const char* pszFileName = NULL );
+                         bool bEmbedd = true, const char* pszFileName = nullptr );
 
 #ifdef _WIN32
     /** Creates a PdfFont object
@@ -262,7 +262,7 @@ public:
      */
     PdfFont* CreateFontSubset( const char* pszFontName, bool bBold, bool bItalic, bool bSymbolCharset = false,
 			       const PdfEncoding * const pEncoding = PdfEncodingFactory::GlobalWinAnsiEncodingInstance(),
-			       const char* pszFileName = NULL);
+			       const char* pszFileName = nullptr);
 
 #ifdef _WIN32
     /** Creates a font subset which contains only a few characters and is embedded.
@@ -380,7 +380,7 @@ public:
 
     /** Get an attached file's filespec.
      *  \param rName the name of the attachment
-     *  \return the file specification object if the file exists, NULL otherwise
+     *  \return the file specification object if the file exists, nullptr otherwise
      *          The file specification object is not owned by the document and must be deleted by the caller
      */
     PdfFileSpec* GetAttachment( const PdfString & rName );
@@ -644,7 +644,7 @@ protected:
 
     /** Get a dictionary from the catalog dictionary by its name.
      *  \param pszName will be converted into a PdfName
-     *  \returns the dictionary if it was found or NULL
+     *  \returns the dictionary if it was found or nullptr
      */
     PdfObject* GetNamedObjectFromCatalog( const char* pszName ) const;
 

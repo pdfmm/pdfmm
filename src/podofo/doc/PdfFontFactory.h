@@ -69,7 +69,7 @@ class PODOFO_DOC_API PdfFontFactory {
      *  \param pEncoding the encoding of this font.
      *  \param pParent the parent of the created font.
      *
-     *  \returns a new PdfFont object or NULL
+     *  \returns a new PdfFont object or nullptr
      */
     static PdfFont* CreateFontObject( PdfFontMetrics* pMetrics, EPdfFontFlags nFlags,
                                       const PdfEncoding* pEncoding, PdfVecObjects* pParent );
@@ -112,7 +112,7 @@ class PODOFO_DOC_API PdfFontFactory {
     /** Actually creates the font object for the requested type.
      *  Throws an exception in case of an error.
      *
-     *  \returns a new PdfFont object or NULL
+     *  \returns a new PdfFont object or nullptr
      */
     static PdfFont* CreateFontForType( EPdfFontType eType, PdfFontMetrics* pMetrics, 
                                        const PdfEncoding* const pEncoding, 

@@ -113,13 +113,13 @@ public:
 
     /** Return the current page that is that on the painter.
      *
-     *  \returns the current page of the painter or NULL if none is set
+     *  \returns the current page of the painter or nullptr if none is set
      */
     inline PdfCanvas* GetPage() const { return m_canvas; }
 
     /** Return the current page canvas stream that is set on the painter.
      *
-     *  \returns the current page canvas stream of the painter or NULL if none is set
+     *  \returns the current page canvas stream of the painter or nullptr if none is set
      */
     inline PdfStream* GetCanvas() const { return m_stream; }
 
@@ -212,7 +212,7 @@ public:
      *    EPdfStrokeStyle::Custom
      *
      */
-    void SetStrokeStyle( EPdfStrokeStyle eStyle, const char* pszCustom = NULL, bool inverted = false, double scale = 1.0, bool subtractJoinCap = false );
+    void SetStrokeStyle( EPdfStrokeStyle eStyle, const char* pszCustom = nullptr, bool inverted = false, double scale = 1.0, bool subtractJoinCap = false );
 
     /** Set the line cap style for all stroking operations.
      *  \param eCapStyle the cap style. 
@@ -262,7 +262,7 @@ public:
     inline EPdfTextRenderingMode GetTextRenderingMode() const { return currentTextRenderingMode; }
 
     /** Get the current font:
-     *  \returns a font object or NULL if no font was set.
+     *  \returns a font object or nullptr if no font was set.
      */
     inline PdfFont* GetFont() const { return m_pFont; }
 
@@ -343,7 +343,7 @@ public:
      *  You have to call SetFont before calling this function.
      *  \param dX the x coordinate
      *  \param dY the y coordinate
-     *  \param sText the text string which should be printed (is not allowed to be NULL!)
+     *  \param sText the text string which should be printed (is not allowed to be nullptr!)
      *  \param lLen draw only lLen characters of pszText
      *
      *  \see SetFont()
@@ -802,7 +802,7 @@ public:
      EPdfPainterFlags m_flags;
 
     /** All drawing operations work on this stream.
-     *  This object may not be NULL. If it is NULL any function accessing it should
+     *  This object may not be nullptr. If it is nullptr any function accessing it should
      *  return ERROR_PDF_INVALID_HANDLE
      */
     PdfStream* m_stream;

@@ -93,7 +93,7 @@ class PODOFO_DOC_API PdfTableModel {
      * \param col the column of the table cell
      * \param row the row of the table cell
      *
-     * \returns the font of this table cell or NULL to use the default font
+     * \returns the font of this table cell or nullptr to use the default font
      */
     virtual PdfFont*  GetFont ( int col, int row ) const = 0;
     
@@ -164,7 +164,7 @@ class PODOFO_DOC_API PdfTableModel {
      * \param col the column of the table cell
      * \param row the row of the table cell
      *
-     * \returns the image for the specified cell or NULL if the cell has no image
+     * \returns the image for the specified cell or nullptr if the cell has no image
      */     
     virtual PdfImage* GetImage( int col, int row ) const = 0;
 };
@@ -289,7 +289,7 @@ class PODOFO_DOC_API PdfSimpleTableModel : public PdfTableModel {
      * \param col the column of the table cell
      * \param row the row of the table cell
      *
-     * \returns the font of this table cell or NULL to use the default font
+     * \returns the font of this table cell or nullptr to use the default font
      */
     inline PdfFont*  GetFont ( int col, int row ) const override;
     
@@ -361,7 +361,7 @@ class PODOFO_DOC_API PdfSimpleTableModel : public PdfTableModel {
      * \param col the column of the table cell
      * \param row the row of the table cell
      *
-     * \returns the image for the specified cell or NULL if the cell has no image
+     * \returns the image for the specified cell or nullptr if the cell has no image
      */     
     inline PdfImage* GetImage( int col, int row ) const override;
 
@@ -576,7 +576,7 @@ bool PdfSimpleTableModel::HasImage( int, int ) const
 // -----------------------------------------------------
 PdfImage* PdfSimpleTableModel::GetImage( int, int ) const
 {
-    return NULL;
+    return nullptr;
 }
 
 /**
@@ -620,7 +620,7 @@ class PODOFO_DOC_API PdfTable {
      *  \param pdLastY the last used Y positon by the table on the current page will be written to this value (usually bottom right)
      */
     virtual void Draw( double dX, double dY, PdfPainter* pPainter, const PdfRect & rClipRect = PdfRect(),
-                       double* pdLastX = NULL, double* pdLastY = NULL );
+                       double* pdLastX = nullptr, double* pdLastY = nullptr );
 
     /** Get the width of the table when drawn with the current settings at a certain position.
      *  \param dX x coordinate of top left of the table
@@ -654,7 +654,7 @@ class PODOFO_DOC_API PdfTable {
     
     /** Get the current PdfTableModel
      *
-     *  \returns the currently set PdfTableModel or NULL if none was set
+     *  \returns the currently set PdfTableModel or nullptr if none was set
      */
     inline const PdfTableModel* GetModel() const;
 
@@ -740,7 +740,7 @@ class PODOFO_DOC_API PdfTable {
      *  \see GetAutoPageBreak
      */
     inline void SetAutoPageBreak( bool bPageBreak, CreatePageCallback callback, 
-                                  void* pCustomData = NULL);
+                                  void* pCustomData = nullptr);
 
     /** 
      *  \returns true if a new page is created automatically if more

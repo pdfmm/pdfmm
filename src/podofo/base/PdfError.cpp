@@ -47,7 +47,7 @@ bool PdfError::s_DgbEnabled = true;
 bool PdfError::s_LogEnabled = true;
 
 // OC 17.08.2010 New to optionally replace stderr output by a callback:
-PdfError::LogMessageCallback* PdfError::m_fLogMessageCallback = NULL;
+PdfError::LogMessageCallback* PdfError::m_fLogMessageCallback = nullptr;
 
 //static
 PdfError::LogMessageCallback* PdfError::SetLogMessageCallback(LogMessageCallback* fLogMessageCallback)
@@ -198,7 +198,7 @@ const char* PdfError::what() const
 
 const char* PdfError::ErrorName( EPdfError eCode )
 {
-    const char* pszMsg = NULL;
+    const char* pszMsg = nullptr;
 
     switch( eCode ) 
     {
@@ -373,7 +373,7 @@ const char* PdfError::ErrorName( EPdfError eCode )
 
 const char* PdfError::ErrorMessage( EPdfError eCode )
 {
-    const char* pszMsg = NULL;
+    const char* pszMsg = nullptr;
 
     switch( eCode ) 
     {
@@ -384,7 +384,7 @@ const char* PdfError::ErrorMessage( EPdfError eCode )
             pszMsg = "An error curred in an automatic test included in PoDoFo.";
             break;
         case EPdfError::InvalidHandle:
-            pszMsg = "A NULL handle was passed, but initialized data was expected.";
+            pszMsg = "A nullptr handle was passed, but initialized data was expected.";
             break;
         case EPdfError::FileNotFound:
             pszMsg = "The specified file was not found.";
@@ -574,7 +574,7 @@ void PdfError::LogMessageInternal( ELogSeverity eLogSeverity, const char* pszMsg
     }
 
     // OC 17.08.2010 New to optionally replace stderr output by a callback:
-    if ( m_fLogMessageCallback != NULL )
+    if ( m_fLogMessageCallback != nullptr )
     {
         m_fLogMessageCallback->LogMessage(eLogSeverity, pszPrefix, pszMsg, args);
         return;
@@ -632,7 +632,7 @@ void PdfError::LogErrorMessage( ELogSeverity eLogSeverity, const wchar_t* pszMsg
 
 void PdfError::LogMessageInternal( ELogSeverity eLogSeverity, const wchar_t* pszMsg, va_list & args )
 {
-    const wchar_t* pszPrefix = NULL;
+    const wchar_t* pszPrefix = nullptr;
 
     switch( eLogSeverity ) 
     {
@@ -656,7 +656,7 @@ void PdfError::LogMessageInternal( ELogSeverity eLogSeverity, const wchar_t* psz
     }
 
     // OC 17.08.2010 New to optionally replace stderr output by a callback:
-    if ( m_fLogMessageCallback != NULL )
+    if ( m_fLogMessageCallback != nullptr )
     {
         m_fLogMessageCallback->LogMessage(eLogSeverity, pszPrefix, pszMsg, args);
         return;
@@ -679,7 +679,7 @@ void PdfError::DebugMessage( const char* pszMsg, ... )
 	va_start( args, pszMsg );
 
     // OC 17.08.2010 New to optionally replace stderr output by a callback:
-    if ( m_fLogMessageCallback != NULL )
+    if ( m_fLogMessageCallback != nullptr )
     {
         m_fLogMessageCallback->LogMessage(ELogSeverity::Debug, pszPrefix, pszMsg, args);
     }

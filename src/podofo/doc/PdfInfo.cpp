@@ -44,13 +44,13 @@
 namespace PoDoFo {
 
 PdfInfo::PdfInfo( PdfVecObjects* pParent, EPdfInfoInitial eInitial )
-    : PdfElement( NULL, pParent )
+    : PdfElement( nullptr, pParent )
 {
     Init( eInitial );
 }
 
 PdfInfo::PdfInfo( PdfObject* pObject, EPdfInfoInitial eInitial )
-    : PdfElement( NULL, pObject )
+    : PdfElement( nullptr, pObject )
 {
     Init( eInitial );
 }

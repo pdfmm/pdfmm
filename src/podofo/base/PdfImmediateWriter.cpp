@@ -168,7 +168,7 @@ void PdfImmediateWriter::FinishLastObject()
         m_pDevice->Print( "endobj\n" );
         
         GetObjects().RemoveObject( m_pLast->GetIndirectReference(), false );
-        m_pLast = NULL;
+        m_pLast = nullptr;
     }
 }
 

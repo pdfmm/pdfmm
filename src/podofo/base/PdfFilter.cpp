@@ -59,7 +59,7 @@ static const char* aszFilters[] = {
     "DCTDecode",
     "JPXDecode",
     "Crypt",
-    NULL
+    nullptr
 };
 
 static const char* aszShortFilters[] = {
@@ -73,7 +73,7 @@ static const char* aszShortFilters[] = {
     "DCT",
     "", ///< There is no shortname for JPXDecode 
     "", ///< There is no shortname for Crypt
-    NULL
+    nullptr
 };
 
 /** Create a filter that is a PdfOutputStream.
@@ -108,7 +108,7 @@ public:
         m_filter->BeginEncode( pOutputStream );
 
         if( !bOwnStream )
-            m_pOutputStream = NULL;
+            m_pOutputStream = nullptr;
     }
 
     virtual ~PdfFilteredEncodeStream()
@@ -160,7 +160,7 @@ public:
      *  \param pDecodeParms additional parameters for decoding
      */
     PdfFilteredDecodeStream( PdfOutputStream* pOutputStream, const EPdfFilter eFilter, bool bOwnStream,
-                             const PdfDictionary* pDecodeParms = NULL )
+                             const PdfDictionary* pDecodeParms = nullptr )
         : m_pOutputStream( pOutputStream ), m_bFilterFailed( false )
     {
         m_filter = PdfFilterFactory::Create( eFilter );
@@ -172,7 +172,7 @@ public:
         m_filter->BeginDecode( pOutputStream, pDecodeParms );
 
         if( !bOwnStream )
-            m_pOutputStream = NULL;
+            m_pOutputStream = nullptr;
     }
 
     virtual ~PdfFilteredDecodeStream()
@@ -233,7 +233,7 @@ private:
 
 
 PdfFilter::PdfFilter() 
-    : m_pOutputStream( NULL )
+    : m_pOutputStream( nullptr )
 {
 }
 
@@ -291,7 +291,7 @@ PdfFilterFactory::PdfFilterFactory()
 
 std::unique_ptr<PdfFilter> PdfFilterFactory::Create( const EPdfFilter eFilter ) 
 {
-    PdfFilter* pFilter = NULL;
+    PdfFilter* pFilter = nullptr;
     switch( eFilter )
     {
         case EPdfFilter::None:
@@ -421,7 +421,7 @@ TVecFilters PdfFilterFactory::CreateFilterList( const PdfObject* pObject )
 {
     TVecFilters filters;
 
-    const PdfObject* pObj    = NULL;
+    const PdfObject* pObj    = nullptr;
 
     if( pObject->IsDictionary() && pObject->GetDictionary().HasKey( "Filter" ) )
         pObj = pObject->GetDictionary().GetKey( "Filter" );
@@ -450,7 +450,7 @@ TVecFilters PdfFilterFactory::CreateFilterList( const PdfObject* pObject )
             else if ( (*it).IsReference() )
             {
                 PdfObject* pFilter = pObject->GetDocument()->GetObjects().GetObject( (*it).GetReference() );
-                if( pFilter == NULL ) 
+                if( pFilter == nullptr ) 
                 {
                     PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDataType, "Filter array contained unexpected reference" );
                 }
@@ -518,7 +518,7 @@ void PdfFilter::EndEncode()
     }
 
     m_pOutputStream->Close();
-    m_pOutputStream = NULL;
+    m_pOutputStream = nullptr;
 }
 
 void PdfFilter::BeginDecode(PdfOutputStream* pOutput, const PdfDictionary* pDecodeParms)
@@ -574,21 +574,21 @@ void PdfFilter::EndDecode()
         if (m_pOutputStream)
         {
             m_pOutputStream->Close();
-            m_pOutputStream = NULL;
+            m_pOutputStream = nullptr;
         }
     }
     catch (PdfError& e)
     {
         e.AddToCallstack(__FILE__, __LINE__, "Exception caught closing filter's output stream.\n");
         // Closing stream failed, just get rid of it
-        m_pOutputStream = NULL;
+        m_pOutputStream = nullptr;
         throw;
     }
 }
 
 void PdfFilter::FailEncodeDecode()
 {
-    if (m_pOutputStream != NULL) // OC 19.08.2010 BugFix: Sometimes FailEncodeDecode() is called twice
+    if (m_pOutputStream != nullptr) // OC 19.08.2010 BugFix: Sometimes FailEncodeDecode() is called twice
         m_pOutputStream->Close(); // mabri: issue #58 seems fixed without exception safety here ...
-    m_pOutputStream = NULL;
+    m_pOutputStream = nullptr;
 }

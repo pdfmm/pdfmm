@@ -56,7 +56,7 @@ class PODOFO_DOC_API PdfIdentityEncoding : public PdfEncoding {
      *                   must be larger than nFirstChar (max value is 0xffff) 
      *  \param bAutoDelete if true the encoding is deleted by its owning font
      */
-    PdfIdentityEncoding( int nFirstChar = 0, int nLastChar = 0xffff, bool bAutoDelete = true, PdfObject* pToUnicode = NULL );
+    PdfIdentityEncoding( int nFirstChar = 0, int nLastChar = 0xffff, bool bAutoDelete = true, PdfObject* pToUnicode = nullptr );
 
     /** Add this encoding object to a dictionary
      *  usually be adding an /Encoding key in font dictionaries.

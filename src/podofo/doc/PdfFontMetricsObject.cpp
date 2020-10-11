@@ -46,10 +46,10 @@
 namespace PoDoFo {
 
 PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescriptor, const PdfEncoding* const pEncoding )
-    : PdfFontMetrics( EPdfFontType::Unknown, "", NULL ),
+    : PdfFontMetrics( EPdfFontType::Unknown, "", nullptr ),
       m_pEncoding( pEncoding ), m_dDefWidth(0.0)
 {
-    m_missingWidth = NULL;
+    m_missingWidth = nullptr;
 
     const PdfName & rSubType = pFont->GetDictionary().GetKey( PdfName::KeySubtype )->GetName();
 
@@ -76,10 +76,10 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescri
         // OC 15.08.2010 BugFix: GetIndirectKey() instead of GetDictionary().GetKey() and "Widths" instead of "Width"
         PdfObject* widths = pFont->GetIndirectKey( "Widths" );
         
-        if( widths != NULL )
+        if( widths != nullptr )
         {
             m_width        = widths->GetArray();
-            m_missingWidth = NULL;
+            m_missingWidth = nullptr;
         }
         else
         {
@@ -88,7 +88,7 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescri
             } else {
                 widths = pFont->GetDictionary().GetKey( "MissingWidth" );
             }
-            if( widths == NULL ) 
+            if( widths == nullptr ) 
             {
                 PODOFO_RAISE_ERROR_INFO( EPdfError::NoObject, "Font object defines neither Widths, nor MissingWidth values!" );
             }
@@ -212,7 +212,7 @@ double PdfFontMetricsObject::CharWidth( unsigned char c ) const
 
     }
 
-    if( m_missingWidth != NULL )
+    if( m_missingWidth != nullptr )
         return m_missingWidth->GetReal ();
     else
         return m_dDefWidth;
@@ -228,7 +228,7 @@ double PdfFontMetricsObject::UnicodeCharWidth( unsigned short c ) const
         return (dWidth * m_matrix[0] * m_fFontSize + m_fFontCharSpace) * m_fFontScale / 100.0;
     }
 
-    if( m_missingWidth != NULL )
+    if( m_missingWidth != nullptr )
         return m_missingWidth->GetReal ();
     else
         return m_dDefWidth;

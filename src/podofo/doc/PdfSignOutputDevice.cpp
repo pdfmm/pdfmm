@@ -54,7 +54,7 @@ PdfSignOutputDevice::PdfSignOutputDevice(const std::string_view& filename)
 
 void PdfSignOutputDevice::Init()
 {
-    m_pSignatureBeacon = NULL;
+    m_pSignatureBeacon = nullptr;
     m_bBeaconFound = false;
     m_bDevOwner = false;
     m_sBeaconPos = 0;
@@ -62,7 +62,7 @@ void PdfSignOutputDevice::Init()
 
 PdfSignOutputDevice::~PdfSignOutputDevice()
 {
-    if(m_pSignatureBeacon!=NULL) {
+    if(m_pSignatureBeacon!=nullptr) {
         delete m_pSignatureBeacon;
     }
     if(m_bDevOwner)
@@ -73,7 +73,7 @@ PdfSignOutputDevice::~PdfSignOutputDevice()
 
 void PdfSignOutputDevice::SetSignatureSize(size_t lSignatureSize)
 {	
-    if(m_pSignatureBeacon!=NULL) {
+    if(m_pSignatureBeacon!=nullptr) {
         delete m_pSignatureBeacon;
     }
     const char srcBeacon[] = "###HERE_WILL_BE_SIGNATURE___";	
@@ -96,7 +96,7 @@ void PdfSignOutputDevice::SetSignatureSize(size_t lSignatureSize)
 
 size_t PdfSignOutputDevice::GetSignatureSize()const
 {
-	return (m_pSignatureBeacon == NULL) ? 0 : ( m_pSignatureBeacon->data().size() / 2 );
+	return (m_pSignatureBeacon == nullptr) ? 0 : ( m_pSignatureBeacon->data().size() / 2 );
 }
 
 void PdfSignOutputDevice::SetSignature(const PdfData &sigData)
@@ -210,7 +210,7 @@ size_t PdfSignOutputDevice::ReadForSignature(char* pBuffer, size_t lLen)
 void PdfSignOutputDevice::Write( const char* pBuffer, size_t lLen )
 {
     // Check if data with beacon
-    if(m_pSignatureBeacon != NULL)
+    if(m_pSignatureBeacon != nullptr)
     {
         const std::string & data = m_pSignatureBeacon->data();
         if(data.size() <= lLen)

@@ -476,7 +476,7 @@ public:
     void FreeObjectMemory( PdfObject* pObj, bool bForce = false );
 
     /** 
-     * \returns the parsers encryption object or NULL if the read PDF file was not encrypted
+     * \returns the parsers encryption object or nullptr if the read PDF file was not encrypted
      */
     inline const PdfEncrypt* GetEncrypt() const { return m_pEncrypt.get(); }
 
@@ -484,7 +484,7 @@ private:
 
     /** Get a dictioary from the catalog dictionary by its name.
      *  \param pszName will be converted into a PdfName
-     *  \returns the dictionary if it was found or NULL
+     *  \returns the dictionary if it was found or nullptr
      */
     PdfObject* GetNamedObjectFromCatalog( const char* pszName ) const;
 

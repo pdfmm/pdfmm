@@ -54,7 +54,7 @@ class PODOFO_DOC_API PdfFontMetricsFreetype : public PdfFontMetrics {
      *  \param pszSubsetPrefix unique prefix for font subsets (see GetFontSubsetPrefix)
      */
     PdfFontMetricsFreetype( FT_Library* pLibrary, const char* pszFilename, 
-			 bool pIsSymbol, const char* pszSubsetPrefix = NULL );
+			 bool pIsSymbol, const char* pszSubsetPrefix = nullptr );
 
     /** Create a font metrics object for a given memory buffer
      *  \param pLibrary handle to an initialized FreeType2 library handle
@@ -64,7 +64,7 @@ class PODOFO_DOC_API PdfFontMetricsFreetype : public PdfFontMetrics {
      *  \param pszSubsetPrefix unique prefix for font subsets (see GetFontSubsetPrefix)
      */
     PdfFontMetricsFreetype( FT_Library* pLibrary, const char* pBuffer, unsigned int nBufLen,
-			 bool  pIsSymbol, const char* pszSubsetPrefix = NULL);
+			 bool  pIsSymbol, const char* pszSubsetPrefix = nullptr);
 
     /** Create a font metrics object for a given true type file
      *  \param pLibrary handle to an initialized FreeType2 library handle
@@ -73,7 +73,7 @@ class PODOFO_DOC_API PdfFontMetricsFreetype : public PdfFontMetrics {
      *  \param pszSubsetPrefix unique prefix for font subsets (see GetFontSubsetPrefix)
      */
     PdfFontMetricsFreetype( FT_Library* pLibrary, const PdfRefCountedBuffer & rBuffer,
-		    bool  pIsSymbol, const char* pszSubsetPrefix = NULL);
+		    bool  pIsSymbol, const char* pszSubsetPrefix = nullptr);
 
     /** Create a font metrics object for a given freetype font.
      *  \param pLibrary handle to an initialized FreeType2 library handle
@@ -82,7 +82,7 @@ class PODOFO_DOC_API PdfFontMetricsFreetype : public PdfFontMetrics {
      *  \param pszSubsetPrefix unique prefix for font subsets (see GetFontSubsetPrefix)
      */
     PdfFontMetricsFreetype( FT_Library* pLibrary, FT_Face face,
-		    bool  pIsSymbol, const char* pszSubsetPrefix = NULL);
+		    bool  pIsSymbol, const char* pszSubsetPrefix = nullptr);
 
     /** Create a font metrics object based on an existing PdfObject
      *
@@ -108,7 +108,7 @@ class PODOFO_DOC_API PdfFontMetricsFreetype : public PdfFontMetrics {
      *  \param nLast last character code to be in the array
      *  \param pEncoding encoding for correct character widths. If not passed default (latin1) encoding is used
      */
-    void GetWidthArray( PdfVariant & var, unsigned int nFirst, unsigned int nLast, const PdfEncoding* pEncoding = NULL ) const override;
+    void GetWidthArray( PdfVariant & var, unsigned int nFirst, unsigned int nLast, const PdfEncoding* pEncoding = nullptr ) const override;
 
     /** Get the width of a single glyph id
      *
@@ -174,7 +174,7 @@ class PODOFO_DOC_API PdfFontMetricsFreetype : public PdfFontMetrics {
     double GetStrikeoutThickness() const override;
 
     /** Get a string with the postscript name of the font.
-     *  \returns the postscript name of the font or NULL string if no postscript name is available.
+     *  \returns the postscript name of the font or nullptr string if no postscript name is available.
      */
     const char* GetFontname() const override;
 

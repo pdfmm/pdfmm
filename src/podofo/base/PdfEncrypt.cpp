@@ -752,7 +752,7 @@ PdfEncryptMD5Base::ComputeEncryptionKey(const std::string& documentId,
         PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error MD5-hashing data" );
     
     unsigned int docIdLength = static_cast<unsigned int>(documentId.length());
-    unsigned char* docId = NULL;
+    unsigned char* docId = nullptr;
     if (docIdLength > 0)
     {
         docId = new unsigned char[docIdLength];
@@ -806,7 +806,7 @@ PdfEncryptMD5Base::ComputeEncryptionKey(const std::string& documentId,
         status = MD5_Update(&ctx, padding, 32);
         if(status != 1)
             PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error MD5-hashing data" );
-        if (docId != NULL)
+        if (docId != nullptr)
         {
             status = MD5_Update(&ctx, docId, docIdLength);
             if(status != 1)
@@ -835,7 +835,7 @@ PdfEncryptMD5Base::ComputeEncryptionKey(const std::string& documentId,
         RC4(m_encryptionKey, m_keyLength, padding, 32, userKey, 32);
     }
 
-    if (docId != NULL)
+    if (docId != nullptr)
     {
         delete [] docId;
     }
@@ -899,7 +899,7 @@ PdfEncryptRC4Base::RC4(const unsigned char* key, int keylen,
         PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error initializing RC4 encryption engine" );
     
     // Don't set the key because we will modify the parameters
-    int status = EVP_EncryptInit_ex(rc4, EVP_rc4(), NULL, NULL, NULL);
+    int status = EVP_EncryptInit_ex(rc4, EVP_rc4(), nullptr, nullptr, nullptr);
     if(status != 1)
         PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error initializing RC4 encryption engine" );
     
@@ -908,7 +908,7 @@ PdfEncryptRC4Base::RC4(const unsigned char* key, int keylen,
         PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error initializing RC4 encryption engine" );
     
     // We finished modifying parameters so now we can set the key
-    status = EVP_EncryptInit_ex(rc4, NULL, NULL, key, NULL);
+    status = EVP_EncryptInit_ex(rc4, nullptr, nullptr, key, nullptr);
     if(status != 1)
         PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error initializing RC4 encryption engine" );
     
@@ -1181,10 +1181,10 @@ void PdfEncryptAESBase::BaseDecrypt(const unsigned char* key, int keyLen, const 
     
     int status;
     if(keyLen == (int)EPdfKeyLength::L128/8)
-        status = EVP_DecryptInit_ex(aes, EVP_aes_128_cbc(), NULL, key, iv);
+        status = EVP_DecryptInit_ex(aes, EVP_aes_128_cbc(), nullptr, key, iv);
 #ifdef PODOFO_HAVE_LIBIDN
     else if (keyLen == (int)EPdfKeyLength::L256/8)
-        status = EVP_DecryptInit_ex(aes, EVP_aes_256_cbc(), NULL, key, iv);
+        status = EVP_DecryptInit_ex(aes, EVP_aes_256_cbc(), nullptr, key, iv);
 #endif
     else
         PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Invalid AES key length" );
@@ -1211,10 +1211,10 @@ void PdfEncryptAESBase::BaseEncrypt(const unsigned char* key, int keyLen, const 
     
     int status;
     if(keyLen == (int)EPdfKeyLength::L128/8)
-        status = EVP_EncryptInit_ex(aes, EVP_aes_128_cbc(), NULL, key, iv);
+        status = EVP_EncryptInit_ex(aes, EVP_aes_128_cbc(), nullptr, key, iv);
 #ifdef PODOFO_HAVE_LIBIDN
     else if (keyLen == (int)EPdfKeyLength::L256/8)
-        status = EVP_EncryptInit_ex(aes, EVP_aes_256_cbc(), NULL, key, iv);
+        status = EVP_EncryptInit_ex(aes, EVP_aes_256_cbc(), nullptr, key, iv);
 #endif
     else
         PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Invalid AES key length" );
@@ -1451,7 +1451,7 @@ void PdfEncryptSHABase::ComputeUserKey(const unsigned char * userpswd, size_t le
     EVP_CIPHER_CTX *aes;
     aes = EVP_CIPHER_CTX_new();
     
-    int status = EVP_EncryptInit_ex(aes, EVP_aes_256_cbc(), NULL, hashValue, NULL);
+    int status = EVP_EncryptInit_ex(aes, EVP_aes_256_cbc(), nullptr, hashValue, nullptr);
     if(status != 1)
         PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error initializing AES encryption engine" );
     EVP_CIPHER_CTX_set_padding(aes, 0); // disable padding
@@ -1507,7 +1507,7 @@ void PdfEncryptSHABase::ComputeOwnerKey(const unsigned char * ownerpswd, size_t 
     EVP_CIPHER_CTX *aes;
     aes = EVP_CIPHER_CTX_new();
     
-    int status = EVP_EncryptInit_ex(aes, EVP_aes_256_cbc(), NULL, hashValue, NULL);
+    int status = EVP_EncryptInit_ex(aes, EVP_aes_256_cbc(), nullptr, hashValue, nullptr);
     if(status != 1)
         PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error initializing AES encryption engine" );
     EVP_CIPHER_CTX_set_padding(aes, 0); // disable padding
@@ -1655,7 +1655,7 @@ PdfEncryptAESV3::GenerateEncryptionKey(const PdfString &)
     EVP_CIPHER_CTX *aes;
     aes = EVP_CIPHER_CTX_new();
     
-    int status = EVP_EncryptInit_ex(aes, EVP_aes_256_ecb(), NULL, m_encryptionKey, NULL);
+    int status = EVP_EncryptInit_ex(aes, EVP_aes_256_ecb(), nullptr, m_encryptionKey, nullptr);
     if(status != 1)
         PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Error initializing AES encryption engine" );
     EVP_CIPHER_CTX_set_padding(aes, 0); // disable padding
@@ -1716,7 +1716,7 @@ bool PdfEncryptAESV3::Authenticate( const std::string_view& password, const PdfS
 			// AES-256 in CBC mode with no padding and an initialization vector of zero.
 			// The 32-byte result is the file encryption key"
 			EVP_CIPHER_CTX* aes = m_aes->getEngine();
-			EVP_DecryptInit_ex( aes, EVP_aes_256_cbc(), NULL, hashValue, 0 ); // iv zero
+			EVP_DecryptInit_ex( aes, EVP_aes_256_cbc(), nullptr, hashValue, 0 ); // iv zero
 			EVP_CIPHER_CTX_set_padding( aes, 0 ); // no padding
 			int lOutLen;
 			EVP_DecryptUpdate( aes, m_encryptionKey, &lOutLen, m_oeValue, 32 );
@@ -1736,7 +1736,7 @@ bool PdfEncryptAESV3::Authenticate( const std::string_view& password, const PdfS
 		// AES-256 in CBC mode with no padding and an initialization vector of zero.
 		// The 32-byte result is the file encryption key"
 		EVP_CIPHER_CTX* aes = m_aes->getEngine();
-		EVP_DecryptInit_ex( aes, EVP_aes_256_cbc(), NULL, hashValue, 0 ); // iv zero
+		EVP_DecryptInit_ex( aes, EVP_aes_256_cbc(), nullptr, hashValue, 0 ); // iv zero
 		EVP_CIPHER_CTX_set_padding( aes, 0 ); // no padding
 		int lOutLen;
 		EVP_DecryptUpdate( aes, m_encryptionKey, &lOutLen, m_ueValue, 32 );

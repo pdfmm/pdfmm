@@ -215,12 +215,12 @@ public:
 
     /** 
      * Gives the encryption object from the parser. The internal handle will be set
-     * to NULL and the ownership of the object is given to the caller.
+     * to nullptr and the ownership of the object is given to the caller.
      *
      * Only call this if you need access to the encryption object
      * before deleting the parser.
      *
-     * \returns the parser's encryption object, or NULL if the read PDF file was not encrypted.
+     * \returns the parser's encryption object, or nullptr if the read PDF file was not encrypted.
      */
     std::unique_ptr<PdfEncrypt> TakeEncrypt();
 
@@ -278,7 +278,7 @@ public:
     size_t GetFileSize() const { return m_nFileSize; }
 
     /**
-     * \returns the parsers encryption object or NULL if the read PDF file was not encrypted
+     * \returns the parsers encryption object or nullptr if the read PDF file was not encrypted
      */
     inline const PdfEncrypt* GetEncrypt() const { return m_pEncrypt.get(); }
 

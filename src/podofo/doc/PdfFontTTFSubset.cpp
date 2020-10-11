@@ -149,7 +149,7 @@ PdfFontTTFSubset::~PdfFontTTFSubset()
 {
     if( m_bOwnDevice ) {
         delete m_pDevice;
-        m_pDevice = NULL;
+        m_pDevice = nullptr;
     }
 }
 

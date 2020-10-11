@@ -418,7 +418,7 @@ public:
 private:
     /** Convert an annotation enum to its string representation
      *  which can be written to the PDF file.
-     *  \returns the string representation or NULL for unsupported annotation types
+     *  \returns the string representation or nullptr for unsupported annotation types
      */
 
     static const long  s_lNumActions;

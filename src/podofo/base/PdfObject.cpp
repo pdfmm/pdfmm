@@ -261,7 +261,7 @@ void PdfObject::Write(PdfOutputDevice& pDevice, EPdfWriteMode eWriteMode,
 PdfObject* PdfObject::GetIndirectKey( const PdfName & key ) const
 {
     if ( !this->IsDictionary() )
-        return NULL;
+        return nullptr;
 
     return const_cast<PdfObject*>( this->GetDictionary().FindKey( key ) );
 }

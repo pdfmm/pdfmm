@@ -64,7 +64,7 @@ class PODOFO_DOC_API PdfFontMetrics {
      *  \param nLast last character code to be in the array
      *  \param pEncoding encoding for correct character widths. If not passed default (latin1) encoding is used
      */
-    virtual void GetWidthArray( PdfVariant & var, unsigned int nFirst, unsigned int nLast, const PdfEncoding* pEncoding = NULL ) const = 0;
+    virtual void GetWidthArray( PdfVariant & var, unsigned int nFirst, unsigned int nLast, const PdfEncoding* pEncoding = nullptr ) const = 0;
 
     /** Get the width of a single glyph id
      *
@@ -221,12 +221,12 @@ class PODOFO_DOC_API PdfFontMetrics {
     virtual size_t GetFontDataLen() const = 0;
 
     /** Get a string with the postscript name of the font.
-     *  \returns the postscript name of the font or NULL string if no postscript name is available.
+     *  \returns the postscript name of the font or nullptr string if no postscript name is available.
      */
     virtual const char* GetFontname() const = 0;
 
     /**
-     * \returns NULL or a 6 uppercase letter and "+" sign prefix
+     * \returns nullptr or a 6 uppercase letter and "+" sign prefix
      *          used for font subsets
      */
     const char* GetSubsetFontnamePrefix() const;

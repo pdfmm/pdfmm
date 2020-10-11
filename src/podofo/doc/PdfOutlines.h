@@ -105,12 +105,12 @@ class PODOFO_DOC_API PdfOutlineItem : public PdfElement {
     void InsertChild( PdfOutlineItem* pItem );
 
     /** 
-     * \returns the previous item or NULL if this is the first on the current level
+     * \returns the previous item or nullptr if this is the first on the current level
      */
     inline PdfOutlineItem* Prev() const;
 
     /** 
-     * \returns the next item or NULL if this is the last on the current level
+     * \returns the next item or nullptr if this is the last on the current level
      */
     inline PdfOutlineItem* Next() const;
 
@@ -125,7 +125,7 @@ class PODOFO_DOC_API PdfOutlineItem : public PdfElement {
     inline PdfOutlineItem* Last() const;
 
     /**
-     * \returns the parent item of this item or NULL if it is
+     * \returns the parent item of this item or nullptr if it is
      *          the top level outlines dictionary
      */
     inline PdfOutlineItem* GetParentOutline() const;
@@ -146,7 +146,7 @@ class PODOFO_DOC_API PdfOutlineItem : public PdfElement {
     /** Get the destination of this outline.
      *  \param pDoc a PdfDocument owning this annotation.
      *         This is required to resolve names and pages.
-     *  \returns the destination, if there is one, or NULL
+     *  \returns the destination, if there is one, or nullptr
      */
     PdfDestination* GetDestination( PdfDocument* pDoc );
 
@@ -156,7 +156,7 @@ class PODOFO_DOC_API PdfOutlineItem : public PdfElement {
     void SetAction( const PdfAction & rAction );
 
     /** Get the action of this outline.
-     *  \returns the action, if there is one, or NULL
+     *  \returns the action, if there is one, or nullptr
      */
     PdfAction* GetAction( void );
 

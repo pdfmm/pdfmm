@@ -363,7 +363,7 @@ public:
      * REMOVE-ME
      *  \param key look for the key named key in the dictionary
      * 
-     *  \returns the found value or NULL if the value is not in the 
+     *  \returns the found value or nullptr if the value is not in the 
      *           dictionary or if this object is no dictionary
      */
     PdfObject* GetIndirectKey( const PdfName & key ) const;
@@ -382,7 +382,7 @@ public:
     /** Write the complete object to a file.
      *  \param pDevice write the object to this device
      *  \param pEncrypt an encryption object which is used to encrypt this object
-     *                  or NULL to not encrypt this object
+     *                  or nullptr to not encrypt this object
      *  \param eWriteMode additional options for writing the object
      *  \param keyStop if not KeyNull and a key == keyStop is found
      *                 writing will stop right before this key!

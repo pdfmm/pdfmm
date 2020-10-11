@@ -83,7 +83,7 @@ const char* PdfString::s_pszUnicodeMarkerHex = "FEFF";
 
 
 PdfString::PdfString()
-    : m_bHex( false ), m_bUnicode( false ), m_pEncoding( NULL )
+    : m_bHex( false ), m_bUnicode( false ), m_pEncoding( nullptr )
 {
 }
 
@@ -115,7 +115,7 @@ void PdfString::setFromWchar_t(const wchar_t* pszString, size_t lLen )
 {
     m_bHex = false;
     m_bUnicode = true;
-    m_pEncoding = NULL;
+    m_pEncoding = nullptr;
 
     if( pszString )
     {
@@ -171,7 +171,7 @@ PdfString::PdfString( const char* pszString, size_t lLen, bool bHex, const PdfEn
 }
 
 PdfString::PdfString( const pdf_utf8* pszStringUtf8 )
-    : m_bHex( false ), m_bUnicode( true ), m_pEncoding( NULL )
+    : m_bHex( false ), m_bUnicode( true ), m_pEncoding( nullptr )
 {
     InitFromUtf8( pszStringUtf8, strlen( reinterpret_cast<const char*>(pszStringUtf8) ) );
 
@@ -179,7 +179,7 @@ PdfString::PdfString( const pdf_utf8* pszStringUtf8 )
 }
 
 PdfString::PdfString( const pdf_utf8* pszStringUtf8, size_t lLen )
-    : m_bHex( false ), m_bUnicode( true ), m_pEncoding( NULL )
+    : m_bHex( false ), m_bUnicode( true ), m_pEncoding( nullptr )
 {
     InitFromUtf8( pszStringUtf8, lLen );
 
@@ -187,7 +187,7 @@ PdfString::PdfString( const pdf_utf8* pszStringUtf8, size_t lLen )
 }
 
 PdfString::PdfString( const pdf_utf16be* pszStringUtf16 )
-    : m_bHex( false ), m_bUnicode( true ), m_pEncoding( NULL )
+    : m_bHex( false ), m_bUnicode( true ), m_pEncoding( nullptr )
 {
     size_t lBufLen = 0;
     const pdf_utf16be* pszCnt  = pszStringUtf16;
@@ -207,7 +207,7 @@ PdfString::PdfString( const pdf_utf16be* pszStringUtf16 )
 }
 
 PdfString::PdfString( const pdf_utf16be* pszStringUtf16, size_t lLen )
-    : m_bHex( false ), m_bUnicode( true ), m_pEncoding( NULL )
+    : m_bHex( false ), m_bUnicode( true ), m_pEncoding( nullptr )
 {
     size_t lBufLen = 0;
     const pdf_utf16be* pszCnt  = pszStringUtf16;
@@ -227,7 +227,7 @@ PdfString::PdfString( const pdf_utf16be* pszStringUtf16, size_t lLen )
 }
 
 PdfString::PdfString( const PdfString & rhs )
-    : PdfDataType(), m_bHex( false ), m_bUnicode( false ), m_pEncoding( NULL )
+    : PdfDataType(), m_bHex( false ), m_bUnicode( false ), m_pEncoding( nullptr )
 {
     this->operator=( rhs );
 }
@@ -271,7 +271,7 @@ void PdfString::SetHexData( const char* pszHex, size_t lLen, PdfEncrypt* pEncryp
     m_buffer = PdfRefCountedBuffer( lLen % 2 ? ((lLen + 1) >> 1) + 2 : (lLen >> 1) + 2 );
     m_bHex   = true;
     char* pBuffer = m_buffer.GetBuffer();
-    if ( pBuffer != NULL )
+    if ( pBuffer != nullptr )
     {
         char val;
         char cDecodedByte = 0;
@@ -387,7 +387,7 @@ void PdfString::Write ( PdfOutputDevice& pDevice, EPdfWriteMode eWriteMode, cons
         pEncrypt->Encrypt(reinterpret_cast<const unsigned char*>(pInputBuffer), nInputBufferLen, reinterpret_cast<unsigned char*>(pOutputBuffer), nOutputBufferLen);
 
         PdfString str( pOutputBuffer, nOutputBufferLen, true );
-        str.Write( pDevice, eWriteMode, NULL );
+        str.Write( pDevice, eWriteMode, nullptr );
 
         delete[] pInputBuffer;
         delete[] pOutputBuffer;
@@ -656,7 +656,7 @@ PdfString PdfString::ToUnicode() const
         const PdfEncoding* const pEncoding = (m_pEncoding ? 
                                               m_pEncoding : 
                                               PdfEncodingFactory::GlobalPdfDocEncodingInstance());
-        return pEncoding->ConvertToUnicode( *this, NULL );
+        return pEncoding->ConvertToUnicode( *this, nullptr );
     }
     else
     {
@@ -695,7 +695,7 @@ const PdfRefCountedBuffer &PdfString::GetBuffer(void) const
 
 bool PdfString::IsValid() const
 {
-    return (m_buffer.GetBuffer() != NULL);
+    return (m_buffer.GetBuffer() != nullptr);
 }
 
 const char* PdfString::GetString() const

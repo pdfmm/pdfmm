@@ -79,10 +79,10 @@ int PdfPagesTree::GetTotalNumberOfPages() const
 
 PdfPage* PdfPagesTree::GetPage( int nIndex )
 {
-    // if you try to get a page past the end, return NULL
+    // if you try to get a page past the end, return nullptr
     // we use >= since nIndex is 0 based
     if ( nIndex >= GetTotalNumberOfPages() )
-        return NULL;
+        return nullptr;
 
     // Take a look into the cache first
     PdfPage* pPage = m_cache.GetPage( nIndex );
@@ -99,7 +99,7 @@ PdfPage* PdfPagesTree::GetPage( int nIndex )
         return pPage;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 PdfPage* PdfPagesTree::GetPage( const PdfReference & ref )
@@ -114,7 +114,7 @@ PdfPage* PdfPagesTree::GetPage( const PdfReference & ref )
             return pPage;
     }
     
-    return NULL;
+    return nullptr;
 }
 
 
@@ -143,7 +143,7 @@ void PdfPagesTree::InsertPage( int nAfterPageIndex, PdfObject* pPage )
 
     //printf("Fetching page node: %i\n", nAfterPageIndex);
     PdfObjectList lstParents;
-    PdfObject* pPageBefore = NULL;
+    PdfObject* pPageBefore = nullptr;
     //printf("Searching page=%i\n", nAfterPageIndex );
     if( this->GetTotalNumberOfPages() != 0 ) // no GetPageNode call w/o pages
     {
@@ -200,7 +200,7 @@ void PdfPagesTree::InsertPages( int nAfterPageIndex, const std::vector<PdfObject
     }
 
     PdfObjectList lstParents;
-    PdfObject* pPageBefore = NULL;
+    PdfObject* pPageBefore = nullptr;
     if( this->GetTotalNumberOfPages() != 0 ) // no GetPageNode call w/o pages
     {
         pPageBefore = this->GetPageNode( nAfterPageIndex, this->GetRoot(),
@@ -324,7 +324,7 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pParent,
 
     
     const PdfObject* pObj = pParent->GetIndirectKey( "Kids" );
-    if( pObj == NULL || !pObj->IsArray() )
+    if( pObj == nullptr || !pObj->IsArray() )
     {
         PODOFO_RAISE_ERROR( EPdfError::InvalidDataType );
     }
@@ -340,7 +340,7 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pParent,
         PdfError::LogMessage( ELogSeverity::Critical,
 	    "Cannot retrieve page %i from a document with only %i pages.",
                               nPageNum, static_cast<int>(numKids) );
-        return NULL;
+        return nullptr;
     }
 
     //printf("Fetching: %i %i\n", numKids, nPageNum );
@@ -359,7 +359,7 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pParent,
         {
             PdfError::LogMessage( ELogSeverity::Critical, "Requesting page index %i. Invalid datatype in kids array: %s", 
                                   nPageNum, (*it).GetDataTypeString()); 
-            return NULL;
+            return nullptr;
         }
 
                 PdfObject* pChild = GetRoot()->GetDocument()->GetObjects().GetObject( (*it).GetReference() );
@@ -367,7 +367,7 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pParent,
                 {
                     PdfError::LogMessage( ELogSeverity::Critical, "Requesting page index %i. Child not found: %s", 
                                           nPageNum, (*it).GetReference().ToString().c_str()); 
-                    return NULL;
+                    return nullptr;
                 }
 
                 if( this->IsTypePages(pChild) ) 
@@ -423,13 +423,13 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pParent,
                         "Invalid datatype referenced in kids array: %s\n"
                         "Reference to invalid object: %i %i R", nPageNum,
                         pChild->GetDataTypeString(), nLogObjNum, nLogGenNum);
-                    return NULL;
+                    return nullptr;
                 }
             
             ++it;
         }
 
-    return NULL;
+    return nullptr;
 }
 
 bool PdfPagesTree::IsTypePage(const PdfObject* pObject) const 
@@ -697,14 +697,14 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject,
                                       std::deque<PdfObject*> & rListOfParents )
 {
     // recurse through the pages tree nodes
-    PdfObject* pObj            = NULL;
+    PdfObject* pObj            = nullptr;
 
     if( !pPagesObject->GetDictionary().HasKey( "Kids" ) )
-        return NULL;
+        return nullptr;
 
     pObj = pPagesObject->GetDictionary().GetKey( "Kids" );
     if( !pObj->IsArray() )
-        return NULL;
+        return nullptr;
 
     PdfArray&	kidsArray = pObj->GetArray();
     size_t	numKids   = kidsArray.size();
@@ -734,7 +734,7 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject,
                 return GetPageNodeFromTree( nPageNum, pgVar.GetArray(), rListOfParents );
             }
             else if ( !pgVar.IsReference() )
-                return NULL;	// can't handle inline pages just yet...
+                return nullptr;	// can't handle inline pages just yet...
 
             PdfObject* pgObject = GetRoot()->GetOwner()->GetObject( pgVar.GetReference() );
             // make sure the object is a /Page and not a /Pages with a single kid
@@ -743,7 +743,7 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject,
 
             // it's a /Pages with a single kid, so dereference and try again...
             if( !pgObject->GetDictionary().HasKey( "Kids" ) )
-                return NULL;
+                return nullptr;
 
             rListOfParents.push_back( pgObject );
             pgVar = *(pgObject->GetDictionary().GetKey( "Kids" ));
@@ -756,7 +756,7 @@ PdfObject* PdfPagesTree::GetPageNode( int nPageNum, PdfObject* pPagesObject,
 
     // we should never exit from here - we should always have been able to return a page from above
     // PODOFO_ASSERT( false ) ;
-    return NULL;
+    return nullptr;
 }
 */
 

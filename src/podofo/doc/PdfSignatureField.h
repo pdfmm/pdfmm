@@ -152,10 +152,10 @@ public:
     const PdfObject * GetSignatureDate() const;
 
     /** Returns signature object for this signature field.
-     *  It can be NULL, when the signature field was created
+     *  It can be nullptr, when the signature field was created
      *  from an existing annotation and it didn't have set it.
      *
-     *  \returns associated signature object, or NULL
+     *  \returns associated signature object, or nullptr
      */
     PdfObject* GetSignatureObject( void ) const;
 

@@ -322,7 +322,7 @@ bool PdfTokenizer::GetNextToken( const char*& pszToken , EPdfTokenType* peType )
     if( c == EOF && !counter )
     {
         // No characters were read before EOF, so we're out of data.
-        // Ensure the buffer points to NULL in case someone fails to check the return value.
+        // Ensure the buffer points to nullptr in case someone fails to check the return value.
         pszToken = 0;
         return false;
     }
@@ -339,7 +339,7 @@ bool PdfTokenizer::IsNextToken( const char* pszToken )
     }
 
     const char* pszRead;
-    bool gotToken = this->GetNextToken( pszRead, NULL );
+    bool gotToken = this->GetNextToken( pszRead, nullptr );
 
     if (!gotToken)
     {
@@ -452,7 +452,7 @@ PdfTokenizer::EPdfLiteralDataType PdfTokenizer::DetermineDataType( const char* p
         }
         else if (eDataType == EPdfLiteralDataType::Number)
         {
-            rVariant = PdfVariant(static_cast<int64_t>(strtoll(pszToken, NULL, 10)));
+            rVariant = PdfVariant(static_cast<int64_t>(strtoll(pszToken, nullptr, 10)));
             // read another two tokens to see if it is a reference
             // we cannot be sure that there is another token
             // on the input device, so if we hit EOF just return
@@ -602,15 +602,15 @@ void PdfTokenizer::ReadDictionary( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
         dict.AddKey( key, val );
     }
 
-    if ( contentsHexBuffer.get() != NULL )
+    if ( contentsHexBuffer.get() != nullptr )
     {
         PdfObject *type = dict.GetKey( "Type" );
         // "Contents" is unencrypted in /Type/Sig and /Type/DocTimeStamp dictionaries 
         // https://issues.apache.org/jira/browse/PDFBOX-3173
-        bool contentsUnencrypted = type != NULL && type->GetDataType() == EPdfDataType::Name &&
+        bool contentsUnencrypted = type != nullptr && type->GetDataType() == EPdfDataType::Name &&
             (type->GetName() == PdfName( "Sig" ) || type->GetName() == PdfName( "DocTimeStamp" ));
 
-        PdfEncrypt *encrypt = NULL;
+        PdfEncrypt *encrypt = nullptr;
         if ( !contentsUnencrypted )
             encrypt = pEncrypt;
 

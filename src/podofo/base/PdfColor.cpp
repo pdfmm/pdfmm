@@ -886,7 +886,7 @@ PdfColor PdfColor::FromString( const char* pszName )
             PdfTokenizer tokenizer( pszName, lLen );
             PdfVariant   var;
 
-            tokenizer.GetNextVariant( var, NULL ); // No encryption...
+            tokenizer.GetNextVariant( var, nullptr ); // No encryption...
             if( var.IsArray() )
                 return PdfColor::FromArray( var.GetArray() );
         }
@@ -1170,7 +1170,7 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
         }
     }
 
-    return NULL;
+    return nullptr;
 }
 
 EPdfColorSpace PdfColor::GetColorSpaceForName( const PdfName & rName )

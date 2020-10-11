@@ -54,7 +54,7 @@ using namespace std;
 using namespace PoDoFo;
 
 PdfXObject::PdfXObject( const PdfRect & rRect, PdfDocument* pParent, const char* pszPrefix, bool bWithoutIdentifier )
-    : PdfElement( "XObject", pParent ), PdfCanvas(), m_rRect( rRect ), m_pResources( NULL )
+    : PdfElement( "XObject", pParent ), PdfCanvas(), m_rRect( rRect ), m_pResources( nullptr )
 {
     InitXObject( rRect, pszPrefix );
     if( bWithoutIdentifier )
@@ -64,13 +64,13 @@ PdfXObject::PdfXObject( const PdfRect & rRect, PdfDocument* pParent, const char*
 }
 
 PdfXObject::PdfXObject( const PdfRect & rRect, PdfVecObjects* pParent, const char* pszPrefix )
-    : PdfElement( "XObject", pParent ), PdfCanvas(), m_rRect( rRect ), m_pResources( NULL )
+    : PdfElement( "XObject", pParent ), PdfCanvas(), m_rRect( rRect ), m_pResources( nullptr )
 {
     InitXObject( rRect, pszPrefix );
 }
 
 PdfXObject::PdfXObject( const PdfDocument & rDoc, int nPage, PdfDocument* pParent, const char* pszPrefix, bool bUseTrimBox )
-    : PdfElement( "XObject", pParent ), PdfCanvas(), m_pResources( NULL )
+    : PdfElement( "XObject", pParent ), PdfCanvas(), m_pResources( nullptr )
 {
     m_rRect = PdfRect();
 
@@ -89,7 +89,7 @@ PdfXObject::PdfXObject( const PdfDocument & rDoc, int nPage, PdfDocument* pParen
 }
 
 PdfXObject::PdfXObject( PdfDocument *pDoc, int nPage, const char* pszPrefix, bool bUseTrimBox )
-    : PdfElement( "XObject", pDoc ), PdfCanvas(), m_pResources( NULL )
+    : PdfElement( "XObject", pDoc ), PdfCanvas(), m_pResources( nullptr )
 {
     m_rRect = PdfRect();
 
@@ -102,7 +102,7 @@ PdfXObject::PdfXObject( PdfDocument *pDoc, int nPage, const char* pszPrefix, boo
 }
 
 PdfXObject::PdfXObject(PdfObject* pObject)
-    : PdfElement("XObject", pObject), PdfCanvas(), m_pResources(NULL)
+    : PdfElement("XObject", pObject), PdfCanvas(), m_pResources(nullptr)
 {
     InitIdentifiers(getPdfXObjectType(*pObject));
     m_pResources = pObject->GetIndirectKey("Resources");
@@ -112,7 +112,7 @@ PdfXObject::PdfXObject(PdfObject* pObject)
 }
 
 PdfXObject::PdfXObject(EPdfXObject subType, PdfDocument* pParent, const char* pszPrefix)
-    : PdfElement("XObject", pParent), m_pResources(NULL)
+    : PdfElement("XObject", pParent), m_pResources(nullptr)
 {
     InitIdentifiers(subType, pszPrefix);
 
@@ -120,7 +120,7 @@ PdfXObject::PdfXObject(EPdfXObject subType, PdfDocument* pParent, const char* ps
 }
 
 PdfXObject::PdfXObject(EPdfXObject subType, PdfVecObjects* pParent, const char* pszPrefix)
-    : PdfElement("XObject", pParent), m_pResources(NULL)
+    : PdfElement("XObject", pParent), m_pResources(nullptr)
 {
     InitIdentifiers(subType, pszPrefix);
 
@@ -128,7 +128,7 @@ PdfXObject::PdfXObject(EPdfXObject subType, PdfVecObjects* pParent, const char* 
 }
 
 PdfXObject::PdfXObject(EPdfXObject subType, PdfObject* pObject)
-    : PdfElement("XObject", pObject), m_pResources(NULL)
+    : PdfElement("XObject", pObject), m_pResources(nullptr)
 {
     if (getPdfXObjectType(*pObject) != subType)
     {
@@ -359,7 +359,7 @@ void PdfXObject::InitIdentifiers(EPdfXObject subType, const char * pszPrefix)
 
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /XOb for XObject.
-	if ( pszPrefix == NULL )
+	if ( pszPrefix == nullptr )
 	    out << "XOb" << this->GetObject()->GetIndirectReference().ObjectNumber();
 	else
 	    out << pszPrefix << this->GetObject()->GetIndirectReference().ObjectNumber();

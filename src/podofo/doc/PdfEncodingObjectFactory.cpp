@@ -88,7 +88,7 @@ const PdfEncoding *PdfEncodingObjectFactory::CreateEncoding (PdfObject *pObject,
     {
         PdfDictionary &dict = pObject->GetDictionary();
         PdfObject *cmapName = dict.FindKey("CMapName");
-        if (cmapName != NULL && (cmapName->GetName() == "Identity-H"
+        if (cmapName != nullptr && (cmapName->GetName() == "Identity-H"
             || cmapName->GetName() == "Identity-V"))
         {
             return new PdfIdentityEncoding(0, 0xffff, true, pToUnicode);

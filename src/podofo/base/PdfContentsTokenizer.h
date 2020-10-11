@@ -112,7 +112,7 @@ public:
      *
      */
     bool ReadNext( EPdfContentsType& reType, const char*& rpszKeyword, PoDoFo::PdfVariant & rVariant );
-    bool GetNextToken( const char *& pszToken, EPdfTokenType* peType = NULL) override;
+    bool GetNextToken( const char *& pszToken, EPdfTokenType* peType = nullptr) override;
 
  private:
     /** Set another objects stream as the current stream for parsing

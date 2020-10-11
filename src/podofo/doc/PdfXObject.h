@@ -74,7 +74,7 @@ class PODOFO_DOC_API PdfXObject : public PdfElement, public PdfCanvas {
 	 *  \param pszPrefix optional prefix for XObject-name
      *  \param bWithoutObjNum do not create an object identifier name
      */
-    PdfXObject( const PdfRect & rRect, PdfDocument* pParent, const char* pszPrefix = NULL, bool bWithoutObjNum = false);
+    PdfXObject( const PdfRect & rRect, PdfDocument* pParent, const char* pszPrefix = nullptr, bool bWithoutObjNum = false);
 
     /** Create a new XObject with a specified dimension
      *  in a given vector of PdfObjects
@@ -83,7 +83,7 @@ class PODOFO_DOC_API PdfXObject : public PdfElement, public PdfCanvas {
      *  \param pParent the parent vector of the XObject
 	 *  \param pszPrefix optional prefix for XObject-name
      */
-    PdfXObject( const PdfRect & rRect, PdfVecObjects* pParent, const char* pszPrefix = NULL );
+    PdfXObject( const PdfRect & rRect, PdfVecObjects* pParent, const char* pszPrefix = nullptr );
     
     /** Create a new XObject from a page of another document
      *  in a given document
@@ -94,7 +94,7 @@ class PODOFO_DOC_API PdfXObject : public PdfElement, public PdfCanvas {
 	 *  \param pszPrefix optional prefix for XObject-name
  	 *	\param bUseTrimBox if true try to use trimbox for size of xobject
      */
-    PdfXObject( const PdfDocument & rSourceDoc, int nPage, PdfDocument* pParent, const char* pszPrefix = NULL, bool bUseTrimBox = false );
+    PdfXObject( const PdfDocument & rSourceDoc, int nPage, PdfDocument* pParent, const char* pszPrefix = nullptr, bool bUseTrimBox = false );
 
     /** Create a new XObject from an existing page
      * 
@@ -103,7 +103,7 @@ class PODOFO_DOC_API PdfXObject : public PdfElement, public PdfCanvas {
      *  \param pszPrefix optional prefix for XObject-name
      *  \param bUseTrimBox if true try to use trimbox for size of xobject
      */
-    PdfXObject( PdfDocument *pDoc, int nPage, const char* pszPrefix = NULL, bool bUseTrimBox = false );
+    PdfXObject( PdfDocument *pDoc, int nPage, const char* pszPrefix = nullptr, bool bUseTrimBox = false );
 
     /** Create a XObject from an existing PdfObject
      *  
@@ -113,8 +113,8 @@ class PODOFO_DOC_API PdfXObject : public PdfElement, public PdfCanvas {
     PdfXObject( PdfObject* pObject );
 
 protected:
-    PdfXObject(EPdfXObject subType, PdfDocument* pParent, const char* pszPrefix = NULL);
-    PdfXObject(EPdfXObject subType, PdfVecObjects* pParent, const char* pszPrefix = NULL);
+    PdfXObject(EPdfXObject subType, PdfDocument* pParent, const char* pszPrefix = nullptr);
+    PdfXObject(EPdfXObject subType, PdfVecObjects* pParent, const char* pszPrefix = nullptr);
     PdfXObject(EPdfXObject subType, PdfObject* pObject);
 
 public:
@@ -169,7 +169,7 @@ public:
  private:
     static EPdfXObject getPdfXObjectType(const PdfObject &obj);
     void InitXObject( const PdfRect & rRect, const char* pszPrefix );
-    void InitIdentifiers(EPdfXObject subType, const char* pszPrefix = NULL);
+    void InitIdentifiers(EPdfXObject subType, const char* pszPrefix = nullptr);
     void InitAfterPageInsertion(const PdfDocument & rDoc, int page);
     void InitResources();
     PdfObject* GetContents() const override;

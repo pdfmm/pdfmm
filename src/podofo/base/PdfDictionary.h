@@ -167,7 +167,7 @@ public:
      * so it MUST not be deleted. If the key is not found, this throws a PdfError
      * exception with error code EPdfError::NoObject, instead of returning.
      * This is intended to make code more readable by sparing (especially multiple)
-     * NULL checks.
+     * nullptr checks.
      *
      *  \param key look for the key named key in the dictionary
      * 
@@ -217,7 +217,7 @@ public:
      *  \param pDevice write the object to this device
      *  \param eWriteMode additional options for writing this object
      *  \param pEncrypt an encryption object which is used to encrypt this object
-     *                  or NULL to not encrypt this object
+     *                  or nullptr to not encrypt this object
      */
     void Write( PdfOutputDevice& pDevice, EPdfWriteMode eWriteMode, const PdfEncrypt* pEncrypt ) const override;
 

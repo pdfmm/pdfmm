@@ -56,7 +56,7 @@ PdfXRefStreamParserObject::PdfXRefStreamParserObject(PdfDocument& document, cons
 void PdfXRefStreamParserObject::Parse()
 {
     // Ignore the encryption in the XREF as the XREF stream must no be encrypted (see PDF Reference 3.4.7)
-    this->ParseFile( NULL );
+    this->ParseFile( nullptr );
 
     // Do some very basic error checking
     if( !this->GetDictionary().HasKey( PdfName::KeyType ) )

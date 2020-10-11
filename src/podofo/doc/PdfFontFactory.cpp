@@ -63,7 +63,7 @@ PdfFont* PdfFontFactory::CreateFontObject( PdfFontMetrics* pMetrics, EPdfFontFla
                                            const PdfEncoding* pEncoding,
                                            PdfVecObjects* pParent )
 {
-    PdfFont * pFont  = NULL;
+    PdfFont * pFont  = nullptr;
     EPdfFontType eType = pMetrics->GetFontType();
     bool bEmbed = (nFlags & EPdfFontFlags::Embedded) == EPdfFontFlags::Embedded;
     bool bSubsetting = (nFlags & EPdfFontFlags::Subsetting) != EPdfFontFlags::Normal;
@@ -82,14 +82,14 @@ PdfFont* PdfFontFactory::CreateFontObject( PdfFontMetrics* pMetrics, EPdfFontFla
             // something went wrong, so we have to delete
             // the font metrics
             delete pMetrics;
-            pMetrics = NULL;
+            pMetrics = nullptr;
             // make sure this will be done before the catch block
             // as the encoding might be deleted already
-            // afterwars, but we cannot set the pointer to NULL
+            // afterwars, but we cannot set the pointer to nullptr
             if( pEncoding && pEncoding->IsAutoDelete() )
             {
                 delete pEncoding;
-                pEncoding = NULL;
+                pEncoding = nullptr;
             }
         }
     }
@@ -100,14 +100,14 @@ PdfFont* PdfFontFactory::CreateFontObject( PdfFontMetrics* pMetrics, EPdfFontFla
         {
             // The font will delete encoding and metrics
             delete pFont;
-            pFont = NULL;
+            pFont = nullptr;
         }
         else
         {
             // something went wrong, so we have to delete
             // the font metrics (and if auto-delete, also the encoding)
             delete pMetrics;
-            pMetrics = NULL;
+            pMetrics = nullptr;
 
             if( pEncoding && pEncoding->IsAutoDelete() )
                 delete pEncoding;
@@ -125,7 +125,7 @@ PdfFont* PdfFontFactory::CreateFontForType( EPdfFontType eType, PdfFontMetrics* 
                                             const PdfEncoding* const pEncoding, 
                                             bool bEmbed, bool bSubsetting, PdfVecObjects* pParent )
 {
-    PdfFont* pFont = NULL;
+    PdfFont* pFont = nullptr;
 
     if( pEncoding->IsSingleByteEncoding() ) 
     {
@@ -188,14 +188,14 @@ PdfFont* PdfFontFactory::CreateFontForType( EPdfFontType eType, PdfFontMetrics* 
 
 PdfFont* PdfFontFactory::CreateFont( FT_Library*, PdfObject* pObject )
 {
-    PdfFontMetrics* pMetrics    = NULL;
-    PdfFont*        pFont       = NULL;
-    PdfObject*      pDescriptor = NULL;
-    PdfObject*      pEncoding   = NULL;
-    PdfObject*      pToUnicode = NULL;
+    PdfFontMetrics* pMetrics    = nullptr;
+    PdfFont*        pFont       = nullptr;
+    PdfObject*      pDescriptor = nullptr;
+    PdfObject*      pEncoding   = nullptr;
+    PdfObject*      pToUnicode = nullptr;
 
     PdfObject* pTypeKey = pObject->GetDictionary().GetKey( PdfName::KeyType );
-    if ( NULL == pTypeKey )
+    if ( nullptr == pTypeKey )
     {
         PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDataType, "Font: No Type" );
     }
@@ -207,7 +207,7 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library*, PdfObject* pObject )
 
     PdfObject* pSubTypeKey = pObject->GetDictionary()
                             .GetKey( PdfName::KeySubtype );
-    if ( NULL == pSubTypeKey )
+    if ( nullptr == pSubTypeKey )
     {
         PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDataType, "Font: No SubType" );
     }
@@ -220,11 +220,11 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library*, PdfObject* pObject )
         // some applications (e.g. MS Word) put the array into an indirect object though.
         PdfObject* pDescendantObj = pObject->GetIndirectKey( "DescendantFonts" );
 
-        if ( NULL == pDescendantObj )
+        if ( nullptr == pDescendantObj )
             PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDataType, "Type0 Font: No DescendantFonts" );
         
         PdfArray & descendants  = pDescendantObj->GetArray();
-        PdfObject* pFontObject = NULL;
+        PdfObject* pFontObject = nullptr;
         
         if ( descendants.size() )
         {
@@ -265,14 +265,14 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library*, PdfObject* pObject )
         if( !pDescriptor )
         {
            // Check if its a PdfFontType1Base14
-           PdfObject* pBaseFont = NULL;
+           PdfObject* pBaseFont = nullptr;
            pBaseFont = pObject->GetIndirectKey( "BaseFont" );
-           if ( NULL == pBaseFont )
+           if ( nullptr == pBaseFont )
                PODOFO_RAISE_ERROR_INFO( EPdfError::NoObject, "No BaseFont object found"
                                        " by reference in given object" );
            const char* pszBaseFontName = pBaseFont->GetName().GetString().c_str();
            const PdfFontMetricsBase14* pMetrics = PODOFO_Base14FontDef_FindBuiltinData(pszBaseFontName);
-           if ( pMetrics != NULL )
+           if ( pMetrics != nullptr )
            {
                // pEncoding may be undefined, found a valid pdf with
                //   20 0 obj
@@ -285,8 +285,8 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library*, PdfObject* pObject )
                // If pEncoding is null then
                // use StandardEncoding for Courier, Times, Helvetica font families
                // and special encodings for Symbol and ZapfDingbats
-               const PdfEncoding* pPdfEncoding = NULL;
-               if ( pEncoding!= NULL )
+               const PdfEncoding* pPdfEncoding = nullptr;
+               if ( pEncoding!= nullptr )
                    pPdfEncoding = PdfEncodingObjectFactory::CreateEncoding( pEncoding );
                else if ( !pMetrics->IsSymbol() )
                    pPdfEncoding = PdfEncodingFactory::GlobalStandardEncodingInstance();
@@ -297,8 +297,8 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library*, PdfObject* pObject )
                return new PdfFontType1Base14(new PdfFontMetricsBase14(*pMetrics), pPdfEncoding, pObject);
            }
         }
-        const PdfEncoding* pPdfEncoding = NULL;
-        if ( pEncoding != NULL )
+        const PdfEncoding* pPdfEncoding = nullptr;
+        if ( pEncoding != nullptr )
             pPdfEncoding = PdfEncodingObjectFactory::CreateEncoding( pEncoding );
         else if ( pDescriptor )
         {
@@ -307,7 +307,7 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library*, PdfObject* pObject )
            // so i try to determine if its a symbolic font by reading the FontDescriptor Flags
            // Flags & 4 --> Symbolic, Flags & 32 --> Nonsymbolic
             int32_t lFlags = static_cast<int32_t>(pDescriptor->GetDictionary().GetKeyAsNumber( "Flags", 0L ));
-            if ( lFlags & 32 ) // Nonsymbolic, otherwise pEncoding remains NULL
+            if ( lFlags & 32 ) // Nonsymbolic, otherwise pEncoding remains nullptr
                 pPdfEncoding = PdfEncodingFactory::GlobalStandardEncodingInstance();
         }
         if ( pPdfEncoding && pDescriptor ) // OC 18.08.2010: Avoid sigsegv
@@ -325,7 +325,7 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library*, PdfObject* pObject )
         if ( pEncoding ) // FontDescriptor may only be present in PDF 1.5+
         {
             const PdfEncoding* const pPdfEncoding =
-            PdfEncodingObjectFactory::CreateEncoding( pEncoding, NULL, true );
+            PdfEncodingObjectFactory::CreateEncoding( pEncoding, nullptr, true );
             
             pMetrics    = new PdfFontMetricsObject( pObject, pDescriptor, pPdfEncoding );
             pFont       = new PdfFontType3( pMetrics, pPdfEncoding, pObject );
@@ -395,7 +395,7 @@ PODOFO_Base14FontDef_FindBuiltinData(const char  *font_name)
         i++;
     }
 
-	return found ? &PODOFO_BUILTIN_FONTS[i] : NULL;
+	return found ? &PODOFO_BUILTIN_FONTS[i] : nullptr;
 }
 
 PdfFont *PdfFontFactory::CreateBase14Font(const char* pszFontName,

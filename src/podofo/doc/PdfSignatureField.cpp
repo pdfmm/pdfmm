@@ -229,7 +229,7 @@ void PdfSignatureField::AddCertificationReference( PdfObject* pDocumentCatalog, 
     pTransParams->GetDictionary().AddKey(PdfName("P"), PdfVariant((int64_t)perm));
     pSigRef->GetDictionary().AddKey(PdfName("TransformParams"), pTransParams);
 
-    if (pDocumentCatalog != NULL)
+    if (pDocumentCatalog != nullptr)
     {
         PdfObject permObject;
         permObject.GetDictionary().AddKey("DocMDP", this->GetFieldObject()->GetDictionary().GetKey("V")->GetReference());

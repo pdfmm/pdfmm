@@ -52,7 +52,7 @@ const char* PdfDestination::s_names[] = {
     "FitB",
     "FitBH",
     "FitBV",
-    NULL
+    nullptr
 };
 
 PdfDestination::PdfDestination( PdfVecObjects* pParent )
@@ -151,7 +151,7 @@ const PdfDestination & PdfDestination::operator=( const PdfDestination & rhs )
 void PdfDestination::Init( PdfObject* pObject, PdfDocument* pDocument )
 {
     bool bValueExpected = false;
-    PdfObject* pValue = NULL;
+    PdfObject* pValue = nullptr;
 
     if ( pObject->GetDataType() == EPdfDataType::Array ) 
     {
@@ -193,7 +193,7 @@ void PdfDestination::Init( PdfObject* pObject, PdfDocument* pDocument )
         PdfError::LogMessage( ELogSeverity::Error, "Unsupported object given to"
             " PdfDestination::Init of type %s", pObject->GetDataTypeString() );
         m_array = PdfArray(); // needed to prevent crash on method calls
-        // needed for GetObject() use w/o checking its return value for NULL
+        // needed for GetObject() use w/o checking its return value for nullptr
         m_pObject = pDocument->GetObjects().CreateObject( m_array );
     }
     if ( bValueExpected )
@@ -229,7 +229,7 @@ void PdfDestination::AddToDictionary( PdfDictionary & dictionary ) const
 PdfPage* PdfDestination::GetPage( PdfDocument* pDoc ) 
 {
     if( !m_array.size() )
-        return NULL;
+        return nullptr;
 
     // first entry in the array is the page - so just make a new page from it!
     return pDoc->GetPagesTree().GetPage( m_array[0].GetReference() );

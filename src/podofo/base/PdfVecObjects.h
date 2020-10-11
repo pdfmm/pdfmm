@@ -182,20 +182,20 @@ public:
     /** Finds the object with the given reference in m_vecOffsets 
      *  and returns a pointer to it if it is found.
      *  \param ref the object to be found
-     *  \returns the found object or NULL if no object was found.
+     *  \returns the found object or nullptr if no object was found.
      */
     PdfObject* GetObject( const PdfReference & ref ) const;
 
     /** Finds the object with the given reference in m_vecOffsets 
      *  and returns the index to it.
      *  \param ref the object to be found
-     *  \returns the found object or NULL if no object was found.
+     *  \returns the found object or nullptr if no object was found.
      */
     size_t GetIndex( const PdfReference & ref ) const;
 
     /** Remove the object with the given object and generation number from the list
      *  of objects.
-     *  The object is returned if it was found. Otherwise NULL is returned.
+     *  The object is returned if it was found. Otherwise nullptr is returned.
      *  The caller has to delete the object by hisself.
      *
      *  \param ref the object to be found
@@ -218,7 +218,7 @@ public:
      *  \param pszType optionall value of the /Type key of the object
      *  \returns PdfObject pointer to the new PdfObject
      */
-    PdfObject* CreateObject( const char* pszType = NULL );
+    PdfObject* CreateObject( const char* pszType = nullptr );
 
     /** Creates a new object (of type rVariants) and inserts it into the vector.
      *  This function assigns the next free object number to the PdfObject.
@@ -294,7 +294,7 @@ public:
 
     /** Sets a StreamFactory which is used whenever CreateStream is called.
      *  
-     *  \param pFactory a stream factory or NULL to reset to the default factory
+     *  \param pFactory a stream factory or nullptr to reset to the default factory
      */
     void SetStreamFactory( StreamFactory* pFactory );
 
@@ -358,7 +358,7 @@ public:
     PdfObject*& operator[](size_t index);
 
     /** Get the last object in the vector
-     *  \returns the last object in the vector or NULL 
+     *  \returns the last object in the vector or nullptr 
      *           if the vector is emtpy.
      */
     PdfObject* GetBack();
@@ -391,7 +391,7 @@ public:
 public:
     /** \returns a pointer to a PdfDocument that is the
      *           parent of this vector.
-     *           Might be NULL if the vector has no parent.
+     *           Might be nullptr if the vector has no parent.
      */
     inline PdfDocument& GetDocument() const { return *m_pDocument; }
 

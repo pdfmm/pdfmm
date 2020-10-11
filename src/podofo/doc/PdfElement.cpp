@@ -106,7 +106,7 @@ PdfElement::~PdfElement() { }
 
 const char* PdfElement::TypeNameForIndex( int i, const char** ppTypes, long lLen ) const
 {
-    return ( i >= lLen ? NULL : ppTypes[i] );
+    return ( i >= lLen ? nullptr : ppTypes[i] );
 }
 
 int PdfElement::TypeNameToIndex( const char* pszType, const char** ppTypes, long lLen, int nUnknownValue ) const

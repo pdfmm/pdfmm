@@ -117,11 +117,11 @@ void PdfTilingPattern::Init( EPdfTilingPatternType eTilingType,
 		 double offsetX, double offsetY,
 		 PdfImage *pImage)
 {
-	if (eTilingType == EPdfTilingPatternType::Image && pImage == NULL) {
+	if (eTilingType == EPdfTilingPatternType::Image && pImage == nullptr) {
 		PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
 	}
 
-	if (eTilingType != EPdfTilingPatternType::Image && pImage != NULL) {
+	if (eTilingType != EPdfTilingPatternType::Image && pImage != nullptr) {
 		PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
 	}
 

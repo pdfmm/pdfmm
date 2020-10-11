@@ -51,7 +51,7 @@ PdfFontMetricsBase14::PdfFontMetricsBase14(const char      *mfont_name,
                                            int16_t         mstrikeout_pos,
                                            int16_t         munderline_pos,
                                            const PdfRect &  mbbox)
-    : PdfFontMetrics( EPdfFontType::Type1Base14, "", NULL),
+    : PdfFontMetrics( EPdfFontType::Type1Base14, "", nullptr),
       font_name(mfont_name),
       widths_table(mwidths_table),
       is_font_specific(mis_font_specific),
@@ -142,7 +142,7 @@ inline double PdfFontMetricsBase14::GetStrikeoutThickness() const
 const char* PdfFontMetricsBase14::GetFontname() const 
 {
 #ifdef MYASSERT
-    PODOFO_ASSERT(font_name != NULL);
+    PODOFO_ASSERT(font_name != nullptr);
 #endif
     return font_name;
 }
@@ -255,7 +255,7 @@ void PdfFontMetricsBase14::GetWidthArray( PdfVariant & var, unsigned int nFirst,
     
     for( i=nFirst;i<=nLast;i++ )
     {
-        if (pEncoding != NULL)
+        if (pEncoding != nullptr)
         {
             unsigned short shCode = pEncoding->GetCharCode(i);
 
@@ -272,7 +272,7 @@ void PdfFontMetricsBase14::GetWidthArray( PdfVariant & var, unsigned int nFirst,
 
 const char* PdfFontMetricsBase14::GetFontData() const
 {
-    return NULL;
+    return nullptr;
 }
 
 size_t PdfFontMetricsBase14::GetFontDataLen() const

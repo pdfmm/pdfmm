@@ -213,12 +213,12 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                     for ( int i = 0; i < rangeCount; i++ )
                     {
                         unsigned codeSize;
-                        tokenizer.GetNextVariant( *var, NULL );
+                        tokenizer.GetNextVariant( *var, nullptr );
                         uint32_t srcCodeLo = GetCodeFromVariant(*var, codeSize);
-                        tokenizer.GetNextVariant( *var, NULL );
+                        tokenizer.GetNextVariant( *var, nullptr );
                         uint32_t srcCodeHi = GetCodeFromVariant(*var);
                         unsigned rangeSize = srcCodeHi - srcCodeLo + 1;
-                        tokenizer.GetNextVariant( *var, NULL );
+                        tokenizer.GetNextVariant( *var, nullptr );
                         if (var->IsArray())
                         {
                             PdfArray &arr = var->GetArray();
@@ -265,9 +265,9 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                     for ( int i = 0; i < charCount; i++ )
                     {
                         unsigned codeSize;
-                        tokenizer.GetNextVariant(*var, NULL);
+                        tokenizer.GetNextVariant(*var, nullptr);
                         uint32_t srcCode = GetCodeFromVariant(*var, codeSize);
-                        tokenizer.GetNextVariant(*var, NULL);
+                        tokenizer.GetNextVariant(*var, nullptr);
                         auto &mappedstr = map[{ codeSize, srcCode }];
                         if (var->IsNumber())
                         {
@@ -305,11 +305,11 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                     for (int i = 0; i < rangeCount; i++)
                     {
                         unsigned codeSize;
-                        tokenizer.GetNextVariant(*var, NULL);
+                        tokenizer.GetNextVariant(*var, nullptr);
                         uint32_t srcCodeLo = GetCodeFromVariant(*var, codeSize);
-                        tokenizer.GetNextVariant(*var, NULL);
+                        tokenizer.GetNextVariant(*var, nullptr);
                         uint32_t srcCodeHi = GetCodeFromVariant(*var);
-                        tokenizer.GetNextVariant(*var, NULL);
+                        tokenizer.GetNextVariant(*var, nullptr);
                         char32_t dstCIDLo = (char32_t)GetCodeFromVariant(*var);
 
                         unsigned rangeSize = srcCodeHi - srcCodeLo + 1;
@@ -337,9 +337,9 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                     for (int i = 0; i < charCount; i++)
                     {
                         unsigned codeSize;
-                        tokenizer.GetNextVariant(*var, NULL);
+                        tokenizer.GetNextVariant(*var, nullptr);
                         uint32_t srcCode = GetCodeFromVariant(*var, codeSize);
-                        tokenizer.GetNextVariant(*var, NULL);
+                        tokenizer.GetNextVariant(*var, nullptr);
                         char32_t dstCid = (char32_t)GetCodeFromVariant(*var);
                         auto &mappedstr = map[{ codeSize, srcCode }];
                         mappedstr.clear();
@@ -449,7 +449,7 @@ uint32_t PdfEncoding::GetCodeFromVariant(const PdfVariant &var, unsigned &codeSi
 // PdfSimpleEncoding
 // -----------------------------------------------------
 PdfSimpleEncoding::PdfSimpleEncoding( const PdfName & rName )
-    : PdfEncoding( 0, 255 ), m_name( rName ), m_pEncodingTable( NULL )
+    : PdfEncoding( 0, 255 ), m_name( rName ), m_pEncodingTable( nullptr )
 {
 }
 

@@ -68,7 +68,7 @@ class PODOFO_DOC_API PdfFontMetricsObject : public PdfFontMetrics {
      *  \param nLast last character code to be in the array
      *  \param pEncoding encoding for correct character widths. If not passed default (latin1) encoding is used
      */
-    void GetWidthArray( PdfVariant & var, unsigned int nFirst, unsigned int nLast, const PdfEncoding* pEncoding = NULL ) const override;
+    void GetWidthArray( PdfVariant & var, unsigned int nFirst, unsigned int nLast, const PdfEncoding* pEncoding = nullptr ) const override;
 
     /** Get the width of a single glyph id
      *
@@ -133,7 +133,7 @@ class PODOFO_DOC_API PdfFontMetricsObject : public PdfFontMetrics {
     double GetStrikeoutThickness() const override;
 
     /** Get a string with the postscript name of the font.
-     *  \returns the postscript name of the font or NULL string if no postscript name is available.
+     *  \returns the postscript name of the font or nullptr string if no postscript name is available.
      */
     const char* GetFontname() const override;
 

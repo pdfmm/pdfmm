@@ -71,12 +71,12 @@ PdfFontMetrics::PdfFontMetrics( EPdfFontType eFontType, const char* pszFilename,
 }
 /*
 PdfFontMetrics::PdfFontMetrics( FT_Library* pLibrary, PdfObject* pDescriptor )
-    : m_sFilename( "" ), m_pLibrary( pLibrary ), m_pMetrics_base14(NULL),
+    : m_sFilename( "" ), m_pLibrary( pLibrary ), m_pMetrics_base14(nullptr),
       m_bSymbol( false ), m_fFontSize( 0.0f ),
       m_fFontScale( 100.0f ), m_fFontCharSpace( 0.0f ),
       m_eFontType( EPdfFontType::Unknown )
 {
-    m_face = NULL;
+    m_face = nullptr;
 
     if( !pDescriptor )
     {

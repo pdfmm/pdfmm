@@ -81,7 +81,7 @@ bool PdfNameTreeNode::AddValue( const PdfString & key, const PdfObject & rValue 
     {
         const PdfArray &         kids   = this->GetObject()->GetDictionary().GetKey("Kids")->GetArray();
         PdfArray::const_iterator it     = kids.begin();
-        PdfObject*               pChild = NULL;
+        PdfObject*               pChild = nullptr;
         EPdfNameLimits           eLimits = EPdfNameLimits::Before; // RG: TODO Compiler complains that this variable should be initialised
 
         while( it != kids.end() )
@@ -316,7 +316,7 @@ bool PdfNameTreeNode::Rebalance()
         // of the children first,
         // because SetLimits( pParent )
         // depends on the /Limits key of all its children!
-        PdfNameTreeNode( m_pParent != NULL ? m_pParent : this, pChild1 ).SetLimits();
+        PdfNameTreeNode( m_pParent != nullptr ? m_pParent : this, pChild1 ).SetLimits();
         PdfNameTreeNode( this, pChild2 ).SetLimits();
 
         // limits do only change if splitting name arrays
@@ -332,21 +332,21 @@ bool PdfNameTreeNode::Rebalance()
 }
 
 
-// We use NULL for the PdfElement name, since the NamesTree dict
+// We use nullptr for the PdfElement name, since the NamesTree dict
 //  does NOT have a /Type key!
 PdfNamesTree::PdfNamesTree( PdfVecObjects* pParent )
-    : PdfElement( NULL, pParent ), m_pCatalog( NULL )
+    : PdfElement( nullptr, pParent ), m_pCatalog( nullptr )
 {
 }
 
 PdfNamesTree::PdfNamesTree( PdfObject* pObject, PdfObject* pCatalog )
-    : PdfElement( NULL, pObject ), m_pCatalog( pCatalog )
+    : PdfElement( nullptr, pObject ), m_pCatalog( pCatalog )
 {
 }
 
 void PdfNamesTree::AddValue( const PdfName & tree, const PdfString & key, const PdfObject & rValue )
 {
-    PdfNameTreeNode root( NULL, this->GetRootNode( tree, true ) );    
+    PdfNameTreeNode root( nullptr, this->GetRootNode( tree, true ) );    
     if( !root.AddValue( key, rValue ) )
     {
         PODOFO_RAISE_ERROR( EPdfError::InternalLogic );
@@ -356,7 +356,7 @@ void PdfNamesTree::AddValue( const PdfName & tree, const PdfString & key, const 
 PdfObject* PdfNamesTree::GetValue( const PdfName & tree, const PdfString & key ) const 
 {
     PdfObject* pObject = this->GetRootNode( tree );
-    PdfObject* pResult = NULL;
+    PdfObject* pResult = nullptr;
 
     if( pObject )
     {
@@ -371,7 +371,7 @@ PdfObject* PdfNamesTree::GetValue( const PdfName & tree, const PdfString & key )
 PdfObject* PdfNamesTree::GetKeyValue( PdfObject* pObj, const PdfString & key ) const
 {
     if( PdfNamesTree::CheckLimits( pObj, key ) != EPdfNameLimits::Inside )
-        return NULL;
+        return nullptr;
 
     if( pObj->GetDictionary().HasKey("Kids") )
     {
@@ -384,7 +384,7 @@ PdfObject* PdfNamesTree::GetKeyValue( PdfObject* pObj, const PdfString & key ) c
             if( pChild ) 
             {
                 PdfObject* pResult = GetKeyValue( pChild, key );
-                if( pResult ) // If recursive call returns NULL, 
+                if( pResult ) // If recursive call returns nullptr, 
                               // continue with the next element
                               // in the kids array.
                     return pResult;
@@ -420,7 +420,7 @@ PdfObject* PdfNamesTree::GetKeyValue( PdfObject* pObj, const PdfString & key ) c
         
     }
 
-    return NULL;
+    return nullptr;
 }
 
 PdfObject* PdfNamesTree::GetRootNode( const PdfName & name, bool bCreate ) const
@@ -437,7 +437,7 @@ PdfObject* PdfNamesTree::GetRootNode( const PdfName & name, bool bCreate ) const
 
 bool PdfNamesTree::HasValue( const PdfName & tree, const PdfString & key ) const
 {
-    return ( this->GetValue( tree, key ) != NULL );
+    return ( this->GetValue( tree, key ) != nullptr );
 }
 
 EPdfNameLimits PdfNamesTree::CheckLimits( const PdfObject* pObj, const PdfString & key )

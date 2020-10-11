@@ -97,7 +97,7 @@ public:
      *  is read now and everything else is read later.
      *
      *  \param pEncrypt an encryption dictionary which is used to decrypt 
-     *                  strings and streams during parsing or NULL if the PDF
+     *                  strings and streams during parsing or nullptr if the PDF
      *                  file was not encrypted
      *  \param bIsTrailer wether this is a trailer dictionary or not.
      *                    trailer dictionaries do not have a object number etc.

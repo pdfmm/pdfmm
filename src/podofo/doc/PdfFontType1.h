@@ -90,7 +90,7 @@ class PdfFontType1 : public PdfFontSimple {
 
   	/** Remember the glyphs used in the string in case of subsetting 
 	 *
-     *  \param sText the text string which should be printed (is not allowed to be NULL!)
+     *  \param sText the text string which should be printed (is not allowed to be nullptr!)
      *  \param lStringLen draw only lLen characters of pszText
 	 */
 	void AddUsedSubsettingGlyphs( const PdfString & sText, size_t lStringLen ) override;

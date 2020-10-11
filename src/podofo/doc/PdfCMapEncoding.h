@@ -57,7 +57,7 @@ public:
     };
 
 public:
-    PdfCMapEncoding(PdfObject* pObject, PdfObject* pToUnicode = NULL);
+    PdfCMapEncoding(PdfObject* pObject, PdfObject* pToUnicode = nullptr);
     PdfString ConvertToUnicode(const PdfString& rEncodedString, const PdfFont* pFont) const override;
     void AddToDictionary(PdfDictionary & rDictionary ) const override;
     PdfRefCountedBuffer ConvertToEncoding(const PdfString& rString, const PdfFont* pFont) const override;

@@ -99,7 +99,7 @@ static inline bool IsSpaceChar(pdf_utf16be ch)
 }
 
 PdfPainter::PdfPainter(EPdfPainterFlags flags)
-: m_flags(flags), m_stream( NULL ), m_canvas( NULL ), m_pFont( NULL ),
+: m_flags(flags), m_stream( nullptr ), m_canvas( nullptr ), m_pFont( nullptr ),
   m_nTabWidth( 4 ), m_curColor( PdfColor( 0.0, 0.0, 0.0 ) ),
   m_isTextOpen( false ), m_tmpStream(), m_curPath(), m_isCurColorICCDepend( false ), m_CSTag()
 {
@@ -161,14 +161,14 @@ void PdfPainter::FinishDrawing()
     catch (PdfError & e)
     {
         // clean up, even in case of error
-        m_stream = NULL;
-        m_canvas = NULL;
+        m_stream = nullptr;
+        m_canvas = nullptr;
 
         throw e;
     }
 
-    m_stream = NULL;
-    m_canvas = NULL;
+    m_stream = nullptr;
+    m_canvas = nullptr;
     currentTextRenderingMode = EPdfTextRenderingMode::Fill;
 }
 
@@ -446,7 +446,7 @@ void PdfPainter::SetStrokeStyle( EPdfStrokeStyle eStyle, const char* pszCustom, 
             }
             break;
         case EPdfStrokeStyle::Custom:
-            have = pszCustom != NULL;
+            have = pszCustom != nullptr;
             if (have)
                 m_tmpStream << pszCustom;
             break;
@@ -1107,7 +1107,7 @@ void PdfPainter::DrawGlyph( PdfMemDocument* pDocument, double dX, double dY, con
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
-	PdfFont* pGlyphFont = NULL;
+	PdfFont* pGlyphFont = nullptr;
 	int code = 32;
 
 	for ( int num = 1; num <= 999; num++ )
@@ -1121,7 +1121,7 @@ void PdfPainter::DrawGlyph( PdfMemDocument* pDocument, double dX, double dY, con
 		PdfObject* pEncoding = pGlyphFontObj->GetDictionary().GetKey( "Encoding" );
 
 		// first time: create difference-encoding as reference, enter glyph
-		if ( pEncoding == NULL  ||  pEncoding->IsReference() == false )
+		if ( pEncoding == nullptr  ||  pEncoding->IsReference() == false )
 		{
 
 			// get width of glyph to enter in difference-encoding
@@ -1154,7 +1154,7 @@ void PdfPainter::DrawGlyph( PdfMemDocument* pDocument, double dX, double dY, con
 		{
 			pEncoding = pDocument->GetObjects().GetObject( pEncoding->GetReference() );
 	        
-			PODOFO_ASSERT( pEncoding != NULL ); // paranoia
+			PODOFO_ASSERT( pEncoding != nullptr ); // paranoia
 
 			PdfArray diffs;
 			diffs = pEncoding->GetDictionary().GetKey( "Differences" )->GetArray();

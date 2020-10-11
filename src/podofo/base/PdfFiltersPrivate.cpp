@@ -591,7 +591,7 @@ void PdfFlateFilter::EncodeBlockInternal( const char* pBuffer, size_t lLen, int 
 
 void PdfFlateFilter::EndEncodeImpl()
 {
-    this->EncodeBlockInternal( NULL, 0, Z_FINISH );
+    this->EncodeBlockInternal( nullptr, 0, Z_FINISH );
     deflateEnd( &m_stream );
 }
 
@@ -603,7 +603,7 @@ void PdfFlateFilter::BeginDecodeImpl( const PdfDictionary* pDecodeParms )
     m_stream.zfree    = Z_NULL;
     m_stream.opaque   = Z_NULL;
 
-    m_pPredictor = pDecodeParms ? new PdfPredictorDecoder( pDecodeParms ) : NULL;
+    m_pPredictor = pDecodeParms ? new PdfPredictorDecoder( pDecodeParms ) : nullptr;
 
     if( inflateInit( &m_stream ) != Z_OK )
     {
@@ -656,7 +656,7 @@ void PdfFlateFilter::DecodeBlockImpl( const char* pBuffer, size_t lLen )
 void PdfFlateFilter::EndDecodeImpl()
 {
     delete m_pPredictor;
-    m_pPredictor = NULL;
+    m_pPredictor = nullptr;
 
     (void)inflateEnd(&m_stream);
 }
@@ -765,7 +765,7 @@ void PdfLZWFilter::BeginDecodeImpl( const PdfDictionary* pDecodeParms )
 
     m_bFirst     = true;
 
-    m_pPredictor = pDecodeParms ? new PdfPredictorDecoder( pDecodeParms ) : NULL;
+    m_pPredictor = pDecodeParms ? new PdfPredictorDecoder( pDecodeParms ) : nullptr;
 
     InitTable();
 }
@@ -869,7 +869,7 @@ void PdfLZWFilter::DecodeBlockImpl( const char* pBuffer, size_t lLen )
 void PdfLZWFilter::EndDecodeImpl()
 {
     delete m_pPredictor;
-    m_pPredictor = NULL;
+    m_pPredictor = nullptr;
 }
 
 void PdfLZWFilter::InitTable()
@@ -923,7 +923,7 @@ void JPegErrorOutput(j_common_ptr, int)
  * The actual filter implementation
  */
 PdfDCTFilter::PdfDCTFilter()
-    : m_pDevice( NULL )
+    : m_pDevice( nullptr )
 {
     memset( &m_cinfo, 0, sizeof( struct jpeg_decompress_struct ) );
     memset( &m_jerr, 0, sizeof( struct jpeg_error_mgr ) );
@@ -969,7 +969,7 @@ void PdfDCTFilter::DecodeBlockImpl( const char* pBuffer, size_t lLen )
 void PdfDCTFilter::EndDecodeImpl()
 {
     delete m_pDevice;
-    m_pDevice = NULL;
+    m_pDevice = nullptr;
 
     jpeg_memory_src ( &m_cinfo, reinterpret_cast<JOCTET*>(m_buffer.GetBuffer()), m_buffer.GetSize() );
 
@@ -1172,7 +1172,7 @@ jpeg_memory_src (j_decompress_ptr cinfo, const JOCTET * buffer, size_t bufsize)
      * manager serially with the same JPEG object. Caveat programmer.
      */
 
-    if (cinfo->src == NULL) { /* first time for this JPEG object? */
+    if (cinfo->src == nullptr) { /* first time for this JPEG object? */
         cinfo->src = static_cast<struct jpeg_source_mgr *>(
             (*cinfo->mem->alloc_small) ( reinterpret_cast<j_common_ptr>(cinfo), JPOOL_PERMANENT,
                                         sizeof(my_source_mgr)));
@@ -1242,7 +1242,7 @@ static toff_t dummy_size(thandle_t)
 // Actual filter code below
 // -------------------------------------------------------
 PdfCCITTFilter::PdfCCITTFilter()
-    : m_tiff( NULL )
+    : m_tiff( nullptr )
 {
 }
 
@@ -1276,7 +1276,7 @@ void PdfCCITTFilter::BeginDecodeImpl( const PdfDictionary* pDict )
 
     m_tiff = TIFFClientOpen("podofo", "w", reinterpret_cast<thandle_t>(-1),
                             dummy_read, dummy_write,
-                            dummy_seek, dummy_close, dummy_size, NULL, NULL);
+                            dummy_seek, dummy_close, dummy_size, nullptr, nullptr);
 
     if( !m_tiff ) 
     {

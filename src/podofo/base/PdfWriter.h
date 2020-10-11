@@ -167,7 +167,7 @@ public:
     /**
      * \returns true if this PdfWriter creates an encrypted PDF file
      */
-    inline bool GetEncrypted() const { return m_pEncrypt != NULL; }
+    inline bool GetEncrypted() const { return m_pEncrypt != nullptr; }
 
 protected:
     /**
@@ -214,7 +214,7 @@ private:
 
     bool            m_UseXRefStream;
 
-    std::unique_ptr<PdfEncrypt> m_pEncrypt;    ///< If not NULL encrypt all strings and streams and create an encryption dictionary in the trailer
+    std::unique_ptr<PdfEncrypt> m_pEncrypt;    ///< If not nullptr encrypt all strings and streams and create an encryption dictionary in the trailer
     PdfObject* m_pEncryptObj; ///< Used to temporarly store the encryption dictionary
 
     PdfSaveOptions  m_saveOptions;

@@ -136,7 +136,7 @@ protected:
      * \param bCreate create the dictionary if it does not exist
      *
      * \returns a pointer to the appearance characteristics dictionary
-     *          of this object or NULL if it does not exists.
+     *          of this object or nullptr if it does not exists.
      */
     PdfObject* GetAppearanceCharacteristics( bool bCreate ) const;
 

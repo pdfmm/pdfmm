@@ -92,7 +92,7 @@ PdfField::PdfField( EPdfField eField, PdfObject *pObject, PdfAnnotation *pWidget
 
 PdfField * PdfField::CreateField( PdfObject *pObject )
 {
-    return createField(GetFieldType(*pObject), pObject, NULL );
+    return createField(GetFieldType(*pObject), pObject, nullptr );
 }
 
 PdfField * PdfField::CreateField( PdfAnnotation *pWidget )
@@ -273,7 +273,7 @@ PdfField::PdfField( PdfObject* pObject, PdfAnnotation* pWidget )
 
 PdfObject* PdfField::GetAppearanceCharacteristics( bool bCreate ) const
 {
-    PdfObject* pMK = NULL;
+    PdfObject* pMK = nullptr;
 
     if( !m_pObject->GetDictionary().HasKey( PdfName("MK") ) && bCreate )
     {
@@ -328,8 +328,8 @@ bool PdfField::GetFieldFlags( const PdfObject & rObject, int64_t & lValue )
 
     const PdfObject *pFlagsObject = rDict.GetKey( "Ff" );
     PdfObject *pParentObect;
-    if( pFlagsObject == NULL && ( ( pParentObect = rObject.GetIndirectKey( "Parent" ) ) == NULL
-        || ( pFlagsObject = pParentObect->GetDictionary().GetKey( "Ff" ) ) == NULL ) )
+    if( pFlagsObject == nullptr && ( ( pParentObect = rObject.GetIndirectKey( "Parent" ) ) == nullptr
+        || ( pFlagsObject = pParentObect->GetDictionary().GetKey( "Ff" ) ) == nullptr ) )
     {
         lValue = 0;
         return false;
@@ -1051,7 +1051,7 @@ void PdfListField::RemoveItem( int nIndex )
 const PdfString PdfListField::GetItem( int nIndex ) const
 {
     PdfObject *opt = GetFieldObject()->GetDictionary().FindKey( "Opt" );
-    if ( opt == NULL )
+    if ( opt == nullptr )
         return PdfString::StringNull;
 
     PdfArray &optArray = opt->GetArray();
@@ -1078,7 +1078,7 @@ const PdfString PdfListField::GetItem( int nIndex ) const
 const PdfString PdfListField::GetItemDisplayText( int nIndex ) const
 {
     PdfObject *opt = GetFieldObject()->GetDictionary().FindKey( "Opt" );
-    if ( opt == NULL )
+    if ( opt == nullptr )
         return PdfString::StringNull;
 
     PdfArray &optArray = opt->GetArray();
@@ -1105,7 +1105,7 @@ const PdfString PdfListField::GetItemDisplayText( int nIndex ) const
 size_t PdfListField::GetItemCount() const
 {
     PdfObject *opt = GetFieldObject()->GetDictionary().FindKey( "Opt" );
-    if ( opt == NULL )
+    if ( opt == nullptr )
         return 0;
     
     return opt->GetArray().size();
@@ -1269,7 +1269,7 @@ void getFullName(const PdfObject* obj, bool escapePartialNames, string& fullname
         getFullName(parent, escapePartialNames, fullname);
 
     const PdfObject* nameObj = dict.GetKey("T");
-    if (nameObj != NULL)
+    if (nameObj != nullptr)
     {
         string name = nameObj->GetString().GetStringUtf8();
 

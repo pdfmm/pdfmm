@@ -47,11 +47,11 @@
 namespace PoDoFo {
 
 /*
-  We use NULL for the PdfElement name, since the AcroForm dict
+  We use nullptr for the PdfElement name, since the AcroForm dict
   does NOT have a /Type key!
 */
 PdfAcroForm::PdfAcroForm( PdfDocument* pDoc, EPdfAcroFormDefaulAppearance eDefaultAppearance )
-    : PdfElement( NULL, pDoc ), m_pDocument( pDoc )
+    : PdfElement( nullptr, pDoc ), m_pDocument( pDoc )
 {
     // Initialize with an empty fields array
     this->GetObject()->GetDictionary().AddKey( PdfName("Fields"), PdfArray() );
@@ -60,7 +60,7 @@ PdfAcroForm::PdfAcroForm( PdfDocument* pDoc, EPdfAcroFormDefaulAppearance eDefau
 }
 
 PdfAcroForm::PdfAcroForm( PdfDocument* pDoc, PdfObject* pObject, EPdfAcroFormDefaulAppearance eDefaultAppearance )
-    : PdfElement( NULL, pObject ), m_pDocument( pDoc )
+    : PdfElement( nullptr, pObject ), m_pDocument( pDoc )
 {
     Init( eDefaultAppearance );
 }

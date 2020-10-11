@@ -50,7 +50,7 @@ class PODOFO_API PdfRefCountedBuffer
 {
 public:
     /** Created an empty reference counted buffer
-     *  The buffer will be initialize to NULL
+     *  The buffer will be initialize to nullptr
      */
     PdfRefCountedBuffer();
 

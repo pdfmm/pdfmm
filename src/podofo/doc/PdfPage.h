@@ -236,7 +236,7 @@ class PODOFO_DOC_API PdfPage : public PdfElement, public PdfCanvas {
      *  \param rType the type of resource to fetch (e.g. /Font, or /XObject)
      *  \param rKey the key of the resource
      *
-     *  \returns the object of the resource or NULL if it was not found
+     *  \returns the object of the resource or nullptr if it was not found
      */
     PdfObject* GetFromResources( const PdfName & rType, const PdfName & rKey );
 
@@ -244,7 +244,7 @@ class PODOFO_DOC_API PdfPage : public PdfElement, public PdfCanvas {
      *  Possible names that can be inherited according to 
      *  the PDF specification are: Resources, MediaBox, CropBox and Rotate
      *  
-     *  \returns PdfObject - the result of the key fetching or NULL
+     *  \returns PdfObject - the result of the key fetching or nullptr
      */
     inline const PdfObject* GetInheritedKey( const PdfName & rName ) const; 
 
@@ -284,7 +284,7 @@ class PODOFO_DOC_API PdfPage : public PdfElement, public PdfCanvas {
     const PdfRect GetPageBox( const char* inBox ) const;
     
     /** Method for getting a key value that could be inherited (such as the boxes, resources, etc.)
-     *  \returns PdfObject - the result of the key fetching or NULL
+     *  \returns PdfObject - the result of the key fetching or nullptr
      */
     const PdfObject* GetInheritedKeyFromObject( const char* inKey, const PdfObject* inObject, int depth = 0 ) const;
 

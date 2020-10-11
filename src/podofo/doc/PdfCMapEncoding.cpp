@@ -73,7 +73,7 @@ void PdfCMapEncoding::AddToDictionary(PdfDictionary &) const
 
 const PdfEncoding* PdfCMapEncoding::GetBaseEncoding() const
 {
-    const PdfEncoding* pEncoding = NULL;
+    const PdfEncoding* pEncoding = nullptr;
 
     switch( m_baseEncoding ) 
     {

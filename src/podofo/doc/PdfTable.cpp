@@ -47,18 +47,18 @@
 namespace PoDoFo {
 
 PdfSimpleTableModel::PdfSimpleTableModel()
-    : m_pFont( NULL ), m_eAlignment( EPdfAlignment::Left ),
+    : m_pFont( nullptr ), m_eAlignment( EPdfAlignment::Left ),
       m_eVerticalAlignment( EPdfVerticalAlignment::Center ),
       m_bWordWrap( false), m_clForeground( 1.0 ),
       m_bBackground( false ), m_clBackground( 0.0 ),
-      m_ppData( NULL ), m_nCols( 0 ), m_nRows( 0 ),
+      m_ppData( nullptr ), m_nCols( 0 ), m_nRows( 0 ),
 	  m_bBorder( true ), m_dBorder( 1.0 )
 {
 
 }
 
 PdfSimpleTableModel::PdfSimpleTableModel( int nCols, int nRows )
-    : m_pFont( NULL ), m_eAlignment( EPdfAlignment::Left ),
+    : m_pFont( nullptr ), m_eAlignment( EPdfAlignment::Left ),
       m_eVerticalAlignment( EPdfVerticalAlignment::Center ),
       m_bWordWrap( false ), m_clForeground( 1.0 ),
       m_bBackground( false ), m_clBackground( 0.0 ),
@@ -87,13 +87,13 @@ PdfSimpleTableModel::~PdfSimpleTableModel()
 }
 
 PdfTable::PdfTable( int nCols, int nRows ) 
-    : m_pModel( NULL ),
+    : m_pModel( nullptr ),
       m_nCols( nCols ), m_nRows( nRows ),
       m_dColWidth( 0.0 ), m_dRowHeight( 0.0 ),
       m_dTableWidth( 0.0 ), m_dTableHeight( 0.0 ),
-      m_pdColWidths( NULL ), m_pdRowHeights( NULL ),
-      m_bAutoPageBreak( false ), m_pCustomData( NULL ),
-      m_fpCallback( NULL )
+      m_pdColWidths( nullptr ), m_pdRowHeights( nullptr ),
+      m_bAutoPageBreak( false ), m_pCustomData( nullptr ),
+      m_fpCallback( nullptr )
 {
 
 }
@@ -432,7 +432,7 @@ void PdfTable::SetColumnWidths( double* pdWidths )
     if( m_pdColWidths )
     {
         delete [] m_pdColWidths;
-        m_pdColWidths = NULL;
+        m_pdColWidths = nullptr;
     }
 
     if( pdWidths ) 
@@ -447,7 +447,7 @@ void PdfTable::SetRowHeights( double* pdHeights )
     if( m_pdRowHeights )
     {
         delete [] m_pdRowHeights;
-        m_pdRowHeights = NULL;
+        m_pdRowHeights = nullptr;
     }
 
     if( pdHeights ) 

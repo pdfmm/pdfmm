@@ -47,9 +47,9 @@ namespace PoDoFo {
 
 PdfOutlineItem::PdfOutlineItem( const PdfString & sTitle, const PdfDestination & rDest, 
                                 PdfOutlineItem* pParentOutline, PdfVecObjects* pParent )
-    : PdfElement( NULL, pParent ), 
-      m_pParentOutline( pParentOutline ), m_pPrev( NULL ), m_pNext( NULL ), 
-      m_pFirst( NULL ), m_pLast( NULL ), m_pDestination( NULL ), m_pAction( NULL )
+    : PdfElement( nullptr, pParent ), 
+      m_pParentOutline( pParentOutline ), m_pPrev( nullptr ), m_pNext( nullptr ), 
+      m_pFirst( nullptr ), m_pLast( nullptr ), m_pDestination( nullptr ), m_pAction( nullptr )
 {
     if( pParentOutline )
         this->GetObject()->GetDictionary().AddKey( "Parent", pParentOutline->GetObject()->GetIndirectReference() );
@@ -60,9 +60,9 @@ PdfOutlineItem::PdfOutlineItem( const PdfString & sTitle, const PdfDestination &
 
 PdfOutlineItem::PdfOutlineItem( const PdfString & sTitle, const PdfAction & rAction, 
                                 PdfOutlineItem* pParentOutline, PdfVecObjects* pParent )
-    : PdfElement( NULL, pParent ), 
-      m_pParentOutline( pParentOutline ), m_pPrev( NULL ), m_pNext( NULL ), 
-      m_pFirst( NULL ), m_pLast( NULL ), m_pDestination( NULL ), m_pAction( NULL )
+    : PdfElement( nullptr, pParent ), 
+      m_pParentOutline( pParentOutline ), m_pPrev( nullptr ), m_pNext( nullptr ), 
+      m_pFirst( nullptr ), m_pLast( nullptr ), m_pDestination( nullptr ), m_pAction( nullptr )
 {
     if( pParentOutline )
         this->GetObject()->GetDictionary().AddKey( "Parent", pParentOutline->GetObject()->GetIndirectReference() );
@@ -72,15 +72,15 @@ PdfOutlineItem::PdfOutlineItem( const PdfString & sTitle, const PdfAction & rAct
 }
 
 PdfOutlineItem::PdfOutlineItem( PdfObject* pObject, PdfOutlineItem* pParentOutline, PdfOutlineItem* pPrevious )
-    : PdfElement( NULL, pObject ), m_pParentOutline( pParentOutline ), m_pPrev( pPrevious ), 
-      m_pNext( NULL ), m_pFirst( NULL ), m_pLast( NULL ), m_pDestination( NULL ), m_pAction( NULL )
+    : PdfElement( nullptr, pObject ), m_pParentOutline( pParentOutline ), m_pPrev( pPrevious ), 
+      m_pNext( nullptr ), m_pFirst( nullptr ), m_pLast( nullptr ), m_pDestination( nullptr ), m_pAction( nullptr )
 {
     PdfReference first, next;
 
     if( this->GetObject()->GetDictionary().HasKey( "First" ) )
     {
         first    = this->GetObject()->GetDictionary().GetKey("First")->GetReference();
-        m_pFirst = new PdfOutlineItem( pObject->GetDocument()->GetObjects().GetObject( first ), this, NULL );
+        m_pFirst = new PdfOutlineItem( pObject->GetDocument()->GetObjects().GetObject( first ), this, nullptr );
     }
 
     if( this->GetObject()->GetDictionary().HasKey( "Next" ) )
@@ -100,8 +100,8 @@ PdfOutlineItem::PdfOutlineItem( PdfObject* pObject, PdfOutlineItem* pParentOutli
 }
 
 PdfOutlineItem::PdfOutlineItem( PdfVecObjects* pParent )
-    : PdfElement( "Outlines", pParent ), m_pParentOutline( NULL ), m_pPrev( NULL ), 
-      m_pNext( NULL ), m_pFirst( NULL ), m_pLast( NULL ), m_pDestination( NULL ), m_pAction( NULL )
+    : PdfElement( "Outlines", pParent ), m_pParentOutline( nullptr ), m_pPrev( nullptr ), 
+      m_pNext( nullptr ), m_pFirst( nullptr ), m_pLast( nullptr ), m_pDestination( nullptr ), m_pAction( nullptr )
 {
 }
 
@@ -128,8 +128,8 @@ void PdfOutlineItem::InsertChild( PdfOutlineItem* pItem )
 void PdfOutlineItem::InsertChildInternal( PdfOutlineItem* pItem, bool bCheckParent )
 {
     PdfOutlineItem* pItemToCheckParent = pItem;
-    PdfOutlineItem* pRoot = NULL;
-    PdfOutlineItem* pRootOfThis = NULL;
+    PdfOutlineItem* pRoot = nullptr;
+    PdfOutlineItem* pRootOfThis = nullptr;
 
     if ( !pItemToCheckParent )
         return;
@@ -155,11 +155,11 @@ void PdfOutlineItem::InsertChildInternal( PdfOutlineItem* pItem, bool bCheckPare
             else
             {
                 pRootOfThis = pItemToCheckParent;
-                pItemToCheckParent = NULL;
+                pItemToCheckParent = nullptr;
             }
         }
 
-        if( pRoot == pRootOfThis ) // later NULL if check skipped for performance
+        if( pRoot == pRootOfThis ) // later nullptr if check skipped for performance
             PODOFO_RAISE_ERROR( EPdfError::OutlineItemAlreadyPresent );
     }
 
@@ -281,14 +281,14 @@ void PdfOutlineItem::Erase()
     if( !m_pNext && m_pParentOutline && this == m_pParentOutline->Last() )
         m_pParentOutline->SetLast( m_pPrev );
 
-    m_pNext = NULL;
+    m_pNext = nullptr;
     delete this;
 }
 
 void PdfOutlineItem::SetDestination( const PdfDestination & rDest )
 {
     delete m_pDestination;
-    m_pDestination = NULL;
+    m_pDestination = nullptr;
 
     rDest.AddToDictionary( this->GetObject()->GetDictionary() );
 }
@@ -299,7 +299,7 @@ PdfDestination* PdfOutlineItem::GetDestination( PdfDocument* pDoc )
     {
         PdfObject*	dObj = this->GetObject()->GetIndirectKey( "Dest" );
         if ( !dObj ) 
-            return NULL;
+            return nullptr;
     
         m_pDestination = new PdfDestination( dObj, pDoc );
     }
@@ -310,7 +310,7 @@ PdfDestination* PdfOutlineItem::GetDestination( PdfDocument* pDoc )
 void PdfOutlineItem::SetAction( const PdfAction & rAction )
 {
     delete m_pAction;
-    m_pAction = NULL;
+    m_pAction = nullptr;
 
     rAction.AddToDictionary( this->GetObject()->GetDictionary() );
 }
@@ -321,7 +321,7 @@ PdfAction* PdfOutlineItem::GetAction( void )
     {
         PdfObject*	dObj = this->GetObject()->GetIndirectKey( "A" );
         if ( !dObj ) 
-            return NULL;
+            return nullptr;
     
         m_pAction = new PdfAction( dObj );
     }
@@ -393,7 +393,7 @@ PdfOutlines::PdfOutlines( PdfVecObjects* pParent )
 }
 
 PdfOutlines::PdfOutlines( PdfObject* pObject )
-    : PdfOutlineItem( pObject, NULL, NULL )
+    : PdfOutlineItem( pObject, nullptr, nullptr )
 {
 }
 

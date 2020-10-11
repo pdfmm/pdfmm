@@ -121,10 +121,10 @@ public:
 };
 
 PdfFontCID::PdfFontCID( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfObject* pObject, bool bEmbed )
-    : PdfFont( pMetrics, pEncoding, pObject ), m_pDescendantFonts( NULL )
+    : PdfFont( pMetrics, pEncoding, pObject ), m_pDescendantFonts( nullptr )
 {
     (void)bEmbed;
-    m_pDescriptor = NULL;
+    m_pDescriptor = nullptr;
     /* this->Init( bEmbed, false ); No changes to dictionary */
     m_bWasEmbedded = true; /* embedding on this path is not allowed at all, so
                             pretend like it's already done */
@@ -132,9 +132,9 @@ PdfFontCID::PdfFontCID( PdfFontMetrics* pMetrics, const PdfEncoding* const pEnco
 
 PdfFontCID::PdfFontCID( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 
                         PdfVecObjects* pParent, bool bEmbed, bool bSubset )
-    : PdfFont( pMetrics, pEncoding, pParent ), m_pDescendantFonts( NULL )
+    : PdfFont( pMetrics, pEncoding, pParent ), m_pDescendantFonts( nullptr )
 {
-    m_pDescriptor = NULL;
+    m_pDescriptor = nullptr;
 
     this->Init( bEmbed, bSubset );
 }

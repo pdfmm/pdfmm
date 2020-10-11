@@ -388,7 +388,7 @@ public:
     /** Creates a colorspace object from a color to insert into resources.
      *
      *  \param pOwner a pointer to the owner of the generated object
-     *  \returns a PdfObject pointer, which can be insert into resources, NULL if not needed
+     *  \returns a PdfObject pointer, which can be insert into resources, nullptr if not needed
      */
     PdfObject* BuildColorSpace(PdfDocument& document) const;
 

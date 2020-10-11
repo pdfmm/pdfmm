@@ -42,13 +42,13 @@
 namespace PoDoFo {
 
 PdfFunction::PdfFunction( EPdfFunctionType eType, const PdfArray & rDomain, PdfVecObjects* pParent )
-    : PdfElement( NULL, pParent )
+    : PdfElement( nullptr, pParent )
 {
     Init( eType, rDomain );
 }
 
 PdfFunction::PdfFunction( EPdfFunctionType eType, const PdfArray & rDomain, PdfDocument* pParent )
-    : PdfElement( NULL, pParent )
+    : PdfElement( nullptr, pParent )
 {
     Init( eType, rDomain );
 }

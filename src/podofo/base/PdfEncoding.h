@@ -99,7 +99,7 @@ protected:
      *                    (either a byte value in the current encoding or a unicode value)
      *
      */
-    PdfEncoding( int nFirstChar, int nLastChar, PdfObject* = NULL );
+    PdfEncoding( int nFirstChar, int nLastChar, PdfObject* = nullptr );
 
     /** Get a unique ID for this encoding
      *  which can used for comparisons!

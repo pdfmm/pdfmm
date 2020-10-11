@@ -246,8 +246,8 @@ public:
      *         Use the compiler macro __LINE__ to initialize the field.
      *  \param pszInformation additional information on this error
      */
-    PdfError( const EPdfError & eCode, const char* pszFile = NULL, int line = 0, 
-              const char* pszInformation = NULL );
+    PdfError( const EPdfError & eCode, const char* pszFile = nullptr, int line = 0, 
+              const char* pszInformation = nullptr );
 
     /** Create a PdfError object with a given error code.
      *  \param eCode the error code of this object
@@ -316,7 +316,7 @@ public:
     /** Set the error code of this object.
      *  \param eCode the error code of this object
      *  \param pszFile the filename of the source file causing
-     *                 the error or NULL. Typically you will use
+     *                 the error or nullptr. Typically you will use
      *                 the gcc macro __FILE__ here.
      *  \param line    the line of source causing the error
      *                 or 0. Typically you will use the gcc 
@@ -331,7 +331,7 @@ public:
     /** Set the error code of this object.
      *  \param eCode the error code of this object
      *  \param pszFile the filename of the source file causing
-     *                 the error or NULL. Typically you will use
+     *                 the error or nullptr. Typically you will use
      *                 the gcc macro __FILE__ here.
      *  \param line    the line of source causing the error
      *                 or 0. Typically you will use the gcc 
@@ -340,7 +340,7 @@ public:
      *         e.g. how to fix the error. This string is intended to 
      *         be shown to the user.
      */
-    inline void SetError( const EPdfError & eCode, const char* pszFile = NULL, int line = 0, const char* pszInformation = NULL );
+    inline void SetError( const EPdfError & eCode, const char* pszFile = nullptr, int line = 0, const char* pszInformation = nullptr );
 
     /** Set additional error information.
      *  \param pszInformation additional information on the error,
@@ -360,7 +360,7 @@ public:
      *  if you get an error object but do not handle the error but throw it again.
      *
      *  \param pszFile the filename of the source file causing
-     *                 the error or NULL. Typically you will use
+     *                 the error or nullptr. Typically you will use
      *                 the gcc macro __FILE__ here.
      *  \param line    the line of source causing the error
      *                 or 0. Typically you will use the gcc 
@@ -369,13 +369,13 @@ public:
      *         e.g. how to fix the error. This string is intended to 
      *         be shown to the user.
      */
-    inline void AddToCallstack( const char* pszFile = NULL, int line = 0, const char* pszInformation = NULL );
+    inline void AddToCallstack( const char* pszFile = nullptr, int line = 0, const char* pszInformation = nullptr );
 
 	/** Add callstack information to an error object. Always call this function
      *  if you get an error object but do not handle the error but throw it again.
      *
      *  \param pszFile the filename of the source file causing
-     *                 the error or NULL. Typically you will use
+     *                 the error or nullptr. Typically you will use
      *                 the gcc macro __FILE__ here.
      *  \param line    the line of source causing the error
      *                 or 0. Typically you will use the gcc 
@@ -402,13 +402,13 @@ public:
     const char* what() const;
 
     /** Get the name for a certain error code.
-     *  \returns the name or NULL if no name for the specified
+     *  \returns the name or nullptr if no name for the specified
      *           error code is available.
      */
     static const char* ErrorName( EPdfError eCode );
 
     /** Get the error message for a certain error code.
-     *  \returns the error message or NULL if no error
+     *  \returns the error message or nullptr if no error
      *           message for the specified error code
      *           is available.
      */

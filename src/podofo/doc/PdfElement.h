@@ -133,7 +133,7 @@ class PODOFO_DOC_API PdfElement
      *         the string mapping of the index
      *  \param lLen the length of the string array
      *
-     *  \returns the string representation or NULL for 
+     *  \returns the string representation or nullptr for 
      *           values out of range
      */
     const char* TypeNameForIndex( int i, const char** ppTypes, long lLen ) const;
@@ -165,7 +165,7 @@ class PODOFO_DOC_API PdfElement
      *
      *  \returns a PdfObject which is owned by the parent
      */
-    PdfObject* CreateObject( const char* pszType = NULL );
+    PdfObject* CreateObject( const char* pszType = nullptr );
 
     PdfObject* GetNonConstObject() const;
 

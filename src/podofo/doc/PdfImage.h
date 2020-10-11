@@ -67,7 +67,7 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
      *  \param pParent parent vector of this image
 	 *  \param pszPrefix optional prefix for XObject-name
      */
-    PdfImage( PdfVecObjects* pParent, const char* pszPrefix = NULL );
+    PdfImage( PdfVecObjects* pParent, const char* pszPrefix = nullptr );
 
     /** Constuct a new PdfImage object
      *  This is an overloaded constructor.
@@ -75,7 +75,7 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
      *  \param pParent parent document
 	 *  \param pszPrefix optional prefix for XObject-name
      */
-    PdfImage( PdfDocument* pParent, const char* pszPrefix = NULL );
+    PdfImage( PdfDocument* pParent, const char* pszPrefix = nullptr );
 
     /** Construct an image from an existing PdfObject
      *  
@@ -86,7 +86,7 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
     /**
      * Get a list of all image formats supported by this PoDoFo build.
      *
-     * Example: { "JPEG", "TIFF", NULL }
+     * Example: { "JPEG", "TIFF", nullptr }
      *
      * \returns a zero terminates list of all supported image formats
      */
@@ -102,7 +102,7 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
      *
      *  \see SetImageICCProfile to set an ICC profile instead of a simple colorspace
      */
-    void SetImageColorSpace( EPdfColorSpace eColorSpace, const PdfArray *indexedData = NULL );
+    void SetImageColorSpace( EPdfColorSpace eColorSpace, const PdfArray *indexedData = nullptr );
 
     /** Get the color space of the image
     *

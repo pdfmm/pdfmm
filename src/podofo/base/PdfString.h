@@ -93,18 +93,18 @@ public:
      *
      *  \param sString the string to copy
      *  \param pEncoding the encoding of this string, if it is no unicode string.
-     *         This is ignored for unicode strings. If NULL, PdfDocEncoding will be used as a default.
+     *         This is ignored for unicode strings. If nullptr, PdfDocEncoding will be used as a default.
      */
-    PdfString( const std::string& sString, const PdfEncoding * const pEncoding = NULL );
+    PdfString( const std::string& sString, const PdfEncoding * const pEncoding = nullptr );
 
     /** Construct a new PdfString from a 0-terminated C-style string.
      *  The input string will be copied.
      *
      *  \param pszString the string to copy
      *  \param pEncoding the encoding of this string, if it is no unicode string.
-     *         This is ignored for unicode strings. If NULL, PdfDocEncoding will be used as a default.
+     *         This is ignored for unicode strings. If nullptr, PdfDocEncoding will be used as a default.
      */
-    PdfString( const char* pszString, const PdfEncoding * const pEncoding = NULL );
+    PdfString( const char* pszString, const PdfEncoding * const pEncoding = nullptr );
 
 #ifdef WIN32
     /** Construct a new PdfString from a 0-terminated C-style string.
@@ -125,9 +125,9 @@ public:
      *  \param lLen length of the string data to encode
      *  \param bHex if true the data will be hex-encoded during writing out the string and IsHex() will return true.
      *  \param pEncoding the encoding of this string, if it is no unicode string.
-     *         This is ignored for unicode strings. If NULL, PdfDocEncoding will be used as a default.
+     *         This is ignored for unicode strings. If nullptr, PdfDocEncoding will be used as a default.
      */
-    PdfString( const char* pszString, size_t lLen, bool bHex = false, const PdfEncoding * const pEncoding = NULL );
+    PdfString( const char* pszString, size_t lLen, bool bHex = false, const PdfEncoding * const pEncoding = nullptr );
 
     /** Construct a new PdfString from an UTF-8 encoded string.
      *  
@@ -185,7 +185,7 @@ public:
 
     /** The string is valid if no error in the constructor has occurred.
      *  The default constructor PdfString() creates an invalid string, as do
-     *  other constructors when passed a NULL char* or NULL wchar_t*.
+     *  other constructors when passed a nullptr char* or nullptr wchar_t*.
      *  PdfString::StringNull uses the default constructor so is also invalid.
      *  If it is valid it is safe to call all the other member functions.
      *  \returns true if this is a valid initialized PdfString
@@ -243,7 +243,7 @@ public:
      * 
      *  \returns the string's contents which are guaranteed to be zero-terminated
      *           but might also contain '\0' bytes in the string,
-     *           returns NULL if PdfString::IsValid() returns false.
+     *           returns nullptr if PdfString::IsValid() returns false.
      *
      *  \see IsHex
      *  \see IsUnicode
@@ -260,7 +260,7 @@ public:
      *  This is the preferred way to access the string's contents.
      *
      *  \returns the string's contents always as UTF-8,
-     *           returns NULL if PdfString::IsValid() returns false
+     *           returns nullptr if PdfString::IsValid() returns false
      */
     const std::string & GetStringUtf8() const;
 
@@ -311,7 +311,7 @@ public:
      *  \param pDevice the output device.
      *  \param eWriteMode additional options for writing this object
      *  \param pEncrypt an encryption object which is used to encrypt this object,
-     *                  or NULL to not encrypt this object
+     *                  or nullptr to not encrypt this object
      */
     void Write ( PdfOutputDevice& pDevice, EPdfWriteMode eWriteMode, const PdfEncrypt* pEncrypt ) const override;
 
@@ -363,7 +363,7 @@ public:
 	 /** Returns internal buffer; do not free it, it's owned by the PdfString
 	  *
 	  * \returns internal buffer; do not free it, it's owned by the PdfString
-      *          (zero size buffer, internally NULL, if PdfString::IsValid()
+      *          (zero size buffer, internally nullptr, if PdfString::IsValid()
       *          returns false).
 	  */
 	 PdfRefCountedBuffer &GetBuffer(void);
@@ -381,16 +381,16 @@ private:
     /** Set hex-encoded data as the strings data.
      *  \param pszHex must be hex-encoded data.
      *  \param lLen   length of the hex-encoded data.
-     *  \param pEncrypt if !NULL, assume the hex data is encrypted and should be decrypted after hex-decoding.
+     *  \param pEncrypt if !nullptr, assume the hex data is encrypted and should be decrypted after hex-decoding.
      */
-    void SetHexData(const char* pszHex, size_t lLen, PdfEncrypt* pEncrypt = NULL);
+    void SetHexData(const char* pszHex, size_t lLen, PdfEncrypt* pEncrypt = nullptr);
 
     /** Construct a new PdfString from a 0-terminated string.
      * 
      *  The input string will be copied.
      *  if m_bHex is true the copied data will be hex-encoded.
      *
-     *  \param pszString the string to copy, must not be NULL
+     *  \param pszString the string to copy, must not be nullptr
      *  \param lLen length of the string data to copy
      *  
      */
@@ -400,7 +400,7 @@ private:
      * 
      *  The input string will be copied and converted to UTF-16BE.
      *
-     *  \param pszStringUtf8 the string to copy, must not be NULL
+     *  \param pszStringUtf8 the string to copy, must not be nullptr
      *  \param lLen number of bytes of the string data to copy
      *  
      */
@@ -429,7 +429,7 @@ private:
     bool                m_bUnicode;                  ///< This string contains unicode data
 
     std::string         m_sUtf8;                     ///< The UTF-8 version of the string's contents.
-    const PdfEncoding*  m_pEncoding;                 ///< Encoding for non-unicode strings. NULL for unicode strings.
+    const PdfEncoding*  m_pEncoding;                 ///< Encoding for non-unicode strings. nullptr for unicode strings.
 };
 
 };

@@ -76,7 +76,7 @@ PdfFontMetricsFreetype* PdfFontMetricsFreetype::CreateForSubsetting(FT_Library* 
     FT_Error err = FT_New_Face( *pLibrary, pszFilename, 0, &scoped_face.ftFace );
     if (!err) {
         FT_ULong  length = 0;
-        err = FT_Load_Sfnt_Table( scoped_face.ftFace, 0, 0, NULL, &length );
+        err = FT_Load_Sfnt_Table( scoped_face.ftFace, 0, 0, nullptr, &length );
         if (!err) {
             PdfRefCountedBuffer buffer(length);
             err = FT_Load_Sfnt_Table( scoped_face.ftFace, 0, 0, reinterpret_cast<FT_Byte*>(buffer.GetBuffer()), &length );
@@ -103,7 +103,7 @@ PdfFontMetricsFreetype::PdfFontMetricsFreetype( FT_Library* pLibrary, const char
     : PdfFontMetrics( PdfFontMetrics::FontTypeFromFilename( pszFilename ),
                       pszFilename, pszSubsetPrefix ),
       m_pLibrary( pLibrary ),
-      m_pFace( NULL ),
+      m_pFace( nullptr ),
       m_bSymbol( pIsSymbol )
 {
     FT_Error err = FT_New_Face( *pLibrary, pszFilename, 0, &m_pFace );
@@ -124,7 +124,7 @@ PdfFontMetricsFreetype::PdfFontMetricsFreetype( FT_Library* pLibrary,
                                                 const char* pszSubsetPrefix )
     : PdfFontMetrics( EPdfFontType::Unknown, "", pszSubsetPrefix ),
       m_pLibrary( pLibrary ),
-      m_pFace( NULL ),
+      m_pFace( nullptr ),
       m_bSymbol( pIsSymbol )
 {
     m_bufFontData = PdfRefCountedBuffer( nBufLen ); // const_cast is ok, because we SetTakePossension to false!
@@ -139,7 +139,7 @@ PdfFontMetricsFreetype::PdfFontMetricsFreetype( FT_Library* pLibrary,
                                                 const char* pszSubsetPrefix ) 
     : PdfFontMetrics( EPdfFontType::Unknown, "", pszSubsetPrefix ),
       m_pLibrary( pLibrary ),
-      m_pFace( NULL ),
+      m_pFace( nullptr ),
       m_bSymbol( pIsSymbol ),
       m_bufFontData( rBuffer )
 {
@@ -318,11 +318,11 @@ void PdfFontMetricsFreetype::GetWidthArray( PdfVariant & var, unsigned int nFirs
 
     for( i=nFirst;i<=nLast;i++ )
     {
-        if( i < PODOFO_WIDTH_CACHE_SIZE && pEncoding == NULL )
+        if( i < PODOFO_WIDTH_CACHE_SIZE && pEncoding == nullptr )
             list.push_back( PdfVariant( m_vecWidth[i] ) );
         else
         {
-            if (pEncoding != NULL)
+            if (pEncoding != nullptr)
             {
                 unsigned short shCode = pEncoding->GetCharCode(i);
 #ifdef PODOFO_IS_LITTLE_ENDIAN

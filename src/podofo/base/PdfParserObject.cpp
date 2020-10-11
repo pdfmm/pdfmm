@@ -58,7 +58,7 @@ static const int s_nLenStream    = 6; // strlen("stream");
 
 PdfParserObject::PdfParserObject(PdfDocument& document, const PdfRefCountedInputDevice & rDevice,
                                   const PdfRefCountedBuffer & rBuffer, ssize_t lOffset )
-    : PdfObject( PdfVariant::NullValue ), PdfTokenizer( rDevice, rBuffer ), m_pEncrypt( NULL )
+    : PdfObject( PdfVariant::NullValue ), PdfTokenizer( rDevice, rBuffer ), m_pEncrypt( nullptr )
 {
     // Parsed objects by definition are initially not dirty
     resetDirty();
@@ -69,7 +69,7 @@ PdfParserObject::PdfParserObject(PdfDocument& document, const PdfRefCountedInput
 
 PdfParserObject::PdfParserObject( const PdfRefCountedBuffer & rBuffer )
     : PdfObject( PdfVariant::NullValue ), PdfTokenizer( PdfRefCountedInputDevice(), rBuffer ), 
-      m_pEncrypt( NULL )
+      m_pEncrypt( nullptr )
 {
     InitPdfParserObject();
     m_lOffset = -1;

@@ -40,7 +40,7 @@
 using namespace PoDoFo;
 
 PdfRefCountedBuffer::PdfRefCountedBuffer( char* pBuffer, size_t lSize )
-    : m_pBuffer( NULL )
+    : m_pBuffer( nullptr )
 {
     if( pBuffer && lSize ) 
     {
@@ -55,12 +55,12 @@ PdfRefCountedBuffer::PdfRefCountedBuffer( char* pBuffer, size_t lSize )
 }
 
 PdfRefCountedBuffer::PdfRefCountedBuffer()
-    : m_pBuffer(NULL)
+    : m_pBuffer(nullptr)
 {
 }
 
 PdfRefCountedBuffer::PdfRefCountedBuffer(size_t lSize)
-    : m_pBuffer(NULL)
+    : m_pBuffer(nullptr)
 {
     this->Resize(lSize);
 }
@@ -135,7 +135,7 @@ void PdfRefCountedBuffer::DerefBuffer()
         FreeBuffer();
     // Whether or not it still exists, we no longer have anything to do with
     // the buffer we just released our claim on.
-    m_pBuffer = NULL;
+    m_pBuffer = nullptr;
 }
 
 void PdfRefCountedBuffer::FreeBuffer()
@@ -154,7 +154,7 @@ void PdfRefCountedBuffer::ReallyDetach( size_t lExtraLen )
 
     if( !m_pBuffer )
     {
-        // throw error rather than de-referencing NULL
+        // throw error rather than de-referencing nullptr
         PODOFO_RAISE_ERROR( EPdfError::InternalLogic );
     }
     
@@ -173,7 +173,7 @@ void PdfRefCountedBuffer::ReallyDetach( size_t lExtraLen )
     if( pBuffer->m_bOnHeap && !pBuffer->m_pHeapBuffer ) 
     {
         delete pBuffer;
-        pBuffer = NULL;
+        pBuffer = nullptr;
 
         PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
     }
@@ -260,7 +260,7 @@ void PdfRefCountedBuffer::ReallyResize( const size_t lSize )
         if( m_pBuffer->m_bOnHeap && !m_pBuffer->m_pHeapBuffer ) 
         {
             delete m_pBuffer;
-            m_pBuffer = NULL;
+            m_pBuffer = nullptr;
 
             PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
         }

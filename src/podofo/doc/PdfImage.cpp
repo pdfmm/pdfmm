@@ -81,7 +81,7 @@ PdfImage::PdfImage( PdfObject* pObject )
     m_rRect.SetWidth ( static_cast<double>(this->GetObject()->GetDictionary().GetKey( "Width" )->GetNumber()) );
 }
 
-/** Example: { "JPEG", "TIFF", NULL }
+/** Example: { "JPEG", "TIFF", nullptr }
  *
  * \returns a zero terminates list of all supported image formats
  */
@@ -97,7 +97,7 @@ const char** PdfImage::GetSupportedFormats()
 #ifdef PODOFO_HAVE_TIFF_LIB
         "TIFF", 
 #endif // PODOFO_HAVE_TIFF_LIB
-        NULL
+        nullptr
     };
 
     return ppszFormats;
@@ -106,7 +106,7 @@ const char** PdfImage::GetSupportedFormats()
 void PdfImage::SetImageColorSpace( EPdfColorSpace eColorSpace, const PdfArray *indexedData )
 {
     if (eColorSpace == EPdfColorSpace::Indexed) {
-        PODOFO_RAISE_LOGIC_IF( !indexedData, "PdfImage::SetImageColorSpace: indexedData cannot be NULL for Indexed color space." );
+        PODOFO_RAISE_LOGIC_IF( !indexedData, "PdfImage::SetImageColorSpace: indexedData cannot be nullptr for Indexed color space." );
 
         PdfArray array(*indexedData);
 
@@ -120,7 +120,7 @@ void PdfImage::SetImageColorSpace( EPdfColorSpace eColorSpace, const PdfArray *i
 EPdfColorSpace PdfImage::GetImageColorSpace()
 {
     PdfObject *colorSpace = GetObject()->GetDictionary().FindKey("ColorSpace");
-    if (colorSpace == NULL)
+    if (colorSpace == nullptr)
         return EPdfColorSpace::Unknown;
 
     if (colorSpace->IsArray())
@@ -822,7 +822,7 @@ void PdfImage::LoadFromPngHandle(FILE* hFile)
         PODOFO_RAISE_ERROR_INFO( EPdfError::UnsupportedImageFormat, "The file could not be recognized as a PNG file." );
     }
     
-    png_structp pPng = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+    png_structp pPng = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
     if( !pPng )
     {
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
@@ -831,13 +831,13 @@ void PdfImage::LoadFromPngHandle(FILE* hFile)
     png_infop pInfo = png_create_info_struct(pPng);
     if( !pInfo )
     {
-        png_destroy_read_struct(&pPng, (png_infopp)NULL, (png_infopp)NULL);
+        png_destroy_read_struct(&pPng, (png_infopp)nullptr, (png_infopp)nullptr);
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
     if( setjmp(png_jmpbuf(pPng)) )
     {
-        png_destroy_read_struct(&pPng, &pInfo, (png_infopp)NULL);
+        png_destroy_read_struct(&pPng, &pInfo, (png_infopp)nullptr);
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
@@ -854,7 +854,7 @@ void PdfImage::LoadFromPngHandle(FILE* hFile)
 
     png_get_IHDR (pPng, pInfo,
                   &width, &height, &depth,
-                  &color_type, &interlace, NULL, NULL);
+                  &color_type, &interlace, nullptr, nullptr);
 
     /* convert palette/gray image to rgb */
     if (color_type == PNG_COLOR_TYPE_PALETTE)
@@ -898,13 +898,13 @@ void PdfImage::LoadFromPngHandle(FILE* hFile)
     png_read_update_info(pPng, pInfo);
     png_get_IHDR (pPng, pInfo,
                   &width, &height, &depth,
-                  &color_type, &interlace, NULL, NULL);
+                  &color_type, &interlace, nullptr, nullptr);
 // End //
     
     // Read the file
     if( setjmp(png_jmpbuf(pPng)) ) 
     {
-        png_destroy_read_struct(&pPng, &pInfo, (png_infopp)NULL);
+        png_destroy_read_struct(&pPng, &pInfo, (png_infopp)nullptr);
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
 
@@ -967,7 +967,7 @@ void PdfImage::LoadFromPngHandle(FILE* hFile)
     podofo_free(pBuffer);
     podofo_free(pRows);
     
-    png_destroy_read_struct(&pPng, &pInfo, (png_infopp)NULL);
+    png_destroy_read_struct(&pPng, &pInfo, (png_infopp)nullptr);
 }
 
 struct pngData
@@ -1014,7 +1014,7 @@ void PdfImage::LoadFromPngData(const unsigned char* pData, size_t dwLen)
         PODOFO_RAISE_ERROR_INFO( EPdfError::UnsupportedImageFormat, "The file could not be recognized as a PNG file." );
     }
     
-    png_structp pPng = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+    png_structp pPng = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
     if( !pPng )
     {
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
@@ -1023,13 +1023,13 @@ void PdfImage::LoadFromPngData(const unsigned char* pData, size_t dwLen)
     png_infop pInfo = png_create_info_struct(pPng);
     if( !pInfo )
     {
-        png_destroy_read_struct(&pPng, (png_infopp)NULL, (png_infopp)NULL);
+        png_destroy_read_struct(&pPng, (png_infopp)nullptr, (png_infopp)nullptr);
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
     
     if( setjmp(png_jmpbuf(pPng)) )
     {
-        png_destroy_read_struct(&pPng, &pInfo, (png_infopp)NULL);
+        png_destroy_read_struct(&pPng, &pInfo, (png_infopp)nullptr);
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
     
@@ -1046,7 +1046,7 @@ void PdfImage::LoadFromPngData(const unsigned char* pData, size_t dwLen)
     
     png_get_IHDR (pPng, pInfo,
                   &width, &height, &depth,
-                  &color_type, &interlace, NULL, NULL);
+                  &color_type, &interlace, nullptr, nullptr);
     
     /* convert palette/gray image to rgb */
     if (color_type == PNG_COLOR_TYPE_PALETTE)
@@ -1090,13 +1090,13 @@ void PdfImage::LoadFromPngData(const unsigned char* pData, size_t dwLen)
     png_read_update_info(pPng, pInfo);
     png_get_IHDR (pPng, pInfo,
                   &width, &height, &depth,
-                  &color_type, &interlace, NULL, NULL);
+                  &color_type, &interlace, nullptr, nullptr);
     // End //
     
     // Read the file
     if( setjmp(png_jmpbuf(pPng)) )
     {
-        png_destroy_read_struct(&pPng, &pInfo, (png_infopp)NULL);
+        png_destroy_read_struct(&pPng, &pInfo, (png_infopp)nullptr);
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
     }
     
@@ -1159,7 +1159,7 @@ void PdfImage::LoadFromPngData(const unsigned char* pData, size_t dwLen)
     podofo_free(pBuffer);
     podofo_free(pRows);
     
-    png_destroy_read_struct(&pPng, &pInfo, (png_infopp)NULL);
+    png_destroy_read_struct(&pPng, &pInfo, (png_infopp)nullptr);
 }
 #endif // PODOFO_HAVE_PNG_LIB
 
