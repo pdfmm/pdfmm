@@ -124,7 +124,7 @@ public:
      *  
      *  \see SetPassword, WriteUpdate, LoadFromBuffer, LoadFromDevice
      */
-    void Load(const std::string_view& filename);
+    void Load(const std::string_view& filename, const std::string_view& sPassword = { });
 
     /** Load a PdfMemDocument from a buffer in memory
      *
@@ -141,7 +141,7 @@ public:
      *  
      *  \see SetPassword, WriteUpdate, Load, LoadFromDevice
      */
-    void LoadFromBuffer( const char* pBuffer, long lLen);
+    void LoadFromBuffer(const std::string_view& filename, const std::string_view& sPassword = { });
 
     /** Load a PdfMemDocument from a PdfRefCountedInputDevice
      *
@@ -157,11 +157,7 @@ public:
      *  
      *  \see SetPassword, WriteUpdate, Load, LoadFromBuffer
      */
-    void LoadFromDevice( const PdfRefCountedInputDevice & rDevice);
-
-    /** Returns whether the document is fully loaded.
-     */
-    inline bool IsLoaded( void ) const { return m_pParser == nullptr; }
+    void LoadFromDevice(const PdfRefCountedInputDevice& rDevice, const std::string_view& filename = { });
 
     /** Writes the complete document to a file
      *
@@ -319,27 +315,6 @@ public:
      *  \returns true if the PDF document is linearized
      */
     inline bool IsLinearized() const override { return m_bLinearized; }
-
-    /** Get access to the internal Catalog dictionary
-     *  or root object.
-     *  
-     *  \returns PdfObject the documents catalog or NULL 
-     *                     if no catalog is available
-     */
-    PdfObject* GetCatalog()  { return PdfDocument::GetCatalog(); }
-
-    /** Get access to the internal Catalog dictionary
-     *  or root object.
-     *  
-     *  \returns PdfObject the documents catalog or NULL 
-     *                     if no catalog is available
-     */
-    const PdfObject* GetCatalog() const { return PdfDocument::GetCatalog(); }
-
-    /** Get the trailer dictionary
-     *  which can be written unmodified to a pdf file.
-     */
-    const PdfObject* GetTrailer() const { return PdfDocument::GetTrailer(); }
     
     /** Get access to the StructTreeRoot dictionary
      *  \returns PdfObject the StructTreeRoot dictionary
@@ -503,7 +478,7 @@ public:
     /** 
      * \returns the parsers encryption object or NULL if the read PDF file was not encrypted
      */
-    inline const PdfEncrypt* GetEncrypt() const { return m_pEncrypt; }
+    inline const PdfEncrypt* GetEncrypt() const { return m_pEncrypt.get(); }
 
 private:
 
@@ -534,9 +509,8 @@ private:
     bool            m_bLinearized;
     EPdfVersion     m_eVersion;
 
-    PdfEncrypt*     m_pEncrypt;
+    std::unique_ptr<PdfEncrypt> m_pEncrypt;
 
-    PdfParser*      m_pParser; ///< This will be temporarily initialized to a PdfParser object so that SetPassword can work
     EPdfWriteMode   m_eWriteMode;
 
     bool m_bSoureHasXRefStream;

@@ -69,7 +69,7 @@ public:
      *                  created document.
      *  @param eWriteMode additional options for writing the pdf
      */
-    PdfImmediateWriter( PdfOutputDevice* pDevice, PdfVecObjects* pVecObjects, const PdfObject* pTrailer, 
+    PdfImmediateWriter(PdfVecObjects& pVecObjects, const PdfObject& pTrailer, PdfOutputDevice& pDevice,
                         EPdfVersion eVersion = EPdfVersion::V1_5, PdfEncrypt* pEncrypt = NULL,
                         EPdfWriteMode eWriteMode = PdfWriteModeDefault );
 
@@ -90,10 +90,6 @@ public:
 
  private:
     void WriteObject( const PdfObject* pObject ) override;
-
-    /** Called when the PdfVecObjects we observer is deleted.
-     */
-    void ParentDestructed() override;
 
     /** Finish the PDF file.
      *  I.e. write the XRef and close the output device.
@@ -127,10 +123,10 @@ public:
     void FinishLastObject();
 
  private:
-    PdfVecObjects*   m_pParent;
     PdfOutputDevice* m_pDevice;
+    bool m_attached;
 
-    PdfXRef*         m_pXRef;
+    std::unique_ptr<PdfXRef> m_pXRef;
     PdfObject*       m_pLast;
 
     bool             m_bOpenStream;

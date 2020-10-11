@@ -177,14 +177,8 @@ void PdfDestination::Init( PdfObject* pObject, PdfDocument* pDocument )
             PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidHandle,
                 "For reading from a document, only use PdfMemDocument." );
         }
-
-        PdfObject* pCatalog = pMemDoc->GetCatalog();
-        if ( !pCatalog )
-        {
-            PODOFO_RAISE_ERROR( EPdfError::NoObject );
-        }
  
-        PdfObject* pDests = pCatalog->GetIndirectKey( PdfName( "Dests" ) );
+        PdfObject* pDests = pMemDoc->GetCatalog().GetIndirectKey( PdfName( "Dests" ) );
         if( !pDests )
         {
             // The error code has been chosen for its distinguishability.
@@ -238,7 +232,7 @@ PdfPage* PdfDestination::GetPage( PdfDocument* pDoc )
         return NULL;
 
     // first entry in the array is the page - so just make a new page from it!
-    return pDoc->GetPagesTree()->GetPage( m_array[0].GetReference() );
+    return pDoc->GetPagesTree().GetPage( m_array[0].GetReference() );
 }
 
 PdfPage* PdfDestination::GetPage( PdfVecObjects* pVecObjects )

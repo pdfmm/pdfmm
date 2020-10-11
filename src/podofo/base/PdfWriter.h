@@ -40,6 +40,7 @@
 #include "PdfInputDevice.h"
 #include "PdfOutputDevice.h"
 #include "PdfVecObjects.h"
+#include "PdfObject.h"
 
 #include "PdfEncrypt.h"
 
@@ -47,7 +48,6 @@ namespace PoDoFo {
 
 class PdfDictionary;
 class PdfName;
-class PdfObject;
 class PdfPage;
 class PdfPagesTree;
 class PdfParser;
@@ -65,20 +65,15 @@ class PdfXRef;
 class PODOFO_API PdfWriter
 {
 private:
-    PdfWriter(PdfVecObjects* pVecObjects, const PdfObject* pTrailer, EPdfVersion version);
+    PdfWriter(PdfVecObjects* pVecObjects, const PdfObject& pTrailer, EPdfVersion version);
 
 public:
-    /** Create a PdfWriter object from a PdfParser object
-     *  \param pParser a pdf parser object
-     */
-    PdfWriter( PdfParser* pParser );
-
     /** Create a new pdf file, from an vector of PdfObjects
      *  and a trailer object.
      *  \param pVecObjects the vector of objects
      *  \param pTrailer a valid trailer object
      */
-    PdfWriter( PdfVecObjects* pVecObjects, const PdfObject* pTrailer );
+    PdfWriter(PdfVecObjects& pVecObjects, const PdfObject& pTrailer);
 
     virtual ~PdfWriter();
 
@@ -107,7 +102,7 @@ public:
      *  \param lSize number of objects in the PDF file
      *  \param bOnlySizeKey write only the size key
      */
-    void FillTrailerObject( PdfObject* pTrailer, size_t lSize, bool bOnlySizeKey ) const;
+    void FillTrailerObject( PdfObject& pTrailer, size_t lSize, bool bOnlySizeKey ) const;
 
 public:
     /** Get the file format version of the pdf
@@ -178,7 +173,7 @@ protected:
     /**
      * Create a PdfWriter from a PdfVecObjects
      */
-    PdfWriter( PdfVecObjects* pVecObjects );
+    PdfWriter( PdfVecObjects& pVecObjects );
 
     /** Writes the pdf header to the current file.
      *  \param pDevice write to this output device
@@ -202,25 +197,25 @@ protected:
      *  \param pTrailer trailer object
      *  \param pOriginalIdentifier write the original identifier (when using incremental update) to this string
      */
-    void CreateFileIdentifier( PdfString& identifier, const PdfObject* pTrailer, PdfString* pOriginalIdentifier = NULL ) const;
+    void CreateFileIdentifier( PdfString& identifier, const PdfObject& pTrailer, PdfString* pOriginalIdentifier = nullptr ) const;
 
     
-    const PdfObject& GetTrailer() { return *m_pTrailer; }
+    const PdfObject& GetTrailer() { return m_Trailer; }
     PdfVecObjects& GetObjects() { return *m_vecObjects; }
-    PdfEncrypt* GetEncrypt() { return m_pEncrypt; }
-    PdfObject* GetEncryptObj() { return m_pEncryptObj.get(); }
+    PdfEncrypt* GetEncrypt() { return m_pEncrypt.get(); }
+    PdfObject* GetEncryptObj() { return m_pEncryptObj; }
     const PdfString & GetIdentifier() { return m_identifier; }
     void SetIdentifier(const PdfString &identifier) { m_identifier = identifier; }
     void SetEncryptObj(PdfObject* obj);
 private:
     PdfVecObjects*  m_vecObjects;
-    const PdfObject* m_pTrailer;
+    PdfObject m_Trailer;
     EPdfVersion     m_eVersion;
 
     bool            m_UseXRefStream;
 
-    PdfEncrypt*     m_pEncrypt;    ///< If not NULL encrypt all strings and streams and create an encryption dictionary in the trailer
-    std::unique_ptr<PdfObject> m_pEncryptObj; ///< Used to temporarly store the encryption dictionary
+    std::unique_ptr<PdfEncrypt> m_pEncrypt;    ///< If not NULL encrypt all strings and streams and create an encryption dictionary in the trailer
+    PdfObject* m_pEncryptObj; ///< Used to temporarly store the encryption dictionary
 
     PdfSaveOptions  m_saveOptions;
     EPdfWriteMode   m_eWriteMode;

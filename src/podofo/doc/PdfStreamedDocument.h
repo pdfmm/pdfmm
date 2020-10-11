@@ -94,7 +94,7 @@ public:
      *                  created document.
      *  \param eWriteMode additional options for writing the pdf
      */
-    PdfStreamedDocument( PdfOutputDevice* pDevice, EPdfVersion eVersion = PdfVersionDefault, PdfEncrypt* pEncrypt = NULL, EPdfWriteMode eWriteMode = PdfWriteModeDefault );
+    PdfStreamedDocument( PdfOutputDevice& pDevice, EPdfVersion eVersion = PdfVersionDefault, PdfEncrypt* pEncrypt = NULL, EPdfWriteMode eWriteMode = PdfWriteModeDefault );
 
     /** Create a new PdfStreamedDocument.
      *  All data is written to a file immediately.
@@ -217,7 +217,8 @@ public:
      *                  created document.
      *  \param eWriteMode additional options for writing the pdf
      */
-    void Init( PdfOutputDevice* pDevice, EPdfVersion eVersion = PdfVersionDefault, PdfEncrypt* pEncrypt = NULL, EPdfWriteMode eWriteMode = PdfWriteModeDefault );
+    void Init(PdfOutputDevice& pDevice, EPdfVersion eVersion = PdfVersionDefault,
+        PdfEncrypt* pEncrypt = nullptr, EPdfWriteMode eWriteMode = PdfWriteModeDefault);
 
  private:
     PdfImmediateWriter* m_pWriter;

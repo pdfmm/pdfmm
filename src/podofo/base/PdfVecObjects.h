@@ -107,14 +107,6 @@ public:
         virtual ~Observer() { }
 
         virtual void WriteObject( const PdfObject* pObject ) = 0;
-            
-        /**
-         * This method is called when the observed PdfVecObjects is delted. 
-         *
-         * No more method may be called on the observable
-         * after this method was called on the observer.
-         */
-        virtual void ParentDestructed() = 0;
         
         /** Called whenever appending to a stream is started.
          *  \param pStream the stream object the user currently writes to.
@@ -212,13 +204,13 @@ public:
      *                     as invalid PDF files can be generated otherwise
      *  \returns The removed object.
      */
-    PdfObject* RemoveObject( const PdfReference & ref, bool bMarkAsFree = true );
+    std::unique_ptr<PdfObject> RemoveObject(const PdfReference& ref, bool bMarkAsFree = true);
 
     /** Remove the object with the iterator it from the vector and return it
      *  \param it the object to remove
      *  \returns the removed object
      */
-    PdfObject* RemoveObject( const TIVecObjects & it );
+    std::unique_ptr<PdfObject> RemoveObject( const TIVecObjects & it );
 
     /** Creates a new object and inserts it into the vector.
      *  This function assigns the next free object number to the PdfObject.
@@ -403,20 +395,6 @@ public:
      */
     inline PdfDocument& GetDocument() const { return *m_pDocument; }
 
-    /** Enable/disable auto deletion.
-     *  By default auto deletion is disabled.
-     *
-     *  \param bAutoDelete if true all objects will be deleted when the PdfVecObjects is
-     *         deleted.
-     */
-    inline void SetAutoDelete(bool bAutoDelete) { m_bAutoDelete = bAutoDelete; }
-
-    /**
-     *  \returns if autodeletion is enabled and all objects will be deleted when the PdfVecObjects is
-     *           deleted.
-     */
-    inline bool IsAutoDelete() const { return m_bAutoDelete; }
-
     /**
      *  \returns whether can re-use free object numbers when creating new objects.
      */
@@ -499,7 +477,6 @@ private:
 
 private:
     PdfDocument* m_pDocument;
-    bool                m_bAutoDelete;
     bool                m_bCanReuseObjectNumbers;
     size_t              m_nObjectCount;
     bool                m_bSorted;

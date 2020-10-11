@@ -451,9 +451,8 @@ bool PdfEncrypt::IsEncryptionEnabled(EPdfEncryptAlgorithm eAlgorithm)
 static unsigned char padding[] =
 "\x28\xBF\x4E\x5E\x4E\x75\x8A\x41\x64\x00\x4E\x56\xFF\xFA\x01\x08\x2E\x2E\x00\xB6\xD0\x68\x3E\x80\x2F\x0C\xA9\xFE\x64\x53\x69\x7A";
 
-PdfEncrypt *
-PdfEncrypt::CreatePdfEncrypt(const std::string & userPassword, 
-                             const std::string & ownerPassword, 
+unique_ptr<PdfEncrypt> PdfEncrypt::CreatePdfEncrypt(const string_view & userPassword, 
+                             const string_view& ownerPassword,
                              EPdfPermissions protection,
                              EPdfEncryptAlgorithm eAlgorithm, 
                              EPdfKeyLength eKeyLength )
@@ -462,26 +461,21 @@ PdfEncrypt::CreatePdfEncrypt(const std::string & userPassword,
     
     switch (eAlgorithm)
     {
-        case EPdfEncryptAlgorithm::AESV2:
-	default:
-            pdfEncrypt = new PdfEncryptAESV2(userPassword, ownerPassword, protection);
-            break;
 #ifdef PODOFO_HAVE_LIBIDN
         case EPdfEncryptAlgorithm::AESV3:
-            pdfEncrypt = new PdfEncryptAESV3(userPassword, ownerPassword, protection);
-            break;
+            return unique_ptr<PdfEncrypt>(new PdfEncryptAESV3(userPassword, ownerPassword, protection));
 #endif // PODOFO_HAVE_LIBIDN
         case EPdfEncryptAlgorithm::RC4V2:           
         case EPdfEncryptAlgorithm::RC4V1:
-            pdfEncrypt = new PdfEncryptRC4(userPassword, ownerPassword, protection, eAlgorithm, eKeyLength);
-            break;
+            return unique_ptr<PdfEncrypt>(new PdfEncryptRC4(userPassword, ownerPassword, protection, eAlgorithm, eKeyLength));
+        case EPdfEncryptAlgorithm::AESV2:
+        default:
+            return unique_ptr<PdfEncrypt>(new PdfEncryptAESV2(userPassword, ownerPassword, protection));
     }
-    return pdfEncrypt;
 }
 
-PdfEncrypt* PdfEncrypt::CreatePdfEncrypt( const PdfObject* pObject )
+unique_ptr<PdfEncrypt> PdfEncrypt::CreatePdfEncrypt( const PdfObject* pObject )
 {
-    PdfEncrypt* pdfEncrypt = NULL;
     if( !pObject->GetDictionary().HasKey( PdfName("Filter") ) ||
        pObject->GetDictionary().GetKey( PdfName("Filter" ) )->GetName() != PdfName("Standard") )
     {
@@ -547,19 +541,19 @@ PdfEncrypt* PdfEncrypt::CreatePdfEncrypt( const PdfObject* pObject )
     if( (lV == 1L) && (rValue == 2L || rValue == 3L)
        && PdfEncrypt::IsEncryptionEnabled( EPdfEncryptAlgorithm::RC4V1 ) ) 
     {
-        pdfEncrypt = new PdfEncryptRC4(oValue, uValue, pValue, rValue, EPdfEncryptAlgorithm::RC4V1, (int)EPdfKeyLength::L40, encryptMetadata);
+        return unique_ptr<PdfEncrypt>(new PdfEncryptRC4(oValue, uValue, pValue, rValue, EPdfEncryptAlgorithm::RC4V1, (int)EPdfKeyLength::L40, encryptMetadata));
     }
     else if( (((lV == 2L) && (rValue == 3L)) || cfmName == "V2")
             && PdfEncrypt::IsEncryptionEnabled( EPdfEncryptAlgorithm::RC4V2 ) ) 
     {
         // [Alexey] - lLength is int64_t. Please make changes in encryption algorithms
-        pdfEncrypt = new PdfEncryptRC4(oValue, uValue, pValue, rValue, EPdfEncryptAlgorithm::RC4V2, static_cast<int>(lLength), encryptMetadata);
+        return unique_ptr<PdfEncrypt>(new PdfEncryptRC4(oValue, uValue, pValue, rValue, EPdfEncryptAlgorithm::RC4V2, static_cast<int>(lLength), encryptMetadata));
     }
     else 
     if( (lV == 4L) && (rValue == 4L)
             && PdfEncrypt::IsEncryptionEnabled( EPdfEncryptAlgorithm::AESV2 ) ) 
     {
-        pdfEncrypt = new PdfEncryptAESV2(oValue, uValue, pValue, encryptMetadata);      
+        return unique_ptr<PdfEncrypt>(new PdfEncryptAESV2(oValue, uValue, pValue, encryptMetadata));
     }
 #ifdef PODOFO_HAVE_LIBIDN
     else if( (lV == 5L) && (rValue == 5L) 
@@ -569,7 +563,7 @@ PdfEncrypt* PdfEncrypt::CreatePdfEncrypt( const PdfObject* pObject )
         PdfString oeValue      = pObject->GetDictionary().GetKey( PdfName("OE") )->GetString();
         PdfString ueValue      = pObject->GetDictionary().GetKey( PdfName("UE") )->GetString();
         
-        pdfEncrypt = new PdfEncryptAESV3(oValue, oeValue, uValue, ueValue, pValue, permsValue);     
+        return unique_ptr<PdfEncrypt>(new PdfEncryptAESV3(oValue, oeValue, uValue, ueValue, pValue, permsValue));
     }
 #endif // PODOFO_HAVE_LIBIDN
     else
@@ -578,23 +572,20 @@ PdfEncrypt* PdfEncrypt::CreatePdfEncrypt( const PdfObject* pObject )
         oss << "Unsupported encryption method Version=" << lV << " Revision=" << rValue;
         PODOFO_RAISE_ERROR_INFO( EPdfError::UnsupportedFilter, oss.str().c_str() );
     }
-    return pdfEncrypt;
 }
 
-PdfEncrypt *
-PdfEncrypt::CreatePdfEncrypt(const PdfEncrypt & rhs )  
+unique_ptr<PdfEncrypt> PdfEncrypt::CreatePdfEncrypt(const PdfEncrypt & rhs )  
 {
     PdfEncrypt *pdfEncrypt = NULL;
     
     if (rhs.m_eAlgorithm == EPdfEncryptAlgorithm::AESV2)
-        pdfEncrypt = new PdfEncryptAESV2(rhs);
+        return unique_ptr<PdfEncrypt>(new PdfEncryptAESV2(rhs));
 #ifdef PODOFO_HAVE_LIBIDN
     else if (rhs.m_eAlgorithm == EPdfEncryptAlgorithm::AESV3)
-        pdfEncrypt = new PdfEncryptAESV3(rhs);
+        return unique_ptr<PdfEncrypt>(new PdfEncryptAESV3(rhs));
 #endif // PODOFO_HAVE_LIBIDN
     else
-        pdfEncrypt = new PdfEncryptRC4(rhs);
-    return pdfEncrypt;
+        return unique_ptr<PdfEncrypt>(new PdfEncryptRC4(rhs));
 }
 
 PdfEncrypt::PdfEncrypt( const PdfEncrypt & rhs )
@@ -1034,7 +1025,7 @@ PdfEncryptRC4::GenerateEncryptionKey(const PdfString & documentId)
                          m_oValue, m_pValue, m_eKeyLength, m_rValue, m_uValue, m_bEncryptMetadata);
 }
     
-bool PdfEncryptRC4::Authenticate( const std::string_view& password, const PdfString & documentId )
+bool PdfEncryptRC4::Authenticate( const string_view& password, const PdfString & documentId )
 {
     bool ok = false;
     
@@ -1121,7 +1112,7 @@ PdfEncryptRC4::PdfEncryptRC4(PdfString oValue, PdfString uValue, EPdfPermissions
     memset(m_encryptionKey, 0, 32);
 }
 
-PdfEncryptRC4::PdfEncryptRC4( const std::string & userPassword, const std::string & ownerPassword, EPdfPermissions protection,
+PdfEncryptRC4::PdfEncryptRC4( const string_view& userPassword, const string_view& ownerPassword, EPdfPermissions protection,
                              EPdfEncryptAlgorithm eAlgorithm, EPdfKeyLength eKeyLength )
 {
     // setup object
@@ -1332,7 +1323,7 @@ void PdfEncryptAESV2::Decrypt(const unsigned char* inStr, size_t inLen,
     const_cast<PdfEncryptAESV2*>(this)->BaseDecrypt(objkey, keylen, inStr, &inStr[offset], inLen-offset, outStr, outLen);
 }
     
-PdfEncryptAESV2::PdfEncryptAESV2( const std::string & userPassword, const std::string & ownerPassword, EPdfPermissions protection) : PdfEncryptAESBase()
+PdfEncryptAESV2::PdfEncryptAESV2( const string_view& userPassword, const string_view& ownerPassword, EPdfPermissions protection) : PdfEncryptAESBase()
 {
     // setup object
     m_userPass = userPassword;
@@ -1783,7 +1774,7 @@ PdfEncryptAESV3::Decrypt(const unsigned char* inStr, size_t inLen,
     const_cast<PdfEncryptAESV3*>(this)->BaseDecrypt(const_cast<unsigned char*>(m_encryptionKey), m_keyLength, inStr, &inStr[offset], inLen-offset, outStr, outLen);
 }
 
-PdfEncryptAESV3::PdfEncryptAESV3( const std::string & userPassword, const std::string & ownerPassword, EPdfPermissions protection) : PdfEncryptAESBase()
+PdfEncryptAESV3::PdfEncryptAESV3( const string_view& userPassword, const string_view& ownerPassword, EPdfPermissions protection) : PdfEncryptAESBase()
 {
     // setup object
     m_userPass = userPassword;

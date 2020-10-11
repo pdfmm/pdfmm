@@ -51,19 +51,19 @@ using namespace PoDoFo;
 static int normalize(int value, int start, int end);
 
 PdfPage::PdfPage( const PdfRect & rSize, PdfDocument* pParent )
-    : PdfElement( "Page", pParent ), PdfCanvas(), m_pContents( NULL )
+    : PdfElement( "Page", pParent ), PdfCanvas(), m_pContents( nullptr )
 {
     InitNewPage( rSize );
 }
 
 PdfPage::PdfPage( const PdfRect & rSize, PdfVecObjects* pParent )
-    : PdfElement( "Page", pParent ), PdfCanvas(), m_pContents( NULL )
+    : PdfElement( "Page", pParent ), PdfCanvas(), m_pContents( nullptr )
 {
     InitNewPage( rSize );
 }
 
 PdfPage::PdfPage( PdfObject* pObject, const std::deque<PdfObject*> & rListOfParents )
-    : PdfElement( "Page", pObject ), PdfCanvas()
+    : PdfElement( "Page", pObject ), PdfCanvas(), m_pContents(nullptr)
 {
     m_pResources = GetObject()->GetDictionary().FindKey( "Resources" );
     if( !m_pResources ) 
@@ -221,7 +221,7 @@ PdfRect PdfPage::CreateStandardPageSize( const EPdfPageSize ePageSize, bool bLan
 
 const PdfObject* PdfPage::GetInheritedKeyFromObject( const char* inKey, const PdfObject* inObject, int depth ) const
 {
-    const PdfObject* pObj = NULL;
+    const PdfObject* pObj = nullptr;
 
     // check for it in the object itself
     if ( inObject->GetDictionary().HasKey( inKey ) ) 
@@ -406,7 +406,7 @@ void PdfPage::DeleteAnnotation(int index)
 
     // Delete the PdfObject in the document
     if (pItem.GetIndirectReference().IsIndirect())
-        delete pItem.GetDocument()->GetObjects().RemoveObject(pItem.GetIndirectReference());
+        pItem.GetDocument()->GetObjects().RemoveObject(pItem.GetIndirectReference());
 
     // Delete the annotation from the annotation array.
     // Has to be performed at last
@@ -448,7 +448,7 @@ void PdfPage::DeleteAnnotation(PdfObject &annotObj)
 
     // Delete the PdfObject in the document
     if (annotObj.GetIndirectReference().IsIndirect())
-        delete GetObject()->GetDocument()->GetObjects().RemoveObject(annotObj.GetIndirectReference());
+        GetObject()->GetDocument()->GetObjects().RemoveObject(annotObj.GetIndirectReference());
     
     // Delete the annotation from the annotation array.
 	// Has to be performed at last
@@ -564,7 +564,7 @@ int PdfPage::GetPageNumber() const
     while( pParent ) 
     {
         PdfObject* pKids = pParent->GetIndirectKey( "Kids" );
-        if ( pKids != NULL )
+        if ( pKids != nullptr )
         {
             const PdfArray& kids        = pKids->GetArray();
             PdfArray::const_iterator it = kids.begin();
@@ -580,11 +580,11 @@ int PdfPage::GetPageNumber() const
                     PODOFO_RAISE_ERROR_INFO( EPdfError::NoObject, oss.str() );
                 }
 
-                if( pNode->GetDictionary().GetKey( PdfName::KeyType ) != NULL 
+                if( pNode->GetDictionary().GetKey( PdfName::KeyType ) != nullptr 
                     && pNode->GetDictionary().GetKey( PdfName::KeyType )->GetName() == PdfName( "Pages" ) )
                 {
                     PdfObject* pCount = pNode->GetIndirectKey( "Count" );
-                    if( pCount != NULL ) {
+                    if( pCount != nullptr ) {
                         nPageNumber += static_cast<int>(pCount->GetNumber());
                     }
                 } else {
@@ -612,7 +612,7 @@ int PdfPage::GetPageNumber() const
 
 PdfObject* PdfPage::GetFromResources( const PdfName & rType, const PdfName & rKey )
 {
-    if( m_pResources == NULL ) // Fix CVE-2017-7381
+    if( m_pResources == nullptr ) // Fix CVE-2017-7381
     {
         PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidHandle, "No Resources" );
     } 
@@ -633,7 +633,7 @@ PdfObject* PdfPage::GetFromResources( const PdfName & rType, const PdfName & rKe
         }
     }
     
-    return NULL;
+    return nullptr;
 }
 
 void PdfPage::SetICCProfile( const char *pszCSTag, PdfInputStream *pStream, int64_t nColorComponents, EPdfColorSpace eAlternateColorSpace )

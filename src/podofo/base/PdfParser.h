@@ -39,6 +39,7 @@
 #include <set>
 #include <map>
 #include "PdfDefines.h"
+#include "PdfParserObject.h"
 #include "PdfXRefEntry.h"
 #include "PdfVecObjects.h"
 #include "PdfTokenizer.h"
@@ -71,7 +72,7 @@ public:
      *
      *  \see ParseFile  
      */
-    PdfParser( PdfVecObjects* pVecObjects );
+    PdfParser(PdfVecObjects& pVecObjects);
 
     /** Create a new PdfParser object and open a PDF file and parse
      *  it into memory.
@@ -90,7 +91,7 @@ public:
      *  
      *  \see SetPassword
      */
-    PdfParser( PdfVecObjects* pVecObjects, const char* pszFilename, bool bLoadOnDemand = true );
+    PdfParser(PdfVecObjects& pVecObjects, const std::string_view &filename, bool bLoadOnDemand = true);
 
     /** Create a new PdfParser object and open a PDF file and parse
      *  it into memory.
@@ -110,7 +111,7 @@ public:
      *  
      *  \see SetPassword
      */
-    PdfParser( PdfVecObjects* pVecObjects, const char* pBuffer, long lLen, bool bLoadOnDemand = true );
+    PdfParser(PdfVecObjects& pVecObjects, const char* pBuffer, size_t lLen, bool bLoadOnDemand = true);
 
     /** Create a new PdfParser object and open a PDF file and parse
      *  it into memory.
@@ -129,8 +130,8 @@ public:
      *  
      *  \see SetPassword
      */
-    PdfParser( PdfVecObjects* pVecObjects, const PdfRefCountedInputDevice & rDevice, 
-               bool bLoadOnDemand = true );
+    PdfParser(PdfVecObjects& pVecObjects, const PdfRefCountedInputDevice & rDevice,
+               bool bLoadOnDemand = true);
 
     /** Delete the PdfParser and all PdfObjects
      */
@@ -152,7 +153,7 @@ public:
      *  
      *  \see SetPassword
      */
-    void ParseFile( const char* pszFilename, bool bLoadOnDemand = true );
+    void ParseFile(const std::string_view& filename, bool bLoadOnDemand = true );
 
     /** Open a PDF file and parse it.
      *
@@ -171,7 +172,7 @@ public:
      *  
      *  \see SetPassword
      */
-    void ParseFile( const char* pBuffer, long lLen, bool bLoadOnDemand = true );
+    void ParseBuffer(const std::string_view& filename, bool bLoadOnDemand = true );
 
     /** Open a PDF file and parse it.
      *
@@ -189,7 +190,7 @@ public:
      *  
      *  \see SetPassword
      */
-    void ParseFile( const PdfRefCountedInputDevice & rDevice, bool bLoadOnDemand = true );
+    void Parse( const PdfRefCountedInputDevice & rDevice, bool bLoadOnDemand = true );
 
     /** Quick method to detect secured PDF files, i.e.
      *  a PDF with an /Encrypt key in the trailer directory.
@@ -198,8 +199,55 @@ public:
      */
     bool QuickEncryptedCheck( const char* pszFilename );
 
+    /** Get the file format version of the pdf
+     *  \returns the file format version as string
+     */
+    const char* GetPdfVersionString() const;
+
+    /** \returns whether the parsed document contains linearization tables
+     */
+    bool IsLinearized() const;
+
+    /** 
+     * \returns true if this PdfWriter creates an encrypted PDF file
+     */
+    bool IsEncrypted() const;
+
+    /** 
+     * Gives the encryption object from the parser. The internal handle will be set
+     * to NULL and the ownership of the object is given to the caller.
+     *
+     * Only call this if you need access to the encryption object
+     * before deleting the parser.
+     *
+     * \returns the parser's encryption object, or NULL if the read PDF file was not encrypted.
+     */
+    std::unique_ptr<PdfEncrypt> TakeEncrypt();
+
+    bool HasXRefStream();
+
+    const PdfObject& GetTrailer() const;
+
+public:
+    /** If you try to open an encrypted PDF file, which requires
+     *  a password to open, PoDoFo will throw a PdfError( EPdfError::InvalidPassword )
+     *  exception.
+     *
+     *  If you got such an exception, you have to set a password
+     *  which should be used for opening the PDF.
+     *
+     *  The usual way will be to ask the user for the password
+     *  and set the password using this method.
+     *
+     *  PdfParser will immediately continue to read the PDF file.
+     *
+     *  \param password a user or owner password which can be used to open an encrypted PDF file
+     *                   If the password is invalid, a PdfError( EPdfError::InvalidPassword ) exception is thrown!
+     */
+    inline void SetPassword(const std::string_view& password) { m_password = password; }
+
     /**
-     * Retrieve the number of incremental updates that 
+     * Retrieve the number of incremental updates that
      * have been applied to the last parsed PDF file.
      *
      * 0 means no update has been applied.
@@ -218,16 +266,6 @@ public:
      */
     inline EPdfVersion GetPdfVersion() const { return m_ePdfVersion; }
 
-    /** Get the file format version of the pdf
-     *  \returns the file format version as string
-     */
-    const char* GetPdfVersionString() const;
-
-    /** Get the trailer dictionary
-     *  which can be written unmodified to a pdf file.
-     */
-    const PdfObject* GetTrailer() const;
-
     /** \returns true if this PdfParser loads all objects on demand at
      *                the time they are accessed for the first time.
      *                The default is to load all object immediately.
@@ -235,52 +273,14 @@ public:
      */
     inline bool GetLoadOnDemand() const { return m_bLoadOnDemand; }
 
-    /** \returns whether the parsed document contains linearization tables
-     */
-    bool IsLinearized() const;
-
     /** \returns the length of the file
      */
     size_t GetFileSize() const { return m_nFileSize; }
 
-    /** 
-     * \returns true if this PdfWriter creates an encrypted PDF file
-     */
-    bool IsEncrypted() const;
-
-    /** 
+    /**
      * \returns the parsers encryption object or NULL if the read PDF file was not encrypted
      */
-    const PdfEncrypt* GetEncrypt() const { return m_pEncrypt; }
-
-    /** 
-     * Gives the encryption object from the parser. The internal handle will be set
-     * to NULL and the ownership of the object is given to the caller.
-     *
-     * Only call this if you need access to the encryption object
-     * before deleting the parser.
-     *
-     * \returns the parser's encryption object, or NULL if the read PDF file was not encrypted.
-     */
-    PdfEncrypt* TakeEncrypt();
-    
-
-    /** If you try to open an encrypted PDF file, which requires
-     *  a password to open, PoDoFo will throw a PdfError( EPdfError::InvalidPassword ) 
-     *  exception. 
-     *  
-     *  If you got such an exception, you have to set a password
-     *  which should be used for opening the PDF.
-     *
-     *  The usual way will be to ask the user for the password
-     *  and set the password using this method.
-     *
-     *  PdfParser will immediately continue to read the PDF file.
-     *
-     *  \param sPassword a user or owner password which can be used to open an encrypted PDF file
-     *                   If the password is invalid, a PdfError( EPdfError::InvalidPassword ) exception is thrown!
-     */
-    void SetPassword( const std::string_view & sPassword );
+    inline const PdfEncrypt* GetEncrypt() const { return m_pEncrypt.get(); }
 
     /**
      * \returns true if strict parsing mode is enabled
@@ -321,9 +321,6 @@ public:
     inline void SetIgnoreBrokenObjects( bool bBroken ) { m_bIgnoreBrokenObjects = bBroken; }
 
     inline size_t GetXRefOffset(void) { return m_nXRefOffset; }
-    
-    bool HasXRefStream();
-
 
  protected:
     /** Searches backwards from the end of the file
@@ -511,9 +508,11 @@ public:
     TVecEntries   m_entries;
     PdfVecObjects* m_vecObjects;
 
-    PdfParserObject * m_pTrailer;
-    PdfParserObject * m_pLinearization;
-    PdfEncrypt*   m_pEncrypt;
+    std::unique_ptr<PdfParserObject> m_pTrailer;
+    std::unique_ptr<PdfParserObject> m_pLinearization;
+    std::unique_ptr<PdfEncrypt> m_pEncrypt;
+
+    std::string m_password;
 
     bool          m_xrefSizeUnknown;
 

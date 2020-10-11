@@ -82,8 +82,7 @@ PdfFontType1::PdfFontType1( PdfFontType1* pFont, PdfFontMetrics* pMetrics, const
 	m_Identifier = id;
 
 	// remove new FontDescriptor and use FontDescriptor of source font instead
-	PdfObject* pObj = pParent->RemoveObject( GetObject()->GetIndirectKey( "FontDescriptor" )->GetIndirectReference() );
-	delete pObj;
+	pParent->RemoveObject( GetObject()->GetIndirectKey( "FontDescriptor" )->GetIndirectReference() );
 	GetObject()->GetDictionary().AddKey( "FontDescriptor", pFont->GetObject()->GetDictionary().GetKey( "FontDescriptor" ) );
 }
 

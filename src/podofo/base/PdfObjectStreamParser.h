@@ -39,11 +39,11 @@
 #include "PdfDefines.h"
 
 #include "PdfRefCountedBuffer.h"
+#include "PdfParserObject.h"
 
 namespace PoDoFo {
 
 class PdfEncrypt;
-class PdfParserObject;
 class PdfVecObjects;
 
 /**

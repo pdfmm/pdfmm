@@ -40,22 +40,20 @@
 #include "PdfXRefStream.h"
 #include "PdfDefinesPrivate.h"
 
-namespace PoDoFo {
+using namespace PoDoFo;
 
-PdfImmediateWriter::PdfImmediateWriter( PdfOutputDevice* pDevice, PdfVecObjects* pVecObjects, 
-                                        const PdfObject* pTrailer, EPdfVersion eVersion, 
-                                        PdfEncrypt* pEncrypt, EPdfWriteMode eWriteMode )
-    :
+PdfImmediateWriter::PdfImmediateWriter(PdfVecObjects& pVecObjects, const PdfObject& pTrailer,
+        PdfOutputDevice& pDevice, EPdfVersion eVersion, PdfEncrypt* pEncrypt, EPdfWriteMode eWriteMode ) :
     PdfWriter( pVecObjects, pTrailer),
-    m_pParent( pVecObjects ),
-    m_pDevice( pDevice ),
-    m_pLast( NULL ),
+    m_attached(true),
+    m_pDevice(&pDevice),
+    m_pLast( nullptr ),
     m_bOpenStream( false )
 {
     // register as observer for PdfVecObjects
-    m_pParent->Attach( this );
+    GetObjects().Attach( this );
     // register as stream factory for PdfVecObjects
-    m_pParent->SetStreamFactory( this );
+    GetObjects().SetStreamFactory( this );
 
     PdfString identifier;
     this->CreateFileIdentifier(identifier, pTrailer);
@@ -73,16 +71,14 @@ PdfImmediateWriter::PdfImmediateWriter( PdfOutputDevice* pDevice, PdfVecObjects*
     this->SetWriteMode( eWriteMode );
     this->WritePdfHeader(*m_pDevice);
 
-    m_pXRef = GetUseXRefStream() ? new PdfXRefStream(*this, GetObjects()) : new PdfXRef(*this);
+    m_pXRef.reset(GetUseXRefStream() ? new PdfXRefStream(*this, GetObjects()) : new PdfXRef(*this));
 
 }
 
 PdfImmediateWriter::~PdfImmediateWriter()
 {
-    if( m_pParent ) 
-        m_pParent->Detach( this );
-    
-    delete m_pXRef;
+    if(m_attached)
+        GetObjects().Detach( this );
 }
 
 void PdfImmediateWriter::WriteObject( const PdfObject* pObject )
@@ -105,11 +101,6 @@ void PdfImmediateWriter::WriteObject( const PdfObject* pObject )
     m_pLast = const_cast<PdfObject*>(pObject);
 }
 
-void PdfImmediateWriter::ParentDestructed()
-{
-    m_pParent = NULL;
-}
-
 void PdfImmediateWriter::Finish()
 {
     // write all objects which are still in RAM
@@ -123,7 +114,7 @@ void PdfImmediateWriter::Finish()
         GetEncrypt()->CreateEncryptionDictionary(GetEncryptObj()->GetDictionary() );
     }
 
-    this->WritePdfObjects(*m_pDevice, *m_pParent, *m_pXRef);
+    this->WritePdfObjects(*m_pDevice, GetObjects(), *m_pXRef);
 
     // write the XRef
     uint64_t lXRefOffset = static_cast<uint64_t>( m_pDevice->Tell() );
@@ -138,7 +129,7 @@ void PdfImmediateWriter::Finish()
         PdfObject trailer;
         
         // if we have a dummy offset we write also a prev entry to the trailer
-        FillTrailerObject( &trailer, m_pXRef->GetSize(), false );
+        FillTrailerObject( trailer, m_pXRef->GetSize(), false );
         
         m_pDevice->Print("trailer\n");
         trailer.Write(*m_pDevice, this->GetWriteMode(), nullptr);
@@ -148,8 +139,8 @@ void PdfImmediateWriter::Finish()
     m_pDevice->Flush();
 
     // we are done now
-    m_pParent->Detach( this );
-    m_pParent = NULL;
+    GetObjects().Detach( this );
+    m_attached = false;
 }
 
 PdfStream* PdfImmediateWriter::CreateStream( PdfObject* pParent )
@@ -166,7 +157,7 @@ void PdfImmediateWriter::FinishLastObject()
         m_pDevice->Print( "\nendstream\n" );
         m_pDevice->Print( "endobj\n" );
         
-        delete m_pParent->RemoveObject( m_pLast->GetIndirectReference(), false );
+        GetObjects().RemoveObject( m_pLast->GetIndirectReference(), false );
         m_pLast = NULL;
     }
 }
@@ -195,6 +186,3 @@ void PdfImmediateWriter::EndAppendStream( const PdfStream* pStream )
         m_bOpenStream = false;
     }
 }
-
-};
-

@@ -651,7 +651,7 @@ void PdfPagesTree::DeletePageFromNode( PdfObject* pParent, const PdfObjectList &
             DeletePageNode( pParentOfNode, nKidsIndex );
 
             // Delete empty page nodes
-            delete this->GetObject()->GetDocument()->GetObjects().RemoveObject( (*itParents)->GetIndirectReference() );
+            this->GetObject()->GetDocument()->GetObjects().RemoveObject( (*itParents)->GetIndirectReference() );
         }
 
         ++itParents;

@@ -309,7 +309,7 @@ void PdfXRef::EndWriteImpl(PdfOutputDevice& device)
     PdfObject  trailer;
 
     // if we have a dummy offset we write also a prev entry to the trailer
-    m_writer->FillTrailerObject(&trailer, GetSize(), false);
+    m_writer->FillTrailerObject(trailer, GetSize(), false);
 
     device.Print("trailer\n");
 

@@ -552,19 +552,47 @@ public:
 #endif
 
 public:
+    /** Get access to the internal Catalog dictionary
+     *  or root object.
+     *
+     *  \returns PdfObject the documents catalog
+     */
+    PdfObject& GetCatalog();
+
+    /** Get access to the internal Catalog dictionary
+     *  or root object.
+     *
+     *  \returns PdfObject the documents catalog
+     */
+    const PdfObject& GetCatalog() const;
+
+    /** Get access to the pages tree.
+     *  Better use the GetPage() and CreatePage() methods.
+     *  \returns the PdfPagesTree of this document.
+     */
+    PdfPagesTree& GetPagesTree() const;
+
+    /** Get access to the internal trailer dictionary
+     *  or root object.
+     *
+     *  \returns PdfObject the documents catalog
+     */
+    PdfObject& GetTrailer();
+
+    /** Get access to the internal trailer dictionary
+     *  or root object.
+     *
+     *  \returns PdfObject the documents catalog
+     */
+    const PdfObject& GetTrailer() const;
+
     /** Get access to the internal Info dictionary
      *  You can set the author, title etc. of the
      *  document using the info dictionary.
      *
      *  \returns the info dictionary
      */
-    inline PdfInfo* GetInfo() const { return m_pInfo; }
-
-    /** Get access to the pages tree.
-     *  Better use the GetPage() and CreatePage() methods.
-     *  \returns the PdfPagesTree of this document.
-     */
-    inline PdfPagesTree* GetPagesTree() const { return m_pPagesTree; }
+    PdfInfo& GetInfo() const;
 
     /** Get access to the internal vector of objects
      *  or root object.
@@ -593,7 +621,7 @@ protected:
      *
      *  @param pInfo the new info object (will be owned by PdfDocument)
      */
-    void SetInfo( PdfInfo* pInfo );
+    void SetInfo(std::unique_ptr<PdfInfo>& pInfo);
 
     /** Set the trailer of this PdfDocument
      *  deleting the old one.
@@ -601,7 +629,18 @@ protected:
      *  @param pObject the new trailer object
      *         It will be owned by PdfDocument.
      */
-    void SetTrailer( PdfObject* pObject );
+    void SetTrailer(std::unique_ptr<PdfObject>& pObject );
+
+    /** Set the catalog of this PdfDocument
+     *  deleting the old one.
+     *
+     *  \param pObject the new catalog object
+     *         It will be owned by PdfDocument.
+     */
+     // m_pCatalog does not need to 
+     // be reowned as it should
+     // alread by part of m_vecObjects
+    inline void SetCatalog(PdfObject* pObject) { m_pCatalog = pObject; }
 
     /** Get a dictionary from the catalog dictionary by its name.
      *  \param pszName will be converted into a PdfName
@@ -640,45 +679,12 @@ protected:
      */
     void Clear();
 
-protected:
-    /** Get access to the internal Catalog dictionary
-     *  or root object.
-     *
-     *  \returns PdfObject the documents catalog
-     */
-    inline PdfObject* GetCatalog() { return m_pCatalog; }
-
-    /** Get access to the internal Catalog dictionary
-     *  or root object.
-     *
-     *  \returns PdfObject the documents catalog
-     */
-    inline const PdfObject* GetCatalog() const { return m_pCatalog; }
-
-    /** Set the catalog of this PdfDocument
-     *  deleting the old one.
-     *
-     *  \param pObject the new catalog object
-     *         It will be owned by PdfDocument.
-     */
-     // m_pCatalog does not need to 
-     // be reowned as it should
-     // alread by part of m_vecObjects
-    inline void SetCatalog(PdfObject* pObject) { m_pCatalog = pObject; }
-
     /** Get access to the internal trailer dictionary
      *  or root object.
      *
      *  \returns PdfObject the documents catalog
      */
-    inline PdfObject* GetTrailer() { return m_pTrailer; }
-
-    /** Get access to the internal trailer dictionary
-     *  or root object.
-     *
-     *  \returns PdfObject the documents catalog
-     */
-    inline const PdfObject* GetTrailer() const { return m_pTrailer; }
+    inline PdfObject* getCatalog() { return m_pCatalog; }
 
 private:
     // Prevent use of copy constructor and assignment operator.  These methods
@@ -689,14 +695,14 @@ private:
     PdfDocument& operator=(const PdfDocument&) = delete;
 
 private:
-    PdfVecObjects   m_vecObjects;
-    PdfObject*      m_pTrailer;
-    PdfObject*      m_pCatalog;
-    PdfInfo*        m_pInfo;
-    PdfPagesTree*   m_pPagesTree;
-    PdfAcroForm*    m_pAcroForms;
-    PdfOutlines*    m_pOutlines;
-    PdfNamesTree*   m_pNamesTree;
+    PdfVecObjects m_vecObjects;
+    std::unique_ptr<PdfObject> m_pTrailer;
+    PdfObject* m_pCatalog;
+    std::unique_ptr<PdfInfo> m_pInfo;
+    std::unique_ptr<PdfPagesTree> m_pPagesTree;
+    std::unique_ptr<PdfAcroForm> m_pAcroForms;
+    std::unique_ptr<PdfOutlines> m_pOutlines;
+    std::unique_ptr<PdfNamesTree> m_pNamesTree;
     PdfFontCache    m_fontCache;
 };
 

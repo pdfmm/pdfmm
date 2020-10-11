@@ -53,8 +53,9 @@ enum class EPdfNameLimits
 };
 
 
-class PODOFO_DOC_API PdfNamesTree : public PdfElement {
- public:
+class PODOFO_DOC_API PdfNamesTree : public PdfElement
+{
+public:
     /** Create a new PdfNamesTree object
      *  \param pParent parent of this action
      */

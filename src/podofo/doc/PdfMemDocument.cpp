@@ -65,7 +65,7 @@ using namespace std;
 using namespace PoDoFo;
 
 PdfMemDocument::PdfMemDocument()
-    : PdfDocument(), m_pEncrypt( NULL ), m_pParser( NULL ), m_bSoureHasXRefStream( false ), m_lPrevXRefOffset( -1 )
+    : PdfDocument(), m_bSoureHasXRefStream( false ), m_lPrevXRefOffset( -1 )
 {
     m_eVersion    = PdfVersionDefault;
     m_eWriteMode  = PdfWriteModeDefault;
@@ -74,7 +74,7 @@ PdfMemDocument::PdfMemDocument()
 }
 
 PdfMemDocument::PdfMemDocument(bool bOnlyTrailer)
-    : PdfDocument(bOnlyTrailer), m_pEncrypt( NULL ), m_pParser( NULL ), m_bSoureHasXRefStream( false ), m_lPrevXRefOffset( -1 )
+    : PdfDocument(bOnlyTrailer), m_bSoureHasXRefStream( false ), m_lPrevXRefOffset( -1 )
 {
     m_eVersion    = PdfVersionDefault;
     m_eWriteMode  = PdfWriteModeDefault;
@@ -83,7 +83,7 @@ PdfMemDocument::PdfMemDocument(bool bOnlyTrailer)
 }
 
 PdfMemDocument::PdfMemDocument(const string_view& filename)
-    : PdfDocument(), m_pEncrypt( NULL ), m_pParser( NULL ), m_bSoureHasXRefStream( false ), m_lPrevXRefOffset( -1 )
+    : PdfDocument(), m_bSoureHasXRefStream( false ), m_lPrevXRefOffset( -1 )
 {
     this->Load(filename);
 }
@@ -95,19 +95,8 @@ PdfMemDocument::~PdfMemDocument()
 
 void PdfMemDocument::Clear() 
 {
-    if( m_pEncrypt ) 
-    {
-        delete m_pEncrypt;
-        m_pEncrypt = NULL;
-    }
-
-    if( m_pParser ) 
-    {
-        delete m_pParser;
-        m_pParser = NULL;
-    }
-
-    m_eWriteMode  = PdfWriteModeDefault;
+    m_pEncrypt = nullptr;
+    m_eWriteMode = PdfWriteModeDefault;
 
     m_bSoureHasXRefStream = false;
     m_lPrevXRefOffset = -1;
@@ -125,7 +114,7 @@ void PdfMemDocument::InitFromParser( PdfParser* pParser )
     m_bSoureHasXRefStream = pParser->HasXRefStream();
     m_lPrevXRefOffset = pParser->GetXRefOffset();
 
-    PdfObject* pTrailer = new PdfObject( *(pParser->GetTrailer()) );
+    auto pTrailer = std::make_unique<PdfObject>(pParser->GetTrailer());
     this->SetTrailer ( pTrailer ); // Set immediately as trailer
                                    // so that pTrailer has an owner
                                    // and GetIndirectKey will work
@@ -134,47 +123,44 @@ void PdfMemDocument::InitFromParser( PdfParser* pParser )
     {
         PdfRefCountedBuffer buf;
         PdfOutputDevice debug( &buf );
-        pTrailer->GetVariant().Write( debug, m_eWriteMode, nullptr );
+        GetTrailer().GetVariant().Write( debug, m_eWriteMode, nullptr );
         debug.Write("\n", 1);
         size_t siz = buf.GetSize();
         char*  ptr = buf.GetBuffer();
         PdfError::LogMessage(ELogSeverity::Information, "%.*s", siz, ptr);
     }
 
-    PdfObject* pCatalog = pTrailer->GetIndirectKey( "Root" );
-    if( !pCatalog )
+    auto catalog = GetTrailer().GetIndirectKey( "Root" );
+    if( !catalog )
         PODOFO_RAISE_ERROR_INFO( EPdfError::NoObject, "Catalog object not found!" );
 
-    PdfObject* pInfo = pTrailer->GetIndirectKey( "Info" );
-    PdfInfo*   pInfoObj;
-    if( !pInfo ) 
+    this->SetCatalog(catalog);
+
+    auto pInfoObj = GetTrailer().GetIndirectKey( "Info" );
+    unique_ptr<PdfInfo> info;
+    if( pInfoObj == nullptr)
     {
-        pInfoObj = new PdfInfo( &PdfDocument::GetObjects() );
-        pTrailer->GetDictionary().AddKey( "Info", pInfoObj->GetObject()->GetIndirectReference() );
+        info.reset(new PdfInfo( &PdfDocument::GetObjects() ));
+        GetTrailer().GetDictionary().AddKey( "Info", info->GetObject()->GetIndirectReference() );
     }
-    else 
-        pInfoObj = new PdfInfo( pInfo );
+    else
+    {
+        info.reset(new PdfInfo(pInfoObj));
+    }
+
+    this->SetInfo(info);
 
     if( pParser->IsEncrypted() ) 
     {
         // All PdfParser instances have a pointer to a PdfEncrypt object.
         // So we have to take ownership of it (command the parser to give it).
-        delete m_pEncrypt;
         m_pEncrypt = pParser->TakeEncrypt();
     }
 
-    this->SetCatalog ( pCatalog );
-    this->SetInfo    ( pInfoObj );
-
     InitPagesTree();
-
-    // Delete the temporary pdfparser object.
-    // It is only set to m_pParser so that SetPassword can work
-    delete m_pParser;
-    m_pParser = NULL;
 }
 
-void PdfMemDocument::Load(const string_view& filename)
+void PdfMemDocument::Load(const string_view& filename, const string_view& password)
 {
     if(filename.length() == 0)
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
@@ -183,47 +169,37 @@ void PdfMemDocument::Load(const string_view& filename)
 
     // Call parse file instead of using the constructor
     // so that m_pParser is initialized for encrypted documents
-    m_pParser = new PdfParser( &PdfDocument::GetObjects() );
-    try
-    {
-        m_pParser->ParseFile(filename.data(), true );
-        InitFromParser( m_pParser );
-    } catch (PdfError& e)
-    {
-        if ( e.GetError() != EPdfError::InvalidPassword )
-        {
-            Clear(); // avoid m_pParser leak (issue #49)
-            e.AddToCallstack( __FILE__, __LINE__, "Handler fixes issue #49" );
-        }
-        throw;
-    }
+    PdfParser parser(PdfDocument::GetObjects());
+    parser.SetPassword(password);
+    parser.ParseFile(filename.data(), true);
+    InitFromParser(&parser);
 }
 
-void PdfMemDocument::LoadFromBuffer( const char* pBuffer, long lLen)
+void PdfMemDocument::LoadFromBuffer(const string_view& buffer, const string_view& password)
 {
-    if( !pBuffer || !lLen )
-    {
+    if(buffer.length() == 0)
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
 
     this->Clear();
 
     // Call parse file instead of using the constructor
     // so that m_pParser is initialized for encrypted documents
-    m_pParser = new PdfParser( &PdfDocument::GetObjects() );
-    m_pParser->ParseFile( pBuffer, lLen, true );
-    InitFromParser( m_pParser );
+    PdfParser parser(PdfDocument::GetObjects());
+    parser.SetPassword(password);
+    parser.ParseBuffer(buffer, true);
+    InitFromParser(&parser);
 }
 
-void PdfMemDocument::LoadFromDevice( const PdfRefCountedInputDevice & rDevice)
+void PdfMemDocument::LoadFromDevice( const PdfRefCountedInputDevice & rDevice, const string_view& password)
 {
     this->Clear();
 
     // Call parse file instead of using the constructor
     // so that m_pParser is initialized for encrypted documents
-    m_pParser = new PdfParser( &PdfDocument::GetObjects() );
-    m_pParser->ParseFile( rDevice, true );
-    InitFromParser( m_pParser );
+    PdfParser parser(PdfDocument::GetObjects());
+    parser.SetPassword(password);
+    parser.Parse(rDevice, true);
+    InitFromParser(&parser);
 }
 
 /** Add a vendor-specific extension to the current PDF version.
@@ -234,7 +210,7 @@ void PdfMemDocument::AddPdfExtension( const char* ns, int64_t level ) {
     
     if (!this->HasPdfExtension(ns, level)) {
         
-        PdfObject* pExtensions = this->GetCatalog()->GetIndirectKey("Extensions");
+        PdfObject* pExtensions = this->GetCatalog().GetIndirectKey("Extensions");
         PdfDictionary newExtension;
         
         newExtension.AddKey("BaseVersion", PdfName(s_szPdfVersionNums[(int)m_eVersion]));
@@ -248,7 +224,7 @@ void PdfMemDocument::AddPdfExtension( const char* ns, int64_t level ) {
             
             PdfDictionary extensions;
             extensions.AddKey(ns, newExtension);
-            this->GetCatalog()->GetDictionary().AddKey("Extensions", extensions);
+            this->GetCatalog().GetDictionary().AddKey("Extensions", extensions);
         }
     }
 }
@@ -260,7 +236,7 @@ void PdfMemDocument::AddPdfExtension( const char* ns, int64_t level ) {
  */
 bool PdfMemDocument::HasPdfExtension( const char* ns, int64_t level ) const {
     
-    PdfObject* pExtensions = this->GetCatalog()->GetIndirectKey("Extensions");
+    PdfObject* pExtensions = this->GetCatalog().GetIndirectKey("Extensions");
     
     if (pExtensions) {
         
@@ -286,7 +262,7 @@ std::vector<PdfExtension> PdfMemDocument::GetPdfExtensions() const {
     
     std::vector<PdfExtension> result;
     
-    PdfObject* pExtensions = this->GetCatalog()->GetIndirectKey("Extensions");
+    PdfObject* pExtensions = this->GetCatalog().GetIndirectKey("Extensions");
 
     if (pExtensions)
     {
@@ -320,15 +296,7 @@ std::vector<PdfExtension> PdfMemDocument::GetPdfExtensions() const {
 void PdfMemDocument::RemovePdfExtension( const char* ns, int64_t level ) {
     
     if (this->HasPdfExtension(ns, level))
-        this->GetCatalog()->GetIndirectKey("Extensions")->GetDictionary().RemoveKey("ns");
-}
-
-void PdfMemDocument::SetPassword( const std::string_view& sPassword )
-{
-    PODOFO_RAISE_LOGIC_IF( !m_pParser, "SetPassword called without reading a PDF file." );
-
-    m_pParser->SetPassword( sPassword );
-    InitFromParser( m_pParser );
+        this->GetCatalog().GetIndirectKey("Extensions")->GetDictionary().RemoveKey("ns");
 }
 
 void PdfMemDocument::Write(const std::string_view& filename, PdfSaveOptions options)
@@ -342,7 +310,7 @@ void PdfMemDocument::Write(PdfOutputDevice& device, PdfSaveOptions options)
      // makes sure pending subset-fonts are embedded
     GetFontCache().EmbedSubsetFonts();
 
-    PdfWriter writer( &(this->GetObjects()), this->GetTrailer() );
+    PdfWriter writer( this->GetObjects(), this->GetTrailer() );
     writer.SetPdfVersion( this->GetPdfVersion() );
     writer.SetSaveOptions(options);
     writer.SetWriteMode( m_eWriteMode );
@@ -363,7 +331,7 @@ void PdfMemDocument::WriteUpdate(PdfOutputDevice& device, PdfSaveOptions options
 {
     // makes sure pending subset-fonts are embedded
     GetFontCache().EmbedSubsetFonts();
-    PdfWriter writer( &(this->GetObjects()), this->GetTrailer() );
+    PdfWriter writer( this->GetObjects(), this->GetTrailer() );
     writer.SetSaveOptions(options);
     writer.SetPdfVersion( this->GetPdfVersion() );
     writer.SetWriteMode( m_eWriteMode );
@@ -374,12 +342,13 @@ void PdfMemDocument::WriteUpdate(PdfOutputDevice& device, PdfSaveOptions options
     if( m_pEncrypt ) 
         writer.SetEncrypted( *m_pEncrypt );
 
-    if( m_eSourceVersion < this->GetPdfVersion() && this->GetCatalog() && this->GetCatalog()->IsDictionary() )
+    PdfObject* catalog;
+    if( m_eSourceVersion < this->GetPdfVersion() && (catalog = this->getCatalog()) && catalog->IsDictionary() )
     {
         if( this->GetPdfVersion() < EPdfVersion::V1_0 || this->GetPdfVersion() > EPdfVersion::V1_7 )
             PODOFO_RAISE_ERROR( EPdfError::ValueOutOfRange );
 
-        this->GetCatalog()->GetDictionary().AddKey( PdfName( "Version" ), PdfName( s_szPdfVersionNums[(int)this->GetPdfVersion()] ) );
+        catalog->GetDictionary().AddKey( PdfName( "Version" ), PdfName( s_szPdfVersionNums[(int)this->GetPdfVersion()] ) );
     }
 
     try
@@ -395,14 +364,14 @@ void PdfMemDocument::WriteUpdate(PdfOutputDevice& device, PdfSaveOptions options
 
 PdfObject* PdfMemDocument::GetNamedObjectFromCatalog( const char* pszName ) const 
 {
-    return this->GetCatalog()->GetIndirectKey( PdfName( pszName ) );
+    return this->GetCatalog().GetIndirectKey( PdfName( pszName ) );
 }
 
 void PdfMemDocument::DeletePages( int inFirstPage, int inNumPages )
 {
     for( int i = 0 ; i < inNumPages ; i++ )
     {
-        this->GetPagesTree()->DeletePage( inFirstPage ) ;
+        this->GetPagesTree().DeletePage( inFirstPage ) ;
     }
 }
 
@@ -452,13 +421,11 @@ void PdfMemDocument::SetEncrypted( const std::string & userPassword, const std::
                                    EPdfPermissions protection, EPdfEncryptAlgorithm eAlgorithm,
                                    EPdfKeyLength eKeyLength )
 {
-    delete m_pEncrypt;
 	m_pEncrypt = PdfEncrypt::CreatePdfEncrypt( userPassword, ownerPassword, protection, eAlgorithm, eKeyLength );
 }
 
 void PdfMemDocument::SetEncrypted( const PdfEncrypt & pEncrypt )
 {
-    delete m_pEncrypt;
     m_pEncrypt = PdfEncrypt::CreatePdfEncrypt( pEncrypt );
 }
 

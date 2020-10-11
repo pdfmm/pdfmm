@@ -96,7 +96,6 @@ size_t PdfVecObjects::m_nMaxReserveSize = static_cast<size_t>(8388607); // cf. T
 
 PdfVecObjects::PdfVecObjects(PdfDocument& document) :
     m_pDocument(&document),
-    m_bAutoDelete( false ),
     m_bCanReuseObjectNumbers( true ),
     m_nObjectCount( 1 ),
     m_bSorted( true ),
@@ -111,31 +110,14 @@ PdfVecObjects::~PdfVecObjects()
 
 void PdfVecObjects::Clear()
 {
-    // always work on a copy of the vector
-    // in case a child invalidates our iterators
-    // with a call to attach or detach.
-    
-    TVecObservers copy( m_vecObservers );
-    TIVecObservers itObservers = copy.begin();
-    while( itObservers != copy.end() )
+    TIVecObjects it = this->begin();
+    while( it != this->end() )
     {
-        (*itObservers)->ParentDestructed();
-        ++itObservers;
-    }
-
-    if( m_bAutoDelete ) 
-    {
-        TIVecObjects it = this->begin();
-        while( it != this->end() )
-        {
-            delete *it;
-            ++it;
-        }
+        delete *it;
+        ++it;
     }
 
     m_vector.clear();
-
-    m_bAutoDelete    = false;
     m_nObjectCount   = 1;
     m_bSorted        = true; // an emtpy vector is sorted
     m_pStreamFactory = nullptr;
@@ -173,34 +155,32 @@ size_t PdfVecObjects::GetIndex( const PdfReference & ref ) const
     return (it.first - this->begin());
 }
 
-PdfObject* PdfVecObjects::RemoveObject( const PdfReference & ref, bool bMarkAsFree )
+unique_ptr<PdfObject> PdfVecObjects::RemoveObject( const PdfReference & ref, bool bMarkAsFree )
 {
     if( !m_bSorted )
         this->Sort();
 
-
-    PdfObject*         pObj;
     PdfObject refObj( ref, nullptr);
     std::pair<TIVecObjects,TIVecObjects> it = 
         std::equal_range( m_vector.begin(), m_vector.end(), &refObj, ObjectComparatorPredicate() );
 
     if( it.first != it.second )
     {
-        pObj = *(it.first);
+        auto pObj = *(it.first);
         if( bMarkAsFree )
             this->SafeAddFreeObject( pObj->GetIndirectReference() );
         m_vector.erase( it.first );
-        return pObj;
+        return unique_ptr<PdfObject>(pObj);
     }
     
     return nullptr;
 }
 
-PdfObject* PdfVecObjects::RemoveObject( const TIVecObjects & it )
+unique_ptr<PdfObject> PdfVecObjects::RemoveObject( const TIVecObjects & it )
 {
-    PdfObject* pObj = *it;
+    auto pObj = *it;
     m_vector.erase( it );
-    return pObj;
+    return unique_ptr<PdfObject>(pObj);
 }
 
 void PdfVecObjects::CollectGarbage(PdfObject& trailer)
@@ -322,7 +302,7 @@ void PdfVecObjects::PushObject(PdfObject * pObj, const PdfReference & reference)
     if (GetObject(reference))
     {
         PdfError::LogMessage(ELogSeverity::Warning, "Object: %" PDF_FORMAT_INT64 " 0 R will be deleted and loaded again.", reference.ObjectNumber());
-        delete RemoveObject(reference, false);
+        RemoveObject(reference, false);
     }
 
     pObj->SetIndirectReference(reference);

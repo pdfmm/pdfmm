@@ -115,7 +115,7 @@ void PdfXRefStream::WriteXRefEntry(PdfOutputDevice&, const PdfXRefEntry& entry)
 void PdfXRefStream::EndWriteImpl(PdfOutputDevice& device)
 {
     m_xrefStreamObj->GetOrCreateStream().EndAppend();
-    GetWriter().FillTrailerObject( m_xrefStreamObj, this->GetSize(), false );
+    GetWriter().FillTrailerObject(*m_xrefStreamObj, this->GetSize(), false );
 
     PdfArray w;
     w.push_back(static_cast<int64_t>(sizeof(XRefStreamEntry::Type)));

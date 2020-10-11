@@ -38,17 +38,17 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfStreamedDocument::PdfStreamedDocument( PdfOutputDevice* pDevice, EPdfVersion eVersion, PdfEncrypt* pEncrypt, EPdfWriteMode eWriteMode )
-    : m_pWriter( NULL ), m_pDevice( NULL ), m_pEncrypt( pEncrypt ), m_bOwnDevice( false )
+PdfStreamedDocument::PdfStreamedDocument( PdfOutputDevice& pDevice, EPdfVersion eVersion, PdfEncrypt* pEncrypt, EPdfWriteMode eWriteMode )
+    : m_pWriter( nullptr ), m_pDevice( nullptr ), m_pEncrypt( pEncrypt ), m_bOwnDevice( false )
 {
-    Init( pDevice, eVersion, pEncrypt, eWriteMode );
+    Init(pDevice, eVersion, pEncrypt, eWriteMode);
 }
 
 PdfStreamedDocument::PdfStreamedDocument(const string_view& filename, EPdfVersion eVersion, PdfEncrypt* pEncrypt, EPdfWriteMode eWriteMode )
-    : m_pWriter( NULL ), m_pEncrypt( pEncrypt ), m_bOwnDevice( true )
+    : m_pWriter( nullptr ), m_pEncrypt( pEncrypt ), m_bOwnDevice( true )
 {
     m_pDevice = new PdfOutputDevice(filename);
-    Init( m_pDevice, eVersion, pEncrypt, eWriteMode );
+    Init(*m_pDevice, eVersion, pEncrypt, eWriteMode);
 }
 
 PdfStreamedDocument::~PdfStreamedDocument()
@@ -58,10 +58,10 @@ PdfStreamedDocument::~PdfStreamedDocument()
         delete m_pDevice;
 }
 
-void PdfStreamedDocument::Init( PdfOutputDevice* pDevice, EPdfVersion eVersion, 
-                                PdfEncrypt* pEncrypt, EPdfWriteMode eWriteMode )
+void PdfStreamedDocument::Init(PdfOutputDevice& pDevice, EPdfVersion eVersion, 
+                                PdfEncrypt* pEncrypt, EPdfWriteMode eWriteMode)
 {
-    m_pWriter = new PdfImmediateWriter( pDevice, &this->GetObjects(), this->GetTrailer(), eVersion, pEncrypt, eWriteMode );
+    m_pWriter = new PdfImmediateWriter( this->GetObjects(), this->GetTrailer(), pDevice, eVersion, pEncrypt, eWriteMode );
 }
 
 void PdfStreamedDocument::Close()
