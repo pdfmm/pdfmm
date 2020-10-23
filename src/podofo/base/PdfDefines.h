@@ -248,9 +248,10 @@ enum class EPdfStrokeStyle
  */
 enum class EPdfInfoInitial
 {
-    WriteCreationTime = 0x01, ///< Write the creation time (current time). Default for new documents.
-    WriteModificationTime = 0x02, ///< Write the modification time (current time). Default for loaded documents.
-    WriteProducer = 0x04  ///< Write producer key. Default for new documents.
+    None = 0,
+    WriteCreationTime = 1,      // Write the creation time (current time). Default for new documents.
+    WriteModificationTime = 2,  // Write the modification time (current time). Default for loaded documents.
+    WriteProducer = 4,          // Write producer key. Default for new documents.
 };
 
 /**

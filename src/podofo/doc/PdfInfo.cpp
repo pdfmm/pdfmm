@@ -41,7 +41,7 @@
 
 #define PRODUCER_STRING "PoDoFo - http:/" "/podofo.sf.net"
 
-namespace PoDoFo {
+using namespace PoDoFo;
 
 PdfInfo::PdfInfo( PdfVecObjects* pParent, EPdfInfoInitial eInitial )
     : PdfElement( nullptr, pParent )
@@ -55,15 +55,11 @@ PdfInfo::PdfInfo( PdfObject* pObject, EPdfInfoInitial eInitial )
     Init( eInitial );
 }
 
-PdfInfo::~PdfInfo()
-{
-}
-
 void PdfInfo::Init(EPdfInfoInitial eInitial)
 {
     PdfDate   date;
     PdfString str = date.ToString();
-    
+
     if( (eInitial & EPdfInfoInitial::WriteCreationTime) == EPdfInfoInitial::WriteCreationTime ) 
     {
         this->GetObject()->GetDictionary().AddKey( "CreationDate", str );
@@ -139,7 +135,47 @@ void PdfInfo::SetTrapped(const PdfName & sTrapped)
 		this->GetObject()->GetDictionary().AddKey( "Trapped", PdfName( "Unknown" ) );
 }
 
-};
+const PdfString& PdfInfo::GetAuthor() const
+{
+    return this->GetStringFromInfoDict(PdfName("Author"));
+}
 
+const PdfString& PdfInfo::GetCreator() const
+{
+    return this->GetStringFromInfoDict(PdfName("Creator"));
+}
 
+const PdfString& PdfInfo::GetKeywords() const
+{
+    return this->GetStringFromInfoDict(PdfName("Keywords"));
+}
 
+const PdfString& PdfInfo::GetSubject() const
+{
+    return this->GetStringFromInfoDict(PdfName("Subject"));
+}
+
+const PdfString& PdfInfo::GetTitle() const
+{
+    return this->GetStringFromInfoDict(PdfName("Title"));
+}
+
+const PdfString& PdfInfo::GetProducer() const
+{
+    return this->GetStringFromInfoDict(PdfName("Producer"));
+}
+
+const PdfName& PdfInfo::GetTrapped() const
+{
+    return this->GetNameFromInfoDict(PdfName("Trapped"));
+}
+
+PdfDate PdfInfo::GetCreationDate() const
+{
+    return PdfDate(this->GetStringFromInfoDict(PdfName("CreationDate")));
+}
+
+PdfDate PdfInfo::GetModDate() const
+{
+    return PdfDate(this->GetStringFromInfoDict(PdfName("ModDate")));
+}

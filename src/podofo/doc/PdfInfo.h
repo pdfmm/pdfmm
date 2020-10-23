@@ -48,8 +48,9 @@ class PdfString;
  *  info dictionary, which provides information
  *  about the PDF document.
  */
-class PODOFO_DOC_API PdfInfo : public PdfElement {
- public:
+class PODOFO_DOC_API PdfInfo : public PdfElement
+{
+public:
 
     /** Create a new PdfInfo object
      *  \param pParent the parent of this object
@@ -65,11 +66,7 @@ class PODOFO_DOC_API PdfInfo : public PdfElement {
      *  \param eInitial which information should be 
      *         writting initially to the information
      */
-    PdfInfo( PdfObject* pObject, EPdfInfoInitial eInitial = EPdfInfoInitial::WriteModificationTime );
-
-    /** Destructor
-     */
-    ~PdfInfo();
+    PdfInfo( PdfObject* pObject, EPdfInfoInitial eInitial = EPdfInfoInitial::None );
 
     /** Set the author of the document.
      *  \param sAuthor author
@@ -159,7 +156,7 @@ class PODOFO_DOC_API PdfInfo : public PdfElement {
      * \param sValue Value of the key.
      */
     void SetCustomKey(const PdfName &sName, const PdfString &sValue);
- private:
+private:
     /** Add the initial document information to the dictionary.
      *  \param eInitial which information should be 
      *         writting initially to the information
@@ -179,79 +176,6 @@ class PODOFO_DOC_API PdfInfo : public PdfElement {
     const PdfName & GetNameFromInfoDict( const PdfName & rName ) const;
 
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const PdfString & PdfInfo::GetAuthor() const
-{
-    return this->GetStringFromInfoDict( PdfName("Author") );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const PdfString & PdfInfo::GetCreator() const
-{
-    return this->GetStringFromInfoDict( PdfName("Creator") );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const PdfString & PdfInfo::GetKeywords() const
-{
-    return this->GetStringFromInfoDict( PdfName("Keywords") );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const PdfString & PdfInfo::GetSubject() const
-{
-    return this->GetStringFromInfoDict( PdfName("Subject") );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const PdfString & PdfInfo::GetTitle() const
-{
-    return this->GetStringFromInfoDict( PdfName("Title") );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const PdfString & PdfInfo::GetProducer() const
-{
-    return this->GetStringFromInfoDict( PdfName("Producer") );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const PdfName & PdfInfo::GetTrapped() const
-{
-	return this->GetNameFromInfoDict( PdfName("Trapped") );
-}
-
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-PdfDate PdfInfo::GetCreationDate() const
-{
-    return PdfDate(this->GetStringFromInfoDict(PdfName("CreationDate")));
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-PdfDate PdfInfo::GetModDate() const
-{
-    return PdfDate(this->GetStringFromInfoDict(PdfName("ModDate")));
-}
 
 };
 
