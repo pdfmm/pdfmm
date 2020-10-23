@@ -60,32 +60,13 @@ public:
      * The contained data has to be a valid value in a PDF file.
      * It will be written directly to the PDF file.
      *
-     * \param pszData a null-terminated string to be copied.
      */
-    PdfData( const char* pszData )
-        : PdfDataType(), m_sData( pszData ) 
-        {
-        }
-
-    /**
-     * Create a new PdfData object with valid PdfData.
-     *
-     * \param pszData a char * buffer to be copied.
-     * \param dataSize size of buffer
-     */
-    PdfData( const char* pszData, size_t dataSize )
-        : PdfDataType(), m_sData( pszData, dataSize ) 
-        {
-        }
+    PdfData(const std::string_view& data);
 
     /** Copy an existing PdfData 
      *  \param rhs another PdfData to copy
      */
-    PdfData( const PdfData & rhs )
-        : PdfDataType()
-        {
-            this->operator=( rhs );
-        }
+    PdfData(const PdfData& rhs);
 
     /** Write the complete datatype to a file.
      *  \param pDevice write the object to this device
@@ -102,34 +83,17 @@ public:
      *  \param rhs another PdfData to copy
      *  \returns this object
      */
-    inline const PdfData & operator=( const PdfData & rhs );
+    const PdfData & operator=( const PdfData & rhs );
 
     /**
      * Access the data as a std::string
      * \returns a const reference to the contained data
      */
-     inline const std::string & data() const;
+     inline const std::string & data() const { return m_data; }
 
  private:
-    std::string m_sData;
+    std::string m_data;
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const PdfData & PdfData::operator=( const PdfData & rhs )
-{
-    m_sData = rhs.m_sData;
-    return (*this);
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const std::string & PdfData::data() const {
-    return m_sData;
-}
-
 
 }; // namespace PoDoFo
 

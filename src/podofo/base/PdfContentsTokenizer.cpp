@@ -246,7 +246,7 @@ bool PdfContentsTokenizer::ReadInlineImgData( EPdfContentsType& reType, const ch
                 // EI is followed by whitespace => stop
                 m_device.Device()->Seek(-2, std::ios::cur); // put back "EI" 
                 m_buffer.GetBuffer()[counter] = '\0';
-                rVariant = PdfData(m_buffer.GetBuffer(), static_cast<size_t>(counter));
+                rVariant = PdfData({ m_buffer.GetBuffer(), static_cast<size_t>(counter) });
                 reType = EPdfContentsType::ImageData;
                 m_readingInlineImgData = false;
                 return true;

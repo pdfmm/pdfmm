@@ -36,9 +36,26 @@
 #include "PdfOutputDevice.h"
 #include "PdfDefinesPrivate.h"
 
+using namespace std;
 using namespace PoDoFo;
+
+PdfData::PdfData(const string_view& data)
+    : m_data(data)
+{
+}
+
+PdfData::PdfData(const PdfData& rhs)
+{
+    this->operator=(rhs);
+}
 
 void PdfData::Write(PdfOutputDevice& pDevice, EPdfWriteMode, const PdfEncrypt* ) const
 {
-    pDevice.Write( m_sData.c_str(), m_sData.length() );
+    pDevice.Write(m_data.c_str(), m_data.length() );
+}
+
+const PdfData& PdfData::operator=(const PdfData& rhs)
+{
+    m_data = rhs.m_data;
+    return (*this);
 }

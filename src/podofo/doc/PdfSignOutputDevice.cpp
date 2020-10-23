@@ -90,7 +90,7 @@ void PdfSignOutputDevice::SetSignatureSize(size_t lSignatureSize)
     {
         pData[i]=srcBeacon[i%lLen];
     }
-    m_pSignatureBeacon = new PdfData(pData, lSignatureSize);
+    m_pSignatureBeacon = new PdfData({ pData, lSignatureSize });
     podofo_free(pData);
 }
 

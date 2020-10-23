@@ -141,7 +141,7 @@ void PdfSignatureField::SetSignature(const PdfData &sSignatureData)
     pData[0] = '<';
     pData[lSigLen + 1] = '>';
     memcpy(pData + 1, sSignatureData.data().c_str(), lSigLen);
-    PdfData signatureData(pData, lSigLen + 2);
+    PdfData signatureData({ pData, lSigLen + 2 });
     podofo_free(pData);
     // Content of the signature
     if( !m_pSignatureObj )
