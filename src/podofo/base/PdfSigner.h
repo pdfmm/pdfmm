@@ -43,6 +43,12 @@ namespace PoDoFo
     {
     public:
         virtual ~PdfSigner();
+        /** Get the expected signature size
+         *
+         * Will be used to parepare the pdf file for signing.
+         * By default it run a dry run computing of the signature
+         */
+        virtual unsigned GetSignatureSize();
         virtual void Reset() = 0;
         virtual void AppendData(const std::string_view& data) = 0;
         /**

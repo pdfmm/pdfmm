@@ -18,6 +18,11 @@ static void PrepareBeaconsData(size_t signatureSize, string& contentsBeacon, str
 
 PdfSigner::~PdfSigner() { }
 
+unsigned PdfSigner::GetSignatureSize()
+{
+    return (unsigned)ComputeSignature(true).size();
+}
+
 string PdfSigner::GetSignatureFilter() const
 {
     // Default value
@@ -28,11 +33,8 @@ void PoDoFo::SignDocument(PdfMemDocument& doc, PdfOutputDevice& device, PdfSigne
     PdfSignatureField& signature, PdfSignFlags flags)
 {
     (void)flags;
-    signer.Reset();
 
-    // Infer signature size by issuing a dry-run call to compute signature
-    auto signatureBuf = signer.ComputeSignature(true);
-    size_t signatureSize = signatureBuf.size();
+    unsigned signatureSize = signer.GetSignatureSize();
     PdfSignatureBeacons beacons;
     PrepareBeaconsData(signatureSize, beacons.ContentsBeacon, beacons.ByteRangeBeacon);
     signature.PrepareForSigning(signer.GetSignatureFilter(), signer.GetSignatureSubFilter(), beacons);
@@ -57,7 +59,7 @@ void PoDoFo::SignDocument(PdfMemDocument& doc, PdfOutputDevice& device, PdfSigne
         signer.AppendData({ buffer.data(), readBytes });
     }
 
-    signatureBuf = signer.ComputeSignature(false);
+    string signatureBuf = signer.ComputeSignature(false);
     if (signatureBuf.size() > signatureSize)
         throw runtime_error("Actual signature size smaller than given size");
 
