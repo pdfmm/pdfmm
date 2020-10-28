@@ -59,9 +59,24 @@ public:
      *
      * The contained data has to be a valid value in a PDF file.
      * It will be written directly to the PDF file.
+     * \param writeBeacon Shared sentinel that will updated
+     *                    during writing of the document with
+     *                    the current position in the stream
      *
      */
-    PdfData(const std::string_view& data);
+    PdfData(std::string&& data, const std::shared_ptr<size_t>& writeBeacon = { });
+
+    /**
+     * Create a new PdfData object with valid PdfData
+     *
+     * The contained data has to be a valid value in a PDF file.
+     * It will be written directly to the PDF file.
+     * \param writeBeacon Shared sentinel that will updated
+     *                    during writing of the document with
+     *                    the current position in the stream
+     *
+     */
+    PdfData(const std::string_view& data, const std::shared_ptr<size_t>& writeBeacon = { });
 
     /** Copy an existing PdfData 
      *  \param rhs another PdfData to copy
@@ -89,10 +104,11 @@ public:
      * Access the data as a std::string
      * \returns a const reference to the contained data
      */
-     inline const std::string & data() const { return m_data; }
+     inline const std::string & data() const { return *m_data; }
 
- private:
-    std::string m_data;
+private:
+    std::shared_ptr<size_t> m_writeBeacon;
+    std::shared_ptr<std::string> m_data;
 };
 
 }; // namespace PoDoFo

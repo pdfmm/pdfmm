@@ -44,6 +44,7 @@ SET(PODOFO_BASE_SOURCES
   base/PdfRefCountedBuffer.cpp
   base/PdfRefCountedInputDevice.cpp
   base/PdfReference.cpp
+  base/PdfSigner.cpp
   base/PdfStream.cpp
   base/PdfString.cpp
   base/PdfTokenizer.cpp
@@ -96,7 +97,6 @@ SET(PODOFO_DOC_SOURCES
   doc/PdfPagesTreeCache.cpp
   doc/PdfPainter.cpp
   doc/PdfShadingPattern.cpp
-  doc/PdfSignOutputDevice.cpp
   doc/PdfSignatureField.cpp
   doc/PdfStreamedDocument.cpp
   doc/PdfTable.cpp
@@ -154,6 +154,7 @@ SET(PODOFO_BASE_HEADERS
    base/PdfRefCountedBuffer.h
    base/PdfRefCountedInputDevice.h
    base/PdfReference.h
+   base/PdfSigner.h
    base/PdfStream.h
    base/PdfString.h
    base/PdfTokenizer.h
@@ -209,7 +210,6 @@ SET(PODOFO_DOC_HEADERS
   doc/PdfPagesTreeCache.h
   doc/PdfPainter.h
   doc/PdfShadingPattern.h
-  doc/PdfSignOutputDevice.h
   doc/PdfSignatureField.h
   doc/PdfStreamedDocument.h
   doc/PdfTable.h

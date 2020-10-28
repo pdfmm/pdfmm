@@ -40,6 +40,7 @@
 #include "PdfAnnotation.h"
 #include "PdfField.h"
 #include "podofo/base/PdfDate.h"
+#include "podofo/base/PdfData.h"
 
 namespace PoDoFo {
 
@@ -50,8 +51,15 @@ enum class EPdfCertPermission
     Annotations = 3,
 };
 
-/** Signature field
- */
+struct PdfSignatureBeacons
+{
+    PdfSignatureBeacons();
+    std::string ContentsBeacon;
+    std::string ByteRangeBeacon;
+    std::shared_ptr<size_t> ContentsOffset;
+    std::shared_ptr<size_t> ByteRangeOffset;
+};
+
 class PODOFO_DOC_API PdfSignatureField :public PdfField
 {
 public:
@@ -82,15 +90,19 @@ public:
 
     /** Create space for signature
      *
-     * \param signatureData String used to locate reserved space for signature.
-     *   This string will be replaiced with signature.
-     *
      * Structure of the PDF file - before signing:
      * <</ByteRange[ 0 1234567890 1234567890 1234567890]/Contents<signatureData>
      * Have to be replaiced with the following structure:
      * <</ByteRange[ 0 count pos count]/Contents<real signature ...0-padding>
+     *
+     * \param filter /Filter for this signature
+     * \param subFilter /SubFilter for this signature
+     * \param beacons Shared sentinels that will updated
+     *                during writing of the document
      */
-    void SetSignature(const PdfData &signatureData);
+    void PrepareForSigning(const std::string_view& filter,
+        const std::string_view& subFilter,
+        const PdfSignatureBeacons& beacons);
 
     /** Set the signer name
     *

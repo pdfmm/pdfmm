@@ -90,15 +90,14 @@
 #include "doc/PdfPainter.h"
 #include "doc/PdfShadingPattern.h"
 #include "doc/PdfSignatureField.h"
-#include "doc/PdfSignOutputDevice.h"
 #include "doc/PdfStreamedDocument.h"
 #include "doc/PdfTable.h"
 #include "doc/PdfTilingPattern.h"
 #include "doc/PdfXObject.h"
 
-#ifdef _PODOFO_NO_NAMESPACE_
+#ifdef PODOFO_NO_NAMESPACE
 using namespace PoDoFo;
-#endif /* _PODOFO_NO_NAMESPACE_ */
+#endif /* PODOFO_NO_NAMESPACE */
 
 #endif /* _PODOFO_H_ */
 

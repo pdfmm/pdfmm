@@ -46,7 +46,8 @@
 
 namespace PoDoFo {
 
-
+// TODO1: Evaluate if this class should implement PdfInputStream/PdfOutputStream
+// TODO2: Remove use of C style variadic functions
 /** This class provides an output device which operates 
  *  either on a file or on a buffer in memory.
  *  Additionally it can count the bytes written to the device.
@@ -123,7 +124,7 @@ public:
      *  
      *  \see Init
      */
-    virtual inline size_t GetLength() const { return m_ulLength; }
+    inline size_t GetLength() const { return m_ulLength; }
 
     /** Write to the PdfOutputDevice. Usage is as the usage of printf.
      * 
@@ -149,7 +150,7 @@ public:
      *
      *  \see Write
      */
-    virtual void PrintV( const char* pszFormat, size_t lBytes, va_list argptr );
+    void PrintV( const char* pszFormat, size_t lBytes, va_list argptr );
 
     /** Write data to the buffer. Use this call instead of Print if you 
      *  want to write binary data to the PdfOutputDevice.
@@ -159,29 +160,29 @@ public:
      * 
      *  \see Print
      */
-    virtual void Write( const char* pBuffer, size_t lLen );
+    void Write( const char* pBuffer, size_t lLen );
 
     /** Read data from the device
      *  \param pBuffer a pointer to the data buffer
      *  \param lLen length of the output buffer
      *  \returns Number of read bytes. Return 0 if EOF
      */
-    virtual size_t Read( char* pBuffer, size_t lLen );
+    size_t Read( char* pBuffer, size_t lLen );
 
     /** Seek the device to the position offset from the begining
      *  \param offset from the beginning of the file
      */
-    virtual void Seek( size_t offset );
+    void Seek( size_t offset );
 
     /** Get the current offset from the beginning of the file.
      *  \return the offset form the beginning of the file.
      */
-    virtual inline size_t Tell() const { return m_ulPosition; }
+    inline size_t Tell() const { return m_ulPosition; }
 
     /** Flush the output files buffer to disk if this devices
      *  operates on a disk.
      */
-    virtual void Flush();
+    void Flush();
 
 private: 
     /** Initialize all private members

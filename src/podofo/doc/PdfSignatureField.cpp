@@ -46,6 +46,7 @@
 
 #include <string.h>
 
+using namespace std;
 using namespace PoDoFo;
 
 PdfSignatureField::PdfSignatureField( PdfPage* pPage, const PdfRect & rRect)
@@ -128,41 +129,22 @@ void PdfSignatureField::SetSignatureDate(const PdfDate &sigDate)
     m_pSignatureObj->GetDictionary().AddKey(PdfName("M"), sDate);
 }
 
-void PdfSignatureField::SetSignature(const PdfData &sSignatureData)
+void PdfSignatureField::PrepareForSigning(const string_view& filter,
+    const string_view& subFilter, const PdfSignatureBeacons& beacons)
 {
-    // Prepare source data
-    size_t lSigLen = sSignatureData.data().size();
-    char* pData = static_cast<char*>(podofo_malloc( lSigLen + 2 ));
-    if (!pData)
-    {
-        PODOFO_RAISE_ERROR(EPdfError::OutOfMemory);
-    }
+    EnsureSignatureObject();
+    auto& dict = GetSignatureObject()->GetDictionary();
+    // This must be ensured before any signing operation
+    dict.AddKey(PdfName::KeyFilter, PdfName(filter));
+    dict.AddKey("SubFilter", PdfName(subFilter));
 
-    pData[0] = '<';
-    pData[lSigLen + 1] = '>';
-    memcpy(pData + 1, sSignatureData.data().c_str(), lSigLen);
-    PdfData signatureData({ pData, lSigLen + 2 });
-    podofo_free(pData);
-    // Content of the signature
-    if( !m_pSignatureObj )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
-    // Remove old data
-    if(m_pSignatureObj->GetDictionary().HasKey("ByteRange"))
-    {
-        m_pSignatureObj->GetDictionary().RemoveKey("ByteRange");
-    }
-    if(m_pSignatureObj->GetDictionary().HasKey(PdfName::KeyContents))
-    {
-        m_pSignatureObj->GetDictionary().RemoveKey(PdfName::KeyContents);
-    }	
+    // Prepare contents data
+    PdfData contentsData(beacons.ContentsBeacon, beacons.ContentsOffset);
+    m_pSignatureObj->GetDictionary().AddKey(PdfName::KeyContents, PdfVariant(contentsData));
 
-    // Byte range
-    PdfData rangeData("[ 0 1234567890 1234567890 1234567890]");
-    m_pSignatureObj->GetDictionary().AddKey("ByteRange", PdfVariant(rangeData) );
-
-    m_pSignatureObj->GetDictionary().AddKey(PdfName::KeyContents, PdfVariant(signatureData) );
+    // Prepare byte range data
+    PdfData byteRangeData(beacons.ByteRangeBeacon, beacons.ByteRangeOffset);
+    m_pSignatureObj->GetDictionary().AddKey("ByteRange", PdfVariant(byteRangeData) );
 }
 
 void PdfSignatureField::SetSignatureLocation( const PdfString & rsText )
@@ -295,9 +277,10 @@ void PdfSignatureField::EnsureSignatureObject( void )
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
 
     GetFieldObject()->GetDictionary().AddKey( "V" , m_pSignatureObj->GetIndirectReference() );
+}
 
-    PdfDictionary &dict = m_pSignatureObj->GetDictionary();
-
-    dict.AddKey( PdfName::KeyFilter, PdfName( "Adobe.PPKLite" ) );
-    dict.AddKey( "SubFilter", PdfName( "adbe.pkcs7.detached" ) );
+PdfSignatureBeacons::PdfSignatureBeacons()
+{
+    ContentsOffset = std::make_shared<size_t>();
+    ByteRangeOffset = std::make_shared<size_t>();
 }

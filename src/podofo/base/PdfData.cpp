@@ -39,8 +39,13 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfData::PdfData(const string_view& data)
-    : m_data(data)
+PdfData::PdfData(const string_view& data, const shared_ptr<size_t>& writeBeacon)
+    : m_data(std::make_shared<string>(data)), m_writeBeacon(writeBeacon)
+{
+}
+
+PdfData::PdfData(string&& data, const shared_ptr<size_t>& writeBeacon)
+    : m_data(std::make_shared<string>(std::move(data))), m_writeBeacon(writeBeacon)
 {
 }
 
@@ -51,11 +56,15 @@ PdfData::PdfData(const PdfData& rhs)
 
 void PdfData::Write(PdfOutputDevice& pDevice, EPdfWriteMode, const PdfEncrypt* ) const
 {
-    pDevice.Write(m_data.c_str(), m_data.length() );
+    if (m_writeBeacon != nullptr)
+        *m_writeBeacon = pDevice.Tell();
+
+    pDevice.Write(m_data->c_str(), m_data->length());
 }
 
 const PdfData& PdfData::operator=(const PdfData& rhs)
 {
     m_data = rhs.m_data;
-    return (*this);
+    m_writeBeacon = rhs.m_writeBeacon;
+    return *this;
 }
