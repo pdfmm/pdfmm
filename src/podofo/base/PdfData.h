@@ -107,8 +107,8 @@ public:
      inline const std::string & data() const { return *m_data; }
 
 private:
-    std::shared_ptr<size_t> m_writeBeacon;
     std::shared_ptr<std::string> m_data;
+    std::shared_ptr<size_t> m_writeBeacon;
 };
 
 }; // namespace PoDoFo
