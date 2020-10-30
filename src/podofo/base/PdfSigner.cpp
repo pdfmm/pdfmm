@@ -4,7 +4,7 @@
 using namespace std;
 using namespace PoDoFo;
 
-constexpr char* ByteRangeBeacon = "[ 0 1234567890 1234567890 1234567890]";
+constexpr const char* ByteRangeBeacon = "[ 0 1234567890 1234567890 1234567890]";
 constexpr size_t BufferSize = 65536;
 
 static size_t ReadForSignature(PdfOutputDevice& device,
