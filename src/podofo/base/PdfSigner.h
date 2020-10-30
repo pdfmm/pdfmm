@@ -34,8 +34,8 @@
 #define PDF_READER_H
 
 #include <string>
-#include "..\doc\PdfMemDocument.h"
-#include "..\doc\PdfSignatureField.h"
+#include "../doc/PdfMemDocument.h"
+#include "../doc/PdfSignatureField.h"
 
 namespace PoDoFo
 {
