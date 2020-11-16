@@ -66,6 +66,9 @@ typedef TTokenizerQueque::const_iterator     TCITokenizerQueque;
  */
 class PODOFO_API PdfTokenizer
 {
+    friend class PdfParser;
+    friend class PdfParserObject;
+
 protected:
     // This enum differs from regular PdfDataType in the sense
     // it enumerates only data types that can be determined literally
@@ -88,11 +91,8 @@ protected:
 
 public:
     PdfTokenizer();
-
-    PdfTokenizer( const char* pBuffer, size_t lLen );
-    PdfTokenizer( const PdfRefCountedInputDevice & rDevice, const PdfRefCountedBuffer & rBuffer );
-
-    virtual ~PdfTokenizer();
+    PdfTokenizer(const PdfRefCountedBuffer& rBuffer);
+    ~PdfTokenizer();
 
     /** Reads the next token from the current file position
      *  ignoring all comments.
@@ -101,7 +101,7 @@ public:
      *                     token (a nullptr-terminated C string). The pointer is
      *                     to memory owned by PdfTokenizer and must NOT be
      *                     freed.  The contents are invalidated on the next
-     *                     call to GetNextToken(..) and by the destruction of
+     *                     call to tryReadNextToken(..) and by the destruction of
      *                     the PdfTokenizer. Undefined on false return.
      *
      *  \param[out] peType On true return, if not nullptr the type of the read token
@@ -110,10 +110,8 @@ public:
      * 
      *  \returns           True if a token was read, false if there are no
      *                     more tokens to read.
-     *
-     *  \see GetBuffer
      */
-    virtual bool GetNextToken( const char *& pszToken, EPdfTokenType* peType = nullptr);
+    bool TryReadNextToken(const PdfRefCountedInputDevice& device, const char *& pszToken, EPdfTokenType* peType = nullptr);
 
     /** Reads the next token from the current file position
      *  ignoring all comments and compare the passed token
@@ -126,7 +124,7 @@ public:
      *
      *  \returns true if the read token equals the passed token.
      */
-    bool IsNextToken( const char* pszToken );
+    bool IsNextToken(const PdfRefCountedInputDevice& device, const char* pszToken);
 
     /** Read the next number from the current file position
      *  ignoring all comments.
@@ -137,7 +135,7 @@ public:
      *
      *  \returns a number read from the input device.
      */
-    int64_t GetNextNumber();
+    int64_t ReadNextNumber(const PdfRefCountedInputDevice& device);
 
     /** Read the next variant from the current file position
      *  ignoring all comments.
@@ -148,7 +146,7 @@ public:
      *  \param rVariant write the read variant to this value
      *  \param pEncrypt an encryption object which is used to decrypt strings during parsing
      */
-    void GetNextVariant( PdfVariant& rVariant, PdfEncrypt* pEncrypt );
+    void ReadNextVariant(const PdfRefCountedInputDevice& device, PdfVariant& rVariant, PdfEncrypt* pEncrypt = nullptr);
 
     /** Returns true if the given character is a whitespace 
      *  according to the pdf reference
@@ -191,9 +189,9 @@ public:
     /**
      * Constant which is returned for invalid hex values.
      */
-    static const unsigned int HEX_NOT_FOUND;
+    static constexpr unsigned int HEX_NOT_FOUND = std::numeric_limits<unsigned int>::max();
 
- protected:
+protected:
     /** Read the next variant from the current file position
      *  ignoring all comments.
      *
@@ -204,7 +202,18 @@ public:
      *  \param rVariant write the read variant to this value
      *  \param pEncrypt an encryption object which is used to decrypt strings during parsing
      */
-    void GetNextVariant( const char* pszToken, EPdfTokenType eType, PdfVariant& rVariant, PdfEncrypt* pEncrypt );
+    void ReadNextVariant(const PdfRefCountedInputDevice& device, const char* pszToken, EPdfTokenType eType, PdfVariant& rVariant, PdfEncrypt* pEncrypt );
+
+    /** Add a token to the queue of tokens.
+     *  tryReadNextToken() will return all enqueued tokens first before
+     *  reading new tokens from the input device.
+     *
+     *  \param pszToken string of the token
+     *  \param eType type of the token
+     *
+     *  \see tryReadNextToken
+     */
+    void EnquequeToken(const char* pszToken, EPdfTokenType eType);
 
     /** Determine the possible datatype of a token.
      *  Numbers, reals, bools or nullptr values are parsed directly by this function
@@ -212,7 +221,7 @@ public:
      *
      *  \returns the expected datatype
      */
-    EPdfLiteralDataType DetermineDataType( const char* pszToken, EPdfTokenType eType, PdfVariant& rVariant );
+    EPdfLiteralDataType DetermineDataType(const PdfRefCountedInputDevice& device, const char* pszToken, EPdfTokenType eType, PdfVariant& rVariant );
 
     /** Read a dictionary from the input device
      *  and store it into a variant.
@@ -220,7 +229,7 @@ public:
      *  \param rVariant store the dictionary into this variable
      *  \param pEncrypt an encryption object which is used to decrypt strings during parsing
      */
-    void ReadDictionary( PdfVariant& rVariant, PdfEncrypt* pEncrypt );
+    void ReadDictionary(const PdfRefCountedInputDevice& device, PdfVariant& rVariant, PdfEncrypt* pEncrypt );
 
     /** Read an array from the input device
      *  and store it into a variant.
@@ -228,7 +237,7 @@ public:
      *  \param rVariant store the array into this variable
      *  \param pEncrypt an encryption object which is used to decrypt strings during parsing
      */
-    void ReadArray( PdfVariant& rVariant, PdfEncrypt* pEncrypt );
+    void ReadArray(const PdfRefCountedInputDevice& device, PdfVariant& rVariant, PdfEncrypt* pEncrypt );
 
     /** Read a string from the input device
      *  and store it into a variant.
@@ -236,7 +245,7 @@ public:
      *  \param rVariant store the string into this variable
      *  \param pEncrypt an encryption object which is used to decrypt strings during parsing
      */
-    void ReadString( PdfVariant& rVariant, PdfEncrypt* pEncrypt );
+    void ReadString(const PdfRefCountedInputDevice& device, PdfVariant& rVariant, PdfEncrypt* pEncrypt );
 
     /** Read a hex string from the input device
      *  and store it into a variant.
@@ -244,7 +253,7 @@ public:
      *  \param rVariant store the hex string into this variable
      *  \param pEncrypt an encryption object which is used to decrypt strings during parsing
      */
-    void ReadHexString(PdfVariant& rVariant, PdfEncrypt* pEncrypt);
+    void ReadHexString(const PdfRefCountedInputDevice& device, PdfVariant& rVariant, PdfEncrypt* pEncrypt);
 
     /** Read a name from the input device
      *  and store it into a variant.
@@ -253,32 +262,19 @@ public:
      *
      *  \param rVariant store the name into this variable
      */
-    void ReadName( PdfVariant& rVariant );
+    void ReadName(const PdfRefCountedInputDevice& device, PdfVariant& rVariant );
 
-    /** Add a token to the queue of tokens.
-     *  GetNextToken() will return all enqueued tokens first before
-     *  reading new tokens from the input device.
-     *
-     *  \param pszToken string of the token
-     *  \param eType type of the token
-     *
-     *  \see GetNextToken
-     */
-    void QuequeToken( const char* pszToken, EPdfTokenType eType );
+    PdfRefCountedBuffer& GetBuffer() { return m_buffer; }
 
 private:
-    void readDataType(EPdfLiteralDataType eDataType, PdfVariant& rVariant, PdfEncrypt* pEncrypt);
+    void readDataType(const PdfRefCountedInputDevice& device, EPdfLiteralDataType eDataType, PdfVariant& rVariant, PdfEncrypt* pEncrypt);
 
     /** Read a hex string from the input device
      *  and store it into a vector.
      *
      *  \param rVecBuffer store the hex string into this variable
      */
-    void readHexString(std::vector<char>& rVecBuffer);
-
-protected:
-    PdfRefCountedInputDevice m_device;
-    PdfRefCountedBuffer      m_buffer;
+    void readHexString(const PdfRefCountedInputDevice& device, std::vector<char>& rVecBuffer);
 
 private:
     // 256-byte array mapping character ordinal values to a truth value
@@ -291,7 +287,7 @@ private:
     static const char * const s_escMap; ///< Mapping of escape sequences to their value
     static const char * const s_hexMap; ///< Mapping of hex characters to their value
 
-
+    PdfRefCountedBuffer m_buffer;
     TTokenizerQueque m_deqQueque;
 
     // A vector which is used as a buffer to read strings.

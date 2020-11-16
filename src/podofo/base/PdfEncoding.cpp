@@ -162,14 +162,14 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
     PdfStream &CIDStreamdata = obj->GetOrCreateStream();
     CIDStreamdata.GetFilteredCopy(streamBuffer, streamBufferLen);
 
+    PdfRefCountedInputDevice device(streamBuffer.get(), streamBufferLen);
+    PdfContentsTokenizer tokenizer(device);
     deque<unique_ptr<PdfVariant>> tokens;
     const char *token;
     const PdfString* str;
     unique_ptr<PdfVariant> var( new PdfVariant() );
     EPdfContentsType tokenType;
-    PdfContentsTokenizer tokenizer( streamBuffer.get(), streamBufferLen );
-
-    while ( tokenizer.ReadNext( tokenType, token, *var ) )
+    while ( tokenizer.TryReadNext( tokenType, token, *var ) )
     {
         switch ( tokenType )
         {
@@ -187,7 +187,7 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                     for (int i = 0; i < rangeCount; i++)
                     {
                         unsigned codeSize;
-                        tokenizer.ReadNext(tokenType, token, *var);
+                        tokenizer.TryReadNext(tokenType, token, *var);
                         uint32_t lowerBound = GetCodeFromVariant(*var, codeSize);
                         if (lowerBound < firstChar)
                             firstChar = (int)lowerBound;
@@ -195,7 +195,7 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                         if (codeSize > maxCodeRangeSize)
                             maxCodeRangeSize = codeSize;
 
-                        tokenizer.ReadNext(tokenType, token, *var);
+                        tokenizer.TryReadNext(tokenType, token, *var);
                         uint32_t upperBound = GetCodeFromVariant(*var, codeSize);
                         if (upperBound > lastChar)
                             lastChar = (int)upperBound;
@@ -213,12 +213,12 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                     for ( int i = 0; i < rangeCount; i++ )
                     {
                         unsigned codeSize;
-                        tokenizer.GetNextVariant( *var, nullptr );
+                        tokenizer.ReadNextVariant(*var);
                         uint32_t srcCodeLo = GetCodeFromVariant(*var, codeSize);
-                        tokenizer.GetNextVariant( *var, nullptr );
+                        tokenizer.ReadNextVariant(*var);
                         uint32_t srcCodeHi = GetCodeFromVariant(*var);
                         unsigned rangeSize = srcCodeHi - srcCodeLo + 1;
-                        tokenizer.GetNextVariant( *var, nullptr );
+                        tokenizer.ReadNextVariant(*var);
                         if (var->IsArray())
                         {
                             PdfArray &arr = var->GetArray();
@@ -249,7 +249,7 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                             PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "beginbfrange: expected array, string or array");
                     }
 
-                    if ( !tokenizer.ReadNext(tokenType, token, *var)
+                    if ( !tokenizer.TryReadNext(tokenType, token, *var)
                         || tokenType != EPdfContentsType::Keyword
                         || strcmp( token, "endbfrange" ) != 0 )
                     {
@@ -265,9 +265,9 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                     for ( int i = 0; i < charCount; i++ )
                     {
                         unsigned codeSize;
-                        tokenizer.GetNextVariant(*var, nullptr);
+                        tokenizer.ReadNextVariant(*var);
                         uint32_t srcCode = GetCodeFromVariant(*var, codeSize);
-                        tokenizer.GetNextVariant(*var, nullptr);
+                        tokenizer.ReadNextVariant(*var);
                         auto &mappedstr = map[{ codeSize, srcCode }];
                         if (var->IsNumber())
                         {
@@ -289,7 +289,7 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                             PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "beginbfchar: expected number or name");
                     }
 
-                    if ( !tokenizer.ReadNext(tokenType, token, *var )
+                    if ( !tokenizer.TryReadNext(tokenType, token, *var )
                         || tokenType != EPdfContentsType::Keyword
                         || strcmp( token, "endbfchar" ) != 0)
                     {
@@ -305,11 +305,11 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                     for (int i = 0; i < rangeCount; i++)
                     {
                         unsigned codeSize;
-                        tokenizer.GetNextVariant(*var, nullptr);
+                        tokenizer.ReadNextVariant(*var);
                         uint32_t srcCodeLo = GetCodeFromVariant(*var, codeSize);
-                        tokenizer.GetNextVariant(*var, nullptr);
+                        tokenizer.ReadNextVariant(*var);
                         uint32_t srcCodeHi = GetCodeFromVariant(*var);
-                        tokenizer.GetNextVariant(*var, nullptr);
+                        tokenizer.ReadNextVariant(*var);
                         char32_t dstCIDLo = (char32_t)GetCodeFromVariant(*var);
 
                         unsigned rangeSize = srcCodeHi - srcCodeLo + 1;
@@ -321,7 +321,7 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                         }
                     }
 
-                    if (!tokenizer.ReadNext(tokenType, token, *var)
+                    if (!tokenizer.TryReadNext(tokenType, token, *var)
                         || tokenType != EPdfContentsType::Keyword
                         || strcmp(token, "endcidrange") != 0)
                     {
@@ -337,16 +337,16 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                     for (int i = 0; i < charCount; i++)
                     {
                         unsigned codeSize;
-                        tokenizer.GetNextVariant(*var, nullptr);
+                        tokenizer.ReadNextVariant(*var);
                         uint32_t srcCode = GetCodeFromVariant(*var, codeSize);
-                        tokenizer.GetNextVariant(*var, nullptr);
+                        tokenizer.ReadNextVariant(*var);
                         char32_t dstCid = (char32_t)GetCodeFromVariant(*var);
                         auto &mappedstr = map[{ codeSize, srcCode }];
                         mappedstr.clear();
                         utf8::append(dstCid, mappedstr);
                     }
 
-                    if (!tokenizer.ReadNext(tokenType, token, *var)
+                    if (!tokenizer.TryReadNext(tokenType, token, *var)
                         || tokenType != EPdfContentsType::Keyword
                         || strcmp(token, "endcidchar") != 0)
                     {

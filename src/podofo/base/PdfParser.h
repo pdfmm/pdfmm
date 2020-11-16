@@ -60,7 +60,7 @@ class PdfParserObject;
  * the PdfWriter class.
  * Most PDF features are supported
  */
-class PODOFO_API PdfParser : public PdfTokenizer
+class PODOFO_API PdfParser
 {
     friend class PdfDocument;
     friend class PdfWriter;
@@ -74,68 +74,9 @@ public:
      */
     PdfParser(PdfVecObjects& pVecObjects);
 
-    /** Create a new PdfParser object and open a PDF file and parse
-     *  it into memory.
-     *
-     *  \param pVecObjects vector to write the parsed PdfObjects to
-     *  \param pszFilename filename of the file which is going to be parsed
-     *  \param bLoadOnDemand If true all objects will be read from the file at
-     *                       the time they are accessed first.
-     *                       If false all objects will be read immediately.
-     *                       This is faster if you do not need the complete PDF 
-     *                       file in memory.
-     *
-     *  This might throw a PdfError( EPdfError::InvalidPassword ) exception
-     *  if a password is required to read this PDF.
-     *  Call SetPassword() with the correct password in this case.
-     *  
-     *  \see SetPassword
-     */
-    PdfParser(PdfVecObjects& pVecObjects, const std::string_view &filename, bool bLoadOnDemand = true);
-
-    /** Create a new PdfParser object and open a PDF file and parse
-     *  it into memory.
-     *
-     *  \param pVecObjects vector to write the parsed PdfObjects to
-     *  \param pBuffer buffer containing a PDF file in memory
-     *  \param lLen length of the buffer containing the PDF file
-     *  \param bLoadOnDemand If true all objects will be read from the file at
-     *                       the time they are accessed first.
-     *                       If false all objects will be read immediately.
-     *                       This is faster if you do not need the complete PDF 
-     *                       file in memory.
-     *
-     *  This might throw a PdfError( EPdfError::InvalidPassword ) exception
-     *  if a password is required to read this PDF.
-     *  Call SetPassword() with the correct password in this case.
-     *  
-     *  \see SetPassword
-     */
-    PdfParser(PdfVecObjects& pVecObjects, const char* pBuffer, size_t lLen, bool bLoadOnDemand = true);
-
-    /** Create a new PdfParser object and open a PDF file and parse
-     *  it into memory.
-     *
-     *  \param pVecObjects vector to write the parsed PdfObjects to
-     *  \param rDevice read from this PdfRefCountedInputDevice
-     *  \param bLoadOnDemand If true all objects will be read from the file at
-     *                       the time they are accessed first.
-     *                       If false all objects will be read immediately.
-     *                       This is faster if you do not need the complete PDF 
-     *                       file in memory.
-     *
-     *  This might throw a PdfError( EPdfError::InvalidPassword ) exception
-     *  if a password is required to read this PDF.
-     *  Call SetPassword() with the correct password in this case.
-     *  
-     *  \see SetPassword
-     */
-    PdfParser(PdfVecObjects& pVecObjects, const PdfRefCountedInputDevice & rDevice,
-               bool bLoadOnDemand = true);
-
     /** Delete the PdfParser and all PdfObjects
      */
-    virtual ~PdfParser();
+    ~PdfParser();
 
     /** Open a PDF file and parse it.
      *
@@ -192,13 +133,6 @@ public:
      */
     void Parse( const PdfRefCountedInputDevice & rDevice, bool bLoadOnDemand = true );
 
-    /** Quick method to detect secured PDF files, i.e.
-     *  a PDF with an /Encrypt key in the trailer directory.
-     *
-     *  \returns true if document is secured, false otherwise
-     */
-    bool QuickEncryptedCheck( const char* pszFilename );
-
     /** Get the file format version of the pdf
      *  \returns the file format version as string
      */
@@ -223,8 +157,6 @@ public:
      * \returns the parser's encryption object, or nullptr if the read PDF file was not encrypted.
      */
     std::unique_ptr<PdfEncrypt> TakeEncrypt();
-
-    bool HasXRefStream();
 
     const PdfObject& GetTrailer() const;
 
@@ -306,7 +238,7 @@ public:
     /**
      * \return if broken objects are ignored while parsing
      */
-    inline bool GetIgnoreBrokenObjects() { return m_bIgnoreBrokenObjects; }
+    inline bool GetIgnoreBrokenObjects() const { return m_bIgnoreBrokenObjects; }
 
     /**
      * Specify if the parser should ignore broken
@@ -320,9 +252,11 @@ public:
      */
     inline void SetIgnoreBrokenObjects( bool bBroken ) { m_bIgnoreBrokenObjects = bBroken; }
 
-    inline size_t GetXRefOffset(void) { return m_nXRefOffset; }
+    inline size_t GetXRefOffset() const { return m_nXRefOffset; }
 
- protected:
+    inline bool HasXRefStream() const { return m_HasXRefStream; }
+
+private:
     /** Searches backwards from the end of the file
      *  and tries to find a token.
      *  The current file is positioned right after the token.
@@ -331,7 +265,7 @@ public:
      *  \param lRange range in bytes in which to search
      *                begining at the end of the file
      */
-    void FindToken( const char* pszToken, size_t lRange );
+    void FindToken(const PdfRefCountedInputDevice& device, const char* pszToken, size_t lRange );
 
     // Peter Petrov 23 December 2008
     /** Searches backwards from the specified position of the file
@@ -343,18 +277,18 @@ public:
      *                begining at the specified position of the file
      *  \param searchEnd specifies position 
      */
-    void FindToken2( const char* pszToken, size_t lRange, size_t searchEnd );
+    void FindToken2(const PdfRefCountedInputDevice& device, const char* pszToken, size_t lRange, size_t searchEnd );
 
     /** Reads the xref sections and the trailers of the file
      *  in the correct order in the memory
      *  and takes care for linearized pdf files.
      */
-    void ReadDocumentStructure();
+    void ReadDocumentStructure(const PdfRefCountedInputDevice& rDevice);
 
     /** Checks wether this pdf is linearized or not.
      *  Initializes the linearization directory on sucess.
      */
-    void HasLinearizationDict();
+    void HasLinearizationDict(const PdfRefCountedInputDevice& device);
 
     /** Merge the information of this trailer object
      *  in the parsers main trailer object.
@@ -364,13 +298,13 @@ public:
 
     /** Read the trailer directory at the end of the file.
      */
-    void ReadTrailer();
+    void ReadTrailer(const PdfRefCountedInputDevice& device);
 
     /** Looks for a startxref entry at the current file position
      *  and saves its byteoffset to pXRefOffset.
      *  \param pXRefOffset store the byte offset of the xref section into this variable.
      */
-    void ReadXRef(size_t* pXRefOffset );
+    void ReadXRef(const PdfRefCountedInputDevice& device, size_t* pXRefOffset );
 
     /** Reads the xref table from a pdf file.
      *  If there is no xref table, ReadXRefStreamContents() is called.
@@ -380,7 +314,7 @@ public:
      *                        after the table, which allows reading
      *                        a following trailer dictionary.
      */
-    void ReadXRefContents(size_t lOffset, bool bPositionAtEnd = false );
+    void ReadXRefContents(const PdfRefCountedInputDevice& device, size_t lOffset, bool bPositionAtEnd = false );
 
     /** Read a xref subsection
      *  
@@ -391,14 +325,14 @@ public:
      *  \param nFirstObject object number of the first object
      *  \param nNumObjects  how many objects should be read from this section
      */
-    void ReadXRefSubsection( int64_t & nFirstObject, int64_t & nNumObjects );
+    void ReadXRefSubsection(const PdfRefCountedInputDevice& device, int64_t & nFirstObject, int64_t & nNumObjects );
 
     /** Reads a xref stream contens object
      *  \param lOffset read the stream from this offset
      *  \param bReadOnlyTrailer only the trailer is skipped over, the contents
      *         of the xref stream are not parsed
      */
-    void ReadXRefStreamContents(size_t lOffset, bool bReadOnlyTrailer );
+    void ReadXRefStreamContents(const PdfRefCountedInputDevice& device, size_t lOffset, bool bReadOnlyTrailer );
 
     /** Reads all objects from the pdf into memory
      *  from the offsets listed in m_vecOffsets.
@@ -409,7 +343,7 @@ public:
      *  either if no encryption is required or a correct
      *  encryption object was initialized from SetPassword.
      */
-    void ReadObjects();
+    void ReadObjects(const PdfRefCountedInputDevice& device);
 
     /** Reads all objects from the pdf into memory
      *  from the offsets listed in m_vecOffsets.
@@ -423,7 +357,7 @@ public:
      *  \see ReadObjects
      *  \see SetPassword
      */
-    void ReadObjectsInternal();
+    void ReadObjectsInternal(const PdfRefCountedInputDevice& device);
 
     /** Read the object with index nIndex from the object stream nObjNo
      *  and push it on the objects vector m_vecOffsets.
@@ -444,9 +378,9 @@ public:
      *
      *  \returns true if this is a pdf file, otherwise false
      */
-    bool    IsPdfFile();
+    bool IsPdfFile(const PdfRefCountedInputDevice& device);
 
-    void ReadNextTrailer();
+    void ReadNextTrailer(const PdfRefCountedInputDevice& device);
 
 
     /** Checks for the existence of the %%EOF marker at the end of the file.
@@ -455,17 +389,12 @@ public:
      *  Simply raises an error if there is a problem with the marker.
      *
      */
-    void CheckEOFMarker();
-
- private:
-    /** Free all internal data structures
-     */
-    void         Clear();
+    void CheckEOFMarker(const PdfRefCountedInputDevice& device);
 
     /** Initializes all private members
      *  with their initial values.
      */
-    void         Init();
+    void Reset();
 
     /** Small helper method to retrieve the document id from the trailer
      *
@@ -481,7 +410,7 @@ public:
      *  key is available, the version from the file header will
      *  be used.
      */
-    void         UpdateDocumentVersion();
+    void UpdateDocumentVersion();
 
 
     /** Resize the internal structure m_offsets in a safe manner.
@@ -492,12 +421,15 @@ public:
      */
     void ResizeOffsets(size_t nNewSize );
     
- private:
-    EPdfVersion   m_ePdfVersion;
+private:
+    PdfRefCountedBuffer m_buffer;
+    PdfTokenizer m_tokenizer;
 
+    EPdfVersion   m_ePdfVersion;
     bool          m_bLoadOnDemand;
 
     size_t        m_magicOffset;
+    bool          m_HasXRefStream;
     size_t        m_nXRefOffset;
     int           m_nFirstObject;
     int           m_nNumObjects;
@@ -513,8 +445,6 @@ public:
     std::unique_ptr<PdfEncrypt> m_pEncrypt;
 
     std::string m_password;
-
-    bool          m_xrefSizeUnknown;
 
     std::set<int> m_setObjectStreams;
 

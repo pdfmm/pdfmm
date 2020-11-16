@@ -48,15 +48,15 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfContentsTokenizer::PdfContentsTokenizer( PdfCanvas* pCanvas )
-    : PdfTokenizer(), m_readingInlineImgData(false)
+PdfContentsTokenizer::PdfContentsTokenizer(const PdfRefCountedInputDevice& device)
+    : m_device(device), m_readingInlineImgData(false)
 {
-    if( !pCanvas ) 
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
+}
 
-    PdfObject* contents = pCanvas->GetContents();
+PdfContentsTokenizer::PdfContentsTokenizer(PdfCanvas& pCanvas)
+    : m_readingInlineImgData(false)
+{
+    PdfObject* contents = pCanvas.GetContents();
     if (contents == nullptr)
         PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "/Contents handle is null");
 
@@ -84,92 +84,66 @@ PdfContentsTokenizer::PdfContentsTokenizer( PdfCanvas* pCanvas )
         //    >>
         //    endobj
 
-        // CLEAN-ME: We shouldn't insert dictionaries that don't have
-        // a stream. But the code in this class is pure shit and fails
-        // with an empty queue. Fix it so it will work in all cases
-        // and re-enable following lines
-        //if (contents->HasStream())
+        if (contents->HasStream())
             m_lstContents.push_back(contents);
     }
     else
     {
         PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDataType, "Page /Contents not stream or array of streams" );
     }
+}
 
-    if (m_lstContents.size() != 0)
+bool PdfContentsTokenizer::tryReadNextToken(const char*& pszToken , EPdfTokenType* peType)
+{
+    bool hasToken = false;
+    if (m_device.Device() != nullptr)
+        hasToken = PdfTokenizer::TryReadNextToken(m_device, pszToken, peType);
+
+    while (!hasToken)
     {
-        SetCurrentContentsStream( *m_lstContents.front() );
-        m_lstContents.pop_front();
-    }
-}
+        if (m_lstContents.size() == 0)
+        {
+            m_device = PdfRefCountedInputDevice();
+            return false;
+        }
 
-void PdfContentsTokenizer::SetCurrentContentsStream( PdfObject & pObject )
-{
-    PdfStream &pStream = pObject.GetOrCreateStream();
+        PdfStream& pStream = m_lstContents.front()->GetOrCreateStream();
+        PdfRefCountedBuffer buffer;
+        PdfBufferOutputStream stream(&buffer);
+        pStream.GetFilteredCopy(&stream);
 
-	PdfRefCountedBuffer buffer;
-    PdfBufferOutputStream stream( &buffer );
-    pStream.GetFilteredCopy(&stream);
+        // TODO: Optimize me, the following copy the buffer
+        m_device = PdfRefCountedInputDevice(buffer.GetBuffer(), buffer.GetSize());
 
-    m_device = PdfRefCountedInputDevice( buffer.GetBuffer(), buffer.GetSize() );
-}
-
-bool PdfContentsTokenizer::GetNextToken( const char*& pszToken , EPdfTokenType* peType )
-{
-	bool result = PdfTokenizer::GetNextToken(pszToken, peType);
-	while (!result) {
-		if( !m_lstContents.size() )
-			return false;
-
-		SetCurrentContentsStream( *m_lstContents.front() );
 		m_lstContents.pop_front();
-		result = PdfTokenizer::GetNextToken(pszToken, peType);
+        hasToken = PdfTokenizer::TryReadNextToken(m_device, pszToken, peType);
 	}
-	return result;
+	return hasToken;
 }
 
+void PdfContentsTokenizer::ReadNextVariant(PdfVariant& rVariant)
+{
+    EPdfTokenType eTokenType;
+    const char* pszToken;
+    bool gotToken = tryReadNextToken(pszToken, &eTokenType);
+    if (!gotToken)
+        PODOFO_RAISE_ERROR_INFO(EPdfError::UnexpectedEOF, "Expected variant");
 
-bool PdfContentsTokenizer::ReadNext( EPdfContentsType& reType, const char*& rpszKeyword, PdfVariant & rVariant )
+    PdfTokenizer::ReadNextVariant(m_device, pszToken, eTokenType, rVariant, nullptr);
+}
+
+bool PdfContentsTokenizer::TryReadNext(EPdfContentsType& reType, const char*& rpszKeyword, PdfVariant& rVariant)
 {
     if (m_readingInlineImgData)
         return ReadInlineImgData(reType, rpszKeyword, rVariant);
+
     EPdfTokenType eTokenType;
-    EPdfLiteralDataType eDataType;
-    const char*   pszToken;
+    const char* pszToken;
+    bool gotToken = tryReadNextToken(pszToken, &eTokenType);
+    if (!gotToken)
+        return false;
 
-    // While officially the keyword pointer is undefined if not needed, it
-    // costs us practically nothing to zero it (in case someone fails to check
-    // the return value and/or reType). Do so. We won't nullify the variant
-    // since that has a real cost.
-    //rpszKeyword = 0;
-
-    // If we've run out of data in this stream and there's another one to read,
-    // switch to reading the next stream.
-    //if( m_device.Device() && m_device.Device()->Eof() && m_lstContents.size() )
-    //{
-    //    SetCurrentContentsStream( m_lstContents.front() );
-    //    m_lstContents.pop_front();
-    //}
-
-    bool gotToken = this->GetNextToken( pszToken, &eTokenType );
-    if ( !gotToken )
-    {
-        if ( m_lstContents.size() )
-        {
-        // We ran out of tokens in this stream. Switch to the next stream
-        // and try again.
-            SetCurrentContentsStream( *m_lstContents.front() );
-            m_lstContents.pop_front();
-            return ReadNext( reType, rpszKeyword, rVariant );
-        }
-        else
-        {
-            // No more content stream tokens to read.
-            return false;
-        }
-    }
-
-    eDataType = this->DetermineDataType( pszToken, eTokenType, rVariant );
+    EPdfLiteralDataType eDataType = DetermineDataType(m_device, pszToken, eTokenType, rVariant);
 
     // asume we read a variant unless we discover otherwise later.
     reType = EPdfContentsType::Variant;
@@ -191,19 +165,19 @@ bool PdfContentsTokenizer::ReadNext( EPdfContentsType& reType, const char*& rpsz
         }
 
         case EPdfLiteralDataType::Dictionary:
-            this->ReadDictionary( rVariant, nullptr );
+            this->ReadDictionary(m_device, rVariant, nullptr);
             break;
         case EPdfLiteralDataType::Array:
-            this->ReadArray( rVariant, nullptr);
+            this->ReadArray(m_device, rVariant, nullptr);
             break;
         case EPdfLiteralDataType::String:
-            this->ReadString( rVariant, nullptr);
+            this->ReadString(m_device, rVariant, nullptr);
             break;
         case EPdfLiteralDataType::HexString:
-            this->ReadHexString(rVariant, nullptr);
+            this->ReadHexString(m_device, rVariant, nullptr);
             break;
         case EPdfLiteralDataType::Name:
-            this->ReadName( rVariant );
+            this->ReadName(m_device, rVariant);
             break;
 
         default:
@@ -212,9 +186,11 @@ bool PdfContentsTokenizer::ReadNext( EPdfContentsType& reType, const char*& rpsz
             rpszKeyword = pszToken;
             break;
     }
+
     std::string idKW ("ID");
     if (reType == EPdfContentsType::Keyword && idKW.compare(rpszKeyword) == 0)
         m_readingInlineImgData = true;
+
     return true;
 }
 
@@ -222,10 +198,8 @@ bool PdfContentsTokenizer::ReadInlineImgData( EPdfContentsType& reType, const ch
 {
     int  c;
     int64_t  counter  = 0;
-    if( !m_device.Device() )
-    {
+    if(m_device.Device() == nullptr)
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
 
     // consume the only whitespace between ID and data
     c = m_device.Device()->Look();
@@ -246,8 +220,8 @@ bool PdfContentsTokenizer::ReadInlineImgData( EPdfContentsType& reType, const ch
             {
                 // EI is followed by whitespace => stop
                 m_device.Device()->Seek(-2, std::ios::cur); // put back "EI" 
-                m_buffer.GetBuffer()[counter] = '\0';
-                rVariant = PdfData(string_view(m_buffer.GetBuffer(), static_cast<size_t>(counter)));
+                GetBuffer().GetBuffer()[counter] = '\0';
+                rVariant = PdfData(string_view(GetBuffer().GetBuffer(), static_cast<size_t>(counter)));
                 reType = EPdfContentsType::ImageData;
                 m_readingInlineImgData = false;
                 return true;
@@ -256,20 +230,20 @@ bool PdfContentsTokenizer::ReadInlineImgData( EPdfContentsType& reType, const ch
             {
                 // no whitespace after EI => do not stop
                 m_device.Device()->Seek(-1, std::ios::cur); // put back "I" 
-                m_buffer.GetBuffer()[counter] = c;
+                GetBuffer().GetBuffer()[counter] = c;
                 ++counter;    
             }
         }
         else 
         {
-            m_buffer.GetBuffer()[counter] = c;
+            GetBuffer().GetBuffer()[counter] = c;
             ++counter;
         }
         
-        if (counter ==  static_cast<int64_t>(m_buffer.GetSize())) 
+        if (counter ==  static_cast<int64_t>(GetBuffer().GetSize()))
         {
             // image is larger than buffer => resize buffer
-            m_buffer.Resize(m_buffer.GetSize()*2);
+            GetBuffer().Resize(GetBuffer().GetSize()*2);
         }
     }
     

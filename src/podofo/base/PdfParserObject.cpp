@@ -56,9 +56,9 @@ static const int s_nLenEndObj    = 6; // strlen("endobj");
 static const int s_nLenStream    = 6; // strlen("stream");
 //static const int s_nLenEndStream = 9; // strlen("endstream");
 
-PdfParserObject::PdfParserObject(PdfDocument& document, const PdfRefCountedInputDevice & rDevice,
-                                  const PdfRefCountedBuffer & rBuffer, ssize_t lOffset )
-    : PdfObject( PdfVariant::NullValue ), PdfTokenizer( rDevice, rBuffer ), m_pEncrypt( nullptr )
+PdfParserObject::PdfParserObject(PdfDocument& document, const PdfRefCountedInputDevice& device,
+                                  const PdfRefCountedBuffer & buffer, ssize_t lOffset )
+    : PdfObject( PdfVariant::NullValue ), m_device(device), m_buffer(buffer), m_pEncrypt( nullptr )
 {
     // Parsed objects by definition are initially not dirty
     resetDirty();
@@ -67,9 +67,8 @@ PdfParserObject::PdfParserObject(PdfDocument& document, const PdfRefCountedInput
     m_lOffset = lOffset < 0 ? m_device.Device()->Tell() : lOffset;
 }
 
-PdfParserObject::PdfParserObject( const PdfRefCountedBuffer & rBuffer )
-    : PdfObject( PdfVariant::NullValue ), PdfTokenizer( PdfRefCountedInputDevice(), rBuffer ), 
-      m_pEncrypt( nullptr )
+PdfParserObject::PdfParserObject(const PdfRefCountedBuffer & buffer)
+    : PdfObject( PdfVariant::NullValue ), m_buffer(buffer), m_pEncrypt( nullptr )
 {
     InitPdfParserObject();
     m_lOffset = -1;
@@ -99,8 +98,8 @@ void PdfParserObject::ReadObjectNumber()
     PdfReference reference;
     try
     {
-        int64_t obj = this->GetNextNumber();
-        int64_t gen = this->GetNextNumber();
+        int64_t obj = m_tokenizer.ReadNextNumber(m_device);
+        int64_t gen = m_tokenizer.ReadNextNumber(m_device);
 
         reference = PdfReference(static_cast<uint32_t>(obj), static_cast<uint16_t>(gen));
         SetIndirectReference(reference);
@@ -111,7 +110,7 @@ void PdfParserObject::ReadObjectNumber()
         throw e;
     }
     
-    if( !this->IsNextToken( "obj" ))
+    if( !m_tokenizer.IsNextToken(m_device, "obj" ))
     {
         std::ostringstream oss;
         oss << "Error while reading object " << reference.ObjectNumber() << " "
@@ -177,27 +176,24 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
     if( m_pEncrypt )
         m_pEncrypt->SetCurrentReference( GetIndirectReference() );
 
-    // Do not call GetNextVariant directly,
-    // but GetNextToken, to handle empty objects like:
+    // Do not call ReadNextVariant directly,
+    // but TryReadNextToken, to handle empty objects like:
     // 13 0 obj
     // endobj
 
     EPdfTokenType eTokenType;
-    bool gotToken = this->GetNextToken( pszToken, &eTokenType );
-    
+    bool gotToken = m_tokenizer.TryReadNextToken(m_device, pszToken, &eTokenType);
     if (!gotToken)
-    {
         PODOFO_RAISE_ERROR_INFO( EPdfError::UnexpectedEOF, "Expected variant." );
-    }
 
     // Check if we have an empty object or data
     if( strncmp( pszToken, "endobj", s_nLenEndObj ) != 0 )
     {
-        this->GetNextVariant( pszToken, eTokenType, m_Variant, m_pEncrypt );
+        m_tokenizer.ReadNextVariant(m_device, pszToken, eTokenType, m_Variant, m_pEncrypt );
 
         if( !bIsTrailer )
         {
-            bool gotToken = this->GetNextToken( pszToken );
+            bool gotToken = m_tokenizer.TryReadNextToken(m_device, pszToken );
             if (!gotToken)
             {
                 PODOFO_RAISE_ERROR_INFO( EPdfError::UnexpectedEOF, "Expected 'endobj' or (if dict) 'stream', got EOF." );

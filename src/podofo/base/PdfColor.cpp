@@ -883,10 +883,11 @@ PdfColor PdfColor::FromString( const char* pszName )
         // PdfArray 
         else if( pszName[0] == '[' ) 
         {
-            PdfTokenizer tokenizer( pszName, lLen );
-            PdfVariant   var;
+            PdfRefCountedInputDevice device(pszName, lLen);
+            PdfTokenizer tokenizer;
+            PdfVariant var;
 
-            tokenizer.GetNextVariant( var, nullptr ); // No encryption...
+            tokenizer.ReadNextVariant(device, var); // No encryption...
             if( var.IsArray() )
                 return PdfColor::FromArray( var.GetArray() );
         }

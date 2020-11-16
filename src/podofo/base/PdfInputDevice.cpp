@@ -63,6 +63,7 @@ PdfInputDevice::PdfInputDevice(const string_view& filename)
     m_StreamOwned = true;
 }
 
+// TODO: Optimize me, offer a version that does not copy the buffer
 PdfInputDevice::PdfInputDevice( const char* pBuffer, size_t lLen )
     : PdfInputDevice(true)
 {

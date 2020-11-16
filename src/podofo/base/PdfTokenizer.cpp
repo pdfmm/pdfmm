@@ -52,8 +52,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define PDF_BUFFER 4096
-
+#define PDF_BUFFER_SIZE 4096
 #define DICT_SEP_LENGTH 2
 #define NULL_LENGTH     4
 #define TRUE_LENGTH     4
@@ -150,7 +149,6 @@ const char* genHexMap()
 
 };
 
-const unsigned int PdfTokenizer::HEX_NOT_FOUND   = std::numeric_limits<unsigned int>::max();
 const char * const PdfTokenizer::s_delimiterMap  = PdfTokenizerNameSpace::genDelMap();
 const char * const PdfTokenizer::s_whitespaceMap = PdfTokenizerNameSpace::genWsMap();
 const char * const PdfTokenizer::s_escMap        = PdfTokenizerNameSpace::genEscMap();
@@ -186,26 +184,19 @@ const char PdfTokenizer::s_octMap[]        = {
 };
 
 PdfTokenizer::PdfTokenizer()
-    : m_buffer( PDF_BUFFER )
+    : PdfTokenizer(PdfRefCountedBuffer(PDF_BUFFER_SIZE))
 {
-    PdfLocaleImbue(m_doubleParser);
 }
 
-PdfTokenizer::PdfTokenizer( const char* pBuffer, size_t lLen )
-    : m_device( pBuffer, lLen ), m_buffer( PDF_BUFFER )
-{
-    PdfLocaleImbue(m_doubleParser);
-}
-
-PdfTokenizer::PdfTokenizer( const PdfRefCountedInputDevice & rDevice, const PdfRefCountedBuffer & rBuffer )
-    : m_device( rDevice ), m_buffer( rBuffer )
+PdfTokenizer::PdfTokenizer(const PdfRefCountedBuffer& rBuffer)
+    : m_buffer(rBuffer)
 {
     PdfLocaleImbue(m_doubleParser);
 }
 
 PdfTokenizer::~PdfTokenizer() { }
 
-bool PdfTokenizer::GetNextToken( const char*& pszToken , EPdfTokenType* peType )
+bool PdfTokenizer::TryReadNextToken(const PdfRefCountedInputDevice& device, const char*& pszToken , EPdfTokenType* peType)
 {
     int  c;
     int64_t  counter  = 0;
@@ -231,22 +222,17 @@ bool PdfTokenizer::GetNextToken( const char*& pszToken , EPdfTokenType* peType )
         return true;
     }
 
-    if( !m_device.Device() )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
-
     if( peType )
         *peType = EPdfTokenType::Literal;
 
-    while( (c = m_device.Device()->Look()) != EOF
+    while( (c = device.Device()->Look()) != EOF
            && counter + 1 < static_cast<int64_t>(m_buffer.GetSize()) )
     {
         // ignore leading whitespaces
         if( !counter && IsWhitespace( c ) )
         {
             // Consume the whitespace character
-            c = m_device.Device()->GetChar();
+            c = device.Device()->GetChar();
             continue;
         }
         // ignore comments
@@ -255,13 +241,13 @@ bool PdfTokenizer::GetNextToken( const char*& pszToken , EPdfTokenType* peType )
             // Consume all characters before the next line break
 			// 2011-04-19 Ulrich Arnold: accept 0x0D, 0x0A and oX0D 0x0A as one EOL
             do {
-                c = m_device.Device()->GetChar();
+                c = device.Device()->GetChar();
             } while( c != EOF && c != 0x0D  && c != 0x0A );
 
             if ( c == 0x0D )
 			{
-                if ( m_device.Device()->Look() == 0x0A )
-	                c = m_device.Device()->GetChar();
+                if (device.Device()->Look() == 0x0A )
+	                c = device.Device()->GetChar();
 			}
             // If we've already read one or more chars of a token, return them, since
             // comments are treated as token-delimiting whitespace. Otherwise keep reading
@@ -276,16 +262,16 @@ bool PdfTokenizer::GetNextToken( const char*& pszToken , EPdfTokenType* peType )
                 *peType = EPdfTokenType::Delimiter;
 
             // retrieve c really from stream
-            c = m_device.Device()->GetChar();
+            c = device.Device()->GetChar();
             m_buffer.GetBuffer()[counter] = c;
             ++counter;
 
-            char n = m_device.Device()->Look();
+            char n = device.Device()->Look();
             // Is n another < or > , ie are we opening/closing a dictionary?
             // If so, consume that character too.
             if( n == c )
             {
-                n = m_device.Device()->GetChar();
+                n = device.Device()->GetChar();
                 m_buffer.GetBuffer()[counter] = n;
                 ++counter;
             }
@@ -301,7 +287,7 @@ bool PdfTokenizer::GetNextToken( const char*& pszToken , EPdfTokenType* peType )
         else
         {
             // Consume the next character and add it to the token we're building.
-            c = m_device.Device()->GetChar();
+            c = device.Device()->GetChar();
             m_buffer.GetBuffer()[counter] = c;
             ++counter;
 
@@ -323,7 +309,7 @@ bool PdfTokenizer::GetNextToken( const char*& pszToken , EPdfTokenType* peType )
     {
         // No characters were read before EOF, so we're out of data.
         // Ensure the buffer points to nullptr in case someone fails to check the return value.
-        pszToken = 0;
+        pszToken = '\0';
         return false;
     }
 
@@ -331,7 +317,7 @@ bool PdfTokenizer::GetNextToken( const char*& pszToken , EPdfTokenType* peType )
     return true;
 }
 
-bool PdfTokenizer::IsNextToken( const char* pszToken )
+bool PdfTokenizer::IsNextToken(const PdfRefCountedInputDevice& device, const char* pszToken )
 {
     if( !pszToken )
     {
@@ -339,7 +325,7 @@ bool PdfTokenizer::IsNextToken( const char* pszToken )
     }
 
     const char* pszRead;
-    bool gotToken = this->GetNextToken( pszRead, nullptr );
+    bool gotToken = this->TryReadNextToken(device, pszRead, nullptr );
 
     if (!gotToken)
     {
@@ -349,11 +335,11 @@ bool PdfTokenizer::IsNextToken( const char* pszToken )
     return (strcmp( pszToken, pszRead ) == 0);
 }
 
-int64_t PdfTokenizer::GetNextNumber()
+int64_t PdfTokenizer::ReadNextNumber(const PdfRefCountedInputDevice& device)
 {
     EPdfTokenType eType;
     const char* pszRead;
-    bool gotToken = this->GetNextToken( pszRead, &eType );
+    bool gotToken = this->TryReadNextToken(device, pszRead, &eType);
 
     if( !gotToken )
     {
@@ -365,34 +351,34 @@ int64_t PdfTokenizer::GetNextNumber()
     if( end == pszRead )
     {
         // Don't consume the token
-        this->QuequeToken( pszRead, eType );
+        this->EnquequeToken( pszRead, eType );
         PODOFO_RAISE_ERROR_INFO( EPdfError::NoNumber, "Could not read number" );
     }
 
     return static_cast<int64_t>(num);
 }
 
-void PdfTokenizer::GetNextVariant( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
+void PdfTokenizer::ReadNextVariant(const PdfRefCountedInputDevice& device, PdfVariant& rVariant, PdfEncrypt* pEncrypt)
 {
    EPdfTokenType eTokenType;
    const char*   pszRead;
-   bool gotToken = this->GetNextToken( pszRead, &eTokenType );
+   bool gotToken = this->TryReadNextToken(device, pszRead, &eTokenType);
 
    if (!gotToken)
    {
        PODOFO_RAISE_ERROR_INFO( EPdfError::UnexpectedEOF, "Expected variant." );
    }
 
-   this->GetNextVariant( pszRead, eTokenType, rVariant, pEncrypt );
+   this->ReadNextVariant(device, pszRead, eTokenType, rVariant, pEncrypt);
 }
 
-void PdfTokenizer::GetNextVariant( const char* pszToken, EPdfTokenType eType, PdfVariant& rVariant, PdfEncrypt* pEncrypt )
+void PdfTokenizer::ReadNextVariant(const PdfRefCountedInputDevice& device, const char* pszToken, EPdfTokenType eType, PdfVariant& rVariant, PdfEncrypt* pEncrypt )
 {
-    EPdfLiteralDataType eDataType = this->DetermineDataType( pszToken, eType, rVariant );
-    this->readDataType( eDataType, rVariant, pEncrypt );
+    EPdfLiteralDataType eDataType = this->DetermineDataType(device, pszToken, eType, rVariant);
+    this->readDataType(device, eDataType, rVariant, pEncrypt);
 }
 
-PdfTokenizer::EPdfLiteralDataType PdfTokenizer::DetermineDataType( const char* pszToken, EPdfTokenType eTokenType, PdfVariant& rVariant )
+PdfTokenizer::EPdfLiteralDataType PdfTokenizer::DetermineDataType(const PdfRefCountedInputDevice& device, const char* pszToken, EPdfTokenType eTokenType, PdfVariant& rVariant )
 {
     switch (eTokenType)
     {
@@ -458,7 +444,7 @@ PdfTokenizer::EPdfLiteralDataType PdfTokenizer::DetermineDataType( const char* p
             // on the input device, so if we hit EOF just return
             // EPdfDataType::Number .
             EPdfTokenType eSecondTokenType;
-            bool gotToken = this->GetNextToken(pszToken, &eSecondTokenType);
+            bool gotToken = this->TryReadNextToken(device, pszToken, &eSecondTokenType);
             if (!gotToken)
             {
                 // No next token, so it can't be a reference
@@ -466,7 +452,7 @@ PdfTokenizer::EPdfLiteralDataType PdfTokenizer::DetermineDataType( const char* p
             }
             if (eSecondTokenType != EPdfTokenType::Literal)
             {
-                this->QuequeToken(pszToken, eSecondTokenType);
+                this->EnquequeToken(pszToken, eSecondTokenType);
                 return EPdfLiteralDataType::Number;
             }
 
@@ -474,13 +460,13 @@ PdfTokenizer::EPdfLiteralDataType PdfTokenizer::DetermineDataType( const char* p
             long long l = strtoll(pszStart, const_cast<char**>(&pszToken), 10);
             if (pszToken == pszStart)
             {
-                this->QuequeToken(pszStart, eSecondTokenType);
+                this->EnquequeToken(pszStart, eSecondTokenType);
                 return EPdfLiteralDataType::Number;
             }
 
             std::string backup(pszStart);
             EPdfTokenType eThirdTokenType;
-            gotToken = this->GetNextToken(pszToken, &eThirdTokenType);
+            gotToken = this->TryReadNextToken(device, pszToken, &eThirdTokenType);
             if (!gotToken)
             {
                 // No third token, so it can't be a reference
@@ -495,8 +481,8 @@ PdfTokenizer::EPdfLiteralDataType PdfTokenizer::DetermineDataType( const char* p
             }
             else
             {
-                this->QuequeToken(backup.c_str(), eSecondTokenType);
-                this->QuequeToken(pszToken, eThirdTokenType);
+                this->EnquequeToken(backup.c_str(), eSecondTokenType);
+                this->EnquequeToken(pszToken, eThirdTokenType);
                 return EPdfLiteralDataType::Number;
             }
         }
@@ -524,24 +510,24 @@ PdfTokenizer::EPdfLiteralDataType PdfTokenizer::DetermineDataType( const char* p
     }
 }
 
-void PdfTokenizer::readDataType( EPdfLiteralDataType eDataType, PdfVariant& rVariant, PdfEncrypt* pEncrypt )
+void PdfTokenizer::readDataType(const PdfRefCountedInputDevice& device, EPdfLiteralDataType eDataType, PdfVariant& rVariant, PdfEncrypt* pEncrypt )
 {
     switch( eDataType )
     {
         case EPdfLiteralDataType::Dictionary:
-            this->ReadDictionary(rVariant, pEncrypt);
+            this->ReadDictionary(device, rVariant, pEncrypt);
             break;
         case EPdfLiteralDataType::Array:
-            this->ReadArray(rVariant, pEncrypt);
+            this->ReadArray(device, rVariant, pEncrypt);
             break;
         case EPdfLiteralDataType::String:
-            this->ReadString(rVariant, pEncrypt);
+            this->ReadString(device, rVariant, pEncrypt);
             break;
         case EPdfLiteralDataType::HexString:
-            this->ReadHexString(rVariant, pEncrypt);
+            this->ReadHexString(device, rVariant, pEncrypt);
             break;
         case EPdfLiteralDataType::Name:
-            this->ReadName(rVariant);
+            this->ReadName(device, rVariant);
             break;
         // The following datatypes are not handled by read datatype
         // but are already parsed by DetermineDatatype
@@ -556,7 +542,7 @@ void PdfTokenizer::readDataType( EPdfLiteralDataType eDataType, PdfVariant& rVar
     }
 }
 
-void PdfTokenizer::ReadDictionary( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
+void PdfTokenizer::ReadDictionary(const PdfRefCountedInputDevice& device, PdfVariant& rVariant, PdfEncrypt* pEncrypt)
 {
     PdfVariant    val;
     PdfName       key;
@@ -569,7 +555,7 @@ void PdfTokenizer::ReadDictionary( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
 
     for( ;; )
     {
-        bool gotToken = this->GetNextToken( pszToken, &eType );
+        bool gotToken = this->TryReadNextToken(device, pszToken, &eType);
         if (!gotToken)
         {
             PODOFO_RAISE_ERROR_INFO(EPdfError::UnexpectedEOF, "Expected dictionary key name or >> delim.");
@@ -577,28 +563,28 @@ void PdfTokenizer::ReadDictionary( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
         if( eType == EPdfTokenType::Delimiter && strncmp( ">>", pszToken, DICT_SEP_LENGTH ) == 0 )
             break;
 
-        this->GetNextVariant( pszToken, eType, val, pEncrypt );
+        this->ReadNextVariant(device, pszToken, eType, val, pEncrypt );
         // Convert the read variant to a name; throws InvalidDataType if not a name.
         key = val.GetName();
 
         // Try to get the next variant
-        gotToken = this->GetNextToken( pszToken, &eType );
+        gotToken = this->TryReadNextToken(device, pszToken, &eType );
         if ( !gotToken )
         {
             PODOFO_RAISE_ERROR_INFO( EPdfError::UnexpectedEOF, "Expected variant." );
         }
 
-        EPdfLiteralDataType eDataType = this->DetermineDataType( pszToken, eType, val );
+        EPdfLiteralDataType eDataType = this->DetermineDataType(device, pszToken, eType, val);
         if ( key == "Contents" && eDataType == EPdfLiteralDataType::HexString )
         {
             // 'Contents' key in signature dictionaries is an unencrypted Hex string:
             // save the string buffer for later check if it needed decryption
             contentsHexBuffer = std::unique_ptr<std::vector<char> >( new std::vector<char>() );
-            readHexString( *contentsHexBuffer );
+            readHexString(device, *contentsHexBuffer);
             continue;
         }
 
-        this->readDataType(eDataType, val, pEncrypt);
+        this->readDataType(device, eDataType, val, pEncrypt);
         dict.AddKey( key, val );
     }
 
@@ -622,7 +608,7 @@ void PdfTokenizer::ReadDictionary( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
     }
 }
 
-void PdfTokenizer::ReadArray( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
+void PdfTokenizer::ReadArray(const PdfRefCountedInputDevice& device, PdfVariant& rVariant, PdfEncrypt* pEncrypt)
 {
     const char*   pszToken;
     EPdfTokenType eType;
@@ -632,7 +618,7 @@ void PdfTokenizer::ReadArray( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
 
     for( ;; )
     {
-        bool gotToken = this->GetNextToken( pszToken, &eType );
+        bool gotToken = this->TryReadNextToken(device, pszToken, &eType );
         if (!gotToken)
         {
             PODOFO_RAISE_ERROR_INFO(EPdfError::UnexpectedEOF, "Expected array item or ] delim.");
@@ -640,12 +626,12 @@ void PdfTokenizer::ReadArray( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
         if( eType == EPdfTokenType::Delimiter && pszToken[0] == ']' )
             break;
 
-        this->GetNextVariant( pszToken, eType, var, pEncrypt );
+        this->ReadNextVariant(device, pszToken, eType, var, pEncrypt);
         array.push_back( var );
     }
 }
 
-void PdfTokenizer::ReadString( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
+void PdfTokenizer::ReadString(const PdfRefCountedInputDevice& device, PdfVariant& rVariant, PdfEncrypt* pEncrypt )
 {
     int               c;
 
@@ -657,13 +643,13 @@ void PdfTokenizer::ReadString( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
 
     m_vecBuffer.clear();
 
-    while( (c = m_device.Device()->Look()) != EOF )
+    while( (c = device.Device()->Look()) != EOF )
     {
         // end of stream reached
         if( !bEscape )
         {
             // Handle raw characters
-            c = m_device.Device()->GetChar();
+            c = device.Device()->GetChar();
             if( !nBalanceCount && c == ')' )
                 break;
 
@@ -702,7 +688,7 @@ void PdfTokenizer::ReadString( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
                     continue;
                 }
 
-                c = m_device.Device()->GetChar();
+                c = device.Device()->GetChar();
                 cOctValue <<= 3;
                 cOctValue  |= ((c-'0') & 0x07);
 
@@ -718,7 +704,7 @@ void PdfTokenizer::ReadString( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
             else
             {
                 // Handle plain escape sequences
-                const char & code = s_escMap[m_device.Device()->GetChar() & 0xff];
+                const char & code = s_escMap[device.Device()->GetChar() & 0xff];
                 if( code )
                     m_vecBuffer.push_back( code );
 
@@ -756,9 +742,9 @@ void PdfTokenizer::ReadString( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
     }
 }
 
-void PdfTokenizer::ReadHexString( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
+void PdfTokenizer::ReadHexString(const PdfRefCountedInputDevice& device, PdfVariant& rVariant, PdfEncrypt* pEncrypt )
 {
-    readHexString( m_vecBuffer );
+    readHexString(device, m_vecBuffer );
 
     PdfString string;
     string.SetHexData( m_vecBuffer.size() ? &(m_vecBuffer[0]) : "", m_vecBuffer.size(), pEncrypt );
@@ -766,12 +752,12 @@ void PdfTokenizer::ReadHexString( PdfVariant& rVariant, PdfEncrypt* pEncrypt )
     rVariant = string;
 }
 
-void PdfTokenizer::readHexString( std::vector<char>& rVecBuffer)
+void PdfTokenizer::readHexString(const PdfRefCountedInputDevice& device, std::vector<char>& rVecBuffer)
 {
     rVecBuffer.clear();
     int        c;
 
-    while( (c = m_device.Device()->GetChar()) != EOF )
+    while( (c = device.Device()->GetChar()) != EOF )
     {
         // end of stream reached
         if( c == '>' )
@@ -789,25 +775,25 @@ void PdfTokenizer::readHexString( std::vector<char>& rVecBuffer)
         rVecBuffer.push_back( '0' );
 }
 
-void PdfTokenizer::ReadName( PdfVariant& rVariant )
+void PdfTokenizer::ReadName(const PdfRefCountedInputDevice& device, PdfVariant& rVariant )
 {
     EPdfTokenType eType;
     const char*   pszToken;
 
     // Do special checking for empty names
-    // as GetNextToken will ignore white spaces
+    // as tryReadNextToken will ignore white spaces
     // and we have to take care for stuff like:
     // 10 0 obj / endobj
     // which stupid but legal PDF
-    int c = m_device.Device()->Look();
-    if( IsWhitespace( c ) ) // Delimeters are handled correctly by GetNextToken
+    int c = device.Device()->Look();
+    if( IsWhitespace( c ) ) // Delimeters are handled correctly by tryReadNextToken
     {
         // We are an empty PdfName
         rVariant = PdfName();
         return;
     }
 
-    bool gotToken = this->GetNextToken( pszToken, &eType );
+    bool gotToken = this->TryReadNextToken(device, pszToken, &eType);
     if( !gotToken || eType != EPdfTokenType::Literal )
     {
         // We got an empty name which is legal according to the PDF specification
@@ -816,13 +802,13 @@ void PdfTokenizer::ReadName( PdfVariant& rVariant )
 
         // Enqueue the token again
         if( gotToken )
-            QuequeToken( pszToken, eType );
+            EnquequeToken( pszToken, eType );
     }
     else
         rVariant = PdfName::FromEscaped( pszToken );
 }
 
-void PdfTokenizer::QuequeToken( const char* pszToken, EPdfTokenType eType )
+void PdfTokenizer::EnquequeToken( const char* pszToken, EPdfTokenType eType )
 {
     m_deqQueque.push_back( TTokenizerPair( std::string( pszToken ), eType ) );
 }

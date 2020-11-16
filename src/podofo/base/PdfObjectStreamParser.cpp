@@ -75,14 +75,14 @@ void PdfObjectStreamParser::Parse(ObjectIdList const & list)
 void PdfObjectStreamParser::ReadObjectsFromStream( char* pBuffer, size_t lBufferLen, int64_t lNum, int64_t lFirst, ObjectIdList const & list)
 {
     PdfRefCountedInputDevice device( pBuffer, lBufferLen );
-    PdfTokenizer             tokenizer( device, m_buffer );
-    PdfVariant               var;
-    int                      i = 0;
+    PdfTokenizer tokenizer(m_buffer );
+    PdfVariant var;
+    int i = 0;
 
     while( static_cast<int64_t>(i) < lNum )
     {
-        const int64_t lObj     = tokenizer.GetNextNumber();
-        const int64_t lOff     = tokenizer.GetNextNumber();
+        const int64_t lObj = tokenizer.ReadNextNumber(device);
+        const int64_t lOff = tokenizer.ReadNextNumber(device);
         size_t pos = device.Device()->Tell();
 
         if( lFirst >= std::numeric_limits<int64_t>::max() - lOff )
@@ -95,13 +95,17 @@ void PdfObjectStreamParser::ReadObjectsFromStream( char* pBuffer, size_t lBuffer
         device.Device()->Seek( static_cast<std::streamoff>(lFirst + lOff) );
 
 		// use a second tokenizer here so that anything that gets dequeued isn't left in the tokenizer that reads the offsets and lengths
-	    PdfTokenizer variantTokenizer( device, m_buffer );
-		if( m_pEncrypt && (m_pEncrypt->GetEncryptAlgorithm() == EPdfEncryptAlgorithm::AESV2
-			|| m_pEncrypt->GetEncryptAlgorithm() == EPdfEncryptAlgorithm::RC4V2
-		) )
-			variantTokenizer.GetNextVariant( var, 0 ); // Stream is already decrypted
-		else
-			variantTokenizer.GetNextVariant( var, m_pEncrypt );
+	    PdfTokenizer variantTokenizer(m_buffer);
+		if (m_pEncrypt && (m_pEncrypt->GetEncryptAlgorithm() == EPdfEncryptAlgorithm::AESV2
+			|| m_pEncrypt->GetEncryptAlgorithm() == EPdfEncryptAlgorithm::RC4V2))
+        {
+            variantTokenizer.ReadNextVariant(device, var); // Stream is already decrypted
+        }
+        else
+        {
+            variantTokenizer.ReadNextVariant(device, var, m_pEncrypt);
+        }
+
 		bool should_read = std::find(list.begin(), list.end(), lObj) != list.end();
 #ifndef VERBOSE_DEBUG_DISABLED
         std::cerr << "ReadObjectsFromStream STREAM=" << m_pParser->GetIndirectReference().ToString() <<

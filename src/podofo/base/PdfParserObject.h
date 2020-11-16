@@ -48,7 +48,7 @@ class PdfEncrypt;
  * A PdfParserObject constructs a PdfObject from a PDF file.
  * Parsing starts always at the current file position.
  */
-class PODOFO_API PdfParserObject : public PdfObject, public PdfTokenizer
+class PODOFO_API PdfParserObject : public PdfObject
 {
 public:
     /** Parse the object data from the given file handle starting at
@@ -163,7 +163,10 @@ public:
 
     void ReadObjectNumber();
 
- private:
+private:
+    PdfRefCountedInputDevice m_device;
+    PdfRefCountedBuffer m_buffer;
+    PdfTokenizer m_tokenizer;
     PdfEncrypt* m_pEncrypt;
     bool        m_bIsTrailer;
 

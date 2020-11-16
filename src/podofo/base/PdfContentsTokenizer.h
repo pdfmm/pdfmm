@@ -31,8 +31,8 @@
  *   files in the program, then also delete it here.                       *
  ***************************************************************************/
 
-#ifndef _PDF_CONTENTS_TOKENIZER_H_
-#define _PDF_CONTENTS_TOKENIZER_H_
+#ifndef PDF_CONTENTS_TOKENIZER_H
+#define PDF_CONTENTS_TOKENIZER_H
 
 #include "PdfDefines.h"
 #include "PdfTokenizer.h"
@@ -61,20 +61,15 @@ enum class EPdfContentsType
  *
  *  This class is currently work in progress and subject to change!
  */
-class PODOFO_API PdfContentsTokenizer : public PdfTokenizer
+class PODOFO_API PdfContentsTokenizer : private PdfTokenizer
 {
 public:
-
-    /** Construct a PdfContentsTokenizer from an existing buffer.
-     *  Usually a stream from a PdfPage.
+    /** Construct a PdfContentsTokenizer from an existing device
      *
      *  \param pBuffer pointer to a buffer
      *  \param lLen length of the buffer
      */
-    PdfContentsTokenizer( const char* pBuffer, size_t lLen )
-        : PoDoFo::PdfTokenizer( pBuffer, lLen ), m_readingInlineImgData(false)
-    {
-    }
+    PdfContentsTokenizer(const PdfRefCountedInputDevice& device);
 
     /** Construct a PdfContentsTokenizer from a PdfCanvas
      *  (i.e. PdfPage or a PdfXObject).
@@ -84,7 +79,7 @@ public:
      *
      *  \param pCanvas an object that hold a PDF contents stream
      */
-    PdfContentsTokenizer( PdfCanvas* pCanvas );
+    PdfContentsTokenizer(PdfCanvas& pCanvas);
 
     /** Read the next keyword or variant, returning true and setting reType if something was read.
      *  Either rpszKeyword or rVariant, but never both, have defined and usable values on
@@ -104,30 +99,26 @@ public:
      *
      *  \param[out] rpszKeyword if pType is set to EPdfContentsType::Keyword this will point to the keyword,
      *              otherwise the value is undefined. If set, the value points to memory owned by the
-     *              PdfContentsTokenizer and must not be freed. The value is invalidated when ReadNext
+     *              PdfContentsTokenizer and must not be freed. The value is invalidated when TryReadNext
      *              is next called or when the PdfContentsTokenizer is destroyed.
      *
      *  \param[out] rVariant if pType is set to EPdfContentsType::Variant or EPdfContentsType::ImageData
      *              this will be set to the read variant, otherwise the value is undefined.
      *
      */
-    bool ReadNext( EPdfContentsType& reType, const char*& rpszKeyword, PoDoFo::PdfVariant & rVariant );
-    bool GetNextToken( const char *& pszToken, EPdfTokenType* peType = nullptr) override;
+    bool TryReadNext( EPdfContentsType& reType, const char*& rpszKeyword, PdfVariant & rVariant );
+    void ReadNextVariant(PdfVariant& rVariant);
 
- private:
-    /** Set another objects stream as the current stream for parsing
-     *
-     *  \param pObject use the stream of this object for parsing
-     */
-    void SetCurrentContentsStream( PdfObject &pObject );
+private:
+    bool tryReadNextToken(const char*& pszToken, EPdfTokenType* peType);
     bool ReadInlineImgData(EPdfContentsType& reType, const char*& rpszKeyword, PoDoFo::PdfVariant & rVariant);
 
- private:
-    std::list<PdfObject*>     m_lstContents;  ///< A list containing pointers to all contents objects
-    bool                      m_readingInlineImgData;  ///< A state of reading inline image data
+private:
+    PdfRefCountedInputDevice m_device;
+    std::list<PdfObject*> m_lstContents;  // A list containing pointers to all contents objects
+    bool m_readingInlineImgData;  // A state of reading inline image data
 };
 
 };
 
-#endif // _PDF_CONTENTS_TOKENIZER_H_
-
+#endif // PDF_CONTENTS_TOKENIZER_H

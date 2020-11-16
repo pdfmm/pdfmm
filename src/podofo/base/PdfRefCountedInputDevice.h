@@ -40,13 +40,16 @@ namespace PoDoFo {
 
 class PdfInputDevice;
 
+// TODO: Remove-me! Just use std::shared_ptr<PdfInputDevice>
+
 /** 
  * A reference counted input device object
  * which is closed as soon as the last
  * object having access to it is deleted.
  */
-class PODOFO_API PdfRefCountedInputDevice {
- public:
+class PODOFO_API PdfRefCountedInputDevice
+{
+public:
     /** Created an empty reference counted input device object
      *  The input device will be initialize to nullptr
      */
@@ -94,13 +97,14 @@ class PODOFO_API PdfRefCountedInputDevice {
      */
     const PdfRefCountedInputDevice & operator=( const PdfRefCountedInputDevice & rhs );
 
- private:
+private:
     /** Detach from the reference counted file
      */
     void Detach();
 
- private:
-    typedef struct {
+private:
+    typedef struct
+    {
         PdfInputDevice* m_pDevice;
         long            m_lRefCount;
     } TRefCountedInputDevice;
