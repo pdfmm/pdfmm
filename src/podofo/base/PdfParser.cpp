@@ -689,12 +689,12 @@ void PdfParser::ReadXRefContents(const PdfRefCountedInputDevice& device, size_t 
             {
                 // something like PeekNextToken()
                 EPdfTokenType eType;
-                const char* pszRead;
+                string_view pszRead;
                 bool gotToken = m_tokenizer.TryReadNextToken(device, pszRead, &eType);
                 if( gotToken )
                 {
-                    m_tokenizer.EnquequeToken(pszRead, eType);
-                    if ( strcmp( "trailer", pszRead ) == 0 )
+                    m_tokenizer.EnqueueToken(pszRead, eType);
+                    if (pszRead == "trailer")
                         break;
                 }
             }

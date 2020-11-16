@@ -52,10 +52,6 @@
 using namespace PoDoFo;
 using namespace std;
 
-static const int s_nLenEndObj    = 6; // strlen("endobj");
-static const int s_nLenStream    = 6; // strlen("stream");
-//static const int s_nLenEndStream = 9; // strlen("endstream");
-
 PdfParserObject::PdfParserObject(PdfDocument& document, const PdfRefCountedInputDevice& device,
                                   const PdfRefCountedBuffer & buffer, ssize_t lOffset )
     : PdfObject( PdfVariant::NullValue ), m_device(device), m_buffer(buffer), m_pEncrypt( nullptr )
@@ -170,8 +166,6 @@ void PdfParserObject::ForceStreamParse()
 // or PdfObject method calls here.
 void PdfParserObject::ParseFileComplete( bool bIsTrailer )
 {
-    const char* pszToken;
-
     m_device.Device()->Seek( m_lOffset );
     if( m_pEncrypt )
         m_pEncrypt->SetCurrentReference( GetIndirectReference() );
@@ -182,12 +176,13 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
     // endobj
 
     EPdfTokenType eTokenType;
+    string_view pszToken;
     bool gotToken = m_tokenizer.TryReadNextToken(m_device, pszToken, &eTokenType);
     if (!gotToken)
         PODOFO_RAISE_ERROR_INFO( EPdfError::UnexpectedEOF, "Expected variant." );
 
     // Check if we have an empty object or data
-    if( strncmp( pszToken, "endobj", s_nLenEndObj ) != 0 )
+    if (pszToken != "endobj")
     {
         m_tokenizer.ReadNextVariant(m_device, pszToken, eTokenType, m_Variant, m_pEncrypt );
 
@@ -198,19 +193,19 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
             {
                 PODOFO_RAISE_ERROR_INFO( EPdfError::UnexpectedEOF, "Expected 'endobj' or (if dict) 'stream', got EOF." );
             }
-            if (strncmp(pszToken, "endobj", s_nLenEndObj) == 0)
+            if (pszToken == "endobj")
             {
                 // nothing to do, just validate that the PDF is correct
                 // If it's a dictionary, it might have a stream, so check for that
             }
-            else if (m_Variant.IsDictionary() && strncmp( pszToken, "stream", s_nLenStream ) == 0 )
+            else if (m_Variant.IsDictionary() && pszToken == "stream")
             {
                 m_bStream = true;
                 m_lStreamOffset = m_device.Device()->Tell(); // NOTE: whitespace after "stream" handle in stream parser!
             }
             else
             {
-                PODOFO_RAISE_ERROR_INFO( EPdfError::NoObject, pszToken );
+                PODOFO_RAISE_ERROR_INFO( EPdfError::NoObject, pszToken.data() );
             }
         }
     }

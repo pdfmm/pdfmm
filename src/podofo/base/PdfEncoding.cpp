@@ -165,17 +165,17 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
     PdfRefCountedInputDevice device(streamBuffer.get(), streamBufferLen);
     PdfContentsTokenizer tokenizer(device);
     deque<unique_ptr<PdfVariant>> tokens;
-    const char *token;
     const PdfString* str;
     unique_ptr<PdfVariant> var( new PdfVariant() );
     EPdfContentsType tokenType;
+    string_view token;
     while ( tokenizer.TryReadNext( tokenType, token, *var ) )
     {
         switch ( tokenType )
         {
             case EPdfContentsType::Keyword:
             {
-                if (strcmp(token, "begincodespacerange") == 0)
+                if (token == "begincodespacerange")
                 {
                     if (tokens.size() != 1)
                         PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidStream, "CMap missing object number before begincodespacerange");
@@ -204,7 +204,7 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                             maxCodeRangeSize = codeSize;
                     }
                 }
-                else if (strcmp(token, "beginbfrange") == 0)
+                else if (token == "beginbfrange")
                 {
                     if ( tokens.size() != 1 )
                         PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidStream, "CMap missing object number before beginbfrange" );
@@ -251,12 +251,12 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
 
                     if ( !tokenizer.TryReadNext(tokenType, token, *var)
                         || tokenType != EPdfContentsType::Keyword
-                        || strcmp( token, "endbfrange" ) != 0 )
+                        || token != "endbfrange")
                     {
                         PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidStream, "CMap missing final endbfrange keyword" );
                     }
                 }
-                else if ( strcmp( token, "beginbfchar" ) == 0 )
+                else if (token == "beginbfchar")
                 {
                     if ( tokens.size() != 1 )
                         PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidStream, "CMap missing object number before beginbfchar" );
@@ -291,12 +291,12 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
 
                     if ( !tokenizer.TryReadNext(tokenType, token, *var )
                         || tokenType != EPdfContentsType::Keyword
-                        || strcmp( token, "endbfchar" ) != 0)
+                        || token != "endbfchar")
                     {
                         PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidStream, "CMap missing final endbfchar keyword" );
                     }
                 }
-                else if (strcmp(token, "begincidrange") == 0)
+                else if (token == "begincidrange")
                 {
                     if (tokens.size() != 1)
                         PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidStream, "CMap missing object number before begincidrange");
@@ -323,12 +323,12 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
 
                     if (!tokenizer.TryReadNext(tokenType, token, *var)
                         || tokenType != EPdfContentsType::Keyword
-                        || strcmp(token, "endcidrange") != 0)
+                        || token != "endcidrange")
                     {
                         PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidStream, "CMap missing final endcidrange keyword");
                     }
                 }
-                else if (strcmp(token, "begincidchar") == 0)
+                else if (token == "begincidchar")
                 {
                     if (tokens.size() != 1)
                         PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidStream, "CMap missing object number before begincidchar");
@@ -348,7 +348,7 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
 
                     if (!tokenizer.TryReadNext(tokenType, token, *var)
                         || tokenType != EPdfContentsType::Keyword
-                        || strcmp(token, "endcidchar") != 0)
+                        || token != "endcidchar")
                     {
                         PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidStream, "CMap missing final endcidchar keyword");
                     }

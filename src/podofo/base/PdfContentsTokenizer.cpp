@@ -93,7 +93,7 @@ PdfContentsTokenizer::PdfContentsTokenizer(PdfCanvas& pCanvas)
     }
 }
 
-bool PdfContentsTokenizer::tryReadNextToken(const char*& pszToken , EPdfTokenType* peType)
+bool PdfContentsTokenizer::tryReadNextToken(string_view& pszToken , EPdfTokenType* peType)
 {
     bool hasToken = false;
     if (m_device.Device() != nullptr)
@@ -124,7 +124,7 @@ bool PdfContentsTokenizer::tryReadNextToken(const char*& pszToken , EPdfTokenTyp
 void PdfContentsTokenizer::ReadNextVariant(PdfVariant& rVariant)
 {
     EPdfTokenType eTokenType;
-    const char* pszToken;
+    string_view pszToken;
     bool gotToken = tryReadNextToken(pszToken, &eTokenType);
     if (!gotToken)
         PODOFO_RAISE_ERROR_INFO(EPdfError::UnexpectedEOF, "Expected variant");
@@ -132,13 +132,16 @@ void PdfContentsTokenizer::ReadNextVariant(PdfVariant& rVariant)
     PdfTokenizer::ReadNextVariant(m_device, pszToken, eTokenType, rVariant, nullptr);
 }
 
-bool PdfContentsTokenizer::TryReadNext(EPdfContentsType& reType, const char*& rpszKeyword, PdfVariant& rVariant)
+bool PdfContentsTokenizer::TryReadNext(EPdfContentsType& reType, string_view& rpszKeyword, PdfVariant& rVariant)
 {
     if (m_readingInlineImgData)
-        return ReadInlineImgData(reType, rpszKeyword, rVariant);
+    {
+        rpszKeyword = { };
+        return ReadInlineImgData(reType, rVariant);
+    }
 
     EPdfTokenType eTokenType;
-    const char* pszToken;
+    string_view pszToken;
     bool gotToken = tryReadNextToken(pszToken, &eTokenType);
     if (!gotToken)
         return false;
@@ -182,19 +185,19 @@ bool PdfContentsTokenizer::TryReadNext(EPdfContentsType& reType, const char*& rp
 
         default:
             // Assume we have a keyword
-            reType     = EPdfContentsType::Keyword;
+            reType = EPdfContentsType::Keyword;
             rpszKeyword = pszToken;
             break;
     }
 
-    std::string idKW ("ID");
+    string idKW("ID");
     if (reType == EPdfContentsType::Keyword && idKW.compare(rpszKeyword) == 0)
         m_readingInlineImgData = true;
 
     return true;
 }
 
-bool PdfContentsTokenizer::ReadInlineImgData( EPdfContentsType& reType, const char*&, PdfVariant & rVariant )
+bool PdfContentsTokenizer::ReadInlineImgData( EPdfContentsType& reType, PdfVariant & rVariant )
 {
     int  c;
     int64_t  counter  = 0;

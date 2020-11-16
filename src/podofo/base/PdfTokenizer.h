@@ -111,7 +111,7 @@ public:
      *  \returns           True if a token was read, false if there are no
      *                     more tokens to read.
      */
-    bool TryReadNextToken(const PdfRefCountedInputDevice& device, const char *& pszToken, EPdfTokenType* peType = nullptr);
+    bool TryReadNextToken(const PdfRefCountedInputDevice& device, std::string_view& pszToken, EPdfTokenType* peType = nullptr);
 
     /** Reads the next token from the current file position
      *  ignoring all comments and compare the passed token
@@ -124,7 +124,7 @@ public:
      *
      *  \returns true if the read token equals the passed token.
      */
-    bool IsNextToken(const PdfRefCountedInputDevice& device, const char* pszToken);
+    bool IsNextToken(const PdfRefCountedInputDevice& device, const std::string_view& pszToken);
 
     /** Read the next number from the current file position
      *  ignoring all comments.
@@ -202,7 +202,7 @@ protected:
      *  \param rVariant write the read variant to this value
      *  \param pEncrypt an encryption object which is used to decrypt strings during parsing
      */
-    void ReadNextVariant(const PdfRefCountedInputDevice& device, const char* pszToken, EPdfTokenType eType, PdfVariant& rVariant, PdfEncrypt* pEncrypt );
+    void ReadNextVariant(const PdfRefCountedInputDevice& device, const std::string_view& pszToken, EPdfTokenType eType, PdfVariant& rVariant, PdfEncrypt* pEncrypt );
 
     /** Add a token to the queue of tokens.
      *  tryReadNextToken() will return all enqueued tokens first before
@@ -213,7 +213,7 @@ protected:
      *
      *  \see tryReadNextToken
      */
-    void EnquequeToken(const char* pszToken, EPdfTokenType eType);
+    void EnqueueToken(const std::string_view& pszToken, EPdfTokenType eType);
 
     /** Determine the possible datatype of a token.
      *  Numbers, reals, bools or nullptr values are parsed directly by this function
@@ -221,7 +221,7 @@ protected:
      *
      *  \returns the expected datatype
      */
-    EPdfLiteralDataType DetermineDataType(const PdfRefCountedInputDevice& device, const char* pszToken, EPdfTokenType eType, PdfVariant& rVariant );
+    EPdfLiteralDataType DetermineDataType(const PdfRefCountedInputDevice& device, const std::string_view& pszToken, EPdfTokenType eType, PdfVariant& rVariant );
 
     /** Read a dictionary from the input device
      *  and store it into a variant.

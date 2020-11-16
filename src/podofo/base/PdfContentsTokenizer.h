@@ -106,12 +106,12 @@ public:
      *              this will be set to the read variant, otherwise the value is undefined.
      *
      */
-    bool TryReadNext( EPdfContentsType& reType, const char*& rpszKeyword, PdfVariant & rVariant );
+    bool TryReadNext(EPdfContentsType& reType, std::string_view& rpszKeyword, PdfVariant & rVariant);
     void ReadNextVariant(PdfVariant& rVariant);
 
 private:
-    bool tryReadNextToken(const char*& pszToken, EPdfTokenType* peType);
-    bool ReadInlineImgData(EPdfContentsType& reType, const char*& rpszKeyword, PoDoFo::PdfVariant & rVariant);
+    bool tryReadNextToken(std::string_view& pszToken, EPdfTokenType* peType);
+    bool ReadInlineImgData(EPdfContentsType& reType, PdfVariant & rVariant);
 
 private:
     PdfRefCountedInputDevice m_device;
