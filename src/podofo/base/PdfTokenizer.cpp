@@ -309,7 +309,7 @@ bool PdfTokenizer::TryReadNextToken(const PdfRefCountedInputDevice& device, cons
     {
         // No characters were read before EOF, so we're out of data.
         // Ensure the buffer points to nullptr in case someone fails to check the return value.
-        pszToken = '\0';
+        pszToken = nullptr;
         return false;
     }
 
