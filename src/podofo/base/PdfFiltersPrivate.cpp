@@ -53,7 +53,7 @@ extern "C" {
 
 #ifdef PODOFO_HAVE_TIFF_LIB
 extern "C" {
-#ifdef _WIN32		// For O_RDONLY
+#ifdef WIN32		// For O_RDONLY
     // TODO: DS
 #else
 #include <sys/stat.h>

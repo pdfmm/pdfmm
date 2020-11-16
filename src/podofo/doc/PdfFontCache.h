@@ -46,7 +46,7 @@
 #include "PdfFontConfigWrapper.h"
 #endif
 
-#ifdef _WIN32
+#ifdef WIN32
 
  // to have LOGFONTA/LOGFONTW available
 typedef struct tagLOGFONTA LOGFONTA;
@@ -79,14 +79,14 @@ struct TFontCacheElement {
     {
     }
 
-#if defined(_WIN32) && !defined(PODOFO_NO_FONTMANAGER)
+#if defined(WIN32) && !defined(PODOFO_NO_FONTMANAGER)
     TFontCacheElement( const wchar_t* pszFontName, bool bBold, bool bItalic, bool bIsSymbolCharset,
 		       const PdfEncoding * const pEncoding )
         : m_pFont(nullptr), m_pEncoding( pEncoding ), m_bBold( bBold ), 
           m_bItalic( bItalic ), m_sFontName( pszFontName ), m_bIsSymbolCharset (bIsSymbolCharset)
     {
     }
-#endif // _WIN32
+#endif // WIN32
 
     TFontCacheElement( const TFontCacheElement & rhs ) 
     {
@@ -224,7 +224,7 @@ class PODOFO_DOC_API PdfFontCache
                       const PdfEncoding * const = PdfEncodingFactory::GlobalWinAnsiEncodingInstance(), 
                       const char* pszFileName = nullptr );
 
-#if defined(_WIN32) && !defined(PODOFO_NO_FONTMANAGER)
+#if defined(WIN32) && !defined(PODOFO_NO_FONTMANAGER)
     /** Get a font from the cache. If the font does not yet
      *  exist, add it to the cache.
      *
@@ -249,7 +249,7 @@ class PODOFO_DOC_API PdfFontCache
 	 PdfFont* GetFont( const LOGFONTA &logFont, bool bEmbedd, const PdfEncoding * const pEncoding );
 	 PdfFont* GetFont( const LOGFONTW &logFont, bool bEmbedd, const PdfEncoding * const pEncoding );
 
-#endif // _WIN32
+#endif // WIN32
 
     /** Get a font from the cache. If the font does not yet
      *  exist, add it to the cache.
@@ -363,7 +363,7 @@ class PODOFO_DOC_API PdfFontCache
     PdfFont* CreateFontSubset( PdfFontMetrics* pMetrics, const char* pszFontName, bool bBold, 
                                bool bItalic, const std::vector<int> & vecCharacters );
     */
-#if defined(_WIN32) && !defined(PODOFO_NO_FONTMANAGER)
+#if defined(WIN32) && !defined(PODOFO_NO_FONTMANAGER)
     /** Load and create a font with windows API calls
      *
      *  This method is only available on Windows systems.
@@ -390,7 +390,7 @@ class PODOFO_DOC_API PdfFontCache
 
     PdfFont* GetWin32Font( TISortedFontList itSorted, TSortedFontList & vecContainer, const LOGFONTW &logFont,
 								bool bEmbedd, const PdfEncoding * const pEncoding, bool pSubsetting = false );
-#endif // _WIN32
+#endif // WIN32
 
 	#define SUBSET_BASENAME_LEN 6 // + 2 for "+\0"
 

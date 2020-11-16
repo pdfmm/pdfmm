@@ -472,7 +472,7 @@ bool PdfString::operator>( const PdfString & rhs ) const
 
     if( m_bUnicode || rhs.m_bUnicode )
     {
-#ifdef _WIN32
+#ifdef WIN32
         std::wstring sWide_1 = str1.GetStringW();
         std::wstring sWide_2 = str2.GetStringW();
 
@@ -482,7 +482,7 @@ bool PdfString::operator>( const PdfString & rhs ) const
         std::string sUtf8_2 = str2.GetStringUtf8();
 
         return sUtf8_1 > sUtf8_2;
-#endif // _WIN32
+#endif // WIN32
     }
 
     return (strcmp( str1.GetString(), str2.GetString() ) > 0);
@@ -501,7 +501,7 @@ bool PdfString::operator<( const PdfString & rhs ) const
 
     if( m_bUnicode || rhs.m_bUnicode )
     {
-#ifdef _WIN32
+#ifdef WIN32
         std::wstring sWide_1 = str1.GetStringW();
         std::wstring sWide_2 = str2.GetStringW();
 
@@ -511,7 +511,7 @@ bool PdfString::operator<( const PdfString & rhs ) const
         std::string sUtf8_2 = str2.GetStringUtf8();
 
         return sUtf8_1 < sUtf8_2;
-#endif // _WIN32
+#endif // WIN32
     }
 
     return (strcmp( str1.GetString(), str2.GetString() ) < 0);
@@ -618,7 +618,7 @@ void PdfString::InitUtf8()
     }
 }
 
-#ifdef _WIN32
+#ifdef WIN32
 const std::wstring PdfString::GetStringW() const
 {
     if ( !IsValid() )
@@ -643,7 +643,7 @@ const std::wstring PdfString::GetStringW() const
     return wstr;
 }
 
-#endif // _WIN32
+#endif // WIN32
 
 PdfString PdfString::ToUnicode() const
 {

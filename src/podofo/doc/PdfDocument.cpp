@@ -149,7 +149,7 @@ PdfFont* PdfDocument::CreateFont( const char* pszFontName, bool bBold, bool bIta
     return m_fontCache.GetFont( pszFontName, bBold, bItalic, bSymbolCharset, bEmbedd, eFontCreationFlags, pEncoding, pszFileName );
 }
 
-#if defined(_WIN32) && !defined(PODOFO_NO_FONTMANAGER)
+#if defined(WIN32) && !defined(PODOFO_NO_FONTMANAGER)
 PdfFont* PdfDocument::CreateFont( const wchar_t* pszFontName, bool bSymbolCharset, const PdfEncoding * const pEncoding, 
                                   bool bEmbedd )
 {
@@ -171,7 +171,7 @@ PdfFont* PdfDocument::CreateFont( const LOGFONTW &logFont, const PdfEncoding * c
 {
     return m_fontCache.GetFont( logFont, bEmbedd, pEncoding );
 }
-#endif // _WIN32
+#endif // WIN32
 
 PdfFont* PdfDocument::CreateFontSubset( const char* pszFontName, bool bBold, bool bItalic, bool bSymbolCharset,
                                         const PdfEncoding * const pEncoding, const char* pszFileName )
@@ -179,7 +179,7 @@ PdfFont* PdfDocument::CreateFontSubset( const char* pszFontName, bool bBold, boo
     return m_fontCache.GetFontSubset( pszFontName, bBold, bItalic, bSymbolCharset, pEncoding, pszFileName );
 }
 
-#if defined(_WIN32) && !defined(PODOFO_NO_FONTMANAGER)
+#if defined(WIN32) && !defined(PODOFO_NO_FONTMANAGER)
 PdfFont* PdfDocument::CreateFontSubset( const wchar_t* pszFontName, bool bBold, bool bItalic, bool bSymbolCharset,
                                         const PdfEncoding * const pEncoding)
 {
@@ -191,7 +191,7 @@ PdfFont* PdfDocument::CreateFontSubset( const wchar_t* pszFontName, bool bBold, 
     (void)pEncoding;
     PODOFO_RAISE_ERROR_INFO( EPdfError::Unknown, "Subsets are not yet implemented for unicode on windows." );
 }
-#endif // _WIN32
+#endif // WIN32
 
 PdfFont* PdfDocument::CreateFont( FT_Face face, bool bSymbolCharset, const PdfEncoding * const pEncoding, bool bEmbedd )
 {

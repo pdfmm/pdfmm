@@ -123,7 +123,7 @@
  * Building or linking to a static library does not require either
  * preprocessor symbol.
  */
-#if defined(_WIN32)
+#if defined(WIN32)
     #if defined(COMPILING_SHARED_PODOFO)
         #define PODOFO_API __declspec(dllexport)
         #define PODOFO_DOC_API __declspec(dllexport)
@@ -153,7 +153,7 @@
 /* Throwable classes must always be exported by all binaries when
  * using gcc. Marking exception classes with PODOFO_EXCEPTION_API
  * ensures this. */
-#ifdef _WIN32
+#ifdef WIN32
   #define PODOFO_EXCEPTION_API(api) api
 #elif defined(PODOFO_HAVE_GCC_SYMBOL_VISIBILITY)
   #define PODOFO_EXCEPTION_API(api) PODOFO_API
@@ -180,9 +180,9 @@
 
 // Peter Petrov 27 April 2008
 // Disable warnings
-#if defined(_WIN32) && defined(_MSC_VER)
+#if defined(WIN32) && defined(_MSC_VER)
 #pragma warning(disable: 4251)
 #pragma warning(disable: 4309)
-#endif // _WIN32
+#endif // WIN32
 
 #endif // PODOFO_API_H

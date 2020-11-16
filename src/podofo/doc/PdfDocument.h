@@ -178,7 +178,7 @@ public:
                          EFontCreationFlags eFontCreationFlags = EFontCreationFlags::AutoSelectBase14,
                          bool bEmbedd = true, const char* pszFileName = nullptr );
 
-#ifdef _WIN32
+#ifdef WIN32
     /** Creates a PdfFont object
      *  \param pszFontName name of the font as it is known to the system
      *  \param bSymbolCharset whether to use the symbol charset, rather than unicode charset
@@ -222,7 +222,7 @@ public:
 	 PdfFont* CreateFont( const LOGFONTW &logFont, const PdfEncoding * const pEncoding = PdfEncodingFactory::GlobalWinAnsiEncodingInstance(),
 								 bool bEmbedd = true );
 
-#endif // _WIN32
+#endif // WIN32
 
     /** Creates a PdfFont object
      *  \param face a valid freetype font handle (will be free()'d by PoDoFo)
@@ -264,7 +264,7 @@ public:
 			       const PdfEncoding * const pEncoding = PdfEncodingFactory::GlobalWinAnsiEncodingInstance(),
 			       const char* pszFileName = nullptr);
 
-#ifdef _WIN32
+#ifdef WIN32
     /** Creates a font subset which contains only a few characters and is embedded.
      *
      *  THIS WORKS ONLY FOR TTF FONTS!
@@ -283,7 +283,7 @@ public:
      */
     PdfFont* CreateFontSubset( const wchar_t* pszFontName, bool bBold, bool bItalic, bool bSymbolCharset = false,
 			       const PdfEncoding * const = PdfEncodingFactory::GlobalWinAnsiEncodingInstance() );
-#endif // _WIN32
+#endif // WIN32
 
     // Peter Petrov 26 April 2008
     /** Returns the font library from font cache

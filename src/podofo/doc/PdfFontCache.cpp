@@ -69,7 +69,7 @@
 #undef DrawText
 #endif // DrawText
 
-#endif // _WIN32
+#endif // WIN32
 
 #include <ft2build.h>
 #include <freetype/freetype.h>
@@ -104,7 +104,7 @@ inline unsigned short ShortFromBigEndian(unsigned short i)
 
 namespace PoDoFo {
 
-#if defined(_WIN32) && !defined(PODOFO_NO_FONTMANAGER)
+#if defined(WIN32) && !defined(PODOFO_NO_FONTMANAGER)
 //This function will recieve the device context for the ttc font, it will then extract necessary tables,and create the correct buffer.
 //On error function return false
 static bool GetFontFromCollection(HDC &hdc, char *&buffer, unsigned int &bufferLen)
@@ -271,7 +271,7 @@ static bool GetDataFromLPFONT( const LOGFONTA* inFont, char** outFontBuffer, uns
     }
     return ok;
 }
-#endif // _WIN32
+#endif // WIN32
 
 PdfFontCache::PdfFontCache( PdfVecObjects* pParent )
     : m_pParent( pParent )
@@ -444,9 +444,9 @@ PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bBold, bool bItali
             
             if( sPath.empty() )
             {
-#if defined(_WIN32) && !defined(PODOFO_NO_FONTMANAGER)
+#if defined(WIN32) && !defined(PODOFO_NO_FONTMANAGER)
                 pFont = GetWin32Font( it.first, m_vecFonts, pszFontName, bBold, bItalic, bSymbolCharset, bEmbedd, pEncoding, bSubsetting  );
-#endif // _WIN32
+#endif // WIN32
             }
             else
             {
@@ -460,7 +460,7 @@ PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bBold, bool bItali
     else
         pFont = (*it.first).m_pFont;
 
-#if !(defined(_WIN32) && !defined(PODOFO_NO_FONTMANAGER))
+#if !(defined(WIN32) && !defined(PODOFO_NO_FONTMANAGER))
         if (!pFont)
             PdfError::LogMessage( ELogSeverity::Critical, "No path was found for the specified fontname: %s\n", pszFontName );
 #endif             
@@ -468,7 +468,7 @@ PdfFont* PdfFontCache::GetFont( const char* pszFontName, bool bBold, bool bItali
     return pFont;
 }
 
-#if defined(_WIN32) && !defined(PODOFO_NO_FONTMANAGER)
+#if defined(WIN32) && !defined(PODOFO_NO_FONTMANAGER)
 PdfFont* PdfFontCache::GetFont( const wchar_t* pszFontName, bool bBold, bool bItalic, bool bSymbolCharset,
                                 bool bEmbedd, const PdfEncoding * const pEncoding )
 {
@@ -544,7 +544,7 @@ PdfFont* PdfFontCache::GetFont( const LOGFONTW &logFont,
     
     return pFont;
 }
-#endif // _WIN32
+#endif // WIN32
 
 PdfFont* PdfFontCache::GetFont( FT_Face face, bool bSymbolCharset, bool bEmbedd, const PdfEncoding * const pEncoding )
 {
@@ -646,12 +646,12 @@ PdfFont* PdfFontCache::GetFontSubset( const char* pszFontName, bool bBold, bool 
             sPath = this->GetFontPath( pszFontName, bBold, bItalic );
             if( sPath.empty() )
             {
-#if defined(_WIN32) && !defined(PODOFO_NO_FONTMANAGER)
+#if defined(WIN32) && !defined(PODOFO_NO_FONTMANAGER)
                 return GetWin32Font( it.first, m_vecFontSubsets, pszFontName, bBold, bItalic, bSymbolCharset, true, pEncoding, true );
 #else       
                 PdfError::LogMessage( ELogSeverity::Critical, "No path was found for the specified fontname: %s", pszFontName );
                 return nullptr;
-#endif // _WIN32
+#endif // WIN32
             }
         }
         else {
@@ -684,7 +684,7 @@ void PdfFontCache::EmbedSubsetFonts()
     }
 }
 
-#if defined(_WIN32) && !defined(PODOFO_NO_FONTMANAGER)
+#if defined(WIN32) && !defined(PODOFO_NO_FONTMANAGER)
 PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList & vecContainer, 
                                      const char* pszFontName, bool bBold, bool bItalic, bool bSymbolCharset,
                                      bool bEmbedd, const PdfEncoding * const pEncoding, bool pSubsetting )
@@ -815,7 +815,7 @@ PdfFont* PdfFontCache::GetWin32Font( TISortedFontList itSorted, TSortedFontList 
     return pFont;
 }
 
-#endif // _WIN32
+#endif // WIN32
 
 std::string PdfFontCache::GetFontPath( const char* pszFontName, bool bBold, bool bItalic )
 {
