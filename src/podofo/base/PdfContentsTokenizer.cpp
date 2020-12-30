@@ -123,13 +123,18 @@ bool PdfContentsTokenizer::tryReadNextToken(string_view& pszToken , EPdfTokenTyp
 
 void PdfContentsTokenizer::ReadNextVariant(PdfVariant& rVariant)
 {
+    if (!TryReadNextVariant(rVariant))
+        PODOFO_RAISE_ERROR_INFO(EPdfError::UnexpectedEOF, "Expected variant");
+}
+
+bool PdfContentsTokenizer::TryReadNextVariant(PdfVariant& rVariant)
+{
     EPdfTokenType eTokenType;
     string_view pszToken;
-    bool gotToken = tryReadNextToken(pszToken, &eTokenType);
-    if (!gotToken)
-        PODOFO_RAISE_ERROR_INFO(EPdfError::UnexpectedEOF, "Expected variant");
+    if (!tryReadNextToken(pszToken, &eTokenType))
+        return false;
 
-    PdfTokenizer::ReadNextVariant(m_device, pszToken, eTokenType, rVariant, nullptr);
+    return PdfTokenizer::TryReadNextVariant(m_device, pszToken, eTokenType, rVariant, nullptr);
 }
 
 bool PdfContentsTokenizer::TryReadNext(EPdfContentsType& reType, string_view& rpszKeyword, PdfVariant& rVariant)

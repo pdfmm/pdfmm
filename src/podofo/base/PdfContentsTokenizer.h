@@ -107,7 +107,9 @@ public:
      *
      */
     bool TryReadNext(EPdfContentsType& reType, std::string_view& rpszKeyword, PdfVariant & rVariant);
+
     void ReadNextVariant(PdfVariant& rVariant);
+    bool TryReadNextVariant(PdfVariant& rVariant);
 
 private:
     bool tryReadNextToken(std::string_view& pszToken, EPdfTokenType* peType);

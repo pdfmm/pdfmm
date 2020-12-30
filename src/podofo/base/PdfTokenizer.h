@@ -203,6 +203,7 @@ protected:
      *  \param pEncrypt an encryption object which is used to decrypt strings during parsing
      */
     void ReadNextVariant(const PdfRefCountedInputDevice& device, const std::string_view& pszToken, EPdfTokenType eType, PdfVariant& rVariant, PdfEncrypt* pEncrypt );
+    bool TryReadNextVariant(const PdfRefCountedInputDevice& device, const std::string_view& pszToken, EPdfTokenType eType, PdfVariant& rVariant, PdfEncrypt* pEncrypt);
 
     /** Add a token to the queue of tokens.
      *  tryReadNextToken() will return all enqueued tokens first before
@@ -267,7 +268,7 @@ protected:
     PdfRefCountedBuffer& GetBuffer() { return m_buffer; }
 
 private:
-    void readDataType(const PdfRefCountedInputDevice& device, EPdfLiteralDataType eDataType, PdfVariant& rVariant, PdfEncrypt* pEncrypt);
+    bool tryReadDataType(const PdfRefCountedInputDevice& device, EPdfLiteralDataType eDataType, PdfVariant& rVariant, PdfEncrypt* pEncrypt);
 
     /** Read a hex string from the input device
      *  and store it into a vector.

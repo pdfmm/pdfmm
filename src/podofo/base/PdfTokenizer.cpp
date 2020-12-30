@@ -368,8 +368,14 @@ void PdfTokenizer::ReadNextVariant(const PdfRefCountedInputDevice& device, PdfVa
 
 void PdfTokenizer::ReadNextVariant(const PdfRefCountedInputDevice& device, const string_view& pszToken, EPdfTokenType eType, PdfVariant& rVariant, PdfEncrypt* pEncrypt )
 {
+    if (!TryReadNextVariant(device, pszToken, eType, rVariant, pEncrypt))
+        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "Could not read a variant");
+}
+
+bool PdfTokenizer::TryReadNextVariant(const PdfRefCountedInputDevice& device, const string_view& pszToken, EPdfTokenType eType, PdfVariant& rVariant, PdfEncrypt* pEncrypt)
+{
     EPdfLiteralDataType eDataType = this->DetermineDataType(device, pszToken, eType, rVariant);
-    this->readDataType(device, eDataType, rVariant, pEncrypt);
+    return tryReadDataType(device, eDataType, rVariant, pEncrypt);
 }
 
 PdfTokenizer::EPdfLiteralDataType PdfTokenizer::DetermineDataType(const PdfRefCountedInputDevice& device,
@@ -505,25 +511,25 @@ PdfTokenizer::EPdfLiteralDataType PdfTokenizer::DetermineDataType(const PdfRefCo
     }
 }
 
-void PdfTokenizer::readDataType(const PdfRefCountedInputDevice& device, EPdfLiteralDataType eDataType, PdfVariant& rVariant, PdfEncrypt* pEncrypt )
+bool PdfTokenizer::tryReadDataType(const PdfRefCountedInputDevice& device, EPdfLiteralDataType eDataType, PdfVariant& rVariant, PdfEncrypt* pEncrypt )
 {
     switch( eDataType )
     {
         case EPdfLiteralDataType::Dictionary:
             this->ReadDictionary(device, rVariant, pEncrypt);
-            break;
+            return true;
         case EPdfLiteralDataType::Array:
             this->ReadArray(device, rVariant, pEncrypt);
-            break;
+            return true;
         case EPdfLiteralDataType::String:
             this->ReadString(device, rVariant, pEncrypt);
-            break;
+            return true;
         case EPdfLiteralDataType::HexString:
             this->ReadHexString(device, rVariant, pEncrypt);
-            break;
+            return true;
         case EPdfLiteralDataType::Name:
             this->ReadName(device, rVariant);
-            break;
+            return true;
         // The following datatypes are not handled by read datatype
         // but are already parsed by DetermineDatatype
         case EPdfLiteralDataType::Null:
@@ -531,9 +537,9 @@ void PdfTokenizer::readDataType(const PdfRefCountedInputDevice& device, EPdfLite
         case EPdfLiteralDataType::Number:
         case EPdfLiteralDataType::Real:
         case EPdfLiteralDataType::Reference:
-            break;
+            return true;
         default:
-            PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDataType, "Unexpected data type" );
+            return false;
     }
 }
 
@@ -579,7 +585,9 @@ void PdfTokenizer::ReadDictionary(const PdfRefCountedInputDevice& device, PdfVar
             continue;
         }
 
-        this->readDataType(device, eDataType, val, pEncrypt);
+        if (!tryReadDataType(device, eDataType, val, pEncrypt))
+            PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "Could not read variant");
+
         dict.AddKey( key, val );
     }
 
