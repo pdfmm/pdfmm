@@ -195,7 +195,7 @@ void PdfStream::SetRawData(PdfInputStream& pStream, ssize_t lLen, bool markObjec
             lRead = pStream.Read( buffer, BUFFER_SIZE, eof);
             this->append(buffer, lRead);
         }
-        while (lLen > 0 && !eof);
+        while (!eof);
     }
     else
     {
