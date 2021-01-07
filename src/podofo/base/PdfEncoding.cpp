@@ -60,6 +60,8 @@ using namespace std;
 using namespace PoDoFo;
 
 static string getStringUtf8(const PdfString &str);
+static void readNextVariantSequence(PdfVariant& variant, PdfContentsTokenizer& tokenizer,
+    const string_view& endSequenceKeyword, bool &endOfSequence);
 
 PdfEncoding::PdfEncoding( int nFirstChar, int nLastChar, PdfObject* pToUnicode )
     : m_bToUnicodeIsLoaded(false), m_nFirstCode( nFirstChar ), m_nLastCode( nLastChar )
@@ -169,6 +171,7 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
     unique_ptr<PdfVariant> var( new PdfVariant() );
     EPdfContentsType tokenType;
     string_view token;
+    bool endOfSequence;
     while ( tokenizer.TryReadNext( tokenType, token, *var ) )
     {
         switch ( tokenType )
@@ -177,17 +180,16 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
             {
                 if (token == "begincodespacerange")
                 {
-                    if (tokens.size() != 1)
-                        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidStream, "CMap missing object number before begincodespacerange");
-
-                    int rangeCount = (int)tokens.front()->GetNumber();
                     maxCodeRangeSize = 0;
                     firstChar = numeric_limits<int>::max();
                     lastChar = 0;
-                    for (int i = 0; i < rangeCount; i++)
+                    while (true)
                     {
+                        readNextVariantSequence(*var, tokenizer, "endcodespacerange", endOfSequence);
+                        if (endOfSequence)
+                            break;
+
                         unsigned codeSize;
-                        tokenizer.TryReadNext(tokenType, token, *var);
                         uint32_t lowerBound = GetCodeFromVariant(*var, codeSize);
                         if (lowerBound < firstChar)
                             firstChar = (int)lowerBound;
@@ -195,7 +197,7 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                         if (codeSize > maxCodeRangeSize)
                             maxCodeRangeSize = codeSize;
 
-                        tokenizer.TryReadNext(tokenType, token, *var);
+                        tokenizer.ReadNextVariant(*var);
                         uint32_t upperBound = GetCodeFromVariant(*var, codeSize);
                         if (upperBound > lastChar)
                             lastChar = (int)upperBound;
@@ -206,14 +208,13 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                 }
                 else if (token == "beginbfrange")
                 {
-                    if ( tokens.size() != 1 )
-                        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidStream, "CMap missing object number before beginbfrange" );
-
-                    int rangeCount = (int)tokens.front()->GetNumber();
-                    for ( int i = 0; i < rangeCount; i++ )
+                    while (true)
                     {
+                        readNextVariantSequence(*var, tokenizer, "endbfrange", endOfSequence);
+                        if (endOfSequence)
+                            break;
+
                         unsigned codeSize;
-                        tokenizer.ReadNextVariant(*var);
                         uint32_t srcCodeLo = GetCodeFromVariant(*var, codeSize);
                         tokenizer.ReadNextVariant(*var);
                         uint32_t srcCodeHi = GetCodeFromVariant(*var);
@@ -248,24 +249,16 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                         else
                             PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "beginbfrange: expected array, string or array");
                     }
-
-                    if ( !tokenizer.TryReadNext(tokenType, token, *var)
-                        || tokenType != EPdfContentsType::Keyword
-                        || token != "endbfrange")
-                    {
-                        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidStream, "CMap missing final endbfrange keyword" );
-                    }
                 }
                 else if (token == "beginbfchar")
                 {
-                    if ( tokens.size() != 1 )
-                        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidStream, "CMap missing object number before beginbfchar" );
-
-                    int charCount = (int)tokens.front()->GetNumber();
-                    for ( int i = 0; i < charCount; i++ )
+                    while (true)
                     {
+                        readNextVariantSequence(*var, tokenizer, "endbfchar", endOfSequence);
+                        if (endOfSequence)
+                            break;
+
                         unsigned codeSize;
-                        tokenizer.ReadNextVariant(*var);
                         uint32_t srcCode = GetCodeFromVariant(*var, codeSize);
                         tokenizer.ReadNextVariant(*var);
                         auto &mappedstr = map[{ codeSize, srcCode }];
@@ -288,24 +281,16 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                         else
                             PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "beginbfchar: expected number or name");
                     }
-
-                    if ( !tokenizer.TryReadNext(tokenType, token, *var )
-                        || tokenType != EPdfContentsType::Keyword
-                        || token != "endbfchar")
-                    {
-                        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidStream, "CMap missing final endbfchar keyword" );
-                    }
                 }
                 else if (token == "begincidrange")
                 {
-                    if (tokens.size() != 1)
-                        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidStream, "CMap missing object number before begincidrange");
-
-                    int rangeCount = (int)tokens.front()->GetNumber();
-                    for (int i = 0; i < rangeCount; i++)
+                    while (true)
                     {
+                        readNextVariantSequence(*var, tokenizer, "endcidrange", endOfSequence);
+                        if (endOfSequence)
+                            break;
+
                         unsigned codeSize;
-                        tokenizer.ReadNextVariant(*var);
                         uint32_t srcCodeLo = GetCodeFromVariant(*var, codeSize);
                         tokenizer.ReadNextVariant(*var);
                         uint32_t srcCodeHi = GetCodeFromVariant(*var);
@@ -320,13 +305,6 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                             utf8::append((char32_t)(dstCIDLo + 1), mappedstr);
                         }
                     }
-
-                    if (!tokenizer.TryReadNext(tokenType, token, *var)
-                        || tokenType != EPdfContentsType::Keyword
-                        || token != "endcidrange")
-                    {
-                        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidStream, "CMap missing final endcidrange keyword");
-                    }
                 }
                 else if (token == "begincidchar")
                 {
@@ -336,21 +314,14 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
                     int charCount = (int)tokens.front()->GetNumber();
                     for (int i = 0; i < charCount; i++)
                     {
+                        tokenizer.TryReadNext(tokenType, token, *var);
                         unsigned codeSize;
-                        tokenizer.ReadNextVariant(*var);
                         uint32_t srcCode = GetCodeFromVariant(*var, codeSize);
                         tokenizer.ReadNextVariant(*var);
                         char32_t dstCid = (char32_t)GetCodeFromVariant(*var);
                         auto &mappedstr = map[{ codeSize, srcCode }];
                         mappedstr.clear();
                         utf8::append(dstCid, mappedstr);
-                    }
-
-                    if (!tokenizer.TryReadNext(tokenType, token, *var)
-                        || tokenType != EPdfContentsType::Keyword
-                        || token != "endcidchar")
-                    {
-                        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidStream, "CMap missing final endcidchar keyword");
                     }
                 }
 
@@ -2897,4 +2868,37 @@ string getStringUtf8(const PdfString &str)
     char16_t *u16str = (char16_t *)buffer.GetBuffer();
     utf8::utf16to8(u16str, u16str + std::char_traits<char16_t>::length(u16str), back_inserter(ret));
     return ret;
+}
+
+// Read variant from a sequence, unless it's the end of it
+// We found Pdf(s) that have mistmatching sequence length and
+// end of sequence marker, and Acrobat preflight treats them as valid,
+// so we must determine end of sequnce only on the end of
+// sequence keyword
+void readNextVariantSequence(PdfVariant& variant, PdfContentsTokenizer& tokenizer,
+    const string_view& endSequenceKeyword, bool& endOfSequence)
+{
+    EPdfContentsType tokenType;
+    string_view token;
+
+    if (!tokenizer.TryReadNext(tokenType, token, variant))
+        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidStream, "CMap unable to read a token");
+
+    switch (tokenType)
+    {
+    case EPdfContentsType::Keyword:
+        if (token == endSequenceKeyword)
+        {
+            endOfSequence = true;
+            break;
+        }
+
+        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidStream, string("CMap unable to read an end of sequence keyword ") + (string)endSequenceKeyword);
+    case EPdfContentsType::Variant:
+        endOfSequence = false;
+        break;
+    case EPdfContentsType::ImageData:
+    default:
+        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidEnumValue, "Unexpected token type");
+    }
 }
