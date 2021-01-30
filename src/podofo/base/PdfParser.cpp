@@ -1490,7 +1490,7 @@ bool ReadMagicWord(char ch, int& cursoridx)
 
         break;
     default:
-        throw std::exception();
+        throw std::runtime_error("Unexpected flow");
     }
 
     if (readchar)
