@@ -166,6 +166,8 @@ void PdfInputDevice::Seek( std::streamoff off, std::ios_base::seekdir dir )
     if (!m_bIsSeekable)
         PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDeviceOperation, "Tried to seek an unseekable input device.");
 
+    // NOTE: Some c++ libraries don't reset eofbit prior seeking
+    m_pStream->clear(m_pStream->rdstate() & ~ios_base::eofbit);
     m_pStream->seekg( off, dir );
     if (m_pStream->fail())
         PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDeviceOperation, "Failed to seek to given position in the stream");
