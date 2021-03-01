@@ -184,7 +184,7 @@ void PdfParser::Parse(const PdfRefCountedInputDevice& device, bool bLoadOnDemand
     {
         if(!IsPdfFile(device))
             PODOFO_RAISE_ERROR( EPdfError::NoPdfFile );
-    
+
         ReadDocumentStructure(device);
         ReadObjects(device);
     }
@@ -1415,22 +1415,21 @@ void PdfParser::CheckEOFMarker(const PdfRefCountedInputDevice& device)
     {
         // Search for the Marker from the end of the file
         ssize_t lCurrentPos = device.Device()->Tell();
+
         bool bFound = false;
-        while (lCurrentPos>=0)
+        while (lCurrentPos >= 0)
         {
-            device.Device()->Seek(lCurrentPos, ios_base::beg);
-            if (static_cast<size_t>(device.Device()->Read( pszBuff, nEOFTokenLen )) != nEOFTokenLen
-                && !device.Device()->Eof())
-            {
+            if (static_cast<size_t>(device.Device()->Read( pszBuff, nEOFTokenLen )) != nEOFTokenLen)
                 PODOFO_RAISE_ERROR(EPdfError::NoEOFToken);
-            }
 
             if (strncmp( pszBuff, pszEOFToken, nEOFTokenLen) == 0)
             {
                 bFound = true;
                 break;
             }
+
             --lCurrentPos;
+            device.Device()->Seek(lCurrentPos, ios_base::beg);
         }
 
         // Try and deal with garbage by offsetting the buffer reads in PdfParser from now on
