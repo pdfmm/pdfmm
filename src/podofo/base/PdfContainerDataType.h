@@ -50,6 +50,7 @@ class PdfReference;
 class PODOFO_API PdfContainerDataType : public PdfDataType
 {
     friend class PdfObject;
+
 protected:
     /** Create a new PdfDataOwnedType.
      *  Can only be called by subclasses
@@ -68,19 +69,6 @@ public:
  */
     inline const PdfObject* GetOwner() const { return m_pOwner; }
     inline PdfObject* GetOwner() { return m_pOwner; }
-
-    /** The dirty flag is set if this container
-     *  has been modified after construction.
-     *
-     *  Usually the dirty flag is also set
-     *  if you call any non-const member function
-     *  as we cannot determine if you actually changed
-     *  something or not.
-     *
-     *  \returns true if the value is dirty and has been
-     *                modified since construction
-     */
-    bool IsDirty() const { return m_isDirty; }
 
     /**
      * Retrieve if an object is immutable.
@@ -111,13 +99,14 @@ protected:
     PdfDocument * GetObjectDocument();
     virtual void SetOwner( PdfObject *pOwner );
     void SetDirty();
+    bool IsIndirectReferenceAllowed(const PdfObject& obj);
+
 private:
     void ResetDirty();
 
 private:
     PdfObject *m_pOwner;
     bool m_isImmutable;
-    bool m_isDirty;
 };
 
 }; // namespace PoDoFo

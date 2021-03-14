@@ -148,9 +148,9 @@ void PdfFontCID::Init( bool bEmbed, bool bSubset )
 
     if (m_pEncoding->IsSingleByteEncoding())
     {
-    pDescriptor      = this->GetObject()->GetDocument()->GetObjects().CreateObject("FontDescriptor");
+        pDescriptor = this->GetObject()->GetDocument()->GetObjects().CreateDictionaryObject("FontDescriptor");
 
-    // Now setting each of the entries of the font
+        // Now setting each of the entries of the font
         this->GetObject()->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("TrueType"));
         this->GetObject()->GetDictionary().AddKey( "BaseFont", this->GetBaseFont() );
         this->GetObject()->GetDictionary().AddKey( "FontDescriptor", pDescriptor->GetIndirectReference() );
@@ -159,37 +159,38 @@ void PdfFontCID::Init( bool bEmbed, bool bSubset )
         m_pEncoding->AddToDictionary( this->GetObject()->GetDictionary() );
 
     }
-    else {
-        pDescriptor = this->GetObject()->GetDocument()->GetObjects().CreateObject("FontDescriptor");
+    else
+    {
+        pDescriptor = this->GetObject()->GetDocument()->GetObjects().CreateDictionaryObject("FontDescriptor");
 
         // Now setting each of the entries of the font
-    this->GetObject()->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("Type0") );
-    this->GetObject()->GetDictionary().AddKey( "BaseFont", this->GetBaseFont() );
+        this->GetObject()->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("Type0") );
+        this->GetObject()->GetDictionary().AddKey( "BaseFont", this->GetBaseFont() );
 
-    // The encoding is here usually a (Predefined) CMap from PdfIdentityEncoding:
-    m_pEncoding->AddToDictionary( this->GetObject()->GetDictionary() );
+        // The encoding is here usually a (Predefined) CMap from PdfIdentityEncoding:
+        m_pEncoding->AddToDictionary( this->GetObject()->GetDictionary() );
 
         // The descendant font is a CIDFont:
-        m_pDescendantFonts = this->GetObject()->GetDocument()->GetObjects().CreateObject("Font");
+        m_pDescendantFonts = this->GetObject()->GetDocument()->GetObjects().CreateDictionaryObject("Font");
 
-    // The DecendantFonts, should be an indirect object:
-    array.push_back( m_pDescendantFonts->GetIndirectReference() );
-    this->GetObject()->GetDictionary().AddKey( "DescendantFonts", array );
+        // The DecendantFonts, should be an indirect object:
+        array.push_back( m_pDescendantFonts->GetIndirectReference() );
+        this->GetObject()->GetDictionary().AddKey( "DescendantFonts", array );
 
-    // Setting the DescendantFonts paras
-    // This is a type2 CIDFont, which is also known as TrueType:
-    m_pDescendantFonts->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("CIDFontType2") );
-
-    // Same base font as the owner font:
-    m_pDescendantFonts->GetDictionary().AddKey( "BaseFont", this->GetBaseFont() );
-
-    // The CIDSystemInfo, should be an indirect object:
-        PdfObject* pCIDSystemInfo = this->GetObject()->GetDocument()->GetObjects().CreateObject();
-    m_pDescendantFonts->GetDictionary().AddKey( "CIDSystemInfo", pCIDSystemInfo->GetIndirectReference() );
-    // Setting the CIDSystemInfo paras:
-    pCIDSystemInfo->GetDictionary().AddKey( "Registry", PdfString("Adobe") );
-    pCIDSystemInfo->GetDictionary().AddKey( "Ordering", PdfString("Identity") );
-    pCIDSystemInfo->GetDictionary().AddKey( "Supplement", PdfVariant(static_cast<int64_t>(0)) );
+        // Setting the DescendantFonts paras
+        // This is a type2 CIDFont, which is also known as TrueType:
+        m_pDescendantFonts->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("CIDFontType2") );
+    
+        // Same base font as the owner font:
+        m_pDescendantFonts->GetDictionary().AddKey( "BaseFont", this->GetBaseFont() );
+    
+        // The CIDSystemInfo, should be an indirect object:
+            PdfObject* pCIDSystemInfo = this->GetObject()->GetDocument()->GetObjects().CreateDictionaryObject();
+        m_pDescendantFonts->GetDictionary().AddKey( "CIDSystemInfo", pCIDSystemInfo->GetIndirectReference() );
+        // Setting the CIDSystemInfo paras:
+        pCIDSystemInfo->GetDictionary().AddKey( "Registry", PdfString("Adobe") );
+        pCIDSystemInfo->GetDictionary().AddKey( "Ordering", PdfString("Identity") );
+        pCIDSystemInfo->GetDictionary().AddKey( "Supplement", PdfVariant(static_cast<int64_t>(0)) );
 
         // The FontDescriptor, should be an indirect object:
         m_pDescendantFonts->GetDictionary().AddKey( "FontDescriptor", pDescriptor->GetIndirectReference() );
@@ -201,7 +202,7 @@ void PdfFontCID::Init( bool bEmbed, bool bSubset )
             this->CreateWidth( m_pDescendantFonts );
 
             // Create the ToUnicode CMap
-            PdfObject* pUnicode = this->GetObject()->GetDocument()->GetObjects().CreateObject();
+            PdfObject* pUnicode = this->GetObject()->GetDocument()->GetObjects().CreateDictionaryObject();
 
             this->CreateCMap( pUnicode );
             this->GetObject()->GetDictionary().AddKey( "ToUnicode", pUnicode->GetIndirectReference() );
@@ -229,7 +230,9 @@ void PdfFontCID::Init( bool bEmbed, bool bSubset )
     {
         this->EmbedFont( pDescriptor );
         m_bWasEmbedded = true;
-    } else if (!bEmbed && !bSubset) {
+    }
+    else if (!bEmbed && !bSubset)
+    {
         // it's not asked to be embedded, thus mark as embedded already, to not do that at PdfFontCID::EmbedFont()
         m_bWasEmbedded = true;
     }
@@ -277,7 +280,7 @@ void PdfFontCID::EmbedFont( PdfObject* pDescriptor )
                 UnicodeToIndex unicodeToIndex = getUnicodeToIndexTable(m_pEncoding);
                 createWidths(this->GetObject(), pMetrics, m_setUsed, unicodeToIndex);
         
-                PdfObject* pUnicode = this->GetObject()->GetDocument()->GetObjects().CreateObject();
+                PdfObject* pUnicode = this->GetObject()->GetDocument()->GetObjects().CreateDictionaryObject();
                 GidToCodePoint gidToCodePoint = getGidToCodePoint( m_pEncoding, pMetrics, m_setUsed, unicodeToIndex);
                 fillUnicodeStream( pUnicode->GetOrCreateStream(), gidToCodePoint, *m_setUsed.begin(), *m_setUsed.rbegin(), true);
                 this->GetObject()->GetDictionary().AddKey( "ToUnicode", pUnicode->GetIndirectReference() );
@@ -285,7 +288,7 @@ void PdfFontCID::EmbedFont( PdfObject* pDescriptor )
             else {
                 createWidths(m_pDescendantFonts, pMetrics, m_setUsed);
 
-                PdfObject* pUnicode = this->GetObject()->GetDocument()->GetObjects().CreateObject();
+                PdfObject* pUnicode = this->GetObject()->GetDocument()->GetObjects().CreateDictionaryObject();
                 GidToCodePoint gidToCodePoint = getGidToCodePoint( m_pEncoding, pMetrics, m_setUsed);
                 fillUnicodeStream( pUnicode->GetOrCreateStream(), gidToCodePoint, *m_setUsed.begin(), *m_setUsed.rbegin(), false);
                 this->GetObject()->GetDictionary().AddKey( "ToUnicode", pUnicode->GetIndirectReference() );
@@ -302,17 +305,18 @@ void PdfFontCID::EmbedFont( PdfObject* pDescriptor )
 
             if (!m_pEncoding->IsSingleByteEncoding())
             {
-                if (!array.empty()) {
-                    PdfObject* cidSet = pDescriptor->GetDocument()->GetObjects().CreateObject();
+                if (!array.empty())
+                {
+                    PdfObject* cidSet = pDescriptor->GetDocument()->GetObjects().CreateDictionaryObject();
                     TVecFilters vecFlate;
                     vecFlate.push_back(EPdfFilter::FlateDecode);
                     PdfMemoryInputStream stream(reinterpret_cast<const char*>(array.data()), array.size());
 					cidSet->GetOrCreateStream().Set(&stream, vecFlate);
                     pDescriptor->GetDictionary().AddKey("CIDSet", cidSet->GetIndirectReference());
-			}
+			    }
             }
 
-            PdfObject *pContents = this->GetObject()->GetDocument()->GetObjects().CreateObject();
+            PdfObject *pContents = this->GetObject()->GetDocument()->GetObjects().CreateDictionaryObject();
 			pDescriptor->GetDictionary().AddKey( "FontFile2", pContents->GetIndirectReference() );
 
             size_t lSize = buffer.GetSize();
@@ -328,7 +332,7 @@ void PdfFontCID::EmbedFont( PdfObject* pDescriptor )
         PdfObject* pContents;
         size_t lSize = 0;
     
-        pContents = this->GetObject()->GetDocument()->GetObjects().CreateObject();
+        pContents = this->GetObject()->GetDocument()->GetObjects().CreateDictionaryObject();
         if( !pContents || !m_pMetrics )
         {
             PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );

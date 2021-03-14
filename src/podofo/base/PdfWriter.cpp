@@ -111,7 +111,7 @@ void PdfWriter::Write(PdfOutputDevice& device)
         m_pEncrypt->GenerateEncryptionKey( m_identifier );
 
         // Add our own Encryption dictionary
-        m_pEncryptObj = m_vecObjects->CreateObject();
+        m_pEncryptObj = m_vecObjects->CreateDictionaryObject();
         m_pEncrypt->CreateEncryptionDictionary( m_pEncryptObj->GetDictionary() );
     }
 
@@ -272,10 +272,9 @@ void PdfWriter::CreateFileIdentifier(PdfString & identifier, const PdfObject& pT
             idObj = m_vecObjects->GetObject( idObj->GetReference() );
         }
 
-        TCIVariantList it = idObj->GetArray().begin();
+        auto it = idObj->GetArray().begin();
         const PdfString* str;
-        if( it != idObj->GetArray().end() &&
-            it->TryGetString(str) && str->IsHex() )
+        if (it != idObj->GetArray().end() && it->TryGetString(str) && str->IsHex())
         {
             *pOriginalIdentifier = it->GetString();
             bOriginalIdentifierFound = true;

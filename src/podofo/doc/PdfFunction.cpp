@@ -42,13 +42,13 @@
 namespace PoDoFo {
 
 PdfFunction::PdfFunction( EPdfFunctionType eType, const PdfArray & rDomain, PdfVecObjects* pParent )
-    : PdfElement( nullptr, pParent )
+    : PdfElement(*pParent)
 {
     Init( eType, rDomain );
 }
 
 PdfFunction::PdfFunction( EPdfFunctionType eType, const PdfArray & rDomain, PdfDocument* pParent )
-    : PdfElement( nullptr, pParent )
+    : PdfElement(*pParent)
 {
     Init( eType, rDomain );
 }
@@ -75,8 +75,8 @@ PdfSampledFunction::PdfSampledFunction( const PdfArray & rDomain,  const PdfArra
 void PdfSampledFunction::Init( const PdfArray & rDomain,  const PdfArray & rRange, const PdfFunction::Sample & rlstSamples )
 {
 	PdfArray Size;
-	for( int i = 0; i < rDomain.GetSize() / 2; i++ )
-		Size.push_back( PdfObject( static_cast<int64_t>(rDomain.GetSize() / 2 )) );
+    for (size_t i = 0; i < rDomain.GetSize() / 2; i++)
+        Size.push_back(PdfObject(static_cast<int64_t>(rDomain.GetSize() / 2)));
 
     this->GetObject()->GetDictionary().AddKey( PdfName("Domain"), rDomain );
     this->GetObject()->GetDictionary().AddKey( PdfName("Range"), rRange );

@@ -435,21 +435,21 @@ TVecFilters PdfFilterFactory::CreateFilterList( const PdfObject* pObject )
 	// Object had no /Filter key . Return a null filter list.
 	return filters;
 
-    if( pObj->IsName() ) 
-        filters.push_back( PdfFilterFactory::FilterNameToType( pObj->GetName() ) );
+    if (pObj->IsName())
+    {
+        filters.push_back(PdfFilterFactory::FilterNameToType(pObj->GetName()));
+    }
     else if( pObj->IsArray() ) 
     {
-        TCIVariantList it = pObj->GetArray().begin();
-
-        while( it != pObj->GetArray().end() )
+        for (auto &filter : pObj->GetArray())
         {
-            if ( (*it).IsName() )
+            if (filter.IsName())
 			{
-                filters.push_back( PdfFilterFactory::FilterNameToType( (*it).GetName() ) );
+                filters.push_back( PdfFilterFactory::FilterNameToType(filter.GetName()));
             }
-            else if ( (*it).IsReference() )
+            else if (filter.IsReference())
             {
-                PdfObject* pFilter = pObject->GetDocument()->GetObjects().GetObject( (*it).GetReference() );
+                PdfObject* pFilter = pObject->GetDocument()->GetObjects().GetObject(filter.GetReference());
                 if( pFilter == nullptr ) 
                 {
                     PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDataType, "Filter array contained unexpected reference" );
@@ -461,8 +461,6 @@ TVecFilters PdfFilterFactory::CreateFilterList( const PdfObject* pObject )
             {
                 PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDataType, "Filter array contained unexpected non-name type" );
 			}
-                
-            ++it;
         }
     }
 

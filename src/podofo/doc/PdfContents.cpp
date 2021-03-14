@@ -90,7 +90,7 @@ PdfStream & PdfContents::GetStreamForAppending(EPdfStreamAppendFlags flags)
         // Record all content and readd into a new stream that
         // substitue all the previous streams
         PdfMemoryOutputStream memstream;
-        for (int i = 0; i < arr->GetSize(); i++)
+        for (size_t i = 0; i < arr->GetSize(); i++)
         {
             auto stream = (*arr).FindAt(i).GetStream();
             if (stream != nullptr && stream->GetLength() != 0)
@@ -99,7 +99,7 @@ PdfStream & PdfContents::GetStreamForAppending(EPdfStreamAppendFlags flags)
 
         if (memstream.GetLength() != 0)
         {
-            PdfObject* newobj = m_object->GetDocument()->GetObjects().CreateObject();
+            PdfObject* newobj = m_object->GetDocument()->GetObjects().CreateDictionaryObject();
             auto &stream = newobj->GetOrCreateStream();
             stream.BeginAppend();
             stream.Append("q\n");
@@ -113,7 +113,7 @@ PdfStream & PdfContents::GetStreamForAppending(EPdfStreamAppendFlags flags)
     }
 
     // Create a new stream, add it to the array, return it
-    PdfObject * newStm = m_object->GetDocument()->GetObjects().CreateObject();
+    PdfObject * newStm = m_object->GetDocument()->GetObjects().CreateDictionaryObject();
     if ((flags & EPdfStreamAppendFlags::Prepend) == EPdfStreamAppendFlags::Prepend)
         arr->insert(arr->begin(), newStm->GetIndirectReference());
     else

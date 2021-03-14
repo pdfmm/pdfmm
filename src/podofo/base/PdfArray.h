@@ -46,8 +46,6 @@ namespace PoDoFo {
  *  Use it for all arrays that are written to a PDF file.
  *  
  *  A PdfArray can hold any PdfVariant.
- *  NOTE: The stl compatible methods take size_t as parameter for size and indices.
- *  Other methods take int
  *
  *  \see PdfVariant
  */
@@ -89,7 +87,7 @@ public:
     /** 
      *  \returns the size of the array
      */
-    int GetSize() const;
+    size_t GetSize() const;
 
     /** Remove all elements from the array
      */
@@ -115,11 +113,20 @@ public:
      *  \param idx
      *  \returns pointer to the found value. nullptr if the index was out of the boundaries
      */
-    const PdfObject & FindAt(int idx ) const;
-    PdfObject & FindAt(int idx );
+    const PdfObject & FindAt(size_t idx) const;
+    PdfObject & FindAt(size_t idx );
 
-    void RemoveAt(int index);
+    void RemoveAt(size_t index);
 
+    void Add(const PdfObject& obj);
+
+    void SetAt(const PdfObject& obj, size_t idx);
+    
+    void AddIndirect(const PdfObject& obj);
+
+    void SetAtIndirect(const PdfObject& obj, size_t idx);
+
+public:
     /** Adds a PdfObject to the array
      *
      *  \param var add a PdfObject to the array
@@ -127,7 +134,7 @@ public:
      *  This will set the dirty flag of this object.
      *  \see IsDirty
      */
-    void push_back( const PdfObject & var );
+    void push_back(const PdfObject& obj);
 
     /** Remove all elements from the array
      */
@@ -243,15 +250,18 @@ public:
      */
     const_reference back() const;
 
+public:
     bool operator==( const PdfArray & rhs ) const;
     bool operator!=( const PdfArray & rhs ) const;
 
- protected:
+protected:
      void ResetDirtyInternal() override;
      void SetOwner( PdfObject* pOwner ) override;
 
- private:
-    PdfObject & findAt(int idx) const;
+private:
+    void add(const PdfObject& obj);
+    iterator insertAt(const iterator& pos, const PdfObject& val);
+    PdfObject & findAt(size_t idx) const;
 
  private:
     std::vector<PdfObject> m_objects;
@@ -276,10 +286,6 @@ void PdfArray::insert(const PdfArray::iterator& pos,
 
     SetDirty();
 }
-
-typedef PdfArray                 TVariantList;
-typedef PdfArray::iterator       TIVariantList;
-typedef PdfArray::const_iterator TCIVariantList;
 
 };
 

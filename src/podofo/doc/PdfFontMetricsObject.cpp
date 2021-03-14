@@ -94,78 +94,88 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescri
             }
             m_missingWidth = widths;
         }
-	} else if ( rSubType == PdfName("CIDFontType0") || rSubType == PdfName("CIDFontType2") ) {
-		PdfObject *pObj = pDescriptor->GetIndirectKey( "FontName" );
-		if (pObj) {
-			m_sName = pObj->GetName();
-		}
-		pObj = pDescriptor->GetIndirectKey( "FontBBox" );
-		if (pObj) {
-			m_bbox = pObj->GetArray();
-		}
-		m_nFirst = 0;
-		m_nLast = 0;
+    }
+    else if (rSubType == PdfName("CIDFontType0") || rSubType == PdfName("CIDFontType2"))
+    {
+        PdfObject* pObj = pDescriptor->GetIndirectKey("FontName");
+        if (pObj != nullptr)
+            m_sName = pObj->GetName();
 
-		m_dDefWidth = static_cast<double>(pFont->GetDictionary().GetKeyAsNumber( "DW", 1000L ));
-		PdfVariant default_width(m_dDefWidth);
-		PdfObject * pw = pFont->GetIndirectKey( "W" );
+        pObj = pDescriptor->GetIndirectKey("FontBBox");
+        if (pObj != nullptr)
+            m_bbox = pObj->GetArray();
 
-		for (int i = m_nFirst; i <= m_nLast; ++i) {
-			m_width.push_back(default_width);
-		}
-		if (pw) {
-			PdfArray w = pw->GetArray();
-			int pos = 0;
-			while (pos < static_cast<int>(w.GetSize())) {
-				int start = static_cast<int>(w[pos++].GetNumberLenient());
-				PODOFO_ASSERT (start >= 0);
-				PdfObject * second = &w[pos];
-				if (second->IsReference()) {
-					// second do not have an associated owner; use the one in pw
-					second = pw->GetDocument()->GetObjects().GetObject(second->GetReference());
-					PODOFO_ASSERT (!second->IsNull());
-				}
-				if (second->IsArray()) {
-					PdfArray widths = second->GetArray();
-					++pos;
-					int length = start + widths.GetSize();
-					PODOFO_ASSERT (length >= start);
-					if (length > m_width.GetSize()) {
-						m_width.resize(length, default_width);
-					}
-					for (int i = 0; i < widths.GetSize(); ++i) {
-						m_width[start + i] = widths[i];
-					}
-				} else {
-					int end = static_cast<int>(w[pos++].GetNumberLenient());
-					int length = end + 1;
-					PODOFO_ASSERT (length >= start);
-					if (length > m_width.GetSize()) {
-						m_width.resize(length, default_width);
-					}
-					int64_t width = w[pos++].GetNumberLenient();
-					for (int i = start; i <= end; ++i)
-						m_width[i] = PdfObject(width);
-				}
-			}
-		}
-		m_nLast = m_width.GetSize() - 1;
-    } else {
+        m_nFirst = 0;
+        m_nLast = 0;
+
+        m_dDefWidth = static_cast<double>(pFont->GetDictionary().GetKeyAsNumber("DW", 1000L));
+        PdfVariant default_width(m_dDefWidth);
+        PdfObject* pw = pFont->GetIndirectKey("W");
+
+        for (int i = m_nFirst; i <= m_nLast; ++i)
+            m_width.push_back(default_width);
+
+        if (pw != nullptr)
+        {
+            PdfArray w = pw->GetArray();
+            size_t pos = 0;
+            while (pos < w.GetSize())
+            {
+                size_t start = (size_t)w[pos++].GetNumberLenient();
+                PdfObject* second = &w[pos];
+                if (second->IsReference())
+                {
+                    // second do not have an associated owner; use the one in pw
+                    second = pw->GetDocument()->GetObjects().GetObject(second->GetReference());
+                    PODOFO_ASSERT(!second->IsNull());
+                }
+                if (second->IsArray())
+                {
+                    PdfArray widths = second->GetArray();
+                    ++pos;
+                    size_t length = start + widths.GetSize();
+                    PODOFO_ASSERT(length >= start);
+                    if (length > m_width.GetSize())
+                        m_width.resize(length, default_width);
+
+                    for (size_t i = 0; i < widths.GetSize(); ++i)
+                        m_width[start + i] = widths[i];
+                }
+                else
+                {
+                    size_t end = (size_t)w[pos++].GetNumberLenient();
+                    size_t length = end + 1;
+                    PODOFO_ASSERT(length >= start);
+                    if (length > m_width.GetSize())
+                        m_width.resize(length, default_width);
+
+                    int64_t width = w[pos++].GetNumberLenient();
+                    for (size_t i = start; i <= end; ++i)
+                        m_width[i] = PdfObject(width);
+                }
+            }
+        }
+        m_nLast = (int)m_width.GetSize() - 1;
+    }
+    else
+    {
         PODOFO_RAISE_ERROR_INFO( EPdfError::UnsupportedFontFormat, rSubType.GetEscapedName().c_str() );
 	}
     
-    if ( pDescriptor ) {
+    if ( pDescriptor )
+    {
         m_nWeight      = static_cast<unsigned int>(pDescriptor->GetDictionary().GetKeyAsNumber( "FontWeight", 400L ));
         m_nItalicAngle = static_cast<int>(pDescriptor->GetDictionary().GetKeyAsNumber( "ItalicAngle", 0L ));
         m_dPdfAscent   = pDescriptor->GetDictionary().GetKeyAsReal( "Ascent", 0.0 );
         m_dPdfDescent  = pDescriptor->GetDictionary().GetKeyAsReal( "Descent", 0.0 );
-    } else {
+    }
+    else
+    {
         m_nWeight      = 400L;
         m_nItalicAngle = 0L;
         m_dPdfAscent   = 0.0;
         m_dPdfDescent  = 0.0;
     }
-
 
     if (fontmatrix == nullptr)
     {
@@ -204,7 +214,7 @@ void PdfFontMetricsObject::GetBoundingBox( PdfArray & array ) const
 double PdfFontMetricsObject::CharWidth( unsigned char c ) const
 {
     if( c >= m_nFirst && c <= m_nLast
-        && c - m_nFirst < m_width.GetSize())
+        && c - m_nFirst < (int)m_width.GetSize())
     {
         double dWidth = m_width[c - m_nFirst].GetReal();
         
@@ -221,7 +231,7 @@ double PdfFontMetricsObject::CharWidth( unsigned char c ) const
 double PdfFontMetricsObject::UnicodeCharWidth( unsigned short c ) const
 {
     if( c >= m_nFirst && c <= m_nLast
-        && c - m_nFirst < m_width.GetSize())
+        && c - m_nFirst < (int)m_width.GetSize())
     {
         double dWidth = m_width[c - m_nFirst].GetReal();
         

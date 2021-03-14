@@ -68,7 +68,7 @@ PdfField::PdfField( EPdfField eField, PdfAnnotation* pWidget, PdfDocument &pDoc,
 {
     auto parent = pDoc.GetAcroForm();
     if (m_pObject == nullptr)
-        m_pObject = parent->GetDocument()->GetObjects().CreateObject();
+        m_pObject = parent->GetDocument()->GetObjects().CreateDictionaryObject();
 
     Init(insertInAcroform ? parent : nullptr);
 }
@@ -119,7 +119,7 @@ PdfField * PdfField::createChildField(PdfPage *page, const PdfRect &rect)
     PdfObject *childObj;
     if (page == nullptr)
     {
-        childObj = doc->GetObjects().CreateObject();
+        childObj = doc->GetObjects().CreateDictionaryObject();
         field = createField(type, childObj, nullptr);
     }
     else
@@ -1032,14 +1032,14 @@ void PdfListField::InsertItem( const PdfString & rsValue, const PdfString & rsDi
     */
 }
 
-void PdfListField::RemoveItem( int nIndex )
+void PdfListField::RemoveItem(size_t nIndex )
 {
     PdfArray   opt;
 
     if(GetFieldObject()->GetDictionary().HasKey( PdfName("Opt") ) )
         opt = GetFieldObject()->GetDictionary().GetKey( PdfName("Opt") )->GetArray();
     
-    if( nIndex < 0 || nIndex > static_cast<int>(opt.size()) )
+    if( nIndex >= opt.size())
     {
         PODOFO_RAISE_ERROR( EPdfError::ValueOutOfRange );
     }
@@ -1048,17 +1048,15 @@ void PdfListField::RemoveItem( int nIndex )
     GetFieldObject()->GetDictionary().AddKey( PdfName("Opt"), opt );
 }
 
-const PdfString PdfListField::GetItem( int nIndex ) const
+const PdfString PdfListField::GetItem( size_t nIndex ) const
 {
     PdfObject *opt = GetFieldObject()->GetDictionary().FindKey( "Opt" );
     if ( opt == nullptr )
         return PdfString::StringNull;
 
     PdfArray &optArray = opt->GetArray();
-    if (nIndex < 0 || nIndex >= optArray.GetSize())
-    {
+    if (nIndex >= optArray.GetSize())
         PODOFO_RAISE_ERROR( EPdfError::ValueOutOfRange );
-    }
 
     PdfObject &item = optArray[nIndex];
     if( item.IsArray() )
@@ -1131,19 +1129,19 @@ int PdfListField::GetSelectedIndex() const
         return -1;
 
     PdfArray &optArray = opt->GetArray();
-    for (int i = 0; i < optArray.GetSize(); i++)
+    for (size_t i = 0; i < optArray.GetSize(); i++)
     {
         auto& found = optArray.FindAt(i);
         if (found.IsString())
         {
             if (found.GetString() == value)
-                return i;
+                return (int)i;
         }
         else if (found.IsArray())
         {
             auto& arr = found.GetArray();
             if (arr.FindAt(0).GetString() == value)
-                return i;
+                return (int)i;
         }
         else
         {

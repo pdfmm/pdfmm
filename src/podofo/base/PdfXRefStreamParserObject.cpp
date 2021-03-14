@@ -180,12 +180,8 @@ void PdfXRefStreamParserObject::GetIndeces( std::vector<int64_t> & rvecIndeces, 
             PODOFO_RAISE_ERROR( EPdfError::NoXRef );
         }
 
-        TCIVariantList it = arr.GetArray().begin();
-        while ( it != arr.GetArray().end() )
-        {
-            rvecIndeces.push_back( (*it).GetNumber() );
-            ++it;
-        }
+        for (auto index : arr.GetArray())
+            rvecIndeces.push_back(index.GetNumber());
     }
     else
     {

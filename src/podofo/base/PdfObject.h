@@ -86,14 +86,6 @@ public:
 
     virtual ~PdfObject() { }
 
-    /** Construct a new PDF object of type PdfDictionary.
-     *
-     *  \param rRef reference of this object
-     *  \param pszType if this parameter is not null a key "/Type" will
-     *                 be added to the dictionary with the parameter's value.
-     */
-    PdfObject( const PdfReference & rRef, const char* pszType);
-
     /** Create a PDF object with object and generation number -1
      *  and the value of the passed variant.
      *
@@ -464,7 +456,7 @@ public:
      */
     bool operator!=(const PdfVariant& rhs) const;
 
-    /** Creates a copy of an existing PdfObject.
+    /** Copy an existing PdfObject.
      *  All associated objects and streams will be copied along with the PdfObject.
      *  \param rhs PdfObject to clone
      *  \returns a reference to this object
@@ -496,7 +488,7 @@ public:
     /** Get an indirect reference to this object.
      *  \returns a PdfReference pointing to this object.
      */
-    inline const PdfReference& GetIndirectReference() const { return m_reference; }
+    inline const PdfReference& GetIndirectReference() const { return m_IndirectReference; }
 
     inline const PdfContainerDataType* GetParent() const { return m_Parent; }
 
@@ -529,6 +521,8 @@ public:
     inline bool DelayedLoadDone() const { return m_bDelayedLoadDone; }
 
 protected:
+    PdfObject(const PdfVariant& var, bool isDirty);
+
     /**
      * Dynamically load the contents of this object from a PDF file by calling
      * the virtual method DelayedLoadImpl() if the object is not already loaded.
@@ -595,17 +589,23 @@ protected:
 
     void EnableDelayedLoadingStream();
 
-    inline void SetIndirectReference(const PdfReference& reference) { m_reference = reference; }
+    inline void SetIndirectReference(const PdfReference& reference) { m_IndirectReference = reference; }
 
 private:
+    // Assign function that doesn't set dirty
+    void Assign(const PdfObject& rhs);
+
+    void assign(const PdfObject& rhs);
+
     void ResetDirty();
 
     void setDirty();
 
-    /* See PdfVariant.h for a detailed explanation of this member, which is
-     * here to prevent accidental construction of a PdfObject of integer type
-     * when passing a pointer. */
-    template<typename T> PdfObject(T*);
+    // See PdfVariant.h for a detailed explanation of this member, which is
+    // here to prevent accidental construction of a PdfObject of integer type
+    // when passing a pointer. */
+    template<typename T>
+    PdfObject(T*) = delete;
 
     void copyFrom(const PdfObject &obj);
 
@@ -618,7 +618,7 @@ protected:
     PdfVariant m_Variant;
 
 private:
-     PdfReference m_reference;
+     PdfReference m_IndirectReference;
      PdfDocument* m_Document;
      PdfContainerDataType* m_Parent;
      bool m_IsDirty; // Indicates if this object was modified after construction

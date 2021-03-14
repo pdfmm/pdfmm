@@ -782,13 +782,13 @@ protected:
      *
      * @param nIndex index of the item to remove
      */
-    void RemoveItem( int nIndex );
+    void RemoveItem(size_t nIndex );
 
     /** 
      * @param nIndex index of the item
      * @returns the value of the item at the specified index
      */
-    const PdfString GetItem( int nIndex ) const;
+    const PdfString GetItem(size_t nIndex ) const;
 
     /** 
      * @param nIndex index of the item

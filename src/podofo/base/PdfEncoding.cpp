@@ -456,7 +456,7 @@ void PdfSimpleEncoding::InitEncodingTable()
 
 void PdfSimpleEncoding::AddToDictionary( PdfDictionary & rDictionary ) const
 {
-    rDictionary.AddKey( PdfName("Encoding"), m_name );
+    rDictionary.AddKey("Encoding", m_name );
 }
 
 pdf_utf16be PdfSimpleEncoding::GetCharCode( int nIndex ) const
@@ -1004,9 +1004,9 @@ void PdfWinAnsiEncoding::AddToDictionary( PdfDictionary & rDictionary ) const
     if (!arDifferences.empty())
     {
         PdfDictionary dictEncoding;
-        dictEncoding.AddKey(PdfName("BaseEncoding"), PdfWinAnsiEncoding::GetName());
-        dictEncoding.AddKey(PdfName("Differences"), arDifferences);
-        rDictionary.AddKey(PdfName("Encoding"), dictEncoding);
+        dictEncoding.AddKey("BaseEncoding", PdfWinAnsiEncoding::GetName());
+        dictEncoding.AddKey("Differences", arDifferences);
+        rDictionary.AddKey("Encoding", dictEncoding);
     }
     else
     {

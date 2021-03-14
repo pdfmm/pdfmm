@@ -64,7 +64,7 @@ void PdfFontTrueType::EmbedFontFile( PdfObject* pDescriptor )
     
     m_bWasEmbedded = true;    
         
-    pContents = this->GetObject()->GetDocument()->GetObjects().CreateObject();
+    pContents = this->GetObject()->GetDocument()->GetObjects().CreateDictionaryObject();
     pDescriptor->GetDictionary().AddKey( "FontFile2", pContents->GetIndirectReference() );
 
     // if the data was loaded from memory - use it from there

@@ -45,9 +45,10 @@
 #include <sstream>
 #include <algorithm>
 
-namespace PoDoFo {
+using namespace PoDoFo;
 
-static struct {
+static struct
+{
     pdf_utf16be u; // in fact this might be little endian on LE systems
     const char *name;
 } nameToUnicodeTab[] = {
@@ -2337,11 +2338,8 @@ void PdfEncodingDifference::ToArray( PdfArray & rArray )
     }
 }
 
-// -----------------------------------------------------
-// PdfDifferenceEncoding
-// -----------------------------------------------------
 PdfDifferenceEncoding::PdfDifferenceEncoding( const PdfEncodingDifference & rDifference, PdfDocument* pParent, bool bAutoDelete )
-    : PdfEncoding( 0x00, 0xff ), PdfElement( "Encoding", pParent ), 
+    : PdfEncoding( 0x00, 0xff ), PdfElement(*pParent, "Encoding"),
       m_differences( rDifference ),
       m_bAutoDelete( bAutoDelete ), 
       m_baseEncoding( EBaseEncoding::Font )
@@ -2350,7 +2348,7 @@ PdfDifferenceEncoding::PdfDifferenceEncoding( const PdfEncodingDifference & rDif
 }
 
 PdfDifferenceEncoding::PdfDifferenceEncoding( const PdfEncodingDifference & rDifference, PdfVecObjects* pParent, bool bAutoDelete )
-    : PdfEncoding( 0x00, 0xff ), PdfElement( "Encoding", pParent ), 
+    : PdfEncoding( 0x00, 0xff ), PdfElement(*pParent, "Encoding"),
       m_differences( rDifference ),
       m_bAutoDelete( bAutoDelete ), 
       m_baseEncoding( EBaseEncoding::Font )
@@ -2360,7 +2358,7 @@ PdfDifferenceEncoding::PdfDifferenceEncoding( const PdfEncodingDifference & rDif
 
 PdfDifferenceEncoding::PdfDifferenceEncoding( const PdfEncodingDifference & rDifference, EBaseEncoding eBaseEncoding, 
                                               PdfDocument* pParent, bool bAutoDelete )
-    : PdfEncoding( 0x00, 0xff ), PdfElement( "Encoding", pParent ), 
+    : PdfEncoding( 0x00, 0xff ), PdfElement(*pParent, "Encoding"),
       m_differences( rDifference ),
       m_bAutoDelete( bAutoDelete ), 
       m_baseEncoding( eBaseEncoding )
@@ -2370,7 +2368,7 @@ PdfDifferenceEncoding::PdfDifferenceEncoding( const PdfEncodingDifference & rDif
 
 PdfDifferenceEncoding::PdfDifferenceEncoding( const PdfEncodingDifference & rDifference, EBaseEncoding eBaseEncoding, 
                                               PdfVecObjects* pParent, bool bAutoDelete )
-    : PdfEncoding( 0x00, 0xff ), PdfElement( "Encoding", pParent ), 
+    : PdfEncoding( 0x00, 0xff ), PdfElement(*pParent, "Encoding"),
       m_differences( rDifference ),
       m_bAutoDelete( bAutoDelete ), 
       m_baseEncoding( eBaseEncoding )
@@ -2379,44 +2377,41 @@ PdfDifferenceEncoding::PdfDifferenceEncoding( const PdfEncodingDifference & rDif
 }
 
 PdfDifferenceEncoding::PdfDifferenceEncoding( PdfObject* pObject, bool bAutoDelete, bool bExplicitNames )
-    : PdfEncoding( 0x00, 0xff ), PdfElement( nullptr, pObject ),
+    : PdfEncoding( 0x00, 0xff ), PdfElement(*pObject),
       m_bAutoDelete( bAutoDelete )
 {
     CreateID();
     
     m_baseEncoding = EBaseEncoding::WinAnsi;
 
-    if( this->GetObject()->GetDictionary().HasKey( PdfName("BaseEncoding") ) )
+    if( this->GetObject()->GetDictionary().HasKey("BaseEncoding") )
     {
-        const PdfName & rBase = this->GetObject()->GetDictionary().GetKey( PdfName("BaseEncoding") )->GetName();
+        const PdfName & rBase = this->GetObject()->GetDictionary().GetKey("BaseEncoding")->GetName();
         
-        if( rBase == PdfName("WinAnsiEncoding") )
+        if( rBase == "WinAnsiEncoding")
             m_baseEncoding = EBaseEncoding::WinAnsi;
-        else if( rBase == PdfName("MacRomanEncoding") )
+        else if( rBase == "MacRomanEncoding")
             m_baseEncoding = EBaseEncoding::MacRoman;
-        else if( rBase == PdfName("MacExpertEncoding") )
+        else if( rBase == "MacExpertEncoding")
             m_baseEncoding = EBaseEncoding::MacExpert;
     }    
 
     // Read the differences key
-    if( this->GetObject()->GetDictionary().HasKey( PdfName("Differences") ) )
+    if( this->GetObject()->GetDictionary().HasKey("Differences") )
     {
-        const PdfArray & rDifferences = this->GetObject()->GetIndirectKey( PdfName("Differences") )->GetArray();
-        PdfArray::const_iterator it = rDifferences.begin();
-
+        const PdfArray & rDifferences = this->GetObject()->GetIndirectKey("Differences")->GetArray();
         int64_t curCode = -1;
-
-        while( it != rDifferences.end() ) 
+        for (auto& diff : rDifferences)
         {
-            if( (*it).IsNumber() ) 
-                curCode = (*it).GetNumber();
-            else if( (*it).IsName() ) 
+            if (diff.IsNumber())
             {
-                m_differences.AddDifference( static_cast<int>(curCode), 0, (*it).GetName(), bExplicitNames );
+                curCode = diff.GetNumber();
+            }
+            else if (diff.IsName())
+            {
+                m_differences.AddDifference(static_cast<int>(curCode), 0, diff.GetName(), bExplicitNames);
                 ++curCode;
             }
-            
-            ++it;
         }
     }
 }
@@ -2466,7 +2461,7 @@ void PdfDifferenceEncoding::Init()
 
 void PdfDifferenceEncoding::AddToDictionary( PdfDictionary & rDictionary ) const
 {
-    rDictionary.AddKey( PdfName("Encoding"), this->GetObject()->GetIndirectReference() );
+    rDictionary.AddKeyIndirect( PdfName("Encoding"), *this->GetObject());
 }
 
 pdf_utf16be PdfDifferenceEncoding::GetCharCode( int nIndex ) const
@@ -2683,5 +2678,3 @@ const PdfEncoding* PdfDifferenceEncoding::GetBaseEncoding() const
 
     return pEncoding;
 }
-
-}; /* PoDoFo */

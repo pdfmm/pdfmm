@@ -81,20 +81,20 @@ class PODOFO_DOC_API PdfElement
 
     const PdfDocument & GetDocument() const;
 
- protected:
+protected:
     /** Creates a new PdfElement 
      *  \param pszType type entry of the elements object
      *  \param pParent parent vector of objects.
      *                 Add a newly created object to this vector.
      */
-    PdfElement( const char* pszType, PdfVecObjects* pParent );
+    PdfElement(PdfVecObjects& pParent, const std::string_view& type = { });
 
     /** Creates a new PdfElement 
      *  \param pszType type entry of the elements object
      *  \param pParent parent PdfDocument.
      *                 Add a newly created object to this vector.
      */
-    PdfElement( const char* pszType, PdfDocument* pParent );
+    PdfElement(PdfDocument& pParent, const std::string_view& type = { });
 
     /** Create a PdfElement from an existing PdfObject
      *  The object must be a dictionary.
@@ -105,7 +105,7 @@ class PODOFO_DOC_API PdfElement
      *  \param pObject pointer to the PdfObject that is modified
      *                 by this PdfElement
      */
-    PdfElement( const char* pszType, PdfObject* pObject );
+    PdfElement(PdfObject& obj);
 
     /** Create a PdfElement from an existing PdfObject
      *  The object might be of any data type, 

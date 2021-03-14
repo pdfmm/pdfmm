@@ -125,7 +125,7 @@ void PdfFontType1::EmbedSubsetFont()
 
     m_bWasEmbedded = true;
 
-    pContents = this->GetObject()->GetDocument()->GetObjects().CreateObject();
+    pContents = this->GetObject()->GetDocument()->GetObjects().CreateDictionaryObject();
     if( !pContents )
     {
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
@@ -386,7 +386,7 @@ void PdfFontType1::EmbedFontFile( PdfObject* pDescriptor )
 
     m_bWasEmbedded = true;
 
-    pContents = this->GetObject()->GetDocument()->GetObjects().CreateObject();
+    pContents = this->GetObject()->GetDocument()->GetObjects().CreateDictionaryObject();
     if( !pContents )
     {
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );

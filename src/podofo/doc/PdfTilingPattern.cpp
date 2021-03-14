@@ -46,7 +46,7 @@ PdfTilingPattern::PdfTilingPattern( EPdfTilingPatternType eTilingType,
 		 double offsetX, double offsetY,
 		 PdfImage *pImage,
 		 PdfVecObjects* pParent)
-    : PdfElement( "Pattern", pParent )
+    : PdfElement(*pParent, "Pattern")
 {
     std::ostringstream out;
     // We probably aren't doing anything locale sensitive here, but it's
@@ -68,7 +68,7 @@ PdfTilingPattern::PdfTilingPattern( EPdfTilingPatternType eTilingType,
 		 double offsetX, double offsetY,
 		 PdfImage *pImage,
 		 PdfDocument* pParent)
-    : PdfElement( "Pattern", pParent )
+    : PdfElement(*pParent, "Pattern")
 {
     std::ostringstream out;
     // We probably aren't doing anything locale sensitive here, but it's

@@ -47,7 +47,7 @@ namespace PoDoFo {
 
 PdfOutlineItem::PdfOutlineItem( const PdfString & sTitle, const PdfDestination & rDest, 
                                 PdfOutlineItem* pParentOutline, PdfVecObjects* pParent )
-    : PdfElement( nullptr, pParent ), 
+    : PdfElement(*pParent),
       m_pParentOutline( pParentOutline ), m_pPrev( nullptr ), m_pNext( nullptr ), 
       m_pFirst( nullptr ), m_pLast( nullptr ), m_pDestination( nullptr ), m_pAction( nullptr )
 {
@@ -60,7 +60,7 @@ PdfOutlineItem::PdfOutlineItem( const PdfString & sTitle, const PdfDestination &
 
 PdfOutlineItem::PdfOutlineItem( const PdfString & sTitle, const PdfAction & rAction, 
                                 PdfOutlineItem* pParentOutline, PdfVecObjects* pParent )
-    : PdfElement( nullptr, pParent ), 
+    : PdfElement(*pParent),
       m_pParentOutline( pParentOutline ), m_pPrev( nullptr ), m_pNext( nullptr ), 
       m_pFirst( nullptr ), m_pLast( nullptr ), m_pDestination( nullptr ), m_pAction( nullptr )
 {
@@ -72,7 +72,7 @@ PdfOutlineItem::PdfOutlineItem( const PdfString & sTitle, const PdfAction & rAct
 }
 
 PdfOutlineItem::PdfOutlineItem( PdfObject* pObject, PdfOutlineItem* pParentOutline, PdfOutlineItem* pPrevious )
-    : PdfElement( nullptr, pObject ), m_pParentOutline( pParentOutline ), m_pPrev( pPrevious ), 
+    : PdfElement(*pObject), m_pParentOutline( pParentOutline ), m_pPrev( pPrevious ), 
       m_pNext( nullptr ), m_pFirst( nullptr ), m_pLast( nullptr ), m_pDestination( nullptr ), m_pAction( nullptr )
 {
     PdfReference first, next;
@@ -100,7 +100,7 @@ PdfOutlineItem::PdfOutlineItem( PdfObject* pObject, PdfOutlineItem* pParentOutli
 }
 
 PdfOutlineItem::PdfOutlineItem( PdfVecObjects* pParent )
-    : PdfElement( "Outlines", pParent ), m_pParentOutline( nullptr ), m_pPrev( nullptr ), 
+    : PdfElement(*pParent, "Outlines"), m_pParentOutline( nullptr ), m_pPrev( nullptr ),
       m_pNext( nullptr ), m_pFirst( nullptr ), m_pLast( nullptr ), m_pDestination( nullptr ), m_pAction( nullptr )
 {
 }

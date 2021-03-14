@@ -143,7 +143,7 @@ void PdfImage::SetImageICCProfile( PdfInputStream* pStream, long lColorComponent
     }
 
     // Create a colorspace object
-    PdfObject* pIccObject = this->GetObject()->GetDocument()->GetObjects().CreateObject();
+    PdfObject* pIccObject = this->GetObject()->GetDocument()->GetObjects().CreateDictionaryObject();
     pIccObject->GetDictionary().AddKey( PdfName("Alternate"), ColorspaceToName( eAlternateColorSpace ) ); 
     pIccObject->GetDictionary().AddKey( PdfName("N"), static_cast<int64_t>(lColorComponents) );
     pIccObject->GetOrCreateStream().Set( pStream );
@@ -585,7 +585,7 @@ void PdfImage::LoadFromTiffHandle(void* hInHandle) {
             PdfMemoryInputStream stream( datap, numColors*3 );
             
             // Create a colorspace object
-            PdfObject* pIdxObject = this->GetObject()->GetDocument()->GetObjects().CreateObject();
+            PdfObject* pIdxObject = this->GetObject()->GetDocument()->GetObjects().CreateDictionaryObject();
             pIdxObject->GetOrCreateStream().Set( &stream );
             
             // Add the colorspace to our image

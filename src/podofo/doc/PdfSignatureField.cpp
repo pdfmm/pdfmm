@@ -203,10 +203,10 @@ void PdfSignatureField::AddCertificationReference( PdfObject* pDocumentCatalog, 
         m_pSignatureObj->GetDictionary().RemoveKey(PdfName("Reference"));
     }
 
-    PdfObject *pSigRef = this->GetFieldObject()->GetDocument()->GetObjects().CreateObject( "SigRef" );
+    PdfObject *pSigRef = this->GetFieldObject()->GetDocument()->GetObjects().CreateDictionaryObject( "SigRef" );
     pSigRef->GetDictionary().AddKey(PdfName("TransformMethod"), PdfName("DocMDP"));
 
-    PdfObject *pTransParams = this->GetFieldObject()->GetDocument()->GetObjects().CreateObject( "TransformParams" );
+    PdfObject *pTransParams = this->GetFieldObject()->GetDocument()->GetObjects().CreateDictionaryObject( "TransformParams" );
     pTransParams->GetDictionary().AddKey(PdfName("V"), PdfName("1.2"));
     pTransParams->GetDictionary().AddKey(PdfName("P"), PdfVariant((int64_t)perm));
     pSigRef->GetDictionary().AddKey(PdfName("TransformParams"), pTransParams);
@@ -272,7 +272,7 @@ void PdfSignatureField::EnsureSignatureObject( void )
     if( m_pSignatureObj != nullptr )
         return;
 
-    m_pSignatureObj = this->GetFieldObject()->GetDocument()->GetObjects().CreateObject( "Sig" );
+    m_pSignatureObj = this->GetFieldObject()->GetDocument()->GetObjects().CreateDictionaryObject( "Sig" );
     if( !m_pSignatureObj )
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
 

@@ -1097,7 +1097,9 @@ void PdfParser::ReadObjectsInternal(const PdfRefCountedInputDevice& device)
                             delete pObject;
                         }
                         else
-                            m_vecObjects->AddObject( pObject );
+                        {
+                            m_vecObjects->AddObject(pObject);
+                        }
                     }
                     catch( PdfError & e )
                     {
@@ -1162,12 +1164,12 @@ void PdfParser::ReadObjectsInternal(const PdfRefCountedInputDevice& device)
         {
 			m_vecObjects->AddFreeObject( PdfReference( i, 1 ) );
         }
-        // Ulrich Arnold 30.7.2009: the linked free list in the xref section is not always correct in pdf's
-        //							(especially Illustrator) but Acrobat still accepts them. I've seen XRefs 
-        //							where some object-numbers are alltogether missing and multiple XRefs where 
-        //							the link list is broken.
-        //							Because PdfVecObjects relies on a unbroken range, fill the free list more
-        //							robustly from all places which are either free or unparsed
+        // the linked free list in the xref section is not always correct in pdf's
+        // (especially Illustrator) but Acrobat still accepts them. I've seen XRefs 
+        // where some object-numbers are alltogether missing and multiple XRefs where 
+        // the link list is broken.
+        // Because PdfVecObjects relies on a unbroken range, fill the free list more
+        // robustly from all places which are either free or unparsed
     }
 
     // all normal objects including object streams are available now,

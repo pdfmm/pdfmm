@@ -929,7 +929,7 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
         case EPdfColorSpace::Separation:
         {
             // Build color-spaces for separation
-            PdfObject* csTintFunc = document.GetObjects().CreateObject();
+            PdfObject* csTintFunc = document.GetObjects().CreateDictionaryObject();
 
             csTintFunc->GetDictionary().AddKey( "BitsPerSample", static_cast<int64_t>(8) );
 

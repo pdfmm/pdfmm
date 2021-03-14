@@ -133,9 +133,7 @@ void PdfVariant::Clear()
         case EPdfDataType::String:
         case EPdfDataType::RawData:
         {
-            if (m_Data.pData)
-                delete m_Data.pData;
-
+            delete m_Data.pData;
             break;
         }
             
@@ -260,39 +258,33 @@ const PdfVariant & PdfVariant::operator=( const PdfVariant & rhs )
     {
         case EPdfDataType::Array:
         {
-            if( rhs.m_Data.pData ) 
-                m_Data.pData = new PdfArray(*static_cast<PdfArray*>(rhs.m_Data.pData));
+            m_Data.pData = new PdfArray(*static_cast<PdfArray*>(rhs.m_Data.pData));
             break;
         }
         case EPdfDataType::Reference:
         {
-            if( rhs.m_Data.pData ) 
-                m_Data.pData = new PdfReference(*static_cast<PdfReference*>(rhs.m_Data.pData));
+            m_Data.pData = new PdfReference(*static_cast<PdfReference*>(rhs.m_Data.pData));
             break;
         }
         case EPdfDataType::Dictionary:
         {
-            if( rhs.m_Data.pData ) 
-                m_Data.pData = new PdfDictionary(*static_cast<PdfDictionary*>(rhs.m_Data.pData));
+            m_Data.pData = new PdfDictionary(*static_cast<PdfDictionary*>(rhs.m_Data.pData));
             break;
         }
         case EPdfDataType::Name:
         {
-            if( rhs.m_Data.pData ) 
-                m_Data.pData = new PdfName(*static_cast<PdfName*>(rhs.m_Data.pData));
+            m_Data.pData = new PdfName(*static_cast<PdfName*>(rhs.m_Data.pData));
             break;
         }
         case EPdfDataType::String:
         {
-            if( rhs.m_Data.pData ) 
-                m_Data.pData = new PdfString(*static_cast<PdfString*>(rhs.m_Data.pData));
+            m_Data.pData = new PdfString(*static_cast<PdfString*>(rhs.m_Data.pData));
             break;
         }
             
         case EPdfDataType::RawData: 
         {
-            if( rhs.m_Data.pData ) 
-                m_Data.pData = new PdfData(*static_cast<PdfData*>(rhs.m_Data.pData));
+            m_Data.pData = new PdfData(*static_cast<PdfData*>(rhs.m_Data.pData));
             break;
         }
         case EPdfDataType::Bool:

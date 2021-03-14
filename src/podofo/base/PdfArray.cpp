@@ -42,13 +42,11 @@
 
 using namespace PoDoFo;
 
-PdfArray::PdfArray()
-{
-}
+PdfArray::PdfArray() { }
 
 PdfArray::PdfArray( const PdfObject &var )
 {
-    this->push_back( var );
+    add(var);
 }
 
 PdfArray::PdfArray(const PdfArray & rhs)
@@ -56,42 +54,131 @@ PdfArray::PdfArray(const PdfArray & rhs)
 {
 }
 
-void PdfArray::RemoveAt(int index)
+void PdfArray::RemoveAt(size_t index)
 {
-    if (index < 0 || index >= (int)m_objects.size())
+    // TODO: Set dirty only if really removed
+    if (index >= m_objects.size())
         PODOFO_RAISE_ERROR_INFO(EPdfError::ValueOutOfRange, "Index is out of bounds");
 
     m_objects.erase(m_objects.begin() + index);
+    SetDirty();
 }
 
-PdfObject & PdfArray::findAt(int index) const
+const PdfObject& PdfArray::FindAt(size_t idx) const
 {
-    if (index < 0 || index >= (int)m_objects.size())
-        PODOFO_RAISE_ERROR_INFO(EPdfError::ValueOutOfRange, "Index is out of bounds");
-
-    PdfObject &obj = const_cast<PdfArray *>(this)->m_objects[index];
-    if ( obj.IsReference() )
-        return GetIndirectObject( obj.GetReference() );
-    else
-        return obj;
+    return findAt(idx);
 }
 
-void PdfArray::clear()
+PdfObject& PdfArray::FindAt(size_t idx)
+{
+    return findAt(idx);
+}
+
+size_t PdfArray::GetSize() const
+{
+    return m_objects.size();
+}
+
+void PdfArray::Add(const PdfObject& obj)
 {
     AssertMutable();
-    if ( m_objects.size() == 0 )
+    add(obj);
+    SetDirty();
+}
+
+void PdfArray::AddIndirect(const PdfObject& obj)
+{
+    if (IsIndirectReferenceAllowed(obj))
+    {
+        Add(obj.GetIndirectReference());
         return;
+    }
 
-    m_objects.clear();
-    SetDirty();
+    Add(obj);
+    return;
 }
 
-PdfArray::iterator PdfArray::insert( const iterator &pos, const PdfObject &val )
+void PdfArray::SetAt(const PdfObject& obj, size_t idx)
 {
     AssertMutable();
+    if (IsIndirectReferenceAllowed(obj))
+    {
+        m_objects.at(idx) = PdfObject(obj.GetIndirectReference());
+        return;
+    }
 
-    SetDirty();
-    iterator ret = m_objects.insert( pos, val );
+    m_objects.at(idx) = obj;
+}
+
+void PdfArray::SetAtIndirect(const PdfObject& obj, size_t idx)
+{
+    AssertMutable();
+    m_objects.at(idx) = obj;
+}
+
+void PdfArray::Clear()
+{
+    clear();
+}
+
+void PdfArray::Write(PdfOutputDevice& pDevice, EPdfWriteMode eWriteMode,
+    const PdfEncrypt* pEncrypt) const
+{
+    auto it = m_objects.begin();
+
+    int count = 1;
+
+    if ((eWriteMode & EPdfWriteMode::Clean) == EPdfWriteMode::Clean)
+    {
+        pDevice.Print("[ ");
+    }
+    else
+    {
+        pDevice.Print("[");
+    }
+
+    while (it != m_objects.end())
+    {
+        it->GetVariant().Write(pDevice, eWriteMode, pEncrypt);
+        if ((eWriteMode & EPdfWriteMode::Clean) == EPdfWriteMode::Clean)
+        {
+            pDevice.Print((count % 10 == 0) ? "\n" : " ");
+        }
+
+        ++it;
+        ++count;
+    }
+
+    pDevice.Print("]");
+}
+
+void PdfArray::ResetDirtyInternal()
+{
+    // Propagate state to all subclasses
+    for (auto& obj : m_objects)
+        obj.ResetDirty();
+}
+
+void PdfArray::SetOwner(PdfObject* pOwner)
+{
+    PdfContainerDataType::SetOwner(pOwner);
+    auto document = pOwner->GetDocument();
+    if (document != nullptr)
+    {
+        // Set owmership for all children
+        for (auto& obj : m_objects)
+            obj.SetDocument(*document);
+    }
+}
+
+void PdfArray::add(const PdfObject& obj)
+{
+    insertAt(m_objects.end(), obj);
+}
+
+PdfArray::iterator PdfArray::insertAt(const iterator& pos, const PdfObject& val)
+{
+    auto ret = m_objects.insert(pos, val);
     ret->SetParent(this);
     auto document = GetObjectDocument();
     if (document != nullptr)
@@ -100,43 +187,75 @@ PdfArray::iterator PdfArray::insert( const iterator &pos, const PdfObject &val )
     return ret;
 }
 
-void PdfArray::erase( const iterator &pos )
+PdfObject& PdfArray::findAt(size_t index) const
 {
-    AssertMutable();
+    if (index >= m_objects.size())
+        PODOFO_RAISE_ERROR_INFO(EPdfError::ValueOutOfRange, "Index is out of bounds");
 
-    m_objects.erase( pos );
-    SetDirty();
-}
-
-void PdfArray::erase( const iterator &first, const iterator &last )
-{
-    AssertMutable();
-
-    m_objects.erase( first, last );
-    SetDirty();
-}
- 
-PdfArray& PdfArray::operator=( const PdfArray &rhs )
-{
-    if (this != &rhs)
-    {
-        m_objects = rhs.m_objects;
-        this->PdfContainerDataType::operator=( rhs );
-    }
+    PdfObject& obj = const_cast<PdfArray&>(*this).m_objects[index];
+    if (obj.IsReference())
+        return GetIndirectObject(obj.GetReference());
     else
-    {
-        //do nothing
-    }
-    
-    return *this;
+        return obj;
 }
 
-void PdfArray::resize(size_t count, const PdfObject &val)
+void PdfArray::push_back(const PdfObject& obj)
+{
+    AssertMutable();
+    add(obj);
+    SetDirty();
+}
+
+size_t PdfArray::size() const
+{
+    return m_objects.size();
+}
+
+bool PdfArray::empty() const
+{
+    return m_objects.empty();
+}
+
+void PdfArray::clear()
+{
+    AssertMutable();
+    if (m_objects.size() == 0)
+        return;
+
+    m_objects.clear();
+    SetDirty();
+}
+
+PdfArray::iterator PdfArray::insert(const iterator& pos, const PdfObject& obj)
+{
+    AssertMutable();
+    auto ret = insertAt(pos, obj);
+    SetDirty();
+    return ret;
+}
+
+void PdfArray::erase(const iterator& pos)
+{
+    // TODO: Set dirty only if really removed
+    AssertMutable();
+    m_objects.erase(pos);
+    SetDirty();
+}
+
+void PdfArray::erase(const iterator& first, const iterator& last)
+{
+    // TODO: Set dirty only if really removed
+    AssertMutable();
+    m_objects.erase(first, last);
+    SetDirty();
+}
+
+void PdfArray::resize(size_t count, const PdfObject& val)
 {
     AssertMutable();
 
     size_t currentSize = m_objects.size();
-    m_objects.resize( count, val );
+    m_objects.resize(count, val);
     auto document = GetObjectDocument();
 
     for (size_t i = currentSize; i < count; i++)
@@ -151,101 +270,15 @@ void PdfArray::resize(size_t count, const PdfObject &val)
         SetDirty();
 }
 
-void PdfArray::Write(PdfOutputDevice& pDevice, EPdfWriteMode eWriteMode,
-    const PdfEncrypt* pEncrypt ) const
+void PdfArray::reserve(size_type n)
 {
-    PdfArray::const_iterator it = this->begin();
-
-    int count = 1;
-
-    if( (eWriteMode & EPdfWriteMode::Clean) == EPdfWriteMode::Clean ) 
-    {
-        pDevice.Print( "[ " );
-    }
-    else
-    {
-        pDevice.Print( "[" );
-    }
-
-    while( it != this->end() )
-    {
-        it->GetVariant().Write( pDevice, eWriteMode, pEncrypt );
-        if( (eWriteMode & EPdfWriteMode::Clean) == EPdfWriteMode::Clean ) 
-        {
-            pDevice.Print( (count % 10 == 0) ? "\n" : " " );
-        }
-
-        ++it;
-        ++count;
-    }
-
-    pDevice.Print( "]" );
-}
-
-void PdfArray::ResetDirtyInternal()
-{
-    // Propagate state to all subclasses
-    PdfArray::iterator it(this->begin());
-    while( it != this->end() )
-    {
-        it->ResetDirty();
-        ++it;
-    }
-}
-
-void PdfArray::SetOwner( PdfObject *pOwner )
-{
-    PdfContainerDataType::SetOwner( pOwner );
-    auto document = pOwner->GetDocument();
-    if (document != nullptr)
-    {
-        // Set owmership for all children
-        PdfArray::iterator it = this->begin();
-        PdfArray::iterator end = this->end();
-        for ( ; it != end; it++ )
-            it->SetDocument(*document);
-    }
-}
-
-const PdfObject & PdfArray::FindAt(int idx) const
-{
-    return findAt(idx);
-}
-
-PdfObject & PdfArray::FindAt(int idx)
-{
-    return findAt(idx);
-}
-
-int PdfArray::GetSize() const
-{
-    return (int)m_objects.size();
-}
-
-void PdfArray::push_back(const PdfObject& var)
-{
-    insert(end(), var);
-}
-
-void PdfArray::Clear()
-{
-    clear();
-}
-
-size_t PdfArray::size() const
-{
-    return m_objects.size();
-}
-
-bool PdfArray::empty() const
-{
-    return m_objects.empty();
+    AssertMutable();
+    m_objects.reserve(n);
 }
 
 PdfObject& PdfArray::operator[](size_t index)
 {
     AssertMutable();
-
     return m_objects.at(index);
 }
 
@@ -256,6 +289,7 @@ const PdfObject& PdfArray::operator[](size_t index) const
 
 PdfArray::iterator PdfArray::begin()
 {
+    AssertMutable();
     return m_objects.begin();
 }
 
@@ -266,6 +300,7 @@ PdfArray::const_iterator PdfArray::begin() const
 
 PdfArray::iterator PdfArray::end()
 {
+    AssertMutable();
     return m_objects.end();
 }
 
@@ -276,6 +311,7 @@ PdfArray::const_iterator PdfArray::end() const
 
 PdfArray::reverse_iterator PdfArray::rbegin()
 {
+    AssertMutable();
     return m_objects.rbegin();
 }
 
@@ -286,6 +322,7 @@ PdfArray::const_reverse_iterator PdfArray::rbegin() const
 
 PdfArray::reverse_iterator PdfArray::rend()
 {
+    AssertMutable();
     return m_objects.rend();
 }
 
@@ -294,15 +331,9 @@ PdfArray::const_reverse_iterator PdfArray::rend() const
     return m_objects.rend();
 }
 
-void PdfArray::reserve(size_type n)
-{
-    AssertMutable();
-
-    m_objects.reserve(n);
-}
-
 PdfObject& PdfArray::front()
 {
+    AssertMutable();
     return m_objects.front();
 }
 
@@ -313,12 +344,23 @@ const PdfObject& PdfArray::front() const
 
 PdfObject& PdfArray::back()
 {
+    AssertMutable();
     return m_objects.back();
 }
 
 const PdfObject& PdfArray::back() const
 {
     return m_objects.back();
+}
+
+PdfArray& PdfArray::operator=(const PdfArray& rhs)
+{
+    if (&rhs == this)
+        return *this;
+
+    m_objects = rhs.m_objects;
+    PdfContainerDataType::operator=(rhs);
+    return *this;
 }
 
 bool PdfArray::operator==(const PdfArray& rhs) const

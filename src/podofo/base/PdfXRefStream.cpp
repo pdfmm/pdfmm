@@ -58,7 +58,7 @@ struct XRefStreamEntry
 PdfXRefStream::PdfXRefStream(PdfWriter& writer, PdfVecObjects& parent) :
     PdfXRef(writer),
     m_pParent(&parent),
-    m_xrefStreamObj(parent.CreateObject("XRef")),
+    m_xrefStreamObj(parent.CreateDictionaryObject("XRef")),
     m_offset(-1)
 {
 }

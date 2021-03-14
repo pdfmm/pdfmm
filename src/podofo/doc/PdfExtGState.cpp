@@ -46,7 +46,7 @@
 namespace PoDoFo {
 
 PdfExtGState::PdfExtGState( PdfVecObjects* pParent )
-    : PdfElement( "ExtGState", pParent )
+    : PdfElement(*pParent, "ExtGState")
 {
     std::ostringstream out;
     // We probably aren't doing anything locale sensitive here, but it's
@@ -62,7 +62,7 @@ PdfExtGState::PdfExtGState( PdfVecObjects* pParent )
 }
 
 PdfExtGState::PdfExtGState( PdfDocument* pParent )
-    : PdfElement( "ExtGState", pParent )
+    : PdfElement(*pParent, "ExtGState")
 {
     std::ostringstream out;
     // We probably aren't doing anything locale sensitive here, but it's

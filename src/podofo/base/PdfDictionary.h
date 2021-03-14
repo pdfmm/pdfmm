@@ -58,6 +58,8 @@ class PdfOutputDevice;
 class PODOFO_API PdfDictionary : public PdfContainerDataType
 {
     friend class PdfObject;
+    friend class PdfTokenizer;
+
 public:
     /** Create a new, empty dictionary
      */
@@ -108,6 +110,8 @@ public:
      *  \see IsDirty
      */
     PdfObject & AddKey( const PdfName & identifier, const PdfObject & rObject );
+
+    PdfObject& AddKeyIndirect(const PdfName& identifier, const PdfObject& rObject);
 
     // REMOVE-ME
     void AddKey( const PdfName & identifier, const PdfObject* pObject );
@@ -231,13 +235,14 @@ public:
      TIKeyMap end();
      TCIKeyMap begin() const;
      TCIKeyMap end() const;
+     size_t size() const;
 
  protected:
      void ResetDirtyInternal() override;
      void SetOwner( PdfObject* pOwner ) override;
 
  private:
-     PdfObject& addKey(const PdfName& identifier, const PdfObject& rObject);
+     std::pair<TKeyMap::iterator, bool> addKey(const PdfName& identifier, const PdfObject& rObject, bool noDirtySet);
      PdfObject * getKey(const PdfName & key) const;
      PdfObject * findKey(const PdfName & key) const;
      PdfObject * findKeyParent(const PdfName & key) const;

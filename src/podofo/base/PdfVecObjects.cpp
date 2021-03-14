@@ -49,20 +49,22 @@
 using namespace std;
 using namespace PoDoFo;
 
-#define MAX_XREF_GEN_NUM    65535
+#define MAX_XREF_GEN_NUM 65535
 
-static bool ObjectLittle(const PdfObject* p1, const PdfObject* p2);
+static bool CompareObject(const PdfObject* obj1, const PdfObject* obj2);
+static bool CompareReference(const PdfObject* obj, const PdfReference& ref);
 
 struct ObjectComparatorPredicate
 {
 public:
-    inline bool operator()( const PdfObject* const & pObj, const PdfObject* const & pObj2 ) const { 
+    inline bool operator()( const PdfObject* const & pObj, const PdfObject* const & pObj2 ) const
+    { 
         return pObj->GetIndirectReference() < pObj2->GetIndirectReference();  
-    }  
+    }
 };
 
-
-struct ReferenceComparatorPredicate {
+struct ReferenceComparatorPredicate
+{
 public:
     inline bool operator()( const PdfReference & pObj, const PdfReference & pObj2 ) const { 
         return pObj < pObj2;
@@ -70,7 +72,8 @@ public:
 };
 
 //RG: 1) Should this class not be moved to the header file
-class ObjectsComparator { 
+class ObjectsComparator
+{
 public:
     ObjectsComparator( const PdfReference & ref )
         : m_ref( ref )
@@ -98,101 +101,62 @@ PdfVecObjects::PdfVecObjects(PdfDocument& document) :
     m_pDocument(&document),
     m_bCanReuseObjectNumbers( true ),
     m_nObjectCount( 1 ),
-    m_bSorted( true ),
+    m_sorted( true ),
     m_pStreamFactory(nullptr)
 {
 }
 
 PdfVecObjects::~PdfVecObjects()
 {
-    this->Clear();
+    Clear();
 }
 
 void PdfVecObjects::Clear()
 {
-    TIVecObjects it = this->begin();
-    while( it != this->end() )
-    {
-        delete *it;
-        ++it;
-    }
+    for (auto obj : m_vector)
+        delete obj;
 
     m_vector.clear();
-    m_nObjectCount   = 1;
-    m_bSorted        = true; // an emtpy vector is sorted
+    m_nObjectCount = 1;
+    m_sorted = true;
     m_pStreamFactory = nullptr;
 }
 
 PdfObject* PdfVecObjects::GetObject( const PdfReference & ref ) const
 {
-    if( !m_bSorted )
-        const_cast<PdfVecObjects*>(this)->Sort();
+    const_cast<PdfVecObjects&>(*this).Sort();
+    TCIVecObjects it = std::lower_bound( m_vector.begin(), m_vector.end(), ref, CompareReference);
+    if( it == m_vector.end() || (*it)->GetIndirectReference() != ref)
+        return nullptr;
 
-    PdfObject refObj( ref, nullptr );
-    TCIVecObjects it = std::lower_bound( m_vector.begin(), m_vector.end(), &refObj, ObjectComparatorPredicate() );
-    if( it != m_vector.end() && (refObj.GetIndirectReference() == (*it)->GetIndirectReference()) )
-    {
-        return *it;
-    }
-
-    return nullptr;
-}
-
-size_t PdfVecObjects::GetIndex( const PdfReference & ref ) const
-{
-    if( !m_bSorted )
-        const_cast<PdfVecObjects*>(this)->Sort();
-
-    PdfObject refObj( ref, nullptr);
-    std::pair<TCIVecObjects,TCIVecObjects> it = 
-        std::equal_range( m_vector.begin(), m_vector.end(), &refObj, ObjectComparatorPredicate() );
-
-    if( it.first == it.second )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::NoObject );
-    }
-
-    return (it.first - this->begin());
+    return *it;
 }
 
 unique_ptr<PdfObject> PdfVecObjects::RemoveObject( const PdfReference & ref, bool bMarkAsFree )
 {
-    if( !m_bSorted )
-        this->Sort();
+    const_cast<PdfVecObjects&>(*this).Sort();
+    TCIVecObjects it = std::lower_bound(m_vector.begin(), m_vector.end(), ref, CompareReference);
+    if (it == m_vector.end() || (*it)->GetIndirectReference() != ref)
+        return nullptr;
 
-    PdfObject refObj( ref, nullptr);
-    std::pair<TIVecObjects,TIVecObjects> it = 
-        std::equal_range( m_vector.begin(), m_vector.end(), &refObj, ObjectComparatorPredicate() );
+    auto pObj = *(it);
+    if( bMarkAsFree )
+        SafeAddFreeObject(pObj->GetIndirectReference());
 
-    if( it.first != it.second )
-    {
-        auto pObj = *(it.first);
-        if( bMarkAsFree )
-            this->SafeAddFreeObject( pObj->GetIndirectReference() );
-        m_vector.erase( it.first );
-        return unique_ptr<PdfObject>(pObj);
-    }
-    
-    return nullptr;
+    m_vector.erase(it);
+    m_sorted = false;
+    return unique_ptr<PdfObject>(pObj);
 }
 
 unique_ptr<PdfObject> PdfVecObjects::RemoveObject( const TIVecObjects & it )
 {
     auto pObj = *it;
     m_vector.erase( it );
+    m_sorted = false;
     return unique_ptr<PdfObject>(pObj);
 }
 
-void PdfVecObjects::CollectGarbage(PdfObject& trailer)
-{
-    // We do not have any objects that have
-    // to be on the top, like in a linearized PDF.
-    // So we just use an empty list.
-    TPdfReferenceSet setLinearizedGroup;
-    this->RenumberObjects(trailer, &setLinearizedGroup, true );
-}
-
-PdfReference PdfVecObjects::GetNextFreeObject()
+PdfReference PdfVecObjects::getNextFreeObject()
 {
     // Try to first use list of free objects
     if ( m_bCanReuseObjectNumbers && !m_lstFreeObjects.empty() )
@@ -220,27 +184,22 @@ PdfReference PdfVecObjects::GetNextFreeObject()
     return PdfReference( nextObjectNum, 0 );
 }
 
-PdfObject* PdfVecObjects::CreateObject( const char* pszType )
+PdfObject* PdfVecObjects::CreateDictionaryObject(const string_view& type)
 {
-    PdfReference ref = this->GetNextFreeObject();
-    PdfObject*  pObj = new PdfObject( ref, pszType );
-    pObj->SetDocument(*m_pDocument);
+    auto dict = PdfDictionary();
+    if (!type.empty())
+        dict.AddKey(PdfName::KeyType, PdfName(type));
 
-    this->AddObject( pObj );
-
-    return pObj;
+    auto ret = new PdfObject(dict, true);
+    addNewObject(ret);
+    return ret;
 }
 
 PdfObject* PdfVecObjects::CreateObject( const PdfVariant & rVariant )
 {
-    PdfReference ref = this->GetNextFreeObject();
-    PdfObject*  pObj = new PdfObject(rVariant);
-    pObj->SetIndirectReference(ref);
-    pObj->SetDocument(*m_pDocument);    
-
-    this->AddObject( pObj );
-
-    return pObj;
+    auto ret = new PdfObject(rVariant, true);
+    addNewObject(ret);
+    return ret;
 }
 
 int32_t PdfVecObjects::SafeAddFreeObject( const PdfReference & rReference )
@@ -297,34 +256,54 @@ void PdfVecObjects::AddFreeObject( const PdfReference & rReference )
     }
 }
 
-void PdfVecObjects::PushObject(PdfObject * pObj, const PdfReference & reference)
+void PdfVecObjects::PushObject(const PdfReference & ref, PdfObject* pObj)
 {
-    if (GetObject(reference))
+    if (GetObject(ref))
     {
-        PdfError::LogMessage(ELogSeverity::Warning, "Object: %" PDF_FORMAT_INT64 " 0 R will be deleted and loaded again.", reference.ObjectNumber());
-        RemoveObject(reference, false);
+        PdfError::LogMessage(ELogSeverity::Warning, "Object: %" PDF_FORMAT_INT64 " 0 R will be deleted and loaded again.", ref.ObjectNumber());
+        RemoveObject(ref, false);
     }
 
-    pObj->SetIndirectReference(reference);
+    pObj->SetIndirectReference(ref);
     AddObject(pObj);
+}
+
+void PdfVecObjects::addNewObject(PdfObject* obj)
+{
+    PdfReference ref = getNextFreeObject();
+    obj->SetIndirectReference(ref);
+    obj->SetDocument(*m_pDocument);
+    AddObject(obj);
 }
 
 void PdfVecObjects::AddObject(PdfObject * pObj)
 {
     SetObjectCount(pObj->GetIndirectReference());
     pObj->SetDocument(*m_pDocument);
-
-    if( m_bSorted && !m_vector.empty() && pObj->GetIndirectReference() < m_vector.back()->GetIndirectReference() )
-    {
-        TVecObjects::iterator i_pos = 
-            std::lower_bound(m_vector.begin(),m_vector.end(),pObj,ObjectLittle);
-        m_vector.insert(i_pos, pObj );
-    }
-    else 
-    {
-        m_vector.push_back( pObj );
-    }
+    m_vector.push_back(pObj);
+    m_sorted = false;
 }
+
+void PdfVecObjects::Sort()
+{
+    if (m_sorted)
+        return;
+
+    std::sort(m_vector.begin(), m_vector.end(), CompareObject);
+    m_sorted = true;
+}
+
+#pragma region Untested
+
+void PdfVecObjects::CollectGarbage(PdfObject& trailer)
+{
+    // We do not have any objects that have
+    // to be on the top, like in a linearized PDF.
+    // So we just use an empty list.
+    TPdfReferenceSet setLinearizedGroup;
+    this->RenumberObjects(trailer, &setLinearizedGroup, true);
+}
+
 
 void PdfVecObjects::RenumberObjects(PdfObject& trailer, TPdfReferenceSet* pNotDelete, bool bDoGarbageCollection )
 {
@@ -337,24 +316,23 @@ void PdfVecObjects::RenumberObjects(PdfObject& trailer, TPdfReferenceSet* pNotDe
 
     m_lstFreeObjects.clear();
 
-    if( !m_bSorted )
-        const_cast<PdfVecObjects*>(this)->Sort();
+    const_cast<PdfVecObjects&>(*this).Sort();
 
     // The following call slows everything down
     // optimization welcome
-    BuildReferenceCountVector(list);
-    InsertReferencesIntoVector( trailer, list);
+    buildReferenceCountVector(list);
+    insertReferencesIntoVector( trailer, list);
 
     if( bDoGarbageCollection )
     {
-        GarbageCollection(list, trailer, pNotDelete );
+        garbageCollection(list, trailer, pNotDelete );
     }
 
     it = list.begin();
     while( it != list.end() )
     {
         PdfReference ref(i + 1, 0);
-        m_vector[i]->m_reference = ref;
+        m_vector[i]->m_IndirectReference = ref;
 
         itList = (*it).begin();
         while( itList != (*it).end() )
@@ -371,8 +349,12 @@ void PdfVecObjects::RenumberObjects(PdfObject& trailer, TPdfReferenceSet* pNotDe
     
 }
 
-void PdfVecObjects::InsertOneReferenceIntoVector( const PdfObject& obj, TVecReferencePointerList& list )  
+void PdfVecObjects::insertOneReferenceIntoVector( const PdfObject& obj, TVecReferencePointerList& list )  
 {
+    (void)list;
+    throw runtime_error("Fixme, we don't support taking address of PdfReference anymore");
+
+    /* FIX-ME
     PODOFO_RAISE_LOGIC_IF( !m_bSorted, 
                            "PdfVecObjects must be sorted before calling PdfVecObjects::InsertOneReferenceIntoVector!" );
     
@@ -386,33 +368,27 @@ void PdfVecObjects::InsertOneReferenceIntoVector( const PdfObject& obj, TVecRefe
         return;
     }
 
-    // FIX-ME: We don't support taking address of reference anynmore
-    (void)list;
-    ////size_t index = it.first - this->begin();
-    ////list[index].push_back( const_cast<PdfReference*>(&(obj.GetReference() )) );
+    size_t index = it.first - m_vector.begin();
+    list[index].push_back( const_cast<PdfReference*>(&(obj.GetReference() )) );
+    */
 }
 
-void PdfVecObjects::InsertReferencesIntoVector(const PdfObject& obj, TVecReferencePointerList& list )
+void PdfVecObjects::insertReferencesIntoVector(const PdfObject& obj, TVecReferencePointerList& list )
 {
-    PdfArray::const_iterator   itArray;
-    TCIKeyMap                  itKeys;
+    TCIKeyMap itKeys;
   
     if(obj.IsReference())
     {
-        InsertOneReferenceIntoVector( obj, list );
+        insertOneReferenceIntoVector( obj, list );
     }
-    else if( obj.IsArray() )
+    else if (obj.IsArray())
     {
-        itArray = obj.GetArray().begin(); 
-        while( itArray != obj.GetArray().end() )
+        for (auto& child : obj.GetArray())
         {
-            if( (*itArray).IsReference() )
-                InsertOneReferenceIntoVector(*itArray, list );
-            else if( (*itArray).IsArray() ||
-                     (*itArray).IsDictionary() )
-                InsertReferencesIntoVector(*itArray, list );
-
-            ++itArray;
+            if (child.IsReference())
+                insertOneReferenceIntoVector(child, list);
+            else if (child.IsArray() || child.IsDictionary())
+                insertReferencesIntoVector(child, list);
         }
     }
     else if( obj.IsDictionary() )
@@ -421,12 +397,12 @@ void PdfVecObjects::InsertReferencesIntoVector(const PdfObject& obj, TVecReferen
         while( itKeys != obj.GetDictionary().end() )
         {
             if( itKeys->second.IsReference() )
-                InsertOneReferenceIntoVector(itKeys->second, list );
+                insertOneReferenceIntoVector(itKeys->second, list );
             // optimization as this is really slow:
             // Call only for dictionaries, references and arrays
             else if( itKeys->second.IsArray() ||
                 itKeys->second.IsDictionary() )
-                InsertReferencesIntoVector(itKeys->second, list );
+                insertReferencesIntoVector(itKeys->second, list );
             
             ++itKeys;
         }
@@ -435,7 +411,6 @@ void PdfVecObjects::InsertReferencesIntoVector(const PdfObject& obj, TVecReferen
 
 void PdfVecObjects::GetObjectDependencies( const PdfObject& obj, TPdfReferenceList& list ) const
 {
-    PdfArray::const_iterator   itArray;
     TCIKeyMap                  itKeys;
   
     if( obj.IsReference() )
@@ -453,17 +428,12 @@ void PdfVecObjects::GetObjectDependencies( const PdfObject& obj, TPdfReferenceLi
             }
         }
     }
-    else if( obj.IsArray() )
+    else if (obj.IsArray())
     {
-        itArray = obj.GetArray().begin(); 
-        while( itArray != obj.GetArray().end() )
+        for (auto& child : obj.GetArray())
         {
-            if( itArray->IsArray() ||
-                itArray->IsDictionary() ||
-                itArray->IsReference() )
-                GetObjectDependencies( *itArray, list );
-
-            ++itArray;
+            if (child.IsArray() || child.IsDictionary() || child.IsReference())
+                GetObjectDependencies(child, list);
         }
     }
     else if( obj.IsDictionary() )
@@ -483,41 +453,32 @@ void PdfVecObjects::GetObjectDependencies( const PdfObject& obj, TPdfReferenceLi
     }
 }
 
-void PdfVecObjects::BuildReferenceCountVector( TVecReferencePointerList& list )
+void PdfVecObjects::buildReferenceCountVector( TVecReferencePointerList& list )
 {
-    TCIVecObjects it = this->begin();
+    TCIVecObjects it = m_vector.begin();
 
     list.clear();
     list.resize( !m_vector.empty() );
 
-    while( it != this->end() )
+    while( it != m_vector.end() )
     {
         auto &obj = **it;
         if (obj.IsReference())
         {
-            InsertOneReferenceIntoVector(obj, list);
+            insertOneReferenceIntoVector(obj, list);
         }
         else if (obj.IsArray() || obj.IsDictionary())
         {
             // optimization as this is really slow:
             // Call only for dictionaries, references and arrays
-            InsertReferencesIntoVector(obj, list);
+            insertReferencesIntoVector(obj, list);
         }
 
         ++it;
     }
 }
 
-void PdfVecObjects::Sort()
-{
-    if( !m_bSorted )
-    {
-        std::sort( this->begin(), this->end(), ObjectLittle );
-        m_bSorted = true;
-    }
-}
-
-void PdfVecObjects::GarbageCollection( TVecReferencePointerList& list, PdfObject&, TPdfReferenceSet* pNotDelete )
+void PdfVecObjects::garbageCollection( TVecReferencePointerList& list, PdfObject&, TPdfReferenceSet* pNotDelete )
 {
     TIVecReferencePointerList it = list.begin();
     int pos = 0;
@@ -528,7 +489,7 @@ void PdfVecObjects::GarbageCollection( TVecReferencePointerList& list, PdfObject
         bContains = pNotDelete ? ( pNotDelete->find( m_vector[pos]->GetIndirectReference() ) != pNotDelete->end() ) : false;
         if( !(*it).size() && !bContains )
         {
-            m_vector.erase( this->begin() + pos );
+            m_vector.erase(m_vector.begin() + pos );
         }
         
         ++pos;
@@ -537,6 +498,8 @@ void PdfVecObjects::GarbageCollection( TVecReferencePointerList& list, PdfObject
 
     m_nObjectCount = ++pos;
 }
+
+#pragma endregion
 
 void PdfVecObjects::Detach( Observer* pObserver )
 {
@@ -550,7 +513,9 @@ void PdfVecObjects::Detach( Observer* pObserver )
             break;
         }
         else
+        {
             ++it;
+        }
     }
 }
 
@@ -572,11 +537,6 @@ void PdfVecObjects::WriteObject( PdfObject* pObject )
         (*itObservers)->WriteObject( pObject );
         ++itObservers;
     }
-}
-
-PdfStream* PdfVecObjects::CreateStream( const PdfStream & )
-{
-    return nullptr;
 }
 
 void PdfVecObjects::Finish()
@@ -678,26 +638,6 @@ void PdfVecObjects::SetStreamFactory(StreamFactory* pFactory)
     m_pStreamFactory = pFactory;
 }
 
-TIVecObjects PdfVecObjects::begin()
-{
-    return m_vector.begin();
-}
-
-TCIVecObjects PdfVecObjects::begin() const
-{
-    return m_vector.begin();
-}
-
-TIVecObjects PdfVecObjects::end()
-{
-    return m_vector.end();
-}
-
-TCIVecObjects PdfVecObjects::end() const
-{
-    return m_vector.end();
-}
-
 PdfObject* PdfVecObjects::GetBack()
 {
     return m_vector.back();
@@ -716,10 +656,28 @@ void PdfVecObjects::SetObjectCount(const PdfReference& rRef)
 
 PdfObject*& PdfVecObjects::operator[](size_t index) { return m_vector[index]; }
 
+TCIVecObjects PdfVecObjects::begin() const
+{
+    const_cast<PdfVecObjects&>(*this).Sort();
+    return m_vector.begin();
+}
 
-bool ObjectLittle(const PdfObject* p1, const PdfObject* p2)
+TCIVecObjects PdfVecObjects::end() const
+{
+    return m_vector.end();
+}
+
+size_t PdfVecObjects::size() const
+{
+    return m_vector.size();
+}
+
+bool CompareObject(const PdfObject* p1, const PdfObject* p2)
 {
     return *p1 < *p2;
 }
 
-
+bool CompareReference(const PdfObject* obj, const PdfReference& ref)
+{
+    return obj->GetIndirectReference() < ref;
+}

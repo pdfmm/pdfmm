@@ -75,7 +75,7 @@ PdfDocument::PdfDocument(bool bEmpty) :
     {
         m_pTrailer.reset(new PdfObject()); // The trailer is NO part of the vector of objects
         m_pTrailer->SetDocument( *this );
-        m_pCatalog = m_vecObjects.CreateObject("Catalog");
+        m_pCatalog = m_vecObjects.CreateDictionaryObject("Catalog");
         
         m_pInfo.reset(new PdfInfo( &m_vecObjects ));
         
@@ -243,20 +243,17 @@ const PdfDocument & PdfDocument::Append( const PdfDocument & rDoc, bool bAppendA
     }
 
 	// append all objects first and fix their references
-    TCIVecObjects it = rDoc.GetObjects().begin();
-    while( it != rDoc.GetObjects().end() )
+    for (auto &obj : rDoc.GetObjects())
     {
-        PdfReference reference(static_cast<uint32_t>((*it)->GetIndirectReference().ObjectNumber() + difference), (*it)->GetIndirectReference().GenerationNumber());
-        PdfObject* pObj = new PdfObject();
-        pObj->SetIndirectReference(reference);
-        m_vecObjects.AddObject(pObj);
-        *pObj = **it;
+        PdfReference ref(static_cast<uint32_t>(obj->GetIndirectReference().ObjectNumber() + difference), obj->GetIndirectReference().GenerationNumber());
+        auto newObj = new PdfObject(PdfDictionary(), true);
+        newObj->SetIndirectReference(ref);
+        m_vecObjects.AddObject(newObj);
+        *newObj = *obj;
 
-        PdfError::LogMessage( ELogSeverity::Information,
-                              "Fixing references in %i %i R by %i", pObj->GetIndirectReference().ObjectNumber(), pObj->GetIndirectReference().GenerationNumber(), difference );
-        FixObjectReferences( pObj, difference );
-
-        ++it;
+        PdfError::LogMessage(ELogSeverity::Information, "Fixing references in %i %i R by %i",
+            newObj->GetIndirectReference().ObjectNumber(), newObj->GetIndirectReference().GenerationNumber(), difference);
+        FixObjectReferences( newObj, difference );
     }
 
     if( bAppendAll )
@@ -341,21 +338,17 @@ const PdfDocument &PdfDocument::InsertExistingPageAt( const PdfDocument & rDoc, 
     }
 
 	// append all objects first and fix their references
-    TCIVecObjects it = rDoc.GetObjects().begin();
-    while( it != rDoc.GetObjects().end() )
+    for (auto &obj : GetObjects())
     {
-        PdfReference reference(static_cast<uint32_t>((*it)->GetIndirectReference().ObjectNumber() + difference), (*it)->GetIndirectReference().GenerationNumber());
+        PdfReference ref(static_cast<uint32_t>(obj->GetIndirectReference().ObjectNumber() + difference), obj->GetIndirectReference().GenerationNumber());
+        auto newObj = new PdfObject(PdfDictionary(), true);
+        newObj->SetIndirectReference(ref);
+        m_vecObjects.AddObject(newObj);
+        *newObj = *obj;
 
-        PdfObject* pObj = new PdfObject();
-        pObj->SetIndirectReference(reference);
-        m_vecObjects.AddObject(pObj);
-        *pObj = **it;
-
-        PdfError::LogMessage( ELogSeverity::Information,
-                              "Fixing references in %i %i R by %i", pObj->GetIndirectReference().ObjectNumber(), pObj->GetIndirectReference().GenerationNumber(), difference );
-        FixObjectReferences( pObj, difference );
-
-        ++it;
+        PdfError::LogMessage(ELogSeverity::Information, "Fixing references in %i %i R by %i",
+            newObj->GetIndirectReference().ObjectNumber(), newObj->GetIndirectReference().GenerationNumber(), difference);
+        FixObjectReferences( newObj, difference );
     }
 
     const PdfName inheritableAttributes[] = {
@@ -470,13 +463,12 @@ PdfRect PdfDocument::FillXObjectFromPage( PdfXObject * pXObj, const PdfPage * pP
             vFilters.push_back( EPdfFilter::FlateDecode );
             pObjStream.BeginAppend( vFilters );
 
-            TIVariantList it;
-            for(it = pArray.begin(); it != pArray.end(); it++)
+            for (auto &child: pArray)
             {
-                if ( it->IsReference() )
+                if (child.IsReference())
                 {
                     // TODO: not very efficient !!
-                    PdfObject*  pObj = GetObjects().GetObject( it->GetReference() );
+                    PdfObject* pObj = GetObjects().GetObject(child.GetReference());
 
                     while (pObj != nullptr)
                     {
@@ -504,7 +496,7 @@ PdfRect PdfDocument::FillXObjectFromPage( PdfXObject * pXObj, const PdfPage * pP
                 else
                 {
                     string str;
-                    it->ToString( str );
+                    child.ToString(str);
                     pObjStream.Append( str );
                     pObjStream.Append( " " );
                 }
@@ -565,21 +557,17 @@ void PdfDocument::FixObjectReferences( PdfObject* pObject, int difference )
     }
     else if( pObject->IsArray() )
     {
-        PdfArray::iterator it = pObject->GetArray().begin();
-
-        while( it != pObject->GetArray().end() )
+        for (auto& child : pObject->GetArray())
         {
-            if( (*it).IsReference() )
+            if (child.IsReference())
             {
-                *it = PdfObject(PdfReference( (*it).GetReference().ObjectNumber() + difference,
-                                      (*it).GetReference().GenerationNumber() ));
-
+                child = PdfObject(PdfReference(child.GetReference().ObjectNumber() + difference,
+                    child.GetReference().GenerationNumber()));
             }
-            else if( (*it).IsDictionary() || 
-                     (*it).IsArray() )
-                FixObjectReferences( &(*it), difference );
-
-            ++it;
+            else if (child.IsDictionary() || child.IsArray())
+            {
+                FixObjectReferences(&child, difference);
+            }
         }
     }
     else if( pObject->IsReference() )

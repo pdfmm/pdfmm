@@ -56,7 +56,7 @@ using namespace std;
 namespace PoDoFo {
 
 PdfFont::PdfFont( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfVecObjects* pParent )
-    : PdfElement( "Font", pParent ), m_pEncoding( pEncoding ), 
+    : PdfElement(*pParent, "Font"), m_pEncoding( pEncoding ),
       m_pMetrics( pMetrics ), m_bBold( false ), m_bItalic( false ), m_isBase14( false ), m_bIsSubsetting( false )
 
 {
@@ -64,7 +64,7 @@ PdfFont::PdfFont( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 
 }
 
 PdfFont::PdfFont( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfObject* pObject )
-    : PdfElement( "Font", pObject ),
+    : PdfElement(*pObject),
       m_pEncoding( pEncoding ), m_pMetrics( pMetrics ),
       m_bBold( false ), m_bItalic( false ), m_isBase14( false ), m_bIsSubsetting( false )
 

@@ -588,7 +588,8 @@ void PdfTokenizer::ReadDictionary(const PdfRefCountedInputDevice& device, PdfVar
         if (!tryReadDataType(device, eDataType, val, pEncrypt))
             PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "Could not read variant");
 
-        dict.AddKey( key, val );
+        // Add the key without triggering SetDirty
+        dict.addKey(key, val, true);
     }
 
     if ( contentsHexBuffer.get() != nullptr )

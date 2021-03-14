@@ -1126,7 +1126,7 @@ void PdfPainter::DrawGlyph( PdfMemDocument* pDocument, double dX, double dY, con
 
 			// get width of glyph to enter in difference-encoding
 			int width = static_cast<int>(pGlyphFont->GetFontMetrics()->GetGlyphWidth( pszGlyphname ) );
-			pEncoding = pDocument->GetObjects().CreateObject( "Encoding" );
+			pEncoding = pDocument->GetObjects().CreateDictionaryObject( "Encoding" );
 	        
 			code++;
 	        
@@ -1161,20 +1161,17 @@ void PdfPainter::DrawGlyph( PdfMemDocument* pDocument, double dX, double dY, con
 
 			bool foundIt = false;
 
-			TCIVariantList it = diffs.begin();
-			while( it != diffs.end() )
+			for(auto &diff : diffs)
 			{
-				if( (*it).GetDataType() == EPdfDataType::Name )
+				if(diff.GetDataType() == EPdfDataType::Name )
 				{
 					code++;
-					if ( (*it).GetName().GetString() == pszGlyphname )
+					if (diff.GetName().GetString() == pszGlyphname )
 					{
 						foundIt = true;
 						break;
 					}
 				}
-					
-				++it;
 			}
 			if ( foundIt )	// glyph fount, use it
 				break;

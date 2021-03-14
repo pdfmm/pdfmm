@@ -68,7 +68,7 @@ void PdfFontSimple::Init( bool bEmbed, const PdfName & rsSubType )
 
     PdfObject* pWidth = this->GetObject()->GetDocument()->GetObjects().CreateObject(var);
 
-    PdfObject *pDescriptor = this->GetObject()->GetDocument()->GetObjects().CreateObject( "FontDescriptor" );
+    PdfObject *pDescriptor = this->GetObject()->GetDocument()->GetObjects().CreateDictionaryObject( "FontDescriptor" );
     if( !pDescriptor )
     {
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );

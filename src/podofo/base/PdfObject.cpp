@@ -51,86 +51,53 @@
 #include <string.h>
 
 using namespace std;
-
 using namespace PoDoFo;
 
 PdfObject::PdfObject()
-    : m_Variant( PdfDictionary() )
-{
-    InitPdfObject();
-}
+    : PdfObject(PdfDictionary(), false) { }
 
-PdfObject::PdfObject( const PdfReference & rRef, const char* pszType )
-    : m_Variant( PdfDictionary() ), m_reference( rRef )
-{
-    InitPdfObject();
+PdfObject::PdfObject(const PdfVariant& var)
+    : PdfObject(var, false) { }
 
-    if( pszType )
-        this->GetDictionary().AddKey( PdfName::KeyType, PdfName( pszType ) );
-}
+PdfObject::PdfObject(bool b)
+    : PdfObject(b, false) { }
 
-PdfObject::PdfObject( const PdfVariant & var )
-    : m_Variant( var )
-{
-    InitPdfObject();
-}
+PdfObject::PdfObject(int64_t l)
+    : PdfObject(l, false) { }
 
-PdfObject::PdfObject( bool b )
-    : m_Variant( b )
-{
-    InitPdfObject();
-}
+PdfObject::PdfObject(double d)
+    : PdfObject(d, false) { }
 
-PdfObject::PdfObject( int64_t l )
-    : m_Variant( l )
-{
-    InitPdfObject();
-}
+PdfObject::PdfObject(const PdfString& str)
+    : PdfObject(str, false) { }
 
-PdfObject::PdfObject( double d )
-    : m_Variant( d )
-{
-    InitPdfObject();
-}
+PdfObject::PdfObject(const PdfName& name)
+    : PdfObject(name, false) { }
 
-PdfObject::PdfObject( const PdfString & rsString )
-    : m_Variant( rsString )
-{
-    InitPdfObject();
-}
+PdfObject::PdfObject(const PdfReference & ref)
+    : PdfObject(ref, false) { }
 
-PdfObject::PdfObject( const PdfName & rName )
-    : m_Variant( rName )
-{
-    InitPdfObject();
-}
-
-PdfObject::PdfObject( const PdfReference & rRef )
-    : m_Variant( rRef )
-{
-    InitPdfObject();
-}
-
-PdfObject::PdfObject( const PdfArray & tList )
-    : m_Variant( tList )
-{
-    InitPdfObject();
-}
+PdfObject::PdfObject(const PdfArray & arr)
+    : PdfObject(arr, false) { }
 
 PdfObject::PdfObject( const PdfDictionary & rDict )
-    : m_Variant( rDict )
-{
-    InitPdfObject();
-}
+    : PdfObject(rDict, false) { }
 
 // NOTE: Don't copy parent document/container. Copied objects must be
 // always detached. Ownership will be set automatically elsewhere.
 // Also don't copy reference
 PdfObject::PdfObject( const PdfObject & rhs ) 
-    : m_Variant( rhs )
+    : PdfObject(rhs, false)
+{
+    copyFrom(rhs);
+}
+
+// NOTE: Dirty objects are those who are supposed to be serialized
+// or deserialized.
+PdfObject::PdfObject(const PdfVariant& var, bool isDirty)
+    : m_Variant(var), m_IsDirty(isDirty)
 {
     InitPdfObject();
-    copyFrom(rhs);
 }
 
 void PdfObject::ForceCreateStream()
@@ -150,7 +117,6 @@ void PdfObject::SetDocument(PdfDocument& document)
     m_Document = &document;
     SetVariantOwner();
 }
-
 
 void PdfObject::DelayedLoad() const
 {
@@ -194,9 +160,6 @@ void PdfObject::InitPdfObject()
 {
     m_Document = nullptr;
     m_Parent = nullptr;
-    // NOTE: All in-memory objects are initially dirty. The flag
-    // get reset on read from or write to disk
-    m_IsDirty = true;
     m_IsImmutable = false;
     m_bDelayedLoadDone = true;
     m_DelayedLoadStreamDone = true;
@@ -210,12 +173,12 @@ void PdfObject::Write(PdfOutputDevice& pDevice, EPdfWriteMode eWriteMode,
     DelayedLoad();
     DelayedLoadStream();
 
-    if( m_reference.IsIndirect() )
+    if( m_IndirectReference.IsIndirect() )
     {
         // CHECK-ME We want to make this in all the cases for PDF/A Compatibility
         //if( (eWriteMode & EPdfWriteMode::Clean) == EPdfWriteMode::Clean )
         {
-            pDevice.Print( "%i %i obj\n", m_reference.ObjectNumber(), m_reference.GenerationNumber() );
+            pDevice.Print( "%i %i obj\n", m_IndirectReference.ObjectNumber(), m_IndirectReference.GenerationNumber() );
         }
         //else
         //{
@@ -224,7 +187,7 @@ void PdfObject::Write(PdfOutputDevice& pDevice, EPdfWriteMode eWriteMode,
     }
 
     if(pEncrypt)
-        pEncrypt->SetCurrentReference( m_reference );
+        pEncrypt->SetCurrentReference( m_IndirectReference );
 
     if (m_pStream != nullptr)
     {
@@ -239,8 +202,8 @@ void PdfObject::Write(PdfOutputDevice& pDevice, EPdfWriteMode eWriteMode,
                 lLength = pEncrypt->CalculateStreamLength(lLength);
 
             // Add the key without triggering SetDirty
-            const_cast<PdfObject&>(*this).m_Variant.GetDictionary().
-                addKey(PdfName::KeyLength, PdfObject(static_cast<int64_t>(lLength)));
+            const_cast<PdfObject&>(*this).m_Variant.GetDictionary()
+                .addKey(PdfName::KeyLength, PdfObject(static_cast<int64_t>(lLength)), true);
         }
     }
 
@@ -250,7 +213,7 @@ void PdfObject::Write(PdfOutputDevice& pDevice, EPdfWriteMode eWriteMode,
     if( m_pStream )
         m_pStream->Write(pDevice, pEncrypt);
 
-    if( m_reference.IsIndirect())
+    if( m_IndirectReference.IsIndirect())
         pDevice.Print("endobj\n");
 
     // After write we ca reset the dirty flag
@@ -298,7 +261,7 @@ const PdfStream* PdfObject::GetStream() const
 
 bool PdfObject::IsIndirect() const
 {
-    return m_reference.IsIndirect();
+    return m_IndirectReference.IsIndirect();
 }
 
 PdfStream* PdfObject::GetStream()
@@ -362,21 +325,18 @@ const PdfObject & PdfObject::operator=(const PdfObject & rhs)
     if (&rhs == this)
         return *this;
 
-    rhs.DelayedLoad();
-    m_Variant = rhs.m_Variant;
-    copyFrom(rhs);
+    assign(rhs);
     SetDirty();
     return *this;
 }
 
-// NOTE: Don't copy parent document/container. Objects being assigned
-// always keep current ownership
+// NOTE: Don't copy parent document/container and indirect reference.
+// Objects being assigned always keep current ownership
 void PdfObject::copyFrom(const PdfObject & rhs)
 {
     // NOTE: Don't call rhs.DelayedLoad() here. It's implicitly
     // called in PdfVariant assignment or copy constructor
     rhs.delayedLoadStream();
-    m_reference = rhs.m_reference;
     SetVariantOwner();
 
     if (rhs.m_pStream)
@@ -399,6 +359,21 @@ void PdfObject::DelayedLoadStreamImpl()
     // Default implementation throws, since delayed loading of
     // steams should not be enabled except by types that support it.
     PODOFO_RAISE_ERROR(EPdfError::InternalLogic);
+}
+
+void PdfObject::Assign(const PdfObject& rhs)
+{
+    if (&rhs == this)
+        return;
+
+    assign(rhs);
+}
+
+void PdfObject::assign(const PdfObject& rhs)
+{
+    rhs.DelayedLoad();
+    m_Variant = rhs.m_Variant;
+    copyFrom(rhs);
 }
 
 void PdfObject::ResetDirty()
@@ -433,12 +408,17 @@ void PdfObject::ResetDirty()
 
 void PdfObject::SetDirty()
 {
-    // Reset parent if not indirect. Resetting will stop at
-    // first indirect anchestor
-    if (!IsIndirect() && m_Parent != nullptr)
+    if (IsIndirect())
+    {
+        // Set dirty only if is indirect object
+        setDirty();
+    }
+    else if (m_Parent != nullptr)
+    {
+        // Reset parent if not indirect. Resetting will stop at
+        // first indirect anchestor
         m_Parent->SetDirty();
-
-    setDirty();
+    }
 }
 
 void PdfObject::setDirty()
@@ -801,7 +781,7 @@ bool PdfObject::operator<(const PdfObject& rhs) const
     if (m_Document != rhs.m_Document)
         PODOFO_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Can't compare objects with different parent document");
 
-    return m_reference < rhs.m_reference;
+    return m_IndirectReference < rhs.m_IndirectReference;
 }
 
 bool PdfObject::operator==(const PdfObject& rhs) const
@@ -809,11 +789,11 @@ bool PdfObject::operator==(const PdfObject& rhs) const
     if (this == &rhs)
         return true;
 
-    if (m_reference.IsIndirect())
+    if (m_IndirectReference.IsIndirect())
     {
         // If lhs is indirect, just check document and reference
         return m_Document == rhs.m_Document &&
-            m_reference == rhs.m_reference;
+            m_IndirectReference == rhs.m_IndirectReference;
     }
     else
     {
@@ -829,11 +809,11 @@ bool PdfObject::operator!=(const PdfObject& rhs) const
     if (this != &rhs)
         return true;
 
-    if (m_reference.IsIndirect())
+    if (m_IndirectReference.IsIndirect())
     {
         // If lhs is indirect, just check document and reference
         return m_Document != rhs.m_Document ||
-            m_reference != rhs.m_reference;
+            m_IndirectReference != rhs.m_IndirectReference;
     }
     else
     {

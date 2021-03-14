@@ -118,10 +118,7 @@ void PdfObjectStreamParser::ReadObjectsFromStream( char* pBuffer, size_t lBuffer
             // compressed object is implicitly zero
             PdfReference reference(static_cast<uint32_t>(lObj), 0);
             auto obj = new PdfObject(var);
-            m_vecObjects->PushObject(obj, reference);
-
-            // The object has just been read, mark it not dirty right now
-            obj->ResetDirty();
+            m_vecObjects->PushObject(reference, obj);
 		}
 
         // move back to the position inside of the table of contents

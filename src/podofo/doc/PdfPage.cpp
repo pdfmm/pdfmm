@@ -51,19 +51,19 @@ using namespace PoDoFo;
 static int normalize(int value, int start, int end);
 
 PdfPage::PdfPage( const PdfRect & rSize, PdfDocument* pParent )
-    : PdfElement( "Page", pParent ), PdfCanvas(), m_pContents( nullptr )
+    : PdfElement(*pParent, "Page"), PdfCanvas(), m_pContents( nullptr )
 {
     InitNewPage( rSize );
 }
 
 PdfPage::PdfPage( const PdfRect & rSize, PdfVecObjects* pParent )
-    : PdfElement( "Page", pParent ), PdfCanvas(), m_pContents( nullptr )
+    : PdfElement(*pParent, "Page"), PdfCanvas(), m_pContents( nullptr )
 {
     InitNewPage( rSize );
 }
 
 PdfPage::PdfPage( PdfObject* pObject, const std::deque<PdfObject*> & rListOfParents )
-    : PdfElement( "Page", pObject ), PdfCanvas(), m_pContents(nullptr)
+    : PdfElement(*pObject), PdfCanvas(), m_pContents(nullptr)
 {
     m_pResources = GetObject()->GetDictionary().FindKey( "Resources" );
     if( !m_pResources ) 
@@ -339,7 +339,7 @@ PdfArray & PdfPage::GetOrCreateAnnotationsArray()
     return pObj->GetArray();
 }
 
-int PdfPage::GetAnnotationCount() const
+size_t PdfPage::GetAnnotationCount() const
 {
     auto arr = GetAnnotationsArray();
     return arr == nullptr ? 0 : arr->GetSize();
@@ -361,7 +361,7 @@ PdfAnnotation* PdfPage::CreateAnnotation( EPdfAnnotation eType, const PdfRect & 
     return pAnnot;
 }
 
-PdfAnnotation* PdfPage::GetAnnotation(int index)
+PdfAnnotation* PdfPage::GetAnnotation(size_t index)
 {
     PdfAnnotation* pAnnot;
     PdfReference   ref;
@@ -371,10 +371,8 @@ PdfAnnotation* PdfPage::GetAnnotation(int index)
     if (arr == nullptr)
         PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
     
-    if(index < 0 || index >= arr->GetSize())
-    {
-        PODOFO_RAISE_ERROR( EPdfError::ValueOutOfRange );
-    }
+    if (index >= arr->GetSize())
+        PODOFO_RAISE_ERROR(EPdfError::ValueOutOfRange);
 
     auto &obj = arr->FindAt(index);
     pAnnot = m_mapAnnotations[&obj];
@@ -387,13 +385,13 @@ PdfAnnotation* PdfPage::GetAnnotation(int index)
     return pAnnot;
 }
 
-void PdfPage::DeleteAnnotation(int index)
+void PdfPage::DeleteAnnotation(size_t index)
 {
     auto arr = GetAnnotationsArray();
     if (arr == nullptr)
         return;
 
-    if (index < 0 || index >= arr->GetSize())
+    if (index >= arr->GetSize())
         PODOFO_RAISE_ERROR(EPdfError::ValueOutOfRange);
 
     auto &pItem = arr->FindAt(index);
@@ -421,13 +419,13 @@ void PdfPage::DeleteAnnotation(PdfObject &annotObj)
 
     // find the array iterator pointing to the annotation, so it can be deleted later
     int index = -1;
-    for (int i = 0; i < arr->GetSize(); i++)
+    for (size_t i = 0; i < arr->GetSize(); i++)
     {
         // CLEAN-ME: The following is ugly. Fix operator== in PdfOject and PdfVariant and use operator==
         auto &obj = arr->FindAt(i);
         if (&annotObj == &obj)
         {
-            index = i;
+            index = (int)i;
             break;
         }
     }
@@ -550,7 +548,7 @@ void PdfPage::SetTrimBox( const PdfRect & rSize )
     this->GetObject()->GetDictionary().AddKey( "TrimBox", trimbox );
 }
 
-int PdfPage::GetPageNumber() const
+size_t PdfPage::GetPageNumber() const
 {
     int nPageNumber = 0;
     PdfObject*          pParent     = this->GetObject()->GetIndirectKey( "Parent" );
@@ -558,24 +556,25 @@ int PdfPage::GetPageNumber() const
 
     // CVE-2017-5852 - prevent infinite loop if Parent chain contains a loop
     // e.g. pParent->GetIndirectKey( "Parent" ) == pParent or pParent->GetIndirectKey( "Parent" )->GetIndirectKey( "Parent" ) == pParent
-    const int maxRecursionDepth = 1000;
-    int depth = 0;
+    const size_t maxRecursionDepth = 1000;
+    size_t depth = 0;
 
     while( pParent ) 
     {
         PdfObject* pKids = pParent->GetIndirectKey( "Kids" );
         if ( pKids != nullptr )
         {
-            const PdfArray& kids        = pKids->GetArray();
-            PdfArray::const_iterator it = kids.begin();
-
-            while( it != kids.end() && (*it).GetReference() != ref )
+            const PdfArray& kids = pKids->GetArray();
+            for (auto &child : kids)
             {
-                PdfObject* pNode = this->GetObject()->GetDocument()->GetObjects().GetObject( (*it).GetReference() );
+                if (child.GetReference() == ref)
+                    break;
+
+                PdfObject* pNode = this->GetObject()->GetDocument()->GetObjects().GetObject(child.GetReference() );
                 if (!pNode)
                 {
                     std::ostringstream oss;
-                    oss << "Object " << (*it).GetReference().ToString() << " not found from Kids array "
+                    oss << "Object " << child.GetReference().ToString() << " not found from Kids array "
                         << pKids->GetIndirectReference().ToString(); 
                     PODOFO_RAISE_ERROR_INFO( EPdfError::NoObject, oss.str() );
                 }
@@ -593,7 +592,6 @@ int PdfPage::GetPageNumber() const
                     // so the page count is 1
                     ++nPageNumber;
                 }
-                ++it;
             }
         }
 
@@ -647,7 +645,7 @@ void PdfPage::SetICCProfile( const char *pszCSTag, PdfInputStream *pStream, int6
     }
 
     // Create a colorspace object
-    PdfObject* iccObject = this->GetObject()->GetDocument()->GetObjects().CreateObject();
+    PdfObject* iccObject = this->GetObject()->GetDocument()->GetObjects().CreateDictionaryObject();
     PdfName nameForCS = PdfColor::GetNameForColorSpace( eAlternateColorSpace );
     iccObject->GetDictionary().AddKey( PdfName("Alternate"), nameForCS );
     iccObject->GetDictionary().AddKey( PdfName("N"), nColorComponents );

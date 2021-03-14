@@ -85,7 +85,7 @@ const char* PdfAnnotation::s_names[] = {
 static PdfName GetAppearanceName( EPdfAnnotationAppearance eAppearance );
 
 PdfAnnotation::PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRect & rRect, PdfVecObjects* pParent )
-    : PdfElement( "Annot", pParent ), m_eAnnotation( eAnnot ), m_pAction( nullptr ), m_pFileSpec( nullptr ), m_pPage( pPage )
+    : PdfElement(*pParent, "Annot"), m_eAnnotation( eAnnot ), m_pAction( nullptr ), m_pFileSpec( nullptr ), m_pPage( pPage )
 {
     PdfVariant    rect;
     PdfDate       date;
@@ -107,7 +107,7 @@ PdfAnnotation::PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRe
 }
 
 PdfAnnotation::PdfAnnotation( PdfObject* pObject, PdfPage* pPage )
-    : PdfElement( "Annot", pObject ), m_eAnnotation( EPdfAnnotation::Unknown ), m_pAction( nullptr ), m_pFileSpec( nullptr ), m_pPage( pPage )
+    : PdfElement(*pObject), m_eAnnotation( EPdfAnnotation::Unknown ), m_pAction( nullptr ), m_pFileSpec( nullptr ), m_pPage( pPage )
 {
     m_eAnnotation = static_cast<EPdfAnnotation>(TypeNameToIndex( this->GetObject()->GetDictionary().GetKeyAsName( PdfName::KeySubtype ).GetString().c_str(), s_names, s_lNumActions, (int)EPdfAnnotation::Unknown ));
 }

@@ -54,7 +54,7 @@ using namespace std;
 
 PdfParserObject::PdfParserObject(PdfDocument& document, const PdfRefCountedInputDevice& device,
                                   const PdfRefCountedBuffer & buffer, ssize_t lOffset )
-    : PdfObject( PdfVariant::NullValue ), m_device(device), m_buffer(buffer), m_pEncrypt( nullptr )
+    : PdfObject(PdfVariant::NullValue, true), m_device(device), m_buffer(buffer), m_pEncrypt(nullptr)
 {
     // Parsed objects by definition are initially not dirty
     resetDirty();
@@ -64,7 +64,7 @@ PdfParserObject::PdfParserObject(PdfDocument& document, const PdfRefCountedInput
 }
 
 PdfParserObject::PdfParserObject(const PdfRefCountedBuffer & buffer)
-    : PdfObject( PdfVariant::NullValue ), m_buffer(buffer), m_pEncrypt( nullptr )
+    : PdfObject( PdfVariant::NullValue, true), m_buffer(buffer), m_pEncrypt( nullptr )
 {
     InitPdfParserObject();
     m_lOffset = -1;
@@ -91,14 +91,14 @@ void PdfParserObject::InitPdfParserObject()
 
 void PdfParserObject::ReadObjectNumber()
 {
-    PdfReference reference;
+    PdfReference ref;
     try
     {
         int64_t obj = m_tokenizer.ReadNextNumber(m_device);
         int64_t gen = m_tokenizer.ReadNextNumber(m_device);
 
-        reference = PdfReference(static_cast<uint32_t>(obj), static_cast<uint16_t>(gen));
-        SetIndirectReference(reference);
+        ref = PdfReference(static_cast<uint32_t>(obj), static_cast<uint16_t>(gen));
+        SetIndirectReference(ref);
     }
     catch( PdfError & e )
     {
@@ -109,8 +109,8 @@ void PdfParserObject::ReadObjectNumber()
     if( !m_tokenizer.IsNextToken(m_device, "obj" ))
     {
         std::ostringstream oss;
-        oss << "Error while reading object " << reference.ObjectNumber() << " "
-            << reference.GenerationNumber() << ": Next token is not 'obj'." << std::endl;
+        oss << "Error while reading object " << ref.ObjectNumber() << " "
+            << ref.GenerationNumber() << ": Next token is not 'obj'." << std::endl;
         PODOFO_RAISE_ERROR_INFO( EPdfError::NoObject, oss.str().c_str() );
     }
 }
@@ -282,18 +282,19 @@ void PdfParserObject::ParseStream()
     m_device.Device()->Seek( fLoc );	// reset it before reading!
     PdfDeviceInputStream reader( m_device.Device() );
 
-	if( m_pEncrypt && !m_pEncrypt->IsMetadataEncrypted() ) {
-		// If metadata is not encrypted the Filter is set to "Crypt"
-		PdfObject* pFilterObj = this->m_Variant.GetDictionary().GetKey( PdfName::KeyFilter );
-		if( pFilterObj && pFilterObj->IsArray() ) {
-			PdfArray filters = pFilterObj->GetArray();
-			for(PdfArray::iterator it = filters.begin(); it != filters.end(); it++) {
-				if( (*it).IsName() )
-					if( (*it).GetName() == "Crypt" )
-						m_pEncrypt = 0;
-			}
-		}
-	}
+    if (m_pEncrypt && !m_pEncrypt->IsMetadataEncrypted())
+    {
+        // If metadata is not encrypted the Filter is set to "Crypt"
+        PdfObject* pFilterObj = this->m_Variant.GetDictionary().GetKey(PdfName::KeyFilter);
+        if (pFilterObj && pFilterObj->IsArray()) {
+            PdfArray filters = pFilterObj->GetArray();
+            for (auto& obj : filters)
+            {
+                if (obj.IsName() && obj.GetName() == "Crypt")
+                    m_pEncrypt = 0;
+            }
+        }
+    }
 
     // Set stream raw data without marking the object dirty
     if( m_pEncrypt )

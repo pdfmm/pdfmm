@@ -45,21 +45,20 @@
 using namespace PoDoFo;
 
 PdfContainerDataType::PdfContainerDataType()
-    : m_pOwner(nullptr), m_isImmutable(false), m_isDirty(false)
+    : m_pOwner(nullptr), m_isImmutable(false)
 {
 }
 
 // NOTE: Don't copy owner. Copied objects must be always detached.
 // Ownership will be set automatically elsewhere
 PdfContainerDataType::PdfContainerDataType( const PdfContainerDataType&rhs )
-    : PdfDataType( rhs ), m_pOwner(nullptr), m_isImmutable(false), m_isDirty(false)
+    : PdfDataType( rhs ), m_pOwner(nullptr), m_isImmutable(false)
 {
 }
 
 void PdfContainerDataType::ResetDirty()
 {
     ResetDirtyInternal();
-    m_isDirty = false;
 }
 
 PdfObject & PdfContainerDataType::GetIndirectObject( const PdfReference &ref ) const
@@ -82,15 +81,27 @@ void PdfContainerDataType::SetOwner( PdfObject* pOwner )
 
 void PdfContainerDataType::SetDirty()
 {
-    m_isDirty = true;
     if (m_pOwner != nullptr)
         m_pOwner->SetDirty();
+}
+
+bool PdfContainerDataType::IsIndirectReferenceAllowed(const PdfObject& obj)
+{
+    PdfDocument* objDocument;
+    if (obj.IsIndirect()
+        && (objDocument = obj.GetDocument()) != nullptr
+        && m_pOwner != nullptr
+        && objDocument == m_pOwner->GetDocument())
+    {
+        return true;
+    }
+
+    return false;
 }
 
 PdfContainerDataType& PdfContainerDataType::operator=( const PdfContainerDataType& rhs )
 {
     // NOTE: Don't copy owner. Objects being assigned will keep current ownership
-    m_isDirty = true;
     PdfDataType::operator=( rhs );
     return *this;
 }

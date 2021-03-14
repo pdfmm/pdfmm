@@ -47,39 +47,22 @@
 
 using namespace PoDoFo;
 
-PdfElement::PdfElement( const char* pszType, PdfVecObjects* pParent )
+PdfElement::PdfElement(PdfVecObjects& pParent, const std::string_view& type)
 {
-    m_pObject = pParent->CreateObject( pszType );
+    m_pObject = pParent.CreateDictionaryObject(type);
 }
 
-PdfElement::PdfElement( const char* pszType, PdfDocument* pParent )
+PdfElement::PdfElement(PdfDocument& pParent, const std::string_view& type)
 {
-    m_pObject = pParent->m_vecObjects.CreateObject( pszType );
+    m_pObject = pParent.m_vecObjects.CreateDictionaryObject(type);
 }
 
-PdfElement::PdfElement( const char* pszType, PdfObject* pObject )
+PdfElement::PdfElement(PdfObject& obj)
 {
-    if( !pObject )         
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
+    if(!obj.IsDictionary())
+        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
 
-    m_pObject = pObject;
-
-    if( !m_pObject->IsDictionary() ) 
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidDataType );
-    }
-
-    if( pszType
-        && m_pObject->GetDictionary().HasKey( PdfName::KeyType )
-        && m_pObject->GetDictionary().GetKeyAsName( PdfName::KeyType ) != pszType ) 
-    {
-        PdfError::LogMessage( ELogSeverity::Debug, "Expected key %s but got key %s.", 
-                              pszType, m_pObject->GetDictionary().GetKeyAsName( PdfName::KeyType ).GetString().c_str() );
-
-        PODOFO_RAISE_ERROR( EPdfError::InvalidDataType );
-    }
+    m_pObject = &obj;
 }
 
 PdfElement::PdfElement( EPdfDataType eExpectedDataType, PdfObject* pObject ) 
@@ -128,7 +111,7 @@ int PdfElement::TypeNameToIndex( const char* pszType, const char** ppTypes, long
 }
 PdfObject* PdfElement::CreateObject( const char* pszType )
 {
-    return m_pObject->GetDocument()->GetObjects().CreateObject( pszType );
+    return m_pObject->GetDocument()->GetObjects().CreateDictionaryObject( pszType );
 }
 
 PdfObject * PdfElement::GetNonConstObject() const

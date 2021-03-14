@@ -45,32 +45,32 @@
 namespace PoDoFo {
 
 PdfFileSpec::PdfFileSpec( const char* pszFilename, bool bEmbedd, PdfDocument* pParent, bool bStripPath)
-    : PdfElement( "Filespec", pParent )
+    : PdfElement(*pParent, "Filespec")
 {
     Init( pszFilename, bEmbedd, bStripPath );
 }
 
 PdfFileSpec::PdfFileSpec( const char* pszFilename, bool bEmbedd, PdfVecObjects* pParent, bool bStripPath)
-    : PdfElement( "Filespec", pParent )
+    : PdfElement(*pParent, "Filespec")
 {
     Init( pszFilename, bEmbedd, bStripPath );
 }
 
 PdfFileSpec::PdfFileSpec( const char* pszFilename, const unsigned char* data, ptrdiff_t size, PdfVecObjects* pParent, bool bStripPath)
-    : PdfElement( "Filespec", pParent )
+    : PdfElement(*pParent, "Filespec")
 {
     Init( pszFilename, data, size, bStripPath );
 }
 
 
 PdfFileSpec::PdfFileSpec( const char* pszFilename, const unsigned char* data, ptrdiff_t size, PdfDocument* pParent, bool bStripPath)
-    : PdfElement( "Filespec", pParent )
+    : PdfElement(*pParent, "Filespec")
 {
     Init( pszFilename, data, size, bStripPath );
 }
 
-PdfFileSpec::PdfFileSpec( PdfObject* pObject )
-    : PdfElement( "Filespec", pObject )
+PdfFileSpec::PdfFileSpec(PdfObject* pObject)
+    : PdfElement(*pObject)
 {
 }
 

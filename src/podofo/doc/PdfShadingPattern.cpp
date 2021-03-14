@@ -50,7 +50,7 @@
 namespace PoDoFo {
 
 PdfShadingPattern::PdfShadingPattern( EPdfShadingPatternType eShadingType, PdfVecObjects* pParent )
-    : PdfElement( "Pattern", pParent )
+    : PdfElement(*pParent, "Pattern")
 {
     std::ostringstream out;
     // We probably aren't doing anything locale sensitive here, but it's
@@ -66,7 +66,7 @@ PdfShadingPattern::PdfShadingPattern( EPdfShadingPatternType eShadingType, PdfVe
 }
 
 PdfShadingPattern::PdfShadingPattern( EPdfShadingPatternType eShadingType, PdfDocument* pParent )
-    : PdfElement( "Pattern", pParent )
+    : PdfElement(*pParent, "Pattern")
 {
     std::ostringstream out;
     // We probably aren't doing anything locale sensitive here, but it's

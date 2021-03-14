@@ -33,8 +33,8 @@
  *   files in the program, then also delete it here.                       *
  ***************************************************************************/
 
-#ifndef _PDF_VEC_OBJECTS_H_
-#define _PDF_VEC_OBJECTS_H_
+#ifndef PDF_VEC_OBJECTS_H
+#define PDF_VEC_OBJECTS_H
 
 #include <set>
 #include <list>
@@ -55,7 +55,7 @@ typedef std::deque<PdfReference>                 TPdfReferenceList;
 typedef TPdfReferenceList::iterator              TIPdfReferenceList;
 typedef TPdfReferenceList::const_iterator        TCIPdfReferenceList;
 
-typedef std::set<uint32_t>                     TPdfObjectNumList;
+typedef std::set<uint32_t>                       TPdfObjectNumList;
 
 typedef std::set<PdfReference>                   TPdfReferenceSet;
 typedef TPdfReferenceSet::iterator               TIPdfReferenceSet;
@@ -186,13 +186,6 @@ public:
      */
     PdfObject* GetObject( const PdfReference & ref ) const;
 
-    /** Finds the object with the given reference in m_vecOffsets 
-     *  and returns the index to it.
-     *  \param ref the object to be found
-     *  \returns the found object or nullptr if no object was found.
-     */
-    size_t GetIndex( const PdfReference & ref ) const;
-
     /** Remove the object with the given object and generation number from the list
      *  of objects.
      *  The object is returned if it was found. Otherwise nullptr is returned.
@@ -218,7 +211,7 @@ public:
      *  \param pszType optionall value of the /Type key of the object
      *  \returns PdfObject pointer to the new PdfObject
      */
-    PdfObject* CreateObject( const char* pszType = nullptr );
+    PdfObject* CreateDictionaryObject(const std::string_view& type = { });
 
     /** Creates a new object (of type rVariants) and inserts it into the vector.
      *  This function assigns the next free object number to the PdfObject.
@@ -307,14 +300,6 @@ public:
      */
     PdfStream* CreateStream( PdfObject* pParent );
 
-    /** Creates a stream object by copying an existing stream
-     *
-     *  \param rhs copy this stream
-     *
-     *  \returns a new stream object 
-     */
-    PdfStream* CreateStream( const PdfStream & rhs );
-
     /** Can be called to force objects to be written to disk.
      * 
      *  \param pObject a PdfObject that should be written to disk.
@@ -334,26 +319,6 @@ public:
      *  \param pStream the stream object that is calling
      */
     void EndAppendStream( const PdfStream* pStream );
-
-    /** Iterator pointing at the begining of the vector
-     *  \returns beginning iterator
-     */
-    TIVecObjects begin();
-
-    /** Iterator pointing at the begining of the vector
-     *  \returns beginning iterator
-     */
-    TCIVecObjects begin() const;
-
-    /** Iterator pointing at the end of the vector
-     *  \returns ending iterator
-     */
-    TIVecObjects end();
-
-    /** Iterator pointing at the end of the vector
-     *  \returns ending iterator
-     */
-    TCIVecObjects end() const;
 
     PdfObject*& operator[](size_t index);
 
@@ -389,6 +354,19 @@ public:
     void SetObjectCount( const PdfReference & rRef );
 
 public:
+    /** Iterator pointing at the begining of the vector
+     *  \returns beginning iterator
+     */
+    TCIVecObjects begin() const;
+
+    /** Iterator pointing at the end of the vector
+     *  \returns ending iterator
+     */
+    TCIVecObjects end() const;
+
+    size_t size() const;
+
+public:
     /** \returns a pointer to a PdfDocument that is the
      *           parent of this vector.
      *           Might be nullptr if the vector has no parent.
@@ -416,9 +394,7 @@ private:
 
     /** Push an object with the givent reference. If one is existing, it will be replaced
      */
-    void PushObject(PdfObject* pObj, const PdfReference &reference);
-
-    int32_t tryAddFreeObject( uint32_t objnum, uint32_t gennum );
+    void PushObject(const PdfReference &reference, PdfObject* pObj);
 
     /** Mark a reference as unused so that it can be reused for new objects.
      *
@@ -450,22 +426,27 @@ private:
      */
     void AddFreeObject(const PdfReference & rReference);
 
-    /** 
+private:
+    void addNewObject(PdfObject* obj);
+
+    /**
      * \returns the next free object reference
      */
-    PdfReference GetNextFreeObject();
+    PdfReference getNextFreeObject();
+
+    int32_t tryAddFreeObject(uint32_t objnum, uint32_t gennum);
 
     /** 
      * Create a list of all references that point to the object
      * for each object in this vector.
      * \param pList write all references to this list
      */
-    void BuildReferenceCountVector( TVecReferencePointerList& pList );
-    void InsertReferencesIntoVector( const PdfObject& pObj, TVecReferencePointerList& pList );
+    void buildReferenceCountVector( TVecReferencePointerList& pList );
+    void insertReferencesIntoVector( const PdfObject& pObj, TVecReferencePointerList& pList );
 
     /** Assumes that the PdfVecObjects is sorted
      */
-    void InsertOneReferenceIntoVector( const PdfObject& pObj, TVecReferencePointerList& pList );
+    void insertOneReferenceIntoVector( const PdfObject& pObj, TVecReferencePointerList& pList );
 
     /** Delete all objects from the vector which do not have references to them selves
      *  \param pList must be a list created by BuildReferenceCountVector
@@ -473,13 +454,13 @@ private:
      *  \param pNotDelete a list of object which must not be deleted
      *  \see BuildReferenceCountVector
      */
-    void GarbageCollection( TVecReferencePointerList& pList, PdfObject& pTrailer, TPdfReferenceSet* pNotDelete = nullptr );
+    void garbageCollection( TVecReferencePointerList& pList, PdfObject& pTrailer, TPdfReferenceSet* pNotDelete = nullptr );
 
 private:
     PdfDocument* m_pDocument;
     bool                m_bCanReuseObjectNumbers;
     size_t              m_nObjectCount;
-    bool                m_bSorted;
+    bool                m_sorted;
     TVecObjects         m_vector;
 
 
@@ -495,4 +476,4 @@ private:
 
 };
 
-#endif // _PDF_VEC_OBJECTS_H_
+#endif // PDF_VEC_OBJECTS_H

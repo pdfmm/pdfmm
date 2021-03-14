@@ -298,8 +298,10 @@ PdfFont* PdfFontFactory::CreateFont( FT_Library*, PdfObject* pObject )
            }
         }
         const PdfEncoding* pPdfEncoding = nullptr;
-        if ( pEncoding != nullptr )
-            pPdfEncoding = PdfEncodingObjectFactory::CreateEncoding( pEncoding );
+        if (pEncoding != nullptr)
+        {
+            pPdfEncoding = PdfEncodingObjectFactory::CreateEncoding(pEncoding);
+        }
         else if ( pDescriptor )
         {
            // OC 18.08.2010 TODO: Encoding has to be taken from the font's built-in encoding

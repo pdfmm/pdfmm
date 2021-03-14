@@ -38,6 +38,7 @@
 #include "PdfOutputDevice.h"
 #include "PdfDefinesPrivate.h"
 
+using namespace std;
 using namespace PoDoFo;
 
 PdfDictionary::PdfDictionary() { }
@@ -87,31 +88,46 @@ void PdfDictionary::Clear()
 PdfObject & PdfDictionary::AddKey( const PdfName & identifier, const PdfObject & rObject )
 {
     AssertMutable();
-    auto& added = addKey(identifier, rObject);
-    SetDirty();
-    return added;
+    auto added = addKey(identifier, rObject, false);
+    if (added.second)
+        SetDirty();
+
+    return added.first->second;
 }
 
-void PdfDictionary::AddKey( const PdfName & identifier, const PdfObject* pObject )
+PdfObject& PdfDictionary::AddKeyIndirect(const PdfName& key, const PdfObject& obj)
 {
-    this->AddKey( identifier, *pObject );
+    if (IsIndirectReferenceAllowed(obj))
+        return AddKey(key, obj.GetIndirectReference());
+
+    return AddKey(key, obj);
 }
 
-PdfObject& PdfDictionary::addKey(const PdfName& identifier, const PdfObject& rObject)
+void PdfDictionary::AddKey(const PdfName& key, const PdfObject* pObject)
+{
+    this->AddKey(key, *pObject);
+}
+
+pair<TKeyMap::iterator, bool> PdfDictionary::addKey(const PdfName& identifier, const PdfObject& rObject, bool noDirtySet)
 {
     // NOTE: Empty PdfNames are legal according to the PDF specification.
     // Don't check for it
 
     std::pair<TKeyMap::iterator, bool> inserted = m_mapKeys.insert(std::make_pair(identifier, rObject));
     if (!inserted.second)
-        inserted.first->second = rObject;
+    {
+        if (noDirtySet)
+            inserted.first->second.Assign(rObject);
+        else
+            inserted.first->second = rObject;
+    }
 
     inserted.first->second.SetParent(this);
     auto document = GetObjectDocument();
     if (document != nullptr)
         inserted.first->second.SetDocument(*document);
 
-    return inserted.first->second;
+    return inserted;
 }
 
 PdfObject * PdfDictionary::getKey( const PdfName & key ) const
@@ -324,32 +340,8 @@ void PdfDictionary::Write(PdfOutputDevice& pDevice, EPdfWriteMode eWriteMode,
 void PdfDictionary::ResetDirtyInternal()
 {
     // Propagate state to all sub objects
-    TKeyMap::iterator it = m_mapKeys.begin();
-    while( it != m_mapKeys.end() )
-    {
-        it->second.ResetDirty();
-        ++it;
-    }
-}
-
-TIKeyMap PdfDictionary::begin()
-{
-    return m_mapKeys.begin();
-}
-
-TIKeyMap PdfDictionary::end()
-{
-    return m_mapKeys.end();
-}
-
-TCIKeyMap PdfDictionary::begin() const
-{
-    return m_mapKeys.begin();
-}
-
-TCIKeyMap PdfDictionary::end() const
-{
-    return m_mapKeys.end();
+    for (auto &pair : m_mapKeys)
+        pair.second.ResetDirty();
 }
 
 void PdfDictionary::SetOwner( PdfObject *pOwner )
@@ -409,4 +401,29 @@ const PdfObject& PdfDictionary::MustGetKey( const PdfName & key ) const
     if (!obj)
         PODOFO_RAISE_ERROR( EPdfError::NoObject );
     return *obj;
+}
+
+TIKeyMap PdfDictionary::begin()
+{
+    return m_mapKeys.begin();
+}
+
+TIKeyMap PdfDictionary::end()
+{
+    return m_mapKeys.end();
+}
+
+TCIKeyMap PdfDictionary::begin() const
+{
+    return m_mapKeys.begin();
+}
+
+TCIKeyMap PdfDictionary::end() const
+{
+    return m_mapKeys.end();
+}
+
+size_t PdfDictionary::size() const
+{
+    return m_mapKeys.size();
 }

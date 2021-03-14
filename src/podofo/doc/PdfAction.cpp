@@ -62,7 +62,7 @@ const char* PdfAction::s_names[] = {
 };
 
 PdfAction::PdfAction( EPdfAction eAction, PdfVecObjects* pParent )
-    : PdfElement( "Action", pParent ), m_eType( eAction )
+    : PdfElement(*pParent, "Action"), m_eType( eAction )
 {
     const PdfName type = PdfName( TypeNameForIndex((int)eAction, s_names, s_lNumActions ) );
 
@@ -75,7 +75,7 @@ PdfAction::PdfAction( EPdfAction eAction, PdfVecObjects* pParent )
 }
 
 PdfAction::PdfAction( EPdfAction eAction, PdfDocument* pParent )
-    : PdfElement( "Action", pParent ), m_eType( eAction )
+    : PdfElement(*pParent, "Action"), m_eType( eAction )
 {
     const PdfName type = PdfName( TypeNameForIndex((int)eAction, s_names, s_lNumActions ) );
 
@@ -89,7 +89,7 @@ PdfAction::PdfAction( EPdfAction eAction, PdfDocument* pParent )
 
 PdfAction::PdfAction( PdfObject* pObject )
     // The typename /Action is optional for PdfActions
-    : PdfElement( nullptr, pObject )
+    : PdfElement(*pObject)
 {
     m_eType = static_cast<EPdfAction>(TypeNameToIndex( this->GetObject()->GetDictionary().GetKeyAsName( "S" ).GetString().c_str(), s_names, s_lNumActions, (int)EPdfAction::Unknown ));
 }

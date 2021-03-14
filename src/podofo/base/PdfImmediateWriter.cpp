@@ -120,7 +120,7 @@ void PdfImmediateWriter::Finish()
     if( GetEncrypt() )
     {
         // Add our own Encryption dictionary
-        SetEncryptObj(GetObjects().CreateObject());
+        SetEncryptObj(GetObjects().CreateDictionaryObject());
         GetEncrypt()->CreateEncryptionDictionary(GetEncryptObj()->GetDictionary() );
     }
 
