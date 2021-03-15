@@ -255,21 +255,20 @@ void PdfWriter::FillTrailerObject( PdfObject& trailer, size_t lSize, bool bOnlyS
     }
 }
 
-void PdfWriter::CreateFileIdentifier(PdfString & identifier, const PdfObject& pTrailer, PdfString* pOriginalIdentifier ) const
+void PdfWriter::CreateFileIdentifier(PdfString& identifier, const PdfObject& pTrailer, PdfString* pOriginalIdentifier) const
 {
     PdfOutputDevice length;
-    PdfObject*      pInfo;
-    char*           pBuffer;
-    bool            bOriginalIdentifierFound = false;
-    
-    if( pOriginalIdentifier && pTrailer.GetDictionary().HasKey( "ID" ))
+    unique_ptr<PdfObject> pInfo;
+    bool bOriginalIdentifierFound = false;
+
+    if (pOriginalIdentifier && pTrailer.GetDictionary().HasKey("ID"))
     {
         const PdfObject* idObj = pTrailer.GetDictionary().GetKey("ID");
         // The PDF spec, section 7.5.5, implies that the ID may be
         // indirect as long as the PDF is not encrypted. Handle that
         // case.
-        if ( idObj->IsReference() ) {
-            idObj = m_vecObjects->GetObject( idObj->GetReference() );
+        if (idObj->IsReference()) {
+            idObj = m_vecObjects->GetObject(idObj->GetReference());
         }
 
         auto it = idObj->GetArray().begin();
@@ -284,57 +283,64 @@ void PdfWriter::CreateFileIdentifier(PdfString & identifier, const PdfObject& pT
     // create a dictionary with some unique information.
     // This dictionary is based on the PDF files information
     // dictionary if it exists.
-    if( pTrailer.GetDictionary().HasKey("Info") )
+    auto pObjInfo = pTrailer.GetDictionary().GetKey("Info");;
+    if (pObjInfo == nullptr)
     {
-        const PdfReference & rRef = pTrailer.GetDictionary().GetKey( "Info" )->GetReference();
-        const PdfObject* pObj = m_vecObjects->GetObject( rRef );
+        PdfDate date;
+        PdfString dateString = date.ToString();
 
-        if( pObj ) 
+        pInfo.reset(new PdfObject());
+        pInfo->GetDictionary().AddKey("CreationDate", dateString);
+        pInfo->GetDictionary().AddKey("Creator", PdfString("PoDoFo"));
+        pInfo->GetDictionary().AddKey("Producer", PdfString("PoDoFo"));
+    }
+    else
+    {
+        PdfReference ref;
+        if(pObjInfo->TryGetReference(ref))
         {
-            pInfo = new PdfObject( *pObj );
+            pObjInfo = m_vecObjects->GetObject(ref);
+
+            if (pObjInfo == nullptr)
+            {
+                std::ostringstream oss;
+                oss << "Error while retrieving info dictionary: "
+                    << ref.ObjectNumber() << " "
+                    << ref.GenerationNumber() << " R" << std::endl;
+                PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidHandle, oss.str().c_str());
+            }
+            else
+            {
+                pInfo.reset(new PdfObject(*pObjInfo));
+            }
+        }
+        else if (pObjInfo->IsDictionary())
+        {
+            // NOTE: While Table 15, ISO 32000-1:2008, states that Info should be an
+            // indirect reference, we found Pdfs, for example produced
+            // by pdfjs v0.4.1 (github.com/rkusa/pdfjs) that do otherwise.
+            // As usual, Acroat Pro Syntax checker doesn't care about this,
+            // so let's just read it
+            pInfo.reset(new PdfObject(*pObjInfo));
         }
         else
         {
-            std::ostringstream oss;
-            oss << "Error while retrieving info dictionary: " 
-                << rRef.ObjectNumber() << " " 
-                << rRef.GenerationNumber() << " R" << std::endl;
-            PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidHandle, oss.str().c_str() );
+            PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "Invalid ");
         }
     }
-    else 
-    {
-        PdfDate   date;
-        PdfString dateString = date.ToString();
 
-        pInfo = new PdfObject();
-        pInfo->GetDictionary().AddKey( "CreationDate", dateString );
-        pInfo->GetDictionary().AddKey( "Creator", PdfString("PoDoFo") );
-        pInfo->GetDictionary().AddKey( "Producer", PdfString("PoDoFo") );
-    }
-    
-    pInfo->GetDictionary().AddKey( "Location", PdfString("SOMEFILENAME") );
-
+    pInfo->GetDictionary().AddKey("Location", PdfString("SOMEFILENAME"));
     pInfo->Write(length, m_eWriteMode, nullptr);
 
-    pBuffer = static_cast<char*>(podofo_calloc( length.GetLength(), sizeof(char) ));
-    if( !pBuffer )
-    {
-        delete pInfo;
-        PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
-    }
-
-    PdfOutputDevice device( pBuffer, length.GetLength() );
+    PdfRefCountedBuffer buffer(length.GetLength());
+    PdfOutputDevice device(&buffer);
     pInfo->Write(device, m_eWriteMode, nullptr);
 
     // calculate the MD5 Sum
-    identifier = PdfEncryptMD5Base::GetMD5String( reinterpret_cast<unsigned char*>(pBuffer),
-                                           static_cast<unsigned int>(length.GetLength()) );
-    podofo_free( pBuffer );
+    identifier = PdfEncryptMD5Base::GetMD5String(reinterpret_cast<unsigned char*>(buffer.GetBuffer()),
+        static_cast<unsigned int>(length.GetLength()));
 
-    delete pInfo;
-
-    if( pOriginalIdentifier && !bOriginalIdentifierFound )
+    if (pOriginalIdentifier && !bOriginalIdentifierFound)
         *pOriginalIdentifier = identifier;
 }
 
