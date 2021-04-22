@@ -10,7 +10,7 @@ SET(sign_srcs
 
 ADD_EXECUTABLE(SignatureTest ${sign_srcs})
 
-TARGET_LINK_LIBRARIES(SignatureTest ${PODOFO_LIB} ${PODOFO_LIB_DEPENDS} ${sign_extra_libs} )
+TARGET_LINK_LIBRARIES(SignatureTest ${PODOFO_LIB} ${sign_extra_libs} )
 SET_TARGET_PROPERTIES(SignatureTest PROPERTIES COMPILE_FLAGS "${PODOFO_CFLAGS}")
 
 ADD_DEPENDENCIES(SignatureTest ${PODOFO_DEPEND_TARGET})

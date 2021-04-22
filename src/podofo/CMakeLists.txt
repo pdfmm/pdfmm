@@ -1,5 +1,3 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
-
 IF(NOT PODOFO_MAIN_CMAKELISTS_READ)
   MESSAGE(FATAL_ERROR "Run cmake on the CMakeLists.txt in the project root, not the one in the 'src' directory. You will need to delete CMakeCache.txt from the current directory.")
 ENDIF(NOT PODOFO_MAIN_CMAKELISTS_READ)
@@ -103,6 +101,8 @@ SET(PODOFO_DOC_SOURCES
   doc/PdfTilingPattern.cpp
   doc/PdfXObject.cpp
   )
+
+
 
 IF(WIN32 AND PODOFO_BUILD_SHARED)
     # If we build for windows systems, we also include the resource file
@@ -228,10 +228,10 @@ SET(PODOFO_HEADER_FILES
   ${PODOFO_DOC_HEADERS}
   )
 
-# Create a Source Group for Visual Studio
-# so that headers are listed in the folder view
-# and are easier accessible
-SOURCE_GROUP("Header Files" FILES ${PODOFO_HEADER_FILES})
+# Create a Source Groups for Visual Studio
+SOURCE_GROUP("" FILES ${PODOFO_HEADERS})
+SOURCE_GROUP("base" FILES ${PODOFO_BASE_HEADERS} ${PODOFO_BASE_SOURCES})
+SOURCE_GROUP("doc" FILES ${PODOFO_DOC_HEADERS} ${PODOFO_DOC_SOURCES})
 
 INSTALL(FILES ${PODOFO_HEADERS}
   DESTINATION "include/podofo"

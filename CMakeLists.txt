@@ -202,20 +202,6 @@ ELSE(PNG_FOUND)
   SET(PNG_LIBRARIES "")
 ENDIF(PNG_FOUND)
 
-IF(NOT PODOFO_BUILD_LIB_ONLY)
-
-FIND_PACKAGE(CppUnit)
-
-IF(CppUnit_FOUND)
-  MESSAGE("Found cppunit. Unit tests will be built.")
-  SET(PODOFO_HAVE_CPPUNIT CppUnit_FOUND)
-  INCLUDE_DIRECTORIES(${CPPUNIT_INCLUDE_DIR})
-ELSE(CppUnit_FOUND)
-  MESSAGE("Cppunit not found. No unit tests will be built.")
-ENDIF(CppUnit_FOUND)
-
-ENDIF(NOT PODOFO_BUILD_LIB_ONLY)
-
 FIND_PACKAGE(Freetype REQUIRED)
 MESSAGE("Found freetype library at ${FREETYPE_LIBRARIES}, headers ${FREETYPE_INCLUDE_DIRS}")
 
@@ -289,7 +275,7 @@ IF(WIN32 OR PODOFO_BUILD_STATIC)
   SET(PODOFO_LIB
       podofo
       ${PODOFO_LIB_DEPENDS}
-      )
+  )
 ELSE(WIN32 OR PODOFO_BUILD_STATIC)
   SET(PODOFO_LIB podofo)
 ENDIF(WIN32 OR PODOFO_BUILD_STATIC)
@@ -308,8 +294,12 @@ FILE(APPEND
 
 ADD_SUBDIRECTORY(src/podofo)
 IF(NOT PODOFO_BUILD_LIB_ONLY)
-ADD_SUBDIRECTORY(test)
-ADD_SUBDIRECTORY(examples)
+    # Tell gtest to use shared crt (option /MD)
+    set(gtest_force_shared_crt ON)
+    enable_testing()
+    add_subdirectory(extern/gtest)
+    ADD_SUBDIRECTORY(test)
+    ADD_SUBDIRECTORY(examples)
 ENDIF(NOT PODOFO_BUILD_LIB_ONLY)
 
 # Generate our configure file
