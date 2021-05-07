@@ -490,7 +490,7 @@ void PdfParser::ReadNextTrailer(const PdfRefCountedInputDevice& device)
 {
     PdfRecursionGuard guard(m_nRecursionDepth);
 
-    if (m_tokenizer.IsNextToken(device, "trailer"))
+    if (m_tokenizer.IsNextToken(*device.Device(), "trailer"))
     {
         PdfParserObject trailer(m_vecObjects->GetDocument(), device, m_buffer);
         try
@@ -557,7 +557,7 @@ void PdfParser::ReadTrailer(const PdfRefCountedInputDevice& device)
 {
     FindToken(device, "trailer", PDF_XREF_BUF);
     
-    if (!m_tokenizer.IsNextToken(device, "trailer"))
+    if (!m_tokenizer.IsNextToken(*device.Device(), "trailer"))
     {
 //      if( m_ePdfVersion < EPdfVersion::V1_5 )
 //		Ulrich Arnold 19.10.2009, found linearized 1.3-pdf's with trailer-info in xref-stream
@@ -600,13 +600,13 @@ void PdfParser::ReadXRef(const PdfRefCountedInputDevice& device, size_t* pXRefOf
 {
     FindToken(device, "startxref", PDF_XREF_BUF);
 
-    if(!m_tokenizer.IsNextToken(device, "startxref"))
+    if (!m_tokenizer.IsNextToken(*device.Device(), "startxref"))
     {
 		// Could be non-standard startref
 		if(!m_bStrictParsing)
         {
 			FindToken(device, "startref", PDF_XREF_BUF);
-            if (!m_tokenizer.IsNextToken(device, "startref"))
+            if (!m_tokenizer.IsNextToken(*device.Device(), "startref"))
                 PODOFO_RAISE_ERROR(EPdfError::NoXRef);
 		}
         else 
@@ -616,7 +616,7 @@ void PdfParser::ReadXRef(const PdfRefCountedInputDevice& device, size_t* pXRefOf
     }
 
     // Support also files with whitespace offset before magic start
-    *pXRefOffset = (size_t)m_tokenizer.ReadNextNumber(device) + m_magicOffset;
+    *pXRefOffset = (size_t)m_tokenizer.ReadNextNumber(*device.Device()) + m_magicOffset;
 }
 
 void PdfParser::ReadXRefContents(const PdfRefCountedInputDevice& device, size_t lOffset, bool bPositionAtEnd)
@@ -663,7 +663,7 @@ void PdfParser::ReadXRefContents(const PdfRefCountedInputDevice& device, size_t 
         device.Device()->Seek( lOffset );
     }
     
-    if(!m_tokenizer.IsNextToken(device, "xref"))
+    if (!m_tokenizer.IsNextToken(*device.Device(), "xref"))
     {
 //		Ulrich Arnold 19.10.2009, found linearized 1.3-pdf's with trailer-info in xref-stream
         if( m_ePdfVersion < EPdfVersion::V1_3 )
@@ -690,7 +690,7 @@ void PdfParser::ReadXRefContents(const PdfRefCountedInputDevice& device, size_t 
                 // something like PeekNextToken()
                 EPdfTokenType eType;
                 string_view pszRead;
-                bool gotToken = m_tokenizer.TryReadNextToken(device, pszRead, &eType);
+                bool gotToken = m_tokenizer.TryReadNextToken(*device.Device(), pszRead, &eType);
                 if( gotToken )
                 {
                     m_tokenizer.EnqueueToken(pszRead, eType);
@@ -699,8 +699,8 @@ void PdfParser::ReadXRefContents(const PdfRefCountedInputDevice& device, size_t 
                 }
             }
 
-            nFirstObject = m_tokenizer.ReadNextNumber(device);
-            nNumObjects  = m_tokenizer.ReadNextNumber(device);
+            nFirstObject = m_tokenizer.ReadNextNumber(*device.Device());
+            nNumObjects  = m_tokenizer.ReadNextNumber(*device.Device());
 
 #ifdef PODOFO_VERBOSE_DEBUG
             PdfError::DebugMessage("Reading numbers: %" PDF_FORMAT_INT64 " %" PDF_FORMAT_INT64 "\n", nFirstObject, nNumObjects );

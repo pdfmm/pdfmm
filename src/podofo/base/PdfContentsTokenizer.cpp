@@ -97,7 +97,7 @@ bool PdfContentsTokenizer::tryReadNextToken(string_view& pszToken , EPdfTokenTyp
 {
     bool hasToken = false;
     if (m_device.Device() != nullptr)
-        hasToken = PdfTokenizer::TryReadNextToken(m_device, pszToken, peType);
+        hasToken = PdfTokenizer::TryReadNextToken(*m_device.Device(), pszToken, peType);
 
     while (!hasToken)
     {
@@ -116,7 +116,7 @@ bool PdfContentsTokenizer::tryReadNextToken(string_view& pszToken , EPdfTokenTyp
         m_device = PdfRefCountedInputDevice(buffer.GetBuffer(), buffer.GetSize());
 
 		m_lstContents.pop_front();
-        hasToken = PdfTokenizer::TryReadNextToken(m_device, pszToken, peType);
+        hasToken = PdfTokenizer::TryReadNextToken(*m_device.Device(), pszToken, peType);
 	}
 	return hasToken;
 }
@@ -134,7 +134,7 @@ bool PdfContentsTokenizer::TryReadNextVariant(PdfVariant& rVariant)
     if (!tryReadNextToken(pszToken, &eTokenType))
         return false;
 
-    return PdfTokenizer::TryReadNextVariant(m_device, pszToken, eTokenType, rVariant, nullptr);
+    return PdfTokenizer::TryReadNextVariant(*m_device.Device(), pszToken, eTokenType, rVariant, nullptr);
 }
 
 bool PdfContentsTokenizer::TryReadNext(EPdfContentsType& reType, string_view& rpszKeyword, PdfVariant& rVariant)
@@ -151,7 +151,7 @@ bool PdfContentsTokenizer::TryReadNext(EPdfContentsType& reType, string_view& rp
     if (!gotToken)
         return false;
 
-    EPdfLiteralDataType eDataType = DetermineDataType(m_device, pszToken, eTokenType, rVariant);
+    EPdfLiteralDataType eDataType = DetermineDataType(*m_device.Device(), pszToken, eTokenType, rVariant);
 
     // asume we read a variant unless we discover otherwise later.
     reType = EPdfContentsType::Variant;
@@ -173,19 +173,19 @@ bool PdfContentsTokenizer::TryReadNext(EPdfContentsType& reType, string_view& rp
         }
 
         case EPdfLiteralDataType::Dictionary:
-            this->ReadDictionary(m_device, rVariant, nullptr);
+            this->ReadDictionary(*m_device.Device(), rVariant, nullptr);
             break;
         case EPdfLiteralDataType::Array:
-            this->ReadArray(m_device, rVariant, nullptr);
+            this->ReadArray(*m_device.Device(), rVariant, nullptr);
             break;
         case EPdfLiteralDataType::String:
-            this->ReadString(m_device, rVariant, nullptr);
+            this->ReadString(*m_device.Device(), rVariant, nullptr);
             break;
         case EPdfLiteralDataType::HexString:
-            this->ReadHexString(m_device, rVariant, nullptr);
+            this->ReadHexString(*m_device.Device(), rVariant, nullptr);
             break;
         case EPdfLiteralDataType::Name:
-            this->ReadName(m_device, rVariant);
+            this->ReadName(*m_device.Device(), rVariant);
             break;
 
         default:

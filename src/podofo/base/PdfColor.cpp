@@ -883,7 +883,7 @@ PdfColor PdfColor::FromString( const char* pszName )
         // PdfArray 
         else if( pszName[0] == '[' ) 
         {
-            PdfRefCountedInputDevice device(pszName, lLen);
+            PdfInputDevice device(pszName, lLen);
             PdfTokenizer tokenizer;
             PdfVariant var;
 

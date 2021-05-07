@@ -94,8 +94,8 @@ void PdfParserObject::ReadObjectNumber()
     PdfReference ref;
     try
     {
-        int64_t obj = m_tokenizer.ReadNextNumber(m_device);
-        int64_t gen = m_tokenizer.ReadNextNumber(m_device);
+        int64_t obj = m_tokenizer.ReadNextNumber(*m_device.Device());
+        int64_t gen = m_tokenizer.ReadNextNumber(*m_device.Device());
 
         ref = PdfReference(static_cast<uint32_t>(obj), static_cast<uint16_t>(gen));
         SetIndirectReference(ref);
@@ -106,7 +106,7 @@ void PdfParserObject::ReadObjectNumber()
         throw e;
     }
     
-    if( !m_tokenizer.IsNextToken(m_device, "obj" ))
+    if (!m_tokenizer.IsNextToken(*m_device.Device(), "obj"))
     {
         std::ostringstream oss;
         oss << "Error while reading object " << ref.ObjectNumber() << " "
@@ -177,18 +177,18 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
 
     EPdfTokenType eTokenType;
     string_view pszToken;
-    bool gotToken = m_tokenizer.TryReadNextToken(m_device, pszToken, &eTokenType);
+    bool gotToken = m_tokenizer.TryReadNextToken(*m_device.Device(), pszToken, &eTokenType);
     if (!gotToken)
         PODOFO_RAISE_ERROR_INFO( EPdfError::UnexpectedEOF, "Expected variant." );
 
     // Check if we have an empty object or data
     if (pszToken != "endobj")
     {
-        m_tokenizer.ReadNextVariant(m_device, pszToken, eTokenType, m_Variant, m_pEncrypt );
+        m_tokenizer.ReadNextVariant(*m_device.Device(), pszToken, eTokenType, m_Variant, m_pEncrypt);
 
         if( !bIsTrailer )
         {
-            bool gotToken = m_tokenizer.TryReadNextToken(m_device, pszToken );
+            bool gotToken = m_tokenizer.TryReadNextToken(*m_device.Device(), pszToken);
             if (!gotToken)
             {
                 PODOFO_RAISE_ERROR_INFO( EPdfError::UnexpectedEOF, "Expected 'endobj' or (if dict) 'stream', got EOF." );

@@ -74,7 +74,7 @@ void PdfObjectStreamParser::Parse(ObjectIdList const & list)
 
 void PdfObjectStreamParser::ReadObjectsFromStream( char* pBuffer, size_t lBufferLen, int64_t lNum, int64_t lFirst, ObjectIdList const & list)
 {
-    PdfRefCountedInputDevice device( pBuffer, lBufferLen );
+    PdfInputDevice device(pBuffer, lBufferLen);
     PdfTokenizer tokenizer(m_buffer );
     PdfVariant var;
     int i = 0;
@@ -83,7 +83,7 @@ void PdfObjectStreamParser::ReadObjectsFromStream( char* pBuffer, size_t lBuffer
     {
         const int64_t lObj = tokenizer.ReadNextNumber(device);
         const int64_t lOff = tokenizer.ReadNextNumber(device);
-        size_t pos = device.Device()->Tell();
+        size_t pos = device.Tell();
 
         if( lFirst >= std::numeric_limits<int64_t>::max() - lOff )
         {
@@ -92,7 +92,7 @@ void PdfObjectStreamParser::ReadObjectsFromStream( char* pBuffer, size_t lBuffer
         }
 
         // move to the position of the object in the stream
-        device.Device()->Seek( static_cast<std::streamoff>(lFirst + lOff) );
+        device.Seek(static_cast<std::streamoff>(lFirst + lOff));
 
 		// use a second tokenizer here so that anything that gets dequeued isn't left in the tokenizer that reads the offsets and lengths
 	    PdfTokenizer variantTokenizer(m_buffer);
@@ -122,7 +122,7 @@ void PdfObjectStreamParser::ReadObjectsFromStream( char* pBuffer, size_t lBuffer
 		}
 
         // move back to the position inside of the table of contents
-        device.Device()->Seek( pos );
+        device.Seek(pos);
 
         ++i;
     }

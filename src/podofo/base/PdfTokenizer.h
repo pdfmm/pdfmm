@@ -111,7 +111,7 @@ public:
      *  \returns           True if a token was read, false if there are no
      *                     more tokens to read.
      */
-    bool TryReadNextToken(const PdfRefCountedInputDevice& device, std::string_view& pszToken, EPdfTokenType* peType = nullptr);
+    bool TryReadNextToken(PdfInputDevice& device, std::string_view& pszToken, EPdfTokenType* peType = nullptr);
 
     /** Reads the next token from the current file position
      *  ignoring all comments and compare the passed token
@@ -124,7 +124,7 @@ public:
      *
      *  \returns true if the read token equals the passed token.
      */
-    bool IsNextToken(const PdfRefCountedInputDevice& device, const std::string_view& pszToken);
+    bool IsNextToken(PdfInputDevice& device, const std::string_view& pszToken);
 
     /** Read the next number from the current file position
      *  ignoring all comments.
@@ -135,7 +135,7 @@ public:
      *
      *  \returns a number read from the input device.
      */
-    int64_t ReadNextNumber(const PdfRefCountedInputDevice& device);
+    int64_t ReadNextNumber(PdfInputDevice& device);
 
     /** Read the next variant from the current file position
      *  ignoring all comments.
@@ -146,7 +146,7 @@ public:
      *  \param rVariant write the read variant to this value
      *  \param pEncrypt an encryption object which is used to decrypt strings during parsing
      */
-    void ReadNextVariant(const PdfRefCountedInputDevice& device, PdfVariant& rVariant, PdfEncrypt* pEncrypt = nullptr);
+    void ReadNextVariant(PdfInputDevice& device, PdfVariant& rVariant, PdfEncrypt* pEncrypt = nullptr);
 
     /** Returns true if the given character is a whitespace 
      *  according to the pdf reference
@@ -202,8 +202,8 @@ protected:
      *  \param rVariant write the read variant to this value
      *  \param pEncrypt an encryption object which is used to decrypt strings during parsing
      */
-    void ReadNextVariant(const PdfRefCountedInputDevice& device, const std::string_view& pszToken, EPdfTokenType eType, PdfVariant& rVariant, PdfEncrypt* pEncrypt );
-    bool TryReadNextVariant(const PdfRefCountedInputDevice& device, const std::string_view& pszToken, EPdfTokenType eType, PdfVariant& rVariant, PdfEncrypt* pEncrypt);
+    void ReadNextVariant(PdfInputDevice& device, const std::string_view& pszToken, EPdfTokenType eType, PdfVariant& rVariant, PdfEncrypt* pEncrypt );
+    bool TryReadNextVariant(PdfInputDevice& device, const std::string_view& pszToken, EPdfTokenType eType, PdfVariant& rVariant, PdfEncrypt* pEncrypt);
 
     /** Add a token to the queue of tokens.
      *  tryReadNextToken() will return all enqueued tokens first before
@@ -222,7 +222,7 @@ protected:
      *
      *  \returns the expected datatype
      */
-    EPdfLiteralDataType DetermineDataType(const PdfRefCountedInputDevice& device, const std::string_view& pszToken, EPdfTokenType eType, PdfVariant& rVariant );
+    EPdfLiteralDataType DetermineDataType(PdfInputDevice& device, const std::string_view& pszToken, EPdfTokenType eType, PdfVariant& rVariant);
 
     /** Read a dictionary from the input device
      *  and store it into a variant.
@@ -230,7 +230,7 @@ protected:
      *  \param rVariant store the dictionary into this variable
      *  \param pEncrypt an encryption object which is used to decrypt strings during parsing
      */
-    void ReadDictionary(const PdfRefCountedInputDevice& device, PdfVariant& rVariant, PdfEncrypt* pEncrypt );
+    void ReadDictionary(PdfInputDevice& device, PdfVariant& rVariant, PdfEncrypt* pEncrypt );
 
     /** Read an array from the input device
      *  and store it into a variant.
@@ -238,7 +238,7 @@ protected:
      *  \param rVariant store the array into this variable
      *  \param pEncrypt an encryption object which is used to decrypt strings during parsing
      */
-    void ReadArray(const PdfRefCountedInputDevice& device, PdfVariant& rVariant, PdfEncrypt* pEncrypt );
+    void ReadArray(PdfInputDevice& device, PdfVariant& rVariant, PdfEncrypt* pEncrypt );
 
     /** Read a string from the input device
      *  and store it into a variant.
@@ -246,7 +246,7 @@ protected:
      *  \param rVariant store the string into this variable
      *  \param pEncrypt an encryption object which is used to decrypt strings during parsing
      */
-    void ReadString(const PdfRefCountedInputDevice& device, PdfVariant& rVariant, PdfEncrypt* pEncrypt );
+    void ReadString(PdfInputDevice& device, PdfVariant& rVariant, PdfEncrypt* pEncrypt );
 
     /** Read a hex string from the input device
      *  and store it into a variant.
@@ -254,7 +254,7 @@ protected:
      *  \param rVariant store the hex string into this variable
      *  \param pEncrypt an encryption object which is used to decrypt strings during parsing
      */
-    void ReadHexString(const PdfRefCountedInputDevice& device, PdfVariant& rVariant, PdfEncrypt* pEncrypt);
+    void ReadHexString(PdfInputDevice& device, PdfVariant& rVariant, PdfEncrypt* pEncrypt);
 
     /** Read a name from the input device
      *  and store it into a variant.
@@ -263,19 +263,19 @@ protected:
      *
      *  \param rVariant store the name into this variable
      */
-    void ReadName(const PdfRefCountedInputDevice& device, PdfVariant& rVariant );
+    void ReadName(PdfInputDevice& device, PdfVariant& rVariant);
 
     PdfRefCountedBuffer& GetBuffer() { return m_buffer; }
 
 private:
-    bool tryReadDataType(const PdfRefCountedInputDevice& device, EPdfLiteralDataType eDataType, PdfVariant& rVariant, PdfEncrypt* pEncrypt);
+    bool tryReadDataType(PdfInputDevice& device, EPdfLiteralDataType eDataType, PdfVariant& rVariant, PdfEncrypt* pEncrypt);
 
     /** Read a hex string from the input device
      *  and store it into a vector.
      *
      *  \param rVecBuffer store the hex string into this variable
      */
-    void readHexString(const PdfRefCountedInputDevice& device, std::vector<char>& rVecBuffer);
+    void readHexString(PdfInputDevice& device, std::vector<char>& rVecBuffer);
 
 private:
     // 256-byte array mapping character ordinal values to a truth value
