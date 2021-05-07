@@ -43,15 +43,14 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfInputDevice::PdfInputDevice(bool isSeeakable) :
+PdfInputDevice::PdfInputDevice() :
     m_pStream(nullptr),
-    m_StreamOwned(false),
-    m_bIsSeekable(isSeeakable)
+    m_StreamOwned(false)
 {
 }
 
 PdfInputDevice::PdfInputDevice(const string_view& filename)
-    : PdfInputDevice(true)
+    : PdfInputDevice()
 {
     if (filename.length() == 0)
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
@@ -65,7 +64,7 @@ PdfInputDevice::PdfInputDevice(const string_view& filename)
 
 // TODO: Optimize me, offer a version that does not copy the buffer
 PdfInputDevice::PdfInputDevice( const char* pBuffer, size_t lLen )
-    : PdfInputDevice(true)
+    : PdfInputDevice()
 {
     if( !pBuffer ) 
         PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
@@ -82,7 +81,7 @@ PdfInputDevice::PdfInputDevice( const char* pBuffer, size_t lLen )
 }
 
 PdfInputDevice::PdfInputDevice( const std::istream* pInStream )
-    : PdfInputDevice(true)
+    : PdfInputDevice()
 {
     m_pStream = const_cast< std::istream* >( pInStream );
     if( !m_pStream->good() )
@@ -161,14 +160,19 @@ size_t PdfInputDevice::Tell() const
     return (size_t)ret;
 }
 
-void PdfInputDevice::Seek( std::streamoff off, std::ios_base::seekdir dir )
+void PdfInputDevice::Seek(streamoff off, ios_base::seekdir dir)
 {
-    if (!m_bIsSeekable)
+    return seek(off, dir);
+}
+
+void PdfInputDevice::seek(streamoff off, ios_base::seekdir dir)
+{
+    if (!IsSeekable())
         PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDeviceOperation, "Tried to seek an unseekable input device.");
 
     // NOTE: Some c++ libraries don't reset eofbit prior seeking
     m_pStream->clear(m_pStream->rdstate() & ~ios_base::eofbit);
-    m_pStream->seekg( off, dir );
+    m_pStream->seekg(off, dir);
     if (m_pStream->fail())
         PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDeviceOperation, "Failed to seek to given position in the stream");
 }

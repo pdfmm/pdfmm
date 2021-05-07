@@ -44,6 +44,7 @@
 
 namespace PoDoFo {
 
+// TODO: Refactor, PdfInputDevice should be an interface
 /** This class provides an Input device which operates 
  *  either on a file, a buffer in memory or any arbitrary std::istream
  *
@@ -53,8 +54,8 @@ namespace PoDoFo {
  */
 class PODOFO_API PdfInputDevice
 {
-private:
-    PdfInputDevice(bool isSeekable);
+protected:
+    PdfInputDevice();
 
 public:
     /** Construct a new PdfInputDevice that reads all data from a file.
@@ -96,7 +97,7 @@ public:
     /** Get next char from stream.
      *  \returns the next character from the stream
      */
-    virtual int GetChar() const;
+    int GetChar() const;
 
     /** Get next char from stream.
      *  \returns the next character from the stream
@@ -114,7 +115,7 @@ public:
      *
      *  A non-seekable input device will throw an InvalidDeviceOperation.
      */
-    virtual void Seek( std::streamoff off, std::ios_base::seekdir dir = std::ios_base::beg );
+    void Seek(std::streamoff off, std::ios_base::seekdir dir = std::ios_base::beg);
 
     /** Read a certain number of bytes from the input device.
      *  
@@ -133,15 +134,16 @@ public:
     virtual bool Eof() const;
 
     /**
-     * \return True if the stream is seekable. Subclasses can control
-     * this value with SetIsSeekable(bool) .
+     * \return True if the stream is seekable
      */
-    inline bool IsSeekable() const { return m_bIsSeekable; }
+    virtual bool IsSeekable() const { return true; }
 
+protected:
+    void seek(std::streamoff off, std::ios_base::seekdir dir);
+    
 private:
     std::istream* m_pStream;
     bool m_StreamOwned;
-    bool m_bIsSeekable;
 };
 
 };

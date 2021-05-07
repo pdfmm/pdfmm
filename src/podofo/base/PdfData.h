@@ -54,6 +54,8 @@ class PdfOutputDevice;
 class PODOFO_API PdfData : public PdfDataType
 {
 public:
+    PdfData();
+
     /**
      * Create a new PdfData object with valid PdfData
      *

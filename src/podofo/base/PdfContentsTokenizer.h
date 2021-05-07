@@ -50,9 +50,11 @@ class PdfObject;
  */
 enum class EPdfContentsType
 {
-    Keyword, /**< The token is a PDF keyword. */
-    Variant, /**< The token is a PDF variant. A variant is usually a parameter to a keyword */
-    ImageData /**< The "token" is raw inline image data found between ID and EI tags (see PDF ref section 4.8.6) */
+    Unknown = 0,
+    Keyword, ///< The token is a PDF keyword.
+    Variant, ///< The token is a PDF variant. A variant is usually a parameter to a keyword
+    ImageDictionary, ///> Inline image dictionary
+    ImageData ///< The "token" is raw inline image data found between ID and EI tags (see PDF ref section 4.8.6)
 };
 
 /** This class is a parser for content streams in PDF documents.
@@ -112,8 +114,10 @@ public:
     bool TryReadNextVariant(PdfVariant& rVariant);
 
 private:
+    bool tryReadNext(EPdfContentsType& type, std::string_view& keyword, PdfVariant& variant);
     bool tryReadNextToken(std::string_view& pszToken, EPdfTokenType* peType);
-    bool ReadInlineImgData(EPdfContentsType& reType, PdfVariant & rVariant);
+    bool tryReadInlineImgDict(PdfDictionary& dict);
+    bool tryReadInlineImgData(PdfData& data);
 
 private:
     PdfRefCountedInputDevice m_device;

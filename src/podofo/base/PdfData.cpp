@@ -39,6 +39,11 @@
 using namespace std;
 using namespace PoDoFo;
 
+PdfData::PdfData()
+    : m_data(std::make_shared<string>())
+{
+}
+
 PdfData::PdfData(const string_view& data, const shared_ptr<size_t>& writeBeacon)
     : m_data(std::make_shared<string>(data)), m_writeBeacon(writeBeacon)
 {

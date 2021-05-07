@@ -41,6 +41,7 @@
 #include "PdfStream.h"
 #include "PdfVecObjects.h"
 #include "PdfData.h"
+#include "PdfDictionary.h"
 #include "PdfDefinesPrivate.h"
 
 #include <iostream>
@@ -60,7 +61,7 @@ PdfContentsTokenizer::PdfContentsTokenizer(PdfCanvas& pCanvas)
     if (contents == nullptr)
         PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "/Contents handle is null");
 
-    if(contents->IsArray())
+    if (contents->IsArray())
     {
         PdfArray& contentsArr = contents->GetArray();
         for (size_t i = 0; i < contentsArr.GetSize(); i++)
@@ -89,7 +90,7 @@ PdfContentsTokenizer::PdfContentsTokenizer(PdfCanvas& pCanvas)
     }
     else
     {
-        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDataType, "Page /Contents not stream or array of streams" );
+        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "Page /Contents not stream or array of streams");
     }
 }
 
@@ -115,10 +116,62 @@ bool PdfContentsTokenizer::tryReadNextToken(string_view& pszToken , EPdfTokenTyp
         // TODO: Optimize me, the following copy the buffer
         m_device = PdfRefCountedInputDevice(buffer.GetBuffer(), buffer.GetSize());
 
-		m_lstContents.pop_front();
+        m_lstContents.pop_front();
         hasToken = PdfTokenizer::TryReadNextToken(*m_device.Device(), pszToken, peType);
-	}
-	return hasToken;
+    }
+    return hasToken;
+}
+
+bool PdfContentsTokenizer::tryReadInlineImgDict(PdfDictionary& dict)
+{
+    EPdfContentsType type;
+    string_view keyword;
+    PdfVariant variant;
+    while (true)
+    {
+        if (!tryReadNext(type, keyword, variant))
+            return false;
+
+        PdfName key;
+        switch (type)
+        {
+            case EPdfContentsType::Keyword:
+            {
+                // Try to find end of dictionary
+                if (keyword == "ID")
+                    return true;
+                else
+                    return false;
+            }
+            case EPdfContentsType::Variant:
+            {
+                const PdfName* name;
+                if (variant.TryGetName(name))
+                {
+                    key = *name;
+                    break;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            case EPdfContentsType::Unknown:
+            {
+                return false;
+            }
+            case EPdfContentsType::ImageDictionary:
+            case EPdfContentsType::ImageData:
+            {
+                throw runtime_error("Unsupported flow");
+            }
+        }
+
+        if (TryReadNextVariant(variant))
+            dict.AddKey(key, PdfObject(variant));
+        else
+            return false;
+    }
 }
 
 void PdfContentsTokenizer::ReadNextVariant(PdfVariant& rVariant)
@@ -142,21 +195,65 @@ bool PdfContentsTokenizer::TryReadNext(EPdfContentsType& reType, string_view& rp
     if (m_readingInlineImgData)
     {
         rpszKeyword = { };
-        return ReadInlineImgData(reType, rVariant);
+        PdfData data;
+        if (tryReadInlineImgData(data))
+        {
+            rVariant = data;
+            reType = EPdfContentsType::ImageData;
+            m_readingInlineImgData = false;
+            return true;
+        }
+        else
+        {
+            reType = EPdfContentsType::Unknown;
+            m_readingInlineImgData = false;
+            return false;
+        }
     }
 
+    if (!tryReadNext(reType, rpszKeyword, rVariant))
+    {
+        reType = EPdfContentsType::Unknown;
+        return false;
+    }
+
+    if (reType == EPdfContentsType::Keyword && rpszKeyword == "BI")
+    {
+        PdfDictionary dict;
+        if (tryReadInlineImgDict(dict))
+        {
+            rVariant = dict;
+            reType = EPdfContentsType::ImageDictionary;
+            m_readingInlineImgData = true;
+            return true;
+        }
+        else
+        {
+            reType = EPdfContentsType::Unknown;
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool PdfContentsTokenizer::tryReadNext(EPdfContentsType& type, string_view& keyword, PdfVariant& variant)
+{
     EPdfTokenType eTokenType;
     string_view pszToken;
     bool gotToken = tryReadNextToken(pszToken, &eTokenType);
     if (!gotToken)
+    {
+        type = EPdfContentsType::Unknown;
         return false;
+    }
 
-    EPdfLiteralDataType eDataType = DetermineDataType(*m_device.Device(), pszToken, eTokenType, rVariant);
+    EPdfLiteralDataType eDataType = DetermineDataType(*m_device.Device(), pszToken, eTokenType, variant);
 
     // asume we read a variant unless we discover otherwise later.
-    reType = EPdfContentsType::Variant;
+    type = EPdfContentsType::Variant;
 
-    switch( eDataType )
+    switch (eDataType)
     {
         case EPdfLiteralDataType::Null:
         case EPdfLiteralDataType::Bool:
@@ -168,92 +265,107 @@ bool PdfContentsTokenizer::TryReadNext(EPdfContentsType& reType, string_view& rp
         case EPdfLiteralDataType::Reference:
         {
             // references are invalid in content streams
-            PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidDataType, "references are invalid in content streams" );
+            PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "references are invalid in content streams");
             break;
         }
 
         case EPdfLiteralDataType::Dictionary:
-            this->ReadDictionary(*m_device.Device(), rVariant, nullptr);
+            this->ReadDictionary(*m_device.Device(), variant, nullptr);
             break;
         case EPdfLiteralDataType::Array:
-            this->ReadArray(*m_device.Device(), rVariant, nullptr);
+            this->ReadArray(*m_device.Device(), variant, nullptr);
             break;
         case EPdfLiteralDataType::String:
-            this->ReadString(*m_device.Device(), rVariant, nullptr);
+            this->ReadString(*m_device.Device(), variant, nullptr);
             break;
         case EPdfLiteralDataType::HexString:
-            this->ReadHexString(*m_device.Device(), rVariant, nullptr);
+            this->ReadHexString(*m_device.Device(), variant, nullptr);
             break;
         case EPdfLiteralDataType::Name:
-            this->ReadName(*m_device.Device(), rVariant);
+            this->ReadName(*m_device.Device(), variant);
             break;
-
         default:
             // Assume we have a keyword
-            reType = EPdfContentsType::Keyword;
-            rpszKeyword = pszToken;
+            type = EPdfContentsType::Keyword;
+            keyword = pszToken;
             break;
     }
-
-    string idKW("ID");
-    if (reType == EPdfContentsType::Keyword && idKW.compare(rpszKeyword) == 0)
-        m_readingInlineImgData = true;
 
     return true;
 }
 
-bool PdfContentsTokenizer::ReadInlineImgData( EPdfContentsType& reType, PdfVariant & rVariant )
+bool PdfContentsTokenizer::tryReadInlineImgData(PdfData& data)
 {
-    int  c;
-    int64_t  counter  = 0;
-    if(m_device.Device() == nullptr)
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
+    auto& buffer = GetBuffer();
+    if (buffer.GetBuffer() == nullptr || buffer.GetSize() == 0)
+        PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
 
-    // consume the only whitespace between ID and data
-    c = m_device.Device()->Look();
-    if( PdfTokenizer::IsWhitespace( c ) )
-    {
-        c = m_device.Device()->GetChar();
-    }
+    int ch;
 
-    while((c = m_device.Device()->Look()) != EOF) 
+    // Consume one whitespace between ID and data
+    if (!m_device.Device()->TryGetChar(ch))
+        return false;
+
+    // Read "EI"
+    enum class ReadEIStatus
     {
-        c = m_device.Device()->GetChar(); 
-        if (c=='E' &&  m_device.Device()->Look()=='I') 
+        ReadE,
+        ReadI,
+        ReadWhiteSpace
+    };
+
+    // NOTE: This is a better version of the previous approach
+    // and still is wrong since the Pdf specification is broken
+    // with this regard. The dictionary should have a /Length
+    // key with the length of the data, and it's a requirement
+    // in Pdf 2.0 specification (ISO 32000-2). To handle better
+    // the situation the only approach would be to use more
+    // comprehensive heuristic, similarly to what pdf.js does
+    ReadEIStatus status = ReadEIStatus::ReadE;
+    unsigned readCount = 0;
+    while (m_device.Device()->TryGetChar(ch))
+    {
+        switch (status)
         {
-            // Consume character
-            m_device.Device()->GetChar();
-            int w = m_device.Device()->Look();
-            if (w==EOF || PdfTokenizer::IsWhitespace(w)) 
+            case ReadEIStatus::ReadE:
             {
-                // EI is followed by whitespace => stop
-                m_device.Device()->Seek(-2, std::ios::cur); // put back "EI" 
-                GetBuffer().GetBuffer()[counter] = '\0';
-                rVariant = PdfData(string_view(GetBuffer().GetBuffer(), static_cast<size_t>(counter)));
-                reType = EPdfContentsType::ImageData;
-                m_readingInlineImgData = false;
-                return true;
+                if (ch == 'E')
+                    status = ReadEIStatus::ReadI;
+
+                break;
             }
-            else 
+            case ReadEIStatus::ReadI:
             {
-                // no whitespace after EI => do not stop
-                m_device.Device()->Seek(-1, std::ios::cur); // put back "I" 
-                GetBuffer().GetBuffer()[counter] = c;
-                ++counter;    
+                if (ch == 'I')
+                    status = ReadEIStatus::ReadWhiteSpace;
+                else
+                    status = ReadEIStatus::ReadE;
+
+                break;
+            }
+            case ReadEIStatus::ReadWhiteSpace:
+            {
+                if (IsWhitespace(ch))
+                {
+                    data = string_view(buffer.GetBuffer(), readCount - 2);
+                    return true;
+                }
+                else
+                    status = ReadEIStatus::ReadE;
+
+                break;
             }
         }
-        else 
-        {
-            GetBuffer().GetBuffer()[counter] = c;
-            ++counter;
-        }
-        
-        if (counter ==  static_cast<int64_t>(GetBuffer().GetSize()))
+
+        if (readCount == buffer.GetSize())
         {
             // image is larger than buffer => resize buffer
-            GetBuffer().Resize(GetBuffer().GetSize()*2);
+            buffer.Resize(buffer.GetSize() * 2);
         }
+
+        buffer.GetBuffer()[readCount] = ch;
+        readCount++;
     }
-    
+
     return false;
 }
