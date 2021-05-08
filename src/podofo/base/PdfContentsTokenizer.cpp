@@ -45,81 +45,44 @@
 #include "PdfDefinesPrivate.h"
 
 #include <iostream>
+#include <list>
 
 using namespace std;
 using namespace PoDoFo;
+
+/// <summary>
+/// We found Pdfs spanning delimiters or begin/end tags into
+/// streams. Let's create a device correctly spanning I/O
+/// reads into these
+/// </summary>
+class PdfCanvasInputDevice : public PdfInputDevice
+{
+public:
+    PdfCanvasInputDevice(PdfCanvas& canvas);
+public:
+    bool TryGetChar(int& ch) override;
+    size_t Tell() override;
+    int Look() override;
+    size_t Read(char* buffer, size_t size) override;
+    bool Eof() const override { return m_eof; }
+    bool IsSeekable() const override { return false; }
+private:
+    bool tryGetNextDevice(PdfInputDevice*& device);
+    void popNextDevice();
+private:
+    bool m_eof;
+    std::list<PdfObject*> m_lstContents;
+    std::unique_ptr<PdfInputDevice> m_device;
+};
 
 PdfContentsTokenizer::PdfContentsTokenizer(const std::shared_ptr<PdfInputDevice>& device)
     : m_device(device), m_readingInlineImgData(false)
 {
 }
 
-PdfContentsTokenizer::PdfContentsTokenizer(PdfCanvas& pCanvas)
-    : m_readingInlineImgData(false)
+PdfContentsTokenizer::PdfContentsTokenizer(PdfCanvas& canvas)
+    : m_device(new PdfCanvasInputDevice(canvas)), m_readingInlineImgData(false)
 {
-    PdfObject* contents = pCanvas.GetContents();
-    if (contents == nullptr)
-        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "/Contents handle is null");
-
-    if (contents->IsArray())
-    {
-        PdfArray& contentsArr = contents->GetArray();
-        for (size_t i = 0; i < contentsArr.GetSize(); i++)
-        {
-            auto& streamObj = contentsArr.FindAt(i);
-            m_lstContents.push_back(&streamObj);
-        }
-    }
-    else if (contents->IsDictionary())
-    {
-        // Pages are allowed to be empty, e.g.:
-        //    103 0 obj
-        //    <<
-        //    /Type /Page
-        //    /MediaBox [ 0 0 595 842 ]
-        //    /Parent 3 0 R
-        //    /Resources <<
-        //    /ProcSet [ /PDF ]
-        //    >>
-        //    /Rotate 0
-        //    >>
-        //    endobj
-
-        if (contents->HasStream())
-            m_lstContents.push_back(contents);
-    }
-    else
-    {
-        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "Page /Contents not stream or array of streams");
-    }
-}
-
-bool PdfContentsTokenizer::tryReadNextToken(string_view& pszToken , EPdfTokenType* peType)
-{
-    bool hasToken = false;
-    if (m_device != nullptr)
-        hasToken = PdfTokenizer::TryReadNextToken(*m_device, pszToken, peType);
-
-    while (!hasToken)
-    {
-        if (m_lstContents.size() == 0)
-        {
-            m_device = nullptr;
-            return false;
-        }
-
-        PdfStream& pStream = m_lstContents.front()->GetOrCreateStream();
-        PdfRefCountedBuffer buffer;
-        PdfBufferOutputStream stream(&buffer);
-        pStream.GetFilteredCopy(&stream);
-
-        // TODO: Optimize me, the following copy the buffer
-        m_device = std::make_shared<PdfInputDevice>(buffer.GetBuffer(), buffer.GetSize());
-
-        m_lstContents.pop_front();
-        hasToken = PdfTokenizer::TryReadNextToken(*m_device, pszToken, peType);
-    }
-    return hasToken;
 }
 
 bool PdfContentsTokenizer::tryReadInlineImgDict(PdfDictionary& dict)
@@ -184,7 +147,7 @@ bool PdfContentsTokenizer::TryReadNextVariant(PdfVariant& rVariant)
 {
     EPdfTokenType eTokenType;
     string_view pszToken;
-    if (!tryReadNextToken(pszToken, &eTokenType))
+    if (!PdfTokenizer::TryReadNextToken(*m_device, pszToken, &eTokenType))
         return false;
 
     return PdfTokenizer::TryReadNextVariant(*m_device, pszToken, eTokenType, rVariant, nullptr);
@@ -241,7 +204,7 @@ bool PdfContentsTokenizer::tryReadNext(EPdfContentsType& type, string_view& keyw
 {
     EPdfTokenType eTokenType;
     string_view pszToken;
-    bool gotToken = tryReadNextToken(pszToken, &eTokenType);
+    bool gotToken = PdfTokenizer::TryReadNextToken(*m_device, pszToken, &eTokenType);
     if (!gotToken)
     {
         type = EPdfContentsType::Unknown;
@@ -368,4 +331,145 @@ bool PdfContentsTokenizer::tryReadInlineImgData(PdfData& data)
     }
 
     return false;
+}
+
+PdfCanvasInputDevice::PdfCanvasInputDevice(PdfCanvas& canvas)
+{
+    PdfObject* contents = canvas.GetContents();
+    if (contents == nullptr)
+        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "/Contents handle is null");
+
+    if (contents->IsArray())
+    {
+        PdfArray& contentsArr = contents->GetArray();
+        for (size_t i = 0; i < contentsArr.GetSize(); i++)
+        {
+            auto& streamObj = contentsArr.FindAt(i);
+            m_lstContents.push_back(&streamObj);
+        }
+    }
+    else if (contents->IsDictionary())
+    {
+        // NOTE: Pages are allowed to be empty
+        if (contents->HasStream())
+            m_lstContents.push_back(contents);
+    }
+    else
+    {
+        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "Page /Contents not stream or array of streams");
+    }
+
+    if (m_lstContents.size() == 0)
+    {
+        m_eof = true;
+    }
+    else
+    {
+        popNextDevice();
+        m_eof = m_device->Eof();
+    }
+}
+
+bool PdfCanvasInputDevice::TryGetChar(int& ch)
+{
+    if (m_eof)
+    {
+        ch = 0;
+        return false;
+    }
+
+    PdfInputDevice* device = nullptr;
+    while (true)
+    {
+        if (!tryGetNextDevice(device))
+        {
+            m_eof = true;
+            return false;
+        }
+
+        if (device->TryGetChar(ch))
+            return true;
+    }
+}
+
+int PdfCanvasInputDevice::Look()
+{
+    if (m_eof)
+        return EOF;
+
+    PdfInputDevice* device = nullptr;
+    while (true)
+    {
+        if (!tryGetNextDevice(device))
+        {
+            m_eof = true;
+            return EOF;
+        }
+
+        int ret = device->Look();
+        if (ret != EOF)
+            return ret;
+    }
+}
+
+size_t PdfCanvasInputDevice::Read(char* buffer, size_t size)
+{
+    if (size == 0 || m_eof)
+        return 0;
+
+    size_t readCount = 0;
+    PdfInputDevice* device = nullptr;
+    while (true)
+    {
+        if (!tryGetNextDevice(device))
+        {
+            m_eof = true;
+            return readCount;
+        }
+
+        // Span reads into multple input devices
+        size_t readLocal = device->Read(buffer + readCount, size);
+        size -= readLocal;
+        readCount += readLocal;
+
+        if (size == 0)
+            return readCount;
+    }
+}
+
+size_t PdfCanvasInputDevice::Tell()
+{
+    throw runtime_error("Unsupported");
+}
+
+bool PdfCanvasInputDevice::tryGetNextDevice(PdfInputDevice*& device)
+{
+    PODOFO_ASSERT(m_device != nullptr);
+    if (device == nullptr)
+    {
+        device = m_device.get();
+        return true;
+    }
+
+    if (m_lstContents.size() == 0)
+    {
+        device = nullptr;
+        return false;
+    }
+
+    popNextDevice();
+    device = m_device.get();
+    return true;
+}
+
+void PdfCanvasInputDevice::popNextDevice()
+{
+    PdfStream& pStream = m_lstContents.front()->GetOrCreateStream();
+    PdfRefCountedBuffer buffer;
+    PdfBufferOutputStream stream(&buffer);
+    pStream.GetFilteredCopy(&stream);
+
+    // TODO: Optimize me, the following copy the buffer
+    m_device = std::make_unique<PdfInputDevice>(buffer.GetBuffer(), buffer.GetSize());
+    m_lstContents.pop_front();
 }

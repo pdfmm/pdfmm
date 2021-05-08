@@ -119,14 +119,13 @@ public:
 
     /** Read a certain number of bytes from the input device.
      *  
-     *  \param pBuffer store bytes in this buffer.
-     *                 The buffer has to be large enough.
-     *  \param lLen    number of bytes to read.
+     *  \param buffer store bytes in this buffer.
+     *      The buffer has to be large enough.
+     *  \param size number of bytes to read.
      *  \returns the number of bytes that have been read.
-     *           If reading was successfull the number of read bytes
-     *           is equal to lLen.
+     *      0 if the device reached eof
      */
-    virtual size_t Read( char* pBuffer, size_t lLen );
+    virtual size_t Read(char* buffer, size_t size);
 
     /**
      * \return True if the stream is at EOF

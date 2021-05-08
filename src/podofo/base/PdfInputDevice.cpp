@@ -177,9 +177,9 @@ void PdfInputDevice::seek(streamoff off, ios_base::seekdir dir)
         PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDeviceOperation, "Failed to seek to given position in the stream");
 }
 
-size_t PdfInputDevice::Read(char* pBuffer, size_t lLen)
+size_t PdfInputDevice::Read(char* buffer, size_t size)
 {
-    return io::Read(*m_pStream, pBuffer, lLen);
+    return io::Read(*m_pStream, buffer, size);
 }
 
 bool PdfInputDevice::Eof() const

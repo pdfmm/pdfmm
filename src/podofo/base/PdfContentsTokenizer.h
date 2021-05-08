@@ -82,7 +82,7 @@ public:
      *
      *  \param pCanvas an object that hold a PDF contents stream
      */
-    PdfContentsTokenizer(PdfCanvas& pCanvas);
+    PdfContentsTokenizer(PdfCanvas& canvas);
 
     /** Read the next keyword or variant, returning true and setting reType if something was read.
      *  Either rpszKeyword or rVariant, but never both, have defined and usable values on
@@ -116,13 +116,11 @@ public:
 
 private:
     bool tryReadNext(EPdfContentsType& type, std::string_view& keyword, PdfVariant& variant);
-    bool tryReadNextToken(std::string_view& pszToken, EPdfTokenType* peType);
     bool tryReadInlineImgDict(PdfDictionary& dict);
     bool tryReadInlineImgData(PdfData& data);
 
 private:
     std::shared_ptr<PdfInputDevice> m_device;
-    std::list<PdfObject*> m_lstContents;  // A list containing pointers to all contents objects
     bool m_readingInlineImgData;  // A state of reading inline image data
 };
 
