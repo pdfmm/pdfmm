@@ -37,6 +37,7 @@
 #include "PdfDefines.h"
 #include "PdfTokenizer.h"
 #include "PdfVariant.h"
+#include "PdfInputDevice.h"
 
 #include <list>
 
@@ -71,7 +72,7 @@ public:
      *  \param pBuffer pointer to a buffer
      *  \param lLen length of the buffer
      */
-    PdfContentsTokenizer(const PdfRefCountedInputDevice& device);
+    PdfContentsTokenizer(const std::shared_ptr<PdfInputDevice>& device);
 
     /** Construct a PdfContentsTokenizer from a PdfCanvas
      *  (i.e. PdfPage or a PdfXObject).
@@ -120,7 +121,7 @@ private:
     bool tryReadInlineImgData(PdfData& data);
 
 private:
-    PdfRefCountedInputDevice m_device;
+    std::shared_ptr<PdfInputDevice> m_device;
     std::list<PdfObject*> m_lstContents;  // A list containing pointers to all contents objects
     bool m_readingInlineImgData;  // A state of reading inline image data
 };

@@ -49,7 +49,7 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfContentsTokenizer::PdfContentsTokenizer(const PdfRefCountedInputDevice& device)
+PdfContentsTokenizer::PdfContentsTokenizer(const std::shared_ptr<PdfInputDevice>& device)
     : m_device(device), m_readingInlineImgData(false)
 {
 }
@@ -97,14 +97,14 @@ PdfContentsTokenizer::PdfContentsTokenizer(PdfCanvas& pCanvas)
 bool PdfContentsTokenizer::tryReadNextToken(string_view& pszToken , EPdfTokenType* peType)
 {
     bool hasToken = false;
-    if (m_device.Device() != nullptr)
-        hasToken = PdfTokenizer::TryReadNextToken(*m_device.Device(), pszToken, peType);
+    if (m_device != nullptr)
+        hasToken = PdfTokenizer::TryReadNextToken(*m_device, pszToken, peType);
 
     while (!hasToken)
     {
         if (m_lstContents.size() == 0)
         {
-            m_device = PdfRefCountedInputDevice();
+            m_device = nullptr;
             return false;
         }
 
@@ -114,10 +114,10 @@ bool PdfContentsTokenizer::tryReadNextToken(string_view& pszToken , EPdfTokenTyp
         pStream.GetFilteredCopy(&stream);
 
         // TODO: Optimize me, the following copy the buffer
-        m_device = PdfRefCountedInputDevice(buffer.GetBuffer(), buffer.GetSize());
+        m_device = std::make_shared<PdfInputDevice>(buffer.GetBuffer(), buffer.GetSize());
 
         m_lstContents.pop_front();
-        hasToken = PdfTokenizer::TryReadNextToken(*m_device.Device(), pszToken, peType);
+        hasToken = PdfTokenizer::TryReadNextToken(*m_device, pszToken, peType);
     }
     return hasToken;
 }
@@ -187,7 +187,7 @@ bool PdfContentsTokenizer::TryReadNextVariant(PdfVariant& rVariant)
     if (!tryReadNextToken(pszToken, &eTokenType))
         return false;
 
-    return PdfTokenizer::TryReadNextVariant(*m_device.Device(), pszToken, eTokenType, rVariant, nullptr);
+    return PdfTokenizer::TryReadNextVariant(*m_device, pszToken, eTokenType, rVariant, nullptr);
 }
 
 bool PdfContentsTokenizer::TryReadNext(EPdfContentsType& reType, string_view& rpszKeyword, PdfVariant& rVariant)
@@ -248,7 +248,7 @@ bool PdfContentsTokenizer::tryReadNext(EPdfContentsType& type, string_view& keyw
         return false;
     }
 
-    EPdfLiteralDataType eDataType = DetermineDataType(*m_device.Device(), pszToken, eTokenType, variant);
+    EPdfLiteralDataType eDataType = DetermineDataType(*m_device, pszToken, eTokenType, variant);
 
     // asume we read a variant unless we discover otherwise later.
     type = EPdfContentsType::Variant;
@@ -270,19 +270,19 @@ bool PdfContentsTokenizer::tryReadNext(EPdfContentsType& type, string_view& keyw
         }
 
         case EPdfLiteralDataType::Dictionary:
-            this->ReadDictionary(*m_device.Device(), variant, nullptr);
+            this->ReadDictionary(*m_device, variant, nullptr);
             break;
         case EPdfLiteralDataType::Array:
-            this->ReadArray(*m_device.Device(), variant, nullptr);
+            this->ReadArray(*m_device, variant, nullptr);
             break;
         case EPdfLiteralDataType::String:
-            this->ReadString(*m_device.Device(), variant, nullptr);
+            this->ReadString(*m_device, variant, nullptr);
             break;
         case EPdfLiteralDataType::HexString:
-            this->ReadHexString(*m_device.Device(), variant, nullptr);
+            this->ReadHexString(*m_device, variant, nullptr);
             break;
         case EPdfLiteralDataType::Name:
-            this->ReadName(*m_device.Device(), variant);
+            this->ReadName(*m_device, variant);
             break;
         default:
             // Assume we have a keyword
@@ -303,7 +303,7 @@ bool PdfContentsTokenizer::tryReadInlineImgData(PdfData& data)
     int ch;
 
     // Consume one whitespace between ID and data
-    if (!m_device.Device()->TryGetChar(ch))
+    if (!m_device->TryGetChar(ch))
         return false;
 
     // Read "EI"
@@ -323,7 +323,7 @@ bool PdfContentsTokenizer::tryReadInlineImgData(PdfData& data)
     // comprehensive heuristic, similarly to what pdf.js does
     ReadEIStatus status = ReadEIStatus::ReadE;
     unsigned readCount = 0;
-    while (m_device.Device()->TryGetChar(ch))
+    while (m_device->TryGetChar(ch))
     {
         switch (status)
         {

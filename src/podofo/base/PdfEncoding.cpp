@@ -164,7 +164,7 @@ void PdfEncoding::ParseCMapObject(PdfObject* obj, UnicodeMap &map, char32_t &fir
     PdfStream &CIDStreamdata = obj->GetOrCreateStream();
     CIDStreamdata.GetFilteredCopy(streamBuffer, streamBufferLen);
 
-    PdfRefCountedInputDevice device(streamBuffer.get(), streamBufferLen);
+    auto device = std::make_shared<PdfInputDevice>(streamBuffer.get(), streamBufferLen);
     PdfContentsTokenizer tokenizer(device);
     deque<unique_ptr<PdfVariant>> tokens;
     const PdfString* str;
