@@ -100,7 +100,7 @@ void PdfInputDevice::Close()
     // nothing to do here, but maybe necessary for inheriting classes
 }
 
-int PdfInputDevice::GetChar() const
+int PdfInputDevice::GetChar()
 {
     int ch;
     if (TryGetChar(ch))
@@ -109,7 +109,7 @@ int PdfInputDevice::GetChar() const
         PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDeviceOperation, "Failed to read the current character");
 }
 
-bool PdfInputDevice::TryGetChar(int &ch) const
+bool PdfInputDevice::TryGetChar(int &ch)
 {
     if (m_pStream->eof())
     {
@@ -124,7 +124,7 @@ bool PdfInputDevice::TryGetChar(int &ch) const
     return true;
 }
 
-int PdfInputDevice::Look() const 
+int PdfInputDevice::Look() 
 {
     // NOTE: We don't want a peek() call to set failbit
     if (m_pStream->eof())
@@ -137,7 +137,7 @@ int PdfInputDevice::Look() const
     return ch;
 }
 
-size_t PdfInputDevice::Tell() const
+size_t PdfInputDevice::Tell()
 {
     streamoff ret;
     if (m_pStream->eof())

@@ -92,22 +92,22 @@ public:
     /** Get the current position in file.
      *  /returns the current position in the file
      */
-    virtual size_t Tell() const;
+    virtual size_t Tell();
 
     /** Get next char from stream.
      *  \returns the next character from the stream
      */
-    int GetChar() const;
+    int GetChar();
 
     /** Get next char from stream.
      *  \returns the next character from the stream
      */
-    virtual bool TryGetChar(int &ch) const;
+    virtual bool TryGetChar(int &ch);
 
     /** Peek at next char in stream.
      *  /returns the next char in the stream
      */
-    virtual int Look() const;
+    virtual int Look();
 
     /** Seek the device to the position offset from the begining
      *  \param off from the beginning of the file
