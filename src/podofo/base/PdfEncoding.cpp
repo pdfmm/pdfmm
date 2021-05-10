@@ -2897,6 +2897,7 @@ void readNextVariantSequence(PdfVariant& variant, PdfContentsTokenizer& tokenize
     case EPdfContentsType::Variant:
         endOfSequence = false;
         break;
+    case EPdfContentsType::ImageDictionary:
     case EPdfContentsType::ImageData:
     default:
         PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidEnumValue, "Unexpected token type");
