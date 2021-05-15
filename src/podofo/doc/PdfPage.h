@@ -135,7 +135,7 @@ class PODOFO_DOC_API PdfPage : public PdfElement, public PdfCanvas {
      *
      *  \see PdfPagesTree:GetTotalNumberOfPages()
      */
-    size_t GetPageNumber() const;
+    unsigned GetPageNumber() const;
 
     /** Creates a PdfRect with the page size as values which is needed to create a PdfPage object
      *  from an enum which are defined for a few standard page sizes.
@@ -197,7 +197,7 @@ class PODOFO_DOC_API PdfPage : public PdfElement, public PdfCanvas {
     /** Get the number of annotations associated with this page
      * \ returns int number of annotations
      */
-    size_t GetAnnotationCount() const;
+    unsigned GetAnnotationCount() const;
 
     /** Create a new annotation to this page.
      *  \param eType the type of the annotation
@@ -214,14 +214,14 @@ class PODOFO_DOC_API PdfPage : public PdfElement, public PdfCanvas {
      *
      *  \see GetAnnotationCount
      */
-    PdfAnnotation* GetAnnotation(size_t index);
+    PdfAnnotation* GetAnnotation(unsigned index);
 
     /** Delete the annotation with index index from this page.
      *  \param index the index of the annotation to delete
      *
      *  \see GetAnnotationCount
      */
-    void DeleteAnnotation(size_t index);
+    void DeleteAnnotation(unsigned index);
 
     /** Delete the annotation with the given object
      *  \param annotObj the object of an annotation

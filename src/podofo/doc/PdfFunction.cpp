@@ -75,7 +75,7 @@ PdfSampledFunction::PdfSampledFunction( const PdfArray & rDomain,  const PdfArra
 void PdfSampledFunction::Init( const PdfArray & rDomain,  const PdfArray & rRange, const PdfFunction::Sample & rlstSamples )
 {
 	PdfArray Size;
-    for (size_t i = 0; i < rDomain.GetSize() / 2; i++)
+    for (unsigned i = 0; i < rDomain.GetSize() / 2; i++)
         Size.push_back(PdfObject(static_cast<int64_t>(rDomain.GetSize() / 2)));
 
     this->GetObject()->GetDictionary().AddKey( PdfName("Domain"), rDomain );

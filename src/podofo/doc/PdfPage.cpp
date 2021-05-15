@@ -339,7 +339,7 @@ PdfArray & PdfPage::GetOrCreateAnnotationsArray()
     return pObj->GetArray();
 }
 
-size_t PdfPage::GetAnnotationCount() const
+unsigned PdfPage::GetAnnotationCount() const
 {
     auto arr = GetAnnotationsArray();
     return arr == nullptr ? 0 : arr->GetSize();
@@ -361,7 +361,7 @@ PdfAnnotation* PdfPage::CreateAnnotation( EPdfAnnotation eType, const PdfRect & 
     return pAnnot;
 }
 
-PdfAnnotation* PdfPage::GetAnnotation(size_t index)
+PdfAnnotation* PdfPage::GetAnnotation(unsigned index)
 {
     PdfAnnotation* pAnnot;
     PdfReference   ref;
@@ -385,7 +385,7 @@ PdfAnnotation* PdfPage::GetAnnotation(size_t index)
     return pAnnot;
 }
 
-void PdfPage::DeleteAnnotation(size_t index)
+void PdfPage::DeleteAnnotation(unsigned index)
 {
     auto arr = GetAnnotationsArray();
     if (arr == nullptr)
@@ -419,7 +419,7 @@ void PdfPage::DeleteAnnotation(PdfObject &annotObj)
 
     // find the array iterator pointing to the annotation, so it can be deleted later
     int index = -1;
-    for (size_t i = 0; i < arr->GetSize(); i++)
+    for (unsigned i = 0; i < arr->GetSize(); i++)
     {
         // CLEAN-ME: The following is ugly. Fix operator== in PdfOject and PdfVariant and use operator==
         auto &obj = arr->FindAt(i);
@@ -548,16 +548,16 @@ void PdfPage::SetTrimBox( const PdfRect & rSize )
     this->GetObject()->GetDictionary().AddKey( "TrimBox", trimbox );
 }
 
-size_t PdfPage::GetPageNumber() const
+unsigned PdfPage::GetPageNumber() const
 {
-    int nPageNumber = 0;
+    unsigned nPageNumber = 0;
     PdfObject*          pParent     = this->GetObject()->GetIndirectKey( "Parent" );
     PdfReference ref                = this->GetObject()->GetIndirectReference();
 
     // CVE-2017-5852 - prevent infinite loop if Parent chain contains a loop
     // e.g. pParent->GetIndirectKey( "Parent" ) == pParent or pParent->GetIndirectKey( "Parent" )->GetIndirectKey( "Parent" ) == pParent
-    const size_t maxRecursionDepth = 1000;
-    size_t depth = 0;
+    constexpr unsigned maxRecursionDepth = 1000;
+    unsigned depth = 0;
 
     while( pParent ) 
     {

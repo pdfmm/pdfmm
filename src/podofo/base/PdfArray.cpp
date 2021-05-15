@@ -64,19 +64,19 @@ void PdfArray::RemoveAt(size_t index)
     SetDirty();
 }
 
-const PdfObject& PdfArray::FindAt(size_t idx) const
+const PdfObject& PdfArray::FindAt(unsigned idx) const
 {
     return findAt(idx);
 }
 
-PdfObject& PdfArray::FindAt(size_t idx)
+PdfObject& PdfArray::FindAt(unsigned idx)
 {
     return findAt(idx);
 }
 
-size_t PdfArray::GetSize() const
+unsigned PdfArray::GetSize() const
 {
-    return m_objects.size();
+    return (unsigned)m_objects.size();
 }
 
 void PdfArray::Add(const PdfObject& obj)
@@ -187,9 +187,9 @@ PdfArray::iterator PdfArray::insertAt(const iterator& pos, const PdfObject& val)
     return ret;
 }
 
-PdfObject& PdfArray::findAt(size_t index) const
+PdfObject& PdfArray::findAt(unsigned index) const
 {
-    if (index >= m_objects.size())
+    if (index >= (unsigned)m_objects.size())
         PODOFO_RAISE_ERROR_INFO(EPdfError::ValueOutOfRange, "Index is out of bounds");
 
     PdfObject& obj = const_cast<PdfArray&>(*this).m_objects[index];

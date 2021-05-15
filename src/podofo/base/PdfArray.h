@@ -87,7 +87,7 @@ public:
     /** 
      *  \returns the size of the array
      */
-    size_t GetSize() const;
+    unsigned GetSize() const;
 
     /** Remove all elements from the array
      */
@@ -113,8 +113,8 @@ public:
      *  \param idx
      *  \returns pointer to the found value. nullptr if the index was out of the boundaries
      */
-    const PdfObject & FindAt(size_t idx) const;
-    PdfObject & FindAt(size_t idx );
+    const PdfObject & FindAt(unsigned idx) const;
+    PdfObject & FindAt(unsigned idx );
 
     void RemoveAt(size_t index);
 
@@ -261,7 +261,7 @@ protected:
 private:
     void add(const PdfObject& obj);
     iterator insertAt(const iterator& pos, const PdfObject& val);
-    PdfObject & findAt(size_t idx) const;
+    PdfObject & findAt(unsigned idx) const;
 
  private:
     std::vector<PdfObject> m_objects;

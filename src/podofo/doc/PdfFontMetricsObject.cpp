@@ -118,10 +118,10 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescri
         if (pw != nullptr)
         {
             PdfArray w = pw->GetArray();
-            size_t pos = 0;
+            unsigned pos = 0;
             while (pos < w.GetSize())
             {
-                size_t start = (size_t)w[pos++].GetNumberLenient();
+                unsigned start = (unsigned)w[pos++].GetNumberLenient();
                 PdfObject* second = &w[pos];
                 if (second->IsReference())
                 {
@@ -133,24 +133,24 @@ PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescri
                 {
                     PdfArray widths = second->GetArray();
                     ++pos;
-                    size_t length = start + widths.GetSize();
+                    unsigned length = start + widths.GetSize();
                     PODOFO_ASSERT(length >= start);
                     if (length > m_width.GetSize())
                         m_width.resize(length, default_width);
 
-                    for (size_t i = 0; i < widths.GetSize(); ++i)
+                    for (unsigned i = 0; i < widths.GetSize(); ++i)
                         m_width[start + i] = widths[i];
                 }
                 else
                 {
-                    size_t end = (size_t)w[pos++].GetNumberLenient();
-                    size_t length = end + 1;
+                    unsigned end = (unsigned)w[pos++].GetNumberLenient();
+                    unsigned length = end + 1;
                     PODOFO_ASSERT(length >= start);
                     if (length > m_width.GetSize())
                         m_width.resize(length, default_width);
 
                     int64_t width = w[pos++].GetNumberLenient();
-                    for (size_t i = start; i <= end; ++i)
+                    for (unsigned i = start; i <= end; ++i)
                         m_width[i] = PdfObject(width);
                 }
             }

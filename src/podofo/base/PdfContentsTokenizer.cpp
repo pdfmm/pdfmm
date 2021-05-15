@@ -342,7 +342,7 @@ PdfCanvasInputDevice::PdfCanvasInputDevice(PdfCanvas& canvas)
     if (contents->IsArray())
     {
         PdfArray& contentsArr = contents->GetArray();
-        for (size_t i = 0; i < contentsArr.GetSize(); i++)
+        for (unsigned i = 0; i < contentsArr.GetSize(); i++)
         {
             auto& streamObj = contentsArr.FindAt(i);
             m_lstContents.push_back(&streamObj);

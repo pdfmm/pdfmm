@@ -90,7 +90,7 @@ PdfStream & PdfContents::GetStreamForAppending(EPdfStreamAppendFlags flags)
         // Record all content and readd into a new stream that
         // substitue all the previous streams
         PdfMemoryOutputStream memstream;
-        for (size_t i = 0; i < arr->GetSize(); i++)
+        for (unsigned i = 0; i < arr->GetSize(); i++)
         {
             auto stream = (*arr).FindAt(i).GetStream();
             if (stream != nullptr && stream->GetLength() != 0)

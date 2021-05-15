@@ -1032,7 +1032,7 @@ void PdfListField::InsertItem( const PdfString & rsValue, const PdfString & rsDi
     */
 }
 
-void PdfListField::RemoveItem(size_t nIndex )
+void PdfListField::RemoveItem(unsigned nIndex)
 {
     PdfArray   opt;
 
@@ -1048,7 +1048,7 @@ void PdfListField::RemoveItem(size_t nIndex )
     GetFieldObject()->GetDictionary().AddKey( PdfName("Opt"), opt );
 }
 
-const PdfString PdfListField::GetItem( size_t nIndex ) const
+const PdfString PdfListField::GetItem(unsigned nIndex) const
 {
     PdfObject *opt = GetFieldObject()->GetDictionary().FindKey( "Opt" );
     if ( opt == nullptr )
@@ -1129,7 +1129,7 @@ int PdfListField::GetSelectedIndex() const
         return -1;
 
     PdfArray &optArray = opt->GetArray();
-    for (size_t i = 0; i < optArray.GetSize(); i++)
+    for (unsigned i = 0; i < optArray.GetSize(); i++)
     {
         auto& found = optArray.FindAt(i);
         if (found.IsString())
