@@ -37,7 +37,8 @@ void PoDoFo::SignDocument(PdfMemDocument& doc, PdfOutputDevice& device, PdfSigne
     unsigned signatureSize = signer.GetSignatureSize();
     PdfSignatureBeacons beacons;
     PrepareBeaconsData(signatureSize, beacons.ContentsBeacon, beacons.ByteRangeBeacon);
-    signature.PrepareForSigning(signer.GetSignatureFilter(), signer.GetSignatureSubFilter(), beacons);
+    signature.PrepareForSigning(signer.GetSignatureFilter(), signer.GetSignatureSubFilter(),
+        signer.GetSignatureType(), beacons);
     auto form = doc.GetAcroForm();
     // TABLE 8.68 Signature flags: SignaturesExist (1) | AppendOnly (2)
     form->GetObject()->GetDictionary().AddKey("SigFlags", PdfObject((int64_t)3));

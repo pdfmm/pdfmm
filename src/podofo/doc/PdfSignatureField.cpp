@@ -130,13 +130,15 @@ void PdfSignatureField::SetSignatureDate(const PdfDate &sigDate)
 }
 
 void PdfSignatureField::PrepareForSigning(const string_view& filter,
-    const string_view& subFilter, const PdfSignatureBeacons& beacons)
+    const string_view& subFilter, const std::string_view& type,
+    const PdfSignatureBeacons& beacons)
 {
     EnsureSignatureObject();
     auto& dict = GetSignatureObject()->GetDictionary();
     // This must be ensured before any signing operation
     dict.AddKey(PdfName::KeyFilter, PdfName(filter));
     dict.AddKey("SubFilter", PdfName(subFilter));
+    dict.AddKey(PdfName::KeyType, PdfName(type));
 
     // Prepare contents data
     PdfData contentsData(beacons.ContentsBeacon, beacons.ContentsOffset);

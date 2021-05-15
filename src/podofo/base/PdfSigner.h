@@ -57,6 +57,7 @@ namespace PoDoFo
         virtual std::string ComputeSignature(bool dryrun) = 0;
         virtual std::string GetSignatureFilter() const;
         virtual std::string GetSignatureSubFilter() const = 0;
+        virtual std::string GetSignatureType() const = 0;
     };
 
     enum class PdfSignFlags
