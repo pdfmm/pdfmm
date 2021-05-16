@@ -30,10 +30,10 @@
  *   version.  If you delete this exception statement from all source      *
  *   files in the program, then also delete it here.                       *
  ***************************************************************************/
-#ifndef PDF_READER_H
-#define PDF_READER_H
+#ifndef PDF_SIGNER_H
+#define PDF_SIGNER_H
 
-#include <string>
+#include "podofo/base/PdfDefines.h"
 #include "../doc/PdfMemDocument.h"
 #include "../doc/PdfSignatureField.h"
 
@@ -43,18 +43,15 @@ namespace PoDoFo
     {
     public:
         virtual ~PdfSigner();
-        /** Get the expected signature size
-         *
-         * Will be used to parepare the pdf file for signing.
-         * By default it run a dry run computing of the signature
-         */
-        virtual unsigned GetSignatureSize();
         virtual void Reset() = 0;
         virtual void AppendData(const std::string_view& data) = 0;
         /**
-         * \param dryrun The call is just used to infer signature size
+         * \param buffer The buffer that will hold the signature
+         * \param dryrun If true the buffer is not required to hold
+         *      the signature, the call is performed to infer the
+         *      signature size
          */
-        virtual std::string ComputeSignature(bool dryrun) = 0;
+        virtual void ComputeSignature(std::string& buffer, bool dryrun) = 0;
         virtual std::string GetSignatureFilter() const;
         virtual std::string GetSignatureSubFilter() const = 0;
         virtual std::string GetSignatureType() const = 0;
@@ -72,4 +69,4 @@ namespace PoDoFo
         PdfSignatureField& signature, PdfSignFlags flags = PdfSignFlags::None);
 }
 
-#endif // PDF_READER_H
+#endif // PDF_SIGNER_H
