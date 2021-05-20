@@ -31,9 +31,9 @@ void PoDoFo::SignDocument(PdfMemDocument& doc, PdfOutputDevice& device, PdfSigne
 
     string signatureBuf;
     signer.ComputeSignature(signatureBuf, true);
-    size_t signatureSize = signatureBuf.size();
+    size_t beaconSize = signatureBuf.size();
     PdfSignatureBeacons beacons;
-    PrepareBeaconsData(signatureSize, beacons.ContentsBeacon, beacons.ByteRangeBeacon);
+    PrepareBeaconsData(beaconSize, beacons.ContentsBeacon, beacons.ByteRangeBeacon);
     signature.PrepareForSigning(signer.GetSignatureFilter(), signer.GetSignatureSubFilter(),
         signer.GetSignatureType(), beacons);
     auto form = doc.GetAcroForm();
@@ -58,9 +58,13 @@ void PoDoFo::SignDocument(PdfMemDocument& doc, PdfOutputDevice& device, PdfSigne
     }
 
     signer.ComputeSignature(signatureBuf, false);
-    if (signatureBuf.size() > signatureSize)
-        throw runtime_error("Actual signature size smaller than given size");
+    if (signatureBuf.size() > beaconSize)
+        throw runtime_error("Actual signature size bigger than beacon size");
 
+    // Ensure the signature will be as big as the
+    // beacon size previously cached to fill all
+    // available reserved space for the /Contents
+    signatureBuf.resize(beaconSize);
     SetSignature(device, signatureBuf, *beacons.ContentsOffset);
     device.Flush();
 }
