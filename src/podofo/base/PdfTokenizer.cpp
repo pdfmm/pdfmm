@@ -223,28 +223,24 @@ bool PdfTokenizer::TryReadNextToken(PdfInputDevice& device, string_view& pszToke
         *peType = EPdfTokenType::Literal;
 
     while ((c = device.Look()) != EOF
-           && counter + 1 < static_cast<int64_t>(m_buffer.GetSize()) )
+           && counter + 1 < static_cast<int64_t>(m_buffer.GetSize()))
     {
         // ignore leading whitespaces
         if( !counter && IsWhitespace( c ) )
         {
             // Consume the whitespace character
-            c = device.GetChar();
+            (void)device.GetChar();
             continue;
         }
         // ignore comments
-        else if( c == '%' )
+        else if (c == '%')
         {
             // Consume all characters before the next line break
-            while (device.TryGetChar(c) && c != '\n' && c != '\r')
+            do
             {
-            }
+                (void)device.GetChar();
+            } while ((c = device.Look()) != EOF && c != '\n' && c != '\r');
 
-            if (c == 0x0D)
-            {
-                if (device.Look() == 0x0A)
-                    c = device.GetChar();
-            }
             // If we've already read one or more chars of a token, return them, since
             // comments are treated as token-delimiting whitespace. Otherwise keep reading
             // at the start of the next line.
@@ -257,8 +253,8 @@ bool PdfTokenizer::TryReadNextToken(PdfInputDevice& device, string_view& pszToke
             if( peType )
                 *peType = EPdfTokenType::Delimiter;
 
-            // retrieve c really from stream
-            c = device.GetChar();
+            // Really consume character from stream
+            (void)device.GetChar();
             m_buffer.GetBuffer()[counter] = c;
             ++counter;
 
@@ -267,7 +263,7 @@ bool PdfTokenizer::TryReadNextToken(PdfInputDevice& device, string_view& pszToke
             // If so, consume that character too.
             if( n == c )
             {
-                n = device.GetChar();
+                (void)device.GetChar();
                 m_buffer.GetBuffer()[counter] = n;
                 ++counter;
             }
@@ -283,7 +279,7 @@ bool PdfTokenizer::TryReadNextToken(PdfInputDevice& device, string_view& pszToke
         else
         {
             // Consume the next character and add it to the token we're building.
-            c = device.GetChar();
+            (void)device.GetChar();
             m_buffer.GetBuffer()[counter] = c;
             ++counter;
 
@@ -646,13 +642,12 @@ void PdfTokenizer::ReadString(PdfInputDevice& device, PdfVariant& rVariant, PdfE
 
     m_vecBuffer.clear();
 
-    while ((c = device.Look()) != EOF)
+    while (device.TryGetChar(c))
     {
         // end of stream reached
         if( !bEscape )
         {
             // Handle raw characters
-            c = device.GetChar();
             if( !nBalanceCount && c == ')' )
                 break;
 
@@ -691,7 +686,6 @@ void PdfTokenizer::ReadString(PdfInputDevice& device, PdfVariant& rVariant, PdfE
                     continue;
                 }
 
-                c = device.GetChar();
                 cOctValue <<= 3;
                 cOctValue  |= ((c-'0') & 0x07);
 
@@ -707,7 +701,7 @@ void PdfTokenizer::ReadString(PdfInputDevice& device, PdfVariant& rVariant, PdfE
             else
             {
                 // Handle plain escape sequences
-                const char & code = s_escMap[device.GetChar() & 0xff];
+                const char & code = s_escMap[c & 0xff];
                 if( code )
                     m_vecBuffer.push_back( code );
 
@@ -758,9 +752,9 @@ void PdfTokenizer::ReadHexString(PdfInputDevice& device, PdfVariant& rVariant, P
 void PdfTokenizer::readHexString(PdfInputDevice& device, std::vector<char>& rVecBuffer)
 {
     rVecBuffer.clear();
-    int        c;
+    int c;
 
-    while ((c = device.GetChar()) != EOF)
+    while (device.TryGetChar(c))
     {
         // end of stream reached
         if( c == '>' )

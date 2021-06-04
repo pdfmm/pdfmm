@@ -824,9 +824,7 @@ void PdfParser::ReadXRefSubsection(const PdfRefCountedInputDevice& device, int64
     // consume all whitespaces
     int charcode;
     while (m_tokenizer.IsWhitespace((charcode = device.Device()->Look())))
-    {
-        device.Device()->GetChar();
-    }
+        (void)device.Device()->GetChar();
 
     while (count < nNumObjects && device.Device()->Read(m_buffer.GetBuffer(), PDF_XREF_ENTRY_SIZE) == PDF_XREF_ENTRY_SIZE)
     {

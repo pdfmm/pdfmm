@@ -235,19 +235,16 @@ void PdfParserObject::ParseStream()
     // either a carriage return and a line feed or just a line feed, and not by a carriage re-
     // turn alone.
     c = m_device.Device()->Look();
-    if( PdfTokenizer::IsWhitespace( c ) )
+    if (PdfTokenizer::IsWhitespace(c))
     {
-        c = m_device.Device()->GetChar();
-
-        if( c == '\r' )
+        (void)m_device.Device()->GetChar();
+        if (c == '\r')
         {
             c = m_device.Device()->Look();
-            if( c == '\n' )
-            {
-                c = m_device.Device()->GetChar();
-            }
+            if (c == '\n')
+                (void)m_device.Device()->GetChar();
         }
-    } 
+    }
     
     std::streamoff fLoc = m_device.Device()->Tell();	// we need to save this, since loading the Length key could disturb it!
 
