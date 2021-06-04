@@ -236,10 +236,9 @@ bool PdfTokenizer::TryReadNextToken(PdfInputDevice& device, string_view& pszToke
         else if( c == '%' )
         {
             // Consume all characters before the next line break
-			// 2011-04-19 Ulrich Arnold: accept 0x0D, 0x0A and oX0D 0x0A as one EOL
-            do {
-                c = device.GetChar();
-            } while( c != EOF && c != 0x0D  && c != 0x0A );
+            while (device.TryGetChar(c) && c != '\n' && c != '\r')
+            {
+            }
 
             if (c == 0x0D)
             {

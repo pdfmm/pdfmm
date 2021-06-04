@@ -100,6 +100,7 @@ void PdfInputDevice::Close()
     // nothing to do here, but maybe necessary for inheriting classes
 }
 
+// TODO: Convert to char type
 int PdfInputDevice::GetChar()
 {
     int ch;
@@ -109,6 +110,7 @@ int PdfInputDevice::GetChar()
         PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDeviceOperation, "Failed to read the current character");
 }
 
+// TODO: Convert to char type
 bool PdfInputDevice::TryGetChar(int &ch)
 {
     if (m_pStream->eof())
@@ -117,10 +119,18 @@ bool PdfInputDevice::TryGetChar(int &ch)
         return false;
     }
 
-    ch = m_pStream->get();
+    ch = m_pStream->peek();
     if (m_pStream->fail())
         PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDeviceOperation, "Failed to read the current character");
 
+    if (ch == char_traits<char>::eof())
+    {
+        ch = -1;
+        return false;
+    }
+
+    // Consume the character
+    (void)m_pStream->get();
     return true;
 }
 
