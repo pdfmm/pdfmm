@@ -132,12 +132,12 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
 	/** Get the width of the image when drawn in PDF units
      *  \returns the width in PDF units
      */
-    double GetWidth() const;
+    unsigned GetWidth() const;
 
     /** Get the height of the image when drawn in PDF units
      *  \returns the height in PDF units
      */
-    double GetHeight() const;
+    unsigned GetHeight() const;
 
     /** Set the actual image data from an input stream
      *  
@@ -154,8 +154,8 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
      *
      *  \see SetImageData
      */
-    void SetImageData( unsigned int nWidth, unsigned int nHeight, 
-                       unsigned int nBitsPerComponent, PdfInputStream* pStream );
+    void SetImageData( unsigned nWidth, unsigned nHeight, 
+                       unsigned nBitsPerComponent, PdfInputStream* pStream, bool writeRect = true);
 
     /** Set the actual image data from an input stream
      *  
@@ -166,8 +166,8 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
      *  \param pStream stream supplieding raw image data
      *  \param vecFilters these filters will be applied to compress the image data
      */
-    void SetImageData( unsigned int nWidth, unsigned int nHeight, 
-                       unsigned int nBitsPerComponent, PdfInputStream* pStream, const TVecFilters & vecFilters );
+    void SetImageData( unsigned nWidth, unsigned nHeight, 
+                       unsigned nBitsPerComponent, PdfInputStream* pStream, const TVecFilters & vecFilters, bool writeRect = true);
 
     /** Set the actual image data from an input stream.
      *  The data has to be encoded already and an appropriate
@@ -179,8 +179,8 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
      *                           but is 8 in most cases)
      *  \param pStream stream supplieding raw image data
      */
-    void SetImageDataRaw( unsigned int nWidth, unsigned int nHeight, 
-                          unsigned int nBitsPerComponent, PdfInputStream & pStream );
+    void SetImageDataRaw( unsigned nWidth, unsigned nHeight, 
+                          unsigned nBitsPerComponent, PdfInputStream & pStream );
 
     /** Load the image data from a file
      *  \param pszFilename
@@ -260,7 +260,7 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
     static PdfName ColorspaceToName( EPdfColorSpace eColorSpace );
 
 #ifdef PODOFO_HAVE_JPEG_LIB
-	void LoadFromJpegHandle(FILE* pInStream);
+	void LoadFromJpegHandle(FILE* pInStream, const std::string_view& filename);
 #endif // PODOFO_HAVE_JPEG_LIB
 #ifdef PODOFO_HAVE_TIFF_LIB
     void LoadFromTiffHandle(void* pInStream);
@@ -268,6 +268,9 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
 #ifdef PODOFO_HAVE_PNG_LIB
 	void LoadFromPngHandle(FILE* pInStream);
 #endif // PODOFO_HAVE_PNG_LIB
+
+    unsigned m_width;
+    unsigned m_height;
 };
 
 };

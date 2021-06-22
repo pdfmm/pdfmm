@@ -131,7 +131,7 @@ void PdfTilingPattern::Init( EPdfTilingPatternType eTilingType,
 
 	if (pImage) {
 		rRect.SetWidth(pImage->GetWidth());
-		rRect.SetHeight(-pImage->GetHeight());
+		rRect.SetHeight(pImage->GetHeight()); // CHECK-ME: It was -pImage->GetHeight() but that appears to be wrong anyway
 	} else {
 		rRect.SetWidth(8);
 		rRect.SetHeight(8);

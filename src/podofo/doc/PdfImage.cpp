@@ -61,24 +61,20 @@ using namespace PoDoFo;
 PdfImage::PdfImage( PdfVecObjects* pParent, const char* pszPrefix )
     : PdfXObject( EPdfXObject::Image, pParent, pszPrefix )
 {
-    m_rRect = PdfRect();
-
     this->SetImageColorSpace( EPdfColorSpace::DeviceRGB );
 }
 
 PdfImage::PdfImage( PdfDocument* pParent, const char* pszPrefix )
     : PdfXObject( EPdfXObject::Image, pParent, pszPrefix )
 {
-    m_rRect = PdfRect();
-
     this->SetImageColorSpace( EPdfColorSpace::DeviceRGB );
 }
 
 PdfImage::PdfImage( PdfObject* pObject )
     : PdfXObject( EPdfXObject::Image, pObject )
 {
-    m_rRect.SetHeight( static_cast<double>(this->GetObject()->GetDictionary().GetKey( "Height" )->GetNumber()) );
-    m_rRect.SetWidth ( static_cast<double>(this->GetObject()->GetDictionary().GetKey( "Width" )->GetNumber()) );
+    m_width = static_cast<unsigned>(this->GetObject()->GetDictionary().FindKey("Height")->GetNumber());
+    m_height = static_cast<unsigned>(this->GetObject()->GetDictionary().FindKey("Width")->GetNumber());
 }
 
 /** Example: { "JPEG", "TIFF", nullptr }
@@ -160,47 +156,41 @@ void PdfImage::SetImageSoftmask( const PdfImage* pSoftmask )
 	GetObject()->GetDictionary().AddKey( "SMask", pSoftmask->GetObject()->GetIndirectReference() );
 }
 
-void PdfImage::SetImageData( unsigned int nWidth, unsigned int nHeight, 
-                             unsigned int nBitsPerComponent, PdfInputStream* pStream )
+void PdfImage::SetImageData( unsigned nWidth, unsigned nHeight, 
+                             unsigned nBitsPerComponent, PdfInputStream* pStream, bool writeRect)
 {
     TVecFilters vecFlate;
     vecFlate.push_back( EPdfFilter::FlateDecode );
 
-    this->SetImageData( nWidth, nHeight, nBitsPerComponent, pStream, vecFlate );
+    this->SetImageData( nWidth, nHeight, nBitsPerComponent, pStream, vecFlate, writeRect);
 }
 
-void PdfImage::SetImageData( unsigned int nWidth, unsigned int nHeight, 
-                             unsigned int nBitsPerComponent, PdfInputStream* pStream, 
-                             const TVecFilters & vecFilters )
+void PdfImage::SetImageData( unsigned nWidth, unsigned nHeight, 
+                             unsigned nBitsPerComponent, PdfInputStream* pStream, 
+                             const TVecFilters & vecFilters, bool writeRect)
 {
-    m_rRect.SetWidth( nWidth );
-    m_rRect.SetHeight( nHeight );
+    m_width = nWidth;
+    m_height = nHeight;
+
+    if (writeRect)
+        SetRect(PdfRect(0, 0, nWidth, nHeight));
 
     this->GetObject()->GetDictionary().AddKey( "Width",  PdfVariant( static_cast<int64_t>(nWidth) ) );
     this->GetObject()->GetDictionary().AddKey( "Height", PdfVariant( static_cast<int64_t>(nHeight) ) );
     this->GetObject()->GetDictionary().AddKey( "BitsPerComponent", PdfVariant( static_cast<int64_t>(nBitsPerComponent) ) );
-
-    PdfVariant var;
-    m_rRect.ToVariant( var );
-    this->GetObject()->GetDictionary().AddKey( "BBox", var );
 
     this->GetObject()->GetOrCreateStream().Set( pStream, vecFilters );
 }
 
-void PdfImage::SetImageDataRaw( unsigned int nWidth, unsigned int nHeight, 
-                                unsigned int nBitsPerComponent, PdfInputStream &pStream )
+void PdfImage::SetImageDataRaw( unsigned nWidth, unsigned nHeight, 
+                                unsigned nBitsPerComponent, PdfInputStream &pStream )
 {
-    m_rRect.SetWidth( nWidth );
-    m_rRect.SetHeight( nHeight );
+    m_width = nWidth;
+    m_height = nHeight;
 
     this->GetObject()->GetDictionary().AddKey( "Width",  PdfVariant( static_cast<int64_t>(nWidth) ) );
     this->GetObject()->GetDictionary().AddKey( "Height", PdfVariant( static_cast<int64_t>(nHeight) ) );
     this->GetObject()->GetDictionary().AddKey( "BitsPerComponent", PdfVariant( static_cast<int64_t>(nBitsPerComponent) ) );
-
-    PdfVariant var;
-    m_rRect.ToVariant( var );
-    this->GetObject()->GetDictionary().AddKey( "BBox", var );
-
     this->GetObject()->GetOrCreateStream().SetRawData( pStream, -1 );
 }
 
@@ -289,10 +279,9 @@ void PdfImage::LoadFromData(const unsigned char* pData, size_t dwLen)
 void PdfImage::LoadFromJpeg(const string_view& filename)
 {
     FILE* file = io::fopen(filename, "rb");
-
     try
     {
-        LoadFromJpegHandle(file);
+        LoadFromJpegHandle(file, filename);
     }
     catch (...)
     {
@@ -301,15 +290,9 @@ void PdfImage::LoadFromJpeg(const string_view& filename)
     }
 
     fclose(file);
-
-    // Set the filters key to DCTDecode
-    this->GetObject()->GetDictionary().AddKey(PdfName::KeyFilter, PdfName("DCTDecode"));
-    // Do not apply any filters as JPEG data is already DCT encoded.
-    PdfFileInputStream stream(filename);
-    this->SetImageDataRaw((unsigned)m_rRect.GetWidth(), (unsigned)m_rRect.GetHeight(), 8, stream);
 }
 
-void PdfImage::LoadFromJpegHandle(FILE* pInStream)
+void PdfImage::LoadFromJpegHandle(FILE* pInStream, const string_view& filename)
 {
     struct jpeg_decompress_struct cinfo;
     struct jpeg_error_mgr         jerr;
@@ -330,9 +313,6 @@ void PdfImage::LoadFromJpegHandle(FILE* pInStream)
     }
 
     jpeg_start_decompress(&cinfo);
-
-    m_rRect.SetWidth( cinfo.output_width );
-    m_rRect.SetHeight( cinfo.output_height );
 
     // I am not sure wether this switch is fully correct.
     // it should handle all cases though.
@@ -371,6 +351,13 @@ void PdfImage::LoadFromJpegHandle(FILE* pInStream)
     }
 
     (void)jpeg_destroy_decompress(&cinfo);
+
+    // Set the filters key to DCTDecode
+    this->GetObject()->GetDictionary().AddKey(PdfName::KeyFilter, PdfName("DCTDecode"));
+
+    // Do not apply any filters as JPEG data is already DCT encoded.
+    PdfFileInputStream stream(filename);
+    this->SetImageDataRaw(cinfo.output_width, cinfo.output_height, 8, stream);
 }
 
 void PdfImage::LoadFromJpegData(const unsigned char* pData, size_t dwLen)
@@ -394,9 +381,6 @@ void PdfImage::LoadFromJpegData(const unsigned char* pData, size_t dwLen)
     }
 
     jpeg_start_decompress(&cinfo);
-
-    m_rRect.SetWidth( cinfo.output_width );
-    m_rRect.SetHeight( cinfo.output_height );
 
     // I am not sure wether this switch is fully correct.
     // it should handle all cases though.
@@ -929,9 +913,6 @@ void PdfImage::LoadFromPngHandle(FILE* hFile)
 
     png_read_image(pPng, pRows);
 
-    m_rRect.SetWidth( width );
-    m_rRect.SetHeight( height );
-
     switch( png_get_channels( pPng, pInfo ) )
     {
         case 3:
@@ -1121,9 +1102,6 @@ void PdfImage::LoadFromPngData(const unsigned char* pData, size_t dwLen)
     
     png_read_image(pPng, pRows);
     
-    m_rRect.SetWidth( width );
-    m_rRect.SetHeight( height );
-    
     switch( png_get_channels( pPng, pInfo ) )
     {
         case 3:
@@ -1186,12 +1164,12 @@ void PdfImage::SetInterpolate(bool bValue)
     this->GetObject()->GetDictionary().AddKey( "Interpolate", PdfVariant(bValue));
 }
 
-double PdfImage::GetWidth() const
+unsigned PdfImage::GetWidth() const
 {
-    return this->GetRect().GetWidth();
+    return m_width;
 }
 
-double PdfImage::GetHeight() const
+unsigned PdfImage::GetHeight() const
 {
-    return this->GetRect().GetHeight();
+    return m_height;
 }

@@ -175,10 +175,8 @@ public:
     PdfObject* GetContents() const override;
     PdfStream & GetStreamForAppending(EPdfStreamAppendFlags flags) override;
 
- protected:
-    PdfRect          m_rRect;
-
 private:
+    PdfRect          m_rRect;
     EPdfXObject      m_type;
     PdfArray         m_matrix;
     PdfObject*       m_pResources;

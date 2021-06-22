@@ -54,7 +54,7 @@ using namespace std;
 using namespace PoDoFo;
 
 PdfXObject::PdfXObject( const PdfRect & rRect, PdfDocument* pParent, const char* pszPrefix, bool bWithoutIdentifier )
-    : PdfElement(*pParent, "XObject"), PdfCanvas(), m_rRect( rRect ), m_pResources( nullptr )
+    : PdfElement(*pParent, "XObject"), m_rRect( rRect ), m_pResources( nullptr )
 {
     InitXObject( rRect, pszPrefix );
     if( bWithoutIdentifier )
@@ -64,16 +64,14 @@ PdfXObject::PdfXObject( const PdfRect & rRect, PdfDocument* pParent, const char*
 }
 
 PdfXObject::PdfXObject( const PdfRect & rRect, PdfVecObjects* pParent, const char* pszPrefix )
-    : PdfElement(*pParent, "XObject"), PdfCanvas(), m_rRect( rRect ), m_pResources( nullptr )
+    : PdfElement(*pParent, "XObject"), m_rRect( rRect ), m_pResources( nullptr )
 {
     InitXObject( rRect, pszPrefix );
 }
 
 PdfXObject::PdfXObject( const PdfDocument & rDoc, int nPage, PdfDocument* pParent, const char* pszPrefix, bool bUseTrimBox )
-    : PdfElement(*pParent, "XObject"), PdfCanvas(), m_pResources( nullptr )
+    : PdfElement(*pParent, "XObject"), m_pResources( nullptr )
 {
-    m_rRect = PdfRect();
-
     InitXObject( m_rRect, pszPrefix );
 
     // Implementation note: source document must be different from distination
