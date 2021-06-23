@@ -896,6 +896,10 @@ void PdfPainter::DrawMultiLineText( double dX, double dY, double dWidth, double 
 
 std::vector<PdfString> PdfPainter::GetMultiLineTextAsLines( double dWidth, const PdfString & rsText, bool bSkipSpaces )
 {
+    // FIX-ME: This method is currently broken, just rewrite it later
+    std::vector<PdfString> ret = { rsText };
+    return ret;  
+
     CheckStream();
 
     if( !m_pFont || !m_canvas || !rsText.IsValid() )
