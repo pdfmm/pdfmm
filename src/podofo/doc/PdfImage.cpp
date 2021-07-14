@@ -73,8 +73,8 @@ PdfImage::PdfImage( PdfDocument* pParent, const char* pszPrefix )
 PdfImage::PdfImage( PdfObject* pObject )
     : PdfXObject( EPdfXObject::Image, pObject )
 {
-    m_width = static_cast<unsigned>(this->GetObject()->GetDictionary().FindKey("Height")->GetNumber());
-    m_height = static_cast<unsigned>(this->GetObject()->GetDictionary().FindKey("Width")->GetNumber());
+    m_width = static_cast<unsigned>(this->GetObject()->GetDictionary().FindKey("Width")->GetNumber());
+    m_height = static_cast<unsigned>(this->GetObject()->GetDictionary().FindKey("Height")->GetNumber());
 }
 
 /** Example: { "JPEG", "TIFF", nullptr }
