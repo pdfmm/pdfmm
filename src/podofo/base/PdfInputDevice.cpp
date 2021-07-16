@@ -66,8 +66,8 @@ PdfInputDevice::PdfInputDevice(const string_view& filename)
 PdfInputDevice::PdfInputDevice( const char* pBuffer, size_t lLen )
     : PdfInputDevice()
 {
-    if( !pBuffer ) 
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
+    if (lLen != 0 && pBuffer == nullptr)
+        PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
 
     try
     {
