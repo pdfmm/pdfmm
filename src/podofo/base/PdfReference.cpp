@@ -13,51 +13,56 @@
 
 #include <sstream>
 
+using namespace std;
 using namespace PoDoFo;
 
-void PdfReference::Write(PdfOutputDevice& pDevice, PdfWriteMode eWriteMode, const PdfEncrypt* ) const
+PdfReference::PdfReference()
+    : m_ObjectNo(0), m_GenerationNo(0)
 {
-    if( (eWriteMode & PdfWriteMode::Compact) == PdfWriteMode::Compact )
+}
+
+PdfReference::PdfReference(const uint32_t objectNo, const uint16_t generationNo)
+    : m_ObjectNo(objectNo), m_GenerationNo(generationNo)
+{
+}
+
+void PdfReference::Write(PdfOutputDevice& device, PdfWriteMode writeMode, const PdfEncrypt* encrypt) const
+{
+    (void)encrypt;
+    if ((writeMode & PdfWriteMode::Compact) == PdfWriteMode::Compact)
     {
         // Write space before the reference
-        pDevice.Print( " %i %hi R", m_nObjectNo, m_nGenerationNo );
+        device.Print(" %i %hi R", m_ObjectNo, m_GenerationNo);
     }
     else
     {
-        pDevice.Print( "%i %hi R", m_nObjectNo, m_nGenerationNo );
+        device.Print("%i %hi R", m_ObjectNo, m_GenerationNo);
     }
 }
 
-const std::string PdfReference::ToString() const
+const string PdfReference::ToString() const
 {
-    std::ostringstream out;
-    out << m_nObjectNo << " " << m_nGenerationNo << " R";
+    ostringstream out;
+    out << m_ObjectNo << " " << m_GenerationNo << " R";
     return out.str();
-}
-
-const PdfReference& PdfReference::operator=(const PdfReference& rhs)
-{
-    m_nObjectNo = rhs.m_nObjectNo;
-    m_nGenerationNo = rhs.m_nGenerationNo;
-    return *this;
 }
 
 bool PdfReference::operator<(const PdfReference& rhs) const
 {
-    return m_nObjectNo == rhs.m_nObjectNo ? m_nGenerationNo < rhs.m_nGenerationNo : m_nObjectNo < rhs.m_nObjectNo;
+    return m_ObjectNo == rhs.m_ObjectNo ? m_GenerationNo < rhs.m_GenerationNo : m_ObjectNo < rhs.m_ObjectNo;
 }
 
 bool PdfReference::operator==(const PdfReference& rhs) const
 {
-    return m_nObjectNo == rhs.m_nObjectNo && m_nGenerationNo == rhs.m_nGenerationNo;
+    return m_ObjectNo == rhs.m_ObjectNo && m_GenerationNo == rhs.m_GenerationNo;
 }
 
 bool PdfReference::operator!=(const PdfReference& rhs) const
 {
-    return !this->operator==(rhs);
+    return m_ObjectNo != rhs.m_ObjectNo || m_GenerationNo != rhs.m_GenerationNo;
 }
 
 bool PdfReference::IsIndirect() const
 {
-    return m_nObjectNo != 0 || m_nGenerationNo != 0;
+    return m_ObjectNo != 0 || m_GenerationNo != 0;
 }

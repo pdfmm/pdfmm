@@ -10,9 +10,9 @@
 #define PDF_VARIANT_H
 
 #include "PdfDefines.h"
-#include "PdfRefCountedBuffer.h"
-#include "PdfString.h"
+#include "PdfReference.h"
 #include "PdfName.h"
+#include "PdfString.h"
 
 namespace PoDoFo {
 
@@ -23,7 +23,6 @@ class PdfDictionary;
 class PdfEncrypt;
 class PdfOutputDevice;
 class PdfString;
-class PdfReference;
 
 /**
  * A variant data type which supports all data types supported by the PDF standard.
@@ -371,13 +370,14 @@ private:
         /** Holds references, strings,
          *  names, dictionaries and arrays
          */
-        PdfDataType* Data;
-        bool Bool;
-        double Real;
         int64_t Number;
-    } UVariant;
+        double Real;
+        PdfDataType* Data;
+        PdfReference Reference;
+        bool Bool;
+    } Variant;
 
-    UVariant m_Data;
+    Variant m_Data;
     EPdfDataType m_DataType;
 };
 

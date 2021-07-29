@@ -61,7 +61,7 @@ PdfVariant::PdfVariant(const PdfName& name)
 PdfVariant::PdfVariant(const PdfReference& ref)
     : PdfVariant(EPdfDataType::Reference)
 {
-    m_Data.Data = new PdfReference(ref);
+    m_Data.Reference = ref;
 }
 
 PdfVariant::PdfVariant(const PdfArray& arr)
@@ -98,7 +98,6 @@ void PdfVariant::Clear()
     switch (m_DataType)
     {
         case EPdfDataType::Array:
-        case EPdfDataType::Reference:
         case EPdfDataType::Dictionary:
         case EPdfDataType::Name:
         case EPdfDataType::String:
@@ -108,6 +107,7 @@ void PdfVariant::Clear()
             break;
         }
 
+        case EPdfDataType::Reference:
         case EPdfDataType::Bool:
         case EPdfDataType::Null:
         case EPdfDataType::Number:
@@ -179,13 +179,15 @@ void PdfVariant::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
             device.Write(copy.c_str(), len);
             break;
         }
+        case EPdfDataType::Reference:
+            m_Data.Reference.Write(device, writeMode, encrypt);
+            break;
         case EPdfDataType::String:
         case EPdfDataType::Name:
         case EPdfDataType::Array:
         case EPdfDataType::Dictionary:
-        case EPdfDataType::Reference:
         case EPdfDataType::RawData:
-            if (!m_Data.Data)
+            if (m_Data.Data == nullptr)
                 PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
 
             m_Data.Data->Write(device, writeMode, encrypt);
@@ -234,11 +236,6 @@ const PdfVariant& PdfVariant::operator=(const PdfVariant& rhs)
             m_Data.Data = new PdfArray(*static_cast<PdfArray*>(rhs.m_Data.Data));
             break;
         }
-        case EPdfDataType::Reference:
-        {
-            m_Data.Data = new PdfReference(*static_cast<PdfReference*>(rhs.m_Data.Data));
-            break;
-        }
         case EPdfDataType::Dictionary:
         {
             m_Data.Data = new PdfDictionary(*static_cast<PdfDictionary*>(rhs.m_Data.Data));
@@ -260,6 +257,7 @@ const PdfVariant& PdfVariant::operator=(const PdfVariant& rhs)
             m_Data.Data = new PdfData(*static_cast<PdfData*>(rhs.m_Data.Data));
             break;
         }
+        case EPdfDataType::Reference:
         case EPdfDataType::Bool:
         case EPdfDataType::Null:
         case EPdfDataType::Number:
@@ -295,8 +293,8 @@ const char* PdfVariant::GetDataTypeString() const
             return "Dictionary";
         case EPdfDataType::Null:
             return "Null";
-        case EPdfDataType::Reference: return
-            "Reference";
+        case EPdfDataType::Reference:
+            return "Reference";
         case EPdfDataType::RawData:
             return "RawData";
         case EPdfDataType::Unknown:
@@ -342,7 +340,7 @@ bool PdfVariant::operator==(const PdfVariant& rhs) const
         {
             PdfReference value;
             if (rhs.TryGetReference(value))
-                return *(PdfReference*)m_Data.Data == value;
+                return m_Data.Reference == value;
             else
                 return false;
         }
@@ -425,7 +423,7 @@ bool PdfVariant::operator!=(const PdfVariant& rhs) const
         {
             PdfReference value;
             if (rhs.TryGetReference(value))
-                return *(PdfReference*)m_Data.Data != value;
+                return m_Data.Reference != value;
             else
                 return true;
         }
@@ -646,7 +644,7 @@ bool PdfVariant::TryGetReference(PdfReference& ref) const
         return false;
     }
 
-    ref = *(PdfReference*)m_Data.Data;
+    ref = m_Data.Reference;
     return true;
 }
 
@@ -829,7 +827,7 @@ void PdfVariant::SetReference(const PdfReference &ref)
     if (m_DataType != EPdfDataType::Reference)
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
 
-    *((PdfReference*)m_Data.Data) = ref;
+    m_Data.Reference = ref;
 }
 
 bool PdfVariant::IsBool() const
