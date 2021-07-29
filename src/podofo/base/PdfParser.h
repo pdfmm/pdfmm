@@ -218,8 +218,8 @@ public:
      * objects, i.e. XRef entries that do not point
      * to valid objects.
      *
-     * Default is to not ignore broken objects and
-     * throw an exception if one is found.
+     * Default is to ignore broken objects and
+     * to not throw an exception if one is found.
      *
      * \param bBroken if true broken objects will be ignored
      */

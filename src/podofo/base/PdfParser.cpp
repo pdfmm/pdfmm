@@ -109,7 +109,7 @@ void PdfParser::Reset()
 
     m_pEncrypt = nullptr;
 
-    m_bIgnoreBrokenObjects = false;
+    m_bIgnoreBrokenObjects = true;
     m_nIncrementalUpdates = 0;
     m_nRecursionDepth = 0;
 }
@@ -1192,9 +1192,18 @@ void PdfParser::ReadCompressedObjectFromStream( uint32_t nObjNo, int nIndex)
     PdfParserObject* pStream = dynamic_cast<PdfParserObject*>(m_vecObjects->GetObject( PdfReference( nObjNo, 0 ) ) );
     if( pStream == nullptr )
     {
-        std::ostringstream oss;
+        ostringstream oss;
         oss << "Loading of object " << nObjNo << " 0 R failed!" << std::endl;
-        PODOFO_RAISE_ERROR_INFO( EPdfError::NoObject, oss.str().c_str() );
+
+        if (m_bIgnoreBrokenObjects)
+        {
+            PdfError::LogMessage(LogSeverity::Error, oss.str().c_str());
+            return;
+        }
+        else
+        {
+            PODOFO_RAISE_ERROR_INFO(EPdfError::NoObject, oss.str().c_str());
+        }
     }
 
 	PdfObjectStreamParser::ObjectIdList list;
