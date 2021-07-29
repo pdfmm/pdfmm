@@ -19,10 +19,6 @@
 
 namespace PoDoFo {
 
-typedef std::map<PdfName,PdfObject> TKeyMap;
-typedef TKeyMap::iterator TIKeyMap;
-typedef TKeyMap::const_iterator TCIKeyMap;
-
 class PdfOutputDevice;
 
 /** The PDF dictionary data type of PoDoFo (inherits from PdfDataType,
@@ -82,9 +78,9 @@ public:
      *  This will set the dirty flag of this object.
      *  \see IsDirty
      */
-    PdfObject& AddKey(const PdfName& identifier, const PdfObject& rObject);
+    PdfObject& AddKey(const PdfName& identifier, const PdfObject& obj);
 
-    PdfObject& AddKeyIndirect(const PdfName& identifier, const PdfObject& rObject);
+    PdfObject& AddKeyIndirect(const PdfName& identifier, const PdfObject& obj);
 
     /** Get the key's value out of the dictionary.
      *
@@ -186,7 +182,7 @@ public:
      */
     bool RemoveKey(const PdfName& identifier);
 
-    void Write(PdfOutputDevice& pDevice, PdfWriteMode eWriteMode, const PdfEncrypt* pEncrypt) const override;
+    void Write(PdfOutputDevice& device, PdfWriteMode writeMode, const PdfEncrypt* encrypt) const override;
 
     /**
     *  \returns the size of the internal map
@@ -194,10 +190,15 @@ public:
     size_t GetSize() const;
 
 public:
-    TIKeyMap begin();
-    TIKeyMap end();
-    TCIKeyMap begin() const;
-    TCIKeyMap end() const;
+    typedef std::map<PdfName, PdfObject> Map;
+    typedef Map::iterator iterator;
+    typedef Map::const_iterator const_iterator;
+
+public:
+    iterator begin();
+    iterator end();
+    const_iterator begin() const;
+    const_iterator end() const;
     size_t size() const;
 
 protected:
@@ -205,18 +206,14 @@ protected:
     void SetOwner(PdfObject* pOwner) override;
 
 private:
-    std::pair<TKeyMap::iterator, bool> addKey(const PdfName& identifier, const PdfObject& rObject, bool noDirtySet);
+    std::pair<iterator, bool> addKey(const PdfName& identifier, const PdfObject& rObject, bool noDirtySet);
     PdfObject* getKey(const PdfName& key) const;
     PdfObject* findKey(const PdfName& key) const;
     PdfObject* findKeyParent(const PdfName& key) const;
 
 private:
-    TKeyMap      m_mapKeys;
+    Map m_mapKeys;
 };
-
-typedef std::vector<PdfDictionary*>      TVecDictionaries; 
-typedef	TVecDictionaries::iterator       TIVecDictionaries; 
-typedef	TVecDictionaries::const_iterator TCIVecDictionaries;
 
 }
 

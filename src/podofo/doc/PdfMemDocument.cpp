@@ -225,31 +225,28 @@ bool PdfMemDocument::HasPdfExtension(const char* ns, int64_t level) const {
  */
 vector<PdfExtension> PdfMemDocument::GetPdfExtensions() const
 {
-    vector<PdfExtension> result;
+    vector<PdfExtension> ret;
+    PdfObject* extensions = this->GetCatalog().GetIndirectKey("Extensions");
+    if (extensions == nullptr)
+        return ret;
 
-    PdfObject* pExtensions = this->GetCatalog().GetIndirectKey("Extensions");
-
-    if (pExtensions != nullptr)
+    // Loop through all declared extensions
+    for (auto& pair : extensions->GetDictionary())
     {
-        // Loop through all declared extensions
-        for (TKeyMap::const_iterator it = pExtensions->GetDictionary().begin(); it != pExtensions->GetDictionary().end(); it++) {
+        PdfObject* bv = pair.second.GetIndirectKey("BaseVersion");
+        PdfObject* el = pair.second.GetIndirectKey("ExtensionLevel");
 
-            PdfObject* bv = it->second.GetIndirectKey("BaseVersion");
-            PdfObject* el = it->second.GetIndirectKey("ExtensionLevel");
+        if (bv && el && bv->IsName() && el->IsNumber()) {
 
-            if (bv && el && bv->IsName() && el->IsNumber()) {
-
-                // Convert BaseVersion name to EPdfVersion
-                for (unsigned i = 0; i <= MAX_PDF_VERSION_STRING_INDEX; i++) {
-                    if (bv->GetName().GetString() == s_szPdfVersionNums[i]) {
-                        result.push_back(PdfExtension(it->first.GetString().c_str(), static_cast<PdfVersion>(i), el->GetNumber()));
-                    }
-                }
+            // Convert BaseVersion name to EPdfVersion
+            for (unsigned i = 0; i <= MAX_PDF_VERSION_STRING_INDEX; i++)
+            {
+                if (bv->GetName().GetString() == s_szPdfVersionNums[i])
+                    ret.push_back(PdfExtension(pair.first.GetString().c_str(), static_cast<PdfVersion>(i), el->GetNumber()));
             }
         }
     }
-
-    return result;
+    return ret;
 }
     
 

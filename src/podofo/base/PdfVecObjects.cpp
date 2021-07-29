@@ -341,8 +341,6 @@ void PdfVecObjects::insertOneReferenceIntoVector(const PdfObject& obj, TVecRefer
 
 void PdfVecObjects::insertReferencesIntoVector(const PdfObject& obj, TVecReferencePointerList& list)
 {
-    TCIKeyMap itKeys;
-
     if (obj.IsReference())
     {
         insertOneReferenceIntoVector(obj, list);
@@ -359,26 +357,21 @@ void PdfVecObjects::insertReferencesIntoVector(const PdfObject& obj, TVecReferen
     }
     else if (obj.IsDictionary())
     {
-        itKeys = obj.GetDictionary().begin();
-        while (itKeys != obj.GetDictionary().end())
+        for (auto& pair : obj.GetDictionary())
         {
-            if (itKeys->second.IsReference())
-                insertOneReferenceIntoVector(itKeys->second, list);
+            if (pair.second.IsReference())
+                insertOneReferenceIntoVector(pair.second, list);
             // optimization as this is really slow:
             // Call only for dictionaries, references and arrays
-            else if (itKeys->second.IsArray() ||
-                itKeys->second.IsDictionary())
-                insertReferencesIntoVector(itKeys->second, list);
-
-            itKeys++;
+            else if (pair.second.IsArray() ||
+                pair.second.IsDictionary())
+                insertReferencesIntoVector(pair.second, list);
         }
     }
 }
 
 void PdfVecObjects::GetObjectDependencies(const PdfObject& obj, TPdfReferenceList& list) const
 {
-    TCIKeyMap itKeys;
-
     if (obj.IsReference())
     {
         std::pair<TPdfReferenceList::iterator, TPdfReferenceList::iterator> itEqualRange
@@ -404,17 +397,14 @@ void PdfVecObjects::GetObjectDependencies(const PdfObject& obj, TPdfReferenceLis
     }
     else if (obj.IsDictionary())
     {
-        itKeys = obj.GetDictionary().begin();
-        while (itKeys != obj.GetDictionary().end())
+        for (auto& pair : obj.GetDictionary())
         {
             // optimization as this is really slow:
             // Call only for dictionaries, references and arrays
-            if (itKeys->second.IsArray() ||
-                itKeys->second.IsDictionary() ||
-                itKeys->second.IsReference())
-                GetObjectDependencies(itKeys->second, list);
-
-            itKeys++;
+            if (pair.second.IsArray() ||
+                pair.second.IsDictionary() ||
+                pair.second.IsReference())
+                GetObjectDependencies(pair.second, list);
         }
     }
 }

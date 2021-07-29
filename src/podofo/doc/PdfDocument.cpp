@@ -396,22 +396,18 @@ void PdfDocument::FixObjectReferences(PdfObject& obj, int difference)
 {
     if (obj.IsDictionary())
     {
-        TKeyMap::iterator it = obj.GetDictionary().begin();
-
-        while (it != obj.GetDictionary().end())
+        for (auto& pair : obj.GetDictionary())
         {
-            if (it->second.IsReference())
+            if (pair.second.IsReference())
             {
-                it->second = PdfObject(PdfReference(it->second.GetReference().ObjectNumber() + difference,
-                    it->second.GetReference().GenerationNumber()));
+                pair.second = PdfObject(PdfReference(pair.second.GetReference().ObjectNumber() + difference,
+                    pair.second.GetReference().GenerationNumber()));
             }
-            else if (it->second.IsDictionary() ||
-                it->second.IsArray())
+            else if (pair.second.IsDictionary() ||
+                pair.second.IsArray())
             {
-                FixObjectReferences(it->second, difference);
+                FixObjectReferences(pair.second, difference);
             }
-
-            it++;
         }
     }
     else if (obj.IsArray())

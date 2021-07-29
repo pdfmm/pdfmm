@@ -57,10 +57,10 @@ void PdfDictionary::Clear()
     }
 }
 
-PdfObject& PdfDictionary::AddKey(const PdfName& identifier, const PdfObject& rObject)
+PdfObject& PdfDictionary::AddKey(const PdfName& identifier, const PdfObject& obj)
 {
     AssertMutable();
-    auto added = addKey(identifier, rObject, false);
+    auto added = addKey(identifier, obj, false);
     if (added.second)
         SetDirty();
 
@@ -75,18 +75,18 @@ PdfObject& PdfDictionary::AddKeyIndirect(const PdfName& key, const PdfObject& ob
     return AddKey(key, obj);
 }
 
-pair<TKeyMap::iterator, bool> PdfDictionary::addKey(const PdfName& identifier, const PdfObject& rObject, bool noDirtySet)
+pair<PdfDictionary::Map::iterator, bool> PdfDictionary::addKey(const PdfName& identifier, const PdfObject& obj, bool noDirtySet)
 {
     // NOTE: Empty PdfNames are legal according to the PDF specification.
     // Don't check for it
 
-    pair<TKeyMap::iterator, bool> inserted = m_mapKeys.insert(std::make_pair(identifier, rObject));
+    pair<Map::iterator, bool> inserted = m_mapKeys.insert(std::make_pair(identifier, obj));
     if (!inserted.second)
     {
         if (noDirtySet)
-            inserted.first->second.Assign(rObject);
+            inserted.first->second.Assign(obj);
         else
-            inserted.first->second = rObject;
+            inserted.first->second = obj;
     }
 
     inserted.first->second.SetParent(this);
@@ -102,7 +102,7 @@ PdfObject* PdfDictionary::getKey(const PdfName& key) const
     if (!key.GetLength())
         return nullptr;
 
-    TCIKeyMap it = m_mapKeys.find(key);
+    auto it = m_mapKeys.find(key);
     if (it == m_mapKeys.end())
         return nullptr;
 
@@ -238,7 +238,7 @@ bool PdfDictionary::RemoveKey(const PdfName& identifier)
 {
     AssertMutable();
 
-    TKeyMap::iterator found = m_mapKeys.find(identifier);
+    Map::iterator found = m_mapKeys.find(identifier);
     if (found == m_mapKeys.end())
         return false;
 
@@ -247,61 +247,56 @@ bool PdfDictionary::RemoveKey(const PdfName& identifier)
     return true;
 }
 
-void PdfDictionary::Write(PdfOutputDevice& pDevice, PdfWriteMode eWriteMode,
-    const PdfEncrypt* pEncrypt) const
+void PdfDictionary::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
+    const PdfEncrypt* encrypt) const
 {
-    TCIKeyMap     itKeys;
-
-    if ((eWriteMode & PdfWriteMode::Clean) == PdfWriteMode::Clean)
+    if ((writeMode & PdfWriteMode::Clean) == PdfWriteMode::Clean)
     {
-        pDevice.Print("<<\n");
+        device.Print("<<\n");
     }
     else
     {
-        pDevice.Print("<<");
+        device.Print("<<");
     }
-    itKeys = m_mapKeys.begin();
 
     if (this->HasKey(PdfName::KeyType))
     {
         // Type has to be the first key in any dictionary
-        if ((eWriteMode & PdfWriteMode::Clean) == PdfWriteMode::Clean)
+        if ((writeMode & PdfWriteMode::Clean) == PdfWriteMode::Clean)
         {
-            pDevice.Print("/Type ");
+            device.Print("/Type ");
         }
         else
         {
-            pDevice.Print("/Type");
+            device.Print("/Type");
         }
 
-        this->GetKey(PdfName::KeyType)->GetVariant().Write(pDevice, eWriteMode, pEncrypt);
+        this->GetKey(PdfName::KeyType)->GetVariant().Write(device, writeMode, encrypt);
 
-        if ((eWriteMode & PdfWriteMode::Clean) == PdfWriteMode::Clean)
+        if ((writeMode & PdfWriteMode::Clean) == PdfWriteMode::Clean)
         {
-            pDevice.Print("\n");
+            device.Print("\n");
         }
     }
 
-    while (itKeys != m_mapKeys.end())
+    for (auto& pair : m_mapKeys)
     {
-        if (itKeys->first != PdfName::KeyType)
+        if (pair.first != PdfName::KeyType)
         {
-            itKeys->first.Write(pDevice, eWriteMode, nullptr);
-            if ((eWriteMode & PdfWriteMode::Clean) == PdfWriteMode::Clean)
+            pair.first.Write(device, writeMode, nullptr);
+            if ((writeMode & PdfWriteMode::Clean) == PdfWriteMode::Clean)
             {
-                pDevice.Write(" ", 1); // write a separator
+                device.Write(" ", 1); // write a separator
             }
-            itKeys->second.GetVariant().Write(pDevice, eWriteMode, pEncrypt);
-            if ((eWriteMode & PdfWriteMode::Clean) == PdfWriteMode::Clean)
+            pair.second.GetVariant().Write(device, writeMode, encrypt);
+            if ((writeMode & PdfWriteMode::Clean) == PdfWriteMode::Clean)
             {
-                pDevice.Write("\n", 1);
+                device.Write("\n", 1);
             }
         }
-
-        ++itKeys;
     }
 
-    pDevice.Print(">>");
+    device.Print(">>");
 }
 
 void PdfDictionary::ResetDirtyInternal()
@@ -311,19 +306,17 @@ void PdfDictionary::ResetDirtyInternal()
         pair.second.ResetDirty();
 }
 
-void PdfDictionary::SetOwner(PdfObject* pOwner)
+void PdfDictionary::SetOwner(PdfObject* owner)
 {
-    PdfContainerDataType::SetOwner(pOwner);
-    auto document = pOwner->GetDocument();
+    PdfContainerDataType::SetOwner(owner);
+    auto document = owner->GetDocument();
 
     // Set owmership for all children
-    TIKeyMap it = this->begin();
-    TIKeyMap end = this->end();
-    for (; it != end; it++)
+    for (auto& pair : m_mapKeys)
     {
-        it->second.SetParent(this);
+        pair.second.SetParent(this);
         if (document != nullptr)
-            it->second.SetDocument(*document);
+            pair.second.SetDocument(*document);
     }
 }
 
@@ -370,22 +363,22 @@ const PdfObject& PdfDictionary::MustGetKey(const PdfName& key) const
     return *obj;
 }
 
-TIKeyMap PdfDictionary::begin()
+PdfDictionary::iterator PdfDictionary::begin()
 {
     return m_mapKeys.begin();
 }
 
-TIKeyMap PdfDictionary::end()
+PdfDictionary::iterator PdfDictionary::end()
 {
     return m_mapKeys.end();
 }
 
-TCIKeyMap PdfDictionary::begin() const
+PdfDictionary::const_iterator PdfDictionary::begin() const
 {
     return m_mapKeys.begin();
 }
 
-TCIKeyMap PdfDictionary::end() const
+PdfDictionary::const_iterator PdfDictionary::end() const
 {
     return m_mapKeys.end();
 }
