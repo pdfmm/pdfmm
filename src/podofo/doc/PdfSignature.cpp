@@ -60,39 +60,27 @@ void PdfSignature::Init(PdfAcroForm& acroForm)
 
 void PdfSignature::SetSignerName(const PdfString & rsText)
 {
-    if (!m_pSignatureObj)
-    {
+    if (m_pSignatureObj == nullptr)
         PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
-    }
 
-    m_pSignatureObj->GetDictionary().AddKey(PdfName("Name"), rsText);
+    m_pSignatureObj->GetDictionary().AddKey("Name", rsText);
 }
 
 void PdfSignature::SetSignatureReason(const PdfString & rsText)
 {
-    if( !m_pSignatureObj )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
-    if(m_pSignatureObj->GetDictionary().HasKey(PdfName("Reason")))
-    {
-        m_pSignatureObj->GetDictionary().RemoveKey(PdfName("Reason"));
-    }
-    m_pSignatureObj->GetDictionary().AddKey(PdfName("Reason"), rsText);
+    if (m_pSignatureObj == nullptr)
+        PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
+
+    m_pSignatureObj->GetDictionary().AddKey("Reason", rsText);
 }
 
 void PdfSignature::SetSignatureDate(const PdfDate &sigDate)
 {
-    if( !m_pSignatureObj )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
-    if(m_pSignatureObj->GetDictionary().HasKey(PdfName("M")))
-    {
-        m_pSignatureObj->GetDictionary().RemoveKey(PdfName("M"));
-    }
+    if (m_pSignatureObj == nullptr)
+        PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
+
 	PdfString sDate = sigDate.ToString();
-    m_pSignatureObj->GetDictionary().AddKey(PdfName("M"), sDate);
+    m_pSignatureObj->GetDictionary().AddKey("M", sDate);
 }
 
 void PdfSignature::PrepareForSigning(const string_view& filter,
@@ -108,97 +96,75 @@ void PdfSignature::PrepareForSigning(const string_view& filter,
 
     // Prepare contents data
     PdfData contentsData(beacons.ContentsBeacon, beacons.ContentsOffset);
-    m_pSignatureObj->GetDictionary().AddKey(PdfName::KeyContents, PdfVariant(contentsData));
+    m_pSignatureObj->GetDictionary().AddKey(PdfName::KeyContents, PdfObject(contentsData));
 
     // Prepare byte range data
     PdfData byteRangeData(beacons.ByteRangeBeacon, beacons.ByteRangeOffset);
-    m_pSignatureObj->GetDictionary().AddKey("ByteRange", PdfVariant(byteRangeData) );
+    m_pSignatureObj->GetDictionary().AddKey("ByteRange", PdfObject(byteRangeData));
 }
 
 void PdfSignature::SetSignatureLocation( const PdfString & rsText )
 {
-    if( !m_pSignatureObj )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
-    if(m_pSignatureObj->GetDictionary().HasKey(PdfName("Location")))
-    {
-        m_pSignatureObj->GetDictionary().RemoveKey(PdfName("Location"));
-    }
-    m_pSignatureObj->GetDictionary().AddKey(PdfName("Location"), rsText);
+    if (m_pSignatureObj == nullptr)
+        PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
+
+    m_pSignatureObj->GetDictionary().AddKey("Location", rsText);
 }
 
-void PdfSignature::SetSignatureCreator( const PdfName & creator )
+void PdfSignature::SetSignatureCreator(const PdfName& creator)
 {
-    if( !m_pSignatureObj )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
+    if (m_pSignatureObj == nullptr)
+        PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
 
-    if( m_pSignatureObj->GetDictionary().HasKey( PdfName( "Prop_Build" ) ) )
+    if (m_pSignatureObj->GetDictionary().HasKey("Prop_Build"))
     {
-        PdfObject* propBuild = m_pSignatureObj->GetDictionary().GetKey( PdfName( "Prop_Build" ) );
-        if( propBuild->GetDictionary().HasKey( PdfName( "App" ) ) )
+        PdfObject* propBuild = m_pSignatureObj->GetDictionary().GetKey("Prop_Build");
+        if (propBuild->GetDictionary().HasKey("App"))
         {
-            PdfObject* app = propBuild->GetDictionary().GetKey( PdfName( "App" ) );
-            if( app->GetDictionary().HasKey( PdfName( "Name" ) ) )
-            {
-                app->GetDictionary().RemoveKey( PdfName( "Name" ) );
-            }
-
-            propBuild->GetDictionary().RemoveKey( PdfName("App") );
+            PdfObject* app = propBuild->GetDictionary().GetKey("App");
+            app->GetDictionary().RemoveKey("Name");
+            propBuild->GetDictionary().RemoveKey("App");
         }
 
-        m_pSignatureObj->GetDictionary().RemoveKey(PdfName("Prop_Build"));
+        m_pSignatureObj->GetDictionary().RemoveKey("Prop_Build");
     }
 
-    m_pSignatureObj->GetDictionary().AddKey( PdfName( "Prop_Build" ), PdfDictionary() );
-    PdfObject* propBuild = m_pSignatureObj->GetDictionary().GetKey( PdfName( "Prop_Build" ) );
-    propBuild->GetDictionary().AddKey( PdfName( "App" ), PdfDictionary() );
-    PdfObject* app = propBuild->GetDictionary().GetKey( PdfName( "App" ) );
-    app->GetDictionary().AddKey( PdfName( "Name" ), creator );
+    m_pSignatureObj->GetDictionary().AddKey("Prop_Build", PdfDictionary());
+    PdfObject* propBuild = m_pSignatureObj->GetDictionary().GetKey("Prop_Build");
+    propBuild->GetDictionary().AddKey("App", PdfDictionary());
+    PdfObject* app = propBuild->GetDictionary().GetKey("App");
+    app->GetDictionary().AddKey("Name", creator);
 }
 
-void PdfSignature::AddCertificationReference( PdfObject* pDocumentCatalog, EPdfCertPermission perm )
+void PdfSignature::AddCertificationReference(PdfObject* pDocumentCatalog, EPdfCertPermission perm)
 {
-    if( !m_pSignatureObj )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
+    if (m_pSignatureObj == nullptr)
+        PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
 
-    if (m_pSignatureObj->GetDictionary().HasKey(PdfName("Reference")))
-    {
-        m_pSignatureObj->GetDictionary().RemoveKey(PdfName("Reference"));
-    }
+    m_pSignatureObj->GetDictionary().RemoveKey("Reference");
 
-    PdfObject *pSigRef = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject( "SigRef" );
-    pSigRef->GetDictionary().AddKey(PdfName("TransformMethod"), PdfName("DocMDP"));
+    PdfObject* pSigRef = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject("SigRef");
+    pSigRef->GetDictionary().AddKey("TransformMethod", PdfName("DocMDP"));
 
-    PdfObject *pTransParams = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject( "TransformParams" );
-    pTransParams->GetDictionary().AddKey(PdfName("V"), PdfName("1.2"));
-    pTransParams->GetDictionary().AddKey(PdfName("P"), PdfVariant((int64_t)perm));
-    pSigRef->GetDictionary().AddKey(PdfName("TransformParams"), *pTransParams);
+    PdfObject* pTransParams = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject("TransformParams");
+    pTransParams->GetDictionary().AddKey("V", PdfName("1.2"));
+    pTransParams->GetDictionary().AddKey("P", PdfObject((int64_t)perm));
+    pSigRef->GetDictionary().AddKey("TransformParams", *pTransParams);
 
     if (pDocumentCatalog != nullptr)
     {
         PdfObject permObject;
         permObject.GetDictionary().AddKey("DocMDP", this->GetObject().GetDictionary().GetKey("V")->GetReference());
-
-        if (pDocumentCatalog->GetDictionary().HasKey(PdfName("Perms")))
-        {
-            pDocumentCatalog->GetDictionary().RemoveKey(PdfName("Perms"));
-        }
-
-        pDocumentCatalog->GetDictionary().AddKey(PdfName("Perms"), permObject);
+        pDocumentCatalog->GetDictionary().AddKey("Perms", permObject);
     }
 
     PdfArray refers;
     refers.push_back(*pSigRef);
 
-    m_pSignatureObj->GetDictionary().AddKey(PdfName("Reference"), PdfVariant(refers));
+    m_pSignatureObj->GetDictionary().AddKey("Reference", PdfVariant(refers));
 }
 
-const PdfObject * PdfSignature::GetSignatureReason() const
+const PdfObject* PdfSignature::GetSignatureReason() const
 {
     if (m_pSignatureObj == nullptr)
         return nullptr;
@@ -206,7 +172,7 @@ const PdfObject * PdfSignature::GetSignatureReason() const
     return m_pSignatureObj->GetDictionary().GetKey("Reason");
 }
 
-const PdfObject * PdfSignature::GetSignatureLocation() const
+const PdfObject* PdfSignature::GetSignatureLocation() const
 {
     if (m_pSignatureObj == nullptr)
         return nullptr;
@@ -214,7 +180,7 @@ const PdfObject * PdfSignature::GetSignatureLocation() const
     return m_pSignatureObj->GetDictionary().GetKey("Location");
 }
 
-const PdfObject * PdfSignature::GetSignatureDate() const
+const PdfObject* PdfSignature::GetSignatureDate() const
 {
     if (m_pSignatureObj == nullptr)
         return nullptr;
@@ -222,7 +188,7 @@ const PdfObject * PdfSignature::GetSignatureDate() const
     return m_pSignatureObj->GetDictionary().GetKey("M");
 }
 
-const PdfObject * PdfSignature::GetSignerName() const
+const PdfObject* PdfSignature::GetSignerName() const
 {
     if (m_pSignatureObj == nullptr)
         return nullptr;
@@ -237,14 +203,14 @@ PdfObject* PdfSignature::GetSignatureObject() const
 
 void PdfSignature::EnsureSignatureObject()
 {
-    if( m_pSignatureObj != nullptr )
+    if (m_pSignatureObj != nullptr)
         return;
 
-    m_pSignatureObj = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject( "Sig" );
-    if( !m_pSignatureObj )
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
+    m_pSignatureObj = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject("Sig");
+    if (m_pSignatureObj == nullptr)
+        PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
 
-    GetObject().GetDictionary().AddKey( "V" , m_pSignatureObj->GetIndirectReference() );
+    GetObject().GetDictionary().AddKey("V", m_pSignatureObj->GetIndirectReference());
 }
 
 PdfSignatureBeacons::PdfSignatureBeacons()

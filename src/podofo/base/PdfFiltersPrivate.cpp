@@ -51,11 +51,11 @@ class PdfPredictorDecoder
 public:
     PdfPredictorDecoder(const PdfDictionary* pDecodeParms)
     {
-        m_nPredictor = static_cast<int>(pDecodeParms->GetKeyAsNumber("Predictor", 1));
-        m_nColors = static_cast<int>(pDecodeParms->GetKeyAsNumber("Colors", 1));
-        m_nBPC = static_cast<int>(pDecodeParms->GetKeyAsNumber("BitsPerComponent", 8));
-        m_nColumns = static_cast<int>(pDecodeParms->GetKeyAsNumber("Columns", 1));
-        m_nEarlyChange = static_cast<int>(pDecodeParms->GetKeyAsNumber("EarlyChange", 1));
+        m_nPredictor = static_cast<int>(pDecodeParms->FindAs<int64_t>("Predictor", 1));
+        m_nColors = static_cast<int>(pDecodeParms->FindAs<int64_t>("Colors", 1));
+        m_nBPC = static_cast<int>(pDecodeParms->FindAs<int64_t>("BitsPerComponent", 8));
+        m_nColumns = static_cast<int>(pDecodeParms->FindAs<int64_t>("Columns", 1));
+        m_nEarlyChange = static_cast<int>(pDecodeParms->FindAs<int64_t>("EarlyChange", 1));
 
         if (m_nPredictor >= 10)
         {
@@ -1195,7 +1195,7 @@ void PdfCCITTFilter::BeginDecodeImpl(const PdfDictionary* pDict)
 
     m_tiff->tif_mode = O_RDONLY;
 
-    TIFFSetField(m_tiff, TIFFTAG_IMAGEWIDTH, pDict->GetKeyAsNumber(PdfName("Columns"), 1728));
+    TIFFSetField(m_tiff, TIFFTAG_IMAGEWIDTH, pDict->GetAs<int64_t>(PdfName("Columns"), 1728));
     TIFFSetField(m_tiff, TIFFTAG_SAMPLESPERPIXEL, 1);
     TIFFSetField(m_tiff, TIFFTAG_BITSPERSAMPLE, 1);
     TIFFSetField(m_tiff, TIFFTAG_FILLORDER, FILLORDER_LSB2MSB);
@@ -1209,7 +1209,7 @@ void PdfCCITTFilter::BeginDecodeImpl(const PdfDictionary* pDict)
 
     if (pDict != nullptr)
     {
-        int64_t lEncoding = pDict->GetKeyAsNumber(PdfName("K"), 0);
+        int64_t lEncoding = pDict->GetAs<int64_t>(PdfName("K"), 0);
         if (lEncoding == 0) // pure 1D encoding, Group3 1D
         {
             TIFFSetField(faxTIFF, TIFFTAG_GROUP3OPTIONS, GROUP3OPT_1DENCODING);

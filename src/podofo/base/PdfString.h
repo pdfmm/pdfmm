@@ -35,7 +35,7 @@ public:
      */
     PdfString();
 
-    PdfString(const char * str);
+    PdfString(const char* str);
 
     /** Construct a new PdfString from a utf-8 string
      *  The input string will be copied.

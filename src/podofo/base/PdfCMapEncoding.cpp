@@ -65,7 +65,7 @@ PdfCMapEncoding::MapIdentity PdfCMapEncoding::parseCMapObject(const PdfStream& s
     PdfInputDevice device(streamBuffer.get(), streamBufferLen);
     PdfPostScriptTokenizer tokenizer;
     deque<unique_ptr<PdfVariant>> tokens;
-    const PdfString* str;
+    PdfString str;
     auto var = make_unique<PdfVariant>();
     EPdfPostScriptTokenType tokenType;
     string_view token;
@@ -112,7 +112,7 @@ PdfCMapEncoding::MapIdentity PdfCMapEncoding::parseCMapObject(const PdfStream& s
                             for (unsigned i = 0; i < rangeSize; i++)
                             {
                                 auto& dst = arr[i];
-                                if (dst.TryGetString(str) && str->IsHex()) // pp. 475 PdfReference 1.7
+                                if (dst.TryGetString(str) && str.IsHex()) // pp. 475 PdfReference 1.7
                                     pushMapping(ret.Map, ret.Limits, { srcCodeLo + i, codeSize }, handleStringMapping(dst.GetString()));
                                 else if (dst.IsName()) // Not mentioned in tecnincal document #5014 but seems safe
                                     pushMapping(ret.Map, ret.Limits, { srcCodeLo + i, codeSize }, handleNameMapping(dst.GetName()));
@@ -120,7 +120,7 @@ PdfCMapEncoding::MapIdentity PdfCMapEncoding::parseCMapObject(const PdfStream& s
                                     PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "beginbfrange: expected string or name inside array");
                             }
                         }
-                        else if (var->TryGetString(str) && str->IsHex())
+                        else if (var->TryGetString(str) && str.IsHex())
                         {
                             // pp. 474 PdfReference 1.7
                             auto dstCodeLo = handleStringMapping(var->GetString());
@@ -155,7 +155,7 @@ PdfCMapEncoding::MapIdentity PdfCMapEncoding::parseCMapObject(const PdfStream& s
                             mappedCodes.clear();
                             mappedCodes.push_back(dstCode);
                         }
-                        else if (var->TryGetString(str) && str->IsHex())
+                        else if (var->TryGetString(str) && str.IsHex())
                         {
                             // pp. 474 PdfReference 1.7
                             mappedCodes = handleStringMapping(var->GetString());

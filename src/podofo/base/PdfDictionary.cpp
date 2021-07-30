@@ -147,86 +147,6 @@ PdfObject* PdfDictionary::findKeyParent(const PdfName& key) const
     }
 }
 
-bool PdfDictionary::GetKeyAsBool(const PdfName& key, bool defvalue) const
-{
-    auto pObject = findKey(key);
-    bool ret;
-    if (pObject == nullptr || !pObject->TryGetBool(ret))
-        return defvalue;
-
-    return ret;
-}
-
-int64_t PdfDictionary::GetKeyAsNumber(const PdfName& key, int64_t defvalue) const
-{
-    auto pObject = findKey(key);
-    int64_t ret;
-    if (pObject == nullptr || !pObject->TryGetNumber(ret))
-        return defvalue;
-
-    return ret;
-}
-
-int64_t PdfDictionary::GetKeyAsNumberLenient(const PdfName& key, int64_t defvalue) const
-{
-    auto pObject = findKey(key);
-    int64_t ret;
-    if (pObject == nullptr || !pObject->TryGetNumberLenient(ret))
-        return defvalue;
-
-    return ret;
-}
-
-double PdfDictionary::GetKeyAsReal(const PdfName& key, double defvalue) const
-{
-    auto pObject = findKey(key);
-    double ret;
-    if (pObject == nullptr || !pObject->TryGetReal(ret))
-        return defvalue;
-
-    return ret;
-}
-
-double PdfDictionary::GetKeyAsRealStrict(const PdfName& key, double defvalue) const
-{
-    auto pObject = findKey(key);
-    double ret;
-    if (pObject == nullptr || !pObject->TryGetRealStrict(ret))
-        return defvalue;
-
-    return ret;
-}
-
-PdfName PdfDictionary::GetKeyAsName(const PdfName & key, const PdfName& defvalue) const
-{
-    auto pObject = findKey(key);
-    const PdfName* ret;
-    if (pObject == nullptr || !pObject->TryGetName(ret))
-        return defvalue;
-    
-    return *ret;
-}
-
-PdfString PdfDictionary::GetKeyAsString(const PdfName& key, const PdfString& defvalue) const
-{
-    auto pObject = findKey(key);
-    const PdfString* ret;
-    if (pObject == nullptr || !pObject->TryGetString(ret))
-        return defvalue;
-
-    return *ret;
-}
-
-PdfReference PdfDictionary::GetKeyAsReference(const PdfName& key, const PdfReference& defvalue) const
-{
-    auto pObject = findKey(key);
-    PdfReference ret;
-    if (pObject == nullptr || !pObject->TryGetReference(ret))
-        return defvalue;
-
-    return ret;
-}
-
 bool PdfDictionary::HasKey(const PdfName& key) const
 {
     // NOTE: Empty PdfNames are legal according to the PDF specification,
@@ -358,9 +278,64 @@ size_t PdfDictionary::GetSize() const
 const PdfObject& PdfDictionary::MustGetKey(const PdfName& key) const
 {
     const PdfObject* obj = GetKey(key);
-    if (!obj)
+    if (obj == nullptr)
         PODOFO_RAISE_ERROR(EPdfError::NoObject);
+
     return *obj;
+}
+
+double PdfDictionary::GetAsRealStrict(const PdfName& key, double defvalue) const
+{
+    auto obj = getKey(key);
+    if (obj == nullptr)
+        return defvalue;
+
+    return obj->GetRealStrict();
+}
+
+int64_t PdfDictionary::GetAsNumberLenient(const PdfName& key, int64_t defvalue) const
+{
+    auto obj = getKey(key);
+    if (obj == nullptr)
+        return defvalue;
+
+    return obj->GetNumberLenient();
+}
+
+double PdfDictionary::FindAsRealStrict(const PdfName& key, double defvalue) const
+{
+    auto obj = findKey(key);
+    if (obj == nullptr)
+        return defvalue;
+
+    return obj->GetRealStrict();
+}
+
+int64_t PdfDictionary::FindAsNumberLenient(const PdfName& key, int64_t defvalue) const
+{
+    auto obj = findKey(key);
+    if (obj == nullptr)
+        return defvalue;
+
+    return obj->GetNumberLenient();
+}
+
+double PdfDictionary::FindParentAsRealStrict(const PdfName& key, double defvalue) const
+{
+    auto obj = findKeyParent(key);
+    if (obj == nullptr)
+        return defvalue;
+
+    return obj->GetRealStrict();
+}
+
+int64_t PdfDictionary::FindParentAsNumberLenient(const PdfName& key, int64_t defvalue) const
+{
+    auto obj = findKeyParent(key);
+    if (obj == nullptr)
+        return defvalue;
+
+    return obj->GetNumberLenient();
 }
 
 PdfDictionary::iterator PdfDictionary::begin()

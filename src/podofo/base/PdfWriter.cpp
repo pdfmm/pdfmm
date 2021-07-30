@@ -244,8 +244,8 @@ void PdfWriter::CreateFileIdentifier(PdfString& identifier, const PdfObject& pTr
         }
 
         auto it = idObj->GetArray().begin();
-        const PdfString* str;
-        if (it != idObj->GetArray().end() && it->TryGetString(str) && str->IsHex())
+        PdfString str;
+        if (it != idObj->GetArray().end() && it->TryGetString(str) && str.IsHex())
         {
             *pOriginalIdentifier = it->GetString();
             bOriginalIdentifierFound = true;

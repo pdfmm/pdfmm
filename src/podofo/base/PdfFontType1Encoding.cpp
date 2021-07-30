@@ -35,7 +35,7 @@ PdfCharCodeMap PdfFontType1Encoding::getUnicodeMap(const PdfObject& obj)
     EPdfPostScriptTokenType tokenType;
     string_view keyword;
     PdfVariant variant;
-    const PdfName* name;
+    PdfName name;
     int64_t number;
     PdfCharCodeMap ret;
 
@@ -71,7 +71,7 @@ PdfCharCodeMap PdfFontType1Encoding::getUnicodeMap(const PdfObject& obj)
         }
 
         unsigned code = (unsigned)number;
-        char32_t cp = PdfDifferenceEncoding::NameToUnicodeID(*name);
+        char32_t cp = PdfDifferenceEncoding::NameToUnicodeID(name);
         if (cp != U'\0')
         {
             unsigned char codeSize = usr::GetCharCodeSize(code);
@@ -89,7 +89,7 @@ PdfCharCodeMap PdfFontType1Encoding::getUnicodeMap(const PdfObject& obj)
 
         if (tokenType == EPdfPostScriptTokenType::Variant
             && variant.TryGetName(name)
-            && name->GetString() == "Encoding")
+            && name.GetString() == "Encoding")
         {
             break;
         }

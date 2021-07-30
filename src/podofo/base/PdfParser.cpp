@@ -239,7 +239,7 @@ void PdfParser::ReadDocumentStructure(const PdfRefCountedInputDevice& device)
 
     if( m_pTrailer->IsDictionary() && m_pTrailer->GetDictionary().HasKey( PdfName::KeySize ) )
     {
-        m_nNumObjects = static_cast<unsigned>(m_pTrailer->GetDictionary().GetKeyAsNumber( PdfName::KeySize ));
+        m_nNumObjects = static_cast<unsigned>(m_pTrailer->GetDictionary().FindAs<int64_t>( PdfName::KeySize ));
     }
     else
     {
@@ -374,7 +374,7 @@ void PdfParser::HasLinearizationDict(const PdfRefCountedInputDevice& device)
     }
     
     int64_t      lXRef      = -1;
-    lXRef = m_pLinearization->GetDictionary().GetKeyAsNumber( "T", lXRef );
+    lXRef = m_pLinearization->GetDictionary().FindAs<int64_t>( "T", lXRef );
     if( lXRef == -1 )
     {
         PODOFO_RAISE_ERROR( EPdfError::InvalidLinearization );
@@ -484,7 +484,7 @@ void PdfParser::ReadNextTrailer(const PdfRefCountedInputDevice& device)
 
             try
             {
-                ReadXRefStreamContents(device, static_cast<size_t>(trailer.GetDictionary().GetKeyAsNumber("XRefStm", 0)), false);
+                ReadXRefStreamContents(device, static_cast<size_t>(trailer.GetDictionary().FindAs<int64_t>("XRefStm", 0)), false);
             }
             catch( PdfError & e )
             {
@@ -501,7 +501,7 @@ void PdfParser::ReadNextTrailer(const PdfRefCountedInputDevice& device)
 
             try
             {
-                size_t lOffset = static_cast<size_t>(trailer.GetDictionary().GetKeyAsNumber( "Prev", 0 ));
+                size_t lOffset = static_cast<size_t>(trailer.GetDictionary().FindAs<int64_t>( "Prev", 0 ));
 
                 if( m_visitedXRefOffsets.find( lOffset ) == m_visitedXRefOffsets.end() )
                     ReadXRefContents(device, lOffset);
@@ -559,7 +559,7 @@ void PdfParser::ReadTrailer(const PdfRefCountedInputDevice& device)
             throw e;
         }
 #ifdef PODOFO_VERBOSE_DEBUG
-        PdfError::DebugMessage("Size=%" PDF_FORMAT_INT64 "\n", m_pTrailer->GetDictionary().GetKeyAsNumber( PdfName::KeySize, 0 ) );
+        PdfError::DebugMessage("Size=%" PDF_FORMAT_INT64 "\n", m_pTrailer->GetDictionary().GetAs<int64_t>( PdfName::KeySize, 0 ) );
 #endif // PODOFO_VERBOSE_DEBUG
     }
 }

@@ -9,13 +9,12 @@
 #ifndef PDF_DICTIONARY_H
 #define PDF_DICTIONARY_H
 
-#include <map>
-
 #include "PdfDefines.h"
+
+#include <map>
 
 #include "PdfContainerDataType.h"
 #include "PdfName.h"
-#include "PdfObject.h"
 
 namespace PoDoFo {
 
@@ -146,21 +145,26 @@ public:
      */
     const PdfObject& MustGetKey(const PdfName& key) const;
 
-    bool GetKeyAsBool(const PdfName& key, bool defvalue = false) const;
+    template <typename T>
+    T GetAs(const PdfName& key, const std::common_type_t<T>& defvalue = { }) const;
 
-    int64_t GetKeyAsNumber(const PdfName& key, int64_t defvalue = 0) const;
+    double GetAsRealStrict(const PdfName& key, double defvalue = 0.0) const;
 
-    int64_t GetKeyAsNumberLenient(const PdfName& key, int64_t defvalue = 0) const;
+    int64_t GetAsNumberLenient(const PdfName& key, int64_t defvalue = 0) const;
 
-    double GetKeyAsReal(const PdfName& key, double defvalue = 0.0) const;
+    template <typename T>
+    T FindAs(const PdfName& key, const std::common_type_t<T>& defvalue = { }) const;
 
-    double GetKeyAsRealStrict(const PdfName& key, double defvalue = 0.0) const;
+    double FindAsRealStrict(const PdfName& key, double defvalue = 0.0) const;
 
-    PdfName GetKeyAsName(const PdfName& key, const PdfName& defvalue = PdfName::KeyNull) const;
+    int64_t FindAsNumberLenient(const PdfName& key, int64_t defvalue = 0) const;
 
-    PdfString GetKeyAsString(const PdfName& key, const PdfString& defvalue = { }) const;
+    template <typename T>
+    T FindParentAs(const PdfName& key, const std::common_type_t<T>& defvalue = { }) const;
 
-    PdfReference GetKeyAsReference(const PdfName& key, const PdfReference& defvalue = { }) const;
+    double FindParentAsRealStrict(const PdfName& key, double defvalue = 0.0) const;
+
+    int64_t FindParentAsNumberLenient(const PdfName& key, int64_t defvalue = 0) const;
 
     /** Allows to check if a dictionary contains a certain key.
      * \param key look for the key named key.Name() in the dictionary
@@ -214,6 +218,37 @@ private:
 private:
     Map m_mapKeys;
 };
+
+template<typename T>
+T PdfDictionary::GetAs(const PdfName& key, const std::common_type_t<T>& defvalue) const
+{
+    auto obj = getKey(key);
+    if (obj == nullptr)
+        return defvalue;
+
+    return Object<T>::Get(*obj);
+}
+
+template<typename T>
+T PdfDictionary::FindAs(const PdfName& key, const std::common_type_t<T>& defvalue) const
+{
+    auto obj = findKey(key);
+    if (obj == nullptr)
+        return defvalue;
+
+    return Object<T>::Get(*obj);
+}
+
+template<typename T>
+T PdfDictionary::FindParentAs(const PdfName& key, const std::common_type_t<T>& defvalue) const
+{
+    auto obj = findKeyParent(key);
+    T ret{ };
+    if (obj == nullptr || Object<T>::TryGet(*obj, ret))
+        return defvalue;
+
+    return ret;
+}
 
 }
 

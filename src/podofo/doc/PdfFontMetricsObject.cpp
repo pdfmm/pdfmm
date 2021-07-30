@@ -90,7 +90,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
             m_BBox = GetBBox(*obj);
 
 
-        m_DefaultWidth = font.GetDictionary().GetKeyAsReal("DW", 1000) * m_matrix[0];
+        m_DefaultWidth = font.GetDictionary().FindAs<double>("DW", 1000) * m_matrix[0];
         auto widths = font.GetDictionary().FindKey("W");
         if (widths != nullptr)
         {
@@ -149,10 +149,10 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
     }
     else
     {
-        m_Weight = static_cast<unsigned>(descriptor->GetDictionary().GetKeyAsReal("FontWeight", 400));
-        m_ItalicAngle = static_cast<int>(descriptor->GetDictionary().GetKeyAsReal("ItalicAngle", 0));
-        m_Ascent = descriptor->GetDictionary().GetKeyAsReal("Ascent", 0.0) * m_matrix[3];
-        m_Descent = descriptor->GetDictionary().GetKeyAsReal("Descent", 0.0) * m_matrix[3];
+        m_Weight = static_cast<unsigned>(descriptor->GetDictionary().FindAs<double>("FontWeight", 400));
+        m_ItalicAngle = static_cast<int>(descriptor->GetDictionary().FindAs<double>("ItalicAngle", 0));
+        m_Ascent = descriptor->GetDictionary().FindAs<double>("Ascent", 0.0) * m_matrix[3];
+        m_Descent = descriptor->GetDictionary().FindAs<double>("Descent", 0.0) * m_matrix[3];
     }
 
     m_LineSpacing = m_Ascent + m_Descent;

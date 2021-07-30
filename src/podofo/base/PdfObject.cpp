@@ -552,30 +552,6 @@ bool PdfObject::TryGetReal(double& value) const
     return m_Variant.TryGetReal(value);
 }
 
-const PdfData& PdfObject::GetRawData() const
-{
-    DelayedLoad();
-    return m_Variant.GetRawData();
-}
-
-PdfData& PdfObject::GetRawData()
-{
-    DelayedLoad();
-    return m_Variant.GetRawData();
-}
-
-bool PdfObject::TryGetRawData(const PdfData*& data) const
-{
-    DelayedLoad();
-    return m_Variant.TryGetRawData(data);
-}
-
-bool PdfObject::TryGetRawData(PdfData*& data)
-{
-    DelayedLoad();
-    return m_Variant.TryGetRawData(data);
-}
-
 double PdfObject::GetRealStrict() const
 {
     DelayedLoad();
@@ -594,7 +570,7 @@ const PdfString& PdfObject::GetString() const
     return m_Variant.GetString();
 }
 
-bool PdfObject::TryGetString(const PdfString*& str) const
+bool PdfObject::TryGetString(PdfString& str) const
 {
     DelayedLoad();
     return m_Variant.TryGetString(str);
@@ -606,7 +582,7 @@ const PdfName& PdfObject::GetName() const
     return m_Variant.GetName();
 }
 
-bool PdfObject::TryGetName(const PdfName*& name) const
+bool PdfObject::TryGetName(PdfName& name) const
 {
     DelayedLoad();
     return m_Variant.TryGetName(name);

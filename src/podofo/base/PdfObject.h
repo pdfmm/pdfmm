@@ -14,7 +14,6 @@
 #include "PdfString.h"
 #include "PdfVariant.h"
 #include "PdfStream.h"
-#include "PdfContainerDataType.h"
 
 namespace PoDoFo {
 
@@ -25,6 +24,7 @@ class PdfVecObjects;
 class PdfDictionary;
 class PdfArray;
 class PdfDocument;
+class PdfContainerDataType;
 
 /**
  * This class represents a PDF indirect Object in memory
@@ -240,26 +240,18 @@ public:
     /** \returns the value of the object as string.
      */
     const PdfString& GetString() const;
-    bool TryGetString(const PdfString*& str) const;
+    bool TryGetString(PdfString& str) const;
 
     /** \returns the value of the object as name
      */
     const PdfName& GetName() const;
-    bool TryGetName(const PdfName*& str) const;
+    bool TryGetName(PdfName& str) const;
 
     /** Get the reference values of this object.
      *  \returns a PdfReference
      */
     PdfReference GetReference() const;
     bool TryGetReference(PdfReference& ref) const;
-
-    /** Get the reference values of this object.
-     *  \returns a reference to the PdfData instance.
-     */
-    const PdfData& GetRawData() const;
-    PdfData& GetRawData();
-    bool TryGetRawData(const PdfData*& data) const;
-    bool TryGetRawData(PdfData*& data);
 
     /** Returns the value of the object as array
      *  \returns a array

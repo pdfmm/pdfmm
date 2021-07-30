@@ -16,14 +16,14 @@
 using namespace PoDoFo;
 
 PdfContainerDataType::PdfContainerDataType()
-    : m_pOwner(nullptr), m_isImmutable(false)
+    : m_Owner(nullptr), m_isImmutable(false)
 {
 }
 
 // NOTE: Don't copy owner. Copied objects must be always detached.
 // Ownership will be set automatically elsewhere
-PdfContainerDataType::PdfContainerDataType( const PdfContainerDataType&rhs )
-    : PdfDataType( rhs ), m_pOwner(nullptr), m_isImmutable(false)
+PdfContainerDataType::PdfContainerDataType(const PdfContainerDataType& rhs)
+    : PdfDataType(rhs), m_Owner(nullptr), m_isImmutable(false)
 {
 }
 
@@ -32,32 +32,32 @@ void PdfContainerDataType::ResetDirty()
     ResetDirtyInternal();
 }
 
-PdfObject & PdfContainerDataType::GetIndirectObject( const PdfReference &ref ) const
+PdfObject& PdfContainerDataType::GetIndirectObject(const PdfReference& ref) const
 {
-    if ( m_pOwner == nullptr)
-        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidHandle, "Object is a reference but does not have an owner" );
+    if (m_Owner == nullptr)
+        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "Object is a reference but does not have an owner");
 
-    auto document = m_pOwner->GetDocument();
+    auto document = m_Owner->GetDocument();
     if (document == nullptr)
         PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "Object owner is not part of any document");
 
-    auto ret = document->GetObjects().GetObject( ref );
+    auto ret = document->GetObjects().GetObject(ref);
     if (ret == nullptr)
         PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "Can't find reference with objnum: " + std::to_string(ref.ObjectNumber()) + ", gennum: " + std::to_string(ref.GenerationNumber()));
 
     return *ret;
 }
 
-void PdfContainerDataType::SetOwner( PdfObject* pOwner )
+void PdfContainerDataType::SetOwner(PdfObject* owner)
 {
-    PODOFO_ASSERT( pOwner != nullptr);
-    m_pOwner = pOwner;
+    PODOFO_ASSERT(owner != nullptr);
+    m_Owner = owner;
 }
 
 void PdfContainerDataType::SetDirty()
 {
-    if (m_pOwner != nullptr)
-        m_pOwner->SetDirty();
+    if (m_Owner != nullptr)
+        m_Owner->SetDirty();
 }
 
 bool PdfContainerDataType::IsIndirectReferenceAllowed(const PdfObject& obj)
@@ -65,8 +65,8 @@ bool PdfContainerDataType::IsIndirectReferenceAllowed(const PdfObject& obj)
     PdfDocument* objDocument;
     if (obj.IsIndirect()
         && (objDocument = obj.GetDocument()) != nullptr
-        && m_pOwner != nullptr
-        && objDocument == m_pOwner->GetDocument())
+        && m_Owner != nullptr
+        && objDocument == m_Owner->GetDocument())
     {
         return true;
     }
@@ -74,20 +74,20 @@ bool PdfContainerDataType::IsIndirectReferenceAllowed(const PdfObject& obj)
     return false;
 }
 
-PdfContainerDataType& PdfContainerDataType::operator=( const PdfContainerDataType& rhs )
+PdfContainerDataType& PdfContainerDataType::operator=(const PdfContainerDataType& rhs)
 {
     // NOTE: Don't copy owner. Objects being assigned will keep current ownership
-    PdfDataType::operator=( rhs );
+    PdfDataType::operator=(rhs);
     return *this;
 }
 
-PdfDocument * PdfContainerDataType::GetObjectDocument()
+PdfDocument* PdfContainerDataType::GetObjectDocument()
 {
-    return m_pOwner == nullptr ? nullptr : m_pOwner->GetDocument();
+    return m_Owner == nullptr ? nullptr : m_Owner->GetDocument();
 }
 
 void PdfContainerDataType::AssertMutable() const
 {
-    if(IsImmutable())
-        PODOFO_RAISE_ERROR( EPdfError::ChangeOnImmutable );
+    if (IsImmutable())
+        PODOFO_RAISE_ERROR(EPdfError::ChangeOnImmutable);
 }

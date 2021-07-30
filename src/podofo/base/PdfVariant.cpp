@@ -347,7 +347,7 @@ bool PdfVariant::operator==(const PdfVariant& rhs) const
         case EPdfDataType::String:
         {
             const PdfString* value;
-            if (rhs.TryGetString(value))
+            if (rhs.tryGetString(value))
                 return *(PdfString*)m_Data.Data == *value;
             else
                 return false;
@@ -355,7 +355,7 @@ bool PdfVariant::operator==(const PdfVariant& rhs) const
         case EPdfDataType::Name:
         {
             const PdfName* value;
-            if (rhs.TryGetName(value))
+            if (rhs.tryGetName(value))
                 return *(PdfName*)m_Data.Data == *value;
             else
                 return false;
@@ -430,7 +430,7 @@ bool PdfVariant::operator!=(const PdfVariant& rhs) const
         case EPdfDataType::String:
         {
             const PdfString* value;
-            if (rhs.TryGetString(value))
+            if (rhs.tryGetString(value))
                 return *(PdfString*)m_Data.Data != *value;
             else
                 return true;
@@ -438,7 +438,7 @@ bool PdfVariant::operator!=(const PdfVariant& rhs) const
         case EPdfDataType::Name:
         {
             const PdfName* value;
-            if (rhs.TryGetName(value))
+            if (rhs.tryGetName(value))
                 return *(PdfName*)m_Data.Data != *value;
             else
                 return true;
@@ -588,13 +588,26 @@ bool PdfVariant::TryGetRealStrict(double& value) const
 const PdfString& PdfVariant::GetString() const
 {
     const PdfString* ret;
-    if (!TryGetString(ret))
+    if (!tryGetString(ret))
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
 
     return *ret;
 }
 
-bool PdfVariant::TryGetString(const PdfString*& str) const
+bool PdfVariant::TryGetString(PdfString& str) const
+{
+    const PdfString* ret;
+    if (!tryGetString(ret))
+    {
+        str = { };
+        return false;
+    }
+
+    str = *ret;
+    return true;
+}
+
+bool PdfVariant::tryGetString(const PdfString*& str) const
 {
     if (m_DataType != EPdfDataType::String)
     {
@@ -609,13 +622,26 @@ bool PdfVariant::TryGetString(const PdfString*& str) const
 const PdfName& PdfVariant::GetName() const
 {
     const PdfName* ret;
-    if (!TryGetName(ret))
+    if (!tryGetName(ret))
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
 
     return *ret;
 }
 
-bool PdfVariant::TryGetName(const PdfName*& name) const
+bool PdfVariant::TryGetName(PdfName& name) const
+{
+    const PdfName* ret;
+    if (!tryGetName(ret))
+    {
+        name = { };
+        return false;
+    }
+
+    name = *ret;
+    return true;
+}
+
+bool PdfVariant::tryGetName(const PdfName*& name) const
 {
     if (m_DataType != EPdfDataType::Name)
     {
@@ -645,48 +671,6 @@ bool PdfVariant::TryGetReference(PdfReference& ref) const
     }
 
     ref = m_Data.Reference;
-    return true;
-}
-
-const PdfData& PdfVariant::GetRawData() const
-{
-    const PdfData* ret;
-    if (!TryGetRawData(ret))
-        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
-
-    return *ret;
-}
-
-PdfData& PdfVariant::GetRawData()
-{
-    PdfData* ret;
-    if (!TryGetRawData(ret))
-        PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
-
-    return *ret;
-}
-
-bool PdfVariant::TryGetRawData(const PdfData*& data) const
-{
-    if (m_DataType != EPdfDataType::RawData)
-    {
-        data = nullptr;
-        return false;
-    }
-
-    data = (PdfData*)m_Data.Data;
-    return true;
-}
-
-bool PdfVariant::TryGetRawData(PdfData*& data)
-{
-    if (m_DataType != EPdfDataType::RawData)
-    {
-        data = nullptr;
-        return false;
-    }
-
-    data = (PdfData*)m_Data.Data;
     return true;
 }
 

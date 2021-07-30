@@ -54,16 +54,10 @@ bool PdfContentsTokenizer::tryReadInlineImgDict(PdfDictionary& dict)
             }
             case EPdfContentsType::Variant:
             {
-                const PdfName* name;
-                if (variant.TryGetName(name))
-                {
-                    key = *name;
+                if (variant.TryGetName(key))
                     break;
-                }
                 else
-                {
                     return false;
-                }
             }
             case EPdfContentsType::Unknown:
             {

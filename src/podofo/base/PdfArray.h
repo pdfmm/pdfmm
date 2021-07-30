@@ -11,7 +11,6 @@
 
 #include "PdfDefines.h"
 #include "PdfContainerDataType.h"
-#include "PdfObject.h"
 
 namespace PoDoFo {
 
@@ -66,8 +65,8 @@ public:
      */
     void Clear();
 
-    void Write(PdfOutputDevice& pDevice, PdfWriteMode eWriteMode,
-        const PdfEncrypt* pEncrypt) const override;
+    void Write(PdfOutputDevice& device, PdfWriteMode eriteMode,
+        const PdfEncrypt* encrypt) const override;
 
     /** Get the object at the given index out of the array.
      *
@@ -81,15 +80,15 @@ public:
     const PdfObject& FindAt(unsigned idx) const;
     PdfObject& FindAt(unsigned idx);
 
-    void RemoveAt(size_t index);
+    void RemoveAt(unsigned idx);
 
     void Add(const PdfObject& obj);
 
-    void SetAt(const PdfObject& obj, size_t idx);
+    void SetAt(const PdfObject& obj, unsigned idx);
 
     void AddIndirect(const PdfObject& obj);
 
-    void SetAtIndirect(const PdfObject& obj, size_t idx);
+    void SetAtIndirect(const PdfObject& obj, unsigned idx);
 
 public:
     /** Adds a PdfObject to the array
@@ -226,6 +225,7 @@ protected:
 private:
     void add(const PdfObject& obj);
     iterator insertAt(const iterator& pos, const PdfObject& val);
+    PdfObject& getAt(unsigned idx) const;
     PdfObject& findAt(unsigned idx) const;
 
 private:
@@ -233,18 +233,18 @@ private:
 };
 
 template<typename InputIterator>
-void PdfArray::insert(const PdfArray::iterator& pos, 
-                      const InputIterator& first,
-                      const InputIterator& last)
+void PdfArray::insert(const PdfArray::iterator& pos,
+    const InputIterator& first,
+    const InputIterator& last)
 {
     AssertMutable();
 
     auto document = GetObjectDocument();
     iterator it1 = first;
     iterator it2 = pos;
-    for ( ; it1 != last; it1++, it2++ )
+    for (; it1 != last; it1++, it2++)
     {
-        it2 = m_objects.insert( it2, *it1 );
+        it2 = m_objects.insert(it2, *it1);
         if (document != nullptr)
             it2->SetDocument(*document);
     }

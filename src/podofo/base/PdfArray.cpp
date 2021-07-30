@@ -14,23 +14,23 @@ using namespace PoDoFo;
 
 PdfArray::PdfArray() { }
 
-PdfArray::PdfArray( const PdfObject &var )
+PdfArray::PdfArray(const PdfObject& var)
 {
     add(var);
 }
 
-PdfArray::PdfArray(const PdfArray & rhs)
+PdfArray::PdfArray(const PdfArray& rhs)
     : PdfContainerDataType(rhs), m_objects(rhs.m_objects)
 {
 }
 
-void PdfArray::RemoveAt(size_t index)
+void PdfArray::RemoveAt(unsigned idx)
 {
     // TODO: Set dirty only if really removed
-    if (index >= m_objects.size())
+    if (idx >= m_objects.size())
         PODOFO_RAISE_ERROR_INFO(EPdfError::ValueOutOfRange, "Index is out of bounds");
 
-    m_objects.erase(m_objects.begin() + index);
+    m_objects.erase(m_objects.begin() + idx);
     SetDirty();
 }
 
@@ -68,7 +68,7 @@ void PdfArray::AddIndirect(const PdfObject& obj)
     return;
 }
 
-void PdfArray::SetAt(const PdfObject& obj, size_t idx)
+void PdfArray::SetAt(const PdfObject& obj, unsigned idx)
 {
     AssertMutable();
     if (IsIndirectReferenceAllowed(obj))
@@ -80,7 +80,7 @@ void PdfArray::SetAt(const PdfObject& obj, size_t idx)
     m_objects.at(idx) = obj;
 }
 
-void PdfArray::SetAtIndirect(const PdfObject& obj, size_t idx)
+void PdfArray::SetAtIndirect(const PdfObject& obj, unsigned idx)
 {
     AssertMutable();
     m_objects.at(idx) = obj;
@@ -91,35 +91,35 @@ void PdfArray::Clear()
     clear();
 }
 
-void PdfArray::Write(PdfOutputDevice& pDevice, PdfWriteMode eWriteMode,
-    const PdfEncrypt* pEncrypt) const
+void PdfArray::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
+    const PdfEncrypt* encrypt) const
 {
     auto it = m_objects.begin();
 
     int count = 1;
 
-    if ((eWriteMode & PdfWriteMode::Clean) == PdfWriteMode::Clean)
+    if ((writeMode & PdfWriteMode::Clean) == PdfWriteMode::Clean)
     {
-        pDevice.Print("[ ");
+        device.Print("[ ");
     }
     else
     {
-        pDevice.Print("[");
+        device.Print("[");
     }
 
     while (it != m_objects.end())
     {
-        it->GetVariant().Write(pDevice, eWriteMode, pEncrypt);
-        if ((eWriteMode & PdfWriteMode::Clean) == PdfWriteMode::Clean)
+        it->GetVariant().Write(device, writeMode, encrypt);
+        if ((writeMode & PdfWriteMode::Clean) == PdfWriteMode::Clean)
         {
-            pDevice.Print((count % 10 == 0) ? "\n" : " ");
+            device.Print((count % 10 == 0) ? "\n" : " ");
         }
 
         ++it;
         ++count;
     }
 
-    pDevice.Print("]");
+    device.Print("]");
 }
 
 void PdfArray::ResetDirtyInternal()
@@ -129,10 +129,10 @@ void PdfArray::ResetDirtyInternal()
         obj.ResetDirty();
 }
 
-void PdfArray::SetOwner(PdfObject* pOwner)
+void PdfArray::SetOwner(PdfObject* owner)
 {
-    PdfContainerDataType::SetOwner(pOwner);
-    auto document = pOwner->GetDocument();
+    PdfContainerDataType::SetOwner(owner);
+    auto document = owner->GetDocument();
     if (document != nullptr)
     {
         // Set owmership for all children
@@ -157,12 +157,20 @@ PdfArray::iterator PdfArray::insertAt(const iterator& pos, const PdfObject& val)
     return ret;
 }
 
-PdfObject& PdfArray::findAt(unsigned index) const
+PdfObject& PdfArray::getAt(unsigned idx) const
 {
-    if (index >= (unsigned)m_objects.size())
+    if (idx >= (unsigned)m_objects.size())
         PODOFO_RAISE_ERROR_INFO(EPdfError::ValueOutOfRange, "Index is out of bounds");
 
-    PdfObject& obj = const_cast<PdfArray&>(*this).m_objects[index];
+    return const_cast<PdfArray&>(*this).m_objects[idx];
+}
+
+PdfObject& PdfArray::findAt(unsigned idx) const
+{
+    if (idx >= (unsigned)m_objects.size())
+        PODOFO_RAISE_ERROR_INFO(EPdfError::ValueOutOfRange, "Index is out of bounds");
+
+    PdfObject& obj = const_cast<PdfArray&>(*this).m_objects[idx];
     if (obj.IsReference())
         return GetIndirectObject(obj.GetReference());
     else
@@ -249,12 +257,12 @@ void PdfArray::reserve(size_type n)
 PdfObject& PdfArray::operator[](size_t index)
 {
     AssertMutable();
-    return m_objects.at(index);
+    return getAt(index);
 }
 
 const PdfObject& PdfArray::operator[](size_t index) const
 {
-    return m_objects.at(index);
+    return getAt(index);
 }
 
 PdfArray::iterator PdfArray::begin()

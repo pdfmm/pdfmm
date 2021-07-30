@@ -83,7 +83,7 @@ PdfAnnotation::PdfAnnotation(PdfPage& page, PdfObject& obj)
     : PdfElement(obj), m_eAnnotation(PdfAnnotationType::Unknown), m_pPage(&page)
 {
     m_eAnnotation = static_cast<PdfAnnotationType>(TypeNameToIndex(
-        this->GetObject().GetDictionary().GetKeyAsName(PdfName::KeySubtype).GetString().c_str(),
+        this->GetObject().GetDictionary().FindAs<PdfName>(PdfName::KeySubtype).GetString().c_str(),
         s_names, std::size(s_names), (int)PdfAnnotationType::Unknown));
 }
 

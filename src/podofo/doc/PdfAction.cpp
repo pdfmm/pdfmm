@@ -52,7 +52,7 @@ PdfAction::PdfAction(PdfObject& obj)
     : PdfElement(obj)
 {
     m_eType = static_cast<PdfActionType>(TypeNameToIndex(
-        this->GetObject().GetDictionary().GetKeyAsName("S").GetString().c_str(),
+        this->GetObject().GetDictionary().FindAs<PdfName>("S").GetString().c_str(),
             s_names, std::size(s_names), (int)PdfActionType::Unknown));
 }
 
