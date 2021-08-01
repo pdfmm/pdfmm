@@ -63,7 +63,7 @@ void PdfAction::SetURI(const PdfString& sUri)
 
 PdfString PdfAction::GetURI() const
 {
-    return this->GetObject().GetDictionary().FindKey("URI")->GetString();
+    return this->GetObject().GetDictionary().MustFindKey("URI").GetString();
 }
 
 bool PdfAction::HasURI() const

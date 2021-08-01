@@ -2318,7 +2318,7 @@ PdfDifferenceEncoding::PdfDifferenceEncoding(const PdfObject& obj, bool explicit
     m_baseEncoding = EBaseEncoding::Implicit;
     if (obj.GetDictionary().HasKey("BaseEncoding"))
     {
-        const PdfName& baseEncodingName = obj.GetDictionary().FindKey("BaseEncoding")->GetName();
+        const PdfName& baseEncodingName = obj.GetDictionary().MustFindKey("BaseEncoding").GetName();
         if (baseEncodingName == "WinAnsiEncoding")
             m_baseEncoding = EBaseEncoding::WinAnsi;
         else if (baseEncodingName == "MacRomanEncoding")
@@ -2330,7 +2330,7 @@ PdfDifferenceEncoding::PdfDifferenceEncoding(const PdfObject& obj, bool explicit
     // Read the differences key
     if (obj.GetDictionary().HasKey("Differences"))
     {
-        auto& differences = obj.GetDictionary().FindKey("Differences")->GetArray();
+        auto& differences = obj.GetDictionary().MustFindKey("Differences").GetArray();
         int64_t curCode = -1;
         for (auto& diff : differences)
         {

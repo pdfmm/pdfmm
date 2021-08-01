@@ -39,8 +39,8 @@ PdfImage::PdfImage(PdfDocument& doc, const string_view& prefix)
 PdfImage::PdfImage(PdfObject& obj)
     : PdfXObject(obj, PdfXObjectType::Image)
 {
-    m_width = static_cast<unsigned>(this->GetObject().GetDictionary().FindKey("Width")->GetNumber());
-    m_height = static_cast<unsigned>(this->GetObject().GetDictionary().FindKey("Height")->GetNumber());
+    m_width = static_cast<unsigned>(this->GetObject().GetDictionary().MustFindKey("Width").GetNumber());
+    m_height = static_cast<unsigned>(this->GetObject().GetDictionary().MustFindKey("Height").GetNumber());
 }
 
 void PdfImage::SetImageColorSpace(PdfColorSpace eColorSpace, const PdfArray* indexedData)

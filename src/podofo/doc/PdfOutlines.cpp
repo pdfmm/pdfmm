@@ -315,7 +315,7 @@ void PdfOutlineItem::SetTitle(const PdfString& sTitle)
 
 const PdfString& PdfOutlineItem::GetTitle() const
 {
-    return this->GetObject().GetDictionary().FindKey("Title")->GetString();
+    return this->GetObject().GetDictionary().MustFindKey("Title").GetString();
 }
 
 void PdfOutlineItem::SetTextFormat(PdfOutlineFormat eFormat)
@@ -326,7 +326,7 @@ void PdfOutlineItem::SetTextFormat(PdfOutlineFormat eFormat)
 PdfOutlineFormat PdfOutlineItem::GetTextFormat() const
 {
     if (this->GetObject().GetDictionary().HasKey("F"))
-        return static_cast<PdfOutlineFormat>(this->GetObject().GetDictionary().FindKey("F")->GetNumber());
+        return static_cast<PdfOutlineFormat>(this->GetObject().GetDictionary().MustFindKey("F").GetNumber());
 
     return PdfOutlineFormat::Default;
 }
@@ -345,7 +345,7 @@ void PdfOutlineItem::SetTextColor(double r, double g, double b)
 double PdfOutlineItem::GetTextColorRed() const
 {
     if (this->GetObject().GetDictionary().HasKey("C"))
-        return this->GetObject().GetDictionary().FindKey("C")->GetArray()[0].GetReal();
+        return this->GetObject().GetDictionary().MustFindKey("C").GetArray()[0].GetReal();
 
     return 0.0;
 }
@@ -353,7 +353,7 @@ double PdfOutlineItem::GetTextColorRed() const
 double PdfOutlineItem::GetTextColorGreen() const
 {
     if (this->GetObject().GetDictionary().HasKey("C"))
-        return this->GetObject().GetDictionary().FindKey("C")->GetArray()[1].GetReal();
+        return this->GetObject().GetDictionary().MustFindKey("C").GetArray()[1].GetReal();
 
     return 0.0;
 }
@@ -361,7 +361,7 @@ double PdfOutlineItem::GetTextColorGreen() const
 double PdfOutlineItem::GetTextColorBlue() const
 {
     if (this->GetObject().GetDictionary().HasKey("C"))
-        return this->GetObject().GetDictionary().FindKey("C")->GetArray()[2].GetReal();
+        return this->GetObject().GetDictionary().MustFindKey("C").GetArray()[2].GetReal();
 
     return 0.0;
 }
