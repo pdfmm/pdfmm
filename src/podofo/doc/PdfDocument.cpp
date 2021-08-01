@@ -98,19 +98,14 @@ const PdfDocument& PdfDocument::Append(const PdfDocument& doc, bool appendAll)
     unsigned difference = static_cast<unsigned>(m_vecObjects.GetSize() + m_vecObjects.GetFreeObjects().size());
 
 
-    // Ulrich Arnold 30.7.2009: Because GetNextObject uses m_nObjectCount instead 
-    //                          of m_vecObjects.GetSize()+m_vecObjects.GetFreeObjects().size()+1
-    //                          make sure the free objects are already present before appending to
-    //                          prevent overlapping obj-numbers
+    // Because GetNextObject uses m_nObjectCount instead 
+    // of m_vecObjects.GetSize()+m_vecObjects.GetFreeObjects().size()+1
+    // make sure the free objects are already present before appending to
+    // prevent overlapping obj-numbers
 
     // create all free objects again, to have a clean free object list
-    TCIPdfReferenceList itFree = doc.GetObjects().GetFreeObjects().begin();
-    while (itFree != doc.GetObjects().GetFreeObjects().end())
-    {
-        m_vecObjects.AddFreeObject(PdfReference((*itFree).ObjectNumber() + difference, (*itFree).GenerationNumber()));
-
-        itFree++;
-    }
+    for (auto& ref : doc.GetObjects().GetFreeObjects())
+        m_vecObjects.AddFreeObject(PdfReference(ref.ObjectNumber() + difference, ref.GenerationNumber()));
 
     // append all objects first and fix their references
     for (auto& obj : doc.GetObjects())
@@ -140,10 +135,10 @@ const PdfDocument& PdfDocument::Append(const PdfDocument& doc, bool appendAll)
         for (unsigned i = 0; i < doc.GetPageTree().GetPageCount(); i++)
         {
             auto& page = doc.GetPageTree().GetPage(i);
-            PdfObject* pObj = m_vecObjects.GetObject(PdfReference(page.GetObject().GetIndirectReference().ObjectNumber()
+            auto& obj = m_vecObjects.MustGetObject(PdfReference(page.GetObject().GetIndirectReference().ObjectNumber()
                 + difference, page.GetObject().GetIndirectReference().GenerationNumber()));
-            if (pObj->IsDictionary() && pObj->GetDictionary().HasKey("Parent"))
-                pObj->GetDictionary().RemoveKey("Parent");
+            if (obj.IsDictionary() && obj.GetDictionary().HasKey("Parent"))
+                obj.GetDictionary().RemoveKey("Parent");
 
             // Deal with inherited attributes
             const PdfName* pInherited = inheritableAttributes;
@@ -154,13 +149,13 @@ const PdfDocument& PdfDocument::Append(const PdfDocument& doc, bool appendAll)
                 {
                     PdfObject attribute(*pAttribute);
                     FixObjectReferences(attribute, difference);
-                    pObj->GetDictionary().AddKey(*pInherited, attribute);
+                    obj.GetDictionary().AddKey(*pInherited, attribute);
                 }
 
                 pInherited++;
             }
 
-            m_PageTree->InsertPage(m_PageTree->GetPageCount(), pObj);
+            m_PageTree->InsertPage(m_PageTree->GetPageCount(), &obj);
         }
 
         // append all outlines
@@ -174,7 +169,7 @@ const PdfDocument& PdfDocument::Append(const PdfDocument& doc, bool appendAll)
 
             PdfReference ref(pAppendRoot->First()->GetObject().GetIndirectReference().ObjectNumber()
                 + difference, pAppendRoot->First()->GetObject().GetIndirectReference().GenerationNumber());
-            pRoot->InsertChild(new PdfOutlines(*m_vecObjects.GetObject(ref)));
+            pRoot->InsertChild(new PdfOutlines(m_vecObjects.MustGetObject(ref)));
         }
     }
 
@@ -232,10 +227,10 @@ const PdfDocument& PdfDocument::InsertExistingPageAt(const PdfDocument& doc, uns
             continue;
 
         auto page = doc.GetPageTree().GetPage(i);
-        PdfObject* obj = m_vecObjects.GetObject(PdfReference(page.GetObject().GetIndirectReference().ObjectNumber()
+        auto& obj = m_vecObjects.MustGetObject(PdfReference(page.GetObject().GetIndirectReference().ObjectNumber()
             + difference, page.GetObject().GetIndirectReference().GenerationNumber()));
-        if (obj->IsDictionary() && obj->GetDictionary().HasKey("Parent"))
-            obj->GetDictionary().RemoveKey("Parent");
+        if (obj.IsDictionary() && obj.GetDictionary().HasKey("Parent"))
+            obj.GetDictionary().RemoveKey("Parent");
 
         // Deal with inherited attributes
         const PdfName* pInherited = inheritableAttributes;
@@ -246,13 +241,13 @@ const PdfDocument& PdfDocument::InsertExistingPageAt(const PdfDocument& doc, uns
             {
                 PdfObject attribute(*pAttribute);
                 FixObjectReferences(attribute, difference);
-                obj->GetDictionary().AddKey(*pInherited, attribute);
+                obj.GetDictionary().AddKey(*pInherited, attribute);
             }
 
             pInherited++;
         }
 
-        m_PageTree->InsertPage(atIndex, obj);
+        m_PageTree->InsertPage(atIndex, &obj);
     }
 
     // append all outlines
@@ -266,7 +261,7 @@ const PdfDocument& PdfDocument::InsertExistingPageAt(const PdfDocument& doc, uns
 
         PdfReference ref(pAppendRoot->First()->GetObject().GetIndirectReference().ObjectNumber()
             + difference, pAppendRoot->First()->GetObject().GetIndirectReference().GenerationNumber());
-        pRoot->InsertChild(new PdfOutlines(*m_vecObjects.GetObject(ref)));
+        pRoot->InsertChild(new PdfOutlines(m_vecObjects.MustGetObject(ref)));
     }
 
     // TODO: merge name trees
@@ -292,7 +287,7 @@ PdfRect PdfDocument::FillXObjectFromPage(PdfXObject& xobj, const PdfPage& page, 
 {
     // TODO: remove unused objects: page, ...
 
-    PdfObject* pObj = m_vecObjects.GetObject(PdfReference(page.GetObject().GetIndirectReference().ObjectNumber()
+    auto& obj = m_vecObjects.MustGetObject(PdfReference(page.GetObject().GetIndirectReference().ObjectNumber()
         + difference, page.GetObject().GetIndirectReference().GenerationNumber()));
     PdfRect box = page.GetMediaBox();
 
@@ -304,18 +299,18 @@ PdfRect PdfDocument::FillXObjectFromPage(PdfXObject& xobj, const PdfPage& page, 
         box.Intersect(page.GetTrimBox());
 
     // link resources from external doc to x-object
-    if (pObj->IsDictionary() && pObj->GetDictionary().HasKey("Resources"))
-        xobj.GetObject().GetDictionary().AddKey("Resources", *pObj->GetDictionary().GetKey("Resources"));
+    if (obj.IsDictionary() && obj.GetDictionary().HasKey("Resources"))
+        xobj.GetObject().GetDictionary().AddKey("Resources", *obj.GetDictionary().GetKey("Resources"));
 
     // copy top-level content from external doc to x-object
-    if (pObj->IsDictionary() && pObj->GetDictionary().HasKey("Contents"))
+    if (obj.IsDictionary() && obj.GetDictionary().HasKey("Contents"))
     {
         // get direct pointer to contents
         PdfObject* pContents;
-        if (pObj->GetDictionary().GetKey("Contents")->IsReference())
-            pContents = m_vecObjects.GetObject(pObj->GetDictionary().GetKey("Contents")->GetReference());
+        if (obj.GetDictionary().GetKey("Contents")->IsReference())
+            pContents = m_vecObjects.GetObject(obj.GetDictionary().GetKey("Contents")->GetReference());
         else
-            pContents = pObj->GetDictionary().GetKey("Contents");
+            pContents = obj.GetDictionary().GetKey("Contents");
 
         if (pContents->IsArray())
         {

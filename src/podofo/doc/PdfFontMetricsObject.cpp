@@ -105,7 +105,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
                 if (second->IsReference())
                 {
                     // second do not have an associated owner; use the one in pw
-                    second = widths->GetDocument()->GetObjects().GetObject(second->GetReference());
+                    second = &widths->GetDocument()->GetObjects().MustGetObject(second->GetReference());
                     PODOFO_ASSERT(!second->IsNull());
                 }
                 if (second->IsArray())

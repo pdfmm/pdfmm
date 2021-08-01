@@ -239,9 +239,8 @@ void PdfWriter::CreateFileIdentifier(PdfString& identifier, const PdfObject& pTr
         // The PDF spec, section 7.5.5, implies that the ID may be
         // indirect as long as the PDF is not encrypted. Handle that
         // case.
-        if (idObj->IsReference()) {
-            idObj = m_vecObjects->GetObject(idObj->GetReference());
-        }
+        if (idObj->IsReference())
+            idObj = &m_vecObjects->MustGetObject(idObj->GetReference());
 
         auto it = idObj->GetArray().begin();
         PdfString str;

@@ -94,6 +94,15 @@ void PdfVecObjects::Clear()
     m_StreamFactory = nullptr;
 }
 
+PdfObject& PdfVecObjects::MustGetObject(const PdfReference& ref) const
+{
+    auto obj = GetObject(ref);
+    if (obj == nullptr)
+        PODOFO_RAISE_ERROR(EPdfError::NoObject);
+
+    return *obj;
+}
+
 PdfObject* PdfVecObjects::GetObject(const PdfReference& ref) const
 {
     const_cast<PdfVecObjects&>(*this).Sort();
