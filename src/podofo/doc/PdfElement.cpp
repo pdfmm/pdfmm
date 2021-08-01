@@ -41,7 +41,7 @@ PdfElement::PdfElement(EPdfDataType eExpectedDataType, PdfObject& obj)
 
 PdfElement::PdfElement(const PdfElement & element)
 {
-    m_pObject = element.GetNonConstObject();
+    m_pObject = element.m_pObject;
 }
 
 PdfElement::~PdfElement() { }
@@ -65,14 +65,9 @@ int PdfElement::TypeNameToIndex(const char* type, const char** types, unsigned l
     return unknownValue;
 }
 
-PdfObject* PdfElement::CreateObject( const char* pszType )
+PdfObject* PdfElement::CreateObject(const string_view& type)
 {
-    return m_pObject->GetDocument()->GetObjects().CreateDictionaryObject( pszType );
-}
-
-PdfObject * PdfElement::GetNonConstObject() const
-{
-    return const_cast<PdfElement*>(this)->m_pObject;
+    return m_pObject->GetDocument()->GetObjects().CreateDictionaryObject(type);
 }
 
 PdfDocument& PdfElement::GetDocument()

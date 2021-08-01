@@ -186,7 +186,7 @@ public:
      *
      *  \returns the object of the resource or nullptr if it was not found
      */
-    PdfObject* GetFromResources(const PdfName& rType, const PdfName& rKey);
+    PdfObject* GetFromResources(const PdfName& type, const PdfName& key);
 
     /** Method for getting a value that can be inherited
      *  Possible names that can be inherited according to
@@ -243,7 +243,7 @@ private:
 
 private:
     PdfContents* m_contents;
-    PdfObject* m_pResources;
+    PdfObject* m_Resources;
     TMapAnnotationDirect m_mapAnnotations;
 };
 

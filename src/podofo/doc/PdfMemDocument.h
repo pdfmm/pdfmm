@@ -384,7 +384,7 @@ private:
      *  \param pszName will be converted into a PdfName
      *  \returns the dictionary if it was found or nullptr
      */
-    PdfObject* GetNamedObjectFromCatalog(const char* pszName) const;
+    PdfObject* GetNamedObjectFromCatalog(const std::string_view& name) const;
 
     /** Internal method to load all objects from a PdfParser object.
      *  The objects will be removed from the parser and are now

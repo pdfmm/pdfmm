@@ -2330,9 +2330,9 @@ PdfDifferenceEncoding::PdfDifferenceEncoding(const PdfObject& obj, bool explicit
     // Read the differences key
     if (obj.GetDictionary().HasKey("Differences"))
     {
-        const PdfArray& rDifferences = obj.GetIndirectKey("Differences")->GetArray();
+        auto& differences = obj.GetDictionary().FindKey("Differences")->GetArray();
         int64_t curCode = -1;
-        for (auto& diff : rDifferences)
+        for (auto& diff : differences)
         {
             if (diff.IsNumber())
             {
@@ -2341,7 +2341,7 @@ PdfDifferenceEncoding::PdfDifferenceEncoding(const PdfObject& obj, bool explicit
             else if (diff.IsName())
             {
                 m_differences.AddDifference(static_cast<unsigned>(curCode), 0, diff.GetName(), explicitNames);
-                ++curCode;
+                curCode++;
             }
         }
     }
@@ -2415,7 +2415,7 @@ char32_t PdfDifferenceEncoding::NameToUnicodeID(const PdfName& name)
 
 char32_t PdfDifferenceEncoding::NameToUnicodeID(const string_view& name)
 {
-    for (unsigned i = 0; nameToUnicodeTab[i].name != nullptr; ++i)
+    for (unsigned i = 0; nameToUnicodeTab[i].name != nullptr; i++)
     {
         if (nameToUnicodeTab[i].name == name)
             return nameToUnicodeTab[i].u;
@@ -2436,14 +2436,14 @@ char32_t PdfDifferenceEncoding::NameToUnicodeID(const string_view& name)
 
 PdfName PdfDifferenceEncoding::UnicodeIDToName(char32_t inCodePoint)
 {
-    for (unsigned i = 0; UnicodeToNameTab[i].name; ++i)
+    for (unsigned i = 0; UnicodeToNameTab[i].name; i++)
     {
         if (UnicodeToNameTab[i].u == inCodePoint)
             return PdfName(UnicodeToNameTab[i].name);
     }
 
     // if we can't find in the canonical list, look in the complete list
-    for (unsigned i = 0; nameToUnicodeTab[i].name; ++i)
+    for (unsigned i = 0; nameToUnicodeTab[i].name; i++)
     {
         if (nameToUnicodeTab[i].u == inCodePoint)
             return PdfName(UnicodeToNameTab[i].name);

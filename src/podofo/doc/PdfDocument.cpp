@@ -71,21 +71,21 @@ void PdfDocument::Clear()
 
 void PdfDocument::InitPagesTree()
 {
-    PdfObject* pagesRootObj = m_Catalog->GetIndirectKey("Pages");
-    if (pagesRootObj)
-    {
-        m_PageTree.reset(new PdfPagesTree(*pagesRootObj));
-    }
-    else
+    auto pagesRootObj = m_Catalog->GetDictionary().FindKey("Pages");
+    if (pagesRootObj == nullptr)
     {
         m_PageTree.reset(new PdfPagesTree(*this));
         m_Catalog->GetDictionary().AddKey("Pages", m_PageTree->GetObject().GetIndirectReference());
+    }
+    else
+    {
+        m_PageTree.reset(new PdfPagesTree(*pagesRootObj));
     }
 }
 
 PdfObject* PdfDocument::GetNamedObjectFromCatalog(const string_view& name) const
 {
-    return m_Catalog->GetIndirectKey(name);
+    return m_Catalog->GetDictionary().FindKey(name);
 }
 
 void PdfDocument::EmbedSubsetFonts()
@@ -437,7 +437,7 @@ PdfPageMode PdfDocument::GetPageMode() const
     // PageMode is optional; the default value is UseNone
     PdfPageMode thePageMode = PdfPageMode::UseNone;
 
-    PdfObject* pageModeObj = m_Catalog->GetIndirectKey("PageMode");
+    PdfObject* pageModeObj = m_Catalog->GetDictionary().FindKey("PageMode");
     if (pageModeObj != nullptr)
     {
         PdfName pmName = pageModeObj->GetName();
@@ -502,14 +502,14 @@ void PdfDocument::SetUseFullScreen()
 
     // if current mode is anything but "don't care", we need to move that to non-full-screen
     if (curMode != PdfPageMode::DontCare)
-        SetViewerPreference("NonFullScreenPageMode", PdfObject(*(m_Catalog->GetIndirectKey("PageMode"))));
+        SetViewerPreference("NonFullScreenPageMode", PdfObject(m_Catalog->GetDictionary().MustFindKey("PageMode")));
 
     SetPageMode(PdfPageMode::FullScreen);
 }
 
 void PdfDocument::SetViewerPreference(const PdfName& whichPref, const PdfObject& valueObj)
 {
-    PdfObject* prefsObj = m_Catalog->GetIndirectKey("ViewerPreferences");
+    PdfObject* prefsObj = m_Catalog->GetDictionary().FindKey("ViewerPreferences");
     if (prefsObj == nullptr)
     {
         // make me a new one and add it
@@ -737,7 +737,6 @@ void PdfDocument::SetTrailer(std::unique_ptr<PdfObject>& pObject)
         PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
 
     m_Trailer = std::move(pObject);
-    // Set owner so that GetIndirectKey will work
     m_Trailer->SetDocument(*this);
 }
 

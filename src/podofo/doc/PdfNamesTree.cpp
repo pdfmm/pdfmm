@@ -323,7 +323,7 @@ void PdfNamesTree::AddValue(const PdfName& tree, const PdfString& key, const Pdf
 
 PdfObject* PdfNamesTree::GetValue(const PdfName& tree, const PdfString& key) const
 {
-    PdfObject* pObject = this->GetRootNode(tree);
+    auto pObject = this->GetRootNode(tree);
     PdfObject* pResult = nullptr;
 
     if (pObject != nullptr)
@@ -355,7 +355,7 @@ PdfObject* PdfNamesTree::GetKeyValue(PdfObject* pObj, const PdfString& key) cons
             }
             else
             {
-                PdfObject* pResult = GetKeyValue(pChild, key);
+                auto pResult = GetKeyValue(pChild, key);
                 if (pResult) // If recursive call returns nullptr, 
                               // continue with the next element
                               // in the kids array.
@@ -391,14 +391,15 @@ PdfObject* PdfNamesTree::GetKeyValue(PdfObject* pObj, const PdfString& key) cons
 
 PdfObject* PdfNamesTree::GetRootNode(const PdfName& name, bool bCreate) const
 {
-    PdfObject* pObj = this->GetObject().GetIndirectKey(name);
-    if (pObj == nullptr && bCreate)
+    auto& obj = const_cast<PdfNamesTree&>(*this).GetObject();
+    auto rootNode = obj.GetDictionary().FindKey(name);
+    if (rootNode == nullptr && bCreate)
     {
-        pObj = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject();
-        GetNonConstObject()->GetDictionary().AddKey(name, pObj->GetIndirectReference());
+        rootNode = obj.GetDocument()->GetObjects().CreateDictionaryObject();
+        obj.GetDictionary().AddKey(name, rootNode->GetIndirectReference());
     }
 
-    return pObj;
+    return rootNode;
 }
 
 bool PdfNamesTree::HasValue( const PdfName & tree, const PdfString & key ) const

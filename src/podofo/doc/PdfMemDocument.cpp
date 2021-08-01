@@ -89,8 +89,7 @@ void PdfMemDocument::InitFromParser(PdfParser* pParser)
 
     auto pTrailer = std::make_unique<PdfObject>(pParser->GetTrailer());
     this->SetTrailer(pTrailer); // Set immediately as trailer
-                                   // so that pTrailer has an owner
-                                   // and GetIndirectKey will work
+                                // so that pTrailer has an owner
 
     if (PdfError::DebugEnabled())
     {
@@ -103,13 +102,13 @@ void PdfMemDocument::InitFromParser(PdfParser* pParser)
         PdfError::LogMessage(LogSeverity::Information, "%.*s", siz, ptr);
     }
 
-    auto catalog = GetTrailer().GetIndirectKey("Root");
+    auto catalog = GetTrailer().GetDictionary().FindKey("Root");
     if (!catalog)
         PODOFO_RAISE_ERROR_INFO(EPdfError::NoObject, "Catalog object not found!");
 
     this->SetCatalog(catalog);
 
-    auto pInfoObj = GetTrailer().GetIndirectKey("Info");
+    auto pInfoObj = GetTrailer().GetDictionary().FindKey("Info");
     unique_ptr<PdfInfo> info;
     if (pInfoObj == nullptr)
     {
@@ -180,7 +179,7 @@ void PdfMemDocument::AddPdfExtension(const char* ns, int64_t level)
     if (!this->HasPdfExtension(ns, level))
     {
 
-        PdfObject* pExtensions = this->GetCatalog().GetIndirectKey("Extensions");
+        PdfObject* pExtensions = this->GetCatalog().GetDictionary().FindKey("Extensions");
         PdfDictionary newExtension;
 
         newExtension.AddKey("BaseVersion", PdfName(s_szPdfVersionNums[(unsigned)m_eVersion]));
@@ -201,15 +200,15 @@ void PdfMemDocument::AddPdfExtension(const char* ns, int64_t level)
 
 bool PdfMemDocument::HasPdfExtension(const char* ns, int64_t level) const {
 
-    PdfObject* pExtensions = this->GetCatalog().GetIndirectKey("Extensions");
+    auto pExtensions = this->GetCatalog().GetDictionary().FindKey("Extensions");
 
     if (pExtensions != nullptr)
     {
-        PdfObject* pExtension = pExtensions->GetIndirectKey(ns);
+        auto pExtension = pExtensions->GetDictionary().FindKey(ns);
 
         if (pExtension != nullptr)
         {
-            PdfObject* pLevel = pExtension->GetIndirectKey("ExtensionLevel");
+            auto pLevel = pExtension->GetDictionary().FindKey("ExtensionLevel");
 
             if (pLevel != nullptr && pLevel->IsNumber() && pLevel->GetNumber() == level)
                 return true;
@@ -226,15 +225,15 @@ bool PdfMemDocument::HasPdfExtension(const char* ns, int64_t level) const {
 vector<PdfExtension> PdfMemDocument::GetPdfExtensions() const
 {
     vector<PdfExtension> ret;
-    PdfObject* extensions = this->GetCatalog().GetIndirectKey("Extensions");
+    auto extensions = this->GetCatalog().GetDictionary().FindKey("Extensions");
     if (extensions == nullptr)
         return ret;
 
     // Loop through all declared extensions
     for (auto& pair : extensions->GetDictionary())
     {
-        PdfObject* bv = pair.second.GetIndirectKey("BaseVersion");
-        PdfObject* el = pair.second.GetIndirectKey("ExtensionLevel");
+        auto bv = pair.second.GetDictionary().FindKey("BaseVersion");
+        auto el = pair.second.GetDictionary().FindKey("ExtensionLevel");
 
         if (bv && el && bv->IsName() && el->IsNumber()) {
 
@@ -258,7 +257,7 @@ vector<PdfExtension> PdfMemDocument::GetPdfExtensions() const
 void PdfMemDocument::RemovePdfExtension(const char* ns, int64_t level)
 {
     if (this->HasPdfExtension(ns, level))
-        this->GetCatalog().GetIndirectKey("Extensions")->GetDictionary().RemoveKey("ns");
+        this->GetCatalog().GetDictionary().FindKey("Extensions")->GetDictionary().RemoveKey("ns");
 }
 
 void PdfMemDocument::Write(const string_view& filename, PdfSaveOptions options)
@@ -324,9 +323,9 @@ void PdfMemDocument::WriteUpdate(PdfOutputDevice& device, PdfSaveOptions options
     }
 }
 
-PdfObject* PdfMemDocument::GetNamedObjectFromCatalog(const char* pszName) const
+PdfObject* PdfMemDocument::GetNamedObjectFromCatalog(const string_view& name) const
 {
-    return this->GetCatalog().GetIndirectKey(pszName);
+    return const_cast<PdfMemDocument&>(*this).GetCatalog().GetDictionary().FindKey(name);
 }
 
 void PdfMemDocument::DeletePages(unsigned atIndex, unsigned pageCount)

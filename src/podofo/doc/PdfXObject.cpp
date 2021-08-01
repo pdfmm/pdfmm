@@ -65,10 +65,10 @@ PdfXObject::PdfXObject(PdfObject& obj)
     : PdfElement(obj), PdfCanvas(), m_pResources(nullptr)
 {
     InitIdentifiers(getPdfXObjectType(obj), { });
-    m_pResources = obj.GetIndirectKey("Resources");
+    m_pResources = obj.GetDictionary().FindKey("Resources");
 
-    if (this->GetObject().GetIndirectKey("BBox"))
-        m_rRect = PdfRect(this->GetObject().GetIndirectKey("BBox")->GetArray());
+    if (obj.GetDictionary().FindKey("BBox"))
+        m_rRect = PdfRect(obj.GetDictionary().FindKey("BBox")->GetArray());
 }
 
 PdfXObject::PdfXObject(PdfDocument& doc, PdfXObjectType subType, const string_view& prefix)

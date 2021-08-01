@@ -196,24 +196,6 @@ void PdfObject::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
     const_cast<PdfObject&>(*this).ResetDirty();
 }
 
-// REMOVE-ME
-PdfObject* PdfObject::GetIndirectKey(const PdfName& key) const
-{
-    if (!this->IsDictionary())
-        return nullptr;
-
-    return const_cast<PdfObject*>(this->GetDictionary().FindKey(key));
-}
-
-// REMOVE-ME
-PdfObject* PdfObject::MustGetIndirectKey(const PdfName& key) const
-{
-    PdfObject* obj = GetIndirectKey(key);
-    if (!obj)
-        PODOFO_RAISE_ERROR(EPdfError::NoObject);
-    return obj;
-}
-
 size_t PdfObject::GetObjectLength(PdfWriteMode eWriteMode)
 {
     PdfOutputDevice device;

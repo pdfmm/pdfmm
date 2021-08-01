@@ -131,9 +131,7 @@ protected:
      *
      *  \returns a PdfObject which is owned by the parent
      */
-    PdfObject* CreateObject(const char* pszType = nullptr);
-
-    PdfObject* GetNonConstObject() const;
+    PdfObject* CreateObject(const std::string_view& type = { });
 
 private:
     PdfObject* m_pObject;

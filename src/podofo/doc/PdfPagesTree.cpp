@@ -238,7 +238,7 @@ PdfObject* PdfPagesTree::GetPageNode(unsigned index, PdfObject& parent,
     if (!parent.GetDictionary().HasKey("Kids"))
         PODOFO_RAISE_ERROR(EPdfError::InvalidKey);
 
-    const PdfObject* kidsObj = parent.GetIndirectKey("Kids");
+    const PdfObject* kidsObj = parent.GetDictionary().FindKey("Kids");
     if (kidsObj == nullptr || !kidsObj->IsArray())
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
 

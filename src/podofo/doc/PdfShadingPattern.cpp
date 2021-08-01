@@ -99,8 +99,8 @@ void PdfShadingPattern::Init(EPdfShadingPatternType eShadingType)
 
             PdfStitchingFunction function( list, domain, bounds, encode, this->GetObject()->GetOwner() );
 
-            shading.AddKey( PdfName("Coords"), coords );
-            shading.AddKey( PdfName("Function"), function.GetObject()->GetIndirectReference() );
+            shading.AddKey( "Coords", coords );
+            shading.AddKey( "Function", function.GetObject()->GetIndirectReference() );
             break;
         }
         case EPdfShadingPatternType::FreeForm:
@@ -132,17 +132,17 @@ void PdfShadingPattern::Init(EPdfShadingPatternType eShadingType)
 
     // keys common to all shading directories
     PdfDictionary shading;
-    shading.AddKey(PdfName("ShadingType"), static_cast<int64_t>(eShadingType));
+    shading.AddKey("ShadingType", static_cast<int64_t>(eShadingType));
 
-    this->GetObject().GetDictionary().AddKey(PdfName("PatternType"), static_cast<int64_t>(2)); // Shading pattern
+    this->GetObject().GetDictionary().AddKey("PatternType", static_cast<int64_t>(2)); // Shading pattern
     if (eShadingType < EPdfShadingPatternType::FreeForm)
     {
-        this->GetObject().GetDictionary().AddKey(PdfName("Shading"), shading);
+        this->GetObject().GetDictionary().AddKey("Shading", shading);
     }
     else
     {
         PdfObject* shadingObject = this->GetObject().GetDocument()->GetObjects().CreateObject(shading);
-        this->GetObject().GetDictionary().AddKey(PdfName("Shading"), shadingObject->GetIndirectReference());
+        this->GetObject().GetDictionary().AddKey("Shading", shadingObject->GetIndirectReference());
     }
 }
 
@@ -181,28 +181,28 @@ void PdfAxialShadingPattern::Init(double dX0, double dY0, double dX1, double dY1
     switch (rStart.GetColorSpace())
     {
         case PdfColorSpace::DeviceRGB:
-            shading.AddKey(PdfName("ColorSpace"), PdfName("DeviceRGB"));
+            shading.AddKey("ColorSpace", PdfName("DeviceRGB"));
             break;
 
         case PdfColorSpace::DeviceCMYK:
-            shading.AddKey(PdfName("ColorSpace"), PdfName("DeviceCMYK"));
+            shading.AddKey("ColorSpace", PdfName("DeviceCMYK"));
             break;
 
         case PdfColorSpace::DeviceGray:
-            shading.AddKey(PdfName("ColorSpace"), PdfName("DeviceGray"));
+            shading.AddKey("ColorSpace", PdfName("DeviceGray"));
             break;
 
         case PdfColorSpace::CieLab:
         {
             PdfObject* csp = rStart.BuildColorSpace(*this->GetObject().GetDocument());
-            shading.AddKey(PdfName("ColorSpace"), csp->GetIndirectReference());
+            shading.AddKey("ColorSpace", csp->GetIndirectReference());
         }
         break;
 
         case PdfColorSpace::Separation:
         {
             PdfObject* csp = rStart.BuildColorSpace(*this->GetObject().GetDocument());
-            shading.AddKey(PdfName("ColorSpace"), csp->GetIndirectReference());
+            shading.AddKey("ColorSpace", csp->GetIndirectReference());
         }
         break;
 
@@ -213,9 +213,9 @@ void PdfAxialShadingPattern::Init(double dX0, double dY0, double dX1, double dY1
             break;
     }
 
-    shading.AddKey(PdfName("Coords"), coords);
-    shading.AddKey(PdfName("Function"), function.GetObject().GetIndirectReference());
-    shading.AddKey(PdfName("Extend"), extend);
+    shading.AddKey("Coords", coords);
+    shading.AddKey("Function", function.GetObject().GetIndirectReference());
+    shading.AddKey("Extend", extend);
 }
 
 PdfFunctionBaseShadingPattern::PdfFunctionBaseShadingPattern(PdfDocument& doc, const PdfColor& rLL, const PdfColor& rUL, const PdfColor& rLR, const PdfColor& rUR, const PdfArray& rMatrix)
@@ -235,7 +235,7 @@ void PdfFunctionBaseShadingPattern::Init(const PdfColor& rLL, const PdfColor& rU
     domain.push_back(0.0);
     domain.push_back(1.0);
 
-    PdfDictionary& shading = this->GetObject().GetDictionary().GetKey(PdfName("Shading"))->GetDictionary();
+    PdfDictionary& shading = this->GetObject().GetDictionary().GetKey("Shading")->GetDictionary();
     PdfArray range;
     PdfSampledFunction::Sample samples;
 
@@ -266,7 +266,7 @@ void PdfFunctionBaseShadingPattern::Init(const PdfColor& rLL, const PdfColor& rU
             samples.insert(samples.end(), static_cast<char> (rUR.GetGreen() * 255.0));
             samples.insert(samples.end(), static_cast<char> (rUR.GetBlue() * 255.0));
 
-            shading.AddKey(PdfName("ColorSpace"), PdfName("DeviceRGB"));
+            shading.AddKey("ColorSpace", PdfName("DeviceRGB"));
         }
         break;
 
@@ -301,7 +301,7 @@ void PdfFunctionBaseShadingPattern::Init(const PdfColor& rLL, const PdfColor& rU
             samples.insert(samples.end(), static_cast<char> (rUR.GetYellow() * 255.0));
             samples.insert(samples.end(), static_cast<char> (rUR.GetBlack() * 255.0));
 
-            shading.AddKey(PdfName("ColorSpace"), PdfName("DeviceCMYK"));
+            shading.AddKey("ColorSpace", PdfName("DeviceCMYK"));
         }
         break;
 
@@ -318,7 +318,7 @@ void PdfFunctionBaseShadingPattern::Init(const PdfColor& rLL, const PdfColor& rU
 
             samples.insert(samples.end(), static_cast<char> (rUR.GetGrayScale() * 255.0));
 
-            shading.AddKey(PdfName("ColorSpace"), PdfName("DeviceGray"));
+            shading.AddKey("ColorSpace", PdfName("DeviceGray"));
         }
         break;
 
@@ -349,7 +349,7 @@ void PdfFunctionBaseShadingPattern::Init(const PdfColor& rLL, const PdfColor& rU
 
             PdfObject* csp = rLL.BuildColorSpace(*this->GetObject().GetDocument());
 
-            shading.AddKey(PdfName("ColorSpace"), csp->GetIndirectReference());
+            shading.AddKey("ColorSpace", csp->GetIndirectReference());
         }
         break;
 
@@ -364,7 +364,7 @@ void PdfFunctionBaseShadingPattern::Init(const PdfColor& rLL, const PdfColor& rU
             samples.insert(samples.end(), static_cast<char> (rUR.GetDensity() * 255.0));
 
             PdfObject* csp = rLL.BuildColorSpace(*this->GetObject().GetDocument());
-            shading.AddKey(PdfName("ColorSpace"), csp->GetIndirectReference());
+            shading.AddKey("ColorSpace", csp->GetIndirectReference());
         }
         break;
 
@@ -376,9 +376,9 @@ void PdfFunctionBaseShadingPattern::Init(const PdfColor& rLL, const PdfColor& rU
     }
 
     PdfSampledFunction function(*this->GetObject().GetDocument(), domain, range, samples);
-    shading.AddKey(PdfName("Function"), function.GetObject().GetIndirectReference());
-    shading.AddKey(PdfName("Domain"), domain);
-    shading.AddKey(PdfName("Matrix"), rMatrix);
+    shading.AddKey("Function", function.GetObject().GetIndirectReference());
+    shading.AddKey("Domain", domain);
+    shading.AddKey("Matrix", rMatrix);
 }
 
 PdfRadialShadingPattern::PdfRadialShadingPattern(PdfDocument& doc, double dX0, double dY0, double dR0, double dX1, double dY1, double dR1, const PdfColor& rStart, const PdfColor& rEnd)
@@ -413,33 +413,33 @@ void PdfRadialShadingPattern::Init(double dX0, double dY0, double dR0, double dX
 
     PdfExponentialFunction function(*this->GetObject().GetDocument(), domain, c0, c1, 1.0);
 
-    PdfDictionary& shading = this->GetObject().GetDictionary().GetKey(PdfName("Shading"))->GetDictionary();
+    PdfDictionary& shading = this->GetObject().GetDictionary().GetKey("Shading")->GetDictionary();
 
     switch (rStart.GetColorSpace())
     {
         case PdfColorSpace::DeviceRGB:
-            shading.AddKey(PdfName("ColorSpace"), PdfName("DeviceRGB"));
+            shading.AddKey("ColorSpace", PdfName("DeviceRGB"));
             break;
 
         case PdfColorSpace::DeviceCMYK:
-            shading.AddKey(PdfName("ColorSpace"), PdfName("DeviceCMYK"));
+            shading.AddKey("ColorSpace", PdfName("DeviceCMYK"));
             break;
 
         case PdfColorSpace::DeviceGray:
-            shading.AddKey(PdfName("ColorSpace"), PdfName("DeviceGray"));
+            shading.AddKey("ColorSpace", PdfName("DeviceGray"));
             break;
 
         case PdfColorSpace::CieLab:
         {
             PdfObject* csp = rStart.BuildColorSpace(*this->GetObject().GetDocument());
-            shading.AddKey(PdfName("ColorSpace"), csp->GetIndirectReference());
+            shading.AddKey("ColorSpace", csp->GetIndirectReference());
         }
         break;
 
         case PdfColorSpace::Separation:
         {
             PdfObject* csp = rStart.BuildColorSpace(*this->GetObject().GetDocument());
-            shading.AddKey(PdfName("ColorSpace"), csp->GetIndirectReference());
+            shading.AddKey("ColorSpace", csp->GetIndirectReference());
         }
         break;
 
@@ -450,9 +450,9 @@ void PdfRadialShadingPattern::Init(double dX0, double dY0, double dR0, double dX
             break;
     }
 
-    shading.AddKey(PdfName("Coords"), coords);
-    shading.AddKey(PdfName("Function"), function.GetObject().GetIndirectReference());
-    shading.AddKey(PdfName("Extend"), extend);
+    shading.AddKey("Coords", coords);
+    shading.AddKey("Function", function.GetObject().GetIndirectReference());
+    shading.AddKey("Extend", extend);
 }
 
 PdfTriangleShadingPattern::PdfTriangleShadingPattern(PdfDocument& doc, double dX0, double dY0, const PdfColor& color0, double dX1, double dY1, const PdfColor& color1, double dX2, double dY2, const PdfColor& color2)
@@ -490,14 +490,14 @@ void PdfTriangleShadingPattern::Init(double dX0, double dY0, const PdfColor& col
     decode.push_back(static_cast<int64_t>(0));
     decode.push_back(static_cast<int64_t>(1));
 
-    PdfObject* shadingObject = this->GetObject().GetIndirectKey(PdfName("Shading"));
+    PdfObject* shadingObject = this->GetObject().GetDictionary().FindKey("Shading");
     PdfDictionary& shading = shadingObject->GetDictionary();
 
-    shading.AddKey(PdfName("ColorSpace"), PdfName("DeviceRGB"));
-    shading.AddKey(PdfName("BitsPerCoordinate"), static_cast<int64_t>(8));
-    shading.AddKey(PdfName("BitsPerComponent"), static_cast<int64_t>(8));
-    shading.AddKey(PdfName("BitsPerFlag"), static_cast<int64_t>(8));
-    shading.AddKey(PdfName("Decode"), decode);
+    shading.AddKey("ColorSpace", PdfName("DeviceRGB"));
+    shading.AddKey("BitsPerCoordinate", static_cast<int64_t>(8));
+    shading.AddKey("BitsPerComponent", static_cast<int64_t>(8));
+    shading.AddKey("BitsPerFlag", static_cast<int64_t>(8));
+    shading.AddKey("Decode", decode);
 
     // f x y c1 c2 c3
     int len = (1 + 1 + 1 + 1 + 1 + 1) * 3;

@@ -34,12 +34,12 @@ PdfPage::PdfPage(PdfDocument& parent, const PdfRect& size)
 PdfPage::PdfPage(PdfObject& obj, const deque<PdfObject*>& listOfParents)
     : PdfElement(obj), PdfCanvas(), m_contents(nullptr)
 {
-    m_pResources = obj.GetDictionary().FindKey("Resources");
-    if (m_pResources == nullptr)
+    m_Resources = obj.GetDictionary().FindKey("Resources");
+    if (m_Resources == nullptr)
     {
         // Resources might be inherited
         for (auto& parent : listOfParents)
-            m_pResources = parent->GetIndirectKey("Resources");
+            m_Resources = parent->GetDictionary().FindKey("Resources");
     }
 
     PdfObject* contents = obj.GetDictionary().FindKey("Contents");
@@ -81,8 +81,8 @@ void PdfPage::InitNewPage(const PdfRect& rSize)
 
     // The PDF specification suggests that we send all available PDF Procedure sets
     this->GetObject().GetDictionary().AddKey("Resources", PdfDictionary());
-    m_pResources = this->GetObject().GetDictionary().FindKey("Resources");
-    m_pResources->GetDictionary().AddKey("ProcSet", PdfCanvas::GetProcSet());
+    m_Resources = this->GetObject().GetDictionary().FindKey("Resources");
+    m_Resources->GetDictionary().AddKey("ProcSet", PdfCanvas::GetProcSet());
 }
 
 void PdfPage::EnsureContentsCreated() const
@@ -98,13 +98,13 @@ void PdfPage::EnsureContentsCreated() const
 
 void PdfPage::EnsureResourcesCreated() const
 {
-    if (m_pResources != nullptr)
+    if (m_Resources != nullptr)
         return;
 
     auto& page = const_cast<PdfPage&>(*this);
     page.GetObject().GetDictionary().AddKey("Resources", PdfDictionary());
-    page.m_pResources = page.GetObject().GetDictionary().FindKey("Resources");
-    m_pResources->GetDictionary().AddKey("ProcSet", PdfCanvas::GetProcSet());
+    page.m_Resources = page.GetObject().GetDictionary().FindKey("Resources");
+    m_Resources->GetDictionary().AddKey("ProcSet", PdfCanvas::GetProcSet());
 }
 
 PdfStream& PdfPage::GetStreamForAppending(EPdfStreamAppendFlags flags)
@@ -210,7 +210,7 @@ const PdfObject* PdfPage::GetInheritedKeyFromObject(const string_view& inKey, co
         if (depth > maxRecursionDepth)
             PODOFO_RAISE_ERROR(EPdfError::ValueOutOfRange);
 
-        pObj = inObject.GetIndirectKey("Parent");
+        pObj = inObject.GetDictionary().FindKey("Parent");
         if (pObj == &inObject)
         {
             ostringstream oss;
@@ -513,8 +513,8 @@ void PdfPage::SetTrimBox(const PdfRect& rSize)
 
 unsigned PdfPage::GetPageNumber() const
 {
-    unsigned nPageNumber = 0;
-    PdfObject* pParent = this->GetObject().GetIndirectKey("Parent");
+    unsigned pageNumber = 0;
+    auto parent = this->GetObject().GetDictionary().FindKey("Parent");
     PdfReference ref = this->GetObject().GetIndirectReference();
 
     // CVE-2017-5852 - prevent infinite loop if Parent chain contains a loop
@@ -522,79 +522,74 @@ unsigned PdfPage::GetPageNumber() const
     constexpr unsigned maxRecursionDepth = 1000;
     unsigned depth = 0;
 
-    while (pParent)
+    while (parent != nullptr)
     {
-        PdfObject* pKids = pParent->GetIndirectKey("Kids");
-        if (pKids != nullptr)
+        auto kidsObj = parent->GetDictionary().FindKey("Kids");
+        if (kidsObj != nullptr)
         {
-            const PdfArray& kids = pKids->GetArray();
+            const PdfArray& kids = kidsObj->GetArray();
             for (auto& child : kids)
             {
                 if (child.GetReference() == ref)
                     break;
 
-                PdfObject* pNode = this->GetObject().GetDocument()->GetObjects().GetObject(child.GetReference());
-                if (pNode == nullptr)
+                auto node = this->GetObject().GetDocument()->GetObjects().GetObject(child.GetReference());
+                if (node == nullptr)
                 {
                     std::ostringstream oss;
                     oss << "Object " << child.GetReference().ToString() << " not found from Kids array "
-                        << pKids->GetIndirectReference().ToString();
+                        << kidsObj->GetIndirectReference().ToString();
                     PODOFO_RAISE_ERROR_INFO(EPdfError::NoObject, oss.str());
                 }
 
-                if (pNode->GetDictionary().GetKey(PdfName::KeyType) != nullptr
-                    && pNode->GetDictionary().GetKey(PdfName::KeyType)->GetName() == PdfName("Pages"))
+                if (node->GetDictionary().GetKey(PdfName::KeyType) != nullptr
+                    && node->GetDictionary().GetKey(PdfName::KeyType)->GetName() == PdfName("Pages"))
                 {
-                    PdfObject* pCount = pNode->GetIndirectKey("Count");
-                    if (pCount != nullptr)
-                        nPageNumber += static_cast<int>(pCount->GetNumber());
+                    auto count = node->GetDictionary().FindKey("Count");
+                    if (count != nullptr)
+                        pageNumber += static_cast<int>(count->GetNumber());
                 }
                 else
                 {
                     // if we do not have a page tree node, 
                     // we most likely have a page object:
                     // so the page count is 1
-                    ++nPageNumber;
+                    pageNumber++;
                 }
             }
         }
 
-        ref = pParent->GetIndirectReference();
-        pParent = pParent->GetIndirectKey("Parent");
-        ++depth;
+        ref = parent->GetIndirectReference();
+        parent = parent->GetDictionary().FindKey("Parent");
+        depth++;
 
         if (depth > maxRecursionDepth)
-        {
             PODOFO_RAISE_ERROR_INFO(EPdfError::BrokenFile, "Loop in Parent chain");
-        }
     }
 
-    return ++nPageNumber;
+    return ++pageNumber;
 }
 
-PdfObject* PdfPage::GetFromResources( const PdfName & rType, const PdfName & rKey )
+PdfObject* PdfPage::GetFromResources(const PdfName& type, const PdfName& key)
 {
-    if( m_pResources == nullptr ) // Fix CVE-2017-7381
+    if (m_Resources == nullptr)
+        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "No Resources");
+
+    if (m_Resources->GetDictionary().HasKey(type))
     {
-        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidHandle, "No Resources" );
-    } 
-    if( m_pResources->GetDictionary().HasKey( rType ) ) 
-    {
-        // OC 15.08.2010 BugFix: Ghostscript creates here sometimes an indirect reference to a directory
-     // PdfObject* pType = m_pResources->GetDictionary().GetKey( rType );
-        PdfObject* pType = m_pResources->GetIndirectKey( rType );
-        if( pType && pType->IsDictionary() && pType->GetDictionary().HasKey( rKey ) )
+        auto typeObj = m_Resources->GetDictionary().FindKey(type);
+        if (typeObj != nullptr && typeObj->IsDictionary() && typeObj->GetDictionary().HasKey(key))
         {
-            PdfObject* pObj = pType->GetDictionary().GetKey( rKey ); // CB 08.12.2017 Can be an array
-            if (pObj->IsReference())
+            auto obj = typeObj->GetDictionary().GetKey(key);
+            if (obj->IsReference())
             {
-                const PdfReference & ref = pType->GetDictionary().GetKey( rKey )->GetReference();
-                return this->GetObject().GetDocument()->GetObjects().GetObject( ref );
+                const PdfReference& ref = typeObj->GetDictionary().GetKey(key)->GetReference();
+                return this->GetObject().GetDocument()->GetObjects().GetObject(ref);
             }
-            return pObj; // END
+            return obj;
         }
     }
-    
+
     return nullptr;
 }
 
@@ -637,7 +632,7 @@ PdfObject& PdfPage::GetContents()
 PdfObject& PdfPage::GetResources()
 {
     EnsureResourcesCreated();
-    return *m_pResources;
+    return *m_Resources;
 }
 
 PdfRect PdfPage::GetMediaBox() const

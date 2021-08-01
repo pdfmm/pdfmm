@@ -324,20 +324,16 @@ bool PdfField::GetFieldFlag(int64_t lValue, bool bDefault ) const
 }
 
 
-bool PdfField::GetFieldFlags( const PdfObject & rObject, int64_t & lValue )
+bool PdfField::GetFieldFlags(const PdfObject& obj, int64_t& value)
 {
-    const PdfDictionary &rDict = rObject.GetDictionary();
-
-    const PdfObject *pFlagsObject = rDict.GetKey( "Ff" );
-    PdfObject *pParentObect;
-    if( pFlagsObject == nullptr && ( ( pParentObect = rObject.GetIndirectKey( "Parent" ) ) == nullptr
-        || ( pFlagsObject = pParentObect->GetDictionary().GetKey( "Ff" ) ) == nullptr ) )
+    auto flagsObject = obj.GetDictionary().FindKeyParent("Ff");
+    if (flagsObject == nullptr)
     {
-        lValue = 0;
+        value = 0;
         return false;
     }
 
-    lValue = pFlagsObject->GetNumber();
+    value = flagsObject->GetNumber();
     return true;
 }
 

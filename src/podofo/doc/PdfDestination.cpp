@@ -134,14 +134,14 @@ void PdfDestination::Init(PdfObject& obj, PdfDocument& document)
                 "For reading from a document, only use PdfMemDocument.");
         }
 
-        PdfObject* pDests = pMemDoc->GetCatalog().GetIndirectKey(PdfName("Dests"));
+        PdfObject* pDests = pMemDoc->GetCatalog().GetDictionary().FindKey("Dests");
         if (!pDests)
         {
             // The error code has been chosen for its distinguishability.
             PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidKey,
                 "No PDF-1.1-compatible destination dictionary found.");
         }
-        pValue = pDests->GetIndirectKey(obj.GetName());
+        pValue = pDests->GetDictionary().FindKey(obj.GetName());
         bValueExpected = true;
     }
     else

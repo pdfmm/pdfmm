@@ -313,27 +313,6 @@ public:
 
     void ForceCreateStream();
 
-    /** Get the key's value out of the dictionary. If the key is a reference,
-     *  the reference is resolved and the object pointed to by the reference is returned.
-     * REMOVE-ME
-     *  \param key look for the key named key in the dictionary
-     *
-     *  \returns the found value or nullptr if the value is not in the
-     *           dictionary or if this object is no dictionary
-     */
-    PdfObject* GetIndirectKey(const PdfName& key) const;
-
-    /**
-     * MustGetIndirectKey() wraps GetIndirectKey to throw on null return.
-     * This makes it MUCH more readable to look up deep chains of linked keys
-     * with the cost that it's not easy to tell at which point a missing key/object
-     * was encountered.
-     * REMOVE-ME
-     * \returns the found value, which is never null
-     * \throws PdfError(EPdfError::NoObject) .
-     */
-    PdfObject* MustGetIndirectKey(const PdfName& key) const;
-
     /** Write the complete object to a file.
      *  \param pDevice write the object to this device
      *  \param pEncrypt an encryption object which is used to encrypt this object
