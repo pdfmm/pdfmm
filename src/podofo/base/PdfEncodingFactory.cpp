@@ -48,7 +48,7 @@ PdfEncoding PdfEncodingFactory::CreateEncoding(PdfObject& fontObj)
             {
                 // Let's try to determine if its a symbolic font by reading the FontDescriptor Flags
                 // Flags & 4 --> Symbolic, Flags & 32 --> Nonsymbolic
-                int32_t lFlags = static_cast<int32_t>(objDescriptor->GetDictionary().FindAs<double>("Flags", 0));
+                int32_t lFlags = static_cast<int32_t>(objDescriptor->GetDictionary().FindKeyAs<double>("Flags", 0));
                 if (lFlags & 32) // Nonsymbolic, otherwise pEncoding remains nullptr
                     encoding = PdfEncodingMapFactory::StandardEncodingInstance();
             }

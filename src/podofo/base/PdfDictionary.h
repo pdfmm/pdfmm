@@ -116,7 +116,9 @@ public:
      */
     const PdfObject* FindKey(const PdfName& key) const;
     PdfObject* FindKey(const PdfName& key);
-
+    const PdfObject& MustFindKey(const PdfName& key) const;
+    PdfObject& MustFindKey(const PdfName& key);
+    
     /** Get the keys value out of the dictionary
      *
      * Lookup in the indirect objects as well, if the shallow object was a reference.
@@ -129,6 +131,8 @@ public:
      */
     const PdfObject* FindKeyParent(const PdfName& key) const;
     PdfObject* FindKeyParent(const PdfName& key);
+    const PdfObject& MustFindKeyParent(const PdfName& key) const;
+    PdfObject& MustFindKeyParent(const PdfName& key);
 
     /** Get the key's value out of the dictionary.
      *
@@ -144,34 +148,23 @@ public:
      *  \throws PdfError(EPdfError::NoObject).
      */
     const PdfObject& MustGetKey(const PdfName& key) const;
+    PdfObject& MustGetKey(const PdfName& key);
 
     template <typename T>
-    T GetAs(const PdfName& key, const std::common_type_t<T>& defvalue = { }) const;
-
-    double GetAsRealStrict(const PdfName& key, double defvalue = 0.0) const;
-
-    int64_t GetAsNumberLenient(const PdfName& key, int64_t defvalue = 0) const;
+    T GetKeyAs(const PdfName& key, const std::common_type_t<T>& defvalue = { }) const;
 
     template <typename T>
-    T FindAs(const PdfName& key, const std::common_type_t<T>& defvalue = { }) const;
-
-    double FindAsRealStrict(const PdfName& key, double defvalue = 0.0) const;
-
-    int64_t FindAsNumberLenient(const PdfName& key, int64_t defvalue = 0) const;
+    T FindKeyAs(const PdfName& key, const std::common_type_t<T>& defvalue = { }) const;
 
     template <typename T>
-    T FindParentAs(const PdfName& key, const std::common_type_t<T>& defvalue = { }) const;
-
-    double FindParentAsRealStrict(const PdfName& key, double defvalue = 0.0) const;
-
-    int64_t FindParentAsNumberLenient(const PdfName& key, int64_t defvalue = 0) const;
+    T FindKeyParentAs(const PdfName& key, const std::common_type_t<T>& defvalue = { }) const;
 
     /** Allows to check if a dictionary contains a certain key.
      * \param key look for the key named key.Name() in the dictionary
      *
      *  \returns true if the key is part of the dictionary, otherwise false.
      */
-    bool  HasKey(const PdfName& key) const;
+    bool HasKey(const PdfName& key) const;
 
     /** Remove a key from this dictionary.  If the key does not exist, this
      * function does nothing.
@@ -220,7 +213,7 @@ private:
 };
 
 template<typename T>
-T PdfDictionary::GetAs(const PdfName& key, const std::common_type_t<T>& defvalue) const
+T PdfDictionary::GetKeyAs(const PdfName& key, const std::common_type_t<T>& defvalue) const
 {
     auto obj = getKey(key);
     if (obj == nullptr)
@@ -230,7 +223,7 @@ T PdfDictionary::GetAs(const PdfName& key, const std::common_type_t<T>& defvalue
 }
 
 template<typename T>
-T PdfDictionary::FindAs(const PdfName& key, const std::common_type_t<T>& defvalue) const
+T PdfDictionary::FindKeyAs(const PdfName& key, const std::common_type_t<T>& defvalue) const
 {
     auto obj = findKey(key);
     if (obj == nullptr)
@@ -240,14 +233,14 @@ T PdfDictionary::FindAs(const PdfName& key, const std::common_type_t<T>& defvalu
 }
 
 template<typename T>
-T PdfDictionary::FindParentAs(const PdfName& key, const std::common_type_t<T>& defvalue) const
+T PdfDictionary::FindKeyParentAs(const PdfName& key, const std::common_type_t<T>& defvalue) const
 {
     auto obj = findKeyParent(key);
     T ret{ };
-    if (obj == nullptr || Object<T>::TryGet(*obj, ret))
+    if (obj == nullptr)
         return defvalue;
 
-    return ret;
+    return  Object<T>::Get(*obj);
 }
 
 }

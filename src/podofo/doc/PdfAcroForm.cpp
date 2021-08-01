@@ -91,5 +91,5 @@ void PdfAcroForm::SetNeedAppearances(bool needAppearances)
 
 bool PdfAcroForm::GetNeedAppearances() const
 {
-    return this->GetObject().GetDictionary().FindAs<bool>("NeedAppearances", false);
+    return this->GetObject().GetDictionary().FindKeyAs<bool>("NeedAppearances", false);
 }

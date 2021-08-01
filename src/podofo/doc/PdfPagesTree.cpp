@@ -340,7 +340,7 @@ PdfObject* PdfPagesTree::GetPageNode(unsigned index, PdfObject& parent,
 
 bool PdfPagesTree::IsTypePage(const PdfObject& obj) const
 {
-    if (obj.GetDictionary().FindAs<PdfName>("Type", PdfName()) == "Page")
+    if (obj.GetDictionary().FindKeyAs<PdfName>("Type", PdfName()) == "Page")
         return true;
 
     return false;
@@ -348,7 +348,7 @@ bool PdfPagesTree::IsTypePage(const PdfObject& obj) const
 
 bool PdfPagesTree::IsTypePages(const PdfObject& obj) const
 {
-    if (obj.GetDictionary().FindAs<PdfName>("Type", PdfName()) == "Pages")
+    if (obj.GetDictionary().FindKeyAs<PdfName>("Type", PdfName()) == "Pages")
         return true;
 
     return false;

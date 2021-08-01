@@ -239,7 +239,7 @@ void PdfParser::ReadDocumentStructure(const PdfRefCountedInputDevice& device)
 
     if( m_pTrailer->IsDictionary() && m_pTrailer->GetDictionary().HasKey( PdfName::KeySize ) )
     {
-        m_nNumObjects = static_cast<unsigned>(m_pTrailer->GetDictionary().FindAs<int64_t>( PdfName::KeySize ));
+        m_nNumObjects = static_cast<unsigned>(m_pTrailer->GetDictionary().FindKeyAs<int64_t>( PdfName::KeySize ));
     }
     else
     {
@@ -374,7 +374,7 @@ void PdfParser::HasLinearizationDict(const PdfRefCountedInputDevice& device)
     }
     
     int64_t      lXRef      = -1;
-    lXRef = m_pLinearization->GetDictionary().FindAs<int64_t>( "T", lXRef );
+    lXRef = m_pLinearization->GetDictionary().FindKeyAs<int64_t>( "T", lXRef );
     if( lXRef == -1 )
     {
         PODOFO_RAISE_ERROR( EPdfError::InvalidLinearization );
@@ -484,7 +484,7 @@ void PdfParser::ReadNextTrailer(const PdfRefCountedInputDevice& device)
 
             try
             {
-                ReadXRefStreamContents(device, static_cast<size_t>(trailer.GetDictionary().FindAs<int64_t>("XRefStm", 0)), false);
+                ReadXRefStreamContents(device, static_cast<size_t>(trailer.GetDictionary().FindKeyAs<int64_t>("XRefStm", 0)), false);
             }
             catch( PdfError & e )
             {
@@ -501,7 +501,7 @@ void PdfParser::ReadNextTrailer(const PdfRefCountedInputDevice& device)
 
             try
             {
-                size_t lOffset = static_cast<size_t>(trailer.GetDictionary().FindAs<int64_t>( "Prev", 0 ));
+                size_t lOffset = static_cast<size_t>(trailer.GetDictionary().FindKeyAs<int64_t>( "Prev", 0 ));
 
                 if( m_visitedXRefOffsets.find( lOffset ) == m_visitedXRefOffsets.end() )
                     ReadXRefContents(device, lOffset);

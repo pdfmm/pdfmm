@@ -33,14 +33,14 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
         if (descriptor == nullptr)
         {
             if (font.GetDictionary().HasKey("Name"))
-                m_FontName = font.GetDictionary().FindKey("Name")->GetName().GetString();
+                m_FontName = font.GetDictionary().MustFindKey("Name").GetName().GetString();
             if (font.GetDictionary().HasKey("FontBBox"))
                 m_BBox = GetBBox(*font.GetDictionary().FindKey("FontBBox"));
         }
         else
         {
             if (descriptor->GetDictionary().HasKey("FontName"))
-                m_FontName = descriptor->GetDictionary().FindKey("FontName")->GetName().GetString();
+                m_FontName = descriptor->GetDictionary().MustFindKey("FontName").GetName().GetString();
             if (descriptor->GetDictionary().HasKey("FontBBox"))
                 m_BBox = GetBBox(*descriptor->GetDictionary().FindKey("FontBBox"));
         }
@@ -90,7 +90,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
             m_BBox = GetBBox(*obj);
 
 
-        m_DefaultWidth = font.GetDictionary().FindAs<double>("DW", 1000) * m_matrix[0];
+        m_DefaultWidth = font.GetDictionary().FindKeyAs<double>("DW", 1000) * m_matrix[0];
         auto widths = font.GetDictionary().FindKey("W");
         if (widths != nullptr)
         {
@@ -149,10 +149,10 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
     }
     else
     {
-        m_Weight = static_cast<unsigned>(descriptor->GetDictionary().FindAs<double>("FontWeight", 400));
-        m_ItalicAngle = static_cast<int>(descriptor->GetDictionary().FindAs<double>("ItalicAngle", 0));
-        m_Ascent = descriptor->GetDictionary().FindAs<double>("Ascent", 0.0) * m_matrix[3];
-        m_Descent = descriptor->GetDictionary().FindAs<double>("Descent", 0.0) * m_matrix[3];
+        m_Weight = static_cast<unsigned>(descriptor->GetDictionary().FindKeyAs<double>("FontWeight", 400));
+        m_ItalicAngle = static_cast<int>(descriptor->GetDictionary().FindKeyAs<double>("ItalicAngle", 0));
+        m_Ascent = descriptor->GetDictionary().FindKeyAs<double>("Ascent", 0.0) * m_matrix[3];
+        m_Descent = descriptor->GetDictionary().FindKeyAs<double>("Descent", 0.0) * m_matrix[3];
     }
 
     m_LineSpacing = m_Ascent + m_Descent;
