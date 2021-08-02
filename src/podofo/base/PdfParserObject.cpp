@@ -190,67 +190,62 @@ void PdfParserObject::ParseFileComplete( bool bIsTrailer )
 // PdfVariant or PdfObject.
 void PdfParserObject::ParseStream()
 {
-    PODOFO_ASSERT( DelayedLoadDone() );
+    PODOFO_ASSERT(DelayedLoadDone());
 
-    int64_t lLen = -1;
+    int64_t len = -1;
     int c;
 
-    if( !m_device.Device() || GetDocument() == nullptr )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
+    if (m_device.Device() == nullptr || GetDocument() == nullptr)
+        PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
 
-    m_device.Device()->Seek( m_lStreamOffset );
+    auto& lengthObj = this->m_Variant.GetDictionary().MustFindKey(PdfName::KeyLength);
+    if (!lengthObj.TryGetNumber(len))
+        PODOFO_RAISE_ERROR(EPdfError::InvalidStreamLength);
 
-    // From the PDF Reference manual
-    // The keyword stream that follows
-    // the stream dictionary should be followed by an end-of-line marker consisting of
-    // either a carriage return and a line feed or just a line feed, and not by a carriage re-
-    // turn alone.
-    c = m_device.Device()->Look();
-    if (PdfTokenizer::IsWhitespace(c))
+    m_device.Device()->Seek(m_lStreamOffset);
+
+    streamoff streamOffset;
+    while (true)
     {
-        (void)m_device.Device()->GetChar();
-        if (c == '\r')
+        c = m_device.Device()->Look();
+        switch (c)
         {
-            c = m_device.Device()->Look();
-            if (c == '\n')
+            // Skip spaces between the stream keyword and the carriage return/line
+            // feed or line feed. Actually, this is not required by PDF Reference,
+            // but certain PDFs have additionals whitespaces
+            case ' ':
+            case '\t':
                 (void)m_device.Device()->GetChar();
+                break;
+            // From PDF 32000:2008 7.3.8.1 General
+            // "The keyword stream that follows the stream dictionary shall be
+            // followed by an end-of-line marker consisting of either a CARRIAGE
+            // RETURN and a LINE FEED or just a LINE FEED, and not by a CARRIAGE
+            // RETURN alone"
+            case '\r':
+                streamOffset = m_device.Device()->Tell();
+                (void)m_device.Device()->GetChar();
+                c = m_device.Device()->Look();
+                if (c == '\n')
+                {
+                    (void)m_device.Device()->GetChar();
+                    streamOffset = m_device.Device()->Tell();
+                }
+                goto ReadStream;
+            case '\n':
+                (void)m_device.Device()->GetChar();
+                streamOffset = m_device.Device()->Tell();
+                goto ReadStream;
+                // Assume malformed PDF with no whitespaces after the stream keyword
+            default:
+                streamOffset = m_device.Device()->Tell();
+                goto ReadStream;
         }
     }
-    
-    std::streamoff fLoc = m_device.Device()->Tell();	// we need to save this, since loading the Length key could disturb it!
 
-    PdfObject* pObj = this->m_Variant.GetDictionary().GetKey( PdfName::KeyLength );  
-    if( pObj && pObj->IsNumber() )
-    {
-        lLen = pObj->GetNumber();   
-    }
-    else if( pObj && pObj->IsReference() )
-    {
-        pObj = GetDocument()->GetObjects().GetObject( pObj->GetReference() );
-        if( !pObj )
-        {
-            PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidHandle, "/Length key referenced indirect object that could not be loaded" );
-        }
-
-        if( !pObj->IsNumber() )
-        {
-            PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidStreamLength, "/Length key for stream referenced non-number" );
-        }
-
-        lLen = pObj->GetNumber();
-
-        // Doo not remove the length object, as 2 or more object might use
-        // the same object for key lengths.
-    }
-    else
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidStreamLength );
-    }
-
-    m_device.Device()->Seek( fLoc );	// reset it before reading!
-    PdfDeviceInputStream reader( m_device.Device() );
+ReadStream:
+    m_device.Device()->Seek(streamOffset);	// reset it before reading!
+    PdfDeviceInputStream reader(m_device.Device());
 
     if (m_pEncrypt && !m_pEncrypt->IsMetadataEncrypted())
     {
@@ -269,15 +264,15 @@ void PdfParserObject::ParseStream()
     }
 
     // Set stream raw data without marking the object dirty
-    if( m_pEncrypt )
+    if (m_pEncrypt != nullptr)
     {
-        m_pEncrypt->SetCurrentReference( GetIndirectReference() );
-        auto pInput = m_pEncrypt->CreateEncryptionInputStream(reader, static_cast<size_t>(lLen));
-        getOrCreateStream().SetRawData( *pInput, static_cast<ssize_t>(lLen), false );
+        m_pEncrypt->SetCurrentReference(GetIndirectReference());
+        auto pInput = m_pEncrypt->CreateEncryptionInputStream(reader, static_cast<size_t>(len));
+        getOrCreateStream().SetRawData(*pInput, static_cast<ssize_t>(len), false);
     }
     else
     {
-        getOrCreateStream().SetRawData(reader, static_cast<ssize_t>(lLen), false);
+        getOrCreateStream().SetRawData(reader, static_cast<ssize_t>(len), false);
     }
 }
 
