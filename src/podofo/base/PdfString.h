@@ -77,19 +77,19 @@ public:
     inline bool IsHex () const { return m_isHex; }
 
     /**
-     * PdfStrings are either PdfDocEncoded, or unicode encoded (UTF-16BE or UTF-8) strings.
+     * PdfStrings are either PdfDocEncoded, or Unicode encoded (UTF-16BE or UTF-8) strings.
      *
-     * This function returns true if this is a unicode string object.
+     * This function returns true if this is an Unicode string object.
      *
-     * \returns true if this is a unicode string.
+     * \returns true if this is an Unicode string.
      */
     bool IsUnicode() const;
 
     /** The contents of the string as UTF-8 string.
      *
      *  The string's contents are always returned as
-     *  UTF-8 by this function. Works for unicode strings 
-     *  and for non-unicode strings.
+     *  UTF-8 by this function. Works for Unicode strings
+     *  and for non-Unicode strings.
      *
      *  This is the preferred way to access the string's contents.
      *

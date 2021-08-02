@@ -94,7 +94,7 @@ class PODOFO_API PdfDeviceInputStream : public PdfInputStream
 {
 public:
     /** 
-     *  Read from an alread opened input device
+     *  Read from an already opened input device
      * 
      *  \param pDevice an input device
      */

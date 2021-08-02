@@ -89,7 +89,7 @@ typedef std::vector<char> buffer_t;
 // Enums
 
 /**
- * Enum to identify diferent versions of the PDF file format
+ * Enum to identify different versions of the PDF file format
  */
 enum class PdfVersion
 {

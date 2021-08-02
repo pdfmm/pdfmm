@@ -27,7 +27,7 @@ namespace PoDoFo {
  *
  *  This class is suitable for inheritance to provide output 
  *  devices of your own for PoDoFo.
- *  Just overide the required virtual methods.
+ *  Just override the required virtual methods.
  */
 class PODOFO_API PdfOutputDevice
 {
@@ -148,7 +148,7 @@ public:
      */
     size_t Read(char* buffer, size_t len);
 
-    /** Seek the device to the position offset from the begining
+    /** Seek the device to the position offset from the beginning
      *  \param offset from the beginning of the file
      */
     void Seek(size_t offset);

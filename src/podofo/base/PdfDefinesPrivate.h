@@ -21,11 +21,11 @@
 
 /** \def VERBOSE_DEBUG_DISABLED
  *  Debug define. Enable it, if you need
- *  more debuf output to the commandline from PoDoFo
+ *  more debug output to the command line from PoDoFo
  *
  *  Setting VERBOSE_DEBUG_DISABLED will make PoDoFo
  *  EXTREMELY slow and verbose, so it's not practical
- *  even for regular debuggin.
+ *  even for regular debugging.
  */
 #define VERBOSE_DEBUG_DISABLED
 

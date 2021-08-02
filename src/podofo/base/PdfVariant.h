@@ -31,7 +31,7 @@ class PdfString;
  *
  * \warning All methods not marked otherwise may trigger a deferred load. This means
  *          that they are unsafe to call while a deferred load is already in progress
- *          (as recursion will occurr).
+ *          (as recursion will occur).
  *
  * TODO: domseichter: Make this class implicitly shared
  */

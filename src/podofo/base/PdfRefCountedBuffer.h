@@ -16,7 +16,7 @@ namespace PoDoFo
 /** 
  * A reference counted buffer object
  * which is deleted as soon as the last
- * object having access to it is delteted.
+ * object having access to it is deleted.
  *
  * The attached memory object can be resized.
  */
@@ -24,7 +24,7 @@ class PODOFO_API PdfRefCountedBuffer
 {
 public:
     /** Created an empty reference counted buffer
-     *  The buffer will be initialize to nullptr
+     *  The buffer will be initialized to nullptr
      */
     PdfRefCountedBuffer();
 
@@ -77,7 +77,7 @@ public:
      *  lSize bytes.
      *
      *  \param lSize the size of bytes the buffer can at least hold
-     *         
+     *
      *  If the buffer is larger no operation is performed.
      */
     void Resize( size_t lSize );
@@ -85,9 +85,9 @@ public:
     /** Detach from a shared buffer or do nothing if we are the only
      *  one referencing the buffer.
      *
-     *  Call this function before any operation modifiying the buffer!
+     *  Call this function before any operation modifying the buffer!
      *
-     *  \param lLen an additional parameter specifiying extra bytes
+     *  \param lLen an additional parameter specifying extra bytes
      *              to be allocated to optimize allocations of a new buffer.
      */
     void Detach(size_t lExtraLen = 0);
@@ -99,7 +99,7 @@ public:
      */
     const PdfRefCountedBuffer & operator=( const PdfRefCountedBuffer & rhs );
 
-    /** If the PdfRefCountedBuffer has no possesion on its buffer,
+    /** If the PdfRefCountedBuffer has no possession on its buffer,
      *  it won't delete the buffer. By default the buffer is owned
      *  and deleted by the PdfRefCountedBuffer object.
      *
@@ -121,7 +121,7 @@ public:
 
     /** Compare to buffers.
      *  \param rhs compare to this buffer
-     *  \returns true if this buffer is lexically littler than rhs
+     *  \returns true if this buffer is lexically smaller than rhs
      */
     bool operator<( const PdfRefCountedBuffer & rhs ) const;
 

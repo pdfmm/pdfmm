@@ -259,7 +259,7 @@ public:
     /** Checks if modifying this document (besides annotations, form fields or substituting pages) is allowed.
      *  Every PDF-consuming application has to adhere to this value!
      *
-     *  \returns true if you are allowed to modfiy this document
+     *  \returns true if you are allowed to modify this document
      *
      *  \see PdfEncrypt to set own document permissions.
      */

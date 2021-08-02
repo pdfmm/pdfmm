@@ -373,11 +373,11 @@ void PdfObject::assign(const PdfObject& rhs)
 void PdfObject::ResetDirty()
 {
     PODOFO_ASSERT(m_DelayedLoadDone);
-    // Propogate new dirty state to subclasses
+    // Propagate new dirty state to subclasses
     switch (m_Variant.GetDataType())
     {
     // Arrays and Dictionaries
-    // handle dirty status by themselfes
+    // handle dirty status by themselves
     case EPdfDataType::Array:
         static_cast<PdfContainerDataType &>(m_Variant.GetArray()).ResetDirty();
         break;
@@ -433,7 +433,7 @@ void PdfObject::SetImmutable(bool isImmutable)
     switch (m_Variant.GetDataType())
     {
     // Arrays and Dictionaries
-    // handle dirty status by themselfes
+    // handle dirty status by themselves
     case EPdfDataType::Array:
         m_Variant.GetArray().SetImmutable(isImmutable);
         break;

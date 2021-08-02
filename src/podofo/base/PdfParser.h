@@ -172,7 +172,7 @@ public:
     inline PdfVersion GetPdfVersion() const { return m_ePdfVersion; }
 
     /** \returns true if this PdfParser loads all objects on demand at
-     *                the time they are accessed for the first time.
+     *                the time they are accessed first.
      *                The default is to load all object immediately.
      *                In this case false is returned.
      */
@@ -236,7 +236,7 @@ private:
      * 
      *  \param pszToken a token to find
      *  \param lRange range in bytes in which to search
-     *                begining at the end of the file
+     *                beginning at the end of the file
      */
     void FindToken(const PdfRefCountedInputDevice& device, const char* pszToken, size_t lRange );
 
@@ -247,7 +247,7 @@ private:
      * 
      *  \param pszToken a token to find
      *  \param lRange range in bytes in which to search
-     *                begining at the specified position of the file
+     *                beginning at the specified position of the file
      *  \param searchEnd specifies position 
      */
     void FindToken2(const PdfRefCountedInputDevice& device, const char* pszToken, size_t lRange, size_t searchEnd );
@@ -258,8 +258,8 @@ private:
      */
     void ReadDocumentStructure(const PdfRefCountedInputDevice& rDevice);
 
-    /** Checks wether this pdf is linearized or not.
-     *  Initializes the linearization directory on sucess.
+    /** hecks whether this pdf is linearized or not.
+     *  Initializes the linearization directory on success.
      */
     void HasLinearizationDict(const PdfRefCountedInputDevice& device);
 
@@ -300,7 +300,7 @@ private:
      */
     void ReadXRefSubsection(const PdfRefCountedInputDevice& device, int64_t & nFirstObject, int64_t & nNumObjects );
 
-    /** Reads a xref stream contens object
+    /** Reads an XRef stream contents object
      *  \param lOffset read the stream from this offset
      *  \param bReadOnlyTrailer only the trailer is skipped over, the contents
      *         of the xref stream are not parsed

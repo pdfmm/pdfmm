@@ -260,7 +260,7 @@ void PdfImage::LoadFromJpegHandle(FILE* pInStream, const string_view& filename)
 
     jpeg_start_decompress(&cinfo);
 
-    // I am not sure wether this switch is fully correct.
+    // I am not sure whether this switch is fully correct.
     // it should handle all cases though.
     // Index jpeg files might look strange as jpeglib+
     // returns 1 for them.
@@ -326,7 +326,7 @@ void PdfImage::LoadFromJpegData(const unsigned char* pData, size_t dwLen)
 
     jpeg_start_decompress(&cinfo);
 
-    // I am not sure wether this switch is fully correct.
+    // I am not sure whether this switch is fully correct.
     // it should handle all cases though.
     // Index jpeg files might look strange as jpeglib+
     // returns 1 for them.

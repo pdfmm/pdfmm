@@ -90,7 +90,7 @@ public:
      */
     inline void SetWriteMode(PdfWriteMode eWriteMode) { m_eWriteMode = eWriteMode; }
 
-    /** Get the write mode used for wirting the PDF
+    /** Get the write mode used for writing the PDF
      *  \returns the write mode
      */
     inline PdfWriteMode GetWriteMode() const { return m_eWriteMode; }
@@ -107,7 +107,7 @@ public:
     inline PdfVersion GetPdfVersion() const { return m_eVersion; }
 
     /**
-     *  \returns wether a XRef stream is used or not
+     *  \returns whether an XRef stream is used or not
      */
     inline bool GetUseXRefStream() const { return m_UseXRefStream; }
 
@@ -189,7 +189,7 @@ private:
 
     std::unique_ptr<PdfEncrypt> m_pEncrypt;    // If not nullptr encrypt all strings and streams and
                                                // create an encryption dictionary in the trailer
-    PdfObject* m_pEncryptObj;                  // Used to temporarly store the encryption dictionary
+    PdfObject* m_pEncryptObj;                  // Used to temporarily store the encryption dictionary
 
     PdfSaveOptions  m_saveOptions;
     PdfWriteMode   m_eWriteMode;

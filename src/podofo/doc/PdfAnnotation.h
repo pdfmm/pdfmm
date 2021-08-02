@@ -257,7 +257,7 @@ public:
      */
     bool HasAction() const;
 
-    /** Sets wether this annotation is initialy open.
+    /** Sets whether this annotation is initialy open.
      *  You should always set this true for popup annotations.
      *  \param b if true open it
      */

@@ -22,7 +22,7 @@ class PdfName;
 class PdfObject;
 
 /** A PDF stream can be appended to any PdfObject
- *  and can contain abitrary data.
+ *  and can contain arbitrary data.
  *
  *  A PDF memory stream is held completely in memory.
  *

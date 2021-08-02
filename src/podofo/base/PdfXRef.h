@@ -95,7 +95,7 @@ public:
      *  
      *  \param ref reference of this object
      *  \param offset the offset where on the device the object was written
-     *  \param bUsed specifies wether this is an used or free object.
+     *  \param bUsed specifies whether this is an used or free object.
      *               Set this value to true for all normal objects and to false
      *               for free object references.
      */
@@ -189,7 +189,7 @@ private:
     /** Merge all xref blocks that follow immediately after each other
      *  into a single block.
      *
-     *  This results in slitely smaller PDF files which are easier to parse
+     *  This results in slightly smaller PDF files which are easier to parse
      *  for other applications.
      */
     void MergeBlocks();

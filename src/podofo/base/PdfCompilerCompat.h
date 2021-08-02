@@ -67,7 +67,7 @@ typedef SSIZE_T ssize_t;
 /**
  * \page PoDoFo PdfCompilerCompat Header
  * 
- * <b>PdfCompilerCompat.h</b> gathers up nastyness required for various
+ * <b>PdfCompilerCompat.h</b> gathers up nastiness required for various
  * compiler compatibility into a central place. All compiler-specific defines,
  * wrappers, and the like should be included here and (if necessary) in
  * PdfCompilerCompat.cpp if they must be visible to public users of the library.

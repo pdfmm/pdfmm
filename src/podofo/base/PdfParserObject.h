@@ -72,7 +72,7 @@ public:
      *  \param pEncrypt an encryption dictionary which is used to decrypt 
      *                  strings and streams during parsing or nullptr if the PDF
      *                  file was not encrypted
-     *  \param bIsTrailer wether this is a trailer dictionary or not.
+     *  \param bIsTrailer whether this is a trailer dictionary or not.
      *                    trailer dictionaries do not have a object number etc.
      */
     void ParseFile( PdfEncrypt* pEncrypt, bool bIsTrailer = false );
@@ -92,7 +92,7 @@ public:
      */
     inline bool IsLoadOnDemand() const { return m_bLoadOnDemand; }
 
-    /** Sets wether this object shall be loaded on demand
+    /** Sets whether this object shall be loaded on demand
      *  when it's data is accessed for the first time.
      *  \param bDelayed if true the object is loaded delayed.
      */
@@ -124,7 +124,7 @@ private:
     void InitPdfParserObject();
 
     /** Parse the object data from the given file handle 
-     *  \param bIsTrailer wether this is a trailer dictionary or not.
+     *  \param bIsTrailer whether this is a trailer dictionary or not.
      *                    trailer dictionaries do not have a object number etc.
      */
     void ParseFileComplete( bool bIsTrailer );

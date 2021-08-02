@@ -68,18 +68,18 @@ namespace PoDoFo
         bool tryGetCodePoints(const PdfCharCode& codeUnit, std::vector<char32_t>& codePoints) const override;
 
         /** Gets a table of 256 short values which are the
-         *  big endian unicode code points that are assigned
+         *  big endian Unicode code points that are assigned
          *  to the 256 values of this encoding.
          *
          *  This table is used internally to convert an encoded
-         *  string of this encoding to and from unicode.
+         *  string of this encoding to and from Unicode.
          *
-         *  \returns an array of 256 big endian unicode code points
+         *  \returns an array of 256 big endian Unicode code points
          */
         virtual const char32_t* GetToUnicodeTable() const = 0;
 
     private:
-        /** Initialize the internal table of mappings from unicode code points
+        /** Initialize the internal table of mappings from Unicode code points
          *  to encoded byte values.
          */
         void InitEncodingTable();

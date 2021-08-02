@@ -136,7 +136,7 @@ public:
     /**
      * True if the passed character is a regular character according to the PDF
      * reference (Section 3.1.1, Character Set); ie it is neither a white-space
-     * nor a delimeter character.
+     * nor a delimiter character.
      */
     static bool IsRegular(unsigned char ch);
 

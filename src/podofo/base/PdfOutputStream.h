@@ -39,7 +39,7 @@ public:
 
     /** Close the PdfOutputStream.
      *  This method may throw exceptions and has to be called 
-     *  before the descructor to end writing.
+     *  before the destructor to end writing.
      *
      *  No more data may be written to the output device
      *  after calling close.

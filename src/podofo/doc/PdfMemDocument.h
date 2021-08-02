@@ -340,7 +340,7 @@ public:
      *                So you will loose any changes made
      *                to this object.
      *
-     *  This is an overloaded member for your convinience.
+     *  This is an overloaded member for your convenience.
      */
     void FreeObjectMemory(const PdfReference& rRef, bool bForce = false);
 

@@ -126,7 +126,7 @@ namespace PoDoFo
         bool IsSorted() const;
 
         /**
-         * Sets wether multiple items can be selected by the
+         * Sets whether multiple items can be selected by the
          * user in the list.
          *
          * \param bMulti if true multiselect will be enabled

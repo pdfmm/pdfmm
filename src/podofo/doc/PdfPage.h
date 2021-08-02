@@ -65,7 +65,7 @@ public:
     // added by Petr P. Petrov 21 Febrary 2010
     /** Set the current page width in PDF Units
      *
-     * \returns true if successfull, false otherwise
+     * \returns true if successful, false otherwise
      *
      */
     bool SetPageWidth(int newWidth);
@@ -73,7 +73,7 @@ public:
     // added by Petr P. Petrov 21 Febrary 2010
     /** Set the current page height in PDF Units
      *
-     * \returns true if successfull, false otherwise
+     * \returns true if successful, false otherwise
      *
      */
     bool SetPageHeight(int newHeight);

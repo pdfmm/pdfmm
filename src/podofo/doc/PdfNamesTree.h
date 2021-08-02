@@ -57,7 +57,7 @@ public:
      */
     PdfObject* GetValue(const PdfName& tree, const PdfString& key) const;
 
-    /** Tests wether a certain nametree has a value.
+    /** Tests whether a certain nametree has a value.
      *
      *  It is generally faster to use GetValue and check for nullptr
      *  as return value.
@@ -68,7 +68,7 @@ public:
      */
     bool HasValue(const PdfName& tree, const PdfString& key) const;
 
-    /** Tests wether a key is in the range of a limits entry of a name tree node
+    /** Tests whether a key is in the range of a limits entry of a name tree node
      *  \returns EPdfNameLimits::Inside if the key is inside of the range
      *  \returns EPdfNameLimits::After if the key is greater than the specified range
      *  \returns EPdfNameLimits::Before if the key is smalelr than the specified range

@@ -23,7 +23,7 @@ class PdfVariant;
 
 // Use deque as many insertions are here way faster than with using std::list
 // This is especially useful for PDFs like PDFReference17.pdf with
-// lot's of free objects.
+// lots of free objects.
 typedef std::deque<PdfReference>                 TPdfReferenceList;
 typedef TPdfReferenceList::iterator              TIPdfReferenceList;
 typedef TPdfReferenceList::const_iterator        TCIPdfReferenceList;
@@ -54,8 +54,8 @@ typedef TVecObjects::const_iterator  TCIVecObjects;
  *  and writes it to a PDF file later with an appropriate table of 
  *  contents.
  *
- *  These class contains also advanced funtions for searching of PdfObject's
- *  in a PdfVecObject. 
+ *  This class contains also advanced functions for searching of PdfObject's
+ *  in a PdfVecObject.
  */
 class PODOFO_API PdfVecObjects final
 {
@@ -169,7 +169,7 @@ public:
     /** Remove the object with the given object and generation number from the list
      *  of objects.
      *  The object is returned if it was found. Otherwise nullptr is returned.
-     *  The caller has to delete the object by hisself.
+     *  The caller has to delete the object by himself.
      *
      *  \param ref the object to be found
      *  \param bMarkAsFree if true the removed object reference is marked as free object
@@ -188,7 +188,7 @@ public:
     /** Creates a new object and inserts it into the vector.
      *  This function assigns the next free object number to the PdfObject.
      *
-     *  \param pszType optionall value of the /Type key of the object
+     *  \param pszType optional value of the /Type key of the object
      *  \returns PdfObject pointer to the new PdfObject
      */
     PdfObject* CreateDictionaryObject(const std::string_view& type = { });
@@ -304,7 +304,7 @@ public:
 
     /** Get the last object in the vector
      *  \returns the last object in the vector or nullptr
-     *           if the vector is emtpy.
+     *           if the vector is empty.
      */
     PdfObject* GetBack();
 
@@ -328,7 +328,7 @@ public:
     void SetObjectCount(const PdfReference& ref);
 
 public:
-    /** Iterator pointing at the begining of the vector
+    /** Iterator pointing at the beginning of the vector
      *  \returns beginning iterator
      */
     TCIVecObjects begin() const;

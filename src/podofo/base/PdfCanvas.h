@@ -74,7 +74,7 @@ public:
     static PdfArray GetProcSet();
 
     /** Register a colourspace for a (separation) colour in the resource dictionary
-     *  of this page or XObbject so that it can be used for any following drawing
+     *  of this page or XObject so that it can be used for any following drawing 
      *  operations.
      *
      *  \param rColor reference to the PdfColor
