@@ -67,19 +67,47 @@ public:
      */
     void Clear();
 
-    /** Add a key to the dictionary. If an existing key of this name exists, its
-     *  value is replaced and the old value object will be deleted. The passed
-     *  object is copied.
-     *
-     *  \param identifier the key is identified by this name in the dictionary
-     *  \param rObject a variant object containing the data. The object is copied.
+    /** Add a key to the dictionary.
+     *  If an existing key of this name exists, its value is replaced and
+     *  the old value object will be deleted. The given object is copied.
      *
      *  This will set the dirty flag of this object.
      *  \see IsDirty
+     *
+     *  \param key the key is identified by this name in the dictionary
+     *  \param obj object containing the data. The object is copied.
      */
-    PdfObject& AddKey(const PdfName& identifier, const PdfObject& obj);
+    PdfObject& AddKey(const PdfName& key, const PdfObject& obj);
 
-    PdfObject& AddKeyIndirect(const PdfName& identifier, const PdfObject& obj);
+    /** Add a key to the dictionary.
+     *  If an existing key of this name exists, its value is replaced and
+     *  the old value object will be deleted. The object must be indirect
+     *  and the object reference will be added instead to the dictionary
+     *
+     *  This will set the dirty flag of this object.
+     *  \see IsDirty
+     *
+     *  \param key the key is identified by this name in the dictionary
+     *  \param obj object containing the data
+     *  \throws PdfError::InvalidHandle on nullptr obj or if the object can't
+     *  be added as an indirect reference
+     */
+    PdfObject& AddKeyIndirect(const PdfName& key, const PdfObject* obj);
+
+    /** Add a key to the dictionary.
+     *  If an existing key of this name exists, its value is replaced and
+     *  the old value object will be deleted. If the object is indirect
+     *  the object reference will be added instead to the dictionary,
+     *  otherwise the object is copied
+     *
+     *  This will set the dirty flag of this object.
+     *  \see IsDirty
+     *
+     *  \param key the key is identified by this name in the dictionary
+     *  \param obj a variant object containing the data
+     *  \throws PdfError::InvalidHandle on nullptr obj
+     */
+    PdfObject& AddKeyIndirectSafe(const PdfName& key, const PdfObject& obj);
 
     /** Get the key's value out of the dictionary.
      *
@@ -203,6 +231,7 @@ protected:
     void SetOwner(PdfObject* pOwner) override;
 
 private:
+    PdfObject& addKey(const PdfName& key, const PdfObject& obj);
     std::pair<iterator, bool> addKey(const PdfName& identifier, const PdfObject& rObject, bool noDirtySet);
     PdfObject* getKey(const PdfName& key) const;
     PdfObject* findKey(const PdfName& key) const;

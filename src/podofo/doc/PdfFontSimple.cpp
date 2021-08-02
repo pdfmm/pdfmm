@@ -57,10 +57,10 @@ void PdfFontSimple::Init(const string_view& subType, bool skipMetricsDescriptors
         this->getWidthsArray(widths);
 
         auto widthsObj = this->GetObject().GetDocument()->GetObjects().CreateObject(widths);
-        this->GetObject().GetDictionary().AddKeyIndirect("Widths", *widthsObj);
+        this->GetObject().GetDictionary().AddKeyIndirect("Widths", widthsObj);
 
         auto descriptorObj = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject("FontDescriptor");
-        this->GetObject().GetDictionary().AddKeyIndirect("FontDescriptor", *descriptorObj);
+        this->GetObject().GetDictionary().AddKeyIndirect("FontDescriptor", descriptorObj);
         FillDescriptor(descriptorObj->GetDictionary());
         m_Descriptor = descriptorObj;
     }

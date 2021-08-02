@@ -324,7 +324,7 @@ void PdfEncoding::ExportToDictionary(PdfDictionary& dictionary, PdfEncodingExpor
         if (getActualLimits().MaxCodeSize > 1)
             PODOFO_RAISE_ERROR_INFO(EPdfError::NotImplemented, "TODO");
         fillCIDToGIDMap(*cmapObj, usedGids, font.GetBaseFont());
-        dictionary.AddKeyIndirect("Encoding", *cmapObj);
+        dictionary.AddKeyIndirect("Encoding", cmapObj);
     }
     else
     {
@@ -335,7 +335,7 @@ void PdfEncoding::ExportToDictionary(PdfDictionary& dictionary, PdfEncodingExpor
         if (obj == nullptr)
             dictionary.AddKey("Encoding", name);
         else
-            dictionary.AddKeyIndirect("Encoding", *obj);
+            dictionary.AddKeyIndirect("Encoding", obj);
     }
 
     if ((flags & PdfEncodingExportFlags::SkipToUnicode) == PdfEncodingExportFlags::None)
@@ -343,7 +343,7 @@ void PdfEncoding::ExportToDictionary(PdfDictionary& dictionary, PdfEncodingExpor
         auto& toUnicode = GetToUnicodeMap();
         auto cmapObj = dictionary.GetOwner()->GetDocument()->GetObjects().CreateDictionaryObject();
         toUnicode.WriteToUnicodeCMap(*cmapObj);
-        dictionary.AddKeyIndirect("ToUnicode", *cmapObj);
+        dictionary.AddKeyIndirect("ToUnicode", cmapObj);
     }
 }
 

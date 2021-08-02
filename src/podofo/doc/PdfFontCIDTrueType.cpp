@@ -97,7 +97,7 @@ void PdfFontCIDTrueType::initImported()
 
     // The CIDSystemInfo, should be an indirect object:
     auto cidSystemInfo = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject();
-    m_descendantFont->GetDictionary().AddKeyIndirect("CIDSystemInfo", *cidSystemInfo);
+    m_descendantFont->GetDictionary().AddKeyIndirect("CIDSystemInfo", cidSystemInfo);
     // Setting the CIDSystemInfo params:
     cidSystemInfo->GetDictionary().AddKey("Registry", PdfString(CMAP_REGISTRY_NAME));
     cidSystemInfo->GetDictionary().AddKey("Ordering", PdfString(GetBaseFont()));
@@ -114,7 +114,7 @@ void PdfFontCIDTrueType::initImported()
 
     // The FontDescriptor, should be an indirect object:
     auto descriptorObj = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject("FontDescriptor");
-    m_descendantFont->GetDictionary().AddKeyIndirect("FontDescriptor", *descriptorObj);
+    m_descendantFont->GetDictionary().AddKeyIndirect("FontDescriptor", descriptorObj);
     FillDescriptor(descriptorObj->GetDictionary());
     m_descriptor = descriptorObj;
 }
@@ -145,7 +145,7 @@ void PdfFontCIDTrueType::embedFontFile(PdfObject& descriptor)
 
         PdfFontTrueTypeSubset::BuildFont(buffer, input, TrueTypeFontFileType::TTF, 0, metrics, cidToGidMap);
         auto contents = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject();
-        descriptor.GetDictionary().AddKeyIndirect("FontFile2", *contents);
+        descriptor.GetDictionary().AddKeyIndirect("FontFile2", contents);
 
         size_t size = buffer.GetSize();
         contents->GetDictionary().AddKey("Length1", PdfObject(static_cast<int64_t>(size)));
@@ -157,7 +157,7 @@ void PdfFontCIDTrueType::embedFontFile(PdfObject& descriptor)
         throw runtime_error("Untested after utf8 migration");
 
         auto contents = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject();
-        descriptor.GetDictionary().AddKeyIndirect("FontFile2", *contents);
+        descriptor.GetDictionary().AddKeyIndirect("FontFile2", contents);
 
         // if the data was loaded from memory - use it from there
         // otherwise, load from disk

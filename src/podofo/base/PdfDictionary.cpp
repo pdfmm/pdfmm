@@ -57,22 +57,40 @@ void PdfDictionary::Clear()
     }
 }
 
-PdfObject& PdfDictionary::AddKey(const PdfName& identifier, const PdfObject& obj)
+PdfObject& PdfDictionary::AddKey(const PdfName& key, const PdfObject& obj)
 {
     AssertMutable();
-    auto added = addKey(identifier, obj, false);
+    return addKey(key, obj);
+}
+
+PdfObject& PdfDictionary::AddKeyIndirect(const PdfName& key, const PdfObject* obj)
+{
+    AssertMutable();
+    if (obj == nullptr)
+        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "Given object shall not be null");
+
+    if (IsIndirectReferenceAllowed(*obj))
+        return addKey(key, obj->GetIndirectReference());
+    else
+        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "Given object shall not be null");
+}
+
+PdfObject& PdfDictionary::AddKeyIndirectSafe(const PdfName& key, const PdfObject& obj)
+{
+    AssertMutable();
+    if (IsIndirectReferenceAllowed(obj))
+        return addKey(key, obj.GetIndirectReference());
+    else
+        return addKey(key, obj);
+}
+
+PdfObject& PdfDictionary::addKey(const PdfName& key, const PdfObject& obj)
+{
+    auto added = addKey(key, obj, false);
     if (added.second)
         SetDirty();
 
     return added.first->second;
-}
-
-PdfObject& PdfDictionary::AddKeyIndirect(const PdfName& key, const PdfObject& obj)
-{
-    if (IsIndirectReferenceAllowed(obj))
-        return AddKey(key, obj.GetIndirectReference());
-
-    return AddKey(key, obj);
 }
 
 pair<PdfDictionary::Map::iterator, bool> PdfDictionary::addKey(const PdfName& identifier, const PdfObject& obj, bool noDirtySet)
