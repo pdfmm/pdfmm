@@ -1217,7 +1217,7 @@ void PdfParser::ReadCompressedObjectFromStream( uint32_t nObjNo, int nIndex)
 		}
 	}
     
-    PdfObjectStreamParser pParserObject( pStream, m_vecObjects, m_buffer, m_pEncrypt.get() );
+    PdfObjectStreamParser pParserObject(*pStream, *m_vecObjects, m_buffer);
     pParserObject.Parse( list );
 }
 

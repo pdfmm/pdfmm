@@ -39,7 +39,7 @@ public:
      * \param rBuffer use this allocated buffer for caching
      * \param pEncrypt encryption object used to decrypt streams
      */
-    PdfObjectStreamParser(PdfParserObject* pParser, PdfVecObjects* pVecObjects, const PdfRefCountedBuffer & rBuffer, PdfEncrypt* pEncrypt );
+    PdfObjectStreamParser(PdfParserObject& parser, PdfVecObjects& objects, const PdfRefCountedBuffer& buffer);
 
     void Parse(ObjectIdList const &);
 
@@ -50,7 +50,6 @@ private:
     PdfParserObject* m_pParser;
     PdfVecObjects* m_vecObjects;
     PdfRefCountedBuffer m_buffer;
-    PdfEncrypt* m_pEncrypt;
 };
 
 };

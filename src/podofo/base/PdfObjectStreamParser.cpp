@@ -25,8 +25,8 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfObjectStreamParser::PdfObjectStreamParser(PdfParserObject* pParser, PdfVecObjects* pVecObjects, const PdfRefCountedBuffer& rBuffer, PdfEncrypt* pEncrypt)
-    : m_pParser(pParser), m_vecObjects(pVecObjects), m_buffer(rBuffer), m_pEncrypt(pEncrypt)
+PdfObjectStreamParser::PdfObjectStreamParser(PdfParserObject& parser, PdfVecObjects& objects, const PdfRefCountedBuffer& buffer)
+    : m_pParser(&parser), m_vecObjects(&objects), m_buffer(buffer)
 {
 }
 
@@ -67,15 +67,7 @@ void PdfObjectStreamParser::ReadObjectsFromStream(char* pBuffer, size_t lBufferL
 
         // use a second tokenizer here so that anything that gets dequeued isn't left in the tokenizer that reads the offsets and lengths
         PdfTokenizer variantTokenizer(m_buffer);
-        if (m_pEncrypt && (m_pEncrypt->GetEncryptAlgorithm() == EPdfEncryptAlgorithm::AESV2
-            || m_pEncrypt->GetEncryptAlgorithm() == EPdfEncryptAlgorithm::RC4V2))
-        {
-            variantTokenizer.ReadNextVariant(device, var); // Stream is already decrypted
-        }
-        else
-        {
-            variantTokenizer.ReadNextVariant(device, var, m_pEncrypt);
-        }
+        variantTokenizer.ReadNextVariant(device, var); // NOTE: The stream is already decrypted
 
         bool should_read = std::find(list.begin(), list.end(), lObj) != list.end();
 #ifndef VERBOSE_DEBUG_DISABLED
