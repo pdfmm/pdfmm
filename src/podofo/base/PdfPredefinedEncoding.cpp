@@ -1274,6 +1274,7 @@ const char32_t PdfStandardEncoding::s_cEncoding[256] = {
         0x0000,  // C9 undefined
         0x02DA,  // CA   # RING ABOVE   # ring
         0x00B8,  // CB   # CEDILLA   # cedilla
+        0x0000,  // CC undefined
         0x02DD,  // CD   # DOUBLE ACUTE ACCENT   # hungarumlaut
         0x02DB,  // CE   # OGONEK   # ogonek
         0x02C7,  // CF   # CARON   # caron
