@@ -158,10 +158,10 @@ void PdfFileSpec::EmbeddFileFromMem(PdfObject* pStream, const char* data, size_t
 const PdfString& PdfFileSpec::GetFilename(bool canUnicode) const
 {
     if (canUnicode && this->GetObject().GetDictionary().HasKey("UF"))
-        return this->GetObject().GetDictionary().GetKey("UF")->GetString();
+        return this->GetObject().GetDictionary().MustFindKey("UF").GetString();
 
     if (this->GetObject().GetDictionary().HasKey("F"))
-        return this->GetObject().GetDictionary().GetKey("F")->GetString();
+        return this->GetObject().GetDictionary().MustFindKey("F").GetString();
 
     PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
 }

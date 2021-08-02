@@ -185,14 +185,14 @@ PdfRect PdfPage::CreateStandardPageSize(const PdfPageSize ePageSize, bool bLands
 
 const PdfObject* PdfPage::GetInheritedKeyFromObject(const string_view& inKey, const PdfObject& inObject, int depth) const
 {
-    const PdfObject* pObj = nullptr;
+    const PdfObject* obj = nullptr;
 
     // check for it in the object itself
     if (inObject.GetDictionary().HasKey(inKey))
     {
-        pObj = inObject.GetDictionary().GetKey(inKey);
-        if (!pObj->IsNull())
-            return pObj;
+        obj = &inObject.GetDictionary().MustFindKey(inKey);
+        if (!obj->IsNull())
+            return obj;
     }
 
     // if we get here, we need to go check the parent - if there is one!
@@ -210,8 +210,8 @@ const PdfObject* PdfPage::GetInheritedKeyFromObject(const string_view& inKey, co
         if (depth > maxRecursionDepth)
             PODOFO_RAISE_ERROR(EPdfError::ValueOutOfRange);
 
-        pObj = inObject.GetDictionary().FindKey("Parent");
-        if (pObj == &inObject)
+        obj = inObject.GetDictionary().FindKey("Parent");
+        if (obj == &inObject)
         {
             ostringstream oss;
             oss << "Object " << inObject.GetIndirectReference().ObjectNumber() << " "
@@ -219,11 +219,11 @@ const PdfObject* PdfPage::GetInheritedKeyFromObject(const string_view& inKey, co
             PODOFO_RAISE_ERROR_INFO(EPdfError::BrokenFile, oss.str().c_str());
         }
 
-        if (pObj)
-            pObj = GetInheritedKeyFromObject(inKey, *pObj, depth + 1);
+        if (obj)
+            obj = GetInheritedKeyFromObject(inKey, *obj, depth + 1);
     }
 
-    return pObj;
+    return obj;
 }
 
 PdfRect PdfPage::GetPageBox(const string_view& inBox) const
@@ -233,12 +233,6 @@ PdfRect PdfPage::GetPageBox(const string_view& inBox) const
 
     // Take advantage of inherited values - walking up the tree if necessary
     pObj = GetInheritedKeyFromObject(inBox, this->GetObject());
-
-    // Sometime page boxes are defined using reference objects
-    while (pObj && pObj->IsReference())
-    {
-        pObj = this->GetObject().GetDocument()->GetObjects().GetObject(pObj->GetReference());
-    }
 
     // assign the value of the box from the array
     if (pObj && pObj->IsArray())
@@ -542,8 +536,8 @@ unsigned PdfPage::GetPageNumber() const
                     PODOFO_RAISE_ERROR_INFO(EPdfError::NoObject, oss.str());
                 }
 
-                if (node->GetDictionary().GetKey(PdfName::KeyType) != nullptr
-                    && node->GetDictionary().GetKey(PdfName::KeyType)->GetName() == PdfName("Pages"))
+                if (node->GetDictionary().HasKey(PdfName::KeyType)
+                    && node->GetDictionary().MustFindKey(PdfName::KeyType).GetName() == "Pages")
                 {
                     auto count = node->GetDictionary().FindKey("Count");
                     if (count != nullptr)

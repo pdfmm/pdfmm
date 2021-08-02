@@ -126,11 +126,11 @@ bool PdfXObject::TryCreateFromObject(PdfObject &obj, unique_ptr<PdfXObject>& xob
 
 PdfXObjectType PdfXObject::getPdfXObjectType(const PdfObject &obj)
 {
-    auto subTypeObj = obj.GetDictionary().GetKey(PdfName::KeySubtype);
+    auto subTypeObj = obj.GetDictionary().FindKey(PdfName::KeySubtype);
     if (subTypeObj == nullptr || !subTypeObj->IsName())
         return PdfXObjectType::Unknown;
 
-    auto subtype = obj.GetDictionary().GetKey(PdfName::KeySubtype)->GetName().GetString();
+    auto subtype = obj.GetDictionary().FindKey(PdfName::KeySubtype)->GetName().GetString();
     return FromString(subtype);
 }
 

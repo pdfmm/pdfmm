@@ -78,7 +78,7 @@ void PdfAction::SetScript(const PdfString& sScript)
 
 PdfString PdfAction::GetScript() const
 {
-    return this->GetObject().GetDictionary().GetKey("JS")->GetString();
+    return this->GetObject().GetDictionary().MustFindKey("JS").GetString();
 }
 
 bool PdfAction::HasScript() const

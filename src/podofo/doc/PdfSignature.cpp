@@ -38,10 +38,7 @@ PdfSignature::PdfSignature(PdfObject& obj, PdfAnnotation* widget)
     : PdfField(PdfFieldType::Signature, obj, widget), m_pSignatureObj(nullptr)
 {
     // do not call Init() here
-    if (this->GetObject().GetDictionary().HasKey("V"))
-    {
-        m_pSignatureObj = this->GetObject().GetDocument()->GetObjects().GetObject(this->GetObject().GetDictionary().GetKey("V")->GetReference());
-    }
+    m_pSignatureObj = this->GetObject().GetDictionary().FindKey("V");
 }
 
 void PdfSignature::SetAppearanceStream(PdfXObject& pObject, PdfAnnotationAppearance eAppearance, const PdfName& state)

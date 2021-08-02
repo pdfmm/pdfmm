@@ -41,12 +41,12 @@ void PdfCanvas::AddColorResource(const PdfColor& rColor)
             string temp(csPrefix + csName);
 
             if (!resources.GetDictionary().HasKey("ColorSpace")
-                || !resources.GetDictionary().GetKey("ColorSpace")->GetDictionary().HasKey(csPrefix + csName))
+                || !resources.GetDictionary().MustFindKey("ColorSpace").GetDictionary().HasKey(csPrefix + csName))
             {
                 // Build color-spaces for separation
                 PdfObject* csp = rColor.BuildColorSpace(*GetContents().GetDocument());
 
-                AddResource(csPrefix + csName, csp->GetIndirectReference(), PdfName("ColorSpace"));
+                AddResource(csPrefix + csName, csp->GetIndirectReference(), "ColorSpace");
             }
         }
         break;
@@ -54,12 +54,12 @@ void PdfCanvas::AddColorResource(const PdfColor& rColor)
         case PdfColorSpace::CieLab:
         {
             if (!resources.GetDictionary().HasKey("ColorSpace")
-                || !resources.GetDictionary().GetKey("ColorSpace")->GetDictionary().HasKey("ColorSpaceLab"))
+                || !resources.GetDictionary().MustFindKey("ColorSpace").GetDictionary().HasKey("ColorSpaceLab"))
             {
                 // Build color-spaces for CIE-lab
                 PdfObject* csp = rColor.BuildColorSpace(*GetContents().GetDocument());
 
-                AddResource("ColorSpaceCieLab", csp->GetIndirectReference(), PdfName("ColorSpace"));
+                AddResource("ColorSpaceCieLab", csp->GetIndirectReference(), "ColorSpace");
             }
         }
         break;

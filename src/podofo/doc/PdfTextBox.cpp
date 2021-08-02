@@ -31,8 +31,8 @@ PdfTextBox::PdfTextBox(PdfPage& page, const PdfRect& rect)
 
 void PdfTextBox::Init()
 {
-    if (!GetObject().GetDictionary().HasKey(PdfName("DS")))
-        GetObject().GetDictionary().AddKey(PdfName("DS"), PdfString("font: 12pt Helvetica"));
+    if (!GetObject().GetDictionary().HasKey("DS"))
+        GetObject().GetDictionary().AddKey("DS", PdfString("font: 12pt Helvetica"));
 }
 
 void PdfTextBox::SetText(const PdfString& rsText)
@@ -63,7 +63,7 @@ PdfString PdfTextBox::GetText() const
 
 void PdfTextBox::SetMaxLen(int64_t nMaxLen)
 {
-    GetObject().GetDictionary().AddKey(PdfName("MaxLen"), nMaxLen);
+    GetObject().GetDictionary().AddKey("MaxLen", nMaxLen);
 }
 
 int64_t PdfTextBox::GetMaxLen() const

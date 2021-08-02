@@ -1330,16 +1330,16 @@ void PdfParser::UpdateDocumentVersion()
             && pCatalog->IsDictionary()
             && pCatalog->GetDictionary().HasKey("Version"))
         {
-            PdfObject* pVersion = pCatalog->GetDictionary().GetKey("Version");
+            auto& version = pCatalog->GetDictionary().MustGetKey("Version");
             for (int i = 0; i <= MAX_PDF_VERSION_STRING_INDEX; i++)
             {
-                if (IsStrictParsing() && !pVersion->IsName())
+                if (IsStrictParsing() && !version.IsName())
                 {
                     // Version must be of type name, according to PDF Specification
                     PODOFO_RAISE_ERROR(EPdfError::InvalidName);
                 }
 
-                if (pVersion->IsName() && pVersion->GetName().GetString() == s_szPdfVersionNums[i])
+                if (version.IsName() && version.GetName().GetString() == s_szPdfVersionNums[i])
                 {
                     PdfError::LogMessage(LogSeverity::Information,
                         "Updating version from %s to %s",

@@ -45,17 +45,16 @@ void PdfInfo::Init(PdfInfoInitial eInitial)
         this->GetObject().GetDictionary().AddKey("Producer", PdfString(PRODUCER_STRING));
 }
 
-optional<PdfString> PdfInfo::GetStringFromInfoDict(const PdfName& rName) const
+optional<PdfString> PdfInfo::GetStringFromInfoDict(const PdfName& name) const
 {
-    const PdfObject* pObj = this->GetObject().GetDictionary().GetKey(rName);
-    return pObj && pObj->IsString() ? std::optional(pObj->GetString()) : std::nullopt;
+    auto obj = this->GetObject().GetDictionary().FindKey(name);
+    return obj != nullptr && obj->IsString() ? optional(obj->GetString()) : std::nullopt;
 }
 
 const PdfName& PdfInfo::GetNameFromInfoDict(const PdfName& rName) const
 {
-    const PdfObject* pObj = this->GetObject().GetDictionary().GetKey(rName);
-
-    return pObj && pObj->IsName() ? pObj->GetName() : PdfName::KeyNull;
+    auto obj = this->GetObject().GetDictionary().FindKey(rName);
+    return  obj != nullptr && obj->IsName() ? obj->GetName() : PdfName::KeyNull;
 }
 
 void PdfInfo::SetCustomKey(const PdfName& sName, const PdfString& sValue)

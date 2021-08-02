@@ -58,23 +58,16 @@ void PdfAcroForm::Init(EPdfAcroFormDefaulAppearance defaultAppearance)
         params.Flags = EFontCreationFlags::AutoSelectBase14;
         PdfFont* font = GetDocument().GetFontCache().GetFont("Helvetica", params);
 
-        PdfObject* resource;
-        PdfObject* fontDict;
-
         // Create DR key
         if (!this->GetObject().GetDictionary().HasKey("DR"))
             this->GetObject().GetDictionary().AddKey("DR", PdfDictionary());
-        resource = this->GetObject().GetDictionary().GetKey("DR");
-        if (resource->IsReference())
-            resource = GetDocument().GetObjects().GetObject(resource->GetReference());
+        auto& resource = this->GetObject().GetDictionary().MustFindKey("DR");
 
-        if (!resource->GetDictionary().HasKey("Font"))
-            resource->GetDictionary().AddKey("Font", PdfDictionary());
-        fontDict = resource->GetDictionary().GetKey("Font");
-        if (fontDict->IsReference())
-            fontDict = GetDocument().GetObjects().GetObject(fontDict->GetReference());
+        if (!resource.GetDictionary().HasKey("Font"))
+            resource.GetDictionary().AddKey("Font", PdfDictionary());
 
-        fontDict->GetDictionary().AddKey(font->GetIdentifier(), font->GetObject().GetIndirectReference());
+        auto& fontDict = resource.GetDictionary().MustFindKey("Font");
+        fontDict.GetDictionary().AddKey(font->GetIdentifier(), font->GetObject().GetIndirectReference());
 
         // Create DA key
         ostringstream oss;

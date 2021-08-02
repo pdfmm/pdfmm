@@ -28,51 +28,48 @@ PdChoiceField::PdChoiceField(PdfFieldType eField, PdfPage& page, const PdfRect& 
 {
 }
 
-void PdChoiceField::InsertItem(const PdfString& rsValue, const optional<PdfString>& rsDisplayName)
+void PdChoiceField::InsertItem(const PdfString& value, const optional<PdfString>& displayName)
 {
-    PdfVariant var;
-    PdfArray   opt;
-
-    if (!rsDisplayName.has_value())
+    PdfObject objToAdd;
+    if (displayName.has_value())
     {
-        var = rsValue;
+        PdfArray array;
+        array.push_back(value);
+        array.push_back(displayName.value());
+        objToAdd = array;
     }
     else
     {
-        PdfArray array;
-        array.push_back(rsValue);
-        array.push_back(rsDisplayName.value());
-        var = array;
+        objToAdd = value;
     }
 
-    if (GetObject().GetDictionary().HasKey(PdfName("Opt")))
-        opt = GetObject().GetDictionary().GetKey(PdfName("Opt"))->GetArray();
+    auto optObj = GetObject().GetDictionary().FindKey("Opt");
+    if (optObj == nullptr)
+        optObj = &GetObject().GetDictionary().AddKey("Opt", PdfArray());
 
     // TODO: Sorting
-    opt.push_back(var);
-    GetObject().GetDictionary().AddKey(PdfName("Opt"), opt);
+    optObj->GetArray().Add(objToAdd);
 
     /*
-    m_pObject->GetDictionary().AddKey( PdfName("V"), rsValue );
+    m_pObject->GetDictionary().AddKey( "V", rsValue );
 
     PdfArray array;
     array.push_back(0);
-    m_pObject->GetDictionary().AddKey( PdfName("I"), array );
+    m_pObject->GetDictionary().AddKey( "I", array );
     */
 }
 
-void PdChoiceField::RemoveItem(unsigned nIndex)
+void PdChoiceField::RemoveItem(unsigned index)
 {
-    PdfArray   opt;
+    auto optObj = GetObject().GetDictionary().FindKey("Opt");
+    if (optObj == nullptr)
+        return;
 
-    if (GetObject().GetDictionary().HasKey(PdfName("Opt")))
-        opt = GetObject().GetDictionary().GetKey(PdfName("Opt"))->GetArray();
-
-    if (nIndex >= opt.size())
+    auto& arr = optObj->GetArray();
+    if (index >= arr.size())
         PODOFO_RAISE_ERROR(EPdfError::ValueOutOfRange);
 
-    opt.erase(opt.begin() + nIndex);
-    GetObject().GetDictionary().AddKey(PdfName("Opt"), opt);
+    arr.RemoveAt(index);
 }
 
 PdfString PdChoiceField::GetItem(unsigned nIndex) const

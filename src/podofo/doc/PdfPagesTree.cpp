@@ -368,10 +368,10 @@ int PdfPagesTree::GetPosInKids(PdfObject& pageObj, PdfObject* pageParent)
     if (pageParent == nullptr)
         return -1;
 
-    const PdfArray& rKids = pageParent->GetDictionary().GetKey("Kids")->GetArray();
+    const PdfArray& kids = pageParent->GetDictionary().MustFindKey("Kids").GetArray();
 
     unsigned index = 0;
-    for (auto& child : rKids)
+    for (auto& child : kids)
     {
         if (child.GetReference() == pageObj.GetIndirectReference())
             return index;
@@ -393,7 +393,7 @@ void PdfPagesTree::InsertPagesIntoNode(PdfObject& pParent, const PdfObjectList& 
     // 3. Add Parent key to the page
 
     // 1. Add reference
-    const PdfArray oldKids = pParent.GetDictionary().GetKey("Kids")->GetArray();
+    const PdfArray oldKids = pParent.GetDictionary().MustFindKey("Kids").GetArray();
     PdfArray newKids;
     newKids.reserve(oldKids.GetSize() + pages.size());
 
@@ -476,9 +476,8 @@ void PdfPagesTree::DeletePageFromNode(PdfObject& pParent, const PdfObjectList& r
 
 void PdfPagesTree::DeletePageNode(PdfObject& pParent, unsigned nIndex)
 {
-    PdfArray kids = pParent.GetDictionary().GetKey("Kids")->GetArray();
+    auto& kids = pParent.GetDictionary().MustFindKey("Kids").GetArray();
     kids.erase(kids.begin() + nIndex);
-    pParent.GetDictionary().AddKey("Kids", kids);
 }
 
 unsigned PdfPagesTree::ChangePagesCount(PdfObject& pageObj, int delta)

@@ -21,7 +21,7 @@ using namespace std;
 PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObject* descriptor) :
     PdfFontMetrics(PdfFontMetricsType::Unknown, { }), m_DefaultWidth(0)
 {
-    const PdfName& subType = font.GetDictionary().GetKey(PdfName::KeySubtype)->GetName();
+    const PdfName& subType = font.GetDictionary().MustFindKey(PdfName::KeySubtype).GetName();
 
     // Widths of a Type 1 font, which are in thousandths
     // of a unit of text space
@@ -35,14 +35,14 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
             if (font.GetDictionary().HasKey("Name"))
                 m_FontName = font.GetDictionary().MustFindKey("Name").GetName().GetString();
             if (font.GetDictionary().HasKey("FontBBox"))
-                m_BBox = GetBBox(*font.GetDictionary().FindKey("FontBBox"));
+                m_BBox = GetBBox(font.GetDictionary().MustFindKey("FontBBox"));
         }
         else
         {
             if (descriptor->GetDictionary().HasKey("FontName"))
                 m_FontName = descriptor->GetDictionary().MustFindKey("FontName").GetName().GetString();
             if (descriptor->GetDictionary().HasKey("FontBBox"))
-                m_BBox = GetBBox(*descriptor->GetDictionary().FindKey("FontBBox"));
+                m_BBox = GetBBox(descriptor->GetDictionary().MustFindKey("FontBBox"));
         }
 
         // Type3 fonts have a custom /FontMatrix
@@ -149,7 +149,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
     }
     else
     {
-        m_Weight = static_cast<unsigned>(descriptor->GetDictionary().FindKeyAs<double>("FontWeight", 400));
+        m_Weight = static_cast<unsigned>(descriptor->GetDictionary().FindKeyAs<int64_t>("FontWeight", 400));
         m_ItalicAngle = static_cast<int>(descriptor->GetDictionary().FindKeyAs<double>("ItalicAngle", 0));
         m_Ascent = descriptor->GetDictionary().FindKeyAs<double>("Ascent", 0.0) * m_matrix[3];
         m_Descent = descriptor->GetDictionary().FindKeyAs<double>("Descent", 0.0) * m_matrix[3];

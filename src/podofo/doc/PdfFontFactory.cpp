@@ -88,14 +88,14 @@ PdfFont* PdfFontFactory::createFontForType(PdfDocument& doc, const PdfFontMetric
 PdfFont* PdfFontFactory::CreateFont(PdfObject& obj)
 {
     auto& dict = obj.GetDictionary();
-    PdfObject* objTypeKey = dict.GetKey(PdfName::KeyType);
+    PdfObject* objTypeKey = dict.FindKey(PdfName::KeyType);
     if (objTypeKey == nullptr)
         PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "Font: No Type");
 
     if (objTypeKey->GetName() != PdfName("Font"))
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
 
-    auto subTypeKey = dict.GetKey(PdfName::KeySubtype);
+    auto subTypeKey = dict.FindKey(PdfName::KeySubtype);
     if (subTypeKey == nullptr)
         PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "Font: No SubType");
 

@@ -306,16 +306,11 @@ PdfRect PdfDocument::FillXObjectFromPage(PdfXObject& xobj, const PdfPage& page, 
     if (obj.IsDictionary() && obj.GetDictionary().HasKey("Contents"))
     {
         // get direct pointer to contents
-        PdfObject* pContents;
-        if (obj.GetDictionary().GetKey("Contents")->IsReference())
-            pContents = m_vecObjects.GetObject(obj.GetDictionary().GetKey("Contents")->GetReference());
-        else
-            pContents = obj.GetDictionary().GetKey("Contents");
-
-        if (pContents->IsArray())
+        auto& contents = obj.GetDictionary().MustFindKey("Contents");
+        if (contents.IsArray())
         {
             // copy array as one stream to xobject
-            PdfArray pArray = pContents->GetArray();
+            PdfArray pArray = contents.GetArray();
 
             PdfStream& pObjStream = xobj.GetObject().GetOrCreateStream();
 
@@ -363,11 +358,11 @@ PdfRect PdfDocument::FillXObjectFromPage(PdfXObject& xobj, const PdfPage& page, 
             }
             pObjStream.EndAppend();
         }
-        else if (pContents->HasStream())
+        else if (contents.HasStream())
         {
             // copy stream to xobject
             PdfStream& pObjStream = xobj.GetObject().GetOrCreateStream();
-            PdfStream& pcontStream = pContents->GetOrCreateStream();
+            PdfStream& pcontStream = contents.GetOrCreateStream();
 
             TVecFilters vFilters;
             vFilters.push_back(PdfFilterType::FlateDecode);

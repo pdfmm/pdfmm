@@ -255,11 +255,13 @@ void PdfParserObject::ParseStream()
     if (m_pEncrypt && !m_pEncrypt->IsMetadataEncrypted())
     {
         // If metadata is not encrypted the Filter is set to "Crypt"
-        PdfObject* pFilterObj = this->m_Variant.GetDictionary().GetKey(PdfName::KeyFilter);
-        if (pFilterObj && pFilterObj->IsArray()) {
-            PdfArray filters = pFilterObj->GetArray();
-            for (auto& obj : filters)
+        auto filterObj = this->m_Variant.GetDictionary().FindKey(PdfName::KeyFilter);
+        if (filterObj != nullptr && filterObj->IsArray())
+        {
+            auto& filters = filterObj->GetArray();
+            for (unsigned i = 0; i < filters.GetSize(); i++)
             {
+                auto& obj = filters.FindAt(i);
                 if (obj.IsName() && obj.GetName() == "Crypt")
                     m_pEncrypt = 0;
             }

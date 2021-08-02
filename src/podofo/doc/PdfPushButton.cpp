@@ -36,33 +36,33 @@ void PdfPushButton::Init()
     this->SetFieldFlag(static_cast<int>(ePdfButton_PushButton), true);
 }
 
-void PdfPushButton::SetRolloverCaption(const PdfString& rsText)
+void PdfPushButton::SetRolloverCaption(const PdfString& text)
 {
-    PdfObject* pMK = this->GetAppearanceCharacteristics(true);
-    pMK->GetDictionary().AddKey(PdfName("RC"), rsText);
+    auto mk = this->GetAppearanceCharacteristics(true);
+    mk->GetDictionary().AddKey("RC", text);
 }
 
 optional<PdfString>  PdfPushButton::GetRolloverCaption() const
 {
-    PdfObject* pMK = this->GetAppearanceCharacteristics(false);
-    if (pMK && pMK->GetDictionary().HasKey(PdfName("RC")))
-        return pMK->GetDictionary().GetKey(PdfName("RC"))->GetString();
+    auto mk = this->GetAppearanceCharacteristics(false);
+    if (mk != nullptr && mk->GetDictionary().HasKey("RC"))
+        return mk->GetDictionary().MustFindKey("RC").GetString();
 
     return { };
 }
 
 void PdfPushButton::SetAlternateCaption(const PdfString& rsText)
 {
-    PdfObject* pMK = this->GetAppearanceCharacteristics(true);
-    pMK->GetDictionary().AddKey(PdfName("AC"), rsText);
+    auto mk = this->GetAppearanceCharacteristics(true);
+    mk->GetDictionary().AddKey("AC", rsText);
 
 }
 
 optional<PdfString>  PdfPushButton::GetAlternateCaption() const
 {
-    PdfObject* pMK = this->GetAppearanceCharacteristics(false);
-    if (pMK && pMK->GetDictionary().HasKey(PdfName("AC")))
-        return pMK->GetDictionary().GetKey(PdfName("AC"))->GetString();
+    auto mk = this->GetAppearanceCharacteristics(false);
+    if (mk != nullptr && mk->GetDictionary().HasKey("AC"))
+        return mk->GetDictionary().MustFindKey("AC").GetString();
 
     return { };
 }

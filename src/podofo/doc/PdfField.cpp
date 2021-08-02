@@ -177,7 +177,7 @@ PdfFieldType PdfField::GetFieldType(const PdfObject & rObject)
         return PdfFieldType::Unknown;
 
     const PdfName fieldType = pFT->GetName();
-    if (fieldType == PdfName("Btn"))
+    if (fieldType == "Btn")
     {
         int64_t flags;
         PdfField::GetFieldFlags( rObject , flags );
@@ -195,11 +195,11 @@ PdfFieldType PdfField::GetFieldType(const PdfObject & rObject)
             eField = PdfFieldType::CheckBox;
         }
     }
-    else if (fieldType == PdfName("Tx"))
+    else if (fieldType == "Tx")
     {
         eField = PdfFieldType::TextField;
     }
-    else if (fieldType == PdfName("Ch"))
+    else if (fieldType == "Ch")
     {
         int64_t flags;
         PdfField::GetFieldFlags(rObject, flags);
@@ -213,7 +213,7 @@ PdfFieldType PdfField::GetFieldType(const PdfObject & rObject)
             eField = PdfFieldType::ListBox;
         }
     }
-    else if (fieldType == PdfName("Sig"))
+    else if (fieldType == "Sig")
     {
         eField = PdfFieldType::Signature;
     }
@@ -234,28 +234,28 @@ void PdfField::Init(PdfAcroForm *pParent)
     switch( m_eField ) 
     {
         case PdfFieldType::CheckBox:
-            dict.AddKey(PdfName("FT"), PdfName("Btn"));
+            dict.AddKey("FT", PdfName("Btn"));
             break;
         case PdfFieldType::PushButton:
-            dict.AddKey(PdfName("FT"), PdfName("Btn"));
+            dict.AddKey("FT", PdfName("Btn"));
             dict.AddKey("Ff", PdfObject((int64_t)PdfButton::ePdfButton_PushButton));
             break;
         case PdfFieldType::RadioButton:
-            dict.AddKey( PdfName("FT"), PdfName("Btn") );
+            dict.AddKey( "FT", PdfName("Btn") );
             dict.AddKey("Ff", PdfObject((int64_t)(PdfButton::ePdfButton_Radio | PdfButton::ePdfButton_NoToggleOff)));
             break;
         case PdfFieldType::TextField:
-            dict.AddKey( PdfName("FT"), PdfName("Tx") );
+            dict.AddKey( "FT", PdfName("Tx") );
             break;
         case PdfFieldType::ListBox:
-            dict.AddKey(PdfName("FT"), PdfName("Ch"));
+            dict.AddKey("FT", PdfName("Ch"));
             break;
         case PdfFieldType::ComboBox:
-            dict.AddKey(PdfName("FT"), PdfName("Ch"));
+            dict.AddKey("FT", PdfName("Ch"));
             dict.AddKey("Ff", PdfObject((int64_t)PdChoiceField::ePdfListField_Combo));
             break;
         case PdfFieldType::Signature:
-            dict.AddKey( PdfName("FT"), PdfName("Sig") );
+            dict.AddKey( "FT", PdfName("Sig") );
             break;
 
         case PdfFieldType::Unknown:
@@ -273,35 +273,34 @@ PdfField::PdfField(PdfObject& obj, PdfAnnotation* widget)
     m_eField = GetFieldType(obj);
 }
 
-PdfObject* PdfField::GetAppearanceCharacteristics( bool bCreate ) const
+PdfObject* PdfField::GetAppearanceCharacteristics(bool create) const
 {
-    PdfObject* pMK = nullptr;
+    auto mkObj = m_pObject->GetDictionary().FindKey("MK");
 
-    if( !m_pObject->GetDictionary().HasKey( PdfName("MK") ) && bCreate )
+    if (mkObj == nullptr && create)
     {
         PdfDictionary dictionary;
-        const_cast<PdfField*>(this)->m_pObject->GetDictionary().AddKey( PdfName("MK"), dictionary );
+        mkObj = &const_cast<PdfField*>(this)->m_pObject->GetDictionary().AddKey("MK", dictionary);
     }
 
-    pMK = m_pObject->GetDictionary().GetKey( PdfName("MK") );
-
-    return pMK;
+    return mkObj;
 }
 
 void PdfField::AssertTerminalField() const
 {
-    auto& dict = GetDictionary();
-    if (dict.HasKey("Kids"))
+    if (GetDictionary().HasKey("Kids"))
+    {
         PODOFO_RAISE_ERROR_INFO(EPdfError::InternalLogic, "This method can be called only on terminal field. Ensure this field has "
             "not been retrieved from AcroFormFields collection or it's not a parent of terminal fields");
+    }
 }
 
 void PdfField::SetFieldFlag(int64_t lValue, bool bSet )
 {
     int64_t lCur = 0;
 
-    if( m_pObject->GetDictionary().HasKey( PdfName("Ff") ) )
-        lCur = m_pObject->GetDictionary().GetKey( PdfName("Ff") )->GetNumber();
+    if (m_pObject->GetDictionary().HasKey("Ff"))
+        lCur = m_pObject->GetDictionary().MustFindKey("Ff").GetNumber();
     
     if( bSet )
         lCur |= lValue;
@@ -311,7 +310,7 @@ void PdfField::SetFieldFlag(int64_t lValue, bool bSet )
             lCur ^= lValue;
     }
 
-    m_pObject->GetDictionary().AddKey( PdfName("Ff"), lCur );
+    m_pObject->GetDictionary().AddKey( "Ff", lCur );
 }
 
 bool PdfField::GetFieldFlag(int64_t lValue, bool bDefault ) const
@@ -344,16 +343,16 @@ void PdfField::SetHighlightingMode( PdfHighlightingMode eMode )
     switch( eMode ) 
     {
         case PdfHighlightingMode::None:
-            value = PdfName("N");
+            value = "N";
             break;
         case PdfHighlightingMode::Invert:
-            value = PdfName("I");
+            value = "I";
             break;
         case PdfHighlightingMode::InvertOutline:
-            value = PdfName("O");
+            value = "O";
             break;
         case PdfHighlightingMode::Push:
-            value = PdfName("P");
+            value = "P";
             break;
         case PdfHighlightingMode::Unknown:
         default:
@@ -361,23 +360,23 @@ void PdfField::SetHighlightingMode( PdfHighlightingMode eMode )
             break;
     }
 
-    m_pObject->GetDictionary().AddKey( PdfName("H"), value );
+    m_pObject->GetDictionary().AddKey( "H", value );
 }
 
 PdfHighlightingMode PdfField::GetHighlightingMode() const
 {
     PdfHighlightingMode eMode = PdfHighlightingMode::Invert;
 
-    if( m_pObject->GetDictionary().HasKey( PdfName("H") ) )
+    if( m_pObject->GetDictionary().HasKey( "H" ) )
     {
-        PdfName value = m_pObject->GetDictionary().GetKey( PdfName("H") )->GetName();
-        if( value == PdfName("N") )
+        auto& value = m_pObject->GetDictionary().MustFindKey("H").GetName();
+        if( value == "N" )
             return PdfHighlightingMode::None;
-        else if( value == PdfName("I") )
+        else if( value == "I" )
             return PdfHighlightingMode::Invert;
-        else if( value == PdfName("O") )
+        else if( value == "O" )
             return PdfHighlightingMode::InvertOutline;
-        else if( value == PdfName("P") )
+        else if( value == "P" )
             return PdfHighlightingMode::Push;
     }
 
@@ -389,7 +388,7 @@ void PdfField::SetBorderColorTransparent()
     PdfArray array;
 
     PdfObject* pMK = this->GetAppearanceCharacteristics( true );
-    pMK->GetDictionary().AddKey( PdfName("BC"), array );
+    pMK->GetDictionary().AddKey( "BC", array );
 }
 
 void PdfField::SetBorderColor( double dGray )
@@ -398,7 +397,7 @@ void PdfField::SetBorderColor( double dGray )
     array.push_back( dGray );
 
     PdfObject* pMK = this->GetAppearanceCharacteristics( true );
-    pMK->GetDictionary().AddKey( PdfName("BC"), array );
+    pMK->GetDictionary().AddKey( "BC", array );
 }
 
 void PdfField::SetBorderColor( double dRed, double dGreen, double dBlue )
@@ -409,7 +408,7 @@ void PdfField::SetBorderColor( double dRed, double dGreen, double dBlue )
     array.push_back( dBlue );
 
     PdfObject* pMK = this->GetAppearanceCharacteristics( true );
-    pMK->GetDictionary().AddKey( PdfName("BC"), array );
+    pMK->GetDictionary().AddKey( "BC", array );
 }
 
 void PdfField::SetBorderColor( double dCyan, double dMagenta, double dYellow, double dBlack )
@@ -421,7 +420,7 @@ void PdfField::SetBorderColor( double dCyan, double dMagenta, double dYellow, do
     array.push_back( dBlack );
 
     PdfObject* pMK = this->GetAppearanceCharacteristics( true );
-    pMK->GetDictionary().AddKey( PdfName("BC"), array );
+    pMK->GetDictionary().AddKey( "BC", array );
 }
 
 void PdfField::SetBackgroundColorTransparent()
@@ -429,7 +428,7 @@ void PdfField::SetBackgroundColorTransparent()
     PdfArray array;
 
     PdfObject* pMK = this->GetAppearanceCharacteristics( true );
-    pMK->GetDictionary().AddKey( PdfName("BG"), array );
+    pMK->GetDictionary().AddKey( "BG", array );
 }
 
 void PdfField::SetBackgroundColor( double dGray )
@@ -438,7 +437,7 @@ void PdfField::SetBackgroundColor( double dGray )
     array.push_back( dGray );
 
     PdfObject* pMK = this->GetAppearanceCharacteristics( true );
-    pMK->GetDictionary().AddKey( PdfName("BG"), array );
+    pMK->GetDictionary().AddKey( "BG", array );
 }
 
 void PdfField::SetBackgroundColor( double dRed, double dGreen, double dBlue )
@@ -449,7 +448,7 @@ void PdfField::SetBackgroundColor( double dRed, double dGreen, double dBlue )
     array.push_back( dBlue );
 
     PdfObject* pMK = this->GetAppearanceCharacteristics( true );
-    pMK->GetDictionary().AddKey( PdfName("BG"), array );
+    pMK->GetDictionary().AddKey( "BG", array );
 }
 
 void PdfField::SetBackgroundColor( double dCyan, double dMagenta, double dYellow, double dBlack )
@@ -461,12 +460,12 @@ void PdfField::SetBackgroundColor( double dCyan, double dMagenta, double dYellow
     array.push_back( dBlack );
 
     PdfObject* pMK = this->GetAppearanceCharacteristics( true );
-    pMK->GetDictionary().AddKey( PdfName("BG"), array );
+    pMK->GetDictionary().AddKey( "BG", array );
 }
 
 void PdfField::SetName( const PdfString & rsName )
 {
-    m_pObject->GetDictionary().AddKey( PdfName("T"), rsName );
+    m_pObject->GetDictionary().AddKey( "T", rsName );
 }
 
 optional<PdfString> PdfField::GetName() const
@@ -496,37 +495,37 @@ string PdfField::GetFullName(bool escapePartialNames) const
 
 void PdfField::SetAlternateName( const PdfString & rsName )
 {
-    m_pObject->GetDictionary().AddKey( PdfName("TU"), rsName );
+    m_pObject->GetDictionary().AddKey( "TU", rsName );
 }
 
 optional<PdfString> PdfField::GetAlternateName() const
 {
-    if( m_pObject->GetDictionary().HasKey( PdfName("TU" ) ) )
-        return m_pObject->GetDictionary().GetKey( PdfName("TU" ) )->GetString();
+    if (m_pObject->GetDictionary().HasKey("TU"))
+        return m_pObject->GetDictionary().MustFindKey("TU").GetString();
 
     return { };
 }
 
 void PdfField::SetMappingName( const PdfString & rsName )
 {
-    m_pObject->GetDictionary().AddKey( PdfName("TM"), rsName );
+    m_pObject->GetDictionary().AddKey( "TM", rsName );
 }
 
 optional<PdfString> PdfField::GetMappingName() const
 {
-    if( m_pObject->GetDictionary().HasKey( PdfName("TM" ) ) )
-        return m_pObject->GetDictionary().GetKey( PdfName("TM" ) )->GetString();
+    if (m_pObject->GetDictionary().HasKey("TM"))
+        return m_pObject->GetDictionary().MustFindKey("TM").GetString();
 
     return { };
 }
 
-void PdfField::AddAlternativeAction( const PdfName & rsName, const PdfAction & rAction ) 
+void PdfField::AddAlternativeAction(const PdfName& name, const PdfAction& action)
 {
-    if( !m_pObject->GetDictionary().HasKey( PdfName("AA") ) ) 
-        m_pObject->GetDictionary().AddKey( PdfName("AA"), PdfDictionary() );
+    auto aaObj = m_pObject->GetDictionary().FindKey("AA");
+    if (aaObj == nullptr)
+        aaObj = &m_pObject->GetDictionary().AddKey("AA", PdfDictionary());
 
-    PdfObject* pAA = m_pObject->GetDictionary().GetKey( PdfName("AA") );
-    pAA->GetDictionary().AddKey( rsName, rAction.GetObject().GetIndirectReference() );
+    aaObj->GetDictionary().AddKey(name, action.GetObject().GetIndirectReference());
 }
 
 void PdfField::SetReadOnly(bool bReadOnly)
@@ -566,62 +565,62 @@ PdfPage* PdfField::GetPage() const
 
 void PdfField::SetMouseEnterAction(const PdfAction& rAction)
 {
-    this->AddAlternativeAction(PdfName("E"), rAction);
+    this->AddAlternativeAction("E", rAction);
 }
 
 void PdfField::SetMouseLeaveAction(const PdfAction& rAction)
 {
-    this->AddAlternativeAction(PdfName("X"), rAction);
+    this->AddAlternativeAction("X", rAction);
 }
 
 void PdfField::SetMouseDownAction(const PdfAction& rAction)
 {
-    this->AddAlternativeAction(PdfName("D"), rAction);
+    this->AddAlternativeAction("D", rAction);
 }
 
 void PdfField::SetMouseUpAction(const PdfAction& rAction)
 {
-    this->AddAlternativeAction(PdfName("U"), rAction);
+    this->AddAlternativeAction("U", rAction);
 }
 
 void PdfField::SetFocusEnterAction(const PdfAction& rAction)
 {
-    this->AddAlternativeAction(PdfName("Fo"), rAction);
+    this->AddAlternativeAction("Fo", rAction);
 }
 
 void PdfField::SetFocusLeaveAction(const PdfAction& rAction)
 {
-    this->AddAlternativeAction(PdfName("BI"), rAction);
+    this->AddAlternativeAction("BI", rAction);
 }
 
 void PdfField::SetPageOpenAction(const PdfAction& rAction)
 {
-    this->AddAlternativeAction(PdfName("PO"), rAction);
+    this->AddAlternativeAction("PO", rAction);
 }
 
 void PdfField::SetPageCloseAction(const PdfAction& rAction)
 {
-    this->AddAlternativeAction(PdfName("PC"), rAction);
+    this->AddAlternativeAction("PC", rAction);
 }
 
 void PdfField::SetPageVisibleAction(const PdfAction& rAction)
 {
-    this->AddAlternativeAction(PdfName("PV"), rAction);
+    this->AddAlternativeAction("PV", rAction);
 }
 
 void PdfField::SetPageInvisibleAction(const PdfAction& rAction)
 {
-    this->AddAlternativeAction(PdfName("PI"), rAction);
+    this->AddAlternativeAction("PI", rAction);
 }
 
 void PdfField::SetKeystrokeAction(const PdfAction& rAction)
 {
-    this->AddAlternativeAction(PdfName("K"), rAction);
+    this->AddAlternativeAction("K", rAction);
 }
 
 void PdfField::SetValidateAction(const PdfAction& rAction)
 {
-    this->AddAlternativeAction(PdfName("V"), rAction);
+    this->AddAlternativeAction("V", rAction);
 }
 
 PdfFieldType PdfField::GetType() const

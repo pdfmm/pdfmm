@@ -43,17 +43,17 @@ bool PdfButton::IsRadioButton() const
     return this->GetFieldFlag(static_cast<int>(ePdfButton_Radio), false);
 }
 
-void PdfButton::SetCaption(const PdfString& rsText)
+void PdfButton::SetCaption(const PdfString& text)
 {
-    PdfObject* pMK = this->GetAppearanceCharacteristics(true);
-    pMK->GetDictionary().AddKey(PdfName("CA"), rsText);
+    PdfObject* mk = this->GetAppearanceCharacteristics(true);
+    mk->GetDictionary().AddKey("CA", text);
 }
 
 optional<PdfString> PdfButton::GetCaption() const
 {
-    PdfObject* pMK = this->GetAppearanceCharacteristics(false);
-    if (pMK && pMK->GetDictionary().HasKey(PdfName("CA")))
-        return pMK->GetDictionary().GetKey(PdfName("CA"))->GetString();
+    auto mk = this->GetAppearanceCharacteristics(false);
+    if (mk != nullptr && mk->GetDictionary().HasKey("CA"))
+        return mk->GetDictionary().MustFindKey("CA").GetString();
 
     return { };
 }

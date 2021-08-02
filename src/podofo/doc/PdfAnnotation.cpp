@@ -92,7 +92,7 @@ PdfAnnotation::~PdfAnnotation() { }
 PdfRect PdfAnnotation::GetRect() const
 {
     if (this->GetObject().GetDictionary().HasKey(PdfName::KeyRect))
-        return PdfRect(this->GetObject().GetDictionary().GetKey(PdfName::KeyRect)->GetArray());
+        return PdfRect(this->GetObject().GetDictionary().MustFindKey(PdfName::KeyRect).GetArray());
 
     return PdfRect();
 }
@@ -230,7 +230,7 @@ void PdfAnnotation::SetFlags(PdfAnnotationFlags uiFlags)
 PdfAnnotationFlags PdfAnnotation::GetFlags() const
 {
     if (this->GetObject().GetDictionary().HasKey("F"))
-        return static_cast<PdfAnnotationFlags>(this->GetObject().GetDictionary().GetKey("F")->GetNumber());
+        return static_cast<PdfAnnotationFlags>(this->GetObject().GetDictionary().MustFindKey("F").GetNumber());
 
     return PdfAnnotationFlags::None;
 }
@@ -262,7 +262,7 @@ void PdfAnnotation::SetTitle(const PdfString& sTitle)
 optional<PdfString> PdfAnnotation::GetTitle() const
 {
     if (this->GetObject().GetDictionary().HasKey("T"))
-        return this->GetObject().GetDictionary().GetKey("T")->GetString();
+        return this->GetObject().GetDictionary().MustFindKey("T").GetString();
 
     return { };
 }
@@ -275,7 +275,7 @@ void PdfAnnotation::SetContents(const PdfString& sContents)
 optional<PdfString> PdfAnnotation::GetContents() const
 {
     if (this->GetObject().GetDictionary().HasKey("Contents"))
-        return this->GetObject().GetDictionary().GetKey("Contents")->GetString();
+        return this->GetObject().GetDictionary().MustFindKey("Contents").GetString();
 
     return { };
 }
@@ -347,10 +347,7 @@ void PdfAnnotation::SetOpen(bool b)
 
 bool PdfAnnotation::GetOpen() const
 {
-    if (this->GetObject().GetDictionary().HasKey("Open"))
-        return this->GetObject().GetDictionary().GetKey("Open")->GetBool();
-
-    return false;
+    return this->GetObject().GetDictionary().GetKeyAs<bool>("Open", false);
 }
 
 bool PdfAnnotation::HasFileAttachement() const
@@ -386,7 +383,7 @@ shared_ptr<PdfFileSpec> PdfAnnotation::getFileAttachment()
 PdfArray PdfAnnotation::GetQuadPoints() const
 {
     if (this->GetObject().GetDictionary().HasKey("QuadPoints"))
-        return this->GetObject().GetDictionary().GetKey("QuadPoints")->GetArray();
+        return this->GetObject().GetDictionary().MustFindKey("QuadPoints").GetArray();
 
     return PdfArray();
 }
@@ -405,7 +402,7 @@ void PdfAnnotation::SetQuadPoints(const PdfArray& rQuadPoints)
 PdfArray PdfAnnotation::GetColor() const
 {
     if (this->GetObject().GetDictionary().HasKey("C"))
-        return PdfArray(this->GetObject().GetDictionary().GetKey("C")->GetArray());
+        return PdfArray(this->GetObject().GetDictionary().MustFindKey("C").GetArray());
 
     return PdfArray();
 }

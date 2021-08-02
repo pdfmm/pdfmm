@@ -30,43 +30,44 @@ PdfCheckBox::PdfCheckBox(PdfPage& page, const PdfRect& rect)
 
 void PdfCheckBox::AddAppearanceStream(const PdfName& rName, const PdfReference& rReference)
 {
-    if (!GetObject().GetDictionary().HasKey(PdfName("AP")))
-        GetObject().GetDictionary().AddKey(PdfName("AP"), PdfDictionary());
+    if (!GetObject().GetDictionary().HasKey("AP"))
+        GetObject().GetDictionary().AddKey("AP", PdfDictionary());
 
-    if (!GetObject().GetDictionary().GetKey(PdfName("AP"))->GetDictionary().HasKey(PdfName("N")))
-        GetObject().GetDictionary().GetKey(PdfName("AP"))->GetDictionary().AddKey(PdfName("N"), PdfDictionary());
+    if (!GetObject().GetDictionary().MustFindKey("AP").GetDictionary().HasKey("N"))
+        GetObject().GetDictionary().MustFindKey("AP").GetDictionary().AddKey("N", PdfDictionary());
 
-    GetObject().GetDictionary().GetKey(PdfName("AP"))->
-        GetDictionary().GetKey(PdfName("N"))->GetDictionary().AddKey(rName, rReference);
+    GetObject().GetDictionary().MustFindKey("AP").
+        GetDictionary().MustFindKey("N").GetDictionary().AddKey(rName, rReference);
 }
 
 void PdfCheckBox::SetAppearanceChecked(const PdfXObject& rXObject)
 {
-    this->AddAppearanceStream(PdfName("Yes"), rXObject.GetObject().GetIndirectReference());
+    this->AddAppearanceStream("Yes", rXObject.GetObject().GetIndirectReference());
 }
 
 void PdfCheckBox::SetAppearanceUnchecked(const PdfXObject& rXObject)
 {
-    this->AddAppearanceStream(PdfName("Off"), rXObject.GetObject().GetIndirectReference());
+    this->AddAppearanceStream("Off", rXObject.GetObject().GetIndirectReference());
 }
 
-void PdfCheckBox::SetChecked(bool bChecked)
+void PdfCheckBox::SetChecked(bool isChecked)
 {
-    GetObject().GetDictionary().AddKey(PdfName("V"), (bChecked ? PdfName("Yes") : PdfName("Off")));
-    GetObject().GetDictionary().AddKey(PdfName("AS"), (bChecked ? PdfName("Yes") : PdfName("Off")));
+    GetObject().GetDictionary().AddKey("V", (isChecked ? PdfName("Yes") : PdfName("Off")));
+    GetObject().GetDictionary().AddKey("AS", (isChecked ? PdfName("Yes") : PdfName("Off")));
 }
 
 bool PdfCheckBox::IsChecked() const
 {
-    PdfDictionary dic = GetObject().GetDictionary();
-
-    if (dic.HasKey(PdfName("V"))) {
-        PdfName name = dic.GetKey(PdfName("V"))->GetName();
-        return (name == PdfName("Yes") || name == PdfName("On"));
+    auto& dict = GetObject().GetDictionary();
+    if (dict.HasKey("V"))
+    {
+        auto& name = dict.MustFindKey("V").GetName();
+        return (name == "Yes" || name == "On");
     }
-    else if (dic.HasKey(PdfName("AS"))) {
-        PdfName name = dic.GetKey(PdfName("AS"))->GetName();
-        return (name == PdfName("Yes") || name == PdfName("On"));
+    else if (dict.HasKey("AS"))
+    {
+        auto& name = dict.MustFindKey("AS").GetName();
+        return (name == "Yes" || name == "On");
     }
 
     return false;

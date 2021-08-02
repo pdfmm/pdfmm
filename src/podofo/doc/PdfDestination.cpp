@@ -162,7 +162,7 @@ void PdfDestination::Init(PdfObject& obj, PdfDocument& document)
         if (pValue->IsArray())
             m_array = pValue->GetArray();
         else if (pValue->IsDictionary())
-            m_array = pValue->GetDictionary().GetKey("D")->GetArray();
+            m_array = pValue->GetDictionary().MustFindKey("D").GetArray();
         m_pObject = pValue;
     }
 }
