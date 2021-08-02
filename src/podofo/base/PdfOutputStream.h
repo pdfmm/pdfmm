@@ -1,45 +1,16 @@
-/***************************************************************************
- *   Copyright (C) 2007 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *   Copyright (C) 2020 by Francesco Pretto                                *
- *   ceztko@gmail.com                                                      *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2007 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
-#ifndef _PDF_OUTPUT_STREAM_H_
-#define _PDF_OUTPUT_STREAM_H_
+#ifndef PDF_OUTPUT_STREAM_H
+#define PDF_OUTPUT_STREAM_H
 
 #include "PdfDefines.h"
 #include "PdfRefCountedBuffer.h"
-
-#include <string>
 
 namespace PoDoFo {
 
@@ -51,7 +22,7 @@ class PdfOutputDevice;
 class PODOFO_API PdfOutputStream
 {
 public:
-    virtual ~PdfOutputStream() { };
+    virtual ~PdfOutputStream();
 
     /** Write data to the output stream
      *  
@@ -93,31 +64,24 @@ public:
      *  Construct a new PdfMemoryOutputStream
      *  \param lInitial initial size of the buffer
      */
-    PdfMemoryOutputStream(size_t lInitial = INITIAL_SIZE);
+    PdfMemoryOutputStream(size_t initialSize = INITIAL_SIZE);
 
     /**
      * Construct a new PdfMemoryOutputStream that writes to an existing buffer
      * \param pBuffer handle to the buffer
      * \param lLen length of the buffer
      */
-    PdfMemoryOutputStream( char* pBuffer, size_t lLen );
+    PdfMemoryOutputStream(char* buffer, size_t len);
 
     virtual ~PdfMemoryOutputStream();
 
-    /** Close the PdfOutputStream.
-     *  This method may throw exceptions and has to be called 
-     *  before the descructor to end writing.
-     *
-     *  No more data may be written to the output device
-     *  after calling close.
-     */
     void Close() override;
 
-    inline const char * GetBuffer() const { return m_pBuffer; }
+    inline const char * GetBuffer() const { return m_Buffer; }
 
     /** \returns the length of the written data
      */
-    inline size_t GetLength() const { return m_lLen; }
+    inline size_t GetLength() const { return m_Len; }
 
     /**
      *  \returns a handle to the internal buffer.
@@ -133,11 +97,11 @@ public:
 protected:
     void WriteImpl(const char* data, size_t len) override;
 
- private:
-    char* m_pBuffer;
-    size_t m_lLen;
-    size_t m_lSize;
-    bool m_bOwnBuffer;
+private:
+    char* m_Buffer;
+    size_t m_Len;
+    size_t m_Size;
+    bool m_OwnBuffer;
 };
 
 /** An output stream that writes to a PdfOutputDevice
@@ -151,22 +115,15 @@ public:
      * 
      *  \param pDevice an output device
      */
-    PdfDeviceOutputStream( PdfOutputDevice* pDevice );
+    PdfDeviceOutputStream(PdfOutputDevice& pDevice);
 
-    /** Close the PdfOutputStream.
-     *  This method may throw exceptions and has to be called 
-     *  before the descructor to end writing.
-     *
-     *  No more data may be written to the output device
-     *  after calling close.
-     */
     void Close() override;
 
 protected:
     void WriteImpl(const char* data, size_t len) override;
 
  private:
-    PdfOutputDevice* m_pDevice;
+    PdfOutputDevice* m_Device;
 };
 
 /** An output stream that writes to a PdfRefCountedBuffer.
@@ -182,23 +139,23 @@ public:
      * 
      *  \param pBuffer data is written to this buffer
      */
-    PdfBufferOutputStream(PdfRefCountedBuffer* pBuffer);
+    PdfBufferOutputStream(PdfRefCountedBuffer& buffer);
 
-    virtual void Close() override;
+    void Close() override;
 
     /** 
      * \returns the length of the buffers contents
      */
-    inline size_t GetLength() const { return m_lLength; }
+    inline size_t GetLength() const { return m_Length; }
 
 protected:
     void WriteImpl(const char* data, size_t len) override;
 
  private:
-    PdfRefCountedBuffer* m_pBuffer;
-    size_t m_lLength;
+    PdfRefCountedBuffer* m_Buffer;
+    size_t m_Length;
 };
 
 };
 
-#endif // _PDF_OUTPUT_STREAM_H_
+#endif // PDF_OUTPUT_STREAM_H

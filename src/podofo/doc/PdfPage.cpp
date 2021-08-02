@@ -1,41 +1,15 @@
-/***************************************************************************
- *   Copyright (C) 2005 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *   Copyright (C) 2020 by Francesco Pretto                                *
- *   ceztko@gmail.com                                                      *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2005 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
 #include "base/PdfDefinesPrivate.h"
-
 #include "PdfPage.h"
+
+#include <sstream>
 
 #include "base/PdfDictionary.h"
 #include "base/PdfRect.h"
@@ -46,53 +20,39 @@
 
 #include "PdfDocument.h"
 
+using namespace std;
 using namespace PoDoFo;
 
 static int normalize(int value, int start, int end);
 
-PdfPage::PdfPage( const PdfRect & rSize, PdfDocument* pParent )
-    : PdfElement(*pParent, "Page"), PdfCanvas(), m_pContents( nullptr )
+PdfPage::PdfPage(PdfDocument& parent, const PdfRect& size)
+    : PdfElement(parent, "Page"), PdfCanvas(), m_contents(nullptr)
 {
-    InitNewPage( rSize );
+    InitNewPage(size);
 }
 
-PdfPage::PdfPage( const PdfRect & rSize, PdfVecObjects* pParent )
-    : PdfElement(*pParent, "Page"), PdfCanvas(), m_pContents( nullptr )
+PdfPage::PdfPage(PdfObject& obj, const deque<PdfObject*>& listOfParents)
+    : PdfElement(obj), PdfCanvas(), m_contents(nullptr)
 {
-    InitNewPage( rSize );
-}
-
-PdfPage::PdfPage( PdfObject* pObject, const std::deque<PdfObject*> & rListOfParents )
-    : PdfElement(*pObject), PdfCanvas(), m_pContents(nullptr)
-{
-    m_pResources = GetObject()->GetDictionary().FindKey( "Resources" );
-    if( !m_pResources ) 
+    m_pResources = obj.GetDictionary().FindKey("Resources");
+    if (m_pResources == nullptr)
     {
         // Resources might be inherited
-        std::deque<PdfObject*>::const_reverse_iterator it = rListOfParents.rbegin();
-
-        while( it != rListOfParents.rend() && !m_pResources )
-        {
-            m_pResources = (*it)->GetIndirectKey( "Resources" );
-            ++it;
-        }
+        for (auto& parent : listOfParents)
+            m_pResources = parent->GetIndirectKey("Resources");
     }
 
-    PdfObject* contents = GetObject()->GetDictionary().FindKey("Contents");
+    PdfObject* contents = obj.GetDictionary().FindKey("Contents");
     if (contents != nullptr)
-        m_pContents = new PdfContents(*this, *contents);
+        m_contents = new PdfContents(*this, *contents);
 }
 
 PdfPage::~PdfPage()
 {
-    TIMapAnnotation dit, dend = m_mapAnnotations.end();
+    for (auto& pair : m_mapAnnotations)
+        delete pair.second;
 
-    for( dit = m_mapAnnotations.begin(); dit != dend; dit++ )
-    {
-        delete (*dit).second;
-    }
-
-    delete m_pContents;	// just clears the C++ object from memory, NOT the PdfObject
+    delete m_contents;
 }
 
 PdfRect PdfPage::GetRect() const
@@ -115,124 +75,128 @@ bool PdfPage::HasRotation(double &teta) const
     return true;
 }
 
-void PdfPage::InitNewPage( const PdfRect & rSize )
+void PdfPage::InitNewPage(const PdfRect& rSize)
 {
     SetMediaBox(rSize);
 
     // The PDF specification suggests that we send all available PDF Procedure sets
-    this->GetObject()->GetDictionary().AddKey( "Resources", PdfObject( PdfDictionary() ) );
-
-    m_pResources = this->GetObject()->GetIndirectKey( "Resources" );
-    m_pResources->GetDictionary().AddKey( "ProcSet", PdfCanvas::GetProcSet() );
+    this->GetObject().GetDictionary().AddKey("Resources", PdfDictionary());
+    m_pResources = this->GetObject().GetDictionary().FindKey("Resources");
+    m_pResources->GetDictionary().AddKey("ProcSet", PdfCanvas::GetProcSet());
 }
 
 void PdfPage::EnsureContentsCreated() const
 {
-    if( !m_pContents ) 
-    {
-        auto& page = const_cast<PdfPage&>(*this);
-        page.m_pContents = new PdfContents(page);
-        page.GetObject()->GetDictionary().AddKey( PdfName::KeyContents,
-                                                   m_pContents->GetContents()->GetIndirectReference());   
-    }
+    if (m_contents != nullptr)
+        return;
+
+    auto& page = const_cast<PdfPage&>(*this);
+    page.m_contents = new PdfContents(page);
+    page.GetObject().GetDictionary().AddKey(PdfName::KeyContents,
+        m_contents->GetContents().GetIndirectReference());
 }
 
-PdfObject* PdfPage::GetContents() const 
-{ 
-    EnsureContentsCreated();
-    return m_pContents->GetContents(); 
+void PdfPage::EnsureResourcesCreated() const
+{
+    if (m_pResources != nullptr)
+        return;
+
+    auto& page = const_cast<PdfPage&>(*this);
+    page.GetObject().GetDictionary().AddKey("Resources", PdfDictionary());
+    page.m_pResources = page.GetObject().GetDictionary().FindKey("Resources");
+    m_pResources->GetDictionary().AddKey("ProcSet", PdfCanvas::GetProcSet());
 }
 
-PdfStream & PdfPage::GetStreamForAppending(EPdfStreamAppendFlags flags)
+PdfStream& PdfPage::GetStreamForAppending(EPdfStreamAppendFlags flags)
 {
     EnsureContentsCreated();
-    return m_pContents->GetStreamForAppending(flags);
+    return m_contents->GetStreamForAppending(flags);
 }
 
-PdfRect PdfPage::CreateStandardPageSize( const EPdfPageSize ePageSize, bool bLandscape )
+PdfRect PdfPage::CreateStandardPageSize(const PdfPageSize ePageSize, bool bLandscape)
 {
     PdfRect rect;
 
-    switch( ePageSize ) 
+    switch (ePageSize)
     {
-        case EPdfPageSize::A0:
-            rect.SetWidth( 2384.0 );
-            rect.SetHeight( 3370.0 );
+        case PdfPageSize::A0:
+            rect.SetWidth(2384.0);
+            rect.SetHeight(3370.0);
             break;
 
-        case EPdfPageSize::A1:
-            rect.SetWidth( 1684.0 );
-            rect.SetHeight( 2384.0 );
+        case PdfPageSize::A1:
+            rect.SetWidth(1684.0);
+            rect.SetHeight(2384.0);
             break;
 
-        case EPdfPageSize::A2:
-            rect.SetWidth( 1191.0 );
-            rect.SetHeight( 1684.0 );
-            break;
-            
-        case EPdfPageSize::A3:
-            rect.SetWidth( 842.0 );
-            rect.SetHeight( 1190.0 );
+        case PdfPageSize::A2:
+            rect.SetWidth(1191.0);
+            rect.SetHeight(1684.0);
             break;
 
-        case EPdfPageSize::A4:
-            rect.SetWidth( 595.0 );
-            rect.SetHeight( 842.0 );
+        case PdfPageSize::A3:
+            rect.SetWidth(842.0);
+            rect.SetHeight(1190.0);
             break;
 
-        case EPdfPageSize::A5:
-            rect.SetWidth( 420.0 );
-            rect.SetHeight( 595.0 );
+        case PdfPageSize::A4:
+            rect.SetWidth(595.0);
+            rect.SetHeight(842.0);
             break;
 
-        case EPdfPageSize::A6:
-            rect.SetWidth( 297.0 );
-            rect.SetHeight( 420.0 );
+        case PdfPageSize::A5:
+            rect.SetWidth(420.0);
+            rect.SetHeight(595.0);
             break;
 
-        case EPdfPageSize::Letter:
-            rect.SetWidth( 612.0 );
-            rect.SetHeight( 792.0 );
-            break;
-            
-        case EPdfPageSize::Legal:
-            rect.SetWidth( 612.0 );
-            rect.SetHeight( 1008.0 );
+        case PdfPageSize::A6:
+            rect.SetWidth(297.0);
+            rect.SetHeight(420.0);
             break;
 
-        case EPdfPageSize::Tabloid:
-            rect.SetWidth( 792.0 );
-            rect.SetHeight( 1224.0 );
+        case PdfPageSize::Letter:
+            rect.SetWidth(612.0);
+            rect.SetHeight(792.0);
+            break;
+
+        case PdfPageSize::Legal:
+            rect.SetWidth(612.0);
+            rect.SetHeight(1008.0);
+            break;
+
+        case PdfPageSize::Tabloid:
+            rect.SetWidth(792.0);
+            rect.SetHeight(1224.0);
             break;
 
         default:
             break;
     }
 
-    if( bLandscape ) 
+    if (bLandscape)
     {
         double dTmp = rect.GetWidth();
-        rect.SetWidth ( rect.GetHeight() );
-        rect.SetHeight(  dTmp );
+        rect.SetWidth(rect.GetHeight());
+        rect.SetHeight(dTmp);
     }
 
     return rect;
 }
 
-const PdfObject* PdfPage::GetInheritedKeyFromObject( const char* inKey, const PdfObject* inObject, int depth ) const
+const PdfObject* PdfPage::GetInheritedKeyFromObject(const string_view& inKey, const PdfObject& inObject, int depth) const
 {
     const PdfObject* pObj = nullptr;
 
     // check for it in the object itself
-    if ( inObject->GetDictionary().HasKey( inKey ) ) 
+    if (inObject.GetDictionary().HasKey(inKey))
     {
-        pObj = inObject->GetDictionary().GetKey( inKey );
-        if ( !pObj->IsNull() ) 
+        pObj = inObject.GetDictionary().GetKey(inKey);
+        if (!pObj->IsNull())
             return pObj;
     }
-    
+
     // if we get here, we need to go check the parent - if there is one!
-    if( inObject->GetDictionary().HasKey( "Parent" ) ) 
+    if (inObject.GetDictionary().HasKey("Parent"))
     {
         // CVE-2017-5852 - prevent stack overflow if Parent chain contains a loop, or is very long
         // e.g. pObj->GetParent() == pObj or pObj->GetParent()->GetParent() == pObj
@@ -243,94 +207,93 @@ const PdfObject* PdfPage::GetInheritedKeyFromObject( const char* inKey, const Pd
         // 0.5 MB is enough space for 1000 512 byte stack frames and 2000 256 byte stack frames
         const int maxRecursionDepth = 1000;
 
-        if ( depth > maxRecursionDepth )
-            PODOFO_RAISE_ERROR( EPdfError::ValueOutOfRange );
+        if (depth > maxRecursionDepth)
+            PODOFO_RAISE_ERROR(EPdfError::ValueOutOfRange);
 
-        pObj = inObject->GetIndirectKey( "Parent" );
-        if( pObj == inObject )
+        pObj = inObject.GetIndirectKey("Parent");
+        if (pObj == &inObject)
         {
-            std::ostringstream oss;
-            oss << "Object " << inObject->GetIndirectReference().ObjectNumber() << " "
-                << inObject->GetIndirectReference().GenerationNumber() << " references itself as Parent";
-            PODOFO_RAISE_ERROR_INFO( EPdfError::BrokenFile, oss.str().c_str() );
+            ostringstream oss;
+            oss << "Object " << inObject.GetIndirectReference().ObjectNumber() << " "
+                << inObject.GetIndirectReference().GenerationNumber() << " references itself as Parent";
+            PODOFO_RAISE_ERROR_INFO(EPdfError::BrokenFile, oss.str().c_str());
         }
 
-        if( pObj )
-            pObj = GetInheritedKeyFromObject( inKey, pObj, depth + 1 );
+        if (pObj)
+            pObj = GetInheritedKeyFromObject(inKey, *pObj, depth + 1);
     }
 
     return pObj;
 }
 
-const PdfRect PdfPage::GetPageBox( const char* inBox ) const
+PdfRect PdfPage::GetPageBox(const string_view& inBox) const
 {
-    PdfRect	 pageBox;
-    const PdfObject*   pObj;
-        
+    PdfRect	pageBox;
+    const PdfObject* pObj;
+
     // Take advantage of inherited values - walking up the tree if necessary
-    pObj = GetInheritedKeyFromObject( inBox, this->GetObject() );
-    
+    pObj = GetInheritedKeyFromObject(inBox, this->GetObject());
 
     // Sometime page boxes are defined using reference objects
-    while ( pObj && pObj->IsReference() )
+    while (pObj && pObj->IsReference())
     {
-        pObj = this->GetObject()->GetDocument()->GetObjects().GetObject( pObj->GetReference() );
+        pObj = this->GetObject().GetDocument()->GetObjects().GetObject(pObj->GetReference());
     }
 
     // assign the value of the box from the array
-    if ( pObj && pObj->IsArray() )
+    if (pObj && pObj->IsArray())
     {
-        pageBox.FromArray( pObj->GetArray() );
+        pageBox.FromArray(pObj->GetArray());
     }
-    else if ( strcmp( inBox, "ArtBox" ) == 0   ||
-              strcmp( inBox, "BleedBox" ) == 0 ||
-              strcmp( inBox, "TrimBox" ) == 0  )
+    else if (inBox == "ArtBox" ||
+        inBox == "BleedBox" ||
+        inBox == "TrimBox")
     {
         // If those page boxes are not specified then
         // default to CropBox per PDF Spec (3.6.2)
-        pageBox = GetPageBox( "CropBox" );
+        pageBox = GetPageBox("CropBox");
     }
-    else if ( strcmp( inBox, "CropBox" ) == 0 )
+    else if (inBox == "CropBox")
     {
         // If crop box is not specified then
         // default to MediaBox per PDF Spec (3.6.2)
-        pageBox = GetPageBox( "MediaBox" );
+        pageBox = GetPageBox("MediaBox");
     }
-    
+
     return pageBox;
 }
 
-int PdfPage::GetRotationRaw() const 
-{ 
+int PdfPage::GetRotationRaw() const
+{
     int rot = 0;
-    
-    const PdfObject* pObj = GetInheritedKeyFromObject( "Rotate", this->GetObject() ); 
-    if ( pObj && (pObj->IsNumber() || pObj->GetReal()) )
+
+    const PdfObject* pObj = GetInheritedKeyFromObject("Rotate", this->GetObject());
+    if (pObj && (pObj->IsNumber() || pObj->GetReal()))
         rot = static_cast<int>(pObj->GetNumber());
-    
+
     return rot;
 }
 
 void PdfPage::SetRotationRaw(int nRotation)
 {
-    if( nRotation != 0 && nRotation != 90 && nRotation != 180 && nRotation != 270 )
-        PODOFO_RAISE_ERROR( EPdfError::ValueOutOfRange );
+    if (nRotation != 0 && nRotation != 90 && nRotation != 180 && nRotation != 270)
+        PODOFO_RAISE_ERROR(EPdfError::ValueOutOfRange);
 
-    this->GetObject()->GetDictionary().AddKey( "Rotate", PdfVariant(static_cast<int64_t>(nRotation)) );
+    this->GetObject().GetDictionary().AddKey("Rotate", PdfVariant(static_cast<int64_t>(nRotation)));
 }
 
-PdfArray * PdfPage::GetAnnotationsArray() const
+PdfArray* PdfPage::GetAnnotationsArray() const
 {
-    auto obj = const_cast<PdfPage &>(*this).GetObject()->GetDictionary().FindKey("Annots");
+    auto obj = const_cast<PdfPage&>(*this).GetObject().GetDictionary().FindKey("Annots");
     if (obj == nullptr)
         return nullptr;
 
     return &obj->GetArray();
 }
 
-PdfArray & PdfPage::GetOrCreateAnnotationsArray()
+PdfArray& PdfPage::GetOrCreateAnnotationsArray()
 {
-    auto &dict = GetObject()->GetDictionary();
+    auto& dict = GetObject().GetDictionary();
     PdfObject* pObj = dict.FindKey("Annots");
 
     if (pObj == nullptr)
@@ -345,44 +308,44 @@ unsigned PdfPage::GetAnnotationCount() const
     return arr == nullptr ? 0 : arr->GetSize();
 }
 
-PdfAnnotation* PdfPage::CreateAnnotation( EPdfAnnotation eType, const PdfRect & rRect )
+PdfAnnotation* PdfPage::CreateAnnotation(PdfAnnotationType eType, const PdfRect& rRect)
 {
-    PdfAnnotation* pAnnot = new PdfAnnotation( this, eType, rRect, &this->GetObject()->GetDocument()->GetObjects() );
-    PdfReference   ref    = pAnnot->GetObject()->GetIndirectReference();
+    PdfAnnotation* pAnnot = new PdfAnnotation(*this, eType, rRect);
+    PdfReference   ref = pAnnot->GetObject().GetIndirectReference();
 
-    auto &arr = GetOrCreateAnnotationsArray();
-    arr.push_back( ref );
-    m_mapAnnotations[pAnnot->GetObject()] = pAnnot;
+    auto& arr = GetOrCreateAnnotationsArray();
+    arr.push_back(ref);
+    m_mapAnnotations[&pAnnot->GetObject()] = pAnnot;
 
     // Default set print flag
     auto flags = pAnnot->GetFlags();
-    pAnnot->SetFlags(flags | EPdfAnnotationFlags::Print);
+    pAnnot->SetFlags(flags | PdfAnnotationFlags::Print);
 
     return pAnnot;
 }
 
 PdfAnnotation* PdfPage::GetAnnotation(unsigned index)
 {
-    PdfAnnotation* pAnnot;
-    PdfReference   ref;
+    PdfAnnotation* annot;
+    PdfReference ref;
 
     auto arr = GetAnnotationsArray();
 
     if (arr == nullptr)
         PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
-    
+
     if (index >= arr->GetSize())
         PODOFO_RAISE_ERROR(EPdfError::ValueOutOfRange);
 
-    auto &obj = arr->FindAt(index);
-    pAnnot = m_mapAnnotations[&obj];
-    if (!pAnnot)
+    auto& obj = arr->FindAt(index);
+    annot = m_mapAnnotations[&obj];
+    if (annot == nullptr)
     {
-        pAnnot = new PdfAnnotation(&obj, this);
-        m_mapAnnotations[&obj] = pAnnot;
+        annot = new PdfAnnotation(*this, obj);
+        m_mapAnnotations[&obj] = annot;
     }
 
-    return pAnnot;
+    return annot;
 }
 
 void PdfPage::DeleteAnnotation(unsigned index)
@@ -394,7 +357,7 @@ void PdfPage::DeleteAnnotation(unsigned index)
     if (index >= arr->GetSize())
         PODOFO_RAISE_ERROR(EPdfError::ValueOutOfRange);
 
-    auto &pItem = arr->FindAt(index);
+    auto& pItem = arr->FindAt(index);
     auto found = m_mapAnnotations.find(&pItem);
     if (found != m_mapAnnotations.end())
     {
@@ -411,9 +374,9 @@ void PdfPage::DeleteAnnotation(unsigned index)
     arr->RemoveAt(index);
 }
 
-void PdfPage::DeleteAnnotation(PdfObject &annotObj)
+void PdfPage::DeleteAnnotation(PdfObject& annotObj)
 {
-    PdfArray *arr = GetAnnotationsArray();
+    PdfArray* arr = GetAnnotationsArray();
     if (arr == nullptr)
         return;
 
@@ -422,7 +385,7 @@ void PdfPage::DeleteAnnotation(PdfObject &annotObj)
     for (unsigned i = 0; i < arr->GetSize(); i++)
     {
         // CLEAN-ME: The following is ugly. Fix operator== in PdfOject and PdfVariant and use operator==
-        auto &obj = arr->FindAt(i);
+        auto& obj = arr->FindAt(i);
         if (&annotObj == &obj)
         {
             index = (int)i;
@@ -437,7 +400,7 @@ void PdfPage::DeleteAnnotation(PdfObject &annotObj)
     }
 
     // Delete any cached PdfAnnotations
-    auto found = m_mapAnnotations.find((PdfObject *)&annotObj);
+    auto found = m_mapAnnotations.find((PdfObject*)&annotObj);
     if (found != m_mapAnnotations.end())
     {
         delete found->second;
@@ -446,41 +409,41 @@ void PdfPage::DeleteAnnotation(PdfObject &annotObj)
 
     // Delete the PdfObject in the document
     if (annotObj.GetIndirectReference().IsIndirect())
-        GetObject()->GetDocument()->GetObjects().RemoveObject(annotObj.GetIndirectReference());
-    
+        GetObject().GetDocument()->GetObjects().RemoveObject(annotObj.GetIndirectReference());
+
     // Delete the annotation from the annotation array.
-	// Has to be performed at last
+    // Has to be performed at last
     arr->RemoveAt(index);
 }
 
 // added by Petr P. Petrov 21 Febrary 2010
 bool PdfPage::SetPageWidth(int newWidth)
 {
-    PdfObject*   pObjMediaBox;
-        
+    PdfObject* pObjMediaBox;
+
     // Take advantage of inherited values - walking up the tree if necessary
-    pObjMediaBox = const_cast<PdfObject*>(GetInheritedKeyFromObject( "MediaBox", this->GetObject() ));
-    
+    pObjMediaBox = const_cast<PdfObject*>(GetInheritedKeyFromObject("MediaBox", this->GetObject()));
+
     // assign the value of the box from the array
-    if ( pObjMediaBox && pObjMediaBox->IsArray() )
+    if (pObjMediaBox && pObjMediaBox->IsArray())
     {
-        auto &mediaBoxArr = pObjMediaBox->GetArray();
+        auto& mediaBoxArr = pObjMediaBox->GetArray();
 
         // in PdfRect::FromArray(), the Left value is subtracted from Width
         double dLeftMediaBox = mediaBoxArr[0].GetReal();
-        mediaBoxArr[2] = PdfObject( newWidth + dLeftMediaBox );
+        mediaBoxArr[2] = PdfObject(newWidth + dLeftMediaBox);
 
-        PdfObject*   pObjCropBox;
+        PdfObject* pObjCropBox;
 
         // Take advantage of inherited values - walking up the tree if necessary
-        pObjCropBox = const_cast<PdfObject*>(GetInheritedKeyFromObject( "CropBox", this->GetObject() ));
+        pObjCropBox = const_cast<PdfObject*>(GetInheritedKeyFromObject("CropBox", this->GetObject()));
 
-        if ( pObjCropBox && pObjCropBox->IsArray() )
+        if (pObjCropBox && pObjCropBox->IsArray())
         {
-            auto &cropBoxArr = pObjCropBox->GetArray();
+            auto& cropBoxArr = pObjCropBox->GetArray();
             // in PdfRect::FromArray(), the Left value is subtracted from Width
             double dLeftCropBox = cropBoxArr[0].GetReal();
-            cropBoxArr[2] = PdfObject( newWidth + dLeftCropBox );
+            cropBoxArr[2] = PdfObject(newWidth + dLeftCropBox);
             return true;
         }
         else
@@ -497,30 +460,30 @@ bool PdfPage::SetPageWidth(int newWidth)
 // added by Petr P. Petrov 21 Febrary 2010
 bool PdfPage::SetPageHeight(int newHeight)
 {
-    PdfObject*   pObj;
-        
+    PdfObject* pObj;
+
     // Take advantage of inherited values - walking up the tree if necessary
-    pObj = const_cast<PdfObject*>(GetInheritedKeyFromObject( "MediaBox", this->GetObject() ));
-    
+    pObj = const_cast<PdfObject*>(GetInheritedKeyFromObject("MediaBox", this->GetObject()));
+
     // assign the value of the box from the array
-    if ( pObj && pObj->IsArray() )
+    if (pObj && pObj->IsArray())
     {
-        auto &mediaBoxArr = pObj->GetArray();
+        auto& mediaBoxArr = pObj->GetArray();
         // in PdfRect::FromArray(), the Bottom value is subtracted from Height
         double dBottom = mediaBoxArr[1].GetReal();
         mediaBoxArr[3] = PdfObject(newHeight + dBottom);
 
-        PdfObject*   pObjCropBox;
+        PdfObject* pObjCropBox;
 
         // Take advantage of inherited values - walking up the tree if necessary
-        pObjCropBox = const_cast<PdfObject*>(GetInheritedKeyFromObject( "CropBox", this->GetObject() ));
+        pObjCropBox = const_cast<PdfObject*>(GetInheritedKeyFromObject("CropBox", this->GetObject()));
 
-        if ( pObjCropBox && pObjCropBox->IsArray() )
+        if (pObjCropBox && pObjCropBox->IsArray())
         {
-            auto &cropBoxArr = pObjCropBox->GetArray();
+            auto& cropBoxArr = pObjCropBox->GetArray();
             // in PdfRect::FromArray(), the Bottom value is subtracted from Height
             double dBottomCropBox = cropBoxArr[1].GetReal();
-            cropBoxArr[3] = PdfObject( newHeight + dBottomCropBox );
+            cropBoxArr[3] = PdfObject(newHeight + dBottomCropBox);
             return true;
         }
         else
@@ -534,59 +497,60 @@ bool PdfPage::SetPageHeight(int newHeight)
     }
 }
 
-void PdfPage::SetMediaBox(const PdfRect & rSize)
+void PdfPage::SetMediaBox(const PdfRect& rSize)
 {
     PdfVariant mediaBox;
     rSize.ToVariant(mediaBox);
-    this->GetObject()->GetDictionary().AddKey("MediaBox", mediaBox);
+    this->GetObject().GetDictionary().AddKey("MediaBox", mediaBox);
 }
 
-void PdfPage::SetTrimBox( const PdfRect & rSize )
+void PdfPage::SetTrimBox(const PdfRect& rSize)
 {
     PdfVariant trimbox;
-    rSize.ToVariant( trimbox );
-    this->GetObject()->GetDictionary().AddKey( "TrimBox", trimbox );
+    rSize.ToVariant(trimbox);
+    this->GetObject().GetDictionary().AddKey("TrimBox", trimbox);
 }
 
 unsigned PdfPage::GetPageNumber() const
 {
     unsigned nPageNumber = 0;
-    PdfObject*          pParent     = this->GetObject()->GetIndirectKey( "Parent" );
-    PdfReference ref                = this->GetObject()->GetIndirectReference();
+    PdfObject* pParent = this->GetObject().GetIndirectKey("Parent");
+    PdfReference ref = this->GetObject().GetIndirectReference();
 
     // CVE-2017-5852 - prevent infinite loop if Parent chain contains a loop
     // e.g. pParent->GetIndirectKey( "Parent" ) == pParent or pParent->GetIndirectKey( "Parent" )->GetIndirectKey( "Parent" ) == pParent
     constexpr unsigned maxRecursionDepth = 1000;
     unsigned depth = 0;
 
-    while( pParent ) 
+    while (pParent)
     {
-        PdfObject* pKids = pParent->GetIndirectKey( "Kids" );
-        if ( pKids != nullptr )
+        PdfObject* pKids = pParent->GetIndirectKey("Kids");
+        if (pKids != nullptr)
         {
             const PdfArray& kids = pKids->GetArray();
-            for (auto &child : kids)
+            for (auto& child : kids)
             {
                 if (child.GetReference() == ref)
                     break;
 
-                PdfObject* pNode = this->GetObject()->GetDocument()->GetObjects().GetObject(child.GetReference() );
-                if (!pNode)
+                PdfObject* pNode = this->GetObject().GetDocument()->GetObjects().GetObject(child.GetReference());
+                if (pNode == nullptr)
                 {
                     std::ostringstream oss;
                     oss << "Object " << child.GetReference().ToString() << " not found from Kids array "
-                        << pKids->GetIndirectReference().ToString(); 
-                    PODOFO_RAISE_ERROR_INFO( EPdfError::NoObject, oss.str() );
+                        << pKids->GetIndirectReference().ToString();
+                    PODOFO_RAISE_ERROR_INFO(EPdfError::NoObject, oss.str());
                 }
 
-                if( pNode->GetDictionary().GetKey( PdfName::KeyType ) != nullptr 
-                    && pNode->GetDictionary().GetKey( PdfName::KeyType )->GetName() == PdfName( "Pages" ) )
+                if (pNode->GetDictionary().GetKey(PdfName::KeyType) != nullptr
+                    && pNode->GetDictionary().GetKey(PdfName::KeyType)->GetName() == PdfName("Pages"))
                 {
-                    PdfObject* pCount = pNode->GetIndirectKey( "Count" );
-                    if( pCount != nullptr ) {
+                    PdfObject* pCount = pNode->GetIndirectKey("Count");
+                    if (pCount != nullptr)
                         nPageNumber += static_cast<int>(pCount->GetNumber());
-                    }
-                } else {
+                }
+                else
+                {
                     // if we do not have a page tree node, 
                     // we most likely have a page object:
                     // so the page count is 1
@@ -595,13 +559,13 @@ unsigned PdfPage::GetPageNumber() const
             }
         }
 
-        ref     = pParent->GetIndirectReference();
-        pParent = pParent->GetIndirectKey( "Parent" );
+        ref = pParent->GetIndirectReference();
+        pParent = pParent->GetIndirectKey("Parent");
         ++depth;
 
-        if ( depth > maxRecursionDepth )
+        if (depth > maxRecursionDepth)
         {
-            PODOFO_RAISE_ERROR_INFO( EPdfError::BrokenFile, "Loop in Parent chain" );
+            PODOFO_RAISE_ERROR_INFO(EPdfError::BrokenFile, "Loop in Parent chain");
         }
     }
 
@@ -625,7 +589,7 @@ PdfObject* PdfPage::GetFromResources( const PdfName & rType, const PdfName & rKe
             if (pObj->IsReference())
             {
                 const PdfReference & ref = pType->GetDictionary().GetKey( rKey )->GetReference();
-                return this->GetObject()->GetDocument()->GetObjects().GetObject( ref );
+                return this->GetObject().GetDocument()->GetObjects().GetObject( ref );
             }
             return pObj; // END
         }
@@ -634,33 +598,76 @@ PdfObject* PdfPage::GetFromResources( const PdfName & rType, const PdfName & rKe
     return nullptr;
 }
 
-void PdfPage::SetICCProfile( const char *pszCSTag, PdfInputStream *pStream, int64_t nColorComponents, EPdfColorSpace eAlternateColorSpace )
+void PdfPage::SetICCProfile(const string_view& csTag, PdfInputStream& stream,
+    int64_t colorComponents, PdfColorSpace alternateColorSpace)
 {
     // Check nColorComponents for a valid value
-    if ( nColorComponents != 1 &&
-         nColorComponents != 3 &&
-         nColorComponents != 4 )
+    if (colorComponents != 1 &&
+        colorComponents != 3 &&
+        colorComponents != 4)
     {
-        PODOFO_RAISE_ERROR_INFO( EPdfError::ValueOutOfRange, "SetICCProfile nColorComponents must be 1, 3 or 4!" );
+        PODOFO_RAISE_ERROR_INFO(EPdfError::ValueOutOfRange, "SetICCProfile nColorComponents must be 1, 3 or 4!");
     }
 
     // Create a colorspace object
-    PdfObject* iccObject = this->GetObject()->GetDocument()->GetObjects().CreateDictionaryObject();
-    PdfName nameForCS = PdfColor::GetNameForColorSpace( eAlternateColorSpace );
-    iccObject->GetDictionary().AddKey( PdfName("Alternate"), nameForCS );
-    iccObject->GetDictionary().AddKey( PdfName("N"), nColorComponents );
-    iccObject->GetOrCreateStream().Set( pStream );
+    PdfObject* iccObject = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject();
+    PdfName nameForCS = PdfColor::GetNameForColorSpace(alternateColorSpace);
+    iccObject->GetDictionary().AddKey(PdfName("Alternate"), nameForCS);
+    iccObject->GetDictionary().AddKey(PdfName("N"), colorComponents);
+    iccObject->GetOrCreateStream().Set(stream);
 
     // Add the colorspace
     PdfArray array;
-    array.push_back( PdfName("ICCBased") );
-    array.push_back( iccObject->GetIndirectReference() );
+    array.push_back(PdfName("ICCBased"));
+    array.push_back(iccObject->GetIndirectReference());
 
     PoDoFo::PdfDictionary iccBasedDictionary;
-    iccBasedDictionary.AddKey( PdfName(pszCSTag), array );
+    iccBasedDictionary.AddKey(csTag, array);
 
     // Add the colorspace to resource
-    GetResources()->GetDictionary().AddKey( PdfName("ColorSpace"), iccBasedDictionary );
+    GetResources().GetDictionary().AddKey(PdfName("ColorSpace"), iccBasedDictionary);
+}
+
+PdfObject& PdfPage::GetContents()
+{
+    EnsureContentsCreated();
+    return m_contents->GetContents();
+}
+
+PdfObject& PdfPage::GetResources()
+{
+    EnsureResourcesCreated();
+    return *m_pResources;
+}
+
+PdfRect PdfPage::GetMediaBox() const
+{
+    return GetPageBox("MediaBox");
+}
+
+PdfRect PdfPage::GetCropBox() const
+{
+    return GetPageBox("CropBox");
+}
+
+PdfRect PdfPage::GetTrimBox() const
+{
+    return GetPageBox("TrimBox");
+}
+
+PdfRect PdfPage::GetBleedBox() const
+{
+    return GetPageBox("BleedBox");
+}
+
+PdfRect PdfPage::GetArtBox() const
+{
+    return GetPageBox("ArtBox");
+}
+
+const PdfObject* PdfPage::GetInheritedKey(const PdfName& rName) const
+{
+    return this->GetInheritedKeyFromObject(rName.GetString().c_str(), this->GetObject());
 }
 
 // https://stackoverflow.com/a/2021986/213871

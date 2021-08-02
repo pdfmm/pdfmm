@@ -1,55 +1,33 @@
-/***************************************************************************
- *   Copyright (C) 2008 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2008 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
+#include "PdfDefinesPrivate.h"
 #include "PdfDifferenceEncoding.h"
 
-#include "base/PdfDefinesPrivate.h"
-
-#include "base/PdfArray.h"
-#include "base/PdfDictionary.h"
-
-#include "PdfFont.h"
-
-#include <cstdlib>
-#include <cstring>
 #include <sstream>
 #include <algorithm>
 
+#include <utfcpp/utf8.h>
+
+#include "PdfArray.h"
+#include "PdfDictionary.h"
+#include "PdfPredefinedEncoding.h"
+#include "PdfEncodingMapFactory.h"
+#include "PdfVecObjects.h"
+
+#include "doc/PdfFont.h"
+
+using namespace std;
 using namespace PoDoFo;
 
 static struct
 {
-    pdf_utf16be u; // in fact this might be little endian on LE systems
+    char32_t u; // in fact this might be little endian on LE systems
     const char *name;
 } nameToUnicodeTab[] = {
   {0x0021, "!"},
@@ -1144,7 +1122,7 @@ static struct
 };
 
 static struct {
-    pdf_utf16be u;
+    char32_t u;
     const char *name;
 } UnicodeToNameTab[] = {    
     {0x0000, ".notdef"},
@@ -2202,43 +2180,31 @@ static struct {
     {0xFFFF, nullptr}
 };
 
-PdfEncodingDifference::PdfEncodingDifference()
+PdfEncodingDifference::PdfEncodingDifference() { }
+
+PdfEncodingDifference::PdfEncodingDifference(const PdfEncodingDifference& rhs)
 {
+    this->operator=(rhs);
 }
 
-PdfEncodingDifference::PdfEncodingDifference( const PdfEncodingDifference & rhs )
-{
-    this->operator=( rhs );
-}
-
-const PdfEncodingDifference & PdfEncodingDifference::operator=( const PdfEncodingDifference & rhs )
+const PdfEncodingDifference& PdfEncodingDifference::operator=(const PdfEncodingDifference& rhs)
 {
     m_vecDifferences = rhs.m_vecDifferences;
-
     return *this;
 }
 
-void PdfEncodingDifference::AddDifference( int nCode, pdf_utf16be unicodeValue )
+void PdfEncodingDifference::AddDifference(unsigned char code, char32_t codePoint)
 {
-    pdf_utf16be inCodePoint = unicodeValue;
-
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-    inCodePoint = ((inCodePoint & 0xff00) >> 8) | ((inCodePoint & 0xff) << 8);
-#endif // PODOFO_IS_LITTLE_ENDIAN
-
-    this->AddDifference( nCode, unicodeValue, PdfDifferenceEncoding::UnicodeIDToName( inCodePoint ) );
+    this->AddDifference(code, codePoint, PdfDifferenceEncoding::UnicodeIDToName(codePoint));
 }
 
-void PdfEncodingDifference::AddDifference( int nCode, pdf_utf16be unicodeValue, const PdfName & rName, bool bExplicitNames )
+void PdfEncodingDifference::AddDifference(unsigned char code, char32_t codePoint,
+    const PdfName& name, bool explicitNames)
 {
-    if( nCode > 255 || nCode < 0 ) 
-    {
-        PODOFO_RAISE_ERROR( EPdfError::ValueOutOfRange );
-    }
+    Difference dif;
+    dif.Code = code;
+    dif.Name = name;
 
-    TDifference dif;
-    dif.nCode        = nCode;
-    dif.name         = rName;
     // In type3 fonts, glyph names are explicit keys from the font's CharProcs
     // dictionary, therefore they have no meaning.
     // By setting unicodeValue to nCode, we keep PdfEncodingDifference::Contains
@@ -2246,160 +2212,125 @@ void PdfEncodingDifference::AddDifference( int nCode, pdf_utf16be unicodeValue, 
     // after looking it up in the unicode tables. This allows us, provided the
     // font's encoding is unicode-compatible, to preserve the characters' codes
     // in the process. This seems to be Adobe Reader's behaviour as well.
-    if (bExplicitNames) {
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-        dif.unicodeValue = ((nCode & 0xff00) >> 8) | ((nCode & 0xff) << 8);
-#else
-        dif.unicodeValue = nCode;
-#endif // PODOFO_IS_LITTLE_ENDIAN
-    } else {
-        dif.unicodeValue = unicodeValue;
-    }
+    if (explicitNames)
+        dif.CodePoint = code;
+    else
+        dif.CodePoint = codePoint;
 
-    std::pair<TIVecDifferences,TCIVecDifferences> it = 
-        std::equal_range( m_vecDifferences.begin(), m_vecDifferences.end(), dif, DifferenceComparatorPredicate() );
+    pair<iterator, iterator> it =
+        std::equal_range(m_vecDifferences.begin(), m_vecDifferences.end(), dif, DifferenceComparatorPredicate());
 
-    if( it.first != it.second )
+    if (it.first != it.second)
     {
         // replace existing object
-        *(it.first) = dif;
+        *it.first = dif;
     }
     else
     {
-        m_vecDifferences.insert( it.first, dif );
+        m_vecDifferences.insert(it.first, dif);
     }
 }
 
-
-bool PdfEncodingDifference::Contains( int nCode, PdfName & rName, pdf_utf16be & rValue ) const
+bool PdfEncodingDifference::Contains(unsigned char code, PdfName& name, char32_t& codePoint) const
 {
-    TDifference dif;
-    dif.nCode = nCode;
+    return const_cast<PdfEncodingDifference&>(*this).contains(code, name, codePoint);
+}
 
-    std::pair<TIVecDifferences,TIVecDifferences> it = 
-        std::equal_range( const_cast<PdfEncodingDifference*>(this)->m_vecDifferences.begin(), 
-                          const_cast<PdfEncodingDifference*>(this)->m_vecDifferences.end(), 
-                          dif, DifferenceComparatorPredicate() );
+bool PdfEncodingDifference::contains(unsigned char code, PdfName& name, char32_t& codePoint)
+{
+    Difference diff;
+    diff.Code = code;
 
-    if( it.first != it.second )
+    pair<iterator, iterator> it =
+        std::equal_range(m_vecDifferences.begin(), m_vecDifferences.end(),
+            diff, DifferenceComparatorPredicate());
+
+    if (it.first != it.second)
     {
-        rName  = (*(it.first)).name;
-        if( !(*(it.first)).unicodeValue )
+        name = it.first->Name;
+        if (it.first->CodePoint != 0)
+        {
             // Field is not yet initialized,
             // initialize it now, so that we only
             // compute the value if it is needed.
-            (*(it.first)).unicodeValue = PdfDifferenceEncoding::NameToUnicodeID( rName );
+            it.first->CodePoint = PdfDifferenceEncoding::NameToUnicodeID(name);
+        }
 
-        rValue = (*(it.first)).unicodeValue;
-        
+        codePoint = it.first->CodePoint;
+
         return true;
     }
 
     return false;
 }
 
-bool PdfEncodingDifference::ContainsUnicodeValue( pdf_utf16be unicodeValue, char &rValue ) const
+bool PdfEncodingDifference::ContainsUnicodeValue(char32_t codePoint, unsigned char& code) const
 {
-	TCIVecDifferences it, end = m_vecDifferences.end();
-	for (it = m_vecDifferences.begin(); it != end; it++) {
-		pdf_utf16be uv = it->unicodeValue;
-		if (uv == unicodeValue) {
-			rValue = it->nCode;
-			return true;
-		}
-	}
+    for (auto &diff : m_vecDifferences)
+    {
+        if (diff.CodePoint == codePoint)
+        {
+            code = diff.Code;
+            return true;
+        }
+    }
 
-	return false;
+    return false;
 }
 
-void PdfEncodingDifference::ToArray( PdfArray & rArray )
+void PdfEncodingDifference::ToArray(PdfArray& arr) const
 {
     int64_t nLastCode = -2;
-
-    rArray.Clear();
-
-    TCIVecDifferences it = m_vecDifferences.begin();
-    while( it != m_vecDifferences.end() )
+    arr.Clear();
+    for (auto &diff : m_vecDifferences)
     {
-        if( (*it).nCode != nLastCode + 1 ) 
+        if (diff.Code != nLastCode + 1)
         {
-            nLastCode = (*it).nCode;
+            nLastCode = diff.Code;
 
-            rArray.push_back( nLastCode );
-            rArray.push_back( (*it).name );
+            arr.push_back(nLastCode);
+            arr.push_back(diff.Name);
         }
         else
         {
-            ++nLastCode;
-            rArray.push_back( (*it).name );
+            nLastCode++;
+            arr.push_back(diff.Name);
         }
-
-        ++it;
     }
 }
 
-PdfDifferenceEncoding::PdfDifferenceEncoding( const PdfEncodingDifference & rDifference, PdfDocument* pParent, bool bAutoDelete )
-    : PdfEncoding( 0x00, 0xff ), PdfElement(*pParent, "Encoding"),
-      m_differences( rDifference ),
-      m_bAutoDelete( bAutoDelete ), 
-      m_baseEncoding( EBaseEncoding::Font )
+size_t PdfEncodingDifference::GetCount() const
 {
-    Init();
+    return m_vecDifferences.size();
 }
 
-PdfDifferenceEncoding::PdfDifferenceEncoding( const PdfEncodingDifference & rDifference, PdfVecObjects* pParent, bool bAutoDelete )
-    : PdfEncoding( 0x00, 0xff ), PdfElement(*pParent, "Encoding"),
-      m_differences( rDifference ),
-      m_bAutoDelete( bAutoDelete ), 
-      m_baseEncoding( EBaseEncoding::Font )
+PdfDifferenceEncoding::PdfDifferenceEncoding(const PdfEncodingDifference& difference,
+        EBaseEncoding eBaseEncoding) :
+    PdfEncodingMapSimple({ 1, 1, PdfCharCode(0), PdfCharCode(0xFF) }),
+    m_differences(difference),
+    m_baseEncoding(eBaseEncoding)
 {
-    Init();
 }
 
-PdfDifferenceEncoding::PdfDifferenceEncoding( const PdfEncodingDifference & rDifference, EBaseEncoding eBaseEncoding, 
-                                              PdfDocument* pParent, bool bAutoDelete )
-    : PdfEncoding( 0x00, 0xff ), PdfElement(*pParent, "Encoding"),
-      m_differences( rDifference ),
-      m_bAutoDelete( bAutoDelete ), 
-      m_baseEncoding( eBaseEncoding )
+PdfDifferenceEncoding::PdfDifferenceEncoding(const PdfObject& obj, bool explicitNames) :
+    PdfEncodingMapSimple({ 1, 1, PdfCharCode(0), PdfCharCode(0xFF) })
 {
-    Init();
-}
-
-PdfDifferenceEncoding::PdfDifferenceEncoding( const PdfEncodingDifference & rDifference, EBaseEncoding eBaseEncoding, 
-                                              PdfVecObjects* pParent, bool bAutoDelete )
-    : PdfEncoding( 0x00, 0xff ), PdfElement(*pParent, "Encoding"),
-      m_differences( rDifference ),
-      m_bAutoDelete( bAutoDelete ), 
-      m_baseEncoding( eBaseEncoding )
-{
-    Init();
-}
-
-PdfDifferenceEncoding::PdfDifferenceEncoding( PdfObject* pObject, bool bAutoDelete, bool bExplicitNames )
-    : PdfEncoding( 0x00, 0xff ), PdfElement(*pObject),
-      m_bAutoDelete( bAutoDelete )
-{
-    CreateID();
-    
-    m_baseEncoding = EBaseEncoding::WinAnsi;
-
-    if( this->GetObject()->GetDictionary().HasKey("BaseEncoding") )
+    m_baseEncoding = EBaseEncoding::Implicit;
+    if (obj.GetDictionary().HasKey("BaseEncoding"))
     {
-        const PdfName & rBase = this->GetObject()->GetDictionary().GetKey("BaseEncoding")->GetName();
-        
-        if( rBase == "WinAnsiEncoding")
+        const PdfName& baseEncodingName = obj.GetDictionary().FindKey("BaseEncoding")->GetName();
+        if (baseEncodingName == "WinAnsiEncoding")
             m_baseEncoding = EBaseEncoding::WinAnsi;
-        else if( rBase == "MacRomanEncoding")
+        else if (baseEncodingName == "MacRomanEncoding")
             m_baseEncoding = EBaseEncoding::MacRoman;
-        else if( rBase == "MacExpertEncoding")
+        else if (baseEncodingName == "MacExpertEncoding")
             m_baseEncoding = EBaseEncoding::MacExpert;
-    }    
+    }
 
     // Read the differences key
-    if( this->GetObject()->GetDictionary().HasKey("Differences") )
+    if (obj.GetDictionary().HasKey("Differences"))
     {
-        const PdfArray & rDifferences = this->GetObject()->GetIndirectKey("Differences")->GetArray();
+        const PdfArray& rDifferences = obj.GetIndirectKey("Differences")->GetArray();
         int64_t curCode = -1;
         for (auto& diff : rDifferences)
         {
@@ -2409,272 +2340,143 @@ PdfDifferenceEncoding::PdfDifferenceEncoding( PdfObject* pObject, bool bAutoDele
             }
             else if (diff.IsName())
             {
-                m_differences.AddDifference(static_cast<int>(curCode), 0, diff.GetName(), bExplicitNames);
+                m_differences.AddDifference(static_cast<unsigned>(curCode), 0, diff.GetName(), explicitNames);
                 ++curCode;
             }
         }
     }
 }
 
-void PdfDifferenceEncoding::CreateID() 
+void PdfDifferenceEncoding::getExportObject(PdfVecObjects& objects, PdfName& name, PdfObject*& obj) const
 {
-    std::ostringstream oss;
-    oss << "/DifferencesEncoding" << this->GetObject()->GetIndirectReference().ObjectNumber() 
-        << "_" << this->GetObject()->GetIndirectReference().GenerationNumber();
-
-    m_id = PdfName( oss.str() );    
-}
-
-void PdfDifferenceEncoding::Init()
-{
-    CreateID();
-
-    switch( m_baseEncoding ) 
+    obj = objects.CreateDictionaryObject();
+    auto& dict = obj->GetDictionary();
+    switch (m_baseEncoding)
     {
         case EBaseEncoding::WinAnsi:
-            this->GetObject()->GetDictionary().AddKey( PdfName("BaseEncoding"),
-                                               PdfName("WinAnsiEncoding") );
+            dict.AddKey("BaseEncoding", PdfName("WinAnsiEncoding"));
             break;
-
         case EBaseEncoding::MacRoman:
-            this->GetObject()->GetDictionary().AddKey( PdfName("BaseEncoding"),
-                                               PdfName("MacRomanEncoding") );
+            dict.AddKey("BaseEncoding", PdfName("MacRomanEncoding"));
             break;
         case EBaseEncoding::MacExpert:
-            this->GetObject()->GetDictionary().AddKey( PdfName("BaseEncoding"),
-                                               PdfName("MacExpertEncoding") );
+            dict.AddKey("BaseEncoding", PdfName("MacExpertEncoding"));
             break;
 
-        case EBaseEncoding::Font:
+        case EBaseEncoding::Implicit:
         default:
             break;
     }
 
-    if( m_differences.GetCount() ) 
+    if (m_differences.GetCount())
     {
         PdfArray differences;
-        m_differences.ToArray( differences );
-    
-        this->GetObject()->GetDictionary().AddKey( PdfName("Differences"), differences );
-    }                      
-}
-
-void PdfDifferenceEncoding::AddToDictionary( PdfDictionary & rDictionary ) const
-{
-    rDictionary.AddKeyIndirect( PdfName("Encoding"), *this->GetObject());
-}
-
-pdf_utf16be PdfDifferenceEncoding::GetCharCode( int nIndex ) const
-{
-    if( nIndex < this->GetFirstChar() ||
-        nIndex > this->GetLastChar() )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::ValueOutOfRange );
+        m_differences.ToArray(differences);
+        dict.AddKey("Differences", differences);
     }
+}
 
-    PdfName     name;
-    pdf_utf16be value;
-    if( m_differences.Contains( nIndex, name, value ) )
+bool PdfDifferenceEncoding::tryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const
+{
+    unsigned char value;
+    if (m_differences.ContainsUnicodeValue(codePoint, value))
     {
-	return value;
+        codeUnit = { value, 1 };
+        return true;
     }
     else
     {
-	const PdfEncoding* pEncoding = this->GetBaseEncoding();
-	return pEncoding->GetCharCode( nIndex ); 
+        auto& encoding = this->GetBaseEncoding();
+        return encoding.TryGetCharCode(codePoint, codeUnit);
     }
 }
 
-pdf_utf16be PdfDifferenceEncoding::NameToUnicodeID( const PdfName & rName )
+bool PdfDifferenceEncoding::tryGetCodePoints(const PdfCharCode& codeUnit, vector<char32_t>& codePoints) const
 {
-    const char* pszName = rName.GetString().c_str();
-
-    for( int i = 0; nameToUnicodeTab[i].name; ++i) 
+    PODOFO_ASSERT(codeUnit.Code < 256);
+    auto& encoding = this->GetBaseEncoding();
+    PdfName name;
+    char32_t codePoint;
+    if (m_differences.Contains((unsigned char)codeUnit.Code, name, codePoint))
     {
-        if ( strcmp( nameToUnicodeTab[i].name, pszName ) == 0 )
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-            return ((nameToUnicodeTab[i].u & 0xff00) >> 8) | ((nameToUnicodeTab[i].u & 0xff) << 8);
-#else
+        utf8::append(codePoint, std::back_inserter(codePoints));
+        return true;
+    }
+    else
+    {
+        return encoding.TryGetCodePoints(codeUnit, codePoints);
+    }
+}
+
+char32_t PdfDifferenceEncoding::NameToUnicodeID(const PdfName& name)
+{
+    return NameToUnicodeID((string_view)name.GetString());
+}
+
+char32_t PdfDifferenceEncoding::NameToUnicodeID(const string_view& name)
+{
+    for (unsigned i = 0; nameToUnicodeTab[i].name != nullptr; ++i)
+    {
+        if (nameToUnicodeTab[i].name == name)
             return nameToUnicodeTab[i].u;
-#endif // PODOFO_IS_LITTLE_ENDIAN
     }
 
     // if we get here, then we might be looking up an undefined codepoint
     // so try looking for our special format..
-    if( strncmp( "uni", pszName, 3 ) == 0 ) 
+    if (name.substr(0, 3) == "uni")
     {
-        pszName += 3; // remove "uni"
-        size_t length = strlen( pszName );
-
+        auto code = name.substr(3);
         // force base16 IF it's 4 characters line
-        pdf_utf16be val = static_cast<pdf_utf16be>(strtol( pszName, nullptr, (length == 4 ? 16 : 10) ));
-
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-        return val = ((val & 0xff00) >> 8) | ((val & 0xff) << 8);
-#else
+        char32_t val = static_cast<char32_t>(strtol(code.data(), nullptr, (code.length() == 4 ? 16 : 10)));
         return val;
-#endif // PODOFO_IS_LITTLE_ENDIAN
     }
 
-    return 0;
+    return U'\0';
 }
 
-PdfName PdfDifferenceEncoding::UnicodeIDToName( pdf_utf16be inCodePoint )
+PdfName PdfDifferenceEncoding::UnicodeIDToName(char32_t inCodePoint)
 {
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-    inCodePoint = ((inCodePoint & 0xff00) >> 8) | ((inCodePoint & 0xff) << 8);
-#endif // PODOFO_IS_LITTLE_ENDIAN
-
-    int i;
-	for( i = 0; UnicodeToNameTab[i].name; ++i) 
+    for (unsigned i = 0; UnicodeToNameTab[i].name; ++i)
     {
-        if ( UnicodeToNameTab[i].u == inCodePoint ) 
-            return PdfName( UnicodeToNameTab[i].name );
+        if (UnicodeToNameTab[i].u == inCodePoint)
+            return PdfName(UnicodeToNameTab[i].name);
     }
 
     // if we can't find in the canonical list, look in the complete list
-    for ( i = 0; nameToUnicodeTab[i].name; ++i) 
+    for (unsigned i = 0; nameToUnicodeTab[i].name; ++i)
     {
-        if ( nameToUnicodeTab[i].u == inCodePoint )
-            return PdfName( UnicodeToNameTab[i].name );
+        if (nameToUnicodeTab[i].u == inCodePoint)
+            return PdfName(UnicodeToNameTab[i].name);
     }
 
     // if we get here, then we are looking up an undefined codepoint
     // so we'll just give it SOME name..
-    const int BUFFER_LEN = 8;
+    constexpr unsigned BUFFER_LEN = 11;
     char buffer[BUFFER_LEN];
-    snprintf( buffer, BUFFER_LEN, "uni%04x", inCodePoint );
-
-    return PdfName( buffer );
-    //return PdfName(".notdef");
+    snprintf(buffer, BUFFER_LEN, "cp0x%x", (unsigned)inCodePoint);
+    return PdfName(buffer);
 }
 
-PdfString PdfDifferenceEncoding::ConvertToUnicode( const PdfString & rEncodedString, 
-                                                   const PdfFont* pFont ) const
+const PdfEncodingMap& PdfDifferenceEncoding::GetBaseEncoding() const
 {
-    const PdfEncoding* pEncoding = GetBaseEncoding();
-    
-    PdfString str  = pEncoding->ConvertToUnicode( rEncodedString, pFont );
-    size_t lLen = str.GetCharacterLength();
-
-    pdf_utf16be* pszUtf16 = static_cast<pdf_utf16be*>(podofo_calloc(lLen, sizeof(pdf_utf16be)));
-    if( !pszUtf16 )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
-    }
-
-    memcpy( pszUtf16, str.GetUnicode(), lLen * sizeof(pdf_utf16be) );
-    const unsigned char* pszInput = (const unsigned char*) rEncodedString.GetString();
-    for( size_t i = 0; i < lLen; i++ ) 
-    {
-        PdfName     name;
-        pdf_utf16be value;
-        //TODO: This method should take uint8_t instead of int because of its
-        // domain (0 to 255) for 1st param, but PoDoFo still has known security
-        // issues so an API change is a Bad Thing (mabri: IMO at least) to do now.
-        if( m_differences.Contains( static_cast<int>(pszInput[i]), name, value ) )
-            pszUtf16[i] = value;
-    }
-
-    PdfString ret( pszUtf16, lLen );
-    podofo_free( pszUtf16 );
-
-    return ret;
-}
-
-PdfRefCountedBuffer PdfDifferenceEncoding::ConvertToEncoding( const PdfString & rString, const PdfFont* /*pFont*/ ) const
-{
-    const PdfEncoding* pEncoding = GetBaseEncoding();
-
-    pdf_utf16be* pszUtf16 = nullptr;
-    size_t lLen = 0;
-
-    if( rString.IsUnicode() )
-    {
-        lLen = rString.GetCharacterLength();
-        if( !lLen )
-             return PdfRefCountedBuffer();
-        pszUtf16 = static_cast<pdf_utf16be*>(podofo_calloc(lLen,sizeof(pdf_utf16be)));
-        if( !pszUtf16 )
-        {
-            PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
-        }
-        memcpy( pszUtf16, rString.GetUnicode(), lLen * sizeof(pdf_utf16be) );
-    }
-    else
-    {
-        // Only do a copy if we really have to
-        PdfString str = rString.ToUnicode();
-        lLen = str.GetCharacterLength();
-        if( !lLen )
-            return PdfRefCountedBuffer();
-        pszUtf16 = static_cast<pdf_utf16be*>(podofo_calloc(lLen,sizeof(pdf_utf16be)));
-        if( !pszUtf16 )
-        {
-            PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
-        }
-        memcpy( pszUtf16, str.GetUnicode(), lLen * sizeof(pdf_utf16be) );
-    }
-
-    char* pDest = static_cast<char*>(podofo_calloc( (lLen + 1), sizeof(char) ));
-    if( !pDest ) 
-    {
-        PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
-    }
-
-    char *pCur = pDest;
-    long lNewLen = 0L;
-
-    for(size_t i = 0; i < lLen ; i++) 
-    {
-        pdf_utf16be val = pszUtf16[i];
-
-        if (!m_differences.ContainsUnicodeValue(val, *pCur))
-	{
-            *pCur = static_cast<const PdfSimpleEncoding *>(pEncoding)->GetUnicodeCharCode(val);
-	}
-	  
-        if( *pCur) // ignore 0 characters, as they cannot be converted to the current encoding
-        {
-            ++pCur; 
-            ++lNewLen;
-        }
-    }
-
-    *pCur = '\0';
-
-    PdfRefCountedBuffer cDest( lNewLen );
-    memcpy( cDest.GetBuffer(), pDest, lNewLen );
-    podofo_free( pDest );
-    podofo_free( pszUtf16 );
-
-    return cDest;
-}
-
-const PdfEncoding* PdfDifferenceEncoding::GetBaseEncoding() const
-{
-    const PdfEncoding* pEncoding = nullptr;
-
-    switch( m_baseEncoding ) 
+    switch (m_baseEncoding)
     {
         case EBaseEncoding::WinAnsi:
-            pEncoding = PdfEncodingFactory::GlobalWinAnsiEncodingInstance();
-            break;
+            return *PdfEncodingMapFactory::WinAnsiEncodingInstance().get();
 
         case EBaseEncoding::MacRoman:
-            pEncoding = PdfEncodingFactory::GlobalMacRomanEncodingInstance();
-            break;
+            return *PdfEncodingMapFactory::MacRomanEncodingInstance().get();
 
         case EBaseEncoding::MacExpert:
-        case EBaseEncoding::Font:
+            return *PdfEncodingMapFactory::MacExpertEncodingInstance().get();
+
+        case EBaseEncoding::Implicit:
         default:
-            break;
+            // TODO: Implicit base encoding can be:
+            // 1) An encoding stored in the font program (see PdfFontType1Encoding)
+            // 2) The implicit encoding of a base14 font.
+            // Improve PdfDifferenceEncoding so it can retrieve the encoding in such
+            // cases
+            PODOFO_RAISE_ERROR_INFO(EPdfError::NotImplemented, "Not implemented");
     }
-
-    if( !pEncoding ) 
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
-
-    return pEncoding;
 }

@@ -1,7 +1,5 @@
-#ifndef _EXPERIMENTAL_OPTIONAL_H_
-#define _EXPERIMENTAL_OPTIONAL_H_
-
-#include <podofo/base/PdfCompilerCompat.h>
+#ifndef COMPAT_OPTIONAL_H
+#define COMPAT_OPTIONAL_H
 
 #ifdef HAVE_STD_EXPERIMENTAL_OPTIONAL
 
@@ -17,4 +15,4 @@ namespace std
 #include <optional>
 #endif // HAVE_STD_EXPERIMENTAL_OPTIONAL
 
-#endif // _EXPERIMENTAL_OPTIONAL_H_
+#endif // COMPAT_OPTIONAL_H

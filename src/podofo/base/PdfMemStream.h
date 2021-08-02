@@ -1,44 +1,15 @@
-/***************************************************************************
- *   Copyright (C) 2007 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *   Copyright (C) 2020 by Francesco Pretto                                *
- *   ceztko@gmail.com                                                      *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2007 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
-#ifndef _PDF_MEM_STREAM_H_
-#define _PDF_MEM_STREAM_H_
+#ifndef PDF_MEM_STREAM_H
+#define PDF_MEM_STREAM_H
 
 #include "PdfDefines.h"
-
-#include <memory>
 
 #include "PdfStream.h"
 #include "PdfDictionary.h"
@@ -70,31 +41,17 @@ public:
      *  This constructor will be called by PdfObject::Stream() for you.
      *  \param pParent parent object
      */
-    PdfMemStream( PdfObject* pParent );
+    PdfMemStream(PdfObject& parent);
 
-    /** Write the stream to an output device
-     *  \param pDevice write to this outputdevice.
-     *  \param pEncrypt encrypt stream data using this object
-     */
-    void Write(PdfOutputDevice& pDevice, const PdfEncrypt* pEncrypt) override;
+    ~PdfMemStream();
 
-    /** Get a malloced buffer of the current stream.
-     *  No filters will be applied to the buffer, so
-     *  if the stream is Flate compressed the compressed copy
-     *  will be returned.
-     *
-     *  The caller has to podofo_free() the buffer.
-     *
-     *  \param pBuffer pointer to where the buffer's address will be stored
-     *  \param lLen    pointer to the buffer length (output parameter)
-     */
-    void GetCopy( char** pBuffer, size_t* lLen ) const override;
+    void Write(PdfOutputDevice& device, const PdfEncrypt* encrypt) override;
 
-    /** Get a copy of a the stream and write it to a PdfOutputStream
-     *
-     *  \param pStream data is written to this stream.
-     */
-    void GetCopy( PdfOutputStream* pStream ) const override;
+    void GetCopy(char** buffer, size_t* lLen) const override;
+
+    void GetCopy(PdfOutputStream& stream) const override;
+
+    size_t GetLength() const override;
 
     /** Get a read-only handle to the current stream data.
      *  The data will not be filtered before being returned, so (eg) calling
@@ -108,64 +65,28 @@ public:
      */
     const char* Get() const;
 
-    /** Get the stream's length. The length is that of the internal
-     *  stream buffer, so (eg) for a Flate-compressed stream it will be
-     *  the length of the compressed data.
-     *
-     *  \returns the length of the internal buffer
-     *  \see Get()
-     */
-    size_t GetLength() const override;
-
-    const PdfMemStream & operator=(const PdfMemStream & rhs);
-    const PdfMemStream & operator=(const PdfStream & rhs);
+    const PdfMemStream& operator=(const PdfMemStream& rhs);
+    const PdfMemStream& operator=(const PdfStream& rhs);
 
  protected:
-    /** Required for the GetFilteredCopy implementation
-     *  \returns a handle to the internal buffer
-     */
     const char* GetInternalBuffer() const override;
-
-    /** Required for the GetFilteredCopy implementation
-     *  \returns the size of the internal buffer
-     */
     size_t GetInternalBufferSize() const override;
-
-    /** Begin appending data to this stream.
-     *  Clears the current stream contents.
-     *
-     *  \param vecFilters use this filters to encode any data written to the stream.
-     */
-    void BeginAppendImpl( const TVecFilters & vecFilters ) override;
-
-    /** Append a binary buffer to the current stream contents.
-     *
-     *  \param data a buffer
-     *  \param lLen length of the buffer
-     *
-     *  \see BeginAppend
-     *  \see Append
-     *  \see EndAppend
-     */
+    void BeginAppendImpl(const TVecFilters& vecFilters) override;
     void AppendImpl(const char* data, size_t len) override;
-
-    /** Finish appending data to the stream
-     */
     void EndAppendImpl() override;
+    void CopyFrom(const PdfStream& rhs) override;
 
-    void CopyFrom(const PdfStream &rhs) override;
-    void copyFrom(const PdfMemStream &rhs);
-
- private:
-    PdfMemStream(const PdfMemStream & rhs) = delete;
+private:
+    PdfMemStream(const PdfMemStream& rhs) = delete;
+    void copyFrom(const PdfMemStream& rhs);
 
  private:
     PdfRefCountedBuffer m_buffer;
-    std::unique_ptr<PdfOutputStream> m_pStream;
-    std::unique_ptr<PdfBufferOutputStream> m_pBufferStream;
-    size_t m_lLength;
+    std::unique_ptr<PdfOutputStream> m_Stream;
+    std::unique_ptr<PdfBufferOutputStream> m_BufferStream;
+    size_t m_Length;
 };
 
 };
 
-#endif // _PDF_MEM_STREAM_H_
+#endif // PDF_MEM_STREAM_H

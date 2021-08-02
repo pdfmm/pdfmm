@@ -1,41 +1,15 @@
-/***************************************************************************
- *   Copyright (C) 2006 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *   Copyright (C) 2020 by Francesco Pretto                                *
- *   ceztko@gmail.com                                                      *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
-
-#include "PdfXObject.h" 
+/**
+ * Copyright (C) 2006 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
 #include "base/PdfDefinesPrivate.h"
+#include "PdfXObject.h"
+
+#include <sstream>
 
 #include "base/PdfDictionary.h"
 #include "base/PdfLocale.h"
@@ -46,97 +20,77 @@
 #include "PdfPage.h"
 #include "PdfDocument.h"
 
-#include <sstream>
-
-#define PI 3.141592654
-
 using namespace std;
 using namespace PoDoFo;
 
-PdfXObject::PdfXObject( const PdfRect & rRect, PdfDocument* pParent, const char* pszPrefix, bool bWithoutIdentifier )
-    : PdfElement(*pParent, "XObject"), m_rRect( rRect ), m_pResources( nullptr )
+PdfXObject::PdfXObject(PdfDocument& doc, const PdfRect& rect, const string_view& prefix, bool withoutObjNum)
+    : PdfElement(doc, "XObject"), m_rRect(rect), m_pResources(nullptr)
 {
-    InitXObject( rRect, pszPrefix );
-    if( bWithoutIdentifier )
-    {
-       m_Identifier = PdfName(pszPrefix);
-    }
+    InitXObject(rect, prefix);
+    if (withoutObjNum)
+        m_Identifier = PdfName(prefix);
 }
 
-PdfXObject::PdfXObject( const PdfRect & rRect, PdfVecObjects* pParent, const char* pszPrefix )
-    : PdfElement(*pParent, "XObject"), m_rRect( rRect ), m_pResources( nullptr )
+PdfXObject::PdfXObject(PdfDocument& doc, const PdfDocument& sourceDoc, unsigned pageIndex, const string_view& prefix, bool useTrimBox)
+    : PdfElement(doc, "XObject"), m_pResources(nullptr)
 {
-    InitXObject( rRect, pszPrefix );
-}
-
-PdfXObject::PdfXObject( const PdfDocument & rDoc, int nPage, PdfDocument* pParent, const char* pszPrefix, bool bUseTrimBox )
-    : PdfElement(*pParent, "XObject"), m_pResources( nullptr )
-{
-    InitXObject( m_rRect, pszPrefix );
+    InitXObject(m_rRect, prefix);
 
     // Implementation note: source document must be different from distination
-    if ( pParent == reinterpret_cast<const PdfDocument*>(&rDoc) )
+    if (&doc == reinterpret_cast<const PdfDocument*>(&sourceDoc))
     {
-        PODOFO_RAISE_ERROR( EPdfError::InternalLogic );
+        PODOFO_RAISE_ERROR(EPdfError::InternalLogic);
     }
 
     // After filling set correct BBox, independent of rotation
-    m_rRect = pParent->FillXObjectFromDocumentPage( this, rDoc, nPage, bUseTrimBox );
+    m_rRect = doc.FillXObjectFromDocumentPage(*this, sourceDoc, pageIndex, useTrimBox);
 
-    InitAfterPageInsertion(rDoc, nPage);
+    InitAfterPageInsertion(sourceDoc, pageIndex);
 }
 
-PdfXObject::PdfXObject( PdfDocument *pDoc, int nPage, const char* pszPrefix, bool bUseTrimBox )
-    : PdfElement(*pDoc, "XObject"), PdfCanvas(), m_pResources( nullptr )
+PdfXObject::PdfXObject(PdfDocument& doc, unsigned pageIndex, const string_view& prefix, bool useTrimBox)
+    : PdfElement(doc, "XObject"), PdfCanvas(), m_pResources(nullptr)
 {
     m_rRect = PdfRect();
 
-    InitXObject( m_rRect, pszPrefix );
+    InitXObject(m_rRect, prefix);
 
     // After filling set correct BBox, independent of rotation
-    m_rRect = pDoc->FillXObjectFromExistingPage( this, nPage, bUseTrimBox );
+    m_rRect = doc.FillXObjectFromExistingPage(*this, pageIndex, useTrimBox);
 
-    InitAfterPageInsertion(*pDoc, nPage);
+    InitAfterPageInsertion(doc, pageIndex);
 }
 
-PdfXObject::PdfXObject(PdfObject* pObject)
-    : PdfElement(*pObject), PdfCanvas(), m_pResources(nullptr)
+PdfXObject::PdfXObject(PdfObject& obj)
+    : PdfElement(obj), PdfCanvas(), m_pResources(nullptr)
 {
-    InitIdentifiers(getPdfXObjectType(*pObject));
-    m_pResources = pObject->GetIndirectKey("Resources");
+    InitIdentifiers(getPdfXObjectType(obj), { });
+    m_pResources = obj.GetIndirectKey("Resources");
 
-    if (this->GetObject()->GetIndirectKey("BBox"))
-        m_rRect = PdfRect(this->GetObject()->GetIndirectKey("BBox")->GetArray());
+    if (this->GetObject().GetIndirectKey("BBox"))
+        m_rRect = PdfRect(this->GetObject().GetIndirectKey("BBox")->GetArray());
 }
 
-PdfXObject::PdfXObject(EPdfXObject subType, PdfDocument* pParent, const char* pszPrefix)
-    : PdfElement(*pParent, "XObject"), m_pResources(nullptr)
+PdfXObject::PdfXObject(PdfDocument& doc, PdfXObjectType subType, const string_view& prefix)
+    : PdfElement(doc, "XObject"), m_pResources(nullptr)
 {
-    InitIdentifiers(subType, pszPrefix);
+    InitIdentifiers(subType, prefix);
 
-    this->GetObject()->GetDictionary().AddKey(PdfName::KeySubtype, PdfName(ToString(subType)));
+    this->GetObject().GetDictionary().AddKey(PdfName::KeySubtype, PdfName(ToString(subType)));
 }
 
-PdfXObject::PdfXObject(EPdfXObject subType, PdfVecObjects* pParent, const char* pszPrefix)
-    : PdfElement(*pParent, "XObject"), m_pResources(nullptr)
+PdfXObject::PdfXObject(PdfObject& obj, PdfXObjectType subType)
+    : PdfElement(obj), m_pResources(nullptr)
 {
-    InitIdentifiers(subType, pszPrefix);
-
-    this->GetObject()->GetDictionary().AddKey(PdfName::KeySubtype, PdfName(ToString(subType)));
-}
-
-PdfXObject::PdfXObject(EPdfXObject subType, PdfObject* pObject)
-    : PdfElement(*pObject), m_pResources(nullptr)
-{
-    if (getPdfXObjectType(*pObject) != subType)
+    if (getPdfXObjectType(obj) != subType)
     {
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
     }
 
-    InitIdentifiers(subType);
+    InitIdentifiers(subType, { });
 }
 
-bool PdfXObject::TryCreateFromObject(PdfObject &obj, std::unique_ptr<PdfXObject>& xobj, EPdfXObject &type)
+bool PdfXObject::TryCreateFromObject(PdfObject &obj, unique_ptr<PdfXObject>& xobj, PdfXObjectType &type)
 {
     auto typeObj = obj.GetDictionary().GetKey(PdfName::KeyType);
     if (typeObj == nullptr
@@ -144,22 +98,22 @@ bool PdfXObject::TryCreateFromObject(PdfObject &obj, std::unique_ptr<PdfXObject>
         || typeObj->GetName().GetString() != "XObject")
     {
         xobj = nullptr;
-        type = EPdfXObject::Unknown;
+        type = PdfXObjectType::Unknown;
         return false;
     }
 
     type = getPdfXObjectType(obj);
     switch (type)
     {
-        case EPdfXObject::Form:
-        case EPdfXObject::PostScript:
+        case PdfXObjectType::Form:
+        case PdfXObjectType::PostScript:
         {
-            xobj.reset(new PdfXObject(type, &obj));
+            xobj.reset(new PdfXObject(obj, type));
             return true;
         }
-        case EPdfXObject::Image:
+        case PdfXObjectType::Image:
         {
-            xobj.reset(new PdfImage(&obj));
+            xobj.reset(new PdfImage(obj));
             return true;
         }
         default:
@@ -170,50 +124,50 @@ bool PdfXObject::TryCreateFromObject(PdfObject &obj, std::unique_ptr<PdfXObject>
     }
 }
 
-EPdfXObject PdfXObject::getPdfXObjectType(const PdfObject &obj)
+PdfXObjectType PdfXObject::getPdfXObjectType(const PdfObject &obj)
 {
     auto subTypeObj = obj.GetDictionary().GetKey(PdfName::KeySubtype);
     if (subTypeObj == nullptr || !subTypeObj->IsName())
-        return EPdfXObject::Unknown;
+        return PdfXObjectType::Unknown;
 
     auto subtype = obj.GetDictionary().GetKey(PdfName::KeySubtype)->GetName().GetString();
     return FromString(subtype);
 }
 
-string PdfXObject::ToString(EPdfXObject type)
+string PdfXObject::ToString(PdfXObjectType type)
 {
     switch (type)
     {
-        case EPdfXObject::Form:
+        case PdfXObjectType::Form:
             return "Form";
-        case EPdfXObject::Image:
+        case PdfXObjectType::Image:
             return "Image";
-        case EPdfXObject::PostScript:
+        case PdfXObjectType::PostScript:
             return "PS";
         default:
             PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
     }
 }
 
-EPdfXObject PdfXObject::FromString(const string &str)
+PdfXObjectType PdfXObject::FromString(const string &str)
 {
     if (str == "Form")
-        return EPdfXObject::Form;
+        return PdfXObjectType::Form;
     else if (str == "Image")
-        return EPdfXObject::Image;
+        return PdfXObjectType::Image;
     else if (str == "PS")
-        return EPdfXObject::PostScript;
+        return PdfXObjectType::PostScript;
     else
-        return EPdfXObject::Unknown;
+        return PdfXObjectType::Unknown;
 }
 
-void PdfXObject::InitAfterPageInsertion(const PdfDocument & rDoc, int nPage)
+void PdfXObject::InitAfterPageInsertion(const PdfDocument& doc, unsigned pageIndex)
 {
-    PdfVariant    var;
+    PdfVariant var;
     m_rRect.ToVariant(var);
-    this->GetObject()->GetDictionary().AddKey("BBox", var);
+    this->GetObject().GetDictionary().AddKey("BBox", var);
 
-    int rotation = rDoc.GetPage(nPage)->GetRotationRaw();
+    int rotation = doc.GetPageTree().GetPage(pageIndex).GetRotationRaw();
     // correct negative rotation
     if (rotation < 0)
         rotation = 360 + rotation;
@@ -241,7 +195,7 @@ void PdfXObject::InitAfterPageInsertion(const PdfDocument & rDoc, int nPage)
     }
 
     // Build matrix for rotation and cropping
-    double alpha = -rotation / 360.0 * 2.0 * PI;
+    double alpha = -rotation / 360.0 * 2.0 * M_PI;
 
     double a, b, c, d, e, f;
 
@@ -274,15 +228,15 @@ void PdfXObject::InitAfterPageInsertion(const PdfDocument & rDoc, int nPage)
             break;
     }
 
-    PdfArray      matrix;
-    matrix.push_back(PdfVariant(a));
-    matrix.push_back(PdfVariant(b));
-    matrix.push_back(PdfVariant(c));
-    matrix.push_back(PdfVariant(d));
-    matrix.push_back(PdfVariant(e));
-    matrix.push_back(PdfVariant(f));
+    PdfArray matrix;
+    matrix.push_back(PdfObject(a));
+    matrix.push_back(PdfObject(b));
+    matrix.push_back(PdfObject(c));
+    matrix.push_back(PdfObject(d));
+    matrix.push_back(PdfObject(e));
+    matrix.push_back(PdfObject(f));
 
-    this->GetObject()->GetDictionary().AddKey("Matrix", matrix);
+    this->GetObject().GetDictionary().AddKey("Matrix", matrix);
 }
 
 PdfRect PdfXObject::GetRect() const
@@ -296,86 +250,88 @@ bool PdfXObject::HasRotation(double& teta) const
     return false;
 }
 
-void PdfXObject::SetRect( const PdfRect & rect )
+void PdfXObject::SetRect(const PdfRect& rect)
 {
     PdfVariant array;
-    rect.ToVariant( array );
-    GetObject()->GetDictionary().AddKey( "BBox", array );
+    rect.ToVariant(array);
+    GetObject().GetDictionary().AddKey("BBox", array);
     m_rRect = rect;
 }
 
 void PdfXObject::EnsureResourcesInitialized()
 {
-    if ( m_pResources == nullptr )
+    if (m_pResources == nullptr)
         InitResources();
 
     // A Form XObject must have a stream
-    GetObject()->ForceCreateStream();
-}
-
-PdfObject * PdfXObject::GetContents() const
-{
-    return const_cast<PdfXObject &>(*this).GetObject();
+    GetObject().ForceCreateStream();
 }
 
 inline PdfStream & PdfXObject::GetStreamForAppending(EPdfStreamAppendFlags flags)
 {
     (void)flags; // Flags have no use here
-    return GetObject()->GetOrCreateStream();
+    return GetObject().GetOrCreateStream();
 }
 
-void PdfXObject::InitXObject( const PdfRect & rRect, const char* pszPrefix )
+void PdfXObject::InitXObject(const PdfRect& rRect, const string_view& prefix)
 {
-    InitIdentifiers(EPdfXObject::Form, pszPrefix);
+    InitIdentifiers(PdfXObjectType::Form, prefix);
 
     // Initialize static data
-    if( m_matrix.empty() )
+    if (m_matrix.empty())
     {
         // This matrix is the same for all PdfXObjects so cache it
-        m_matrix.push_back( PdfVariant( static_cast<int64_t>(1) ) );
-        m_matrix.push_back( PdfVariant( static_cast<int64_t>(0) ) );
-        m_matrix.push_back( PdfVariant( static_cast<int64_t>(0) ) );
-        m_matrix.push_back( PdfVariant( static_cast<int64_t>(1) ) );
-        m_matrix.push_back( PdfVariant( static_cast<int64_t>(0) ) );
-        m_matrix.push_back( PdfVariant( static_cast<int64_t>(0) ) );
+        m_matrix.push_back(PdfVariant(static_cast<int64_t>(1)));
+        m_matrix.push_back(PdfVariant(static_cast<int64_t>(0)));
+        m_matrix.push_back(PdfVariant(static_cast<int64_t>(0)));
+        m_matrix.push_back(PdfVariant(static_cast<int64_t>(1)));
+        m_matrix.push_back(PdfVariant(static_cast<int64_t>(0)));
+        m_matrix.push_back(PdfVariant(static_cast<int64_t>(0)));
     }
 
     PdfVariant    var;
-    rRect.ToVariant( var );
-    this->GetObject()->GetDictionary().AddKey( "BBox", var );
-    this->GetObject()->GetDictionary().AddKey(PdfName::KeySubtype, PdfName(ToString(EPdfXObject::Form)));
-    this->GetObject()->GetDictionary().AddKey( "FormType", PdfVariant( static_cast<int64_t>(1) ) ); // only 1 is only defined in the specification.
-    this->GetObject()->GetDictionary().AddKey( "Matrix", m_matrix );
+    rRect.ToVariant(var);
+    this->GetObject().GetDictionary().AddKey("BBox", var);
+    this->GetObject().GetDictionary().AddKey(PdfName::KeySubtype, PdfName(ToString(PdfXObjectType::Form)));
+    this->GetObject().GetDictionary().AddKey("FormType", PdfVariant(static_cast<int64_t>(1))); // only 1 is only defined in the specification.
+    this->GetObject().GetDictionary().AddKey("Matrix", m_matrix);
 
     InitResources();
 }
 
-void PdfXObject::InitIdentifiers(EPdfXObject subType, const char * pszPrefix)
+void PdfXObject::InitIdentifiers(PdfXObjectType subType, const string_view& prefix)
 {
     ostringstream out;
     PdfLocaleImbue(out);
 
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /XOb for XObject.
-	if ( pszPrefix == nullptr )
-	    out << "XOb" << this->GetObject()->GetIndirectReference().ObjectNumber();
-	else
-	    out << pszPrefix << this->GetObject()->GetIndirectReference().ObjectNumber();
+    if (prefix.length() == 0)
+        out << "XOb" << this->GetObject().GetIndirectReference().ObjectNumber();
+    else
+        out << prefix << this->GetObject().GetIndirectReference().ObjectNumber();
 
-    m_Identifier = PdfName( out.str().c_str() );
-    m_Reference  = this->GetObject()->GetIndirectReference();
+    m_Identifier = PdfName(out.str().c_str());
+    m_Reference = this->GetObject().GetIndirectReference();
     m_type = subType;
 }
 
 void PdfXObject::InitResources()
 {
     // The PDF specification suggests that we send all available PDF Procedure sets
-    this->GetObject()->GetDictionary().AddKey("Resources", PdfObject(PdfDictionary()));
-    m_pResources = this->GetObject()->GetDictionary().GetKey("Resources");
+    this->GetObject().GetDictionary().AddKey("Resources", PdfObject(PdfDictionary()));
+    m_pResources = this->GetObject().GetDictionary().GetKey("Resources");
     m_pResources->GetDictionary().AddKey("ProcSet", PdfCanvas::GetProcSet());
 }
 
-PdfObject* PdfXObject::GetResources() const
+
+PdfObject& PdfXObject::GetContents()
 {
-    return m_pResources;
+    return const_cast<PdfXObject&>(*this).GetObject();
+}
+
+PdfObject& PdfXObject::GetResources()
+{
+    const_cast<PdfXObject&>(*this).EnsureResourcesInitialized();
+    return *m_pResources;
 }

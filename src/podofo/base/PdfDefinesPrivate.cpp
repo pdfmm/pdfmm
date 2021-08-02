@@ -1,37 +1,10 @@
-/***************************************************************************
- *   Copyright (C) 2005 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *   Copyright (C) 2020 by Francesco Pretto                                *
- *   ceztko@gmail.com                                                      *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2005 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
 #include "PdfDefinesPrivate.h"
 #include "PdfDefines.h"
@@ -47,9 +20,9 @@ using namespace PoDoFo;
 
 int compat::vsnprintf(char* buffer, size_t count, const char* format, va_list argptr)
 {
-    auto old = std::locale::global(std::locale::classic());
+    auto old = locale::global(locale::classic());
     int ret = std::vsnprintf(buffer, count, format, argptr);
-    std::locale::global(old);
+    locale::global(old);
     return ret;
 }
 
@@ -145,9 +118,9 @@ ifstream io::open_ifstream(const string_view& filename, ios_base::openmode mode)
 {
 #ifdef WIN32
     auto filename16 = utf8::utf8to16((string)filename);
-    return std::ifstream((wchar_t*)filename16.c_str(), mode);
+    return ifstream((wchar_t*)filename16.c_str(), mode);
 #else
-    return std::ifstream((string)filename, mode);
+    return ifstream((string)filename, mode);
 #endif
 }
 
@@ -155,18 +128,66 @@ ofstream io::open_ofstream(const string_view& filename, ios_base::openmode mode)
 {
 #ifdef WIN32
     auto filename16 = utf8::utf8to16((string)filename);
-    return std::ofstream((wchar_t*)filename16.c_str(), mode);
+    return ofstream((wchar_t*)filename16.c_str(), mode);
 #else
-    return std::ofstream((string)filename, mode);
+    return ofstream((string)filename, mode);
 #endif
 }
 
-fstream io::open_fstream(const std::string_view& filename, std::ios_base::openmode mode)
+fstream io::open_fstream(const string_view& filename, ios_base::openmode mode)
 {
 #ifdef WIN32
     auto filename16 = utf8::utf8to16((string)filename);
-    return std::fstream((wchar_t*)filename16.c_str(), mode);
+    return fstream((wchar_t*)filename16.c_str(), mode);
 #else
-    return std::fstream((string)filename, mode);
+    return fstream((string)filename, mode);
 #endif
+}
+
+void usr::WriteCharHexTo(char buf[2], char ch)
+{
+    buf[0] = (ch & 0xF0) >> 4;
+    buf[0] += (buf[0] > 9 ? 'A' - 10 : '0');
+
+    buf[1] = (ch & 0x0F);
+    buf[1] += (buf[1] > 9 ? 'A' - 10 : '0');
+}
+
+// Append the char to the supplied string as hexadecimal code
+void usr::WriteCharHexTo(string& str, char ch, bool clear)
+{
+    if (clear)
+    {
+        str.resize(2);
+        WriteCharHexTo(str.data(), ch);
+    }
+    else
+    {
+        size_t initialLen = str.length();
+        str.resize(initialLen + 2);
+        WriteCharHexTo(str.data() + initialLen, ch);
+    }
+}
+
+void usr::WriteToUtf16BE(u16string& str, char32_t codePoint, bool clear)
+{
+    // FIX-ME: This is very inefficient. We should improve
+    // utfcpp to avoit conversion to utf8 first
+    string u8str;
+    utf8::append(codePoint, u8str);
+    u16string u16str = utf8::utf8to16(u8str, utf8::endianess::big_endian);
+    if (clear)
+        str = std::move(u16str);
+    else
+        str.append(u16str.data(), u16str.length());
+}
+
+unsigned char usr::GetCharCodeSize(unsigned ch)
+{
+    return (unsigned char)(std::log(ch) / std::log(256)) + 1;
+}
+
+unsigned usr::GetCharCodeMaxValue(unsigned char codeSize)
+{
+    return (unsigned)(std::pow(2, codeSize * CHAR_BIT)) - 1;
 }

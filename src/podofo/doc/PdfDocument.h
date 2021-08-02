@@ -1,50 +1,24 @@
-/***************************************************************************
- *   Copyright (C) 2006 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *   Copyright (C) 2020 by Francesco Pretto                                *
- *   ceztko@gmail.com                                                      *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2006 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
-#ifndef _PDF_DOCUMENT_H_
-#define _PDF_DOCUMENT_H_
+#ifndef PDF_DOCUMENT_H
+#define PDF_DOCUMENT_H
 
 #include "podofo/base/PdfDefines.h"
 
 #include "podofo/base/PdfObject.h"
-#include "podofo/base/PdfParser.h"
-#include "podofo/base/PdfWriter.h"
+#include "podofo/base/PdfVecObjects.h"
 
 #include "PdfAcroForm.h"
 #include "PdfFontCache.h"
 #include "PdfInfo.h"
+#include "PdfPagesTree.h"
+#include "PdfNamesTree.h"
 
 namespace PoDoFo {
 
@@ -53,10 +27,8 @@ class PdfDictionary;
 class PdfFileSpec;
 class PdfFont;
 class PdfInfo;
-class PdfNamesTree;
 class PdfOutlines;
 class PdfPage;
-class PdfPagesTree;
 class PdfRect;
 class PdfXObject;
 
@@ -87,12 +59,12 @@ public:
     /** Get the write mode used for writing the PDF
      *  \returns the write mode
      */
-    virtual EPdfWriteMode GetWriteMode() const = 0;
+    virtual PdfWriteMode GetWriteMode() const = 0;
 
     /** Get the PDF version of the document
      *  \returns EPdfVersion version of the pdf document
      */
-    virtual EPdfVersion GetPdfVersion() const = 0;
+    virtual PdfVersion GetPdfVersion() const = 0;
 
     /** Returns whether this PDF document is linearized, aka
      *  web-optimized
@@ -102,371 +74,178 @@ public:
 
     /** Get access to the Outlines (Bookmarks) dictionary
      *  The returned outlines object is owned by the PdfDocument.
-     * 
-     *  \param bCreate create the object if it does not exist (ePdfCreateObject) 
+     *
+     *  \param bCreate create the object if it does not exist (ePdfCreateObject)
      *                 or return nullptr if it does not exist
      *  \returns the Outlines/Bookmarks dictionary
      */
-    PdfOutlines* GetOutlines( bool bCreate = ePdfCreateObject );
+    PdfOutlines* GetOutlines(bool create = ePdfCreateObject);
 
     /** Get access to the Names dictionary (where all the named objects are stored)
      *  The returned PdfNamesTree object is owned by the PdfDocument.
-     * 
-     *  \param bCreate create the object if it does not exist (ePdfCreateObject) 
+     *
+     *  \param bCreate create the object if it does not exist (ePdfCreateObject)
      *                 or return nullptr if it does not exist
      *  \returns the Names dictionary
      */
-    PdfNamesTree* GetNamesTree( bool bCreate = ePdfCreateObject );
+    PdfNamesTree* GetNamesTree(bool create = ePdfCreateObject);
 
     /** Get access to the AcroForm dictionary
-     *  
-     *  \param bCreate create the object if it does not exist (ePdfCreateObject) 
+     *
+     *  \param bCreate create the object if it does not exist (ePdfCreateObject)
      *                 or return nullptr if it does not exist
      *  \param eDefaultAppearance specifies if a default appearence shall be created
      *
      *  \returns PdfObject the AcroForm dictionary
      */
-    PdfAcroForm* GetAcroForm( bool bCreate = ePdfCreateObject,
-                              EPdfAcroFormDefaulAppearance eDefaultAppearance = EPdfAcroFormDefaulAppearance::BlackText12pt);
+    PdfAcroForm* GetAcroForm(bool bCreate = ePdfCreateObject,
+        EPdfAcroFormDefaulAppearance eDefaultAppearance = EPdfAcroFormDefaulAppearance::BlackText12pt);
 
-    /** Get the total number of pages in a document
-     *  \returns int number of pages
-     */
-    int GetPageCount() const;
-
-    /** Get the PdfPage for a specific page in a document
-     *  The returned page is owned by the PdfDocument
-     *  and will get deleted along with it!
-     *
-     *  \param nIndex which page (0-based)
-     *  \returns a pointer to a PdfPage for the requested page.
-     *           The returned object is owned by the PdfDocument.
-     */
-    PdfPage* GetPage( int nIndex ) const;
-
-    /** Creates a PdfFont object
-     *  \param pszFontName name of the font as it is known to the system
-     *  \param bSymbolCharset whether to use the symbol charset, rather than unicode charset
-     *  \param pEncoding the encoding of the font. The font will not take ownership of this object.     
-     *  \param eFontCreationFlags special flag to specify how fonts should be created
-     *  \param bEmbedd specifies whether this font should be embedded in the PDF file.
-     *         Embedding fonts is usually a good idea.
-     *
-     *  \returns PdfFont* a pointer to a new PdfFont object.
-     *           The returned object is owned by the PdfDocument.
-     */
-    PdfFont* CreateFont( const char* pszFontName, bool bSymbolCharset = false, 
-                         const PdfEncoding * const pEncoding = PdfEncodingFactory::GlobalWinAnsiEncodingInstance(), 
-                         EFontCreationFlags eFontCreationFlags = EFontCreationFlags::AutoSelectBase14,
-                         bool bEmbedd = true );
-
-    /** Creates a PdfFont object
-     *  \param pszFontName name of the font as it is known to the system
-     *  \param bBold if true search for a bold font
-     *  \param bItalic if true search for an italic font
-     *  \param bSymbolCharset whether to use the symbol charset, rather than unicode charset
-     *  \param pEncoding the encoding of the font. The font will not take ownership of this object.     
-     *  \param eFontCreationFlags special flag to specify how fonts should be created
-     *  \param bEmbedd specifies whether this font should be embedded in the PDF file.
-     *         Embedding fonts is usually a good idea.
-     *  \param pszFileName path to a valid font file
-     *
-     *  \returns PdfFont* a pointer to a new PdfFont object.
-     */
-    PdfFont* CreateFont( const char* pszFontName, bool bBold, bool bItalic, bool bSymbolCharset = false,
-                         const PdfEncoding * const pEncoding = PdfEncodingFactory::GlobalWinAnsiEncodingInstance(), 
-                         EFontCreationFlags eFontCreationFlags = EFontCreationFlags::AutoSelectBase14,
-                         bool bEmbedd = true, const char* pszFileName = nullptr );
-
-#ifdef WIN32
-    /** Creates a PdfFont object
-     *  \param pszFontName name of the font as it is known to the system
-     *  \param bSymbolCharset whether to use the symbol charset, rather than unicode charset
-     *  \param pEncoding the encoding of the font. The font will not take ownership of this object.     
-     *  \param bEmbedd specifies whether this font should be embedded in the PDF file.
-     *         Embedding fonts is usually a good idea.
-     *
-     *  \returns PdfFont* a pointer to a new PdfFont object.
-     *           The returned object is owned by the PdfDocument.
-     *
-     *  This is an overloaded member function to allow working
-     *  with unicode characters. On Unix/Unix-like systems you can also pass
-     *  UTF-8 to the const char* overload.
-     */
-    PdfFont* CreateFont( const wchar_t* pszFontName, bool bSymbolCharset = false, const PdfEncoding * const pEncoding = PdfEncodingFactory::GlobalWinAnsiEncodingInstance(), 
-                         bool bEmbedd = true );
-
-    /** Creates a PdfFont object
-     *  \param pszFontName name of the font as it is known to the system
-     *  \param bBold if true search for a bold font
-     *  \param bItalic if true search for an italic font
-     *  \param bSymbolCharset whether to use symbol charset, rather than unicode charset
-     *  \param pEncoding the encoding of the font. The font will not take ownership of this object.     
-     *  \param bEmbedd specifies whether this font should be embedded in the PDF file.
-     *         Embedding fonts is usually a good idea.
-     *  \param optional: pszFileName path to a valid font file
-     *
-     *  \returns PdfFont* a pointer to a new PdfFont object.
-     *
-     *  This is an overloaded member function to allow working
-     *  with unicode characters. On Unix/Unix-like systems you can also pass
-     *  UTF-8 to the const char* overload.
-     */
-    PdfFont* CreateFont( const wchar_t* pszFontName, bool bBold, bool bItalic, bool bSymbolCharset = false,
-                         const PdfEncoding * const pEncoding = PdfEncodingFactory::GlobalWinAnsiEncodingInstance(), 
-                         bool bEmbedd = true);
-
-	 PdfFont* CreateFont( const LOGFONTA &logFont, const PdfEncoding * const pEncoding = PdfEncodingFactory::GlobalWinAnsiEncodingInstance(),
-								 bool bEmbedd = true );
-
-	 PdfFont* CreateFont( const LOGFONTW &logFont, const PdfEncoding * const pEncoding = PdfEncodingFactory::GlobalWinAnsiEncodingInstance(),
-								 bool bEmbedd = true );
-
-#endif // WIN32
-
-    /** Creates a PdfFont object
-     *  \param face a valid freetype font handle (will be free()'d by PoDoFo)
-     *  \param bSymbolCharset whether to use the symbol charset, rather than unicode charset
-     *  \param pEncoding the encoding of the font. The font will not take ownership of this object.     
-     *  \param bEmbedd specifies whether this font should be embedded in the PDF file.
-     *         Embedding fonts is usually a good idea.
-     *  \returns PdfFont* a pointer to a new PdfFont object.
-     *           The returned object is owned by the PdfDocument.
-     */
-    PdfFont* CreateFont( FT_Face face, bool bSymbolCharset = false,
-                         const PdfEncoding * const pEncoding = PdfEncodingFactory::GlobalWinAnsiEncodingInstance(),
-                         bool bEmbedd = true );
-
-    /** Creates a duplicate Type1 PdfFont with a new ID
-     *  \param pFont is the existing font 
-     *  \param pszSuffix Suffix to add to font ID
-     *           The returned object is owned by the PdfDocument.
-     *
-     *  TODO: DS: Make this generic so that it will work 
-     *            for any font type!
-     */
-    PdfFont* CreateDuplicateFontType1( PdfFont * pFont, const char * pszSuffix );
-
-    /** Creates a font subset which contains only a few characters and is embedded.
-     *
-     *  THIS WORKS ONLY FOR TTF FONTS!
-     *
-     *  \param pszFontName name of the font as it is known to the system
-     *  \param bBold if true search for a bold font
-     *  \param bItalic if true search for an italic font
-     *  \param bSymbolCharset whether to use the symbol charset, rather than unicode charset
-     *  \param pEncoding the encoding of the font. The font will not take ownership of this object.     
-     *  \param pszFileName optional path of a font file which should be used
-     *
-     *  \returns PdfFont* a pointer to a new PdfFont object.
-     */
-    PdfFont* CreateFontSubset( const char* pszFontName, bool bBold, bool bItalic, bool bSymbolCharset = false,
-			       const PdfEncoding * const pEncoding = PdfEncodingFactory::GlobalWinAnsiEncodingInstance(),
-			       const char* pszFileName = nullptr);
-
-#ifdef WIN32
-    /** Creates a font subset which contains only a few characters and is embedded.
-     *
-     *  THIS WORKS ONLY FOR TTF FONTS!
-     *
-     *  \param pszFontName name of the font as it is known to the system
-     *  \param bBold if true search for a bold font
-     *  \param bItalic if true search for an italic font
-     *  \param bSymbolCharset whether to use the symbol charset, rather than unicode charset
-     *  \param pEncoding the encoding of the font. The font will not take ownership of this object.     
-     *
-     *  \returns PdfFont* a pointer to a new PdfFont object.
-     *
-     *  This is an overloaded member function to allow working
-     *  with unicode characters. On Unix systems/Unix-like you can also pass
-     *  UTF-8 to the const char* overload.
-     */
-    PdfFont* CreateFontSubset( const wchar_t* pszFontName, bool bBold, bool bItalic, bool bSymbolCharset = false,
-			       const PdfEncoding * const = PdfEncodingFactory::GlobalWinAnsiEncodingInstance() );
-#endif // WIN32
-
-    // Peter Petrov 26 April 2008
-    /** Returns the font library from font cache
-     *
-     *  \returns the internal handle to the freetype library
-     */
-    FT_Library GetFontLibrary() const;
-	
     /** Embeds all pending subset fonts, is automatically done on Write().
      *  Just call explicitly in case the PdfDocument is needed as PdfXObject.
      *
      */
     void EmbedSubsetFonts();
 
-    /** Creates a new page object and inserts it into the internal
-     *  page tree. 
-     *  The returned page is owned by the PdfDocument
-     *  and will get deleted along with it!
-     *
-     *  \param rSize a PdfRect specifying the size of the page (i.e the /MediaBox key) in 1/1000th mm
-     *  \returns a pointer to a PdfPage object
-     */
-    PdfPage* CreatePage( const PdfRect & rSize );
-
-
-    /** Creates several new page objects and inserts them into the internal
-     *  page tree. 
-     *  The created pages are owned by the PdfDocument
-     *  and will get deleted along with it!
-     *
-     *  \param vecSizes a vector of PdfRect instances specifying the size of the pages (i.e the /MediaBox key) in PDF Units
-     */
-    void CreatePages( const std::vector<PdfRect>& vecSizes );
-
-    /** Creates a new page object and inserts it at index atIndex.
-     *  The returned page is owned by the pages tree and will get deleted along
-     *  with it!
-     *
-     *  \param rSize a PdfRect specifying the size of the page (i.e the /MediaBox key) in PDF units
-     *  \param atIndex index where to insert the new page (0-based)
-     *  \returns a pointer to a PdfPage object
-     */
-    PdfPage* InsertPage( const PdfRect & rSize, int atIndex);
-
     /** Appends another PdfDocument to this document.
      *  \param rDoc the document to append
      *  \param bAppendAll specifies whether pages and outlines are appended too
      *  \returns this document
      */
-    const PdfDocument & Append( const PdfDocument & rDoc, bool bAppendAll = true  );
+    const PdfDocument& Append(const PdfDocument& rDoc, bool bAppendAll = true);
 
     /** Inserts existing page from another PdfDocument to this document.
      *  \param rDoc the document to append from
-     *  \param nPageIndex index of page to append (0-based), from rDoc
+     *  \param pageIndex index of page to append from rDoc
      *  \param nAtIndex index at which to add the page in this document
      *  \returns this document
      */
-    const PdfDocument &InsertExistingPageAt( const PdfDocument & rDoc, int nPageIndex, int nAtIndex);
+    const PdfDocument& InsertExistingPageAt(const PdfDocument& rDoc, unsigned pageIndex, unsigned atIndex);
 
     /** Fill an existing empty PdfXObject from a page of another document.
      *  This will append the other document to this one.
-     *  \param pXObj pointer to the PdfXObject
-     *  \param rDoc the document to embed into the PdfXObject
-     *  \param nPage number of page to embed into the PdfXObject
-     *  \param bUseTrimBox if true try to use page's TrimBox for size of PdfXObject
+     *  \param xobj pointer to the PdfXObject
+     *  \param doc the document to embed into the PdfXObject
+     *  \param pageIndex index of page to embed into the PdfXObject
+     *  \param useTrimBox if true try to use page's TrimBox for size of PdfXObject
      *  \returns the bounding box
      */
-    PdfRect FillXObjectFromDocumentPage( PdfXObject * pXObj, const PdfDocument & rDoc, int nPage, bool bUseTrimBox );
+    PdfRect FillXObjectFromDocumentPage(PdfXObject& xobj, const PdfDocument& doc, unsigned pageIndex, bool useTrimBox);
 
     /** Fill an existing empty PdfXObject from an existing page from the current document.
      *  If you need a page from another document use FillXObjectFromDocumentPage(), or
      *  append the document manually.
-     *  \param pXObj pointer to the PdfXObject
-     *  \param nPage number of page to embed into the PdfXObject
-     *  \param bUseTrimBox if true try to use page's TrimBox for size of PdfXObject
+     *  \param xobj pointer to the PdfXObject
+     *  \param pageIndex index of page to embed into the PdfXObject
+     *  \param useTrimBox if true try to use page's TrimBox for size of PdfXObject
      *  \returns the bounding box
      */
-    PdfRect FillXObjectFromExistingPage( PdfXObject * pXObj, int nPage, bool bUseTrimBox );
+    PdfRect FillXObjectFromExistingPage(PdfXObject& xobj, unsigned pageIndex, bool useTrimBox);
 
     /** Fill an existing empty PdfXObject from an existing page pointer from the current document.
      *  This is the implementation for FillXObjectFromDocumentPage() and FillXObjectFromExistingPage(),
      *  you should use those directly instead of this.
-     *  \param pXObj pointer to the PdfXObject
-     *  \param pPage pointer to the page to embed into PdfXObject
-     *  \param bUseTrimBox if true try to use page's TrimBox for size of PdfXObject
+     *  \param xobj pointer to the PdfXObject
+     *  \param page pointer to the page to embed into PdfXObject
+     *  \param useTrimBox if true try to use page's TrimBox for size of PdfXObject
      *  \returns the bounding box
      */
-    PdfRect FillXObjectFromPage( PdfXObject * pXObj, const PdfPage * pPage, bool bUseTrimBox, unsigned int difference );
+    PdfRect FillXObjectFromPage(PdfXObject& xobj, const PdfPage& page, bool useTrimBox, unsigned difference);
 
     /** Attach a file to the document.
      *  \param rFileSpec a file specification
      */
-    void AttachFile( const PdfFileSpec & rFileSpec );
+    void AttachFile(const PdfFileSpec& rFileSpec);
 
     /** Get an attached file's filespec.
      *  \param rName the name of the attachment
      *  \return the file specification object if the file exists, nullptr otherwise
      *          The file specification object is not owned by the document and must be deleted by the caller
      */
-    PdfFileSpec* GetAttachment( const PdfString & rName );
-    
+    PdfFileSpec* GetAttachment(const PdfString& rName);
+
     /** Adds a PdfDestination into the global Names tree
      *  with the specified name, optionally replacing one of the same name.
      *  \param rDest the destination to be assigned
      *  \param rsName the name for the destination
      */
-    void AddNamedDestination( const PdfDestination& rDest, const PdfString & rsName );
+    void AddNamedDestination(const PdfDestination& rDest, const PdfString& rsName);
 
     /** Sets the opening mode for a document.
      *  \param inMode which mode to set
      */
-    void SetPageMode( EPdfPageMode inMode );
+    void SetPageMode(PdfPageMode inMode);
 
     /** Gets the opening mode for a document.
      *  \returns which mode is set
      */
-    EPdfPageMode GetPageMode( void ) const;
+    PdfPageMode GetPageMode() const;
 
     /** Sets the opening mode for a document to be in full screen.
      */
-    void SetUseFullScreen( void );
-    
+    void SetUseFullScreen();
+
     /** Sets the page layout for a document.
      */
-    void SetPageLayout( EPdfPageLayout inLayout );
-    
+    void SetPageLayout(PdfPageLayout inLayout);
+
     /** Set the document's Viewer Preferences:
      *  Hide the toolbar in the viewer.
      */
-    void SetHideToolbar( void );
+    void SetHideToolbar();
 
     /** Set the document's Viewer Preferences:
      *  Hide the menubar in the viewer.
      */
-    void SetHideMenubar( void );
+    void SetHideMenubar();
 
     /** Set the document's Viewer Preferences:
      *  Show only the documents contents and no control
      *  elements such as buttons and scrollbars in the viewer.
      */
-    void SetHideWindowUI( void );
+    void SetHideWindowUI();
 
     /** Set the document's Viewer Preferences:
      *  Fit the document in the viewer's window.
      */
-    void SetFitWindow( void );
+    void SetFitWindow();
 
     /** Set the document's Viewer Preferences:
      *  Center the document in the viewer's window.
      */
-    void SetCenterWindow( void );
+    void SetCenterWindow();
 
     /** Set the document's Viewer Preferences:
      *  Display the title from the document information
      *  in the title of the viewer.
-     * 
+     *
      *  \see SetTitle
      */
-    void SetDisplayDocTitle( void );
+    void SetDisplayDocTitle();
 
     /** Set the document's Viewer Preferences:
      *  Set the default print scaling of the document.
      *
      *  TODO: DS use an enum here!
-     */   
-    void SetPrintScaling( PdfName& inScalingType );
+     */
+    void SetPrintScaling(const PdfName& inScalingType);
 
     /** Set the document's Viewer Preferences:
      *  Set the base URI of the document.
      *
      *  TODO: DS document value!
      */
-    void SetBaseURI( const std::string& inBaseURI );
+    void SetBaseURI(const std::string_view& inBaseURI);
 
     /** Set the document's Viewer Preferences:
      *  Set the language of the document.
-     */    
-    void SetLanguage( const std::string& inLanguage );
+     */
+    void SetLanguage(const std::string_view& inLanguage);
 
     /** Set the document's Viewer Preferences:
         Set the document's binding direction.
-     */    
-    void SetBindingDirection( PdfName& inDirection );
+     */
+    void SetBindingDirection(const PdfName& inDirection);
 
     /** Checks if printing this document is allowed.
      *  Every PDF-consuming application has to adhere to this value!
@@ -475,7 +254,7 @@ public:
      *
      *  \see PdfEncrypt to set own document permissions.
      */
-    virtual bool IsPrintAllowed() const = 0; 
+    virtual bool IsPrintAllowed() const = 0;
 
     /** Checks if modifying this document (besides annotations, form fields or substituting pages) is allowed.
      *  Every PDF-consuming application has to adhere to this value!
@@ -531,25 +310,14 @@ public:
      */
     virtual bool IsDocAssemblyAllowed() const = 0;
 
-    /** Checks if it is allowed to print a high quality version of this document 
+    /** Checks if it is allowed to print a high quality version of this document
      *  Every PDF-consuming application has to adhere to this value!
      *
-     *  \returns true if you are allowed to print a high quality version of this document 
+     *  \returns true if you are allowed to print a high quality version of this document
      *
      *  \see PdfEncrypt to set own document permissions.
      */
     virtual bool IsHighPrintAllowed() const = 0;
-
-#ifdef PODOFO_HAVE_FONTCONFIG
-    /**
-     * Set wrapper for the fontconfig library.
-     * Useful to avoid initializing Fontconfig multiple times.
-     *
-     * This setter can be called until first use of Fontconfig
-     * as the library is initialized at first use.
-     */
-    void SetFontConfigWrapper( PdfFontConfigWrapper * pFontConfig );
-#endif
 
 public:
     /** Get access to the internal Catalog dictionary
@@ -567,10 +335,14 @@ public:
     const PdfObject& GetCatalog() const;
 
     /** Get access to the pages tree.
-     *  Better use the GetPage() and CreatePage() methods.
      *  \returns the PdfPagesTree of this document.
      */
-    PdfPagesTree& GetPagesTree() const;
+    PdfPagesTree& GetPageTree();
+
+    /** Get access to the pages tree.
+     *  \returns the PdfPagesTree of this document.
+     */
+    const PdfPagesTree& GetPageTree() const;
 
     /** Get access to the internal trailer dictionary
      *  or root object.
@@ -592,7 +364,15 @@ public:
      *
      *  \returns the info dictionary
      */
-    PdfInfo& GetInfo() const;
+    PdfInfo& GetInfo();
+
+    /** Get access to the internal Info dictionary
+     *  You can set the author, title etc. of the
+     *  document using the info dictionary.
+     *
+     *  \returns the info dictionary
+     */
+    const PdfInfo& GetInfo() const;
 
     /** Get access to the internal vector of objects
      *  or root object.
@@ -608,13 +388,13 @@ public:
      */
     inline const PdfVecObjects& GetObjects() const { return m_vecObjects; }
 
+    inline PdfFontCache& GetFontCache() { return m_fontCache; }
+
 protected:
     /** Construct a new (empty) PdfDocument
      *  \param bEmpty if true NO default objects (such as catalog) are created.
      */
-    PdfDocument( bool bEmpty = false );
-
-    inline PdfFontCache & GetFontCache() { return m_fontCache; }
+    PdfDocument(bool bEmpty = false);
 
     /** Set the info object containing meta information.
      *  Deletes any old info object.
@@ -629,7 +409,7 @@ protected:
      *  @param pObject the new trailer object
      *         It will be owned by PdfDocument.
      */
-    void SetTrailer(std::unique_ptr<PdfObject>& pObject );
+    void SetTrailer(std::unique_ptr<PdfObject>& pObject);
 
     /** Set the catalog of this PdfDocument
      *  deleting the old one.
@@ -640,13 +420,13 @@ protected:
      // m_pCatalog does not need to 
      // be reowned as it should
      // alread by part of m_vecObjects
-    inline void SetCatalog(PdfObject* pObject) { m_pCatalog = pObject; }
+    inline void SetCatalog(PdfObject* pObject) { m_Catalog = pObject; }
 
     /** Get a dictionary from the catalog dictionary by its name.
      *  \param pszName will be converted into a PdfName
      *  \returns the dictionary if it was found or nullptr
      */
-    PdfObject* GetNamedObjectFromCatalog( const char* pszName ) const;
+    PdfObject* GetNamedObjectFromCatalog(const std::string_view& name) const;
 
     /** Internal method for initializing the pages tree for this document
      */
@@ -659,20 +439,20 @@ protected:
      *  \param pObject object to change
      *  \param difference add this value to every reference that is encountered
      */
-    void FixObjectReferences( PdfObject* pObject, int difference );
+    void FixObjectReferences(PdfObject& pObject, int difference);
 
     /** Low-level APIs for setting a viewer preference.
      *  \param whichPref the dictionary key to set
      *  \param valueObj the object to be set
      */
-    void SetViewerPreference( const PdfName& whichPref, const PdfObject & valueObj );
+    void SetViewerPreference(const PdfName& whichPref, const PdfObject& valueObj);
 
     /** Low-level APIs for setting a viewer preference.
      *  Convenience overload.
      *  \param whichPref the dictionary key to set
      *  \param inValue the object to be set
      */
-    void SetViewerPreference( const PdfName& whichPref, bool inValue );
+    void SetViewerPreference(const PdfName& whichPref, bool inValue);
 
     /** Clear all internal variables
      *  and reset PdfDocument to an intial state.
@@ -684,7 +464,7 @@ protected:
      *
      *  \returns PdfObject the documents catalog
      */
-    inline PdfObject* getCatalog() { return m_pCatalog; }
+    inline PdfObject* getCatalog() { return m_Catalog; }
 
 private:
     // Prevent use of copy constructor and assignment operator.  These methods
@@ -696,17 +476,17 @@ private:
 
 private:
     PdfVecObjects m_vecObjects;
-    std::unique_ptr<PdfObject> m_pTrailer;
-    PdfObject* m_pCatalog;
-    std::unique_ptr<PdfInfo> m_pInfo;
-    std::unique_ptr<PdfPagesTree> m_pPagesTree;
-    std::unique_ptr<PdfAcroForm> m_pAcroForms;
-    std::unique_ptr<PdfOutlines> m_pOutlines;
-    std::unique_ptr<PdfNamesTree> m_pNamesTree;
-    PdfFontCache    m_fontCache;
+    std::unique_ptr<PdfObject> m_Trailer;
+    PdfObject* m_Catalog;
+    std::unique_ptr<PdfInfo> m_Info;
+    std::unique_ptr<PdfPagesTree> m_PageTree;
+    std::unique_ptr<PdfAcroForm> m_AcroForms;
+    std::unique_ptr<PdfOutlines> m_Outlines;
+    std::unique_ptr<PdfNamesTree> m_NameTree;
+    PdfFontCache m_fontCache;
 };
 
 };
 
 
-#endif	// _PDF_DOCUMENT_H_
+#endif	// PDF_DOCUMENT_H

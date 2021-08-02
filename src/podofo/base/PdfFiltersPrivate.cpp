@@ -1,55 +1,23 @@
-/***************************************************************************
- *   Copyright (C) 2007 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *   Copyright (C) 2020 by Francesco Pretto                                *
- *   ceztko@gmail.com                                                      *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2007 by Dominik Seichter <domseichter@web.de>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
-#include "PdfDefines.h"
+#include "PdfDefinesPrivate.h"
 #include "PdfFiltersPrivate.h"
 
 #include "PdfDictionary.h"
 #include "PdfOutputDevice.h"
 #include "PdfOutputStream.h"
 #include "PdfTokenizer.h"
-#include "PdfDefinesPrivate.h"
 
 #ifdef PODOFO_HAVE_JPEG_LIB
 extern "C" {
 #include "jerror.h"
 }
 #endif // PODOFO_HAVE_JPEG_LIB
-
-#include <stdlib.h>
-#include <string.h>
 
 #ifdef PODOFO_HAVE_TIFF_LIB
 extern "C" {
@@ -62,22 +30,15 @@ extern "C" {
 }
 #endif // PODOFO_HAVE_TIFF_LIB
 
+using namespace std;
+using namespace PoDoFo;
 
-#define LZW_TABLE_SIZE      4096
-
-namespace {
+namespace PoDoFo {
 
 // Private data for PdfAscii85Filter. This will be optimised
 // by the compiler through compile-time constant expression
 // evaluation.
-const unsigned long sPowers85[] = {
-    85*85*85*85, 85*85*85, 85*85, 85, 1
-};
-
-} // end anonymous namespace
-
-
-namespace PoDoFo {
+const unsigned sPowers85[] = { 85 * 85 * 85 * 85, 85 * 85 * 85, 85 * 85, 85, 1 };
 
 /** 
  * This structur contains all necessary values
@@ -85,86 +46,71 @@ namespace PoDoFo {
  * These values are normally stored in the /DecodeParams
  * key of a PDF dictionary.
  */
-class PdfPredictorDecoder {
-
+class PdfPredictorDecoder
+{
 public:
-    PdfPredictorDecoder( const PdfDictionary* pDecodeParms ) {
-        m_nPredictor   = static_cast<int>(pDecodeParms->GetKeyAsNumber( "Predictor", 1L ));
-        m_nColors      = static_cast<int>(pDecodeParms->GetKeyAsNumber( "Colors", 1L ));
-        m_nBPC         = static_cast<int>(pDecodeParms->GetKeyAsNumber( "BitsPerComponent", 8L ));
-        m_nColumns     = static_cast<int>(pDecodeParms->GetKeyAsNumber( "Columns", 1L ));
-        m_nEarlyChange = static_cast<int>(pDecodeParms->GetKeyAsNumber( "EarlyChange", 1L ));
+    PdfPredictorDecoder(const PdfDictionary* pDecodeParms)
+    {
+        m_nPredictor = static_cast<int>(pDecodeParms->GetKeyAsNumber("Predictor", 1));
+        m_nColors = static_cast<int>(pDecodeParms->GetKeyAsNumber("Colors", 1));
+        m_nBPC = static_cast<int>(pDecodeParms->GetKeyAsNumber("BitsPerComponent", 8));
+        m_nColumns = static_cast<int>(pDecodeParms->GetKeyAsNumber("Columns", 1));
+        m_nEarlyChange = static_cast<int>(pDecodeParms->GetKeyAsNumber("EarlyChange", 1));
 
-        if( m_nPredictor >= 10)
+        if (m_nPredictor >= 10)
         {
-          m_bNextByteIsPredictor = true;
-          m_nCurPredictor = -1;
+            m_bNextByteIsPredictor = true;
+            m_nCurPredictor = -1;
         }
         else
         {
-          m_bNextByteIsPredictor = false;
-          m_nCurPredictor = m_nPredictor;
+            m_bNextByteIsPredictor = false;
+            m_nCurPredictor = m_nPredictor;
         }
 
-        m_nCurRowIndex  = 0;
-        m_nBpp  = (m_nBPC * m_nColors) >> 3;
+        m_nCurRowIndex = 0;
+        m_nBpp = (m_nBPC * m_nColors) >> 3;
         m_nRows = (m_nColumns * m_nColors * m_nBPC) >> 3;
 
-        m_pPrev = static_cast<char*>(podofo_calloc( m_nRows, sizeof(char) ));
-        if( !m_pPrev )
-        {
-            PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
-        }
+        m_pPrev.resize(m_nRows);
+        memset(m_pPrev.data(), 0, sizeof(char) * m_nRows);
 
-        memset( m_pPrev, 0, sizeof(char) * m_nRows );
-
-        m_pUpperLeftPixelComponents = static_cast<char*>(podofo_calloc( m_nBpp, sizeof(char) ));
-        if( !m_pUpperLeftPixelComponents )
-        {
-            PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
-        }
-
-        memset( m_pUpperLeftPixelComponents, 0, sizeof(char) * m_nBpp );
-    };
-
-    ~PdfPredictorDecoder()
-    {
-        podofo_free( m_pPrev );
-        podofo_free( m_pUpperLeftPixelComponents );
+        m_pUpperLeftPixelComponents.resize(m_nBpp);
+        memset(m_pUpperLeftPixelComponents.data(), 0, sizeof(char) * m_nBpp);
     }
 
-    void Decode( const char* pBuffer, size_t lLen, PdfOutputStream* pStream )
+    void Decode(const char* pBuffer, size_t lLen, PdfOutputStream* pStream)
     {
-        if( m_nPredictor == 1 )
+        if (m_nPredictor == 1)
         {
-            pStream->Write( pBuffer, lLen );
+            pStream->Write(pBuffer, lLen);
             return;
         }
 
 
-        while( lLen-- ) 
+        while (lLen--)
         {
-            if( m_bNextByteIsPredictor )
+            if (m_bNextByteIsPredictor)
             {
                 m_nCurPredictor = *pBuffer + 10;
                 m_bNextByteIsPredictor = false;
             }
             else
             {
-                switch( m_nCurPredictor )
+                switch (m_nCurPredictor)
                 {
                     case 2: // Tiff Predictor
                     {
-                        if(m_nBPC == 8)
+                        if (m_nBPC == 8)
                         {   // Same as png sub
                             int prev = (m_nCurRowIndex - m_nBpp < 0
-                                        ? 0 : m_pPrev[m_nCurRowIndex - m_nBpp]);
+                                ? 0 : m_pPrev[m_nCurRowIndex - m_nBpp]);
                             m_pPrev[m_nCurRowIndex] = *pBuffer + prev;
                             break;
                         }
 
                         // TODO: implement tiff predictor for other than 8 BPC
-                        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidPredictor, "tiff predictors other than 8 BPC are not implemented" );
+                        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidPredictor, "tiff predictors other than 8 BPC are not implemented");
                         break;
                     }
                     case 10: // png none
@@ -174,8 +120,8 @@ public:
                     }
                     case 11: // png sub
                     {
-                        int prev = (m_nCurRowIndex - m_nBpp < 0 
-                                    ? 0 : m_pPrev[m_nCurRowIndex - m_nBpp]);
+                        int prev = (m_nCurRowIndex - m_nBpp < 0
+                            ? 0 : m_pPrev[m_nCurRowIndex - m_nBpp]);
                         m_pPrev[m_nCurRowIndex] = *pBuffer + prev;
                         break;
                     }
@@ -186,8 +132,8 @@ public:
                     }
                     case 13: // png average
                     {
-                        int prev = (m_nCurRowIndex - m_nBpp < 0 
-                                    ? 0 : m_pPrev[m_nCurRowIndex - m_nBpp]);
+                        int prev = (m_nCurRowIndex - m_nBpp < 0
+                            ? 0 : m_pPrev[m_nCurRowIndex - m_nBpp]);
                         m_pPrev[m_nCurRowIndex] = ((prev + m_pPrev[m_nCurRowIndex]) >> 1) + *pBuffer;
                         break;
                     }
@@ -195,27 +141,30 @@ public:
                     {
                         int nLeftByteIndex = m_nCurRowIndex - m_nBpp;
 
-                        int a = nLeftByteIndex < 0 ? 0 : static_cast<unsigned char>( m_pPrev[nLeftByteIndex] );
-                        int b = static_cast<unsigned char>( m_pPrev[m_nCurRowIndex] );
+                        int a = nLeftByteIndex < 0 ? 0 : static_cast<unsigned char>(m_pPrev[nLeftByteIndex]);
+                        int b = static_cast<unsigned char>(m_pPrev[m_nCurRowIndex]);
 
                         int nCurrComponentIndex = m_nCurRowIndex % m_nBpp;
-                        int c = nLeftByteIndex < 0 ? 0 : static_cast<unsigned char>( m_pUpperLeftPixelComponents[nCurrComponentIndex] );
+                        int c = nLeftByteIndex < 0 ? 0 : static_cast<unsigned char>(m_pUpperLeftPixelComponents[nCurrComponentIndex]);
 
                         int p = a + b - c;
 
                         int pa = p - a;
-                        if( pa < 0 ) pa = -pa;
+                        if (pa < 0)
+                            pa = -pa;
 
                         int pb = p - b;
-                        if( pb < 0 ) pb = -pb;
+                        if (pb < 0)
+                            pb = -pb;
 
                         int pc = p - c;
-                        if( pc < 0 ) pc = -pc;
+                        if (pc < 0)
+                            pc = -pc;
 
                         char closestByte;
-                        if( pa <= pb && pa <= pc )
+                        if (pa <= pb && pa <= pc)
                             closestByte = a;
-                        else if( pb <= pc )
+                        else if (pb <= pc)
                             closestByte = b;
                         else
                             closestByte = c;
@@ -227,9 +176,9 @@ public:
                         break;
                     }
                     case 15: // png optimum
-                        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidPredictor, "png optimum predictor is not implemented" );
+                        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidPredictor, "png optimum predictor is not implemented");
                         break;
-                        
+
                     default:
                     {
                         //PODOFO_RAISE_ERROR( EPdfError::InvalidPredictor );
@@ -242,23 +191,22 @@ public:
 
             ++pBuffer;
 
-            if( m_nCurRowIndex >= m_nRows ) 
+            if (m_nCurRowIndex >= m_nRows)
             {   // One line finished
-                m_nCurRowIndex  = 0;
+                m_nCurRowIndex = 0;
                 m_bNextByteIsPredictor = (m_nCurPredictor >= 10);
-                pStream->Write( m_pPrev, m_nRows );
+                pStream->Write(m_pPrev.data(), m_nRows);
             }
         }
     }
 
-
 private:
     int m_nPredictor;
     int m_nColors;
-    int m_nBPC; //< Bytes per component
+    int m_nBPC;     // Bytes per component
     int m_nColumns;
     int m_nEarlyChange;
-    int m_nBpp; ///< Bytes per pixel
+    int m_nBpp;     // Bytes per pixel
 
     int m_nCurPredictor;
     int m_nCurRowIndex;
@@ -266,71 +214,70 @@ private:
 
     bool m_bNextByteIsPredictor;
 
-    char* m_pPrev;
+    buffer_t m_pPrev;
 
     // The PNG Paeth predictor uses the values of the pixel above and to the left
     // of the current pixel. But we overwrite the row above as we go, so we'll
     // have to store the bytes of the upper-left pixel separately.
-    char* m_pUpperLeftPixelComponents;
+    buffer_t m_pUpperLeftPixelComponents;
 };
 
+} // end anonymous namespace
 
-// -------------------------------------------------------
-// Hex
-// -------------------------------------------------------
+#pragma region PdfHexFilter
 
 PdfHexFilter::PdfHexFilter()
-    : m_cDecodedByte( 0 ), m_bLow( true )
+    : m_cDecodedByte(0), m_bLow(true)
 {
 }
 
-void PdfHexFilter::EncodeBlockImpl( const char* pBuffer, size_t lLen )
+void PdfHexFilter::EncodeBlockImpl(const char* pBuffer, size_t lLen)
 {
     char data[2];
-    while( lLen-- )
+    while (lLen--)
     {
-        data[0]  = (*pBuffer & 0xF0) >> 4;
+        data[0] = (*pBuffer & 0xF0) >> 4;
         data[0] += (data[0] > 9 ? 'A' - 10 : '0');
 
-        data[1]  = (*pBuffer & 0x0F);
+        data[1] = (*pBuffer & 0x0F);
         data[1] += (data[1] > 9 ? 'A' - 10 : '0');
 
-        GetStream()->Write( data, 2 );
+        GetStream()->Write(data, 2);
 
         ++pBuffer;
     }
 }
 
-void PdfHexFilter::BeginDecodeImpl( const PdfDictionary* )
-{ 
+void PdfHexFilter::BeginDecodeImpl(const PdfDictionary*)
+{
     m_cDecodedByte = 0;
-    m_bLow         = true;
+    m_bLow = true;
 }
 
-void PdfHexFilter::DecodeBlockImpl( const char* pBuffer, size_t lLen )
+void PdfHexFilter::DecodeBlockImpl(const char* pBuffer, size_t lLen)
 {
     char val;
 
-    while( lLen-- ) 
+    while (lLen--)
     {
-        if( PdfTokenizer::IsWhitespace( *pBuffer ) )
+        if (PdfTokenizer::IsWhitespace(*pBuffer))
         {
             ++pBuffer;
             continue;
         }
 
-        val  = PdfTokenizer::GetHexValue( *pBuffer );
-        if( m_bLow ) 
+        val = PdfTokenizer::GetHexValue(*pBuffer);
+        if (m_bLow)
         {
             m_cDecodedByte = (val & 0x0F);
-            m_bLow         = false;
+            m_bLow = false;
         }
         else
         {
             m_cDecodedByte = ((m_cDecodedByte << 4) | val);
-            m_bLow         = true;
+            m_bLow = true;
 
-            GetStream()->Write( &m_cDecodedByte, 1 );
+            GetStream()->Write(&m_cDecodedByte, 1);
         }
 
         ++pBuffer;
@@ -338,15 +285,18 @@ void PdfHexFilter::DecodeBlockImpl( const char* pBuffer, size_t lLen )
 }
 
 void PdfHexFilter::EndDecodeImpl()
-{ 
-    if( !m_bLow ) 
+{
+    if (!m_bLow)
     {
         // an odd number of bytes was read,
         // so the last byte is 0
-        GetStream()->Write( &m_cDecodedByte, 1 );
+        GetStream()->Write(&m_cDecodedByte, 1);
     }
 }
 
+#pragma endregion // PdfHexFilter
+
+#pragma region PdfAscii85Filter
 
 // -------------------------------------------------------
 // Ascii 85
@@ -356,33 +306,31 @@ void PdfHexFilter::EndDecodeImpl()
 // -------------------------------------------------------
 
 PdfAscii85Filter::PdfAscii85Filter()
-    : m_count( 0 ), m_tuple( 0 )
+    : m_count(0), m_tuple(0)
 {
 }
 
-void PdfAscii85Filter::EncodeTuple( unsigned long tuple, int count )
+void PdfAscii85Filter::EncodeTuple(unsigned tuple, int count)
 {
-    int      i      = 5;
-    int      z      = 0;
-    char     buf[5];
-    char     out[5];
-    char*    start  = buf;;
+    int i = 5;
+    int z = 0;
+    char buf[5];
+    char out[5];
+    char* start = buf;;
 
-    do 
+    do
     {
         *start++ = static_cast<char>(tuple % 85);
         tuple /= 85;
-    } 
-    while (--i > 0);
+    } while (--i > 0);
 
     i = count;
-    do 
+    do
     {
         out[z++] = static_cast<unsigned char>(*--start) + '!';
-    } 
-    while (i-- > 0);
+    } while (i-- > 0);
 
-    GetStream()->Write( out, z );
+    GetStream()->Write(out, z);
 }
 
 void PdfAscii85Filter::BeginEncodeImpl()
@@ -391,27 +339,27 @@ void PdfAscii85Filter::BeginEncodeImpl()
     m_tuple = 0;
 }
 
-void PdfAscii85Filter::EncodeBlockImpl( const char* pBuffer, size_t lLen )
+void PdfAscii85Filter::EncodeBlockImpl(const char* pBuffer, size_t lLen)
 {
-    unsigned int  c;
-    const char*   z = "z";
+    unsigned c;
+    const char* z = "z";
 
-    while( lLen ) 
+    while (lLen)
     {
-        c = *pBuffer & 0xff;
+        c = *pBuffer & 0xFF;
         switch (m_count++) {
-            case 0: m_tuple |= ( c << 24); break;
-            case 1: m_tuple |= ( c << 16); break;
-            case 2: m_tuple |= ( c <<  8); break;
+            case 0: m_tuple |= (c << 24); break;
+            case 1: m_tuple |= (c << 16); break;
+            case 2: m_tuple |= (c << 8); break;
             case 3:
                 m_tuple |= c;
-                if( 0 == m_tuple ) 
+                if (m_tuple == 0)
                 {
-                    GetStream()->Write( z, 1 );
+                    GetStream()->Write(z, 1);
                 }
                 else
                 {
-                    this->EncodeTuple( m_tuple, m_count ); 
+                    this->EncodeTuple(m_tuple, m_count);
                 }
 
                 m_tuple = 0;
@@ -425,8 +373,8 @@ void PdfAscii85Filter::EncodeBlockImpl( const char* pBuffer, size_t lLen )
 
 void PdfAscii85Filter::EndEncodeImpl()
 {
-    if( m_count > 0 )
-        this->EncodeTuple( m_tuple, m_count );
+    if (m_count > 0)
+        this->EncodeTuple(m_tuple, m_count);
     //GetStream()->Write( "~>", 2 );
 }
 
@@ -436,42 +384,42 @@ void PdfAscii85Filter::BeginDecodeImpl( const PdfDictionary* )
     m_tuple = 0;
 }
 
-void PdfAscii85Filter::DecodeBlockImpl( const char* pBuffer, size_t lLen )
+void PdfAscii85Filter::DecodeBlockImpl(const char* pBuffer, size_t lLen)
 {
     bool foundEndMarker = false;
 
-    while( lLen && !foundEndMarker ) 
+    while (lLen && !foundEndMarker)
     {
-        switch ( *pBuffer ) 
+        switch (*pBuffer)
         {
             default:
-                if ( *pBuffer < '!' || *pBuffer > 'u') 
+                if (*pBuffer < '!' || *pBuffer > 'u')
                 {
-                    PODOFO_RAISE_ERROR( EPdfError::ValueOutOfRange );
+                    PODOFO_RAISE_ERROR(EPdfError::ValueOutOfRange);
                 }
 
-                m_tuple += ( *pBuffer - '!') * sPowers85[m_count++];
-                if( m_count == 5 ) 
+                m_tuple += (*pBuffer - '!') * sPowers85[m_count++];
+                if (m_count == 5)
                 {
-                    WidePut( m_tuple, 4 );
+                    WidePut(m_tuple, 4);
                     m_count = 0;
                     m_tuple = 0;
                 }
                 break;
             case 'z':
-                if (m_count != 0 ) 
+                if (m_count != 0)
                 {
-                    PODOFO_RAISE_ERROR( EPdfError::ValueOutOfRange );
+                    PODOFO_RAISE_ERROR(EPdfError::ValueOutOfRange);
                 }
 
-                this->WidePut( 0, 4 );
+                this->WidePut(0, 4);
                 break;
             case '~':
-                ++pBuffer; 
+                ++pBuffer;
                 --lLen;
-                if( lLen && *pBuffer != '>' ) 
+                if (lLen && *pBuffer != '>')
                 {
-                    PODOFO_RAISE_ERROR( EPdfError::ValueOutOfRange );
+                    PODOFO_RAISE_ERROR(EPdfError::ValueOutOfRange);
                 }
                 foundEndMarker = true;
                 break;
@@ -486,52 +434,53 @@ void PdfAscii85Filter::DecodeBlockImpl( const char* pBuffer, size_t lLen )
 }
 
 void PdfAscii85Filter::EndDecodeImpl()
-{ 
-    if( m_count > 0 ) 
+{
+    if (m_count > 0)
     {
         m_count--;
         m_tuple += sPowers85[m_count];
-        WidePut( m_tuple, m_count );
+        WidePut(m_tuple, m_count);
     }
 }
 
-void PdfAscii85Filter::WidePut( unsigned long tuple, int bytes ) const
+void PdfAscii85Filter::WidePut(unsigned tuple, int bytes) const
 {
     char data[4];
 
-    switch( bytes ) 
+    switch (bytes)
     {
-	case 4:
+        case 4:
             data[0] = static_cast<char>(tuple >> 24);
             data[1] = static_cast<char>(tuple >> 16);
-            data[2] = static_cast<char>(tuple >>  8);
+            data[2] = static_cast<char>(tuple >> 8);
             data[3] = static_cast<char>(tuple);
             break;
-	case 3:
+        case 3:
             data[0] = static_cast<char>(tuple >> 24);
             data[1] = static_cast<char>(tuple >> 16);
-            data[2] = static_cast<char>(tuple >>  8);
+            data[2] = static_cast<char>(tuple >> 8);
             break;
-	case 2:
+        case 2:
             data[0] = static_cast<char>(tuple >> 24);
             data[1] = static_cast<char>(tuple >> 16);
             break;
-	case 1:
+        case 1:
             data[0] = static_cast<char>(tuple >> 24);
             break;
     }
 
-    GetStream()->Write( data, bytes );
+    GetStream()->Write(data, bytes);
 }
 
-// -------------------------------------------------------
-// Flate
-// -------------------------------------------------------
+#pragma endregion // PdfAscii85Filter
+
+#pragma endregion PdfFlateFilter
+
 PdfFlateFilter::PdfFlateFilter()
-    : m_pPredictor( 0 )
+    : m_pPredictor(0)
 {
-    memset( m_buffer, 0, sizeof(m_buffer) );
-    memset( &m_stream, 0, sizeof(m_stream) );
+    memset(m_buffer, 0, sizeof(m_buffer));
+    memset(&m_stream, 0, sizeof(m_stream));
 }
 
 PdfFlateFilter::~PdfFlateFilter()
@@ -541,116 +490,118 @@ PdfFlateFilter::~PdfFlateFilter()
 
 void PdfFlateFilter::BeginEncodeImpl()
 {
-    m_stream.zalloc   = Z_NULL;
-    m_stream.zfree    = Z_NULL;
-    m_stream.opaque   = Z_NULL;
+    m_stream.zalloc = Z_NULL;
+    m_stream.zfree = Z_NULL;
+    m_stream.opaque = Z_NULL;
 
-    if( deflateInit( &m_stream, Z_DEFAULT_COMPRESSION ) )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::Flate );
-    }
+    if (deflateInit(&m_stream, Z_DEFAULT_COMPRESSION))
+        PODOFO_RAISE_ERROR(EPdfError::Flate);
 }
 
-void PdfFlateFilter::EncodeBlockImpl( const char* pBuffer, size_t lLen )
+void PdfFlateFilter::EncodeBlockImpl(const char* pBuffer, size_t lLen)
 {
-    this->EncodeBlockInternal( pBuffer, lLen, Z_NO_FLUSH );
+    this->EncodeBlockInternal(pBuffer, lLen, Z_NO_FLUSH);
 }
 
-void PdfFlateFilter::EncodeBlockInternal( const char* pBuffer, size_t lLen, int nMode )
+void PdfFlateFilter::EncodeBlockInternal(const char* pBuffer, size_t lLen, int nMode)
 {
     int nWrittenData = 0;
 
-    m_stream.avail_in = static_cast<long>(lLen);
-    m_stream.next_in  = reinterpret_cast<Bytef*>(const_cast<char*>(pBuffer));
+    m_stream.avail_in = static_cast<unsigned>(lLen);
+    m_stream.next_in = reinterpret_cast<Bytef*>(const_cast<char*>(pBuffer));
 
-    do {
+    do
+    {
         m_stream.avail_out = PODOFO_FILTER_INTERNAL_BUFFER_SIZE;
-        m_stream.next_out  = m_buffer;
+        m_stream.next_out = m_buffer;
 
-        if( deflate( &m_stream, nMode) == Z_STREAM_ERROR )
+        if (deflate(&m_stream, nMode) == Z_STREAM_ERROR)
         {
             FailEncodeDecode();
-            PODOFO_RAISE_ERROR( EPdfError::Flate );
+            PODOFO_RAISE_ERROR(EPdfError::Flate);
         }
-
 
         nWrittenData = PODOFO_FILTER_INTERNAL_BUFFER_SIZE - m_stream.avail_out;
-        try {
-            if( nWrittenData > 0 ) 
+        try
+        {
+            if (nWrittenData > 0)
             {
-                GetStream()->Write( reinterpret_cast<char*>(m_buffer), nWrittenData );
+                GetStream()->Write(reinterpret_cast<char*>(m_buffer), nWrittenData);
             }
-        } catch( PdfError & e ) {
+        }
+        catch (PdfError& e)
+        {
             // clean up after any output stream errors
             FailEncodeDecode();
-            e.AddToCallstack( __FILE__, __LINE__ );
+            e.AddToCallstack(__FILE__, __LINE__);
             throw e;
         }
-    } while( m_stream.avail_out == 0 );
+    } while (m_stream.avail_out == 0);
 }
 
 void PdfFlateFilter::EndEncodeImpl()
 {
-    this->EncodeBlockInternal( nullptr, 0, Z_FINISH );
-    deflateEnd( &m_stream );
+    this->EncodeBlockInternal(nullptr, 0, Z_FINISH);
+    deflateEnd(&m_stream);
 }
 
-// --
-
-void PdfFlateFilter::BeginDecodeImpl( const PdfDictionary* pDecodeParms )
+void PdfFlateFilter::BeginDecodeImpl(const PdfDictionary* pDecodeParms)
 {
-    m_stream.zalloc   = Z_NULL;
-    m_stream.zfree    = Z_NULL;
-    m_stream.opaque   = Z_NULL;
+    m_stream.zalloc = Z_NULL;
+    m_stream.zfree = Z_NULL;
+    m_stream.opaque = Z_NULL;
 
-    m_pPredictor = pDecodeParms ? new PdfPredictorDecoder( pDecodeParms ) : nullptr;
+    m_pPredictor = pDecodeParms ? new PdfPredictorDecoder(pDecodeParms) : nullptr;
 
-    if( inflateInit( &m_stream ) != Z_OK )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::Flate );
-    }
+    if (inflateInit(&m_stream) != Z_OK)
+        PODOFO_RAISE_ERROR(EPdfError::Flate);
 }
 
-void PdfFlateFilter::DecodeBlockImpl( const char* pBuffer, size_t lLen )
+void PdfFlateFilter::DecodeBlockImpl(const char* pBuffer, size_t lLen)
 {
     int flateErr;
     int nWrittenData;
 
-    m_stream.avail_in = static_cast<long>(lLen);
-    m_stream.next_in  = reinterpret_cast<Bytef*>(const_cast<char*>(pBuffer));
+    m_stream.avail_in = static_cast<unsigned>(lLen);
+    m_stream.next_in = reinterpret_cast<Bytef*>(const_cast<char*>(pBuffer));
 
-    do {
+    do
+    {
         m_stream.avail_out = PODOFO_FILTER_INTERNAL_BUFFER_SIZE;
-        m_stream.next_out  = m_buffer;
+        m_stream.next_out = m_buffer;
 
-        switch( (flateErr = inflate(&m_stream, Z_NO_FLUSH)) ) {
+        switch ((flateErr = inflate(&m_stream, Z_NO_FLUSH)))
+        {
             case Z_NEED_DICT:
             case Z_DATA_ERROR:
             case Z_MEM_ERROR:
             {
-                PdfError::LogMessage( ELogSeverity::Error, "Flate Decoding Error from ZLib: %i", flateErr );
+                PdfError::LogMessage(LogSeverity::Error, "Flate Decoding Error from ZLib: %i", flateErr);
                 (void)inflateEnd(&m_stream);
 
                 FailEncodeDecode();
-                PODOFO_RAISE_ERROR( EPdfError::Flate );
+                PODOFO_RAISE_ERROR(EPdfError::Flate);
             }
             default:
                 break;
         }
 
         nWrittenData = PODOFO_FILTER_INTERNAL_BUFFER_SIZE - m_stream.avail_out;
-        try {
-            if( m_pPredictor ) 
-                m_pPredictor->Decode( reinterpret_cast<char*>(m_buffer), nWrittenData, GetStream() );
+        try
+        {
+            if (m_pPredictor)
+                m_pPredictor->Decode(reinterpret_cast<char*>(m_buffer), nWrittenData, GetStream());
             else
-                GetStream()->Write( reinterpret_cast<char*>(m_buffer), nWrittenData );
-        } catch( PdfError & e ) {
+                GetStream()->Write(reinterpret_cast<char*>(m_buffer), nWrittenData);
+        }
+        catch (PdfError& e)
+        {
             // clean up after any output stream errors
             FailEncodeDecode();
-            e.AddToCallstack( __FILE__, __LINE__ );
+            e.AddToCallstack(__FILE__, __LINE__);
             throw e;
         }
-    } while( m_stream.avail_out == 0 );
+    } while (m_stream.avail_out == 0);
 }
 
 void PdfFlateFilter::EndDecodeImpl()
@@ -661,28 +612,28 @@ void PdfFlateFilter::EndDecodeImpl()
     (void)inflateEnd(&m_stream);
 }
 
-// -------------------------------------------------------
-// RLE
-// -------------------------------------------------------
+#pragma endregion // PdfFlateFilter
+
+#pragma region PdfRLEFilter
 
 PdfRLEFilter::PdfRLEFilter()
-    : m_nCodeLen( 0 )
+    : m_nCodeLen(0)
 {
 }
 
 void PdfRLEFilter::BeginEncodeImpl()
 {
-    PODOFO_RAISE_ERROR( EPdfError::UnsupportedFilter );
+    PODOFO_RAISE_ERROR(EPdfError::UnsupportedFilter);
 }
 
-void PdfRLEFilter::EncodeBlockImpl( const char*, size_t)
+void PdfRLEFilter::EncodeBlockImpl(const char*, size_t)
 {
-    PODOFO_RAISE_ERROR( EPdfError::UnsupportedFilter );
+    PODOFO_RAISE_ERROR(EPdfError::UnsupportedFilter);
 }
 
 void PdfRLEFilter::EndEncodeImpl()
 {
-    PODOFO_RAISE_ERROR( EPdfError::UnsupportedFilter );
+    PODOFO_RAISE_ERROR(EPdfError::UnsupportedFilter);
 }
 
 void PdfRLEFilter::BeginDecodeImpl( const PdfDictionary* )
@@ -690,50 +641,49 @@ void PdfRLEFilter::BeginDecodeImpl( const PdfDictionary* )
     m_nCodeLen = 0;
 }
 
-void PdfRLEFilter::DecodeBlockImpl( const char* pBuffer, size_t lLen )
+void PdfRLEFilter::DecodeBlockImpl(const char* pBuffer, size_t lLen)
 {
-    while( lLen-- )
+    while (lLen--)
     {
-        if( !m_nCodeLen )
+        if (!m_nCodeLen)
         {
             m_nCodeLen = static_cast<int>(*pBuffer);
-        } else if( m_nCodeLen == 128 )
-            break;
-        else if( m_nCodeLen <= 127 )
+        }
+        else if (m_nCodeLen == 128)
         {
-            GetStream()->Write( pBuffer, 1 );
+            break;
+        }
+        else if (m_nCodeLen <= 127)
+        {
+            GetStream()->Write(pBuffer, 1);
             m_nCodeLen--;
         }
-        else if( m_nCodeLen >= 129 )
+        else if (m_nCodeLen >= 129)
         {
             m_nCodeLen = 257 - m_nCodeLen;
 
-            while( m_nCodeLen-- ) 
-                GetStream()->Write( pBuffer, 1 );
+            while (m_nCodeLen--)
+                GetStream()->Write(pBuffer, 1);
         }
 
         ++pBuffer;
     }
 }
 
-// -------------------------------------------------------
-// LZW
-// -------------------------------------------------------
+#pragma endregion // PdfRLEFilter
 
-const unsigned short PdfLZWFilter::s_masks[] = { 0x01FF,
-                                        0x03FF,
-                                        0x07FF,
-                                        0x0FFF };
+#pragma region PdfLZWFilter
 
-const unsigned short PdfLZWFilter::s_clear  = 0x0100;      // clear table
-const unsigned short PdfLZWFilter::s_eod    = 0x0101;      // end of data
+const unsigned short PdfLZWFilter::s_masks[] = { 0x01FF, 0x03FF, 0x07FF, 0x0FFF };
+const unsigned short PdfLZWFilter::s_clear = 0x0100;      // clear table
+const unsigned short PdfLZWFilter::s_eod = 0x0101;      // end of data
 
 PdfLZWFilter::PdfLZWFilter()
     : m_mask(0),
     m_code_len(0),
     m_character(0),
     m_bFirst(false),
-    m_pPredictor( 0 )
+    m_pPredictor(0)
 {
 }
 
@@ -744,55 +694,54 @@ PdfLZWFilter::~PdfLZWFilter()
 
 void PdfLZWFilter::BeginEncodeImpl()
 {
-    PODOFO_RAISE_ERROR( EPdfError::UnsupportedFilter );
+    PODOFO_RAISE_ERROR(EPdfError::UnsupportedFilter);
 }
 
-void PdfLZWFilter::EncodeBlockImpl( const char*, size_t)
+void PdfLZWFilter::EncodeBlockImpl(const char*, size_t)
 {
-    PODOFO_RAISE_ERROR( EPdfError::UnsupportedFilter );
+    PODOFO_RAISE_ERROR(EPdfError::UnsupportedFilter);
 }
 
 void PdfLZWFilter::EndEncodeImpl()
 {
-    PODOFO_RAISE_ERROR( EPdfError::UnsupportedFilter );
+    PODOFO_RAISE_ERROR(EPdfError::UnsupportedFilter);
 }
 
-void PdfLZWFilter::BeginDecodeImpl( const PdfDictionary* pDecodeParms )
-{ 
-    m_mask       = 0;
-    m_code_len   = 9;
-    m_character  = 0;
+void PdfLZWFilter::BeginDecodeImpl(const PdfDictionary* pDecodeParms)
+{
+    m_mask = 0;
+    m_code_len = 9;
+    m_character = 0;
 
-    m_bFirst     = true;
+    m_bFirst = true;
 
-    m_pPredictor = pDecodeParms ? new PdfPredictorDecoder( pDecodeParms ) : nullptr;
+    m_pPredictor = pDecodeParms ? new PdfPredictorDecoder(pDecodeParms) : nullptr;
 
     InitTable();
 }
 
-void PdfLZWFilter::DecodeBlockImpl( const char* pBuffer, size_t lLen )
+void PdfLZWFilter::DecodeBlockImpl(const char* pBuffer, size_t lLen)
 {
-    unsigned int       buffer_size = 0;
-    const unsigned int buffer_max  = 24;
+    unsigned buffer_size = 0;
+    const unsigned buffer_max = 24;
 
-    uint32_t         old         = 0;
-    uint32_t         code        = 0;
-    uint32_t         buffer      = 0;
+    uint32_t old = 0;
+    uint32_t code = 0;
+    uint32_t buffer = 0;
 
-    TLzwItem           item;
+    TLzwItem item;
 
-    std::vector<unsigned char> data;
-
-    if( m_bFirst ) 
+    vector<unsigned char> data;
+    if (m_bFirst)
     {
         m_character = *pBuffer;
-        m_bFirst    = false;
+        m_bFirst = false;
     }
 
-    while( lLen ) 
+    while (lLen)
     {
         // Fill the buffer
-        while( buffer_size <= (buffer_max-8) && lLen )
+        while (buffer_size <= (buffer_max - 8) && lLen)
         {
             buffer <<= 8;
             buffer |= static_cast<uint32_t>(static_cast<unsigned char>(*pBuffer));
@@ -803,54 +752,54 @@ void PdfLZWFilter::DecodeBlockImpl( const char* pBuffer, size_t lLen )
         }
 
         // read from the buffer
-        while( buffer_size >= m_code_len ) 
+        while (buffer_size >= m_code_len)
         {
-            code         = (buffer >> (buffer_size - m_code_len)) & PdfLZWFilter::s_masks[m_mask];
+            code = (buffer >> (buffer_size - m_code_len)) & PdfLZWFilter::s_masks[m_mask];
             buffer_size -= m_code_len;
 
-            if( code == PdfLZWFilter::s_clear ) 
+            if (code == PdfLZWFilter::s_clear)
             {
-                m_mask     = 0;
+                m_mask = 0;
                 m_code_len = 9;
 
                 InitTable();
             }
-            else if( code == PdfLZWFilter::s_eod ) 
+            else if (code == PdfLZWFilter::s_eod)
             {
                 lLen = 0;
                 break;
             }
-            else 
+            else
             {
-                if( code >= m_table.size() )
+                if (code >= m_table.size())
                 {
                     if (old >= m_table.size())
                     {
-                        PODOFO_RAISE_ERROR( EPdfError::ValueOutOfRange );
+                        PODOFO_RAISE_ERROR(EPdfError::ValueOutOfRange);
                     }
                     data = m_table[old].value;
-                    data.push_back( m_character );
+                    data.push_back(m_character);
                 }
                 else
                     data = m_table[code].value;
 
                 // Write data to the output device
-                if( m_pPredictor ) 
-                    m_pPredictor->Decode( reinterpret_cast<char*>(&(data[0])), data.size(), GetStream() );
+                if (m_pPredictor)
+                    m_pPredictor->Decode(reinterpret_cast<char*>(&(data[0])), data.size(), GetStream());
                 else
-                    GetStream()->Write( reinterpret_cast<char*>(&(data[0])), data.size());
+                    GetStream()->Write(reinterpret_cast<char*>(&(data[0])), data.size());
 
                 m_character = data[0];
-                if( old < m_table.size() ) // fix the first loop
+                if (old < m_table.size()) // fix the first loop
                     data = m_table[old].value;
-                data.push_back( m_character );
+                data.push_back(m_character);
 
                 item.value = data;
-                m_table.push_back( item );
+                m_table.push_back(item);
 
                 old = code;
 
-                switch( m_table.size() ) 
+                switch (m_table.size())
                 {
                     case 511:
                     case 1023:
@@ -874,29 +823,29 @@ void PdfLZWFilter::EndDecodeImpl()
 
 void PdfLZWFilter::InitTable()
 {
-    int      i;
+    constexpr unsigned LZW_TABLE_SIZE = 4096;
     TLzwItem item;
 
     m_table.clear();
-    m_table.reserve( LZW_TABLE_SIZE );
+    m_table.reserve(LZW_TABLE_SIZE);
 
-    for( i=0;i<=255;i++ )
+    for (int i = 0; i <= 255; i++)
     {
         item.value.clear();
-        item.value.push_back( static_cast<unsigned char>(i) );
-        m_table.push_back( item );
+        item.value.push_back(static_cast<unsigned char>(i));
+        m_table.push_back(item);
     }
 
     // Add dummy entry, which is never used by decoder
     item.value.clear();
-    m_table.push_back( item );
+    m_table.push_back(item);
 }
 
+#pragma endregion // PdfLZWFilter
 
 
-// -------------------------------------------------------
-// DCTDecode
-// -------------------------------------------------------
+#pragma region PdfDCTFilter
+
 #ifdef PODOFO_HAVE_JPEG_LIB
 
 /*
@@ -904,66 +853,66 @@ void PdfLZWFilter::InitTable()
  */
 extern "C"
 {
-void JPegErrorExit(j_common_ptr cinfo)
-{
-    auto& error = *reinterpret_cast<std::string *>(cinfo->client_data);
-    error.resize(JMSG_LENGTH_MAX);
-    /* Create the message */
-    (*cinfo->err->format_message) (cinfo, error.data());
+    void JPegErrorExit(j_common_ptr cinfo)
+    {
+        auto& error = *reinterpret_cast<string *>(cinfo->client_data);
+        error.resize(JMSG_LENGTH_MAX);
+        /* Create the message */
+        (*cinfo->err->format_message) (cinfo, error.data());
 
-    jpeg_destroy(cinfo);
-}
+        jpeg_destroy(cinfo);
+    }
 
-void JPegErrorOutput(j_common_ptr, int)
-{
-}
+    void JPegErrorOutput(j_common_ptr, int)
+    {
+    }
 };
 
 /*
  * The actual filter implementation
  */
 PdfDCTFilter::PdfDCTFilter()
-    : m_pDevice( nullptr )
+    : m_pDevice(nullptr)
 {
-    memset( &m_cinfo, 0, sizeof( struct jpeg_decompress_struct ) );
-    memset( &m_jerr, 0, sizeof( struct jpeg_error_mgr ) );
+    memset(&m_cinfo, 0, sizeof(struct jpeg_decompress_struct));
+    memset(&m_jerr, 0, sizeof(struct jpeg_error_mgr));
 }
 
 void PdfDCTFilter::BeginEncodeImpl()
 {
-    PODOFO_RAISE_ERROR( EPdfError::UnsupportedFilter );
+    PODOFO_RAISE_ERROR(EPdfError::UnsupportedFilter);
 }
 
-void PdfDCTFilter::EncodeBlockImpl( const char*, size_t)
+void PdfDCTFilter::EncodeBlockImpl(const char*, size_t)
 {
-    PODOFO_RAISE_ERROR( EPdfError::UnsupportedFilter );
+    PODOFO_RAISE_ERROR(EPdfError::UnsupportedFilter);
 }
 
 void PdfDCTFilter::EndEncodeImpl()
 {
-    PODOFO_RAISE_ERROR( EPdfError::UnsupportedFilter );
+    PODOFO_RAISE_ERROR(EPdfError::UnsupportedFilter);
 }
 
-void PdfDCTFilter::BeginDecodeImpl( const PdfDictionary* )
-{ 
+void PdfDCTFilter::BeginDecodeImpl(const PdfDictionary*)
+{
     // Setup variables for JPEGLib
-    std::string error;
+    string error;
     m_cinfo.client_data = &error;
-    m_cinfo.err = jpeg_std_error( &m_jerr );
+    m_cinfo.err = jpeg_std_error(&m_jerr);
     m_jerr.error_exit = &JPegErrorExit;
     m_jerr.emit_message = &JPegErrorOutput;
 
-    jpeg_create_decompress( &m_cinfo );
+    jpeg_create_decompress(&m_cinfo);
 
     if (error.length() != 0)
         PODOFO_RAISE_ERROR_INFO(EPdfError::UnsupportedImageFormat, error);
 
-    m_pDevice = new PdfOutputDevice( &m_buffer );
+    m_pDevice = new PdfOutputDevice(m_buffer);
 }
 
-void PdfDCTFilter::DecodeBlockImpl( const char* pBuffer, size_t lLen )
+void PdfDCTFilter::DecodeBlockImpl(const char* pBuffer, size_t lLen)
 {
-    m_pDevice->Write( pBuffer, lLen );
+    m_pDevice->Write(pBuffer, lLen);
 }
 
 void PdfDCTFilter::EndDecodeImpl()
@@ -971,72 +920,60 @@ void PdfDCTFilter::EndDecodeImpl()
     delete m_pDevice;
     m_pDevice = nullptr;
 
-    jpeg_memory_src ( &m_cinfo, reinterpret_cast<JOCTET*>(m_buffer.GetBuffer()), m_buffer.GetSize() );
+    PoDoFo::jpeg_memory_src(&m_cinfo, reinterpret_cast<JOCTET*>(m_buffer.GetBuffer()), m_buffer.GetSize());
 
-    if( jpeg_read_header(&m_cinfo, TRUE) <= 0 )
+    if (jpeg_read_header(&m_cinfo, TRUE) <= 0)
     {
-        (void) jpeg_destroy_decompress(&m_cinfo);
+        jpeg_destroy_decompress(&m_cinfo);
 
-        PODOFO_RAISE_ERROR( EPdfError::UnexpectedEOF );
+        PODOFO_RAISE_ERROR(EPdfError::UnexpectedEOF);
     }
 
     jpeg_start_decompress(&m_cinfo);
 
-
-    char*      pOutBuffer;
-    JSAMPARRAY pBuffer;	
-    long       lRowBytes   = m_cinfo.output_width * m_cinfo.output_components;
-    const int  iComponents = m_cinfo.output_components;
+    unsigned lRowBytes = (unsigned)(m_cinfo.output_width * m_cinfo.output_components);
+    const int iComponents = m_cinfo.output_components;
 
     // pBuffer will be deleted by jpeg_destroy_decompress
-    pBuffer    = (*m_cinfo.mem->alloc_sarray)( reinterpret_cast<j_common_ptr>( &m_cinfo ), JPOOL_IMAGE, lRowBytes, 1);
-    pOutBuffer = static_cast<char*>(podofo_calloc( lRowBytes, sizeof(char)) );
-	if (!pOutBuffer)
-	{
-		PODOFO_RAISE_ERROR(EPdfError::OutOfMemory);
-	}
-
-    while( m_cinfo.output_scanline < m_cinfo.output_height ) 
+    JSAMPARRAY pBuffer = (*m_cinfo.mem->alloc_sarray)(reinterpret_cast<j_common_ptr>(&m_cinfo), JPOOL_IMAGE, lRowBytes, 1);
+    buffer_t buffer(lRowBytes);
+    while (m_cinfo.output_scanline < m_cinfo.output_height)
     {
         jpeg_read_scanlines(&m_cinfo, pBuffer, 1);
-        if( iComponents == 4 ) 
+        if (iComponents == 4)
         {
-            for( unsigned int i=0, c=0; i < m_cinfo.output_width; i++, c+=4 ) 
+            for (unsigned i = 0, c = 0; i < m_cinfo.output_width; i++, c += 4)
             {
-                pOutBuffer[c]   = pBuffer[0][i*4];
-                pOutBuffer[c+1] = pBuffer[0][i*4+1];
-                pOutBuffer[c+2] = pBuffer[0][i*4+2];
-                pOutBuffer[c+3] = pBuffer[0][i*4+3];
+                buffer[c] = pBuffer[0][i * 4];
+                buffer[c + 1] = pBuffer[0][i * 4 + 1];
+                buffer[c + 2] = pBuffer[0][i * 4 + 2];
+                buffer[c + 3] = pBuffer[0][i * 4 + 3];
             }
         }
-        else if( iComponents == 3 ) 
+        else if (iComponents == 3)
         {
-            for( unsigned int i=0, c=0; i < m_cinfo.output_width; i++, c+=3 ) 
+            for (unsigned i = 0, c = 0; i < m_cinfo.output_width; i++, c += 3)
             {
-                pOutBuffer[c]   = pBuffer[0][i*3];
-                pOutBuffer[c+1] = pBuffer[0][i*3+1];
-                pOutBuffer[c+2] = pBuffer[0][i*3+2];
+                buffer[c] = pBuffer[0][i * 3];
+                buffer[c + 1] = pBuffer[0][i * 3 + 1];
+                buffer[c + 2] = pBuffer[0][i * 3 + 2];
             }
         }
-        else if( iComponents == 1 ) 
+        else if (iComponents == 1)
         {
-            memcpy( pOutBuffer, pBuffer[0], m_cinfo.output_width );
+            memcpy(buffer.data(), pBuffer[0], m_cinfo.output_width);
         }
         else
         {
-            PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "DCTDecode unknown components" );
+            PODOFO_RAISE_ERROR_INFO(EPdfError::InternalLogic, "DCTDecode unknown components");
         }
-        
-        GetStream()->Write( reinterpret_cast<char*>(pOutBuffer), lRowBytes );
+
+        GetStream()->Write(reinterpret_cast<char*>(buffer.data()), lRowBytes);
     }
 
-    podofo_free( pOutBuffer );
-    (void) jpeg_destroy_decompress( &m_cinfo );
+    jpeg_destroy_decompress(&m_cinfo);
 }
 
-// -------------------------------------------------------
-// memsrc.c
-// -------------------------------------------------------
 /*
  * memsrc.c
  *
@@ -1053,10 +990,9 @@ void PdfDCTFilter::EndDecodeImpl()
  * custom source managers for other purposes.
 */
 
-
-
 /* Expanded data source object for memory input */
-typedef struct {
+typedef struct
+{
     struct jpeg_source_mgr pub; /* public fields */
     JOCTET eoi_buffer[2]; /* a place to put a dummy EOI */
 } my_source_mgr;
@@ -1068,10 +1004,7 @@ typedef my_source_mgr * my_src_ptr;
  * before any data is actually read.
  */
 
-
-
-METHODDEF(void)
-init_source (j_decompress_ptr)
+METHODDEF(void) init_source (j_decompress_ptr)
 {
     /* No work, since jpeg_memory_src set up the buffer pointer and count.
      * Indeed, if we want to read multiple JPEG images from one buffer,
@@ -1092,8 +1025,7 @@ init_source (j_decompress_ptr)
  * some sort of output image, no matter how corrupted.
  */
 
-METHODDEF(boolean)
-fill_input_buffer (j_decompress_ptr cinfo)
+METHODDEF(boolean) fill_input_buffer (j_decompress_ptr cinfo)
 {
     my_src_ptr src = reinterpret_cast<my_src_ptr>(cinfo->src);
     WARNMS(cinfo, JWRN_JPEG_EOF);
@@ -1116,13 +1048,14 @@ fill_input_buffer (j_decompress_ptr cinfo)
  * it really isn't supposed to happen ... and the decompressor will never
  * skip more than 64K anyway.
  */
-METHODDEF(void)
-skip_input_data (j_decompress_ptr cinfo, long num_bytes)
+METHODDEF(void) skip_input_data(j_decompress_ptr cinfo, long num_bytes)
 {
     my_src_ptr src = reinterpret_cast<my_src_ptr>(cinfo->src);
 
-    if (num_bytes > 0) {
-        while (num_bytes > static_cast<long>(src->pub.bytes_in_buffer) ) {
+    if (num_bytes > 0)
+    {
+        while (num_bytes > static_cast<long>(src->pub.bytes_in_buffer))
+        {
             num_bytes -= static_cast<long>(src->pub.bytes_in_buffer);
             fill_input_buffer(cinfo);
             /* note we assume that fill_input_buffer will never return FALSE,
@@ -1151,8 +1084,7 @@ skip_input_data (j_decompress_ptr cinfo, long num_bytes)
  * application must deal with any cleanup that should happen even
  * for error exit.
  */
-METHODDEF(void)
-term_source (j_decompress_ptr)
+METHODDEF(void) term_source(j_decompress_ptr)
 {
     /* no work necessary here */
 }
@@ -1160,8 +1092,7 @@ term_source (j_decompress_ptr)
 /*
  * Prepare for input from a memory buffer.
  */
-GLOBAL(void)
-jpeg_memory_src (j_decompress_ptr cinfo, const JOCTET * buffer, size_t bufsize)
+void PoDoFo::jpeg_memory_src(j_decompress_ptr cinfo, const JOCTET* buffer, size_t bufsize)
 {
     my_src_ptr src;
 
@@ -1172,13 +1103,13 @@ jpeg_memory_src (j_decompress_ptr cinfo, const JOCTET * buffer, size_t bufsize)
      * manager serially with the same JPEG object. Caveat programmer.
      */
 
-    if (cinfo->src == nullptr) { /* first time for this JPEG object? */
-        cinfo->src = static_cast<struct jpeg_source_mgr *>(
-            (*cinfo->mem->alloc_small) ( reinterpret_cast<j_common_ptr>(cinfo), JPOOL_PERMANENT,
-                                        sizeof(my_source_mgr)));
-
+    if (cinfo->src == nullptr)
+    {
+        // first time for this JPEG object?
+        cinfo->src = static_cast<struct jpeg_source_mgr*>(
+            (*cinfo->mem->alloc_small) (reinterpret_cast<j_common_ptr>(cinfo), JPOOL_PERMANENT,
+                sizeof(my_source_mgr)));
     }
-
 
     src = reinterpret_cast<my_src_ptr>(cinfo->src);
     src->pub.init_source = init_source;
@@ -1189,154 +1120,127 @@ jpeg_memory_src (j_decompress_ptr cinfo, const JOCTET * buffer, size_t bufsize)
 
     src->pub.next_input_byte = buffer;
     src->pub.bytes_in_buffer = bufsize;
-}                                
-
+}
 
 #endif // PODOFO_HAVE_JPEG_LIB
+
+#pragma endregion // PdfDCTFilter
+
+#pragma region PdfCCITTFilter
 
 #ifdef PODOFO_HAVE_TIFF_LIB
 
 #ifdef DS_CCITT_DEVELOPMENT_CODE
-// -------------------------------------------------------
-// 
-// -------------------------------------------------------
+
 static tsize_t dummy_read(thandle_t, tdata_t, tsize_t)
 {
     return 0;
 }
 
-// -------------------------------------------------------
-// 
-// -------------------------------------------------------
 static tsize_t dummy_write(thandle_t, tdata_t, tsize_t size)
 {
     return size;
 }
 
-// -------------------------------------------------------
-// 
-// -------------------------------------------------------
 static toff_t dummy_seek(thandle_t, toff_t, int)
 {
 
 }
 
-// -------------------------------------------------------
-// 
-// -------------------------------------------------------
 static int dummy_close(thandle_t)
 {
 
 }
 
-// -------------------------------------------------------
-// 
-// -------------------------------------------------------
 static toff_t dummy_size(thandle_t)
 {
 
 }
+
 #endif
 
-// -------------------------------------------------------
-// Actual filter code below
-// -------------------------------------------------------
 PdfCCITTFilter::PdfCCITTFilter()
-    : m_tiff( nullptr )
+    : m_tiff(nullptr)
 {
 }
 
 void PdfCCITTFilter::BeginEncodeImpl()
 {
-    PODOFO_RAISE_ERROR( EPdfError::UnsupportedFilter );
+    PODOFO_RAISE_ERROR(EPdfError::UnsupportedFilter);
 }
 
-void PdfCCITTFilter::EncodeBlockImpl( const char*, size_t)
+void PdfCCITTFilter::EncodeBlockImpl(const char*, size_t)
 {
-    PODOFO_RAISE_ERROR( EPdfError::UnsupportedFilter );
+    PODOFO_RAISE_ERROR(EPdfError::UnsupportedFilter);
 }
 
 void PdfCCITTFilter::EndEncodeImpl()
 {
-    PODOFO_RAISE_ERROR( EPdfError::UnsupportedFilter );
+    PODOFO_RAISE_ERROR(EPdfError::UnsupportedFilter);
 }
 
-#ifndef _MSC_VER
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
-void PdfCCITTFilter::BeginDecodeImpl( const PdfDictionary* pDict )
+void PdfCCITTFilter::BeginDecodeImpl(const PdfDictionary* pDict)
 {
 #ifdef DS_CCITT_DEVELOPMENT_CODE
 
-    if( !pDict )
-    {
-        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidHandle, "PdfCCITTFilter required a DecodeParms dictionary" );
-    } 
+    if (pDict == nullptr)
+        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "PdfCCITTFilter required a DecodeParms dictionary");
 
     m_tiff = TIFFClientOpen("podofo", "w", reinterpret_cast<thandle_t>(-1),
-                            dummy_read, dummy_write,
-                            dummy_seek, dummy_close, dummy_size, nullptr, nullptr);
+        dummy_read, dummy_write,
+        dummy_seek, dummy_close, dummy_size, nullptr, nullptr);
 
-    if( !m_tiff ) 
-    {
-        PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidHandle, "TIFFClientOpen failed" );
-    }
+    if (m_tiff == nullptr)
+        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "TIFFClientOpen failed");
 
     m_tiff->tif_mode = O_RDONLY;
 
-    TIFFSetField(m_tiff, TIFFTAG_IMAGEWIDTH,      pDict->GetKeyAsLong( PdfName("Columns"), 1728 ) );
+    TIFFSetField(m_tiff, TIFFTAG_IMAGEWIDTH, pDict->GetKeyAsNumber(PdfName("Columns"), 1728));
     TIFFSetField(m_tiff, TIFFTAG_SAMPLESPERPIXEL, 1);
-    TIFFSetField(m_tiff, TIFFTAG_BITSPERSAMPLE,   1);
-    TIFFSetField(m_tiff, TIFFTAG_FILLORDER,       FILLORDER_LSB2MSB);
-    TIFFSetField(m_tiff, TIFFTAG_PLANARCONFIG,    PLANARCONFIG_CONTIG);
-    TIFFSetField(m_tiff, TIFFTAG_PHOTOMETRIC,     PHOTOMETRIC_MINISWHITE);
-    TIFFSetField(m_tiff, TIFFTAG_YRESOLUTION,     196.);
-    TIFFSetField(m_tiff, TIFFTAG_RESOLUTIONUNIT,  RESUNIT_INCH);
+    TIFFSetField(m_tiff, TIFFTAG_BITSPERSAMPLE, 1);
+    TIFFSetField(m_tiff, TIFFTAG_FILLORDER, FILLORDER_LSB2MSB);
+    TIFFSetField(m_tiff, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
+    TIFFSetField(m_tiff, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISWHITE);
+    TIFFSetField(m_tiff, TIFFTAG_YRESOLUTION, 196.);
+    TIFFSetField(m_tiff, TIFFTAG_RESOLUTIONUNIT, RESUNIT_INCH);
 
     /*
-    m_tiff->tif_scanlinesize = TIFFSetField(m_tiff );
+    m_tiff->tif_scanlinesize = TIFFSetField(m_tiff);
 
-    if( pDict ) 
+    if (pDict != nullptr)
     {
-        long lEncoding = pDict->GetKeyAsLong( PdfName("K"), 0 );
-        if( lEncoding == 0 ) // pure 1D encoding, Group3 1D
+        int64_t lEncoding = pDict->GetKeyAsNumber(PdfName("K"), 0);
+        if (lEncoding == 0) // pure 1D encoding, Group3 1D
         {
-            TIFFSetField(faxTIFF,TIFFTAG_GROUP3OPTIONS, GROUP3OPT_1DENCODING);
-
+            TIFFSetField(faxTIFF, TIFFTAG_GROUP3OPTIONS, GROUP3OPT_1DENCODING);
         }
-        else if( lEncoding < 0 ) // pure 2D encoding, Group4
+        else if (lEncoding < 0) // pure 2D encoding, Group4
         {
-            TIFFSetField(faxTIFF,TIFFTAG_GROUP4OPTIONS, GROUP4OPT_2DENCODING);
+            TIFFSetField(faxTIFF, TIFFTAG_GROUP4OPTIONS, GROUP4OPT_2DENCODING);
         }
-        else //if( lEncoding > 0 )  // mixed, Group3 2D
+        else //if (lEncoding > 0)  // mixed, Group3 2D
         {
-            TIFFSetField(faxTIFF,TIFFTAG_GROUP3OPTIONS, GROUP3OPT_2DENCODING);
+            TIFFSetField(faxTIFF, TIFFTAG_GROUP3OPTIONS, GROUP3OPT_2DENCODING);
         }
-
     }
     */
 
 #else // DS_CCITT_DEVELOPMENT_CODE
     (void)pDict;
-    PODOFO_RAISE_ERROR( EPdfError::UnsupportedFilter );
+    PODOFO_RAISE_ERROR(EPdfError::UnsupportedFilter);
 #endif // DS_CCITT_DEVELOPMENT_CODE
 }
-#ifndef _MSC_VER
-#pragma GCC diagnostic pop
-#endif
 
-void PdfCCITTFilter::DecodeBlockImpl( const char*, size_t)
+void PdfCCITTFilter::DecodeBlockImpl(const char*, size_t)
 {
-    PODOFO_RAISE_ERROR( EPdfError::UnsupportedFilter );
+    PODOFO_RAISE_ERROR(EPdfError::UnsupportedFilter);
 }
 
 void PdfCCITTFilter::EndDecodeImpl()
 {
-    PODOFO_RAISE_ERROR( EPdfError::UnsupportedFilter );
+    PODOFO_RAISE_ERROR(EPdfError::UnsupportedFilter);
 }
 
 #endif // PODOFO_HAVE_TIFF_LIB
 
-
-};
+#pragma endregion // PdfCCITTFilter

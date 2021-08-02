@@ -36,25 +36,24 @@
 #include <fontconfig/fontconfig.h>
 
 using namespace std;
+using namespace PoDoFo;
 
-namespace PoDoFo {
-
-PdfFontConfigWrapper::PdfFontConfigWrapper( FcConfig* pFcConfig )
-    : m_pFcConfig( pFcConfig )
+PdfFontConfigWrapper::PdfFontConfigWrapper(FcConfig* pFcConfig)
+    : m_pFcConfig(pFcConfig)
 {
 }
 
 PdfFontConfigWrapper::~PdfFontConfigWrapper()
 {
     unique_lock<mutex> lock(m_mutex);
-    if ( m_pFcConfig )
-        FcConfigDestroy( m_pFcConfig );
+    if (m_pFcConfig != nullptr)
+        FcConfigDestroy(m_pFcConfig);
 }
 
 void PdfFontConfigWrapper::InitializeFontConfig()
 {
     unique_lock<mutex> lock(m_mutex);
-    if ( m_pFcConfig )
+    if (m_pFcConfig != nullptr)
         return;
 
     // Default initialize FontConfig
@@ -62,55 +61,54 @@ void PdfFontConfigWrapper::InitializeFontConfig()
     m_pFcConfig = FcConfigGetCurrent();
 }
 
-std::string PdfFontConfigWrapper::GetFontConfigFontPath( const char* pszFontName, bool bBold, bool bItalic )
+std::string PdfFontConfigWrapper::GetFontConfigFontPath(const string_view fontName, bool bold, bool italic)
 {
     InitializeFontConfig();
 
-    FcPattern*  pattern;
-    FcPattern*  matched;
-    FcResult    result = FcResultMatch;
-    FcValue     v;
-    std::string sPath;
+    FcPattern* pattern;
+    FcPattern* matched;
+    FcResult result = FcResultMatch;
+    FcValue v;
+
+    string path;
     // Build a pattern to search using fontname, bold and italic
-    pattern = FcPatternBuild (0, FC_FAMILY, FcTypeString, pszFontName,
-                              FC_WEIGHT, FcTypeInteger, (bBold ? FC_WEIGHT_BOLD : FC_WEIGHT_MEDIUM),
-                              FC_SLANT, FcTypeInteger, (bItalic ? FC_SLANT_ITALIC : FC_SLANT_ROMAN),
-                              static_cast<char*>(0));
+    pattern = FcPatternBuild(0, FC_FAMILY, FcTypeString, fontName.data(),
+        FC_WEIGHT, FcTypeInteger, (bold ? FC_WEIGHT_BOLD : FC_WEIGHT_MEDIUM),
+        FC_SLANT, FcTypeInteger, (italic ? FC_SLANT_ITALIC : FC_SLANT_ROMAN),
+        static_cast<char*>(0));
 
-    FcDefaultSubstitute( pattern );
+    FcDefaultSubstitute(pattern);
 
-    if( !FcConfigSubstitute( m_pFcConfig, pattern, FcMatchFont ) )
-        {
-        FcPatternDestroy( pattern );
-        return sPath;
-        }
-
-    matched = FcFontMatch( m_pFcConfig, pattern, &result );
-    if( result != FcResultNoMatch )
+    if (!FcConfigSubstitute(m_pFcConfig, pattern, FcMatchFont))
     {
-        result = FcPatternGet( matched, FC_FILE, 0, &v );
-        sPath = reinterpret_cast<const char*>(v.u.s);
+        FcPatternDestroy(pattern);
+        return path;
+    }
+
+    matched = FcFontMatch(m_pFcConfig, pattern, &result);
+    if (result != FcResultNoMatch)
+    {
+        result = FcPatternGet(matched, FC_FILE, 0, &v);
+        path = reinterpret_cast<const char*>(v.u.s);
 #ifdef PODOFO_VERBOSE_DEBUG
-        PdfError::LogMessage( eLogSeverity_Debug,
-                              "Got Font %s for for %s\n", sPath.c_str(), pszFontName );
+        PdfError::LogMessage(eLogSeverity_Debug,
+            "Got Font %s for for %s\n", path.c_str(), pszFontName);
 #endif // PODOFO_DEBUG
     }
 
-    FcPatternDestroy( pattern );
-    FcPatternDestroy( matched );
-    return sPath;
+    FcPatternDestroy(pattern);
+    FcPatternDestroy(matched);
+    return path;
 }
 
-FcConfig * PdfFontConfigWrapper::GetFcConfig()
-    {
+FcConfig* PdfFontConfigWrapper::GetFcConfig()
+{
     InitializeFontConfig();
     return m_pFcConfig;
-    }
+}
 
-PdfFontConfigWrapper * PdfFontConfigWrapper::GetInstance()
+PdfFontConfigWrapper* PdfFontConfigWrapper::GetInstance()
 {
     static PdfFontConfigWrapper wrapper;
     return &wrapper;
 }
-
-};

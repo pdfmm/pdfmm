@@ -1,146 +1,85 @@
-/***************************************************************************
- *   Copyriht (C) 2009 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
-
-#include "PdfPagesTreeCache.h"
+/**
+ * Copyright (C) 2009 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2021 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
 #include "base/PdfDefinesPrivate.h"
+#include "PdfPagesTreeCache.h"
 
 #include "PdfPage.h"
 #include "PdfPagesTree.h"
 
-namespace PoDoFo {
+using namespace std;
+using namespace PoDoFo;
 
-PdfPagesTreeCache::PdfPagesTreeCache( int nInitialSize )
+PdfPagesTreeCache::PdfPagesTreeCache(unsigned initialSize)
 {
-    m_deqPageObjs.resize( nInitialSize );
+    m_deqPageObjs.resize(initialSize);
 }
 
-PdfPagesTreeCache::~PdfPagesTreeCache()
+PdfPage* PdfPagesTreeCache::GetPage(unsigned atIndex)
 {
-    this->ClearCache();
-}
-
-PdfPage* PdfPagesTreeCache::GetPage( int nIndex )
-{
-    if( nIndex < 0 || nIndex >= static_cast<int>(m_deqPageObjs.size()) ) 
-    {
-        PdfError::LogMessage( ELogSeverity::Error,
-                              "PdfPagesTreeCache::GetPage( %i ) index out of range. Size of cache is %i",
-                              nIndex, m_deqPageObjs.size() );
+    if (atIndex >= m_deqPageObjs.size())
         return nullptr;
-    }
 
-    return m_deqPageObjs[nIndex];
+    return m_deqPageObjs[atIndex];
 }
 
-void PdfPagesTreeCache::AddPageObject( int nIndex, PdfPage* pPage )
+void PdfPagesTreeCache::SetPage(unsigned atIndex, PdfPage* page)
 {
     // Delete an old page if it is at the same position
-    PdfPage* pOldPage = GetPage( nIndex );
-    delete pOldPage;
+    PdfPage* oldPage = GetPage(atIndex);
+    delete oldPage;
 
-    if( nIndex >= static_cast<int>(m_deqPageObjs.size()) )
-    {
-        m_deqPageObjs.resize( nIndex + 1 );
-    }
+    if (atIndex >= m_deqPageObjs.size())
+        m_deqPageObjs.resize(atIndex + 1);
 
-    m_deqPageObjs[nIndex] = pPage;
+    m_deqPageObjs[atIndex] = page;
 }
 
-void PdfPagesTreeCache::AddPageObjects( int nIndex, std::vector<PdfPage*> vecPages )
+void PdfPagesTreeCache::SetPages(unsigned atIndex, const vector<PdfPage*>& vecPages)
 {
-    if( (nIndex + static_cast<int>(vecPages.size())) >= static_cast<int>(m_deqPageObjs.size()) )
-    {
-        m_deqPageObjs.resize( nIndex + vecPages.size() + 1 );
-    }
-    
-    for (int i=0; i < (int)vecPages.size(); ++i)
+    if ((atIndex + vecPages.size()) >= m_deqPageObjs.size())
+        m_deqPageObjs.resize(atIndex + vecPages.size() + 1);
+
+    for (unsigned i = 0; i < vecPages.size(); i++)
     {
         // Delete any old pages if it is at the same position
-        PdfPage* pOldPage = GetPage( nIndex + i );
+        PdfPage* pOldPage = GetPage(atIndex + i);
         delete pOldPage;
 
         // Assign the new page
-        m_deqPageObjs[nIndex + i]  = vecPages.at(i);
+        m_deqPageObjs[atIndex + i] = vecPages.at(i);
     }
 }
 
-void PdfPagesTreeCache::InsertPage( int nAfterPageIndex ) 
+void PdfPagesTreeCache::InsertPlaceHolder(unsigned atIndex)
 {
-    const int nBeforeIndex = ( nAfterPageIndex == (int)EPdfPageInsertionPoint::InsertBeforeFirstPage ) ? 0 : nAfterPageIndex+1;
-
-    if( nBeforeIndex >= static_cast<int>(m_deqPageObjs.size()) )
-        m_deqPageObjs.resize( nBeforeIndex + 1 );
-
-    m_deqPageObjs.insert( m_deqPageObjs.begin() + nBeforeIndex, static_cast<PdfPage*>(nullptr) );
+    m_deqPageObjs.insert(m_deqPageObjs.begin() + atIndex, static_cast<PdfPage*>(nullptr));
 }
 
-void PdfPagesTreeCache::InsertPages( int nAfterPageIndex, int nCount ) 
+void PdfPagesTreeCache::InsertPlaceHolders(unsigned atIndex, unsigned count)
 {
-    const int nBeforeIndex = ( nAfterPageIndex == (int)EPdfPageInsertionPoint::InsertBeforeFirstPage ) ? 0 : nAfterPageIndex+1;
-
-    if( nBeforeIndex+nCount >= static_cast<int>(m_deqPageObjs.size()) )
-        m_deqPageObjs.resize( nBeforeIndex + nCount + 1 );
-
-    for (int i=0; i<nCount; ++i)
-        m_deqPageObjs.insert( m_deqPageObjs.begin() + nBeforeIndex + i, static_cast<PdfPage*>(nullptr) );
+    for (unsigned i = 0; i < count; i++)
+        m_deqPageObjs.insert(m_deqPageObjs.begin() + atIndex + i, static_cast<PdfPage*>(nullptr));
 }
 
-void PdfPagesTreeCache::DeletePage( int nIndex )
+void PdfPagesTreeCache::DeletePage(unsigned atIndex)
 {
-    if( nIndex < 0 || nIndex >= static_cast<int>(m_deqPageObjs.size()) ) 
-    {
-        PdfError::LogMessage( ELogSeverity::Error,
-                              "PdfPagesTreeCache::DeletePage( %i ) index out of range. Size of cache is %i",
-                              nIndex, m_deqPageObjs.size() );
+    if (atIndex >= m_deqPageObjs.size())
         return;
-    }
 
-    delete m_deqPageObjs[nIndex];
-    m_deqPageObjs.erase( m_deqPageObjs.begin() + nIndex );
+    delete m_deqPageObjs[atIndex];
+    m_deqPageObjs.erase(m_deqPageObjs.begin() + atIndex);
 }
 
-void PdfPagesTreeCache::ClearCache() 
+void PdfPagesTreeCache::ClearCache()
 {
-    PdfPageList::iterator it = m_deqPageObjs.begin();
+    for (auto page : m_deqPageObjs)
+        delete page;
 
-    while( it != m_deqPageObjs.end() )
-    {
-        delete (*it);
-        ++it;
-    }
-        
     m_deqPageObjs.clear();
 }
-
-};

@@ -1,38 +1,12 @@
-/***************************************************************************
- *   Copyright (C) 2007 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *   Copyright (C) 2020 by Francesco Pretto                                *
- *   ceztko@gmail.com                                                      *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2007 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
+#include "PdfDefinesPrivate.h"
 #include "PdfMemStream.h"
 
 #include "PdfArray.h"
@@ -42,88 +16,86 @@
 #include "PdfOutputDevice.h"
 #include "PdfOutputStream.h"
 #include "PdfVariant.h"
-#include "PdfDefinesPrivate.h"
-
-#include <cstdlib>
 
 using namespace std;
 using namespace PoDoFo;
 
-PdfMemStream::PdfMemStream( PdfObject* pParent )
-    : PdfStream( pParent ), m_lLength( 0 )
+PdfMemStream::PdfMemStream(PdfObject& parent)
+    : PdfStream(parent), m_Length(0)
 {
 }
 
-void PdfMemStream::BeginAppendImpl( const TVecFilters & vecFilters )
+PdfMemStream::~PdfMemStream()
 {
-    m_buffer  = PdfRefCountedBuffer();
-	m_lLength = 0;
+    EnsureAppendClosed();
+}
 
-    if( vecFilters.size() )
+void PdfMemStream::BeginAppendImpl(const TVecFilters& filters)
+{
+    m_buffer = PdfRefCountedBuffer();
+    m_Length = 0;
+
+    if (filters.size() != 0)
     {
-        m_pBufferStream = unique_ptr<PdfBufferOutputStream>(new PdfBufferOutputStream( &m_buffer ));
-        m_pStream = PdfFilterFactory::CreateEncodeStream( vecFilters, *m_pBufferStream );
+        m_BufferStream = unique_ptr<PdfBufferOutputStream>(new PdfBufferOutputStream(m_buffer));
+        m_Stream = PdfFilterFactory::CreateEncodeStream(filters, *m_BufferStream);
     }
-    else 
-        m_pStream = unique_ptr<PdfBufferOutputStream>(new PdfBufferOutputStream( &m_buffer ));
-
+    else
+        m_Stream = unique_ptr<PdfBufferOutputStream>(new PdfBufferOutputStream(m_buffer));
 }
 
-void PdfMemStream::AppendImpl( const char* pszString, size_t lLen )
+void PdfMemStream::AppendImpl(const char* data, size_t len)
 {
-    m_pStream->Write( pszString, lLen );
+    m_Stream->Write(data, len);
 }
 
 void PdfMemStream::EndAppendImpl()
 {
-    if( m_pStream ) 
+    if (m_Stream != nullptr)
     {
-        m_pStream->Close();
+        m_Stream->Close();
 
-        if( !m_pBufferStream )
+        if (m_BufferStream == nullptr)
         {
-            PdfBufferOutputStream* pBufferOutputStream = dynamic_cast<PdfBufferOutputStream*>(m_pStream.get());
-            if( pBufferOutputStream )
-                m_lLength = pBufferOutputStream->GetLength();
+            PdfBufferOutputStream* bufferOutputStream = dynamic_cast<PdfBufferOutputStream*>(m_Stream.get());
+            if (bufferOutputStream != nullptr)
+                m_Length = bufferOutputStream->GetLength();
         }
 
-        m_pStream = nullptr;
+        m_Stream = nullptr;
     }
 
-    if( m_pBufferStream ) 
+    if (m_BufferStream != nullptr)
     {
-        m_pBufferStream->Close();
-        m_lLength = m_pBufferStream->GetLength();
-        m_pBufferStream = nullptr;
+        m_BufferStream->Close();
+        m_Length = m_BufferStream->GetLength();
+        m_BufferStream = nullptr;
     }
 }
 
-void PdfMemStream::GetCopy( char** pBuffer, size_t* lLen ) const
+void PdfMemStream::GetCopy(char** buffer, size_t* len) const
 {
-    if( !pBuffer || !lLen )
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
+    if (buffer == nullptr || len == nullptr)
+        PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
 
-    *pBuffer = static_cast<char*>(podofo_calloc( m_lLength, sizeof(char) ));
-    *lLen = m_lLength;
-    
-    if( !*pBuffer )
+    *buffer = static_cast<char*>(podofo_calloc(m_Length, sizeof(char)));
+    *len = m_Length;
+
+    if (!*buffer)
     {
-        PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
+        PODOFO_RAISE_ERROR(EPdfError::OutOfMemory);
     }
-    
-    memcpy( *pBuffer, m_buffer.GetBuffer(), m_lLength );
+
+    memcpy(*buffer, m_buffer.GetBuffer(), m_Length);
 }
 
 
-void PdfMemStream::GetCopy(PdfOutputStream * pStream) const
+void PdfMemStream::GetCopy(PdfOutputStream& stream) const
 {
-	if( !pStream)
-		PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-
-	pStream->Write(m_buffer.GetBuffer(), m_lLength);
+    stream.Write(m_buffer.GetBuffer(), m_Length);
 }
 
-const PdfMemStream & PdfMemStream::operator=(const PdfStream & rhs)
+const PdfMemStream& PdfMemStream::operator=(const PdfStream& rhs)
 {
     if (&rhs == this)
         return *this;
@@ -132,7 +104,7 @@ const PdfMemStream & PdfMemStream::operator=(const PdfStream & rhs)
     return (*this);
 }
 
-const PdfMemStream & PdfMemStream::operator=(const PdfMemStream & rhs)
+const PdfMemStream& PdfMemStream::operator=(const PdfMemStream& rhs)
 {
     if (&rhs == this)
         return *this;
@@ -141,7 +113,7 @@ const PdfMemStream & PdfMemStream::operator=(const PdfMemStream & rhs)
     return (*this);
 }
 
-void PdfMemStream::CopyFrom(const PdfStream & rhs)
+void PdfMemStream::CopyFrom(const PdfStream& rhs)
 {
     const PdfMemStream* memstream = dynamic_cast<const PdfMemStream*>(&rhs);
     if (memstream == nullptr)
@@ -153,34 +125,27 @@ void PdfMemStream::CopyFrom(const PdfStream & rhs)
     copyFrom(*memstream);
 }
 
-void PdfMemStream::copyFrom(const PdfMemStream &rhs)
+void PdfMemStream::copyFrom(const PdfMemStream& rhs)
 {
     m_buffer = rhs.m_buffer;
-    m_lLength = rhs.GetLength();
+    m_Length = rhs.GetLength();
 }
 
-void PdfMemStream::Write(PdfOutputDevice& pDevice, const PdfEncrypt* pEncrypt)
+void PdfMemStream::Write(PdfOutputDevice& device, const PdfEncrypt* encrypt)
 {
-    pDevice.Print( "stream\n" );
-    if( pEncrypt ) 
+    device.Print("stream\n");
+    if (encrypt == nullptr)
     {
-        size_t lLen = this->GetLength();
-
-        size_t nOutputLen = pEncrypt->CalculateStreamLength(lLen);
-
-        char *pOutputBuffer = new char[nOutputLen];
-
-        pEncrypt->Encrypt( reinterpret_cast<const unsigned char*>(this->Get()), lLen,
-                          reinterpret_cast<unsigned char*>(pOutputBuffer), nOutputLen);
-        pDevice.Write( pOutputBuffer, nOutputLen );
-
-        delete[] pOutputBuffer;
+        device.Write(this->Get(), this->GetLength());
     }
     else
     {
-        pDevice.Write( this->Get(), this->GetLength() );
+        string encrypted;
+        encrypt->Encrypt({ this->Get(), this->GetLength() }, encrypted);
+        device.Write(encrypted.data(), encrypted.size());
     }
-    pDevice.Print( "\nendstream\n" );
+
+    device.Print("\nendstream\n");
 }
 
 const char* PdfMemStream::Get() const
@@ -195,10 +160,10 @@ const char* PdfMemStream::GetInternalBuffer() const
 
 size_t PdfMemStream::GetInternalBufferSize() const
 {
-    return m_lLength;
+    return m_Length;
 }
 
 size_t PdfMemStream::GetLength() const
 {
-    return m_lLength;
+    return m_Length;
 }

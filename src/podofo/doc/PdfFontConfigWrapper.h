@@ -54,12 +54,13 @@ namespace PoDoFo {
  *
  * The fontconfig library is initialized on first used (lazy loading!)
  */
-class PODOFO_DOC_API PdfFontConfigWrapper {
+class PODOFO_DOC_API PdfFontConfigWrapper
+{
 public:
     /**
      * Create a new FontConfigWrapper and initialize the fontconfig library.
      */
-    PdfFontConfigWrapper( FcConfig* pConfig = NULL );
+    PdfFontConfigWrapper(FcConfig* pConfig = nullptr);
 
     ~PdfFontConfigWrapper();
 
@@ -75,7 +76,7 @@ public:
      *  \param bItalic if true find an italic font
      *  \returns the path to the fontfile or an empty string
      */
-    std::string GetFontConfigFontPath(  const char* pszFontName, bool bBold, bool bItalic );
+    std::string GetFontConfigFontPath(const std::string_view fontName, bool bold, bool italic);
 
     FcConfig * GetFcConfig();
 
@@ -94,7 +95,7 @@ private:
 private:
     std::mutex m_mutex;
     FcConfig* m_pFcConfig;
-    };
+};
 
 }; // PoDoFo
 

@@ -1,748 +1,428 @@
-/***************************************************************************
- *   Copyright (C) 2006 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *   Copyright (C) 2020 by Francesco Pretto                                *
- *   ceztko@gmail.com                                                      *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2006 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
+#include "PdfDefinesPrivate.h"
 #include "PdfString.h"
 
+#include <utfcpp/utf8.h>
+
 #include "PdfEncrypt.h"
-#include "PdfEncoding.h"
+#include "PdfPredefinedEncoding.h"
 #include "PdfEncodingFactory.h"
 #include "PdfFilter.h"
 #include "PdfTokenizer.h"
 #include "PdfOutputDevice.h"
-#include "PdfDefinesPrivate.h"
 
-#include <cstdlib>
-#include <cstring>
-#include <cwchar>
-#include <utfcpp/utf8.h>
-
+using namespace std;
 using namespace PoDoFo;
 
-namespace PdfStringNameSpace {
-
-static char g_StrEscMap[256] = { 0 };
-
-// Generate the escape character map at runtime
-static const char* genStrEscMap()
+enum class StringEncoding
 {
-    const long lAllocLen = 256;
-    char* map = static_cast<char*>(g_StrEscMap);
-    memset( map, 0, sizeof(char) * lAllocLen );
-    map[static_cast<unsigned char>('\n')] = 'n'; // Line feed (LF)
-    map[static_cast<unsigned char>('\r')] = 'r'; // Carriage return (CR)
-    map[static_cast<unsigned char>('\t')] = 't'; // Horizontal tab (HT)
-    map[static_cast<unsigned char>('\b')] = 'b'; // Backspace (BS)
-    map[static_cast<unsigned char>('\f')] = 'f'; // Form feed (FF)
-    map[static_cast<unsigned char>(')')] = ')';  
-    map[static_cast<unsigned char>('(')] = '(';  
-    map[static_cast<unsigned char>('\\')] = '\\';
-
-    return map;
-}
-
+    utf8,
+    utf16be,
+    utf16le,
+    PdfDocEncoding
 };
 
-const char * const PdfString::m_escMap        = PdfStringNameSpace::genStrEscMap();
-
-const PdfString PdfString::StringNull        = PdfString();
-const char  PdfString::s_pszUnicodeMarker[]  = { static_cast<char>(0xFE), static_cast<char>(0xFF) };
-const char* PdfString::s_pszUnicodeMarkerHex = "FEFF"; 
-
-
+static char getEscapedCharacter(char ch);
+static StringEncoding getEncoding(const string_view& view);
 
 PdfString::PdfString()
-    : m_bHex( false ), m_bUnicode( false ), m_pEncoding( nullptr )
+    : m_data(std::make_shared<string>()), m_state(StringState::PdfDocEncoding), m_isHex(false)
 {
 }
 
-PdfString::PdfString( const std::string& sString, const PdfEncoding * const pEncoding )
-    : m_bHex( false ), m_bUnicode( false ), m_pEncoding( pEncoding )
+PdfString::PdfString(const char* str)
+    : m_isHex(false)
 {
-    Init( sString.c_str(), sString.length() );
+    initFromUtf8String({ str, std::strlen(str) });
 }
 
-PdfString::PdfString( const char* pszString, const PdfEncoding * const pEncoding )
-    : m_bHex( false ), m_bUnicode( false ), m_pEncoding( pEncoding )
+PdfString::PdfString(const string_view& view)
+    : m_isHex(false)
 {
-    if( pszString )
-        Init( pszString, strlen( pszString ) );
-}
-
-#ifdef WIN32
-PdfString::PdfString(const wchar_t* pszString)
-{
-    setFromWchar_t(pszString, wcslen(pszString));
-}
-
-PdfString::PdfString( const wchar_t* pszString, size_t lLen )
-{
-    setFromWchar_t(pszString, lLen);
-}
-
-void PdfString::setFromWchar_t(const wchar_t* pszString, size_t lLen )
-{
-    m_bHex = false;
-    m_bUnicode = true;
-    m_pEncoding = nullptr;
-
-    if( pszString )
-    {
-        if( sizeof(wchar_t) == 2 ) 
-        {
-            // We have UTF16
-            lLen *= sizeof(wchar_t);
-            m_buffer = PdfRefCountedBuffer( lLen + 2 );
-            memcpy( m_buffer.GetBuffer(), pszString, lLen );
-            m_buffer.GetBuffer()[lLen] = '\0';
-            m_buffer.GetBuffer()[lLen+1] = '\0';
-            
-            // if the buffer is a UTF-16LE string
-            // convert it to UTF-16BE
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-            SwapBytes( m_buffer.GetBuffer(), lLen );
-#endif // PODOFO_IS_LITTLE_ENDIA
-        }
-        else
-        {
-            // Try to convert to UTF8
-            size_t lDest = 5 * (size_t)lLen; // At max 5 bytes per UTF8 char
-            char*  pDest = static_cast<char*>(podofo_malloc( lDest ));
-			if (!pDest)
-			{
-				PODOFO_RAISE_ERROR(EPdfError::OutOfMemory);
-			}
-
-            size_t cnt   = wcstombs(pDest, pszString, lDest);
-            if( cnt != static_cast<size_t>(-1) )
-            {
-                // No error
-                InitFromUtf8( reinterpret_cast<pdf_utf8*>(pDest), cnt );
-                podofo_free( pDest );
-	    }
-            else
-            {
-                podofo_free( pDest );
-                PdfError e( EPdfError::InternalLogic, __FILE__, __LINE__ );
-                e.SetErrorInformation( pszString );
-                throw e;
-            }
-        }    
-    }
-}
-#endif
-
-PdfString::PdfString( const char* pszString, size_t lLen, bool bHex, const PdfEncoding * const pEncoding )
-    : m_bHex( bHex ), m_bUnicode( false ), m_pEncoding( pEncoding )
-{
-    if( pszString )
-        Init( pszString, lLen );
-}
-
-PdfString::PdfString( const pdf_utf8* pszStringUtf8 )
-    : m_bHex( false ), m_bUnicode( true ), m_pEncoding( nullptr )
-{
-    InitFromUtf8( pszStringUtf8, strlen( reinterpret_cast<const char*>(pszStringUtf8) ) );
-
-    m_sUtf8 = reinterpret_cast<const char*>(pszStringUtf8);
-}
-
-PdfString::PdfString( const pdf_utf8* pszStringUtf8, size_t lLen )
-    : m_bHex( false ), m_bUnicode( true ), m_pEncoding( nullptr )
-{
-    InitFromUtf8( pszStringUtf8, lLen );
-
-    m_sUtf8.assign( reinterpret_cast<const char*>(pszStringUtf8), lLen );
-}
-
-PdfString::PdfString( const pdf_utf16be* pszStringUtf16 )
-    : m_bHex( false ), m_bUnicode( true ), m_pEncoding( nullptr )
-{
-    size_t lBufLen = 0;
-    const pdf_utf16be* pszCnt  = pszStringUtf16;
-    
-    while( *pszCnt )
-    {
-        ++pszCnt;
-        ++lBufLen;
-    }
-
-    lBufLen *= sizeof(pdf_utf16be);
-
-    m_buffer = PdfRefCountedBuffer( lBufLen + sizeof(pdf_utf16be) );
-    memcpy( m_buffer.GetBuffer(), reinterpret_cast<const char*>(pszStringUtf16), lBufLen );
-    m_buffer.GetBuffer()[lBufLen] = '\0';
-    m_buffer.GetBuffer()[lBufLen+1] = '\0';
-}
-
-PdfString::PdfString( const pdf_utf16be* pszStringUtf16, size_t lLen )
-    : m_bHex( false ), m_bUnicode( true ), m_pEncoding( nullptr )
-{
-    size_t lBufLen = 0;
-    const pdf_utf16be* pszCnt  = pszStringUtf16;
-    
-    while( lLen-- )
-    {
-        ++pszCnt;
-        ++lBufLen;
-    }
-
-    lBufLen *= sizeof(pdf_utf16be);
-
-    m_buffer = PdfRefCountedBuffer( lBufLen + sizeof(pdf_utf16be) );
-    memcpy( m_buffer.GetBuffer(), reinterpret_cast<const char*>(pszStringUtf16), lBufLen );
-    m_buffer.GetBuffer()[lBufLen] = '\0';
-    m_buffer.GetBuffer()[lBufLen+1] = '\0';
+    initFromUtf8String(view);
 }
 
 PdfString::PdfString( const PdfString & rhs )
-    : PdfDataType(), m_bHex( false ), m_bUnicode( false ), m_pEncoding( nullptr )
 {
     this->operator=( rhs );
 }
 
-PdfString PdfString::FromUtf8String( const std::string &str )
+PdfString::PdfString(const shared_ptr<string>& data, bool isHex)
+    : m_data(data), m_state(StringState::RawBuffer), m_isHex(isHex)
 {
-    return PdfString( ( const pdf_utf8 * )str.c_str(), str.size() );
 }
 
-PdfString PdfString::CreateHexString( const char *pbuffer, size_t llen )
+PdfString PdfString::FromRaw(const string_view &view, bool isHex)
 {
-    if ( !pbuffer )
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-
-    PdfString ret;
-    ret.m_bHex = true;
-    PdfOutputDevice output( &ret.m_buffer );
-    output.Write( pbuffer, llen );
-    // Add 2 terminating zeros, as per convention supporting also unicode strings
-    output.Write( "\0\0", 2 );
-    return ret;
+    return PdfString(std::make_shared<string>(view), isHex);
 }
 
-PdfString PdfString::CreateHexString( const std::string & buffer )
+PdfString PdfString::FromHexData(const string_view& view, PdfEncrypt* encrypt)
 {
-    if ( !buffer.size() )
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
+    size_t lLen = view.size();
+    auto buffer = std::make_shared<string>();
+    buffer->reserve(lLen % 2 ? (lLen + 1) >> 1 : lLen >> 1);
 
-    return CreateHexString( &buffer[0], buffer.size() );
-}
-
-void PdfString::SetHexData( const char* pszHex, size_t lLen, PdfEncrypt* pEncrypt )
-{
-    if( !pszHex ) 
+    char val;
+    char cDecodedByte = 0;
+    bool bLow = true;
+    for (size_t i = 0; i < lLen; i++)
     {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
+        char ch = view[i];
+        if (PdfTokenizer::IsWhitespace(ch))
+            continue;
 
-    // Allocate a buffer large enough for the hex decoded data
-    // and the 2 terminating zeros
-    m_buffer = PdfRefCountedBuffer( lLen % 2 ? ((lLen + 1) >> 1) + 2 : (lLen >> 1) + 2 );
-    m_bHex   = true;
-    char* pBuffer = m_buffer.GetBuffer();
-    if ( pBuffer != nullptr )
-    {
-        char val;
-        char cDecodedByte = 0;
-        bool bLow = true;
-
-        while( lLen-- ) 
+        val = PdfTokenizer::GetHexValue(ch);
+        if (bLow)
         {
-            if( PdfTokenizer::IsWhitespace( *pszHex ) )
-            {
-                ++pszHex;
-                continue;
-            }
-
-            val = PdfTokenizer::GetHexValue( *pszHex );
-            if( bLow ) 
-            {
-                cDecodedByte = (val & 0x0F);
-                bLow         = false;
-            }
-            else
-            {
-                cDecodedByte = ((cDecodedByte << 4) | val);
-                bLow         = true;
-
-                *pBuffer++ = cDecodedByte;
-            }
-
-            ++pszHex;
+            cDecodedByte = val & 0x0F;
+            bLow = false;
         }
-
-        if( !bLow ) 
+        else
         {
-            // an odd number of bytes was read,
-            // so the last byte is 0
-            *pBuffer++ = cDecodedByte;
-        }
-
-        *pBuffer++ = '\0';
-        *pBuffer++ = '\0';
-
-        // If the allocated internal buffer is too big (e.g. because of whitespaces in the data)
-        // copy to a smaller buffer so that PdfString::GetLength() will be correct
-        lLen = pBuffer - m_buffer.GetBuffer();
-        if( static_cast<size_t>(lLen) != m_buffer.GetSize() )
-        {
-            PdfRefCountedBuffer temp( lLen );
-            memcpy( temp.GetBuffer(), m_buffer.GetBuffer(), lLen );
-            m_buffer = temp;
+            cDecodedByte = (cDecodedByte << 4) | val;
+            bLow = true;
+            buffer->push_back(cDecodedByte);
         }
     }
-    
-    if( pEncrypt )
-    {
-        size_t outBufferLen = m_buffer.GetSize() - 2 - pEncrypt->CalculateStreamOffset();
-        PdfRefCountedBuffer outBuffer(outBufferLen + 16 - (outBufferLen % 16));
-        
-        pEncrypt->Decrypt( reinterpret_cast<unsigned char*>(m_buffer.GetBuffer()),
-                           static_cast<unsigned int>(m_buffer.GetSize()-2),
-                          reinterpret_cast<unsigned char*>(outBuffer.GetBuffer()),
-                          outBufferLen);
-        // Add trailing pair of zeros
-        outBuffer.Resize(outBufferLen + 2);
-        outBuffer.GetBuffer()[outBufferLen] = '\0';
-        outBuffer.GetBuffer()[outBufferLen + 1] = '\0';
 
-        // Replace buffer with decrypted value
-        m_buffer = outBuffer;
+    if (!bLow)
+    {
+        // an odd number of bytes was read,
+        // so the last byte is 0
+        buffer->push_back(cDecodedByte);
     }
 
-    // Now check for the first two bytes, to see if we got a unicode string
-    if( m_buffer.GetSize() >= 4 ) 
+    if (encrypt == nullptr)
     {
-		m_bUnicode = (m_buffer.GetBuffer()[0] == static_cast<char>(0xFE) && m_buffer.GetBuffer()[1] == static_cast<char>(0xFF));
-		
-		if( m_bUnicode ) 
-        {
-            PdfRefCountedBuffer temp( m_buffer.GetSize() - 2 );
-            memcpy( temp.GetBuffer(), m_buffer.GetBuffer() + 2, m_buffer.GetSize() - 2 );
-            m_buffer = temp;           
-        }
+        buffer->shrink_to_fit();
+        return PdfString(buffer, true);
+    }
+    else
+    {
+        auto decrypted = std::make_shared<string>();
+        encrypt->Decrypt(*buffer, *decrypted);
+        return PdfString(decrypted, true);
     }
 }
 
-void PdfString::Write ( PdfOutputDevice& pDevice, EPdfWriteMode eWriteMode, const PdfEncrypt* pEncrypt ) const
+void PdfString::Write(PdfOutputDevice& device, PdfWriteMode writeMode, const PdfEncrypt* encrypt) const
 {
+    (void)writeMode;
+
     // Strings in PDF documents may contain \0 especially if they are encrypted
     // this case has to be handled!
 
-    // Peter Petrov: 17 May 2008
-    // Added check - m_buffer.GetSize()
-    // Now we are not encrypting the empty strings (was access violation)!
-    if( pEncrypt && m_buffer.GetSize() && IsValid() )
+    // We are not encrypting the empty strings (was access violation)!
+    string tempBuffer;
+    string_view dataview;
+    if (m_state == StringState::Unicode)
     {
-        size_t nInputBufferLen = m_buffer.GetSize() - 2; // Cut off the trailing pair of zeros
-        size_t nUnicodeMarkerOffet = sizeof( PdfString::s_pszUnicodeMarker );
-        if( m_bUnicode )
-            nInputBufferLen += nUnicodeMarkerOffet;
-        
-        char * pInputBuffer = new char[nInputBufferLen];
-        
-        if( m_bUnicode )
-        {
-            memcpy(pInputBuffer, PdfString::s_pszUnicodeMarker, nUnicodeMarkerOffet);
-            memcpy(&pInputBuffer[nUnicodeMarkerOffet], m_buffer.GetBuffer(), nInputBufferLen - nUnicodeMarkerOffet);
-        }
-        else
-            memcpy(pInputBuffer, m_buffer.GetBuffer(), nInputBufferLen);
-        
-        size_t nOutputBufferLen = pEncrypt->CalculateStreamLength(nInputBufferLen);
-        
-        char* pOutputBuffer = new char [nOutputBufferLen];
-        
-        pEncrypt->Encrypt(reinterpret_cast<const unsigned char*>(pInputBuffer), nInputBufferLen, reinterpret_cast<unsigned char*>(pOutputBuffer), nOutputBufferLen);
-
-        PdfString str( pOutputBuffer, nOutputBufferLen, true );
-        str.Write( pDevice, eWriteMode, nullptr );
-
-        delete[] pInputBuffer;
-        delete[] pOutputBuffer;
-		
-        return;
+        // Prepend utf-16 BOM
+        tempBuffer.push_back(static_cast<char>(0xFE));
+        tempBuffer.push_back(static_cast<char>(0xFF));
+        tempBuffer.insert(tempBuffer.end(), m_data->data(), m_data->data() + m_data->size());
+        dataview = string_view(tempBuffer.data(), tempBuffer.size());
+    }
+    else
+    {
+        dataview = string_view(*m_data);
     }
 
-    pDevice.Print( m_bHex ? "<" : "(" );
-    if( m_buffer.GetSize() && IsValid() )
+    if (encrypt != nullptr && dataview.size() > 0)
     {
-        const char* pBuf = m_buffer.GetBuffer();
-        size_t lLen = m_buffer.GetSize() - 2; // Cut off the trailing pair of zeros
+        string encrypted;
+        encrypt->Encrypt(dataview, encrypted);
+        encrypted.swap(tempBuffer);
+        dataview = string_view(tempBuffer.data(), tempBuffer.size());
+    }
 
-        if( m_bHex ) 
+    device.Print(m_isHex ? "<" : "(");
+    if (dataview.size() > 0)
+    {
+        char ch;
+        const char* buffer = dataview.data();
+        size_t len = dataview.size();
+
+        if (m_isHex)
         {
-            if( m_bUnicode )
-                pDevice.Write( PdfString::s_pszUnicodeMarkerHex, 4 );
-
             char data[2];
-            while( lLen-- )
+            while (len--)
             {
-                data[0]  = (*pBuf & 0xF0) >> 4;
-                data[0] += (data[0] > 9 ? 'A' - 10 : '0');
-                
-                data[1]  = (*pBuf & 0x0F);
-                data[1] += (data[1] > 9 ? 'A' - 10 : '0');
-                
-                pDevice.Write( data, 2 );
-                
-                ++pBuf;
+                ch = *buffer;
+                usr::WriteCharHexTo(data, ch);
+                device.Write(data, 2);
+                buffer++;
             }
         }
         else
         {
-            if( m_bUnicode ) 
+            char ch;
+            while (len--)
             {
-                pDevice.Write( PdfString::s_pszUnicodeMarker, sizeof( PdfString::s_pszUnicodeMarker ) );
-            }
-
-            while( lLen-- ) 
-            {
-                const char & cEsc = m_escMap[static_cast<unsigned char>(*pBuf)];
-                if( cEsc != 0 ) 
+                ch = *buffer;
+                char escaped = getEscapedCharacter(ch);
+                if (escaped == '\0')
                 {
-                    pDevice.Write( "\\", 1 );
-                    pDevice.Write( &cEsc, 1 );
+                    device.Write(&ch, 1);
                 }
-                else 
+                else
                 {
-                    pDevice.Write( &*pBuf, 1 );
+                    device.Write("\\", 1);
+                    device.Write(&escaped, 1);
                 }
 
-                ++pBuf;
+                buffer++;
             }
         }
     }
 
-    pDevice.Print( m_bHex ? ">" : ")" );
+    device.Print(m_isHex ? ">" : ")");
 }
 
-const PdfString & PdfString::operator=( const PdfString & rhs )
+bool PdfString::IsUnicode() const
 {
-    this->m_bHex      = rhs.m_bHex;
-    this->m_bUnicode  = rhs.m_bUnicode;
-    this->m_buffer    = rhs.m_buffer;
-    this->m_sUtf8     = rhs.m_sUtf8;
-    this->m_pEncoding = rhs.m_pEncoding;
-
-    return *this;
+    return m_state == StringState::Unicode;
 }
 
-bool PdfString::operator>( const PdfString & rhs ) const
+const string& PdfString::GetString() const
 {
-    if ( !this->IsValid() || !rhs.IsValid() )
-    {
-        PdfError::LogMessage( ELogSeverity::Error, "PdfString::operator> LHS or RHS was invalid PdfString" );
-        return false;
-    }
-    
-    const PdfString & str1 = *this;
-    const PdfString & str2 = rhs;
-
-    if( m_bUnicode || rhs.m_bUnicode )
-    {
-#ifdef WIN32
-        std::wstring sWide_1 = str1.GetStringW();
-        std::wstring sWide_2 = str2.GetStringW();
-
-        return sWide_1 > sWide_2;
-#else
-        std::string sUtf8_1 = str1.GetStringUtf8();
-        std::string sUtf8_2 = str2.GetStringUtf8();
-
-        return sUtf8_1 > sUtf8_2;
-#endif // WIN32
-    }
-
-    return (strcmp( str1.GetString(), str2.GetString() ) > 0);
-}
-
-bool PdfString::operator<( const PdfString & rhs ) const
-{
-    if ( !this->IsValid() || !rhs.IsValid() )
-    {
-        PdfError::LogMessage( ELogSeverity::Error, "PdfString::operator< LHS or RHS was invalid PdfString" );
-        return false;
-    }
-    
-    const PdfString & str1 = *this;
-    const PdfString & str2 = rhs;
-
-    if( m_bUnicode || rhs.m_bUnicode )
-    {
-#ifdef WIN32
-        std::wstring sWide_1 = str1.GetStringW();
-        std::wstring sWide_2 = str2.GetStringW();
-
-        return sWide_1 < sWide_2;
-#else
-        std::string sUtf8_1 = str1.GetStringUtf8();
-        std::string sUtf8_2 = str2.GetStringUtf8();
-
-        return sUtf8_1 < sUtf8_2;
-#endif // WIN32
-    }
-
-    return (strcmp( str1.GetString(), str2.GetString() ) < 0);
-}
-
-bool PdfString::operator==( const PdfString & rhs ) const
-{
-    if ( !this->IsValid() && !rhs.IsValid() )
-    {
-        PdfError::LogMessage( ELogSeverity::Error, "PdfString::operator== LHS and RHS both invalid PdfStrings" );
-        return true;
-    }
-    else if ( !this->IsValid() || !rhs.IsValid() )
-    {
-        PdfError::LogMessage( ELogSeverity::Error, "PdfString::operator== LHS or RHS was invalid PdfString" );
-        return false;
-    }
-
-    PdfString str1 = *this;
-    PdfString str2 = rhs;
-
-    if( m_bUnicode || rhs.m_bUnicode )
-    {
-        // one or both strings are unicode:
-        // make sure both are unicode so that 
-        // we do not loose information
-        str1 = str1.ToUnicode();
-        str2 = str2.ToUnicode();
-    }
-
-    return str1.m_buffer == str2.m_buffer;
-}
-
-void PdfString::Init( const char* pszString, size_t lLen )
-{
-    if( !pszString )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
-
-    bool bUft16LE = false;
-    // check if it is a unicode string (UTF-16BE)
-    // UTF-16BE strings have to start with 0xFE 0xFF
-    if( lLen >= 2 ) 
-    {
-        m_bUnicode = (pszString[0] == PdfString::s_pszUnicodeMarker[0] && 
-                      pszString[1] == PdfString::s_pszUnicodeMarker[1]);
-        
-        // Check also for UTF-16LE
-        if( !m_bUnicode && (pszString[0] == PdfString::s_pszUnicodeMarker[1] && 
-                            pszString[1] == PdfString::s_pszUnicodeMarker[0]) )
-        {
-            bUft16LE = true;
-        }
-    }
-    
-    // skip the first two bytes 
-    if( m_bUnicode || bUft16LE )
-    {
-        lLen      -= 2;
-        pszString += 2;
-    }
-
-    
-    m_buffer = PdfRefCountedBuffer( lLen + 2 );
-    memcpy( m_buffer.GetBuffer(), pszString, lLen );
-    m_buffer.GetBuffer()[lLen] = '\0';
-    m_buffer.GetBuffer()[lLen+1] = '\0';
-
-    // if the buffer is a UTF-16LE string
-    // convert it to UTF-16BE
-    if( bUft16LE ) 
-    {
-        SwapBytes( m_buffer.GetBuffer(), lLen );
-    }
-}
-
-void PdfString::InitFromUtf8( const pdf_utf8* pszStringUtf8, size_t lLen )
-{
-    if( !pszStringUtf8 )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
-
-    std::vector<pdf_utf16be> u16str;
-    utf8::utf8to16(utf8::endianess::big_endian, pszStringUtf8, pszStringUtf8 + lLen, std::back_inserter(u16str));
-    m_buffer = PdfRefCountedBuffer(u16str.size() * sizeof(pdf_utf16be) + sizeof(pdf_utf16be));
-    memcpy( m_buffer.GetBuffer(), reinterpret_cast<const char*>(u16str.data()), u16str.size() * sizeof(pdf_utf16be));
-    m_buffer.GetBuffer()[u16str.size() * sizeof(pdf_utf16be)] = '\0';
-    m_buffer.GetBuffer()[u16str.size() * sizeof(pdf_utf16be) + 1] = '\0';
-}
-
-void PdfString::InitUtf8()
-{
-    if( this->IsUnicode() )
-    {
-        const pdf_utf16be* buffer = reinterpret_cast<const pdf_utf16be*>(m_buffer.GetBuffer());
-        utf8::utf16to8(utf8::endianess::big_endian, buffer, buffer + this->GetUnicodeLength(), std::back_inserter(m_sUtf8));
-    }
-    else
-    {
-        PdfString sTmp = this->ToUnicode();
-        m_sUtf8 = sTmp.GetStringUtf8();
-    }
-}
-
-#ifdef WIN32
-const std::wstring PdfString::GetStringW() const
-{
-    if ( !IsValid() )
-    {
-        PdfError::LogMessage( ELogSeverity::Error, "PdfString::GetStringW invalid PdfString" );
-        return std::wstring();
-    }
-    
-    if( !this->IsUnicode() )
-    {
-        return this->ToUnicode().GetStringW();
-    }
-
-    PdfRefCountedBuffer buffer( m_buffer.GetSize() );
-    memcpy( buffer.GetBuffer(), m_buffer.GetBuffer(), m_buffer.GetSize() );
-#ifdef PODOFO_IS_LITTLE_ENDIAN
-    SwapBytes( buffer.GetBuffer(), buffer.GetSize() );
-#endif // PODOFO_IS_LITTLE_ENDIA
-
-    std::wstring wstr( reinterpret_cast<const wchar_t*>(buffer.GetBuffer()) );
-
-    return wstr;
-}
-
-#endif // WIN32
-
-PdfString PdfString::ToUnicode() const
-{
-    if( this->IsUnicode() )
-    {
-        return *this;
-    }
-    else if ( this->IsValid() )
-    {
-        const PdfEncoding* const pEncoding = (m_pEncoding ? 
-                                              m_pEncoding : 
-                                              PdfEncodingFactory::GlobalPdfDocEncodingInstance());
-        return pEncoding->ConvertToUnicode( *this, nullptr );
-    }
-    else
-    {
-        // can't convert because PdfString is invalid and has no buffer, so return *this
-        // which means trying to convert an invalid string returns another invalid string
-        // and in the special case where *this is PdfString::StringNull then ToUnicode()
-        // returns PdfString::StringNull
-        PdfError::LogMessage( ELogSeverity::Error, "PdfString::ToUnicode invalid PdfString" );
-        return *this;
-    }
-}
-
-void PdfString::SwapBytes(char* pBuf, size_t lLen)
-{
-    char  cSwap;
-    while( lLen > 1 )
-    {
-        cSwap     = *pBuf;
-        *pBuf     = *(pBuf+1);
-        *(++pBuf) = cSwap;
-        
-        ++pBuf;
-        lLen -= 2;
-    }
-}
-
-PdfRefCountedBuffer &PdfString::GetBuffer(void)
-{
-	return m_buffer;
-}
-
-const PdfRefCountedBuffer &PdfString::GetBuffer(void) const
-{
-    return m_buffer;
-}
-
-bool PdfString::IsValid() const
-{
-    return (m_buffer.GetBuffer() != nullptr);
-}
-
-const char* PdfString::GetString() const
-{
-    return m_buffer.GetBuffer();
-}
-
-const pdf_utf16be* PdfString::GetUnicode() const
-{
-    return reinterpret_cast<const pdf_utf16be*>(m_buffer.GetBuffer());
-}
-
-const std::string& PdfString::GetStringUtf8() const
-{
-    if (this->IsValid() && !m_sUtf8.length() && m_buffer.GetSize() - 2)
-        const_cast<PdfString*>(this)->InitUtf8();
-
-    return m_sUtf8;
+    evaluateString();
+    return *m_data;
 }
 
 size_t PdfString::GetLength() const
 {
-    if (!IsValid())
-    {
-        PdfError::LogMessage(ELogSeverity::Error, "PdfString::GetLength invalid PdfString");
-        return 0;
-    }
-
-    PODOFO_ASSERT(m_buffer.GetSize() >= 2);
-
-    return m_buffer.GetSize() - 2;
+    evaluateString();
+    return m_data->length();
 }
 
-size_t PdfString::GetCharacterLength() const
+const PdfString& PdfString::operator=(const PdfString& rhs)
 {
-    return this->IsUnicode() ? this->GetUnicodeLength() : this->GetLength();
+    this->m_data = rhs.m_data;
+    this->m_state = rhs.m_state;
+    this->m_isHex = rhs.m_isHex;
+    return *this;
 }
 
-size_t PdfString::GetUnicodeLength() const
+bool PdfString::operator==(const PdfString& rhs) const
 {
-    if (!IsValid())
+    if (this == &rhs)
+        return true;
+
+    if (!canPerformComparison(*this, rhs))
+        return false;
+
+    if (this->m_data == rhs.m_data)
+        return true;
+
+    return *this->m_data == *rhs.m_data;
+}
+
+bool PdfString::operator==(const char* str) const
+{
+    return operator==(string_view(str, std::strlen(str)));
+}
+
+bool PdfString::operator==(const string& str) const
+{
+    return operator==((string_view)str);
+}
+
+bool PdfString::operator==(const string_view& view) const
+{
+    if (!isValidText())
+        return false;
+
+    return *m_data == view;
+}
+
+bool PdfString::operator!=(const PdfString& rhs) const
+{
+    if (this == &rhs)
+        return false;
+
+    if (!canPerformComparison(*this, rhs))
+        return true;
+
+    if (this->m_data == rhs.m_data)
+        return false;
+
+    return *this->m_data != *rhs.m_data;
+}
+
+bool PdfString::operator!=(const char* str) const
+{
+    return operator!=(string_view(str, std::strlen(str)));
+}
+
+bool PdfString::operator!=(const string& str) const
+{
+    return operator!=((string_view)str);
+}
+
+bool PdfString::operator!=(const string_view& view) const
+{
+    if (!isValidText())
+        return true;
+
+    return *m_data != view;
+}
+
+void PdfString::initFromUtf8String(const string_view &view)
+{
+    if (view.data() == nullptr)
+        throw runtime_error("String is null");
+
+    if (view.length() == 0)
     {
-        PdfError::LogMessage(ELogSeverity::Error, "PdfString::GetUnicodeLength invalid PdfString");
-        return 0;
+        m_data = make_shared<string>();
+        m_state = StringState::PdfDocEncoding;
+        return;
     }
 
-    PODOFO_ASSERT((m_buffer.GetSize() / sizeof(pdf_utf16be)) >= 1);
+    m_data = std::make_shared<string>(view);
 
-    return (m_buffer.GetSize() / sizeof(pdf_utf16be)) - 1;
+    bool isPdfDocEncodingEqual;
+    if (PdfDocEncoding::CheckValidUTF8ToPdfDocEcondingChars(view, isPdfDocEncodingEqual))
+        m_state = StringState::PdfDocEncoding;
+    else
+        m_state = StringState::Unicode;
+}
+
+void PdfString::evaluateString() const
+{
+    switch (m_state)
+    {
+    case StringState::PdfDocEncoding:
+    case StringState::Unicode:
+        return;
+    case StringState::RawBuffer:
+    {
+        auto encoding = getEncoding(*m_data);
+        switch (encoding)
+        {
+        case StringEncoding::utf16be:
+        {
+            // Remove BOM and decode utf-16 string
+            string utf8;
+            auto view = string_view(*m_data).substr(2);
+            utf8::utf16to8(utf8::endianess::big_endian,
+                (char16_t*)view.data(), (char16_t*)(view.data() + view.size()),
+                std::back_inserter(utf8));
+            utf8.swap(*m_data);
+            const_cast<PdfString&>(*this).m_state = StringState::Unicode;
+            break;
+        }
+        case StringEncoding::utf16le:
+        {
+            // Remove BOM and decode utf-16 string
+            string utf8;
+            auto view = string_view(*m_data).substr(2);
+            utf8::utf16to8(utf8::endianess::little_endian,
+                (char16_t*)view.data(), (char16_t*)(view.data() + view.size()),
+                std::back_inserter(utf8));
+            utf8.swap(*m_data);
+            const_cast<PdfString&>(*this).m_state = StringState::Unicode;
+            break;
+        }
+        case StringEncoding::utf8:
+        {
+            // Remove BOM
+            m_data->substr(3).swap(*m_data);
+            const_cast<PdfString&>(*this).m_state = StringState::Unicode;
+            break;
+        }
+        case StringEncoding::PdfDocEncoding:
+        {
+            bool isUTF8Equal;
+            auto utf8 = PdfDocEncoding::ConvertPdfDocEncodingToUTF8(*m_data, isUTF8Equal);
+            utf8.swap(*m_data);
+            const_cast<PdfString&>(*this).m_state = StringState::PdfDocEncoding;
+            break;
+        }
+        default:
+            throw runtime_error("Unsupported");
+        }
+
+        return;
+    }
+    default:
+        throw runtime_error("Unsupported");
+    }
+}
+
+// Returns true only if same state or it's valid text string
+bool PdfString::canPerformComparison(const PdfString& lhs, const PdfString& rhs)
+{
+    if (lhs.m_state == rhs.m_state)
+        return true;
+
+    if (lhs.isValidText() || rhs.isValidText())
+        return true;
+
+    return false;
+}
+
+const string& PdfString::GetRawData() const
+{
+    if (m_state != StringState::RawBuffer)
+        throw runtime_error("The string buffer has been evaluated");
+
+    return *m_data;
+}
+
+bool PdfString::isValidText() const
+{
+    return m_state == StringState::PdfDocEncoding || m_state == StringState::Unicode;
+}
+
+StringEncoding getEncoding(const string_view& view)
+{
+    const char utf16beMarker[2] = { static_cast<char>(0xFE), static_cast<char>(0xFF) };
+    if (view.size() >= sizeof(utf16beMarker) && memcmp(view.data(), utf16beMarker, sizeof(utf16beMarker)) == 0)
+        return StringEncoding::utf16be;
+
+    // NOTE: Little endian should not be officially supported
+    const char utf16leMarker[2] = { static_cast<char>(0xFF), static_cast<char>(0xFE) };
+    if (view.size() >= sizeof(utf16leMarker) && memcmp(view.data(), utf16leMarker, sizeof(utf16leMarker)) == 0)
+        return StringEncoding::utf16le;
+
+    const char utf8Marker[3] = { static_cast<char>(0xEF), static_cast<char>(0xBB), static_cast<char>(0xBF) };
+    if (view.size() >= sizeof(utf8Marker) && memcmp(view.data(), utf8Marker, sizeof(utf8Marker)) == 0)
+        return StringEncoding::utf8;
+
+    return StringEncoding::PdfDocEncoding;
+}
+
+char getEscapedCharacter(char ch)
+{
+    switch (ch)
+    {
+        case '\n':           // Line feed (LF)
+            return 'n';
+        case '\r':           // Carriage return (CR)
+            return 'r';
+        case '\t':           // Horizontal tab (HT)
+            return 't';
+        case '\b':           // Backspace (BS)
+            return 'b';
+        case '\f':           // Form feed (FF)
+            return 'f';
+        case '(':
+            return '(';
+        case ')':
+            return ')';
+        case '\\':
+            return '\\';
+        default:
+            return '\0';
+    }
 }

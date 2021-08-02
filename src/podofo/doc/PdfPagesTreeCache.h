@@ -1,38 +1,13 @@
-/***************************************************************************
- *   Copyright (C) 2009 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2009 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2021 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
-#ifndef _PDF_PAGES_TREE_CACHE_H_
-#define _PDF_PAGES_TREE_CACHE_H_
+#ifndef PDF_PAGES_TREE_CACHE_H
+#define PDF_PAGES_TREE_CACHE_H
 
 #include "podofo/base/PdfDefines.h"
 
@@ -47,79 +22,73 @@ class PdfPage;
  */
 class PODOFO_DOC_API PdfPagesTreeCache final
 {
-	typedef std::deque< PdfPage* > PdfPageList;
+    typedef std::deque<PdfPage*> PdfPageList;
 
- public:
+public:
     /** Construct a new PdfCachedPagesTree.
-     *  
-     *  @param nInitialSize initial size of the pagestree
+     *
+     *  \param nInitialSize initial size of the pagestree
      */
-    PdfPagesTreeCache( int nInitialSize );
-    
-    /** Close/down destruct a PdfCachedPagesTree
-     */
-    ~PdfPagesTreeCache();
+    PdfPagesTreeCache(unsigned initialSize);
 
     /** Return a PdfPage for the specified Page index
      *  The returned page is owned by the pages tree and
      *  deleted along with it.
      *
-     *  \param nIndex page index, 0-based
+     *  \param atIndex page index, 0-based
      *  \returns a pointer to the requested page or nullptr if it is not cached
      */
-    PdfPage* GetPage( int nIndex );
+    PdfPage* GetPage(unsigned index);
 
     /**
-     * Add a PdfPage object to the cache
-     * @param nIndex index of the page
-     * @param pPage page object
+     * Set a PdfPage object in the cache at the given index.
+     * Existing object will be replaced
+     *
+     * \param atIndex index of the page
+     * \param page page object
      */
-    void AddPageObject( int nIndex, PdfPage* pPage );
+    void SetPage(unsigned atIndex, PdfPage* page);
 
     /**
      * Add several PdfPage objects to the cache, replacing any existing at the given index
-     * @param nIndex zero based index of where the first page will be placed
-     * @param vecPages vector of the page objects to add
+     * \param atIndex zero based index of where the first page will be placed
+     * \param vecPages vector of the page objects to add
      */
-    void AddPageObjects( int nIndex, std::vector<PdfPage*> vecPages );
+    void SetPages(unsigned atIndex, const std::vector<PdfPage*>& pages);
 
     /**
-     * A page was inserted into the pagestree,
+     * Insert a page placeholder at the given index
      * therefore the cache has to be updated
      *
-     * @param nAfterPageIndex zero based index of the page we are inserting after
-	 *         - may be one of the special values  from EPdfPageInsertionPoint.
+     * \param atIndex zero based index of the page we are inserting
      */
-    void InsertPage( int nAfterPageIndex );
+    void InsertPlaceHolder(unsigned atIndex);
 
     /**
-     * Insert several pages into the pagestree, after the given index
+     * Insert several page placeholders at the given index
      * therefore the cache has to be updated
      *
-     * @param nAfterPageIndex zero based index of the page we are inserting after
-	 *         - may be one of the special values  from EPdfPageInsertionPoint.
-     * @param nCount number of pages that were inserted
+     * \param atIndex zero based index of the page we are inserting
+     * \param nCount number of pages that were inserted
      */
-    void InsertPages( int nAfterPageIndex, int nCount );
+    void InsertPlaceHolders(unsigned atIndex, unsigned count);
 
     /**
      * Delete a PdfPage from the cache
-     * @param nIndex index of the page
+     * \param atIndex index of the page
      */
-    void DeletePage( int nIndex );
+    void DeletePage(unsigned atIndex);
 
     /**
-     * Clear cache, i.e. remove all elements from the 
+     * Clear cache, i.e. remove all elements from the
      * cache.
      */
     void ClearCache();
 
 private:
-    PdfPageList    m_deqPageObjs;
+    PdfPageList m_deqPageObjs;
 };
 
 };
 
-#endif // _PDF_PAGES_TREE_CACHE_H_
-
-
+#endif // PDF_PAGES_TREE_CACHE_H

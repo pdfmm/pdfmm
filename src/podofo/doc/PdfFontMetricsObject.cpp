@@ -1,41 +1,13 @@
-/***************************************************************************
- *   Copyright (C) 2010 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *   Copyright (C) 2020 by Francesco Pretto                                *
- *   ceztko@gmail.com                                                      *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
-
-#include "PdfFontMetricsObject.h"
+/**
+ * Copyright (C) 2010 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
 #include "base/PdfDefinesPrivate.h"
+#include "PdfFontMetricsObject.h"
 
 #include <doc/PdfDocument.h>
 #include "base/PdfDictionary.h"
@@ -43,340 +15,272 @@
 #include "base/PdfObject.h"
 #include "base/PdfVariant.h"
 
-namespace PoDoFo {
+using namespace PoDoFo;
+using namespace std;
 
-PdfFontMetricsObject::PdfFontMetricsObject( PdfObject* pFont, PdfObject* pDescriptor, const PdfEncoding* const pEncoding )
-    : PdfFontMetrics( EPdfFontType::Unknown, "", nullptr ),
-      m_pEncoding( pEncoding ), m_dDefWidth(0.0)
+PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObject* descriptor) :
+    PdfFontMetrics(PdfFontMetricsType::Unknown, { }), m_DefaultWidth(0)
 {
-    m_missingWidth = nullptr;
+    const PdfName& subType = font.GetDictionary().GetKey(PdfName::KeySubtype)->GetName();
 
-    const PdfName & rSubType = pFont->GetDictionary().GetKey( PdfName::KeySubtype )->GetName();
+    // Widths of a Type 1 font, which are in thousandths
+    // of a unit of text space
+    m_matrix = { 0.001, 0.0, 0.0, 0.001, 0, 0 };
 
-    PdfObject* fontmatrix = nullptr;
-    // OC 15.08.2010 BugFix: /FirstChar /LastChar /Widths are in the Font dictionary and not in the FontDescriptor
-	if ( rSubType == PdfName("Type1") || rSubType == PdfName("Type3") || rSubType == PdfName("TrueType") ) {
-        if ( pDescriptor ) {
-            if (pDescriptor->GetDictionary().HasKey( "FontName" ))
-                m_sName        = pDescriptor->GetIndirectKey( "FontName" )->GetName();
-            if (pDescriptor->GetDictionary().HasKey( "FontBBox" ))
-                m_bbox         = pDescriptor->GetIndirectKey( "FontBBox" )->GetArray();
-        } else {
-            if (pFont->GetDictionary().HasKey( "Name" ))
-                m_sName        = pFont->GetIndirectKey( "Name" )->GetName();
-            if (pFont->GetDictionary().HasKey( "FontBBox" ))
-                m_bbox         = pFont->GetIndirectKey( "FontBBox" )->GetArray();
-        }
-
-        // Type3 fonts have a custom FontMatrix
-        fontmatrix = pFont->GetDictionary().FindKey( "FontMatrix" );
-
-		m_nFirst       = static_cast<int>(pFont->GetDictionary().GetKeyAsNumber( "FirstChar", 0L ));
-        m_nLast        = static_cast<int>(pFont->GetDictionary().GetKeyAsNumber( "LastChar", 0L ));
-        // OC 15.08.2010 BugFix: GetIndirectKey() instead of GetDictionary().GetKey() and "Widths" instead of "Width"
-        PdfObject* widths = pFont->GetIndirectKey( "Widths" );
-        
-        if( widths != nullptr )
+    // /FirstChar /LastChar /Widths are in the Font dictionary and not in the FontDescriptor
+    if (subType == "Type1" || subType == "Type3" || subType == "TrueType")
+    {
+        if (descriptor == nullptr)
         {
-            m_width        = widths->GetArray();
-            m_missingWidth = nullptr;
+            if (font.GetDictionary().HasKey("Name"))
+                m_FontName = font.GetDictionary().FindKey("Name")->GetName().GetString();
+            if (font.GetDictionary().HasKey("FontBBox"))
+                m_BBox = GetBBox(*font.GetDictionary().FindKey("FontBBox"));
         }
         else
         {
-            if ( pDescriptor ) {
-                widths = pDescriptor->GetDictionary().GetKey( "MissingWidth" );
-            } else {
-                widths = pFont->GetDictionary().GetKey( "MissingWidth" );
-            }
-            if( widths == nullptr ) 
-            {
-                PODOFO_RAISE_ERROR_INFO( EPdfError::NoObject, "Font object defines neither Widths, nor MissingWidth values!" );
-            }
-            m_missingWidth = widths;
+            if (descriptor->GetDictionary().HasKey("FontName"))
+                m_FontName = descriptor->GetDictionary().FindKey("FontName")->GetName().GetString();
+            if (descriptor->GetDictionary().HasKey("FontBBox"))
+                m_BBox = GetBBox(*descriptor->GetDictionary().FindKey("FontBBox"));
+        }
+
+        // Type3 fonts have a custom /FontMatrix
+        const PdfObject* fontmatrix = nullptr;
+        if (subType == "Type3" && (fontmatrix = font.GetDictionary().FindKey("FontMatrix")) != nullptr)
+        {
+            auto& fontmatrixArr = fontmatrix->GetArray();
+            for (int i = 0; i < 6; i++)
+                m_matrix[i] = fontmatrixArr[i].GetReal();
+        }
+
+        auto widths = font.GetDictionary().FindKey("Widths");
+        if (widths != nullptr)
+        {
+            auto &arrWidths = widths->GetArray();
+            m_Widths.reserve(arrWidths.size());
+            for (auto& obj : arrWidths)
+                m_Widths.push_back(obj.GetReal() * m_matrix[0]);
+        }
+
+        const PdfObject* missingWidth;
+        if (descriptor == nullptr)
+            missingWidth = font.GetDictionary().FindKey("MissingWidth");
+        else
+            missingWidth = descriptor->GetDictionary().FindKey("MissingWidth");
+
+        if (missingWidth == nullptr)
+        {
+            if (widths == nullptr)
+                PODOFO_RAISE_ERROR_INFO(EPdfError::NoObject, "Font object defines neither Widths, nor MissingWidth values!");
+        }
+        else
+        {
+            m_DefaultWidth = missingWidth->GetReal() * m_matrix[0];
         }
     }
-    else if (rSubType == PdfName("CIDFontType0") || rSubType == PdfName("CIDFontType2"))
+    else if (subType == "CIDFontType0" || subType == "CIDFontType2")
     {
-        PdfObject* pObj = pDescriptor->GetIndirectKey("FontName");
-        if (pObj != nullptr)
-            m_sName = pObj->GetName();
+        auto obj = descriptor->GetDictionary().FindKey("FontName");
+        if (obj != nullptr)
+            m_FontName = obj->GetName().GetString();
 
-        pObj = pDescriptor->GetIndirectKey("FontBBox");
-        if (pObj != nullptr)
-            m_bbox = pObj->GetArray();
+        obj = descriptor->GetDictionary().FindKey("FontBBox");
+        if (obj != nullptr)
+            m_BBox = GetBBox(*obj);
 
-        m_nFirst = 0;
-        m_nLast = 0;
 
-        m_dDefWidth = static_cast<double>(pFont->GetDictionary().GetKeyAsNumber("DW", 1000L));
-        PdfVariant default_width(m_dDefWidth);
-        PdfObject* pw = pFont->GetIndirectKey("W");
-
-        for (int i = m_nFirst; i <= m_nLast; ++i)
-            m_width.push_back(default_width);
-
-        if (pw != nullptr)
+        m_DefaultWidth = font.GetDictionary().GetKeyAsReal("DW", 1000) * m_matrix[0];
+        auto widths = font.GetDictionary().FindKey("W");
+        if (widths != nullptr)
         {
-            PdfArray w = pw->GetArray();
+            // "W" array format is described in Pdf 32000:2008 "9.7.4.3
+            // Glyph Metrics in CIDFonts"
+            PdfArray widthsArr = widths->GetArray();
             unsigned pos = 0;
-            while (pos < w.GetSize())
+            while (pos < widthsArr.GetSize())
             {
-                unsigned start = (unsigned)w[pos++].GetNumberLenient();
-                PdfObject* second = &w[pos];
+                unsigned start = (unsigned)widthsArr[pos++].GetNumberLenient();
+                PdfObject* second = &widthsArr[pos];
                 if (second->IsReference())
                 {
                     // second do not have an associated owner; use the one in pw
-                    second = pw->GetDocument()->GetObjects().GetObject(second->GetReference());
+                    second = widths->GetDocument()->GetObjects().GetObject(second->GetReference());
                     PODOFO_ASSERT(!second->IsNull());
                 }
                 if (second->IsArray())
                 {
-                    PdfArray widths = second->GetArray();
-                    ++pos;
-                    unsigned length = start + widths.GetSize();
+                    PdfArray arr = second->GetArray();
+                    pos++;
+                    unsigned length = start + arr.GetSize();
                     PODOFO_ASSERT(length >= start);
-                    if (length > m_width.GetSize())
-                        m_width.resize(length, default_width);
+                    if (length > m_Widths.size())
+                        m_Widths.resize(length, m_DefaultWidth);
 
-                    for (unsigned i = 0; i < widths.GetSize(); ++i)
-                        m_width[start + i] = widths[i];
+                    for (unsigned i = 0; i < arr.GetSize(); i++)
+                        m_Widths[start + i] = arr[i].GetReal() * m_matrix[0];
                 }
                 else
                 {
-                    unsigned end = (unsigned)w[pos++].GetNumberLenient();
+                    unsigned end = (unsigned)widthsArr[pos++].GetNumberLenient();
                     unsigned length = end + 1;
                     PODOFO_ASSERT(length >= start);
-                    if (length > m_width.GetSize())
-                        m_width.resize(length, default_width);
+                    if (length > m_Widths.size())
+                        m_Widths.resize(length, m_DefaultWidth);
 
-                    int64_t width = w[pos++].GetNumberLenient();
-                    for (unsigned i = start; i <= end; ++i)
-                        m_width[i] = PdfObject(width);
+                    double width = widthsArr[pos++].GetReal() * m_matrix[0];
+                    for (unsigned i = start; i <= end; i++)
+                        m_Widths[i] = width;
                 }
             }
         }
-        m_nLast = (int)m_width.GetSize() - 1;
     }
     else
     {
-        PODOFO_RAISE_ERROR_INFO( EPdfError::UnsupportedFontFormat, rSubType.GetEscapedName().c_str() );
-	}
-    
-    if ( pDescriptor )
-    {
-        m_nWeight      = static_cast<unsigned int>(pDescriptor->GetDictionary().GetKeyAsNumber( "FontWeight", 400L ));
-        m_nItalicAngle = static_cast<int>(pDescriptor->GetDictionary().GetKeyAsNumber( "ItalicAngle", 0L ));
-        m_dPdfAscent   = pDescriptor->GetDictionary().GetKeyAsReal( "Ascent", 0.0 );
-        m_dPdfDescent  = pDescriptor->GetDictionary().GetKeyAsReal( "Descent", 0.0 );
-    }
-    else
-    {
-        m_nWeight      = 400L;
-        m_nItalicAngle = 0L;
-        m_dPdfAscent   = 0.0;
-        m_dPdfDescent  = 0.0;
+        PODOFO_RAISE_ERROR_INFO(EPdfError::UnsupportedFontFormat, subType.GetEscapedName().c_str());
     }
 
-    if (fontmatrix == nullptr)
+    if (descriptor == nullptr)
     {
-        m_matrix = { 0.001, 0.0, 0.0, 0.001, 0, 0};
+        m_Weight = 400;
+        m_ItalicAngle = 0;
+        m_Ascent = 0.0;
+        m_Descent = 0.0;
     }
     else
     {
-        auto& fontmatrixArr = fontmatrix->GetArray();
-        for (int i = 0; i < 6; i++)
-            m_matrix[i] = fontmatrixArr[i].GetReal();
+        m_Weight = static_cast<unsigned>(descriptor->GetDictionary().GetKeyAsReal("FontWeight", 400));
+        m_ItalicAngle = static_cast<int>(descriptor->GetDictionary().GetKeyAsReal("ItalicAngle", 0));
+        m_Ascent = descriptor->GetDictionary().GetKeyAsReal("Ascent", 0.0) * m_matrix[3];
+        m_Descent = descriptor->GetDictionary().GetKeyAsReal("Descent", 0.0) * m_matrix[3];
     }
-    
-    m_dAscent      = m_dPdfAscent * m_matrix[3];
-    m_dDescent     = m_dPdfDescent * m_matrix[3];
-    m_dLineSpacing = m_dAscent + m_dDescent;
-    
+
+    m_LineSpacing = m_Ascent + m_Descent;
+
     // Try to fine some sensible values
-    m_dUnderlineThickness = 1.0;
-    m_dUnderlinePosition  = 0.0;
-    m_dStrikeOutThickness = m_dUnderlinePosition;
-    m_dStrikeOutPosition  = m_dAscent / 2.0;
+    m_UnderlineThickness = 1.0;
+    m_UnderlinePosition = 0.0;
+    m_StrikeOutThickness = m_UnderlinePosition;
+    m_StrikeOutPosition = m_Ascent / 2.0;
 
-    m_bSymbol = false; // TODO
+    m_IsSymbol = false; // TODO
 }
 
-const char* PdfFontMetricsObject::GetFontname() const
+string PdfFontMetricsObject::GetFontName() const
 {
-    return m_sName.GetString().c_str();
+    return m_FontName;
 }
 
-void PdfFontMetricsObject::GetBoundingBox( PdfArray & array ) const
+void PdfFontMetricsObject::GetBoundingBox(vector<double>& bbox) const
 {
-    array = m_bbox;
+    bbox = m_BBox;
 }
 
-double PdfFontMetricsObject::CharWidth( unsigned char c ) const
+unsigned PdfFontMetricsObject::GetGlyphCount() const
 {
-    if( c >= m_nFirst && c <= m_nLast
-        && c - m_nFirst < (int)m_width.GetSize())
+    return (unsigned)m_Widths.size();
+}
+
+bool PdfFontMetricsObject::TryGetGlyphWidth(unsigned gid, double& width) const
+{
+    if (gid >= m_Widths.size())
     {
-        double dWidth = m_width[c - m_nFirst].GetReal();
-        
-        return (dWidth * m_matrix[0] * m_fFontSize + m_fFontCharSpace) * m_fFontScale / 100.0;
-
+        width = -1;
+        return false;
     }
 
-    if( m_missingWidth != nullptr )
-        return m_missingWidth->GetReal ();
-    else
-        return m_dDefWidth;
+    width = m_Widths[gid];
+    return true;
 }
 
-double PdfFontMetricsObject::UnicodeCharWidth( unsigned short c ) const
+bool PdfFontMetricsObject::TryGetGID(char32_t codePoint, unsigned& gid) const
 {
-    if( c >= m_nFirst && c <= m_nLast
-        && c - m_nFirst < (int)m_width.GetSize())
-    {
-        double dWidth = m_width[c - m_nFirst].GetReal();
-        
-        return (dWidth * m_matrix[0] * m_fFontSize + m_fFontCharSpace) * m_fFontScale / 100.0;
-    }
-
-    if( m_missingWidth != nullptr )
-        return m_missingWidth->GetReal ();
-    else
-        return m_dDefWidth;
+    // We currently don't support retrieval of GID from
+    // codepoints from loaded metrics
+    gid = { };
+    return false;
 }
 
-void PdfFontMetricsObject::GetWidthArray( PdfVariant & var, unsigned int, unsigned int, const PdfEncoding* ) const
+double PdfFontMetricsObject::GetDefaultCharWidth() const
 {
-    var = m_width;
+    return m_DefaultWidth;
 }
 
-double PdfFontMetricsObject::GetGlyphWidth( int ) const
-{
-    // TODO
-    return 0.0;
-}
-
-double PdfFontMetricsObject::GetGlyphWidth( const char* ) const
-{
-    // TODO
-    return 0.0;
-}
-
-long PdfFontMetricsObject::GetGlyphId( long ) const
-{
-    // TODO
-    return 0;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
 double PdfFontMetricsObject::GetLineSpacing() const
 {
-    return m_dLineSpacing * m_fFontSize;
+    return m_LineSpacing;
 }
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
 double PdfFontMetricsObject::GetUnderlinePosition() const
 {
-    return m_dUnderlinePosition * m_fFontSize;
+    return m_UnderlinePosition;
 }
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
 double PdfFontMetricsObject::GetStrikeOutPosition() const
 {
-	return m_dStrikeOutPosition * m_fFontSize;
+	return m_StrikeOutPosition;
 }
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
 double PdfFontMetricsObject::GetUnderlineThickness() const
 {
-    return m_dUnderlineThickness * m_fFontSize;
+    return m_UnderlineThickness;
 }
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-double PdfFontMetricsObject::GetStrikeoutThickness() const
+double PdfFontMetricsObject::GetStrikeOutThickness() const
 {
-    return m_dStrikeOutThickness * m_fFontSize;
+    return m_StrikeOutThickness;
 }
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const char* PdfFontMetricsObject::GetFontData() const
-{
-    return nullptr;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-size_t PdfFontMetricsObject::GetFontDataLen() const
-{
-    return 0;
-}  
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-unsigned int PdfFontMetricsObject::GetWeight() const
-{
-    return m_nWeight;
-}  
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
 double PdfFontMetricsObject::GetAscent() const
 {
-    return m_dAscent * m_fFontSize;
+    return m_Ascent;
 }
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-double PdfFontMetricsObject::GetPdfAscent() const
-{
-    return m_dPdfAscent;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
 double PdfFontMetricsObject::GetDescent() const
 {
-    return m_dDescent * this->GetFontSize();
+    return m_Descent;
 }
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-double PdfFontMetricsObject::GetPdfDescent() const
+unsigned PdfFontMetricsObject::GetWeight() const
 {
-    return m_dPdfDescent;
+    return m_Weight;
 }
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-int PdfFontMetricsObject::GetItalicAngle() const
+double PdfFontMetricsObject::GetItalicAngle() const
 {
-    return m_nItalicAngle;
+    return m_ItalicAngle;
 }
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
 bool PdfFontMetricsObject::IsSymbol() const
 {
-    return m_bSymbol;
+    return m_IsSymbol;
 }
 
-};
+string_view PdfFontMetricsObject::GetFontData() const
+{
+    return { };
+}
+
+bool PdfFontMetricsObject::IsBold() const
+{
+    // CHECK-ME: Can we infer it somehow?
+    return false;
+}
+
+bool PdfFontMetricsObject::IsItalic() const
+{
+    // CHECK-ME: Can we infer it somehow?
+    return false;
+}
+
+vector<double> PdfFontMetricsObject::GetBBox(const PdfObject& obj)
+{
+    vector<double> ret;
+    ret.reserve(4);
+    auto& arr = obj.GetArray();
+    ret.push_back(arr[0].GetNumberLenient() * m_matrix[0]);
+    ret.push_back(arr[1].GetNumberLenient() * m_matrix[0]);
+    ret.push_back(arr[2].GetNumberLenient() * m_matrix[0]);
+    ret.push_back(arr[3].GetNumberLenient() * m_matrix[0]);
+    return ret;
+}

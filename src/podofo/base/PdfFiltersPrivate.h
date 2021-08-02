@@ -1,38 +1,12 @@
-/***************************************************************************
- *   Copyright (C) 2007 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2007 by Dominik Seichter <domseichter@web.de>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
-#ifndef _PDF_FILTERS_PRIVATE_H_
-#define _PDF_FILTERS_PRIVATE_H_
+#ifndef PDF_FILTERS_PRIVATE_H
+#define PDF_FILTERS_PRIVATE_H
 
 /**
  * \file PdfFiltersPrivate.h
@@ -44,8 +18,6 @@
  * only be accessed through the factory interface in PdfFilters.h .
  */
 
-#include "PdfDefines.h"
-#include "PdfDefinesPrivate.h"
 #include "PdfFilter.h"
 #include "PdfRefCountedBuffer.h"
 
@@ -91,764 +63,229 @@ class PdfOutputDevice;
 
 /** The ascii hex filter.
  */
-class PdfHexFilter : public PdfFilter {
- public:
+class PdfHexFilter : public PdfFilter
+{
+public:
     PdfHexFilter();
 
-    /** Check wether the encoding is implemented for this filter.
-     * 
-     *  \returns true if the filter is able to encode data
-     */
-    inline bool CanEncode() const override; 
+    inline bool CanEncode() const override { return true; }
 
-    /** Encode a block of data and write it to the PdfOutputStream
-     *  specified by BeginEncodeImpl.
-     *
-     *  BeginEncodeImpl() has to be called before this function.
-     *
-     *  \param pBuffer pointer to a buffer with data to encode
-     *  \param lLen length of data to encode.
-     *
-     *  Call EndEncodeImpl() after all data has been encoded
-     *
-     *
-     *  \see BeginEncodeImpl
-     *  \see EndEncodeImpl
-     */
-    void EncodeBlockImpl( const char* pBuffer, size_t lLen ) override;
+    void EncodeBlockImpl(const char* pBuffer, size_t lLen) override;
 
-    /** Check wether the decoding is implemented for this filter.
-     * 
-     *  \returns true if the filter is able to decode data
-     */
-    inline bool CanDecode() const override;
+    inline bool CanDecode() const override { return true; }
 
-    /** Real implementation of `BeginDecode()'. NEVER call this method directly.
-     *
-     *  By default this function does nothing. If your filter needs to do setup for decoding,
-     *  you should override this method.
-     *
-     *  PdfFilter ensures that a valid stream is available when this method is called, and
-     *  that EndDecode() was called since the last BeginDecode()/DecodeBlock().
-     *
-     * \see BeginDecode */
-    void BeginDecodeImpl( const PdfDictionary* ) override;
+    void BeginDecodeImpl(const PdfDictionary*) override;
 
-    /** Real implementation of `DecodeBlock()'. NEVER call this method directly.
-     *
-     *  You must override this method to decode the buffer passed by the caller.
-     *
-     *  You are not obliged to immediately process any or all of the data in
-     *  the passed buffer, but you must ensure that you have processed it and
-     *  written it out by the end of EndDecodeImpl(). You must copy the buffer
-     *  if you're going to store it, as ownership is not transferred to the
-     *  filter and the caller may free the buffer at any time.
-     *
-     *  PdfFilter ensures that a valid stream is available when this method is
-     *  called, ensures that BeginDecode() has been called, and ensures that
-     *  EndDecode() has not been called since the last BeginDecode().
-     *
-     * \see DecodeBlock */
-    void DecodeBlockImpl( const char* pBuffer, size_t lLen ) override;
+    void DecodeBlockImpl(const char* pBuffer, size_t lLen) override;
 
-    /** Real implementation of `EndDecode()'. NEVER call this method directly.
-     *
-     * By the time this method returns, all filtered data must be written to the stream
-     * and the filter must be in a state where BeginDecode() can be safely called.
-     *
-     *  PdfFilter ensures that a valid stream is available when this method is
-     *  called, and ensures that BeginDecodeImpl() has been called.
-     *
-     * \see EndDecode */
     void EndDecodeImpl() override;
 
-    /** GetType of this filter.
-     *  \returns the GetType of this filter
-     */
-    inline EPdfFilter GetType() const override;
+    inline PdfFilterType GetType() const override { return PdfFilterType::ASCIIHexDecode; }
 
  private:
     char m_cDecodedByte;
     bool m_bLow;
 };
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfHexFilter::CanEncode() const
-{
-    return true;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfHexFilter::CanDecode() const
-{
-    return true;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-EPdfFilter PdfHexFilter::GetType() const
-{
-    return EPdfFilter::ASCIIHexDecode;
-}
-
 /** The Ascii85 filter.
  */
-class PdfAscii85Filter : public PdfFilter {
- public:
+class PdfAscii85Filter : public PdfFilter
+{
+public:
     PdfAscii85Filter();
 
-    /** Check wether the encoding is implemented for this filter.
-     * 
-     *  \returns true if the filter is able to encode data
-     */
-    inline bool CanEncode() const override; 
+    inline bool CanEncode() const override { return true; }
 
-    /** Begin encoding data using this filter. Called by PdfFilter::BeginEncode.
-     *
-     *  \see EncodeBlockImpl
-     *  \see EndEncodeImpl
-     *  \see PdfFilter::BeginEncode
-     */
     void BeginEncodeImpl() override;
 
-    /** Encode a block of data and write it to the PdfOutputStream
-     *  specified by BeginEncodeImpl.
-     *
-     *  BeginEncodeImpl() has to be called before this function.
-     *
-     *  \param pBuffer pointer to a buffer with data to encode
-     *  \param lLen length of data to encode.
-     *
-     *  Call EndEncodeImpl() after all data has been encoded
-     *
-     *
-     *  \see BeginEncodeImpl
-     *  \see EndEncodeImpl
-     */
-    void EncodeBlockImpl( const char* pBuffer, size_t lLen ) override;
+    void EncodeBlockImpl(const char* pBuffer, size_t lLen) override;
 
-    /**
-     *  Finish encoding of data.
-     *
-     *  \see BeginEncodeImpl
-     *  \see EncodeBlockImpl
-     */
     void EndEncodeImpl() override;
 
-    /** Check wether the decoding is implemented for this filter.
-     * 
-     *  \returns true if the filter is able to decode data
-     */
-    inline bool CanDecode() const override;
+    inline bool CanDecode() const override { return true; }
 
-    /** Real implementation of `BeginDecode()'. NEVER call this method directly.
-     *
-     *  By default this function does nothing. If your filter needs to do setup for decoding,
-     *  you should override this method.
-     *
-     *  PdfFilter ensures that a valid stream is available when this method is called, and
-     *  that EndDecode() was called since the last BeginDecode()/DecodeBlock().
-     *
-     * \see BeginDecode */
-    void BeginDecodeImpl( const PdfDictionary* ) override;
+    void BeginDecodeImpl(const PdfDictionary*) override;
 
-    /** Real implementation of `DecodeBlock()'. NEVER call this method directly.
-     *
-     *  You must override this method to decode the buffer passed by the caller.
-     *
-     *  You are not obliged to immediately process any or all of the data in
-     *  the passed buffer, but you must ensure that you have processed it and
-     *  written it out by the end of EndDecodeImpl(). You must copy the buffer
-     *  if you're going to store it, as ownership is not transferred to the
-     *  filter and the caller may free the buffer at any time.
-     *
-     *  PdfFilter ensures that a valid stream is available when this method is
-     *  called, ensures that BeginDecode() has been called, and ensures that
-     *  EndDecode() has not been called since the last BeginDecode().
-     *
-     * \see DecodeBlock */
-    void DecodeBlockImpl( const char* pBuffer, size_t lLen ) override;
+    void DecodeBlockImpl(const char* pBuffer, size_t lLen) override;
 
-    /** Real implementation of `EndDecode()'. NEVER call this method directly.
-     *
-     * By the time this method returns, all filtered data must be written to the stream
-     * and the filter must be in a state where BeginDecode() can be safely called.
-     *
-     *  PdfFilter ensures that a valid stream is available when this method is
-     *  called, and ensures that BeginDecodeImpl() has been called.
-     *
-     * \see EndDecode */
     void EndDecodeImpl() override;
 
-    /** GetType of this filter.
-     *  \returns the GetType of this filter
-     */
-    inline EPdfFilter GetType() const override;
+    inline PdfFilterType GetType() const override { return PdfFilterType::ASCII85Decode; }
 
  private:
-    void EncodeTuple ( unsigned long tuple, int bytes );
-    void WidePut( unsigned long tuple, int bytes ) const;
+    void EncodeTuple(unsigned tuple, int bytes);
+    void WidePut(unsigned tuple, int bytes) const;
 
  private:
-    int           m_count;
-    unsigned long m_tuple;
+    int m_count;
+    unsigned m_tuple;
 };
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfAscii85Filter::CanEncode() const
-{
-    return true;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfAscii85Filter::CanDecode() const
-{
-    return true;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-EPdfFilter PdfAscii85Filter::GetType() const
-{
-    return EPdfFilter::ASCII85Decode;
-}
-
-/** The flate filter.
+/** The Flate filter.
  */
 class PdfFlateFilter : public PdfFilter
 {
 public:
     PdfFlateFilter();
+
     virtual ~PdfFlateFilter();
 
-    /** Check wether the encoding is implemented for this filter.
-     * 
-     *  \returns true if the filter is able to encode data
-     */
-    inline bool CanEncode() const override;
+    inline bool CanEncode() const override { return true; }
 
-    /** Begin encoding data using this filter. Called by PdfFilter::BeginEncode.
-     *
-     *  \see EncodeBlockImpl
-     *  \see EndEncodeImpl
-     *  \see PdfFilter::BeginEncode
-     */
     void BeginEncodeImpl() override;
 
-    /** Encode a block of data and write it to the PdfOutputStream
-     *  specified by BeginEncodeImpl.
-     *
-     *  BeginEncodeImpl() has to be called before this function.
-     *
-     *  \param pBuffer pointer to a buffer with data to encode
-     *  \param lLen length of data to encode.
-     *
-     *  Call EndEncodeImpl() after all data has been encoded
-     *
-     *
-     *  \see BeginEncodeImpl
-     *  \see EndEncodeImpl
-     */
-    void EncodeBlockImpl( const char* pBuffer, size_t lLen ) override;
+    void EncodeBlockImpl(const char* pBuffer, size_t lLen) override;
 
-    /**
-     *  Finish encoding of data.
-     *
-     *  \see BeginEncodeImpl
-     *  \see EncodeBlockImpl
-     */
     void EndEncodeImpl() override;
 
-    /** Check wether the decoding is implemented for this filter.
-     * 
-     *  \returns true if the filter is able to decode data
-     */
-    inline bool CanDecode() const override;
+    inline bool CanDecode() const override { return true; }
 
-    /** Real implementation of `BeginDecode()'. NEVER call this method directly.
-     *
-     *  By default this function does nothing. If your filter needs to do setup for decoding,
-     *  you should override this method.
-     *
-     *  PdfFilter ensures that a valid stream is available when this method is called, and
-     *  that EndDecode() was called since the last BeginDecode()/DecodeBlock().
-     *
-     *  \param pDecodeParms additional parameters for decoding data
-     *
-     * \see BeginDecode 
-     */
-    void BeginDecodeImpl( const PdfDictionary* pDecodeParms ) override;
+    void BeginDecodeImpl(const PdfDictionary* pDecodeParms) override;
 
-    /** Real implementation of `DecodeBlock()'. NEVER call this method directly.
-     *
-     *  You must override this method to decode the buffer passed by the caller.
-     *
-     *  You are not obliged to immediately process any or all of the data in
-     *  the passed buffer, but you must ensure that you have processed it and
-     *  written it out by the end of EndDecodeImpl(). You must copy the buffer
-     *  if you're going to store it, as ownership is not transferred to the
-     *  filter and the caller may free the buffer at any time.
-     *
-     *  PdfFilter ensures that a valid stream is available when this method is
-     *  called, ensures that BeginDecode() has been called, and ensures that
-     *  EndDecode() has not been called since the last BeginDecode().
-     *
-     * \see DecodeBlock */
-    void DecodeBlockImpl( const char* pBuffer, size_t lLen ) override;
+    void DecodeBlockImpl(const char* pBuffer, size_t lLen) override;
 
-    /** Real implementation of `EndDecode()'. NEVER call this method directly.
-     *
-     * By the time this method returns, all filtered data must be written to the stream
-     * and the filter must be in a state where BeginDecode() can be safely called.
-     *
-     *  PdfFilter ensures that a valid stream is available when this method is
-     *  called, and ensures that BeginDecodeImpl() has been called.
-     *
-     * \see EndDecode */
     void EndDecodeImpl() override;
 
-    /** GetType of this filter.
-     *  \returns the GetType of this filter
-     */
-    inline EPdfFilter GetType() const override;
+    inline PdfFilterType GetType() const override { return PdfFilterType::FlateDecode; }
 
  private:
     void EncodeBlockInternal( const char* pBuffer, size_t lLen, int nMode );
 
  private:
-    unsigned char        m_buffer[PODOFO_FILTER_INTERNAL_BUFFER_SIZE];
+    unsigned char m_buffer[PODOFO_FILTER_INTERNAL_BUFFER_SIZE];
 
-    z_stream             m_stream;
+    z_stream m_stream;
     PdfPredictorDecoder* m_pPredictor;
 };
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfFlateFilter::CanEncode() const
-{
-    return true;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfFlateFilter::CanDecode() const
-{
-    return true;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-EPdfFilter PdfFlateFilter::GetType() const
-{
-    return EPdfFilter::FlateDecode;
-}
-
-
 /** The RLE filter.
  */
-class PdfRLEFilter : public PdfFilter {
- public:
+class PdfRLEFilter : public PdfFilter
+{
+public:
     PdfRLEFilter();
 
-    /** Check wether the encoding is implemented for this filter.
-     * 
-     *  \returns true if the filter is able to encode data
-     */
-    inline bool CanEncode() const override;
+    inline bool CanEncode() const override { return false; }
 
     void BeginEncodeImpl() override;
 
-    /** Encode a block of data and write it to the PdfOutputStream
-     *  specified by BeginEncodeImpl.
-     *
-     *  BeginEncodeImpl() has to be called before this function.
-     *
-     *  \param pBuffer pointer to a buffer with data to encode
-     *  \param lLen length of data to encode.
-     *
-     *  Call EndEncodeImpl() after all data has been encoded
-     *
-     *
-     *  \see BeginEncodeImpl
-     *  \see EndEncodeImpl
-     */
-    void EncodeBlockImpl( const char* pBuffer, size_t lLen ) override;
+    void EncodeBlockImpl(const char* pBuffer, size_t lLen) override;
 
-    /**
-     *  Finish encoding of data.
-     *
-     *  \see BeginEncodeImpl
-     *  \see EncodeBlockImpl
-     */
     void EndEncodeImpl() override;
 
-    /** Check wether the decoding is implemented for this filter.
-     * 
-     *  \returns true if the filter is able to decode data
-     */
-    inline bool CanDecode() const override;
+    inline bool CanDecode() const override { return true; }
 
-    /** Real implementation of `BeginDecode()'. NEVER call this method directly.
-     *
-     *  By default this function does nothing. If your filter needs to do setup for decoding,
-     *  you should override this method.
-     *
-     *  PdfFilter ensures that a valid stream is available when this method is called, and
-     *  that EndDecode() was called since the last BeginDecode()/DecodeBlock().
-     *
-     * \see BeginDecode */
-    void BeginDecodeImpl( const PdfDictionary* ) override;
+    void BeginDecodeImpl(const PdfDictionary*) override;
 
-    /** Real implementation of `DecodeBlock()'. NEVER call this method directly.
-     *
-     *  You must override this method to decode the buffer passed by the caller.
-     *
-     *  You are not obliged to immediately process any or all of the data in
-     *  the passed buffer, but you must ensure that you have processed it and
-     *  written it out by the end of EndDecodeImpl(). You must copy the buffer
-     *  if you're going to store it, as ownership is not transferred to the
-     *  filter and the caller may free the buffer at any time.
-     *
-     *  PdfFilter ensures that a valid stream is available when this method is
-     *  called, ensures that BeginDecode() has been called, and ensures that
-     *  EndDecode() has not been called since the last BeginDecode().
-     *
-     * \see DecodeBlock */
-    void DecodeBlockImpl( const char* pBuffer, size_t lLen ) override;
+    void DecodeBlockImpl(const char* pBuffer, size_t lLen) override;
 
-    /** GetType of this filter.
-     *  \returns the GetType of this filter
-     */
-    inline EPdfFilter GetType() const override;
+    inline PdfFilterType GetType() const override { return PdfFilterType::RunLengthDecode; }
 
  private:
     int m_nCodeLen;
 };
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfRLEFilter::CanEncode() const
-{
-    return false;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfRLEFilter::CanDecode() const
-{
-    return true;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-EPdfFilter PdfRLEFilter::GetType() const
-{
-    return EPdfFilter::RunLengthDecode;
-}
-
 /** The LZW filter.
  */
-class PdfLZWFilter : public PdfFilter {
-    struct TLzwItem {
+class PdfLZWFilter : public PdfFilter
+{
+    struct TLzwItem
+    {
         std::vector<unsigned char> value;
     };
     
-    typedef std::vector<TLzwItem>     TLzwTable;
-    typedef TLzwTable::iterator       TILzwTable;
+    typedef std::vector<TLzwItem> TLzwTable;
+    typedef TLzwTable::iterator TILzwTable;
     typedef TLzwTable::const_iterator TCILzwTable;
 
- public:
+public:
     PdfLZWFilter();
 
     virtual ~PdfLZWFilter();
 
-    /** Check wether the encoding is implemented for this filter.
-     * 
-     *  \returns true if the filter is able to encode data
-     */
-    inline bool CanEncode() const override;
+    inline bool CanEncode() const override { return false; }
 
-    /** Begin encoding data using this filter. Called by PdfFilter::BeginEncode.
-     *
-     *  \see EncodeBlockImpl
-     *  \see EndEncodeImpl
-     *  \see PdfFilter::BeginEncode
-     */
     void BeginEncodeImpl() override;
 
-    /** Encode a block of data and write it to the PdfOutputStream
-     *  specified by BeginEncodeImpl.
-     *
-     *  BeginEncodeImpl() has to be called before this function.
-     *
-     *  \param pBuffer pointer to a buffer with data to encode
-     *  \param lLen length of data to encode.
-     *
-     *  Call EndEncodeImpl() after all data has been encoded
-     *
-     *
-     *  \see BeginEncodeImpl
-     *  \see EndEncodeImpl
-     */
     void EncodeBlockImpl( const char* pBuffer, size_t lLen ) override;
 
-    /**
-     *  Finish encoding of data.
-     *
-     *  \see BeginEncodeImpl
-     *  \see EncodeBlockImpl
-     */
     void EndEncodeImpl() override;
 
-    /** Check wether the decoding is implemented for this filter.
-     * 
-     *  \returns true if the filter is able to decode data
-     */
-    inline bool CanDecode() const override;
+    inline bool CanDecode() const override { return true; }
 
-    /** Real implementation of `BeginDecode()'. NEVER call this method directly.
-     *
-     *  By default this function does nothing. If your filter needs to do setup for decoding,
-     *  you should override this method.
-     *
-     *  PdfFilter ensures that a valid stream is available when this method is called, and
-     *  that EndDecode() was called since the last BeginDecode()/DecodeBlock().
-     *
-     * \see BeginDecode */
-    void BeginDecodeImpl( const PdfDictionary* ) override;
+    void BeginDecodeImpl(const PdfDictionary*) override;
 
-    /** Real implementation of `DecodeBlock()'. NEVER call this method directly.
-     *
-     *  You must override this method to decode the buffer passed by the caller.
-     *
-     *  You are not obliged to immediately process any or all of the data in
-     *  the passed buffer, but you must ensure that you have processed it and
-     *  written it out by the end of EndDecodeImpl(). You must copy the buffer
-     *  if you're going to store it, as ownership is not transferred to the
-     *  filter and the caller may free the buffer at any time.
-     *
-     *  PdfFilter ensures that a valid stream is available when this method is
-     *  called, ensures that BeginDecode() has been called, and ensures that
-     *  EndDecode() has not been called since the last BeginDecode().
-     *
-     * \see DecodeBlock */
-    void DecodeBlockImpl( const char* pBuffer, size_t lLen ) override;
+    void DecodeBlockImpl(const char* pBuffer, size_t lLen) override;
 
-    /** Real implementation of `EndDecode()'. NEVER call this method directly.
-     *
-     * By the time this method returns, all filtered data must be written to the stream
-     * and the filter must be in a state where BeginDecode() can be safely called.
-     *
-     *  PdfFilter ensures that a valid stream is available when this method is
-     *  called, and ensures that BeginDecodeImpl() has been called.
-     *
-     * \see EndDecode */
     void EndDecodeImpl() override;
 
-    /** GetType of this filter.
-     *  \returns the GetType of this filter
-     */
-    inline EPdfFilter GetType() const override;
+    inline PdfFilterType GetType() const override { return PdfFilterType::LZWDecode; }
 
- private:
-    /** Initialize an lzw table.
-     */
+private:
     void InitTable();
 
- private:
+private:
     static const unsigned short s_masks[4];
     static const unsigned short s_clear;
     static const unsigned short s_eod;
 
-    TLzwTable     m_table;
+    TLzwTable m_table;
 
-    unsigned int  m_mask;
-    unsigned int  m_code_len;
+    unsigned m_mask;
+    unsigned m_code_len;
     unsigned char m_character;
 
-    bool          m_bFirst;
+    bool m_bFirst;
 
     PdfPredictorDecoder* m_pPredictor;
 };
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfLZWFilter::CanEncode() const
-{
-    return false;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfLZWFilter::CanDecode() const
-{
-    return true;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-EPdfFilter PdfLZWFilter::GetType() const
-{
-    return EPdfFilter::LZWDecode;
-}
-
-
 #ifdef PODOFO_HAVE_JPEG_LIB
 
-void PODOFO_API jpeg_memory_src (j_decompress_ptr cinfo, const JOCTET * buffer, size_t bufsize);
+void PODOFO_API jpeg_memory_src(j_decompress_ptr cinfo, const JOCTET* buffer, size_t bufsize);
 
-extern "C" {
-void JPegErrorExit(j_common_ptr cinfo);
+extern "C"
+{
+    void JPegErrorExit(j_common_ptr cinfo);
 
-void JPegErrorOutput(j_common_ptr, int);
+    void JPegErrorOutput(j_common_ptr, int);
 };
 
 /** The DCT filter can decoded JPEG compressed data.
  *  
  *  This filter requires JPEG lib to be available
  */
-class PdfDCTFilter : public PdfFilter {
- public:
+class PdfDCTFilter : public PdfFilter
+{
+public:
     PdfDCTFilter();
 
-    /** Check wether the encoding is implemented for this filter.
-     * 
-     *  \returns true if the filter is able to encode data
-     */
-    inline bool CanEncode() const override;
+    inline bool CanEncode() const override { return false; }
 
-    /** Begin encoding data using this filter. Called by PdfFilter::BeginEncode.
-     *
-     *  \see EncodeBlockImpl
-     *  \see EndEncodeImpl
-     *  \see PdfFilter::BeginEncode
-     */
     void BeginEncodeImpl() override;
 
-    /** Encode a block of data and write it to the PdfOutputStream
-     *  specified by BeginEncodeImpl.
-     *
-     *  BeginEncodeImpl() has to be called before this function.
-     *
-     *  \param pBuffer pointer to a buffer with data to encode
-     *  \param lLen length of data to encode.
-     *
-     *  Call EndEncodeImpl() after all data has been encoded
-     *
-     *
-     *  \see BeginEncodeImpl
-     *  \see EndEncodeImpl
-     */
-    void EncodeBlockImpl( const char* pBuffer, size_t lLen ) override;
+    void EncodeBlockImpl(const char* pBuffer, size_t lLen) override;
 
-    /**
-     *  Finish encoding of data.
-     *
-     *  \see BeginEncodeImpl
-     *  \see EncodeBlockImpl
-     */
     void EndEncodeImpl() override;
 
-    /** Check wether the decoding is implemented for this filter.
-     * 
-     *  \returns true if the filter is able to decode data
-     */
-    inline bool CanDecode() const override;
+    inline bool CanDecode() const override { return true; }
 
-    /** Real implementation of `BeginDecode()'. NEVER call this method directly.
-     *
-     *  By default this function does nothing. If your filter needs to do setup for decoding,
-     *  you should override this method.
-     *
-     *  PdfFilter ensures that a valid stream is available when this method is called, and
-     *  that EndDecode() was called since the last BeginDecode()/DecodeBlock().
-     *
-     * \see BeginDecode */
-    void BeginDecodeImpl( const PdfDictionary* ) override;
+    void BeginDecodeImpl(const PdfDictionary*) override;
 
-    /** Real implementation of `DecodeBlock()'. NEVER call this method directly.
-     *
-     *  You must override this method to decode the buffer passed by the caller.
-     *
-     *  You are not obliged to immediately process any or all of the data in
-     *  the passed buffer, but you must ensure that you have processed it and
-     *  written it out by the end of EndDecodeImpl(). You must copy the buffer
-     *  if you're going to store it, as ownership is not transferred to the
-     *  filter and the caller may free the buffer at any time.
-     *
-     *  PdfFilter ensures that a valid stream is available when this method is
-     *  called, ensures that BeginDecode() has been called, and ensures that
-     *  EndDecode() has not been called since the last BeginDecode().
-     *
-     * \see DecodeBlock */
-    void DecodeBlockImpl( const char* pBuffer, size_t lLen ) override;
+    void DecodeBlockImpl(const char* pBuffer, size_t lLen) override;
 
-    /** Real implementation of `EndDecode()'. NEVER call this method directly.
-     *
-     * By the time this method returns, all filtered data must be written to the stream
-     * and the filter must be in a state where BeginDecode() can be safely called.
-     *
-     *  PdfFilter ensures that a valid stream is available when this method is
-     *  called, and ensures that BeginDecodeImpl() has been called.
-     *
-     * \see EndDecode */
     void EndDecodeImpl() override;
 
-    /** GetType of this filter.
-     *  \returns the GetType of this filter
-     */
-    inline EPdfFilter GetType() const override;
+    inline PdfFilterType GetType() const override { return PdfFilterType::DCTDecode; }
 
  private:
     struct jpeg_decompress_struct m_cinfo;
-    struct jpeg_error_mgr         m_jerr;
+    struct jpeg_error_mgr m_jerr;
 
-    PdfRefCountedBuffer           m_buffer;
-    PdfOutputDevice*              m_pDevice;
+    PdfRefCountedBuffer m_buffer;
+    PdfOutputDevice* m_pDevice;
 };
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfDCTFilter::CanEncode() const
-{
-    return false;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfDCTFilter::CanDecode() const
-{
-    return true;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-EPdfFilter PdfDCTFilter::GetType() const
-{
-    return EPdfFilter::DCTDecode;
-}
 #endif // PODOFO_HAVE_JPEG_LIB
 
 #ifdef PODOFO_HAVE_TIFF_LIB
@@ -857,128 +294,36 @@ EPdfFilter PdfDCTFilter::GetType() const
  *  
  *  This filter requires TIFFlib to be available
  */
-class PdfCCITTFilter : public PdfFilter {
- public:
+class PdfCCITTFilter : public PdfFilter
+{
+public:
     PdfCCITTFilter();
 
-    /** Check wether the encoding is implemented for this filter.
-     * 
-     *  \returns true if the filter is able to encode data
-     */
-    inline bool CanEncode() const override;
+    inline bool CanEncode() const override { return false; }
 
-    /** Begin encoding data using this filter. Called by PdfFilter::BeginEncode.
-     *
-     *  \see EncodeBlockImpl
-     *  \see EndEncodeImpl
-     *  \see PdfFilter::BeginEncode
-     */
     void BeginEncodeImpl() override;
 
-    /** Encode a block of data and write it to the PdfOutputStream
-     *  specified by BeginEncodeImpl.
-     *
-     *  BeginEncodeImpl() has to be called before this function.
-     *
-     *  \param pBuffer pointer to a buffer with data to encode
-     *  \param lLen length of data to encode.
-     *
-     *  Call EndEncodeImpl() after all data has been encoded
-     *
-     *
-     *  \see BeginEncodeImpl
-     *  \see EndEncodeImpl
-     */
-    void EncodeBlockImpl( const char* pBuffer, size_t lLen ) override;
+    void EncodeBlockImpl(const char* pBuffer, size_t lLen) override;
 
-    /**
-     *  Finish encoding of data.
-     *
-     *  \see BeginEncodeImpl
-     *  \see EncodeBlockImpl
-     */
     void EndEncodeImpl() override;
 
-    /** Check wether the decoding is implemented for this filter.
-     * 
-     *  \returns true if the filter is able to decode data
-     */
-    inline bool CanDecode() const override;
+    inline bool CanDecode() const override { return true; }
 
-    /** Real implementation of `BeginDecode()'. NEVER call this method directly.
-     *
-     *  By default this function does nothing. If your filter needs to do setup for decoding,
-     *  you should override this method.
-     *
-     *  PdfFilter ensures that a valid stream is available when this method is called, and
-     *  that EndDecode() was called since the last BeginDecode()/DecodeBlock().
-     *
-     * \see BeginDecode */
-    void BeginDecodeImpl( const PdfDictionary* ) override;
+    void BeginDecodeImpl(const PdfDictionary*) override;
 
-    /** Real implementation of `DecodeBlock()'. NEVER call this method directly.
-     *
-     *  You must override this method to decode the buffer passed by the caller.
-     *
-     *  You are not obliged to immediately process any or all of the data in
-     *  the passed buffer, but you must ensure that you have processed it and
-     *  written it out by the end of EndDecodeImpl(). You must copy the buffer
-     *  if you're going to store it, as ownership is not transferred to the
-     *  filter and the caller may free the buffer at any time.
-     *
-     *  PdfFilter ensures that a valid stream is available when this method is
-     *  called, ensures that BeginDecode() has been called, and ensures that
-     *  EndDecode() has not been called since the last BeginDecode().
-     *
-     * \see DecodeBlock */
-    void DecodeBlockImpl( const char* pBuffer, size_t lLen ) override;
+    void DecodeBlockImpl(const char* pBuffer, size_t lLen) override;
 
-    /** Real implementation of `EndDecode()'. NEVER call this method directly.
-     *
-     * By the time this method returns, all filtered data must be written to the stream
-     * and the filter must be in a state where BeginDecode() can be safely called.
-     *
-     *  PdfFilter ensures that a valid stream is available when this method is
-     *  called, and ensures that BeginDecodeImpl() has been called.
-     *
-     * \see EndDecode */
     void EndDecodeImpl() override;
 
-    /** GetType of this filter.
-     *  \returns the GetType of this filter
-     */
-    inline EPdfFilter GetType() const override;
+    inline PdfFilterType GetType() const override { return PdfFilterType::CCITTFaxDecode; }
 
  private:
     TIFF* m_tiff;
 };
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfCCITTFilter::CanEncode() const
-{
-    return false;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfCCITTFilter::CanDecode() const
-{
-    return true;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-EPdfFilter PdfCCITTFilter::GetType() const
-{
-    return EPdfFilter::CCITTFaxDecode;
-}
 #endif // PODOFO_HAVE_TIFF_LIB
 
 };
 
 
-#endif /* _PDF_FILTERS_PRIVATE_H_ */
+#endif // PDF_FILTERS_PRIVATE_H

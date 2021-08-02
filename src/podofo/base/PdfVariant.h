@@ -1,40 +1,13 @@
-/***************************************************************************
- *   Copyright (C) 2005 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *   Copyright (C) 2020 by Francesco Pretto                                *
- *   ceztko@gmail.com                                                      *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2005 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
-#ifndef _PDF_VARIANT_H_
-#define _PDF_VARIANT_H_
+#ifndef PDF_VARIANT_H
+#define PDF_VARIANT_H
 
 #include "PdfDefines.h"
 #include "PdfRefCountedBuffer.h"
@@ -83,35 +56,35 @@ public:
     /** Construct a PdfVariant that is a bool.
      *  \param b the boolean value of this PdfVariant
      */
-    PdfVariant( bool b );
+    PdfVariant(bool b);
 
     /** Construct a PdfVariant that is a number.
      *  \param l the value of the number.
      */
-    PdfVariant( int64_t l );
+    PdfVariant(int64_t l);
 
     /** Construct a PdfVariant that is a real number.
      *  \param d the value of the real number.
-     */    
-    PdfVariant( double d );
+     */
+    PdfVariant(double d);
 
     /** Construct a PdfVariant that is a string. The argument
      * string will be escaped where necessary, so it should be
      * passed in unescaped form.
      *
      *  \param rsString the value of the string
-     */        
-    PdfVariant( const PdfString & rsString );
+     */
+    PdfVariant(const PdfString& str);
 
     /** Construct a PdfVariant that is a name.
      *  \param rName the value of the name
-     */        
-    PdfVariant( const PdfName & rName );
+     */
+    PdfVariant(const PdfName& name);
 
     /** Construct a PdfVariant that is a name.
      *  \param rRef the value of the name
-     */        
-    PdfVariant( const PdfReference & rRef );
+     */
+    PdfVariant(const PdfReference& ref);
 
     /** Construct a PdfVariant object with array data.
      *  The variant will automatically get the datatype
@@ -120,23 +93,23 @@ public:
      *
      *  \param tList a list of variants
      */
-    PdfVariant( const PdfArray & tList );
+    PdfVariant(const PdfArray& arr);
 
     /** Construct a PdfVariant that is a dictionary.
      *  \param rDict the value of the dictionary.
-     */        
-    PdfVariant( const PdfDictionary & rDict );
+     */
+    PdfVariant(const PdfDictionary& dict);
 
     /** Construct a PdfVariant that contains raw PDF data.
      *  \param rData raw and valid PDF data.
-     */        
-    PdfVariant( const PdfData & rData );
+     */
+    PdfVariant(const PdfData& data);
 
-    /** Constructs a new PdfVariant which has the same 
+    /** Constructs a new PdfVariant which has the same
      *  contents as rhs.
      *  \param rhs an existing variant which is copied.
      */
-    PdfVariant( const PdfVariant & rhs );
+    PdfVariant(const PdfVariant& rhs);
 
     ~PdfVariant();
 
@@ -152,7 +125,7 @@ public:
     /** \returns a human readable string representation of GetDataType()
      *  The returned string must not be free'd.
      */
-    const char * GetDataTypeString() const;
+    const char* GetDataTypeString() const;
 
     /** \returns true if this variant is a bool
      */
@@ -199,13 +172,13 @@ public:
     /** \returns true if this variant is a reference
      */
     bool IsReference() const;
-       
+
     /** Converts the current object into a string representation
      *  which can be written directly to a PDF file on disc.
      *  \param rsData the object string is returned in this object.
      *  \param eWriteMode additional options for writing to a string
      */
-    void ToString( std::string & rsData, EPdfWriteMode eWriteMode = EPdfWriteMode::Clean ) const;
+    void ToString(std::string& data, PdfWriteMode writeMode = PdfWriteMode::Clean) const;
 
     /** Get the value if this object is a bool.
      *  \returns the bool value.
@@ -247,12 +220,12 @@ public:
 
     /** \returns the value of the object as string.
      */
-    const PdfString & GetString() const;
-    bool TryGetString(const PdfString *& str) const;
+    const PdfString& GetString() const;
+    bool TryGetString(const PdfString*& str) const;
 
     /** \returns the value of the object as name
      */
-    const PdfName & GetName() const;
+    const PdfName& GetName() const;
     bool TryGetName(const PdfName*& str) const;
 
     /** Get the reference values of this object.
@@ -272,17 +245,17 @@ public:
     /** Returns the value of the object as array
      *  \returns a array
      */
-    const PdfArray & GetArray() const;
-    PdfArray & GetArray();
+    const PdfArray& GetArray() const;
+    PdfArray& GetArray();
     bool TryGetArray(const PdfArray*& arr) const;
     bool TryGetArray(PdfArray*& arr);
 
     /** Returns the dictionary value of this object
      *  \returns a PdfDictionary
      */
-    const PdfDictionary & GetDictionary() const;
-    PdfDictionary & GetDictionary();
-    bool TryGetDictionary(const PdfDictionary *& dict) const;
+    const PdfDictionary& GetDictionary() const;
+    PdfDictionary& GetDictionary();
+    bool TryGetDictionary(const PdfDictionary*& dict) const;
     bool TryGetDictionary(PdfDictionary*& dict);
 
     /** Set the value of this object as bool
@@ -315,7 +288,7 @@ public:
     *  This will set the dirty flag of this object.
     *  \see IsDirty
     */
-    void SetName(const PdfName &name);
+    void SetName(const PdfName& name);
 
     /** Set the string value of this object.
      * \param str the string value
@@ -323,9 +296,9 @@ public:
      * This will set the dirty flag of this object.
      * \see IsDirty
      */
-    void SetString(const PdfString & str);
+    void SetString(const PdfString& str);
 
-    void SetReference(const PdfReference &ref);
+    void SetReference(const PdfReference& ref);
 
     /** Write the complete variant to an output device.
      *  \param pDevice write the object to this device
@@ -333,8 +306,8 @@ public:
      *  \param pEncrypt an encryption object which is used to encrypt this object
      *                  or nullptr to not encrypt this object
      */
-    void Write(PdfOutputDevice& pDevice, EPdfWriteMode eWriteMode,
-        const PdfEncrypt* pEncrypt) const;
+    void Write(PdfOutputDevice& device, PdfWriteMode writeMode,
+        const PdfEncrypt* encrypt) const;
 
     /** Assign the values of another PdfVariant to this one.
      *  \param rhs an existing variant which is copied.
@@ -342,21 +315,21 @@ public:
      *  This will set the dirty flag of this object.
      *  \see IsDirty
      */
-    const PdfVariant & operator=( const PdfVariant & rhs );
+    const PdfVariant& operator=(const PdfVariant& rhs);
 
     /**
      * Test to see if the value contained by this variant is the same
      * as the value of the other variant.
      */
-    bool operator==( const PdfVariant & rhs ) const;
+    bool operator==(const PdfVariant& rhs) const;
 
     /**
      * \see operator==
      */
-    bool operator!=( const PdfVariant & rhs) const;
+    bool operator!=(const PdfVariant& rhs) const;
 
 public:
-    inline EPdfDataType GetDataType() const { return m_eDataType; }
+    inline EPdfDataType GetDataType() const { return m_DataType; }
 
 private:
     bool tryGetDictionary(PdfDictionary*& dict) const;
@@ -379,7 +352,7 @@ private:
      *  PdfVariant( my_ptr_to_something )
      *
      *... not ...
-     * 
+     *
      *  PdfVariant( *my_ptr_to_something )
      *
      * If you need to modify PdfVariant to legitimately take a pointer in the future,
@@ -395,19 +368,19 @@ private:
      */
     typedef union
     {
-        /** Holds references, strings, 
+        /** Holds references, strings,
          *  names, dictionaries and arrays
          */
-        PdfDataType* pData;
-        bool bBoolValue;
-        double dNumber;
-        int64_t nNumber;
+        PdfDataType* Data;
+        bool Bool;
+        double Real;
+        int64_t Number;
     } UVariant;
 
     UVariant m_Data;
-    EPdfDataType m_eDataType;
+    EPdfDataType m_DataType;
 };
 
 };
 
-#endif // _PDF_VARIANT_H_
+#endif // PDF_VARIANT_H

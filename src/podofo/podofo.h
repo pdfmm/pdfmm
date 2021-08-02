@@ -33,8 +33,8 @@
  *   files in the program, then also delete it here.                       *
  ***************************************************************************/
 
-#ifndef _PODOFO_H_
-#define _PODOFO_H_
+#ifndef PODOFO_H
+#define PODOFO_H
 
 /**
  * This file can be used in client applications to include
@@ -52,19 +52,26 @@
 #include "doc/PdfAcroForm.h"
 #include "doc/PdfAction.h"
 #include "doc/PdfAnnotation.h"
-#include "doc/PdfCMapEncoding.h"
 #include "doc/PdfContents.h"
 #include "doc/PdfDestination.h"
-#include "doc/PdfDifferenceEncoding.h"
 #include "doc/PdfDocument.h"
 #include "doc/PdfElement.h"
-#include "doc/PdfEncodingObjectFactory.h"
 #include "doc/PdfExtGState.h"
 #include "doc/PdfField.h"
+#include "doc/PdfTextBox.h"
+#include "doc/PdfButton.h"
+#include "doc/PdfCheckBox.h"
+#include "doc/PdfButton.h"
+#include "doc/PdfPushButton.h"
+#include "doc/PdfCheckBox.h"
+#include "doc/PdfRadioButton.h"
+#include "doc/PdfChoiceField.h"
+#include "doc/PdfComboBox.h"
+#include "doc/PdfListBox.h"
+#include "doc/PdfSignature.h"
 #include "doc/PdfFileSpec.h"
 #include "doc/PdfFontCache.h"
-#include "doc/PdfFontCID.h"
-#include "doc/PdfFontFactoryBase14Data.h"
+#include "doc/PdfFontCIDTrueType.h"
 #include "doc/PdfFontFactory.h"
 #include "doc/PdfFont.h"
 #include "doc/PdfFontMetricsBase14.h"
@@ -73,12 +80,11 @@
 #include "doc/PdfFontMetricsObject.h"
 #include "doc/PdfFontSimple.h"
 #include "doc/PdfFontTrueType.h"
-#include "doc/PdfFontTTFSubset.h"
+#include "doc/PdfFontTrueTypeSubset.h"
 #include "doc/PdfFontType1Base14.h"
 #include "doc/PdfFontType1.h"
 #include "doc/PdfFontType3.h"
 #include "doc/PdfFunction.h"
-#include "doc/PdfIdentityEncoding.h"
 #include "doc/PdfImage.h"
 #include "doc/PdfInfo.h"
 #include "doc/PdfMemDocument.h"
@@ -89,16 +95,10 @@
 #include "doc/PdfPagesTree.h"
 #include "doc/PdfPainter.h"
 #include "doc/PdfShadingPattern.h"
-#include "doc/PdfSignatureField.h"
 #include "doc/PdfStreamedDocument.h"
-#include "doc/PdfTable.h"
 #include "doc/PdfTilingPattern.h"
 #include "doc/PdfXObject.h"
 
-#ifdef PODOFO_NO_NAMESPACE
-using namespace PoDoFo;
-#endif /* PODOFO_NO_NAMESPACE */
-
-#endif /* _PODOFO_H_ */
+#endif // PODOFO_H
 
 

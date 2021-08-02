@@ -1,47 +1,20 @@
-/***************************************************************************
- *   Copyright (C) 2006 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *   Copyright (C) 2020 by Francesco Pretto                                *
- *   ceztko@gmail.com                                                      *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2006 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
 // PdfError.h doesn't, and can't, include PdfDefines.h so we do so here.
-// PdfDefines.h will include PdfError.h for us.
-#include "PdfDefines.h"
+// PdfDefinesPrivate.h will include PdfError.h for us.
 #include "PdfDefinesPrivate.h"
 
 #include <stdarg.h>
 #include <stdio.h>
 
-namespace PoDoFo {
+using namespace std;
+using namespace PoDoFo;
 
 bool PdfError::s_DgbEnabled = true;
 bool PdfError::s_LogEnabled = true;
@@ -93,10 +66,6 @@ const PdfErrorInfo & PdfErrorInfo::operator=( const PdfErrorInfo & rhs )
 
     return *this;
 }
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
 
 PdfError::PdfError()
 {
@@ -164,31 +133,31 @@ void PdfError::PrintErrorMsg() const
 
     int i                = 0;
 
-    PdfError::LogErrorMessage( ELogSeverity::Error, "\n\nPoDoFo encountered an error. Error: %i %s", m_error, pszName ? pszName : "" );
+    PdfError::LogErrorMessage( LogSeverity::Error, "\n\nPoDoFo encountered an error. Error: %i %s", m_error, pszName ? pszName : "" );
 
     if( pszMsg )
-        PdfError::LogErrorMessage( ELogSeverity::Error, "\tError Description: %s", pszMsg );
+        PdfError::LogErrorMessage( LogSeverity::Error, "\tError Description: %s", pszMsg );
     
     if( m_callStack.size() )
-        PdfError::LogErrorMessage( ELogSeverity::Error, "\tCallstack:" );
+        PdfError::LogErrorMessage( LogSeverity::Error, "\tCallstack:" );
 
     while( it != m_callStack.end() )
     {
         if( !(*it).GetFilename().empty() )
-            PdfError::LogErrorMessage( ELogSeverity::Error, "\t#%i Error Source: %s:%i", i, (*it).GetFilename().c_str(), (*it).GetLine() );
+            PdfError::LogErrorMessage( LogSeverity::Error, "\t#%i Error Source: %s:%i", i, (*it).GetFilename().c_str(), (*it).GetLine() );
 
         if( !(*it).GetInformation().empty() )
-            PdfError::LogErrorMessage( ELogSeverity::Error, "\t\tInformation: %s", (*it).GetInformation().c_str() );
+            PdfError::LogErrorMessage( LogSeverity::Error, "\t\tInformation: %s", (*it).GetInformation().c_str() );
 
         if( !(*it).GetInformationW().empty() )
-            PdfError::LogErrorMessage( ELogSeverity::Error, L"\t\tInformation: %s", (*it).GetInformationW().c_str() );
+            PdfError::LogErrorMessage( LogSeverity::Error, L"\t\tInformation: %s", (*it).GetInformationW().c_str() );
 
         ++i;
         ++it;
     }
 
         
-    PdfError::LogErrorMessage( ELogSeverity::Error, "\n" );
+    PdfError::LogErrorMessage( LogSeverity::Error, "\n" );
 }
 
 const char* PdfError::what() const
@@ -516,13 +485,13 @@ const char* PdfError::ErrorMessage( EPdfError eCode )
     return pszMsg;
 }
 
-void PdfError::LogMessage( ELogSeverity eLogSeverity, const char* pszMsg, ... )
+void PdfError::LogMessage( LogSeverity eLogSeverity, const char* pszMsg, ... )
 {
 	if(!PdfError::LoggingEnabled())
 		return;
 
 #ifdef DEBUG
-    const ELogSeverity eMinSeverity = ELogSeverity::Debug;
+    const LogSeverity eMinSeverity = LogSeverity::Debug;
 #else
     const ELogSeverity eMinSeverity = ELogSeverity::Information;
 #endif // DEBUG
@@ -539,7 +508,7 @@ void PdfError::LogMessage( ELogSeverity eLogSeverity, const char* pszMsg, ... )
     va_end( args );
 }
 
-void PdfError::LogErrorMessage( ELogSeverity eLogSeverity, const char* pszMsg, ... )
+void PdfError::LogErrorMessage( LogSeverity eLogSeverity, const char* pszMsg, ... )
 {
     va_list  args;
     va_start( args, pszMsg );
@@ -548,27 +517,27 @@ void PdfError::LogErrorMessage( ELogSeverity eLogSeverity, const char* pszMsg, .
     va_end( args );
 }
 
-void PdfError::LogMessageInternal( ELogSeverity eLogSeverity, const char* pszMsg, va_list & args )
+void PdfError::LogMessageInternal( LogSeverity eLogSeverity, const char* pszMsg, va_list & args )
 {
     const char* pszPrefix = nullptr;
 
     switch( eLogSeverity ) 
     {
-        case ELogSeverity::Error:
+        case LogSeverity::Error:
             break;
-        case ELogSeverity::Critical:
+        case LogSeverity::Critical:
 	    pszPrefix = "CRITICAL: ";
             break;
-        case ELogSeverity::Warning:
+        case LogSeverity::Warning:
 	    pszPrefix = "WARNING: ";
             break;
-	case ELogSeverity::Information:
+	case LogSeverity::Information:
             break;
-	case ELogSeverity::Debug:
+	case LogSeverity::Debug:
 	    pszPrefix = "DEBUG: ";
             break;
-	case ELogSeverity::None:
-	case ELogSeverity::Unknown:
+	case LogSeverity::None:
+	case LogSeverity::Unknown:
         default:
             break;
     }
@@ -588,13 +557,13 @@ void PdfError::LogMessageInternal( ELogSeverity eLogSeverity, const char* pszMsg
     fflush(stderr);
 }
 
-void PdfError::LogMessage( ELogSeverity eLogSeverity, const wchar_t* pszMsg, ... )
+void PdfError::LogMessage( LogSeverity eLogSeverity, const wchar_t* pszMsg, ... )
 {
 	if(!PdfError::LoggingEnabled())
 		return;
 
 #ifdef DEBUG
-    const ELogSeverity eMinSeverity = ELogSeverity::Debug;
+    const LogSeverity eMinSeverity = LogSeverity::Debug;
 #else
     const ELogSeverity eMinSeverity = ELogSeverity::Information;
 #endif // DEBUG
@@ -621,7 +590,7 @@ bool PdfError::LoggingEnabled()
     return PdfError::s_LogEnabled;
 }
 
-void PdfError::LogErrorMessage( ELogSeverity eLogSeverity, const wchar_t* pszMsg, ... )
+void PdfError::LogErrorMessage( LogSeverity eLogSeverity, const wchar_t* pszMsg, ... )
 {
     va_list  args;
     va_start( args, pszMsg );
@@ -630,27 +599,27 @@ void PdfError::LogErrorMessage( ELogSeverity eLogSeverity, const wchar_t* pszMsg
     va_end( args );
 }
 
-void PdfError::LogMessageInternal( ELogSeverity eLogSeverity, const wchar_t* pszMsg, va_list & args )
+void PdfError::LogMessageInternal( LogSeverity eLogSeverity, const wchar_t* pszMsg, va_list & args )
 {
     const wchar_t* pszPrefix = nullptr;
 
     switch( eLogSeverity ) 
     {
-        case ELogSeverity::Error:
+        case LogSeverity::Error:
             break;
-        case ELogSeverity::Critical:
+        case LogSeverity::Critical:
 	    pszPrefix = L"CRITICAL: ";
             break;
-        case ELogSeverity::Warning:
+        case LogSeverity::Warning:
 	    pszPrefix = L"WARNING: ";
             break;
-	case ELogSeverity::Information:
+	case LogSeverity::Information:
             break;
-	case ELogSeverity::Debug:
+	case LogSeverity::Debug:
 	    pszPrefix = L"DEBUG: ";
             break;
-	case ELogSeverity::None:
-	case ELogSeverity::Unknown:
+	case LogSeverity::None:
+	case LogSeverity::Unknown:
         default:
             break;
     }
@@ -681,7 +650,7 @@ void PdfError::DebugMessage( const char* pszMsg, ... )
     // OC 17.08.2010 New to optionally replace stderr output by a callback:
     if ( m_fLogMessageCallback != nullptr )
     {
-        m_fLogMessageCallback->LogMessage(ELogSeverity::Debug, pszPrefix, pszMsg, args);
+        m_fLogMessageCallback->LogMessage(LogSeverity::Debug, pszPrefix, pszMsg, args);
     }
     else
     {
@@ -705,4 +674,41 @@ bool PdfError::DebugEnabled()
 	return PdfError::s_DgbEnabled;
 }
 
-};
+void PdfError::SetError(const EPdfError& eCode, const char* pszFile, int line, const char* pszInformation)
+{
+    m_error = eCode;
+    this->AddToCallstack(pszFile, line, pszInformation);
+}
+
+void PdfError::AddToCallstack(const char* pszFile, int line, const char* pszInformation)
+{
+    m_callStack.push_front(PdfErrorInfo(line, pszFile, pszInformation));
+}
+
+void PdfError::SetError(const EPdfError& eCode, const char* pszFile, int line, string sInformation)
+{
+    m_error = eCode;
+    this->AddToCallstack(pszFile, line, sInformation);
+}
+
+void PdfError::AddToCallstack(const char* pszFile, int line, string sInformation)
+{
+    m_callStack.push_front(PdfErrorInfo(line, pszFile, sInformation));
+}
+
+void PdfError::SetErrorInformation(const char* pszInformation)
+{
+    if (m_callStack.size())
+        m_callStack.front().SetInformation(pszInformation ? pszInformation : "");
+}
+
+void PdfError::SetErrorInformation(const wchar_t* pszInformation)
+{
+    if (m_callStack.size())
+        m_callStack.front().SetInformation(pszInformation ? pszInformation : L"");
+}
+
+bool PdfError::IsError() const
+{
+    return m_error != EPdfError::ErrOk;
+}

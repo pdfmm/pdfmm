@@ -1,39 +1,15 @@
-/***************************************************************************
- *   Copyright (C) 2005 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *   Copyright (C) 2020 by Francesco Pretto                                *
- *   ceztko@gmail.com                                                      *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2005 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
+#include "PdfDefinesPrivate.h"
 #include "PdfWriter.h"
+
+#include <iostream>
 
 #include "PdfData.h"
 #include "PdfDate.h"
@@ -45,26 +21,22 @@
 #include "PdfVariant.h"
 #include "PdfXRef.h"
 #include "PdfXRefStream.h"
-#include "PdfDefinesPrivate.h"
 
 #define PDF_MAGIC           "\xe2\xe3\xcf\xd3\n"
 // 10 spaces
-#define LINEARIZATION_PADDING "          " 
-
-#include <iostream>
-#include <stdlib.h>
+#define LINEARIZATION_PADDING "          "
 
 using namespace std;
 using namespace PoDoFo;
 
-PdfWriter::PdfWriter(PdfVecObjects* pVecObjects, const PdfObject& pTrailer, EPdfVersion version) :
+PdfWriter::PdfWriter(PdfVecObjects* pVecObjects, const PdfObject& pTrailer, PdfVersion version) :
     m_vecObjects(pVecObjects),
     m_Trailer(pTrailer),
     m_eVersion(version),
     m_UseXRefStream(false),
     m_pEncryptObj(nullptr),
     m_saveOptions(PdfSaveOptions::None),
-    m_eWriteMode(EPdfWriteMode::Compact),
+    m_eWriteMode(PdfWriteMode::Compact),
     m_lPrevXRefOffset(0),
     m_bIncrementalUpdate(false),
     m_rewriteXRefTable(false),
@@ -211,41 +183,41 @@ void PdfWriter::WritePdfObjects(PdfOutputDevice& device, const PdfVecObjects& ve
     }
 }
 
-void PdfWriter::FillTrailerObject( PdfObject& trailer, size_t lSize, bool bOnlySizeKey ) const
+void PdfWriter::FillTrailerObject(PdfObject& trailer, size_t lSize, bool bOnlySizeKey) const
 {
-    trailer.GetDictionary().AddKey( PdfName::KeySize, static_cast<int64_t>(lSize) );
+    trailer.GetDictionary().AddKey(PdfName::KeySize, static_cast<int64_t>(lSize));
 
-    if( !bOnlySizeKey ) 
+    if (!bOnlySizeKey)
     {
-        if( m_Trailer.GetDictionary().HasKey( "Root" ) )
-            trailer.GetDictionary().AddKey( "Root", m_Trailer.GetDictionary().GetKey( "Root" ) );
+        if (m_Trailer.GetDictionary().HasKey("Root"))
+            trailer.GetDictionary().AddKey("Root", *m_Trailer.GetDictionary().GetKey("Root"));
         /*
           DominikS: It makes no sense to simple copy an encryption key
                     Either we have no encryption or we encrypt again by ourselves
         if( m_pTrailer->GetDictionary().HasKey( "Encrypt" ) )
             pTrailer->GetDictionary().AddKey( "Encrypt", m_pTrailer->GetDictionary().GetKey( "Encrypt" ) );
         */
-        if( m_Trailer.GetDictionary().HasKey( "Info" ) )
-            trailer.GetDictionary().AddKey( "Info", m_Trailer.GetDictionary().GetKey( "Info" ) );
+        if (m_Trailer.GetDictionary().HasKey("Info"))
+            trailer.GetDictionary().AddKey("Info", *m_Trailer.GetDictionary().GetKey("Info"));
 
 
-        if( m_pEncryptObj ) 
-            trailer.GetDictionary().AddKey( PdfName("Encrypt"), m_pEncryptObj->GetIndirectReference() );
+        if (m_pEncryptObj)
+            trailer.GetDictionary().AddKey(PdfName("Encrypt"), m_pEncryptObj->GetIndirectReference());
 
         PdfArray array;
         // The ID is the same unless the PDF was incrementally updated
-        if( m_bIncrementalUpdate && m_originalIdentifier.IsValid() && m_originalIdentifier.GetLength() > 0 )
+        if (m_bIncrementalUpdate && m_originalIdentifier.GetLength() > 0)
         {
-            array.push_back( m_originalIdentifier );
+            array.push_back(m_originalIdentifier);
         }
         else
         {
-            array.push_back( m_identifier );
+            array.push_back(m_identifier);
         }
-        array.push_back( m_identifier );
+        array.push_back(m_identifier);
 
         // finally add the key to the trailer dictionary
-        trailer.GetDictionary().AddKey( "ID", array );
+        trailer.GetDictionary().AddKey("ID", array);
 
         if (!m_rewriteXRefTable && m_lPrevXRefOffset > 0)
         {
@@ -333,12 +305,12 @@ void PdfWriter::CreateFileIdentifier(PdfString& identifier, const PdfObject& pTr
     pInfo->Write(length, m_eWriteMode, nullptr);
 
     PdfRefCountedBuffer buffer(length.GetLength());
-    PdfOutputDevice device(&buffer);
+    PdfOutputDevice device(buffer);
     pInfo->Write(device, m_eWriteMode, nullptr);
 
     // calculate the MD5 Sum
     identifier = PdfEncryptMD5Base::GetMD5String(reinterpret_cast<unsigned char*>(buffer.GetBuffer()),
-        static_cast<unsigned int>(length.GetLength()));
+        static_cast<unsigned>(length.GetLength()));
 
     if (pOriginalIdentifier && !bOriginalIdentifierFound)
         *pOriginalIdentifier = identifier;
@@ -356,8 +328,8 @@ void PdfWriter::SetEncrypted( const PdfEncrypt & rEncrypt )
 
 void PdfWriter::SetUseXRefStream(bool bStream)
 {
-    if (bStream && m_eVersion < EPdfVersion::V1_5)
-        this->SetPdfVersion(EPdfVersion::V1_5);
+    if (bStream && m_eVersion < PdfVersion::V1_5)
+        this->SetPdfVersion(PdfVersion::V1_5);
 
     m_UseXRefStream = bStream;
 }

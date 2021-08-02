@@ -1,40 +1,13 @@
-/***************************************************************************
- *   Copyright (C) 2005 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *   Copyright (C) 2020 by Francesco Pretto                                *
- *   ceztko@gmail.com                                                      *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2005 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
-#ifndef _PDF_PAGE_H_
-#define _PDF_PAGE_H_
+#ifndef PDF_PAGE_H
+#define PDF_PAGE_H
 
 #include <map>
 
@@ -64,41 +37,29 @@ typedef TMapAnnotationDirect::const_iterator  TCIMapAnnotationDirect;
  *  It is possible to draw on a page using a PdfPainter object.
  *  Every document needs at least one page.
  */
-class PODOFO_DOC_API PdfPage : public PdfElement, public PdfCanvas {
- public:
+class PODOFO_DOC_API PdfPage final : public PdfElement, public PdfCanvas
+{
+public:
     /** Create a new PdfPage object.
      *  \param rSize a PdfRect specifying the size of the page (i.e the /MediaBox key) in PDF units
      *  \param pParent add the page to this parent
      */
-    PdfPage( const PdfRect & rSize, PdfDocument* pParent );
+    PdfPage(PdfDocument& pParent, const PdfRect& rSize);
 
-    /** Create a new PdfPage object.
-     *  \param rSize a PdfRect specifying the size of the page (i.e the /MediaBox key) in PDF units
-     *  \param pParent add the page to this parent
-     */
-    PdfPage( const PdfRect & rSize, PdfVecObjects* pParent );
- 
     /** Create a PdfPage based on an existing PdfObject
      *  \param pObject an existing PdfObject
      *  \param listOfParents a list of PdfObjects that are
-     *                       parents of this page and can be 
+     *                       parents of this page and can be
      *                       queried for inherited attributes.
      *                       The last object in the list is the
      *                       most direct parent of this page.
      */
-    PdfPage( PdfObject* pObject, const std::deque<PdfObject*> & listOfParents );
+    PdfPage(PdfObject& pObject, const std::deque<PdfObject*>& listOfParents);
 
     virtual ~PdfPage();
 
-    /** Get the current page size in PDF Units
-     *  \returns a PdfRect containing the page size available for drawing
-     */
     PdfRect GetRect() const override;
 
-    /** Get the current page rotation
-     * \param teta counterclockwise rotation in radians
-     * \returns true if the page has a rotation
-     */
     bool HasRotation(double& teta) const override;
 
     // added by Petr P. Petrov 21 Febrary 2010
@@ -120,15 +81,15 @@ class PODOFO_DOC_API PdfPage : public PdfElement, public PdfCanvas {
     /** Set the mediabox in PDF Units
     *  \param rSize a PdfRect specifying the mediabox of the page (i.e the /TrimBox key) in PDF units
     */
-    void SetMediaBox(const PdfRect & rSize);
+    void SetMediaBox(const PdfRect& rSize);
 
     /** Set the trimbox in PDF Units
      *  \param rSize a PdfRect specifying the trimbox of the page (i.e the /TrimBox key) in PDF units
      */
-	void SetTrimBox( const PdfRect & rSize );
+    void SetTrimBox(const PdfRect& rSize);
 
-	/** Page number inside of the document. The  first page
-     *  has the number 1, the last page has the number 
+    /** Page number inside of the document. The  first page
+     *  has the number 1, the last page has the number
      *  PdfPagesTree:GetTotalNumberOfPages()
      *
      *  \returns the number of the page inside of the document
@@ -144,45 +105,32 @@ class PODOFO_DOC_API PdfPage : public PdfElement, public PdfCanvas {
      *  \param bLandscape create a landscape pagesize instead of portrait (by exchanging width and height)
      *  \returns a PdfRect object which can be passed to the PdfPage constructor
      */
-    static PdfRect CreateStandardPageSize( const EPdfPageSize ePageSize, bool bLandscape = false );
-
-    /** Get access to the contents object of this page.
-     *  If you want to draw onto the page, you have to add 
-     *  drawing commands to the stream of the Contents object.
-     *  \returns a contents object
-     */
-    PdfObject* GetContents() const override;
-
-    /** Get access to the resources object of this page.
-     *  This is most likely an internal object.
-     *  \returns a resources object
-     */
-    inline PdfObject* GetResources() const override;
+    static PdfRect CreateStandardPageSize(const PdfPageSize ePageSize, bool bLandscape = false);
 
     /** Get the current MediaBox (physical page size) in PDF units.
      *  \returns PdfRect the page box
      */
-    const PdfRect GetMediaBox() const { return GetPageBox( "MediaBox" ); }
+    PdfRect GetMediaBox() const;
 
     /** Get the current CropBox (visible page size) in PDF units.
      *  \returns PdfRect the page box
      */
-    const PdfRect GetCropBox() const { return GetPageBox( "CropBox" ); }
+    PdfRect GetCropBox() const;
 
     /** Get the current TrimBox (cut area) in PDF units.
      *  \returns PdfRect the page box
      */
-    const PdfRect GetTrimBox() const { return GetPageBox( "TrimBox" ); }
+    PdfRect GetTrimBox() const;
 
     /** Get the current BleedBox (extra area for printing purposes) in PDF units.
      *  \returns PdfRect the page box
      */
-    const PdfRect GetBleedBox() const { return GetPageBox( "BleedBox" ); }
+    PdfRect GetBleedBox() const;
 
     /** Get the current ArtBox in PDF units.
      *  \returns PdfRect the page box
      */
-    const PdfRect GetArtBox() const { return GetPageBox( "ArtBox" ); }
+    PdfRect GetArtBox() const;
 
     /** Get the current page rotation (if any), it's a clockwise rotation
      *  \returns int 0, 90, 180 or 270
@@ -193,7 +141,7 @@ class PODOFO_DOC_API PdfPage : public PdfElement, public PdfCanvas {
      *  \param iRotation Rotation to set to the page. Valid value are 0, 90, 180, 270.
      */
     void SetRotationRaw(int nRotation);
-        
+
     /** Get the number of annotations associated with this page
      * \ returns int number of annotations
      */
@@ -205,7 +153,7 @@ class PODOFO_DOC_API PdfPage : public PdfElement, public PdfCanvas {
      *
      *  \returns the annotation object which is owned by the PdfPage
      */
-    PdfAnnotation* CreateAnnotation( EPdfAnnotation eType, const PdfRect & rRect );
+    PdfAnnotation* CreateAnnotation(PdfAnnotationType eType, const PdfRect& rRect);
 
     /** Get the annotation with index index of the current page.
      *  \param index the index of the annotation to retrieve
@@ -228,7 +176,7 @@ class PODOFO_DOC_API PdfPage : public PdfElement, public PdfCanvas {
      *
      *  \see GetAnnotationCount
      */
-    void DeleteAnnotation( PdfObject &annotObj );
+    void DeleteAnnotation(PdfObject& annotObj);
 
     /** Get an element from the pages resources dictionary,
      *  using a type (category) and a key.
@@ -238,29 +186,34 @@ class PODOFO_DOC_API PdfPage : public PdfElement, public PdfCanvas {
      *
      *  \returns the object of the resource or nullptr if it was not found
      */
-    PdfObject* GetFromResources( const PdfName & rType, const PdfName & rKey );
+    PdfObject* GetFromResources(const PdfName& rType, const PdfName& rKey);
 
     /** Method for getting a value that can be inherited
-     *  Possible names that can be inherited according to 
+     *  Possible names that can be inherited according to
      *  the PDF specification are: Resources, MediaBox, CropBox and Rotate
-     *  
+     *
      *  \returns PdfObject - the result of the key fetching or nullptr
      */
-    inline const PdfObject* GetInheritedKey( const PdfName & rName ) const; 
+    const PdfObject* GetInheritedKey(const PdfName& rName) const;
 
     /** Set an ICC profile for this page
      *
-     *  \param pszCSTag a ColorSpace tag
-     *  \param pStream an input stream from which the ICC profiles data can be read
-     *  \param nColorComponents the number of colorcomponents of the ICC profile (expected is 1, 3 or 4 components)
-     *  \param eAlternateColorSpace an alternate colorspace to use if the ICC profile cannot be used
+     *  \param csTag a ColorSpace tag
+     *  \param stream an input stream from which the ICC profiles data can be read
+     *  \param colorComponents the number of colorcomponents of the ICC profile (expected is 1, 3 or 4 components)
+     *  \param alternateColorSpace an alternate colorspace to use if the ICC profile cannot be used
      *
      *  \see PdfPainter::SetDependICCProfileColor()
      */
-    void SetICCProfile( const char* pszCSTag, PdfInputStream* pStream, int64_t nColorComponents,
-                                EPdfColorSpace eAlternateColorSpace = EPdfColorSpace::DeviceRGB );
- private:
-     PdfStream & GetStreamForAppending(EPdfStreamAppendFlags flags) override;
+    void SetICCProfile(const std::string_view& csTag, PdfInputStream& stream, int64_t colorComponents,
+        PdfColorSpace alternateColorSpace = PdfColorSpace::DeviceRGB);
+
+    PdfObject& GetContents() override;
+
+    PdfObject& GetResources() override;
+
+private:
+    PdfStream& GetStreamForAppending(EPdfStreamAppendFlags flags) override;
 
     /**
      * Initialize a new page object.
@@ -268,53 +221,32 @@ class PODOFO_DOC_API PdfPage : public PdfElement, public PdfCanvas {
      *
      * @param rSize page size
      */
-    void InitNewPage( const PdfRect & rSize );
+    void InitNewPage(const PdfRect& rSize);
 
-    /**
-     * Create the internal PdfContents object.
-     * Call this before accessing m_pContents as
-     * the object is only created if needed.
-     */
     void EnsureContentsCreated() const;
+    void EnsureResourcesCreated() const;
 
     /** Get the bounds of a specified page box in PDF units.
      * This function is internal, since there are wrappers for all standard boxes
      *  \returns PdfRect the page box
      */
-    const PdfRect GetPageBox( const char* inBox ) const;
-    
+    PdfRect GetPageBox(const std::string_view& inBox) const;
+
     /** Method for getting a key value that could be inherited (such as the boxes, resources, etc.)
      *  \returns PdfObject - the result of the key fetching or nullptr
      */
-    const PdfObject* GetInheritedKeyFromObject( const char* inKey, const PdfObject* inObject, int depth = 0 ) const;
+    const PdfObject* GetInheritedKeyFromObject(const std::string_view& inKey, const PdfObject& inObject, int depth = 0) const;
 
 private:
-    PdfArray * GetAnnotationsArray() const;
-    PdfArray & GetOrCreateAnnotationsArray();
+    PdfArray* GetAnnotationsArray() const;
+    PdfArray& GetOrCreateAnnotationsArray();
 
- private:
-    PdfContents*   m_pContents;
-    PdfObject*     m_pResources;
-
+private:
+    PdfContents* m_contents;
+    PdfObject* m_pResources;
     TMapAnnotationDirect m_mapAnnotations;
 };
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline PdfObject* PdfPage::GetResources() const
-{
-    return m_pResources;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline const PdfObject* PdfPage::GetInheritedKey( const PdfName & rName ) const
-{
-    return this->GetInheritedKeyFromObject( rName.GetString().c_str(), this->GetObject() );
-}
-
 };
 
-#endif // _PDF_PAGE_H_
+#endif // PDF_PAGE_H

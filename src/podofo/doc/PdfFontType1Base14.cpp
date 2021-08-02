@@ -1,112 +1,98 @@
-/***************************************************************************
- *   Copyright (C) 2010 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
-
-#include "PdfFontType1Base14.h"
+/**
+ * Copyright (C) 2010 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
 #include "base/PdfDefinesPrivate.h"
+#include "PdfFontType1Base14.h"
 
-#include <doc/PdfDocument.h>
+#include "PdfDocument.h"
 #include "base/PdfDictionary.h"
-#include "base/PdfEncoding.h"
-#include "PdfFontMetricsBase14.h"
 #include "base/PdfArray.h"
+#include "PdfFontMetricsBase14.h"
+#include "PdfFontFactoryBase14Data.h"
 
-namespace PoDoFo {
+using namespace std;
+using namespace PoDoFo;
 
-PdfFontType1Base14::PdfFontType1Base14( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 
-                                        PdfVecObjects* pParent )
-    : PdfFontSimple( pMetrics, pEncoding, pParent )
+PdfFontType1Base14::PdfFontType1Base14(PdfDocument& doc,
+        PdfStd14FontType fontType,
+        const PdfEncoding& encoding) :
+    PdfFont(doc, PdfFontMetricsBase14::GetInstance(fontType), encoding),
+    m_FontType(fontType)
 {
-    InitBase14Font( pMetrics );
 }
 
-// OC 13.08.2010 New:
-PdfFontType1Base14::PdfFontType1Base14( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 
-                                        PdfObject* pObject )
-    : PdfFontSimple( pMetrics, pEncoding, pObject )
+PdfFontType1Base14::PdfFontType1Base14(PdfObject& obj,
+        PdfStd14FontType fontType,
+        const PdfFontMetricsConstPtr& metrics,
+        const PdfEncoding& encoding)
+    : PdfFont(obj, metrics, encoding),
+    m_FontType(fontType)
 {
-    InitBase14Font( pMetrics );
 }
 
-/*
-kausik : April 12th 2010
-This is the font dictionary. It gets added to the page resources dictionary of the pdf.
-*/
-void PdfFontType1Base14::InitBase14Font( PdfFontMetrics* pMetrics )
+string_view PdfFontType1Base14::GetStandard14FontName(PdfStd14FontType stdFont)
 {
-    if (!m_pEncoding)
-        PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
-
-    PdfVariant var;
-   
-    this->GetObject()->GetDictionary().AddKey( PdfName::KeySubtype, PdfName("Type1"));
-    this->GetObject()->GetDictionary().AddKey("BaseFont", PdfName( pMetrics->GetFontname() ) );
-
-    m_pMetrics->GetWidthArray(var, m_pEncoding->GetFirstChar(), m_pEncoding->GetLastChar(), m_pEncoding);
-
-    PdfObject *pWidth = this->GetObject()->GetDocument()->GetObjects().CreateObject(var);
-
-    this->GetObject()->GetDictionary().AddKey("Widths", pWidth->GetIndirectReference() );
-    this->GetObject()->GetDictionary().AddKey("FirstChar", PdfVariant( static_cast<int64_t>(m_pEncoding->GetFirstChar()) ) );
-    this->GetObject()->GetDictionary().AddKey("LastChar", PdfVariant( static_cast<int64_t>(m_pEncoding->GetLastChar()) ) );
-
-    m_pEncoding->AddToDictionary( this->GetObject()->GetDictionary() ); // Add encoding key
-//	pDescriptor->GetDictionary().AddKey( "FontName", this->GetBaseFont() );
-    //pDescriptor->GetDictionary().AddKey( "FontWeight", (long)m_pMetrics->Weight() );
-//		pDescriptor->GetDictionary().AddKey( PdfName::KeyFlags, PdfVariant( static_cast<int64_t>(32LL) ) ); // TODO: 0 ????
-//		pDescriptor->GetDictionary().AddKey( "FontBBox", array );
-	
-    
-	
-		
-//			pDescriptor->GetDictionary().AddKey( "ItalicAngle", PdfVariant( static_cast<int64_t>(m_pMetrics->GetItalicAngle()) ) );
-//			pDescriptor->GetDictionary().AddKey( "Ascent", m_pMetrics->GetPdfAscent() );
-//			pDescriptor->GetDictionary().AddKey( "Descent", m_pMetrics->GetPdfDescent() );
-//			pDescriptor->GetDictionary().AddKey( "CapHeight", m_pMetrics->GetPdfAscent() ); // m_pMetrics->CapHeight() );
-		 
-
-//		pDescriptor->GetDictionary().AddKey( "StemV", PdfVariant( static_cast<int64_t>(1LL) ) );               // m_pMetrics->StemV() );
-
-		// Peter Petrov 24 September 2008
-//		m_pDescriptor = pDescriptor;
-
-		 
+    return ::GetStandard14FontName(stdFont);
 }
 
-void PdfFontType1Base14::EmbedFontFile( PdfObject* )
+bool PdfFontType1Base14::IsStandard14Font(const string_view& fontName, PdfStd14FontType& stdFont)
 {
-    // Do nothing, base 14 fonts do not need to be embedded
+    return ::IsStandard14Font(fontName, stdFont);
 }
 
+PdfFontType PdfFontType1Base14::GetType() const
+{
+    return PdfFontType::Type1;
+}
 
-};
+void PdfFontType1Base14::initImported()
+{
+    this->GetObject().GetDictionary().AddKey(PdfName::KeySubtype, PdfName("Type1"));
+    this->GetObject().GetDictionary().AddKey("BaseFont", PdfName(GetBaseFont()));
+    m_Encoding->ExportToDictionary(this->GetObject().GetDictionary());
+}
+
+bool PdfFontType1Base14::TryMapCIDToGID(unsigned cid, unsigned& gid) const
+{
+    // All Std14 fonts use a charset which maps 1:1 to unicode codepoints
+    // The only ligatures supported are just the ones that are also
+    // Unicode code points. So, to map the CID to the gid, we just find the
+    // the accordingly glyph id
+    Std14CPToGIDMap::const_iterator found;
+    auto& map = GetStd14CPToGIDMap(m_FontType);
+    // NOTE: In base 14 fonts CID are equivalent to char codes
+    char32_t mappedCodePoint = GetEncoding().GetCodePoint(cid);
+    if (mappedCodePoint == U'\0'
+        || mappedCodePoint >= 0xFFFF
+        || (found = map.find((unsigned short)mappedCodePoint)) == map.end())
+    {
+        gid = { };
+        return false;
+    }
+
+    gid = found->second;
+    return true;
+}
+
+bool PdfFontType1Base14::TryMapGIDToCID(unsigned gid, unsigned& cid) const
+{
+    // Lookup the GID in the Standard14 fonts data, then encode back
+    // the found code point to a CID
+    unsigned size;
+    auto data = GetStd14FontData(m_FontType, size);
+    PdfCID fullCid;
+    if (gid >= size
+        || !GetEncoding().TryGetCID((char32_t)data[gid].CodePoint, fullCid))
+    {
+        gid = { };
+        return false;
+    }
+
+    cid = fullCid.Id;
+    return true;
+}

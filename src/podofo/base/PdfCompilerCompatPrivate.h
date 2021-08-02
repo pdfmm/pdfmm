@@ -1,42 +1,15 @@
-/***************************************************************************
- *   Copyright (C) 2005 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *   Copyright (C) 2020 by Francesco Pretto                                *
- *   ceztko@gmail.com                                                      *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2005 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
-#ifndef _PDF_COMPILERCOMPAT_PRIVATE_H
-#define _PDF_COMPILERCOMPAT_PRIVATE_H
+#ifndef PDF_COMPILERCOMPAT_PRIVATE_H
+#define PDF_COMPILERCOMPAT_PRIVATE_H
 
-#ifndef _PDF_DEFINES_PRIVATE_H_
+#ifndef PDF_DEFINES_PRIVATE_H
 #error Include PdfDefinesPrivate.h instead
 #endif
 
@@ -60,7 +33,7 @@
  // (yay!).  Use these macros with C's automatic string concatenation to handle
  // that ghastly quirk.
  //
- // for example:   printf("Value of signed 64-bit integer: %"PDF_FORMAT_INT64" (more blah)", 128LL)
+ // for example:   printf("Value of signed 64-bit integer: %"PDF_FORMAT_INT64" (more blah)", 128)
  //
 #if defined(_MSC_VER)
 #  define PDF_FORMAT_INT64 "I64d"
@@ -72,57 +45,141 @@
 #  define PDF_SIZE_FORMAT "zu"
 #endif
 
-namespace PoDoFo::compat {
+#define AS_BIG_ENDIAN(n) PoDoFo::compat::HandleBigEndian(n)
+#define FROM_BIG_ENDIAN(n) PoDoFo::compat::HandleBigEndian(n)
 
+namespace PoDoFo::compat
+{
 #ifdef _MSC_VER
-#  define byteswap16(n) _byteswap_ushort(n)
-#  define byteswap32(n) _byteswap_ulong(n)
-#  define byteswap64(n) _byteswap_uint64(n)
+    inline uint16_t ByteSwap(uint16_t n)
+    {
+        return _byteswap_ushort(n);
+    }
+
+    inline uint32_t ByteSwap(uint32_t n)
+    {
+        return _byteswap_ulong(n);
+    }
+
+    inline uint64_t ByteSwap(uint64_t n)
+    {
+        return _byteswap_uint64(n);
+    }
+
+    inline int16_t ByteSwap(int16_t n)
+    {
+        return (int16_t)_byteswap_ushort((uint16_t)n);
+    }
+
+    inline int32_t ByteSwap(int32_t n)
+    {
+        return (int32_t)_byteswap_ulong((uint32_t)n);
+    }
+
+    inline int64_t ByteSwap(int64_t n)
+    {
+        return (int64_t)_byteswap_uint64((uint64_t)n);
+    }
 #else
-#  define byteswap16(n) __builtin_bswap16(n)
-#  define byteswap32(n) __builtin_bswap32(n)
-#  define byteswap64(n) __builtin_bswap64(n)
+    inline uint16_t ByteSwap(uint16_t n)
+    {
+        return __builtin_bswap16(n);
+}
+
+    inline uint32_t ByteSwap(uint32_t n)
+    {
+        return __builtin_bswap32(n);
+    }
+
+    inline uint64_t ByteSwap(uint64_t n)
+    {
+        return __builtin_bswap64(n);
+    }
+
+    inline int16_t ByteSwap(int16_t n)
+    {
+        return (int16_t)__builtin_bswap16((uint16_t)n);
+    }
+
+    inline int32_t ByteSwap(int32_t n)
+    {
+        return (int32_t)__builtin_bswap32((uint32_t)n);
+    }
+
+    inline int64_t ByteSwap(int64_t n)
+    {
+        return (int64_t)__builtin_bswap64((uint64_t)n);
+    }
 #endif
 
 #ifdef PODOFO_IS_LITTLE_ENDIAN
-    inline uint16_t AsBigEndian(uint16_t n)
+    inline uint16_t HandleBigEndian(uint16_t n)
     {
-        return byteswap16(n);
+        return ByteSwap(n);
     }
 
-    inline uint32_t AsBigEndian(uint32_t n)
+    inline uint32_t HandleBigEndian(uint32_t n)
     {
-        return byteswap32(n);
+        return ByteSwap(n);
     }
 
-    inline uint64_t AsBigEndian(uint64_t n)
+    inline uint64_t HandleBigEndian(uint64_t n)
     {
-        return byteswap64(n);
+        return ByteSwap(n);
+    }
+
+    inline int16_t HandleBigEndian(int16_t n)
+    {
+        return ByteSwap(n);
+    }
+
+    inline int32_t HandleBigEndian(int32_t n)
+    {
+        return ByteSwap(n);
+    }
+
+    inline int64_t HandleBigEndian(int64_t n)
+    {
+        return ByteSwap(n);
     }
 #else
-    inline uint16_t AsBigEndian(uint16_t n)
+    inline uint16_t HandleBigEndian(uint16_t n)
     {
         return n;
     }
 
-    inline uint32_t AsBigEndian(uint32_t n)
+    inline uint32_t HandleBigEndian(uint32_t n)
     {
         return n;
     }
 
-    inline uint64_t AsBigEndian(uint64_t n)
+    inline uint64_t HandleBigEndian(uint64_t n)
+    {
+        return n;
+    }
+
+    inline int16_t HandleBigEndian(int16_t n)
+    {
+        return n;
+    }
+
+    inline int32_t HandleBigEndian(int32_t n)
+    {
+        return n;
+    }
+
+    inline int64_t HandleBigEndian(int64_t n)
     {
         return n;
     }
 #endif
 
-// Locale invariant vsnprintf
-int vsnprintf(char* buffer, size_t count, const char* format, va_list argptr);
+    // Locale invariant vsnprintf
+    int vsnprintf(char* buffer, size_t count, const char* format, va_list argptr);
 
-// Case-insensitive string compare functions aren't very portable
-int strcasecmp(const char* s1, const char* s2);
-int strncasecmp(const char* s1, const char* s2, size_t n);
-
+    // Case-insensitive string compare functions aren't very portable
+    int strcasecmp(const char* s1, const char* s2);
+    int strncasecmp(const char* s1, const char* s2, size_t n);
 }
 
-#endif // _PDF_COMPILERCOMPAT_PRIVATE_H
+#endif // PDF_COMPILERCOMPAT_PRIVATE_H

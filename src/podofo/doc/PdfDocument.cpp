@@ -1,46 +1,18 @@
-/***************************************************************************
- *   Copyright (C) 2006 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *   Copyright (C) 2020 by Francesco Pretto                                *
- *   ceztko@gmail.com                                                      *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2006 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
+
+#include "base/PdfDefinesPrivate.h"
+#include "PdfDocument.h"
 
 #include <algorithm>
 #include <deque>
 #include <iostream>
-
-
-#include "PdfDocument.h"
-
-#include "base/PdfDefinesPrivate.h"
+#include <sstream>
 
 #include "base/PdfArray.h"
 #include "base/PdfDictionary.h"
@@ -63,24 +35,23 @@
 
 
 using namespace std;
-
 using namespace PoDoFo;
 
 PdfDocument::PdfDocument(bool bEmpty) :
     m_vecObjects(*this),
-    m_pCatalog(nullptr),
-    m_fontCache( &m_vecObjects )
+    m_Catalog(nullptr),
+    m_fontCache(*this)
 {
-    if( !bEmpty ) 
+    if (!bEmpty)
     {
-        m_pTrailer.reset(new PdfObject()); // The trailer is NO part of the vector of objects
-        m_pTrailer->SetDocument( *this );
-        m_pCatalog = m_vecObjects.CreateDictionaryObject("Catalog");
-        
-        m_pInfo.reset(new PdfInfo( &m_vecObjects ));
-        
-        m_pTrailer->GetDictionary().AddKey( "Root", m_pCatalog->GetIndirectReference() );
-        m_pTrailer->GetDictionary().AddKey( "Info", m_pInfo->GetObject()->GetIndirectReference() );
+        m_Trailer.reset(new PdfObject()); // The trailer is NO part of the vector of objects
+        m_Trailer->SetDocument(*this);
+        m_Catalog = m_vecObjects.CreateDictionaryObject("Catalog");
+
+        m_Info.reset(new PdfInfo(*this));
+
+        m_Trailer->GetDictionary().AddKey("Root", m_Catalog->GetIndirectReference());
+        m_Trailer->GetDictionary().AddKey("Info", m_Info->GetObject().GetIndirectReference());
 
         InitPagesTree();
     }
@@ -95,127 +66,26 @@ void PdfDocument::Clear()
 {
     m_fontCache.EmptyCache();
     m_vecObjects.Clear();
-    m_pCatalog = nullptr;
+    m_Catalog = nullptr;
 }
 
 void PdfDocument::InitPagesTree()
 {
-    PdfObject* pagesRootObj = m_pCatalog->GetIndirectKey( PdfName( "Pages" ) );
-    if ( pagesRootObj ) 
+    PdfObject* pagesRootObj = m_Catalog->GetIndirectKey("Pages");
+    if (pagesRootObj)
     {
-        m_pPagesTree.reset(new PdfPagesTree(pagesRootObj));
+        m_PageTree.reset(new PdfPagesTree(*pagesRootObj));
     }
     else
     {
-        m_pPagesTree.reset(new PdfPagesTree(&m_vecObjects));
-        m_pCatalog->GetDictionary().AddKey( "Pages", m_pPagesTree->GetObject()->GetIndirectReference() );
+        m_PageTree.reset(new PdfPagesTree(*this));
+        m_Catalog->GetDictionary().AddKey("Pages", m_PageTree->GetObject().GetIndirectReference());
     }
 }
 
-PdfObject* PdfDocument::GetNamedObjectFromCatalog( const char* pszName ) const 
+PdfObject* PdfDocument::GetNamedObjectFromCatalog(const string_view& name) const
 {
-    return m_pCatalog->GetIndirectKey( PdfName( pszName ) );
-}
-
-int PdfDocument::GetPageCount() const
-{
-    return m_pPagesTree->GetTotalNumberOfPages();
-}
-
-PdfPage* PdfDocument::GetPage( int nIndex ) const
-{
-    if( nIndex < 0 || nIndex >= m_pPagesTree->GetTotalNumberOfPages() )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::PageNotFound );
-    }
-
-    return m_pPagesTree->GetPage( nIndex );
-}
-
-PdfFont* PdfDocument::CreateFont( const char* pszFontName,
-                                  bool bSymbolCharset,
-                                  const PdfEncoding * const pEncoding, 
-                                  EFontCreationFlags eFontCreationFlags, 
-                                  bool bEmbedd )
-{
-    return m_fontCache.GetFont( pszFontName, false, false, bSymbolCharset, bEmbedd, eFontCreationFlags, pEncoding );
-}
-
-PdfFont* PdfDocument::CreateFont( const char* pszFontName, bool bBold, bool bItalic, bool bSymbolCharset,
-                                  const PdfEncoding * const pEncoding, 
-                                  EFontCreationFlags eFontCreationFlags,
-                                  bool bEmbedd, const char* pszFileName )
-{
-    return m_fontCache.GetFont( pszFontName, bBold, bItalic, bSymbolCharset, bEmbedd, eFontCreationFlags, pEncoding, pszFileName );
-}
-
-#if defined(WIN32) && !defined(PODOFO_NO_FONTMANAGER)
-PdfFont* PdfDocument::CreateFont( const wchar_t* pszFontName, bool bSymbolCharset, const PdfEncoding * const pEncoding, 
-                                  bool bEmbedd )
-{
-    return m_fontCache.GetFont( pszFontName, false, false, bSymbolCharset, bEmbedd, pEncoding );
-}
-
-PdfFont* PdfDocument::CreateFont( const wchar_t* pszFontName, bool bBold, bool bItalic, bool bSymbolCharset,
-                                  const PdfEncoding * const pEncoding, bool bEmbedd )
-{
-    return m_fontCache.GetFont( pszFontName, bBold, bItalic, bSymbolCharset, bEmbedd, pEncoding );
-}
-
-PdfFont* PdfDocument::CreateFont( const LOGFONTA &logFont, const PdfEncoding * const pEncoding, bool bEmbedd )
-{
-    return m_fontCache.GetFont( logFont, bEmbedd, pEncoding );
-}
-
-PdfFont* PdfDocument::CreateFont( const LOGFONTW &logFont, const PdfEncoding * const pEncoding, bool bEmbedd )
-{
-    return m_fontCache.GetFont( logFont, bEmbedd, pEncoding );
-}
-#endif // WIN32
-
-PdfFont* PdfDocument::CreateFontSubset( const char* pszFontName, bool bBold, bool bItalic, bool bSymbolCharset,
-                                        const PdfEncoding * const pEncoding, const char* pszFileName )
-{
-    return m_fontCache.GetFontSubset( pszFontName, bBold, bItalic, bSymbolCharset, pEncoding, pszFileName );
-}
-
-#if defined(WIN32) && !defined(PODOFO_NO_FONTMANAGER)
-PdfFont* PdfDocument::CreateFontSubset( const wchar_t* pszFontName, bool bBold, bool bItalic, bool bSymbolCharset,
-                                        const PdfEncoding * const pEncoding)
-{
-
-    (void)pszFontName;
-    (void)bBold;
-    (void)bItalic;
-    (void)bSymbolCharset;
-    (void)pEncoding;
-    PODOFO_RAISE_ERROR_INFO( EPdfError::Unknown, "Subsets are not yet implemented for unicode on windows." );
-}
-#endif // WIN32
-
-PdfFont* PdfDocument::CreateFont( FT_Face face, bool bSymbolCharset, const PdfEncoding * const pEncoding, bool bEmbedd )
-{
-    return m_fontCache.GetFont( face, bSymbolCharset, bEmbedd, pEncoding );
-}
-
-PdfFont* PdfDocument::CreateDuplicateFontType1( PdfFont * pFont, const char * pszSuffix )
-{
-	return m_fontCache.GetDuplicateFontType1( pFont, pszSuffix );
-}
-
-PdfPage* PdfDocument::CreatePage( const PdfRect & rSize )
-{
-    return m_pPagesTree->CreatePage( rSize );
-}
-
-void PdfDocument::CreatePages( const std::vector<PdfRect>& vecSizes )
-{
-    m_pPagesTree->CreatePages( vecSizes );
-}
-
-PdfPage* PdfDocument::InsertPage( const PdfRect & rSize, int atIndex)
-{
-	return m_pPagesTree->InsertPage( rSize, atIndex );
+    return m_Catalog->GetIndirectKey(name);
 }
 
 void PdfDocument::EmbedSubsetFonts()
@@ -223,27 +93,27 @@ void PdfDocument::EmbedSubsetFonts()
 	m_fontCache.EmbedSubsetFonts();
 }
 
-const PdfDocument & PdfDocument::Append( const PdfDocument & rDoc, bool bAppendAll )
+const PdfDocument& PdfDocument::Append(const PdfDocument& doc, bool appendAll)
 {
-    unsigned int difference = static_cast<unsigned int>(m_vecObjects.GetSize() + m_vecObjects.GetFreeObjects().size());
+    unsigned difference = static_cast<unsigned>(m_vecObjects.GetSize() + m_vecObjects.GetFreeObjects().size());
 
 
     // Ulrich Arnold 30.7.2009: Because GetNextObject uses m_nObjectCount instead 
     //                          of m_vecObjects.GetSize()+m_vecObjects.GetFreeObjects().size()+1
     //                          make sure the free objects are already present before appending to
-	//                          prevent overlapping obj-numbers
+    //                          prevent overlapping obj-numbers
 
     // create all free objects again, to have a clean free object list
-    TCIPdfReferenceList itFree = rDoc.GetObjects().GetFreeObjects().begin();
-    while( itFree != rDoc.GetObjects().GetFreeObjects().end() )
+    TCIPdfReferenceList itFree = doc.GetObjects().GetFreeObjects().begin();
+    while (itFree != doc.GetObjects().GetFreeObjects().end())
     {
-        m_vecObjects.AddFreeObject( PdfReference( (*itFree).ObjectNumber() + difference, (*itFree).GenerationNumber() ) );
+        m_vecObjects.AddFreeObject(PdfReference((*itFree).ObjectNumber() + difference, (*itFree).GenerationNumber()));
 
-        ++itFree;
+        itFree++;
     }
 
-	// append all objects first and fix their references
-    for (auto &obj : rDoc.GetObjects())
+    // append all objects first and fix their references
+    for (auto& obj : doc.GetObjects())
     {
         PdfReference ref(static_cast<uint32_t>(obj->GetIndirectReference().ObjectNumber() + difference), obj->GetIndirectReference().GenerationNumber());
         auto newObj = new PdfObject(PdfDictionary(), true);
@@ -251,12 +121,12 @@ const PdfDocument & PdfDocument::Append( const PdfDocument & rDoc, bool bAppendA
         m_vecObjects.AddObject(newObj);
         *newObj = *obj;
 
-        PdfError::LogMessage(ELogSeverity::Information, "Fixing references in %i %i R by %i",
+        PdfError::LogMessage(LogSeverity::Information, "Fixing references in %i %i R by %i",
             newObj->GetIndirectReference().ObjectNumber(), newObj->GetIndirectReference().GenerationNumber(), difference);
-        FixObjectReferences( newObj, difference );
+        FixObjectReferences(*newObj, difference);
     }
 
-    if( bAppendAll )
+    if (appendAll)
     {
         const PdfName inheritableAttributes[] = {
             PdfName("Resources"),
@@ -267,78 +137,74 @@ const PdfDocument & PdfDocument::Append( const PdfDocument & rDoc, bool bAppendA
         };
 
         // append all pages now to our page tree
-        for(int i=0;i<rDoc.GetPageCount();i++ )
+        for (unsigned i = 0; i < doc.GetPageTree().GetPageCount(); i++)
         {
-            PdfPage *pPage = rDoc.GetPage( i );
-            if (pPage == nullptr)
-            {
-                std::ostringstream oss;
-                oss << "No page " << i << " (the first is 0) found.";
-                PODOFO_RAISE_ERROR_INFO( EPdfError::PageNotFound, oss.str() );
-            }
-            PdfObject*    pObj  = m_vecObjects.GetObject( PdfReference( pPage->GetObject()->GetIndirectReference().ObjectNumber() + difference, pPage->GetObject()->GetIndirectReference().GenerationNumber() ) );
-            if( pObj->IsDictionary() && pObj->GetDictionary().HasKey( "Parent" ) )
-                pObj->GetDictionary().RemoveKey( "Parent" );
+            auto& page = doc.GetPageTree().GetPage(i);
+            PdfObject* pObj = m_vecObjects.GetObject(PdfReference(page.GetObject().GetIndirectReference().ObjectNumber()
+                + difference, page.GetObject().GetIndirectReference().GenerationNumber()));
+            if (pObj->IsDictionary() && pObj->GetDictionary().HasKey("Parent"))
+                pObj->GetDictionary().RemoveKey("Parent");
 
             // Deal with inherited attributes
             const PdfName* pInherited = inheritableAttributes;
-            while( pInherited->GetLength() != 0 ) 
+            while (pInherited->GetLength() != 0)
             {
-                const PdfObject* pAttribute = pPage->GetInheritedKey( *pInherited ); 
-                if( pAttribute != nullptr )
+                const PdfObject* pAttribute = page.GetInheritedKey(*pInherited);
+                if (pAttribute != nullptr)
                 {
-                    PdfObject attribute( *pAttribute );
-                    FixObjectReferences( &attribute, difference );
-                    pObj->GetDictionary().AddKey( *pInherited, attribute );
+                    PdfObject attribute(*pAttribute);
+                    FixObjectReferences(attribute, difference);
+                    pObj->GetDictionary().AddKey(*pInherited, attribute);
                 }
 
-                ++pInherited;
+                pInherited++;
             }
 
-            m_pPagesTree->InsertPage( this->GetPageCount()-1, pObj );
+            m_PageTree->InsertPage(m_PageTree->GetPageCount(), pObj);
         }
-        
+
         // append all outlines
-        PdfOutlineItem* pRoot       = this->GetOutlines();
-        PdfOutlines*    pAppendRoot = const_cast<PdfDocument&>(rDoc).GetOutlines( PoDoFo::ePdfDontCreateObject );
-        if( pAppendRoot && pAppendRoot->First() ) 
+        PdfOutlineItem* pRoot = this->GetOutlines();
+        PdfOutlines* pAppendRoot = const_cast<PdfDocument&>(doc).GetOutlines(PoDoFo::ePdfDontCreateObject);
+        if (pAppendRoot && pAppendRoot->First())
         {
             // only append outlines if appended document has outlines
-            while( pRoot && pRoot->Next() ) 
+            while (pRoot && pRoot->Next())
                 pRoot = pRoot->Next();
-            
-            PdfReference ref( pAppendRoot->First()->GetObject()->GetIndirectReference().ObjectNumber() + difference, pAppendRoot->First()->GetObject()->GetIndirectReference().GenerationNumber() );
-            pRoot->InsertChild( new PdfOutlines( m_vecObjects.GetObject( ref ) ) );
+
+            PdfReference ref(pAppendRoot->First()->GetObject().GetIndirectReference().ObjectNumber()
+                + difference, pAppendRoot->First()->GetObject().GetIndirectReference().GenerationNumber());
+            pRoot->InsertChild(new PdfOutlines(*m_vecObjects.GetObject(ref)));
         }
     }
-    
+
     // TODO: merge name trees
     // ToDictionary -> then iteratate over all keys and add them to the new one
     return *this;
 }
 
-const PdfDocument &PdfDocument::InsertExistingPageAt( const PdfDocument & rDoc, int nPageIndex, int nAtIndex)
+const PdfDocument& PdfDocument::InsertExistingPageAt(const PdfDocument& doc, unsigned pageIndex, unsigned atIndex)
 {
-	/* copy of PdfDocument::Append, only restricts which page to add */
-    unsigned int difference = static_cast<unsigned int>(m_vecObjects.GetSize() + m_vecObjects.GetFreeObjects().size());
+    /* copy of PdfDocument::Append, only restricts which page to add */
+    unsigned difference = static_cast<unsigned>(m_vecObjects.GetSize() + m_vecObjects.GetFreeObjects().size());
 
 
     // Ulrich Arnold 30.7.2009: Because GetNextObject uses m_nObjectCount instead 
     //                          of m_vecObjects.GetSize()+m_vecObjects.GetFreeObjects().size()+1
     //                          make sure the free objects are already present before appending to
-	//                          prevent overlapping obj-numbers
+    //                          prevent overlapping obj-numbers
 
     // create all free objects again, to have a clean free object list
-    TCIPdfReferenceList itFree = rDoc.GetObjects().GetFreeObjects().begin();
-    while( itFree != rDoc.GetObjects().GetFreeObjects().end() )
+    TCIPdfReferenceList itFree = doc.GetObjects().GetFreeObjects().begin();
+    while (itFree != doc.GetObjects().GetFreeObjects().end())
     {
-        m_vecObjects.AddFreeObject( PdfReference( (*itFree).ObjectNumber() + difference, (*itFree).GenerationNumber() ) );
+        m_vecObjects.AddFreeObject(PdfReference((*itFree).ObjectNumber() + difference, (*itFree).GenerationNumber()));
 
-        ++itFree;
+        itFree++;
     }
 
-	// append all objects first and fix their references
-    for (auto &obj : GetObjects())
+    // append all objects first and fix their references
+    for (auto& obj : GetObjects())
     {
         PdfReference ref(static_cast<uint32_t>(obj->GetIndirectReference().ObjectNumber() + difference), obj->GetIndirectReference().GenerationNumber());
         auto newObj = new PdfObject(PdfDictionary(), true);
@@ -346,9 +212,9 @@ const PdfDocument &PdfDocument::InsertExistingPageAt( const PdfDocument & rDoc, 
         m_vecObjects.AddObject(newObj);
         *newObj = *obj;
 
-        PdfError::LogMessage(ELogSeverity::Information, "Fixing references in %i %i R by %i",
+        PdfError::LogMessage(LogSeverity::Information, "Fixing references in %i %i R by %i",
             newObj->GetIndirectReference().ObjectNumber(), newObj->GetIndirectReference().GenerationNumber(), difference);
-        FixObjectReferences( newObj, difference );
+        FixObjectReferences(*newObj, difference);
     }
 
     const PdfName inheritableAttributes[] = {
@@ -360,110 +226,109 @@ const PdfDocument &PdfDocument::InsertExistingPageAt( const PdfDocument & rDoc, 
     };
 
     // append all pages now to our page tree
-    for(int i=0;i<rDoc.GetPageCount();i++ )
+    for (unsigned i = 0; i < doc.GetPageTree().GetPageCount(); i++)
     {
-        if (i != nPageIndex) {
+        if (i != pageIndex)
             continue;
-        }
 
-        PdfPage*      pPage = rDoc.GetPage( i );
-        PdfObject*    pObj  = m_vecObjects.GetObject( PdfReference( pPage->GetObject()->GetIndirectReference().ObjectNumber() + difference, pPage->GetObject()->GetIndirectReference().GenerationNumber() ) );
-        if( pObj->IsDictionary() && pObj->GetDictionary().HasKey( "Parent" ) )
-            pObj->GetDictionary().RemoveKey( "Parent" );
+        auto page = doc.GetPageTree().GetPage(i);
+        PdfObject* obj = m_vecObjects.GetObject(PdfReference(page.GetObject().GetIndirectReference().ObjectNumber()
+            + difference, page.GetObject().GetIndirectReference().GenerationNumber()));
+        if (obj->IsDictionary() && obj->GetDictionary().HasKey("Parent"))
+            obj->GetDictionary().RemoveKey("Parent");
 
         // Deal with inherited attributes
         const PdfName* pInherited = inheritableAttributes;
-        while( pInherited->GetLength() != 0 ) 
+        while (pInherited->GetLength() != 0)
         {
-	    const PdfObject* pAttribute = pPage->GetInheritedKey( *pInherited ); 
-	    if( pAttribute )
-	    {
-	        PdfObject attribute( *pAttribute );
-	        FixObjectReferences( &attribute, difference );
-	        pObj->GetDictionary().AddKey( *pInherited, attribute );
-	    }
+            const PdfObject* pAttribute = page.GetInheritedKey(*pInherited);
+            if (pAttribute)
+            {
+                PdfObject attribute(*pAttribute);
+                FixObjectReferences(attribute, difference);
+                obj->GetDictionary().AddKey(*pInherited, attribute);
+            }
 
-	    ++pInherited;
+            pInherited++;
         }
 
-        m_pPagesTree->InsertPage( nAtIndex <= 0 ? (int)EPdfPageInsertionPoint::InsertBeforeFirstPage : nAtIndex - 1, pObj );
+        m_PageTree->InsertPage(atIndex, obj);
     }
 
     // append all outlines
-    PdfOutlineItem* pRoot       = this->GetOutlines();
-    PdfOutlines*    pAppendRoot = const_cast<PdfDocument&>(rDoc).GetOutlines( PoDoFo::ePdfDontCreateObject );
-    if( pAppendRoot && pAppendRoot->First() ) 
+    PdfOutlineItem* pRoot = this->GetOutlines();
+    PdfOutlines* pAppendRoot = const_cast<PdfDocument&>(doc).GetOutlines(PoDoFo::ePdfDontCreateObject);
+    if (pAppendRoot && pAppendRoot->First())
     {
         // only append outlines if appended document has outlines
-        while( pRoot && pRoot->Next() ) 
-	    pRoot = pRoot->Next();
-    
-        PdfReference ref( pAppendRoot->First()->GetObject()->GetIndirectReference().ObjectNumber() + difference, pAppendRoot->First()->GetObject()->GetIndirectReference().GenerationNumber() );
-        pRoot->InsertChild( new PdfOutlines( m_vecObjects.GetObject( ref ) ) );
+        while (pRoot && pRoot->Next())
+            pRoot = pRoot->Next();
+
+        PdfReference ref(pAppendRoot->First()->GetObject().GetIndirectReference().ObjectNumber()
+            + difference, pAppendRoot->First()->GetObject().GetIndirectReference().GenerationNumber());
+        pRoot->InsertChild(new PdfOutlines(*m_vecObjects.GetObject(ref)));
     }
-    
+
     // TODO: merge name trees
     // ToDictionary -> then iteratate over all keys and add them to the new one
     return *this;
 }
 
-PdfRect PdfDocument::FillXObjectFromDocumentPage( PdfXObject * pXObj, const PdfDocument & rDoc, int nPage, bool bUseTrimBox )
+PdfRect PdfDocument::FillXObjectFromDocumentPage(PdfXObject& xobj, const PdfDocument& doc, unsigned pageIndex, bool useTrimBox)
 {
-    unsigned int difference = static_cast<unsigned int>(m_vecObjects.GetSize() + m_vecObjects.GetFreeObjects().size());
-    Append( rDoc, false );
-    PdfPage* pPage = rDoc.GetPage( nPage );
-
-    return FillXObjectFromPage( pXObj, pPage, bUseTrimBox, difference );
+    unsigned difference = static_cast<unsigned>(m_vecObjects.GetSize() + m_vecObjects.GetFreeObjects().size());
+    Append(doc, false);
+    auto& page = doc.GetPageTree().GetPage(pageIndex);
+    return FillXObjectFromPage(xobj, page, useTrimBox, difference);
 }
 
-PdfRect PdfDocument::FillXObjectFromExistingPage( PdfXObject * pXObj, int nPage, bool bUseTrimBox )
+PdfRect PdfDocument::FillXObjectFromExistingPage(PdfXObject& xobj, unsigned pageIndex, bool useTrimBox)
 {
-    PdfPage* pPage = GetPage( nPage );
-
-    return FillXObjectFromPage( pXObj, pPage, bUseTrimBox, 0 );
+    auto& pPage = m_PageTree->GetPage(pageIndex);
+    return FillXObjectFromPage(xobj, pPage, useTrimBox, 0);
 }
 
-PdfRect PdfDocument::FillXObjectFromPage( PdfXObject * pXObj, const PdfPage * pPage, bool bUseTrimBox, unsigned int difference )
+PdfRect PdfDocument::FillXObjectFromPage(PdfXObject& xobj, const PdfPage& page, bool useTrimBox, unsigned difference)
 {
     // TODO: remove unused objects: page, ...
 
-    PdfObject*    pObj  = m_vecObjects.GetObject( PdfReference( pPage->GetObject()->GetIndirectReference().ObjectNumber() + difference, pPage->GetObject()->GetIndirectReference().GenerationNumber() ) );
-    PdfRect       box  = pPage->GetMediaBox();
+    PdfObject* pObj = m_vecObjects.GetObject(PdfReference(page.GetObject().GetIndirectReference().ObjectNumber()
+        + difference, page.GetObject().GetIndirectReference().GenerationNumber()));
+    PdfRect box = page.GetMediaBox();
 
     // intersect with crop-box
-    box.Intersect( pPage->GetCropBox() );
+    box.Intersect(page.GetCropBox());
 
     // intersect with trim-box according to parameter
-    if ( bUseTrimBox )
-        box.Intersect( pPage->GetTrimBox() );
+    if (useTrimBox)
+        box.Intersect(page.GetTrimBox());
 
     // link resources from external doc to x-object
-    if( pObj->IsDictionary() && pObj->GetDictionary().HasKey( "Resources" ) )
-        pXObj->GetObject()->GetDictionary().AddKey( "Resources" , pObj->GetDictionary().GetKey( "Resources" ) );
+    if (pObj->IsDictionary() && pObj->GetDictionary().HasKey("Resources"))
+        xobj.GetObject().GetDictionary().AddKey("Resources", *pObj->GetDictionary().GetKey("Resources"));
 
     // copy top-level content from external doc to x-object
-    if( pObj->IsDictionary() && pObj->GetDictionary().HasKey( "Contents" ) )
+    if (pObj->IsDictionary() && pObj->GetDictionary().HasKey("Contents"))
     {
         // get direct pointer to contents
         PdfObject* pContents;
-        if( pObj->GetDictionary().GetKey( "Contents" )->IsReference() )
-            pContents = m_vecObjects.GetObject( pObj->GetDictionary().GetKey( "Contents" )->GetReference() );
+        if (pObj->GetDictionary().GetKey("Contents")->IsReference())
+            pContents = m_vecObjects.GetObject(pObj->GetDictionary().GetKey("Contents")->GetReference());
         else
-            pContents = pObj->GetDictionary().GetKey( "Contents" );
+            pContents = pObj->GetDictionary().GetKey("Contents");
 
-        if( pContents->IsArray() )
+        if (pContents->IsArray())
         {
             // copy array as one stream to xobject
             PdfArray pArray = pContents->GetArray();
 
-            PdfObject*  pObj = pXObj->GetObject();
-            PdfStream &pObjStream = pObj->GetOrCreateStream();
+            PdfStream& pObjStream = xobj.GetObject().GetOrCreateStream();
 
             TVecFilters vFilters;
-            vFilters.push_back( EPdfFilter::FlateDecode );
-            pObjStream.BeginAppend( vFilters );
+            vFilters.push_back(PdfFilterType::FlateDecode);
+            pObjStream.BeginAppend(vFilters);
 
-            for (auto &child: pArray)
+            for (auto& child : pArray)
             {
                 if (child.IsReference())
                 {
@@ -474,11 +339,11 @@ PdfRect PdfDocument::FillXObjectFromPage( PdfXObject * pXObj, const PdfPage * pP
                     {
                         if (pObj->IsReference())    // Recursively look for the stream
                         {
-                            pObj = GetObjects().GetObject( pObj->GetReference() );
+                            pObj = GetObjects().GetObject(pObj->GetReference());
                         }
                         else if (pObj->HasStream())
                         {
-                            PdfStream &pcontStream = pObj->GetOrCreateStream();
+                            PdfStream& pcontStream = pObj->GetOrCreateStream();
 
                             unique_ptr<char> pcontStreamBuffer;
                             size_t pcontStreamLength;
@@ -488,7 +353,7 @@ PdfRect PdfDocument::FillXObjectFromPage( PdfXObject * pXObj, const PdfPage * pP
                         }
                         else
                         {
-                            PODOFO_RAISE_ERROR( EPdfError::InvalidStream );
+                            PODOFO_RAISE_ERROR(EPdfError::InvalidStream);
                             break;
                         }
                     }
@@ -497,22 +362,21 @@ PdfRect PdfDocument::FillXObjectFromPage( PdfXObject * pXObj, const PdfPage * pP
                 {
                     string str;
                     child.ToString(str);
-                    pObjStream.Append( str );
-                    pObjStream.Append( " " );
+                    pObjStream.Append(str);
+                    pObjStream.Append(" ");
                 }
             }
             pObjStream.EndAppend();
         }
-        else if( pContents->HasStream() )
+        else if (pContents->HasStream())
         {
             // copy stream to xobject
-            PdfObject* pObj = pXObj->GetObject();
-            PdfStream &pObjStream = pObj->GetOrCreateStream();
-            PdfStream &pcontStream = pContents->GetOrCreateStream();
+            PdfStream& pObjStream = xobj.GetObject().GetOrCreateStream();
+            PdfStream& pcontStream = pContents->GetOrCreateStream();
 
             TVecFilters vFilters;
-            vFilters.push_back( EPdfFilter::FlateDecode );
-            pObjStream.BeginAppend( vFilters );
+            vFilters.push_back(PdfFilterType::FlateDecode);
+            pObjStream.BeginAppend(vFilters);
             unique_ptr<char> pcontStreamBuffer;
             size_t pcontStreamLength;
             pcontStream.GetFilteredCopy(pcontStreamBuffer, pcontStreamLength);
@@ -521,43 +385,38 @@ PdfRect PdfDocument::FillXObjectFromPage( PdfXObject * pXObj, const PdfPage * pP
         }
         else
         {
-            PODOFO_RAISE_ERROR( EPdfError::InternalLogic );
+            PODOFO_RAISE_ERROR(EPdfError::InternalLogic);
         }
     }
 
     return box;
 }
 
-void PdfDocument::FixObjectReferences( PdfObject* pObject, int difference )
+void PdfDocument::FixObjectReferences(PdfObject& obj, int difference)
 {
-    if( !pObject ) 
+    if (obj.IsDictionary())
     {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
+        TKeyMap::iterator it = obj.GetDictionary().begin();
 
-    if( pObject->IsDictionary() )
-    {
-        TKeyMap::iterator it = pObject->GetDictionary().begin();
-
-        while( it != pObject->GetDictionary().end() )
+        while (it != obj.GetDictionary().end())
         {
-            if( it->second.IsReference() )
+            if (it->second.IsReference())
             {
-                it->second = PdfObject(PdfReference( it->second.GetReference().ObjectNumber() + difference,
-                                              it->second.GetReference().GenerationNumber() ));
+                it->second = PdfObject(PdfReference(it->second.GetReference().ObjectNumber() + difference,
+                    it->second.GetReference().GenerationNumber()));
             }
-            else if( it->second.IsDictionary() || 
-                     it->second.IsArray() )
+            else if (it->second.IsDictionary() ||
+                it->second.IsArray())
             {
-                FixObjectReferences( &it->second, difference );
+                FixObjectReferences(it->second, difference);
             }
 
-            ++it;
+            it++;
         }
     }
-    else if( pObject->IsArray() )
+    else if (obj.IsArray())
     {
-        for (auto& child : pObject->GetArray())
+        for (auto& child : obj.GetArray())
         {
             if (child.IsReference())
             {
@@ -566,306 +425,306 @@ void PdfDocument::FixObjectReferences( PdfObject* pObject, int difference )
             }
             else if (child.IsDictionary() || child.IsArray())
             {
-                FixObjectReferences(&child, difference);
+                FixObjectReferences(child, difference);
             }
         }
     }
-    else if( pObject->IsReference() )
+    else if (obj.IsReference())
     {
-        *pObject = PdfObject(PdfReference(pObject->GetReference().ObjectNumber() + difference,
-                pObject->GetReference().GenerationNumber() ));
+        obj = PdfObject(PdfReference(obj.GetReference().ObjectNumber() + difference,
+            obj.GetReference().GenerationNumber()));
     }
 }
 
-EPdfPageMode PdfDocument::GetPageMode( void ) const
+PdfPageMode PdfDocument::GetPageMode() const
 {
     // PageMode is optional; the default value is UseNone
-    EPdfPageMode thePageMode = EPdfPageMode::UseNone;
-    
-    PdfObject* pageModeObj = m_pCatalog->GetIndirectKey( PdfName( "PageMode" ) );
-    if ( pageModeObj != nullptr ) {
+    PdfPageMode thePageMode = PdfPageMode::UseNone;
+
+    PdfObject* pageModeObj = m_Catalog->GetIndirectKey("PageMode");
+    if (pageModeObj != nullptr)
+    {
         PdfName pmName = pageModeObj->GetName();
-        
-        if( PdfName( "UseNone" ) == pmName )
-            thePageMode = EPdfPageMode::UseNone ;
-        else if( PdfName( "UseThumbs" ) == pmName )
-            thePageMode = EPdfPageMode::UseThumbs ;
-        else if( PdfName( "UseOutlines" ) == pmName )
-            thePageMode = EPdfPageMode::UseBookmarks ;
-        else if( PdfName( "FullScreen" ) == pmName )
-            thePageMode = EPdfPageMode::FullScreen ;
-        else if( PdfName( "UseOC" ) == pmName )
-            thePageMode = EPdfPageMode::UseOC ;
-        else if( PdfName( "UseAttachments" ) == pmName )
-            thePageMode = EPdfPageMode::UseAttachments ;
+        if (pmName == "UseNone")
+            thePageMode = PdfPageMode::UseNone;
+        else if (pmName == "UseThumbs")
+            thePageMode = PdfPageMode::UseThumbs;
+        else if (pmName == "UseOutlines")
+            thePageMode = PdfPageMode::UseBookmarks;
+        else if (pmName == "FullScreen")
+            thePageMode = PdfPageMode::FullScreen;
+        else if (pmName == "UseOC")
+            thePageMode = PdfPageMode::UseOC;
+        else if (pmName == "UseAttachments")
+            thePageMode = PdfPageMode::UseAttachments;
         else
-            PODOFO_RAISE_ERROR( EPdfError::InvalidName );
+            PODOFO_RAISE_ERROR(EPdfError::InvalidName);
     }
-    
-    return thePageMode ;
+
+    return thePageMode;
 }
 
-void PdfDocument::SetPageMode( EPdfPageMode inMode )
+void PdfDocument::SetPageMode(PdfPageMode inMode)
 {
-    switch ( inMode ) {
+    switch (inMode) {
         default:
-        case EPdfPageMode::DontCare:	
-            // m_pCatalog->RemoveKey( PdfName( "PageMode" ) );
+        case PdfPageMode::DontCare:
+            // m_pCatalog->RemoveKey("PageMode");
             // this value means leave it alone!
             break;
-            
-        case EPdfPageMode::UseNone:
-            m_pCatalog->GetDictionary().AddKey( PdfName( "PageMode" ), PdfName( "UseNone" ) );
+
+        case PdfPageMode::UseNone:
+            m_Catalog->GetDictionary().AddKey("PageMode", PdfName("UseNone"));
             break;
-            
-        case EPdfPageMode::UseThumbs:
-            m_pCatalog->GetDictionary().AddKey( PdfName( "PageMode" ), PdfName( "UseThumbs" ) );
+
+        case PdfPageMode::UseThumbs:
+            m_Catalog->GetDictionary().AddKey("PageMode", PdfName("UseThumbs"));
             break;
-            
-        case EPdfPageMode::UseBookmarks:
-            m_pCatalog->GetDictionary().AddKey( PdfName( "PageMode" ), PdfName( "UseOutlines" ) );
+
+        case PdfPageMode::UseBookmarks:
+            m_Catalog->GetDictionary().AddKey("PageMode", PdfName("UseOutlines"));
             break;
-            
-        case EPdfPageMode::FullScreen:
-            m_pCatalog->GetDictionary().AddKey( PdfName( "PageMode" ), PdfName( "FullScreen" ) );
+
+        case PdfPageMode::FullScreen:
+            m_Catalog->GetDictionary().AddKey("PageMode", PdfName("FullScreen"));
             break;
-            
-        case EPdfPageMode::UseOC:
-            m_pCatalog->GetDictionary().AddKey( PdfName( "PageMode" ), PdfName( "UseOC" ) );
+
+        case PdfPageMode::UseOC:
+            m_Catalog->GetDictionary().AddKey("PageMode", PdfName("UseOC"));
             break;
-            
-        case EPdfPageMode::UseAttachments:
-            m_pCatalog->GetDictionary().AddKey( PdfName( "PageMode" ), PdfName( "UseAttachments" ) );
+
+        case PdfPageMode::UseAttachments:
+            m_Catalog->GetDictionary().AddKey("PageMode", PdfName("UseAttachments"));
             break;
     }
 }
 
-void PdfDocument::SetUseFullScreen( void )
+void PdfDocument::SetUseFullScreen()
 {
     // first, we get the current mode
-    EPdfPageMode	curMode = GetPageMode();
-    
+    PdfPageMode	curMode = GetPageMode();
+
     // if current mode is anything but "don't care", we need to move that to non-full-screen
-    if ( curMode != EPdfPageMode::DontCare )
-        SetViewerPreference( PdfName( "NonFullScreenPageMode" ), PdfObject( *(m_pCatalog->GetIndirectKey( PdfName( "PageMode" ) )) ) );
-    
-    SetPageMode( EPdfPageMode::FullScreen );
+    if (curMode != PdfPageMode::DontCare)
+        SetViewerPreference("NonFullScreenPageMode", PdfObject(*(m_Catalog->GetIndirectKey("PageMode"))));
+
+    SetPageMode(PdfPageMode::FullScreen);
 }
 
-void PdfDocument::SetViewerPreference( const PdfName& whichPref, const PdfObject & valueObj )
+void PdfDocument::SetViewerPreference(const PdfName& whichPref, const PdfObject& valueObj)
 {
-    PdfObject* prefsObj = m_pCatalog->GetIndirectKey( PdfName( "ViewerPreferences" ) );
-    if ( prefsObj == nullptr )
+    PdfObject* prefsObj = m_Catalog->GetIndirectKey("ViewerPreferences");
+    if (prefsObj == nullptr)
     {
         // make me a new one and add it
         PdfDictionary	vpDict;
-        vpDict.AddKey( whichPref, valueObj );
-        
-        m_pCatalog->GetDictionary().AddKey( PdfName( "ViewerPreferences" ), PdfObject( vpDict ) );
+        vpDict.AddKey(whichPref, valueObj);
+
+        m_Catalog->GetDictionary().AddKey("ViewerPreferences", PdfObject(vpDict));
     }
     else
     {
         // modify the existing one
-        prefsObj->GetDictionary().AddKey( whichPref, valueObj );
+        prefsObj->GetDictionary().AddKey(whichPref, valueObj);
     }
 }
 
-void PdfDocument::SetViewerPreference( const PdfName& whichPref, bool inValue )
+void PdfDocument::SetViewerPreference(const PdfName& whichPref, bool inValue)
 {
-    SetViewerPreference( whichPref, PdfObject( inValue ) );
+    SetViewerPreference(whichPref, PdfObject(inValue));
 }
 
-void PdfDocument::SetHideToolbar( void )
+void PdfDocument::SetHideToolbar()
 {
-    SetViewerPreference( PdfName( "HideToolbar" ), true );
+    SetViewerPreference("HideToolbar", true);
 }
 
-void PdfDocument::SetHideMenubar( void )
+void PdfDocument::SetHideMenubar()
 {
-    SetViewerPreference( PdfName( "HideMenubar" ), true );
+    SetViewerPreference("HideMenubar", true);
 }
 
-void PdfDocument::SetHideWindowUI( void )
+void PdfDocument::SetHideWindowUI()
 {
-    SetViewerPreference( PdfName( "HideWindowUI" ), true );
+    SetViewerPreference("HideWindowUI", true);
 }
 
-void PdfDocument::SetFitWindow( void )
+void PdfDocument::SetFitWindow()
 {
-    SetViewerPreference( PdfName( "FitWindow" ), true );
+    SetViewerPreference("FitWindow", true);
 }
 
-void PdfDocument::SetCenterWindow( void )
+void PdfDocument::SetCenterWindow()
 {
-    SetViewerPreference( PdfName( "CenterWindow" ), true );
+    SetViewerPreference("CenterWindow", true);
 }
 
-void PdfDocument::SetDisplayDocTitle( void )
+void PdfDocument::SetDisplayDocTitle()
 {
-    SetViewerPreference( PdfName( "DisplayDocTitle" ), true );
+    SetViewerPreference("DisplayDocTitle", true);
 }
 
-void PdfDocument::SetPrintScaling( PdfName& inScalingType )
+void PdfDocument::SetPrintScaling(const PdfName& inScalingType)
 {
-    SetViewerPreference( PdfName( "PrintScaling" ), inScalingType );
+    SetViewerPreference("PrintScaling", inScalingType);
 }
 
-void PdfDocument::SetBaseURI( const std::string& inBaseURI )
+void PdfDocument::SetBaseURI(const string_view& inBaseURI)
 {
-    PdfDictionary	uriDict;
-    uriDict.AddKey( PdfName( "Base" ), new PdfObject( PdfString( inBaseURI ) ) );
-    m_pCatalog->GetDictionary().AddKey( PdfName( "URI" ), new PdfObject( uriDict ) );
+    PdfDictionary uriDict;
+    uriDict.AddKey("Base", PdfString(inBaseURI));
+    m_Catalog->GetDictionary().AddKey("URI", PdfDictionary(uriDict));
 }
 
-void PdfDocument::SetLanguage( const std::string& inLanguage )
+void PdfDocument::SetLanguage(const string_view& inLanguage)
 {
-    m_pCatalog->GetDictionary().AddKey( PdfName( "Lang" ), new PdfObject( PdfString( inLanguage ) ) );
+    m_Catalog->GetDictionary().AddKey("Lang", PdfString(inLanguage));
 }
 
-void PdfDocument::SetBindingDirection( PdfName& inDirection )
+void PdfDocument::SetBindingDirection(const PdfName& inDirection)
 {
-    SetViewerPreference( PdfName( "Direction" ), inDirection );
+    SetViewerPreference("Direction", inDirection);
 }
 
-void PdfDocument::SetPageLayout( EPdfPageLayout inLayout )
+void PdfDocument::SetPageLayout(PdfPageLayout inLayout)
 {
-    switch ( inLayout ) {
+    switch (inLayout)
+    {
         default:
-        case EPdfPageLayout::Ignore:
+        case PdfPageLayout::Ignore:
             break;	// means do nothing
-        case EPdfPageLayout::Default:			
-            m_pCatalog->GetDictionary().RemoveKey( PdfName( "PageLayout" ) );
+        case PdfPageLayout::Default:
+            m_Catalog->GetDictionary().RemoveKey("PageLayout");
             break;
-        case EPdfPageLayout::SinglePage:		
-            m_pCatalog->GetDictionary().AddKey( PdfName( "PageLayout" ), PdfName( "SinglePage" ) );
+        case PdfPageLayout::SinglePage:
+            m_Catalog->GetDictionary().AddKey("PageLayout", PdfName("SinglePage"));
             break;
-        case EPdfPageLayout::OneColumn:		
-            m_pCatalog->GetDictionary().AddKey( PdfName( "PageLayout" ), PdfName( "OneColumn" ) );
+        case PdfPageLayout::OneColumn:
+            m_Catalog->GetDictionary().AddKey("PageLayout", PdfName("OneColumn"));
             break;
-        case EPdfPageLayout::TwoColumnLeft:	
-            m_pCatalog->GetDictionary().AddKey( PdfName( "PageLayout" ), PdfName( "TwoColumnLeft" ) );
+        case PdfPageLayout::TwoColumnLeft:
+            m_Catalog->GetDictionary().AddKey("PageLayout", PdfName("TwoColumnLeft"));
             break;
-        case EPdfPageLayout::TwoColumnRight: 	
-            m_pCatalog->GetDictionary().AddKey( PdfName( "PageLayout" ), PdfName( "TwoColumnRight" ) );
+        case PdfPageLayout::TwoColumnRight:
+            m_Catalog->GetDictionary().AddKey("PageLayout", PdfName("TwoColumnRight"));
             break;
-        case EPdfPageLayout::TwoPageLeft: 	
-            m_pCatalog->GetDictionary().AddKey( PdfName( "PageLayout" ), PdfName( "TwoPageLeft" ) );
+        case PdfPageLayout::TwoPageLeft:
+            m_Catalog->GetDictionary().AddKey("PageLayout", PdfName("TwoPageLeft"));
             break;
-        case EPdfPageLayout::TwoPageRight: 	
-            m_pCatalog->GetDictionary().AddKey( PdfName( "PageLayout" ), PdfName( "TwoPageRight" ) );
+        case PdfPageLayout::TwoPageRight:
+            m_Catalog->GetDictionary().AddKey("PageLayout", PdfName("TwoPageRight"));
             break;
     }
 }
 
-PdfOutlines* PdfDocument::GetOutlines( bool bCreate )
+PdfOutlines* PdfDocument::GetOutlines(bool create)
 {
-    PdfObject* pObj;
+    PdfObject* obj;
 
-    if( !m_pOutlines )
+    if (m_Outlines == nullptr)
     {
-        pObj = GetNamedObjectFromCatalog( "Outlines" );
-        if( !pObj ) 
+        obj = GetNamedObjectFromCatalog("Outlines");
+        if (obj == nullptr)
         {
-            if ( !bCreate )
-                return nullptr;
-            
-            m_pOutlines.reset(new PdfOutlines( &m_vecObjects ));
-            m_pCatalog->GetDictionary().AddKey( "Outlines", m_pOutlines->GetObject()->GetIndirectReference() );
-        }
-        else if ( pObj->GetDataType() != EPdfDataType::Dictionary )
-        {
-            PODOFO_RAISE_ERROR( EPdfError::InvalidDataType );
-        }
-        else
-            m_pOutlines.reset(new PdfOutlines(pObj));
-    }        
-    
-    return m_pOutlines.get();
-}
-
-PdfNamesTree* PdfDocument::GetNamesTree( bool bCreate )
-{
-    PdfObject* pObj;
-
-    if( !m_pNamesTree )
-    {
-        pObj = GetNamedObjectFromCatalog( "Names" );
-        if( !pObj ) 
-        {
-            if ( !bCreate )
+            if (!create)
                 return nullptr;
 
-            PdfNamesTree tmpTree ( &m_vecObjects );
-            pObj = tmpTree.GetObject();
-            m_pCatalog->GetDictionary().AddKey( "Names", pObj->GetIndirectReference() );
-            m_pNamesTree.reset(new PdfNamesTree( pObj, m_pCatalog));
+            m_Outlines.reset(new PdfOutlines(*this));
+            m_Catalog->GetDictionary().AddKey("Outlines", m_Outlines->GetObject().GetIndirectReference());
         }
-        else if ( pObj->GetDataType() != EPdfDataType::Dictionary )
+        else if (obj->GetDataType() != EPdfDataType::Dictionary)
         {
-            PODOFO_RAISE_ERROR( EPdfError::InvalidDataType );
+            PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
         }
         else
-            m_pNamesTree.reset(new PdfNamesTree(pObj, m_pCatalog));
-    }        
-    
-    return m_pNamesTree.get();
+            m_Outlines.reset(new PdfOutlines(*obj));
+    }
+
+    return m_Outlines.get();
 }
 
-PdfAcroForm* PdfDocument::GetAcroForm( bool bCreate, EPdfAcroFormDefaulAppearance eDefaultAppearance )
+PdfNamesTree* PdfDocument::GetNamesTree(bool create)
 {
     PdfObject* pObj;
-
-    if( !m_pAcroForms )
+    if (m_NameTree == nullptr)
     {
-        pObj = GetNamedObjectFromCatalog( "AcroForm" );
-        if( !pObj ) 
+        pObj = GetNamedObjectFromCatalog("Names");
+        if (pObj == nullptr)
         {
-            if ( !bCreate )
+            if (!create)
                 return nullptr;
-            
-            m_pAcroForms.reset(new PdfAcroForm(this, eDefaultAppearance));
-            m_pCatalog->GetDictionary().AddKey( "AcroForm", m_pAcroForms->GetObject()->GetIndirectReference() );
+
+            PdfNamesTree tmpTree(*this);
+            pObj = &tmpTree.GetObject();
+            m_Catalog->GetDictionary().AddKey("Names", pObj->GetIndirectReference());
+            m_NameTree.reset(new PdfNamesTree(*pObj, m_Catalog));
         }
-        else if ( pObj->GetDataType() != EPdfDataType::Dictionary )
+        else if (pObj->GetDataType() != EPdfDataType::Dictionary)
         {
-            PODOFO_RAISE_ERROR( EPdfError::InvalidDataType );
+            PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
         }
         else
-            m_pAcroForms.reset(new PdfAcroForm(this, pObj, eDefaultAppearance));
-    }        
-    
-    return m_pAcroForms.get();
+            m_NameTree.reset(new PdfNamesTree(*pObj, m_Catalog));
+    }
+
+    return m_NameTree.get();
 }
 
-void PdfDocument::AddNamedDestination( const PdfDestination& rDest, const PdfString & rName )
+PdfAcroForm* PdfDocument::GetAcroForm(bool create, EPdfAcroFormDefaulAppearance defaultAppearance)
+{
+    if (m_AcroForms == nullptr)
+    {
+        auto obj = GetNamedObjectFromCatalog("AcroForm");
+        if (obj == nullptr)
+        {
+            if (!create)
+                return nullptr;
+
+            m_AcroForms.reset(new PdfAcroForm(*this, defaultAppearance));
+            m_Catalog->GetDictionary().AddKey("AcroForm", m_AcroForms->GetObject().GetIndirectReference());
+        }
+        else if (obj->GetDataType() != EPdfDataType::Dictionary)
+        {
+            PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
+        }
+        else
+        {
+            m_AcroForms.reset(new PdfAcroForm(*obj, defaultAppearance));
+        }
+    }
+
+    return m_AcroForms.get();
+}
+
+void PdfDocument::AddNamedDestination(const PdfDestination& dest, const PdfString& name)
 {
     PdfNamesTree* nameTree = GetNamesTree();
-    nameTree->AddValue( PdfName("Dests"), rName, rDest.GetObject()->GetIndirectReference() );
+    nameTree->AddValue("Dests", name, dest.GetObject()->GetIndirectReference());
 }
 
-void PdfDocument::AttachFile( const PdfFileSpec & rFileSpec )
+void PdfDocument::AttachFile(const PdfFileSpec& rFileSpec)
 {
-    PdfNamesTree* pNames = this->GetNamesTree( true );
+    PdfNamesTree* pNames = this->GetNamesTree(true);
 
-    if(pNames == nullptr)
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
+    if (pNames == nullptr)
+        PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
 
-    pNames->AddValue( "EmbeddedFiles", rFileSpec.GetFilename(false), rFileSpec.GetObject()->GetIndirectReference() );
+    pNames->AddValue("EmbeddedFiles", rFileSpec.GetFilename(false), rFileSpec.GetObject().GetIndirectReference());
 }
     
-PdfFileSpec* PdfDocument::GetAttachment( const PdfString & rName )
+PdfFileSpec* PdfDocument::GetAttachment(const PdfString& name)
 {
     PdfNamesTree* pNames = this->GetNamesTree();
-    
-    if(pNames == nullptr)
+
+    if (pNames == nullptr)
         return nullptr;
-    
-    PdfObject* pObj = pNames->GetValue( "EmbeddedFiles", rName );
-    
-    if(pObj == nullptr)
+
+    PdfObject* pObj = pNames->GetValue("EmbeddedFiles", name);
+
+    if (pObj == nullptr)
         return nullptr;
-    
-    return new PdfFileSpec(pObj);
+
+    return new PdfFileSpec(*pObj);
 }
 
 void PdfDocument::SetInfo(std::unique_ptr<PdfInfo>& pInfo)
@@ -873,78 +732,80 @@ void PdfDocument::SetInfo(std::unique_ptr<PdfInfo>& pInfo)
     if (pInfo == nullptr)
         PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
 
-    m_pInfo = std::move(pInfo);
+    m_Info = std::move(pInfo);
 }
 
-void PdfDocument::SetTrailer(std::unique_ptr<PdfObject>&  pObject )
+void PdfDocument::SetTrailer(std::unique_ptr<PdfObject>& pObject)
 {
     if (pObject == nullptr)
         PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
 
-    m_pTrailer = std::move(pObject);
+    m_Trailer = std::move(pObject);
     // Set owner so that GetIndirectKey will work
-    m_pTrailer->SetDocument( *this );
+    m_Trailer->SetDocument(*this);
 }
-
-FT_Library PdfDocument::GetFontLibrary() const
-{
-    return this->m_fontCache.GetFontLibrary();
-}
-
-#ifdef PODOFO_HAVE_FONTCONFIG
-
-void PdfDocument::SetFontConfigWrapper(PdfFontConfigWrapper* pFontConfig)
-{
-    m_fontCache.SetFontConfigWrapper(pFontConfig);
-}
-
-#endif // PODOFO_HAVE_FONTCONFIG
-
 
 PdfObject& PdfDocument::GetCatalog()
 {
-    if (m_pCatalog == nullptr)
+    if (m_Catalog == nullptr)
         PODOFO_RAISE_ERROR(EPdfError::NoObject);
 
-    return *m_pCatalog;
+    return *m_Catalog;
 }
 
 const PdfObject& PdfDocument::GetCatalog() const
 {
-    if (m_pCatalog == nullptr)
+    if (m_Catalog == nullptr)
         PODOFO_RAISE_ERROR(EPdfError::NoObject);
 
-    return *m_pCatalog;
+    return *m_Catalog;
 }
 
-PdfPagesTree& PdfDocument::GetPagesTree() const
+const PdfPagesTree& PdfDocument::GetPageTree() const
 {
-    if (m_pPagesTree == nullptr)
+    if (m_PageTree == nullptr)
         PODOFO_RAISE_ERROR(EPdfError::NoObject);
 
-    return *m_pPagesTree;
+    return *m_PageTree;
 }
+
+PdfPagesTree& PdfDocument::GetPageTree()
+{
+    if (m_PageTree == nullptr)
+        PODOFO_RAISE_ERROR(EPdfError::NoObject);
+
+    return *m_PageTree;
+}
+
 
 PdfObject& PdfDocument::GetTrailer()
 {
-    if (m_pTrailer == nullptr)
+    if (m_Trailer == nullptr)
         PODOFO_RAISE_ERROR(EPdfError::NoObject);
 
-    return *m_pTrailer;
+    return *m_Trailer;
 }
 
 const PdfObject& PdfDocument::GetTrailer() const
 {
-    if (m_pTrailer == nullptr)
+    if (m_Trailer == nullptr)
         PODOFO_RAISE_ERROR(EPdfError::NoObject);
 
-    return *m_pTrailer;
+    return *m_Trailer;
 }
 
-PdfInfo& PdfDocument::GetInfo() const
+PdfInfo& PdfDocument::GetInfo()
 {
-    if (m_pInfo == nullptr)
+    if (m_Info == nullptr)
         PODOFO_RAISE_ERROR(EPdfError::NoObject);
 
-    return *m_pInfo;
+    return *m_Info;
+}
+
+const PdfInfo& PdfDocument::GetInfo() const
+{
+    if (m_Info == nullptr)
+        PODOFO_RAISE_ERROR(EPdfError::NoObject);
+
+    return *m_Info;
 }

@@ -1,38 +1,12 @@
-/***************************************************************************
- *   Copyright (C) 2006 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2006 by Dominik Seichter <domseichter@web.de>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
-#ifndef _PDF_OUTLINE_H_
-#define _PDF_OUTLINE_H_
+#ifndef PDF_OUTLINE_H
+#define PDF_OUTLINE_H
 
 #include "podofo/base/PdfDefines.h"
 #include "PdfElement.h"
@@ -50,14 +24,12 @@ class PdfVecObjects;
  * The title of an outline item can be displayed
  * in different formating styles since PDF 1.4.
  */
-enum class EPdfOutlineFormat
+enum class PdfOutlineFormat
 {
-    Default    = 0x00,   /**< Default format */
-    Italic     = 0x01,   /**< Italic */
-    Bold       = 0x02,   /**< Bold */
-    BoldItalic = 0x03,   /**< Bold Italic */
-
-    Unknown    = 0xFF
+    Default    = 0x00,   ///< Default format
+    Italic     = 0x01,   ///< Italic
+    Bold       = 0x02,   ///< Bold
+    BoldItalic = 0x03,   ///< Bold Italic
 };
 
 /**
@@ -69,27 +41,28 @@ enum class EPdfOutlineFormat
  * \see PdfOutlines
  * \see PdfDestination
  */
-class PODOFO_DOC_API PdfOutlineItem : public PdfElement {
- public:
+class PODOFO_DOC_API PdfOutlineItem : public PdfElement
+{
+public:
     virtual ~PdfOutlineItem();
 
     /** Create a PdfOutlineItem that is a child of this item
      *  \param sTitle title of this item
      *  \param rDest destination of this item
      */
-    PdfOutlineItem* CreateChild( const PdfString & sTitle, const PdfDestination & rDest );
+    PdfOutlineItem* CreateChild(const PdfString& sTitle, const std::shared_ptr<PdfDestination>& dest);
 
     /** Create a PdfOutlineItem that is on the same level and follows the current item.
      *  \param sTitle title of this item
      *  \param rDest destination of this item
      */
-    PdfOutlineItem* CreateNext ( const PdfString & sTitle, const PdfDestination & rDest );
+    PdfOutlineItem* CreateNext(const PdfString& sTitle, const std::shared_ptr<PdfDestination>& dest);
 
     /** Create a PdfOutlineItem that is on the same level and follows the current item.
      *  \param sTitle title of this item
      *  \param rAction action of this item
      */
-    PdfOutlineItem* CreateNext ( const PdfString & sTitle, const PdfAction & rAction );
+    PdfOutlineItem* CreateNext(const PdfString& sTitle, const std::shared_ptr<PdfAction>& action);
 
     /** Inserts a new PdfOutlineItem as a child of this outline item.
      *  The former can't be in the same tree as this one, as the tree property
@@ -102,35 +75,35 @@ class PODOFO_DOC_API PdfOutlineItem : public PdfElement {
      *
      *  \param pItem an existing outline item
      */
-    void InsertChild( PdfOutlineItem* pItem );
+    void InsertChild(PdfOutlineItem* pItem);
 
-    /** 
+    /**
      * \returns the previous item or nullptr if this is the first on the current level
      */
-    inline PdfOutlineItem* Prev() const;
+    inline PdfOutlineItem* Prev() const { return m_pPrev; }
 
-    /** 
+    /**
      * \returns the next item or nullptr if this is the last on the current level
      */
-    inline PdfOutlineItem* Next() const;
+    inline PdfOutlineItem* Next() const { return m_pNext; }
 
-    /** 
+    /**
      * \returns the first outline item that is a child of this item
      */
-    inline PdfOutlineItem* First() const;
+    inline PdfOutlineItem* First() const { return m_pFirst; }
 
-    /** 
+    /**
      * \returns the last outline item that is a child of this item
      */
-    inline PdfOutlineItem* Last() const;
+    inline PdfOutlineItem* Last() const { return m_pLast; }
 
     /**
      * \returns the parent item of this item or nullptr if it is
      *          the top level outlines dictionary
      */
-    inline PdfOutlineItem* GetParentOutline() const;
+    inline PdfOutlineItem* GetParentOutline() const { return m_pParentOutline; }
 
-    /** Deletes this outline item and all its children from 
+    /** Deletes this outline item and all its children from
      *  the outline hierarchy and removes all objects from
      *  the list of PdfObjects
      *  All pointers to this item will be invalid after this function
@@ -141,47 +114,47 @@ class PODOFO_DOC_API PdfOutlineItem : public PdfElement {
     /** Set the destination of this outline.
      *  \param rDest the destination
      */
-    void SetDestination( const PdfDestination & rDest );
+    void SetDestination(const std::shared_ptr<PdfDestination>& dest);
 
     /** Get the destination of this outline.
      *  \param pDoc a PdfDocument owning this annotation.
      *         This is required to resolve names and pages.
      *  \returns the destination, if there is one, or nullptr
      */
-    PdfDestination* GetDestination( PdfDocument* pDoc );
+    std::shared_ptr<PdfDestination> GetDestination() const;
 
     /** Set the action of this outline.
      *  \param rAction the action
      */
-    void SetAction( const PdfAction & rAction );
+    void SetAction(const std::shared_ptr<PdfAction>& action);
 
     /** Get the action of this outline.
      *  \returns the action, if there is one, or nullptr
      */
-    PdfAction* GetAction( void );
+    std::shared_ptr<PdfAction> GetAction() const;
 
     /** Set the title of this outline item
      *  \param sTitle the title to use
      */
-    void SetTitle( const PdfString & sTitle );
+    void SetTitle(const PdfString& sTitle);
 
     /** Get the title of this item
      *  \returns the title as PdfString
      */
-    const PdfString & GetTitle() const;
+    const PdfString& GetTitle() const;
 
     /** Set the text format of the title.
      *  Supported since PDF 1.4.
      *
-     *  \param eFormat the formatting options 
+     *  \param eFormat the formatting options
      *                 for the title
      */
-    void SetTextFormat( EPdfOutlineFormat eFormat );
+    void SetTextFormat(PdfOutlineFormat eFormat);
 
     /** Get the text format of the title
      *  \returns the text format of the title
      */
-    EPdfOutlineFormat GetTextFormat() const;
+    PdfOutlineFormat GetTextFormat() const;
 
     /** Set the color of the title of this item.
      *  This property is supported since PDF 1.4.
@@ -189,7 +162,7 @@ class PODOFO_DOC_API PdfOutlineItem : public PdfElement {
      *  \param g green color component
      *  \param b blue color component
      */
-    void SetTextColor( double r, double g, double b );
+    void SetTextColor(double r, double g, double b);
 
     /** Get the color of the title of this item.
      *  Supported since PDF 1.4.
@@ -215,103 +188,64 @@ class PODOFO_DOC_API PdfOutlineItem : public PdfElement {
      */
     double GetTextColorGreen() const;
 
- private:
-    void SetPrevious( PdfOutlineItem* pItem );
-    void SetNext    ( PdfOutlineItem* pItem );
-    void SetLast    ( PdfOutlineItem* pItem );
-    void SetFirst   ( PdfOutlineItem* pItem );
+private:
+    std::shared_ptr<PdfAction> getAction();
+    std::shared_ptr<PdfDestination> getDestination();
+    void SetPrevious(PdfOutlineItem* pItem);
+    void SetNext(PdfOutlineItem* pItem);
+    void SetLast(PdfOutlineItem* pItem);
+    void SetFirst(PdfOutlineItem* pItem);
 
-    void InsertChildInternal( PdfOutlineItem* pItem, bool bCheckParent );
+    void InsertChildInternal(PdfOutlineItem* pItem, bool bCheckParent);
 
- protected:
+protected:
     /** Create a new PdfOutlineItem dictionary
      *  \param pParent parent vector of objects
      */
-    PdfOutlineItem( PdfVecObjects* pParent );
+    PdfOutlineItem(PdfDocument& doc);
 
     /** Create a new PdfOutlineItem from scratch
      *  \param sTitle title of this item
      *  \param rDest destination of this item
-     *  \param pParentOutline parent of this outline item 
+     *  \param pParentOutline parent of this outline item
      *                        in the outline item hierarchie
      *  \param pParent parent vector of objects which is required
      *                 to create new objects
      */
-    PdfOutlineItem( const PdfString & sTitle, const PdfDestination & rDest, 
-                    PdfOutlineItem* pParentOutline, PdfVecObjects* pParent );
+    PdfOutlineItem(PdfDocument& doc, const PdfString& sTitle, const std::shared_ptr<PdfDestination>& dest,
+        PdfOutlineItem* pParentOutline);
 
     /** Create a new PdfOutlineItem from scratch
      *  \param sTitle title of this item
      *  \param rAction action of this item
-     *  \param pParentOutline parent of this outline item 
+     *  \param pParentOutline parent of this outline item
      *                        in the outline item hierarchie
      *  \param pParent parent vector of objects which is required
      *                 to create new objects
      */
-    PdfOutlineItem( const PdfString & sTitle, const PdfAction & rAction, 
-                    PdfOutlineItem* pParentOutline, PdfVecObjects* pParent );
+    PdfOutlineItem(PdfDocument& doc, const PdfString& sTitle, const std::shared_ptr<PdfAction>& action,
+        PdfOutlineItem* pParentOutline);
 
-	/** Create a PdfOutlineItem from an existing PdfObject
+    /** Create a PdfOutlineItem from an existing PdfObject
      *  \param pObject an existing outline item
-     *  \param pParentOutline parent of this outline item 
+     *  \param pParentOutline parent of this outline item
      *                        in the outline item hierarchie
      *  \param pPrevious previous item of this item
      */
-    PdfOutlineItem( PdfObject* pObject, PdfOutlineItem* pParentOutline, PdfOutlineItem* pPrevious );
+    PdfOutlineItem(PdfObject& pObject, PdfOutlineItem* pParentOutline, PdfOutlineItem* pPrevious);
 
- private:
-    PdfOutlineItem*    m_pParentOutline;
+private:
+    PdfOutlineItem* m_pParentOutline;
 
-    PdfOutlineItem*    m_pPrev;
-    PdfOutlineItem*    m_pNext;
+    PdfOutlineItem* m_pPrev;
+    PdfOutlineItem* m_pNext;
 
-    PdfOutlineItem*    m_pFirst;
-    PdfOutlineItem*    m_pLast;
+    PdfOutlineItem* m_pFirst;
+    PdfOutlineItem* m_pLast;
 
-    PdfDestination*    m_pDestination;
-    PdfAction*		   m_pAction;
+    std::shared_ptr<PdfDestination> m_destination;
+    std::shared_ptr<PdfAction> m_action;
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline PdfOutlineItem* PdfOutlineItem::GetParentOutline() const
-{
-    return m_pParentOutline;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline PdfOutlineItem* PdfOutlineItem::First() const
-{
-    return m_pFirst;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline PdfOutlineItem* PdfOutlineItem::Last() const
-{
-    return m_pLast;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline PdfOutlineItem* PdfOutlineItem::Prev() const
-{
-    return m_pPrev;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline PdfOutlineItem* PdfOutlineItem::Next() const
-{
-    return m_pNext;
-}
-
 
 /** The main PDF outlines dictionary.
  *  
@@ -320,27 +254,27 @@ inline PdfOutlineItem* PdfOutlineItem::Next() const
  *
  *  \see PdfDocument
  */
-class PODOFO_DOC_API PdfOutlines : public PdfOutlineItem {
- public:
-   
+class PODOFO_DOC_API PdfOutlines : public PdfOutlineItem
+{
+public:
     /** Create a new PDF outlines dictionary
      *  \param pParent parent vector of objects
      */
-    PdfOutlines( PdfVecObjects* pParent );
+    PdfOutlines(PdfDocument& doc);
 
     /** Create a PDF outlines object from an existing dictionary
      *  \param pObject an existing outlines dictionary
      */
-    PdfOutlines( PdfObject* pObject );
+    PdfOutlines(PdfObject& obj);
 
-    /** Create the root node of the 
+    /** Create the root node of the
      *  outline item tree.
      *
      *  \param sTitle the title of the root node
      */
-    PdfOutlineItem* CreateRoot( const PdfString & sTitle );
+    PdfOutlineItem* CreateRoot(const PdfString& sTitle);
 };
 
 };
 
-#endif // _PDF_OUTLINE_H_
+#endif // PDF_OUTLINE_H

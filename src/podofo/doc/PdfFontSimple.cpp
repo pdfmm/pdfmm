@@ -1,122 +1,72 @@
-/***************************************************************************
- *   Copyright (C) 2007 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
-
-#include "PdfFontSimple.h"
+/**
+ * Copyright (C) 2007 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
 #include "base/PdfDefinesPrivate.h"
+#include "PdfFontSimple.h"
 
 #include <doc/PdfDocument.h>
 #include "base/PdfArray.h"
 #include "base/PdfDictionary.h"
-#include "base/PdfEncoding.h"
 #include "base/PdfFilter.h"
 #include "base/PdfName.h"
 #include "base/PdfStream.h"
 
-namespace PoDoFo {
+using namespace std;
+using namespace PoDoFo;
 
-PdfFontSimple::PdfFontSimple( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfVecObjects* pParent )
-    : PdfFont( pMetrics, pEncoding, pParent ), m_pDescriptor( nullptr) 
+PdfFontSimple::PdfFontSimple(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
+    const PdfEncoding& encoding)
+    : PdfFont(doc, metrics, encoding), m_Descriptor(nullptr)
 {
 }
 
-PdfFontSimple::PdfFontSimple( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfObject* pObject )
-    : PdfFont( pMetrics, pEncoding, pObject ), m_pDescriptor( nullptr) 
+void PdfFontSimple::getWidthsArray(PdfArray& arr) const
 {
+    vector<double> widths;
+    for (unsigned code = GetEncoding().GetFirstChar().Code; code <= GetEncoding().GetLastChar().Code; code++)
+    {
+        // NOTE: In non CID-keyed fonts char codes are equivalent to CID
+        widths.push_back(GetCIDWidthRaw({ code }));
+    }
+
+    arr.clear();
+    arr.reserve(widths.size());
+    // TODO: Handle custom measure units, like for /Type3 fonts
+    for (unsigned i = 0; i < widths.size(); i++)
+        arr.Add(PdfObject(static_cast<int64_t>(std::round(widths[i] * 1000))));
 }
 
-void PdfFontSimple::Init( bool bEmbed, const PdfName & rsSubType )
+void PdfFontSimple::Init(const string_view& subType, bool skipMetricsDescriptors)
 {
-    if( !m_pEncoding )
+    this->GetObject().GetDictionary().AddKey(PdfName::KeySubtype, PdfName(subType));
+    this->GetObject().GetDictionary().AddKey("BaseFont", PdfName(GetBaseFont()));
+    m_Encoding->ExportToDictionary(this->GetObject().GetDictionary());
+
+    if (!skipMetricsDescriptors)
     {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
+        // Standard 14 fonts don't need any metrics descriptor
+        this->GetObject().GetDictionary().AddKey("FirstChar", PdfVariant(static_cast<int64_t>(m_Encoding->GetFirstChar().Code)));
+        this->GetObject().GetDictionary().AddKey("LastChar", PdfVariant(static_cast<int64_t>(m_Encoding->GetLastChar().Code)));
 
-    PdfArray      array;
-    PdfVariant    var;
-    m_pMetrics->GetWidthArray(var, m_pEncoding->GetFirstChar(), m_pEncoding->GetLastChar(), m_pEncoding );
+        PdfArray widths;
+        this->getWidthsArray(widths);
 
-    PdfObject* pWidth = this->GetObject()->GetDocument()->GetObjects().CreateObject(var);
+        auto widthsObj = this->GetObject().GetDocument()->GetObjects().CreateObject(widths);
+        this->GetObject().GetDictionary().AddKeyIndirect("Widths", *widthsObj);
 
-    PdfObject *pDescriptor = this->GetObject()->GetDocument()->GetObjects().CreateDictionaryObject( "FontDescriptor" );
-    if( !pDescriptor )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
-
-	std::string name;
-	if ( m_bIsSubsetting )
-		name = this->GetObject()->GetDocument()->GetObjects().GetNextSubsetPrefix();
-	name += this->GetBaseFont().GetString();
-
-    this->GetObject()->GetDictionary().AddKey( PdfName::KeySubtype, rsSubType );
-    this->GetObject()->GetDictionary().AddKey("BaseFont", PdfName( name ) );
-    this->GetObject()->GetDictionary().AddKey("FirstChar", PdfVariant( static_cast<int64_t>(m_pEncoding->GetFirstChar()) ) );
-    this->GetObject()->GetDictionary().AddKey("LastChar", PdfVariant( static_cast<int64_t>(m_pEncoding->GetLastChar()) ) );
-    m_pEncoding->AddToDictionary( this->GetObject()->GetDictionary() ); // Add encoding key
-
-    this->GetObject()->GetDictionary().AddKey("Widths", pWidth->GetIndirectReference() );
-    this->GetObject()->GetDictionary().AddKey( "FontDescriptor", pDescriptor->GetIndirectReference() );
-
-    m_pMetrics->GetBoundingBox( array );
-
-    pDescriptor->GetDictionary().AddKey( "FontName", PdfName( name ) );
-    //pDescriptor->GetDictionary().AddKey( "FontWeight", (long)m_pMetrics->Weight() );
-    pDescriptor->GetDictionary().AddKey( PdfName::KeyFlags, PdfVariant( static_cast<int64_t>(32) ) ); // TODO: 0 ????
-    pDescriptor->GetDictionary().AddKey( "FontBBox", array );
-    pDescriptor->GetDictionary().AddKey( "ItalicAngle", PdfVariant( static_cast<int64_t>(m_pMetrics->GetItalicAngle()) ) );
-    pDescriptor->GetDictionary().AddKey( "Ascent", m_pMetrics->GetPdfAscent() );
-    pDescriptor->GetDictionary().AddKey( "Descent", m_pMetrics->GetPdfDescent() );
-    pDescriptor->GetDictionary().AddKey( "CapHeight", m_pMetrics->GetPdfAscent() ); // m_pMetrics->CapHeight() );
-    pDescriptor->GetDictionary().AddKey( "StemV", PdfVariant( static_cast<int64_t>(1) ) );               // m_pMetrics->StemV() );
-
-    // Peter Petrov 24 September 2008
-    m_pDescriptor = pDescriptor;
-
-    if( bEmbed )
-    {
-        this->EmbedFontFile( pDescriptor );
-        m_bWasEmbedded = true;
+        auto descriptorObj = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject("FontDescriptor");
+        this->GetObject().GetDictionary().AddKeyIndirect("FontDescriptor", *descriptorObj);
+        FillDescriptor(descriptorObj->GetDictionary());
+        m_Descriptor = descriptorObj;
     }
 }
 
-void PdfFontSimple::EmbedFont()
+void PdfFontSimple::embedFont()
 {
-    if (!m_bWasEmbedded)
-    {
-        this->EmbedFontFile( m_pDescriptor );
-        m_bWasEmbedded = true;
-    }
+    this->embedFontFile(*m_Descriptor);
 }
-
-};

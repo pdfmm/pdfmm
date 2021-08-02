@@ -4,7 +4,7 @@
  * *** THIS HEADER IS INCLUDED BY PdfCompilerCompat.h ***
  * *** DO NOT INCLUDE DIRECTLY ***
  */
-#ifndef _PDF_COMPILERCOMPAT_H
+#ifndef PDF_COMPILER_COMPAT_H
 #error Please include PdfDefines.h instead
 #endif
 
@@ -16,9 +16,6 @@
 
 /* Endianness */
 #cmakedefine TEST_BIG
-
-/* Features */
-#cmakedefine PODOFO_NO_FONTMANAGER
 
 /* Libraries */
 #cmakedefine PODOFO_HAVE_JPEG_LIB

@@ -33,8 +33,8 @@
  *   files in the program, then also delete it here.                       *
  ***************************************************************************/
 
-#ifndef _PODOFO_BASE_H_
-#define _PODOFO_BASE_H_
+#ifndef PODOFO_BASE_H
+#define PODOFO_BASE_H
 
 // Include files from PoDoFo-base
 
@@ -45,12 +45,17 @@
 #include "base/PdfCanvas.h"
 #include "base/PdfColor.h"
 #include "base/PdfContentsTokenizer.h"
+#include "base/PdfPostScriptTokenizer.h"
 #include "base/PdfData.h"
 #include "base/PdfDataType.h"
 #include "base/PdfDate.h"
 #include "base/PdfDictionary.h"
-#include "base/PdfEncodingFactory.h"
 #include "base/PdfEncoding.h"
+#include "base/PdfEncodingFactory.h"
+#include "base/PdfDifferenceEncoding.h"
+#include "base/PdfIdentityEncoding.h"
+#include "base/PdfFontType1Encoding.h"
+#include "base/PdfPredefinedEncoding.h"
 #include "base/PdfEncrypt.h"
 #include "base/PdfError.h"
 #include "base/PdfExtension.h"
@@ -82,4 +87,4 @@
 #include "base/PdfXRef.h"
 #include "base/PdfXRefStream.h"
 
-#endif // _PODOFO_BASE_H_
+#endif // PODOFO_BASE_H

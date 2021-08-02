@@ -1,40 +1,13 @@
-/***************************************************************************
- *   Copyright (C) 2006 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *   Copyright (C) 2020 by Francesco Pretto                                *
- *   ceztko@gmail.com                                                      *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2006 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
-#ifndef _PDF_INPUT_DEVICE_H_
-#define _PDF_INPUT_DEVICE_H_
+#ifndef PDF_INPUT_DEVICE_H
+#define PDF_INPUT_DEVICE_H
 
 #include <istream>
 #include <fstream>
@@ -44,7 +17,10 @@
 
 namespace PoDoFo {
 
+class PdfStream;
+
 // TODO: Refactor, PdfInputDevice should be an interface
+// with, implementing classes like PdfMemInputDevice or PdfFileInputDevice
 /** This class provides an Input device which operates 
  *  either on a file, a buffer in memory or any arbitrary std::istream
  *
@@ -58,6 +34,7 @@ protected:
     PdfInputDevice();
 
 public:
+    // TODO: Move it to a PdfFileInputDevice
     /** Construct a new PdfInputDevice that reads all data from a file.
      *
      *  \param pszFilename path to a file that will be opened and all data
@@ -65,19 +42,23 @@ public:
      */
     explicit PdfInputDevice(const std::string_view& filename);
 
+    // TODO: Move it to a PdfMemInputDevice
     /** Construct a new PdfInputDevice that reads all data from a memory buffer.
      *  The buffer will not be owned by this object - it is COPIED.
      *
      *  \param pBuffer a buffer in memory
      *  \param lLen the length of the buffer in memory
      */
-    PdfInputDevice( const char* pBuffer, size_t lLen );
+    PdfInputDevice(const char* buffer, size_t len);
 
     /** Construct a new PdfInputDevice that reads all data from a std::istream.
      *
      *  \param pInStream read from this std::istream
      */
-    explicit PdfInputDevice( const std::istream* pInStream );
+    explicit PdfInputDevice(std::istream& stream);
+
+    // TODO: Move it to a PdfMemInputDevice
+    explicit PdfInputDevice(const PdfStream& stream);
 
     /** Destruct the PdfInputDevice object and close any open files.
      */
@@ -102,7 +83,7 @@ public:
     /** Get next char from stream.
      *  \returns the next character from the stream
      */
-    virtual bool TryGetChar(int &ch);
+    virtual bool TryGetChar(char& ch);
 
     /** Peek at next char in stream.
      *  /returns the next char in the stream
@@ -141,10 +122,10 @@ protected:
     void seek(std::streamoff off, std::ios_base::seekdir dir);
     
 private:
-    std::istream* m_pStream;
+    std::istream* m_Stream;
     bool m_StreamOwned;
 };
 
 };
 
-#endif // _PDF_INPUT_DEVICE_H_
+#endif // PDF_INPUT_DEVICE_H

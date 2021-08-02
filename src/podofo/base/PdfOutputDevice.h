@@ -1,40 +1,13 @@
-/***************************************************************************
- *   Copyright (C) 2006 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *   Copyright (C) 2020 by Francesco Pretto                                *
- *   ceztko@gmail.com                                                      *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2006 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
-#ifndef _PDF_OUTPUT_DEVICE_H_
-#define _PDF_OUTPUT_DEVICE_H_
+#ifndef PDF_OUTPUT_DEVICE_H
+#define PDF_OUTPUT_DEVICE_H
 
 #include <string_view>
 #include <ostream>
@@ -76,7 +49,7 @@ public:
      *  When the bTruncate is false, the device is automatically positioned
      *  to the end of the file.
      */
-    PdfOutputDevice( const std::string_view &filename, bool bTruncate = true );
+    PdfOutputDevice(const std::string_view& filename, bool truncate = true);
 
     /** Construct a new PdfOutputDevice that writes all data to a memory buffer.
      *  The buffer will not be owned by this object and has to be allocated before.
@@ -84,7 +57,7 @@ public:
      *  \param pBuffer a buffer in memory
      *  \param lLen the length of the buffer in memory
      */
-    PdfOutputDevice( char* pBuffer, size_t lLen );
+    PdfOutputDevice(char* buffer, size_t len);
 
     /** Construct a new PdfOutputDevice that writes all data to a std::ostream.
      *
@@ -93,7 +66,7 @@ public:
      *
      *  \param pOutStream write to this std::ostream
      */
-    PdfOutputDevice( const std::ostream* pOutStream );
+    PdfOutputDevice(std::ostream& stream);
 
     /** Construct a new PdfOutputDevice that writes all data to a PdfRefCountedBuffer.
      *  This output device has the advantage that the PdfRefCountedBuffer will resize itself
@@ -103,7 +76,7 @@ public:
      *
      *  \see PdfRefCountedBuffer
      */
-    PdfOutputDevice( PdfRefCountedBuffer* pOutBuffer );
+    PdfOutputDevice(PdfRefCountedBuffer& buffer);
 
     /** Construct a new PdfOutputDevice that writes all data to a std::iostream
      *  and reads from it as well.
@@ -113,7 +86,7 @@ public:
      *
      *  \param pStream read/write from/to this std::iostream
      */
-    PdfOutputDevice( std::iostream* pStream );
+    PdfOutputDevice(std::iostream& stream);
 
     /** Destruct the PdfOutputDevice object and close any open files.
      */
@@ -121,13 +94,13 @@ public:
 
     /** The number of bytes written to this object.
      *  \returns the number of bytes written to this object.
-     *  
+     *
      *  \see Init
      */
-    inline size_t GetLength() const { return m_ulLength; }
+    inline size_t GetLength() const { return m_Length; }
 
     /** Write to the PdfOutputDevice. Usage is as the usage of printf.
-     * 
+     *
      *  WARNING: Do not use this for doubles or floating point values
      *           as the output might depend on the current locale.
      *
@@ -135,75 +108,80 @@ public:
      *
      *  \see Write
      */
-    void Print( const char* pszFormat, ... );
+    void Print(const char* format, ...);
 
-    void Print(const char* pszFormat, va_list args);
+    void Print(const char* format, va_list args);
 
     /** Write to the PdfOutputDevice. Usage is as the usage of printf.
-     * 
+     *
      *  WARNING: Do not use this for doubles or floating point values
      *           as the output might depend on the current locale.
      *
-     *  \param pszFormat a format string as you would use it with printf
-     *  \param lBytes length of the format string in bytes when written
-     *  \param argptr variable argument list
+     *  \param format a format string as you would use it with printf
+     *  \param size length of the format string in bytes when written
+     *  \param args variable argument list
      *
      *  \see Write
      */
-    void PrintV( const char* pszFormat, size_t lBytes, va_list argptr );
+    void PrintV(const char* format, size_t size, va_list args);
 
-    /** Write data to the buffer. Use this call instead of Print if you 
+    /** Write data to the buffer. Use this call instead of Print if you
      *  want to write binary data to the PdfOutputDevice.
      *
-     *  \param pBuffer a pointer to the data buffer
-     *  \param lLen write lLen bytes of pBuffer to the PdfOutputDevice
-     * 
+     *  \param buffer a pointer to the data buffer
+     *  \param len write lLen bytes of pBuffer to the PdfOutputDevice
+     *
      *  \see Print
      */
-    void Write( const char* pBuffer, size_t lLen );
+    void Write(const char* buffer, size_t len);
+
+    /** Write the character in the device
+     *
+     *  \param ch the character to wrte
+     */
+    void Put(char ch);
 
     /** Read data from the device
-     *  \param pBuffer a pointer to the data buffer
-     *  \param lLen length of the output buffer
+     *  \param buffer a pointer to the data buffer
+     *  \param len length of the output buffer
      *  \returns Number of read bytes. Return 0 if EOF
      */
-    size_t Read( char* pBuffer, size_t lLen );
+    size_t Read(char* buffer, size_t len);
 
     /** Seek the device to the position offset from the begining
      *  \param offset from the beginning of the file
      */
-    void Seek( size_t offset );
+    void Seek(size_t offset);
 
     /** Get the current offset from the beginning of the file.
      *  \return the offset form the beginning of the file.
      */
-    inline size_t Tell() const { return m_ulPosition; }
+    inline size_t Tell() const { return m_Position; }
 
     /** Flush the output files buffer to disk if this devices
      *  operates on a disk.
      */
     void Flush();
 
-private: 
+private:
     /** Initialize all private members
      */
     void Init();
 
 private:
-    size_t               m_ulLength;
-    char*                m_pBuffer;
-    size_t               m_lBufferLen;
+    size_t m_Length;
+    char* m_Buffer;
+    size_t m_BufferLen;
 
-    std::ostream*        m_pStream;
-    std::istream*        m_pReadStream;
-    bool                 m_pStreamOwned;
+    std::ostream* m_Stream;
+    std::istream* m_ReadStream;
+    bool m_StreamOwned;
 
-    PdfRefCountedBuffer* m_pRefCountedBuffer;
-    size_t               m_ulPosition;
+    PdfRefCountedBuffer* m_RefCountedBuffer;
+    size_t m_Position;
     std::string  m_printBuffer;
 };
 
 };
 
-#endif // _PDF_OUTPUT_DEVICE_H_
-
+#endif // PDF_OUTPUT_DEVICE_H

@@ -1,40 +1,13 @@
-/***************************************************************************
- *   Copyright (C) 2005 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *   Copyright (C) 2020 by Francesco Pretto                                *
- *   ceztko@gmail.com                                                      *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2005 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
-#ifndef _PDF_DEFINES_PRIVATE_H_
-#define _PDF_DEFINES_PRIVATE_H_
+#ifndef PDF_DEFINES_PRIVATE_H
+#define PDF_DEFINES_PRIVATE_H
 
 #ifndef BUILDING_PODOFO
 #error PdfDefinesPrivate.h is only available for use in the core PoDoFo src/ build .cpp files
@@ -42,6 +15,9 @@
 
 #include "PdfCompilerCompatPrivate.h"
 #include "PdfDefines.h"
+
+#include <stdexcept>
+#include <limits>
 
 /** \def VERBOSE_DEBUG_DISABLED
  *  Debug define. Enable it, if you need
@@ -65,10 +41,54 @@
 
 #ifdef DEBUG
 #include <cassert>
-#define PODOFO_ASSERT( x ) assert( x );
+#define PODOFO_ASSERT(x) assert(x);
 #else
-#define PODOFO_ASSERT( x ) do { if (!(x)) PODOFO_RAISE_ERROR_INFO(EPdfError::InternalLogic, #x); } while (false)
+#define PODOFO_ASSERT(x)
 #endif // DEBUG
+
+// This is a do nothing macro that can be used to define
+// an invariant property without actually checking for it,
+// not even in DEBUG build. It's user responsability to
+// ensure it's actually satisfied
+#define PODOFO_INVARIANT(x)
+
+#define CMAP_REGISTRY_NAME "pdfmm"
+
+namespace usr
+{
+    // Write the char to the supplied buffer as hexadecimal code
+    void WriteCharHexTo(char buf[2], char ch);
+
+    // Append the char to the supplied string as hexadecimal code
+    void WriteCharHexTo(std::string& str, char ch, bool clear = true);
+
+    // Append the unicode code point to a big endian encoded utf16 string
+    void WriteToUtf16BE(std::u16string& str, char32_t codePoint, bool clear = true);
+
+    // https://stackoverflow.com/a/38140932/213871
+    inline void hash_combine(std::size_t& seed) { }
+
+    template <typename T, typename... Rest>
+    inline void hash_combine(std::size_t& seed, const T& v, Rest... rest)
+    {
+        std::hash<T> hasher;
+        seed ^= hasher(v) + 0x9E3779B9 + (seed << 6) + (seed >> 2);
+        hash_combine(seed, rest...);
+    }
+
+    // Returns log(ch) / log(256) + 1
+    unsigned char GetCharCodeSize(unsigned ch);
+
+    // Returns pow(2, size * 8) - 1
+    unsigned GetCharCodeMaxValue(unsigned char codeSize);
+
+    template<typename T>
+    void move(T& in, T& out)
+    {
+        out = in;
+        in = { };
+    }
+}
 
 namespace io
 {
@@ -95,4 +115,4 @@ namespace io
  * referenced in any way from any public, installed header.
  */
 
-#endif
+#endif // PDF_DEFINES_PRIVATE_H

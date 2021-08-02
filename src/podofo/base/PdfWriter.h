@@ -1,40 +1,13 @@
-/***************************************************************************
- *   Copyright (C) 2005 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *   Copyright (C) 2020 by Francesco Pretto                                *
- *   ceztko@gmail.com                                                      *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2005 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
-#ifndef _PDF_WRITER_H_
-#define _PDF_WRITER_H_
+#ifndef PDF_WRITER_H
+#define PDF_WRITER_H
 
 #include "PdfDefines.h"
 #include "PdfInputDevice.h"
@@ -65,7 +38,7 @@ class PdfXRef;
 class PODOFO_API PdfWriter
 {
 private:
-    PdfWriter(PdfVecObjects* pVecObjects, const PdfObject& pTrailer, EPdfVersion version);
+    PdfWriter(PdfVecObjects* pVecObjects, const PdfObject& pTrailer, PdfVersion version);
 
 public:
     /** Create a new pdf file, from an vector of PdfObjects
@@ -115,23 +88,23 @@ public:
     /** Set the write mode to use when writing the PDF.
      *  \param eWriteMode write mode
      */
-    inline void SetWriteMode(EPdfWriteMode eWriteMode) { m_eWriteMode = eWriteMode; }
+    inline void SetWriteMode(PdfWriteMode eWriteMode) { m_eWriteMode = eWriteMode; }
 
     /** Get the write mode used for wirting the PDF
      *  \returns the write mode
      */
-    inline EPdfWriteMode GetWriteMode() const { return m_eWriteMode; }
+    inline PdfWriteMode GetWriteMode() const { return m_eWriteMode; }
 
     /** Set the PDF Version of the document. Has to be called before Write() to
      *  have an effect.
      *  \param eVersion  version of the pdf document
      */
-    inline void SetPdfVersion(EPdfVersion eVersion) { m_eVersion = eVersion; }
+    inline void SetPdfVersion(PdfVersion eVersion) { m_eVersion = eVersion; }
 
     /** Get the PDF version of the document
      *  \returns EPdfVersion version of the pdf document
      */
-    inline EPdfVersion GetPdfVersion() const { return m_eVersion; }
+    inline PdfVersion GetPdfVersion() const { return m_eVersion; }
 
     /**
      *  \returns wether a XRef stream is used or not
@@ -210,15 +183,16 @@ protected:
 private:
     PdfVecObjects*  m_vecObjects;
     PdfObject m_Trailer;
-    EPdfVersion     m_eVersion;
+    PdfVersion     m_eVersion;
 
     bool            m_UseXRefStream;
 
-    std::unique_ptr<PdfEncrypt> m_pEncrypt;    ///< If not nullptr encrypt all strings and streams and create an encryption dictionary in the trailer
-    PdfObject* m_pEncryptObj; ///< Used to temporarly store the encryption dictionary
+    std::unique_ptr<PdfEncrypt> m_pEncrypt;    // If not nullptr encrypt all strings and streams and
+                                               // create an encryption dictionary in the trailer
+    PdfObject* m_pEncryptObj;                  // Used to temporarly store the encryption dictionary
 
     PdfSaveOptions  m_saveOptions;
-    EPdfWriteMode   m_eWriteMode;
+    PdfWriteMode   m_eWriteMode;
 
     PdfString       m_identifier;
     PdfString       m_originalIdentifier; // used for incremental update
@@ -241,4 +215,4 @@ private:
 
 };
 
-#endif // _PDF_WRITER_H_
+#endif // PDF_WRITER_H

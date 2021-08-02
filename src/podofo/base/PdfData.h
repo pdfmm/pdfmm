@@ -1,38 +1,13 @@
-/***************************************************************************
- *   Copyright (C) 2007 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2007 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
-#ifndef _PDF_DATA_H_
-#define _PDF_DATA_H_
+#ifndef PDF_DATA_H
+#define PDF_DATA_H
 
 #include "PdfDefines.h"
 
@@ -51,7 +26,7 @@ class PdfOutputDevice;
  *  This class is used in PoDoFo to pad PdfVariants.
  *
  */
-class PODOFO_API PdfData : public PdfDataType
+class PODOFO_API PdfData final : public PdfDataType
 {
 public:
     PdfData();
@@ -80,40 +55,31 @@ public:
      */
     PdfData(const std::string_view& data, const std::shared_ptr<size_t>& writeBeacon = { });
 
-    /** Copy an existing PdfData 
+    /** Copy an existing PdfData
      *  \param rhs another PdfData to copy
      */
     PdfData(const PdfData& rhs);
 
-    /** Write the complete datatype to a file.
-     *  \param pDevice write the object to this device
-     *  \param eWriteMode additional options for writing this object
-     *  \param pEncrypt an encryption object which is used to encrypt this object
-     *                  or nullptr to not encrypt this object
-     *
-     * PdfData cannot do any encryption for you. So the encryption object will
-     * be ignored as it is also the case for the write mode!
-     */
-    void Write(PdfOutputDevice& pDevice, EPdfWriteMode eWriteMode, const PdfEncrypt* pEncrypt) const override;
+    void Write(PdfOutputDevice& device, PdfWriteMode writeMode, const PdfEncrypt* encrypt) const override;
 
-    /** Copy an existing PdfData 
+    /** Copy an existing PdfData
      *  \param rhs another PdfData to copy
      *  \returns this object
      */
-    const PdfData & operator=( const PdfData & rhs );
+    const PdfData& operator=(const PdfData& rhs);
 
     /**
      * Access the data as a std::string
      * \returns a const reference to the contained data
      */
-     inline const std::string & data() const { return *m_data; }
+     inline const std::string& data() const { return *m_data; }
 
 private:
     std::shared_ptr<std::string> m_data;
     std::shared_ptr<size_t> m_writeBeacon;
 };
 
-}; // namespace PoDoFo
+}
 
-#endif /* _PDF_DATATYPE_H_ */
+#endif // PDF_DATA_H
 

@@ -1,44 +1,15 @@
-/***************************************************************************
- *   Copyright (C) 2006 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *   Copyright (C) 2020 by Francesco Pretto                                *
- *   ceztko@gmail.com                                                      *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2006 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
-#ifndef _PDF_NAME_H_
-#define _PDF_NAME_H_
+#ifndef PDF_NAME_H
+#define PDF_NAME_H
 
 #include "PdfDefines.h"
-
-#include <memory>
 
 #include "PdfDataType.h"
 
@@ -56,7 +27,7 @@ class PdfName;
  *
  *  \see PdfObject \see PdfVariant
  */
-class PODOFO_API PdfName : public PdfDataType
+class PODOFO_API PdfName final : public PdfDataType
 {
 public:
     /** Constructor to create nullptr strings.
@@ -69,16 +40,12 @@ public:
      *                 the name without the leading '/'.
      *                 Has to be a zero terminated string.
      */
-    PdfName(const std::string_view& view);
-    PdfName(const std::string& str);
+    PdfName(const std::string_view & str);
+    PdfName(const char* str);
+    PdfName(const std::string &str);
 
-    /** Create a new PdfName object.
-     *  \param pszName the unescaped value of this name. Please specify
-     *                 the name without the leading '/'.
-     *  \param lLen    length of the name
-     */
-    PdfName(const char* pszName);
-    PdfName(const char* pszName, size_t lLen);
+    // Delete constructor with nullptr
+    PdfName(nullptr_t) = delete;
 
     /** Create a copy of an existing PdfName object.
      *  \param rhs another PdfName object
@@ -95,16 +62,6 @@ public:
      */
     static PdfName FromEscaped(const std::string_view& sName);
 
-    /** Create a new PdfName object from a string containing an escaped
-     *  name string without the leading / .
-     *  \param pszName A string containing the escaped name
-     *  \param ilength length of the escaped string data. If a length
-     *                 of 0 is passed, the string data is expected to 
-     *                 be a zero terminated string.
-     *  \return A new PdfName
-     */
-    static PdfName FromEscaped(const char * pszName, size_t ilength = 0 );
-
     /** \return an escaped representation of this name
      *          without the leading / .
      *
@@ -113,15 +70,7 @@ public:
      */
     std::string GetEscapedName() const;
 
-    /** Write the name to an output device in PDF format.
-     *  This is an overloaded member function.
-     *
-     *  \param pDevice write the object to this device
-     *  \param eWriteMode additional options for writing this object
-     *  \param pEncrypt an encryption object which is used to encrypt this object
-     *                  or nullptr to not encrypt this object     
-     */
-    void Write( PdfOutputDevice& pDevice, EPdfWriteMode eWriteMode, const PdfEncrypt* pEncrypt) const override;
+    void Write( PdfOutputDevice& pDevice, PdfWriteMode eWriteMode, const PdfEncrypt* pEncrypt) const override;
 
     /** \returns the unescaped value of this name object
      *           without the leading slash
@@ -132,6 +81,10 @@ public:
      *           name object
      */
     size_t GetLength() const;
+
+    /** \returns the raw data of this name object
+     */
+    const std::string& GetRawData() const;
 
     /** Assign another name to this object
      *  \param rhs another PdfName object
@@ -187,5 +140,4 @@ private:
 
 };
 
-#endif /* _PDF_NAME_H_ */
-
+#endif // PDF_NAME_H

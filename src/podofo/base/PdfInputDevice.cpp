@@ -1,50 +1,24 @@
-/***************************************************************************
- *   Copyright (C) 2006 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *   Copyright (C) 2020 by Francesco Pretto                                *
- *   ceztko@gmail.com                                                      *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2006 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
+#include "PdfDefinesPrivate.h"
 #include "PdfInputDevice.h"
 
 #include <cstdarg>
 #include <fstream>
 #include <sstream>
-#include "PdfDefinesPrivate.h"
+#include "PdfStream.h"
 
 using namespace std;
 using namespace PoDoFo;
 
 PdfInputDevice::PdfInputDevice() :
-    m_pStream(nullptr),
+    m_Stream(nullptr),
     m_StreamOwned(false)
 {
 }
@@ -53,46 +27,49 @@ PdfInputDevice::PdfInputDevice(const string_view& filename)
     : PdfInputDevice()
 {
     if (filename.length() == 0)
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
+        PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
 
-    m_pStream = new ifstream(io::open_ifstream(filename, ios_base::in | ios_base::binary));
-    if (m_pStream->fail())
+    m_Stream = new ifstream(io::open_ifstream(filename, ios_base::in | ios_base::binary));
+    if (m_Stream->fail())
         PODOFO_RAISE_ERROR_INFO(EPdfError::FileNotFound, filename.data());
 
     m_StreamOwned = true;
 }
 
-// TODO: Optimize me, offer a version that does not copy the buffer
-PdfInputDevice::PdfInputDevice( const char* pBuffer, size_t lLen )
+PdfInputDevice::PdfInputDevice(const char* buffer, size_t len)
     : PdfInputDevice()
 {
-    if (lLen != 0 && pBuffer == nullptr)
+    if (len != 0 && buffer == nullptr)
         PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
 
-    try
-    {
-        m_pStream = new std::istringstream( std::string( pBuffer, lLen ), std::ios::binary );
-        m_StreamOwned = true;
-    }
-    catch(...)
-    {
-        PODOFO_RAISE_ERROR( EPdfError::OutOfMemory );
-    }
+    // TODO: Optimize me, offer a version that does not copy the buffer
+    m_Stream = new istringstream(string(buffer, len), ios::binary);
+    m_StreamOwned = true;
 }
 
-PdfInputDevice::PdfInputDevice( const std::istream* pInStream )
+PdfInputDevice::PdfInputDevice(istream& stream)
     : PdfInputDevice()
 {
-    m_pStream = const_cast< std::istream* >( pInStream );
-    if( !m_pStream->good() )
-        PODOFO_RAISE_ERROR( EPdfError::FileNotFound );
+    m_Stream = &stream;
+    if (!m_Stream->good())
+        PODOFO_RAISE_ERROR(EPdfError::FileNotFound);
+}
+
+PdfInputDevice::PdfInputDevice(const PdfStream& stream)
+{
+    PdfRefCountedBuffer buffer;
+    PdfBufferOutputStream outputStream(buffer);
+    stream.GetFilteredCopy(outputStream);
+    // TODO: Optimize me, offer a version that does not copy the buffer
+    m_Stream = new istringstream(string(buffer.GetBuffer(), buffer.GetSize()), ios::binary);
+    m_StreamOwned = true;
 }
 
 PdfInputDevice::~PdfInputDevice()
 {
     this->Close();
     if (m_StreamOwned)
-        delete m_pStream;
+        delete m_Stream;
 }
 
 void PdfInputDevice::Close()
@@ -103,45 +80,45 @@ void PdfInputDevice::Close()
 // TODO: Convert to char type
 int PdfInputDevice::GetChar()
 {
-    int ch;
+    char ch;
     if (TryGetChar(ch))
-        return ch;
+        return -1;
     else
         PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDeviceOperation, "Failed to read the current character");
 }
 
-// TODO: Convert to char type
-bool PdfInputDevice::TryGetChar(int &ch)
+bool PdfInputDevice::TryGetChar(char& ch)
 {
-    if (m_pStream->eof())
+    if (m_Stream->eof())
     {
-        ch = -1;
+        ch = '\0';
         return false;
     }
 
-    ch = m_pStream->peek();
-    if (m_pStream->fail())
+    int intch = m_Stream->peek();
+    if (m_Stream->fail())
         PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDeviceOperation, "Failed to read the current character");
 
-    if (ch == char_traits<char>::eof())
+    if (intch == char_traits<char>::eof())
     {
-        ch = -1;
+        intch = '\0';
         return false;
     }
 
+    ch = (char)(intch & 255);
     // Consume the character
-    (void)m_pStream->get();
+    (void)m_Stream->get();
     return true;
 }
 
 int PdfInputDevice::Look() 
 {
     // NOTE: We don't want a peek() call to set failbit
-    if (m_pStream->eof())
+    if (m_Stream->eof())
         return -1;
 
-    int ch = m_pStream->peek();
-    if (m_pStream->fail())
+    int ch = m_Stream->peek();
+    if (m_Stream->fail())
         PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDeviceOperation, "Failed to peek current character");
 
     return ch;
@@ -150,21 +127,21 @@ int PdfInputDevice::Look()
 size_t PdfInputDevice::Tell()
 {
     streamoff ret;
-    if (m_pStream->eof())
+    if (m_Stream->eof())
     {
         // tellg() will set failbit when called on a stream that
         // is eof. Reset eofbit and restore it after calling tellg()
         // https://stackoverflow.com/q/18490576/213871
-        PODOFO_ASSERT(!m_pStream->fail());
-        m_pStream->clear();
-        ret = m_pStream->tellg();
-        m_pStream->clear(ios_base::eofbit);
+        PODOFO_ASSERT(!m_Stream->fail());
+        m_Stream->clear();
+        ret = m_Stream->tellg();
+        m_Stream->clear(ios_base::eofbit);
     }
     else
     {
-        ret = m_pStream->tellg();
+        ret = m_Stream->tellg();
     }
-    if (m_pStream->fail())
+    if (m_Stream->fail())
         PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDeviceOperation, "Failed to get current position in the stream");
     
     return (size_t)ret;
@@ -181,18 +158,18 @@ void PdfInputDevice::seek(streamoff off, ios_base::seekdir dir)
         PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDeviceOperation, "Tried to seek an unseekable input device.");
 
     // NOTE: Some c++ libraries don't reset eofbit prior seeking
-    m_pStream->clear(m_pStream->rdstate() & ~ios_base::eofbit);
-    m_pStream->seekg(off, dir);
-    if (m_pStream->fail())
+    m_Stream->clear(m_Stream->rdstate() & ~ios_base::eofbit);
+    m_Stream->seekg(off, dir);
+    if (m_Stream->fail())
         PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDeviceOperation, "Failed to seek to given position in the stream");
 }
 
 size_t PdfInputDevice::Read(char* buffer, size_t size)
 {
-    return io::Read(*m_pStream, buffer, size);
+    return io::Read(*m_Stream, buffer, size);
 }
 
 bool PdfInputDevice::Eof() const
 {
-    return m_pStream->eof();
+    return m_Stream->eof();
 }

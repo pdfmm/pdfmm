@@ -1,42 +1,15 @@
-/***************************************************************************
- *   Copyright (C) 2006 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *   Copyright (C) 2020 by Francesco Pretto                                *
- *   ceztko@gmail.com                                                      *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2006 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
+#include "base/PdfDefinesPrivate.h"
 #include "PdfAnnotation.h"
 
 #include <doc/PdfDocument.h>
-#include "base/PdfDefinesPrivate.h"
 #include "base/PdfArray.h"
 #include "base/PdfDictionary.h"
 #include "base/PdfDate.h"
@@ -48,10 +21,11 @@
 #include "base/PdfVariant.h"
 #include "PdfXObject.h"
 
-namespace PoDoFo {
+using namespace std;
+using namespace PoDoFo;
 
-const long  PdfAnnotation::s_lNumActions = 27;
-const char* PdfAnnotation::s_names[] = {
+static const char* s_names[] = {
+    nullptr,
     "Text",                       // - supported
     "Link",
     "FreeText",       // PDF 1.3  // - supported
@@ -79,186 +53,166 @@ const char* PdfAnnotation::s_names[] = {
     "3D",             // PDF 1.6
     "RichMedia",      // PDF 1.7 ADBE ExtensionLevel 3 ALX: Petr P. Petrov
     "WebMedia",       // PDF 1.7 IPDF ExtensionLevel 1
-    nullptr
 };
 
-static PdfName GetAppearanceName( EPdfAnnotationAppearance eAppearance );
+static PdfName GetAppearanceName( PdfAnnotationAppearance eAppearance );
 
-PdfAnnotation::PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRect & rRect, PdfVecObjects* pParent )
-    : PdfElement(*pParent, "Annot"), m_eAnnotation( eAnnot ), m_pAction( nullptr ), m_pFileSpec( nullptr ), m_pPage( pPage )
+PdfAnnotation::PdfAnnotation(PdfPage& page, PdfAnnotationType eAnnot, const PdfRect& rRect)
+    : PdfElement(page.GetDocument(), "Annot"), m_eAnnotation(eAnnot), m_pPage(&page)
 {
-    PdfVariant    rect;
-    PdfDate       date;
+    PdfVariant rect;
+    PdfDate date;
 
-    const PdfName name( TypeNameForIndex( (int)eAnnot, s_names, s_lNumActions ) );
+    const PdfName name(TypeNameForIndex((unsigned)eAnnot, s_names, std::size(s_names)));
 
-    if( !name.GetLength() )
+    if (!name.GetLength())
     {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
+        PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
     }
 
-    rRect.ToVariant( rect );
+    rRect.ToVariant(rect);
     PdfString sDate = date.ToString();
-    
-    this->GetObject()->GetDictionary().AddKey( PdfName::KeySubtype, name );
-    this->GetObject()->GetDictionary().AddKey( PdfName::KeyRect, rect );
-    this->GetObject()->GetDictionary().AddKey( "P", pPage->GetObject()->GetIndirectReference() );
-    this->GetObject()->GetDictionary().AddKey( "M", sDate );
+
+    this->GetObject().GetDictionary().AddKey(PdfName::KeySubtype, name);
+    this->GetObject().GetDictionary().AddKey(PdfName::KeyRect, rect);
+    this->GetObject().GetDictionary().AddKey("P", page.GetObject().GetIndirectReference());
+    this->GetObject().GetDictionary().AddKey("M", sDate);
 }
 
-PdfAnnotation::PdfAnnotation( PdfObject* pObject, PdfPage* pPage )
-    : PdfElement(*pObject), m_eAnnotation( EPdfAnnotation::Unknown ), m_pAction( nullptr ), m_pFileSpec( nullptr ), m_pPage( pPage )
+PdfAnnotation::PdfAnnotation(PdfPage& page, PdfObject& obj)
+    : PdfElement(obj), m_eAnnotation(PdfAnnotationType::Unknown), m_pPage(&page)
 {
-    m_eAnnotation = static_cast<EPdfAnnotation>(TypeNameToIndex( this->GetObject()->GetDictionary().GetKeyAsName( PdfName::KeySubtype ).GetString().c_str(), s_names, s_lNumActions, (int)EPdfAnnotation::Unknown ));
+    m_eAnnotation = static_cast<PdfAnnotationType>(TypeNameToIndex(
+        this->GetObject().GetDictionary().GetKeyAsName(PdfName::KeySubtype).GetString().c_str(),
+        s_names, std::size(s_names), (int)PdfAnnotationType::Unknown));
 }
 
-PdfAnnotation::~PdfAnnotation()
-{
-    delete m_pAction;
-    delete m_pFileSpec;
-}
+PdfAnnotation::~PdfAnnotation() { }
 
 PdfRect PdfAnnotation::GetRect() const
 {
-   if( this->GetObject()->GetDictionary().HasKey( PdfName::KeyRect ) )
-        return PdfRect( this->GetObject()->GetDictionary().GetKey( PdfName::KeyRect )->GetArray() );
+    if (this->GetObject().GetDictionary().HasKey(PdfName::KeyRect))
+        return PdfRect(this->GetObject().GetDictionary().GetKey(PdfName::KeyRect)->GetArray());
 
-   return PdfRect();
+    return PdfRect();
 }
 
-void PdfAnnotation::SetRect(const PdfRect & rRect)
+void PdfAnnotation::SetRect(const PdfRect& rRect)
 {
     PdfVariant rect;
-    rRect.ToVariant( rect );
-    this->GetObject()->GetDictionary().AddKey( PdfName::KeyRect, rect );
+    rRect.ToVariant(rect);
+    this->GetObject().GetDictionary().AddKey(PdfName::KeyRect, rect);
 }
 
-void SetAppearanceStreamForObject( PdfObject* pForObject, PdfXObject* xobj, EPdfAnnotationAppearance eAppearance, const PdfName & state )
+void PoDoFo::SetAppearanceStreamForObject(PdfObject& forObject, PdfXObject& xobj, PdfAnnotationAppearance eAppearance, const PdfName& state)
 {
-    // Setting an object as appearance stream requires osme resources to be created
-    xobj->EnsureResourcesInitialized();
+    // Setting an object as appearance stream requires some resources to be created
+    xobj.EnsureResourcesInitialized();
 
     PdfDictionary dict;
     PdfDictionary internal;
     PdfName name;
 
-    if( !pForObject || !xobj )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
-
-    if( eAppearance == EPdfAnnotationAppearance::Rollover )
+    if (eAppearance == PdfAnnotationAppearance::Rollover)
     {
         name = "R";
     }
-    else if( eAppearance == EPdfAnnotationAppearance::Down )
+    else if (eAppearance == PdfAnnotationAppearance::Down)
     {
         name = "D";
     }
-    else // EPdfAnnotationAppearance::Normal
+    else // PdfAnnotationAppearance::Normal
     {
         name = "N";
     }
 
-    if( pForObject->GetDictionary().HasKey( "AP" ) )
+    if (forObject.GetDictionary().HasKey("AP"))
     {
-        PdfObject* objAP = pForObject->GetDictionary().GetKey( "AP" );
-        if( objAP->GetDataType() == EPdfDataType::Reference )
+        PdfObject* objAP = forObject.GetDictionary().GetKey("AP");
+        if (objAP->GetDataType() == EPdfDataType::Reference)
         {
             auto document = objAP->GetDocument();
-            if(document == nullptr)
-            {
-                PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-            }
+            if (document == nullptr)
+                PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
 
-            objAP = document->GetObjects().GetObject( objAP->GetReference() );
-            if( !objAP )
-            {
-                PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-            }
+            objAP = document->GetObjects().GetObject(objAP->GetReference());
+            if (objAP == nullptr)
+                PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
         }
 
-        if( objAP->GetDataType() != EPdfDataType::Dictionary )
-        {
-            PODOFO_RAISE_ERROR( EPdfError::InvalidDataType );
-        }
+        if (objAP->GetDataType() != EPdfDataType::Dictionary)
+            PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
 
-        if( !state.GetLength() )
+        if (state.GetLength() == 0)
         {
             // allow overwrite only reference by a reference
-            if( objAP->GetDictionary().HasKey( name ) && objAP->GetDictionary().GetKey( name )->GetDataType() != EPdfDataType::Reference )
-            {
-                PODOFO_RAISE_ERROR( EPdfError::InvalidDataType );
-            }
+            if (objAP->GetDictionary().HasKey(name) && objAP->GetDictionary().GetKey(name)->GetDataType() != EPdfDataType::Reference)
+                PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
 
-            objAP->GetDictionary().AddKey( name, xobj->GetObject()->GetIndirectReference() );
+            objAP->GetDictionary().AddKey(name, xobj.GetObject().GetIndirectReference());
         }
         else
         {
             // when the state is defined, then the appearance is expected to be a dictionary
-            if( objAP->GetDictionary().HasKey( name ) && objAP->GetDictionary().GetKey( name )->GetDataType() != EPdfDataType::Dictionary )
-            {
-                PODOFO_RAISE_ERROR( EPdfError::InvalidDataType );
-            }
+            if (objAP->GetDictionary().HasKey(name) && objAP->GetDictionary().GetKey(name)->GetDataType() != EPdfDataType::Dictionary)
+                PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
 
-            if( objAP->GetDictionary().HasKey( name ) )
+            if (objAP->GetDictionary().HasKey(name))
             {
-                objAP->GetDictionary().GetKey( name )->GetDictionary().AddKey( state, xobj->GetObject()->GetIndirectReference() );
+                objAP->GetDictionary().GetKey(name)->GetDictionary().AddKey(state, xobj.GetObject().GetIndirectReference());
             }
             else
             {
-                internal.AddKey( state, xobj->GetObject()->GetIndirectReference() );
-                objAP->GetDictionary().AddKey( name, internal );
+                internal.AddKey(state, xobj.GetObject().GetIndirectReference());
+                objAP->GetDictionary().AddKey(name, internal);
             }
         }
     }
     else
     {
-        if( !state.GetLength() )
+        if (state.GetLength() == 0)
         {
-            dict.AddKey( name, xobj->GetObject()->GetIndirectReference() );
-            pForObject->GetDictionary().AddKey( "AP", dict );
+            dict.AddKey(name, xobj.GetObject().GetIndirectReference());
+            forObject.GetDictionary().AddKey("AP", dict);
         }
         else
         {
-            internal.AddKey( state, xobj->GetObject()->GetIndirectReference() );
-            dict.AddKey( name, internal );
-            pForObject->GetDictionary().AddKey( "AP", dict );
+            internal.AddKey(state, xobj.GetObject().GetIndirectReference());
+            dict.AddKey(name, internal);
+            forObject.GetDictionary().AddKey("AP", dict);
         }
     }
 
-    if( state.GetLength() )
+    if (state.GetLength() != 0)
     {
-        if( !pForObject->GetDictionary().HasKey( "AS" ) )
-        {
-            pForObject->GetDictionary().AddKey( "AS", state );
-        }
+        if (!forObject.GetDictionary().HasKey("AS"))
+            forObject.GetDictionary().AddKey("AS", state);
     }
 }
 
-void PdfAnnotation::SetAppearanceStream( PdfXObject* pObject, EPdfAnnotationAppearance eAppearance, const PdfName & state )
+void PdfAnnotation::SetAppearanceStream(PdfXObject& pObject, PdfAnnotationAppearance eAppearance, const PdfName& state)
 {
-    SetAppearanceStreamForObject( this->GetObject(), pObject, eAppearance, state );
+    SetAppearanceStreamForObject(this->GetObject(), pObject, eAppearance, state);
 }
 
 bool PdfAnnotation::HasAppearanceStream() const
 {
-    return this->GetObject()->GetDictionary().HasKey( "AP" );
+    return this->GetObject().GetDictionary().HasKey("AP");
 }
 
-PdfObject * PdfAnnotation::GetAppearanceDictionary()
+PdfObject* PdfAnnotation::GetAppearanceDictionary()
 {
-    return GetObject()->GetDictionary().FindKey("AP");
+    return GetObject().GetDictionary().FindKey("AP");
 }
 
-PdfObject * PdfAnnotation::GetAppearanceStream(EPdfAnnotationAppearance eAppearance, const PdfName & state)
+PdfObject* PdfAnnotation::GetAppearanceStream(PdfAnnotationAppearance eAppearance, const PdfName& state)
 {
-    PdfObject *apObj = GetAppearanceDictionary();
+    PdfObject* apObj = GetAppearanceDictionary();
     if (apObj == nullptr)
         return nullptr;
 
     PdfName apName = GetAppearanceName(eAppearance);
-    PdfObject *apObjInn = apObj->GetDictionary().FindKey(apName);
+    PdfObject* apObjInn = apObj->GetDictionary().FindKey(apName);
     if (apObjInn == nullptr)
         return nullptr;
 
@@ -268,25 +222,25 @@ PdfObject * PdfAnnotation::GetAppearanceStream(EPdfAnnotationAppearance eAppeara
     return apObjInn->GetDictionary().FindKey(state);
 }
 
-void PdfAnnotation::SetFlags(EPdfAnnotationFlags uiFlags)
+void PdfAnnotation::SetFlags(PdfAnnotationFlags uiFlags)
 {
-    this->GetObject()->GetDictionary().AddKey( "F", PdfVariant( static_cast<int64_t>(uiFlags) ) );
+    this->GetObject().GetDictionary().AddKey("F", PdfVariant(static_cast<int64_t>(uiFlags)));
 }
 
-EPdfAnnotationFlags PdfAnnotation::GetFlags() const
+PdfAnnotationFlags PdfAnnotation::GetFlags() const
 {
-    if( this->GetObject()->GetDictionary().HasKey( "F" ) )
-        return static_cast<EPdfAnnotationFlags>(this->GetObject()->GetDictionary().GetKey( "F" )->GetNumber());
+    if (this->GetObject().GetDictionary().HasKey("F"))
+        return static_cast<PdfAnnotationFlags>(this->GetObject().GetDictionary().GetKey("F")->GetNumber());
 
-    return EPdfAnnotationFlags::None;
+    return PdfAnnotationFlags::None;
 }
 
-void PdfAnnotation::SetBorderStyle( double dHCorner, double dVCorner, double dWidth )
+void PdfAnnotation::SetBorderStyle(double dHCorner, double dVCorner, double dWidth)
 {
-    this->SetBorderStyle( dHCorner, dVCorner, dWidth, PdfArray() );
+    this->SetBorderStyle(dHCorner, dVCorner, dWidth, PdfArray());
 }
 
-void PdfAnnotation::SetBorderStyle( double dHCorner, double dVCorner, double dWidth, const PdfArray & rStrokeStyle )
+void PdfAnnotation::SetBorderStyle(double dHCorner, double dVCorner, double dWidth, const PdfArray& rStrokeStyle)
 {
     // TODO : Support for Border style for PDF Vers > 1.0
     PdfArray aValues;
@@ -294,179 +248,211 @@ void PdfAnnotation::SetBorderStyle( double dHCorner, double dVCorner, double dWi
     aValues.push_back(dHCorner);
     aValues.push_back(dVCorner);
     aValues.push_back(dWidth);
-    if( rStrokeStyle.size() )
+    if (rStrokeStyle.size())
         aValues.push_back(rStrokeStyle);
 
-    this->GetObject()->GetDictionary().AddKey( "Border", aValues );
+    this->GetObject().GetDictionary().AddKey("Border", aValues);
 }
 
-void PdfAnnotation::SetTitle( const PdfString & sTitle )
+void PdfAnnotation::SetTitle(const PdfString& sTitle)
 {
-    this->GetObject()->GetDictionary().AddKey( "T", sTitle );
+    this->GetObject().GetDictionary().AddKey("T", sTitle);
 }
 
-PdfString PdfAnnotation::GetTitle() const
+optional<PdfString> PdfAnnotation::GetTitle() const
 {
-    if( this->GetObject()->GetDictionary().HasKey( "T" ) )
-        return this->GetObject()->GetDictionary().GetKey( "T" )->GetString();
+    if (this->GetObject().GetDictionary().HasKey("T"))
+        return this->GetObject().GetDictionary().GetKey("T")->GetString();
 
-    return PdfString();
+    return { };
 }
 
-void PdfAnnotation::SetContents( const PdfString & sContents )
+void PdfAnnotation::SetContents(const PdfString& sContents)
 {
-    this->GetObject()->GetDictionary().AddKey( "Contents", sContents );
+    this->GetObject().GetDictionary().AddKey("Contents", sContents);
 }
 
-PdfString PdfAnnotation::GetContents() const
+optional<PdfString> PdfAnnotation::GetContents() const
 {
-    if( this->GetObject()->GetDictionary().HasKey( "Contents" ) )
-        return this->GetObject()->GetDictionary().GetKey( "Contents" )->GetString();
+    if (this->GetObject().GetDictionary().HasKey("Contents"))
+        return this->GetObject().GetDictionary().GetKey("Contents")->GetString();
 
-    return PdfString();
+    return { };
 }
 
-void PdfAnnotation::SetDestination( const PdfDestination & rDestination )
+void PdfAnnotation::SetDestination(const shared_ptr<PdfDestination>& destination)
 {
-    rDestination.AddToDictionary( this->GetObject()->GetDictionary() );
+    destination->AddToDictionary(this->GetObject().GetDictionary());
+    m_Destination = destination;
 }
 
-PdfDestination PdfAnnotation::GetDestination( PdfDocument* pDoc ) const
+shared_ptr<PdfDestination> PdfAnnotation::GetDestination() const
 {
-    return PdfDestination(const_cast<PdfAnnotation &>(*this).GetObject()->GetDictionary().GetKey( "Dest" ), pDoc );
+    return const_cast<PdfAnnotation&>(*this).getDestination();
+}
+
+shared_ptr<PdfDestination> PdfAnnotation::getDestination()
+{
+    if (m_Destination == nullptr)
+    {
+        auto obj = GetObject().GetDictionary().FindKey("Dest");
+        if (obj == nullptr)
+            return nullptr;
+
+        m_Destination.reset(new PdfDestination(*obj));
+    }
+
+    return m_Destination;
 }
 
 bool PdfAnnotation::HasDestination() const
 {
-    return this->GetObject()->GetDictionary().HasKey( "Dest" );
+    return this->GetObject().GetDictionary().HasKey("Dest");
 }
 
-void PdfAnnotation::SetAction( const PdfAction & rAction )
+void PdfAnnotation::SetAction(const shared_ptr<PdfAction>& action)
 {
-    if( m_pAction )
-        delete m_pAction;
-
-    m_pAction = new PdfAction( rAction );
-    this->GetObject()->GetDictionary().AddKey( "A", m_pAction->GetObject()->GetIndirectReference() );
+    this->GetObject().GetDictionary().AddKey("A", action->GetObject().GetIndirectReference());
+    m_Action = action;
 }
 
-PdfAction* PdfAnnotation::GetAction() const
+shared_ptr<PdfAction> PdfAnnotation::GetAction() const
 {
-    if( !m_pAction && HasAction() )
-        const_cast<PdfAnnotation*>(this)->m_pAction = new PdfAction( this->GetObject()->GetIndirectKey( "A" ) );
+    return const_cast<PdfAnnotation&>(*this).getAction();
+}
 
-    return m_pAction;
+shared_ptr<PdfAction> PdfAnnotation::getAction()
+{
+    if (m_Action == nullptr)
+    {
+        auto obj = this->GetObject().GetDictionary().FindKey("A");
+        if (obj == nullptr)
+            return nullptr;
+
+        m_Action.reset(new PdfAction(*obj));
+    }
+
+    return m_Action;
 }
 
 bool PdfAnnotation::HasAction() const
 {
-    return this->GetObject()->GetDictionary().HasKey( "A" );
+    return this->GetObject().GetDictionary().HasKey("A");
 }
 
-void PdfAnnotation::SetOpen( bool b )
+void PdfAnnotation::SetOpen(bool b)
 {
-    this->GetObject()->GetDictionary().AddKey( "Open", b );
+    this->GetObject().GetDictionary().AddKey("Open", b);
 }
 
 bool PdfAnnotation::GetOpen() const
 {
-    if( this->GetObject()->GetDictionary().HasKey( "Open" ) )
-        return this->GetObject()->GetDictionary().GetKey( "Open" )->GetBool();
+    if (this->GetObject().GetDictionary().HasKey("Open"))
+        return this->GetObject().GetDictionary().GetKey("Open")->GetBool();
 
     return false;
 }
 
 bool PdfAnnotation::HasFileAttachement() const
 {
-    return this->GetObject()->GetDictionary().HasKey( "FS" );
+    return this->GetObject().GetDictionary().HasKey("FS");
 }
 
-void PdfAnnotation::SetFileAttachement( const PdfFileSpec & rFileSpec )
+void PdfAnnotation::SetFileAttachement(const shared_ptr<PdfFileSpec>& fileSpec)
 {
-    if( m_pFileSpec )
-        delete m_pFileSpec;
-
-    m_pFileSpec = new PdfFileSpec( rFileSpec );
-    this->GetObject()->GetDictionary().AddKey( "FS", m_pFileSpec->GetObject()->GetIndirectReference() );
+    this->GetObject().GetDictionary().AddKey("FS", fileSpec->GetObject().GetIndirectReference());
+    m_pFileSpec = fileSpec;
 }
 
-PdfFileSpec* PdfAnnotation::GetFileAttachement() const
+shared_ptr<PdfFileSpec> PdfAnnotation::GetFileAttachement() const
 {
-    if( !m_pFileSpec && HasFileAttachement() )
-        const_cast<PdfAnnotation*>(this)->m_pFileSpec = new PdfFileSpec( this->GetObject()->GetIndirectKey( "FS" ) );
+    return const_cast<PdfAnnotation&>(*this).getFileAttachment();
+}
+
+shared_ptr<PdfFileSpec> PdfAnnotation::getFileAttachment()
+{
+    if (m_pFileSpec == nullptr)
+    {
+        auto obj = this->GetObject().GetDictionary().FindKey("FS");
+        if (obj == nullptr)
+            return nullptr;
+
+        m_pFileSpec.reset(new PdfFileSpec(*obj));
+    }
 
     return m_pFileSpec;
 }
 
 PdfArray PdfAnnotation::GetQuadPoints() const
 {
-    if( this->GetObject()->GetDictionary().HasKey( "QuadPoints" ) )
-        return PdfArray( this->GetObject()->GetDictionary().GetKey( "QuadPoints" )->GetArray() );
+    if (this->GetObject().GetDictionary().HasKey("QuadPoints"))
+        return this->GetObject().GetDictionary().GetKey("QuadPoints")->GetArray();
 
     return PdfArray();
 }
 
-void PdfAnnotation::SetQuadPoints( const PdfArray & rQuadPoints )
+void PdfAnnotation::SetQuadPoints(const PdfArray& rQuadPoints)
 {
-    if ( m_eAnnotation != EPdfAnnotation::Highlight &&
-         m_eAnnotation != EPdfAnnotation::Underline &&
-	 m_eAnnotation != EPdfAnnotation::Squiggly  &&
-	 m_eAnnotation != EPdfAnnotation::StrikeOut )
-        PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Must be a text markup annotation (highlight, underline, squiggly or strikeout) to set quad points" );
+    if (m_eAnnotation != PdfAnnotationType::Highlight &&
+        m_eAnnotation != PdfAnnotationType::Underline &&
+        m_eAnnotation != PdfAnnotationType::Squiggly &&
+        m_eAnnotation != PdfAnnotationType::StrikeOut)
+        PODOFO_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Must be a text markup annotation (highlight, underline, squiggly or strikeout) to set quad points");
 
-    this->GetObject()->GetDictionary().AddKey( "QuadPoints", rQuadPoints );
+    this->GetObject().GetDictionary().AddKey("QuadPoints", rQuadPoints);
 }
 
 PdfArray PdfAnnotation::GetColor() const
 {
-    if( this->GetObject()->GetDictionary().HasKey( "C" ) )
-        return PdfArray( this->GetObject()->GetDictionary().GetKey( "C" )->GetArray() );
+    if (this->GetObject().GetDictionary().HasKey("C"))
+        return PdfArray(this->GetObject().GetDictionary().GetKey("C")->GetArray());
+
     return PdfArray();
 }
 
-void PdfAnnotation::SetColor( double r, double g, double b )
+void PdfAnnotation::SetColor(double r, double g, double b)
 {
     PdfArray c;
-    c.push_back( PdfVariant( r ) );
-    c.push_back( PdfVariant( g ) );
-    c.push_back( PdfVariant( b ) );
-    this->GetObject()->GetDictionary().AddKey( "C", c );
-}
-void PdfAnnotation::SetColor( double C, double M, double Y, double K ) 
-{
-    PdfArray c;
-    c.push_back( PdfVariant( C ) );
-    c.push_back( PdfVariant( M ) );
-    c.push_back( PdfVariant( Y ) );
-    c.push_back( PdfVariant( K ) );
-    this->GetObject()->GetDictionary().AddKey( "C", c );
+    c.push_back(PdfVariant(r));
+    c.push_back(PdfVariant(g));
+    c.push_back(PdfVariant(b));
+    this->GetObject().GetDictionary().AddKey("C", c);
 }
 
-void PdfAnnotation::SetColor( double gray ) 
+void PdfAnnotation::SetColor(double C, double M, double Y, double K)
 {
     PdfArray c;
-    c.push_back( PdfVariant( gray ) );
-    this->GetObject()->GetDictionary().AddKey( "C", c );
+    c.push_back(PdfVariant(C));
+    c.push_back(PdfVariant(M));
+    c.push_back(PdfVariant(Y));
+    c.push_back(PdfVariant(K));
+    this->GetObject().GetDictionary().AddKey("C", c);
 }
 
-void PdfAnnotation::SetColor() 
+void PdfAnnotation::SetColor(double gray)
 {
     PdfArray c;
-    this->GetObject()->GetDictionary().AddKey( "C", c );
+    c.push_back(PdfVariant(gray));
+    this->GetObject().GetDictionary().AddKey("C", c);
 }
 
-PdfName GetAppearanceName( EPdfAnnotationAppearance eAppearance )
+void PdfAnnotation::SetColor()
 {
-    switch ( eAppearance )
+    PdfArray c;
+    this->GetObject().GetDictionary().AddKey("C", c);
+}
+
+PdfName GetAppearanceName(PdfAnnotationAppearance eAppearance)
+{
+    switch (eAppearance)
     {
-        case PoDoFo::EPdfAnnotationAppearance::Normal:
-            return PdfName( "N" );
-        case PoDoFo::EPdfAnnotationAppearance::Rollover:
-            return PdfName( "R" );
-        case PoDoFo::EPdfAnnotationAppearance::Down:
-            return PdfName( "D" );
+        case PoDoFo::PdfAnnotationAppearance::Normal:
+            return PdfName("N");
+        case PoDoFo::PdfAnnotationAppearance::Rollover:
+            return PdfName("R");
+        case PoDoFo::PdfAnnotationAppearance::Down:
+            return PdfName("D");
         default:
-            PODOFO_RAISE_ERROR_INFO( EPdfError::InternalLogic, "Invalid appearance type" );
+            PODOFO_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Invalid appearance type");
     }
 }
-};

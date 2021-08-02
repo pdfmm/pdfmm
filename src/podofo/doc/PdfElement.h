@@ -1,40 +1,13 @@
-/***************************************************************************
- *   Copyright (C) 2006 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *   Copyright (C) 2020 by Francesco Pretto                                *
- *   ceztko@gmail.com                                                      *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2006 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
-#ifndef _PDF_ELEMENT_H_
-#define _PDF_ELEMENT_H_
+#ifndef PDF_ELEMENT_H
+#define PDF_ELEMENT_H
 
 #include "podofo/base/PdfDefines.h"
 #include "podofo/base/PdfObject.h"
@@ -61,35 +34,28 @@ class PdfVecObjects;
  */
 class PODOFO_DOC_API PdfElement
 {
- public:
+public:
 
     virtual ~PdfElement();
 
     /** Get access to the internal object
      *  \returns the internal PdfObject
      */
-    inline PdfObject* GetObject() { return m_pObject; }
+    inline PdfObject& GetObject() { return *m_pObject; }
 
     /** Get access to the internal object
      *  This is an overloaded member function.
      *
      *  \returns the internal PdfObject
      */
-    inline const PdfObject* GetObject() const { return m_pObject; }
+    inline const PdfObject& GetObject() const { return *m_pObject; }
 
-    PdfDocument & GetDocument();
+    PdfDocument& GetDocument();
 
-    const PdfDocument & GetDocument() const;
+    const PdfDocument& GetDocument() const;
 
 protected:
-    /** Creates a new PdfElement 
-     *  \param pszType type entry of the elements object
-     *  \param pParent parent vector of objects.
-     *                 Add a newly created object to this vector.
-     */
-    PdfElement(PdfVecObjects& pParent, const std::string_view& type = { });
-
-    /** Creates a new PdfElement 
+    /** Creates a new PdfElement
      *  \param pszType type entry of the elements object
      *  \param pParent parent PdfDocument.
      *                 Add a newly created object to this vector.
@@ -100,7 +66,7 @@ protected:
      *  The object must be a dictionary.
      *
      *  \param pszType type entry of the elements object.
-     *                 Throws an exception if the type in the 
+     *                 Throws an exception if the type in the
      *                 PdfObject differs from pszType.
      *  \param pObject pointer to the PdfObject that is modified
      *                 by this PdfElement
@@ -108,7 +74,7 @@ protected:
     PdfElement(PdfObject& obj);
 
     /** Create a PdfElement from an existing PdfObject
-     *  The object might be of any data type, 
+     *  The object might be of any data type,
      *  PdfElement will throw an exception if the PdfObject
      *  if not of the same datatype as the expected one.
      *  This is necessary in rare cases. E.g. in PdfContents.
@@ -117,14 +83,14 @@ protected:
      *  \param pObject pointer to the PdfObject that is modified
      *                 by this PdfElement
      */
-    PdfElement( EPdfDataType eExpectedDataType, PdfObject* pObject );
+    PdfElement(EPdfDataType eExpectedDataType, PdfObject& obj);
 
-    PdfElement(const PdfElement &element);
+    PdfElement(const PdfElement& element);
 
     /** Convert an enum or index to its string representation
      *  which can be written to the PDF file.
-     * 
-     *  This is a helper function for various PdfElement 
+     *
+     *  This is a helper function for various PdfElement
      *  subclasses that need strings and enums for their
      *  SubTypes keys.
      *
@@ -133,14 +99,14 @@ protected:
      *         the string mapping of the index
      *  \param lLen the length of the string array
      *
-     *  \returns the string representation or nullptr for 
+     *  \returns the string representation or nullptr for
      *           values out of range
      */
-    const char* TypeNameForIndex( int i, const char** ppTypes, long lLen ) const;
+    const char* TypeNameForIndex(unsigned index, const char** types, unsigned len) const;
 
     /** Convert a string type to an array index or enum.
-     * 
-     *  This is a helper function for various PdfElement 
+     *
+     *  This is a helper function for various PdfElement
      *  subclasses that need strings and enums for their
      *  SubTypes keys.
      *
@@ -152,7 +118,7 @@ protected:
      *
      *  \returns the index of the string in the array
      */
-    int TypeNameToIndex( const char* pszType, const char** ppTypes, long lLen, int nUnknownValue ) const;
+    int TypeNameToIndex(const char* type, const char** types, unsigned len, int unknownValue) const;
 
     /** Create a PdfObject in the parent of this PdfElement which
      *  might either be a PdfStreamedDocument, a PdfDocument or
@@ -165,7 +131,7 @@ protected:
      *
      *  \returns a PdfObject which is owned by the parent
      */
-    PdfObject* CreateObject( const char* pszType = nullptr );
+    PdfObject* CreateObject(const char* pszType = nullptr);
 
     PdfObject* GetNonConstObject() const;
 
@@ -175,4 +141,4 @@ private:
 
 };
 
-#endif // PDF_ELEMENT_H_
+#endif // PDF_ELEMENT_H

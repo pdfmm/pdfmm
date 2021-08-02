@@ -1,206 +1,481 @@
-/***************************************************************************
- *   Copyright (C) 2005 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *   Copyright (C) 2020 by Francesco Pretto                                *
- *   ceztko@gmail.com                                                      *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
-
-#include "PdfFont.h"
+/**
+ * Copyright (C) 2005 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
 #include "base/PdfDefinesPrivate.h"
+#include "PdfFont.h"
+
+#include <sstream>
 
 #include "base/PdfArray.h"
 #include "base/PdfEncoding.h"
+#include "base/PdfEncodingFactory.h"
 #include "base/PdfInputStream.h"
 #include "base/PdfStream.h"
 #include "base/PdfWriter.h"
 #include "base/PdfLocale.h"
+#include "base/PdfCharCodeMap.h"
+#include "base/PdfEncodingShim.h"
+#include "base/PdfEncodingPrivate.h"
 
 #include "PdfFontMetrics.h"
 #include "PdfPage.h"
 
-#include <stdlib.h>
-#include <string.h>
-#include <sstream>
-
 using namespace std;
+using namespace PoDoFo;
 
-namespace PoDoFo {
+// kind of ABCDEF+
+static string_view genSubsetBasename();
 
-PdfFont::PdfFont( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfVecObjects* pParent )
-    : PdfElement(*pParent, "Font"), m_pEncoding( pEncoding ),
-      m_pMetrics( pMetrics ), m_bBold( false ), m_bItalic( false ), m_isBase14( false ), m_bIsSubsetting( false )
-
+PdfFont::PdfFont(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
+    const PdfEncoding& encoding) :
+    PdfElement(doc, "Font"), m_Metrics(metrics), m_IsLoaded(false)
 {
-    this->InitVars();
+    this->initBase(encoding);
 }
 
-PdfFont::PdfFont( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfObject* pObject )
-    : PdfElement(*pObject),
-      m_pEncoding( pEncoding ), m_pMetrics( pMetrics ),
-      m_bBold( false ), m_bItalic( false ), m_isBase14( false ), m_bIsSubsetting( false )
-
+PdfFont::PdfFont(PdfObject& obj, const PdfFontMetricsConstPtr& metrics,
+    const PdfEncoding& encoding) :
+    PdfElement(obj), m_Metrics(metrics), m_IsLoaded(true)
 {
-    this->InitVars();
+    this->initBase(encoding);
 
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /Ft for fonts.
     ostringstream out;
     PdfLocaleImbue(out);
-    out << "PoDoFoFt" << this->GetObject()->GetIndirectReference().ObjectNumber();
-    m_Identifier = PdfName( out.str().c_str() );
+    out << "PoDoFoFt" << this->GetObject().GetIndirectReference().ObjectNumber();
+    m_Identifier = PdfName(out.str().c_str());
+
+    // TODO Read /CIDToGIDMap
+    //const PdfName& subType = obj.GetDictionary().FindKey(PdfName::KeySubtype)->GetName();
+    //if (subType == "CIDFontType2")
+    //{
+    //    auto cidToGidMap = obj.GetDictionary().FindKey("CIDToGIDMap");
+    //    if (cidToGidMap != nullptr)
+    //    {
+    //
+    //    }
+    //}
 }
 
-PdfFont::~PdfFont()
-{
-    if (m_pMetrics)
-        delete m_pMetrics;
-    if( m_pEncoding && m_pEncoding->IsAutoDelete() )
-        delete m_pEncoding;
-}
+PdfFont::~PdfFont() { }
 
-void PdfFont::InitVars()
+void PdfFont::initBase(const PdfEncoding& encoding)
 {
+    if (m_Metrics == nullptr)
+        PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "Metrics must me not null");
+
+    if (encoding.GetId() == DynamicEncodingId)
+    {
+        m_DynCharCodeMap = std::make_shared<PdfCharCodeMap>();
+        m_Encoding.reset(new PdfDynamicEncoding(m_DynCharCodeMap, *this));
+    }
+    else
+    {
+        m_Encoding.reset(new PdfEncodingShim(encoding, *this));
+    }
+
+    if (!m_IsLoaded)
+    {
+        unsigned gid;
+        char32_t spaceCp = U' ';
+        if (m_Metrics->TryGetGID(spaceCp, gid))
+        {
+            // If it exist a glyph for space character
+            // always add it for subsetting
+            AddUsedGID(gid, cspan<char32_t>(&spaceCp, 1));
+        }
+    }
+
+    m_IsEmbedded = false;
+    m_EmbeddingEnabled = false;
+    m_SubsettingEnabled = false;
+
     ostringstream out;
     PdfLocaleImbue(out);
 
-    m_pMetrics->SetFontSize( 12.0 );
-    m_pMetrics->SetFontScale( 100.0 );
-    m_pMetrics->SetFontCharSpace( 0.0 );
-
-    // Peter Petrov 24 Spetember 2008
-    m_bWasEmbedded = false;
-
-    m_bUnderlined = false;
-    m_bStrikedOut = false;
-
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /Ft for fonts.
-    out << "Ft" << this->GetObject()->GetIndirectReference().ObjectNumber();
-    m_Identifier = PdfName( out.str().c_str() );
+    out << "Ft" << this->GetObject().GetIndirectReference().ObjectNumber();
+    m_Identifier = PdfName(out.str().c_str());
 
-	
-
-    // replace all spaces in the base font name as suggested in 
-    // the PDF reference section 5.5.2#
-    int curPos = 0;
-    std::string sTmp = m_pMetrics->GetFontname();
-    const char* pszPrefix = m_pMetrics->GetSubsetFontnamePrefix();
-    if( pszPrefix ) 
-    {
-	std::string sPrefix = pszPrefix;
-	sTmp = sPrefix + sTmp;
-    }
-
-    for(unsigned int i = 0; i < sTmp.size(); i++)
-    {
-        if(sTmp[i] != ' ')
-            sTmp[curPos++] = sTmp[i];
-    }
-    sTmp.resize(curPos);
-    m_BaseFont = PdfName( sTmp.c_str() );
+    // By default ensure the font has the /BaseFont name read
+    // from the loaded metrics or inferred from a font file
+    m_BaseFont = m_Metrics->GetFontNameSafe();
 }
 
-inline char ToHex( const char byte )
+void PdfFont::WriteStringToStream(PdfStream& stream, const string_view& str) const
 {
-    static const char* s_pszHex = "0123456789ABCDEF";
-
-    return s_pszHex[byte % 16];
-}
-void PdfFont::WriteStringToStream( const PdfString & rsString, PdfStream* pStream )
-{
-    if( !m_pEncoding )
-    {
-        PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
-    }
-
     stringstream ostream;
-    WriteStringToStream( rsString, ostream );
-    pStream->Append( ostream.str() );
+    WriteStringToStream(ostream, str);
+    stream.Append(ostream.str());
 }
 
-void PdfFont::WriteStringToStream( const PdfString & rsString, ostream& rStream )
+void PdfFont::WriteStringToStream(ostream& stream, const string_view& str) const
 {
-    PdfRefCountedBuffer buffer = m_pEncoding->ConvertToEncoding( rsString, this );
-    size_t lLen = 0;
-    char* pBuffer = nullptr;
+    auto encoded = m_Encoding->ConvertToEncoded(str);
+    size_t len = 0;
 
-    std::unique_ptr<PdfFilter> pFilter = PdfFilterFactory::Create( EPdfFilter::ASCIIHexDecode );    
-    pFilter->Encode( buffer.GetBuffer(), buffer.GetSize(), &pBuffer, &lLen );
+    unique_ptr<PdfFilter> filter = PdfFilterFactory::Create(PdfFilterType::ASCIIHexDecode);
+    unique_ptr<char> buffer;
+    filter->Encode(encoded.data(), encoded.size(), buffer, &len);
 
-    rStream << "<";
-    rStream.write( pBuffer, lLen );
-    rStream << ">";
-
-    podofo_free( pBuffer );
+    stream << "<";
+    stream.write(buffer.get(), len);
+    stream << ">";
 }
 
-// Peter Petrov 5 January 2009
-void PdfFont::EmbedFont()
+void PdfFont::InitImported(bool embeddingEnabled, bool subsettingEnabled)
 {
-    if (!m_bWasEmbedded)
+    if (subsettingEnabled && SupportsSubsetting())
     {
-        // Now we embed the font
+        // Subsetting implies embedded
+        m_SubsettingEnabled = true;
+        m_EmbeddingEnabled = true;
+    }
+    else
+    {
+        m_SubsettingEnabled = false;
+        m_EmbeddingEnabled = embeddingEnabled;
+    }
 
-        // Now we set the flag
-        m_bWasEmbedded = true;
+    string fontName = (string)m_Metrics->GetBaseFontName();
+    if (m_SubsettingEnabled)
+    {
+        m_SubsetPrefix = genSubsetBasename();
+        PODOFO_ASSERT(!m_SubsetPrefix.empty());
+        // replace all spaces in the base font name as suggested in 
+        // the PDF reference section 5.5.2#
+        fontName = m_SubsetPrefix + fontName;
+
+        int currPos = 0;
+        for (unsigned i = 0; i < fontName.size(); i++)
+        {
+            if (fontName[i] != ' ')
+                fontName[currPos++] = fontName[i];
+        }
+
+        fontName.resize(currPos);
+    }
+
+    if (m_EmbeddingEnabled && !m_SubsettingEnabled)
+    {
+        // Regular embedding is not done if subsetting is enabled
+        embedFont();
+        m_IsEmbedded = true;
+    }
+
+    if (!m_Metrics->FontNameHasBoldItalicInfo())
+    {
+        if (m_Metrics->IsBold())
+        {
+            if (m_Metrics->IsItalic())
+                fontName += ",BoldItalic";
+            else
+                fontName += ",Bold";
+        }
+        else if (m_Metrics->IsItalic())
+            fontName += ",Italic";
+    }
+
+    m_BaseFont = fontName;
+    initImported();
+}
+
+void PdfFont::EmbedFontSubset()
+{
+    if (m_IsEmbedded || !m_EmbeddingEnabled || !m_SubsettingEnabled)
+        return;
+
+    embedFontSubset();
+    m_IsEmbedded = true;
+}
+
+void PdfFont::embedFont()
+{
+    PODOFO_RAISE_ERROR_INFO(EPdfError::NotImplemented, "Embedding not implemented for this font type.");
+}
+
+void PdfFont::embedFontSubset()
+{
+    PODOFO_RAISE_ERROR_INFO(EPdfError::NotImplemented, "Subsetting not implemented for this font type.");
+}
+
+double PdfFont::GetStringWidth(const string_view& view, const PdfTextState& state) const
+{
+    // Ignore failures
+    double width;
+    (void)TryGetStringWidth(view, state, width);
+    return width;
+}
+
+bool PdfFont::TryGetStringWidth(const string_view& view, const PdfTextState& state, double& width) const
+{
+    vector<PdfCID> cids;
+    bool success = true;
+    if (!m_Encoding->TryConvertToCIDs(view, cids))
+        success = false;
+
+    width = getStringWidth(cids, state);
+    return success;
+}
+
+double PdfFont::GetStringWidth(const PdfString& encodedStr, const PdfTextState& state) const
+{
+    // Ignore failures
+    double width;
+    (void)TryGetStringWidth(encodedStr, state, width);
+    return width;
+}
+
+bool PdfFont::TryGetStringWidth(const PdfString& encodedStr, const PdfTextState& state, double& width) const
+{
+    vector<PdfCID> cids;
+    bool success = true;
+    if (!m_Encoding->TryConvertToCIDs(encodedStr, cids))
+        success = false;
+
+    width = getStringWidth(cids, state);
+    return success;
+}
+
+double PdfFont::GetCharWidth(char32_t codePoint, const PdfTextState& state, bool ignoreCharSpacing) const
+{
+    // Ignore failures
+    double width;
+    if (!TryGetCharWidth(codePoint, state, ignoreCharSpacing, width))
+        return GetDefaultCharWidth(state, ignoreCharSpacing);
+
+    return width;
+}
+
+bool PdfFont::TryGetCharWidth(char32_t codePoint, const PdfTextState& state, double& width) const
+{
+    return TryGetCharWidth(codePoint, state, false, width);
+}
+
+bool PdfFont::TryGetCharWidth(char32_t codePoint, const PdfTextState& state,
+    bool ignoreCharSpacing, double& width) const
+{
+    bool success = true;
+    PdfCID cid;
+    if (!m_Encoding->TryGetCID(codePoint, cid))
+    {
+        width = -1;
+        return false;
+    }
+
+    width = getCIDWidth(cid.Id, state, ignoreCharSpacing);
+    return success;
+}
+
+double PdfFont::GetDefaultCharWidth(const PdfTextState& state, bool ignoreCharSpacing) const
+{
+    if (ignoreCharSpacing)
+    {
+        return m_Metrics->GetDefaultCharWidth() * state.GetFontSize()
+            * state.GetFontScale();
+    }
+    else
+    {
+        return (m_Metrics->GetDefaultCharWidth() * state.GetFontSize()
+            + state.GetCharSpace()) * state.GetFontScale();
     }
 }
 
-void PdfFont::EmbedSubsetFont()
+double PdfFont::GetCIDWidthRaw(unsigned cid) const
 {
-	//virtual function is only implemented in derived class
-    PODOFO_RAISE_ERROR_INFO( EPdfError::NotImplemented, "Subsetting not implemented for this font type." );
+    unsigned gid;
+    if (!TryMapCIDToGID(cid, gid))
+        return m_Metrics->GetDefaultCharWidth();
+
+    return m_Metrics->GetGlyphWidth(gid);
 }
 
-void PdfFont::AddUsedSubsettingGlyphs( const PdfString & , size_t )
+void PdfFont::GetBoundingBox(PdfArray& arr) const
 {
-	//virtual function is only implemented in derived class
-    PODOFO_RAISE_ERROR_INFO( EPdfError::NotImplemented, "Subsetting not implemented for this font type." );
+    // TODO: Handle custom measure units, like for /Type3 fonts ?
+    arr.Clear();
+    vector<double> bbox;
+    m_Metrics->GetBoundingBox(bbox);
+    arr.push_back(PdfObject(static_cast<int64_t>(std::round(bbox[0] * 1000))));
+    arr.push_back(PdfObject(static_cast<int64_t>(std::round(bbox[1] * 1000))));
+    arr.push_back(PdfObject(static_cast<int64_t>(std::round(bbox[1] * 1000))));
+    arr.push_back(PdfObject(static_cast<int64_t>(std::round(bbox[2] * 1000))));
+
 }
 
-void PdfFont::AddUsedGlyphname( const char * )
+void PdfFont::FillDescriptor(PdfDictionary& dict)
 {
-	//virtual function is only implemented in derived class
-    PODOFO_RAISE_ERROR_INFO( EPdfError::NotImplemented, "Subsetting not implemented for this font type." );
+    // Setting the FontDescriptor paras:
+    PdfArray bbox;
+    GetBoundingBox(bbox);
+
+    // TODO: Handle custom measure units, like for /Type3 fonts, for Ascent/Descent/CapHeight...
+    dict.AddKey("FontName", PdfName(this->GetBaseFont()));
+    dict.AddKey(PdfName::KeyFlags, PdfObject(static_cast<int64_t>(32))); // TODO: 0 ????
+    dict.AddKey("FontBBox", bbox);
+    dict.AddKey("ItalicAngle", PdfObject(static_cast<int64_t>(m_Metrics->GetItalicAngle())));
+    dict.AddKey("Ascent", static_cast<int64_t>(std::round(m_Metrics->GetAscent() * 1000)));
+    dict.AddKey("Descent", static_cast<int64_t>(m_Metrics->GetDescent() * 1000));
+    dict.AddKey("CapHeight", static_cast<int64_t>(m_Metrics->GetAscent() * 1000)); // m_pMetrics->CapHeight() );
+    dict.AddKey("StemV", PdfObject(static_cast<int64_t>(1))); // m_pMetrics->StemV() );
 }
 
-void PdfFont::SetBold( bool bBold )
+void PdfFont::initImported()
 {
-    m_bBold = bBold;
+    // By default do nothing
 }
 
-void PdfFont::SetItalic( bool bItalic )
+double PdfFont::getStringWidth(const vector<PdfCID>& cids, const PdfTextState& state) const
 {
-    m_bItalic = bItalic;
+    double width = 0;
+    for (auto& cid : cids)
+        width += getCIDWidth(cid.Id, state, false);
+
+    return width;
 }
 
-};
+// TODO:
+// Handle word spacing Tw
+// 5.2.2 Word Spacing
+// Note: Word spacing is applied to every occurrence of the single-byte character code
+// 32 in a string when using a simple font or a composite font that defines code 32 as a
+// single - byte code.It does not apply to occurrences of the byte value 32 in multiplebyte
+// codes.
+double PdfFont::getCIDWidth(unsigned cid, const PdfTextState& state, bool ignoreCharSpacing) const
+{
+    double charWidth = GetCIDWidthRaw(cid);
+    if (ignoreCharSpacing)
+        return charWidth * state.GetFontSize() * state.GetFontScale();
+    else
+        return (charWidth * state.GetFontSize() + state.GetCharSpace()) * state.GetFontScale();
+}
+
+double PdfFont::GetLineSpacing(const PdfTextState& state) const
+{
+    return m_Metrics->GetLineSpacing() * state.GetFontSize();
+}
+
+// CHECK-ME Should state.GetFontScale() be considered?
+double PdfFont::GetUnderlineThickness(const PdfTextState& state) const
+{
+    return m_Metrics->GetUnderlineThickness() * state.GetFontSize();
+}
+
+// CHECK-ME Should state.GetFontScale() be considered?
+double PdfFont::GetUnderlinePosition(const PdfTextState& state) const
+{
+    return m_Metrics->GetUnderlinePosition() * state.GetFontSize();
+}
+
+// CHECK-ME Should state.GetFontScale() be considered?
+double PdfFont::GetStrikeOutPosition(const PdfTextState& state) const
+{
+    return m_Metrics->GetStrikeOutPosition() * state.GetFontSize();
+}
+
+// CHECK-ME Should state.GetFontScale() be considered?
+double PdfFont::GetStrikeOutThickness(const PdfTextState& state) const
+{
+    return m_Metrics->GetStrikeOutThickness() * state.GetFontSize();
+}
+
+double PdfFont::GetAscent(const PdfTextState& state) const
+{
+    return m_Metrics->GetAscent() * state.GetFontSize();
+}
+
+double PdfFont::GetDescent(const PdfTextState& state) const
+{
+    return m_Metrics->GetDescent() * state.GetFontSize();
+}
+
+PdfCID PdfFont::AddUsedGID(unsigned gid, const cspan<char32_t>& codePoints)
+{
+    PODOFO_ASSERT(!m_IsLoaded);
+
+    if (m_IsEmbedded)
+    {
+        PODOFO_RAISE_ERROR_INFO(EPdfError::InternalLogic,
+            "Can't add more subsetting glyphs on an already embedded font");
+    }
+
+    if (m_DynCharCodeMap == nullptr)
+    {
+        auto found = m_UsedGIDs.find(gid);
+        if (found != m_UsedGIDs.end())
+            return found->second;
+
+        PdfCharCode codeUnit;
+        if (!m_Encoding->GetToUnicodeMap().TryGetCharCode(codePoints, codeUnit))
+            PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidFontFile, "The encoding doesn't support these characters");
+
+        // We start numberings CIDs from 1 since
+        // CID 0 is reserved for fallbacks
+        m_UsedGIDs[gid] = PdfCID(m_UsedGIDs.size() + 1, codeUnit);
+        return codeUnit;
+    }
+    else
+    {
+        PODOFO_RAISE_ERROR_INFO(EPdfError::NotImplemented, "TODO");
+    }
+}
+
+bool PdfFont::SupportsSubsetting() const
+{
+    return false;
+}
+
+bool PdfFont::TryMapCIDToGID(unsigned cid, unsigned& gid) const
+{
+    // By default it's identity with cid
+    gid = cid;
+    return true;
+}
+
+bool PdfFont::TryMapGIDToCID(unsigned gid, unsigned& cid) const
+{
+    // By default it's identity with gid
+    cid = gid;
+    return true;
+}
+
+string_view genSubsetBasename()
+{
+    static constexpr unsigned SUBSET_BASENAME_LEN = 6; // + 2 for "+\0"
+    struct SubsetBaseNameCtx
+    {
+        SubsetBaseNameCtx()
+            : Basename{ }
+        {
+            char* p = Basename;
+            for (unsigned i = 0; i < SUBSET_BASENAME_LEN; i++, p++)
+                *p = 'A';
+
+            Basename[SUBSET_BASENAME_LEN] = '+';
+            Basename[0]--;
+        }
+        char Basename[SUBSET_BASENAME_LEN + 2];
+    };
+
+    static SubsetBaseNameCtx s_ctx;
+
+    for (unsigned i = 0; i < SUBSET_BASENAME_LEN; i++)
+    {
+        s_ctx.Basename[i]++;
+        if (s_ctx.Basename[i] <= 'Z')
+        {
+            break;
+        }
+
+        s_ctx.Basename[i] = 'A';
+    }
+
+    return s_ctx.Basename;
+}

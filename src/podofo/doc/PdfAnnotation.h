@@ -1,40 +1,13 @@
-/***************************************************************************
- *   Copyright (C) 2006 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *   Copyright (C) 2020 by Francesco Pretto                                *
- *   ceztko@gmail.com                                                      *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2006 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
-#ifndef _PDF_ANNOTATION_H_
-#define _PDF_ANNOTATION_H_
+#ifndef PDF_ANNOTATION_H
+#define PDF_ANNOTATION_H
 
 #include "podofo/base/PdfDefines.h"
 #include "PdfAction.h"
@@ -60,9 +33,10 @@ class PdfXObject;
  *  Please make also sure that the annotation type you use is
  *  supported by the PDF version you are using.
  */
-enum class EPdfAnnotation
+enum class PdfAnnotationType
 {
-    Text = 0,                   // - supported
+    Unknown = 0,
+    Text,                       // - supported
     Link,                       // - supported
     FreeText,       // PDF 1.3  // - supported
     Line,           // PDF 1.3  // - supported
@@ -89,15 +63,13 @@ enum class EPdfAnnotation
     Model3D,        // PDF 1.6
     RichMedia,      // PDF 1.7 ADBE ExtensionLevel 3 ALX: Petr P. Petrov
     WebMedia,       // PDF 1.7 IPDF ExtensionLevel 3
-
-    Unknown = 0xff
 };
 
 /** Flags that control the appearance of a PdfAnnotation.
  *  You can OR them together and pass it to 
  *  PdfAnnotation::SetFlags.
  */
-enum class EPdfAnnotationFlags
+enum class PdfAnnotationFlags
 {
     None         = 0x0000,
     Invisible    = 0x0001,
@@ -110,18 +82,16 @@ enum class EPdfAnnotationFlags
     Locked       = 0x0080,
     ToggleNoView = 0x0100,
     LockedContents = 0x0200,
-
-    Unknow       = 0xffff
 };
 
 /**
  * Type of the annotation appearance.
  */
-enum class EPdfAnnotationAppearance
+enum class PdfAnnotationAppearance
 {
-    Normal = 0, /**< Normal appearance */
-    Rollover,   /**< Rollover appearance; the default is EPdfAnnotationAppearance::Normal */
-    Down        /**< Down appearance; the default is EPdfAnnotationAppearance::Normal */
+    Normal = 0, ///< Normal appearance
+    Rollover,   ///< Rollover appearance; the default is PdfAnnotationAppearance::Normal
+    Down        ///< Down appearance; the default is PdfAnnotationAppearance::Normal
 };
 
 /** An annotation to a PdfPage 
@@ -141,14 +111,14 @@ public:
      *
      *  \see PdfPage::CreateAnnotation
      */
-    PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRect & rRect, PdfVecObjects* pParent );
+    PdfAnnotation(PdfPage& pPage, PdfAnnotationType eAnnot, const PdfRect& rRect);
 
     /** Create a PdfAnnotation from an existing object
      *
      *  \param pObject the annotations object
      *  \param pPage the page of the annotation
      */
-    PdfAnnotation( PdfObject* pObject, PdfPage* pPage );
+    PdfAnnotation(PdfPage& pPage, PdfObject& pObject);
 
     ~PdfAnnotation();
 
@@ -158,9 +128,9 @@ public:
      *  \param eApperance an apperance type to set
      *  \param state the state for which set it the pObject; states depend on the annotation type
      */
-    void SetAppearanceStream( PdfXObject* pObject, EPdfAnnotationAppearance eAppearance = EPdfAnnotationAppearance::Normal, const PdfName & state = "" );
+    void SetAppearanceStream(PdfXObject& pObject, PdfAnnotationAppearance eAppearance = PdfAnnotationAppearance::Normal, const PdfName& state = "");
 
-    /** 
+    /**
      * \returns true if this annotation has an appearance stream
      */
     bool HasAppearanceStream() const;
@@ -168,14 +138,14 @@ public:
     /**
     * \returns the appearance object /AP for this object
     */
-    PdfObject * GetAppearanceDictionary();
+    PdfObject* GetAppearanceDictionary();
 
     /**
     * \returns the appearance stream for this object
      *  \param eApperance an apperance type to get
      *  \param state a child state. Meaning depends on the annotation type
     */
-    PdfObject * GetAppearanceStream(EPdfAnnotationAppearance eAppearance = EPdfAnnotationAppearance::Normal, const PdfName & state = "");
+    PdfObject* GetAppearanceStream(PdfAnnotationAppearance eAppearance = PdfAnnotationAppearance::Normal, const PdfName& state = "");
 
     /** Get the rectangle of this annotation.
      *  \returns a rectangle
@@ -185,44 +155,44 @@ public:
     /** Set the rectangle of this annotation.
      * \param rRect rectangle to set
      */
-    void SetRect( const PdfRect & rRect );
- 
+    void SetRect(const PdfRect& rRect);
+
     /** Set the flags of this annotation.
-     *  \param uiFlags is an unsigned 32bit integer with different 
-     *                 EPdfAnnotationFlags OR'ed together.
+     *  \param uiFlags is an unsigned 32bit integer with different
+     *                 PdfAnnotationFlags OR'ed together.
      *  \see GetFlags
      */
-    void SetFlags(EPdfAnnotationFlags uiFlags);
+    void SetFlags(PdfAnnotationFlags uiFlags);
 
     /** Get the flags of this annotation.
      *  \returns the flags which is an unsigned 32bit integer with different
-     *           EPdfAnnotationFlags OR'ed together.
+     *           PdfAnnotationFlags OR'ed together.
      *
      *  \see SetFlags
      */
-    EPdfAnnotationFlags GetFlags() const;
+    PdfAnnotationFlags GetFlags() const;
 
     /** Set the annotations border style.
-     *  \param dHCorner horitzontal corner radius 
-     *  \param dVCorner vertical corner radius 
+     *  \param dHCorner horitzontal corner radius
+     *  \param dVCorner vertical corner radius
      *  \param dWidth width of border
      */
-    void SetBorderStyle( double dHCorner, double dVCorner, double dWidth );
+    void SetBorderStyle(double dHCorner, double dVCorner, double dWidth);
 
     /** Set the annotations border style.
-     *  \param dHCorner horitzontal corner radius 
-     *  \param dVCorner vertical corner radius 
+     *  \param dHCorner horitzontal corner radius
+     *  \param dVCorner vertical corner radius
      *  \param dWidth width of border
      *  \param rStrokeStyle a custom stroke style pattern
      */
-    void SetBorderStyle( double dHCorner, double dVCorner, double dWidth, const PdfArray & rStrokeStyle );
+    void SetBorderStyle(double dHCorner, double dVCorner, double dWidth, const PdfArray& rStrokeStyle);
 
     /** Set the title of this annotation.
      *  \param sTitle title of the annoation as string in PDF format
      *
      *  \see GetTitle
      */
-    void SetTitle( const PdfString & sTitle );
+    void SetTitle(const PdfString& sTitle);
 
     /** Get the title of this annotation
      *
@@ -230,7 +200,7 @@ public:
      *
      *  \see SetTitle
      */
-    PdfString GetTitle() const;
+    std::optional<PdfString> GetTitle() const;
 
     /** Set the text of this annotation.
      *
@@ -238,7 +208,7 @@ public:
      *
      *  \see GetContents
      */
-    void SetContents( const PdfString & sContents );
+    void SetContents(const PdfString& sContents);
 
     /** Get the text of this annotation
      *
@@ -246,25 +216,23 @@ public:
      *
      *  \see SetContents
      */
-    PdfString GetContents() const;
+    std::optional<PdfString> GetContents() const;
 
     /** Set the destination for link annotations
      *  \param rDestination target of the link
      *
      *  \see GetDestination
      */
-    void SetDestination( const PdfDestination & rDestination );
+    void SetDestination(const std::shared_ptr<PdfDestination>& destination);
 
     /** Get the destination of a link annotations
-     *  \param pDoc a PdfDocument owning this annotation.
-     *         This is required to resolve names and pages.
-     *  \returns a destination object
      * 
+     *  \returns a destination object
      *  \see SetDestination
      */
-    PdfDestination GetDestination( PdfDocument* pDoc ) const;
+    std::shared_ptr<PdfDestination> GetDestination() const;
 
-    /** 
+    /**
      *  \returns true if this annotation has an destination
      */
     bool HasDestination() const;
@@ -272,19 +240,19 @@ public:
     /** Set the action that is executed for this annotation
      *  \param rAction an action object
      *
-     *  \see GetAction 
+     *  \see GetAction
      */
-    void SetAction( const PdfAction & rAction );
+    void SetAction(const std::shared_ptr<PdfAction>& action);
 
     /** Get the action that is executed for this annotation
      *  \returns an action object. The action object is owned
      *           by the PdfAnnotation.
      *
-     *  \see SetAction 
+     *  \see SetAction
      */
-    PdfAction* GetAction() const;
+    std::shared_ptr<PdfAction> GetAction() const;
 
-    /** 
+    /**
      *  \returns true if this annotation has an action
      */
     bool HasAction() const;
@@ -293,14 +261,14 @@ public:
      *  You should always set this true for popup annotations.
      *  \param b if true open it
      */
-    void SetOpen( bool b );
+    void SetOpen(bool b);
 
-    /** 
+    /**
      * \returns true if this annotation should be opened immediately
      *          by the viewer
      */
     bool GetOpen() const;
-    
+
     /**
      * \returns true if this annotation has a file attachement
      */
@@ -308,22 +276,22 @@ public:
 
     /** Set a file attachment for this annotation.
      *  The type of this annotation has to be
-     *  EPdfAnnotation::FileAttachement for file 
+     *  EPdfAnnotation::FileAttachement for file
      *  attachements to work.
      *
      *  \param rFileSpec a file specification
      */
-    void SetFileAttachement( const PdfFileSpec & rFileSpec );
+    void SetFileAttachement(const std::shared_ptr<PdfFileSpec>& fileSpec);
 
     /** Get a file attachement of this annotation.
      *  \returns a file specification object. The file specification object is owned
      *           by the PdfAnnotation.
      *
-     *  \see SetFileAttachement 
+     *  \see SetFileAttachement
      */
-    PdfFileSpec* GetFileAttachement() const;
+    std::shared_ptr<PdfFileSpec> GetFileAttachement() const;
 
- 
+
     /** Get the quad points associated with the annotation (if appropriate).
      *  This array is used in text markup annotations to describe the
      *  regions affected by the markup (i.e. the hilighted words, one
@@ -343,12 +311,12 @@ public:
      *
      *  \param rQuadPoints a PdfArray of 8xn numbers describing the
      *           x,y coordinates of BL BR TR TL corners of the
-     *           quadrilaterals. 
+     *           quadrilaterals.
      */
-    void SetQuadPoints( const PdfArray & rQuadPoints );
+    void SetQuadPoints(const PdfArray& rQuadPoints);
 
     /** Get the color key of the Annotation dictionary
-     *  which defines the color of the annotation, 
+     *  which defines the color of the annotation,
      *  as per 8.4 of the pdf spec. The PdfArray contains
      *  0 to four numbers, depending on the colorspace in
      *  which the color is specified
@@ -368,24 +336,24 @@ public:
      *  color of the annotation, as per 8.4 of the pdf spec. Parameters
      *  give the color in rgb colorspace coordinates
      *
-     *  \param r number from 0 to 1, the intensity of the red channel 
-     *  \param g number from 0 to 1, the intensity of the green channel 
-     *  \param b number from 0 to 1, the intensity of the blue channel 
+     *  \param r number from 0 to 1, the intensity of the red channel
+     *  \param g number from 0 to 1, the intensity of the green channel
+     *  \param b number from 0 to 1, the intensity of the blue channel
      */
 
-    void SetColor( double r, double g, double b );
+    void SetColor(double r, double g, double b);
 
     /** Set the C key of the Annotation dictionary, which defines the
      *  color of the annotation, as per 8.4 of the pdf spec. Parameters
      *  give the color in cmyk colorspace coordinates
      *
-     *  \param c number from 0 to 1, the intensity of the cyan channel 
-     *  \param m number from 0 to 1, the intensity of the magneta channel 
-     *  \param y number from 0 to 1, the intensity of the yellow channel 
-     *  \param k number from 0 to 1, the intensity of the black channel 
+     *  \param c number from 0 to 1, the intensity of the cyan channel
+     *  \param m number from 0 to 1, the intensity of the magneta channel
+     *  \param y number from 0 to 1, the intensity of the yellow channel
+     *  \param k number from 0 to 1, the intensity of the black channel
      */
 
-    void SetColor( double c, double m, double y, double k );
+    void SetColor(double c, double m, double y, double k);
 
     /** Set the C key of the Annotation dictionary, which defines the
      *  color of the annotation, as per 8.4 of the pdf spec. Parameters
@@ -394,7 +362,7 @@ public:
      *  \param gray  number from 0 to 1, the intensity of the black
      */
 
-    void SetColor( double gray );
+    void SetColor(double gray);
 
     /** Set the C key of the Annotation dictionary to an empty array, which,
      *  as per 8.4 of the pdf spec., makes the annotation transparent
@@ -407,7 +375,7 @@ public:
     /** Get the type of this annotation
      *  \returns the annotation type
      */
-    inline EPdfAnnotation GetType() const { return m_eAnnotation; }
+    inline PdfAnnotationType GetType() const { return m_eAnnotation; }
 
     /** Get the page of this PdfField
      *
@@ -416,28 +384,23 @@ public:
     inline PdfPage* GetPage() const { return m_pPage; }
 
 private:
-    /** Convert an annotation enum to its string representation
-     *  which can be written to the PDF file.
-     *  \returns the string representation or nullptr for unsupported annotation types
-     */
+    std::shared_ptr<PdfDestination> getDestination();
+    std::shared_ptr<PdfAction> getAction();
+    std::shared_ptr<PdfFileSpec> getFileAttachment();
 
-    static const long  s_lNumActions;
-    static const char* s_names[];
-
- private:
-    EPdfAnnotation m_eAnnotation;
-
-    PdfAction*     m_pAction;
-    PdfFileSpec*   m_pFileSpec;
-
-    PdfPage*       m_pPage;
+private:
+    PdfAnnotationType m_eAnnotation;
+    std::shared_ptr<PdfDestination> m_Destination;
+    std::shared_ptr<PdfAction> m_Action;
+    std::shared_ptr<PdfFileSpec> m_pFileSpec;
+    PdfPage* m_pPage;
 };
 
 // helper function, to avoid code duplication
-void SetAppearanceStreamForObject( PdfObject* pForObject, PdfXObject* pObject, EPdfAnnotationAppearance eAppearance, const PdfName & state );
+void SetAppearanceStreamForObject(PdfObject& pForObject, PdfXObject& pObject, PdfAnnotationAppearance eAppearance, const PdfName& state);
 
 };
 
-ENABLE_BITMASK_OPERATORS(PoDoFo::EPdfAnnotationFlags);
+ENABLE_BITMASK_OPERATORS(PoDoFo::PdfAnnotationFlags);
 
-#endif /* _PDF_ANNOTATION_H_ */
+#endif // PDF_ANNOTATION_H

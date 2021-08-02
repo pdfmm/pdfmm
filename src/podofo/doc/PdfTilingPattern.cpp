@@ -1,26 +1,12 @@
-/***************************************************************************
-*   Copyright (C) 2007 by Dominik Seichter                                *
-*   domseichter@web.de                                                    *
-*                                                                         *
-*   This program is free software; you can redistribute it and/or modify  *
-*   it under the terms of the GNU Library General Public License as       *
-*   published by the Free Software Foundation; either version 2 of the    *
-*   License, or (at your option) any later version.                       *
-*                                                                         *
-*   This program is distributed in the hope that it will be useful,       *
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
-*   GNU General Public License for more details.                          *
-*                                                                         *
-*   You should have received a copy of the GNU Library General Public     *
-*   License along with this program; if not, write to the                 *
-*   Free Software Foundation, Inc.,                                       *
-*   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
-***************************************************************************/
-
-#include "PdfTilingPattern.h"
+/**
+ * Copyright (C) 2007 by Dominik Seichter <domseichter@web.de>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
 #include "base/PdfDefinesPrivate.h"
+#include "PdfTilingPattern.h"
 
 #include <doc/PdfDocument.h>
 #include "base/PdfArray.h"
@@ -38,15 +24,15 @@
 #include <iomanip>
 #include <sstream>
 
-namespace PoDoFo {
+using namespace std;
+using namespace PoDoFo;
 
-PdfTilingPattern::PdfTilingPattern( EPdfTilingPatternType eTilingType,
-		 double strokeR, double strokeG, double strokeB,
-		 bool doFill, double fillR, double fillG, double fillB,
-		 double offsetX, double offsetY,
-		 PdfImage *pImage,
-		 PdfVecObjects* pParent)
-    : PdfElement(*pParent, "Pattern")
+PdfTilingPattern::PdfTilingPattern(PdfDocument& doc, PdfTilingPatternType eTilingType,
+    double strokeR, double strokeG, double strokeB,
+    bool doFill, double fillR, double fillG, double fillB,
+    double offsetX, double offsetY,
+    PdfImage* pImage)
+    : PdfElement(doc, "Pattern")
 {
     std::ostringstream out;
     // We probably aren't doing anything locale sensitive here, but it's
@@ -55,39 +41,17 @@ PdfTilingPattern::PdfTilingPattern( EPdfTilingPatternType eTilingType,
 
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /Ft for fonts.
-    out << "Ptrn" << this->GetObject()->GetIndirectReference().ObjectNumber();
-    m_Identifier = PdfName( out.str().c_str() );
+    out << "Ptrn" << this->GetObject().GetIndirectReference().ObjectNumber();
 
-    this->Init( eTilingType, strokeR, strokeG, strokeB,
-		 doFill, fillR, fillG, fillB, offsetX, offsetY, pImage);
-}
+    m_Identifier = PdfName(out.str().c_str());
 
-PdfTilingPattern::PdfTilingPattern( EPdfTilingPatternType eTilingType,
-		 double strokeR, double strokeG, double strokeB,
-		 bool doFill, double fillR, double fillG, double fillB,
-		 double offsetX, double offsetY,
-		 PdfImage *pImage,
-		 PdfDocument* pParent)
-    : PdfElement(*pParent, "Pattern")
-{
-    std::ostringstream out;
-    // We probably aren't doing anything locale sensitive here, but it's
-    // best to be sure.
-    PdfLocaleImbue(out);
-
-    // Implementation note: the identifier is always
-    // Prefix+ObjectNo. Prefix is /Ft for fonts.
-    out << "Ptrn" << this->GetObject()->GetIndirectReference().ObjectNumber();
-
-    m_Identifier = PdfName( out.str().c_str() );
-
-    this->Init( eTilingType, strokeR, strokeG, strokeB,
-		 doFill, fillR, fillG, fillB, offsetX, offsetY, pImage);
+    this->Init(eTilingType, strokeR, strokeG, strokeB,
+        doFill, fillR, fillG, fillB, offsetX, offsetY, pImage);
 }
 
 void PdfTilingPattern::AddToResources(const PdfName &rIdentifier, const PdfReference &rRef, const PdfName &rName)
 {
-	PdfObject* pResource = GetObject()->GetDictionary().GetKey( "Resources" );
+    PdfObject* pResource = GetObject().GetDictionary().GetKey("Resources");
 
 	if( !pResource ) {
 		PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
@@ -99,9 +63,8 @@ void PdfTilingPattern::AddToResources(const PdfName &rIdentifier, const PdfRefer
 	if (EPdfDataType::Reference == pResource->GetDictionary().GetKey( rName )->GetDataType()) {
 		PdfObject *directObject = pResource->GetDocument()->GetObjects().GetObject(pResource->GetDictionary().GetKey( rName )->GetReference());
 
-		if (0 == directObject) {
+		if (directObject == nullptr)
          PODOFO_RAISE_ERROR( EPdfError::NoObject );
-		}
 
 		if( !directObject->GetDictionary().HasKey( rIdentifier ) )
          directObject->GetDictionary().AddKey( rIdentifier, rRef );
@@ -111,17 +74,17 @@ void PdfTilingPattern::AddToResources(const PdfName &rIdentifier, const PdfRefer
 	}
 }
 
-void PdfTilingPattern::Init( EPdfTilingPatternType eTilingType,
+void PdfTilingPattern::Init( PdfTilingPatternType eTilingType,
 		 double strokeR, double strokeG, double strokeB,
 		 bool doFill, double fillR, double fillG, double fillB,
 		 double offsetX, double offsetY,
 		 PdfImage *pImage)
 {
-	if (eTilingType == EPdfTilingPatternType::Image && pImage == nullptr) {
+	if (eTilingType == PdfTilingPatternType::Image && pImage == nullptr) {
 		PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
 	}
 
-	if (eTilingType != EPdfTilingPatternType::Image && pImage != nullptr) {
+	if (eTilingType != PdfTilingPatternType::Image && pImage != nullptr) {
 		PODOFO_RAISE_ERROR( EPdfError::InvalidHandle );
 	}
 
@@ -140,13 +103,13 @@ void PdfTilingPattern::Init( EPdfTilingPatternType eTilingType,
 	PdfVariant var;
    rRect.ToVariant( var );
 
-	this->GetObject()->GetDictionary().AddKey( PdfName("PatternType"), static_cast<int64_t>(1L) ); // Tiling pattern
-	this->GetObject()->GetDictionary().AddKey( PdfName("PaintType"), static_cast<int64_t>(1L) ); // Colored
-	this->GetObject()->GetDictionary().AddKey( PdfName("TilingType"), static_cast<int64_t>(1L) ); // Constant spacing
-	this->GetObject()->GetDictionary().AddKey( PdfName("BBox"), var );
-	this->GetObject()->GetDictionary().AddKey( PdfName("XStep"), static_cast<int64_t>(rRect.GetWidth()) );
-	this->GetObject()->GetDictionary().AddKey( PdfName("YStep"), static_cast<int64_t>(rRect.GetHeight()) );
-	this->GetObject()->GetDictionary().AddKey( PdfName("Resources"), PdfObject( PdfDictionary() ) );
+   this->GetObject().GetDictionary().AddKey(PdfName("PatternType"), static_cast<int64_t>(1)); // Tiling pattern
+    this->GetObject().GetDictionary().AddKey(PdfName("PaintType"), static_cast<int64_t>(1)); // Colored
+    this->GetObject().GetDictionary().AddKey(PdfName("TilingType"), static_cast<int64_t>(1)); // Constant spacing
+    this->GetObject().GetDictionary().AddKey(PdfName("BBox"), var);
+    this->GetObject().GetDictionary().AddKey(PdfName("XStep"), static_cast<int64_t>(rRect.GetWidth()));
+    this->GetObject().GetDictionary().AddKey(PdfName("YStep"), static_cast<int64_t>(rRect.GetHeight()));
+    this->GetObject().GetDictionary().AddKey(PdfName("Resources"), PdfObject(PdfDictionary()));
 
 	if (offsetX < -1e-9 || offsetX > 1e-9 || offsetY < -1e-9 || offsetY > 1e-9) {
 		PdfArray array;
@@ -158,12 +121,12 @@ void PdfTilingPattern::Init( EPdfTilingPatternType eTilingType,
 		array.push_back (offsetX);
 		array.push_back (offsetY);
 
-		this->GetObject()->GetDictionary().AddKey( PdfName("Matrix"), array );
+        this->GetObject().GetDictionary().AddKey(PdfName("Matrix"), array);
 	}
 
    std::ostringstream out;
    out.flags( std::ios_base::fixed );
-   out.precision( 1L /* clPainterDefaultPrecision */ );
+   out.precision(1 /* clPainterDefaultPrecision */);
    PdfLocaleImbue(out);
 
 	if (pImage) {
@@ -194,31 +157,31 @@ void PdfTilingPattern::Init( EPdfTilingPatternType eTilingType,
 		hhalf = rRect.GetHeight() / 2;
 
 		switch (eTilingType) {
-		case EPdfTilingPatternType::BDiagonal:
+		case PdfTilingPatternType::BDiagonal:
 			out << left          << " " << bottom         << " m " << right         << " " << top            << " l ";
 			out << left - whalf  << " " << top - hhalf    << " m " << left + whalf  << " " << top + hhalf    << " l ";
 			out << right - whalf << " " << bottom - hhalf << " m " << right + whalf << " " << bottom + hhalf << " l" << std::endl;
 			break;
-		case EPdfTilingPatternType::Cross:
+		case PdfTilingPatternType::Cross:
 			out << left          << " " << bottom + hhalf << " m " << right         << " " << bottom + hhalf << " l ";
 			out << left + whalf  << " " << bottom         << " m " << left + whalf  << " " << top            << " l" << std::endl;
 			break;
-		case EPdfTilingPatternType::DiagCross:
+		case PdfTilingPatternType::DiagCross:
 			out << left          << " " << bottom         << " m " << right         << " " << top            << " l ";
 			out << left          << " " << top            << " m " << right         << " " << bottom         << " l" << std::endl;
 			break;
-		case EPdfTilingPatternType::FDiagonal:
+		case PdfTilingPatternType::FDiagonal:
 			out << left          << " " << top            << " m " << right         << " " << bottom         << " l ";
 			out << left - whalf  << " " << bottom + hhalf << " m " << left + whalf  << " " << bottom - hhalf << " l ";
 			out << right - whalf << " " << top + hhalf    << " m " << right + whalf << " " << top - hhalf    << " l" << std::endl;
 			break;
-		case EPdfTilingPatternType::Horizontal:
+		case PdfTilingPatternType::Horizontal:
 			out << left          << " " << bottom + hhalf << " m " << right         << " " << bottom + hhalf << " l ";
 			break;
-		case EPdfTilingPatternType::Vertical:
+		case PdfTilingPatternType::Vertical:
 			out << left + whalf  << " " << bottom         << " m " << left + whalf  << " " << top            << " l" << std::endl;
 			break;
-		case EPdfTilingPatternType::Image:
+		case PdfTilingPatternType::Image:
 			/* This is handled above, based on the 'pImage' variable */
 		default:
 			PODOFO_RAISE_ERROR (EPdfError::InvalidEnumValue);
@@ -230,12 +193,10 @@ void PdfTilingPattern::Init( EPdfTilingPatternType eTilingType,
 	}
 
 	TVecFilters vecFlate;
-	vecFlate.push_back( EPdfFilter::FlateDecode );
+	vecFlate.push_back( PdfFilterType::FlateDecode );
 
 	std::string str = out.str();
 	PdfMemoryInputStream stream(str.c_str(), str.length());
 
-	GetObject()->GetOrCreateStream().Set(&stream, vecFlate);
+    GetObject().GetOrCreateStream().Set(stream, vecFlate);
 }
-
-}	// end namespace

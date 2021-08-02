@@ -1,38 +1,12 @@
-/***************************************************************************
- *   Copyright (C) 2007 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2007 by Dominik Seichter <domseichter@web.de>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
-#ifndef _PDF_IMMEDIATE_WRITER_H_
-#define _PDF_IMMEDIATE_WRITER_H_
+#ifndef PDF_IMMEDIATE_WRITER_H
+#define PDF_IMMEDIATE_WRITER_H
 
 #include "PdfDefines.h"
 #include "PdfVecObjects.h"
@@ -47,8 +21,8 @@ class PdfXRef;
 /** A kind of PdfWriter that writes objects with streams immediately to
  *  a PdfOutputDevice
  */
-class PODOFO_API PdfImmediateWriter : private PdfWriter, 
-    private PdfVecObjects::Observer, 
+class PODOFO_API PdfImmediateWriter : private PdfWriter,
+    private PdfVecObjects::Observer,
     private PdfVecObjects::StreamFactory
 {
 public:
@@ -70,8 +44,8 @@ public:
      *  @param eWriteMode additional options for writing the pdf
      */
     PdfImmediateWriter(PdfVecObjects& pVecObjects, const PdfObject& pTrailer, PdfOutputDevice& pDevice,
-                        EPdfVersion eVersion = EPdfVersion::V1_5, PdfEncrypt* pEncrypt = nullptr,
-                        EPdfWriteMode eWriteMode = PdfWriteModeDefault );
+        PdfVersion eVersion = PdfVersion::V1_5, PdfEncrypt* pEncrypt = nullptr,
+        PdfWriteMode eWriteMode = PdfWriteModeDefault);
 
     ~PdfImmediateWriter();
 
@@ -79,41 +53,22 @@ public:
     /** Get the write mode used for wirting the PDF
      *  \returns the write mode
      */
-    EPdfWriteMode GetWriteMode() const;
-    
+    PdfWriteMode GetWriteMode() const;
+
     /** Get the PDF version of the document
      *  The PDF version can only be set in the constructor
      *  as it is the first item written to the document on disk
      *
      *  \returns EPdfVersion version of the pdf document
      */
-    EPdfVersion GetPdfVersion() const;
+    PdfVersion GetPdfVersion() const;
 
- private:
-    void WriteObject( const PdfObject* pObject ) override;
-
-    /** Finish the PDF file.
-     *  I.e. write the XRef and close the output device.
-     */
+private:
+    void WriteObject(const PdfObject& obj) override;
     void Finish() override;
-
-    /** Called whenever appending to a stream is started.
-     *  \param pStream the stream object the user currently writes to.
-     */
-    void BeginAppendStream( const PdfStream* pStream ) override;
-    
-    /** Called whenever appending to a stream has ended.
-     *  \param pStream the stream object the user currently writes to.
-     */
-    void EndAppendStream( const PdfStream* pStream ) override;
-
-    /** Creates a stream object
-     *
-     *  \param pParent parent object
-     *
-     *  \returns a new stream object 
-     */
-    PdfStream* CreateStream( PdfObject* pParent ) override;
+    void BeginAppendStream(const PdfStream& pStream) override;
+    void EndAppendStream(const PdfStream& pStream) override;
+    PdfStream* CreateStream(PdfObject& parent) override;
 
     /** Assume the stream for the last object has
      *  been written complete.
@@ -123,15 +78,14 @@ public:
      */
     void FinishLastObject();
 
- private:
+private:
     bool m_attached;
-    PdfOutputDevice* m_pDevice;
-    std::unique_ptr<PdfXRef> m_pXRef;
-    PdfObject*       m_pLast;
-    bool             m_bOpenStream;
+    PdfOutputDevice* m_Device;
+    std::unique_ptr<PdfXRef> m_XRef;
+    PdfObject* m_Last;
+    bool m_OpenStream;
 };
 
 };
 
-#endif /* _PDF_IMMEDIATE_WRITER_H_ */
-
+#endif // PDF_IMMEDIATE_WRITER_H

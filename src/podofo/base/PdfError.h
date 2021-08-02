@@ -1,46 +1,19 @@
-/***************************************************************************
- *   Copyright (C) 2006 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *   Copyright (C) 2020 by Francesco Pretto                                *
- *   ceztko@gmail.com                                                      *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2006 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
-#ifndef _PDF_ERROR_H_
-#define _PDF_ERROR_H_
+#ifndef PDF_ERROR_H
+#define PDF_ERROR_H
 
 // PdfError.h should not include PdfDefines.h, since it is included by it.
 // It should avoid depending on anything defined in PdfDefines.h .
 
 #include "podofoapi.h"
-#include <string>
+
 #include <queue>
 #include <cstdarg>
 
@@ -59,6 +32,7 @@ namespace PoDoFo {
  */
 enum class EPdfError
 {
+    Unknown = -1,             /**< Unknown error */
     ErrOk = 0,                /**< The default value indicating no error. */
 
     TestFailed,               /**< Used in PoDoFo tests, to indicate that a test failed for some reason. */
@@ -124,8 +98,6 @@ enum class EPdfError
     OutlineItemAlreadyPresent,/**< An outline item to be inserted was already in that outlines tree. */
     NotLoadedForUpdate,       /**< The document had not been loaded for update. */
     CannotEncryptedForUpdate, /**< Cannot load encrypted documents for update. */
-
-    Unknown = 0xffff          /**< Unknown error */
 };
 
 /**
@@ -133,16 +105,15 @@ enum class EPdfError
  *
  * \see PdfError::LogMessage
  */
-enum class ELogSeverity
+enum class LogSeverity
 {
-    Critical,            /**< Critical unexpected error */
-    Error,               /**< Error */
-    Warning,             /**< Warning */
-    Information,         /**< Information message */
-    Debug,               /**< Debug information */
-    None,                /**< No specified level */
-
-    Unknown = 0xffff     /**< Unknown log level */
+    Unknown = 0,         ///< Unknown log level
+    Critical,            ///< Critical unexpected error
+    Error,               ///< Error
+    Warning,             ///< Warning
+    Information,         ///< Information message
+    Debug,               ///< Debug information
+    None,                ///< No specified level
 };
 
 /** \def PODOFO_RAISE_ERROR( x )
@@ -224,8 +195,8 @@ public:
     {
     public:
         virtual ~LogMessageCallback() {}
-        virtual void LogMessage( ELogSeverity eLogSeverity, const char* pszPrefix, const char* pszMsg, va_list & args ) = 0;
-        virtual void LogMessage( ELogSeverity eLogSeverity, const wchar_t* pszPrefix, const wchar_t* pszMsg, va_list & args ) = 0;
+        virtual void LogMessage( LogSeverity eLogSeverity, const char* pszPrefix, const char* pszMsg, va_list & args ) = 0;
+        virtual void LogMessage( LogSeverity eLogSeverity, const wchar_t* pszPrefix, const wchar_t* pszMsg, va_list & args ) = 0;
     };
 
     /** Set a global static LogMessageCallback functor to replace stderr output in LogMessageInternal.
@@ -306,12 +277,12 @@ public:
     /** Return the error code of this object.
      *  \returns the error code of this object
      */
-    inline EPdfError GetError() const;
+    inline EPdfError GetError() const { return m_error; }
 
     /** Get access to the internal callstack of this error.
      *  \returns the callstack deque of PdfErrorInfo objects.
      */
-    inline const TDequeErrorInfo & GetCallstack() const;
+    inline const TDequeErrorInfo & GetCallstack() const { return m_callStack; }
 
     /** Set the error code of this object.
      *  \param eCode the error code of this object
@@ -325,8 +296,8 @@ public:
      *         e.g. how to fix the error. This string is intended to 
      *         be shown to the user.
      */
-    inline void SetError( const EPdfError & eCode, const char* pszFile, int line,
-                        std::string sInformation );
+    void SetError(const EPdfError& eCode, const char* pszFile, int line,
+        std::string sInformation);
 
     /** Set the error code of this object.
      *  \param eCode the error code of this object
@@ -340,14 +311,14 @@ public:
      *         e.g. how to fix the error. This string is intended to 
      *         be shown to the user.
      */
-    inline void SetError( const EPdfError & eCode, const char* pszFile = nullptr, int line = 0, const char* pszInformation = nullptr );
+    void SetError(const EPdfError& eCode, const char* pszFile = nullptr, int line = 0, const char* pszInformation = nullptr);
 
     /** Set additional error information.
      *  \param pszInformation additional information on the error,
      *         e.g. how to fix the error. This string is intended to 
      *         be shown to the user.
      */
-    inline void SetErrorInformation( const char* pszInformation );
+    void SetErrorInformation(const char* pszInformation);
 
     /** Set additional error information.
      *  \param pszInformation additional information on the error,
@@ -369,7 +340,7 @@ public:
      *         e.g. how to fix the error. This string is intended to 
      *         be shown to the user.
      */
-    inline void AddToCallstack( const char* pszFile = nullptr, int line = 0, const char* pszInformation = nullptr );
+    void AddToCallstack(const char* pszFile = nullptr, int line = 0, const char* pszInformation = nullptr);
 
 	/** Add callstack information to an error object. Always call this function
      *  if you get an error object but do not handle the error but throw it again.
@@ -384,12 +355,12 @@ public:
      *         e.g. how to fix the error. This string is intended to 
      *         be shown to the user.
      */
-    inline void AddToCallstack( const char* pszFile, int line, std::string sInformation );
+    void AddToCallstack(const char* pszFile, int line, std::string sInformation);
 
     /** \returns true if an error code was set 
      *           and false if the error code is EPdfError::ErrOk.
      */
-    inline bool IsError() const;
+    bool IsError() const;
 
     /** Print an error message to stderr. This includes callstack
      *  and extra info, if any of either was set.
@@ -418,13 +389,13 @@ public:
      *  \param eLogSeverity the severity of the log message
      *  \param pszMsg       the message to be logged
      */
-    static void LogMessage( ELogSeverity eLogSeverity, const char* pszMsg, ... );
+    static void LogMessage( LogSeverity eLogSeverity, const char* pszMsg, ... );
 
     /** Log a message to the logging system defined for PoDoFo.
      *  \param eLogSeverity the severity of the log message
      *  \param pszMsg       the message to be logged
      */
-    static void LogMessage( ELogSeverity eLogSeverity, const wchar_t* pszMsg, ... );
+    static void LogMessage( LogSeverity eLogSeverity, const wchar_t* pszMsg, ... );
 
      /** Enable or disable logging.
      *  \param bEnable       enable (true) or disable (false)
@@ -458,7 +429,7 @@ public:
      *  \param eLogSeverity the severity of the log message
      *  \param pszMsg       the message to be logged
      */
-    static void LogErrorMessage( ELogSeverity eLogSeverity, const char* pszMsg, ... );
+    static void LogErrorMessage( LogSeverity eLogSeverity, const char* pszMsg, ... );
 
     /** Log a message to the logging system defined for PoDoFo.
      *
@@ -468,10 +439,10 @@ public:
      *  \param eLogSeverity the severity of the log message
      *  \param pszMsg       the message to be logged
      */
-    static void LogErrorMessage( ELogSeverity eLogSeverity, const wchar_t* pszMsg, ... );
+    static void LogErrorMessage( LogSeverity eLogSeverity, const wchar_t* pszMsg, ... );
 
-    static void LogMessageInternal( ELogSeverity eLogSeverity, const char* pszMsg, va_list & args );
-    static void LogMessageInternal( ELogSeverity eLogSeverity, const wchar_t* pszMsg, va_list & args );
+    static void LogMessageInternal( LogSeverity eLogSeverity, const char* pszMsg, va_list & args );
+    static void LogMessageInternal( LogSeverity eLogSeverity, const wchar_t* pszMsg, va_list & args );
 
  private:
     EPdfError          m_error;
@@ -485,84 +456,6 @@ public:
     static LogMessageCallback* m_fLogMessageCallback;
 };
 
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-EPdfError PdfError::GetError() const
-{
-    return m_error;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-const TDequeErrorInfo & PdfError::GetCallstack() const
-{
-    return m_callStack;
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfError::SetError( const EPdfError & eCode, const char* pszFile, int line, const char* pszInformation )
-{
-    m_error = eCode;
-    this->AddToCallstack( pszFile, line, pszInformation );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfError::AddToCallstack( const char* pszFile, int line, const char* pszInformation )
-{
-    m_callStack.push_front( PdfErrorInfo( line, pszFile, pszInformation ) );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfError::SetError( const EPdfError & eCode, const char* pszFile, int line, std::string sInformation )
-{
-    m_error = eCode;
-    this->AddToCallstack( pszFile, line, sInformation );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfError::AddToCallstack( const char* pszFile, int line, std::string sInformation )
-{
-    m_callStack.push_front( PdfErrorInfo( line, pszFile, sInformation ) );
-}
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfError::SetErrorInformation( const char* pszInformation )
-{
-    if( m_callStack.size() )
-        m_callStack.front().SetInformation( pszInformation ? pszInformation : "" );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-void PdfError::SetErrorInformation( const wchar_t* pszInformation )
-{
-    if( m_callStack.size() )
-        m_callStack.front().SetInformation( pszInformation ? pszInformation : L"" );
-}
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-bool PdfError::IsError() const
-{
-    return m_error != EPdfError::ErrOk;
-}
-
 };
 
-#endif /* _PDF_ERROR_H_ */
-
-
-
+#endif // PDF_ERROR_H

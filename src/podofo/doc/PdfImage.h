@@ -1,40 +1,13 @@
-/***************************************************************************
- *   Copyright (C) 2005 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *   Copyright (C) 2020 by Francesco Pretto                                *
- *   ceztko@gmail.com                                                      *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2005 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
-#ifndef _PDF_IMAGE_H_
-#define _PDF_IMAGE_H_
+#ifndef PDF_IMAGE_H
+#define PDF_IMAGE_H
 
 #include <cstdio>
 
@@ -60,37 +33,22 @@ class PdfVecObjects;
  *
  *  \see SetImageData
  */
-class PODOFO_DOC_API PdfImage : public PdfXObject {
- public:
-    /** Constuct a new PdfImage object
-     *
-     *  \param pParent parent vector of this image
-	 *  \param pszPrefix optional prefix for XObject-name
-     */
-    PdfImage( PdfVecObjects* pParent, const char* pszPrefix = nullptr );
-
+class PODOFO_DOC_API PdfImage final : public PdfXObject
+{
+public:
     /** Constuct a new PdfImage object
      *  This is an overloaded constructor.
      *
      *  \param pParent parent document
-	 *  \param pszPrefix optional prefix for XObject-name
+     *  \param pszPrefix optional prefix for XObject-name
      */
-    PdfImage( PdfDocument* pParent, const char* pszPrefix = nullptr );
+    PdfImage(PdfDocument& doc, const std::string_view& prefix = { });
 
     /** Construct an image from an existing PdfObject
-     *  
+     *
      *  \param pObject a PdfObject that has to be an image
      */
-    PdfImage( PdfObject* pObject );
-
-    /**
-     * Get a list of all image formats supported by this PoDoFo build.
-     *
-     * Example: { "JPEG", "TIFF", nullptr }
-     *
-     * \returns a zero terminates list of all supported image formats
-     */
-    static const char** GetSupportedFormats();
+    PdfImage(PdfObject& obj);
 
     /** Set the color space of this image. The default value is
      *  EPdfColorSpace::DeviceRGB.
@@ -102,13 +60,13 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
      *
      *  \see SetImageICCProfile to set an ICC profile instead of a simple colorspace
      */
-    void SetImageColorSpace( EPdfColorSpace eColorSpace, const PdfArray *indexedData = nullptr );
+    void SetImageColorSpace(PdfColorSpace eColorSpace, const PdfArray* indexedData = nullptr);
 
     /** Get the color space of the image
     *
     *  \returns the color space of the image
     */
-    EPdfColorSpace GetImageColorSpace();
+    PdfColorSpace GetImageColorSpace();
 
     /** Set an ICC profile for this image.
      *
@@ -118,8 +76,8 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
      *
      *  \see SetImageColorSpace to set an colorspace instead of an ICC profile for this image
      */
-    void SetImageICCProfile( PdfInputStream* pStream, long lColorComponents, 
-                             EPdfColorSpace eAlternateColorSpace = EPdfColorSpace::DeviceRGB );
+    void SetImageICCProfile(PdfInputStream& stream, unsigned lColorComponents,
+        PdfColorSpace eAlternateColorSpace = PdfColorSpace::DeviceRGB);
 
     //EPdfColorSpace GetImageColorSpace() const;
 
@@ -127,9 +85,9 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
      *  \param pSoftmask a PdfImage pointer to the image, which is to be set as softmask, must be 8-Bit-Grayscale
      *
      */
-    void SetImageSoftmask( const PdfImage* pSoftmask );
+    void SetImageSoftmask(const PdfImage& softmask);
 
-	/** Get the width of the image when drawn in PDF units
+    /** Get the width of the image when drawn in PDF units
      *  \returns the width in PDF units
      */
     unsigned GetWidth() const;
@@ -140,12 +98,12 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
     unsigned GetHeight() const;
 
     /** Set the actual image data from an input stream
-     *  
+     *
      *  The image data will be flate compressed.
      *  If you want no compression or another filter to be applied
      *  use the overload of SetImageData which takes a TVecFilters
      *  as argument.
-     *  
+     *
      *  \param nWidth width of the image in pixels
      *  \param nHeight height of the image in pixels
      *  \param nBitsPerComponent bits per color component of the image (depends on the image colorspace you have set
@@ -154,11 +112,11 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
      *
      *  \see SetImageData
      */
-    void SetImageData( unsigned nWidth, unsigned nHeight, 
-                       unsigned nBitsPerComponent, PdfInputStream* pStream, bool writeRect = true);
+    void SetImageData(PdfInputStream& stream, unsigned nWidth, unsigned nHeight,
+        unsigned nBitsPerComponent, bool writeRect = true);
 
     /** Set the actual image data from an input stream
-     *  
+     *
      *  \param nWidth width of the image in pixels
      *  \param nHeight height of the image in pixels
      *  \param nBitsPerComponent bits per color component of the image (depends on the image colorspace you have set
@@ -166,27 +124,27 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
      *  \param pStream stream supplieding raw image data
      *  \param vecFilters these filters will be applied to compress the image data
      */
-    void SetImageData( unsigned nWidth, unsigned nHeight, 
-                       unsigned nBitsPerComponent, PdfInputStream* pStream, const TVecFilters & vecFilters, bool writeRect = true);
+    void SetImageData(PdfInputStream &stream, unsigned nWidth, unsigned nHeight,
+                      unsigned nBitsPerComponent, TVecFilters & vecFilters, bool writeRect = true);
 
     /** Set the actual image data from an input stream.
      *  The data has to be encoded already and an appropriate
      *  filters key entry has to be set manually before!
-     *  
+     *
      *  \param nWidth width of the image in pixels
      *  \param nHeight height of the image in pixels
      *  \param nBitsPerComponent bits per color component of the image (depends on the image colorspace you have set
      *                           but is 8 in most cases)
      *  \param pStream stream supplieding raw image data
      */
-    void SetImageDataRaw( unsigned nWidth, unsigned nHeight, 
-                          unsigned nBitsPerComponent, PdfInputStream & pStream );
+    void SetImageDataRaw(PdfInputStream &pStream, unsigned nWidth, unsigned nHeight,
+        unsigned nBitsPerComponent);
 
     /** Load the image data from a file
      *  \param pszFilename
      */
     void LoadFromFile(const std::string_view& filename);
-    
+
     /** Load the image data from bytes
      *  \param pData bytes
      *  \param dwLen number of bytes
@@ -211,7 +169,7 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
      *  \param pszFilename
      */
     void LoadFromTiff(const std::string_view& filename);
-    
+
     /** Load the image data from TIFF bytes
      *  \param pData TIFF bytes
      *  \param dwLen number of bytes
@@ -224,7 +182,7 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
      *  \param pszFilename
      */
     void LoadFromPng(const std::string_view& filename);
-    
+
     /** Load the image data from PNG bytes
      *  \param pData PNG bytes
      *  \param dwLen number of bytes
@@ -250,14 +208,14 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
      */
     void SetInterpolate(bool bValue);
 
- private:
+private:
 
     /** Converts a EPdfColorSpace enum to a name key which can be used in a
      *  PDF dictionary.
      *  \param eColorSpace a valid colorspace
      *  \returns a valid key for this colorspace.
      */
-    static PdfName ColorspaceToName( EPdfColorSpace eColorSpace );
+    static PdfName ColorspaceToName(PdfColorSpace eColorSpace);
 
 #ifdef PODOFO_HAVE_JPEG_LIB
 	void LoadFromJpegHandle(FILE* pInStream, const std::string_view& filename);
@@ -266,7 +224,7 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
     void LoadFromTiffHandle(void* pInStream);
 #endif // PODOFO_HAVE_TIFF_LIB
 #ifdef PODOFO_HAVE_PNG_LIB
-	void LoadFromPngHandle(FILE* pInStream);
+    void LoadFromPngHandle(FILE* pInStream);
 #endif // PODOFO_HAVE_PNG_LIB
 
     unsigned m_width;
@@ -275,4 +233,4 @@ class PODOFO_DOC_API PdfImage : public PdfXObject {
 
 };
 
-#endif // _PDF_IMAGE_H_
+#endif // PDF_IMAGE_H

@@ -1,38 +1,13 @@
-/***************************************************************************
- *   Copyright (C) 2006 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2006 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
-#ifndef _PDF_ACTION_H_
-#define _PDF_ACTION_H_
+#ifndef PDF_ACTION_H
+#define PDF_ACTION_H
 
 #include "podofo/base/PdfDefines.h"
 #include "PdfElement.h"
@@ -53,9 +28,10 @@ class PdfVecObjects;
  *  Please make also sure that the action type you use is
  *  supported by the PDF version you are using.
  */
-enum class EPdfAction
+enum class PdfActionType
 {
-    GoTo = 0,
+    Unknown = 0,
+    GoTo,
     GoToR,
     GoToE,
     Launch,    
@@ -74,59 +50,51 @@ enum class EPdfAction
     Trans,
     GoTo3DView,
     RichMediaExecute,
-    
-    Unknown = 0xff
 };
 
 /** An action that can be performed in a PDF document
  */
-class PODOFO_DOC_API PdfAction : public PdfElement {
-
+class PODOFO_DOC_API PdfAction final : public PdfElement
+{
     friend class PdfAnnotation;
 
- public:
+public:
     /** Create a new PdfAction object
      *  \param eAction type of this action
      *  \param pParent parent of this action
      */
-    PdfAction( EPdfAction eAction, PdfVecObjects* pParent );
+    PdfAction(PdfDocument& doc, PdfActionType action);
 
-    /** Create a new PdfAction object
-     *  \param eAction type of this action
-     *  \param pParent parent of this action
-     */
-    PdfAction( EPdfAction eAction, PdfDocument* pParent );
-
-    /** Create a PdfAction object from an existing 
+    /** Create a PdfAction object from an existing
      *  PdfObject
      */
-    PdfAction( PdfObject* pObject );
+    PdfAction(PdfObject& obj);
 
     /** Set the URI of an EPdfAction::URI
      *  \param sUri must be a correct URI as PdfString
      */
-    void SetURI( const PdfString & sUri );
+    void SetURI(const PdfString& sUri);
 
     /** Get the URI of an EPdfAction::URI
      *  \returns an URI
      */
     PdfString GetURI() const;
 
-    /** 
+    /**
      *  \returns true if this action has an URI
      */
     bool HasURI() const;
 
-    void SetScript( const PdfString & sScript );
+    void SetScript(const PdfString& sScript);
 
     PdfString GetScript() const;
 
     bool HasScript() const;
-    
+
     /** Get the type of this action
      *  \returns the type of this action
      */
-    inline EPdfAction GetType() const;
+    inline PdfActionType GetType() const { return m_eType; }
 
     /** Adds this action to an dictionary.
      *  This method handles the all the complexities of making sure it's added correctly
@@ -135,28 +103,15 @@ class PODOFO_DOC_API PdfAction : public PdfElement {
      *
      *  \param dictionary the action will be added to this dictionary
      */
-    void AddToDictionary( PdfDictionary & dictionary ) const;
+    void AddToDictionary(PdfDictionary& dictionary) const;
 
- private:
-    PdfAction( const PdfAction & rhs );
+private:
+    PdfAction(const PdfAction& rhs) = delete;
 
- private:
-
-    static const long  s_lNumActions;
-    static const char* s_names[];
-
- private:
-    EPdfAction m_eType;
+private:
+    PdfActionType m_eType;
 };
-
-// -----------------------------------------------------
-// 
-// -----------------------------------------------------
-inline EPdfAction PdfAction::GetType() const
-{
-    return m_eType;
-}
 
 };
 
-#endif // _PDF_ACTION_H_
+#endif // PDF_ACTION_H

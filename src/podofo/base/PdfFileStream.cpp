@@ -1,38 +1,11 @@
-/***************************************************************************
- *   Copyright (C) 2007 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *   Copyright (C) 2020 by Francesco Pretto                                *
- *   ceztko@gmail.com                                                      *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2007 by Dominik Seichter <domseichter@web.de>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
+#include "PdfDefinesPrivate.h"
 #include "PdfFileStream.h"
 
 #include <doc/PdfDocument.h>
@@ -40,19 +13,23 @@
 #include "PdfFilter.h"
 #include "PdfOutputDevice.h"
 #include "PdfOutputStream.h"
-#include "PdfDefinesPrivate.h"
 #include "PdfObject.h"
 #include "PdfDictionary.h"
 
 using namespace std;
 using namespace PoDoFo;
 
-PdfFileStream::PdfFileStream( PdfObject* pParent, PdfOutputDevice* pDevice )
-    : PdfStream( pParent ), m_pDevice( pDevice ),
-        m_lLenInitial( 0 ), m_lLength( 0 ), m_pCurEncrypt( nullptr )
+PdfFileStream::PdfFileStream(PdfObject& parent, PdfOutputDevice& device)
+    : PdfStream(parent), m_Device(&device),
+    m_initialLength(0), m_Length(0), m_CurEncrypt(nullptr)
 {
-    m_pLength = pParent->GetDocument()->GetObjects().CreateObject( PdfVariant(static_cast<int64_t>(0)) );
-    m_pParent->GetDictionary().AddKey( PdfName::KeyLength, m_pLength->GetIndirectReference() );
+    m_LengthObj = parent.GetDocument()->GetObjects().CreateObject(PdfVariant(static_cast<int64_t>(0)));
+    m_Parent->GetDictionary().AddKey(PdfName::KeyLength, m_LengthObj->GetIndirectReference());
+}
+
+PdfFileStream::~PdfFileStream()
+{
+    EnsureAppendClosed();
 }
 
 void PdfFileStream::Write(PdfOutputDevice&, const PdfEncrypt*)
@@ -60,87 +37,87 @@ void PdfFileStream::Write(PdfOutputDevice&, const PdfEncrypt*)
     PODOFO_RAISE_ERROR(EPdfError::NotImplemented);
 }
 
-void PdfFileStream::BeginAppendImpl( const TVecFilters & vecFilters )
+void PdfFileStream::BeginAppendImpl(const TVecFilters& filters)
 {
-    m_pParent->GetDocument()->GetObjects().WriteObject( m_pParent );
+    m_Parent->GetDocument()->GetObjects().WriteObject(*m_Parent);
 
-    m_lLenInitial = m_pDevice->GetLength();
+    m_initialLength = m_Device->GetLength();
 
-    if( vecFilters.size() )
+    if (filters.size())
     {
-        m_pDeviceStream = unique_ptr<PdfDeviceOutputStream>(new PdfDeviceOutputStream(m_pDevice));
-        if( m_pCurEncrypt ) 
+        m_DeviceStream = unique_ptr<PdfDeviceOutputStream>(new PdfDeviceOutputStream(*m_Device));
+        if (m_CurEncrypt != nullptr)
         {
-            m_pEncryptStream = m_pCurEncrypt->CreateEncryptionOutputStream(*m_pDeviceStream);
-            m_pStream = PdfFilterFactory::CreateEncodeStream( vecFilters, *m_pEncryptStream );
+            m_EncryptStream = m_CurEncrypt->CreateEncryptionOutputStream(*m_DeviceStream);
+            m_Stream = PdfFilterFactory::CreateEncodeStream(filters, *m_EncryptStream);
         }
         else
-            m_pStream = PdfFilterFactory::CreateEncodeStream( vecFilters, *m_pDeviceStream );
+            m_Stream = PdfFilterFactory::CreateEncodeStream(filters, *m_DeviceStream);
     }
-    else 
+    else
     {
-        if( m_pCurEncrypt ) 
+        if (m_CurEncrypt != nullptr)
         {
-            m_pDeviceStream = unique_ptr<PdfDeviceOutputStream>(new PdfDeviceOutputStream( m_pDevice ));
-            m_pStream = m_pCurEncrypt->CreateEncryptionOutputStream(*m_pDeviceStream);
+            m_DeviceStream = unique_ptr<PdfDeviceOutputStream>(new PdfDeviceOutputStream(*m_Device));
+            m_Stream = m_CurEncrypt->CreateEncryptionOutputStream(*m_DeviceStream);
         }
         else
-            m_pStream = unique_ptr<PdfDeviceOutputStream>(new PdfDeviceOutputStream( m_pDevice ));
+            m_Stream = unique_ptr<PdfDeviceOutputStream>(new PdfDeviceOutputStream(*m_Device));
     }
 }
 
 void PdfFileStream::AppendImpl(const char* data, size_t len)
 {
-    m_pStream->Write(data, len);
+    m_Stream->Write(data, len);
 }
 
 void PdfFileStream::EndAppendImpl()
 {
-    if( m_pStream ) 
+    if (m_Stream != nullptr)
     {
-        m_pStream->Close();
-        m_pStream = nullptr;
+        m_Stream->Close();
+        m_Stream = nullptr;
     }
 
-    if( m_pEncryptStream ) 
+    if (m_EncryptStream != nullptr)
     {
-        m_pEncryptStream->Close();
-        m_pEncryptStream = nullptr;
+        m_EncryptStream->Close();
+        m_EncryptStream = nullptr;
     }
 
-    if( m_pDeviceStream ) 
+    if (m_DeviceStream != nullptr)
     {
-        m_pDeviceStream->Close();
-        m_pDeviceStream = nullptr;
+        m_DeviceStream->Close();
+        m_DeviceStream = nullptr;
     }
 
-    m_lLength = m_pDevice->GetLength() - m_lLenInitial;
-    if (m_pCurEncrypt)
-        m_lLength = m_pCurEncrypt->CalculateStreamLength(m_lLength);
+    m_Length = m_Device->GetLength() - m_initialLength;
+    if (m_CurEncrypt != nullptr)
+        m_Length = m_CurEncrypt->CalculateStreamLength(m_Length);
 
-    m_pLength->SetNumber(static_cast<int64_t>(m_lLength));
+    m_LengthObj->SetNumber(static_cast<int64_t>(m_Length));
 }
 
-void PdfFileStream::GetCopy( char**, size_t* ) const
+void PdfFileStream::GetCopy(char**, size_t*) const
 {
-    PODOFO_RAISE_ERROR( EPdfError::InternalLogic );
+    PODOFO_RAISE_ERROR(EPdfError::InternalLogic);
 }
 
-void PdfFileStream::GetCopy(PdfOutputStream*) const
+void PdfFileStream::GetCopy(PdfOutputStream&) const
 {
-	PODOFO_RAISE_ERROR( EPdfError::InternalLogic );
+    PODOFO_RAISE_ERROR(EPdfError::InternalLogic);
 }
 
-void PdfFileStream::SetEncrypted( PdfEncrypt* pEncrypt ) 
+void PdfFileStream::SetEncrypted(PdfEncrypt* pEncrypt)
 {
-    m_pCurEncrypt = pEncrypt;
-    if( m_pCurEncrypt )
-        m_pCurEncrypt->SetCurrentReference( m_pParent->GetIndirectReference() );
+    m_CurEncrypt = pEncrypt;
+    if (m_CurEncrypt != nullptr)
+        m_CurEncrypt->SetCurrentReference(m_Parent->GetIndirectReference());
 }
 
 size_t PdfFileStream::GetLength() const
 {
-    return m_lLength;
+    return m_Length;
 }
 
 const char* PdfFileStream::GetInternalBuffer() const

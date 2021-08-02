@@ -1,37 +1,10 @@
-/***************************************************************************
- *   Copyright (C) 2005 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *   Copyright (C) 2020 by Francesco Pretto                                *
- *   ceztko@gmail.com                                                      *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2005 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
 #ifndef PDF_VEC_OBJECTS_H
 #define PDF_VEC_OBJECTS_H
@@ -65,7 +38,7 @@ typedef std::list<PdfReference*>                 TReferencePointerList;
 typedef TReferencePointerList::iterator          TIReferencePointerList;
 typedef TReferencePointerList::const_iterator    TCIReferencePointerList;
 
-typedef std::vector<TReferencePointerList  >     TVecReferencePointerList;
+typedef std::vector<TReferencePointerList>       TVecReferencePointerList;
 typedef TVecReferencePointerList::iterator       TIVecReferencePointerList;
 typedef TVecReferencePointerList::const_iterator TCIVecReferencePointerList;
 
@@ -84,7 +57,7 @@ typedef TVecObjects::const_iterator  TCIVecObjects;
  *  These class contains also advanced funtions for searching of PdfObject's
  *  in a PdfVecObject. 
  */
-class PODOFO_API PdfVecObjects
+class PODOFO_API PdfVecObjects final
 {
     friend class PdfWriter;
     friend class PdfDocument;
@@ -106,17 +79,17 @@ public:
     public:
         virtual ~Observer() { }
 
-        virtual void WriteObject( const PdfObject* pObject ) = 0;
-        
+        virtual void WriteObject(const PdfObject& obj) = 0;
+
         /** Called whenever appending to a stream is started.
          *  \param pStream the stream object the user currently writes to.
          */
-        virtual void BeginAppendStream( const PdfStream* pStream ) = 0;
+        virtual void BeginAppendStream(const PdfStream& stream) = 0;
 
         /** Called whenever appending to a stream has ended.
          *  \param pStream the stream object the user currently writes to.
          */
-        virtual void EndAppendStream( const PdfStream* pStream ) = 0;
+        virtual void EndAppendStream(const PdfStream& stream) = 0;
 
         virtual void Finish() = 0;
     };
@@ -126,26 +99,24 @@ public:
     class PODOFO_API StreamFactory
     {
     public:
-        virtual ~StreamFactory(){ }
-        
+        virtual ~StreamFactory() { }
+
         /** Creates a stream object
          *
          *  \param pParent parent object
          *
-         *  \returns a new stream object 
+         *  \returns a new stream object
          */
-        virtual PdfStream* CreateStream( PdfObject* pParent ) = 0;
+        virtual PdfStream* CreateStream(PdfObject& parent) = 0;
     };
 
- private:
+private:
     typedef std::vector<Observer*>        TVecObservers;
     typedef TVecObservers::iterator       TIVecObservers;
     typedef TVecObservers::const_iterator TCIVecObservers;
 
- public:
-    /** Default constuctor 
-     */
-    PdfVecObjects(PdfDocument &document);
+public:
+    PdfVecObjects(PdfDocument& document);
 
     ~PdfVecObjects();
 
@@ -156,7 +127,7 @@ public:
      *
      *  If set to false, the list of free object numbers is automatically cleared.
      */
-    void SetCanReuseObjectNumbers( bool bCanReuseObjectNumbers );
+    void SetCanReuseObjectNumbers(bool canReuseObjectNumbers);
 
     /** Removes all objects from the vector
      *  and resets it to the default state.
@@ -169,22 +140,22 @@ public:
      */
     void Clear();
 
-    /** 
+    /**
      *  \returns the size of the internal vector
      */
     size_t GetSize() const;
 
     /**
-     *  \returns the highest object number in the vector 
+     *  \returns the highest object number in the vector
      */
-    size_t GetObjectCount() const { return m_nObjectCount; }
+    size_t GetObjectCount() const { return m_ObjectCount; }
 
-    /** Finds the object with the given reference in m_vecOffsets 
+    /** Finds the object with the given reference in m_vecOffsets
      *  and returns a pointer to it if it is found.
      *  \param ref the object to be found
      *  \returns the found object or nullptr if no object was found.
      */
-    PdfObject* GetObject( const PdfReference & ref ) const;
+    PdfObject* GetObject(const PdfReference& ref) const;
 
     /** Remove the object with the given object and generation number from the list
      *  of objects.
@@ -197,13 +168,13 @@ public:
      *                     as invalid PDF files can be generated otherwise
      *  \returns The removed object.
      */
-    std::unique_ptr<PdfObject> RemoveObject(const PdfReference& ref, bool bMarkAsFree = true);
+    std::unique_ptr<PdfObject> RemoveObject(const PdfReference& ref, bool markAsFree = true);
 
     /** Remove the object with the iterator it from the vector and return it
      *  \param it the object to remove
      *  \returns the removed object
      */
-    std::unique_ptr<PdfObject> RemoveObject( const TIVecObjects & it );
+    std::unique_ptr<PdfObject> RemoveObject(const TIVecObjects& it);
 
     /** Creates a new object and inserts it into the vector.
      *  This function assigns the next free object number to the PdfObject.
@@ -219,9 +190,9 @@ public:
      *  \param rVariant value of the PdfObject
      *  \returns PdfObject pointer to the new PdfObject
      */
-    PdfObject* CreateObject( const PdfVariant & rVariant );
+    PdfObject* CreateObject(const PdfVariant& variant);
 
-    /** 
+    /**
      *  Renumbers all objects according to there current position in the vector.
      *  All references remain intact.
      *  Warning! This function is _very_ calculation intensive.
@@ -233,9 +204,9 @@ public:
      *
      *  \see CollectGarbage
      */
-    void RenumberObjects( PdfObject& pTrailer, TPdfReferenceSet* pNotDelete = nullptr, bool bDoGarbageCollection = false );
+    void RenumberObjects(PdfObject& trailer, TPdfReferenceSet* notDelete = nullptr, bool doGarbageCollection = false);
 
-    /** 
+    /**
      * Sort the objects in the vector based on their object and generation numbers
      */
     void Sort();
@@ -249,7 +220,7 @@ public:
      * (without proper locking).
      * \param size Number of elements to allow to be reserved
      */
-    void SetMaxReserveSize(size_t size) { m_nMaxReserveSize = size; }
+    void SetMaxReserveSize(size_t size) { m_MaxReserveSize = size; }
 
     /**
      * Gets the maximum number of elements Reserve() will work for (to fix
@@ -257,54 +228,54 @@ public:
      * The default is from Table C.1 in section C.2 of PDF32000_2008.pdf
      * (PDF 1.7 standard free version): 8388607.
      */
-    size_t GetMaxReserveSize() const { return m_nMaxReserveSize; }
+    size_t GetMaxReserveSize() const { return m_MaxReserveSize; }
 
-    /** 
+    /**
      * Causes the internal vector to reserve space for size elements.
      * \param size reserve space for that much elements in the internal vector
      */
-    void Reserve( size_t size );
+    void Reserve(size_t size);
 
     /** Get a set with all references of objects that the passed object
      *  depends on.
      *  \param pObj the object to calculate all dependencies for
      *  \param pList write the list of dependencies to this list
-     *     
+     *
      */
-    void GetObjectDependencies( const PdfObject& pObj, TPdfReferenceList& pList ) const;
+    void GetObjectDependencies(const PdfObject& obj, TPdfReferenceList& list) const;
 
 
     /** Attach a new observer
      *  \param pObserver to attach
      */
-    void Attach( Observer* pObserver );
-    
+    void Attach(Observer* observer);
+
     /** Detach an observer.
      *
      *  \param pObserver observer to detach
      */
-    void Detach( Observer* pObserver );
+    void Detach(Observer* observer);
 
     /** Sets a StreamFactory which is used whenever CreateStream is called.
-     *  
+     *
      *  \param pFactory a stream factory or nullptr to reset to the default factory
      */
-    void SetStreamFactory( StreamFactory* pFactory );
+    void SetStreamFactory(StreamFactory* factory);
 
     /** Creates a stream object
      *  This method is a factory for PdfStream objects.
      *
      *  \param pParent parent object
      *
-     *  \returns a new stream object 
+     *  \returns a new stream object
      */
-    PdfStream* CreateStream( PdfObject* pParent );
+    PdfStream* CreateStream(PdfObject& parent);
 
     /** Can be called to force objects to be written to disk.
-     * 
-     *  \param pObject a PdfObject that should be written to disk.
+     *
+     *  \param obj a PdfObject that should be written to disk.
      */
-    void WriteObject( PdfObject* pObject );
+    void WriteObject(PdfObject& obj);
 
     /** Call whenever a document is finished
      */
@@ -313,45 +284,39 @@ public:
     /** Every stream implementation has to call this in BeginAppend
      *  \param pStream the stream object that is calling
      */
-    void BeginAppendStream( const PdfStream* pStream );
-    
+    void BeginAppendStream(const PdfStream& stream);
+
     /** Every stream implementation has to call this in EndAppend
      *  \param pStream the stream object that is calling
      */
-    void EndAppendStream( const PdfStream* pStream );
+    void EndAppendStream(const PdfStream& stream);
 
     PdfObject*& operator[](size_t index);
 
     /** Get the last object in the vector
-     *  \returns the last object in the vector or nullptr 
+     *  \returns the last object in the vector or nullptr
      *           if the vector is emtpy.
      */
     PdfObject* GetBack();
 
     /**
      * Deletes all objects that are not references by other objects
-     * besides the trailer (which references the root dictionary, which in 
+     * besides the trailer (which references the root dictionary, which in
      * turn should reference all other objects).
      *
      * \param pTrailer trailer object of the PDF
      *
      * Warning this might be slow!
      */
-    void CollectGarbage( PdfObject& pTrailer );
+    void CollectGarbage(PdfObject& trailer);
 
-	/** Get next unique subset-prefix
-     *
-     *  \returns a string to use as subset-prefix.
-     */
-	std::string GetNextSubsetPrefix();
-
- 	/**
+    /**
      * Set the object count so that the object described this reference
      * is contained in the object count.
      *
      * \param rRef reference of newly added object
      */
-    void SetObjectCount( const PdfReference & rRef );
+    void SetObjectCount(const PdfReference& ref);
 
 public:
     /** Iterator pointing at the begining of the vector
@@ -371,12 +336,12 @@ public:
      *           parent of this vector.
      *           Might be nullptr if the vector has no parent.
      */
-    inline PdfDocument& GetDocument() const { return *m_pDocument; }
+    inline PdfDocument& GetDocument() const { return *m_Document; }
 
     /**
      *  \returns whether can re-use free object numbers when creating new objects.
      */
-    inline bool GetCanReuseObjectNumbers() const { return m_bCanReuseObjectNumbers; }
+    inline bool GetCanReuseObjectNumbers() const { return m_CanReuseObjectNumbers; }
 
     /** \returns a list of free references in this vector
      */
@@ -390,11 +355,11 @@ private:
      *
      *  \param pObj pointer to the object you want to insert
      */
-    void AddObject(PdfObject* pObj);
+    void AddObject(PdfObject* obj);
 
     /** Push an object with the givent reference. If one is existing, it will be replaced
      */
-    void PushObject(const PdfReference &reference, PdfObject* pObj);
+    void PushObject(const PdfReference& reference, PdfObject* obj);
 
     /** Mark a reference as unused so that it can be reused for new objects.
      *
@@ -405,7 +370,7 @@ private:
      *
      *  \see AddFreeObject
      */
-    bool TryAddFreeObject(const PdfReference & rReference);
+    bool TryAddFreeObject(const PdfReference& reference);
 
     /** Mark a reference as unused so that it can be reused for new objects.
      *
@@ -417,14 +382,14 @@ private:
      *
      *  \see AddFreeObject
      */
-    int32_t SafeAddFreeObject(const PdfReference & rReference);
+    int32_t SafeAddFreeObject(const PdfReference& reference);
 
     /** Mark a reference as unused so that it can be reused for new objects.
      *  \param rReference the reference to reuse
      *
      *  \see GetCanReuseObjectNumbers
      */
-    void AddFreeObject(const PdfReference & rReference);
+    void AddFreeObject(const PdfReference& reference);
 
 private:
     void addNewObject(PdfObject* obj);
@@ -436,17 +401,17 @@ private:
 
     int32_t tryAddFreeObject(uint32_t objnum, uint32_t gennum);
 
-    /** 
+    /**
      * Create a list of all references that point to the object
      * for each object in this vector.
      * \param pList write all references to this list
      */
-    void buildReferenceCountVector( TVecReferencePointerList& pList );
-    void insertReferencesIntoVector( const PdfObject& pObj, TVecReferencePointerList& pList );
+    void buildReferenceCountVector(TVecReferencePointerList& list);
+    void insertReferencesIntoVector(const PdfObject& obj, TVecReferencePointerList& list);
 
     /** Assumes that the PdfVecObjects is sorted
      */
-    void insertOneReferenceIntoVector( const PdfObject& pObj, TVecReferencePointerList& pList );
+    void insertOneReferenceIntoVector(const PdfObject& obj, TVecReferencePointerList& list);
 
     /** Delete all objects from the vector which do not have references to them selves
      *  \param pList must be a list created by BuildReferenceCountVector
@@ -454,24 +419,27 @@ private:
      *  \param pNotDelete a list of object which must not be deleted
      *  \see BuildReferenceCountVector
      */
-    void garbageCollection( TVecReferencePointerList& pList, PdfObject& pTrailer, TPdfReferenceSet* pNotDelete = nullptr );
+    void garbageCollection(TVecReferencePointerList& list, PdfObject& trailer, TPdfReferenceSet* notDelete = nullptr);
 
 private:
-    PdfDocument* m_pDocument;
-    bool                m_bCanReuseObjectNumbers;
-    size_t              m_nObjectCount;
-    bool                m_sorted;
-    TVecObjects         m_vector;
+    PdfVecObjects(const PdfVecObjects&) = delete;
+    PdfVecObjects& operator=(const PdfVecObjects&) = delete;
 
+private:
+    PdfDocument* m_Document;
+    bool m_CanReuseObjectNumbers;
+    size_t m_ObjectCount;
+    bool m_sorted;
+    TVecObjects m_vector;
 
-    TVecObservers       m_vecObservers;
-    TPdfReferenceList   m_lstFreeObjects;
-    TPdfObjectNumList   m_lstUnavailableObjects;
+    TVecObservers m_vecObservers;
+    TPdfReferenceList m_lstFreeObjects;
+    TPdfObjectNumList m_lstUnavailableObjects;
 
-    StreamFactory*      m_pStreamFactory;
+    StreamFactory* m_StreamFactory;
 
-	std::string			m_sSubsetPrefix;		 ///< Prefix for BaseFont and FontName of subsetted font
-    static size_t       m_nMaxReserveSize;
+    std::string m_SubsetPrefix;		    // Prefix for BaseFont and FontName of subsetted font
+    static size_t m_MaxReserveSize;
 };
 
 };

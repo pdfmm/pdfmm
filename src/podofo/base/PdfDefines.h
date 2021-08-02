@@ -1,40 +1,13 @@
-/***************************************************************************
- *   Copyright (C) 2005 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *   Copyright (C) 2020 by Francesco Pretto                                *
- *   ceztko@gmail.com                                                      *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2005 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
-#ifndef _PDF_DEFINES_H_
-#define _PDF_DEFINES_H_
+#ifndef PDF_DEFINES_H
+#define PDF_DEFINES_H
 
 /** \file PdfDefines.h
  *        This file should be included as the FIRST file in every header of
@@ -77,7 +50,11 @@
 // Include common STL files
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
+#include <podofo/compat/optional>
+#include <podofo/compat/span>
+#include <EnumFlags.h>
 
 // Error Handling Defines
 #include "PdfError.h"
@@ -100,44 +77,48 @@
  */ 
 namespace PoDoFo {
 
-/* Explicitly big-endian short, suitable for unicode text */
-typedef uint16_t     pdf_utf16be;
-/* Typedef to indicate utf-8 encoded data */
-typedef unsigned char  pdf_utf8;
+// Conventient const span type
+// https://stackoverflow.com/questions/56845801/what-happened-to-stdcspan
+template <class T, size_t Extent = std::dynamic_extent>
+using cspan = std::span<const T, Extent>;
+
+// Convenient type for buffer
+// TODO: Move to something more optimized with the same api
+typedef std::vector<char> buffer_t;
 
 // Enums
 
 /**
  * Enum to identify diferent versions of the PDF file format
  */
-enum class EPdfVersion
+enum class PdfVersion
 {
-    V1_0 = 0,       /**< PDF 1.0 */
-    V1_1,           /**< PDF 1.1 */
-    V1_2,           /**< PDF 1.2 */  
-    V1_3,           /**< PDF 1.3 */ 
-    V1_4,           /**< PDF 1.4 */
-    V1_5,           /**< PDF 1.5 */
-    V1_6,           /**< PDF 1.6 */ 
-    V1_7,           /**< PDF 1.7 */
-    V2_0,           /**< PDF 1.7 */
+    V1_0 = 0,       ///< PDF 1.0
+    V1_1,           ///< PDF 1.1
+    V1_2,           ///< PDF 1.2
+    V1_3,           ///< PDF 1.3
+    V1_4,           ///< PDF 1.4
+    V1_5,           ///< PDF 1.5
+    V1_6,           ///< PDF 1.6
+    V1_7,           ///< PDF 1.7
+    V2_0,           ///< PDF 1.7
 };
 
 /** The default PDF Version used by new PDF documents
  *  in PoDoFo. 
  */
-constexpr EPdfVersion PdfVersionDefault = EPdfVersion::V1_3;
+constexpr PdfVersion PdfVersionDefault = PdfVersion::V1_3;
 
 /**
  * Specify additional options for writing the PDF.
  */
-enum class EPdfWriteMode
+enum class PdfWriteMode
 {
     Compact = 0x01, ///< Try to write the PDF as compact as possible (Default)
     Clean = 0x02,   ///< Create a PDF that is readable in a text editor, i.e. insert spaces and linebreaks between tokens
 };
 
-const EPdfWriteMode PdfWriteModeDefault = EPdfWriteMode::Compact;
+const PdfWriteMode PdfWriteModeDefault = PdfWriteMode::Compact;
 
 /**
  * Every PDF datatype that can occur in a PDF file
@@ -149,17 +130,17 @@ const EPdfWriteMode PdfWriteModeDefault = EPdfWriteMode::Compact;
  */
 enum class EPdfDataType : uint8_t
 {
-   Unknown = 0,         /**< The Datatype is unknown. The value is chosen to enable value storage in 8-bit unsigned integer. */
-   Bool,                  /**< Boolean datatype: Accepts the values "true" and "false" */
-   Number,                /**< Number datatype for integer values */
-   Real,                  /**< Real datatype for floating point numbers */
-   String,                /**< String datatype in PDF file. Strings have the form (Hallo World!) in PDF files. \see PdfString */
-   Name,                  /**< Name datatype. Names are used as keys in dictionary to reference values. \see PdfName */
-   Array,                 /**< An array of other PDF data types. */
-   Dictionary,            /**< A dictionary associates keys with values. A key can have another dictionary as value. */
-   Null,                  /**< The null datatype is always null. */
-   Reference,             /**< The reference datatype contains references to PDF objects in the PDF file of the form 4 0 R. \see PdfObject */
-   RawData,               /**< Raw PDF data */
+   Unknown = 0,           ///< The Datatype is unknown. The value is chosen to enable value storage in 8-bit unsigned integer
+   Bool,                  ///< Boolean datatype: Accepts the values "true" and "false"
+   Number,                ///< Number datatype for integer values
+   Real,                  ///< Real datatype for floating point numbers
+   String,                ///< String datatype in PDF file. Strings have the form (Hallo World!) in PDF files. \see PdfString
+   Name,                  ///< Name datatype. Names are used as keys in dictionary to reference values. \see PdfName
+   Array,                 ///< An array of other PDF data types
+   Dictionary,            ///< A dictionary associates keys with values. A key can have another dictionary as value
+   Null,                  ///< The null datatype is always null
+   Reference,             ///< The reference datatype contains references to PDF objects in the PDF file of the form 4 0 R. \see PdfObject
+   RawData,               ///< Raw PDF data
 };
 
 /**
@@ -168,14 +149,14 @@ enum class EPdfDataType : uint8_t
  * Common filters are EPdfFilter::FlateDecode (i.e. Zip) or
  * EPdfFilter::ASCIIHexDecode
  */
-enum class EPdfFilter
+enum class PdfFilterType
 {
-    None = -1,                 /**< Do not use any filtering */
-    ASCIIHexDecode,            /**< Converts data from and to hexadecimal. Increases size of the data by a factor of 2! \see PdfHexFilter */
-    ASCII85Decode,             /**< Converts to and from Ascii85 encoding. \see PdfAscii85Filter */
-    LZWDecode,                 
-    FlateDecode,               /**< Compress data using the Flate algorithm of ZLib. This filter is recommended to be used always. \see PdfFlateFilter */
-    RunLengthDecode,           /**< Run length decode data. \see PdfRLEFilter */
+    None = 0,                  ///< Do not use any filtering
+    ASCIIHexDecode,            ///< Converts data from and to hexadecimal. Increases size of the data by a factor of 2! \see PdfHexFilter
+    ASCII85Decode,             ///< Converts to and from Ascii85 encoding. \see PdfAscii85Filter
+    LZWDecode,
+    FlateDecode,               ///< Compress data using the Flate algorithm of ZLib. This filter is recommended to be used always. \see PdfFlateFilter
+    RunLengthDecode,           ///< Run length decode data. \see PdfRLEFilter
     CCITTFaxDecode,
     JBIG2Decode,
     DCTDecode,
@@ -183,56 +164,65 @@ enum class EPdfFilter
     Crypt
 };
 
+enum class PdfFontType
+{
+    Unknown = 0,
+    Type1,
+    Type3,
+    TrueType,
+    CIDType1,
+    CIDTrueType,
+};
 
 /**
- * Enum for the different font formats supported by PoDoFo
+ * Enum for the different font metrics formats supported by PoDoFo
  */
-enum class EPdfFontType
+enum class PdfFontMetricsType
 {
+    Unknown = 0,
     TrueType,
     Type1Pfa,
     Type1Pfb,
     Type1Base14,
     Type3,
-    Unknown = 0xff
 };
 
 /** 
  * Enum for the colorspaces supported
  * by PDF.
  */
-enum class EPdfColorSpace
+enum class PdfColorSpace
 {
-    DeviceGray,        /**< Gray */
-    DeviceRGB,         /**< RGB  */
-    DeviceCMYK,        /**< CMYK */
-    Separation,        /**< Separation */
-    CieLab,            /**< CIE-Lab */
-    Indexed,           /**< Indexed */
-    Unknown = 0xff
+    Unknown = 0,
+    DeviceGray,        ///< Gray
+    DeviceRGB,         ///< RGB
+    DeviceCMYK,        ///< CMYK
+    Separation,        ///< Separation
+    CieLab,            ///< CIE-Lab
+    Indexed,           ///< Indexed
 };
 
 /**
  * Enum for text rendering mode (Tr)
  */
-enum class EPdfTextRenderingMode
+enum class PdfTextRenderingMode
 {
-    Fill = 0,                 /**< Default mode, fill text */
-    Stroke,                   /**< Stroke text */
-    FillAndStroke,            /**< Fill, then stroke text */
-    Invisible,                /**< Neither fill nor stroke text (invisible) */
-    FillToClipPath,           /**< Fill text and add to path for clipping */
-    StrokeToClipPath,         /**< Stroke text and add to path for clipping */
-    FillAndStrokeToClipPath,  /**< Fill, then stroke text and add to path for clipping */
-    ToClipPath,               /**< Add text to path for clipping */
-    Unknown = 0xff
+    Unknown = 0,
+    Fill,                     ///< Default mode, fill text
+    Stroke,                   ///< Stroke text
+    FillAndStroke,            ///< Fill, then stroke text
+    Invisible,                ///< Neither fill nor stroke text (invisible)
+    FillToClipPath,           ///< Fill text and add to path for clipping
+    StrokeToClipPath,         ///< Stroke text and add to path for clipping
+    FillAndStrokeToClipPath,  ///< Fill, then stroke text and add to path for clipping
+    ToClipPath,               ///< Add text to path for clipping
 };
 
 /**
  * Enum for the different stroke styles that can be set
  * when drawing to a PDF file (mostly for line drawing).
  */
-enum class EPdfStrokeStyle
+enum class PdfStrokeStyle
 {
     Solid,
     Dash,
@@ -246,18 +236,18 @@ enum class EPdfStrokeStyle
  * Enum to specifiy the initial information of the
  * info dictionary.
  */
-enum class EPdfInfoInitial
+enum class PdfInfoInitial
 {
     None = 0,
-    WriteCreationTime = 1,      // Write the creation time (current time). Default for new documents.
-    WriteModificationTime = 2,  // Write the modification time (current time). Default for loaded documents.
-    WriteProducer = 4,          // Write producer key. Default for new documents.
+    WriteCreationTime = 1,      ///< Write the creation time (current time). Default for new documents
+    WriteModificationTime = 2,  ///< Write the modification time (current time). Default for loaded documents
+    WriteProducer = 4,          ///< Write producer key. Default for new documents
 };
 
 /**
  * Enum for predefined tiling patterns.
  */
-enum class EPdfTilingPatternType
+enum class PdfTilingPatternType
 {
     BDiagonal = 1,
     Cross,
@@ -271,7 +261,7 @@ enum class EPdfTilingPatternType
 /**
  * Enum for line cap styles when drawing.
  */
-enum class EPdfLineCapStyle
+enum class PdfLineCapStyle
 {
     Butt    = 0,
     Round   = 1,
@@ -281,7 +271,7 @@ enum class EPdfLineCapStyle
 /**
  * Enum for line join styles when drawing.
  */
-enum class EPdfLineJoinStyle
+enum class PdfLineJoinStyle
 {
     Miter   = 0,
     Round   = 1,
@@ -291,7 +281,7 @@ enum class EPdfLineJoinStyle
 /**
  * Enum for vertical text alignment
  */
-enum class EPdfVerticalAlignment
+enum class PdfVerticalAlignment
 {
     Top    = 0,
     Center = 1,
@@ -301,7 +291,7 @@ enum class EPdfVerticalAlignment
 /**
  * Enum for text alignment
  */
-enum class EPdfAlignment
+enum class PdfHorizontalAlignment
 {
     Left    = 0,
     Center  = 1,
@@ -348,20 +338,19 @@ enum class PdfSaveOptions
  *
  * \see PdfPage
  */
-enum class EPdfPageSize
+enum class PdfPageSize
 {
-    A0,              /**< DIN A0  */
-    A1,              /**< DIN A1  */
-    A2,              /**< DIN A2  */
-    A3,              /**< DIN A3  */
-    A4,              /**< DIN A4  */
-    A5,              /**< DIN A5  */
-    A6,              /**< DIN A6  */
-    Letter,          /**< Letter  */
-    Legal,           /**< Legal   */
-    Tabloid,         /**< Tabloid */
-
-    Unknown = 0xff
+    Unknown = 0,
+    A0,              ///< DIN A0
+    A1,              ///< DIN A1
+    A2,              ///< DIN A2
+    A3,              ///< DIN A3
+    A4,              ///< DIN A4
+    A5,              ///< DIN A5
+    A6,              ///< DIN A6
+    Letter,          ///< Letter
+    Legal,           ///< Legal
+    Tabloid,         ///< Tabloid
 };
 
 /**
@@ -371,7 +360,7 @@ enum class EPdfPageSize
  *
  * \see PdfDocument
  */
-enum class EPdfPageMode
+enum class PdfPageMode
 {
     DontCare,
     UseNone,
@@ -389,7 +378,7 @@ enum class EPdfPageMode
  *
  * \see PdfDocument
  */
-enum class EPdfPageLayout
+enum class PdfPageLayout
 {
     Ignore,
     Default,
@@ -399,6 +388,25 @@ enum class EPdfPageLayout
     TwoColumnRight,
     TwoPageLeft,
     TwoPageRight
+};
+
+enum class PdfStd14FontType
+{
+    Unknown = 0,
+    TimesRoman,
+    TimesItalic,
+    TimesBold,
+    TimesBoldItalic,
+    Helvetica,
+    HelveticaOblique,
+    HelveticaBold,
+    HelveticaBoldOblique,
+    Courier,
+    CourierOblique,
+    CourierBold,
+    CourierBoldOblique,
+    Symbol,
+    ZapfDingbats,
 };
 
 /**
@@ -435,42 +443,10 @@ static const char s_szPdfVersionNums[][4] = {
     "2.0",
 };
 
-/// PDF Reference, Section 3.1.1, Table 3.1, White-space characters
-const int s_nNumWhiteSpaces = 6;
-const char s_cWhiteSpaces[] = {
-    0x00, // NULL
-    0x09, // TAB
-    0x0A, // Line Feed
-    0x0C, // Form Feed
-    0x0D, // Carriage Return
-    0x20, // White Space
-    0x00  // end marker
-};
-
-/// PDF Reference, Section 3.1.1, Character Set
-static const int s_nNumDelimiters = 10;
-static const char s_cDelimiters[] = {
-    '(',
-    ')',
-    '<',
-    '>',
-    '[',
-    ']',
-    '{',
-    '}',
-    '/',
-    '%',
-    '\0' // end marker
-};
-
-#ifndef PODOFO_CONVERSION_CONSTANT
-#define PODOFO_CONVERSION_CONSTANT 0.002834645669291339
-#endif // PODOFO_CONVERSION_CONSTANT
-
 }; // end namespace PoDoFo
 
-ENABLE_BITMASK_OPERATORS(PoDoFo::EPdfWriteMode);
-ENABLE_BITMASK_OPERATORS(PoDoFo::EPdfInfoInitial);
+ENABLE_BITMASK_OPERATORS(PoDoFo::PdfWriteMode);
+ENABLE_BITMASK_OPERATORS(PoDoFo::PdfInfoInitial);
 
 /**
  * \mainpage
@@ -513,4 +489,4 @@ ENABLE_BITMASK_OPERATORS(PoDoFo::EPdfInfoInitial);
  *
  */
 
-#endif // _PDF_DEFINES_H_
+#endif // PDF_DEFINES_H

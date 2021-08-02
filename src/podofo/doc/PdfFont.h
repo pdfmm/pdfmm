@@ -1,43 +1,21 @@
-/***************************************************************************
- *   Copyright (C) 2007 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2005 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
-#ifndef _PDF_FONT_H_
-#define _PDF_FONT_H_
+#ifndef PDF_FONT_H
+#define PDF_FONT_H
 
 #include <ostream>
-#include "podofo/base/PdfDefines.h"
-#include "podofo/base/PdfName.h"
-#include "podofo/base/PdfEncodingFactory.h"
+#include <map>
+
+#include <podofo/base/PdfTextState.h>
+#include <podofo/base/PdfDefines.h>
+#include <podofo/base/PdfName.h>
+#include <podofo/base/PdfEncodingFactory.h>
 #include "PdfElement.h"
 #include "PdfFontMetrics.h"
 
@@ -46,8 +24,9 @@ namespace PoDoFo {
 class PdfObject;
 class PdfPage;
 class PdfWriter;
+class PdfCharCodeMap;
 
-
+typedef std::map<unsigned, PdfCID> UsedGIDsMap;
 
 /** Before you can draw text on a PDF document, you have to create
  *  a font object first. You can reuse this font object as often
@@ -59,422 +38,285 @@ class PdfWriter;
  *  This is only an abstract base class which is implemented
  *  for different font formats.
  */
-class PODOFO_DOC_API PdfFont : public PdfElement {
- friend class PdfFontFactory;
+class PODOFO_DOC_API PdfFont : public PdfElement
+{
+    friend class PdfFontFactory;
+    friend class PdfFontObject;
+    friend class PdfFontType1Base14;
+    friend class PdfEncoding;
 
- public:
-
+protected:
     /** Create a new PdfFont object which will introduce itself
      *  automatically to every page object it is used on.
      *
-     *  The font has a default font size of 12.0pt.
-     *
-     *  \param pMetrics pointer to a font metrics object. The font in the PDF
+     *  \param parent parent of the font object
+     *  \param metrics pointer to a font metrics object. The font in the PDF
      *         file will match this fontmetrics object. The metrics object is
      *         deleted along with the font.
-     *  \param pEncoding the encoding of this font. The font will take ownership of this object
-     *                   depending on pEncoding->IsAutoDelete()
-     *  \param pParent parent of the font object
-     *
+     *  \param encoding the encoding of this font
      */
-    PdfFont( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfVecObjects* pParent );
+    PdfFont(PdfDocument &doc, const PdfFontMetricsConstPtr& metrics,
+        const PdfEncoding& encoding);
 
-
+private:
     /** Create a PdfFont based on an existing PdfObject
-     *  \param pMetrics pointer to a font metrics object. The font in the PDF
+     * To be used by PdfFontObject, PdfFontType1Base14
+     *
+     *  \param obj an existing PdfObject
+     *  \param metrics pointer to a font metrics object. The font in the PDF
      *         file will match this fontmetrics object. The metrics object is
      *         deleted along with the font.
-     *  \param pEncoding the encoding of this font. The font will take ownership of this object
+     *  \param encoding the encoding of this font. The font will take ownership of this object
      *                   depending on pEncoding->IsAutoDelete()
-     *  \param pObject an existing PdfObject
      */
-    PdfFont( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, PdfObject* pObject );
+    PdfFont(PdfObject& obj, const PdfFontMetricsConstPtr& metrics,
+        const PdfEncoding& encoding);
 
+public:
     virtual ~PdfFont();
 
-    /** Set the font size before drawing with this font.
-     *  \param fSize font size in points
-     */
-    inline void SetFontSize( float fSize );
-
-    /** Retrieve the current font size of this font object
-     *  \returns the current font size
-     */
-    inline float GetFontSize() const;
-
-    /** Set the horizontal scaling of the font for compressing (< 100) and expanding (>100)
-     *  \param fScale scaling in percent
-     */
-    inline void SetFontScale( float fScale );
-
-    /** Retrieve the current horizontal scaling of this font object
-     *  \returns the current font scaling
-     */
-    inline float GetFontScale() const;
-
-    /** Set the character spacing of the font
-     *  \param fCharSpace character spacing in percent
-     */
-    inline void SetFontCharSpace( float fCharSpace );
-
-    /** Retrieve the current character spacing of this font object
-     *  \returns the current font character spacing
-     */
-    inline float GetFontCharSpace() const;
-
-    /** Set the word spacing of the font
-     *  \param fWordSpace word spacing in PDF units
-     */
-    inline void SetWordSpace( float fWordSpace );
-
-    /** Retrieve the current word spacing of this font object
-     *  \returns the current font word spacing in PDF units
-     */
-    inline float GetWordSpace() const;
-
-    /** Set the underlined property of the font
-     *  \param bUnder if true any text drawn with this font
-     *                by a PdfPainter will be underlined.
-     *  Default is false
-     */
-    inline void SetUnderlined( bool bUnder );
-
-    /** \returns true if the font is underlined
-     *  \see IsBold
-     *  \see IsItalic
-     */
-    inline bool IsUnderlined() const;
-
-    /** \returns true if this font is bold
-     *  \see IsItalic
-     *  \see IsUnderlined
-     */
-    inline bool IsBold() const;
-
-    /** \returns true if this font is italic
-     *  \see IsBold
-     *  \see IsUnderlined
-     */
-    inline bool IsItalic() const;
-
-    /** Set the strikeout property of the font
-     *  \param bStrikeOut if true any text drawn with this font
-     *                    by a PdfPainter will be strikedout.
-     *  Default is false
-     */
-    inline void SetStrikeOut( bool bStrikeOut );
-
-    /** \returns true if the font is striked out
-     */
-    inline bool IsStrikeOut() const;
-
-    /** Returns the identifier of this font how it is known
-     *  in the pages resource dictionary.
-     *  \returns PdfName containing the identifier (e.g. /Ft13)
-     */
-    inline const PdfName & GetIdentifier() const;
-
-    /** Returns a reference to the fonts encoding
-     *  \returns a PdfEncoding object.
-     */
-    inline const PdfEncoding* GetEncoding() const;
-
-    /** Returns a handle to the fontmetrics object of this font.
-     *  This can be used for size calculations of text strings when
-     *  drawn using this font.
-     *  \returns a handle to the font metrics object
-     */
-    inline const PdfFontMetrics* GetFontMetrics() const;
-
-    // Peter Petrov 19 March 2009
-    /** Returns a handle to the fontmetrics object of this font.
-     *  This can be used for size calculations of text strings when
-     *  drawn using this font.
-     *  \returns a handle to the font metrics object
-     */
-    inline PdfFontMetrics* GetFontMetrics2();
-
-    /** Write a PdfString to a PdfStream in a format so that it can
+public:
+    /** Write a string to a PdfStream in a format so that it can
      *  be used with this font.
      *  This is used by PdfPainter::DrawText to display a text string.
      *  The following PDF operator will be Tj
      *
-     *  \param rsString a unicode or ansi string which will be displayed
-     *  \param pStream the string will be appended to pStream without any leading
+     *  \param stream the string will be appended to pStream without any leading
      *                 or following whitespaces.
+     *  \param str a unicode or ansi string which will be displayed
      */
-    void WriteStringToStream( const PdfString & rsString, PdfStream * pStream );
+    void WriteStringToStream(PdfStream& stream, const std::string_view& str) const;
 
-    /** Write a PdfString to a PdfStream in a format so that it can
+    /** Write a string to a PdfStream in a format so that it can
      *  be used with this font.
      *  This is used by PdfPainter::DrawText to display a text string.
      *  The following PDF operator will be Tj
      *
-     *  \param rsString a unicode or ansi string which will be displayed
-     *  \param rStream the string will be appended to the stream without any leading
+     *  \param stream the string will be appended to the stream without any leading
      *                 or following whitespaces.
+     *  \param str a unicode or ansi string which will be displayed
      */
-    virtual void WriteStringToStream( const PdfString & rsString, std::ostream & rStream );
+    void WriteStringToStream(std::ostream& stream, const std::string_view& str) const;
 
-    // Peter Petrov 24 September 2008
-    /** Embeds the font into PDF page
-     *
+    /** Retrieve the width of a given text string in PDF units when
+     *  drawn with the current font
+     *  \param view a text string of which the width should be calculated
+     *  \returns the width in PDF units
+     *  \remarks Doesn't throw if string glyphs could not be partially or totally found
      */
-    virtual void EmbedFont();
+    double GetStringWidth(const std::string_view& view, const PdfTextState& state) const;
 
-    /** Remember the glyphs used in the string in case of subsetting
-     *
-     *  \param sText the text string which should be printed (is not allowed to be nullptr!)
-     *  \param lStringLen draw only lLen characters of pszText
-     *
-     *  Only call if IsSubsetting() returns true. Might throw an exception otherwise.
-     *
-     *  \see IsSubsetting
+    /**
+     * \remarks Produces a partial result also in case of failures
      */
-    virtual void AddUsedSubsettingGlyphs( const PdfString & sText, size_t lStringLen );
+    bool TryGetStringWidth(const std::string_view& view, const PdfTextState& state, double &width) const;
 
-    /** Remember the glyphname in case of subsetting
-     *
-     *  \param pszGlyphName Name of the glyph to remember
+    /** Retrieve the width of a given encoded PdfString in PDF units when
+     *  drawn with the current font
+     *  \param view a text string of which the width should be calculated
+     *  \returns the width in PDF units
+     *  \remarks Doesn't throw if string glyphs could not be partially or totally found
      */
-    virtual void AddUsedGlyphname( const char * pszGlyphName );
+    double GetStringWidth(const PdfString& encodedStr, const PdfTextState& state) const;
+
+    /**
+     * \remarks Produces a partial result also in case of failures
+     */
+    bool TryGetStringWidth(const PdfString& encodedStr, const PdfTextState& state, double& width) const;
+
+    /**
+     *  \remarks Doesn't throw if characater glyph could not be found
+     */
+    double GetCharWidth(char32_t codePoint, const PdfTextState& state, bool ignoreCharSpacing = false) const;
+
+    bool TryGetCharWidth(char32_t codePoint, const PdfTextState& state, bool ignoreCharSpacing, double& width) const;
+
+    bool TryGetCharWidth(char32_t codePoint, const PdfTextState& state, double& width) const;
+
+    double GetDefaultCharWidth(const PdfTextState& state, bool ignoreCharSpacing = false) const;
+
+    /** Retrieve the line spacing for this font
+     *  \returns the linespacing in PDF units
+     */
+    double GetLineSpacing(const PdfTextState& state) const;
+
+    /** Get the width of the underline for the current
+     *  font size in PDF units
+     *  \returns the thickness of the underline in PDF units
+     */
+    double GetUnderlineThickness(const PdfTextState& state) const;
+
+    /** Return the position of the underline for the current font
+     *  size in PDF units
+     *  \returns the underline position in PDF units
+     */
+    double GetUnderlinePosition(const PdfTextState& state) const;
+
+    /** Return the position of the strikeout for the current font
+     *  size in PDF units
+     *  \returns the underline position in PDF units
+     */
+    double GetStrikeOutPosition(const PdfTextState& state) const;
+
+    /** Get the width of the strikeout for the current
+     *  font size in PDF units
+     *  \returns the thickness of the strikeout in PDF units
+     */
+    double GetStrikeOutThickness(const PdfTextState& state) const;
+
+    /** Get the ascent of this font in PDF
+     *  units for the current font size.
+     *
+     *  \returns the ascender for this font
+     *
+     *  \see GetAscent
+     */
+    double GetAscent(const PdfTextState& state) const;
+
+    /** Get the descent of this font in PDF
+     *  units for the current font size.
+     *  This value is usually negative!
+     *
+     *  \returns the descender for this font
+     *
+     *  \see GetDescent
+     */
+    double GetDescent(const PdfTextState& state) const;
 
     /** Embeds pending subset-font into PDF page
      *  Only call if IsSubsetting() returns true. Might throw an exception otherwise.
      *
      *  \see IsSubsetting
      */
-    virtual void EmbedSubsetFont();
+    void EmbedFontSubset();
+
+    virtual bool SupportsSubsetting() const;
+
+    virtual PdfFontType GetType() const = 0;
+
+public:
+    /**
+     * True if the font is loaded from a PdfObject
+     */
+    inline bool IsLoaded() const { return m_IsLoaded; }
 
     /** Check if this is a subsetting font.
      * \returns true if this is a subsetting font
      */
-    inline bool IsSubsetting() const;
+    inline bool SubsettingEnabled() const { return m_SubsettingEnabled; }
 
- protected:
+    inline bool EmbeddingEnabled() const { return m_EmbeddingEnabled; }
+
+    /**
+     * \returns empty string or a 6 uppercase letter and "+" sign prefix
+     *          used for font subsets
+     */
+    inline const std::string& GetSubsetPrefix() const { return m_SubsetPrefix; }
+
+    /** Returns the identifier of this font how it is known
+     *  in the pages resource dictionary.
+     *  \returns PdfName containing the identifier (e.g. /Ft13)
+     */
+    inline const PdfName& GetIdentifier() const { return m_Identifier; }
+
+    /** Returns a reference to the fonts encoding
+     *  \returns a PdfEncoding object.
+     */
+    inline const PdfEncoding& GetEncoding() const { return *m_Encoding; }
+
+    /** Returns a handle to the fontmetrics object of this font.
+     *  This can be used for size calculations of text strings when
+     *  drawn using this font.
+     *  \returns a handle to the font metrics object
+     */
+    inline const PdfFontMetrics& GetMetrics() const { return *m_Metrics; }
+
     /** Get the base font name of this font
      *
      *  \returns the base font name
      */
-    inline const PdfName& GetBaseFont() const;
+    inline const std::string& GetBaseFont() const { return m_BaseFont; }
 
-    void InitBase14Font();
+    const UsedGIDsMap& GetUsedGIDs() const { return m_UsedGIDs; }
 
+protected:
+    /** Optional function to map a CID to a GID
+     *
+     * Example for /Type2 CID fonts may have a /CIDToGIDMap
+     * For Base14 fonts we have to convert CID to unicode then
+     * we retrieve the glyph index
+     */
+    virtual bool TryMapCIDToGID(unsigned cid, unsigned& gid) const;
 
-    const PdfEncoding* const m_pEncoding;
-    PdfFontMetrics*          m_pMetrics;
+    /** Optional function to map a CID to a GID
+     *
+     * Example for /Type2 CID fonts may have a /CIDToGIDMap
+     * For Base14 fonts we have to convert CID to unicode then
+     * we retrieve the glyph index
+     */
+    virtual bool TryMapGIDToCID(unsigned gid, unsigned& cid) const;
 
-    bool  m_bBold;
-    bool  m_bItalic;
-    bool  m_bUnderlined;
-    bool  m_bStrikedOut;
+    /**
+     * Get the raw width of a CID identifier
+     */
+    double GetCIDWidthRaw(unsigned cid) const;
 
-    bool  m_bWasEmbedded;
-    bool m_isBase14;
-    bool m_bIsSubsetting;
+    void GetBoundingBox(PdfArray& arr) const;
+
+    /** Fill the /FontDescriptor object dictionary
+     */
+    void FillDescriptor(PdfDictionary& dict);
+
+    virtual void initImported();
+
+    virtual void embedFont();
+
+    virtual void embedFontSubset();
+
+private:
+    /** Add glyph to used in case of subsetting
+     *  It either maps them using the font encoding or generate a new code
+     *
+     *  \param gid the gid to add
+     *  \param mappedCodePoints code points mapped by this gid. May be a single
+     *      code point or a ligature
+     *  \return A mapped CID
+     *  \remarks To be called by PdfEncoding. In case of a ligature
+     *      parameter, it must match entirely
+     */
+    PdfCID AddUsedGID(unsigned gid, const cspan<char32_t>& mappedCodePoints);
+
+    PdfFont(const PdfFont& rhs) = delete;
+
+    /** Perform inititialization tasks for fonts imported or created
+     * from scratch
+     */
+    void InitImported(bool embeddingEnabled, bool subsettingEnabled);
+
+    void initBase(const PdfEncoding& encoding);
+
+    double getStringWidth(const std::vector<PdfCID>& cids, const PdfTextState& state) const;
+
+    double getCIDWidth(unsigned cid, const PdfTextState& state, bool ignoreCharSpacing) const;
+
+private:
+    std::string m_BaseFont;
+    std::string m_SubsetPrefix;
+    bool m_EmbeddingEnabled;
+    bool m_IsEmbedded;
+    bool m_SubsettingEnabled;
+    UsedGIDsMap m_UsedGIDs;
+
+protected:
+    PdfFontMetricsConstPtr m_Metrics;
+    std::unique_ptr<PdfEncoding> m_Encoding;
+    bool m_IsLoaded;
+    std::shared_ptr<PdfCharCodeMap> m_DynCharCodeMap;
+
     PdfName m_Identifier;
-
-    /** Used to specify if this represents a bold font
-     *  \param bBold if true this is a bold font.
-     *
-     *  \see IsBold
-     *
-     *  This can be called by PdfFontFactory to tell this font
-     *  object that it belongs to a bold font.
-     */
-    virtual void SetBold( bool bBold );
-
-    /** Used to specify if this represents an italic font
-     *  \param bItalic if true this is an italic font.
-     *
-     *  \see IsItalc
-     *
-     *  This can be called by PdfFontFactory to tell this font
-     *  object that it belongs to an italic font.
-     */
-    virtual void SetItalic( bool bItalic );
-
-
- private:
-    /** default constructor, not implemented
-     */
-    PdfFont(void);
-    /** copy constructor, not implemented
-     */
-    PdfFont(const PdfFont& rhs);
-    /** assignment operator, not implemented
-     */
-    PdfFont& operator=(const PdfFont& rhs);
-
-    /** Initialize all variables
-    */
-    void InitVars();
- 
-    PdfName m_BaseFont;
 };
-
-// -----------------------------------------------------
-//
-// -----------------------------------------------------
-const PdfName& PdfFont::GetBaseFont() const
-{
-    return m_BaseFont;
-}
-
-// -----------------------------------------------------
-//
-// -----------------------------------------------------
-const PdfName & PdfFont::GetIdentifier() const
-{
-    return m_Identifier;
-}
-
-// -----------------------------------------------------
-//
-// -----------------------------------------------------
-void PdfFont::SetFontSize( float fSize )
-{
-    m_pMetrics->SetFontSize( fSize );
-}
-
-// -----------------------------------------------------
-//
-// -----------------------------------------------------
-float PdfFont::GetFontSize() const
-{
-    return m_pMetrics->GetFontSize();
-}
-
-// -----------------------------------------------------
-//
-// -----------------------------------------------------
-void PdfFont::SetFontScale( float fScale )
-{
-    m_pMetrics->SetFontScale( fScale );
-}
-
-// -----------------------------------------------------
-//
-// -----------------------------------------------------
-float PdfFont::GetFontScale() const
-{
-    return  m_pMetrics->GetFontScale();
-}
-
-// -----------------------------------------------------
-//
-// -----------------------------------------------------
-void PdfFont::SetFontCharSpace( float fCharSpace )
-{
-    m_pMetrics->SetFontCharSpace( fCharSpace );
-}
-
-// -----------------------------------------------------
-//
-// -----------------------------------------------------
-float PdfFont::GetFontCharSpace() const
-{
-    return m_pMetrics->GetFontCharSpace();
-}
-
-// -----------------------------------------------------
-//
-// -----------------------------------------------------
-inline void PdfFont::SetWordSpace( float fWordSpace )
-{
-    m_pMetrics->SetWordSpace( fWordSpace );
-}
-
-// -----------------------------------------------------
-//
-// -----------------------------------------------------
-inline float PdfFont::GetWordSpace() const
-{
-    return m_pMetrics->GetWordSpace();
-}
-
-// -----------------------------------------------------
-//
-// -----------------------------------------------------
-const PdfEncoding* PdfFont::GetEncoding() const
-{
-    return m_pEncoding;
-
-}
-
-// -----------------------------------------------------
-//
-// -----------------------------------------------------
-PdfFontMetrics* PdfFont::GetFontMetrics2()
-{
-    return m_pMetrics;
-}
-
-// -----------------------------------------------------
-//
-// -----------------------------------------------------
-const PdfFontMetrics* PdfFont::GetFontMetrics() const
-{
-    return m_pMetrics;
-}
-
-// -----------------------------------------------------
-//
-// -----------------------------------------------------
-void PdfFont::SetUnderlined( bool bUnder )
-{
-    m_bUnderlined = bUnder;
-}
-
-// -----------------------------------------------------
-//
-// -----------------------------------------------------
-bool PdfFont::IsUnderlined() const
-{
-    return m_bUnderlined;
-}
-
-// -----------------------------------------------------
-//
-// -----------------------------------------------------
-void PdfFont::SetStrikeOut( bool bStrikeOut )
-{
-    m_bStrikedOut = bStrikeOut;
-}
-
-// -----------------------------------------------------
-//
-// -----------------------------------------------------
-bool PdfFont::IsStrikeOut() const
-{
-    return m_bStrikedOut;
-}
-
-// -----------------------------------------------------
-//
-// -----------------------------------------------------
-bool PdfFont::IsBold() const
-{
-    return m_bBold;
-}
-
-// -----------------------------------------------------
-//
-// -----------------------------------------------------
-bool PdfFont::IsItalic() const
-{
-    return m_bItalic;
-}
-
-// -----------------------------------------------------
-//
-// -----------------------------------------------------
-bool PdfFont::IsSubsetting() const
-{
-    return m_bIsSubsetting;
-}
 
 };
 
-#endif // _PDF_FONT_H_
+#endif // PDF_FONT_H
 

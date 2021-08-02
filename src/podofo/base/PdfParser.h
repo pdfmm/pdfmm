@@ -1,40 +1,13 @@
-/***************************************************************************
- *   Copyright (C) 2005 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *   Copyright (C) 2020 by Francesco Pretto                                *
- *   ceztko@gmail.com                                                      *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2005 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
-#ifndef _PDF_PARSER_H_
-#define _PDF_PARSER_H_
+#ifndef PDF_PARSER_H
+#define PDF_PARSER_H
 
 #include <set>
 #include <map>
@@ -196,7 +169,7 @@ public:
     /** Get the file format version of the pdf
      *  \returns the file format version as enum
      */
-    inline EPdfVersion GetPdfVersion() const { return m_ePdfVersion; }
+    inline PdfVersion GetPdfVersion() const { return m_ePdfVersion; }
 
     /** \returns true if this PdfParser loads all objects on demand at
      *                the time they are accessed for the first time.
@@ -425,14 +398,13 @@ private:
     PdfRefCountedBuffer m_buffer;
     PdfTokenizer m_tokenizer;
 
-    EPdfVersion   m_ePdfVersion;
+    PdfVersion   m_ePdfVersion;
     bool          m_bLoadOnDemand;
 
     size_t        m_magicOffset;
     bool          m_HasXRefStream;
     size_t        m_nXRefOffset;
-    int           m_nFirstObject;
-    int           m_nNumObjects;
+    unsigned m_nNumObjects;
     size_t        m_nXRefLinearizedOffset;
     size_t        m_nFileSize;
     size_t        m_lLastEOFOffset;
@@ -459,5 +431,4 @@ private:
 
 };
 
-#endif // _PDF_PARSER_H_
-
+#endif // PDF_PARSER_H

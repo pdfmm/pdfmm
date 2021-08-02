@@ -1,39 +1,13 @@
-/***************************************************************************
- *   Copyright (C) 2005 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
-
-#include "PdfFontTrueType.h"
+/**
+ * Copyright (C) 2005 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
 #include "base/PdfDefinesPrivate.h"
+#include "PdfFontTrueType.h"
 
 #include <doc/PdfDocument.h>
 #include "base/PdfArray.h"
@@ -41,60 +15,54 @@
 #include "base/PdfName.h"
 #include "base/PdfStream.h"
 
-namespace PoDoFo {
+using namespace PoDoFo;
 
-PdfFontTrueType::PdfFontTrueType( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 
-                                  PdfVecObjects* pParent, bool bEmbed )
-    : PdfFontSimple( pMetrics, pEncoding, pParent )
+PdfFontTrueType::PdfFontTrueType(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
+    const PdfEncoding& encoding) :
+    PdfFontSimple(doc, metrics, encoding)
 {
-    this->Init( bEmbed, PdfName("TrueType") );
 }
 
-PdfFontTrueType::PdfFontTrueType( PdfFontMetrics* pMetrics, const PdfEncoding* const pEncoding, 
-                                  PdfObject* pObject )
-    : PdfFontSimple( pMetrics, pEncoding, pObject )
+PdfFontType PdfFontTrueType::GetType() const
 {
-
+    return PdfFontType::TrueType;
 }
 
-void PdfFontTrueType::EmbedFontFile( PdfObject* pDescriptor )
+void PdfFontTrueType::initImported()
+{
+    this->Init("TrueType");
+}
+
+void PdfFontTrueType::embedFontFile(PdfObject& descriptor)
 {
     PdfObject* pContents;
     size_t lSize = 0;
-    
-    m_bWasEmbedded = true;    
-        
-    pContents = this->GetObject()->GetDocument()->GetObjects().CreateDictionaryObject();
-    pDescriptor->GetDictionary().AddKey( "FontFile2", pContents->GetIndirectReference() );
+
+    pContents = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject();
+    descriptor.GetDictionary().AddKey("FontFile2", pContents->GetIndirectReference());
 
     // if the data was loaded from memory - use it from there
     // otherwise, load from disk
-    if ( m_pMetrics->GetFontDataLen() && m_pMetrics->GetFontData() ) 
+    if (m_Metrics->GetFontData().empty())
     {
-        // FIXME const_cast<char*> is dangerous if string literals may ever be passed
-        char* pBuffer = const_cast<char*>( m_pMetrics->GetFontData() );
-        lSize = m_pMetrics->GetFontDataLen();
-        
-        // Set Length1 before creating the stream
-        // as PdfStreamedDocument does not allow 
-        // adding keys to an object after a stream was written
-        pContents->GetDictionary().AddKey( "Length1", PdfVariant( static_cast<int64_t>(lSize) ) );
-        pContents->GetOrCreateStream().Set( pBuffer, lSize );
-    } 
-    else 
-    {
-        lSize = io::FileSize(m_pMetrics->GetFilename());
-        PdfFileInputStream stream( m_pMetrics->GetFilename() );
+        lSize = io::FileSize(m_Metrics->GetFilename());
+        PdfFileInputStream stream(m_Metrics->GetFilename());
 
         // NOTE: Set Length1 before creating the stream
-        // as PdfStreamedDocument does not allow 
+        // as PdfStreamedDocument does not allow
         // adding keys to an object after a stream was written
-        pContents->GetDictionary().AddKey( "Length1", PdfVariant( static_cast<int64_t>(lSize) ) );
-        pContents->GetOrCreateStream().Set( &stream );
+        pContents->GetDictionary().AddKey("Length1", PdfVariant(static_cast<int64_t>(lSize)));
+        pContents->GetOrCreateStream().Set(stream);
+    }
+    else
+    {
+        const char* pBuffer = m_Metrics->GetFontData().data();
+        lSize = m_Metrics->GetFontData().size();
+
+        // Set Length1 before creating the stream
+        // as PdfStreamedDocument does not allow
+        // adding keys to an object after a stream was written
+        pContents->GetDictionary().AddKey("Length1", PdfVariant(static_cast<int64_t>(lSize)));
+        pContents->GetOrCreateStream().Set(pBuffer, lSize);
     }
 }
-
-
-
-};
-

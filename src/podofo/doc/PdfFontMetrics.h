@@ -1,40 +1,13 @@
-/***************************************************************************
- *   Copyright (C) 2005 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *   Copyright (C) 2020 by Francesco Pretto                                *
- *   ceztko@gmail.com                                                      *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2005 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
-#ifndef _PDF_FONT_METRICS_H_
-#define _PDF_FONT_METRICS_H_
+#ifndef PDF_FONT_METRICS_H
+#define PDF_FONT_METRICS_H
 
 #include "podofo/base/PdfDefines.h"
 #include "podofo/base/Pdf3rdPtyForwardDecl.h"
@@ -43,119 +16,62 @@
 
 namespace PoDoFo {
 
-class PdfArray;
-class PdfObject;
-class PdfVariant;
-
 /**
- * This abstract class provides access
- * to fontmetrics informations.
+ * This abstract class provides access to font metrics information.
+ *
+ * The class doesn't know anything about CIDs (Character IDs),
+ * it just index glyphs, or GIDs where the terminology applies
  */
-class PODOFO_DOC_API PdfFontMetrics {
- public:
-    PdfFontMetrics( EPdfFontType eFontType, const char* pszFilename, const char* pszSubsetPrefix );
+class PODOFO_DOC_API PdfFontMetrics
+{
+protected:
+    PdfFontMetrics(PdfFontMetricsType fontType, const std::string_view& filename);
 
+public:
     virtual ~PdfFontMetrics();
 
-    /** Create a width array for this font which is a required part
-     *  of every font dictionary.
-     *  \param var the final width array is written to this PdfVariant
-     *  \param nFirst first character to be in the array
-     *  \param nLast last character code to be in the array
-     *  \param pEncoding encoding for correct character widths. If not passed default (latin1) encoding is used
-     */
-    virtual void GetWidthArray( PdfVariant & var, unsigned int nFirst, unsigned int nLast, const PdfEncoding* pEncoding = nullptr ) const = 0;
+    virtual unsigned GetGlyphCount() const = 0;
 
     /** Get the width of a single glyph id
      *
-     *  \param nGlyphId id of the glyph
+     *  \param gid id of the glyph
      *  \returns the width of a single glyph id
      */
-    virtual double GetGlyphWidth( int nGlyphId ) const = 0;
+    double GetGlyphWidth(unsigned gid) const;
+    virtual bool TryGetGlyphWidth(unsigned gid, double& width) const = 0;
 
-    /** Get the width of a single named glyph
+    virtual double GetDefaultCharWidth() const = 0;
+
+    /**
+     * Some fonts provides a glyph subsitution list, eg. for ligatures.
+     * OpenType fonts for example provides GSUB "Glyph Substitution Table"
+     * \param gids gids to be substituded
+     * \param backwardMap list of gid counts to remap back substituded gids
+     *     eg. { 32, 102, 105 } gets substituted in { 32, 174 }
+     *     the backward map is { 1, 2 }
+     */
+    virtual void SubstituteGIDs(std::vector<unsigned>& gids,
+        std::vector<unsigned char>& backwardMap) const;
+
+    /** Get the GID by the codePoint
      *
-     *  \param pszGlyphname name of the glyph
-     *  \returns the width of a single named glyph
+     *  \param codePoint unicode codepoint
+     *  \returns the GID
+     *  \remarks throw if not found
      */
-    virtual double GetGlyphWidth( const char* pszGlyphname ) const = 0;
+    unsigned GetGID(char32_t codePoint) const;
+    virtual bool TryGetGID(char32_t codePoint, unsigned& gid) const = 0;
 
-    /** Create the bounding box array as required by the PDF reference
-     *  so that it can be written directly to a PDF file.
+    /** Create the bounding box vector in PDF units
      *
-     *  \param array write the bounding box to this array.
+     *  \param bbox write the bounding box to this vector
      */
-    virtual void GetBoundingBox( PdfArray & array ) const = 0;
-
-    /** Retrieve the width of a given text string in PDF units when
-     *  drawn with the current font
-     *  \param rsString a PdfString from which the width shall be calculated
-     *  \returns the width in PDF units
-     *
-     *  This is an overloaded method for your convinience!
-     */
-    double StringWidth( const PdfString & rsString ) const;
-
-    /** Retrieve the width of a given text string in PDF units when
-     *  drawn with the current font
-     *  \param pszText a text string of which the width should be calculated
-     *  \param nLength if != 0 only the width of the nLength first characters is calculated
-     *  \returns the width in PDF units
-     */
-    double StringWidth( const char* pszText, size_t nLength = 0 ) const;
-
-    /** Retrieve the width of a given text string in PDF units when
-     *  drawn with the current font
-     *  \param pszText a text string of which the width should be calculated
-     *  \param nLength if != 0 only the width of the nLength first characters is calculated
-     *  \returns the width in PDF units
-     */
-    double StringWidth( const pdf_utf16be* pszText, size_t nLength = 0 ) const;
-
-    /** Retrieve the width of a given text string in 1/1000th mm when
-     *  drawn with the current font
-     *  \param pszText a text string of which the width should be calculated
-     *  \param nLength if != 0 only the width of the nLength first characters is calculated
-     *  \returns the width in 1/1000th mm
-     */
-    unsigned long StringWidthMM( const char* pszText, size_t nLength = 0 ) const;
-
-    /** Retrieve the width of a given text string in 1/1000th mm when
-     *  drawn with the current font
-     *  \param pszText a text string of which the width should be calculated
-     *  \param nLength if != 0 only the width of the nLength first characters is calculated
-     *  \returns the width in 1/1000th mm
-     */
-    unsigned long StringWidthMM( const pdf_utf16be* pszText, size_t nLength = 0 ) const;
-
-    /** Retrieve the width of the given character in PDF units in the current font
-     *  \param c character
-     *  \returns the width in PDF units
-     */
-    virtual double CharWidth( unsigned char c ) const = 0;
-
-    // Peter Petrov 20 March 2009
-    /** Retrieve the width of the given character in PDF units in the current font
-     *  \param c character
-     *  \returns the width in PDF units
-     */
-    virtual double UnicodeCharWidth( unsigned short c ) const = 0;
-
-    /** Retrieve the width of the given character in 1/1000th mm in the current font
-     *  \param c character
-     *  \returns the width in 1/1000th mm
-     */
-    unsigned long CharWidthMM( unsigned char c ) const;
+    virtual void GetBoundingBox(std::vector<double>& bbox) const = 0;
 
     /** Retrieve the line spacing for this font
      *  \returns the linespacing in PDF units
      */
     virtual double GetLineSpacing() const = 0;
-
-    /** Retrieve the line spacing for this font
-     *  \returns the linespacing in 1/1000th mm
-     */
-    unsigned long GetLineSpacingMM() const;
 
     /** Get the width of the underline for the current
      *  font size in PDF units
@@ -163,23 +79,11 @@ class PODOFO_DOC_API PdfFontMetrics {
      */
     virtual double GetUnderlineThickness() const = 0;
 
-    /** Get the width of the underline for the current
-     *  font size in 1/1000th mm
-     *  \returns the thickness of the underline in 1/1000th mm
-     */
-    unsigned long GetUnderlineThicknessMM() const;
-
     /** Return the position of the underline for the current font
      *  size in PDF units
      *  \returns the underline position in PDF units
      */
     virtual double GetUnderlinePosition() const = 0;
-
-    /** Return the position of the underline for the current font
-     *  size in 1/1000th mm
-     *  \returns the underline position in 1/1000th mm
-     */
-    long GetUnderlinePositionMM() const;
 
     /** Return the position of the strikeout for the current font
      *  size in PDF units
@@ -187,72 +91,20 @@ class PODOFO_DOC_API PdfFontMetrics {
      */
     virtual double GetStrikeOutPosition() const = 0;
 
-    /** Return the position of the strikeout for the current font
-     *  size in 1/1000th mm
-     *  \returns the underline position in 1/1000th mm
-     */
-    unsigned long GetStrikeOutPositionMM() const;
-
     /** Get the width of the strikeout for the current
      *  font size in PDF units
      *  \returns the thickness of the strikeout in PDF units
      */
-    virtual double GetStrikeoutThickness() const = 0;
-
-    /** Get the width of the strikeout for the current
-     *  font size in 1/1000th mm
-     *  \returns the thickness of the strikeout in 1/1000th mm
-     */
-    unsigned long GetStrikeoutThicknessMM() const;
-
-    /** Get a pointer to the path of the font file.
-     *  \returns a zero terminated string containing the filename of the font file
-     */
-    const char* GetFilename() const;
-
-    /** Get a pointer to the actual font data - if it was loaded from memory.
-     *  \returns a binary buffer of data containing the font data
-     */
-    virtual const char* GetFontData() const = 0;
-
-    /** Get the length of the actual font data - if it was loaded from memory.
-     *  \returns a the length of the font data
-     */
-    virtual size_t GetFontDataLen() const = 0;
-
-    /** Get a string with the postscript name of the font.
-     *  \returns the postscript name of the font or nullptr string if no postscript name is available.
-     */
-    virtual const char* GetFontname() const = 0;
-
-    /**
-     * \returns nullptr or a 6 uppercase letter and "+" sign prefix
-     *          used for font subsets
-     */
-    const char* GetSubsetFontnamePrefix() const;
-
-    /** Get the weight of this font.
-     *  Used to build the font dictionay
-     *  \returns the weight of this font (500 is normal).
-     */
-    virtual  unsigned int GetWeight() const = 0;
+    virtual double GetStrikeOutThickness() const = 0;
 
     /** Get the ascent of this font in PDF
      *  units for the current font size.
      *
      *  \returns the ascender for this font
      *
-     *  \see GetPdfAscent
-     */
-    virtual double GetAscent() const = 0;
-
-    /** Get the ascent of this font
-     *  Used to build the font dictionay
-     *  \returns the ascender for this font
-     *
      *  \see GetAscent
      */
-    virtual double GetPdfAscent() const = 0;
+    virtual double GetAscent() const = 0;
 
     /** Get the descent of this font in PDF
      *  units for the current font size.
@@ -260,81 +112,67 @@ class PODOFO_DOC_API PdfFontMetrics {
      *
      *  \returns the descender for this font
      *
-     *  \see GetPdfDescent
+     *  \see GetDescent
      */
     virtual double GetDescent() const = 0;
 
-    /** Get the descent of this font
-     *  Used to build the font dictionay
-     *  \returns the descender for this font
-     *
-     *  \see GetDescent
+    /** Get a pointer to the path of the font file.
+     *  \returns a zero terminated string containing the filename of the font file
      */
-    virtual double GetPdfDescent() const = 0;
+    inline const std::string& GetFilename() const { return m_Filename; }
+
+    /** Get a pointer to the actual font data - if it was loaded from memory.
+     *  \returns a binary buffer of data containing the font data
+     */
+    virtual std::string_view GetFontData() const = 0;
+
+    /** Get a string with either the actual /FontName or a base font name
+     * inferred from a font file
+     */
+    std::string GetFontNameSafe() const;
+
+    /** Get a base name for the font that can be used to compose the final name, eg. "Arial"
+     *
+     *  Return empty string by default
+     */
+    virtual std::string GetBaseFontName() const;
+
+    /** Get the actual /FontName, eg. "AAAAAA+Arial,Bold", if available
+     *
+     *  By default return empty string
+     *  \returns the postscript name of the font or empty string if no postscript name is available.
+     */
+    virtual std::string GetFontName() const;
+
+    /** Get the weight of this font.
+     *  Used to build the font dictionay
+     *  \returns the weight of this font (500 is normal).
+     */
+    virtual unsigned GetWeight() const = 0;
 
     /** Get the italic angle of this font.
      *  Used to build the font dictionay
      *  \returns the italic angle of this font.
      */
-    virtual int GetItalicAngle() const = 0;
+    virtual double GetItalicAngle() const = 0;
 
-    /** Set the font size of this metrics object for width and height
-     *  calculations.
-     *  This is typically called from PdfFont for you.
-     *
-     *  \param fSize font size in points
-     */
-    inline void SetFontSize( float fSize ) { m_fFontSize = fSize; }
 
-    /** Retrieve the current font size of this metrics object
-     *  \returns the current font size
+    /** Get whether the font style is bold
      */
-    inline float GetFontSize() const { return m_fFontSize; }
+    virtual bool IsBold() const = 0;
 
-    /** Set the horizontal scaling of the font for compressing (< 100) and expanding (>100)
-     *  This is typically called from PdfFont for you.
-     *
-     *  \param fScale scaling in percent
+    /** Get whether the font style is italic
      */
-    inline void SetFontScale( float fScale ) { m_fFontScale = fScale; }
+    virtual bool IsItalic() const = 0;
 
-    /** Retrieve the current horizontal scaling of this metrics object
-     *  \returns the current font scaling
+    /** State whether font name reports if the font is bold or italic, such has in "Helvetica-Bold"
      */
-    inline float GetFontScale() const { return m_fFontScale; }
-
-    /** Set the character spacing of this metrics object
-     *  \param fCharSpace character spacing in percent
-     */
-    inline void SetFontCharSpace( float fCharSpace ) { m_fFontCharSpace = fCharSpace; }
-
-    /** Retrieve the current character spacing of this metrics object
-     *  \returns the current font character spacing
-     */
-    inline float GetFontCharSpace() const { return m_fFontCharSpace; }
-
-    /** Set the word spacing of this metrics object
-     *  \param fWordSpace word spacing in PDF units
-     */
-    inline void SetWordSpace( float fWordSpace ) { m_fWordSpace = fWordSpace; }
-
-    /** Retrieve the current word spacing of this metrics object
-     *  \returns the current font word spacing in PDF units
-     */
-    inline float GetWordSpace() const { return m_fWordSpace; }
+    virtual bool FontNameHasBoldItalicInfo() const;
 
     /**
      *  \returns the fonttype of the loaded font
      */
-    inline EPdfFontType GetFontType() const { return m_eFontType; }
-
-    /** Get the glyph id for a unicode character
-     *  in the current font.
-     *
-     *  \param lUnicode the unicode character value
-     *  \returns the glyhph id for the character or 0 if the glyph was not found.
-     */
-    virtual long GetGlyphId( long lUnicode ) const = 0;
+    inline PdfFontMetricsType GetType() const { return m_FontType; }
 
     /** Symbol fonts do need special treatment in a few cases.
      *  Use this method to check if the current font is a symbol
@@ -352,29 +190,28 @@ class PODOFO_DOC_API PdfFontMetrics {
      *
      *  \return font type
      */
-    static EPdfFontType FontTypeFromFilename( const char* pszFilename );
+    static PdfFontMetricsType GetFontMetricsTypeFromFilename(const std::string_view& filename);
 
- protected:
+protected:
     /**
      *  Set the fonttype.
      *  \param eFontType fonttype
      */
-     inline void SetFontType(EPdfFontType eFontType) { m_eFontType = eFontType; }
+     inline void SetFontType(PdfFontMetricsType eFontType) { m_FontType = eFontType; }
 
- protected:
-    std::string   m_sFilename;
-    float         m_fFontSize;
-    float         m_fFontScale;
-    float         m_fFontCharSpace;
-    float         m_fWordSpace;
+private:
+    PdfFontMetrics(const PdfFontMetrics& rhs) = delete;
+    PdfFontMetrics& operator=(const PdfFontMetrics& rhs) = delete;
 
-    std::vector<double> m_vecWidth;
-
-    EPdfFontType  m_eFontType;
-    std::string   m_sFontSubsetPrefix;
+protected:
+    PdfFontMetricsType m_FontType;
+    std::string m_Filename;
 };
 
+/** Convenience typedef for a const PdfEncoding shared ptr
+ */
+typedef std::shared_ptr<const PdfFontMetrics> PdfFontMetricsConstPtr;
+
 };
 
-#endif // _PDF_FONT_METRICS_H_
-
+#endif // PDF_FONT_METRICS_H

@@ -1,40 +1,13 @@
-/***************************************************************************
- *   Copyright (C) 2006 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *   Copyright (C) 2020 by Francesco Pretto                                *
- *   ceztko@gmail.com                                                      *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2006 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
-#ifndef _PDF_TOKENIZER_H_
-#define _PDF_TOKENIZER_H_
+#ifndef PDF_TOKENIZER_H
+#define PDF_TOKENIZER_H
 
 #include "PdfDefines.h"
 #include "PdfRefCountedBuffer.h"
@@ -51,15 +24,24 @@ class PdfVariant;
 enum class EPdfTokenType
 {
     Unknown = 0,
-    Delimiter,
     Literal,
+    ParenthesisLeft,
+    ParenthesisRight,
+    BraceLeft,
+    BraceRight,
+    AngleBracketLeft,
+    AngleBracketRight,
+    DoubleAngleBracketsLeft,
+    DoubleAngleBracketsRight,
+    SquareBracketLeft,
+    SquareBracketRight,
+    Slash,
 };
 
 typedef std::pair<std::string,EPdfTokenType> TTokenizerPair;
-typedef std::deque<TTokenizerPair>           TTokenizerQueque;
-typedef TTokenizerQueque::iterator           TITokenizerQueque;
-typedef TTokenizerQueque::const_iterator     TCITokenizerQueque;
-
+typedef std::deque<TTokenizerPair> TTokenizerQueque;
+typedef TTokenizerQueque::iterator TITokenizerQueque;
+typedef TTokenizerQueque::const_iterator TCITokenizerQueque;
 
 /**
  * A simple tokenizer for PDF files and PDF content streams
@@ -69,30 +51,12 @@ class PODOFO_API PdfTokenizer
     friend class PdfParser;
     friend class PdfParserObject;
 
-protected:
-    // This enum differs from regular PdfDataType in the sense
-    // it enumerates only data types that can be determined literally
-    // by the tokenization and specify better if the strings literals
-    // are regular or hex strings
-    enum class EPdfLiteralDataType
-    {
-        Unknown = 0,
-        Bool,
-        Number,
-        Real,
-        String,
-        HexString,
-        Name,
-        Array,
-        Dictionary,
-        Null,
-        Reference,
-    };
+public:
+    static constexpr unsigned BufferSize = 4096;
 
 public:
-    PdfTokenizer();
-    PdfTokenizer(const PdfRefCountedBuffer& rBuffer);
-    ~PdfTokenizer();
+    PdfTokenizer(bool readReferences = true);
+    PdfTokenizer(const PdfRefCountedBuffer& rBuffer, bool readReferences = true);
 
     /** Reads the next token from the current file position
      *  ignoring all comments.
@@ -107,11 +71,12 @@ public:
      *  \param[out] peType On true return, if not nullptr the type of the read token
      *                     will be stored into this parameter. Undefined on false
      *                     return.
-     * 
+     *
      *  \returns           True if a token was read, false if there are no
      *                     more tokens to read.
      */
-    bool TryReadNextToken(PdfInputDevice& device, std::string_view& pszToken, EPdfTokenType* peType = nullptr);
+    bool TryReadNextToken(PdfInputDevice& device, std::string_view& token);
+    bool TryReadNextToken(PdfInputDevice& device, std::string_view& token, EPdfTokenType& tokenType);
 
     /** Reads the next token from the current file position
      *  ignoring all comments and compare the passed token
@@ -119,7 +84,7 @@ public:
      *
      *  If there is no next token available, throws UnexpectedEOF.
      *
-     *  \param pszToken a token that is compared to the 
+     *  \param pszToken a token that is compared to the
      *                  read token
      *
      *  \returns true if the read token equals the passed token.
@@ -148,32 +113,38 @@ public:
      */
     void ReadNextVariant(PdfInputDevice& device, PdfVariant& rVariant, PdfEncrypt* pEncrypt = nullptr);
 
-    /** Returns true if the given character is a whitespace 
+public:
+    PdfRefCountedBuffer& GetBuffer() { return m_buffer; }
+
+public:
+    /** Returns true if the given character is a whitespace
      *  according to the pdf reference
      *
      *  \returns true if it is a whitespace character otherwise false
      */
-    static bool IsWhitespace(const unsigned char ch);
+    static bool IsWhitespace(unsigned char ch);
 
     /** Returns true if the given character is a delimiter
      *  according to the pdf reference
-     *
-     *  \returns true if it is a delimiter character otherwise false
      */
-    static bool IsDelimiter(const unsigned char ch);
+    static bool IsDelimiter(unsigned char ch);
+
+    /** Returns true if the given character is a token delimiter
+     */
+    static bool IsTokenDelimiter(unsigned char ch, EPdfTokenType& tokenType);
 
     /**
      * True if the passed character is a regular character according to the PDF
      * reference (Section 3.1.1, Character Set); ie it is neither a white-space
      * nor a delimeter character.
      */
-    static bool IsRegular(const unsigned char ch);
+    static bool IsRegular(unsigned char ch);
 
     /**
      * True if the passed character is within the generally accepted "printable"
      * ASCII range.
      */
-    static bool IsPrintable(const unsigned char ch);
+    static bool IsPrintable(unsigned char ch);
 
     /**
      * Get the hex value from a static map of a given hex character (0-9, A-F, a-f).
@@ -184,12 +155,32 @@ public:
      *
      * \see HEX_NOT_FOUND
      */
-    static int GetHexValue(const unsigned char ch);
+    static int GetHexValue(unsigned char ch);
 
     /**
      * Constant which is returned for invalid hex values.
      */
-    static constexpr unsigned int HEX_NOT_FOUND = std::numeric_limits<unsigned int>::max();
+    static constexpr unsigned HEX_NOT_FOUND = std::numeric_limits<unsigned>::max();
+
+protected:
+    // This enum differs from regular PdfDataType in the sense
+    // it enumerates only data types that can be determined literally
+    // by the tokenization and specify better if the strings literals
+    // are regular or hex strings
+    enum class EPdfLiteralDataType
+    {
+        Unknown = 0,
+        Bool,
+        Number,
+        Real,
+        String,
+        HexString,
+        Name,
+        Array,
+        Dictionary,
+        Null,
+        Reference,
+    };
 
 protected:
     /** Read the next variant from the current file position
@@ -202,8 +193,8 @@ protected:
      *  \param rVariant write the read variant to this value
      *  \param pEncrypt an encryption object which is used to decrypt strings during parsing
      */
-    void ReadNextVariant(PdfInputDevice& device, const std::string_view& pszToken, EPdfTokenType eType, PdfVariant& rVariant, PdfEncrypt* pEncrypt );
-    bool TryReadNextVariant(PdfInputDevice& device, const std::string_view& pszToken, EPdfTokenType eType, PdfVariant& rVariant, PdfEncrypt* pEncrypt);
+    void ReadNextVariant(PdfInputDevice& device, const std::string_view& token, EPdfTokenType eType, PdfVariant& variant, PdfEncrypt* encrypt);
+    bool TryReadNextVariant(PdfInputDevice& device, const std::string_view& token, EPdfTokenType eType, PdfVariant& variant, PdfEncrypt* encrypt);
 
     /** Add a token to the queue of tokens.
      *  tryReadNextToken() will return all enqueued tokens first before
@@ -216,33 +207,25 @@ protected:
      */
     void EnqueueToken(const std::string_view& pszToken, EPdfTokenType eType);
 
-    /** Determine the possible datatype of a token.
-     *  Numbers, reals, bools or nullptr values are parsed directly by this function
-     *  and saved to a variant.
-     *
-     *  \returns the expected datatype
-     */
-    EPdfLiteralDataType DetermineDataType(PdfInputDevice& device, const std::string_view& pszToken, EPdfTokenType eType, PdfVariant& rVariant);
-
     /** Read a dictionary from the input device
      *  and store it into a variant.
-     * 
+     *
      *  \param rVariant store the dictionary into this variable
      *  \param pEncrypt an encryption object which is used to decrypt strings during parsing
      */
-    void ReadDictionary(PdfInputDevice& device, PdfVariant& rVariant, PdfEncrypt* pEncrypt );
+    void ReadDictionary(PdfInputDevice& device, PdfVariant& variant, PdfEncrypt* encrypt);
 
     /** Read an array from the input device
      *  and store it into a variant.
-     * 
+     *
      *  \param rVariant store the array into this variable
      *  \param pEncrypt an encryption object which is used to decrypt strings during parsing
      */
-    void ReadArray(PdfInputDevice& device, PdfVariant& rVariant, PdfEncrypt* pEncrypt );
+    void ReadArray(PdfInputDevice& device, PdfVariant& variant, PdfEncrypt* encrypt);
 
     /** Read a string from the input device
      *  and store it into a variant.
-     * 
+     *
      *  \param rVariant store the string into this variable
      *  \param pEncrypt an encryption object which is used to decrypt strings during parsing
      */
@@ -258,51 +241,36 @@ protected:
 
     /** Read a name from the input device
      *  and store it into a variant.
-     * 
+     *
      *  Throws UnexpectedEOF if there is nothing to read.
      *
      *  \param rVariant store the name into this variable
      */
-    void ReadName(PdfInputDevice& device, PdfVariant& rVariant);
+    void ReadName(PdfInputDevice & device, PdfVariant & variant);
 
-    PdfRefCountedBuffer& GetBuffer() { return m_buffer; }
+    /** Determine the possible datatype of a token.
+     *  Numbers, reals, bools or nullptr values are parsed directly by this function
+     *  and saved to a variant.
+     *
+     *  \returns the expected datatype
+     */
+    EPdfLiteralDataType DetermineDataType(PdfInputDevice& device, const std::string_view& token, EPdfTokenType eType, PdfVariant& variant);
 
 private:
     bool tryReadDataType(PdfInputDevice& device, EPdfLiteralDataType eDataType, PdfVariant& rVariant, PdfEncrypt* pEncrypt);
 
-    /** Read a hex string from the input device
-     *  and store it into a vector.
-     *
-     *  \param rVecBuffer store the hex string into this variable
-     */
-    void readHexString(PdfInputDevice& device, std::vector<char>& rVecBuffer);
-
 private:
-    // 256-byte array mapping character ordinal values to a truth value
-    // indicating whether or not they are whitespace according to the PDF
-    // standard.
-    static const char * const s_delimiterMap;
-    static const char * const s_whitespaceMap;
-    static const char s_octMap[]; ///< Map of bool values, if a certain char
-                                  ///< is a valid octal digit
-    static const char * const s_escMap; ///< Mapping of escape sequences to their value
-    static const char * const s_hexMap; ///< Mapping of hex characters to their value
-
     PdfRefCountedBuffer m_buffer;
+    bool m_readReferences;
     TTokenizerQueque m_deqQueque;
+    buffer_t m_charBuffer;
 
-    // A vector which is used as a buffer to read strings.
-    // It is a member of the class to avoid reallocations while parsing.
-    std::vector<char> m_vecBuffer; // we use a vector instead of a string
-                                   // because we might read a unicode
-                                   // string which is allowed to contain 0 bytes.
-
-    /// An istringstream which is used
-    /// to read double values instead of strtod
-    /// which is locale depend.
+    // An istringstream which is used
+    // to read double values instead of strtod
+    // which is locale depend.
     std::istringstream m_doubleParser;
 };
 
 };
 
-#endif // _PDF_TOKENIZER_H_
+#endif // PDF_TOKENIZER_H

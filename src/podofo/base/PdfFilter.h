@@ -1,43 +1,12 @@
-/***************************************************************************
- *   Copyright (C) 2006 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *   Copyright (C) 2020 by Francesco Pretto                                *
- *   ceztko@gmail.com                                                      *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2006 by Dominik Seichter <domseichter@web.de>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
-#ifndef _PDF_FILTER_H_
-#define _PDF_FILTER_H_
-
-#include <memory>
-#include <cassert>
+#ifndef PDF_FILTER_H
+#define PDF_FILTER_H
 
 #include "PdfDefines.h"
 
@@ -51,7 +20,7 @@ class PdfName;
 class PdfObject;
 class PdfOutputStream;
 
-typedef std::vector<EPdfFilter>            TVecFilters;
+typedef std::vector<PdfFilterType>            TVecFilters;
 typedef TVecFilters::iterator              TIVecFilters;
 typedef TVecFilters::const_iterator        TCIVecFilters;
 
@@ -59,9 +28,6 @@ typedef TVecFilters::const_iterator        TCIVecFilters;
  * 
  *  The two methods Encode() and Decode() have to be implemented 
  *  for every filter.
- *
- *  The output buffers are podofo_malloc()'ed in the functions and have
- *  to be podofo_free()'d by the caller.
  */
 class PODOFO_API PdfFilter
 {
@@ -75,13 +41,12 @@ public:
     virtual ~PdfFilter();
 
     /** Check whether encoding is implemented for this filter.
-     * 
+     *
      *  \returns true if the filter is able to encode data
      */
-    virtual bool CanEncode() const = 0; 
+    virtual bool CanEncode() const = 0;
 
-    /** Encodes a buffer using a filter. The buffer will podofo_malloc()'d and
-     *  has to be podofo_free()'d by the caller.
+    /** Encodes a buffer using a filter
      *
      *  This function uses BeginEncode()/EncodeBlock()/EndEncode()
      *  internally, so it's not safe to use when progressive encoding
@@ -92,7 +57,7 @@ public:
      *  \param ppOutBuffer receives pointer to the buffer of the encoded data
      *  \param plOutLen pointer to where to write the output buffer's length
      */
-    void Encode( const char* pInBuffer, size_t lInLen, char** ppOutBuffer, size_t* plOutLen ) const;
+    void Encode(const char* inBuffer, size_t inLen, std::unique_ptr<char>& outBuffer, size_t* outLen) const;
 
     /** Begin progressively encoding data using this filter.
      *
@@ -108,7 +73,7 @@ public:
      *  \see EncodeBlock
      *  \see EndEncode
      */
-    void BeginEncode( PdfOutputStream* pOutput );
+    void BeginEncode(PdfOutputStream& output);
 
     /** Encode a block of data and write it to the PdfOutputStream
      *  specified by BeginEncode(). Ownership of the block is not taken
@@ -131,7 +96,7 @@ public:
      *  \see BeginEncode
      *  \see EndEncode
      */
-    void EncodeBlock( const char* pBuffer, size_t lLen );
+    void EncodeBlock(const char* buffer, size_t len);
 
     /**
      *  Finish encoding of data and reset the stream's state.
@@ -142,24 +107,25 @@ public:
     void EndEncode();
 
     /** Check whether the decoding is implemented for this filter.
-     * 
+     *
      *  \returns true if the filter is able to decode data
      */
-    virtual bool CanDecode() const = 0; 
+    virtual bool CanDecode() const = 0;
 
-    /** Decodes a buffer using a filter. The buffer will podofo_malloc()'d and
-     *  has to be podofo_free()'d by the caller.
-     *  
+    /** Decodes a buffer using a filter. The buffer has
+     *  to be free'd by the caller.
+     *
      *  \param pInBuffer input buffer
      *  \param lInLen    length of the input buffer
      *  \param ppOutBuffer receives pointer to the buffer of the decoded data
-     *  \param plOutLen pointer to where to write the output buffer's length  
+     *  \param plOutLen pointer to where to write the output buffer's length
      *  \param pDecodeParms optional pointer to a decode-parameters dictionary
      *                      containing additional information to decode
      *                      the data. This pointer must be nullptr if no
      *                      decode-parameters dictionary is available.
      */
-    void Decode( const char* pInBuffer, size_t lInLen, char** ppOutBuffer, size_t* plOutLen, const PdfDictionary* pDecodeParms = nullptr ) const;
+     // TODO: Move to std::unique_ptr<char>
+    void Decode(const char* inBuffer, size_t inLen, char** outBuffer, size_t* outLen, const PdfDictionary* decodeParms = nullptr) const;
 
     /** Begin progressively decoding data using this filter.
      *
@@ -177,7 +143,7 @@ public:
      *  \see DecodeBlock
      *  \see EndDecode
      */
-    void BeginDecode( PdfOutputStream* pOutput, const PdfDictionary* pDecodeParms = nullptr );
+    void BeginDecode(PdfOutputStream& output, const PdfDictionary* decodeParms = nullptr);
 
     /** Decode a block of data and write it to the PdfOutputStream
      *  specified by BeginDecode(). Ownership of the block is not taken
@@ -200,7 +166,7 @@ public:
      *  \see BeginDecode
      *  \see EndDecode
      */
-    void DecodeBlock( const char* pBuffer, size_t lLen );
+    void DecodeBlock(const char* pBuffer, size_t lLen);
 
     /**
      *  Finish decoding of data and reset the stream's state.
@@ -213,11 +179,11 @@ public:
     /** Type of this filter.
      *  \returns the type of this filter
      */
-    virtual EPdfFilter GetType() const = 0;
+    virtual PdfFilterType GetType() const = 0;
 
-    inline PdfOutputStream* GetStream() const { return m_pOutputStream; }
+    inline PdfOutputStream* GetStream() const { return m_OutputStream; }
 
- protected:
+protected:
     /**
      * Indicate that the filter has failed, and will be non-functional
      * until BeginEncode() or BeginDecode() is next called. Call this
@@ -241,7 +207,7 @@ public:
      *  EncodeBlock().
      * \see BeginEncode
      */
-    virtual void BeginEncodeImpl( ) { }
+    virtual void BeginEncodeImpl() { }
 
     /** Real implementation of EncodeBlock(). NEVER call this method directly.
      *
@@ -259,7 +225,7 @@ public:
      *
      * \see EncodeBlock
      */
-    virtual void EncodeBlockImpl( const char* pBuffer, size_t lLen ) = 0;
+    virtual void EncodeBlockImpl(const char* pBuffer, size_t lLen) = 0;
 
     /** Real implementation of EndEncode(). NEVER call this method directly.
      *
@@ -283,7 +249,7 @@ public:
      *  DecodeBlock().
      * \see BeginDecode
      */
-    virtual void BeginDecodeImpl( const PdfDictionary* ) { }
+    virtual void BeginDecodeImpl(const PdfDictionary*) { }
 
     /** Real implementation of DecodeBlock(). NEVER call this method directly.
      *
@@ -301,7 +267,7 @@ public:
      *
      * \see DecodeBlock
      */
-    virtual void DecodeBlockImpl( const char* pBuffer, size_t lLen ) = 0;
+    virtual void DecodeBlockImpl(const char* buffer, size_t len) = 0;
 
     /** Real implementation of EndDecode(). NEVER call this method directly.
      *
@@ -315,8 +281,8 @@ public:
      */
     virtual void EndDecodeImpl() { }
 
- private:
-    PdfOutputStream* m_pOutputStream;
+private:
+    PdfOutputStream* m_OutputStream;
 };
 
 /** A factory to create a filter object for a filter type (as GetType() gives)
@@ -332,32 +298,32 @@ public:
      *  the filter is returned in take care of freeing it when they're done
      *  with it.
      *
-     *  \param eFilter return value of GetType() for filter to be created
+     *  \param filterType return value of GetType() for filter to be created
      *
      *  \returns a new PdfFilter allocated using new, or nullptr if no
      *           filter is available for this type.
      */
-    static std::unique_ptr<PdfFilter> Create( const EPdfFilter eFilter );
+    static std::unique_ptr<PdfFilter> Create(const PdfFilterType filterType);
 
-    /** Create a PdfOutputStream that applies a list of filters 
+    /** Create a PdfOutputStream that applies a list of filters
      *  on all data written to it.
      *
      *  \param filters a list of filters
-     *  \param pStream write all data to this PdfOutputStream after it has been
+     *  \param stream write all data to this PdfOutputStream after it has been
      *         encoded
      *  \returns a new PdfOutputStream that has to be deleted by the caller.
      *
      *  \see PdfFilterFactory::CreateFilterList
      */
-    static std::unique_ptr<PdfOutputStream> CreateEncodeStream(const TVecFilters & filters, PdfOutputStream &pStream);
+    static std::unique_ptr<PdfOutputStream> CreateEncodeStream(const TVecFilters& filters, PdfOutputStream& stream);
 
-    /** Create a PdfOutputStream that applies a list of filters 
+    /** Create a PdfOutputStream that applies a list of filters
      *  on all data written to it.
      *
      *  \param filters a list of filters
-     *  \param pStream write all data to this PdfOutputStream
+     *  \param stream write all data to this PdfOutputStream
      *         after it has been decoded.
-     *  \param pDictionary pointer to a dictionary that might
+     *  \param dictionary pointer to a dictionary that might
      *         contain additional parameters for stream decoding.
      *         This method will look for a key named DecodeParms
      *         in this dictionary and pass the information found
@@ -366,41 +332,40 @@ public:
      *
      *  \see PdfFilterFactory::CreateFilterList
      */
-    static std::unique_ptr<PdfOutputStream> CreateDecodeStream(const TVecFilters & filters, PdfOutputStream &pStream,
-                                                const PdfDictionary* pDictionary = nullptr);
+    static std::unique_ptr<PdfOutputStream> CreateDecodeStream(const TVecFilters& filters, PdfOutputStream& stream,
+        const PdfDictionary* dictionary = nullptr);
 
     /** Converts a filter name to the corresponding enum
      *  \param name of the filter without leading
      *  \param bSupportShortNames The PDF Reference supports several
      *         short names for filters (e.g. AHx for AsciiHexDecode), if true
-     *         support for these short names will be enabled. 
+     *         support for these short names will be enabled.
      *         This is often used in inline images.
      *  \returns the filter as enum
      */
-    static EPdfFilter FilterNameToType( const PdfName & name, bool bSupportShortNames = true );
+    static PdfFilterType FilterNameToType(const PdfName& name, bool supportShortNames = true);
 
     /** Converts a filter type enum to the corresponding PdfName
      *  \param eFilter a filter type
      *  \returns the filter as name
      */
-    static const char* FilterTypeToName( EPdfFilter eFilter );
+    static const char* FilterTypeToName(PdfFilterType eFilter);
 
     /** The passed PdfObject has to be a dictionary with a Filters key,
      *  a (possibly empty) array of filter names or a filter name.
      *
-     *  \param pObject must define a filter or list of filters (can be
+     *  \param filtersObj must define a filter or list of filters (can be
      *         empty, although then you should use TVecFilters' default)
      *
      *  \returns a list of filters
      */
-    static TVecFilters CreateFilterList( const PdfObject* pObject );
+    static TVecFilters CreateFilterList(const PdfObject& filtersObj);
 
- private:
+private:
     // prohibit instantiation of all-methods-static factory from outside
     PdfFilterFactory();
 };
 
+}
 
-};
-
-#endif /* _PDF_FILTER_H_ */
+#endif // PDF_FILTER_H
