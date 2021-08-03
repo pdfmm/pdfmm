@@ -31,7 +31,7 @@ public:
      *  in the pages resource dictionary.
      *  \returns PdfName containing the identifier (e.g. /PtrnXXXXX)
      */
-    inline const PdfName& GetIdentifier() const;
+    inline const PdfName& GetIdentifier() const { return m_Identifier; }
 
     /** Create a new PdfTilingPattern object, which will introduce itself
      *  automatically to every page object it is used on.
@@ -73,11 +73,6 @@ private:
 private:
     PdfName m_Identifier;
 };
-
-const PdfName& PdfTilingPattern::GetIdentifier() const
-{
-    return m_Identifier;
-}
 
 } // end namespace
 
