@@ -23,7 +23,7 @@ class PdfRect;
 
 /** Class for managing the tree of Pages in a PDF document
  *  Don't use this class directly. Use PdfDocument instead.
- *  
+ *
  *  \see PdfDocument
  */
 class PODOFO_DOC_API PdfPagesTree final : public PdfElement

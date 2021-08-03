@@ -90,7 +90,7 @@ PdfXObject::PdfXObject(PdfObject& obj, PdfXObjectType subType)
     InitIdentifiers(subType, { });
 }
 
-bool PdfXObject::TryCreateFromObject(PdfObject &obj, unique_ptr<PdfXObject>& xobj, PdfXObjectType &type)
+bool PdfXObject::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfXObject>& xobj, PdfXObjectType& type)
 {
     auto typeObj = obj.GetDictionary().GetKey(PdfName::KeyType);
     if (typeObj == nullptr
@@ -124,7 +124,7 @@ bool PdfXObject::TryCreateFromObject(PdfObject &obj, unique_ptr<PdfXObject>& xob
     }
 }
 
-PdfXObjectType PdfXObject::getPdfXObjectType(const PdfObject &obj)
+PdfXObjectType PdfXObject::getPdfXObjectType(const PdfObject& obj)
 {
     auto subTypeObj = obj.GetDictionary().FindKey(PdfName::KeySubtype);
     if (subTypeObj == nullptr || !subTypeObj->IsName())
@@ -149,7 +149,7 @@ string PdfXObject::ToString(PdfXObjectType type)
     }
 }
 
-PdfXObjectType PdfXObject::FromString(const string &str)
+PdfXObjectType PdfXObject::FromString(const string& str)
 {
     if (str == "Form")
         return PdfXObjectType::Form;
@@ -267,7 +267,7 @@ void PdfXObject::EnsureResourcesInitialized()
     GetObject().ForceCreateStream();
 }
 
-inline PdfStream & PdfXObject::GetStreamForAppending(EPdfStreamAppendFlags flags)
+inline PdfStream& PdfXObject::GetStreamForAppending(EPdfStreamAppendFlags flags)
 {
     (void)flags; // Flags have no use here
     return GetObject().GetOrCreateStream();

@@ -53,7 +53,7 @@ PdfAction::PdfAction(PdfObject& obj)
 {
     m_eType = static_cast<PdfActionType>(TypeNameToIndex(
         this->GetObject().GetDictionary().FindKeyAs<PdfName>("S").GetString().c_str(),
-            s_names, std::size(s_names), (int)PdfActionType::Unknown));
+        s_names, std::size(s_names), (int)PdfActionType::Unknown));
 }
 
 void PdfAction::SetURI(const PdfString& sUri)

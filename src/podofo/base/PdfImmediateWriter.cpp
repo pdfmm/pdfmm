@@ -158,7 +158,7 @@ void PdfImmediateWriter::BeginAppendStream(const PdfStream& stream)
             const_cast<PdfFileStream*>(fileStream)->SetEncrypted(GetEncrypt());
     }
 }
-    
+
 void PdfImmediateWriter::EndAppendStream(const PdfStream& stream)
 {
     auto fileStream = dynamic_cast<const PdfFileStream*>(&stream);

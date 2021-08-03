@@ -108,7 +108,7 @@ public:
 private:
     static PdfEncodingMapConstPtr createEncodingMap(PdfObject& obj, bool explicitNames);
 
- private:
+private:
     PdfEncodingFactory() = delete;
 };
 

@@ -25,8 +25,8 @@ typedef TVecFilters::iterator              TIVecFilters;
 typedef TVecFilters::const_iterator        TCIVecFilters;
 
 /** Every filter in PoDoFo has to implement this interface.
- * 
- *  The two methods Encode() and Decode() have to be implemented 
+ *
+ *  The two methods Encode() and Decode() have to be implemented
  *  for every filter.
  */
 class PODOFO_API PdfFilter
@@ -286,7 +286,7 @@ private:
 };
 
 /** A factory to create a filter object for a filter type (as GetType() gives)
- *  from the EPdfFilter enum. 
+ *  from the EPdfFilter enum.
  *  All filters should be created using this factory.
  */
 class PODOFO_API PdfFilterFactory

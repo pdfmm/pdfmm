@@ -16,29 +16,29 @@ namespace PoDoFo {
 
 class PdfOutputDevice;
 
-/** An interface for writing blocks of data to 
+/** An interface for writing blocks of data to
  *  a data source.
- */     
+ */
 class PODOFO_API PdfOutputStream
 {
 public:
     virtual ~PdfOutputStream();
 
     /** Write data to the output stream
-     *  
+     *
      *  \param pBuffer the data is read from this buffer
      *  \param lLen    the size of the buffer
      */
     void Write(const char* buffer, size_t len);
 
     /** Write data to the output stream
-     *  
+     *
      *  \param view the data is read from this buffer
      */
     void Write(const std::string_view& view);
 
     /** Close the PdfOutputStream.
-     *  This method may throw exceptions and has to be called 
+     *  This method may throw exceptions and has to be called
      *  before the destructor to end writing.
      *
      *  No more data may be written to the output device
@@ -60,7 +60,7 @@ class PODOFO_API PdfMemoryOutputStream : public PdfOutputStream
 public:
     static constexpr size_t INITIAL_SIZE = 4096;
 
-    /** 
+    /**
      *  Construct a new PdfMemoryOutputStream
      *  \param lInitial initial size of the buffer
      */
@@ -77,7 +77,7 @@ public:
 
     void Close() override;
 
-    inline const char * GetBuffer() const { return m_Buffer; }
+    inline const char* GetBuffer() const { return m_Buffer; }
 
     /** \returns the length of the written data
      */
@@ -109,10 +109,10 @@ private:
 class PODOFO_API PdfDeviceOutputStream : public PdfOutputStream
 {
 public:
-    
-    /** 
+
+    /**
      *  Write to an already opened input device
-     * 
+     *
      *  \param pDevice an output device
      */
     PdfDeviceOutputStream(PdfOutputDevice& pDevice);
@@ -122,28 +122,28 @@ public:
 protected:
     void WriteImpl(const char* data, size_t len) override;
 
- private:
+private:
     PdfOutputDevice* m_Device;
 };
 
 /** An output stream that writes to a PdfRefCountedBuffer.
- * 
+ *
  *  The PdfRefCountedBuffer is resized automatically if necessary.
  */
 class PODOFO_API PdfBufferOutputStream : public PdfOutputStream
 {
 public:
-    
-    /** 
+
+    /**
      *  Write to an already opened input device
-     * 
+     *
      *  \param pBuffer data is written to this buffer
      */
     PdfBufferOutputStream(PdfRefCountedBuffer& buffer);
 
     void Close() override;
 
-    /** 
+    /**
      * \returns the length of the buffers contents
      */
     inline size_t GetLength() const { return m_Length; }
@@ -151,7 +151,7 @@ public:
 protected:
     void WriteImpl(const char* data, size_t len) override;
 
- private:
+private:
     PdfRefCountedBuffer* m_Buffer;
     size_t m_Length;
 };

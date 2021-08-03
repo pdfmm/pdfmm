@@ -40,7 +40,7 @@ namespace PoDoFo
     class PODOFO_API PdfPredefinedEncoding : public PdfEncodingMapSimple
     {
     protected:
-        /*
+        /**
          *  Create a new simple PdfEncodingMap which uses 1 byte.
          *
          *  \param rName the name of a standard PdfEncoding

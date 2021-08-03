@@ -80,60 +80,60 @@ public:
     *
     *  \param rsText the signer name
     */
-    void SetSignerName(const PdfString & rsText);
+    void SetSignerName(const PdfString& rsText);
 
     /** Set reason of the signature
      *
      *  \param rsText the reason of signature
      */
-    void SetSignatureReason(const PdfString & rsText);
+    void SetSignatureReason(const PdfString& rsText);
 
     /** Set location of the signature
      *
      *  \param rsText the location of signature
      */
-    void SetSignatureLocation(const PdfString & rsText);
+    void SetSignatureLocation(const PdfString& rsText);
 
     /** Set the creator of the signature
      *
      *  \param creator the creator of the signature
      */
-    void SetSignatureCreator( const PdfName & creator );
+    void SetSignatureCreator(const PdfName& creator);
 
     /** Date of signature
      */
-    void SetSignatureDate(const PdfDate &sigDate);
+    void SetSignatureDate(const PdfDate& sigDate);
 
     /** Add certification dictionaries and references to document catalog.
      *
      *  \param pDocumentCatalog the catalog of current document
      *  \param perm document modification permission
      */
-    void AddCertificationReference(PdfObject *pDocumentCatalog, EPdfCertPermission perm = EPdfCertPermission::NoPerms);
+    void AddCertificationReference(PdfObject* pDocumentCatalog, EPdfCertPermission perm = EPdfCertPermission::NoPerms);
 
     /** Get the signer name
     *
     *  \returns the found signer object
     */
-    const PdfObject * GetSignerName() const;
+    const PdfObject* GetSignerName() const;
 
     /** Get the reason of the signature
     *
     *  \returns the found reason object
     */
-    const PdfObject * GetSignatureReason() const;
+    const PdfObject* GetSignatureReason() const;
 
     /** Get the location of the signature
     *
     *  \returns the found location object
     */
-    const PdfObject * GetSignatureLocation() const;
+    const PdfObject* GetSignatureLocation() const;
 
     /** Get the date of the signature
     *
     *  \returns the found date object
     */
-    const PdfObject * GetSignatureDate() const;
+    const PdfObject* GetSignatureDate() const;
 
     /** Returns signature object for this signature field.
      *  It can be nullptr, when the signature field was created
@@ -151,7 +151,7 @@ public:
     void EnsureSignatureObject();
 
 private:
-    void Init(PdfAcroForm &acroForm);
+    void Init(PdfAcroForm& acroForm);
 
 private:
     PdfObject* m_pSignatureObj;

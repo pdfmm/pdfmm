@@ -197,7 +197,7 @@ protected:
      *  Set the fonttype.
      *  \param eFontType fonttype
      */
-     inline void SetFontType(PdfFontMetricsType eFontType) { m_FontType = eFontType; }
+    inline void SetFontType(PdfFontMetricsType eFontType) { m_FontType = eFontType; }
 
 private:
     PdfFontMetrics(const PdfFontMetrics& rhs) = delete;

@@ -226,7 +226,7 @@ void PdfXRefStreamParserObject::ReadXRefStreamEntry(char* pBuffer, size_t, const
     }
 }
 
-bool PdfXRefStreamParserObject::TryGetPreviousOffset(size_t &previousOffset) const
+bool PdfXRefStreamParserObject::TryGetPreviousOffset(size_t& previousOffset) const
 {
     bool ret = m_lNextOffset != -1;
     previousOffset = ret ? (size_t)m_lNextOffset : 0;

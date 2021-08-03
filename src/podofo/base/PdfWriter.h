@@ -61,13 +61,13 @@ public:
      *  Default is false.
      *  \param bStream if true a XRef stream object will be created
      */
-    void SetUseXRefStream( bool bStream );
-    
+    void SetUseXRefStream(bool bStream);
+
     /** Set the written document to be encrypted using a PdfEncrypt object
      *
      *  \param rEncrypt an encryption object which is used to encrypt the written PDF file
      */
-    void SetEncrypted( const PdfEncrypt & rEncrypt );
+    void SetEncrypted(const PdfEncrypt& rEncrypt);
 
 
     /** Add required keys to a trailer object
@@ -75,7 +75,7 @@ public:
      *  \param lSize number of objects in the PDF file
      *  \param bOnlySizeKey write only the size key
      */
-    void FillTrailerObject( PdfObject& pTrailer, size_t lSize, bool bOnlySizeKey ) const;
+    void FillTrailerObject(PdfObject& pTrailer, size_t lSize, bool bOnlySizeKey) const;
 
 public:
     /** Get the file format version of the pdf
@@ -146,11 +146,11 @@ protected:
     /**
      * Create a PdfWriter from a PdfVecObjects
      */
-    PdfWriter( PdfVecObjects& pVecObjects );
+    PdfWriter(PdfVecObjects& pVecObjects);
 
     /** Writes the pdf header to the current file.
      *  \param pDevice write to this output device
-     */       
+     */
     void WritePdfHeader(PdfOutputDevice& device);
 
     /** Write pdf objects to file
@@ -158,11 +158,11 @@ protected:
      *  \param vecObjects write all objects in this vector to the file
      *  \param pXref add all written objects to this XRefTable
      *  \param bRewriteXRefTable whether will rewrite whole XRef table (used only if GetIncrementalUpdate() returns true)
-     */ 
+     */
     void WritePdfObjects(PdfOutputDevice& device, const PdfVecObjects& vecObjects, PdfXRef& xref);
 
     /** Creates a file identifier which is required in several
-     *  PDF workflows. 
+     *  PDF workflows.
      *  All values from the files document information dictionary are
      *  used to create a unique MD5 key which is added to the trailer dictionary.
      *
@@ -170,18 +170,18 @@ protected:
      *  \param pTrailer trailer object
      *  \param pOriginalIdentifier write the original identifier (when using incremental update) to this string
      */
-    void CreateFileIdentifier( PdfString& identifier, const PdfObject& pTrailer, PdfString* pOriginalIdentifier = nullptr ) const;
+    void CreateFileIdentifier(PdfString& identifier, const PdfObject& pTrailer, PdfString* pOriginalIdentifier = nullptr) const;
 
-    
+
     const PdfObject& GetTrailer() { return m_Trailer; }
     PdfVecObjects& GetObjects() { return *m_vecObjects; }
     PdfEncrypt* GetEncrypt() { return m_pEncrypt.get(); }
     PdfObject* GetEncryptObj() { return m_pEncryptObj; }
-    const PdfString & GetIdentifier() { return m_identifier; }
-    void SetIdentifier(const PdfString &identifier) { m_identifier = identifier; }
+    const PdfString& GetIdentifier() { return m_identifier; }
+    void SetIdentifier(const PdfString& identifier) { m_identifier = identifier; }
     void SetEncryptObj(PdfObject* obj);
 private:
-    PdfVecObjects*  m_vecObjects;
+    PdfVecObjects* m_vecObjects;
     PdfObject m_Trailer;
     PdfVersion     m_eVersion;
 
@@ -199,7 +199,7 @@ private:
     int64_t         m_lPrevXRefOffset;
     bool            m_bIncrementalUpdate;
     bool            m_rewriteXRefTable; // Only used if incremental update
- 
+
     /**
      * This value is required when writing
      * a linearized PDF file.

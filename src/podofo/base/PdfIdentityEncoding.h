@@ -32,7 +32,7 @@ class PODOFO_DOC_API PdfIdentityEncoding final : public PdfEncodingMap
     friend class PdfEncodingFactory;
 
 public:
-    /** 
+    /**
      *  Create a new PdfIdentityEncoding.
      *
      *  \param codeSpaceSize size of the codespace size
@@ -46,7 +46,7 @@ protected:
     bool tryGetCodePoints(const PdfCharCode& codeUnit, std::vector<char32_t>& codePoints) const override;
     void getExportObject(PdfVecObjects& objects, PdfName& name, PdfObject*& obj) const override;
     void appendBaseFontEntries(PdfStream& stream) const override;
-    
+
 private:
     PdfIdentityOrientation m_orientation;
 };

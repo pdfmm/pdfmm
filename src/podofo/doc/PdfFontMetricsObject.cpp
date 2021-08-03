@@ -57,7 +57,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
         auto widths = font.GetDictionary().FindKey("Widths");
         if (widths != nullptr)
         {
-            auto &arrWidths = widths->GetArray();
+            auto& arrWidths = widths->GetArray();
             m_Widths.reserve(arrWidths.size());
             for (auto& obj : arrWidths)
                 m_Widths.push_back(obj.GetReal() * m_matrix[0]);
@@ -218,7 +218,7 @@ double PdfFontMetricsObject::GetUnderlinePosition() const
 
 double PdfFontMetricsObject::GetStrikeOutPosition() const
 {
-	return m_StrikeOutPosition;
+    return m_StrikeOutPosition;
 }
 
 double PdfFontMetricsObject::GetUnderlineThickness() const

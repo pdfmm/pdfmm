@@ -28,7 +28,7 @@ class PdfContainerDataType;
 
 /**
  * This class represents a PDF indirect Object in memory
- * 
+ *
  * It is possible to manipulate the stream which can be appended to the object
  * (if the object is of underlying type dictionary).  A PdfObject is uniquely
  * identified by an object number and a generation number which has to be

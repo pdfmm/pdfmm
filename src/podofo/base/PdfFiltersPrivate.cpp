@@ -40,7 +40,7 @@ namespace PoDoFo {
 // evaluation.
 const unsigned sPowers85[] = { 85 * 85 * 85 * 85, 85 * 85 * 85, 85 * 85, 85, 1 };
 
-/** 
+/**
  * This structur contains all necessary values
  * for a FlateDecode and LZWDecode Predictor.
  * These values are normally stored in the /DecodeParams
@@ -378,8 +378,8 @@ void PdfAscii85Filter::EndEncodeImpl()
     //GetStream()->Write( "~>", 2 );
 }
 
-void PdfAscii85Filter::BeginDecodeImpl( const PdfDictionary* )
-{ 
+void PdfAscii85Filter::BeginDecodeImpl(const PdfDictionary*)
+{
     m_count = 0;
     m_tuple = 0;
 }
@@ -636,8 +636,8 @@ void PdfRLEFilter::EndEncodeImpl()
     PODOFO_RAISE_ERROR(EPdfError::UnsupportedFilter);
 }
 
-void PdfRLEFilter::BeginDecodeImpl( const PdfDictionary* )
-{ 
+void PdfRLEFilter::BeginDecodeImpl(const PdfDictionary*)
+{
     m_nCodeLen = 0;
 }
 
@@ -855,7 +855,7 @@ extern "C"
 {
     void JPegErrorExit(j_common_ptr cinfo)
     {
-        auto& error = *reinterpret_cast<string *>(cinfo->client_data);
+        auto& error = *reinterpret_cast<string*>(cinfo->client_data);
         error.resize(JMSG_LENGTH_MAX);
         /* Create the message */
         (*cinfo->err->format_message) (cinfo, error.data());
@@ -997,14 +997,14 @@ typedef struct
     JOCTET eoi_buffer[2]; /* a place to put a dummy EOI */
 } my_source_mgr;
 
-typedef my_source_mgr * my_src_ptr;
+typedef my_source_mgr* my_src_ptr;
 
 /*
  * Initialize source --- called by jpeg_read_header
  * before any data is actually read.
  */
 
-METHODDEF(void) init_source (j_decompress_ptr)
+METHODDEF(void) init_source(j_decompress_ptr)
 {
     /* No work, since jpeg_memory_src set up the buffer pointer and count.
      * Indeed, if we want to read multiple JPEG images from one buffer,
@@ -1025,7 +1025,7 @@ METHODDEF(void) init_source (j_decompress_ptr)
  * some sort of output image, no matter how corrupted.
  */
 
-METHODDEF(boolean) fill_input_buffer (j_decompress_ptr cinfo)
+METHODDEF(boolean) fill_input_buffer(j_decompress_ptr cinfo)
 {
     my_src_ptr src = reinterpret_cast<my_src_ptr>(cinfo->src);
     WARNMS(cinfo, JWRN_JPEG_EOF);

@@ -16,7 +16,7 @@ class PdfInputDevice;
 
 // TODO: Remove-me! Just use std::shared_ptr<PdfInputDevice>
 
-/** 
+/**
  * A reference counted input device object
  * which is closed as soon as the last
  * object having access to it is deleted.
@@ -36,23 +36,23 @@ public:
     PdfRefCountedInputDevice(const std::string_view& filename);
 
     /** Create a new PdfRefCountedInputDevice which operates on a in memory buffer
-     *  
+     *
      *  \param pBuffer pointer to the buffer
      *  \param lLen length of the buffer
      */
-    PdfRefCountedInputDevice( const char* pBuffer, size_t lLen );
+    PdfRefCountedInputDevice(const char* pBuffer, size_t lLen);
 
     /** Create a new PdfRefCountedInputDevice from an PdfInputDevice
-     *  
+     *
      *  \param pDevice the input device. It will be owned and deleted by this object.
      */
-    PdfRefCountedInputDevice( PdfInputDevice* pDevice );
+    PdfRefCountedInputDevice(PdfInputDevice* pDevice);
 
     /** Copy an existing PdfRefCountedInputDevice and increase
      *  the reference count
      *  \param rhs the PdfRefCountedInputDevice to copy
      */
-    PdfRefCountedInputDevice( const PdfRefCountedInputDevice & rhs );
+    PdfRefCountedInputDevice(const PdfRefCountedInputDevice& rhs);
 
     /** Decrease the reference count and close the file
      *  if this is the last owner
@@ -69,7 +69,7 @@ public:
      *  \param rhs the PdfRefCountedFile to copy
      *  \returns the copied object
      */
-    const PdfRefCountedInputDevice & operator=( const PdfRefCountedInputDevice & rhs );
+    const PdfRefCountedInputDevice& operator=(const PdfRefCountedInputDevice& rhs);
 
 private:
     /** Detach from the reference counted file

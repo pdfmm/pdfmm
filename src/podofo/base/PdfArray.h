@@ -16,7 +16,7 @@ namespace PoDoFo {
 
 /** This class represents a PdfArray
  *  Use it for all arrays that are written to a PDF file.
- *  
+ *
  *  A PdfArray can hold any PdfVariant.
  *
  *  \see PdfVariant

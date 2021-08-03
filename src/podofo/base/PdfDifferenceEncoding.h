@@ -129,7 +129,7 @@ enum class EBaseEncoding
 class PODOFO_DOC_API PdfDifferenceEncoding final : public PdfEncodingMapSimple
 {
 public:
-    /** Create a new PdfDifferenceEncoding which is based on 
+    /** Create a new PdfDifferenceEncoding which is based on
      *  a predefined encoding.
      *
      *  \param difference the differences in this encoding
@@ -148,7 +148,7 @@ public:
     PdfDifferenceEncoding(const PdfObject& obj, bool explicitNames = false);
 
     /** Convert a standard character name to a unicode code point
-     * 
+     *
      *  \param rName a standard character name
      *  \returns an unicode code point
      */
@@ -156,7 +156,7 @@ public:
     static char32_t NameToUnicodeID(const std::string_view& name);
 
     /** Convert an unicode code point to a standard character name
-     * 
+     *
      *  \param inCodePoint a code point
      *  \returns a standard character name of /.notdef if none could be found
      */
@@ -176,8 +176,8 @@ protected:
     bool tryGetCodePoints(const PdfCharCode& codeUnit, std::vector<char32_t>& codePoints) const override;
 
 private:
-    /** Get an object of type baseencoding 
-     * 
+    /** Get an object of type baseencoding
+     *
      *  \returns a base encoding
      */
     const PdfEncodingMap& GetBaseEncoding() const;

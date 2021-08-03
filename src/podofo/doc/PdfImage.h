@@ -42,7 +42,7 @@ public:
      *  \param pParent parent document
      *  \param pszPrefix optional prefix for XObject-name
      */
-    PdfImage(PdfDocument& doc, const std::string_view& prefix = { });
+    PdfImage(PdfDocument & doc, const std::string_view & prefix = { });
 
     /** Construct an image from an existing PdfObject
      *
@@ -124,8 +124,8 @@ public:
      *  \param pStream stream supplieding raw image data
      *  \param vecFilters these filters will be applied to compress the image data
      */
-    void SetImageData(PdfInputStream &stream, unsigned nWidth, unsigned nHeight,
-                      unsigned nBitsPerComponent, TVecFilters & vecFilters, bool writeRect = true);
+    void SetImageData(PdfInputStream& stream, unsigned nWidth, unsigned nHeight,
+                      unsigned nBitsPerComponent, TVecFilters& vecFilters, bool writeRect = true);
 
     /** Set the actual image data from an input stream.
      *  The data has to be encoded already and an appropriate
@@ -137,7 +137,7 @@ public:
      *                           but is 8 in most cases)
      *  \param pStream stream supplieding raw image data
      */
-    void SetImageDataRaw(PdfInputStream &pStream, unsigned nWidth, unsigned nHeight,
+    void SetImageDataRaw(PdfInputStream& pStream, unsigned nWidth, unsigned nHeight,
         unsigned nBitsPerComponent);
 
     /** Load the image data from a file
@@ -218,7 +218,7 @@ private:
     static PdfName ColorspaceToName(PdfColorSpace eColorSpace);
 
 #ifdef PODOFO_HAVE_JPEG_LIB
-	void LoadFromJpegHandle(FILE* pInStream, const std::string_view& filename);
+    void LoadFromJpegHandle(FILE* pInStream, const std::string_view& filename);
 #endif // PODOFO_HAVE_JPEG_LIB
 #ifdef PODOFO_HAVE_TIFF_LIB
     void LoadFromTiffHandle(void* pInStream);

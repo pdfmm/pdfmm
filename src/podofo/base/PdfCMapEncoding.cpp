@@ -21,7 +21,7 @@ using namespace PoDoFo;
 
 static void readNextVariantSequence(PdfPostScriptTokenizer& tokenizer, PdfInputDevice& device,
     PdfVariant& variant, const string_view& endSequenceKeyword, bool& endOfSequence);
-static uint32_t getCodeFromVariant(const PdfVariant& var, PdfEncodingLimits &limits);
+static uint32_t getCodeFromVariant(const PdfVariant& var, PdfEncodingLimits& limits);
 static uint32_t getCodeFromVariant(const PdfVariant& var, PdfEncodingLimits& limits, unsigned char& codeSize);
 static vector<char32_t> handleNameMapping(const PdfName& name);
 static vector<char32_t> handleStringMapping(const PdfString& str);

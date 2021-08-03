@@ -122,7 +122,7 @@ void PdfPainter::FinishDrawing()
     {
         finishDrawing();
     }
-    catch (PdfError & e)
+    catch (PdfError& e)
     {
         // clean up, even in case of error
         m_stream = nullptr;
@@ -526,24 +526,24 @@ void PdfPainter::SetMiterLimit(double value)
     m_tmpStream << value << " M" << std::endl;
 }
 
-void PdfPainter::DrawLine( double dStartX, double dStartY, double dEndX, double dEndY )
+void PdfPainter::DrawLine(double dStartX, double dStartY, double dEndX, double dEndY)
 {
     CheckStream();
-	m_curPath.str("");
+    m_curPath.str("");
     m_curPath
-		    << dStartX << " "
-          << dStartY
-          << " m "
-          << dEndX << " "
-          << dEndY        
-          << " l" << std::endl;
+        << dStartX << " "
+        << dStartY
+        << " m "
+        << dEndX << " "
+        << dEndY
+        << " l" << std::endl;
 
     m_tmpStream << dStartX << " "
-          << dStartY
-          << " m "
-          << dEndX << " "
-          << dEndY        
-          << " l S" << std::endl;
+        << dStartY
+        << " m "
+        << dEndX << " "
+        << dEndY
+        << " l S" << std::endl;
 }
 
 void PdfPainter::Rectangle(double dX, double dY, double dWidth, double dHeight,
@@ -1462,7 +1462,7 @@ void PdfPainter::ConvertRectToBezier(double dX, double dY, double dWidth, double
     pdPointX[3] = pdPointX[9] = dCenterX;
 
     pdPointY[2] = pdPointY[3] = pdPointY[4] = dY;
-    pdPointY[8] = pdPointY[9] =  pdPointY[10] = dY + dHeight;
+    pdPointY[8] = pdPointY[9] = pdPointY[10] = dY + dHeight;
     pdPointY[7] = pdPointY[11] = dCenterY + dOffY;
     pdPointY[1] = pdPointY[5] = dCenterY - dOffY;
     pdPointY[0] = pdPointY[12] = pdPointY[6] = dCenterY;

@@ -29,14 +29,14 @@
  */
 #define VERBOSE_DEBUG_DISABLED
 
- // Should we do lots of extra (expensive) sanity checking?  You should not
- // define this on production builds because of the runtime cost and because it
- // might cause the library to abort() if it notices something nasty.
- // It may also change the size of some objects, and is thus not binary
- // compatible.
- //
- // If you don't know you need this, avoid it.
- //
+// Should we do lots of extra (expensive) sanity checking?  You should not
+// define this on production builds because of the runtime cost and because it
+// might cause the library to abort() if it notices something nasty.
+// It may also change the size of some objects, and is thus not binary
+// compatible.
+//
+// If you don't know you need this, avoid it.
+//
 #define EXTRA_CHECKS_DISABLED
 
 #ifdef DEBUG
@@ -107,7 +107,7 @@ namespace io
 /**
  * \page <PoDoFo PdfDefinesPrivate Header>
  *
- * <b>PdfDefinesPrivate.h</b> contains preprocessor definitions, inline functions, templates, 
+ * <b>PdfDefinesPrivate.h</b> contains preprocessor definitions, inline functions, templates,
  * compile-time const variables, and other things that must be visible across the entirety of
  * the PoDoFo library code base but should not be visible to users of the library's headers.
  *

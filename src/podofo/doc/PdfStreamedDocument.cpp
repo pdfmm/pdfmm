@@ -11,14 +11,14 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfStreamedDocument::PdfStreamedDocument( PdfOutputDevice& pDevice, PdfVersion eVersion, PdfEncrypt* pEncrypt, PdfWriteMode eWriteMode )
-    : m_pWriter( nullptr ), m_pDevice( nullptr ), m_pEncrypt( pEncrypt ), m_bOwnDevice( false )
+PdfStreamedDocument::PdfStreamedDocument(PdfOutputDevice& pDevice, PdfVersion eVersion, PdfEncrypt* pEncrypt, PdfWriteMode eWriteMode)
+    : m_pWriter(nullptr), m_pDevice(nullptr), m_pEncrypt(pEncrypt), m_bOwnDevice(false)
 {
     Init(pDevice, eVersion, pEncrypt, eWriteMode);
 }
 
-PdfStreamedDocument::PdfStreamedDocument(const string_view& filename, PdfVersion eVersion, PdfEncrypt* pEncrypt, PdfWriteMode eWriteMode )
-    : m_pWriter( nullptr ), m_pEncrypt( pEncrypt ), m_bOwnDevice( true )
+PdfStreamedDocument::PdfStreamedDocument(const string_view& filename, PdfVersion eVersion, PdfEncrypt* pEncrypt, PdfWriteMode eWriteMode)
+    : m_pWriter(nullptr), m_pEncrypt(pEncrypt), m_bOwnDevice(true)
 {
     m_pDevice = new PdfOutputDevice(filename);
     Init(*m_pDevice, eVersion, pEncrypt, eWriteMode);
@@ -27,22 +27,22 @@ PdfStreamedDocument::PdfStreamedDocument(const string_view& filename, PdfVersion
 PdfStreamedDocument::~PdfStreamedDocument()
 {
     delete m_pWriter;
-    if( m_bOwnDevice )
+    if (m_bOwnDevice)
         delete m_pDevice;
 }
 
-void PdfStreamedDocument::Init(PdfOutputDevice& pDevice, PdfVersion eVersion, 
-                                PdfEncrypt* pEncrypt, PdfWriteMode eWriteMode)
+void PdfStreamedDocument::Init(PdfOutputDevice& pDevice, PdfVersion eVersion,
+    PdfEncrypt* pEncrypt, PdfWriteMode eWriteMode)
 {
-    m_pWriter = new PdfImmediateWriter( this->GetObjects(), this->GetTrailer(), pDevice, eVersion, pEncrypt, eWriteMode );
+    m_pWriter = new PdfImmediateWriter(this->GetObjects(), this->GetTrailer(), pDevice, eVersion, pEncrypt, eWriteMode);
 }
 
 void PdfStreamedDocument::Close()
 {
     // TODO: Check if this works correctly
-	// makes sure pending subset-fonts are embedded
-	GetFontCache().EmbedSubsetFonts();
-    
+    // makes sure pending subset-fonts are embedded
+    GetFontCache().EmbedSubsetFonts();
+
     this->GetObjects().Finish();
 }
 

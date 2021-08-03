@@ -55,7 +55,7 @@ static const char* s_names[] = {
     "WebMedia",       // PDF 1.7 IPDF ExtensionLevel 1
 };
 
-static PdfName GetAppearanceName( PdfAnnotationAppearance eAppearance );
+static PdfName GetAppearanceName(PdfAnnotationAppearance eAppearance);
 
 PdfAnnotation::PdfAnnotation(PdfPage& page, PdfAnnotationType eAnnot, const PdfRect& rRect)
     : PdfElement(page.GetDocument(), "Annot"), m_eAnnotation(eAnnot), m_pPage(&page)

@@ -26,19 +26,19 @@ protected:
      *
      *  \param doc parent of the font object
      *  \param metrics pointer to a font metrics object. The font in the PDF
-     *         file will match this fontmetrics object. The metrics object is 
+     *         file will match this fontmetrics object. The metrics object is
      *         deleted along with the font.
      *  \param encoding the encoding of this font. The font will take ownership of this object
      *                   depending on pEncoding->IsAutoDelete()
-     *  
+     *
      */
     PdfFontSimple(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
         const PdfEncoding& encoding);
 
 protected:
-     void Init(const std::string_view& subType, bool skipMetricsDescriptors = false);
+    void Init(const std::string_view& subType, bool skipMetricsDescriptors = false);
 
-     void embedFont() override final;
+    void embedFont() override final;
 
     /** Embed the font file directly into the PDF file.
      *

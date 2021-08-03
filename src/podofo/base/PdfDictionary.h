@@ -146,7 +146,7 @@ public:
     PdfObject* FindKey(const PdfName& key);
     const PdfObject& MustFindKey(const PdfName& key) const;
     PdfObject& MustFindKey(const PdfName& key);
-    
+
     /** Get the keys value out of the dictionary
      *
      * Lookup in the indirect objects as well, if the shallow object was a reference.

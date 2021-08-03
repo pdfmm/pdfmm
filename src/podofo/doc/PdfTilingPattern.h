@@ -19,7 +19,7 @@ class PdfObject;
 class PdfPage;
 class PdfWriter;
 
-/** 
+/**
  * This class defined a tiling pattern which can be used
  * to fill abitrary shapes with a pattern using PdfPainter.
  */
@@ -74,7 +74,7 @@ private:
     PdfName m_Identifier;
 };
 
-const PdfName & PdfTilingPattern::GetIdentifier() const
+const PdfName& PdfTilingPattern::GetIdentifier() const
 {
     return m_Identifier;
 }

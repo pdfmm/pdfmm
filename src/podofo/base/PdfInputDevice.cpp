@@ -111,7 +111,7 @@ bool PdfInputDevice::TryGetChar(char& ch)
     return true;
 }
 
-int PdfInputDevice::Look() 
+int PdfInputDevice::Look()
 {
     // NOTE: We don't want a peek() call to set failbit
     if (m_Stream->eof())
@@ -143,7 +143,7 @@ size_t PdfInputDevice::Tell()
     }
     if (m_Stream->fail())
         PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDeviceOperation, "Failed to get current position in the stream");
-    
+
     return (size_t)ret;
 }
 

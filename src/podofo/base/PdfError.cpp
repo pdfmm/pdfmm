@@ -31,37 +31,37 @@ PdfError::LogMessageCallback* PdfError::SetLogMessageCallback(LogMessageCallback
 }
 
 PdfErrorInfo::PdfErrorInfo()
-    : m_nLine( -1 )
+    : m_nLine(-1)
 {
 }
 
-PdfErrorInfo::PdfErrorInfo( int line, const char* pszFile, std::string sInfo )
-    : m_nLine( line ), m_sFile( pszFile ? pszFile : "" ), m_sInfo( sInfo )
+PdfErrorInfo::PdfErrorInfo(int line, const char* pszFile, std::string sInfo)
+    : m_nLine(line), m_sFile(pszFile ? pszFile : ""), m_sInfo(sInfo)
 {
 
 }
 
-PdfErrorInfo::PdfErrorInfo( int line, const char* pszFile, const char* pszInfo )
-    : m_nLine( line ), m_sFile( pszFile ? pszFile : "" ), m_sInfo( pszInfo ? pszInfo : "" )
+PdfErrorInfo::PdfErrorInfo(int line, const char* pszFile, const char* pszInfo)
+    : m_nLine(line), m_sFile(pszFile ? pszFile : ""), m_sInfo(pszInfo ? pszInfo : "")
 {
 
 }
- 
-PdfErrorInfo::PdfErrorInfo( int line, const char* pszFile, const wchar_t* pszInfo )
-    : m_nLine( line ), m_sFile( pszFile ? pszFile : "" ), m_swInfo( pszInfo ? pszInfo : L"" )
+
+PdfErrorInfo::PdfErrorInfo(int line, const char* pszFile, const wchar_t* pszInfo)
+    : m_nLine(line), m_sFile(pszFile ? pszFile : ""), m_swInfo(pszInfo ? pszInfo : L"")
 {
 
 }
-PdfErrorInfo::PdfErrorInfo( const PdfErrorInfo & rhs )
+PdfErrorInfo::PdfErrorInfo(const PdfErrorInfo& rhs)
 {
-    this->operator=( rhs );
+    this->operator=(rhs);
 }
 
-const PdfErrorInfo & PdfErrorInfo::operator=( const PdfErrorInfo & rhs )
+const PdfErrorInfo& PdfErrorInfo::operator=(const PdfErrorInfo& rhs)
 {
-    m_nLine  = rhs.m_nLine;
-    m_sFile  = rhs.m_sFile;
-    m_sInfo  = rhs.m_sInfo;
+    m_nLine = rhs.m_nLine;
+    m_sFile = rhs.m_sFile;
+    m_sInfo = rhs.m_sInfo;
     m_swInfo = rhs.m_swInfo;
 
     return *this;
@@ -72,128 +72,126 @@ PdfError::PdfError()
     m_error = EPdfError::ErrOk;
 }
 
-PdfError::PdfError( const EPdfError & eCode, const char* pszFile, int line, 
-                    std::string sInformation )
+PdfError::PdfError(const EPdfError& eCode, const char* pszFile, int line,
+    std::string sInformation)
 {
-    this->SetError( eCode, pszFile, line, sInformation );
+    this->SetError(eCode, pszFile, line, sInformation);
 }
 
-PdfError::PdfError( const EPdfError & eCode, const char* pszFile, int line, 
-                    const char* pszInformation )
+PdfError::PdfError(const EPdfError& eCode, const char* pszFile, int line,
+    const char* pszInformation)
 {
-    this->SetError( eCode, pszFile, line, pszInformation );
+    this->SetError(eCode, pszFile, line, pszInformation);
 }
 
-PdfError::PdfError( const PdfError & rhs )
+PdfError::PdfError(const PdfError& rhs)
 {
-    this->operator=( rhs );
+    this->operator=(rhs);
 }
 
-const PdfError & PdfError::operator=( const PdfError & rhs )
+const PdfError& PdfError::operator=(const PdfError& rhs)
 {
-    m_error     = rhs.m_error;
+    m_error = rhs.m_error;
     m_callStack = rhs.m_callStack;
 
     return *this;
 }
 
-const PdfError & PdfError::operator=( const EPdfError & eCode )
+const PdfError& PdfError::operator=(const EPdfError& eCode)
 {
     m_error = eCode;
     m_callStack.clear();
-    
+
     return *this;
 }
 
-bool PdfError::operator==( const PdfError & rhs )
+bool PdfError::operator==(const PdfError& rhs)
 {
-    return this->operator==( rhs.m_error );
+    return this->operator==(rhs.m_error);
 }
 
-bool PdfError::operator==( const EPdfError & eCode )
+bool PdfError::operator==(const EPdfError& eCode)
 {
     return m_error == eCode;
 }
 
-bool PdfError::operator!=( const PdfError & rhs )
+bool PdfError::operator!=(const PdfError& rhs)
 {
-    return this->operator!=( rhs.m_error );
+    return this->operator!=(rhs.m_error);
 }
 
-bool PdfError::operator!=( const EPdfError & eCode )
+bool PdfError::operator!=(const EPdfError& eCode)
 {
-    return !this->operator==( eCode );
+    return !this->operator==(eCode);
 }
 
 void PdfError::PrintErrorMsg() const
 {
-    TCIDequeErrorInfo it = m_callStack.begin();
-    const char* pszMsg   = PdfError::ErrorMessage( m_error );
-    const char* pszName  = PdfError::ErrorName( m_error );
+    const char* pszMsg = PdfError::ErrorMessage(m_error);
+    const char* pszName = PdfError::ErrorName(m_error);
 
-    int i                = 0;
+    int i = 0;
 
-    PdfError::LogErrorMessage( LogSeverity::Error, "\n\nPoDoFo encountered an error. Error: %i %s", m_error, pszName ? pszName : "" );
+    PdfError::LogErrorMessage(LogSeverity::Error, "\n\nPoDoFo encountered an error. Error: %i %s", m_error, pszName ? pszName : "");
 
-    if( pszMsg )
-        PdfError::LogErrorMessage( LogSeverity::Error, "\tError Description: %s", pszMsg );
-    
-    if( m_callStack.size() )
-        PdfError::LogErrorMessage( LogSeverity::Error, "\tCallstack:" );
+    if (pszMsg)
+        PdfError::LogErrorMessage(LogSeverity::Error, "\tError Description: %s", pszMsg);
 
-    while( it != m_callStack.end() )
+    if (m_callStack.size())
+        PdfError::LogErrorMessage(LogSeverity::Error, "\tCallstack:");
+
+    for (auto& info: m_callStack)
     {
-        if( !(*it).GetFilename().empty() )
-            PdfError::LogErrorMessage( LogSeverity::Error, "\t#%i Error Source: %s:%i", i, (*it).GetFilename().c_str(), (*it).GetLine() );
+        if (!info.GetFilename().empty())
+            PdfError::LogErrorMessage(LogSeverity::Error, "\t#%i Error Source: %s:%i", i, info.GetFilename().c_str(), info.GetLine());
 
-        if( !(*it).GetInformation().empty() )
-            PdfError::LogErrorMessage( LogSeverity::Error, "\t\tInformation: %s", (*it).GetInformation().c_str() );
+        if (!info.GetInformation().empty())
+            PdfError::LogErrorMessage(LogSeverity::Error, "\t\tInformation: %s", info.GetInformation().c_str());
 
-        if( !(*it).GetInformationW().empty() )
-            PdfError::LogErrorMessage( LogSeverity::Error, L"\t\tInformation: %s", (*it).GetInformationW().c_str() );
+        if (!info.GetInformationW().empty())
+            PdfError::LogErrorMessage(LogSeverity::Error, L"\t\tInformation: %s", info.GetInformationW().c_str());
 
         ++i;
-        ++it;
     }
 
-        
-    PdfError::LogErrorMessage( LogSeverity::Error, "\n" );
+
+    PdfError::LogErrorMessage(LogSeverity::Error, "\n");
 }
 
 const char* PdfError::what() const
 {
-    return PdfError::ErrorName( m_error );
+    return PdfError::ErrorName(m_error);
 }
 
-const char* PdfError::ErrorName( EPdfError eCode )
+const char* PdfError::ErrorName(EPdfError eCode)
 {
     const char* pszMsg = nullptr;
 
-    switch( eCode ) 
+    switch (eCode)
     {
         case EPdfError::ErrOk:
-            pszMsg = "EPdfError::ErrOk"; 
+            pszMsg = "EPdfError::ErrOk";
             break;
         case EPdfError::TestFailed:
-            pszMsg = "EPdfError::TestFailed"; 
+            pszMsg = "EPdfError::TestFailed";
             break;
         case EPdfError::InvalidHandle:
-            pszMsg = "EPdfError::InvalidHandle"; 
+            pszMsg = "EPdfError::InvalidHandle";
             break;
         case EPdfError::FileNotFound:
-            pszMsg = "EPdfError::FileNotFound"; 
+            pszMsg = "EPdfError::FileNotFound";
             break;
         case EPdfError::InvalidDeviceOperation:
             pszMsg = "EPdfError::InvalidDeviceOperation";
             break;
         case EPdfError::UnexpectedEOF:
-            pszMsg = "EPdfError::UnexpectedEOF"; 
+            pszMsg = "EPdfError::UnexpectedEOF";
             break;
         case EPdfError::OutOfMemory:
-            pszMsg = "EPdfError::OutOfMemory"; 
+            pszMsg = "EPdfError::OutOfMemory";
             break;
         case EPdfError::ValueOutOfRange:
-            pszMsg = "EPdfError::ValueOutOfRange"; 
+            pszMsg = "EPdfError::ValueOutOfRange";
             break;
         case EPdfError::InternalLogic:
             pszMsg = "EPdfError::InternalLogic";
@@ -208,55 +206,55 @@ const char* PdfError::ErrorName( EPdfError eCode )
             pszMsg = "EPdfError::PageNotFound";
             break;
         case EPdfError::NoPdfFile:
-            pszMsg = "EPdfError::NoPdfFile"; 
+            pszMsg = "EPdfError::NoPdfFile";
             break;
         case EPdfError::NoXRef:
-            pszMsg = "EPdfError::NoXRef"; 
+            pszMsg = "EPdfError::NoXRef";
             break;
         case EPdfError::NoTrailer:
-            pszMsg = "EPdfError::NoTrailer"; 
+            pszMsg = "EPdfError::NoTrailer";
             break;
         case EPdfError::NoNumber:
-            pszMsg = "EPdfError::NoNumber"; 
+            pszMsg = "EPdfError::NoNumber";
             break;
         case EPdfError::NoObject:
-            pszMsg = "EPdfError::NoObject"; 
+            pszMsg = "EPdfError::NoObject";
             break;
         case EPdfError::NoEOFToken:
-            pszMsg = "EPdfError::NoEOFToken"; 
+            pszMsg = "EPdfError::NoEOFToken";
             break;
         case EPdfError::InvalidTrailerSize:
-            pszMsg = "EPdfError::InvalidTrailerSize"; 
+            pszMsg = "EPdfError::InvalidTrailerSize";
             break;
         case EPdfError::InvalidLinearization:
-            pszMsg = "EPdfError::InvalidLinearization"; 
+            pszMsg = "EPdfError::InvalidLinearization";
             break;
         case EPdfError::InvalidDataType:
-            pszMsg = "EPdfError::InvalidDataType"; 
+            pszMsg = "EPdfError::InvalidDataType";
             break;
         case EPdfError::InvalidXRef:
-            pszMsg = "EPdfError::InvalidXRef"; 
+            pszMsg = "EPdfError::InvalidXRef";
             break;
         case EPdfError::InvalidXRefStream:
-            pszMsg = "EPdfError::InvalidXRefStream"; 
+            pszMsg = "EPdfError::InvalidXRefStream";
             break;
         case EPdfError::InvalidXRefType:
-            pszMsg = "EPdfError::InvalidXRefType"; 
+            pszMsg = "EPdfError::InvalidXRefType";
             break;
         case EPdfError::InvalidPredictor:
-            pszMsg = "EPdfError::InvalidPredictor"; 
+            pszMsg = "EPdfError::InvalidPredictor";
             break;
         case EPdfError::InvalidStrokeStyle:
-            pszMsg = "EPdfError::InvalidStrokeStyle"; 
+            pszMsg = "EPdfError::InvalidStrokeStyle";
             break;
         case EPdfError::InvalidHexString:
-            pszMsg = "EPdfError::InvalidHexString"; 
+            pszMsg = "EPdfError::InvalidHexString";
             break;
         case EPdfError::InvalidStream:
-            pszMsg = "EPdfError::InvalidStream"; 
+            pszMsg = "EPdfError::InvalidStream";
             break;
         case EPdfError::InvalidStreamLength:
-            pszMsg = "EPdfError::InvalidStream"; 
+            pszMsg = "EPdfError::InvalidStream";
             break;
         case EPdfError::InvalidKey:
             pszMsg = "EPdfError::InvalidKey";
@@ -277,28 +275,28 @@ const char* PdfError::ErrorName( EPdfError eCode )
             pszMsg = "EPdfError::InvalidContentStream";
             break;
         case EPdfError::UnsupportedFilter:
-            pszMsg = "EPdfError::UnsupportedFilter"; 
+            pszMsg = "EPdfError::UnsupportedFilter";
             break;
         case EPdfError::UnsupportedFontFormat:    /**< This font format is not supported by PoDoFO. */
             pszMsg = "EPdfError::UnsupportedFontFormat";
             break;
         case EPdfError::ActionAlreadyPresent:
-            pszMsg = "EPdfError::ActionAlreadyPresent"; 
+            pszMsg = "EPdfError::ActionAlreadyPresent";
             break;
         case EPdfError::WrongDestinationType:
             pszMsg = "EPdfError::WrongDestinationType";
             break;
         case EPdfError::MissingEndStream:
-            pszMsg = "EPdfError::MissingEndStream"; 
+            pszMsg = "EPdfError::MissingEndStream";
             break;
         case EPdfError::Date:
-            pszMsg = "EPdfError::Date"; 
+            pszMsg = "EPdfError::Date";
             break;
         case EPdfError::Flate:
-            pszMsg = "EPdfError::Flate"; 
+            pszMsg = "EPdfError::Flate";
             break;
         case EPdfError::FreeType:
-            pszMsg = "EPdfError::FreeType"; 
+            pszMsg = "EPdfError::FreeType";
             break;
         case EPdfError::SignatureError:
             pszMsg = "EPdfError::SignatureError";
@@ -316,22 +314,22 @@ const char* PdfError::ErrorName( EPdfError eCode )
             pszMsg = "EPdfError::NotCompiled";
             break;
         case EPdfError::DestinationAlreadyPresent:
-            pszMsg = "EPdfError::DestinationAlreadyPresent"; 
+            pszMsg = "EPdfError::DestinationAlreadyPresent";
             break;
         case EPdfError::ChangeOnImmutable:
             pszMsg = "EPdfError::ChangeOnImmutable";
             break;
         case EPdfError::OutlineItemAlreadyPresent:
-            pszMsg = "EPdfError::OutlineItemAlreadyPresent"; 
+            pszMsg = "EPdfError::OutlineItemAlreadyPresent";
             break;
         case EPdfError::NotLoadedForUpdate:
-            pszMsg = "EPdfError::NotLoadedForUpdate"; 
+            pszMsg = "EPdfError::NotLoadedForUpdate";
             break;
         case EPdfError::CannotEncryptedForUpdate:
-            pszMsg = "EPdfError::CannotEncryptedForUpdate"; 
+            pszMsg = "EPdfError::CannotEncryptedForUpdate";
             break;
         case EPdfError::Unknown:
-            pszMsg = "EPdfError::Unknown"; 
+            pszMsg = "EPdfError::Unknown";
             break;
         default:
             break;
@@ -340,11 +338,11 @@ const char* PdfError::ErrorName( EPdfError eCode )
     return pszMsg;
 }
 
-const char* PdfError::ErrorMessage( EPdfError eCode )
+const char* PdfError::ErrorMessage(EPdfError eCode)
 {
     const char* pszMsg = nullptr;
 
-    switch( eCode ) 
+    switch (eCode)
     {
         case EPdfError::ErrOk:
             pszMsg = "No error during execution.";
@@ -434,7 +432,7 @@ const char* PdfError::ErrorMessage( EPdfError eCode )
             break;
         case EPdfError::DestinationAlreadyPresent:
         case EPdfError::ActionAlreadyPresent:
-            pszMsg = "Outlines can have either destinations or actions."; 
+            pszMsg = "Outlines can have either destinations or actions.";
             break;
         case EPdfError::WrongDestinationType:
             pszMsg = "The requested field is not available for the given destination type";
@@ -485,10 +483,10 @@ const char* PdfError::ErrorMessage( EPdfError eCode )
     return pszMsg;
 }
 
-void PdfError::LogMessage( LogSeverity eLogSeverity, const char* pszMsg, ... )
+void PdfError::LogMessage(LogSeverity eLogSeverity, const char* pszMsg, ...)
 {
-	if(!PdfError::LoggingEnabled())
-		return;
+    if (!PdfError::LoggingEnabled())
+        return;
 
 #ifdef DEBUG
     const LogSeverity eMinSeverity = LogSeverity::Debug;
@@ -496,71 +494,69 @@ void PdfError::LogMessage( LogSeverity eLogSeverity, const char* pszMsg, ... )
     const ELogSeverity eMinSeverity = ELogSeverity::Information;
 #endif // DEBUG
 
-    // OC 17.08.2010 BugFix: Higher level is lower value
- // if( eLogSeverity < eMinSeverity )
-    if( eLogSeverity > eMinSeverity )
+    if (eLogSeverity > eMinSeverity)
         return;
 
     va_list  args;
-    va_start( args, pszMsg );
+    va_start(args, pszMsg);
 
-    LogMessageInternal( eLogSeverity, pszMsg, args );
-    va_end( args );
+    LogMessageInternal(eLogSeverity, pszMsg, args);
+    va_end(args);
 }
 
-void PdfError::LogErrorMessage( LogSeverity eLogSeverity, const char* pszMsg, ... )
+void PdfError::LogErrorMessage(LogSeverity eLogSeverity, const char* pszMsg, ...)
 {
     va_list  args;
-    va_start( args, pszMsg );
+    va_start(args, pszMsg);
 
-    LogMessageInternal( eLogSeverity, pszMsg, args );
-    va_end( args );
+    LogMessageInternal(eLogSeverity, pszMsg, args);
+    va_end(args);
 }
 
-void PdfError::LogMessageInternal( LogSeverity eLogSeverity, const char* pszMsg, va_list & args )
+void PdfError::LogMessageInternal(LogSeverity eLogSeverity, const char* pszMsg, va_list& args)
 {
     const char* pszPrefix = nullptr;
 
-    switch( eLogSeverity ) 
+    switch (eLogSeverity)
     {
         case LogSeverity::Error:
             break;
         case LogSeverity::Critical:
-	    pszPrefix = "CRITICAL: ";
+            pszPrefix = "CRITICAL: ";
             break;
         case LogSeverity::Warning:
-	    pszPrefix = "WARNING: ";
+            pszPrefix = "WARNING: ";
             break;
-	case LogSeverity::Information:
+        case LogSeverity::Information:
             break;
-	case LogSeverity::Debug:
-	    pszPrefix = "DEBUG: ";
+        case LogSeverity::Debug:
+            pszPrefix = "DEBUG: ";
             break;
-	case LogSeverity::None:
-	case LogSeverity::Unknown:
+        case LogSeverity::None:
+        case LogSeverity::Unknown:
         default:
             break;
     }
 
     // OC 17.08.2010 New to optionally replace stderr output by a callback:
-    if ( m_fLogMessageCallback != nullptr )
+    if (m_fLogMessageCallback != nullptr)
     {
         m_fLogMessageCallback->LogMessage(eLogSeverity, pszPrefix, pszMsg, args);
         return;
     }
 
-    if( pszPrefix )
-        fprintf( stderr, "%s", pszPrefix );
+    if (pszPrefix)
+        fprintf(stderr, "%s", pszPrefix);
 
-    vfprintf( stderr, pszMsg, args );
+    vfprintf(stderr, pszMsg, args);
     fprintf(stderr, "\n");
     fflush(stderr);
 }
 
-void PdfError::LogMessage( LogSeverity eLogSeverity, const wchar_t* pszMsg, ... )
+void PdfError::LogMessage(LogSeverity eLogSeverity, const wchar_t* pszMsg, ...)
 {
-	if(!PdfError::LoggingEnabled())
-		return;
+    if (!PdfError::LoggingEnabled())
+        return;
 
 #ifdef DEBUG
     const LogSeverity eMinSeverity = LogSeverity::Debug;
@@ -570,17 +566,17 @@ void PdfError::LogMessage( LogSeverity eLogSeverity, const wchar_t* pszMsg, ... 
 
     // OC 17.08.2010 BugFix: Higher level is lower value
  // if( eLogSeverity < eMinSeverity )
-    if( eLogSeverity > eMinSeverity )
+    if (eLogSeverity > eMinSeverity)
         return;
 
     va_list  args;
-    va_start( args, pszMsg );
+    va_start(args, pszMsg);
 
-    LogMessageInternal( eLogSeverity, pszMsg, args );
-    va_end( args );
+    LogMessageInternal(eLogSeverity, pszMsg, args);
+    va_end(args);
 }
 
-void PdfError::EnableLogging( bool bEnable )
+void PdfError::EnableLogging(bool bEnable)
 {
     PdfError::s_LogEnabled = bEnable;
 }
@@ -590,88 +586,88 @@ bool PdfError::LoggingEnabled()
     return PdfError::s_LogEnabled;
 }
 
-void PdfError::LogErrorMessage( LogSeverity eLogSeverity, const wchar_t* pszMsg, ... )
+void PdfError::LogErrorMessage(LogSeverity eLogSeverity, const wchar_t* pszMsg, ...)
 {
     va_list  args;
-    va_start( args, pszMsg );
+    va_start(args, pszMsg);
 
-    LogMessageInternal( eLogSeverity, pszMsg, args );
-    va_end( args );
+    LogMessageInternal(eLogSeverity, pszMsg, args);
+    va_end(args);
 }
 
-void PdfError::LogMessageInternal( LogSeverity eLogSeverity, const wchar_t* pszMsg, va_list & args )
+void PdfError::LogMessageInternal(LogSeverity eLogSeverity, const wchar_t* pszMsg, va_list& args)
 {
     const wchar_t* pszPrefix = nullptr;
 
-    switch( eLogSeverity ) 
+    switch (eLogSeverity)
     {
         case LogSeverity::Error:
             break;
         case LogSeverity::Critical:
-	    pszPrefix = L"CRITICAL: ";
+            pszPrefix = L"CRITICAL: ";
             break;
         case LogSeverity::Warning:
-	    pszPrefix = L"WARNING: ";
+            pszPrefix = L"WARNING: ";
             break;
-	case LogSeverity::Information:
+        case LogSeverity::Information:
             break;
-	case LogSeverity::Debug:
-	    pszPrefix = L"DEBUG: ";
+        case LogSeverity::Debug:
+            pszPrefix = L"DEBUG: ";
             break;
-	case LogSeverity::None:
-	case LogSeverity::Unknown:
+        case LogSeverity::None:
+        case LogSeverity::Unknown:
         default:
             break;
     }
 
     // OC 17.08.2010 New to optionally replace stderr output by a callback:
-    if ( m_fLogMessageCallback != nullptr )
+    if (m_fLogMessageCallback != nullptr)
     {
         m_fLogMessageCallback->LogMessage(eLogSeverity, pszPrefix, pszMsg, args);
         return;
     }
 
-    if( pszPrefix )
-        fwprintf( stderr, pszPrefix );
+    if (pszPrefix)
+        fwprintf(stderr, pszPrefix);
 
-    vfwprintf( stderr, pszMsg, args );
+    vfwprintf(stderr, pszMsg, args);
 }
 
-void PdfError::DebugMessage( const char* pszMsg, ... )
+void PdfError::DebugMessage(const char* pszMsg, ...)
 {
-	if ( !PdfError::DebugEnabled() )		
-            return;
+    if (!PdfError::DebugEnabled())
+        return;
 
-	const char* pszPrefix = "DEBUG: ";
+    const char* pszPrefix = "DEBUG: ";
 
-	va_list  args;
-	va_start( args, pszMsg );
+    va_list  args;
+    va_start(args, pszMsg);
 
     // OC 17.08.2010 New to optionally replace stderr output by a callback:
-    if ( m_fLogMessageCallback != nullptr )
+    if (m_fLogMessageCallback != nullptr)
     {
         m_fLogMessageCallback->LogMessage(LogSeverity::Debug, pszPrefix, pszMsg, args);
     }
     else
     {
-        if( pszPrefix )
-            fprintf( stderr, "%s", pszPrefix );
+        if (pszPrefix)
+            fprintf(stderr, "%s", pszPrefix);
 
-        vfprintf( stderr, pszMsg, args );
+        vfprintf(stderr, pszMsg, args);
     }
 
     // must call va_end after calling va_start (which allocates memory on some platforms)
-	va_end( args );
+    va_end(args);
 }
 
-void PdfError::EnableDebug( bool bEnable )
+void PdfError::EnableDebug(bool bEnable)
 {
-	PdfError::s_DgbEnabled = bEnable;
+    PdfError::s_DgbEnabled = bEnable;
 }
 
 bool PdfError::DebugEnabled()
 {
-	return PdfError::s_DgbEnabled;
+    return PdfError::s_DgbEnabled;
 }
 
 void PdfError::SetError(const EPdfError& eCode, const char* pszFile, int line, const char* pszInformation)

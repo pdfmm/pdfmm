@@ -97,7 +97,7 @@ private:
 
     bool m_IsSymbol;     // Internal member to singnal a symbol font
 };
- 
+
 };
 
 #endif // PDF_FONT_METRICS_OBJECT_H

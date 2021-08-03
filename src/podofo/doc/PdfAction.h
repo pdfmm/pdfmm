@@ -20,9 +20,9 @@ class PdfStreamedDocument;
 class PdfVecObjects;
 
 /** The type of the action.
- *  PDF supports different action types, each of 
+ *  PDF supports different action types, each of
  *  them has different keys and propeties.
- *  
+ *
  *  Not all action types listed here are supported yet.
  *
  *  Please make also sure that the action type you use is
@@ -34,7 +34,7 @@ enum class PdfActionType
     GoTo,
     GoToR,
     GoToE,
-    Launch,    
+    Launch,
     Thread,
     URI,
     Sound,

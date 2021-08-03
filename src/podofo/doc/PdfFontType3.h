@@ -31,12 +31,12 @@ private:
      *
      *  \param doc parent of the font object
      *  \param pMetrics pointer to a font metrics object. The font in the PDF
-     *         file will match this fontmetrics object. The metrics object is 
+     *         file will match this fontmetrics object. The metrics object is
      *         deleted along with the font.
      *  \param pEncoding the encoding of this font. The font will take ownership of this object
      *                   depending on pEncoding->IsAutoDelete()
      *  \param bEmbed if true the font will get embedded.
-     *  
+     *
      */
     PdfFontType3(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
         const PdfEncoding& encoding);
@@ -45,8 +45,8 @@ public:
     PdfFontType GetType() const override;
 
 protected:
-     void embedFontFile(PdfObject& descriptor) override;
-     void initImported() override;
+    void embedFontFile(PdfObject& descriptor) override;
+    void initImported() override;
 };
 
 };

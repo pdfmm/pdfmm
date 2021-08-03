@@ -37,7 +37,7 @@ PdfPagesTree::PdfPagesTree(PdfObject& pagesRoot)
     : PdfElement(pagesRoot),
     m_cache(GetChildCount(pagesRoot)) { }
 
-PdfPagesTree::~PdfPagesTree() 
+PdfPagesTree::~PdfPagesTree()
 {
     m_cache.ClearCache();
 }
@@ -189,7 +189,7 @@ void PdfPagesTree::CreatePages(const vector<PdfRect>& sizes)
 {
     vector<PdfPage*> vecPages;
     vector<PdfObject*> vecObjects;
-    for (auto &rect : sizes)
+    for (auto& rect : sizes)
     {
         PdfPage* pPage = new PdfPage(*GetRoot().GetDocument(), rect);
         vecPages.push_back(pPage);

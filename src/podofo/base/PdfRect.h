@@ -11,13 +11,12 @@
 
 #include "PdfDefines.h"
 
-
 namespace PoDoFo {
 
 class PdfArray;
 class PdfPage;
 class PdfVariant;
-   
+
 /** A rectangle as defined by the PDF reference
  */
 class PODOFO_API PdfRect final

@@ -49,14 +49,14 @@ char PoDoFo::XRefEntryType(EXRefEntryType type)
 {
     switch (type)
     {
-    case EXRefEntryType::Free:
-        return 'f';
-    case EXRefEntryType::InUse:
-        return 'n';
-    case EXRefEntryType::Unknown:
-    case EXRefEntryType::Compressed:
-    default:
-        PODOFO_RAISE_ERROR(EPdfError::InvalidEnumValue);
+        case EXRefEntryType::Free:
+            return 'f';
+        case EXRefEntryType::InUse:
+            return 'n';
+        case EXRefEntryType::Unknown:
+        case EXRefEntryType::Compressed:
+        default:
+            PODOFO_RAISE_ERROR(EPdfError::InvalidEnumValue);
     }
 }
 
@@ -64,11 +64,11 @@ EXRefEntryType PoDoFo::XRefEntryTypeFromChar(char c)
 {
     switch (c)
     {
-    case 'f':
-        return EXRefEntryType::Free;
-    case 'n':
-        return EXRefEntryType::InUse;
-    default:
-        PODOFO_RAISE_ERROR(EPdfError::InvalidXRef);
+        case 'f':
+            return EXRefEntryType::Free;
+        case 'n':
+            return EXRefEntryType::InUse;
+        default:
+            PODOFO_RAISE_ERROR(EPdfError::InvalidXRef);
     }
 }

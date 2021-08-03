@@ -567,7 +567,7 @@ PdfType1EncryptEexec::PdfType1EncryptEexec()
 {
     m_r = 55665;
 }
- 
+
 PdfType1EncryptCharstring::PdfType1EncryptCharstring()
 {
     m_r = 4330;

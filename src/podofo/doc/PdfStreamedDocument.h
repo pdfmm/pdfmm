@@ -17,19 +17,19 @@ namespace PoDoFo {
 
 class PdfOutputDevice;
 
-/** PdfStreamedDocument is the preferred class for 
+/** PdfStreamedDocument is the preferred class for
  *  creating new PDF documents.
- * 
+ *
  *  Page contents, fonts and images are written to disk
  *  as soon as possible and are not kept in memory.
- *  This results in faster document generation and 
+ *  This results in faster document generation and
  *  less memory being used.
  *
  *  Please use PdfMemDocument if you intend to work
  *  on the object structure of a PDF file.
  *
  *  One of the design goals of PdfStreamedDocument was
- *  to hide the underlying object structure of a PDF 
+ *  to hide the underlying object structure of a PDF
  *  file as far as possible.
  *
  *  \see PdfDocument
@@ -68,7 +68,7 @@ public:
      *                  created document.
      *  \param eWriteMode additional options for writing the pdf
      */
-    PdfStreamedDocument( PdfOutputDevice& pDevice, PdfVersion eVersion = PdfVersionDefault, PdfEncrypt* pEncrypt = nullptr, PdfWriteMode eWriteMode = PdfWriteModeDefault );
+    PdfStreamedDocument(PdfOutputDevice& pDevice, PdfVersion eVersion = PdfVersionDefault, PdfEncrypt* pEncrypt = nullptr, PdfWriteMode eWriteMode = PdfWriteModeDefault);
 
     /** Create a new PdfStreamedDocument.
      *  All data is written to a file immediately.
@@ -82,7 +82,7 @@ public:
      *                  created document.
      *  \param eWriteMode additional options for writing the pdf
      */
-    PdfStreamedDocument(const std::string_view& filename, PdfVersion eVersion = PdfVersionDefault, PdfEncrypt* pEncrypt = nullptr, PdfWriteMode eWriteMode = PdfWriteModeDefault );
+    PdfStreamedDocument(const std::string_view& filename, PdfVersion eVersion = PdfVersionDefault, PdfEncrypt* pEncrypt = nullptr, PdfWriteMode eWriteMode = PdfWriteModeDefault);
 
     ~PdfStreamedDocument();
 
@@ -114,7 +114,7 @@ public:
 
     bool IsHighPrintAllowed() const override;
 
- private:
+private:
     /** Initialize the PdfStreamedDocument with an output device
      *  \param pDevice write to this device
      *  \param eVersion the PDF version of the document to write.
@@ -128,11 +128,11 @@ public:
     void Init(PdfOutputDevice& pDevice, PdfVersion eVersion = PdfVersionDefault,
         PdfEncrypt* pEncrypt = nullptr, PdfWriteMode eWriteMode = PdfWriteModeDefault);
 
- private:
+private:
     PdfImmediateWriter* m_pWriter;
-    PdfOutputDevice*    m_pDevice;
+    PdfOutputDevice* m_pDevice;
 
-    PdfEncrypt*         m_pEncrypt;
+    PdfEncrypt* m_pEncrypt;
 
     bool m_bOwnDevice; // If true m_pDevice is owned by this object and has to be deleted
 };

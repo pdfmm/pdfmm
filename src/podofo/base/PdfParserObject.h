@@ -31,10 +31,10 @@ public:
      *                 front of the object which is going to be parsed.
      *  \param rBuffer buffer to use for parsing to avoid reallocations
      *  \param lOffset the position in the device from which the object shall be read
-     *                 if lOffset = -1, the object will be read from the current 
+     *                 if lOffset = -1, the object will be read from the current
      *                 position in the file.
      */
-    PdfParserObject(PdfDocument& document, const PdfRefCountedInputDevice & rDevice, const PdfRefCountedBuffer & rBuffer, ssize_t lOffset = -1 );
+    PdfParserObject(PdfDocument& document, const PdfRefCountedInputDevice& rDevice, const PdfRefCountedBuffer& rBuffer, ssize_t lOffset = -1);
 
     /** Parse the object data for an internal object.
      *  You have to call ParseDictionaryKeys as next function call.
@@ -46,7 +46,7 @@ public:
      *
      *  \param rBuffer buffer to use for parsing to avoid reallocations
      */
-    explicit PdfParserObject( const PdfRefCountedBuffer & rBuffer );
+    explicit PdfParserObject(const PdfRefCountedBuffer& rBuffer);
 
     /** Tries to free all memory allocated by this
      *  PdfObject (variables and streams) and reads
@@ -65,17 +65,17 @@ public:
      */
     void FreeObjectMemory(bool bForce = false);
 
-    /** Parse the object data from the given file handle 
+    /** Parse the object data from the given file handle
      *  If delayed loading is enabled, only the object and generation number
      *  is read now and everything else is read later.
      *
-     *  \param pEncrypt an encryption dictionary which is used to decrypt 
+     *  \param pEncrypt an encryption dictionary which is used to decrypt
      *                  strings and streams during parsing or nullptr if the PDF
      *                  file was not encrypted
      *  \param bIsTrailer whether this is a trailer dictionary or not.
      *                    trailer dictionaries do not have a object number etc.
      */
-    void ParseFile( PdfEncrypt* pEncrypt, bool bIsTrailer = false );
+    void ParseFile(PdfEncrypt* pEncrypt, bool bIsTrailer = false);
 
     void ForceStreamParse();
 
@@ -96,7 +96,7 @@ public:
      *  when it's data is accessed for the first time.
      *  \param bDelayed if true the object is loaded delayed.
      */
-    inline void SetLoadOnDemand( bool bDelayed ) { m_bLoadOnDemand = bDelayed; }
+    inline void SetLoadOnDemand(bool bDelayed) { m_bLoadOnDemand = bDelayed; }
 
     /** Gets an offset in which the object beginning is stored in the file.
      *  Note the offset points just after the object identificator ("0 0 obj").
@@ -111,23 +111,23 @@ protected:
     void DelayedLoadStreamImpl() override;
 
 private:
-     /** Starts reading at the file position m_lStreamOffset and interprets all bytes
-      *  as contents of the objects stream.
-      *  It is assumed that the dictionary has a valid /Length key already.
-      *
-      *  Called from DelayedLoadStream(). Do not call directly.
-      */
-     void ParseStream();
+    /** Starts reading at the file position m_lStreamOffset and interprets all bytes
+     *  as contents of the objects stream.
+     *  It is assumed that the dictionary has a valid /Length key already.
+     *
+     *  Called from DelayedLoadStream(). Do not call directly.
+     */
+    void ParseStream();
 
     /** Initialize private members in this object with their default values
      */
     void InitPdfParserObject();
 
-    /** Parse the object data from the given file handle 
+    /** Parse the object data from the given file handle
      *  \param bIsTrailer whether this is a trailer dictionary or not.
      *                    trailer dictionaries do not have a object number etc.
      */
-    void ParseFileComplete( bool bIsTrailer );
+    void ParseFileComplete(bool bIsTrailer);
 
     void ReadObjectNumber();
 

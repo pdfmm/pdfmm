@@ -55,7 +55,7 @@ void PdfSignature::Init(PdfAcroForm& acroForm)
     acroForm.GetObject().GetDictionary().AddKey("SigFlags", PdfObject((int64_t)3));
 }
 
-void PdfSignature::SetSignerName(const PdfString & rsText)
+void PdfSignature::SetSignerName(const PdfString& rsText)
 {
     if (m_pSignatureObj == nullptr)
         PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
@@ -63,7 +63,7 @@ void PdfSignature::SetSignerName(const PdfString & rsText)
     m_pSignatureObj->GetDictionary().AddKey("Name", rsText);
 }
 
-void PdfSignature::SetSignatureReason(const PdfString & rsText)
+void PdfSignature::SetSignatureReason(const PdfString& rsText)
 {
     if (m_pSignatureObj == nullptr)
         PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
@@ -71,12 +71,12 @@ void PdfSignature::SetSignatureReason(const PdfString & rsText)
     m_pSignatureObj->GetDictionary().AddKey("Reason", rsText);
 }
 
-void PdfSignature::SetSignatureDate(const PdfDate &sigDate)
+void PdfSignature::SetSignatureDate(const PdfDate& sigDate)
 {
     if (m_pSignatureObj == nullptr)
         PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
 
-	PdfString sDate = sigDate.ToString();
+    PdfString sDate = sigDate.ToString();
     m_pSignatureObj->GetDictionary().AddKey("M", sDate);
 }
 
@@ -100,7 +100,7 @@ void PdfSignature::PrepareForSigning(const string_view& filter,
     m_pSignatureObj->GetDictionary().AddKey("ByteRange", PdfObject(byteRangeData));
 }
 
-void PdfSignature::SetSignatureLocation( const PdfString & rsText )
+void PdfSignature::SetSignatureLocation(const PdfString& rsText)
 {
     if (m_pSignatureObj == nullptr)
         PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);

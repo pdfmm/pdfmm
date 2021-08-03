@@ -30,7 +30,7 @@ public:
      *  \param doc parent of this action
      *  \param defaultAppearance specifies if a default appearance should be added
      */
-    PdfAcroForm(PdfDocument& doc,
+    PdfAcroForm(PdfDocument & doc,
                  EPdfAcroFormDefaulAppearance defaultAppearance = EPdfAcroFormDefaulAppearance::BlackText12pt);
 
     /** Create a PdfAcroForm dictionary object from an existing PdfObject

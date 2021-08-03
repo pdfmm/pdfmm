@@ -60,7 +60,7 @@ PdfRect PdfPage::GetRect() const
     return this->GetMediaBox();
 }
 
-bool PdfPage::HasRotation(double &teta) const
+bool PdfPage::HasRotation(double& teta) const
 {
     int rotationRaw = normalize(GetRotationRaw(), 0, 360);
     if (rotationRaw == 0)

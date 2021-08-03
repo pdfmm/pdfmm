@@ -33,6 +33,7 @@ set(PODOFO_BASE_SOURCES
     base/PdfDifferenceEncoding.cpp
     base/PdfIdentityEncoding.cpp
     base/PdfEncrypt.cpp
+    base/PdfExtension.cpp
     base/PdfError.cpp
     base/PdfFileStream.cpp
     base/PdfFilter.cpp

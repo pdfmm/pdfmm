@@ -201,7 +201,7 @@ CIDToGIDMap PdfFontCIDTrueType::getCIDToGIDMap(bool subsetting)
     if (subsetting)
     {
         auto& usedGIDs = GetUsedGIDs();
-        for (auto &pair : usedGIDs)
+        for (auto& pair : usedGIDs)
         {
             unsigned gid = pair.first;
             unsigned cid = pair.second.Id;

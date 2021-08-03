@@ -70,7 +70,7 @@ void PdfStream::GetFilteredCopy(unique_ptr<char>& buffer, size_t& len) const
     len = stream.GetLength();
 }
 
-const PdfStream & PdfStream::operator=(const PdfStream & rhs)
+const PdfStream& PdfStream::operator=(const PdfStream& rhs)
 {
     if (&rhs == this)
         return *this;

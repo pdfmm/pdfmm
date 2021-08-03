@@ -41,6 +41,7 @@ namespace PoDoFo
             uint64_t Offset;        // Unsed in InUse entries
             uint64_t Unknown1;
         };
+
         union
         {
             uint32_t Generation;    // The generation of the object in Free and InUse entries

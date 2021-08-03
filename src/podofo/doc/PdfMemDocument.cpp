@@ -247,9 +247,7 @@ vector<PdfExtension> PdfMemDocument::GetPdfExtensions() const
     }
     return ret;
 }
-    
 
-    
 /** Remove a vendor-specific extension to the current PDF version.
  *  \param ns  namespace of the extension
  *  \param level  level of the extension

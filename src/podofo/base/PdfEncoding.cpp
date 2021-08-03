@@ -26,7 +26,7 @@ static PdfCharCode fetchFallbackCharCode(string_view::iterator& it, const string
 static PdfCharCode getFallbackCharCode(char32_t codePoint, const PdfEncodingLimits& limits);
 static PdfCID getFallbackCID(char32_t codePoint, const PdfEncodingMap& toUnicode, const PdfEncodingMap& encoding);
 static PdfCID getCID(const PdfCharCode& codeUnit, const PdfEncodingMap& map, bool& success);
-static void fillCIDToGIDMap(PdfObject& cmapObj, const UsedGIDsMap& usedGIDs, const string_view &baseFont);
+static void fillCIDToGIDMap(PdfObject& cmapObj, const UsedGIDsMap& usedGIDs, const string_view& baseFont);
 static size_t getNextId();
 
 PdfEncoding::PdfEncoding()
@@ -387,7 +387,7 @@ char32_t PdfEncoding::GetCodePoint(unsigned charCode) const
     return U'\0';
 }
 
-const PdfEncodingLimits & PdfEncoding::getActualLimits() const
+const PdfEncodingLimits& PdfEncoding::getActualLimits() const
 {
     if (m_Limits.FirstChar.Code > m_Limits.LastChar.Code)
         return m_Encoding->GetLimits();

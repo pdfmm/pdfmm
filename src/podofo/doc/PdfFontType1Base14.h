@@ -17,7 +17,7 @@ namespace PoDoFo {
 
 // TODO: Rename to PdfFontStandard14
 /** A PdfFont implementation that can be used
- *  draw with base14 type1 fonts into a PDF file. 
+ *  draw with base14 type1 fonts into a PDF file.
  */
 class PdfFontType1Base14 final : public PdfFont
 {
@@ -27,20 +27,20 @@ private:
      *
      *  \param doc parent of the font object
      *  \param metrics pointer to a font metrics object. The font in the PDF
-     *         file will match this fontmetrics object. The metrics object is 
+     *         file will match this fontmetrics object. The metrics object is
      *         deleted along with the font.
      *  \param encoding the encoding of this font. The font will take ownership of this object
      *                   depending on pEncoding->IsAutoDelete()
-     *  
+     *
      */
-     PdfFontType1Base14(PdfDocument& doc, PdfStd14FontType fontType,
-         const PdfEncoding& encoding);
+    PdfFontType1Base14(PdfDocument& doc, PdfStd14FontType fontType,
+        const PdfEncoding& encoding);
 
     /** Create a new Type1 font object based on an existing PdfObject
      *
      *  \param obj an existing PdfObject
      *  \param metrics pointer to a font metrics object. The font in the PDF
-     *         file will match this fontmetrics object. The metrics object is 
+     *         file will match this fontmetrics object. The metrics object is
      *         deleted along with the font.
      *  \param encoding the encoding of this font. The font will take ownership of this object
      *                   depending on pEncoding->IsAutoDelete()

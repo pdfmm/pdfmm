@@ -36,19 +36,19 @@ public:
      *  \param pWriter is needed to fill the trailer directory
      *                 correctly which is included into the XRef
      */
-    PdfXRefStream(PdfWriter &writer, PdfVecObjects& pParent);
+    PdfXRefStream(PdfWriter& writer, PdfVecObjects& pParent);
 
     uint64_t GetOffset() const override;
 
     bool ShouldSkipWrite(const PdfReference& rRef) override;
 
- protected:
+protected:
     void BeginWrite(PdfOutputDevice& device) override;
     void WriteSubSection(PdfOutputDevice& device, uint32_t nFirst, uint32_t nCount) override;
     void WriteXRefEntry(PdfOutputDevice& device, const PdfXRefEntry& entry) override;
     void EndWriteImpl(PdfOutputDevice& device) override;
 
- private:
+private:
     PdfVecObjects* m_pParent;
     PdfObject* m_xrefStreamObj;
     PdfArray m_indeces;

@@ -408,9 +408,9 @@ PdfObject* PdfNamesTree::GetRootNode(const PdfName& name, bool bCreate) const
     return rootNode;
 }
 
-bool PdfNamesTree::HasValue( const PdfName & tree, const PdfString & key ) const
+bool PdfNamesTree::HasValue(const PdfName& tree, const PdfString& key) const
 {
-    return ( this->GetValue( tree, key ) != nullptr );
+    return this->GetValue(tree, key) != nullptr;
 }
 
 EPdfNameLimits PdfNamesTree::CheckLimits(const PdfObject* pObj, const PdfString& key)
@@ -435,12 +435,12 @@ EPdfNameLimits PdfNamesTree::CheckLimits(const PdfObject* pObj, const PdfString&
     return EPdfNameLimits::Inside;
 }
 
-void PdfNamesTree::ToDictionary( const PdfName & tree, PdfDictionary& rDict )
+void PdfNamesTree::ToDictionary(const PdfName& tree, PdfDictionary& rDict)
 {
     rDict.Clear();
-    PdfObject* pObj = this->GetRootNode( tree );
-    if( pObj )
-        AddToDictionary( pObj, rDict );
+    PdfObject* pObj = this->GetRootNode(tree);
+    if (pObj)
+        AddToDictionary(pObj, rDict);
 }
 
 void PdfNamesTree::AddToDictionary(PdfObject* pObj, PdfDictionary& rDict)

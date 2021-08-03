@@ -19,7 +19,7 @@ PdfInputStream::PdfInputStream() :
 {
 }
 
-size_t PdfInputStream::Read(char* buffer, size_t len, bool &eof)
+size_t PdfInputStream::Read(char* buffer, size_t len, bool& eof)
 {
     if (m_eof)
     {
@@ -41,21 +41,21 @@ size_t PdfInputStream::Read(char* buffer, size_t len, bool &eof)
 PdfFileInputStream::PdfFileInputStream(const string_view& filename)
     : m_stream(io::open_ifstream(filename, ios_base::in | ios_base::binary))
 {
-    if(m_stream.fail())
-        PODOFO_RAISE_ERROR_INFO( EPdfError::FileNotFound, filename.data());
+    if (m_stream.fail())
+        PODOFO_RAISE_ERROR_INFO(EPdfError::FileNotFound, filename.data());
 }
 
 PdfFileInputStream::~PdfFileInputStream() { }
 
-size_t PdfFileInputStream::ReadImpl( char* pBuffer, size_t lLen, bool& eof)
+size_t PdfFileInputStream::ReadImpl(char* pBuffer, size_t lLen, bool& eof)
 {
     size_t ret = io::Read(m_stream, pBuffer, lLen);
     eof = m_stream.eof();
     return ret;
 }
 
-PdfMemoryInputStream::PdfMemoryInputStream( const char* pBuffer, size_t lBufferLen )
-    : m_pBuffer( pBuffer ), m_lBufferLen( lBufferLen )
+PdfMemoryInputStream::PdfMemoryInputStream(const char* pBuffer, size_t lBufferLen)
+    : m_pBuffer(pBuffer), m_lBufferLen(lBufferLen)
 {
 }
 
@@ -63,7 +63,7 @@ PdfMemoryInputStream::~PdfMemoryInputStream()
 {
 }
 
-size_t PdfMemoryInputStream::ReadImpl( char* pBuffer, size_t lLen, bool& eof)
+size_t PdfMemoryInputStream::ReadImpl(char* pBuffer, size_t lLen, bool& eof)
 {
     lLen = std::min(m_lBufferLen, lLen);
     memcpy(pBuffer, m_pBuffer, lLen);
@@ -73,14 +73,14 @@ size_t PdfMemoryInputStream::ReadImpl( char* pBuffer, size_t lLen, bool& eof)
     return lLen;
 }
 
-PdfDeviceInputStream::PdfDeviceInputStream( PdfInputDevice* pDevice )
-    : m_pDevice( pDevice )
+PdfDeviceInputStream::PdfDeviceInputStream(PdfInputDevice* pDevice)
+    : m_pDevice(pDevice)
 {
 }
 
-size_t PdfDeviceInputStream::ReadImpl( char* pBuffer, size_t lLen, bool& eof)
+size_t PdfDeviceInputStream::ReadImpl(char* pBuffer, size_t lLen, bool& eof)
 {
-    size_t ret = m_pDevice->Read( pBuffer, lLen );
+    size_t ret = m_pDevice->Read(pBuffer, lLen);
     eof = m_pDevice->Eof();
     return ret;
 

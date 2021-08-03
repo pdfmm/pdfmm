@@ -150,7 +150,7 @@ void PdfFontTrueTypeSubset::InitTables()
         // "These TrueType tables shall always be present if present in the original TrueType font program:
         // 'head', 'hhea', 'loca', 'maxp', 'cvt','prep', 'glyf', 'hmtx' and 'fpgm'. [..]  If used with a
         // CIDFont dictionary, the 'cmap' table is not needed and shall not be present
-        
+
         bool skipTable = false;
         switch (tbl.Tag)
         {
@@ -232,7 +232,7 @@ void PdfFontTrueTypeSubset::SeeIfLongLocaOrNot()
     uint16_t isLong;
     GetData(&isLong, ulHeadOffset + 50, LENGTH_WORD);
     isLong = FROM_BIG_ENDIAN(isLong);
-	m_IsLongLoca = (isLong == 0 ? false : true);  // 1 for long
+    m_IsLongLoca = (isLong == 0 ? false : true);  // 1 for long
 }
 
 void PdfFontTrueTypeSubset::LoadGlyphs(GlyphContext& ctx, const CIDToGIDMap& usedCodes)
@@ -300,7 +300,7 @@ void PdfFontTrueTypeSubset::LoadCompound(GlyphContext& ctx, unsigned offset)
     // we espect explicitly loaded glyphs to be consecutive. We should
     // just load glyphs in the compound after all the explicitly loaded
     // ones and remap the indices
-    
+
 
     /*
     uint16_t flags;
@@ -514,7 +514,7 @@ void PdfFontTrueTypeSubset::GetData(PdfOutputDevice& output, unsigned offset, un
 void PdfFontTrueTypeSubset::GetData(void* dst, unsigned offset, unsigned size)
 {
     m_Device->Seek(offset);
-    m_Device->Read((char *)dst, size);
+    m_Device->Read((char*)dst, size);
 }
 
 uint32_t GetTableCheksum(const char* buf, unsigned size)

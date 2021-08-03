@@ -49,9 +49,9 @@ PdfString::PdfString(const string_view& view)
     initFromUtf8String(view);
 }
 
-PdfString::PdfString( const PdfString & rhs )
+PdfString::PdfString(const PdfString& rhs)
 {
-    this->operator=( rhs );
+    this->operator=(rhs);
 }
 
 PdfString::PdfString(const shared_ptr<string>& data, bool isHex)
@@ -59,7 +59,7 @@ PdfString::PdfString(const shared_ptr<string>& data, bool isHex)
 {
 }
 
-PdfString PdfString::FromRaw(const string_view &view, bool isHex)
+PdfString PdfString::FromRaw(const string_view& view, bool isHex)
 {
     return PdfString(std::make_shared<string>(view), isHex);
 }
@@ -276,7 +276,7 @@ bool PdfString::operator!=(const string_view& view) const
     return *m_data != view;
 }
 
-void PdfString::initFromUtf8String(const string_view &view)
+void PdfString::initFromUtf8String(const string_view& view)
 {
     if (view.data() == nullptr)
         throw runtime_error("String is null");
@@ -301,61 +301,61 @@ void PdfString::evaluateString() const
 {
     switch (m_state)
     {
-    case StringState::PdfDocEncoding:
-    case StringState::Unicode:
-        return;
-    case StringState::RawBuffer:
-    {
-        auto encoding = getEncoding(*m_data);
-        switch (encoding)
+        case StringState::PdfDocEncoding:
+        case StringState::Unicode:
+            return;
+        case StringState::RawBuffer:
         {
-        case StringEncoding::utf16be:
-        {
-            // Remove BOM and decode utf-16 string
-            string utf8;
-            auto view = string_view(*m_data).substr(2);
-            utf8::utf16to8(utf8::endianess::big_endian,
-                (char16_t*)view.data(), (char16_t*)(view.data() + view.size()),
-                std::back_inserter(utf8));
-            utf8.swap(*m_data);
-            const_cast<PdfString&>(*this).m_state = StringState::Unicode;
-            break;
-        }
-        case StringEncoding::utf16le:
-        {
-            // Remove BOM and decode utf-16 string
-            string utf8;
-            auto view = string_view(*m_data).substr(2);
-            utf8::utf16to8(utf8::endianess::little_endian,
-                (char16_t*)view.data(), (char16_t*)(view.data() + view.size()),
-                std::back_inserter(utf8));
-            utf8.swap(*m_data);
-            const_cast<PdfString&>(*this).m_state = StringState::Unicode;
-            break;
-        }
-        case StringEncoding::utf8:
-        {
-            // Remove BOM
-            m_data->substr(3).swap(*m_data);
-            const_cast<PdfString&>(*this).m_state = StringState::Unicode;
-            break;
-        }
-        case StringEncoding::PdfDocEncoding:
-        {
-            bool isUTF8Equal;
-            auto utf8 = PdfDocEncoding::ConvertPdfDocEncodingToUTF8(*m_data, isUTF8Equal);
-            utf8.swap(*m_data);
-            const_cast<PdfString&>(*this).m_state = StringState::PdfDocEncoding;
-            break;
+            auto encoding = getEncoding(*m_data);
+            switch (encoding)
+            {
+                case StringEncoding::utf16be:
+                {
+                    // Remove BOM and decode utf-16 string
+                    string utf8;
+                    auto view = string_view(*m_data).substr(2);
+                    utf8::utf16to8(utf8::endianess::big_endian,
+                        (char16_t*)view.data(), (char16_t*)(view.data() + view.size()),
+                        std::back_inserter(utf8));
+                    utf8.swap(*m_data);
+                    const_cast<PdfString&>(*this).m_state = StringState::Unicode;
+                    break;
+                }
+                case StringEncoding::utf16le:
+                {
+                    // Remove BOM and decode utf-16 string
+                    string utf8;
+                    auto view = string_view(*m_data).substr(2);
+                    utf8::utf16to8(utf8::endianess::little_endian,
+                        (char16_t*)view.data(), (char16_t*)(view.data() + view.size()),
+                        std::back_inserter(utf8));
+                    utf8.swap(*m_data);
+                    const_cast<PdfString&>(*this).m_state = StringState::Unicode;
+                    break;
+                }
+                case StringEncoding::utf8:
+                {
+                    // Remove BOM
+                    m_data->substr(3).swap(*m_data);
+                    const_cast<PdfString&>(*this).m_state = StringState::Unicode;
+                    break;
+                }
+                case StringEncoding::PdfDocEncoding:
+                {
+                    bool isUTF8Equal;
+                    auto utf8 = PdfDocEncoding::ConvertPdfDocEncodingToUTF8(*m_data, isUTF8Equal);
+                    utf8.swap(*m_data);
+                    const_cast<PdfString&>(*this).m_state = StringState::PdfDocEncoding;
+                    break;
+                }
+                default:
+                    throw runtime_error("Unsupported");
+            }
+
+            return;
         }
         default:
             throw runtime_error("Unsupported");
-        }
-
-        return;
-    }
-    default:
-        throw runtime_error("Unsupported");
     }
 }
 

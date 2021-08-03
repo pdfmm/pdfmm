@@ -790,7 +790,7 @@ void PdfVariant::SetReal(double d)
         m_Data.Real = d;
 }
 
-void PdfVariant::SetName(const PdfName &name)
+void PdfVariant::SetName(const PdfName& name)
 {
     if (m_DataType != EPdfDataType::Name)
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
@@ -798,7 +798,7 @@ void PdfVariant::SetName(const PdfName &name)
     *((PdfName*)m_Data.Data) = name;
 }
 
-void PdfVariant::SetString(const PdfString &str)
+void PdfVariant::SetString(const PdfString& str)
 {
     if (m_DataType != EPdfDataType::String)
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
@@ -806,7 +806,7 @@ void PdfVariant::SetString(const PdfString &str)
     *((PdfString*)m_Data.Data) = str;
 }
 
-void PdfVariant::SetReference(const PdfReference &ref)
+void PdfVariant::SetReference(const PdfReference& ref)
 {
     if (m_DataType != EPdfDataType::Reference)
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);

@@ -84,7 +84,7 @@ namespace PoDoFo::compat
     inline uint16_t ByteSwap(uint16_t n)
     {
         return __builtin_bswap16(n);
-}
+    }
 
     inline uint32_t ByteSwap(uint32_t n)
     {

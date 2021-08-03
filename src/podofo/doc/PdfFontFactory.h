@@ -36,7 +36,7 @@ public:
      *
      *  \param doc the parent of the created font.
      *  \param pMetrics pointer to a font metrics object. The font in the PDF
-     *         file will match this fontmetrics object. The metrics object is 
+     *         file will match this fontmetrics object. The metrics object is
      *         deleted along with the created font. In case of an error, it is deleted
      *         here.
      *  \param nFlags font flags or'ed together, specifying the font style and if it should be embedded

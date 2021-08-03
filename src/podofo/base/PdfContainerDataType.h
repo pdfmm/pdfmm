@@ -38,9 +38,9 @@ public:
 
 public:
     /** \returns a pointer to a PdfObject that is the
- *           owner of this data type.
- *           Might be nullptr if the data type has no owner.
- */
+     *           owner of this data type.
+     *           Might be nullptr if the data type has no owner.
+     */
     inline const PdfObject* GetOwner() const { return m_Owner; }
     inline PdfObject* GetOwner() { return m_Owner; }
 

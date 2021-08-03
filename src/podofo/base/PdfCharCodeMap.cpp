@@ -330,7 +330,7 @@ void PdfCharCode::WriteHexTo(string& str, bool wrap) const
 
 size_t PdfCharCodeMap::HashCharCode::operator()(const PdfCharCode& code) const
 {
-	return code.CodeSpaceSize << 24 | code.Code;
+    return code.CodeSpaceSize << 24 | code.Code;
 }
 
 bool PdfCharCodeMap::EqualCharCode::operator()(const PdfCharCode& lhs, const PdfCharCode& rhs) const

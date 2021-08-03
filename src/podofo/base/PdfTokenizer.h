@@ -38,7 +38,7 @@ enum class EPdfTokenType
     Slash,
 };
 
-typedef std::pair<std::string,EPdfTokenType> TTokenizerPair;
+typedef std::pair<std::string, EPdfTokenType> TTokenizerPair;
 typedef std::deque<TTokenizerPair> TTokenizerQueque;
 typedef TTokenizerQueque::iterator TITokenizerQueque;
 typedef TTokenizerQueque::const_iterator TCITokenizerQueque;
@@ -229,7 +229,7 @@ protected:
      *  \param rVariant store the string into this variable
      *  \param pEncrypt an encryption object which is used to decrypt strings during parsing
      */
-    void ReadString(PdfInputDevice& device, PdfVariant& rVariant, PdfEncrypt* pEncrypt );
+    void ReadString(PdfInputDevice& device, PdfVariant& rVariant, PdfEncrypt* pEncrypt);
 
     /** Read a hex string from the input device
      *  and store it into a variant.
@@ -246,7 +246,7 @@ protected:
      *
      *  \param rVariant store the name into this variable
      */
-    void ReadName(PdfInputDevice & device, PdfVariant & variant);
+    void ReadName(PdfInputDevice& device, PdfVariant& variant);
 
     /** Determine the possible datatype of a token.
      *  Numbers, reals, bools or nullptr values are parsed directly by this function

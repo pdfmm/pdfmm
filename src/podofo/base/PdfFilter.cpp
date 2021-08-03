@@ -26,7 +26,7 @@ static const char* s_filters[] = {
     "LZWDecode",
     "FlateDecode",
     "RunLengthDecode",
-    "CCITTFaxDecode", 
+    "CCITTFaxDecode",
     "JBIG2Decode",
     "DCTDecode",
     "JPXDecode",
@@ -39,7 +39,7 @@ static const char* s_shortFilters[] = {
     "LZW",
     "Fl",
     "RL",
-    "CCF", 
+    "CCF",
     "", // There is no shortname for JBIG2Decode
     "DCT",
     "", // There is no shortname for JPXDecode
@@ -60,7 +60,7 @@ public:
     /** Create a filtered output stream.
      *
      *  All data written to this stream is encoded using the passed filter type
-     *  and written to the passed output stream which will be deleted 
+     *  and written to the passed output stream which will be deleted
      *  by this PdfFilteredEncodeStream.
      *
      *  \param pOutputStream write all data to this output stream after encoding the data.
@@ -87,9 +87,9 @@ public:
     }
 
     /** Write data to the output stream
-     *  
+     *
      *  \param pBuffer the data is read from this buffer
-     *  \param lLen    the size of the buffer 
+     *  \param lLen the size of the buffer
      */
     void WriteImpl(const char* buffer, size_t len) override
     {
@@ -120,7 +120,7 @@ public:
     /** Create a filtered output stream.
      *
      *  All data written to this stream is decoded using the passed filter type
-     *  and written to the passed output stream which will be deleted 
+     *  and written to the passed output stream which will be deleted
      *  by this PdfFilteredDecodeStream if the parameter bOwnStream is true.
      *
      *  \param pOutputStream write all data to this output stream after decoding the data.
@@ -149,9 +149,9 @@ public:
     }
 
     /** Write data to the output stream
-     *  
+     *
      *  \param pBuffer the data is read from this buffer
-     *  \param lLen    the size of the buffer 
+     *  \param lLen the size of the buffer
      */
     void WriteImpl(const char* buffer, size_t len) override
     {

@@ -21,16 +21,16 @@ class PdfWriter;
 
 enum class EPdfShadingPatternType
 {
-    FunctionBase  = 1,    
-    Axial         = 2,
-    Radial        = 3,
-    FreeForm      = 4,
-    LatticeForm   = 5,
-    CoonsPatch    = 6,
+    FunctionBase = 1,
+    Axial = 2,
+    Radial = 3,
+    FreeForm = 4,
+    LatticeForm = 5,
+    CoonsPatch = 6,
     TensorProduct = 7
 };
 
-/** 
+/**
  * This class defined a shading pattern which can be used
  * to fill abitrary shapes with a pattern using PdfPainter.
  */
@@ -64,7 +64,7 @@ private:
     PdfName m_Identifier;
 };
 
-const PdfName & PdfShadingPattern::GetIdentifier() const
+const PdfName& PdfShadingPattern::GetIdentifier() const
 {
     return m_Identifier;
 }
@@ -85,7 +85,7 @@ public:
      *  \param rStart the starting color
      *  \param rEnd the ending color
      */
-    PdfAxialShadingPattern(PdfDocument& doc, double dX0, double dY0, double dX1, double dY1, const PdfColor& rStart, const PdfColor& rEnd);
+    PdfAxialShadingPattern(PdfDocument & doc, double dX0, double dY0, double dX1, double dY1, const PdfColor & rStart, const PdfColor & rEnd);
 
 private:
 
@@ -117,7 +117,7 @@ public:
      *  \param rMatrix the transformation matrix mapping the coordinate space
      *         specified by the Domain entry into the shading's target coordinate space
      */
-    PdfFunctionBaseShadingPattern(PdfDocument& doc, const PdfColor& rLL, const PdfColor& rUL, const PdfColor& rLR, const PdfColor& rUR, const PdfArray& rMatrix);
+    PdfFunctionBaseShadingPattern(PdfDocument & doc, const PdfColor & rLL, const PdfColor & rUL, const PdfColor & rLR, const PdfColor & rUR, const PdfArray & rMatrix);
 
 private:
 
@@ -151,7 +151,7 @@ public:
      *  \param rStart the starting color
      *  \param rEnd the ending color
      */
-    PdfRadialShadingPattern(PdfDocument& doc, double dX0, double dY0, double dR0, double dX1, double dY1, double dR1, const PdfColor& rStart, const PdfColor& rEnd);
+    PdfRadialShadingPattern(PdfDocument & doc, double dX0, double dY0, double dR0, double dX1, double dY1, double dR1, const PdfColor & rStart, const PdfColor & rEnd);
 
 private:
 
@@ -189,7 +189,7 @@ public:
       *  \param color2 color of point 2
      *  \param pParent the parent
      */
-    PdfTriangleShadingPattern(PdfDocument& doc, double dX0, double dY0, const PdfColor& color0, double dX1, double dY1, const PdfColor& color1, double dX2, double dY2, const PdfColor& color2);
+    PdfTriangleShadingPattern(PdfDocument & doc, double dX0, double dY0, const PdfColor & color0, double dX1, double dY1, const PdfColor & color1, double dX2, double dY2, const PdfColor & color2);
 
 private:
 

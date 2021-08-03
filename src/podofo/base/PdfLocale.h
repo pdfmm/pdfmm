@@ -19,7 +19,7 @@ static const char PdfIOLocale[] = "C";
 
 /**
  * Imbue the passed stream with a locale that will be safe to do
- * I/O of the low level PDF format with. 
+ * I/O of the low level PDF format with.
  *
  * PDF document structure I/O is done with the C++ standard library
  * IOStreams code. By default, this will adapt to the current locale.

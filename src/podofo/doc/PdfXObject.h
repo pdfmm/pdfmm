@@ -34,7 +34,7 @@ enum class PdfXObjectType
  *
  *  You can draw on a XObject like you would draw onto a page and can draw
  *  this XObject later again using a PdfPainter.
- * 
+ *
  *  \see PdfPainter
  */
 class PODOFO_DOC_API PdfXObject : public PdfElement, public PdfCanvas

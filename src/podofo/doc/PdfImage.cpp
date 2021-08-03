@@ -105,7 +105,7 @@ void PdfImage::SetImageSoftmask(const PdfImage& softmask)
 }
 
 void PdfImage::SetImageData(PdfInputStream& stream, unsigned nWidth, unsigned nHeight,
-                             unsigned nBitsPerComponent, bool writeRect)
+    unsigned nBitsPerComponent, bool writeRect)
 {
     TVecFilters vecFlate;
     vecFlate.push_back(PdfFilterType::FlateDecode);
@@ -129,7 +129,7 @@ void PdfImage::SetImageData(PdfInputStream& stream, unsigned nWidth, unsigned nH
 }
 
 void PdfImage::SetImageDataRaw(PdfInputStream& pStream, unsigned nWidth, unsigned nHeight,
-                                unsigned nBitsPerComponent)
+    unsigned nBitsPerComponent)
 {
     m_width = nWidth;
     m_height = nHeight;
@@ -375,7 +375,7 @@ void PdfImage::LoadFromJpegData(const unsigned char* pData, size_t dwLen)
 
 static void TIFFErrorWarningHandler(const char*, const char*, va_list)
 {
-    
+
 }
 
 void PdfImage::LoadFromTiffHandle(void* hInHandle)
@@ -557,7 +557,7 @@ void PdfImage::LoadFromTiffHandle(void* hInHandle)
         static_cast<unsigned>(height),
         static_cast<unsigned>(bitsPerSample));
 }
- 
+
 void PdfImage::LoadFromTiff(const string_view& filename)
 {
     TIFFSetErrorHandler(TIFFErrorWarningHandler);
@@ -591,8 +591,8 @@ void PdfImage::LoadFromTiff(const string_view& filename)
 
 struct tiffData
 {
-    tiffData(const unsigned char* data, tsize_t size):_data(data), _pos(0), _size(size) {}
-    
+    tiffData(const unsigned char* data, tsize_t size) :_data(data), _pos(0), _size(size) {}
+
     tsize_t read(tdata_t data, tsize_t length)
     {
         tsize_t bytesRead = 0;
@@ -610,18 +610,18 @@ struct tiffData
         }
         return bytesRead;
     }
-    
+
     toff_t size()
     {
         return _size;
     }
-    
+
     toff_t seek(toff_t pos, int whence)
     {
         if (pos == 0xFFFFFFFF) {
             return 0xFFFFFFFF;
         }
-        switch(whence)
+        switch (whence)
         {
             case SEEK_SET:
                 if (static_cast<tsize_t>(pos) > _size)
@@ -656,7 +656,7 @@ struct tiffData
         }
         return _pos;
     }
-    
+
 private:
     const unsigned char* _data;
     toff_t _pos;
@@ -1005,9 +1005,9 @@ void pngReadData(png_structp pngPtr, png_bytep data, png_size_t length)
 
 #endif // PODOFO_HAVE_PNG_LIB
 
-PdfName PdfImage::ColorspaceToName( PdfColorSpace eColorSpace )
+PdfName PdfImage::ColorspaceToName(PdfColorSpace eColorSpace)
 {
-    return PdfColor::GetNameForColorSpace( eColorSpace ).GetString();
+    return PdfColor::GetNameForColorSpace(eColorSpace).GetString();
 }
 
 void PdfImage::SetImageChromaKeyMask(int64_t r, int64_t g, int64_t b, int64_t threshold)

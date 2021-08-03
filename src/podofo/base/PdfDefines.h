@@ -14,7 +14,7 @@
  *        PoDoFo lib. It includes all standard files, defines some useful
  *        macros, some datatypes and all important enumeration types. On
  *        supporting platforms it will be precompiled to speed compilation.
- */ 
+ */
 
 #include "PdfCompilerCompat.h"
 
@@ -67,14 +67,14 @@
 
 /**
  * \namespace PoDoFo
- * 
+ *
  * All classes, functions, types and enums of PoDoFo
  * are members of these namespace.
  *
  * If you use PoDoFo, you might want to add the line:
  *       using namespace PoDoFo;
  * to your application.
- */ 
+ */
 namespace PoDoFo {
 
 // Conventient const span type
@@ -105,7 +105,7 @@ enum class PdfVersion
 };
 
 /** The default PDF Version used by new PDF documents
- *  in PoDoFo. 
+ *  in PoDoFo.
  */
 constexpr PdfVersion PdfVersionDefault = PdfVersion::V1_3;
 
@@ -130,21 +130,21 @@ const PdfWriteMode PdfWriteModeDefault = PdfWriteMode::Compact;
  */
 enum class EPdfDataType : uint8_t
 {
-   Unknown = 0,           ///< The Datatype is unknown. The value is chosen to enable value storage in 8-bit unsigned integer
-   Bool,                  ///< Boolean datatype: Accepts the values "true" and "false"
-   Number,                ///< Number datatype for integer values
-   Real,                  ///< Real datatype for floating point numbers
-   String,                ///< String datatype in PDF file. Strings have the form (Hallo World!) in PDF files. \see PdfString
-   Name,                  ///< Name datatype. Names are used as keys in dictionary to reference values. \see PdfName
-   Array,                 ///< An array of other PDF data types
-   Dictionary,            ///< A dictionary associates keys with values. A key can have another dictionary as value
-   Null,                  ///< The null datatype is always null
-   Reference,             ///< The reference datatype contains references to PDF objects in the PDF file of the form 4 0 R. \see PdfObject
-   RawData,               ///< Raw PDF data
+    Unknown = 0,           ///< The Datatype is unknown. The value is chosen to enable value storage in 8-bit unsigned integer
+    Bool,                  ///< Boolean datatype: Accepts the values "true" and "false"
+    Number,                ///< Number datatype for integer values
+    Real,                  ///< Real datatype for floating point numbers
+    String,                ///< String datatype in PDF file. Strings have the form (Hallo World!) in PDF files. \see PdfString
+    Name,                  ///< Name datatype. Names are used as keys in dictionary to reference values. \see PdfName
+    Array,                 ///< An array of other PDF data types
+    Dictionary,            ///< A dictionary associates keys with values. A key can have another dictionary as value
+    Null,                  ///< The null datatype is always null
+    Reference,             ///< The reference datatype contains references to PDF objects in the PDF file of the form 4 0 R. \see PdfObject
+    RawData,               ///< Raw PDF data
 };
 
 /**
- * Every filter that can be used to encode a stream 
+ * Every filter that can be used to encode a stream
  * in a PDF file is referenced by an own enum value.
  * Common filters are EPdfFilter::FlateDecode (i.e. Zip) or
  * EPdfFilter::ASCIIHexDecode
@@ -187,7 +187,7 @@ enum class PdfFontMetricsType
     Type3,
 };
 
-/** 
+/**
  * Enum for the colorspaces supported
  * by PDF.
  */
@@ -229,7 +229,7 @@ enum class PdfStrokeStyle
     Dot,
     DashDot,
     DashDotDot,
-    Custom 
+    Custom
 };
 
 /**
@@ -263,9 +263,9 @@ enum class PdfTilingPatternType
  */
 enum class PdfLineCapStyle
 {
-    Butt    = 0,
-    Round   = 1,
-    Square  = 2
+    Butt = 0,
+    Round = 1,
+    Square = 2
 };
 
 /**
@@ -273,9 +273,9 @@ enum class PdfLineCapStyle
  */
 enum class PdfLineJoinStyle
 {
-    Miter   = 0,
-    Round   = 1,
-    Bevel   = 2
+    Miter = 0,
+    Round = 1,
+    Bevel = 2
 };
 
 /**
@@ -283,9 +283,9 @@ enum class PdfLineJoinStyle
  */
 enum class PdfVerticalAlignment
 {
-    Top    = 0,
+    Top = 0,
     Center = 1,
-    Bottom  = 2
+    Bottom = 2
 };
 
 /**
@@ -293,9 +293,9 @@ enum class PdfVerticalAlignment
  */
 enum class PdfHorizontalAlignment
 {
-    Left    = 0,
-    Center  = 1,
-    Right   = 2
+    Left = 0,
+    Center = 1,
+    Right = 2
 };
 
 enum class PdfSaveOptions
@@ -333,7 +333,7 @@ enum class PdfSaveOptions
 
 /**
  * Enum holding the supported page sizes by PoDoFo.
- * Can be used to construct a PdfRect structure with 
+ * Can be used to construct a PdfRect structure with
  * measurements of a page object.
  *
  * \see PdfPage
@@ -453,15 +453,15 @@ ENABLE_BITMASK_OPERATORS(PoDoFo::PdfInfoInitial);
  *
  * <b>PoDoFo</b> is a library to work with the PDF file format and includes also a few
  * tools. The name comes from the first letter of PDF (Portable Document
- * Format). 
- * 
+ * Format).
+ *
  * The <b>PoDoFo</b> library is a free portable C++ library which includes
  * classes to parse a PDF file and modify its contents into memory. The changes
  * can be written back to disk easily. The parser could also be used to write a
  * PDF viewer. Besides parsing PoDoFo includes also very simple classes to create
  * your own PDF files. All classes are documented so it is easy to start writing
  * your own application using PoDoFo.
- * 
+ *
  * The <b>PoDoFo</b> tools are simple tools build around the <b>PoDoFo</b> library. These tools
  * are first of all examples on how to use the <b>PoDoFo</b> library in your own
  * projects. But secondly they offer also features for working with PDF
@@ -470,18 +470,18 @@ ENABLE_BITMASK_OPERATORS(PoDoFo::PdfInfoInitial);
  * extracts all jpeg images from a given PDF file) and podofouncompress (which
  * removes all compression filters from a PDF file - this is useful for debugging
  * existing PDF files).
- * 
+ *
  * Additionally there is the external tool <b>PoDoFoBrowser</b> which is not included in
  * this package, but can be downloaded from the <b>PoDoFo</b> webpage. <b>PoDoFoBrowser</b> is
  * a Qt application for browsing the objects in a PDF file and modifying their
  * keys easily. It is very useful if you want to look on the internal structure
  * of PDF files.
- * 
- * As of now <b>PoDoFo</b> is available for Unix, Mac OS X and Windows platforms. 
+ *
+ * As of now <b>PoDoFo</b> is available for Unix, Mac OS X and Windows platforms.
  *
  * More information can be found at: http://podofo.sourceforge.net
  *
- * <b>PoDoFo</b> is created by Dominik Seichter <domseichter@web.de>, 
+ * <b>PoDoFo</b> is created by Dominik Seichter <domseichter@web.de>,
  * Leonard Rosenthol <leonardr@pdfsages.com> and Craig Ringer <craig@postnewspapers.com.au>
  *
  * \page Codingstyle (Codingstyle)

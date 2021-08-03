@@ -36,7 +36,7 @@ PdfAcroForm::PdfAcroForm(PdfObject& obj, EPdfAcroFormDefaulAppearance defaultApp
     Init(defaultAppearance);
 }
 
-PdfArray & PdfAcroForm::GetFieldsArray()
+PdfArray& PdfAcroForm::GetFieldsArray()
 {
     auto fields = GetObject().GetDictionary().FindKey("Fields");
     if (fields == nullptr)

@@ -17,9 +17,9 @@ namespace PoDoFo {
 
 class PdfInputDevice;
 
-/** An interface for reading blocks of data from an 
+/** An interface for reading blocks of data from an
  *  a data source.
- */     
+ */
 class PODOFO_API PdfInputStream
 {
 public:
@@ -35,13 +35,13 @@ public:
      *
      *  \returns the number of bytes read
      */
-    size_t Read(char* pBuffer, size_t lLen, bool &eof);
+    size_t Read(char* pBuffer, size_t lLen, bool& eof);
 
 public:
     inline bool Eof() const { return m_eof; }
 
 protected:
-    virtual size_t ReadImpl( char* pBuffer, size_t lLen, bool& eof) = 0;
+    virtual size_t ReadImpl(char* pBuffer, size_t lLen, bool& eof) = 0;
 
 private:
     bool m_eof;
@@ -53,7 +53,7 @@ class PODOFO_API PdfFileInputStream : public PdfInputStream
 {
 public:
     /** Open a file for reading data
-     *  
+     *
      *  \param pszFilename the filename of the file to read
      */
     PdfFileInputStream(const std::string_view& filename);
@@ -73,15 +73,15 @@ class PODOFO_API PdfMemoryInputStream : public PdfInputStream
 {
 public:
     /** Open a file for reading data
-     *  
+     *
      *  \param pBuffer buffer to read from
      *  \param lBufferLen length of the buffer
      */
-    PdfMemoryInputStream( const char* pBuffer, size_t lBufferLen );
+    PdfMemoryInputStream(const char* pBuffer, size_t lBufferLen);
     ~PdfMemoryInputStream();
 
 protected:
-    size_t ReadImpl( char* pBuffer, size_t lLen, bool& eof) override;
+    size_t ReadImpl(char* pBuffer, size_t lLen, bool& eof) override;
 
 private:
     const char* m_pBuffer;
@@ -93,15 +93,15 @@ private:
 class PODOFO_API PdfDeviceInputStream : public PdfInputStream
 {
 public:
-    /** 
+    /**
      *  Read from an already opened input device
-     * 
+     *
      *  \param pDevice an input device
      */
-    PdfDeviceInputStream( PdfInputDevice* pDevice );
+    PdfDeviceInputStream(PdfInputDevice* pDevice);
 
 protected:
-    size_t ReadImpl( char* pBuffer, size_t lLen, bool& eof) override;;
+    size_t ReadImpl(char* pBuffer, size_t lLen, bool& eof) override;
 
 private:
     PdfInputDevice* m_pDevice;

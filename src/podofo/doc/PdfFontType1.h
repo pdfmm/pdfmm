@@ -18,7 +18,7 @@ namespace PoDoFo {
 
 /** A PdfFont implementation that can be used
  *  to embedd type1 fonts into a PDF file
- *  or to draw with type1 fonts. 
+ *  or to draw with type1 fonts.
  */
 class PdfFontType1 final : public PdfFontSimple
 {
@@ -30,13 +30,13 @@ private:
      *
      *  \param doc parent of the font object
      *  \param metrics pointer to a font metrics object. The font in the PDF
-     *         file will match this fontmetrics object. The metrics object is 
+     *         file will match this fontmetrics object. The metrics object is
      *         deleted along with the font.
      *  \param encoding the encoding of this font. The font will take ownership of this object
      *                   depending on pEncoding->IsAutoDelete()
      *  \param embed if true the font will get embedded.
      *  \param subsetting if true the font will use subsetting.
-     *  
+     *
      */
     PdfFontType1(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
         const PdfEncoding& encoding);

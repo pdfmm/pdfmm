@@ -50,19 +50,19 @@ PdfObject::PdfObject(const PdfString& str)
 PdfObject::PdfObject(const PdfName& name)
     : PdfObject(name, false) { }
 
-PdfObject::PdfObject(const PdfReference & ref)
+PdfObject::PdfObject(const PdfReference& ref)
     : PdfObject(ref, false) { }
 
-PdfObject::PdfObject(const PdfArray & arr)
+PdfObject::PdfObject(const PdfArray& arr)
     : PdfObject(arr, false) { }
 
-PdfObject::PdfObject( const PdfDictionary & rDict )
+PdfObject::PdfObject(const PdfDictionary& rDict)
     : PdfObject(rDict, false) { }
 
 // NOTE: Don't copy parent document/container. Copied objects must be
 // always detached. Ownership will be set automatically elsewhere.
 // Also don't copy reference
-PdfObject::PdfObject( const PdfObject & rhs ) 
+PdfObject::PdfObject(const PdfObject& rhs)
     : PdfObject(rhs, false)
 {
     copyFrom(rhs);
@@ -305,7 +305,7 @@ void PdfObject::delayedLoadStream() const
 {
     if (!m_DelayedLoadStreamDone)
     {
-        const_cast<PdfObject &>(*this).DelayedLoadStreamImpl();
+        const_cast<PdfObject&>(*this).DelayedLoadStreamImpl();
         m_DelayedLoadStreamDone = true;
     }
 }
@@ -376,25 +376,25 @@ void PdfObject::ResetDirty()
     // Propagate new dirty state to subclasses
     switch (m_Variant.GetDataType())
     {
-    // Arrays and Dictionaries
-    // handle dirty status by themselves
-    case EPdfDataType::Array:
-        static_cast<PdfContainerDataType &>(m_Variant.GetArray()).ResetDirty();
-        break;
-    case EPdfDataType::Dictionary:
-        static_cast<PdfContainerDataType&>(m_Variant.GetDictionary()).ResetDirty();
-        break;
-    case EPdfDataType::Bool:
-    case EPdfDataType::Number:
-    case EPdfDataType::Real:
-    case EPdfDataType::String:
-    case EPdfDataType::Name:
-    case EPdfDataType::RawData:
-    case EPdfDataType::Reference:
-    case EPdfDataType::Null:
-    case EPdfDataType::Unknown:
-    default:
-        break;
+        // Arrays and Dictionaries
+        // handle dirty status by themselves
+        case EPdfDataType::Array:
+            static_cast<PdfContainerDataType&>(m_Variant.GetArray()).ResetDirty();
+            break;
+        case EPdfDataType::Dictionary:
+            static_cast<PdfContainerDataType&>(m_Variant.GetDictionary()).ResetDirty();
+            break;
+        case EPdfDataType::Bool:
+        case EPdfDataType::Number:
+        case EPdfDataType::Real:
+        case EPdfDataType::String:
+        case EPdfDataType::Name:
+        case EPdfDataType::RawData:
+        case EPdfDataType::Reference:
+        case EPdfDataType::Null:
+        case EPdfDataType::Unknown:
+        default:
+            break;
     }
 
     resetDirty();
@@ -432,27 +432,27 @@ void PdfObject::SetImmutable(bool isImmutable)
 
     switch (m_Variant.GetDataType())
     {
-    // Arrays and Dictionaries
-    // handle dirty status by themselves
-    case EPdfDataType::Array:
-        m_Variant.GetArray().SetImmutable(isImmutable);
-        break;
-    case EPdfDataType::Dictionary:
-        m_Variant.GetDictionary().SetImmutable(isImmutable);
-        break;
+        // Arrays and Dictionaries
+        // handle dirty status by themselves
+        case EPdfDataType::Array:
+            m_Variant.GetArray().SetImmutable(isImmutable);
+            break;
+        case EPdfDataType::Dictionary:
+            m_Variant.GetDictionary().SetImmutable(isImmutable);
+            break;
 
-    case EPdfDataType::Bool:
-    case EPdfDataType::Number:
-    case EPdfDataType::Real:
-    case EPdfDataType::String:
-    case EPdfDataType::Name:
-    case EPdfDataType::RawData:
-    case EPdfDataType::Reference:
-    case EPdfDataType::Null:
-    case EPdfDataType::Unknown:
-    default:
-        // Do nothing
-        break;
+        case EPdfDataType::Bool:
+        case EPdfDataType::Number:
+        case EPdfDataType::Real:
+        case EPdfDataType::String:
+        case EPdfDataType::Name:
+        case EPdfDataType::RawData:
+        case EPdfDataType::Reference:
+        case EPdfDataType::Null:
+        case EPdfDataType::Unknown:
+        default:
+            // Do nothing
+            break;
     }
 }
 

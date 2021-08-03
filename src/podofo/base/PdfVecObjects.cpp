@@ -38,7 +38,7 @@ public:
 struct ReferenceComparatorPredicate
 {
 public:
-    inline bool operator()( const PdfReference & pObj, const PdfReference & pObj2 ) const
+    inline bool operator()(const PdfReference& pObj, const PdfReference& pObj2) const
     {
         return pObj < pObj2;
     }
@@ -50,10 +50,10 @@ class ObjectsComparator
 public:
     ObjectsComparator(const PdfReference& ref)
         : m_ref(ref) { }
-    
+
     bool operator()(const PdfObject* p1) const
     {
-        return p1 ? (p1->GetIndirectReference() == m_ref ) : false;
+        return p1 ? (p1->GetIndirectReference() == m_ref) : false;
     }
 
 private:
@@ -515,7 +515,7 @@ void PdfVecObjects::BeginAppendStream(const PdfStream& stream)
     for (auto& observer : m_vecObservers)
         observer->BeginAppendStream(stream);
 }
-    
+
 void PdfVecObjects::EndAppendStream(const PdfStream& stream)
 {
     for (auto& observer : m_vecObservers)

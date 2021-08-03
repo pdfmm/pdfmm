@@ -18,17 +18,17 @@ namespace PoDoFo {
 class PdfArray;
 
 /**
- * The function type of a mathematical function in a PDF file. 
+ * The function type of a mathematical function in a PDF file.
  */
 enum class EPdfFunctionType
 {
-    Sampled     = 0, ///< A sampled function (Type1)
+    Sampled = 0, ///< A sampled function (Type1)
     Exponential = 2, ///< An exponential interpolation function (Type2)
-    Stitching   = 3, ///< A stitching function (Type3)
-    PostScript  = 4  ///< A PostScript calculator function (Type4)
+    Stitching = 3, ///< A stitching function (Type3)
+    PostScript = 4  ///< A PostScript calculator function (Type4)
 };
 
-/** 
+/**
  * This class defines a PdfFunction.
  * A function can be used in various ways in a PDF file.
  * Examples are device dependent rasterization for high quality
@@ -44,24 +44,24 @@ public:
 protected:
     /** Create a new PdfFunction object.
      *
-     *  \param eType the function type 
+     *  \param eType the function type
      *  \param rDomain this array describes the input parameters of this PdfFunction. If this
      *                 function has m input parameters, this array has to contain 2*m numbers
      *                 where each number describes either the lower or upper boundary of the input range.
-     *  \param pParent parent document 
-     *  
+     *  \param pParent parent document
+     *
      */
-    PdfFunction(PdfDocument& doc, EPdfFunctionType eType, const PdfArray & rDomain);
+    PdfFunction(PdfDocument& doc, EPdfFunctionType eType, const PdfArray& rDomain);
 
 private:
     /** Initialize this object.
      *
-     *  \param eType the function type 
+     *  \param eType the function type
      *  \param rDomain this array describes the input parameters of this PdfFunction. If this
      *                 function has m input parameters, this array has to contain 2*m numbers
      *                 where each number describes either the lower or upper boundary of the input range.
      */
-    void Init( EPdfFunctionType eType, const PdfArray & rDomain );
+    void Init(EPdfFunctionType eType, const PdfArray& rDomain);
 
 };
 
@@ -79,14 +79,14 @@ public:
      *                 function has n input parameters, this array has to contain 2*n numbers
      *                 where each number describes either the lower or upper boundary of the output range.
      *  \param rlstSamples a list of bytes which are used to build up this function sample data
-     *  \param pParent parent document 
+     *  \param pParent parent document
      */
-    PdfSampledFunction(PdfDocument& doc, const PdfArray & rDomain,  const PdfArray & rRange, const PdfFunction::Sample & rlstSamples);
+    PdfSampledFunction(PdfDocument& doc, const PdfArray& rDomain, const PdfArray& rRange, const PdfFunction::Sample& rlstSamples);
 
 private:
     /** Initialize this object.
      */
-    void Init( const PdfArray & rDomain,  const PdfArray & rRange, const PdfFunction::Sample & rlstSamples );
+    void Init(const PdfArray& rDomain, const PdfArray& rRange, const PdfFunction::Sample& rlstSamples);
 
 };
 
@@ -103,14 +103,14 @@ public:
      *  \param rC0
      *  \param rC1
      *  \param dExponent
-     *  \param pParent parent document 
+     *  \param pParent parent document
      */
-    PdfExponentialFunction(PdfDocument& doc, const PdfArray & rDomain, const PdfArray & rC0, const PdfArray & rC1, double dExponent);
+    PdfExponentialFunction(PdfDocument& doc, const PdfArray& rDomain, const PdfArray& rC0, const PdfArray& rC1, double dExponent);
 
 private:
     /** Initialize this object.
      */
-    void Init( const PdfArray & rC0, const PdfArray & rC1, double dExponent );
+    void Init(const PdfArray& rC0, const PdfArray& rC1, double dExponent);
 
 };
 
@@ -131,10 +131,10 @@ public:
      *                 where each number describes either the lower or upper boundary of the input range.
      *  \param rBounds the bounds array
      *  \param rEncode the encode array
-     *  \param pParent parent document 
-     *  
+     *  \param pParent parent document
+     *
      */
-    PdfStitchingFunction(PdfDocument& doc, const PdfFunction::List & rlstFunctions, const PdfArray & rDomain, const PdfArray & rBounds, const PdfArray & rEncode);
+    PdfStitchingFunction(PdfDocument& doc, const PdfFunction::List& rlstFunctions, const PdfArray& rDomain, const PdfArray& rBounds, const PdfArray& rEncode);
 
 private:
     /** Initialize this object.
@@ -143,7 +143,7 @@ private:
      *  \param rBounds the bounds array
      *  \param rEncode the encode array
      */
-    void Init( const PdfFunction::List & rlstFunctions, const PdfArray & rBounds, const PdfArray & rEncode );
+    void Init(const PdfFunction::List& rlstFunctions, const PdfArray& rBounds, const PdfArray& rEncode);
 
 };
 

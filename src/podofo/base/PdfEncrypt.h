@@ -22,12 +22,12 @@ class PdfObject;
 class PdfOutputStream;
 class AESCryptoEngine;
 class RC4CryptoEngine;
-    
+
 /* Class representing PDF encryption methods. (For internal use only)
  * Based on code from Ulrich Telle: http://wxcode.sourceforge.net/components/wxpdfdoc/
  * Original Copyright header:
  * Name:        pdfencrypt.h
- * Purpose:     
+ * Purpose:
  * Author:      Ulrich Telle
  * Modified by:
  * Created:     2005-08-16
@@ -90,7 +90,7 @@ enum class EPdfEncryptAlgorithm
 #endif //PODOFO_HAVE_LIBIDN
 };
 
-/** A class that is used to encrypt a PDF file and 
+/** A class that is used to encrypt a PDF file and
  *  set document permissions on the PDF file.
  *
  *  As a user of this class, you have only to instantiate a
@@ -338,7 +338,7 @@ public:
 
     /** Decrypt a character string
      */
-    void Decrypt(const std::string_view &view, std::string& out) const;
+    void Decrypt(const std::string_view& view, std::string& out) const;
 
     /** Calculate stream size
      */
@@ -453,7 +453,7 @@ protected:
     unsigned char m_oeValue[32];        // OE entry in pdf document
     unsigned char m_permsValue[16];     // Perms entry in pdf document
 };
-    
+
 /** A pure virtual class that is used to encrypt a PDF file (RC4, AES-128)
  *  This class is the base for classes that implement algorithms based on MD5 hashes
  *
@@ -510,7 +510,7 @@ protected:
 
     RC4CryptoEngine* m_rc4;                // AES encryptor
 };
-    
+
 class PdfEncryptMD5Base : public PdfEncrypt, public PdfEncryptRC4Base
 {
 public:
@@ -568,11 +568,11 @@ protected:
     unsigned char m_rc4last[256];       // last RC4 state table
 
 };
-    
+
 /** A class that is used to encrypt a PDF file (AES-128)
  *
  *  Client code is working only with PdfEncrypt class and knows nothing
- *	about PdfEncryptAES*, it is created through CreatePdfEncrypt factory method	
+ *	about PdfEncryptAES*, it is created through CreatePdfEncrypt factory method
  *
  */
 class PdfEncryptAESV2 : public PdfEncryptMD5Base, public PdfEncryptAESBase
@@ -606,7 +606,7 @@ protected:
 /** A class that is used to encrypt a PDF file (AES-256)
  *
  *  Client code is working only with PdfEncrypt class and knows nothing
- *	about PdfEncryptAES*, it is created through CreatePdfEncrypt factory method	
+ *	about PdfEncryptAES*, it is created through CreatePdfEncrypt factory method
  *
  */
 class PdfEncryptAESV3 : public PdfEncryptSHABase, public PdfEncryptAESBase
@@ -641,7 +641,7 @@ protected:
 /** A class that is used to encrypt a PDF file (RC4 40-bit and 128-bit)
  *
  *  Client code is working only with PdfEncrypt class and knows nothing
- *	about PdfEncryptRC4, it is created through CreatePdfEncrypt factory method	
+ *	about PdfEncryptRC4, it is created through CreatePdfEncrypt factory method
  *
  */
 class PdfEncryptRC4 : public PdfEncryptMD5Base

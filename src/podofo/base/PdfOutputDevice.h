@@ -21,11 +21,11 @@ namespace PoDoFo {
 
 // TODO1: Evaluate if this class should implement PdfInputStream/PdfOutputStream
 // TODO2: Remove use of C style variadic functions
-/** This class provides an output device which operates 
+/** This class provides an output device which operates
  *  either on a file or on a buffer in memory.
  *  Additionally it can count the bytes written to the device.
  *
- *  This class is suitable for inheritance to provide output 
+ *  This class is suitable for inheritance to provide output
  *  devices of your own for PoDoFo.
  *  Just override the required virtual methods.
  */

@@ -47,7 +47,7 @@ PdfWriter::PdfWriter(PdfVecObjects* pVecObjects, const PdfObject& pTrailer, PdfV
 {
 }
 
-PdfWriter::PdfWriter( PdfVecObjects& pVecObjects, const PdfObject& trailer )
+PdfWriter::PdfWriter(PdfVecObjects& pVecObjects, const PdfObject& trailer)
     : PdfWriter(&pVecObjects, trailer, PdfVersionDefault)
 {
 }
@@ -75,16 +75,16 @@ PdfWriter::~PdfWriter()
 
 void PdfWriter::Write(PdfOutputDevice& device)
 {
-    CreateFileIdentifier( m_identifier, m_Trailer, &m_originalIdentifier );
+    CreateFileIdentifier(m_identifier, m_Trailer, &m_originalIdentifier);
 
     // setup encrypt dictionary
-    if( m_pEncrypt )
+    if (m_pEncrypt)
     {
-        m_pEncrypt->GenerateEncryptionKey( m_identifier );
+        m_pEncrypt->GenerateEncryptionKey(m_identifier);
 
         // Add our own Encryption dictionary
         m_pEncryptObj = m_vecObjects->CreateDictionaryObject();
-        m_pEncrypt->CreateEncryptionDictionary( m_pEncryptObj->GetDictionary() );
+        m_pEncrypt->CreateEncryptionDictionary(m_pEncryptObj->GetDictionary());
     }
 
     unique_ptr<PdfXRef> pXRef;
@@ -95,31 +95,31 @@ void PdfWriter::Write(PdfOutputDevice& device)
 
     try
     {
-        if( !m_bIncrementalUpdate )
+        if (!m_bIncrementalUpdate)
             WritePdfHeader(device);
 
         WritePdfObjects(device, *m_vecObjects, *pXRef);
 
-        if ( m_bIncrementalUpdate )
+        if (m_bIncrementalUpdate)
             pXRef->SetFirstEmptyBlock();
 
         pXRef->Write(device);
     }
-    catch( PdfError & e )
-    {   
+    catch (PdfError& e)
+    {
         // P.Zent: Delete Encryption dictionary (cannot be reused)
-        if(m_pEncryptObj)
+        if (m_pEncryptObj)
         {
             m_vecObjects->RemoveObject(m_pEncryptObj->GetIndirectReference());
             m_pEncryptObj = nullptr;
         }
-        
-        e.AddToCallstack( __FILE__, __LINE__ );
+
+        e.AddToCallstack(__FILE__, __LINE__);
         throw e;
     }
-    
+
     // P.Zent: Delete Encryption dictionary (cannot be reused)
-    if(m_pEncryptObj)
+    if (m_pEncryptObj)
     {
         m_vecObjects->RemoveObject(m_pEncryptObj->GetIndirectReference());
         m_pEncryptObj = nullptr;
@@ -128,16 +128,16 @@ void PdfWriter::Write(PdfOutputDevice& device)
 
 void PdfWriter::WritePdfHeader(PdfOutputDevice& device)
 {
-    device.Print( "%s\n%%%s", s_szPdfVersions[static_cast<int>(m_eVersion)], PDF_MAGIC );
+    device.Print("%s\n%%%s", s_szPdfVersions[static_cast<int>(m_eVersion)], PDF_MAGIC);
 }
 
 void PdfWriter::WritePdfObjects(PdfOutputDevice& device, const PdfVecObjects& vecObjects, PdfXRef& xref)
 {
-    for(PdfObject* pObject : vecObjects )
+    for (PdfObject* pObject : vecObjects)
     {
-	    if( m_bIncrementalUpdate )
+        if (m_bIncrementalUpdate)
         {
-            if(!pObject->IsDirty())
+            if (!pObject->IsDirty())
             {
                 if (m_rewriteXRefTable)
                 {
@@ -168,7 +168,7 @@ void PdfWriter::WritePdfObjects(PdfOutputDevice& device, const PdfVecObjects& ve
             }
         }
 
-        xref.AddInUseObject( pObject->GetIndirectReference(), device.Tell());
+        xref.AddInUseObject(pObject->GetIndirectReference(), device.Tell());
 
         if (!xref.ShouldSkipWrite(pObject->GetIndirectReference()))
         {
@@ -177,7 +177,7 @@ void PdfWriter::WritePdfObjects(PdfOutputDevice& device, const PdfVecObjects& ve
         }
     }
 
-    for(auto& freeObjectRef : vecObjects.GetFreeObjects())
+    for (auto& freeObjectRef : vecObjects.GetFreeObjects())
     {
         xref.AddFreeObject(freeObjectRef);
     }
@@ -268,7 +268,7 @@ void PdfWriter::CreateFileIdentifier(PdfString& identifier, const PdfObject& pTr
     else
     {
         PdfReference ref;
-        if(pObjInfo->TryGetReference(ref))
+        if (pObjInfo->TryGetReference(ref))
         {
             pObjInfo = m_vecObjects->GetObject(ref);
 
@@ -320,9 +320,9 @@ void PdfWriter::SetEncryptObj(PdfObject* obj)
     m_pEncryptObj = obj;
 }
 
-void PdfWriter::SetEncrypted( const PdfEncrypt & rEncrypt )
+void PdfWriter::SetEncrypted(const PdfEncrypt& rEncrypt)
 {
-	m_pEncrypt = PdfEncrypt::CreatePdfEncrypt( rEncrypt );
+    m_pEncrypt = PdfEncrypt::CreatePdfEncrypt(rEncrypt);
 }
 
 void PdfWriter::SetUseXRefStream(bool bStream)

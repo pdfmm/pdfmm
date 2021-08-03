@@ -60,38 +60,38 @@ public:
       *
       * \param rhs the object to copy
       */
-     PdfReference& operator=(const PdfReference& rhs) = default;
+    PdfReference& operator=(const PdfReference& rhs) = default;
 
-     void Write(PdfOutputDevice& device, PdfWriteMode writeMode, const PdfEncrypt* encrypt) const;
+    void Write(PdfOutputDevice& device, PdfWriteMode writeMode, const PdfEncrypt* encrypt) const;
 
-     /**
-      * Compare to PdfReference objects.
-      * \returns true if both reference the same object
-      */
-     bool operator==(const PdfReference& rhs) const;
+    /**
+     * Compare to PdfReference objects.
+     * \returns true if both reference the same object
+     */
+    bool operator==(const PdfReference& rhs) const;
 
-     /**
-      * Compare to PdfReference objects.
-      * \returns false if both reference the same object
-      */
-     bool operator!=(const PdfReference& rhs) const;
+    /**
+     * Compare to PdfReference objects.
+     * \returns false if both reference the same object
+     */
+    bool operator!=(const PdfReference& rhs) const;
 
-     /**
-      * Compare to PdfReference objects.
-      * \returns true if this reference has a smaller object and generation number
-      */
-     bool operator<(const PdfReference& rhs) const;
+    /**
+     * Compare to PdfReference objects.
+     * \returns true if this reference has a smaller object and generation number
+     */
+    bool operator<(const PdfReference& rhs) const;
 
-     /** Allows to check if a reference points to an indirect
-      *  object.
-      *
-      *  A reference is indirect if object number and generation
-      *  number are both not equal 0.
-      *
-      *  \returns true if this reference is the reference of
-      *           an indirect object.
-      */
-     bool IsIndirect() const;
+    /** Allows to check if a reference points to an indirect
+     *  object.
+     *
+     *  A reference is indirect if object number and generation
+     *  number are both not equal 0.
+     *
+     *  \returns true if this reference is the reference of
+     *           an indirect object.
+     */
+    bool IsIndirect() const;
 
 public:
     /** Set the object number of this object

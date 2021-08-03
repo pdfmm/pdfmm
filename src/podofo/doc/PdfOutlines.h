@@ -26,9 +26,9 @@ class PdfVecObjects;
  */
 enum class PdfOutlineFormat
 {
-    Default    = 0x00,   ///< Default format
-    Italic     = 0x01,   ///< Italic
-    Bold       = 0x02,   ///< Bold
+    Default = 0x00,      ///< Default format
+    Italic = 0x01,       ///< Italic
+    Bold = 0x02,         ///< Bold
     BoldItalic = 0x03,   ///< Bold Italic
 };
 
@@ -248,8 +248,8 @@ private:
 };
 
 /** The main PDF outlines dictionary.
- *  
- *  Do not create it by yourself but 
+ *
+ *  Do not create it by yourself but
  *  use PdfDocument::GetOutlines() instead.
  *
  *  \see PdfDocument

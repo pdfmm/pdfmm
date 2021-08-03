@@ -36,7 +36,7 @@ else if (tryReadShiftChar(*str, zoneShift))\
 }
 
 static int getLocalOffesetFromUTCMinutes();
-static bool tryReadShiftChar(char ch, int &zoneShift);
+static bool tryReadShiftChar(char ch, int& zoneShift);
 
 PdfDate::PdfDate()
 {
@@ -48,12 +48,12 @@ PdfDate::PdfDate()
     m_secondsFromEpoch = chrono::seconds(now.time_since_epoch());
 }
 
-PdfDate::PdfDate(const chrono::seconds &secondsFromEpoch, const std::optional<chrono::minutes> &offsetFromUTC)
+PdfDate::PdfDate(const chrono::seconds& secondsFromEpoch, const std::optional<chrono::minutes>& offsetFromUTC)
     : m_secondsFromEpoch(secondsFromEpoch), m_minutesFromUtc(offsetFromUTC)
 {
 }
 
-PdfDate::PdfDate(const PdfString &sDate)
+PdfDate::PdfDate(const PdfString& sDate)
 {
     std::string date = sDate.GetString();
 
@@ -69,7 +69,7 @@ PdfDate::PdfDate(const PdfString &sDate)
     int nZoneHour = 0;
     int nZoneMin = 0;
 
-    const char * pszDate = date.data();
+    const char* pszDate = date.data();
     if (pszDate == nullptr)
         goto Error;
 
@@ -82,32 +82,32 @@ PdfDate::PdfDate(const PdfString &sDate)
 
     PEEK_DATE_CHAR(pszDate, nZoneShift);
 
-    if (!ParseFixLenNumber(pszDate,4,0,9999, y))
+    if (!ParseFixLenNumber(pszDate, 4, 0, 9999, y))
         return;
 
     PEEK_DATE_CHAR(pszDate, nZoneShift);
 
-    if (!ParseFixLenNumber(pszDate,2,1,12, m))
+    if (!ParseFixLenNumber(pszDate, 2, 1, 12, m))
         goto Error;
 
     PEEK_DATE_CHAR(pszDate, nZoneShift);
 
-    if (!ParseFixLenNumber(pszDate,2,1,31, d))
+    if (!ParseFixLenNumber(pszDate, 2, 1, 31, d))
         goto Error;
 
     PEEK_DATE_CHAR(pszDate, nZoneShift);
 
-    if (!ParseFixLenNumber(pszDate,2,0,23, h))
+    if (!ParseFixLenNumber(pszDate, 2, 0, 23, h))
         goto Error;
 
     PEEK_DATE_CHAR(pszDate, nZoneShift);
 
-    if (!ParseFixLenNumber(pszDate,2,0,59, M))
+    if (!ParseFixLenNumber(pszDate, 2, 0, 59, M))
         goto Error;
 
     PEEK_DATE_CHAR(pszDate, nZoneShift);
 
-    if (!ParseFixLenNumber(pszDate,2,0,59, s))
+    if (!ParseFixLenNumber(pszDate, 2, 0, 59, s))
         goto Error;
 
     PEEK_DATE_CHAR(pszDate, nZoneShift);
@@ -177,12 +177,12 @@ PdfString PdfDate::createStringRepresentation(bool w3cstring) const
             if (w3cstring)
             {
                 offset.resize(6);
-                snprintf(const_cast<char *>(offset.data()), offset.size() + 1, "%s%02u:%02u", plus ? "+" : "-", offseth, offsetm);
+                snprintf(const_cast<char*>(offset.data()), offset.size() + 1, "%s%02u:%02u", plus ? "+" : "-", offseth, offsetm);
             }
             else
             {
                 offset.resize(7);
-                snprintf(const_cast<char *>(offset.data()), offset.size() + 1, "%s%02u'%02u'", plus ? "+" : "-", offseth, offsetm);
+                snprintf(const_cast<char*>(offset.data()), offset.size() + 1, "%s%02u'%02u'", plus ? "+" : "-", offseth, offsetm);
             }
         }
 
@@ -228,16 +228,16 @@ PdfString PdfDate::createStringRepresentation(bool w3cstring) const
 }
 
 
-bool PdfDate::ParseFixLenNumber(const char *&in, unsigned length, int min, int max, int &ret)
+bool PdfDate::ParseFixLenNumber(const char*& in, unsigned length, int min, int max, int& ret)
 {
     ret = 0;
-    for(unsigned i=0;i<length;i++)
+    for (unsigned i = 0; i < length; i++)
     {
-        if ( in == nullptr || !isdigit(*in)) return false;
-        ret = ret*10+ (*in-'0');
+        if (in == nullptr || !isdigit(*in)) return false;
+        ret = ret * 10 + (*in - '0');
         in++;
     }
-    if ( ret < min || ret > max ) return false;
+    if (ret < min || ret > max) return false;
     return true;
 }
 
@@ -257,13 +257,13 @@ PdfString PdfDate::ToStringW3C() const
 int getLocalOffesetFromUTCMinutes()
 {
     time_t t = time(nullptr);
-    struct tm * locg = localtime(&t);
+    struct tm* locg = localtime(&t);
     struct tm locl;
     memcpy(&locl, locg, sizeof(struct tm));
     return (int)(timegm(locg) - mktime(&locl)) / 60;
 }
 
-bool tryReadShiftChar(char ch, int &zoneShift)
+bool tryReadShiftChar(char ch, int& zoneShift)
 {
     switch (ch)
     {

@@ -19,53 +19,53 @@ PdfRefCountedInputDevice::PdfRefCountedInputDevice()
 
 }
 
-PdfRefCountedInputDevice::PdfRefCountedInputDevice(const string_view &filename)
+PdfRefCountedInputDevice::PdfRefCountedInputDevice(const string_view& filename)
     : m_pDevice(nullptr)
 {
-    m_pDevice              = new TRefCountedInputDevice();
+    m_pDevice = new TRefCountedInputDevice();
     m_pDevice->m_lRefCount = 1;
 
     try
     {
         m_pDevice->m_pDevice = new PdfInputDevice(filename);
     }
-    catch( PdfError & rError )
+    catch (PdfError& rError)
     {
         delete m_pDevice;
         throw rError;
     }
 }
 
-PdfRefCountedInputDevice::PdfRefCountedInputDevice( const char* pBuffer, size_t lLen )
+PdfRefCountedInputDevice::PdfRefCountedInputDevice(const char* pBuffer, size_t lLen)
     : m_pDevice(nullptr)
 {
-    m_pDevice              = new TRefCountedInputDevice();
+    m_pDevice = new TRefCountedInputDevice();
     m_pDevice->m_lRefCount = 1;
 
 
     try
     {
-        m_pDevice->m_pDevice   = new PdfInputDevice( pBuffer, lLen );
+        m_pDevice->m_pDevice = new PdfInputDevice(pBuffer, lLen);
     }
-    catch( PdfError & rError )
+    catch (PdfError& rError)
     {
         delete m_pDevice;
         throw rError;
     }
 }
 
-PdfRefCountedInputDevice::PdfRefCountedInputDevice( PdfInputDevice* pDevice )
+PdfRefCountedInputDevice::PdfRefCountedInputDevice(PdfInputDevice* pDevice)
     : m_pDevice(nullptr)
 {
-    m_pDevice              = new TRefCountedInputDevice();
+    m_pDevice = new TRefCountedInputDevice();
     m_pDevice->m_lRefCount = 1;
-    m_pDevice->m_pDevice   = pDevice;
+    m_pDevice->m_pDevice = pDevice;
 }
 
-PdfRefCountedInputDevice::PdfRefCountedInputDevice( const PdfRefCountedInputDevice & rhs )
+PdfRefCountedInputDevice::PdfRefCountedInputDevice(const PdfRefCountedInputDevice& rhs)
     : m_pDevice(nullptr)
 {
-    this->operator=( rhs );
+    this->operator=(rhs);
 }
 
 PdfRefCountedInputDevice::~PdfRefCountedInputDevice()
@@ -75,7 +75,7 @@ PdfRefCountedInputDevice::~PdfRefCountedInputDevice()
 
 void PdfRefCountedInputDevice::Detach()
 {
-    if( m_pDevice && !--m_pDevice->m_lRefCount ) 
+    if (m_pDevice && !--m_pDevice->m_lRefCount)
     {
         // last owner of the file!
         m_pDevice->m_pDevice->Close();
@@ -86,12 +86,12 @@ void PdfRefCountedInputDevice::Detach()
 
 }
 
-const PdfRefCountedInputDevice & PdfRefCountedInputDevice::operator=( const PdfRefCountedInputDevice & rhs )
+const PdfRefCountedInputDevice& PdfRefCountedInputDevice::operator=(const PdfRefCountedInputDevice& rhs)
 {
     Detach();
 
     m_pDevice = rhs.m_pDevice;
-    if( m_pDevice )
+    if (m_pDevice)
         m_pDevice->m_lRefCount++;
 
     return *this;

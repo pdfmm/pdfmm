@@ -21,10 +21,10 @@ class PdfStream;
 
 // TODO: Refactor, PdfInputDevice should be an interface
 // with, implementing classes like PdfMemInputDevice or PdfFileInputDevice
-/** This class provides an Input device which operates 
+/** This class provides an Input device which operates
  *  either on a file, a buffer in memory or any arbitrary std::istream
  *
- *  This class is suitable for inheritance to provide input 
+ *  This class is suitable for inheritance to provide input
  *  devices of your own for PoDoFo.
  *  Just override the required virtual methods.
  */
@@ -99,7 +99,7 @@ public:
     void Seek(std::streamoff off, std::ios_base::seekdir dir = std::ios_base::beg);
 
     /** Read a certain number of bytes from the input device.
-     *  
+     *
      *  \param buffer store bytes in this buffer.
      *      The buffer has to be large enough.
      *  \param size number of bytes to read.
@@ -120,7 +120,7 @@ public:
 
 protected:
     void seek(std::streamoff off, std::ios_base::seekdir dir);
-    
+
 private:
     std::istream* m_Stream;
     bool m_StreamOwned;

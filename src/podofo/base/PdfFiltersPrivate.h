@@ -82,7 +82,7 @@ public:
 
     inline PdfFilterType GetType() const override { return PdfFilterType::ASCIIHexDecode; }
 
- private:
+private:
     char m_cDecodedByte;
     bool m_bLow;
 };
@@ -112,11 +112,11 @@ public:
 
     inline PdfFilterType GetType() const override { return PdfFilterType::ASCII85Decode; }
 
- private:
+private:
     void EncodeTuple(unsigned tuple, int bytes);
     void WidePut(unsigned tuple, int bytes) const;
 
- private:
+private:
     int m_count;
     unsigned m_tuple;
 };
@@ -148,10 +148,10 @@ public:
 
     inline PdfFilterType GetType() const override { return PdfFilterType::FlateDecode; }
 
- private:
-    void EncodeBlockInternal( const char* pBuffer, size_t lLen, int nMode );
+private:
+    void EncodeBlockInternal(const char* pBuffer, size_t lLen, int nMode);
 
- private:
+private:
     unsigned char m_buffer[PODOFO_FILTER_INTERNAL_BUFFER_SIZE];
 
     z_stream m_stream;
@@ -181,7 +181,7 @@ public:
 
     inline PdfFilterType GetType() const override { return PdfFilterType::RunLengthDecode; }
 
- private:
+private:
     int m_nCodeLen;
 };
 
@@ -193,7 +193,7 @@ class PdfLZWFilter : public PdfFilter
     {
         std::vector<unsigned char> value;
     };
-    
+
     typedef std::vector<TLzwItem> TLzwTable;
     typedef TLzwTable::iterator TILzwTable;
     typedef TLzwTable::const_iterator TCILzwTable;
@@ -207,7 +207,7 @@ public:
 
     void BeginEncodeImpl() override;
 
-    void EncodeBlockImpl( const char* pBuffer, size_t lLen ) override;
+    void EncodeBlockImpl(const char* pBuffer, size_t lLen) override;
 
     void EndEncodeImpl() override;
 
@@ -252,7 +252,7 @@ extern "C"
 };
 
 /** The DCT filter can decoded JPEG compressed data.
- *  
+ *
  *  This filter requires JPEG lib to be available
  */
 class PdfDCTFilter : public PdfFilter
@@ -278,7 +278,7 @@ public:
 
     inline PdfFilterType GetType() const override { return PdfFilterType::DCTDecode; }
 
- private:
+private:
     struct jpeg_decompress_struct m_cinfo;
     struct jpeg_error_mgr m_jerr;
 
@@ -291,7 +291,7 @@ public:
 #ifdef PODOFO_HAVE_TIFF_LIB
 
 /** The CCITT filter can decoded CCITTFaxDecode compressed data.
- *  
+ *
  *  This filter requires TIFFlib to be available
  */
 class PdfCCITTFilter : public PdfFilter
@@ -317,7 +317,7 @@ public:
 
     inline PdfFilterType GetType() const override { return PdfFilterType::CCITTFaxDecode; }
 
- private:
+private:
     TIFF* m_tiff;
 };
 

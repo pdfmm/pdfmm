@@ -18,7 +18,7 @@ PdfCheckBox::PdfCheckBox(PdfObject& obj, PdfAnnotation* widget)
     // NOTE: We assume initialization was performed in the given object
 }
 
-PdfCheckBox::PdfCheckBox(PdfDocument& doc, PdfAnnotation* widget,bool insertInAcroform)
+PdfCheckBox::PdfCheckBox(PdfDocument& doc, PdfAnnotation* widget, bool insertInAcroform)
     : PdfButton(PdfFieldType::CheckBox, doc, widget, insertInAcroform)
 {
 }

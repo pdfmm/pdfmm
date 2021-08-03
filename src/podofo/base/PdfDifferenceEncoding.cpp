@@ -28,7 +28,7 @@ using namespace PoDoFo;
 static struct
 {
     char32_t u; // in fact this might be little endian on LE systems
-    const char *name;
+    const char* name;
 } nameToUnicodeTab[] = {
   {0x0021, "!"},
   {0x0023, "#"},
@@ -1123,8 +1123,8 @@ static struct
 
 static struct {
     char32_t u;
-    const char *name;
-} UnicodeToNameTab[] = {    
+    const char* name;
+} UnicodeToNameTab[] = {
     {0x0000, ".notdef"},
     {0x0020, "space"},
     {0x0021, "exclam"},
@@ -2266,7 +2266,7 @@ bool PdfEncodingDifference::contains(unsigned char code, PdfName& name, char32_t
 
 bool PdfEncodingDifference::ContainsUnicodeValue(char32_t codePoint, unsigned char& code) const
 {
-    for (auto &diff : m_vecDifferences)
+    for (auto& diff : m_vecDifferences)
     {
         if (diff.CodePoint == codePoint)
         {
@@ -2282,7 +2282,7 @@ void PdfEncodingDifference::ToArray(PdfArray& arr) const
 {
     int64_t nLastCode = -2;
     arr.Clear();
-    for (auto &diff : m_vecDifferences)
+    for (auto& diff : m_vecDifferences)
     {
         if (diff.Code != nLastCode + 1)
         {

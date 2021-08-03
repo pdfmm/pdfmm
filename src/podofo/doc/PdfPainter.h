@@ -34,27 +34,19 @@ class PdfXObject;
 enum class EPdfPainterFlags
 {
     None = 0,
-    /** Does nothing for now
-     */
-    Prepend = 1,
-    /** Do not perform a Save/Restore or previous content. Implies RawCoordinates
-     */
-    NoSaveRestorePrior = 2,
-    /** Do not perform a Save/Restore of added content in this painting session
-     */
-    NoSaveRestore = 4,
-    /** Does nothing for now
-     */
-    RawCoordinates = 8,
+    Prepend = 1,            ///< Does nothing for now
+    NoSaveRestorePrior = 2, ///< Do not perform a Save/Restore or previous content. Implies RawCoordinates
+    NoSaveRestore = 4,      ///< Do not perform a Save/Restore of added content in this painting session
+    RawCoordinates = 8,     ///< Does nothing for now
 };
 
 /**
  * This class provides an easy to use painter object which allows you to draw on a PDF page
  * object.
- * 
+ *
  * During all drawing operations, you are still able to access the stream of the object you are
- * drawing on directly. 
- * 
+ * drawing on directly.
+ *
  * All functions that take coordinates expect these to be in PDF User Units. Keep in mind that PDF has
  * its coordinate system origin at the bottom left corner.
  */

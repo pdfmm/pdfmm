@@ -39,8 +39,8 @@ public:
      *  \param rBuffer buffer to use for parsing to avoid reallocations
      *  \param pOffsets XRef entries are stored into this array
      */
-    PdfXRefStreamParserObject(PdfDocument& document, const PdfRefCountedInputDevice & rDevice,
-                              const PdfRefCountedBuffer & rBuffer, TVecEntries& entries);
+    PdfXRefStreamParserObject(PdfDocument& document, const PdfRefCountedInputDevice& rDevice,
+        const PdfRefCountedBuffer& rBuffer, TVecEntries& entries);
 
     void Parse();
 
@@ -49,7 +49,7 @@ public:
     /**
      * \returns the offset of the previous XRef table
      */
-    bool TryGetPreviousOffset(size_t &previousOffset) const;
+    bool TryGetPreviousOffset(size_t& previousOffset) const;
 
 private:
     /**
@@ -59,7 +59,7 @@ private:
      * \param rvecIndeces store the indeces hare
      * \param size default value from /Size key
      */
-    void GetIndeces( std::vector<int64_t> & rvecIndeces, int64_t size );
+    void GetIndeces(std::vector<int64_t>& rvecIndeces, int64_t size);
 
     /**
      * Parse the stream contents
@@ -69,9 +69,9 @@ private:
      *
      * \see GetIndeces
      */
-    void ParseStream( const int64_t nW[W_ARRAY_SIZE], const std::vector<int64_t> & rvecIndeces );
+    void ParseStream(const int64_t nW[W_ARRAY_SIZE], const std::vector<int64_t>& rvecIndeces);
 
-    void ReadXRefStreamEntry( char* pBuffer, size_t, const int64_t lW[W_ARRAY_SIZE], int nObjNo );
+    void ReadXRefStreamEntry(char* pBuffer, size_t, const int64_t lW[W_ARRAY_SIZE], int nObjNo);
 
 private:
     ssize_t m_lNextOffset;

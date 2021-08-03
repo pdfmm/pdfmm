@@ -16,7 +16,7 @@
 
 namespace PoDoFo {
 
-/** This class is a date datatype as specified in the PDF 
+/** This class is a date datatype as specified in the PDF
  *  reference. You can easily convert from Unix time_t to
  *  the PDF time representation and back. Dates like these
  *  are used for example in the PDF info dictionary for the
@@ -26,9 +26,9 @@ namespace PoDoFo {
  *
  *  From the PDF reference:
  *
- *  PDF defines a standard date format, which closely follows 
+ *  PDF defines a standard date format, which closely follows
  *  that of the international standard ASN.1 (Abstract Syntax
- *  Notation One), defined in ISO/IEC 8824 (see the Bibliography). 
+ *  Notation One), defined in ISO/IEC 8824 (see the Bibliography).
  *  A date is a string of the form
  *  (D:YYYYMMDDHHmmSSOHH'mm')
  */
@@ -44,21 +44,21 @@ public:
      *
      *  \see IsValid()
      */
-    PdfDate(const std::chrono::seconds &secondsFromEpoch, const std::optional<std::chrono::minutes> &offsetFromUTC);
+    PdfDate(const std::chrono::seconds& secondsFromEpoch, const std::optional<std::chrono::minutes>& offsetFromUTC);
 
     /** Create a PdfDate with a specified date and time
-     *  \param szDate the date and time of this object 
-     *         in PDF format. It has to be a string of 
+     *  \param szDate the date and time of this object
+     *         in PDF format. It has to be a string of
      *         the format  (D:YYYYMMDDHHmmSSOHH'mm').
      */
-    PdfDate( const PdfString & sDate );
+    PdfDate(const PdfString& sDate);
 
-    /** \returns the date and time of this PdfDate in 
+    /** \returns the date and time of this PdfDate in
      *  seconds since epoch.
      */
-    const std::chrono::seconds & GetSecondsFromEpoch() const { return m_secondsFromEpoch; }
+    const std::chrono::seconds& GetSecondsFromEpoch() const { return m_secondsFromEpoch; }
 
-    const std::optional<std::chrono::minutes> & GetMinutesFromUtc() const { return m_minutesFromUtc; }
+    const std::optional<std::chrono::minutes>& GetMinutesFromUtc() const { return m_minutesFromUtc; }
 
     /** The value returned by this function can be used in any PdfObject
      *  where a date is needed
@@ -77,12 +77,12 @@ private:
 
     /** Parse fixed length number from string
      *  \param in string to read number from
-     *  \param length of number to read 
+     *  \param length of number to read
      *  \param min minimal value of number
      *  \param max maximal value of number
      *  \param ret parsed number
      */
-    bool ParseFixLenNumber(const char *&in, unsigned length, int min, int max, int &ret);
+    bool ParseFixLenNumber(const char*& in, unsigned length, int min, int max, int& ret);
 
 private:
     std::chrono::seconds m_secondsFromEpoch;

@@ -29,11 +29,11 @@ class PdfDictionary;
 class PdfVecObjects;
 class PdfInputStream;
 
-typedef std::map<PdfObject *,PdfAnnotation*>  TMapAnnotationDirect;
+typedef std::map<PdfObject*, PdfAnnotation*>  TMapAnnotationDirect;
 typedef TMapAnnotationDirect::iterator        TIMapAnnotation;
 typedef TMapAnnotationDirect::const_iterator  TCIMapAnnotationDirect;
 
-/** PdfPage is one page in the pdf document. 
+/** PdfPage is one page in the pdf document.
  *  It is possible to draw on a page using a PdfPainter object.
  *  Every document needs at least one page.
  */

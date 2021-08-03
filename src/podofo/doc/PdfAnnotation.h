@@ -25,9 +25,9 @@ class PdfString;
 class PdfXObject;
 
 /** The type of the annotation.
- *  PDF supports different annotation types, each of 
+ *  PDF supports different annotation types, each of
  *  them has different keys and propeties.
- *  
+ *
  *  Not all annotation types listed here are supported yet.
  *
  *  Please make also sure that the annotation type you use is
@@ -66,20 +66,20 @@ enum class PdfAnnotationType
 };
 
 /** Flags that control the appearance of a PdfAnnotation.
- *  You can OR them together and pass it to 
+ *  You can OR them together and pass it to
  *  PdfAnnotation::SetFlags.
  */
 enum class PdfAnnotationFlags
 {
-    None         = 0x0000,
-    Invisible    = 0x0001,
-    Hidden       = 0x0002,
-    Print        = 0x0004,
-    NoZoom       = 0x0008,
-    NoRotate     = 0x0010,
-    NoView       = 0x0020,
-    ReadOnly     = 0x0040,
-    Locked       = 0x0080,
+    None = 0x0000,
+    Invisible = 0x0001,
+    Hidden = 0x0002,
+    Print = 0x0004,
+    NoZoom = 0x0008,
+    NoRotate = 0x0010,
+    NoView = 0x0020,
+    ReadOnly = 0x0040,
+    Locked = 0x0080,
     ToggleNoView = 0x0100,
     LockedContents = 0x0200,
 };
@@ -94,9 +94,9 @@ enum class PdfAnnotationAppearance
     Down        ///< Down appearance; the default is PdfAnnotationAppearance::Normal
 };
 
-/** An annotation to a PdfPage 
+/** An annotation to a PdfPage
  *  To create an annotation use PdfPage::CreateAnnotation
- * 
+ *
  *  \see PdfPage::CreateAnnotation
  */
 class PODOFO_DOC_API PdfAnnotation : public PdfElement
@@ -226,7 +226,7 @@ public:
     void SetDestination(const std::shared_ptr<PdfDestination>& destination);
 
     /** Get the destination of a link annotations
-     * 
+     *
      *  \returns a destination object
      *  \see SetDestination
      */

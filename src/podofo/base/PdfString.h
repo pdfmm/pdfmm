@@ -19,8 +19,8 @@ namespace PoDoFo {
 class PdfOutputDevice;
 
 /** A string that can be written to a PDF document.
- *  If it contains binary data it is automatically 
- *  converted into a hex string, otherwise a normal PDF 
+ *  If it contains binary data it is automatically
+ *  converted into a hex string, otherwise a normal PDF
  *  string is written to the document.
  *
  *  PdfString is an implicitly shared class. As a reason
@@ -31,7 +31,7 @@ class PODOFO_API PdfString final : public PdfDataType
 {
     friend class PdfTokenizer;
 public:
-    /** Create an empty and invalid string 
+    /** Create an empty and invalid string
      */
     PdfString();
 
@@ -44,7 +44,7 @@ public:
      */
     PdfString(const std::string_view& view);
 
-    /** Copy an existing PdfString 
+    /** Copy an existing PdfString
      *  \param rhs another PdfString to copy
      */
     PdfString(const PdfString& rhs);
@@ -57,7 +57,7 @@ public:
      *  \param view a buffer
      *  \param hex true if the string should be written as hex string
      */
-    static PdfString FromRaw(const std::string_view &view, bool hex = true);
+    static PdfString FromRaw(const std::string_view& view, bool hex = true);
 
     /** Set hex-encoded data as the strings data.
      *  \param pszHex must be hex-encoded data.
@@ -67,14 +67,14 @@ public:
     static PdfString FromHexData(const std::string_view& view, PdfEncrypt* encrypt = nullptr);
 
     /** Check if this is a hex string.
-     *  
+     *
      *  If true the data will be hex-encoded when the string is written to
      *  a PDF file.
      *
      *  \returns true if this is a hex string.
      *  \see GetString() will return the raw string contents (not hex-encoded)
      */
-    inline bool IsHex () const { return m_isHex; }
+    inline bool IsHex() const { return m_isHex; }
 
     /**
      * PdfStrings are either PdfDocEncoded, or Unicode encoded (UTF-16BE or UTF-8) strings.
@@ -95,11 +95,11 @@ public:
      *
      *  \returns the string's contents always as UTF-8
      */
-    const std::string & GetString() const;
+    const std::string& GetString() const;
 
     const std::string& GetRawData() const;
 
-    /** The length of the string data returned by GetString() 
+    /** The length of the string data returned by GetString()
      *  in bytes not including terminating zero ('\0') bytes.
      *
      *  \returns the length of the string,
@@ -110,7 +110,7 @@ public:
     size_t GetLength() const;
 
     /** Write this PdfString in PDF format to a PdfOutputDevice.
-     *  
+     *
      *  \param pDevice the output device.
      *  \param eWriteMode additional options for writing this object
      *  \param pEncrypt an encryption object which is used to encrypt this object,
@@ -118,7 +118,7 @@ public:
      */
     void Write(PdfOutputDevice& device, PdfWriteMode writeMode, const PdfEncrypt* encrypt) const;
 
-    /** Copy an existing PdfString 
+    /** Copy an existing PdfString
      *  \param rhs another PdfString to copy
      *  \returns this object
      */
@@ -131,7 +131,7 @@ public:
      *  is tested for equality.
      *
      *  \param rhs compare to this string object
-     *  \returns true if both strings have the same contents 
+     *  \returns true if both strings have the same contents
      */
     bool operator==(const PdfString& rhs) const;
     bool operator==(const char* str) const;
@@ -148,16 +148,16 @@ public:
     bool operator!=(const std::string_view& view) const;
 
 private:
-    PdfString(const std::shared_ptr<std::string> &data, bool isHex);
+    PdfString(const std::shared_ptr<std::string>& data, bool isHex);
 
     /** Construct a new PdfString from a 0-terminated string.
-     * 
+     *
      *  The input string will be copied.
      *  if m_bHex is true the copied data will be hex-encoded.
      *
      *  \param pszString the string to copy, must not be nullptr
      *  \param lLen length of the string data to copy
-     *  
+     *
      */
     void initFromUtf8String(const std::string_view& view);
     void evaluateString() const;

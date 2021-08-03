@@ -20,7 +20,7 @@ class PdfName;
 
 /** This class represents a PdfName.
  *  Whenever a key is required you have to use a PdfName object.
- *  
+ *
  *  PdfName are required as keys in PdfObject and PdfVariant objects.
  *
  *  PdfName may have a maximum length of 127 characters.
@@ -40,9 +40,9 @@ public:
      *                 the name without the leading '/'.
      *                 Has to be a zero terminated string.
      */
-    PdfName(const std::string_view & str);
+    PdfName(const std::string_view& str);
     PdfName(const char* str);
-    PdfName(const std::string &str);
+    PdfName(const std::string& str);
 
     // Delete constructor with nullptr
     PdfName(nullptr_t) = delete;
@@ -52,7 +52,7 @@ public:
      */
     PdfName(const PdfName& rhs);
 
-    static PdfName FromRaw(const std::string_view &rawcontent);
+    static PdfName FromRaw(const std::string_view& rawcontent);
 
     /** Create a new PdfName object from a string containing an escaped
      *  name string without the leading / .
@@ -70,7 +70,7 @@ public:
      */
     std::string GetEscapedName() const;
 
-    void Write( PdfOutputDevice& pDevice, PdfWriteMode eWriteMode, const PdfEncrypt* pEncrypt) const override;
+    void Write(PdfOutputDevice& pDevice, PdfWriteMode eWriteMode, const PdfEncrypt* pEncrypt) const override;
 
     /** \returns the unescaped value of this name object
      *           without the leading slash
@@ -89,20 +89,20 @@ public:
     /** Assign another name to this object
      *  \param rhs another PdfName object
      */
-    const PdfName& operator=( const PdfName & rhs );
+    const PdfName& operator=(const PdfName& rhs);
 
     /** compare to PdfName objects.
      *  \returns true if both PdfNames have the same value.
      */
-    bool operator==( const PdfName & rhs ) const;
-    bool operator==(const char * str) const;
-    bool operator==(const std::string & str) const;
-    bool operator==(const std::string_view &view) const;
+    bool operator==(const PdfName& rhs) const;
+    bool operator==(const char* str) const;
+    bool operator==(const std::string& str) const;
+    bool operator==(const std::string_view& view) const;
 
     /** compare two PdfName objects.
      *  \returns true if both PdfNames have different values.
      */
-    bool operator!=( const PdfName & rhs ) const;
+    bool operator!=(const PdfName& rhs) const;
     bool operator!=(const char* str) const;
     bool operator!=(const std::string& str) const;
     bool operator!=(const std::string_view& view) const;
@@ -111,7 +111,7 @@ public:
      *  Used for sorting in lists
      *  \returns true if this object is smaller than rhs
      */
-    bool operator<( const PdfName & rhs ) const;
+    bool operator<(const PdfName& rhs) const;
 
     // TODO: Move these somewhere else
     static const PdfName KeyContents;
@@ -125,9 +125,9 @@ public:
     static const PdfName KeyFilter;
 
 private:
-    PdfName(const std::shared_ptr<std::string> &rawdata);
+    PdfName(const std::shared_ptr<std::string>& rawdata);
     void expandUtf8String() const;
-    void initFromUtf8String(const std::string_view &view);
+    void initFromUtf8String(const std::string_view& view);
 
 private:
     // The unescaped name raw data, without leading '/'.

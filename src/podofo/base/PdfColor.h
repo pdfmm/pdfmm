@@ -17,7 +17,7 @@ namespace PoDoFo {
 class PdfArray;
 class PdfObject;
 class PdfDocument;
-    
+
 /** A color object can represent either a grayscale
  *  value, a RGB color, a CMYK color, a separation color or
  *  a CieLab color.

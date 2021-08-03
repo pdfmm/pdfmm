@@ -132,7 +132,7 @@ optional<PdfString> PdfInfo::GetProducer() const
     return this->GetStringFromInfoDict("Producer");
 }
 
-const PdfName & PdfInfo::GetTrapped() const
+const PdfName& PdfInfo::GetTrapped() const
 {
     return this->GetNameFromInfoDict("Trapped");
 }

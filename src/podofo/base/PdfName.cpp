@@ -17,9 +17,9 @@ using namespace std;
 using namespace PoDoFo;
 
 template<typename T>
-void hexchr(const unsigned char ch, T & it);
+void hexchr(const unsigned char ch, T& it);
 
-static string EscapeName(const string_view & view);
+static string EscapeName(const string_view& view);
 static string UnescapeName(const string_view& view);
 
 const PdfName PdfName::KeyNull = PdfName();
@@ -47,7 +47,7 @@ PdfName::PdfName(const string& str)
     initFromUtf8String(str);
 }
 
-PdfName::PdfName(const string_view &view)
+PdfName::PdfName(const string_view& view)
 {
     initFromUtf8String(view);
 }
@@ -96,19 +96,19 @@ PdfName PdfName::FromEscaped(const std::string_view& view)
     return FromRaw(UnescapeName(view));
 }
 
-PdfName PdfName::FromRaw(const string_view & rawcontent)
+PdfName PdfName::FromRaw(const string_view& rawcontent)
 {
     return PdfName(std::make_shared<string>(rawcontent));
 }
 
-void PdfName::Write( PdfOutputDevice& pDevice, PdfWriteMode, const PdfEncrypt* ) const
+void PdfName::Write(PdfOutputDevice& pDevice, PdfWriteMode, const PdfEncrypt*) const
 {
     // Allow empty names, which are legal according to the PDF specification
-    pDevice.Print( "/" );
+    pDevice.Print("/");
     if (m_data->length() != 0)
     {
         string escaped = EscapeName(*m_data);
-        pDevice.Write( escaped.c_str(), escaped.length() );
+        pDevice.Write(escaped.c_str(), escaped.length());
     }
 }
 
@@ -156,13 +156,13 @@ string EscapeName(const string_view& view)
         // Null chars are illegal in names, even escaped
         if (ch == '\0')
         {
-            PODOFO_RAISE_ERROR_INFO( EPdfError::InvalidName, "Null byte in PDF name is illegal");
+            PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidName, "Null byte in PDF name is illegal");
         }
-        else 
+        else
         {
             // Leave room for either just the char, or a #xx escape of it.
             outchars += (PdfTokenizer::IsRegular(ch) &&
-                         PdfTokenizer::IsPrintable(ch) && (ch != '#')) ? 1 : 3;
+                PdfTokenizer::IsPrintable(ch) && (ch != '#')) ? 1 : 3;
         }
     }
     // Reserve it. We can't use reserve() because the GNU STL doesn't seem to
@@ -214,8 +214,8 @@ string UnescapeName(const string_view& view)
             incount++;
             unsigned char low = static_cast<unsigned char>(*(++curr));
             incount++;
-            hi  -= ( hi  < 'A' ? '0' : 'A'-10 );
-            low -= ( low < 'A' ? '0' : 'A'-10 );
+            hi -= (hi < 'A' ? '0' : 'A' - 10);
+            low -= (low < 'A' ? '0' : 'A' - 10);
             unsigned char codepoint = (hi << 4) | (low & 0x0F);
             buf.push_back((char)codepoint);
         }
@@ -228,7 +228,7 @@ string UnescapeName(const string_view& view)
     return buf;
 }
 
-const string & PdfName::GetString() const
+const string& PdfName::GetString() const
 {
     expandUtf8String();
     if (m_utf8String == nullptr)

@@ -28,7 +28,7 @@ class PdfVecObjects;
 class PdfObjectStreamParser
 {
 public:
-	typedef std::vector<int64_t> ObjectIdList;
+    typedef std::vector<int64_t> ObjectIdList;
     /**
      * Create a new PdfObjectStreamParserObject from an existing
      * PdfParserObject. The PdfParserObject will be removed and deleted.
@@ -41,10 +41,10 @@ public:
      */
     PdfObjectStreamParser(PdfParserObject& parser, PdfVecObjects& objects, const PdfRefCountedBuffer& buffer);
 
-    void Parse(ObjectIdList const &);
+    void Parse(ObjectIdList const&);
 
 private:
-    void ReadObjectsFromStream( char* pBuffer, size_t lBufferLen, int64_t lNum, int64_t lFirst, ObjectIdList const &);
+    void ReadObjectsFromStream(char* pBuffer, size_t lBufferLen, int64_t lNum, int64_t lFirst, ObjectIdList const&);
 
 private:
     PdfParserObject* m_pParser;

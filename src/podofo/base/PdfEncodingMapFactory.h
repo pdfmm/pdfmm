@@ -103,8 +103,8 @@ public:
 
     static PdfEncodingMapConstPtr GetDummyEncodingMap();
 
- private:
-     PdfEncodingMapFactory() = delete;
+private:
+    PdfEncodingMapFactory() = delete;
 };
 
 }
