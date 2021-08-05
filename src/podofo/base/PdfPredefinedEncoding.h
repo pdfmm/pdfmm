@@ -43,7 +43,7 @@ namespace PoDoFo
         /**
          *  Create a new simple PdfEncodingMap which uses 1 byte.
          *
-         *  \param rName the name of a standard PdfEncoding
+         *  \param name the name of a standard PdfEncoding
          *
          *  As of now possible values are:
          *  - MacRomanEncoding
@@ -86,7 +86,7 @@ namespace PoDoFo
 
     private:
         PdfName m_name;         // The name of the encoding
-        std::unordered_map<char32_t, char> m_pEncodingTable; // The helper table for conversions into this encoding
+        std::unordered_map<char32_t, char> m_EncodingTable; // The helper table for conversions into this encoding
     };
 
     /**

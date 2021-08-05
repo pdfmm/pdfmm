@@ -30,22 +30,22 @@ class PODOFO_DOC_API PdfNamesTree final : public PdfElement
 {
 public:
     /** Create a new PdfNamesTree object
-     *  \param pParent parent of this action
+     *  \param parent parent of this action
      */
     PdfNamesTree(PdfDocument& doc);
 
     /** Create a PdfNamesTree object from an existing PdfObject
-     *	\param pObject the object to create from
+     *	\param obj the object to create from
      *  \param pCatalog the Catalog dictionary of the owning PDF
      */
-    PdfNamesTree(PdfObject& obj, PdfObject* pCatalog);
+    PdfNamesTree(PdfObject& obj);
 
     /** Insert a key and value in one of the dictionaries of the name tree.
      *  \param tree name of the tree to search for the key.
      *  \param key the key to insert. If it exists, it will be overwritten.
-     *  \param rValue the value to insert.
+     *  \param value the value to insert.
      */
-    void AddValue(const PdfName& tree, const PdfString& key, const PdfObject& rValue);
+    void AddValue(const PdfName& tree, const PdfString& key, const PdfObject& value);
 
     /** Get the object referenced by a string key in one of the dictionaries
      *  of the name tree.
@@ -75,28 +75,28 @@ public:
      *
      *  Internal use only.
      */
-    static EPdfNameLimits CheckLimits(const PdfObject* pObj, const PdfString& key);
+    static EPdfNameLimits CheckLimits(const PdfObject* obj, const PdfString& key);
 
     /**
      * Adds all keys and values from a name tree to a dictionary.
      * Removes all keys that have been previously in the dictionary.
      *
      * \param tree the name of the tree to convert into a dictionary
-     * \param rDict add all keys and values to this dictionary
+     * \param dict add all keys and values to this dictionary
      */
-    void ToDictionary(const PdfName& dictionary, PdfDictionary& rDict);
+    void ToDictionary(const PdfName& dictionary, PdfDictionary& dict);
 
     /** Peter Petrov: 23 May 2008
      * I have made it for access to "JavaScript" dictonary. This is "document-level javascript storage"
-     *  \param bCreate if true the javascript node is created if it does not exists.
+     *  \param create if true the javascript node is created if it does not exists.
      */
-    PdfObject* GetJavaScriptNode(bool bCreate = false) const;
+    PdfObject* GetJavaScriptNode(bool create = false) const;
 
     /** Peter Petrov: 6 June 2008
      * I have made it for access to "Dest" dictionary. This is "document-level named destination storage"
-     *  \param bCreate if true the dests node is created if it does not exists.
+     *  \param create if true the dests node is created if it does not exists.
      */
-    PdfObject* GetDestsNode(bool bCreate = false) const;
+    PdfObject* GetDestsNode(bool create = false) const;
 
 private:
     /** Get a PdfNameTrees root node for a certain name.
@@ -113,27 +113,24 @@ private:
      *            - AlternatePresentations
      *            - Renditions
      *
-     *  \param bCreate if true the root node is created if it does not exists.
+     *  \param create if true the root node is created if it does not exists.
      *  \returns the root node of the tree or nullptr if it does not exists
      */
-    PdfObject* GetRootNode(const PdfName& name, bool bCreate = false) const;
+    PdfObject* GetRootNode(const PdfName& name, bool create = false) const;
 
     /** Recursively walk through the name tree and find the value for key.
-     *  \param pObj the name tree
+     *  \param obj the name tree
      *  \param key the key to find a value for
      *  \return the value for the key or nullptr if it was not found
      */
-    PdfObject* GetKeyValue(PdfObject* pObj, const PdfString& key) const;
+    PdfObject* GetKeyValue(PdfObject* obj, const PdfString& key) const;
 
     /**
      *  Add all keys and values from an object and its children to a dictionary.
-     *  \param pObj a pdf name tree node
-     *  \param rDict a dictionary
+     *  \param obj a pdf name tree node
+     *  \param dict a dictionary
      */
-    void AddToDictionary(PdfObject* pObj, PdfDictionary& rDict);
-
-private:
-    PdfObject* m_pCatalog;
+    void AddToDictionary(PdfObject* obj, PdfDictionary& dict);
 };
 
 };

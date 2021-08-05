@@ -28,7 +28,7 @@ using namespace PoDoFo;
 #ifdef PODOFO_HAVE_PNG_LIB
 #include <png.h>
 static void pngReadData(png_structp pngPtr, png_bytep data, png_size_t length);
-static void LoadFromPngContent(PdfImage& image, png_structp pPng, png_infop pInfo);
+static void LoadFromPngContent(PdfImage& image, png_structp png, png_infop info);
 #endif // PODOFO_HAVE_PNG_LIB
 
 PdfImage::PdfImage(PdfDocument& doc, const string_view& prefix)
@@ -44,20 +44,20 @@ PdfImage::PdfImage(PdfObject& obj)
     m_height = static_cast<unsigned>(this->GetObject().GetDictionary().MustFindKey("Height").GetNumber());
 }
 
-void PdfImage::SetImageColorSpace(PdfColorSpace eColorSpace, const PdfArray* indexedData)
+void PdfImage::SetImageColorSpace(PdfColorSpace colorSpace, const PdfArray* indexedData)
 {
-    if (eColorSpace == PdfColorSpace::Indexed)
+    if (colorSpace == PdfColorSpace::Indexed)
     {
         PODOFO_RAISE_LOGIC_IF(!indexedData, "PdfImage::SetImageColorSpace: indexedData cannot be nullptr for Indexed color space.");
 
         PdfArray array(*indexedData);
 
-        array.insert(array.begin(), ColorspaceToName(eColorSpace));
-        this->GetObject().GetDictionary().AddKey(PdfName("ColorSpace"), array);
+        array.insert(array.begin(), ColorspaceToName(colorSpace));
+        this->GetObject().GetDictionary().AddKey("ColorSpace", array);
     }
     else
     {
-        this->GetObject().GetDictionary().AddKey(PdfName("ColorSpace"), ColorspaceToName(eColorSpace));
+        this->GetObject().GetDictionary().AddKey("ColorSpace", ColorspaceToName(colorSpace));
     }
 }
 
@@ -76,27 +76,27 @@ PdfColorSpace PdfImage::GetImageColorSpace()
     return PdfColorSpace::Unknown;
 }
 
-void PdfImage::SetImageICCProfile(PdfInputStream& stream, unsigned lColorComponents, PdfColorSpace eAlternateColorSpace)
+void PdfImage::SetImageICCProfile(PdfInputStream& stream, unsigned colorComponents, PdfColorSpace alternateColorSpace)
 {
     // Check lColorComponents for a valid value
-    if (lColorComponents != 1 &&
-        lColorComponents != 3 &&
-        lColorComponents != 4)
+    if (colorComponents != 1 &&
+        colorComponents != 3 &&
+        colorComponents != 4)
     {
         PODOFO_RAISE_ERROR_INFO(EPdfError::ValueOutOfRange, "SetImageICCProfile lColorComponents must be 1,3 or 4!");
     }
 
     // Create a colorspace object
-    PdfObject* pIccObject = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject();
-    pIccObject->GetDictionary().AddKey(PdfName("Alternate"), ColorspaceToName(eAlternateColorSpace));
-    pIccObject->GetDictionary().AddKey(PdfName("N"), static_cast<int64_t>(lColorComponents));
-    pIccObject->GetOrCreateStream().Set(stream);
+    PdfObject* iccObject = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject();
+    iccObject->GetDictionary().AddKey("Alternate", ColorspaceToName(alternateColorSpace));
+    iccObject->GetDictionary().AddKey("N", static_cast<int64_t>(colorComponents));
+    iccObject->GetOrCreateStream().Set(stream);
 
     // Add the colorspace to our image
     PdfArray array;
     array.push_back(PdfName("ICCBased"));
-    array.push_back(pIccObject->GetIndirectReference());
-    this->GetObject().GetDictionary().AddKey(PdfName("ColorSpace"), array);
+    array.push_back(iccObject->GetIndirectReference());
+    this->GetObject().GetDictionary().AddKey("ColorSpace", array);
 }
 
 void PdfImage::SetImageSoftmask(const PdfImage& softmask)
@@ -104,51 +104,51 @@ void PdfImage::SetImageSoftmask(const PdfImage& softmask)
     GetObject().GetDictionary().AddKey("SMask", softmask.GetObject().GetIndirectReference());
 }
 
-void PdfImage::SetImageData(PdfInputStream& stream, unsigned nWidth, unsigned nHeight,
-    unsigned nBitsPerComponent, bool writeRect)
+void PdfImage::SetImageData(PdfInputStream& stream, unsigned width, unsigned height,
+    unsigned bitsPerComponent, bool writeRect)
 {
-    TVecFilters vecFlate;
-    vecFlate.push_back(PdfFilterType::FlateDecode);
+    PdfFilterList filters;
+    filters.push_back(PdfFilterType::FlateDecode);
 
-    this->SetImageData(stream, nWidth, nHeight, nBitsPerComponent, vecFlate, writeRect);
+    this->SetImageData(stream, width, height, bitsPerComponent, filters, writeRect);
 }
 
-void PdfImage::SetImageData(PdfInputStream& stream, unsigned nWidth, unsigned nHeight,
-    unsigned nBitsPerComponent, TVecFilters& vecFilters, bool writeRect)
+void PdfImage::SetImageData(PdfInputStream& stream, unsigned width, unsigned height,
+    unsigned bitsPerComponent, PdfFilterList& filters, bool writeRect)
 {
-    m_width = nWidth;
-    m_height = nHeight;
+    m_width = width;
+    m_height = height;
 
     if (writeRect)
-        SetRect(PdfRect(0, 0, nWidth, nHeight));
+        SetRect(PdfRect(0, 0, width, height));
 
-    this->GetObject().GetDictionary().AddKey("Width", PdfVariant(static_cast<int64_t>(nWidth)));
-    this->GetObject().GetDictionary().AddKey("Height", PdfVariant(static_cast<int64_t>(nHeight)));
-    this->GetObject().GetDictionary().AddKey("BitsPerComponent", PdfVariant(static_cast<int64_t>(nBitsPerComponent)));
-    this->GetObject().GetOrCreateStream().Set(stream, vecFilters);
+    this->GetObject().GetDictionary().AddKey("Width", PdfObject(static_cast<int64_t>(width)));
+    this->GetObject().GetDictionary().AddKey("Height", PdfObject(static_cast<int64_t>(height)));
+    this->GetObject().GetDictionary().AddKey("BitsPerComponent", PdfObject(static_cast<int64_t>(bitsPerComponent)));
+    this->GetObject().GetOrCreateStream().Set(stream, filters);
 }
 
-void PdfImage::SetImageDataRaw(PdfInputStream& pStream, unsigned nWidth, unsigned nHeight,
-    unsigned nBitsPerComponent)
+void PdfImage::SetImageDataRaw(PdfInputStream& stream, unsigned width, unsigned height,
+    unsigned bitsPerComponent)
 {
-    m_width = nWidth;
-    m_height = nHeight;
+    m_width = width;
+    m_height = height;
 
-    this->GetObject().GetDictionary().AddKey("Width", PdfVariant(static_cast<int64_t>(nWidth)));
-    this->GetObject().GetDictionary().AddKey("Height", PdfVariant(static_cast<int64_t>(nHeight)));
-    this->GetObject().GetDictionary().AddKey("BitsPerComponent", PdfVariant(static_cast<int64_t>(nBitsPerComponent)));
-    this->GetObject().GetOrCreateStream().SetRawData(pStream, -1);
+    this->GetObject().GetDictionary().AddKey("Width", PdfVariant(static_cast<int64_t>(width)));
+    this->GetObject().GetDictionary().AddKey("Height", PdfVariant(static_cast<int64_t>(height)));
+    this->GetObject().GetDictionary().AddKey("BitsPerComponent", PdfVariant(static_cast<int64_t>(bitsPerComponent)));
+    this->GetObject().GetOrCreateStream().SetRawData(stream, -1);
 }
 
 void PdfImage::LoadFromFile(const string_view& filename)
 {
     if (filename.length() > 3)
     {
-        const char* pszExtension = filename.data() + filename.length() - 3;
+        const char* extension = filename.data() + filename.length() - 3;
 
 #ifdef PODOFO_HAVE_TIFF_LIB
-        if (PoDoFo::compat::strncasecmp(pszExtension, "tif", 3) == 0 ||
-            PoDoFo::compat::strncasecmp(pszExtension, "iff", 3) == 0) // "tiff"
+        if (PoDoFo::compat::strncasecmp(extension, "tif", 3) == 0 ||
+            PoDoFo::compat::strncasecmp(extension, "iff", 3) == 0) // "tiff"
         {
             LoadFromTiff(filename);
             return;
@@ -156,7 +156,7 @@ void PdfImage::LoadFromFile(const string_view& filename)
 #endif
 
 #ifdef PODOFO_HAVE_JPEG_LIB
-        if (PoDoFo::compat::strncasecmp(pszExtension, "jpg", 3) == 0)
+        if (PoDoFo::compat::strncasecmp(extension, "jpg", 3) == 0)
         {
             LoadFromJpeg(filename);
             return;
@@ -164,7 +164,7 @@ void PdfImage::LoadFromFile(const string_view& filename)
 #endif
 
 #ifdef PODOFO_HAVE_PNG_LIB
-        if (PoDoFo::compat::strncasecmp(pszExtension, "png", 3) == 0)
+        if (PoDoFo::compat::strncasecmp(extension, "png", 3) == 0)
         {
             LoadFromPng(filename);
             return;
@@ -175,12 +175,12 @@ void PdfImage::LoadFromFile(const string_view& filename)
     PODOFO_RAISE_ERROR_INFO(EPdfError::UnsupportedImageFormat, filename.data());
 }
 
-void PdfImage::LoadFromData(const unsigned char* pData, size_t dwLen)
+void PdfImage::LoadFromData(const unsigned char* data, size_t len)
 {
-    if (dwLen > 4)
+    if (len > 4)
     {
         unsigned char magic[4];
-        memcpy(magic, pData, 4);
+        memcpy(magic, data, 4);
 
 #ifdef PODOFO_HAVE_TIFF_LIB
         if ((magic[0] == 0x4D &&
@@ -192,7 +192,7 @@ void PdfImage::LoadFromData(const unsigned char* pData, size_t dwLen)
                 magic[2] == 0x2A &&
                 magic[3] == 0x00))
         {
-            LoadFromTiffData(pData, dwLen);
+            LoadFromTiffData(data, len);
             return;
         }
 #endif
@@ -201,7 +201,7 @@ void PdfImage::LoadFromData(const unsigned char* pData, size_t dwLen)
         if (magic[0] == 0xFF &&
             magic[1] == 0xD8)
         {
-            LoadFromJpegData(pData, dwLen);
+            LoadFromJpegData(data, len);
             return;
         }
 #endif
@@ -212,7 +212,7 @@ void PdfImage::LoadFromData(const unsigned char* pData, size_t dwLen)
             magic[2] == 0x4E &&
             magic[3] == 0x47)
         {
-            LoadFromPngData(pData, dwLen);
+            LoadFromPngData(data, len);
             return;
         }
 #endif
@@ -239,7 +239,7 @@ void PdfImage::LoadFromJpeg(const string_view& filename)
     fclose(file);
 }
 
-void PdfImage::LoadFromJpegHandle(FILE* pInStream, const string_view& filename)
+void PdfImage::LoadFromJpegHandle(FILE* inStream, const string_view& filename)
 {
     struct jpeg_decompress_struct cinfo;
     struct jpeg_error_mgr jerr;
@@ -250,7 +250,7 @@ void PdfImage::LoadFromJpegHandle(FILE* pInStream, const string_view& filename)
 
     jpeg_create_decompress(&cinfo);
 
-    jpeg_stdio_src(&cinfo, pInStream);
+    jpeg_stdio_src(&cinfo, inStream);
 
     if (jpeg_read_header(&cinfo, TRUE) <= 0)
     {
@@ -286,7 +286,7 @@ void PdfImage::LoadFromJpegHandle(FILE* pInStream, const string_view& filename)
             decode.push_back(1.0);
             decode.push_back(0.0);
 
-            this->GetObject().GetDictionary().AddKey(PdfName("Decode"), decode);
+            this->GetObject().GetDictionary().AddKey("Decode", decode);
             break;
         }
         default:
@@ -305,7 +305,7 @@ void PdfImage::LoadFromJpegHandle(FILE* pInStream, const string_view& filename)
     jpeg_destroy_decompress(&cinfo);
 }
 
-void PdfImage::LoadFromJpegData(const unsigned char* pData, size_t dwLen)
+void PdfImage::LoadFromJpegData(const unsigned char* data, size_t len)
 {
     struct jpeg_decompress_struct cinfo;
     struct jpeg_error_mgr jerr;
@@ -316,7 +316,7 @@ void PdfImage::LoadFromJpegData(const unsigned char* pData, size_t dwLen)
 
     jpeg_create_decompress(&cinfo);
 
-    jpeg_memory_src(&cinfo, pData, dwLen);
+    jpeg_memory_src(&cinfo, data, len);
 
     if (jpeg_read_header(&cinfo, TRUE) <= 0)
     {
@@ -352,7 +352,7 @@ void PdfImage::LoadFromJpegData(const unsigned char* pData, size_t dwLen)
             decode.push_back(1.0);
             decode.push_back(0.0);
 
-            this->GetObject().GetDictionary().AddKey(PdfName("Decode"), decode);
+            this->GetObject().GetDictionary().AddKey("Decode", decode);
         }
         break;
         default:
@@ -363,8 +363,8 @@ void PdfImage::LoadFromJpegData(const unsigned char* pData, size_t dwLen)
     // Set the filters key to DCTDecode
     this->GetObject().GetDictionary().AddKey(PdfName::KeyFilter, PdfName("DCTDecode"));
 
-    PdfMemoryInputStream fInpStream((const char*)pData, dwLen);
-    this->SetImageDataRaw(fInpStream, cinfo.output_width, cinfo.output_height, 8);
+    PdfMemoryInputStream inStream((const char*)data, len);
+    this->SetImageDataRaw(inStream, cinfo.output_width, cinfo.output_height, 8);
 
     jpeg_destroy_decompress(&cinfo);
 }
@@ -378,10 +378,10 @@ static void TIFFErrorWarningHandler(const char*, const char*, va_list)
 
 }
 
-void PdfImage::LoadFromTiffHandle(void* hInHandle)
+void PdfImage::LoadFromTiffHandle(void* handle)
 {
 
-    TIFF* hInTiffHandle = (TIFF*)hInHandle;
+    TIFF* hInTiffHandle = (TIFF*)handle;
 
     int32 row, width, height;
     uint16 samplesPerPixel, bitsPerSample;
@@ -436,11 +436,11 @@ void PdfImage::LoadFromTiffHandle(void* hInHandle)
             if (bitsPixel == 1)
             {
                 PdfArray decode;
-                decode.insert(decode.end(), PdfVariant(static_cast<int64_t>(0)));
-                decode.insert(decode.end(), PdfVariant(static_cast<int64_t>(1)));
-                this->GetObject().GetDictionary().AddKey(PdfName("Decode"), decode);
-                this->GetObject().GetDictionary().AddKey(PdfName("ImageMask"), PdfVariant(true));
-                this->GetObject().GetDictionary().RemoveKey(PdfName("ColorSpace"));
+                decode.insert(decode.end(), PdfObject(static_cast<int64_t>(0)));
+                decode.insert(decode.end(), PdfObject(static_cast<int64_t>(1)));
+                this->GetObject().GetDictionary().AddKey("Decode", decode);
+                this->GetObject().GetDictionary().AddKey("ImageMask", PdfObject(true));
+                this->GetObject().GetDictionary().RemoveKey("ColorSpace");
             }
             else if (bitsPixel == 8 || bitsPixel == 16)
                 SetImageColorSpace(PdfColorSpace::DeviceGray);
@@ -457,11 +457,11 @@ void PdfImage::LoadFromTiffHandle(void* hInHandle)
             if (bitsPixel == 1)
             {
                 PdfArray decode;
-                decode.insert(decode.end(), PdfVariant(static_cast<int64_t>(1)));
-                decode.insert(decode.end(), PdfVariant(static_cast<int64_t>(0)));
-                this->GetObject().GetDictionary().AddKey(PdfName("Decode"), decode);
-                this->GetObject().GetDictionary().AddKey(PdfName("ImageMask"), PdfVariant(true));
-                this->GetObject().GetDictionary().RemoveKey(PdfName("ColorSpace"));
+                decode.insert(decode.end(), PdfObject(static_cast<int64_t>(1)));
+                decode.insert(decode.end(), PdfObject(static_cast<int64_t>(0)));
+                this->GetObject().GetDictionary().AddKey("Decode", decode);
+                this->GetObject().GetDictionary().AddKey("ImageMask", PdfObject(true));
+                this->GetObject().GetDictionary().RemoveKey("ColorSpace");
             }
             else if (bitsPixel == 8 || bitsPixel == 16)
                 SetImageColorSpace(PdfColorSpace::DeviceGray);
@@ -496,9 +496,9 @@ void PdfImage::LoadFromTiffHandle(void* hInHandle)
             int numColors = (1 << bitsPixel);
 
             PdfArray decode;
-            decode.insert(decode.end(), PdfVariant(static_cast<int64_t>(0)));
-            decode.insert(decode.end(), PdfVariant(static_cast<int64_t>(numColors) - 1));
-            this->GetObject().GetDictionary().AddKey(PdfName("Decode"), decode);
+            decode.insert(decode.end(), PdfObject(static_cast<int64_t>(0)));
+            decode.insert(decode.end(), PdfObject(static_cast<int64_t>(numColors) - 1));
+            this->GetObject().GetDictionary().AddKey("Decode", decode);
 
             uint16* rgbRed;
             uint16* rgbGreen;
@@ -589,31 +589,31 @@ void PdfImage::LoadFromTiff(const string_view& filename)
     TIFFClose(hInfile);
 }
 
-struct tiffData
+struct TiffData
 {
-    tiffData(const unsigned char* data, tsize_t size) :_data(data), _pos(0), _size(size) {}
+    TiffData(const unsigned char* data, tsize_t size) :m_data(data), m_pos(0), m_size(size) {}
 
     tsize_t read(tdata_t data, tsize_t length)
     {
         tsize_t bytesRead = 0;
-        if (length > _size - static_cast<tsize_t>(_pos))
+        if (length > m_size - static_cast<tsize_t>(m_pos))
         {
-            memcpy(data, &_data[_pos], _size - (tsize_t)_pos);
-            bytesRead = _size - (tsize_t)_pos;
-            _pos = _size;
+            memcpy(data, &m_data[m_pos], m_size - (tsize_t)m_pos);
+            bytesRead = m_size - (tsize_t)m_pos;
+            m_pos = m_size;
         }
         else
         {
-            memcpy(data, &_data[_pos], length);
+            memcpy(data, &m_data[m_pos], length);
             bytesRead = length;
-            _pos += length;
+            m_pos += length;
         }
         return bytesRead;
     }
 
     toff_t size()
     {
-        return _size;
+        return m_size;
     }
 
     toff_t seek(toff_t pos, int whence)
@@ -624,47 +624,47 @@ struct tiffData
         switch (whence)
         {
             case SEEK_SET:
-                if (static_cast<tsize_t>(pos) > _size)
+                if (static_cast<tsize_t>(pos) > m_size)
                 {
-                    _pos = _size;
+                    m_pos = m_size;
                 }
                 else
                 {
-                    _pos = pos;
+                    m_pos = pos;
                 }
                 break;
             case SEEK_CUR:
-                if (static_cast<tsize_t>(pos + _pos) > _size)
+                if (static_cast<tsize_t>(pos + m_pos) > m_size)
                 {
-                    _pos = _size;
+                    m_pos = m_size;
                 }
                 else
                 {
-                    _pos += pos;
+                    m_pos += pos;
                 }
                 break;
             case SEEK_END:
-                if (static_cast<tsize_t>(pos) > _size)
+                if (static_cast<tsize_t>(pos) > m_size)
                 {
-                    _pos = 0;
+                    m_pos = 0;
                 }
                 else
                 {
-                    _pos = _size - pos;
+                    m_pos = m_size - pos;
                 }
                 break;
         }
-        return _pos;
+        return m_pos;
     }
 
 private:
-    const unsigned char* _data;
-    toff_t _pos;
-    tsize_t _size;
+    const unsigned char* m_data;
+    toff_t m_pos;
+    tsize_t m_size;
 };
 tsize_t tiff_Read(thandle_t st, tdata_t buffer, tsize_t size)
 {
-    tiffData* data = (tiffData*)st;
+    TiffData* data = (TiffData*)st;
     return data->read(buffer, size);
 };
 tsize_t tiff_Write(thandle_t st, tdata_t buffer, tsize_t size)
@@ -680,12 +680,12 @@ int tiff_Close(thandle_t)
 };
 toff_t tiff_Seek(thandle_t st, toff_t pos, int whence)
 {
-    tiffData* data = (tiffData*)st;
+    TiffData* data = (TiffData*)st;
     return data->seek(pos, whence);
 };
 toff_t tiff_Size(thandle_t st)
 {
-    tiffData* data = (tiffData*)st;
+    TiffData* data = (TiffData*)st;
     return data->size();
 };
 int tiff_Map(thandle_t, tdata_t*, toff_t*)
@@ -696,16 +696,16 @@ void tiff_Unmap(thandle_t, tdata_t, toff_t)
 {
     return;
 };
-void PdfImage::LoadFromTiffData(const unsigned char* pData, size_t dwLen)
+void PdfImage::LoadFromTiffData(const unsigned char* data, size_t len)
 {
     TIFFSetErrorHandler(TIFFErrorWarningHandler);
     TIFFSetWarningHandler(TIFFErrorWarningHandler);
 
-    if (pData == nullptr)
+    if (data == nullptr)
         PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
 
-    tiffData data(pData, (tsize_t)dwLen);
-    TIFF* hInHandle = TIFFClientOpen("Memory", "r", (thandle_t)&data,
+    TiffData tiffData(data, (tsize_t)len);
+    TIFF* hInHandle = TIFFClientOpen("Memory", "r", (thandle_t)&tiffData,
         tiff_Read, tiff_Write, tiff_Seek, tiff_Close, tiff_Size,
         tiff_Map, tiff_Unmap);
     if (hInHandle == nullptr)
@@ -735,39 +735,39 @@ void PdfImage::LoadFromPng(const std::string_view& filename)
     fclose(file);
 }
 
-void PdfImage::LoadFromPngHandle(FILE* hFile)
+void PdfImage::LoadFromPngHandle(FILE* stream)
 {
     png_byte header[8];
-    if (fread(header, 1, 8, hFile) != 8 ||
+    if (fread(header, 1, 8, stream) != 8 ||
         png_sig_cmp(header, 0, 8))
     {
         PODOFO_RAISE_ERROR_INFO(EPdfError::UnsupportedImageFormat, "The file could not be recognized as a PNG file.");
     }
 
-    png_structp pPng = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
-    if (pPng == nullptr)
+    png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
+    if (png == nullptr)
         PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
 
-    png_infop pInfo = png_create_info_struct(pPng);
-    if (pInfo == nullptr)
+    png_infop info = png_create_info_struct(png);
+    if (info == nullptr)
     {
-        png_destroy_read_struct(&pPng, (png_infopp)nullptr, (png_infopp)nullptr);
+        png_destroy_read_struct(&png, (png_infopp)nullptr, (png_infopp)nullptr);
         PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
     }
 
-    if (setjmp(png_jmpbuf(pPng)))
+    if (setjmp(png_jmpbuf(png)))
     {
-        png_destroy_read_struct(&pPng, &pInfo, (png_infopp)nullptr);
+        png_destroy_read_struct(&png, &info, (png_infopp)nullptr);
         PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
     }
 
-    png_init_io(pPng, hFile);
-    LoadFromPngContent(*this, pPng, pInfo);
+    png_init_io(png, stream);
+    LoadFromPngContent(*this, png, info);
 }
 
-struct pngData
+struct PngData
 {
-    pngData(const unsigned char* data, png_size_t size) :
+    PngData(const unsigned char* data, png_size_t size) :
         m_data(data), m_pos(0), m_size(size) {}
 
     void read(png_bytep data, png_size_t length)
@@ -790,44 +790,44 @@ private:
     png_size_t m_size;
 };
 
-void PdfImage::LoadFromPngData(const unsigned char* pData, size_t dwLen)
+void PdfImage::LoadFromPngData(const unsigned char* data, size_t len)
 {
-    if (pData == nullptr)
+    if (data == nullptr)
         PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
 
-    pngData data(pData, dwLen);
+    PngData pngData(data, len);
     png_byte header[8];
-    data.read(header, 8);
+    pngData.read(header, 8);
     if (png_sig_cmp(header, 0, 8))
     {
         PODOFO_RAISE_ERROR_INFO(EPdfError::UnsupportedImageFormat, "The file could not be recognized as a PNG file.");
     }
 
-    png_structp pPng = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
-    if (pPng == nullptr)
+    png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
+    if (png == nullptr)
         PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
 
-    png_infop pInfo = png_create_info_struct(pPng);
-    if (pInfo == nullptr)
+    png_infop info = png_create_info_struct(png);
+    if (info == nullptr)
     {
-        png_destroy_read_struct(&pPng, (png_infopp)nullptr, (png_infopp)nullptr);
+        png_destroy_read_struct(&png, (png_infopp)nullptr, (png_infopp)nullptr);
         PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
     }
 
-    if (setjmp(png_jmpbuf(pPng)))
+    if (setjmp(png_jmpbuf(png)))
     {
-        png_destroy_read_struct(&pPng, &pInfo, (png_infopp)nullptr);
+        png_destroy_read_struct(&png, &info, (png_infopp)nullptr);
         PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
     }
 
-    png_set_read_fn(pPng, (png_voidp)&data, pngReadData);
-    LoadFromPngContent(*this, pPng, pInfo);
+    png_set_read_fn(png, (png_voidp)&pngData, pngReadData);
+    LoadFromPngContent(*this, png, info);
 }
 
-void LoadFromPngContent(PdfImage& image, png_structp pPng, png_infop pInfo)
+void LoadFromPngContent(PdfImage& image, png_structp png, png_infop info)
 {
-    png_set_sig_bytes(pPng, 8);
-    png_read_info(pPng, pInfo);
+    png_set_sig_bytes(png, 8);
+    png_read_info(png, info);
 
     // Begin
     png_uint_32 width;
@@ -836,7 +836,7 @@ void LoadFromPngContent(PdfImage& image, png_structp pPng, png_infop pInfo)
     int color_type;
     int interlace;
 
-    png_get_IHDR(pPng, pInfo,
+    png_get_IHDR(png, info,
         &width, &height, &depth,
         &color_type, &interlace, NULL, NULL);
 
@@ -845,60 +845,60 @@ void LoadFromPngContent(PdfImage& image, png_structp pPng, png_infop pInfo)
     if (color_type == PNG_COLOR_TYPE_GRAY)
     {
 #if PNG_LIBPNG_VER >= 10209
-        png_set_expand_gray_1_2_4_to_8(pPng);
+        png_set_expand_gray_1_2_4_to_8(png);
 #else
         png_set_gray_1_2_4_to_8(pPng);
 #endif
     }
     else if (color_type != PNG_COLOR_TYPE_PALETTE && depth < 8)
     {
-        png_set_packing(pPng);
+        png_set_packing(png);
     }
 
     // transform transparency to alpha
-    if (color_type != PNG_COLOR_TYPE_PALETTE && png_get_valid(pPng, pInfo, PNG_INFO_tRNS))
-        png_set_tRNS_to_alpha(pPng);
+    if (color_type != PNG_COLOR_TYPE_PALETTE && png_get_valid(png, info, PNG_INFO_tRNS))
+        png_set_tRNS_to_alpha(png);
 
     if (depth == 16)
-        png_set_strip_16(pPng);
+        png_set_strip_16(png);
 
     if (interlace != PNG_INTERLACE_NONE)
-        png_set_interlace_handling(pPng);
+        png_set_interlace_handling(png);
 
     //png_set_filler (pPng, 0xff, PNG_FILLER_AFTER);
 
     // recheck header after setting EXPAND options
-    png_read_update_info(pPng, pInfo);
-    png_get_IHDR(pPng, pInfo,
+    png_read_update_info(png, info);
+    png_get_IHDR(png, info,
         &width, &height, &depth,
         &color_type, &interlace, NULL, NULL);
     // End
 
     // Read the file
-    if (setjmp(png_jmpbuf(pPng)))
+    if (setjmp(png_jmpbuf(png)))
     {
-        png_destroy_read_struct(&pPng, &pInfo, (png_infopp)NULL);
+        png_destroy_read_struct(&png, &info, (png_infopp)NULL);
         PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
     }
 
-    size_t lRowLen = png_get_rowbytes(pPng, pInfo);
-    size_t lLen = lRowLen * height;
-    buffer_t buffer(lLen);
+    size_t rowLen = png_get_rowbytes(png, info);
+    size_t len = rowLen * height;
+    buffer_t buffer(len);
 
     unique_ptr<png_bytep[]> rows(new png_bytep[height]);
     for (unsigned int y = 0; y < height; y++)
     {
-        rows[y] = reinterpret_cast<png_bytep>(buffer.data() + y * lRowLen);
+        rows[y] = reinterpret_cast<png_bytep>(buffer.data() + y * rowLen);
     }
 
-    png_read_image(pPng, rows.get());
+    png_read_image(png, rows.get());
 
     png_bytep paletteTrans;
     int numTransColors;
     if (color_type & PNG_COLOR_MASK_ALPHA
         || (color_type == PNG_COLOR_TYPE_PALETTE
-            && png_get_valid(pPng, pInfo, PNG_INFO_tRNS)
-            && png_get_tRNS(pPng, pInfo, &paletteTrans, &numTransColors, NULL)))
+            && png_get_valid(png, info, PNG_INFO_tRNS)
+            && png_get_tRNS(png, info, &paletteTrans, &numTransColors, NULL)))
     {
         // Handle alpha channel and create smask
         buffer_t smask(width * height);
@@ -935,7 +935,7 @@ void LoadFromPngContent(PdfImage& image, png_structp pPng, png_infop pInfo)
                     smask[smaskIndex++] = row[c * 4 + 3]; // 4th byte for alpha
                 }
             }
-            lLen = 3 * width * height;
+            len = 3 * width * height;
         }
         else if (color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
         {
@@ -948,7 +948,7 @@ void LoadFromPngContent(PdfImage& image, png_structp pPng, png_infop pInfo)
                     smask[smaskIndex++] = row[c * 2 + 1]; // 2nd byte for alpha
                 }
             }
-            lLen = width * height;
+            len = width * height;
         }
         PdfMemoryInputStream smaskstream(smask.data(), width * height);
         PdfImage smakeImage(*image.GetObject().GetDocument());
@@ -960,24 +960,24 @@ void LoadFromPngContent(PdfImage& image, png_structp pPng, png_infop pInfo)
     // Set color space
     if (color_type == PNG_COLOR_TYPE_PALETTE)
     {
-        png_color* pColors;
-        int numColors;
-        png_get_PLTE(pPng, pInfo, &pColors, &numColors);
+        png_color* colors;
+        int colorCount;
+        png_get_PLTE(png, info, &colors, &colorCount);
 
-        char* datap = new char[numColors * 3];
-        for (int i = 0; i < numColors; i++, pColors++)
+        char* data = new char[colorCount * 3];
+        for (int i = 0; i < colorCount; i++, colors++)
         {
-            datap[3 * i + 0] = pColors->red;
-            datap[3 * i + 1] = pColors->green;
-            datap[3 * i + 2] = pColors->blue;
+            data[3 * i + 0] = colors->red;
+            data[3 * i + 1] = colors->green;
+            data[3 * i + 2] = colors->blue;
         }
-        PdfMemoryInputStream stream(datap, numColors * 3);
+        PdfMemoryInputStream stream(data, colorCount * 3);
         PdfObject* pIdxObject = image.GetObject().GetDocument()->GetObjects().CreateDictionaryObject();
         pIdxObject->GetOrCreateStream().Set(stream);
 
         PdfArray array;
         array.push_back(PdfName("DeviceRGB"));
-        array.push_back(static_cast<int64_t>(numColors - 1));
+        array.push_back(static_cast<int64_t>(colorCount - 1));
         array.push_back(pIdxObject->GetIndirectReference());
         image.SetImageColorSpace(PdfColorSpace::Indexed, &array);
     }
@@ -991,23 +991,23 @@ void LoadFromPngContent(PdfImage& image, png_structp pPng, png_infop pInfo)
     }
 
     // Set the image data and flate compress it
-    PdfMemoryInputStream stream(buffer.data(), lLen);
+    PdfMemoryInputStream stream(buffer.data(), len);
     image.SetImageData(stream, width, height, depth);
 
-    png_destroy_read_struct(&pPng, &pInfo, (png_infopp)NULL);
+    png_destroy_read_struct(&png, &info, (png_infopp)NULL);
 }
 
 void pngReadData(png_structp pngPtr, png_bytep data, png_size_t length)
 {
-    pngData* a = (pngData*)png_get_io_ptr(pngPtr);
+    PngData* a = (PngData*)png_get_io_ptr(pngPtr);
     a->read(data, length);
 }
 
 #endif // PODOFO_HAVE_PNG_LIB
 
-PdfName PdfImage::ColorspaceToName(PdfColorSpace eColorSpace)
+PdfName PdfImage::ColorspaceToName(PdfColorSpace colorSpace)
 {
-    return PdfColor::GetNameForColorSpace(eColorSpace).GetString();
+    return PdfColor::GetNameForColorSpace(colorSpace).GetString();
 }
 
 void PdfImage::SetImageChromaKeyMask(int64_t r, int64_t g, int64_t b, int64_t threshold)
@@ -1023,9 +1023,9 @@ void PdfImage::SetImageChromaKeyMask(int64_t r, int64_t g, int64_t b, int64_t th
     this->GetObject().GetDictionary().AddKey("Mask", array);
 }
 
-void PdfImage::SetInterpolate(bool bValue)
+void PdfImage::SetInterpolate(bool value)
 {
-    this->GetObject().GetDictionary().AddKey("Interpolate", PdfVariant(bValue));
+    this->GetObject().GetDictionary().AddKey("Interpolate", PdfObject(value));
 }
 
 unsigned PdfImage::GetWidth() const

@@ -34,13 +34,12 @@ public:
     /** Parse the object data from the given file handle starting at
      *  the current position.
      *  \param document document where to resolve object references
-     *  \param rDevice an open reference counted input device which is positioned in
+     *  \param device an open reference counted input device which is positioned in
      *                 front of the object which is going to be parsed.
-     *  \param rBuffer buffer to use for parsing to avoid reallocations
-     *  \param pOffsets XRef entries are stored into this array
+     *  \param buffer buffer to use for parsing to avoid reallocations
      */
-    PdfXRefStreamParserObject(PdfDocument& document, const PdfRefCountedInputDevice& rDevice,
-        const PdfRefCountedBuffer& rBuffer, TVecEntries& entries);
+    PdfXRefStreamParserObject(PdfDocument& document, const PdfRefCountedInputDevice& device,
+        const PdfRefCountedBuffer& buffer, PdfXRefEntries& entries);
 
     void Parse();
 
@@ -56,26 +55,26 @@ private:
      * Read the /Index key from the current dictionary
      * and write it to a vector.
      *
-     * \param rvecIndeces store the indeces hare
+     * \param indices store the indeces hare
      * \param size default value from /Size key
      */
-    void GetIndeces(std::vector<int64_t>& rvecIndeces, int64_t size);
+    void GetIndices(std::vector<int64_t>& indices, int64_t size);
 
     /**
      * Parse the stream contents
      *
-     * \param nW /W key
-     * \param rvecIndeces indeces as filled by GetIndeces
+     * \param wArray /W key
+     * \param indices indices as filled by GetIndices
      *
-     * \see GetIndeces
+     * \see GetIndices
      */
-    void ParseStream(const int64_t nW[W_ARRAY_SIZE], const std::vector<int64_t>& rvecIndeces);
+    void ParseStream(const int64_t wArray[W_ARRAY_SIZE], const std::vector<int64_t>& indices);
 
-    void ReadXRefStreamEntry(char* pBuffer, size_t, const int64_t lW[W_ARRAY_SIZE], int nObjNo);
+    void ReadXRefStreamEntry(char* buffer, size_t, const int64_t wArray[W_ARRAY_SIZE], int objNo);
 
 private:
-    ssize_t m_lNextOffset;
-    TVecEntries* m_entries;
+    ssize_t m_NextOffset;
+    PdfXRefEntries* m_entries;
 };
 
 };

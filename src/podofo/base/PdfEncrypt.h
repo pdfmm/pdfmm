@@ -41,7 +41,7 @@ class RC4CryptoEngine;
  *
  *  Adobe Reader supports only keys with 40, 128 or 256 bits!
  */
-enum class EPdfKeyLength
+enum class PdfKeyLength
 {
     L40 = 40,
     L56 = 56,
@@ -55,7 +55,7 @@ enum class EPdfKeyLength
 
 /** Set user permissions/restrictions on a document
  */
-enum class EPdfPermissions
+enum class PdfPermissions
 {
     None = 0,
     Print = 0x00000004,  ///< Allow printing the document
@@ -79,7 +79,7 @@ enum class EPdfPermissions
 /**
  * The encryption algorithm.
  */
-enum class EPdfEncryptAlgorithm
+enum class PdfEncryptAlgorithm
 {
     None = 0,
     RC4V1 = 1, ///< RC4 Version 1 encryption using a 40bit key
@@ -110,20 +110,20 @@ public:
      *  \param userPassword the user password (if empty the user does not have
      *                      to enter a password to open the document)
      *  \param ownerPassword the owner password
-     *  \param protection several EPdfPermissions values or'ed together to set
+     *  \param protection several PdfPermissions values or'ed together to set
      *                    the users permissions for this document
-     *  \param eAlgorithm the revision of the encryption algorithm to be used
-     *  \param eKeyLength the length of the encryption key ranging from 40 to 128 bits
-     *                    (only used if eAlgorithm == EPdfEncryptAlgorithm::RC4V2)
+     *  \param algorithm the revision of the encryption algorithm to be used
+     *  \param keyLength the length of the encryption key ranging from 40 to 128 bits
+     *                    (only used if algorithm == PdfEncryptAlgorithm::RC4V2)
      *
      *  \see GenerateEncryptionKey with the documentID to generate the real
      *       encryption key using this information
      */
     static std::unique_ptr<PdfEncrypt> CreatePdfEncrypt(const std::string_view& userPassword,
         const std::string_view& ownerPassword,
-        EPdfPermissions protection = EPdfPermissions::Default,
-        EPdfEncryptAlgorithm eAlgorithm = EPdfEncryptAlgorithm::AESV2,
-        EPdfKeyLength eKeyLength = EPdfKeyLength::L40);
+        PdfPermissions protection = PdfPermissions::Default,
+        PdfEncryptAlgorithm algorithm = PdfEncryptAlgorithm::AESV2,
+        PdfKeyLength keyLength = PdfKeyLength::L40);
 
     /** Initialize a PdfEncrypt object from an encryption dictionary in a PDF file.
      *
@@ -132,11 +132,11 @@ public:
      *
      *  Will use only encrypting algorithms that are enabled.
      *
-     *  \param pObject a PDF encryption dictionary
+     *  \param obj a PDF encryption dictionary
      *
      *  \see GetEnabledEncryptionAlgorithms
      */
-    static std::unique_ptr<PdfEncrypt> CreatePdfEncrypt(const PdfObject* pObject);
+    static std::unique_ptr<PdfEncrypt> CreatePdfEncrypt(const PdfObject* obj);
 
     /** Copy constructor
      *
@@ -155,7 +155,7 @@ public:
      *
      * \return an or'ed together list of all enabled encryption algorithms
      */
-    static EPdfEncryptAlgorithm GetEnabledEncryptionAlgorithms();
+    static PdfEncryptAlgorithm GetEnabledEncryptionAlgorithms();
 
     /**
      * Specify the list of encryption algorithms that should be used by PoDoFo
@@ -167,7 +167,7 @@ public:
      * \see GetEnabledEncryptionAlgorithms
      * \see IsEncryptionEnabled
      */
-    static void SetEnabledEncryptionAlgorithms(EPdfEncryptAlgorithm nEncryptionAlgorithms);
+    static void SetEnabledEncryptionAlgorithms(PdfEncryptAlgorithm nEncryptionAlgorithms);
 
     /**
      * Test if a certain encryption algorithm is enabled for loading PDF documents.
@@ -176,7 +176,7 @@ public:
      * \see GetEnabledEncryptionAlgorithms
      * \see SetEnabledEncryptionAlgorithms
      */
-    static bool IsEncryptionEnabled(EPdfEncryptAlgorithm eAlgorithm);
+    static bool IsEncryptionEnabled(PdfEncryptAlgorithm algorithm);
 
     /** Generate encryption key from user and owner passwords and protection key
      *
@@ -188,34 +188,34 @@ public:
      *  This dictionary is usually added to the PDF files trailer
      *  under the /Encryption key.
      *
-     *  \param rDictionary an empty dictionary which is filled with information about
+     *  \param dictionary an empty dictionary which is filled with information about
      *                     the used encryption algorithm
      */
-    virtual void CreateEncryptionDictionary(PdfDictionary& rDictionary) const = 0;
+    virtual void CreateEncryptionDictionary(PdfDictionary& dictionary) const = 0;
 
     /** Create a PdfInputStream that decrypts all data read from
      *  it using the current settings of the PdfEncrypt object.
      *
      *  Warning: Currently only RC4 based encryption is supported using output streams!
      *
-     *  \param pInputStream the created PdfInputStream reads all decrypted
+     *  \param inputStream the created PdfInputStream reads all decrypted
      *         data to this input stream.
      *
      *  \returns a PdfInputStream that decrypts all data.
      */
-    virtual std::unique_ptr<PdfInputStream> CreateEncryptionInputStream(PdfInputStream& pInputStream, size_t inputLen) = 0;
+    virtual std::unique_ptr<PdfInputStream> CreateEncryptionInputStream(PdfInputStream& inputStream, size_t inputLen) = 0;
 
     /** Create a PdfOutputStream that encrypts all data written to
      *  it using the current settings of the PdfEncrypt object.
      *
      *  Warning: Currently only RC4 based encryption is supported using output streams!
      *
-     *  \param pOutputStream the created PdfOutputStream writes all encrypted
+     *  \param outputStream the created PdfOutputStream writes all encrypted
      *         data to this output stream.
      *
      *  \returns a PdfOutputStream that encrypts all data.
      */
-    virtual std::unique_ptr<PdfOutputStream> CreateEncryptionOutputStream(PdfOutputStream& pOutputStream) = 0;
+    virtual std::unique_ptr<PdfOutputStream> CreateEncryptionOutputStream(PdfOutputStream& outputStream) = 0;
 
     /**
      * Tries to authenticate a user using either the user or owner password
@@ -228,9 +228,9 @@ public:
     bool Authenticate(const std::string_view& password, const PdfString& documentId);
 
     /** Get the encryption algorithm of this object.
-     * \returns the EPdfEncryptAlgorithm of this object
+     * \returns the PdfEncryptAlgorithm of this object
      */
-    inline EPdfEncryptAlgorithm GetEncryptAlgorithm() const { return m_eAlgorithm; }
+    inline PdfEncryptAlgorithm GetEncryptAlgorithm() const { return m_Algorithm; }
 
     /** Checks if printing this document is allowed.
      *  Every PDF consuming applications has to adhere this value!
@@ -318,7 +318,7 @@ public:
 
     /** Get the P object value (protection)
      */
-    EPdfPermissions GetPValue() const { return m_pValue; }
+    PdfPermissions GetPValue() const { return m_pValue; }
 
     /** Get the revision number of the encryption method
      */
@@ -330,7 +330,7 @@ public:
 
     /** Is metadata encrypted
      */
-    bool IsMetadataEncrypted() const { return m_bEncryptMetadata; }
+    bool IsMetadataEncrypted() const { return m_EncryptMetadata; }
 
     /** Encrypt a character string
      */
@@ -356,7 +356,7 @@ public:
      *
      *  \see Encrypt
      */
-    void SetCurrentReference(const PdfReference& rRef);
+    void SetCurrentReference(const PdfReference& ref);
 
 protected:
     PdfEncrypt();
@@ -377,22 +377,22 @@ protected:
     // Check two keys for equality
     bool CheckKey(unsigned char key1[32], unsigned char key2[32]);
 
-    EPdfEncryptAlgorithm m_eAlgorithm;   // The used encryption algorithm
-    unsigned m_keyLength;                // Length of encryption key
-    int m_rValue;                        // Revision
-    EPdfPermissions m_pValue;            // P entry in pdf document
-    EPdfKeyLength m_eKeyLength;          // The key length
-    std::string m_userPass;              // User password
-    std::string m_ownerPass;             // Owner password
-    unsigned char m_uValue[48];          // U entry in pdf document
-    unsigned char m_oValue[48];          // O entry in pdf document
-    unsigned char m_encryptionKey[32];   // Encryption key
-    PdfReference m_curReference;         // Reference of the current PdfObject
-    std::string m_documentId;            // DocumentID of the current document
-    bool m_bEncryptMetadata;             // Is metadata encrypted
+    PdfEncryptAlgorithm m_Algorithm;   // The used encryption algorithm
+    PdfKeyLength m_eKeyLength;         // The encryption key length, as enum value
+    unsigned m_keyLength;              // Length of encryption key
+    int m_rValue;                      // Revision
+    PdfPermissions m_pValue;           // P entry in pdf document
+    std::string m_userPass;            // User password
+    std::string m_ownerPass;           // Owner password
+    unsigned char m_uValue[48];        // U entry in pdf document
+    unsigned char m_oValue[48];        // O entry in pdf document
+    unsigned char m_encryptionKey[32]; // Encryption key
+    PdfReference m_curReference;       // Reference of the current PdfObject
+    std::string m_documentId;          // DocumentID of the current document
+    bool m_EncryptMetadata;            // Is metadata encrypted
 
 private:
-    static EPdfEncryptAlgorithm s_nEnabledEncryptionAlgorithms; // Or'ed int containing the enabled encryption algorithms
+    static PdfEncryptAlgorithm s_EnabledEncryptionAlgorithms; // Or'ed int containing the enabled encryption algorithms
 };
 
 #ifdef PODOFO_HAVE_LIBIDN
@@ -412,7 +412,7 @@ public:
     // copy constructor
     PdfEncryptSHABase(const PdfEncrypt& rhs);
 
-    void CreateEncryptionDictionary(PdfDictionary& rDictionary) const override;
+    void CreateEncryptionDictionary(PdfDictionary& dictionary) const override;
 
     // Get the UE object value (user)
     const unsigned char* GetUEValue() const { return m_ueValue; }
@@ -423,10 +423,10 @@ public:
     // Get the Perms object value (encrypted protection)
     const unsigned char* GetPermsValue() const { return m_permsValue; }
 
-    bool Authenticate(const std::string& documentID, const std::string& password,
-        const std::string& uValue, const std::string& ueValue,
-        const std::string& oValue, const std::string& oeValue,
-        EPdfPermissions pValue, const std::string& permsValue,
+    bool Authenticate(const std::string_view& documentID, const std::string_view& password,
+        const std::string_view& uValue, const std::string_view& ueValue,
+        const std::string_view& oValue, const std::string_view& oeValue,
+        PdfPermissions pValue, const std::string_view& permsValue,
         int lengthValue, int rValue);
 
 protected:
@@ -519,15 +519,15 @@ public:
     // copy constructor
     PdfEncryptMD5Base(const PdfEncrypt& rhs);
 
-    void CreateEncryptionDictionary(PdfDictionary& rDictionary) const override;
+    void CreateEncryptionDictionary(PdfDictionary& dictionary) const override;
 
     /** Create a PdfString of MD5 data generated from a buffer in memory.
-     *  \param pBuffer the buffer of which to calculate the MD5 sum
+     *  \param buffer the buffer of which to calculate the MD5 sum
      *  \param nLength the length of the buffer
      *
      *  \returns an MD5 sum as PdfString
      */
-    static PdfString GetMD5String(const unsigned char* pBuffer, int nLength);
+    static PdfString GetMD5String(const unsigned char* buffer, int nLength);
 
     // Calculate the binary MD5 message digest of the given data
     static void GetMD5Binary(const unsigned char* data, int length, unsigned char* digest);
@@ -535,9 +535,9 @@ public:
     // NOTE: We must declare again without body otherwise the other Authenticate overload hides it
     bool Authenticate(const std::string_view& password, const std::string_view& documentId) override = 0;
 
-    bool Authenticate(const std::string& documentID, const std::string& password,
-        const std::string& uValue, const std::string& oValue,
-        EPdfPermissions pValue, int lengthValue, int rValue);
+    bool Authenticate(const std::string_view& documentID, const std::string_view& password,
+        const std::string_view& uValue, const std::string_view& oValue,
+        PdfPermissions pValue, int lengthValue, int rValue);
 
 protected:
 
@@ -552,10 +552,10 @@ protected:
     void PadPassword(const std::string_view& password, unsigned char pswd[32]);
 
     // Compute encryption key and user key
-    void ComputeEncryptionKey(const std::string& documentID,
+    void ComputeEncryptionKey(const std::string_view& documentID,
         const unsigned char userPad[32], const unsigned char ownerKey[32],
-        EPdfPermissions pValue, EPdfKeyLength keyLength, int revision,
-        unsigned char userKey[32], bool bEncryptMetadata);
+        PdfPermissions pValue, PdfKeyLength keyLength, int revision,
+        unsigned char userKey[32], bool encryptMetadata);
 
     /** Create the encryption key for the current object.
      *
@@ -578,13 +578,13 @@ protected:
 class PdfEncryptAESV2 : public PdfEncryptMD5Base, public PdfEncryptAESBase
 {
 public:
-    PdfEncryptAESV2(PdfString oValue, PdfString uValue, EPdfPermissions pValue, bool bEncryptMetadata);
+    PdfEncryptAESV2(PdfString oValue, PdfString uValue, PdfPermissions pValue, bool bEncryptMetadata);
     PdfEncryptAESV2(const PdfEncrypt& rhs) : PdfEncryptMD5Base(rhs) { }
     PdfEncryptAESV2(const std::string_view& userPassword, const std::string_view& ownerPassword,
-        EPdfPermissions protection = EPdfPermissions::Default);
+        PdfPermissions protection = PdfPermissions::Default);
 
-    std::unique_ptr<PdfInputStream> CreateEncryptionInputStream(PdfInputStream& pInputStream, size_t inputLen) override;
-    std::unique_ptr<PdfOutputStream> CreateEncryptionOutputStream(PdfOutputStream& pOutputStream) override;
+    std::unique_ptr<PdfInputStream> CreateEncryptionInputStream(PdfInputStream& inputStream, size_t inputLen) override;
+    std::unique_ptr<PdfOutputStream> CreateEncryptionOutputStream(PdfOutputStream& outputStream) override;
 
     void Encrypt(const char* inStr, size_t inLen,
         char* outStr, size_t outLen) const override;
@@ -612,13 +612,13 @@ protected:
 class PdfEncryptAESV3 : public PdfEncryptSHABase, public PdfEncryptAESBase
 {
 public:
-    PdfEncryptAESV3(PdfString oValue, PdfString oeValue, PdfString uValue, PdfString ueValue, EPdfPermissions pValue, PdfString permsValue);
+    PdfEncryptAESV3(PdfString oValue, PdfString oeValue, PdfString uValue, PdfString ueValue, PdfPermissions pValue, PdfString permsValue);
     PdfEncryptAESV3(const PdfEncrypt& rhs) : PdfEncryptSHABase(rhs) {}
     PdfEncryptAESV3(const std::string_view& userPassword, const std::string_view& ownerPassword,
-        EPdfPermissions protection = EPdfPermissions::Default);
+        PdfPermissions protection = PdfPermissions::Default);
 
-    std::unique_ptr<PdfInputStream> CreateEncryptionInputStream(PdfInputStream& pInputStream, size_t inputLen) override;
-    std::unique_ptr<PdfOutputStream> CreateEncryptionOutputStream(PdfOutputStream& pOutputStream) override;
+    std::unique_ptr<PdfInputStream> CreateEncryptionInputStream(PdfInputStream& inputStream, size_t inputLen) override;
+    std::unique_ptr<PdfOutputStream> CreateEncryptionOutputStream(PdfOutputStream& outputStream) override;
 
     // Encrypt a character string
     void Encrypt(const unsigned char* inStr, size_t inLen,
@@ -648,12 +648,12 @@ class PdfEncryptRC4 : public PdfEncryptMD5Base
 {
 public:
     PdfEncryptRC4(PdfString oValue, PdfString uValue,
-        EPdfPermissions pValue, int rValue, EPdfEncryptAlgorithm eAlgorithm, int length, bool bEncryptMetadata);
+        PdfPermissions pValue, int rValue, PdfEncryptAlgorithm algorithm, int length, bool encryptMetadata);
     PdfEncryptRC4(const PdfEncrypt& rhs) : PdfEncryptMD5Base(rhs) {}
     PdfEncryptRC4(const std::string_view& userPassword, const std::string_view& ownerPassword,
-        EPdfPermissions protection = EPdfPermissions::Default,
-        EPdfEncryptAlgorithm eAlgorithm = EPdfEncryptAlgorithm::RC4V1,
-        EPdfKeyLength eKeyLength = EPdfKeyLength::L40);
+        PdfPermissions protection = PdfPermissions::Default,
+        PdfEncryptAlgorithm algorithm = PdfEncryptAlgorithm::RC4V1,
+        PdfKeyLength keyLength = PdfKeyLength::L40);
 
     void Encrypt(const char* inStr, size_t inLen,
         char* outStr, size_t outLen) const override;
@@ -661,9 +661,9 @@ public:
     void Decrypt(const char* inStr, size_t inLen,
         char* outStr, size_t& outLen) const override;
 
-    std::unique_ptr<PdfInputStream> CreateEncryptionInputStream(PdfInputStream& pInputStream, size_t inputLen) override;
+    std::unique_ptr<PdfInputStream> CreateEncryptionInputStream(PdfInputStream& inputStream, size_t inputLen) override;
 
-    std::unique_ptr<PdfOutputStream> CreateEncryptionOutputStream(PdfOutputStream& pOutputStream) override;
+    std::unique_ptr<PdfOutputStream> CreateEncryptionOutputStream(PdfOutputStream& outputStream) override;
 
     size_t CalculateStreamOffset() const override;
 
@@ -676,7 +676,7 @@ protected:
 };
 
 }
-ENABLE_BITMASK_OPERATORS(PoDoFo::EPdfPermissions);
-ENABLE_BITMASK_OPERATORS(PoDoFo::EPdfEncryptAlgorithm);
+ENABLE_BITMASK_OPERATORS(PoDoFo::PdfPermissions);
+ENABLE_BITMASK_OPERATORS(PoDoFo::PdfEncryptAlgorithm);
 
 #endif // PDF_ENCRYPT_H

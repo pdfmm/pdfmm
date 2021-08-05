@@ -186,7 +186,7 @@ public:
     /** Try to detect the internal fonttype from
      *  the file extension of a fontfile.
      *
-     *  \param pszFilename must be the filename of a font file
+     *  \param filename must be the filename of a font file
      *
      *  \return font type
      */

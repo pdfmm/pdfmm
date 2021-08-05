@@ -25,17 +25,17 @@ void PdfPostScriptTokenizer::ReadNextVariant(PdfInputDevice& device, PdfVariant&
 
 bool PdfPostScriptTokenizer::TryReadNextVariant(PdfInputDevice& device, PdfVariant& variant)
 {
-    EPdfTokenType tokenType;
-    string_view pszToken;
-    if (!PdfTokenizer::TryReadNextToken(device, pszToken, tokenType))
+    PdfTokenType tokenType;
+    string_view token;
+    if (!PdfTokenizer::TryReadNextToken(device, token, tokenType))
         return false;
 
-    return PdfTokenizer::TryReadNextVariant(device, pszToken, tokenType, variant, nullptr);
+    return PdfTokenizer::TryReadNextVariant(device, token, tokenType, variant, nullptr);
 }
 
 bool PdfPostScriptTokenizer::TryReadNext(PdfInputDevice& device, EPdfPostScriptTokenType& psTokenType, string_view& keyword, PdfVariant& variant)
 {
-    EPdfTokenType tokenType;
+    PdfTokenType tokenType;
     string_view token;
     keyword = { };
     bool gotToken = PdfTokenizer::TryReadNextToken(device, token, tokenType);
@@ -48,10 +48,10 @@ bool PdfPostScriptTokenizer::TryReadNext(PdfInputDevice& device, EPdfPostScriptT
     // Try first to detect PS procedures delimiters
     switch (tokenType)
     {
-        case EPdfTokenType::BraceLeft:
+        case PdfTokenType::BraceLeft:
             psTokenType = EPdfPostScriptTokenType::ProcedureEnter;
             return true;
-        case EPdfTokenType::BraceRight:
+        case PdfTokenType::BraceRight:
             psTokenType = EPdfPostScriptTokenType::ProcedureExit;
             return true;
         default:
@@ -59,35 +59,35 @@ bool PdfPostScriptTokenizer::TryReadNext(PdfInputDevice& device, EPdfPostScriptT
             break;
     }
 
-    EPdfLiteralDataType eDataType = DetermineDataType(device, token, tokenType, variant);
+    PdfLiteralDataType dataType = DetermineDataType(device, token, tokenType, variant);
 
     // asume we read a variant unless we discover otherwise later.
     psTokenType = EPdfPostScriptTokenType::Variant;
-    switch (eDataType)
+    switch (dataType)
     {
-        case EPdfLiteralDataType::Null:
-        case EPdfLiteralDataType::Bool:
-        case EPdfLiteralDataType::Number:
-        case EPdfLiteralDataType::Real:
-            // the data was already read into rVariant by the DetermineDataType function
+        case PdfLiteralDataType::Null:
+        case PdfLiteralDataType::Bool:
+        case PdfLiteralDataType::Number:
+        case PdfLiteralDataType::Real:
+            // the data was already read into variant by the DetermineDataType function
             break;
 
-        case EPdfLiteralDataType::Dictionary:
+        case PdfLiteralDataType::Dictionary:
             this->ReadDictionary(device, variant, nullptr);
             break;
-        case EPdfLiteralDataType::Array:
+        case PdfLiteralDataType::Array:
             this->ReadArray(device, variant, nullptr);
             break;
-        case EPdfLiteralDataType::String:
+        case PdfLiteralDataType::String:
             this->ReadString(device, variant, nullptr);
             break;
-        case EPdfLiteralDataType::HexString:
+        case PdfLiteralDataType::HexString:
             this->ReadHexString(device, variant, nullptr);
             break;
-        case EPdfLiteralDataType::Name:
+        case PdfLiteralDataType::Name:
             this->ReadName(device, variant);
             break;
-        case EPdfLiteralDataType::Reference:
+        case PdfLiteralDataType::Reference:
             PODOFO_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Unsupported reference datatype at this context");
         default:
             // Assume we have a keyword

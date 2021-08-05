@@ -52,7 +52,7 @@ public:
      *
      *  \param pLibrary handle to the FreeType library, so that a PdfFontMetrics
      *         can be constructed for this font
-     *  \param pObject a PDF font object
+     *  \param obj a PDF font object
      */
     static PdfFont* CreateFont(PdfObject& obj);
 

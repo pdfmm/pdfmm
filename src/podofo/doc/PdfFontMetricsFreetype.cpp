@@ -90,7 +90,7 @@ PdfFontMetricsFreetype::PdfFontMetricsFreetype(FT_Library* library, const string
 
 PdfFontMetricsFreetype::PdfFontMetricsFreetype(FT_Library* library, const char* buffer, size_t size,
         bool isSymbol) :
-    PdfFontMetrics(PdfFontMetricsType::Unknown, ""),
+    PdfFontMetrics(PdfFontMetricsType::Unknown, { }),
     m_Library(library),
     m_Face(nullptr),
     m_IsSymbol(isSymbol)
@@ -102,7 +102,7 @@ PdfFontMetricsFreetype::PdfFontMetricsFreetype(FT_Library* library, const char* 
 
 PdfFontMetricsFreetype::PdfFontMetricsFreetype(FT_Library* library, const PdfRefCountedBuffer& buffer,
         bool isSymbol) :
-    PdfFontMetrics(PdfFontMetricsType::Unknown, ""),
+    PdfFontMetrics(PdfFontMetricsType::Unknown, { }),
     m_Library(library),
     m_Face(nullptr),
     m_IsSymbol(isSymbol),

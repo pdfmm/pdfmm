@@ -56,8 +56,8 @@ PdfObject::PdfObject(const PdfReference& ref)
 PdfObject::PdfObject(const PdfArray& arr)
     : PdfObject(arr, false) { }
 
-PdfObject::PdfObject(const PdfDictionary& rDict)
-    : PdfObject(rDict, false) { }
+PdfObject::PdfObject(const PdfDictionary& dict)
+    : PdfObject(dict, false) { }
 
 // NOTE: Don't copy parent document/container. Copied objects must be
 // always detached. Ownership will be set automatically elsewhere.
@@ -113,8 +113,8 @@ void PdfObject::DelayedLoadImpl()
 
 void PdfObject::SetVariantOwner()
 {
-    auto eDataType = m_Variant.GetDataType();
-    switch (eDataType)
+    auto dataType = m_Variant.GetDataType();
+    switch (dataType)
     {
         case EPdfDataType::Dictionary:
             static_cast<PdfContainerDataType&>(m_Variant.GetDictionary()).SetOwner(this);
@@ -152,13 +152,13 @@ void PdfObject::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
     if (m_IndirectReference.IsIndirect())
     {
         // CHECK-ME We want to make this in all the cases for PDF/A Compatibility
-        //if( (eWriteMode & EPdfWriteMode::Clean) == EPdfWriteMode::Clean )
+        //if( (writeMode & EPdfWriteMode::Clean) == EPdfWriteMode::Clean )
         {
             device.Print("%i %i obj\n", m_IndirectReference.ObjectNumber(), m_IndirectReference.GenerationNumber());
         }
         //else
         //{
-        //    pDevice.Print( "%i %i obj", m_reference.ObjectNumber(), m_reference.GenerationNumber() );
+        //    device.Print( "%i %i obj", m_reference.ObjectNumber(), m_reference.GenerationNumber() );
         //}
     }
 
@@ -173,13 +173,13 @@ void PdfObject::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
         {
             // It's not a PdfFileStream. PdfFileStream handles length internally
 
-            size_t lLength = m_Stream->GetLength();
+            size_t length = m_Stream->GetLength();
             if (encrypt != nullptr)
-                lLength = encrypt->CalculateStreamLength(lLength);
+                length = encrypt->CalculateStreamLength(length);
 
             // Add the key without triggering SetDirty
             const_cast<PdfObject&>(*this).m_Variant.GetDictionary()
-                .addKey(PdfName::KeyLength, PdfObject(static_cast<int64_t>(lLength)), true);
+                .addKey(PdfName::KeyLength, PdfObject(static_cast<int64_t>(length)), true);
         }
     }
 
@@ -196,11 +196,11 @@ void PdfObject::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
     const_cast<PdfObject&>(*this).ResetDirty();
 }
 
-size_t PdfObject::GetObjectLength(PdfWriteMode eWriteMode)
+size_t PdfObject::GetObjectLength(PdfWriteMode writeMode)
 {
     PdfOutputDevice device;
 
-    this->Write(device, eWriteMode, nullptr);
+    this->Write(device, writeMode, nullptr);
 
     return device.GetLength();
 }
@@ -316,9 +316,6 @@ void PdfObject::delayedLoadStream() const
 //        For dictionaries/lists maybe we can rely on auomatic dirty set
 const PdfObject& PdfObject::operator=(const PdfObject& rhs)
 {
-    if (&rhs == this)
-        return *this;
-
     assign(rhs);
     SetDirty();
     return *this;
@@ -480,10 +477,10 @@ EPdfDataType PdfObject::GetDataType() const
     return m_Variant.GetDataType();
 }
 
-void PdfObject::ToString(std::string& rsData, PdfWriteMode eWriteMode) const
+void PdfObject::ToString(string& data, PdfWriteMode writeMode) const
 {
     DelayedLoad();
-    m_Variant.ToString(rsData, eWriteMode);
+    m_Variant.ToString(data, writeMode);
 }
 
 bool PdfObject::GetBool() const
@@ -701,8 +698,8 @@ bool PdfObject::IsRealStrict() const
 
 bool PdfObject::IsNumberOrReal() const
 {
-    EPdfDataType eDataType = GetDataType();
-    return eDataType == EPdfDataType::Number || eDataType == EPdfDataType::Real;
+    EPdfDataType dataType = GetDataType();
+    return dataType == EPdfDataType::Number || dataType == EPdfDataType::Real;
 }
 
 bool PdfObject::IsString() const

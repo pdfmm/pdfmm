@@ -63,9 +63,9 @@ public:
      *  and written to the passed output stream which will be deleted
      *  by this PdfFilteredEncodeStream.
      *
-     *  \param pOutputStream write all data to this output stream after encoding the data.
-     *  \param eFilter use this filter for encoding.
-     *  \param bOwnStream if true pOutputStream will be deleted along with this filter
+     *  \param outputStream write all data to this output stream after encoding the data.
+     *  \param filterType use this filter for encoding.
+     *  \param ownStream if true outputStream will be deleted along with this filter
      */
     PdfFilteredEncodeStream(PdfOutputStream& outputStream, const PdfFilterType filterType, bool ownStream)
         : m_OutputStream(&outputStream)
@@ -88,8 +88,8 @@ public:
 
     /** Write data to the output stream
      *
-     *  \param pBuffer the data is read from this buffer
-     *  \param lLen the size of the buffer
+     *  \param buffer the data is read from this buffer
+     *  \param len the size of the buffer
      */
     void WriteImpl(const char* buffer, size_t len) override
     {
@@ -123,15 +123,15 @@ public:
      *  and written to the passed output stream which will be deleted
      *  by this PdfFilteredDecodeStream if the parameter bOwnStream is true.
      *
-     *  \param pOutputStream write all data to this output stream after decoding the data.
+     *  \param outputStream write all data to this output stream after decoding the data.
      *         The PdfOutputStream is deleted along with this object if bOwnStream is true.
-     *  \param eFilter use this filter for decoding.
-     *  \param bOwnStream if true pOutputStream will be deleted along with this stream
-     *  \param pDecodeParms additional parameters for decoding
+     *  \param filterType use this filter for decoding.
+     *  \param ownStream if true outputStream will be deleted along with this stream
+     *  \param decodeParms additional parameters for decoding
      */
     PdfFilteredDecodeStream(PdfOutputStream& outputStream, const PdfFilterType filterType, bool ownStream,
         const PdfDictionary* decodeParms = nullptr)
-        : m_OutputStream(&outputStream), m_bFilterFailed(false)
+        : m_OutputStream(&outputStream), m_FilterFailed(false)
     {
         m_filter = PdfFilterFactory::Create(filterType);
         if (m_filter == nullptr)
@@ -150,8 +150,8 @@ public:
 
     /** Write data to the output stream
      *
-     *  \param pBuffer the data is read from this buffer
-     *  \param lLen the size of the buffer
+     *  \param buffer the data is read from this buffer
+     *  \param len the size of the buffer
      */
     void WriteImpl(const char* buffer, size_t len) override
     {
@@ -162,7 +162,7 @@ public:
         catch (PdfError& e)
         {
             e.AddToCallstack(__FILE__, __LINE__);
-            m_bFilterFailed = true;
+            m_FilterFailed = true;
             throw;
         }
     }
@@ -171,26 +171,26 @@ public:
     {
         try
         {
-            if (!m_bFilterFailed)
+            if (!m_FilterFailed)
             {
                 m_filter->EndDecode();
             }
         }
         catch (PdfError& e)
         {
-            std::ostringstream oss;
+            ostringstream oss;
             oss << "PdfFilter::EndDecode() failed in filter of type "
                 << PdfFilterFactory::FilterTypeToName(m_filter->GetType()) << ".\n";
             e.AddToCallstack(__FILE__, __LINE__, oss.str());
-            m_bFilterFailed = true;
+            m_FilterFailed = true;
             throw;
         }
     }
 
 private:
     PdfOutputStream* m_OutputStream;
-    std::unique_ptr<PdfFilter> m_filter;
-    bool m_bFilterFailed;
+    unique_ptr<PdfFilter> m_filter;
+    bool m_FilterFailed;
 };
 
 //
@@ -305,9 +305,9 @@ std::unique_ptr<PdfFilter> PdfFilterFactory::Create(const PdfFilterType filterTy
     return unique_ptr<PdfFilter>(filter);
 }
 
-unique_ptr<PdfOutputStream> PdfFilterFactory::CreateEncodeStream(const TVecFilters& filters, PdfOutputStream& stream)
+unique_ptr<PdfOutputStream> PdfFilterFactory::CreateEncodeStream(const PdfFilterList& filters, PdfOutputStream& stream)
 {
-    TVecFilters::const_iterator it = filters.begin();
+    PdfFilterList::const_iterator it = filters.begin();
 
     PODOFO_RAISE_LOGIC_IF(!filters.size(), "Cannot create an EncodeStream from an empty list of filters");
 
@@ -323,10 +323,10 @@ unique_ptr<PdfOutputStream> PdfFilterFactory::CreateEncodeStream(const TVecFilte
     return unique_ptr<PdfOutputStream>(filter);
 }
 
-unique_ptr<PdfOutputStream> PdfFilterFactory::CreateDecodeStream(const TVecFilters& filters, PdfOutputStream& stream,
+unique_ptr<PdfOutputStream> PdfFilterFactory::CreateDecodeStream(const PdfFilterList& filters, PdfOutputStream& stream,
     const PdfDictionary* dictionary)
 {
-    TVecFilters::const_reverse_iterator it = filters.rbegin();
+    PdfFilterList::const_reverse_iterator it = filters.rbegin();
 
     PODOFO_RAISE_LOGIC_IF(filters.size() == 0, "Cannot create an DecodeStream from an empty list of filters");
 
@@ -366,14 +366,14 @@ PdfFilterType PdfFilterFactory::FilterNameToType(const PdfName& name, bool suppo
     PODOFO_RAISE_ERROR_INFO(EPdfError::UnsupportedFilter, name.GetString().c_str());
 }
 
-const char* PdfFilterFactory::FilterTypeToName(PdfFilterType eFilter)
+const char* PdfFilterFactory::FilterTypeToName(PdfFilterType filterType)
 {
-    return s_filters[static_cast<unsigned>(eFilter) - 1];
+    return s_filters[static_cast<unsigned>(filterType) - 1];
 }
 
-TVecFilters PdfFilterFactory::CreateFilterList(const PdfObject& filtersObj)
+PdfFilterList PdfFilterFactory::CreateFilterList(const PdfObject& filtersObj)
 {
-    TVecFilters filters;
+    PdfFilterList filters;
 
     const PdfObject* filterKeyObj = nullptr;
 

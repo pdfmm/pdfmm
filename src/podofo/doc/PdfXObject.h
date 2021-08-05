@@ -55,7 +55,7 @@ public:
      *
      *  \param doc the parent document of the XObject
      *  \param sourceDoc the document to create the XObject from
-     *  \param pageIndex the page-number in rDoc to create the XObject from
+     *  \param pageIndex the page-number in doc to create the XObject from
      *  \param prefix optional prefix for XObject-name
      *	\param useTrimBox if true try to use trimbox for size of xobject
      */
@@ -64,7 +64,7 @@ public:
     /** Create a new XObject from an existing page
      *
      *  \param doc the document to create the XObject at
-     *  \param pageIndex the page-number in pDoc to create the XObject from
+     *  \param pageIndex the page-number in doc to create the XObject from
      *  \param prefix optional prefix for XObject-name
      *  \param useTrimBox if true try to use trimbox for size of xobject
      */
@@ -123,17 +123,17 @@ public:
 
 private:
     static PdfXObjectType getPdfXObjectType(const PdfObject& obj);
-    void InitXObject(const PdfRect& rRect, const std::string_view& prefix);
+    void InitXObject(const PdfRect& rect, const std::string_view& prefix);
     void InitIdentifiers(PdfXObjectType subType, const std::string_view& prefix);
     void InitAfterPageInsertion(const PdfDocument& doc, unsigned pageIndex);
     void InitResources();
     PdfStream& GetStreamForAppending(EPdfStreamAppendFlags flags) override;
 
 private:
-    PdfRect m_rRect;
+    PdfRect m_Rect;
     PdfXObjectType m_type;
     PdfArray m_matrix;
-    PdfObject* m_pResources;
+    PdfObject* m_Resources;
     PdfName m_Identifier;
     PdfReference m_Reference;
 };

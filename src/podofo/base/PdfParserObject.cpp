@@ -26,40 +26,40 @@ using namespace PoDoFo;
 using namespace std;
 
 PdfParserObject::PdfParserObject(PdfDocument& document, const PdfRefCountedInputDevice& device,
-    const PdfRefCountedBuffer& buffer, ssize_t lOffset)
-    : PdfObject(PdfVariant::NullValue, true), m_device(device), m_buffer(buffer), m_pEncrypt(nullptr)
+    const PdfRefCountedBuffer& buffer, ssize_t offset)
+    : PdfObject(PdfVariant::NullValue, true), m_device(device), m_buffer(buffer), m_Encrypt(nullptr)
 {
     // Parsed objects by definition are initially not dirty
     resetDirty();
     SetDocument(document);
     InitPdfParserObject();
-    m_lOffset = lOffset < 0 ? m_device.Device()->Tell() : lOffset;
+    m_Offset = offset < 0 ? m_device.Device()->Tell() : offset;
 }
 
 PdfParserObject::PdfParserObject(const PdfRefCountedBuffer& buffer)
-    : PdfObject(PdfVariant::NullValue, true), m_buffer(buffer), m_pEncrypt(nullptr)
+    : PdfObject(PdfVariant::NullValue, true), m_buffer(buffer), m_Encrypt(nullptr)
 {
     InitPdfParserObject();
-    m_lOffset = -1;
+    m_Offset = -1;
 }
 
 void PdfParserObject::InitPdfParserObject()
 {
-    m_bIsTrailer = false;
+    m_IsTrailer = false;
 
     // Whether or not demand loading is disabled we still don't load
     // anything in the ctor. This just controls whether ::ParseFile(...)
     // forces an immediate demand load, or lets it genuinely happen
     // on demand.
-    m_bLoadOnDemand = false;
+    m_LoadOnDemand = false;
 
     // We rely heavily on the demand loading infrastructure whether or not
     // we *actually* delay loading.
     EnableDelayedLoading();
     EnableDelayedLoadingStream();
 
-    m_bStream = false;
-    m_lStreamOffset = 0;
+    m_HasStream = false;
+    m_StreamOffset = 0;
 }
 
 void PdfParserObject::ReadObjectNumber()
@@ -81,39 +81,37 @@ void PdfParserObject::ReadObjectNumber()
 
     if (!m_tokenizer.IsNextToken(*m_device.Device(), "obj"))
     {
-        std::ostringstream oss;
+        ostringstream oss;
         oss << "Error while reading object " << ref.ObjectNumber() << " "
             << ref.GenerationNumber() << ": Next token is not 'obj'." << std::endl;
         PODOFO_RAISE_ERROR_INFO(EPdfError::NoObject, oss.str().c_str());
     }
 }
 
-void PdfParserObject::ParseFile(PdfEncrypt* pEncrypt, bool bIsTrailer)
+void PdfParserObject::ParseFile(PdfEncrypt* encrypt, bool isTrailer)
 {
-    if (!m_device.Device())
-    {
+    if (m_device.Device() == nullptr)
         PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
-    }
 
-    if (m_lOffset >= 0)
-        m_device.Device()->Seek(m_lOffset);
+    if (m_Offset >= 0)
+        m_device.Device()->Seek(m_Offset);
 
-    if (!bIsTrailer)
+    if (!isTrailer)
         ReadObjectNumber();
 
 #ifndef VERBOSE_DEBUG_DISABLED
     std::cerr << "Parsing object number: " << m_reference.ObjectNumber()
               << " " << m_reference.GenerationNumber() << " obj"
-              << " " << m_lOffset << " offset"
-              << " (DL: " << (m_bLoadOnDemand ? "on" : "off") << ")"
+              << " " << m_Offset << " offset"
+              << " (DL: " << (m_LoadOnDemand ? "on" : "off") << ")"
               << endl;
 #endif // VERBOSE_DEBUG_DISABLED
 
-    m_lOffset = m_device.Device()->Tell();
-    m_pEncrypt = pEncrypt;
-    m_bIsTrailer = bIsTrailer;
+    m_Offset = m_device.Device()->Tell();
+    m_Encrypt = encrypt;
+    m_IsTrailer = isTrailer;
 
-    if (!m_bLoadOnDemand)
+    if (!m_LoadOnDemand)
     {
         // Force immediate loading of the object.  We need to do this through
         // the deferred loading machinery to avoid getting the object into an
@@ -137,48 +135,48 @@ void PdfParserObject::ForceStreamParse()
 // Only called via the demand loading mechanism
 // Be very careful to avoid recursive demand loads via PdfVariant
 // or PdfObject method calls here.
-void PdfParserObject::ParseFileComplete(bool bIsTrailer)
+void PdfParserObject::ParseFileComplete(bool isTrailer)
 {
-    m_device.Device()->Seek(m_lOffset);
-    if (m_pEncrypt)
-        m_pEncrypt->SetCurrentReference(GetIndirectReference());
+    m_device.Device()->Seek(m_Offset);
+    if (m_Encrypt)
+        m_Encrypt->SetCurrentReference(GetIndirectReference());
 
     // Do not call ReadNextVariant directly,
     // but TryReadNextToken, to handle empty objects like:
     // 13 0 obj
     // endobj
 
-    EPdfTokenType eTokenType;
-    string_view pszToken;
-    bool gotToken = m_tokenizer.TryReadNextToken(*m_device.Device(), pszToken, eTokenType);
+    PdfTokenType tokenType;
+    string_view token;
+    bool gotToken = m_tokenizer.TryReadNextToken(*m_device.Device(), token, tokenType);
     if (!gotToken)
         PODOFO_RAISE_ERROR_INFO(EPdfError::UnexpectedEOF, "Expected variant.");
 
     // Check if we have an empty object or data
-    if (pszToken != "endobj")
+    if (token != "endobj")
     {
-        m_tokenizer.ReadNextVariant(*m_device.Device(), pszToken, eTokenType, m_Variant, m_pEncrypt);
+        m_tokenizer.ReadNextVariant(*m_device.Device(), token, tokenType, m_Variant, m_Encrypt);
 
-        if (!bIsTrailer)
+        if (!isTrailer)
         {
-            bool gotToken = m_tokenizer.TryReadNextToken(*m_device.Device(), pszToken);
+            bool gotToken = m_tokenizer.TryReadNextToken(*m_device.Device(), token);
             if (!gotToken)
             {
                 PODOFO_RAISE_ERROR_INFO(EPdfError::UnexpectedEOF, "Expected 'endobj' or (if dict) 'stream', got EOF.");
             }
-            if (pszToken == "endobj")
+            if (token == "endobj")
             {
                 // nothing to do, just validate that the PDF is correct
                 // If it's a dictionary, it might have a stream, so check for that
             }
-            else if (m_Variant.IsDictionary() && pszToken == "stream")
+            else if (m_Variant.IsDictionary() && token == "stream")
             {
-                m_bStream = true;
-                m_lStreamOffset = m_device.Device()->Tell(); // NOTE: whitespace after "stream" handle in stream parser!
+                m_HasStream = true;
+                m_StreamOffset = m_device.Device()->Tell(); // NOTE: whitespace after "stream" handle in stream parser!
             }
             else
             {
-                PODOFO_RAISE_ERROR_INFO(EPdfError::NoObject, pszToken.data());
+                PODOFO_RAISE_ERROR_INFO(EPdfError::NoObject, token.data());
             }
         }
     }
@@ -202,7 +200,7 @@ void PdfParserObject::ParseStream()
     if (!lengthObj.TryGetNumber(len))
         PODOFO_RAISE_ERROR(EPdfError::InvalidStreamLength);
 
-    m_device.Device()->Seek(m_lStreamOffset);
+    m_device.Device()->Seek(m_StreamOffset);
 
     streamoff streamOffset;
     while (true)
@@ -247,7 +245,7 @@ ReadStream:
     m_device.Device()->Seek(streamOffset);	// reset it before reading!
     PdfDeviceInputStream reader(m_device.Device());
 
-    if (m_pEncrypt && !m_pEncrypt->IsMetadataEncrypted())
+    if (m_Encrypt != nullptr && !m_Encrypt->IsMetadataEncrypted())
     {
         // If metadata is not encrypted the Filter is set to "Crypt"
         auto filterObj = this->m_Variant.GetDictionary().FindKey(PdfName::KeyFilter);
@@ -258,17 +256,17 @@ ReadStream:
             {
                 auto& obj = filters.FindAt(i);
                 if (obj.IsName() && obj.GetName() == "Crypt")
-                    m_pEncrypt = 0;
+                    m_Encrypt = nullptr;
             }
         }
     }
 
     // Set stream raw data without marking the object dirty
-    if (m_pEncrypt != nullptr)
+    if (m_Encrypt != nullptr)
     {
-        m_pEncrypt->SetCurrentReference(GetIndirectReference());
-        auto pInput = m_pEncrypt->CreateEncryptionInputStream(reader, static_cast<size_t>(len));
-        getOrCreateStream().SetRawData(*pInput, static_cast<ssize_t>(len), false);
+        m_Encrypt->SetCurrentReference(GetIndirectReference());
+        auto input = m_Encrypt->CreateEncryptionInputStream(reader, static_cast<size_t>(len));
+        getOrCreateStream().SetRawData(*input, static_cast<ssize_t>(len), false);
     }
     else
     {
@@ -278,7 +276,7 @@ ReadStream:
 
 void PdfParserObject::DelayedLoadImpl()
 {
-    ParseFileComplete(m_bIsTrailer);
+    ParseFileComplete(m_IsTrailer);
 }
 
 void PdfParserObject::DelayedLoadStreamImpl()
@@ -294,7 +292,7 @@ void PdfParserObject::DelayedLoadStreamImpl()
         }
         catch (PdfError& e)
         {
-            std::ostringstream s;
+            ostringstream s;
             s << "Unable to parse the stream for object " << GetIndirectReference().ObjectNumber() << ' '
                 << GetIndirectReference().GenerationNumber() << " obj .";
             e.AddToCallstack(__FILE__, __LINE__, s.str().c_str());
@@ -303,9 +301,9 @@ void PdfParserObject::DelayedLoadStreamImpl()
     }
 }
 
-void PdfParserObject::FreeObjectMemory(bool bForce)
+void PdfParserObject::FreeObjectMemory(bool force)
 {
-    if (this->IsLoadOnDemand() && (bForce || !this->IsDirty()))
+    if (this->IsLoadOnDemand() && (force || !this->IsDirty()))
     {
         Clear();
         FreeStream();

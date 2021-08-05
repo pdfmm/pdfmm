@@ -75,30 +75,30 @@ public:
     /** Get access to the Outlines (Bookmarks) dictionary
      *  The returned outlines object is owned by the PdfDocument.
      *
-     *  \param bCreate create the object if it does not exist (ePdfCreateObject)
+     *  \param create create the object if it does not exist (ePdfCreateObject)
      *                 or return nullptr if it does not exist
      *  \returns the Outlines/Bookmarks dictionary
      */
-    PdfOutlines* GetOutlines(bool create = ePdfCreateObject);
+    PdfOutlines* GetOutlines(bool create = true);
 
     /** Get access to the Names dictionary (where all the named objects are stored)
      *  The returned PdfNamesTree object is owned by the PdfDocument.
      *
-     *  \param bCreate create the object if it does not exist (ePdfCreateObject)
+     *  \param create create the object if it does not exist (ePdfCreateObject)
      *                 or return nullptr if it does not exist
      *  \returns the Names dictionary
      */
-    PdfNamesTree* GetNamesTree(bool create = ePdfCreateObject);
+    PdfNamesTree* GetNamesTree(bool create = true);
 
     /** Get access to the AcroForm dictionary
      *
-     *  \param bCreate create the object if it does not exist (ePdfCreateObject)
+     *  \param create create the object if it does not exist (ePdfCreateObject)
      *                 or return nullptr if it does not exist
      *  \param eDefaultAppearance specifies if a default appearence shall be created
      *
      *  \returns PdfObject the AcroForm dictionary
      */
-    PdfAcroForm* GetAcroForm(bool bCreate = ePdfCreateObject,
+    PdfAcroForm* GetAcroForm(bool create = true,
         EPdfAcroFormDefaulAppearance eDefaultAppearance = EPdfAcroFormDefaulAppearance::BlackText12pt);
 
     /** Embeds all pending subset fonts, is automatically done on Write().
@@ -108,19 +108,19 @@ public:
     void EmbedSubsetFonts();
 
     /** Appends another PdfDocument to this document.
-     *  \param rDoc the document to append
-     *  \param bAppendAll specifies whether pages and outlines are appended too
+     *  \param doc the document to append
+     *  \param appendAll specifies whether pages and outlines are appended too
      *  \returns this document
      */
-    const PdfDocument& Append(const PdfDocument& rDoc, bool bAppendAll = true);
+    const PdfDocument& Append(const PdfDocument& doc, bool appendAll = true);
 
     /** Inserts existing page from another PdfDocument to this document.
-     *  \param rDoc the document to append from
-     *  \param pageIndex index of page to append from rDoc
-     *  \param nAtIndex index at which to add the page in this document
+     *  \param doc the document to append from
+     *  \param pageIndex index of page to append from doc
+     *  \param atIndex index at which to add the page in this document
      *  \returns this document
      */
-    const PdfDocument& InsertExistingPageAt(const PdfDocument& rDoc, unsigned pageIndex, unsigned atIndex);
+    const PdfDocument& InsertExistingPageAt(const PdfDocument& doc, unsigned pageIndex, unsigned atIndex);
 
     /** Fill an existing empty PdfXObject from a page of another document.
      *  This will append the other document to this one.
@@ -155,21 +155,21 @@ public:
     /** Attach a file to the document.
      *  \param rFileSpec a file specification
      */
-    void AttachFile(const PdfFileSpec& rFileSpec);
+    void AttachFile(const PdfFileSpec& fileSpec);
 
     /** Get an attached file's filespec.
-     *  \param rName the name of the attachment
+     *  \param name the name of the attachment
      *  \return the file specification object if the file exists, nullptr otherwise
      *          The file specification object is not owned by the document and must be deleted by the caller
      */
-    PdfFileSpec* GetAttachment(const PdfString& rName);
+    PdfFileSpec* GetAttachment(const PdfString& name);
 
     /** Adds a PdfDestination into the global Names tree
      *  with the specified name, optionally replacing one of the same name.
      *  \param rDest the destination to be assigned
-     *  \param rsName the name for the destination
+     *  \param name the name for the destination
      */
-    void AddNamedDestination(const PdfDestination& rDest, const PdfString& rsName);
+    void AddNamedDestination(const PdfDestination& rDest, const PdfString& name);
 
     /** Sets the opening mode for a document.
      *  \param inMode which mode to set
@@ -228,24 +228,24 @@ public:
      *
      *  TODO: DS use an enum here!
      */
-    void SetPrintScaling(const PdfName& inScalingType);
+    void SetPrintScaling(const PdfName& scalingType);
 
     /** Set the document's Viewer Preferences:
      *  Set the base URI of the document.
      *
      *  TODO: DS document value!
      */
-    void SetBaseURI(const std::string_view& inBaseURI);
+    void SetBaseURI(const std::string_view& baseURI);
 
     /** Set the document's Viewer Preferences:
      *  Set the language of the document.
      */
-    void SetLanguage(const std::string_view& inLanguage);
+    void SetLanguage(const std::string_view& language);
 
     /** Set the document's Viewer Preferences:
         Set the document's binding direction.
      */
-    void SetBindingDirection(const PdfName& inDirection);
+    void SetBindingDirection(const PdfName& direction);
 
     /** Checks if printing this document is allowed.
      *  Every PDF-consuming application has to adhere to this value!
@@ -379,16 +379,16 @@ public:
      *
      *  \returns the vector of objects
      */
-    inline PdfVecObjects& GetObjects() { return m_vecObjects; }
+    inline PdfVecObjects& GetObjects() { return m_Objects; }
 
     /** Get access to the internal vector of objects
      *  or root object.
      *
      *  \returns the vector of objects
      */
-    inline const PdfVecObjects& GetObjects() const { return m_vecObjects; }
+    inline const PdfVecObjects& GetObjects() const { return m_Objects; }
 
-    inline PdfFontCache& GetFontCache() { return m_fontCache; }
+    inline PdfFontCache& GetFontCache() { return m_FontCache; }
 
 protected:
     /** Construct a new (empty) PdfDocument
@@ -399,31 +399,30 @@ protected:
     /** Set the info object containing meta information.
      *  Deletes any old info object.
      *
-     *  @param pInfo the new info object (will be owned by PdfDocument)
+     *  \param info the new info object (will be owned by PdfDocument)
      */
-    void SetInfo(std::unique_ptr<PdfInfo>& pInfo);
+    void SetInfo(std::unique_ptr<PdfInfo>& info);
 
     /** Set the trailer of this PdfDocument
      *  deleting the old one.
      *
-     *  @param pObject the new trailer object
+     *  \param obj the new trailer object
      *         It will be owned by PdfDocument.
      */
-    void SetTrailer(std::unique_ptr<PdfObject>& pObject);
+    void SetTrailer(std::unique_ptr<PdfObject>& obj);
 
     /** Set the catalog of this PdfDocument
      *  deleting the old one.
      *
-     *  \param pObject the new catalog object
+     *  \param obj the new catalog object
      *         It will be owned by PdfDocument.
      */
-     // m_pCatalog does not need to 
-     // be reowned as it should
-     // alread by part of m_vecObjects
-    inline void SetCatalog(PdfObject* pObject) { m_Catalog = pObject; }
+     // m_Catalog does not need to 
+     // be reowned
+    inline void SetCatalog(PdfObject* obj) { m_Catalog = obj; }
 
     /** Get a dictionary from the catalog dictionary by its name.
-     *  \param pszName will be converted into a PdfName
+     *  \param name will be converted into a PdfName
      *  \returns the dictionary if it was found or nullptr
      */
     PdfObject* GetNamedObjectFromCatalog(const std::string_view& name) const;
@@ -436,10 +435,10 @@ protected:
      *  that is either an PdfArray or a direct object.
      *  The reference is changed so that difference is added to the object number
      *  of the reference.
-     *  \param pObject object to change
+     *  \param obj object to change
      *  \param difference add this value to every reference that is encountered
      */
-    void FixObjectReferences(PdfObject& pObject, int difference);
+    void FixObjectReferences(PdfObject& obj, int difference);
 
     /** Low-level APIs for setting a viewer preference.
      *  \param whichPref the dictionary key to set
@@ -475,7 +474,7 @@ private:
     PdfDocument& operator=(const PdfDocument&) = delete;
 
 private:
-    PdfVecObjects m_vecObjects;
+    PdfVecObjects m_Objects;
     std::unique_ptr<PdfObject> m_Trailer;
     PdfObject* m_Catalog;
     std::unique_ptr<PdfInfo> m_Info;
@@ -483,7 +482,7 @@ private:
     std::unique_ptr<PdfAcroForm> m_AcroForms;
     std::unique_ptr<PdfOutlines> m_Outlines;
     std::unique_ptr<PdfNamesTree> m_NameTree;
-    PdfFontCache m_fontCache;
+    PdfFontCache m_FontCache;
 };
 
 };

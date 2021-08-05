@@ -77,18 +77,18 @@ public:
      *  of this page or XObject so that it can be used for any following drawing
      *  operations.
      *
-     *  \param rColor reference to the PdfColor
+     *  \param color reference to the PdfColor
      */
-    void AddColorResource(const PdfColor& rColor);
+    void AddColorResource(const PdfColor& color);
 
     /** Register an object in the resource dictionary of this page or XObbject
      *  so that it can be used for any following drawing operations.
      *
-     *  \param rIdentifier identifier of this object, e.g. /Ft0
-     *  \param rRef reference to the object you want to register
-     *  \param rName register under this key in the resource dictionary
+     *  \param identifier identifier of this object, e.g. /Ft0
+     *  \param ref reference to the object you want to register
+     *  \param name register under this key in the resource dictionary
      */
-    void AddResource(const PdfName& rIdentifier, const PdfReference& rRef, const PdfName& rName);
+    void AddResource(const PdfName& identifier, const PdfReference& ref, const PdfName& name);
 };
 
 };

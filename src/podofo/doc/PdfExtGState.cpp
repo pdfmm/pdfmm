@@ -23,7 +23,7 @@ using namespace PoDoFo;
 PdfExtGState::PdfExtGState(PdfDocument& doc)
     : PdfElement(doc, "ExtGState")
 {
-    std::ostringstream out;
+    ostringstream out;
     // We probably aren't doing anything locale sensitive here, but it's
     // best to be sure.
     PdfLocaleImbue(out);

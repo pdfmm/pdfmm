@@ -37,7 +37,7 @@ public:
     PdfPagesTree(PdfDocument& doc);
 
     /** Construct a PdfPagesTree from the root /Pages object
-     *  \param pPagesRoot pointer to page tree dictionary
+     *  \param pagesRoot pointer to page tree dictionary
      */
     PdfPagesTree(PdfObject& pagesRoot);
 
@@ -54,7 +54,7 @@ public:
      *  The returned page is owned by the pages tree and
      *  deleted along with it.
      *
-     *  \param nIndex page index, 0-based
+     *  \param index page index, 0-based
      *  \returns a pointer to the requested page
      */
     PdfPage& GetPage(unsigned index);
@@ -75,7 +75,7 @@ public:
      *  The returned page is owned by the pages tree and will get deleted along
      *  with it!
      *
-     *  \param rSize a PdfRect specifying the size of the page (i.e the /MediaBox key) in PDF units
+     *  \param size a PdfRect specifying the size of the page (i.e the /MediaBox key) in PDF units
      *  \returns a pointer to a PdfPage object
      */
     PdfPage* CreatePage(const PdfRect& size);
@@ -87,7 +87,7 @@ public:
      *  Note: this function will attach all new pages onto the same page node
      *  which can cause the tree to be unbalanced if
      *
-     *  \param vecSizes a vector of PdfRect specifying the size of each of the pages to create (i.e the /MediaBox key) in PDF units
+     *  \param sizes a vector of PdfRect specifying the size of each of the pages to create (i.e the /MediaBox key) in PDF units
      */
     void CreatePages(const std::vector<PdfRect>& sizes);
 
@@ -95,7 +95,7 @@ public:
      *  The returned page is owned by the pages tree and will get deleted along
      *  with it!
      *
-     *  \param rSize a PdfRect specifying the size of the page (i.e the /MediaBox key) in PDF units
+     *  \param size a PdfRect specifying the size of the page (i.e the /MediaBox key) in PDF units
      *  \param atIndex index where to insert the new page (0-based)
      *  \returns a pointer to a PdfPage object
      */
@@ -127,7 +127,7 @@ private:
      * Insert pages at the given index
      * \remarks Can be used by PdfDocument
      */
-    void InsertPages(unsigned atIndex, const std::vector<PdfObject*>& vecPages);
+    void InsertPages(unsigned atIndex, const std::vector<PdfObject*>& pages);
 
      PdfObject* GetPageNode(unsigned index, PdfObject& parent, PdfObjectList& parents);
 
@@ -135,20 +135,20 @@ private:
 
      /**
       * Test if a PdfObject is a page node
-      * @return true if PdfObject is a page node
+      * \return true if PdfObject is a page node
       */
      bool IsTypePage(const PdfObject& obj) const;
 
      /**
       * Test if a PdfObject is a pages node
-      * @return true if PdfObject is a pages node
+      * \return true if PdfObject is a pages node
       */
      bool IsTypePages(const PdfObject& obj) const;
 
      /**
       * Find the position of pPageObj in the kids array of pPageParent
       *
-      * @returns the index in the kids array or -1 if pPageObj is no child of pPageParent
+      * \returns the index in the kids array or -1 if pPageObj is no child of pPageParent
       */
      int GetPosInKids(PdfObject& pageObj, PdfObject* pageParent);
 
@@ -161,41 +161,41 @@ private:
      * Same as InsertPageIntoNode except that it allows for adding multiple pages at one time
      * Note that adding many pages onto the same node will create an unbalanced page tree
      *
-     * @param pNode the pages node whete pPage is to be inserted
-     * @param rlstParents list of all (future) parent pages nodes in the pages tree
-     *                   of pPage
-     * @param nIndex index where pPage is to be inserted in pNode's kids array
-     * @param vecPages a vector of the page objects which are to be inserted
+     * \param node the pages node whete page is to be inserted
+     * \param parents list of all (future) parent pages nodes in the pages tree
+     *                   of page
+     * \param index index where page is to be inserted in pNode's kids array
+     * \param pages a vector of the page objects which are to be inserted
      */
-    void InsertPagesIntoNode(PdfObject& pParent, const PdfObjectList& rlstParents,
-        int index, const std::vector<PdfObject*>& vecPages);
+    void InsertPagesIntoNode(PdfObject& node, const PdfObjectList& parents,
+        int index, const std::vector<PdfObject*>& pages);
 
     /**
      * Delete a page object from a pages node
      *
-     * @param pNode which is the direct parent of pPage and where the page must be deleted
-     * @param rlstParents list of all parent pages nodes in the pages tree
-     *                   of pPage
-     * @param nIndex index where pPage is to be deleted in pNode's kids array
-     * @param pPage the page object which is to be deleted
+     * \param node which is the direct parent of page and where the page must be deleted
+     * \param parents list of all parent pages nodes in the pages tree
+     *                   of page
+     * \param index index where page is to be deleted in pNode's kids array
+     * \param page the page object which is to be deleted
      */
-    void DeletePageFromNode(PdfObject& pNode, const PdfObjectList& rlstParents,
-        unsigned index, PdfObject& pPage);
+    void DeletePageFromNode(PdfObject& node, const PdfObjectList& parents,
+        unsigned index, PdfObject& page);
 
     /**
-     * Delete a single page node or page object from the kids array of pParent
+     * Delete a single page node or page object from the kids array of parent
      *
-     * @param pParent the parent of the page node which is deleted
-     * @param nIndex index to remove from the kids array of pParent
+     * \param parent the parent of the page node which is deleted
+     * \param index index to remove from the kids array of parent
      */
-    void DeletePageNode(PdfObject& pParent, unsigned nIndex);
+    void DeletePageNode(PdfObject& parent, unsigned index);
 
     /**
      * Tests if a page node is emtpy
      *
-     * @returns true if Count of page is 0 or the Kids array is empty
+     * \returns true if Count of page is 0 or the Kids array is empty
      */
-    bool IsEmptyPageNode(PdfObject& pPageNode);
+    bool IsEmptyPageNode(PdfObject& pageNode);
 
     /** Private method to access the Root of the tree using a logical name
      */

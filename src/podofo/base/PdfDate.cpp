@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <date/date.h>
 
+using namespace std;
 using namespace PoDoFo;
 namespace chrono = std::chrono;
 
@@ -48,15 +49,13 @@ PdfDate::PdfDate()
     m_secondsFromEpoch = chrono::seconds(now.time_since_epoch());
 }
 
-PdfDate::PdfDate(const chrono::seconds& secondsFromEpoch, const std::optional<chrono::minutes>& offsetFromUTC)
+PdfDate::PdfDate(const chrono::seconds& secondsFromEpoch, const optional<chrono::minutes>& offsetFromUTC)
     : m_secondsFromEpoch(secondsFromEpoch), m_minutesFromUtc(offsetFromUTC)
 {
 }
 
 PdfDate::PdfDate(const PdfString& sDate)
 {
-    std::string date = sDate.GetString();
-
     int y = 0;
     int m = 0;
     int d = 0;
@@ -69,67 +68,67 @@ PdfDate::PdfDate(const PdfString& sDate)
     int nZoneHour = 0;
     int nZoneMin = 0;
 
-    const char* pszDate = date.data();
-    if (pszDate == nullptr)
+    const char* date = sDate.GetString().data();
+    if (date == nullptr)
         goto Error;
 
-    if (*pszDate == 'D')
+    if (*date == 'D')
     {
-        pszDate++;
-        if (*pszDate++ != ':')
+        date++;
+        if (*date++ != ':')
             goto Error;
     }
 
-    PEEK_DATE_CHAR(pszDate, nZoneShift);
+    PEEK_DATE_CHAR(date, nZoneShift);
 
-    if (!ParseFixLenNumber(pszDate, 4, 0, 9999, y))
+    if (!ParseFixLenNumber(date, 4, 0, 9999, y))
         return;
 
-    PEEK_DATE_CHAR(pszDate, nZoneShift);
+    PEEK_DATE_CHAR(date, nZoneShift);
 
-    if (!ParseFixLenNumber(pszDate, 2, 1, 12, m))
+    if (!ParseFixLenNumber(date, 2, 1, 12, m))
         goto Error;
 
-    PEEK_DATE_CHAR(pszDate, nZoneShift);
+    PEEK_DATE_CHAR(date, nZoneShift);
 
-    if (!ParseFixLenNumber(pszDate, 2, 1, 31, d))
+    if (!ParseFixLenNumber(date, 2, 1, 31, d))
         goto Error;
 
-    PEEK_DATE_CHAR(pszDate, nZoneShift);
+    PEEK_DATE_CHAR(date, nZoneShift);
 
-    if (!ParseFixLenNumber(pszDate, 2, 0, 23, h))
+    if (!ParseFixLenNumber(date, 2, 0, 23, h))
         goto Error;
 
-    PEEK_DATE_CHAR(pszDate, nZoneShift);
+    PEEK_DATE_CHAR(date, nZoneShift);
 
-    if (!ParseFixLenNumber(pszDate, 2, 0, 59, M))
+    if (!ParseFixLenNumber(date, 2, 0, 59, M))
         goto Error;
 
-    PEEK_DATE_CHAR(pszDate, nZoneShift);
+    PEEK_DATE_CHAR(date, nZoneShift);
 
-    if (!ParseFixLenNumber(pszDate, 2, 0, 59, s))
+    if (!ParseFixLenNumber(date, 2, 0, 59, s))
         goto Error;
 
-    PEEK_DATE_CHAR(pszDate, nZoneShift);
+    PEEK_DATE_CHAR(date, nZoneShift);
 
 ParseShift:
     hasZoneShift = true;
     if (nZoneShift != 0)
     {
-        if (!ParseFixLenNumber(pszDate, 2, 0, 59, nZoneHour))
+        if (!ParseFixLenNumber(date, 2, 0, 59, nZoneHour))
             goto Error;
 
-        if (*pszDate == '\'')
+        if (*date == '\'')
         {
-            pszDate++;
-            if (!ParseFixLenNumber(pszDate, 2, 0, 59, nZoneMin))
+            date++;
+            if (!ParseFixLenNumber(date, 2, 0, 59, nZoneMin))
                 goto Error;
-            if (*pszDate != '\'') return;
-            pszDate++;
+            if (*date != '\'') return;
+            date++;
         }
     }
 
-    if (*pszDate != '\0')
+    if (*date != '\0')
         goto Error;
 End:
     m_secondsFromEpoch = (date::local_days(date::year(y) / m / d) + chrono::hours(h) + chrono::minutes(M) + chrono::seconds(s)).time_since_epoch();
@@ -146,7 +145,7 @@ Error:
 
 PdfString PdfDate::createStringRepresentation(bool w3cstring) const
 {
-    std::string date;
+    string date;
     if (w3cstring)
         date.resize(W3C_DATE_BUFFER_SIZE);
     else
@@ -154,7 +153,7 @@ PdfString PdfDate::createStringRepresentation(bool w3cstring) const
 
     auto secondsFromEpoch = m_secondsFromEpoch;
 
-    std::string offset;
+    string offset;
     unsigned y;
     unsigned m;
     unsigned d;

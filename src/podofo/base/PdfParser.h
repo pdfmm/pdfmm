@@ -9,8 +9,6 @@
 #ifndef PDF_PARSER_H
 #define PDF_PARSER_H
 
-#include <set>
-#include <map>
 #include "PdfDefines.h"
 #include "PdfParserObject.h"
 #include "PdfXRefEntry.h"
@@ -18,10 +16,6 @@
 #include "PdfTokenizer.h"
 
 namespace PoDoFo {
-
-typedef std::map<int, PdfObject*>    TMapObjects;
-typedef TMapObjects::iterator       TIMapObjects;
-typedef TMapObjects::const_iterator TCIMapObjects;
 
 class PdfEncrypt;
 class PdfString;
@@ -41,11 +35,11 @@ class PODOFO_API PdfParser
 public:
     /** Create a new PdfParser object
      *  You have to open a PDF file using ParseFile later.
-     *  \param pVecObjects vector to write the parsed PdfObjects to
+     *  \param objects vector to write the parsed PdfObjects to
      *
      *  \see ParseFile
      */
-    PdfParser(PdfVecObjects& pVecObjects);
+    PdfParser(PdfVecObjects& objects);
 
     /** Delete the PdfParser and all PdfObjects
      */
@@ -53,8 +47,8 @@ public:
 
     /** Open a PDF file and parse it.
      *
-     *  \param pszFilename filename of the file which is going to be parsed
-     *  \param bLoadOnDemand If true all objects will be read from the file at
+     *  \param filename filename of the file which is going to be parsed
+     *  \param loadOnDemand If true all objects will be read from the file at
      *                       the time they are accessed first.
      *                       If false all objects will be read immediately.
      *                       This is faster if you do not need the complete PDF
@@ -67,13 +61,12 @@ public:
      *
      *  \see SetPassword
      */
-    void ParseFile(const std::string_view& filename, bool bLoadOnDemand = true);
+    void ParseFile(const std::string_view& filename, bool loadOnDemand = true);
 
     /** Open a PDF file and parse it.
      *
-     *  \param pBuffer buffer containing a PDF file in memory
-     *  \param lLen length of the buffer containing the PDF file
-     *  \param bLoadOnDemand If true all objects will be read from the file at
+     *  \param filename
+     *  \param loadOnDemand If true all objects will be read from the file at
      *                       the time they are accessed first.
      *                       If false all objects will be read immediately.
      *                       This is faster if you do not need the complete PDF
@@ -86,12 +79,12 @@ public:
      *
      *  \see SetPassword
      */
-    void ParseBuffer(const std::string_view& filename, bool bLoadOnDemand = true);
+    void ParseBuffer(const std::string_view& filename, bool loadOnDemand = true);
 
     /** Open a PDF file and parse it.
      *
-     *  \param rDevice the input device to read from
-     *  \param bLoadOnDemand If true all objects will be read from the file at
+     *  \param device the input device to read from
+     *  \param loadOnDemand If true all objects will be read from the file at
      *                       the time they are accessed first.
      *                       If false all objects will be read immediately.
      *                       This is faster if you do not need the complete PDF
@@ -104,7 +97,7 @@ public:
      *
      *  \see SetPassword
      */
-    void Parse(const PdfRefCountedInputDevice& rDevice, bool bLoadOnDemand = true);
+    void Parse(const PdfRefCountedInputDevice& device, bool loadOnDemand = true);
 
     /** Get the file format version of the pdf
      *  \returns the file format version as string
@@ -159,40 +152,40 @@ public:
      *
      * \returns the number of incremental updates to the parsed PDF.
      */
-    inline int GetNumberOfIncrementalUpdates() const { return m_nIncrementalUpdates; }
+    inline int GetNumberOfIncrementalUpdates() const { return m_IncrementalUpdateCount; }
 
     /** Get a reference to the sorted internal objects vector.
      *  \returns the internal objects vector.
      */
-    inline const PdfVecObjects* GetObjects() const { return m_vecObjects; }
+    inline const PdfVecObjects* GetObjects() const { return m_Objects; }
 
     /** Get the file format version of the pdf
      *  \returns the file format version as enum
      */
-    inline PdfVersion GetPdfVersion() const { return m_ePdfVersion; }
+    inline PdfVersion GetPdfVersion() const { return m_PdfVersion; }
 
     /** \returns true if this PdfParser loads all objects on demand at
      *                the time they are accessed first.
      *                The default is to load all object immediately.
      *                In this case false is returned.
      */
-    inline bool GetLoadOnDemand() const { return m_bLoadOnDemand; }
+    inline bool GetLoadOnDemand() const { return m_LoadOnDemand; }
 
     /** \returns the length of the file
      */
-    size_t GetFileSize() const { return m_nFileSize; }
+    size_t GetFileSize() const { return m_FileSize; }
 
     /**
      * \returns the parsers encryption object or nullptr if the read PDF file was not encrypted
      */
-    inline const PdfEncrypt* GetEncrypt() const { return m_pEncrypt.get(); }
+    inline const PdfEncrypt* GetEncrypt() const { return m_Encrypt.get(); }
 
     /**
      * \returns true if strict parsing mode is enabled
      *
      * \see SetStringParsing
      */
-    inline bool IsStrictParsing() const { return m_bStrictParsing; }
+    inline bool IsStrictParsing() const { return m_StrictParsing; }
 
     /**
      * Enable/disable strict parsing mode.
@@ -204,14 +197,14 @@ public:
      * already and does not recover from e.g. wrong XREF
      * tables.
      *
-     * \param bStrict new setting for strict parsing mode.
+     * \param strict new setting for strict parsing mode.
      */
-    inline void SetStrictParsing(bool bStrict) { m_bStrictParsing = bStrict; }
+    inline void SetStrictParsing(bool strict) { m_StrictParsing = strict; }
 
     /**
      * \return if broken objects are ignored while parsing
      */
-    inline bool GetIgnoreBrokenObjects() const { return m_bIgnoreBrokenObjects; }
+    inline bool GetIgnoreBrokenObjects() const { return m_IgnoreBrokenObjects; }
 
     /**
      * Specify if the parser should ignore broken
@@ -223,9 +216,9 @@ public:
      *
      * \param bBroken if true broken objects will be ignored
      */
-    inline void SetIgnoreBrokenObjects(bool bBroken) { m_bIgnoreBrokenObjects = bBroken; }
+    inline void SetIgnoreBrokenObjects(bool broken) { m_IgnoreBrokenObjects = broken; }
 
-    inline size_t GetXRefOffset() const { return m_nXRefOffset; }
+    inline size_t GetXRefOffset() const { return m_XRefOffset; }
 
     inline bool HasXRefStream() const { return m_HasXRefStream; }
 
@@ -234,29 +227,29 @@ private:
      *  and tries to find a token.
      *  The current file is positioned right after the token.
      *
-     *  \param pszToken a token to find
-     *  \param lRange range in bytes in which to search
+     *  \param token a token to find
+     *  \param range range in bytes in which to search
      *                beginning at the end of the file
      */
-    void FindToken(const PdfRefCountedInputDevice& device, const char* pszToken, size_t lRange);
+    void FindToken(const PdfRefCountedInputDevice& device, const char* token, size_t range);
 
     // Peter Petrov 23 December 2008
     /** Searches backwards from the specified position of the file
      *  and tries to find a token.
      *  The current file is positioned right after the token.
      *
-     *  \param pszToken a token to find
-     *  \param lRange range in bytes in which to search
+     *  \param token a token to find
+     *  \param range range in bytes in which to search
      *                beginning at the specified position of the file
      *  \param searchEnd specifies position
      */
-    void FindToken2(const PdfRefCountedInputDevice& device, const char* pszToken, size_t lRange, size_t searchEnd);
+    void FindToken2(const PdfRefCountedInputDevice& device, const char* token, size_t range, size_t searchEnd);
 
     /** Reads the xref sections and the trailers of the file
      *  in the correct order in the memory
      *  and takes care for linearized pdf files.
      */
-    void ReadDocumentStructure(const PdfRefCountedInputDevice& rDevice);
+    void ReadDocumentStructure(const PdfRefCountedInputDevice& device);
 
     /** hecks whether this pdf is linearized or not.
      *  Initializes the linearization directory on success.
@@ -265,9 +258,9 @@ private:
 
     /** Merge the information of this trailer object
      *  in the parsers main trailer object.
-     *  \param pTrailer take the keys to merge from this dictionary.
+     *  \param trailer take the keys to merge from this dictionary.
      */
-    void MergeTrailer(const PdfObject* pTrailer);
+    void MergeTrailer(const PdfObject& trailer);
 
     /** Read the trailer directory at the end of the file.
      */
@@ -275,40 +268,40 @@ private:
 
     /** Looks for a startxref entry at the current file position
      *  and saves its byteoffset to pXRefOffset.
-     *  \param pXRefOffset store the byte offset of the xref section into this variable.
+     *  \param xRefOffset store the byte offset of the xref section into this variable.
      */
-    void ReadXRef(const PdfRefCountedInputDevice& device, size_t* pXRefOffset);
+    void ReadXRef(const PdfRefCountedInputDevice& device, size_t* xRefOffset);
 
     /** Reads the xref table from a pdf file.
      *  If there is no xref table, ReadXRefStreamContents() is called.
-     *  \param lOffset read the table from this offset
-     *  \param bPositionAtEnd if true the xref table is not read, but the
+     *  \param offset read the table from this offset
+     *  \param positionAtEnd if true the xref table is not read, but the
      *                        file stream is positioned directly
      *                        after the table, which allows reading
      *                        a following trailer dictionary.
      */
-    void ReadXRefContents(const PdfRefCountedInputDevice& device, size_t lOffset, bool bPositionAtEnd = false);
+    void ReadXRefContents(const PdfRefCountedInputDevice& device, size_t offset, bool positionAtEnd = false);
 
     /** Read a xref subsection
      *
      *  Throws EPdfError::NoXref if the number of objects read was not
      *  the number specified by the subsection header (as passed in
-     *  `nNumObjects').
+     *  'objectCount').
      *
-     *  \param nFirstObject object number of the first object
-     *  \param nNumObjects  how many objects should be read from this section
+     *  \param firstObject object number of the first object
+     *  \param objectCount  how many objects should be read from this section
      */
-    void ReadXRefSubsection(const PdfRefCountedInputDevice& device, int64_t& nFirstObject, int64_t& nNumObjects);
+    void ReadXRefSubsection(const PdfRefCountedInputDevice& device, int64_t& firstObject, int64_t& objectCount);
 
     /** Reads an XRef stream contents object
-     *  \param lOffset read the stream from this offset
-     *  \param bReadOnlyTrailer only the trailer is skipped over, the contents
+     *  \param offset read the stream from this offset
+     *  \param readOnlyTrailer only the trailer is skipped over, the contents
      *         of the xref stream are not parsed
      */
-    void ReadXRefStreamContents(const PdfRefCountedInputDevice& device, size_t lOffset, bool bReadOnlyTrailer);
+    void ReadXRefStreamContents(const PdfRefCountedInputDevice& device, size_t offset, bool readOnlyTrailer);
 
     /** Reads all objects from the pdf into memory
-     *  from the offsets listed in m_vecOffsets.
+     *  from the previously read entries
      *
      *  If required an encryption object is setup first.
      *
@@ -319,7 +312,7 @@ private:
     void ReadObjects(const PdfRefCountedInputDevice& device);
 
     /** Reads all objects from the pdf into memory
-     *  from the offsets listed in m_vecOffsets.
+     *  from the previously read entries
      *
      *  Requires a correctly setup PdfEncrypt object
      *  with correct password.
@@ -332,21 +325,21 @@ private:
      */
     void ReadObjectsInternal(const PdfRefCountedInputDevice& device);
 
-    /** Read the object with index nIndex from the object stream nObjNo
-     *  and push it on the objects vector m_vecOffsets.
+    /** Read the object with index from the object stream nObjNo
+     *  and push it on the objects vector
      *
      *  All objects are read from this stream and the stream object
      *  is free'd from memory. Further calls who try to read from the
      *  same stream simply do nothing.
      *
-     *  \param nObjNo object number of the stream object
-     *  \param nIndex index of the object which should be parsed
+     *  \param objNo object number of the stream object
+     *  \param index index of the object which should be parsed
      *
      */
-    void ReadCompressedObjectFromStream(uint32_t nObjNo, int nIndex);
+    void ReadCompressedObjectFromStream(uint32_t objNo, int index);
 
     /** Checks the magic number at the start of the pdf file
-     *  and sets the m_ePdfVersion member to the correct version
+     *  and sets the m_PdfVersion member to the correct version
      *  of the pdf file.
      *
      *  \returns true if this is a pdf file, otherwise false
@@ -386,45 +379,45 @@ private:
     void UpdateDocumentVersion();
 
 
-    /** Resize the internal structure m_offsets in a safe manner.
+    /** Resize the internal entries structure in a safe manner.
      *  The limit for the maximum number of indirect objects in a PDF file is checked by this method.
      *  The maximum is 2^23-1 (8.388.607).
      *
-     *  \param nNewSize new size of the vector
+     *  \param newSize new size of the vector
      */
-    void ResizeOffsets(size_t nNewSize);
+    void ResizeEntries(size_t newSize);
 
 private:
     PdfRefCountedBuffer m_buffer;
     PdfTokenizer m_tokenizer;
 
-    PdfVersion   m_ePdfVersion;
-    bool          m_bLoadOnDemand;
+    PdfVersion m_PdfVersion;
+    bool m_LoadOnDemand;
 
-    size_t        m_magicOffset;
-    bool          m_HasXRefStream;
-    size_t        m_nXRefOffset;
-    unsigned m_nNumObjects;
-    size_t        m_nXRefLinearizedOffset;
-    size_t        m_nFileSize;
-    size_t        m_lLastEOFOffset;
+    size_t m_magicOffset;
+    bool m_HasXRefStream;
+    size_t m_XRefOffset;
+    unsigned m_objectCount;
+    size_t m_XRefLinearizedOffset;
+    size_t m_FileSize;
+    size_t m_LastEOFOffset;
 
-    TVecEntries   m_entries;
-    PdfVecObjects* m_vecObjects;
+    PdfXRefEntries m_entries;
+    PdfVecObjects* m_Objects;
 
-    std::unique_ptr<PdfParserObject> m_pTrailer;
-    std::unique_ptr<PdfParserObject> m_pLinearization;
-    std::unique_ptr<PdfEncrypt> m_pEncrypt;
+    std::unique_ptr<PdfParserObject> m_Trailer;
+    std::unique_ptr<PdfParserObject> m_Linearization;
+    std::unique_ptr<PdfEncrypt> m_Encrypt;
 
     std::string m_password;
 
-    std::set<int> m_setObjectStreams;
+    std::set<int> m_ObjectStreams;
 
-    bool          m_bStrictParsing;
-    bool          m_bIgnoreBrokenObjects;
+    bool m_StrictParsing;
+    bool m_IgnoreBrokenObjects;
 
-    int           m_nIncrementalUpdates;
-    int           m_nRecursionDepth;
+    unsigned m_IncrementalUpdateCount;
+    unsigned m_RecursionDepth;
 
     std::set<size_t> m_visitedXRefOffsets;
 };

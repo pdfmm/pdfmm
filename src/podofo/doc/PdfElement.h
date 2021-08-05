@@ -41,14 +41,14 @@ public:
     /** Get access to the internal object
      *  \returns the internal PdfObject
      */
-    inline PdfObject& GetObject() { return *m_pObject; }
+    inline PdfObject& GetObject() { return *m_Object; }
 
     /** Get access to the internal object
      *  This is an overloaded member function.
      *
      *  \returns the internal PdfObject
      */
-    inline const PdfObject& GetObject() const { return *m_pObject; }
+    inline const PdfObject& GetObject() const { return *m_Object; }
 
     PdfDocument& GetDocument();
 
@@ -56,19 +56,16 @@ public:
 
 protected:
     /** Creates a new PdfElement
-     *  \param pszType type entry of the elements object
-     *  \param pParent parent PdfDocument.
+     *  \param type type entry of the elements object
+     *  \param parent parent PdfDocument.
      *                 Add a newly created object to this vector.
      */
-    PdfElement(PdfDocument& pParent, const std::string_view& type = { });
+    PdfElement(PdfDocument& parent, const std::string_view& type = { });
 
     /** Create a PdfElement from an existing PdfObject
      *  The object must be a dictionary.
      *
-     *  \param pszType type entry of the elements object.
-     *                 Throws an exception if the type in the
-     *                 PdfObject differs from pszType.
-     *  \param pObject pointer to the PdfObject that is modified
+     *  \param obj pointer to the PdfObject that is modified
      *                 by this PdfElement
      */
     PdfElement(PdfObject& obj);
@@ -79,11 +76,11 @@ protected:
      *  if not of the same datatype as the expected one.
      *  This is necessary in rare cases. E.g. in PdfContents.
      *
-     *  \param eExpectedDataType the expected datatype of this object
-     *  \param pObject pointer to the PdfObject that is modified
+     *  \param expectedDataType the expected datatype of this object
+     *  \param obj pointer to the PdfObject that is modified
      *                 by this PdfElement
      */
-    PdfElement(EPdfDataType eExpectedDataType, PdfObject& obj);
+    PdfElement(EPdfDataType expectedDataType, PdfObject& obj);
 
     PdfElement(const PdfElement& element);
 
@@ -94,10 +91,10 @@ protected:
      *  subclasses that need strings and enums for their
      *  SubTypes keys.
      *
-     *  \param i the index or enum value
-     *  \param ppTypes an array of strings containing
+     *  \param index the index or enum value
+     *  \param types an array of strings containing
      *         the string mapping of the index
-     *  \param lLen the length of the string array
+     *  \param len the length of the string array
      *
      *  \returns the string representation or nullptr for
      *           values out of range
@@ -110,11 +107,11 @@ protected:
      *  subclasses that need strings and enums for their
      *  SubTypes keys.
      *
-     *  \param pszType the type as string
-     *  \param ppTypes an array of strings containing
+     *  \param type the type as string
+     *  \param types an array of strings containing
      *         the string mapping of the index
-     *  \param lLen the length of the string array
-     *  \param nUnknownValue the value that is returned when the type is unknown
+     *  \param len the length of the string array
+     *  \param unknownValue the value that is returned when the type is unknown
      *
      *  \returns the index of the string in the array
      */
@@ -127,14 +124,14 @@ protected:
      *  Use this function in an own subclass of PdfElement to create new
      *  PdfObjects.
      *
-     *  \param pszType an optional /Type key of the created object
+     *  \param type an optional /Type key of the created object
      *
      *  \returns a PdfObject which is owned by the parent
      */
     PdfObject* CreateObject(const std::string_view& type = { });
 
 private:
-    PdfObject* m_pObject;
+    PdfObject* m_Object;
 };
 
 };

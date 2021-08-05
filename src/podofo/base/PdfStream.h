@@ -56,8 +56,8 @@ public:
     virtual ~PdfStream();
 
     /** Write the stream to an output device
-     *  \param pDevice write to this outputdevice.
-     *  \param pEncrypt encrypt stream data using this object
+     *  \param device write to this outputdevice.
+     *  \param encrypt encrypt stream data using this object
      */
     virtual void Write(PdfOutputDevice& device, const PdfEncrypt* encrypt) = 0;
 
@@ -69,7 +69,7 @@ public:
      *  \param view buffer containing the stream data
      *  \param filters a list of filters to use when appending data
      */
-    void Set(const std::string_view& view, const TVecFilters& filters);
+    void Set(const std::string_view& view, const PdfFilterList& filters);
 
     /** Set a binary buffer as stream data.
      *
@@ -77,10 +77,10 @@ public:
      * of the stream dictionary's existing filter key.
      *
      *  \param buffer buffer containing the stream data
-     *  \param lLen length of the buffer
+     *  \param len length of the buffer
      *  \param filters a list of filters to use when appending data
      */
-    void Set(const char* buffer, size_t len, const TVecFilters& filters);
+    void Set(const char* buffer, size_t len, const PdfFilterList& filters);
 
     /** Set a binary buffer as stream data.
      *  All data will be Flate-encoded.
@@ -93,35 +93,35 @@ public:
      *  All data will be Flate-encoded.
      *
      *  \param buffer buffer containing the stream data
-     *  \param lLen length of the buffer
+     *  \param len length of the buffer
      */
     void Set(const char* buffer, size_t len);
 
     /** Set a binary buffer whose contents are read from a PdfInputStream
      *  All data will be Flate-encoded.
      *
-     *  \param pStream read stream contents from this PdfInputStream
+     *  \param stream read stream contents from this PdfInputStream
      */
-    void Set(PdfInputStream& pStream);
+    void Set(PdfInputStream& stream);
 
     /** Set a binary buffer whose contents are read from a PdfInputStream
      *
      * Use PdfFilterFactory::CreateFilterList() if you want to use the contents
      * of the stream dictionary's existing filter key.
      *
-     *  \param pStream read stream contents from this PdfInputStream
+     *  \param stream read stream contents from this PdfInputStream
      *  \param filters a list of filters to use when appending data
      */
-    void Set(PdfInputStream& pStream, const TVecFilters& filters);
+    void Set(PdfInputStream& stream, const PdfFilterList& filters);
 
     /** Sets raw data for this stream which is read from an input stream.
      *  This method does neither encode nor decode the read data.
      *  The filters of the object are not modified and the data is expected
      *  encoded as stated by the /Filters key in the stream's object.
      *
-     *  \param pStream read data from this input stream
-     *  \param lLen    read exactly lLen bytes from the input stream,
-     *                 if lLen = -1 read until the end of the input stream
+     *  \param stream read data from this input stream
+     *  \param len    read exactly len bytes from the input stream,
+     *                 if len = -1 read until the end of the input stream
      *                 was reached.
      */
     void SetRawData(PdfInputStream& stream, ssize_t len = -1);
@@ -155,7 +155,7 @@ public:
      *  \see Append
      *  \see EndAppend
      */
-    void BeginAppend(const TVecFilters& filters, bool clearExisting = true, bool deleteFilters = true);
+    void BeginAppend(const PdfFilterList& filters, bool clearExisting = true, bool deleteFilters = true);
 
     /** Append a binary buffer to the current stream contents.
      *
@@ -212,15 +212,15 @@ public:
      *
      *  The caller has to the buffer.
      *
-     *  \param pBuffer pointer to the buffer
-     *  \param lLen    pointer to the buffer length
+     *  \param buffer pointer to the buffer
+     *  \param len    pointer to the buffer length
      */
      // TODO: Move to std::unique_ptr<char>
     virtual void GetCopy(char** buffer, size_t* len) const = 0;
 
     /** Get a copy of a the stream and write it to a PdfOutputStream
      *
-     *  \param pStream data is written to this stream.
+     *  \param stream data is written to this stream.
      */
     virtual void GetCopy(PdfOutputStream& stream) const = 0;
 
@@ -231,14 +231,14 @@ public:
      *
      *  The caller has to the buffer.
      *
-     *  \param pBuffer pointer to the buffer
-     *  \param lLen    pointer to the buffer length
+     *  \param buffer pointer to the buffer
+     *  \param len    pointer to the buffer length
      */
     void GetFilteredCopy(std::unique_ptr<char>& buffer, size_t& len) const;
 
     /** Get a filtered copy of a the stream and write it to a PdfOutputStream
      *
-     *  \param pStream filtered data is written to this stream.
+     *  \param stream filtered data is written to this stream.
      */
     void GetFilteredCopy(PdfOutputStream& stream) const;
 
@@ -268,12 +268,12 @@ protected:
      *  \param filters use these filters to encode any data written
      *         to the stream.
      */
-    virtual void BeginAppendImpl(const TVecFilters& filters) = 0;
+    virtual void BeginAppendImpl(const PdfFilterList& filters) = 0;
 
     /** Append a binary buffer to the current stream contents.
      *
      *  \param data a buffer
-     *  \param lLen length of the buffer
+     *  \param len length of the buffer
      *
      *  \see BeginAppend
      *  \see Append
@@ -298,7 +298,7 @@ private:
 
     void SetRawData(PdfInputStream& stream, ssize_t len, bool markObjectDirty);
 
-    void BeginAppend(const TVecFilters& filters, bool clearExisting, bool deleteFilters, bool markObjectDirty);
+    void BeginAppend(const PdfFilterList& filters, bool clearExisting, bool deleteFilters, bool markObjectDirty);
 
 protected:
     PdfObject* m_Parent;

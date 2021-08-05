@@ -53,7 +53,7 @@ protected:
 private:
     bool FindSeac(const char* buffer, size_t length);
 
-    ptrdiff_t FindInBuffer(const char* pszNeedle, const char* pszHaystack, size_t lLen) const;
+    ptrdiff_t FindInBuffer(const char* needle, const char* haystack, size_t len) const;
 };
 
 };

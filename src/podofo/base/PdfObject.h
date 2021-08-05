@@ -88,35 +88,35 @@ public:
     /** Construct a PdfObject with object and generation number -1
      *  and a PdfString as value.
      *
-     *  \param rsString the string value of this PdfObject
+     *  \param str the string value of this PdfObject
      */
     PdfObject(const PdfString& str);
 
     /** Construct a PdfObject with object and generation number -1
      *  and a PdfName as value.
      *
-     *  \param rName the value of this PdfObject
+     *  \param name the value of this PdfObject
      */
     PdfObject(const PdfName& name);
 
     /** Construct a PdfObject with object and generation number -1
      *  and a PdfReference as value.
      *
-     *  \param rRef the value of the this PdfObject
+     *  \param ref the value of the this PdfObject
      */
     PdfObject(const PdfReference& ref);
 
     /** Construct a PdfObject with object and generation number -1
      *  and a PdfArray as value.
      *
-     *  \param tList the value of the this PdfObject
+     *  \param arr the value of the this PdfObject
      */
     PdfObject(const PdfArray& arr);
 
     /** Construct a PdfObject with object and generation number -1
      *  and a PdfDictionary as value.
      *
-     *  \param rDict the value of the this PdfObject
+     *  \param dict the value of the this PdfObject
      */
     PdfObject(const PdfDictionary& dict);
 
@@ -194,8 +194,8 @@ public:
 
     /** Converts the current object into a string representation
      *  which can be written directly to a PDF file on disc.
-     *  \param rsData the object string is returned in this object.
-     *  \param eWriteMode additional options for writing to a string
+     *  \param data the object string is returned in this object.
+     *  \param writeMode additional options for writing to a string
      */
     void ToString(std::string& data, PdfWriteMode writeMode = PdfWriteMode::Clean) const;
 
@@ -314,17 +314,17 @@ public:
     void ForceCreateStream();
 
     /** Write the complete object to a file.
-     *  \param pDevice write the object to this device
-     *  \param pEncrypt an encryption object which is used to encrypt this object
+     *  \param device write the object to this device
+     *  \param encrypt an encryption object which is used to encrypt this object
      *                  or nullptr to not encrypt this object
-     *  \param eWriteMode additional options for writing the object
+     *  \param writeMode additional options for writing the object
      *  \param keyStop if not KeyNull and a key == keyStop is found
      *                 writing will stop right before this key!
      */
     void Write(PdfOutputDevice& device, PdfWriteMode writeMode, PdfEncrypt* encrypt) const;
 
     /** Get the length of the object in bytes if it was written to disk now.
-     *  \param eWriteMode additional options for writing the object
+     *  \param writeMode additional options for writing the object
      *  \returns  the length of the object
      */
     size_t GetObjectLength(PdfWriteMode writeMode);
@@ -362,7 +362,7 @@ public:
      * Sets this object to immutable,
      * so that no keys can be edited or changed.
      *
-     * @param isImmutable if true set the object to be immutable
+     * \param isImmutable if true set the object to be immutable
      *
      * This is used by PdfImmediateWriter and PdfStreamedDocument so
      * that no keys can be added to an object after setting stream data on it.
@@ -510,7 +510,7 @@ protected:
     /** Set the owner of this object, i.e. the PdfVecObjects to which
      *  this object belongs.
      *
-     *  \param pVecObjects a vector of pdf objects
+     *  \param objects a vector of pdf objects
      */
     void SetDocument(PdfDocument& document);
 

@@ -57,10 +57,10 @@ public:
     /** Create a new PdfName object from a string containing an escaped
      *  name string without the leading / .
      *
-     *  \param sName A string containing the escaped name
+     *  \param name A string containing the escaped name
      *  \return A new PdfName
      */
-    static PdfName FromEscaped(const std::string_view& sName);
+    static PdfName FromEscaped(const std::string_view& name);
 
     /** \return an escaped representation of this name
      *          without the leading / .
@@ -70,7 +70,7 @@ public:
      */
     std::string GetEscapedName() const;
 
-    void Write(PdfOutputDevice& pDevice, PdfWriteMode eWriteMode, const PdfEncrypt* pEncrypt) const override;
+    void Write(PdfOutputDevice& device, PdfWriteMode writeMode, const PdfEncrypt* encrypt) const override;
 
     /** \returns the unescaped value of this name object
      *           without the leading slash

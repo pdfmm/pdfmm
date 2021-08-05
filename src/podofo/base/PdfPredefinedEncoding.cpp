@@ -19,21 +19,21 @@ using namespace std;
 using namespace PoDoFo;
 
 
-PdfPredefinedEncoding::PdfPredefinedEncoding(const PdfName& rName)
-    : PdfEncodingMapSimple({ 1, 1, PdfCharCode(0), PdfCharCode(0xFF) }), m_name(rName)
+PdfPredefinedEncoding::PdfPredefinedEncoding(const PdfName& name)
+    : PdfEncodingMapSimple({ 1, 1, PdfCharCode(0), PdfCharCode(0xFF) }), m_name(name)
 {
 }
 
 void PdfPredefinedEncoding::InitEncodingTable()
 {
-    if (!m_pEncodingTable.empty())
+    if (!m_EncodingTable.empty())
         return;
 
     const char32_t* cpUnicodeTable = this->GetToUnicodeTable();
     for (size_t i = 0; i < 256; i++)
     {
         // fill the table with data
-        m_pEncodingTable[cpUnicodeTable[i]] =
+        m_EncodingTable[cpUnicodeTable[i]] =
             static_cast<unsigned char>(i);
     }
 }
@@ -48,8 +48,8 @@ void PdfPredefinedEncoding::getExportObject(PdfVecObjects& objects, PdfName& nam
 bool PdfPredefinedEncoding::tryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const
 {
     const_cast<PdfPredefinedEncoding*>(this)->InitEncodingTable();
-    auto found = m_pEncodingTable.find(codePoint);
-    if (found == m_pEncodingTable.end())
+    auto found = m_EncodingTable.find(codePoint);
+    if (found == m_EncodingTable.end())
     {
         codeUnit = { };
         return false;

@@ -37,16 +37,16 @@ public:
 
     /** Create a new PdfRefCountedInputDevice which operates on a in memory buffer
      *
-     *  \param pBuffer pointer to the buffer
-     *  \param lLen length of the buffer
+     *  \param buffer pointer to the buffer
+     *  \param len length of the buffer
      */
-    PdfRefCountedInputDevice(const char* pBuffer, size_t lLen);
+    PdfRefCountedInputDevice(const char* buffer, size_t len);
 
     /** Create a new PdfRefCountedInputDevice from an PdfInputDevice
      *
-     *  \param pDevice the input device. It will be owned and deleted by this object.
+     *  \param device the input device. It will be owned and deleted by this object.
      */
-    PdfRefCountedInputDevice(PdfInputDevice* pDevice);
+    PdfRefCountedInputDevice(PdfInputDevice* device);
 
     /** Copy an existing PdfRefCountedInputDevice and increase
      *  the reference count
@@ -79,11 +79,11 @@ private:
 private:
     typedef struct
     {
-        PdfInputDevice* m_pDevice;
-        unsigned m_lRefCount;
+        PdfInputDevice* Device;
+        unsigned RefCount;
     } TRefCountedInputDevice;
 
-    TRefCountedInputDevice* m_pDevice;
+    TRefCountedInputDevice* m_Device;
 };
 
 };

@@ -51,10 +51,10 @@ optional<PdfString>  PdfPushButton::GetRolloverCaption() const
     return { };
 }
 
-void PdfPushButton::SetAlternateCaption(const PdfString& rsText)
+void PdfPushButton::SetAlternateCaption(const PdfString& text)
 {
     auto mk = this->GetAppearanceCharacteristics(true);
-    mk->GetDictionary().AddKey("AC", rsText);
+    mk->GetDictionary().AddKey("AC", text);
 
 }
 

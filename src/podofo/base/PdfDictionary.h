@@ -139,7 +139,7 @@ public:
      * The returned value is a pointer to the internal object in the dictionary
      * so it MUST not be deleted.
      *
-     *  \param key look for the key names pszKey in the dictionary
+     *  \param key look for the key names key in the dictionary
      *  \returns pointer to the found value or 0 if the key was not found.
      */
     const PdfObject* FindKey(const PdfName& key) const;
@@ -154,7 +154,7 @@ public:
      * The returned value is a pointer to the internal object in the dictionary
      * so it MUST not be deleted.
      *
-     *  \param key look for the key names pszKey in the dictionary
+     *  \param key look for the key names key in the dictionary
      *  \returns pointer to the found value or 0 if the key was not found.
      */
     const PdfObject* FindKeyParent(const PdfName& key) const;
@@ -232,13 +232,13 @@ protected:
 
 private:
     PdfObject& addKey(const PdfName& key, const PdfObject& obj);
-    std::pair<iterator, bool> addKey(const PdfName& identifier, const PdfObject& rObject, bool noDirtySet);
+    std::pair<iterator, bool> addKey(const PdfName& identifier, const PdfObject& obj, bool noDirtySet);
     PdfObject* getKey(const PdfName& key) const;
     PdfObject* findKey(const PdfName& key) const;
     PdfObject* findKeyParent(const PdfName& key) const;
 
 private:
-    Map m_mapKeys;
+    Map m_Map;
 };
 
 template<typename T>

@@ -24,7 +24,7 @@ using namespace std;
 using namespace PoDoFo;
 
 PdfXObject::PdfXObject(PdfDocument& doc, const PdfRect& rect, const string_view& prefix, bool withoutObjNum)
-    : PdfElement(doc, "XObject"), m_rRect(rect), m_pResources(nullptr)
+    : PdfElement(doc, "XObject"), m_Rect(rect), m_Resources(nullptr)
 {
     InitXObject(rect, prefix);
     if (withoutObjNum)
@@ -32,9 +32,9 @@ PdfXObject::PdfXObject(PdfDocument& doc, const PdfRect& rect, const string_view&
 }
 
 PdfXObject::PdfXObject(PdfDocument& doc, const PdfDocument& sourceDoc, unsigned pageIndex, const string_view& prefix, bool useTrimBox)
-    : PdfElement(doc, "XObject"), m_pResources(nullptr)
+    : PdfElement(doc, "XObject"), m_Resources(nullptr)
 {
-    InitXObject(m_rRect, prefix);
+    InitXObject(m_Rect, prefix);
 
     // Implementation note: source document must be different from distination
     if (&doc == reinterpret_cast<const PdfDocument*>(&sourceDoc))
@@ -43,36 +43,36 @@ PdfXObject::PdfXObject(PdfDocument& doc, const PdfDocument& sourceDoc, unsigned 
     }
 
     // After filling set correct BBox, independent of rotation
-    m_rRect = doc.FillXObjectFromDocumentPage(*this, sourceDoc, pageIndex, useTrimBox);
+    m_Rect = doc.FillXObjectFromDocumentPage(*this, sourceDoc, pageIndex, useTrimBox);
 
     InitAfterPageInsertion(sourceDoc, pageIndex);
 }
 
 PdfXObject::PdfXObject(PdfDocument& doc, unsigned pageIndex, const string_view& prefix, bool useTrimBox)
-    : PdfElement(doc, "XObject"), PdfCanvas(), m_pResources(nullptr)
+    : PdfElement(doc, "XObject"), PdfCanvas(), m_Resources(nullptr)
 {
-    m_rRect = PdfRect();
+    m_Rect = PdfRect();
 
-    InitXObject(m_rRect, prefix);
+    InitXObject(m_Rect, prefix);
 
     // After filling set correct BBox, independent of rotation
-    m_rRect = doc.FillXObjectFromExistingPage(*this, pageIndex, useTrimBox);
+    m_Rect = doc.FillXObjectFromExistingPage(*this, pageIndex, useTrimBox);
 
     InitAfterPageInsertion(doc, pageIndex);
 }
 
 PdfXObject::PdfXObject(PdfObject& obj)
-    : PdfElement(obj), PdfCanvas(), m_pResources(nullptr)
+    : PdfElement(obj), PdfCanvas(), m_Resources(nullptr)
 {
     InitIdentifiers(getPdfXObjectType(obj), { });
-    m_pResources = obj.GetDictionary().FindKey("Resources");
+    m_Resources = obj.GetDictionary().FindKey("Resources");
 
     if (obj.GetDictionary().HasKey("BBox"))
-        m_rRect = PdfRect(obj.GetDictionary().MustFindKey("BBox").GetArray());
+        m_Rect = PdfRect(obj.GetDictionary().MustFindKey("BBox").GetArray());
 }
 
 PdfXObject::PdfXObject(PdfDocument& doc, PdfXObjectType subType, const string_view& prefix)
-    : PdfElement(doc, "XObject"), m_pResources(nullptr)
+    : PdfElement(doc, "XObject"), m_Resources(nullptr)
 {
     InitIdentifiers(subType, prefix);
 
@@ -80,7 +80,7 @@ PdfXObject::PdfXObject(PdfDocument& doc, PdfXObjectType subType, const string_vi
 }
 
 PdfXObject::PdfXObject(PdfObject& obj, PdfXObjectType subType)
-    : PdfElement(obj), m_pResources(nullptr)
+    : PdfElement(obj), m_Resources(nullptr)
 {
     if (getPdfXObjectType(obj) != subType)
     {
@@ -164,7 +164,7 @@ PdfXObjectType PdfXObject::FromString(const string& str)
 void PdfXObject::InitAfterPageInsertion(const PdfDocument& doc, unsigned pageIndex)
 {
     PdfVariant var;
-    m_rRect.ToVariant(var);
+    m_Rect.ToVariant(var);
     this->GetObject().GetDictionary().AddKey("BBox", var);
 
     int rotation = doc.GetPageTree().GetPage(pageIndex).GetRotationRaw();
@@ -180,13 +180,13 @@ void PdfXObject::InitAfterPageInsertion(const PdfDocument& doc, unsigned pageInd
         {
             double temp;
 
-            temp = m_rRect.GetWidth();
-            m_rRect.SetWidth(m_rRect.GetHeight());
-            m_rRect.SetHeight(temp);
+            temp = m_Rect.GetWidth();
+            m_Rect.SetWidth(m_Rect.GetHeight());
+            m_Rect.SetHeight(temp);
 
-            temp = m_rRect.GetLeft();
-            m_rRect.SetLeft(m_rRect.GetBottom());
-            m_rRect.SetBottom(temp);
+            temp = m_Rect.GetLeft();
+            m_Rect.SetLeft(m_Rect.GetBottom());
+            m_Rect.SetBottom(temp);
         }
         break;
 
@@ -207,24 +207,24 @@ void PdfXObject::InitAfterPageInsertion(const PdfDocument& doc, unsigned pageInd
     switch (rotation)
     {
         case 90:
-            e = -m_rRect.GetLeft();
-            f = m_rRect.GetBottom() + m_rRect.GetHeight();
+            e = -m_Rect.GetLeft();
+            f = m_Rect.GetBottom() + m_Rect.GetHeight();
             break;
 
         case 180:
-            e = m_rRect.GetLeft() + m_rRect.GetWidth();
-            f = m_rRect.GetBottom() + m_rRect.GetHeight();
+            e = m_Rect.GetLeft() + m_Rect.GetWidth();
+            f = m_Rect.GetBottom() + m_Rect.GetHeight();
             break;
 
         case 270:
-            e = m_rRect.GetLeft() + m_rRect.GetWidth();
-            f = -m_rRect.GetBottom();
+            e = m_Rect.GetLeft() + m_Rect.GetWidth();
+            f = -m_Rect.GetBottom();
             break;
 
         case 0:
         default:
-            e = -m_rRect.GetLeft();
-            f = -m_rRect.GetBottom();
+            e = -m_Rect.GetLeft();
+            f = -m_Rect.GetBottom();
             break;
     }
 
@@ -241,7 +241,7 @@ void PdfXObject::InitAfterPageInsertion(const PdfDocument& doc, unsigned pageInd
 
 PdfRect PdfXObject::GetRect() const
 {
-    return m_rRect;
+    return m_Rect;
 }
 
 bool PdfXObject::HasRotation(double& teta) const
@@ -255,12 +255,12 @@ void PdfXObject::SetRect(const PdfRect& rect)
     PdfVariant array;
     rect.ToVariant(array);
     GetObject().GetDictionary().AddKey("BBox", array);
-    m_rRect = rect;
+    m_Rect = rect;
 }
 
 void PdfXObject::EnsureResourcesInitialized()
 {
-    if (m_pResources == nullptr)
+    if (m_Resources == nullptr)
         InitResources();
 
     // A Form XObject must have a stream
@@ -273,7 +273,7 @@ inline PdfStream& PdfXObject::GetStreamForAppending(EPdfStreamAppendFlags flags)
     return GetObject().GetOrCreateStream();
 }
 
-void PdfXObject::InitXObject(const PdfRect& rRect, const string_view& prefix)
+void PdfXObject::InitXObject(const PdfRect& rect, const string_view& prefix)
 {
     InitIdentifiers(PdfXObjectType::Form, prefix);
 
@@ -281,16 +281,16 @@ void PdfXObject::InitXObject(const PdfRect& rRect, const string_view& prefix)
     if (m_matrix.empty())
     {
         // This matrix is the same for all PdfXObjects so cache it
-        m_matrix.push_back(PdfVariant(static_cast<int64_t>(1)));
-        m_matrix.push_back(PdfVariant(static_cast<int64_t>(0)));
-        m_matrix.push_back(PdfVariant(static_cast<int64_t>(0)));
-        m_matrix.push_back(PdfVariant(static_cast<int64_t>(1)));
-        m_matrix.push_back(PdfVariant(static_cast<int64_t>(0)));
-        m_matrix.push_back(PdfVariant(static_cast<int64_t>(0)));
+        m_matrix.push_back(PdfObject(static_cast<int64_t>(1)));
+        m_matrix.push_back(PdfObject(static_cast<int64_t>(0)));
+        m_matrix.push_back(PdfObject(static_cast<int64_t>(0)));
+        m_matrix.push_back(PdfObject(static_cast<int64_t>(1)));
+        m_matrix.push_back(PdfObject(static_cast<int64_t>(0)));
+        m_matrix.push_back(PdfObject(static_cast<int64_t>(0)));
     }
 
-    PdfVariant    var;
-    rRect.ToVariant(var);
+    PdfVariant var;
+    rect.ToVariant(var);
     this->GetObject().GetDictionary().AddKey("BBox", var);
     this->GetObject().GetDictionary().AddKey(PdfName::KeySubtype, PdfName(ToString(PdfXObjectType::Form)));
     this->GetObject().GetDictionary().AddKey("FormType", PdfVariant(static_cast<int64_t>(1))); // only 1 is only defined in the specification.
@@ -319,9 +319,9 @@ void PdfXObject::InitIdentifiers(PdfXObjectType subType, const string_view& pref
 void PdfXObject::InitResources()
 {
     // The PDF specification suggests that we send all available PDF Procedure sets
-    this->GetObject().GetDictionary().AddKey("Resources", PdfObject(PdfDictionary()));
-    m_pResources = this->GetObject().GetDictionary().GetKey("Resources");
-    m_pResources->GetDictionary().AddKey("ProcSet", PdfCanvas::GetProcSet());
+    this->GetObject().GetDictionary().AddKey("Resources", PdfDictionary());
+    m_Resources = this->GetObject().GetDictionary().GetKey("Resources");
+    m_Resources->GetDictionary().AddKey("ProcSet", PdfCanvas::GetProcSet());
 }
 
 
@@ -333,5 +333,5 @@ PdfObject& PdfXObject::GetContents()
 PdfObject& PdfXObject::GetResources()
 {
     const_cast<PdfXObject&>(*this).EnsureResourcesInitialized();
-    return *m_pResources;
+    return *m_Resources;
 }

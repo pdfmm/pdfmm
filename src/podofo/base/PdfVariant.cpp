@@ -28,22 +28,22 @@ PdfVariant::PdfVariant(EPdfDataType type)
 PdfVariant::PdfVariant()
     : PdfVariant(EPdfDataType::Null) { }
 
-PdfVariant::PdfVariant(bool b)
+PdfVariant::PdfVariant(bool value)
     : PdfVariant(EPdfDataType::Bool)
 {
-    m_Data.Bool = b;
+    m_Data.Bool = value;
 }
 
-PdfVariant::PdfVariant(int64_t l)
+PdfVariant::PdfVariant(int64_t value)
     : PdfVariant(EPdfDataType::Number)
 {
-    m_Data.Number = l;
+    m_Data.Number = value;
 }
 
-PdfVariant::PdfVariant(double d)
+PdfVariant::PdfVariant(double value)
     : PdfVariant(EPdfDataType::Real)
 {
-    m_Data.Real = d;
+    m_Data.Real = value;
 }
 
 PdfVariant::PdfVariant(const PdfString& str)
@@ -754,15 +754,15 @@ bool PdfVariant::tryGetArray(PdfArray*& arr) const
     return true;
 }
 
-void PdfVariant::SetBool(bool b)
+void PdfVariant::SetBool(bool value)
 {
     if (m_DataType != EPdfDataType::Bool)
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
 
-    m_Data.Bool = b;
+    m_Data.Bool = value;
 }
 
-void PdfVariant::SetNumber(int64_t l)
+void PdfVariant::SetNumber(int64_t value)
 {
     if (!(m_DataType == EPdfDataType::Number
         || m_DataType == EPdfDataType::Real))
@@ -771,12 +771,12 @@ void PdfVariant::SetNumber(int64_t l)
     }
 
     if (m_DataType == EPdfDataType::Real)
-        m_Data.Real = static_cast<double>(l);
+        m_Data.Real = static_cast<double>(value);
     else
-        m_Data.Number = l;
+        m_Data.Number = value;
 }
 
-void PdfVariant::SetReal(double d)
+void PdfVariant::SetReal(double value)
 {
     if (!(m_DataType == EPdfDataType::Real
         || m_DataType == EPdfDataType::Number))
@@ -785,9 +785,9 @@ void PdfVariant::SetReal(double d)
     }
 
     if (m_DataType == EPdfDataType::Number)
-        m_Data.Number = static_cast<int64_t>(std::round(d));
+        m_Data.Number = static_cast<int64_t>(std::round(value));
     else
-        m_Data.Real = d;
+        m_Data.Real = value;
 }
 
 void PdfVariant::SetName(const PdfName& name)

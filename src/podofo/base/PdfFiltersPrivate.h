@@ -70,21 +70,21 @@ public:
 
     inline bool CanEncode() const override { return true; }
 
-    void EncodeBlockImpl(const char* pBuffer, size_t lLen) override;
+    void EncodeBlockImpl(const char* buffer, size_t len) override;
 
     inline bool CanDecode() const override { return true; }
 
     void BeginDecodeImpl(const PdfDictionary*) override;
 
-    void DecodeBlockImpl(const char* pBuffer, size_t lLen) override;
+    void DecodeBlockImpl(const char* buffer, size_t len) override;
 
     void EndDecodeImpl() override;
 
     inline PdfFilterType GetType() const override { return PdfFilterType::ASCIIHexDecode; }
 
 private:
-    char m_cDecodedByte;
-    bool m_bLow;
+    char m_DecodedByte;
+    bool m_Low;
 };
 
 /** The Ascii85 filter.
@@ -98,7 +98,7 @@ public:
 
     void BeginEncodeImpl() override;
 
-    void EncodeBlockImpl(const char* pBuffer, size_t lLen) override;
+    void EncodeBlockImpl(const char* buffer, size_t len) override;
 
     void EndEncodeImpl() override;
 
@@ -106,7 +106,7 @@ public:
 
     void BeginDecodeImpl(const PdfDictionary*) override;
 
-    void DecodeBlockImpl(const char* pBuffer, size_t lLen) override;
+    void DecodeBlockImpl(const char* buffer, size_t len) override;
 
     void EndDecodeImpl() override;
 
@@ -134,7 +134,7 @@ public:
 
     void BeginEncodeImpl() override;
 
-    void EncodeBlockImpl(const char* pBuffer, size_t lLen) override;
+    void EncodeBlockImpl(const char* buffer, size_t len) override;
 
     void EndEncodeImpl() override;
 
@@ -142,20 +142,20 @@ public:
 
     void BeginDecodeImpl(const PdfDictionary* pDecodeParms) override;
 
-    void DecodeBlockImpl(const char* pBuffer, size_t lLen) override;
+    void DecodeBlockImpl(const char* buffer, size_t len) override;
 
     void EndDecodeImpl() override;
 
     inline PdfFilterType GetType() const override { return PdfFilterType::FlateDecode; }
 
 private:
-    void EncodeBlockInternal(const char* pBuffer, size_t lLen, int nMode);
+    void EncodeBlockInternal(const char* buffer, size_t len, int nMode);
 
 private:
     unsigned char m_buffer[PODOFO_FILTER_INTERNAL_BUFFER_SIZE];
 
     z_stream m_stream;
-    PdfPredictorDecoder* m_pPredictor;
+    PdfPredictorDecoder* m_Predictor;
 };
 
 /** The RLE filter.
@@ -169,7 +169,7 @@ public:
 
     void BeginEncodeImpl() override;
 
-    void EncodeBlockImpl(const char* pBuffer, size_t lLen) override;
+    void EncodeBlockImpl(const char* buffer, size_t len) override;
 
     void EndEncodeImpl() override;
 
@@ -177,12 +177,12 @@ public:
 
     void BeginDecodeImpl(const PdfDictionary*) override;
 
-    void DecodeBlockImpl(const char* pBuffer, size_t lLen) override;
+    void DecodeBlockImpl(const char* buffer, size_t len) override;
 
     inline PdfFilterType GetType() const override { return PdfFilterType::RunLengthDecode; }
 
 private:
-    int m_nCodeLen;
+    int m_CodeLen;
 };
 
 /** The LZW filter.
@@ -207,7 +207,7 @@ public:
 
     void BeginEncodeImpl() override;
 
-    void EncodeBlockImpl(const char* pBuffer, size_t lLen) override;
+    void EncodeBlockImpl(const char* buffer, size_t len) override;
 
     void EndEncodeImpl() override;
 
@@ -215,7 +215,7 @@ public:
 
     void BeginDecodeImpl(const PdfDictionary*) override;
 
-    void DecodeBlockImpl(const char* pBuffer, size_t lLen) override;
+    void DecodeBlockImpl(const char* buffer, size_t len) override;
 
     void EndDecodeImpl() override;
 
@@ -235,9 +235,9 @@ private:
     unsigned m_code_len;
     unsigned char m_character;
 
-    bool m_bFirst;
+    bool m_First;
 
-    PdfPredictorDecoder* m_pPredictor;
+    PdfPredictorDecoder* m_Predictor;
 };
 
 #ifdef PODOFO_HAVE_JPEG_LIB
@@ -264,7 +264,7 @@ public:
 
     void BeginEncodeImpl() override;
 
-    void EncodeBlockImpl(const char* pBuffer, size_t lLen) override;
+    void EncodeBlockImpl(const char* buffer, size_t len) override;
 
     void EndEncodeImpl() override;
 
@@ -272,7 +272,7 @@ public:
 
     void BeginDecodeImpl(const PdfDictionary*) override;
 
-    void DecodeBlockImpl(const char* pBuffer, size_t lLen) override;
+    void DecodeBlockImpl(const char* buffer, size_t len) override;
 
     void EndDecodeImpl() override;
 
@@ -283,7 +283,7 @@ private:
     struct jpeg_error_mgr m_jerr;
 
     PdfRefCountedBuffer m_buffer;
-    PdfOutputDevice* m_pDevice;
+    PdfOutputDevice* m_Device;
 };
 
 #endif // PODOFO_HAVE_JPEG_LIB
@@ -303,7 +303,7 @@ public:
 
     void BeginEncodeImpl() override;
 
-    void EncodeBlockImpl(const char* pBuffer, size_t lLen) override;
+    void EncodeBlockImpl(const char* buffer, size_t len) override;
 
     void EndEncodeImpl() override;
 
@@ -311,7 +311,7 @@ public:
 
     void BeginDecodeImpl(const PdfDictionary*) override;
 
-    void DecodeBlockImpl(const char* pBuffer, size_t lLen) override;
+    void DecodeBlockImpl(const char* buffer, size_t len) override;
 
     void EndDecodeImpl() override;
 

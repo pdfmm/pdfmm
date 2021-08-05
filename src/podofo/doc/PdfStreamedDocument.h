@@ -37,14 +37,14 @@ class PdfOutputDevice;
  *
  *  Example of using PdfStreamedDocument:
  *
- *  PdfStreamedDocument document( "outputfile.pdf" );
- *  PdfPage* pPage = document.CreatePage( PdfPage::CreateStandardPageSize( EPdfPageSize::A4 ) );
- *  PdfFont* pFont = document.CreateFont( "Arial" );
+ *  PdfStreamedDocument document("outputfile.pdf");
+ *  PdfPage* page = document.CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+ *  PdfFont* font = document.CreateFont("Arial");
  *
  *  PdfPainter painter;
- *  painter.SetPage( pPage );
- *  painter.SetFont( pFont );
- *  painter.DrawText( 56.69, pPage->GetRect().GetHeight() - 56.69, "Hello World!" );
+ *  painter.SetPage(page);
+ *  painter.SetFont(font);
+ *  painter.DrawText(56.69, page->GetRect().GetHeight() - 56.69, "Hello World!");
  *  painter.FinishPage();
  *
  *  document.Close();
@@ -59,30 +59,30 @@ public:
      *  All data is written to an output device
      *  immediately.
      *
-     *  \param pDevice an output device
-     *  \param eVersion the PDF version of the document to write.
+     *  \param device an output device
+     *  \param version the PDF version of the document to write.
      *                  The PDF version can only be set in the constructor
      *                  as it is the first item written to the document on disk.
-     *  \param pEncrypt pointer to an encryption object or nullptr. If not nullptr
+     *  \param encrypt pointer to an encryption object or nullptr. If not nullptr
      *                  the PdfEncrypt object will be copied and used to encrypt the
      *                  created document.
-     *  \param eWriteMode additional options for writing the pdf
+     *  \param writeMode additional options for writing the pdf
      */
-    PdfStreamedDocument(PdfOutputDevice& pDevice, PdfVersion eVersion = PdfVersionDefault, PdfEncrypt* pEncrypt = nullptr, PdfWriteMode eWriteMode = PdfWriteModeDefault);
+    PdfStreamedDocument(PdfOutputDevice& device, PdfVersion version = PdfVersionDefault, PdfEncrypt* encrypt = nullptr, PdfWriteMode writeMode = PdfWriteModeDefault);
 
     /** Create a new PdfStreamedDocument.
      *  All data is written to a file immediately.
      *
-     *  \param pszFilename resulting PDF file
-     *  \param eVersion the PDF version of the document to write.
+     *  \param filename resulting PDF file
+     *  \param version the PDF version of the document to write.
      *                  The PDF version can only be set in the constructor
      *                  as it is the first item written to the document on disk.
-     *  \param pEncrypt pointer to an encryption object or nullptr. If not nullptr
+     *  \param encrypt pointer to an encryption object or nullptr. If not nullptr
      *                  the PdfEncrypt object will be copied and used to encrypt the
      *                  created document.
-     *  \param eWriteMode additional options for writing the pdf
+     *  \param writeMode additional options for writing the pdf
      */
-    PdfStreamedDocument(const std::string_view& filename, PdfVersion eVersion = PdfVersionDefault, PdfEncrypt* pEncrypt = nullptr, PdfWriteMode eWriteMode = PdfWriteModeDefault);
+    PdfStreamedDocument(const std::string_view& filename, PdfVersion version = PdfVersionDefault, PdfEncrypt* encrypt = nullptr, PdfWriteMode writeMode = PdfWriteModeDefault);
 
     ~PdfStreamedDocument();
 
@@ -116,25 +116,25 @@ public:
 
 private:
     /** Initialize the PdfStreamedDocument with an output device
-     *  \param pDevice write to this device
-     *  \param eVersion the PDF version of the document to write.
+     *  \param device write to this device
+     *  \param version the PDF version of the document to write.
      *                  The PDF version can only be set in the constructor
      *                  as it is the first item written to the document on disk.
-     *  \param pEncrypt pointer to an encryption object or nullptr. If not nullptr
+     *  \param encrypt pointer to an encryption object or nullptr. If not nullptr
      *                  the PdfEncrypt object will be copied and used to encrypt the
      *                  created document.
-     *  \param eWriteMode additional options for writing the pdf
+     *  \param writeMode additional options for writing the pdf
      */
-    void Init(PdfOutputDevice& pDevice, PdfVersion eVersion = PdfVersionDefault,
-        PdfEncrypt* pEncrypt = nullptr, PdfWriteMode eWriteMode = PdfWriteModeDefault);
+    void Init(PdfOutputDevice& device, PdfVersion version = PdfVersionDefault,
+        PdfEncrypt* encrypt = nullptr, PdfWriteMode writeMode = PdfWriteModeDefault);
 
 private:
-    PdfImmediateWriter* m_pWriter;
-    PdfOutputDevice* m_pDevice;
+    PdfImmediateWriter* m_Writer;
+    PdfOutputDevice* m_Device;
 
-    PdfEncrypt* m_pEncrypt;
+    PdfEncrypt* m_Encrypt;
 
-    bool m_bOwnDevice; // If true m_pDevice is owned by this object and has to be deleted
+    bool m_OwnDevice; // If true m_Device is owned by this object and has to be deleted
 };
 
 };

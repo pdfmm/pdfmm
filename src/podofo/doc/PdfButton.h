@@ -25,11 +25,11 @@ namespace PoDoFo
             ePdfButton_RadioInUnison = 0x2000000
         };
 
-        PdfButton(PdfFieldType eField, PdfDocument& doc, PdfAnnotation* pWidget, bool insertInAcrofrom);
+        PdfButton(PdfFieldType fieldType, PdfDocument& doc, PdfAnnotation* widget, bool insertInAcrofrom);
 
-        PdfButton(PdfFieldType eField, PdfObject& object, PdfAnnotation* widget);
+        PdfButton(PdfFieldType fieldType, PdfObject& object, PdfAnnotation* widget);
 
-        PdfButton(PdfFieldType eField, PdfPage& page, const PdfRect& rect);
+        PdfButton(PdfFieldType fieldType, PdfPage& page, const PdfRect& rect);
 
     public:
         /**
@@ -49,9 +49,9 @@ namespace PoDoFo
 
         /** Set the normal caption of this button
          *
-         *  \param rsText the caption
+         *  \param text the caption
          */
-        void SetCaption(const PdfString& rsText);
+        void SetCaption(const PdfString& text);
 
         /**
          *  \returns the caption of this button

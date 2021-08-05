@@ -39,7 +39,7 @@ public:
     /** Create a new PdfStream object which has a parent PdfObject.
      *  The stream will be deleted along with the parent.
      *  This constructor will be called by PdfObject::Stream() for you.
-     *  \param pParent parent object
+     *  \param parent parent object
      */
     PdfMemStream(PdfObject& parent);
 
@@ -47,7 +47,7 @@ public:
 
     void Write(PdfOutputDevice& device, const PdfEncrypt* encrypt) override;
 
-    void GetCopy(char** buffer, size_t* lLen) const override;
+    void GetCopy(char** buffer, size_t* len) const override;
 
     void GetCopy(PdfOutputStream& stream) const override;
 
@@ -71,7 +71,7 @@ public:
  protected:
     const char* GetInternalBuffer() const override;
     size_t GetInternalBufferSize() const override;
-    void BeginAppendImpl(const TVecFilters& vecFilters) override;
+    void BeginAppendImpl(const PdfFilterList& filters) override;
     void AppendImpl(const char* data, size_t len) override;
     void EndAppendImpl() override;
     void CopyFrom(const PdfStream& rhs) override;

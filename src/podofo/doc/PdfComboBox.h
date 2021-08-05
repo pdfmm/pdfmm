@@ -29,11 +29,11 @@ namespace PoDoFo
         /**
          * Sets the combobox to be editable
          *
-         * \param bEdit if true the combobox can be edited by the user
+         * \param edit if true the combobox can be edited by the user
          *
          * By default a combobox is not editable
          */
-        void SetEditable(bool bEdit);
+        void SetEditable(bool edit);
 
         /**
          *  \returns true if this is an editable combobox

@@ -63,38 +63,38 @@ public:
     PdfDestination(PdfDocument& doc);
 
     /** Create a new PdfDestination from an existing PdfObject (such as loaded from a doc)
-     *  \param pObject the object to construct from
+     *  \param obj the object to construct from
      */
     PdfDestination(PdfObject& obj);
 
     /** Create a new PdfDestination with a page as destination
-     *  \param pPage a page which is the destination
-     *  \param eFit fit mode for the page. Must be EPdfDestinationFit::Fit or EPdfDestinationFit::FitB
+     *  \param page a page which is the destination
+     *  \param fit fit mode for the page. Must be EPdfDestinationFit::Fit or EPdfDestinationFit::FitB
      */
-    PdfDestination(const PdfPage& page, PdfDestinationFit eFit = PdfDestinationFit::Fit);
+    PdfDestination(const PdfPage& page, PdfDestinationFit fit = PdfDestinationFit::Fit);
 
     /** Create a destination to a page with its contents magnified to fit into the given rectangle
-     *  \param pPage a page which is the destination
-     *  \param rRect magnify the page so that the contents of the rectangle are visible
+     *  \param page a page which is the destination
+     *  \param rect magnify the page so that the contents of the rectangle are visible
      */
-    PdfDestination(const PdfPage& page, const PdfRect& rRect);
+    PdfDestination(const PdfPage& page, const PdfRect& rect);
 
     /** Create a new destination to a page with specified left
      *  and top coordinates and a zoom factor.
-     *  \param pPage a page which is the destination
-     *  \param dLeft left coordinate
-     *  \param dTop  top coordinate
-     *  \param dZoom zoom factor in the viewer
+     *  \param page a page which is the destination
+     *  \param left left coordinate
+     *  \param top top coordinate
+     *  \param zoom zoom factor in the viewer
      */
-    PdfDestination(const PdfPage* pPage, double dLeft, double dTop, double dZoom);
+    PdfDestination(const PdfPage& page, double left, double top, double zoom);
 
     /** Create a new destination to a page.
-     *  \param pPage a page which is the destination
-     *  \param eFit fit mode for the Page. Allowed values are EPdfDestinationFit::FitH,
+     *  \param page a page which is the destination
+     *  \param fit fit mode for the Page. Allowed values are EPdfDestinationFit::FitH,
      *              EPdfDestinationFit::FitV, EPdfDestinationFit::FitBH, EPdfDestinationFit::FitBV
-     *  \param dValue value which is a required argument for the selected fit mode
+     *  \param value value which is a required argument for the selected fit mode
      */
-    PdfDestination(const PdfPage* pPage, PdfDestinationFit eFit, double dValue);
+    PdfDestination(const PdfPage& page, PdfDestinationFit fit, double value);
 
     /** Copy an existing PdfDestination
      *  \param rhs copy this PdfDestination
@@ -110,22 +110,22 @@ public:
     /** Get the page that this destination points to
      *  Requires that this PdfDestination was somehow
      *  created by or from a PdfDocument. Won't work otherwise.
-     *  \param pDoc a PDF document owning this destination, needed to resolve pages
+     *  \param doc a PDF document owning this destination, needed to resolve pages
      *
      *  \returns the referenced PdfPage
      */
      // TODO: This is bullshit. Make PdfDestination a PdfElement and remove the parameter
-    PdfPage* GetPage(PdfDocument* pDoc);
+    PdfPage* GetPage(PdfDocument* doc);
 
     /** Get the page that this destination points to
      *  Requires that this PdfDestination was somehow
      *  created by or from a PdfDocument. Won't work otherwise.
-     *  \param pVecObjects a PdfVecObjects owning this destination, needed to resolve pages
+     *  \param objects a PdfVecObjects owning this destination, needed to resolve pages
      *
      *  \returns the referenced PdfPage
      */
      // TODO: This is bullshit. Make PdfDestination a PdfElement and remove the parameter
-    PdfPage* GetPage(PdfVecObjects* pVecObjects);
+    PdfPage* GetPage(PdfVecObjects* objects);
 
     /** Get the destination fit type
      *
@@ -177,14 +177,14 @@ public:
      *
      *  \returns the internal PdfObject
      */
-    inline PdfObject* GetObject() { return m_pObject; }
+    inline PdfObject* GetObject() { return m_Object; }
 
     /** Get access to the internal object
      *  This is an overloaded member function.
      *
      *  \returns the internal PdfObject
      */
-    inline const PdfObject* GetObject() const { return m_pObject; }
+    inline const PdfObject* GetObject() const { return m_Object; }
 
     /** Get access to the internal array
      *  \returns the internal PdfArray
@@ -212,19 +212,16 @@ private:
     /** Initialize a new PdfDestination from an existing PdfObject (such as loaded from a doc)
      *  and a document.
      *
-     *  \param pObject the object to construct from
-     *  \param pDoc a PDF document owning this destination, needed to resolve pages
+     *  \param obj the object to construct from
+     *  \param doc a PDF document owning this destination, needed to resolve pages
      */
-    void Init(PdfObject& obj, PdfDocument& document);
+    void Init(PdfObject& obj, PdfDocument& doc);
+
+    PdfDestination() = delete;
 
 private:
     PdfArray m_array;
-    PdfObject* m_pObject;
-
-    /** Create an empty destination - NOT ALLOWED
-     */
-    PdfDestination();
-
+    PdfObject* m_Object;
 };
 
 };

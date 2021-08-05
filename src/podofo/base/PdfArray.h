@@ -114,8 +114,8 @@ public:
      */
     bool empty() const;
 
-    PdfObject& operator[](size_t n);
-    const PdfObject& operator[](size_t n) const;
+    PdfObject& operator[](size_t idx);
+    const PdfObject& operator[](size_t idx) const;
 
     /**
      * Resize the internal vector.
@@ -229,7 +229,7 @@ private:
     PdfObject& findAt(unsigned idx) const;
 
 private:
-    std::vector<PdfObject> m_objects;
+    std::vector<PdfObject> m_Objects;
 };
 
 template<typename InputIterator>
@@ -244,7 +244,7 @@ void PdfArray::insert(const PdfArray::iterator& pos,
     iterator it2 = pos;
     for (; it1 != last; it1++, it2++)
     {
-        it2 = m_objects.insert(it2, *it1);
+        it2 = m_Objects.insert(it2, *it1);
         if (document != nullptr)
             it2->SetDocument(*document);
     }

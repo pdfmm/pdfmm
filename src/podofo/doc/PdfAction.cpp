@@ -37,7 +37,7 @@ static const char* s_names[] = {
 };
 
 PdfAction::PdfAction(PdfDocument& doc, PdfActionType action)
-    : PdfElement(doc, "Action"), m_eType(action)
+    : PdfElement(doc, "Action"), m_Type(action)
 {
     const PdfName type = PdfName(TypeNameForIndex((unsigned)action, s_names, std::size(s_names)));
 
@@ -51,14 +51,14 @@ PdfAction::PdfAction(PdfObject& obj)
 // The typename /Action is optional for PdfActions
     : PdfElement(obj)
 {
-    m_eType = static_cast<PdfActionType>(TypeNameToIndex(
+    m_Type = static_cast<PdfActionType>(TypeNameToIndex(
         this->GetObject().GetDictionary().FindKeyAs<PdfName>("S").GetString().c_str(),
         s_names, std::size(s_names), (int)PdfActionType::Unknown));
 }
 
-void PdfAction::SetURI(const PdfString& sUri)
+void PdfAction::SetURI(const PdfString& uri)
 {
-    this->GetObject().GetDictionary().AddKey("URI", sUri);
+    this->GetObject().GetDictionary().AddKey("URI", uri);
 }
 
 PdfString PdfAction::GetURI() const
@@ -88,13 +88,9 @@ bool PdfAction::HasScript() const
 
 void PdfAction::AddToDictionary(PdfDictionary& dictionary) const
 {
-    // Do not add empty destinations
-//    if( !m_array.size() )
-//        return;
-
     // since we can only have EITHER a Dest OR an Action
     // we check for an Action, and if already present, we throw
-    if (dictionary.HasKey(PdfName("Dest")))
+    if (dictionary.HasKey("Dest"))
         PODOFO_RAISE_ERROR(EPdfError::ActionAlreadyPresent);
 
     dictionary.AddKey("A", this->GetObject());

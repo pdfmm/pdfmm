@@ -31,21 +31,21 @@ public:
      *  This has the advantage that large documents can be created without
      *  having to keep the whole document in memory.
      *
-     *  @param pDevice all stream streams are immediately written to this output device
+     *  \param device all stream streams are immediately written to this output device
      *                 while the document is created.
-     *  @param pVecObjects a vector of objects containing the objects which are written to disk
-     *  @param pTrailer the trailer object
-     *  @param eVersion the PDF version of the document to write.
+     *  \param objects a vector of objects containing the objects which are written to disk
+     *  \param trailer the trailer object
+     *  \param version the PDF version of the document to write.
      *                      The PDF version can only be set in the constructor
      *                      as it is the first item written to the document on disk.
-     *  @param pEncrypt pointer to an encryption object or nullptr. If not nullptr
+     *  \param encrypt pointer to an encryption object or nullptr. If not nullptr
      *                  the PdfEncrypt object will be copied and used to encrypt the
      *                  created document.
-     *  @param eWriteMode additional options for writing the pdf
+     *  \param writeMode additional options for writing the pdf
      */
-    PdfImmediateWriter(PdfVecObjects& pVecObjects, const PdfObject& pTrailer, PdfOutputDevice& pDevice,
-        PdfVersion eVersion = PdfVersion::V1_5, PdfEncrypt* pEncrypt = nullptr,
-        PdfWriteMode eWriteMode = PdfWriteModeDefault);
+    PdfImmediateWriter(PdfVecObjects& objects, const PdfObject& trailer, PdfOutputDevice& device,
+        PdfVersion version = PdfVersion::V1_5, PdfEncrypt* encrypt = nullptr,
+        PdfWriteMode writeMode = PdfWriteModeDefault);
 
     ~PdfImmediateWriter();
 
@@ -66,8 +66,8 @@ public:
 private:
     void WriteObject(const PdfObject& obj) override;
     void Finish() override;
-    void BeginAppendStream(const PdfStream& pStream) override;
-    void EndAppendStream(const PdfStream& pStream) override;
+    void BeginAppendStream(const PdfStream& stream) override;
+    void EndAppendStream(const PdfStream& stream) override;
     PdfStream* CreateStream(PdfObject& parent) override;
 
     /** Assume the stream for the last object has
@@ -81,7 +81,7 @@ private:
 private:
     bool m_attached;
     PdfOutputDevice* m_Device;
-    std::unique_ptr<PdfXRef> m_XRef;
+    std::unique_ptr<PdfXRef> m_xRef;
     PdfObject* m_Last;
     bool m_OpenStream;
 };

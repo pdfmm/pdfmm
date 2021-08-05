@@ -26,67 +26,67 @@ using namespace std;
 using namespace PoDoFo;
 
 PdfObjectStreamParser::PdfObjectStreamParser(PdfParserObject& parser, PdfVecObjects& objects, const PdfRefCountedBuffer& buffer)
-    : m_pParser(&parser), m_vecObjects(&objects), m_buffer(buffer)
+    : m_Parser(&parser), m_Objects(&objects), m_buffer(buffer)
 {
 }
 
 void PdfObjectStreamParser::Parse(ObjectIdList const& list)
 {
-    int64_t lNum = m_pParser->GetDictionary().FindKeyAs<int64_t>("N", 0);
-    int64_t lFirst = m_pParser->GetDictionary().FindKeyAs<int64_t>("First", 0);
+    int64_t num = m_Parser->GetDictionary().FindKeyAs<int64_t>("N", 0);
+    int64_t first = m_Parser->GetDictionary().FindKeyAs<int64_t>("First", 0);
 
     unique_ptr<char> buffer;
-    size_t lBufferLen;
-    m_pParser->GetOrCreateStream().GetFilteredCopy(buffer, lBufferLen);
+    size_t bufferLen;
+    m_Parser->GetOrCreateStream().GetFilteredCopy(buffer, bufferLen);
 
-    this->ReadObjectsFromStream(buffer.get(), lBufferLen, lNum, lFirst, list);
-    m_pParser = nullptr;
+    this->ReadObjectsFromStream(buffer.get(), bufferLen, num, first, list);
+    m_Parser = nullptr;
 }
 
-void PdfObjectStreamParser::ReadObjectsFromStream(char* pBuffer, size_t lBufferLen, int64_t lNum, int64_t lFirst, ObjectIdList const& list)
+void PdfObjectStreamParser::ReadObjectsFromStream(char* buffer, size_t bufferLen, int64_t num, int64_t first, ObjectIdList const& list)
 {
-    PdfInputDevice device(pBuffer, lBufferLen);
+    PdfInputDevice device(buffer, bufferLen);
     PdfTokenizer tokenizer(m_buffer);
     PdfVariant var;
     int i = 0;
 
-    while (static_cast<int64_t>(i) < lNum)
+    while (static_cast<int64_t>(i) < num)
     {
-        const int64_t lObj = tokenizer.ReadNextNumber(device);
-        const int64_t lOff = tokenizer.ReadNextNumber(device);
+        const int64_t objNo = tokenizer.ReadNextNumber(device);
+        const int64_t offset = tokenizer.ReadNextNumber(device);
         size_t pos = device.Tell();
 
-        if (lFirst >= std::numeric_limits<int64_t>::max() - lOff)
+        if (first >= std::numeric_limits<int64_t>::max() - offset)
         {
             PODOFO_RAISE_ERROR_INFO(EPdfError::BrokenFile,
                 "Object position out of max limit");
         }
 
         // move to the position of the object in the stream
-        device.Seek(static_cast<std::streamoff>(lFirst + lOff));
+        device.Seek(static_cast<std::streamoff>(first + offset));
 
         // use a second tokenizer here so that anything that gets dequeued isn't left in the tokenizer that reads the offsets and lengths
         PdfTokenizer variantTokenizer(m_buffer);
         variantTokenizer.ReadNextVariant(device, var); // NOTE: The stream is already decrypted
 
-        bool should_read = std::find(list.begin(), list.end(), lObj) != list.end();
+        bool shouldRead = std::find(list.begin(), list.end(), objNo) != list.end();
 #ifndef VERBOSE_DEBUG_DISABLED
-        std::cerr << "ReadObjectsFromStream STREAM=" << m_pParser->GetIndirectReference().ToString() <<
-            ", OBJ=" << lObj <<
-            ", " << (should_read ? "read" : "skipped") << std::endl;
+        std::cerr << "ReadObjectsFromStream STREAM=" << m_Parser->GetIndirectReference().ToString() <<
+            ", OBJ=" << objNo <<
+            ", " << (shouldRead ? "read" : "skipped") << std::endl;
 #endif
-        if (should_read)
+        if (shouldRead)
         {
             // The generation number of an object stream and of any
             // compressed object is implicitly zero
-            PdfReference reference(static_cast<uint32_t>(lObj), 0);
+            PdfReference reference(static_cast<uint32_t>(objNo), 0);
             auto obj = new PdfObject(var);
-            m_vecObjects->PushObject(reference, obj);
+            m_Objects->PushObject(reference, obj);
         }
 
         // move back to the position inside of the table of contents
         device.Seek(pos);
 
-        ++i;
+        i++;
     }
 }

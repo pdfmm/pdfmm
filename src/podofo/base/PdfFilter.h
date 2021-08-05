@@ -20,9 +20,7 @@ class PdfName;
 class PdfObject;
 class PdfOutputStream;
 
-typedef std::vector<PdfFilterType>            TVecFilters;
-typedef TVecFilters::iterator              TIVecFilters;
-typedef TVecFilters::const_iterator        TCIVecFilters;
+typedef std::vector<PdfFilterType> PdfFilterList;
 
 /** Every filter in PoDoFo has to implement this interface.
  *
@@ -65,7 +63,7 @@ public:
      *  perform other operations defined by particular filter
      *  implementations. It calls BeginEncodeImpl().
      *
-     *  \param pOutput Encoded data will be written to this stream.
+     *  \param output Encoded data will be written to this stream.
      *
      *  Call EncodeBlock() to encode blocks of data and use EndEncode()
      *  to finish the encoding process.
@@ -88,8 +86,8 @@ public:
      *
      *  BeginEncode() must be called before this function.
      *
-     *  \param pBuffer pointer to a buffer with data to encode
-     *  \param lLen length of data to encode.
+     *  \param buffer pointer to a buffer with data to encode
+     *  \param len length of data to encode.
      *
      *  Call EndEncode() after all data has been encoded.
      *
@@ -133,8 +131,8 @@ public:
      *  perform other operations defined by particular filter
      *  implementations. It calls BeginDecodeImpl().
      *
-     *  \param pOutput decoded data will be written to this stream
-     *  \param pDecodeParms a dictionary containing additional information
+     *  \param output decoded data will be written to this stream
+     *  \param decodeParms a dictionary containing additional information
      *                      for decoding
      *
      *  Call DecodeBlock() to decode blocks of data and use EndDecode()
@@ -158,15 +156,15 @@ public:
      *
      *  BeginDecode() must be called before this function.
      *
-     *  \param pBuffer pointer to a buffer with data to encode
-     *  \param lLen length of data to encode.
+     *  \param buffer pointer to a buffer with data to encode
+     *  \param len length of data to encode.
      *
      *  Call EndDecode() after all data has been decoded.
      *
      *  \see BeginDecode
      *  \see EndDecode
      */
-    void DecodeBlock(const char* pBuffer, size_t lLen);
+    void DecodeBlock(const char* buffer, size_t len);
 
     /**
      *  Finish decoding of data and reset the stream's state.
@@ -225,7 +223,7 @@ protected:
      *
      * \see EncodeBlock
      */
-    virtual void EncodeBlockImpl(const char* pBuffer, size_t lLen) = 0;
+    virtual void EncodeBlockImpl(const char* buffer, size_t len) = 0;
 
     /** Real implementation of EndEncode(). NEVER call this method directly.
      *
@@ -315,7 +313,7 @@ public:
      *
      *  \see PdfFilterFactory::CreateFilterList
      */
-    static std::unique_ptr<PdfOutputStream> CreateEncodeStream(const TVecFilters& filters, PdfOutputStream& stream);
+    static std::unique_ptr<PdfOutputStream> CreateEncodeStream(const PdfFilterList& filters, PdfOutputStream& stream);
 
     /** Create a PdfOutputStream that applies a list of filters
      *  on all data written to it.
@@ -332,12 +330,12 @@ public:
      *
      *  \see PdfFilterFactory::CreateFilterList
      */
-    static std::unique_ptr<PdfOutputStream> CreateDecodeStream(const TVecFilters& filters, PdfOutputStream& stream,
+    static std::unique_ptr<PdfOutputStream> CreateDecodeStream(const PdfFilterList& filters, PdfOutputStream& stream,
         const PdfDictionary* dictionary = nullptr);
 
     /** Converts a filter name to the corresponding enum
      *  \param name of the filter without leading
-     *  \param bSupportShortNames The PDF Reference supports several
+     *  \param supportShortNames The PDF Reference supports several
      *         short names for filters (e.g. AHx for AsciiHexDecode), if true
      *         support for these short names will be enabled.
      *         This is often used in inline images.
@@ -346,10 +344,10 @@ public:
     static PdfFilterType FilterNameToType(const PdfName& name, bool supportShortNames = true);
 
     /** Converts a filter type enum to the corresponding PdfName
-     *  \param eFilter a filter type
+     *  \param filterType a filter type
      *  \returns the filter as name
      */
-    static const char* FilterTypeToName(PdfFilterType eFilter);
+    static const char* FilterTypeToName(PdfFilterType filterType);
 
     /** The passed PdfObject has to be a dictionary with a Filters key,
      *  a (possibly empty) array of filter names or a filter name.
@@ -359,7 +357,7 @@ public:
      *
      *  \returns a list of filters
      */
-    static TVecFilters CreateFilterList(const PdfObject& filtersObj);
+    static PdfFilterList CreateFilterList(const PdfObject& filtersObj);
 
 private:
     // prohibit instantiation of all-methods-static factory from outside

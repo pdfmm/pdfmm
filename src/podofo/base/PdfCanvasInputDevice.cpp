@@ -21,21 +21,21 @@ PdfCanvasInputDevice::PdfCanvasInputDevice(PdfCanvas& canvas)
         for (unsigned i = 0; i < contentsArr.GetSize(); i++)
         {
             auto& streamObj = contentsArr.FindAt(i);
-            m_lstContents.push_back(&streamObj);
+            m_contents.push_back(&streamObj);
         }
     }
     else if (contents.IsDictionary())
     {
         // NOTE: Pages are allowed to be empty
         if (contents.HasStream())
-            m_lstContents.push_back(&contents);
+            m_contents.push_back(&contents);
     }
     else
     {
         PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "Page /Contents not stream or array of streams");
     }
 
-    if (m_lstContents.size() == 0)
+    if (m_contents.size() == 0)
     {
         m_eof = true;
     }
@@ -127,7 +127,7 @@ bool PdfCanvasInputDevice::tryGetNextDevice(PdfInputDevice*& device)
         return true;
     }
 
-    if (m_lstContents.size() == 0)
+    if (m_contents.size() == 0)
     {
         device = nullptr;
         return false;
@@ -140,6 +140,6 @@ bool PdfCanvasInputDevice::tryGetNextDevice(PdfInputDevice*& device)
 
 void PdfCanvasInputDevice::popNextDevice()
 {
-    m_device = std::make_unique<PdfInputDevice>(m_lstContents.front()->GetOrCreateStream());
-    m_lstContents.pop_front();
+    m_device = std::make_unique<PdfInputDevice>(m_contents.front()->GetOrCreateStream());
+    m_contents.pop_front();
 }

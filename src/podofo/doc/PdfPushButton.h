@@ -31,9 +31,9 @@ namespace PoDoFo
          *  which is displayed when the cursor enters the field
          *  without the mouse button being pressed
          *
-         *  \param rsText the caption
+         *  \param text the caption
          */
-        void SetRolloverCaption(const PdfString& rsText);
+        void SetRolloverCaption(const PdfString& text);
 
         /**
          *  \returns the rollover caption of this button
@@ -43,9 +43,9 @@ namespace PoDoFo
         /** Set the alternate caption of this button
          *  which is displayed when the button is pressed.
          *
-         *  \param rsText the caption
+         *  \param text the caption
          */
-        void SetAlternateCaption(const PdfString& rsText);
+        void SetAlternateCaption(const PdfString& text);
 
         /**
          *  \returns the rollover caption of this button

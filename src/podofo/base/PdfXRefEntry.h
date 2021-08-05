@@ -15,7 +15,7 @@
 namespace PoDoFo
 {
     // Values cast directly to XRefStm binary representation
-    enum class EXRefEntryType : int8_t
+    enum class XRefEntryType : int8_t
     {
         Unknown = -1,
         Free = 0,
@@ -48,16 +48,14 @@ namespace PoDoFo
             uint32_t Index;         // Index of the object in the stream for Compressed entries
             uint32_t Unknown2;
         };
-        EXRefEntryType Type;
+        XRefEntryType Type;
         bool Parsed;
     };
 
-    char XRefEntryType(EXRefEntryType type);
-    EXRefEntryType XRefEntryTypeFromChar(char c);
+    char XRefEntryTypeToChar(XRefEntryType type);
+    XRefEntryType XRefEntryTypeFromChar(char c);
 
-    typedef std::vector<PdfXRefEntry> TVecEntries;
-    typedef TVecEntries::iterator TIVecEntries;
-    typedef TVecEntries::const_iterator TCIVecEntries;
+    typedef std::vector<PdfXRefEntry> PdfXRefEntries;
 };
 
 #endif // PDF_XREF_ENTRY_H

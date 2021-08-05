@@ -11,30 +11,30 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfStreamedDocument::PdfStreamedDocument(PdfOutputDevice& pDevice, PdfVersion eVersion, PdfEncrypt* pEncrypt, PdfWriteMode eWriteMode)
-    : m_pWriter(nullptr), m_pDevice(nullptr), m_pEncrypt(pEncrypt), m_bOwnDevice(false)
+PdfStreamedDocument::PdfStreamedDocument(PdfOutputDevice& device, PdfVersion version, PdfEncrypt* encrypt, PdfWriteMode writeMode)
+    : m_Writer(nullptr), m_Device(nullptr), m_Encrypt(encrypt), m_OwnDevice(false)
 {
-    Init(pDevice, eVersion, pEncrypt, eWriteMode);
+    Init(device, version, encrypt, writeMode);
 }
 
-PdfStreamedDocument::PdfStreamedDocument(const string_view& filename, PdfVersion eVersion, PdfEncrypt* pEncrypt, PdfWriteMode eWriteMode)
-    : m_pWriter(nullptr), m_pEncrypt(pEncrypt), m_bOwnDevice(true)
+PdfStreamedDocument::PdfStreamedDocument(const string_view& filename, PdfVersion version, PdfEncrypt* encrypt, PdfWriteMode writeMode)
+    : m_Writer(nullptr), m_Encrypt(encrypt), m_OwnDevice(true)
 {
-    m_pDevice = new PdfOutputDevice(filename);
-    Init(*m_pDevice, eVersion, pEncrypt, eWriteMode);
+    m_Device = new PdfOutputDevice(filename);
+    Init(*m_Device, version, encrypt, writeMode);
 }
 
 PdfStreamedDocument::~PdfStreamedDocument()
 {
-    delete m_pWriter;
-    if (m_bOwnDevice)
-        delete m_pDevice;
+    delete m_Writer;
+    if (m_OwnDevice)
+        delete m_Device;
 }
 
-void PdfStreamedDocument::Init(PdfOutputDevice& pDevice, PdfVersion eVersion,
-    PdfEncrypt* pEncrypt, PdfWriteMode eWriteMode)
+void PdfStreamedDocument::Init(PdfOutputDevice& device, PdfVersion version,
+    PdfEncrypt* encrypt, PdfWriteMode writeMode)
 {
-    m_pWriter = new PdfImmediateWriter(this->GetObjects(), this->GetTrailer(), pDevice, eVersion, pEncrypt, eWriteMode);
+    m_Writer = new PdfImmediateWriter(this->GetObjects(), this->GetTrailer(), device, version, encrypt, writeMode);
 }
 
 void PdfStreamedDocument::Close()
@@ -48,12 +48,12 @@ void PdfStreamedDocument::Close()
 
 PdfWriteMode PdfStreamedDocument::GetWriteMode() const
 {
-    return m_pWriter->GetWriteMode();
+    return m_Writer->GetWriteMode();
 }
 
 PdfVersion PdfStreamedDocument::GetPdfVersion() const
 {
-    return m_pWriter->GetPdfVersion();
+    return m_Writer->GetPdfVersion();
 }
 
 bool PdfStreamedDocument::IsLinearized() const
@@ -64,40 +64,40 @@ bool PdfStreamedDocument::IsLinearized() const
 
 bool PdfStreamedDocument::IsPrintAllowed() const
 {
-    return m_pEncrypt ? m_pEncrypt->IsPrintAllowed() : true;
+    return m_Encrypt ? m_Encrypt->IsPrintAllowed() : true;
 }
 
 bool PdfStreamedDocument::IsEditAllowed() const
 {
-    return m_pEncrypt ? m_pEncrypt->IsEditAllowed() : true;
+    return m_Encrypt ? m_Encrypt->IsEditAllowed() : true;
 }
 
 bool PdfStreamedDocument::IsCopyAllowed() const
 {
-    return m_pEncrypt ? m_pEncrypt->IsCopyAllowed() : true;
+    return m_Encrypt ? m_Encrypt->IsCopyAllowed() : true;
 }
 
 bool PdfStreamedDocument::IsEditNotesAllowed() const
 {
-    return m_pEncrypt ? m_pEncrypt->IsEditNotesAllowed() : true;
+    return m_Encrypt ? m_Encrypt->IsEditNotesAllowed() : true;
 }
 
 bool PdfStreamedDocument::IsFillAndSignAllowed() const
 {
-    return m_pEncrypt ? m_pEncrypt->IsFillAndSignAllowed() : true;
+    return m_Encrypt ? m_Encrypt->IsFillAndSignAllowed() : true;
 }
 
 bool PdfStreamedDocument::IsAccessibilityAllowed() const
 {
-    return m_pEncrypt ? m_pEncrypt->IsAccessibilityAllowed() : true;
+    return m_Encrypt ? m_Encrypt->IsAccessibilityAllowed() : true;
 }
 
 bool PdfStreamedDocument::IsDocAssemblyAllowed() const
 {
-    return m_pEncrypt ? m_pEncrypt->IsDocAssemblyAllowed() : true;
+    return m_Encrypt ? m_Encrypt->IsDocAssemblyAllowed() : true;
 }
 
 bool PdfStreamedDocument::IsHighPrintAllowed() const
 {
-    return m_pEncrypt ? m_pEncrypt->IsHighPrintAllowed() : true;
+    return m_Encrypt ? m_Encrypt->IsHighPrintAllowed() : true;
 }

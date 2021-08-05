@@ -64,18 +64,18 @@ PdfString PdfString::FromRaw(const string_view& view, bool isHex)
     return PdfString(std::make_shared<string>(view), isHex);
 }
 
-PdfString PdfString::FromHexData(const string_view& view, PdfEncrypt* encrypt)
+PdfString PdfString::FromHexData(const string_view& hexView, PdfEncrypt* encrypt)
 {
-    size_t lLen = view.size();
+    size_t len = hexView.size();
     auto buffer = std::make_shared<string>();
-    buffer->reserve(lLen % 2 ? (lLen + 1) >> 1 : lLen >> 1);
+    buffer->reserve(len % 2 ? (len + 1) >> 1 : len >> 1);
 
     char val;
     char cDecodedByte = 0;
     bool bLow = true;
-    for (size_t i = 0; i < lLen; i++)
+    for (size_t i = 0; i < len; i++)
     {
-        char ch = view[i];
+        char ch = hexView[i];
         if (PdfTokenizer::IsWhitespace(ch))
             continue;
 

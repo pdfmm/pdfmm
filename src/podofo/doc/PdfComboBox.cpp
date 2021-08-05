@@ -29,9 +29,9 @@ PdfComboBox::PdfComboBox(PdfPage& page, const PdfRect& rect)
     this->SetFieldFlag(static_cast<int>(ePdfListField_Combo), true);
 }
 
-void PdfComboBox::SetEditable(bool bEdit)
+void PdfComboBox::SetEditable(bool edit)
 {
-    this->SetFieldFlag(static_cast<int>(ePdfListField_Edit), bEdit);
+    this->SetFieldFlag(static_cast<int>(ePdfListField_Edit), edit);
 }
 
 bool PdfComboBox::IsEditable() const

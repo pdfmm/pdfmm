@@ -38,20 +38,20 @@ class PdfXRef;
 class PODOFO_API PdfWriter
 {
 private:
-    PdfWriter(PdfVecObjects* pVecObjects, const PdfObject& pTrailer, PdfVersion version);
+    PdfWriter(PdfVecObjects* objects, const PdfObject& trailer, PdfVersion version);
 
 public:
     /** Create a new pdf file, from an vector of PdfObjects
      *  and a trailer object.
-     *  \param pVecObjects the vector of objects
-     *  \param pTrailer a valid trailer object
+     *  \param objects the vector of objects
+     *  \param trailer a valid trailer object
      */
-    PdfWriter(PdfVecObjects& pVecObjects, const PdfObject& pTrailer);
+    PdfWriter(PdfVecObjects& objects, const PdfObject& trailer);
 
     virtual ~PdfWriter();
 
     /** Internal implementation of the Write() call with the common code
-     *  \param pDevice write to this output device
+     *  \param device write to this output device
      *  \param bRewriteXRefTable whether will rewrite whole XRef table (used only if GetIncrementalUpdate() returns true)
      */
     void Write(PdfOutputDevice& device);
@@ -71,11 +71,11 @@ public:
 
 
     /** Add required keys to a trailer object
-     *  \param pTrailer add keys to this object
-     *  \param lSize number of objects in the PDF file
-     *  \param bOnlySizeKey write only the size key
+     *  \param trailer add keys to this object
+     *  \param size number of objects in the PDF file
+     *  \param onlySizeKey write only the size key
      */
-    void FillTrailerObject(PdfObject& pTrailer, size_t lSize, bool bOnlySizeKey) const;
+    void FillTrailerObject(PdfObject& trailer, size_t lSize, bool onlySizeKey) const;
 
 public:
     /** Get the file format version of the pdf
@@ -86,25 +86,25 @@ public:
     inline void SetSaveOptions(PdfSaveOptions saveOptions) { m_saveOptions = saveOptions; }
 
     /** Set the write mode to use when writing the PDF.
-     *  \param eWriteMode write mode
+     *  \param writeMode write mode
      */
-    inline void SetWriteMode(PdfWriteMode eWriteMode) { m_eWriteMode = eWriteMode; }
+    inline void SetWriteMode(PdfWriteMode writeMode) { m_WriteMode = writeMode; }
 
     /** Get the write mode used for writing the PDF
      *  \returns the write mode
      */
-    inline PdfWriteMode GetWriteMode() const { return m_eWriteMode; }
+    inline PdfWriteMode GetWriteMode() const { return m_WriteMode; }
 
     /** Set the PDF Version of the document. Has to be called before Write() to
      *  have an effect.
-     *  \param eVersion  version of the pdf document
+     *  \param version  version of the pdf document
      */
-    inline void SetPdfVersion(PdfVersion eVersion) { m_eVersion = eVersion; }
+    inline void SetPdfVersion(PdfVersion version) { m_Version = version; }
 
     /** Get the PDF version of the document
      *  \returns EPdfVersion version of the pdf document
      */
-    inline PdfVersion GetPdfVersion() const { return m_eVersion; }
+    inline PdfVersion GetPdfVersion() const { return m_Version; }
 
     /**
      *  \returns whether an XRef stream is used or not
@@ -116,7 +116,7 @@ public:
      *  The default is 0.
      *  \param lPrevXRefOffset the previous XRef table offset
      */
-    inline void SetPrevXRefOffset(int64_t lPrevXRefOffset) { m_lPrevXRefOffset = lPrevXRefOffset; }
+    inline void SetPrevXRefOffset(int64_t lPrevXRefOffset) { m_PrevXRefOffset = lPrevXRefOffset; }
 
     /**
      *  \returns offset to the previous XRef table, as previously set
@@ -124,7 +124,7 @@ public:
      *
      * \see SetPrevXRefOffset
      */
-    inline int64_t GetPrevXRefOffset() const { return m_lPrevXRefOffset; }
+    inline int64_t GetPrevXRefOffset() const { return m_PrevXRefOffset; }
 
     /** Set whether writing an incremental update.
      *  Default is false.
@@ -135,31 +135,31 @@ public:
     /**
      *  \returns whether writing an incremental update
      */
-    inline bool GetIncrementalUpdate() const { return m_bIncrementalUpdate; }
+    inline bool GetIncrementalUpdate() const { return m_IncrementalUpdate; }
 
     /**
      * \returns true if this PdfWriter creates an encrypted PDF file
      */
-    inline bool GetEncrypted() const { return m_pEncrypt != nullptr; }
+    inline bool GetEncrypted() const { return m_Encrypt != nullptr; }
 
 protected:
     /**
      * Create a PdfWriter from a PdfVecObjects
      */
-    PdfWriter(PdfVecObjects& pVecObjects);
+    PdfWriter(PdfVecObjects& objects);
 
     /** Writes the pdf header to the current file.
-     *  \param pDevice write to this output device
+     *  \param device write to this output device
      */
     void WritePdfHeader(PdfOutputDevice& device);
 
     /** Write pdf objects to file
-     *  \param pDevice write to this output device
-     *  \param vecObjects write all objects in this vector to the file
+     *  \param device write to this output device
+     *  \param objects write all objects in this vector to the file
      *  \param pXref add all written objects to this XRefTable
      *  \param bRewriteXRefTable whether will rewrite whole XRef table (used only if GetIncrementalUpdate() returns true)
      */
-    void WritePdfObjects(PdfOutputDevice& device, const PdfVecObjects& vecObjects, PdfXRef& xref);
+    void WritePdfObjects(PdfOutputDevice& device, const PdfVecObjects& objects, PdfXRef& xref);
 
     /** Creates a file identifier which is required in several
      *  PDF workflows.
@@ -167,38 +167,38 @@ protected:
      *  used to create a unique MD5 key which is added to the trailer dictionary.
      *
      *  \param identifier write the identifier to this string
-     *  \param pTrailer trailer object
+     *  \param trailer trailer object
      *  \param pOriginalIdentifier write the original identifier (when using incremental update) to this string
      */
-    void CreateFileIdentifier(PdfString& identifier, const PdfObject& pTrailer, PdfString* pOriginalIdentifier = nullptr) const;
+    void CreateFileIdentifier(PdfString& identifier, const PdfObject& trailer, PdfString* pOriginalIdentifier = nullptr) const;
 
 
     const PdfObject& GetTrailer() { return m_Trailer; }
-    PdfVecObjects& GetObjects() { return *m_vecObjects; }
-    PdfEncrypt* GetEncrypt() { return m_pEncrypt.get(); }
-    PdfObject* GetEncryptObj() { return m_pEncryptObj; }
+    PdfVecObjects& GetObjects() { return *m_Objects; }
+    PdfEncrypt* GetEncrypt() { return m_Encrypt.get(); }
+    PdfObject* GetEncryptObj() { return m_EncryptObj; }
     const PdfString& GetIdentifier() { return m_identifier; }
     void SetIdentifier(const PdfString& identifier) { m_identifier = identifier; }
     void SetEncryptObj(PdfObject* obj);
 private:
-    PdfVecObjects* m_vecObjects;
+    PdfVecObjects* m_Objects;
     PdfObject m_Trailer;
-    PdfVersion     m_eVersion;
+    PdfVersion m_Version;
 
-    bool            m_UseXRefStream;
+    bool m_UseXRefStream;
 
-    std::unique_ptr<PdfEncrypt> m_pEncrypt;    // If not nullptr encrypt all strings and streams and
+    std::unique_ptr<PdfEncrypt> m_Encrypt;    // If not nullptr encrypt all strings and streams and
                                                // create an encryption dictionary in the trailer
-    PdfObject* m_pEncryptObj;                  // Used to temporarily store the encryption dictionary
+    PdfObject* m_EncryptObj;                  // Used to temporarily store the encryption dictionary
 
-    PdfSaveOptions  m_saveOptions;
-    PdfWriteMode   m_eWriteMode;
+    PdfSaveOptions m_saveOptions;
+    PdfWriteMode m_WriteMode;
 
-    PdfString       m_identifier;
-    PdfString       m_originalIdentifier; // used for incremental update
-    int64_t         m_lPrevXRefOffset;
-    bool            m_bIncrementalUpdate;
-    bool            m_rewriteXRefTable; // Only used if incremental update
+    PdfString m_identifier;
+    PdfString m_originalIdentifier; // used for incremental update
+    int64_t m_PrevXRefOffset;
+    bool m_IncrementalUpdate;
+    bool m_rewriteXRefTable; // Only used if incremental update
 
     /**
      * This value is required when writing
@@ -207,10 +207,10 @@ private:
      * character before the first line in the XRef
      * section.
      */
-    size_t            m_lFirstInXRef;
-    size_t            m_lLinearizedOffset;
-    size_t            m_lLinearizedLastOffset;
-    size_t            m_lTrailerOffset;
+    size_t m_FirstInXRef;
+    size_t m_LinearizedOffset;
+    size_t m_LinearizedLastOffset;
+    size_t m_TrailerOffset;
 };
 
 };

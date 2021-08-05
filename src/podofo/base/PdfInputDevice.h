@@ -37,7 +37,7 @@ public:
     // TODO: Move it to a PdfFileInputDevice
     /** Construct a new PdfInputDevice that reads all data from a file.
      *
-     *  \param pszFilename path to a file that will be opened and all data
+     *  \param filename path to a file that will be opened and all data
      *                     is read from this file.
      */
     explicit PdfInputDevice(const std::string_view& filename);
@@ -46,8 +46,8 @@ public:
     /** Construct a new PdfInputDevice that reads all data from a memory buffer.
      *  The buffer will not be owned by this object - it is COPIED.
      *
-     *  \param pBuffer a buffer in memory
-     *  \param lLen the length of the buffer in memory
+     *  \param buffer a buffer in memory
+     *  \param len the length of the buffer in memory
      */
     PdfInputDevice(const char* buffer, size_t len);
 

@@ -26,9 +26,9 @@ class PdfDocument;
 class PODOFO_DOC_API PdfFileSpec final : public PdfElement
 {
 public:
-    PdfFileSpec(PdfDocument& doc, const std::string_view& filename, bool bEmbedd, bool bStripPath = false);
+    PdfFileSpec(PdfDocument& doc, const std::string_view& filename, bool embed, bool striPath = false);
 
-    PdfFileSpec(PdfDocument& doc, const std::string_view& filename, const char* data, size_t size, bool bStripPath = false);
+    PdfFileSpec(PdfDocument& doc, const std::string_view& filename, const char* data, size_t size, bool striPath = false);
 
     PdfFileSpec(PdfObject& obj);
 
@@ -43,44 +43,44 @@ public:
 private:
 
     /** Initialize a filespecification from a filename
-     *  \param pszFilename filename
-     *  \param bEmbedd embedd the file data into the PDF file
-     *  \param bStripPath whether to strip path from the file name string
+     *  \param filename filename
+     *  \param embed embedd the file data into the PDF file
+     *  \param striPath whether to strip path from the file name string
      */
-    void Init(const std::string_view& filename, bool bEmbedd, bool bStripPath);
+    void Init(const std::string_view& filename, bool embed, bool striPath);
 
     /** Initialize a filespecification from an in-memory buffer
-     *  \param pszFilename filename
+     *  \param filename filename
      *  \param data Data of the file
      *  \param size size of the data buffer
-     *  \param bStripPath whether to strip path from the file name string
+     *  \param striPath whether to strip path from the file name string
      */
-    void Init(const std::string_view& filename, const char* data, size_t size, bool bStripPath);
+    void Init(const std::string_view& filename, const char* data, size_t size, bool striPath);
 
     /** Create a file specification string from a filename
-     *  \param pszFilename filename
+     *  \param filename filename
      *  \returns a file specification string
      */
     PdfString CreateFileSpecification(const std::string_view& filename) const;
 
     /** Embedd a file into a stream object
-     *  \param pStream write the file to this objects stream
-     *  \param pszFilename the file to embedd
+     *  \param obj write the file to this object stream
+     *  \param filename the file to embedd
      */
-    void EmbeddFile(PdfObject* pStream, const std::string_view& filename) const;
+    void EmbeddFile(PdfObject* obj, const std::string_view& filename) const;
 
-    /** Strips path from a file, according to \a bStripPath
-     *  \param pszFilename a file name string
-     *  \param bStripPath whether to strip path from the file name string
-     *  \returns Either unchanged \a pszFilename, if \a bStripPath is false;
-     *     or \a pszFilename without a path part, if \a bStripPath is true
+    /** Strips path from a file, according to \a striPath
+     *  \param filename a file name string
+     *  \param striPath whether to strip path from the file name string
+     *  \returns Either unchanged \a filename, if \a striPath is false;
+     *     or \a filename without a path part, if \a striPath is true
      */
-    std::string MaybeStripPath(const std::string_view& filename, bool bStripPath) const;
+    std::string MaybeStripPath(const std::string_view& filename, bool striPath) const;
 
     /* Petr P. Petrov 17 September 2009*/
     /** Embeds the file from memory
       */
-    void EmbeddFileFromMem(PdfObject* pStream, const char* data, size_t size) const;
+    void EmbeddFileFromMem(PdfObject* obj, const char* data, size_t size) const;
 };
 
 };

@@ -29,8 +29,8 @@ class PdfXRef
 protected:
     struct XRefItem
     {
-        XRefItem(const PdfReference& rRef, uint64_t off)
-            : Reference(rRef), Offset(off) { }
+        XRefItem(const PdfReference& ref, uint64_t off)
+            : Reference(ref), Offset(off) { }
 
         PdfReference Reference;
         uint64_t Offset;
@@ -41,13 +41,8 @@ protected:
         }
     };
 
-    typedef std::vector<XRefItem>         TVecXRefItems;
-    typedef TVecXRefItems::iterator        TIVecXRefItems;
-    typedef TVecXRefItems::const_iterator  TCIVecXRefItems;
-
-    typedef std::vector<PdfReference>      TVecReferences;
-    typedef TVecReferences::iterator       TIVecReferences;
-    typedef TVecReferences::const_iterator TCIVecReferences;
+    typedef std::vector<XRefItem> XRefItemList;
+    typedef std::vector<PdfReference> ReferenceList;
 
     struct PdfXRefBlock
     {
@@ -56,7 +51,7 @@ protected:
 
         PdfXRefBlock(const PdfXRefBlock& rhs) = default;
 
-        bool InsertItem(const PdfReference& rRef, std::optional<uint64_t> offset, bool bUsed);
+        bool InsertItem(const PdfReference& ref, std::optional<uint64_t> offset, bool bUsed);
 
         bool operator<(const PdfXRefBlock& rhs) const
         {
@@ -67,13 +62,11 @@ protected:
 
         uint32_t First;
         uint32_t Count;
-        TVecXRefItems Items;
-        TVecReferences FreeItems;
+        XRefItemList Items;
+        ReferenceList FreeItems;
     };
 
-    typedef std::vector<PdfXRefBlock>      TVecXRefBlock;
-    typedef TVecXRefBlock::iterator        TIVecXRefBlock;
-    typedef TVecXRefBlock::const_iterator  TCIVecXRefBlock;
+    typedef std::vector<PdfXRefBlock> XRefBlockList;
 
 public:
     PdfXRef(PdfWriter& pWriter);
@@ -84,12 +77,12 @@ public:
     /** Add an used object to the XRef table.
      *  The object should have been written to an output device already.
      *
-     *  \param rRef reference of this object
+     *  \param ref reference of this object
      *  \param offset the offset where on the device the object was written
      *                if std::nullopt, the object will be accounted for
      *                 trailer's /Size but not written in the entries list
      */
-    void AddInUseObject(const PdfReference& rRef, std::optional<uint64_t> offset);
+    void AddInUseObject(const PdfReference& ref, std::optional<uint64_t> offset);
 
     /** Add a free object to the XRef table.
      *
@@ -103,7 +96,7 @@ public:
 
     /** Write the XRef table to an output device.
      *
-     *  \param pDevice an output device (usually a PDF file)
+     *  \param device an output device (usually a PDF file)
      *
      */
     void Write(PdfOutputDevice& device);
@@ -122,7 +115,7 @@ public:
 
     /** Should skip writing for this object
      */
-    virtual bool ShouldSkipWrite(const PdfReference& rRef);
+    virtual bool ShouldSkipWrite(const PdfReference& ref);
 
 public:
     inline PdfWriter& GetWriter() const { return *m_writer; }
@@ -138,7 +131,7 @@ protected:
      *  This method can be overwritten in subclasses
      *  to write a general header for the XRef table.
      *
-     *  \param pDevice the output device to which the XRef table
+     *  \param device the output device to which the XRef table
      *                 should be written.
      */
     virtual void BeginWrite(PdfOutputDevice& device);
@@ -146,7 +139,7 @@ protected:
     /** Begin an XRef subsection.
      *  All following calls of WriteXRefEntry belong to this XRef subsection.
      *
-     *  \param pDevice the output device to which the XRef table
+     *  \param device the output device to which the XRef table
      *                 should be written.
      *  \param nFirst the object number of the first object in this subsection
      *  \param nCount the number of entries in this subsection
@@ -155,7 +148,7 @@ protected:
 
     /** Write a single entry to the XRef table
      *
-     *  \param pDevice the output device to which the XRef table
+     *  \param device the output device to which the XRef table
      *                 should be written.
      *  \param offset the offset of the object
      *  \param generation the generation number
@@ -167,24 +160,24 @@ protected:
 
     /**  Sub classes can overload this method to finish a XRef table.
      *
-     *  \param pDevice the output device to which the XRef table
+     *  \param device the output device to which the XRef table
      *                 should be written.
      */
     virtual void EndWriteImpl(PdfOutputDevice& device);
 
 private:
-    void AddObject(const PdfReference& rRef, std::optional<uint64_t> offset, bool inUse);
+    void AddObject(const PdfReference& ref, std::optional<uint64_t> offset, bool inUse);
 
     /** Called at the end of writing the XRef table.
      *  Sub classes can overload this method to finish a XRef table.
      *
-     *  \param pDevice the output device to which the XRef table
+     *  \param device the output device to which the XRef table
      *                 should be written.
      */
     void EndWrite(PdfOutputDevice& device);
 
-    const PdfReference* GetFirstFreeObject(PdfXRef::TCIVecXRefBlock itBlock, PdfXRef::TCIVecReferences itFree) const;
-    const PdfReference* GetNextFreeObject(PdfXRef::TCIVecXRefBlock itBlock, PdfXRef::TCIVecReferences itFree) const;
+    const PdfReference* GetFirstFreeObject(XRefBlockList::const_iterator itBlock, ReferenceList::const_iterator itFree) const;
+    const PdfReference* GetNextFreeObject(XRefBlockList::const_iterator itBlock, ReferenceList::const_iterator itFree) const;
 
     /** Merge all xref blocks that follow immediately after each other
      *  into a single block.
@@ -195,8 +188,8 @@ private:
     void MergeBlocks();
 
 private:
-    uint32_t m_maxObjNum;
-    TVecXRefBlock m_vecBlocks;
+    uint32_t m_maxObjCount;
+    XRefBlockList m_blocks;
     PdfWriter* m_writer;
     uint64_t m_offset;
 };

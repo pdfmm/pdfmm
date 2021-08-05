@@ -168,7 +168,7 @@ void PdfOutputDevice::PrintV(const char* format, size_t size, va_list args)
             if (m_Stream->fail())
                 PODOFO_RAISE_ERROR(EPdfError::InvalidDeviceOperation);
         }
-        else // if( m_pRefCountedBuffer ) 
+        else // m_RefCountedBuffer
         {
             if (m_Position + size > m_RefCountedBuffer->GetSize())
                 m_RefCountedBuffer->Resize(m_Position + size);
@@ -268,9 +268,8 @@ void PdfOutputDevice::Seek(size_t offset)
         m_Position = offset;
     }
 
+    // NOTE: Seek should not change the length of the device
     m_Position = offset;
-    // Seek should not change the length of the device
-    // m_ulLength = offset;
 }
 
 void PdfOutputDevice::Flush()

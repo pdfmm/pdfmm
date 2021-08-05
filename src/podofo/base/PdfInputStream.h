@@ -28,20 +28,20 @@ public:
 
     /** Read data from the input stream
      *
-     *  \param pBuffer    the data will be stored into this buffer
-     *  \param lLen       the size of the buffer and number of bytes
+     *  \param buffer    the data will be stored into this buffer
+     *  \param len       the size of the buffer and number of bytes
      *                    that will be read
      *  \param eof        true if the stream reached eof
      *
      *  \returns the number of bytes read
      */
-    size_t Read(char* pBuffer, size_t lLen, bool& eof);
+    size_t Read(char* buffer, size_t len, bool& eof);
 
 public:
     inline bool Eof() const { return m_eof; }
 
 protected:
-    virtual size_t ReadImpl(char* pBuffer, size_t lLen, bool& eof) = 0;
+    virtual size_t ReadImpl(char* buffer, size_t len, bool& eof) = 0;
 
 private:
     bool m_eof;
@@ -54,14 +54,14 @@ class PODOFO_API PdfFileInputStream : public PdfInputStream
 public:
     /** Open a file for reading data
      *
-     *  \param pszFilename the filename of the file to read
+     *  \param filename the filename of the file to read
      */
     PdfFileInputStream(const std::string_view& filename);
 
     ~PdfFileInputStream();
 
 protected:
-    size_t ReadImpl(char* pBuffer, size_t lLen, bool& eof) override;
+    size_t ReadImpl(char* buffer, size_t len, bool& eof) override;
 
 private:
     std::ifstream m_stream;
@@ -74,18 +74,18 @@ class PODOFO_API PdfMemoryInputStream : public PdfInputStream
 public:
     /** Open a file for reading data
      *
-     *  \param pBuffer buffer to read from
+     *  \param buffer buffer to read from
      *  \param lBufferLen length of the buffer
      */
-    PdfMemoryInputStream(const char* pBuffer, size_t lBufferLen);
+    PdfMemoryInputStream(const char* buffer, size_t lBufferLen);
     ~PdfMemoryInputStream();
 
 protected:
-    size_t ReadImpl(char* pBuffer, size_t lLen, bool& eof) override;
+    size_t ReadImpl(char* buffer, size_t len, bool& eof) override;
 
 private:
-    const char* m_pBuffer;
-    size_t m_lBufferLen;
+    const char* m_Buffer;
+    size_t m_BufferLen;
 };
 
 /** An input stream that reads data from an input device
@@ -96,15 +96,15 @@ public:
     /**
      *  Read from an already opened input device
      *
-     *  \param pDevice an input device
+     *  \param device an input device
      */
-    PdfDeviceInputStream(PdfInputDevice* pDevice);
+    PdfDeviceInputStream(PdfInputDevice* device);
 
 protected:
-    size_t ReadImpl(char* pBuffer, size_t lLen, bool& eof) override;
+    size_t ReadImpl(char* buffer, size_t len, bool& eof) override;
 
 private:
-    PdfInputDevice* m_pDevice;
+    PdfInputDevice* m_Device;
 };
 
 };

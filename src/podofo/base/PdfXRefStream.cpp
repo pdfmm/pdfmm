@@ -30,7 +30,7 @@ struct XRefStreamEntry
 
 PdfXRefStream::PdfXRefStream(PdfWriter& writer, PdfVecObjects& parent) :
     PdfXRef(writer),
-    m_pParent(&parent),
+    m_Parent(&parent),
     m_xrefStreamObj(parent.CreateDictionaryObject("XRef")),
     m_offset(-1)
 {
@@ -60,8 +60,8 @@ void PdfXRefStream::BeginWrite(PdfOutputDevice&)
 
 void PdfXRefStream::WriteSubSection(PdfOutputDevice&, uint32_t first, uint32_t count)
 {
-    m_indeces.push_back(static_cast<int64_t>(first));
-    m_indeces.push_back(static_cast<int64_t>(count));
+    m_indices.push_back(static_cast<int64_t>(first));
+    m_indices.push_back(static_cast<int64_t>(count));
 }
 
 void PdfXRefStream::WriteXRefEntry(PdfOutputDevice&, const PdfXRefEntry& entry)
@@ -71,10 +71,10 @@ void PdfXRefStream::WriteXRefEntry(PdfOutputDevice&, const PdfXRefEntry& entry)
 
     switch (entry.Type)
     {
-        case EXRefEntryType::Free:
+        case XRefEntryType::Free:
             stmEntry.Variant = AS_BIG_ENDIAN(static_cast<uint32_t>(entry.ObjectNumber));
             break;
-        case EXRefEntryType::InUse:
+        case XRefEntryType::InUse:
             stmEntry.Variant = AS_BIG_ENDIAN(static_cast<uint32_t>(entry.Offset));
             break;
         default:
@@ -95,7 +95,7 @@ void PdfXRefStream::EndWriteImpl(PdfOutputDevice& device)
     w.push_back(static_cast<int64_t>(sizeof(XRefStreamEntry::Variant)));
     w.push_back(static_cast<int64_t>(sizeof(XRefStreamEntry::Generation)));
 
-    m_xrefStreamObj->GetDictionary().AddKey("Index", m_indeces);
+    m_xrefStreamObj->GetDictionary().AddKey("Index", m_indices);
     m_xrefStreamObj->GetDictionary().AddKey("W", w);
 
     int64_t offset = (int64_t)device.Tell();

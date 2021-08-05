@@ -53,35 +53,35 @@ public:
     PdfVariant();
 
     /** Construct a PdfVariant that is a bool.
-     *  \param b the boolean value of this PdfVariant
+     *  \param value the boolean value of this PdfVariant
      */
-    PdfVariant(bool b);
+    PdfVariant(bool value);
 
     /** Construct a PdfVariant that is a number.
-     *  \param l the value of the number.
+     *  \param value the value of the number.
      */
-    PdfVariant(int64_t l);
+    PdfVariant(int64_t value);
 
     /** Construct a PdfVariant that is a real number.
-     *  \param d the value of the real number.
+     *  \param value the value of the real number.
      */
-    PdfVariant(double d);
+    PdfVariant(double value);
 
     /** Construct a PdfVariant that is a string. The argument
      * string will be escaped where necessary, so it should be
      * passed in unescaped form.
      *
-     *  \param rsString the value of the string
+     *  \param str the value of the string
      */
     PdfVariant(const PdfString& str);
 
     /** Construct a PdfVariant that is a name.
-     *  \param rName the value of the name
+     *  \param name the value of the name
      */
     PdfVariant(const PdfName& name);
 
     /** Construct a PdfVariant that is a name.
-     *  \param rRef the value of the name
+     *  \param ref the value of the name
      */
     PdfVariant(const PdfReference& ref);
 
@@ -90,12 +90,12 @@ public:
      *  EPdfDataType::Array. This constructor is the fastest
      *  way to create a new PdfVariant that is an array.
      *
-     *  \param tList a list of variants
+     *  \param arr a list of variants
      */
     PdfVariant(const PdfArray& arr);
 
     /** Construct a PdfVariant that is a dictionary.
-     *  \param rDict the value of the dictionary.
+     *  \param dict the value of the dictionary.
      */
     PdfVariant(const PdfDictionary& dict);
 
@@ -174,8 +174,8 @@ public:
 
     /** Converts the current object into a string representation
      *  which can be written directly to a PDF file on disc.
-     *  \param rsData the object string is returned in this object.
-     *  \param eWriteMode additional options for writing to a string
+     *  \param data the object string is returned in this object.
+     *  \param writeMode additional options for writing to a string
      */
     void ToString(std::string& data, PdfWriteMode writeMode = PdfWriteMode::Clean) const;
 
@@ -255,7 +255,7 @@ public:
      *  This will set the dirty flag of this object.
      *  \see IsDirty
      */
-    void SetBool(bool b);
+    void SetBool(bool value);
 
     /** Set the value of this object as int64_t
      *  \param l the value as int64_t.
@@ -263,7 +263,7 @@ public:
      *  This will set the dirty flag of this object.
      *  \see IsDirty
      */
-    void SetNumber(int64_t l);
+    void SetNumber(int64_t value);
 
     /** Set the value of this object as double
      *  \param d the value as double.
@@ -271,7 +271,7 @@ public:
      *  This will set the dirty flag of this object.
      *  \see IsDirty
      */
-    void SetReal(double d);
+    void SetReal(double value);
 
     /** Set the name value of this object
     *  \param d the name value
@@ -292,9 +292,9 @@ public:
     void SetReference(const PdfReference& ref);
 
     /** Write the complete variant to an output device.
-     *  \param pDevice write the object to this device
-     *  \param eWriteMode additional options for writing this object
-     *  \param pEncrypt an encryption object which is used to encrypt this object
+     *  \param device write the object to this device
+     *  \param writeMode additional options for writing this object
+     *  \param encrypt an encryption object which is used to encrypt this object
      *                  or nullptr to not encrypt this object
      */
     void Write(PdfOutputDevice& device, PdfWriteMode writeMode,

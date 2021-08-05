@@ -23,7 +23,7 @@ PdfDictionary::PdfDictionary(const PdfDictionary& rhs)
 
 const PdfDictionary& PdfDictionary::operator=(const PdfDictionary& rhs)
 {
-    m_mapKeys = rhs.m_mapKeys;
+    m_Map = rhs.m_Map;
     PdfContainerDataType::operator=(rhs);
     return *this;
 }
@@ -34,7 +34,7 @@ bool PdfDictionary::operator==(const PdfDictionary& rhs) const
         return true;
 
     // We don't check owner
-    return m_mapKeys == rhs.m_mapKeys;
+    return m_Map == rhs.m_Map;
 }
 
 bool PdfDictionary::operator!=(const PdfDictionary& rhs) const
@@ -43,16 +43,16 @@ bool PdfDictionary::operator!=(const PdfDictionary& rhs) const
         return true;
 
     // We don't check owner
-    return m_mapKeys != rhs.m_mapKeys;
+    return m_Map != rhs.m_Map;
 }
 
 void PdfDictionary::Clear()
 {
     AssertMutable();
 
-    if (!m_mapKeys.empty())
+    if (!m_Map.empty())
     {
-        m_mapKeys.clear();
+        m_Map.clear();
         SetDirty();
     }
 }
@@ -98,7 +98,7 @@ pair<PdfDictionary::Map::iterator, bool> PdfDictionary::addKey(const PdfName& id
     // NOTE: Empty PdfNames are legal according to the PDF specification.
     // Don't check for it
 
-    pair<Map::iterator, bool> inserted = m_mapKeys.insert(std::make_pair(identifier, obj));
+    pair<Map::iterator, bool> inserted = m_Map.insert(std::make_pair(identifier, obj));
     if (!inserted.second)
     {
         if (noDirtySet)
@@ -120,8 +120,8 @@ PdfObject* PdfDictionary::getKey(const PdfName& key) const
     if (!key.GetLength())
         return nullptr;
 
-    auto it = m_mapKeys.find(key);
-    if (it == m_mapKeys.end())
+    auto it = m_Map.find(key);
+    if (it == m_Map.end())
         return nullptr;
 
     return &const_cast<PdfObject&>(it->second);
@@ -169,18 +169,18 @@ bool PdfDictionary::HasKey(const PdfName& key) const
 {
     // NOTE: Empty PdfNames are legal according to the PDF specification,
     // don't check for it
-    return m_mapKeys.find(key) != m_mapKeys.end();
+    return m_Map.find(key) != m_Map.end();
 }
 
 bool PdfDictionary::RemoveKey(const PdfName& identifier)
 {
     AssertMutable();
 
-    Map::iterator found = m_mapKeys.find(identifier);
-    if (found == m_mapKeys.end())
+    Map::iterator found = m_Map.find(identifier);
+    if (found == m_Map.end())
         return false;
 
-    m_mapKeys.erase(found);
+    m_Map.erase(found);
     SetDirty();
     return true;
 }
@@ -207,7 +207,7 @@ void PdfDictionary::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
             device.Print("\n");
     }
 
-    for (auto& pair : m_mapKeys)
+    for (auto& pair : m_Map)
     {
         if (pair.first != PdfName::KeyType)
         {
@@ -227,7 +227,7 @@ void PdfDictionary::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
 void PdfDictionary::ResetDirtyInternal()
 {
     // Propagate state to all sub objects
-    for (auto& pair : m_mapKeys)
+    for (auto& pair : m_Map)
         pair.second.ResetDirty();
 }
 
@@ -237,7 +237,7 @@ void PdfDictionary::SetOwner(PdfObject* owner)
     auto document = owner->GetDocument();
 
     // Set owmership for all children
-    for (auto& pair : m_mapKeys)
+    for (auto& pair : m_Map)
     {
         pair.second.SetParent(this);
         if (document != nullptr)
@@ -313,7 +313,7 @@ PdfObject& PdfDictionary::MustFindKeyParent(const PdfName& key)
 
 size_t PdfDictionary::GetSize() const
 {
-    return m_mapKeys.size();
+    return m_Map.size();
 }
 
 const PdfObject& PdfDictionary::MustGetKey(const PdfName& key) const
@@ -336,25 +336,25 @@ PdfObject& PoDoFo::PdfDictionary::MustGetKey(const PdfName& key)
 
 PdfDictionary::iterator PdfDictionary::begin()
 {
-    return m_mapKeys.begin();
+    return m_Map.begin();
 }
 
 PdfDictionary::iterator PdfDictionary::end()
 {
-    return m_mapKeys.end();
+    return m_Map.end();
 }
 
 PdfDictionary::const_iterator PdfDictionary::begin() const
 {
-    return m_mapKeys.begin();
+    return m_Map.begin();
 }
 
 PdfDictionary::const_iterator PdfDictionary::end() const
 {
-    return m_mapKeys.end();
+    return m_Map.end();
 }
 
 size_t PdfDictionary::size() const
 {
-    return m_mapKeys.size();
+    return m_Map.size();
 }

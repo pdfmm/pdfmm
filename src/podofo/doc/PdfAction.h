@@ -61,7 +61,7 @@ class PODOFO_DOC_API PdfAction final : public PdfElement
 public:
     /** Create a new PdfAction object
      *  \param eAction type of this action
-     *  \param pParent parent of this action
+     *  \param parent parent of this action
      */
     PdfAction(PdfDocument& doc, PdfActionType action);
 
@@ -73,7 +73,7 @@ public:
     /** Set the URI of an EPdfAction::URI
      *  \param sUri must be a correct URI as PdfString
      */
-    void SetURI(const PdfString& sUri);
+    void SetURI(const PdfString& uri);
 
     /** Get the URI of an EPdfAction::URI
      *  \returns an URI
@@ -94,7 +94,7 @@ public:
     /** Get the type of this action
      *  \returns the type of this action
      */
-    inline PdfActionType GetType() const { return m_eType; }
+    inline PdfActionType GetType() const { return m_Type; }
 
     /** Adds this action to an dictionary.
      *  This method handles the all the complexities of making sure it's added correctly
@@ -109,7 +109,7 @@ private:
     PdfAction(const PdfAction& rhs) = delete;
 
 private:
-    PdfActionType m_eType;
+    PdfActionType m_Type;
 };
 
 };

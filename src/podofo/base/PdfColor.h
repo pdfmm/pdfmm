@@ -38,28 +38,28 @@ public:
     /** Create a new PdfColor object with
      *  a grayscale value.
      *
-     *  \param dGray a grayscale value between 0.0 and 1.0
+     *  \param gray a grayscale value between 0.0 and 1.0
      */
-    explicit PdfColor(double dGray);
+    explicit PdfColor(double gray);
 
     /** Create a new PdfColor object with
      *  a RGB color
      *
-     *  \param dRed the value of the red component, must be between 0.0 and 1.0
-     *  \param dGreen the value of the green component, must be between 0.0 and 1.0
-     *  \param dBlue the value of the blue component, must be between 0.0 and 1.0
+     *  \param red the value of the red component, must be between 0.0 and 1.0
+     *  \param green the value of the green component, must be between 0.0 and 1.0
+     *  \param blue the value of the blue component, must be between 0.0 and 1.0
      */
-    PdfColor(double dRed, double dGreen, double dBlue);
+    PdfColor(double red, double green, double blue);
 
     /** Create a new PdfColor object with
      *  a CMYK color
      *
-     *  \param dCyan the value of the cyan component, must be between 0.0 and 1.0
-     *  \param dMagenta the value of the magenta component, must be between 0.0 and 1.0
-     *  \param dYellow the value of the yellow component, must be between 0.0 and 1.0
-     *  \param dBlack the value of the black component, must be between 0.0 and 1.0
+     *  \param cyan the value of the cyan component, must be between 0.0 and 1.0
+     *  \param magenta the value of the magenta component, must be between 0.0 and 1.0
+     *  \param yellow the value of the yellow component, must be between 0.0 and 1.0
+     *  \param black the value of the black component, must be between 0.0 and 1.0
      */
-    PdfColor(double dCyan, double dMagenta, double dYellow, double dBlack);
+    PdfColor(double cyan, double magenta, double yellow, double black);
 
     /** Copy constructor
      *
@@ -129,7 +129,7 @@ public:
      *
      *  \returns the colorspace of this PdfColor object
      */
-    inline PdfColorSpace GetColorSpace() const { return m_eColorSpace; }
+    inline PdfColorSpace GetColorSpace() const { return m_ColorSpace; }
 
     /** Get the alternate colorspace of this PdfColor object
      *
@@ -233,7 +233,7 @@ public:
      *
      *  \see IsSeparation
      */
-    const std::string GetName() const;
+    const std::string& GetName() const;
 
     /** Get the density color value
      *  of this object.
@@ -322,7 +322,7 @@ public:
 
     /** Creates a color object from a string.
      *
-     *  \param pszName a string describing a color.
+     *  \param name a string describing a color.
      *
      *  Supported values are:
      *  - single gray values as string (e.g. '0.5')
@@ -338,28 +338,28 @@ public:
      *
      *  Raises an exception if this is no PdfColor!
      *
-     *  \param rArray an array that must be a color PdfArray
+     *  \param arr an array that must be a color PdfArray
      *  \returns a PdfColor object
      */
-    static PdfColor FromArray(const PdfArray& rArray);
+    static PdfColor FromArray(const PdfArray& arr);
 
     /**
      *  Convert a name into a colorspace enum.
      *
-     *  \param rName name representing a colorspace such as DeviceGray
+     *  \param name name representing a colorspace such as DeviceGray
      *  \returns colorspace enum or ePdfColorSpace_Unknown if name is unknown
      *  \see GetNameForColorSpace
      */
-    static PdfColorSpace GetColorSpaceForName(const PdfName& rName);
+    static PdfColorSpace GetColorSpaceForName(const PdfName& name);
 
     /*
      *  Convert a colorspace enum value into a name such as DeviceRGB
      *
-     *  \param eColorSpace a colorspace
+     *  \param colorSpace a colorspace
      *  \returns a name
      *  \see GetColorSpaceForName
      */
-    static PdfName GetNameForColorSpace(PdfColorSpace eColorSpace);
+    static PdfName GetNameForColorSpace(PdfColorSpace colorSpace);
 
     /** Creates a colorspace object from a color to insert into resources.
      *
@@ -375,11 +375,11 @@ protected:
         double rgb[3];
         double lab[3];
         double gray;
-    } m_uColor;
+    } m_Color;
     std::string m_separationName;
     double m_separationDensity;
-    PdfColorSpace m_eColorSpace;
-    PdfColorSpace m_eAlternateColorSpace;
+    PdfColorSpace m_ColorSpace;
+    PdfColorSpace m_AlternateColorSpace;
 
 private:
     static const unsigned* const m_hexDigitMap; // Mapping of hex sequences to int value
@@ -391,9 +391,9 @@ public:
 
     /** Create a new PdfColor object with a grayscale value.
      *
-     *  \param dGray a grayscale value between 0.0 and 1.0
+     *  \param gray a grayscale value between 0.0 and 1.0
      */
-    explicit PdfColorGray(double dGray);
+    explicit PdfColorGray(double gray);
 
 private:
     /** Default constructor, not implemented
@@ -415,11 +415,11 @@ public:
     /** Create a new PdfColor object with
      *  a RGB color
      *
-     *  \param dRed the value of the red component, must be between 0.0 and 1.0
-     *  \param dGreen the value of the green component, must be between 0.0 and 1.0
-     *  \param dBlue the value of the blue component, must be between 0.0 and 1.0
+     *  \param red the value of the red component, must be between 0.0 and 1.0
+     *  \param green the value of the green component, must be between 0.0 and 1.0
+     *  \param blue the value of the blue component, must be between 0.0 and 1.0
      */
-    PdfColorRGB(double dRed, double dGreen, double dBlue);
+    PdfColorRGB(double red, double green, double blue);
 
 private:
     /** Default constructor, not implemented
@@ -441,12 +441,12 @@ public:
 
     /** Create a new PdfColor object with a CMYK color
      *
-     *  \param dCyan the value of the cyan component, must be between 0.0 and 1.0
-     *  \param dMagenta the value of the magenta component, must be between 0.0 and 1.0
-     *  \param dYellow the value of the yellow component, must be between 0.0 and 1.0
-     *  \param dBlack the value of the black component, must be between 0.0 and 1.0
+     *  \param cyan the value of the cyan component, must be between 0.0 and 1.0
+     *  \param magenta the value of the magenta component, must be between 0.0 and 1.0
+     *  \param yellow the value of the yellow component, must be between 0.0 and 1.0
+     *  \param black the value of the black component, must be between 0.0 and 1.0
      */
-    PdfColorCMYK(double dCyan, double dMagenta, double dYellow, double dBlack);
+    PdfColorCMYK(double cyan, double magenta, double yellow, double black);
 
 private:
     /** Default constructor, not implemented
@@ -509,11 +509,11 @@ public:
     /** Create a new PdfColor object with
      *  a separation-name and an equivalent color
      *
-     *  \param sName Name of the separation color
-     *  \param sDensity the density value of the separation color
+     *  \param name Name of the separation color
+     *  \param density the density value of the separation color
      *  \param alternateColor the alternate color, must be of type gray, rgb, cmyk or cie
      */
-    PdfColorSeparation(const std::string_view& sName, double dDensity, const PdfColor& alternateColor);
+    PdfColorSeparation(const std::string_view& name, double density, const PdfColor& alternateColor);
 
 private:
     /** Default constructor, not implemented
@@ -535,11 +535,11 @@ public:
 
     /** Create a new PdfColor object with a CIE-LAB-value
      *
-     *  \param dCieL the value of the L component, must be between 0.0 and 100.0
-     *  \param dCieA the value of the A component, must be between -128.0 and 127.0
-     *  \param dCieB the value of the B component, must be between -128.0 and 127.0
+     *  \param cieL the value of the L component, must be between 0.0 and 100.0
+     *  \param cieA the value of the A component, must be between -128.0 and 127.0
+     *  \param cieB the value of the B component, must be between -128.0 and 127.0
      */
-    PdfColorCieLab(double dCieL, double dCieA, double dCieB);
+    PdfColorCieLab(double cieL, double cieA, double cieB);
 
 private:
     /** Default constructor, not implemented

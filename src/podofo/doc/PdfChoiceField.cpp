@@ -13,18 +13,18 @@ using namespace std;
 using namespace PoDoFo;
 
 
-PdChoiceField::PdChoiceField(PdfFieldType eField, PdfDocument& doc, PdfAnnotation* widget, bool insertInAcroform)
-    : PdfField(eField, doc, widget, insertInAcroform)
+PdChoiceField::PdChoiceField(PdfFieldType fieldType, PdfDocument& doc, PdfAnnotation* widget, bool insertInAcroform)
+    : PdfField(fieldType, doc, widget, insertInAcroform)
 {
 }
 
-PdChoiceField::PdChoiceField(PdfFieldType eField, PdfObject& obj, PdfAnnotation* widget)
-    : PdfField(eField, obj, widget)
+PdChoiceField::PdChoiceField(PdfFieldType fieldType, PdfObject& obj, PdfAnnotation* widget)
+    : PdfField(fieldType, obj, widget)
 {
 }
 
-PdChoiceField::PdChoiceField(PdfFieldType eField, PdfPage& page, const PdfRect& rect)
-    : PdfField(eField, page, rect)
+PdChoiceField::PdChoiceField(PdfFieldType fieldType, PdfPage& page, const PdfRect& rect)
+    : PdfField(fieldType, page, rect)
 {
 }
 
@@ -50,13 +50,7 @@ void PdChoiceField::InsertItem(const PdfString& value, const optional<PdfString>
     // TODO: Sorting
     optObj->GetArray().Add(objToAdd);
 
-    /*
-    m_pObject->GetDictionary().AddKey( "V", rsValue );
-
-    PdfArray array;
-    array.push_back(0);
-    m_pObject->GetDictionary().AddKey( "I", array );
-    */
+    // CHECK-ME: Should I set /V /I here?
 }
 
 void PdChoiceField::RemoveItem(unsigned index)
@@ -72,17 +66,17 @@ void PdChoiceField::RemoveItem(unsigned index)
     arr.RemoveAt(index);
 }
 
-PdfString PdChoiceField::GetItem(unsigned nIndex) const
+PdfString PdChoiceField::GetItem(unsigned index) const
 {
     PdfObject* opt = GetObject().GetDictionary().FindKey("Opt");
     if (opt == nullptr)
         PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
 
     PdfArray& optArray = opt->GetArray();
-    if (nIndex >= optArray.GetSize())
+    if (index >= optArray.GetSize())
         PODOFO_RAISE_ERROR(EPdfError::ValueOutOfRange);
 
-    PdfObject& item = optArray[nIndex];
+    PdfObject& item = optArray[index];
     if (item.IsArray())
     {
         PdfArray& itemArray = item.GetArray();
@@ -97,19 +91,19 @@ PdfString PdChoiceField::GetItem(unsigned nIndex) const
     return item.GetString();
 }
 
-optional<PdfString> PdChoiceField::GetItemDisplayText(int nIndex) const
+optional<PdfString> PdChoiceField::GetItemDisplayText(int index) const
 {
     PdfObject* opt = GetObject().GetDictionary().FindKey("Opt");
     if (opt == nullptr)
         return { };
 
     PdfArray& optArray = opt->GetArray();
-    if (nIndex < 0 || nIndex >= static_cast<int>(optArray.size()))
+    if (index < 0 || index >= static_cast<int>(optArray.size()))
     {
         PODOFO_RAISE_ERROR(EPdfError::ValueOutOfRange);
     }
 
-    PdfObject& item = optArray[nIndex];
+    PdfObject& item = optArray[index];
     if (item.IsArray())
     {
         PdfArray& itemArray = item.GetArray();
@@ -133,10 +127,10 @@ size_t PdChoiceField::GetItemCount() const
     return opt->GetArray().size();
 }
 
-void PdChoiceField::SetSelectedIndex(int nIndex)
+void PdChoiceField::SetSelectedIndex(int index)
 {
     AssertTerminalField();
-    PdfString selected = this->GetItem(nIndex);
+    PdfString selected = this->GetItem(index);
     GetObject().GetDictionary().AddKey("V", selected);
 }
 
@@ -181,9 +175,9 @@ bool PdChoiceField::IsComboBox() const
     return this->GetFieldFlag(static_cast<int>(ePdfListField_Combo), false);
 }
 
-void PdChoiceField::SetSpellcheckingEnabled(bool bSpellcheck)
+void PdChoiceField::SetSpellcheckingEnabled(bool spellCheck)
 {
-    this->SetFieldFlag(static_cast<int>(ePdfListField_NoSpellcheck), !bSpellcheck);
+    this->SetFieldFlag(static_cast<int>(ePdfListField_NoSpellcheck), !spellCheck);
 }
 
 bool PdChoiceField::IsSpellcheckingEnabled() const
@@ -191,9 +185,9 @@ bool PdChoiceField::IsSpellcheckingEnabled() const
     return this->GetFieldFlag(static_cast<int>(ePdfListField_NoSpellcheck), true);
 }
 
-void PdChoiceField::SetSorted(bool bSorted)
+void PdChoiceField::SetSorted(bool sorted)
 {
-    this->SetFieldFlag(static_cast<int>(ePdfListField_Sort), bSorted);
+    this->SetFieldFlag(static_cast<int>(ePdfListField_Sort), sorted);
 }
 
 bool PdChoiceField::IsSorted() const
@@ -201,9 +195,9 @@ bool PdChoiceField::IsSorted() const
     return this->GetFieldFlag(static_cast<int>(ePdfListField_Sort), false);
 }
 
-void PdChoiceField::SetMultiSelect(bool bMulti)
+void PdChoiceField::SetMultiSelect(bool multi)
 {
-    this->SetFieldFlag(static_cast<int>(ePdfListField_MultiSelect), bMulti);
+    this->SetFieldFlag(static_cast<int>(ePdfListField_MultiSelect), multi);
 }
 
 bool PdChoiceField::IsMultiSelect() const
@@ -211,9 +205,9 @@ bool PdChoiceField::IsMultiSelect() const
     return this->GetFieldFlag(static_cast<int>(ePdfListField_MultiSelect), false);
 }
 
-void PdChoiceField::SetCommitOnSelectionChange(bool bCommit)
+void PdChoiceField::SetCommitOnSelectionChange(bool commit)
 {
-    this->SetFieldFlag(static_cast<int>(ePdfListField_CommitOnSelChange), bCommit);
+    this->SetFieldFlag(static_cast<int>(ePdfListField_CommitOnSelChange), commit);
 }
 
 bool PdChoiceField::IsCommitOnSelectionChange() const

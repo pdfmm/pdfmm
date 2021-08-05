@@ -81,7 +81,7 @@ public:
      *  This is used by PdfPainter::DrawText to display a text string.
      *  The following PDF operator will be Tj
      *
-     *  \param stream the string will be appended to pStream without any leading
+     *  \param stream the string will be appended to stream without any leading
      *                 or following whitespaces.
      *  \param str a unicode or ansi string which will be displayed
      */
@@ -267,6 +267,8 @@ protected:
      */
     void FillDescriptor(PdfDictionary& dict);
 
+    /** Inititialization tasks for imported/created from scratch fonts
+     */
     virtual void initImported();
 
     virtual void embedFont();
@@ -288,7 +290,8 @@ private:
 
     PdfFont(const PdfFont& rhs) = delete;
 
-    /** Perform inititialization tasks for fonts imported or created
+    /**
+     * Perform inititialization tasks for fonts imported or created
      * from scratch
      */
     void InitImported(bool embeddingEnabled, bool subsettingEnabled);

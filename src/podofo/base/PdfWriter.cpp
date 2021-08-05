@@ -29,48 +29,48 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfWriter::PdfWriter(PdfVecObjects* pVecObjects, const PdfObject& pTrailer, PdfVersion version) :
-    m_vecObjects(pVecObjects),
-    m_Trailer(pTrailer),
-    m_eVersion(version),
+PdfWriter::PdfWriter(PdfVecObjects* objects, const PdfObject& trailer, PdfVersion version) :
+    m_Objects(objects),
+    m_Trailer(trailer),
+    m_Version(version),
     m_UseXRefStream(false),
-    m_pEncryptObj(nullptr),
+    m_EncryptObj(nullptr),
     m_saveOptions(PdfSaveOptions::None),
-    m_eWriteMode(PdfWriteMode::Compact),
-    m_lPrevXRefOffset(0),
-    m_bIncrementalUpdate(false),
+    m_WriteMode(PdfWriteMode::Compact),
+    m_PrevXRefOffset(0),
+    m_IncrementalUpdate(false),
     m_rewriteXRefTable(false),
-    m_lFirstInXRef(0),
-    m_lLinearizedOffset(0),
-    m_lLinearizedLastOffset(0),
-    m_lTrailerOffset(0)
+    m_FirstInXRef(0),
+    m_LinearizedOffset(0),
+    m_LinearizedLastOffset(0),
+    m_TrailerOffset(0)
 {
 }
 
-PdfWriter::PdfWriter(PdfVecObjects& pVecObjects, const PdfObject& trailer)
-    : PdfWriter(&pVecObjects, trailer, PdfVersionDefault)
+PdfWriter::PdfWriter(PdfVecObjects& objects, const PdfObject& trailer)
+    : PdfWriter(&objects, trailer, PdfVersionDefault)
 {
 }
 
-PdfWriter::PdfWriter(PdfVecObjects& pVecObjects)
-    : PdfWriter(&pVecObjects, PdfObject(), PdfVersionDefault)
+PdfWriter::PdfWriter(PdfVecObjects& objects)
+    : PdfWriter(&objects, PdfObject(), PdfVersionDefault)
 {
 }
 
 void PdfWriter::SetIncrementalUpdate(bool rewriteXRefTable)
 {
-    m_bIncrementalUpdate = true;
+    m_IncrementalUpdate = true;
     m_rewriteXRefTable = rewriteXRefTable;
 }
 
 const char* PdfWriter::GetPdfVersionString() const
 {
-    return s_szPdfVersionNums[static_cast<int>(m_eVersion)];
+    return s_PdfVersionNums[static_cast<int>(m_Version)];
 }
 
 PdfWriter::~PdfWriter()
 {
-    m_vecObjects = nullptr;
+    m_Objects = nullptr;
 }
 
 void PdfWriter::Write(PdfOutputDevice& device)
@@ -78,29 +78,29 @@ void PdfWriter::Write(PdfOutputDevice& device)
     CreateFileIdentifier(m_identifier, m_Trailer, &m_originalIdentifier);
 
     // setup encrypt dictionary
-    if (m_pEncrypt)
+    if (m_Encrypt)
     {
-        m_pEncrypt->GenerateEncryptionKey(m_identifier);
+        m_Encrypt->GenerateEncryptionKey(m_identifier);
 
         // Add our own Encryption dictionary
-        m_pEncryptObj = m_vecObjects->CreateDictionaryObject();
-        m_pEncrypt->CreateEncryptionDictionary(m_pEncryptObj->GetDictionary());
+        m_EncryptObj = m_Objects->CreateDictionaryObject();
+        m_Encrypt->CreateEncryptionDictionary(m_EncryptObj->GetDictionary());
     }
 
     unique_ptr<PdfXRef> pXRef;
     if (m_UseXRefStream)
-        pXRef.reset(new PdfXRefStream(*this, *m_vecObjects));
+        pXRef.reset(new PdfXRefStream(*this, *m_Objects));
     else
         pXRef.reset(new PdfXRef(*this));
 
     try
     {
-        if (!m_bIncrementalUpdate)
+        if (!m_IncrementalUpdate)
             WritePdfHeader(device);
 
-        WritePdfObjects(device, *m_vecObjects, *pXRef);
+        WritePdfObjects(device, *m_Objects, *pXRef);
 
-        if (m_bIncrementalUpdate)
+        if (m_IncrementalUpdate)
             pXRef->SetFirstEmptyBlock();
 
         pXRef->Write(device);
@@ -108,10 +108,10 @@ void PdfWriter::Write(PdfOutputDevice& device)
     catch (PdfError& e)
     {
         // P.Zent: Delete Encryption dictionary (cannot be reused)
-        if (m_pEncryptObj)
+        if (m_EncryptObj)
         {
-            m_vecObjects->RemoveObject(m_pEncryptObj->GetIndirectReference());
-            m_pEncryptObj = nullptr;
+            m_Objects->RemoveObject(m_EncryptObj->GetIndirectReference());
+            m_EncryptObj = nullptr;
         }
 
         e.AddToCallstack(__FILE__, __LINE__);
@@ -119,41 +119,41 @@ void PdfWriter::Write(PdfOutputDevice& device)
     }
 
     // P.Zent: Delete Encryption dictionary (cannot be reused)
-    if (m_pEncryptObj)
+    if (m_EncryptObj)
     {
-        m_vecObjects->RemoveObject(m_pEncryptObj->GetIndirectReference());
-        m_pEncryptObj = nullptr;
+        m_Objects->RemoveObject(m_EncryptObj->GetIndirectReference());
+        m_EncryptObj = nullptr;
     }
 }
 
 void PdfWriter::WritePdfHeader(PdfOutputDevice& device)
 {
-    device.Print("%s\n%%%s", s_szPdfVersions[static_cast<int>(m_eVersion)], PDF_MAGIC);
+    device.Print("%s\n%%%s", s_PdfVersions[static_cast<int>(m_Version)], PDF_MAGIC);
 }
 
-void PdfWriter::WritePdfObjects(PdfOutputDevice& device, const PdfVecObjects& vecObjects, PdfXRef& xref)
+void PdfWriter::WritePdfObjects(PdfOutputDevice& device, const PdfVecObjects& objects, PdfXRef& xref)
 {
-    for (PdfObject* pObject : vecObjects)
+    for (PdfObject* obj : objects)
     {
-        if (m_bIncrementalUpdate)
+        if (m_IncrementalUpdate)
         {
-            if (!pObject->IsDirty())
+            if (!obj->IsDirty())
             {
                 if (m_rewriteXRefTable)
                 {
-                    PdfParserObject* parserObject = dynamic_cast<PdfParserObject*>(pObject);
+                    PdfParserObject* parserObject = dynamic_cast<PdfParserObject*>(obj);
                     if (parserObject != nullptr)
                     {
                         // Try to see if we can just write the reference to previous entry
                         // without rewriting the entry
 
                         // the reference looks like "0 0 R", while the object identifier like "0 0 obj", thus add two letters
-                        size_t objRefLength = pObject->GetIndirectReference().ToString().length() + 2;
+                        size_t objRefLength = obj->GetIndirectReference().ToString().length() + 2;
 
                         // the offset points just after the "0 0 obj" string
                         if (parserObject->GetOffset() - objRefLength > 0)
                         {
-                            xref.AddInUseObject(pObject->GetIndirectReference(), parserObject->GetOffset() - objRefLength);
+                            xref.AddInUseObject(obj->GetIndirectReference(), parserObject->GetOffset() - objRefLength);
                             continue;
                         }
                     }
@@ -162,51 +162,46 @@ void PdfWriter::WritePdfObjects(PdfOutputDevice& device, const PdfVecObjects& ve
                 {
                     // The object will not be output in the XRef entries but it will be
                     // counted in trailer's /Size
-                    xref.AddInUseObject(pObject->GetIndirectReference(), std::nullopt);
+                    xref.AddInUseObject(obj->GetIndirectReference(), std::nullopt);
                     continue;
                 }
             }
         }
 
-        xref.AddInUseObject(pObject->GetIndirectReference(), device.Tell());
+        xref.AddInUseObject(obj->GetIndirectReference(), device.Tell());
 
-        if (!xref.ShouldSkipWrite(pObject->GetIndirectReference()))
+        if (!xref.ShouldSkipWrite(obj->GetIndirectReference()))
         {
             // Also make sure that we do not encrypt the encryption dictionary!
-            pObject->Write(device, m_eWriteMode, pObject == m_pEncryptObj ? nullptr : m_pEncrypt.get());
+            obj->Write(device, m_WriteMode, obj == m_EncryptObj ? nullptr : m_Encrypt.get());
         }
     }
 
-    for (auto& freeObjectRef : vecObjects.GetFreeObjects())
+    for (auto& freeObjectRef : objects.GetFreeObjects())
     {
         xref.AddFreeObject(freeObjectRef);
     }
 }
 
-void PdfWriter::FillTrailerObject(PdfObject& trailer, size_t lSize, bool bOnlySizeKey) const
+void PdfWriter::FillTrailerObject(PdfObject& trailer, size_t size, bool onlySizeKey) const
 {
-    trailer.GetDictionary().AddKey(PdfName::KeySize, static_cast<int64_t>(lSize));
+    trailer.GetDictionary().AddKey(PdfName::KeySize, static_cast<int64_t>(size));
 
-    if (!bOnlySizeKey)
+    if (!onlySizeKey)
     {
         if (m_Trailer.GetDictionary().HasKey("Root"))
             trailer.GetDictionary().AddKey("Root", *m_Trailer.GetDictionary().GetKey("Root"));
-        /*
-          DominikS: It makes no sense to simple copy an encryption key
-                    Either we have no encryption or we encrypt again by ourselves
-        if( m_pTrailer->GetDictionary().HasKey( "Encrypt" ) )
-            pTrailer->GetDictionary().AddKey( "Encrypt", m_pTrailer->GetDictionary().GetKey( "Encrypt" ) );
-        */
+        // It makes no sense to simple copy an encryption key
+        // Either we have no encryption or we encrypt again by ourselves
         if (m_Trailer.GetDictionary().HasKey("Info"))
             trailer.GetDictionary().AddKey("Info", *m_Trailer.GetDictionary().GetKey("Info"));
 
-
-        if (m_pEncryptObj)
-            trailer.GetDictionary().AddKey(PdfName("Encrypt"), m_pEncryptObj->GetIndirectReference());
+        if (m_EncryptObj != nullptr)
+            trailer.GetDictionary().AddKey(PdfName("Encrypt"), m_EncryptObj->GetIndirectReference());
 
         PdfArray array;
         // The ID is the same unless the PDF was incrementally updated
-        if (m_bIncrementalUpdate && m_originalIdentifier.GetLength() > 0)
+        if (m_IncrementalUpdate && m_originalIdentifier.GetLength() > 0)
         {
             array.push_back(m_originalIdentifier);
         }
@@ -219,62 +214,62 @@ void PdfWriter::FillTrailerObject(PdfObject& trailer, size_t lSize, bool bOnlySi
         // finally add the key to the trailer dictionary
         trailer.GetDictionary().AddKey("ID", array);
 
-        if (!m_rewriteXRefTable && m_lPrevXRefOffset > 0)
+        if (!m_rewriteXRefTable && m_PrevXRefOffset > 0)
         {
-            PdfVariant value(m_lPrevXRefOffset);
+            PdfVariant value(m_PrevXRefOffset);
             trailer.GetDictionary().AddKey("Prev", value);
         }
     }
 }
 
-void PdfWriter::CreateFileIdentifier(PdfString& identifier, const PdfObject& pTrailer, PdfString* pOriginalIdentifier) const
+void PdfWriter::CreateFileIdentifier(PdfString& identifier, const PdfObject& trailer, PdfString* originalIdentifier) const
 {
     PdfOutputDevice length;
-    unique_ptr<PdfObject> pInfo;
-    bool bOriginalIdentifierFound = false;
+    unique_ptr<PdfObject> info;
+    bool originalIdentifierFound = false;
 
-    if (pOriginalIdentifier && pTrailer.GetDictionary().HasKey("ID"))
+    if (originalIdentifier && trailer.GetDictionary().HasKey("ID"))
     {
-        const PdfObject* idObj = pTrailer.GetDictionary().GetKey("ID");
+        const PdfObject* idObj = trailer.GetDictionary().GetKey("ID");
         // The PDF spec, section 7.5.5, implies that the ID may be
         // indirect as long as the PDF is not encrypted. Handle that
         // case.
         if (idObj->IsReference())
-            idObj = &m_vecObjects->MustGetObject(idObj->GetReference());
+            idObj = &m_Objects->MustGetObject(idObj->GetReference());
 
         auto it = idObj->GetArray().begin();
         PdfString str;
         if (it != idObj->GetArray().end() && it->TryGetString(str) && str.IsHex())
         {
-            *pOriginalIdentifier = it->GetString();
-            bOriginalIdentifierFound = true;
+            *originalIdentifier = it->GetString();
+            originalIdentifierFound = true;
         }
     }
 
     // create a dictionary with some unique information.
     // This dictionary is based on the PDF files information
     // dictionary if it exists.
-    auto pObjInfo = pTrailer.GetDictionary().GetKey("Info");;
-    if (pObjInfo == nullptr)
+    auto infoObj = trailer.GetDictionary().GetKey("Info");;
+    if (infoObj == nullptr)
     {
         PdfDate date;
         PdfString dateString = date.ToString();
 
-        pInfo.reset(new PdfObject());
-        pInfo->GetDictionary().AddKey("CreationDate", dateString);
-        pInfo->GetDictionary().AddKey("Creator", PdfString("PoDoFo"));
-        pInfo->GetDictionary().AddKey("Producer", PdfString("PoDoFo"));
+        info.reset(new PdfObject());
+        info->GetDictionary().AddKey("CreationDate", dateString);
+        info->GetDictionary().AddKey("Creator", PdfString("PoDoFo"));
+        info->GetDictionary().AddKey("Producer", PdfString("PoDoFo"));
     }
     else
     {
         PdfReference ref;
-        if (pObjInfo->TryGetReference(ref))
+        if (infoObj->TryGetReference(ref))
         {
-            pObjInfo = m_vecObjects->GetObject(ref);
+            infoObj = m_Objects->GetObject(ref);
 
-            if (pObjInfo == nullptr)
+            if (infoObj == nullptr)
             {
-                std::ostringstream oss;
+                ostringstream oss;
                 oss << "Error while retrieving info dictionary: "
                     << ref.ObjectNumber() << " "
                     << ref.GenerationNumber() << " R" << std::endl;
@@ -282,17 +277,17 @@ void PdfWriter::CreateFileIdentifier(PdfString& identifier, const PdfObject& pTr
             }
             else
             {
-                pInfo.reset(new PdfObject(*pObjInfo));
+                info.reset(new PdfObject(*infoObj));
             }
         }
-        else if (pObjInfo->IsDictionary())
+        else if (infoObj->IsDictionary())
         {
             // NOTE: While Table 15, ISO 32000-1:2008, states that Info should be an
             // indirect reference, we found Pdfs, for example produced
             // by pdfjs v0.4.1 (github.com/rkusa/pdfjs) that do otherwise.
             // As usual, Acroat Pro Syntax checker doesn't care about this,
             // so let's just read it
-            pInfo.reset(new PdfObject(*pObjInfo));
+            info.reset(new PdfObject(*infoObj));
         }
         else
         {
@@ -300,34 +295,34 @@ void PdfWriter::CreateFileIdentifier(PdfString& identifier, const PdfObject& pTr
         }
     }
 
-    pInfo->GetDictionary().AddKey("Location", PdfString("SOMEFILENAME"));
-    pInfo->Write(length, m_eWriteMode, nullptr);
+    info->GetDictionary().AddKey("Location", PdfString("SOMEFILENAME"));
+    info->Write(length, m_WriteMode, nullptr);
 
     PdfRefCountedBuffer buffer(length.GetLength());
     PdfOutputDevice device(buffer);
-    pInfo->Write(device, m_eWriteMode, nullptr);
+    info->Write(device, m_WriteMode, nullptr);
 
     // calculate the MD5 Sum
     identifier = PdfEncryptMD5Base::GetMD5String(reinterpret_cast<unsigned char*>(buffer.GetBuffer()),
         static_cast<unsigned>(length.GetLength()));
 
-    if (pOriginalIdentifier && !bOriginalIdentifierFound)
-        *pOriginalIdentifier = identifier;
+    if (originalIdentifier && !originalIdentifierFound)
+        *originalIdentifier = identifier;
 }
 
 void PdfWriter::SetEncryptObj(PdfObject* obj)
 {
-    m_pEncryptObj = obj;
+    m_EncryptObj = obj;
 }
 
 void PdfWriter::SetEncrypted(const PdfEncrypt& rEncrypt)
 {
-    m_pEncrypt = PdfEncrypt::CreatePdfEncrypt(rEncrypt);
+    m_Encrypt = PdfEncrypt::CreatePdfEncrypt(rEncrypt);
 }
 
 void PdfWriter::SetUseXRefStream(bool bStream)
 {
-    if (bStream && m_eVersion < PdfVersion::V1_5)
+    if (bStream && m_Version < PdfVersion::V1_5)
         this->SetPdfVersion(PdfVersion::V1_5);
 
     m_UseXRefStream = bStream;

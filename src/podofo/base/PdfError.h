@@ -140,30 +140,31 @@ enum class LogSeverity
  */
 #define PODOFO_RAISE_LOGIC_IF( x, y ) { if (x) throw ::PoDoFo::PdfError( EPdfError::InternalLogic, __FILE__, __LINE__, y ); };
 
-class PODOFO_API PdfErrorInfo {
+class PODOFO_API PdfErrorInfo
+{
 public:
     PdfErrorInfo();
-    PdfErrorInfo(int line, const char* pszFile, const char* pszInfo);
-    PdfErrorInfo(int line, const char* pszFile, std::string pszInfo);
-    PdfErrorInfo(int line, const char* pszFile, const wchar_t* pszInfo);
+    PdfErrorInfo(int line, const char* file, const char* info);
+    PdfErrorInfo(int line, const char* file, const std::string_view& info);
+    PdfErrorInfo(int line, const char* file, const wchar_t* info);
     PdfErrorInfo(const PdfErrorInfo& rhs);
 
     const PdfErrorInfo& operator=(const PdfErrorInfo& rhs);
 
-    inline int GetLine() const { return m_nLine; }
-    inline const std::string& GetFilename() const { return m_sFile; }
-    inline const std::string& GetInformation() const { return m_sInfo; }
-    inline const std::wstring& GetInformationW() const { return m_swInfo; }
+    inline int GetLine() const { return m_Line; }
+    inline const std::string& GetFilename() const { return m_File; }
+    inline const std::string& GetInformation() const { return m_Info; }
+    inline const std::wstring& GetInformationW() const { return m_wInfo; }
 
-    inline void SetInformation(const char* pszInfo) { m_sInfo = pszInfo ? pszInfo : ""; }
-    inline void SetInformation(std::string pszInfo) { m_sInfo = pszInfo; }
-    inline void SetInformation(const wchar_t* pszInfo) { m_swInfo = pszInfo ? pszInfo : L""; }
+    inline void SetInformation(const char* info) { m_Info = info == nullptr ? "" : info; }
+    inline void SetInformation(const std::string_view& info) { m_Info = info; }
+    inline void SetInformation(const wchar_t* info) { m_wInfo = info == nullptr ? L"" : info; }
 
 private:
-    int          m_nLine;
-    std::string  m_sFile;
-    std::string  m_sInfo;
-    std::wstring m_swInfo;
+    int m_Line;
+    std::string m_File;
+    std::string m_Info;
+    std::wstring m_wInfo;
 };
 
 
@@ -195,41 +196,41 @@ public:
     {
     public:
         virtual ~LogMessageCallback() {}
-        virtual void LogMessage(LogSeverity eLogSeverity, const char* pszPrefix, const char* pszMsg, va_list& args) = 0;
-        virtual void LogMessage(LogSeverity eLogSeverity, const wchar_t* pszPrefix, const wchar_t* pszMsg, va_list& args) = 0;
+        virtual void LogMessage(LogSeverity logSeverity, const char* prefix, const char* msg, va_list& args) = 0;
+        virtual void LogMessage(LogSeverity logSeverity, const wchar_t* prefix, const wchar_t* msg, va_list& args) = 0;
     };
 
     /** Set a global static LogMessageCallback functor to replace stderr output in LogMessageInternal.
-     *  \param fLogMessageCallback the pointer to the new callback functor object
+     *  \param logMessageCallback the pointer to the new callback functor object
      *  \returns the pointer to the previous callback functor object
      */
-    static LogMessageCallback* SetLogMessageCallback(LogMessageCallback* fLogMessageCallback);
+    static LogMessageCallback* SetLogMessageCallback(LogMessageCallback* logMessageCallback);
 
     /** Create a PdfError object initialized to EPdfError::ErrOk.
      */
     PdfError();
 
     /** Create a PdfError object with a given error code.
-     *  \param eCode the error code of this object
-     *  \param pszFile the file in which the error has occurred.
+     *  \param code the error code of this object
+     *  \param file the file in which the error has occurred.
      *         Use the compiler macro __FILE__ to initialize the field.
      *  \param line the line in which the error has occurred.
      *         Use the compiler macro __LINE__ to initialize the field.
-     *  \param pszInformation additional information on this error
+     *  \param information additional information on this error
      */
-    PdfError(const EPdfError& eCode, const char* pszFile = nullptr, int line = 0,
-        const char* pszInformation = nullptr);
+    PdfError(const EPdfError& code, const char* file = nullptr, int line = 0,
+        const char* information = nullptr);
 
     /** Create a PdfError object with a given error code.
-     *  \param eCode the error code of this object
-     *  \param pszFile the file in which the error has occurred.
+     *  \param code the error code of this object
+     *  \param file the file in which the error has occurred.
      *         Use the compiler macro __FILE__ to initialize the field.
      *  \param line the line in which the error has occurred.
      *         Use the compiler macro __LINE__ to initialize the field.
-     *  \param sInformation additional information on this error
+     *  \param information additional information on this error
      */
-    explicit PdfError(const EPdfError& eCode, const char* pszFile, int line,
-        std::string sInformation);
+    explicit PdfError(const EPdfError& code, const char* file, int line,
+        const std::string_view& information);
 
     /** Copy constructor
      *  \param rhs copy the contents of rhs into this object
@@ -243,10 +244,10 @@ public:
     const PdfError& operator=(const PdfError& rhs);
 
     /** Overloaded assignment operator
-     *  \param eCode a EPdfError code
+     *  \param code a EPdfError code
      *  \returns this object
      */
-    const PdfError& operator=(const EPdfError& eCode);
+    const PdfError& operator=(const EPdfError& code);
 
     /** Comparison operator, compares 2 PdfError objects
      *  \param rhs another PdfError object
@@ -256,10 +257,10 @@ public:
 
     /** Overloaded comparison operator, compares this PdfError object
      *  with an error code
-     *  \param eCode an error code (value of the enum EPdfError)
+     *  \param code an error code (value of the enum EPdfError)
      *  \returns true if this object has the same error code.
      */
-    bool operator==(const EPdfError& eCode);
+    bool operator==(const EPdfError& code);
 
     /** Comparison operator, compares 2 PdfError objects
      *  \param rhs another PdfError object
@@ -269,10 +270,10 @@ public:
 
     /** Overloaded comparison operator, compares this PdfError object
      *  with an error code
-     *  \param eCode an error code (value of the enum EPdfError)
+     *  \param code an error code (value of the enum EPdfError)
      *  \returns true if this object has a different error code.
      */
-    bool operator!=(const EPdfError& eCode);
+    bool operator!=(const EPdfError& code);
 
     /** Return the error code of this object.
      *  \returns the error code of this object
@@ -285,77 +286,77 @@ public:
     inline const TDequeErrorInfo& GetCallstack() const { return m_callStack; }
 
     /** Set the error code of this object.
-     *  \param eCode the error code of this object
-     *  \param pszFile the filename of the source file causing
+     *  \param code the error code of this object
+     *  \param file the filename of the source file causing
      *                 the error or nullptr. Typically you will use
      *                 the gcc macro __FILE__ here.
      *  \param line    the line of source causing the error
      *                 or 0. Typically you will use the gcc
      *                 macro __LINE__ here.
-     *  \param sInformation additional information on the error.
+     *  \param information additional information on the error.
      *         e.g. how to fix the error. This string is intended to
      *         be shown to the user.
      */
-    void SetError(const EPdfError& eCode, const char* pszFile, int line,
-        std::string sInformation);
+    void SetError(const EPdfError& code, const char* file, int line,
+        const std::string_view& information);
 
     /** Set the error code of this object.
-     *  \param eCode the error code of this object
-     *  \param pszFile the filename of the source file causing
+     *  \param code the error code of this object
+     *  \param file the filename of the source file causing
      *                 the error or nullptr. Typically you will use
      *                 the gcc macro __FILE__ here.
      *  \param line    the line of source causing the error
      *                 or 0. Typically you will use the gcc
      *                 macro __LINE__ here.
-     *  \param pszInformation additional information on the error,
+     *  \param information additional information on the error,
      *         e.g. how to fix the error. This string is intended to
      *         be shown to the user.
      */
-    void SetError(const EPdfError& eCode, const char* pszFile = nullptr, int line = 0, const char* pszInformation = nullptr);
+    void SetError(const EPdfError& code, const char* file = nullptr, int line = 0, const char* information = nullptr);
 
     /** Set additional error information.
-     *  \param pszInformation additional information on the error,
+     *  \param information additional information on the error,
      *         e.g. how to fix the error. This string is intended to
      *         be shown to the user.
      */
-    void SetErrorInformation(const char* pszInformation);
+    void SetErrorInformation(const char* information);
 
     /** Set additional error information.
-     *  \param pszInformation additional information on the error,
+     *  \param information additional information on the error,
      *         e.g. how to fix the error. This string is intended to
      *         be shown to the user.
      */
-    inline void SetErrorInformation(const wchar_t* pszInformation);
+    inline void SetErrorInformation(const wchar_t* information);
 
     /** Add callstack information to an error object. Always call this function
      *  if you get an error object but do not handle the error but throw it again.
      *
-     *  \param pszFile the filename of the source file causing
+     *  \param file the filename of the source file causing
      *                 the error or nullptr. Typically you will use
      *                 the gcc macro __FILE__ here.
      *  \param line    the line of source causing the error
      *                 or 0. Typically you will use the gcc
      *                 macro __LINE__ here.
-     *  \param pszInformation additional information on the error,
+     *  \param information additional information on the error,
      *         e.g. how to fix the error. This string is intended to
      *         be shown to the user.
      */
-    void AddToCallstack(const char* pszFile = nullptr, int line = 0, const char* pszInformation = nullptr);
+    void AddToCallstack(const char* file = nullptr, int line = 0, const char* information = nullptr);
 
     /** Add callstack information to an error object. Always call this function
      *  if you get an error object but do not handle the error but throw it again.
      *
-     *  \param pszFile the filename of the source file causing
+     *  \param file the filename of the source file causing
      *                 the error or nullptr. Typically you will use
      *                 the gcc macro __FILE__ here.
      *  \param line    the line of source causing the error
      *                 or 0. Typically you will use the gcc
      *                 macro __LINE__ here.
-     *  \param sInformation additional information on the error,
+     *  \param information additional information on the error,
      *         e.g. how to fix the error. This string is intended to
      *         be shown to the user.
      */
-    void AddToCallstack(const char* pszFile, int line, std::string sInformation);
+    void AddToCallstack(const char* file, int line, const std::string_view& information);
 
     /** \returns true if an error code was set
      *           and false if the error code is EPdfError::ErrOk.
@@ -376,45 +377,45 @@ public:
      *  \returns the name or nullptr if no name for the specified
      *           error code is available.
      */
-    static const char* ErrorName(EPdfError eCode);
+    static const char* ErrorName(EPdfError code);
 
     /** Get the error message for a certain error code.
      *  \returns the error message or nullptr if no error
      *           message for the specified error code
      *           is available.
      */
-    static const char* ErrorMessage(EPdfError eCode);
+    static const char* ErrorMessage(EPdfError code);
 
     /** Log a message to the logging system defined for PoDoFo.
-     *  \param eLogSeverity the severity of the log message
-     *  \param pszMsg       the message to be logged
+     *  \param logSeverity the severity of the log message
+     *  \param msg       the message to be logged
      */
-    static void LogMessage(LogSeverity eLogSeverity, const char* pszMsg, ...);
+    static void LogMessage(LogSeverity logSeverity, const char* msg, ...);
 
     /** Log a message to the logging system defined for PoDoFo.
-     *  \param eLogSeverity the severity of the log message
-     *  \param pszMsg       the message to be logged
+     *  \param logSeverity the severity of the log message
+     *  \param msg       the message to be logged
      */
-    static void LogMessage(LogSeverity eLogSeverity, const wchar_t* pszMsg, ...);
+    static void LogMessage(LogSeverity logSeverity, const wchar_t* msg, ...);
 
     /** Enable or disable logging.
-    *  \param bEnable       enable (true) or disable (false)
+    *  \param enable       enable (true) or disable (false)
     */
-    static void EnableLogging(bool bEnable);
+    static void EnableLogging(bool enable);
 
     /** Is the display of debugging messages enabled or not?
      */
     static bool LoggingEnabled();
 
     /** Log a message to the logging system defined for PoDoFo for debugging.
-     *  \param pszMsg       the message to be logged
+     *  \param msg       the message to be logged
      */
-    static void DebugMessage(const char* pszMsg, ...);
+    static void DebugMessage(const char* msg, ...);
 
     /** Enable or disable the display of debugging messages.
-     *  \param bEnable       enable (true) or disable (false)
+     *  \param enable       enable (true) or disable (false)
      */
-    static void EnableDebug(bool bEnable);
+    static void EnableDebug(bool enable);
 
     /** Is the display of debugging messages enabled or not?
      */
@@ -426,23 +427,23 @@ private:
      *  This call does not check if logging is enabled and always
      *  prints the error message.
      *
-     *  \param eLogSeverity the severity of the log message
-     *  \param pszMsg       the message to be logged
+     *  \param logSeverity the severity of the log message
+     *  \param msg       the message to be logged
      */
-    static void LogErrorMessage(LogSeverity eLogSeverity, const char* pszMsg, ...);
+    static void LogErrorMessage(LogSeverity logSeverity, const char* msg, ...);
 
     /** Log a message to the logging system defined for PoDoFo.
      *
      *  This call does not check if logging is enabled and always
      *  prints the error message
      *
-     *  \param eLogSeverity the severity of the log message
-     *  \param pszMsg       the message to be logged
+     *  \param logSeverity the severity of the log message
+     *  \param msg       the message to be logged
      */
-    static void LogErrorMessage(LogSeverity eLogSeverity, const wchar_t* pszMsg, ...);
+    static void LogErrorMessage(LogSeverity logSeverity, const wchar_t* msg, ...);
 
-    static void LogMessageInternal(LogSeverity eLogSeverity, const char* pszMsg, va_list& args);
-    static void LogMessageInternal(LogSeverity eLogSeverity, const wchar_t* pszMsg, va_list& args);
+    static void LogMessageInternal(LogSeverity logSeverity, const char* msg, va_list& args);
+    static void LogMessageInternal(LogSeverity logSeverity, const wchar_t* msg, va_list& args);
 
 private:
     EPdfError          m_error;
@@ -453,7 +454,7 @@ private:
     static bool        s_LogEnabled;
 
     // OC 17.08.2010 New to optionally replace stderr output by a callback:
-    static LogMessageCallback* m_fLogMessageCallback;
+    static LogMessageCallback* m_LogMessageCallback;
 };
 
 };

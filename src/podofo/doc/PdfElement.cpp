@@ -18,9 +18,9 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfElement::PdfElement(PdfDocument& pParent, const string_view& type)
+PdfElement::PdfElement(PdfDocument& parent, const string_view& type)
 {
-    m_pObject = pParent.m_vecObjects.CreateDictionaryObject(type);
+    m_Object = parent.m_Objects.CreateDictionaryObject(type);
 }
 
 PdfElement::PdfElement(PdfObject& obj)
@@ -28,20 +28,20 @@ PdfElement::PdfElement(PdfObject& obj)
     if(!obj.IsDictionary())
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
 
-    m_pObject = &obj;
+    m_Object = &obj;
 }
 
-PdfElement::PdfElement(EPdfDataType eExpectedDataType, PdfObject& obj)
+PdfElement::PdfElement(EPdfDataType expectedDataType, PdfObject& obj)
 {
-    if (obj.GetDataType() != eExpectedDataType)
+    if (obj.GetDataType() != expectedDataType)
         PODOFO_RAISE_ERROR(EPdfError::InvalidDataType);
 
-    m_pObject = &obj;
+    m_Object = &obj;
 }
 
 PdfElement::PdfElement(const PdfElement & element)
 {
-    m_pObject = element.m_pObject;
+    m_Object = element.m_Object;
 }
 
 PdfElement::~PdfElement() { }
@@ -67,15 +67,15 @@ int PdfElement::TypeNameToIndex(const char* type, const char** types, unsigned l
 
 PdfObject* PdfElement::CreateObject(const string_view& type)
 {
-    return m_pObject->GetDocument()->GetObjects().CreateDictionaryObject(type);
+    return m_Object->GetDocument()->GetObjects().CreateDictionaryObject(type);
 }
 
 PdfDocument& PdfElement::GetDocument()
 {
-    return *m_pObject->GetDocument();
+    return *m_Object->GetDocument();
 }
 
 const PdfDocument& PdfElement::GetDocument() const
 {
-    return *m_pObject->GetDocument();
+    return *m_Object->GetDocument();
 }

@@ -31,19 +31,19 @@ public:
     /** Created an reference counted buffer and use an exiting buffer
      *  The buffer will be owned by this object.
      *
-     *  \param pBuffer a pointer to an allocated buffer
-     *  \param lSize   size of the allocated buffer
+     *  \param buffer a pointer to an allocated buffer
+     *  \param size   size of the allocated buffer
      *
      *  \see SetTakePossesion
      */
-    PdfRefCountedBuffer(char* pBuffer, size_t lSize);
+    PdfRefCountedBuffer(char* buffer, size_t size);
 
     PdfRefCountedBuffer(const std::string_view& view);
 
     /** Create a new PdfRefCountedBuffer.
-     *  \param lSize buffer size
+     *  \param size buffer size
      */
-    PdfRefCountedBuffer(size_t lSize);
+    PdfRefCountedBuffer(size_t size);
 
     /** Copy an existing PdfRefCountedBuffer and increase
      *  the reference count
@@ -74,23 +74,23 @@ public:
     size_t GetSize() const;
 
     /** Resize the buffer to hold at least
-     *  lSize bytes.
+     *  size bytes.
      *
-     *  \param lSize the size of bytes the buffer can at least hold
+     *  \param size the size of bytes the buffer can at least hold
      *
      *  If the buffer is larger no operation is performed.
      */
-    void Resize(size_t lSize);
+    void Resize(size_t size);
 
     /** Detach from a shared buffer or do nothing if we are the only
      *  one referencing the buffer.
      *
      *  Call this function before any operation modifying the buffer!
      *
-     *  \param lLen an additional parameter specifying extra bytes
+     *  \param len an additional parameter specifying extra bytes
      *              to be allocated to optimize allocations of a new buffer.
      */
-    void Detach(size_t lExtraLen = 0);
+    void Detach(size_t extraLen = 0);
 
     /** Copy an existing PdfRefCountedBuffer and increase
      *  the reference count
@@ -154,7 +154,7 @@ private:
      * Do the hard work of resizing the buffer if it turns out not to already be big enough.
      * \see Resize
      */
-    void ReallyResize(size_t lSize);
+    void ReallyResize(size_t size);
 
 private:
     struct TRefCountedBuffer
@@ -164,22 +164,22 @@ private:
         // Convenience for buffer switching
         char* GetRealBuffer();
         // size in bytes of the buffer. If and only if this is strictly >INTERNAL_BUFSIZE,
-        // this buffer is on the heap in memory pointed to by m_pHeapBuffer . If it is <=INTERNAL_BUFSIZE,
+        // this buffer is on the heap in memory pointed to by m_HeapBuffer . If it is <=INTERNAL_BUFSIZE,
         // the buffer is in the in-object buffer m_sInternalBuffer.
-        size_t  m_lBufferSize;
-        // Size in bytes of m_pBuffer that should be reported to clients. We
+        size_t  m_BufferSize;
+        // Size in bytes of m_Buffer that should be reported to clients. We
         // over-allocate on the heap for efficiency and have a minimum 32 byte
         // size, but this extra should NEVER be visible to a client.
-        size_t  m_lVisibleSize;
-        unsigned m_lRefCount;
-        char* m_pHeapBuffer;
-        char  m_sInternalBuffer[INTERNAL_BUFSIZE];
-        bool  m_bPossesion;
+        size_t  m_VisibleSize;
+        unsigned m_RefCount;
+        char* m_HeapBuffer;
+        char  m_InternalBuffer[INTERNAL_BUFSIZE];
+        bool  m_Possesion;
         // Are we using the heap-allocated buffer in place of our small internal one?
-        bool  m_bOnHeap;
+        bool  m_OnHeap;
     };
 
-    TRefCountedBuffer* m_pBuffer;
+    TRefCountedBuffer* m_Buffer;
 };
 
 };

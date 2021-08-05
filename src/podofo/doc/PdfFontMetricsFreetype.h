@@ -45,7 +45,7 @@ public:
      *  \param buffer a buffer containing a font file
      *  \param isSymbol whether use a symbol encoding, rather than unicode
      */
-    PdfFontMetricsFreetype(FT_Library* library, const PdfRefCountedBuffer& rBuffer,
+    PdfFontMetricsFreetype(FT_Library* library, const PdfRefCountedBuffer& buffer,
         bool isSymbol);
 
     /** Create a font metrics object for a given freetype font.
@@ -59,7 +59,6 @@ public:
      *  \param library handle to an initialized FreeType2 library handle
      *  \param filename filename of a truetype file
      *  \param isSymbol whether use a symbol encoding, rather than unicode
-     *  \param pszSubsetPrefix unique prefix for font subsets (see GetFontSubsetPrefix)
      */
     static PdfFontMetricsFreetype* CreateForSubsetting(FT_Library* library, const std::string_view& filename,
         bool isSymbol);
@@ -115,15 +114,15 @@ private:
 
     /** Initialize this object from an in memory buffer
      *  Called internally by the constructors
-      * \param pIsSymbol Whether use a symbol charset, rather than unicode
+      * \param isSymbol Whether use a symbol charset, rather than unicode
      */
-    void InitFromBuffer(bool pIsSymbol);
+    void InitFromBuffer(bool isSymbol);
 
     /** Load the metric data from the FTFace data
      *		Called internally by the constructors
-      * \param pIsSymbol Whether use a symbol charset, rather than unicode
+      * \param isSymbol Whether use a symbol charset, rather than unicode
      */
-    void InitFromFace(bool pIsSymbol);
+    void InitFromFace(bool isSymbol);
 
     void InitFontSizes();
 

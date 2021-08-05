@@ -409,17 +409,12 @@ enum class PdfStd14FontType
     ZapfDingbats,
 };
 
-/**
- */
-const bool ePdfCreateObject = true;
-const bool ePdfDontCreateObject = false;
-
 // character constants
 #define MAX_PDF_VERSION_STRING_INDEX  8
 
 // We use fixed bounds two dimensional arrays here so that
 // they go into the const data section of the library.
-static const char s_szPdfVersions[][9] = {
+static const char s_PdfVersions[][9] = {
     "%PDF-1.0",
     "%PDF-1.1",
     "%PDF-1.2",
@@ -431,7 +426,7 @@ static const char s_szPdfVersions[][9] = {
     "%PDF-2.0",
 };
 
-static const char s_szPdfVersionNums[][4] = {
+static const char s_PdfVersionNums[][4] = {
     "1.0",
     "1.1",
     "1.2",

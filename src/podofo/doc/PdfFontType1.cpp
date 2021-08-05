@@ -302,9 +302,9 @@ void PdfFontType1::embedFontSubset()
     contents->GetOrCreateStream().Set(outBuff.data(), (size_t)outIndex);
 
     // enter length in dictionary
-    contents->GetDictionary().AddKey("Length1", PdfVariant(static_cast<int64_t>(length1)));
-    contents->GetDictionary().AddKey("Length2", PdfVariant(static_cast<int64_t>(length2)));
-    contents->GetDictionary().AddKey("Length3", PdfVariant(static_cast<int64_t>(length3)));
+    contents->GetDictionary().AddKey("Length1", PdfObject(static_cast<int64_t>(length1)));
+    contents->GetDictionary().AddKey("Length2", PdfObject(static_cast<int64_t>(length2)));
+    contents->GetDictionary().AddKey("Length3", PdfObject(static_cast<int64_t>(length3)));
 }
 
 void PdfFontType1::initImported()
@@ -341,49 +341,49 @@ void PdfFontType1::embedFontFile(PdfObject& descriptor)
     }
 
     // Remove binary segment headers from pfb
-    unsigned char* pBinary = reinterpret_cast<unsigned char*>(buffer.data());
-    while (*pBinary == 0x80)	// binary segment header
+    unsigned char* data = reinterpret_cast<unsigned char*>(buffer.data());
+    while (*data == 0x80)	// binary segment header
     {
-        constexpr unsigned cHeaderLength = 6;
-        unsigned iSegmentType = pBinary[1];	// binary segment type
-        unsigned lSegmentLength = 0;
-        ptrdiff_t lSegmentDelta = (buffer.data() + size) - reinterpret_cast<const char*>(pBinary);
+        constexpr unsigned HeaderLength = 6;
+        unsigned segmentType = data[1];	// binary segment type
+        unsigned segmentLength = 0;
+        ptrdiff_t segmentDelta = (buffer.data() + size) - reinterpret_cast<const char*>(data);
 
-        switch (iSegmentType)
+        switch (segmentType)
         {
             case 1:									// ASCII text
             {
-                lSegmentLength = pBinary[2] + 		// little endian
-                    pBinary[3] * 256 +
-                    pBinary[4] * 65536 +
-                    pBinary[5] * 16777216;
+                segmentLength = data[2] + 		// little endian
+                    data[3] * 256 +
+                    data[4] * 65536 +
+                    data[5] * 16777216;
                 if (length1 == 0)
-                    length1 = lSegmentLength;
+                    length1 = segmentLength;
                 else
-                    length3 = lSegmentLength;
-                size -= cHeaderLength;
-                memmove(pBinary, pBinary + cHeaderLength, lSegmentDelta - cHeaderLength);
-                pBinary = pBinary + lSegmentLength;
+                    length3 = segmentLength;
+                size -= HeaderLength;
+                memmove(data, data + HeaderLength, segmentDelta - HeaderLength);
+                data = data + segmentLength;
                 break;
             }
             case 2:									// binary data
             {
-                lSegmentLength = pBinary[2] + 		// little endian
-                    pBinary[3] * 256 +
-                    pBinary[4] * 65536 +
-                    pBinary[5] * 16777216;
-                length2 = lSegmentLength;
-                size -= cHeaderLength;
-                memmove(pBinary, pBinary + cHeaderLength, lSegmentDelta - cHeaderLength);
-                pBinary = pBinary + lSegmentLength;
+                segmentLength = data[2] + 		// little endian
+                    data[3] * 256 +
+                    data[4] * 65536 +
+                    data[5] * 16777216;
+                length2 = segmentLength;
+                size -= HeaderLength;
+                memmove(data, data + HeaderLength, segmentDelta - HeaderLength);
+                data = data + segmentLength;
                 break;
             }
             case 3:									// end-of-file
             {
                 // First set pContents keys before writing stream, so that PdfTFontType1 works with streamed document
-                contents->GetDictionary().AddKey("Length1", PdfVariant(static_cast<int64_t>(length1)));
-                contents->GetDictionary().AddKey("Length2", PdfVariant(static_cast<int64_t>(length2)));
-                contents->GetDictionary().AddKey("Length3", PdfVariant(static_cast<int64_t>(length3)));
+                contents->GetDictionary().AddKey("Length1", PdfObject(static_cast<int64_t>(length1)));
+                contents->GetDictionary().AddKey("Length2", PdfObject(static_cast<int64_t>(length2)));
+                contents->GetDictionary().AddKey("Length3", PdfObject(static_cast<int64_t>(length3)));
                 contents->GetOrCreateStream().Set(buffer.data(), size - 2);
                 return;
             }
@@ -410,9 +410,9 @@ void PdfFontType1::embedFontFile(PdfObject& descriptor)
 
     // TODO: Pdf Supports only Type1 fonts with binary encrypted sections and not the hex format
     contents->GetOrCreateStream().Set(buffer.data(), size);
-    contents->GetDictionary().AddKey("Length1", PdfVariant(static_cast<int64_t>(length1)));
-    contents->GetDictionary().AddKey("Length2", PdfVariant(static_cast<int64_t>(length2)));
-    contents->GetDictionary().AddKey("Length3", PdfVariant(static_cast<int64_t>(length3)));
+    contents->GetDictionary().AddKey("Length1", PdfObject(static_cast<int64_t>(length1)));
+    contents->GetDictionary().AddKey("Length2", PdfObject(static_cast<int64_t>(length2)));
+    contents->GetDictionary().AddKey("Length3", PdfObject(static_cast<int64_t>(length3)));
 }
 
 bool PdfFontType1::FindSeac(const char* buffer, size_t length)
@@ -542,21 +542,21 @@ bool PdfFontType1::FindSeac(const char* buffer, size_t length)
     return foundNewGlyph;
 }
 
-ptrdiff_t PdfFontType1::FindInBuffer(const char* pszNeedle, const char* pszHaystack, size_t lLen) const
+ptrdiff_t PdfFontType1::FindInBuffer(const char* needle, const char* haystack, size_t len) const
 {
     // if lNeedleLen is 0 the while loop will not be executed and we return -1
-    size_t lNeedleLen = pszNeedle ? strlen(pszNeedle) : 0;
-    const char* pszEnd = pszHaystack + lLen - lNeedleLen;
-    const char* pszStart = pszHaystack;
+    size_t needleLen = needle ? strlen(needle) : 0;
+    const char* end = haystack + len - needleLen;
+    const char* start = haystack;
 
-    if (pszNeedle)
+    if (needle != nullptr)
     {
-        while (pszHaystack < pszEnd)
+        while (haystack < end)
         {
-            if (strncmp(pszHaystack, pszNeedle, lNeedleLen) == 0)
-                return pszHaystack - pszStart;
+            if (strncmp(haystack, needle, needleLen) == 0)
+                return haystack - start;
 
-            ++pszHaystack;
+            haystack++;
         }
     }
 

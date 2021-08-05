@@ -17,15 +17,15 @@ using namespace PoDoFo;
 
 PdfPagesTreeCache::PdfPagesTreeCache(unsigned initialSize)
 {
-    m_deqPageObjs.resize(initialSize);
+    m_PageObjs.resize(initialSize);
 }
 
 PdfPage* PdfPagesTreeCache::GetPage(unsigned atIndex)
 {
-    if (atIndex >= m_deqPageObjs.size())
+    if (atIndex >= m_PageObjs.size())
         return nullptr;
 
-    return m_deqPageObjs[atIndex];
+    return m_PageObjs[atIndex];
 }
 
 void PdfPagesTreeCache::SetPage(unsigned atIndex, PdfPage* page)
@@ -34,52 +34,52 @@ void PdfPagesTreeCache::SetPage(unsigned atIndex, PdfPage* page)
     PdfPage* oldPage = GetPage(atIndex);
     delete oldPage;
 
-    if (atIndex >= m_deqPageObjs.size())
-        m_deqPageObjs.resize(atIndex + 1);
+    if (atIndex >= m_PageObjs.size())
+        m_PageObjs.resize(atIndex + 1);
 
-    m_deqPageObjs[atIndex] = page;
+    m_PageObjs[atIndex] = page;
 }
 
-void PdfPagesTreeCache::SetPages(unsigned atIndex, const vector<PdfPage*>& vecPages)
+void PdfPagesTreeCache::SetPages(unsigned atIndex, const vector<PdfPage*>& pages)
 {
-    if ((atIndex + vecPages.size()) >= m_deqPageObjs.size())
-        m_deqPageObjs.resize(atIndex + vecPages.size() + 1);
+    if ((atIndex + pages.size()) >= m_PageObjs.size())
+        m_PageObjs.resize(atIndex + pages.size() + 1);
 
-    for (unsigned i = 0; i < vecPages.size(); i++)
+    for (unsigned i = 0; i < pages.size(); i++)
     {
         // Delete any old pages if it is at the same position
         PdfPage* pOldPage = GetPage(atIndex + i);
         delete pOldPage;
 
         // Assign the new page
-        m_deqPageObjs[atIndex + i] = vecPages.at(i);
+        m_PageObjs[atIndex + i] = pages.at(i);
     }
 }
 
 void PdfPagesTreeCache::InsertPlaceHolder(unsigned atIndex)
 {
-    m_deqPageObjs.insert(m_deqPageObjs.begin() + atIndex, static_cast<PdfPage*>(nullptr));
+    m_PageObjs.insert(m_PageObjs.begin() + atIndex, static_cast<PdfPage*>(nullptr));
 }
 
 void PdfPagesTreeCache::InsertPlaceHolders(unsigned atIndex, unsigned count)
 {
     for (unsigned i = 0; i < count; i++)
-        m_deqPageObjs.insert(m_deqPageObjs.begin() + atIndex + i, static_cast<PdfPage*>(nullptr));
+        m_PageObjs.insert(m_PageObjs.begin() + atIndex + i, static_cast<PdfPage*>(nullptr));
 }
 
 void PdfPagesTreeCache::DeletePage(unsigned atIndex)
 {
-    if (atIndex >= m_deqPageObjs.size())
+    if (atIndex >= m_PageObjs.size())
         return;
 
-    delete m_deqPageObjs[atIndex];
-    m_deqPageObjs.erase(m_deqPageObjs.begin() + atIndex);
+    delete m_PageObjs[atIndex];
+    m_PageObjs.erase(m_PageObjs.begin() + atIndex);
 }
 
 void PdfPagesTreeCache::ClearCache()
 {
-    for (auto page : m_deqPageObjs)
+    for (auto page : m_PageObjs)
         delete page;
 
-    m_deqPageObjs.clear();
+    m_PageObjs.clear();
 }

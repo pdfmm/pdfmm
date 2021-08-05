@@ -51,6 +51,7 @@ public:
      *  based on PDF units and adds the array into an variant.
      *  \param var the variant to store the Rect
      */
+     // TODO: Rename it in ToArray and accept a PdfArray instead
     void ToVariant(PdfVariant& var) const;
 
     /** Returns a string representation of the PdfRect
@@ -61,12 +62,12 @@ public:
     /** Assigns the values of this PdfRect from the 4 values in the array
      *  \param inArray the array to load the values from
      */
-    void FromArray(const PdfArray& inArray);
+    void FromArray(const PdfArray& arr);
 
     /** Intersect with another rect
-     *  \param rRect the rect to intersect with
+     *  \param rect the rect to intersect with
      */
-    void Intersect(const PdfRect& rRect);
+    void Intersect(const PdfRect& rect);
 
     /** Get the right coordinate of the rectangle
      *  \returns bottom
@@ -81,50 +82,50 @@ public:
     /** Get the bottom coordinate of the rectangle
      *  \returns bottom
      */
-    inline double GetBottom() const { return m_dBottom; }
+    inline double GetBottom() const { return m_Bottom; }
 
     /** Set the bottom coordinate of the rectangle
-     *  \param dBottom
+     *  \param bottom
      */
-    inline void SetBottom(double dBottom) { m_dBottom = dBottom; }
+    inline void SetBottom(double bottom) { m_Bottom = bottom; }
 
     /** Get the left coordinate of the rectangle
      *  \returns left in PDF units
      */
-    inline double GetLeft() const { return m_dLeft; }
+    inline double GetLeft() const { return m_Left; }
 
     /** Set the left coordinate of the rectangle
-     *  \param lLeft in PDF units
+     *  \param left in PDF units
      */
-    inline void SetLeft(double dLeft) { m_dLeft = dLeft; }
+    inline void SetLeft(double left) { m_Left = left; }
 
     /** Get the width of the rectangle
      *  \returns width in PDF units
      */
-    inline double GetWidth() const { return m_dWidth; }
+    inline double GetWidth() const { return m_Width; }
 
     /** Set the width of the rectangle
      *  \param lWidth in PDF units
      */
-    inline void SetWidth(double dWidth) { m_dWidth = dWidth; }
+    inline void SetWidth(double width) { m_Width = width; }
 
     /** Get the height of the rectangle
      *  \returns height in PDF units
      */
-    inline double GetHeight() const { return m_dHeight; }
+    inline double GetHeight() const { return m_Height; }
 
     /** Set the height of the rectangle
      *  \param lHeight in PDF units
      */
-    inline void SetHeight(double dHeight) { m_dHeight = dHeight; }
+    inline void SetHeight(double height) { m_Height = height; }
 
     PdfRect& operator=(const PdfRect& rhs);
 
 private:
-    double m_dLeft;
-    double m_dBottom;
-    double m_dWidth;
-    double m_dHeight;
+    double m_Left;
+    double m_Bottom;
+    double m_Width;
+    double m_Height;
 };
 
 };

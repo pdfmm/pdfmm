@@ -33,7 +33,7 @@ PdfStream::~PdfStream() { }
 
 void PdfStream::GetFilteredCopy(PdfOutputStream& stream) const
 {
-    TVecFilters filters = PdfFilterFactory::CreateFilterList(*m_Parent);
+    PdfFilterList filters = PdfFilterFactory::CreateFilterList(*m_Parent);
     if (filters.size())
     {
         auto decodeStream = PdfFilterFactory::CreateDecodeStream(filters, stream,
@@ -50,7 +50,7 @@ void PdfStream::GetFilteredCopy(PdfOutputStream& stream) const
 
 void PdfStream::GetFilteredCopy(unique_ptr<char>& buffer, size_t& len) const
 {
-    TVecFilters filters = PdfFilterFactory::CreateFilterList(*m_Parent);
+    PdfFilterList filters = PdfFilterFactory::CreateFilterList(*m_Parent);
     PdfMemoryOutputStream  stream;
     if (filters.size())
     {
@@ -90,12 +90,12 @@ void PdfStream::EnsureAppendClosed()
     PODOFO_RAISE_LOGIC_IF(m_Append, "EndAppend() should be called after appending to stream");
 }
 
-void PdfStream::Set(const string_view& view, const TVecFilters& filters)
+void PdfStream::Set(const string_view& view, const PdfFilterList& filters)
 {
     Set(view.data(), view.length(), filters);
 }
 
-void PdfStream::Set(const char* buffer, size_t len, const TVecFilters& filters)
+void PdfStream::Set(const char* buffer, size_t len, const PdfFilterList& filters)
 {
     if (len == 0)
         return;
@@ -122,7 +122,7 @@ void PdfStream::Set(const char* buffer, size_t len)
 
 void PdfStream::Set(PdfInputStream& stream)
 {
-    TVecFilters filters;
+    PdfFilterList filters;
 
     if (DefaultFilter != PdfFilterType::None)
         filters.push_back(DefaultFilter);
@@ -130,10 +130,10 @@ void PdfStream::Set(PdfInputStream& stream)
     this->Set(stream, filters);
 }
 
-void PdfStream::Set(PdfInputStream& stream, const TVecFilters& filters)
+void PdfStream::Set(PdfInputStream& stream, const PdfFilterList& filters)
 {
     constexpr size_t BUFFER_SIZE = 4096;
-    size_t lLen = 0;
+    size_t len = 0;
     char buffer[BUFFER_SIZE];
 
     this->BeginAppend(filters);
@@ -141,8 +141,8 @@ void PdfStream::Set(PdfInputStream& stream, const TVecFilters& filters)
     bool eof;
     do
     {
-        lLen = stream.Read(buffer, BUFFER_SIZE, eof);
-        this->append(buffer, lLen);
+        len = stream.Read(buffer, BUFFER_SIZE, eof);
+        this->append(buffer, len);
     } while (!eof);
 
     this->endAppend();
@@ -158,11 +158,11 @@ void PdfStream::SetRawData(PdfInputStream& stream, ssize_t len, bool markObjectD
     constexpr size_t BUFFER_SIZE = 4096;
     char buffer[BUFFER_SIZE];
     size_t lenRead;
-    TVecFilters vecEmpty;
+    PdfFilterList filters;
 
     // TODO: DS, give begin append a size hint so that it knows
     //       how many data has to be allocated
-    this->BeginAppend(vecEmpty, true, false, markObjectDirty);
+    this->BeginAppend(filters, true, false, markObjectDirty);
     if (len < 0)
     {
         bool eof;
@@ -188,7 +188,7 @@ void PdfStream::SetRawData(PdfInputStream& stream, ssize_t len, bool markObjectD
 
 void PdfStream::BeginAppend(bool clearExisting)
 {
-    TVecFilters filters;
+    PdfFilterList filters;
 
     if (DefaultFilter != PdfFilterType::None)
         filters.push_back(DefaultFilter);
@@ -196,12 +196,12 @@ void PdfStream::BeginAppend(bool clearExisting)
     this->BeginAppend(filters, clearExisting);
 }
 
-void PdfStream::BeginAppend(const TVecFilters& filters, bool clearExisting, bool deleteFilters)
+void PdfStream::BeginAppend(const PdfFilterList& filters, bool clearExisting, bool deleteFilters)
 {
     BeginAppend(filters, clearExisting, deleteFilters, true);
 }
 
-void PdfStream::BeginAppend(const TVecFilters& filters, bool clearExisting, bool deleteFilters, bool markObjectDirty)
+void PdfStream::BeginAppend(const PdfFilterList& filters, bool clearExisting, bool deleteFilters, bool markObjectDirty)
 {
     PODOFO_RAISE_LOGIC_IF(m_Append, "BeginAppend() failed because EndAppend() was not yet called!");
 

@@ -35,44 +35,44 @@ namespace PoDoFo
             ePdfListField_CommitOnSelChange = 0x4000000
         };
 
-        PdChoiceField(PdfFieldType eField, PdfDocument& doc, PdfAnnotation* widget, bool insertInAcroform);
+        PdChoiceField(PdfFieldType fieldType, PdfDocument& doc, PdfAnnotation* widget, bool insertInAcroform);
 
-        PdChoiceField(PdfFieldType eField, PdfObject& obj, PdfAnnotation* widget);
+        PdChoiceField(PdfFieldType fieldType, PdfObject& obj, PdfAnnotation* widget);
 
-        PdChoiceField(PdfFieldType eField, PdfPage& page, const PdfRect& rect);
+        PdChoiceField(PdfFieldType fieldType, PdfPage& page, const PdfRect& rect);
 
     public:
         /**
          * Inserts a new item into the list
          *
-         * @param rsValue the value of the item
-         * @param rsDisplayName an optional display string that is displayed in the viewer
+         * \param value the value of the item
+         * \param displayName an optional display string that is displayed in the viewer
          *                      instead of the value
          */
-        void InsertItem(const PdfString& rsValue, const std::optional<PdfString>& rsDisplayName = {});
+        void InsertItem(const PdfString& value, const std::optional<PdfString>& displayName = {});
 
         /**
          * Removes an item for the list
          *
-         * @param nIndex index of the item to remove
+         * \param index index of the item to remove
          */
-        void RemoveItem(unsigned nIndex);
+        void RemoveItem(unsigned index);
 
         /**
-         * @param nIndex index of the item
-         * @returns the value of the item at the specified index
+         * \param index index of the item
+         * \returns the value of the item at the specified index
          */
-        PdfString GetItem(unsigned nIndex) const;
+        PdfString GetItem(unsigned index) const;
 
         /**
-         * @param nIndex index of the item
-         * @returns the display text of the item or if it has no display text
+         * \param index index of the item
+         * \returns the display text of the item or if it has no display text
          *          its value is returned. This call is equivalent to GetItem()
          *          in this case
          *
          * \see GetItem
          */
-        std::optional<PdfString> GetItemDisplayText(int nIndex) const;
+        std::optional<PdfString> GetItemDisplayText(int index) const;
 
         /**
          * \returns the number of items in this list
@@ -80,9 +80,9 @@ namespace PoDoFo
         size_t GetItemCount() const;
 
         /** Sets the currently selected item
-         *  \param nIndex index of the currently selected item
+         *  \param index index of the currently selected item
          */
-        void SetSelectedIndex(int nIndex);
+        void SetSelectedIndex(int index);
 
         /** Sets the currently selected item
          *
@@ -99,11 +99,11 @@ namespace PoDoFo
         /**
          *  Enable/disable spellchecking for this combobox
          *
-         *  \param bSpellcheck if true spellchecking will be enabled
+         *  \param spellCheck if true spellchecking will be enabled
          *
          *  combobox are spellchecked by default
          */
-        void SetSpellcheckingEnabled(bool bSpellcheck);
+        void SetSpellcheckingEnabled(bool spellCheck);
 
         /**
          *  \returns true if spellchecking is enabled for this combobox
@@ -116,9 +116,9 @@ namespace PoDoFo
          * but whenever adding items using PoDoFo or another
          * PDF editing application.
          *
-         * \param bSorted enable/disable sorting
+         * \param sorted enable/disable sorting
          */
-        void SetSorted(bool bSorted);
+        void SetSorted(bool sorted);
 
         /**
          * \returns true if sorting is enabled
@@ -129,11 +129,11 @@ namespace PoDoFo
          * Sets whether multiple items can be selected by the
          * user in the list.
          *
-         * \param bMulti if true multiselect will be enabled
+         * \param multi if true multiselect will be enabled
          *
          * By default multiselection is turned off.
          */
-        void SetMultiSelect(bool bMulti);
+        void SetMultiSelect(bool multi);
 
         /**
          * \returns true if multi selection is enabled
@@ -141,7 +141,7 @@ namespace PoDoFo
          */
         bool IsMultiSelect() const;
 
-        void SetCommitOnSelectionChange(bool bCommit);
+        void SetCommitOnSelectionChange(bool commit);
         bool IsCommitOnSelectionChange() const;
     };
 }

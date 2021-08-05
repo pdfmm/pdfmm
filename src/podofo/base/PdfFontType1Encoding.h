@@ -19,7 +19,7 @@ class PODOFO_DOC_API PdfFontType1Encoding final : public PdfEncodingMapBase
     friend class PdfEncodingFactory;
 
 private:
-    PdfFontType1Encoding(const PdfObject& pObject);
+    PdfFontType1Encoding(const PdfObject& obj);
 
 protected:
     void getExportObject(PdfVecObjects& objects, PdfName& name, PdfObject*& obj) const override;

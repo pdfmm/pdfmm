@@ -18,30 +18,30 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfInfo::PdfInfo(PdfDocument& doc, PdfInfoInitial eInitial)
+PdfInfo::PdfInfo(PdfDocument& doc, PdfInfoInitial initial)
     : PdfElement(doc)
 {
-    Init(eInitial);
+    Init(initial);
 }
 
-PdfInfo::PdfInfo(PdfObject& obj, PdfInfoInitial eInitial)
+PdfInfo::PdfInfo(PdfObject& obj, PdfInfoInitial initial)
     : PdfElement(obj)
 {
-    Init(eInitial);
+    Init(initial);
 }
 
-void PdfInfo::Init(PdfInfoInitial eInitial)
+void PdfInfo::Init(PdfInfoInitial initial)
 {
     PdfDate date;
     PdfString str = date.ToString();
 
-    if ((eInitial & PdfInfoInitial::WriteCreationTime) == PdfInfoInitial::WriteCreationTime)
+    if ((initial & PdfInfoInitial::WriteCreationTime) == PdfInfoInitial::WriteCreationTime)
         this->GetObject().GetDictionary().AddKey("CreationDate", str);
 
-    if ((eInitial & PdfInfoInitial::WriteModificationTime) == PdfInfoInitial::WriteModificationTime)
+    if ((initial & PdfInfoInitial::WriteModificationTime) == PdfInfoInitial::WriteModificationTime)
         this->GetObject().GetDictionary().AddKey("ModDate", str);
 
-    if ((eInitial & PdfInfoInitial::WriteProducer) == PdfInfoInitial::WriteProducer)
+    if ((initial & PdfInfoInitial::WriteProducer) == PdfInfoInitial::WriteProducer)
         this->GetObject().GetDictionary().AddKey("Producer", PdfString(PRODUCER_STRING));
 }
 
@@ -51,15 +51,15 @@ optional<PdfString> PdfInfo::GetStringFromInfoDict(const PdfName& name) const
     return obj != nullptr && obj->IsString() ? optional(obj->GetString()) : std::nullopt;
 }
 
-const PdfName& PdfInfo::GetNameFromInfoDict(const PdfName& rName) const
+const PdfName& PdfInfo::GetNameFromInfoDict(const PdfName& name) const
 {
-    auto obj = this->GetObject().GetDictionary().FindKey(rName);
+    auto obj = this->GetObject().GetDictionary().FindKey(name);
     return  obj != nullptr && obj->IsName() ? obj->GetName() : PdfName::KeyNull;
 }
 
-void PdfInfo::SetCustomKey(const PdfName& sName, const PdfString& sValue)
+void PdfInfo::SetCustomKey(const PdfName& name, const PdfString& value)
 {
-    this->GetObject().GetDictionary().AddKey(sName, sValue);
+    this->GetObject().GetDictionary().AddKey(name, value);
 }
 
 void PdfInfo::SetAuthor(const PdfString& sAuthor)
@@ -82,9 +82,9 @@ void PdfInfo::SetSubject(const PdfString& sSubject)
     this->GetObject().GetDictionary().AddKey("Subject", sSubject);
 }
 
-void PdfInfo::SetTitle(const PdfString& sTitle)
+void PdfInfo::SetTitle(const PdfString& title)
 {
-    this->GetObject().GetDictionary().AddKey("Title", sTitle);
+    this->GetObject().GetDictionary().AddKey("Title", title);
 }
 
 // Peter Petrov 27 April 2008

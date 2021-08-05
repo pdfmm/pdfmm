@@ -21,7 +21,7 @@ using namespace PoDoFo;
 
 PdfFileStream::PdfFileStream(PdfObject& parent, PdfOutputDevice& device)
     : PdfStream(parent), m_Device(&device),
-    m_initialLength(0), m_Length(0), m_CurEncrypt(nullptr)
+    m_initialLength(0), m_Length(0), m_CurrEncrypt(nullptr)
 {
     m_LengthObj = parent.GetDocument()->GetObjects().CreateObject(PdfVariant(static_cast<int64_t>(0)));
     m_Parent->GetDictionary().AddKey(PdfName::KeyLength, m_LengthObj->GetIndirectReference());
@@ -37,7 +37,7 @@ void PdfFileStream::Write(PdfOutputDevice&, const PdfEncrypt*)
     PODOFO_RAISE_ERROR(EPdfError::NotImplemented);
 }
 
-void PdfFileStream::BeginAppendImpl(const TVecFilters& filters)
+void PdfFileStream::BeginAppendImpl(const PdfFilterList& filters)
 {
     m_Parent->GetDocument()->GetObjects().WriteObject(*m_Parent);
 
@@ -46,9 +46,9 @@ void PdfFileStream::BeginAppendImpl(const TVecFilters& filters)
     if (filters.size())
     {
         m_DeviceStream = unique_ptr<PdfDeviceOutputStream>(new PdfDeviceOutputStream(*m_Device));
-        if (m_CurEncrypt != nullptr)
+        if (m_CurrEncrypt != nullptr)
         {
-            m_EncryptStream = m_CurEncrypt->CreateEncryptionOutputStream(*m_DeviceStream);
+            m_EncryptStream = m_CurrEncrypt->CreateEncryptionOutputStream(*m_DeviceStream);
             m_Stream = PdfFilterFactory::CreateEncodeStream(filters, *m_EncryptStream);
         }
         else
@@ -56,10 +56,10 @@ void PdfFileStream::BeginAppendImpl(const TVecFilters& filters)
     }
     else
     {
-        if (m_CurEncrypt != nullptr)
+        if (m_CurrEncrypt != nullptr)
         {
             m_DeviceStream = unique_ptr<PdfDeviceOutputStream>(new PdfDeviceOutputStream(*m_Device));
-            m_Stream = m_CurEncrypt->CreateEncryptionOutputStream(*m_DeviceStream);
+            m_Stream = m_CurrEncrypt->CreateEncryptionOutputStream(*m_DeviceStream);
         }
         else
             m_Stream = unique_ptr<PdfDeviceOutputStream>(new PdfDeviceOutputStream(*m_Device));
@@ -92,8 +92,8 @@ void PdfFileStream::EndAppendImpl()
     }
 
     m_Length = m_Device->GetLength() - m_initialLength;
-    if (m_CurEncrypt != nullptr)
-        m_Length = m_CurEncrypt->CalculateStreamLength(m_Length);
+    if (m_CurrEncrypt != nullptr)
+        m_Length = m_CurrEncrypt->CalculateStreamLength(m_Length);
 
     m_LengthObj->SetNumber(static_cast<int64_t>(m_Length));
 }
@@ -108,11 +108,11 @@ void PdfFileStream::GetCopy(PdfOutputStream&) const
     PODOFO_RAISE_ERROR(EPdfError::InternalLogic);
 }
 
-void PdfFileStream::SetEncrypted(PdfEncrypt* pEncrypt)
+void PdfFileStream::SetEncrypted(PdfEncrypt* encrypt)
 {
-    m_CurEncrypt = pEncrypt;
-    if (m_CurEncrypt != nullptr)
-        m_CurEncrypt->SetCurrentReference(m_Parent->GetIndirectReference());
+    m_CurrEncrypt = encrypt;
+    if (m_CurrEncrypt != nullptr)
+        m_CurrEncrypt->SetCurrentReference(m_Parent->GetIndirectReference());
 }
 
 size_t PdfFileStream::GetLength() const

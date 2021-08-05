@@ -101,14 +101,14 @@ PdfName PdfName::FromRaw(const string_view& rawcontent)
     return PdfName(std::make_shared<string>(rawcontent));
 }
 
-void PdfName::Write(PdfOutputDevice& pDevice, PdfWriteMode, const PdfEncrypt*) const
+void PdfName::Write(PdfOutputDevice& device, PdfWriteMode, const PdfEncrypt*) const
 {
     // Allow empty names, which are legal according to the PDF specification
-    pDevice.Print("/");
+    device.Print("/");
     if (m_data->length() != 0)
     {
         string escaped = EscapeName(*m_data);
-        pDevice.Write(escaped.c_str(), escaped.length());
+        device.Write(escaped.c_str(), escaped.length());
     }
 }
 
@@ -147,7 +147,7 @@ string EscapeName(const string_view& view)
 {
     // Scan the input string once to find out how much memory we need
     // to reserve for the encoded result string. We could do this in one
-    // pass using a std::ostringstream instead, but it's a LOT slower.
+    // pass using a ostringstream instead, but it's a LOT slower.
     size_t outchars = 0;
     for (size_t i = 0; i < view.length(); i++)
     {
@@ -171,7 +171,7 @@ string EscapeName(const string_view& view)
     buf.resize(outchars);
     // and generate the encoded string
     string::iterator bufIt(buf.begin());
-    for (size_t i = 0; i < view.length(); ++i)
+    for (size_t i = 0; i < view.length(); i++)
     {
         char ch = view[i];
 
@@ -222,7 +222,7 @@ string UnescapeName(const string_view& view)
         else
             buf.push_back(*curr);
 
-        ++curr;
+        curr++;
     }
 
     return buf;

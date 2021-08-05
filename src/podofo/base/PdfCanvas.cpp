@@ -29,22 +29,22 @@ PdfArray PdfCanvas::GetProcSet()
     return procset;
 }
 
-void PdfCanvas::AddColorResource(const PdfColor& rColor)
+void PdfCanvas::AddColorResource(const PdfColor& color)
 {
     auto& resources = GetResources();
-    switch (rColor.GetColorSpace())
+    switch (color.GetColorSpace())
     {
         case PdfColorSpace::Separation:
         {
             string csPrefix("ColorSpace");
-            string csName = rColor.GetName();
+            string csName = color.GetName();
             string temp(csPrefix + csName);
 
             if (!resources.GetDictionary().HasKey("ColorSpace")
                 || !resources.GetDictionary().MustFindKey("ColorSpace").GetDictionary().HasKey(csPrefix + csName))
             {
                 // Build color-spaces for separation
-                PdfObject* csp = rColor.BuildColorSpace(*GetContents().GetDocument());
+                PdfObject* csp = color.BuildColorSpace(*GetContents().GetDocument());
 
                 AddResource(csPrefix + csName, csp->GetIndirectReference(), "ColorSpace");
             }
@@ -57,7 +57,7 @@ void PdfCanvas::AddColorResource(const PdfColor& rColor)
                 || !resources.GetDictionary().MustFindKey("ColorSpace").GetDictionary().HasKey("ColorSpaceLab"))
             {
                 // Build color-spaces for CIE-lab
-                PdfObject* csp = rColor.BuildColorSpace(*GetContents().GetDocument());
+                PdfObject* csp = color.BuildColorSpace(*GetContents().GetDocument());
 
                 AddResource("ColorSpaceCieLab", csp->GetIndirectReference(), "ColorSpace");
             }
@@ -75,33 +75,27 @@ void PdfCanvas::AddColorResource(const PdfColor& rColor)
     }
 }
 
-void PdfCanvas::AddResource(const PdfName& rIdentifier, const PdfReference& rRef, const PdfName& rName)
+void PdfCanvas::AddResource(const PdfName& identifier, const PdfReference& ref, const PdfName& name)
 {
-    if (rName.GetLength() == 0 || rIdentifier.GetLength() == 0)
-    {
+    if (name.GetLength() == 0 || identifier.GetLength() == 0)
         PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
-    }
 
     auto& resources = this->GetResources();
-    if (!resources.GetDictionary().HasKey(rName))
-        resources.GetDictionary().AddKey(rName, PdfDictionary());
+    if (!resources.GetDictionary().HasKey(name))
+        resources.GetDictionary().AddKey(name, PdfDictionary());
 
-    // Peter Petrov: 18 December 2008. Bug fix
-    if (EPdfDataType::Reference == resources.GetDictionary().GetKey(rName)->GetDataType())
+    if (EPdfDataType::Reference == resources.GetDictionary().GetKey(name)->GetDataType())
     {
-        PdfObject* directObject = resources.GetDocument()->GetObjects().GetObject(resources.GetDictionary().GetKey(rName)->GetReference());
-
+        auto directObject = resources.GetDocument()->GetObjects().GetObject(resources.GetDictionary().GetKey(name)->GetReference());
         if (directObject == nullptr)
-        {
             PODOFO_RAISE_ERROR(EPdfError::NoObject);
-        }
 
-        if (!directObject->GetDictionary().HasKey(rIdentifier))
-            directObject->GetDictionary().AddKey(rIdentifier, rRef);
+        if (!directObject->GetDictionary().HasKey(identifier))
+            directObject->GetDictionary().AddKey(identifier, ref);
     }
     else
     {
-        if (!resources.GetDictionary().GetKey(rName)->GetDictionary().HasKey(rIdentifier))
-            resources.GetDictionary().GetKey(rName)->GetDictionary().AddKey(rIdentifier, rRef);
+        if (!resources.GetDictionary().GetKey(name)->GetDictionary().HasKey(identifier))
+            resources.GetDictionary().GetKey(name)->GetDictionary().AddKey(identifier, ref);
     }
 }

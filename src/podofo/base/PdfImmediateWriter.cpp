@@ -45,7 +45,7 @@ PdfImmediateWriter::PdfImmediateWriter(PdfVecObjects& objects, const PdfObject& 
     this->SetWriteMode(writeMode);
     this->WritePdfHeader(*m_Device);
 
-    m_XRef.reset(GetUseXRefStream() ? new PdfXRefStream(*this, GetObjects()) : new PdfXRef(*this));
+    m_xRef.reset(GetUseXRefStream() ? new PdfXRefStream(*this, GetObjects()) : new PdfXRef(*this));
 }
 
 PdfImmediateWriter::~PdfImmediateWriter()
@@ -70,13 +70,13 @@ void PdfImmediateWriter::WriteObject(const PdfObject& obj)
 
     this->FinishLastObject();
 
-    m_XRef->AddInUseObject(obj.GetIndirectReference(), m_Device->Tell());
+    m_xRef->AddInUseObject(obj.GetIndirectReference(), m_Device->Tell());
     obj.Write(*m_Device, this->GetWriteMode(), GetEncrypt());
     // Make sure, no one will add keys now to the object
     const_cast<PdfObject&>(obj).SetImmutable(true);
 
     // Let's cheat a bit:
-    // pObject has written an "endobj\n" as last data to the file.
+    // obj has written an "endobj\n" as last data to the file.
     // we simply overwrite this string with "stream\n" which 
     // has excatly the same length.
     m_Device->Seek(m_Device->Tell() - endObjLenght);
@@ -97,11 +97,11 @@ void PdfImmediateWriter::Finish()
         GetEncrypt()->CreateEncryptionDictionary(GetEncryptObj()->GetDictionary());
     }
 
-    this->WritePdfObjects(*m_Device, GetObjects(), *m_XRef);
+    this->WritePdfObjects(*m_Device, GetObjects(), *m_xRef);
 
     // write the XRef
     uint64_t lXRefOffset = static_cast<uint64_t>(m_Device->Tell());
-    m_XRef->Write(*m_Device);
+    m_xRef->Write(*m_Device);
 
     // FIX-ME: The following is already done by PdfXRef now
     PODOFO_RAISE_ERROR(EPdfError::NotImplemented);
@@ -112,7 +112,7 @@ void PdfImmediateWriter::Finish()
         PdfObject trailer;
 
         // if we have a dummy offset we write also a prev entry to the trailer
-        FillTrailerObject(trailer, m_XRef->GetSize(), false);
+        FillTrailerObject(trailer, m_xRef->GetSize(), false);
 
         m_Device->Print("trailer\n");
         trailer.Write(*m_Device, this->GetWriteMode(), nullptr);

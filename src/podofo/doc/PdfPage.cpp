@@ -75,9 +75,9 @@ bool PdfPage::HasRotation(double& teta) const
     return true;
 }
 
-void PdfPage::InitNewPage(const PdfRect& rSize)
+void PdfPage::InitNewPage(const PdfRect& size)
 {
-    SetMediaBox(rSize);
+    SetMediaBox(size);
 
     // The PDF specification suggests that we send all available PDF Procedure sets
     this->GetObject().GetDictionary().AddKey("Resources", PdfDictionary());
@@ -113,11 +113,11 @@ PdfStream& PdfPage::GetStreamForAppending(EPdfStreamAppendFlags flags)
     return m_contents->GetStreamForAppending(flags);
 }
 
-PdfRect PdfPage::CreateStandardPageSize(const PdfPageSize ePageSize, bool bLandscape)
+PdfRect PdfPage::CreateStandardPageSize(const PdfPageSize pageSize, bool landscape)
 {
     PdfRect rect;
 
-    switch (ePageSize)
+    switch (pageSize)
     {
         case PdfPageSize::A0:
             rect.SetWidth(2384.0);
@@ -173,7 +173,7 @@ PdfRect PdfPage::CreateStandardPageSize(const PdfPageSize ePageSize, bool bLands
             break;
     }
 
-    if (bLandscape)
+    if (landscape)
     {
         double dTmp = rect.GetWidth();
         rect.SetWidth(rect.GetHeight());
@@ -183,14 +183,14 @@ PdfRect PdfPage::CreateStandardPageSize(const PdfPageSize ePageSize, bool bLands
     return rect;
 }
 
-const PdfObject* PdfPage::GetInheritedKeyFromObject(const string_view& inKey, const PdfObject& inObject, int depth) const
+const PdfObject* PdfPage::GetInheritedKeyFromObject(const string_view& key, const PdfObject& inObject, int depth) const
 {
     const PdfObject* obj = nullptr;
 
     // check for it in the object itself
-    if (inObject.GetDictionary().HasKey(inKey))
+    if (inObject.GetDictionary().HasKey(key))
     {
-        obj = &inObject.GetDictionary().MustFindKey(inKey);
+        obj = &inObject.GetDictionary().MustFindKey(key);
         if (!obj->IsNull())
             return obj;
     }
@@ -199,7 +199,7 @@ const PdfObject* PdfPage::GetInheritedKeyFromObject(const string_view& inKey, co
     if (inObject.GetDictionary().HasKey("Parent"))
     {
         // CVE-2017-5852 - prevent stack overflow if Parent chain contains a loop, or is very long
-        // e.g. pObj->GetParent() == pObj or pObj->GetParent()->GetParent() == pObj
+        // e.g. obj->GetParent() == obj or obj->GetParent()->GetParent() == obj
         // default stack sizes
         // Windows: 1 MB
         // Linux: 2 MB
@@ -219,8 +219,8 @@ const PdfObject* PdfPage::GetInheritedKeyFromObject(const string_view& inKey, co
             PODOFO_RAISE_ERROR_INFO(EPdfError::BrokenFile, oss.str().c_str());
         }
 
-        if (obj)
-            obj = GetInheritedKeyFromObject(inKey, *obj, depth + 1);
+        if (obj != nullptr)
+            obj = GetInheritedKeyFromObject(key, *obj, depth + 1);
     }
 
     return obj;
@@ -229,15 +229,14 @@ const PdfObject* PdfPage::GetInheritedKeyFromObject(const string_view& inKey, co
 PdfRect PdfPage::GetPageBox(const string_view& inBox) const
 {
     PdfRect	pageBox;
-    const PdfObject* pObj;
 
     // Take advantage of inherited values - walking up the tree if necessary
-    pObj = GetInheritedKeyFromObject(inBox, this->GetObject());
+    auto obj = GetInheritedKeyFromObject(inBox, this->GetObject());
 
     // assign the value of the box from the array
-    if (pObj && pObj->IsArray())
+    if (obj != nullptr && obj->IsArray())
     {
-        pageBox.FromArray(pObj->GetArray());
+        pageBox.FromArray(obj->GetArray());
     }
     else if (inBox == "ArtBox" ||
         inBox == "BleedBox" ||
@@ -261,19 +260,19 @@ int PdfPage::GetRotationRaw() const
 {
     int rot = 0;
 
-    const PdfObject* pObj = GetInheritedKeyFromObject("Rotate", this->GetObject());
-    if (pObj && (pObj->IsNumber() || pObj->GetReal()))
-        rot = static_cast<int>(pObj->GetNumber());
+    const PdfObject* obj = GetInheritedKeyFromObject("Rotate", this->GetObject());
+    if (obj && (obj->IsNumber() || obj->GetReal()))
+        rot = static_cast<int>(obj->GetNumber());
 
     return rot;
 }
 
-void PdfPage::SetRotationRaw(int nRotation)
+void PdfPage::SetRotationRaw(int rotation)
 {
-    if (nRotation != 0 && nRotation != 90 && nRotation != 180 && nRotation != 270)
+    if (rotation != 0 && rotation != 90 && rotation != 180 && rotation != 270)
         PODOFO_RAISE_ERROR(EPdfError::ValueOutOfRange);
 
-    this->GetObject().GetDictionary().AddKey("Rotate", PdfVariant(static_cast<int64_t>(nRotation)));
+    this->GetObject().GetDictionary().AddKey("Rotate", PdfVariant(static_cast<int64_t>(rotation)));
 }
 
 PdfArray* PdfPage::GetAnnotationsArray() const
@@ -288,12 +287,12 @@ PdfArray* PdfPage::GetAnnotationsArray() const
 PdfArray& PdfPage::GetOrCreateAnnotationsArray()
 {
     auto& dict = GetObject().GetDictionary();
-    PdfObject* pObj = dict.FindKey("Annots");
+    PdfObject* obj = dict.FindKey("Annots");
 
-    if (pObj == nullptr)
-        pObj = &dict.AddKey("Annots", PdfArray());
+    if (obj == nullptr)
+        obj = &dict.AddKey("Annots", PdfArray());
 
-    return pObj->GetArray();
+    return obj->GetArray();
 }
 
 unsigned PdfPage::GetAnnotationCount() const
@@ -302,9 +301,9 @@ unsigned PdfPage::GetAnnotationCount() const
     return arr == nullptr ? 0 : arr->GetSize();
 }
 
-PdfAnnotation* PdfPage::CreateAnnotation(PdfAnnotationType eType, const PdfRect& rRect)
+PdfAnnotation* PdfPage::CreateAnnotation(PdfAnnotationType annotType, const PdfRect& rect)
 {
-    PdfAnnotation* pAnnot = new PdfAnnotation(*this, eType, rRect);
+    PdfAnnotation* pAnnot = new PdfAnnotation(*this, annotType, rect);
     PdfReference   ref = pAnnot->GetObject().GetIndirectReference();
 
     auto& arr = GetOrCreateAnnotationsArray();
@@ -351,8 +350,8 @@ void PdfPage::DeleteAnnotation(unsigned index)
     if (index >= arr->GetSize())
         PODOFO_RAISE_ERROR(EPdfError::ValueOutOfRange);
 
-    auto& pItem = arr->FindAt(index);
-    auto found = m_mapAnnotations.find(&pItem);
+    auto& item = arr->FindAt(index);
+    auto found = m_mapAnnotations.find(&item);
     if (found != m_mapAnnotations.end())
     {
         delete found->second;
@@ -360,8 +359,8 @@ void PdfPage::DeleteAnnotation(unsigned index)
     }
 
     // Delete the PdfObject in the document
-    if (pItem.GetIndirectReference().IsIndirect())
-        pItem.GetDocument()->GetObjects().RemoveObject(pItem.GetIndirectReference());
+    if (item.GetIndirectReference().IsIndirect())
+        item.GetDocument()->GetObjects().RemoveObject(item.GetIndirectReference());
 
     // Delete the annotation from the annotation array.
     // Has to be performed at last
@@ -413,28 +412,24 @@ void PdfPage::DeleteAnnotation(PdfObject& annotObj)
 // added by Petr P. Petrov 21 Febrary 2010
 bool PdfPage::SetPageWidth(int newWidth)
 {
-    PdfObject* pObjMediaBox;
-
     // Take advantage of inherited values - walking up the tree if necessary
-    pObjMediaBox = const_cast<PdfObject*>(GetInheritedKeyFromObject("MediaBox", this->GetObject()));
+    auto mediaBoxObj = const_cast<PdfObject*>(GetInheritedKeyFromObject("MediaBox", this->GetObject()));
 
     // assign the value of the box from the array
-    if (pObjMediaBox && pObjMediaBox->IsArray())
+    if (mediaBoxObj != nullptr && mediaBoxObj->IsArray())
     {
-        auto& mediaBoxArr = pObjMediaBox->GetArray();
+        auto& mediaBoxArr = mediaBoxObj->GetArray();
 
         // in PdfRect::FromArray(), the Left value is subtracted from Width
         double dLeftMediaBox = mediaBoxArr[0].GetReal();
         mediaBoxArr[2] = PdfObject(newWidth + dLeftMediaBox);
 
-        PdfObject* pObjCropBox;
-
         // Take advantage of inherited values - walking up the tree if necessary
-        pObjCropBox = const_cast<PdfObject*>(GetInheritedKeyFromObject("CropBox", this->GetObject()));
+        auto cropBoxObj = const_cast<PdfObject*>(GetInheritedKeyFromObject("CropBox", this->GetObject()));
 
-        if (pObjCropBox && pObjCropBox->IsArray())
+        if (cropBoxObj != nullptr && cropBoxObj->IsArray())
         {
-            auto& cropBoxArr = pObjCropBox->GetArray();
+            auto& cropBoxArr = cropBoxObj->GetArray();
             // in PdfRect::FromArray(), the Left value is subtracted from Width
             double dLeftCropBox = cropBoxArr[0].GetReal();
             cropBoxArr[2] = PdfObject(newWidth + dLeftCropBox);
@@ -454,27 +449,23 @@ bool PdfPage::SetPageWidth(int newWidth)
 // added by Petr P. Petrov 21 Febrary 2010
 bool PdfPage::SetPageHeight(int newHeight)
 {
-    PdfObject* pObj;
-
     // Take advantage of inherited values - walking up the tree if necessary
-    pObj = const_cast<PdfObject*>(GetInheritedKeyFromObject("MediaBox", this->GetObject()));
+    auto obj = const_cast<PdfObject*>(GetInheritedKeyFromObject("MediaBox", this->GetObject()));
 
     // assign the value of the box from the array
-    if (pObj && pObj->IsArray())
+    if (obj != nullptr && obj->IsArray())
     {
-        auto& mediaBoxArr = pObj->GetArray();
+        auto& mediaBoxArr = obj->GetArray();
         // in PdfRect::FromArray(), the Bottom value is subtracted from Height
-        double dBottom = mediaBoxArr[1].GetReal();
-        mediaBoxArr[3] = PdfObject(newHeight + dBottom);
-
-        PdfObject* pObjCropBox;
+        double bottom = mediaBoxArr[1].GetReal();
+        mediaBoxArr[3] = PdfObject(newHeight + bottom);
 
         // Take advantage of inherited values - walking up the tree if necessary
-        pObjCropBox = const_cast<PdfObject*>(GetInheritedKeyFromObject("CropBox", this->GetObject()));
+        auto cropBoxObj = const_cast<PdfObject*>(GetInheritedKeyFromObject("CropBox", this->GetObject()));
 
-        if (pObjCropBox && pObjCropBox->IsArray())
+        if (cropBoxObj != nullptr && cropBoxObj->IsArray())
         {
-            auto& cropBoxArr = pObjCropBox->GetArray();
+            auto& cropBoxArr = cropBoxObj->GetArray();
             // in PdfRect::FromArray(), the Bottom value is subtracted from Height
             double dBottomCropBox = cropBoxArr[1].GetReal();
             cropBoxArr[3] = PdfObject(newHeight + dBottomCropBox);
@@ -491,17 +482,17 @@ bool PdfPage::SetPageHeight(int newHeight)
     }
 }
 
-void PdfPage::SetMediaBox(const PdfRect& rSize)
+void PdfPage::SetMediaBox(const PdfRect& size)
 {
     PdfVariant mediaBox;
-    rSize.ToVariant(mediaBox);
+    size.ToVariant(mediaBox);
     this->GetObject().GetDictionary().AddKey("MediaBox", mediaBox);
 }
 
-void PdfPage::SetTrimBox(const PdfRect& rSize)
+void PdfPage::SetTrimBox(const PdfRect& size)
 {
     PdfVariant trimbox;
-    rSize.ToVariant(trimbox);
+    size.ToVariant(trimbox);
     this->GetObject().GetDictionary().AddKey("TrimBox", trimbox);
 }
 
@@ -512,7 +503,7 @@ unsigned PdfPage::GetPageNumber() const
     PdfReference ref = this->GetObject().GetIndirectReference();
 
     // CVE-2017-5852 - prevent infinite loop if Parent chain contains a loop
-    // e.g. pParent->GetIndirectKey( "Parent" ) == pParent or pParent->GetIndirectKey( "Parent" )->GetIndirectKey( "Parent" ) == pParent
+    // e.g. parent->GetIndirectKey( "Parent" ) == parent or parent->GetIndirectKey( "Parent" )->GetIndirectKey( "Parent" ) == parent
     constexpr unsigned maxRecursionDepth = 1000;
     unsigned depth = 0;
 
@@ -530,7 +521,7 @@ unsigned PdfPage::GetPageNumber() const
                 auto node = this->GetObject().GetDocument()->GetObjects().GetObject(child.GetReference());
                 if (node == nullptr)
                 {
-                    std::ostringstream oss;
+                    ostringstream oss;
                     oss << "Object " << child.GetReference().ToString() << " not found from Kids array "
                         << kidsObj->GetIndirectReference().ToString();
                     PODOFO_RAISE_ERROR_INFO(EPdfError::NoObject, oss.str());
@@ -654,9 +645,9 @@ PdfRect PdfPage::GetArtBox() const
     return GetPageBox("ArtBox");
 }
 
-const PdfObject* PdfPage::GetInheritedKey(const PdfName& rName) const
+const PdfObject* PdfPage::GetInheritedKey(const PdfName& name) const
 {
-    return this->GetInheritedKeyFromObject(rName.GetString().c_str(), this->GetObject());
+    return this->GetInheritedKeyFromObject(name.GetString().c_str(), this->GetObject());
 }
 
 // https://stackoverflow.com/a/2021986/213871

@@ -31,16 +31,16 @@ class PdfXRefStream : public PdfXRef
 public:
     /** Create a new XRef table
      *
-     *  \param pParent a vector of PdfObject is required
+     *  \param parent a vector of PdfObject is required
      *                 to create a PdfObject for the XRef
      *  \param pWriter is needed to fill the trailer directory
      *                 correctly which is included into the XRef
      */
-    PdfXRefStream(PdfWriter& writer, PdfVecObjects& pParent);
+    PdfXRefStream(PdfWriter& writer, PdfVecObjects& parent);
 
     uint64_t GetOffset() const override;
 
-    bool ShouldSkipWrite(const PdfReference& rRef) override;
+    bool ShouldSkipWrite(const PdfReference& ref) override;
 
 protected:
     void BeginWrite(PdfOutputDevice& device) override;
@@ -49,9 +49,9 @@ protected:
     void EndWriteImpl(PdfOutputDevice& device) override;
 
 private:
-    PdfVecObjects* m_pParent;
+    PdfVecObjects* m_Parent;
     PdfObject* m_xrefStreamObj;
-    PdfArray m_indeces;
+    PdfArray m_indices;
     int64_t m_offset;
 };
 

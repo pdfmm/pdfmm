@@ -28,20 +28,20 @@ class PODOFO_DOC_API PdfInfo final : public PdfElement
 public:
 
     /** Create a new PdfInfo object
-     *  \param pParent the parent of this object
-     *  \param eInitial which information should be
+     *  \param parent the parent of this object
+     *  \param initial which information should be
      *         writting initially to the information dictionary
      */
     PdfInfo(PdfDocument& doc,
-        PdfInfoInitial eInitial = PdfInfoInitial::WriteCreationTime | PdfInfoInitial::WriteProducer);
+        PdfInfoInitial initial = PdfInfoInitial::WriteCreationTime | PdfInfoInitial::WriteProducer);
 
     /** Create a PdfInfo object from an existing
      *  object in the PDF file.
-     *  \param pObject must be an info dictionary.
-     *  \param eInitial which information should be
+     *  \param obj must be an info dictionary.
+     *  \param initial which information should be
      *         writting initially to the information
      */
-    PdfInfo(PdfObject& obj, PdfInfoInitial eInitial = PdfInfoInitial::None);
+    PdfInfo(PdfObject& obj, PdfInfoInitial initial = PdfInfoInitial::None);
 
     /** Set the author of the document.
      *  \param sAuthor author
@@ -85,9 +85,9 @@ public:
     std::optional<PdfString> GetSubject() const;
 
     /** Set the title of the document.
-     *  \param sTitle title
+     *  \param title title
      */
-    void SetTitle(const PdfString& sTitle);
+    void SetTitle(const PdfString& title);
 
     /** Get the title of the document
      *  \returns the title
@@ -127,28 +127,28 @@ public:
     PdfDate GetModDate() const;
 
     /** Set custom info key.
-     * \param sName Name of the key.
-     * \param sValue Value of the key.
+     * \param name Name of the key.
+     * \param value Value of the key.
      */
-    void SetCustomKey(const PdfName& sName, const PdfString& sValue);
+    void SetCustomKey(const PdfName& name, const PdfString& value);
 private:
     /** Add the initial document information to the dictionary.
-     *  \param eInitial which information should be
+     *  \param initial which information should be
      *         writting initially to the information
      */
-    void Init(PdfInfoInitial eInitial);
+    void Init(PdfInfoInitial initial);
 
     /** Get a value from the info dictionary as name
-     *  \para rName the key to fetch from the info dictionary
+     *  \para name the key to fetch from the info dictionary
      *  \return a value from the info dictionary
      */
-    std::optional<PdfString> GetStringFromInfoDict(const PdfName& rName) const;
+    std::optional<PdfString> GetStringFromInfoDict(const PdfName& name) const;
 
     /** Get a value from the info dictionary as name
-    *  \para rName the key to fetch from the info dictionary
+    *  \para name the key to fetch from the info dictionary
     *  \return a value from the info dictionary
     */
-    const PdfName& GetNameFromInfoDict(const PdfName& rName) const;
+    const PdfName& GetNameFromInfoDict(const PdfName& name) const;
 
 };
 

@@ -29,18 +29,18 @@ static bool CompareReference(const PdfObject* obj, const PdfReference& ref);
 struct ObjectComparatorPredicate
 {
 public:
-    inline bool operator()(const PdfObject* const& pObj, const PdfObject* const& pObj2) const
+    inline bool operator()(const PdfObject* const& obj1, const PdfObject* const& obj2) const
     {
-        return pObj->GetIndirectReference() < pObj2->GetIndirectReference();
+        return obj1->GetIndirectReference() < obj2->GetIndirectReference();
     }
 };
 
 struct ReferenceComparatorPredicate
 {
 public:
-    inline bool operator()(const PdfReference& pObj, const PdfReference& pObj2) const
+    inline bool operator()(const PdfReference& obj1, const PdfReference& obj2) const
     {
-        return pObj < pObj2;
+        return obj1 < obj2;
     }
 };
 
@@ -85,10 +85,10 @@ PdfVecObjects::~PdfVecObjects()
 
 void PdfVecObjects::Clear()
 {
-    for (auto obj : m_vector)
+    for (auto obj : m_Objects)
         delete obj;
 
-    m_vector.clear();
+    m_Objects.clear();
     m_ObjectCount = 1;
     m_sorted = true;
     m_StreamFactory = nullptr;
@@ -106,8 +106,8 @@ PdfObject& PdfVecObjects::MustGetObject(const PdfReference& ref) const
 PdfObject* PdfVecObjects::GetObject(const PdfReference& ref) const
 {
     const_cast<PdfVecObjects&>(*this).Sort();
-    TCIVecObjects it = std::lower_bound(m_vector.begin(), m_vector.end(), ref, CompareReference);
-    if (it == m_vector.end() || (*it)->GetIndirectReference() != ref)
+    auto it = std::lower_bound(m_Objects.begin(), m_Objects.end(), ref, CompareReference);
+    if (it == m_Objects.end() || (*it)->GetIndirectReference() != ref)
         return nullptr;
 
     return *it;
@@ -116,34 +116,34 @@ PdfObject* PdfVecObjects::GetObject(const PdfReference& ref) const
 unique_ptr<PdfObject> PdfVecObjects::RemoveObject(const PdfReference& ref, bool markAsFree)
 {
     const_cast<PdfVecObjects&>(*this).Sort();
-    TCIVecObjects it = std::lower_bound(m_vector.begin(), m_vector.end(), ref, CompareReference);
-    if (it == m_vector.end() || (*it)->GetIndirectReference() != ref)
+    auto it = std::lower_bound(m_Objects.begin(), m_Objects.end(), ref, CompareReference);
+    if (it == m_Objects.end() || (*it)->GetIndirectReference() != ref)
         return nullptr;
 
-    auto pObj = *(it);
+    auto obj = *it;
     if (markAsFree)
-        SafeAddFreeObject(pObj->GetIndirectReference());
+        SafeAddFreeObject(obj->GetIndirectReference());
 
-    m_vector.erase(it);
+    m_Objects.erase(it);
     m_sorted = false;
-    return unique_ptr<PdfObject>(pObj);
+    return unique_ptr<PdfObject>(obj);
 }
 
-unique_ptr<PdfObject> PdfVecObjects::RemoveObject(const TIVecObjects& it)
+unique_ptr<PdfObject> PdfVecObjects::RemoveObject(const iterator& it)
 {
-    auto pObj = *it;
-    m_vector.erase(it);
+    auto obj = *it;
+    m_Objects.erase(it);
     m_sorted = false;
-    return unique_ptr<PdfObject>(pObj);
+    return unique_ptr<PdfObject>(obj);
 }
 
 PdfReference PdfVecObjects::getNextFreeObject()
 {
     // Try to first use list of free objects
-    if (m_CanReuseObjectNumbers && !m_lstFreeObjects.empty())
+    if (m_CanReuseObjectNumbers && !m_FreeObjects.empty())
     {
-        PdfReference freeObjectRef = m_lstFreeObjects.front();
-        m_lstFreeObjects.pop_front();
+        PdfReference freeObjectRef = m_FreeObjects.front();
+        m_FreeObjects.pop_front();
         return freeObjectRef;
     }
 
@@ -156,7 +156,7 @@ PdfReference PdfVecObjects::getNextFreeObject()
 
         // Check also if the object number it not available,
         // e.g. it reached maximum generation number (65535)
-        if (m_lstUnavailableObjects.find(nextObjectNum) == m_lstUnavailableObjects.end())
+        if (m_UnavailableObjects.find(nextObjectNum) == m_UnavailableObjects.end())
             break;
 
         nextObjectNum++;
@@ -208,7 +208,7 @@ int32_t PdfVecObjects::tryAddFreeObject(uint32_t objnum, uint32_t gennum)
     // NOTE: gennum is uint32 to accomodate overflows from callers
     if (gennum >= MAX_XREF_GEN_NUM)
     {
-        m_lstUnavailableObjects.insert(gennum);
+        m_UnavailableObjects.insert(gennum);
         return -1;
     }
 
@@ -218,10 +218,8 @@ int32_t PdfVecObjects::tryAddFreeObject(uint32_t objnum, uint32_t gennum)
 
 void PdfVecObjects::AddFreeObject(const PdfReference& reference)
 {
-    std::pair<TIPdfReferenceList, TIPdfReferenceList> it =
-        std::equal_range(m_lstFreeObjects.begin(), m_lstFreeObjects.end(), reference, ReferenceComparatorPredicate());
-
-    if (it.first != it.second && !m_lstFreeObjects.empty())
+    auto it = std::equal_range(m_FreeObjects.begin(), m_FreeObjects.end(), reference, ReferenceComparatorPredicate());
+    if (it.first != it.second && !m_FreeObjects.empty())
     {
         // Be sure that no reference is added twice to free list
         PdfError::DebugMessage("Adding %d to free list, is already contained in it!", reference.ObjectNumber());
@@ -233,7 +231,7 @@ void PdfVecObjects::AddFreeObject(const PdfReference& reference)
         SetObjectCount(reference);
 
         // Insert so that list stays sorted
-        m_lstFreeObjects.insert(it.first, reference);
+        m_FreeObjects.insert(it.first, reference);
     }
 }
 
@@ -261,7 +259,7 @@ void PdfVecObjects::AddObject(PdfObject* obj)
 {
     SetObjectCount(obj->GetIndirectReference());
     obj->SetDocument(*m_Document);
-    m_vector.push_back(obj);
+    m_Objects.push_back(obj);
     m_sorted = false;
 }
 
@@ -270,7 +268,7 @@ void PdfVecObjects::Sort()
     if (m_sorted)
         return;
 
-    std::sort(m_vector.begin(), m_vector.end(), CompareObject);
+    std::sort(m_Objects.begin(), m_Objects.end(), CompareObject);
     m_sorted = true;
 }
 
@@ -294,7 +292,7 @@ void PdfVecObjects::RenumberObjects(PdfObject& trailer, TPdfReferenceSet* notDel
     TIReferencePointerList itList;
     int i = 0;
 
-    m_lstFreeObjects.clear();
+    m_FreeObjects.clear();
 
     const_cast<PdfVecObjects&>(*this).Sort();
 
@@ -310,7 +308,7 @@ void PdfVecObjects::RenumberObjects(PdfObject& trailer, TPdfReferenceSet* notDel
     while (it != list.end())
     {
         PdfReference ref(i + 1, 0);
-        m_vector[i]->m_IndirectReference = ref;
+        m_Objects[i]->m_IndirectReference = ref;
 
         itList = it->begin();
         while (itList != it->end())
@@ -327,15 +325,15 @@ void PdfVecObjects::RenumberObjects(PdfObject& trailer, TPdfReferenceSet* notDel
 void PdfVecObjects::insertOneReferenceIntoVector(const PdfObject& obj, TVecReferencePointerList& list)
 {
     (void)list;
-    throw runtime_error("Fixme, we don't support taking address of PdfReference anymore");
+    throw runtime_error("FIX-ME, we don't support taking address of PdfReference anymore");
 
     /* FIX-ME
     PODOFO_RAISE_LOGIC_IF( !m_bSorted,
                            "PdfVecObjects must be sorted before calling PdfVecObjects::InsertOneReferenceIntoVector!" );
 
-    // we asume that pObj is a reference - no checking here because of speed
+    // we asume that obj is a reference - no checking here because of speed
     std::pair<TCIVecObjects,TCIVecObjects> it =
-        std::equal_range( m_vector.begin(), m_vector.end(), &obj, ObjectComparatorPredicate() );
+        std::equal_range( m_Objects.begin(), m_Objects.end(), &obj, ObjectComparatorPredicate() );
 
     if( it.first != it.second )
     {
@@ -343,7 +341,7 @@ void PdfVecObjects::insertOneReferenceIntoVector(const PdfObject& obj, TVecRefer
         return;
     }
 
-    size_t index = it.first - m_vector.begin();
+    size_t index = it.first - m_Objects.begin();
     list[index].push_back( const_cast<PdfReference*>(&(obj.GetReference() )) );
     */
 }
@@ -379,11 +377,11 @@ void PdfVecObjects::insertReferencesIntoVector(const PdfObject& obj, TVecReferen
     }
 }
 
-void PdfVecObjects::GetObjectDependencies(const PdfObject& obj, TPdfReferenceList& list) const
+void PdfVecObjects::GetObjectDependencies(const PdfObject& obj, PdfReferenceList& list) const
 {
     if (obj.IsReference())
     {
-        std::pair<TPdfReferenceList::iterator, TPdfReferenceList::iterator> itEqualRange
+        std::pair<PdfReferenceList::iterator, PdfReferenceList::iterator> itEqualRange
             = std::equal_range(list.begin(), list.end(), obj.GetReference());
         if (itEqualRange.first == itEqualRange.second)
         {
@@ -420,12 +418,12 @@ void PdfVecObjects::GetObjectDependencies(const PdfObject& obj, TPdfReferenceLis
 
 void PdfVecObjects::buildReferenceCountVector(TVecReferencePointerList& list)
 {
-    TCIVecObjects it = m_vector.begin();
+    auto it = m_Objects.begin();
 
     list.clear();
-    list.resize(!m_vector.empty());
+    list.resize(!m_Objects.empty());
 
-    while (it != m_vector.end())
+    while (it != m_Objects.end())
     {
         auto& obj = **it;
         if (obj.IsReference())
@@ -451,10 +449,10 @@ void PdfVecObjects::garbageCollection(TVecReferencePointerList& list, PdfObject&
 
     while (it != list.end())
     {
-        contains = notDelete ? (notDelete->find(m_vector[pos]->GetIndirectReference()) != notDelete->end()) : false;
+        contains = notDelete ? (notDelete->find(m_Objects[pos]->GetIndirectReference()) != notDelete->end()) : false;
         if (it->size() == 0 && !contains)
         {
-            m_vector.erase(m_vector.begin() + pos);
+            m_Objects.erase(m_Objects.begin() + pos);
         }
 
         pos++;
@@ -468,13 +466,12 @@ void PdfVecObjects::garbageCollection(TVecReferencePointerList& list, PdfObject&
 
 void PdfVecObjects::Detach(Observer* observer)
 {
-    TIVecObservers it = m_vecObservers.begin();
-
-    while (it != m_vecObservers.end())
+    auto it = m_observers.begin();
+    while (it != m_observers.end())
     {
         if (*it == observer)
         {
-            m_vecObservers.erase(it);
+            m_observers.erase(it);
             break;
         }
         else
@@ -496,7 +493,7 @@ PdfStream* PdfVecObjects::CreateStream(PdfObject& parent)
 void PdfVecObjects::WriteObject(PdfObject& obj)
 {
     // Tell any observers that there are new objects to write
-    for (auto& observer : m_vecObservers)
+    for (auto& observer : m_observers)
         observer->WriteObject(obj);
 }
 
@@ -505,20 +502,20 @@ void PdfVecObjects::Finish()
     // always work on a copy of the vector
     // in case a child invalidates our iterators
     // with a call to attach or detach.
-    TVecObservers copy(m_vecObservers);
+    ObserverList copy(m_observers);
     for (auto& observer : copy)
         observer->Finish();
 }
 
 void PdfVecObjects::BeginAppendStream(const PdfStream& stream)
 {
-    for (auto& observer : m_vecObservers)
+    for (auto& observer : m_observers)
         observer->BeginAppendStream(stream);
 }
 
 void PdfVecObjects::EndAppendStream(const PdfStream& stream)
 {
-    for (auto& observer : m_vecObservers)
+    for (auto& observer : m_observers)
         observer->EndAppendStream(stream);
 }
 
@@ -527,19 +524,19 @@ void PdfVecObjects::SetCanReuseObjectNumbers(bool canReuseObjectNumbers)
     m_CanReuseObjectNumbers = canReuseObjectNumbers;
 
     if (!m_CanReuseObjectNumbers)
-        m_lstFreeObjects.clear();
+        m_FreeObjects.clear();
 }
 
 size_t PdfVecObjects::GetSize() const
 {
-    return m_vector.size();
+    return m_Objects.size();
 }
 
 void PdfVecObjects::Reserve(size_t size)
 {
     if (size <= m_MaxReserveSize) // Fix CVE-2018-5783
     {
-        m_vector.reserve(size);
+        m_Objects.reserve(size);
     }
     else
     {
@@ -551,7 +548,7 @@ void PdfVecObjects::Reserve(size_t size)
 
 void PdfVecObjects::Attach(Observer* observer)
 {
-    m_vecObservers.push_back(observer);
+    m_observers.push_back(observer);
 }
 
 void PdfVecObjects::SetStreamFactory(StreamFactory* factory)
@@ -561,36 +558,36 @@ void PdfVecObjects::SetStreamFactory(StreamFactory* factory)
 
 PdfObject* PdfVecObjects::GetBack()
 {
-    return m_vector.back();
+    return m_Objects.back();
 }
 
 void PdfVecObjects::SetObjectCount(const PdfReference& ref)
 {
     if (ref.ObjectNumber() >= m_ObjectCount)
     {
-        // "m_bObjectCount" is used for the next free object number.
+        // "m_ObjectCount" is used for the next free object number.
         // We need to use the greatest object number + 1 for the next free object number.
         // Otherwise, object number overlap would have occurred.
         m_ObjectCount = ref.ObjectNumber() + 1;
     }
 }
 
-PdfObject*& PdfVecObjects::operator[](size_t index) { return m_vector[index]; }
+PdfObject*& PdfVecObjects::operator[](size_t index) { return m_Objects[index]; }
 
-TCIVecObjects PdfVecObjects::begin() const
+PdfVecObjects::iterator PdfVecObjects::begin() const
 {
     const_cast<PdfVecObjects&>(*this).Sort();
-    return m_vector.begin();
+    return m_Objects.begin();
 }
 
-TCIVecObjects PdfVecObjects::end() const
+PdfVecObjects::iterator PdfVecObjects::end() const
 {
-    return m_vector.end();
+    return m_Objects.end();
 }
 
 size_t PdfVecObjects::size() const
 {
-    return m_vector.size();
+    return m_Objects.size();
 }
 
 bool CompareObject(const PdfObject* p1, const PdfObject* p2)

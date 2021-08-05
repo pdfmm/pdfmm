@@ -21,30 +21,7 @@ class PdfObject;
 class PdfStream;
 class PdfVariant;
 
-// Use deque as many insertions are here way faster than with using std::list
-// This is especially useful for PDFs like PDFReference17.pdf with
-// lots of free objects.
-typedef std::deque<PdfReference>                 TPdfReferenceList;
-typedef TPdfReferenceList::iterator              TIPdfReferenceList;
-typedef TPdfReferenceList::const_iterator        TCIPdfReferenceList;
-
-typedef std::set<uint32_t>                       TPdfObjectNumList;
-
-typedef std::set<PdfReference>                   TPdfReferenceSet;
-typedef TPdfReferenceSet::iterator               TIPdfReferenceSet;
-typedef TPdfReferenceSet::const_iterator         TCIPdfReferenceSet;
-
-typedef std::list<PdfReference*>                 TReferencePointerList;
-typedef TReferencePointerList::iterator          TIReferencePointerList;
-typedef TReferencePointerList::const_iterator    TCIReferencePointerList;
-
-typedef std::vector<TReferencePointerList>       TVecReferencePointerList;
-typedef TVecReferencePointerList::iterator       TIVecReferencePointerList;
-typedef TVecReferencePointerList::const_iterator TCIVecReferencePointerList;
-
-typedef std::vector<PdfObject*>      TVecObjects;
-typedef TVecObjects::iterator        TIVecObjects;
-typedef TVecObjects::const_iterator  TCIVecObjects;
+typedef std::deque<PdfReference> PdfReferenceList;
 
 /** A STL vector of PdfObjects. I.e. a list of PdfObject classes.
  *  The PdfParser will read the PdfFile into memory and create
@@ -64,12 +41,14 @@ class PODOFO_API PdfVecObjects final
     friend class PdfParser;
     friend class PdfObjectStreamParser;
 
+private:
+    typedef std::vector<PdfObject*> ObjectList;
+
 public:
     // An incomplete set of container typedefs, just enough to handle
     // the begin() and end() methods we wrap from the internal vector.
     // TODO: proper wrapper iterator class.
-    typedef TVecObjects::iterator iterator;
-    typedef TVecObjects::const_iterator const_iterator;
+    typedef ObjectList::const_iterator iterator;
 
     /** Every observer of PdfVecObjects has to implement this interface.
      */
@@ -82,12 +61,12 @@ public:
         virtual void WriteObject(const PdfObject& obj) = 0;
 
         /** Called whenever appending to a stream is started.
-         *  \param pStream the stream object the user currently writes to.
+         *  \param stream the stream object the user currently writes to.
          */
         virtual void BeginAppendStream(const PdfStream& stream) = 0;
 
         /** Called whenever appending to a stream has ended.
-         *  \param pStream the stream object the user currently writes to.
+         *  \param stream the stream object the user currently writes to.
          */
         virtual void EndAppendStream(const PdfStream& stream) = 0;
 
@@ -103,17 +82,12 @@ public:
 
         /** Creates a stream object
          *
-         *  \param pParent parent object
+         *  \param parent parent object
          *
          *  \returns a new stream object
          */
         virtual PdfStream* CreateStream(PdfObject& parent) = 0;
     };
-
-private:
-    typedef std::vector<Observer*>        TVecObservers;
-    typedef TVecObservers::iterator       TIVecObservers;
-    typedef TVecObservers::const_iterator TCIVecObservers;
 
 public:
     PdfVecObjects(PdfDocument& document);
@@ -150,7 +124,7 @@ public:
      */
     size_t GetObjectCount() const { return m_ObjectCount; }
 
-    /** Finds the object with the given reference in m_vecOffsets
+    /** Finds the object with the given reference
      *  and returns a pointer to it if it is found. Throws a PdfError
      *  exception with error code ePdfError_NoObject if no object was found
      *  \param ref the object to be found
@@ -159,7 +133,7 @@ public:
      */
     PdfObject& MustGetObject(const PdfReference& ref) const;
 
-    /** Finds the object with the given reference in m_vecOffsets
+    /** Finds the object with the given reference
      *  and returns a pointer to it if it is found.
      *  \param ref the object to be found
      *  \returns the found object or nullptr if no object was found.
@@ -183,12 +157,12 @@ public:
      *  \param it the object to remove
      *  \returns the removed object
      */
-    std::unique_ptr<PdfObject> RemoveObject(const TIVecObjects& it);
+    std::unique_ptr<PdfObject> RemoveObject(const iterator& it);
 
     /** Creates a new object and inserts it into the vector.
      *  This function assigns the next free object number to the PdfObject.
      *
-     *  \param pszType optional value of the /Type key of the object
+     *  \param type optional value of the /Type key of the object
      *  \returns PdfObject pointer to the new PdfObject
      */
     PdfObject* CreateDictionaryObject(const std::string_view& type = { });
@@ -196,24 +170,11 @@ public:
     /** Creates a new object (of type rVariants) and inserts it into the vector.
      *  This function assigns the next free object number to the PdfObject.
      *
-     *  \param rVariant value of the PdfObject
+     *  \param variant value of the PdfObject
      *  \returns PdfObject pointer to the new PdfObject
      */
     PdfObject* CreateObject(const PdfVariant& variant);
 
-    /**
-     *  Renumbers all objects according to there current position in the vector.
-     *  All references remain intact.
-     *  Warning! This function is _very_ calculation intensive.
-     *
-     *  \param pTrailer the trailer object
-     *  \param pNotDelete a list of object which must not be deleted
-     *  \param bDoGarbageCollection enable garbage collection, which deletes
-     *         all objects that are not reachable from the trailer. This might be slow!
-     *
-     *  \see CollectGarbage
-     */
-    void RenumberObjects(PdfObject& trailer, TPdfReferenceSet* notDelete = nullptr, bool doGarbageCollection = false);
 
     /**
      * Sort the objects in the vector based on their object and generation numbers
@@ -245,15 +206,6 @@ public:
      */
     void Reserve(size_t size);
 
-    /** Get a set with all references of objects that the passed object
-     *  depends on.
-     *  \param pObj the object to calculate all dependencies for
-     *  \param pList write the list of dependencies to this list
-     *
-     */
-    void GetObjectDependencies(const PdfObject& obj, TPdfReferenceList& list) const;
-
-
     /** Attach a new observer
      *  \param pObserver to attach
      */
@@ -274,7 +226,7 @@ public:
     /** Creates a stream object
      *  This method is a factory for PdfStream objects.
      *
-     *  \param pParent parent object
+     *  \param parent parent object
      *
      *  \returns a new stream object
      */
@@ -291,12 +243,12 @@ public:
     void Finish();
 
     /** Every stream implementation has to call this in BeginAppend
-     *  \param pStream the stream object that is calling
+     *  \param stream the stream object that is calling
      */
     void BeginAppendStream(const PdfStream& stream);
 
     /** Every stream implementation has to call this in EndAppend
-     *  \param pStream the stream object that is calling
+     *  \param stream the stream object that is calling
      */
     void EndAppendStream(const PdfStream& stream);
 
@@ -313,7 +265,7 @@ public:
      * besides the trailer (which references the root dictionary, which in
      * turn should reference all other objects).
      *
-     * \param pTrailer trailer object of the PDF
+     * \param trailer trailer object of the PDF
      *
      * Warning this might be slow!
      */
@@ -323,20 +275,64 @@ public:
      * Set the object count so that the object described this reference
      * is contained in the object count.
      *
-     * \param rRef reference of newly added object
+     * \param ref reference of newly added object
      */
     void SetObjectCount(const PdfReference& ref);
+
+private:
+    // TODO: Clean the following types, remove 'T' prefix
+    // Use deque as many insertions are here way faster than with using std::list
+    // This is especially useful for PDFs like PDFReference17.pdf with
+    // lots of free objects.
+    typedef std::set<uint32_t>                       TPdfObjectNumList;
+
+    typedef std::set<PdfReference>                   TPdfReferenceSet;
+    typedef TPdfReferenceSet::iterator               TIPdfReferenceSet;
+    typedef TPdfReferenceSet::const_iterator         TCIPdfReferenceSet;
+
+    typedef std::list<PdfReference*>                 TReferencePointerList;
+    typedef TReferencePointerList::iterator          TIReferencePointerList;
+    typedef TReferencePointerList::const_iterator    TCIReferencePointerList;
+
+    typedef std::vector<TReferencePointerList>       TVecReferencePointerList;
+    typedef TVecReferencePointerList::iterator       TIVecReferencePointerList;
+    typedef TVecReferencePointerList::const_iterator TCIVecReferencePointerList;
+
+private:
+    // CHECK-ME: Should this function be public or stay private? Originally it was private
+    /**
+     *  Renumbers all objects according to there current position in the vector.
+     *  All references remain intact.
+     *  Warning! This function is _very_ calculation intensive.
+     *
+     *  \param trailer the trailer object
+     *  \param pNotDelete a list of object which must not be deleted
+     *  \param bDoGarbageCollection enable garbage collection, which deletes
+     *         all objects that are not reachable from the trailer. This might be slow!
+     *
+     *  \see CollectGarbage
+     */
+    void RenumberObjects(PdfObject& trailer, TPdfReferenceSet* notDelete = nullptr, bool doGarbageCollection = false);
+
+    // CHECK-ME: Should this function be public or stay private? Originally it was private
+    /** Get a set with all references of objects that the passed object
+     *  depends on.
+     *  \param obj the object to calculate all dependencies for
+     *  \param list write the list of dependencies to this list
+     *
+     */
+    void GetObjectDependencies(const PdfObject& obj, PdfReferenceList& list) const;
 
 public:
     /** Iterator pointing at the beginning of the vector
      *  \returns beginning iterator
      */
-    TCIVecObjects begin() const;
+    iterator begin() const;
 
     /** Iterator pointing at the end of the vector
      *  \returns ending iterator
      */
-    TCIVecObjects end() const;
+    iterator end() const;
 
     size_t size() const;
 
@@ -354,15 +350,15 @@ public:
 
     /** \returns a list of free references in this vector
      */
-    inline const TPdfReferenceList& GetFreeObjects() const { return m_lstFreeObjects; }
+    inline const PdfReferenceList& GetFreeObjects() const { return m_FreeObjects; }
 
 private:
     /** Insert an object into this vector so that
      *  the vector remains sorted w.r.t.
      *  the ordering based on object and generation numbers
-     *  m_bObjectCount will be increased for the object.
+     *  m_ObjectCount will be increased for the object.
      *
-     *  \param pObj pointer to the object you want to insert
+     *  \param obj pointer to the object you want to insert
      */
     void AddObject(PdfObject* obj);
 
@@ -424,7 +420,7 @@ private:
 
     /** Delete all objects from the vector which do not have references to them selves
      *  \param pList must be a list created by BuildReferenceCountVector
-     *  \param pTrailer must be the trailer object so that it is not deleted
+     *  \param trailer must be the trailer object so that it is not deleted
      *  \param pNotDelete a list of object which must not be deleted
      *  \see BuildReferenceCountVector
      */
@@ -435,15 +431,18 @@ private:
     PdfVecObjects& operator=(const PdfVecObjects&) = delete;
 
 private:
+    typedef std::vector<Observer*> ObserverList;
+
+private:
     PdfDocument* m_Document;
     bool m_CanReuseObjectNumbers;
     size_t m_ObjectCount;
     bool m_sorted;
-    TVecObjects m_vector;
+    ObjectList m_Objects;
 
-    TVecObservers m_vecObservers;
-    TPdfReferenceList m_lstFreeObjects;
-    TPdfObjectNumList m_lstUnavailableObjects;
+    ObserverList m_observers;
+    PdfReferenceList m_FreeObjects;
+    TPdfObjectNumList m_UnavailableObjects;
 
     StreamFactory* m_StreamFactory;
 

@@ -56,20 +56,20 @@ public:
 
     /** Add a difference to the object.
      *
-     *  \param nCode unicode code point of the difference (0 to 255 are legal values)
-     *  \param unicodeValue actual unicode value for nCode; can be 0
-     *  \param rName name of the different code point or .notdef if none
-     *  \param bExplicitKeys if true, the unicode value is set to nCode as rName is meaningless (Type3 fonts)
+     *  \param name unicode code point of the difference (0 to 255 are legal values)
+     *  \param codePoint actual unicode value for nCode; can be 0
+     *  \param name name of the different code point or .notdef if none
+     *  \param explicitNames if true, the unicode value is set to nCode as name is meaningless (Type3 fonts)
      */
     void AddDifference(unsigned char code, char32_t codePoint, const PdfName& name, bool explicitNames = false);
 
     /** Tests if the specified code is part of the
      *  differences.
      *
-     *  \param nCode test if the given code is part of the differences
-     *  \param rName write the associated name into this object if the
+     *  \param code test if the given code is part of the differences
+     *  \param name write the associated name into this object if the
      *               code is part of the difference
-     *  \param rValue write the associated unicode value of the name to this value
+     *  \param codePoint write the associated unicode value of the name to this value
      *
      *  \returns true if the code is part of the difference
      */
@@ -79,7 +79,7 @@ public:
 
     /** Convert the PdfEncodingDifference to an array
      *
-     *  \param rArray write to this array
+     *  \param arr write to this array
      */
     void ToArray(PdfArray& arr) const;
 
@@ -91,9 +91,9 @@ public:
      */
     size_t GetCount() const;
 
-    const_iterator begin() const { return m_vecDifferences.begin(); }
+    const_iterator begin() const { return m_differences.begin(); }
 
-    const_iterator end() const { return m_vecDifferences.end(); }
+    const_iterator end() const { return m_differences.end(); }
 
 private:
     bool contains(unsigned char code, PdfName& name, char32_t& codePoint);
@@ -107,14 +107,14 @@ private:
         }
     };
 
-    DifferenceList m_vecDifferences;
+    DifferenceList m_differences;
 };
 
 /**
  * Defines the base encoding from which a
  * PdfDifferenceEncoding differs.
  */
-enum class EBaseEncoding
+enum class PdfBaseEncoding
 {
     Implicit,  ///< See Table 5.11 PdfRefence 1.7
     WinAnsi,   ///< Use WinAnsiEncoding as base encoding
@@ -136,12 +136,12 @@ public:
      *  \param eBaseEncoding the base encoding of this font
      */
     PdfDifferenceEncoding(const PdfEncodingDifference& difference,
-        EBaseEncoding eBaseEncoding);
+        PdfBaseEncoding baseEncoding);
 
     /** Create a new PdfDifferenceEncoding from an existing object
      *  in a PDF file.
      *
-     *  \param pObject an existing differences encoding
+     *  \param obj an existing differences encoding
      *  \param bAutoDelete if true the encoding is deleted by its owning font
      *  \param bExplicitNames if true, glyph names are meaningless explicit keys on the font (used for Type3 fonts)
      */
@@ -149,7 +149,7 @@ public:
 
     /** Convert a standard character name to a unicode code point
      *
-     *  \param rName a standard character name
+     *  \param name a standard character name
      *  \returns an unicode code point
      */
     static char32_t NameToUnicodeID(const PdfName& name);
@@ -184,7 +184,7 @@ private:
 
  private:
     PdfEncodingDifference m_differences;
-    EBaseEncoding m_baseEncoding; // The base encoding of this font
+    PdfBaseEncoding m_baseEncoding; // The base encoding of this font
 };
 
 };

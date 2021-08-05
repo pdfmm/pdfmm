@@ -26,8 +26,8 @@ public:
 
     /** Write data to the output stream
      *
-     *  \param pBuffer the data is read from this buffer
-     *  \param lLen    the size of the buffer
+     *  \param buffer the data is read from this buffer
+     *  \param len    the size of the buffer
      */
     void Write(const char* buffer, size_t len);
 
@@ -68,8 +68,8 @@ public:
 
     /**
      * Construct a new PdfMemoryOutputStream that writes to an existing buffer
-     * \param pBuffer handle to the buffer
-     * \param lLen length of the buffer
+     * \param buffer handle to the buffer
+     * \param len length of the buffer
      */
     PdfMemoryOutputStream(char* buffer, size_t len);
 
@@ -113,9 +113,9 @@ public:
     /**
      *  Write to an already opened input device
      *
-     *  \param pDevice an output device
+     *  \param device an output device
      */
-    PdfDeviceOutputStream(PdfOutputDevice& pDevice);
+    PdfDeviceOutputStream(PdfOutputDevice& device);
 
     void Close() override;
 
@@ -137,7 +137,7 @@ public:
     /**
      *  Write to an already opened input device
      *
-     *  \param pBuffer data is written to this buffer
+     *  \param buffer data is written to this buffer
      */
     PdfBufferOutputStream(PdfRefCountedBuffer& buffer);
 

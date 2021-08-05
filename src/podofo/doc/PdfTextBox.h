@@ -49,9 +49,9 @@ namespace PoDoFo
 
         /** Sets the text contents of this text field.
          *
-         *  \param rsText the text of this field
+         *  \param text the text of this field
          */
-        void SetText(const PdfString& rsText);
+        void SetText(const PdfString& text);
 
         /**
          *  \returns the text contents of this text field
@@ -59,9 +59,9 @@ namespace PoDoFo
         PdfString GetText() const;
 
         /** Sets the max length in characters of this textfield
-         *  \param nMaxLen the max length of this textfields in characters
+         *  \param maxLen the max length of this textfields in characters
          */
-        void SetMaxLen(int64_t nMaxLen);
+        void SetMaxLen(int64_t maxLen);
 
         /**
          * \returns the max length of this textfield in characters or -1
@@ -71,12 +71,12 @@ namespace PoDoFo
 
         /**
          *  Create a multi-line text field that can contains multiple lines of text.
-         *  \param bMultiLine if true a multi line field is generated, otherwise
+         *  \param multiLine if true a multi line field is generated, otherwise
          *                    the text field can contain only a single line of text.
          *
          *  The default is to create a single line text field.
          */
-        void SetMultiLine(bool bMultiLine);
+        void SetMultiLine(bool multiLine);
 
         /**
          * \returns true if this text field can contain multiple lines of text
@@ -87,11 +87,11 @@ namespace PoDoFo
          *  Create a password text field that should not echo entered
          *  characters visibly to the screen.
          *
-         *  \param bPassword if true a password field is created
+         *  \param password if true a password field is created
          *
          *  The default is to create no password field
          */
-        void SetPasswordField(bool bPassword);
+        void SetPasswordField(bool password);
 
         /**
          * \returns true if this field is a password field that does
@@ -104,10 +104,10 @@ namespace PoDoFo
          *  The entered contents are treated as filename to a file
          *  whose contents are submitted as the value of the field.
          *
-         *  \param bFile if true the contents are treated as a pathname
+         *  \param file if true the contents are treated as a pathname
          *               to a file to submit
          */
-        void SetFileField(bool bFile);
+        void SetFileField(bool file);
 
         /**
          * \returns true if the contents are treated as filename
@@ -117,11 +117,11 @@ namespace PoDoFo
         /**
          *  Enable/disable spellchecking for this text field
          *
-         *  \param bSpellcheck if true spellchecking will be enabled
+         *  \param spellCheck if true spellchecking will be enabled
          *
          *  Text fields are spellchecked by default
          */
-        void SetSpellcheckingEnabled(bool bSpellcheck);
+        void SetSpellcheckingEnabled(bool spellcheck);
 
         /**
          *  \returns true if spellchecking is enabled for this text field
@@ -131,11 +131,11 @@ namespace PoDoFo
         /**
          *  Enable/disable scrollbars for this text field
          *
-         *  \param bScroll if true scrollbars will be enabled
+         *  \param scroll if true scrollbars will be enabled
          *
          *  Text fields have scrollbars by default
          */
-        void SetScrollBarsEnabled(bool bScroll);
+        void SetScrollBarsEnabled(bool scroll);
 
         /**
          *  \returns true if scrollbars are enabled for this text field
@@ -146,14 +146,14 @@ namespace PoDoFo
          *  Divide the text field into max-len equal
          *  combs.
          *
-         *  \param bCombs if true enable division into combs
+         *  \param combs if true enable division into combs
          *
          *  By default combs are disabled. Requires the max-len
          *  property to be set.
          *
          *  \see SetMaxLen
          */
-        void SetCombs(bool bCombs);
+        void SetCombs(bool combs);
 
         /**
          * \returns true if the text field has a division into equal combs set on it
@@ -163,11 +163,11 @@ namespace PoDoFo
         /**
          * Creates a richtext field.
          *
-         * \param bRichText if true creates a richtext field
+         * \param richText if true creates a richtext field
          *
          * By default richtext is disabled.
          */
-        void SetRichText(bool bRichText);
+        void SetRichText(bool richText);
 
         /**
          * \returns true if this is a richtext text field

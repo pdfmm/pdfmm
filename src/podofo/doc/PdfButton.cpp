@@ -12,18 +12,18 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfButton::PdfButton(PdfFieldType eField, PdfDocument& doc, PdfAnnotation* widget, bool insertInAcrofrom)
-    : PdfField(eField, doc, widget, insertInAcrofrom)
+PdfButton::PdfButton(PdfFieldType fieldType, PdfDocument& doc, PdfAnnotation* widget, bool insertInAcrofrom)
+    : PdfField(fieldType, doc, widget, insertInAcrofrom)
 {
 }
 
-PdfButton::PdfButton(PdfFieldType eField, PdfObject& object, PdfAnnotation* widget)
-    : PdfField(eField, object, widget)
+PdfButton::PdfButton(PdfFieldType fieldType, PdfObject& object, PdfAnnotation* widget)
+    : PdfField(fieldType, object, widget)
 {
 }
 
-PdfButton::PdfButton(PdfFieldType eField, PdfPage& page, const PdfRect& rect)
-    : PdfField(eField, page, rect)
+PdfButton::PdfButton(PdfFieldType fieldType, PdfPage& page, const PdfRect& rect)
+    : PdfField(fieldType, page, rect)
 {
 }
 

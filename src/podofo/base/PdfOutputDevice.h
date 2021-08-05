@@ -40,7 +40,7 @@ public:
 
     /** Construct a new PdfOutputDevice that writes all data to a file.
      *
-     *  \param pszFilename path to a file that will be opened and all data
+     *  \param filename path to a file that will be opened and all data
      *                     is written to this file.
      *  \param bTruncate whether to truncate the file after open. This is useful
      *                   for incremental updates, to not truncate the file when
@@ -54,8 +54,8 @@ public:
     /** Construct a new PdfOutputDevice that writes all data to a memory buffer.
      *  The buffer will not be owned by this object and has to be allocated before.
      *
-     *  \param pBuffer a buffer in memory
-     *  \param lLen the length of the buffer in memory
+     *  \param buffer a buffer in memory
+     *  \param len the length of the buffer in memory
      */
     PdfOutputDevice(char* buffer, size_t len);
 
@@ -84,7 +84,7 @@ public:
      *  WARNING: PoDoFo will change the stream's locale.  It will be restored when
      *  the PdfOutputStream controlling the stream is destroyed.
      *
-     *  \param pStream read/write from/to this std::iostream
+     *  \param stream read/write from/to this std::iostream
      */
     PdfOutputDevice(std::iostream& stream);
 
@@ -104,7 +104,7 @@ public:
      *  WARNING: Do not use this for doubles or floating point values
      *           as the output might depend on the current locale.
      *
-     *  \param pszFormat a format string as you would use it with printf
+     *  \param format a format string as you would use it with printf
      *
      *  \see Write
      */
@@ -129,7 +129,7 @@ public:
      *  want to write binary data to the PdfOutputDevice.
      *
      *  \param buffer a pointer to the data buffer
-     *  \param len write lLen bytes of pBuffer to the PdfOutputDevice
+     *  \param len write len bytes of buffer to the PdfOutputDevice
      *
      *  \see Print
      */

@@ -47,15 +47,15 @@ PdfFileInputStream::PdfFileInputStream(const string_view& filename)
 
 PdfFileInputStream::~PdfFileInputStream() { }
 
-size_t PdfFileInputStream::ReadImpl(char* pBuffer, size_t lLen, bool& eof)
+size_t PdfFileInputStream::ReadImpl(char* buffer, size_t len, bool& eof)
 {
-    size_t ret = io::Read(m_stream, pBuffer, lLen);
+    size_t ret = io::Read(m_stream, buffer, len);
     eof = m_stream.eof();
     return ret;
 }
 
-PdfMemoryInputStream::PdfMemoryInputStream(const char* pBuffer, size_t lBufferLen)
-    : m_pBuffer(pBuffer), m_lBufferLen(lBufferLen)
+PdfMemoryInputStream::PdfMemoryInputStream(const char* buffer, size_t lBufferLen)
+    : m_Buffer(buffer), m_BufferLen(lBufferLen)
 {
 }
 
@@ -63,25 +63,24 @@ PdfMemoryInputStream::~PdfMemoryInputStream()
 {
 }
 
-size_t PdfMemoryInputStream::ReadImpl(char* pBuffer, size_t lLen, bool& eof)
+size_t PdfMemoryInputStream::ReadImpl(char* buffer, size_t len, bool& eof)
 {
-    lLen = std::min(m_lBufferLen, lLen);
-    memcpy(pBuffer, m_pBuffer, lLen);
-    m_lBufferLen -= lLen;
-    m_pBuffer += lLen;
-    eof = m_lBufferLen == 0;
-    return lLen;
+    len = std::min(m_BufferLen, len);
+    memcpy(buffer, m_Buffer, len);
+    m_BufferLen -= len;
+    m_Buffer += len;
+    eof = m_BufferLen == 0;
+    return len;
 }
 
-PdfDeviceInputStream::PdfDeviceInputStream(PdfInputDevice* pDevice)
-    : m_pDevice(pDevice)
+PdfDeviceInputStream::PdfDeviceInputStream(PdfInputDevice* device)
+    : m_Device(device)
 {
 }
 
-size_t PdfDeviceInputStream::ReadImpl(char* pBuffer, size_t lLen, bool& eof)
+size_t PdfDeviceInputStream::ReadImpl(char* buffer, size_t len, bool& eof)
 {
-    size_t ret = m_pDevice->Read(pBuffer, lLen);
-    eof = m_pDevice->Eof();
+    size_t ret = m_Device->Read(buffer, len);
+    eof = m_Device->Eof();
     return ret;
-
 }

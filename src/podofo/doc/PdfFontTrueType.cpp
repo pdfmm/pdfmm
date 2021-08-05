@@ -36,7 +36,7 @@ void PdfFontTrueType::initImported()
 void PdfFontTrueType::embedFontFile(PdfObject& descriptor)
 {
     PdfObject* pContents;
-    size_t lSize = 0;
+    size_t size = 0;
 
     pContents = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject();
     descriptor.GetDictionary().AddKey("FontFile2", pContents->GetIndirectReference());
@@ -45,24 +45,24 @@ void PdfFontTrueType::embedFontFile(PdfObject& descriptor)
     // otherwise, load from disk
     if (m_Metrics->GetFontData().empty())
     {
-        lSize = io::FileSize(m_Metrics->GetFilename());
+        size = io::FileSize(m_Metrics->GetFilename());
         PdfFileInputStream stream(m_Metrics->GetFilename());
 
         // NOTE: Set Length1 before creating the stream
         // as PdfStreamedDocument does not allow
         // adding keys to an object after a stream was written
-        pContents->GetDictionary().AddKey("Length1", PdfVariant(static_cast<int64_t>(lSize)));
+        pContents->GetDictionary().AddKey("Length1", PdfVariant(static_cast<int64_t>(size)));
         pContents->GetOrCreateStream().Set(stream);
     }
     else
     {
-        const char* pBuffer = m_Metrics->GetFontData().data();
-        lSize = m_Metrics->GetFontData().size();
+        const char* buffer = m_Metrics->GetFontData().data();
+        size = m_Metrics->GetFontData().size();
 
         // Set Length1 before creating the stream
         // as PdfStreamedDocument does not allow
         // adding keys to an object after a stream was written
-        pContents->GetDictionary().AddKey("Length1", PdfVariant(static_cast<int64_t>(lSize)));
-        pContents->GetOrCreateStream().Set(pBuffer, lSize);
+        pContents->GetDictionary().AddKey("Length1", PdfVariant(static_cast<int64_t>(size)));
+        pContents->GetOrCreateStream().Set(buffer, size);
     }
 }

@@ -34,20 +34,20 @@ using namespace std;
 using namespace PoDoFo;
 
 #ifdef PODOFO_HAVE_LIBIDN
-EPdfEncryptAlgorithm PdfEncrypt::s_nEnabledEncryptionAlgorithms =
-EPdfEncryptAlgorithm::RC4V1 |
-EPdfEncryptAlgorithm::RC4V2 |
-EPdfEncryptAlgorithm::AESV2 |
-EPdfEncryptAlgorithm::AESV3;
+PdfEncryptAlgorithm PdfEncrypt::s_EnabledEncryptionAlgorithms =
+PdfEncryptAlgorithm::RC4V1 |
+PdfEncryptAlgorithm::RC4V2 |
+PdfEncryptAlgorithm::AESV2 |
+PdfEncryptAlgorithm::AESV3;
 #else // PODOFO_HAVE_LIBIDN
-EPdfEncryptAlgorithm PdfEncrypt::s_nEnabledEncryptionAlgorithms =
-EPdfEncryptAlgorithm::RC4V1 |
-EPdfEncryptAlgorithm::RC4V2 |
-EPdfEncryptAlgorithm::AESV2;
+PdfEncryptAlgorithm PdfEncrypt::s_EnabledEncryptionAlgorithms =
+PdfEncryptAlgorithm::RC4V1 |
+PdfEncryptAlgorithm::RC4V2 |
+PdfEncryptAlgorithm::AESV2;
 #endif // PODOFO_HAVE_LIBIDN
 
 // Default value for P (permissions) = no permission
-#define PERMS_DEFAULT (EPdfPermissions)0xFFFFF0C0
+#define PERMS_DEFAULT (PdfPermissions)0xFFFFF0C0
 
 #define AES_IV_LENGTH 16
 #define AES_BLOCK_SIZE 16
@@ -147,19 +147,19 @@ public:
 
     /** Encrypt or decrypt a block
      *
-     *  \param pBuffer the input/output buffer. Data is read from this buffer and also stored here
-     *  \param lLen    the size of the buffer
+     *  \param buffer the input/output buffer. Data is read from this buffer and also stored here
+     *  \param len    the size of the buffer
      */
-    size_t Encrypt(char* pBuffer, size_t lLen)
+    size_t Encrypt(char* buffer, size_t len)
     {
         unsigned char k;
         int t;
 
         // Do not encode data with no length
-        if (!lLen)
-            return lLen;
+        if (len == 0)
+            return len;
 
-        for (size_t i = 0; i < lLen; i++)
+        for (size_t i = 0; i < len; i++)
         {
             m_a = (m_a + 1) % 256;
             t = m_rc4[m_a];
@@ -169,10 +169,10 @@ public:
             m_rc4[m_b] = static_cast<unsigned char>(t);
 
             k = m_rc4[(m_rc4[m_a] + m_rc4[m_b]) % 256];
-            pBuffer[i] = pBuffer[i] ^ k;
+            buffer[i] = buffer[i] ^ k;
         }
 
-        return lLen;
+        return len;
     }
 
 private:
@@ -189,24 +189,24 @@ private:
 class PdfRC4OutputStream : public PdfOutputStream
 {
 public:
-    PdfRC4OutputStream(PdfOutputStream& pOutputStream, unsigned char rc4key[256],
+    PdfRC4OutputStream(PdfOutputStream& outputStream, unsigned char rc4key[256],
         unsigned char rc4last[256], unsigned char* key, unsigned keylen) :
-        m_pOutputStream(&pOutputStream), m_stream(rc4key, rc4last, key, keylen)
+        m_OutputStream(&outputStream), m_stream(rc4key, rc4last, key, keylen)
     {
     }
 
     /** Write data to the output stream
      *
-     *  \param pBuffer the data is read from this buffer
-     *  \param lLen    the size of the buffer
+     *  \param buffer the data is read from this buffer
+     *  \param len    the size of the buffer
      */
-    void WriteImpl(const char* pBuffer, size_t lLen) override
+    void WriteImpl(const char* buffer, size_t len) override
     {
-        buffer_t outputBuffer(lLen);
-        std::memcpy(outputBuffer.data(), pBuffer, lLen);
+        buffer_t outputBuffer(len);
+        std::memcpy(outputBuffer.data(), buffer, len);
 
-        m_stream.Encrypt(outputBuffer.data(), lLen);
-        m_pOutputStream->Write(outputBuffer.data(), lLen);
+        m_stream.Encrypt(outputBuffer.data(), len);
+        m_OutputStream->Write(outputBuffer.data(), len);
     }
 
     /** Close the PdfOutputStream.
@@ -221,7 +221,7 @@ public:
     }
 
 private:
-    PdfOutputStream* m_pOutputStream;
+    PdfOutputStream* m_OutputStream;
     PdfRC4Stream m_stream;
 };
 
@@ -231,26 +231,26 @@ private:
 class PdfRC4InputStream : public PdfInputStream
 {
 public:
-    PdfRC4InputStream(PdfInputStream& pInputStream, size_t inputLen, unsigned char rc4key[256], unsigned char rc4last[256],
+    PdfRC4InputStream(PdfInputStream& inputStream, size_t inputLen, unsigned char rc4key[256], unsigned char rc4last[256],
         unsigned char* key, unsigned keylen) :
-        m_pInputStream(&pInputStream),
+        m_InputStream(&inputStream),
         m_inputLen(inputLen),
         m_stream(rc4key, rc4last, key, keylen) { }
 
 protected:
-    size_t ReadImpl(char* pBuffer, size_t lLen, bool& eof) override
+    size_t ReadImpl(char* buffer, size_t len, bool& eof) override
     {
         // CHECK-ME: The code has never been tested after refactor
         // If it's correct, remove this warning
         bool streameof;
-        size_t read = m_pInputStream->Read(pBuffer, std::min(lLen, m_inputLen), streameof);
+        size_t read = m_InputStream->Read(buffer, std::min(len, m_inputLen), streameof);
         m_inputLen -= read;
         eof = streameof || m_inputLen == 0;
-        return m_stream.Encrypt(pBuffer, read);
+        return m_stream.Encrypt(buffer, read);
     }
 
 private:
-    PdfInputStream* m_pInputStream;
+    PdfInputStream* m_InputStream;
     size_t m_inputLen;
     PdfRC4Stream m_stream;
 };
@@ -261,8 +261,8 @@ private:
 class PdfAESInputStream : public PdfInputStream
 {
 public:
-    PdfAESInputStream(PdfInputStream& pInputStream, size_t inputLen, unsigned char* key, unsigned keylen) :
-        m_pInputStream(&pInputStream),
+    PdfAESInputStream(PdfInputStream& inputStream, size_t inputLen, unsigned char* key, unsigned keylen) :
+        m_InputStream(&inputStream),
         m_inputLen(inputLen),
         m_inputEof(false),
         m_init(true),
@@ -296,14 +296,14 @@ protected:
             // Read the initialization vector separately first
             char iv[AES_IV_LENGTH];
             bool streameof;
-            read = m_pInputStream->Read(iv, AES_IV_LENGTH, streameof);
+            read = m_InputStream->Read(iv, AES_IV_LENGTH, streameof);
             if (read != AES_IV_LENGTH)
                 PODOFO_RAISE_ERROR_INFO(EPdfError::UnexpectedEOF, "Can't read enough bytes for AES IV");
 
             const EVP_CIPHER* cipher;
             switch (m_keyLen)
             {
-                case (size_t)EPdfKeyLength::L128 / 8:
+                case (size_t)PdfKeyLength::L128 / 8:
                 {
                     cipher = EVP_aes_128_cbc();
                     break;
@@ -328,12 +328,12 @@ protected:
         }
 
         bool streameof;
-        read = m_pInputStream->Read(buffer, std::min(len, m_inputLen), streameof);
+        read = m_InputStream->Read(buffer, std::min(len, m_inputLen), streameof);
         m_inputLen -= read;
 
         // Quote openssl.org: "the decrypted data buffer out passed to EVP_DecryptUpdate() should have sufficient room
         //  for (inl + cipher_block_size) bytes unless the cipher block size is 1 in which case inl bytes is sufficient."
-        // So we need to create a buffer that is bigger than lLen.
+        // So we need to create a buffer that is bigger than len.
         m_tempBuffer.resize(len + AES_BLOCK_SIZE);
         rc = EVP_DecryptUpdate(m_ctx, m_tempBuffer.data(), &outlen, (unsigned char*)buffer, (int)read);
 
@@ -370,7 +370,7 @@ protected:
 
 private:
     EVP_CIPHER_CTX* m_ctx;
-    PdfInputStream* m_pInputStream;
+    PdfInputStream* m_InputStream;
     size_t m_inputLen;
     bool m_inputEof;
     bool m_init;
@@ -394,19 +394,19 @@ bool PdfEncrypt::Authenticate(const string_view& password, const PdfString& docu
     return Authenticate(password, documentId.GetRawData());
 }
 
-EPdfEncryptAlgorithm PdfEncrypt::GetEnabledEncryptionAlgorithms()
+PdfEncryptAlgorithm PdfEncrypt::GetEnabledEncryptionAlgorithms()
 {
-    return PdfEncrypt::s_nEnabledEncryptionAlgorithms;
+    return PdfEncrypt::s_EnabledEncryptionAlgorithms;
 }
 
-void PdfEncrypt::SetEnabledEncryptionAlgorithms(EPdfEncryptAlgorithm nEncryptionAlgorithms)
+void PdfEncrypt::SetEnabledEncryptionAlgorithms(PdfEncryptAlgorithm encryptionAlgorithms)
 {
-    PdfEncrypt::s_nEnabledEncryptionAlgorithms = nEncryptionAlgorithms;
+    PdfEncrypt::s_EnabledEncryptionAlgorithms = encryptionAlgorithms;
 }
 
-bool PdfEncrypt::IsEncryptionEnabled(EPdfEncryptAlgorithm eAlgorithm)
+bool PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm algorithm)
 {
-    return (PdfEncrypt::s_nEnabledEncryptionAlgorithms & eAlgorithm) != EPdfEncryptAlgorithm::None;
+    return (PdfEncrypt::s_EnabledEncryptionAlgorithms & algorithm) != PdfEncryptAlgorithm::None;
 }
 
 static unsigned char padding[] =
@@ -414,33 +414,33 @@ static unsigned char padding[] =
 
 unique_ptr<PdfEncrypt> PdfEncrypt::CreatePdfEncrypt(const string_view& userPassword,
     const string_view& ownerPassword,
-    EPdfPermissions protection,
-    EPdfEncryptAlgorithm eAlgorithm,
-    EPdfKeyLength eKeyLength)
+    PdfPermissions protection,
+    PdfEncryptAlgorithm algorithm,
+    PdfKeyLength keyLength)
 {
-    switch (eAlgorithm)
+    switch (algorithm)
     {
 #ifdef PODOFO_HAVE_LIBIDN
-        case EPdfEncryptAlgorithm::AESV3:
+        case PdfEncryptAlgorithm::AESV3:
             return unique_ptr<PdfEncrypt>(new PdfEncryptAESV3(userPassword, ownerPassword, protection));
 #endif // PODOFO_HAVE_LIBIDN
-        case EPdfEncryptAlgorithm::RC4V2:
-        case EPdfEncryptAlgorithm::RC4V1:
-            return unique_ptr<PdfEncrypt>(new PdfEncryptRC4(userPassword, ownerPassword, protection, eAlgorithm, eKeyLength));
-        case EPdfEncryptAlgorithm::AESV2:
+        case PdfEncryptAlgorithm::RC4V2:
+        case PdfEncryptAlgorithm::RC4V1:
+            return unique_ptr<PdfEncrypt>(new PdfEncryptRC4(userPassword, ownerPassword, protection, algorithm, keyLength));
+        case PdfEncryptAlgorithm::AESV2:
         default:
             return unique_ptr<PdfEncrypt>(new PdfEncryptAESV2(userPassword, ownerPassword, protection));
     }
 }
 
-unique_ptr<PdfEncrypt> PdfEncrypt::CreatePdfEncrypt(const PdfObject* pObject)
+unique_ptr<PdfEncrypt> PdfEncrypt::CreatePdfEncrypt(const PdfObject* encryptObj)
 {
-    if (!pObject->GetDictionary().HasKey("Filter") ||
-        pObject->GetDictionary().GetKey("Filter")->GetName() != "Standard")
+    if (!encryptObj->GetDictionary().HasKey("Filter") ||
+        encryptObj->GetDictionary().GetKey("Filter")->GetName() != "Standard")
     {
-        std::ostringstream oss;
-        if (pObject->GetDictionary().HasKey("Filter"))
-            oss << "Unsupported encryption filter: " << pObject->GetDictionary().GetKey("Filter")->GetName().GetString();
+        ostringstream oss;
+        if (encryptObj->GetDictionary().HasKey("Filter"))
+            oss << "Unsupported encryption filter: " << encryptObj->GetDictionary().GetKey("Filter")->GetName().GetString();
         else
             oss << "Encryption dictionary does not have a key /Filter.";
 
@@ -448,9 +448,9 @@ unique_ptr<PdfEncrypt> PdfEncrypt::CreatePdfEncrypt(const PdfObject* pObject)
     }
 
     int lV;
-    int64_t lLength;
+    int64_t length;
     int rValue;
-    EPdfPermissions pValue;
+    PdfPermissions pValue;
     PdfString oValue;
     PdfString uValue;
     PdfName cfmName;
@@ -458,34 +458,34 @@ unique_ptr<PdfEncrypt> PdfEncrypt::CreatePdfEncrypt(const PdfObject* pObject)
 
     try
     {
-        lV = static_cast<int>(pObject->GetDictionary().MustGetKey("V").GetNumber());
-        rValue = static_cast<int>(pObject->GetDictionary().MustGetKey("R").GetNumber());
+        lV = static_cast<int>(encryptObj->GetDictionary().MustGetKey("V").GetNumber());
+        rValue = static_cast<int>(encryptObj->GetDictionary().MustGetKey("R").GetNumber());
 
-        pValue = static_cast<EPdfPermissions>(pObject->GetDictionary().MustGetKey("P").GetNumber());
+        pValue = static_cast<PdfPermissions>(encryptObj->GetDictionary().MustGetKey("P").GetNumber());
 
-        oValue = pObject->GetDictionary().MustGetKey("O").GetString();
-        uValue = pObject->GetDictionary().MustGetKey("U").GetString();
+        oValue = encryptObj->GetDictionary().MustGetKey("O").GetString();
+        uValue = encryptObj->GetDictionary().MustGetKey("U").GetString();
 
-        if (pObject->GetDictionary().HasKey("Length"))
-            lLength = pObject->GetDictionary().GetKey("Length")->GetNumber();
+        if (encryptObj->GetDictionary().HasKey("Length"))
+            length = encryptObj->GetDictionary().GetKey("Length")->GetNumber();
         else
-            lLength = 0;
+            length = 0;
 
-        const PdfObject* encryptMetadataObj = pObject->GetDictionary().GetKey("EncryptMetadata");
-        if (encryptMetadataObj && encryptMetadataObj->IsBool())
+        const PdfObject* encryptMetadataObj = encryptObj->GetDictionary().GetKey("EncryptMetadata");
+        if (encryptMetadataObj != nullptr && encryptMetadataObj->IsBool())
             encryptMetadata = encryptMetadataObj->GetBool();
 
-        const PdfObject* stmfObj = pObject->GetDictionary().GetKey("StmF");
-        if (stmfObj && stmfObj->IsName())
+        auto stmfObj = encryptObj->GetDictionary().GetKey("StmF");
+        if (stmfObj != nullptr && stmfObj->IsName())
         {
-            const PdfObject* obj = pObject->GetDictionary().GetKey("CF");
-            if (obj && obj->IsDictionary())
+            const PdfObject* obj = encryptObj->GetDictionary().GetKey("CF");
+            if (obj != nullptr && obj->IsDictionary())
             {
                 obj = obj->GetDictionary().GetKey(stmfObj->GetName());
-                if (obj && obj->IsDictionary())
+                if (obj != nullptr && obj->IsDictionary())
                 {
                     obj = obj->GetDictionary().GetKey("CFM");
-                    if (obj && obj->IsName())
+                    if (obj != nullptr && obj->IsName())
                         cfmName = obj->GetName();
                 }
             }
@@ -498,37 +498,37 @@ unique_ptr<PdfEncrypt> PdfEncrypt::CreatePdfEncrypt(const PdfObject* pObject)
     }
 
     if ((lV == 1) && (rValue == 2 || rValue == 3)
-        && PdfEncrypt::IsEncryptionEnabled(EPdfEncryptAlgorithm::RC4V1))
+        && PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::RC4V1))
     {
-        return unique_ptr<PdfEncrypt>(new PdfEncryptRC4(oValue, uValue, pValue, rValue, EPdfEncryptAlgorithm::RC4V1, (int)EPdfKeyLength::L40, encryptMetadata));
+        return unique_ptr<PdfEncrypt>(new PdfEncryptRC4(oValue, uValue, pValue, rValue, PdfEncryptAlgorithm::RC4V1, (int)PdfKeyLength::L40, encryptMetadata));
     }
     else if ((((lV == 2) && (rValue == 3)) || cfmName == "V2")
-        && PdfEncrypt::IsEncryptionEnabled(EPdfEncryptAlgorithm::RC4V2))
+        && PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::RC4V2))
     {
-        // [Alexey] - lLength is int64_t. Please make changes in encryption algorithms
-        return unique_ptr<PdfEncrypt>(new PdfEncryptRC4(oValue, uValue, pValue, rValue, EPdfEncryptAlgorithm::RC4V2, static_cast<int>(lLength), encryptMetadata));
+        // [Alexey] - length is int64_t. Please make changes in encryption algorithms
+        return unique_ptr<PdfEncrypt>(new PdfEncryptRC4(oValue, uValue, pValue, rValue, PdfEncryptAlgorithm::RC4V2, static_cast<int>(length), encryptMetadata));
     }
     else
     {
         if ((lV == 4) && (rValue == 4)
-            && PdfEncrypt::IsEncryptionEnabled(EPdfEncryptAlgorithm::AESV2))
+            && PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::AESV2))
         {
             return unique_ptr<PdfEncrypt>(new PdfEncryptAESV2(oValue, uValue, pValue, encryptMetadata));
         }
 #ifdef PODOFO_HAVE_LIBIDN
         else if ((lV == 5) && (rValue == 5)
-            && PdfEncrypt::IsEncryptionEnabled(EPdfEncryptAlgorithm::AESV3))
+            && PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::AESV3))
         {
-            PdfString permsValue = pObject->GetDictionary().GetKey("Perms")->GetString();
-            PdfString oeValue = pObject->GetDictionary().GetKey("OE")->GetString();
-            PdfString ueValue = pObject->GetDictionary().GetKey("UE")->GetString();
+            PdfString permsValue = encryptObj->GetDictionary().GetKey("Perms")->GetString();
+            PdfString oeValue = encryptObj->GetDictionary().GetKey("OE")->GetString();
+            PdfString ueValue = encryptObj->GetDictionary().GetKey("UE")->GetString();
 
             return unique_ptr<PdfEncrypt>(new PdfEncryptAESV3(oValue, oeValue, uValue, ueValue, pValue, permsValue));
         }
 #endif // PODOFO_HAVE_LIBIDN
         else
         {
-            std::ostringstream oss;
+            ostringstream oss;
             oss << "Unsupported encryption method Version=" << lV << " Revision=" << rValue;
             PODOFO_RAISE_ERROR_INFO(EPdfError::UnsupportedFilter, oss.str().c_str());
         }
@@ -537,19 +537,23 @@ unique_ptr<PdfEncrypt> PdfEncrypt::CreatePdfEncrypt(const PdfObject* pObject)
 
 unique_ptr<PdfEncrypt> PdfEncrypt::CreatePdfEncrypt(const PdfEncrypt& rhs)
 {
-    if (rhs.m_eAlgorithm == EPdfEncryptAlgorithm::AESV2)
+    if (rhs.m_Algorithm == PdfEncryptAlgorithm::AESV2)
         return unique_ptr<PdfEncrypt>(new PdfEncryptAESV2(rhs));
 #ifdef PODOFO_HAVE_LIBIDN
-    else if (rhs.m_eAlgorithm == EPdfEncryptAlgorithm::AESV3)
+    else if (rhs.m_Algorithm == PdfEncryptAlgorithm::AESV3)
         return unique_ptr<PdfEncrypt>(new PdfEncryptAESV3(rhs));
 #endif // PODOFO_HAVE_LIBIDN
     else
         return unique_ptr<PdfEncrypt>(new PdfEncryptRC4(rhs));
 }
 
-PdfEncrypt::PdfEncrypt()
-    : m_eAlgorithm(EPdfEncryptAlgorithm::AESV2), m_keyLength(0), m_rValue(0), m_pValue(EPdfPermissions::None),
-    m_eKeyLength(EPdfKeyLength::L128), m_bEncryptMetadata(true)
+PdfEncrypt::PdfEncrypt() :
+    m_Algorithm(PdfEncryptAlgorithm::AESV2),
+    m_eKeyLength(PdfKeyLength::L128),
+    m_keyLength(0),
+    m_rValue(0),
+    m_pValue(PdfPermissions::None),
+    m_EncryptMetadata(true)
 {
     memset(m_uValue, 0, 48);
     memset(m_oValue, 0, 48);
@@ -558,7 +562,7 @@ PdfEncrypt::PdfEncrypt()
 
 PdfEncrypt::PdfEncrypt(const PdfEncrypt& rhs)
 {
-    m_eAlgorithm = rhs.m_eAlgorithm;
+    m_Algorithm = rhs.m_Algorithm;
     m_eKeyLength = rhs.m_eKeyLength;
 
     m_pValue = rhs.m_pValue;
@@ -570,7 +574,7 @@ PdfEncrypt::PdfEncrypt(const PdfEncrypt& rhs)
     m_documentId = rhs.m_documentId;
     m_userPass = rhs.m_userPass;
     m_ownerPass = rhs.m_ownerPass;
-    m_bEncryptMetadata = rhs.m_bEncryptMetadata;
+    m_EncryptMetadata = rhs.m_EncryptMetadata;
 }
 
 bool PdfEncrypt::CheckKey(unsigned char key1[32], unsigned char key2[32])
@@ -599,10 +603,10 @@ PdfEncryptMD5Base::PdfEncryptMD5Base(const PdfEncrypt& rhs) : PdfEncrypt(rhs)
 
     std::memcpy(m_rc4key, static_cast<const PdfEncryptMD5Base*>(ptr)->m_rc4key, sizeof(unsigned char) * 16);
     std::memcpy(m_rc4last, static_cast<const PdfEncryptMD5Base*>(ptr)->m_rc4last, sizeof(unsigned char) * 256);
-    m_bEncryptMetadata = static_cast<const PdfEncryptMD5Base*>(ptr)->m_bEncryptMetadata;
+    m_EncryptMetadata = static_cast<const PdfEncryptMD5Base*>(ptr)->m_EncryptMetadata;
 }
 
-void PdfEncryptMD5Base::PadPassword(const std::string_view& password, unsigned char pswd[32])
+void PdfEncryptMD5Base::PadPassword(const string_view& password, unsigned char pswd[32])
 {
     size_t m = password.length();
 
@@ -617,16 +621,16 @@ void PdfEncryptMD5Base::PadPassword(const std::string_view& password, unsigned c
         pswd[p++] = padding[j];
 }
 
-bool PdfEncryptMD5Base::Authenticate(const std::string& documentID, const std::string& password,
-    const std::string& uValue, const std::string& oValue,
-    EPdfPermissions pValue, int lengthValue, int rValue)
+bool PdfEncryptMD5Base::Authenticate(const string_view& documentID, const string_view& password,
+    const string_view& uValue, const string_view& oValue,
+    PdfPermissions pValue, int lengthValue, int rValue)
 {
     m_pValue = pValue;
     m_keyLength = lengthValue / 8;
     m_rValue = rValue;
 
-    std::memcpy(m_uValue, uValue.c_str(), 32);
-    std::memcpy(m_oValue, oValue.c_str(), 32);
+    std::memcpy(m_uValue, uValue.data(), 32);
+    std::memcpy(m_oValue, oValue.data(), 32);
 
     return Authenticate(password, documentID);
 }
@@ -682,9 +686,9 @@ void PdfEncryptMD5Base::ComputeOwnerKey(const unsigned char userPad[32], const u
     }
 }
 
-void PdfEncryptMD5Base::ComputeEncryptionKey(const std::string& documentId,
+void PdfEncryptMD5Base::ComputeEncryptionKey(const string_view& documentId,
     const unsigned char userPad[32], const unsigned char ownerKey[32],
-    EPdfPermissions pValue, EPdfKeyLength keyLength, int revision,
+    PdfPermissions pValue, PdfKeyLength keyLength, int revision,
     unsigned char userKey[32], bool encryptMetadata)
 {
     unsigned j;
@@ -823,7 +827,7 @@ void PdfEncryptMD5Base::CreateObjKey(unsigned char objkey[16], unsigned& pnKeyLe
     nkey[m_keyLength + 3] = static_cast<unsigned char>(0xFF & g);
     nkey[m_keyLength + 4] = static_cast<unsigned char>(0xFF & (g >> 8));
 
-    if (m_eAlgorithm == EPdfEncryptAlgorithm::AESV2)
+    if (m_Algorithm == PdfEncryptAlgorithm::AESV2)
     {
         // AES encryption needs some 'salt'
         nkeylen += 4;
@@ -907,62 +911,62 @@ void PdfEncryptMD5Base::GenerateInitialVector(unsigned char iv[]) const
         static_cast<unsigned>(m_documentId.length()), iv);
 }
     
-PdfString PdfEncryptMD5Base::GetMD5String(const unsigned char* pBuffer, int nLength)
+PdfString PdfEncryptMD5Base::GetMD5String(const unsigned char* buffer, int nLength)
 {
     char data[MD5_DIGEST_LENGTH];
 
-    GetMD5Binary(pBuffer, nLength, reinterpret_cast<unsigned char*>(data));
+    GetMD5Binary(buffer, nLength, reinterpret_cast<unsigned char*>(data));
 
     return PdfString::FromRaw({ data, MD5_DIGEST_LENGTH });
 }
     
-void PdfEncryptMD5Base::CreateEncryptionDictionary(PdfDictionary& rDictionary) const
+void PdfEncryptMD5Base::CreateEncryptionDictionary(PdfDictionary& dictionary) const
 {
-    rDictionary.AddKey("Filter", PdfName("Standard"));
+    dictionary.AddKey("Filter", PdfName("Standard"));
 
-    if (m_eAlgorithm == EPdfEncryptAlgorithm::AESV2 || !m_bEncryptMetadata)
+    if (m_Algorithm == PdfEncryptAlgorithm::AESV2 || !m_EncryptMetadata)
     {
         PdfDictionary cf;
         PdfDictionary stdCf;
 
-        if (m_eAlgorithm == EPdfEncryptAlgorithm::RC4V2)
+        if (m_Algorithm == PdfEncryptAlgorithm::RC4V2)
             stdCf.AddKey("CFM", PdfName("V2"));
         else
             stdCf.AddKey("CFM", PdfName("AESV2"));
         stdCf.AddKey("Length", static_cast<int64_t>(16));
 
-        rDictionary.AddKey("O", PdfString::FromRaw({ reinterpret_cast<const char*>(this->GetOValue()), 32 }));
-        rDictionary.AddKey("U", PdfString::FromRaw({ reinterpret_cast<const char*>(this->GetUValue()), 32 }));
+        dictionary.AddKey("O", PdfString::FromRaw({ reinterpret_cast<const char*>(this->GetOValue()), 32 }));
+        dictionary.AddKey("U", PdfString::FromRaw({ reinterpret_cast<const char*>(this->GetUValue()), 32 }));
 
         stdCf.AddKey("AuthEvent", PdfName("DocOpen"));
         cf.AddKey("StdCF", stdCf);
 
-        rDictionary.AddKey("CF", cf);
-        rDictionary.AddKey("StrF", PdfName("StdCF"));
-        rDictionary.AddKey("StmF", PdfName("StdCF"));
+        dictionary.AddKey("CF", cf);
+        dictionary.AddKey("StrF", PdfName("StdCF"));
+        dictionary.AddKey("StmF", PdfName("StdCF"));
 
-        rDictionary.AddKey("V", static_cast<int64_t>(4));
-        rDictionary.AddKey("R", static_cast<int64_t>(4));
-        rDictionary.AddKey("Length", static_cast<int64_t>(128));
-        if (!m_bEncryptMetadata)
-            rDictionary.AddKey("EncryptMetadata", PdfVariant(false));
+        dictionary.AddKey("V", static_cast<int64_t>(4));
+        dictionary.AddKey("R", static_cast<int64_t>(4));
+        dictionary.AddKey("Length", static_cast<int64_t>(128));
+        if (!m_EncryptMetadata)
+            dictionary.AddKey("EncryptMetadata", PdfVariant(false));
     }
-    else if (m_eAlgorithm == EPdfEncryptAlgorithm::RC4V1)
+    else if (m_Algorithm == PdfEncryptAlgorithm::RC4V1)
     {
-        rDictionary.AddKey("V", static_cast<int64_t>(1));
+        dictionary.AddKey("V", static_cast<int64_t>(1));
         // Can be 2 or 3
-        rDictionary.AddKey("R", static_cast<int64_t>(m_rValue));
+        dictionary.AddKey("R", static_cast<int64_t>(m_rValue));
     }
-    else if (m_eAlgorithm == EPdfEncryptAlgorithm::RC4V2)
+    else if (m_Algorithm == PdfEncryptAlgorithm::RC4V2)
     {
-        rDictionary.AddKey("V", static_cast<int64_t>(2));
-        rDictionary.AddKey("R", static_cast<int64_t>(3));
-        rDictionary.AddKey("Length", PdfVariant(static_cast<int64_t>(m_eKeyLength)));
+        dictionary.AddKey("V", static_cast<int64_t>(2));
+        dictionary.AddKey("R", static_cast<int64_t>(3));
+        dictionary.AddKey("Length", PdfVariant(static_cast<int64_t>(m_eKeyLength)));
     }
 
-    rDictionary.AddKey("O", PdfString::FromRaw({ reinterpret_cast<const char*>(this->GetOValue()), 32 }));
-    rDictionary.AddKey("U", PdfString::FromRaw({ reinterpret_cast<const char*>(this->GetUValue()), 32 }));
-    rDictionary.AddKey("P", PdfVariant(static_cast<int64_t>(this->GetPValue())));
+    dictionary.AddKey("O", PdfString::FromRaw({ reinterpret_cast<const char*>(this->GetOValue()), 32 }));
+    dictionary.AddKey("U", PdfString::FromRaw({ reinterpret_cast<const char*>(this->GetUValue()), 32 }));
+    dictionary.AddKey("P", PdfVariant(static_cast<int64_t>(this->GetPValue())));
 }
     
 void PdfEncryptRC4::GenerateEncryptionKey(const string_view& documentId)
@@ -980,10 +984,10 @@ void PdfEncryptRC4::GenerateEncryptionKey(const string_view& documentId)
     // Compute encryption key and U value
     m_documentId = documentId;
     ComputeEncryptionKey(m_documentId, userpswd,
-        m_oValue, m_pValue, m_eKeyLength, m_rValue, m_uValue, m_bEncryptMetadata);
+        m_oValue, m_pValue, m_eKeyLength, m_rValue, m_uValue, m_EncryptMetadata);
 }
     
-bool PdfEncryptRC4::Authenticate(const string_view& password, const std::string_view& documentId)
+bool PdfEncryptRC4::Authenticate(const string_view& password, const string_view& documentId)
 {
     bool success = false;
 
@@ -995,14 +999,14 @@ bool PdfEncryptRC4::Authenticate(const string_view& password, const std::string_
     PadPassword(password, pswd);
 
     // Check password: 1) as user password, 2) as owner password
-    ComputeEncryptionKey(m_documentId, pswd, m_oValue, m_pValue, m_eKeyLength, m_rValue, userKey, m_bEncryptMetadata);
+    ComputeEncryptionKey(m_documentId, pswd, m_oValue, m_pValue, m_eKeyLength, m_rValue, userKey, m_EncryptMetadata);
 
     success = CheckKey(userKey, m_uValue);
     if (!success)
     {
         unsigned char userpswd[32];
         ComputeOwnerKey(m_oValue, pswd, m_keyLength, m_rValue, true, userpswd);
-        ComputeEncryptionKey(m_documentId, userpswd, m_oValue, m_pValue, m_eKeyLength, m_rValue, userKey, m_bEncryptMetadata);
+        ComputeEncryptionKey(m_documentId, userpswd, m_oValue, m_pValue, m_eKeyLength, m_rValue, userKey, m_EncryptMetadata);
         success = CheckKey(userKey, m_uValue);
 
         if (success)
@@ -1040,24 +1044,24 @@ void PdfEncryptRC4::Decrypt(const char* inStr, size_t inLen,
     Encrypt(inStr, inLen, outStr, outLen);
 }
 
-unique_ptr<PdfInputStream> PdfEncryptRC4::CreateEncryptionInputStream(PdfInputStream& pInputStream, size_t inputLen)
+unique_ptr<PdfInputStream> PdfEncryptRC4::CreateEncryptionInputStream(PdfInputStream& inputStream, size_t inputLen)
 {
     (void)inputLen;
     unsigned char objkey[MD5_DIGEST_LENGTH];
     unsigned keylen;
     this->CreateObjKey(objkey, keylen);
-    return unique_ptr<PdfInputStream>(new PdfRC4InputStream(pInputStream, inputLen, m_rc4key, m_rc4last, objkey, keylen));
+    return unique_ptr<PdfInputStream>(new PdfRC4InputStream(inputStream, inputLen, m_rc4key, m_rc4last, objkey, keylen));
 }
 
-PdfEncryptRC4::PdfEncryptRC4(PdfString oValue, PdfString uValue, EPdfPermissions pValue, int rValue,
-    EPdfEncryptAlgorithm eAlgorithm, int length, bool encryptMetadata)
+PdfEncryptRC4::PdfEncryptRC4(PdfString oValue, PdfString uValue, PdfPermissions pValue, int rValue,
+    PdfEncryptAlgorithm algorithm, int length, bool encryptMetadata)
 {
     m_pValue = pValue;
     m_rValue = rValue;
-    m_eAlgorithm = eAlgorithm;
-    m_eKeyLength = static_cast<EPdfKeyLength>(length);
+    m_Algorithm = algorithm;
+    m_eKeyLength = static_cast<PdfKeyLength>(length);
     m_keyLength = length / 8;
-    m_bEncryptMetadata = encryptMetadata;
+    m_EncryptMetadata = encryptMetadata;
     std::memcpy(m_oValue, oValue.GetRawData().data(), 32);
     std::memcpy(m_uValue, uValue.GetRawData().data(), 32);
 
@@ -1067,37 +1071,36 @@ PdfEncryptRC4::PdfEncryptRC4(PdfString oValue, PdfString uValue, EPdfPermissions
     std::memset(m_encryptionKey, 0, 32);
 }
 
-PdfEncryptRC4::PdfEncryptRC4(const string_view& userPassword, const string_view& ownerPassword, EPdfPermissions protection,
-    EPdfEncryptAlgorithm eAlgorithm, EPdfKeyLength eKeyLength)
+PdfEncryptRC4::PdfEncryptRC4(const string_view& userPassword, const string_view& ownerPassword, PdfPermissions protection,
+    PdfEncryptAlgorithm algorithm, PdfKeyLength keyLength)
 {
     // setup object
-    int keyLength = static_cast<int>(eKeyLength);
-
     m_userPass = userPassword;
     m_ownerPass = ownerPassword;
-    m_eAlgorithm = eAlgorithm;
-    m_eKeyLength = eKeyLength;
+    m_Algorithm = algorithm;
+    m_eKeyLength = keyLength;
+    int intKeyLength = static_cast<int>(keyLength);
 
-    switch (eAlgorithm)
+    switch (algorithm)
     {
-        case EPdfEncryptAlgorithm::RC4V2:
+        case PdfEncryptAlgorithm::RC4V2:
         {
-            keyLength = keyLength - keyLength % 8;
-            keyLength = (keyLength >= 40) ? ((keyLength <= 128) ? keyLength : 128) : 40;
+            intKeyLength = intKeyLength - intKeyLength % 8;
+            intKeyLength = (intKeyLength >= 40) ? ((intKeyLength <= 128) ? intKeyLength : 128) : 40;
             m_rValue = 3;
-            m_keyLength = keyLength / 8;
+            m_keyLength = intKeyLength / 8;
             break;
         }
-        case EPdfEncryptAlgorithm::RC4V1:
+        case PdfEncryptAlgorithm::RC4V1:
         default:
         {
             m_rValue = 2;
             m_keyLength = 40 / 8;
             break;
         }
-        case EPdfEncryptAlgorithm::AESV2:
+        case PdfEncryptAlgorithm::AESV2:
 #ifdef PODOFO_HAVE_LIBIDN
-        case EPdfEncryptAlgorithm::AESV3:
+        case PdfEncryptAlgorithm::AESV3:
 #endif // PODOFO_HAVE_LIBIDN
         {
             break;
@@ -1115,12 +1118,12 @@ PdfEncryptRC4::PdfEncryptRC4(const string_view& userPassword, const string_view&
     m_pValue = PERMS_DEFAULT | protection;
 }
 
-unique_ptr<PdfOutputStream> PdfEncryptRC4::CreateEncryptionOutputStream(PdfOutputStream& pOutputStream)
+unique_ptr<PdfOutputStream> PdfEncryptRC4::CreateEncryptionOutputStream(PdfOutputStream& outputStream)
 {
     unsigned char objkey[MD5_DIGEST_LENGTH];
     unsigned keylen;
     this->CreateObjKey(objkey, keylen);
-    return unique_ptr<PdfOutputStream>(new PdfRC4OutputStream(pOutputStream, m_rc4key, m_rc4last, objkey, keylen));
+    return unique_ptr<PdfOutputStream>(new PdfRC4OutputStream(outputStream, m_rc4key, m_rc4last, objkey, keylen));
 }
     
 PdfEncryptAESBase::PdfEncryptAESBase()
@@ -1143,7 +1146,7 @@ void PdfEncryptAESBase::BaseDecrypt(const unsigned char* key, unsigned keyLen, c
     EVP_CIPHER_CTX* aes = m_aes->getEngine();
 
     int rc;
-    if (keyLen == (int)EPdfKeyLength::L128 / 8)
+    if (keyLen == (int)PdfKeyLength::L128 / 8)
         rc = EVP_DecryptInit_ex(aes, EVP_aes_128_cbc(), nullptr, key, iv);
 #ifdef PODOFO_HAVE_LIBIDN
     else if (keyLen == (int)EPdfKeyLength::L256 / 8)
@@ -1175,7 +1178,7 @@ void PdfEncryptAESBase::BaseEncrypt(const unsigned char* key, unsigned keyLen, c
     EVP_CIPHER_CTX* aes = m_aes->getEngine();
 
     int rc;
-    if (keyLen == (int)EPdfKeyLength::L128 / 8)
+    if (keyLen == (int)PdfKeyLength::L128 / 8)
         rc = EVP_EncryptInit_ex(aes, EVP_aes_128_cbc(), nullptr, key, iv);
 #ifdef PODOFO_HAVE_LIBIDN
     else if (keyLen == (int)EPdfKeyLength::L256 / 8)
@@ -1212,7 +1215,7 @@ void PdfEncryptAESV2::GenerateEncryptionKey(const string_view& documentId)
     // Compute encryption key and U value
     m_documentId = documentId;
     ComputeEncryptionKey(m_documentId, userpswd,
-        m_oValue, m_pValue, m_eKeyLength, m_rValue, m_uValue, m_bEncryptMetadata);
+        m_oValue, m_pValue, m_eKeyLength, m_rValue, m_uValue, m_EncryptMetadata);
 }
 
 bool PdfEncryptAESV2::Authenticate(const string_view& password, const string_view& documentId)
@@ -1225,7 +1228,7 @@ bool PdfEncryptAESV2::Authenticate(const string_view& password, const string_vie
 
     // Check password: 1) as user password, 2) as owner password
     unsigned char userKey[32];
-    ComputeEncryptionKey(m_documentId, pswd, m_oValue, m_pValue, m_eKeyLength, m_rValue, userKey, m_bEncryptMetadata);
+    ComputeEncryptionKey(m_documentId, pswd, m_oValue, m_pValue, m_eKeyLength, m_rValue, userKey, m_EncryptMetadata);
 
     bool success = CheckKey(userKey, m_uValue);
     if (success)
@@ -1236,7 +1239,7 @@ bool PdfEncryptAESV2::Authenticate(const string_view& password, const string_vie
     {
         unsigned char userpswd[32];
         ComputeOwnerKey(m_oValue, pswd, m_keyLength, m_rValue, true, userpswd);
-        ComputeEncryptionKey(m_documentId, userpswd, m_oValue, m_pValue, m_eKeyLength, m_rValue, userKey, m_bEncryptMetadata);
+        ComputeEncryptionKey(m_documentId, userpswd, m_oValue, m_pValue, m_eKeyLength, m_rValue, userKey, m_EncryptMetadata);
         success = CheckKey(userKey, m_uValue);
 
         if (success)
@@ -1283,16 +1286,16 @@ void PdfEncryptAESV2::Decrypt(const char* inStr, size_t inLen,
         inLen - offset, (unsigned char*)outStr, outLen);
 }
     
-PdfEncryptAESV2::PdfEncryptAESV2(const string_view& userPassword, const string_view& ownerPassword, EPdfPermissions protection) : PdfEncryptAESBase()
+PdfEncryptAESV2::PdfEncryptAESV2(const string_view& userPassword, const string_view& ownerPassword, PdfPermissions protection) : PdfEncryptAESBase()
 {
     // setup object
     m_userPass = userPassword;
     m_ownerPass = ownerPassword;
-    m_eAlgorithm = EPdfEncryptAlgorithm::AESV2;
+    m_Algorithm = PdfEncryptAlgorithm::AESV2;
 
     m_rValue = 4;
-    m_eKeyLength = EPdfKeyLength::L128;
-    m_keyLength = (int)EPdfKeyLength::L128 / 8;
+    m_eKeyLength = PdfKeyLength::L128;
+    m_keyLength = (int)PdfKeyLength::L128 / 8;
 
     // Init buffers
     std::memset(m_rc4key, 0, 16);
@@ -1305,15 +1308,15 @@ PdfEncryptAESV2::PdfEncryptAESV2(const string_view& userPassword, const string_v
     m_pValue = PERMS_DEFAULT | protection;
 }
     
-PdfEncryptAESV2::PdfEncryptAESV2(PdfString oValue, PdfString uValue, EPdfPermissions pValue, bool encryptMetadata) : PdfEncryptAESBase()
+PdfEncryptAESV2::PdfEncryptAESV2(PdfString oValue, PdfString uValue, PdfPermissions pValue, bool encryptMetadata) : PdfEncryptAESBase()
 {
     m_pValue = pValue;
-    m_eAlgorithm = EPdfEncryptAlgorithm::AESV2;
+    m_Algorithm = PdfEncryptAlgorithm::AESV2;
 
-    m_eKeyLength = EPdfKeyLength::L128;
-    m_keyLength = (int)EPdfKeyLength::L128 / 8;
+    m_eKeyLength = PdfKeyLength::L128;
+    m_keyLength = (int)PdfKeyLength::L128 / 8;
     m_rValue = 4;
-    m_bEncryptMetadata = encryptMetadata;
+    m_EncryptMetadata = encryptMetadata;
     std::memcpy(m_oValue, oValue.GetRawData().data(), 32);
     std::memcpy(m_uValue, uValue.GetRawData().data(), 32);
 
@@ -1332,12 +1335,12 @@ size_t PdfEncryptAESV2::CalculateStreamLength(size_t length) const
     return realLength;
 }
     
-unique_ptr<PdfInputStream> PdfEncryptAESV2::CreateEncryptionInputStream(PdfInputStream& pInputStream, size_t inputLen)
+unique_ptr<PdfInputStream> PdfEncryptAESV2::CreateEncryptionInputStream(PdfInputStream& inputStream, size_t inputLen)
 {
     unsigned char objkey[MD5_DIGEST_LENGTH];
     unsigned keylen;
     this->CreateObjKey(objkey, keylen);
-    return unique_ptr<PdfInputStream>(new PdfAESInputStream(pInputStream, inputLen, objkey, keylen));
+    return unique_ptr<PdfInputStream>(new PdfAESInputStream(inputStream, inputLen, objkey, keylen));
 }
     
 unique_ptr<PdfOutputStream> PdfEncryptAESV2::CreateEncryptionOutputStream(PdfOutputStream&)
@@ -1484,14 +1487,12 @@ void PdfEncryptSHABase::ComputeOwnerKey(const unsigned char* ownerpswd, size_t l
     EVP_CIPHER_CTX_free(aes);
 }
 
-void PdfEncryptSHABase::PreprocessPassword(const std::string_view& password, unsigned char* outBuf, size_t& len)
+void PdfEncryptSHABase::PreprocessPassword(const string_view& password, unsigned char* outBuf, size_t& len)
 {
     char* password_sasl;
 
     if (stringprep_profile(password.data(), &password_sasl, "SASLprep", STRINGPREP_NO_UNASSIGNED) != STRINGPREP_OK)
-    {
         PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidPassword, "Error processing password through SASLprep");
-    }
 
     size_t l = strlen(password_sasl);
     len = l > 127 ? 127 : l;
@@ -1509,21 +1510,21 @@ void PdfEncryptSHABase::ComputeEncryptionKey()
         m_encryptionKey[i] = rand() % 255;
 }
     
-bool PdfEncryptSHABase::Authenticate(const std::string& documentID, const std::string& password,
-    const std::string& uValue, const std::string& ueValue,
-    const std::string& oValue, const std::string& oeValue,
-    EPdfPermissions pValue, const std::string& permsValue,
+bool PdfEncryptSHABase::Authenticate(const string_view& documentID, const string_view& password,
+    const string_view& uValue, const string_view& ueValue,
+    const string_view& oValue, const string_view& oeValue,
+    PdfPermissions pValue, const string_view& permsValue,
     int lengthValue, int rValue)
 {
     m_pValue = pValue;
     m_keyLength = lengthValue / 8;
     m_rValue = rValue;
 
-    std::memcpy(m_uValue, uValue.c_str(), 48);
-    std::memcpy(m_ueValue, ueValue.c_str(), 32);
-    std::memcpy(m_oValue, oValue.c_str(), 48);
-    std::memcpy(m_oeValue, oeValue.c_str(), 32);
-    std::memcpy(m_permsValue, permsValue.c_str(), 16);
+    std::memcpy(m_uValue, uValue.data(), 48);
+    std::memcpy(m_ueValue, ueValue.data(), 32);
+    std::memcpy(m_oValue, oValue.data(), 48);
+    std::memcpy(m_oeValue, oeValue.data(), 32);
+    std::memcpy(m_permsValue, permsValue.data(), 16);
 
     return Authenticate(password, documentID);
 }
@@ -1534,34 +1535,34 @@ void PdfEncryptSHABase::GenerateInitialVector(unsigned char iv[]) const
         iv[i] = rand() % 255;
 }
     
-void PdfEncryptSHABase::CreateEncryptionDictionary(PdfDictionary& rDictionary) const
+void PdfEncryptSHABase::CreateEncryptionDictionary(PdfDictionary& dictionary) const
 {
-    rDictionary.AddKey("Filter", PdfName("Standard"));
+    dictionary.AddKey("Filter", PdfName("Standard"));
 
     PdfDictionary cf;
     PdfDictionary stdCf;
 
-    rDictionary.AddKey("V", static_cast<int64_t>(5));
-    rDictionary.AddKey("R", static_cast<int64_t>(5));
-    rDictionary.AddKey("Length", static_cast<int64_t>(256));
+    dictionary.AddKey("V", static_cast<int64_t>(5));
+    dictionary.AddKey("R", static_cast<int64_t>(5));
+    dictionary.AddKey("Length", static_cast<int64_t>(256));
 
     stdCf.AddKey("CFM", PdfName("AESV3"));
     stdCf.AddKey("Length", static_cast<int64_t>(32));
 
-    rDictionary.AddKey("O", PdfString::FromRaw({ reinterpret_cast<const char*>(this->GetOValue()), 48 }));
-    rDictionary.AddKey("OE", PdfString::FromRaw({ reinterpret_cast<const char*>(this->GetOEValue()), 32 }));
-    rDictionary.AddKey("U", PdfString::FromRaw({ reinterpret_cast<const char*>(this->GetUValue()), 48 }));
-    rDictionary.AddKey("UE", PdfString::FromRaw({ reinterpret_cast<const char*>(this->GetUEValue()), 32 }));
-    rDictionary.AddKey("Perms", PdfString::FromRaw({ reinterpret_cast<const char*>(this->GetPermsValue()), 16 }));
+    dictionary.AddKey("O", PdfString::FromRaw({ reinterpret_cast<const char*>(this->GetOValue()), 48 }));
+    dictionary.AddKey("OE", PdfString::FromRaw({ reinterpret_cast<const char*>(this->GetOEValue()), 32 }));
+    dictionary.AddKey("U", PdfString::FromRaw({ reinterpret_cast<const char*>(this->GetUValue()), 48 }));
+    dictionary.AddKey("UE", PdfString::FromRaw({ reinterpret_cast<const char*>(this->GetUEValue()), 32 }));
+    dictionary.AddKey("Perms", PdfString::FromRaw({ reinterpret_cast<const char*>(this->GetPermsValue()), 16 }));
 
     stdCf.AddKey("AuthEvent", PdfName("DocOpen"));
     cf.AddKey("StdCF", stdCf);
 
-    rDictionary.AddKey("CF", cf);
-    rDictionary.AddKey("StrF", PdfName("StdCF"));
-    rDictionary.AddKey("StmF", PdfName("StdCF"));
+    dictionary.AddKey("CF", cf);
+    dictionary.AddKey("StrF", PdfName("StdCF"));
+    dictionary.AddKey("StmF", PdfName("StdCF"));
 
-    rDictionary.AddKey("P", PdfVariant(static_cast<int64_t>(this->GetPValue())));
+    dictionary.AddKey("P", PdfVariant(static_cast<int64_t>(this->GetPValue())));
 }
     
 void PdfEncryptAESV3::GenerateEncryptionKey(const string_view& documentId)
@@ -1598,7 +1599,7 @@ void PdfEncryptAESV3::GenerateEncryptionKey(const string_view& documentId)
     perms[6] = 0xFF;
     perms[7] = 0xFF;
     // if EncryptMetadata is false, this value should be set to 'F'
-    perms[8] = m_bEncryptMetadata ? 'T' : 'F';
+    perms[8] = m_EncryptMetadata ? 'T' : 'F';
     // Next 3 bytes are mandatory
     perms[9] = 'a';
     perms[10] = 'd';
@@ -1631,7 +1632,7 @@ void PdfEncryptAESV3::GenerateEncryptionKey(const string_view& documentId)
     EVP_CIPHER_CTX_free(aes);
 }
 
-bool PdfEncryptAESV3::Authenticate(const std::string_view& password, const std::string_view& documentId)
+bool PdfEncryptAESV3::Authenticate(const string_view& password, const string_view& documentId)
 {
     (void)documentId;
     bool success = false;
@@ -1728,15 +1729,15 @@ void PdfEncryptAESV3::Decrypt(const unsigned char* inStr, size_t inLen,
     this->BaseDecrypt(const_cast<unsigned char*>(m_encryptionKey), m_keyLength, inStr, &inStr[offset], inLen - offset, outStr, outLen);
 }
 
-PdfEncryptAESV3::PdfEncryptAESV3(const string_view& userPassword, const string_view& ownerPassword, EPdfPermissions protection) : PdfEncryptAESBase()
+PdfEncryptAESV3::PdfEncryptAESV3(const string_view& userPassword, const string_view& ownerPassword, PdfPermissions protection) : PdfEncryptAESBase()
 {
     // setup object
     m_userPass = userPassword;
     m_ownerPass = ownerPassword;
-    m_eAlgorithm = EPdfEncryptAlgorithm::AESV3;
+    m_Algorithm = PdfEncryptAlgorithm::AESV3;
 
     m_rValue = 5;
-    m_eKeyLength = EPdfKeyLength::L256;
+    m_KeyLength = EPdfKeyLength::L256;
     m_keyLength = (int)EPdfKeyLength::L256 / 8;
 
     // Init buffers
@@ -1750,12 +1751,12 @@ PdfEncryptAESV3::PdfEncryptAESV3(const string_view& userPassword, const string_v
     m_pValue = PERMS_DEFAULT | protection;
 }
 
-PdfEncryptAESV3::PdfEncryptAESV3(PdfString oValue, PdfString oeValue, PdfString uValue, PdfString ueValue, EPdfPermissions pValue, PdfString permsValue) : PdfEncryptAESBase()
+PdfEncryptAESV3::PdfEncryptAESV3(PdfString oValue, PdfString oeValue, PdfString uValue, PdfString ueValue, PdfPermissions pValue, PdfString permsValue) : PdfEncryptAESBase()
 {
     m_pValue = pValue;
-    m_eAlgorithm = EPdfEncryptAlgorithm::AESV3;
+    m_Algorithm = PdfEncryptAlgorithm::AESV3;
 
-    m_eKeyLength = EPdfKeyLength::L256;
+    m_KeyLength = EPdfKeyLength::L256;
     m_keyLength = (int)EPdfKeyLength::L256 / 8;
     m_rValue = 5;
     std::memcpy(m_oValue, oValue.GetRawData().data(), 48);
@@ -1770,16 +1771,14 @@ size_t PdfEncryptAESV3::CalculateStreamLength(size_t length) const
 {
     size_t realLength = ((length + 15) & ~15) + AES_IV_LENGTH;
     if (length % 16 == 0)
-    {
         realLength += 16;
-    }
 
     return realLength;
 }
 
-unique_ptr<PdfInputStream> PdfEncryptAESV3::CreateEncryptionInputStream(PdfInputStream& pInputStream, size_t inputLen)
+unique_ptr<PdfInputStream> PdfEncryptAESV3::CreateEncryptionInputStream(PdfInputStream& inputStream, size_t inputLen)
 {
-    return unique_ptr<PdfInputStream>(new PdfAESInputStream(pInputStream, inputLen, m_encryptionKey, 32));
+    return unique_ptr<PdfInputStream>(new PdfAESInputStream(inputStream, inputLen, m_encryptionKey, 32));
 }
 
 unique_ptr<PdfOutputStream> PdfEncryptAESV3::CreateEncryptionOutputStream(PdfOutputStream&)
@@ -1814,47 +1813,47 @@ void PdfEncrypt::Decrypt(const string_view& view, string& out) const
     out.shrink_to_fit();
 }
 
-void PdfEncrypt::SetCurrentReference(const PdfReference& rRef)
+void PdfEncrypt::SetCurrentReference(const PdfReference& ref)
 {
-    m_curReference = rRef;
+    m_curReference = ref;
 }
 
 bool PdfEncrypt::IsPrintAllowed() const
 {
-    return (m_pValue & EPdfPermissions::Print) == EPdfPermissions::Print;
+    return (m_pValue & PdfPermissions::Print) == PdfPermissions::Print;
 }
 
 bool PdfEncrypt::IsEditAllowed() const
 {
-    return (m_pValue & EPdfPermissions::Edit) == EPdfPermissions::Edit;
+    return (m_pValue & PdfPermissions::Edit) == PdfPermissions::Edit;
 }
 
 bool PdfEncrypt::IsCopyAllowed() const
 {
-    return (m_pValue & EPdfPermissions::Copy) == EPdfPermissions::Copy;
+    return (m_pValue & PdfPermissions::Copy) == PdfPermissions::Copy;
 }
 
 bool PdfEncrypt::IsEditNotesAllowed() const
 {
-    return (m_pValue & EPdfPermissions::EditNotes) == EPdfPermissions::EditNotes;
+    return (m_pValue & PdfPermissions::EditNotes) == PdfPermissions::EditNotes;
 }
 
 bool PdfEncrypt::IsFillAndSignAllowed() const
 {
-    return (m_pValue & EPdfPermissions::FillAndSign) == EPdfPermissions::FillAndSign;
+    return (m_pValue & PdfPermissions::FillAndSign) == PdfPermissions::FillAndSign;
 }
 
 bool PdfEncrypt::IsAccessibilityAllowed() const
 {
-    return (m_pValue & EPdfPermissions::Accessible) == EPdfPermissions::Accessible;
+    return (m_pValue & PdfPermissions::Accessible) == PdfPermissions::Accessible;
 }
 
 bool PdfEncrypt::IsDocAssemblyAllowed() const
 {
-    return (m_pValue & EPdfPermissions::DocAssembly) == EPdfPermissions::DocAssembly;
+    return (m_pValue & PdfPermissions::DocAssembly) == PdfPermissions::DocAssembly;
 }
 
 bool PdfEncrypt::IsHighPrintAllowed() const
 {
-    return (m_pValue & EPdfPermissions::HighPrint) == EPdfPermissions::HighPrint;
+    return (m_pValue & PdfPermissions::HighPrint) == PdfPermissions::HighPrint;
 }

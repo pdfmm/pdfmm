@@ -63,17 +63,17 @@ public:
 
     /** Construct a new (empty) PdfMemDocument
      */
-    PdfMemDocument(bool bOnlyTrailer);
+    PdfMemDocument(bool onlyTrailer);
 
     /** Construct a PdfMemDocument from an existing PDF (on disk)
-     *  \param pszFilename filename of the file which is going to be parsed/opened
+     *  \param filename filename of the file which is going to be parsed/opened
      *  \param bForUpdate whether to load for incremental update
      *
      *  This might throw a PdfError( EPdfError::InvalidPassword ) exception
      *  if a password is required to read this PDF.
      *  Call SetPassword with the correct password in this case.
      *
-     *  When the bForUpdate is set to true, the pszFilename is copied
+     *  When the bForUpdate is set to true, the filename is copied
      *  for later use by WriteUpdate.
      *
      *  \see SetPassword, WriteUpdate
@@ -86,24 +86,24 @@ public:
 
     /** Load a PdfMemDocument from a file
      *
-     *  \param pszFilename filename of the file which is going to be parsed/opened
+     *  \param filename filename of the file which is going to be parsed/opened
      *  \param bForUpdate whether to load for incremental update
      *
      *  This might throw a PdfError( EPdfError::InvalidPassword ) exception
      *  if a password is required to read this PDF.
      *  Call SetPassword with the correct password in this case.
      *
-     *  When the bForUpdate is set to true, the pszFilename is copied
+     *  When the bForUpdate is set to true, the filename is copied
      *  for later use by WriteUpdate.
      *
      *  \see SetPassword, WriteUpdate, LoadFromBuffer, LoadFromDevice
      */
-    void Load(const std::string_view& filename, const std::string_view& sPassword = { });
+    void Load(const std::string_view& filename, const std::string_view& password = { });
 
     /** Load a PdfMemDocument from a buffer in memory
      *
-     *  \param pBuffer a memory area containing the PDF data
-     *  \param lLen length of the buffer
+     *  \param buffer a memory area containing the PDF data
+     *  \param len length of the buffer
      *  \param bForUpdate whether to load for incremental update
      *
      *  This might throw a PdfError( EPdfError::InvalidPassword ) exception
@@ -115,12 +115,11 @@ public:
      *
      *  \see SetPassword, WriteUpdate, Load, LoadFromDevice
      */
-    void LoadFromBuffer(const std::string_view& filename, const std::string_view& sPassword = { });
+    void LoadFromBuffer(const std::string_view& filename, const std::string_view& password = { });
 
     /** Load a PdfMemDocument from a PdfRefCountedInputDevice
      *
-     *  \param rDevice the input device containing the PDF
-     *  \param bForUpdate whether to load for incremental update
+     *  \param device the input device containing the PDF
      *
      *  This might throw a PdfError( EPdfError::InvalidPassword ) exception
      *  if a password is required to read this PDF.
@@ -131,11 +130,11 @@ public:
      *
      *  \see SetPassword, WriteUpdate, Load, LoadFromBuffer
      */
-    void LoadFromDevice(const PdfRefCountedInputDevice& rDevice, const std::string_view& filename = { });
+    void LoadFromDevice(const PdfRefCountedInputDevice& device, const std::string_view& filename = { });
 
     /** Writes the complete document to a file
      *
-     *  \param pszFilename filename of the document
+     *  \param filename filename of the document
      *
      *  \see Write, WriteUpdate
      *
@@ -145,15 +144,15 @@ public:
 
     /** Writes the complete document to an output device
      *
-     *  \param pDevice write to this output device
+     *  \param device write to this output device
      *
      *  \see WriteUpdate
      */
-    void Write(PdfOutputDevice& pDevice, PdfSaveOptions options = PdfSaveOptions::None);
+    void Write(PdfOutputDevice& device, PdfSaveOptions options = PdfSaveOptions::None);
 
     /** Writes the document changes to a file
      *
-     *  \param pszFilename filename of the document
+     *  \param filename filename of the document
      *
      *  Writes the document changes to a file as an incremental update.
      *  The document should be loaded with bForUpdate = true, otherwise
@@ -173,8 +172,8 @@ public:
 
     /** Writes the document changes to an output device
      *
-     *  \param pDevice write to this output device
-     *  \param bTruncate whether to truncate the pDevice first and fill it
+     *  \param device write to this output device
+     *  \param bTruncate whether to truncate the device first and fill it
      *                   with the content of the source document; the default is true.
      *
      *  Writes the document changes to the output device as an incremental update.
@@ -183,29 +182,29 @@ public:
      *
      *  The bTruncate is used to determine whether saving to the same file or not.
      *  In case the bTruncate is true, a new source stream is opened and its whole
-     *  content is copied to the pDevice first. Otherwise the pDevice is the same
+     *  content is copied to the device first. Otherwise the device is the same
      *  file which had been loaded and the caller is responsible to position
-     *  the pDevice at the place, where the update should be written (basically
+     *  the device at the place, where the update should be written (basically
      *  at the end of the stream).
      *
      *  \see Write, WriteUpdate
      */
-    void WriteUpdate(PdfOutputDevice& pDevice, PdfSaveOptions options = PdfSaveOptions::None);
+    void WriteUpdate(PdfOutputDevice& device, PdfSaveOptions options = PdfSaveOptions::None);
 
     /** Set the write mode to use when writing the PDF.
-     *  \param eWriteMode write mode
+     *  \param writeMode write mode
      */
-    void SetWriteMode(PdfWriteMode eWriteMode) { m_eWriteMode = eWriteMode; }
+    void SetWriteMode(PdfWriteMode writeMode) { m_WriteMode = writeMode; }
 
-    PdfWriteMode GetWriteMode() const  override { return m_eWriteMode; }
+    PdfWriteMode GetWriteMode() const  override { return m_WriteMode; }
 
     /** Set the PDF Version of the document. Has to be called before Write() to
      *  have an effect.
-     *  \param eVersion  version of the pdf document
+     *  \param version  version of the pdf document
      */
-    inline void SetPdfVersion(PdfVersion eVersion) { m_eVersion = eVersion; }
+    inline void SetPdfVersion(PdfVersion version) { m_Version = version; }
 
-    inline PdfVersion GetPdfVersion() const override { return m_eVersion; }
+    inline PdfVersion GetPdfVersion() const override { return m_Version; }
 
     /** Add a vendor-specific extension to the current PDF version.
      *  \param ns  namespace of the extension
@@ -244,10 +243,10 @@ public:
      *
      *  PdfParser will immediately continue to read the PDF file.
      *
-     *  \param sPassword a user or owner password which can be used to open an encrypted PDF file
+     *  \param password a user or owner password which can be used to open an encrypted PDF file
      *                   If the password is invalid, a PdfError( EPdfError::InvalidPassword ) exception is thrown!
      */
-    void SetPassword(const std::string_view& sPassword);
+    void SetPassword(const std::string_view& password);
 
     /** Encrypt the document during writing.
      *
@@ -256,29 +255,29 @@ public:
      *  \param ownerPassword the owner password
      *  \param protection several EPdfPermissions values or'ed together to set
      *                    the users permissions for this document
-     *  \param eAlgorithm the revision of the encryption algorithm to be used
-     *  \param eKeyLength the length of the encryption key ranging from 40 to 256 bits
-     *                    (only used if eAlgorithm >= EPdfEncryptAlgorithm::RC4V2)
+     *  \param algorithm the revision of the encryption algorithm to be used
+     *  \param keyLength the length of the encryption key ranging from 40 to 256 bits
+     *                    (only used if algorithm >= EPdfEncryptAlgorithm::RC4V2)
      *
      *  \see PdfEncrypt
      */
     void SetEncrypted(const std::string& userPassword, const std::string& ownerPassword,
-        EPdfPermissions protection = EPdfPermissions::Default,
-        EPdfEncryptAlgorithm eAlgorithm = EPdfEncryptAlgorithm::AESV2,
-        EPdfKeyLength eKeyLength = EPdfKeyLength::L40);
+        PdfPermissions protection = PdfPermissions::Default,
+        PdfEncryptAlgorithm algorithm = PdfEncryptAlgorithm::AESV2,
+        PdfKeyLength keyLength = PdfKeyLength::L40);
 
     /** Encrypt the document during writing using a PdfEncrypt object
      *
-     *  \param pEncrypt an encryption object that will be owned by PdfMemDocument
+     *  \param encrypt an encryption object that will be owned by PdfMemDocument
      */
-    void SetEncrypted(const PdfEncrypt& pEncrypt);
+    void SetEncrypted(const PdfEncrypt& encrypt);
 
     /**
      * \returns true if this PdfMemDocument creates an encrypted PDF file
      */
-    inline bool IsEncrypted() const { return m_pEncrypt != nullptr; }
+    inline bool IsEncrypted() const { return m_Encrypt != nullptr; }
 
-    inline bool IsLinearized() const override { return m_bLinearized; }
+    inline bool IsLinearized() const override { return m_Linearized; }
 
     /** Get access to the StructTreeRoot dictionary
      *  \returns PdfObject the StructTreeRoot dictionary
@@ -333,16 +332,16 @@ public:
      *  demand is currently always enabled when using PdfMemDocument.
      *  If the object is dirty if will not be free'd.
      *
-     *  \param rRef free all memory allocated by the object
+     *  \param ref free all memory allocated by the object
      *              with this reference.
-     *  \param bForce if true the object will be free'd
+     *  \param force if true the object will be free'd
      *                even if IsDirty() returns true.
      *                So you will loose any changes made
      *                to this object.
      *
      *  This is an overloaded member for your convenience.
      */
-    void FreeObjectMemory(const PdfReference& rRef, bool bForce = false);
+    void FreeObjectMemory(const PdfReference& ref, bool force = false);
 
     /** Tries to free all memory allocated by the given
      *  PdfObject (variables and streams) and reads
@@ -353,20 +352,20 @@ public:
      *  demand is currently always enabled when using PdfMemDocument.
      *  If the object is dirty if will not be free'd.
      *
-     *  \param pObj free object from memory
-     *  \param bForce if true the object will be free'd
+     *  \param obj free object from memory
+     *  \param force if true the object will be free'd
      *                even if IsDirty() returns true.
      *                So you will loose any changes made
      *                to this object.
      *
      *  \see IsDirty
      */
-    void FreeObjectMemory(PdfObject* pObj, bool bForce = false);
+    void FreeObjectMemory(PdfObject* obj, bool force = false);
 
     /**
      * \returns the parsers encryption object or nullptr if the read PDF file was not encrypted
      */
-    inline const PdfEncrypt* GetEncrypt() const { return m_pEncrypt.get(); }
+    inline const PdfEncrypt* GetEncrypt() const { return m_Encrypt.get(); }
 
 private:
     /** Deletes one or more pages from this document
@@ -381,7 +380,7 @@ private:
     void DeletePages(unsigned atIndex, unsigned pageCount);
 
     /** Get a dictioary from the catalog dictionary by its name.
-     *  \param pszName will be converted into a PdfName
+     *  \param name will be converted into a PdfName
      *  \returns the dictionary if it was found or nullptr
      */
     PdfObject* GetNamedObjectFromCatalog(const std::string_view& name) const;
@@ -390,7 +389,7 @@ private:
      *  The objects will be removed from the parser and are now
      *  owned by the PdfMemDocument.
      */
-    void InitFromParser(PdfParser* pParser);
+    void InitFromParser(PdfParser* parser);
 
     /** Clear all internal variables
      */
@@ -401,19 +400,19 @@ private:
     // should never be referenced (given that code referencing them outside
     // PdfMemDocument won't compile), and calling them will result in a link error
     // as they're not defined.
-    explicit PdfMemDocument(const PdfMemDocument&);
+    PdfMemDocument(const PdfMemDocument&) = delete;
     PdfMemDocument& operator=(const PdfMemDocument&) = delete;
 
-    bool m_bLinearized;
-    PdfVersion m_eVersion;
+    bool m_Linearized;
+    PdfVersion m_Version;
 
-    std::unique_ptr<PdfEncrypt> m_pEncrypt;
+    std::unique_ptr<PdfEncrypt> m_Encrypt;
 
-    PdfWriteMode m_eWriteMode;
+    PdfWriteMode m_WriteMode;
 
-    bool m_bSoureHasXRefStream;
-    PdfVersion m_eSourceVersion;
-    int64_t m_lPrevXRefOffset;
+    bool m_SoureHasXRefStream;
+    PdfVersion m_SourceVersion;
+    int64_t m_PrevXRefOffset;
 };
 
 };

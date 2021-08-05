@@ -17,7 +17,7 @@ constexpr size_t BufferSize = 65536;
 
 static size_t ReadForSignature(PdfOutputDevice& device,
     size_t conentsBeaconOffset, size_t conentsBeaconSize,
-    char* pBuffer, size_t lLen);
+    char* buffer, size_t len);
 static void AdjustByteRange(PdfOutputDevice& device, size_t byteRangeOffset,
     size_t conentsBeaconOffset, size_t conentsBeaconSize);
 static void SetSignature(PdfOutputDevice& device, const string_view& sigData,
@@ -78,20 +78,20 @@ void PoDoFo::SignDocument(PdfMemDocument& doc, PdfOutputDevice& device, PdfSigne
 }
 
 size_t ReadForSignature(PdfOutputDevice& device, size_t conentsBeaconOffset, size_t conentsBeaconSize,
-    char* pBuffer, size_t lLen)
+    char* buffer, size_t len)
 {
     size_t pos = device.Tell();
     size_t numRead = 0;
     // Check if we are before beacon
     if (pos < conentsBeaconOffset)
     {
-        size_t readSize = std::min(lLen, conentsBeaconOffset - pos);
+        size_t readSize = std::min(len, conentsBeaconOffset - pos);
         if (readSize > 0)
         {
-            numRead = device.Read(pBuffer, readSize);
-            pBuffer += numRead;
-            lLen -= numRead;
-            if (lLen == 0)
+            numRead = device.Read(buffer, readSize);
+            buffer += numRead;
+            len -= numRead;
+            if (len == 0)
                 return numRead;
         }
     }
@@ -104,11 +104,11 @@ size_t ReadForSignature(PdfOutputDevice& device, size_t conentsBeaconOffset, siz
     }
 
     // read after beacon
-    lLen = std::min(lLen, device.GetLength() - device.Tell());
-    if (lLen == 0)
+    len = std::min(len, device.GetLength() - device.Tell());
+    if (len == 0)
         return numRead;
 
-    return numRead + device.Read(pBuffer, lLen);
+    return numRead + device.Read(buffer, len);
 }
 
 void AdjustByteRange(PdfOutputDevice& device, size_t byteRangeOffset,

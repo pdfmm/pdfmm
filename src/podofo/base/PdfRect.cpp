@@ -24,28 +24,28 @@ namespace PoDoFo {
 
 PdfRect::PdfRect()
 {
-    m_dBottom = m_dLeft = m_dWidth = m_dHeight = 0;
+    m_Bottom = m_Left = m_Width = m_Height = 0;
 }
 
-PdfRect::PdfRect(double dLeft, double dBottom, double dWidth, double dHeight)
+PdfRect::PdfRect(double left, double bottom, double width, double height)
 {
-    m_dBottom = dBottom;
-    m_dLeft = dLeft;
-    m_dWidth = dWidth;
-    m_dHeight = dHeight;
+    m_Bottom = bottom;
+    m_Left = left;
+    m_Width = width;
+    m_Height = height;
 }
 
 PdfRect PdfRect::FromCorners(double x1, double y1, double x2, double y2)
 {
     PdfRect rect;
-    CreateRect(x1, y1, x2, y2, rect.m_dLeft, rect.m_dBottom, rect.m_dWidth, rect.m_dHeight);
+    CreateRect(x1, y1, x2, y2, rect.m_Left, rect.m_Bottom, rect.m_Width, rect.m_Height);
     return rect;
 }
 
-PdfRect::PdfRect(const PdfArray& inArray)
+PdfRect::PdfRect(const PdfArray& arr)
 {
-    m_dBottom = m_dLeft = m_dWidth = m_dHeight = 0;
-    FromArray(inArray);
+    m_Bottom = m_Left = m_Width = m_Height = 0;
+    FromArray(arr);
 }
 
 PdfRect::PdfRect(const PdfRect& rhs)
@@ -57,10 +57,10 @@ void PdfRect::ToVariant(PdfVariant& var) const
 {
     PdfArray array;
 
-    array.push_back(PdfVariant(m_dLeft));
-    array.push_back(PdfVariant(m_dBottom));
-    array.push_back(PdfVariant((m_dWidth + m_dLeft)));
-    array.push_back(PdfVariant((m_dHeight + m_dBottom)));
+    array.push_back(PdfVariant(m_Left));
+    array.push_back(PdfVariant(m_Bottom));
+    array.push_back(PdfVariant((m_Width + m_Left)));
+    array.push_back(PdfVariant((m_Height + m_Bottom)));
 
     var = array;
 }
@@ -75,16 +75,16 @@ std::string PdfRect::ToString() const
     return str;
 }
 
-void PdfRect::FromArray(const PdfArray& inArray)
+void PdfRect::FromArray(const PdfArray& arr)
 {
-    if (inArray.size() == 4)
+    if (arr.size() == 4)
     {
-        double x1 = inArray[0].GetReal();
-        double y1 = inArray[1].GetReal();
-        double x2 = inArray[2].GetReal();
-        double y2 = inArray[3].GetReal();
+        double x1 = arr[0].GetReal();
+        double y1 = arr[1].GetReal();
+        double x2 = arr[2].GetReal();
+        double y2 = arr[3].GetReal();
 
-        CreateRect(x1, y1, x2, y2, m_dLeft, m_dBottom, m_dWidth, m_dHeight);
+        CreateRect(x1, y1, x2, y2, m_Left, m_Bottom, m_Width, m_Height);
     }
     else
     {
@@ -94,54 +94,54 @@ void PdfRect::FromArray(const PdfArray& inArray)
 
 double PdfRect::GetRight() const
 {
-    return m_dLeft + m_dWidth;
+    return m_Left + m_Width;
 }
 
 double PdfRect::GetTop() const
 {
-    return m_dBottom + m_dHeight;
+    return m_Bottom + m_Height;
 }
 
-void PdfRect::Intersect(const PdfRect& rRect)
+void PdfRect::Intersect(const PdfRect& rect)
 {
-    if (rRect.GetBottom() != 0 || rRect.GetHeight() != 0 || rRect.GetLeft() != 0 || rRect.GetWidth() != 0)
+    if (rect.GetBottom() != 0 || rect.GetHeight() != 0 || rect.GetLeft() != 0 || rect.GetWidth() != 0)
     {
         double diff;
 
-        diff = rRect.m_dLeft - m_dLeft;
+        diff = rect.m_Left - m_Left;
         if (diff > 0.0)
         {
-            m_dLeft += diff;
-            m_dWidth -= diff;
+            m_Left += diff;
+            m_Width -= diff;
         }
 
-        diff = (m_dLeft + m_dWidth) - (rRect.m_dLeft + rRect.m_dWidth);
+        diff = (m_Left + m_Width) - (rect.m_Left + rect.m_Width);
         if (diff > 0.0)
         {
-            m_dWidth -= diff;
+            m_Width -= diff;
         }
 
-        diff = rRect.m_dBottom - m_dBottom;
+        diff = rect.m_Bottom - m_Bottom;
         if (diff > 0.0)
         {
-            m_dBottom += diff;
-            m_dHeight -= diff;
+            m_Bottom += diff;
+            m_Height -= diff;
         }
 
-        diff = (m_dBottom + m_dHeight) - (rRect.m_dBottom + rRect.m_dHeight);
+        diff = (m_Bottom + m_Height) - (rect.m_Bottom + rect.m_Height);
         if (diff > 0.0)
         {
-            m_dHeight -= diff;
+            m_Height -= diff;
         }
     }
 }
 
 PdfRect& PdfRect::operator=(const PdfRect& rhs)
 {
-    this->m_dBottom = rhs.m_dBottom;
-    this->m_dLeft = rhs.m_dLeft;
-    this->m_dWidth = rhs.m_dWidth;
-    this->m_dHeight = rhs.m_dHeight;
+    this->m_Bottom = rhs.m_Bottom;
+    this->m_Left = rhs.m_Left;
+    this->m_Width = rhs.m_Width;
+    this->m_Height = rhs.m_Height;
 
     return *this;
 }

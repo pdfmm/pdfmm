@@ -20,7 +20,7 @@ using namespace PoDoFo;
 
 PdfDestination::PdfDestination(PdfDocument& doc)
 {
-    m_pObject = doc.GetObjects().CreateObject(m_array);
+    m_Object = doc.GetObjects().CreateObject(m_array);
 }
 
 PdfDestination::PdfDestination(PdfObject& obj)
@@ -28,13 +28,13 @@ PdfDestination::PdfDestination(PdfObject& obj)
     Init(obj, *obj.GetDocument());
 }
 
-PdfDestination::PdfDestination(const PdfPage& page, PdfDestinationFit eFit)
+PdfDestination::PdfDestination(const PdfPage& page, PdfDestinationFit fit)
 {
     PdfName type = PdfName("Fit");
 
-    if (eFit == PdfDestinationFit::Fit)
+    if (fit == PdfDestinationFit::Fit)
         type = PdfName("Fit");
-    else if (eFit == PdfDestinationFit::FitB)
+    else if (fit == PdfDestinationFit::FitB)
         type = PdfName("FitB");
     else
     {
@@ -45,50 +45,50 @@ PdfDestination::PdfDestination(const PdfPage& page, PdfDestinationFit eFit)
 
     m_array.push_back(page.GetObject().GetIndirectReference());
     m_array.push_back(type);
-    m_pObject = page.GetObject().GetDocument()->GetObjects().CreateObject(m_array);
+    m_Object = page.GetObject().GetDocument()->GetObjects().CreateObject(m_array);
 }
 
-PdfDestination::PdfDestination(const PdfPage& page, const PdfRect& rRect)
+PdfDestination::PdfDestination(const PdfPage& page, const PdfRect& rect)
 {
     PdfVariant var;
 
-    rRect.ToVariant(var);
+    rect.ToVariant(var);
 
     m_array.push_back(page.GetObject().GetIndirectReference());
     m_array.push_back(PdfName("FitR"));
     m_array.insert(m_array.end(), var.GetArray().begin(), var.GetArray().end());
-    m_pObject = page.GetObject().GetDocument()->GetObjects().CreateObject(m_array);
+    m_Object = page.GetObject().GetDocument()->GetObjects().CreateObject(m_array);
 }
 
-PdfDestination::PdfDestination(const PdfPage* pPage, double dLeft, double dTop, double dZoom)
+PdfDestination::PdfDestination(const PdfPage& page, double left, double top, double zoom)
 {
-    m_array.push_back(pPage->GetObject().GetIndirectReference());
+    m_array.push_back(page.GetObject().GetIndirectReference());
     m_array.push_back(PdfName("XYZ"));
-    m_array.push_back(dLeft);
-    m_array.push_back(dTop);
-    m_array.push_back(dZoom);
-    m_pObject = pPage->GetObject().GetDocument()->GetObjects().CreateObject(m_array);
+    m_array.push_back(left);
+    m_array.push_back(top);
+    m_array.push_back(zoom);
+    m_Object = page.GetObject().GetDocument()->GetObjects().CreateObject(m_array);
 }
 
-PdfDestination::PdfDestination(const PdfPage* pPage, PdfDestinationFit eFit, double dValue)
+PdfDestination::PdfDestination(const PdfPage& page, PdfDestinationFit fit, double value)
 {
     PdfName type;
 
-    if (eFit == PdfDestinationFit::FitH)
+    if (fit == PdfDestinationFit::FitH)
         type = PdfName("FitH");
-    else if (eFit == PdfDestinationFit::FitV)
+    else if (fit == PdfDestinationFit::FitV)
         type = PdfName("FitV");
-    else if (eFit == PdfDestinationFit::FitBH)
+    else if (fit == PdfDestinationFit::FitBH)
         type = PdfName("FitBH");
-    else if (eFit == PdfDestinationFit::FitBV)
+    else if (fit == PdfDestinationFit::FitBV)
         type = PdfName("FitBV");
     else
         PODOFO_RAISE_ERROR(EPdfError::InvalidKey);
 
-    m_array.push_back(pPage->GetObject().GetIndirectReference());
+    m_array.push_back(page.GetObject().GetIndirectReference());
     m_array.push_back(type);
-    m_array.push_back(dValue);
-    m_pObject = pPage->GetObject().GetDocument()->GetObjects().CreateObject(m_array);
+    m_array.push_back(value);
+    m_Object = page.GetObject().GetDocument()->GetObjects().CreateObject(m_array);
 }
 
 PdfDestination::PdfDestination(const PdfDestination& rhs)
@@ -99,50 +99,50 @@ PdfDestination::PdfDestination(const PdfDestination& rhs)
 const PdfDestination& PdfDestination::operator=(const PdfDestination& rhs)
 {
     m_array = rhs.m_array;
-    m_pObject = rhs.m_pObject;
+    m_Object = rhs.m_Object;
 
     return *this;
 }
 
-void PdfDestination::Init(PdfObject& obj, PdfDocument& document)
+void PdfDestination::Init(PdfObject& obj, PdfDocument& doc)
 {
-    bool bValueExpected = false;
-    PdfObject* pValue = nullptr;
+    bool valueExpected = false;
+    PdfObject* value = nullptr;
 
     if (obj.GetDataType() == EPdfDataType::Array)
     {
         m_array = obj.GetArray();
-        m_pObject = &obj;
+        m_Object = &obj;
     }
     else if (obj.GetDataType() == EPdfDataType::String)
     {
-        PdfNamesTree* pNames = document.GetNamesTree(ePdfDontCreateObject);
+        PdfNamesTree* pNames = doc.GetNamesTree(false);
         if (!pNames)
         {
             PODOFO_RAISE_ERROR(EPdfError::NoObject);
         }
 
-        pValue = pNames->GetValue("Dests", obj.GetString());
-        bValueExpected = true;
+        value = pNames->GetValue("Dests", obj.GetString());
+        valueExpected = true;
     }
     else if (obj.GetDataType() == EPdfDataType::Name)
     {
-        PdfMemDocument* pMemDoc = dynamic_cast<PdfMemDocument*>(&document);
-        if (!pMemDoc)
+        auto memDoc = dynamic_cast<PdfMemDocument*>(&doc);
+        if (memDoc == nullptr)
         {
             PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidHandle,
                 "For reading from a document, only use PdfMemDocument.");
         }
 
-        PdfObject* pDests = pMemDoc->GetCatalog().GetDictionary().FindKey("Dests");
-        if (!pDests)
+        auto dests = memDoc->GetCatalog().GetDictionary().FindKey("Dests");
+        if (dests == nullptr)
         {
             // The error code has been chosen for its distinguishability.
             PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidKey,
                 "No PDF-1.1-compatible destination dictionary found.");
         }
-        pValue = pDests->GetDictionary().FindKey(obj.GetName());
-        bValueExpected = true;
+        value = dests->GetDictionary().FindKey(obj.GetName());
+        valueExpected = true;
     }
     else
     {
@@ -150,54 +150,54 @@ void PdfDestination::Init(PdfObject& obj, PdfDocument& document)
             " PdfDestination::Init of type %s", obj.GetDataTypeString());
         m_array = PdfArray(); // needed to prevent crash on method calls
         // needed for GetObject() use w/o checking its return value for nullptr
-        m_pObject = document.GetObjects().CreateObject(m_array);
+        m_Object = doc.GetObjects().CreateObject(m_array);
     }
-    if (bValueExpected)
-    {
-        if (!pValue)
-        {
-            PODOFO_RAISE_ERROR(EPdfError::InvalidName);
-        }
 
-        if (pValue->IsArray())
-            m_array = pValue->GetArray();
-        else if (pValue->IsDictionary())
-            m_array = pValue->GetDictionary().MustFindKey("D").GetArray();
-        m_pObject = pValue;
+    if (valueExpected)
+    {
+        if (value == nullptr)
+            PODOFO_RAISE_ERROR(EPdfError::InvalidName);
+
+        if (value->IsArray())
+            m_array = value->GetArray();
+        else if (value->IsDictionary())
+            m_array = value->GetDictionary().MustFindKey("D").GetArray();
+
+        m_Object = value;
     }
 }
 
 void PdfDestination::AddToDictionary(PdfDictionary& dictionary) const
 {
     // Do not add empty destinations
-    if (!m_array.size())
+    if (m_array.size() == 0)
         return;
 
     // since we can only have EITHER a Dest OR an Action
     // we check for an Action, and if already present, we throw
-    if (dictionary.HasKey(PdfName("A")))
+    if (dictionary.HasKey("A"))
         PODOFO_RAISE_ERROR(EPdfError::ActionAlreadyPresent);
 
-    dictionary.AddKey("Dest", *m_pObject);
+    dictionary.AddKey("Dest", *m_Object);
 }
 
-PdfPage* PdfDestination::GetPage(PdfDocument* pDoc)
+PdfPage* PdfDestination::GetPage(PdfDocument* doc)
 {
-    if (!m_array.size())
+    if (m_array.size() == 0)
         return nullptr;
 
     // first entry in the array is the page - so just make a new page from it!
-    return &pDoc->GetPageTree().GetPage(m_array[0].GetReference());
+    return &doc->GetPageTree().GetPage(m_array[0].GetReference());
 }
 
-PdfPage* PdfDestination::GetPage(PdfVecObjects* pVecObjects)
+PdfPage* PdfDestination::GetPage(PdfVecObjects* objects)
 {
-    return this->GetPage(&pVecObjects->GetDocument());
+    return this->GetPage(&objects->GetDocument());
 }
 
 PdfDestinationType PdfDestination::GetType() const
 {
-    if (!m_array.size())
+    if (m_array.size() == 0)
         return PdfDestinationType::Unknown;
 
     PdfName tp = m_array[1].GetName();

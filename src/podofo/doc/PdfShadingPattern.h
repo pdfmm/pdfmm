@@ -19,7 +19,7 @@ class PdfObject;
 class PdfPage;
 class PdfWriter;
 
-enum class EPdfShadingPatternType
+enum class PdfShadingPatternType
 {
     FunctionBase = 1,
     Axial = 2,
@@ -51,14 +51,14 @@ protected:
      *  \param eShadingType the type of this shading pattern
      *
      */
-    PdfShadingPattern(PdfDocument& doc, EPdfShadingPatternType eShadingType);
+    PdfShadingPattern(PdfDocument& doc, PdfShadingPatternType shadingType);
 
 private:
     /** Initialize the object
      *
      *  \param eShadingType the type of this shading pattern
      */
-    void Init(EPdfShadingPatternType eShadingType);
+    void Init(PdfShadingPatternType shadingType);
 
 private:
     PdfName m_Identifier;
@@ -78,27 +78,27 @@ public:
     /** Create an axial shading pattern
      *
      *  \param doc the parent
-     *  \param dX0 the starting x coordinate
-     *  \param dY0 the starting y coordinate
-     *  \param dX1 the ending x coordinate
-     *  \param dY1 the ending y coordinate
-     *  \param rStart the starting color
-     *  \param rEnd the ending color
+     *  \param x0 the starting x coordinate
+     *  \param y0 the starting y coordinate
+     *  \param x1 the ending x coordinate
+     *  \param y1 the ending y coordinate
+     *  \param start the starting color
+     *  \param end the ending color
      */
-    PdfAxialShadingPattern(PdfDocument & doc, double dX0, double dY0, double dX1, double dY1, const PdfColor & rStart, const PdfColor & rEnd);
+    PdfAxialShadingPattern(PdfDocument& doc, double x0, double y0, double x1, double y1, const PdfColor& start, const PdfColor& end);
 
 private:
 
     /** Initialize an axial shading pattern
      *
-     *  \param dX0 the starting x coordinate
-     *  \param dY0 the starting y coordinate
-     *  \param dX1 the ending x coordinate
-     *  \param dY1 the ending y coordinate
-     *  \param rStart the starting color
-     *  \param rEnd the ending color
+     *  \param x0 the starting x coordinate
+     *  \param y0 the starting y coordinate
+     *  \param x1 the ending x coordinate
+     *  \param y1 the ending y coordinate
+     *  \param start the starting color
+     *  \param end the ending color
      */
-    void Init(double dX0, double dY0, double dX1, double dY1, const PdfColor& rStart, const PdfColor& rEnd);
+    void Init(double x0, double y0, double x1, double y1, const PdfColor& start, const PdfColor& end);
 };
 
 /** A shading pattern that is an 2D
@@ -110,27 +110,27 @@ public:
     /** Create an 2D shading pattern
      *
      *  \param doc the parent
-     *  \param rLL the color on lower left corner
-     *  \param rUL the color on upper left corner
-     *  \param rLR the color on lower right corner
-     *  \param rUR the color on upper right corner
-     *  \param rMatrix the transformation matrix mapping the coordinate space
+     *  \param llCol the color on lower left corner
+     *  \param ulCol the color on upper left corner
+     *  \param lrCol the color on lower right corner
+     *  \param urCol the color on upper right corner
+     *  \param matrix the transformation matrix mapping the coordinate space
      *         specified by the Domain entry into the shading's target coordinate space
      */
-    PdfFunctionBaseShadingPattern(PdfDocument & doc, const PdfColor & rLL, const PdfColor & rUL, const PdfColor & rLR, const PdfColor & rUR, const PdfArray & rMatrix);
+    PdfFunctionBaseShadingPattern(PdfDocument& doc, const PdfColor& llCol, const PdfColor& ulCol, const PdfColor& lrCol, const PdfColor& urCol, const PdfArray& matrix);
 
 private:
 
     /** Initialize an 2D shading pattern
      *
-     *  \param rLL the color on lower left corner
-     *  \param rUL the color on upper left corner
-     *  \param rLR the color on lower right corner
-     *  \param rUR the color on upper right corner
-     *  \param rMatrix the transformation matrix mapping the coordinate space
+     *  \param llCol the color on lower left corner
+     *  \param ulCol the color on upper left corner
+     *  \param lrCol the color on lower right corner
+     *  \param urCol the color on upper right corner
+     *  \param matrix the transformation matrix mapping the coordinate space
      *         specified by the Domain entry into the shading's target coordinate space
      */
-    void Init(const PdfColor& rLL, const PdfColor& rUL, const PdfColor& rLR, const PdfColor& rUR, const PdfArray& rMatrix);
+    void Init(const PdfColor& llCol, const PdfColor& ulCol, const PdfColor& lrCol, const PdfColor& urCol, const PdfArray& matrix);
 };
 
 /** A shading pattern that is a simple radial
@@ -142,31 +142,31 @@ public:
     /** Create an radial shading pattern
      *
      *  \param doc the parent
-     *  \param dX0 the inner circles x coordinate
-     *  \param dY0 the inner circles y coordinate
-     *  \param dR0 the inner circles radius
-     *  \param dX1 the outer circles x coordinate
-     *  \param dY1 the outer circles y coordinate
-     *  \param dR1 the outer circles radius
-     *  \param rStart the starting color
-     *  \param rEnd the ending color
+     *  \param x0 the inner circles x coordinate
+     *  \param y0 the inner circles y coordinate
+     *  \param r0 the inner circles radius
+     *  \param x1 the outer circles x coordinate
+     *  \param y1 the outer circles y coordinate
+     *  \param r1 the outer circles radius
+     *  \param start the starting color
+     *  \param end the ending color
      */
-    PdfRadialShadingPattern(PdfDocument & doc, double dX0, double dY0, double dR0, double dX1, double dY1, double dR1, const PdfColor & rStart, const PdfColor & rEnd);
+    PdfRadialShadingPattern(PdfDocument& doc, double x0, double y0, double r0, double x1, double y1, double r1, const PdfColor& start, const PdfColor& end);
 
 private:
 
     /** Initialize an radial shading pattern
      *
-     *  \param dX0 the inner circles x coordinate
-     *  \param dY0 the inner circles y coordinate
-     *  \param dR0 the inner circles radius
-     *  \param dX1 the outer circles x coordinate
-     *  \param dY1 the outer circles y coordinate
-     *  \param dR1 the outer circles radius
-     *  \param rStart the starting color
-     *  \param rEnd the ending color
+     *  \param x0 the inner circles x coordinate
+     *  \param y0 the inner circles y coordinate
+     *  \param r0 the inner circles radius
+     *  \param x1 the outer circles x coordinate
+     *  \param y1 the outer circles y coordinate
+     *  \param r1 the outer circles radius
+     *  \param start the starting color
+     *  \param end the ending color
      */
-    void Init(double dX0, double dY0, double dR0, double dX1, double dY1, double dR1, const PdfColor& rStart, const PdfColor& rEnd);
+    void Init(double x0, double y0, double r0, double x1, double y1, double r1, const PdfColor& start, const PdfColor& end);
 };
 
 /** A shading pattern that is a simple triangle
@@ -178,34 +178,34 @@ class PODOFO_DOC_API PdfTriangleShadingPattern final : public PdfShadingPattern
 public:
     /** Create a triangle shading pattern
      *
-     *  \param dX0 triangle x coordinate of point 0
-     *  \param dY0 triangle y coordinate of point 0
-      *  \param color0 color of point 0
-     *  \param dX1 triangle x coordinate of point 1
-     *  \param dY1 triangle y coordinate of point 1
-      *  \param color1 color of point 1
-     *  \param dX2 triangle x coordinate of point 2
-     *  \param dY2 triangle y coordinate of point 2
-      *  \param color2 color of point 2
-     *  \param pParent the parent
+     *  \param x0 triangle x coordinate of point 0
+     *  \param y0 triangle y coordinate of point 0
+     *  \param color0 color of point 0
+     *  \param x1 triangle x coordinate of point 1
+     *  \param y1 triangle y coordinate of point 1
+     *  \param color1 color of point 1
+     *  \param x2 triangle x coordinate of point 2
+     *  \param y2 triangle y coordinate of point 2
+     *  \param color2 color of point 2
+     *  \param parent the parent
      */
-    PdfTriangleShadingPattern(PdfDocument & doc, double dX0, double dY0, const PdfColor & color0, double dX1, double dY1, const PdfColor & color1, double dX2, double dY2, const PdfColor & color2);
+    PdfTriangleShadingPattern(PdfDocument& doc, double x0, double y0, const PdfColor& color0, double x1, double y1, const PdfColor& color1, double x2, double y2, const PdfColor& color2);
 
 private:
 
     /** Initialize a triangle shading pattern
      *
-     *  \param dX0 triangle x coordinate of point 0
-     *  \param dY0 triangle y coordinate of point 0
-      *  \param color0 color of point 0
-     *  \param dX1 triangle x coordinate of point 1
-     *  \param dY1 triangle y coordinate of point 1
-      *  \param color1 color of point 1
-     *  \param dX2 triangle x coordinate of point 2
-     *  \param dY2 triangle y coordinate of point 2
-      *  \param color2 color of point 2
+     *  \param x0 triangle x coordinate of point 0
+     *  \param y0 triangle y coordinate of point 0
+     *  \param color0 color of point 0
+     *  \param x1 triangle x coordinate of point 1
+     *  \param y1 triangle y coordinate of point 1
+     *  \param color1 color of point 1
+     *  \param x2 triangle x coordinate of point 2
+     *  \param y2 triangle y coordinate of point 2
+     *  \param color2 color of point 2
      */
-    void Init(double dX0, double dY0, const PdfColor& color0, double dX1, double dY1, const PdfColor& color1, double dX2, double dY2, const PdfColor& color2);
+    void Init(double x0, double y0, const PdfColor& color0, double x1, double y1, const PdfColor& color1, double x2, double y2, const PdfColor& color2);
 };
 
 };

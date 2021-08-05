@@ -27,11 +27,11 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfTilingPattern::PdfTilingPattern(PdfDocument& doc, PdfTilingPatternType eTilingType,
+PdfTilingPattern::PdfTilingPattern(PdfDocument& doc, PdfTilingPatternType tilingType,
     double strokeR, double strokeG, double strokeB,
     bool doFill, double fillR, double fillG, double fillB,
     double offsetX, double offsetY,
-    PdfImage* pImage)
+    PdfImage* image)
     : PdfElement(doc, "Pattern")
 {
     ostringstream out;
@@ -45,74 +45,69 @@ PdfTilingPattern::PdfTilingPattern(PdfDocument& doc, PdfTilingPatternType eTilin
 
     m_Identifier = PdfName(out.str().c_str());
 
-    this->Init(eTilingType, strokeR, strokeG, strokeB,
-        doFill, fillR, fillG, fillB, offsetX, offsetY, pImage);
+    this->Init(tilingType, strokeR, strokeG, strokeB,
+        doFill, fillR, fillG, fillB, offsetX, offsetY, image);
 }
 
-void PdfTilingPattern::AddToResources(const PdfName& rIdentifier, const PdfReference& rRef, const PdfName& rName)
+void PdfTilingPattern::AddToResources(const PdfName& identifier, const PdfReference& ref, const PdfName& name)
 {
-    PdfObject* pResource = GetObject().GetDictionary().GetKey("Resources");
+    auto& resources = GetObject().GetDictionary().MustFindKey("Resources");
+    if (!resources.GetDictionary().HasKey(name))
+        resources.GetDictionary().AddKey(name, PdfDictionary());
 
-    if (!pResource)
-        PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
-
-    if (!pResource->GetDictionary().HasKey(rName))
-        pResource->GetDictionary().AddKey(rName, PdfDictionary());
-
-    if (EPdfDataType::Reference == pResource->GetDictionary().GetKey(rName)->GetDataType())
+    if (EPdfDataType::Reference == resources.GetDictionary().GetKey(name)->GetDataType())
     {
-        PdfObject* directObject = pResource->GetDocument()->GetObjects().GetObject(pResource->GetDictionary().GetKey(rName)->GetReference());
-
+        auto directObject = resources.GetDocument()->GetObjects().GetObject(resources.GetDictionary().GetKey(name)->GetReference());
         if (directObject == nullptr)
             PODOFO_RAISE_ERROR(EPdfError::NoObject);
 
-        if (!directObject->GetDictionary().HasKey(rIdentifier))
-            directObject->GetDictionary().AddKey(rIdentifier, rRef);
+        if (!directObject->GetDictionary().HasKey(identifier))
+            directObject->GetDictionary().AddKey(identifier, ref);
     }
     else
     {
-        if (!pResource->GetDictionary().GetKey(rName)->GetDictionary().HasKey(rIdentifier))
-            pResource->GetDictionary().GetKey(rName)->GetDictionary().AddKey(rIdentifier, rRef);
+        if (!resources.GetDictionary().GetKey(name)->GetDictionary().HasKey(identifier))
+            resources.GetDictionary().GetKey(name)->GetDictionary().AddKey(identifier, ref);
     }
 }
 
-void PdfTilingPattern::Init(PdfTilingPatternType eTilingType,
+void PdfTilingPattern::Init(PdfTilingPatternType tilingType,
     double strokeR, double strokeG, double strokeB,
     bool doFill, double fillR, double fillG, double fillB,
     double offsetX, double offsetY,
-    PdfImage* pImage)
+    PdfImage* image)
 {
-    if (eTilingType == PdfTilingPatternType::Image && pImage == nullptr)
+    if (tilingType == PdfTilingPatternType::Image && image == nullptr)
         PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
 
-    if (eTilingType != PdfTilingPatternType::Image && pImage != nullptr)
+    if (tilingType != PdfTilingPatternType::Image && image != nullptr)
         PODOFO_RAISE_ERROR(EPdfError::InvalidHandle);
 
-    PdfRect rRect;
-    rRect.SetLeft(0);
-    rRect.SetBottom(0);
+    PdfRect rect;
+    rect.SetLeft(0);
+    rect.SetBottom(0);
 
-    if (pImage)
+    if (image)
     {
-        rRect.SetWidth(pImage->GetWidth());
-        rRect.SetHeight(pImage->GetHeight()); // CHECK-ME: It was -pImage->GetHeight() but that appears to be wrong anyway
+        rect.SetWidth(image->GetWidth());
+        rect.SetHeight(image->GetHeight()); // CHECK-ME: It was -image->GetHeight() but that appears to be wrong anyway
     }
     else
     {
-        rRect.SetWidth(8);
-        rRect.SetHeight(8);
+        rect.SetWidth(8);
+        rect.SetHeight(8);
     }
 
     PdfVariant var;
-    rRect.ToVariant(var);
+    rect.ToVariant(var);
 
     this->GetObject().GetDictionary().AddKey("PatternType", static_cast<int64_t>(1)); // Tiling pattern
     this->GetObject().GetDictionary().AddKey("PaintType", static_cast<int64_t>(1)); // Colored
     this->GetObject().GetDictionary().AddKey("TilingType", static_cast<int64_t>(1)); // Constant spacing
     this->GetObject().GetDictionary().AddKey("BBox", var);
-    this->GetObject().GetDictionary().AddKey("XStep", static_cast<int64_t>(rRect.GetWidth()));
-    this->GetObject().GetDictionary().AddKey("YStep", static_cast<int64_t>(rRect.GetHeight()));
-    this->GetObject().GetDictionary().AddKey("Resources", PdfObject(PdfDictionary()));
+    this->GetObject().GetDictionary().AddKey("XStep", static_cast<int64_t>(rect.GetWidth()));
+    this->GetObject().GetDictionary().AddKey("YStep", static_cast<int64_t>(rect.GetHeight()));
+    this->GetObject().GetDictionary().AddKey("Resources", PdfDictionary());
 
     if (offsetX < -1e-9 || offsetX > 1e-9 || offsetY < -1e-9 || offsetY > 1e-9)
     {
@@ -133,21 +128,12 @@ void PdfTilingPattern::Init(PdfTilingPatternType eTilingType,
     out.precision(1 /* clPainterDefaultPrecision */);
     PdfLocaleImbue(out);
 
-    if (pImage) {
-        AddToResources(pImage->GetIdentifier(), pImage->GetObjectReference(), "XObject");
-
-        out << rRect.GetWidth() << " 0 0 "
-            << rRect.GetHeight() << " "
-            << rRect.GetLeft() << " "
-            << rRect.GetBottom() << " cm" << std::endl;
-        out << "/" << pImage->GetIdentifier().GetString() << " Do" << std::endl;
-    }
-    else
+    if (image == nullptr)
     {
         if (doFill)
         {
             out << fillR << " " << fillG << " " << fillB << " rg" << " ";
-            out << rRect.GetLeft() << " " << rRect.GetBottom() << " " << rRect.GetWidth() << " " << rRect.GetHeight() << " re" << " ";
+            out << rect.GetLeft() << " " << rect.GetBottom() << " " << rect.GetWidth() << " " << rect.GetHeight() << " re" << " ";
             out << "f" << " "; //fill rect
         }
 
@@ -156,14 +142,14 @@ void PdfTilingPattern::Init(PdfTilingPatternType eTilingType,
         out << "0.5 w" << " "; //line width
 
         double left, bottom, right, top, whalf, hhalf;
-        left = rRect.GetLeft();
-        bottom = rRect.GetBottom();
-        right = left + rRect.GetWidth();
-        top = bottom + rRect.GetHeight();
-        whalf = rRect.GetWidth() / 2;
-        hhalf = rRect.GetHeight() / 2;
+        left = rect.GetLeft();
+        bottom = rect.GetBottom();
+        right = left + rect.GetWidth();
+        top = bottom + rect.GetHeight();
+        whalf = rect.GetWidth() / 2;
+        hhalf = rect.GetHeight() / 2;
 
-        switch (eTilingType)
+        switch (tilingType)
         {
             case PdfTilingPatternType::BDiagonal:
                 out << left << " " << bottom << " m " << right << " " << top << " l ";
@@ -190,7 +176,7 @@ void PdfTilingPattern::Init(PdfTilingPatternType eTilingType,
                 out << left + whalf << " " << bottom << " m " << left + whalf << " " << top << " l" << std::endl;
                 break;
             case PdfTilingPatternType::Image:
-                /* This is handled above, based on the 'pImage' variable */
+                /* This is handled above, based on the 'image' variable */
             default:
                 PODOFO_RAISE_ERROR(EPdfError::InvalidEnumValue);
                 break;
@@ -199,12 +185,22 @@ void PdfTilingPattern::Init(PdfTilingPatternType eTilingType,
 
         out << "S"; //stroke path
     }
+    else
+    {
+        AddToResources(image->GetIdentifier(), image->GetObjectReference(), "XObject");
 
-    TVecFilters vecFlate;
-    vecFlate.push_back(PdfFilterType::FlateDecode);
+        out << rect.GetWidth() << " 0 0 "
+            << rect.GetHeight() << " "
+            << rect.GetLeft() << " "
+            << rect.GetBottom() << " cm" << std::endl;
+        out << "/" << image->GetIdentifier().GetString() << " Do" << std::endl;
+    }
+
+    PdfFilterList filters;
+    filters.push_back(PdfFilterType::FlateDecode);
 
     string str = out.str();
     PdfMemoryInputStream stream(str.c_str(), str.length());
 
-    GetObject().GetOrCreateStream().Set(stream, vecFlate);
+    GetObject().GetOrCreateStream().Set(stream, filters);
 }

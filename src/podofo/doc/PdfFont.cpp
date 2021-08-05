@@ -323,8 +323,8 @@ void PdfFont::FillDescriptor(PdfDictionary& dict)
     dict.AddKey("ItalicAngle", PdfObject(static_cast<int64_t>(m_Metrics->GetItalicAngle())));
     dict.AddKey("Ascent", static_cast<int64_t>(std::round(m_Metrics->GetAscent() * 1000)));
     dict.AddKey("Descent", static_cast<int64_t>(m_Metrics->GetDescent() * 1000));
-    dict.AddKey("CapHeight", static_cast<int64_t>(m_Metrics->GetAscent() * 1000)); // m_pMetrics->CapHeight() );
-    dict.AddKey("StemV", PdfObject(static_cast<int64_t>(1))); // m_pMetrics->StemV() );
+    dict.AddKey("CapHeight", static_cast<int64_t>(m_Metrics->GetAscent() * 1000)); // m_Metrics->CapHeight() );
+    dict.AddKey("StemV", PdfObject(static_cast<int64_t>(1))); // m_Metrics->StemV() );
 }
 
 void PdfFont::initImported()
@@ -470,9 +470,7 @@ string_view genSubsetBasename()
     {
         s_ctx.Basename[i]++;
         if (s_ctx.Basename[i] <= 'Z')
-        {
             break;
-        }
 
         s_ctx.Basename[i] = 'A';
     }

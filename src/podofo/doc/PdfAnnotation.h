@@ -104,31 +104,31 @@ class PODOFO_DOC_API PdfAnnotation : public PdfElement
 public:
     /** Create a new annotation object
      *
-     *  \param pPage the parent page of this annotation
+     *  \param page the parent page of this annotation
      *  \param eAnnot type of the annotation
-     *  \param rRect the rectangle in which the annotation will appear on the page
-     *  \param pParent parent of this annotation
+     *  \param rect the rectangle in which the annotation will appear on the page
+     *  \param parent parent of this annotation
      *
      *  \see PdfPage::CreateAnnotation
      */
-    PdfAnnotation(PdfPage& pPage, PdfAnnotationType eAnnot, const PdfRect& rRect);
+    PdfAnnotation(PdfPage& page, PdfAnnotationType annotType, const PdfRect& rect);
 
     /** Create a PdfAnnotation from an existing object
      *
-     *  \param pObject the annotations object
-     *  \param pPage the page of the annotation
+     *  \param obj the annotations object
+     *  \param page the page of the annotation
      */
-    PdfAnnotation(PdfPage& pPage, PdfObject& pObject);
+    PdfAnnotation(PdfPage& page, PdfObject& obj);
 
     ~PdfAnnotation();
 
     /** Set an appearance stream for this object
      *  to specify its visual appearance
-     *  \param pObject an XObject
-     *  \param eApperance an apperance type to set
-     *  \param state the state for which set it the pObject; states depend on the annotation type
+     *  \param obj an XObject
+     *  \param appearance an apperance type to set
+     *  \param state the state for which set it the obj; states depend on the annotation type
      */
-    void SetAppearanceStream(PdfXObject& pObject, PdfAnnotationAppearance eAppearance = PdfAnnotationAppearance::Normal, const PdfName& state = "");
+    void SetAppearanceStream(PdfXObject& obj, PdfAnnotationAppearance appearance = PdfAnnotationAppearance::Normal, const PdfName& state = "");
 
     /**
      * \returns true if this annotation has an appearance stream
@@ -142,10 +142,10 @@ public:
 
     /**
     * \returns the appearance stream for this object
-     *  \param eApperance an apperance type to get
+     *  \param appearance an apperance type to get
      *  \param state a child state. Meaning depends on the annotation type
     */
-    PdfObject* GetAppearanceStream(PdfAnnotationAppearance eAppearance = PdfAnnotationAppearance::Normal, const PdfName& state = "");
+    PdfObject* GetAppearanceStream(PdfAnnotationAppearance appearance = PdfAnnotationAppearance::Normal, const PdfName& state = "");
 
     /** Get the rectangle of this annotation.
      *  \returns a rectangle
@@ -153,9 +153,9 @@ public:
     PdfRect GetRect() const;
 
     /** Set the rectangle of this annotation.
-     * \param rRect rectangle to set
+     * \param rect rectangle to set
      */
-    void SetRect(const PdfRect& rRect);
+    void SetRect(const PdfRect& rect);
 
     /** Set the flags of this annotation.
      *  \param uiFlags is an unsigned 32bit integer with different
@@ -173,26 +173,26 @@ public:
     PdfAnnotationFlags GetFlags() const;
 
     /** Set the annotations border style.
-     *  \param dHCorner horitzontal corner radius
-     *  \param dVCorner vertical corner radius
-     *  \param dWidth width of border
+     *  \param hCorner horitzontal corner radius
+     *  \param vCorner vertical corner radius
+     *  \param width width of border
      */
-    void SetBorderStyle(double dHCorner, double dVCorner, double dWidth);
+    void SetBorderStyle(double hCorner, double vCorner, double width);
 
     /** Set the annotations border style.
-     *  \param dHCorner horitzontal corner radius
+     *  \param hCorner horitzontal corner radius
      *  \param dVCorner vertical corner radius
-     *  \param dWidth width of border
-     *  \param rStrokeStyle a custom stroke style pattern
+     *  \param width width of border
+     *  \param strokeStyle a custom stroke style pattern
      */
-    void SetBorderStyle(double dHCorner, double dVCorner, double dWidth, const PdfArray& rStrokeStyle);
+    void SetBorderStyle(double hCorner, double vCorner, double width, const PdfArray& strokeStyle);
 
     /** Set the title of this annotation.
-     *  \param sTitle title of the annoation as string in PDF format
+     *  \param title title of the annoation as string in PDF format
      *
      *  \see GetTitle
      */
-    void SetTitle(const PdfString& sTitle);
+    void SetTitle(const PdfString& title);
 
     /** Get the title of this annotation
      *
@@ -208,7 +208,7 @@ public:
      *
      *  \see GetContents
      */
-    void SetContents(const PdfString& sContents);
+    void SetContents(const PdfString& contents);
 
     /** Get the text of this annotation
      *
@@ -238,7 +238,7 @@ public:
     bool HasDestination() const;
 
     /** Set the action that is executed for this annotation
-     *  \param rAction an action object
+     *  \param action an action object
      *
      *  \see GetAction
      */
@@ -309,11 +309,11 @@ public:
      *  regions affected by the markup (i.e. the hilighted words, one
      *  quadrilateral per word)
      *
-     *  \param rQuadPoints a PdfArray of 8xn numbers describing the
+     *  \param quadPoints a PdfArray of 8xn numbers describing the
      *           x,y coordinates of BL BR TR TL corners of the
      *           quadrilaterals.
      */
-    void SetQuadPoints(const PdfArray& rQuadPoints);
+    void SetQuadPoints(const PdfArray& quadPoints);
 
     /** Get the color key of the Annotation dictionary
      *  which defines the color of the annotation,
@@ -375,13 +375,13 @@ public:
     /** Get the type of this annotation
      *  \returns the annotation type
      */
-    inline PdfAnnotationType GetType() const { return m_eAnnotation; }
+    inline PdfAnnotationType GetType() const { return m_AnnotationType; }
 
     /** Get the page of this PdfField
      *
      *  \returns the page of this PdfField
      */
-    inline PdfPage* GetPage() const { return m_pPage; }
+    inline PdfPage* GetPage() const { return m_Page; }
 
 private:
     std::shared_ptr<PdfDestination> getDestination();
@@ -389,15 +389,15 @@ private:
     std::shared_ptr<PdfFileSpec> getFileAttachment();
 
 private:
-    PdfAnnotationType m_eAnnotation;
+    PdfAnnotationType m_AnnotationType;
     std::shared_ptr<PdfDestination> m_Destination;
     std::shared_ptr<PdfAction> m_Action;
-    std::shared_ptr<PdfFileSpec> m_pFileSpec;
-    PdfPage* m_pPage;
+    std::shared_ptr<PdfFileSpec> m_FileSpec;
+    PdfPage* m_Page;
 };
 
 // helper function, to avoid code duplication
-void SetAppearanceStreamForObject(PdfObject& pForObject, PdfXObject& pObject, PdfAnnotationAppearance eAppearance, const PdfName& state);
+void SetAppearanceStreamForObject(PdfObject& obj, PdfXObject& xobj, PdfAnnotationAppearance appearance, const PdfName& state);
 
 };
 

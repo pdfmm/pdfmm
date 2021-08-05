@@ -20,7 +20,7 @@ class PdfArray;
 /**
  * The function type of a mathematical function in a PDF file.
  */
-enum class EPdfFunctionType
+enum class PdfFunctionType
 {
     Sampled = 0, ///< A sampled function (Type1)
     Exponential = 2, ///< An exponential interpolation function (Type2)
@@ -44,24 +44,24 @@ public:
 protected:
     /** Create a new PdfFunction object.
      *
-     *  \param eType the function type
-     *  \param rDomain this array describes the input parameters of this PdfFunction. If this
+     *  \param functionType the function type
+     *  \param domain this array describes the input parameters of this PdfFunction. If this
      *                 function has m input parameters, this array has to contain 2*m numbers
      *                 where each number describes either the lower or upper boundary of the input range.
-     *  \param pParent parent document
+     *  \param parent parent document
      *
      */
-    PdfFunction(PdfDocument& doc, EPdfFunctionType eType, const PdfArray& rDomain);
+    PdfFunction(PdfDocument& doc, PdfFunctionType functionType, const PdfArray& domain);
 
 private:
     /** Initialize this object.
      *
-     *  \param eType the function type
-     *  \param rDomain this array describes the input parameters of this PdfFunction. If this
+     *  \param functionType the function type
+     *  \param domain this array describes the input parameters of this PdfFunction. If this
      *                 function has m input parameters, this array has to contain 2*m numbers
      *                 where each number describes either the lower or upper boundary of the input range.
      */
-    void Init(EPdfFunctionType eType, const PdfArray& rDomain);
+    void Init(PdfFunctionType functionType, const PdfArray& domain);
 
 };
 
@@ -72,21 +72,21 @@ class PODOFO_DOC_API PdfSampledFunction : public PdfFunction
 public:
     /** Create a new PdfSampledFunction object.
      *
-     *  \param rDomain this array describes the input parameters of this PdfFunction. If this
+     *  \param doc parent document
+     *  \param domain this array describes the input parameters of this PdfFunction. If this
      *                 function has m input parameters, this array has to contain 2*m numbers
      *                 where each number describes either the lower or upper boundary of the input range.
-     *  \param rRange  this array describes the output parameters of this PdfFunction. If this
+     *  \param range  this array describes the output parameters of this PdfFunction. If this
      *                 function has n input parameters, this array has to contain 2*n numbers
      *                 where each number describes either the lower or upper boundary of the output range.
-     *  \param rlstSamples a list of bytes which are used to build up this function sample data
-     *  \param pParent parent document
+     *  \param samples a list of bytes which are used to build up this function sample data
      */
-    PdfSampledFunction(PdfDocument& doc, const PdfArray& rDomain, const PdfArray& rRange, const PdfFunction::Sample& rlstSamples);
+    PdfSampledFunction(PdfDocument& doc, const PdfArray& domain, const PdfArray& range, const PdfFunction::Sample& samples);
 
 private:
     /** Initialize this object.
      */
-    void Init(const PdfArray& rDomain, const PdfArray& rRange, const PdfFunction::Sample& rlstSamples);
+    void Init(const PdfArray& domain, const PdfArray& range, const PdfFunction::Sample& samples);
 
 };
 
@@ -97,20 +97,20 @@ class PODOFO_DOC_API PdfExponentialFunction : public PdfFunction
 public:
     /** Create a new PdfExponentialFunction object.
      *
-     *  \param rDomain this array describes the input parameters of this PdfFunction. If this
+     *  \param doc parent document
+     *  \param domain this array describes the input parameters of this PdfFunction. If this
      *                 function has m input parameters, this array has to contain 2*m numbers
      *                 where each number describes either the lower or upper boundary of the input range.
-     *  \param rC0
-     *  \param rC1
-     *  \param dExponent
-     *  \param pParent parent document
+     *  \param c0
+     *  \param c1
+     *  \param exponent
      */
-    PdfExponentialFunction(PdfDocument& doc, const PdfArray& rDomain, const PdfArray& rC0, const PdfArray& rC1, double dExponent);
+    PdfExponentialFunction(PdfDocument& doc, const PdfArray& domain, const PdfArray& c0, const PdfArray& c1, double exponent);
 
 private:
     /** Initialize this object.
      */
-    void Init(const PdfArray& rC0, const PdfArray& rC1, double dExponent);
+    void Init(const PdfArray& c0, const PdfArray& c1, double exponent);
 
 };
 
@@ -125,25 +125,25 @@ class PODOFO_DOC_API PdfStitchingFunction : public PdfFunction
 public:
     /** Create a new PdfStitchingFunction object.
      *
-     *  \param rlstFunctions a list of functions which are used to built up this function object
-     *  \param rDomain this array describes the input parameters of this PdfFunction. If this
+     *  \param functions a list of functions which are used to built up this function object
+     *  \param domain this array describes the input parameters of this PdfFunction. If this
      *                 function has m input parameters, this array has to contain 2*m numbers
      *                 where each number describes either the lower or upper boundary of the input range.
-     *  \param rBounds the bounds array
-     *  \param rEncode the encode array
-     *  \param pParent parent document
+     *  \param bounds the bounds array
+     *  \param encode the encode array
+     *  \param parent parent document
      *
      */
-    PdfStitchingFunction(PdfDocument& doc, const PdfFunction::List& rlstFunctions, const PdfArray& rDomain, const PdfArray& rBounds, const PdfArray& rEncode);
+    PdfStitchingFunction(PdfDocument& doc, const PdfFunction::List& functions, const PdfArray& domain, const PdfArray& bounds, const PdfArray& encode);
 
 private:
     /** Initialize this object.
      *
-     *  \param rlstFunctions a list of functions which are used to built up this function object
-     *  \param rBounds the bounds array
-     *  \param rEncode the encode array
+     *  \param functions a list of functions which are used to built up this function object
+     *  \param bounds the bounds array
+     *  \param encode the encode array
      */
-    void Init(const PdfFunction::List& rlstFunctions, const PdfArray& rBounds, const PdfArray& rEncode);
+    void Init(const PdfFunction::List& functions, const PdfArray& bounds, const PdfArray& encode);
 
 };
 

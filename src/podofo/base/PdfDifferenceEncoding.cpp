@@ -2189,7 +2189,7 @@ PdfEncodingDifference::PdfEncodingDifference(const PdfEncodingDifference& rhs)
 
 const PdfEncodingDifference& PdfEncodingDifference::operator=(const PdfEncodingDifference& rhs)
 {
-    m_vecDifferences = rhs.m_vecDifferences;
+    m_differences = rhs.m_differences;
     return *this;
 }
 
@@ -2218,7 +2218,7 @@ void PdfEncodingDifference::AddDifference(unsigned char code, char32_t codePoint
         dif.CodePoint = codePoint;
 
     pair<iterator, iterator> it =
-        std::equal_range(m_vecDifferences.begin(), m_vecDifferences.end(), dif, DifferenceComparatorPredicate());
+        std::equal_range(m_differences.begin(), m_differences.end(), dif, DifferenceComparatorPredicate());
 
     if (it.first != it.second)
     {
@@ -2227,7 +2227,7 @@ void PdfEncodingDifference::AddDifference(unsigned char code, char32_t codePoint
     }
     else
     {
-        m_vecDifferences.insert(it.first, dif);
+        m_differences.insert(it.first, dif);
     }
 }
 
@@ -2242,7 +2242,7 @@ bool PdfEncodingDifference::contains(unsigned char code, PdfName& name, char32_t
     diff.Code = code;
 
     pair<iterator, iterator> it =
-        std::equal_range(m_vecDifferences.begin(), m_vecDifferences.end(),
+        std::equal_range(m_differences.begin(), m_differences.end(),
             diff, DifferenceComparatorPredicate());
 
     if (it.first != it.second)
@@ -2266,7 +2266,7 @@ bool PdfEncodingDifference::contains(unsigned char code, PdfName& name, char32_t
 
 bool PdfEncodingDifference::ContainsUnicodeValue(char32_t codePoint, unsigned char& code) const
 {
-    for (auto& diff : m_vecDifferences)
+    for (auto& diff : m_differences)
     {
         if (diff.CodePoint == codePoint)
         {
@@ -2282,7 +2282,7 @@ void PdfEncodingDifference::ToArray(PdfArray& arr) const
 {
     int64_t nLastCode = -2;
     arr.Clear();
-    for (auto& diff : m_vecDifferences)
+    for (auto& diff : m_differences)
     {
         if (diff.Code != nLastCode + 1)
         {
@@ -2301,30 +2301,30 @@ void PdfEncodingDifference::ToArray(PdfArray& arr) const
 
 size_t PdfEncodingDifference::GetCount() const
 {
-    return m_vecDifferences.size();
+    return m_differences.size();
 }
 
 PdfDifferenceEncoding::PdfDifferenceEncoding(const PdfEncodingDifference& difference,
-        EBaseEncoding eBaseEncoding) :
+        PdfBaseEncoding baseEncoding) :
     PdfEncodingMapSimple({ 1, 1, PdfCharCode(0), PdfCharCode(0xFF) }),
     m_differences(difference),
-    m_baseEncoding(eBaseEncoding)
+    m_baseEncoding(baseEncoding)
 {
 }
 
 PdfDifferenceEncoding::PdfDifferenceEncoding(const PdfObject& obj, bool explicitNames) :
     PdfEncodingMapSimple({ 1, 1, PdfCharCode(0), PdfCharCode(0xFF) })
 {
-    m_baseEncoding = EBaseEncoding::Implicit;
+    m_baseEncoding = PdfBaseEncoding::Implicit;
     if (obj.GetDictionary().HasKey("BaseEncoding"))
     {
         const PdfName& baseEncodingName = obj.GetDictionary().MustFindKey("BaseEncoding").GetName();
         if (baseEncodingName == "WinAnsiEncoding")
-            m_baseEncoding = EBaseEncoding::WinAnsi;
+            m_baseEncoding = PdfBaseEncoding::WinAnsi;
         else if (baseEncodingName == "MacRomanEncoding")
-            m_baseEncoding = EBaseEncoding::MacRoman;
+            m_baseEncoding = PdfBaseEncoding::MacRoman;
         else if (baseEncodingName == "MacExpertEncoding")
-            m_baseEncoding = EBaseEncoding::MacExpert;
+            m_baseEncoding = PdfBaseEncoding::MacExpert;
     }
 
     // Read the differences key
@@ -2353,17 +2353,17 @@ void PdfDifferenceEncoding::getExportObject(PdfVecObjects& objects, PdfName& nam
     auto& dict = obj->GetDictionary();
     switch (m_baseEncoding)
     {
-        case EBaseEncoding::WinAnsi:
+        case PdfBaseEncoding::WinAnsi:
             dict.AddKey("BaseEncoding", PdfName("WinAnsiEncoding"));
             break;
-        case EBaseEncoding::MacRoman:
+        case PdfBaseEncoding::MacRoman:
             dict.AddKey("BaseEncoding", PdfName("MacRomanEncoding"));
             break;
-        case EBaseEncoding::MacExpert:
+        case PdfBaseEncoding::MacExpert:
             dict.AddKey("BaseEncoding", PdfName("MacExpertEncoding"));
             break;
 
-        case EBaseEncoding::Implicit:
+        case PdfBaseEncoding::Implicit:
         default:
             break;
     }
@@ -2461,16 +2461,16 @@ const PdfEncodingMap& PdfDifferenceEncoding::GetBaseEncoding() const
 {
     switch (m_baseEncoding)
     {
-        case EBaseEncoding::WinAnsi:
+        case PdfBaseEncoding::WinAnsi:
             return *PdfEncodingMapFactory::WinAnsiEncodingInstance().get();
 
-        case EBaseEncoding::MacRoman:
+        case PdfBaseEncoding::MacRoman:
             return *PdfEncodingMapFactory::MacRomanEncodingInstance().get();
 
-        case EBaseEncoding::MacExpert:
+        case PdfBaseEncoding::MacExpert:
             return *PdfEncodingMapFactory::MacExpertEncodingInstance().get();
 
-        case EBaseEncoding::Implicit:
+        case PdfBaseEncoding::Implicit:
         default:
             // TODO: Implicit base encoding can be:
             // 1) An encoding stored in the font program (see PdfFontType1Encoding)

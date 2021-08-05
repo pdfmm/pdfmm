@@ -21,7 +21,7 @@ namespace PoDoFo {
 class PdfEncrypt;
 class PdfVariant;
 
-enum class EPdfTokenType
+enum class PdfTokenType
 {
     Unknown = 0,
     Literal,
@@ -38,11 +38,6 @@ enum class EPdfTokenType
     Slash,
 };
 
-typedef std::pair<std::string, EPdfTokenType> TTokenizerPair;
-typedef std::deque<TTokenizerPair> TTokenizerQueque;
-typedef TTokenizerQueque::iterator TITokenizerQueque;
-typedef TTokenizerQueque::const_iterator TCITokenizerQueque;
-
 /**
  * A simple tokenizer for PDF files and PDF content streams
  */
@@ -56,19 +51,19 @@ public:
 
 public:
     PdfTokenizer(bool readReferences = true);
-    PdfTokenizer(const PdfRefCountedBuffer& rBuffer, bool readReferences = true);
+    PdfTokenizer(const PdfRefCountedBuffer& buffer, bool readReferences = true);
 
     /** Reads the next token from the current file position
      *  ignoring all comments.
      *
-     *  \param[out] pszToken On true return, set to a pointer to the read
+     *  \param[out] token On true return, set to a pointer to the read
      *                     token (a nullptr-terminated C string). The pointer is
      *                     to memory owned by PdfTokenizer and must NOT be
      *                     freed.  The contents are invalidated on the next
      *                     call to tryReadNextToken(..) and by the destruction of
      *                     the PdfTokenizer. Undefined on false return.
      *
-     *  \param[out] peType On true return, if not nullptr the type of the read token
+     *  \param[out] tokenType On true return, if not nullptr the type of the read token
      *                     will be stored into this parameter. Undefined on false
      *                     return.
      *
@@ -76,7 +71,7 @@ public:
      *                     more tokens to read.
      */
     bool TryReadNextToken(PdfInputDevice& device, std::string_view& token);
-    bool TryReadNextToken(PdfInputDevice& device, std::string_view& token, EPdfTokenType& tokenType);
+    bool TryReadNextToken(PdfInputDevice& device, std::string_view& token, PdfTokenType& tokenType);
 
     /** Reads the next token from the current file position
      *  ignoring all comments and compare the passed token
@@ -84,12 +79,12 @@ public:
      *
      *  If there is no next token available, throws UnexpectedEOF.
      *
-     *  \param pszToken a token that is compared to the
+     *  \param token a token that is compared to the
      *                  read token
      *
      *  \returns true if the read token equals the passed token.
      */
-    bool IsNextToken(PdfInputDevice& device, const std::string_view& pszToken);
+    bool IsNextToken(PdfInputDevice& device, const std::string_view& token);
 
     /** Read the next number from the current file position
      *  ignoring all comments.
@@ -108,10 +103,10 @@ public:
      *  Raises an UnexpectedEOF exception if there is no variant left in the
      *  file.
      *
-     *  \param rVariant write the read variant to this value
-     *  \param pEncrypt an encryption object which is used to decrypt strings during parsing
+     *  \param variant write the read variant to this value
+     *  \param encrypt an encryption object which is used to decrypt strings during parsing
      */
-    void ReadNextVariant(PdfInputDevice& device, PdfVariant& rVariant, PdfEncrypt* pEncrypt = nullptr);
+    void ReadNextVariant(PdfInputDevice& device, PdfVariant& variant, PdfEncrypt* encrypt = nullptr);
 
 public:
     PdfRefCountedBuffer& GetBuffer() { return m_buffer; }
@@ -131,7 +126,7 @@ public:
 
     /** Returns true if the given character is a token delimiter
      */
-    static bool IsTokenDelimiter(unsigned char ch, EPdfTokenType& tokenType);
+    static bool IsTokenDelimiter(unsigned char ch, PdfTokenType& tokenType);
 
     /**
      * True if the passed character is a regular character according to the PDF
@@ -167,7 +162,7 @@ protected:
     // it enumerates only data types that can be determined literally
     // by the tokenization and specify better if the strings literals
     // are regular or hex strings
-    enum class EPdfLiteralDataType
+    enum class PdfLiteralDataType
     {
         Unknown = 0,
         Bool,
@@ -188,63 +183,63 @@ protected:
      *
      *  Raises an exception if there is no variant left in the file.
      *
-     *  \param pszToken a token that has already been read
-     *  \param eType type of the passed token
-     *  \param rVariant write the read variant to this value
-     *  \param pEncrypt an encryption object which is used to decrypt strings during parsing
+     *  \param token a token that has already been read
+     *  \param type type of the passed token
+     *  \param variant write the read variant to this value
+     *  \param encrypt an encryption object which is used to decrypt strings during parsing
      */
-    void ReadNextVariant(PdfInputDevice& device, const std::string_view& token, EPdfTokenType eType, PdfVariant& variant, PdfEncrypt* encrypt);
-    bool TryReadNextVariant(PdfInputDevice& device, const std::string_view& token, EPdfTokenType eType, PdfVariant& variant, PdfEncrypt* encrypt);
+    void ReadNextVariant(PdfInputDevice& device, const std::string_view& token, PdfTokenType tokenType, PdfVariant& variant, PdfEncrypt* encrypt);
+    bool TryReadNextVariant(PdfInputDevice& device, const std::string_view& token, PdfTokenType tokenType, PdfVariant& variant, PdfEncrypt* encrypt);
 
     /** Add a token to the queue of tokens.
      *  tryReadNextToken() will return all enqueued tokens first before
      *  reading new tokens from the input device.
      *
-     *  \param pszToken string of the token
-     *  \param eType type of the token
+     *  \param token string of the token
+     *  \param type type of the token
      *
      *  \see tryReadNextToken
      */
-    void EnqueueToken(const std::string_view& pszToken, EPdfTokenType eType);
+    void EnqueueToken(const std::string_view& token, PdfTokenType type);
 
     /** Read a dictionary from the input device
      *  and store it into a variant.
      *
-     *  \param rVariant store the dictionary into this variable
-     *  \param pEncrypt an encryption object which is used to decrypt strings during parsing
+     *  \param variant store the dictionary into this variable
+     *  \param encrypt an encryption object which is used to decrypt strings during parsing
      */
     void ReadDictionary(PdfInputDevice& device, PdfVariant& variant, PdfEncrypt* encrypt);
 
     /** Read an array from the input device
      *  and store it into a variant.
      *
-     *  \param rVariant store the array into this variable
-     *  \param pEncrypt an encryption object which is used to decrypt strings during parsing
+     *  \param variant store the array into this variable
+     *  \param encrypt an encryption object which is used to decrypt strings during parsing
      */
     void ReadArray(PdfInputDevice& device, PdfVariant& variant, PdfEncrypt* encrypt);
 
     /** Read a string from the input device
      *  and store it into a variant.
      *
-     *  \param rVariant store the string into this variable
-     *  \param pEncrypt an encryption object which is used to decrypt strings during parsing
+     *  \param variant store the string into this variable
+     *  \param encrypt an encryption object which is used to decrypt strings during parsing
      */
-    void ReadString(PdfInputDevice& device, PdfVariant& rVariant, PdfEncrypt* pEncrypt);
+    void ReadString(PdfInputDevice& device, PdfVariant& variant, PdfEncrypt* encrypt);
 
     /** Read a hex string from the input device
      *  and store it into a variant.
      *
-     *  \param rVariant store the hex string into this variable
-     *  \param pEncrypt an encryption object which is used to decrypt strings during parsing
+     *  \param variant store the hex string into this variable
+     *  \param encrypt an encryption object which is used to decrypt strings during parsing
      */
-    void ReadHexString(PdfInputDevice& device, PdfVariant& rVariant, PdfEncrypt* pEncrypt);
+    void ReadHexString(PdfInputDevice& device, PdfVariant& variant, PdfEncrypt* encrypt);
 
     /** Read a name from the input device
      *  and store it into a variant.
      *
      *  Throws UnexpectedEOF if there is nothing to read.
      *
-     *  \param rVariant store the name into this variable
+     *  \param variant store the name into this variable
      */
     void ReadName(PdfInputDevice& device, PdfVariant& variant);
 
@@ -254,15 +249,19 @@ protected:
      *
      *  \returns the expected datatype
      */
-    EPdfLiteralDataType DetermineDataType(PdfInputDevice& device, const std::string_view& token, EPdfTokenType eType, PdfVariant& variant);
+    PdfLiteralDataType DetermineDataType(PdfInputDevice& device, const std::string_view& token, PdfTokenType tokenType, PdfVariant& variant);
 
 private:
-    bool tryReadDataType(PdfInputDevice& device, EPdfLiteralDataType eDataType, PdfVariant& rVariant, PdfEncrypt* pEncrypt);
+    bool tryReadDataType(PdfInputDevice& device, PdfLiteralDataType dataType, PdfVariant& variant, PdfEncrypt* encrypt);
+
+private:
+    typedef std::pair<std::string, PdfTokenType> TokenizerPair;
+    typedef std::deque<TokenizerPair> TokenizerQueque;
 
 private:
     PdfRefCountedBuffer m_buffer;
     bool m_readReferences;
-    TTokenizerQueque m_deqQueque;
+    TokenizerQueque m_tokenQueque;
     buffer_t m_charBuffer;
 
     // An istringstream which is used

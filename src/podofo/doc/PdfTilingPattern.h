@@ -36,7 +36,7 @@ public:
     /** Create a new PdfTilingPattern object, which will introduce itself
      *  automatically to every page object it is used on.
      *
-     *  \param eTilingType the type of this tiling pattern
+     *  \param tilingType the type of this tiling pattern
      *  \param strokeR strok color red component
      *  \param strokeG strok color green component
      *  \param strokeB strok color blue component
@@ -46,30 +46,30 @@ public:
      *  \param fillB fill color blue component
      *  \param offsetX tile offset on X axis
      *  \param offsetY tile offset on Y axis
-     *  \param pImage image to use - can be set only if eTilingType is EPdfTilingPatternType::Image
-     *  \param pParent parent document
+     *  \param image image to use - can be set only if eTilingType is EPdfTilingPatternType::Image
+     *  \param parent parent document
      *
      *  \note stroke and fill colors are ignored if eTilingType is EPdfTilingPatternType::Image
      *
      *  \note fill color is ignored if doFill is false
      *
-     *  \note pImage is ignored for all but EPdfTilingPatternType::Image eTilingType types, where it cannot be nullptr
+     *  \note image is ignored for all but EPdfTilingPatternType::Image tilingType types, where it cannot be nullptr
      *
      */
-    PdfTilingPattern(PdfDocument& doc, PdfTilingPatternType eTilingType,
+    PdfTilingPattern(PdfDocument& doc, PdfTilingPatternType tilingType,
         double strokeR, double strokeG, double strokeB,
         bool doFill, double fillR, double fillG, double fillB,
         double offsetX, double offsetY,
-        PdfImage* pImage);
+        PdfImage* image);
 
 private:
-    void Init(PdfTilingPatternType eTilingType,
+    void Init(PdfTilingPatternType tilingType,
         double strokeR, double strokeG, double strokeB,
         bool doFill, double fillR, double fillG, double fillB,
         double offsetX, double offsetY,
-        PdfImage* pImage);
+        PdfImage* image);
 
-    void AddToResources(const PdfName& rIdentifier, const PdfReference& rRef, const PdfName& rName);
+    void AddToResources(const PdfName& identifier, const PdfReference& ref, const PdfName& name);
 private:
     PdfName m_Identifier;
 };

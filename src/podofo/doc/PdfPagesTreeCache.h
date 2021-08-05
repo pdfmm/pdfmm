@@ -52,7 +52,7 @@ public:
     /**
      * Add several PdfPage objects to the cache, replacing any existing at the given index
      * \param atIndex zero based index of where the first page will be placed
-     * \param vecPages vector of the page objects to add
+     * \param pages vector of the page objects to add
      */
     void SetPages(unsigned atIndex, const std::vector<PdfPage*>& pages);
 
@@ -86,7 +86,7 @@ public:
     void ClearCache();
 
 private:
-    PdfPageList m_deqPageObjs;
+    PdfPageList m_PageObjs;
 };
 
 };

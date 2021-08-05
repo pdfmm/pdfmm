@@ -41,20 +41,20 @@ class PODOFO_DOC_API PdfPage final : public PdfElement, public PdfCanvas
 {
 public:
     /** Create a new PdfPage object.
-     *  \param rSize a PdfRect specifying the size of the page (i.e the /MediaBox key) in PDF units
-     *  \param pParent add the page to this parent
+     *  \param size a PdfRect specifying the size of the page (i.e the /MediaBox key) in PDF units
+     *  \param parent add the page to this parent
      */
-    PdfPage(PdfDocument& pParent, const PdfRect& rSize);
+    PdfPage(PdfDocument& parent, const PdfRect& size);
 
     /** Create a PdfPage based on an existing PdfObject
-     *  \param pObject an existing PdfObject
+     *  \param obj an existing PdfObject
      *  \param listOfParents a list of PdfObjects that are
      *                       parents of this page and can be
      *                       queried for inherited attributes.
      *                       The last object in the list is the
      *                       most direct parent of this page.
      */
-    PdfPage(PdfObject& pObject, const std::deque<PdfObject*>& listOfParents);
+    PdfPage(PdfObject& obj, const std::deque<PdfObject*>& listOfParents);
 
     virtual ~PdfPage();
 
@@ -79,14 +79,14 @@ public:
     bool SetPageHeight(int newHeight);
 
     /** Set the mediabox in PDF Units
-    *  \param rSize a PdfRect specifying the mediabox of the page (i.e the /TrimBox key) in PDF units
+    *  \param size a PdfRect specifying the mediabox of the page (i.e the /TrimBox key) in PDF units
     */
-    void SetMediaBox(const PdfRect& rSize);
+    void SetMediaBox(const PdfRect& size);
 
     /** Set the trimbox in PDF Units
-     *  \param rSize a PdfRect specifying the trimbox of the page (i.e the /TrimBox key) in PDF units
+     *  \param size a PdfRect specifying the trimbox of the page (i.e the /TrimBox key) in PDF units
      */
-    void SetTrimBox(const PdfRect& rSize);
+    void SetTrimBox(const PdfRect& size);
 
     /** Page number inside of the document. The  first page
      *  has the number 1, the last page has the number
@@ -101,11 +101,11 @@ public:
     /** Creates a PdfRect with the page size as values which is needed to create a PdfPage object
      *  from an enum which are defined for a few standard page sizes.
      *
-     *  \param ePageSize the page size you want
-     *  \param bLandscape create a landscape pagesize instead of portrait (by exchanging width and height)
+     *  \param pageSize the page size you want
+     *  \param landscape create a landscape pagesize instead of portrait (by exchanging width and height)
      *  \returns a PdfRect object which can be passed to the PdfPage constructor
      */
-    static PdfRect CreateStandardPageSize(const PdfPageSize ePageSize, bool bLandscape = false);
+    static PdfRect CreateStandardPageSize(const PdfPageSize pageSize, bool landscape = false);
 
     /** Get the current MediaBox (physical page size) in PDF units.
      *  \returns PdfRect the page box
@@ -140,7 +140,7 @@ public:
     /** Set the current page rotation.
      *  \param iRotation Rotation to set to the page. Valid value are 0, 90, 180, 270.
      */
-    void SetRotationRaw(int nRotation);
+    void SetRotationRaw(int rotation);
 
     /** Get the number of annotations associated with this page
      * \ returns int number of annotations
@@ -148,12 +148,12 @@ public:
     unsigned GetAnnotationCount() const;
 
     /** Create a new annotation to this page.
-     *  \param eType the type of the annotation
-     *  \param rRect rectangle of the annotation on the page
+     *  \param annotType the type of the annotation
+     *  \param rect rectangle of the annotation on the page
      *
      *  \returns the annotation object which is owned by the PdfPage
      */
-    PdfAnnotation* CreateAnnotation(PdfAnnotationType eType, const PdfRect& rRect);
+    PdfAnnotation* CreateAnnotation(PdfAnnotationType annotType, const PdfRect& rect);
 
     /** Get the annotation with index index of the current page.
      *  \param index the index of the annotation to retrieve
@@ -194,7 +194,7 @@ public:
      *
      *  \returns PdfObject - the result of the key fetching or nullptr
      */
-    const PdfObject* GetInheritedKey(const PdfName& rName) const;
+    const PdfObject* GetInheritedKey(const PdfName& name) const;
 
     /** Set an ICC profile for this page
      *
@@ -217,11 +217,11 @@ private:
 
     /**
      * Initialize a new page object.
-     * m_pContents must be initialized before calling this!
+     * m_Contents must be initialized before calling this!
      *
-     * @param rSize page size
+     * \param size page size
      */
-    void InitNewPage(const PdfRect& rSize);
+    void InitNewPage(const PdfRect& size);
 
     void EnsureContentsCreated() const;
     void EnsureResourcesCreated() const;
@@ -235,7 +235,7 @@ private:
     /** Method for getting a key value that could be inherited (such as the boxes, resources, etc.)
      *  \returns PdfObject - the result of the key fetching or nullptr
      */
-    const PdfObject* GetInheritedKeyFromObject(const std::string_view& inKey, const PdfObject& inObject, int depth = 0) const;
+    const PdfObject* GetInheritedKeyFromObject(const std::string_view& key, const PdfObject& inObject, int depth = 0) const;
 
 private:
     PdfArray* GetAnnotationsArray() const;

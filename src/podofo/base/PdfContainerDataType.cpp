@@ -16,14 +16,14 @@
 using namespace PoDoFo;
 
 PdfContainerDataType::PdfContainerDataType()
-    : m_Owner(nullptr), m_isImmutable(false)
+    : m_Owner(nullptr), m_IsImmutable(false)
 {
 }
 
 // NOTE: Don't copy owner. Copied objects must be always detached.
 // Ownership will be set automatically elsewhere
 PdfContainerDataType::PdfContainerDataType(const PdfContainerDataType& rhs)
-    : PdfDataType(rhs), m_Owner(nullptr), m_isImmutable(false)
+    : PdfDataType(rhs), m_Owner(nullptr), m_IsImmutable(false)
 {
 }
 

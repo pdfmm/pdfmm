@@ -36,7 +36,7 @@ class PODOFO_API PdfPostScriptTokenizer final : private PdfTokenizer
 {
 public:
     PdfPostScriptTokenizer();
-    PdfPostScriptTokenizer(const PdfRefCountedBuffer& rBuffer);
+    PdfPostScriptTokenizer(const PdfRefCountedBuffer& buffer);
 public:
     bool TryReadNext(PdfInputDevice& device, EPdfPostScriptTokenType& tokenType, std::string_view& keyword, PdfVariant& variant);
     void ReadNextVariant(PdfInputDevice& device, PdfVariant& variant);

@@ -68,81 +68,81 @@ enum class PdfFieldFlags
 class PODOFO_DOC_API PdfField
 {
 protected:
-    PdfField(PdfFieldType eField, PdfPage& page, const PdfRect& rect);
+    PdfField(PdfFieldType fieldType, PdfPage& page, const PdfRect& rect);
 
-    PdfField(PdfFieldType eField, PdfDocument& doc, PdfAnnotation* pWidget, bool insertInAcroform);
+    PdfField(PdfFieldType fieldType, PdfDocument& doc, PdfAnnotation* widget, bool insertInAcroform);
 
-    PdfField(PdfFieldType eField, PdfPage& page, const PdfRect& rRect, bool bDefaultApperance);
+    PdfField(PdfFieldType fieldType, PdfPage& page, const PdfRect& rect, bool bDefaultApperance);
 
-    PdfField(PdfFieldType eField, PdfObject& obj, PdfAnnotation* widget);
+    PdfField(PdfFieldType fieldType, PdfObject& obj, PdfAnnotation* widget);
 
     /**
      *  Set a bit in the field flags value of the fields dictionary.
      *
-     *  \param lValue the value specifying the bits to set
-     *  \param bSet if true the value will be set otherwise
+     *  \param value the value specifying the bits to set
+     *  \param set if true the value will be set otherwise
      *              they will be cleared.
      *
      *  \see GetFieldFlag
      */
-    void SetFieldFlag(int64_t lValue, bool bSet);
+    void SetFieldFlag(int64_t value, bool set);
 
     /**
-     *  \param lValue it is checked if these bits are set
-     *  \param bDefault the returned value if no field flags are specified
+     *  \param value it is checked if these bits are set
+     *  \param defvalue the returned value if no field flags are specified
      *
      *  \returns true if given bits are set in the field flags
      *
      *  \see SetFieldFlag
      */
-    bool GetFieldFlag(int64_t lValue, bool bDefault) const;
+    bool GetFieldFlag(int64_t value, bool defvalue) const;
 
     /**
-    *  \param rObject the object to test for field flags
-    *  \param lValue is set with the flag if found
+    *  \param obj the object to test for field flags
+    *  \param value is set with the flag if found
     *  \returns true if flag is found
     */
-    static bool GetFieldFlags(const PdfObject& rObject, int64_t& lValue);
+    static bool GetFieldFlags(const PdfObject& obj, int64_t& value);
 
     /**
-     * \param bCreate create the dictionary if it does not exist
+     * \param create create the dictionary if it does not exist
      *
      * \returns a pointer to the appearance characteristics dictionary
      *          of this object or nullptr if it does not exists.
      */
-    PdfObject* GetAppearanceCharacteristics(bool bCreate) const;
+    PdfObject* GetAppearanceCharacteristics(bool create) const;
 
     void AssertTerminalField() const;
 
 public:
     /** Create a PdfAcroForm dictionary object from an existing PdfObject
-     *	\param pObject the object to create from
-     *  \param pWidget the widget annotation of this field
+     *	\param obj the object to create from
+     *  \param widget the widget annotation of this field
      */
-    PdfField(PdfObject& obj, PdfAnnotation* pWidget);
+    PdfField(PdfObject& obj, PdfAnnotation* widget);
 
     virtual ~PdfField() { }
 
     /** Create a PdfAcroForm dictionary object from an existing annottion
-    *  \param pWidget the widget annotation of this field
+    *  \param widget the widget annotation of this field
     *  \returns the pointer to the created field
     */
-    static PdfField* CreateField(PdfAnnotation& pWidget);
+    static PdfField* CreateField(PdfAnnotation& widget);
 
     /** Create a PdfAcroForm dictionary object from an existing object
     *  \returns the pointer to the created field
     */
-    static PdfField* CreateField(PdfObject& pObject);
+    static PdfField* CreateField(PdfObject& obj);
 
     PdfField* CreateChildField();
 
     PdfField* CreateChildField(PdfPage& page, const PdfRect& rect);
 
     /** Infer the field type from the given object
-    *  \param pObject the object to infer the field type from
+    *  \param obj the object to infer the field type from
     *  \returns the inferred type
     */
-    static PdfFieldType GetFieldType(const PdfObject& pObject);
+    static PdfFieldType GetFieldType(const PdfObject& obj);
 
     /** Get the page of this PdfField
      *
@@ -153,11 +153,11 @@ public:
     /** Set the highlighting mode which should be used when the user
      *  presses the mouse button over this widget.
      *
-     *  \param eMode the highliting mode
+     *  \param mode the highliting mode
      *
      *  The default value is EPdfHighlightingMode::Invert
      */
-    void SetHighlightingMode(PdfHighlightingMode eMode);
+    void SetHighlightingMode(PdfHighlightingMode mode);
 
     /**
      * \returns the highlighting mode to be used when the user
@@ -173,28 +173,28 @@ public:
     /**
      * Sets the border color of the field
      *
-     * \param dGray gray value of the color
+     * \param gray gray value of the color
      */
-    void SetBorderColor(double dGray);
+    void SetBorderColor(double gray);
 
     /**
      * Sets the border color of the field
      *
-     * \param dRed red
-     * \param dGreen green
-     * \param dBlue blue
+     * \param red red
+     * \param green green
+     * \param blue blue
      */
-    void SetBorderColor(double dRed, double dGreen, double dBlue);
+    void SetBorderColor(double red, double green, double blue);
 
     /**
      * Sets the border color of the field
      *
-     * \param dCyan cyan
-     * \param dMagenta magenta
-     * \param dYellow yellow
-     * \param dBlack black
+     * \param cyan cyan
+     * \param magenta magenta
+     * \param yellow yellow
+     * \param black black
      */
-    void SetBorderColor(double dCyan, double dMagenta, double dYellow, double dBlack);
+    void SetBorderColor(double cyan, double magenta, double yellow, double black);
 
     /**
      * Sets the background color of the field to be transparent
@@ -204,37 +204,37 @@ public:
     /**
      * Sets the background color of the field
      *
-     * \param dGray gray value of the color
+     * \param gray gray value of the color
      */
-    void SetBackgroundColor(double dGray);
+    void SetBackgroundColor(double gray);
 
     /**
      * Sets the background color of the field
      *
-     * \param dRed red
-     * \param dGreen green
-     * \param dBlue blue
+     * \param red red
+     * \param green green
+     * \param blue blue
      */
-    void SetBackgroundColor(double dRed, double dGreen, double dBlue);
+    void SetBackgroundColor(double red, double green, double blue);
 
     /**
      * Sets the background color of the field
      *
-     * \param dCyan cyan
-     * \param dMagenta magenta
-     * \param dYellow yellow
-     * \param dBlack black
+     * \param cyan cyan
+     * \param magenta magenta
+     * \param yellow yellow
+     * \param black black
      */
-    void SetBackgroundColor(double dCyan, double dMagenta, double dYellow, double dBlack);
+    void SetBackgroundColor(double cyan, double magenta, double yellow, double black);
 
     /** Sets the field name of this PdfField
      *
      *  PdfFields require a field name to work correctly in acrobat reader!
      *  This name can be used to access the field in JavaScript actions.
      *
-     *  \param rsName the field name of this pdf field
+     *  \param name the field name of this pdf field
      */
-    void SetName(const PdfString& rsName);
+    void SetName(const PdfString& name);
 
     /** \returns the field name of this PdfField
      */
@@ -255,9 +255,9 @@ public:
      * is used to display the fields name to the user
      * (e.g. in error messages).
      *
-     * \param rsName a name that can be displayed to the user
+     * \param name a name that can be displayed to the user
      */
-    void SetAlternateName(const PdfString& rsName);
+    void SetAlternateName(const PdfString& name);
 
     /** \returns the fields alternate name
      */
@@ -267,9 +267,9 @@ public:
      * Sets the fields mapping name which is used when exporting
      * the fields data
      *
-     * \param rsName the mapping name of this PdfField
+     * \param name the mapping name of this PdfField
      */
-    void SetMappingName(const PdfString& rsName);
+    void SetMappingName(const PdfString& name);
 
     /** \returns the mapping name of this field
      */
@@ -281,9 +281,9 @@ public:
      *
      *  This is useful for fields that are pure calculated.
      *
-     *  \param bReadOnly specifies if this field is read-only.
+     *  \param readOnly specifies if this field is read-only.
      */
-    void SetReadOnly(bool bReadOnly);
+    void SetReadOnly(bool readOnly);
 
     /**
      * \returns true if this field is read-only
@@ -295,9 +295,9 @@ public:
     /** Required fields must have a value
      *  at the time the value is exported by a submit action
      *
-     *  \param bRequired if true this field requires a value for submit actions
+     *  \param required if true this field requires a value for submit actions
      */
-    void SetRequired(bool bRequired);
+    void SetRequired(bool required);
 
     /**
      * \returns true if this field is required for submit actions
@@ -310,9 +310,9 @@ public:
      *
      *  Fields can be exported by default.
      *
-     *  \param bExport if false this field cannot be exported by submit actions
+     *  \param exprt if false this field cannot be exported by submit actions
      */
-    void SetNoExport(bool bExport);
+    void SetNoExport(bool exprt);
 
     /**
      * \returns true if this field can be exported by submit actions
@@ -321,30 +321,30 @@ public:
      */
     bool IsNoExport() const;
 
-    void SetMouseEnterAction(const PdfAction& rAction);
-    void SetMouseLeaveAction(const PdfAction& rAction);
-    void SetMouseDownAction(const PdfAction& rAction);
-    void SetMouseUpAction(const PdfAction& rAction);
+    void SetMouseEnterAction(const PdfAction& action);
+    void SetMouseLeaveAction(const PdfAction& action);
+    void SetMouseDownAction(const PdfAction& action);
+    void SetMouseUpAction(const PdfAction& action);
 
-    void SetFocusEnterAction(const PdfAction& rAction);
-    void SetFocusLeaveAction(const PdfAction& rAction);
+    void SetFocusEnterAction(const PdfAction& action);
+    void SetFocusLeaveAction(const PdfAction& action);
 
-    void SetPageOpenAction(const PdfAction& rAction);
-    void SetPageCloseAction(const PdfAction& rAction);
+    void SetPageOpenAction(const PdfAction& action);
+    void SetPageCloseAction(const PdfAction& action);
 
-    void SetPageVisibleAction(const PdfAction& rAction);
-    void SetPageInvisibleAction(const PdfAction& rAction);
+    void SetPageVisibleAction(const PdfAction& action);
+    void SetPageInvisibleAction(const PdfAction& action);
 
-    void SetKeystrokeAction(const PdfAction& rAction);
-    void SetValidateAction(const PdfAction& rAction);
+    void SetKeystrokeAction(const PdfAction& action);
+    void SetValidateAction(const PdfAction& action);
 
     PdfFieldType GetType() const;
 
 private:
     PdfField(const PdfField& rhs) = delete;
 
-    void Init(PdfAcroForm* pParent);
-    void AddAlternativeAction(const PdfName& rsName, const PdfAction& rAction);
+    void Init(PdfAcroForm* parent);
+    void AddAlternativeAction(const PdfName& name, const PdfAction& action);
     static PdfField* createField(PdfFieldType type, PdfObject& obj, PdfAnnotation* widget);
     PdfField* createChildField(PdfPage* page, const PdfRect& rect);
 
@@ -355,9 +355,9 @@ public:
     const PdfDictionary& GetDictionary() const;
 
 private:
-    PdfFieldType m_eField;
-    PdfObject* m_pObject;
-    PdfAnnotation* m_pWidget;
+    PdfFieldType m_Field;
+    PdfObject* m_Object;
+    PdfAnnotation* m_Widget;
 };
 
 };

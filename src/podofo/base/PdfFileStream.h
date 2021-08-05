@@ -39,8 +39,8 @@ public:
      *  The stream will be deleted along with the parent.
      *  This constructor will be called by PdfObject::Stream() for you.
      *
-     *  \param pParent parent object
-     *  \param pDevice output device
+     *  \param parent parent object
+     *  \param device output device
      */
     PdfFileStream(PdfObject& parent, PdfOutputDevice& device);
 
@@ -49,13 +49,13 @@ public:
     /** Set an encryption object which is used to encrypt
      *  all data written to this stream.
      *
-     *  \param pEncrypt an encryption object or nullptr if no encryption should be done
+     *  \param encrypt an encryption object or nullptr if no encryption should be done
      */
     void SetEncrypted(PdfEncrypt* encrypt);
 
     void Write(PdfOutputDevice& device, const PdfEncrypt* encrypt) override;
 
-    void GetCopy(char** pBuffer, size_t* lLen) const override;
+    void GetCopy(char** buffer, size_t* len) const override;
 
     void GetCopy(PdfOutputStream& stream) const override;
 
@@ -64,7 +64,7 @@ public:
 protected:
     const char* GetInternalBuffer() const override;
     size_t GetInternalBufferSize() const override;
-    void BeginAppendImpl(const TVecFilters& filters) override;
+    void BeginAppendImpl(const PdfFilterList& filters) override;
     void AppendImpl(const char* data, size_t len) override;
     void EndAppendImpl() override;
 
@@ -84,7 +84,7 @@ private:
 
     PdfObject* m_LengthObj;
 
-    PdfEncrypt* m_CurEncrypt;
+    PdfEncrypt* m_CurrEncrypt;
 };
 
 };

@@ -33,12 +33,12 @@ public:
     virtual ~PdfDataType();
 
     /** Write the complete datatype to a file.
-     *  \param pDevice write the object to this device
-     *  \param eWriteMode additional options for writing this object
-     *  \param pEncrypt an encryption object which is used to encrypt this object
+     *  \param device write the object to this device
+     *  \param writeMode additional options for writing this object
+     *  \param encrypt an encryption object which is used to encrypt this object
      *                  or nullptr to not encrypt this object
      */
-    virtual void Write(PdfOutputDevice& pDevice, PdfWriteMode eWriteMode, const PdfEncrypt* pEncrypt) const = 0;
+    virtual void Write(PdfOutputDevice& device, PdfWriteMode writeMode, const PdfEncrypt* encrypt) const = 0;
 };
 
 }

@@ -40,7 +40,7 @@ public:
     /** Construct a new PdfString from a utf-8 string
      *  The input string will be copied.
      *
-     *  \param pszString the string to copy
+     *  \param view the string to copy
      */
     PdfString(const std::string_view& view);
 
@@ -60,11 +60,11 @@ public:
     static PdfString FromRaw(const std::string_view& view, bool hex = true);
 
     /** Set hex-encoded data as the strings data.
-     *  \param pszHex must be hex-encoded data.
-     *  \param lLen   length of the hex-encoded data.
-     *  \param pEncrypt if !nullptr, assume the hex data is encrypted and should be decrypted after hex-decoding.
+     *  \param hexView must be hex-encoded data.
+     *  \param len   length of the hex-encoded data.
+     *  \param encrypt if !nullptr, assume the hex data is encrypted and should be decrypted after hex-decoding.
      */
-    static PdfString FromHexData(const std::string_view& view, PdfEncrypt* encrypt = nullptr);
+    static PdfString FromHexData(const std::string_view& hexView, PdfEncrypt* encrypt = nullptr);
 
     /** Check if this is a hex string.
      *
@@ -111,9 +111,9 @@ public:
 
     /** Write this PdfString in PDF format to a PdfOutputDevice.
      *
-     *  \param pDevice the output device.
-     *  \param eWriteMode additional options for writing this object
-     *  \param pEncrypt an encryption object which is used to encrypt this object,
+     *  \param device the output device.
+     *  \param writeMode additional options for writing this object
+     *  \param encrypt an encryption object which is used to encrypt this object,
      *                  or nullptr to not encrypt this object
      */
     void Write(PdfOutputDevice& device, PdfWriteMode writeMode, const PdfEncrypt* encrypt) const;
@@ -153,10 +153,9 @@ private:
     /** Construct a new PdfString from a 0-terminated string.
      *
      *  The input string will be copied.
-     *  if m_bHex is true the copied data will be hex-encoded.
+     *  if m_Hex is true the copied data will be hex-encoded.
      *
-     *  \param pszString the string to copy, must not be nullptr
-     *  \param lLen length of the string data to copy
+     *  \param view the string to copy, must not be nullptr
      *
      */
     void initFromUtf8String(const std::string_view& view);

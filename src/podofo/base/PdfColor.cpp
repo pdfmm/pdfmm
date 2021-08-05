@@ -31,30 +31,30 @@ class PdfNamedColor
 public:
     /** Create a PdfNamedColor object.
      *
-     *  \param pszName the name. The string must be allocated as static memory somewhere
+     *  \param name the name. The string must be allocated as static memory somewhere
      *         The string data will not be copied!
-     *  \param rColor a PdfColor object
+     *  \param color a PdfColor object
      */
-    PdfNamedColor(const char* pszName, const PdfColor& rColor)
-        : m_pszName(pszName), m_color(rColor)
+    PdfNamedColor(const char* name, const PdfColor& color)
+        : m_Name(name), m_color(color)
     {
     }
 
     /** Create a PdfNamedColor object.
      *
-     *  \param pszName the name. The string must be allocated as static memory somewhere
+     *  \param name the name. The string must be allocated as static memory somewhere
      *         The string data will not be copied!
      *  \param rColorName RGB hex value (e.g. #FFABCD)
      */
-    PdfNamedColor(const char* pszName, const char* rColorName)
-        : m_pszName(pszName), m_color(FromRGBString(rColorName))
+    PdfNamedColor(const char* name, const char* colorName)
+        : m_Name(name), m_color(FromRGBString(colorName))
     {
     }
 
     /** Copy constructor
      */
     PdfNamedColor(const PdfNamedColor& rhs)
-        : m_pszName(rhs.m_pszName), m_color(rhs.m_color)
+        : m_Name(rhs.m_Name), m_color(rhs.m_color)
     {
     }
 
@@ -69,9 +69,9 @@ public:
      *  \returns true if the passed string is smaller than the name
      *           of this color object.
      */
-    inline bool operator<(const char* pszName) const
+    inline bool operator<(const char* name) const
     {
-        return pszName ? compat::strcasecmp(m_pszName, pszName) < 0 : true;
+        return name ? compat::strcasecmp(m_Name, name) < 0 : true;
     }
 
     /** Compare this color object to a PdfNamedColor comparing only the name.
@@ -81,7 +81,7 @@ public:
      */
     inline bool operator<(const PdfNamedColor& rhs) const
     {
-        return rhs.GetName() ? compat::strcasecmp(m_pszName, rhs.GetName()) < 0 : true;
+        return rhs.GetName() ? compat::strcasecmp(m_Name, rhs.GetName()) < 0 : true;
     }
 
     /** Compare this color object to a name
@@ -89,9 +89,9 @@ public:
      *  \returns true if the passed string is the name
      *           of this color object.
      */
-    inline bool operator==(const char* pszName) const
+    inline bool operator==(const char* name) const
     {
-        return pszName ? PoDoFo::compat::strcasecmp(m_pszName, pszName) == 0 : false;
+        return name ? PoDoFo::compat::strcasecmp(m_Name, name) == 0 : false;
     }
 
     /**
@@ -107,7 +107,7 @@ public:
      */
     inline const char* GetName() const
     {
-        return m_pszName;
+        return m_Name;
     }
 
 private:
@@ -115,7 +115,7 @@ private:
 
     /** Creates a color object from a RGB string.
      *
-     *  \param pszName a string describing a color.
+     *  \param name a string describing a color.
      *
      *  Supported values are:
      *  - hex values (e.g. #FF002A (RGB))
@@ -124,7 +124,7 @@ private:
      */
     static PdfColor FromRGBString(const string_view& name);
 
-    const char* m_pszName;
+    const char* m_Name;
     PdfColor    m_color;
 };
 
@@ -139,16 +139,16 @@ public:
     {
     }
 
-    inline bool operator()(const PdfNamedColor& rNamedColor1, const PdfNamedColor& rNamedColor2) const
+    inline bool operator()(const PdfNamedColor& namedColor1, const PdfNamedColor& namedColor2) const
     {
-        return rNamedColor1 < rNamedColor2;
+        return namedColor1 < namedColor2;
     }
 };
 
 // Table based on http://cvsweb.xfree86.org/cvsweb/xc/programs/rgb/rgb.txt?rev=1.2
 // Hex values have been copied from http://en.wikipedia.org/wiki/X11_color_names (21/11/2010)
-static const size_t s_nNumNamedColors = 148;
-static const PdfNamedColor s_NamedColors[s_nNumNamedColors] =
+static const size_t s_NamedColorsCount = 148;
+static const PdfNamedColor s_NamedColors[s_NamedColorsCount] =
 {
     PdfNamedColor( "aliceblue",     "#F0F8FF" ) ,
     PdfNamedColor( "antiquewhite",  "#FAEBD7" ) ,
@@ -307,157 +307,157 @@ inline void CheckDoubleRange(double val, double min, double max)
 }
 
 PdfColor::PdfColor() :
-    m_uColor(),
+    m_Color(),
     m_separationName(),
     m_separationDensity(0.0),
-    m_eColorSpace(PdfColorSpace::Unknown),
-    m_eAlternateColorSpace(PdfColorSpace::Unknown)
+    m_ColorSpace(PdfColorSpace::Unknown),
+    m_AlternateColorSpace(PdfColorSpace::Unknown)
 {
-    m_uColor.rgb[0] = 0.0;
-    m_uColor.rgb[1] = 0.0;
-    m_uColor.rgb[2] = 0.0;
+    m_Color.rgb[0] = 0.0;
+    m_Color.rgb[1] = 0.0;
+    m_Color.rgb[2] = 0.0;
 }
 
-PdfColor::PdfColor(double dGray) :
-    m_uColor(),
+PdfColor::PdfColor(double gray) :
+    m_Color(),
     m_separationName(),
     m_separationDensity(0.0),
-    m_eColorSpace(PdfColorSpace::DeviceGray),
-    m_eAlternateColorSpace(PdfColorSpace::Unknown)
+    m_ColorSpace(PdfColorSpace::DeviceGray),
+    m_AlternateColorSpace(PdfColorSpace::Unknown)
 {
-    CheckDoubleRange(dGray, 0.0, 1.0);
-    m_uColor.gray = dGray;
+    CheckDoubleRange(gray, 0.0, 1.0);
+    m_Color.gray = gray;
 }
 
-PdfColor::PdfColor(double dRed, double dGreen, double dBlue) :
-    m_uColor(),
+PdfColor::PdfColor(double red, double green, double blue) :
+    m_Color(),
     m_separationName(),
     m_separationDensity(0.0),
-    m_eColorSpace(PdfColorSpace::DeviceRGB),
-    m_eAlternateColorSpace(PdfColorSpace::Unknown)
+    m_ColorSpace(PdfColorSpace::DeviceRGB),
+    m_AlternateColorSpace(PdfColorSpace::Unknown)
 {
-    CheckDoubleRange(dRed, 0.0, 1.0);
-    CheckDoubleRange(dGreen, 0.0, 1.0);
-    CheckDoubleRange(dBlue, 0.0, 1.0);
+    CheckDoubleRange(red, 0.0, 1.0);
+    CheckDoubleRange(green, 0.0, 1.0);
+    CheckDoubleRange(blue, 0.0, 1.0);
 
-    m_uColor.rgb[0] = dRed;
-    m_uColor.rgb[1] = dGreen;
-    m_uColor.rgb[2] = dBlue;
+    m_Color.rgb[0] = red;
+    m_Color.rgb[1] = green;
+    m_Color.rgb[2] = blue;
 }
 
-PdfColor::PdfColor(double dCyan, double dMagenta, double dYellow, double dBlack) :
-    m_uColor(),
+PdfColor::PdfColor(double cyan, double magenta, double yellow, double black) :
+    m_Color(),
     m_separationName(),
     m_separationDensity(0.0),
-    m_eColorSpace(PdfColorSpace::DeviceCMYK),
-    m_eAlternateColorSpace(PdfColorSpace::Unknown)
+    m_ColorSpace(PdfColorSpace::DeviceCMYK),
+    m_AlternateColorSpace(PdfColorSpace::Unknown)
 {
-    CheckDoubleRange(dCyan, 0.0, 1.0);
-    CheckDoubleRange(dMagenta, 0.0, 1.0);
-    CheckDoubleRange(dYellow, 0.0, 1.0);
-    CheckDoubleRange(dBlack, 0.0, 1.0);
+    CheckDoubleRange(cyan, 0.0, 1.0);
+    CheckDoubleRange(magenta, 0.0, 1.0);
+    CheckDoubleRange(yellow, 0.0, 1.0);
+    CheckDoubleRange(black, 0.0, 1.0);
 
-    m_uColor.cmyk[0] = dCyan;
-    m_uColor.cmyk[1] = dMagenta;
-    m_uColor.cmyk[2] = dYellow;
-    m_uColor.cmyk[3] = dBlack;
+    m_Color.cmyk[0] = cyan;
+    m_Color.cmyk[1] = magenta;
+    m_Color.cmyk[2] = yellow;
+    m_Color.cmyk[3] = black;
 }
 
 PdfColor::PdfColor(const PdfColor& rhs) :
-    m_uColor(),
+    m_Color(),
     m_separationName(rhs.m_separationName),
     m_separationDensity(rhs.m_separationDensity),
-    m_eColorSpace(rhs.m_eColorSpace),
-    m_eAlternateColorSpace(rhs.m_eAlternateColorSpace)
+    m_ColorSpace(rhs.m_ColorSpace),
+    m_AlternateColorSpace(rhs.m_AlternateColorSpace)
 {
-    memcpy(&m_uColor, &rhs.m_uColor, sizeof(m_uColor));
+    memcpy(&m_Color, &rhs.m_Color, sizeof(m_Color));
 }
 
 PdfColor::~PdfColor()
 {
 }
 
-PdfColorGray::PdfColorGray(double dGray) :
-    PdfColor(dGray)
+PdfColorGray::PdfColorGray(double gray) :
+    PdfColor(gray)
 {
 }
 
-PdfColorRGB::PdfColorRGB(double dRed, double dGreen, double dBlue)
-    : PdfColor(dRed, dGreen, dBlue)
+PdfColorRGB::PdfColorRGB(double red, double green, double blue)
+    : PdfColor(red, green, blue)
 {
 }
 
-PdfColorCMYK::PdfColorCMYK(double dCyan, double dMagenta, double dYellow, double dBlack)
-    : PdfColor(dCyan, dMagenta, dYellow, dBlack)
+PdfColorCMYK::PdfColorCMYK(double cyan, double magenta, double yellow, double black)
+    : PdfColor(cyan, magenta, yellow, black)
 {
 }
 
-PdfColorCieLab::PdfColorCieLab(double dCieL, double dCieA, double dCieB)
+PdfColorCieLab::PdfColorCieLab(double cieL, double cieA, double cieB)
 {
-    CheckDoubleRange(dCieL, 0.0, 100.0);
-    CheckDoubleRange(dCieA, -128.0, 127.0);
-    CheckDoubleRange(dCieB, -128.0, 127.0);
+    CheckDoubleRange(cieL, 0.0, 100.0);
+    CheckDoubleRange(cieA, -128.0, 127.0);
+    CheckDoubleRange(cieB, -128.0, 127.0);
 
-    m_eColorSpace = PdfColorSpace::CieLab;
-    m_uColor.lab[0] = dCieL;
-    m_uColor.lab[1] = dCieA;
-    m_uColor.lab[2] = dCieB;
+    m_ColorSpace = PdfColorSpace::CieLab;
+    m_Color.lab[0] = cieL;
+    m_Color.lab[1] = cieA;
+    m_Color.lab[2] = cieB;
 }
 
 PdfColorSeparationAll::PdfColorSeparationAll()
 {
-    m_eColorSpace = PdfColorSpace::Separation;
+    m_ColorSpace = PdfColorSpace::Separation;
     m_separationName = "All";
     m_separationDensity = 1.0;
-    m_eAlternateColorSpace = PdfColorSpace::DeviceCMYK;
-    m_uColor.cmyk[0] = 1.0;
-    m_uColor.cmyk[1] = 1.0;
-    m_uColor.cmyk[2] = 1.0;
-    m_uColor.cmyk[3] = 1.0;
+    m_AlternateColorSpace = PdfColorSpace::DeviceCMYK;
+    m_Color.cmyk[0] = 1.0;
+    m_Color.cmyk[1] = 1.0;
+    m_Color.cmyk[2] = 1.0;
+    m_Color.cmyk[3] = 1.0;
 }
 
 PdfColorSeparationNone::PdfColorSeparationNone()
 {
-    m_eColorSpace = PdfColorSpace::Separation;
+    m_ColorSpace = PdfColorSpace::Separation;
     m_separationName = "None";
     m_separationDensity = 0.0;
-    m_eAlternateColorSpace = PdfColorSpace::DeviceCMYK;
-    m_uColor.cmyk[0] = 0.0;
-    m_uColor.cmyk[1] = 0.0;
-    m_uColor.cmyk[2] = 0.0;
-    m_uColor.cmyk[3] = 0.0;
+    m_AlternateColorSpace = PdfColorSpace::DeviceCMYK;
+    m_Color.cmyk[0] = 0.0;
+    m_Color.cmyk[1] = 0.0;
+    m_Color.cmyk[2] = 0.0;
+    m_Color.cmyk[3] = 0.0;
 }
 
-PdfColorSeparation::PdfColorSeparation(const string_view& sName, double dDensity, const PdfColor& alternateColor)
+PdfColorSeparation::PdfColorSeparation(const string_view& name, double density, const PdfColor& alternateColor)
 {
-    m_eAlternateColorSpace = alternateColor.GetColorSpace();
-    switch (m_eAlternateColorSpace)
+    m_AlternateColorSpace = alternateColor.GetColorSpace();
+    switch (m_AlternateColorSpace)
     {
         case PdfColorSpace::DeviceGray:
         {
-            m_uColor.gray = alternateColor.GetGrayScale();
+            m_Color.gray = alternateColor.GetGrayScale();
             break;
         }
         case PdfColorSpace::DeviceRGB:
         {
-            m_uColor.rgb[0] = alternateColor.GetRed();
-            m_uColor.rgb[1] = alternateColor.GetGreen();
-            m_uColor.rgb[2] = alternateColor.GetBlue();
+            m_Color.rgb[0] = alternateColor.GetRed();
+            m_Color.rgb[1] = alternateColor.GetGreen();
+            m_Color.rgb[2] = alternateColor.GetBlue();
             break;
         }
         case PdfColorSpace::DeviceCMYK:
         {
-            m_uColor.cmyk[0] = alternateColor.GetCyan();
-            m_uColor.cmyk[1] = alternateColor.GetMagenta();
-            m_uColor.cmyk[2] = alternateColor.GetYellow();
-            m_uColor.cmyk[3] = alternateColor.GetBlack();
+            m_Color.cmyk[0] = alternateColor.GetCyan();
+            m_Color.cmyk[1] = alternateColor.GetMagenta();
+            m_Color.cmyk[2] = alternateColor.GetYellow();
+            m_Color.cmyk[3] = alternateColor.GetBlack();
             break;
         }
         case PdfColorSpace::CieLab:
         {
-            m_uColor.lab[0] = alternateColor.GetCieL();
-            m_uColor.lab[1] = alternateColor.GetCieA();
-            m_uColor.lab[2] = alternateColor.GetCieB();
+            m_Color.lab[0] = alternateColor.GetCieL();
+            m_Color.lab[1] = alternateColor.GetCieA();
+            m_Color.lab[2] = alternateColor.GetCieB();
             break;
         }
         case PdfColorSpace::Separation:
@@ -473,20 +473,20 @@ PdfColorSeparation::PdfColorSeparation(const string_view& sName, double dDensity
             break;
         }
     }
-    m_eColorSpace = PdfColorSpace::Separation;
-    m_separationName = sName;
-    m_separationDensity = dDensity;
+    m_ColorSpace = PdfColorSpace::Separation;
+    m_separationName = name;
+    m_separationDensity = density;
 }
 
 const PdfColor& PdfColor::operator=(const PdfColor& rhs)
 {
     if (this != &rhs)
     {
-        memcpy(&m_uColor, &rhs.m_uColor, sizeof(m_uColor));
+        memcpy(&m_Color, &rhs.m_Color, sizeof(m_Color));
         m_separationName = rhs.m_separationName;
         m_separationDensity = rhs.m_separationDensity;
-        m_eColorSpace = rhs.m_eColorSpace;
-        m_eAlternateColorSpace = rhs.m_eAlternateColorSpace;
+        m_ColorSpace = rhs.m_ColorSpace;
+        m_AlternateColorSpace = rhs.m_AlternateColorSpace;
     }
     else
     {
@@ -498,7 +498,7 @@ const PdfColor& PdfColor::operator=(const PdfColor& rhs)
 
 PdfColor PdfColor::ConvertToGrayScale() const
 {
-    switch (m_eColorSpace)
+    switch (m_ColorSpace)
     {
         case PdfColorSpace::DeviceGray:
         {
@@ -506,7 +506,7 @@ PdfColor PdfColor::ConvertToGrayScale() const
         }
         case PdfColorSpace::DeviceRGB:
         {
-            return PdfColor(0.299 * m_uColor.rgb[0] + 0.587 * m_uColor.rgb[1] + 0.114 * m_uColor.rgb[2]);
+            return PdfColor(0.299 * m_Color.rgb[0] + 0.587 * m_Color.rgb[1] + 0.114 * m_Color.rgb[2]);
         }
         case PdfColorSpace::DeviceCMYK:
         {
@@ -514,18 +514,18 @@ PdfColor PdfColor::ConvertToGrayScale() const
         }
         case PdfColorSpace::Separation:
         {
-            if (m_eAlternateColorSpace == PdfColorSpace::DeviceCMYK)
+            if (m_AlternateColorSpace == PdfColorSpace::DeviceCMYK)
             {
-                double dCyan = m_uColor.cmyk[0];
-                double dMagenta = m_uColor.cmyk[1];
-                double dYellow = m_uColor.cmyk[2];
-                double dBlack = m_uColor.cmyk[3];
+                double cyan = m_Color.cmyk[0];
+                double magenta = m_Color.cmyk[1];
+                double yellow = m_Color.cmyk[2];
+                double black = m_Color.cmyk[3];
 
-                double dRed = dCyan * (1.0 - dBlack) + dBlack;
-                double dGreen = dMagenta * (1.0 - dBlack) + dBlack;
-                double dBlue = dYellow * (1.0 - dBlack) + dBlack;
+                double red = cyan * (1.0 - black) + black;
+                double green = magenta * (1.0 - black) + black;
+                double blue = yellow * (1.0 - black) + black;
 
-                return PdfColor(1.0 - dRed, 1.0 - dGreen, 1.0 - dBlue);
+                return PdfColor(1.0 - red, 1.0 - green, 1.0 - blue);
             }
             else
             {
@@ -552,11 +552,11 @@ PdfColor PdfColor::ConvertToGrayScale() const
 
 PdfColor PdfColor::ConvertToRGB() const
 {
-    switch (m_eColorSpace)
+    switch (m_ColorSpace)
     {
         case PdfColorSpace::DeviceGray:
         {
-            return PdfColor(m_uColor.gray, m_uColor.gray, m_uColor.gray);
+            return PdfColor(m_Color.gray, m_Color.gray, m_Color.gray);
         }
         case PdfColorSpace::DeviceRGB:
         {
@@ -564,31 +564,31 @@ PdfColor PdfColor::ConvertToRGB() const
         }
         case PdfColorSpace::DeviceCMYK:
         {
-            double dCyan = m_uColor.cmyk[0];
-            double dMagenta = m_uColor.cmyk[1];
-            double dYellow = m_uColor.cmyk[2];
-            double dBlack = m_uColor.cmyk[3];
+            double cyan = m_Color.cmyk[0];
+            double magenta = m_Color.cmyk[1];
+            double yellow = m_Color.cmyk[2];
+            double black = m_Color.cmyk[3];
 
-            double dRed = dCyan * (1.0 - dBlack) + dBlack;
-            double dGreen = dMagenta * (1.0 - dBlack) + dBlack;
-            double dBlue = dYellow * (1.0 - dBlack) + dBlack;
+            double red = cyan * (1.0 - black) + black;
+            double green = magenta * (1.0 - black) + black;
+            double blue = yellow * (1.0 - black) + black;
 
-            return PdfColor(1.0 - dRed, 1.0 - dGreen, 1.0 - dBlue);
+            return PdfColor(1.0 - red, 1.0 - green, 1.0 - blue);
         }
         case PdfColorSpace::Separation:
         {
-            if (m_eAlternateColorSpace == PdfColorSpace::DeviceCMYK)
+            if (m_AlternateColorSpace == PdfColorSpace::DeviceCMYK)
             {
-                double dCyan = m_uColor.cmyk[0];
-                double dMagenta = m_uColor.cmyk[1];
-                double dYellow = m_uColor.cmyk[2];
-                double dBlack = m_uColor.cmyk[3];
+                double cyan = m_Color.cmyk[0];
+                double magenta = m_Color.cmyk[1];
+                double yellow = m_Color.cmyk[2];
+                double black = m_Color.cmyk[3];
 
-                double dRed = dCyan * (1.0 - dBlack) + dBlack;
-                double dGreen = dMagenta * (1.0 - dBlack) + dBlack;
-                double dBlue = dYellow * (1.0 - dBlack) + dBlack;
+                double red = cyan * (1.0 - black) + black;
+                double green = magenta * (1.0 - black) + black;
+                double blue = yellow * (1.0 - black) + black;
 
-                return PdfColor(1.0 - dRed, 1.0 - dGreen, 1.0 - dBlue);
+                return PdfColor(1.0 - red, 1.0 - green, 1.0 - blue);
             }
             else
             {
@@ -616,7 +616,7 @@ PdfColor PdfColor::ConvertToRGB() const
 
 PdfColor PdfColor::ConvertToCMYK() const
 {
-    switch (m_eColorSpace)
+    switch (m_ColorSpace)
     {
         case PdfColorSpace::DeviceGray:
         {
@@ -624,24 +624,24 @@ PdfColor PdfColor::ConvertToCMYK() const
         }
         case PdfColorSpace::DeviceRGB:
         {
-            double dRed = m_uColor.rgb[0];
-            double dGreen = m_uColor.rgb[1];
-            double dBlue = m_uColor.rgb[2];
+            double red = m_Color.rgb[0];
+            double green = m_Color.rgb[1];
+            double blue = m_Color.rgb[2];
 
-            double dBlack = std::min(1.0 - dRed, std::min(1.0 - dGreen, 1.0 - dBlue));
+            double black = std::min(1.0 - red, std::min(1.0 - green, 1.0 - blue));
 
-            double dCyan = 0.0;
-            double dMagenta = 0.0;
-            double dYellow = 0.0;
-            if (dBlack < 1.0)
+            double cyan = 0.0;
+            double magenta = 0.0;
+            double yellow = 0.0;
+            if (black < 1.0)
             {
-                dCyan = (1.0 - dRed - dBlack) / (1.0 - dBlack);
-                dMagenta = (1.0 - dGreen - dBlack) / (1.0 - dBlack);
-                dYellow = (1.0 - dBlue - dBlack) / (1.0 - dBlack);
+                cyan = (1.0 - red - black) / (1.0 - black);
+                magenta = (1.0 - green - black) / (1.0 - black);
+                yellow = (1.0 - blue - black) / (1.0 - black);
             }
             //else do nothing
 
-            return PdfColor(dCyan, dMagenta, dYellow, dBlack);
+            return PdfColor(cyan, magenta, yellow, black);
         }
         case PdfColorSpace::DeviceCMYK:
         {
@@ -667,33 +667,33 @@ PdfArray PdfColor::ToArray() const
 {
     PdfArray array;
 
-    switch (m_eColorSpace)
+    switch (m_ColorSpace)
     {
         case PdfColorSpace::DeviceGray:
         {
-            array.push_back(m_uColor.gray);
+            array.push_back(m_Color.gray);
             break;
         }
         case PdfColorSpace::DeviceRGB:
         {
-            array.push_back(m_uColor.rgb[0]);
-            array.push_back(m_uColor.rgb[1]);
-            array.push_back(m_uColor.rgb[2]);
+            array.push_back(m_Color.rgb[0]);
+            array.push_back(m_Color.rgb[1]);
+            array.push_back(m_Color.rgb[2]);
             break;
         }
         case PdfColorSpace::DeviceCMYK:
         {
-            array.push_back(m_uColor.cmyk[0]);
-            array.push_back(m_uColor.cmyk[1]);
-            array.push_back(m_uColor.cmyk[2]);
-            array.push_back(m_uColor.cmyk[3]);
+            array.push_back(m_Color.cmyk[0]);
+            array.push_back(m_Color.cmyk[1]);
+            array.push_back(m_Color.cmyk[2]);
+            array.push_back(m_Color.cmyk[3]);
             break;
         }
         case PdfColorSpace::CieLab:
         {
-            array.push_back(m_uColor.lab[0]);
-            array.push_back(m_uColor.lab[1]);
-            array.push_back(m_uColor.lab[2]);
+            array.push_back(m_Color.lab[0]);
+            array.push_back(m_Color.lab[1]);
+            array.push_back(m_Color.lab[2]);
             break;
         }
         case PdfColorSpace::Separation:
@@ -723,15 +723,15 @@ PdfColor PdfColor::FromString(const string_view& name)
         return PdfColor();
 
     // first see if it's a single number - if so, that's a single gray value
-    if (isdigit(name[0]) || (name[0] == '.'))
+    if (isdigit(name[0]) || name[0] == '.')
     {
-        double dGrayVal = 0.0;
+        double grayVal = 0.0;
 
         istringstream stream((string)name);
         PdfLocaleImbue(stream);
 
-        if (stream >> dGrayVal)
-            return PdfColor(dGrayVal);
+        if (stream >> grayVal)
+            return PdfColor(grayVal);
         else
             PODOFO_RAISE_ERROR(EPdfError::CannotConvertColor);
     }
@@ -833,7 +833,7 @@ PdfColor PdfColor::FromString(const string_view& name)
     {
         pair<const PdfNamedColor*, const PdfNamedColor*> iterators =
             std::equal_range(&(s_NamedColors[0]),
-                s_NamedColors + s_nNumNamedColors,
+                s_NamedColors + s_NamedColorsCount,
                 PdfNamedColor(name.data(), PdfColor()), NamedColorComparatorPredicate());
 
         if (iterators.first != iterators.second)
@@ -843,21 +843,21 @@ PdfColor PdfColor::FromString(const string_view& name)
     }
 }
 
-PdfColor PdfColor::FromArray(const PdfArray& rArray)
+PdfColor PdfColor::FromArray(const PdfArray& arr)
 {
-    if (rArray.GetSize() == 1) // grayscale
-        return PdfColor(rArray[0].GetReal());
-    else if (rArray.GetSize() == 3) // RGB or spot
-        return PdfColor(rArray[0].GetReal(), rArray[1].GetReal(), rArray[2].GetReal());
-    else if (rArray.GetSize() == 4) // CMYK
-        return PdfColor(rArray[0].GetReal(), rArray[1].GetReal(), rArray[2].GetReal(), rArray[3].GetReal());
+    if (arr.GetSize() == 1) // grayscale
+        return PdfColor(arr[0].GetReal());
+    else if (arr.GetSize() == 3) // RGB or spot
+        return PdfColor(arr[0].GetReal(), arr[1].GetReal(), arr[2].GetReal());
+    else if (arr.GetSize() == 4) // CMYK
+        return PdfColor(arr[0].GetReal(), arr[1].GetReal(), arr[2].GetReal(), arr[3].GetReal());
 
     PODOFO_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "PdfColor::FromArray supports only GrayScale, RGB and CMYK colors.");
 }
 
 PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
 {
-    switch (m_eColorSpace)
+    switch (m_ColorSpace)
     {
         case PdfColorSpace::Separation:
         {
@@ -892,13 +892,13 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
             //csTintFunc->GetDictionary().AddKey( "FunctionType", 
             //                                    PdfVariant( static_cast<int64_t>(EPdfFunctionType::Sampled) ) );
 
-            switch (m_eAlternateColorSpace)
+            switch (m_AlternateColorSpace)
             {
                 case PdfColorSpace::DeviceGray:
                 {
                     char data[1 * 2];
                     data[0] = 0;
-                    data[1] = static_cast<char> (m_uColor.gray);
+                    data[1] = static_cast<char> (m_Color.gray);
 
                     PdfArray range;
                     range.push_back(static_cast<int64_t>(0));
@@ -930,9 +930,9 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
                     data[0] = 0;
                     data[1] = 0;
                     data[2] = 0;
-                    data[3] = static_cast<char> (m_uColor.rgb[0] * 255);
-                    data[4] = static_cast<char> (m_uColor.rgb[1] * 255);
-                    data[5] = static_cast<char> (m_uColor.rgb[2] * 255);
+                    data[3] = static_cast<char> (m_Color.rgb[0] * 255);
+                    data[4] = static_cast<char> (m_Color.rgb[1] * 255);
+                    data[5] = static_cast<char> (m_Color.rgb[2] * 255);
 
                     PdfArray range;
                     range.push_back(static_cast<int64_t>(0));
@@ -969,10 +969,10 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
                     data[1] = 0;
                     data[2] = 0;
                     data[3] = 0;
-                    data[4] = static_cast<char> (m_uColor.cmyk[0] * 255);
-                    data[5] = static_cast<char> (m_uColor.cmyk[1] * 255);
-                    data[6] = static_cast<char> (m_uColor.cmyk[2] * 255);
-                    data[7] = static_cast<char> (m_uColor.cmyk[3] * 255);
+                    data[4] = static_cast<char> (m_Color.cmyk[0] * 255);
+                    data[5] = static_cast<char> (m_Color.cmyk[1] * 255);
+                    data[6] = static_cast<char> (m_Color.cmyk[2] * 255);
+                    data[7] = static_cast<char> (m_Color.cmyk[3] * 255);
 
                     PdfArray range;
                     range.push_back(static_cast<int64_t>(0));
@@ -1010,9 +1010,9 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
                     data[0] = 0;
                     data[1] = 0;
                     data[2] = 0;
-                    data[3] = static_cast<char> (m_uColor.lab[0] * 255);
-                    data[4] = static_cast<char> (m_uColor.lab[1] * 255);
-                    data[5] = static_cast<char> (m_uColor.lab[2] * 255);
+                    data[3] = static_cast<char> (m_Color.lab[0] * 255);
+                    data[4] = static_cast<char> (m_Color.lab[1] * 255);
+                    data[5] = static_cast<char> (m_Color.lab[2] * 255);
 
                     PdfArray range;
                     range.push_back(static_cast<int64_t>(0));
@@ -1068,7 +1068,7 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
             wpArr.push_back(0.9505);
             wpArr.push_back(1.0000);
             wpArr.push_back(1.0890);
-            labDict.AddKey(PdfName("WhitePoint"), wpArr);
+            labDict.AddKey("WhitePoint", wpArr);
 
             // Range for A,B, L is implicit 0..100
             PdfArray rangeArr;
@@ -1076,7 +1076,7 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
             rangeArr.push_back(static_cast<int64_t>(127));
             rangeArr.push_back(static_cast<int64_t>(-128));
             rangeArr.push_back(static_cast<int64_t>(127));
-            labDict.AddKey(PdfName("Range"), rangeArr);
+            labDict.AddKey("Range", rangeArr);
 
             PdfArray labArr;
             labArr.push_back(PdfName("Lab"));
@@ -1107,38 +1107,38 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
     return nullptr;
 }
 
-PdfColorSpace PdfColor::GetColorSpaceForName(const PdfName& rName)
+PdfColorSpace PdfColor::GetColorSpaceForName(const PdfName& name)
 {
     PdfColorSpace ePdfColorSpace = PdfColorSpace::Unknown;
 
-    if (rName == "DeviceGray")
+    if (name == "DeviceGray")
     {
         ePdfColorSpace = PdfColorSpace::DeviceGray;
     }
-    else if (rName == "DeviceRGB")
+    else if (name == "DeviceRGB")
     {
         ePdfColorSpace = PdfColorSpace::DeviceRGB;
     }
-    else if (rName == "DeviceCMYK")
+    else if (name == "DeviceCMYK")
     {
         ePdfColorSpace = PdfColorSpace::DeviceCMYK;
     }
-    else if (rName == "Indexed")
+    else if (name == "Indexed")
     {
         ePdfColorSpace = PdfColorSpace::Indexed;
     }
     else
     {
         // TODO: other are not supported at the moment
-        PdfError::LogMessage(LogSeverity::Information, "Unsupported colorspace name: %s", rName.GetString().c_str());
+        PdfError::LogMessage(LogSeverity::Information, "Unsupported colorspace name: %s", name.GetString().c_str());
     }
 
     return ePdfColorSpace;
 }
 
-PdfName PdfColor::GetNameForColorSpace(PdfColorSpace eColorSpace)
+PdfName PdfColor::GetNameForColorSpace(PdfColorSpace colorSpace)
 {
-    switch (eColorSpace)
+    switch (colorSpace)
     {
         case PdfColorSpace::DeviceGray:
             return PdfName("DeviceGray");
@@ -1154,7 +1154,7 @@ PdfName PdfColor::GetNameForColorSpace(PdfColorSpace eColorSpace)
             return PdfName("Indexed");
         case PdfColorSpace::Unknown:
         default:
-            PdfError::LogMessage(LogSeverity::Information, "Unsupported colorspace enum: %i", eColorSpace);
+            PdfError::LogMessage(LogSeverity::Information, "Unsupported colorspace enum: %i", colorSpace);
             return PdfName();
     }
 
@@ -1189,64 +1189,64 @@ PdfColor PdfNamedColor::FromRGBString(const string_view& name)
 
 bool PdfColor::operator==(const PdfColor& rhs) const
 {
-    if (m_eColorSpace == rhs.m_eColorSpace)
+    if (m_ColorSpace == rhs.m_ColorSpace)
     {
-        if (m_eColorSpace == PdfColorSpace::DeviceGray
-            && m_uColor.gray == rhs.m_uColor.gray)
+        if (m_ColorSpace == PdfColorSpace::DeviceGray
+            && m_Color.gray == rhs.m_Color.gray)
         {
             return true;
         }
 
-        if (m_eColorSpace == PdfColorSpace::DeviceRGB
-            && m_uColor.rgb[0] == rhs.m_uColor.rgb[0]
-            && m_uColor.rgb[1] == rhs.m_uColor.rgb[1]
-            && m_uColor.rgb[2] == rhs.m_uColor.rgb[2])
+        if (m_ColorSpace == PdfColorSpace::DeviceRGB
+            && m_Color.rgb[0] == rhs.m_Color.rgb[0]
+            && m_Color.rgb[1] == rhs.m_Color.rgb[1]
+            && m_Color.rgb[2] == rhs.m_Color.rgb[2])
         {
             return true;
         }
 
-        if (m_eColorSpace == PdfColorSpace::DeviceCMYK
-            && m_uColor.cmyk[0] == rhs.m_uColor.cmyk[0]
-            && m_uColor.cmyk[1] == rhs.m_uColor.cmyk[1]
-            && m_uColor.cmyk[2] == rhs.m_uColor.cmyk[2]
-            && m_uColor.cmyk[3] == rhs.m_uColor.cmyk[3])
+        if (m_ColorSpace == PdfColorSpace::DeviceCMYK
+            && m_Color.cmyk[0] == rhs.m_Color.cmyk[0]
+            && m_Color.cmyk[1] == rhs.m_Color.cmyk[1]
+            && m_Color.cmyk[2] == rhs.m_Color.cmyk[2]
+            && m_Color.cmyk[3] == rhs.m_Color.cmyk[3])
         {
             return true;
         }
 
-        if (m_eColorSpace == PdfColorSpace::CieLab
-            && m_uColor.lab[0] == rhs.m_uColor.lab[0]
-            && m_uColor.lab[1] == rhs.m_uColor.lab[1]
-            && m_uColor.lab[2] == rhs.m_uColor.lab[2])
+        if (m_ColorSpace == PdfColorSpace::CieLab
+            && m_Color.lab[0] == rhs.m_Color.lab[0]
+            && m_Color.lab[1] == rhs.m_Color.lab[1]
+            && m_Color.lab[2] == rhs.m_Color.lab[2])
         {
             return true;
         }
 
-        if (m_eColorSpace == PdfColorSpace::Separation
+        if (m_ColorSpace == PdfColorSpace::Separation
             && m_separationDensity == rhs.m_separationDensity
             && m_separationName == rhs.m_separationName
-            && m_eAlternateColorSpace == rhs.m_eAlternateColorSpace
-            && ((m_eAlternateColorSpace == PdfColorSpace::DeviceGray
-                && m_uColor.gray == rhs.m_uColor.gray)
-                || (m_eAlternateColorSpace == PdfColorSpace::DeviceRGB
-                    && m_uColor.rgb[0] == rhs.m_uColor.rgb[0]
-                    && m_uColor.rgb[1] == rhs.m_uColor.rgb[1]
-                    && m_uColor.rgb[2] == rhs.m_uColor.rgb[2])
-                || (m_eAlternateColorSpace == PdfColorSpace::DeviceCMYK
-                    && m_uColor.cmyk[0] == rhs.m_uColor.cmyk[0]
-                    && m_uColor.cmyk[1] == rhs.m_uColor.cmyk[1]
-                    && m_uColor.cmyk[2] == rhs.m_uColor.cmyk[2]
-                    && m_uColor.cmyk[3] == rhs.m_uColor.cmyk[3])
-                || (m_eAlternateColorSpace == PdfColorSpace::CieLab
-                    && m_uColor.lab[0] == rhs.m_uColor.lab[0]
-                    && m_uColor.lab[1] == rhs.m_uColor.lab[1]
-                    && m_uColor.lab[2] == rhs.m_uColor.lab[2])
+            && m_AlternateColorSpace == rhs.m_AlternateColorSpace
+            && ((m_AlternateColorSpace == PdfColorSpace::DeviceGray
+                && m_Color.gray == rhs.m_Color.gray)
+                || (m_AlternateColorSpace == PdfColorSpace::DeviceRGB
+                    && m_Color.rgb[0] == rhs.m_Color.rgb[0]
+                    && m_Color.rgb[1] == rhs.m_Color.rgb[1]
+                    && m_Color.rgb[2] == rhs.m_Color.rgb[2])
+                || (m_AlternateColorSpace == PdfColorSpace::DeviceCMYK
+                    && m_Color.cmyk[0] == rhs.m_Color.cmyk[0]
+                    && m_Color.cmyk[1] == rhs.m_Color.cmyk[1]
+                    && m_Color.cmyk[2] == rhs.m_Color.cmyk[2]
+                    && m_Color.cmyk[3] == rhs.m_Color.cmyk[3])
+                || (m_AlternateColorSpace == PdfColorSpace::CieLab
+                    && m_Color.lab[0] == rhs.m_Color.lab[0]
+                    && m_Color.lab[1] == rhs.m_Color.lab[1]
+                    && m_Color.lab[2] == rhs.m_Color.lab[2])
                 ))
         {
             return true;
         }
 
-        if (m_eColorSpace == PdfColorSpace::Unknown)
+        if (m_ColorSpace == PdfColorSpace::Unknown)
             return true;
     }
     return false;
@@ -1259,108 +1259,108 @@ bool PdfColor::operator!=(const PdfColor& rhs) const
 
 bool PdfColor::IsGrayScale() const
 {
-    return m_eColorSpace == PdfColorSpace::DeviceGray;
+    return m_ColorSpace == PdfColorSpace::DeviceGray;
 }
 
 bool PdfColor::IsRGB() const
 {
-    return m_eColorSpace == PdfColorSpace::DeviceRGB;
+    return m_ColorSpace == PdfColorSpace::DeviceRGB;
 }
 
 bool PdfColor::IsCMYK() const
 {
-    return m_eColorSpace == PdfColorSpace::DeviceCMYK;
+    return m_ColorSpace == PdfColorSpace::DeviceCMYK;
 }
 
 bool PdfColor::IsSeparation() const
 {
-    return m_eColorSpace == PdfColorSpace::Separation;
+    return m_ColorSpace == PdfColorSpace::Separation;
 }
 
 bool PdfColor::IsCieLab() const
 {
-    return m_eColorSpace == PdfColorSpace::CieLab;
+    return m_ColorSpace == PdfColorSpace::CieLab;
 }
 
 PdfColorSpace PdfColor::GetAlternateColorSpace() const
 {
     PODOFO_RAISE_LOGIC_IF(!this->IsSeparation(), "PdfColor::GetAlternateColorSpace cannot be called on non separation color objects!");
-    return m_eAlternateColorSpace;
+    return m_AlternateColorSpace;
 }
 
 double PdfColor::GetGrayScale() const
 {
     PODOFO_RAISE_LOGIC_IF(!this->IsGrayScale()
-        && !(this->IsSeparation() && (this->m_eAlternateColorSpace == PdfColorSpace::DeviceGray)),
+        && !(this->IsSeparation() && (this->m_AlternateColorSpace == PdfColorSpace::DeviceGray)),
         "PdfColor::GetGrayScale cannot be called on non grayscale color objects!");
 
-    return m_uColor.gray;
+    return m_Color.gray;
 }
 
 double PdfColor::GetRed() const
 {
     PODOFO_RAISE_LOGIC_IF(!this->IsRGB()
-        && !(this->IsSeparation() && (this->m_eAlternateColorSpace == PdfColorSpace::DeviceRGB)),
+        && !(this->IsSeparation() && (this->m_AlternateColorSpace == PdfColorSpace::DeviceRGB)),
         "PdfColor::GetRed cannot be called on non RGB color objects!");
 
-    return m_uColor.rgb[0];
+    return m_Color.rgb[0];
 }
 
 double PdfColor::GetGreen() const
 {
     PODOFO_RAISE_LOGIC_IF(!this->IsRGB()
-        && !(this->IsSeparation() && (this->m_eAlternateColorSpace == PdfColorSpace::DeviceRGB)),
+        && !(this->IsSeparation() && (this->m_AlternateColorSpace == PdfColorSpace::DeviceRGB)),
         "PdfColor::GetGreen cannot be called on non RGB color objects!");
 
-    return m_uColor.rgb[1];
+    return m_Color.rgb[1];
 }
 
 double PdfColor::GetBlue() const
 {
     PODOFO_RAISE_LOGIC_IF(!this->IsRGB()
-        && !(this->IsSeparation() && (this->m_eAlternateColorSpace == PdfColorSpace::DeviceRGB)),
+        && !(this->IsSeparation() && (this->m_AlternateColorSpace == PdfColorSpace::DeviceRGB)),
         "PdfColor::GetBlue cannot be called on non RGB color objects!");
 
-    return m_uColor.rgb[2];
+    return m_Color.rgb[2];
 }
 
 double PdfColor::GetCyan() const
 {
     PODOFO_RAISE_LOGIC_IF(!this->IsCMYK()
-        && !(this->IsSeparation() && (this->m_eAlternateColorSpace == PdfColorSpace::DeviceCMYK)),
+        && !(this->IsSeparation() && (this->m_AlternateColorSpace == PdfColorSpace::DeviceCMYK)),
         "PdfColor::GetCyan cannot be called on non CMYK color objects!");
 
-    return m_uColor.cmyk[0];
+    return m_Color.cmyk[0];
 }
 
 double PdfColor::GetMagenta() const
 {
     PODOFO_RAISE_LOGIC_IF(!this->IsCMYK()
-        && !(this->IsSeparation() && (this->m_eAlternateColorSpace == PdfColorSpace::DeviceCMYK)),
+        && !(this->IsSeparation() && (this->m_AlternateColorSpace == PdfColorSpace::DeviceCMYK)),
         "PdfColor::GetMagenta cannot be called on non CMYK color objects!");
 
-    return m_uColor.cmyk[1];
+    return m_Color.cmyk[1];
 }
 
 double PdfColor::GetYellow() const
 {
     PODOFO_RAISE_LOGIC_IF(!this->IsCMYK()
-        && !(this->IsSeparation() && (this->m_eAlternateColorSpace == PdfColorSpace::DeviceCMYK)),
+        && !(this->IsSeparation() && (this->m_AlternateColorSpace == PdfColorSpace::DeviceCMYK)),
         "PdfColor::GetYellow cannot be called on non CMYK color objects!");
 
-    return m_uColor.cmyk[2];
+    return m_Color.cmyk[2];
 }
 
 double PdfColor::GetBlack() const
 {
     PODOFO_RAISE_LOGIC_IF(!this->IsCMYK()
-        && !(this->IsSeparation() && (this->m_eAlternateColorSpace == PdfColorSpace::DeviceCMYK)),
+        && !(this->IsSeparation() && (this->m_AlternateColorSpace == PdfColorSpace::DeviceCMYK)),
         "PdfColor::GetBlack cannot be called on non CMYK color objects!");
 
-    return m_uColor.cmyk[3];
+    return m_Color.cmyk[3];
 }
 
-const string PdfColor::GetName() const
+const string& PdfColor::GetName() const
 {
     PODOFO_RAISE_LOGIC_IF(!this->IsSeparation(), "PdfColor::GetName cannot be called on non separation color objects!");
 
@@ -1377,26 +1377,26 @@ double PdfColor::GetDensity() const
 double PdfColor::GetCieL() const
 {
     PODOFO_RAISE_LOGIC_IF(!this->IsCieLab()
-        && !(this->IsSeparation() && this->m_eAlternateColorSpace == PdfColorSpace::CieLab),
+        && !(this->IsSeparation() && this->m_AlternateColorSpace == PdfColorSpace::CieLab),
         "PdfColor::GetCieL cannot be called on non CIE-Lab color objects!");
 
-    return m_uColor.lab[0];
+    return m_Color.lab[0];
 }
 
 double PdfColor::GetCieA() const
 {
     PODOFO_RAISE_LOGIC_IF(!this->IsCieLab()
-        && !(this->IsSeparation() && this->m_eAlternateColorSpace == PdfColorSpace::CieLab),
+        && !(this->IsSeparation() && this->m_AlternateColorSpace == PdfColorSpace::CieLab),
         "PdfColor::GetCieA cannot be called on non CIE-Lab color objects!");
 
-    return m_uColor.lab[1];
+    return m_Color.lab[1];
 }
 
 double PdfColor::GetCieB() const
 {
     PODOFO_RAISE_LOGIC_IF(!this->IsCieLab()
-        && !(this->IsSeparation() && this->m_eAlternateColorSpace == PdfColorSpace::CieLab),
+        && !(this->IsSeparation() && this->m_AlternateColorSpace == PdfColorSpace::CieLab),
         "PdfColor::GetCieB cannot be called on non CIE-Lab color objects!");
 
-    return m_uColor.lab[2];
+    return m_Color.lab[2];
 }

@@ -19,240 +19,240 @@
 using namespace std;
 using namespace PoDoFo;
 
-PdfOutlineItem::PdfOutlineItem(PdfDocument& doc, const PdfString& sTitle, const shared_ptr<PdfDestination>& dest,
-    PdfOutlineItem* pParentOutline) :
+PdfOutlineItem::PdfOutlineItem(PdfDocument& doc, const PdfString& title, const shared_ptr<PdfDestination>& dest,
+    PdfOutlineItem* parentOutline) :
     PdfElement(doc),
-    m_pParentOutline(pParentOutline), m_pPrev(nullptr), m_pNext(nullptr),
-    m_pFirst(nullptr), m_pLast(nullptr), m_destination(nullptr), m_action(nullptr)
+    m_ParentOutline(parentOutline), m_Prev(nullptr), m_Next(nullptr),
+    m_First(nullptr), m_Last(nullptr), m_destination(nullptr), m_action(nullptr)
 {
-    if (pParentOutline)
-        this->GetObject().GetDictionary().AddKey("Parent", pParentOutline->GetObject().GetIndirectReference());
+    if (parentOutline != nullptr)
+        this->GetObject().GetDictionary().AddKey("Parent", parentOutline->GetObject().GetIndirectReference());
 
-    this->SetTitle(sTitle);
+    this->SetTitle(title);
     this->SetDestination(dest);
 }
 
-PdfOutlineItem::PdfOutlineItem(PdfDocument& doc, const PdfString& sTitle, const shared_ptr<PdfAction>& action,
-    PdfOutlineItem* pParentOutline) :
+PdfOutlineItem::PdfOutlineItem(PdfDocument& doc, const PdfString& title, const shared_ptr<PdfAction>& action,
+    PdfOutlineItem* parentOutline) :
     PdfElement(doc),
-    m_pParentOutline(pParentOutline), m_pPrev(nullptr), m_pNext(nullptr),
-    m_pFirst(nullptr), m_pLast(nullptr), m_destination(nullptr), m_action(nullptr)
+    m_ParentOutline(parentOutline), m_Prev(nullptr), m_Next(nullptr),
+    m_First(nullptr), m_Last(nullptr), m_destination(nullptr), m_action(nullptr)
 {
-    if (pParentOutline)
-        this->GetObject().GetDictionary().AddKey("Parent", pParentOutline->GetObject().GetIndirectReference());
+    if (parentOutline != nullptr)
+        this->GetObject().GetDictionary().AddKey("Parent", parentOutline->GetObject().GetIndirectReference());
 
-    this->SetTitle(sTitle);
+    this->SetTitle(title);
     this->SetAction(action);
 }
 
-PdfOutlineItem::PdfOutlineItem(PdfObject& obj, PdfOutlineItem* pParentOutline, PdfOutlineItem* pPrevious)
-    : PdfElement(obj), m_pParentOutline(pParentOutline), m_pPrev(pPrevious),
-    m_pNext(nullptr), m_pFirst(nullptr), m_pLast(nullptr), m_destination(nullptr), m_action(nullptr)
+PdfOutlineItem::PdfOutlineItem(PdfObject& obj, PdfOutlineItem* parentOutline, PdfOutlineItem* previous)
+    : PdfElement(obj), m_ParentOutline(parentOutline), m_Prev(previous),
+    m_Next(nullptr), m_First(nullptr), m_Last(nullptr), m_destination(nullptr), m_action(nullptr)
 {
     PdfReference first, next;
 
     if (this->GetObject().GetDictionary().HasKey("First"))
     {
         first = this->GetObject().GetDictionary().GetKey("First")->GetReference();
-        m_pFirst = new PdfOutlineItem(obj.GetDocument()->GetObjects().MustGetObject(first), this, nullptr);
+        m_First = new PdfOutlineItem(obj.GetDocument()->GetObjects().MustGetObject(first), this, nullptr);
     }
 
     if (this->GetObject().GetDictionary().HasKey("Next"))
     {
         next = this->GetObject().GetDictionary().GetKey("Next")->GetReference();
-        m_pNext = new PdfOutlineItem(obj.GetDocument()->GetObjects().MustGetObject(next), pParentOutline, this);
+        m_Next = new PdfOutlineItem(obj.GetDocument()->GetObjects().MustGetObject(next), parentOutline, this);
     }
     else
     {
         // if there is no next key,
         // we have to set ourself as the last item of the parent
-        if (m_pParentOutline)
-            m_pParentOutline->SetLast(this);
+        if (m_ParentOutline != nullptr)
+            m_ParentOutline->SetLast(this);
     }
 }
 
 PdfOutlineItem::PdfOutlineItem(PdfDocument& doc)
-    : PdfElement(doc, "Outlines"), m_pParentOutline(nullptr), m_pPrev(nullptr),
-    m_pNext(nullptr), m_pFirst(nullptr), m_pLast(nullptr), m_destination(nullptr), m_action(nullptr)
+    : PdfElement(doc, "Outlines"), m_ParentOutline(nullptr), m_Prev(nullptr),
+    m_Next(nullptr), m_First(nullptr), m_Last(nullptr), m_destination(nullptr), m_action(nullptr)
 {
 }
 
 PdfOutlineItem::~PdfOutlineItem()
 {
-    delete m_pNext;
-    delete m_pFirst;
+    delete m_Next;
+    delete m_First;
 }
 
-PdfOutlineItem* PdfOutlineItem::CreateChild(const PdfString& sTitle, const shared_ptr<PdfDestination>& dest)
+PdfOutlineItem* PdfOutlineItem::CreateChild(const PdfString& title, const shared_ptr<PdfDestination>& dest)
 {
-    PdfOutlineItem* pItem = new PdfOutlineItem(*this->GetObject().GetDocument(), sTitle, dest, this);
-    this->InsertChildInternal(pItem, false);
-    return pItem;
+    PdfOutlineItem* item = new PdfOutlineItem(*this->GetObject().GetDocument(), title, dest, this);
+    this->InsertChildInternal(item, false);
+    return item;
 }
 
-void PdfOutlineItem::InsertChild(PdfOutlineItem* pItem)
+void PdfOutlineItem::InsertChild(PdfOutlineItem* item)
 {
-    this->InsertChildInternal(pItem, true);
+    this->InsertChildInternal(item, true);
 }
 
-void PdfOutlineItem::InsertChildInternal(PdfOutlineItem* pItem, bool bCheckParent)
+void PdfOutlineItem::InsertChildInternal(PdfOutlineItem* item, bool checkParent)
 {
-    PdfOutlineItem* pItemToCheckParent = pItem;
-    PdfOutlineItem* pRoot = nullptr;
-    PdfOutlineItem* pRootOfThis = nullptr;
+    PdfOutlineItem* itemToCheckParent = item;
+    PdfOutlineItem* root = nullptr;
+    PdfOutlineItem* rootOfThis = nullptr;
 
-    if (!pItemToCheckParent)
+    if (itemToCheckParent == nullptr)
         return;
 
-    if (bCheckParent)
+    if (checkParent)
     {
-        while (pItemToCheckParent)
+        while (itemToCheckParent != nullptr)
         {
-            while (pItemToCheckParent->GetParentOutline())
-                pItemToCheckParent = pItemToCheckParent->GetParentOutline();
+            while (itemToCheckParent->GetParentOutline())
+                itemToCheckParent = itemToCheckParent->GetParentOutline();
 
-            if (pItemToCheckParent == pItem) // item can't have a parent
+            if (itemToCheckParent == item) // item can't have a parent
             {
-                pRoot = pItem; // needed later, "root" can mean "standalone" here
+                root = item; // needed later, "root" can mean "standalone" here
                 break;         // for performance in standalone or doc-merge case
             }
 
-            if (!pRoot)
+            if (root == nullptr)
             {
-                pRoot = pItemToCheckParent;
-                pItemToCheckParent = this;
+                rootOfThis = itemToCheckParent;
+                itemToCheckParent = nullptr;
             }
             else
             {
-                pRootOfThis = pItemToCheckParent;
-                pItemToCheckParent = nullptr;
+                root = itemToCheckParent;
+                itemToCheckParent = this;
             }
         }
 
-        if (pRoot == pRootOfThis) // later nullptr if check skipped for performance
+        if (root == rootOfThis) // later nullptr if check skipped for performance
             PODOFO_RAISE_ERROR(EPdfError::OutlineItemAlreadyPresent);
     }
 
-    if (m_pLast != nullptr)
+    if (m_Last != nullptr)
     {
-        m_pLast->SetNext(pItem);
-        pItem->SetPrevious(m_pLast);
+        m_Last->SetNext(item);
+        item->SetPrevious(m_Last);
     }
 
-    m_pLast = pItem;
+    m_Last = item;
 
-    if (m_pFirst == nullptr)
-        m_pFirst = m_pLast;
+    if (m_First == nullptr)
+        m_First = m_Last;
 
-    this->GetObject().GetDictionary().AddKey("First", m_pFirst->GetObject().GetIndirectReference());
-    this->GetObject().GetDictionary().AddKey("Last", m_pLast->GetObject().GetIndirectReference());
+    this->GetObject().GetDictionary().AddKey("First", m_First->GetObject().GetIndirectReference());
+    this->GetObject().GetDictionary().AddKey("Last", m_Last->GetObject().GetIndirectReference());
 }
 
-PdfOutlineItem* PdfOutlineItem::CreateNext(const PdfString& sTitle, const shared_ptr<PdfDestination>& dest)
+PdfOutlineItem* PdfOutlineItem::CreateNext(const PdfString& title, const shared_ptr<PdfDestination>& dest)
 {
-    PdfOutlineItem* pItem = new PdfOutlineItem(*this->GetObject().GetDocument(), sTitle, dest, m_pParentOutline);
+    PdfOutlineItem* item = new PdfOutlineItem(*this->GetObject().GetDocument(), title, dest, m_ParentOutline);
 
-    if (m_pNext != nullptr)
+    if (m_Next != nullptr)
     {
-        m_pNext->SetPrevious(pItem);
-        pItem->SetNext(m_pNext);
+        m_Next->SetPrevious(item);
+        item->SetNext(m_Next);
     }
 
-    m_pNext = pItem;
-    m_pNext->SetPrevious(this);
+    m_Next = item;
+    m_Next->SetPrevious(this);
 
-    this->GetObject().GetDictionary().AddKey("Next", m_pNext->GetObject().GetIndirectReference());
+    this->GetObject().GetDictionary().AddKey("Next", m_Next->GetObject().GetIndirectReference());
 
-    if (m_pParentOutline != nullptr && m_pNext->Next() == nullptr)
-        m_pParentOutline->SetLast(m_pNext);
+    if (m_ParentOutline != nullptr && m_Next->Next() == nullptr)
+        m_ParentOutline->SetLast(m_Next);
 
-    return m_pNext;
+    return m_Next;
 }
 
-PdfOutlineItem* PdfOutlineItem::CreateNext(const PdfString& sTitle, const shared_ptr<PdfAction>& action)
+PdfOutlineItem* PdfOutlineItem::CreateNext(const PdfString& title, const shared_ptr<PdfAction>& action)
 {
-    PdfOutlineItem* pItem = new PdfOutlineItem(*this->GetObject().GetDocument(), sTitle, action, m_pParentOutline);
+    PdfOutlineItem* item = new PdfOutlineItem(*this->GetObject().GetDocument(), title, action, m_ParentOutline);
 
-    if (m_pNext != nullptr)
+    if (m_Next != nullptr)
     {
-        m_pNext->SetPrevious(pItem);
-        pItem->SetNext(m_pNext);
+        m_Next->SetPrevious(item);
+        item->SetNext(m_Next);
     }
 
-    m_pNext = pItem;
-    m_pNext->SetPrevious(this);
+    m_Next = item;
+    m_Next->SetPrevious(this);
 
-    this->GetObject().GetDictionary().AddKey("Next", m_pNext->GetObject().GetIndirectReference());
+    this->GetObject().GetDictionary().AddKey("Next", m_Next->GetObject().GetIndirectReference());
 
-    if (m_pParentOutline != nullptr && m_pNext->Next() == nullptr)
-        m_pParentOutline->SetLast(m_pNext);
+    if (m_ParentOutline != nullptr && m_Next->Next() == nullptr)
+        m_ParentOutline->SetLast(m_Next);
 
-    return m_pNext;
+    return m_Next;
 }
 
-void PdfOutlineItem::SetPrevious(PdfOutlineItem* pItem)
+void PdfOutlineItem::SetPrevious(PdfOutlineItem* item)
 {
-    m_pPrev = pItem;
-    if (m_pPrev == nullptr)
+    m_Prev = item;
+    if (m_Prev == nullptr)
         this->GetObject().GetDictionary().RemoveKey("Prev");
     else
-        this->GetObject().GetDictionary().AddKey("Prev", m_pPrev->GetObject().GetIndirectReference());
+        this->GetObject().GetDictionary().AddKey("Prev", m_Prev->GetObject().GetIndirectReference());
 }
 
-void PdfOutlineItem::SetNext(PdfOutlineItem* pItem)
+void PdfOutlineItem::SetNext(PdfOutlineItem* item)
 {
-    m_pNext = pItem;
-    if (m_pNext == nullptr)
+    m_Next = item;
+    if (m_Next == nullptr)
         this->GetObject().GetDictionary().RemoveKey("Next");
     else
-        this->GetObject().GetDictionary().AddKey("Next", m_pNext->GetObject().GetIndirectReference());
+        this->GetObject().GetDictionary().AddKey("Next", m_Next->GetObject().GetIndirectReference());
 }
 
-void PdfOutlineItem::SetLast(PdfOutlineItem* pItem)
+void PdfOutlineItem::SetLast(PdfOutlineItem* item)
 {
-    m_pLast = pItem;
-    if (m_pLast == nullptr)
+    m_Last = item;
+    if (m_Last == nullptr)
         this->GetObject().GetDictionary().RemoveKey("Last");
 
     else
-        this->GetObject().GetDictionary().AddKey("Last", m_pLast->GetObject().GetIndirectReference());
+        this->GetObject().GetDictionary().AddKey("Last", m_Last->GetObject().GetIndirectReference());
 }
 
-void PdfOutlineItem::SetFirst(PdfOutlineItem* pItem)
+void PdfOutlineItem::SetFirst(PdfOutlineItem* item)
 {
-    m_pFirst = pItem;
-    if (m_pFirst == nullptr)
+    m_First = item;
+    if (m_First == nullptr)
         this->GetObject().GetDictionary().RemoveKey("First");
     else
-        this->GetObject().GetDictionary().AddKey("First", m_pFirst->GetObject().GetIndirectReference());
+        this->GetObject().GetDictionary().AddKey("First", m_First->GetObject().GetIndirectReference());
 }
 
 void PdfOutlineItem::Erase()
 {
-    while (m_pFirst != nullptr)
+    while (m_First != nullptr)
     {
         // erase will set a new first
         // if it has a next item
-        m_pFirst->Erase();
+        m_First->Erase();
     }
 
-    if (m_pPrev != nullptr)
+    if (m_Prev != nullptr)
     {
-        m_pPrev->SetNext(m_pNext);
+        m_Prev->SetNext(m_Next);
     }
 
-    if (m_pNext != nullptr)
+    if (m_Next != nullptr)
     {
-        m_pNext->SetPrevious(m_pPrev);
+        m_Next->SetPrevious(m_Prev);
     }
 
-    if (m_pPrev == nullptr && m_pParentOutline && this == m_pParentOutline->First())
-        m_pParentOutline->SetFirst(m_pNext);
+    if (m_Prev == nullptr && m_ParentOutline && this == m_ParentOutline->First())
+        m_ParentOutline->SetFirst(m_Next);
 
-    if (m_pNext == nullptr && m_pParentOutline && this == m_pParentOutline->Last())
-        m_pParentOutline->SetLast(m_pPrev);
+    if (m_Next == nullptr && m_ParentOutline && this == m_ParentOutline->Last())
+        m_ParentOutline->SetLast(m_Prev);
 
-    m_pNext = nullptr;
+    m_Next = nullptr;
     delete this;
 }
 
@@ -306,9 +306,9 @@ shared_ptr<PdfAction> PdfOutlineItem::getAction()
     return m_action;
 }
 
-void PdfOutlineItem::SetTitle(const PdfString& sTitle)
+void PdfOutlineItem::SetTitle(const PdfString& title)
 {
-    this->GetObject().GetDictionary().AddKey("Title", sTitle);
+    this->GetObject().GetDictionary().AddKey("Title", title);
 }
 
 const PdfString& PdfOutlineItem::GetTitle() const
@@ -374,7 +374,7 @@ PdfOutlines::PdfOutlines(PdfObject& obj)
 {
 }
 
-PdfOutlineItem* PdfOutlines::CreateRoot(const PdfString& sTitle)
+PdfOutlineItem* PdfOutlines::CreateRoot(const PdfString& title)
 {
-    return this->CreateChild(sTitle, std::make_shared<PdfDestination>(*GetObject().GetDocument()));
+    return this->CreateChild(title, std::make_shared<PdfDestination>(*GetObject().GetDocument()));
 }

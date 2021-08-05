@@ -31,7 +31,7 @@ public:
     /** Create a new PdfExtGState object which will introduce itself
      *  automatically to every page object it is used on.
      *
-     *  \param pParent parent document
+     *  \param parent parent document
      *
      */
     PdfExtGState(PdfDocument& doc);

@@ -50,21 +50,21 @@ public:
      * This is used by PdfImmediateWriter and PdfStreamedDocument so
      * that no keys can be added to an object after setting stream data on it.
      *
-     * @returns true if the object is immutable
+     * \returns true if the object is immutable
      */
-    bool IsImmutable() const { return m_isImmutable; }
+    bool IsImmutable() const { return m_IsImmutable; }
 
     /**
      * Sets this object to immutable,
      * so that no keys can be edited or changed.
      *
-     * @param bImmutable if true set the object to be immutable
+     * \param bImmutable if true set the object to be immutable
      *
      * This is used by PdfImmediateWriter and PdfStreamedDocument so
      * that no keys can be added to an object after setting stream data on it.
      *
      */
-    void SetImmutable(bool immutable) { m_isImmutable = immutable; }
+    void SetImmutable(bool immutable) { m_IsImmutable = immutable; }
 
 protected:
     void AssertMutable() const;
@@ -145,7 +145,7 @@ private:
 
 private:
     PdfObject* m_Owner;
-    bool m_isImmutable;
+    bool m_IsImmutable;
 };
 
 }

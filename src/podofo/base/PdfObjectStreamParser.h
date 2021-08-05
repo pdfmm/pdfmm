@@ -34,21 +34,20 @@ public:
      * PdfParserObject. The PdfParserObject will be removed and deleted.
      * All objects from the object stream will be read into memory.
      *
-     * \param pParser PdfParserObject for an object stream
-     * \param pVecObjects add loaded objects to this vector of objects
-     * \param rBuffer use this allocated buffer for caching
-     * \param pEncrypt encryption object used to decrypt streams
+     * \param parser PdfParserObject for an object stream
+     * \param objects add loaded objects to this vector of objects
+     * \param buffer use this allocated buffer for caching
      */
     PdfObjectStreamParser(PdfParserObject& parser, PdfVecObjects& objects, const PdfRefCountedBuffer& buffer);
 
     void Parse(ObjectIdList const&);
 
 private:
-    void ReadObjectsFromStream(char* pBuffer, size_t lBufferLen, int64_t lNum, int64_t lFirst, ObjectIdList const&);
+    void ReadObjectsFromStream(char* buffer, size_t lBufferLen, int64_t lNum, int64_t lFirst, ObjectIdList const&);
 
 private:
-    PdfParserObject* m_pParser;
-    PdfVecObjects* m_vecObjects;
+    PdfParserObject* m_Parser;
+    PdfVecObjects* m_Objects;
     PdfRefCountedBuffer m_buffer;
 };
 

@@ -67,7 +67,7 @@ public:
      *
      *  Calls FinishPage() on the last page if it was not yet called.
      *
-     *  \param pPage a PdfCanvas object (most likely a PdfPage or PdfXObject).
+     *  \param page a PdfCanvas object (most likely a PdfPage or PdfXObject).
      *
      *  \see PdfPage \see PdfXObject
      *  \see FinishPage()
@@ -126,25 +126,25 @@ public:
 
     /** Set the color for all following stroking operations.
      *
-     *  \param rColor a PdfColor object
+     *  \param color a PdfColor object
      */
     void SetStrokingColor(const PdfColor& color);
 
     /** Set the color for all following non-stroking operations.
      *
-     *  \param rColor a PdfColor object
+     *  \param color a PdfColor object
      */
     void SetColor(const PdfColor& color);
 
     /** Set the line width for all stroking operations.
-     *  \param dWidth in PDF User Units.
+     *  \param width in PDF User Units.
      */
     void SetStrokeWidth(double width);
 
     /** Set the stoke style for all stroking operations.
-     *  \param eStyle style of the stroking operations
-     *  \param pszCustom a custom stroking style which is used when
-     *                   eStyle == EPdfStrokeStyle::Custom.
+     *  \param strokeStyle style of the stroking operations
+     *  \param custom a custom stroking style which is used when
+     *                   strokeStyle == EPdfStrokeStyle::Custom.
       *  \param inverted inverted dash style (gaps for drawn spaces),
       *                  it is ignored for None, Solid and Custom styles
       *  \param scale scale factor of the stroke style
@@ -163,7 +163,7 @@ public:
      *    EPdfStrokeStyle::Custom
      *
      */
-    void SetStrokeStyle(PdfStrokeStyle style, const std::string_view& custom = { }, bool inverted = false, double scale = 1.0, bool subtractJoinCap = false);
+    void SetStrokeStyle(PdfStrokeStyle strokeStyle, const std::string_view& custom = { }, bool inverted = false, double scale = 1.0, bool subtractJoinCap = false);
 
     /** Set the line cap style for all stroking operations.
      *  \param eCapStyle the cap style.
@@ -186,11 +186,11 @@ public:
     void SetLineJoinStyle(PdfLineJoinStyle joinStyle);
 
     /** Set the font for all text drawing operations
-     *  \param pFont a handle to a valid PdfFont object
+     *  \param font a handle to a valid PdfFont object
      *
      *  \see DrawText
      */
-    void SetFont(PdfFont* pFont);
+    void SetFont(PdfFont* font);
 
     /** Set the text rendering mode
      *  \param mode What text rendering mode to use.
@@ -209,16 +209,16 @@ public:
 
     /** Set a clipping rectangle
      *
-     *  \param dX x coordinate of the rectangle (left coordinate)
-     *  \param dY y coordinate of the rectangle (bottom coordinate)
-     *  \param dWidth width of the rectangle
-     *  \param dHeight absolute height of the rectangle
+     *  \param x x coordinate of the rectangle (left coordinate)
+     *  \param y y coordinate of the rectangle (bottom coordinate)
+     *  \param width width of the rectangle
+     *  \param height absolute height of the rectangle
      */
     void SetClipRect(double x, double y, double width, double height);
 
     /** Set a clipping rectangle
      *
-     *  \param rRect rectangle
+     *  \param rect rectangle
      */
     void SetClipRect(const PdfRect& rect);
 
@@ -227,53 +227,53 @@ public:
     void SetMiterLimit(double value);
 
     /** Draw a line with the current color and line settings.
-     *  \param dStartX x coordinate of the starting point
-     *  \param dStartY y coordinate of the starting point
-     *  \param dEndX x coordinate of the ending point
-     *  \param dEndY y coordinate of the ending point
+     *  \param startX x coordinate of the starting point
+     *  \param startY y coordinate of the starting point
+     *  \param endX x coordinate of the ending point
+     *  \param endY y coordinate of the ending point
      */
-    void DrawLine(double dStartX, double dStartY, double dEndX, double dEndY);
+    void DrawLine(double startX, double startY, double endX, double endY);
 
     /** Add a rectangle into the current path
-     *  \param dX x coordinate of the rectangle (left coordinate)
-     *  \param dY y coordinate of the rectangle (bottom coordinate)
-     *  \param dWidth width of the rectangle
-     *  \param dHeight absolute height of the rectangle
-     *  \param dRoundX rounding factor, x direction
-     *  \param dRoundY rounding factor, y direction
+     *  \param x x coordinate of the rectangle (left coordinate)
+     *  \param y y coordinate of the rectangle (bottom coordinate)
+     *  \param width width of the rectangle
+     *  \param height absolute height of the rectangle
+     *  \param roundX rounding factor, x direction
+     *  \param roundY rounding factor, y direction
      */
-    void Rectangle(double dX, double dY, double dWidth, double dHeight,
-        double dRoundX = 0.0, double dRoundY = 0.0);
+    void Rectangle(double x, double y, double width, double height,
+        double roundX = 0.0, double roundY = 0.0);
 
     /** Add a rectangle into the current path
      *
-     *  \param rRect the rectangle area
-     *  \param dRoundX rounding factor, x direction
-     *  \param dRoundY rounding factor, y direction
+     *  \param rect the rectangle area
+     *  \param roundX rounding factor, x direction
+     *  \param roundY rounding factor, y direction
      *
      *  \see DrawRect
      */
     void Rectangle(const PdfRect& rect, double roundX = 0.0, double roundY = 0.0);
 
     /** Add an ellipse into the current path
-     *  \param dX x coordinate of the ellipse (left coordinate)
-     *  \param dY y coordinate of the ellipse (top coordinate)
-     *  \param dWidth width of the ellipse
-     *  \param dHeight absolute height of the ellipse
+     *  \param x x coordinate of the ellipse (left coordinate)
+     *  \param y y coordinate of the ellipse (top coordinate)
+     *  \param width width of the ellipse
+     *  \param height absolute height of the ellipse
      */
     void Ellipse(double x, double y, double width, double height);
 
     /** Add a circle into the current path
-     *  \param dX x center coordinate of the circle
-     *  \param dY y coordinate of the circle
+     *  \param x x center coordinate of the circle
+     *  \param y y coordinate of the circle
      *  \param dRadius radius of the circle
      */
     void Circle(double x, double y, double radius);
 
     /** Draw a single-line text string on a page using a given font object.
      *  You have to call SetFont before calling this function.
-     *  \param dX the x coordinate
-     *  \param dY the y coordinate
+     *  \param x the x coordinate
+     *  \param y the y coordinate
      *  \param sText the text string which should be printed
      *
      *  \see SetFont()
@@ -284,14 +284,14 @@ public:
      *  The current font is used and SetFont has to be called at least once
      *  before using this function
      *
-     *  \param dX the x coordinate of the text area (left)
-     *  \param dY the y coordinate of the text area (bottom)
-     *  \param dWidth width of the text area
-     *  \param dHeight height of the text area
-     *  \param rsText the text which should be drawn
+     *  \param x the x coordinate of the text area (left)
+     *  \param y the y coordinate of the text area (bottom)
+     *  \param width width of the text area
+     *  \param height height of the text area
+     *  \param text the text which should be drawn
      *  \param eAlignment alignment of the individual text lines in the given bounding box
      *  \param eVertical vertical alignment of the text in the given bounding box
-     *  \param bClip set the clipping rectangle to the given rRect, otherwise no clipping is performed
+     *  \param bClip set the clipping rectangle to the given rect, otherwise no clipping is performed
      *  \param bSkipSpaces whether the trailing whitespaces should be skipped, so that next line doesn't start with whitespace
      */
     void DrawMultiLineText(double x, double y, double width, double height,
@@ -302,24 +302,24 @@ public:
      *  The current font is used and SetFont has to be called at least once
      *  before using this function
      *
-     *  \param rRect bounding rectangle of the text
-     *  \param rsText the text which should be drawn
+     *  \param rect bounding rectangle of the text
+     *  \param text the text which should be drawn
      *  \param eAlignment alignment of the individual text lines in the given bounding box
      *  \param eVertical vertical alignment of the text in the given bounding box
-     *  \param bClip set the clipping rectangle to the given rRect, otherwise no clipping is performed
+     *  \param bClip set the clipping rectangle to the given rect, otherwise no clipping is performed
      *  \param bSkipSpaces whether the trailing whitespaces should be skipped, so that next line doesn't start with whitespace
      */
     void DrawMultiLineText(const PdfRect& rect, const std::string_view& str, PdfHorizontalAlignment hAlignment = PdfHorizontalAlignment::Left,
         PdfVerticalAlignment vAlignment = PdfVerticalAlignment::Top, bool clip = true, bool skipSpaces = true);
 
     /** Draw a single line of text horizontally aligned.
-     *  \param dX the x coordinate of the text line
-     *  \param dY the y coordinate of the text line
-     *  \param dWidth the width of the text line
-     *  \param rsText the text to draw
+     *  \param x the x coordinate of the text line
+     *  \param y the y coordinate of the text line
+     *  \param width the width of the text line
+     *  \param text the text to draw
      *  \param eAlignment alignment of the text line
      */
-    void DrawTextAligned(double dX, double dY, double dWidth, const std::string_view& str, PdfHorizontalAlignment hAlignment);
+    void DrawTextAligned(double x, double y, double width, const std::string_view& str, PdfHorizontalAlignment hAlignment);
 
     /** Begin drawing multiple text strings on a page using a given font object.
      *  You have to call SetFont before calling this function.
@@ -328,8 +328,8 @@ public:
      *  the advanced text position features of MoveTextPos
      *  use DrawText which is easier.
      *
-     *  \param dX the x coordinate
-     *  \param dY the y coordinate
+     *  \param x the x coordinate
+     *  \param y the y coordinate
      *
      *  \see SetFont()
      *  \see AddText()
@@ -361,8 +361,8 @@ public:
      *  the advanced text position features of MoveTextPos
      *  use DrawText which is easier.
      *
-     *  \param dX the x offset relative to pos of BeginText or last MoveTextPos
-     *  \param dY the y offset relative to pos of BeginText or last MoveTextPos
+     *  \param x the x offset relative to pos of BeginText or last MoveTextPos
+     *  \param y the y offset relative to pos of BeginText or last MoveTextPos
      *
      *  \see BeginText()
      *  \see AddText()
@@ -383,21 +383,21 @@ public:
     void EndText();
 
     /** Draw an image on the current page.
-     *  \param dX the x coordinate (bottom left position of the image)
-     *  \param dY the y coordinate (bottom position of the image)
-     *  \param pObject an PdfXObject
-     *  \param dScaleX option scaling factor in x direction
-     *  \param dScaleY option scaling factor in y direction
+     *  \param x the x coordinate (bottom left position of the image)
+     *  \param y the y coordinate (bottom position of the image)
+     *  \param obj an PdfXObject
+     *  \param scaleX option scaling factor in x direction
+     *  \param scaleY option scaling factor in y direction
      */
     void DrawImage(double x, double y, const PdfImage& obj, double scaleX = 1.0, double scaleY = 1.0);
 
     /** Draw an XObject on the current page. For PdfImage use DrawImage.
      *
-     *  \param dX the x coordinate (bottom left position of the XObject)
-     *  \param dY the y coordinate (bottom position of the XObject)
-     *  \param pObject an PdfXObject
-     *  \param dScaleX option scaling factor in x direction
-     *  \param dScaleY option scaling factor in y direction
+     *  \param x the x coordinate (bottom left position of the XObject)
+     *  \param y the y coordinate (bottom position of the XObject)
+     *  \param obj an PdfXObject
+     *  \param scaleX option scaling factor in x direction
+     *  \param scaleY option scaling factor in y direction
      *
      *  \see DrawImage
      */
@@ -413,78 +413,78 @@ public:
     /** Append a line segment to the current path. Matches the PDF 'l' operator.
      *  This function is useful to construct an own path
      *  for drawing or clipping.
-     *  \param dX x position
-     *  \param dY y position
+     *  \param x x position
+     *  \param y y position
      */
     void LineTo(double x, double y);
 
     /** Begin a new path. Matches the PDF 'm' operator.
      *  This function is useful to construct an own path
      *  for drawing or clipping.
-     *  \param dX x position
-     *  \param dY y position
+     *  \param x x position
+     *  \param y y position
      */
     void MoveTo(double x, double y);
 
     /** Append a cubic bezier curve to the current path
      *  Matches the PDF 'c' operator.
      *
-     *  \param dX1 x coordinate of the first control point
-     *  \param dY1 y coordinate of the first control point
-     *  \param dX2 x coordinate of the second control point
-     *  \param dY2 y coordinate of the second control point
-     *  \param dX3 x coordinate of the end point, which is the new current point
-     *  \param dY3 y coordinate of the end point, which is the new current point
+     *  \param x1 x coordinate of the first control point
+     *  \param y1 y coordinate of the first control point
+     *  \param x2 x coordinate of the second control point
+     *  \param y2 y coordinate of the second control point
+     *  \param x3 x coordinate of the end point, which is the new current point
+     *  \param y3 y coordinate of the end point, which is the new current point
      */
     void CubicBezierTo(double x1, double y1, double x2, double y2, double x3, double y3);
 
     /** Append a horizontal line to the current path
      *  Matches the SVG 'H' operator
      *
-     *  \param dX x coordinate to draw the line to
+     *  \param x x coordinate to draw the line to
      */
     void HorizontalLineTo(double x);
 
     /** Append a vertical line to the current path
      *  Matches the SVG 'V' operator
      *
-     *  \param dY y coordinate to draw the line to
+     *  \param y y coordinate to draw the line to
      */
     void VerticalLineTo(double y);
 
     /** Append a smooth bezier curve to the current path
      *  Matches the SVG 'S' operator.
      *
-     *  \param dX2 x coordinate of the second control point
-     *  \param dY2 y coordinate of the second control point
-     *  \param dX3 x coordinate of the end point, which is the new current point
-     *  \param dY3 y coordinate of the end point, which is the new current point
+     *  \param x2 x coordinate of the second control point
+     *  \param y2 y coordinate of the second control point
+     *  \param x3 x coordinate of the end point, which is the new current point
+     *  \param y3 y coordinate of the end point, which is the new current point
      */
     void SmoothCurveTo(double x2, double y2, double x3, double y3);
 
     /** Append a quadratic bezier curve to the current path
      *  Matches the SVG 'Q' operator.
      *
-     *  \param dX1 x coordinate of the first control point
-     *  \param dY1 y coordinate of the first control point
-     *  \param dX3 x coordinate of the end point, which is the new current point
-     *  \param dY3 y coordinate of the end point, which is the new current point
+     *  \param x1 x coordinate of the first control point
+     *  \param y1 y coordinate of the first control point
+     *  \param x3 x coordinate of the end point, which is the new current point
+     *  \param y3 y coordinate of the end point, which is the new current point
      */
     void QuadCurveTo(double x1, double y1, double x3, double y3);
 
     /** Append a smooth quadratic bezier curve to the current path
      *  Matches the SVG 'T' operator.
      *
-     *  \param dX3 x coordinate of the end point, which is the new current point
-     *  \param dY3 y coordinate of the end point, which is the new current point
+     *  \param x3 x coordinate of the end point, which is the new current point
+     *  \param y3 y coordinate of the end point, which is the new current point
      */
     void SmoothQuadCurveTo(double x3, double y3);
 
     /** Append a Arc to the current path
      *  Matches the SVG 'A' operator.
      *
-     *  \param dX x coordinate of the start point
-     *  \param dY y coordinate of the start point
+     *  \param x x coordinate of the start point
+     *  \param y y coordinate of the start point
      *  \param dRadiusX x coordinate of the end point, which is the new current point
      *  \param dRadiusY y coordinate of the end point, which is the new current point
      *	\param dRotation degree of rotation in radians
@@ -584,9 +584,9 @@ public:
 
     /** Set the floating point precision.
      *
-     *  \param inPrec write this many decimal places
+     *  \param precision write this many decimal places
      */
-    void SetPrecision(unsigned short inPrec);
+    void SetPrecision(unsigned short precision);
 
     /** Get the currently set floating point precision
      *  \returns how many decimal places will be written out for any floating point value
@@ -609,7 +609,7 @@ public:
     /** Gets current text rendering mode.
      *  Default mode is EPdfTextRenderingMode::Fill.
      */
-    inline PdfTextRenderingMode GetTextRenderingMode() const { return currentTextRenderingMode; }
+    inline PdfTextRenderingMode GetTextRenderingMode() const { return m_currentTextRenderingMode; }
 
     /** Get the current font:
      *  \returns a font object or nullptr if no font was set.
@@ -660,8 +660,8 @@ public:
 private:
     /** Gets the text divided into individual lines, using the current font and clipping rectangle.
      *
-     *  \param dWidth width of the text area
-     *  \param rsText the text which should be drawn
+     *  \param width width of the text area
+     *  \param text the text which should be drawn
      *  \param bSkipSpaces whether the trailing whitespaces should be skipped, so that next line doesn't start with whitespace
      */
     std::vector<std::string> GetMultiLineTextAsLines(double width, const std::string_view& str, bool skipSpaces);
@@ -686,11 +686,11 @@ private:
     /** Register an object in the resource dictionary of this page
      *  so that it can be used for any following drawing operations.
      *
-     *  \param rIdentifier identifier of this object, e.g. /Ft0
-     *  \param rRef reference to the object you want to register
-     *  \param rName register under this key in the resource dictionary
+     *  \param identifier identifier of this object, e.g. /Ft0
+     *  \param ref reference to the object you want to register
+     *  \param name register under this key in the resource dictionary
      */
-    void AddToPageResources(const PdfName& rIdentifier, const PdfReference& rRef, const PdfName& rName);
+    void AddToPageResources(const PdfName& identifier, const PdfReference& ref, const PdfName& name);
 
     /** Sets the color that was last set by the user as the current stroking color.
       *  You should always enclose this function by Save() and Restore()
@@ -699,13 +699,14 @@ private:
       */
     void SetCurrentStrokingColor();
 
-    bool InternalArc(double x, double y, double ray, double ang1, double ang2, bool cont_flg);
+    bool InternalArc(double x, double y, double ray, double ang1, double ang2, bool contFlg);
 
     /** Expand all tab characters in a string
      *  using spaces.
      *
-     *  \param rsString expand all tabs in this string using spaces
-     *  \param lLen use only lLen characters of rsString. If negative use all string length
+     *  \param str expand all tabs in this string using spaces
+     *  \param len use only len characters of the string. If negative use all
+     *      string length
      *  \returns an expanded copy of the passed string
      *  \see SetTabWidth
      */
@@ -734,7 +735,7 @@ private:
      */
     PdfFont* m_Font;
 
-    /** Every tab '\\t' is replaced with m_nTabWidth
+    /** Every tab '\\t' is replaced with m_TabWidth
      *  spaces before drawing text. Default is a value of 4
      */
     unsigned m_TabWidth;
@@ -762,7 +763,7 @@ private:
      */
     std::string m_CSTag;
 
-    PdfTextRenderingMode currentTextRenderingMode;
+    PdfTextRenderingMode m_currentTextRenderingMode;
 
     // TODO: Next comment was found like this and it's is really bad.
     // Document the next fields accurately, possibly moving them
@@ -771,16 +772,16 @@ private:
     // points for this operation
     // last "current" point
     // "reflect points"
-    double lpx;
-    double lpy;
-    double lpx2;
-    double lpy2;
-    double lpx3;
-    double lpy3;
-    double lcx;
-    double lcy;
-    double lrx;
-    double lry;
+    double m_lpx;
+    double m_lpy;
+    double m_lpx2;
+    double m_lpy2;
+    double m_lpx3;
+    double m_lpy3;
+    double m_lcx;
+    double m_lcy;
+    double m_lrx;
+    double m_lry;
 };
 
 }

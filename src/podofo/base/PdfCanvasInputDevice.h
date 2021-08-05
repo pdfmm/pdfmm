@@ -38,7 +38,7 @@ private:
     void popNextDevice();
 private:
     bool m_eof;
-    std::list<PdfObject*> m_lstContents;
+    std::list<PdfObject*> m_contents;
     std::unique_ptr<PdfInputDevice> m_device;
 };
 

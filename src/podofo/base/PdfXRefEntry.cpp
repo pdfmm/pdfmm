@@ -14,7 +14,7 @@ using namespace PoDoFo;
 PdfXRefEntry::PdfXRefEntry() :
     Unknown1(0),
     Unknown2(0),
-    Type(EXRefEntryType::Unknown),
+    Type(XRefEntryType::Unknown),
     Parsed(false)
 { }
 
@@ -23,7 +23,7 @@ PdfXRefEntry PdfXRefEntry::CreateFree(uint32_t object, uint16_t generation)
     PdfXRefEntry ret;
     ret.ObjectNumber = object;
     ret.Generation = generation;
-    ret.Type = EXRefEntryType::Free;
+    ret.Type = XRefEntryType::Free;
     return ret;
 }
 
@@ -32,7 +32,7 @@ PdfXRefEntry PdfXRefEntry::CreateInUse(uint64_t offset, uint16_t generation)
     PdfXRefEntry ret;
     ret.Offset = offset;
     ret.Generation = generation;
-    ret.Type = EXRefEntryType::InUse;
+    ret.Type = XRefEntryType::InUse;
     return ret;
 }
 
@@ -41,33 +41,33 @@ PdfXRefEntry PdfXRefEntry::CreateCompressed(uint32_t object, unsigned index)
     PdfXRefEntry ret;
     ret.ObjectNumber = object;
     ret.Index = index;
-    ret.Type = EXRefEntryType::Compressed;
+    ret.Type = XRefEntryType::Compressed;
     return ret;
 }
 
-char PoDoFo::XRefEntryType(EXRefEntryType type)
+char PoDoFo::XRefEntryTypeToChar(XRefEntryType type)
 {
     switch (type)
     {
-        case EXRefEntryType::Free:
+        case XRefEntryType::Free:
             return 'f';
-        case EXRefEntryType::InUse:
+        case XRefEntryType::InUse:
             return 'n';
-        case EXRefEntryType::Unknown:
-        case EXRefEntryType::Compressed:
+        case XRefEntryType::Unknown:
+        case XRefEntryType::Compressed:
         default:
             PODOFO_RAISE_ERROR(EPdfError::InvalidEnumValue);
     }
 }
 
-EXRefEntryType PoDoFo::XRefEntryTypeFromChar(char c)
+XRefEntryType PoDoFo::XRefEntryTypeFromChar(char c)
 {
     switch (c)
     {
         case 'f':
-            return EXRefEntryType::Free;
+            return XRefEntryType::Free;
         case 'n':
-            return EXRefEntryType::InUse;
+            return XRefEntryType::InUse;
         default:
             PODOFO_RAISE_ERROR(EPdfError::InvalidXRef);
     }

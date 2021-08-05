@@ -45,18 +45,18 @@ public:
 
     /** Creates a PdfSignature from an existing PdfAnnotation, which should
      *  be an annotation with a field type Sig.
-     *	\param pObject the object
-     *	\param pWidget the annotation to create from
+     *	\param obj the object
+     *	\param widget the annotation to create from
      */
     PdfSignature(PdfObject& obj, PdfAnnotation* widget);
 
     /** Set an appearance stream for this signature field
      *  to specify its visual appearance
-     *  \param pObject an XObject
-     *  \param eAppearance an appearance type to set
-     *  \param state the state for which set it the pObject; states depend on the annotation type
+     *  \param obj an XObject
+     *  \param appearance an appearance type to set
+     *  \param state the state for which set it the obj; states depend on the annotation type
      */
-    void SetAppearanceStream(PdfXObject& pObject, PdfAnnotationAppearance eAppearance = PdfAnnotationAppearance::Normal, const PdfName& state = "");
+    void SetAppearanceStream(PdfXObject& obj, PdfAnnotationAppearance appearance = PdfAnnotationAppearance::Normal, const PdfName& state = "");
 
     /** Create space for signature
      *
@@ -78,21 +78,21 @@ public:
 
     /** Set the signer name
     *
-    *  \param rsText the signer name
+    *  \param text the signer name
     */
-    void SetSignerName(const PdfString& rsText);
+    void SetSignerName(const PdfString& text);
 
     /** Set reason of the signature
      *
-     *  \param rsText the reason of signature
+     *  \param text the reason of signature
      */
-    void SetSignatureReason(const PdfString& rsText);
+    void SetSignatureReason(const PdfString& text);
 
     /** Set location of the signature
      *
-     *  \param rsText the location of signature
+     *  \param text the location of signature
      */
-    void SetSignatureLocation(const PdfString& rsText);
+    void SetSignatureLocation(const PdfString& text);
 
     /** Set the creator of the signature
      *
@@ -109,7 +109,7 @@ public:
      *  \param pDocumentCatalog the catalog of current document
      *  \param perm document modification permission
      */
-    void AddCertificationReference(PdfObject* pDocumentCatalog, EPdfCertPermission perm = EPdfCertPermission::NoPerms);
+    void AddCertificationReference(PdfObject* documentCatalog, EPdfCertPermission perm = EPdfCertPermission::NoPerms);
 
     /** Get the signer name
     *
@@ -141,6 +141,7 @@ public:
      *
      *  \returns associated signature object, or nullptr
      */
+    // TODO: Rename to ValueObject and add it to PdfField?
     PdfObject* GetSignatureObject() const;
 
     /** Ensures that the signature field has set a signature object.
@@ -154,7 +155,7 @@ private:
     void Init(PdfAcroForm& acroForm);
 
 private:
-    PdfObject* m_pSignatureObj;
+    PdfObject* m_ValueObj;
 };
 
 }

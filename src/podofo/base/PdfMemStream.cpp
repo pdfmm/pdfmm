@@ -30,7 +30,7 @@ PdfMemStream::~PdfMemStream()
     EnsureAppendClosed();
 }
 
-void PdfMemStream::BeginAppendImpl(const TVecFilters& filters)
+void PdfMemStream::BeginAppendImpl(const PdfFilterList& filters)
 {
     m_buffer = PdfRefCountedBuffer();
     m_Length = 0;
@@ -81,10 +81,8 @@ void PdfMemStream::GetCopy(char** buffer, size_t* len) const
     *buffer = static_cast<char*>(podofo_calloc(m_Length, sizeof(char)));
     *len = m_Length;
 
-    if (!*buffer)
-    {
+    if (*buffer == nullptr)
         PODOFO_RAISE_ERROR(EPdfError::OutOfMemory);
-    }
 
     memcpy(*buffer, m_buffer.GetBuffer(), m_Length);
 }
@@ -97,18 +95,12 @@ void PdfMemStream::GetCopy(PdfOutputStream& stream) const
 
 const PdfMemStream& PdfMemStream::operator=(const PdfStream& rhs)
 {
-    if (&rhs == this)
-        return *this;
-
     CopyFrom(rhs);
     return (*this);
 }
 
 const PdfMemStream& PdfMemStream::operator=(const PdfMemStream& rhs)
 {
-    if (&rhs == this)
-        return *this;
-
     CopyFrom(rhs);
     return (*this);
 }

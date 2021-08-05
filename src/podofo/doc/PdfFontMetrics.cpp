@@ -63,16 +63,16 @@ PdfFontMetricsType PdfFontMetrics::GetFontMetricsTypeFromFilename(const string_v
     // which is not quite correct, but still better than before
     if (filename.length() > 3)
     {
-        const char* pszExtension = filename.data() + filename.length() - 3;
-        if (compat::strncasecmp(pszExtension, "ttf", 3) == 0)
+        const char* extension = filename.data() + filename.length() - 3;
+        if (compat::strncasecmp(extension, "ttf", 3) == 0)
             fontType = PdfFontMetricsType::TrueType;
-        else if (compat::strncasecmp(pszExtension, "otf", 3) == 0)
+        else if (compat::strncasecmp(extension, "otf", 3) == 0)
             fontType = PdfFontMetricsType::TrueType;
-        else if (compat::strncasecmp(pszExtension, "ttc", 3) == 0)
+        else if (compat::strncasecmp(extension, "ttc", 3) == 0)
             fontType = PdfFontMetricsType::TrueType;
-        else if (compat::strncasecmp(pszExtension, "pfa", 3) == 0)
+        else if (compat::strncasecmp(extension, "pfa", 3) == 0)
             fontType = PdfFontMetricsType::Type1Pfa;
-        else if (compat::strncasecmp(pszExtension, "pfb", 3) == 0)
+        else if (compat::strncasecmp(extension, "pfb", 3) == 0)
             fontType = PdfFontMetricsType::Type1Pfb;
     }
 
