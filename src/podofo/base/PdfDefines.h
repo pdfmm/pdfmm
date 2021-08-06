@@ -52,9 +52,9 @@
 #include <string>
 #include <string_view>
 #include <vector>
-#include <EnumFlags.h>
 
 // Include some compatibility wrappers
+#include <podofo/compat/EnumFlags.h>
 #include <podofo/compat/optional>
 #include <podofo/compat/span>
 

@@ -27,9 +27,10 @@ endif()
 source_group("" FILES ${PODOFO_SOURCES})
 
 foreach(subdir compat base extra private)
-    # Add subdir to source files
     file(GLOB SOURCE_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "${subdir}/*")
+    # Set visual studio source group
     source_group(${subdir} FILES ${SOURCE_FILES})
+    # Add subdir to source files
     list(APPEND PODOFO_SOURCES ${SOURCE_FILES})
     if (NOT "${subdir}" STREQUAL "private")
         # Set non private headers for install
