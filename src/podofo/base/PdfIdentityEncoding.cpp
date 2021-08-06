@@ -6,16 +6,17 @@
  * Some rights reserved. See COPYING, AUTHORS.
  */
 
-#include "PdfDefinesPrivate.h"
+#include <podofo/private/PdfDefinesPrivate.h>
 #include "PdfIdentityEncoding.h"
 
 #include <sstream>
 #include <stdexcept>
 
-#include "base/PdfDictionary.h"
-#include "base/PdfLocale.h"
-#include "doc/PdfFont.h"
 #include <utfcpp/utf8.h>
+
+#include "PdfDictionary.h"
+#include "PdfLocale.h"
+#include "PdfFont.h"
 
 using namespace std;
 using namespace PoDoFo;

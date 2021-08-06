@@ -8,9 +8,10 @@
 #ifndef PDF_SIGNER_H
 #define PDF_SIGNER_H
 
-#include "podofo/base/PdfDefines.h"
-#include "../doc/PdfMemDocument.h"
-#include "../doc/PdfSignature.h"
+#include "PdfDefines.h"
+
+#include "PdfMemDocument.h"
+#include "PdfSignature.h"
 
 namespace PoDoFo
 {

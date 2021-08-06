@@ -8,7 +8,7 @@
 #ifndef PDF_EXTENSION_H
 #define PDF_EXTENSION_H
 
-#include "podofo/base/PdfDefines.h"
+#include "PdfDefines.h"
 
 namespace PoDoFo {
     

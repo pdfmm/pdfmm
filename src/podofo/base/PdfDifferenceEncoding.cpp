@@ -6,7 +6,7 @@
  * Some rights reserved. See COPYING, AUTHORS.
  */
 
-#include "PdfDefinesPrivate.h"
+#include <podofo/private/PdfDefinesPrivate.h>
 #include "PdfDifferenceEncoding.h"
 
 #include <sstream>
@@ -19,8 +19,7 @@
 #include "PdfPredefinedEncoding.h"
 #include "PdfEncodingMapFactory.h"
 #include "PdfVecObjects.h"
-
-#include "doc/PdfFont.h"
+#include "PdfFont.h"
 
 using namespace std;
 using namespace PoDoFo;

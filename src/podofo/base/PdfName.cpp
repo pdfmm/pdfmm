@@ -6,7 +6,7 @@
  * Some rights reserved. See COPYING, AUTHORS.
  */
 
-#include "PdfDefinesPrivate.h"
+#include <podofo/private/PdfDefinesPrivate.h>
 #include "PdfName.h"
 
 #include "PdfOutputDevice.h"

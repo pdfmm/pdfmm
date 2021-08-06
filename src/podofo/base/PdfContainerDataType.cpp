@@ -6,10 +6,10 @@
  * Some rights reserved. See COPYING, AUTHORS.
  */
 
-#include "PdfDefinesPrivate.h"
+#include <podofo/private/PdfDefinesPrivate.h>
 #include "PdfContainerDataType.h"
 
-#include <doc/PdfDocument.h>
+#include "PdfDocument.h"
 #include "PdfObject.h"
 #include "PdfVecObjects.h"
 

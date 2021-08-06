@@ -5,11 +5,11 @@
  * Some rights reserved. See COPYING, AUTHORS.
  */
 
-#include "base/PdfDefinesPrivate.h"
+#include <podofo/private/PdfDefinesPrivate.h>
 #include "PdfFontType1Encoding.h"
-#include "base/PdfInputDevice.h"
-#include "base/PdfPostScriptTokenizer.h"
-#include "base/PdfObject.h"
+#include "PdfInputDevice.h"
+#include "PdfPostScriptTokenizer.h"
+#include "PdfObject.h"
 #include "PdfDifferenceEncoding.h"
 
 using namespace std;

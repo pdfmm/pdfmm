@@ -9,7 +9,7 @@
 #include "PdfReference.h"
 
 #include "PdfOutputDevice.h"
-#include "PdfDefinesPrivate.h"
+#include <podofo/private/PdfDefinesPrivate.h>
 
 #include <sstream>
 

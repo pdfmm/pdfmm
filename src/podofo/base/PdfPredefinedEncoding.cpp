@@ -6,7 +6,7 @@
  * Some rights reserved. See COPYING, AUTHORS.
  */
 
-#include "PdfDefinesPrivate.h"
+#include <podofo/private/PdfDefinesPrivate.h>
 #include "PdfPredefinedEncoding.h"
 #include <utfcpp/utf8.h>
 #include "PdfDictionary.h"

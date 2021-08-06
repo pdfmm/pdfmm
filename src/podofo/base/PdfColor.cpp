@@ -5,10 +5,10 @@
  * Some rights reserved. See COPYING, AUTHORS.
  */
 
-#include "PdfDefinesPrivate.h"
+#include <podofo/private/PdfDefinesPrivate.h>
 #include "PdfColor.h"
 
-#include <doc/PdfDocument.h>
+#include "PdfDocument.h"
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfLocale.h"

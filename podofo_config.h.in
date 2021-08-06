@@ -14,7 +14,7 @@
 
 /* PoDoFo configuration options */
 
-/* Endianness */
+/* Endianess */
 #cmakedefine TEST_BIG
 
 /* Libraries */

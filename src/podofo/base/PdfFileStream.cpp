@@ -5,10 +5,10 @@
  * Some rights reserved. See COPYING, AUTHORS.
  */
 
-#include "PdfDefinesPrivate.h"
+#include <podofo/private/PdfDefinesPrivate.h>
 #include "PdfFileStream.h"
 
-#include <doc/PdfDocument.h>
+#include "PdfDocument.h"
 #include "PdfEncrypt.h"
 #include "PdfFilter.h"
 #include "PdfOutputDevice.h"

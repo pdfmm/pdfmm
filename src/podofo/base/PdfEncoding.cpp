@@ -5,16 +5,17 @@
  * Some rights reserved. See COPYING, AUTHORS.
  */
 
-#include "PdfDefinesPrivate.h"
+#include <podofo/private/PdfDefinesPrivate.h>
 #include "PdfEncoding.h"
 
 #include <sstream>
 #include <atomic>
 #include <utfcpp/utf8.h>
 
-#include <doc/PdfDocument.h>
+#include <podofo/private/PdfEncodingPrivate.h>
+
+#include "PdfDocument.h"
 #include "PdfDictionary.h"
-#include "PdfEncodingPrivate.h"
 #include "PdfEncodingMapFactory.h"
 
 using namespace std;

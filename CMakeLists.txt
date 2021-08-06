@@ -221,31 +221,13 @@ else(WANT_FONTCONFIG)
     set(PODOFO_LIB_FONTCONFIG:STRING)
 endif(WANT_FONTCONFIG)
 
-if(WANT_BOOST)
-    message("Looking optional for Boost.")
-    message("Boost is optional, so don't worry if it is not found.")
-    message("Set the BOOST_ROOT env var if you have problems.")
-    find_package(Boost)
-    if(BOOST_FOUND)
-        set(PODOFO_HAVE_BOOST TRUE)
-        include_directories(${BOOST_INCLUDE_DIR})
-    else(BOOST_FOUND)
-        message("If you don't need graph support you can ignore the above error.")
-    endif(BOOST_FOUND)
-endif(WANT_BOOST)
-
-include_directories(BEFORE     # before toolchain include dir (to ignore installed)
-    ${PoDoFo_SOURCE_DIR}/src   # order will be reversed, so this is the second dir
-    ${PoDoFo_BINARY_DIR}       # because of BEFORE, this is the first include dir
-)
-
 include_directories(
-    ${PoDoFo_SOURCE_DIR}/src/podofo
-    ${PoDoFo_SOURCE_DIR}/3rdparty/include
+    ${PROJECT_BINARY_DIR}
+    "${PROJECT_SOURCE_DIR}/src"
+    "${PROJECT_SOURCE_DIR}/3rdparty/include"
     ${FREETYPE_INCLUDE_DIRS}
     ${ZLIB_INCLUDE_DIR}
 )
-LINK_DIRECTORIES(${PoDoFo_BINARY_DIR}/src/podofo)
 
 #
 # The PoDoFo library needs to be linked to these libraries,
@@ -282,12 +264,12 @@ endif(WIN32 OR PODOFO_BUILD_STATIC)
 # then dependency information will be written to it at the end of the
 # build.
 file(WRITE
-    "${PoDoFo_BINARY_DIR}/PoDoFoConfig.cmake"
+    "${PROJECT_BINARY_DIR}/PoDoFoConfig.cmake"
     "# CMake module for PoDoFo\n"
 )
 file(APPEND
-    "${PoDoFo_BINARY_DIR}/PoDoFoConfig.cmake"
-    "set(PODOFO_INCLUDES ${PoDoFo_SOURCE_DIR}/src)\n"
+    "${PROJECT_BINARY_DIR}/PoDoFoConfig.cmake"
+    "set(PODOFO_INCLUDES ${PROJECT_SOURCE_DIR}/src)\n"
 )
 
 add_subdirectory(src/podofo)
@@ -301,7 +283,7 @@ if(NOT PODOFO_BUILD_LIB_ONLY)
 endif(NOT PODOFO_BUILD_LIB_ONLY)
 
 # Generate our configure file
-configure_file(${PoDoFo_SOURCE_DIR}/podofo_config.h.in ${PoDoFo_BINARY_DIR}/podofo_config.h)
+configure_file(${PROJECT_SOURCE_DIR}/podofo_config.h.in ${PROJECT_BINARY_DIR}/podofo_config.h)
 
 # Export some variables into the config file so it's easier for others
 # to build and link against PoDoFo

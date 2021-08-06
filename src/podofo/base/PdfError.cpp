@@ -8,7 +8,7 @@
 
 // PdfError.h doesn't, and can't, include PdfDefines.h so we do so here.
 // PdfDefinesPrivate.h will include PdfError.h for us.
-#include "PdfDefinesPrivate.h"
+#include <podofo/private/PdfDefinesPrivate.h>
 
 #include <stdarg.h>
 #include <stdio.h>

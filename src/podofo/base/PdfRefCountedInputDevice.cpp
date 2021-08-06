@@ -8,7 +8,7 @@
 #include "PdfRefCountedInputDevice.h"  
 
 #include "PdfInputDevice.h"
-#include "PdfDefinesPrivate.h"
+#include <podofo/private/PdfDefinesPrivate.h>
 
 using namespace std;
 using namespace PoDoFo;

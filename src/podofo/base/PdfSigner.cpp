@@ -6,8 +6,8 @@
  */
 
 #include "PdfSigner.h"
-#include "../base/PdfDictionary.h"
-#include "base/PdfOutputDevice.h"
+#include "PdfDictionary.h"
+#include "PdfOutputDevice.h"
 
 using namespace std;
 using namespace PoDoFo;

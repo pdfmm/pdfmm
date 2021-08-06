@@ -5,15 +5,16 @@
  * Some rights reserved. See COPYING, AUTHORS.
  */
 
-#include "PdfDefinesPrivate.h"
+#include <podofo/private/PdfDefinesPrivate.h>
 #include "PdfFilter.h"
 
 #include <sstream>
 
-#include <doc/PdfDocument.h>
+#include <podofo/private/PdfFiltersPrivate.h>
+
+#include "PdfDocument.h"
 #include "PdfArray.h"
 #include "PdfDictionary.h"
-#include "PdfFiltersPrivate.h"
 #include "PdfOutputStream.h"
 
 using namespace std;
