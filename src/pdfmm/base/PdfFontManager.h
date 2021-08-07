@@ -36,7 +36,7 @@ class PdfVecObjects;
 /**
  * Flags to control font creation.
  */
-enum class EFontCreationFlags
+enum class PdfFontCreationFlags
 {
     None = 0,               ///< No special settings
     AutoSelectBase14 = 1,   ///< Create automatically a base14 font if the fontname matches one of them
@@ -48,7 +48,7 @@ struct PdfFontCreationParams
     bool Bold = false;
     bool Italic = false;
     bool IsSymbolCharset = false; // CHECK-ME: Migrate this to a flag?
-    EFontCreationFlags Flags = EFontCreationFlags::None;
+    PdfFontCreationFlags Flags = PdfFontCreationFlags::None;
     bool Embed = true;
     PdfEncoding Encoding = PdfEncodingFactory::CreateWinAnsiEncoding();
     std::string FilePath;
@@ -67,19 +67,19 @@ struct PdfFontCreationParams
  *
  * \see PdfDocument
  */
-class PDFMM_API PdfFontCache final
+class PDFMM_API PdfFontManager final
 {
     friend class PdfDocument;
     friend class PdfMemDocument;
     friend class PdfStreamedDocument;
 
-    PdfFontCache(const PdfFontCache&) = delete;
-    PdfFontCache& operator=(const PdfFontCache&) = delete;
+    PdfFontManager(const PdfFontManager&) = delete;
+    PdfFontManager& operator=(const PdfFontManager&) = delete;
 
 public:
     /** Destroy and empty the font cache
      */
-    ~PdfFontCache();
+    ~PdfFontManager();
 
     /** Get a font from the cache. If the font does not yet
      *  exist, add it to the cache. This font is created
@@ -158,7 +158,7 @@ public:
 
     // These methods are available for PdfDocument only
 private:
-    PdfFontCache(PdfDocument& doc);
+    PdfFontManager(PdfDocument& doc);
 
     /** Embeds all pending subset-fonts
      */
@@ -240,6 +240,6 @@ private:
 
 };
 
-ENABLE_BITMASK_OPERATORS(mm::EFontCreationFlags);
+ENABLE_BITMASK_OPERATORS(mm::PdfFontCreationFlags);
 
 #endif // PDF_FONT_CACHE_H

@@ -61,7 +61,7 @@ void PdChoiceField::RemoveItem(unsigned index)
 
     auto& arr = optObj->GetArray();
     if (index >= arr.size())
-        PDFMM_RAISE_ERROR(EPdfError::ValueOutOfRange);
+        PDFMM_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
 
     arr.RemoveAt(index);
 }
@@ -70,11 +70,11 @@ PdfString PdChoiceField::GetItem(unsigned index) const
 {
     PdfObject* opt = GetObject().GetDictionary().FindKey("Opt");
     if (opt == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     PdfArray& optArray = opt->GetArray();
     if (index >= optArray.GetSize())
-        PDFMM_RAISE_ERROR(EPdfError::ValueOutOfRange);
+        PDFMM_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
 
     PdfObject& item = optArray[index];
     if (item.IsArray())
@@ -82,7 +82,7 @@ PdfString PdChoiceField::GetItem(unsigned index) const
         PdfArray& itemArray = item.GetArray();
         if (itemArray.size() < 2)
         {
-            PDFMM_RAISE_ERROR(EPdfError::InvalidDataType);
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
         }
         else
             return itemArray.FindAt(0).GetString();
@@ -100,7 +100,7 @@ optional<PdfString> PdChoiceField::GetItemDisplayText(int index) const
     PdfArray& optArray = opt->GetArray();
     if (index < 0 || index >= static_cast<int>(optArray.size()))
     {
-        PDFMM_RAISE_ERROR(EPdfError::ValueOutOfRange);
+        PDFMM_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
     }
 
     PdfObject& item = optArray[index];
@@ -109,7 +109,7 @@ optional<PdfString> PdChoiceField::GetItemDisplayText(int index) const
         PdfArray& itemArray = item.GetArray();
         if (itemArray.size() < 2)
         {
-            PDFMM_RAISE_ERROR(EPdfError::InvalidDataType);
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
         }
         else
             return itemArray.FindAt(1).GetString();
@@ -163,7 +163,7 @@ int PdChoiceField::GetSelectedIndex() const
         }
         else
         {
-            PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "Choice field item has invaid data type");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Choice field item has invaid data type");
         }
     }
 

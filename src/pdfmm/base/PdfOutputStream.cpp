@@ -39,14 +39,14 @@ PdfMemoryOutputStream::PdfMemoryOutputStream(size_t initialSize)
     m_Buffer = static_cast<char*>(pdfmm_calloc(m_Size, sizeof(char)));
 
     if (m_Buffer == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::OutOfMemory);
+        PDFMM_RAISE_ERROR(PdfErrorCode::OutOfMemory);
 }
 
 PdfMemoryOutputStream::PdfMemoryOutputStream(char* buffer, size_t size)
     : m_Len(0), m_OwnBuffer(false)
 {
     if (buffer == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     m_Size = size;
     m_Buffer = buffer;
@@ -68,11 +68,11 @@ void PdfMemoryOutputStream::WriteImpl(const char* data, size_t len)
             m_Size = std::max(m_Len + len, m_Size << 1);
             m_Buffer = static_cast<char*>(pdfmm_realloc(m_Buffer, m_Size));
             if (m_Buffer == nullptr)
-                PDFMM_RAISE_ERROR(EPdfError::OutOfMemory);
+                PDFMM_RAISE_ERROR(PdfErrorCode::OutOfMemory);
         }
         else
         {
-            PDFMM_RAISE_ERROR(EPdfError::OutOfMemory);
+            PDFMM_RAISE_ERROR(PdfErrorCode::OutOfMemory);
         }
     }
 

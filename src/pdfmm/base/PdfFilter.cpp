@@ -74,7 +74,7 @@ public:
         m_filter = PdfFilterFactory::Create(filterType);
 
         if (m_filter == nullptr)
-            PDFMM_RAISE_ERROR(EPdfError::UnsupportedFilter);
+            PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
 
         m_filter->BeginEncode(outputStream);
 
@@ -136,7 +136,7 @@ public:
     {
         m_filter = PdfFilterFactory::Create(filterType);
         if (m_filter == nullptr)
-            PDFMM_RAISE_ERROR(EPdfError::UnsupportedFilter);
+            PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
 
         m_filter->BeginDecode(outputStream, decodeParms);
 
@@ -215,7 +215,7 @@ PdfFilter::~PdfFilter()
 void PdfFilter::Encode(const char* inBuffer, size_t inLen, unique_ptr<char>& outBuffer, size_t* outLen) const
 {
     if (!this->CanEncode())
-        PDFMM_RAISE_ERROR(EPdfError::UnsupportedFilter);
+        PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
 
     PdfMemoryOutputStream stream;
 
@@ -231,7 +231,7 @@ void PdfFilter::Decode(const char* inBuffer, size_t inLen, char** outBuffer, siz
     const PdfDictionary* decodeParms) const
 {
     if (!this->CanDecode())
-        PDFMM_RAISE_ERROR(EPdfError::UnsupportedFilter);
+        PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
 
     PdfMemoryOutputStream stream;
 
@@ -364,7 +364,7 @@ PdfFilterType PdfFilterFactory::FilterNameToType(const PdfName& name, bool suppo
         }
     }
 
-    PDFMM_RAISE_ERROR_INFO(EPdfError::UnsupportedFilter, name.GetString().c_str());
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, name.GetString().c_str());
 }
 
 const char* PdfFilterFactory::FilterTypeToName(PdfFilterType filterType)
@@ -406,13 +406,13 @@ PdfFilterList PdfFilterFactory::CreateFilterList(const PdfObject& filtersObj)
             {
                 auto filterObj = filtersObj.GetDocument()->GetObjects().GetObject(filter.GetReference());
                 if (filterObj == nullptr)
-                    PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "Filter array contained unexpected reference");
+                    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Filter array contained unexpected reference");
 
                 filters.push_back(PdfFilterFactory::FilterNameToType(filterObj->GetName()));
             }
             else
             {
-                PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "Filter array contained unexpected non-name type");
+                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Filter array contained unexpected non-name type");
             }
         }
     }

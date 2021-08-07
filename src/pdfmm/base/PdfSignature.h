@@ -19,7 +19,7 @@
 
 namespace mm {
 
-enum class EPdfCertPermission
+enum class PdfCertPermission
 {
     NoPerms = 1,
     FormFill = 2,
@@ -108,10 +108,9 @@ public:
 
     /** Add certification dictionaries and references to document catalog.
      *
-     *  \param pDocumentCatalog the catalog of current document
      *  \param perm document modification permission
      */
-    void AddCertificationReference(PdfObject* documentCatalog, EPdfCertPermission perm = EPdfCertPermission::NoPerms);
+    void AddCertificationReference(PdfCertPermission perm = PdfCertPermission::NoPerms);
 
     /** Get the signer name
     *

@@ -21,7 +21,7 @@ using namespace std;
 using namespace mm;
 
 // The AcroForm dict does NOT have a /Type key!
-PdfAcroForm::PdfAcroForm(PdfDocument& doc, EPdfAcroFormDefaulAppearance defaultAppearance)
+PdfAcroForm::PdfAcroForm(PdfDocument& doc, PdfAcroFormDefaulAppearance defaultAppearance)
     : PdfElement(doc)
 {
     // Initialize with an empty fields array
@@ -29,7 +29,7 @@ PdfAcroForm::PdfAcroForm(PdfDocument& doc, EPdfAcroFormDefaulAppearance defaultA
     Init(defaultAppearance);
 }
 
-PdfAcroForm::PdfAcroForm(PdfObject& obj, EPdfAcroFormDefaulAppearance defaultAppearance)
+PdfAcroForm::PdfAcroForm(PdfObject& obj, PdfAcroFormDefaulAppearance defaultAppearance)
     : PdfElement(obj)
 {
     Init(defaultAppearance);
@@ -44,18 +44,18 @@ PdfArray& PdfAcroForm::GetFieldsArray()
     return fields->GetArray();
 }
 
-void PdfAcroForm::Init(EPdfAcroFormDefaulAppearance defaultAppearance)
+void PdfAcroForm::Init(PdfAcroFormDefaulAppearance defaultAppearance)
 {
     // Add default appearance: black text, 12pt times 
     // -> only if we do not have a DA key yet
 
     if (!this->GetObject().GetDictionary().HasKey("DA") &&
-        defaultAppearance == EPdfAcroFormDefaulAppearance::BlackText12pt)
+        defaultAppearance == PdfAcroFormDefaulAppearance::BlackText12pt)
     {
         PdfFontCreationParams params;
         params.Embed = false;
-        params.Flags = EFontCreationFlags::AutoSelectBase14;
-        auto font = GetDocument().GetFontCache().GetFont("Helvetica", params);
+        params.Flags = PdfFontCreationFlags::AutoSelectBase14;
+        auto font = GetDocument().GetFontManager().GetFont("Helvetica", params);
 
         // Create DR key
         if (!this->GetObject().GetDictionary().HasKey("DR"))

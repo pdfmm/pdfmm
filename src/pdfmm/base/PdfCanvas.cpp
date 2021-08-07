@@ -78,17 +78,17 @@ void PdfCanvas::AddColorResource(const PdfColor& color)
 void PdfCanvas::AddResource(const PdfName& identifier, const PdfReference& ref, const PdfName& name)
 {
     if (name.GetLength() == 0 || identifier.GetLength() == 0)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     auto& resources = this->GetResources();
     if (!resources.GetDictionary().HasKey(name))
         resources.GetDictionary().AddKey(name, PdfDictionary());
 
-    if (EPdfDataType::Reference == resources.GetDictionary().GetKey(name)->GetDataType())
+    if (PdfDataType::Reference == resources.GetDictionary().GetKey(name)->GetDataType())
     {
         auto directObject = resources.GetDocument()->GetObjects().GetObject(resources.GetDictionary().GetKey(name)->GetReference());
         if (directObject == nullptr)
-            PDFMM_RAISE_ERROR(EPdfError::NoObject);
+            PDFMM_RAISE_ERROR(PdfErrorCode::NoObject);
 
         if (!directObject->GetDictionary().HasKey(identifier))
             directObject->GetDictionary().AddKey(identifier, ref);

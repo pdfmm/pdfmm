@@ -4291,7 +4291,7 @@ string_view mm::GetStandard14FontName(PdfStd14FontType stdFont)
             return FONT_ZAPF_DINGBATS;
         case PdfStd14FontType::Unknown:
         default:
-            PDFMM_RAISE_ERROR(EPdfError::InvalidEnumValue);
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }
 }
 
@@ -4422,7 +4422,7 @@ const Base14FontData* mm::GetStd14FontData(PdfStd14FontType stdFont, unsigned& s
             return CHAR_DATA_ZAPF_DINGBATS;
         case PdfStd14FontType::Unknown:
         default:
-            PDFMM_RAISE_ERROR(EPdfError::InvalidEnumValue);
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }
 }
 
@@ -4544,6 +4544,6 @@ const Std14CPToGIDMap& mm::GetStd14CPToGIDMap(PdfStd14FontType stdFont)
             return GetZapfDingbatsMap();
         case PdfStd14FontType::Unknown:
         default:
-            PDFMM_RAISE_ERROR(EPdfError::InvalidEnumValue);
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }
 }

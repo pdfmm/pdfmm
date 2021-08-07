@@ -55,7 +55,7 @@ PdfStream & PdfContents::GetStreamForAppending(EPdfStreamAppendFlags flags)
     }
     else
     {
-        PDFMM_RAISE_ERROR(EPdfError::InvalidDataType);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
     }
 
     if ((flags & EPdfStreamAppendFlags::NoSaveRestorePrior) == EPdfStreamAppendFlags::None)

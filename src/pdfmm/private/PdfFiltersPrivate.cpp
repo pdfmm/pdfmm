@@ -109,7 +109,7 @@ public:
                         }
 
                         // TODO: implement tiff predictor for other than 8 BPC
-                        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidPredictor, "tiff predictors other than 8 BPC are not implemented");
+                        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidPredictor, "tiff predictors other than 8 BPC are not implemented");
                         break;
                     }
                     case 10: // png none
@@ -175,7 +175,7 @@ public:
                         break;
                     }
                     case 15: // png optimum
-                        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidPredictor, "png optimum predictor is not implemented");
+                        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidPredictor, "png optimum predictor is not implemented");
                         break;
 
                     default:
@@ -392,7 +392,7 @@ void PdfAscii85Filter::DecodeBlockImpl(const char* buffer, size_t len)
             default:
                 if (*buffer < '!' || *buffer > 'u')
                 {
-                    PDFMM_RAISE_ERROR(EPdfError::ValueOutOfRange);
+                    PDFMM_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
                 }
 
                 m_tuple += (*buffer - '!') * s_Powers85[m_count++];
@@ -406,7 +406,7 @@ void PdfAscii85Filter::DecodeBlockImpl(const char* buffer, size_t len)
             case 'z':
                 if (m_count != 0)
                 {
-                    PDFMM_RAISE_ERROR(EPdfError::ValueOutOfRange);
+                    PDFMM_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
                 }
 
                 this->WidePut(0, 4);
@@ -415,7 +415,7 @@ void PdfAscii85Filter::DecodeBlockImpl(const char* buffer, size_t len)
                 buffer++;
                 len--;
                 if (len != 0 && *buffer != '>')
-                    PDFMM_RAISE_ERROR(EPdfError::ValueOutOfRange);
+                    PDFMM_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
 
                 foundEndMarker = true;
                 break;
@@ -491,7 +491,7 @@ void PdfFlateFilter::BeginEncodeImpl()
     m_stream.opaque = Z_NULL;
 
     if (deflateInit(&m_stream, Z_DEFAULT_COMPRESSION))
-        PDFMM_RAISE_ERROR(EPdfError::Flate);
+        PDFMM_RAISE_ERROR(PdfErrorCode::Flate);
 }
 
 void PdfFlateFilter::EncodeBlockImpl(const char* buffer, size_t len)
@@ -514,7 +514,7 @@ void PdfFlateFilter::EncodeBlockInternal(const char* buffer, size_t len, int nMo
         if (deflate(&m_stream, nMode) == Z_STREAM_ERROR)
         {
             FailEncodeDecode();
-            PDFMM_RAISE_ERROR(EPdfError::Flate);
+            PDFMM_RAISE_ERROR(PdfErrorCode::Flate);
         }
 
         nWrittenData = PDFMM_FILTER_INTERNAL_BUFFER_SIZE - m_stream.avail_out;
@@ -550,7 +550,7 @@ void PdfFlateFilter::BeginDecodeImpl(const PdfDictionary* pDecodeParms)
     m_Predictor = pDecodeParms ? new PdfPredictorDecoder(pDecodeParms) : nullptr;
 
     if (inflateInit(&m_stream) != Z_OK)
-        PDFMM_RAISE_ERROR(EPdfError::Flate);
+        PDFMM_RAISE_ERROR(PdfErrorCode::Flate);
 }
 
 void PdfFlateFilter::DecodeBlockImpl(const char* buffer, size_t len)
@@ -576,7 +576,7 @@ void PdfFlateFilter::DecodeBlockImpl(const char* buffer, size_t len)
                 (void)inflateEnd(&m_stream);
 
                 FailEncodeDecode();
-                PDFMM_RAISE_ERROR(EPdfError::Flate);
+                PDFMM_RAISE_ERROR(PdfErrorCode::Flate);
             }
             default:
                 break;
@@ -619,17 +619,17 @@ PdfRLEFilter::PdfRLEFilter()
 
 void PdfRLEFilter::BeginEncodeImpl()
 {
-    PDFMM_RAISE_ERROR(EPdfError::UnsupportedFilter);
+    PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
 }
 
 void PdfRLEFilter::EncodeBlockImpl(const char*, size_t)
 {
-    PDFMM_RAISE_ERROR(EPdfError::UnsupportedFilter);
+    PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
 }
 
 void PdfRLEFilter::EndEncodeImpl()
 {
-    PDFMM_RAISE_ERROR(EPdfError::UnsupportedFilter);
+    PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
 }
 
 void PdfRLEFilter::BeginDecodeImpl(const PdfDictionary*)
@@ -690,17 +690,17 @@ PdfLZWFilter::~PdfLZWFilter()
 
 void PdfLZWFilter::BeginEncodeImpl()
 {
-    PDFMM_RAISE_ERROR(EPdfError::UnsupportedFilter);
+    PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
 }
 
 void PdfLZWFilter::EncodeBlockImpl(const char*, size_t)
 {
-    PDFMM_RAISE_ERROR(EPdfError::UnsupportedFilter);
+    PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
 }
 
 void PdfLZWFilter::EndEncodeImpl()
 {
-    PDFMM_RAISE_ERROR(EPdfError::UnsupportedFilter);
+    PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
 }
 
 void PdfLZWFilter::BeginDecodeImpl(const PdfDictionary* pDecodeParms)
@@ -771,7 +771,7 @@ void PdfLZWFilter::DecodeBlockImpl(const char* buffer, size_t len)
                 {
                     if (old >= m_table.size())
                     {
-                        PDFMM_RAISE_ERROR(EPdfError::ValueOutOfRange);
+                        PDFMM_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
                     }
                     data = m_table[old].value;
                     data.push_back(m_character);
@@ -876,17 +876,17 @@ PdfDCTFilter::PdfDCTFilter()
 
 void PdfDCTFilter::BeginEncodeImpl()
 {
-    PDFMM_RAISE_ERROR(EPdfError::UnsupportedFilter);
+    PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
 }
 
 void PdfDCTFilter::EncodeBlockImpl(const char*, size_t)
 {
-    PDFMM_RAISE_ERROR(EPdfError::UnsupportedFilter);
+    PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
 }
 
 void PdfDCTFilter::EndEncodeImpl()
 {
-    PDFMM_RAISE_ERROR(EPdfError::UnsupportedFilter);
+    PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
 }
 
 void PdfDCTFilter::BeginDecodeImpl(const PdfDictionary*)
@@ -901,7 +901,7 @@ void PdfDCTFilter::BeginDecodeImpl(const PdfDictionary*)
     jpeg_create_decompress(&m_cinfo);
 
     if (error.length() != 0)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::UnsupportedImageFormat, error);
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, error);
 
     m_Device = new PdfOutputDevice(m_buffer);
 }
@@ -922,7 +922,7 @@ void PdfDCTFilter::EndDecodeImpl()
     {
         jpeg_destroy_decompress(&m_cinfo);
 
-        PDFMM_RAISE_ERROR(EPdfError::UnexpectedEOF);
+        PDFMM_RAISE_ERROR(PdfErrorCode::UnexpectedEOF);
     }
 
     jpeg_start_decompress(&m_cinfo);
@@ -961,7 +961,7 @@ void PdfDCTFilter::EndDecodeImpl()
         }
         else
         {
-            PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "DCTDecode unknown components");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "DCTDecode unknown components");
         }
 
         GetStream()->Write(reinterpret_cast<char*>(buffer.data()), rowBytes);
@@ -1162,17 +1162,17 @@ PdfCCITTFilter::PdfCCITTFilter()
 
 void PdfCCITTFilter::BeginEncodeImpl()
 {
-    PDFMM_RAISE_ERROR(EPdfError::UnsupportedFilter);
+    PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
 }
 
 void PdfCCITTFilter::EncodeBlockImpl(const char*, size_t)
 {
-    PDFMM_RAISE_ERROR(EPdfError::UnsupportedFilter);
+    PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
 }
 
 void PdfCCITTFilter::EndEncodeImpl()
 {
-    PDFMM_RAISE_ERROR(EPdfError::UnsupportedFilter);
+    PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
 }
 
 void PdfCCITTFilter::BeginDecodeImpl(const PdfDictionary* pDict)
@@ -1223,18 +1223,18 @@ void PdfCCITTFilter::BeginDecodeImpl(const PdfDictionary* pDict)
 
 #else // DS_CCITT_DEVELOPMENT_CODE
     (void)pDict;
-    PDFMM_RAISE_ERROR(EPdfError::UnsupportedFilter);
+    PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
 #endif // DS_CCITT_DEVELOPMENT_CODE
 }
 
 void PdfCCITTFilter::DecodeBlockImpl(const char*, size_t)
 {
-    PDFMM_RAISE_ERROR(EPdfError::UnsupportedFilter);
+    PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
 }
 
 void PdfCCITTFilter::EndDecodeImpl()
 {
-    PDFMM_RAISE_ERROR(EPdfError::UnsupportedFilter);
+    PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
 }
 
 #endif // PDFMM_HAVE_TIFF_LIB

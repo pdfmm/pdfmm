@@ -98,7 +98,7 @@ PdfObject& PdfVecObjects::MustGetObject(const PdfReference& ref) const
 {
     auto obj = GetObject(ref);
     if (obj == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::NoObject);
+        PDFMM_RAISE_ERROR(PdfErrorCode::NoObject);
 
     return *obj;
 }
@@ -152,7 +152,7 @@ PdfReference PdfVecObjects::getNextFreeObject()
     while (true)
     {
         if ((size_t)(nextObjectNum + 1) == m_MaxReserveSize)
-            PDFMM_RAISE_ERROR_INFO(EPdfError::ValueOutOfRange, "Reached the maximum number of indirect objects");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Reached the maximum number of indirect objects");
 
         // Check also if the object number it not available,
         // e.g. it reached maximum generation number (65535)

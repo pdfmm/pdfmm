@@ -22,68 +22,68 @@ using namespace std;
 
 PdfVariant PdfVariant::NullValue;
 
-PdfVariant::PdfVariant(EPdfDataType type)
+PdfVariant::PdfVariant(PdfDataType type)
     : m_Data{ }, m_DataType(type) { }
 
 PdfVariant::PdfVariant()
-    : PdfVariant(EPdfDataType::Null) { }
+    : PdfVariant(PdfDataType::Null) { }
 
 PdfVariant::PdfVariant(bool value)
-    : PdfVariant(EPdfDataType::Bool)
+    : PdfVariant(PdfDataType::Bool)
 {
     m_Data.Bool = value;
 }
 
 PdfVariant::PdfVariant(int64_t value)
-    : PdfVariant(EPdfDataType::Number)
+    : PdfVariant(PdfDataType::Number)
 {
     m_Data.Number = value;
 }
 
 PdfVariant::PdfVariant(double value)
-    : PdfVariant(EPdfDataType::Real)
+    : PdfVariant(PdfDataType::Real)
 {
     m_Data.Real = value;
 }
 
 PdfVariant::PdfVariant(const PdfString& str)
-    : PdfVariant(EPdfDataType::String)
+    : PdfVariant(PdfDataType::String)
 {
     m_Data.Data = new PdfString(str);
 }
 
 PdfVariant::PdfVariant(const PdfName& name)
-    : PdfVariant(EPdfDataType::Name)
+    : PdfVariant(PdfDataType::Name)
 {
     m_Data.Data = new PdfName(name);
 }
 
 PdfVariant::PdfVariant(const PdfReference& ref)
-    : PdfVariant(EPdfDataType::Reference)
+    : PdfVariant(PdfDataType::Reference)
 {
     m_Data.Reference = ref;
 }
 
 PdfVariant::PdfVariant(const PdfArray& arr)
-    : PdfVariant(EPdfDataType::Array)
+    : PdfVariant(PdfDataType::Array)
 {
     m_Data.Data = new PdfArray(arr);
 }
 
 PdfVariant::PdfVariant(const PdfDictionary& dict)
-    : PdfVariant(EPdfDataType::Dictionary)
+    : PdfVariant(PdfDataType::Dictionary)
 {
     m_Data.Data = new PdfDictionary(dict);
 }
 
 PdfVariant::PdfVariant(const PdfData& data)
-    : PdfVariant(EPdfDataType::RawData)
+    : PdfVariant(PdfDataType::RawData)
 {
     m_Data.Data = new PdfData(data);
 }
 
 PdfVariant::PdfVariant(const PdfVariant& rhs)
-    : PdfVariant(EPdfDataType::Unknown)
+    : PdfVariant(PdfDataType::Unknown)
 {
     this->operator=(rhs);
 }
@@ -97,22 +97,22 @@ void PdfVariant::Clear()
 {
     switch (m_DataType)
     {
-        case EPdfDataType::Array:
-        case EPdfDataType::Dictionary:
-        case EPdfDataType::Name:
-        case EPdfDataType::String:
-        case EPdfDataType::RawData:
+        case PdfDataType::Array:
+        case PdfDataType::Dictionary:
+        case PdfDataType::Name:
+        case PdfDataType::String:
+        case PdfDataType::RawData:
         {
             delete m_Data.Data;
             break;
         }
 
-        case EPdfDataType::Reference:
-        case EPdfDataType::Bool:
-        case EPdfDataType::Null:
-        case EPdfDataType::Number:
-        case EPdfDataType::Real:
-        case EPdfDataType::Unknown:
+        case PdfDataType::Reference:
+        case PdfDataType::Bool:
+        case PdfDataType::Null:
+        case PdfDataType::Number:
+        case PdfDataType::Real:
+        case PdfDataType::Unknown:
         default:
             break;
 
@@ -126,7 +126,7 @@ void PdfVariant::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
 {
     switch (m_DataType)
     {
-        case EPdfDataType::Bool:
+        case PdfDataType::Bool:
         {
             if ((writeMode & PdfWriteMode::Compact) == PdfWriteMode::Compact)
                 device.Write(" ", 1); // Write space before true or false
@@ -137,7 +137,7 @@ void PdfVariant::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
                 device.Write("false", 5);
             break;
         }
-        case EPdfDataType::Number:
+        case PdfDataType::Number:
         {
             if ((writeMode & PdfWriteMode::Compact) == PdfWriteMode::Compact)
                 device.Write(" ", 1); // Write space before numbers
@@ -145,7 +145,7 @@ void PdfVariant::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
             device.Print("%" PDF_FORMAT_INT64, m_Data.Number);
             break;
         }
-        case EPdfDataType::Real:
+        case PdfDataType::Real:
         {
             if ((writeMode & PdfWriteMode::Compact) == PdfWriteMode::Compact)
                 device.Write(" ", 1); // Write space before numbers
@@ -179,20 +179,20 @@ void PdfVariant::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
             device.Write(copy.c_str(), len);
             break;
         }
-        case EPdfDataType::Reference:
+        case PdfDataType::Reference:
             m_Data.Reference.Write(device, writeMode, encrypt);
             break;
-        case EPdfDataType::String:
-        case EPdfDataType::Name:
-        case EPdfDataType::Array:
-        case EPdfDataType::Dictionary:
-        case EPdfDataType::RawData:
+        case PdfDataType::String:
+        case PdfDataType::Name:
+        case PdfDataType::Array:
+        case PdfDataType::Dictionary:
+        case PdfDataType::RawData:
             if (m_Data.Data == nullptr)
-                PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+                PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
             m_Data.Data->Write(device, writeMode, encrypt);
             break;
-        case EPdfDataType::Null:
+        case PdfDataType::Null:
         {
             if ((writeMode & PdfWriteMode::Compact) == PdfWriteMode::Compact)
             {
@@ -202,10 +202,10 @@ void PdfVariant::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
             device.Print("null");
             break;
         }
-        case EPdfDataType::Unknown:
+        case PdfDataType::Unknown:
         default:
         {
-            PDFMM_RAISE_ERROR(EPdfError::InvalidDataType);
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
             break;
         }
     };
@@ -231,41 +231,41 @@ const PdfVariant& PdfVariant::operator=(const PdfVariant& rhs)
 
     switch (m_DataType)
     {
-        case EPdfDataType::Array:
+        case PdfDataType::Array:
         {
             m_Data.Data = new PdfArray(*static_cast<PdfArray*>(rhs.m_Data.Data));
             break;
         }
-        case EPdfDataType::Dictionary:
+        case PdfDataType::Dictionary:
         {
             m_Data.Data = new PdfDictionary(*static_cast<PdfDictionary*>(rhs.m_Data.Data));
             break;
         }
-        case EPdfDataType::Name:
+        case PdfDataType::Name:
         {
             m_Data.Data = new PdfName(*static_cast<PdfName*>(rhs.m_Data.Data));
             break;
         }
-        case EPdfDataType::String:
+        case PdfDataType::String:
         {
             m_Data.Data = new PdfString(*static_cast<PdfString*>(rhs.m_Data.Data));
             break;
         }
 
-        case EPdfDataType::RawData:
+        case PdfDataType::RawData:
         {
             m_Data.Data = new PdfData(*static_cast<PdfData*>(rhs.m_Data.Data));
             break;
         }
-        case EPdfDataType::Reference:
-        case EPdfDataType::Bool:
-        case EPdfDataType::Null:
-        case EPdfDataType::Number:
-        case EPdfDataType::Real:
+        case PdfDataType::Reference:
+        case PdfDataType::Bool:
+        case PdfDataType::Null:
+        case PdfDataType::Number:
+        case PdfDataType::Real:
             m_Data = rhs.m_Data;
             break;
 
-        case EPdfDataType::Unknown:
+        case PdfDataType::Unknown:
         default:
             break;
     };
@@ -277,27 +277,27 @@ const char* PdfVariant::GetDataTypeString() const
 {
     switch (m_DataType)
     {
-        case EPdfDataType::Bool:
+        case PdfDataType::Bool:
             return "Bool";
-        case EPdfDataType::Number:
+        case PdfDataType::Number:
             return "Number";
-        case EPdfDataType::Real:
+        case PdfDataType::Real:
             return "Real";
-        case EPdfDataType::String:
+        case PdfDataType::String:
             return "String";
-        case EPdfDataType::Name:
+        case PdfDataType::Name:
             return "Name";
-        case EPdfDataType::Array:
+        case PdfDataType::Array:
             return "Array";
-        case EPdfDataType::Dictionary:
+        case PdfDataType::Dictionary:
             return "Dictionary";
-        case EPdfDataType::Null:
+        case PdfDataType::Null:
             return "Null";
-        case EPdfDataType::Reference:
+        case PdfDataType::Reference:
             return "Reference";
-        case EPdfDataType::RawData:
+        case PdfDataType::RawData:
             return "RawData";
-        case EPdfDataType::Unknown:
+        case PdfDataType::Unknown:
             return "Unknown";
         default:
             return "INVALID_TYPE_ENUM";
@@ -311,7 +311,7 @@ bool PdfVariant::operator==(const PdfVariant& rhs) const
 
     switch (m_DataType)
     {
-        case EPdfDataType::Bool:
+        case PdfDataType::Bool:
         {
             bool value;
             if (rhs.TryGetBool(value))
@@ -319,7 +319,7 @@ bool PdfVariant::operator==(const PdfVariant& rhs) const
             else
                 return false;
         }
-        case EPdfDataType::Number:
+        case PdfDataType::Number:
         {
             int64_t value;
             if (rhs.TryGetNumber(value))
@@ -327,7 +327,7 @@ bool PdfVariant::operator==(const PdfVariant& rhs) const
             else
                 return false;
         }
-        case EPdfDataType::Real:
+        case PdfDataType::Real:
         {
             // NOTE: Real type equality semantics is strict
             double value;
@@ -336,7 +336,7 @@ bool PdfVariant::operator==(const PdfVariant& rhs) const
             else
                 return false;
         }
-        case EPdfDataType::Reference:
+        case PdfDataType::Reference:
         {
             PdfReference value;
             if (rhs.TryGetReference(value))
@@ -344,7 +344,7 @@ bool PdfVariant::operator==(const PdfVariant& rhs) const
             else
                 return false;
         }
-        case EPdfDataType::String:
+        case PdfDataType::String:
         {
             const PdfString* value;
             if (rhs.tryGetString(value))
@@ -352,7 +352,7 @@ bool PdfVariant::operator==(const PdfVariant& rhs) const
             else
                 return false;
         }
-        case EPdfDataType::Name:
+        case PdfDataType::Name:
         {
             const PdfName* value;
             if (rhs.tryGetName(value))
@@ -360,7 +360,7 @@ bool PdfVariant::operator==(const PdfVariant& rhs) const
             else
                 return false;
         }
-        case EPdfDataType::Array:
+        case PdfDataType::Array:
         {
             const PdfArray* value;
             if (rhs.TryGetArray(value))
@@ -368,7 +368,7 @@ bool PdfVariant::operator==(const PdfVariant& rhs) const
             else
                 return false;
         }
-        case EPdfDataType::Dictionary:
+        case PdfDataType::Dictionary:
         {
             const PdfDictionary* value;
             if (rhs.TryGetDictionary(value))
@@ -376,14 +376,14 @@ bool PdfVariant::operator==(const PdfVariant& rhs) const
             else
                 return false;
         }
-        case EPdfDataType::RawData:
-            PDFMM_RAISE_ERROR_INFO(EPdfError::NotImplemented, "Equality not yet implemented for RawData");
-        case EPdfDataType::Null:
-            return m_DataType == EPdfDataType::Null;
-        case EPdfDataType::Unknown:
+        case PdfDataType::RawData:
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "Equality not yet implemented for RawData");
+        case PdfDataType::Null:
+            return m_DataType == PdfDataType::Null;
+        case PdfDataType::Unknown:
             return false;
         default:
-            PDFMM_RAISE_ERROR(EPdfError::NotImplemented);
+            PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);
     }
 }
 
@@ -394,7 +394,7 @@ bool PdfVariant::operator!=(const PdfVariant& rhs) const
 
     switch (m_DataType)
     {
-        case EPdfDataType::Bool:
+        case PdfDataType::Bool:
         {
             bool value;
             if (rhs.TryGetBool(value))
@@ -402,7 +402,7 @@ bool PdfVariant::operator!=(const PdfVariant& rhs) const
             else
                 return true;
         }
-        case EPdfDataType::Number:
+        case PdfDataType::Number:
         {
             int64_t value;
             if (rhs.TryGetNumber(value))
@@ -410,7 +410,7 @@ bool PdfVariant::operator!=(const PdfVariant& rhs) const
             else
                 return true;
         }
-        case EPdfDataType::Real:
+        case PdfDataType::Real:
         {
             // NOTE: Real type equality semantics is strict
             double value;
@@ -419,7 +419,7 @@ bool PdfVariant::operator!=(const PdfVariant& rhs) const
             else
                 return true;
         }
-        case EPdfDataType::Reference:
+        case PdfDataType::Reference:
         {
             PdfReference value;
             if (rhs.TryGetReference(value))
@@ -427,7 +427,7 @@ bool PdfVariant::operator!=(const PdfVariant& rhs) const
             else
                 return true;
         }
-        case EPdfDataType::String:
+        case PdfDataType::String:
         {
             const PdfString* value;
             if (rhs.tryGetString(value))
@@ -435,7 +435,7 @@ bool PdfVariant::operator!=(const PdfVariant& rhs) const
             else
                 return true;
         }
-        case EPdfDataType::Name:
+        case PdfDataType::Name:
         {
             const PdfName* value;
             if (rhs.tryGetName(value))
@@ -443,7 +443,7 @@ bool PdfVariant::operator!=(const PdfVariant& rhs) const
             else
                 return true;
         }
-        case EPdfDataType::Array:
+        case PdfDataType::Array:
         {
             const PdfArray* value;
             if (rhs.TryGetArray(value))
@@ -451,7 +451,7 @@ bool PdfVariant::operator!=(const PdfVariant& rhs) const
             else
                 return true;
         }
-        case EPdfDataType::Dictionary:
+        case PdfDataType::Dictionary:
         {
             const PdfDictionary* value;
             if (rhs.TryGetDictionary(value))
@@ -459,14 +459,14 @@ bool PdfVariant::operator!=(const PdfVariant& rhs) const
             else
                 return true;
         }
-        case EPdfDataType::RawData:
-            PDFMM_RAISE_ERROR_INFO(EPdfError::NotImplemented, "Disequality not yet implemented for RawData");
-        case EPdfDataType::Null:
-            return m_DataType != EPdfDataType::Null;
-        case EPdfDataType::Unknown:
+        case PdfDataType::RawData:
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "Disequality not yet implemented for RawData");
+        case PdfDataType::Null:
+            return m_DataType != PdfDataType::Null;
+        case PdfDataType::Unknown:
             return true;
         default:
-            PDFMM_RAISE_ERROR(EPdfError::NotImplemented);
+            PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);
     }
 }
 
@@ -474,14 +474,14 @@ bool PdfVariant::GetBool() const
 {
     bool ret;
     if (!TryGetBool(ret))
-        PDFMM_RAISE_ERROR(EPdfError::InvalidDataType);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
 
     return ret;
 }
 
 bool PdfVariant::TryGetBool(bool& value) const
 {
-    if (m_DataType != EPdfDataType::Bool)
+    if (m_DataType != PdfDataType::Bool)
     {
         value = false;
         return false;
@@ -495,21 +495,21 @@ int64_t PdfVariant::GetNumberLenient() const
 {
     int64_t ret;
     if (!TryGetNumberLenient(ret))
-        PDFMM_RAISE_ERROR(EPdfError::InvalidDataType);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
 
     return ret;
 }
 
 bool PdfVariant::TryGetNumberLenient(int64_t& value) const
 {
-    if (!(m_DataType == EPdfDataType::Number
-        || m_DataType == EPdfDataType::Real))
+    if (!(m_DataType == PdfDataType::Number
+        || m_DataType == PdfDataType::Real))
     {
         value = 0;
         return false;
     }
 
-    if (m_DataType == EPdfDataType::Real)
+    if (m_DataType == PdfDataType::Real)
         value = static_cast<int64_t>(std::round(m_Data.Real));
     else
         value = m_Data.Number;
@@ -521,14 +521,14 @@ int64_t PdfVariant::GetNumber() const
 {
     int64_t ret;
     if (!TryGetNumber(ret))
-        PDFMM_RAISE_ERROR(EPdfError::InvalidDataType);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
 
     return m_Data.Number;
 }
 
 bool PdfVariant::TryGetNumber(int64_t& value) const
 {
-    if (m_DataType != EPdfDataType::Number)
+    if (m_DataType != PdfDataType::Number)
     {
         value = 0;
         return false;
@@ -542,21 +542,21 @@ double PdfVariant::GetReal() const
 {
     double ret;
     if (!TryGetReal(ret))
-        PDFMM_RAISE_ERROR(EPdfError::InvalidDataType);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
 
     return ret;
 }
 
 bool PdfVariant::TryGetReal(double& value) const
 {
-    if (!(m_DataType == EPdfDataType::Real
-        || m_DataType == EPdfDataType::Number))
+    if (!(m_DataType == PdfDataType::Real
+        || m_DataType == PdfDataType::Number))
     {
         value = 0;
         return false;
     }
 
-    if (m_DataType == EPdfDataType::Number)
+    if (m_DataType == PdfDataType::Number)
         value = static_cast<double>(m_Data.Number);
     else
         value = m_Data.Real;
@@ -568,14 +568,14 @@ double PdfVariant::GetRealStrict() const
 {
     double ret;
     if (!TryGetRealStrict(ret))
-        PDFMM_RAISE_ERROR(EPdfError::InvalidDataType);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
 
     return m_Data.Real;
 }
 
 bool PdfVariant::TryGetRealStrict(double& value) const
 {
-    if (m_DataType != EPdfDataType::Real)
+    if (m_DataType != PdfDataType::Real)
     {
         value = 0;
         return false;
@@ -589,7 +589,7 @@ const PdfString& PdfVariant::GetString() const
 {
     const PdfString* ret;
     if (!tryGetString(ret))
-        PDFMM_RAISE_ERROR(EPdfError::InvalidDataType);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
 
     return *ret;
 }
@@ -609,7 +609,7 @@ bool PdfVariant::TryGetString(PdfString& str) const
 
 bool PdfVariant::tryGetString(const PdfString*& str) const
 {
-    if (m_DataType != EPdfDataType::String)
+    if (m_DataType != PdfDataType::String)
     {
         str = nullptr;
         return false;
@@ -623,7 +623,7 @@ const PdfName& PdfVariant::GetName() const
 {
     const PdfName* ret;
     if (!tryGetName(ret))
-        PDFMM_RAISE_ERROR(EPdfError::InvalidDataType);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
 
     return *ret;
 }
@@ -643,7 +643,7 @@ bool PdfVariant::TryGetName(PdfName& name) const
 
 bool PdfVariant::tryGetName(const PdfName*& name) const
 {
-    if (m_DataType != EPdfDataType::Name)
+    if (m_DataType != PdfDataType::Name)
     {
         name = nullptr;
         return false;
@@ -657,14 +657,14 @@ PdfReference PdfVariant::GetReference() const
 {
     PdfReference ret;
     if (!TryGetReference(ret))
-        PDFMM_RAISE_ERROR(EPdfError::InvalidDataType);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
 
     return ret;
 }
 
 bool PdfVariant::TryGetReference(PdfReference& ref) const
 {
-    if (m_DataType != EPdfDataType::Reference)
+    if (m_DataType != PdfDataType::Reference)
     {
         ref = PdfReference();
         return false;
@@ -678,7 +678,7 @@ const PdfArray& PdfVariant::GetArray() const
 {
     PdfArray* ret;
     if (!tryGetArray(ret))
-        PDFMM_RAISE_ERROR(EPdfError::InvalidDataType);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
 
     return *ret;
 }
@@ -687,7 +687,7 @@ PdfArray& PdfVariant::GetArray()
 {
     PdfArray* ret;
     if (!tryGetArray(ret))
-        PDFMM_RAISE_ERROR(EPdfError::InvalidDataType);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
 
     return *ret;
 }
@@ -706,7 +706,7 @@ const PdfDictionary& PdfVariant::GetDictionary() const
 {
     PdfDictionary* ret;
     if (!tryGetDictionary(ret))
-        PDFMM_RAISE_ERROR(EPdfError::InvalidDataType);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
 
     return *ret;
 }
@@ -715,7 +715,7 @@ PdfDictionary& PdfVariant::GetDictionary()
 {
     PdfDictionary* ret;
     if (!tryGetDictionary(ret))
-        PDFMM_RAISE_ERROR(EPdfError::InvalidDataType);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
 
     return *ret;
 }
@@ -732,7 +732,7 @@ bool PdfVariant::TryGetDictionary(PdfDictionary*& dict)
 
 bool PdfVariant::tryGetDictionary(PdfDictionary*& dict) const
 {
-    if (m_DataType != EPdfDataType::Dictionary)
+    if (m_DataType != PdfDataType::Dictionary)
     {
         dict = nullptr;
         return false;
@@ -744,7 +744,7 @@ bool PdfVariant::tryGetDictionary(PdfDictionary*& dict) const
 
 bool PdfVariant::tryGetArray(PdfArray*& arr) const
 {
-    if (m_DataType != EPdfDataType::Array)
+    if (m_DataType != PdfDataType::Array)
     {
         arr = nullptr;
         return false;
@@ -756,21 +756,21 @@ bool PdfVariant::tryGetArray(PdfArray*& arr) const
 
 void PdfVariant::SetBool(bool value)
 {
-    if (m_DataType != EPdfDataType::Bool)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidDataType);
+    if (m_DataType != PdfDataType::Bool)
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
 
     m_Data.Bool = value;
 }
 
 void PdfVariant::SetNumber(int64_t value)
 {
-    if (!(m_DataType == EPdfDataType::Number
-        || m_DataType == EPdfDataType::Real))
+    if (!(m_DataType == PdfDataType::Number
+        || m_DataType == PdfDataType::Real))
     {
-        PDFMM_RAISE_ERROR(EPdfError::InvalidDataType);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
     }
 
-    if (m_DataType == EPdfDataType::Real)
+    if (m_DataType == PdfDataType::Real)
         m_Data.Real = static_cast<double>(value);
     else
         m_Data.Number = value;
@@ -778,13 +778,13 @@ void PdfVariant::SetNumber(int64_t value)
 
 void PdfVariant::SetReal(double value)
 {
-    if (!(m_DataType == EPdfDataType::Real
-        || m_DataType == EPdfDataType::Number))
+    if (!(m_DataType == PdfDataType::Real
+        || m_DataType == PdfDataType::Number))
     {
-        PDFMM_RAISE_ERROR(EPdfError::InvalidDataType);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
     }
 
-    if (m_DataType == EPdfDataType::Number)
+    if (m_DataType == PdfDataType::Number)
         m_Data.Number = static_cast<int64_t>(std::round(value));
     else
         m_Data.Real = value;
@@ -792,79 +792,79 @@ void PdfVariant::SetReal(double value)
 
 void PdfVariant::SetName(const PdfName& name)
 {
-    if (m_DataType != EPdfDataType::Name)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidDataType);
+    if (m_DataType != PdfDataType::Name)
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
 
     *((PdfName*)m_Data.Data) = name;
 }
 
 void PdfVariant::SetString(const PdfString& str)
 {
-    if (m_DataType != EPdfDataType::String)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidDataType);
+    if (m_DataType != PdfDataType::String)
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
 
     *((PdfString*)m_Data.Data) = str;
 }
 
 void PdfVariant::SetReference(const PdfReference& ref)
 {
-    if (m_DataType != EPdfDataType::Reference)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidDataType);
+    if (m_DataType != PdfDataType::Reference)
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
 
     m_Data.Reference = ref;
 }
 
 bool PdfVariant::IsBool() const
 {
-    return m_DataType == EPdfDataType::Bool;
+    return m_DataType == PdfDataType::Bool;
 }
 
 bool PdfVariant::IsNumber() const
 {
-    return m_DataType == EPdfDataType::Number;
+    return m_DataType == PdfDataType::Number;
 }
 
 bool PdfVariant::IsRealStrict() const
 {
-    return m_DataType == EPdfDataType::Real;
+    return m_DataType == PdfDataType::Real;
 }
 
 bool PdfVariant::IsNumberOrReal() const
 {
-    return m_DataType == EPdfDataType::Number || m_DataType == EPdfDataType::Real;
+    return m_DataType == PdfDataType::Number || m_DataType == PdfDataType::Real;
 }
 
 bool PdfVariant::IsString() const
 {
-    return m_DataType == EPdfDataType::String;
+    return m_DataType == PdfDataType::String;
 }
 
 bool PdfVariant::IsName() const
 {
-    return m_DataType == EPdfDataType::Name;
+    return m_DataType == PdfDataType::Name;
 }
 
 bool PdfVariant::IsArray() const
 {
-    return m_DataType == EPdfDataType::Array;
+    return m_DataType == PdfDataType::Array;
 }
 
 bool PdfVariant::IsDictionary() const
 {
-    return m_DataType == EPdfDataType::Dictionary;
+    return m_DataType == PdfDataType::Dictionary;
 }
 
 bool PdfVariant::IsRawData() const
 {
-    return m_DataType == EPdfDataType::RawData;
+    return m_DataType == PdfDataType::RawData;
 }
 
 bool PdfVariant::IsNull() const
 {
-    return m_DataType == EPdfDataType::Null;
+    return m_DataType == PdfDataType::Null;
 }
 
 bool PdfVariant::IsReference() const
 {
-    return m_DataType == EPdfDataType::Reference;
+    return m_DataType == PdfDataType::Reference;
 }

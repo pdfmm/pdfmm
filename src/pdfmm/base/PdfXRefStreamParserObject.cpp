@@ -32,23 +32,23 @@ void PdfXRefStreamParserObject::Parse()
     // Do some very basic error checking
     if (!this->GetDictionary().HasKey(PdfName::KeyType))
     {
-        PDFMM_RAISE_ERROR(EPdfError::NoXRef);
+        PDFMM_RAISE_ERROR(PdfErrorCode::NoXRef);
     }
 
     auto& obj = this->GetDictionary().MustFindKey(PdfName::KeyType);
     if (!obj.IsName() || obj.GetName() != "XRef")
     {
-        PDFMM_RAISE_ERROR(EPdfError::NoXRef);
+        PDFMM_RAISE_ERROR(PdfErrorCode::NoXRef);
     }
 
     if (!this->GetDictionary().HasKey(PdfName::KeySize)
         || !this->GetDictionary().HasKey("W"))
     {
-        PDFMM_RAISE_ERROR(EPdfError::NoXRef);
+        PDFMM_RAISE_ERROR(PdfErrorCode::NoXRef);
     }
 
     if (!this->HasStreamToParse())
-        PDFMM_RAISE_ERROR(EPdfError::NoXRef);
+        PDFMM_RAISE_ERROR(PdfErrorCode::NoXRef);
 
     if (this->GetDictionary().HasKey("Prev"))
     {
@@ -65,7 +65,7 @@ void PdfXRefStreamParserObject::ReadXRefTable()
     // all of them have to be integers
     if (!arr.IsArray() || arr.GetArray().size() != 3)
     {
-        PDFMM_RAISE_ERROR(EPdfError::NoXRef);
+        PDFMM_RAISE_ERROR(PdfErrorCode::NoXRef);
     }
 
     int64_t wArray[W_ARRAY_SIZE] = { 0, 0, 0 };
@@ -73,7 +73,7 @@ void PdfXRefStreamParserObject::ReadXRefTable()
     {
         if (!arr.GetArray()[i].IsNumber())
         {
-            PDFMM_RAISE_ERROR(EPdfError::NoXRef);
+            PDFMM_RAISE_ERROR(PdfErrorCode::NoXRef);
         }
 
         wArray[i] = static_cast<int64_t>(arr.GetArray()[i].GetNumber());
@@ -91,12 +91,12 @@ void PdfXRefStreamParserObject::ParseStream(const int64_t wArray[W_ARRAY_SIZE], 
     {
         if (wArray[i] < 0)
         {
-            PDFMM_RAISE_ERROR_INFO(EPdfError::NoXRef,
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoXRef,
                 "Negative field length in XRef stream");
         }
         if (std::numeric_limits<int64_t>::max() - lengthSum < wArray[i])
         {
-            PDFMM_RAISE_ERROR_INFO(EPdfError::NoXRef,
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoXRef,
                 "Invalid entry length in XRef stream");
         }
         else
@@ -121,7 +121,7 @@ void PdfXRefStreamParserObject::ParseStream(const int64_t wArray[W_ARRAY_SIZE], 
         while (count > 0)
         {
             if ((size_t)(cursor - buffer.get()) >= bufferLen)
-                PDFMM_RAISE_ERROR_INFO(EPdfError::NoXRef, "Invalid count in XRef stream");
+                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoXRef, "Invalid count in XRef stream");
 
             if (firstObj >= 0 && firstObj < static_cast<int64_t>(m_entries->size())
                 && !(*m_entries)[static_cast<int>(firstObj)].Parsed)
@@ -145,7 +145,7 @@ void PdfXRefStreamParserObject::GetIndices(std::vector<int64_t>& indices, int64_
         auto& arr = *(this->GetDictionary().GetKey("Index"));
         if (!arr.IsArray())
         {
-            PDFMM_RAISE_ERROR(EPdfError::NoXRef);
+            PDFMM_RAISE_ERROR(PdfErrorCode::NoXRef);
         }
 
         for (auto index : arr.GetArray())
@@ -160,7 +160,7 @@ void PdfXRefStreamParserObject::GetIndices(std::vector<int64_t>& indices, int64_
 
     // indices must be a multiple of 2
     if (indices.size() % 2 != 0)
-        PDFMM_RAISE_ERROR(EPdfError::NoXRef);
+        PDFMM_RAISE_ERROR(PdfErrorCode::NoXRef);
 }
 
 void PdfXRefStreamParserObject::ReadXRefStreamEntry(char* buffer, size_t, const int64_t wArray[W_ARRAY_SIZE], int objNo)
@@ -174,7 +174,7 @@ void PdfXRefStreamParserObject::ReadXRefStreamEntry(char* buffer, size_t, const 
                 "The XRef stream dictionary has an entry in /W of size %i.\nThe maximum supported value is %i.",
                 wArray[i], W_MAX_BYTES);
 
-            PDFMM_RAISE_ERROR(EPdfError::InvalidXRefStream);
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidXRefStream);
         }
 
         entryRaw[i] = 0;
@@ -218,7 +218,7 @@ void PdfXRefStreamParserObject::ReadXRefStreamEntry(char* buffer, size_t, const 
             entry.Type = XRefEntryType::Compressed;
             break;
         default:
-            PDFMM_RAISE_ERROR(EPdfError::InvalidXRefType);
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidXRefType);
     }
 }
 

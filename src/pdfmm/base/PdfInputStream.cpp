@@ -31,7 +31,7 @@ size_t PdfInputStream::Read(char* buffer, size_t len, bool& eof)
         return 0;
 
     if (buffer == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     size_t ret = ReadImpl(buffer, len, m_eof);
     eof = m_eof;
@@ -42,7 +42,7 @@ PdfFileInputStream::PdfFileInputStream(const string_view& filename)
     : m_stream(io::open_ifstream(filename, ios_base::in | ios_base::binary))
 {
     if (m_stream.fail())
-        PDFMM_RAISE_ERROR_INFO(EPdfError::FileNotFound, filename.data());
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::FileNotFound, filename.data());
 }
 
 PdfFileInputStream::~PdfFileInputStream() { }

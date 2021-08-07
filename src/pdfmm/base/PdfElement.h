@@ -81,7 +81,7 @@ protected:
      *  \param obj pointer to the PdfObject that is modified
      *                 by this PdfElement
      */
-    PdfElement(EPdfDataType expectedDataType, PdfObject& obj);
+    PdfElement(PdfDataType expectedDataType, PdfObject& obj);
 
     PdfElement(const PdfElement& element);
 

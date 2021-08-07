@@ -72,7 +72,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
         if (missingWidth == nullptr)
         {
             if (widths == nullptr)
-                PDFMM_RAISE_ERROR_INFO(EPdfError::NoObject, "Font object defines neither Widths, nor MissingWidth values!");
+                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoObject, "Font object defines neither Widths, nor MissingWidth values!");
         }
         else
         {
@@ -137,7 +137,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
     }
     else
     {
-        PDFMM_RAISE_ERROR_INFO(EPdfError::UnsupportedFontFormat, subType.GetEscapedName().c_str());
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFontFormat, subType.GetEscapedName().c_str());
     }
 
     if (descriptor == nullptr)

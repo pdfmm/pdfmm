@@ -84,14 +84,14 @@ void PdfParserObject::ReadObjectNumber()
         ostringstream oss;
         oss << "Error while reading object " << ref.ObjectNumber() << " "
             << ref.GenerationNumber() << ": Next token is not 'obj'." << std::endl;
-        PDFMM_RAISE_ERROR_INFO(EPdfError::NoObject, oss.str().c_str());
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoObject, oss.str().c_str());
     }
 }
 
 void PdfParserObject::ParseFile(PdfEncrypt* encrypt, bool isTrailer)
 {
     if (m_device.Device() == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     if (m_Offset >= 0)
         m_device.Device()->Seek(m_Offset);
@@ -150,7 +150,7 @@ void PdfParserObject::ParseFileComplete(bool isTrailer)
     string_view token;
     bool gotToken = m_tokenizer.TryReadNextToken(*m_device.Device(), token, tokenType);
     if (!gotToken)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::UnexpectedEOF, "Expected variant.");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected variant.");
 
     // Check if we have an empty object or data
     if (token != "endobj")
@@ -162,7 +162,7 @@ void PdfParserObject::ParseFileComplete(bool isTrailer)
             bool gotToken = m_tokenizer.TryReadNextToken(*m_device.Device(), token);
             if (!gotToken)
             {
-                PDFMM_RAISE_ERROR_INFO(EPdfError::UnexpectedEOF, "Expected 'endobj' or (if dict) 'stream', got EOF.");
+                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected 'endobj' or (if dict) 'stream', got EOF.");
             }
             if (token == "endobj")
             {
@@ -176,7 +176,7 @@ void PdfParserObject::ParseFileComplete(bool isTrailer)
             }
             else
             {
-                PDFMM_RAISE_ERROR_INFO(EPdfError::NoObject, token.data());
+                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoObject, token.data());
             }
         }
     }
@@ -194,11 +194,11 @@ void PdfParserObject::ParseStream()
     int c;
 
     if (m_device.Device() == nullptr || GetDocument() == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     auto& lengthObj = this->m_Variant.GetDictionary().MustFindKey(PdfName::KeyLength);
     if (!lengthObj.TryGetNumber(len))
-        PDFMM_RAISE_ERROR(EPdfError::InvalidStreamLength);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidStreamLength);
 
     m_device.Device()->Seek(m_StreamOffset);
 

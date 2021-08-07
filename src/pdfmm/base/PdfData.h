@@ -11,7 +11,7 @@
 
 #include "PdfDefines.h"
 
-#include "PdfDataType.h"
+#include "PdfDataProvider.h"
 
 namespace mm {
 
@@ -26,7 +26,7 @@ class PdfOutputDevice;
  *  This class is used in pdfmm to pad PdfVariants.
  *
  */
-class PDFMM_API PdfData final : public PdfDataType
+class PDFMM_API PdfData final : public PdfDataProvider
 {
 public:
     PdfData();

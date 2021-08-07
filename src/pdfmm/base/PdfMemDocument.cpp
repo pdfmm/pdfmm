@@ -102,7 +102,7 @@ void PdfMemDocument::InitFromParser(PdfParser* parser)
 
     auto catalog = GetTrailer().GetDictionary().FindKey("Root");
     if (catalog == nullptr)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::NoObject, "Catalog object not found!");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoObject, "Catalog object not found!");
 
     this->SetCatalog(catalog);
 
@@ -133,7 +133,7 @@ void PdfMemDocument::InitFromParser(PdfParser* parser)
 void PdfMemDocument::Load(const string_view& filename, const string_view& password)
 {
     if (filename.length() == 0)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     this->Clear();
 
@@ -148,7 +148,7 @@ void PdfMemDocument::Load(const string_view& filename, const string_view& passwo
 void PdfMemDocument::LoadFromBuffer(const string_view& buffer, const string_view& password)
 {
     if (buffer.length() == 0)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     this->Clear();
 
@@ -262,7 +262,7 @@ void PdfMemDocument::Write(const string_view& filename, PdfSaveOptions options)
 void PdfMemDocument::Write(PdfOutputDevice& device, PdfSaveOptions options)
 {
     // makes sure pending subset-fonts are embedded
-    GetFontCache().EmbedSubsetFonts();
+    GetFontManager().EmbedSubsetFonts();
 
     PdfWriter writer(this->GetObjects(), this->GetTrailer());
     writer.SetPdfVersion(this->GetPdfVersion());
@@ -284,7 +284,7 @@ void PdfMemDocument::WriteUpdate(const string_view& filename, PdfSaveOptions opt
 void PdfMemDocument::WriteUpdate(PdfOutputDevice& device, PdfSaveOptions options)
 {
     // makes sure pending subset-fonts are embedded
-    GetFontCache().EmbedSubsetFonts();
+    GetFontManager().EmbedSubsetFonts();
     PdfWriter writer(this->GetObjects(), this->GetTrailer());
     writer.SetSaveOptions(options);
     writer.SetPdfVersion(this->GetPdfVersion());
@@ -300,7 +300,7 @@ void PdfMemDocument::WriteUpdate(PdfOutputDevice& device, PdfSaveOptions options
     if (m_SourceVersion < this->GetPdfVersion() && (catalog = this->getCatalog()) && catalog->IsDictionary())
     {
         if (this->GetPdfVersion() < PdfVersion::V1_0 || this->GetPdfVersion() > PdfVersion::V1_7)
-            PDFMM_RAISE_ERROR(EPdfError::ValueOutOfRange);
+            PDFMM_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
 
         catalog->GetDictionary().AddKey("Version", PdfName(s_PdfVersionNums[(unsigned)this->GetPdfVersion()]));
     }
@@ -409,12 +409,12 @@ void PdfMemDocument::FreeObjectMemory(const PdfReference& ref, bool force)
 void PdfMemDocument::FreeObjectMemory(PdfObject* obj, bool force)
 {
     if (obj == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     PdfParserObject* parserObject = dynamic_cast<PdfParserObject*>(obj);
     if (parserObject == nullptr)
     {
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidHandle,
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle,
             "FreeObjectMemory works only on classes of type PdfParserObject.");
     }
 

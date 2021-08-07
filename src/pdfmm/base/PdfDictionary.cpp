@@ -24,7 +24,7 @@ PdfDictionary::PdfDictionary(const PdfDictionary& rhs)
 const PdfDictionary& PdfDictionary::operator=(const PdfDictionary& rhs)
 {
     m_Map = rhs.m_Map;
-    PdfContainerDataType::operator=(rhs);
+    PdfDataContainer::operator=(rhs);
     return *this;
 }
 
@@ -67,12 +67,12 @@ PdfObject& PdfDictionary::AddKeyIndirect(const PdfName& key, const PdfObject* ob
 {
     AssertMutable();
     if (obj == nullptr)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "Given object shall not be null");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Given object shall not be null");
 
     if (IsIndirectReferenceAllowed(*obj))
         return addKey(key, obj->GetIndirectReference());
     else
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "Given object shall not be null");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Given object shall not be null");
 }
 
 PdfObject& PdfDictionary::AddKeyIndirectSafe(const PdfName& key, const PdfObject& obj)
@@ -233,7 +233,7 @@ void PdfDictionary::ResetDirtyInternal()
 
 void PdfDictionary::SetOwner(PdfObject* owner)
 {
-    PdfContainerDataType::SetOwner(owner);
+    PdfDataContainer::SetOwner(owner);
     auto document = owner->GetDocument();
 
     // Set owmership for all children
@@ -269,7 +269,7 @@ const PdfObject& PdfDictionary::MustFindKey(const PdfName& key) const
 {
     auto obj = findKey(key);
     if (obj == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::NoObject);
+        PDFMM_RAISE_ERROR(PdfErrorCode::NoObject);
 
     return *obj;
 }
@@ -278,7 +278,7 @@ PdfObject& PdfDictionary::MustFindKey(const PdfName& key)
 {
     auto obj = findKey(key);
     if (obj == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::NoObject);
+        PDFMM_RAISE_ERROR(PdfErrorCode::NoObject);
 
     return *obj;
 }
@@ -297,7 +297,7 @@ const PdfObject& PdfDictionary::MustFindKeyParent(const PdfName& key) const
 {
     auto obj = findKeyParent(key);
     if (obj == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::NoObject);
+        PDFMM_RAISE_ERROR(PdfErrorCode::NoObject);
 
     return *obj;
 }
@@ -306,7 +306,7 @@ PdfObject& PdfDictionary::MustFindKeyParent(const PdfName& key)
 {
     auto obj = findKeyParent(key);
     if (obj == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::NoObject);
+        PDFMM_RAISE_ERROR(PdfErrorCode::NoObject);
 
     return *obj;
 }
@@ -320,7 +320,7 @@ const PdfObject& PdfDictionary::MustGetKey(const PdfName& key) const
 {
     auto obj = getKey(key);
     if (obj == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::NoObject);
+        PDFMM_RAISE_ERROR(PdfErrorCode::NoObject);
 
     return *obj;
 }
@@ -329,7 +329,7 @@ PdfObject& mm::PdfDictionary::MustGetKey(const PdfName& key)
 {
     auto obj = getKey(key);
     if (obj == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::NoObject);
+        PDFMM_RAISE_ERROR(PdfErrorCode::NoObject);
 
     return *obj;
 }

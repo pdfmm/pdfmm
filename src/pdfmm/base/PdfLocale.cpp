@@ -30,7 +30,7 @@ void mm::PdfLocaleImbue(ios_base& s)
         err << "Error reported by STL std::locale: \"" << e.what() << "\"";
         // The info string is copied by PdfError so we're ok to just:
         PDFMM_RAISE_ERROR_INFO(
-            EPdfError::InvalidDeviceOperation,
+            PdfErrorCode::InvalidDeviceOperation,
             err.str().c_str()
         );
     }

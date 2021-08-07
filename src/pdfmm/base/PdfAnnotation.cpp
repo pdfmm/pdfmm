@@ -66,7 +66,7 @@ PdfAnnotation::PdfAnnotation(PdfPage& page, PdfAnnotationType annotType, const P
 
     if (!name.GetLength())
     {
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
     }
 
     rect.ToVariant(rectVar);
@@ -128,33 +128,33 @@ void mm::SetAppearanceStreamForObject(PdfObject& obj, PdfXObject& xobj, PdfAnnot
     if (obj.GetDictionary().HasKey("AP"))
     {
         PdfObject* objAP = obj.GetDictionary().GetKey("AP");
-        if (objAP->GetDataType() == EPdfDataType::Reference)
+        if (objAP->GetDataType() == PdfDataType::Reference)
         {
             auto document = objAP->GetDocument();
             if (document == nullptr)
-                PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+                PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
             objAP = document->GetObjects().GetObject(objAP->GetReference());
             if (objAP == nullptr)
-                PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+                PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
         }
 
-        if (objAP->GetDataType() != EPdfDataType::Dictionary)
-            PDFMM_RAISE_ERROR(EPdfError::InvalidDataType);
+        if (objAP->GetDataType() != PdfDataType::Dictionary)
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
 
         if (state.GetLength() == 0)
         {
             // allow overwrite only reference by a reference
-            if (objAP->GetDictionary().HasKey(name) && objAP->GetDictionary().GetKey(name)->GetDataType() != EPdfDataType::Reference)
-                PDFMM_RAISE_ERROR(EPdfError::InvalidDataType);
+            if (objAP->GetDictionary().HasKey(name) && objAP->GetDictionary().GetKey(name)->GetDataType() != PdfDataType::Reference)
+                PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
 
             objAP->GetDictionary().AddKey(name, xobj.GetObject().GetIndirectReference());
         }
         else
         {
             // when the state is defined, then the appearance is expected to be a dictionary
-            if (objAP->GetDictionary().HasKey(name) && objAP->GetDictionary().GetKey(name)->GetDataType() != EPdfDataType::Dictionary)
-                PDFMM_RAISE_ERROR(EPdfError::InvalidDataType);
+            if (objAP->GetDictionary().HasKey(name) && objAP->GetDictionary().GetKey(name)->GetDataType() != PdfDataType::Dictionary)
+                PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
 
             if (objAP->GetDictionary().HasKey(name))
             {
@@ -393,7 +393,7 @@ void PdfAnnotation::SetQuadPoints(const PdfArray& quadPoints)
         m_AnnotationType != PdfAnnotationType::Underline &&
         m_AnnotationType != PdfAnnotationType::Squiggly &&
         m_AnnotationType != PdfAnnotationType::StrikeOut)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Must be a text markup annotation (highlight, underline, squiggly or strikeout) to set quad points");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Must be a text markup annotation (highlight, underline, squiggly or strikeout) to set quad points");
 
     this->GetObject().GetDictionary().AddKey("QuadPoints", quadPoints);
 }
@@ -449,6 +449,6 @@ PdfName GetAppearanceName(PdfAnnotationAppearance appearance)
         case mm::PdfAnnotationAppearance::Down:
             return PdfName("D");
         default:
-            PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Invalid appearance type");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Invalid appearance type");
     }
 }

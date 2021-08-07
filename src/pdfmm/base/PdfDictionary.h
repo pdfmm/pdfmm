@@ -13,17 +13,17 @@
 
 #include <map>
 
-#include "PdfContainerDataType.h"
+#include "PdfDataContainer.h"
 #include "PdfName.h"
 
 namespace mm {
 
 class PdfOutputDevice;
 
-/** The PDF dictionary data type of pdfmm (inherits from PdfDataType,
+/** The PDF dictionary data type of pdfmm (inherits from PdfDataContainer,
  *  the base class for such representations)
  */
-class PDFMM_API PdfDictionary final : public PdfContainerDataType
+class PDFMM_API PdfDictionary final : public PdfDataContainer
 {
     friend class PdfObject;
     friend class PdfTokenizer;

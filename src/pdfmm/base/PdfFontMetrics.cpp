@@ -49,7 +49,7 @@ unsigned PdfFontMetrics::GetGID(char32_t codePoint) const
 {
     unsigned gid;
     if (!TryGetGID(codePoint, gid))
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidFontFile, "Can't find a gid");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "Can't find a gid");
 
     return gid;
 }

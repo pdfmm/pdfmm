@@ -207,7 +207,7 @@ const PdfObject* PdfPage::GetInheritedKeyFromObject(const string_view& key, cons
         const int maxRecursionDepth = 1000;
 
         if (depth > maxRecursionDepth)
-            PDFMM_RAISE_ERROR(EPdfError::ValueOutOfRange);
+            PDFMM_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
 
         obj = inObject.GetDictionary().FindKey("Parent");
         if (obj == &inObject)
@@ -215,7 +215,7 @@ const PdfObject* PdfPage::GetInheritedKeyFromObject(const string_view& key, cons
             ostringstream oss;
             oss << "Object " << inObject.GetIndirectReference().ObjectNumber() << " "
                 << inObject.GetIndirectReference().GenerationNumber() << " references itself as Parent";
-            PDFMM_RAISE_ERROR_INFO(EPdfError::BrokenFile, oss.str().c_str());
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::BrokenFile, oss.str().c_str());
         }
 
         if (obj != nullptr)
@@ -269,7 +269,7 @@ int PdfPage::GetRotationRaw() const
 void PdfPage::SetRotationRaw(int rotation)
 {
     if (rotation != 0 && rotation != 90 && rotation != 180 && rotation != 270)
-        PDFMM_RAISE_ERROR(EPdfError::ValueOutOfRange);
+        PDFMM_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
 
     this->GetObject().GetDictionary().AddKey("Rotate", PdfVariant(static_cast<int64_t>(rotation)));
 }
@@ -324,10 +324,10 @@ PdfAnnotation* PdfPage::GetAnnotation(unsigned index)
     auto arr = GetAnnotationsArray();
 
     if (arr == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     if (index >= arr->GetSize())
-        PDFMM_RAISE_ERROR(EPdfError::ValueOutOfRange);
+        PDFMM_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
 
     auto& obj = arr->FindAt(index);
     annot = m_mapAnnotations[&obj];
@@ -347,7 +347,7 @@ void PdfPage::DeleteAnnotation(unsigned index)
         return;
 
     if (index >= arr->GetSize())
-        PDFMM_RAISE_ERROR(EPdfError::ValueOutOfRange);
+        PDFMM_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
 
     auto& item = arr->FindAt(index);
     auto found = m_mapAnnotations.find(&item);
@@ -523,7 +523,7 @@ unsigned PdfPage::GetPageNumber() const
                     ostringstream oss;
                     oss << "Object " << child.GetReference().ToString() << " not found from Kids array "
                         << kidsObj->GetIndirectReference().ToString();
-                    PDFMM_RAISE_ERROR_INFO(EPdfError::NoObject, oss.str());
+                    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoObject, oss.str());
                 }
 
                 if (node->GetDictionary().HasKey(PdfName::KeyType)
@@ -548,7 +548,7 @@ unsigned PdfPage::GetPageNumber() const
         depth++;
 
         if (depth > maxRecursionDepth)
-            PDFMM_RAISE_ERROR_INFO(EPdfError::BrokenFile, "Loop in Parent chain");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::BrokenFile, "Loop in Parent chain");
     }
 
     return ++pageNumber;
@@ -557,7 +557,7 @@ unsigned PdfPage::GetPageNumber() const
 PdfObject* PdfPage::GetFromResources(const PdfName& type, const PdfName& key)
 {
     if (m_Resources == nullptr)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "No Resources");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "No Resources");
 
     if (m_Resources->GetDictionary().HasKey(type))
     {
@@ -585,7 +585,7 @@ void PdfPage::SetICCProfile(const string_view& csTag, PdfInputStream& stream,
         colorComponents != 3 &&
         colorComponents != 4)
     {
-        PDFMM_RAISE_ERROR_INFO(EPdfError::ValueOutOfRange, "SetICCProfile nColorComponents must be 1, 3 or 4!");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "SetICCProfile nColorComponents must be 1, 3 or 4!");
     }
 
     // Create a colorspace object

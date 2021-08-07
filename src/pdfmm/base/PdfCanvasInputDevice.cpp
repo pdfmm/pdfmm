@@ -32,7 +32,7 @@ PdfCanvasInputDevice::PdfCanvasInputDevice(PdfCanvas& canvas)
     }
     else
     {
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "Page /Contents not stream or array of streams");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Page /Contents not stream or array of streams");
     }
 
     if (m_contents.size() == 0)

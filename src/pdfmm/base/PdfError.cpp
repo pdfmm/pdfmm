@@ -69,16 +69,16 @@ const PdfErrorInfo& PdfErrorInfo::operator=(const PdfErrorInfo& rhs)
 
 PdfError::PdfError()
 {
-    m_error = EPdfError::ErrOk;
+    m_error = PdfErrorCode::Ok;
 }
 
-PdfError::PdfError(const EPdfError& code, const char* file, int line,
+PdfError::PdfError(const PdfErrorCode& code, const char* file, int line,
     const string_view& information)
 {
     this->SetError(code, file, line, information);
 }
 
-PdfError::PdfError(const EPdfError& code, const char* file, int line,
+PdfError::PdfError(const PdfErrorCode& code, const char* file, int line,
     const char* information)
 {
     this->SetError(code, file, line, information);
@@ -97,7 +97,7 @@ const PdfError& PdfError::operator=(const PdfError& rhs)
     return *this;
 }
 
-const PdfError& PdfError::operator=(const EPdfError& code)
+const PdfError& PdfError::operator=(const PdfErrorCode& code)
 {
     m_error = code;
     m_callStack.clear();
@@ -110,7 +110,7 @@ bool PdfError::operator==(const PdfError& rhs)
     return this->operator==(rhs.m_error);
 }
 
-bool PdfError::operator==(const EPdfError& code)
+bool PdfError::operator==(const PdfErrorCode& code)
 {
     return m_error == code;
 }
@@ -120,7 +120,7 @@ bool PdfError::operator!=(const PdfError& rhs)
     return this->operator!=(rhs.m_error);
 }
 
-bool PdfError::operator!=(const EPdfError& code)
+bool PdfError::operator!=(const PdfErrorCode& code)
 {
     return !this->operator==(code);
 }
@@ -163,173 +163,173 @@ const char* PdfError::what() const
     return PdfError::ErrorName(m_error);
 }
 
-const char* PdfError::ErrorName(EPdfError code)
+const char* PdfError::ErrorName(PdfErrorCode code)
 {
     const char* msg = nullptr;
 
     switch (code)
     {
-        case EPdfError::ErrOk:
-            msg = "EPdfError::ErrOk";
+        case PdfErrorCode::Ok:
+            msg = "PdfErrorCode::ErrOk";
             break;
-        case EPdfError::TestFailed:
-            msg = "EPdfError::TestFailed";
+        case PdfErrorCode::TestFailed:
+            msg = "PdfErrorCode::TestFailed";
             break;
-        case EPdfError::InvalidHandle:
-            msg = "EPdfError::InvalidHandle";
+        case PdfErrorCode::InvalidHandle:
+            msg = "PdfErrorCode::InvalidHandle";
             break;
-        case EPdfError::FileNotFound:
-            msg = "EPdfError::FileNotFound";
+        case PdfErrorCode::FileNotFound:
+            msg = "PdfErrorCode::FileNotFound";
             break;
-        case EPdfError::InvalidDeviceOperation:
-            msg = "EPdfError::InvalidDeviceOperation";
+        case PdfErrorCode::InvalidDeviceOperation:
+            msg = "PdfErrorCode::InvalidDeviceOperation";
             break;
-        case EPdfError::UnexpectedEOF:
-            msg = "EPdfError::UnexpectedEOF";
+        case PdfErrorCode::UnexpectedEOF:
+            msg = "PdfErrorCode::UnexpectedEOF";
             break;
-        case EPdfError::OutOfMemory:
-            msg = "EPdfError::OutOfMemory";
+        case PdfErrorCode::OutOfMemory:
+            msg = "PdfErrorCode::OutOfMemory";
             break;
-        case EPdfError::ValueOutOfRange:
-            msg = "EPdfError::ValueOutOfRange";
+        case PdfErrorCode::ValueOutOfRange:
+            msg = "PdfErrorCode::ValueOutOfRange";
             break;
-        case EPdfError::InternalLogic:
-            msg = "EPdfError::InternalLogic";
+        case PdfErrorCode::InternalLogic:
+            msg = "PdfErrorCode::InternalLogic";
             break;
-        case EPdfError::InvalidEnumValue:
-            msg = "EPdfError::InvalidEnumValue";
+        case PdfErrorCode::InvalidEnumValue:
+            msg = "PdfErrorCode::InvalidEnumValue";
             break;
-        case EPdfError::BrokenFile:
-            msg = "EPdfError::BrokenFile";
+        case PdfErrorCode::BrokenFile:
+            msg = "PdfErrorCode::BrokenFile";
             break;
-        case EPdfError::PageNotFound:
-            msg = "EPdfError::PageNotFound";
+        case PdfErrorCode::PageNotFound:
+            msg = "PdfErrorCode::PageNotFound";
             break;
-        case EPdfError::NoPdfFile:
-            msg = "EPdfError::NoPdfFile";
+        case PdfErrorCode::NoPdfFile:
+            msg = "PdfErrorCode::NoPdfFile";
             break;
-        case EPdfError::NoXRef:
-            msg = "EPdfError::NoXRef";
+        case PdfErrorCode::NoXRef:
+            msg = "PdfErrorCode::NoXRef";
             break;
-        case EPdfError::NoTrailer:
-            msg = "EPdfError::NoTrailer";
+        case PdfErrorCode::NoTrailer:
+            msg = "PdfErrorCode::NoTrailer";
             break;
-        case EPdfError::NoNumber:
-            msg = "EPdfError::NoNumber";
+        case PdfErrorCode::NoNumber:
+            msg = "PdfErrorCode::NoNumber";
             break;
-        case EPdfError::NoObject:
-            msg = "EPdfError::NoObject";
+        case PdfErrorCode::NoObject:
+            msg = "PdfErrorCode::NoObject";
             break;
-        case EPdfError::NoEOFToken:
-            msg = "EPdfError::NoEOFToken";
+        case PdfErrorCode::NoEOFToken:
+            msg = "PdfErrorCode::NoEOFToken";
             break;
-        case EPdfError::InvalidTrailerSize:
-            msg = "EPdfError::InvalidTrailerSize";
+        case PdfErrorCode::InvalidTrailerSize:
+            msg = "PdfErrorCode::InvalidTrailerSize";
             break;
-        case EPdfError::InvalidLinearization:
-            msg = "EPdfError::InvalidLinearization";
+        case PdfErrorCode::InvalidLinearization:
+            msg = "PdfErrorCode::InvalidLinearization";
             break;
-        case EPdfError::InvalidDataType:
-            msg = "EPdfError::InvalidDataType";
+        case PdfErrorCode::InvalidDataType:
+            msg = "PdfErrorCode::InvalidDataType";
             break;
-        case EPdfError::InvalidXRef:
-            msg = "EPdfError::InvalidXRef";
+        case PdfErrorCode::InvalidXRef:
+            msg = "PdfErrorCode::InvalidXRef";
             break;
-        case EPdfError::InvalidXRefStream:
-            msg = "EPdfError::InvalidXRefStream";
+        case PdfErrorCode::InvalidXRefStream:
+            msg = "PdfErrorCode::InvalidXRefStream";
             break;
-        case EPdfError::InvalidXRefType:
-            msg = "EPdfError::InvalidXRefType";
+        case PdfErrorCode::InvalidXRefType:
+            msg = "PdfErrorCode::InvalidXRefType";
             break;
-        case EPdfError::InvalidPredictor:
-            msg = "EPdfError::InvalidPredictor";
+        case PdfErrorCode::InvalidPredictor:
+            msg = "PdfErrorCode::InvalidPredictor";
             break;
-        case EPdfError::InvalidStrokeStyle:
-            msg = "EPdfError::InvalidStrokeStyle";
+        case PdfErrorCode::InvalidStrokeStyle:
+            msg = "PdfErrorCode::InvalidStrokeStyle";
             break;
-        case EPdfError::InvalidHexString:
-            msg = "EPdfError::InvalidHexString";
+        case PdfErrorCode::InvalidHexString:
+            msg = "PdfErrorCode::InvalidHexString";
             break;
-        case EPdfError::InvalidStream:
-            msg = "EPdfError::InvalidStream";
+        case PdfErrorCode::InvalidStream:
+            msg = "PdfErrorCode::InvalidStream";
             break;
-        case EPdfError::InvalidStreamLength:
-            msg = "EPdfError::InvalidStream";
+        case PdfErrorCode::InvalidStreamLength:
+            msg = "PdfErrorCode::InvalidStream";
             break;
-        case EPdfError::InvalidKey:
-            msg = "EPdfError::InvalidKey";
+        case PdfErrorCode::InvalidKey:
+            msg = "PdfErrorCode::InvalidKey";
             break;
-        case EPdfError::InvalidName:
-            msg = "EPdfError::InvalidName";
+        case PdfErrorCode::InvalidName:
+            msg = "PdfErrorCode::InvalidName";
             break;
-        case EPdfError::InvalidEncryptionDict:
-            msg = "EPdfError::InvalidEncryptionDict";    /**< The encryption dictionary is invalid or misses a required key */
+        case PdfErrorCode::InvalidEncryptionDict:
+            msg = "PdfErrorCode::InvalidEncryptionDict";    /**< The encryption dictionary is invalid or misses a required key */
             break;
-        case EPdfError::InvalidPassword:                    /**< The password used to open the PDF file was invalid */
-            msg = "EPdfError::InvalidPassword";
+        case PdfErrorCode::InvalidPassword:                    /**< The password used to open the PDF file was invalid */
+            msg = "PdfErrorCode::InvalidPassword";
             break;
-        case EPdfError::InvalidFontFile:
-            msg = "EPdfError::InvalidFontFile";
+        case PdfErrorCode::InvalidFontFile:
+            msg = "PdfErrorCode::InvalidFontFile";
             break;
-        case EPdfError::InvalidContentStream:
-            msg = "EPdfError::InvalidContentStream";
+        case PdfErrorCode::InvalidContentStream:
+            msg = "PdfErrorCode::InvalidContentStream";
             break;
-        case EPdfError::UnsupportedFilter:
-            msg = "EPdfError::UnsupportedFilter";
+        case PdfErrorCode::UnsupportedFilter:
+            msg = "PdfErrorCode::UnsupportedFilter";
             break;
-        case EPdfError::UnsupportedFontFormat:    /**< This font format is not supported by pdfmm. */
-            msg = "EPdfError::UnsupportedFontFormat";
+        case PdfErrorCode::UnsupportedFontFormat:    /**< This font format is not supported by pdfmm. */
+            msg = "PdfErrorCode::UnsupportedFontFormat";
             break;
-        case EPdfError::ActionAlreadyPresent:
-            msg = "EPdfError::ActionAlreadyPresent";
+        case PdfErrorCode::ActionAlreadyPresent:
+            msg = "PdfErrorCode::ActionAlreadyPresent";
             break;
-        case EPdfError::WrongDestinationType:
-            msg = "EPdfError::WrongDestinationType";
+        case PdfErrorCode::WrongDestinationType:
+            msg = "PdfErrorCode::WrongDestinationType";
             break;
-        case EPdfError::MissingEndStream:
-            msg = "EPdfError::MissingEndStream";
+        case PdfErrorCode::MissingEndStream:
+            msg = "PdfErrorCode::MissingEndStream";
             break;
-        case EPdfError::Date:
-            msg = "EPdfError::Date";
+        case PdfErrorCode::Date:
+            msg = "PdfErrorCode::Date";
             break;
-        case EPdfError::Flate:
-            msg = "EPdfError::Flate";
+        case PdfErrorCode::Flate:
+            msg = "PdfErrorCode::Flate";
             break;
-        case EPdfError::FreeType:
-            msg = "EPdfError::FreeType";
+        case PdfErrorCode::FreeType:
+            msg = "PdfErrorCode::FreeType";
             break;
-        case EPdfError::SignatureError:
-            msg = "EPdfError::SignatureError";
+        case PdfErrorCode::SignatureError:
+            msg = "PdfErrorCode::SignatureError";
             break;
-        case EPdfError::UnsupportedImageFormat:    /**< This image format is not supported by pdfmm. */
-            msg = "EPdfError::UnsupportedImageFormat";
+        case PdfErrorCode::UnsupportedImageFormat:    /**< This image format is not supported by pdfmm. */
+            msg = "PdfErrorCode::UnsupportedImageFormat";
             break;
-        case EPdfError::CannotConvertColor:       /**< This color format cannot be converted. */
-            msg = "EPdfError::CannotConvertColor";
+        case PdfErrorCode::CannotConvertColor:       /**< This color format cannot be converted. */
+            msg = "PdfErrorCode::CannotConvertColor";
             break;
-        case EPdfError::NotImplemented:
-            msg = "EPdfError::NotImplemented";
+        case PdfErrorCode::NotImplemented:
+            msg = "PdfErrorCode::NotImplemented";
             break;
-        case EPdfError::NotCompiled:
-            msg = "EPdfError::NotCompiled";
+        case PdfErrorCode::NotCompiled:
+            msg = "PdfErrorCode::NotCompiled";
             break;
-        case EPdfError::DestinationAlreadyPresent:
-            msg = "EPdfError::DestinationAlreadyPresent";
+        case PdfErrorCode::DestinationAlreadyPresent:
+            msg = "PdfErrorCode::DestinationAlreadyPresent";
             break;
-        case EPdfError::ChangeOnImmutable:
-            msg = "EPdfError::ChangeOnImmutable";
+        case PdfErrorCode::ChangeOnImmutable:
+            msg = "PdfErrorCode::ChangeOnImmutable";
             break;
-        case EPdfError::OutlineItemAlreadyPresent:
-            msg = "EPdfError::OutlineItemAlreadyPresent";
+        case PdfErrorCode::OutlineItemAlreadyPresent:
+            msg = "PdfErrorCode::OutlineItemAlreadyPresent";
             break;
-        case EPdfError::NotLoadedForUpdate:
-            msg = "EPdfError::NotLoadedForUpdate";
+        case PdfErrorCode::NotLoadedForUpdate:
+            msg = "PdfErrorCode::NotLoadedForUpdate";
             break;
-        case EPdfError::CannotEncryptedForUpdate:
-            msg = "EPdfError::CannotEncryptedForUpdate";
+        case PdfErrorCode::CannotEncryptedForUpdate:
+            msg = "PdfErrorCode::CannotEncryptedForUpdate";
             break;
-        case EPdfError::Unknown:
-            msg = "EPdfError::Unknown";
+        case PdfErrorCode::Unknown:
+            msg = "PdfErrorCode::Unknown";
             break;
         default:
             break;
@@ -338,142 +338,142 @@ const char* PdfError::ErrorName(EPdfError code)
     return msg;
 }
 
-const char* PdfError::ErrorMessage(EPdfError code)
+const char* PdfError::ErrorMessage(PdfErrorCode code)
 {
     const char* msg = nullptr;
 
     switch (code)
     {
-        case EPdfError::ErrOk:
+        case PdfErrorCode::Ok:
             msg = "No error during execution.";
             break;
-        case EPdfError::TestFailed:
+        case PdfErrorCode::TestFailed:
             msg = "An error curred in an automatic test included in pdfmm.";
             break;
-        case EPdfError::InvalidHandle:
+        case PdfErrorCode::InvalidHandle:
             msg = "A nullptr handle was passed, but initialized data was expected.";
             break;
-        case EPdfError::FileNotFound:
+        case PdfErrorCode::FileNotFound:
             msg = "The specified file was not found.";
             break;
-        case EPdfError::InvalidDeviceOperation:
+        case PdfErrorCode::InvalidDeviceOperation:
             msg = "Tried to do something unsupported to an I/O device like seek a non-seekable input device";
             break;
-        case EPdfError::UnexpectedEOF:
+        case PdfErrorCode::UnexpectedEOF:
             msg = "End of file was reached unxexpectedly.";
             break;
-        case EPdfError::OutOfMemory:
+        case PdfErrorCode::OutOfMemory:
             msg = "pdfmm is out of memory.";
             break;
-        case EPdfError::ValueOutOfRange:
+        case PdfErrorCode::ValueOutOfRange:
             msg = "The passed value is out of range.";
             break;
-        case EPdfError::InternalLogic:
+        case PdfErrorCode::InternalLogic:
             msg = "An internal error occurred.";
             break;
-        case EPdfError::InvalidEnumValue:
+        case PdfErrorCode::InvalidEnumValue:
             msg = "An invalid enum value was specified.";
             break;
-        case EPdfError::BrokenFile:
+        case PdfErrorCode::BrokenFile:
             msg = "The file content is broken.";
             break;
-        case EPdfError::PageNotFound:
+        case PdfErrorCode::PageNotFound:
             msg = "The requested page could not be found in the PDF.";
             break;
-        case EPdfError::NoPdfFile:
+        case PdfErrorCode::NoPdfFile:
             msg = "This is not a PDF file.";
             break;
-        case EPdfError::NoXRef:
+        case PdfErrorCode::NoXRef:
             msg = "No XRef table was found in the PDF file.";
             break;
-        case EPdfError::NoTrailer:
+        case PdfErrorCode::NoTrailer:
             msg = "No trailer was found in the PDF file.";
             break;
-        case EPdfError::NoNumber:
+        case PdfErrorCode::NoNumber:
             msg = "A number was expected but not found.";
             break;
-        case EPdfError::NoObject:
+        case PdfErrorCode::NoObject:
             msg = "A object was expected but not found.";
             break;
-        case EPdfError::NoEOFToken:
+        case PdfErrorCode::NoEOFToken:
             msg = "No EOF Marker was found in the PDF file.";
             break;
 
-        case EPdfError::InvalidTrailerSize:
-        case EPdfError::InvalidLinearization:
-        case EPdfError::InvalidDataType:
-        case EPdfError::InvalidXRef:
-        case EPdfError::InvalidXRefStream:
-        case EPdfError::InvalidXRefType:
-        case EPdfError::InvalidPredictor:
-        case EPdfError::InvalidStrokeStyle:
-        case EPdfError::InvalidHexString:
-        case EPdfError::InvalidStream:
-        case EPdfError::InvalidStreamLength:
-        case EPdfError::InvalidKey:
-        case EPdfError::InvalidName:
+        case PdfErrorCode::InvalidTrailerSize:
+        case PdfErrorCode::InvalidLinearization:
+        case PdfErrorCode::InvalidDataType:
+        case PdfErrorCode::InvalidXRef:
+        case PdfErrorCode::InvalidXRefStream:
+        case PdfErrorCode::InvalidXRefType:
+        case PdfErrorCode::InvalidPredictor:
+        case PdfErrorCode::InvalidStrokeStyle:
+        case PdfErrorCode::InvalidHexString:
+        case PdfErrorCode::InvalidStream:
+        case PdfErrorCode::InvalidStreamLength:
+        case PdfErrorCode::InvalidKey:
+        case PdfErrorCode::InvalidName:
             break;
-        case EPdfError::InvalidEncryptionDict:
+        case PdfErrorCode::InvalidEncryptionDict:
             msg = "The encryption dictionary is invalid or misses a required key.";
             break;
-        case EPdfError::InvalidPassword:
+        case PdfErrorCode::InvalidPassword:
             msg = "The password used to open the PDF file was invalid.";
             break;
-        case EPdfError::InvalidFontFile:
+        case PdfErrorCode::InvalidFontFile:
             msg = "The font file is invalid.";
             break;
-        case EPdfError::InvalidContentStream:
+        case PdfErrorCode::InvalidContentStream:
             msg = "The content stream is invalid due to mismatched context pairing or other problems.";
             break;
-        case EPdfError::UnsupportedFilter:
+        case PdfErrorCode::UnsupportedFilter:
             break;
-        case EPdfError::UnsupportedFontFormat:
+        case PdfErrorCode::UnsupportedFontFormat:
             msg = "This font format is not supported by pdfmm.";
             break;
-        case EPdfError::DestinationAlreadyPresent:
-        case EPdfError::ActionAlreadyPresent:
+        case PdfErrorCode::DestinationAlreadyPresent:
+        case PdfErrorCode::ActionAlreadyPresent:
             msg = "Outlines can have either destinations or actions.";
             break;
-        case EPdfError::WrongDestinationType:
+        case PdfErrorCode::WrongDestinationType:
             msg = "The requested field is not available for the given destination type";
             break;
-        case EPdfError::MissingEndStream:
-        case EPdfError::Date:
+        case PdfErrorCode::MissingEndStream:
+        case PdfErrorCode::Date:
             break;
-        case EPdfError::Flate:
+        case PdfErrorCode::Flate:
             msg = "ZLib returned an error.";
             break;
-        case EPdfError::FreeType:
+        case PdfErrorCode::FreeType:
             msg = "FreeType returned an error.";
             break;
-        case EPdfError::SignatureError:
+        case PdfErrorCode::SignatureError:
             msg = "The signature contains an error.";
             break;
-        case EPdfError::UnsupportedImageFormat:
+        case PdfErrorCode::UnsupportedImageFormat:
             msg = "This image format is not supported by pdfmm.";
             break;
-        case EPdfError::CannotConvertColor:
+        case PdfErrorCode::CannotConvertColor:
             msg = "This color format cannot be converted.";
             break;
-        case EPdfError::ChangeOnImmutable:
+        case PdfErrorCode::ChangeOnImmutable:
             msg = "Changing values on immutable objects is not allowed.";
             break;
-        case EPdfError::NotImplemented:
+        case PdfErrorCode::NotImplemented:
             msg = "This feature is currently not implemented.";
             break;
-        case EPdfError::NotCompiled:
+        case PdfErrorCode::NotCompiled:
             msg = "This feature was disabled during compile time.";
             break;
-        case EPdfError::OutlineItemAlreadyPresent:
+        case PdfErrorCode::OutlineItemAlreadyPresent:
             msg = "Given OutlineItem already present in destination tree.";
             break;
-        case EPdfError::NotLoadedForUpdate:
+        case PdfErrorCode::NotLoadedForUpdate:
             msg = "The document had not been loaded for update.";
             break;
-        case EPdfError::CannotEncryptedForUpdate:
+        case PdfErrorCode::CannotEncryptedForUpdate:
             msg = "Cannot load encrypted documents for update.";
             break;
-        case EPdfError::Unknown:
+        case PdfErrorCode::Unknown:
             msg = "Error code unknown.";
             break;
         default:
@@ -670,7 +670,7 @@ bool PdfError::DebugEnabled()
     return PdfError::s_DgbEnabled;
 }
 
-void PdfError::SetError(const EPdfError& code, const char* file, int line, const char* information)
+void PdfError::SetError(const PdfErrorCode& code, const char* file, int line, const char* information)
 {
     m_error = code;
     this->AddToCallstack(file, line, information);
@@ -681,7 +681,7 @@ void PdfError::AddToCallstack(const char* file, int line, const char* informatio
     m_callStack.push_front(PdfErrorInfo(line, file, information));
 }
 
-void PdfError::SetError(const EPdfError& code, const char* file, int line, const string_view& information)
+void PdfError::SetError(const PdfErrorCode& code, const char* file, int line, const string_view& information)
 {
     m_error = code;
     this->AddToCallstack(file, line, information);
@@ -706,5 +706,5 @@ void PdfError::SetErrorInformation(const wchar_t* information)
 
 bool PdfError::IsError() const
 {
-    return m_error != EPdfError::ErrOk;
+    return m_error != PdfErrorCode::Ok;
 }

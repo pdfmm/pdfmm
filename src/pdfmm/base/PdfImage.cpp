@@ -84,7 +84,7 @@ void PdfImage::SetImageICCProfile(PdfInputStream& stream, unsigned colorComponen
         colorComponents != 3 &&
         colorComponents != 4)
     {
-        PDFMM_RAISE_ERROR_INFO(EPdfError::ValueOutOfRange, "SetImageICCProfile lColorComponents must be 1,3 or 4!");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "SetImageICCProfile lColorComponents must be 1,3 or 4!");
     }
 
     // Create a colorspace object
@@ -173,7 +173,7 @@ void PdfImage::LoadFromFile(const string_view& filename)
 #endif
 
     }
-    PDFMM_RAISE_ERROR_INFO(EPdfError::UnsupportedImageFormat, filename.data());
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, filename.data());
 }
 
 void PdfImage::LoadFromData(const unsigned char* data, size_t len)
@@ -219,7 +219,7 @@ void PdfImage::LoadFromData(const unsigned char* data, size_t len)
 #endif
 
     }
-    PDFMM_RAISE_ERROR_INFO(EPdfError::UnsupportedImageFormat, "Unknown magic number");
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, "Unknown magic number");
 }
 
 #ifdef PDFMM_HAVE_JPEG_LIB
@@ -256,7 +256,7 @@ void PdfImage::LoadFromJpegHandle(FILE* inStream, const string_view& filename)
     if (jpeg_read_header(&cinfo, TRUE) <= 0)
     {
         jpeg_destroy_decompress(&cinfo);
-        PDFMM_RAISE_ERROR(EPdfError::UnexpectedEOF);
+        PDFMM_RAISE_ERROR(PdfErrorCode::UnexpectedEOF);
     }
 
     jpeg_start_decompress(&cinfo);
@@ -322,7 +322,7 @@ void PdfImage::LoadFromJpegData(const unsigned char* data, size_t len)
     if (jpeg_read_header(&cinfo, TRUE) <= 0)
     {
         jpeg_destroy_decompress(&cinfo);
-        PDFMM_RAISE_ERROR(EPdfError::UnexpectedEOF);
+        PDFMM_RAISE_ERROR(PdfErrorCode::UnexpectedEOF);
     }
 
     jpeg_start_decompress(&cinfo);
@@ -415,19 +415,19 @@ void PdfImage::LoadFromTiffHandle(void* handle)
     if (TIFFIsTiled(hInTiffHandle))
     {
         TIFFClose(hInTiffHandle);
-        PDFMM_RAISE_ERROR(EPdfError::UnsupportedImageFormat);
+        PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedImageFormat);
     }
 
     if (planarConfig != PLANARCONFIG_CONTIG && colorChannels != 1)
     {
         TIFFClose(hInTiffHandle);
-        PDFMM_RAISE_ERROR(EPdfError::UnsupportedImageFormat);
+        PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedImageFormat);
     }
 
     if (orientation != ORIENTATION_TOPLEFT)
     {
         TIFFClose(hInTiffHandle);
-        PDFMM_RAISE_ERROR(EPdfError::UnsupportedImageFormat);
+        PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedImageFormat);
     }
 
     switch (photoMetric)
@@ -448,7 +448,7 @@ void PdfImage::LoadFromTiffHandle(void* handle)
             else
             {
                 TIFFClose(hInTiffHandle);
-                PDFMM_RAISE_ERROR(EPdfError::UnsupportedImageFormat);
+                PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedImageFormat);
             }
         }
         break;
@@ -469,7 +469,7 @@ void PdfImage::LoadFromTiffHandle(void* handle)
             else
             {
                 TIFFClose(hInTiffHandle);
-                PDFMM_RAISE_ERROR(EPdfError::UnsupportedImageFormat);
+                PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedImageFormat);
             }
         }
         break;
@@ -478,7 +478,7 @@ void PdfImage::LoadFromTiffHandle(void* handle)
             if (bitsPixel != 24)
             {
                 TIFFClose(hInTiffHandle);
-                PDFMM_RAISE_ERROR(EPdfError::UnsupportedImageFormat);
+                PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedImageFormat);
             }
             SetImageColorSpace(PdfColorSpace::DeviceRGB);
             break;
@@ -487,7 +487,7 @@ void PdfImage::LoadFromTiffHandle(void* handle)
             if (bitsPixel != 32)
             {
                 TIFFClose(hInTiffHandle);
-                PDFMM_RAISE_ERROR(EPdfError::UnsupportedImageFormat);
+                PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedImageFormat);
             }
             SetImageColorSpace(PdfColorSpace::DeviceCMYK);
             break;
@@ -534,7 +534,7 @@ void PdfImage::LoadFromTiffHandle(void* handle)
 
         default:
             TIFFClose(hInTiffHandle);
-            PDFMM_RAISE_ERROR(EPdfError::UnsupportedImageFormat);
+            PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedImageFormat);
             break;
     }
 
@@ -548,7 +548,7 @@ void PdfImage::LoadFromTiffHandle(void* handle)
             row) == (-1))
         {
             TIFFClose(hInTiffHandle);
-            PDFMM_RAISE_ERROR(EPdfError::UnsupportedImageFormat);
+            PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedImageFormat);
         }
     }
 
@@ -565,7 +565,7 @@ void PdfImage::LoadFromTiff(const string_view& filename)
     TIFFSetWarningHandler(TIFFErrorWarningHandler);
 
     if (filename.length() == 0)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
 #ifdef WIN32
     auto filename16 = utf8::utf8to16((string)filename);
@@ -575,7 +575,7 @@ void PdfImage::LoadFromTiff(const string_view& filename)
 #endif
 
     if (!hInfile)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::FileNotFound, filename.data());
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::FileNotFound, filename.data());
 
     try
     {
@@ -703,14 +703,14 @@ void PdfImage::LoadFromTiffData(const unsigned char* data, size_t len)
     TIFFSetWarningHandler(TIFFErrorWarningHandler);
 
     if (data == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     TiffData tiffData(data, (tsize_t)len);
     TIFF* hInHandle = TIFFClientOpen("Memory", "r", (thandle_t)&tiffData,
         tiff_Read, tiff_Write, tiff_Seek, tiff_Close, tiff_Size,
         tiff_Map, tiff_Unmap);
     if (hInHandle == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     LoadFromTiffHandle(hInHandle);
 }
@@ -742,24 +742,24 @@ void PdfImage::LoadFromPngHandle(FILE* stream)
     if (fread(header, 1, 8, stream) != 8 ||
         png_sig_cmp(header, 0, 8))
     {
-        PDFMM_RAISE_ERROR_INFO(EPdfError::UnsupportedImageFormat, "The file could not be recognized as a PNG file.");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, "The file could not be recognized as a PNG file.");
     }
 
     png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
     if (png == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     png_infop info = png_create_info_struct(png);
     if (info == nullptr)
     {
         png_destroy_read_struct(&png, (png_infopp)nullptr, (png_infopp)nullptr);
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
     }
 
     if (setjmp(png_jmpbuf(png)))
     {
         png_destroy_read_struct(&png, &info, (png_infopp)nullptr);
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
     }
 
     png_init_io(png, stream);
@@ -794,31 +794,31 @@ private:
 void PdfImage::LoadFromPngData(const unsigned char* data, size_t len)
 {
     if (data == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     PngData pngData(data, len);
     png_byte header[8];
     pngData.read(header, 8);
     if (png_sig_cmp(header, 0, 8))
     {
-        PDFMM_RAISE_ERROR_INFO(EPdfError::UnsupportedImageFormat, "The file could not be recognized as a PNG file.");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, "The file could not be recognized as a PNG file.");
     }
 
     png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
     if (png == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     png_infop info = png_create_info_struct(png);
     if (info == nullptr)
     {
         png_destroy_read_struct(&png, (png_infopp)nullptr, (png_infopp)nullptr);
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
     }
 
     if (setjmp(png_jmpbuf(png)))
     {
         png_destroy_read_struct(&png, &info, (png_infopp)nullptr);
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
     }
 
     png_set_read_fn(png, (png_voidp)&pngData, pngReadData);
@@ -879,7 +879,7 @@ void LoadFromPngContent(PdfImage& image, png_structp png, png_infop info)
     if (setjmp(png_jmpbuf(png)))
     {
         png_destroy_read_struct(&png, &info, (png_infopp)NULL);
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
     }
 
     size_t rowLen = png_get_rowbytes(png, info);

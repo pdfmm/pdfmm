@@ -116,7 +116,7 @@ string PdfDocEncoding::ConvertUTF8ToPdfDocEncoding(const string_view& view)
 {
     string ret;
     if (!TryConvertUTF8ToPdfDocEncoding(view, ret))
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "PdfDocEncoding:: Unsupported chars in converting utf-8 string");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "PdfDocEncoding:: Unsupported chars in converting utf-8 string");
 
     return ret;
 }

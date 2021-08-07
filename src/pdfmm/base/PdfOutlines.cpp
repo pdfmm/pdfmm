@@ -129,7 +129,7 @@ void PdfOutlineItem::InsertChildInternal(PdfOutlineItem* item, bool checkParent)
         }
 
         if (root == rootOfThis) // later nullptr if check skipped for performance
-            PDFMM_RAISE_ERROR(EPdfError::OutlineItemAlreadyPresent);
+            PDFMM_RAISE_ERROR(PdfErrorCode::OutlineItemAlreadyPresent);
     }
 
     if (m_Last != nullptr)

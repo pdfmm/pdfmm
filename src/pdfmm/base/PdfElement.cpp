@@ -26,15 +26,15 @@ PdfElement::PdfElement(PdfDocument& parent, const string_view& type)
 PdfElement::PdfElement(PdfObject& obj)
 {
     if(!obj.IsDictionary())
-        PDFMM_RAISE_ERROR(EPdfError::InvalidDataType);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
 
     m_Object = &obj;
 }
 
-PdfElement::PdfElement(EPdfDataType expectedDataType, PdfObject& obj)
+PdfElement::PdfElement(PdfDataType expectedDataType, PdfObject& obj)
 {
     if (obj.GetDataType() != expectedDataType)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidDataType);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
 
     m_Object = &obj;
 }

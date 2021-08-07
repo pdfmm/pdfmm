@@ -20,7 +20,7 @@ PdfPostScriptTokenizer::PdfPostScriptTokenizer(const PdfRefCountedBuffer& buffer
 void PdfPostScriptTokenizer::ReadNextVariant(PdfInputDevice& device, PdfVariant& variant)
 {
     if (!TryReadNextVariant(device, variant))
-        PDFMM_RAISE_ERROR_INFO(EPdfError::UnexpectedEOF, "Expected variant");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected variant");
 }
 
 bool PdfPostScriptTokenizer::TryReadNextVariant(PdfInputDevice& device, PdfVariant& variant)
@@ -33,7 +33,7 @@ bool PdfPostScriptTokenizer::TryReadNextVariant(PdfInputDevice& device, PdfVaria
     return PdfTokenizer::TryReadNextVariant(device, token, tokenType, variant, nullptr);
 }
 
-bool PdfPostScriptTokenizer::TryReadNext(PdfInputDevice& device, EPdfPostScriptTokenType& psTokenType, string_view& keyword, PdfVariant& variant)
+bool PdfPostScriptTokenizer::TryReadNext(PdfInputDevice& device, PdfPostScriptTokenType& psTokenType, string_view& keyword, PdfVariant& variant)
 {
     PdfTokenType tokenType;
     string_view token;
@@ -41,7 +41,7 @@ bool PdfPostScriptTokenizer::TryReadNext(PdfInputDevice& device, EPdfPostScriptT
     bool gotToken = PdfTokenizer::TryReadNextToken(device, token, tokenType);
     if (!gotToken)
     {
-        psTokenType = EPdfPostScriptTokenType::Unknown;
+        psTokenType = PdfPostScriptTokenType::Unknown;
         return false;
     }
 
@@ -49,10 +49,10 @@ bool PdfPostScriptTokenizer::TryReadNext(PdfInputDevice& device, EPdfPostScriptT
     switch (tokenType)
     {
         case PdfTokenType::BraceLeft:
-            psTokenType = EPdfPostScriptTokenType::ProcedureEnter;
+            psTokenType = PdfPostScriptTokenType::ProcedureEnter;
             return true;
         case PdfTokenType::BraceRight:
-            psTokenType = EPdfPostScriptTokenType::ProcedureExit;
+            psTokenType = PdfPostScriptTokenType::ProcedureExit;
             return true;
         default:
             // Continue evaluating data type
@@ -62,7 +62,7 @@ bool PdfPostScriptTokenizer::TryReadNext(PdfInputDevice& device, EPdfPostScriptT
     PdfLiteralDataType dataType = DetermineDataType(device, token, tokenType, variant);
 
     // asume we read a variant unless we discover otherwise later.
-    psTokenType = EPdfPostScriptTokenType::Variant;
+    psTokenType = PdfPostScriptTokenType::Variant;
     switch (dataType)
     {
         case PdfLiteralDataType::Null:
@@ -88,11 +88,11 @@ bool PdfPostScriptTokenizer::TryReadNext(PdfInputDevice& device, EPdfPostScriptT
             this->ReadName(device, variant);
             break;
         case PdfLiteralDataType::Reference:
-            PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Unsupported reference datatype at this context");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Unsupported reference datatype at this context");
         default:
             // Assume we have a keyword
             keyword = token;
-            psTokenType = EPdfPostScriptTokenType::Keyword;
+            psTokenType = PdfPostScriptTokenType::Keyword;
             break;
     }
 

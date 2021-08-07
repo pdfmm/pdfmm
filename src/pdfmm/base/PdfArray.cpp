@@ -20,7 +20,7 @@ PdfArray::PdfArray(const PdfObject& var)
 }
 
 PdfArray::PdfArray(const PdfArray& rhs)
-    : PdfContainerDataType(rhs), m_Objects(rhs.m_Objects)
+    : PdfDataContainer(rhs), m_Objects(rhs.m_Objects)
 {
 }
 
@@ -28,7 +28,7 @@ void PdfArray::RemoveAt(unsigned idx)
 {
     // TODO: Set dirty only if really removed
     if (idx >= m_Objects.size())
-        PDFMM_RAISE_ERROR_INFO(EPdfError::ValueOutOfRange, "Index is out of bounds");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Index is out of bounds");
 
     m_Objects.erase(m_Objects.begin() + idx);
     SetDirty();
@@ -131,7 +131,7 @@ void PdfArray::ResetDirtyInternal()
 
 void PdfArray::SetOwner(PdfObject* owner)
 {
-    PdfContainerDataType::SetOwner(owner);
+    PdfDataContainer::SetOwner(owner);
     auto document = owner->GetDocument();
     if (document != nullptr)
     {
@@ -160,7 +160,7 @@ PdfArray::iterator PdfArray::insertAt(const iterator& pos, const PdfObject& val)
 PdfObject& PdfArray::getAt(unsigned idx) const
 {
     if (idx >= (unsigned)m_Objects.size())
-        PDFMM_RAISE_ERROR_INFO(EPdfError::ValueOutOfRange, "Index is out of bounds");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Index is out of bounds");
 
     return const_cast<PdfArray&>(*this).m_Objects[idx];
 }
@@ -168,7 +168,7 @@ PdfObject& PdfArray::getAt(unsigned idx) const
 PdfObject& PdfArray::findAt(unsigned idx) const
 {
     if (idx >= (unsigned)m_Objects.size())
-        PDFMM_RAISE_ERROR_INFO(EPdfError::ValueOutOfRange, "Index is out of bounds");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Index is out of bounds");
 
     PdfObject& obj = const_cast<PdfArray&>(*this).m_Objects[idx];
     if (obj.IsReference())
@@ -337,7 +337,7 @@ PdfArray& PdfArray::operator=(const PdfArray& rhs)
         return *this;
 
     m_Objects = rhs.m_Objects;
-    PdfContainerDataType::operator=(rhs);
+    PdfDataContainer::operator=(rhs);
     return *this;
 }
 

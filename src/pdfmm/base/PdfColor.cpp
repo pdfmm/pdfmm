@@ -303,7 +303,7 @@ static const PdfNamedColor s_NamedColors[s_NamedColorsCount] =
 inline void CheckDoubleRange(double val, double min, double max)
 {
     if ((val < min) || (val > max))
-        PDFMM_RAISE_ERROR(EPdfError::ValueOutOfRange);
+        PDFMM_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
 }
 
 PdfColor::PdfColor() :
@@ -469,7 +469,7 @@ PdfColorSeparation::PdfColorSeparation(const string_view& name, double density, 
         case PdfColorSpace::Indexed:
         default:
         {
-            PDFMM_RAISE_ERROR(EPdfError::InvalidEnumValue);
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
             break;
         }
     }
@@ -529,7 +529,7 @@ PdfColor PdfColor::ConvertToGrayScale() const
             }
             else
             {
-                PDFMM_RAISE_ERROR(EPdfError::NotImplemented);
+                PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);
             }
             break;
         }
@@ -537,12 +537,12 @@ PdfColor PdfColor::ConvertToGrayScale() const
         case PdfColorSpace::Indexed:
         case PdfColorSpace::Unknown:
         {
-            PDFMM_RAISE_ERROR(EPdfError::CannotConvertColor);
+            PDFMM_RAISE_ERROR(PdfErrorCode::CannotConvertColor);
             break;
         }
         default:
         {
-            PDFMM_RAISE_ERROR(EPdfError::InvalidEnumValue);
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
             break;
         }
     };
@@ -592,7 +592,7 @@ PdfColor PdfColor::ConvertToRGB() const
             }
             else
             {
-                PDFMM_RAISE_ERROR(EPdfError::NotImplemented);
+                PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);
             }
 
             break;
@@ -601,12 +601,12 @@ PdfColor PdfColor::ConvertToRGB() const
         case PdfColorSpace::Indexed:
         case PdfColorSpace::Unknown:
         {
-            PDFMM_RAISE_ERROR(EPdfError::CannotConvertColor);
+            PDFMM_RAISE_ERROR(PdfErrorCode::CannotConvertColor);
             break;
         }
         default:
         {
-            PDFMM_RAISE_ERROR(EPdfError::InvalidEnumValue);
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
             break;
         }
     };
@@ -652,12 +652,12 @@ PdfColor PdfColor::ConvertToCMYK() const
         case PdfColorSpace::Indexed:
         case PdfColorSpace::Unknown:
         {
-            PDFMM_RAISE_ERROR(EPdfError::CannotConvertColor);
+            PDFMM_RAISE_ERROR(PdfErrorCode::CannotConvertColor);
             break;
         }
         default:
         {
-            PDFMM_RAISE_ERROR(EPdfError::InvalidEnumValue);
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
             break;
         }
     }
@@ -704,12 +704,12 @@ PdfArray PdfColor::ToArray() const
         case PdfColorSpace::Indexed:
         case PdfColorSpace::Unknown:
         {
-            PDFMM_RAISE_ERROR(EPdfError::CannotConvertColor);
+            PDFMM_RAISE_ERROR(PdfErrorCode::CannotConvertColor);
             break;
         }
         default:
         {
-            PDFMM_RAISE_ERROR(EPdfError::InvalidEnumValue);
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
             break;
         }
     }
@@ -733,7 +733,7 @@ PdfColor PdfColor::FromString(const string_view& name)
         if (stream >> grayVal)
             return PdfColor(grayVal);
         else
-            PDFMM_RAISE_ERROR(EPdfError::CannotConvertColor);
+            PDFMM_RAISE_ERROR(PdfErrorCode::CannotConvertColor);
     }
     // now check for a hex value (#xxxxxx or #xxxxxxxx)
     else if (name[0] == '#')
@@ -767,7 +767,7 @@ PdfColor PdfColor::FromString(const string_view& name)
             }
             else
             {
-                PDFMM_RAISE_ERROR(EPdfError::CannotConvertColor);
+                PDFMM_RAISE_ERROR(PdfErrorCode::CannotConvertColor);
             }
         }
         else if (name.size() == 9) // CMYK
@@ -806,7 +806,7 @@ PdfColor PdfColor::FromString(const string_view& name)
             }
             else
             {
-                PDFMM_RAISE_ERROR(EPdfError::CannotConvertColor);
+                PDFMM_RAISE_ERROR(PdfErrorCode::CannotConvertColor);
             }
         }
         else
@@ -852,7 +852,7 @@ PdfColor PdfColor::FromArray(const PdfArray& arr)
     else if (arr.GetSize() == 4) // CMYK
         return PdfColor(arr[0].GetReal(), arr[1].GetReal(), arr[2].GetReal(), arr[3].GetReal());
 
-    PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "PdfColor::FromArray supports only GrayScale, RGB and CMYK colors.");
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "PdfColor::FromArray supports only GrayScale, RGB and CMYK colors.");
 }
 
 PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
@@ -1051,7 +1051,7 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
                 case PdfColorSpace::Unknown:
                 default:
                 {
-                    PDFMM_RAISE_ERROR(EPdfError::InvalidEnumValue);
+                    PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
                     break;
                 }
             }
@@ -1099,7 +1099,7 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
         case PdfColorSpace::Unknown:
         default:
         {
-            PDFMM_RAISE_ERROR(EPdfError::InvalidEnumValue);
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
             break;
         }
     }
@@ -1183,7 +1183,7 @@ PdfColor PdfNamedColor::FromRGBString(const string_view& name)
     }
     else
     {
-        PDFMM_RAISE_ERROR(EPdfError::CannotConvertColor);
+        PDFMM_RAISE_ERROR(PdfErrorCode::CannotConvertColor);
     }
 }
 

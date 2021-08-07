@@ -10,7 +10,7 @@
 #define PDF_ARRAY_H
 
 #include "PdfDefines.h"
-#include "PdfContainerDataType.h"
+#include "PdfDataContainer.h"
 
 namespace mm {
 
@@ -21,7 +21,7 @@ namespace mm {
  *
  *  \see PdfVariant
  */
-class PDFMM_API PdfArray final : public PdfContainerDataType
+class PDFMM_API PdfArray final : public PdfDataContainer
 {
 public:
     typedef size_t                                          size_type;

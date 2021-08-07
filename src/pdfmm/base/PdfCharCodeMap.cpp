@@ -45,7 +45,7 @@ void PdfCharCodeMap::move(PdfCharCodeMap& map) noexcept
 void PdfCharCodeMap::PushMapping(const PdfCharCode& codeUnit, const cspan<char32_t>& codePoints)
 {
     if (codePoints.size() == 0)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "CodePoints must not be empty");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "CodePoints must not be empty");
 
     vector<char32_t> copy(codePoints.begin(), codePoints.end());
     pushMapping(codeUnit, std::move(copy));
@@ -129,7 +129,7 @@ bool PdfCharCodeMap::TryGetCharCode(char32_t codePoint, PdfCharCode& code) const
 void PdfCharCodeMap::pushMapping(const PdfCharCode& codeUnit, vector<char32_t>&& codePoints)
 {
     if (codeUnit.CodeSpaceSize == 0)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "Code unit must be valid");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Code unit must be valid");
 
     m_cuMap[codeUnit] = std::move(codePoints);
     if (codeUnit.CodeSpaceSize > m_maxCodeSpaceSize)
@@ -316,7 +316,7 @@ void PdfCharCode::WriteHexTo(string& str, bool wrap) const
             pattern = "%08X";
             break;
         default:
-            PDFMM_RAISE_ERROR_INFO(EPdfError::ValueOutOfRange, "Code space must be [1,4]");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Code space must be [1,4]");
     }
 
     size_t size = CodeSpaceSize * 2 + (wrap ? 2 : 0);

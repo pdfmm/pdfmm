@@ -38,7 +38,7 @@ PdfXObject::PdfXObject(PdfDocument& doc, const PdfDocument& sourceDoc, unsigned 
     // Implementation note: source document must be different from distination
     if (&doc == reinterpret_cast<const PdfDocument*>(&sourceDoc))
     {
-        PDFMM_RAISE_ERROR(EPdfError::InternalLogic);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InternalLogic);
     }
 
     // After filling set correct BBox, independent of rotation
@@ -83,7 +83,7 @@ PdfXObject::PdfXObject(PdfObject& obj, PdfXObjectType subType)
 {
     if (getPdfXObjectType(obj) != subType)
     {
-        PDFMM_RAISE_ERROR(EPdfError::InvalidDataType);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
     }
 
     InitIdentifiers(subType, { });
@@ -144,7 +144,7 @@ string PdfXObject::ToString(PdfXObjectType type)
         case PdfXObjectType::PostScript:
             return "PS";
         default:
-            PDFMM_RAISE_ERROR(EPdfError::InvalidDataType);
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
     }
 }
 

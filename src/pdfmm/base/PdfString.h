@@ -11,7 +11,7 @@
 
 #include "PdfDefines.h"
 
-#include "PdfDataType.h"
+#include "PdfDataProvider.h"
 #include "PdfRefCountedBuffer.h"
 
 namespace mm {
@@ -27,7 +27,7 @@ class PdfOutputDevice;
  *  it is very fast to copy PdfString objects.
  *
  */
-class PDFMM_API PdfString final : public PdfDataType
+class PDFMM_API PdfString final : public PdfDataProvider
 {
     friend class PdfTokenizer;
 public:

@@ -18,7 +18,7 @@ namespace mm {
 
 class PdfArray;
 class PdfData;
-class PdfDataType;
+class PdfDataProvider;
 class PdfDictionary;
 class PdfEncrypt;
 class PdfOutputDevice;
@@ -41,7 +41,7 @@ class PDFMM_API PdfVariant final
     friend class PdfDictionary;
 
 private:
-    PdfVariant(EPdfDataType type);
+    PdfVariant(PdfDataType type);
 
 public:
 
@@ -320,7 +320,7 @@ public:
     bool operator!=(const PdfVariant& rhs) const;
 
 public:
-    inline EPdfDataType GetDataType() const { return m_DataType; }
+    inline PdfDataType GetDataType() const { return m_DataType; }
 
 private:
     bool tryGetDictionary(PdfDictionary*& dict) const;
@@ -366,13 +366,13 @@ private:
          */
         int64_t Number;
         double Real;
-        PdfDataType* Data;
+        PdfDataProvider* Data;
         PdfReference Reference;
         bool Bool;
     } Variant;
 
     Variant m_Data;
-    EPdfDataType m_DataType;
+    PdfDataType m_DataType;
 };
 
 };

@@ -130,7 +130,7 @@ const PdfWriteMode PdfWriteModeDefault = PdfWriteMode::Compact;
  *
  * Remember to update PdfVariant::GetDataTypeString() when adding members here.
  */
-enum class EPdfDataType : uint8_t
+enum class PdfDataType : uint8_t
 {
     Unknown = 0,           ///< The Datatype is unknown. The value is chosen to enable value storage in 8-bit unsigned integer
     Bool,                  ///< Boolean datatype: Accepts the values "true" and "false"

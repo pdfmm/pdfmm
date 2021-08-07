@@ -6,10 +6,10 @@
  */
 
 #include <pdfmm/private/PdfDefinesPrivate.h>
-#include "PdfDataType.h"
+#include "PdfDataProvider.h"
 
 using namespace mm;
 
-PdfDataType::PdfDataType() { }
+PdfDataProvider::PdfDataProvider() { }
 
-PdfDataType::~PdfDataType() { }
+PdfDataProvider::~PdfDataProvider() { }

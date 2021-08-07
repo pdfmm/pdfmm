@@ -104,7 +104,7 @@ void PdfImmediateWriter::Finish()
     m_xRef->Write(*m_Device);
 
     // FIX-ME: The following is already done by PdfXRef now
-    PDFMM_RAISE_ERROR(EPdfError::NotImplemented);
+    PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);
 
     // XRef streams contain the trailer in the XRef
     if (!GetUseXRefStream())

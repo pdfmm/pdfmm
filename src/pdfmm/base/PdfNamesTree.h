@@ -20,7 +20,7 @@ class PdfObject;
 class PdfString;
 class PdfVecObjects;
 
-enum class EPdfNameLimits
+enum class PdfNameLimits
 {
     Before,
     Inside,
@@ -76,7 +76,7 @@ public:
      *
      *  Internal use only.
      */
-    static EPdfNameLimits CheckLimits(const PdfObject* obj, const PdfString& key);
+    static PdfNameLimits CheckLimits(const PdfObject* obj, const PdfString& key);
 
     /**
      * Adds all keys and values from a name tree to a dictionary.

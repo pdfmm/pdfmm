@@ -213,7 +213,7 @@ CIDToGIDMap PdfFontCIDTrueType::getCIDToGIDMap(bool subsetting)
         {
             unsigned cid;
             if (!TryMapGIDToCID(gid, cid))
-                PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidFontFile, "Unable to map gid to cid");
+                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "Unable to map gid to cid");
             ret.insert(std::make_pair(cid, gid));
         }
     }

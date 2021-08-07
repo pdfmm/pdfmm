@@ -11,7 +11,7 @@
 
 #include "PdfDefines.h"
 
-#include "PdfDataType.h"
+#include "PdfDataProvider.h"
 
 namespace mm {
 

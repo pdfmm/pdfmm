@@ -108,7 +108,7 @@ void PdfObject::DelayedLoadImpl()
 {
     // Default implementation of virtual void DelayedLoadImpl() throws, since delayed
     // loading should not be enabled except by types that support it.
-    PDFMM_RAISE_ERROR(EPdfError::InternalLogic);
+    PDFMM_RAISE_ERROR(PdfErrorCode::InternalLogic);
 }
 
 void PdfObject::SetVariantOwner()
@@ -116,11 +116,11 @@ void PdfObject::SetVariantOwner()
     auto dataType = m_Variant.GetDataType();
     switch (dataType)
     {
-        case EPdfDataType::Dictionary:
-            static_cast<PdfContainerDataType&>(m_Variant.GetDictionary()).SetOwner(this);
+        case PdfDataType::Dictionary:
+            static_cast<PdfDataContainer&>(m_Variant.GetDictionary()).SetOwner(this);
             break;
-        case EPdfDataType::Array:
-            static_cast<PdfContainerDataType&>(m_Variant.GetArray()).SetOwner(this);
+        case PdfDataType::Array:
+            static_cast<PdfDataContainer&>(m_Variant.GetArray()).SetOwner(this);
             break;
         default:
             break;
@@ -215,7 +215,7 @@ const PdfStream& PdfObject::GetStream() const
 {
     DelayedLoadStream();
     if (m_Stream == nullptr)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "The object doesn't have a stream");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The object doesn't have a stream");
 
     return *m_Stream.get();
 }
@@ -224,7 +224,7 @@ PdfStream& PdfObject::GetStream()
 {
     DelayedLoadStream();
     if (m_Stream == nullptr)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "The object doesn't have a stream");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The object doesn't have a stream");
 
     return *m_Stream.get();
 }
@@ -281,8 +281,8 @@ void PdfObject::forceCreateStream()
     if (m_Stream != nullptr)
         return;
 
-    if (m_Variant.GetDataType() != EPdfDataType::Dictionary)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "Tried to get stream of non-dictionary object");
+    if (m_Variant.GetDataType() != PdfDataType::Dictionary)
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Tried to get stream of non-dictionary object");
 
     if (m_Document == nullptr)
         m_Stream.reset(new PdfMemStream(*this));
@@ -349,7 +349,7 @@ void PdfObject::DelayedLoadStreamImpl()
 {
     // Default implementation throws, since delayed loading of
     // steams should not be enabled except by types that support it.
-    PDFMM_RAISE_ERROR(EPdfError::InternalLogic);
+    PDFMM_RAISE_ERROR(PdfErrorCode::InternalLogic);
 }
 
 void PdfObject::Assign(const PdfObject& rhs)
@@ -375,21 +375,21 @@ void PdfObject::ResetDirty()
     {
         // Arrays and Dictionaries
         // handle dirty status by themselves
-        case EPdfDataType::Array:
-            static_cast<PdfContainerDataType&>(m_Variant.GetArray()).ResetDirty();
+        case PdfDataType::Array:
+            static_cast<PdfDataContainer&>(m_Variant.GetArray()).ResetDirty();
             break;
-        case EPdfDataType::Dictionary:
-            static_cast<PdfContainerDataType&>(m_Variant.GetDictionary()).ResetDirty();
+        case PdfDataType::Dictionary:
+            static_cast<PdfDataContainer&>(m_Variant.GetDictionary()).ResetDirty();
             break;
-        case EPdfDataType::Bool:
-        case EPdfDataType::Number:
-        case EPdfDataType::Real:
-        case EPdfDataType::String:
-        case EPdfDataType::Name:
-        case EPdfDataType::RawData:
-        case EPdfDataType::Reference:
-        case EPdfDataType::Null:
-        case EPdfDataType::Unknown:
+        case PdfDataType::Bool:
+        case PdfDataType::Number:
+        case PdfDataType::Real:
+        case PdfDataType::String:
+        case PdfDataType::Name:
+        case PdfDataType::RawData:
+        case PdfDataType::Reference:
+        case PdfDataType::Null:
+        case PdfDataType::Unknown:
         default:
             break;
     }
@@ -431,22 +431,22 @@ void PdfObject::SetImmutable(bool isImmutable)
     {
         // Arrays and Dictionaries
         // handle dirty status by themselves
-        case EPdfDataType::Array:
+        case PdfDataType::Array:
             m_Variant.GetArray().SetImmutable(isImmutable);
             break;
-        case EPdfDataType::Dictionary:
+        case PdfDataType::Dictionary:
             m_Variant.GetDictionary().SetImmutable(isImmutable);
             break;
 
-        case EPdfDataType::Bool:
-        case EPdfDataType::Number:
-        case EPdfDataType::Real:
-        case EPdfDataType::String:
-        case EPdfDataType::Name:
-        case EPdfDataType::RawData:
-        case EPdfDataType::Reference:
-        case EPdfDataType::Null:
-        case EPdfDataType::Unknown:
+        case PdfDataType::Bool:
+        case PdfDataType::Number:
+        case PdfDataType::Real:
+        case PdfDataType::String:
+        case PdfDataType::Name:
+        case PdfDataType::RawData:
+        case PdfDataType::Reference:
+        case PdfDataType::Null:
+        case PdfDataType::Unknown:
         default:
             // Do nothing
             break;
@@ -471,7 +471,7 @@ void PdfObject::Clear()
     m_Variant.Clear();
 }
 
-EPdfDataType PdfObject::GetDataType() const
+PdfDataType PdfObject::GetDataType() const
 {
     DelayedLoad();
     return m_Variant.GetDataType();
@@ -683,70 +683,70 @@ const char* PdfObject::GetDataTypeString() const
 
 bool PdfObject::IsBool() const
 {
-    return GetDataType() == EPdfDataType::Bool;
+    return GetDataType() == PdfDataType::Bool;
 }
 
 bool PdfObject::IsNumber() const
 {
-    return GetDataType() == EPdfDataType::Number;
+    return GetDataType() == PdfDataType::Number;
 }
 
 bool PdfObject::IsRealStrict() const
 {
-    return GetDataType() == EPdfDataType::Real;
+    return GetDataType() == PdfDataType::Real;
 }
 
 bool PdfObject::IsNumberOrReal() const
 {
-    EPdfDataType dataType = GetDataType();
-    return dataType == EPdfDataType::Number || dataType == EPdfDataType::Real;
+    PdfDataType dataType = GetDataType();
+    return dataType == PdfDataType::Number || dataType == PdfDataType::Real;
 }
 
 bool PdfObject::IsString() const
 {
-    return GetDataType() == EPdfDataType::String;
+    return GetDataType() == PdfDataType::String;
 }
 
 bool PdfObject::IsName() const
 {
-    return GetDataType() == EPdfDataType::Name;
+    return GetDataType() == PdfDataType::Name;
 }
 
 bool PdfObject::IsArray() const
 {
-    return GetDataType() == EPdfDataType::Array;
+    return GetDataType() == PdfDataType::Array;
 }
 
 bool PdfObject::IsDictionary() const
 {
-    return GetDataType() == EPdfDataType::Dictionary;
+    return GetDataType() == PdfDataType::Dictionary;
 }
 
 bool PdfObject::IsRawData() const
 {
-    return GetDataType() == EPdfDataType::RawData;
+    return GetDataType() == PdfDataType::RawData;
 }
 
 bool PdfObject::IsNull() const
 {
-    return GetDataType() == EPdfDataType::Null;
+    return GetDataType() == PdfDataType::Null;
 }
 
 bool PdfObject::IsReference() const
 {
-    return GetDataType() == EPdfDataType::Reference;
+    return GetDataType() == PdfDataType::Reference;
 }
 
 void PdfObject::AssertMutable() const
 {
     if (m_IsImmutable)
-        PDFMM_RAISE_ERROR(EPdfError::ChangeOnImmutable);
+        PDFMM_RAISE_ERROR(PdfErrorCode::ChangeOnImmutable);
 }
 
 bool PdfObject::operator<(const PdfObject& rhs) const
 {
     if (m_Document != rhs.m_Document)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Can't compare objects with different parent document");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Can't compare objects with different parent document");
 
     return m_IndirectReference < rhs.m_IndirectReference;
 }

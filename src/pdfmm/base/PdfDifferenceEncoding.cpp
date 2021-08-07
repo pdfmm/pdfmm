@@ -2476,6 +2476,6 @@ const PdfEncodingMap& PdfDifferenceEncoding::GetBaseEncoding() const
             // 2) The implicit encoding of a base14 font.
             // Improve PdfDifferenceEncoding so it can retrieve the encoding in such
             // cases
-            PDFMM_RAISE_ERROR_INFO(EPdfError::NotImplemented, "Not implemented");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "Not implemented");
     }
 }

@@ -59,7 +59,7 @@ bool PdfTokenizer::TryReadNextToken(PdfInputDevice& device, string_view& token, 
 
         if (!m_buffer.GetBuffer() || m_buffer.GetSize() == 0)
         {
-            PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
         }
 
         // make sure buffer is \0 terminated
@@ -169,12 +169,12 @@ bool PdfTokenizer::TryReadNextToken(PdfInputDevice& device, string_view& token, 
 bool PdfTokenizer::IsNextToken(PdfInputDevice& device, const string_view& token)
 {
     if (token.length() == 0)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     string_view readToken;
     bool gotToken = this->TryReadNextToken(device, readToken);
     if (!gotToken)
-        PDFMM_RAISE_ERROR(EPdfError::UnexpectedEOF);
+        PDFMM_RAISE_ERROR(PdfErrorCode::UnexpectedEOF);
 
     return token == readToken;
 }
@@ -185,7 +185,7 @@ int64_t PdfTokenizer::ReadNextNumber(PdfInputDevice& device)
     string_view token;
     bool gotToken = this->TryReadNextToken(device, token, tokenType);
     if (!gotToken)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::UnexpectedEOF, "Expected number");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected number");
 
     char* end;
     long long num = strtoll(token.data(), &end, 10);
@@ -193,7 +193,7 @@ int64_t PdfTokenizer::ReadNextNumber(PdfInputDevice& device)
     {
         // Don't consume the token
         this->EnqueueToken(token, tokenType);
-        PDFMM_RAISE_ERROR_INFO(EPdfError::NoNumber, "Could not read number");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoNumber, "Could not read number");
     }
 
     return static_cast<int64_t>(num);
@@ -205,7 +205,7 @@ void PdfTokenizer::ReadNextVariant(PdfInputDevice& device, PdfVariant& variant, 
     string_view token;
     bool gotToken = this->TryReadNextToken(device, token, tokenType);
     if (!gotToken)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::UnexpectedEOF, "Expected variant.");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected variant.");
 
     this->ReadNextVariant(device, token, tokenType, variant, encrypt);
 }
@@ -213,7 +213,7 @@ void PdfTokenizer::ReadNextVariant(PdfInputDevice& device, PdfVariant& variant, 
 void PdfTokenizer::ReadNextVariant(PdfInputDevice& device, const string_view& token, PdfTokenType tokenType, PdfVariant& variant, PdfEncrypt* encrypt)
 {
     if (!TryReadNextVariant(device, token, tokenType, variant, encrypt))
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "Could not read a variant");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Could not read a variant");
 }
 
 bool PdfTokenizer::TryReadNextVariant(PdfInputDevice& device, const string_view& token, PdfTokenType tokenType, PdfVariant& variant, PdfEncrypt* encrypt)
@@ -274,7 +274,7 @@ PdfTokenizer::PdfLiteralDataType PdfTokenizer::DetermineDataType(PdfInputDevice&
                 if (!(m_doubleParser >> val))
                 {
                     m_doubleParser.clear(); // clear error state
-                    PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidDataType, token.data());
+                    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, token.data());
                 }
 
                 variant = PdfVariant(val);
@@ -348,7 +348,7 @@ PdfTokenizer::PdfLiteralDataType PdfTokenizer::DetermineDataType(PdfInputDevice&
         case PdfTokenType::Slash:
             return PdfLiteralDataType::Name;
         default:
-            PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidEnumValue, "Unsupported token at this context");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Unsupported token at this context");
     }
 }
 
@@ -399,7 +399,7 @@ void PdfTokenizer::ReadDictionary(PdfInputDevice& device, PdfVariant& variant, P
     {
         bool gotToken = this->TryReadNextToken(device, token, tokenType);
         if (!gotToken)
-            PDFMM_RAISE_ERROR_INFO(EPdfError::UnexpectedEOF, "Expected dictionary key name or >> delim.");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected dictionary key name or >> delim.");
 
         if (tokenType == PdfTokenType::DoubleAngleBracketsRight)
             break;
@@ -411,7 +411,7 @@ void PdfTokenizer::ReadDictionary(PdfInputDevice& device, PdfVariant& variant, P
         // Try to get the next variant
         gotToken = this->TryReadNextToken(device, token, tokenType);
         if (!gotToken)
-            PDFMM_RAISE_ERROR_INFO(EPdfError::UnexpectedEOF, "Expected variant.");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected variant.");
 
         PdfLiteralDataType dataType = DetermineDataType(device, token, tokenType, val);
         if (key == "Contents" && dataType == PdfLiteralDataType::HexString)
@@ -424,7 +424,7 @@ void PdfTokenizer::ReadDictionary(PdfInputDevice& device, PdfVariant& variant, P
         }
 
         if (!tryReadDataType(device, dataType, val, encrypt))
-            PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "Could not read variant");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Could not read variant");
 
         // Add the key without triggering SetDirty
         dict.addKey(key, val, true);
@@ -435,7 +435,7 @@ void PdfTokenizer::ReadDictionary(PdfInputDevice& device, PdfVariant& variant, P
         PdfObject* type = dict.GetKey("Type");
         // "Contents" is unencrypted in /Type/Sig and /Type/DocTimeStamp dictionaries 
         // https://issues.apache.org/jira/browse/PDFBOX-3173
-        bool contentsUnencrypted = type != nullptr && type->GetDataType() == EPdfDataType::Name &&
+        bool contentsUnencrypted = type != nullptr && type->GetDataType() == PdfDataType::Name &&
             (type->GetName() == PdfName("Sig") || type->GetName() == PdfName("DocTimeStamp"));
 
         PdfEncrypt* encrypt = nullptr;
@@ -460,7 +460,7 @@ void PdfTokenizer::ReadArray(PdfInputDevice& device, PdfVariant& variant, PdfEnc
         bool gotToken = this->TryReadNextToken(device, token, tokenType);
         if (!gotToken)
         {
-            PDFMM_RAISE_ERROR_INFO(EPdfError::UnexpectedEOF, "Expected array item or ] delim.");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected array item or ] delim.");
         }
         if (tokenType == PdfTokenType::SquareBracketRight)
             break;

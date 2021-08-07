@@ -271,7 +271,7 @@ public:
     {
         m_ctx = EVP_CIPHER_CTX_new();
         if (m_ctx == nullptr)
-            PDFMM_RAISE_ERROR(EPdfError::OutOfMemory);
+            PDFMM_RAISE_ERROR(PdfErrorCode::OutOfMemory);
 
         std::memcpy(this->m_key, key, keylen);
     }
@@ -298,7 +298,7 @@ protected:
             bool streameof;
             read = m_InputStream->Read(iv, AES_IV_LENGTH, streameof);
             if (read != AES_IV_LENGTH)
-                PDFMM_RAISE_ERROR_INFO(EPdfError::UnexpectedEOF, "Can't read enough bytes for AES IV");
+                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Can't read enough bytes for AES IV");
 
             const EVP_CIPHER* cipher;
             switch (m_keyLen)
@@ -316,12 +316,12 @@ protected:
                 }
 #endif
                 default:
-                    PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Invalid AES key length");
+                    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Invalid AES key length");
             }
 
             rc = EVP_DecryptInit_ex(m_ctx, cipher, nullptr, m_key, (unsigned char*)iv);
             if (rc != 1)
-                PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error initializing AES encryption engine");
+                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing AES encryption engine");
 
             m_inputLen -= AES_IV_LENGTH;
             m_init = false;
@@ -338,7 +338,7 @@ protected:
         rc = EVP_DecryptUpdate(m_ctx, m_tempBuffer.data(), &outlen, (unsigned char*)buffer, (int)read);
 
         if (rc != 1)
-            PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error AES-decryption data");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-decryption data");
 
         PDFMM_ASSERT((size_t)outlen <= len);
         std::memcpy(buffer, m_tempBuffer.data(), (size_t)outlen);
@@ -350,7 +350,7 @@ protected:
             int drainLeft;
             rc = EVP_DecryptFinal_ex(m_ctx, m_tempBuffer.data(), &drainLeft);
             if (rc != 1)
-                PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error AES-decryption data padding");
+                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-decryption data padding");
 
             m_drainLeft = (size_t)drainLeft;
             goto DrainBuffer;
@@ -444,7 +444,7 @@ unique_ptr<PdfEncrypt> PdfEncrypt::CreatePdfEncrypt(const PdfObject* encryptObj)
         else
             oss << "Encryption dictionary does not have a key /Filter.";
 
-        PDFMM_RAISE_ERROR_INFO(EPdfError::UnsupportedFilter, oss.str().c_str());
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, oss.str().c_str());
     }
 
     int lV;
@@ -530,7 +530,7 @@ unique_ptr<PdfEncrypt> PdfEncrypt::CreatePdfEncrypt(const PdfObject* encryptObj)
         {
             ostringstream oss;
             oss << "Unsupported encryption method Version=" << lV << " Revision=" << rValue;
-            PDFMM_RAISE_ERROR_INFO(EPdfError::UnsupportedFilter, oss.str().c_str());
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, oss.str().c_str());
         }
     }
 }
@@ -644,13 +644,13 @@ void PdfEncryptMD5Base::ComputeOwnerKey(const unsigned char userPad[32], const u
     MD5_CTX ctx;
     int status = MD5_Init(&ctx);
     if (status != 1)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error initializing MD5 hashing engine");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing MD5 hashing engine");
     status = MD5_Update(&ctx, ownerPad, 32);
     if (status != 1)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error MD5-hashing data");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
     status = MD5_Final(digest, &ctx);
     if (status != 1)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error MD5-hashing data");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
 
     if ((revision == 3) || (revision == 4))
     {
@@ -659,13 +659,13 @@ void PdfEncryptMD5Base::ComputeOwnerKey(const unsigned char userPad[32], const u
         {
             status = MD5_Init(&ctx);
             if (status != 1)
-                PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error initializing MD5 hashing engine");
+                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing MD5 hashing engine");
             status = MD5_Update(&ctx, digest, keyLength);
             if (status != 1)
-                PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error MD5-hashing data");
+                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
             status = MD5_Final(digest, &ctx);
             if (status != 1)
-                PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error MD5-hashing data");
+                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
         }
         std::memcpy(ownerKey, userPad, 32);
         for (unsigned i = 0; i < 20; ++i)
@@ -698,15 +698,15 @@ void PdfEncryptMD5Base::ComputeEncryptionKey(const string_view& documentId,
     MD5_CTX ctx;
     int status = MD5_Init(&ctx);
     if (status != 1)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error initializing MD5 hashing engine");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing MD5 hashing engine");
 
     status = MD5_Update(&ctx, userPad, 32);
     if (status != 1)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error MD5-hashing data");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
 
     status = MD5_Update(&ctx, ownerKey, 32);
     if (status != 1)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error MD5-hashing data");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
 
     unsigned char ext[4];
     ext[0] = static_cast<unsigned char> (((unsigned)pValue >> 0) & 0xFF);
@@ -715,7 +715,7 @@ void PdfEncryptMD5Base::ComputeEncryptionKey(const string_view& documentId,
     ext[3] = static_cast<unsigned char> (((unsigned)pValue >> 24) & 0xFF);
     status = MD5_Update(&ctx, ext, 4);
     if (status != 1)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error MD5-hashing data");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
 
     unsigned docIdLength = static_cast<unsigned>(documentId.length());
     unsigned char* docId = nullptr;
@@ -729,7 +729,7 @@ void PdfEncryptMD5Base::ComputeEncryptionKey(const string_view& documentId,
         }
         status = MD5_Update(&ctx, docId, docIdLength);
         if (status != 1)
-            PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error MD5-hashing data");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
     }
 
     // If document metadata is not being encrypted, 
@@ -743,7 +743,7 @@ void PdfEncryptMD5Base::ComputeEncryptionKey(const string_view& documentId,
     unsigned char digest[MD5_DIGEST_LENGTH];
     status = MD5_Final(digest, &ctx);
     if (status != 1)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error MD5-hashing data");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
 
     // only use the really needed bits as input for the hash
     if (revision == 3 || revision == 4)
@@ -752,15 +752,15 @@ void PdfEncryptMD5Base::ComputeEncryptionKey(const string_view& documentId,
         {
             status = MD5_Init(&ctx);
             if (status != 1)
-                PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error initializing MD5 hashing engine");
+                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing MD5 hashing engine");
 
             status = MD5_Update(&ctx, digest, m_keyLength);
             if (status != 1)
-                PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error MD5-hashing data");
+                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
 
             status = MD5_Final(digest, &ctx);
             if (status != 1)
-                PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error MD5-hashing data");
+                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
         }
     }
 
@@ -771,22 +771,22 @@ void PdfEncryptMD5Base::ComputeEncryptionKey(const string_view& documentId,
     {
         status = MD5_Init(&ctx);
         if (status != 1)
-            PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error initializing MD5 hashing engine");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing MD5 hashing engine");
 
         status = MD5_Update(&ctx, padding, 32);
         if (status != 1)
-            PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error MD5-hashing data");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
 
         if (docId != nullptr)
         {
             status = MD5_Update(&ctx, docId, docIdLength);
             if (status != 1)
-                PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error MD5-hashing data");
+                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
         }
 
         status = MD5_Final(digest, &ctx);
         if (status != 1)
-            PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error MD5-hashing data");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
 
         std::memcpy(userKey, digest, 16);
         for (k = 16; k < 32; ++k)
@@ -862,30 +862,30 @@ void PdfEncryptRC4Base::RC4(const unsigned char* key, unsigned keylen,
     EVP_CIPHER_CTX* rc4 = m_rc4->getEngine();
 
     if (textlen != textoutlen)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error initializing RC4 encryption engine");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing RC4 encryption engine");
 
     // Don't set the key because we will modify the parameters
     int status = EVP_EncryptInit_ex(rc4, EVP_rc4(), nullptr, nullptr, nullptr);
     if (status != 1)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error initializing RC4 encryption engine");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing RC4 encryption engine");
 
     status = EVP_CIPHER_CTX_set_key_length(rc4, keylen);
     if (status != 1)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error initializing RC4 encryption engine");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing RC4 encryption engine");
 
     // We finished modifying parameters so now we can set the key
     status = EVP_EncryptInit_ex(rc4, nullptr, nullptr, key, nullptr);
     if (status != 1)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error initializing RC4 encryption engine");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing RC4 encryption engine");
 
     int dataOutMoved;
     status = EVP_EncryptUpdate(rc4, textout, &dataOutMoved, textin, (int)textlen);
     if (status != 1)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error RC4-encrypting data");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error RC4-encrypting data");
 
     status = EVP_EncryptFinal_ex(rc4, &textout[dataOutMoved], &dataOutMoved);
     if (status != 1)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error RC4-encrypting data");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error RC4-encrypting data");
 }
         
 void PdfEncryptMD5Base::GetMD5Binary(const unsigned char* data, int length, unsigned char* digest)
@@ -894,15 +894,15 @@ void PdfEncryptMD5Base::GetMD5Binary(const unsigned char* data, int length, unsi
     MD5_CTX ctx;
     status = MD5_Init(&ctx);
     if (status != 1)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error initializing MD5 hashing engine");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing MD5 hashing engine");
 
     status = MD5_Update(&ctx, data, length);
     if (status != 1)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error MD5-hashing data");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
 
     status = MD5_Final(digest, &ctx);
     if (status != 1)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error MD5-hashing data");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error MD5-hashing data");
 }
 
 void PdfEncryptMD5Base::GenerateInitialVector(unsigned char iv[]) const
@@ -1141,7 +1141,7 @@ void PdfEncryptAESBase::BaseDecrypt(const unsigned char* key, unsigned keyLen, c
     unsigned char* textout, size_t& outLen) const
 {
     if ((textlen % 16) != 0)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error AES-decryption data length not a multiple of 16");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-decryption data length not a multiple of 16");
 
     EVP_CIPHER_CTX* aes = m_aes->getEngine();
 
@@ -1153,21 +1153,21 @@ void PdfEncryptAESBase::BaseDecrypt(const unsigned char* key, unsigned keyLen, c
         status = EVP_DecryptInit_ex(aes, EVP_aes_256_cbc(), nullptr, key, iv);
 #endif
     else
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Invalid AES key length");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Invalid AES key length");
 
     if (rc != 1)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error initializing AES decryption engine");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing AES decryption engine");
 
     int dataOutMoved;
     rc = EVP_DecryptUpdate(aes, textout, &dataOutMoved, textin, (int)textlen);
     outLen = dataOutMoved;
     if (rc != 1)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error AES-decryption data");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-decryption data");
 
     rc = EVP_DecryptFinal_ex(aes, textout + outLen, &dataOutMoved);
     outLen += dataOutMoved;
     if (rc != 1)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error AES-decryption data final");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-decryption data final");
 }
 
 void PdfEncryptAESBase::BaseEncrypt(const unsigned char* key, unsigned keyLen, const unsigned char* iv,
@@ -1185,19 +1185,19 @@ void PdfEncryptAESBase::BaseEncrypt(const unsigned char* key, unsigned keyLen, c
         status = EVP_EncryptInit_ex(aes, EVP_aes_256_cbc(), nullptr, key, iv);
 #endif
     else
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Invalid AES key length");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Invalid AES key length");
 
     if (rc != 1)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error initializing AES encryption engine");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing AES encryption engine");
 
     int dataOutMoved;
     rc = EVP_EncryptUpdate(aes, textout, &dataOutMoved, textin, (int)textlen);
     if (rc != 1)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error AES-encrypting data");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-encrypting data");
 
     rc = EVP_EncryptFinal_ex(aes, &textout[dataOutMoved], &dataOutMoved);
     if (rc != 1)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error AES-encrypting data");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-encrypting data");
 }
     
 void PdfEncryptAESV2::GenerateEncryptionKey(const string_view& documentId)
@@ -1350,7 +1350,7 @@ unique_ptr<PdfOutputStream> PdfEncryptAESV2::CreateEncryptionOutputStream(PdfOut
 
      this->CreateObjKey( objkey, &keylen );*/
 
-    PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "CreateEncryptionOutputStream does not yet support AESV2");
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "CreateEncryptionOutputStream does not yet support AESV2");
 }
     
 #ifdef PDFMM_HAVE_LIBIDN

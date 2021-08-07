@@ -56,7 +56,7 @@ char mm::XRefEntryTypeToChar(XRefEntryType type)
         case XRefEntryType::Unknown:
         case XRefEntryType::Compressed:
         default:
-            PDFMM_RAISE_ERROR(EPdfError::InvalidEnumValue);
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }
 }
 
@@ -69,6 +69,6 @@ XRefEntryType mm::XRefEntryTypeFromChar(char c)
         case 'n':
             return XRefEntryType::InUse;
         default:
-            PDFMM_RAISE_ERROR(EPdfError::InvalidXRef);
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidXRef);
     }
 }

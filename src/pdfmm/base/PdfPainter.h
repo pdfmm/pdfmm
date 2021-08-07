@@ -33,7 +33,7 @@ class PdfReference;
 class PdfStream;
 class PdfXObject;
 
-enum class EPdfPainterFlags
+enum class PdfPainterFlags
 {
     None = 0,
     Prepend = 1,            ///< Does nothing for now
@@ -59,7 +59,7 @@ public:
      *
      *  \param saveRestore do save/restore state before appending
      */
-    PdfPainter(EPdfPainterFlags flags = EPdfPainterFlags::None);
+    PdfPainter(PdfPainterFlags flags = PdfPainterFlags::None);
 
     virtual ~PdfPainter() noexcept(false);
 
@@ -718,7 +718,7 @@ private:
     void SetCurrentTextRenderingMode();
 
 private:
-    EPdfPainterFlags m_flags;
+    PdfPainterFlags m_flags;
 
     /** All drawing operations work on this stream.
      *  This object may not be nullptr. If it is nullptr any function accessing it should
@@ -788,6 +788,6 @@ private:
 
 }
 
-ENABLE_BITMASK_OPERATORS(mm::EPdfPainterFlags);
+ENABLE_BITMASK_OPERATORS(mm::PdfPainterFlags);
 
 #endif // PDF_PAINTER_H

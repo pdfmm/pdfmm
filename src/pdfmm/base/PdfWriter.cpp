@@ -273,7 +273,7 @@ void PdfWriter::CreateFileIdentifier(PdfString& identifier, const PdfObject& tra
                 oss << "Error while retrieving info dictionary: "
                     << ref.ObjectNumber() << " "
                     << ref.GenerationNumber() << " R" << std::endl;
-                PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidHandle, oss.str().c_str());
+                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, oss.str().c_str());
             }
             else
             {
@@ -291,7 +291,7 @@ void PdfWriter::CreateFileIdentifier(PdfString& identifier, const PdfObject& tra
         }
         else
         {
-            PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "Invalid ");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Invalid ");
         }
     }
 

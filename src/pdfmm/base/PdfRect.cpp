@@ -88,7 +88,7 @@ void PdfRect::FromArray(const PdfArray& arr)
     }
     else
     {
-        PDFMM_RAISE_ERROR(EPdfError::ValueOutOfRange);
+        PDFMM_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
     }
 }
 

@@ -32,7 +32,7 @@ PdfCharCodeMap PdfFontType1Encoding::getUnicodeMap(const PdfObject& obj)
 
     PdfInputDevice device(view.data(), view.length());
     PdfPostScriptTokenizer tokenizer;
-    EPdfPostScriptTokenType tokenType;
+    PdfPostScriptTokenType tokenType;
     string_view keyword;
     PdfVariant variant;
     PdfName name;
@@ -47,7 +47,7 @@ PdfCharCodeMap PdfFontType1Encoding::getUnicodeMap(const PdfObject& obj)
             if (!tokenizer.TryReadNext(device, tokenType, keyword, variant))
                 return false;
 
-            if (tokenType == EPdfPostScriptTokenType::Keyword
+            if (tokenType == PdfPostScriptTokenType::Keyword
                 && keyword == "dup")
             {
                 break;
@@ -56,7 +56,7 @@ PdfCharCodeMap PdfFontType1Encoding::getUnicodeMap(const PdfObject& obj)
 
         // Try to read CID
         if (!tokenizer.TryReadNext(device, tokenType, keyword, variant)
-            || tokenType != EPdfPostScriptTokenType::Variant
+            || tokenType != PdfPostScriptTokenType::Variant
             || !variant.TryGetNumber(number))
         {
             return false;
@@ -64,7 +64,7 @@ PdfCharCodeMap PdfFontType1Encoding::getUnicodeMap(const PdfObject& obj)
 
         // Try to read character code
         if (!tokenizer.TryReadNext(device, tokenType, keyword, variant)
-            || tokenType != EPdfPostScriptTokenType::Variant
+            || tokenType != PdfPostScriptTokenType::Variant
             || !variant.TryGetName(name))
         {
             return false;
@@ -87,7 +87,7 @@ PdfCharCodeMap PdfFontType1Encoding::getUnicodeMap(const PdfObject& obj)
         if (!tokenizer.TryReadNext(device, tokenType, keyword, variant))
             return ret;
 
-        if (tokenType == EPdfPostScriptTokenType::Variant
+        if (tokenType == PdfPostScriptTokenType::Variant
             && variant.TryGetName(name)
             && name.GetString() == "Encoding")
         {

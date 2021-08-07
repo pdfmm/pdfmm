@@ -7,7 +7,7 @@
  */
 
 #include <pdfmm/private/PdfDefinesPrivate.h>
-#include "PdfFontCache.h" 
+#include "PdfFontManager.h" 
 
 #ifdef WIN32
 #include <WindowsLeanMean.h>
@@ -39,7 +39,7 @@ static bool GetDataFromLPFONT(const LOGFONTW* inFont, buffer_t& buffer);
 
 #endif // WIN32
 
-PdfFontCache::PdfFontCache(PdfDocument& doc)
+PdfFontManager::PdfFontManager(PdfDocument& doc)
     : m_doc(&doc)
 {
 #if defined(PDFMM_HAVE_FONTCONFIG)
@@ -48,7 +48,7 @@ PdfFontCache::PdfFontCache(PdfDocument& doc)
     Init();
 }
 
-PdfFontCache::~PdfFontCache()
+PdfFontManager::~PdfFontManager()
 {
     this->EmptyCache();
 
@@ -59,14 +59,14 @@ PdfFontCache::~PdfFontCache()
     }
 }
 
-void PdfFontCache::Init()
+void PdfFontManager::Init()
 {
     // Initialize all the fonts stuff
     if (FT_Init_FreeType(&m_ftLibrary))
-        PDFMM_RAISE_ERROR(EPdfError::FreeType);
+        PDFMM_RAISE_ERROR(PdfErrorCode::FreeType);
 }
 
-void PdfFontCache::EmptyCache()
+void PdfFontManager::EmptyCache()
 {
     for (auto& pair : m_fontMap)
         delete pair.second;
@@ -78,7 +78,7 @@ void PdfFontCache::EmptyCache()
     m_fontSubsetMap.clear();
 }
 
-PdfFont* PdfFontCache::GetFont(PdfObject& obj)
+PdfFont* PdfFontManager::GetFont(PdfObject& obj)
 {
     const PdfReference& ref = obj.GetIndirectReference();
 
@@ -109,10 +109,10 @@ PdfFont* PdfFontCache::GetFont(PdfObject& obj)
     return font;
 }
 
-PdfFont* PdfFontCache::GetFont(const string_view& fontName, const PdfFontCreationParams &params)
+PdfFont* PdfFontManager::GetFont(const string_view& fontName, const PdfFontCreationParams &params)
 {
     if (params.Encoding.IsNull())
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "Invalid encoding");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Invalid encoding");
 
     auto found = m_fontMap.find(Element(
         fontName,
@@ -124,7 +124,7 @@ PdfFont* PdfFontCache::GetFont(const string_view& fontName, const PdfFontCreatio
         return found->second;
 
     PdfStd14FontType baseFont;
-    if ((params.Flags & EFontCreationFlags::AutoSelectBase14) == EFontCreationFlags::AutoSelectBase14
+    if ((params.Flags & PdfFontCreationFlags::AutoSelectBase14) == PdfFontCreationFlags::AutoSelectBase14
         && PdfFontType1Base14::IsStandard14Font(fontName, baseFont))
     {
         // TODO: Better handle params.Bold, params.Italic, params.IsSymbolCharset
@@ -143,7 +143,7 @@ PdfFont* PdfFontCache::GetFont(const string_view& fontName, const PdfFontCreatio
         }
     }
 
-    bool subsetting = (params.Flags & EFontCreationFlags::DoSubsetting) != EFontCreationFlags::None;
+    bool subsetting = (params.Flags & PdfFontCreationFlags::DoSubsetting) != PdfFontCreationFlags::None;
     string path;
     if (params.FilePath.empty())
         path = this->GetFontPath(fontName, params.Bold, params.Italic);
@@ -168,16 +168,16 @@ PdfFont* PdfFontCache::GetFont(const string_view& fontName, const PdfFontCreatio
     }
 }
 
-PdfFont* PdfFontCache::GetFontSubset(const string_view& fontname, const PdfFontCreationParams& params)
+PdfFont* PdfFontManager::GetFontSubset(const string_view& fontname, const PdfFontCreationParams& params)
 {
     if (params.Encoding.IsNull())
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "Invalid encoding");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Invalid encoding");
 
-    if (params.Flags != EFontCreationFlags::None)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Invalid font subset creation parameters");
+    if (params.Flags != PdfFontCreationFlags::None)
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Invalid font subset creation parameters");
 
     if (!params.Embed)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Invalid font subset creation parameters");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Invalid font subset creation parameters");
 
     // WARNING: The characters are completely ignored right now!
 
@@ -221,11 +221,11 @@ PdfFont* PdfFontCache::GetFontSubset(const string_view& fontname, const PdfFontC
     }
 }
 
-PdfFont* PdfFontCache::GetFont(FT_Face face, const PdfEncoding& encoding,
+PdfFont* PdfFontManager::GetFont(FT_Face face, const PdfEncoding& encoding,
     bool isSymbolCharset, bool embed)
 {
     if (encoding.IsNull())
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "Invalid encoding");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Invalid encoding");
 
     string name = FT_Get_Postscript_Name(face);
     if (name.empty())
@@ -255,7 +255,7 @@ PdfFont* PdfFontCache::GetFont(FT_Face face, const PdfEncoding& encoding,
     }
 }
 
-void PdfFontCache::EmbedSubsetFonts()
+void PdfFontManager::EmbedSubsetFonts()
 {
     for (auto &pair : m_fontSubsetMap)
         pair.second->EmbedFontSubset();
@@ -263,11 +263,11 @@ void PdfFontCache::EmbedSubsetFonts()
 
 #ifdef WIN32
 
-PdfFont* PdfFontCache::GetFont(const LOGFONTW& logFont,
+PdfFont* PdfFontManager::GetFont(const LOGFONTW& logFont,
     const PdfEncoding& encoding, bool embed)
 {
     if (encoding.IsNull())
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "Invalid encoding");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Invalid encoding");
 
     string fontname;
     utf8::utf16to8((char16_t*)logFont.lfFaceName, (char16_t*)logFont.lfFaceName + LF_FACESIZE, std::back_inserter(fontname));
@@ -285,7 +285,7 @@ PdfFont* PdfFontCache::GetFont(const LOGFONTW& logFont,
         return found->second;
 }
 
-PdfFont* PdfFontCache::GetWin32Font(FontCacheMap& map, const string_view& fontName,
+PdfFont* PdfFontManager::GetWin32Font(FontCacheMap& map, const string_view& fontName,
     const PdfEncoding& encoding, bool bold, bool italic,
     bool symbolCharset, bool embed, bool subsetting)
 {
@@ -317,7 +317,7 @@ PdfFont* PdfFontCache::GetWin32Font(FontCacheMap& map, const string_view& fontNa
     return GetWin32Font(map, fontName, lf, encoding, embed, subsetting);
 }
 
-PdfFont* PdfFontCache::GetWin32Font(FontCacheMap& map, const string_view& fontName,
+PdfFont* PdfFontManager::GetWin32Font(FontCacheMap& map, const string_view& fontName,
     const LOGFONTW& logFont, const PdfEncoding& encoding, bool embed, bool subsetting)
 {
     buffer_t buffer;
@@ -333,7 +333,7 @@ PdfFont* PdfFontCache::GetWin32Font(FontCacheMap& map, const string_view& fontNa
 
 #endif // WIN32
 
-string PdfFontCache::GetFontPath(const string_view& fontName, bool bold, bool italic)
+string PdfFontManager::GetFontPath(const string_view& fontName, bool bold, bool italic)
 {
 #if defined(PDFMM_HAVE_FONTCONFIG)
     return m_fontConfig->GetFontConfigFontPath(fontName, bold, italic);
@@ -345,7 +345,7 @@ string PdfFontCache::GetFontPath(const string_view& fontName, bool bold, bool it
 #endif
 }
 
-PdfFont* PdfFontCache::CreateFontObject(FontCacheMap& map, const string_view& fontName,
+PdfFont* PdfFontManager::CreateFontObject(FontCacheMap& map, const string_view& fontName,
     const PdfFontMetricsConstPtr& metrics, const PdfEncoding& encoding,
     bool bold, bool italic, bool embed, bool subsetting)
 {
@@ -378,7 +378,7 @@ PdfFont* PdfFontCache::CreateFontObject(FontCacheMap& map, const string_view& fo
 
 #ifdef PDFMM_HAVE_FONTCONFIG
 
-void PdfFontCache::SetFontConfigWrapper(PdfFontConfigWrapper* fontConfig)
+void PdfFontManager::SetFontConfigWrapper(PdfFontConfigWrapper* fontConfig)
 {
     if (m_fontConfig == fontConfig)
         return;
@@ -391,7 +391,7 @@ void PdfFontCache::SetFontConfigWrapper(PdfFontConfigWrapper* fontConfig)
 
 #endif // PDFMM_HAVE_FONTCONFIG
 
-PdfFontCache::Element::Element(const string_view& fontname, const PdfEncoding& encoding,
+PdfFontManager::Element::Element(const string_view& fontname, const PdfEncoding& encoding,
     bool bold, bool italic, bool isSymbolCharset) :
     FontName(fontname),
     EncodingId(encoding.GetId()),
@@ -399,14 +399,14 @@ PdfFontCache::Element::Element(const string_view& fontname, const PdfEncoding& e
     Italic(italic),
     IsSymbolCharset(isSymbolCharset) { }
 
-PdfFontCache::Element::Element(const Element& rhs) :
+PdfFontManager::Element::Element(const Element& rhs) :
     FontName(rhs.FontName),
     EncodingId(rhs.EncodingId),
     Bold(rhs.Bold),
     Italic(rhs.Italic),
     IsSymbolCharset(rhs.IsSymbolCharset) { }
 
-const PdfFontCache::Element& PdfFontCache::Element::operator=(const Element& rhs)
+const PdfFontManager::Element& PdfFontManager::Element::operator=(const Element& rhs)
 {
     FontName = rhs.FontName;
     EncodingId = rhs.EncodingId;
@@ -416,14 +416,14 @@ const PdfFontCache::Element& PdfFontCache::Element::operator=(const Element& rhs
     return *this;
 }
 
-size_t PdfFontCache::HashElement::operator()(const Element& elem) const
+size_t PdfFontManager::HashElement::operator()(const Element& elem) const
 {
     size_t hash = 0;
     usr::hash_combine(hash, elem.FontName, elem.EncodingId, elem.Bold, elem.Italic, elem.IsSymbolCharset);
     return hash;
 };
 
-bool PdfFontCache::EqualElement::operator()(const Element& lhs, const Element& rhs) const
+bool PdfFontManager::EqualElement::operator()(const Element& lhs, const Element& rhs) const
 {
     return lhs.EncodingId == rhs.EncodingId && lhs.Bold == rhs.Bold
         && lhs.Italic == rhs.Italic && lhs.FontName == rhs.FontName

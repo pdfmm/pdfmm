@@ -76,13 +76,13 @@ void PdfMemStream::EndAppendImpl()
 void PdfMemStream::GetCopy(char** buffer, size_t* len) const
 {
     if (buffer == nullptr || len == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     *buffer = static_cast<char*>(pdfmm_calloc(m_Length, sizeof(char)));
     *len = m_Length;
 
     if (*buffer == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::OutOfMemory);
+        PDFMM_RAISE_ERROR(PdfErrorCode::OutOfMemory);
 
     memcpy(*buffer, m_buffer.GetBuffer(), m_Length);
 }

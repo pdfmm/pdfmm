@@ -9,7 +9,7 @@
 #ifndef PDF_CONTAINER_DATATYPE_H
 #define PDF_CONTAINER_DATATYPE_H
 
-#include "PdfDataType.h"
+#include "PdfDataProvider.h"
 #include "PdfObject.h"
 
 namespace mm {
@@ -19,9 +19,10 @@ class PdfDocument;
 class PdfReference;
 
 /**
- * A PdfDataType object with PdfObject owner
+ * A PdfDataProvider object with a PdfObject owner, specialized
+ * in holding objects
  */
-class PDFMM_API PdfContainerDataType : public PdfDataType
+class PDFMM_API PdfDataContainer : public PdfDataProvider
 {
     friend class PdfObject;
 
@@ -29,12 +30,12 @@ protected:
     /** Create a new PdfDataOwnedType.
      *  Can only be called by subclasses
      */
-    PdfContainerDataType();
+    PdfDataContainer();
 
-    PdfContainerDataType(const PdfContainerDataType& rhs);
+    PdfDataContainer(const PdfDataContainer& rhs);
 
 public:
-    PdfContainerDataType& operator=(const PdfContainerDataType& rhs);
+    PdfDataContainer& operator=(const PdfDataContainer& rhs);
 
 public:
     /** \returns a pointer to a PdfObject that is the

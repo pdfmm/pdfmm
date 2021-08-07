@@ -34,7 +34,7 @@ PdfFileStream::~PdfFileStream()
 
 void PdfFileStream::Write(PdfOutputDevice&, const PdfEncrypt*)
 {
-    PDFMM_RAISE_ERROR(EPdfError::NotImplemented);
+    PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);
 }
 
 void PdfFileStream::BeginAppendImpl(const PdfFilterList& filters)
@@ -100,12 +100,12 @@ void PdfFileStream::EndAppendImpl()
 
 void PdfFileStream::GetCopy(char**, size_t*) const
 {
-    PDFMM_RAISE_ERROR(EPdfError::InternalLogic);
+    PDFMM_RAISE_ERROR(PdfErrorCode::InternalLogic);
 }
 
 void PdfFileStream::GetCopy(PdfOutputStream&) const
 {
-    PDFMM_RAISE_ERROR(EPdfError::InternalLogic);
+    PDFMM_RAISE_ERROR(PdfErrorCode::InternalLogic);
 }
 
 void PdfFileStream::SetEncrypted(PdfEncrypt* encrypt)

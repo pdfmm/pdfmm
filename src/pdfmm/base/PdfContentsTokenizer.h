@@ -19,7 +19,7 @@ class PdfObject;
 
 /** An enum describing the type of a read token
  */
-enum class EPdfContentsType
+enum class PdfContentsType
 {
     Unknown = 0,
     Keyword, ///< The token is a PDF keyword.
@@ -76,13 +76,13 @@ public:
      *              this will be set to the read variant, otherwise the value is undefined.
      *
      */
-    bool TryReadNext(EPdfContentsType& contentsType, std::string_view& keyword, PdfVariant& variant);
+    bool TryReadNext(PdfContentsType& contentsType, std::string_view& keyword, PdfVariant& variant);
 
     void ReadNextVariant(PdfVariant& variant);
     bool TryReadNextVariant(PdfVariant& variant);
 
 private:
-    bool tryReadNext(EPdfContentsType& type, std::string_view& keyword, PdfVariant& variant);
+    bool tryReadNext(PdfContentsType& type, std::string_view& keyword, PdfVariant& variant);
     bool tryReadInlineImgDict(PdfDictionary& dict);
     bool tryReadInlineImgData(PdfData& data);
 

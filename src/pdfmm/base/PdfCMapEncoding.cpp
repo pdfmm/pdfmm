@@ -67,14 +67,14 @@ PdfCMapEncoding::MapIdentity PdfCMapEncoding::parseCMapObject(const PdfStream& s
     deque<unique_ptr<PdfVariant>> tokens;
     PdfString str;
     auto var = make_unique<PdfVariant>();
-    EPdfPostScriptTokenType tokenType;
+    PdfPostScriptTokenType tokenType;
     string_view token;
     bool endOfSequence;
     while (tokenizer.TryReadNext(device, tokenType, token, *var))
     {
         switch (tokenType)
         {
-            case EPdfPostScriptTokenType::Keyword:
+            case PdfPostScriptTokenType::Keyword:
             {
                 if (token == "begincodespacerange")
                 {
@@ -117,7 +117,7 @@ PdfCMapEncoding::MapIdentity PdfCMapEncoding::parseCMapObject(const PdfStream& s
                                 else if (dst.IsName()) // Not mentioned in tecnincal document #5014 but seems safe
                                     pushMapping(ret.Map, ret.Limits, { srcCodeLo + i, codeSize }, handleNameMapping(dst.GetName()));
                                 else
-                                    PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "beginbfrange: expected string or name inside array");
+                                    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "beginbfrange: expected string or name inside array");
                             }
                         }
                         else if (var->TryGetString(str) && str.IsHex())
@@ -132,7 +132,7 @@ PdfCMapEncoding::MapIdentity PdfCMapEncoding::parseCMapObject(const PdfStream& s
                             handleRangeMapping(ret.Map, ret.Limits, srcCodeLo, handleNameMapping(var->GetName()), codeSize, rangeSize);
                         }
                         else
-                            PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "beginbfrange: expected array, string or array");
+                            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "beginbfrange: expected array, string or array");
                     }
                 }
                 // NOTE: "bf" in "beginbfchar" stands for Base Font
@@ -166,7 +166,7 @@ PdfCMapEncoding::MapIdentity PdfCMapEncoding::parseCMapObject(const PdfStream& s
                             mappedCodes = handleNameMapping(var->GetName());
                         }
                         else
-                            PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "beginbfchar: expected number or name");
+                            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "beginbfchar: expected number or name");
 
                         pushMapping(ret.Map, ret.Limits, { srcCode, codeSize }, mappedCodes);
                     }
@@ -200,7 +200,7 @@ PdfCMapEncoding::MapIdentity PdfCMapEncoding::parseCMapObject(const PdfStream& s
                 else if (token == "begincidchar")
                 {
                     if (tokens.size() != 1)
-                        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidStream, "CMap missing object number before begincidchar");
+                        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidStream, "CMap missing object number before begincidchar");
 
                     int charCount = (int)tokens.front()->GetNumber();
                     vector<char32_t> mappedCodes;
@@ -220,14 +220,14 @@ PdfCMapEncoding::MapIdentity PdfCMapEncoding::parseCMapObject(const PdfStream& s
                 tokens.clear();
                 break;
             }
-            case EPdfPostScriptTokenType::Variant:
+            case PdfPostScriptTokenType::Variant:
             {
                 tokens.push_front(std::move(var));
                 var.reset(new PdfVariant());
                 break;
             }
             default:
-                PDFMM_RAISE_ERROR(EPdfError::InternalLogic);
+                PDFMM_RAISE_ERROR(PdfErrorCode::InternalLogic);
         }
     }
 
@@ -296,7 +296,7 @@ static uint32_t getCodeFromVariant(const PdfVariant& var, unsigned char& codeSiz
         }
 
         if (codeSize > 2)
-            PDFMM_RAISE_ERROR_INFO(EPdfError::ValueOutOfRange, "PdfEncoding: unsupported code bigger than 16 bits");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "PdfEncoding: unsupported code bigger than 16 bits");
 
         return ret;
     }
@@ -372,15 +372,15 @@ vector<char32_t> handleUtf8String(const string& str)
 void readNextVariantSequence(PdfPostScriptTokenizer& tokenizer, PdfInputDevice& device,
     PdfVariant& variant, const string_view& endSequenceKeyword, bool& endOfSequence)
 {
-    EPdfPostScriptTokenType tokenType;
+    PdfPostScriptTokenType tokenType;
     string_view token;
 
     if (!tokenizer.TryReadNext(device, tokenType, token, variant))
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidStream, "CMap unable to read a token");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidStream, "CMap unable to read a token");
 
     switch (tokenType)
     {
-        case EPdfPostScriptTokenType::Keyword:
+        case PdfPostScriptTokenType::Keyword:
         {
             if (token == endSequenceKeyword)
             {
@@ -388,16 +388,16 @@ void readNextVariantSequence(PdfPostScriptTokenizer& tokenizer, PdfInputDevice& 
                 break;
             }
 
-            PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidStream, string("CMap unable to read an end of sequence keyword ") + (string)endSequenceKeyword);
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidStream, string("CMap unable to read an end of sequence keyword ") + (string)endSequenceKeyword);
         }
-        case EPdfPostScriptTokenType::Variant:
+        case PdfPostScriptTokenType::Variant:
         {
             endOfSequence = false;
             break;
         }
         default:
         {
-            PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidEnumValue, "Unexpected token type");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Unexpected token type");
         }
     }
 }

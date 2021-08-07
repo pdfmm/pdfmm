@@ -140,7 +140,7 @@ End:
 
     return;
 Error:
-    PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "Date is invalid");
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Date is invalid");
 }
 
 PdfString PdfDate::createStringRepresentation(bool w3cstring) const

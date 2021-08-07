@@ -15,22 +15,21 @@ namespace mm {
 class PdfEncrypt;
 class PdfOutputDevice;
 
-/** An interface for all PDF datatype classes.
- *
+/** An interface for data provider classes that are stored in a PdfVariant
  *  
  *  \see PdfName \see PdfArray \see PdfReference 
  *  \see PdfVariant \see PdfDictionary \see PdfString
  */
-class PDFMM_API PdfDataType
+class PDFMM_API PdfDataProvider
 {
 protected:
-    /** Create a new PdfDataType.
+    /** Create a new PdfDataProvider.
      *  Can only be called by subclasses
      */
-    PdfDataType();
+    PdfDataProvider();
 
 public:
-    virtual ~PdfDataType();
+    virtual ~PdfDataProvider();
 
     /** Write the complete datatype to a file.
      *  \param device write the object to this device

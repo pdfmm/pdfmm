@@ -215,7 +215,7 @@ void PdfXRef::MergeBlocks()
 
     // Stop in case we have no blocks at all
     if (it == m_blocks.end())
-        PDFMM_RAISE_ERROR(EPdfError::NoXRef);
+        PDFMM_RAISE_ERROR(PdfErrorCode::NoXRef);
 
     while (itNext != m_blocks.end())
     {
@@ -271,7 +271,7 @@ void PdfXRef::WriteXRefEntry(PdfOutputDevice& device, const PdfXRefEntry& entry)
             break;
         }
         default:
-            PDFMM_RAISE_ERROR(EPdfError::InvalidEnumValue);
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }
 
     device.Print("%0.10" PDF_FORMAT_UINT64 " %0.5hu %c \n", variant, entry.Generation, XRefEntryTypeToChar(entry.Type));

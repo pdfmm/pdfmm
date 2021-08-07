@@ -59,7 +59,7 @@ void PdfIdentityEncoding::getExportObject(PdfVecObjects& objects, PdfName& name,
     {
         // Default identities are 2 bytes only
         // TODO: Implement a CMap for other identities
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidEnumValue, "Unsupported");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Unsupported");
     }
 
     switch (m_orientation)
@@ -71,7 +71,7 @@ void PdfIdentityEncoding::getExportObject(PdfVecObjects& objects, PdfName& name,
             name = PdfName("Identity-V");
             break;
         default:
-            PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidEnumValue, "Unsupported");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Unsupported");
     }
 }
 
@@ -79,13 +79,13 @@ void PdfIdentityEncoding::appendBaseFontEntries(PdfStream& stream) const
 {
     // Very easy, just do a single bfrange
     // Use PdfEncodingMap::AppendUTF16CodeTo
-    PDFMM_RAISE_ERROR_INFO(EPdfError::NotImplemented, "TODO");
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "TODO");
 }
 
 PdfEncodingLimits getLimits(unsigned char codeSpaceSize)
 {
     if (codeSpaceSize == 0 || codeSpaceSize > 4)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::ValueOutOfRange, "Code space size can't be zero or bigger than 4");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Code space size can't be zero or bigger than 4");
 
     return { codeSpaceSize, codeSpaceSize, PdfCharCode(0, codeSpaceSize),
         PdfCharCode((unsigned)std::pow(2, codeSpaceSize * CHAR_BIT), codeSpaceSize) };

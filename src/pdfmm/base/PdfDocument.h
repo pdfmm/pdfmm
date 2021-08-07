@@ -14,7 +14,7 @@
 #include "PdfObject.h"
 #include "PdfVecObjects.h"
 #include "PdfAcroForm.h"
-#include "PdfFontCache.h"
+#include "PdfFontManager.h"
 #include "PdfInfo.h"
 #include "PdfPagesTree.h"
 #include "PdfNamesTree.h"
@@ -98,7 +98,7 @@ public:
      *  \returns PdfObject the AcroForm dictionary
      */
     PdfAcroForm* GetAcroForm(bool create = true,
-        EPdfAcroFormDefaulAppearance eDefaultAppearance = EPdfAcroFormDefaulAppearance::BlackText12pt);
+        PdfAcroFormDefaulAppearance eDefaultAppearance = PdfAcroFormDefaulAppearance::BlackText12pt);
 
     /** Embeds all pending subset fonts, is automatically done on Write().
      *  Just call explicitly in case the PdfDocument is needed as PdfXObject.
@@ -387,7 +387,7 @@ public:
      */
     inline const PdfVecObjects& GetObjects() const { return m_Objects; }
 
-    inline PdfFontCache& GetFontCache() { return m_FontCache; }
+    inline PdfFontManager& GetFontManager() { return m_FontManager; }
 
 protected:
     /** Construct a new (empty) PdfDocument
@@ -481,7 +481,7 @@ private:
     std::unique_ptr<PdfAcroForm> m_AcroForms;
     std::unique_ptr<PdfOutlines> m_Outlines;
     std::unique_ptr<PdfNamesTree> m_NameTree;
-    PdfFontCache m_FontCache;
+    PdfFontManager m_FontManager;
 };
 
 };

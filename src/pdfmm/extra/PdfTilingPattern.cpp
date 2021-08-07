@@ -55,11 +55,11 @@ void PdfTilingPattern::AddToResources(const PdfName& identifier, const PdfRefere
     if (!resources.GetDictionary().HasKey(name))
         resources.GetDictionary().AddKey(name, PdfDictionary());
 
-    if (EPdfDataType::Reference == resources.GetDictionary().GetKey(name)->GetDataType())
+    if (PdfDataType::Reference == resources.GetDictionary().GetKey(name)->GetDataType())
     {
         auto directObject = resources.GetDocument()->GetObjects().GetObject(resources.GetDictionary().GetKey(name)->GetReference());
         if (directObject == nullptr)
-            PDFMM_RAISE_ERROR(EPdfError::NoObject);
+            PDFMM_RAISE_ERROR(PdfErrorCode::NoObject);
 
         if (!directObject->GetDictionary().HasKey(identifier))
             directObject->GetDictionary().AddKey(identifier, ref);
@@ -78,10 +78,10 @@ void PdfTilingPattern::Init(PdfTilingPatternType tilingType,
     PdfImage* image)
 {
     if (tilingType == PdfTilingPatternType::Image && image == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     if (tilingType != PdfTilingPatternType::Image && image != nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     PdfRect rect;
     rect.SetLeft(0);
@@ -178,7 +178,7 @@ void PdfTilingPattern::Init(PdfTilingPatternType tilingType,
             case PdfTilingPatternType::Image:
                 /* This is handled above, based on the 'image' variable */
             default:
-                PDFMM_RAISE_ERROR(EPdfError::InvalidEnumValue);
+                PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
                 break;
 
         }

@@ -58,7 +58,7 @@ void PdfObjectStreamParser::ReadObjectsFromStream(char* buffer, size_t bufferLen
 
         if (first >= std::numeric_limits<int64_t>::max() - offset)
         {
-            PDFMM_RAISE_ERROR_INFO(EPdfError::BrokenFile,
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::BrokenFile,
                 "Object position out of max limit");
         }
 

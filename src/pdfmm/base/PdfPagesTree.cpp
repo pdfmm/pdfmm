@@ -48,7 +48,7 @@ unsigned PdfPagesTree::GetPageCount() const
 PdfPage& PdfPagesTree::GetPage(unsigned index)
 {
     if (index >= GetPageCount())
-        PDFMM_RAISE_ERROR(EPdfError::PageNotFound);
+        PDFMM_RAISE_ERROR(PdfErrorCode::PageNotFound);
 
     return getPage(index);
 }
@@ -56,7 +56,7 @@ PdfPage& PdfPagesTree::GetPage(unsigned index)
 const PdfPage& PdfPagesTree::GetPage(unsigned index) const
 {
     if (index >= GetPageCount())
-        PDFMM_RAISE_ERROR(EPdfError::PageNotFound);
+        PDFMM_RAISE_ERROR(PdfErrorCode::PageNotFound);
 
     return const_cast<PdfPagesTree&>(*this).getPage(index);
 }
@@ -78,7 +78,7 @@ PdfPage& PdfPagesTree::getPage(unsigned index)
         return *page;
     }
 
-    PDFMM_RAISE_ERROR(EPdfError::PageNotFound);
+    PDFMM_RAISE_ERROR(PdfErrorCode::PageNotFound);
 }
 
 PdfPage& PdfPagesTree::GetPage(const PdfReference& ref)
@@ -103,7 +103,7 @@ PdfPage& PdfPagesTree::getPage(const PdfReference& ref)
             return page;
     }
 
-    PDFMM_RAISE_ERROR(EPdfError::PageNotFound);
+    PDFMM_RAISE_ERROR(PdfErrorCode::PageNotFound);
 }
 
 void PdfPagesTree::InsertPage(unsigned atIndex, PdfObject* pageObj)
@@ -211,7 +211,7 @@ void PdfPagesTree::DeletePage(unsigned atIndex)
         PdfError::LogMessage(LogSeverity::Information,
             "Invalid argument to PdfPagesTree::DeletePage: %i - Page not found",
             atIndex);
-        PDFMM_RAISE_ERROR(EPdfError::PageNotFound);
+        PDFMM_RAISE_ERROR(PdfErrorCode::PageNotFound);
     }
 
     if (parents.size() > 0)
@@ -225,7 +225,7 @@ void PdfPagesTree::DeletePage(unsigned atIndex)
         PdfError::LogMessage(LogSeverity::Error,
             "PdfPagesTree::DeletePage: Page %i has no parent - cannot be deleted.",
             atIndex);
-        PDFMM_RAISE_ERROR(EPdfError::PageNotFound);
+        PDFMM_RAISE_ERROR(PdfErrorCode::PageNotFound);
     }
 }
 
@@ -233,11 +233,11 @@ PdfObject* PdfPagesTree::GetPageNode(unsigned index, PdfObject& parent,
     PdfObjectList& parents)
 {
     if (!parent.GetDictionary().HasKey("Kids"))
-        PDFMM_RAISE_ERROR(EPdfError::InvalidKey);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidKey);
 
     auto kidsObj = parent.GetDictionary().FindKey("Kids");
     if (kidsObj == nullptr || !kidsObj->IsArray())
-        PDFMM_RAISE_ERROR(EPdfError::InvalidDataType);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
 
     const PdfArray& kidsArray = kidsObj->GetArray();
     const size_t numKids = GetChildCount(parent);
@@ -299,7 +299,7 @@ PdfObject* PdfPagesTree::GetPageNode(unsigned index, PdfObject& parent,
                         << (*(parents.rbegin()))->GetIndirectReference().ToString()
                         << " back-references to object " << childObj->GetIndirectReference()
                         .ToString() << " one of whose descendants the former is.";
-                    PDFMM_RAISE_ERROR_INFO(EPdfError::PageNotFound, oss.str());
+                    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::PageNotFound, oss.str());
                 }
 
                 return this->GetPageNode(index, *childObj, parents);
@@ -383,7 +383,7 @@ void PdfPagesTree::InsertPagesIntoNode(PdfObject& parent, const PdfObjectList& p
     int index, const vector<PdfObject*>& pages)
 {
     if (pages.size() == 0)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     // 1. Add the reference of the new page to the kids array of parent
     // 2. Increase count of every node in parents (which also includes parent)

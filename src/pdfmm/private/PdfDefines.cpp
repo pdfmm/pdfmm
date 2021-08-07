@@ -62,7 +62,7 @@ size_t io::FileSize(const string_view& filename)
 
     return (size_t)(streamoff)(stream.tellg() - fbegin);
 Error:
-    PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidDeviceOperation, "Failed to read file size");
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to read file size");
 }
 
 // Read from stream an amount of bytes or less
@@ -93,7 +93,7 @@ size_t io::Read(istream& stream, char* buffer, size_t count)
         (void)stream.peek();
 
         if (stream.fail())
-            PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidDeviceOperation, "Stream I/O error while reading");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Stream I/O error while reading");
 
         offset += reads;
         count -= reads;

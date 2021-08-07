@@ -39,7 +39,7 @@ using namespace mm;
 PdfDocument::PdfDocument(bool bEmpty) :
     m_Objects(*this),
     m_Catalog(nullptr),
-    m_FontCache(*this)
+    m_FontManager(*this)
 {
     if (!bEmpty)
     {
@@ -63,7 +63,7 @@ PdfDocument::~PdfDocument()
 
 void PdfDocument::Clear() 
 {
-    m_FontCache.EmptyCache();
+    m_FontManager.EmptyCache();
     m_Objects.Clear();
     m_Catalog = nullptr;
 }
@@ -89,7 +89,7 @@ PdfObject* PdfDocument::GetNamedObjectFromCatalog(const string_view& name) const
 
 void PdfDocument::EmbedSubsetFonts()
 {
-	m_FontCache.EmbedSubsetFonts();
+	m_FontManager.EmbedSubsetFonts();
 }
 
 const PdfDocument& PdfDocument::Append(const PdfDocument& doc, bool appendAll)
@@ -339,7 +339,7 @@ PdfRect PdfDocument::FillXObjectFromPage(PdfXObject& xobj, const PdfPage& page, 
                         }
                         else
                         {
-                            PDFMM_RAISE_ERROR(EPdfError::InvalidStream);
+                            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidStream);
                             break;
                         }
                     }
@@ -371,7 +371,7 @@ PdfRect PdfDocument::FillXObjectFromPage(PdfXObject& xobj, const PdfPage& page, 
         }
         else
         {
-            PDFMM_RAISE_ERROR(EPdfError::InternalLogic);
+            PDFMM_RAISE_ERROR(PdfErrorCode::InternalLogic);
         }
     }
 
@@ -440,7 +440,7 @@ PdfPageMode PdfDocument::GetPageMode() const
         else if (pmName == "UseAttachments")
             thePageMode = PdfPageMode::UseAttachments;
         else
-            PDFMM_RAISE_ERROR(EPdfError::InvalidName);
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidName);
     }
 
     return thePageMode;
@@ -613,9 +613,9 @@ PdfOutlines* PdfDocument::GetOutlines(bool create)
             m_Outlines.reset(new PdfOutlines(*this));
             m_Catalog->GetDictionary().AddKey("Outlines", m_Outlines->GetObject().GetIndirectReference());
         }
-        else if (obj->GetDataType() != EPdfDataType::Dictionary)
+        else if (obj->GetDataType() != PdfDataType::Dictionary)
         {
-            PDFMM_RAISE_ERROR(EPdfError::InvalidDataType);
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
         }
         else
             m_Outlines.reset(new PdfOutlines(*obj));
@@ -640,9 +640,9 @@ PdfNamesTree* PdfDocument::GetNamesTree(bool create)
             m_Catalog->GetDictionary().AddKey("Names", obj->GetIndirectReference());
             m_NameTree.reset(new PdfNamesTree(*obj));
         }
-        else if (obj->GetDataType() != EPdfDataType::Dictionary)
+        else if (obj->GetDataType() != PdfDataType::Dictionary)
         {
-            PDFMM_RAISE_ERROR(EPdfError::InvalidDataType);
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
         }
         else
             m_NameTree.reset(new PdfNamesTree(*obj));
@@ -651,7 +651,7 @@ PdfNamesTree* PdfDocument::GetNamesTree(bool create)
     return m_NameTree.get();
 }
 
-PdfAcroForm* PdfDocument::GetAcroForm(bool create, EPdfAcroFormDefaulAppearance defaultAppearance)
+PdfAcroForm* PdfDocument::GetAcroForm(bool create, PdfAcroFormDefaulAppearance defaultAppearance)
 {
     if (m_AcroForms == nullptr)
     {
@@ -664,9 +664,9 @@ PdfAcroForm* PdfDocument::GetAcroForm(bool create, EPdfAcroFormDefaulAppearance 
             m_AcroForms.reset(new PdfAcroForm(*this, defaultAppearance));
             m_Catalog->GetDictionary().AddKey("AcroForm", m_AcroForms->GetObject().GetIndirectReference());
         }
-        else if (obj->GetDataType() != EPdfDataType::Dictionary)
+        else if (obj->GetDataType() != PdfDataType::Dictionary)
         {
-            PDFMM_RAISE_ERROR(EPdfError::InvalidDataType);
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
         }
         else
         {
@@ -688,7 +688,7 @@ void PdfDocument::AttachFile(const PdfFileSpec& fileSpec)
     auto names = this->GetNamesTree(true);
 
     if (names == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     names->AddValue("EmbeddedFiles", fileSpec.GetFilename(false), fileSpec.GetObject().GetIndirectReference());
 }
@@ -711,7 +711,7 @@ PdfFileSpec* PdfDocument::GetAttachment(const PdfString& name)
 void PdfDocument::SetInfo(std::unique_ptr<PdfInfo>& info)
 {
     if (info == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     m_Info = std::move(info);
 }
@@ -719,7 +719,7 @@ void PdfDocument::SetInfo(std::unique_ptr<PdfInfo>& info)
 void PdfDocument::SetTrailer(std::unique_ptr<PdfObject>& obj)
 {
     if (obj == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     m_Trailer = std::move(obj);
     m_Trailer->SetDocument(*this);
@@ -728,7 +728,7 @@ void PdfDocument::SetTrailer(std::unique_ptr<PdfObject>& obj)
 PdfObject& PdfDocument::GetCatalog()
 {
     if (m_Catalog == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::NoObject);
+        PDFMM_RAISE_ERROR(PdfErrorCode::NoObject);
 
     return *m_Catalog;
 }
@@ -736,7 +736,7 @@ PdfObject& PdfDocument::GetCatalog()
 const PdfObject& PdfDocument::GetCatalog() const
 {
     if (m_Catalog == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::NoObject);
+        PDFMM_RAISE_ERROR(PdfErrorCode::NoObject);
 
     return *m_Catalog;
 }
@@ -744,7 +744,7 @@ const PdfObject& PdfDocument::GetCatalog() const
 const PdfPagesTree& PdfDocument::GetPageTree() const
 {
     if (m_PageTree == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::NoObject);
+        PDFMM_RAISE_ERROR(PdfErrorCode::NoObject);
 
     return *m_PageTree;
 }
@@ -752,7 +752,7 @@ const PdfPagesTree& PdfDocument::GetPageTree() const
 PdfPagesTree& PdfDocument::GetPageTree()
 {
     if (m_PageTree == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::NoObject);
+        PDFMM_RAISE_ERROR(PdfErrorCode::NoObject);
 
     return *m_PageTree;
 }
@@ -761,7 +761,7 @@ PdfPagesTree& PdfDocument::GetPageTree()
 PdfObject& PdfDocument::GetTrailer()
 {
     if (m_Trailer == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::NoObject);
+        PDFMM_RAISE_ERROR(PdfErrorCode::NoObject);
 
     return *m_Trailer;
 }
@@ -769,7 +769,7 @@ PdfObject& PdfDocument::GetTrailer()
 const PdfObject& PdfDocument::GetTrailer() const
 {
     if (m_Trailer == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::NoObject);
+        PDFMM_RAISE_ERROR(PdfErrorCode::NoObject);
 
     return *m_Trailer;
 }
@@ -777,7 +777,7 @@ const PdfObject& PdfDocument::GetTrailer() const
 PdfInfo& PdfDocument::GetInfo()
 {
     if (m_Info == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::NoObject);
+        PDFMM_RAISE_ERROR(PdfErrorCode::NoObject);
 
     return *m_Info;
 }
@@ -785,7 +785,7 @@ PdfInfo& PdfDocument::GetInfo()
 const PdfInfo& PdfDocument::GetInfo() const
 {
     if (m_Info == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::NoObject);
+        PDFMM_RAISE_ERROR(PdfErrorCode::NoObject);
 
     return *m_Info;
 }

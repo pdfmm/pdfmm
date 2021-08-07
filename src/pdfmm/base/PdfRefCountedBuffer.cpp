@@ -132,7 +132,7 @@ void PdfRefCountedBuffer::ReallyDetach(size_t extraLen)
     if (m_Buffer == nullptr)
     {
         // throw error rather than de-referencing nullptr
-        PDFMM_RAISE_ERROR(EPdfError::InternalLogic);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InternalLogic);
     }
 
     size_t size = m_Buffer->m_BufferSize + extraLen;
@@ -152,7 +152,7 @@ void PdfRefCountedBuffer::ReallyDetach(size_t extraLen)
         delete buffer;
         buffer = nullptr;
 
-        PDFMM_RAISE_ERROR(EPdfError::OutOfMemory);
+        PDFMM_RAISE_ERROR(PdfErrorCode::OutOfMemory);
     }
 
     memcpy(buffer->GetRealBuffer(), this->GetBuffer(), this->GetSize());
@@ -188,7 +188,7 @@ void PdfRefCountedBuffer::ReallyResize(const size_t size)
                 void* temp = pdfmm_realloc(m_Buffer->m_HeapBuffer, lAllocSize);
                 if (!temp)
                 {
-                    PDFMM_RAISE_ERROR_INFO(EPdfError::OutOfMemory, "PdfRefCountedBuffer::Resize failed!");
+                    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, "PdfRefCountedBuffer::Resize failed!");
                 }
                 m_Buffer->m_HeapBuffer = static_cast<char*>(temp);
                 m_Buffer->m_BufferSize = lAllocSize;
@@ -200,7 +200,7 @@ void PdfRefCountedBuffer::ReallyResize(const size_t size)
                 char* buffer = static_cast<char*>(pdfmm_calloc(lAllocSize, sizeof(char)));
                 if (buffer == nullptr)
                 {
-                    PDFMM_RAISE_ERROR_INFO(EPdfError::OutOfMemory, "PdfRefCountedBuffer::Resize failed!");
+                    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, "PdfRefCountedBuffer::Resize failed!");
                 }
                 // Only bother copying the visible portion of the buffer. It's completely incorrect
                 // to rely on anything more than that, and not copying it will help catch those errors.
@@ -239,7 +239,7 @@ void PdfRefCountedBuffer::ReallyResize(const size_t size)
             delete m_Buffer;
             m_Buffer = nullptr;
 
-            PDFMM_RAISE_ERROR(EPdfError::OutOfMemory);
+            PDFMM_RAISE_ERROR(PdfErrorCode::OutOfMemory);
         }
     }
     m_Buffer->m_VisibleSize = size;

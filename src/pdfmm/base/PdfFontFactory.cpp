@@ -57,7 +57,7 @@ PdfFont* PdfFontFactory::createFontForType(PdfDocument& doc, const PdfFontMetric
             case PdfFontMetricsType::Unknown:
             case PdfFontMetricsType::Type1Base14:
             default:
-                PDFMM_RAISE_ERROR_INFO(EPdfError::UnsupportedFontFormat, "Unsupported font at this context");
+                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFontFormat, "Unsupported font at this context");
         }
     }
     else
@@ -77,7 +77,7 @@ PdfFont* PdfFontFactory::createFontForType(PdfDocument& doc, const PdfFontMetric
             case PdfFontMetricsType::Type1Base14:
             case PdfFontMetricsType::Unknown:
             default:
-                PDFMM_RAISE_ERROR_INFO(EPdfError::UnsupportedFontFormat, "Unsupported font at this context");
+                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFontFormat, "Unsupported font at this context");
         }
     }
 
@@ -89,14 +89,14 @@ PdfFont* PdfFontFactory::CreateFont(PdfObject& obj)
     auto& dict = obj.GetDictionary();
     PdfObject* objTypeKey = dict.FindKey(PdfName::KeyType);
     if (objTypeKey == nullptr)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "Font: No Type");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Font: No Type");
 
     if (objTypeKey->GetName() != PdfName("Font"))
-        PDFMM_RAISE_ERROR(EPdfError::InvalidDataType);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
 
     auto subTypeKey = dict.FindKey(PdfName::KeySubtype);
     if (subTypeKey == nullptr)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "Font: No SubType");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Font: No SubType");
 
     auto& subType = subTypeKey->GetName();
     if (subType == "Type0")
@@ -108,7 +108,7 @@ PdfFont* PdfFontFactory::CreateFont(PdfObject& obj)
         PdfObject* pDescendantObj = dict.FindKey("DescendantFonts");
 
         if (pDescendantObj == nullptr)
-            PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "Type0 Font: No DescendantFonts");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Type0 Font: No DescendantFonts");
 
         PdfArray& descendants = pDescendantObj->GetArray();
         PdfObject* objFont = nullptr;
@@ -145,7 +145,7 @@ PdfFont* PdfFontFactory::CreateFont(PdfObject& obj)
             if (baseFont == nullptr
                 || !PdfFontType1Base14::IsStandard14Font(baseFont->GetName().GetString(), baseFontType))
             {
-                PDFMM_RAISE_ERROR_INFO(EPdfError::NoObject, "No BaseFont object found"
+                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoObject, "No BaseFont object found"
                     " by reference in given object");
             }
 
@@ -176,7 +176,7 @@ PdfFont* PdfFontFactory::CreateFont(PdfObject& obj)
                     else if (baseFontType == PdfStd14FontType::ZapfDingbats)
                         encoding = PdfEncodingFactory::CreateZapfDingbatsEncoding();
                     else
-                        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "Uncoregnized symbol encoding");
+                        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Uncoregnized symbol encoding");
                 }
                 else
                 {

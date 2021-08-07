@@ -33,7 +33,7 @@ PdfContentsTokenizer::PdfContentsTokenizer(const std::shared_ptr<PdfInputDevice>
 
 bool PdfContentsTokenizer::tryReadInlineImgDict(PdfDictionary& dict)
 {
-    EPdfContentsType type;
+    PdfContentsType type;
     string_view keyword;
     PdfVariant variant;
     while (true)
@@ -44,7 +44,7 @@ bool PdfContentsTokenizer::tryReadInlineImgDict(PdfDictionary& dict)
         PdfName key;
         switch (type)
         {
-            case EPdfContentsType::Keyword:
+            case PdfContentsType::Keyword:
             {
                 // Try to find end of dictionary
                 if (keyword == "ID")
@@ -52,19 +52,19 @@ bool PdfContentsTokenizer::tryReadInlineImgDict(PdfDictionary& dict)
                 else
                     return false;
             }
-            case EPdfContentsType::Variant:
+            case PdfContentsType::Variant:
             {
                 if (variant.TryGetName(key))
                     break;
                 else
                     return false;
             }
-            case EPdfContentsType::Unknown:
+            case PdfContentsType::Unknown:
             {
                 return false;
             }
-            case EPdfContentsType::ImageDictionary:
-            case EPdfContentsType::ImageData:
+            case PdfContentsType::ImageDictionary:
+            case PdfContentsType::ImageData:
             {
                 throw runtime_error("Unsupported flow");
             }
@@ -77,7 +77,7 @@ bool PdfContentsTokenizer::tryReadInlineImgDict(PdfDictionary& dict)
     }
 }
 
-bool PdfContentsTokenizer::TryReadNext(EPdfContentsType& contentsType, string_view& keyword, PdfVariant& variant)
+bool PdfContentsTokenizer::TryReadNext(PdfContentsType& contentsType, string_view& keyword, PdfVariant& variant)
 {
     if (m_readingInlineImgData)
     {
@@ -86,13 +86,13 @@ bool PdfContentsTokenizer::TryReadNext(EPdfContentsType& contentsType, string_vi
         if (tryReadInlineImgData(data))
         {
             variant = data;
-            contentsType = EPdfContentsType::ImageData;
+            contentsType = PdfContentsType::ImageData;
             m_readingInlineImgData = false;
             return true;
         }
         else
         {
-            contentsType = EPdfContentsType::Unknown;
+            contentsType = PdfContentsType::Unknown;
             m_readingInlineImgData = false;
             return false;
         }
@@ -100,23 +100,23 @@ bool PdfContentsTokenizer::TryReadNext(EPdfContentsType& contentsType, string_vi
 
     if (!tryReadNext(contentsType, keyword, variant))
     {
-        contentsType = EPdfContentsType::Unknown;
+        contentsType = PdfContentsType::Unknown;
         return false;
     }
 
-    if (contentsType == EPdfContentsType::Keyword && keyword == "BI")
+    if (contentsType == PdfContentsType::Keyword && keyword == "BI")
     {
         PdfDictionary dict;
         if (tryReadInlineImgDict(dict))
         {
             variant = dict;
-            contentsType = EPdfContentsType::ImageDictionary;
+            contentsType = PdfContentsType::ImageDictionary;
             m_readingInlineImgData = true;
             return true;
         }
         else
         {
-            contentsType = EPdfContentsType::Unknown;
+            contentsType = PdfContentsType::Unknown;
             return false;
         }
     }
@@ -134,26 +134,26 @@ bool PdfContentsTokenizer::TryReadNextVariant(PdfVariant& variant)
     return m_tokenizer.TryReadNextVariant(*m_device, variant);
 }
 
-bool PdfContentsTokenizer::tryReadNext(EPdfContentsType& type, string_view& keyword, PdfVariant& variant)
+bool PdfContentsTokenizer::tryReadNext(PdfContentsType& type, string_view& keyword, PdfVariant& variant)
 {
-    EPdfPostScriptTokenType psTokenType;
+    PdfPostScriptTokenType psTokenType;
     bool gotToken = m_tokenizer.TryReadNext(*m_device, psTokenType, keyword, variant);
     if (!gotToken)
     {
-        type = EPdfContentsType::Unknown;
+        type = PdfContentsType::Unknown;
         return false;
     }
 
     switch (psTokenType)
     {
-        case EPdfPostScriptTokenType::Keyword:
-            type = EPdfContentsType::Keyword;
+        case PdfPostScriptTokenType::Keyword:
+            type = PdfContentsType::Keyword;
             break;
-        case EPdfPostScriptTokenType::Variant:
-            type = EPdfContentsType::Variant;
+        case PdfPostScriptTokenType::Variant:
+            type = PdfContentsType::Variant;
             break;
         default:
-            PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidEnumValue, "Invalid token at this context");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Invalid token at this context");
     }
 
     return true;

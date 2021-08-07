@@ -56,8 +56,8 @@ PdfField::PdfField(PdfFieldType fieldType, PdfPage& page, const PdfRect& rect, b
 
     Init(page.GetDocument().GetAcroForm(true,
         bAppearanceNone ?
-        EPdfAcroFormDefaulAppearance::None
-        : EPdfAcroFormDefaulAppearance::BlackText12pt));
+        PdfAcroFormDefaulAppearance::None
+        : PdfAcroFormDefaulAppearance::BlackText12pt));
 }
 
 PdfField::PdfField(PdfFieldType fieldType, PdfObject& obj, PdfAnnotation* widget)
@@ -136,7 +136,7 @@ PdfField* PdfField::createField(PdfFieldType type, PdfObject& obj, PdfAnnotation
         case PdfFieldType::Signature:
             return new PdfSignature(obj, widget);
         default:
-            PDFMM_RAISE_ERROR(EPdfError::InvalidEnumValue);
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }
 }
 
@@ -234,7 +234,7 @@ void PdfField::Init(PdfAcroForm* parent)
         case PdfFieldType::Unknown:
         default:
         {
-            PDFMM_RAISE_ERROR(EPdfError::InternalLogic);
+            PDFMM_RAISE_ERROR(PdfErrorCode::InternalLogic);
         }
         break;
     }
@@ -263,7 +263,7 @@ void PdfField::AssertTerminalField() const
 {
     if (GetDictionary().HasKey("Kids"))
     {
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "This method can be called only on terminal field. Ensure this field has "
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "This method can be called only on terminal field. Ensure this field has "
             "not been retrieved from AcroFormFields collection or it's not a parent of terminal fields");
     }
 }
@@ -329,7 +329,7 @@ void PdfField::SetHighlightingMode(PdfHighlightingMode mode)
             break;
         case PdfHighlightingMode::Unknown:
         default:
-            PDFMM_RAISE_ERROR(EPdfError::InvalidName);
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidName);
             break;
     }
 

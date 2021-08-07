@@ -161,5 +161,5 @@ const PdfString& PdfFileSpec::GetFilename(bool canUnicode) const
     if (this->GetObject().GetDictionary().HasKey("F"))
         return this->GetObject().GetDictionary().MustFindKey("F").GetString();
 
-    PDFMM_RAISE_ERROR(EPdfError::InvalidDataType);
+    PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
 }

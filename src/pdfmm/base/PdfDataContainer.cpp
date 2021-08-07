@@ -7,7 +7,7 @@
  */
 
 #include <pdfmm/private/PdfDefinesPrivate.h>
-#include "PdfContainerDataType.h"
+#include "PdfDataContainer.h"
 
 #include "PdfDocument.h"
 #include "PdfObject.h"
@@ -15,52 +15,52 @@
 
 using namespace mm;
 
-PdfContainerDataType::PdfContainerDataType()
+PdfDataContainer::PdfDataContainer()
     : m_Owner(nullptr), m_IsImmutable(false)
 {
 }
 
 // NOTE: Don't copy owner. Copied objects must be always detached.
 // Ownership will be set automatically elsewhere
-PdfContainerDataType::PdfContainerDataType(const PdfContainerDataType& rhs)
-    : PdfDataType(rhs), m_Owner(nullptr), m_IsImmutable(false)
+PdfDataContainer::PdfDataContainer(const PdfDataContainer& rhs)
+    : PdfDataProvider(rhs), m_Owner(nullptr), m_IsImmutable(false)
 {
 }
 
-void PdfContainerDataType::ResetDirty()
+void PdfDataContainer::ResetDirty()
 {
     ResetDirtyInternal();
 }
 
-PdfObject& PdfContainerDataType::GetIndirectObject(const PdfReference& ref) const
+PdfObject& PdfDataContainer::GetIndirectObject(const PdfReference& ref) const
 {
     if (m_Owner == nullptr)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "Object is a reference but does not have an owner");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Object is a reference but does not have an owner");
 
     auto document = m_Owner->GetDocument();
     if (document == nullptr)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "Object owner is not part of any document");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Object owner is not part of any document");
 
     auto ret = document->GetObjects().GetObject(ref);
     if (ret == nullptr)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "Can't find reference with objnum: " + std::to_string(ref.ObjectNumber()) + ", gennum: " + std::to_string(ref.GenerationNumber()));
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Can't find reference with objnum: " + std::to_string(ref.ObjectNumber()) + ", gennum: " + std::to_string(ref.GenerationNumber()));
 
     return *ret;
 }
 
-void PdfContainerDataType::SetOwner(PdfObject* owner)
+void PdfDataContainer::SetOwner(PdfObject* owner)
 {
     PDFMM_ASSERT(owner != nullptr);
     m_Owner = owner;
 }
 
-void PdfContainerDataType::SetDirty()
+void PdfDataContainer::SetDirty()
 {
     if (m_Owner != nullptr)
         m_Owner->SetDirty();
 }
 
-bool PdfContainerDataType::IsIndirectReferenceAllowed(const PdfObject& obj)
+bool PdfDataContainer::IsIndirectReferenceAllowed(const PdfObject& obj)
 {
     PdfDocument* objDocument;
     if (obj.IsIndirect()
@@ -74,20 +74,20 @@ bool PdfContainerDataType::IsIndirectReferenceAllowed(const PdfObject& obj)
     return false;
 }
 
-PdfContainerDataType& PdfContainerDataType::operator=(const PdfContainerDataType& rhs)
+PdfDataContainer& PdfDataContainer::operator=(const PdfDataContainer& rhs)
 {
     // NOTE: Don't copy owner. Objects being assigned will keep current ownership
-    PdfDataType::operator=(rhs);
+    PdfDataProvider::operator=(rhs);
     return *this;
 }
 
-PdfDocument* PdfContainerDataType::GetObjectDocument()
+PdfDocument* PdfDataContainer::GetObjectDocument()
 {
     return m_Owner == nullptr ? nullptr : m_Owner->GetDocument();
 }
 
-void PdfContainerDataType::AssertMutable() const
+void PdfDataContainer::AssertMutable() const
 {
     if (IsImmutable())
-        PDFMM_RAISE_ERROR(EPdfError::ChangeOnImmutable);
+        PDFMM_RAISE_ERROR(PdfErrorCode::ChangeOnImmutable);
 }

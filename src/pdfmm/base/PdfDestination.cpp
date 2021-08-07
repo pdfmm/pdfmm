@@ -82,7 +82,7 @@ PdfDestination::PdfDestination(const PdfPage& page, PdfDestinationFit fit, doubl
     else if (fit == PdfDestinationFit::FitBV)
         type = PdfName("FitBV");
     else
-        PDFMM_RAISE_ERROR(EPdfError::InvalidKey);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidKey);
 
     m_array.push_back(page.GetObject().GetIndirectReference());
     m_array.push_back(type);
@@ -108,28 +108,28 @@ void PdfDestination::Init(PdfObject& obj, PdfDocument& doc)
     bool valueExpected = false;
     PdfObject* value = nullptr;
 
-    if (obj.GetDataType() == EPdfDataType::Array)
+    if (obj.GetDataType() == PdfDataType::Array)
     {
         m_array = obj.GetArray();
         m_Object = &obj;
     }
-    else if (obj.GetDataType() == EPdfDataType::String)
+    else if (obj.GetDataType() == PdfDataType::String)
     {
         PdfNamesTree* pNames = doc.GetNamesTree(false);
         if (!pNames)
         {
-            PDFMM_RAISE_ERROR(EPdfError::NoObject);
+            PDFMM_RAISE_ERROR(PdfErrorCode::NoObject);
         }
 
         value = pNames->GetValue("Dests", obj.GetString());
         valueExpected = true;
     }
-    else if (obj.GetDataType() == EPdfDataType::Name)
+    else if (obj.GetDataType() == PdfDataType::Name)
     {
         auto memDoc = dynamic_cast<PdfMemDocument*>(&doc);
         if (memDoc == nullptr)
         {
-            PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidHandle,
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle,
                 "For reading from a document, only use PdfMemDocument.");
         }
 
@@ -137,7 +137,7 @@ void PdfDestination::Init(PdfObject& obj, PdfDocument& doc)
         if (dests == nullptr)
         {
             // The error code has been chosen for its distinguishability.
-            PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidKey,
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidKey,
                 "No PDF-1.1-compatible destination dictionary found.");
         }
         value = dests->GetDictionary().FindKey(obj.GetName());
@@ -155,7 +155,7 @@ void PdfDestination::Init(PdfObject& obj, PdfDocument& doc)
     if (valueExpected)
     {
         if (value == nullptr)
-            PDFMM_RAISE_ERROR(EPdfError::InvalidName);
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidName);
 
         if (value->IsArray())
             m_array = value->GetArray();
@@ -175,7 +175,7 @@ void PdfDestination::AddToDictionary(PdfDictionary& dictionary) const
     // since we can only have EITHER a Dest OR an Action
     // we check for an Action, and if already present, we throw
     if (dictionary.HasKey("A"))
-        PDFMM_RAISE_ERROR(EPdfError::ActionAlreadyPresent);
+        PDFMM_RAISE_ERROR(PdfErrorCode::ActionAlreadyPresent);
 
     dictionary.AddKey("Dest", *m_Object);
 }
@@ -229,7 +229,7 @@ double PdfDestination::GetDValue() const
         && tp != PdfDestinationType::FitV
         && tp != PdfDestinationType::FitBH)
     {
-        PDFMM_RAISE_ERROR(EPdfError::WrongDestinationType);
+        PDFMM_RAISE_ERROR(PdfErrorCode::WrongDestinationType);
     }
 
     return m_array[2].GetReal();
@@ -243,7 +243,7 @@ double PdfDestination::GetLeft() const
         && tp != PdfDestinationType::XYZ
         && tp != PdfDestinationType::FitR)
     {
-        PDFMM_RAISE_ERROR(EPdfError::WrongDestinationType);
+        PDFMM_RAISE_ERROR(PdfErrorCode::WrongDestinationType);
     }
 
     return m_array[2].GetReal();
@@ -252,7 +252,7 @@ double PdfDestination::GetLeft() const
 PdfRect PdfDestination::GetRect() const
 {
     if (GetType() != PdfDestinationType::FitR)
-        PDFMM_RAISE_ERROR(EPdfError::WrongDestinationType);
+        PDFMM_RAISE_ERROR(PdfErrorCode::WrongDestinationType);
 
     return PdfRect(m_array[2].GetReal(), m_array[3].GetReal(),
         m_array[4].GetReal(), m_array[5].GetReal());
@@ -278,7 +278,7 @@ double PdfDestination::GetTop() const
         case PdfDestinationType::Unknown:
         default:
         {
-            PDFMM_RAISE_ERROR(EPdfError::WrongDestinationType);
+            PDFMM_RAISE_ERROR(PdfErrorCode::WrongDestinationType);
         }
     };
 }
@@ -286,7 +286,7 @@ double PdfDestination::GetTop() const
 double PdfDestination::GetZoom() const
 {
     if (GetType() != PdfDestinationType::XYZ)
-        PDFMM_RAISE_ERROR(EPdfError::WrongDestinationType);
+        PDFMM_RAISE_ERROR(PdfErrorCode::WrongDestinationType);
 
     return m_array[4].GetReal();
 }

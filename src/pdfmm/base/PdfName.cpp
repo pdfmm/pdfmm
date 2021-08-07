@@ -76,7 +76,7 @@ void PdfName::initFromUtf8String(const string_view& view)
 
     bool isPdfDocEncodingEqual;
     if (!PdfDocEncoding::CheckValidUTF8ToPdfDocEcondingChars(view, isPdfDocEncodingEqual))
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidName, "Characters in string must be PdfDocEncoding character set");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidName, "Characters in string must be PdfDocEncoding character set");
 
     if (isPdfDocEncodingEqual)
     {
@@ -156,7 +156,7 @@ string EscapeName(const string_view& view)
         // Null chars are illegal in names, even escaped
         if (ch == '\0')
         {
-            PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidName, "Null byte in PDF name is illegal");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidName, "Null byte in PDF name is illegal");
         }
         else
         {

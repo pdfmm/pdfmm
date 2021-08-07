@@ -11,7 +11,7 @@
 
 #include "PdfDefines.h"
 
-#include "PdfDataType.h"
+#include "PdfDataProvider.h"
 
 namespace mm {
 
@@ -27,7 +27,7 @@ class PdfName;
  *
  *  \see PdfObject \see PdfVariant
  */
-class PDFMM_API PdfName final : public PdfDataType
+class PDFMM_API PdfName final : public PdfDataProvider
 {
 public:
     /** Constructor to create nullptr strings.

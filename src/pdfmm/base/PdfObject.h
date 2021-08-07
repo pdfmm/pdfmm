@@ -24,7 +24,7 @@ class PdfVecObjects;
 class PdfDictionary;
 class PdfArray;
 class PdfDocument;
-class PdfContainerDataType;
+class PdfDataContainer;
 
 /**
  * This class represents a PDF indirect Object in memory
@@ -45,7 +45,7 @@ class PDFMM_API PdfObject
     friend class PdfDictionary;
     friend class PdfDocument;
     friend class PdfStream;
-    friend class PdfContainerDataType;
+    friend class PdfDataContainer;
     friend class PdfObjectStreamParser;
 
 public:
@@ -139,7 +139,7 @@ public:
     /** \returns the datatype of this object or EPdfDataType::Unknown
      *  if it does not have a value.
      */
-    EPdfDataType GetDataType() const;
+    PdfDataType GetDataType() const;
 
     /** \returns a human readable string representation of GetDataType()
      *  The returned string must not be free'd.
@@ -431,7 +431,7 @@ public:
      */
     inline const PdfReference& GetIndirectReference() const { return m_IndirectReference; }
 
-    inline const PdfContainerDataType* GetParent() const { return m_Parent; }
+    inline const PdfDataContainer* GetParent() const { return m_Parent; }
 
     /**
      * Retrieve if an object is immutable.
@@ -553,7 +553,7 @@ private:
     // Shared initialization between all the ctors
     void InitPdfObject();
 
-    inline void SetParent(PdfContainerDataType* parent) { m_Parent = parent; }
+    inline void SetParent(PdfDataContainer* parent) { m_Parent = parent; }
 
 protected:
     PdfVariant m_Variant;
@@ -561,7 +561,7 @@ protected:
 private:
     PdfReference m_IndirectReference;
     PdfDocument* m_Document;
-    PdfContainerDataType* m_Parent;
+    PdfDataContainer* m_Parent;
     bool m_IsDirty; // Indicates if this object was modified after construction
     bool m_IsImmutable; // Indicates if this object may be modified
 

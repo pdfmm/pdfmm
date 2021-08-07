@@ -29,16 +29,16 @@ namespace mm {
  *
  *  \see PdfError
  */
-enum class EPdfError
+enum class PdfErrorCode
 {
-    Unknown = -1,             /**< Unknown error */
-    ErrOk = 0,                /**< The default value indicating no error. */
+    Unknown = 0,             /**< Unknown error */
+    Ok,                      /**< The default value indicating no error. */
 
     TestFailed,               /**< Used in pdfmm tests, to indicate that a test failed for some reason. */
 
     InvalidHandle,            /**< Null pointer was passed, but null pointer is not allowed. */
     FileNotFound,             /**< A file was not found or cannot be opened. */
-    InvalidDeviceOperation,	/**< Tried to do something unsupported to an I/O device like seek a non-seekable input device */
+    InvalidDeviceOperation,	  /**< Tried to do something unsupported to an I/O device like seek a non-seekable input device */
     UnexpectedEOF,            /**< End of file was reached but data was expected. */
     OutOfMemory,              /**< Not enough memory to complete an operation. */
     ValueOutOfRange,          /**< The specified memory is out of the allowed range. */
@@ -137,7 +137,7 @@ enum class LogSeverity
  *  Evaluate `x' as a binary predicate and if it is true, raise a logic error with the
  *  info string `y' .
  */
-#define PDFMM_RAISE_LOGIC_IF( x, y ) { if (x) throw ::mm::PdfError( EPdfError::InternalLogic, __FILE__, __LINE__, y ); };
+#define PDFMM_RAISE_LOGIC_IF( x, y ) { if (x) throw ::mm::PdfError( PdfErrorCode::InternalLogic, __FILE__, __LINE__, y ); };
 
 class PDFMM_API PdfErrorInfo
 {
@@ -217,7 +217,7 @@ public:
      *         Use the compiler macro __LINE__ to initialize the field.
      *  \param information additional information on this error
      */
-    PdfError(const EPdfError& code, const char* file = nullptr, int line = 0,
+    PdfError(const PdfErrorCode& code, const char* file = nullptr, int line = 0,
         const char* information = nullptr);
 
     /** Create a PdfError object with a given error code.
@@ -228,7 +228,7 @@ public:
      *         Use the compiler macro __LINE__ to initialize the field.
      *  \param information additional information on this error
      */
-    explicit PdfError(const EPdfError& code, const char* file, int line,
+    explicit PdfError(const PdfErrorCode& code, const char* file, int line,
         const std::string_view& information);
 
     /** Copy constructor
@@ -246,7 +246,7 @@ public:
      *  \param code a EPdfError code
      *  \returns this object
      */
-    const PdfError& operator=(const EPdfError& code);
+    const PdfError& operator=(const PdfErrorCode& code);
 
     /** Comparison operator, compares 2 PdfError objects
      *  \param rhs another PdfError object
@@ -259,7 +259,7 @@ public:
      *  \param code an error code (value of the enum EPdfError)
      *  \returns true if this object has the same error code.
      */
-    bool operator==(const EPdfError& code);
+    bool operator==(const PdfErrorCode& code);
 
     /** Comparison operator, compares 2 PdfError objects
      *  \param rhs another PdfError object
@@ -272,12 +272,12 @@ public:
      *  \param code an error code (value of the enum EPdfError)
      *  \returns true if this object has a different error code.
      */
-    bool operator!=(const EPdfError& code);
+    bool operator!=(const PdfErrorCode& code);
 
     /** Return the error code of this object.
      *  \returns the error code of this object
      */
-    inline EPdfError GetError() const { return m_error; }
+    inline PdfErrorCode GetError() const { return m_error; }
 
     /** Get access to the internal callstack of this error.
      *  \returns the callstack deque of PdfErrorInfo objects.
@@ -296,7 +296,7 @@ public:
      *         e.g. how to fix the error. This string is intended to
      *         be shown to the user.
      */
-    void SetError(const EPdfError& code, const char* file, int line,
+    void SetError(const PdfErrorCode& code, const char* file, int line,
         const std::string_view& information);
 
     /** Set the error code of this object.
@@ -311,7 +311,7 @@ public:
      *         e.g. how to fix the error. This string is intended to
      *         be shown to the user.
      */
-    void SetError(const EPdfError& code, const char* file = nullptr, int line = 0, const char* information = nullptr);
+    void SetError(const PdfErrorCode& code, const char* file = nullptr, int line = 0, const char* information = nullptr);
 
     /** Set additional error information.
      *  \param information additional information on the error,
@@ -376,14 +376,14 @@ public:
      *  \returns the name or nullptr if no name for the specified
      *           error code is available.
      */
-    static const char* ErrorName(EPdfError code);
+    static const char* ErrorName(PdfErrorCode code);
 
     /** Get the error message for a certain error code.
      *  \returns the error message or nullptr if no error
      *           message for the specified error code
      *           is available.
      */
-    static const char* ErrorMessage(EPdfError code);
+    static const char* ErrorMessage(PdfErrorCode code);
 
     /** Log a message to the logging system defined for pdfmm.
      *  \param logSeverity the severity of the log message
@@ -445,7 +445,7 @@ private:
     static void LogMessageInternal(LogSeverity logSeverity, const wchar_t* msg, va_list& args);
 
 private:
-    EPdfError          m_error;
+    PdfErrorCode          m_error;
 
     TDequeErrorInfo    m_callStack;
 

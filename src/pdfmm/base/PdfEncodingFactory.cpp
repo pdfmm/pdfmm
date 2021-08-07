@@ -26,7 +26,7 @@ PdfEncoding PdfEncodingFactory::CreateEncoding(PdfObject& fontObj)
 {
     auto subTypeKey = fontObj.GetDictionary().GetKey(PdfName::KeySubtype);
     if (subTypeKey == nullptr)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidDataType, "Font: No SubType");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Font: No SubType");
 
     bool explicitNames = false;
     auto& subType = subTypeKey->GetName();

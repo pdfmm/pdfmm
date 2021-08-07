@@ -21,7 +21,7 @@ class PdfObject;
 
 /** An enum describing the type of a read token
  */
-enum class EPdfPostScriptTokenType
+enum class PdfPostScriptTokenType
 {
     Unknown = 0,
     Keyword, ///< The token is a PDF keyword.
@@ -38,7 +38,7 @@ public:
     PdfPostScriptTokenizer();
     PdfPostScriptTokenizer(const PdfRefCountedBuffer& buffer);
 public:
-    bool TryReadNext(PdfInputDevice& device, EPdfPostScriptTokenType& tokenType, std::string_view& keyword, PdfVariant& variant);
+    bool TryReadNext(PdfInputDevice& device, PdfPostScriptTokenType& tokenType, std::string_view& keyword, PdfVariant& variant);
     void ReadNextVariant(PdfInputDevice& device, PdfVariant& variant);
     bool TryReadNextVariant(PdfInputDevice& device, PdfVariant& variant);
 };

@@ -103,7 +103,7 @@ unsigned PdfFontTrueTypeSubset::GetTableOffset(unsigned tag)
         if (table.Tag == tag)
             return table.Offset;
     }
-    PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "table missing");
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "table missing");
 }
 
 void PdfFontTrueTypeSubset::GetNumberOfGlyphs()
@@ -199,7 +199,7 @@ void PdfFontTrueTypeSubset::InitTables()
     }
 
     if ((tableMask & ReqTable::all) == ReqTable::none)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::UnsupportedFontFormat, "Required TrueType table missing");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFontFormat, "Required TrueType table missing");
 }
 
 void PdfFontTrueTypeSubset::GetStartOfTTFOffsets()
@@ -222,7 +222,7 @@ void PdfFontTrueTypeSubset::GetStartOfTTFOffsets()
         break;
         case TrueTypeFontFileType::Unknown:
         default:
-            PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Invalid font type");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Invalid font type");
     }
 }
 
@@ -243,7 +243,7 @@ void PdfFontTrueTypeSubset::LoadGlyphs(GlyphContext& ctx, const CIDToGIDMap& use
     for (auto& pair : usedCodes)
     {
         if ((pair.first - prevCID) != 1)
-            PDFMM_RAISE_ERROR_INFO(EPdfError::ValueOutOfRange, "The cid to gid map should be starting with 1 have consecutive indices");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "The cid to gid map should be starting with 1 have consecutive indices");
 
         LoadGID(ctx, pair.second);
         prevCID = pair.first;
@@ -253,7 +253,7 @@ void PdfFontTrueTypeSubset::LoadGlyphs(GlyphContext& ctx, const CIDToGIDMap& use
 void PdfFontTrueTypeSubset::LoadGID(GlyphContext& ctx, unsigned gid)
 {
     if (gid >= m_glyphCount)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "GID out of range");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "GID out of range");
 
     if (m_GlyphMap.find(gid) != m_GlyphMap.end())
         return;
@@ -477,7 +477,7 @@ void PdfFontTrueTypeSubset::WriteTables(PdfRefCountedBuffer& buffer)
                 GetData(output, table.Offset, table.Length);
                 break;
             default:
-                PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidEnumValue, "Unsupported table at this context");
+                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Unsupported table at this context");
         }
 
         // Align the table length to 4 bytes and pad remaing space with zeroes
@@ -495,7 +495,7 @@ void PdfFontTrueTypeSubset::WriteTables(PdfRefCountedBuffer& buffer)
 
     // Check for head table
     if (!headOffset.has_value())
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "'head' table missing");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "'head' table missing");
 
     // As explained in the "Table Directory"
     // https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6.html#Directory

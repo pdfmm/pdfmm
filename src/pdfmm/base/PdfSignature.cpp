@@ -58,7 +58,7 @@ void PdfSignature::Init(PdfAcroForm& acroForm)
 void PdfSignature::SetSignerName(const PdfString& text)
 {
     if (m_ValueObj == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     m_ValueObj->GetDictionary().AddKey("Name", text);
 }
@@ -66,7 +66,7 @@ void PdfSignature::SetSignerName(const PdfString& text)
 void PdfSignature::SetSignatureReason(const PdfString& text)
 {
     if (m_ValueObj == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     m_ValueObj->GetDictionary().AddKey("Reason", text);
 }
@@ -74,7 +74,7 @@ void PdfSignature::SetSignatureReason(const PdfString& text)
 void PdfSignature::SetSignatureDate(const PdfDate& sigDate)
 {
     if (m_ValueObj == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     PdfString dateStr = sigDate.ToString();
     m_ValueObj->GetDictionary().AddKey("M", dateStr);
@@ -103,7 +103,7 @@ void PdfSignature::PrepareForSigning(const string_view& filter,
 void PdfSignature::SetSignatureLocation(const PdfString& text)
 {
     if (m_ValueObj == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     m_ValueObj->GetDictionary().AddKey("Location", text);
 }
@@ -111,7 +111,7 @@ void PdfSignature::SetSignatureLocation(const PdfString& text)
 void PdfSignature::SetSignatureCreator(const PdfName& creator)
 {
     if (m_ValueObj == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     if (m_ValueObj->GetDictionary().HasKey("Prop_Build"))
     {
@@ -133,10 +133,10 @@ void PdfSignature::SetSignatureCreator(const PdfName& creator)
     app->GetDictionary().AddKey("Name", creator);
 }
 
-void PdfSignature::AddCertificationReference(PdfObject* documentCatalog, EPdfCertPermission perm)
+void PdfSignature::AddCertificationReference(PdfCertPermission perm)
 {
     if (m_ValueObj == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     m_ValueObj->GetDictionary().RemoveKey("Reference");
 
@@ -148,12 +148,10 @@ void PdfSignature::AddCertificationReference(PdfObject* documentCatalog, EPdfCer
     transParams->GetDictionary().AddKey("P", PdfObject((int64_t)perm));
     sigRef->GetDictionary().AddKey("TransformParams", *transParams);
 
-    if (documentCatalog != nullptr)
-    {
-        PdfObject permObject;
-        permObject.GetDictionary().AddKey("DocMDP", this->GetObject().GetDictionary().GetKey("V")->GetReference());
-        documentCatalog->GetDictionary().AddKey("Perms", permObject);
-    }
+    auto& catalog = GetObject().GetDocument()->GetCatalog();
+    PdfObject permObject;
+    permObject.GetDictionary().AddKey("DocMDP", this->GetObject().GetDictionary().GetKey("V")->GetReference());
+    catalog.GetDictionary().AddKey("Perms", permObject);
 
     PdfArray refers;
     refers.push_back(*sigRef);
@@ -205,7 +203,7 @@ void PdfSignature::EnsureSignatureObject()
 
     m_ValueObj = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject("Sig");
     if (m_ValueObj == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     GetObject().GetDictionary().AddKey("V", m_ValueObj->GetIndirectReference());
 }

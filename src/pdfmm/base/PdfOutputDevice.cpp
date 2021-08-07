@@ -33,7 +33,7 @@ PdfOutputDevice::PdfOutputDevice(const string_view& filename, bool truncate)
     if (stream->fail())
     {
         delete stream;
-        PDFMM_RAISE_ERROR_INFO(EPdfError::FileNotFound, (std::string)filename);
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::FileNotFound, (std::string)filename);
     }
 
     m_Stream = stream;
@@ -52,7 +52,7 @@ PdfOutputDevice::PdfOutputDevice(char* buffer, size_t len)
     this->Init();
 
     if (buffer == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     m_BufferLen = len;
     m_Buffer = buffer;
@@ -125,7 +125,7 @@ void PdfOutputDevice::Print(const char* format, va_list args)
     if (rc < 0)
     {
         va_end(argscopy);
-        PDFMM_RAISE_ERROR(EPdfError::InvalidDataType);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
     }
 
     try
@@ -144,7 +144,7 @@ void PdfOutputDevice::Print(const char* format, va_list args)
 void PdfOutputDevice::PrintV(const char* format, size_t size, va_list args)
 {
     if (format == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     if (m_Buffer != nullptr)
     {
@@ -154,7 +154,7 @@ void PdfOutputDevice::PrintV(const char* format, size_t size, va_list args)
         }
         else
         {
-            PDFMM_RAISE_ERROR(EPdfError::OutOfMemory);
+            PDFMM_RAISE_ERROR(PdfErrorCode::OutOfMemory);
         }
     }
     else if (m_Stream != nullptr || m_RefCountedBuffer != nullptr)
@@ -166,7 +166,7 @@ void PdfOutputDevice::PrintV(const char* format, size_t size, va_list args)
         {
             m_Stream->write(m_printBuffer.data(), size);
             if (m_Stream->fail())
-                PDFMM_RAISE_ERROR(EPdfError::InvalidDeviceOperation);
+                PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDeviceOperation);
         }
         else // m_RefCountedBuffer
         {
@@ -198,7 +198,7 @@ size_t PdfOutputDevice::Read(char* buffer, size_t len)
         size_t iPos = (size_t)m_ReadStream->tellg();
         m_ReadStream->read(buffer, len);
         if (m_ReadStream->fail() && !m_ReadStream->eof())
-            PDFMM_RAISE_ERROR(EPdfError::InvalidDeviceOperation);
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDeviceOperation);
 
         numRead = (size_t)m_ReadStream->tellg();
         numRead -= iPos;
@@ -226,7 +226,7 @@ void PdfOutputDevice::Write(const char* buffer, size_t len)
         }
         else
         {
-            PDFMM_RAISE_ERROR_INFO(EPdfError::OutOfMemory, "Allocated buffer to small for PdfOutputDevice. Cannot write!");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, "Allocated buffer to small for PdfOutputDevice. Cannot write!");
         }
     }
     else if (m_Stream != nullptr)
@@ -256,7 +256,7 @@ void PdfOutputDevice::Seek(size_t offset)
     {
         if (offset >= m_BufferLen)
         {
-            PDFMM_RAISE_ERROR(EPdfError::ValueOutOfRange);
+            PDFMM_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
         }
     }
     else if (m_Stream != nullptr)

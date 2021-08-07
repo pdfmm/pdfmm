@@ -41,7 +41,7 @@ void PdfStreamedDocument::Close()
 {
     // TODO: Check if this works correctly
     // makes sure pending subset-fonts are embedded
-    GetFontCache().EmbedSubsetFonts();
+    GetFontManager().EmbedSubsetFonts();
 
     this->GetObjects().Finish();
 }

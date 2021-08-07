@@ -35,7 +35,7 @@ void PdfEncodingMap::getExportObject(PdfVecObjects& objects, PdfName& name, PdfO
     (void)objects;
     (void)name;
     (void)obj;
-    PDFMM_RAISE_ERROR(EPdfError::NotImplemented);
+    PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);
 }
 
 bool PdfEncodingMap::TryGetNextCharCode(string_view::iterator& it, const string_view::iterator& end, PdfCharCode& code) const
@@ -67,12 +67,12 @@ bool PdfEncodingMap::TryGetNextCharCode(string_view::iterator& it, const string_
 
 bool PdfEncodingMap::tryGetNextCharCode(std::string_view::iterator& it, const std::string_view::iterator& end, PdfCharCode& codeUnit) const
 {
-    PDFMM_RAISE_ERROR(EPdfError::NotImplemented);
+    PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);
 }
 
 bool PdfEncodingMap::tryGetCharCodeSpan(const cspan<char32_t>& ligature, PdfCharCode& codeUnit) const
 {
-    PDFMM_RAISE_ERROR(EPdfError::NotImplemented);
+    PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);
 }
 
 bool PdfEncodingMap::TryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const
@@ -207,7 +207,7 @@ bool PdfEncodingMap::HasLigaturesSupport() const
 void PdfEncodingMap::WriteToUnicodeCMap(PdfObject& cmapObj) const
 {
     if (m_limits.MaxCodeSize > 1)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::NotImplemented, "TODO");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "TODO");
 
     // CMap specification is in Adobe technical node #5014
     // The /ToUnicode dictionary doesn't need /CMap type, /CIDSystemInfo or /CMapName
@@ -286,7 +286,7 @@ PdfEncodingMapBase::PdfEncodingMapBase(const shared_ptr<PdfCharCodeMap>& map)
     : PdfEncodingMap({ }), m_charMap(map)
 {
     if (map == nullptr)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "Map must be not null");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Map must be not null");
 }
 
 bool PdfEncodingMapBase::tryGetNextCharCode(string_view::iterator& it, const string_view::iterator& end,
@@ -314,7 +314,7 @@ void PdfEncodingMapBase::appendBaseFontEntries(PdfStream& stream) const
 {
     // Very easy, just do a list of bfchar
     // Use PdfEncodingMap::AppendUTF16CodeTo
-    PDFMM_RAISE_ERROR_INFO(EPdfError::NotImplemented, "TODO");
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "TODO");
 }
 
 PdfEncodingLimits PdfEncodingMapBase::findLimits(const PdfCharCodeMap& map)
@@ -383,7 +383,7 @@ void PdfEncodingMapSimple::appendBaseFontEntries(PdfStream& stream) const
     for (; code < lastCode; code++)
     {
         if (!TryGetCodePoints(PdfCharCode(code), codePoints))
-            PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidFontFile, "Unable to find character code");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "Unable to find character code");
 
         AppendUTF16CodeTo(stream, codePoints, u16tmp);
         stream.Append("\n");
@@ -396,17 +396,17 @@ PdfDummyEncodingMap::PdfDummyEncodingMap() : PdfEncodingMap({ }) { }
 
 bool PdfDummyEncodingMap::tryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const
 {
-    PDFMM_RAISE_ERROR_INFO(EPdfError::NotImplemented, "PdfDynamicEncoding can't be used only from a PdfFont")
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "PdfDynamicEncoding can't be used only from a PdfFont")
 }
 
 bool PdfDummyEncodingMap::tryGetCodePoints(const PdfCharCode& codeUnit, vector<char32_t>& codePoints) const
 {
-    PDFMM_RAISE_ERROR_INFO(EPdfError::NotImplemented, "PdfDynamicEncoding can't be used only from a PdfFont")
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "PdfDynamicEncoding can't be used only from a PdfFont")
 }
 
 void PdfDummyEncodingMap::appendBaseFontEntries(PdfStream& stream) const
 {
-    PDFMM_RAISE_ERROR_INFO(EPdfError::NotImplemented, "PdfDynamicEncoding can't be used only from a PdfFont")
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "PdfDynamicEncoding can't be used only from a PdfFont")
 }
 
 PdfEncodingLimits::PdfEncodingLimits(unsigned char minCodeSize, unsigned char maxCodeSize,

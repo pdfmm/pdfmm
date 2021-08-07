@@ -41,7 +41,7 @@ PdfAction::PdfAction(PdfDocument& doc, PdfActionType action)
     const PdfName type = PdfName(TypeNameForIndex((unsigned)action, s_names, std::size(s_names)));
 
     if (type.GetLength() == 0)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     this->GetObject().GetDictionary().AddKey("S", type);
 }
@@ -90,7 +90,7 @@ void PdfAction::AddToDictionary(PdfDictionary& dictionary) const
     // since we can only have EITHER a Dest OR an Action
     // we check for an Action, and if already present, we throw
     if (dictionary.HasKey("Dest"))
-        PDFMM_RAISE_ERROR(EPdfError::ActionAlreadyPresent);
+        PDFMM_RAISE_ERROR(PdfErrorCode::ActionAlreadyPresent);
 
     dictionary.AddKey("A", this->GetObject());
 }

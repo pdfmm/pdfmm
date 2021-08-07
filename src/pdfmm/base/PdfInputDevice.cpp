@@ -27,11 +27,11 @@ PdfInputDevice::PdfInputDevice(const string_view& filename)
     : PdfInputDevice()
 {
     if (filename.length() == 0)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     m_Stream = new ifstream(io::open_ifstream(filename, ios_base::in | ios_base::binary));
     if (m_Stream->fail())
-        PDFMM_RAISE_ERROR_INFO(EPdfError::FileNotFound, filename.data());
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::FileNotFound, filename.data());
 
     m_StreamOwned = true;
 }
@@ -40,7 +40,7 @@ PdfInputDevice::PdfInputDevice(const char* buffer, size_t len)
     : PdfInputDevice()
 {
     if (len != 0 && buffer == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     // TODO: Optimize me, offer a version that does not copy the buffer
     m_Stream = new istringstream(string(buffer, len), ios::binary);
@@ -52,7 +52,7 @@ PdfInputDevice::PdfInputDevice(istream& stream)
 {
     m_Stream = &stream;
     if (!m_Stream->good())
-        PDFMM_RAISE_ERROR(EPdfError::FileNotFound);
+        PDFMM_RAISE_ERROR(PdfErrorCode::FileNotFound);
 }
 
 PdfInputDevice::PdfInputDevice(const PdfStream& stream)
@@ -84,7 +84,7 @@ int PdfInputDevice::GetChar()
     if (TryGetChar(ch))
         return -1;
     else
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidDeviceOperation, "Failed to read the current character");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to read the current character");
 }
 
 bool PdfInputDevice::TryGetChar(char& ch)
@@ -97,7 +97,7 @@ bool PdfInputDevice::TryGetChar(char& ch)
 
     int intch = m_Stream->peek();
     if (m_Stream->fail())
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidDeviceOperation, "Failed to read the current character");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to read the current character");
 
     if (intch == char_traits<char>::eof())
     {
@@ -119,7 +119,7 @@ int PdfInputDevice::Look()
 
     int ch = m_Stream->peek();
     if (m_Stream->fail())
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidDeviceOperation, "Failed to peek current character");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to peek current character");
 
     return ch;
 }
@@ -142,7 +142,7 @@ size_t PdfInputDevice::Tell()
         ret = m_Stream->tellg();
     }
     if (m_Stream->fail())
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidDeviceOperation, "Failed to get current position in the stream");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to get current position in the stream");
 
     return (size_t)ret;
 }
@@ -155,13 +155,13 @@ void PdfInputDevice::Seek(streamoff off, ios_base::seekdir dir)
 void PdfInputDevice::seek(streamoff off, ios_base::seekdir dir)
 {
     if (!IsSeekable())
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidDeviceOperation, "Tried to seek an unseekable input device.");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Tried to seek an unseekable input device.");
 
     // NOTE: Some c++ libraries don't reset eofbit prior seeking
     m_Stream->clear(m_Stream->rdstate() & ~ios_base::eofbit);
     m_Stream->seekg(off, dir);
     if (m_Stream->fail())
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidDeviceOperation, "Failed to seek to given position in the stream");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to seek to given position in the stream");
 }
 
 size_t PdfInputDevice::Read(char* buffer, size_t size)

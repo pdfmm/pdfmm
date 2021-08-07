@@ -68,7 +68,7 @@ PdfFont::~PdfFont() { }
 void PdfFont::initBase(const PdfEncoding& encoding)
 {
     if (m_Metrics == nullptr)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "Metrics must me not null");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Metrics must me not null");
 
     if (encoding.GetId() == DynamicEncodingId)
     {
@@ -198,12 +198,12 @@ void PdfFont::EmbedFontSubset()
 
 void PdfFont::embedFont()
 {
-    PDFMM_RAISE_ERROR_INFO(EPdfError::NotImplemented, "Embedding not implemented for this font type.");
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "Embedding not implemented for this font type.");
 }
 
 void PdfFont::embedFontSubset()
 {
-    PDFMM_RAISE_ERROR_INFO(EPdfError::NotImplemented, "Subsetting not implemented for this font type.");
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "Subsetting not implemented for this font type.");
 }
 
 double PdfFont::GetStringWidth(const string_view& view, const PdfTextState& state) const
@@ -402,7 +402,7 @@ PdfCID PdfFont::AddUsedGID(unsigned gid, const cspan<char32_t>& codePoints)
 
     if (m_IsEmbedded)
     {
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic,
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic,
             "Can't add more subsetting glyphs on an already embedded font");
     }
 
@@ -414,7 +414,7 @@ PdfCID PdfFont::AddUsedGID(unsigned gid, const cspan<char32_t>& codePoints)
 
         PdfCharCode codeUnit;
         if (!m_Encoding->GetToUnicodeMap().TryGetCharCode(codePoints, codeUnit))
-            PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidFontFile, "The encoding doesn't support these characters");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "The encoding doesn't support these characters");
 
         // We start numberings CIDs from 1 since
         // CID 0 is reserved for fallbacks
@@ -423,7 +423,7 @@ PdfCID PdfFont::AddUsedGID(unsigned gid, const cspan<char32_t>& codePoints)
     }
     else
     {
-        PDFMM_RAISE_ERROR_INFO(EPdfError::NotImplemented, "TODO");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "TODO");
     }
 }
 

@@ -39,7 +39,7 @@ PdfXRefStream::PdfXRefStream(PdfWriter& writer, PdfVecObjects& parent) :
 uint64_t PdfXRefStream::GetOffset() const
 {
     if (m_offset < 0)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "XRefStm has not been written yet");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "XRefStm has not been written yet");
 
     return (uint64_t)m_offset;
 }
@@ -78,7 +78,7 @@ void PdfXRefStream::WriteXRefEntry(PdfOutputDevice&, const PdfXRefEntry& entry)
             stmEntry.Variant = AS_BIG_ENDIAN(static_cast<uint32_t>(entry.Offset));
             break;
         default:
-            PDFMM_RAISE_ERROR(EPdfError::InvalidEnumValue);
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }
 
     stmEntry.Generation = AS_BIG_ENDIAN(static_cast<uint16_t>(entry.Generation));

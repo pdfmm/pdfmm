@@ -44,7 +44,7 @@ PdfEncoding::PdfEncoding(size_t id, const PdfEncodingMapConstPtr& encoding, cons
     : m_Id(id), m_Encoding(encoding), m_ToUnicode(toUnicode)
 {
     if (encoding == nullptr)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "Main encoding must be not null");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Main encoding must be not null");
 }
 
 PdfEncoding::PdfEncoding(const PdfObject& fontObj, const PdfEncodingMapConstPtr& encoding, const PdfEncodingMapConstPtr& toUnicode)
@@ -86,7 +86,7 @@ string PdfEncoding::ConvertToEncoded(const string_view& str) const
 {
     string ret;
     if (!TryConvertToEncoded(str, ret))
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "The provided string can't be converted to CID encoding");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The provided string can't be converted to CID encoding");
 
     return ret;
 }
@@ -301,7 +301,7 @@ const PdfCharCode& PdfEncoding::GetFirstChar() const
 {
     auto& limits = getActualLimits();
     if (limits.FirstChar.Code > limits.LastChar.Code)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::ValueOutOfRange, "FirstChar shall be smaller than LastChar");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "FirstChar shall be smaller than LastChar");
 
     return limits.FirstChar;
 }
@@ -310,7 +310,7 @@ const PdfCharCode& PdfEncoding::GetLastChar() const
 {
     auto& limits = getActualLimits();
     if (limits.FirstChar.Code > limits.LastChar.Code)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::ValueOutOfRange, "FirstChar shall be smaller than LastChar");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "FirstChar shall be smaller than LastChar");
 
     return limits.LastChar;
 }
@@ -323,7 +323,7 @@ void PdfEncoding::ExportToDictionary(PdfDictionary& dictionary, PdfEncodingExpor
         auto& usedGids = font.GetUsedGIDs();
         auto cmapObj = dictionary.GetOwner()->GetDocument()->GetObjects().CreateDictionaryObject();
         if (getActualLimits().MaxCodeSize > 1)
-            PDFMM_RAISE_ERROR_INFO(EPdfError::NotImplemented, "TODO");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "TODO");
         fillCIDToGIDMap(*cmapObj, usedGids, font.GetBaseFont());
         dictionary.AddKeyIndirect("Encoding", cmapObj);
     }
@@ -355,7 +355,7 @@ bool PdfEncoding::IsNull() const
 
 PdfFont& PdfEncoding::GetFont() const
 {
-    PDFMM_RAISE_ERROR_INFO(EPdfError::NotImplemented, "The encoding has not been binded to a font");
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "The encoding has not been binded to a font");
 }
 
 char32_t PdfEncoding::GetCodePoint(const PdfCharCode& codeUnit) const

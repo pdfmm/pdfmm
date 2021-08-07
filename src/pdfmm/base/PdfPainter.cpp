@@ -53,7 +53,7 @@ inline bool IsSpaceChar(char32_t ch)
     return isspace(ch) != 0;
 }
 
-PdfPainter::PdfPainter(EPdfPainterFlags flags) :
+PdfPainter::PdfPainter(PdfPainterFlags flags) :
     m_flags(flags),
     m_stream(nullptr),
     m_canvas(nullptr),
@@ -136,7 +136,7 @@ void PdfPainter::finishDrawing()
 {
     if (m_stream != nullptr)
     {
-        if ((m_flags & EPdfPainterFlags::NoSaveRestorePrior) == EPdfPainterFlags::NoSaveRestorePrior)
+        if ((m_flags & PdfPainterFlags::NoSaveRestorePrior) == PdfPainterFlags::NoSaveRestorePrior)
         {
             // GetLength() must be called before BeginAppend()
             if (m_stream->GetLength() == 0)
@@ -171,7 +171,7 @@ void PdfPainter::finishDrawing()
             }
         }
 
-        if ((m_flags & EPdfPainterFlags::NoSaveRestore) == EPdfPainterFlags::NoSaveRestore)
+        if ((m_flags & PdfPainterFlags::NoSaveRestore) == PdfPainterFlags::NoSaveRestore)
         {
             m_stream->Append(m_tmpStream.str());
         }
@@ -276,7 +276,7 @@ void PdfPainter::SetStrokingColor(const PdfColor& color)
         case PdfColorSpace::Unknown:
         case PdfColorSpace::Indexed:
         {
-            PDFMM_RAISE_ERROR(EPdfError::CannotConvertColor);
+            PDFMM_RAISE_ERROR(PdfErrorCode::CannotConvertColor);
         }
     }
 }
@@ -330,7 +330,7 @@ void PdfPainter::SetColor(const PdfColor& color)
         case PdfColorSpace::Unknown:
         case PdfColorSpace::Indexed:
         {
-            PDFMM_RAISE_ERROR(EPdfError::CannotConvertColor);
+            PDFMM_RAISE_ERROR(PdfErrorCode::CannotConvertColor);
         }
     }
 }
@@ -449,12 +449,12 @@ void PdfPainter::SetStrokeStyle(PdfStrokeStyle strokeStyle, const string_view& c
         }
         default:
         {
-            PDFMM_RAISE_ERROR(EPdfError::InvalidStrokeStyle);
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidStrokeStyle);
         }
     }
 
     if (!have)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidStrokeStyle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidStrokeStyle);
 
     if (inverted && strokeStyle != PdfStrokeStyle::Solid && strokeStyle != PdfStrokeStyle::Custom)
         m_tmpStream << " 0";
@@ -645,7 +645,7 @@ void PdfPainter::DrawText(double x, double y, const string_view& str)
 {
     CheckStream();
     if (m_Font == nullptr)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "Font should be set prior calling the method");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Font should be set prior calling the method");
 
     auto expStr = this->ExpandTabs(str);
     this->AddToPageResources(m_Font->GetIdentifier(), m_Font->GetObject().GetIndirectReference(), "Font");
@@ -697,10 +697,10 @@ void PdfPainter::BeginText(double x, double y)
 {
     CheckStream();
     if (m_Font == nullptr)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "Font should be set prior calling the method");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Font should be set prior calling the method");
 
     if (m_isTextOpen)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Text writing is already opened");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Text writing is already opened");
 
     this->AddToPageResources(m_Font->GetIdentifier(), m_Font->GetObject().GetIndirectReference(), "Font");
 
@@ -724,10 +724,10 @@ void PdfPainter::MoveTextPos(double x, double y)
 {
     CheckStream();
     if (m_Font == nullptr)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "Font should be set prior calling the method");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Font should be set prior calling the method");
 
     if (!m_isTextOpen)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Text writing is not opened");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Text writing is not opened");
 
     m_tmpStream << x << " " << y << " Td" << std::endl;
 }
@@ -736,10 +736,10 @@ void PdfPainter::AddText(const string_view& str)
 {
     CheckStream();
     if (m_Font == nullptr)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "Font should be set prior calling the method");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Font should be set prior calling the method");
 
     if (!m_isTextOpen)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Text writing is not opened");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Text writing is not opened");
 
     auto expStr = this->ExpandTabs(str);
 
@@ -753,10 +753,10 @@ void PdfPainter::EndText()
 {
     CheckStream();
     if (m_Font == nullptr)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "Font should be set prior calling the method");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Font should be set prior calling the method");
 
     if (!m_isTextOpen)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Text writing is not opened");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Text writing is not opened");
 
     m_tmpStream << "ET\n";
     m_isTextOpen = false;
@@ -767,7 +767,7 @@ void PdfPainter::DrawMultiLineText(double x, double y, double width, double heig
 {
     CheckStream();
     if (m_Font == nullptr)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "Font should be set prior calling the method");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Font should be set prior calling the method");
 
     if (width <= 0.0 || height <= 0.0) // nonsense arguments
         return;
@@ -980,7 +980,7 @@ void PdfPainter::DrawTextAligned(double x, double y, double width, const string_
 {
     CheckStream();
     if (m_Font == nullptr)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "Font should be set prior calling the method");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Font should be set prior calling the method");
 
     if (width <= 0.0) // nonsense arguments
         return;
@@ -1418,7 +1418,7 @@ void PdfPainter::Restore()
 void PdfPainter::AddToPageResources(const PdfName& identifier, const PdfReference& ref, const PdfName& name)
 {
     if (m_canvas == nullptr)
-        PDFMM_RAISE_ERROR(EPdfError::InvalidHandle);
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     m_canvas->AddResource(identifier, ref, name);
 }
@@ -1576,7 +1576,7 @@ void PdfPainter::CheckStream()
         return;
 
     PDFMM_RAISE_LOGIC_IF(m_canvas == nullptr, "Call SetCanvas() first before doing drawing operations");
-    m_stream = &m_canvas->GetStreamForAppending((EPdfStreamAppendFlags)(m_flags & (~EPdfPainterFlags::NoSaveRestore)));
+    m_stream = &m_canvas->GetStreamForAppending((EPdfStreamAppendFlags)(m_flags & (~PdfPainterFlags::NoSaveRestore)));
 }
 
 string expandTabs(const string_view& str, unsigned tabWidth, unsigned tabCount)

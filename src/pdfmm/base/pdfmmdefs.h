@@ -23,7 +23,7 @@
  *
  * Usage examples:
  *
- * class PDFMM_API PdfArray : public PdfDataType {
+ * class PDFMM_API PdfArray : public PdfDataContainer {
  *     ...
  * };
  *

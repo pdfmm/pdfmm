@@ -36,5 +36,5 @@ void PdfFontType3::initImported()
 void PdfFontType3::embedFontFile(PdfObject& descriptor)
 {
     (void)descriptor;
-    PDFMM_RAISE_ERROR(EPdfError::UnsupportedFontFormat);
+    PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFontFormat);
 }
