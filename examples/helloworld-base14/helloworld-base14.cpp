@@ -26,27 +26,27 @@
 #include <iostream>
 
 /*
- * Now include all podofo header files, to have access
- * to all functions of podofo and so that you do not have
+ * Now include all pdfmm header files, to have access
+ * to all functions of pdfmm and so that you do not have
  * to care about the order of includes.
  *
- * You should always use podofo.h and not try to include
+ * You should always use pdfmm.h and not try to include
  * the required headers on your own.
  */
-#include <podofo.h>
+#include <pdfmm.h>
 
 /*
- * All podofo classes are member of the PoDoFo namespace.
+ * All pdfmm classes are member of the pdfmm namespace.
  */
-using namespace PoDoFo;
+using namespace pdfmm;
 
 
 
 void PrintHelp()
 {
-    std::cout << "This is a example application for the PoDoFo PDF library." << std::endl
+    std::cout << "This is a example application for the pdfmm PDF library." << std::endl
               << "It creates a small PDF file containing the text >Hello World!<" << std::endl
-              << "Please see http://podofo.sf.net for more information" << std::endl << std::endl;
+              << "Please see https://github.com/pdfmm/pdfmm for more information" << std::endl << std::endl;
     std::cout << "Usage:" << std::endl;
     std::cout << "  examplehelloworld [outputfile.pdf]" << std::endl << std::endl;
 }
@@ -80,7 +80,7 @@ void HelloWorld( const char* pszFilename )
 
 	/*
      * A PdfFont object is required to draw text on a PdfPage using a PdfPainter.
-     * PoDoFo will find the font using fontconfig on your system and embedd truetype
+     * pdfmm will find the font using fontconfig on your system and embedd truetype
      * fonts automatically in the PDF file.
      */     
     PdfFont* pFont;
@@ -105,7 +105,7 @@ void HelloWorld( const char* pszFilename )
 		 */
 		if( !pPage ) 
 		{
-			PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+			PDFMM_RAISE_ERROR( ePdfError_InvalidHandle );
 		}
 
 		/*
@@ -128,7 +128,7 @@ void HelloWorld( const char* pszFilename )
 		 */
 		if( !pFont )
 		{
-			PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
+			PDFMM_RAISE_ERROR( ePdfError_InvalidHandle );
 		}
 
 		/*
@@ -159,7 +159,7 @@ void HelloWorld( const char* pszFilename )
 		 * 
 		 * The position specifies the start of the baseline of the text.
 		 *
-		 * All coordinates in PoDoFo are in PDF units.
+		 * All coordinates in pdfmm are in PDF units.
 		 * You can also use PdfPainterMM which takes coordinates in 1/1000th mm.
 		 *
 		 */
@@ -176,7 +176,7 @@ void HelloWorld( const char* pszFilename )
 
 	} catch ( PdfError & e ) {
 		/*
-		 * All PoDoFo methods may throw exceptions
+		 * All pdfmm methods may throw exceptions
 		 * make sure that painter.FinishPage() is called
 		 * or who will get an assert in its destructor
 		 */
@@ -207,12 +207,12 @@ int main( int argc, char* argv[] )
     }
 
     /*
-     * All podofo functions will throw an exception in case of an error.
+     * All pdfmm functions will throw an exception in case of an error.
      *
      * You should catch the exception to either fix it or report
      * back to the user.
      *
-     * All exceptions podofo throws are objects of the class PdfError.
+     * All exceptions pdfmm throws are objects of the class PdfError.
      * Thats why we simply catch PdfError objects.
      */
     try {

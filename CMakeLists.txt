@@ -1,20 +1,15 @@
 cmake_minimum_required(VERSION 3.16)
 
-#*****************  IMPORTANT  ************* IMPORTANT **********************
-# Look at http://www.vtk.org/Wiki/CMake_HowToDoPlatformChecks
-# and the other wiki entries before you add anything. You might not need to.
-#****************************************************************************
-
 #
 # Project name and version
 #
-project(PoDoFo)
+project(pdfmm)
 
-set(PODOFO_VERSION_MAJOR "0" CACHE STRING "Major part of PoDoFo version number")
-set(PODOFO_VERSION_MINOR "9" CACHE STRING "Minor part of PoDoFo version number")
-set(PODOFO_VERSION_PATCH "6" CACHE STRING "Patchlevel part of PoDoFo version number")
-set(PODOFO_SOVERSION "${PODOFO_VERSION_MAJOR}.${PODOFO_VERSION_MINOR}.${PODOFO_VERSION_PATCH}")
-set(PODOFO_LIBVERSION "${PODOFO_SOVERSION}")
+set(PDFMM_VERSION_MAJOR "0" CACHE STRING "Major part of pdfmm version number")
+set(PDFMM_VERSION_MINOR "9" CACHE STRING "Minor part of pdfmm version number")
+set(PDFMM_VERSION_PATCH "20" CACHE STRING "Patchlevel part of pdfmm version number")
+set(PDFMM_SOVERSION "${PDFMM_VERSION_MAJOR}.${PDFMM_VERSION_MINOR}.${PDFMM_VERSION_PATCH}")
+set(PDFMM_LIBVERSION "${PDFMM_SOVERSION}")
 
 
 #
@@ -34,33 +29,33 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 # Builds must use this CMakeLists.txt, not the one in src/ or somewhere else.
 # If users try to use something else the results can be confusing. We set a
 # variable here that we require to be set elsewhere, otherwise we'll complain.
-set(PODOFO_MAIN_CMAKELISTS_READ TRUE)
+set(PDFMM_MAIN_CMAKELISTS_READ TRUE)
 
 # If the user hasn't told use specifically what they want, build only
 # a static library or only a shared library on Windows.
-if(NOT DEFINED PODOFO_BUILD_SHARED AND NOT DEFINED PODOFO_BUILD_STATIC)
+if(NOT DEFINED PDFMM_BUILD_SHARED AND NOT DEFINED PDFMM_BUILD_STATIC)
     if(WIN32)
-        set(PODOFO_BUILD_STATIC FALSE)
-        set(PODOFO_BUILD_SHARED TRUE)
+        set(PDFMM_BUILD_STATIC FALSE)
+        set(PDFMM_BUILD_SHARED TRUE)
     else(WIN32)
-        set(PODOFO_BUILD_STATIC TRUE)
-        set(PODOFO_BUILD_SHARED FALSE)
+        set(PDFMM_BUILD_STATIC TRUE)
+        set(PDFMM_BUILD_SHARED FALSE)
     endif(WIN32)
-endif(NOT DEFINED PODOFO_BUILD_SHARED AND NOT DEFINED PODOFO_BUILD_STATIC)
-if(DEFINED PODOFO_BUILD_SHARED AND NOT DEFINED PODOFO_BUILD_STATIC)
-    if(PODOFO_BUILD_SHARED)
-        set(PODOFO_BUILD_STATIC FALSE)
-    else(PODOFO_BUILD_SHARED)
-        set(PODOFO_BUILD_STATIC TRUE)
-    endif(PODOFO_BUILD_SHARED)
-endif(DEFINED PODOFO_BUILD_SHARED AND NOT DEFINED PODOFO_BUILD_STATIC)
-if(NOT DEFINED PODOFO_BUILD_SHARED AND DEFINED PODOFO_BUILD_STATIC)
-    if(PODOFO_BUILD_STATIC)
-        set(PODOFO_BUILD_SHARED FALSE)
-    else(PODOFO_BUILD_STATIC)
-        set(PODOFO_BUILD_SHARED TRUE)
-    endif(PODOFO_BUILD_STATIC)
-endif(NOT DEFINED PODOFO_BUILD_SHARED AND DEFINED PODOFO_BUILD_STATIC)
+endif(NOT DEFINED PDFMM_BUILD_SHARED AND NOT DEFINED PDFMM_BUILD_STATIC)
+if(DEFINED PDFMM_BUILD_SHARED AND NOT DEFINED PDFMM_BUILD_STATIC)
+    if(PDFMM_BUILD_SHARED)
+        set(PDFMM_BUILD_STATIC FALSE)
+    else(PDFMM_BUILD_SHARED)
+        set(PDFMM_BUILD_STATIC TRUE)
+    endif(PDFMM_BUILD_SHARED)
+endif(DEFINED PDFMM_BUILD_SHARED AND NOT DEFINED PDFMM_BUILD_STATIC)
+if(NOT DEFINED PDFMM_BUILD_SHARED AND DEFINED PDFMM_BUILD_STATIC)
+    if(PDFMM_BUILD_STATIC)
+        set(PDFMM_BUILD_SHARED FALSE)
+    else(PDFMM_BUILD_STATIC)
+        set(PDFMM_BUILD_SHARED TRUE)
+    endif(PDFMM_BUILD_STATIC)
+endif(NOT DEFINED PDFMM_BUILD_SHARED AND DEFINED PDFMM_BUILD_STATIC)
 
 if(DEFINED LIB_SUFFIX)
     set(LIBDIRNAME "lib${LIB_SUFFIX}")
@@ -106,10 +101,10 @@ endif(WIN32)
 
 if(UNIX)
     set(WANT_FONTCONFIG TRUE CACHE INTERNAL
-        "True if PoDoFo should be built with fontconfig support")
+        "True if pdfmm should be built with fontconfig support")
 else()
     set(WANT_FONTCONFIG FALSE CACHE INTERNAL
-        "True if PoDoFo should be built with fontconfig support")
+        "True if pdfmm should be built with fontconfig support")
 endif()
 
 
@@ -121,9 +116,9 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     # If the user hasn't specifically said whether they want
     # -fvisibility=hidden or not, turn it on if it's said to
     # be supported, off for other gcc versions.
-    if(NOT DEFINED PODOFO_USE_VISIBILITY)
-        set(PODOFO_USE_VISIBILITY ${PODOFO_HAVE_GCC_SYMBOL_VISIBILITY})
-    endif(NOT DEFINED PODOFO_USE_VISIBILITY)
+    if(NOT DEFINED PDFMM_USE_VISIBILITY)
+        set(PDFMM_USE_VISIBILITY ${PDFMM_HAVE_GCC_SYMBOL_VISIBILITY})
+    endif(NOT DEFINED PDFMM_USE_VISIBILITY)
 
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
@@ -141,12 +136,12 @@ if(CMAKE_COMPILER_IS_GNUCXX)
         add_definitions(-W)
     endif(NOT WIN32)
     # If they've enabled the use of gcc4 symbol visibility, use it.
-    if(PODOFO_USE_VISIBILITY)
+    if(PDFMM_USE_VISIBILITY)
         add_definitions(
-            -DPODOFO_HAVE_GCC_SYMBOL_VISIBILITY
+            -DPDFMM_HAVE_GCC_SYMBOL_VISIBILITY
             -fvisibility=hidden
             )
-    endif(PODOFO_USE_VISIBILITY)
+    endif(PDFMM_USE_VISIBILITY)
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
 find_package(ZLIB REQUIRED)
@@ -164,7 +159,7 @@ if(LIBIDN_FOUND)
 endif(LIBIDN_FOUND)
 
 if(LIBIDN_FOUND)
-    set(PODOFO_HAVE_LIBIDN TRUE)
+    set(PDFMM_HAVE_LIBIDN TRUE)
     include_directories(${LIBIDN_INCLUDE_DIR})
     message("Libidn found. AES-256 Encryption support will be enabled")
 else(LIBIDN_FOUND)
@@ -175,7 +170,7 @@ find_package(JPEG)
 
 if(JPEG_FOUND)
     message("Found libjpeg headers in ${JPEG_INCLUDE_DIR}, library at ${JPEG_LIBRARIES}")
-    set(PODOFO_HAVE_JPEG_LIB TRUE)
+    set(PDFMM_HAVE_JPEG_LIB TRUE)
     include_directories(${JPEG_INCLUDE_DIR})
 else(JPEG_FOUND)
     message("Libjpeg not found. JPEG support will be disabled")
@@ -185,7 +180,7 @@ find_package(TIFF)
 
 if(TIFF_FOUND)
     message("Found libtiff headers in ${TIFF_INCLUDE_DIR}, library at ${TIFF_LIBRARIES}")
-    set(PODOFO_HAVE_TIFF_LIB TRUE)
+    set(PDFMM_HAVE_TIFF_LIB TRUE)
     include_directories(${TIFF_INCLUDE_DIR})
 else(TIFF_FOUND)
     message("Libtiff not found. TIFF support will be disabled")
@@ -195,7 +190,7 @@ find_package(PNG)
 
 if(PNG_FOUND)
     message("Found LibPng headers in ${PNG_INCLUDE_DIR}, library at ${PNG_LIBRARIES}")
-    set(PODOFO_HAVE_PNG_LIB TRUE)
+    set(PDFMM_HAVE_PNG_LIB TRUE)
     include_directories(${PNG_INCLUDE_DIR})
 else(PNG_FOUND)
     message("LibPng not found. PNG support will be disabled")
@@ -207,8 +202,8 @@ message("Found freetype library at ${FREETYPE_LIBRARIES}, headers ${FREETYPE_INC
 
 if(WANT_FONTCONFIG)
     find_package(Fontconfig REQUIRED)
-    set(PODOFO_HAVE_FONTCONFIG TRUE)
-    set(PODOFO_LIB_FONTCONFIG:STRING fontconfig)
+    set(PDFMM_HAVE_FONTCONFIG TRUE)
+    set(PDFMM_LIB_FONTCONFIG:STRING fontconfig)
     if(FONTCONFIG_FOUND)
         message("Found fontconfig headers in ${FONTCONFIG_INCLUDE_DIR}, library at ${Fontconfig_LIBRARIES}")
     else(FONTCONFIG_FOUND)
@@ -218,7 +213,7 @@ else(WANT_FONTCONFIG)
     # Might as well look for it anyway. This also sets the appropriate
     # variables to empty values.
     find_package(Fontconfig)
-    set(PODOFO_LIB_FONTCONFIG:STRING)
+    set(PDFMM_LIB_FONTCONFIG:STRING)
 endif(WANT_FONTCONFIG)
 
 include_directories(
@@ -230,12 +225,12 @@ include_directories(
 )
 
 #
-# The PoDoFo library needs to be linked to these libraries,
-# as do any apps or libraries linking to PoDoFo. PODOFO_LIB
-# will include these and the correct podofo target, so clients
-# should specify only PODOFO_LIB .
+# The pdfmm library needs to be linked to these libraries,
+# as do any apps or libraries linking to pdfmm. PDFMM_LIB
+# will include these and the correct pdfmm target, so clients
+# should specify only PDFMM_LIB .
 #
-set(PODOFO_LIB_DEPENDS
+set(PDFMM_LIB_DEPENDS
     ${LIBIDN_LIBRARIES}
     ${OPENSSL_LIBRARIES}
     ${JPEG_LIBRARIES}
@@ -247,53 +242,53 @@ set(PODOFO_LIB_DEPENDS
 )
 
 if(FONTCONFIG_FOUND AND WANT_FONTCONFIG)
-    set(PODOFO_LIB_DEPENDS ${Fontconfig_LIBRARIES} ${PODOFO_LIB_DEPENDS})
+    set(PDFMM_LIB_DEPENDS ${Fontconfig_LIBRARIES} ${PDFMM_LIB_DEPENDS})
     include_directories(${Fontconfig_INCLUDE_DIRS})
 endif(FONTCONFIG_FOUND AND WANT_FONTCONFIG)
 
-if(WIN32 OR PODOFO_BUILD_STATIC)
-    set(PODOFO_LIB
-        podofo
-        ${PODOFO_LIB_DEPENDS}
+if(WIN32 OR PDFMM_BUILD_STATIC)
+    set(PDFMM_LIB
+        pdfmm
+        ${PDFMM_LIB_DEPENDS}
     )
-else(WIN32 OR PODOFO_BUILD_STATIC)
-    set(PODOFO_LIB podofo)
-endif(WIN32 OR PODOFO_BUILD_STATIC)
+else(WIN32 OR PDFMM_BUILD_STATIC)
+    set(PDFMM_LIB pdfmm)
+endif(WIN32 OR PDFMM_BUILD_STATIC)
 
 # Create the config file. It'll be appended to as the subdirs run though
 # then dependency information will be written to it at the end of the
 # build.
 file(WRITE
-    "${PROJECT_BINARY_DIR}/PoDoFoConfig.cmake"
-    "# CMake module for PoDoFo\n"
+    "${PROJECT_BINARY_DIR}/pdfmmConfig.cmake"
+    "# CMake module for pdfmm\n"
 )
 file(APPEND
-    "${PROJECT_BINARY_DIR}/PoDoFoConfig.cmake"
-    "set(PODOFO_INCLUDES ${PROJECT_SOURCE_DIR}/src)\n"
+    "${PROJECT_BINARY_DIR}/pdfmmConfig.cmake"
+    "set(PDFMM_INCLUDES ${PROJECT_SOURCE_DIR}/src)\n"
 )
 
-add_subdirectory(src/podofo)
-if(NOT PODOFO_BUILD_LIB_ONLY)
+add_subdirectory(src/pdfmm)
+if(NOT PDFMM_BUILD_LIB_ONLY)
     # Tell gtest to use shared crt (option /MD)
     set(gtest_force_shared_crt ON)
     enable_testing()
     add_subdirectory(extern/gtest)
     add_subdirectory(test)
     add_subdirectory(examples)
-endif(NOT PODOFO_BUILD_LIB_ONLY)
+endif(NOT PDFMM_BUILD_LIB_ONLY)
 
 # Generate our configure file
-configure_file(${PROJECT_SOURCE_DIR}/podofo_config.h.in ${PROJECT_BINARY_DIR}/podofo_config.h)
+configure_file(${PROJECT_SOURCE_DIR}/pdfmm_config.h.in ${PROJECT_BINARY_DIR}/pdfmm_config.h)
 
 # Export some variables into the config file so it's easier for others
-# to build and link against PoDoFo
+# to build and link against pdfmm
 
-# To use these dependencies set PODOFO_DIR to the podofo BUILD directory in
-# your build (eg -DPODOFO_DIR=/path/to/podofo when running cmake to configure
-# the app that'll use podofo). See: find_package(...) in the cmake docs.
-if(PODOFO_BUILD_SHARED)
-    export(TARGETS podofo_shared FILE "${CMAKE_CURRENT_BINARY_DIR}/PoDoFoConfig.cmake")
-endif(PODOFO_BUILD_SHARED)
-if(PODOFO_BUILD_STATIC)
-    export(TARGETS podofo_static FILE "${CMAKE_CURRENT_BINARY_DIR}/PoDoFoConfig.cmake")
-endif(PODOFO_BUILD_STATIC)
+# To use these dependencies set PDFMM_DIR to the pdfmm BUILD directory in
+# your build (eg -DPDFMM_DIR=/path/to/pdfmm when running cmake to configure
+# the app that'll use pdfmm). See: find_package(...) in the cmake docs.
+if(PDFMM_BUILD_SHARED)
+    export(TARGETS pdfmm_shared FILE "${CMAKE_CURRENT_BINARY_DIR}/pdfmmConfig.cmake")
+endif(PDFMM_BUILD_SHARED)
+if(PDFMM_BUILD_STATIC)
+    export(TARGETS pdfmm_static FILE "${CMAKE_CURRENT_BINARY_DIR}/pdfmmConfig.cmake")
+endif(PDFMM_BUILD_STATIC)

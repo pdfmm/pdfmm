@@ -1,3 +1,9 @@
+Version 0.9.20
+
+
+Old PoDoFo ChangeLog
+====================
+
 Version 0.8
 	See SVN ChangeLog
 
@@ -30,7 +36,6 @@ Version 0.7
     Added advanced text drawing support to PdfPainter
     Fixed parsing of Type1 fonts
     Fixed deletion of PdfAnnations (fixes a memory leak)
-    
 
 Version 0.6
     Many many changes :) See SVN log
@@ -159,4 +164,3 @@ Version 0.2
 
 Version 0.1 (11 June 2006)
 	Initial release;
-	
