@@ -1,35 +1,10 @@
-/***************************************************************************
- *   Copyright (C) 2011 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- *                                                                         *
- *   In addition, as a special exception, the copyright holders give       *
- *   permission to link the code of portions of this program with the      *
- *   OpenSSL library under certain conditions as described in each         *
- *   individual source file, and distribute linked combinations            *
- *   including the two.                                                    *
- *   You must obey the GNU General Public License in all respects          *
- *   for all of the code used other than OpenSSL.  If you modify           *
- *   file(s) with this exception, you may extend this exception to your    *
- *   version of the file(s), but you are not obligated to do so.  If you   *
- *   do not wish to do so, delete this exception statement from your       *
- *   version.  If you delete this exception statement from all source      *
- *   files in the program, then also delete it here.                       *
- ***************************************************************************/
+/**
+ * Copyright (C) 2011 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public License 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
 #include "PdfFontConfigWrapper.h"
 
@@ -38,27 +13,27 @@
 using namespace std;
 using namespace mm;
 
-PdfFontConfigWrapper::PdfFontConfigWrapper(FcConfig* pFcConfig)
-    : m_pFcConfig(pFcConfig)
+PdfFontConfigWrapper::PdfFontConfigWrapper(FcConfig* fcConfig)
+    : m_FcConfig(fcConfig)
 {
 }
 
 PdfFontConfigWrapper::~PdfFontConfigWrapper()
 {
     unique_lock<mutex> lock(m_mutex);
-    if (m_pFcConfig != nullptr)
-        FcConfigDestroy(m_pFcConfig);
+    if (m_FcConfig != nullptr)
+        FcConfigDestroy(m_FcConfig);
 }
 
 void PdfFontConfigWrapper::InitializeFontConfig()
 {
     unique_lock<mutex> lock(m_mutex);
-    if (m_pFcConfig != nullptr)
+    if (m_FcConfig != nullptr)
         return;
 
     // Default initialize FontConfig
     FcInit();
-    m_pFcConfig = FcConfigGetCurrent();
+    m_FcConfig = FcConfigGetCurrent();
 }
 
 std::string PdfFontConfigWrapper::GetFontConfigFontPath(const string_view fontName, bool bold, bool italic)
@@ -79,13 +54,13 @@ std::string PdfFontConfigWrapper::GetFontConfigFontPath(const string_view fontNa
 
     FcDefaultSubstitute(pattern);
 
-    if (!FcConfigSubstitute(m_pFcConfig, pattern, FcMatchFont))
+    if (!FcConfigSubstitute(m_FcConfig, pattern, FcMatchFont))
     {
         FcPatternDestroy(pattern);
         return path;
     }
 
-    matched = FcFontMatch(m_pFcConfig, pattern, &result);
+    matched = FcFontMatch(m_FcConfig, pattern, &result);
     if (result != FcResultNoMatch)
     {
         result = FcPatternGet(matched, FC_FILE, 0, &v);
@@ -104,7 +79,7 @@ std::string PdfFontConfigWrapper::GetFontConfigFontPath(const string_view fontNa
 FcConfig* PdfFontConfigWrapper::GetFcConfig()
 {
     InitializeFontConfig();
-    return m_pFcConfig;
+    return m_FcConfig;
 }
 
 PdfFontConfigWrapper* PdfFontConfigWrapper::GetInstance()
