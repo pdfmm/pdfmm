@@ -58,8 +58,8 @@ public:
     static PdfFont* CreateFont(PdfObject& obj);
 
     /**
-     *    Creates a new base-14 font object (of class PdfFontType1Base14) if
-     *    the font name (has to include variant) is one of the base 14 fonts.
+     *    Creates a new standard 14 font object (of class PdfFontStandard14) if
+     *    the font name (has to include variant) is one of the standard 14 fonts.
      *    The font name is to be given as specified (with an ASCII hyphen).
      *
      *    \param doc the parent of the created font
@@ -67,7 +67,7 @@ public:
      *    \param eFlags one flag for font variant (Bold, Italic or BoldItalic)
      *    \param encoding an encoding compatible with the font
      */
-    static PdfFont* CreateBase14Font(PdfDocument& doc, PdfStd14FontType baseFont,
+    static PdfFont* CreateStandard14Font(PdfDocument& doc, PdfStandard14FontType baseFont,
         const PdfEncoding& encoding, const PdfFontInitParams& params);
 
 private:

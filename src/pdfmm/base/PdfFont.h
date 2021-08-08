@@ -43,7 +43,7 @@ class PDFMM_API PdfFont : public PdfElement
 {
     friend class PdfFontFactory;
     friend class PdfFontObject;
-    friend class PdfFontType1Base14;
+    friend class PdfFontStandard14;
     friend class PdfEncoding;
 
 protected:
@@ -61,7 +61,7 @@ protected:
 
 private:
     /** Create a PdfFont based on an existing PdfObject
-     * To be used by PdfFontObject, PdfFontType1Base14
+     * To be used by PdfFontObject, PdfFontStandard14
      *
      *  \param obj an existing PdfObject
      *  \param metrics pointer to a font metrics object. The font in the PDF
@@ -244,7 +244,7 @@ protected:
     /** Optional function to map a CID to a GID
      *
      * Example for /Type2 CID fonts may have a /CIDToGIDMap
-     * For Base14 fonts we have to convert CID to unicode then
+     * For Standard14 fonts we have to convert CID to unicode then
      * we retrieve the glyph index
      */
     virtual bool TryMapCIDToGID(unsigned cid, unsigned& gid) const;
@@ -252,7 +252,7 @@ protected:
     /** Optional function to map a CID to a GID
      *
      * Example for /Type2 CID fonts may have a /CIDToGIDMap
-     * For Base14 fonts we have to convert CID to unicode then
+     * For Standard14 fonts we have to convert CID to unicode then
      * we retrieve the glyph index
      */
     virtual bool TryMapGIDToCID(unsigned gid, unsigned& cid) const;

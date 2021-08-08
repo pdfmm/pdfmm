@@ -7,7 +7,7 @@
  */
 
 #include <pdfmm/private/PdfDefinesPrivate.h>
-#include "PdfFontMetricsBase14.h"
+#include "PdfFontMetricsStandard14.h"
 
 #include <pdfmm/private/PdfStandard14FontsData.h>
 
@@ -16,12 +16,12 @@
 using namespace std;
 using namespace mm;
 
-PdfFontMetricsBase14::PdfFontMetricsBase14(PdfStd14FontType fontType,
-        const Base14FontData* data, unsigned dataSize, bool isSymbol,
+PdfFontMetricsStandard14::PdfFontMetricsStandard14(PdfStandard14FontType fontType,
+        const Standard14FontData* data, unsigned dataSize, bool isSymbol,
         int16_t ascent, int16_t descent, uint16_t x_height,
         uint16_t cap_height, int16_t strikeout_pos,
         int16_t underline_pos, const PdfRect& mbbox) :
-    PdfFontMetrics(PdfFontMetricsType::Type1Base14, { }),
+    PdfFontMetrics(PdfFontMetricsType::Type1Standard14, { }),
     m_Std14FontType(fontType),
     m_data(data),
     m_dataSize(dataSize),
@@ -45,12 +45,12 @@ PdfFontMetricsBase14::PdfFontMetricsBase14(PdfStd14FontType fontType,
     m_LineSpacing = (ascent + abs(descent)) / 1000.0;
 }
 
-unsigned PdfFontMetricsBase14::GetGlyphCount() const
+unsigned PdfFontMetricsStandard14::GetGlyphCount() const
 {
     return m_dataSize;
 }
 
-bool PdfFontMetricsBase14::TryGetGlyphWidth(unsigned gid, double& width) const
+bool PdfFontMetricsStandard14::TryGetGlyphWidth(unsigned gid, double& width) const
 {
     if (gid >= m_dataSize)
     {
@@ -62,7 +62,7 @@ bool PdfFontMetricsBase14::TryGetGlyphWidth(unsigned gid, double& width) const
     return true;
 }
 
-bool PdfFontMetricsBase14::TryGetGID(char32_t codePoint, unsigned& gid) const
+bool PdfFontMetricsStandard14::TryGetGID(char32_t codePoint, unsigned& gid) const
 {
     auto& map = GetStd14CPToGIDMap(m_Std14FontType);
     auto found = map.find((unsigned short)codePoint);
@@ -76,68 +76,68 @@ bool PdfFontMetricsBase14::TryGetGID(char32_t codePoint, unsigned& gid) const
     return true;
 }
 
-double PdfFontMetricsBase14::GetDefaultCharWidth() const
+double PdfFontMetricsStandard14::GetDefaultCharWidth() const
 {
     // Just assume there is no default width
     return 0;
 }
 
-double PdfFontMetricsBase14::GetLineSpacing() const
+double PdfFontMetricsStandard14::GetLineSpacing() const
 {
     return m_LineSpacing;
 }
 
-double PdfFontMetricsBase14::GetUnderlineThickness() const
+double PdfFontMetricsStandard14::GetUnderlineThickness() const
 {
     return m_UnderlineThickness;
 }
 
-double PdfFontMetricsBase14::GetUnderlinePosition() const
+double PdfFontMetricsStandard14::GetUnderlinePosition() const
 {
     return m_UnderlinePosition;
 }
 
-double PdfFontMetricsBase14::GetStrikeOutPosition() const
+double PdfFontMetricsStandard14::GetStrikeOutPosition() const
 {
     return m_StrikeOutPosition;
 }
 
-double PdfFontMetricsBase14::GetStrikeOutThickness() const
+double PdfFontMetricsStandard14::GetStrikeOutThickness() const
 {
     return m_StrikeOutThickness;
 }
 
-double PdfFontMetricsBase14::GetAscent() const
+double PdfFontMetricsStandard14::GetAscent() const
 {
     return m_Ascent;
 }
 
-double PdfFontMetricsBase14::GetDescent() const
+double PdfFontMetricsStandard14::GetDescent() const
 {
     return m_Descent;
 }
 
-string PdfFontMetricsBase14::GetBaseFontName() const
+string PdfFontMetricsStandard14::GetBaseFontName() const
 {
     return (string)GetStandard14FontName(m_Std14FontType);
 }
 
-unsigned PdfFontMetricsBase14::GetWeight() const
+unsigned PdfFontMetricsStandard14::GetWeight() const
 {
     return m_Weight;
 }
 
-double PdfFontMetricsBase14::GetItalicAngle() const
+double PdfFontMetricsStandard14::GetItalicAngle() const
 {
     return m_ItalicAngle;
 }
 
-bool PdfFontMetricsBase14::IsSymbol() const
+bool PdfFontMetricsStandard14::IsSymbol() const
 {
     return m_IsSymbol;
 }
 
-void PdfFontMetricsBase14::GetBoundingBox(std::vector<double>& bbox) const
+void PdfFontMetricsStandard14::GetBoundingBox(std::vector<double>& bbox) const
 {
     // Convert to PDF units
     bbox.clear();
@@ -147,56 +147,56 @@ void PdfFontMetricsBase14::GetBoundingBox(std::vector<double>& bbox) const
     bbox.push_back(m_BBox.GetHeight() / 1000.0);
 }
 
-string_view PdfFontMetricsBase14::GetFontData() const
+string_view PdfFontMetricsStandard14::GetFontData() const
 {
     return { };
 }
 
-bool PdfFontMetricsBase14::IsBold() const
+bool PdfFontMetricsStandard14::IsBold() const
 {
     switch (m_Std14FontType)
     {
-        case PdfStd14FontType::TimesBold:
-        case PdfStd14FontType::TimesBoldItalic:
-        case PdfStd14FontType::HelveticaBold:
-        case PdfStd14FontType::HelveticaBoldOblique:
-        case PdfStd14FontType::CourierBold:
-        case PdfStd14FontType::CourierBoldOblique:
+        case PdfStandard14FontType::TimesBold:
+        case PdfStandard14FontType::TimesBoldItalic:
+        case PdfStandard14FontType::HelveticaBold:
+        case PdfStandard14FontType::HelveticaBoldOblique:
+        case PdfStandard14FontType::CourierBold:
+        case PdfStandard14FontType::CourierBoldOblique:
             return true;
         default:
             return false;
     }
 }
 
-bool PdfFontMetricsBase14::IsItalic() const
+bool PdfFontMetricsStandard14::IsItalic() const
 {
     switch (m_Std14FontType)
     {
-        case PdfStd14FontType::TimesItalic:
-        case PdfStd14FontType::TimesBoldItalic:
-        case PdfStd14FontType::HelveticaOblique:
-        case PdfStd14FontType::HelveticaBoldOblique:
-        case PdfStd14FontType::CourierOblique:
-        case PdfStd14FontType::CourierBoldOblique:
+        case PdfStandard14FontType::TimesItalic:
+        case PdfStandard14FontType::TimesBoldItalic:
+        case PdfStandard14FontType::HelveticaOblique:
+        case PdfStandard14FontType::HelveticaBoldOblique:
+        case PdfStandard14FontType::CourierOblique:
+        case PdfStandard14FontType::CourierBoldOblique:
             return true;
         default:
             return false;
     }
 }
 
-bool PdfFontMetricsBase14::FontNameHasBoldItalicInfo() const
+bool PdfFontMetricsStandard14::FontNameHasBoldItalicInfo() const
 {
     // All font names states if they are bold or italic ("oblique"
     //  corresponds to italic), except in symbolic fonts
     return !m_IsSymbol;
 }
 
-shared_ptr<const PdfFontMetricsBase14> PdfFontMetricsBase14::GetInstance(PdfStd14FontType baseFont)
+shared_ptr<const PdfFontMetricsStandard14> PdfFontMetricsStandard14::GetInstance(PdfStandard14FontType baseFont)
 {
-    // The following are the Base 14 fonts data copied from libharu.
-    static vector<shared_ptr<PdfFontMetricsBase14>> PDFMM_BUILTIN_FONTS = {
-        shared_ptr<PdfFontMetricsBase14>(new PdfFontMetricsBase14(
-            PdfStd14FontType::TimesRoman,
+    // The following are the Standard 14 fonts data copied from libharu.
+    static vector<shared_ptr<PdfFontMetricsStandard14>> PDFMM_BUILTIN_FONTS = {
+        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
+            PdfStandard14FontType::TimesRoman,
             CHAR_DATA_TIMES_ROMAN,
             (unsigned)std::size(CHAR_DATA_TIMES_ROMAN),
             false,
@@ -208,8 +208,8 @@ shared_ptr<const PdfFontMetricsBase14> PdfFontMetricsBase14::GetInstance(PdfStd1
             -100,
             PdfRect(-168, -218, 1000, 898)
         )),
-        shared_ptr<PdfFontMetricsBase14>(new PdfFontMetricsBase14(
-            PdfStd14FontType::TimesItalic,
+        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
+            PdfStandard14FontType::TimesItalic,
             CHAR_DATA_TIMES_ITALIC,
             (unsigned)std::size(CHAR_DATA_TIMES_ITALIC),
             false,
@@ -221,8 +221,8 @@ shared_ptr<const PdfFontMetricsBase14> PdfFontMetricsBase14::GetInstance(PdfStd1
             -100,
             PdfRect(-169, -217, 1010, 883)
         )),
-        shared_ptr<PdfFontMetricsBase14>(new PdfFontMetricsBase14(
-            PdfStd14FontType::TimesBold,
+        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
+            PdfStandard14FontType::TimesBold,
             CHAR_DATA_TIMES_BOLD,
             (unsigned)std::size(CHAR_DATA_TIMES_BOLD),
             false,
@@ -234,8 +234,8 @@ shared_ptr<const PdfFontMetricsBase14> PdfFontMetricsBase14::GetInstance(PdfStd1
             -100,
             PdfRect(-168, -218, 1000, 935)
         )),
-        shared_ptr<PdfFontMetricsBase14>(new PdfFontMetricsBase14(
-            PdfStd14FontType::TimesBoldItalic,
+        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
+            PdfStandard14FontType::TimesBoldItalic,
             CHAR_DATA_TIMES_BOLD_ITALIC,
             (unsigned)std::size(CHAR_DATA_TIMES_BOLD_ITALIC),
             false,
@@ -247,8 +247,8 @@ shared_ptr<const PdfFontMetricsBase14> PdfFontMetricsBase14::GetInstance(PdfStd1
             -100,
             PdfRect(-200, -218, 996, 921)
         )),
-        shared_ptr<PdfFontMetricsBase14>(new PdfFontMetricsBase14(
-            PdfStd14FontType::Helvetica,
+        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
+            PdfStandard14FontType::Helvetica,
             CHAR_DATA_HELVETICA,
             (unsigned)std::size(CHAR_DATA_HELVETICA),
             false,
@@ -260,8 +260,8 @@ shared_ptr<const PdfFontMetricsBase14> PdfFontMetricsBase14::GetInstance(PdfStd1
             -100,
             PdfRect(-166, -225, 1000, 931)
         )),
-        shared_ptr<PdfFontMetricsBase14>(new PdfFontMetricsBase14(
-            PdfStd14FontType::HelveticaOblique,
+        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
+            PdfStandard14FontType::HelveticaOblique,
             CHAR_DATA_HELVETICA_OBLIQUE,
             (unsigned)std::size(CHAR_DATA_HELVETICA_OBLIQUE),
             false,
@@ -273,8 +273,8 @@ shared_ptr<const PdfFontMetricsBase14> PdfFontMetricsBase14::GetInstance(PdfStd1
             -100,
             PdfRect(-170, -225, 1116, 931)
         )),
-        shared_ptr<PdfFontMetricsBase14>(new PdfFontMetricsBase14(
-            PdfStd14FontType::HelveticaBold,
+        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
+            PdfStandard14FontType::HelveticaBold,
             CHAR_DATA_HELVETICA_BOLD,
             (unsigned)std::size(CHAR_DATA_HELVETICA_BOLD),
             false,
@@ -286,8 +286,8 @@ shared_ptr<const PdfFontMetricsBase14> PdfFontMetricsBase14::GetInstance(PdfStd1
             -100,
             PdfRect(-170, -228, 1003, 962)
         )),
-        shared_ptr<PdfFontMetricsBase14>(new PdfFontMetricsBase14(
-            PdfStd14FontType::HelveticaBoldOblique,
+        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
+            PdfStandard14FontType::HelveticaBoldOblique,
             CHAR_DATA_HELVETICA_BOLD_OBLIQUE,
             (unsigned)std::size(CHAR_DATA_HELVETICA_BOLD_OBLIQUE),
             false,
@@ -299,8 +299,8 @@ shared_ptr<const PdfFontMetricsBase14> PdfFontMetricsBase14::GetInstance(PdfStd1
             -100,
             PdfRect(-174, -228, 1114, 962)
         )),
-        shared_ptr<PdfFontMetricsBase14>(new PdfFontMetricsBase14(
-            PdfStd14FontType::Courier,
+        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
+            PdfStandard14FontType::Courier,
             CHAR_DATA_COURIER,
             315,
             false,
@@ -312,8 +312,8 @@ shared_ptr<const PdfFontMetricsBase14> PdfFontMetricsBase14::GetInstance(PdfStd1
             -224,
             PdfRect(-23, -250, 715, 805)
         )),
-        shared_ptr<PdfFontMetricsBase14>(new PdfFontMetricsBase14(
-            PdfStd14FontType::CourierOblique,
+        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
+            PdfStandard14FontType::CourierOblique,
             CHAR_DATA_COURIER_OBLIQUE,
             315,
             false,
@@ -325,8 +325,8 @@ shared_ptr<const PdfFontMetricsBase14> PdfFontMetricsBase14::GetInstance(PdfStd1
             -224,
             PdfRect(-27, -250, 849, 805)
         )),
-        shared_ptr<PdfFontMetricsBase14>(new PdfFontMetricsBase14(
-            PdfStd14FontType::CourierBold,
+        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
+            PdfStandard14FontType::CourierBold,
             CHAR_DATA_COURIER_BOLD,
             315,
             false,
@@ -338,8 +338,8 @@ shared_ptr<const PdfFontMetricsBase14> PdfFontMetricsBase14::GetInstance(PdfStd1
             -224,
             PdfRect(-113, -250, 749, 801)
         )),
-        shared_ptr<PdfFontMetricsBase14>(new PdfFontMetricsBase14(
-            PdfStd14FontType::CourierBoldOblique,
+        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
+            PdfStandard14FontType::CourierBoldOblique,
             CHAR_DATA_COURIER_BOLD_OBLIQUE,
             315,
             false,
@@ -351,8 +351,8 @@ shared_ptr<const PdfFontMetricsBase14> PdfFontMetricsBase14::GetInstance(PdfStd1
             -224,
             PdfRect(-57, -250, 869, 801)
         )),
-        shared_ptr<PdfFontMetricsBase14>(new PdfFontMetricsBase14(
-            PdfStd14FontType::Symbol,
+        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
+            PdfStandard14FontType::Symbol,
             CHAR_DATA_SYMBOL,
             (unsigned)std::size(CHAR_DATA_SYMBOL),
             true,
@@ -364,8 +364,8 @@ shared_ptr<const PdfFontMetricsBase14> PdfFontMetricsBase14::GetInstance(PdfStd1
             -100,
            PdfRect(-180, -293, 1090, 1010)
         )),
-        shared_ptr<PdfFontMetricsBase14>(new PdfFontMetricsBase14(
-            PdfStd14FontType::ZapfDingbats,
+        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
+            PdfStandard14FontType::ZapfDingbats,
             CHAR_DATA_ZAPF_DINGBATS,
             (unsigned)std::size(CHAR_DATA_ZAPF_DINGBATS),
             true,
@@ -381,35 +381,35 @@ shared_ptr<const PdfFontMetricsBase14> PdfFontMetricsBase14::GetInstance(PdfStd1
 
     switch (baseFont)
     {
-        case PdfStd14FontType::TimesRoman:
+        case PdfStandard14FontType::TimesRoman:
             return PDFMM_BUILTIN_FONTS[0];
-        case PdfStd14FontType::TimesItalic:
+        case PdfStandard14FontType::TimesItalic:
             return PDFMM_BUILTIN_FONTS[1];
-        case PdfStd14FontType::TimesBold:
+        case PdfStandard14FontType::TimesBold:
             return PDFMM_BUILTIN_FONTS[2];
-        case PdfStd14FontType::TimesBoldItalic:
+        case PdfStandard14FontType::TimesBoldItalic:
             return PDFMM_BUILTIN_FONTS[3];
-        case PdfStd14FontType::Helvetica:
+        case PdfStandard14FontType::Helvetica:
             return PDFMM_BUILTIN_FONTS[4];
-        case PdfStd14FontType::HelveticaOblique:
+        case PdfStandard14FontType::HelveticaOblique:
             return PDFMM_BUILTIN_FONTS[5];
-        case PdfStd14FontType::HelveticaBold:
+        case PdfStandard14FontType::HelveticaBold:
             return PDFMM_BUILTIN_FONTS[6];
-        case PdfStd14FontType::HelveticaBoldOblique:
+        case PdfStandard14FontType::HelveticaBoldOblique:
             return PDFMM_BUILTIN_FONTS[7];
-        case PdfStd14FontType::Courier:
+        case PdfStandard14FontType::Courier:
             return PDFMM_BUILTIN_FONTS[8];
-        case PdfStd14FontType::CourierOblique:
+        case PdfStandard14FontType::CourierOblique:
             return PDFMM_BUILTIN_FONTS[9];
-        case PdfStd14FontType::CourierBold:
+        case PdfStandard14FontType::CourierBold:
             return PDFMM_BUILTIN_FONTS[10];
-        case PdfStd14FontType::CourierBoldOblique:
+        case PdfStandard14FontType::CourierBoldOblique:
             return PDFMM_BUILTIN_FONTS[11];
-        case PdfStd14FontType::Symbol:
+        case PdfStandard14FontType::Symbol:
             return PDFMM_BUILTIN_FONTS[12];
-        case PdfStd14FontType::ZapfDingbats:
+        case PdfStandard14FontType::ZapfDingbats:
             return PDFMM_BUILTIN_FONTS[13];
-        case PdfStd14FontType::Unknown:
+        case PdfStandard14FontType::Unknown:
         default:
             return nullptr;
     }

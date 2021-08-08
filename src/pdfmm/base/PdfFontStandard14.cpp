@@ -7,28 +7,28 @@
  */
 
 #include <pdfmm/private/PdfDefinesPrivate.h>
-#include "PdfFontType1Base14.h"
+#include "PdfFontStandard14.h"
 
 #include <pdfmm/private/PdfStandard14FontsData.h>
 
 #include "PdfDocument.h"
 #include "PdfDictionary.h"
 #include "PdfArray.h"
-#include "PdfFontMetricsBase14.h"
+#include "PdfFontMetricsStandard14.h"
 
 using namespace std;
 using namespace mm;
 
-PdfFontType1Base14::PdfFontType1Base14(PdfDocument& doc,
-        PdfStd14FontType fontType,
+PdfFontStandard14::PdfFontStandard14(PdfDocument& doc,
+        PdfStandard14FontType fontType,
         const PdfEncoding& encoding) :
-    PdfFont(doc, PdfFontMetricsBase14::GetInstance(fontType), encoding),
+    PdfFont(doc, PdfFontMetricsStandard14::GetInstance(fontType), encoding),
     m_FontType(fontType)
 {
 }
 
-PdfFontType1Base14::PdfFontType1Base14(PdfObject& obj,
-        PdfStd14FontType fontType,
+PdfFontStandard14::PdfFontStandard14(PdfObject& obj,
+        PdfStandard14FontType fontType,
         const PdfFontMetricsConstPtr& metrics,
         const PdfEncoding& encoding)
     : PdfFont(obj, metrics, encoding),
@@ -36,29 +36,29 @@ PdfFontType1Base14::PdfFontType1Base14(PdfObject& obj,
 {
 }
 
-string_view PdfFontType1Base14::GetStandard14FontName(PdfStd14FontType stdFont)
+string_view PdfFontStandard14::GetStandard14FontName(PdfStandard14FontType stdFont)
 {
     return ::GetStandard14FontName(stdFont);
 }
 
-bool PdfFontType1Base14::IsStandard14Font(const string_view& fontName, PdfStd14FontType& stdFont)
+bool PdfFontStandard14::IsStandard14Font(const string_view& fontName, PdfStandard14FontType& stdFont)
 {
     return ::IsStandard14Font(fontName, stdFont);
 }
 
-PdfFontType PdfFontType1Base14::GetType() const
+PdfFontType PdfFontStandard14::GetType() const
 {
     return PdfFontType::Type1;
 }
 
-void PdfFontType1Base14::initImported()
+void PdfFontStandard14::initImported()
 {
     this->GetObject().GetDictionary().AddKey(PdfName::KeySubtype, PdfName("Type1"));
     this->GetObject().GetDictionary().AddKey("BaseFont", PdfName(GetBaseFont()));
     m_Encoding->ExportToDictionary(this->GetObject().GetDictionary());
 }
 
-bool PdfFontType1Base14::TryMapCIDToGID(unsigned cid, unsigned& gid) const
+bool PdfFontStandard14::TryMapCIDToGID(unsigned cid, unsigned& gid) const
 {
     // All Std14 fonts use a charset which maps 1:1 to unicode codepoints
     // The only ligatures supported are just the ones that are also
@@ -66,7 +66,7 @@ bool PdfFontType1Base14::TryMapCIDToGID(unsigned cid, unsigned& gid) const
     // the accordingly glyph id
     Std14CPToGIDMap::const_iterator found;
     auto& map = GetStd14CPToGIDMap(m_FontType);
-    // NOTE: In base 14 fonts CID are equivalent to char codes
+    // NOTE: In standard 14 fonts CID are equivalent to char codes
     char32_t mappedCodePoint = GetEncoding().GetCodePoint(cid);
     if (mappedCodePoint == U'\0'
         || mappedCodePoint >= 0xFFFF
@@ -80,7 +80,7 @@ bool PdfFontType1Base14::TryMapCIDToGID(unsigned cid, unsigned& gid) const
     return true;
 }
 
-bool PdfFontType1Base14::TryMapGIDToCID(unsigned gid, unsigned& cid) const
+bool PdfFontStandard14::TryMapGIDToCID(unsigned gid, unsigned& cid) const
 {
     // Lookup the GID in the Standard14 fonts data, then encode back
     // the found code point to a CID

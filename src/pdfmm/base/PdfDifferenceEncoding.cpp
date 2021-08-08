@@ -2473,7 +2473,7 @@ const PdfEncodingMap& PdfDifferenceEncoding::GetBaseEncoding() const
         default:
             // TODO: Implicit base encoding can be:
             // 1) An encoding stored in the font program (see PdfFontType1Encoding)
-            // 2) The implicit encoding of a base14 font.
+            // 2) The implicit encoding of a standard 14 font.
             // Improve PdfDifferenceEncoding so it can retrieve the encoding in such
             // cases
             PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "Not implemented");

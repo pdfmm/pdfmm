@@ -6,8 +6,8 @@
  * Some rights reserved. See COPYING, AUTHORS.
  */
 
-#ifndef PDF_FONT_METRICS_BASE14_H
-#define PDF_FONT_METRICS_BASE14_H
+#ifndef PDF_FONT_METRICS_STANDARD14_H
+#define PDF_FONT_METRICS_STANDARD14_H
 
 #include "PdfDefines.h"
 
@@ -17,16 +17,16 @@
 
 namespace mm {
 
-struct Base14FontData;
+struct Standard14FontData;
 
 /**
- * This is the main class to handle the base14 metric data.
+ * This is the main class to handle the Standard14 metric data.
  */
-class PDFMM_API PdfFontMetricsBase14 final : public PdfFontMetrics
+class PDFMM_API PdfFontMetricsStandard14 final : public PdfFontMetrics
 {
 private:
-    PdfFontMetricsBase14(PdfStd14FontType fontType,
-        const Base14FontData* data, unsigned dataSize,
+    PdfFontMetricsStandard14(PdfStandard14FontType fontType,
+        const Standard14FontData* data, unsigned dataSize,
         bool isSymbol, int16_t ascent, int16_t descent,
         uint16_t mx_height, uint16_t mcap_height,
         int16_t mstrikeout_pos, int16_t munderline_pos,
@@ -74,11 +74,11 @@ public:
     bool FontNameHasBoldItalicInfo() const override;
 
 public:
-    static std::shared_ptr<const PdfFontMetricsBase14> GetInstance(PdfStd14FontType font);
+    static std::shared_ptr<const PdfFontMetricsStandard14> GetInstance(PdfStandard14FontType font);
 
 private:
-    PdfStd14FontType m_Std14FontType;
-    const Base14FontData* m_data;
+    PdfStandard14FontType m_Std14FontType;
+    const Standard14FontData* m_data;
     const unsigned m_dataSize;
     uint16_t m_x_height;
     uint16_t m_cap_height;
@@ -101,4 +101,4 @@ private:
 
 }
 
-#endif // PDF_FONT_METRICS_BASE14_H
+#endif // PDF_FONT_METRICS_STANDARD14_H

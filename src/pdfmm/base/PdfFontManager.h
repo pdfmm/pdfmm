@@ -38,9 +38,9 @@ class PdfVecObjects;
  */
 enum class PdfFontCreationFlags
 {
-    None = 0,               ///< No special settings
-    AutoSelectBase14 = 1,   ///< Create automatically a base14 font if the fontname matches one of them
-    DoSubsetting = 2        ///< Create subsetted, which includes only used characters
+    None = 0,                   ///< No special settings
+    AutoSelectStandard14 = 1,   ///< Create automatically a Standard14 font if the fontname matches one of them
+    DoSubsetting = 2            ///< Create subsetted, which includes only used characters
 };
 
 struct PdfFontCreationParams

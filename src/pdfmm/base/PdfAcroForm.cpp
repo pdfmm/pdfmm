@@ -54,7 +54,7 @@ void PdfAcroForm::Init(PdfAcroFormDefaulAppearance defaultAppearance)
     {
         PdfFontCreationParams params;
         params.Embed = false;
-        params.Flags = PdfFontCreationFlags::AutoSelectBase14;
+        params.Flags = PdfFontCreationFlags::AutoSelectStandard14;
         auto font = GetDocument().GetFontManager().GetFont("Helvetica", params);
 
         // Create DR key

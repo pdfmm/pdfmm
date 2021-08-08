@@ -6,8 +6,8 @@
  * Some rights reserved. See COPYING, AUTHORS.
  */
 
-#ifndef PDF_FONT_TYPE1_BASE14_H
-#define PDF_FONT_TYPE1_BASE14_H
+#ifndef PDF_FONT_STANDARD14_H
+#define PDF_FONT_STANDARD14_H
 
 #include "PdfDefines.h"
 
@@ -17,11 +17,11 @@
 
 namespace mm {
 
-// TODO: Rename to PdfFontStandard14
-/** A PdfFont implementation that can be used
- *  draw with base14 type1 fonts into a PDF file.
+/**
+ * A PdfFont implementation that represents a
+ * standard 14 type1 font
  */
-class PdfFontType1Base14 final : public PdfFont
+class PdfFontStandard14 final : public PdfFont
 {
     friend class PdfFontFactory;
 private:
@@ -35,7 +35,7 @@ private:
      *                   depending on pEncoding->IsAutoDelete()
      *
      */
-    PdfFontType1Base14(PdfDocument& doc, PdfStd14FontType fontType,
+    PdfFontStandard14(PdfDocument& doc, PdfStandard14FontType fontType,
         const PdfEncoding& encoding);
 
     /** Create a new Type1 font object based on an existing PdfObject
@@ -47,14 +47,14 @@ private:
      *  \param encoding the encoding of this font. The font will take ownership of this object
      *                   depending on pEncoding->IsAutoDelete()
      */
-    PdfFontType1Base14(PdfObject& obj, PdfStd14FontType baseFont,
+    PdfFontStandard14(PdfObject& obj, PdfStandard14FontType baseFont,
         const PdfFontMetricsConstPtr& metrics,
         const PdfEncoding& encoding);
 
 public:
-    static std::string_view GetStandard14FontName(PdfStd14FontType stdFont);
-    static bool IsStandard14Font(const std::string_view& fontName, PdfStd14FontType& baseFont);
-    PdfStd14FontType GetStd14Type() const { return m_FontType; }
+    static std::string_view GetStandard14FontName(PdfStandard14FontType stdFont);
+    static bool IsStandard14Font(const std::string_view& fontName, PdfStandard14FontType& baseFont);
+    PdfStandard14FontType GetStd14Type() const { return m_FontType; }
 
     PdfFontType GetType() const override;
 
@@ -64,10 +64,9 @@ protected:
     void initImported() override;
 
 private:
-    PdfStd14FontType m_FontType;
+    PdfStandard14FontType m_FontType;
 };
 
 };
 
-#endif // PDF_FONT_TYPE1_BASE14_H
-
+#endif // PDF_FONT_STANDARD14_H

@@ -28,12 +28,12 @@ using namespace mm;
 
 struct Std14CPToGIDMapImp
 {
-    Std14CPToGIDMapImp(PdfStd14FontType stdFont);
+    Std14CPToGIDMapImp(PdfStandard14FontType stdFont);
     std::unordered_map<unsigned short, unsigned short> Map;
 };
 
-// The following are the Base 14 fonts data copied from libharu.
-const Base14FontData mm::CHAR_DATA_COURIER[315] = {
+// The following are the Standard 14 fonts data copied from libharu.
+const Standard14FontData mm::CHAR_DATA_COURIER[315] = {
     { 0x0020, 600 },
     { 0x0021, 600 },
     { 0x0022, 600 },
@@ -351,7 +351,7 @@ const Base14FontData mm::CHAR_DATA_COURIER[315] = {
     { 0x20AC, 600 },
 };
 
-const Base14FontData mm::CHAR_DATA_COURIER_BOLD[315] = {
+const Standard14FontData mm::CHAR_DATA_COURIER_BOLD[315] = {
     { 0x0020, 600 },
     { 0x0021, 600 },
     { 0x0022, 600 },
@@ -669,7 +669,7 @@ const Base14FontData mm::CHAR_DATA_COURIER_BOLD[315] = {
     { 0x20AC, 600 },
 };
 
-const Base14FontData mm::CHAR_DATA_COURIER_BOLD_OBLIQUE[315] = {
+const Standard14FontData mm::CHAR_DATA_COURIER_BOLD_OBLIQUE[315] = {
     { 0x0020, 600 },
     { 0x0021, 600 },
     { 0x0022, 600 },
@@ -987,7 +987,7 @@ const Base14FontData mm::CHAR_DATA_COURIER_BOLD_OBLIQUE[315] = {
     { 0x20AC, 600 },
 };
 
-const Base14FontData mm::CHAR_DATA_COURIER_OBLIQUE[315] = {
+const Standard14FontData mm::CHAR_DATA_COURIER_OBLIQUE[315] = {
     { 0x0020, 600 },
     { 0x0021, 600 },
     { 0x0022, 600 },
@@ -1305,7 +1305,7 @@ const Base14FontData mm::CHAR_DATA_COURIER_OBLIQUE[315] = {
     { 0x20AC, 600 },
 };
 
-const Base14FontData mm::CHAR_DATA_HELVETICA[315] = {
+const Standard14FontData mm::CHAR_DATA_HELVETICA[315] = {
     { 0x0020, 278 },
     { 0x0021, 278 },
     { 0x0022, 355 },
@@ -1623,7 +1623,7 @@ const Base14FontData mm::CHAR_DATA_HELVETICA[315] = {
     { 0x20AC, 556 },
 };
 
-const Base14FontData mm::CHAR_DATA_HELVETICA_BOLD[315] = {
+const Standard14FontData mm::CHAR_DATA_HELVETICA_BOLD[315] = {
     { 0x0020, 278 },
     { 0x0021, 333 },
     { 0x0022, 474 },
@@ -1941,7 +1941,7 @@ const Base14FontData mm::CHAR_DATA_HELVETICA_BOLD[315] = {
     { 0x20AC, 556 },
 };
 
-const Base14FontData mm::CHAR_DATA_HELVETICA_BOLD_OBLIQUE[315] = {
+const Standard14FontData mm::CHAR_DATA_HELVETICA_BOLD_OBLIQUE[315] = {
     { 0x0020, 278 },
     { 0x0021, 333 },
     { 0x0022, 474 },
@@ -2259,7 +2259,7 @@ const Base14FontData mm::CHAR_DATA_HELVETICA_BOLD_OBLIQUE[315] = {
     { 0x20AC, 556 },
 };
 
-const Base14FontData mm::CHAR_DATA_HELVETICA_OBLIQUE[315] = {
+const Standard14FontData mm::CHAR_DATA_HELVETICA_OBLIQUE[315] = {
     { 0x0020, 278 },
     { 0x0021, 278 },
     { 0x0022, 355 },
@@ -2577,7 +2577,7 @@ const Base14FontData mm::CHAR_DATA_HELVETICA_OBLIQUE[315] = {
     { 0x20AC, 556 },
 };
 
-const Base14FontData mm::CHAR_DATA_TIMES_ROMAN[315] = {
+const Standard14FontData mm::CHAR_DATA_TIMES_ROMAN[315] = {
     { 0x0020, 250 },
     { 0x0021, 333 },
     { 0x0022, 408 },
@@ -2895,7 +2895,7 @@ const Base14FontData mm::CHAR_DATA_TIMES_ROMAN[315] = {
     { 0x20AC, 500 },
 };
 
-const Base14FontData mm::CHAR_DATA_TIMES_BOLD[315] = {
+const Standard14FontData mm::CHAR_DATA_TIMES_BOLD[315] = {
     { 0x0020, 250 },
     { 0x0021, 333 },
     { 0x0022, 555 },
@@ -3213,7 +3213,7 @@ const Base14FontData mm::CHAR_DATA_TIMES_BOLD[315] = {
     { 0x20AC, 500 },
 };
 
-const Base14FontData mm::CHAR_DATA_TIMES_BOLD_ITALIC[315] = {
+const Standard14FontData mm::CHAR_DATA_TIMES_BOLD_ITALIC[315] = {
     { 0x0020, 250 },
     { 0x0021, 389 },
     { 0x0022, 555 },
@@ -3531,7 +3531,7 @@ const Base14FontData mm::CHAR_DATA_TIMES_BOLD_ITALIC[315] = {
     { 0x20AC, 500 },
 };
 
-const Base14FontData mm::CHAR_DATA_TIMES_ITALIC[315] = {
+const Standard14FontData mm::CHAR_DATA_TIMES_ITALIC[315] = {
     { 0x0020, 250 },
     { 0x0021, 333 },
     { 0x0022, 420 },
@@ -3849,7 +3849,7 @@ const Base14FontData mm::CHAR_DATA_TIMES_ITALIC[315] = {
     { 0x20AC, 500 },
 };
 
-const Base14FontData mm::CHAR_DATA_ZAPF_DINGBATS[202] = {
+const Standard14FontData mm::CHAR_DATA_ZAPF_DINGBATS[202] = {
     { 0x0020, 278 },
     { 0x0021, 974 },
     { 0x0022, 961 },
@@ -4054,7 +4054,7 @@ const Base14FontData mm::CHAR_DATA_ZAPF_DINGBATS[202] = {
     { 0x00FE, 918 },
 };
 
-const Base14FontData mm::CHAR_DATA_SYMBOL[190] = {
+const Standard14FontData mm::CHAR_DATA_SYMBOL[190] = {
     { 0x0020, 250 },
     { 0x0021, 333 },
     { 0x0022, 713 },
@@ -4249,7 +4249,7 @@ const Base14FontData mm::CHAR_DATA_SYMBOL[190] = {
                      // Just map it to the undefined character 0xFFFF
 };
 
-Std14CPToGIDMapImp::Std14CPToGIDMapImp(PdfStd14FontType stdFont)
+Std14CPToGIDMapImp::Std14CPToGIDMapImp(PdfStandard14FontType stdFont)
 {
     unsigned size;
     auto data = GetStd14FontData(stdFont, size);
@@ -4257,170 +4257,170 @@ Std14CPToGIDMapImp::Std14CPToGIDMapImp(PdfStd14FontType stdFont)
         Map[data[i].CodePoint] = i;
 }
 
-string_view mm::GetStandard14FontName(PdfStd14FontType stdFont)
+string_view mm::GetStandard14FontName(PdfStandard14FontType stdFont)
 {
     switch (stdFont)
     {
-        case PdfStd14FontType::TimesRoman:
+        case PdfStandard14FontType::TimesRoman:
             return FONT_TIMES_ROMAN;
-        case PdfStd14FontType::TimesItalic:
+        case PdfStandard14FontType::TimesItalic:
             return FONT_TIMES_ITALIC;
-        case PdfStd14FontType::TimesBold:
+        case PdfStandard14FontType::TimesBold:
             return FONT_TIMES_BOLD;
-        case PdfStd14FontType::TimesBoldItalic:
+        case PdfStandard14FontType::TimesBoldItalic:
             return FONT_TIMES_BOLD_ITALIC;
-        case PdfStd14FontType::Helvetica:
+        case PdfStandard14FontType::Helvetica:
             return FONT_HELVETICA;
-        case PdfStd14FontType::HelveticaOblique:
+        case PdfStandard14FontType::HelveticaOblique:
             return FONT_HELVETICA_OBLIQUE;
-        case PdfStd14FontType::HelveticaBold:
+        case PdfStandard14FontType::HelveticaBold:
             return FONT_HELVETICA_BOLD;
-        case PdfStd14FontType::HelveticaBoldOblique:
+        case PdfStandard14FontType::HelveticaBoldOblique:
             return FONT_HELVETICA_BOLD_OBLIQUE;
-        case PdfStd14FontType::Courier:
+        case PdfStandard14FontType::Courier:
             return FONT_COURIER;
-        case PdfStd14FontType::CourierOblique:
+        case PdfStandard14FontType::CourierOblique:
             return FONT_COURIER_OBLIQUE;
-        case PdfStd14FontType::CourierBold:
+        case PdfStandard14FontType::CourierBold:
             return FONT_COURIER_BOLD;
-        case PdfStd14FontType::CourierBoldOblique:
+        case PdfStandard14FontType::CourierBoldOblique:
             return FONT_COURIER_BOLD_OBLIQUE;
-        case PdfStd14FontType::Symbol:
+        case PdfStandard14FontType::Symbol:
             return FONT_SYMBOL;
-        case PdfStd14FontType::ZapfDingbats:
+        case PdfStandard14FontType::ZapfDingbats:
             return FONT_ZAPF_DINGBATS;
-        case PdfStd14FontType::Unknown:
+        case PdfStandard14FontType::Unknown:
         default:
             PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }
 }
 
-bool mm::IsStandard14Font(const string_view& fontName, PdfStd14FontType& stdFont)
+bool mm::IsStandard14Font(const string_view& fontName, PdfStandard14FontType& stdFont)
 {
     if (fontName == FONT_TIMES_ROMAN)
     {
-        stdFont = PdfStd14FontType::TimesRoman;
+        stdFont = PdfStandard14FontType::TimesRoman;
         return true;
     }
     else if (fontName == FONT_TIMES_ITALIC)
     {
-        stdFont = PdfStd14FontType::TimesItalic;
+        stdFont = PdfStandard14FontType::TimesItalic;
         return true;
     }
     else if (fontName == FONT_TIMES_BOLD)
     {
-        stdFont = PdfStd14FontType::TimesBold;
+        stdFont = PdfStandard14FontType::TimesBold;
         return true;
     }
     else if (fontName == FONT_TIMES_BOLD_ITALIC)
     {
-        stdFont = PdfStd14FontType::TimesBoldItalic;
+        stdFont = PdfStandard14FontType::TimesBoldItalic;
         return true;
     }
     else if (fontName == FONT_HELVETICA)
     {
-        stdFont = PdfStd14FontType::Helvetica;
+        stdFont = PdfStandard14FontType::Helvetica;
         return true;
     }
     else if (fontName == FONT_HELVETICA_OBLIQUE)
     {
-        stdFont = PdfStd14FontType::HelveticaOblique;
+        stdFont = PdfStandard14FontType::HelveticaOblique;
         return true;
     }
     else if (fontName == FONT_HELVETICA_BOLD)
     {
-        stdFont = PdfStd14FontType::HelveticaBold;
+        stdFont = PdfStandard14FontType::HelveticaBold;
         return true;
     }
     else if (fontName == FONT_HELVETICA_BOLD_OBLIQUE)
     {
-        stdFont = PdfStd14FontType::HelveticaBoldOblique;
+        stdFont = PdfStandard14FontType::HelveticaBoldOblique;
         return true;
     }
     else if (fontName == FONT_COURIER)
     {
-        stdFont = PdfStd14FontType::Courier;
+        stdFont = PdfStandard14FontType::Courier;
         return true;
     }
     else if (fontName == FONT_COURIER_OBLIQUE)
     {
-        stdFont = PdfStd14FontType::CourierOblique;
+        stdFont = PdfStandard14FontType::CourierOblique;
         return true;
     }
     else if (fontName == FONT_COURIER_BOLD)
     {
-        stdFont = PdfStd14FontType::CourierBold;
+        stdFont = PdfStandard14FontType::CourierBold;
         return true;
     }
     else if (fontName == FONT_COURIER_BOLD_OBLIQUE)
     {
-        stdFont = PdfStd14FontType::CourierBoldOblique;
+        stdFont = PdfStandard14FontType::CourierBoldOblique;
         return true;
     }
     else if (fontName == FONT_SYMBOL)
     {
-        stdFont = PdfStd14FontType::Symbol;
+        stdFont = PdfStandard14FontType::Symbol;
         return true;
     }
     else if (fontName == FONT_ZAPF_DINGBATS)
     {
-        stdFont = PdfStd14FontType::ZapfDingbats;
+        stdFont = PdfStandard14FontType::ZapfDingbats;
         return true;
     }
     else
     {
-        stdFont = PdfStd14FontType::Unknown;
+        stdFont = PdfStandard14FontType::Unknown;
         return false;
     }
 }
 
-const Base14FontData* mm::GetStd14FontData(PdfStd14FontType stdFont, unsigned& size)
+const Standard14FontData* mm::GetStd14FontData(PdfStandard14FontType stdFont, unsigned& size)
 {
     switch (stdFont)
     {
-        case PdfStd14FontType::TimesRoman:
+        case PdfStandard14FontType::TimesRoman:
             size = (unsigned short)std::size(CHAR_DATA_TIMES_ROMAN);
             return CHAR_DATA_TIMES_ROMAN;
-        case PdfStd14FontType::TimesItalic:
+        case PdfStandard14FontType::TimesItalic:
             size = (unsigned short)std::size(CHAR_DATA_TIMES_ITALIC);
             return CHAR_DATA_TIMES_ITALIC;
-        case PdfStd14FontType::TimesBold:
+        case PdfStandard14FontType::TimesBold:
             size = (unsigned short)std::size(CHAR_DATA_TIMES_BOLD);
             return CHAR_DATA_TIMES_BOLD;
-        case PdfStd14FontType::TimesBoldItalic:
+        case PdfStandard14FontType::TimesBoldItalic:
             size = (unsigned short)std::size(CHAR_DATA_TIMES_BOLD_ITALIC);
             return CHAR_DATA_TIMES_BOLD_ITALIC;
-        case PdfStd14FontType::Helvetica:
+        case PdfStandard14FontType::Helvetica:
             size = (unsigned short)std::size(CHAR_DATA_HELVETICA);
             return CHAR_DATA_HELVETICA;
-        case PdfStd14FontType::HelveticaOblique:
+        case PdfStandard14FontType::HelveticaOblique:
             size = (unsigned short)std::size(CHAR_DATA_HELVETICA_OBLIQUE);
             return CHAR_DATA_HELVETICA_OBLIQUE;
-        case PdfStd14FontType::HelveticaBold:
+        case PdfStandard14FontType::HelveticaBold:
             size = (unsigned short)std::size(CHAR_DATA_HELVETICA_BOLD);
             return CHAR_DATA_HELVETICA_BOLD;
-        case PdfStd14FontType::HelveticaBoldOblique:
+        case PdfStandard14FontType::HelveticaBoldOblique:
             size = (unsigned short)std::size(CHAR_DATA_HELVETICA_BOLD_OBLIQUE);
             return CHAR_DATA_HELVETICA_BOLD_OBLIQUE;
-        case PdfStd14FontType::Courier:
+        case PdfStandard14FontType::Courier:
             size = (unsigned short)std::size(CHAR_DATA_COURIER);
             return CHAR_DATA_COURIER;
-        case PdfStd14FontType::CourierOblique:
+        case PdfStandard14FontType::CourierOblique:
             size = (unsigned short)std::size(CHAR_DATA_COURIER_OBLIQUE);
             return CHAR_DATA_COURIER_OBLIQUE;
-        case PdfStd14FontType::CourierBold:
+        case PdfStandard14FontType::CourierBold:
             size = (unsigned short)std::size(CHAR_DATA_COURIER_BOLD);
             return CHAR_DATA_COURIER_BOLD;
-        case PdfStd14FontType::CourierBoldOblique:
+        case PdfStandard14FontType::CourierBoldOblique:
             size = (unsigned short)std::size(CHAR_DATA_COURIER_BOLD_OBLIQUE);
             return CHAR_DATA_COURIER_BOLD_OBLIQUE;
-        case PdfStd14FontType::Symbol:
+        case PdfStandard14FontType::Symbol:
             size = (unsigned short)std::size(CHAR_DATA_SYMBOL);
             return CHAR_DATA_SYMBOL;
-        case PdfStd14FontType::ZapfDingbats:
+        case PdfStandard14FontType::ZapfDingbats:
             size = (unsigned short)std::size(CHAR_DATA_ZAPF_DINGBATS);
             return CHAR_DATA_ZAPF_DINGBATS;
-        case PdfStd14FontType::Unknown:
+        case PdfStandard14FontType::Unknown:
         default:
             PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }
@@ -4428,121 +4428,121 @@ const Base14FontData* mm::GetStd14FontData(PdfStd14FontType stdFont, unsigned& s
 
 static const Std14CPToGIDMap& GetTimesRomanMap()
 {
-    static Std14CPToGIDMapImp Map(PdfStd14FontType::TimesRoman);
+    static Std14CPToGIDMapImp Map(PdfStandard14FontType::TimesRoman);
     return Map.Map;
 }
 
 static const Std14CPToGIDMap& GetTimesItalicMap()
 {
-    static Std14CPToGIDMapImp Map(PdfStd14FontType::TimesItalic);
+    static Std14CPToGIDMapImp Map(PdfStandard14FontType::TimesItalic);
     return Map.Map;
 }
 
 static const Std14CPToGIDMap& GetTimesBoldMap()
 {
-    static Std14CPToGIDMapImp Map(PdfStd14FontType::TimesBold);
+    static Std14CPToGIDMapImp Map(PdfStandard14FontType::TimesBold);
     return Map.Map;
 }
 
 static const Std14CPToGIDMap& GetTimesBoldItalicMap()
 {
-    static Std14CPToGIDMapImp Map(PdfStd14FontType::TimesBoldItalic);
+    static Std14CPToGIDMapImp Map(PdfStandard14FontType::TimesBoldItalic);
     return Map.Map;
 }
 
 static const Std14CPToGIDMap& GetHelveticaMap()
 {
-    static Std14CPToGIDMapImp Map(PdfStd14FontType::Helvetica);
+    static Std14CPToGIDMapImp Map(PdfStandard14FontType::Helvetica);
     return Map.Map;
 }
 
 static const Std14CPToGIDMap& GetHelveticaObliqueMap()
 {
-    static Std14CPToGIDMapImp Map(PdfStd14FontType::HelveticaOblique);
+    static Std14CPToGIDMapImp Map(PdfStandard14FontType::HelveticaOblique);
     return Map.Map;
 }
 
 static const Std14CPToGIDMap& GetHelveticaBoldMap()
 {
-    static Std14CPToGIDMapImp Map(PdfStd14FontType::HelveticaBold);
+    static Std14CPToGIDMapImp Map(PdfStandard14FontType::HelveticaBold);
     return Map.Map;
 }
 
 static const Std14CPToGIDMap& GetHelveticaBoldObliqueMap()
 {
-    static Std14CPToGIDMapImp Map(PdfStd14FontType::HelveticaBoldOblique);
+    static Std14CPToGIDMapImp Map(PdfStandard14FontType::HelveticaBoldOblique);
     return Map.Map;
 }
 
 static const Std14CPToGIDMap& GetCourierMap()
 {
-    static Std14CPToGIDMapImp Map(PdfStd14FontType::Courier);
+    static Std14CPToGIDMapImp Map(PdfStandard14FontType::Courier);
     return Map.Map;
 }
 
 static const Std14CPToGIDMap& GetCourierObliqueMap()
 {
-    static Std14CPToGIDMapImp Map(PdfStd14FontType::CourierOblique);
+    static Std14CPToGIDMapImp Map(PdfStandard14FontType::CourierOblique);
     return Map.Map;
 }
 
 static const Std14CPToGIDMap& GetCourierBoldMap()
 {
-    static Std14CPToGIDMapImp Map(PdfStd14FontType::CourierBold);
+    static Std14CPToGIDMapImp Map(PdfStandard14FontType::CourierBold);
     return Map.Map;
 }
 
 static const Std14CPToGIDMap& GetCourierBoldObliqueMap()
 {
-    static Std14CPToGIDMapImp Map(PdfStd14FontType::CourierBoldOblique);
+    static Std14CPToGIDMapImp Map(PdfStandard14FontType::CourierBoldOblique);
     return Map.Map;
 }
 
 static const Std14CPToGIDMap& GetSymbolMap()
 {
-    static Std14CPToGIDMapImp Map(PdfStd14FontType::Symbol);
+    static Std14CPToGIDMapImp Map(PdfStandard14FontType::Symbol);
     return Map.Map;
 }
 
 static const Std14CPToGIDMap& GetZapfDingbatsMap()
 {
-    static Std14CPToGIDMapImp Map(PdfStd14FontType::ZapfDingbats);
+    static Std14CPToGIDMapImp Map(PdfStandard14FontType::ZapfDingbats);
     return Map.Map;
 }
 
-const Std14CPToGIDMap& mm::GetStd14CPToGIDMap(PdfStd14FontType stdFont)
+const Std14CPToGIDMap& mm::GetStd14CPToGIDMap(PdfStandard14FontType stdFont)
 {
     switch (stdFont)
     {
-        case PdfStd14FontType::TimesRoman:
+        case PdfStandard14FontType::TimesRoman:
             return GetTimesRomanMap();
-        case PdfStd14FontType::TimesItalic:
+        case PdfStandard14FontType::TimesItalic:
             return GetTimesItalicMap();
-        case PdfStd14FontType::TimesBold:
+        case PdfStandard14FontType::TimesBold:
             return GetTimesBoldMap();
-        case PdfStd14FontType::TimesBoldItalic:
+        case PdfStandard14FontType::TimesBoldItalic:
             return GetTimesBoldItalicMap();
-        case PdfStd14FontType::Helvetica:
+        case PdfStandard14FontType::Helvetica:
             return GetHelveticaMap();
-        case PdfStd14FontType::HelveticaOblique:
+        case PdfStandard14FontType::HelveticaOblique:
             return GetHelveticaObliqueMap();
-        case PdfStd14FontType::HelveticaBold:
+        case PdfStandard14FontType::HelveticaBold:
             return GetHelveticaBoldMap();
-        case PdfStd14FontType::HelveticaBoldOblique:
+        case PdfStandard14FontType::HelveticaBoldOblique:
             return GetHelveticaBoldObliqueMap();
-        case PdfStd14FontType::Courier:
+        case PdfStandard14FontType::Courier:
             return GetCourierMap();
-        case PdfStd14FontType::CourierOblique:
+        case PdfStandard14FontType::CourierOblique:
             return GetCourierObliqueMap();
-        case PdfStd14FontType::CourierBold:
+        case PdfStandard14FontType::CourierBold:
             return GetCourierBoldMap();
-        case PdfStd14FontType::CourierBoldOblique:
+        case PdfStandard14FontType::CourierBoldOblique:
             return GetCourierBoldObliqueMap();
-        case PdfStd14FontType::Symbol:
+        case PdfStandard14FontType::Symbol:
             return GetSymbolMap();
-        case PdfStd14FontType::ZapfDingbats:
+        case PdfStandard14FontType::ZapfDingbats:
             return GetZapfDingbatsMap();
-        case PdfStd14FontType::Unknown:
+        case PdfStandard14FontType::Unknown:
         default:
             PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }

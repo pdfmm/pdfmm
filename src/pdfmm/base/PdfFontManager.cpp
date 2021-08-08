@@ -25,7 +25,7 @@
 #include "PdfFont.h"
 #include "PdfFontFactory.h"
 #include "PdfFontMetricsFreetype.h"
-#include "PdfFontType1Base14.h"
+#include "PdfFontStandard14.h"
 #include "PdfFontType1.h"
 
 using namespace std;
@@ -123,15 +123,15 @@ PdfFont* PdfFontManager::GetFont(const string_view& fontName, const PdfFontCreat
     if (found != m_fontMap.end())
         return found->second;
 
-    PdfStd14FontType baseFont;
-    if ((params.Flags & PdfFontCreationFlags::AutoSelectBase14) == PdfFontCreationFlags::AutoSelectBase14
-        && PdfFontType1Base14::IsStandard14Font(fontName, baseFont))
+    PdfStandard14FontType baseFont;
+    if ((params.Flags & PdfFontCreationFlags::AutoSelectStandard14) == PdfFontCreationFlags::AutoSelectStandard14
+        && PdfFontStandard14::IsStandard14Font(fontName, baseFont))
     {
         // TODO: Better handle params.Bold, params.Italic, params.IsSymbolCharset
         // For example, if we search for "Helvetica" and we set Bold=true, we want
         // to match "Helvetica-Bold"
         PdfFontInitParams initParams = { params.Bold, params.Italic, false, false };
-        auto font = PdfFontFactory::CreateBase14Font(*m_doc, baseFont, params.Encoding, initParams);
+        auto font = PdfFontFactory::CreateStandard14Font(*m_doc, baseFont, params.Encoding, initParams);
         if (font != nullptr)
         {
             m_fontMap.insert({ Element(fontName,

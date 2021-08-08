@@ -16,11 +16,11 @@
 #include "PdfFontObject.h"
 #include "PdfFontCIDTrueType.h"
 #include "PdfFontMetrics.h"
-#include "PdfFontMetricsBase14.h"
+#include "PdfFontMetricsStandard14.h"
 #include "PdfFontMetricsObject.h"
 #include "PdfFontType1.h"
 #include "PdfFontType3.h"
-#include "PdfFontType1Base14.h"
+#include "PdfFontStandard14.h"
 #include "PdfFontTrueType.h"
 
 using namespace std;
@@ -55,7 +55,7 @@ PdfFont* PdfFontFactory::createFontForType(PdfDocument& doc, const PdfFontMetric
                 //break;
             case PdfFontMetricsType::Type3:
             case PdfFontMetricsType::Unknown:
-            case PdfFontMetricsType::Type1Base14:
+            case PdfFontMetricsType::Type1Standard14:
             default:
                 PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFontFormat, "Unsupported font at this context");
         }
@@ -74,7 +74,7 @@ PdfFont* PdfFontFactory::createFontForType(PdfDocument& doc, const PdfFontMetric
             case PdfFontMetricsType::Type3:
                 font = new PdfFontType3(doc, metrics, encoding);
                 break;
-            case PdfFontMetricsType::Type1Base14:
+            case PdfFontMetricsType::Type1Standard14:
             case PdfFontMetricsType::Unknown:
             default:
                 PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFontFormat, "Unsupported font at this context");
@@ -139,11 +139,11 @@ PdfFont* PdfFontFactory::CreateFont(PdfObject& obj)
         // Handle missing FontDescriptor for the 14 standard fonts
         if (objDescriptor == nullptr)
         {
-            // Check if its a PdfFontType1Base14
+            // Check if it's a PdfFontStandard14
             auto baseFont = obj.GetDictionary().FindKey("BaseFont");
-            PdfStd14FontType baseFontType;
+            PdfStandard14FontType baseFontType;
             if (baseFont == nullptr
-                || !PdfFontType1Base14::IsStandard14Font(baseFont->GetName().GetString(), baseFontType))
+                || !PdfFontStandard14::IsStandard14Font(baseFont->GetName().GetString(), baseFontType))
             {
                 PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoObject, "No BaseFont object found"
                     " by reference in given object");
@@ -153,7 +153,7 @@ PdfFont* PdfFontFactory::CreateFont(PdfObject& obj)
             if (dict.HasKey("Widths"))
                 metrics = shared_ptr<PdfFontMetricsObject>(new PdfFontMetricsObject(obj));
             else
-                metrics = PdfFontMetricsBase14::GetInstance(baseFontType);
+                metrics = PdfFontMetricsStandard14::GetInstance(baseFontType);
 
             if (metrics != nullptr)
             {
@@ -171,9 +171,9 @@ PdfFont* PdfFontFactory::CreateFont(PdfObject& obj)
                 PdfEncoding encoding = PdfEncodingFactory::CreateEncoding(obj);
                 if (encoding.IsNull() && metrics->IsSymbol())
                 {
-                    if (baseFontType == PdfStd14FontType::Symbol)
+                    if (baseFontType == PdfStandard14FontType::Symbol)
                         encoding = PdfEncodingFactory::CreateSymbolEncoding();
-                    else if (baseFontType == PdfStd14FontType::ZapfDingbats)
+                    else if (baseFontType == PdfStandard14FontType::ZapfDingbats)
                         encoding = PdfEncodingFactory::CreateZapfDingbatsEncoding();
                     else
                         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Uncoregnized symbol encoding");
@@ -183,7 +183,7 @@ PdfFont* PdfFontFactory::CreateFont(PdfObject& obj)
                     encoding = PdfEncodingFactory::CreateStandardEncoding();
                 }
 
-                return new PdfFontType1Base14(obj, baseFontType, metrics, encoding);
+                return new PdfFontStandard14(obj, baseFontType, metrics, encoding);
             }
         }
 
@@ -218,10 +218,10 @@ PdfFont* PdfFontFactory::CreateFont(PdfObject& obj)
     return nullptr;
 }
 
-PdfFont* PdfFontFactory::CreateBase14Font(PdfDocument& doc, PdfStd14FontType baseFont,
+PdfFont* PdfFontFactory::CreateStandard14Font(PdfDocument& doc, PdfStandard14FontType baseFont,
     const PdfEncoding& encoding, const PdfFontInitParams& params)
 {
-    PdfFont* font = new PdfFontType1Base14(doc, baseFont, encoding);
+    PdfFont* font = new PdfFontStandard14(doc, baseFont, encoding);
     if (font != nullptr)
         font->InitImported(params.Embed, params.Subsetting);
 

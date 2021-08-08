@@ -185,7 +185,7 @@ enum class PdfFontMetricsType
     TrueType,
     Type1Pfa,
     Type1Pfb,
-    Type1Base14,
+    Type1Standard14,
     Type3,
 };
 
@@ -392,7 +392,7 @@ enum class PdfPageLayout
     TwoPageRight
 };
 
-enum class PdfStd14FontType
+enum class PdfStandard14FontType
 {
     Unknown = 0,
     TimesRoman,
