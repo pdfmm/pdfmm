@@ -12,7 +12,7 @@
 #include "PdfDefines.h"
 #include "PdfParserObject.h"
 #include "PdfXRefEntry.h"
-#include "PdfVecObjects.h"
+#include "PdfIndirectObjectList.h"
 #include "PdfTokenizer.h"
 
 namespace mm {
@@ -39,7 +39,7 @@ public:
      *
      *  \see ParseFile
      */
-    PdfParser(PdfVecObjects& objects);
+    PdfParser(PdfIndirectObjectList& objects);
 
     /** Delete the PdfParser and all PdfObjects
      */
@@ -157,7 +157,7 @@ public:
     /** Get a reference to the sorted internal objects vector.
      *  \returns the internal objects vector.
      */
-    inline const PdfVecObjects* GetObjects() const { return m_Objects; }
+    inline const PdfIndirectObjectList* GetObjects() const { return m_Objects; }
 
     /** Get the file format version of the pdf
      *  \returns the file format version as enum
@@ -403,7 +403,7 @@ private:
     size_t m_LastEOFOffset;
 
     PdfXRefEntries m_entries;
-    PdfVecObjects* m_Objects;
+    PdfIndirectObjectList* m_Objects;
 
     std::unique_ptr<PdfParserObject> m_Trailer;
     std::unique_ptr<PdfParserObject> m_Linearization;

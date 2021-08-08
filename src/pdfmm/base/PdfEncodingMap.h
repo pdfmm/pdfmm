@@ -16,7 +16,7 @@
 
 namespace mm {
 
-class PdfVecObjects;
+class PdfIndirectObjectList;
 class PdfDynamicEncoding;
 
 struct PDFMM_API PdfEncodingLimits
@@ -133,7 +133,7 @@ public:
      * \param name name to use
      * \param obj if not null the object will be used instead
      */
-    void GetExportObject(PdfVecObjects& objects, PdfName& name, PdfObject*& obj) const;
+    void GetExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const;
 
 public:
     virtual ~PdfEncodingMap();
@@ -170,7 +170,7 @@ protected:
      *
      * \remarks Default implementation just throws
      */
-    virtual void getExportObject(PdfVecObjects& objects, PdfName& name, PdfObject*& obj) const;
+    virtual void getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const;
 
     /** During a WriteToUnicodeCMap append "beginbfchar" and "beginbfrange" entries
      *  "bf" stands for Base Font, see Adobe tecnichal notes #5014

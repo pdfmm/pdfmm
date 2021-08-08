@@ -11,7 +11,7 @@
 
 #include "PdfDocument.h"
 #include "PdfObject.h"
-#include "PdfVecObjects.h"
+#include "PdfIndirectObjectList.h"
 
 using namespace mm;
 

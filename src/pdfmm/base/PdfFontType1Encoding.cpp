@@ -105,7 +105,7 @@ PdfCharCodeMap PdfFontType1Encoding::getUnicodeMap(const PdfObject& obj)
     return ret;
 }
 
-void PdfFontType1Encoding::getExportObject(PdfVecObjects& objects, PdfName& name, PdfObject*& obj) const
+void PdfFontType1Encoding::getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const
 {
     (void)objects;
     (void)name;

@@ -120,12 +120,12 @@ public:
     /** Get the page that this destination points to
      *  Requires that this PdfDestination was somehow
      *  created by or from a PdfDocument. Won't work otherwise.
-     *  \param objects a PdfVecObjects owning this destination, needed to resolve pages
+     *  \param objects a PdfIndirectObjectList owning this destination, needed to resolve pages
      *
      *  \returns the referenced PdfPage
      */
      // TODO: This is bullshit. Make PdfDestination a PdfElement and remove the parameter
-    PdfPage* GetPage(PdfVecObjects* objects);
+    PdfPage* GetPage(PdfIndirectObjectList* objects);
 
     /** Get the destination fit type
      *

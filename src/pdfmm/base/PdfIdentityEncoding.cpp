@@ -49,7 +49,7 @@ bool PdfIdentityEncoding::tryGetCodePoints(const PdfCharCode& codeUnit, vector<c
     return true;
 }
 
-void PdfIdentityEncoding::getExportObject(PdfVecObjects& objects, PdfName& name, PdfObject*& obj) const
+void PdfIdentityEncoding::getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const
 {
     (void)objects;
     (void)obj;

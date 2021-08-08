@@ -25,7 +25,7 @@ namespace mm {
 
 class PdfDocument;
 class PdfDictionary;
-class PdfVecObjects;
+class PdfIndirectObjectList;
 class PdfInputStream;
 
 typedef std::map<PdfObject*, PdfAnnotation*>  TMapAnnotationDirect;

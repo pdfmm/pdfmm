@@ -33,7 +33,7 @@ class PdfObject;
  */
 class PDFMM_API PdfMemStream final : public PdfStream
 {
-    friend class PdfVecObjects;
+    friend class PdfIndirectObjectList;
 public:
 
     /** Create a new PdfStream object which has a parent PdfObject.

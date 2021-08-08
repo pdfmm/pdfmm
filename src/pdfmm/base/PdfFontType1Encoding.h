@@ -22,7 +22,7 @@ private:
     PdfFontType1Encoding(const PdfObject& obj);
 
 protected:
-    void getExportObject(PdfVecObjects& objects, PdfName& name, PdfObject*& obj) const override;
+    void getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const override;
 
 private:
     PdfCharCodeMap getUnicodeMap(const PdfObject& obj);

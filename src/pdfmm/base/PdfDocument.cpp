@@ -19,7 +19,7 @@
 #include "PdfImmediateWriter.h"
 #include "PdfObject.h"
 #include "PdfStream.h"
-#include "PdfVecObjects.h"
+#include "PdfIndirectObjectList.h"
 #include "PdfAcroForm.h"
 #include "PdfDestination.h"
 #include "PdfFileSpec.h"

@@ -17,7 +17,7 @@
 namespace mm {
 
 class PdfEncrypt;
-class PdfVecObjects;
+class PdfIndirectObjectList;
 
 /**
  * A utility class for PdfParser that can parse
@@ -38,7 +38,7 @@ public:
      * \param objects add loaded objects to this vector of objects
      * \param buffer use this allocated buffer for caching
      */
-    PdfObjectStreamParser(PdfParserObject& parser, PdfVecObjects& objects, const PdfRefCountedBuffer& buffer);
+    PdfObjectStreamParser(PdfParserObject& parser, PdfIndirectObjectList& objects, const PdfRefCountedBuffer& buffer);
 
     void Parse(ObjectIdList const&);
 
@@ -47,7 +47,7 @@ private:
 
 private:
     PdfParserObject* m_Parser;
-    PdfVecObjects* m_Objects;
+    PdfIndirectObjectList* m_Objects;
     PdfRefCountedBuffer m_buffer;
 };
 

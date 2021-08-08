@@ -53,7 +53,7 @@
 #include "base/PdfString.h"
 #include "base/PdfTokenizer.h"
 #include "base/PdfVariant.h"
-#include "base/PdfVecObjects.h"
+#include "base/PdfIndirectObjectList.h"
 #include "base/PdfWriter.h"
 #include "base/PdfXRef.h"
 #include "base/PdfXRefStream.h"

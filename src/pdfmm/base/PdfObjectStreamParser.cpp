@@ -14,7 +14,7 @@
 #include "PdfInputDevice.h"
 #include "PdfParserObject.h"
 #include "PdfStream.h"
-#include "PdfVecObjects.h"
+#include "PdfIndirectObjectList.h"
 
 #include <algorithm>
 
@@ -25,7 +25,7 @@
 using namespace std;
 using namespace mm;
 
-PdfObjectStreamParser::PdfObjectStreamParser(PdfParserObject& parser, PdfVecObjects& objects, const PdfRefCountedBuffer& buffer)
+PdfObjectStreamParser::PdfObjectStreamParser(PdfParserObject& parser, PdfIndirectObjectList& objects, const PdfRefCountedBuffer& buffer)
     : m_Parser(&parser), m_Objects(&objects), m_buffer(buffer)
 {
 }

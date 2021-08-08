@@ -44,7 +44,7 @@ public:
 protected:
     bool tryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const override;
     bool tryGetCodePoints(const PdfCharCode& codeUnit, std::vector<char32_t>& codePoints) const override;
-    void getExportObject(PdfVecObjects& objects, PdfName& name, PdfObject*& obj) const override;
+    void getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const override;
     void appendBaseFontEntries(PdfStream& stream) const override;
 
 private:

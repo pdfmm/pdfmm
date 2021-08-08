@@ -12,7 +12,7 @@
 #include "PdfDefines.h"
 
 #include "PdfObject.h"
-#include "PdfVecObjects.h"
+#include "PdfIndirectObjectList.h"
 #include "PdfAcroForm.h"
 #include "PdfFontManager.h"
 #include "PdfInfo.h"
@@ -378,14 +378,14 @@ public:
      *
      *  \returns the vector of objects
      */
-    inline PdfVecObjects& GetObjects() { return m_Objects; }
+    inline PdfIndirectObjectList& GetObjects() { return m_Objects; }
 
     /** Get access to the internal vector of objects
      *  or root object.
      *
      *  \returns the vector of objects
      */
-    inline const PdfVecObjects& GetObjects() const { return m_Objects; }
+    inline const PdfIndirectObjectList& GetObjects() const { return m_Objects; }
 
     inline PdfFontManager& GetFontManager() { return m_FontManager; }
 
@@ -473,7 +473,7 @@ private:
     PdfDocument& operator=(const PdfDocument&) = delete;
 
 private:
-    PdfVecObjects m_Objects;
+    PdfIndirectObjectList m_Objects;
     std::unique_ptr<PdfObject> m_Trailer;
     PdfObject* m_Catalog;
     std::unique_ptr<PdfInfo> m_Info;

@@ -31,7 +31,7 @@ typedef struct tagLOGFONTW LOGFONTW;
 namespace mm {
 
 class PdfFontMetrics;
-class PdfVecObjects;
+class PdfIndirectObjectList;
 
 /**
  * Flags to control font creation.

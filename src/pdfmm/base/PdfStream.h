@@ -30,7 +30,7 @@ class PdfOutputStream;
  *
  *  You have to use a concrete implementation of a stream,
  *  which can be retrieved from a StreamFactory.
- *  \see PdfVecObjects
+ *  \see PdfIndirectObjectList
  *  \see PdfMemoryStream
  *  \see PdfFileStream
  */

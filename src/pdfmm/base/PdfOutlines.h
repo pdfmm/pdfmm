@@ -19,7 +19,7 @@ class PdfAction;
 class PdfObject;
 class PdfOutlineItem;
 class PdfString;
-class PdfVecObjects;
+class PdfIndirectObjectList;
 
 /**
  * The title of an outline item can be displayed

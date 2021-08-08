@@ -20,7 +20,7 @@
 #include "PdfObject.h"
 #include "PdfParserObject.h"
 #include "PdfStream.h"
-#include "PdfVecObjects.h"
+#include "PdfIndirectObjectList.h"
 #include "PdfAcroForm.h"
 #include "PdfDestination.h"
 #include "PdfFileSpec.h"

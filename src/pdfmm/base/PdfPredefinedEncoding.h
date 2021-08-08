@@ -63,7 +63,7 @@ namespace mm
         inline const PdfName& GetName() const { return m_name; }
 
     protected:
-        void getExportObject(PdfVecObjects& objects, PdfName& name, PdfObject*& obj) const;
+        void getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const;
         bool tryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const override;
         bool tryGetCodePoints(const PdfCharCode& codeUnit, std::vector<char32_t>& codePoints) const override;
 
@@ -110,7 +110,7 @@ namespace mm
         PdfWinAnsiEncoding();
 
     protected:
-        void getExportObject(PdfVecObjects& objects, PdfName& name, PdfObject*& obj) const;
+        void getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const;
         const char32_t* GetToUnicodeTable() const override;
 
     private:

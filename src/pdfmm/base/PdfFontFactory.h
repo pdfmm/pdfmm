@@ -16,7 +16,7 @@
 namespace mm {
 
 class PdfFontMetrics;
-class PdfVecObjects;
+class PdfIndirectObjectList;
 
 struct PdfFontInitParams
 {

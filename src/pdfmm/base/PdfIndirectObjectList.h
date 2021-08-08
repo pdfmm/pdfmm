@@ -25,16 +25,16 @@ typedef std::deque<PdfReference> PdfReferenceList;
 
 /** A STL vector of PdfObjects. I.e. a list of PdfObject classes.
  *  The PdfParser will read the PdfFile into memory and create
- *  a PdfVecObjects of all dictionaries found in the PDF file.
+ *  a PdfIndirectObjectList of all dictionaries found in the PDF file.
  *
- *  The PdfWriter class contrary creates a PdfVecObjects internally
+ *  The PdfWriter class contrary creates a PdfIndirectObjectList internally
  *  and writes it to a PDF file later with an appropriate table of
  *  contents.
  *
  *  This class contains also advanced functions for searching of PdfObject's
- *  in a PdfVecObject.
+ *  in a PdfIndirectObjectList.
  */
-class PDFMM_API PdfVecObjects final
+class PDFMM_API PdfIndirectObjectList final
 {
     friend class PdfWriter;
     friend class PdfDocument;
@@ -50,11 +50,11 @@ public:
     // TODO: proper wrapper iterator class.
     typedef ObjectList::const_iterator iterator;
 
-    /** Every observer of PdfVecObjects has to implement this interface.
+    /** Every observer of PdfIndirectObjectList has to implement this interface.
      */
     class PDFMM_API Observer
     {
-        friend class PdfVecObjects;
+        friend class PdfIndirectObjectList;
     public:
         virtual ~Observer() { }
 
@@ -90,9 +90,9 @@ public:
     };
 
 public:
-    PdfVecObjects(PdfDocument& document);
+    PdfIndirectObjectList(PdfDocument& document);
 
-    ~PdfVecObjects();
+    ~PdfIndirectObjectList();
 
     /** Enable/disable object numbers re-use.
      *  By default object numbers re-use is enabled.
@@ -414,7 +414,7 @@ private:
     void buildReferenceCountVector(TVecReferencePointerList& list);
     void insertReferencesIntoVector(const PdfObject& obj, TVecReferencePointerList& list);
 
-    /** Assumes that the PdfVecObjects is sorted
+    /** Assumes that the PdfIndirectObjectList is sorted
      */
     void insertOneReferenceIntoVector(const PdfObject& obj, TVecReferencePointerList& list);
 
@@ -427,8 +427,8 @@ private:
     void garbageCollection(TVecReferencePointerList& list, PdfObject& trailer, TPdfReferenceSet* notDelete = nullptr);
 
 private:
-    PdfVecObjects(const PdfVecObjects&) = delete;
-    PdfVecObjects& operator=(const PdfVecObjects&) = delete;
+    PdfIndirectObjectList(const PdfIndirectObjectList&) = delete;
+    PdfIndirectObjectList& operator=(const PdfIndirectObjectList&) = delete;
 
 private:
     typedef std::vector<Observer*> ObserverList;

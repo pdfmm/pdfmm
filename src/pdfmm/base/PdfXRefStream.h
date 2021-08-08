@@ -17,7 +17,7 @@
 namespace mm {
 
 class PdfOutputDevice;
-class PdfVecObjects;
+class PdfIndirectObjectList;
 
 /**
  * Creates an XRef table that is a stream object.
@@ -36,7 +36,7 @@ public:
      *  \param pWriter is needed to fill the trailer directory
      *                 correctly which is included into the XRef
      */
-    PdfXRefStream(PdfWriter& writer, PdfVecObjects& parent);
+    PdfXRefStream(PdfWriter& writer, PdfIndirectObjectList& parent);
 
     uint64_t GetOffset() const override;
 
@@ -49,7 +49,7 @@ protected:
     void EndWriteImpl(PdfOutputDevice& device) override;
 
 private:
-    PdfVecObjects* m_Parent;
+    PdfIndirectObjectList* m_Parent;
     PdfObject* m_xrefStreamObj;
     PdfArray m_indices;
     int64_t m_offset;

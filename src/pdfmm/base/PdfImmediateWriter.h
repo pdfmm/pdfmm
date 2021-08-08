@@ -9,7 +9,7 @@
 #define PDF_IMMEDIATE_WRITER_H
 
 #include "PdfDefines.h"
-#include "PdfVecObjects.h"
+#include "PdfIndirectObjectList.h"
 #include "PdfWriter.h"
 
 namespace mm {
@@ -22,8 +22,8 @@ class PdfXRef;
  *  a PdfOutputDevice
  */
 class PDFMM_API PdfImmediateWriter : private PdfWriter,
-    private PdfVecObjects::Observer,
-    private PdfVecObjects::StreamFactory
+    private PdfIndirectObjectList::Observer,
+    private PdfIndirectObjectList::StreamFactory
 {
 public:
     /** Create a new PdfWriter that writes objects with streams immediately to a PdfOutputDevice
@@ -43,7 +43,7 @@ public:
      *                  created document.
      *  \param writeMode additional options for writing the pdf
      */
-    PdfImmediateWriter(PdfVecObjects& objects, const PdfObject& trailer, PdfOutputDevice& device,
+    PdfImmediateWriter(PdfIndirectObjectList& objects, const PdfObject& trailer, PdfOutputDevice& device,
         PdfVersion version = PdfVersion::V1_5, PdfEncrypt* encrypt = nullptr,
         PdfWriteMode writeMode = PdfWriteModeDefault);
 

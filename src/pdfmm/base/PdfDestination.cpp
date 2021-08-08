@@ -189,7 +189,7 @@ PdfPage* PdfDestination::GetPage(PdfDocument* doc)
     return &doc->GetPageTree().GetPage(m_array[0].GetReference());
 }
 
-PdfPage* PdfDestination::GetPage(PdfVecObjects* objects)
+PdfPage* PdfDestination::GetPage(PdfIndirectObjectList* objects)
 {
     return this->GetPage(&objects->GetDocument());
 }

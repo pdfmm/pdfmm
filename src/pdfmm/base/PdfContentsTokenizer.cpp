@@ -10,7 +10,7 @@
 #include "PdfContentsTokenizer.h"
 
 #include "PdfOutputStream.h"
-#include "PdfVecObjects.h"
+#include "PdfIndirectObjectList.h"
 #include "PdfData.h"
 #include "PdfDictionary.h"
 #include "PdfCanvasInputDevice.h"

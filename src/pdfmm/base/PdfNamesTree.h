@@ -18,7 +18,7 @@ class PdfDictionary;
 class PdfName;
 class PdfObject;
 class PdfString;
-class PdfVecObjects;
+class PdfIndirectObjectList;
 
 enum class PdfNameLimits
 {

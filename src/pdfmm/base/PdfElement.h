@@ -16,7 +16,7 @@
 namespace mm {
 
 class PdfStreamedDocument;
-class PdfVecObjects;
+class PdfIndirectObjectList;
 
 /** PdfElement is a common base class for all elements
  *  in a PDF file. For example pages, action and annotations.
@@ -120,7 +120,7 @@ protected:
 
     /** Create a PdfObject in the parent of this PdfElement which
      *  might either be a PdfStreamedDocument, a PdfDocument or
-     *  a PdfVecObjects
+     *  a PdfIndirectObjectList
      *
      *  Use this function in an own subclass of PdfElement to create new
      *  PdfObjects.

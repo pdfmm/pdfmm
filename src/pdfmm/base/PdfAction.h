@@ -18,7 +18,7 @@ namespace mm {
 class PdfObject;
 class PdfString;
 class PdfStreamedDocument;
-class PdfVecObjects;
+class PdfIndirectObjectList;
 
 /** The type of the action.
  *  PDF supports different action types, each of

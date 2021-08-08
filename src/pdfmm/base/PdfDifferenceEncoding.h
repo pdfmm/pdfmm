@@ -171,7 +171,7 @@ public:
     inline const PdfEncodingDifference& GetDifferences() const { return m_differences; }
 
 protected:
-    void getExportObject(PdfVecObjects& objects, PdfName& name, PdfObject*& obj) const override;
+    void getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const override;
     bool tryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const override;
     bool tryGetCodePoints(const PdfCharCode& codeUnit, std::vector<char32_t>& codePoints) const override;
 

@@ -18,7 +18,7 @@
 #include "PdfDictionary.h"
 #include "PdfPredefinedEncoding.h"
 #include "PdfEncodingMapFactory.h"
-#include "PdfVecObjects.h"
+#include "PdfIndirectObjectList.h"
 #include "PdfFont.h"
 
 using namespace std;
@@ -2346,7 +2346,7 @@ PdfDifferenceEncoding::PdfDifferenceEncoding(const PdfObject& obj, bool explicit
     }
 }
 
-void PdfDifferenceEncoding::getExportObject(PdfVecObjects& objects, PdfName& name, PdfObject*& obj) const
+void PdfDifferenceEncoding::getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const
 {
     obj = objects.CreateDictionaryObject();
     auto& dict = obj->GetDictionary();

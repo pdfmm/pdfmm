@@ -17,7 +17,7 @@
 #include <freetype/freetype.h>
 
 #include "PdfDocument.h"
-#include "PdfVecObjects.h"
+#include "PdfIndirectObjectList.h"
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfLocale.h"

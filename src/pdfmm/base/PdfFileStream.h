@@ -27,7 +27,7 @@ class PdfOutputStream;
  *  PdfFileStream is used automatically when creating PDF files
  *  using PdfImmediateWriter.
  *
- *  \see PdfVecObjects
+ *  \see PdfIndirectObjectList
  *  \see PdfStream
  *  \see PdfMemoryStream
  *  \see PdfFileStream

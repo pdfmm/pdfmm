@@ -22,7 +22,7 @@ class PdfArray;
 class PdfDocument;
 class PdfInputStream;
 class PdfObject;
-class PdfVecObjects;
+class PdfIndirectObjectList;
 
 /** A PdfImage object is needed when ever you want to embedd an image
  *  file into a PDF document.

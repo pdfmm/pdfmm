@@ -13,7 +13,7 @@
 #include "PdfArray.h"
 #include "PdfContentsTokenizer.h"
 #include "PdfDifferenceEncoding.h"
-#include "PdfVecObjects.h"
+#include "PdfIndirectObjectList.h"
 
 using namespace std;
 using namespace mm;
@@ -38,7 +38,7 @@ void PdfPredefinedEncoding::InitEncodingTable()
     }
 }
 
-void PdfPredefinedEncoding::getExportObject(PdfVecObjects& objects, PdfName& name, PdfObject*& obj) const
+void PdfPredefinedEncoding::getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const
 {
     (void)objects;
     (void)obj;
@@ -461,7 +461,7 @@ const char32_t PdfDocEncoding::s_cEncoding[256] = {
 // See: http://www.microsoft.com/globaldev/reference/sbcs/1252.mspx
 // -----------------------------------------------------
 
-void PdfWinAnsiEncoding::getExportObject(PdfVecObjects& objects, PdfName& name, PdfObject*& obj) const
+void PdfWinAnsiEncoding::getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const
 {
     PdfArray differences;
     for (unsigned i = 0; i < 256; i++)

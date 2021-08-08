@@ -12,7 +12,7 @@
 #include "PdfDefines.h"
 #include "PdfInputDevice.h"
 #include "PdfOutputDevice.h"
-#include "PdfVecObjects.h"
+#include "PdfIndirectObjectList.h"
 #include "PdfObject.h"
 
 #include "PdfEncrypt.h"
@@ -24,7 +24,7 @@ class PdfName;
 class PdfPage;
 class PdfPagesTree;
 class PdfParser;
-class PdfVecObjects;
+class PdfIndirectObjectList;
 class PdfXRef;
 
 /** The PdfWriter class writes a list of PdfObjects as PDF file.
@@ -38,7 +38,7 @@ class PdfXRef;
 class PDFMM_API PdfWriter
 {
 private:
-    PdfWriter(PdfVecObjects* objects, const PdfObject& trailer, PdfVersion version);
+    PdfWriter(PdfIndirectObjectList* objects, const PdfObject& trailer, PdfVersion version);
 
 public:
     /** Create a new pdf file, from an vector of PdfObjects
@@ -46,7 +46,7 @@ public:
      *  \param objects the vector of objects
      *  \param trailer a valid trailer object
      */
-    PdfWriter(PdfVecObjects& objects, const PdfObject& trailer);
+    PdfWriter(PdfIndirectObjectList& objects, const PdfObject& trailer);
 
     virtual ~PdfWriter();
 
@@ -59,15 +59,15 @@ public:
     /** Create a XRef stream which is in some case
      *  more compact but requires at least PDF 1.5
      *  Default is false.
-     *  \param bStream if true a XRef stream object will be created
+     *  \param useXRefStream if true a XRef stream object will be created
      */
-    void SetUseXRefStream(bool bStream);
+    void SetUseXRefStream(bool useXRefStream);
 
     /** Set the written document to be encrypted using a PdfEncrypt object
      *
-     *  \param rEncrypt an encryption object which is used to encrypt the written PDF file
+     *  \param encrypt an encryption object which is used to encrypt the written PDF file
      */
-    void SetEncrypted(const PdfEncrypt& rEncrypt);
+    void SetEncrypted(const PdfEncrypt& encrypt);
 
 
     /** Add required keys to a trailer object
@@ -75,7 +75,7 @@ public:
      *  \param size number of objects in the PDF file
      *  \param onlySizeKey write only the size key
      */
-    void FillTrailerObject(PdfObject& trailer, size_t lSize, bool onlySizeKey) const;
+    void FillTrailerObject(PdfObject& trailer, size_t size, bool onlySizeKey) const;
 
 public:
     /** Get the file format version of the pdf
@@ -116,7 +116,7 @@ public:
      *  The default is 0.
      *  \param lPrevXRefOffset the previous XRef table offset
      */
-    inline void SetPrevXRefOffset(int64_t lPrevXRefOffset) { m_PrevXRefOffset = lPrevXRefOffset; }
+    inline void SetPrevXRefOffset(int64_t prevXRefOffset) { m_PrevXRefOffset = prevXRefOffset; }
 
     /**
      *  \returns offset to the previous XRef table, as previously set
@@ -144,9 +144,9 @@ public:
 
 protected:
     /**
-     * Create a PdfWriter from a PdfVecObjects
+     * Create a PdfWriter from a PdfIndirectObjectList
      */
-    PdfWriter(PdfVecObjects& objects);
+    PdfWriter(PdfIndirectObjectList& objects);
 
     /** Writes the pdf header to the current file.
      *  \param device write to this output device
@@ -159,7 +159,7 @@ protected:
      *  \param pXref add all written objects to this XRefTable
      *  \param bRewriteXRefTable whether will rewrite whole XRef table (used only if GetIncrementalUpdate() returns true)
      */
-    void WritePdfObjects(PdfOutputDevice& device, const PdfVecObjects& objects, PdfXRef& xref);
+    void WritePdfObjects(PdfOutputDevice& device, const PdfIndirectObjectList& objects, PdfXRef& xref);
 
     /** Creates a file identifier which is required in several
      *  PDF workflows.
@@ -174,14 +174,14 @@ protected:
 
 
     const PdfObject& GetTrailer() { return m_Trailer; }
-    PdfVecObjects& GetObjects() { return *m_Objects; }
+    PdfIndirectObjectList& GetObjects() { return *m_Objects; }
     PdfEncrypt* GetEncrypt() { return m_Encrypt.get(); }
     PdfObject* GetEncryptObj() { return m_EncryptObj; }
     const PdfString& GetIdentifier() { return m_identifier; }
     void SetIdentifier(const PdfString& identifier) { m_identifier = identifier; }
     void SetEncryptObj(PdfObject* obj);
 private:
-    PdfVecObjects* m_Objects;
+    PdfIndirectObjectList* m_Objects;
     PdfObject m_Trailer;
     PdfVersion m_Version;
 

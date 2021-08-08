@@ -20,7 +20,7 @@ namespace mm {
 class PdfEncrypt;
 class PdfObject;
 class PdfOutputDevice;
-class PdfVecObjects;
+class PdfIndirectObjectList;
 class PdfDictionary;
 class PdfArray;
 class PdfDocument;
@@ -40,7 +40,7 @@ class PdfDataContainer;
  */
 class PDFMM_API PdfObject
 {
-    friend class PdfVecObjects;
+    friend class PdfIndirectObjectList;
     friend class PdfArray;
     friend class PdfDictionary;
     friend class PdfDocument;
@@ -507,7 +507,7 @@ protected:
 
     void resetDirty();
 
-    /** Set the owner of this object, i.e. the PdfVecObjects to which
+    /** Set the owner of this object, i.e. the PdfIndirectObjectList to which
      *  this object belongs.
      *
      *  \param objects a vector of pdf objects

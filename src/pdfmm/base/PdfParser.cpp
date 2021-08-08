@@ -76,7 +76,7 @@ private:
     unsigned& m_RecursionDepth;
 };
 
-PdfParser::PdfParser(PdfVecObjects& objects) :
+PdfParser::PdfParser(PdfIndirectObjectList& objects) :
     m_buffer(PdfTokenizer::BufferSize),
     m_tokenizer(m_buffer, true),
     m_Objects(&objects),
@@ -1122,7 +1122,7 @@ void PdfParser::ReadObjectsInternal(const PdfRefCountedInputDevice& device)
         // (especially Illustrator) but Acrobat still accepts them. I've seen XRefs 
         // where some object-numbers are alltogether missing and multiple XRefs where 
         // the link list is broken.
-        // Because PdfVecObjects relies on a unbroken range, fill the free list more
+        // Because PdfIndirectObjectList relies on a unbroken range, fill the free list more
         // robustly from all places which are either free or unparsed
     }
 

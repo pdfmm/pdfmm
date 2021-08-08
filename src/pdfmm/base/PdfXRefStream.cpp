@@ -28,7 +28,7 @@ struct XRefStreamEntry
 
 #pragma pack(pop)
 
-PdfXRefStream::PdfXRefStream(PdfWriter& writer, PdfVecObjects& parent) :
+PdfXRefStream::PdfXRefStream(PdfWriter& writer, PdfIndirectObjectList& parent) :
     PdfXRef(writer),
     m_Parent(&parent),
     m_xrefStreamObj(parent.CreateDictionaryObject("XRef")),

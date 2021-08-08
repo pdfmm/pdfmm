@@ -29,7 +29,7 @@
 using namespace std;
 using namespace mm;
 
-PdfWriter::PdfWriter(PdfVecObjects* objects, const PdfObject& trailer, PdfVersion version) :
+PdfWriter::PdfWriter(PdfIndirectObjectList* objects, const PdfObject& trailer, PdfVersion version) :
     m_Objects(objects),
     m_Trailer(trailer),
     m_Version(version),
@@ -47,12 +47,12 @@ PdfWriter::PdfWriter(PdfVecObjects* objects, const PdfObject& trailer, PdfVersio
 {
 }
 
-PdfWriter::PdfWriter(PdfVecObjects& objects, const PdfObject& trailer)
+PdfWriter::PdfWriter(PdfIndirectObjectList& objects, const PdfObject& trailer)
     : PdfWriter(&objects, trailer, PdfVersionDefault)
 {
 }
 
-PdfWriter::PdfWriter(PdfVecObjects& objects)
+PdfWriter::PdfWriter(PdfIndirectObjectList& objects)
     : PdfWriter(&objects, PdfObject(), PdfVersionDefault)
 {
 }
@@ -131,7 +131,7 @@ void PdfWriter::WritePdfHeader(PdfOutputDevice& device)
     device.Print("%s\n%%%s", s_PdfVersions[static_cast<int>(m_Version)], PDF_MAGIC);
 }
 
-void PdfWriter::WritePdfObjects(PdfOutputDevice& device, const PdfVecObjects& objects, PdfXRef& xref)
+void PdfWriter::WritePdfObjects(PdfOutputDevice& device, const PdfIndirectObjectList& objects, PdfXRef& xref)
 {
     for (PdfObject* obj : objects)
     {
@@ -315,15 +315,15 @@ void PdfWriter::SetEncryptObj(PdfObject* obj)
     m_EncryptObj = obj;
 }
 
-void PdfWriter::SetEncrypted(const PdfEncrypt& rEncrypt)
+void PdfWriter::SetEncrypted(const PdfEncrypt& encrypt)
 {
-    m_Encrypt = PdfEncrypt::CreatePdfEncrypt(rEncrypt);
+    m_Encrypt = PdfEncrypt::CreatePdfEncrypt(encrypt);
 }
 
-void PdfWriter::SetUseXRefStream(bool bStream)
+void PdfWriter::SetUseXRefStream(bool useXRefStream)
 {
-    if (bStream && m_Version < PdfVersion::V1_5)
+    if (useXRefStream && m_Version < PdfVersion::V1_5)
         this->SetPdfVersion(PdfVersion::V1_5);
 
-    m_UseXRefStream = bStream;
+    m_UseXRefStream = useXRefStream;
 }

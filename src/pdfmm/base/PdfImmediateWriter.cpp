@@ -16,7 +16,7 @@
 
 using namespace mm;
 
-PdfImmediateWriter::PdfImmediateWriter(PdfVecObjects& objects, const PdfObject& trailer,
+PdfImmediateWriter::PdfImmediateWriter(PdfIndirectObjectList& objects, const PdfObject& trailer,
     PdfOutputDevice& device, PdfVersion version, PdfEncrypt* encrypt, PdfWriteMode writeMode) :
     PdfWriter(objects, trailer),
     m_attached(true),
@@ -24,9 +24,9 @@ PdfImmediateWriter::PdfImmediateWriter(PdfVecObjects& objects, const PdfObject& 
     m_Last(nullptr),
     m_OpenStream(false)
 {
-    // register as observer for PdfVecObjects
+    // register as observer for PdfIndirectObjectList
     GetObjects().Attach(this);
-    // register as stream factory for PdfVecObjects
+    // register as stream factory for PdfIndirectObjectList
     GetObjects().SetStreamFactory(this);
 
     PdfString identifier;
