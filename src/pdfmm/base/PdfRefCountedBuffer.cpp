@@ -108,7 +108,7 @@ void PdfRefCountedBuffer::Resize(size_t size)
 
 void PdfRefCountedBuffer::DerefBuffer()
 {
-    if (m_Buffer != nullptr && !(--m_Buffer->m_RefCount))
+    if (m_Buffer != nullptr && --m_Buffer->m_RefCount == 0)
         FreeBuffer();
     // Whether or not it still exists, we no longer have anything to do with
     // the buffer we just released our claim on.
@@ -117,7 +117,7 @@ void PdfRefCountedBuffer::DerefBuffer()
 
 void PdfRefCountedBuffer::FreeBuffer()
 {
-    PDFMM_RAISE_LOGIC_IF(m_Buffer == nullptr || m_Buffer->m_RefCount, "Tried to free in-use buffer");
+    PDFMM_RAISE_LOGIC_IF(m_Buffer == nullptr || m_Buffer->m_RefCount != 0, "Tried to free in-use buffer");
 
     // last owner of the file!
     if (m_Buffer->m_OnHeap && m_Buffer->m_Possesion)
@@ -147,7 +147,7 @@ void PdfRefCountedBuffer::ReallyDetach(size_t extraLen)
     buffer->m_BufferSize = std::max(size, static_cast<size_t>(+TRefCountedBuffer::INTERNAL_BUFSIZE));
     buffer->m_Possesion = true;
 
-    if (buffer->m_OnHeap && !buffer->m_HeapBuffer)
+    if (buffer->m_OnHeap && buffer->m_HeapBuffer == nullptr)
     {
         delete buffer;
         buffer = nullptr;
@@ -233,7 +233,7 @@ void PdfRefCountedBuffer::ReallyResize(const size_t size)
         m_Buffer->m_BufferSize = std::max(size, static_cast<size_t>(+TRefCountedBuffer::INTERNAL_BUFSIZE));
         m_Buffer->m_Possesion = true;
 
-        if (m_Buffer->m_OnHeap && !m_Buffer->m_HeapBuffer)
+        if (m_Buffer->m_OnHeap && m_Buffer->m_HeapBuffer == nullptr)
         {
             delete m_Buffer;
             m_Buffer = nullptr;
