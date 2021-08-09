@@ -166,11 +166,7 @@ private:
     std::wstring m_wInfo;
 };
 
-
-typedef std::deque<PdfErrorInfo>        TDequeErrorInfo;
-typedef TDequeErrorInfo::iterator       TIDequeErrorInfo;
-typedef TDequeErrorInfo::const_iterator TCIDequeErrorInfo;
-
+typedef std::deque<PdfErrorInfo> PdErrorInfoQueue;
 
 // This is required to generate the documentation with Doxygen.
 // Without this define doxygen thinks we have a class called PDFMM_EXCEPTION_API(PDFMM_API) ...
@@ -282,7 +278,7 @@ public:
     /** Get access to the internal callstack of this error.
      *  \returns the callstack deque of PdfErrorInfo objects.
      */
-    inline const TDequeErrorInfo& GetCallstack() const { return m_callStack; }
+    inline const PdErrorInfoQueue& GetCallstack() const { return m_callStack; }
 
     /** Set the error code of this object.
      *  \param code the error code of this object
@@ -437,7 +433,7 @@ private:
      *  prints the error message
      *
      *  \param logSeverity the severity of the log message
-     *  \param msg       the message to be logged
+     *  \param msg the message to be logged
      */
     static void LogErrorMessage(LogSeverity logSeverity, const wchar_t* msg, ...);
 
@@ -445,12 +441,12 @@ private:
     static void LogMessageInternal(LogSeverity logSeverity, const wchar_t* msg, va_list& args);
 
 private:
-    PdfErrorCode          m_error;
+    PdfErrorCode m_error;
 
-    TDequeErrorInfo    m_callStack;
+    PdErrorInfoQueue m_callStack;
 
-    static bool        s_DgbEnabled;
-    static bool        s_LogEnabled;
+    static bool s_DgbEnabled;
+    static bool s_LogEnabled;
 
     // OC 17.08.2010 New to optionally replace stderr output by a callback:
     static LogMessageCallback* m_LogMessageCallback;
