@@ -1030,8 +1030,8 @@ void PdfParser::ReadObjectsInternal(const PdfRefCountedInputDevice& device)
                             obj->ParseFile(m_Encrypt.get());
                             if (m_Encrypt && obj->IsDictionary())
                             {
-                                PdfObject* pObjType = obj->GetDictionary().GetKey(PdfName::KeyType);
-                                if (pObjType && pObjType->IsName() && pObjType->GetName() == "XRef")
+                                auto typeObj = obj->GetDictionary().GetKey(PdfName::KeyType);
+                                if (typeObj != nullptr && typeObj->IsName() && typeObj->GetName() == "XRef")
                                 {
                                     // XRef is never encrypted
                                     delete obj;
@@ -1045,7 +1045,7 @@ void PdfParser::ReadObjectsInternal(const PdfRefCountedInputDevice& device)
 
                             // final pdf should not contain a linerization dictionary as it contents are invalid 
                             // as we change some objects and the final xref table
-                            if (m_Linearization && last == m_Linearization->GetIndirectReference().ObjectNumber())
+                            if (m_Linearization != nullptr && last == m_Linearization->GetIndirectReference().ObjectNumber())
                             {
                                 m_Objects->SafeAddFreeObject(reference);
                                 delete obj;
@@ -1284,10 +1284,8 @@ void PdfParser::FindToken2(const PdfRefCountedInputDevice& device, const char* t
             break;
     }
 
-    if (!i)
-    {
+    if (i == 0)
         PDFMM_RAISE_ERROR(PdfErrorCode::InternalLogic);
-    }
 
     device.Device()->Seek(searchEnd - ((streamoff)xRefBuf - i), ios_base::beg);
 }

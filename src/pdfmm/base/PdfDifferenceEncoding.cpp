@@ -2367,7 +2367,7 @@ void PdfDifferenceEncoding::getExportObject(PdfIndirectObjectList& objects, PdfN
             break;
     }
 
-    if (m_differences.GetCount())
+    if (m_differences.GetCount() != 0)
     {
         PdfArray differences;
         m_differences.ToArray(differences);

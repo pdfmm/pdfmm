@@ -180,24 +180,23 @@ void PdfRefCountedBuffer::ReallyResize(const size_t size)
             // request lots of small resizes if they want, but these over allocations are not visible
             // to clients.
             //
-            const size_t lAllocSize = std::max(size, m_Buffer->m_BufferSize) << 1;
+            size_t allocSize = std::max(size, m_Buffer->m_BufferSize) << 1;
             if (m_Buffer->m_Possesion && m_Buffer->m_OnHeap)
             {
                 // We have an existing on-heap buffer that we own. Realloc()
                 // it, potentially saving us a memcpy and free().
-                void* temp = pdfmm_realloc(m_Buffer->m_HeapBuffer, lAllocSize);
-                if (!temp)
-                {
+                auto temp = pdfmm_realloc(m_Buffer->m_HeapBuffer, allocSize);
+                if (temp == nullptr)
                     PDFMM_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, "PdfRefCountedBuffer::Resize failed!");
-                }
+
                 m_Buffer->m_HeapBuffer = static_cast<char*>(temp);
-                m_Buffer->m_BufferSize = lAllocSize;
+                m_Buffer->m_BufferSize = allocSize;
             }
             else
             {
                 // Either we don't own the buffer or it's a local static buffer that's no longer big enough.
                 // Either way, it's time to move to a heap-allocated buffer we own.
-                char* buffer = static_cast<char*>(pdfmm_calloc(lAllocSize, sizeof(char)));
+                char* buffer = static_cast<char*>(pdfmm_calloc(allocSize, sizeof(char)));
                 if (buffer == nullptr)
                 {
                     PDFMM_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, "PdfRefCountedBuffer::Resize failed!");
@@ -206,7 +205,7 @@ void PdfRefCountedBuffer::ReallyResize(const size_t size)
                 // to rely on anything more than that, and not copying it will help catch those errors.
                 memcpy(buffer, m_Buffer->GetRealBuffer(), m_Buffer->m_VisibleSize);
                 // Record the newly allocated buffer's details. The visible size gets updated later.
-                m_Buffer->m_BufferSize = lAllocSize;
+                m_Buffer->m_BufferSize = allocSize;
                 m_Buffer->m_HeapBuffer = buffer;
                 m_Buffer->m_OnHeap = true;
             }

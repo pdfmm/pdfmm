@@ -117,7 +117,7 @@ pair<PdfDictionary::Map::iterator, bool> PdfDictionary::addKey(const PdfName& id
 
 PdfObject* PdfDictionary::getKey(const PdfName& key) const
 {
-    if (!key.GetLength())
+    if (key.GetLength() == 0)
         return nullptr;
 
     auto it = m_Map.find(key);

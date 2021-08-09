@@ -162,14 +162,14 @@ void PdfObject::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
         //}
     }
 
-    if (encrypt)
+    if (encrypt != nullptr)
         encrypt->SetCurrentReference(m_IndirectReference);
 
     if (m_Stream != nullptr)
     {
         // Set length if it is a key
-        PdfFileStream* pFileStream = dynamic_cast<PdfFileStream*>(m_Stream.get());
-        if (pFileStream == nullptr)
+        auto fileStream = dynamic_cast<PdfFileStream*>(m_Stream.get());
+        if (fileStream == nullptr)
         {
             // It's not a PdfFileStream. PdfFileStream handles length internally
 
@@ -186,7 +186,7 @@ void PdfObject::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
     m_Variant.Write(device, writeMode, encrypt);
     device.Print("\n");
 
-    if (m_Stream)
+    if (m_Stream != nullptr)
         m_Stream->Write(device, encrypt);
 
     if (m_IndirectReference.IsIndirect())

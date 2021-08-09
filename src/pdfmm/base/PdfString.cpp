@@ -71,8 +71,8 @@ PdfString PdfString::FromHexData(const string_view& hexView, PdfEncrypt* encrypt
     buffer->reserve(len % 2 ? (len + 1) >> 1 : len >> 1);
 
     char val;
-    char cDecodedByte = 0;
-    bool bLow = true;
+    char decodedChar = 0;
+    bool low = true;
     for (size_t i = 0; i < len; i++)
     {
         char ch = hexView[i];
@@ -80,24 +80,24 @@ PdfString PdfString::FromHexData(const string_view& hexView, PdfEncrypt* encrypt
             continue;
 
         val = PdfTokenizer::GetHexValue(ch);
-        if (bLow)
+        if (low)
         {
-            cDecodedByte = val & 0x0F;
-            bLow = false;
+            decodedChar = val & 0x0F;
+            low = false;
         }
         else
         {
-            cDecodedByte = (cDecodedByte << 4) | val;
-            bLow = true;
-            buffer->push_back(cDecodedByte);
+            decodedChar = (decodedChar << 4) | val;
+            low = true;
+            buffer->push_back(decodedChar);
         }
     }
 
-    if (!bLow)
+    if (!low)
     {
         // an odd number of bytes was read,
         // so the last byte is 0
-        buffer->push_back(cDecodedByte);
+        buffer->push_back(decodedChar);
     }
 
     if (encrypt == nullptr)

@@ -24,7 +24,7 @@ using namespace std;
 using namespace mm;
 
 static char getEscapedCharacter(char ch);
-static void readHexString(PdfInputDevice& device, buffer_t& rVecBuffer);
+static void readHexString(PdfInputDevice& device, buffer_t& buffer);
 static bool isOctalChar(char ch);
 
 PdfTokenizer::PdfTokenizer(bool readReferences)
@@ -50,7 +50,7 @@ bool PdfTokenizer::TryReadNextToken(PdfInputDevice& device, string_view& token, 
     int64_t counter = 0;
 
     // check first if there are queued tokens and return them first
-    if (m_tokenQueque.size())
+    if (m_tokenQueque.size() != 0)
     {
         TokenizerPair pair = m_tokenQueque.front();
         m_tokenQueque.pop_front();
@@ -477,7 +477,7 @@ void PdfTokenizer::ReadString(PdfInputDevice& device, PdfVariant& variant, PdfEn
     bool octEscape = false;
     int octCharCount = 0;
     char octValue = 0;
-    int nBalanceCount = 0; // Balanced parathesis do not have to be escaped in strings
+    int balanceCount = 0; // Balanced parathesis do not have to be escaped in strings
 
     m_charBuffer.clear();
     while (device.TryGetChar(ch))
@@ -552,13 +552,13 @@ void PdfTokenizer::ReadString(PdfInputDevice& device, PdfVariant& variant, PdfEn
         else
         {
             // Handle raw characters
-            if (!nBalanceCount && ch == ')')
+            if (balanceCount == 0 && ch == ')')
                 break;
 
             if (ch == '(')
-                nBalanceCount++;
+                balanceCount++;
             else if (ch == ')')
-                nBalanceCount--;
+                balanceCount--;
 
             escape = ch == '\\';
             if (!escape)
@@ -570,7 +570,7 @@ void PdfTokenizer::ReadString(PdfInputDevice& device, PdfVariant& variant, PdfEn
     if (octEscape)
         m_charBuffer.push_back(octValue);
 
-    if (m_charBuffer.size())
+    if (m_charBuffer.size() != 0)
     {
         if (encrypt)
         {
@@ -797,9 +797,9 @@ char getEscapedCharacter(char ch)
     }
 }
 
-void readHexString(PdfInputDevice& device, buffer_t& rVecBuffer)
+void readHexString(PdfInputDevice& device, buffer_t& buffer)
 {
-    rVecBuffer.clear();
+    buffer.clear();
     char ch;
     while (device.TryGetChar(ch))
     {
@@ -811,12 +811,12 @@ void readHexString(PdfInputDevice& device, buffer_t& rVecBuffer)
         if (isdigit(ch) ||
             (ch >= 'A' && ch <= 'F') ||
             (ch >= 'a' && ch <= 'f'))
-            rVecBuffer.push_back(ch);
+            buffer.push_back(ch);
     }
 
     // pad to an even length if necessary
-    if (rVecBuffer.size() % 2)
-        rVecBuffer.push_back('0');
+    if (buffer.size() % 2)
+        buffer.push_back('0');
 }
 
 bool isOctalChar(char ch)

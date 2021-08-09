@@ -134,10 +134,10 @@ void PdfError::PrintErrorMsg() const
 
     PdfError::LogErrorMessage(LogSeverity::Error, "\n\npdfmm encountered an error. Error: %i %s", m_error, name ? name : "");
 
-    if (msg)
+    if (msg != nullptr)
         PdfError::LogErrorMessage(LogSeverity::Error, "\tError Description: %s", msg);
 
-    if (m_callStack.size())
+    if (m_callStack.size() != 0)
         PdfError::LogErrorMessage(LogSeverity::Error, "\tCallstack:");
 
     for (auto& info: m_callStack)
@@ -545,7 +545,7 @@ void PdfError::LogMessageInternal(LogSeverity logSeverity, const char* msg, va_l
         return;
     }
 
-    if (prefix)
+    if (prefix != nullptr)
         fprintf(stderr, "%s", prefix);
 
     vfprintf(stderr, msg, args);
@@ -627,7 +627,7 @@ void PdfError::LogMessageInternal(LogSeverity logSeverity, const wchar_t* msg, v
         return;
     }
 
-    if (prefix)
+    if (prefix != nullptr)
         fwprintf(stderr, prefix);
 
     vfwprintf(stderr, msg, args);
@@ -650,7 +650,7 @@ void PdfError::DebugMessage(const char* msg, ...)
     }
     else
     {
-        if (prefix)
+        if (prefix != nullptr)
             fprintf(stderr, "%s", prefix);
 
         vfprintf(stderr, msg, args);
@@ -694,13 +694,13 @@ void PdfError::AddToCallstack(const char* file, int line, const string_view& inf
 
 void PdfError::SetErrorInformation(const char* information)
 {
-    if (m_callStack.size())
+    if (m_callStack.size() != 0)
         m_callStack.front().SetInformation(information == nullptr ? "" : information);
 }
 
 void PdfError::SetErrorInformation(const wchar_t* information)
 {
-    if (m_callStack.size())
+    if (m_callStack.size() != 0)
         m_callStack.front().SetInformation(information == nullptr ? L"" : information);
 }
 

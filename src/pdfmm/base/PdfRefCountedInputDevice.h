@@ -81,9 +81,9 @@ private:
     {
         PdfInputDevice* Device;
         unsigned RefCount;
-    } TRefCountedInputDevice;
+    } RefCountedInputDevice;
 
-    TRefCountedInputDevice* m_Device;
+    RefCountedInputDevice* m_Device;
 };
 
 };

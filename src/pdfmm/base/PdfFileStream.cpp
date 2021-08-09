@@ -43,7 +43,7 @@ void PdfFileStream::BeginAppendImpl(const PdfFilterList& filters)
 
     m_initialLength = m_Device->GetLength();
 
-    if (filters.size())
+    if (filters.size() != 0)
     {
         m_DeviceStream = unique_ptr<PdfDeviceOutputStream>(new PdfDeviceOutputStream(*m_Device));
         if (m_CurrEncrypt != nullptr)

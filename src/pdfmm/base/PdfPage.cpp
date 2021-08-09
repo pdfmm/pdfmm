@@ -259,8 +259,8 @@ int PdfPage::GetRotationRaw() const
 {
     int rot = 0;
 
-    const PdfObject* obj = GetInheritedKeyFromObject("Rotate", this->GetObject());
-    if (obj && (obj->IsNumber() || obj->GetReal()))
+    auto obj = GetInheritedKeyFromObject("Rotate", this->GetObject());
+    if (obj != nullptr && (obj->IsNumber() || obj->GetReal()))
         rot = static_cast<int>(obj->GetNumber());
 
     return rot;

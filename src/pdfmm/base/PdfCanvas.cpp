@@ -84,7 +84,7 @@ void PdfCanvas::AddResource(const PdfName& identifier, const PdfReference& ref, 
     if (!resources.GetDictionary().HasKey(name))
         resources.GetDictionary().AddKey(name, PdfDictionary());
 
-    if (PdfDataType::Reference == resources.GetDictionary().GetKey(name)->GetDataType())
+    if (resources.GetDictionary().GetKey(name)->GetDataType() == PdfDataType::Reference)
     {
         auto directObject = resources.GetDocument()->GetObjects().GetObject(resources.GetDictionary().GetKey(name)->GetReference());
         if (directObject == nullptr)

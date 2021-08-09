@@ -36,12 +36,12 @@
 using namespace std;
 using namespace mm;
 
-PdfDocument::PdfDocument(bool bEmpty) :
+PdfDocument::PdfDocument(bool empty) :
     m_Objects(*this),
     m_Catalog(nullptr),
     m_FontManager(*this)
 {
-    if (!bEmpty)
+    if (!empty)
     {
         m_Trailer.reset(new PdfObject()); // The trailer is NO part of the vector of objects
         m_Trailer->SetDocument(*this);
@@ -140,15 +140,15 @@ const PdfDocument& PdfDocument::Append(const PdfDocument& doc, bool appendAll)
                 obj.GetDictionary().RemoveKey("Parent");
 
             // Deal with inherited attributes
-            const PdfName* inherited = inheritableAttributes;
+            auto inherited = inheritableAttributes;
             while (inherited->GetLength() != 0)
             {
-                const PdfObject* pAttribute = page.GetInheritedKey(*inherited);
-                if (pAttribute != nullptr)
+                auto attribute = page.GetInheritedKey(*inherited);
+                if (attribute != nullptr)
                 {
-                    PdfObject attribute(*pAttribute);
-                    FixObjectReferences(attribute, difference);
-                    obj.GetDictionary().AddKey(*inherited, attribute);
+                    PdfObject attributeCopy(*attribute);
+                    FixObjectReferences(attributeCopy, difference);
+                    obj.GetDictionary().AddKey(*inherited, attributeCopy);
                 }
 
                 inherited++;
@@ -232,12 +232,12 @@ const PdfDocument& PdfDocument::InsertExistingPageAt(const PdfDocument& doc, uns
         const PdfName* inherited = inheritableAttributes;
         while (inherited->GetLength() != 0)
         {
-            const PdfObject* pAttribute = page.GetInheritedKey(*inherited);
-            if (pAttribute)
+            auto attribute = page.GetInheritedKey(*inherited);
+            if (attribute != nullptr)
             {
-                PdfObject attribute(*pAttribute);
-                FixObjectReferences(attribute, difference);
-                obj.GetDictionary().AddKey(*inherited, attribute);
+                PdfObject attributeCopy(*attribute);
+                FixObjectReferences(attributeCopy, difference);
+                obj.GetDictionary().AddKey(*inherited, attributeCopy);
             }
 
             inherited++;

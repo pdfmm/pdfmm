@@ -78,7 +78,7 @@ void PdfWriter::Write(PdfOutputDevice& device)
     CreateFileIdentifier(m_identifier, m_Trailer, &m_originalIdentifier);
 
     // setup encrypt dictionary
-    if (m_Encrypt)
+    if (m_Encrypt != nullptr)
     {
         m_Encrypt->GenerateEncryptionKey(m_identifier);
 
@@ -108,7 +108,7 @@ void PdfWriter::Write(PdfOutputDevice& device)
     catch (PdfError& e)
     {
         // P.Zent: Delete Encryption dictionary (cannot be reused)
-        if (m_EncryptObj)
+        if (m_EncryptObj != nullptr)
         {
             m_Objects->RemoveObject(m_EncryptObj->GetIndirectReference());
             m_EncryptObj = nullptr;
@@ -119,7 +119,7 @@ void PdfWriter::Write(PdfOutputDevice& device)
     }
 
     // P.Zent: Delete Encryption dictionary (cannot be reused)
-    if (m_EncryptObj)
+    if (m_EncryptObj != nullptr)
     {
         m_Objects->RemoveObject(m_EncryptObj->GetIndirectReference());
         m_EncryptObj = nullptr;
@@ -228,7 +228,7 @@ void PdfWriter::CreateFileIdentifier(PdfString& identifier, const PdfObject& tra
     unique_ptr<PdfObject> info;
     bool originalIdentifierFound = false;
 
-    if (originalIdentifier && trailer.GetDictionary().HasKey("ID"))
+    if (originalIdentifier != nullptr && trailer.GetDictionary().HasKey("ID"))
     {
         const PdfObject* idObj = trailer.GetDictionary().GetKey("ID");
         // The PDF spec, section 7.5.5, implies that the ID may be
@@ -306,7 +306,7 @@ void PdfWriter::CreateFileIdentifier(PdfString& identifier, const PdfObject& tra
     identifier = PdfEncryptMD5Base::GetMD5String(reinterpret_cast<unsigned char*>(buffer.GetBuffer()),
         static_cast<unsigned>(length.GetLength()));
 
-    if (originalIdentifier && !originalIdentifierFound)
+    if (originalIdentifier != nullptr && !originalIdentifierFound)
         *originalIdentifier = identifier;
 }
 

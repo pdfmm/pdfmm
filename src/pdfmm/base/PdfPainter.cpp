@@ -1268,8 +1268,6 @@ bool PdfPainter::Arc(double x, double y, double radius, double angle1, double an
 {
     bool cont_flg = false;
 
-    bool ret = true;
-
     if (angle1 >= angle2 || (angle2 - angle1) >= 360.0f)
         return false;
 
@@ -1282,15 +1280,14 @@ bool PdfPainter::Arc(double x, double y, double radius, double angle1, double an
     {
         if (angle2 - angle1 <= 90.0f)
         {
-            return InternalArc(x, y, radius, angle1, angle2, cont_flg);
+            InternalArc(x, y, radius, angle1, angle2, cont_flg);
+            return true;
         }
         else
         {
             double tmp_ang = angle1 + 90.0f;
 
-            ret = InternalArc(x, y, radius, angle1, tmp_ang, cont_flg);
-            if (!ret)
-                return ret;
+            InternalArc(x, y, radius, angle1, tmp_ang, cont_flg);
 
             angle1 = tmp_ang;
         }
@@ -1304,11 +1301,9 @@ bool PdfPainter::Arc(double x, double y, double radius, double angle1, double an
     return true;
 }
 
-bool PdfPainter::InternalArc(double x, double y, double ray, double ang1,
+void PdfPainter::InternalArc(double x, double y, double ray, double ang1,
     double ang2, bool contFlg)
 {
-    bool ret = true;
-
     double rx0, ry0, rx1, ry1, rx2, ry2, rx3, ry3;
     double x0, y0, x1, y1, x2, y2, x3, y3;
     double delta_angle = (90.0f - static_cast<double>(ang1 + ang2) / 2.0f) / 180 * M_PI;
@@ -1332,9 +1327,8 @@ bool PdfPainter::InternalArc(double x, double y, double ray, double ang1,
     x3 = rx3 * cos(delta_angle) - ry3 * sin(delta_angle) + x;
     y3 = rx3 * sin(delta_angle) + ry3 * cos(delta_angle) + y;
 
-    if (!contFlg) {
+    if (!contFlg)
         MoveTo(x0, y0);
-    }
 
     CubicBezierTo(x1, y1, x2, y2, x3, y3);
 
@@ -1349,8 +1343,6 @@ bool PdfPainter::InternalArc(double x, double y, double ray, double ang1,
     m_lcy = y3;
     m_lrx = x3;
     m_lry = y3;
-
-    return ret;
 }
 
 void PdfPainter::Close()

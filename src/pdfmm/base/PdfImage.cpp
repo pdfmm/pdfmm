@@ -574,7 +574,7 @@ void PdfImage::LoadFromTiff(const string_view& filename)
     TIFF* hInfile = TIFFOpen(filename.data(), "rb");
 #endif
 
-    if (!hInfile)
+    if (hInfile == nullptr)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::FileNotFound, filename.data());
 
     try
@@ -876,7 +876,7 @@ void LoadFromPngContent(PdfImage& image, png_structp png, png_infop info)
     // End
 
     // Read the file
-    if (setjmp(png_jmpbuf(png)))
+    if (setjmp(png_jmpbuf(png)) != 0)
     {
         png_destroy_read_struct(&png, &info, (png_infopp)NULL);
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);

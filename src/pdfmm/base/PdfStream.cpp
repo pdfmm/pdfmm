@@ -34,7 +34,7 @@ PdfStream::~PdfStream() { }
 void PdfStream::GetFilteredCopy(PdfOutputStream& stream) const
 {
     PdfFilterList filters = PdfFilterFactory::CreateFilterList(*m_Parent);
-    if (filters.size())
+    if (filters.size() != 0)
     {
         auto decodeStream = PdfFilterFactory::CreateDecodeStream(filters, stream,
             &m_Parent->GetDictionary());
@@ -54,11 +54,11 @@ void PdfStream::GetFilteredCopy(unique_ptr<char>& buffer, size_t& len) const
     PdfMemoryOutputStream  stream;
     if (filters.size())
     {
-        auto pDecodeStream = PdfFilterFactory::CreateDecodeStream(filters, stream,
+        auto decodeStream = PdfFilterFactory::CreateDecodeStream(filters, stream,
             &m_Parent->GetDictionary());
 
-        pDecodeStream->Write(this->GetInternalBuffer(), this->GetInternalBufferSize());
-        pDecodeStream->Close();
+        decodeStream->Write(this->GetInternalBuffer(), this->GetInternalBufferSize());
+        decodeStream->Close();
     }
     else
     {
@@ -218,7 +218,7 @@ void PdfStream::BeginAppend(const PdfFilterList& filters, bool clearExisting, bo
 
     size_t len = 0;
     unique_ptr<char> buffer;
-    if (!clearExisting && this->GetLength())
+    if (!clearExisting && this->GetLength() != 0)
         this->GetFilteredCopy(buffer, len);
 
     if (filters.size() == 0)

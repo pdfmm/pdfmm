@@ -391,9 +391,9 @@ public:
 
 protected:
     /** Construct a new (empty) PdfDocument
-     *  \param bEmpty if true NO default objects (such as catalog) are created.
+     *  \param empty if true NO default objects (such as catalog) are created.
      */
-    PdfDocument(bool bEmpty = false);
+    PdfDocument(bool empty = false);
 
     /** Set the info object containing meta information.
      *  Deletes any old info object.

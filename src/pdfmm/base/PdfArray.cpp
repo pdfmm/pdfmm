@@ -333,9 +333,6 @@ const PdfObject& PdfArray::back() const
 
 PdfArray& PdfArray::operator=(const PdfArray& rhs)
 {
-    if (&rhs == this)
-        return *this;
-
     m_Objects = rhs.m_Objects;
     PdfDataContainer::operator=(rhs);
     return *this;

@@ -30,13 +30,13 @@ using namespace mm;
 
 struct Scoped_FT_Face
 {
-    Scoped_FT_Face() : ftFace(0) { }
+    Scoped_FT_Face() : FTFace(nullptr) { }
     ~Scoped_FT_Face()
     {
-        if (ftFace)
-            FT_Done_Face(ftFace);
+        if (FTFace != nullptr)
+            FT_Done_Face(FTFace);
     }
-    FT_Face ftFace;
+    FT_Face FTFace;
 };
 
 PdfFontMetricsFreetype* PdfFontMetricsFreetype::CreateForSubsetting(FT_Library* library, const string_view& filename,
@@ -44,7 +44,7 @@ PdfFontMetricsFreetype* PdfFontMetricsFreetype::CreateForSubsetting(FT_Library* 
 {
     Scoped_FT_Face scoped_face;
 
-    FT_Error err = FT_New_Face(*library, filename.data(), 0, &scoped_face.ftFace);
+    FT_Error err = FT_New_Face(*library, filename.data(), 0, &scoped_face.FTFace);
     if (err != 0)
     {
         // throw an exception
@@ -54,11 +54,11 @@ PdfFontMetricsFreetype* PdfFontMetricsFreetype::CreateForSubsetting(FT_Library* 
     }
 
     FT_ULong length = 0;
-    err = FT_Load_Sfnt_Table(scoped_face.ftFace, 0, 0, nullptr, &length);
+    err = FT_Load_Sfnt_Table(scoped_face.FTFace, 0, 0, nullptr, &length);
     if (err == 0)
     {
         PdfRefCountedBuffer buffer(length);
-        err = FT_Load_Sfnt_Table(scoped_face.ftFace, 0, 0, reinterpret_cast<FT_Byte*>(buffer.GetBuffer()), &length);
+        err = FT_Load_Sfnt_Table(scoped_face.FTFace, 0, 0, reinterpret_cast<FT_Byte*>(buffer.GetBuffer()), &length);
         if (err == 0)
             return new PdfFontMetricsFreetype(library, buffer, isSymbol);
     }

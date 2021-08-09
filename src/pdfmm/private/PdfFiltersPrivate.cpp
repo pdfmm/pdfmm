@@ -585,7 +585,7 @@ void PdfFlateFilter::DecodeBlockImpl(const char* buffer, size_t len)
         writtenDataSize = PDFMM_FILTER_INTERNAL_BUFFER_SIZE - m_stream.avail_out;
         try
         {
-            if (m_Predictor)
+            if (m_Predictor != nullptr)
                 m_Predictor->Decode(reinterpret_cast<char*>(m_buffer), writtenDataSize, GetStream());
             else
                 GetStream()->Write(reinterpret_cast<char*>(m_buffer), writtenDataSize);
@@ -639,9 +639,9 @@ void PdfRLEFilter::BeginDecodeImpl(const PdfDictionary*)
 
 void PdfRLEFilter::DecodeBlockImpl(const char* buffer, size_t len)
 {
-    while (len--)
+    while (len-- != 0)
     {
-        if (!m_CodeLen)
+        if (m_CodeLen == 0)
         {
             m_CodeLen = static_cast<int>(*buffer);
         }
@@ -780,7 +780,7 @@ void PdfLZWFilter::DecodeBlockImpl(const char* buffer, size_t len)
                     data = m_table[code].value;
 
                 // Write data to the output device
-                if (m_Predictor)
+                if (m_Predictor != nullptr)
                     m_Predictor->Decode(reinterpret_cast<char*>(&(data[0])), data.size(), GetStream());
                 else
                     GetStream()->Write(reinterpret_cast<char*>(&(data[0])), data.size());
@@ -928,7 +928,7 @@ void PdfDCTFilter::EndDecodeImpl()
     jpeg_start_decompress(&m_cinfo);
 
     unsigned rowBytes = (unsigned)(m_cinfo.output_width * m_cinfo.output_components);
-    const int iComponents = m_cinfo.output_components;
+    const int componentCount = m_cinfo.output_components;
 
     // buffer will be deleted by jpeg_destroy_decompress
     JSAMPARRAY scanLines = (*m_cinfo.mem->alloc_sarray)(reinterpret_cast<j_common_ptr>(&m_cinfo), JPOOL_IMAGE, rowBytes, 1);
@@ -936,7 +936,7 @@ void PdfDCTFilter::EndDecodeImpl()
     while (m_cinfo.output_scanline < m_cinfo.output_height)
     {
         jpeg_read_scanlines(&m_cinfo, scanLines, 1);
-        if (iComponents == 4)
+        if (componentCount == 4)
         {
             for (unsigned i = 0, c = 0; i < m_cinfo.output_width; i++, c += 4)
             {
@@ -946,7 +946,7 @@ void PdfDCTFilter::EndDecodeImpl()
                 buffer[c + 3] = scanLines[0][i * 4 + 3];
             }
         }
-        else if (iComponents == 3)
+        else if (componentCount == 3)
         {
             for (unsigned i = 0, c = 0; i < m_cinfo.output_width; i++, c += 3)
             {
@@ -955,7 +955,7 @@ void PdfDCTFilter::EndDecodeImpl()
                 buffer[c + 2] = scanLines[0][i * 3 + 2];
             }
         }
-        else if (iComponents == 1)
+        else if (componentCount == 1)
         {
             memcpy(buffer.data(), scanLines[0], m_cinfo.output_width);
         }
@@ -1175,11 +1175,11 @@ void PdfCCITTFilter::EndEncodeImpl()
     PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
 }
 
-void PdfCCITTFilter::BeginDecodeImpl(const PdfDictionary* pDict)
+void PdfCCITTFilter::BeginDecodeImpl(const PdfDictionary* dict)
 {
 #ifdef DS_CCITT_DEVELOPMENT_CODE
 
-    if (pDict == nullptr)
+    if (dict == nullptr)
         PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "PdfCCITTFilter required a DecodeParms dictionary");
 
     m_tiff = TIFFClientOpen("pdfmm", "w", reinterpret_cast<thandle_t>(-1),
@@ -1191,7 +1191,7 @@ void PdfCCITTFilter::BeginDecodeImpl(const PdfDictionary* pDict)
 
     m_tiff->tif_mode = O_RDONLY;
 
-    TIFFSetField(m_tiff, TIFFTAG_IMAGEWIDTH, pDict->GetAs<int64_t>(PdfName("Columns"), 1728));
+    TIFFSetField(m_tiff, TIFFTAG_IMAGEWIDTH, dict->GetAs<int64_t>(PdfName("Columns"), 1728));
     TIFFSetField(m_tiff, TIFFTAG_SAMPLESPERPIXEL, 1);
     TIFFSetField(m_tiff, TIFFTAG_BITSPERSAMPLE, 1);
     TIFFSetField(m_tiff, TIFFTAG_FILLORDER, FILLORDER_LSB2MSB);
@@ -1203,18 +1203,18 @@ void PdfCCITTFilter::BeginDecodeImpl(const PdfDictionary* pDict)
     /*
     m_tiff->tif_scanlinesize = TIFFSetField(m_tiff);
 
-    if (pDict != nullptr)
+    if (dict != nullptr)
     {
-        int64_t lEncoding = pDict->GetAs<int64_t>(PdfName("K"), 0);
-        if (lEncoding == 0) // pure 1D encoding, Group3 1D
+        int64_t encoding = dict->GetAs<int64_t>(PdfName("K"), 0);
+        if (encoding == 0) // pure 1D encoding, Group3 1D
         {
             TIFFSetField(faxTIFF, TIFFTAG_GROUP3OPTIONS, GROUP3OPT_1DENCODING);
         }
-        else if (lEncoding < 0) // pure 2D encoding, Group4
+        else if (encoding < 0) // pure 2D encoding, Group4
         {
             TIFFSetField(faxTIFF, TIFFTAG_GROUP4OPTIONS, GROUP4OPT_2DENCODING);
         }
-        else //if (lEncoding > 0)  // mixed, Group3 2D
+        else //if (encoding > 0)  // mixed, Group3 2D
         {
             TIFFSetField(faxTIFF, TIFFTAG_GROUP3OPTIONS, GROUP3OPT_2DENCODING);
         }
@@ -1222,7 +1222,7 @@ void PdfCCITTFilter::BeginDecodeImpl(const PdfDictionary* pDict)
     */
 
 #else // DS_CCITT_DEVELOPMENT_CODE
-    (void)pDict;
+    (void)dict;
     PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
 #endif // DS_CCITT_DEVELOPMENT_CODE
 }

@@ -64,9 +64,9 @@ PdfDate::PdfDate(const PdfString& sDate)
     int s = 0;
 
     bool hasZoneShift = false;
-    int nZoneShift = 0;
-    int nZoneHour = 0;
-    int nZoneMin = 0;
+    int zoneShift = 0;
+    int zoneHour = 0;
+    int zoneMin = 0;
 
     const char* date = sDate.GetString().data();
     if (date == nullptr)
@@ -79,49 +79,49 @@ PdfDate::PdfDate(const PdfString& sDate)
             goto Error;
     }
 
-    PEEK_DATE_CHAR(date, nZoneShift);
+    PEEK_DATE_CHAR(date, zoneShift);
 
     if (!ParseFixLenNumber(date, 4, 0, 9999, y))
         return;
 
-    PEEK_DATE_CHAR(date, nZoneShift);
+    PEEK_DATE_CHAR(date, zoneShift);
 
     if (!ParseFixLenNumber(date, 2, 1, 12, m))
         goto Error;
 
-    PEEK_DATE_CHAR(date, nZoneShift);
+    PEEK_DATE_CHAR(date, zoneShift);
 
     if (!ParseFixLenNumber(date, 2, 1, 31, d))
         goto Error;
 
-    PEEK_DATE_CHAR(date, nZoneShift);
+    PEEK_DATE_CHAR(date, zoneShift);
 
     if (!ParseFixLenNumber(date, 2, 0, 23, h))
         goto Error;
 
-    PEEK_DATE_CHAR(date, nZoneShift);
+    PEEK_DATE_CHAR(date, zoneShift);
 
     if (!ParseFixLenNumber(date, 2, 0, 59, M))
         goto Error;
 
-    PEEK_DATE_CHAR(date, nZoneShift);
+    PEEK_DATE_CHAR(date, zoneShift);
 
     if (!ParseFixLenNumber(date, 2, 0, 59, s))
         goto Error;
 
-    PEEK_DATE_CHAR(date, nZoneShift);
+    PEEK_DATE_CHAR(date, zoneShift);
 
 ParseShift:
     hasZoneShift = true;
-    if (nZoneShift != 0)
+    if (zoneShift != 0)
     {
-        if (!ParseFixLenNumber(date, 2, 0, 59, nZoneHour))
+        if (!ParseFixLenNumber(date, 2, 0, 59, zoneHour))
             goto Error;
 
         if (*date == '\'')
         {
             date++;
-            if (!ParseFixLenNumber(date, 2, 0, 59, nZoneMin))
+            if (!ParseFixLenNumber(date, 2, 0, 59, zoneMin))
                 goto Error;
             if (*date != '\'') return;
             date++;
@@ -134,7 +134,7 @@ End:
     m_secondsFromEpoch = (date::local_days(date::year(y) / m / d) + chrono::hours(h) + chrono::minutes(M) + chrono::seconds(s)).time_since_epoch();
     if (hasZoneShift)
     {
-        m_minutesFromUtc = nZoneShift * (chrono::hours(nZoneHour) + chrono::minutes(nZoneMin));
+        m_minutesFromUtc = zoneShift * (chrono::hours(zoneHour) + chrono::minutes(zoneMin));
         m_secondsFromEpoch -= *m_minutesFromUtc;
     }
 

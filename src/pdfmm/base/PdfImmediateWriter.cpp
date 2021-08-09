@@ -154,7 +154,7 @@ void PdfImmediateWriter::BeginAppendStream(const PdfStream& stream)
         PDFMM_ASSERT(!m_OpenStream);
         m_OpenStream = true;
 
-        if (GetEncrypt())
+        if (GetEncrypt() != nullptr)
             const_cast<PdfFileStream*>(fileStream)->SetEncrypted(GetEncrypt());
     }
 }

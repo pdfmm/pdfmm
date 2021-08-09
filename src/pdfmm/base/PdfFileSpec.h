@@ -70,11 +70,11 @@ private:
 
     /** Strips path from a file, according to \a striPath
      *  \param filename a file name string
-     *  \param striPath whether to strip path from the file name string
+     *  \param stripPath whether to strip path from the file name string
      *  \returns Either unchanged \a filename, if \a striPath is false;
      *     or \a filename without a path part, if \a striPath is true
      */
-    std::string MaybeStripPath(const std::string_view& filename, bool striPath) const;
+    std::string MaybeStripPath(const std::string_view& filename, bool stripPath) const;
 
     /* Petr P. Petrov 17 September 2009*/
     /** Embeds the file from memory

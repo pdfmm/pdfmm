@@ -217,7 +217,7 @@ bool PdfContentsTokenizer::tryReadInlineImgData(PdfData& data)
             }
         }
 
-        if (readCount == m_buffer.GetSize())
+        if (m_buffer.GetSize() == readCount)
         {
             // image is larger than buffer => resize buffer
             m_buffer.Resize(m_buffer.GetSize() * 2);

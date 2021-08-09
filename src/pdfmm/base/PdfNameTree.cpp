@@ -100,7 +100,7 @@ bool PdfNameTreeNode::AddValue(const PdfString& key, const PdfObject& value)
     }
     else
     {
-        bool bRebalance = false;
+        bool rebalance = false;
         PdfArray limits;
 
         if (this->GetObject()->GetDictionary().HasKey("Names"))
@@ -135,7 +135,7 @@ bool PdfNameTreeNode::AddValue(const PdfString& key, const PdfObject& value)
 
             limits.push_back(*array.begin());
             limits.push_back(*(array.end() - 2));
-            bRebalance = true;
+            rebalance = true;
         }
         else
         {
@@ -163,7 +163,7 @@ bool PdfNameTreeNode::AddValue(const PdfString& key, const PdfObject& value)
             this->GetObject()->GetDictionary().AddKey("Limits", limits);
         }
 
-        if (bRebalance)
+        if (rebalance)
             this->Rebalance();
 
         return true;
@@ -361,11 +361,13 @@ PdfObject* PdfNameTree::GetKeyValue(PdfObject* obj, const PdfString& key) const
             }
             else
             {
-                auto pResult = GetKeyValue(childObj, key);
-                if (pResult) // If recursive call returns nullptr, 
-                              // continue with the next element
-                              // in the kids array.
-                    return pResult;
+                auto result = GetKeyValue(childObj, key);
+                if (result != nullptr)
+                {
+                    // If recursive call returns nullptr, continue with
+                    // the next element in the kids array.
+                    return result;
+                }
             }
         }
     }

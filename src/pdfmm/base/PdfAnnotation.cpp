@@ -64,7 +64,7 @@ PdfAnnotation::PdfAnnotation(PdfPage& page, PdfAnnotationType annotType, const P
 
     const PdfName name(TypeNameForIndex((unsigned)annotType, s_names, std::size(s_names)));
 
-    if (!name.GetLength())
+    if (name.GetLength() == 0)
     {
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
     }
@@ -242,15 +242,15 @@ void PdfAnnotation::SetBorderStyle(double dHCorner, double dVCorner, double widt
 void PdfAnnotation::SetBorderStyle(double dHCorner, double dVCorner, double width, const PdfArray& strokeStyle)
 {
     // TODO : Support for Border style for PDF Vers > 1.0
-    PdfArray aValues;
+    PdfArray values;
 
-    aValues.push_back(dHCorner);
-    aValues.push_back(dVCorner);
-    aValues.push_back(width);
-    if (strokeStyle.size())
-        aValues.push_back(strokeStyle);
+    values.push_back(dHCorner);
+    values.push_back(dVCorner);
+    values.push_back(width);
+    if (strokeStyle.size() != 0)
+        values.push_back(strokeStyle);
 
-    this->GetObject().GetDictionary().AddKey("Border", aValues);
+    this->GetObject().GetDictionary().AddKey("Border", values);
 }
 
 void PdfAnnotation::SetTitle(const PdfString& title)

@@ -276,7 +276,9 @@ void PdfField::SetFieldFlag(int64_t value, bool set)
         curr = m_Object->GetDictionary().MustFindKey("Ff").GetNumber();
 
     if (set)
+    {
         curr |= value;
+    }
     else
     {
         if ((curr & value) == value)

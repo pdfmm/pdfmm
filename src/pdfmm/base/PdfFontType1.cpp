@@ -397,7 +397,7 @@ void PdfFontType1::embedFontFile(PdfObject& descriptor)
     else
         length1 = 0;
 
-    if (length1)
+    if (length1 != 0)
     {
         length2 = FindInBuffer("cleartomark", buffer.data(), size);
         if (length2 > 0)

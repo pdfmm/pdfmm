@@ -701,7 +701,7 @@ private:
       */
     void SetCurrentStrokingColor();
 
-    bool InternalArc(double x, double y, double ray, double ang1, double ang2, bool contFlg);
+    void InternalArc(double x, double y, double ray, double ang1, double ang2, bool contFlg);
 
     /** Expand all tab characters in a string
      *  using spaces.

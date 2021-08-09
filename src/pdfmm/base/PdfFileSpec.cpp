@@ -119,10 +119,10 @@ void PdfFileSpec::EmbeddFile(PdfObject* obj, const string_view& filename) const
     obj->GetDictionary().AddKey("Params", params);
 }
 
-string PdfFileSpec::MaybeStripPath(const string_view& filename, bool striPath) const
+string PdfFileSpec::MaybeStripPath(const string_view& filename, bool stripPath) const
 {
     // FIX-ME: The following is not Unicode compliant
-    if (!striPath)
+    if (!stripPath)
         return (string)filename;
 
     string_view lastFrom = filename;

@@ -87,7 +87,7 @@ void PdfTilingPattern::Init(PdfTilingPatternType tilingType,
     rect.SetLeft(0);
     rect.SetBottom(0);
 
-    if (image)
+    if (image != nullptr)
     {
         rect.SetWidth(image->GetWidth());
         rect.SetHeight(image->GetHeight()); // CHECK-ME: It was -image->GetHeight() but that appears to be wrong anyway

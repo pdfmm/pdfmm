@@ -237,7 +237,7 @@ void PdfIndirectObjectList::AddFreeObject(const PdfReference& reference)
 
 void PdfIndirectObjectList::PushObject(const PdfReference& ref, PdfObject* obj)
 {
-    if (GetObject(ref))
+    if (GetObject(ref) != nullptr)
     {
         PdfError::LogMessage(LogSeverity::Warning, "Object: %" PDF_FORMAT_INT64 " 0 R will be deleted and loaded again.", ref.ObjectNumber());
         RemoveObject(ref, false);

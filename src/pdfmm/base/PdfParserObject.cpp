@@ -138,7 +138,7 @@ void PdfParserObject::ForceStreamParse()
 void PdfParserObject::ParseFileComplete(bool isTrailer)
 {
     m_device.Device()->Seek(m_Offset);
-    if (m_Encrypt)
+    if (m_Encrypt != nullptr)
         m_Encrypt->SetCurrentReference(GetIndirectReference());
 
     // Do not call ReadNextVariant directly,
