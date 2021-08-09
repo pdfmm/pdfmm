@@ -137,7 +137,7 @@ private:
     std::vector<TrueTypeTable> m_Tables;
     GlyphMap m_GlyphMap;
     std::vector<unsigned> m_OrderedGlyphs;
-    buffer_t m_tmpBuffer;
+    chars m_tmpBuffer;
 };
 
 };

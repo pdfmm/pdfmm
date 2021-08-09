@@ -33,7 +33,7 @@ const PdfName PdfName::KeyType = PdfName("Type");
 const PdfName PdfName::KeyFilter = PdfName("Filter");
 
 PdfName::PdfName()
-    : m_data(std::make_shared<string>()), m_isUtf8Expanded(true)
+    : m_data(std::make_shared<chars>()), m_isUtf8Expanded(true)
 {
 }
 
@@ -57,7 +57,7 @@ PdfName::PdfName(const PdfName& rhs)
 {
 }
 
-PdfName::PdfName(const shared_ptr<string>& rawdata)
+PdfName::PdfName(const shared_ptr<chars>& rawdata)
     : m_data(rawdata), m_isUtf8Expanded(false)
 {
 }
@@ -69,7 +69,7 @@ void PdfName::initFromUtf8String(const string_view& view)
 
     if (view.length() == 0)
     {
-        m_data = std::make_shared<string>();
+        m_data = std::make_shared<chars>();
         m_isUtf8Expanded = true;
         return;
     }
@@ -80,25 +80,25 @@ void PdfName::initFromUtf8String(const string_view& view)
 
     if (isPdfDocEncodingEqual)
     {
-        m_data = std::make_shared<string>(view);
+        m_data = std::make_shared<chars>(view);
     }
     else
     {
-        m_data = std::make_shared<string>(PdfDocEncoding::ConvertUTF8ToPdfDocEncoding(view));
+        m_data = std::make_shared<chars>(PdfDocEncoding::ConvertUTF8ToPdfDocEncoding(view));
         m_utf8String = std::make_shared<string>(view);
     }
 
     m_isUtf8Expanded = true;
 }
 
-PdfName PdfName::FromEscaped(const std::string_view& view)
+PdfName PdfName::FromEscaped(const string_view& view)
 {
     return FromRaw(UnescapeName(view));
 }
 
 PdfName PdfName::FromRaw(const string_view& rawcontent)
 {
-    return PdfName(std::make_shared<string>(rawcontent));
+    return PdfName(std::make_shared<chars>(rawcontent));
 }
 
 void PdfName::Write(PdfOutputDevice& device, PdfWriteMode, const PdfEncrypt*) const
@@ -167,10 +167,10 @@ string EscapeName(const string_view& view)
     }
     // Reserve it. We can't use reserve() because the GNU STL doesn't seem to
     // do it correctly; the memory never seems to get allocated.
-    string buf;
-    buf.resize(outchars);
+    string ret;
+    ret.resize(outchars);
     // and generate the encoded string
-    string::iterator bufIt(buf.begin());
+    string::iterator bufIt(ret.begin());
     for (size_t i = 0; i < view.length(); i++)
     {
         char ch = view[i];
@@ -187,7 +187,7 @@ string EscapeName(const string_view& view)
             hexchr(static_cast<unsigned char>(ch), bufIt);
         }
     }
-    return buf;
+    return ret;
 }
 
 /** Interpret the passed string as an escaped PDF name
@@ -202,8 +202,8 @@ string UnescapeName(const string_view& view)
 {
     // We know the decoded string can be AT MOST
     // the same length as the encoded one, so:
-    string buf;
-    buf.reserve(view.length());
+    string ret;
+    ret.reserve(view.length());
     size_t incount = 0;
     const char* curr = view.data();
     while (incount++ < view.length())
@@ -217,15 +217,15 @@ string UnescapeName(const string_view& view)
             hi -= (hi < 'A' ? '0' : 'A' - 10);
             low -= (low < 'A' ? '0' : 'A' - 10);
             unsigned char codepoint = (hi << 4) | (low & 0x0F);
-            buf.push_back((char)codepoint);
+            ret.push_back((char)codepoint);
         }
         else
-            buf.push_back(*curr);
+            ret.push_back(*curr);
 
         curr++;
     }
 
-    return buf;
+    return ret;
 }
 
 const string& PdfName::GetString() const

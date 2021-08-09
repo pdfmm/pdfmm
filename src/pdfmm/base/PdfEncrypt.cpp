@@ -202,7 +202,7 @@ public:
      */
     void WriteImpl(const char* buffer, size_t len) override
     {
-        buffer_t outputBuffer(len);
+        chars outputBuffer(len);
         std::memcpy(outputBuffer.data(), buffer, len);
 
         m_stream.Encrypt(outputBuffer.data(), len);

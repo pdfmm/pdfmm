@@ -148,7 +148,7 @@ public:
     bool operator!=(const std::string_view& view) const;
 
 private:
-    PdfString(const std::shared_ptr<std::string>& data, bool isHex);
+    PdfString(const std::shared_ptr<chars>& data, bool isHex);
 
     /** Construct a new PdfString from a 0-terminated string.
      *
@@ -172,7 +172,7 @@ private:
     };
 
 private:
-    std::shared_ptr<std::string> m_data;
+    std::shared_ptr<chars> m_data;
     StringState m_state;
     bool m_isHex;    // This string is converted to hex during writing it out
 };

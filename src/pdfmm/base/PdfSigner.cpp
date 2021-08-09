@@ -57,7 +57,7 @@ void mm::SignDocument(PdfMemDocument& doc, PdfOutputDevice& device, PdfSigner& s
     // Read data from the device to prepare the signature
     signer.Reset();
     device.Seek(0);
-    buffer_t buffer(BufferSize);
+    chars buffer(BufferSize);
     size_t readBytes;
     while ((readBytes = ReadForSignature(device, *beacons.ContentsOffset, beacons.ContentsBeacon.size(),
         buffer.data(), BufferSize)) != 0)

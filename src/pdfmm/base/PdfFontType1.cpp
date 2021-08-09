@@ -94,7 +94,7 @@ void PdfFontType1::embedFontSubset()
     }
 
     // Allocate buffer for subsetted font, worst case size is input size
-    buffer_t outBuff(size);
+    chars outBuff(size);
     unsigned outIndex = 0;
 
     // unsigned to make comparisons work
@@ -319,7 +319,7 @@ void PdfFontType1::embedFontFile(PdfObject& descriptor)
     ptrdiff_t length2 = 0;
     ptrdiff_t length3 = 0;
     PdfObject* contents;
-    string buffer;
+    chars buffer;
 
     contents = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject();
 
@@ -329,7 +329,7 @@ void PdfFontType1::embedFontFile(PdfObject& descriptor)
     // otherwise, load from disk
     if (!m_Metrics->GetFontData().empty())
     {
-        buffer = (string)m_Metrics->GetFontData();
+        buffer = (chars)m_Metrics->GetFontData();
         size = m_Metrics->GetFontData().size();
     }
     else

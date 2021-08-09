@@ -84,9 +84,26 @@ namespace mm {
 template <class T, size_t Extent = std::dynamic_extent>
 using cspan = std::span<const T, Extent>;
 
-// Convenient type for buffer
-// TODO: Move to something more optimized with the same api
-typedef std::vector<char> buffer_t;
+/**
+ * Convenient type for char array storage and/or buffer with
+ * std::string compatibility
+ *
+ * \remarks don't use outside of pdfmm boundaries
+ */
+// TODO: Optimize, we could maintain string compatibility
+// but have a custom allocator that does not zero initialize
+// allocated memory
+class chars : public std::string
+{
+public:
+    chars();
+
+    chars(size_t size);
+
+    explicit chars(const std::string_view& view);
+
+    chars(std::string&& str);
+};
 
 // Enums
 

@@ -33,9 +33,9 @@ using namespace mm;
 
 #ifdef WIN32
 
-static bool GetFontFromCollection(HDC& hdc, buffer_t& buffer);
-static bool GetDataFromHFONT(HFONT hf, buffer_t& buffer);
-static bool GetDataFromLPFONT(const LOGFONTW* inFont, buffer_t& buffer);
+static bool GetFontFromCollection(HDC& hdc, chars& buffer);
+static bool GetDataFromHFONT(HFONT hf, chars& buffer);
+static bool GetDataFromLPFONT(const LOGFONTW* inFont, chars& buffer);
 
 #endif // WIN32
 
@@ -320,7 +320,7 @@ PdfFont* PdfFontManager::GetWin32Font(FontCacheMap& map, const string_view& font
 PdfFont* PdfFontManager::GetWin32Font(FontCacheMap& map, const string_view& fontName,
     const LOGFONTW& logFont, const PdfEncoding& encoding, bool embed, bool subsetting)
 {
-    buffer_t buffer;
+    chars buffer;
     if (!GetDataFromLPFONT(&logFont, buffer))
         return nullptr;
 
@@ -434,7 +434,7 @@ bool PdfFontManager::EqualElement::operator()(const Element& lhs, const Element&
 
 // This function will recieve the device context for the ttc font, it will then extract necessary tables,and create the correct buffer.
 // On error function return false
-bool GetFontFromCollection(HDC& hdc, buffer_t& buffer)
+bool GetFontFromCollection(HDC& hdc, chars& buffer)
 {
     const DWORD ttcf_const = 0x66637474;
     unsigned fileLen = GetFontData(hdc, ttcf_const, 0, 0, 0);
@@ -444,8 +444,8 @@ bool GetFontFromCollection(HDC& hdc, buffer_t& buffer)
         return false;
     }
 
-    buffer_t fileBuffer(fileLen);
-    buffer_t ttcBuffer(ttcLen);
+    chars fileBuffer(fileLen);
+    chars ttcBuffer(ttcLen);
     if (GetFontData(hdc, ttcf_const, 0, fileBuffer.data(), fileLen) == GDI_ERROR)
         return false;
 
@@ -497,7 +497,7 @@ bool GetFontFromCollection(HDC& hdc, buffer_t& buffer)
     return true;
 }
 
-bool GetDataFromHFONT(HFONT hf, buffer_t& buffer)
+bool GetDataFromHFONT(HFONT hf, chars& buffer)
 {
     HDC hdc = GetDC(0);
     if (hdc == nullptr)
@@ -528,7 +528,7 @@ bool GetDataFromHFONT(HFONT hf, buffer_t& buffer)
     return sucess;
 }
 
-bool GetDataFromLPFONT(const LOGFONTW* inFont, buffer_t& buffer)
+bool GetDataFromLPFONT(const LOGFONTW* inFont, chars& buffer)
 {
     bool success = false;
     HFONT hf = CreateFontIndirectW(inFont);

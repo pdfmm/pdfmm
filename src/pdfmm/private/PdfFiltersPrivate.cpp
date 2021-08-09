@@ -213,12 +213,12 @@ private:
 
     bool m_NextByteIsPredictor;
 
-    buffer_t m_Prev;
+    chars m_Prev;
 
     // The PNG Paeth predictor uses the values of the pixel above and to the left
     // of the current pixel. But we overwrite the row above as we go, so we'll
     // have to store the bytes of the upper-left pixel separately.
-    buffer_t m_UpperLeftPixelComponents;
+    chars m_UpperLeftPixelComponents;
 };
 
 } // end anonymous namespace
@@ -932,7 +932,7 @@ void PdfDCTFilter::EndDecodeImpl()
 
     // buffer will be deleted by jpeg_destroy_decompress
     JSAMPARRAY scanLines = (*m_cinfo.mem->alloc_sarray)(reinterpret_cast<j_common_ptr>(&m_cinfo), JPOOL_IMAGE, rowBytes, 1);
-    buffer_t buffer(rowBytes);
+    chars buffer(rowBytes);
     while (m_cinfo.output_scanline < m_cinfo.output_height)
     {
         jpeg_read_scanlines(&m_cinfo, scanLines, 1);

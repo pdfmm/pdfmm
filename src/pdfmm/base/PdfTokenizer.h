@@ -262,7 +262,7 @@ private:
     PdfRefCountedBuffer m_buffer;
     bool m_readReferences;
     TokenizerQueque m_tokenQueque;
-    buffer_t m_charBuffer;
+    chars m_charBuffer;
 
     // An istringstream which is used
     // to read double values instead of strtod

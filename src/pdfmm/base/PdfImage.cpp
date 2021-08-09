@@ -540,7 +540,7 @@ void PdfImage::LoadFromTiffHandle(void* handle)
 
     size_t scanlineSize = TIFFScanlineSize(hInTiffHandle);
     size_t bufferSize = scanlineSize * height;
-    buffer_t buffer(bufferSize);
+    chars buffer(bufferSize);
     for (row = 0; row < height; row++)
     {
         if (TIFFReadScanline(hInTiffHandle,
@@ -884,7 +884,7 @@ void LoadFromPngContent(PdfImage& image, png_structp png, png_infop info)
 
     size_t rowLen = png_get_rowbytes(png, info);
     size_t len = rowLen * height;
-    buffer_t buffer(len);
+    chars buffer(len);
 
     unique_ptr<png_bytep[]> rows(new png_bytep[height]);
     for (unsigned int y = 0; y < height; y++)
@@ -902,7 +902,7 @@ void LoadFromPngContent(PdfImage& image, png_structp png, png_infop info)
             && png_get_tRNS(png, info, &paletteTrans, &numTransColors, NULL)))
     {
         // Handle alpha channel and create smask
-        buffer_t smask(width * height);
+        chars smask(width * height);
         png_uint_32 smaskIndex = 0;
         if (color_type == PNG_COLOR_TYPE_PALETTE)
         {

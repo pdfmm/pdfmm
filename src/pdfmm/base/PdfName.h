@@ -125,14 +125,14 @@ public:
     static const PdfName KeyFilter;
 
 private:
-    PdfName(const std::shared_ptr<std::string>& rawdata);
+    PdfName(const std::shared_ptr<chars>& rawdata);
     void expandUtf8String() const;
     void initFromUtf8String(const std::string_view& view);
 
 private:
     // The unescaped name raw data, without leading '/'.
     // It can store also the utf8 expanded string, if coincident
-    std::shared_ptr<std::string> m_data;
+    std::shared_ptr<chars> m_data;
 
     bool m_isUtf8Expanded;
     std::shared_ptr<std::string> m_utf8String;

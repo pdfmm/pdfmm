@@ -33,7 +33,7 @@ static char getEscapedCharacter(char ch);
 static StringEncoding getEncoding(const string_view& view);
 
 PdfString::PdfString()
-    : m_data(std::make_shared<string>()), m_state(StringState::PdfDocEncoding), m_isHex(false)
+    : m_data(std::make_shared<chars>()), m_state(StringState::PdfDocEncoding), m_isHex(false)
 {
 }
 
@@ -54,20 +54,20 @@ PdfString::PdfString(const PdfString& rhs)
     this->operator=(rhs);
 }
 
-PdfString::PdfString(const shared_ptr<string>& data, bool isHex)
+PdfString::PdfString(const shared_ptr<chars>& data, bool isHex)
     : m_data(data), m_state(StringState::RawBuffer), m_isHex(isHex)
 {
 }
 
 PdfString PdfString::FromRaw(const string_view& view, bool isHex)
 {
-    return PdfString(std::make_shared<string>(view), isHex);
+    return PdfString(std::make_shared<chars>(view), isHex);
 }
 
 PdfString PdfString::FromHexData(const string_view& hexView, PdfEncrypt* encrypt)
 {
     size_t len = hexView.size();
-    auto buffer = std::make_shared<string>();
+    auto buffer = std::make_shared<chars>();
     buffer->reserve(len % 2 ? (len + 1) >> 1 : len >> 1);
 
     char val;
@@ -107,7 +107,7 @@ PdfString PdfString::FromHexData(const string_view& hexView, PdfEncrypt* encrypt
     }
     else
     {
-        auto decrypted = std::make_shared<string>();
+        auto decrypted = std::make_shared<chars>();
         encrypt->Decrypt(*buffer, *decrypted);
         return PdfString(decrypted, true);
     }
@@ -121,7 +121,7 @@ void PdfString::Write(PdfOutputDevice& device, PdfWriteMode writeMode, const Pdf
     // this case has to be handled!
 
     // We are not encrypting the empty strings (was access violation)!
-    string tempBuffer;
+    chars tempBuffer;
     string_view dataview;
     if (m_state == StringState::Unicode)
     {
@@ -138,7 +138,7 @@ void PdfString::Write(PdfOutputDevice& device, PdfWriteMode writeMode, const Pdf
 
     if (encrypt != nullptr && dataview.size() > 0)
     {
-        string encrypted;
+        chars encrypted;
         encrypt->Encrypt(dataview, encrypted);
         encrypted.swap(tempBuffer);
         dataview = string_view(tempBuffer.data(), tempBuffer.size());
@@ -283,12 +283,12 @@ void PdfString::initFromUtf8String(const string_view& view)
 
     if (view.length() == 0)
     {
-        m_data = make_shared<string>();
+        m_data = make_shared<chars>();
         m_state = StringState::PdfDocEncoding;
         return;
     }
 
-    m_data = std::make_shared<string>(view);
+    m_data = std::make_shared<chars>(view);
 
     bool isPdfDocEncodingEqual;
     if (PdfDocEncoding::CheckValidUTF8ToPdfDocEcondingChars(view, isPdfDocEncodingEqual))

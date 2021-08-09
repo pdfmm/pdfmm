@@ -190,3 +190,22 @@ unsigned usr::GetCharCodeMaxValue(unsigned char codeSize)
 {
     return (unsigned)(std::pow(2, codeSize * CHAR_BIT)) - 1;
 }
+
+chars::chars(const string_view& view)
+    : string(string(view))
+{
+}
+
+chars::chars(string&& str)
+    : string(std::move(str))
+{
+}
+
+chars::chars()
+{
+}
+
+chars::chars(size_t size)
+{
+    resize(size);
+}

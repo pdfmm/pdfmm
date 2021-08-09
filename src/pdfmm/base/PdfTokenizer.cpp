@@ -24,7 +24,7 @@ using namespace std;
 using namespace mm;
 
 static char getEscapedCharacter(char ch);
-static void readHexString(PdfInputDevice& device, buffer_t& buffer);
+static void readHexString(PdfInputDevice& device, chars& buffer);
 static bool isOctalChar(char ch);
 
 PdfTokenizer::PdfTokenizer(bool readReferences)
@@ -390,7 +390,7 @@ void PdfTokenizer::ReadDictionary(PdfInputDevice& device, PdfVariant& variant, P
     PdfName key;
     PdfTokenType tokenType;
     string_view token;
-    unique_ptr<buffer_t> contentsHexBuffer;
+    unique_ptr<chars> contentsHexBuffer;
 
     variant = PdfDictionary();
     PdfDictionary& dict = variant.GetDictionary();
@@ -418,7 +418,7 @@ void PdfTokenizer::ReadDictionary(PdfInputDevice& device, PdfVariant& variant, P
         {
             // 'Contents' key in signature dictionaries is an unencrypted Hex string:
             // save the string buffer for later check if it needed decryption
-            contentsHexBuffer = std::unique_ptr<buffer_t>(new buffer_t());
+            contentsHexBuffer = std::unique_ptr<chars>(new chars());
             readHexString(device, *contentsHexBuffer);
             continue;
         }
@@ -574,7 +574,7 @@ void PdfTokenizer::ReadString(PdfInputDevice& device, PdfVariant& variant, PdfEn
     {
         if (encrypt)
         {
-            auto decrypted = std::make_shared<string>();
+            auto decrypted = std::make_shared<chars>();
             encrypt->Decrypt({ m_charBuffer.data(), m_charBuffer.size() }, *decrypted);
             variant = PdfString(decrypted, false);
         }
@@ -797,7 +797,7 @@ char getEscapedCharacter(char ch)
     }
 }
 
-void readHexString(PdfInputDevice& device, buffer_t& buffer)
+void readHexString(PdfInputDevice& device, chars& buffer)
 {
     buffer.clear();
     char ch;
