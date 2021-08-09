@@ -27,19 +27,19 @@ enum class PdfNameLimits
     After
 };
 
-class PDFMM_API PdfNamesTree final : public PdfElement
+class PDFMM_API PdfNameTree final : public PdfElement
 {
 public:
-    /** Create a new PdfNamesTree object
+    /** Create a new PdfNameTree object
      *  \param parent parent of this action
      */
-    PdfNamesTree(PdfDocument& doc);
+    PdfNameTree(PdfDocument& doc);
 
-    /** Create a PdfNamesTree object from an existing PdfObject
+    /** Create a PdfNameTree object from an existing PdfObject
      *	\param obj the object to create from
      *  \param pCatalog the Catalog dictionary of the owning PDF
      */
-    PdfNamesTree(PdfObject& obj);
+    PdfNameTree(PdfObject& obj);
 
     /** Insert a key and value in one of the dictionaries of the name tree.
      *  \param tree name of the tree to search for the key.

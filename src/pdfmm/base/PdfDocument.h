@@ -16,8 +16,8 @@
 #include "PdfAcroForm.h"
 #include "PdfFontManager.h"
 #include "PdfInfo.h"
-#include "PdfPagesTree.h"
-#include "PdfNamesTree.h"
+#include "PdfPageTree.h"
+#include "PdfNameTree.h"
 
 namespace mm {
 
@@ -81,13 +81,13 @@ public:
     PdfOutlines* GetOutlines(bool create = true);
 
     /** Get access to the Names dictionary (where all the named objects are stored)
-     *  The returned PdfNamesTree object is owned by the PdfDocument.
+     *  The returned PdfNameTree object is owned by the PdfDocument.
      *
      *  \param create create the object if it does not exist (ePdfCreateObject)
      *                 or return nullptr if it does not exist
      *  \returns the Names dictionary
      */
-    PdfNamesTree* GetNamesTree(bool create = true);
+    PdfNameTree* GetNamesTree(bool create = true);
 
     /** Get access to the AcroForm dictionary
      *
@@ -334,14 +334,14 @@ public:
     const PdfObject& GetCatalog() const;
 
     /** Get access to the pages tree.
-     *  \returns the PdfPagesTree of this document.
+     *  \returns the PdfPageTree of this document.
      */
-    PdfPagesTree& GetPageTree();
+    PdfPageTree& GetPageTree();
 
     /** Get access to the pages tree.
-     *  \returns the PdfPagesTree of this document.
+     *  \returns the PdfPageTree of this document.
      */
-    const PdfPagesTree& GetPageTree() const;
+    const PdfPageTree& GetPageTree() const;
 
     /** Get access to the internal trailer dictionary
      *  or root object.
@@ -477,10 +477,10 @@ private:
     std::unique_ptr<PdfObject> m_Trailer;
     PdfObject* m_Catalog;
     std::unique_ptr<PdfInfo> m_Info;
-    std::unique_ptr<PdfPagesTree> m_PageTree;
+    std::unique_ptr<PdfPageTree> m_PageTree;
     std::unique_ptr<PdfAcroForm> m_AcroForms;
     std::unique_ptr<PdfOutlines> m_Outlines;
-    std::unique_ptr<PdfNamesTree> m_NameTree;
+    std::unique_ptr<PdfNameTree> m_NameTree;
     PdfFontManager m_FontManager;
 };
 

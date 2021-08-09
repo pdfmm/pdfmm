@@ -297,8 +297,8 @@ private:
      *  Warning! This function is _very_ calculation intensive.
      *
      *  \param trailer the trailer object
-     *  \param pNotDelete a list of object which must not be deleted
-     *  \param bDoGarbageCollection enable garbage collection, which deletes
+     *  \param notDelete a list of object which must not be deleted
+     *  \param doGarbageCollection enable garbage collection, which deletes
      *         all objects that are not reachable from the trailer. This might be slow!
      *
      *  \see CollectGarbage

@@ -81,7 +81,7 @@ void PdfXRef::Write(PdfOutputDevice& device)
     auto it = m_blocks.begin();
     XRefItemList::const_iterator itItems;
     ReferenceList::const_iterator itFree;
-    const PdfReference* pNextFree = nullptr;
+    const PdfReference* nextFree = nullptr;
 
     uint32_t first = 0;
     uint32_t count = 0;
@@ -122,10 +122,10 @@ void PdfXRef::Write(PdfOutputDevice& device)
                 uint16_t nGen = itFree->GenerationNumber();
 
                 // get a pointer to the next free object
-                pNextFree = this->GetNextFreeObject(it, itFree);
+                nextFree = this->GetNextFreeObject(it, itFree);
 
                 // write free object
-                this->WriteXRefEntry(device, PdfXRefEntry::CreateFree(pNextFree ? pNextFree->ObjectNumber() : 0, nGen));
+                this->WriteXRefEntry(device, PdfXRefEntry::CreateFree(nextFree ? nextFree->ObjectNumber() : 0, nGen));
                 itFree++;
             }
 
@@ -136,13 +136,13 @@ void PdfXRef::Write(PdfOutputDevice& device)
         // Check if there are any free objects left!
         while (itFree != block.FreeItems.end())
         {
-            uint16_t nGen = itFree->GenerationNumber();
+            uint16_t genNo = itFree->GenerationNumber();
 
             // get a pointer to the next free object
-            pNextFree = this->GetNextFreeObject(it, itFree);
+            nextFree = this->GetNextFreeObject(it, itFree);
 
             // write free object
-            this->WriteXRefEntry(device, PdfXRefEntry::CreateFree(pNextFree ? pNextFree->ObjectNumber() : 0, nGen));
+            this->WriteXRefEntry(device, PdfXRefEntry::CreateFree(nextFree ? nextFree->ObjectNumber() : 0, genNo));
             itFree++;
         }
 

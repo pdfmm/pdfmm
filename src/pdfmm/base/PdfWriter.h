@@ -22,7 +22,7 @@ namespace mm {
 class PdfDictionary;
 class PdfName;
 class PdfPage;
-class PdfPagesTree;
+class PdfPageTree;
 class PdfParser;
 class PdfIndirectObjectList;
 class PdfXRef;

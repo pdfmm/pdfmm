@@ -16,11 +16,11 @@ namespace mm {
 class PdfPage;
 
 /**
- *  This class implements a cache infront of a PdfPagesTree
+ *  This class implements a cache infront of a PdfPageTree
  *
  *  \see PdfCachedPagesTree
  */
-class PDFMM_API PdfPagesTreeCache final
+class PDFMM_API PdfPageTreeCache final
 {
     typedef std::deque<PdfPage*> PdfPageList;
 
@@ -29,7 +29,7 @@ public:
      *
      *  \param nInitialSize initial size of the pagestree
      */
-    PdfPagesTreeCache(unsigned initialSize);
+    PdfPageTreeCache(unsigned initialSize);
 
     /** Return a PdfPage for the specified Page index
      *  The returned page is owned by the pages tree and

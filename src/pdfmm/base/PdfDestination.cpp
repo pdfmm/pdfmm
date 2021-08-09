@@ -11,9 +11,9 @@
 #include "PdfDictionary.h"
 #include "PdfAction.h"
 #include "PdfMemDocument.h"
-#include "PdfNamesTree.h"
+#include "PdfNameTree.h"
 #include "PdfPage.h"
-#include "PdfPagesTree.h"
+#include "PdfPageTree.h"
 
 using namespace mm;
 
@@ -115,13 +115,11 @@ void PdfDestination::Init(PdfObject& obj, PdfDocument& doc)
     }
     else if (obj.GetDataType() == PdfDataType::String)
     {
-        PdfNamesTree* pNames = doc.GetNamesTree(false);
-        if (!pNames)
-        {
+        auto names = doc.GetNamesTree(false);
+        if (names == nullptr)
             PDFMM_RAISE_ERROR(PdfErrorCode::NoObject);
-        }
 
-        value = pNames->GetValue("Dests", obj.GetString());
+        value = names->GetValue("Dests", obj.GetString());
         valueExpected = true;
     }
     else if (obj.GetDataType() == PdfDataType::Name)

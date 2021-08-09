@@ -7,7 +7,7 @@
  */
 
 #include <pdfmm/private/PdfDefinesPrivate.h>
-#include "PdfPagesTree.h"
+#include "PdfPageTree.h"
 
 #include <algorithm>
 #include <sstream>
@@ -23,7 +23,7 @@
 using namespace std;
 using namespace mm;
 
-PdfPagesTree::PdfPagesTree(PdfDocument& doc)
+PdfPageTree::PdfPageTree(PdfDocument& doc)
     : PdfElement(doc, "Pages"),
     m_cache(0)
 {
@@ -31,21 +31,21 @@ PdfPagesTree::PdfPagesTree(PdfDocument& doc)
     GetObject().GetDictionary().AddKey("Count", PdfObject(static_cast<int64_t>(0)));
 }
 
-PdfPagesTree::PdfPagesTree(PdfObject& pagesRoot)
+PdfPageTree::PdfPageTree(PdfObject& pagesRoot)
     : PdfElement(pagesRoot),
     m_cache(GetChildCount(pagesRoot)) { }
 
-PdfPagesTree::~PdfPagesTree()
+PdfPageTree::~PdfPageTree()
 {
     m_cache.ClearCache();
 }
 
-unsigned PdfPagesTree::GetPageCount() const
+unsigned PdfPageTree::GetPageCount() const
 {
     return GetChildCount(GetObject());
 }
 
-PdfPage& PdfPagesTree::GetPage(unsigned index)
+PdfPage& PdfPageTree::GetPage(unsigned index)
 {
     if (index >= GetPageCount())
         PDFMM_RAISE_ERROR(PdfErrorCode::PageNotFound);
@@ -53,15 +53,15 @@ PdfPage& PdfPagesTree::GetPage(unsigned index)
     return getPage(index);
 }
 
-const PdfPage& PdfPagesTree::GetPage(unsigned index) const
+const PdfPage& PdfPageTree::GetPage(unsigned index) const
 {
     if (index >= GetPageCount())
         PDFMM_RAISE_ERROR(PdfErrorCode::PageNotFound);
 
-    return const_cast<PdfPagesTree&>(*this).getPage(index);
+    return const_cast<PdfPageTree&>(*this).getPage(index);
 }
 
-PdfPage& PdfPagesTree::getPage(unsigned index)
+PdfPage& PdfPageTree::getPage(unsigned index)
 {
     // Take a look into the cache first
     auto page = m_cache.GetPage(index);
@@ -81,17 +81,17 @@ PdfPage& PdfPagesTree::getPage(unsigned index)
     PDFMM_RAISE_ERROR(PdfErrorCode::PageNotFound);
 }
 
-PdfPage& PdfPagesTree::GetPage(const PdfReference& ref)
+PdfPage& PdfPageTree::GetPage(const PdfReference& ref)
 {
     return getPage(ref);
 }
 
-const PdfPage& PdfPagesTree::GetPage(const PdfReference& ref) const
+const PdfPage& PdfPageTree::GetPage(const PdfReference& ref) const
 {
-    return const_cast<PdfPagesTree&>(*this).getPage(ref);
+    return const_cast<PdfPageTree&>(*this).getPage(ref);
 }
 
-PdfPage& PdfPagesTree::getPage(const PdfReference& ref)
+PdfPage& PdfPageTree::getPage(const PdfReference& ref)
 {
     // We have to search through all pages,
     // as this is the only way
@@ -106,13 +106,13 @@ PdfPage& PdfPagesTree::getPage(const PdfReference& ref)
     PDFMM_RAISE_ERROR(PdfErrorCode::PageNotFound);
 }
 
-void PdfPagesTree::InsertPage(unsigned atIndex, PdfObject* pageObj)
+void PdfPageTree::InsertPage(unsigned atIndex, PdfObject* pageObj)
 {
     vector<PdfObject*> objs = { pageObj };
     InsertPages(atIndex, objs);
 }
 
-void PdfPagesTree::InsertPages(unsigned atIndex, const vector<PdfObject*>& pages)
+void PdfPageTree::InsertPages(unsigned atIndex, const vector<PdfObject*>& pages)
 {
     bool insertAfterPivot = false;
     PdfObjectList parents;
@@ -163,7 +163,7 @@ void PdfPagesTree::InsertPages(unsigned atIndex, const vector<PdfObject*>& pages
     m_cache.InsertPlaceHolders(atIndex, (unsigned)pages.size());
 }
 
-PdfPage* PdfPagesTree::CreatePage(const PdfRect& size)
+PdfPage* PdfPageTree::CreatePage(const PdfRect& size)
 {
     auto page = new PdfPage(*GetRoot().GetDocument(), size);
     InsertPage(this->GetPageCount(), &page->GetObject());
@@ -171,7 +171,7 @@ PdfPage* PdfPagesTree::CreatePage(const PdfRect& size)
     return page;
 }
 
-PdfPage* PdfPagesTree::InsertPage(unsigned atIndex, const PdfRect& size)
+PdfPage* PdfPageTree::InsertPage(unsigned atIndex, const PdfRect& size)
 {
     auto page = new PdfPage(*GetRoot().GetDocument(), size);
     unsigned pageCount = this->GetPageCount();
@@ -183,7 +183,7 @@ PdfPage* PdfPagesTree::InsertPage(unsigned atIndex, const PdfRect& size)
     return page;
 }
 
-void PdfPagesTree::CreatePages(const vector<PdfRect>& sizes)
+void PdfPageTree::CreatePages(const vector<PdfRect>& sizes)
 {
     vector<PdfPage*> pages;
     vector<PdfObject*> objects;
@@ -198,7 +198,7 @@ void PdfPagesTree::CreatePages(const vector<PdfRect>& sizes)
     m_cache.SetPages(this->GetPageCount(), pages);
 }
 
-void PdfPagesTree::DeletePage(unsigned atIndex)
+void PdfPageTree::DeletePage(unsigned atIndex)
 {
     // Delete from cache
     m_cache.DeletePage(atIndex);
@@ -209,7 +209,7 @@ void PdfPagesTree::DeletePage(unsigned atIndex)
     if (pageNode == nullptr)
     {
         PdfError::LogMessage(LogSeverity::Information,
-            "Invalid argument to PdfPagesTree::DeletePage: %i - Page not found",
+            "Invalid argument to PdfPageTree::DeletePage: %i - Page not found",
             atIndex);
         PDFMM_RAISE_ERROR(PdfErrorCode::PageNotFound);
     }
@@ -223,13 +223,13 @@ void PdfPagesTree::DeletePage(unsigned atIndex)
     else
     {
         PdfError::LogMessage(LogSeverity::Error,
-            "PdfPagesTree::DeletePage: Page %i has no parent - cannot be deleted.",
+            "PdfPageTree::DeletePage: Page %i has no parent - cannot be deleted.",
             atIndex);
         PDFMM_RAISE_ERROR(PdfErrorCode::PageNotFound);
     }
 }
 
-PdfObject* PdfPagesTree::GetPageNode(unsigned index, PdfObject& parent,
+PdfObject* PdfPageTree::GetPageNode(unsigned index, PdfObject& parent,
     PdfObjectList& parents)
 {
     if (!parent.GetDictionary().HasKey("Kids"))
@@ -335,7 +335,7 @@ PdfObject* PdfPagesTree::GetPageNode(unsigned index, PdfObject& parent,
     return nullptr;
 }
 
-bool PdfPagesTree::IsTypePage(const PdfObject& obj) const
+bool PdfPageTree::IsTypePage(const PdfObject& obj) const
 {
     if (obj.GetDictionary().FindKeyAs<PdfName>("Type", PdfName()) == "Page")
         return true;
@@ -343,7 +343,7 @@ bool PdfPagesTree::IsTypePage(const PdfObject& obj) const
     return false;
 }
 
-bool PdfPagesTree::IsTypePages(const PdfObject& obj) const
+bool PdfPageTree::IsTypePages(const PdfObject& obj) const
 {
     if (obj.GetDictionary().FindKeyAs<PdfName>("Type", PdfName()) == "Pages")
         return true;
@@ -351,7 +351,7 @@ bool PdfPagesTree::IsTypePages(const PdfObject& obj) const
     return false;
 }
 
-unsigned PdfPagesTree::GetChildCount(const PdfObject& nodeObj) const
+unsigned PdfPageTree::GetChildCount(const PdfObject& nodeObj) const
 {
     auto countObj = nodeObj.GetDictionary().FindKey("Count");
     if (countObj == nullptr)
@@ -360,7 +360,7 @@ unsigned PdfPagesTree::GetChildCount(const PdfObject& nodeObj) const
         return (unsigned)countObj->GetNumber();
 }
 
-int PdfPagesTree::GetPosInKids(PdfObject& pageObj, PdfObject* pageParent)
+int PdfPageTree::GetPosInKids(PdfObject& pageObj, PdfObject* pageParent)
 {
     if (pageParent == nullptr)
         return -1;
@@ -379,7 +379,7 @@ int PdfPagesTree::GetPosInKids(PdfObject& pageObj, PdfObject* pageParent)
     return -1;
 }
 
-void PdfPagesTree::InsertPagesIntoNode(PdfObject& parent, const PdfObjectList& parents,
+void PdfPageTree::InsertPagesIntoNode(PdfObject& parent, const PdfObjectList& parents,
     int index, const vector<PdfObject*>& pages)
 {
     if (pages.size() == 0)
@@ -432,7 +432,7 @@ void PdfPagesTree::InsertPagesIntoNode(PdfObject& parent, const PdfObjectList& p
         (*itPages)->GetDictionary().AddKey("Parent", parent.GetIndirectReference());
 }
 
-void PdfPagesTree::DeletePageFromNode(PdfObject& parent, const PdfObjectList& parents,
+void PdfPageTree::DeletePageFromNode(PdfObject& parent, const PdfObjectList& parents,
     unsigned index, PdfObject& page)
 {
     // 1. Delete the reference from the kids array of parent
@@ -471,13 +471,13 @@ void PdfPagesTree::DeletePageFromNode(PdfObject& parent, const PdfObjectList& pa
     }
 }
 
-void PdfPagesTree::DeletePageNode(PdfObject& parent, unsigned index)
+void PdfPageTree::DeletePageNode(PdfObject& parent, unsigned index)
 {
     auto& kids = parent.GetDictionary().MustFindKey("Kids").GetArray();
     kids.erase(kids.begin() + index);
 }
 
-unsigned PdfPagesTree::ChangePagesCount(PdfObject& pageObj, int delta)
+unsigned PdfPageTree::ChangePagesCount(PdfObject& pageObj, int delta)
 {
     // Increment or decrement inPagesDict's Count by inDelta, and return the new count.
     // Simply return the current count if inDelta is 0.
@@ -491,7 +491,7 @@ unsigned PdfPagesTree::ChangePagesCount(PdfObject& pageObj, int delta)
     return cnt;
 }
 
-bool PdfPagesTree::IsEmptyPageNode(PdfObject& pageNode)
+bool PdfPageTree::IsEmptyPageNode(PdfObject& pageNode)
 {
     unsigned count = GetChildCount(pageNode);
     bool bKidsEmpty = true;

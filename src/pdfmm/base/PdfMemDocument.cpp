@@ -27,10 +27,10 @@
 #include "PdfFont.h"
 #include "PdfFontMetrics.h"
 #include "PdfInfo.h"
-#include "PdfNamesTree.h"
+#include "PdfNameTree.h"
 #include "PdfOutlines.h"
 #include "PdfPage.h"
-#include "PdfPagesTree.h"
+#include "PdfPageTree.h"
 
 using namespace std;
 using namespace mm;

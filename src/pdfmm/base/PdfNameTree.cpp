@@ -6,7 +6,7 @@
  */
 
 #include <pdfmm/private/PdfDefinesPrivate.h>
-#include "PdfNamesTree.h"
+#include "PdfNameTree.h"
 
 #include <sstream>
 
@@ -55,7 +55,7 @@ bool PdfNameTreeNode::AddValue(const PdfString& key, const PdfObject& value)
         const PdfArray& kids = this->GetObject()->GetDictionary().MustFindKey("Kids").GetArray();
         auto it = kids.begin();
         PdfObject* childObj = nullptr;
-        PdfNameLimits eLimits = PdfNameLimits::Before; // RG: TODO Compiler complains that this variable should be initialised
+        PdfNameLimits limits = PdfNameLimits::Before; // RG: TODO Compiler complains that this variable should be initialised
 
         while (it != kids.end())
         {
@@ -63,9 +63,9 @@ bool PdfNameTreeNode::AddValue(const PdfString& key, const PdfObject& value)
             if (childObj == nullptr)
                 PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-            eLimits = PdfNamesTree::CheckLimits(childObj, key);
-            if ((eLimits == PdfNameLimits::Before) ||
-                (eLimits == PdfNameLimits::Inside))
+            limits = PdfNameTree::CheckLimits(childObj, key);
+            if ((limits == PdfNameLimits::Before) ||
+                (limits == PdfNameLimits::Inside))
             {
                 break;
             }
@@ -80,7 +80,7 @@ bool PdfNameTreeNode::AddValue(const PdfString& key, const PdfObject& value)
             if (childObj == nullptr)
                 PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-            eLimits = PdfNameLimits::After;
+            limits = PdfNameLimits::After;
         }
 
         PdfNameTreeNode child(this, childObj);
@@ -89,7 +89,7 @@ bool PdfNameTreeNode::AddValue(const PdfString& key, const PdfObject& value)
             // if a child insert the key in a way that the limits
             // are changed, we have to change our limits as well!
             // our parent has to change his parents too!
-            if (eLimits != PdfNameLimits::Inside)
+            if (limits != PdfNameLimits::Inside)
                 this->SetLimits();
 
             this->Rebalance();
@@ -310,24 +310,24 @@ bool PdfNameTreeNode::Rebalance()
 
 
 // NOTE: The NamesTree dict does NOT have a /Type key!
-PdfNamesTree::PdfNamesTree(PdfDocument& doc)
+PdfNameTree::PdfNameTree(PdfDocument& doc)
     : PdfElement(doc)
 {
 }
 
-PdfNamesTree::PdfNamesTree(PdfObject& obj)
+PdfNameTree::PdfNameTree(PdfObject& obj)
     : PdfElement(obj)
 {
 }
 
-void PdfNamesTree::AddValue(const PdfName& tree, const PdfString& key, const PdfObject& value)
+void PdfNameTree::AddValue(const PdfName& tree, const PdfString& key, const PdfObject& value)
 {
     PdfNameTreeNode root(nullptr, this->GetRootNode(tree, true));
     if (!root.AddValue(key, value))
         PDFMM_RAISE_ERROR(PdfErrorCode::InternalLogic);
 }
 
-PdfObject* PdfNamesTree::GetValue(const PdfName& tree, const PdfString& key) const
+PdfObject* PdfNameTree::GetValue(const PdfName& tree, const PdfString& key) const
 {
     auto obj = this->GetRootNode(tree);
     PdfObject* result = nullptr;
@@ -342,9 +342,9 @@ PdfObject* PdfNamesTree::GetValue(const PdfName& tree, const PdfString& key) con
     return result;
 }
 
-PdfObject* PdfNamesTree::GetKeyValue(PdfObject* obj, const PdfString& key) const
+PdfObject* PdfNameTree::GetKeyValue(PdfObject* obj, const PdfString& key) const
 {
-    if (PdfNamesTree::CheckLimits(obj, key) != PdfNameLimits::Inside)
+    if (PdfNameTree::CheckLimits(obj, key) != PdfNameLimits::Inside)
         return nullptr;
 
     if (obj->GetDictionary().HasKey("Kids"))
@@ -395,9 +395,9 @@ PdfObject* PdfNamesTree::GetKeyValue(PdfObject* obj, const PdfString& key) const
     return nullptr;
 }
 
-PdfObject* PdfNamesTree::GetRootNode(const PdfName& name, bool create) const
+PdfObject* PdfNameTree::GetRootNode(const PdfName& name, bool create) const
 {
-    auto& obj = const_cast<PdfNamesTree&>(*this).GetObject();
+    auto& obj = const_cast<PdfNameTree&>(*this).GetObject();
     auto rootNode = obj.GetDictionary().FindKey(name);
     if (rootNode == nullptr && create)
     {
@@ -408,12 +408,12 @@ PdfObject* PdfNamesTree::GetRootNode(const PdfName& name, bool create) const
     return rootNode;
 }
 
-bool PdfNamesTree::HasValue(const PdfName& tree, const PdfString& key) const
+bool PdfNameTree::HasValue(const PdfName& tree, const PdfString& key) const
 {
     return this->GetValue(tree, key) != nullptr;
 }
 
-PdfNameLimits PdfNamesTree::CheckLimits(const PdfObject* obj, const PdfString& key)
+PdfNameLimits PdfNameTree::CheckLimits(const PdfObject* obj, const PdfString& key)
 {
     if (obj->GetDictionary().HasKey("Limits"))
     {
@@ -435,7 +435,7 @@ PdfNameLimits PdfNamesTree::CheckLimits(const PdfObject* obj, const PdfString& k
     return PdfNameLimits::Inside;
 }
 
-void PdfNamesTree::ToDictionary(const PdfName& tree, PdfDictionary& dict)
+void PdfNameTree::ToDictionary(const PdfName& tree, PdfDictionary& dict)
 {
     dict.Clear();
     PdfObject* obj = this->GetRootNode(tree);
@@ -443,7 +443,7 @@ void PdfNamesTree::ToDictionary(const PdfName& tree, PdfDictionary& dict)
         AddToDictionary(obj, dict);
 }
 
-void PdfNamesTree::AddToDictionary(PdfObject* obj, PdfDictionary& dict)
+void PdfNameTree::AddToDictionary(PdfObject* obj, PdfDictionary& dict)
 {
     if (obj->GetDictionary().HasKey("Kids"))
     {
@@ -490,12 +490,12 @@ void PdfNamesTree::AddToDictionary(PdfObject* obj, PdfDictionary& dict)
     }
 }
 
-PdfObject* PdfNamesTree::GetJavaScriptNode(bool create) const
+PdfObject* PdfNameTree::GetJavaScriptNode(bool create) const
 {
     return this->GetRootNode("JavaScript", create);
 }
 
-PdfObject* PdfNamesTree::GetDestsNode(bool create) const
+PdfObject* PdfNameTree::GetDestsNode(bool create) const
 {
     return this->GetRootNode("Dests", create);
 }

@@ -7,20 +7,20 @@
  */
 
 #include <pdfmm/private/PdfDefinesPrivate.h>
-#include "PdfPagesTreeCache.h"
+#include "PdfPageTreeCache.h"
 
 #include "PdfPage.h"
-#include "PdfPagesTree.h"
+#include "PdfPageTree.h"
 
 using namespace std;
 using namespace mm;
 
-PdfPagesTreeCache::PdfPagesTreeCache(unsigned initialSize)
+PdfPageTreeCache::PdfPageTreeCache(unsigned initialSize)
 {
     m_PageObjs.resize(initialSize);
 }
 
-PdfPage* PdfPagesTreeCache::GetPage(unsigned atIndex)
+PdfPage* PdfPageTreeCache::GetPage(unsigned atIndex)
 {
     if (atIndex >= m_PageObjs.size())
         return nullptr;
@@ -28,7 +28,7 @@ PdfPage* PdfPagesTreeCache::GetPage(unsigned atIndex)
     return m_PageObjs[atIndex];
 }
 
-void PdfPagesTreeCache::SetPage(unsigned atIndex, PdfPage* page)
+void PdfPageTreeCache::SetPage(unsigned atIndex, PdfPage* page)
 {
     // Delete an old page if it is at the same position
     PdfPage* oldPage = GetPage(atIndex);
@@ -40,7 +40,7 @@ void PdfPagesTreeCache::SetPage(unsigned atIndex, PdfPage* page)
     m_PageObjs[atIndex] = page;
 }
 
-void PdfPagesTreeCache::SetPages(unsigned atIndex, const vector<PdfPage*>& pages)
+void PdfPageTreeCache::SetPages(unsigned atIndex, const vector<PdfPage*>& pages)
 {
     if ((atIndex + pages.size()) >= m_PageObjs.size())
         m_PageObjs.resize(atIndex + pages.size() + 1);
@@ -56,18 +56,18 @@ void PdfPagesTreeCache::SetPages(unsigned atIndex, const vector<PdfPage*>& pages
     }
 }
 
-void PdfPagesTreeCache::InsertPlaceHolder(unsigned atIndex)
+void PdfPageTreeCache::InsertPlaceHolder(unsigned atIndex)
 {
     m_PageObjs.insert(m_PageObjs.begin() + atIndex, static_cast<PdfPage*>(nullptr));
 }
 
-void PdfPagesTreeCache::InsertPlaceHolders(unsigned atIndex, unsigned count)
+void PdfPageTreeCache::InsertPlaceHolders(unsigned atIndex, unsigned count)
 {
     for (unsigned i = 0; i < count; i++)
         m_PageObjs.insert(m_PageObjs.begin() + atIndex + i, static_cast<PdfPage*>(nullptr));
 }
 
-void PdfPagesTreeCache::DeletePage(unsigned atIndex)
+void PdfPageTreeCache::DeletePage(unsigned atIndex)
 {
     if (atIndex >= m_PageObjs.size())
         return;
@@ -76,7 +76,7 @@ void PdfPagesTreeCache::DeletePage(unsigned atIndex)
     m_PageObjs.erase(m_PageObjs.begin() + atIndex);
 }
 
-void PdfPagesTreeCache::ClearCache()
+void PdfPageTreeCache::ClearCache()
 {
     for (auto page : m_PageObjs)
         delete page;

@@ -26,10 +26,10 @@
 #include "PdfFont.h"
 #include "PdfFontMetrics.h"
 #include "PdfInfo.h"
-#include "PdfNamesTree.h"
+#include "PdfNameTree.h"
 #include "PdfOutlines.h"
 #include "PdfPage.h"
-#include "PdfPagesTree.h"
+#include "PdfPageTree.h"
 #include "PdfXObject.h"
 
 
@@ -73,12 +73,12 @@ void PdfDocument::InitPagesTree()
     auto pagesRootObj = m_Catalog->GetDictionary().FindKey("Pages");
     if (pagesRootObj == nullptr)
     {
-        m_PageTree.reset(new PdfPagesTree(*this));
+        m_PageTree.reset(new PdfPageTree(*this));
         m_Catalog->GetDictionary().AddKey("Pages", m_PageTree->GetObject().GetIndirectReference());
     }
     else
     {
-        m_PageTree.reset(new PdfPagesTree(*pagesRootObj));
+        m_PageTree.reset(new PdfPageTree(*pagesRootObj));
     }
 }
 
@@ -624,7 +624,7 @@ PdfOutlines* PdfDocument::GetOutlines(bool create)
     return m_Outlines.get();
 }
 
-PdfNamesTree* PdfDocument::GetNamesTree(bool create)
+PdfNameTree* PdfDocument::GetNamesTree(bool create)
 {
     PdfObject* obj;
     if (m_NameTree == nullptr)
@@ -635,17 +635,17 @@ PdfNamesTree* PdfDocument::GetNamesTree(bool create)
             if (!create)
                 return nullptr;
 
-            PdfNamesTree tmpTree(*this);
+            PdfNameTree tmpTree(*this);
             obj = &tmpTree.GetObject();
             m_Catalog->GetDictionary().AddKey("Names", obj->GetIndirectReference());
-            m_NameTree.reset(new PdfNamesTree(*obj));
+            m_NameTree.reset(new PdfNameTree(*obj));
         }
         else if (obj->GetDataType() != PdfDataType::Dictionary)
         {
             PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
         }
         else
-            m_NameTree.reset(new PdfNamesTree(*obj));
+            m_NameTree.reset(new PdfNameTree(*obj));
     }
 
     return m_NameTree.get();
@@ -741,7 +741,7 @@ const PdfObject& PdfDocument::GetCatalog() const
     return *m_Catalog;
 }
 
-const PdfPagesTree& PdfDocument::GetPageTree() const
+const PdfPageTree& PdfDocument::GetPageTree() const
 {
     if (m_PageTree == nullptr)
         PDFMM_RAISE_ERROR(PdfErrorCode::NoObject);
@@ -749,7 +749,7 @@ const PdfPagesTree& PdfDocument::GetPageTree() const
     return *m_PageTree;
 }
 
-PdfPagesTree& PdfDocument::GetPageTree()
+PdfPageTree& PdfDocument::GetPageTree()
 {
     if (m_PageTree == nullptr)
         PDFMM_RAISE_ERROR(PdfErrorCode::NoObject);

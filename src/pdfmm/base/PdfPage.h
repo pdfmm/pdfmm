@@ -85,11 +85,11 @@ public:
 
     /** Page number inside of the document. The  first page
      *  has the number 1, the last page has the number
-     *  PdfPagesTree:GetTotalNumberOfPages()
+     *  PdfPageTree:GetTotalNumberOfPages()
      *
      *  \returns the number of the page inside of the document
      *
-     *  \see PdfPagesTree:GetTotalNumberOfPages()
+     *  \see PdfPageTree:GetTotalNumberOfPages()
      */
     unsigned GetPageNumber() const;
 

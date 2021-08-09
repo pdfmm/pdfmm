@@ -13,7 +13,7 @@
 
 #include "PdfElement.h"
 #include "PdfArray.h"
-#include "PdfPagesTreeCache.h"
+#include "PdfPageTreeCache.h"
 
 namespace mm {
 
@@ -26,24 +26,24 @@ class PdfRect;
  *
  *  \see PdfDocument
  */
-class PDFMM_API PdfPagesTree final : public PdfElement
+class PDFMM_API PdfPageTree final : public PdfElement
 {
     friend class PdfDocument;
     typedef std::deque<PdfObject*> PdfObjectList;
 
 public:
-    /** Construct a new PdfPagesTree
+    /** Construct a new PdfPageTree
      */
-    PdfPagesTree(PdfDocument& doc);
+    PdfPageTree(PdfDocument& doc);
 
-    /** Construct a PdfPagesTree from the root /Pages object
+    /** Construct a PdfPageTree from the root /Pages object
      *  \param pagesRoot pointer to page tree dictionary
      */
-    PdfPagesTree(PdfObject& pagesRoot);
+    PdfPageTree(PdfObject& pagesRoot);
 
-    /** Close/down destruct a PdfPagesTree
+    /** Close/down destruct a PdfPageTree
      */
-    virtual ~PdfPagesTree();
+    virtual ~PdfPageTree();
 
     /** Return the number of pages in the entire tree
      *  \returns number of pages
@@ -164,7 +164,7 @@ private:
      * \param node the pages node whete page is to be inserted
      * \param parents list of all (future) parent pages nodes in the pages tree
      *                   of page
-     * \param index index where page is to be inserted in pNode's kids array
+     * \param index index where page is to be inserted in node's kids array
      * \param pages a vector of the page objects which are to be inserted
      */
     void InsertPagesIntoNode(PdfObject& node, const PdfObjectList& parents,
@@ -176,7 +176,7 @@ private:
      * \param node which is the direct parent of page and where the page must be deleted
      * \param parents list of all parent pages nodes in the pages tree
      *                   of page
-     * \param index index where page is to be deleted in pNode's kids array
+     * \param index index where page is to be deleted in node's kids array
      * \param page the page object which is to be deleted
      */
     void DeletePageFromNode(PdfObject& node, const PdfObjectList& parents,
@@ -203,7 +203,7 @@ private:
     inline const PdfObject& GetRoot() const { return this->GetObject(); }
 
 private:
-      PdfPagesTreeCache m_cache;
+      PdfPageTreeCache m_cache;
 };
 
 };
