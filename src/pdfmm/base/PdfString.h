@@ -99,15 +99,11 @@ public:
 
     const std::string& GetRawData() const;
 
-    /** The length of the string data returned by GetString()
-     *  in bytes not including terminating zero ('\0') bytes.
+    /** The length of the string data
      *
      *  \returns the length of the string,
-     *           returns zero if PdfString::IsValid() returns false
-     *
-     *  \see GetCharacterLength to determine the number of characters in the string
      */
-    size_t GetLength() const;
+    unsigned GetLength() const;
 
     /** Write this PdfString in PDF format to a PdfOutputDevice.
      *

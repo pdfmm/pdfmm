@@ -80,7 +80,7 @@ public:
     /** \returns the unescaped length of this
      *           name object
      */
-    size_t GetLength() const;
+    unsigned GetLength() const;
 
     /** \returns the raw data of this name object
      */

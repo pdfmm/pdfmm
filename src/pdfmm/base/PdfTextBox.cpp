@@ -42,7 +42,7 @@ void PdfTextBox::SetText(const PdfString& text)
 
     // if text is longer than maxlen, truncate it
     int64_t maxLength = this->GetMaxLen();
-    if (maxLength != -1 && text.GetLength() > (size_t)maxLength)
+    if (maxLength != -1 && text.GetLength() > (unsigned)maxLength)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Unable to set text larger MaxLen");
 
     GetObject().GetDictionary().AddKey(key, text);

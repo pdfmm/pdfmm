@@ -198,10 +198,10 @@ const string& PdfString::GetString() const
     return *m_data;
 }
 
-size_t PdfString::GetLength() const
+unsigned PdfString::GetLength() const
 {
     evaluateString();
-    return m_data->length();
+    return (unsigned)m_data->length();
 }
 
 const PdfString& PdfString::operator=(const PdfString& rhs)

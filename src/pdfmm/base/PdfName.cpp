@@ -237,13 +237,13 @@ const string& PdfName::GetString() const
         return *m_utf8String;
 }
 
-size_t PdfName::GetLength() const
+unsigned PdfName::GetLength() const
 {
     expandUtf8String();
     if (m_utf8String == nullptr)
-        return m_data->length();
+        return (unsigned)m_data->length();
     else
-        return m_utf8String->length();
+        return (unsigned)m_utf8String->length();
 }
 
 const string& PdfName::GetRawData() const
