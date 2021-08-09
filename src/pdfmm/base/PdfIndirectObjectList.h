@@ -23,7 +23,8 @@ class PdfVariant;
 
 typedef std::deque<PdfReference> PdfReferenceList;
 
-/** A STL vector of PdfObjects. I.e. a list of PdfObject classes.
+/** A list of PdfObjects that constitutes the indirect object list
+ *  of the document
  *  The PdfParser will read the PdfFile into memory and create
  *  a PdfIndirectObjectList of all dictionaries found in the PDF file.
  *
@@ -117,12 +118,12 @@ public:
     /**
      *  \returns the size of the internal vector
      */
-    size_t GetSize() const;
+    unsigned GetSize() const;
 
     /**
      *  \returns the highest object number in the vector
      */
-    size_t GetObjectCount() const { return m_ObjectCount; }
+    unsigned GetObjectCount() const { return m_ObjectCount; }
 
     /** Finds the object with the given reference
      *  and returns a pointer to it if it is found. Throws a PdfError
@@ -280,23 +281,13 @@ public:
     void SetObjectCount(const PdfReference& ref);
 
 private:
-    // TODO: Clean the following types, remove 'T' prefix
     // Use deque as many insertions are here way faster than with using std::list
     // This is especially useful for PDFs like PDFReference17.pdf with
     // lots of free objects.
-    typedef std::set<uint32_t>                       TPdfObjectNumList;
-
-    typedef std::set<PdfReference>                   TPdfReferenceSet;
-    typedef TPdfReferenceSet::iterator               TIPdfReferenceSet;
-    typedef TPdfReferenceSet::const_iterator         TCIPdfReferenceSet;
-
-    typedef std::list<PdfReference*>                 TReferencePointerList;
-    typedef TReferencePointerList::iterator          TIReferencePointerList;
-    typedef TReferencePointerList::const_iterator    TCIReferencePointerList;
-
-    typedef std::vector<TReferencePointerList>       TVecReferencePointerList;
-    typedef TVecReferencePointerList::iterator       TIVecReferencePointerList;
-    typedef TVecReferencePointerList::const_iterator TCIVecReferencePointerList;
+    typedef std::set<uint32_t>                       ObjectNumList;
+    typedef std::set<PdfReference>                   ReferenceSet;
+    typedef std::list<PdfReference*>                 ReferencePointers;
+    typedef std::vector<ReferencePointers>           ReferencePointersList;
 
 private:
     // CHECK-ME: Should this function be public or stay private? Originally it was private
@@ -312,7 +303,7 @@ private:
      *
      *  \see CollectGarbage
      */
-    void RenumberObjects(PdfObject& trailer, TPdfReferenceSet* notDelete = nullptr, bool doGarbageCollection = false);
+    void RenumberObjects(PdfObject& trailer, ReferenceSet* notDelete = nullptr, bool doGarbageCollection = false);
 
     // CHECK-ME: Should this function be public or stay private? Originally it was private
     /** Get a set with all references of objects that the passed object
@@ -411,12 +402,12 @@ private:
      * for each object in this vector.
      * \param pList write all references to this list
      */
-    void buildReferenceCountVector(TVecReferencePointerList& list);
-    void insertReferencesIntoVector(const PdfObject& obj, TVecReferencePointerList& list);
+    void buildReferenceCountVector(ReferencePointersList& list);
+    void insertReferencesIntoVector(const PdfObject& obj, ReferencePointersList& list);
 
     /** Assumes that the PdfIndirectObjectList is sorted
      */
-    void insertOneReferenceIntoVector(const PdfObject& obj, TVecReferencePointerList& list);
+    void insertOneReferenceIntoVector(const PdfObject& obj, ReferencePointersList& list);
 
     /** Delete all objects from the vector which do not have references to them selves
      *  \param pList must be a list created by BuildReferenceCountVector
@@ -424,7 +415,7 @@ private:
      *  \param pNotDelete a list of object which must not be deleted
      *  \see BuildReferenceCountVector
      */
-    void garbageCollection(TVecReferencePointerList& list, PdfObject& trailer, TPdfReferenceSet* notDelete = nullptr);
+    void garbageCollection(ReferencePointersList& list, PdfObject& trailer, ReferenceSet* notDelete = nullptr);
 
 private:
     PdfIndirectObjectList(const PdfIndirectObjectList&) = delete;
@@ -436,13 +427,13 @@ private:
 private:
     PdfDocument* m_Document;
     bool m_CanReuseObjectNumbers;
-    size_t m_ObjectCount;
+    unsigned m_ObjectCount;
     bool m_sorted;
     ObjectList m_Objects;
 
     ObserverList m_observers;
     PdfReferenceList m_FreeObjects;
-    TPdfObjectNumList m_UnavailableObjects;
+    ObjectNumList m_UnavailableObjects;
 
     StreamFactory* m_StreamFactory;
 

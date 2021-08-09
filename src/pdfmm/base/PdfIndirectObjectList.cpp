@@ -279,50 +279,40 @@ void PdfIndirectObjectList::CollectGarbage(PdfObject& trailer)
     // We do not have any objects that have
     // to be on the top, like in a linearized PDF.
     // So we just use an empty list.
-    TPdfReferenceSet setLinearizedGroup;
+    ReferenceSet setLinearizedGroup;
     this->RenumberObjects(trailer, &setLinearizedGroup, true);
 }
 
-void PdfIndirectObjectList::RenumberObjects(PdfObject& trailer, TPdfReferenceSet* notDelete, bool doGarbageCollection)
+void PdfIndirectObjectList::RenumberObjects(PdfObject& trailer, ReferenceSet* notDelete, bool doGarbageCollection)
 {
     throw runtime_error("Fixme, we don't support taking address of PdfReference anymore. See InsertOneReferenceIntoVector");
 
-    TVecReferencePointerList list;
-    TIVecReferencePointerList it;
-    TIReferencePointerList itList;
-    int i = 0;
-
     m_FreeObjects.clear();
-
     const_cast<PdfIndirectObjectList&>(*this).Sort();
 
     // The following call slows everything down
     // optimization welcome
+    ReferencePointersList list;
     buildReferenceCountVector(list);
     insertReferencesIntoVector(trailer, list);
 
     if (doGarbageCollection)
         garbageCollection(list, trailer, notDelete);
 
-    it = list.begin();
-    while (it != list.end())
+    unsigned i = 0;
+    for (auto& refPointers : list)
     {
         PdfReference ref(i + 1, 0);
         m_Objects[i]->m_IndirectReference = ref;
 
-        itList = it->begin();
-        while (itList != it->end())
-        {
-            **itList = ref;
-            itList++;
-        }
+        for (auto refptr : refPointers)
+            *refptr = ref;
 
         i++;
-        it++;
     }
 }
 
-void PdfIndirectObjectList::insertOneReferenceIntoVector(const PdfObject& obj, TVecReferencePointerList& list)
+void PdfIndirectObjectList::insertOneReferenceIntoVector(const PdfObject& obj, ReferencePointersList& list)
 {
     (void)list;
     throw runtime_error("FIX-ME, we don't support taking address of PdfReference anymore");
@@ -344,7 +334,7 @@ void PdfIndirectObjectList::insertOneReferenceIntoVector(const PdfObject& obj, T
     */
 }
 
-void PdfIndirectObjectList::insertReferencesIntoVector(const PdfObject& obj, TVecReferencePointerList& list)
+void PdfIndirectObjectList::insertReferencesIntoVector(const PdfObject& obj, ReferencePointersList& list)
 {
     if (obj.IsReference())
     {
@@ -414,7 +404,7 @@ void PdfIndirectObjectList::GetObjectDependencies(const PdfObject& obj, PdfRefer
     }
 }
 
-void PdfIndirectObjectList::buildReferenceCountVector(TVecReferencePointerList& list)
+void PdfIndirectObjectList::buildReferenceCountVector(ReferencePointersList& list)
 {
     auto it = m_Objects.begin();
 
@@ -439,25 +429,23 @@ void PdfIndirectObjectList::buildReferenceCountVector(TVecReferencePointerList& 
     }
 }
 
-void PdfIndirectObjectList::garbageCollection(TVecReferencePointerList& list, PdfObject&, TPdfReferenceSet* notDelete)
+void PdfIndirectObjectList::garbageCollection(ReferencePointersList& list, PdfObject&, ReferenceSet* notDelete)
 {
-    TIVecReferencePointerList it = list.begin();
-    int pos = 0;
+    unsigned pos = 0;
     bool contains = false;
 
-    while (it != list.end())
+    for (auto& ref : list)
     {
         contains = notDelete ? (notDelete->find(m_Objects[pos]->GetIndirectReference()) != notDelete->end()) : false;
-        if (it->size() == 0 && !contains)
+        if (ref.size() == 0 && !contains)
         {
             m_Objects.erase(m_Objects.begin() + pos);
         }
 
         pos++;
-        it++;
     }
 
-    m_ObjectCount = pos++;
+    m_ObjectCount = pos;
 }
 
 #pragma endregion
@@ -525,9 +513,9 @@ void PdfIndirectObjectList::SetCanReuseObjectNumbers(bool canReuseObjectNumbers)
         m_FreeObjects.clear();
 }
 
-size_t PdfIndirectObjectList::GetSize() const
+unsigned PdfIndirectObjectList::GetSize() const
 {
-    return m_Objects.size();
+    return (unsigned)m_Objects.size();
 }
 
 void PdfIndirectObjectList::Reserve(size_t size)
