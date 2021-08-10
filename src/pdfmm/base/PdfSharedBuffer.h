@@ -113,24 +113,6 @@ public:
      */
     bool TakePossesion() const;
 
-    /** Compare to buffers.
-     *  \param rhs compare to this buffer
-     *  \returns true if both buffers contain the same contents
-     */
-    bool operator==(const PdfSharedBuffer& rhs) const;
-
-    /** Compare to buffers.
-     *  \param rhs compare to this buffer
-     *  \returns true if this buffer is lexically smaller than rhs
-     */
-    bool operator<(const PdfSharedBuffer& rhs) const;
-
-    /** Compare to buffers.
-     *  \param rhs compare to this buffer
-     *  \returns true if this buffer is lexically greater than rhs
-     */
-    bool operator>(const PdfSharedBuffer& rhs) const;
-
 private:
     /**
      * Indicate that the buffer is no longer being used, freeing it if there
