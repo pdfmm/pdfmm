@@ -62,24 +62,24 @@ void PdfInfo::SetCustomKey(const PdfName& name, const PdfString& value)
     this->GetObject().GetDictionary().AddKey(name, value);
 }
 
-void PdfInfo::SetAuthor(const PdfString& sAuthor)
+void PdfInfo::SetAuthor(const PdfString& author)
 {
-    this->GetObject().GetDictionary().AddKey("Author", sAuthor);
+    this->GetObject().GetDictionary().AddKey("Author", author);
 }
 
-void PdfInfo::SetCreator(const PdfString& sCreator)
+void PdfInfo::SetCreator(const PdfString& creator)
 {
-    this->GetObject().GetDictionary().AddKey("Creator", sCreator);
+    this->GetObject().GetDictionary().AddKey("Creator", creator);
 }
 
-void PdfInfo::SetKeywords(const PdfString& sKeywords)
+void PdfInfo::SetKeywords(const PdfString& keywords)
 {
-    this->GetObject().GetDictionary().AddKey("Keywords", sKeywords);
+    this->GetObject().GetDictionary().AddKey("Keywords", keywords);
 }
 
-void PdfInfo::SetSubject(const PdfString& sSubject)
+void PdfInfo::SetSubject(const PdfString& subject)
 {
-    this->GetObject().GetDictionary().AddKey("Subject", sSubject);
+    this->GetObject().GetDictionary().AddKey("Subject", subject);
 }
 
 void PdfInfo::SetTitle(const PdfString& title)
@@ -89,15 +89,15 @@ void PdfInfo::SetTitle(const PdfString& title)
 
 // Peter Petrov 27 April 2008
 // We have added a SetProducer() method in PdfInfo
-void PdfInfo::SetProducer(const PdfString& sProducer)
+void PdfInfo::SetProducer(const PdfString& producer)
 {
-    this->GetObject().GetDictionary().AddKey("Producer", sProducer);
+    this->GetObject().GetDictionary().AddKey("Producer", producer);
 }
 
-void PdfInfo::SetTrapped(const PdfName& sTrapped)
+void PdfInfo::SetTrapped(const PdfName& trapped)
 {
-    if ((sTrapped.GetString() == "True") || (sTrapped.GetString() == "False"))
-        this->GetObject().GetDictionary().AddKey("Trapped", sTrapped);
+    if ((trapped.GetString() == "True") || (trapped.GetString() == "False"))
+        this->GetObject().GetDictionary().AddKey("Trapped", trapped);
     else
         this->GetObject().GetDictionary().AddKey("Trapped", PdfName("Unknown"));
 }

@@ -45,9 +45,9 @@ public:
     PdfInfo(PdfObject& obj, PdfInfoInitial initial = PdfInfoInitial::None);
 
     /** Set the author of the document.
-     *  \param sAuthor author
+     *  \param author author
      */
-    void SetAuthor(const PdfString& sAuthor);
+    void SetAuthor(const PdfString& author);
 
     /** Get the author of the document
      *  \returns the author
@@ -56,9 +56,9 @@ public:
 
     /** Set the creator of the document.
      *  Typically the name of the application using the library.
-     *  \param sCreator creator
+     *  \param creator creator
      */
-    void SetCreator(const PdfString& sCreator);
+    void SetCreator(const PdfString& creator);
 
     /** Get the creator of the document
      *  \returns the creator
@@ -66,9 +66,9 @@ public:
     std::optional<PdfString> GetCreator() const;
 
     /** Set keywords for this document
-     *  \param sKeywords a list of keywords
+     *  \param keywords a list of keywords
      */
-    void SetKeywords(const PdfString& sKeywords);
+    void SetKeywords(const PdfString& keywords);
 
     /** Get the keywords of the document
      *  \returns the keywords
@@ -76,9 +76,9 @@ public:
     std::optional<PdfString> GetKeywords() const;
 
     /** Set the subject of the document.
-     *  \param sSubject subject
+     *  \param subject subject
      */
-    void SetSubject(const PdfString& sSubject);
+    void SetSubject(const PdfString& subject);
 
     /** Get the subject of the document
      *  \returns the subject
@@ -97,9 +97,9 @@ public:
 
     // Peter Petrov 27 April 2008
     /** Set the producer of the document.
-     *  \param sProducer producer
+     *  \param producer producer
      */
-    void SetProducer(const PdfString& sProducer);
+    void SetProducer(const PdfString& producer);
 
     // Peter Petrov 27 April 2008
     /** Get the producer of the document
@@ -108,9 +108,9 @@ public:
     std::optional<PdfString> GetProducer() const;
 
     /** Set the trapping state of the document.
-     *  \param sTrapped trapped
+     *  \param trapped trapped
      */
-    void SetTrapped(const PdfName& sTrapped);
+    void SetTrapped(const PdfName& trapped);
 
     /** Get the trapping state of the document
      *  \returns the title
