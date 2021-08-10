@@ -91,13 +91,11 @@ void PdfMemDocument::InitFromParser(PdfParser* parser)
 
     if (PdfError::DebugEnabled())
     {
-        PdfSharedBuffer buf;
-        PdfOutputDevice debug(buf);
+        string buf;
+        PdfStringOutputDevice debug(buf);
         GetTrailer().GetVariant().Write(debug, m_WriteMode, nullptr);
         debug.Write("\n", 1);
-        size_t siz = buf.GetSize();
-        char* ptr = buf.GetBuffer();
-        PdfError::LogMessage(LogSeverity::Information, "%.*s", siz, ptr);
+        PdfError::LogMessage(LogSeverity::Information, "%.*s", buf.size(), buf.data());
     }
 
     auto catalog = GetTrailer().GetDictionary().FindKey("Root");
@@ -255,7 +253,7 @@ void PdfMemDocument::RemovePdfExtension(const char* ns, int64_t level)
 
 void PdfMemDocument::Write(const string_view& filename, PdfSaveOptions options)
 {
-    PdfOutputDevice device(filename);
+    PdfFileOutputDevice device(filename);
     this->Write(device, options);
 }
 
@@ -277,7 +275,7 @@ void PdfMemDocument::Write(PdfOutputDevice& device, PdfSaveOptions options)
 
 void PdfMemDocument::WriteUpdate(const string_view& filename, PdfSaveOptions options)
 {
-    PdfOutputDevice device(filename, false);
+    PdfFileOutputDevice device(filename, false);
     this->WriteUpdate(device, options);
 }
 

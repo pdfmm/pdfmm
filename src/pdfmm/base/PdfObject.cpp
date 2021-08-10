@@ -198,7 +198,7 @@ void PdfObject::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
 
 size_t PdfObject::GetObjectLength(PdfWriteMode writeMode)
 {
-    PdfOutputDevice device;
+    PdfNullOutputDevice device;
 
     this->Write(device, writeMode, nullptr);
 

@@ -903,7 +903,7 @@ void PdfDCTFilter::BeginDecodeImpl(const PdfDictionary*)
     if (error.length() != 0)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, error);
 
-    m_Device = new PdfOutputDevice(m_buffer);
+    m_Device = new PdfStringOutputDevice(m_buffer);
 }
 
 void PdfDCTFilter::DecodeBlockImpl(const char* buffer, size_t len)
@@ -916,7 +916,7 @@ void PdfDCTFilter::EndDecodeImpl()
     delete m_Device;
     m_Device = nullptr;
 
-    mm::jpeg_memory_src(&m_cinfo, reinterpret_cast<JOCTET*>(m_buffer.GetBuffer()), m_buffer.GetSize());
+    mm::jpeg_memory_src(&m_cinfo, reinterpret_cast<JOCTET*>(m_buffer.data()), m_buffer.size());
 
     if (jpeg_read_header(&m_cinfo, TRUE) <= 0)
     {

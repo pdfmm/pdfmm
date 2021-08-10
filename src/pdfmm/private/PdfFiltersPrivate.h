@@ -282,7 +282,7 @@ private:
     struct jpeg_decompress_struct m_cinfo;
     struct jpeg_error_mgr m_jerr;
 
-    PdfSharedBuffer m_buffer;
+    chars m_buffer;
     PdfOutputDevice* m_Device;
 };
 

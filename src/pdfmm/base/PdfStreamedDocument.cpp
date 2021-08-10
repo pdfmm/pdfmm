@@ -20,7 +20,7 @@ PdfStreamedDocument::PdfStreamedDocument(PdfOutputDevice& device, PdfVersion ver
 PdfStreamedDocument::PdfStreamedDocument(const string_view& filename, PdfVersion version, PdfEncrypt* encrypt, PdfWriteMode writeMode)
     : m_Writer(nullptr), m_Encrypt(encrypt), m_OwnDevice(true)
 {
-    m_Device = new PdfOutputDevice(filename);
+    m_Device = new PdfFileOutputDevice(filename);
     Init(*m_Device, version, encrypt, writeMode);
 }
 

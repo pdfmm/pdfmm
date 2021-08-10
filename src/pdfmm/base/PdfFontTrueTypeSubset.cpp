@@ -68,15 +68,15 @@ PdfFontTrueTypeSubset::PdfFontTrueTypeSubset(PdfInputDevice& device, TrueTypeFon
 {
 }
 
-void PdfFontTrueTypeSubset::BuildFont(PdfSharedBuffer& output, PdfInputDevice& input,
+void PdfFontTrueTypeSubset::BuildFont(string& buffer, PdfInputDevice& input,
     TrueTypeFontFileType type, unsigned short faceIndex,
     const PdfFontMetrics& metrics, const CIDToGIDMap& cidToGidMap)
 {
     PdfFontTrueTypeSubset subset(input, type, metrics, faceIndex);
-    subset.BuildFont(output, cidToGidMap);
+    subset.BuildFont(buffer, cidToGidMap);
 }
 
-void PdfFontTrueTypeSubset::BuildFont(PdfSharedBuffer& output,
+void PdfFontTrueTypeSubset::BuildFont(string& buffer,
     const CIDToGIDMap& cidToGidMap)
 {
     Init();
@@ -85,7 +85,7 @@ void PdfFontTrueTypeSubset::BuildFont(PdfSharedBuffer& output,
     context.GlyfTableOffset = GetTableOffset(TTAG_glyf);
     context.LocaTableOffset = GetTableOffset(TTAG_loca);
     LoadGlyphs(context, cidToGidMap);
-    WriteTables(output);
+    WriteTables(buffer);
 }
 
 void PdfFontTrueTypeSubset::Init()
@@ -399,9 +399,9 @@ void PdfFontTrueTypeSubset::WriteLocaTable(PdfOutputDevice& output)
 
 }
 
-void PdfFontTrueTypeSubset::WriteTables(PdfSharedBuffer& buffer)
+void PdfFontTrueTypeSubset::WriteTables(string& buffer)
 {
-    PdfOutputDevice output(buffer);
+    PdfStringOutputDevice output(buffer);
 
     uint16_t entrySelector = (uint16_t)std::ceil(std::log2(m_Tables.size()));
     uint16_t searchRange = (uint16_t)std::pow(2, entrySelector);
@@ -440,27 +440,27 @@ void PdfFontTrueTypeSubset::WriteTables(PdfSharedBuffer& buffer)
                 headOffset = tableOffset;
                 GetData(output, table.Offset, table.Length);
                 // Set the checkSumAdjustment to 0
-                TTFWriteUInt32(buffer.GetBuffer() + tableOffset + 4, 0);
+                TTFWriteUInt32(buffer.data() + tableOffset + 4, 0);
                 break;
             case TTAG_maxp:
                 // https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6maxp.html
                 GetData(output, table.Offset, table.Length);
                 // Write the number of glyphs in the font
-                TTFWriteUInt16(buffer.GetBuffer() + tableOffset + 4, (uint16_t)m_GlyphMap.size());
+                TTFWriteUInt16(buffer.data() + tableOffset + 4, (uint16_t)m_GlyphMap.size());
                 break;
             case TTAG_hhea:
                 // https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6hhea.html
                 GetData(output, table.Offset, table.Length);
                 // Write numOfLongHorMetrics, see also 'hmtx' table
-                TTFWriteUInt16(buffer.GetBuffer() + tableOffset + 34, (uint16_t)m_GlyphMap.size());
+                TTFWriteUInt16(buffer.data() + tableOffset + 34, (uint16_t)m_GlyphMap.size());
                 break;
             case TTAG_post:
                 // https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6post.html
                 GetData(output, table.Offset, table.Length);
                 // Enforce 'post' Format 3, written as a Fixed 16.16 number
-                TTFWriteUInt32(buffer.GetBuffer() + tableOffset, 0x00030000);
+                TTFWriteUInt32(buffer.data() + tableOffset, 0x00030000);
                 // Clear Type42/Type1 font information
-                memset(buffer.GetBuffer() + tableOffset + 16, 0, 16);
+                memset(buffer.data() + tableOffset + 16, 0, 16);
                 break;
             case TTAG_glyf:
                 WriteGlyphTable(output, table.Offset);
@@ -488,9 +488,9 @@ void PdfFontTrueTypeSubset::WriteTables(PdfSharedBuffer& buffer)
 
         // Write dynamic font directory table entries
         size_t currDirTableOffset = directoryTableOffset + i * LENGTH_OFFSETTABLE16;
-        TTFWriteUInt32(buffer.GetBuffer() + currDirTableOffset + 4, GetTableCheksum(buffer.GetBuffer() + tableOffset, tableLength));
-        TTFWriteUInt32(buffer.GetBuffer() + currDirTableOffset + 8, tableOffset);
-        TTFWriteUInt32(buffer.GetBuffer() + currDirTableOffset + 12, tableLength);
+        TTFWriteUInt32(buffer.data() + currDirTableOffset + 4, GetTableCheksum(buffer.data() + tableOffset, tableLength));
+        TTFWriteUInt32(buffer.data() + currDirTableOffset + 8, tableOffset);
+        TTFWriteUInt32(buffer.data() + currDirTableOffset + 12, tableLength);
     }
 
     // Check for head table
@@ -499,8 +499,8 @@ void PdfFontTrueTypeSubset::WriteTables(PdfSharedBuffer& buffer)
 
     // As explained in the "Table Directory"
     // https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6.html#Directory
-    uint32_t fontChecksum = 0xB1B0AFBA - GetTableCheksum(buffer.GetBuffer(), (unsigned)output.Tell());
-    TTFWriteUInt32(buffer.GetBuffer() + *headOffset + 4, fontChecksum);
+    uint32_t fontChecksum = 0xB1B0AFBA - GetTableCheksum(buffer.data(), (unsigned)output.Tell());
+    TTFWriteUInt32(buffer.data() + *headOffset + 4, fontChecksum);
 }
 
 void PdfFontTrueTypeSubset::GetData(PdfOutputDevice& output, unsigned offset, unsigned size)

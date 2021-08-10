@@ -224,7 +224,7 @@ void PdfWriter::FillTrailerObject(PdfObject& trailer, size_t size, bool onlySize
 
 void PdfWriter::CreateFileIdentifier(PdfString& identifier, const PdfObject& trailer, PdfString* originalIdentifier) const
 {
-    PdfOutputDevice length;
+    PdfNullOutputDevice length;
     unique_ptr<PdfObject> info;
     bool originalIdentifierFound = false;
 
@@ -298,12 +298,12 @@ void PdfWriter::CreateFileIdentifier(PdfString& identifier, const PdfObject& tra
     info->GetDictionary().AddKey("Location", PdfString("SOMEFILENAME"));
     info->Write(length, m_WriteMode, nullptr);
 
-    PdfSharedBuffer buffer(length.GetLength());
-    PdfOutputDevice device(buffer);
+    chars buffer(length.GetLength());
+    PdfStringOutputDevice device(buffer);
     info->Write(device, m_WriteMode, nullptr);
 
     // calculate the MD5 Sum
-    identifier = PdfEncryptMD5Base::GetMD5String(reinterpret_cast<unsigned char*>(buffer.GetBuffer()),
+    identifier = PdfEncryptMD5Base::GetMD5String(reinterpret_cast<unsigned char*>(buffer.data()),
         static_cast<unsigned>(length.GetLength()));
 
     if (originalIdentifier != nullptr && !originalIdentifierFound)

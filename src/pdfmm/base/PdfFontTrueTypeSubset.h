@@ -50,7 +50,7 @@ public:
      * Create a new PdfFontTrueTypeSubset from an existing
      * TTF font file using an input device.
      *
-     * \param outputDevice write the font to this device
+     * \param output write the font to this buffer
      * \param inputDevice a PdfInputDevice
      * \param type the type of the font
      * \param faceIndex index of the face inside of the font
@@ -59,7 +59,7 @@ public:
      *     of consecutive indices starting with 1
      * \param cidSet the output /CidSet
      */
-    static void BuildFont(PdfSharedBuffer& output, PdfInputDevice& input,
+    static void BuildFont(std::string& output, PdfInputDevice& input,
         TrueTypeFontFileType type, unsigned short faceIndex,
         const PdfFontMetrics& metrics, const CIDToGIDMap& cidToGidMap);
 
@@ -67,7 +67,7 @@ private:
     PdfFontTrueTypeSubset(const PdfFontTrueTypeSubset& rhs) = delete;
     PdfFontTrueTypeSubset& operator=(const PdfFontTrueTypeSubset& rhs) = delete;
 
-    void BuildFont(PdfSharedBuffer& output, const CIDToGIDMap& cidToGidMap);
+    void BuildFont(std::string& buffer, const CIDToGIDMap& cidToGidMap);
 
     void Init();
 
@@ -120,7 +120,7 @@ private:
     void WriteGlyphTable(PdfOutputDevice& output, unsigned glyphTableOffset);
     void WriteHmtxTable(PdfOutputDevice& output);
     void WriteLocaTable(PdfOutputDevice& output);
-    void WriteTables(PdfSharedBuffer& buffer);
+    void WriteTables(std::string& buffer);
 
 private:
     PdfInputDevice* m_Device;          // Read data from this input device

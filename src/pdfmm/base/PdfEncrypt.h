@@ -523,14 +523,14 @@ public:
 
     /** Create a PdfString of MD5 data generated from a buffer in memory.
      *  \param buffer the buffer of which to calculate the MD5 sum
-     *  \param nLength the length of the buffer
+     *  \param length the length of the buffer
      *
      *  \returns an MD5 sum as PdfString
      */
-    static PdfString GetMD5String(const unsigned char* buffer, int nLength);
+    static PdfString GetMD5String(const unsigned char* buffer, unsigned length);
 
     // Calculate the binary MD5 message digest of the given data
-    static void GetMD5Binary(const unsigned char* data, int length, unsigned char* digest);
+    static void GetMD5Binary(const unsigned char* data, unsigned length, unsigned char* digest);
 
     // NOTE: We must declare again without body otherwise the other Authenticate overload hides it
     bool Authenticate(const std::string_view& password, const std::string_view& documentId) override = 0;
