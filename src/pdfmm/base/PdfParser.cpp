@@ -323,7 +323,7 @@ void PdfParser::HasLinearizationDict(const PdfRefCountedInputDevice& device)
     // on smaller files, but jumping to the end is against the idea
     // of linearized PDF. Therefore just check if we read anything.
     constexpr streamoff MAX_READ = 1024;
-    PdfRefCountedBuffer linearizeBuffer(MAX_READ);
+    PdfSharedBuffer linearizeBuffer(MAX_READ);
 
     streamoff size = device.Device()->Read(linearizeBuffer.GetBuffer(),
         linearizeBuffer.GetSize());

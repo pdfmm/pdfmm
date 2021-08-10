@@ -14,7 +14,7 @@ using namespace mm;
 PdfPostScriptTokenizer::PdfPostScriptTokenizer()
     : PdfTokenizer(false) { }
 
-PdfPostScriptTokenizer::PdfPostScriptTokenizer(const PdfRefCountedBuffer& buffer)
+PdfPostScriptTokenizer::PdfPostScriptTokenizer(const PdfSharedBuffer& buffer)
     : PdfTokenizer(buffer, false) { }
 
 void PdfPostScriptTokenizer::ReadNextVariant(PdfInputDevice& device, PdfVariant& variant)

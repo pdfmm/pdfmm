@@ -20,7 +20,7 @@ PdfFontType1Encoding::PdfFontType1Encoding(const PdfObject& obj) :
 
 PdfCharCodeMap PdfFontType1Encoding::getUnicodeMap(const PdfObject& obj)
 {
-    PdfRefCountedBuffer buffer;
+    PdfSharedBuffer buffer;
     PdfBufferOutputStream outputStream(buffer);
     obj.GetStream().GetFilteredCopy(outputStream);
 

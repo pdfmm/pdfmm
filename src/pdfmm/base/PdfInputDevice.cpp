@@ -57,7 +57,7 @@ PdfInputDevice::PdfInputDevice(istream& stream)
 
 PdfInputDevice::PdfInputDevice(const PdfStream& stream)
 {
-    PdfRefCountedBuffer buffer;
+    PdfSharedBuffer buffer;
     PdfBufferOutputStream outputStream(buffer);
     stream.GetFilteredCopy(outputStream);
     // TODO: Optimize me, offer a version that does not copy the buffer

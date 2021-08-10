@@ -57,7 +57,7 @@ PdfFontMetricsFreetype* PdfFontMetricsFreetype::CreateForSubsetting(FT_Library* 
     err = FT_Load_Sfnt_Table(scoped_face.FTFace, 0, 0, nullptr, &length);
     if (err == 0)
     {
-        PdfRefCountedBuffer buffer(length);
+        PdfSharedBuffer buffer(length);
         err = FT_Load_Sfnt_Table(scoped_face.FTFace, 0, 0, reinterpret_cast<FT_Byte*>(buffer.GetBuffer()), &length);
         if (err == 0)
             return new PdfFontMetricsFreetype(library, buffer, isSymbol);
@@ -94,12 +94,12 @@ PdfFontMetricsFreetype::PdfFontMetricsFreetype(FT_Library* library, const char* 
     m_Face(nullptr),
     m_IsSymbol(isSymbol)
 {
-    m_FontData = PdfRefCountedBuffer(size);
+    m_FontData = PdfSharedBuffer(size);
     memcpy(m_FontData.GetBuffer(), buffer, size);
     InitFromBuffer(isSymbol);
 }
 
-PdfFontMetricsFreetype::PdfFontMetricsFreetype(FT_Library* library, const PdfRefCountedBuffer& buffer,
+PdfFontMetricsFreetype::PdfFontMetricsFreetype(FT_Library* library, const PdfSharedBuffer& buffer,
         bool isSymbol) :
     PdfFontMetrics(PdfFontMetricsType::Unknown, { }),
     m_Library(library),

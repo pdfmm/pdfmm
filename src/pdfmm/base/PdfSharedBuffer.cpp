@@ -6,16 +6,16 @@
  */
 
 #include <pdfmm/private/PdfDefinesPrivate.h>
-#include "PdfRefCountedBuffer.h"
+#include "PdfSharedBuffer.h"
 
 using namespace mm;
 
-PdfRefCountedBuffer::PdfRefCountedBuffer(char* buffer, size_t size)
+PdfSharedBuffer::PdfSharedBuffer(char* buffer, size_t size)
     : m_Buffer(nullptr)
 {
     if (buffer != nullptr && size != 0)
     {
-        m_Buffer = new TRefCountedBuffer();
+        m_Buffer = new RefCountedBuffer();
         m_Buffer->m_RefCount = 1;
         m_Buffer->m_HeapBuffer = buffer;
         m_Buffer->m_OnHeap = true;
@@ -25,18 +25,18 @@ PdfRefCountedBuffer::PdfRefCountedBuffer(char* buffer, size_t size)
     }
 }
 
-PdfRefCountedBuffer::PdfRefCountedBuffer(const std::string_view& view)
+PdfSharedBuffer::PdfSharedBuffer(const std::string_view& view)
 {
     this->Resize(view.size());
     std::memcpy(m_Buffer->GetRealBuffer(), view.data(), view.size());
 }
 
-PdfRefCountedBuffer::PdfRefCountedBuffer()
+PdfSharedBuffer::PdfSharedBuffer()
     : m_Buffer(nullptr)
 {
 }
 
-PdfRefCountedBuffer::PdfRefCountedBuffer(size_t size)
+PdfSharedBuffer::PdfSharedBuffer(size_t size)
     : m_Buffer(nullptr)
 {
     this->Resize(size);
@@ -44,19 +44,19 @@ PdfRefCountedBuffer::PdfRefCountedBuffer(size_t size)
 
 // We define the copy ctor separately to the assignment
 // operator since it's a *LOT* faster this way.
-PdfRefCountedBuffer::PdfRefCountedBuffer(const PdfRefCountedBuffer& rhs)
+PdfSharedBuffer::PdfSharedBuffer(const PdfSharedBuffer& rhs)
     : m_Buffer(rhs.m_Buffer)
 {
     if (m_Buffer != nullptr)
         m_Buffer->m_RefCount++;
 }
 
-PdfRefCountedBuffer::~PdfRefCountedBuffer()
+PdfSharedBuffer::~PdfSharedBuffer()
 {
     DerefBuffer();
 }
 
-char* PdfRefCountedBuffer::GetBuffer()
+char* PdfSharedBuffer::GetBuffer()
 {
     if (m_Buffer == nullptr)
         return nullptr;
@@ -64,34 +64,34 @@ char* PdfRefCountedBuffer::GetBuffer()
     return m_Buffer->GetRealBuffer();
 }
 
-const char* PdfRefCountedBuffer::GetBuffer() const
+const char* PdfSharedBuffer::GetBuffer() const
 {
-    return const_cast<PdfRefCountedBuffer&>(*this).GetBuffer();
+    return const_cast<PdfSharedBuffer&>(*this).GetBuffer();
 }
 
-size_t PdfRefCountedBuffer::GetSize() const
+size_t PdfSharedBuffer::GetSize() const
 {
     return m_Buffer != nullptr ? m_Buffer->m_VisibleSize : 0;
 }
 
-void PdfRefCountedBuffer::SetTakePossesion(bool bTakePossession)
+void PdfSharedBuffer::SetTakePossesion(bool bTakePossession)
 {
     if (m_Buffer != nullptr)
         m_Buffer->m_Possesion = bTakePossession;
 }
 
-bool PdfRefCountedBuffer::TakePossesion() const
+bool PdfSharedBuffer::TakePossesion() const
 {
     return m_Buffer ? m_Buffer->m_Possesion : false;
 }
 
-void PdfRefCountedBuffer::Detach(size_t lExtraLen)
+void PdfSharedBuffer::Detach(size_t lExtraLen)
 {
     if (m_Buffer != nullptr && m_Buffer->m_RefCount > 1)
         ReallyDetach(lExtraLen);
 }
 
-void PdfRefCountedBuffer::Resize(size_t size)
+void PdfSharedBuffer::Resize(size_t size)
 {
     if (m_Buffer != nullptr && m_Buffer->m_RefCount == 1 && static_cast<size_t>(m_Buffer->m_BufferSize) >= size)
     {
@@ -106,7 +106,7 @@ void PdfRefCountedBuffer::Resize(size_t size)
     }
 }
 
-void PdfRefCountedBuffer::DerefBuffer()
+void PdfSharedBuffer::DerefBuffer()
 {
     if (m_Buffer != nullptr && --m_Buffer->m_RefCount == 0)
         FreeBuffer();
@@ -115,7 +115,7 @@ void PdfRefCountedBuffer::DerefBuffer()
     m_Buffer = nullptr;
 }
 
-void PdfRefCountedBuffer::FreeBuffer()
+void PdfSharedBuffer::FreeBuffer()
 {
     PDFMM_RAISE_LOGIC_IF(m_Buffer == nullptr || m_Buffer->m_RefCount != 0, "Tried to free in-use buffer");
 
@@ -125,7 +125,7 @@ void PdfRefCountedBuffer::FreeBuffer()
     delete m_Buffer;
 }
 
-void PdfRefCountedBuffer::ReallyDetach(size_t extraLen)
+void PdfSharedBuffer::ReallyDetach(size_t extraLen)
 {
     PDFMM_RAISE_LOGIC_IF(m_Buffer != nullptr && m_Buffer->m_RefCount == 1, "Use Detach() rather than calling ReallyDetach() directly.")
 
@@ -136,15 +136,15 @@ void PdfRefCountedBuffer::ReallyDetach(size_t extraLen)
     }
 
     size_t size = m_Buffer->m_BufferSize + extraLen;
-    TRefCountedBuffer* buffer = new TRefCountedBuffer();
+    auto buffer = new RefCountedBuffer();
     buffer->m_RefCount = 1;
 
-    buffer->m_OnHeap = (size > TRefCountedBuffer::INTERNAL_BUFSIZE);
+    buffer->m_OnHeap = (size > RefCountedBuffer::INTERNAL_BUFSIZE);
     if (buffer->m_OnHeap)
         buffer->m_HeapBuffer = static_cast<char*>(pdfmm_calloc(size, sizeof(char)));
     else
         buffer->m_HeapBuffer = 0;
-    buffer->m_BufferSize = std::max(size, static_cast<size_t>(+TRefCountedBuffer::INTERNAL_BUFSIZE));
+    buffer->m_BufferSize = std::max(size, static_cast<size_t>(RefCountedBuffer::INTERNAL_BUFSIZE));
     buffer->m_Possesion = true;
 
     if (buffer->m_OnHeap && buffer->m_HeapBuffer == nullptr)
@@ -166,7 +166,7 @@ void PdfRefCountedBuffer::ReallyDetach(size_t extraLen)
     m_Buffer = buffer;
 }
 
-void PdfRefCountedBuffer::ReallyResize(const size_t size)
+void PdfSharedBuffer::ReallyResize(const size_t size)
 {
     if (m_Buffer != nullptr)
     {
@@ -187,7 +187,7 @@ void PdfRefCountedBuffer::ReallyResize(const size_t size)
                 // it, potentially saving us a memcpy and free().
                 auto temp = pdfmm_realloc(m_Buffer->m_HeapBuffer, allocSize);
                 if (temp == nullptr)
-                    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, "PdfRefCountedBuffer::Resize failed!");
+                    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, "PdfSharedBuffer::Resize failed!");
 
                 m_Buffer->m_HeapBuffer = static_cast<char*>(temp);
                 m_Buffer->m_BufferSize = allocSize;
@@ -199,7 +199,7 @@ void PdfRefCountedBuffer::ReallyResize(const size_t size)
                 char* buffer = static_cast<char*>(pdfmm_calloc(allocSize, sizeof(char)));
                 if (buffer == nullptr)
                 {
-                    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, "PdfRefCountedBuffer::Resize failed!");
+                    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, "PdfSharedBuffer::Resize failed!");
                 }
                 // Only bother copying the visible portion of the buffer. It's completely incorrect
                 // to rely on anything more than that, and not copying it will help catch those errors.
@@ -218,9 +218,9 @@ void PdfRefCountedBuffer::ReallyResize(const size_t size)
     else
     {
         // No buffer was allocated at all, so we need to make one.
-        m_Buffer = new TRefCountedBuffer();
+        m_Buffer = new RefCountedBuffer();
         m_Buffer->m_RefCount = 1;
-        m_Buffer->m_OnHeap = (size > TRefCountedBuffer::INTERNAL_BUFSIZE);
+        m_Buffer->m_OnHeap = (size > RefCountedBuffer::INTERNAL_BUFSIZE);
         if (m_Buffer->m_OnHeap)
         {
             m_Buffer->m_HeapBuffer = static_cast<char*>(pdfmm_calloc(size, sizeof(char)));
@@ -230,7 +230,7 @@ void PdfRefCountedBuffer::ReallyResize(const size_t size)
             m_Buffer->m_HeapBuffer = 0;
         }
 
-        m_Buffer->m_BufferSize = std::max(size, static_cast<size_t>(+TRefCountedBuffer::INTERNAL_BUFSIZE));
+        m_Buffer->m_BufferSize = std::max(size, static_cast<size_t>(RefCountedBuffer::INTERNAL_BUFSIZE));
         m_Buffer->m_Possesion = true;
 
         if (m_Buffer->m_OnHeap && m_Buffer->m_HeapBuffer == nullptr)
@@ -246,7 +246,7 @@ void PdfRefCountedBuffer::ReallyResize(const size_t size)
     PDFMM_RAISE_LOGIC_IF(m_Buffer->m_VisibleSize > m_Buffer->m_BufferSize, "Buffer improperly allocated/resized");
 }
 
-const PdfRefCountedBuffer& PdfRefCountedBuffer::operator=(const PdfRefCountedBuffer& rhs)
+const PdfSharedBuffer& PdfSharedBuffer::operator=(const PdfSharedBuffer& rhs)
 {
     // Self assignment is a no-op
     if (this == &rhs)
@@ -261,7 +261,7 @@ const PdfRefCountedBuffer& PdfRefCountedBuffer::operator=(const PdfRefCountedBuf
     return *this;
 }
 
-bool PdfRefCountedBuffer::operator==(const PdfRefCountedBuffer& rhs) const
+bool PdfSharedBuffer::operator==(const PdfSharedBuffer& rhs) const
 {
     if (m_Buffer != rhs.m_Buffer)
     {
@@ -281,7 +281,7 @@ bool PdfRefCountedBuffer::operator==(const PdfRefCountedBuffer& rhs) const
     return true;
 }
 
-bool PdfRefCountedBuffer::operator<(const PdfRefCountedBuffer& rhs) const
+bool PdfSharedBuffer::operator<(const PdfSharedBuffer& rhs) const
 {
     // equal buffers are neither smaller nor greater
     if (m_Buffer == rhs.m_Buffer)
@@ -303,16 +303,20 @@ bool PdfRefCountedBuffer::operator<(const PdfRefCountedBuffer& rhs) const
     }
 }
 
-bool PdfRefCountedBuffer::operator>(const PdfRefCountedBuffer& rhs) const
+bool PdfSharedBuffer::operator>(const PdfSharedBuffer& rhs) const
 {
     // equal buffers are neither smaller nor greater
     if (m_Buffer == rhs.m_Buffer)
         return false;
 
     if (m_Buffer == nullptr && rhs.m_Buffer != nullptr)
+    {
         return false;
+    }
     else if (m_Buffer != nullptr && rhs.m_Buffer == nullptr)
+    {
         return true;
+    }
     else
     {
         int cmp = memcmp(m_Buffer->GetRealBuffer(), rhs.m_Buffer->GetRealBuffer(), std::min(m_Buffer->m_VisibleSize, rhs.m_Buffer->m_VisibleSize));
@@ -325,7 +329,7 @@ bool PdfRefCountedBuffer::operator>(const PdfRefCountedBuffer& rhs) const
     }
 }
 
-char* PdfRefCountedBuffer::TRefCountedBuffer::GetRealBuffer()
+char* PdfSharedBuffer::RefCountedBuffer::GetRealBuffer()
 {
     return m_OnHeap ? m_HeapBuffer : &(m_InternalBuffer[0]);
 }

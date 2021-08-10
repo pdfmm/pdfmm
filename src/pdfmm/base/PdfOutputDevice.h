@@ -15,7 +15,7 @@
 
 #include "PdfDefines.h"
 #include "PdfLocale.h"
-#include "PdfRefCountedBuffer.h"
+#include "PdfSharedBuffer.h"
 
 namespace mm {
 
@@ -68,15 +68,15 @@ public:
      */
     PdfOutputDevice(std::ostream& stream);
 
-    /** Construct a new PdfOutputDevice that writes all data to a PdfRefCountedBuffer.
-     *  This output device has the advantage that the PdfRefCountedBuffer will resize itself
+    /** Construct a new PdfOutputDevice that writes all data to a PdfSharedBuffer.
+     *  This output device has the advantage that the PdfSharedBuffer will resize itself
      *  if more memory is needed to hold all data.
      *
-     *  \param pOutBuffer write to this PdfRefCountedBuffer
+     *  \param pOutBuffer write to this PdfSharedBuffer
      *
-     *  \see PdfRefCountedBuffer
+     *  \see PdfSharedBuffer
      */
-    PdfOutputDevice(PdfRefCountedBuffer& buffer);
+    PdfOutputDevice(PdfSharedBuffer& buffer);
 
     /** Construct a new PdfOutputDevice that writes all data to a std::iostream
      *  and reads from it as well.
@@ -177,7 +177,7 @@ private:
     std::istream* m_ReadStream;
     bool m_StreamOwned;
 
-    PdfRefCountedBuffer* m_RefCountedBuffer;
+    PdfSharedBuffer* m_RefCountedBuffer;
     size_t m_Position;
     std::string  m_printBuffer;
 };

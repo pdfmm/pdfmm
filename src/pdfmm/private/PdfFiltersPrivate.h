@@ -19,7 +19,7 @@
  */
 
 #include <pdfmm/base/PdfFilter.h>
-#include <pdfmm/base/PdfRefCountedBuffer.h>
+#include <pdfmm/base/PdfSharedBuffer.h>
 
 #include <zlib.h>
 
@@ -282,7 +282,7 @@ private:
     struct jpeg_decompress_struct m_cinfo;
     struct jpeg_error_mgr m_jerr;
 
-    PdfRefCountedBuffer m_buffer;
+    PdfSharedBuffer m_buffer;
     PdfOutputDevice* m_Device;
 };
 

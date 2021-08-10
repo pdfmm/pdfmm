@@ -10,7 +10,7 @@
 #include "PdfOutputStream.h"
 
 #include "PdfOutputDevice.h"
-#include "PdfRefCountedBuffer.h"
+#include "PdfSharedBuffer.h"
 
 using namespace std;
 using namespace mm;
@@ -105,7 +105,7 @@ void PdfDeviceOutputStream::Close()
 {
 }
 
-PdfBufferOutputStream::PdfBufferOutputStream(PdfRefCountedBuffer& buffer)
+PdfBufferOutputStream::PdfBufferOutputStream(PdfSharedBuffer& buffer)
     : m_Buffer(&buffer), m_Length(buffer.GetSize())
 {
 }

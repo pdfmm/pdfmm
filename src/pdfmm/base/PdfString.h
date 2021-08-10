@@ -12,7 +12,7 @@
 #include "PdfDefines.h"
 
 #include "PdfDataProvider.h"
-#include "PdfRefCountedBuffer.h"
+#include "PdfSharedBuffer.h"
 
 namespace mm {
 

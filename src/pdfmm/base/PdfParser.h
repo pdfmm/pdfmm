@@ -388,7 +388,7 @@ private:
     void ResizeEntries(size_t newSize);
 
 private:
-    PdfRefCountedBuffer m_buffer;
+    PdfSharedBuffer m_buffer;
     PdfTokenizer m_tokenizer;
 
     PdfVersion m_PdfVersion;

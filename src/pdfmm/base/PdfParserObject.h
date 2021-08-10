@@ -34,7 +34,7 @@ public:
      *                 if lOffset = -1, the object will be read from the current
      *                 position in the file.
      */
-    PdfParserObject(PdfDocument& document, const PdfRefCountedInputDevice& device, const PdfRefCountedBuffer& buffer, ssize_t offset = -1);
+    PdfParserObject(PdfDocument& document, const PdfRefCountedInputDevice& device, const PdfSharedBuffer& buffer, ssize_t offset = -1);
 
     /** Parse the object data for an internal object.
      *  You have to call ParseDictionaryKeys as next function call.
@@ -46,7 +46,7 @@ public:
      *
      *  \param buffer buffer to use for parsing to avoid reallocations
      */
-    explicit PdfParserObject(const PdfRefCountedBuffer& buffer);
+    explicit PdfParserObject(const PdfSharedBuffer& buffer);
 
     /** Tries to free all memory allocated by this
      *  PdfObject (variables and streams) and reads
@@ -133,7 +133,7 @@ private:
 
 private:
     PdfRefCountedInputDevice m_device;
-    PdfRefCountedBuffer m_buffer;
+    PdfSharedBuffer m_buffer;
     PdfTokenizer m_tokenizer;
     PdfEncrypt* m_Encrypt;
     bool m_IsTrailer;

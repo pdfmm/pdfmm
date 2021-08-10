@@ -46,7 +46,7 @@ public:
      *  \param buffer a buffer containing a font file
      *  \param isSymbol whether use a symbol encoding, rather than unicode
      */
-    PdfFontMetricsFreetype(FT_Library* library, const PdfRefCountedBuffer& buffer,
+    PdfFontMetricsFreetype(FT_Library* library, const PdfSharedBuffer& buffer,
         bool isSymbol);
 
     /** Create a font metrics object for a given freetype font.
@@ -148,7 +148,7 @@ private:
     double m_StrikeOutThickness;
     double m_StrikeOutPosition;
 
-    PdfRefCountedBuffer m_FontData;
+    PdfSharedBuffer m_FontData;
     std::vector<double> m_Widths;
 };
 

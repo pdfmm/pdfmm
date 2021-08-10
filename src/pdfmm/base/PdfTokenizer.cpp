@@ -28,11 +28,11 @@ static void readHexString(PdfInputDevice& device, chars& buffer);
 static bool isOctalChar(char ch);
 
 PdfTokenizer::PdfTokenizer(bool readReferences)
-    : PdfTokenizer(PdfRefCountedBuffer(BufferSize), readReferences)
+    : PdfTokenizer(PdfSharedBuffer(BufferSize), readReferences)
 {
 }
 
-PdfTokenizer::PdfTokenizer(const PdfRefCountedBuffer& buffer, bool readReferences)
+PdfTokenizer::PdfTokenizer(const PdfSharedBuffer& buffer, bool readReferences)
     : m_buffer(buffer), m_readReferences(readReferences)
 {
     PdfLocaleImbue(m_doubleParser);

@@ -91,7 +91,7 @@ void PdfMemDocument::InitFromParser(PdfParser* parser)
 
     if (PdfError::DebugEnabled())
     {
-        PdfRefCountedBuffer buf;
+        PdfSharedBuffer buf;
         PdfOutputDevice debug(buf);
         GetTrailer().GetVariant().Write(debug, m_WriteMode, nullptr);
         debug.Write("\n", 1);

@@ -32,7 +32,7 @@ PdfMemStream::~PdfMemStream()
 
 void PdfMemStream::BeginAppendImpl(const PdfFilterList& filters)
 {
-    m_buffer = PdfRefCountedBuffer();
+    m_buffer = PdfSharedBuffer();
     m_Length = 0;
 
     if (filters.size() != 0)

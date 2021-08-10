@@ -8,7 +8,7 @@
 
 #include <pdfmm/private/PdfDefinesPrivate.h>
 #include "PdfOutputDevice.h"
-#include "PdfRefCountedBuffer.h"
+#include "PdfSharedBuffer.h"
 
 #include <fstream>
 #include <sstream>
@@ -66,7 +66,7 @@ PdfOutputDevice::PdfOutputDevice(ostream& stream)
     m_StreamOwned = false;
 }
 
-PdfOutputDevice::PdfOutputDevice(PdfRefCountedBuffer& buffer)
+PdfOutputDevice::PdfOutputDevice(PdfSharedBuffer& buffer)
 {
     this->Init();
     m_RefCountedBuffer = &buffer;

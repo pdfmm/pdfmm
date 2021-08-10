@@ -68,7 +68,7 @@ PdfFontTrueTypeSubset::PdfFontTrueTypeSubset(PdfInputDevice& device, TrueTypeFon
 {
 }
 
-void PdfFontTrueTypeSubset::BuildFont(PdfRefCountedBuffer& output, PdfInputDevice& input,
+void PdfFontTrueTypeSubset::BuildFont(PdfSharedBuffer& output, PdfInputDevice& input,
     TrueTypeFontFileType type, unsigned short faceIndex,
     const PdfFontMetrics& metrics, const CIDToGIDMap& cidToGidMap)
 {
@@ -76,7 +76,7 @@ void PdfFontTrueTypeSubset::BuildFont(PdfRefCountedBuffer& output, PdfInputDevic
     subset.BuildFont(output, cidToGidMap);
 }
 
-void PdfFontTrueTypeSubset::BuildFont(PdfRefCountedBuffer& output,
+void PdfFontTrueTypeSubset::BuildFont(PdfSharedBuffer& output,
     const CIDToGIDMap& cidToGidMap)
 {
     Init();
@@ -399,7 +399,7 @@ void PdfFontTrueTypeSubset::WriteLocaTable(PdfOutputDevice& output)
 
 }
 
-void PdfFontTrueTypeSubset::WriteTables(PdfRefCountedBuffer& buffer)
+void PdfFontTrueTypeSubset::WriteTables(PdfSharedBuffer& buffer)
 {
     PdfOutputDevice output(buffer);
 

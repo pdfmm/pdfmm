@@ -39,7 +39,7 @@ public:
      *  \param buffer buffer to use for parsing to avoid reallocations
      */
     PdfXRefStreamParserObject(PdfDocument& document, const PdfRefCountedInputDevice& device,
-        const PdfRefCountedBuffer& buffer, PdfXRefEntries& entries);
+        const PdfSharedBuffer& buffer, PdfXRefEntries& entries);
 
     void Parse();
 

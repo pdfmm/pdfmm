@@ -26,7 +26,7 @@ using namespace mm;
 using namespace std;
 
 PdfParserObject::PdfParserObject(PdfDocument& document, const PdfRefCountedInputDevice& device,
-    const PdfRefCountedBuffer& buffer, ssize_t offset)
+    const PdfSharedBuffer& buffer, ssize_t offset)
     : PdfObject(PdfVariant::NullValue, true), m_device(device), m_buffer(buffer), m_Encrypt(nullptr)
 {
     // Parsed objects by definition are initially not dirty
@@ -36,7 +36,7 @@ PdfParserObject::PdfParserObject(PdfDocument& document, const PdfRefCountedInput
     m_Offset = offset < 0 ? m_device.Device()->Tell() : offset;
 }
 
-PdfParserObject::PdfParserObject(const PdfRefCountedBuffer& buffer)
+PdfParserObject::PdfParserObject(const PdfSharedBuffer& buffer)
     : PdfObject(PdfVariant::NullValue, true), m_buffer(buffer), m_Encrypt(nullptr)
 {
     InitPdfParserObject();

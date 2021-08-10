@@ -59,7 +59,7 @@ public:
      *     of consecutive indices starting with 1
      * \param cidSet the output /CidSet
      */
-    static void BuildFont(PdfRefCountedBuffer& output, PdfInputDevice& input,
+    static void BuildFont(PdfSharedBuffer& output, PdfInputDevice& input,
         TrueTypeFontFileType type, unsigned short faceIndex,
         const PdfFontMetrics& metrics, const CIDToGIDMap& cidToGidMap);
 
@@ -67,7 +67,7 @@ private:
     PdfFontTrueTypeSubset(const PdfFontTrueTypeSubset& rhs) = delete;
     PdfFontTrueTypeSubset& operator=(const PdfFontTrueTypeSubset& rhs) = delete;
 
-    void BuildFont(PdfRefCountedBuffer& output, const CIDToGIDMap& cidToGidMap);
+    void BuildFont(PdfSharedBuffer& output, const CIDToGIDMap& cidToGidMap);
 
     void Init();
 
@@ -120,7 +120,7 @@ private:
     void WriteGlyphTable(PdfOutputDevice& output, unsigned glyphTableOffset);
     void WriteHmtxTable(PdfOutputDevice& output);
     void WriteLocaTable(PdfOutputDevice& output);
-    void WriteTables(PdfRefCountedBuffer& buffer);
+    void WriteTables(PdfSharedBuffer& buffer);
 
 private:
     PdfInputDevice* m_Device;          // Read data from this input device

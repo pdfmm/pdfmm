@@ -10,7 +10,7 @@
 #define PDF_OUTPUT_STREAM_H
 
 #include "PdfDefines.h"
-#include "PdfRefCountedBuffer.h"
+#include "PdfSharedBuffer.h"
 
 namespace mm {
 
@@ -126,9 +126,9 @@ private:
     PdfOutputDevice* m_Device;
 };
 
-/** An output stream that writes to a PdfRefCountedBuffer.
+/** An output stream that writes to a PdfSharedBuffer.
  *
- *  The PdfRefCountedBuffer is resized automatically if necessary.
+ *  The PdfSharedBuffer is resized automatically if necessary.
  */
 class PDFMM_API PdfBufferOutputStream : public PdfOutputStream
 {
@@ -139,7 +139,7 @@ public:
      *
      *  \param buffer data is written to this buffer
      */
-    PdfBufferOutputStream(PdfRefCountedBuffer& buffer);
+    PdfBufferOutputStream(PdfSharedBuffer& buffer);
 
     void Close() override;
 
@@ -152,7 +152,7 @@ protected:
     void WriteImpl(const char* data, size_t len) override;
 
 private:
-    PdfRefCountedBuffer* m_Buffer;
+    PdfSharedBuffer* m_Buffer;
     size_t m_Length;
 };
 

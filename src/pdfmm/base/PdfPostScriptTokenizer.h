@@ -36,7 +36,7 @@ class PDFMM_API PdfPostScriptTokenizer final : private PdfTokenizer
 {
 public:
     PdfPostScriptTokenizer();
-    PdfPostScriptTokenizer(const PdfRefCountedBuffer& buffer);
+    PdfPostScriptTokenizer(const PdfSharedBuffer& buffer);
 public:
     bool TryReadNext(PdfInputDevice& device, PdfPostScriptTokenType& tokenType, std::string_view& keyword, PdfVariant& variant);
     void ReadNextVariant(PdfInputDevice& device, PdfVariant& variant);

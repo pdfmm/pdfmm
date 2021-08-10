@@ -11,7 +11,7 @@
 
 #include "PdfDefines.h"
 
-#include "PdfRefCountedBuffer.h"
+#include "PdfSharedBuffer.h"
 #include "PdfParserObject.h"
 
 namespace mm {
@@ -38,7 +38,7 @@ public:
      * \param objects add loaded objects to this vector of objects
      * \param buffer use this allocated buffer for caching
      */
-    PdfObjectStreamParser(PdfParserObject& parser, PdfIndirectObjectList& objects, const PdfRefCountedBuffer& buffer);
+    PdfObjectStreamParser(PdfParserObject& parser, PdfIndirectObjectList& objects, const PdfSharedBuffer& buffer);
 
     void Parse(ObjectIdList const&);
 
@@ -48,7 +48,7 @@ private:
 private:
     PdfParserObject* m_Parser;
     PdfIndirectObjectList* m_Objects;
-    PdfRefCountedBuffer m_buffer;
+    PdfSharedBuffer m_buffer;
 };
 
 };

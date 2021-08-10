@@ -13,7 +13,7 @@
 
 #include "PdfStream.h"
 #include "PdfDictionary.h"
-#include "PdfRefCountedBuffer.h"
+#include "PdfSharedBuffer.h"
 
 namespace mm {
 
@@ -81,7 +81,7 @@ private:
     void copyFrom(const PdfMemStream& rhs);
 
  private:
-    PdfRefCountedBuffer m_buffer;
+    PdfSharedBuffer m_buffer;
     std::unique_ptr<PdfOutputStream> m_Stream;
     std::unique_ptr<PdfBufferOutputStream> m_BufferStream;
     size_t m_Length;

@@ -298,7 +298,7 @@ void PdfWriter::CreateFileIdentifier(PdfString& identifier, const PdfObject& tra
     info->GetDictionary().AddKey("Location", PdfString("SOMEFILENAME"));
     info->Write(length, m_WriteMode, nullptr);
 
-    PdfRefCountedBuffer buffer(length.GetLength());
+    PdfSharedBuffer buffer(length.GetLength());
     PdfOutputDevice device(buffer);
     info->Write(device, m_WriteMode, nullptr);
 

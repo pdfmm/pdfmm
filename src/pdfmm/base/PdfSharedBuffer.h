@@ -5,8 +5,8 @@
  * Some rights reserved. See COPYING, AUTHORS.
  */
 
-#ifndef PDF_REF_COUNTED_BUFFER_H_
-#define PDF_REF_COUNTED_BUFFER_H_
+#ifndef PDF_SHARED_BUFFER_H_
+#define PDF_SHARED_BUFFER_H_
 
 #include "PdfDefines.h"
 
@@ -20,13 +20,13 @@ namespace mm
  *
  * The attached memory object can be resized.
  */
-class PDFMM_API PdfRefCountedBuffer
+class PDFMM_API PdfSharedBuffer
 {
 public:
     /** Created an empty reference counted buffer
      *  The buffer will be initialized to nullptr
      */
-    PdfRefCountedBuffer();
+    PdfSharedBuffer();
 
     /** Created an reference counted buffer and use an exiting buffer
      *  The buffer will be owned by this object.
@@ -36,25 +36,25 @@ public:
      *
      *  \see SetTakePossesion
      */
-    PdfRefCountedBuffer(char* buffer, size_t size);
+    PdfSharedBuffer(char* buffer, size_t size);
 
-    PdfRefCountedBuffer(const std::string_view& view);
+    PdfSharedBuffer(const std::string_view& view);
 
-    /** Create a new PdfRefCountedBuffer.
+    /** Create a new PdfSharedBuffer.
      *  \param size buffer size
      */
-    PdfRefCountedBuffer(size_t size);
+    PdfSharedBuffer(size_t size);
 
-    /** Copy an existing PdfRefCountedBuffer and increase
+    /** Copy an existing PdfSharedBuffer and increase
      *  the reference count
-     *  \param rhs the PdfRefCountedBuffer to copy
+     *  \param rhs the PdfSharedBuffer to copy
      */
-    PdfRefCountedBuffer(const PdfRefCountedBuffer& rhs);
+    PdfSharedBuffer(const PdfSharedBuffer& rhs);
 
     /** Decrease the reference count and delete the buffer
      *  if this is the last owner
      */
-    ~PdfRefCountedBuffer();
+    ~PdfSharedBuffer();
 
     /** Get access to the buffer
      *  \returns the buffer
@@ -92,23 +92,23 @@ public:
      */
     void Detach(size_t extraLen = 0);
 
-    /** Copy an existing PdfRefCountedBuffer and increase
+    /** Copy an existing PdfSharedBuffer and increase
      *  the reference count
-     *  \param rhs the PdfRefCountedBuffer to copy
+     *  \param rhs the PdfSharedBuffer to copy
      *  \returns the copied object
      */
-    const PdfRefCountedBuffer& operator=(const PdfRefCountedBuffer& rhs);
+    const PdfSharedBuffer& operator=(const PdfSharedBuffer& rhs);
 
-    /** If the PdfRefCountedBuffer has no possession on its buffer,
+    /** If the PdfSharedBuffer has no possession on its buffer,
      *  it won't delete the buffer. By default the buffer is owned
-     *  and deleted by the PdfRefCountedBuffer object.
+     *  and deleted by the PdfSharedBuffer object.
      *
      *  \param bTakePossession if false the buffer will not be deleted.
      */
     void SetTakePossesion(bool bTakePossession);
 
     /**
-     * \returns true if the buffer is owned by the PdfRefCountedBuffer
+     * \returns true if the buffer is owned by the PdfSharedBuffer
      *               and is deleted along with it.
      */
     bool TakePossesion() const;
@@ -117,25 +117,25 @@ public:
      *  \param rhs compare to this buffer
      *  \returns true if both buffers contain the same contents
      */
-    bool operator==(const PdfRefCountedBuffer& rhs) const;
+    bool operator==(const PdfSharedBuffer& rhs) const;
 
     /** Compare to buffers.
      *  \param rhs compare to this buffer
      *  \returns true if this buffer is lexically smaller than rhs
      */
-    bool operator<(const PdfRefCountedBuffer& rhs) const;
+    bool operator<(const PdfSharedBuffer& rhs) const;
 
     /** Compare to buffers.
      *  \param rhs compare to this buffer
      *  \returns true if this buffer is lexically greater than rhs
      */
-    bool operator>(const PdfRefCountedBuffer& rhs) const;
+    bool operator>(const PdfSharedBuffer& rhs) const;
 
 private:
     /**
      * Indicate that the buffer is no longer being used, freeing it if there
      * are no further users. The buffer becomes inaccessible to this
-     * PdfRefCountedBuffer in either case.
+     * PdfSharedBuffer in either case.
      */
     void DerefBuffer();
 
@@ -157,7 +157,7 @@ private:
     void ReallyResize(size_t size);
 
 private:
-    struct TRefCountedBuffer
+    struct RefCountedBuffer
     {
         static constexpr unsigned INTERNAL_BUFSIZE = 32;
 
@@ -179,9 +179,9 @@ private:
         bool  m_OnHeap;
     };
 
-    TRefCountedBuffer* m_Buffer;
+    RefCountedBuffer* m_Buffer;
 };
 
 };
 
-#endif // PDF_REF_COUNTED_BUFFER_H_
+#endif // PDF_SHARED_BUFFER_H_
