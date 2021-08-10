@@ -669,11 +669,11 @@ void PdfParser::ReadXRefContents(const PdfRefCountedInputDevice& device, size_t 
 
             if (positionAtEnd)
             {
-#ifdef WIN32
+#ifdef _WIN32
                 device.Device()->Seek(static_cast<streamoff>(objectCount * PDF_XREF_ENTRY_SIZE), ios_base::cur);
 #else
                 device.Device()->Seek(objectCount * PDF_XREF_ENTRY_SIZE, ios_base::cur);
-#endif // WIN32
+#endif // _WIN32
             }
             else
             {

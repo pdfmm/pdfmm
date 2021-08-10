@@ -9,9 +9,9 @@
 #include <pdfmm/private/PdfDefinesPrivate.h>
 #include "PdfFontManager.h" 
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <WindowsLeanMean.h>
-#endif // WIN32
+#endif // _WIN32
 
 #include <algorithm>
 
@@ -31,13 +31,13 @@
 using namespace std;
 using namespace mm;
 
-#ifdef WIN32
+#ifdef _WIN32
 
 static bool GetFontFromCollection(HDC& hdc, chars& buffer);
 static bool GetDataFromHFONT(HFONT hf, chars& buffer);
 static bool GetDataFromLPFONT(const LOGFONTW* inFont, chars& buffer);
 
-#endif // WIN32
+#endif // _WIN32
 
 PdfFontManager::PdfFontManager(PdfDocument& doc)
     : m_doc(&doc)
@@ -152,12 +152,12 @@ PdfFont* PdfFontManager::GetFont(const string_view& fontName, const PdfFontCreat
 
     if (path.empty())
     {
-#ifdef WIN32
+#ifdef _WIN32
         return GetWin32Font(m_fontMap, fontName, params.Encoding, params.Bold, params.Italic,
             params.IsSymbolCharset, params.Embed, subsetting);
 #else
         return nullptr;
-#endif // WIN32
+#endif // _WIN32
     }
     else
     {
@@ -195,14 +195,14 @@ PdfFont* PdfFontManager::GetFontSubset(const string_view& fontname, const PdfFon
             path = this->GetFontPath(fontname, params.Bold, params.Italic);
             if (path.empty())
             {
-#ifdef WIN32
+#ifdef _WIN32
                 return GetWin32Font(m_fontSubsetMap, fontname,
                     params.Encoding, params.Bold, params.Italic,
                     params.IsSymbolCharset, true, true);
 #else       
                 PdfError::LogMessage(ELogSeverity::Critical, "No path was found for the specified fontname: %s", fontname.data());
                 return nullptr;
-#endif // WIN32
+#endif // _WIN32
             }
         }
         else
@@ -261,7 +261,7 @@ void PdfFontManager::EmbedSubsetFonts()
         pair.second->EmbedFontSubset();
 }
 
-#ifdef WIN32
+#ifdef _WIN32
 
 PdfFont* PdfFontManager::GetFont(const LOGFONTW& logFont,
     const PdfEncoding& encoding, bool embed)
@@ -331,7 +331,7 @@ PdfFont* PdfFontManager::GetWin32Font(FontCacheMap& map, const string_view& font
         logFont.lfItalic ? true : false, embed, subsetting);
 }
 
-#endif // WIN32
+#endif // _WIN32
 
 string PdfFontManager::GetFontPath(const string_view& fontName, bool bold, bool italic)
 {
@@ -430,7 +430,7 @@ bool PdfFontManager::EqualElement::operator()(const Element& lhs, const Element&
         && lhs.IsSymbolCharset == rhs.IsSymbolCharset;
 }
 
-#ifdef WIN32
+#ifdef _WIN32
 
 // This function will recieve the device context for the ttc font, it will then extract necessary tables,and create the correct buffer.
 // On error function return false
@@ -540,4 +540,4 @@ bool GetDataFromLPFONT(const LOGFONTW* inFont, chars& buffer)
     return success;
 }
 
-#endif // WIN32
+#endif // _WIN32

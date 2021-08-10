@@ -25,7 +25,7 @@
 
 #ifdef PDFMM_HAVE_JPEG_LIB
 extern "C" {
-#ifdef WIN32		// Collision between Win32 and libjpeg headers
+#ifdef _WIN32		// Collision between Win32 and libjpeg headers
 #define XMD_H
 #undef FAR
 
@@ -46,7 +46,7 @@ extern "C" {
 #ifdef PDFMM_HAVE_TIFF_LIB
 extern "C" {
 #include <tiffio.h>
-#ifdef WIN32		// Collision between tiff and jpeg-headers
+#ifdef _WIN32		// Collision between tiff and jpeg-headers
 #define XMD_H
 #undef FAR
 #endif

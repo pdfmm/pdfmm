@@ -16,7 +16,7 @@ using namespace std;
 using namespace mm;
 namespace chrono = std::chrono;
 
-#if WIN32
+#if _WIN32
 #define timegm _mkgmtime
 #endif
 

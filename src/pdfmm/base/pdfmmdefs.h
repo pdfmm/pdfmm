@@ -91,7 +91,7 @@
  * Building or linking to a static library does not require either
  * preprocessor symbol.
  */
-#if defined(WIN32)
+#if defined(_WIN32)
     #if defined(COMPILING_SHARED_PDFMM)
         #define PDFMM_API __declspec(dllexport)
 	#elif defined(USING_SHARED_PDFMM)
@@ -116,7 +116,7 @@
 /* Throwable classes must always be exported by all binaries when
  * using gcc. Marking exception classes with PDFMM_EXCEPTION_API
  * ensures this. */
-#ifdef WIN32
+#ifdef _WIN32
   #define PDFMM_EXCEPTION_API(api) api
 #elif defined(PDFMM_HAVE_GCC_SYMBOL_VISIBILITY)
   #define PDFMM_EXCEPTION_API(api) PDFMM_API
@@ -143,9 +143,9 @@
 
 // Peter Petrov 27 April 2008
 // Disable warnings
-#if defined(WIN32) && defined(_MSC_VER)
+#if defined(_WIN32) && defined(_MSC_VER)
 #pragma warning(disable: 4251)
 #pragma warning(disable: 4309)
-#endif // WIN32
+#endif // _WIN32
 
 #endif // PDFMM_API_H

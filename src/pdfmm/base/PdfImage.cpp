@@ -567,7 +567,7 @@ void PdfImage::LoadFromTiff(const string_view& filename)
     if (filename.length() == 0)
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-#ifdef WIN32
+#ifdef _WIN32
     auto filename16 = utf8::utf8to16((string)filename);
     TIFF* hInfile = TIFFOpenW((wchar_t*)filename16.c_str(), "rb");
 #else

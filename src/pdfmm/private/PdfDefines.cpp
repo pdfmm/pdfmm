@@ -9,7 +9,7 @@
 #include "PdfDefinesPrivate.h"
 #include <utfcpp/utf8.h>
 
-#ifndef WIN32
+#ifndef _WIN32
 // NOTE: There's no <cstrings>, <strings.h> is a posix header
 #include <strings.h>
 #endif
@@ -27,7 +27,7 @@ int compat::vsnprintf(char* buffer, size_t count, const char* format, va_list ar
 
 int compat::strcasecmp(const char* s1, const char* s2)
 {
-#if defined(WIN32)
+#if defined(_WIN32)
     return ::_stricmp(s1, s2);
 #else
     return ::strcasecmp(s1, s2);
@@ -104,7 +104,7 @@ size_t io::Read(istream& stream, char* buffer, size_t count)
 
 FILE* io::fopen(const string_view& filename, const string_view& mode)
 {
-#ifdef WIN32
+#ifdef _WIN32
     auto filename16 = utf8::utf8to16((string)filename);
     auto mode16 = utf8::utf8to16((string)mode);
     return _wfopen((wchar_t*)filename16.c_str(), (wchar_t*)mode16.c_str());
@@ -115,7 +115,7 @@ FILE* io::fopen(const string_view& filename, const string_view& mode)
 
 ifstream io::open_ifstream(const string_view& filename, ios_base::openmode mode)
 {
-#ifdef WIN32
+#ifdef _WIN32
     auto filename16 = utf8::utf8to16((string)filename);
     return ifstream((wchar_t*)filename16.c_str(), mode);
 #else
@@ -125,7 +125,7 @@ ifstream io::open_ifstream(const string_view& filename, ios_base::openmode mode)
 
 ofstream io::open_ofstream(const string_view& filename, ios_base::openmode mode)
 {
-#ifdef WIN32
+#ifdef _WIN32
     auto filename16 = utf8::utf8to16((string)filename);
     return ofstream((wchar_t*)filename16.c_str(), mode);
 #else
@@ -135,7 +135,7 @@ ofstream io::open_ofstream(const string_view& filename, ios_base::openmode mode)
 
 fstream io::open_fstream(const string_view& filename, ios_base::openmode mode)
 {
-#ifdef WIN32
+#ifdef _WIN32
     auto filename16 = utf8::utf8to16((string)filename);
     return fstream((wchar_t*)filename16.c_str(), mode);
 #else

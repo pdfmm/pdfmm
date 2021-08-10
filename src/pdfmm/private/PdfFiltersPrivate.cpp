@@ -21,7 +21,7 @@ extern "C" {
 
 #ifdef PDFMM_HAVE_TIFF_LIB
 extern "C" {
-#ifdef WIN32		// For O_RDONLY
+#ifdef _WIN32		// For O_RDONLY
     // TODO: DS
 #else
 #include <sys/stat.h>

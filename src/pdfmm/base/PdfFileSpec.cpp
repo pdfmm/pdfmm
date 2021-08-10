@@ -130,9 +130,9 @@ string PdfFileSpec::MaybeStripPath(const string_view& filename, bool stripPath) 
     {
         char ch = filename[i];
         if (
-#ifdef WIN32
+#ifdef _WIN32
             ch == ':' || ch == '\\' ||
-#endif // WIN32
+#endif // _WIN32
             ch == '/')
         {
             lastFrom = ((string_view)filename).substr(i + 1);
