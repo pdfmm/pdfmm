@@ -49,19 +49,6 @@ public:
 
     void Print(const char* format, va_list args);
 
-    /** Write to the PdfOutputDevice. Usage is as the usage of printf.
-     *
-     *  WARNING: Do not use this for doubles or floating point values
-     *           as the output might depend on the current locale.
-     *
-     *  \param format a format string as you would use it with printf
-     *  \param size length of the format string in bytes when written
-     *  \param args variable argument list
-     *
-     *  \see Write
-     */
-    void Print(const char* format, size_t size, va_list args);
-
     /** Write data to the buffer. Use this call instead of Print if you
      *  want to write binary data to the PdfOutputDevice.
      *
@@ -115,6 +102,12 @@ protected:
     virtual void seek(size_t offset) = 0;
     virtual size_t read(char* buffer, size_t len) = 0;
     virtual void flush() = 0;
+
+    size_t Read(const char* src, size_t srcLen, char* dst, size_t dstLen);
+    void Print(char* dst, size_t dstSize, const char* format, va_list args);
+
+private:
+    void Print(const char* format, size_t formatLen, va_list args);
 
 private:
     size_t m_Length;
@@ -208,21 +201,59 @@ private:
     size_t m_BufferLen;
 };
 
-class PDFMM_API PdfStringOutputDevice final : public PdfOutputDevice
+template <typename TContainer>
+class PdfContainerOutputDevice final : public PdfOutputDevice
 {
 public:
-    PdfStringOutputDevice(std::string& str);
+    PdfContainerOutputDevice(TContainer& container) :
+        m_container(&container)
+    {
+        SetLength(container.size());
+        SetPosition(container.size());
+    }
 
 protected:
-    void print(const char* format, size_t size, va_list args) override;
-    void write(const char* buffer, size_t len) override;
-    void seek(size_t offset) override;
-    size_t read(char* buffer, size_t len) override;
-    void flush() override;
+    void print(const char* format, size_t formatLen, va_list args) override
+    {
+        size_t position = Tell();
+        if (position + formatLen > m_container->size())
+            m_container->resize(position + formatLen);
+
+        Print(m_container->data() + position, m_container->size() - position, format, args);
+    }
+
+    void write(const char* buffer, size_t len) override
+    {
+        size_t position = Tell();
+        if (position + len > m_container->size())
+            m_container->resize(position + len);
+
+        std::memcpy(m_container->data() + position, buffer, len);
+    }
+
+    size_t read(char* buffer, size_t len) override
+    {
+        return Read(m_container->data(), m_container->size(), buffer, len);
+    }
+
+    void seek(size_t offset) override
+    {
+        if (offset >= m_container->size())
+            PDFMM_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
+    }
+
+    void flush() override
+    {
+        // Do nothing
+    }
 
 private:
-    std::string* m_str;
+    TContainer* m_container;
 };
+
+typedef PdfContainerOutputDevice<std::string> PdfStringOutputDevice;
+typedef PdfContainerOutputDevice<std::vector<char>> PdfVectorOutputDevice;
+typedef PdfContainerOutputDevice<chars> PdfCharsOutputDevice;
 
 /**
  * An output device that does nothing

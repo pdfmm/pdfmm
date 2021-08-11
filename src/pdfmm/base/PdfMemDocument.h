@@ -13,7 +13,6 @@
 
 #include "PdfDocument.h"
 #include "PdfExtension.h"
-#include "PdfRefCountedInputDevice.h"
 
 namespace mm {
 
@@ -128,7 +127,7 @@ public:
      *
      *  \see SetPassword, WriteUpdate, Load, LoadFromBuffer
      */
-    void LoadFromDevice(const PdfRefCountedInputDevice& device, const std::string_view& filename = { });
+    void LoadFromDevice(const std::shared_ptr<PdfInputDevice>& device, const std::string_view& filename = { });
 
     /** Writes the complete document to a file
      *

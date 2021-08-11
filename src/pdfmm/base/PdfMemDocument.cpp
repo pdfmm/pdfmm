@@ -158,7 +158,7 @@ void PdfMemDocument::LoadFromBuffer(const string_view& buffer, const string_view
     InitFromParser(&parser);
 }
 
-void PdfMemDocument::LoadFromDevice(const PdfRefCountedInputDevice& device, const string_view& password)
+void PdfMemDocument::LoadFromDevice(const std::shared_ptr<PdfInputDevice>& device, const string_view& password)
 {
     this->Clear();
 

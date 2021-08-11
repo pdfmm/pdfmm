@@ -10,7 +10,7 @@
 #define PDF_TOKENIZER_H
 
 #include "PdfDefines.h"
-#include "PdfRefCountedInputDevice.h"
+#include "PdfInputDevice.h"
 
 #include <deque>
 #include <sstream>

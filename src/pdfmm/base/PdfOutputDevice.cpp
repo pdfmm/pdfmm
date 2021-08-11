@@ -64,13 +64,13 @@ void PdfOutputDevice::Print(const char* format, va_list args)
     va_end(argscopy);
 }
 
-void PdfOutputDevice::Print(const char* format, size_t size, va_list args)
+void PdfOutputDevice::Print(const char* format, size_t formatLen, va_list args)
 {
     if (format == nullptr)
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-    print(format, size, args);
-    m_Position += size;
+    print(format, formatLen, args);
+    m_Position += formatLen;
     if (m_Position > m_Length)
         m_Length = m_Position;
 }
@@ -172,12 +172,12 @@ PdfStreamOutputDevice::PdfStreamOutputDevice(ostream* out, istream* in, bool str
 {
 }
 
-void PdfStreamOutputDevice::print(const char* format, size_t size, va_list args)
+void PdfStreamOutputDevice::print(const char* format, size_t formatLen, va_list args)
 {
-    m_printBuffer.resize(size);
-    compat::vsnprintf(m_printBuffer.data(), size + 1, format, args);
+    m_printBuffer.resize(formatLen);
+    Print(m_printBuffer.data(), formatLen, format, args);
 
-    m_Stream->write(m_printBuffer.data(), size);
+    m_Stream->write(m_printBuffer.data(), formatLen);
     if (m_Stream->fail())
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDeviceOperation);
 }
@@ -222,13 +222,13 @@ PdfMemoryOutputDevice::PdfMemoryOutputDevice(char* buffer, size_t len)
     m_Buffer = buffer;
 }
 
-void PdfMemoryOutputDevice::print(const char* format, size_t size, va_list args)
+void PdfMemoryOutputDevice::print(const char* format, size_t formatLen, va_list args)
 {
     size_t position = Tell();
-    if (position + size > m_BufferLen)
+    if (position + formatLen > m_BufferLen)
         PDFMM_RAISE_ERROR(PdfErrorCode::OutOfMemory);
 
-    compat::vsnprintf(m_Buffer + position, m_BufferLen - position, format, args);
+    Print(m_Buffer + position, m_BufferLen - position, format, args);
 }
 
 void PdfMemoryOutputDevice::write(const char* buffer, size_t len)
@@ -237,7 +237,7 @@ void PdfMemoryOutputDevice::write(const char* buffer, size_t len)
     if (position + len > m_BufferLen)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::OutOfMemory, "Allocated buffer to small for PdfOutputDevice. Cannot write!");
 
-    memcpy(m_Buffer + position, buffer, len);
+    std::memcpy(m_Buffer + position, buffer, len);
 }
 
 void PdfMemoryOutputDevice::seek(size_t offset)
@@ -248,67 +248,10 @@ void PdfMemoryOutputDevice::seek(size_t offset)
 
 size_t PdfMemoryOutputDevice::read(char* buffer, size_t len)
 {
-    size_t readCount = 0;
-    size_t position = Tell();
-    if (position <= m_BufferLen)
-    {
-        readCount = std::min(len, m_BufferLen - position);
-        memcpy(buffer, m_Buffer + position, readCount);
-    }
-
-    return readCount;
+    return Read(m_Buffer, m_BufferLen, buffer, len);
 }
 
 void PdfMemoryOutputDevice::flush()
-{
-    // Do nothing
-}
-
-PdfStringOutputDevice::PdfStringOutputDevice(string& str)
-{
-    m_str = &str;
-    SetLength(str.length());
-    SetPosition(str.length());
-}
-
-void PdfStringOutputDevice::print(const char* format, size_t size, va_list args)
-{
-    size_t position = Tell();
-    if (position + size > m_str->length())
-        m_str->resize(position + size);
-
-    compat::vsnprintf(m_str->data() + position, size + 1, format, args);
-}
-
-void PdfStringOutputDevice::write(const char* buffer, size_t len)
-{
-    size_t position = Tell();
-    if (position + len > m_str->length())
-        m_str->resize(position + len);
-
-    memcpy(m_str->data() + position, buffer, len);
-}
-
-void PdfStringOutputDevice::seek(size_t offset)
-{
-    if (offset >= m_str->length())
-        PDFMM_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
-}
-
-size_t PdfStringOutputDevice::read(char* buffer, size_t len)
-{
-    size_t readCount = 0;
-    size_t position = Tell();
-    if (position <= m_str->length())
-    {
-        readCount = std::min(len, m_str->length() - position);
-        memcpy(buffer, m_str->data() + position, readCount);
-    }
-
-    return readCount;
-}
-
-void PdfStringOutputDevice::flush()
 {
     // Do nothing
 }
@@ -317,7 +260,7 @@ PdfNullOutputDevice::PdfNullOutputDevice()
 {
 }
 
-void PdfNullOutputDevice::print(const char* format, size_t size, va_list args)
+void PdfNullOutputDevice::print(const char* format, size_t formatLen, va_list args)
 {
     // Do nothing
 }
@@ -341,4 +284,17 @@ size_t PdfNullOutputDevice::read(char* buffer, size_t len)
 void PdfNullOutputDevice::flush()
 {
     // Do nothing
+}
+
+size_t PdfOutputDevice::Read(const char* src, size_t srcSize, char* dst, size_t dstLen)
+{
+    size_t position = Tell();
+    size_t readCount = std::min(dstLen, srcSize - position);
+    std::memcpy(dst, src + position, readCount);
+    return readCount;
+}
+
+void PdfOutputDevice::Print(char* dst, size_t dstSize, const char* format, va_list args)
+{
+    compat::vsnprintf(dst, dstSize + 1, format, args);
 }

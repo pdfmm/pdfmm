@@ -97,7 +97,7 @@ public:
      *
      *  \see SetPassword
      */
-    void Parse(const PdfRefCountedInputDevice& device, bool loadOnDemand = true);
+    void Parse(const std::shared_ptr<PdfInputDevice>& device, bool loadOnDemand = true);
 
     /** Get the file format version of the pdf
      *  \returns the file format version as string
@@ -231,7 +231,7 @@ private:
      *  \param range range in bytes in which to search
      *                beginning at the end of the file
      */
-    void FindToken(const PdfRefCountedInputDevice& device, const char* token, size_t range);
+    void FindToken(PdfInputDevice& device, const char* token, size_t range);
 
     // Peter Petrov 23 December 2008
     /** Searches backwards from the specified position of the file
@@ -243,18 +243,18 @@ private:
      *                beginning at the specified position of the file
      *  \param searchEnd specifies position
      */
-    void FindToken2(const PdfRefCountedInputDevice& device, const char* token, size_t range, size_t searchEnd);
+    void FindToken2(PdfInputDevice& device, const char* token, size_t range, size_t searchEnd);
 
     /** Reads the xref sections and the trailers of the file
      *  in the correct order in the memory
      *  and takes care for linearized pdf files.
      */
-    void ReadDocumentStructure(const PdfRefCountedInputDevice& device);
+    void ReadDocumentStructure(const std::shared_ptr<PdfInputDevice>& device);
 
     /** hecks whether this pdf is linearized or not.
      *  Initializes the linearization directory on success.
      */
-    void HasLinearizationDict(const PdfRefCountedInputDevice& device);
+    void HasLinearizationDict(const std::shared_ptr<PdfInputDevice>& device);
 
     /** Merge the information of this trailer object
      *  in the parsers main trailer object.
@@ -264,13 +264,13 @@ private:
 
     /** Read the trailer directory at the end of the file.
      */
-    void ReadTrailer(const PdfRefCountedInputDevice& device);
+    void ReadTrailer(const std::shared_ptr<PdfInputDevice>& device);
 
     /** Looks for a startxref entry at the current file position
      *  and saves its byteoffset to pXRefOffset.
      *  \param xRefOffset store the byte offset of the xref section into this variable.
      */
-    void ReadXRef(const PdfRefCountedInputDevice& device, size_t* xRefOffset);
+    void ReadXRef(PdfInputDevice& device, size_t* xRefOffset);
 
     /** Reads the xref table from a pdf file.
      *  If there is no xref table, ReadXRefStreamContents() is called.
@@ -280,7 +280,7 @@ private:
      *                        after the table, which allows reading
      *                        a following trailer dictionary.
      */
-    void ReadXRefContents(const PdfRefCountedInputDevice& device, size_t offset, bool positionAtEnd = false);
+    void ReadXRefContents(const std::shared_ptr<PdfInputDevice>& device, size_t offset, bool positionAtEnd = false);
 
     /** Read a xref subsection
      *
@@ -291,14 +291,14 @@ private:
      *  \param firstObject object number of the first object
      *  \param objectCount  how many objects should be read from this section
      */
-    void ReadXRefSubsection(const PdfRefCountedInputDevice& device, int64_t& firstObject, int64_t& objectCount);
+    void ReadXRefSubsection(PdfInputDevice& device, int64_t& firstObject, int64_t& objectCount);
 
     /** Reads an XRef stream contents object
      *  \param offset read the stream from this offset
      *  \param readOnlyTrailer only the trailer is skipped over, the contents
      *         of the xref stream are not parsed
      */
-    void ReadXRefStreamContents(const PdfRefCountedInputDevice& device, size_t offset, bool readOnlyTrailer);
+    void ReadXRefStreamContents(const std::shared_ptr<PdfInputDevice>& device, size_t offset, bool readOnlyTrailer);
 
     /** Reads all objects from the pdf into memory
      *  from the previously read entries
@@ -309,7 +309,7 @@ private:
      *  either if no encryption is required or a correct
      *  encryption object was initialized from SetPassword.
      */
-    void ReadObjects(const PdfRefCountedInputDevice& device);
+    void ReadObjects(const std::shared_ptr<PdfInputDevice>& device);
 
     /** Reads all objects from the pdf into memory
      *  from the previously read entries
@@ -323,7 +323,7 @@ private:
      *  \see ReadObjects
      *  \see SetPassword
      */
-    void ReadObjectsInternal(const PdfRefCountedInputDevice& device);
+    void ReadObjectsInternal(const std::shared_ptr<PdfInputDevice>& device);
 
     /** Read the object with index from the object stream nObjNo
      *  and push it on the objects vector
@@ -344,9 +344,9 @@ private:
      *
      *  \returns true if this is a pdf file, otherwise false
      */
-    bool IsPdfFile(const PdfRefCountedInputDevice& device);
+    bool IsPdfFile(PdfInputDevice& device);
 
-    void ReadNextTrailer(const PdfRefCountedInputDevice& device);
+    void ReadNextTrailer(const std::shared_ptr<PdfInputDevice>& device);
 
 
     /** Checks for the existence of the %%EOF marker at the end of the file.
@@ -355,7 +355,7 @@ private:
      *  Simply raises an error if there is a problem with the marker.
      *
      */
-    void CheckEOFMarker(const PdfRefCountedInputDevice& device);
+    void CheckEOFMarker(PdfInputDevice& device);
 
     /** Initializes all private members
      *  with their initial values.

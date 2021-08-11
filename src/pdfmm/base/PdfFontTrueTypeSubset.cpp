@@ -17,7 +17,6 @@
 #include <freetype/tttables.h>
 #include <freetype/tttags.h>
 
-#include <cstring>
 #include <iostream>
 #include <algorithm>
 

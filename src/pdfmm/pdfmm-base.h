@@ -45,7 +45,6 @@
 #include "base/PdfOutputStream.h"
 #include "base/PdfParser.h"
 #include "base/PdfRect.h"
-#include "base/PdfRefCountedInputDevice.h"
 #include "base/PdfReference.h"
 #include "base/PdfSigner.h"
 #include "base/PdfStream.h"

@@ -73,8 +73,8 @@ size_t PdfMemoryInputStream::ReadImpl(char* buffer, size_t len, bool& eof)
     return len;
 }
 
-PdfDeviceInputStream::PdfDeviceInputStream(PdfInputDevice* device)
-    : m_Device(device)
+PdfDeviceInputStream::PdfDeviceInputStream(PdfInputDevice& device)
+    : m_Device(&device)
 {
 }
 

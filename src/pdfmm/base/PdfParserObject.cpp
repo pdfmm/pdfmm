@@ -25,15 +25,18 @@
 using namespace mm;
 using namespace std;
 
-PdfParserObject::PdfParserObject(PdfDocument& document, const PdfRefCountedInputDevice& device,
+PdfParserObject::PdfParserObject(PdfDocument& document, const shared_ptr<PdfInputDevice>& device,
         ssize_t offset)
     : PdfObject(PdfVariant::NullValue, true), m_device(device), m_Encrypt(nullptr)
 {
+    if (device == nullptr)
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
+
     // Parsed objects by definition are initially not dirty
     resetDirty();
     SetDocument(document);
     InitPdfParserObject();
-    m_Offset = offset < 0 ? m_device.Device()->Tell() : offset;
+    m_Offset = offset < 0 ? device->Tell() : offset;
 }
 
 PdfParserObject::PdfParserObject()
@@ -67,8 +70,8 @@ void PdfParserObject::ReadObjectNumber()
     PdfReference ref;
     try
     {
-        int64_t obj = m_tokenizer.ReadNextNumber(*m_device.Device());
-        int64_t gen = m_tokenizer.ReadNextNumber(*m_device.Device());
+        int64_t obj = m_tokenizer.ReadNextNumber(*m_device);
+        int64_t gen = m_tokenizer.ReadNextNumber(*m_device);
 
         ref = PdfReference(static_cast<uint32_t>(obj), static_cast<uint16_t>(gen));
         SetIndirectReference(ref);
@@ -79,7 +82,7 @@ void PdfParserObject::ReadObjectNumber()
         throw e;
     }
 
-    if (!m_tokenizer.IsNextToken(*m_device.Device(), "obj"))
+    if (!m_tokenizer.IsNextToken(*m_device, "obj"))
     {
         ostringstream oss;
         oss << "Error while reading object " << ref.ObjectNumber() << " "
@@ -90,11 +93,8 @@ void PdfParserObject::ReadObjectNumber()
 
 void PdfParserObject::ParseFile(PdfEncrypt* encrypt, bool isTrailer)
 {
-    if (m_device.Device() == nullptr)
-        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
-
     if (m_Offset >= 0)
-        m_device.Device()->Seek(m_Offset);
+        m_device->Seek(m_Offset);
 
     if (!isTrailer)
         ReadObjectNumber();
@@ -107,7 +107,7 @@ void PdfParserObject::ParseFile(PdfEncrypt* encrypt, bool isTrailer)
               << endl;
 #endif // VERBOSE_DEBUG_DISABLED
 
-    m_Offset = m_device.Device()->Tell();
+    m_Offset = m_device->Tell();
     m_Encrypt = encrypt;
     m_IsTrailer = isTrailer;
 
@@ -137,7 +137,7 @@ void PdfParserObject::ForceStreamParse()
 // or PdfObject method calls here.
 void PdfParserObject::ParseFileComplete(bool isTrailer)
 {
-    m_device.Device()->Seek(m_Offset);
+    m_device->Seek(m_Offset);
     if (m_Encrypt != nullptr)
         m_Encrypt->SetCurrentReference(GetIndirectReference());
 
@@ -148,18 +148,18 @@ void PdfParserObject::ParseFileComplete(bool isTrailer)
 
     PdfTokenType tokenType;
     string_view token;
-    bool gotToken = m_tokenizer.TryReadNextToken(*m_device.Device(), token, tokenType);
+    bool gotToken = m_tokenizer.TryReadNextToken(*m_device, token, tokenType);
     if (!gotToken)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected variant.");
 
     // Check if we have an empty object or data
     if (token != "endobj")
     {
-        m_tokenizer.ReadNextVariant(*m_device.Device(), token, tokenType, m_Variant, m_Encrypt);
+        m_tokenizer.ReadNextVariant(*m_device, token, tokenType, m_Variant, m_Encrypt);
 
         if (!isTrailer)
         {
-            bool gotToken = m_tokenizer.TryReadNextToken(*m_device.Device(), token);
+            bool gotToken = m_tokenizer.TryReadNextToken(*m_device, token);
             if (!gotToken)
             {
                 PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected 'endobj' or (if dict) 'stream', got EOF.");
@@ -172,7 +172,7 @@ void PdfParserObject::ParseFileComplete(bool isTrailer)
             else if (m_Variant.IsDictionary() && token == "stream")
             {
                 m_HasStream = true;
-                m_StreamOffset = m_device.Device()->Tell(); // NOTE: whitespace after "stream" handle in stream parser!
+                m_StreamOffset = m_device->Tell(); // NOTE: whitespace after "stream" handle in stream parser!
             }
             else
             {
@@ -193,19 +193,19 @@ void PdfParserObject::ParseStream()
     int64_t len = -1;
     int c;
 
-    if (m_device.Device() == nullptr || GetDocument() == nullptr)
+    if (GetDocument() == nullptr)
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     auto& lengthObj = this->m_Variant.GetDictionary().MustFindKey(PdfName::KeyLength);
     if (!lengthObj.TryGetNumber(len))
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidStreamLength);
 
-    m_device.Device()->Seek(m_StreamOffset);
+    m_device->Seek(m_StreamOffset);
 
     streamoff streamOffset;
     while (true)
     {
-        c = m_device.Device()->Look();
+        c = m_device->Look();
         switch (c)
         {
             // Skip spaces between the stream keyword and the carriage return/line
@@ -213,7 +213,7 @@ void PdfParserObject::ParseStream()
             // but certain PDFs have additionals whitespaces
             case ' ':
             case '\t':
-                (void)m_device.Device()->GetChar();
+                (void)m_device->GetChar();
                 break;
             // From PDF 32000:2008 7.3.8.1 General
             // "The keyword stream that follows the stream dictionary shall be
@@ -221,29 +221,29 @@ void PdfParserObject::ParseStream()
             // RETURN and a LINE FEED or just a LINE FEED, and not by a CARRIAGE
             // RETURN alone"
             case '\r':
-                streamOffset = m_device.Device()->Tell();
-                (void)m_device.Device()->GetChar();
-                c = m_device.Device()->Look();
+                streamOffset = m_device->Tell();
+                (void)m_device->GetChar();
+                c = m_device->Look();
                 if (c == '\n')
                 {
-                    (void)m_device.Device()->GetChar();
-                    streamOffset = m_device.Device()->Tell();
+                    (void)m_device->GetChar();
+                    streamOffset = m_device->Tell();
                 }
                 goto ReadStream;
             case '\n':
-                (void)m_device.Device()->GetChar();
-                streamOffset = m_device.Device()->Tell();
+                (void)m_device->GetChar();
+                streamOffset = m_device->Tell();
                 goto ReadStream;
             // Assume malformed PDF with no whitespaces after the stream keyword
             default:
-                streamOffset = m_device.Device()->Tell();
+                streamOffset = m_device->Tell();
                 goto ReadStream;
         }
     }
 
 ReadStream:
-    m_device.Device()->Seek(streamOffset);	// reset it before reading!
-    PdfDeviceInputStream reader(m_device.Device());
+    m_device->Seek(streamOffset);	// reset it before reading!
+    PdfDeviceInputStream reader(*m_device);
 
     if (m_Encrypt != nullptr && !m_Encrypt->IsMetadataEncrypted())
     {

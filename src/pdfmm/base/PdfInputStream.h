@@ -98,7 +98,7 @@ public:
      *
      *  \param device an input device
      */
-    PdfDeviceInputStream(PdfInputDevice* device);
+    PdfDeviceInputStream(PdfInputDevice& device);
 
 protected:
     size_t ReadImpl(char* buffer, size_t len, bool& eof) override;

@@ -38,7 +38,7 @@ public:
      *                 front of the object which is going to be parsed.
      *  \param buffer buffer to use for parsing to avoid reallocations
      */
-    PdfXRefStreamParserObject(PdfDocument& document, const PdfRefCountedInputDevice& device,
+    PdfXRefStreamParserObject(PdfDocument& document, const std::shared_ptr<PdfInputDevice>& device,
         PdfXRefEntries& entries);
 
     void Parse();
