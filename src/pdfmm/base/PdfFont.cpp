@@ -122,8 +122,8 @@ void PdfFont::WriteStringToStream(ostream& stream, const string_view& str) const
     size_t len = 0;
 
     unique_ptr<PdfFilter> filter = PdfFilterFactory::Create(PdfFilterType::ASCIIHexDecode);
-    unique_ptr<char> buffer;
-    filter->Encode(encoded.data(), encoded.size(), buffer, &len);
+    unique_ptr<char[]> buffer;
+    filter->Encode(encoded.data(), encoded.size(), buffer, len);
 
     stream << "<";
     stream.write(buffer.get(), len);

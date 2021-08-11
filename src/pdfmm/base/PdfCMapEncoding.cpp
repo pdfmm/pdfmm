@@ -58,7 +58,7 @@ bool PdfCMapEncoding::HasLigaturesSupport() const
 PdfCMapEncoding::MapIdentity PdfCMapEncoding::parseCMapObject(const PdfStream& stream)
 {
     MapIdentity ret;
-    unique_ptr<char> streamBuffer;
+    unique_ptr<char[]> streamBuffer;
     size_t streamBufferLen;
     stream.GetFilteredCopy(streamBuffer, streamBufferLen);
 

@@ -107,7 +107,7 @@ void PdfXRefStreamParserObject::ParseStream(const int64_t wArray[W_ARRAY_SIZE], 
 
     const size_t entryLen = static_cast<size_t>(wArray[0] + wArray[1] + wArray[2]);
 
-    unique_ptr<char> buffer;
+    unique_ptr<char[]> buffer;
     size_t bufferLen;
     this->GetOrCreateStream().GetFilteredCopy(buffer, bufferLen);
 

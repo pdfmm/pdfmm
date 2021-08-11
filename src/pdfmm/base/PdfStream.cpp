@@ -48,7 +48,7 @@ void PdfStream::GetFilteredCopy(PdfOutputStream& stream) const
     }
 }
 
-void PdfStream::GetFilteredCopy(unique_ptr<char>& buffer, size_t& len) const
+void PdfStream::GetFilteredCopy(unique_ptr<char[]>& buffer, size_t& len) const
 {
     PdfFilterList filters = PdfFilterFactory::CreateFilterList(*m_Parent);
     PdfMemoryOutputStream  stream;
@@ -66,8 +66,7 @@ void PdfStream::GetFilteredCopy(unique_ptr<char>& buffer, size_t& len) const
         stream.Close();
     }
 
-    buffer = unique_ptr<char>(stream.TakeBuffer());
-    len = stream.GetLength();
+    buffer = std::move(stream.TakeBuffer(len));
 }
 
 const PdfStream& PdfStream::operator=(const PdfStream& rhs)
@@ -217,7 +216,7 @@ void PdfStream::BeginAppend(const PdfFilterList& filters, bool clearExisting, bo
         document->GetObjects().BeginAppendStream(*this);
 
     size_t len = 0;
-    unique_ptr<char> buffer;
+    unique_ptr<char[]> buffer;
     if (!clearExisting && this->GetLength() != 0)
         this->GetFilteredCopy(buffer, len);
 

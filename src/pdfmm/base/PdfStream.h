@@ -212,10 +212,9 @@ public:
      *  The caller has to the buffer.
      *
      *  \param buffer pointer to the buffer
-     *  \param len    pointer to the buffer length
+     *  \param len pointer to the buffer length
      */
-     // TODO: Move to std::unique_ptr<char>
-    virtual void GetCopy(char** buffer, size_t* len) const = 0;
+    virtual void GetCopy(std::unique_ptr<char[]>& buffer, size_t& len) const = 0;
 
     /** Get a copy of a the stream and write it to a PdfOutputStream
      *
@@ -233,7 +232,7 @@ public:
      *  \param buffer pointer to the buffer
      *  \param len    pointer to the buffer length
      */
-    void GetFilteredCopy(std::unique_ptr<char>& buffer, size_t& len) const;
+    void GetFilteredCopy(std::unique_ptr<char[]>& buffer, size_t& len) const;
 
     /** Get a filtered copy of a the stream and write it to a PdfOutputStream
      *

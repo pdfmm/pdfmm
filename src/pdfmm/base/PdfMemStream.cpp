@@ -62,20 +62,12 @@ void PdfMemStream::EndAppendImpl()
     m_Stream = nullptr;
 }
 
-void PdfMemStream::GetCopy(char** buffer, size_t* len) const
+void PdfMemStream::GetCopy(unique_ptr<char[]>& buffer, size_t& len) const
 {
-    if (buffer == nullptr || len == nullptr)
-        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
-
-    *buffer = static_cast<char*>(pdfmm_calloc(m_buffer.size(), sizeof(char)));
-    *len = m_buffer.size();
-
-    if (*buffer == nullptr)
-        PDFMM_RAISE_ERROR(PdfErrorCode::OutOfMemory);
-
-    memcpy(*buffer, m_buffer.data(), m_buffer.size());
+    buffer.reset(new char[m_buffer.size()]);
+    len = m_buffer.size();
+    std::memcpy(buffer.get(), m_buffer.data(), m_buffer.size());
 }
-
 
 void PdfMemStream::GetCopy(PdfOutputStream& stream) const
 {

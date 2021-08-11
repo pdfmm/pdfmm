@@ -36,7 +36,6 @@
 #include "base/PdfInputDevice.h"
 #include "base/PdfInputStream.h"
 #include "base/PdfLocale.h"
-#include "base/PdfMemoryManagement.h"
 #include "base/PdfMemStream.h"
 #include "base/PdfName.h"
 #include "base/PdfObject.h"

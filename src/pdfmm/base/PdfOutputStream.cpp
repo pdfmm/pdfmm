@@ -19,9 +19,7 @@ void PdfOutputStream::Write(const string_view& view)
     Write(view.data(), view.length());
 }
 
-PdfOutputStream::~PdfOutputStream()
-{
-}
+PdfOutputStream::~PdfOutputStream() { }
 
 void PdfOutputStream::Write(const char* buffer, size_t len)
 {
@@ -32,42 +30,40 @@ void PdfOutputStream::Write(const char* buffer, size_t len)
 }
 
 PdfMemoryOutputStream::PdfMemoryOutputStream(size_t initialSize)
-    : m_Len(0), m_OwnBuffer(true)
+    : m_Length(0), m_OwnBuffer(true)
 {
-    m_Size = initialSize;
-    m_Buffer = static_cast<char*>(pdfmm_calloc(m_Size, sizeof(char)));
-
-    if (m_Buffer == nullptr)
-        PDFMM_RAISE_ERROR(PdfErrorCode::OutOfMemory);
+    m_Capacity = initialSize;
+    m_Buffer = new char[m_Capacity];
 }
 
 PdfMemoryOutputStream::PdfMemoryOutputStream(char* buffer, size_t size)
-    : m_Len(0), m_OwnBuffer(false)
+    : m_Length(0), m_OwnBuffer(false)
 {
-    if (buffer == nullptr)
+    if (buffer == nullptr && size != 0)
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-    m_Size = size;
+    m_Capacity = size;
     m_Buffer = buffer;
 }
 
 PdfMemoryOutputStream::~PdfMemoryOutputStream()
 {
     if (m_OwnBuffer)
-        pdfmm_free(m_Buffer);
+        delete[] m_Buffer;
 }
 
 void PdfMemoryOutputStream::WriteImpl(const char* data, size_t len)
 {
-    if (m_Len + len > m_Size)
+    if (m_Length + len > m_Capacity)
     {
         if (m_OwnBuffer)
         {
-            // a reallocation is required
-            m_Size = std::max(m_Len + len, m_Size << 1);
-            m_Buffer = static_cast<char*>(pdfmm_realloc(m_Buffer, m_Size));
-            if (m_Buffer == nullptr)
-                PDFMM_RAISE_ERROR(PdfErrorCode::OutOfMemory);
+            // A reallocation is required
+            m_Capacity = std::max(m_Length + len, m_Capacity << 1);
+            auto newbuffer = new char[m_Capacity];
+            std::memcpy(newbuffer, m_Buffer, m_Length);
+            delete m_Buffer;
+            m_Buffer = newbuffer;
         }
         else
         {
@@ -75,25 +71,30 @@ void PdfMemoryOutputStream::WriteImpl(const char* data, size_t len)
         }
     }
 
-    memcpy(m_Buffer + m_Len, data, len);
-    m_Len += len;
+    std::memcpy(m_Buffer + m_Length, data, len);
+    m_Length += len;
 }
 
 void PdfMemoryOutputStream::Close()
 {
+    // Do nothing
 }
 
-char* PdfMemoryOutputStream::TakeBuffer()
+unique_ptr<char[]> PdfMemoryOutputStream::TakeBuffer(size_t& length)
 {
+    if (!m_OwnBuffer)
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Unsupported");
+
+    length = m_Length;
     char* buffer = m_Buffer;
-    m_Buffer = nullptr;
-    return buffer;
+    m_Buffer = new char[0];
+    m_Length = 0;
+    m_Capacity = 0;
+    return unique_ptr<char[]>(buffer);
 }
 
 PdfDeviceOutputStream::PdfDeviceOutputStream(PdfOutputDevice& device)
-    : m_Device(&device)
-{
-}
+    : m_Device(&device) { }
 
 void PdfDeviceOutputStream::WriteImpl(const char* data, size_t len)
 {
@@ -102,4 +103,5 @@ void PdfDeviceOutputStream::WriteImpl(const char* data, size_t len)
 
 void PdfDeviceOutputStream::Close()
 {
+    // Do nothing
 }

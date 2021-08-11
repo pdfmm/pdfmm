@@ -212,7 +212,7 @@ PdfFilter::~PdfFilter()
     assert(m_OutputStream == nullptr);
 }
 
-void PdfFilter::Encode(const char* inBuffer, size_t inLen, unique_ptr<char>& outBuffer, size_t* outLen) const
+void PdfFilter::Encode(const char* inBuffer, size_t inLen, unique_ptr<char[]>& outBuffer, size_t& outLen) const
 {
     if (!this->CanEncode())
         PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
@@ -223,11 +223,10 @@ void PdfFilter::Encode(const char* inBuffer, size_t inLen, unique_ptr<char>& out
     const_cast<PdfFilter*>(this)->EncodeBlock(inBuffer, inLen);
     const_cast<PdfFilter*>(this)->EndEncode();
 
-    outBuffer.reset(stream.TakeBuffer());
-    *outLen = stream.GetLength();
+    outBuffer = std::move(stream.TakeBuffer(outLen));
 }
 
-void PdfFilter::Decode(const char* inBuffer, size_t inLen, char** outBuffer, size_t* outLen,
+void PdfFilter::Decode(const char* inBuffer, size_t inLen, std::unique_ptr<char[]>& outBuffer, size_t& outLen,
     const PdfDictionary* decodeParms) const
 {
     if (!this->CanDecode())
@@ -239,8 +238,7 @@ void PdfFilter::Decode(const char* inBuffer, size_t inLen, char** outBuffer, siz
     const_cast<PdfFilter*>(this)->DecodeBlock(inBuffer, inLen);
     const_cast<PdfFilter*>(this)->EndDecode();
 
-    *outBuffer = stream.TakeBuffer();
-    *outLen = stream.GetLength();
+    outBuffer = std::move(stream.TakeBuffer(outLen));
 }
 
 //

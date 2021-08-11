@@ -50,12 +50,12 @@ public:
      *  internally, so it's not safe to use when progressive encoding
      *  is in progress.
      *
-     *  \param pInBuffer input buffer
-     *  \param lInLen    length of the input buffer
-     *  \param ppOutBuffer receives pointer to the buffer of the encoded data
-     *  \param plOutLen pointer to where to write the output buffer's length
+     *  \param inBuffer input buffer
+     *  \param inLen    length of the input buffer
+     *  \param outBuffer receives pointer to the buffer of the encoded data
+     *  \param outLen pointer to where to write the output buffer's length
      */
-    void Encode(const char* inBuffer, size_t inLen, std::unique_ptr<char>& outBuffer, size_t* outLen) const;
+    void Encode(const char* inBuffer, size_t inLen, std::unique_ptr<char[]>& outBuffer, size_t& outLen) const;
 
     /** Begin progressively encoding data using this filter.
      *
@@ -113,17 +113,16 @@ public:
     /** Decodes a buffer using a filter. The buffer has
      *  to be free'd by the caller.
      *
-     *  \param pInBuffer input buffer
-     *  \param lInLen    length of the input buffer
-     *  \param ppOutBuffer receives pointer to the buffer of the decoded data
-     *  \param plOutLen pointer to where to write the output buffer's length
-     *  \param pDecodeParms optional pointer to a decode-parameters dictionary
+     *  \param inBuffer input buffer
+     *  \param inLen    length of the input buffer
+     *  \param outBuffer receives pointer to the buffer of the decoded data
+     *  \param outLen pointer to where to write the output buffer's length
+     *  \param decodeParms optional pointer to a decode-parameters dictionary
      *                      containing additional information to decode
      *                      the data. This pointer must be nullptr if no
      *                      decode-parameters dictionary is available.
      */
-     // TODO: Move to std::unique_ptr<char>
-    void Decode(const char* inBuffer, size_t inLen, char** outBuffer, size_t* outLen, const PdfDictionary* decodeParms = nullptr) const;
+    void Decode(const char* inBuffer, size_t inLen, std::unique_ptr<char[]>& outBuffer, size_t& outLen, const PdfDictionary* decodeParms = nullptr) const;
 
     /** Begin progressively decoding data using this filter.
      *

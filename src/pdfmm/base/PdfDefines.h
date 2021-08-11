@@ -61,9 +61,6 @@
 // Error Handling Defines
 #include "PdfError.h"
 
-// Memory management
-#include "PdfMemoryManagement.h"
-
 // Include API macro definitions
 #include "pdfmmdefs.h"
 

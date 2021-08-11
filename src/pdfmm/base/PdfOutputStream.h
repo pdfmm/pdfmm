@@ -78,7 +78,7 @@ public:
 
     /** \returns the length of the written data
      */
-    inline size_t GetLength() const { return m_Len; }
+    inline size_t GetLength() const { return m_Length; }
 
     /**
      *  \returns a handle to the internal buffer.
@@ -89,15 +89,15 @@ public:
      *
      *  The caller has to free() the returned malloc()'ed buffer!
      */
-    char* TakeBuffer();
+    std::unique_ptr<char[]> TakeBuffer(size_t& length);
 
 protected:
     void WriteImpl(const char* data, size_t len) override;
 
 private:
     char* m_Buffer;
-    size_t m_Len;
-    size_t m_Size;
+    size_t m_Length;
+    size_t m_Capacity;
     bool m_OwnBuffer;
 };
 
