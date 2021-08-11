@@ -13,7 +13,6 @@
 
 #include "PdfStream.h"
 #include "PdfDictionary.h"
-#include "PdfSharedBuffer.h"
 
 namespace mm {
 

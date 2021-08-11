@@ -57,8 +57,8 @@ PdfFontMetricsFreetype* PdfFontMetricsFreetype::CreateForSubsetting(FT_Library* 
     err = FT_Load_Sfnt_Table(scoped_face.FTFace, 0, 0, nullptr, &length);
     if (err == 0)
     {
-        PdfSharedBuffer buffer(length);
-        err = FT_Load_Sfnt_Table(scoped_face.FTFace, 0, 0, reinterpret_cast<FT_Byte*>(buffer.GetBuffer()), &length);
+        auto buffer = std::make_shared<chars>(length);
+        err = FT_Load_Sfnt_Table(scoped_face.FTFace, 0, 0, reinterpret_cast<FT_Byte*>(buffer->data()), &length);
         if (err == 0)
             return new PdfFontMetricsFreetype(library, buffer, isSymbol);
     }
@@ -92,15 +92,15 @@ PdfFontMetricsFreetype::PdfFontMetricsFreetype(FT_Library* library, const char* 
     PdfFontMetrics(PdfFontMetricsType::Unknown, { }),
     m_Library(library),
     m_Face(nullptr),
-    m_IsSymbol(isSymbol)
+    m_IsSymbol(isSymbol),
+    m_FontData(std::make_shared<chars>(size))
 {
-    m_FontData = PdfSharedBuffer(size);
-    memcpy(m_FontData.GetBuffer(), buffer, size);
+    memcpy(m_FontData->data(), buffer, size);
     InitFromBuffer(isSymbol);
 }
 
-PdfFontMetricsFreetype::PdfFontMetricsFreetype(FT_Library* library, const PdfSharedBuffer& buffer,
-        bool isSymbol) :
+PdfFontMetricsFreetype::PdfFontMetricsFreetype(FT_Library* library,
+    const shared_ptr<chars>& buffer, bool isSymbol) :
     PdfFontMetrics(PdfFontMetricsType::Unknown, { }),
     m_Library(library),
     m_Face(nullptr),
@@ -136,8 +136,8 @@ void PdfFontMetricsFreetype::InitFromBuffer(bool isSymbol)
     FT_Open_Args openArgs;
     memset(&openArgs, 0, sizeof(openArgs));
     openArgs.flags = FT_OPEN_MEMORY;
-    openArgs.memory_base = reinterpret_cast<FT_Byte*>(m_FontData.GetBuffer());
-    openArgs.memory_size = static_cast<FT_Long>(m_FontData.GetSize());
+    openArgs.memory_base = reinterpret_cast<FT_Byte*>(m_FontData->data());
+    openArgs.memory_size = static_cast<FT_Long>(m_FontData->size());
     FT_Error err = FT_Open_Face(*m_Library, &openArgs, 0, &m_Face);
     if (err != 0)
     {
@@ -348,7 +348,7 @@ double PdfFontMetricsFreetype::GetDescent() const
 
 string_view PdfFontMetricsFreetype::GetFontData() const
 {
-    return string_view(m_FontData.GetBuffer(), m_FontData.GetSize());
+    return *m_FontData;
 }
 
 unsigned PdfFontMetricsFreetype::GetWeight() const

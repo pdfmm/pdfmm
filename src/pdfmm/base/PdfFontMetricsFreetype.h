@@ -14,7 +14,6 @@
 #include "Pdf3rdPtyForwardDecl.h"
 #include "PdfFontMetrics.h"
 #include "PdfString.h"
-#include "PdfSharedBuffer.h"
 
 namespace mm {
 
@@ -40,14 +39,6 @@ public:
      *  \param isSymbol whether use a symbol encoding, rather than unicode
      */
     PdfFontMetricsFreetype(FT_Library* library, const char* buffer, size_t size,
-        bool isSymbol);
-
-    /** Create a font metrics object for a given true type file
-     *  \param library handle to an initialized FreeType2 library handle
-     *  \param buffer a buffer containing a font file
-     *  \param isSymbol whether use a symbol encoding, rather than unicode
-     */
-    PdfFontMetricsFreetype(FT_Library* library, const PdfSharedBuffer& buffer,
         bool isSymbol);
 
     /** Create a font metrics object for a given freetype font.
@@ -113,7 +104,10 @@ public:
     inline FT_Face GetFace() const { return m_Face; }
 
 private:
+    PdfFontMetricsFreetype(FT_Library* library, const std::shared_ptr<chars>& buffer,
+        bool isSymbol);
 
+private:
     /** Initialize this object from an in memory buffer
      *  Called internally by the constructors
       * \param isSymbol Whether use a symbol charset, rather than unicode
@@ -149,7 +143,7 @@ private:
     double m_StrikeOutThickness;
     double m_StrikeOutPosition;
 
-    PdfSharedBuffer m_FontData;
+    std::shared_ptr<chars> m_FontData;
     std::vector<double> m_Widths;
 };
 
