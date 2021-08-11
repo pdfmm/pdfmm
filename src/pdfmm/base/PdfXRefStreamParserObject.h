@@ -24,7 +24,7 @@ namespace mm
  * This is only marked PDFMM_API for the benefit of the tests,
  * the class is for internal use only.
  */
-class PDFMM_API PdfXRefStreamParserObject : public PdfParserObject
+class PDFMM_API PdfXRefStreamParserObject final : public PdfParserObject
 {
     static constexpr unsigned W_ARRAY_SIZE = 3;
     static constexpr unsigned W_MAX_BYTES = 4;
@@ -39,7 +39,7 @@ public:
      *  \param buffer buffer to use for parsing to avoid reallocations
      */
     PdfXRefStreamParserObject(PdfDocument& document, const PdfRefCountedInputDevice& device,
-        const PdfSharedBuffer& buffer, PdfXRefEntries& entries);
+        PdfXRefEntries& entries);
 
     void Parse();
 

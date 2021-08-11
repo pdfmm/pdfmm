@@ -209,7 +209,7 @@ void PdfParser::ReadDocumentStructure(const PdfRefCountedInputDevice& device)
         throw e;
     }
 
-    if (m_Linearization)
+    if (m_Linearization != nullptr)
     {
         try
         {
@@ -249,7 +249,7 @@ void PdfParser::ReadDocumentStructure(const PdfRefCountedInputDevice& device)
         ResizeEntries(m_objectCount);
     }
 
-    if (m_Linearization)
+    if (m_Linearization != nullptr)
     {
         try
         {
@@ -307,7 +307,7 @@ bool PdfParser::IsPdfFile(const PdfRefCountedInputDevice& device)
 
 void PdfParser::HasLinearizationDict(const PdfRefCountedInputDevice& device)
 {
-    if (m_Linearization)
+    if (m_Linearization != nullptr)
     {
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic,
             "HasLinarizationDict() called twice on one object");
@@ -323,10 +323,10 @@ void PdfParser::HasLinearizationDict(const PdfRefCountedInputDevice& device)
     // on smaller files, but jumping to the end is against the idea
     // of linearized PDF. Therefore just check if we read anything.
     constexpr streamoff MAX_READ = 1024;
-    PdfSharedBuffer linearizeBuffer(MAX_READ);
+    chars linearizeBuffer(MAX_READ);
 
-    streamoff size = device.Device()->Read(linearizeBuffer.GetBuffer(),
-        linearizeBuffer.GetSize());
+    streamoff size = device.Device()->Read(linearizeBuffer.data(),
+        linearizeBuffer.size());
     // Only fail if we read nothing, to allow files smaller than MAX_READ
     if (static_cast<size_t>(size) <= 0)
     {
@@ -334,7 +334,7 @@ void PdfParser::HasLinearizationDict(const PdfRefCountedInputDevice& device)
         return;
     }
 
-    char* objStr = strstr(linearizeBuffer.GetBuffer(), "obj");
+    const char* objStr = strstr(linearizeBuffer.data(), "obj");
     if (objStr == nullptr)
     {
         // strange that there is no obj in the first 1024 bytes,
@@ -346,8 +346,8 @@ void PdfParser::HasLinearizationDict(const PdfRefCountedInputDevice& device)
     while (*objStr && (PdfTokenizer::IsWhitespace(*objStr) || (*objStr >= '0' && *objStr <= '9')))
         objStr--;
 
-    m_Linearization.reset(new PdfParserObject(m_Objects->GetDocument(), device, linearizeBuffer,
-        objStr - linearizeBuffer.GetBuffer() + 2));
+    m_Linearization.reset(new PdfParserObject(m_Objects->GetDocument(),
+        device, objStr - linearizeBuffer.data() + 2));
 
     try
     {
@@ -379,21 +379,22 @@ void PdfParser::HasLinearizationDict(const PdfRefCountedInputDevice& device)
     device.Device()->Seek(static_cast<size_t>(xRef - PDF_XREF_BUF) > 0 ? static_cast<size_t>(xRef - PDF_XREF_BUF) : PDF_XREF_BUF);
     m_XRefLinearizedOffset = device.Device()->Tell();
 
-    if (device.Device()->Read(m_buffer.GetBuffer(), PDF_XREF_BUF) != PDF_XREF_BUF)
+    char* buffer = m_buffer.GetBuffer();
+    if (device.Device()->Read(buffer, PDF_XREF_BUF) != PDF_XREF_BUF)
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidLinearization);
 
-    m_buffer.GetBuffer()[PDF_XREF_BUF] = '\0';
+    buffer[PDF_XREF_BUF] = '\0';
 
     // search backwards in the buffer in case the buffer contains null bytes
     // because it is right after a stream (can't use strstr for this reason)
     const int XREF_LEN = 4; // strlen( "xref" );
     int i = 0;
-    char* startStr = nullptr;
+    const char* startStr = nullptr;
     for (i = PDF_XREF_BUF - XREF_LEN; i >= 0; i--)
     {
-        if (strncmp(m_buffer.GetBuffer() + i, "xref", XREF_LEN) == 0)
+        if (strncmp(buffer + i, "xref", XREF_LEN) == 0)
         {
-            startStr = m_buffer.GetBuffer() + i;
+            startStr = buffer + i;
             break;
         }
     }
@@ -455,7 +456,7 @@ void PdfParser::ReadNextTrailer(const PdfRefCountedInputDevice& device)
 
     if (m_tokenizer.IsNextToken(*device.Device(), "trailer"))
     {
-        PdfParserObject trailer(m_Objects->GetDocument(), device, m_buffer);
+        PdfParserObject trailer(m_Objects->GetDocument(), device);
         try
         {
             // Ignore the encryption in the trailer as the trailer may not be encrypted
@@ -533,14 +534,14 @@ void PdfParser::ReadTrailer(const PdfRefCountedInputDevice& device)
             // and a trailer dictionary is not required
             device.Device()->Seek(m_XRefOffset);
 
-            m_Trailer.reset(new PdfParserObject(m_Objects->GetDocument(), device, m_buffer));
+            m_Trailer.reset(new PdfParserObject(m_Objects->GetDocument(), device));
             m_Trailer->ParseFile(nullptr, false);
             return;
         }
     }
     else
     {
-        m_Trailer.reset(new PdfParserObject(m_Objects->GetDocument(), device, m_buffer));
+        m_Trailer.reset(new PdfParserObject(m_Objects->GetDocument(), device));
         try
         {
             // Ignore the encryption in the trailer as the trailer may not be encrypted
@@ -788,11 +789,12 @@ void PdfParser::ReadXRefSubsection(const PdfRefCountedInputDevice& device, int64
     while (m_tokenizer.IsWhitespace((charcode = device.Device()->Look())))
         (void)device.Device()->GetChar();
 
-    while (count < objectCount && device.Device()->Read(m_buffer.GetBuffer(), PDF_XREF_ENTRY_SIZE) == PDF_XREF_ENTRY_SIZE)
+    char* buffer = m_buffer.GetBuffer();
+    while (count < objectCount && device.Device()->Read(buffer, PDF_XREF_ENTRY_SIZE) == PDF_XREF_ENTRY_SIZE)
     {
         char empty1;
         char empty2;
-        m_buffer.GetBuffer()[PDF_XREF_ENTRY_SIZE] = '\0';
+        buffer[PDF_XREF_ENTRY_SIZE] = '\0';
 
         const int objID = static_cast<int>(firstObject + count);
 
@@ -808,7 +810,7 @@ void PdfParser::ReadXRefSubsection(const PdfRefCountedInputDevice& device, int64
             // nnnnnnnnnn is 10-digit offset number with max value 9999999999 (bigger than 2**32 = 4GB)
             // ggggg is a 5-digit generation number with max value 99999 (smaller than 2**17)
             // eol is a 2-character end-of-line sequence
-            int read = sscanf(m_buffer.GetBuffer(), "%10" SCNu64 " %5" SCNu32 " %c%c%c",
+            int read = sscanf(buffer, "%10" SCNu64 " %5" SCNu32 " %c%c%c",
                 &variant, &generation, &cType, &empty1, &empty2);
 
             if (!CheckXRefEntryType(cType))
@@ -872,11 +874,11 @@ void PdfParser::ReadXRefStreamContents(const PdfRefCountedInputDevice& device, s
 
     device.Device()->Seek(offset);
 
-    PdfXRefStreamParserObject xrefObject(m_Objects->GetDocument(), device, m_buffer, m_entries);
+    PdfXRefStreamParserObject xrefObject(m_Objects->GetDocument(), device, m_entries);
     xrefObject.Parse();
 
     if (m_Trailer == nullptr)
-        m_Trailer.reset(new PdfParserObject(m_Objects->GetDocument(), device, m_buffer));
+        m_Trailer.reset(new PdfParserObject(m_Objects->GetDocument(), device));
 
     MergeTrailer(xrefObject);
 
@@ -938,7 +940,7 @@ void PdfParser::ReadObjects(const PdfRefCountedInputDevice& device)
                 PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidEncryptionDict, oss.str().c_str());
             }
 
-            obj = new PdfParserObject(m_Objects->GetDocument(), device, m_buffer, (ssize_t)m_entries[i].Offset);
+            obj = new PdfParserObject(m_Objects->GetDocument(), device, (ssize_t)m_entries[i].Offset);
             obj->SetLoadOnDemand(false); // Never load this on demand, as we will use it immediately
             try
             {
@@ -1008,7 +1010,7 @@ void PdfParser::ReadObjectsInternal(const PdfRefCountedInputDevice& device)
                 {
                     if (entry.Offset > 0)
                     {
-                        obj = new PdfParserObject(m_Objects->GetDocument(), device, m_buffer, (ssize_t)entry.Offset);
+                        obj = new PdfParserObject(m_Objects->GetDocument(), device, (ssize_t)entry.Offset);
                         auto reference = obj->GetIndirectReference();
                         if (reference.GenerationNumber() != entry.Generation)
                         {
@@ -1035,7 +1037,7 @@ void PdfParser::ReadObjectsInternal(const PdfRefCountedInputDevice& device)
                                 {
                                     // XRef is never encrypted
                                     delete obj;
-                                    obj = new PdfParserObject(m_Objects->GetDocument(), device, m_buffer, (ssize_t)entry.Offset);
+                                    obj = new PdfParserObject(m_Objects->GetDocument(), device, (ssize_t)entry.Offset);
                                     reference = obj->GetIndirectReference();
                                     obj->SetLoadOnDemand(m_LoadOnDemand);
                                     obj->ParseFile(nullptr);
@@ -1219,6 +1221,7 @@ void PdfParser::FindToken(const PdfRefCountedInputDevice& device, const char* to
     // James McGill 18.02.2011, offset read position to the EOF marker if it is not the last thing in the file
     device.Device()->Seek(-(streamoff)m_LastEOFOffset, ios_base::end);
 
+    char* buffer = m_buffer.GetBuffer();
     streamoff fileSize = device.Device()->Tell();
     if (fileSize == -1)
     {
@@ -1231,10 +1234,10 @@ void PdfParser::FindToken(const PdfRefCountedInputDevice& device, const char* to
     size_t tokenLen = strlen(token);
 
     device.Device()->Seek(-(streamoff)xRefBuf, ios_base::cur);
-    if (device.Device()->Read(m_buffer.GetBuffer(), xRefBuf) != xRefBuf && !device.Device()->Eof())
+    if (device.Device()->Read(buffer, xRefBuf) != xRefBuf && !device.Device()->Eof())
         PDFMM_RAISE_ERROR(PdfErrorCode::NoXRef);
 
-    m_buffer.GetBuffer()[xRefBuf] = '\0';
+    buffer[xRefBuf] = '\0';
 
     ssize_t i; // Do not make this unsigned, this will cause infinte loops in files without trailer
 
@@ -1242,7 +1245,7 @@ void PdfParser::FindToken(const PdfRefCountedInputDevice& device, const char* to
     // because it is right after a stream (can't use strstr for this reason)
     for (i = xRefBuf - tokenLen; i >= 0; i--)
     {
-        if (strncmp(m_buffer.GetBuffer() + i, token, tokenLen) == 0)
+        if (strncmp(buffer + i, token, tokenLen) == 0)
             break;
     }
 
@@ -1268,19 +1271,20 @@ void PdfParser::FindToken2(const PdfRefCountedInputDevice& device, const char* t
 
     size_t xRefBuf = std::min(static_cast<size_t>(fileSize), range);
     size_t tokenLen = strlen(token);
+    char* buffer = m_buffer.GetBuffer();
 
     device.Device()->Seek(-(streamoff)xRefBuf, ios_base::cur);
-    if (device.Device()->Read(m_buffer.GetBuffer(), xRefBuf) != xRefBuf && !device.Device()->Eof())
+    if (device.Device()->Read(buffer, xRefBuf) != xRefBuf && !device.Device()->Eof())
         PDFMM_RAISE_ERROR(PdfErrorCode::NoXRef);
 
-    m_buffer.GetBuffer()[xRefBuf] = '\0';
+    buffer[xRefBuf] = '\0';
 
     // search backwards in the buffer in case the buffer contains null bytes
     // because it is right after a stream (can't use strstr for this reason)
     ssize_t i; // Do not use an unsigned variable here
     for (i = xRefBuf - tokenLen; i >= 0; i--)
     {
-        if (strncmp(m_buffer.GetBuffer() + i, token, tokenLen) == 0)
+        if (strncmp(buffer + i, token, tokenLen) == 0)
             break;
     }
 

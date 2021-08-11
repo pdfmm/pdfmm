@@ -48,6 +48,8 @@ bool PdfTokenizer::TryReadNextToken(PdfInputDevice& device, string_view& token, 
 {
     int c;
     int64_t counter = 0;
+    char* buffer = m_buffer.GetBuffer();
+    size_t bufferSize = m_buffer.GetSize();
 
     // check first if there are queued tokens and return them first
     if (m_tokenQueque.size() != 0)
@@ -57,22 +59,17 @@ bool PdfTokenizer::TryReadNextToken(PdfInputDevice& device, string_view& token, 
 
         tokenType = pair.second;
 
-        if (!m_buffer.GetBuffer() || m_buffer.GetSize() == 0)
-        {
-            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
-        }
-
         // make sure buffer is \0 terminated
-        strncpy(m_buffer.GetBuffer(), pair.first.c_str(), m_buffer.GetSize());
-        m_buffer.GetBuffer()[m_buffer.GetSize() - 1] = 0;
-        token = m_buffer.GetBuffer();
+        strncpy(buffer, pair.first.c_str(), bufferSize);
+        buffer[bufferSize - 1] = '\0';
+        token = buffer;
         return true;
     }
 
     tokenType = PdfTokenType::Literal;
 
     while ((c = device.Look()) != EOF
-        && counter + 1 < static_cast<int64_t>(m_buffer.GetSize()))
+        && counter + 1 < static_cast<int64_t>(bufferSize))
     {
         // ignore leading whitespaces
         if (counter == 0 && IsWhitespace(c))
@@ -101,7 +98,7 @@ bool PdfTokenizer::TryReadNextToken(PdfInputDevice& device, string_view& token, 
         {
             // Really consume character from stream
             (void)device.GetChar();
-            m_buffer.GetBuffer()[counter] = c;
+            buffer[counter] = c;
             counter++;
 
             char n = device.Look();
@@ -110,7 +107,7 @@ bool PdfTokenizer::TryReadNextToken(PdfInputDevice& device, string_view& token, 
             if (n == c)
             {
                 (void)device.GetChar();
-                m_buffer.GetBuffer()[counter] = n;
+                buffer[counter] = n;
                 if (c == '<')
                     tokenType = PdfTokenType::DoubleAngleBracketsLeft;
                 else
@@ -137,7 +134,7 @@ bool PdfTokenizer::TryReadNextToken(PdfInputDevice& device, string_view& token, 
         {
             // Consume the next character and add it to the token we're building.
             (void)device.GetChar();
-            m_buffer.GetBuffer()[counter] = c;
+            buffer[counter] = c;
             counter++;
 
             PdfTokenType tokenDelimiterType;
@@ -152,7 +149,7 @@ bool PdfTokenizer::TryReadNextToken(PdfInputDevice& device, string_view& token, 
         }
     }
 
-    m_buffer.GetBuffer()[counter] = '\0';
+    buffer[counter] = '\0';
 
     if (c == EOF && counter == 0)
     {
@@ -162,7 +159,7 @@ bool PdfTokenizer::TryReadNextToken(PdfInputDevice& device, string_view& token, 
         return false;
     }
 
-    token = m_buffer.GetBuffer();
+    token = buffer;
     return true;
 }
 
