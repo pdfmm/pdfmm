@@ -20,11 +20,11 @@ PdfFontType1Encoding::PdfFontType1Encoding(const PdfObject& obj) :
 
 PdfCharCodeMap PdfFontType1Encoding::getUnicodeMap(const PdfObject& obj)
 {
-    PdfSharedBuffer buffer;
-    PdfBufferOutputStream outputStream(buffer);
+    string buffer;
+    PdfStringOutputStream outputStream(buffer);
     obj.GetStream().GetFilteredCopy(outputStream);
 
-    string_view view(buffer.GetBuffer(), buffer.GetSize());
+    string_view view(buffer.data(), buffer.size());
     // Try to find binary part of the document and exclude it
     auto found = view.find("eexec");
     if (found != string_view::npos)

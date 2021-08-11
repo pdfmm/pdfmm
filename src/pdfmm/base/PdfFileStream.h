@@ -55,6 +55,7 @@ public:
 
     void Write(PdfOutputDevice& device, const PdfEncrypt* encrypt) override;
 
+    // TODO: Move to std::unique_ptr<char>
     void GetCopy(char** buffer, size_t* len) const override;
 
     void GetCopy(PdfOutputStream& stream) const override;

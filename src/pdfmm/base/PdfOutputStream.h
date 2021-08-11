@@ -10,7 +10,6 @@
 #define PDF_OUTPUT_STREAM_H
 
 #include "PdfDefines.h"
-#include "PdfSharedBuffer.h"
 
 namespace mm {
 
@@ -52,8 +51,6 @@ protected:
 
 /** An output stream that writes data to a memory buffer
  *  If the buffer is to small, it will be enlarged automatically.
- *
- *  TODO: remove in favour of PdfBufferOutputStream.
  */
 class PDFMM_API PdfMemoryOutputStream : public PdfOutputStream
 {
@@ -126,35 +123,41 @@ private:
     PdfOutputDevice* m_Device;
 };
 
-/** An output stream that writes to a PdfSharedBuffer.
- *
- *  The PdfSharedBuffer is resized automatically if necessary.
+/**
+ * An output stream that writes to a STL container
  */
-class PDFMM_API PdfBufferOutputStream : public PdfOutputStream
+template <typename TContainer>
+class PdfContainerOutputStream : public PdfOutputStream
 {
 public:
-
     /**
      *  Write to an already opened input device
      *
      *  \param buffer data is written to this buffer
      */
-    PdfBufferOutputStream(PdfSharedBuffer& buffer);
+    PdfContainerOutputStream(TContainer& container)
+        : m_container(&container) { }
 
-    void Close() override;
-
-    /**
-     * \returns the length of the buffers contents
-     */
-    inline size_t GetLength() const { return m_Length; }
+    void Close() override
+    {
+        // Do nothing
+    }
 
 protected:
-    void WriteImpl(const char* data, size_t len) override;
+    void WriteImpl(const char* data, size_t len) override
+    {
+        size_t currSize = m_container->size();
+        m_container->resize(currSize + len);
+        memcpy(m_container->data() + currSize, data, len);
+    }
 
 private:
-    PdfSharedBuffer* m_Buffer;
-    size_t m_Length;
+    TContainer* m_container;
 };
+
+typedef PdfContainerOutputStream<std::string> PdfStringOutputStream;
+typedef PdfContainerOutputStream<chars> PdfCharsOutputStream;
+typedef PdfContainerOutputStream<std::vector<char>> PdfVectorOutputStream;
 
 };
 

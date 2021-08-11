@@ -9,14 +9,12 @@
 #ifndef PDF_OUTPUT_DEVICE_H
 #define PDF_OUTPUT_DEVICE_H
 
+#include "PdfDefines.h"
+
 #include <string_view>
 #include <ostream>
 #include <iostream>
 #include <fstream>
-
-#include "PdfDefines.h"
-#include "PdfLocale.h"
-#include "PdfSharedBuffer.h"
 
 namespace mm {
 

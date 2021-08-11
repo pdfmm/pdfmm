@@ -19,7 +19,6 @@
  */
 
 #include <pdfmm/base/PdfFilter.h>
-#include <pdfmm/base/PdfSharedBuffer.h>
 
 #include <zlib.h>
 

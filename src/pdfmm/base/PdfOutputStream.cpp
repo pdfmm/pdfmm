@@ -10,7 +10,6 @@
 #include "PdfOutputStream.h"
 
 #include "PdfOutputDevice.h"
-#include "PdfSharedBuffer.h"
 
 using namespace std;
 using namespace mm;
@@ -102,23 +101,5 @@ void PdfDeviceOutputStream::WriteImpl(const char* data, size_t len)
 }
 
 void PdfDeviceOutputStream::Close()
-{
-}
-
-PdfBufferOutputStream::PdfBufferOutputStream(PdfSharedBuffer& buffer)
-    : m_Buffer(&buffer), m_Length(buffer.GetSize())
-{
-}
-
-void PdfBufferOutputStream::WriteImpl(const char* data, size_t len)
-{
-    if (m_Length + len >= m_Buffer->GetSize())
-        m_Buffer->Resize(m_Length + len);
-
-    memcpy(m_Buffer->GetBuffer() + m_Length, data, len);
-    m_Length += len;
-}
-
-void PdfBufferOutputStream::Close()
 {
 }

@@ -21,7 +21,7 @@ using namespace std;
 using namespace mm;
 
 PdfMemStream::PdfMemStream(PdfObject& parent)
-    : PdfStream(parent), m_Length(0)
+    : PdfStream(parent)
 {
 }
 
@@ -32,16 +32,16 @@ PdfMemStream::~PdfMemStream()
 
 void PdfMemStream::BeginAppendImpl(const PdfFilterList& filters)
 {
-    m_buffer = PdfSharedBuffer();
-    m_Length = 0;
-
+    m_buffer.clear();
     if (filters.size() != 0)
     {
-        m_BufferStream = unique_ptr<PdfBufferOutputStream>(new PdfBufferOutputStream(m_buffer));
+        m_BufferStream = unique_ptr<PdfCharsOutputStream>(new PdfCharsOutputStream(m_buffer));
         m_Stream = PdfFilterFactory::CreateEncodeStream(filters, *m_BufferStream);
     }
     else
-        m_Stream = unique_ptr<PdfBufferOutputStream>(new PdfBufferOutputStream(m_buffer));
+    {
+        m_Stream = unique_ptr<PdfCharsOutputStream>(new PdfCharsOutputStream(m_buffer));
+    }
 }
 
 void PdfMemStream::AppendImpl(const char* data, size_t len)
@@ -51,26 +51,15 @@ void PdfMemStream::AppendImpl(const char* data, size_t len)
 
 void PdfMemStream::EndAppendImpl()
 {
-    if (m_Stream != nullptr)
-    {
-        m_Stream->Close();
-
-        if (m_BufferStream == nullptr)
-        {
-            PdfBufferOutputStream* bufferOutputStream = dynamic_cast<PdfBufferOutputStream*>(m_Stream.get());
-            if (bufferOutputStream != nullptr)
-                m_Length = bufferOutputStream->GetLength();
-        }
-
-        m_Stream = nullptr;
-    }
+    m_Stream->Close();
 
     if (m_BufferStream != nullptr)
     {
         m_BufferStream->Close();
-        m_Length = m_BufferStream->GetLength();
         m_BufferStream = nullptr;
     }
+
+    m_Stream = nullptr;
 }
 
 void PdfMemStream::GetCopy(char** buffer, size_t* len) const
@@ -78,19 +67,19 @@ void PdfMemStream::GetCopy(char** buffer, size_t* len) const
     if (buffer == nullptr || len == nullptr)
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-    *buffer = static_cast<char*>(pdfmm_calloc(m_Length, sizeof(char)));
-    *len = m_Length;
+    *buffer = static_cast<char*>(pdfmm_calloc(m_buffer.size(), sizeof(char)));
+    *len = m_buffer.size();
 
     if (*buffer == nullptr)
         PDFMM_RAISE_ERROR(PdfErrorCode::OutOfMemory);
 
-    memcpy(*buffer, m_buffer.GetBuffer(), m_Length);
+    memcpy(*buffer, m_buffer.data(), m_buffer.size());
 }
 
 
 void PdfMemStream::GetCopy(PdfOutputStream& stream) const
 {
-    stream.Write(m_buffer.GetBuffer(), m_Length);
+    stream.Write(m_buffer.data(), m_buffer.size());
 }
 
 const PdfMemStream& PdfMemStream::operator=(const PdfStream& rhs)
@@ -120,7 +109,6 @@ void PdfMemStream::CopyFrom(const PdfStream& rhs)
 void PdfMemStream::copyFrom(const PdfMemStream& rhs)
 {
     m_buffer = rhs.m_buffer;
-    m_Length = rhs.GetLength();
 }
 
 void PdfMemStream::Write(PdfOutputDevice& device, const PdfEncrypt* encrypt)
@@ -142,20 +130,20 @@ void PdfMemStream::Write(PdfOutputDevice& device, const PdfEncrypt* encrypt)
 
 const char* PdfMemStream::Get() const
 {
-    return m_buffer.GetBuffer();
+    return m_buffer.data();
 }
 
 const char* PdfMemStream::GetInternalBuffer() const
 {
-    return m_buffer.GetBuffer();
+    return m_buffer.data();
 }
 
 size_t PdfMemStream::GetInternalBufferSize() const
 {
-    return m_Length;
+    return m_buffer.size();
 }
 
 size_t PdfMemStream::GetLength() const
 {
-    return m_Length;
+    return m_buffer.size();
 }

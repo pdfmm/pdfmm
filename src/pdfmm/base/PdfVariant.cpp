@@ -9,6 +9,7 @@
 #include <pdfmm/private/PdfDefinesPrivate.h>
 #include "PdfVariant.h"
 
+#include "PdfLocale.h"
 #include "PdfArray.h"
 #include "PdfData.h"
 #include "PdfDictionary.h"

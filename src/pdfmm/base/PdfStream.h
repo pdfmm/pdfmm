@@ -12,7 +12,6 @@
 #include "PdfDefines.h"
 
 #include "PdfFilter.h"
-#include "PdfSharedBuffer.h"
 #include "PdfEncrypt.h"
 
 namespace mm {

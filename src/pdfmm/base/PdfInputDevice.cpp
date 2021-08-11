@@ -57,11 +57,11 @@ PdfInputDevice::PdfInputDevice(istream& stream)
 
 PdfInputDevice::PdfInputDevice(const PdfStream& stream)
 {
-    PdfSharedBuffer buffer;
-    PdfBufferOutputStream outputStream(buffer);
+    string buffer;
+    PdfStringOutputStream outputStream(buffer);
     stream.GetFilteredCopy(outputStream);
     // TODO: Optimize me, offer a version that does not copy the buffer
-    m_Stream = new istringstream(string(buffer.GetBuffer(), buffer.GetSize()), ios::binary);
+    m_Stream = new istringstream(buffer, ios::binary);
     m_StreamOwned = true;
 }
 

@@ -17,7 +17,6 @@
 
 namespace mm {
 
-class PdfBufferOutputStream;
 class PdfName;
 class PdfObject;
 
@@ -47,6 +46,7 @@ public:
 
     void Write(PdfOutputDevice& device, const PdfEncrypt* encrypt) override;
 
+    // TODO: Make version with std::unique_ptr<char>
     void GetCopy(char** buffer, size_t* len) const override;
 
     void GetCopy(PdfOutputStream& stream) const override;
@@ -81,10 +81,9 @@ private:
     void copyFrom(const PdfMemStream& rhs);
 
  private:
-    PdfSharedBuffer m_buffer;
+    chars m_buffer;
     std::unique_ptr<PdfOutputStream> m_Stream;
-    std::unique_ptr<PdfBufferOutputStream> m_BufferStream;
-    size_t m_Length;
+    std::unique_ptr<PdfOutputStream> m_BufferStream;
 };
 
 };

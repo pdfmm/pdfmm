@@ -8,7 +8,6 @@
 
 #include <pdfmm/private/PdfDefinesPrivate.h>
 #include "PdfOutputDevice.h"
-#include "PdfSharedBuffer.h"
 
 #include <fstream>
 #include <sstream>
@@ -195,6 +194,9 @@ void PdfStreamOutputDevice::seek(size_t offset)
 
 size_t PdfStreamOutputDevice::read(char* buffer, size_t len)
 {
+    if (m_ReadStream == nullptr)
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Unsupported read operation");
+
     size_t position = Tell();
     m_ReadStream->read(buffer, len);
     if (m_ReadStream->fail() && !m_ReadStream->eof())

@@ -11,9 +11,10 @@
 
 #include "PdfDefines.h"
 
-#include "PdfFontMetrics.h"
 #include "Pdf3rdPtyForwardDecl.h"
+#include "PdfFontMetrics.h"
 #include "PdfString.h"
+#include "PdfSharedBuffer.h"
 
 namespace mm {
 
