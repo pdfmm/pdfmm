@@ -25,9 +25,12 @@
 using namespace std;
 using namespace mm;
 
-PdfObjectStreamParser::PdfObjectStreamParser(PdfParserObject& parser, PdfIndirectObjectList& objects, const PdfSharedBuffer& buffer)
+PdfObjectStreamParser::PdfObjectStreamParser(PdfParserObject& parser,
+        PdfIndirectObjectList& objects, const shared_ptr<chars>& buffer)
     : m_Parser(&parser), m_Objects(&objects), m_buffer(buffer)
 {
+    if (buffer == nullptr)
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 }
 
 void PdfObjectStreamParser::Parse(ObjectIdList const& list)

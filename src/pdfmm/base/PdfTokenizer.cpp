@@ -28,13 +28,16 @@ static void readHexString(PdfInputDevice& device, chars& buffer);
 static bool isOctalChar(char ch);
 
 PdfTokenizer::PdfTokenizer(bool readReferences)
-    : PdfTokenizer(PdfSharedBuffer(BufferSize), readReferences)
+    : PdfTokenizer(std::make_shared<chars>(BufferSize), readReferences)
 {
 }
 
-PdfTokenizer::PdfTokenizer(const PdfSharedBuffer& buffer, bool readReferences)
+PdfTokenizer::PdfTokenizer(const shared_ptr<chars>& buffer, bool readReferences)
     : m_buffer(buffer), m_readReferences(readReferences)
 {
+    if (buffer == nullptr)
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
+
     PdfLocaleImbue(m_doubleParser);
 }
 
@@ -48,8 +51,8 @@ bool PdfTokenizer::TryReadNextToken(PdfInputDevice& device, string_view& token, 
 {
     int c;
     int64_t counter = 0;
-    char* buffer = m_buffer.GetBuffer();
-    size_t bufferSize = m_buffer.GetSize();
+    char* buffer = m_buffer->data();
+    size_t bufferSize = m_buffer->size();
 
     // check first if there are queued tokens and return them first
     if (m_tokenQueque.size() != 0)

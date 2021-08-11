@@ -27,7 +27,7 @@ PdfContentsTokenizer::PdfContentsTokenizer(PdfCanvas& canvas)
 }
 
 PdfContentsTokenizer::PdfContentsTokenizer(const std::shared_ptr<PdfInputDevice>& device)
-    : m_buffer(PdfTokenizer::BufferSize), m_tokenizer(m_buffer), m_device(device), m_readingInlineImgData(false)
+    : m_buffer(std::make_shared<chars>(PdfTokenizer::BufferSize)), m_tokenizer(m_buffer), m_device(device), m_readingInlineImgData(false)
 {
 }
 
@@ -207,7 +207,7 @@ bool PdfContentsTokenizer::tryReadInlineImgData(PdfData& data)
             {
                 if (PdfTokenizer::IsWhitespace(ch))
                 {
-                    data = string_view(m_buffer.GetBuffer(), readCount - 2);
+                    data = string_view(m_buffer->data(), readCount - 2);
                     return true;
                 }
                 else
@@ -217,13 +217,13 @@ bool PdfContentsTokenizer::tryReadInlineImgData(PdfData& data)
             }
         }
 
-        if (m_buffer.GetSize() == readCount)
+        if (m_buffer->size() == readCount)
         {
             // image is larger than buffer => resize buffer
-            m_buffer.Resize(m_buffer.GetSize() * 2);
+            m_buffer->resize(m_buffer->size() * 2);
         }
 
-        m_buffer.GetBuffer()[readCount] = ch;
+        m_buffer->data()[readCount] = ch;
         readCount++;
     }
 

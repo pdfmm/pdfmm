@@ -87,7 +87,7 @@ private:
     bool tryReadInlineImgData(PdfData& data);
 
 private:
-    PdfSharedBuffer m_buffer;
+    std::shared_ptr<chars> m_buffer;
     PdfPostScriptTokenizer m_tokenizer;
     std::shared_ptr<PdfInputDevice> m_device;
     bool m_readingInlineImgData;  // A state of reading inline image data

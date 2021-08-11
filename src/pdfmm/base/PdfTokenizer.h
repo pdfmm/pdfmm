@@ -10,7 +10,6 @@
 #define PDF_TOKENIZER_H
 
 #include "PdfDefines.h"
-#include "PdfSharedBuffer.h"
 #include "PdfRefCountedInputDevice.h"
 
 #include <deque>
@@ -51,7 +50,7 @@ public:
 
 public:
     PdfTokenizer(bool readReferences = true);
-    PdfTokenizer(const PdfSharedBuffer& buffer, bool readReferences = true);
+    PdfTokenizer(const std::shared_ptr<chars>& buffer, bool readReferences = true);
 
     /** Reads the next token from the current file position
      *  ignoring all comments.
@@ -107,9 +106,6 @@ public:
      *  \param encrypt an encryption object which is used to decrypt strings during parsing
      */
     void ReadNextVariant(PdfInputDevice& device, PdfVariant& variant, PdfEncrypt* encrypt = nullptr);
-
-public:
-    PdfSharedBuffer& GetBuffer() { return m_buffer; }
 
 public:
     /** Returns true if the given character is a whitespace
@@ -259,7 +255,7 @@ private:
     typedef std::deque<TokenizerPair> TokenizerQueque;
 
 private:
-    PdfSharedBuffer m_buffer;
+    std::shared_ptr<chars> m_buffer;
     bool m_readReferences;
     TokenizerQueque m_tokenQueque;
     chars m_charBuffer;

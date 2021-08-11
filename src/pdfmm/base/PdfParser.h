@@ -388,7 +388,7 @@ private:
     void ResizeEntries(size_t newSize);
 
 private:
-    PdfSharedBuffer m_buffer;
+    std::shared_ptr<chars> m_buffer;
     PdfTokenizer m_tokenizer;
 
     PdfVersion m_PdfVersion;

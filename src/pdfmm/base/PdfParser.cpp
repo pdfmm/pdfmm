@@ -77,7 +77,7 @@ private:
 };
 
 PdfParser::PdfParser(PdfIndirectObjectList& objects) :
-    m_buffer(PdfTokenizer::BufferSize),
+    m_buffer(std::make_shared<chars>(PdfTokenizer::BufferSize)),
     m_tokenizer(m_buffer, true),
     m_Objects(&objects),
     m_StrictParsing(false)
@@ -379,7 +379,7 @@ void PdfParser::HasLinearizationDict(const PdfRefCountedInputDevice& device)
     device.Device()->Seek(static_cast<size_t>(xRef - PDF_XREF_BUF) > 0 ? static_cast<size_t>(xRef - PDF_XREF_BUF) : PDF_XREF_BUF);
     m_XRefLinearizedOffset = device.Device()->Tell();
 
-    char* buffer = m_buffer.GetBuffer();
+    char* buffer = m_buffer->data();
     if (device.Device()->Read(buffer, PDF_XREF_BUF) != PDF_XREF_BUF)
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidLinearization);
 
@@ -614,9 +614,9 @@ void PdfParser::ReadXRefContents(const PdfRefCountedInputDevice& device, size_t 
         ReadXRef(device, &offset);
         offset = device.Device()->Tell();
         // TODO: hard coded value "4"
-        m_buffer.Resize(PDF_XREF_BUF * 4);
+        m_buffer->resize(PDF_XREF_BUF * 4);
         FindToken2(device, "xref", PDF_XREF_BUF * 4, offset);
-        m_buffer.Resize(PDF_XREF_BUF);
+        m_buffer->resize(PDF_XREF_BUF);
         offset = device.Device()->Tell();
         m_XRefOffset = offset;
     }
@@ -789,7 +789,7 @@ void PdfParser::ReadXRefSubsection(const PdfRefCountedInputDevice& device, int64
     while (m_tokenizer.IsWhitespace((charcode = device.Device()->Look())))
         (void)device.Device()->GetChar();
 
-    char* buffer = m_buffer.GetBuffer();
+    char* buffer = m_buffer->data();
     while (count < objectCount && device.Device()->Read(buffer, PDF_XREF_ENTRY_SIZE) == PDF_XREF_ENTRY_SIZE)
     {
         char empty1;
@@ -1221,7 +1221,7 @@ void PdfParser::FindToken(const PdfRefCountedInputDevice& device, const char* to
     // James McGill 18.02.2011, offset read position to the EOF marker if it is not the last thing in the file
     device.Device()->Seek(-(streamoff)m_LastEOFOffset, ios_base::end);
 
-    char* buffer = m_buffer.GetBuffer();
+    char* buffer = m_buffer->data();
     streamoff fileSize = device.Device()->Tell();
     if (fileSize == -1)
     {
@@ -1271,7 +1271,7 @@ void PdfParser::FindToken2(const PdfRefCountedInputDevice& device, const char* t
 
     size_t xRefBuf = std::min(static_cast<size_t>(fileSize), range);
     size_t tokenLen = strlen(token);
-    char* buffer = m_buffer.GetBuffer();
+    char* buffer = m_buffer->data();
 
     device.Device()->Seek(-(streamoff)xRefBuf, ios_base::cur);
     if (device.Device()->Read(buffer, xRefBuf) != xRefBuf && !device.Device()->Eof())
