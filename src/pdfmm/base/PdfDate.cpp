@@ -154,7 +154,6 @@ PdfString PdfDate::createStringRepresentation(bool w3cstring) const
     auto secondsFromEpoch = m_secondsFromEpoch;
 
     string offset;
-    date::days dp;
     date::hh_mm_ss<chrono::seconds> time;
     date::year_month_day ymd;
     if (m_minutesFromUtc.has_value())
