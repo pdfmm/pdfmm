@@ -9,29 +9,35 @@
 
 pdfmm is a library to work with the PDF file format.
 pdfmm is a derivative work of the [PoDoFo](http://podofo.sourceforge.net/)
-library, from which it forked at revision [@1999](https://sourceforge.net/p/podofo/code/1999/).
+library, from which it forked at revision [Rev@1999](https://sourceforge.net/p/podofo/code/1999/).
 
 The pdfmm library is a free portable C++ library which
 includes classes to parse a PDF file and modify its contents
 into memory. The changes can be written back to disk easily.
-Besides PDF parsing and writing pdfmm includes also very
-simple classes to create your own PDF files. It currently
-does not include facilities to render pdf contents.
+Besides PDF parsing pdfmm includes also very simple classes
+to create your own PDF files. It currently does not include
+facilities to render pdf contents.
 
 ## Requirements
 
-To build pdfmm lib you need a working toolchain and a c++
-compiler as well as the following libraries:
+To build pdfmm lib you'll need a c++17 compiler,
+CMake 3.16 and the following libraries:
 
-*   zlib
-*   freetype2
-*   fontconfig (Unix & Mac OS X only)
-*   openSSL
-*   libjpeg (optional)
-*   libtiff (optional)
-*   libidn (optional)
+* zlib
+* freetype2
+* fontconfig (Unix platforms only)
+* OpenSSL
+* libjpeg (optional)
+* libtiff (optional)
+* libidn (optional)
 
-pdfmm has been tested with the following compilers
+pdfmm is currently tested with the following compilers/toolchains:
+
+* Visual Studio 2017 15.9
+* Visual Studio 2019 16.10
+* gcc 7.3.1
+* Android NDK R16 (clang 5.0)
+* XCode 11.2
 
 ## Licensing
 

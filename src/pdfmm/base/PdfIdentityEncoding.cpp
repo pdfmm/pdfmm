@@ -22,7 +22,6 @@ using namespace std;
 using namespace mm;
 
 static PdfEncodingLimits getLimits(unsigned char codeSpaceSize);
-static string getSuffix(unsigned char codeSpaceSize);
 
 PdfIdentityEncoding::PdfIdentityEncoding(unsigned char codeSpaceSize, PdfIdentityOrientation orientation)
     : PdfEncodingMap(getLimits(codeSpaceSize)), m_orientation(orientation)
@@ -90,21 +89,4 @@ PdfEncodingLimits getLimits(unsigned char codeSpaceSize)
 
     return { codeSpaceSize, codeSpaceSize, PdfCharCode(0, codeSpaceSize),
         PdfCharCode((unsigned)std::pow(2, codeSpaceSize * CHAR_BIT), codeSpaceSize) };
-}
-
-string getSuffix(unsigned char codeSpaceSize)
-{
-    switch (codeSpaceSize)
-    {
-        case 1:
-            return "1Byte";
-        case 2:
-            return "2Bytes";
-        case 3:
-            return "3Bytes";
-        case 4:
-            return "4Bytes";
-        default:
-            throw runtime_error("Unsupported");
-    }
 }

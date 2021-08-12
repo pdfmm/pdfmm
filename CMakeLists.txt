@@ -126,7 +126,9 @@ else()
         set(PDFMM_USE_VISIBILITY ${PDFMM_HAVE_GCC_SYMBOL_VISIBILITY})
     endif()
 
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Woverloaded-virtual -Wswitch -Wcast-qual -Wwrite-strings -Wredundant-decls -Wreorder -Wno-unknown-pragmas")
+    # TODO: Remove -Wno-format-truncation after porting the
+    # code to std::fmt as it will be unuseful
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Woverloaded-virtual -Wswitch -Wcast-qual -Wwrite-strings -Wredundant-decls -Wreorder -Wno-format-truncation -Wno-unknown-pragmas")
 
     # Note that we do not need debug definitions here. Set
     # -DCMAKE_BUILD_TYPE=debug or (if you want an optimised

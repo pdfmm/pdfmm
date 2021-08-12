@@ -189,8 +189,6 @@ void PdfFontType1::embedFontSubset()
             {
                 // we are now inside a glyph, copy anything until RD or -| to output,
                 // in case this glyph will be skipped we go back to saveOutIndex
-                unsigned outIndexSave = outIndex;
-
                 outBuff[outIndex++] = plain;
                 while (line.find("RD ") == static_cast<size_t>(-1)
                     && line.find("-| ") == static_cast<size_t>(-1))
@@ -203,7 +201,7 @@ void PdfFontType1::embedFontSubset()
 
                 ////
                 throw runtime_error("Untested after utf8 migration");
-
+                /*
                 // parse line for name and length of glyph
                 string glyphName = line;
                 unsigned glyphLen;
@@ -221,14 +219,12 @@ void PdfFontType1::embedFontSubset()
                 {
                     ////
                     throw runtime_error("Untested after utf8 migration");
-                    /*
                     if (m_usedSet.find(ch) != m_usedSet.end() &&
                         PdfDifferenceEncoding::UnicodeIDToName(ch).GetString() == glyphName)
                     {
                         useGlyph = true;
                         break;
                     }
-                    */
                 }
 
                 // always use .notdef
@@ -257,6 +253,7 @@ void PdfFontType1::embedFontSubset()
                     // glyph is not used, go back to saved position
                     outIndex = outIndexSave;
                 }
+                */
             }
             else
             {
@@ -417,6 +414,12 @@ void PdfFontType1::embedFontFile(PdfObject& descriptor)
 
 bool PdfFontType1::FindSeac(const char* buffer, size_t length)
 {
+    (void)buffer;
+    (void)length;
+    return false;
+    ////
+    throw runtime_error("Untested after utf8 migration");
+    /*
     PdfType1EncryptCharstring crypt;
     auto stdEncoding = PdfEncodingFactory::CreateStandardEncoding();
 
@@ -461,15 +464,11 @@ bool PdfFontType1::FindSeac(const char* buffer, size_t length)
                         case 6:		// seac
                         {
                             // found seac command, use acquired code1 and code2 to get glyphname in standard-encoding
-                            ////
-                            throw runtime_error("Untested after utf8 migration");
-                            /*
                             char32_t ch = stdEncoding->GetCodePoint(static_cast<unsigned>(code1));
                             foundNewGlyph = m_usedSet.insert(ch).second;
 
                             ch = stdEncoding->GetCodePoint(static_cast<unsigned>(code2));
                             foundNewGlyph = m_usedSet.insert(ch).second;
-                            */
                         }
                         break;
 
@@ -540,6 +539,7 @@ bool PdfFontType1::FindSeac(const char* buffer, size_t length)
         }
     }
     return foundNewGlyph;
+    */
 }
 
 ptrdiff_t PdfFontType1::FindInBuffer(const char* needle, const char* haystack, size_t len) const

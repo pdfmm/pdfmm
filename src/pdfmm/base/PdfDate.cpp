@@ -154,12 +154,9 @@ PdfString PdfDate::createStringRepresentation(bool w3cstring) const
     auto secondsFromEpoch = m_secondsFromEpoch;
 
     string offset;
-    unsigned y;
-    unsigned m;
-    unsigned d;
-    unsigned h;
-    unsigned M;
-    unsigned s;
+    date::days dp;
+    date::hh_mm_ss<chrono::seconds> time;
+    date::year_month_day ymd;
     if (m_minutesFromUtc.has_value())
     {
         auto minutesFromUtc = *m_minutesFromUtc;
@@ -188,44 +185,39 @@ PdfString PdfDate::createStringRepresentation(bool w3cstring) const
         // Assume sys time
         auto secondsFromEpoch = (date::sys_seconds)(m_secondsFromEpoch + minutesFromUtc);
         auto dp = date::floor<date::days>(secondsFromEpoch);
-        date::year_month_day ymd{ dp };
-        date::hh_mm_ss<chrono::seconds> time{ chrono::floor<chrono::seconds>(secondsFromEpoch - dp) };
-        y = (int)ymd.year();
-        m = (unsigned)ymd.month();
-        d = (unsigned)ymd.day();
-        h = (unsigned)time.hours().count();
-        M = (unsigned)time.minutes().count();
-        s = (unsigned)time.seconds().count();
+        ymd = date::year_month_day(dp);
+        time = date::hh_mm_ss<chrono::seconds>(chrono::floor<chrono::seconds>(secondsFromEpoch - dp));
     }
     else
     {
         // Assume local time
         auto secondsFromEpoch = (date::local_seconds)m_secondsFromEpoch;
         auto dp = date::floor<date::days>(secondsFromEpoch);
-        date::year_month_day ymd{ dp };
-        date::hh_mm_ss<chrono::seconds> time{ chrono::floor<chrono::seconds>(secondsFromEpoch - dp) };
-        y = (int)ymd.year();
-        m = (unsigned)ymd.month();
-        d = (unsigned)ymd.day();
-        h = (unsigned)time.hours().count();
-        M = (unsigned)time.minutes().count();
-        s = (unsigned)time.seconds().count();
+        ymd = date::year_month_day(dp);
+        time = date::hh_mm_ss<chrono::seconds>(chrono::floor<chrono::seconds>(secondsFromEpoch - dp));
     }
 
+    short y = (short)(int)ymd.year();
+    unsigned char m = (unsigned char)(unsigned)ymd.month();
+    unsigned char d = (unsigned char)(unsigned)ymd.day();
+    unsigned char h = (unsigned char)time.hours().count();
+    unsigned char M = (unsigned char)time.minutes().count();
+    unsigned char s = (unsigned char)time.seconds().count();
+
+    int len;
     if (w3cstring)
     {
         // e.g. "1998-12-23T19:52:07-08:00"
-        snprintf(date.data(), W3C_DATE_BUFFER_SIZE, "%04u-%02u-%02uT%02u:%02u:%02u%s", y, m, d, h, M, s, offset.data());
+        len = snprintf(date.data(), W3C_DATE_BUFFER_SIZE, "%04d-%02u-%02uT%02u:%02u:%02u%s", y, m, d, h, M, s, offset.data());
     }
     else
     {
         // e.g. "D:19981223195207−08'00'"
-        snprintf(date.data(), PDF_DATE_BUFFER_SIZE, "D:%04u%02u%02u%02u%02u%02u%s", y, m, d, h, M, s, offset.data());
+        len = snprintf(date.data(), PDF_DATE_BUFFER_SIZE, "D:%04d%02u%02u%02u%02u%02u%s", y, m, d, h, M, s, offset.data());
     }
 
-    return PdfString(date.data());
+    return PdfString(string_view(date.data(), (size_t)len));
 }
-
 
 bool PdfDate::ParseFixLenNumber(const char*& in, unsigned length, int min, int max, int& ret)
 {
