@@ -106,7 +106,7 @@ void PdfPage::EnsureResourcesCreated() const
     m_Resources->GetDictionary().AddKey("ProcSet", PdfCanvas::GetProcSet());
 }
 
-PdfStream& PdfPage::GetStreamForAppending(EPdfStreamAppendFlags flags)
+PdfStream& PdfPage::GetStreamForAppending(PdfStreamAppendFlags flags)
 {
     EnsureContentsCreated();
     return m_contents->GetStreamForAppending(flags);

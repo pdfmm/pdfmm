@@ -69,7 +69,7 @@ public:
      * therefore the cache has to be updated
      *
      * \param atIndex zero based index of the page we are inserting
-     * \param nCount number of pages that were inserted
+     * \param count number of pages that were inserted
      */
     void InsertPlaceHolders(unsigned atIndex, unsigned count);
 

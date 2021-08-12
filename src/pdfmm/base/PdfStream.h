@@ -39,7 +39,7 @@ class PDFMM_API PdfStream
 public:
     /** The default filter to use when changing the stream content.
      *  It's a static member and applies to all newly created/changed streams.
-     *  The default value is EPdfFilter::FlateDecode.
+     *  The default value is PdfFilterType::FlateDecode.
      */
     static enum PdfFilterType DefaultFilter;
 

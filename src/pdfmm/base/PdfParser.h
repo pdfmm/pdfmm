@@ -55,7 +55,7 @@ public:
      *                       file in memory.
      *
      *
-     *  This might throw a PdfError( EPdfError::InvalidPassword ) exception
+     *  This might throw a PdfError( PdfErrorCode::InvalidPassword ) exception
      *  if a password is required to read this PDF.
      *  Call SetPassword() with the correct password in this case.
      *
@@ -73,7 +73,7 @@ public:
      *                       file in memory.
      *
      *
-     *  This might throw a PdfError( EPdfError::InvalidPassword ) exception
+     *  This might throw a PdfError( PdfErrorCode::InvalidPassword ) exception
      *  if a password is required to read this PDF.
      *  Call SetPassword() with the correct password in this case.
      *
@@ -91,7 +91,7 @@ public:
      *                       file in memory.
      *
      *
-     *  This might throw a PdfError( EPdfError::InvalidPassword ) exception
+     *  This might throw a PdfError( PdfErrorCode::InvalidPassword ) exception
      *  if a password is required to read this PDF.
      *  Call SetPassword() with the correct password in this case.
      *
@@ -128,7 +128,7 @@ public:
 
 public:
     /** If you try to open an encrypted PDF file, which requires
-     *  a password to open, pdfmm will throw a PdfError( EPdfError::InvalidPassword )
+     *  a password to open, pdfmm will throw a PdfError( PdfErrorCode::InvalidPassword )
      *  exception.
      *
      *  If you got such an exception, you have to set a password
@@ -140,7 +140,7 @@ public:
      *  PdfParser will immediately continue to read the PDF file.
      *
      *  \param password a user or owner password which can be used to open an encrypted PDF file
-     *                   If the password is invalid, a PdfError( EPdfError::InvalidPassword ) exception is thrown!
+     *                   If the password is invalid, a PdfError( PdfErrorCode::InvalidPassword ) exception is thrown!
      */
     inline void SetPassword(const std::string_view& password) { m_password = password; }
 
@@ -284,7 +284,7 @@ private:
 
     /** Read a xref subsection
      *
-     *  Throws EPdfError::NoXref if the number of objects read was not
+     *  Throws PdfErrorCode::NoXref if the number of objects read was not
      *  the number specified by the subsection header (as passed in
      *  'objectCount').
      *

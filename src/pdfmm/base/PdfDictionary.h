@@ -166,14 +166,14 @@ public:
      *
      * The returned value is a reference to the internal object in the dictionary
      * so it MUST not be deleted. If the key is not found, this throws a PdfError
-     * exception with error code EPdfError::NoObject, instead of returning.
+     * exception with error code PdfErrorCode::NoObject, instead of returning.
      * This is intended to make code more readable by sparing (especially multiple)
      * nullptr checks.
      *
      *  \param key look for the key named key in the dictionary
      *
      *  \returns reference to the found value (never 0).
-     *  \throws PdfError(EPdfError::NoObject).
+     *  \throws PdfError(PdfErrorCode::NoObject).
      */
     const PdfObject& MustGetKey(const PdfName& key) const;
     PdfObject& MustGetKey(const PdfName& key);
@@ -228,7 +228,7 @@ public:
 
 protected:
     void ResetDirtyInternal() override;
-    void SetOwner(PdfObject* pOwner) override;
+    void SetOwner(PdfObject* owner) override;
 
 private:
     PdfObject& addKey(const PdfName& key, const PdfObject& obj);

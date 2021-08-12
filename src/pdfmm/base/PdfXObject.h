@@ -127,7 +127,7 @@ private:
     void InitIdentifiers(PdfXObjectType subType, const std::string_view& prefix);
     void InitAfterPageInsertion(const PdfDocument& doc, unsigned pageIndex);
     void InitResources();
-    PdfStream& GetStreamForAppending(EPdfStreamAppendFlags flags) override;
+    PdfStream& GetStreamForAppending(PdfStreamAppendFlags flags) override;
 
 private:
     PdfRect m_Rect;

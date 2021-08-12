@@ -19,7 +19,7 @@ class PdfObject;
 class PdfRect;
 class PdfColor;
 
-enum class EPdfStreamAppendFlags
+enum class PdfStreamAppendFlags
 {
     None = 0,
     Prepend = 1,
@@ -49,7 +49,7 @@ public:
      *  drawing commands to the stream of the Contents object.
      *  \returns a contents object
      */
-    virtual PdfStream& GetStreamForAppending(EPdfStreamAppendFlags flags) = 0;
+    virtual PdfStream& GetStreamForAppending(PdfStreamAppendFlags flags) = 0;
 
     /** Get access to the resources object of this page.
      *  This is most likely an internal object.
@@ -93,6 +93,6 @@ public:
 
 };
 
-ENABLE_BITMASK_OPERATORS(mm::EPdfStreamAppendFlags);
+ENABLE_BITMASK_OPERATORS(mm::PdfStreamAppendFlags);
 
 #endif // PDF_CANVAS_H

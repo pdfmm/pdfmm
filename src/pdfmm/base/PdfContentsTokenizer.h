@@ -58,7 +58,7 @@ public:
      *  If EOF is encountered, returns false and leaves contentsType, keyword and
      *  variant undefined.
      *
-     *  As a special case, reType may be set to EPdfContentsType::ImageData. In
+     *  As a special case, reType may be set to PdfContentsType::ImageData. In
      *  this case keyword is undefined, and variant contains a PdfData
      *  variant containing the byte sequence between the ID and BI keywords
      *  sans the one byte of leading- and trailing- white space. No filter
@@ -67,12 +67,12 @@ public:
      *  \param[out] contentsType will be set to either keyword or variant if true is returned. Undefined
      *              if false is returned.
      *
-     *  \param[out] keyword if pType is set to EPdfContentsType::Keyword this will point to the keyword,
+     *  \param[out] keyword if pType is set to PdfContentsType::Keyword this will point to the keyword,
      *              otherwise the value is undefined. If set, the value points to memory owned by the
      *              PdfContentsTokenizer and must not be freed. The value is invalidated when TryReadNext
      *              is next called or when the PdfContentsTokenizer is destroyed.
      *
-     *  \param[out] variant if pType is set to EPdfContentsType::Variant or EPdfContentsType::ImageData
+     *  \param[out] variant if pType is set to PdfContentsType::Variant or PdfContentsType::ImageData
      *              this will be set to the read variant, otherwise the value is undefined.
      *
      */

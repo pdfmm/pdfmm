@@ -146,7 +146,7 @@ public:
     /** Set the stoke style for all stroking operations.
      *  \param strokeStyle style of the stroking operations
      *  \param custom a custom stroking style which is used when
-     *                   strokeStyle == EPdfStrokeStyle::Custom.
+     *                   strokeStyle == PdfStrokeStyle::Custom.
       *  \param inverted inverted dash style (gaps for drawn spaces),
       *                  it is ignored for None, Solid and Custom styles
       *  \param scale scale factor of the stroke style
@@ -156,13 +156,13 @@ public:
       *                        is used only if scale is not 1.0
      *
      *  Possible values:
-     *    EPdfStrokeStyle::None
-     *    EPdfStrokeStyle::Solid
-     *    EPdfStrokeStyle::Dash
-     *    EPdfStrokeStyle::Dot
-     *    EPdfStrokeStyle::DashDot
-     *    EPdfStrokeStyle::DashDotDot
-     *    EPdfStrokeStyle::Custom
+     *    PdfStrokeStyle::None
+     *    PdfStrokeStyle::Solid
+     *    PdfStrokeStyle::Dash
+     *    PdfStrokeStyle::Dot
+     *    PdfStrokeStyle::DashDot
+     *    PdfStrokeStyle::DashDotDot
+     *    PdfStrokeStyle::Custom
      *
      */
     void SetStrokeStyle(PdfStrokeStyle strokeStyle, const std::string_view& custom = { }, bool inverted = false, double scale = 1.0, bool subtractJoinCap = false);
@@ -171,9 +171,9 @@ public:
      *  \param eCapStyle the cap style.
      *
      *  Possible values:
-     *    EPdfLineCapStyle::Butt,
-     *    EPdfLineCapStyle::Round,
-     *    EPdfLineCapStyle::Square
+     *    PdfLineCapStyle::Butt,
+     *    PdfLineCapStyle::Round,
+     *    PdfLineCapStyle::Square
      */
     void SetLineCapStyle(PdfLineCapStyle capStyle);
 
@@ -181,9 +181,9 @@ public:
      *  \param eJoinStyle the join style.
      *
      *  Possible values:
-     *    EPdfLineJoinStyle::Miter
-     *    EPdfLineJoinStyle::Round
-     *    EPdfLineJoinStyle::Bevel
+     *    PdfLineJoinStyle::Miter
+     *    PdfLineJoinStyle::Round
+     *    PdfLineJoinStyle::Bevel
      */
     void SetLineJoinStyle(PdfLineJoinStyle joinStyle);
 
@@ -198,14 +198,14 @@ public:
      *  \param mode What text rendering mode to use.
      *
      *  Possible values:
-     *    EPdfTextRenderingMode::Fill (default mode)
-     *    EPdfTextRenderingMode::Stroke
-     *    EPdfTextRenderingMode::FillAndStroke
-     *    EPdfTextRenderingMode::Invisible
-     *    EPdfTextRenderingMode::FillToClipPath
-     *    EPdfTextRenderingMode::StrokeToClipPath
-     *    EPdfTextRenderingMode::FillAndStrokeToClipPath
-     *    EPdfTextRenderingMode::ToClipPath
+     *    PdfTextRenderingMode::Fill (default mode)
+     *    PdfTextRenderingMode::Stroke
+     *    PdfTextRenderingMode::FillAndStroke
+     *    PdfTextRenderingMode::Invisible
+     *    PdfTextRenderingMode::FillToClipPath
+     *    PdfTextRenderingMode::StrokeToClipPath
+     *    PdfTextRenderingMode::FillAndStrokeToClipPath
+     *    PdfTextRenderingMode::ToClipPath
      */
     void SetTextRenderingMode(PdfTextRenderingMode mode);
 
@@ -609,7 +609,7 @@ public:
     inline PdfTextState& GetTextState() { return m_textState; }
 
     /** Gets current text rendering mode.
-     *  Default mode is EPdfTextRenderingMode::Fill.
+     *  Default mode is PdfTextRenderingMode::Fill.
      */
     inline PdfTextRenderingMode GetTextRenderingMode() const { return m_currentTextRenderingMode; }
 

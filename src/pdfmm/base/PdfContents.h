@@ -34,7 +34,7 @@ public:
     /** Get access to an object into which you can add contents
      *   at the end of the "stream".
      */
-    PdfStream & GetStreamForAppending(EPdfStreamAppendFlags flags);
+    PdfStream & GetStreamForAppending(PdfStreamAppendFlags flags);
 
 private:
     PdfPage *m_parent;

@@ -129,14 +129,14 @@ public:
 public:
     /** Clear all internal member variables and free the memory
      *  they have allocated.
-     *  Sets the datatype to EPdfDataType::Null
+     *  Sets the datatype to PdfDataType::Null
      *
      *  This will reset the dirty flag of this object to be clean.
      *  \see IsDirty
      */
     void Clear();
 
-    /** \returns the datatype of this object or EPdfDataType::Unknown
+    /** \returns the datatype of this object or PdfDataType::Unknown
      *  if it does not have a value.
      */
     PdfDataType GetDataType() const;

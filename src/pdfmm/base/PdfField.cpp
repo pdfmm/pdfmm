@@ -362,8 +362,8 @@ void PdfField::SetBorderColorTransparent()
 {
     PdfArray array;
 
-    PdfObject* pMK = this->GetAppearanceCharacteristics(true);
-    pMK->GetDictionary().AddKey("BC", array);
+    auto mk = this->GetAppearanceCharacteristics(true);
+    mk->GetDictionary().AddKey("BC", array);
 }
 
 void PdfField::SetBorderColor(double gray)
@@ -371,8 +371,8 @@ void PdfField::SetBorderColor(double gray)
     PdfArray array;
     array.push_back(gray);
 
-    PdfObject* pMK = this->GetAppearanceCharacteristics(true);
-    pMK->GetDictionary().AddKey("BC", array);
+    auto mk = this->GetAppearanceCharacteristics(true);
+    mk->GetDictionary().AddKey("BC", array);
 }
 
 void PdfField::SetBorderColor(double red, double green, double blue)
@@ -382,8 +382,8 @@ void PdfField::SetBorderColor(double red, double green, double blue)
     array.push_back(green);
     array.push_back(blue);
 
-    PdfObject* pMK = this->GetAppearanceCharacteristics(true);
-    pMK->GetDictionary().AddKey("BC", array);
+    auto mk = this->GetAppearanceCharacteristics(true);
+    mk->GetDictionary().AddKey("BC", array);
 }
 
 void PdfField::SetBorderColor(double cyan, double magenta, double yellow, double black)
@@ -394,16 +394,16 @@ void PdfField::SetBorderColor(double cyan, double magenta, double yellow, double
     array.push_back(yellow);
     array.push_back(black);
 
-    PdfObject* pMK = this->GetAppearanceCharacteristics(true);
-    pMK->GetDictionary().AddKey("BC", array);
+    auto mk = this->GetAppearanceCharacteristics(true);
+    mk->GetDictionary().AddKey("BC", array);
 }
 
 void PdfField::SetBackgroundColorTransparent()
 {
     PdfArray array;
 
-    PdfObject* pMK = this->GetAppearanceCharacteristics(true);
-    pMK->GetDictionary().AddKey("BG", array);
+    auto mk = this->GetAppearanceCharacteristics(true);
+    mk->GetDictionary().AddKey("BG", array);
 }
 
 void PdfField::SetBackgroundColor(double gray)
@@ -411,8 +411,8 @@ void PdfField::SetBackgroundColor(double gray)
     PdfArray array;
     array.push_back(gray);
 
-    PdfObject* pMK = this->GetAppearanceCharacteristics(true);
-    pMK->GetDictionary().AddKey("BG", array);
+    auto mk = this->GetAppearanceCharacteristics(true);
+    mk->GetDictionary().AddKey("BG", array);
 }
 
 void PdfField::SetBackgroundColor(double red, double green, double blue)
@@ -422,8 +422,8 @@ void PdfField::SetBackgroundColor(double red, double green, double blue)
     array.push_back(green);
     array.push_back(blue);
 
-    PdfObject* pMK = this->GetAppearanceCharacteristics(true);
-    pMK->GetDictionary().AddKey("BG", array);
+    auto mk = this->GetAppearanceCharacteristics(true);
+    mk->GetDictionary().AddKey("BG", array);
 }
 
 void PdfField::SetBackgroundColor(double cyan, double magenta, double yellow, double black)
@@ -434,8 +434,8 @@ void PdfField::SetBackgroundColor(double cyan, double magenta, double yellow, do
     array.push_back(yellow);
     array.push_back(black);
 
-    PdfObject* pMK = this->GetAppearanceCharacteristics(true);
-    pMK->GetDictionary().AddKey("BG", array);
+    auto mk = this->GetAppearanceCharacteristics(true);
+    mk->GetDictionary().AddKey("BG", array);
 }
 
 void PdfField::SetName(const PdfString& name)

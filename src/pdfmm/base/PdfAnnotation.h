@@ -220,7 +220,7 @@ public:
     std::optional<PdfString> GetContents() const;
 
     /** Set the destination for link annotations
-     *  \param rDestination target of the link
+     *  \param destination target of the link
      *
      *  \see GetDestination
      */
@@ -277,7 +277,7 @@ public:
 
     /** Set a file attachment for this annotation.
      *  The type of this annotation has to be
-     *  EPdfAnnotation::FileAttachement for file
+     *  PdfAnnotationType::FileAttachement for file
      *  attachements to work.
      *
      *  \param rFileSpec a file specification

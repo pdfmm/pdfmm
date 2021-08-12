@@ -59,7 +59,7 @@ public:
      *  The PDF version can only be set in the constructor
      *  as it is the first item written to the document on disk
      *
-     *  \returns EPdfVersion version of the pdf document
+     *  \returns PdfVersion version of the pdf document
      */
     PdfVersion GetPdfVersion() const;
 

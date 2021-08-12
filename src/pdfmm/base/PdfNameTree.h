@@ -70,13 +70,13 @@ public:
     bool HasValue(const PdfName& tree, const PdfString& key) const;
 
     /** Tests whether a key is in the range of a limits entry of a name tree node
-     *  \returns EPdfNameLimits::Inside if the key is inside of the range
-     *  \returns EPdfNameLimits::After if the key is greater than the specified range
-     *  \returns EPdfNameLimits::Before if the key is smalelr than the specified range
+     *  \returns PdfNameLimits::Inside if the key is inside of the range
+     *  \returns PdfNameLimits::After if the key is greater than the specified range
+     *  \returns PdfNameLimits::Before if the key is smalelr than the specified range
      *
      *  Internal use only.
      */
-    static PdfNameLimits CheckLimits(const PdfObject* obj, const PdfString& key);
+    static PdfNameLimits CheckLimits(const PdfObject& obj, const PdfString& key);
 
     /**
      * Adds all keys and values from a name tree to a dictionary.
@@ -124,14 +124,14 @@ private:
      *  \param key the key to find a value for
      *  \return the value for the key or nullptr if it was not found
      */
-    PdfObject* GetKeyValue(PdfObject* obj, const PdfString& key) const;
+    PdfObject* GetKeyValue(PdfObject& obj, const PdfString& key) const;
 
     /**
      *  Add all keys and values from an object and its children to a dictionary.
      *  \param obj a pdf name tree node
      *  \param dict a dictionary
      */
-    void AddToDictionary(PdfObject* obj, PdfDictionary& dict);
+    void AddToDictionary(PdfObject& obj, PdfDictionary& dict);
 };
 
 };

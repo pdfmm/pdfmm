@@ -46,7 +46,7 @@ enum class PdfFieldType
  *  button is pressed.
  *
  *  The default value is
- *  EPdfHighlightingMode::Invert
+ *  PdfHighlightingMode::Invert
  */
 enum class PdfHighlightingMode
 {
@@ -155,7 +155,7 @@ public:
      *
      *  \param mode the highliting mode
      *
-     *  The default value is EPdfHighlightingMode::Invert
+     *  The default value is PdfHighlightingMode::Invert
      */
     void SetHighlightingMode(PdfHighlightingMode mode);
 

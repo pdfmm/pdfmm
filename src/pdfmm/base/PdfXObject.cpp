@@ -266,7 +266,7 @@ void PdfXObject::EnsureResourcesInitialized()
     GetObject().ForceCreateStream();
 }
 
-inline PdfStream& PdfXObject::GetStreamForAppending(EPdfStreamAppendFlags flags)
+inline PdfStream& PdfXObject::GetStreamForAppending(PdfStreamAppendFlags flags)
 {
     (void)flags; // Flags have no use here
     return GetObject().GetOrCreateStream();

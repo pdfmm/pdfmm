@@ -71,12 +71,12 @@ public:
      */
     PdfAction(PdfObject& obj);
 
-    /** Set the URI of an EPdfAction::URI
+    /** Set the URI of an PdfActionType::URI
      *  \param sUri must be a correct URI as PdfString
      */
     void SetURI(const PdfString& uri);
 
-    /** Get the URI of an EPdfAction::URI
+    /** Get the URI of an PdfActionType::URI
      *  \returns an URI
      */
     PdfString GetURI() const;

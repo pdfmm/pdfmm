@@ -220,7 +220,7 @@ public:
 
 protected:
     void ResetDirtyInternal() override;
-    void SetOwner(PdfObject* pOwner) override;
+    void SetOwner(PdfObject* owner) override;
 
 private:
     void add(const PdfObject& obj);

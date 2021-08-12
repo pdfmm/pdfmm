@@ -37,7 +37,7 @@ PdfObject & PdfContents::GetContents() const
     return *m_object;
 }
 
-PdfStream & PdfContents::GetStreamForAppending(EPdfStreamAppendFlags flags)
+PdfStream & PdfContents::GetStreamForAppending(PdfStreamAppendFlags flags)
 {
     PdfArray *arr;
     if (m_object->IsArray())
@@ -58,7 +58,7 @@ PdfStream & PdfContents::GetStreamForAppending(EPdfStreamAppendFlags flags)
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
     }
 
-    if ((flags & EPdfStreamAppendFlags::NoSaveRestorePrior) == EPdfStreamAppendFlags::None)
+    if ((flags & PdfStreamAppendFlags::NoSaveRestorePrior) == PdfStreamAppendFlags::None)
     {
         // Record all content and readd into a new stream that
         // substitue all the previous streams
@@ -87,7 +87,7 @@ PdfStream & PdfContents::GetStreamForAppending(EPdfStreamAppendFlags flags)
 
     // Create a new stream, add it to the array, return it
     PdfObject * newStm = m_object->GetDocument()->GetObjects().CreateDictionaryObject();
-    if ((flags & EPdfStreamAppendFlags::Prepend) == EPdfStreamAppendFlags::Prepend)
+    if ((flags & PdfStreamAppendFlags::Prepend) == PdfStreamAppendFlags::Prepend)
         arr->insert(arr->begin(), newStm->GetIndirectReference());
     else
         arr->push_back(newStm->GetIndirectReference());

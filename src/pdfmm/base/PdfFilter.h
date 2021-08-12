@@ -283,10 +283,10 @@ private:
 };
 
 /** A factory to create a filter object for a filter type (as GetType() gives)
- *  from the EPdfFilter enum.
+ *  from the PdfFilterType enum.
  *  All filters should be created using this factory.
  */
-class PDFMM_API PdfFilterFactory
+class PDFMM_API PdfFilterFactory final
 {
 public:
     /** Create a filter from an enum.
@@ -359,8 +359,7 @@ public:
     static PdfFilterList CreateFilterList(const PdfObject& filtersObj);
 
 private:
-    // prohibit instantiation of all-methods-static factory from outside
-    PdfFilterFactory();
+    PdfFilterFactory() = delete;
 };
 
 }

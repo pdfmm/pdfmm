@@ -245,10 +245,6 @@ void PdfFilter::Decode(const char* inBuffer, size_t inLen, std::unique_ptr<char[
 // PdfFilterFactory code
 //
 
-PdfFilterFactory::PdfFilterFactory()
-{
-}
-
 std::unique_ptr<PdfFilter> PdfFilterFactory::Create(const PdfFilterType filterType)
 {
     PdfFilter* filter = nullptr;

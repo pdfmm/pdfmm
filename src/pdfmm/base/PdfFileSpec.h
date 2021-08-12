@@ -66,7 +66,7 @@ private:
      *  \param obj write the file to this object stream
      *  \param filename the file to embedd
      */
-    void EmbeddFile(PdfObject* obj, const std::string_view& filename) const;
+    void EmbeddFile(PdfObject& obj, const std::string_view& filename) const;
 
     /** Strips path from a file, according to \a striPath
      *  \param filename a file name string
@@ -79,7 +79,7 @@ private:
     /* Petr P. Petrov 17 September 2009*/
     /** Embeds the file from memory
       */
-    void EmbeddFileFromMem(PdfObject* obj, const char* data, size_t size) const;
+    void EmbeddFileFromMem(PdfObject& obj, const char* data, size_t size) const;
 };
 
 };

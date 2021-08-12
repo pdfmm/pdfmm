@@ -63,7 +63,7 @@ bool PdfNameTreeNode::AddValue(const PdfString& key, const PdfObject& value)
             if (childObj == nullptr)
                 PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-            limits = PdfNameTree::CheckLimits(childObj, key);
+            limits = PdfNameTree::CheckLimits(*childObj, key);
             if ((limits == PdfNameLimits::Before) ||
                 (limits == PdfNameLimits::Inside))
             {
@@ -334,7 +334,7 @@ PdfObject* PdfNameTree::GetValue(const PdfName& tree, const PdfString& key) cons
 
     if (obj != nullptr)
     {
-        result = this->GetKeyValue(obj, key);
+        result = this->GetKeyValue(*obj, key);
         if (result != nullptr && result->IsReference())
             result = this->GetObject().GetDocument()->GetObjects().GetObject(result->GetReference());
     }
@@ -342,17 +342,17 @@ PdfObject* PdfNameTree::GetValue(const PdfName& tree, const PdfString& key) cons
     return result;
 }
 
-PdfObject* PdfNameTree::GetKeyValue(PdfObject* obj, const PdfString& key) const
+PdfObject* PdfNameTree::GetKeyValue(PdfObject& obj, const PdfString& key) const
 {
     if (PdfNameTree::CheckLimits(obj, key) != PdfNameLimits::Inside)
         return nullptr;
 
-    if (obj->GetDictionary().HasKey("Kids"))
+    if (obj.GetDictionary().HasKey("Kids"))
     {
-        auto& kids = obj->GetDictionary().MustFindKey("Kids").GetArray();
+        auto& kids = obj.GetDictionary().MustFindKey("Kids").GetArray();
         for (auto& child : kids)
         {
-            PdfObject* childObj = this->GetObject().GetDocument()->GetObjects().GetObject(child.GetReference());
+            auto childObj = this->GetObject().GetDocument()->GetObjects().GetObject(child.GetReference());
             if (childObj == nullptr)
             {
                 PdfError::LogMessage(LogSeverity::Debug, "Object %lu %lu is child of nametree but was not found!",
@@ -361,7 +361,7 @@ PdfObject* PdfNameTree::GetKeyValue(PdfObject* obj, const PdfString& key) const
             }
             else
             {
-                auto result = GetKeyValue(childObj, key);
+                auto result = GetKeyValue(*childObj, key);
                 if (result != nullptr)
                 {
                     // If recursive call returns nullptr, continue with
@@ -373,7 +373,7 @@ PdfObject* PdfNameTree::GetKeyValue(PdfObject* obj, const PdfString& key) const
     }
     else
     {
-        auto& names = obj->GetDictionary().MustFindKey("Names").GetArray();
+        auto& names = obj.GetDictionary().MustFindKey("Names").GetArray();
         PdfArray::iterator it = names.begin();
 
         // a names array is a set of PdfString/PdfObject pairs
@@ -415,11 +415,11 @@ bool PdfNameTree::HasValue(const PdfName& tree, const PdfString& key) const
     return this->GetValue(tree, key) != nullptr;
 }
 
-PdfNameLimits PdfNameTree::CheckLimits(const PdfObject* obj, const PdfString& key)
+PdfNameLimits PdfNameTree::CheckLimits(const PdfObject& obj, const PdfString& key)
 {
-    if (obj->GetDictionary().HasKey("Limits"))
+    if (obj.GetDictionary().HasKey("Limits"))
     {
-        auto& limits = obj->GetDictionary().MustFindKey("Limits").GetArray();
+        auto& limits = obj.GetDictionary().MustFindKey("Limits").GetArray();
 
         if (limits[0].GetString().GetString() > key.GetString())
             return PdfNameLimits::Before;
@@ -430,8 +430,8 @@ PdfNameLimits PdfNameTree::CheckLimits(const PdfObject* obj, const PdfString& ke
     else
     {
         PdfError::LogMessage(LogSeverity::Debug, "Name tree object %lu %lu does not have a limits key!",
-            obj->GetIndirectReference().ObjectNumber(),
-            obj->GetIndirectReference().GenerationNumber());
+            obj.GetIndirectReference().ObjectNumber(),
+            obj.GetIndirectReference().GenerationNumber());
     }
 
     return PdfNameLimits::Inside;
@@ -440,19 +440,19 @@ PdfNameLimits PdfNameTree::CheckLimits(const PdfObject* obj, const PdfString& ke
 void PdfNameTree::ToDictionary(const PdfName& tree, PdfDictionary& dict)
 {
     dict.Clear();
-    PdfObject* obj = this->GetRootNode(tree);
+    auto obj = this->GetRootNode(tree);
     if (obj != nullptr)
-        AddToDictionary(obj, dict);
+        AddToDictionary(*obj, dict);
 }
 
-void PdfNameTree::AddToDictionary(PdfObject* obj, PdfDictionary& dict)
+void PdfNameTree::AddToDictionary(PdfObject& obj, PdfDictionary& dict)
 {
-    if (obj->GetDictionary().HasKey("Kids"))
+    if (obj.GetDictionary().HasKey("Kids"))
     {
-        auto& kids = obj->GetDictionary().MustFindKey("Kids").GetArray();
+        auto& kids = obj.GetDictionary().MustFindKey("Kids").GetArray();
         for (auto& child : kids)
         {
-            PdfObject* childObj = this->GetObject().GetDocument()->GetObjects().GetObject(child.GetReference());
+            auto childObj = this->GetObject().GetDocument()->GetObjects().GetObject(child.GetReference());
             if (childObj == nullptr)
             {
                 PdfError::LogMessage(LogSeverity::Debug, "Object %lu %lu is child of nametree but was not found!",
@@ -461,13 +461,13 @@ void PdfNameTree::AddToDictionary(PdfObject* obj, PdfDictionary& dict)
             }
             else
             {
-                this->AddToDictionary(childObj, dict);
+                this->AddToDictionary(*childObj, dict);
             }
         }
     }
-    else if (obj->GetDictionary().HasKey("Names"))
+    else if (obj.GetDictionary().HasKey("Names"))
     {
-        auto& names = obj->GetDictionary().MustFindKey("Names").GetArray();
+        auto& names = obj.GetDictionary().MustFindKey("Names").GetArray();
         auto it = names.begin();
 
         // a names array is a set of PdfString/PdfObject pairs
@@ -482,8 +482,8 @@ void PdfNameTree::AddToDictionary(PdfObject* obj, PdfDictionary& dict)
                 PdfError::LogMessage(LogSeverity::Warning,
                     "No reference in /Names array last element in "
                     "object %lu %lu, possible exploit attempt!",
-                    obj->GetIndirectReference().ObjectNumber(),
-                    obj->GetIndirectReference().GenerationNumber());
+                    obj.GetIndirectReference().ObjectNumber(),
+                    obj.GetIndirectReference().GenerationNumber());
                 break;
             }
             dict.AddKey(name, *it);

@@ -208,7 +208,7 @@ public:
     PdfObject& GetResources() override;
 
 private:
-    PdfStream& GetStreamForAppending(EPdfStreamAppendFlags flags) override;
+    PdfStream& GetStreamForAppending(PdfStreamAppendFlags flags) override;
 
     /**
      * Initialize a new page object.

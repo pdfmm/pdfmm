@@ -49,13 +49,13 @@ public:
 
     /** Create a PdfOutlineItem that is a child of this item
      *  \param title title of this item
-     *  \param rDest destination of this item
+     *  \param dest destination of this item
      */
     PdfOutlineItem* CreateChild(const PdfString& title, const std::shared_ptr<PdfDestination>& dest);
 
     /** Create a PdfOutlineItem that is on the same level and follows the current item.
      *  \param title title of this item
-     *  \param rDest destination of this item
+     *  \param dest destination of this item
      */
     PdfOutlineItem* CreateNext(const PdfString& title, const std::shared_ptr<PdfDestination>& dest);
 
@@ -68,7 +68,7 @@ public:
     /** Inserts a new PdfOutlineItem as a child of this outline item.
      *  The former can't be in the same tree as this one, as the tree property
      *  would be broken. If this prerequisite is violated, a PdfError
-     *  exception (code EPdfError::OutlineItemAlreadyPresent) is thrown and
+     *  exception (code PdfErrorCode::OutlineItemAlreadyPresent) is thrown and
      *  nothing is changed.
      *  The item inserted is not copied, i.e. Erase() calls affect the original!
      *  Therefore also shared ownership is in effect, i.e. deletion by where it
@@ -113,7 +113,7 @@ public:
     void Erase();
 
     /** Set the destination of this outline.
-     *  \param rDest the destination
+     *  \param dest the destination
      */
     void SetDestination(const std::shared_ptr<PdfDestination>& dest);
 
@@ -145,10 +145,10 @@ public:
     /** Set the text format of the title.
      *  Supported since PDF 1.4.
      *
-     *  \param eFormat the formatting options
+     *  \param format the formatting options
      *                 for the title
      */
-    void SetTextFormat(PdfOutlineFormat eFormat);
+    void SetTextFormat(PdfOutlineFormat format);
 
     /** Get the text format of the title
      *  \returns the text format of the title

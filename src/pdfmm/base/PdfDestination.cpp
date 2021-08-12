@@ -178,18 +178,13 @@ void PdfDestination::AddToDictionary(PdfDictionary& dictionary) const
     dictionary.AddKey("Dest", *m_Object);
 }
 
-PdfPage* PdfDestination::GetPage(PdfDocument* doc)
+PdfPage* PdfDestination::GetPage()
 {
     if (m_array.size() == 0)
         return nullptr;
 
     // first entry in the array is the page - so just make a new page from it!
-    return &doc->GetPageTree().GetPage(m_array[0].GetReference());
-}
-
-PdfPage* PdfDestination::GetPage(PdfIndirectObjectList* objects)
-{
-    return this->GetPage(&objects->GetDocument());
+    return &m_Object->GetDocument()->GetPageTree().GetPage(m_array[0].GetReference());
 }
 
 PdfDestinationType PdfDestination::GetType() const

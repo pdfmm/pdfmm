@@ -1568,7 +1568,7 @@ void PdfPainter::CheckStream()
         return;
 
     PDFMM_RAISE_LOGIC_IF(m_canvas == nullptr, "Call SetCanvas() first before doing drawing operations");
-    m_stream = &m_canvas->GetStreamForAppending((EPdfStreamAppendFlags)(m_flags & (~PdfPainterFlags::NoSaveRestore)));
+    m_stream = &m_canvas->GetStreamForAppending((PdfStreamAppendFlags)(m_flags & (~PdfPainterFlags::NoSaveRestore)));
 }
 
 string expandTabs(const string_view& str, unsigned tabWidth, unsigned tabCount)

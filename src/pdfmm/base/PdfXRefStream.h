@@ -31,10 +31,10 @@ class PdfXRefStream : public PdfXRef
 public:
     /** Create a new XRef table
      *
+     *  \param writer is needed to fill the trailer directory
+     *                 correctly which is included into the XRef
      *  \param parent a vector of PdfObject is required
      *                 to create a PdfObject for the XRef
-     *  \param pWriter is needed to fill the trailer directory
-     *                 correctly which is included into the XRef
      */
     PdfXRefStream(PdfWriter& writer, PdfIndirectObjectList& parent);
 
@@ -44,7 +44,7 @@ public:
 
 protected:
     void BeginWrite(PdfOutputDevice& device) override;
-    void WriteSubSection(PdfOutputDevice& device, uint32_t nFirst, uint32_t nCount) override;
+    void WriteSubSection(PdfOutputDevice& device, uint32_t first, uint32_t count) override;
     void WriteXRefEntry(PdfOutputDevice& device, const PdfXRefEntry& entry) override;
     void EndWriteImpl(PdfOutputDevice& device) override;
 

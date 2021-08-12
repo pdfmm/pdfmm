@@ -433,14 +433,14 @@ unique_ptr<PdfEncrypt> PdfEncrypt::CreatePdfEncrypt(const string_view& userPassw
     }
 }
 
-unique_ptr<PdfEncrypt> PdfEncrypt::CreatePdfEncrypt(const PdfObject* encryptObj)
+unique_ptr<PdfEncrypt> PdfEncrypt::CreatePdfEncrypt(const PdfObject& encryptObj)
 {
-    if (!encryptObj->GetDictionary().HasKey("Filter") ||
-        encryptObj->GetDictionary().GetKey("Filter")->GetName() != "Standard")
+    if (!encryptObj.GetDictionary().HasKey("Filter") ||
+        encryptObj.GetDictionary().GetKey("Filter")->GetName() != "Standard")
     {
         ostringstream oss;
-        if (encryptObj->GetDictionary().HasKey("Filter"))
-            oss << "Unsupported encryption filter: " << encryptObj->GetDictionary().GetKey("Filter")->GetName().GetString();
+        if (encryptObj.GetDictionary().HasKey("Filter"))
+            oss << "Unsupported encryption filter: " << encryptObj.GetDictionary().GetKey("Filter")->GetName().GetString();
         else
             oss << "Encryption dictionary does not have a key /Filter.";
 
@@ -458,27 +458,27 @@ unique_ptr<PdfEncrypt> PdfEncrypt::CreatePdfEncrypt(const PdfObject* encryptObj)
 
     try
     {
-        lV = static_cast<int>(encryptObj->GetDictionary().MustGetKey("V").GetNumber());
-        rValue = static_cast<int>(encryptObj->GetDictionary().MustGetKey("R").GetNumber());
+        lV = static_cast<int>(encryptObj.GetDictionary().MustGetKey("V").GetNumber());
+        rValue = static_cast<int>(encryptObj.GetDictionary().MustGetKey("R").GetNumber());
 
-        pValue = static_cast<PdfPermissions>(encryptObj->GetDictionary().MustGetKey("P").GetNumber());
+        pValue = static_cast<PdfPermissions>(encryptObj.GetDictionary().MustGetKey("P").GetNumber());
 
-        oValue = encryptObj->GetDictionary().MustGetKey("O").GetString();
-        uValue = encryptObj->GetDictionary().MustGetKey("U").GetString();
+        oValue = encryptObj.GetDictionary().MustGetKey("O").GetString();
+        uValue = encryptObj.GetDictionary().MustGetKey("U").GetString();
 
-        if (encryptObj->GetDictionary().HasKey("Length"))
-            length = encryptObj->GetDictionary().GetKey("Length")->GetNumber();
+        if (encryptObj.GetDictionary().HasKey("Length"))
+            length = encryptObj.GetDictionary().GetKey("Length")->GetNumber();
         else
             length = 0;
 
-        const PdfObject* encryptMetadataObj = encryptObj->GetDictionary().GetKey("EncryptMetadata");
+        const PdfObject* encryptMetadataObj = encryptObj.GetDictionary().GetKey("EncryptMetadata");
         if (encryptMetadataObj != nullptr && encryptMetadataObj->IsBool())
             encryptMetadata = encryptMetadataObj->GetBool();
 
-        auto stmfObj = encryptObj->GetDictionary().GetKey("StmF");
+        auto stmfObj = encryptObj.GetDictionary().GetKey("StmF");
         if (stmfObj != nullptr && stmfObj->IsName())
         {
-            const PdfObject* obj = encryptObj->GetDictionary().GetKey("CF");
+            const PdfObject* obj = encryptObj.GetDictionary().GetKey("CF");
             if (obj != nullptr && obj->IsDictionary())
             {
                 obj = obj->GetDictionary().GetKey(stmfObj->GetName());

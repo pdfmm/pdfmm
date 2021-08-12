@@ -52,10 +52,10 @@ public:
     PdfImage(PdfObject& obj);
 
     /** Set the color space of this image. The default value is
-     *  EPdfColorSpace::DeviceRGB.
-     *  \param colorSpace one of EPdfColorSpace::DeviceGray, EPdfColorSpace::DeviceRGB and
-     *                     EPdfColorSpace::DeviceCMYK, EPdfColorSpace::Indexed
-     *  \param indexedData this parameter is required only for EPdfColorSpace::Indexed and
+     *  PdfColorSpace::DeviceRGB.
+     *  \param colorSpace one of PdfColorSpace::DeviceGray, PdfColorSpace::DeviceRGB and
+     *                     PdfColorSpace::DeviceCMYK, PdfColorSpace::Indexed
+     *  \param indexedData this parameter is required only for PdfColorSpace::Indexed and
      *       it contains string with one number and then color palette, like "/DeviceRGB 15 <000000 00FF00...>"
      *       or the string array can be a resource name.
      *
@@ -80,7 +80,7 @@ public:
     void SetImageICCProfile(PdfInputStream& stream, unsigned colorComponents,
         PdfColorSpace alternateColorSpace = PdfColorSpace::DeviceRGB);
 
-    //EPdfColorSpace GetImageColorSpace() const;
+    //PdfColorSpace GetImageColorSpace() const;
 
     /** Set a softmask for this image.
      *  \param pSoftmask a PdfImage pointer to the image, which is to be set as softmask, must be 8-Bit-Grayscale
@@ -211,7 +211,7 @@ public:
 
 private:
 
-    /** Converts a EPdfColorSpace enum to a name key which can be used in a
+    /** Converts a PdfColorSpace enum to a name key which can be used in a
      *  PDF dictionary.
      *  \param colorSpace a valid colorspace
      *  \returns a valid key for this colorspace.

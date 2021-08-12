@@ -66,7 +66,7 @@ public:
      *  \param filename filename of the file which is going to be parsed/opened
      *  \param bForUpdate whether to load for incremental update
      *
-     *  This might throw a PdfError( EPdfError::InvalidPassword ) exception
+     *  This might throw a PdfError( PdfErrorCode::InvalidPassword ) exception
      *  if a password is required to read this PDF.
      *  Call SetPassword with the correct password in this case.
      *
@@ -86,7 +86,7 @@ public:
      *  \param filename filename of the file which is going to be parsed/opened
      *  \param bForUpdate whether to load for incremental update
      *
-     *  This might throw a PdfError( EPdfError::InvalidPassword ) exception
+     *  This might throw a PdfError( PdfErrorCode::InvalidPassword ) exception
      *  if a password is required to read this PDF.
      *  Call SetPassword with the correct password in this case.
      *
@@ -103,7 +103,7 @@ public:
      *  \param len length of the buffer
      *  \param bForUpdate whether to load for incremental update
      *
-     *  This might throw a PdfError( EPdfError::InvalidPassword ) exception
+     *  This might throw a PdfError( PdfErrorCode::InvalidPassword ) exception
      *  if a password is required to read this PDF.
      *  Call SetPassword with the correct password in this case.
      *
@@ -118,7 +118,7 @@ public:
      *
      *  \param device the input device containing the PDF
      *
-     *  This might throw a PdfError( EPdfError::InvalidPassword ) exception
+     *  This might throw a PdfError( PdfErrorCode::InvalidPassword ) exception
      *  if a password is required to read this PDF.
      *  Call SetPassword with the correct password in this case.
      *
@@ -204,23 +204,23 @@ public:
     inline PdfVersion GetPdfVersion() const override { return m_Version; }
 
     /** Add a vendor-specific extension to the current PDF version.
-     *  \param ns  namespace of the extension
-     *  \param level  level of the extension
+     *  \param ns namespace of the extension
+     *  \param level level of the extension
      */
-    void AddPdfExtension(const char* ns, int64_t level);
+    void AddPdfExtension(const PdfName& ns, int64_t level);
 
     /** Checks whether the documents is tagged to imlpement a vendor-specific
      *  extension to the current PDF version.
      *  \param ns  namespace of the extension
      *  \param level  level of the extension
      */
-    bool HasPdfExtension(const char* ns, int64_t level) const;
+    bool HasPdfExtension(const PdfName& ns, int64_t level) const;
 
     /** Remove a vendor-specific extension to the current PDF version.
      *  \param ns  namespace of the extension
      *  \param level  level of the extension
      */
-    void RemovePdfExtension(const char* ns, int64_t level);
+    void RemovePdfExtension(const PdfName& ns, int64_t level);
 
     /** Return the list of all vendor-specific extensions to the current PDF version.
      *  \param ns  namespace of the extension
@@ -229,7 +229,7 @@ public:
     std::vector<PdfExtension> GetPdfExtensions() const;
 
     /** If you try to open an encrypted PDF file, which requires
-     *  a password to open, pdfmm will throw a PdfError( EPdfError::InvalidPassword )
+     *  a password to open, pdfmm will throw a PdfError( PdfErrorCode::InvalidPassword )
      *  exception.
      *
      *  If you got such an exception, you have to set a password
@@ -241,7 +241,7 @@ public:
      *  PdfParser will immediately continue to read the PDF file.
      *
      *  \param password a user or owner password which can be used to open an encrypted PDF file
-     *                   If the password is invalid, a PdfError( EPdfError::InvalidPassword ) exception is thrown!
+     *                   If the password is invalid, a PdfError( PdfErrorCode::InvalidPassword ) exception is thrown!
      */
     void SetPassword(const std::string_view& password);
 
@@ -250,11 +250,11 @@ public:
      *  \param userPassword the user password (if empty the user does not have
      *                      to enter a password to open the document)
      *  \param ownerPassword the owner password
-     *  \param protection several EPdfPermissions values or'ed together to set
+     *  \param protection several PdfPermissions values or'ed together to set
      *                    the users permissions for this document
      *  \param algorithm the revision of the encryption algorithm to be used
      *  \param keyLength the length of the encryption key ranging from 40 to 256 bits
-     *                    (only used if algorithm >= EPdfEncryptAlgorithm::RC4V2)
+     *                    (only used if algorithm >= PdfEncryptAlgorithm::RC4V2)
      *
      *  \see PdfEncrypt
      */

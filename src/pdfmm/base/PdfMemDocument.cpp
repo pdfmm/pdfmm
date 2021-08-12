@@ -170,7 +170,7 @@ void PdfMemDocument::LoadFromDevice(const std::shared_ptr<PdfInputDevice>& devic
     InitFromParser(&parser);
 }
 
-void PdfMemDocument::AddPdfExtension(const char* ns, int64_t level)
+void PdfMemDocument::AddPdfExtension(const PdfName& ns, int64_t level)
 {
     if (!this->HasPdfExtension(ns, level))
     {
@@ -194,7 +194,7 @@ void PdfMemDocument::AddPdfExtension(const char* ns, int64_t level)
     }
 }
 
-bool PdfMemDocument::HasPdfExtension(const char* ns, int64_t level) const {
+bool PdfMemDocument::HasPdfExtension(const PdfName& ns, int64_t level) const {
 
     auto extensions = this->GetCatalog().GetDictionary().FindKey("Extensions");
     if (extensions != nullptr)
@@ -245,7 +245,7 @@ vector<PdfExtension> PdfMemDocument::GetPdfExtensions() const
  *  \param ns  namespace of the extension
  *  \param level  level of the extension
  */
-void PdfMemDocument::RemovePdfExtension(const char* ns, int64_t level)
+void PdfMemDocument::RemovePdfExtension(const PdfName& ns, int64_t level)
 {
     if (this->HasPdfExtension(ns, level))
         this->GetCatalog().GetDictionary().FindKey("Extensions")->GetDictionary().RemoveKey("ns");

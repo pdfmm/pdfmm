@@ -247,12 +247,12 @@ void PdfXRef::BeginWrite(PdfOutputDevice& device)
     device.Print("xref\n");
 }
 
-void PdfXRef::WriteSubSection(PdfOutputDevice& device, uint32_t nFirst, uint32_t nCount)
+void PdfXRef::WriteSubSection(PdfOutputDevice& device, uint32_t first, uint32_t count)
 {
 #ifdef DEBUG
-    PdfError::DebugMessage("Writing XRef section: %u %u\n", nFirst, nCount);
+    PdfError::DebugMessage("Writing XRef section: %u %u\n", first, count);
 #endif // DEBUG
-    device.Print("%u %u\n", nFirst, nCount);
+    device.Print("%u %u\n", first, count);
 }
 
 void PdfXRef::WriteXRefEntry(PdfOutputDevice& device, const PdfXRefEntry& entry)

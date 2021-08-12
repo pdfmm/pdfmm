@@ -141,10 +141,10 @@ protected:
      *
      *  \param device the output device to which the XRef table
      *                 should be written.
-     *  \param nFirst the object number of the first object in this subsection
-     *  \param nCount the number of entries in this subsection
+     *  \param first the object number of the first object in this subsection
+     *  \param count the number of entries in this subsection
      */
-    virtual void WriteSubSection(PdfOutputDevice& device, uint32_t nFirst, uint32_t nCount);
+    virtual void WriteSubSection(PdfOutputDevice& device, uint32_t first, uint32_t count);
 
     /** Write a single entry to the XRef table
      *

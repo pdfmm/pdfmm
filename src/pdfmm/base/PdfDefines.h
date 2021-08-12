@@ -162,8 +162,8 @@ enum class PdfDataType : uint8_t
 /**
  * Every filter that can be used to encode a stream
  * in a PDF file is referenced by an own enum value.
- * Common filters are EPdfFilter::FlateDecode (i.e. Zip) or
- * EPdfFilter::ASCIIHexDecode
+ * Common filters are PdfFilterType::FlateDecode (i.e. Zip) or
+ * PdfFilterType::ASCIIHexDecode
  */
 enum class PdfFilterType
 {

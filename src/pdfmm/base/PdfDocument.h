@@ -61,7 +61,7 @@ public:
     virtual PdfWriteMode GetWriteMode() const = 0;
 
     /** Get the PDF version of the document
-     *  \returns EPdfVersion version of the pdf document
+     *  \returns PdfVersion version of the pdf document
      */
     virtual PdfVersion GetPdfVersion() const = 0;
 
@@ -165,10 +165,10 @@ public:
 
     /** Adds a PdfDestination into the global Names tree
      *  with the specified name, optionally replacing one of the same name.
-     *  \param rDest the destination to be assigned
+     *  \param dest the destination to be assigned
      *  \param name the name for the destination
      */
-    void AddNamedDestination(const PdfDestination& rDest, const PdfString& name);
+    void AddNamedDestination(const PdfDestination& dest, const PdfString& name);
 
     /** Sets the opening mode for a document.
      *  \param inMode which mode to set

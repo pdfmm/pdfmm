@@ -53,7 +53,7 @@ enum class PdfDestinationType
  *
  *  \see PdfOutlineItem \see PdfAnnotation \see PdfDocument
  */
-// TODO: Make this a PdfElement
+// TODO: Make this a PdfElement, after introduction of PdfElement that handles PdfArray as well
 class PDFMM_API PdfDestination final
 {
 public:
@@ -69,7 +69,7 @@ public:
 
     /** Create a new PdfDestination with a page as destination
      *  \param page a page which is the destination
-     *  \param fit fit mode for the page. Must be EPdfDestinationFit::Fit or EPdfDestinationFit::FitB
+     *  \param fit fit mode for the page. Must be PdfDestinationFit::Fit or PdfDestinationFit::FitB
      */
     PdfDestination(const PdfPage& page, PdfDestinationFit fit = PdfDestinationFit::Fit);
 
@@ -90,8 +90,8 @@ public:
 
     /** Create a new destination to a page.
      *  \param page a page which is the destination
-     *  \param fit fit mode for the Page. Allowed values are EPdfDestinationFit::FitH,
-     *              EPdfDestinationFit::FitV, EPdfDestinationFit::FitBH, EPdfDestinationFit::FitBV
+     *  \param fit fit mode for the Page. Allowed values are PdfDestinationFit::FitH,
+     *              PdfDestinationFit::FitV, PdfDestinationFit::FitBH, PdfDestinationFit::FitBV
      *  \param value value which is a required argument for the selected fit mode
      */
     PdfDestination(const PdfPage& page, PdfDestinationFit fit, double value);
@@ -110,22 +110,10 @@ public:
     /** Get the page that this destination points to
      *  Requires that this PdfDestination was somehow
      *  created by or from a PdfDocument. Won't work otherwise.
-     *  \param doc a PDF document owning this destination, needed to resolve pages
      *
      *  \returns the referenced PdfPage
      */
-     // TODO: This is bullshit. Make PdfDestination a PdfElement and remove the parameter
-    PdfPage* GetPage(PdfDocument* doc);
-
-    /** Get the page that this destination points to
-     *  Requires that this PdfDestination was somehow
-     *  created by or from a PdfDocument. Won't work otherwise.
-     *  \param objects a PdfIndirectObjectList owning this destination, needed to resolve pages
-     *
-     *  \returns the referenced PdfPage
-     */
-     // TODO: This is bullshit. Make PdfDestination a PdfElement and remove the parameter
-    PdfPage* GetPage(PdfIndirectObjectList* objects);
+    PdfPage* GetPage();
 
     /** Get the destination fit type
      *

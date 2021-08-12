@@ -38,8 +38,7 @@ static const char* s_names[] = {
 PdfAction::PdfAction(PdfDocument& doc, PdfActionType action)
     : PdfElement(doc, "Action"), m_Type(action)
 {
-    const PdfName type = PdfName(TypeNameForIndex((unsigned)action, s_names, std::size(s_names)));
-
+    PdfName type(TypeNameForIndex((unsigned)action, s_names, std::size(s_names)));
     if (type.GetLength() == 0)
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
@@ -67,7 +66,7 @@ PdfString PdfAction::GetURI() const
 
 bool PdfAction::HasURI() const
 {
-    return (this->GetObject().GetDictionary().FindKey("URI") != nullptr);
+    return this->GetObject().GetDictionary().FindKey("URI") != nullptr;
 }
 
 void PdfAction::SetScript(const PdfString& script)

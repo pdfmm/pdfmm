@@ -19,8 +19,8 @@ class PdfObject;
 
 /**
  * There are Pdfs spanning delimiters or begin/end tags into
- * streams. Let's create a device correctly spanning I/O
- * reads into these
+ * contents streams. Let's create a device correctly spanning
+ * I/O reads into these
  */
 class PdfCanvasInputDevice : public PdfInputDevice
 {

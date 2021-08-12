@@ -136,7 +136,7 @@ public:
      *
      *  \see GetEnabledEncryptionAlgorithms
      */
-    static std::unique_ptr<PdfEncrypt> CreatePdfEncrypt(const PdfObject* obj);
+    static std::unique_ptr<PdfEncrypt> CreatePdfEncrypt(const PdfObject& obj);
 
     /** Copy constructor
      *

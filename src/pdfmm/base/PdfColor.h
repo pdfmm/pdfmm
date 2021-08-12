@@ -347,7 +347,7 @@ public:
      *  Convert a name into a colorspace enum.
      *
      *  \param name name representing a colorspace such as DeviceGray
-     *  \returns colorspace enum or ePdfColorSpace_Unknown if name is unknown
+     *  \returns colorspace enum or PdfColorSpace_Unknown if name is unknown
      *  \see GetNameForColorSpace
      */
     static PdfColorSpace GetColorSpaceForName(const PdfName& name);
@@ -363,7 +363,7 @@ public:
 
     /** Creates a colorspace object from a color to insert into resources.
      *
-     *  \param pOwner a pointer to the owner of the generated object
+     *  \param document a pointer to the owner document of the generated object
      *  \returns a PdfObject pointer, which can be insert into resources, nullptr if not needed
      */
     PdfObject* BuildColorSpace(PdfDocument& document) const;

@@ -102,7 +102,7 @@ public:
     inline void SetPdfVersion(PdfVersion version) { m_Version = version; }
 
     /** Get the PDF version of the document
-     *  \returns EPdfVersion version of the pdf document
+     *  \returns PdfVersion version of the pdf document
      */
     inline PdfVersion GetPdfVersion() const { return m_Version; }
 

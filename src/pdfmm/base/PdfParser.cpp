@@ -943,7 +943,7 @@ void PdfParser::ReadObjects(const shared_ptr<PdfInputDevice>& device)
                 // we create a new one, if we need it for writing
                 // m_Objects->push_back( obj );
                 m_entries[i].Parsed = false;
-                m_Encrypt = PdfEncrypt::CreatePdfEncrypt(obj);
+                m_Encrypt = PdfEncrypt::CreatePdfEncrypt(*obj);
                 delete obj;
             }
             catch (PdfError& e)
@@ -960,7 +960,7 @@ void PdfParser::ReadObjects(const shared_ptr<PdfInputDevice>& device)
         }
         else if (encrypt->IsDictionary())
         {
-            m_Encrypt = PdfEncrypt::CreatePdfEncrypt(encrypt);
+            m_Encrypt = PdfEncrypt::CreatePdfEncrypt(*encrypt);
         }
         else
         {

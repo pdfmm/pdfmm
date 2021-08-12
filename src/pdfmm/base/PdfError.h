@@ -118,14 +118,14 @@ enum class LogSeverity
 /** \def PDFMM_RAISE_ERROR( x )
  *
  *  Throw an exception of type PdfError with the error code x, which should be
- *  one of the values of the enum EPdfError. File and line info are included.
+ *  one of the values of the enum PdfErrorCode. File and line info are included.
  */
 #define PDFMM_RAISE_ERROR( x ) throw ::mm::PdfError( x, __FILE__, __LINE__ );
 
 /** \def PDFMM_RAISE_ERROR_INFO( x, y )
  *
  *  Throw an exception of type PdfError with the error code x, which should be
- *  one of the values of the enum EPdfError. File and line info are included.
+ *  one of the values of the enum PdfErrorCode. File and line info are included.
  *  Additionally extra information on the error, y is set, which will also be
  *  output by PdfError::PrintErrorMsg().
  *  y can be a C string, but can also be a C++ std::string.
@@ -179,7 +179,7 @@ typedef std::deque<PdfErrorInfo> PdErrorInfoQueue;
  *  This class does not inherit from std::exception.
  *
  *  This class also provides meaningful error descriptions
- *  for the error codes which are values of the enum EPdfError,
+ *  for the error codes which are values of the enum PdfErrorCode,
  *  which are all codes pdfmm uses (except the first and last one).
  */
 class PDFMM_EXCEPTION_API_DOXYGEN PdfError final
@@ -201,7 +201,7 @@ public:
      */
     static LogMessageCallback* SetLogMessageCallback(LogMessageCallback* logMessageCallback);
 
-    /** Create a PdfError object initialized to EPdfError::ErrOk.
+    /** Create a PdfError object initialized to PdfErrorCode::Ok.
      */
     PdfError();
 
@@ -239,7 +239,7 @@ public:
     const PdfError& operator=(const PdfError& rhs);
 
     /** Overloaded assignment operator
-     *  \param code a EPdfError code
+     *  \param code a PdfErrorCode code
      *  \returns this object
      */
     const PdfError& operator=(const PdfErrorCode& code);
@@ -252,7 +252,7 @@ public:
 
     /** Overloaded comparison operator, compares this PdfError object
      *  with an error code
-     *  \param code an error code (value of the enum EPdfError)
+     *  \param code an error code (value of the enum PdfErrorCode)
      *  \returns true if this object has the same error code.
      */
     bool operator==(const PdfErrorCode& code);
@@ -265,7 +265,7 @@ public:
 
     /** Overloaded comparison operator, compares this PdfError object
      *  with an error code
-     *  \param code an error code (value of the enum EPdfError)
+     *  \param code an error code (value of the enum PdfErrorCode)
      *  \returns true if this object has a different error code.
      */
     bool operator!=(const PdfErrorCode& code);
@@ -354,7 +354,7 @@ public:
     void AddToCallstack(const char* file, int line, const std::string_view& information);
 
     /** \returns true if an error code was set
-     *           and false if the error code is EPdfError::ErrOk.
+     *           and false if the error code is PdfErrorCode::Ok.
      */
     bool IsError() const;
 

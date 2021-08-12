@@ -87,7 +87,7 @@ public:
 
     /** Construct a PdfVariant object with array data.
      *  The variant will automatically get the datatype
-     *  EPdfDataType::Array. This constructor is the fastest
+     *  PdfDataType::Array. This constructor is the fastest
      *  way to create a new PdfVariant that is an array.
      *
      *  \param arr a list of variants
@@ -114,7 +114,7 @@ public:
 
     /** Clear all internal member variables and free the memory
      *  they have allocated.
-     *  Sets the datatype to EPdfDataType::Null
+     *  Sets the datatype to PdfDataType::Null
      *
      *  This will reset the dirty flag of this object to be clean.
      *  \see IsDirty
