@@ -122,9 +122,9 @@ endif(PDFMM_BUILD_SHARED)
 # on some platforms, and can even cause undefined results at runtime.
 if(WIN32 AND USING_SHARED_PDFMM)
     set(PDFMM_CFLAGS "-DUSING_SHARED_PDFMM" CACHE INTERNAL "Extra flags required when linking to pdfmm")
-else(WIN32 AND USING_SHARED_PDFMM)
+else()
     set(PDFMM_CFLAGS "" CACHE INTERNAL "Extra flags required when linking to pdfmm")
-endif(WIN32 AND USING_SHARED_PDFMM)
+endif()
 
 # Write the cflags and depend target to the config file
 file(APPEND

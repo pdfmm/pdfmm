@@ -418,7 +418,7 @@ PdfCID PdfFont::AddUsedGID(unsigned gid, const cspan<char32_t>& codePoints)
 
         // We start numberings CIDs from 1 since
         // CID 0 is reserved for fallbacks
-        m_UsedGIDs[gid] = PdfCID(m_UsedGIDs.size() + 1, codeUnit);
+        m_UsedGIDs[gid] = PdfCID((unsigned)m_UsedGIDs.size() + 1, codeUnit);
         return codeUnit;
     }
     else

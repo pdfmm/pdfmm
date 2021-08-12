@@ -114,8 +114,8 @@ public:
      */
     bool empty() const;
 
-    PdfObject& operator[](size_t idx);
-    const PdfObject& operator[](size_t idx) const;
+    PdfObject& operator[](size_type idx);
+    const PdfObject& operator[](size_type idx) const;
 
     /**
      * Resize the internal vector.

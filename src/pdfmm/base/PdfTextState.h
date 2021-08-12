@@ -60,11 +60,11 @@ namespace mm
          */
         inline double GetWordSpace() const { return m_WordSpace; }
 
-        inline bool SetUnderlined(bool underlined) { m_Underlined = underlined; }
+        inline void SetUnderlined(bool underlined) { m_Underlined = underlined; }
 
         inline bool IsUnderlined() const { return m_Underlined; }
 
-        inline bool SetStrikeOut(bool strikedOut) { m_StrikedOut = strikedOut; }
+        inline void SetStrikeOut(bool strikedOut) { m_StrikedOut = strikedOut; }
 
         inline bool IsStrikeOut() const { return m_StrikedOut; }
 

@@ -9,8 +9,6 @@
 # Note that you don't need the headers for pdfmm's dependencies in your
 # header search path.
 
-ADD_EXECUTABLE(helloworld helloworld.cpp)
-
-TARGET_LINK_LIBRARIES(helloworld ${PDFMM_LIB})
-SET_TARGET_PROPERTIES(helloworld PROPERTIES COMPILE_FLAGS "${PDFMM_CFLAGS}")
-ADD_DEPENDENCIES(helloworld ${PDFMM_DEPEND_TARGET})
+add_compile_options(${PDFMM_CFLAGS})
+add_executable(helloworld helloworld.cpp)
+target_link_libraries(helloworld ${PDFMM_DEPEND_TARGET})

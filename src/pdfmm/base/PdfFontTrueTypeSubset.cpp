@@ -47,7 +47,7 @@ static constexpr unsigned LENGTH_DWORD = 4;
 static constexpr unsigned LENGTH_WORD = 2;
 
 //Get the number of bytes to pad the ul, because of 4-byte-alignment.
-static uint32_t GetTableCheksum(const char* buf, unsigned size);
+static uint32_t GetTableCheksum(const char* buf, uint32_t size);
 
 static void TTFWriteUInt32(PdfOutputDevice& output, uint32_t value);
 static void TTFWriteUInt16(PdfOutputDevice& output, uint16_t value);
@@ -487,9 +487,9 @@ void PdfFontTrueTypeSubset::WriteTables(string& buffer)
 
         // Write dynamic font directory table entries
         size_t currDirTableOffset = directoryTableOffset + i * LENGTH_OFFSETTABLE16;
-        TTFWriteUInt32(buffer.data() + currDirTableOffset + 4, GetTableCheksum(buffer.data() + tableOffset, tableLength));
-        TTFWriteUInt32(buffer.data() + currDirTableOffset + 8, tableOffset);
-        TTFWriteUInt32(buffer.data() + currDirTableOffset + 12, tableLength);
+        TTFWriteUInt32(buffer.data() + currDirTableOffset + 4, GetTableCheksum(buffer.data() + tableOffset, (uint32_t)tableLength));
+        TTFWriteUInt32(buffer.data() + currDirTableOffset + 8, (uint32_t)tableOffset);
+        TTFWriteUInt32(buffer.data() + currDirTableOffset + 12, (uint32_t)tableLength);
     }
 
     // Check for head table
@@ -498,7 +498,7 @@ void PdfFontTrueTypeSubset::WriteTables(string& buffer)
 
     // As explained in the "Table Directory"
     // https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6.html#Directory
-    uint32_t fontChecksum = 0xB1B0AFBA - GetTableCheksum(buffer.data(), (unsigned)output.Tell());
+    uint32_t fontChecksum = 0xB1B0AFBA - GetTableCheksum(buffer.data(), (uint32_t)output.Tell());
     TTFWriteUInt32(buffer.data() + *headOffset + 4, fontChecksum);
 }
 
@@ -516,7 +516,7 @@ void PdfFontTrueTypeSubset::GetData(void* dst, unsigned offset, unsigned size)
     m_Device->Read((char*)dst, size);
 }
 
-uint32_t GetTableCheksum(const char* buf, unsigned size)
+uint32_t GetTableCheksum(const char* buf, uint32_t size)
 {
     // As explained in the "Table Directory"
     // https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6.html#Directory

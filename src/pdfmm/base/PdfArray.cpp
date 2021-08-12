@@ -254,15 +254,15 @@ void PdfArray::reserve(size_type n)
     m_Objects.reserve(n);
 }
 
-PdfObject& PdfArray::operator[](size_t idx)
+PdfObject& PdfArray::operator[](size_type idx)
 {
     AssertMutable();
-    return getAt(idx);
+    return getAt((unsigned)idx);
 }
 
-const PdfObject& PdfArray::operator[](size_t idx) const
+const PdfObject& PdfArray::operator[](size_type idx) const
 {
-    return getAt(idx);
+    return getAt((unsigned)idx);
 }
 
 PdfArray::iterator PdfArray::begin()

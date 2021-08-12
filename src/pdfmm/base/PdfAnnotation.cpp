@@ -62,7 +62,7 @@ PdfAnnotation::PdfAnnotation(PdfPage& page, PdfAnnotationType annotType, const P
     PdfVariant rectVar;
     PdfDate date;
 
-    const PdfName name(TypeNameForIndex((unsigned)annotType, s_names, std::size(s_names)));
+    const PdfName name(TypeNameForIndex((unsigned)annotType, s_names, (unsigned)std::size(s_names)));
 
     if (name.GetLength() == 0)
     {
@@ -83,7 +83,7 @@ PdfAnnotation::PdfAnnotation(PdfPage& page, PdfObject& obj)
 {
     m_AnnotationType = static_cast<PdfAnnotationType>(TypeNameToIndex(
         this->GetObject().GetDictionary().FindKeyAs<PdfName>(PdfName::KeySubtype).GetString().c_str(),
-        s_names, std::size(s_names), (int)PdfAnnotationType::Unknown));
+        s_names, (unsigned)std::size(s_names), (int)PdfAnnotationType::Unknown));
 }
 
 PdfAnnotation::~PdfAnnotation() { }

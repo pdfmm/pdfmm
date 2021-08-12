@@ -10,7 +10,7 @@
 #include "PdfFontManager.h" 
 
 #ifdef _WIN32
-#include <WindowsLeanMean.h>
+#include <pdfmm/compat/WindowsLeanMean.h>
 #endif // _WIN32
 
 #include <algorithm>
