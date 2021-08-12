@@ -314,6 +314,7 @@ void PdfIndirectObjectList::RenumberObjects(PdfObject& trailer, ReferenceSet* no
 
 void PdfIndirectObjectList::insertOneReferenceIntoVector(const PdfObject& obj, ReferencePointersList& list)
 {
+    (void)obj;
     (void)list;
     throw runtime_error("FIX-ME, we don't support taking address of PdfReference anymore");
 

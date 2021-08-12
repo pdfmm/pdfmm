@@ -100,6 +100,8 @@ void PdfFileStream::EndAppendImpl()
 
 void PdfFileStream::GetCopy(unique_ptr<char[]>& buffer, size_t& len) const
 {
+    (void)buffer;
+    (void)len;
     PDFMM_RAISE_ERROR(PdfErrorCode::InternalLogic);
 }
 

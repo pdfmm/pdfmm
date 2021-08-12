@@ -301,7 +301,6 @@ void PdfFontTrueTypeSubset::LoadCompound(GlyphContext& ctx, unsigned offset)
     // ones and remap the indices
 
 
-    /*
     uint16_t flags;
     uint16_t glyphIndex;
 
@@ -332,7 +331,6 @@ void PdfFontTrueTypeSubset::LoadCompound(GlyphContext& ctx, unsigned offset)
         else if ((flags & WE_HAVE_TWO_BY_TWO) != 0)
             offset += 4 * LENGTH_WORD;
     }
-    */
 }
 
 // Ref: https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6glyf.html

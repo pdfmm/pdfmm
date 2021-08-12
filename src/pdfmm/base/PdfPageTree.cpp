@@ -435,6 +435,8 @@ void PdfPageTree::InsertPagesIntoNode(PdfObject& parent, const PdfObjectList& pa
 void PdfPageTree::DeletePageFromNode(PdfObject& parent, const PdfObjectList& parents,
     unsigned index, PdfObject& page)
 {
+    (void)page;
+
     // 1. Delete the reference from the kids array of parent
     // 2. Decrease count of every node in parents (which also includes parent)
     // 3. Remove empty page nodes

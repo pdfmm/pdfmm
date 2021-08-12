@@ -263,21 +263,29 @@ PdfNullOutputDevice::PdfNullOutputDevice()
 void PdfNullOutputDevice::print(const char* format, size_t formatLen, va_list args)
 {
     // Do nothing
+    (void)format;
+    (void)formatLen;
+    (void)args;
 }
 
 void PdfNullOutputDevice::write(const char* buffer, size_t len)
 {
     // Do nothing
+    (void)buffer;
+    (void)len;
 }
 
 void PdfNullOutputDevice::seek(size_t offset)
 {
     // Do nothing
+    (void)offset;
 }
 
 size_t PdfNullOutputDevice::read(char* buffer, size_t len)
 {
     // Do nothing
+    (void)buffer;
+    (void)len;
     return 0;
 }
 

@@ -85,9 +85,9 @@ PdfCMapEncoding::MapIdentity PdfCMapEncoding::parseCMapObject(const PdfStream& s
                             break;
 
                         unsigned char codeSize;
-                        uint32_t lowerBound = getCodeFromVariant(*var, ret.Limits, codeSize);
+                        (void)getCodeFromVariant(*var, ret.Limits, codeSize);
                         tokenizer.ReadNextVariant(device, *var);
-                        uint32_t upperBound = getCodeFromVariant(*var, ret.Limits, codeSize);
+                        (void)getCodeFromVariant(*var, ret.Limits, codeSize);
                     }
                 }
                 // NOTE: "bf" in "beginbfrange" stands for Base Font
@@ -243,7 +243,7 @@ vector<char32_t> handleStringMapping(const PdfString& str)
     auto& rawdata = str.GetRawData();
     string utf8;
     utf8::utf16to8(utf8::endianess::big_endian,
-        (char16_t*)rawdata.data(), (char16_t*)(rawdata.data() + rawdata.size()),
+        (const char16_t*)rawdata.data(), (const char16_t*)(rawdata.data() + rawdata.size()),
         std::back_inserter(utf8));
 
     return handleUtf8String(utf8);

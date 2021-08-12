@@ -584,7 +584,6 @@ void PdfPainter::Ellipse(double x, double y, double width, double height)
 {
     double dPointX[BEZIER_POINTS];
     double dPointY[BEZIER_POINTS];
-    int i;
 
     CheckStream();
 
@@ -599,7 +598,7 @@ void PdfPainter::Ellipse(double x, double y, double width, double height)
         << dPointY[0]
         << " m" << std::endl;
 
-    for (i = 1; i < BEZIER_POINTS; i += 3)
+    for (unsigned i = 1; i < BEZIER_POINTS; i += 3)
     {
         m_curPath
             << dPointX[i] << " "

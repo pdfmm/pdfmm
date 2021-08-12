@@ -237,7 +237,7 @@ protected:
 class PdfDummyEncodingMap final : public PdfEncodingMap
 {
 public:
-    class PdfDummyEncodingMap();
+    PdfDummyEncodingMap();
 
     bool tryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const override;
 

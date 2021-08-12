@@ -67,11 +67,16 @@ bool PdfEncodingMap::TryGetNextCharCode(string_view::iterator& it, const string_
 
 bool PdfEncodingMap::tryGetNextCharCode(std::string_view::iterator& it, const std::string_view::iterator& end, PdfCharCode& codeUnit) const
 {
+    (void)it;
+    (void)end;
+    (void)codeUnit;
     PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);
 }
 
 bool PdfEncodingMap::tryGetCharCodeSpan(const cspan<char32_t>& ligature, PdfCharCode& codeUnit) const
 {
+    (void)ligature;
+    (void)codeUnit;
     PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);
 }
 
@@ -314,6 +319,7 @@ void PdfEncodingMapBase::appendBaseFontEntries(PdfStream& stream) const
 {
     // Very easy, just do a list of bfchar
     // Use PdfEncodingMap::AppendUTF16CodeTo
+    (void)stream;
     PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "TODO");
 }
 
@@ -372,7 +378,6 @@ void PdfEncodingMapSimple::appendBaseFontEntries(PdfStream& stream) const
     vector<char32_t> codePoints;
     unsigned code = limits.FirstChar.Code;
     unsigned lastCode = limits.LastChar.Code;
-    unsigned codeCount = lastCode - code;
     string codeStr;
     stream.Append("1 beginbfrange\n");
     limits.FirstChar.WriteHexTo(codeStr);
@@ -396,16 +401,21 @@ PdfDummyEncodingMap::PdfDummyEncodingMap() : PdfEncodingMap({ }) { }
 
 bool PdfDummyEncodingMap::tryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const
 {
+    (void)codePoint;
+    (void)codeUnit;
     PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "PdfDynamicEncoding can't be used only from a PdfFont")
 }
 
 bool PdfDummyEncodingMap::tryGetCodePoints(const PdfCharCode& codeUnit, vector<char32_t>& codePoints) const
 {
+    (void)codeUnit;
+    (void)codePoints;
     PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "PdfDynamicEncoding can't be used only from a PdfFont")
 }
 
 void PdfDummyEncodingMap::appendBaseFontEntries(PdfStream& stream) const
 {
+    (void)stream;
     PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "PdfDynamicEncoding can't be used only from a PdfFont")
 }
 

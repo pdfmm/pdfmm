@@ -195,6 +195,7 @@ bool PdfFontMetricsObject::TryGetGlyphWidth(unsigned gid, double& width) const
 
 bool PdfFontMetricsObject::TryGetGID(char32_t codePoint, unsigned& gid) const
 {
+    (void)codePoint;
     // We currently don't support retrieval of GID from
     // codepoints from loaded metrics
     gid = { };

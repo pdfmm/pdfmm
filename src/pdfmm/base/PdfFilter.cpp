@@ -209,7 +209,7 @@ PdfFilter::~PdfFilter()
     // Note that we can't do this for the user, since EndEncode() might
     // throw and we can't safely have that in a dtor. That also means
     // we can't throw here, but must abort.
-    assert(m_OutputStream == nullptr);
+    PDFMM_ASSERT(m_OutputStream == nullptr);
 }
 
 void PdfFilter::Encode(const char* inBuffer, size_t inLen, unique_ptr<char[]>& outBuffer, size_t& outLen) const

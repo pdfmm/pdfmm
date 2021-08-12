@@ -11,7 +11,6 @@ set(PDFMM_VERSION_PATCH "20" CACHE STRING "Patchlevel part of pdfmm version numb
 set(PDFMM_SOVERSION "${PDFMM_VERSION_MAJOR}.${PDFMM_VERSION_MINOR}.${PDFMM_VERSION_PATCH}")
 set(PDFMM_LIBVERSION "${PDFMM_SOVERSION}")
 
-
 #
 # Main includes
 #
@@ -25,7 +24,6 @@ set(CMAKE_CXX_STANDARD 17)
 # Load modules from our source tree too
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 
-
 # Builds must use this CMakeLists.txt, not the one in src/ or somewhere else.
 # If users try to use something else the results can be confusing. We set a
 # variable here that we require to be set elsewhere, otherwise we'll complain.
@@ -37,29 +35,31 @@ if(NOT DEFINED PDFMM_BUILD_SHARED AND NOT DEFINED PDFMM_BUILD_STATIC)
     if(WIN32)
         set(PDFMM_BUILD_STATIC FALSE)
         set(PDFMM_BUILD_SHARED TRUE)
-    else(WIN32)
+    else()
         set(PDFMM_BUILD_STATIC TRUE)
         set(PDFMM_BUILD_SHARED FALSE)
-    endif(WIN32)
-endif(NOT DEFINED PDFMM_BUILD_SHARED AND NOT DEFINED PDFMM_BUILD_STATIC)
+    endif()
+endif()
+
 if(DEFINED PDFMM_BUILD_SHARED AND NOT DEFINED PDFMM_BUILD_STATIC)
     if(PDFMM_BUILD_SHARED)
         set(PDFMM_BUILD_STATIC FALSE)
-    else(PDFMM_BUILD_SHARED)
+    else()
         set(PDFMM_BUILD_STATIC TRUE)
-    endif(PDFMM_BUILD_SHARED)
-endif(DEFINED PDFMM_BUILD_SHARED AND NOT DEFINED PDFMM_BUILD_STATIC)
+    endif()
+endif()
+
 if(NOT DEFINED PDFMM_BUILD_SHARED AND DEFINED PDFMM_BUILD_STATIC)
     if(PDFMM_BUILD_STATIC)
         set(PDFMM_BUILD_SHARED FALSE)
-    else(PDFMM_BUILD_STATIC)
+    else()
         set(PDFMM_BUILD_SHARED TRUE)
-    endif(PDFMM_BUILD_STATIC)
-endif(NOT DEFINED PDFMM_BUILD_SHARED AND DEFINED PDFMM_BUILD_STATIC)
+    endif()
+endif()
 
 if(DEFINED LIB_SUFFIX)
     set(LIBDIRNAME "lib${LIB_SUFFIX}")
-else(DEFINED LIB_SUFFIX)
+else()
 
 # Some 64 bit linux distros use /usr/lib64 for 64 bit libraries.
 # on these platforms we must
@@ -67,15 +67,16 @@ if(NOT DEFINED WANT_LIB64)
     # TODO: detect 64-bit build and existance of /usr/lib64 and set to TRUE.
     message("WANT_LIB64 unset; assuming normal library directory names")
     set(WANT_LIB64 FALSE)
-endif(NOT DEFINED WANT_LIB64)
+endif()
 
 if(WANT_LIB64)
     set(LIBDIRNAME "lib64")
-else(WANT_LIB64)
+else()
     set(LIBDIRNAME "lib")
-endif(WANT_LIB64)
+endif()
 
-endif(DEFINED LIB_SUFFIX)
+endif() # DEFINED LIB_SUFFIX
+
 message("Will install libraries to ${CMAKE_INSTALL_PREFIX}/${LIBDIRNAME}")
 
 # Linux packagers want an uninstall target.
@@ -92,12 +93,9 @@ TEST_BIG_ENDIAN(TEST_BIG)
 if(WIN32)
     # We must explicitly link to the core win32 libraries
     set(PLATFORM_SYSTEM_LIBRARIES kernel32 user32 gdi32 winspool comdlg32 advapi32 shell32 ole32 oleaut32 uuid ws2_32)
-    # Microsoft deprecate certain POSIX functions that we use.
-    # for now, turn off these warnings.
-    add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
-else(WIN32)
+else()
     set(PLATFORM_SYSTEM_LIBRARIES)
-endif(WIN32)
+endif()
 
 if(UNIX)
     set(WANT_FONTCONFIG TRUE CACHE INTERNAL
@@ -107,24 +105,29 @@ else()
         "True if pdfmm should be built with fontconfig support")
 endif()
 
+if (MSVC)
+    # Set the compiler less permissive and add some warnings
+    # /w34388: 'expression': signed/unsigned mismatch
+    # /w34389: 'operator': signed/unsigned mismatch
+    # /we4287: unsigned/negative constant mismatch
+    # /w34100: unreferenced formal parameter
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /permissive- /w34388 /w34389 /we4287 /w34100")
 
-if(CMAKE_COMPILER_IS_GNUCXX)
+    # Microsoft deprecate certain POSIX functions that we use.
+    # for now, turn off these warnings.
+    add_compile_definitions(_CRT_SECURE_NO_DEPRECATE)
+else()
     message("Using gcc specific compiler options")
-    # We can be more specific about what we want out of g++
-    # than with most other compilers.
 
     # If the user hasn't specifically said whether they want
     # -fvisibility=hidden or not, turn it on if it's said to
     # be supported, off for other gcc versions.
     if(NOT DEFINED PDFMM_USE_VISIBILITY)
         set(PDFMM_USE_VISIBILITY ${PDFMM_HAVE_GCC_SYMBOL_VISIBILITY})
-    endif(NOT DEFINED PDFMM_USE_VISIBILITY)
+    endif()
 
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wconversion -Wsign-conversion -Woverloaded-virtual -Wswitch -Wcast-qual -Wwrite-strings -Wredundant-decls -Wreorder -Wno-unknown-pragmas")
 
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Woverloaded-virtual -Wswitch -Wcast-qual -Wwrite-strings -Wredundant-decls -Wreorder -Wno-deprecated-declarations")
-
-    #
     # Note that we do not need debug definitions here. Set
     # -DCMAKE_BUILD_TYPE=debug or (if you want an optimised
     # release build with debug info) -DCMAKE_CXX_FLAGS="-g3"
@@ -134,15 +137,15 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     # declaration on the whole class.
     if(NOT WIN32)
         add_definitions(-W)
-    endif(NOT WIN32)
-    # If they've enabled the use of gcc4 symbol visibility, use it.
+    endif()
+    # If they've enabled the use of symbol visibility, use it.
     if(PDFMM_USE_VISIBILITY)
         add_definitions(
             -DPDFMM_HAVE_GCC_SYMBOL_VISIBILITY
             -fvisibility=hidden
             )
-    endif(PDFMM_USE_VISIBILITY)
-endif(CMAKE_COMPILER_IS_GNUCXX)
+    endif()
+endif()
 
 find_package(ZLIB REQUIRED)
 message("Found zlib headers in ${ZLIB_INCLUDE_DIR}, library at ${ZLIB_LIBRARIES}")
@@ -156,15 +159,15 @@ find_package(LIBIDN)
 
 if(LIBIDN_FOUND)
     message("Found libidn headers in ${LIBIDN_INCLUDE_DIR}, library at ${LIBIDN_LIBRARIES}")
-endif(LIBIDN_FOUND)
+endif()
 
 if(LIBIDN_FOUND)
     set(PDFMM_HAVE_LIBIDN TRUE)
     include_directories(${LIBIDN_INCLUDE_DIR})
     message("Libidn found. AES-256 Encryption support will be enabled")
-else(LIBIDN_FOUND)
+else()
     message("Libidn not found. AES-256 Encryption support will be disabled")
-endif(LIBIDN_FOUND)
+endif()
 
 find_package(JPEG)
 
@@ -172,9 +175,9 @@ if(JPEG_FOUND)
     message("Found libjpeg headers in ${JPEG_INCLUDE_DIR}, library at ${JPEG_LIBRARIES}")
     set(PDFMM_HAVE_JPEG_LIB TRUE)
     include_directories(${JPEG_INCLUDE_DIR})
-else(JPEG_FOUND)
+else()
     message("Libjpeg not found. JPEG support will be disabled")
-endif(JPEG_FOUND)
+endif()
 
 find_package(TIFF)
 
@@ -182,9 +185,9 @@ if(TIFF_FOUND)
     message("Found libtiff headers in ${TIFF_INCLUDE_DIR}, library at ${TIFF_LIBRARIES}")
     set(PDFMM_HAVE_TIFF_LIB TRUE)
     include_directories(${TIFF_INCLUDE_DIR})
-else(TIFF_FOUND)
+else()
     message("Libtiff not found. TIFF support will be disabled")
-endif(TIFF_FOUND)
+endif()
 
 find_package(PNG)
 
@@ -192,10 +195,10 @@ if(PNG_FOUND)
     message("Found LibPng headers in ${PNG_INCLUDE_DIR}, library at ${PNG_LIBRARIES}")
     set(PDFMM_HAVE_PNG_LIB TRUE)
     include_directories(${PNG_INCLUDE_DIR})
-else(PNG_FOUND)
+else()
     message("LibPng not found. PNG support will be disabled")
     set(PNG_LIBRARIES "")
-endif(PNG_FOUND)
+endif()
 
 find_package(Freetype REQUIRED)
 message("Found freetype library at ${FREETYPE_LIBRARIES}, headers ${FREETYPE_INCLUDE_DIRS}")
@@ -206,15 +209,15 @@ if(WANT_FONTCONFIG)
     set(PDFMM_LIB_FONTCONFIG:STRING fontconfig)
     if(FONTCONFIG_FOUND)
         message("Found fontconfig headers in ${FONTCONFIG_INCLUDE_DIR}, library at ${Fontconfig_LIBRARIES}")
-    else(FONTCONFIG_FOUND)
+    else()
         message("Could not find fontconfig.")
-    endif(FONTCONFIG_FOUND)
-else(WANT_FONTCONFIG)
+    endif()
+else()
     # Might as well look for it anyway. This also sets the appropriate
     # variables to empty values.
     find_package(Fontconfig)
     set(PDFMM_LIB_FONTCONFIG:STRING)
-endif(WANT_FONTCONFIG)
+endif()
 
 include_directories(
     ${PROJECT_BINARY_DIR}
@@ -244,16 +247,16 @@ set(PDFMM_LIB_DEPENDS
 if(FONTCONFIG_FOUND AND WANT_FONTCONFIG)
     set(PDFMM_LIB_DEPENDS ${Fontconfig_LIBRARIES} ${PDFMM_LIB_DEPENDS})
     include_directories(${Fontconfig_INCLUDE_DIRS})
-endif(FONTCONFIG_FOUND AND WANT_FONTCONFIG)
+endif()
 
 if(WIN32 OR PDFMM_BUILD_STATIC)
     set(PDFMM_LIB
         pdfmm
         ${PDFMM_LIB_DEPENDS}
     )
-else(WIN32 OR PDFMM_BUILD_STATIC)
+else()
     set(PDFMM_LIB pdfmm)
-endif(WIN32 OR PDFMM_BUILD_STATIC)
+endif()
 
 # Create the config file. It'll be appended to as the subdirs run though
 # then dependency information will be written to it at the end of the
@@ -275,7 +278,7 @@ if(NOT PDFMM_BUILD_LIB_ONLY)
     #add_subdirectory(extern/gtest)
     #add_subdirectory(test) # Re-enable when fixing tests
     add_subdirectory(examples)
-endif(NOT PDFMM_BUILD_LIB_ONLY)
+endif()
 
 # Generate our configure file
 configure_file(${PROJECT_SOURCE_DIR}/pdfmm_config.h.in ${PROJECT_BINARY_DIR}/pdfmm_config.h)
@@ -288,7 +291,8 @@ configure_file(${PROJECT_SOURCE_DIR}/pdfmm_config.h.in ${PROJECT_BINARY_DIR}/pdf
 # the app that'll use pdfmm). See: find_package(...) in the cmake docs.
 if(PDFMM_BUILD_SHARED)
     export(TARGETS pdfmm_shared FILE "${CMAKE_CURRENT_BINARY_DIR}/pdfmmConfig.cmake")
-endif(PDFMM_BUILD_SHARED)
+endif()
+
 if(PDFMM_BUILD_STATIC)
     export(TARGETS pdfmm_static FILE "${CMAKE_CURRENT_BINARY_DIR}/pdfmmConfig.cmake")
-endif(PDFMM_BUILD_STATIC)
+endif()

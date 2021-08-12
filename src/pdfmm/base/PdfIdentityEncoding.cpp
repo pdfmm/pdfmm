@@ -79,6 +79,7 @@ void PdfIdentityEncoding::appendBaseFontEntries(PdfStream& stream) const
 {
     // Very easy, just do a single bfrange
     // Use PdfEncodingMap::AppendUTF16CodeTo
+    (void)stream;
     PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "TODO");
 }
 

@@ -200,7 +200,7 @@ PdfFont* PdfFontManager::GetFontSubset(const string_view& fontname, const PdfFon
                     params.Encoding, params.Bold, params.Italic,
                     params.IsSymbolCharset, true, true);
 #else       
-                PdfError::LogMessage(ELogSeverity::Critical, "No path was found for the specified fontname: %s", fontname.data());
+                PdfError::LogMessage(LogSeverity::Critical, "No path was found for the specified fontname: %s", fontname.data());
                 return nullptr;
 #endif // _WIN32
             }
@@ -383,7 +383,7 @@ void PdfFontManager::SetFontConfigWrapper(PdfFontConfigWrapper* fontConfig)
     if (m_fontConfig == fontConfig)
         return;
 
-    if (pFontConfig == nullptr)
+    if (fontConfig == nullptr)
         m_fontConfig = PdfFontConfigWrapper::GetInstance();
     else
         m_fontConfig = fontConfig;

@@ -22,6 +22,7 @@
 #include <cstring>
 #include <ctime>
 #include <cinttypes>
+#include <climits>
 
 #if defined(TEST_BIG)
 #  define PDFMM_IS_BIG_ENDIAN

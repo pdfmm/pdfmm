@@ -491,7 +491,7 @@ void PdfError::LogMessage(LogSeverity logSeverity, const char* msg, ...)
 #ifdef DEBUG
     const LogSeverity minSeverity = LogSeverity::Debug;
 #else
-    const ELogSeverity minSeverity = ELogSeverity::Information;
+    const LogSeverity minSeverity = LogSeverity::Information;
 #endif // DEBUG
 
     if (logSeverity > minSeverity)
@@ -561,11 +561,9 @@ void PdfError::LogMessage(LogSeverity logSeverity, const wchar_t* msg, ...)
 #ifdef DEBUG
     const LogSeverity minSeverity = LogSeverity::Debug;
 #else
-    const ELogSeverity minSeverity = ELogSeverity::Information;
+    const LogSeverity minSeverity = LogSeverity::Information;
 #endif // DEBUG
 
-    // OC 17.08.2010 BugFix: Higher level is lower value
- // if( logSeverity < minSeverity )
     if (logSeverity > minSeverity)
         return;
 

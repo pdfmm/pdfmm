@@ -6,10 +6,10 @@
  * Some rights reserved. See COPYING, AUTHORS.
  */
 
+#include <pdfmm/private/PdfDefinesPrivate.h>
 #include "PdfReference.h"
 
 #include "PdfOutputDevice.h"
-#include <pdfmm/private/PdfDefinesPrivate.h>
 
 #include <sstream>
 

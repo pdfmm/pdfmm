@@ -2348,6 +2348,7 @@ PdfDifferenceEncoding::PdfDifferenceEncoding(const PdfObject& obj, bool explicit
 
 void PdfDifferenceEncoding::getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const
 {
+    (void)name;
     obj = objects.CreateDictionaryObject();
     auto& dict = obj->GetDictionary();
     switch (m_baseEncoding)

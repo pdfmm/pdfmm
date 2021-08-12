@@ -18,6 +18,7 @@
 
 #include <stdexcept>
 #include <limits>
+#include <algorithm>
 
 /** \def VERBOSE_DEBUG_DISABLED
  *  Debug define. Enable it, if you need
@@ -66,7 +67,10 @@ namespace usr
     void WriteToUtf16BE(std::u16string& str, char32_t codePoint, bool clear = true);
 
     // https://stackoverflow.com/a/38140932/213871
-    inline void hash_combine(std::size_t& seed) { }
+    inline void hash_combine(std::size_t& seed)
+    {
+        (void)seed;
+    }
 
     template <typename T, typename... Rest>
     inline void hash_combine(std::size_t& seed, const T& v, Rest... rest)

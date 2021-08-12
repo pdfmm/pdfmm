@@ -315,7 +315,7 @@ void PdfString::evaluateString() const
                     string utf8;
                     auto view = string_view(*m_data).substr(2);
                     utf8::utf16to8(utf8::endianess::big_endian,
-                        (char16_t*)view.data(), (char16_t*)(view.data() + view.size()),
+                        (const char16_t*)view.data(), (const char16_t*)(view.data() + view.size()),
                         std::back_inserter(utf8));
                     utf8.swap(*m_data);
                     const_cast<PdfString&>(*this).m_state = StringState::Unicode;
@@ -327,7 +327,7 @@ void PdfString::evaluateString() const
                     string utf8;
                     auto view = string_view(*m_data).substr(2);
                     utf8::utf16to8(utf8::endianess::little_endian,
-                        (char16_t*)view.data(), (char16_t*)(view.data() + view.size()),
+                        (const char16_t*)view.data(), (const char16_t*)(view.data() + view.size()),
                         std::back_inserter(utf8));
                     utf8.swap(*m_data);
                     const_cast<PdfString&>(*this).m_state = StringState::Unicode;

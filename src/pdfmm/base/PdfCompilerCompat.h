@@ -37,6 +37,7 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <cstring>
 
 // Declare ssize_t as a signed alternative to size_t,
 // useful for example to provide optional size argument

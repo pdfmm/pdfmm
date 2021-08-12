@@ -1074,7 +1074,7 @@ void PdfParser::ReadObjectsInternal(const shared_ptr<PdfInputDevice>& device)
                     }
                     else if (entry.Generation == 0)
                     {
-                        assert(entry.Offset == 0);
+                        PDFMM_ASSERT(entry.Offset == 0);
                         // There are broken PDFs which add objects with 'n' 
                         // and 0 offset and 0 generation number
                         // to the xref table instead of using free objects

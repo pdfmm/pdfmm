@@ -17,6 +17,7 @@ using namespace mm;
 PdfDictionary::PdfDictionary() { }
 
 PdfDictionary::PdfDictionary(const PdfDictionary& rhs)
+    : PdfDataContainer()
 {
     this->operator=(rhs);
 }

@@ -1,6 +1,6 @@
 if(NOT PDFMM_MAIN_CMAKELISTS_READ)
     message(FATAL_ERROR "Run cmake on the CMakeLists.txt in the project root, not the one in the 'src' directory. You will need to delete CMakeCache.txt from the current directory.")
-endif(NOT PDFMM_MAIN_CMAKELISTS_READ)
+endif()
 
 # Needed for <date/date.h>
 add_definitions(-DHAS_UNCAUGHT_EXCEPTIONS=1)
@@ -50,7 +50,7 @@ endif()
 
 if(NOT PDFMM_BUILD_SHARED AND NOT PDFMM_BUILD_STATIC)
     message(FATAL_ERROR "At least one of PDFMM_BUILD_SHARED and PODOF_BUILD_STATIC must be set")
-endif(NOT PDFMM_BUILD_SHARED AND NOT PDFMM_BUILD_STATIC)
+endif()
 
 if(PDFMM_BUILD_STATIC)
     message("Building static pdfmm library")
@@ -71,7 +71,7 @@ if(PDFMM_BUILD_STATIC)
         LIBRARY DESTINATION "${LIBDIRNAME}"
         ARCHIVE DESTINATION "${LIBDIRNAME}"
     )
-endif(PDFMM_BUILD_STATIC)
+endif()
 
 if(PDFMM_BUILD_SHARED)
     message("Building shared pdfmm library")
@@ -112,10 +112,10 @@ if(PDFMM_BUILD_SHARED)
         install(
             FILES "${PROJECT_BINARY_DIR}/libpdfmm.pc"
             DESTINATION "${LIBDIRNAME}/pkgconfig")
-    else(PKG_CONFIG_FOUND)
+    else()
         message("Pkg-config not found. No pkg-config file will be created.")
-    endif(PKG_CONFIG_FOUND)
-endif(PDFMM_BUILD_SHARED)
+    endif()
+endif()
 
 # Use these flags when compiling code that includes pdfmm headers.
 # Failure to do so will result in compilation or link-time errors
