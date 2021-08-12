@@ -116,7 +116,7 @@ public:
 
 private:
     uint32_t m_ObjectNo;
-    uint32_t m_GenerationNo;
+    uint16_t m_GenerationNo;
 };
 
 };

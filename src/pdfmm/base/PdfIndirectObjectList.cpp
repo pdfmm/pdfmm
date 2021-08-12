@@ -212,7 +212,7 @@ int32_t PdfIndirectObjectList::tryAddFreeObject(uint32_t objnum, uint32_t gennum
         return -1;
     }
 
-    AddFreeObject(PdfReference(objnum, gennum));
+    AddFreeObject(PdfReference(objnum, (uint16_t)gennum));
     return gennum;
 }
 

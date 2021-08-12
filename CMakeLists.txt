@@ -126,7 +126,7 @@ else()
         set(PDFMM_USE_VISIBILITY ${PDFMM_HAVE_GCC_SYMBOL_VISIBILITY})
     endif()
 
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wconversion -Wsign-conversion -Woverloaded-virtual -Wswitch -Wcast-qual -Wwrite-strings -Wredundant-decls -Wreorder -Wno-unknown-pragmas")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Woverloaded-virtual -Wswitch -Wcast-qual -Wwrite-strings -Wredundant-decls -Wreorder -Wno-unknown-pragmas")
 
     # Note that we do not need debug definitions here. Set
     # -DCMAKE_BUILD_TYPE=debug or (if you want an optimised

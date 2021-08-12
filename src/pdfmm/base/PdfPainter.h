@@ -619,10 +619,10 @@ public:
     inline PdfFont* GetFont() const { return m_Font; }
 
     /** Set the tab width for the DrawText operation.
-     *  Every tab '\\t' is replaced with nTabWidth
+     *  Every tab '\\t' is replaced with tabWidth
      *  spaces before drawing text. Default is a value of 4
      *
-     *  \param nTabWidth replace every tabulator by this much spaces
+     *  \param tabWidth replace every tabulator by this much spaces
      *
      *  \see DrawText
      *  \see TabWidth
@@ -740,7 +740,7 @@ private:
     /** Every tab '\\t' is replaced with m_TabWidth
      *  spaces before drawing text. Default is a value of 4
      */
-    unsigned m_TabWidth;
+    unsigned short m_TabWidth;
 
     /** Save the current color for non stroking colors
      */
