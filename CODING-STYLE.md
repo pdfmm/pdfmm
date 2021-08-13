@@ -1,6 +1,6 @@
-## Codying style
+## Coding style
 
-Codying style in pdfmm follows the following general rules:
+Coding style in pdfmm follows the following general rules:
 - Visual Studio formatting convetions (see for example [C# convetions](https://docs.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions), where they apply for all C based languages;
 - Capitalized case for **public** ```MethodNames()```;
 - Camel case for variables, parameters and fields (example ```variableName```);
@@ -13,7 +13,7 @@ As some lenient rules, not truly enforced in all the code base, it's recommended
 - Lower case field names for private fields used only in this class boundary, for example ```m_privateField```;
 - Capitalized field names for private fields exposed by public getters/setters, example ```m_Value```.
 
-Some examples of expected codying style can be found at the following permalinks:
+Some examples of expected coding style can be found at the following permalinks:
 
 - [PdfEncoding](https://github.com/pdfmm/pdfmm/blob/588ee42ca16e0996c73a7d7887d189672ae4cc18/src/pdfmm/base/PdfEncoding.cpp)
 - [PdfCharCodeMap](https://github.com/pdfmm/pdfmm/blob/588ee42ca16e0996c73a7d7887d189672ae4cc18/src/pdfmm/base/PdfCharCodeMap.cpp)
