@@ -4,10 +4,11 @@
 2.  [Requirements](#requirements)
 3.  [String encoding](#string_encoding_conventions)
 4.  [API Stability](#api_stability)
-5.  [Licensing](#licensing)
-6.  [No warranty](#no_warranty)
-7.  [Contributions](#contributions)
-8.  [Authors](#authors)
+5.  [TODO](#todo)
+6.  [Licensing](#licensing)
+7.  [No warranty](#no_warranty)
+8.  [Contributions](#contributions)
+9.  [Authors](#authors)
 
 ## What is pdfmm?
 
@@ -68,6 +69,12 @@ For example ```std::string_view``` class can also represents a generic ```char``
 pdfmm has an unstable API that is the results of an extensive API review of PoDoFo.
 It may converge to a stable API as soon as the review process is completed.
 See [API Stability](https://github.com/pdfmm/pdfmm/wiki/API-Stability) for more details.
+
+## TODO
+
+There's a TODO [list](https://github.com/pdfmm/pdfmm/wiki/TODO) and a list of
+planned [tasks](https://github.com/pdfmm/pdfmm/issues?q=is%3Aissue+is%3Aopen+label%3Aup-for-grabs)
+in the issue tracker.
 
 ## No warranty
 
