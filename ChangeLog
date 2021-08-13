@@ -1,11 +1,70 @@
 Version 0.9.20
-
+    - pdfmm requires now a C++17 compiler
+    - Improved XRefStream support, added support in incremental saves
+    - Many fixes in save incremental object/generation number incrementing
+    - String backed with UTF-8 storage
+    - PdfName backed with UTF-8 storage
+    - Brand new PdfEncoding class with support for both /Encoding and /ToUnicode
+    - PdfEncoding: More complete utf-8/Unicode support
+    - Automatic creation of CIDMap and /ToUnicode
+    - Added PdfSigner class and mm::SignDocument()
+    - Added PdfFontType1Encoding, which support Type1 implicit encoding
+    - Added support for PDF 2.0 UTF-8 strings (untested)
+    - Added PdfTextState and use it to compute string widths in PdfFont
+    - Improved PdfDocEncoding to expose conversion utf8 conversion facilities
+    - PdfParser: Support also files with whitespace offset before magic start
+    - PdfObject auto ownership
+    - Improved IsDirty handling: less dirty bit sets
+    - Added PdfPostScriptTokenizer that as better general support for PostScript
+    - PdfDictionary: Review/convert GetKey -> FindKey
+    - PdfDictionary: Review GetKeyAs methods
+    - Fixed hundreds of warnings. No warnings left in tested builds
+    - FontConfigManager: better handling with custom configurations
+    - Removed PdfMutex. Used std::mutex where necessary
+    - Datatypte: remove PdfDataType::HexString
+    - Removed support for old compilers (MSVC6, hpux, borland, turbo...)
+    - Added better endian swap functions
+    - Removed auto_ptr usage
+    - Removed pdf_int/pdf_uint types
+    - Removed use of pdf_long/long types
+    - Removed use of ptrdiff_t
+    - Removed unistring and ugly string conversion code. Moved to utfcpp
+    - Reviewed PdfObject::GetNumber/PdfObject::GetReal (strict/lenient)
+    - Remove PdfObject inheritance on PdfVariant
+    - Reviewed PdfVariant/PdfObject/PdfArray/PdfDictionary equality/disequality operators
+    - Simplified copyright headers
+    - Object copy constructor must copy also stream
+    - PdfElement: GetDocument(), GetObject() refs
+    - PdfVecObjects: GetParentDocument() -> GetDocument()
+    - Remove PdfSignOutputDevice::SetSignatureSize(size)
+    - Move inline code to .cpp
+    - Remove comments on overrides
+    - Cleaned CMakeFiles (removed custom Find<>.cmake)
+    - NULL -> nullptr
+    - Use shared_ptr in PdfFontMetrics, PdfEncoding in PdfFont
+    - Cleaned PdfFontCache (renamed PdfFontManager), removed font functions from PdfDocument
+    - PdfArray::FindAt() return ref
+    - Simplified license headers
+    - Reviewed PdfPageTree and PdfPageTreeCache API
+    - Reviewed most int vs unsigned indexing
+    - Remove all hungarian notation
+    - Sanitize code style
+    - Removed all const char* and passed to string/string_view
+    - Renamed PdfFontCache -> PdfFontManager
+    - Renamed PdfVecObjects -> PdfIndirectObjectList
+    - Renamed PdfNamesTree -> PdfNameTree
+    - Renamed PdfPagesTree -> PdfPageTree
+    - Renamed PdfPagesTreeCache -> PdfPageTreeCache
+    - PdfObject: removed GetIndirectObject(), MustGetIndirectKey (must use PdfDictionary now)
+    - Remove PdfMemoryManagement.cpp, Removed podofo_new, podofo_free
+    - Add chars type for char array storage/buffering which inerits string
+    - Review pointer vs ref parameters/return types
+    - Remove PdfRefCountedBuffer, PdfRefCountedInputDevice, PdfRefCountedOutputDevice
+    - Removed PdfMemoryManagement and all C style malloc/free usage
+    - Refactored PdfOutputDevice (PdfMemoryOutputDevice/PdfFileOutputDevice/etc.)
 
 Old PoDoFo ChangeLog
 ====================
-
-Version 0.8
-	See SVN ChangeLog
 
 Version 0.7
     Fixed PdfPainter::ArcTo
@@ -36,9 +95,6 @@ Version 0.7
     Added advanced text drawing support to PdfPainter
     Fixed parsing of Type1 fonts
     Fixed deletion of PdfAnnations (fixes a memory leak)
-
-Version 0.6
-    Many many changes :) See SVN log
 
 Version 0.5
     Added support for Embedded Files (annotations & named objects)

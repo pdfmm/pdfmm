@@ -31,13 +31,12 @@ CMake 3.16 and the following libraries:
 * libtiff (optional)
 * libidn (optional)
 
-pdfmm is currently tested with the following compilers/toolchains:
+pdfmm is currently tested with the following compilers:
 
 * Visual Studio 2017 15.9
 * Visual Studio 2019 16.10
 * gcc 7.3.1
-* Android NDK R16 (clang 5.0)
-* XCode 11.2
+* clang 5.0
 
 ## Licensing
 
@@ -50,7 +49,7 @@ the details.
 ## Authors
 
 pdfmm is currently develoved and mantained by
-[Francesco Pretto](ceztko@gmail.com).
+[Francesco Pretto ](mailto:ceztko@gmail.com).
 pdfmm was forked from the PoDoFo library, which was
 written by Dominik Seichter, Leonard Rosenthol,
 Craig Ringer and others. See the file
