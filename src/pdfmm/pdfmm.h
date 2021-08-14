@@ -14,7 +14,7 @@
  */
 
 #include "pdfmm-base.h"
-#include "pdfmm-extra.h"
+#include "pdfmm-contrib.h"
 
 #endif // PDFMM_H
 

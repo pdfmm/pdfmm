@@ -6,11 +6,11 @@
  * Some rights reserved. See COPYING, AUTHORS.
  */
 
-#ifndef PDFMM_EXTRA_H
-#define PDFMM_EXTRA_H
+#ifndef PDFMM_CONTRIB_H
+#define PDFMM_CONTRIB_H
 
-#include "extra/PdfFunction.h"
-#include "extra/PdfShadingPattern.h"
-#include "extra/PdfTilingPattern.h"
+#include "contrib/PdfFunction.h"
+#include "contrib/PdfShadingPattern.h"
+#include "contrib/PdfTilingPattern.h"
 
-#endif // PDFMM_EXTRA_H
+#endif // PDFMM_CONTRIB_H

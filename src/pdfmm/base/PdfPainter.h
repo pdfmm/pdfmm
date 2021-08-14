@@ -18,8 +18,8 @@
 #include "PdfCanvas.h"
 #include "PdfTextState.h"
 
-#include <pdfmm/extra/PdfShadingPattern.h>
-#include <pdfmm/extra/PdfTilingPattern.h>
+#include <pdfmm/contrib/PdfShadingPattern.h>
+#include <pdfmm/contrib/PdfTilingPattern.h>
 
 namespace mm {
 
