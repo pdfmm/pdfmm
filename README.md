@@ -84,14 +84,14 @@ timeframes, or not fixed at all.
 ## Contributions
 
 If you find a bug and know how to fix it, or you want to add a small feature, you're welcome to send a [pull request](https://github.com/pdfmm/pdfmm/pulls),
-providing it follows the [coding style](https://github.com/pdfmm/pdfmm/blob/master/CODINGSTYLE.md)
+providing it follows the [coding style](https://github.com/pdfmm/pdfmm/blob/master/CODING-STYLE.md)
 of the project. Also, as a minimum requisite, any contribution should be valuable for several people,
 not only for a very restricted use case. For example, if the contributor wants to
 add access to some currently unhandled PDF properties within an object, the contribution
 should cover most of those or the most important ones, not only a single one. This
 should avoids the contibutions to be only self relevant.
 If you need to implement a bigger feature or refactor, check first if
-it was already [planned](https://github.com/pdfmm/pdfmm/issues?q=is%3Aissue+is%3Aopen+label%3Aplanned-task)
+it was already [planned](https://github.com/pdfmm/pdfmm/issues?q=is%3Aissue+is%3Aopen+label%3Afeatured-task)
 in the issue list. The feature may be up for grabs, meaning that it's open for external contributions.
 Please write in the relevant issue that you started to work on that, to receive some coordination.
 If it's not, it means that the refactor/feature is planned to be implemented later by the maintainer(s).
