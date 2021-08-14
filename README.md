@@ -50,10 +50,10 @@ Long version: while several source code files are still
 released under the old PoDoFo terms (LGPL 2.0 license or later),
 new files are expected to be licensed under the terms
 of the LGPL 2.1 license, so as a whole the library is
-licensed under this specific license version.
-See source headers for details. The tests and examples which are included in pdfmm are
-licensed under the GPL 2.0. See all the COPYING files in the relevant
-folders for details.
+licensed under this specific license version. See source headers
+for details. The tests and examples which are included in pdfmm are
+licensed under the GPL 2.0. This may change at a later stage.
+See all the COPYING files in the relevant folders for details.
 
 ## String encoding conventions
 
@@ -73,7 +73,12 @@ See [API Stability](https://github.com/pdfmm/pdfmm/wiki/API-Stability) for more 
 
 There's a [TODO](https://github.com/pdfmm/pdfmm/wiki/TODO) list in the wiki and a list of
 planned [tasks](https://github.com/pdfmm/pdfmm/issues?q=is%3Aissue+is%3Aopen+label%3Aup-for-grabs)
-in the issue tracker.
+in the issue tracker. **Urgent help needed**: pdfmm is first unveiled with a serious lack,
+which is the disabling of the unit test suite based on cppunit.
+Another test suite not based on cppunit is run regularly but it can't be released,
+since it has a fixture of real world PDFs that can't be released
+without the permissions of the owners. See this [discussion](https://github.com/pdfmm/pdfmm/discussions/29)
+for details and if you can provide some help.
 
 ## No warranty
 
@@ -85,18 +90,22 @@ timeframes, or not fixed at all.
 
 If you find a bug and know how to fix it, or you want to add a small feature, you're welcome to send a [pull request](https://github.com/pdfmm/pdfmm/pulls),
 providing it follows the [coding style](https://github.com/pdfmm/pdfmm/blob/master/CODING-STYLE.md)
-of the project. Also, as a minimum requisite, any contribution should be valuable for several people,
-not only for a very restricted use case. For example, if the contributor wants to
-add access to some currently unhandled PDF properties within an object, the contribution
-should cover most of those or the most important ones, not only a single one. This
-should avoids the contibutions to be only self relevant.
+of the project. Also, as a minimum requisite, any contribution should be valuable for a multitude of people,
+to avoid it to be only self relevant for the contributor. Other reasons for the rejection, or hold,
+of a pull request may be:
+
+* the change doesn't fit the scope of pdfmm;
+* the change shows lack of knowledge/mastery of the PDF specification and/or C++ language;
+* the change breaks automatic tests performed by the maintainer;
+* general lack of time in reviewing and merging the change.
+
 If you need to implement a bigger feature or refactor, check first if
 it was already [planned](https://github.com/pdfmm/pdfmm/issues?q=is%3Aissue+is%3Aopen+label%3Afeatured-task)
 in the issue list. The feature may be up for grabs, meaning that it's open for external contributions.
-Please write in the relevant issue that you started to work on that, to receive some coordination.
+Please write in the relevant issue that you started to work on that, to receive some feedback/coordination.
 If it's not, it means that the refactor/feature is planned to be implemented later by the maintainer(s).
 If the feature is not listed in the issues, add it and/or create a [discussion](https://github.com/pdfmm/pdfmm/discussions)
-to receive coordination and discuss some basic design choices.
+to receive some feedback and discuss some basic design choices.
 
 ## Authors
 
