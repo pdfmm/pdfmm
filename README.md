@@ -12,16 +12,15 @@
 
 ## What is pdfmm?
 
-pdfmm is a library to work with the PDF file format.
+pdfmm is a s a free portable C++ library to work with the PDF file format.
 pdfmm is a derivative work of the [PoDoFo](http://podofo.sourceforge.net/)
-library, from which it forked at revision [Rev@1999](https://sourceforge.net/p/podofo/code/1999/).
+library, from which it forked at [Rev@1999](https://sourceforge.net/p/podofo/code/1999/).
 
-The pdfmm library is a free portable C++ library which
-includes classes to parse a PDF file and modify its contents
+pdfmm provides classes to parse a PDF file and modify its content
 into memory. The changes can be written back to disk easily.
-Besides PDF parsing pdfmm includes also very simple classes
-to create your own PDF files. It currently does not include
-facilities to render pdf contents.
+Besides PDF parsing pdfmm also provides facilities to create your
+own PDF files from scratch. It currently does not
+support rendering PDF content.
 
 ## Requirements
 
@@ -60,7 +59,7 @@ folders for details.
 
 All ```std::strings``` or ```std::string_view``` in the library are inteded
 to hold UTF-8 encoded string content unless the documentation states otherwise.
-For example ```std::string_view``` class can also represents a generic ```char``` buffer.
+For example ```std::string_view``` instances can also represents a generic ```char``` buffer.
 ```PdfString``` and ```PdfName``` constructors accept UTF-8 encoded strings by default
 (```PdfName``` accept only characters in the ```PdfDocEncoding``` char set, though).
 
@@ -72,7 +71,7 @@ See [API Stability](https://github.com/pdfmm/pdfmm/wiki/API-Stability) for more 
 
 ## TODO
 
-There's a TODO [list](https://github.com/pdfmm/pdfmm/wiki/TODO) and a list of
+There's a [TODO](https://github.com/pdfmm/pdfmm/wiki/TODO) list in the wiki and a list of
 planned [tasks](https://github.com/pdfmm/pdfmm/issues?q=is%3Aissue+is%3Aopen+label%3Aup-for-grabs)
 in the issue tracker.
 
@@ -106,4 +105,4 @@ pdfmm is currently developed and mantained by
 pdfmm was forked from the PoDoFo library, which was
 written by Dominik Seichter, Leonard Rosenthol,
 Craig Ringer and others. See the file
-AUTHORS for more details.
+[AUTHORS.md](https://github.com/pdfmm/pdfmm/blob/master/AUTHORS.md) for more details.
