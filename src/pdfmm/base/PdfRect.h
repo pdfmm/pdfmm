@@ -48,11 +48,10 @@ public:
     static PdfRect FromCorners(double x1, double y1, double x2, double y2);
 
     /** Converts the rectangle into an array
-     *  based on PDF units and adds the array into an variant.
-     *  \param var the variant to store the Rect
+     *  based on PDF units
+     *  \param var the array to store the Rect
      */
-     // TODO: Rename it in ToArray and accept a PdfArray instead
-    void ToVariant(PdfVariant& var) const;
+    void ToArray(PdfArray& arr) const;
 
     /** Returns a string representation of the PdfRect
      * \returns std::string representation as [ left bottom right top ]

@@ -483,15 +483,15 @@ bool PdfPage::SetPageHeight(int newHeight)
 
 void PdfPage::SetMediaBox(const PdfRect& size)
 {
-    PdfVariant mediaBox;
-    size.ToVariant(mediaBox);
+    PdfArray mediaBox;
+    size.ToArray(mediaBox);
     this->GetObject().GetDictionary().AddKey("MediaBox", mediaBox);
 }
 
 void PdfPage::SetTrimBox(const PdfRect& size)
 {
-    PdfVariant trimbox;
-    size.ToVariant(trimbox);
+    PdfArray trimbox;
+    size.ToArray(trimbox);
     this->GetObject().GetDictionary().AddKey("TrimBox", trimbox);
 }
 

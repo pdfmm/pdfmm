@@ -59,23 +59,21 @@ static PdfName GetAppearanceName(PdfAnnotationAppearance appearance);
 PdfAnnotation::PdfAnnotation(PdfPage& page, PdfAnnotationType annotType, const PdfRect& rect)
     : PdfElement(page.GetDocument(), "Annot"), m_AnnotationType(annotType), m_Page(&page)
 {
-    PdfVariant rectVar;
-    PdfDate date;
-
     const PdfName name(TypeNameForIndex((unsigned)annotType, s_names, (unsigned)std::size(s_names)));
 
     if (name.GetLength() == 0)
-    {
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
-    }
 
-    rect.ToVariant(rectVar);
-    PdfString sDate = date.ToString();
+    PdfArray arr;
+    rect.ToArray(arr);
+
+    PdfDate date;
+    PdfString dateStr = date.ToString();
 
     this->GetObject().GetDictionary().AddKey(PdfName::KeySubtype, name);
-    this->GetObject().GetDictionary().AddKey(PdfName::KeyRect, rectVar);
+    this->GetObject().GetDictionary().AddKey(PdfName::KeyRect, arr);
     this->GetObject().GetDictionary().AddKey("P", page.GetObject().GetIndirectReference());
-    this->GetObject().GetDictionary().AddKey("M", sDate);
+    this->GetObject().GetDictionary().AddKey("M", dateStr);
 }
 
 PdfAnnotation::PdfAnnotation(PdfPage& page, PdfObject& obj)
@@ -98,9 +96,9 @@ PdfRect PdfAnnotation::GetRect() const
 
 void PdfAnnotation::SetRect(const PdfRect& rect)
 {
-    PdfVariant rectVar;
-    rect.ToVariant(rectVar);
-    this->GetObject().GetDictionary().AddKey(PdfName::KeyRect, rectVar);
+    PdfArray arr;
+    rect.ToArray(arr);
+    this->GetObject().GetDictionary().AddKey(PdfName::KeyRect, arr);
 }
 
 void mm::SetAppearanceStreamForObject(PdfObject& obj, PdfXObject& xobj, PdfAnnotationAppearance appearance, const PdfName& state)

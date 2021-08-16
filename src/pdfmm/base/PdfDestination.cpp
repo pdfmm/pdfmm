@@ -49,13 +49,12 @@ PdfDestination::PdfDestination(const PdfPage& page, PdfDestinationFit fit)
 
 PdfDestination::PdfDestination(const PdfPage& page, const PdfRect& rect)
 {
-    PdfVariant var;
-
-    rect.ToVariant(var);
+    PdfArray arr;
+    rect.ToArray(arr);
 
     m_array.push_back(page.GetObject().GetIndirectReference());
     m_array.push_back(PdfName("FitR"));
-    m_array.insert(m_array.end(), var.GetArray().begin(), var.GetArray().end());
+    m_array.insert(m_array.end(), arr.begin(), arr.end());
     m_Object = page.GetObject().GetDocument()->GetObjects().CreateObject(m_array);
 }
 

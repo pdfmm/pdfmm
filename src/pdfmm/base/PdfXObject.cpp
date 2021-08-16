@@ -162,9 +162,9 @@ PdfXObjectType PdfXObject::FromString(const string& str)
 
 void PdfXObject::InitAfterPageInsertion(const PdfDocument& doc, unsigned pageIndex)
 {
-    PdfVariant var;
-    m_Rect.ToVariant(var);
-    this->GetObject().GetDictionary().AddKey("BBox", var);
+    PdfArray bbox;
+    m_Rect.ToArray(bbox);
+    this->GetObject().GetDictionary().AddKey("BBox", bbox);
 
     int rotation = doc.GetPageTree().GetPage(pageIndex).GetRotationRaw();
     // correct negative rotation
@@ -251,9 +251,9 @@ bool PdfXObject::HasRotation(double& teta) const
 
 void PdfXObject::SetRect(const PdfRect& rect)
 {
-    PdfVariant array;
-    rect.ToVariant(array);
-    GetObject().GetDictionary().AddKey("BBox", array);
+    PdfArray bbox;
+    rect.ToArray(bbox);
+    GetObject().GetDictionary().AddKey("BBox", bbox);
     m_Rect = rect;
 }
 
@@ -288,9 +288,9 @@ void PdfXObject::InitXObject(const PdfRect& rect, const string_view& prefix)
         m_matrix.push_back(PdfObject(static_cast<int64_t>(0)));
     }
 
-    PdfVariant var;
-    rect.ToVariant(var);
-    this->GetObject().GetDictionary().AddKey("BBox", var);
+    PdfArray bbox;
+    rect.ToArray(bbox);
+    this->GetObject().GetDictionary().AddKey("BBox", bbox);
     this->GetObject().GetDictionary().AddKey(PdfName::KeySubtype, PdfName(ToString(PdfXObjectType::Form)));
     this->GetObject().GetDictionary().AddKey("FormType", PdfVariant(static_cast<int64_t>(1))); // only 1 is only defined in the specification.
     this->GetObject().GetDictionary().AddKey("Matrix", m_matrix);

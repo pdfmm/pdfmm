@@ -20,7 +20,8 @@ static void CreateRect(double x1, double y1, double x2, double y2,
     double& left, double& bottom, double& width, double& height);
 static void NormalizeCoordinates(double& coord1, double& coord2);
 
-namespace mm {
+using namespace std;
+using namespace mm;
 
 PdfRect::PdfRect()
 {
@@ -53,25 +54,21 @@ PdfRect::PdfRect(const PdfRect& rhs)
     this->operator=(rhs);
 }
 
-void PdfRect::ToVariant(PdfVariant& var) const
+void PdfRect::ToArray(PdfArray& arr) const
 {
-    PdfArray array;
-
-    array.push_back(PdfVariant(m_Left));
-    array.push_back(PdfVariant(m_Bottom));
-    array.push_back(PdfVariant((m_Width + m_Left)));
-    array.push_back(PdfVariant((m_Height + m_Bottom)));
-
-    var = array;
+    arr.Clear();
+    arr.push_back(PdfObject(m_Left));
+    arr.push_back(PdfObject(m_Bottom));
+    arr.push_back(PdfObject((m_Width + m_Left)));
+    arr.push_back(PdfObject((m_Height + m_Bottom)));
 }
 
-std::string PdfRect::ToString() const
+string PdfRect::ToString() const
 {
-    PdfVariant  var;
-    std::string str;
-    this->ToVariant(var);
-    var.ToString(str);
-
+    PdfArray arr;
+    string str;
+    this->ToArray(arr);
+    PdfVariant(arr).ToString(str);
     return str;
 }
 
@@ -145,8 +142,6 @@ PdfRect& PdfRect::operator=(const PdfRect& rhs)
 
     return *this;
 }
-
-};
 
 void CreateRect(double x1, double y1, double x2, double y2, double& left, double& bottom, double& width, double& height)
 {

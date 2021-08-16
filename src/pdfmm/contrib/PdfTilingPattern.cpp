@@ -98,13 +98,13 @@ void PdfTilingPattern::Init(PdfTilingPatternType tilingType,
         rect.SetHeight(8);
     }
 
-    PdfVariant var;
-    rect.ToVariant(var);
+    PdfArray arr;
+    rect.ToArray(arr);
 
     this->GetObject().GetDictionary().AddKey("PatternType", static_cast<int64_t>(1)); // Tiling pattern
     this->GetObject().GetDictionary().AddKey("PaintType", static_cast<int64_t>(1)); // Colored
     this->GetObject().GetDictionary().AddKey("TilingType", static_cast<int64_t>(1)); // Constant spacing
-    this->GetObject().GetDictionary().AddKey("BBox", var);
+    this->GetObject().GetDictionary().AddKey("BBox", arr);
     this->GetObject().GetDictionary().AddKey("XStep", static_cast<int64_t>(rect.GetWidth()));
     this->GetObject().GetDictionary().AddKey("YStep", static_cast<int64_t>(rect.GetHeight()));
     this->GetObject().GetDictionary().AddKey("Resources", PdfDictionary());
