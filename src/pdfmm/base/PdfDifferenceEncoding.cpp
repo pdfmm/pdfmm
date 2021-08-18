@@ -2339,7 +2339,8 @@ PdfDifferenceEncoding::PdfDifferenceEncoding(const PdfObject& obj, bool explicit
             }
             else if (diff.IsName())
             {
-                m_differences.AddDifference(static_cast<unsigned>(curCode), 0, diff.GetName(), explicitNames);
+                char32_t unicodeValue = PdfDifferenceEncoding::NameToUnicodeID(diff.GetName());
+                m_differences.AddDifference(static_cast<unsigned>(curCode), unicodeValue, diff.GetName(), explicitNames);
                 curCode++;
             }
         }
