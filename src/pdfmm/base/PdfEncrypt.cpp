@@ -505,7 +505,13 @@ unique_ptr<PdfEncrypt> PdfEncrypt::CreatePdfEncrypt(const PdfObject& encryptObj)
     else if ((((lV == 2) && (rValue == 3)) || cfmName == "V2")
         && PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::RC4V2))
     {
-        // [Alexey] - length is int64_t. Please make changes in encryption algorithms
+        // length is int64_t. Please make changes in encryption algorithms
+        // Check key length length here to prevent
+        // stack-based buffer over-read later in this file
+        if (length > MD5_DIGEST_LENGTH * CHAR_BIT) // length in bits, md5 in bytes
+        {
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Given key length too large for MD5.");
+        }
         return unique_ptr<PdfEncrypt>(new PdfEncryptRC4(oValue, uValue, pValue, rValue, PdfEncryptAlgorithm::RC4V2, static_cast<int>(length), encryptMetadata));
     }
     else
