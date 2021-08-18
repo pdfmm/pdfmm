@@ -17,7 +17,8 @@ using namespace mm;
 
 PdfPageTreeCache::PdfPageTreeCache(unsigned initialSize)
 {
-    m_PageObjs.resize(initialSize);
+    if (initialSize < (1 << 20))
+        m_PageObjs.resize(initialSize);
 }
 
 PdfPage* PdfPageTreeCache::GetPage(unsigned atIndex)
