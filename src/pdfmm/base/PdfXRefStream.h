@@ -45,11 +45,24 @@ public:
 protected:
     void BeginWrite(PdfOutputDevice& device) override;
     void WriteSubSection(PdfOutputDevice& device, uint32_t first, uint32_t count) override;
-    void WriteXRefEntry(PdfOutputDevice& device, const PdfXRefEntry& entry) override;
+    void WriteXRefEntry(PdfOutputDevice& device, const PdfReference& ref, const PdfXRefEntry& entry) override;
     void EndWriteImpl(PdfOutputDevice& device) override;
 
 private:
+#pragma pack(push, 1)
+    // TODO: Handle for different byte size for object number/offset/generation
+    struct XRefStreamEntry
+    {
+        uint8_t Type;
+        uint32_t Variant; // Can be an object number or an offset
+        uint16_t Generation;
+    };
+#pragma pack(pop)
+
+private:
     PdfIndirectObjectList* m_Parent;
+    std::vector<XRefStreamEntry> m_rawEntries;
+    int m_xrefStreamEntryIndex;
     PdfObject* m_xrefStreamObj;
     PdfArray m_indices;
     int64_t m_offset;

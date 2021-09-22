@@ -248,6 +248,8 @@ void PdfIndirectObjectList::PushObject(PdfObject* obj)
     auto inserted = m_Objects.insert(obj);
     if (!inserted.second)
     {
+        // Pushing an existing object actually overwrites it.
+        // It appears to be the same behavior in Adobe sw solutions
         delete* inserted.first;
         m_Objects.erase(inserted.first);
         m_Objects.insert(obj);

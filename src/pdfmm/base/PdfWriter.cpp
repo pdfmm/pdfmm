@@ -168,10 +168,15 @@ void PdfWriter::WritePdfObjects(PdfOutputDevice& device, const PdfIndirectObject
             }
         }
 
-        xref.AddInUseObject(obj->GetIndirectReference(), device.Tell());
-
-        if (!xref.ShouldSkipWrite(obj->GetIndirectReference()))
+        if (xref.ShouldSkipWrite(obj->GetIndirectReference()))
         {
+            // If we skip write of this object, we supply a dummy
+            // offset of the object and not retrieve it from the device
+            xref.AddInUseObject(obj->GetIndirectReference(), 0xFFFFFFFF);
+        }
+        else
+        {
+            xref.AddInUseObject(obj->GetIndirectReference(), device.Tell());
             // Also make sure that we do not encrypt the encryption dictionary!
             obj->Write(device, m_WriteMode, obj == m_EncryptObj ? nullptr : m_Encrypt.get());
         }

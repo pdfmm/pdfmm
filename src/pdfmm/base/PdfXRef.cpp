@@ -15,7 +15,7 @@
 
 #include <algorithm>
 
-#define EMPTY_OBJECT_OFFSET 65535
+#define EMPTY_OBJECT_GENERATION 65535
 
 using namespace std;
 using namespace mm;
@@ -109,8 +109,9 @@ void PdfXRef::Write(PdfOutputDevice& device)
 
         if (first == 0)
         {
-            const PdfReference* pFirstFree = this->GetFirstFreeObject(it, itFree);
-            this->WriteXRefEntry(device, PdfXRefEntry::CreateFree(pFirstFree ? pFirstFree->ObjectNumber() : 0, EMPTY_OBJECT_OFFSET));
+            const PdfReference* firstFree = this->GetFirstFreeObject(it, itFree);
+            this->WriteXRefEntry(device, PdfReference(0, EMPTY_OBJECT_GENERATION),
+                PdfXRefEntry::CreateFree(firstFree == nullptr ? 0 : firstFree->ObjectNumber(), EMPTY_OBJECT_GENERATION));
         }
 
         while (itItems != block.Items.end())
@@ -119,17 +120,17 @@ void PdfXRef::Write(PdfOutputDevice& device)
             while (itFree != block.FreeItems.end() &&
                 *itFree < itItems->Reference)
             {
-                uint16_t nGen = itFree->GenerationNumber();
+                uint16_t genNo = itFree->GenerationNumber();
 
                 // get a pointer to the next free object
                 nextFree = this->GetNextFreeObject(it, itFree);
 
                 // write free object
-                this->WriteXRefEntry(device, PdfXRefEntry::CreateFree(nextFree ? nextFree->ObjectNumber() : 0, nGen));
+                this->WriteXRefEntry(device, *itFree, PdfXRefEntry::CreateFree(nextFree == nullptr ? 0 : nextFree->ObjectNumber(), genNo));
                 itFree++;
             }
 
-            this->WriteXRefEntry(device, PdfXRefEntry::CreateInUse(itItems->Offset, itItems->Reference.GenerationNumber()));
+            this->WriteXRefEntry(device, itItems->Reference, PdfXRefEntry::CreateInUse(itItems->Offset, itItems->Reference.GenerationNumber()));
             itItems++;
         }
 
@@ -142,7 +143,7 @@ void PdfXRef::Write(PdfOutputDevice& device)
             nextFree = this->GetNextFreeObject(it, itFree);
 
             // write free object
-            this->WriteXRefEntry(device, PdfXRefEntry::CreateFree(nextFree ? nextFree->ObjectNumber() : 0, genNo));
+            this->WriteXRefEntry(device, *itFree, PdfXRefEntry::CreateFree(nextFree  == nullptr ? 0 : nextFree->ObjectNumber(), genNo));
             itFree++;
         }
 
@@ -255,8 +256,9 @@ void PdfXRef::WriteSubSection(PdfOutputDevice& device, uint32_t first, uint32_t 
     device.Print("%u %u\n", first, count);
 }
 
-void PdfXRef::WriteXRefEntry(PdfOutputDevice& device, const PdfXRefEntry& entry)
+void PdfXRef::WriteXRefEntry(PdfOutputDevice& device, const PdfReference& ref, const PdfXRefEntry& entry)
 {
+    (void)ref;
     uint64_t variant;
     switch (entry.Type)
     {
@@ -307,7 +309,7 @@ void PdfXRef::SetFirstEmptyBlock()
 bool PdfXRef::ShouldSkipWrite(const PdfReference& ref)
 {
     (void)ref;
-    // Nothing to skip writing for PdfXRef table
+    // No object to skip in PdfXRef table
     return false;
 }
 

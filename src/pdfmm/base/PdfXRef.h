@@ -114,6 +114,7 @@ public:
     void SetFirstEmptyBlock();
 
     /** Should skip writing for this object
+     *  \param ref reference of the object
      */
     virtual bool ShouldSkipWrite(const PdfReference& ref);
 
@@ -150,13 +151,10 @@ protected:
      *
      *  \param device the output device to which the XRef table
      *                 should be written.
-     *  \param offset the offset of the object
-     *  \param generation the generation number
-     *  \param cMode the mode 'n' for object and 'f' for free objects
-     *  \param objectNumber the object number of the currently written object if cMode = 'n'
-     *                       otherwise undefined
+     *  \param ref the reference of object of the entry
+     *  \param entry the XRefEntry of this object
      */
-    virtual void WriteXRefEntry(PdfOutputDevice& device, const PdfXRefEntry& entry);
+    virtual void WriteXRefEntry(PdfOutputDevice& device, const PdfReference& ref, const PdfXRefEntry& entry);
 
     /**  Sub classes can overload this method to finish a XRef table.
      *
