@@ -41,9 +41,12 @@ class PDFMM_API PdfIndirectObjectList final
     friend class PdfDocument;
     friend class PdfParser;
     friend class PdfObjectStreamParser;
+private:
+    static bool CompareObject(const PdfObject* p1, const PdfObject* p2);
+    static bool CompareReference(const PdfObject* obj, const PdfReference& ref);
 
 private:
-    typedef std::vector<PdfObject*> ObjectList;
+    typedef std::set<PdfObject*, decltype(CompareObject)*> ObjectList;
 
 public:
     // An incomplete set of container typedefs, just enough to handle
@@ -176,12 +179,6 @@ public:
      */
     PdfObject* CreateObject(const PdfVariant& variant);
 
-
-    /**
-     * Sort the objects in the vector based on their object and generation numbers
-     */
-    void Sort();
-
     /**
      * Set the maximum number of elements Reserve() will work for (to fix
      * CVE-2018-5783) which is called with a value from the PDF in the parser.
@@ -200,12 +197,6 @@ public:
      * (PDF 1.7 standard free version): 8388607.
      */
     size_t GetMaxReserveSize() const { return m_MaxReserveSize; }
-
-    /**
-     * Causes the internal vector to reserve space for size elements.
-     * \param size reserve space for that much elements in the internal vector
-     */
-    void Reserve(size_t size);
 
     /** Attach a new observer
      *  \param pObserver to attach
@@ -252,14 +243,6 @@ public:
      *  \param stream the stream object that is calling
      */
     void EndAppendStream(const PdfStream& stream);
-
-    PdfObject*& operator[](size_t index);
-
-    /** Get the last object in the vector
-     *  \returns the last object in the vector or nullptr
-     *           if the vector is empty.
-     */
-    PdfObject* GetBack();
 
     /**
      * Deletes all objects that are not references by other objects
@@ -351,7 +334,7 @@ private:
      *
      *  \param obj pointer to the object you want to insert
      */
-    void AddObject(PdfObject* obj);
+    void PushObject(PdfObject* obj);
 
     /** Push an object with the givent reference. If one is existing, it will be replaced
      */
@@ -426,10 +409,9 @@ private:
 
 private:
     PdfDocument* m_Document;
+    ObjectList m_Objects;
     bool m_CanReuseObjectNumbers;
     unsigned m_ObjectCount;
-    bool m_sorted;
-    ObjectList m_Objects;
 
     ObserverList m_observers;
     PdfReferenceList m_FreeObjects;

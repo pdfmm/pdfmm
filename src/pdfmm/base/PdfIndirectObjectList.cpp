@@ -23,9 +23,6 @@ using namespace mm;
 
 #define MAX_XREF_GEN_NUM 65535
 
-static bool CompareObject(const PdfObject* obj1, const PdfObject* obj2);
-static bool CompareReference(const PdfObject* obj, const PdfReference& ref);
-
 struct ObjectComparatorPredicate
 {
 public:
@@ -71,9 +68,9 @@ size_t PdfIndirectObjectList::m_MaxReserveSize = static_cast<size_t>(8388607); /
 
 PdfIndirectObjectList::PdfIndirectObjectList(PdfDocument& document) :
     m_Document(&document),
+    m_Objects(CompareObject),
     m_CanReuseObjectNumbers(true),
     m_ObjectCount(1),
-    m_sorted(true),
     m_StreamFactory(nullptr)
 {
 }
@@ -90,7 +87,6 @@ void PdfIndirectObjectList::Clear()
 
     m_Objects.clear();
     m_ObjectCount = 1;
-    m_sorted = true;
     m_StreamFactory = nullptr;
 }
 
@@ -105,7 +101,6 @@ PdfObject& PdfIndirectObjectList::MustGetObject(const PdfReference& ref) const
 
 PdfObject* PdfIndirectObjectList::GetObject(const PdfReference& ref) const
 {
-    const_cast<PdfIndirectObjectList&>(*this).Sort();
     auto it = std::lower_bound(m_Objects.begin(), m_Objects.end(), ref, CompareReference);
     if (it == m_Objects.end() || (*it)->GetIndirectReference() != ref)
         return nullptr;
@@ -115,7 +110,6 @@ PdfObject* PdfIndirectObjectList::GetObject(const PdfReference& ref) const
 
 unique_ptr<PdfObject> PdfIndirectObjectList::RemoveObject(const PdfReference& ref, bool markAsFree)
 {
-    const_cast<PdfIndirectObjectList&>(*this).Sort();
     auto it = std::lower_bound(m_Objects.begin(), m_Objects.end(), ref, CompareReference);
     if (it == m_Objects.end() || (*it)->GetIndirectReference() != ref)
         return nullptr;
@@ -125,7 +119,6 @@ unique_ptr<PdfObject> PdfIndirectObjectList::RemoveObject(const PdfReference& re
         SafeAddFreeObject(obj->GetIndirectReference());
 
     m_Objects.erase(it);
-    m_sorted = false;
     return unique_ptr<PdfObject>(obj);
 }
 
@@ -133,7 +126,6 @@ unique_ptr<PdfObject> PdfIndirectObjectList::RemoveObject(const iterator& it)
 {
     auto obj = *it;
     m_Objects.erase(it);
-    m_sorted = false;
     return unique_ptr<PdfObject>(obj);
 }
 
@@ -237,14 +229,8 @@ void PdfIndirectObjectList::AddFreeObject(const PdfReference& reference)
 
 void PdfIndirectObjectList::PushObject(const PdfReference& ref, PdfObject* obj)
 {
-    if (GetObject(ref) != nullptr)
-    {
-        PdfError::LogMessage(LogSeverity::Warning, "Object: %" PDF_FORMAT_INT64 " 0 R will be deleted and loaded again.", ref.ObjectNumber());
-        RemoveObject(ref, false);
-    }
-
     obj->SetIndirectReference(ref);
-    AddObject(obj);
+    PushObject(obj);
 }
 
 void PdfIndirectObjectList::addNewObject(PdfObject* obj)
@@ -252,24 +238,20 @@ void PdfIndirectObjectList::addNewObject(PdfObject* obj)
     PdfReference ref = getNextFreeObject();
     obj->SetIndirectReference(ref);
     obj->SetDocument(*m_Document);
-    AddObject(obj);
+    PushObject(obj);
 }
 
-void PdfIndirectObjectList::AddObject(PdfObject* obj)
+void PdfIndirectObjectList::PushObject(PdfObject* obj)
 {
     SetObjectCount(obj->GetIndirectReference());
     obj->SetDocument(*m_Document);
-    m_Objects.push_back(obj);
-    m_sorted = false;
-}
-
-void PdfIndirectObjectList::Sort()
-{
-    if (m_sorted)
-        return;
-
-    std::sort(m_Objects.begin(), m_Objects.end(), CompareObject);
-    m_sorted = true;
+    auto inserted = m_Objects.insert(obj);
+    if (!inserted.second)
+    {
+        delete* inserted.first;
+        m_Objects.erase(inserted.first);
+        m_Objects.insert(obj);
+    }
 }
 
 #pragma region Untested
@@ -286,7 +268,7 @@ void PdfIndirectObjectList::CollectGarbage(PdfObject& trailer)
 void PdfIndirectObjectList::RenumberObjects(PdfObject& trailer, ReferenceSet* notDelete, bool doGarbageCollection)
 {
     throw runtime_error("Fixme, we don't support taking address of PdfReference anymore. See InsertOneReferenceIntoVector");
-
+    /*
     m_FreeObjects.clear();
     const_cast<PdfIndirectObjectList&>(*this).Sort();
 
@@ -310,6 +292,7 @@ void PdfIndirectObjectList::RenumberObjects(PdfObject& trailer, ReferenceSet* no
 
         i++;
     }
+    */
 }
 
 void PdfIndirectObjectList::insertOneReferenceIntoVector(const PdfObject& obj, ReferencePointersList& list)
@@ -432,6 +415,8 @@ void PdfIndirectObjectList::buildReferenceCountVector(ReferencePointersList& lis
 
 void PdfIndirectObjectList::garbageCollection(ReferencePointersList& list, PdfObject&, ReferenceSet* notDelete)
 {
+    throw runtime_error("The object list is no more a sequence");
+    /*
     unsigned pos = 0;
     bool contains = false;
 
@@ -447,6 +432,7 @@ void PdfIndirectObjectList::garbageCollection(ReferencePointersList& list, PdfOb
     }
 
     m_ObjectCount = pos;
+    */
 }
 
 #pragma endregion
@@ -519,20 +505,6 @@ unsigned PdfIndirectObjectList::GetSize() const
     return (unsigned)m_Objects.size();
 }
 
-void PdfIndirectObjectList::Reserve(size_t size)
-{
-    if (size <= m_MaxReserveSize) // Fix CVE-2018-5783
-    {
-        m_Objects.reserve(size);
-    }
-    else
-    {
-        PdfError::DebugMessage("Call to PdfIndirectObjectList::Reserve with %"
-            PDF_SIZE_FORMAT" is over allowed limit of %"
-            PDF_SIZE_FORMAT".\n", size, m_MaxReserveSize);
-    }
-}
-
 void PdfIndirectObjectList::Attach(Observer* observer)
 {
     m_observers.push_back(observer);
@@ -541,11 +513,6 @@ void PdfIndirectObjectList::Attach(Observer* observer)
 void PdfIndirectObjectList::SetStreamFactory(StreamFactory* factory)
 {
     m_StreamFactory = factory;
-}
-
-PdfObject* PdfIndirectObjectList::GetBack()
-{
-    return m_Objects.back();
 }
 
 void PdfIndirectObjectList::SetObjectCount(const PdfReference& ref)
@@ -559,11 +526,8 @@ void PdfIndirectObjectList::SetObjectCount(const PdfReference& ref)
     }
 }
 
-PdfObject*& PdfIndirectObjectList::operator[](size_t index) { return m_Objects[index]; }
-
 PdfIndirectObjectList::iterator PdfIndirectObjectList::begin() const
 {
-    const_cast<PdfIndirectObjectList&>(*this).Sort();
     return m_Objects.begin();
 }
 
@@ -577,12 +541,12 @@ size_t PdfIndirectObjectList::size() const
     return m_Objects.size();
 }
 
-bool CompareObject(const PdfObject* p1, const PdfObject* p2)
+bool PdfIndirectObjectList::CompareObject(const PdfObject* p1, const PdfObject* p2)
 {
     return *p1 < *p2;
 }
 
-bool CompareReference(const PdfObject* obj, const PdfReference& ref)
+bool PdfIndirectObjectList::CompareReference(const PdfObject* obj, const PdfReference& ref)
 {
     return obj->GetIndirectReference() < ref;
 }

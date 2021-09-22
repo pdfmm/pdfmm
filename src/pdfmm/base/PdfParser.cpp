@@ -912,8 +912,6 @@ void PdfParser::ReadObjects(const shared_ptr<PdfInputDevice>& device)
     int i = 0;
     PdfParserObject* obj = nullptr;
 
-    m_Objects->Reserve(m_objectCount);
-
     // Check for encryption and make sure that the encryption object
     // is loaded before all other objects
     PdfObject* encrypt = m_Trailer->GetDictionary().GetKey("Encrypt");
@@ -1048,7 +1046,7 @@ void PdfParser::ReadObjectsInternal(const shared_ptr<PdfInputDevice>& device)
                             }
                             else
                             {
-                                m_Objects->AddObject(obj);
+                                m_Objects->PushObject(obj);
                             }
                         }
                         catch (PdfError& e)
@@ -1152,10 +1150,6 @@ void PdfParser::ReadObjectsInternal(const shared_ptr<PdfInputDevice>& device)
             obj->ForceStreamParse();
         }
     }
-
-
-    // Now sort the list of objects
-    m_Objects->Sort();
 
     UpdateDocumentVersion();
 }

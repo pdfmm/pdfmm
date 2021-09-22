@@ -70,7 +70,7 @@ private:
      */
     void ParseStream(const int64_t wArray[W_ARRAY_SIZE], const std::vector<int64_t>& indices);
 
-    void ReadXRefStreamEntry(char* buffer, size_t, const int64_t wArray[W_ARRAY_SIZE], int objNo);
+    void ReadXRefStreamEntry(PdfXRefEntry& entry, char* buffer, const int64_t wArray[W_ARRAY_SIZE]);
 
 private:
     ssize_t m_NextOffset;

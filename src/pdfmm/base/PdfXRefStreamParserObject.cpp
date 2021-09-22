@@ -123,10 +123,11 @@ void PdfXRefStreamParserObject::ParseStream(const int64_t wArray[W_ARRAY_SIZE], 
             if ((size_t)(cursor - buffer.get()) >= bufferLen)
                 PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoXRef, "Invalid count in XRef stream");
 
+            auto& entry = (*m_entries)[static_cast<unsigned>(firstObj)];
             if (firstObj >= 0 && firstObj < static_cast<int64_t>(m_entries->size())
-                && !(*m_entries)[static_cast<int>(firstObj)].Parsed)
+                && !entry.Parsed)
             {
-                ReadXRefStreamEntry(cursor, bufferLen, wArray, static_cast<int>(firstObj));
+                ReadXRefStreamEntry(entry, cursor, wArray);
             }
 
             firstObj++;
@@ -163,7 +164,7 @@ void PdfXRefStreamParserObject::GetIndices(std::vector<int64_t>& indices, int64_
         PDFMM_RAISE_ERROR(PdfErrorCode::NoXRef);
 }
 
-void PdfXRefStreamParserObject::ReadXRefStreamEntry(char* buffer, size_t, const int64_t wArray[W_ARRAY_SIZE], int objNo)
+void PdfXRefStreamParserObject::ReadXRefStreamEntry(PdfXRefEntry& entry, char* buffer, const int64_t wArray[W_ARRAY_SIZE])
 {
     uint64_t entryRaw[W_ARRAY_SIZE];
     for (unsigned i = 0; i < W_ARRAY_SIZE; i++)
@@ -185,7 +186,6 @@ void PdfXRefStreamParserObject::ReadXRefStreamEntry(char* buffer, size_t, const 
         }
     }
 
-    PdfXRefEntry& entry = (*m_entries)[objNo];
     entry.Parsed = true;
 
     // TABLE 3.15 Additional entries specific to a cross - reference stream dictionary
