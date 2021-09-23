@@ -269,6 +269,9 @@ void PdfIndirectObjectList::CollectGarbage(PdfObject& trailer)
 
 void PdfIndirectObjectList::RenumberObjects(PdfObject& trailer, ReferenceSet* notDelete, bool doGarbageCollection)
 {
+    (void)trailer;
+    (void)notDelete;
+    (void)doGarbageCollection;
     throw runtime_error("Fixme, we don't support taking address of PdfReference anymore. See InsertOneReferenceIntoVector");
     /*
     m_FreeObjects.clear();
@@ -417,6 +420,8 @@ void PdfIndirectObjectList::buildReferenceCountVector(ReferencePointersList& lis
 
 void PdfIndirectObjectList::garbageCollection(ReferencePointersList& list, PdfObject&, ReferenceSet* notDelete)
 {
+    (void)list;
+    (void)notDelete;
     throw runtime_error("The object list is no more a sequence");
     /*
     unsigned pos = 0;

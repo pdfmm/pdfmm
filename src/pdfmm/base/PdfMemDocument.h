@@ -66,14 +66,10 @@ public:
      *  \param filename filename of the file which is going to be parsed/opened
      *  \param bForUpdate whether to load for incremental update
      *
-     *  This might throw a PdfError( PdfErrorCode::InvalidPassword ) exception
-     *  if a password is required to read this PDF.
-     *  Call SetPassword with the correct password in this case.
-     *
      *  When the bForUpdate is set to true, the filename is copied
      *  for later use by WriteUpdate.
      *
-     *  \see SetPassword, WriteUpdate
+     *  \see WriteUpdate
      */
     PdfMemDocument(const std::string_view& filename);
 
@@ -84,50 +80,29 @@ public:
     /** Load a PdfMemDocument from a file
      *
      *  \param filename filename of the file which is going to be parsed/opened
-     *  \param bForUpdate whether to load for incremental update
-     *
-     *  This might throw a PdfError( PdfErrorCode::InvalidPassword ) exception
-     *  if a password is required to read this PDF.
-     *  Call SetPassword with the correct password in this case.
      *
      *  When the bForUpdate is set to true, the filename is copied
      *  for later use by WriteUpdate.
      *
-     *  \see SetPassword, WriteUpdate, LoadFromBuffer, LoadFromDevice
+     *  \see WriteUpdate, LoadFromBuffer, LoadFromDevice
      */
     void Load(const std::string_view& filename, const std::string_view& password = { });
 
     /** Load a PdfMemDocument from a buffer in memory
      *
      *  \param buffer a memory area containing the PDF data
-     *  \param len length of the buffer
-     *  \param bForUpdate whether to load for incremental update
      *
-     *  This might throw a PdfError( PdfErrorCode::InvalidPassword ) exception
-     *  if a password is required to read this PDF.
-     *  Call SetPassword with the correct password in this case.
-     *
-     *  When the bForUpdate is set to true, the memory buffer is copied
-     *  for later use by WriteUpdate.
-     *
-     *  \see SetPassword, WriteUpdate, Load, LoadFromDevice
+     *  \see WriteUpdate, Load, LoadFromDevice
      */
-    void LoadFromBuffer(const std::string_view& filename, const std::string_view& password = { });
+    void LoadFromBuffer(const std::string_view& buffer, const std::string_view& password = { });
 
     /** Load a PdfMemDocument from a PdfRefCountedInputDevice
      *
      *  \param device the input device containing the PDF
      *
-     *  This might throw a PdfError( PdfErrorCode::InvalidPassword ) exception
-     *  if a password is required to read this PDF.
-     *  Call SetPassword with the correct password in this case.
-     *
-     *  When the bForUpdate is set to true, the rDevice is referenced
-     *  for later use by WriteUpdate.
-     *
-     *  \see SetPassword, WriteUpdate, Load, LoadFromBuffer
+     *  \see WriteUpdate, Load, LoadFromBuffer
      */
-    void LoadFromDevice(const std::shared_ptr<PdfInputDevice>& device, const std::string_view& filename = { });
+    void LoadFromDevice(const std::shared_ptr<PdfInputDevice>& device, const std::string_view& password = { });
 
     /** Writes the complete document to a file
      *
@@ -227,23 +202,6 @@ public:
      *  \param level  level of the extension
      */
     std::vector<PdfExtension> GetPdfExtensions() const;
-
-    /** If you try to open an encrypted PDF file, which requires
-     *  a password to open, pdfmm will throw a PdfError( PdfErrorCode::InvalidPassword )
-     *  exception.
-     *
-     *  If you got such an exception, you have to set a password
-     *  which should be used for opening the PDF.
-     *
-     *  The usual way will be to ask the user for the password
-     *  and set the password using this method.
-     *
-     *  PdfParser will immediately continue to read the PDF file.
-     *
-     *  \param password a user or owner password which can be used to open an encrypted PDF file
-     *                   If the password is invalid, a PdfError( PdfErrorCode::InvalidPassword ) exception is thrown!
-     */
-    void SetPassword(const std::string_view& password);
 
     /** Encrypt the document during writing.
      *
