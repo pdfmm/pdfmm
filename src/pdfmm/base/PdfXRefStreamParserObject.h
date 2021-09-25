@@ -55,7 +55,7 @@ private:
      * Read the /Index key from the current dictionary
      * and write it to a vector.
      *
-     * \param indices store the indeces hare
+     * \param indices store the indices hare
      * \param size default value from /Size key
      */
     void GetIndices(std::vector<int64_t>& indices, int64_t size);
