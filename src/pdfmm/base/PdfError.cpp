@@ -47,11 +47,6 @@ PdfErrorInfo::PdfErrorInfo(int line, const char* file, const char* info)
 
 }
 
-PdfErrorInfo::PdfErrorInfo(int line, const char* file, const wchar_t* info)
-    : m_Line(line), m_File(file ? file : ""), m_wInfo(info ? info : L"")
-{
-
-}
 PdfErrorInfo::PdfErrorInfo(const PdfErrorInfo& rhs)
 {
     this->operator=(rhs);
@@ -62,8 +57,6 @@ const PdfErrorInfo& PdfErrorInfo::operator=(const PdfErrorInfo& rhs)
     m_Line = rhs.m_Line;
     m_File = rhs.m_File;
     m_Info = rhs.m_Info;
-    m_wInfo = rhs.m_wInfo;
-
     return *this;
 }
 
@@ -148,10 +141,7 @@ void PdfError::PrintErrorMsg() const
         if (!info.GetInformation().empty())
             PdfError::LogErrorMessage(LogSeverity::Error, "\t\tInformation: %s", info.GetInformation().c_str());
 
-        if (!info.GetInformationW().empty())
-            PdfError::LogErrorMessage(LogSeverity::Error, L"\t\tInformation: %s", info.GetInformationW().c_str());
-
-        ++i;
+        i++;
     }
 
 
@@ -553,27 +543,6 @@ void PdfError::LogMessageInternal(LogSeverity logSeverity, const char* msg, va_l
     fflush(stderr);
 }
 
-void PdfError::LogMessage(LogSeverity logSeverity, const wchar_t* msg, ...)
-{
-    if (!PdfError::LoggingEnabled())
-        return;
-
-#ifdef DEBUG
-    const LogSeverity minSeverity = LogSeverity::Debug;
-#else
-    const LogSeverity minSeverity = LogSeverity::Information;
-#endif // DEBUG
-
-    if (logSeverity > minSeverity)
-        return;
-
-    va_list  args;
-    va_start(args, msg);
-
-    LogMessageInternal(logSeverity, msg, args);
-    va_end(args);
-}
-
 void PdfError::EnableLogging(bool enable)
 {
     PdfError::s_LogEnabled = enable;
@@ -582,53 +551,6 @@ void PdfError::EnableLogging(bool enable)
 bool PdfError::LoggingEnabled()
 {
     return PdfError::s_LogEnabled;
-}
-
-void PdfError::LogErrorMessage(LogSeverity logSeverity, const wchar_t* msg, ...)
-{
-    va_list  args;
-    va_start(args, msg);
-
-    LogMessageInternal(logSeverity, msg, args);
-    va_end(args);
-}
-
-void PdfError::LogMessageInternal(LogSeverity logSeverity, const wchar_t* msg, va_list& args)
-{
-    const wchar_t* prefix = nullptr;
-
-    switch (logSeverity)
-    {
-        case LogSeverity::Error:
-            break;
-        case LogSeverity::Critical:
-            prefix = L"CRITICAL: ";
-            break;
-        case LogSeverity::Warning:
-            prefix = L"WARNING: ";
-            break;
-        case LogSeverity::Information:
-            break;
-        case LogSeverity::Debug:
-            prefix = L"DEBUG: ";
-            break;
-        case LogSeverity::None:
-        case LogSeverity::Unknown:
-        default:
-            break;
-    }
-
-    // OC 17.08.2010 New to optionally replace stderr output by a callback:
-    if (m_LogMessageCallback != nullptr)
-    {
-        m_LogMessageCallback->LogMessage(logSeverity, prefix, msg, args);
-        return;
-    }
-
-    if (prefix != nullptr)
-        fwprintf(stderr, prefix);
-
-    vfwprintf(stderr, msg, args);
 }
 
 void PdfError::DebugMessage(const char* msg, ...)
@@ -694,12 +616,6 @@ void PdfError::SetErrorInformation(const char* information)
 {
     if (m_callStack.size() != 0)
         m_callStack.front().SetInformation(information == nullptr ? "" : information);
-}
-
-void PdfError::SetErrorInformation(const wchar_t* information)
-{
-    if (m_callStack.size() != 0)
-        m_callStack.front().SetInformation(information == nullptr ? L"" : information);
 }
 
 bool PdfError::IsError() const

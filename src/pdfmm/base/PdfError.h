@@ -145,7 +145,6 @@ public:
     PdfErrorInfo();
     PdfErrorInfo(int line, const char* file, const char* info);
     PdfErrorInfo(int line, const char* file, const std::string_view& info);
-    PdfErrorInfo(int line, const char* file, const wchar_t* info);
     PdfErrorInfo(const PdfErrorInfo& rhs);
 
     const PdfErrorInfo& operator=(const PdfErrorInfo& rhs);
@@ -153,17 +152,14 @@ public:
     inline int GetLine() const { return m_Line; }
     inline const std::string& GetFilename() const { return m_File; }
     inline const std::string& GetInformation() const { return m_Info; }
-    inline const std::wstring& GetInformationW() const { return m_wInfo; }
 
     inline void SetInformation(const char* info) { m_Info = info == nullptr ? "" : info; }
     inline void SetInformation(const std::string_view& info) { m_Info = info; }
-    inline void SetInformation(const wchar_t* info) { m_wInfo = info == nullptr ? L"" : info; }
 
 private:
     int m_Line;
     std::string m_File;
     std::string m_Info;
-    std::wstring m_wInfo;
 };
 
 typedef std::deque<PdfErrorInfo> PdErrorInfoQueue;
@@ -192,7 +188,6 @@ public:
     public:
         virtual ~LogMessageCallback() {}
         virtual void LogMessage(LogSeverity logSeverity, const char* prefix, const char* msg, va_list& args) = 0;
-        virtual void LogMessage(LogSeverity logSeverity, const wchar_t* prefix, const wchar_t* msg, va_list& args) = 0;
     };
 
     /** Set a global static LogMessageCallback functor to replace stderr output in LogMessageInternal.
@@ -316,13 +311,6 @@ public:
      */
     void SetErrorInformation(const char* information);
 
-    /** Set additional error information.
-     *  \param information additional information on the error,
-     *         e.g. how to fix the error. This string is intended to
-     *         be shown to the user.
-     */
-    inline void SetErrorInformation(const wchar_t* information);
-
     /** Add callstack information to an error object. Always call this function
      *  if you get an error object but do not handle the error but throw it again.
      *
@@ -387,12 +375,6 @@ public:
      */
     static void LogMessage(LogSeverity logSeverity, const char* msg, ...);
 
-    /** Log a message to the logging system defined for pdfmm.
-     *  \param logSeverity the severity of the log message
-     *  \param msg       the message to be logged
-     */
-    static void LogMessage(LogSeverity logSeverity, const wchar_t* msg, ...);
-
     /** Enable or disable logging.
     *  \param enable       enable (true) or disable (false)
     */
@@ -427,18 +409,7 @@ private:
      */
     static void LogErrorMessage(LogSeverity logSeverity, const char* msg, ...);
 
-    /** Log a message to the logging system defined for pdfmm.
-     *
-     *  This call does not check if logging is enabled and always
-     *  prints the error message
-     *
-     *  \param logSeverity the severity of the log message
-     *  \param msg the message to be logged
-     */
-    static void LogErrorMessage(LogSeverity logSeverity, const wchar_t* msg, ...);
-
     static void LogMessageInternal(LogSeverity logSeverity, const char* msg, va_list& args);
-    static void LogMessageInternal(LogSeverity logSeverity, const wchar_t* msg, va_list& args);
 
 private:
     PdfErrorCode m_error;

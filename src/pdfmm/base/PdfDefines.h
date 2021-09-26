@@ -21,7 +21,6 @@
 
 // Include common system files
 // (most are now pulled in my PdfCompilerCompat.h)
-#include <cwchar>
 
 // Include common STL files
 #include <memory>
