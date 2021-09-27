@@ -35,29 +35,10 @@ PdfErrorInfo::PdfErrorInfo()
 {
 }
 
-PdfErrorInfo::PdfErrorInfo(int line, const char* file, const string_view& info)
-    : m_Line(line), m_File(file ? file : ""), m_Info(info)
+PdfErrorInfo::PdfErrorInfo(unsigned line, const string_view& file, const string_view& info)
+    : m_Line(line), m_File(file), m_Info(info)
 {
 
-}
-
-PdfErrorInfo::PdfErrorInfo(int line, const char* file, const char* info)
-    : m_Line(line), m_File(file ? file : ""), m_Info(info ? info : "")
-{
-
-}
-
-PdfErrorInfo::PdfErrorInfo(const PdfErrorInfo& rhs)
-{
-    this->operator=(rhs);
-}
-
-const PdfErrorInfo& PdfErrorInfo::operator=(const PdfErrorInfo& rhs)
-{
-    m_Line = rhs.m_Line;
-    m_File = rhs.m_File;
-    m_Info = rhs.m_Info;
-    return *this;
 }
 
 PdfError::PdfError()
@@ -65,14 +46,8 @@ PdfError::PdfError()
     m_error = PdfErrorCode::Ok;
 }
 
-PdfError::PdfError(const PdfErrorCode& code, const char* file, int line,
+PdfError::PdfError(const PdfErrorCode& code, const string_view& file, unsigned line,
     const string_view& information)
-{
-    this->SetError(code, file, line, information);
-}
-
-PdfError::PdfError(const PdfErrorCode& code, const char* file, int line,
-    const char* information)
 {
     this->SetError(code, file, line, information);
 }
@@ -123,7 +98,7 @@ void PdfError::PrintErrorMsg() const
     const char* msg = PdfError::ErrorMessage(m_error);
     const char* name = PdfError::ErrorName(m_error);
 
-    int i = 0;
+    unsigned i = 0;
 
     PdfError::LogErrorMessage(LogSeverity::Error, "\n\npdfmm encountered an error. Error: %i %s", m_error, name ? name : "");
 
@@ -590,32 +565,15 @@ bool PdfError::DebugEnabled()
     return PdfError::s_DgbEnabled;
 }
 
-void PdfError::SetError(const PdfErrorCode& code, const char* file, int line, const char* information)
+void PdfError::SetError(const PdfErrorCode& code, const string_view& file, unsigned line, const string_view& information)
 {
     m_error = code;
     this->AddToCallstack(file, line, information);
 }
 
-void PdfError::AddToCallstack(const char* file, int line, const char* information)
-{
-    m_callStack.push_front(PdfErrorInfo(line, file, information));
-}
-
-void PdfError::SetError(const PdfErrorCode& code, const char* file, int line, const string_view& information)
-{
-    m_error = code;
-    this->AddToCallstack(file, line, information);
-}
-
-void PdfError::AddToCallstack(const char* file, int line, const string_view& information)
+void PdfError::AddToCallstack(const string_view& file, unsigned line, const string_view& information)
 {
     m_callStack.push_front(PdfErrorInfo(line, file, information.data()));
-}
-
-void PdfError::SetErrorInformation(const char* information)
-{
-    if (m_callStack.size() != 0)
-        m_callStack.front().SetInformation(information == nullptr ? "" : information);
 }
 
 bool PdfError::IsError() const

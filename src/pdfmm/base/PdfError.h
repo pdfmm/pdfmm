@@ -31,72 +31,72 @@ namespace mm {
  */
 enum class PdfErrorCode
 {
-    Unknown = 0,             /**< Unknown error */
-    Ok,                      /**< The default value indicating no error. */
+    Unknown = 0,              ///< Unknown error
+    Ok,                       ///< The default value indicating no error.
 
-    TestFailed,               /**< Used in pdfmm tests, to indicate that a test failed for some reason. */
+    TestFailed,               ///< Used in pdfmm tests, to indicate that a test failed for some reason.
 
-    InvalidHandle,            /**< Null pointer was passed, but null pointer is not allowed. */
-    FileNotFound,             /**< A file was not found or cannot be opened. */
-    InvalidDeviceOperation,	  /**< Tried to do something unsupported to an I/O device like seek a non-seekable input device */
-    UnexpectedEOF,            /**< End of file was reached but data was expected. */
-    OutOfMemory,              /**< Not enough memory to complete an operation. */
-    ValueOutOfRange,          /**< The specified memory is out of the allowed range. */
-    InternalLogic,            /**< An internal sanity check or assertion failed. */
-    InvalidEnumValue,         /**< An invalid enum value was specified. */
-    BrokenFile,               /**< The file content is broken. */
+    InvalidHandle,            ///< Null pointer was passed, but null pointer is not allowed.
+    FileNotFound,             ///< A file was not found or cannot be opened.
+    InvalidDeviceOperation,	  ///< Tried to do something unsupported to an I/O device like seek a non-seekable input device
+    UnexpectedEOF,            ///< End of file was reached but data was expected.
+    OutOfMemory,              ///< Not enough memory to complete an operation.
+    ValueOutOfRange,          ///< The specified memory is out of the allowed range.
+    InternalLogic,            ///< An internal sanity check or assertion failed.
+    InvalidEnumValue,         ///< An invalid enum value was specified.
+    BrokenFile,               ///< The file content is broken.
 
-    PageNotFound,             /**< The requested page could not be found in the PDF. */
+    PageNotFound,             ///< The requested page could not be found in the PDF.
 
-    NoPdfFile,                /**< The file is no PDF file. */
-    NoXRef,                   /**< The PDF file has no or an invalid XRef table. */
-    NoTrailer,                /**< The PDF file has no or an invalid trailer. */
-    NoNumber,                 /**< A number was expected in the PDF file, but the read string is no number. */
-    NoObject,                 /**< A object was expected and none was found. */
-    NoEOFToken,               /**< The PDF file has no or an invalid EOF marker. */
+    NoPdfFile,                ///< The file is no PDF file.
+    NoXRef,                   ///< The PDF file has no or an invalid XRef table.
+    NoTrailer,                ///< The PDF file has no or an invalid trailer.
+    NoNumber,                 ///< A number was expected in the PDF file, but the read string is no number.
+    NoObject,                 ///< A object was expected and none was found.
+    NoEOFToken,               ///< The PDF file has no or an invalid EOF marker.
 
-    InvalidTrailerSize,       /**< The trailer size is invalid. */
-    InvalidLinearization,     /**< The linearization directory of a web-optimized PDF file is invalid. */
-    InvalidDataType,          /**< The passed datatype is invalid or was not recognized */
-    InvalidXRef,              /**< The XRef table is invalid */
-    InvalidXRefStream,        /**< A XRef steam is invalid */
-    InvalidXRefType,          /**< The XRef type is invalid or was not found */
-    InvalidPredictor,         /**< Invalid or unimplemented predictor */
-    InvalidStrokeStyle,       /**< Invalid stroke style during drawing */
-    InvalidHexString,         /**< Invalid hex string */
-    InvalidStream,            /**< The stream is invalid */
-    InvalidStreamLength,      /**< The stream length is invalid */
-    InvalidKey,               /**< The specified key is invalid */
-    InvalidName,              /**< The specified Name is not valid in this context */
-    InvalidEncryptionDict,    /**< The encryption dictionary is invalid or misses a required key */
-    InvalidPassword,          /**< The password used to open the PDF file was invalid */
-    InvalidFontFile,          /**< The font file is invalid */
-    InvalidContentStream,     /**< The content stream is invalid due to mismatched context pairing or other problems */
+    InvalidTrailerSize,       ///< The trailer size is invalid.
+    InvalidLinearization,     ///< The linearization directory of a web-optimized PDF file is invalid.
+    InvalidDataType,          ///< The passed datatype is invalid or was not recognized
+    InvalidXRef,              ///< The XRef table is invalid
+    InvalidXRefStream,        ///< A XRef steam is invalid
+    InvalidXRefType,          ///< The XRef type is invalid or was not found
+    InvalidPredictor,         ///< Invalid or unimplemented predictor
+    InvalidStrokeStyle,       ///< Invalid stroke style during drawing
+    InvalidHexString,         ///< Invalid hex string
+    InvalidStream,            ///< The stream is invalid
+    InvalidStreamLength,      ///< The stream length is invalid
+    InvalidKey,               ///< The specified key is invalid
+    InvalidName,              ///< The specified Name is not valid in this context
+    InvalidEncryptionDict,    ///< The encryption dictionary is invalid or misses a required key
+    InvalidPassword,          ///< The password used to open the PDF file was invalid
+    InvalidFontFile,          ///< The font file is invalid
+    InvalidContentStream,     ///< The content stream is invalid due to mismatched context pairing or other problems
 
-    UnsupportedFilter,        /**< The requested filter is not yet implemented. */
-    UnsupportedFontFormat,    /**< This font format is not supported by pdfmm. */
-    ActionAlreadyPresent,     /**< An Action was already present when trying to add a Destination */
-    WrongDestinationType,     /**< The requested field is not available for the given destination type */
+    UnsupportedFilter,        ///< The requested filter is not yet implemented.
+    UnsupportedFontFormat,    ///< This font format is not supported by pdfmm.
+    ActionAlreadyPresent,     ///< An Action was already present when trying to add a Destination
+    WrongDestinationType,     ///< The requested field is not available for the given destination type
 
-    MissingEndStream,         /**< The required token endstream was not found. */
-    Date,                     /**< Date/time error */
-    Flate,                    /**< Error in zlib */
-    FreeType,                 /**< Error in FreeType */
-    SignatureError,           /**< Error in signature */
+    MissingEndStream,         ///< The required token endstream was not found.
+    Date,                     ///< Date/time error
+    Flate,                    ///< Error in zlib
+    FreeType,                 ///< Error in FreeType
+    SignatureError,           ///< Error in signature
 
-    UnsupportedImageFormat,   /**< This image format is not supported by pdfmm. */
-    CannotConvertColor,       /**< This color format cannot be converted. */
+    UnsupportedImageFormat,   ///< This image format is not supported by pdfmm.
+    CannotConvertColor,       ///< This color format cannot be converted.
 
-    NotImplemented,           /**< This feature is currently not implemented. */
+    NotImplemented,           ///< This feature is currently not implemented.
 
-    DestinationAlreadyPresent,/**< A destination was already present when trying to add an Action */
-    ChangeOnImmutable,        /**< Changing values on immutable objects is not allowed. */
+    DestinationAlreadyPresent,///< A destination was already present when trying to add an Action
+    ChangeOnImmutable,        ///< Changing values on immutable objects is not allowed.
 
-    NotCompiled,              /**< This feature was disabled at compile time. */
+    NotCompiled,              ///< This feature was disabled at compile time.
 
-    OutlineItemAlreadyPresent,/**< An outline item to be inserted was already in that outlines tree. */
-    NotLoadedForUpdate,       /**< The document had not been loaded for update. */
-    CannotEncryptedForUpdate, /**< Cannot load encrypted documents for update. */
+    OutlineItemAlreadyPresent,///< An outline item to be inserted was already in that outlines tree.
+    NotLoadedForUpdate,       ///< The document had not been loaded for update.
+    CannotEncryptedForUpdate, ///< Cannot load encrypted documents for update.
 };
 
 /**
@@ -115,49 +115,48 @@ enum class LogSeverity
     None,                ///< No specified level
 };
 
-/** \def PDFMM_RAISE_ERROR( x )
+/** \def PDFMM_RAISE_ERROR(code)
  *
  *  Throw an exception of type PdfError with the error code x, which should be
  *  one of the values of the enum PdfErrorCode. File and line info are included.
  */
-#define PDFMM_RAISE_ERROR( x ) throw ::mm::PdfError( x, __FILE__, __LINE__ );
+#define PDFMM_RAISE_ERROR(code) throw ::mm::PdfError(code, __FILE__, __LINE__);
 
-/** \def PDFMM_RAISE_ERROR_INFO( x, y )
+/** \def PDFMM_RAISE_ERROR_INFO(code, msg)
  *
- *  Throw an exception of type PdfError with the error code x, which should be
+ *  Throw an exception of type PdfError with the error code, which should be
  *  one of the values of the enum PdfErrorCode. File and line info are included.
- *  Additionally extra information on the error, y is set, which will also be
+ *  Additionally extra information on the error, msg is set, which will also be
  *  output by PdfError::PrintErrorMsg().
- *  y can be a C string, but can also be a C++ std::string.
+ *  msg can be a C string, but can also be a C++ std::string.
  */
-#define PDFMM_RAISE_ERROR_INFO( x, y ) throw ::mm::PdfError( x, __FILE__, __LINE__, y );
+#define PDFMM_RAISE_ERROR_INFO(code, msg) throw ::mm::PdfError(code, __FILE__, __LINE__, msg);
 
-/** \def PDFMM_RAISE_LOGIC_IF( x, y )
+/** \def PDFMM_RAISE_LOGIC_IF(cond, msg)
  *
- *  Evaluate `x' as a binary predicate and if it is true, raise a logic error with the
- *  info string `y' .
+ *  Evaluate `cond' as a binary predicate and if it is true, raise a logic error with the
+ *  info string `msg' .
  */
-#define PDFMM_RAISE_LOGIC_IF( x, y ) { if (x) throw ::mm::PdfError( PdfErrorCode::InternalLogic, __FILE__, __LINE__, y ); };
+#define PDFMM_RAISE_LOGIC_IF(cond, msg) {\
+    if (cond)\
+        throw ::mm::PdfError(PdfErrorCode::InternalLogic, __FILE__, __LINE__, msg);\
+};
 
 class PDFMM_API PdfErrorInfo
 {
 public:
     PdfErrorInfo();
-    PdfErrorInfo(int line, const char* file, const char* info);
-    PdfErrorInfo(int line, const char* file, const std::string_view& info);
-    PdfErrorInfo(const PdfErrorInfo& rhs);
+    PdfErrorInfo(unsigned line, const std::string_view& file, const std::string_view& info);
+    PdfErrorInfo(const PdfErrorInfo& rhs) = default;
 
-    const PdfErrorInfo& operator=(const PdfErrorInfo& rhs);
+    PdfErrorInfo& operator=(const PdfErrorInfo& rhs) = default;
 
-    inline int GetLine() const { return m_Line; }
+    inline unsigned GetLine() const { return m_Line; }
     inline const std::string& GetFilename() const { return m_File; }
     inline const std::string& GetInformation() const { return m_Info; }
 
-    inline void SetInformation(const char* info) { m_Info = info == nullptr ? "" : info; }
-    inline void SetInformation(const std::string_view& info) { m_Info = info; }
-
 private:
-    int m_Line;
+    unsigned m_Line;
     std::string m_File;
     std::string m_Info;
 };
@@ -208,19 +207,8 @@ public:
      *         Use the compiler macro __LINE__ to initialize the field.
      *  \param information additional information on this error
      */
-    PdfError(const PdfErrorCode& code, const char* file = nullptr, int line = 0,
-        const char* information = nullptr);
-
-    /** Create a PdfError object with a given error code.
-     *  \param code the error code of this object
-     *  \param file the file in which the error has occurred.
-     *         Use the compiler macro __FILE__ to initialize the field.
-     *  \param line the line in which the error has occurred.
-     *         Use the compiler macro __LINE__ to initialize the field.
-     *  \param information additional information on this error
-     */
-    explicit PdfError(const PdfErrorCode& code, const char* file, int line,
-        const std::string_view& information);
+    explicit PdfError(const PdfErrorCode& code, const std::string_view& file = { }, unsigned line = 0,
+        const std::string_view& information = { });
 
     /** Copy constructor
      *  \param rhs copy the contents of rhs into this object
@@ -283,33 +271,12 @@ public:
      *  \param line    the line of source causing the error
      *                 or 0. Typically you will use the gcc
      *                 macro __LINE__ here.
-     *  \param information additional information on the error.
-     *         e.g. how to fix the error. This string is intended to
-     *         be shown to the user.
-     */
-    void SetError(const PdfErrorCode& code, const char* file, int line,
-        const std::string_view& information);
-
-    /** Set the error code of this object.
-     *  \param code the error code of this object
-     *  \param file the filename of the source file causing
-     *                 the error or nullptr. Typically you will use
-     *                 the gcc macro __FILE__ here.
-     *  \param line    the line of source causing the error
-     *                 or 0. Typically you will use the gcc
-     *                 macro __LINE__ here.
      *  \param information additional information on the error,
      *         e.g. how to fix the error. This string is intended to
      *         be shown to the user.
      */
-    void SetError(const PdfErrorCode& code, const char* file = nullptr, int line = 0, const char* information = nullptr);
-
-    /** Set additional error information.
-     *  \param information additional information on the error,
-     *         e.g. how to fix the error. This string is intended to
-     *         be shown to the user.
-     */
-    void SetErrorInformation(const char* information);
+    void SetError(const PdfErrorCode& code, const std::string_view& file = { },
+        unsigned line = 0, const std::string_view& information = { });
 
     /** Add callstack information to an error object. Always call this function
      *  if you get an error object but do not handle the error but throw it again.
@@ -324,22 +291,7 @@ public:
      *         e.g. how to fix the error. This string is intended to
      *         be shown to the user.
      */
-    void AddToCallstack(const char* file = nullptr, int line = 0, const char* information = nullptr);
-
-    /** Add callstack information to an error object. Always call this function
-     *  if you get an error object but do not handle the error but throw it again.
-     *
-     *  \param file the filename of the source file causing
-     *                 the error or nullptr. Typically you will use
-     *                 the gcc macro __FILE__ here.
-     *  \param line    the line of source causing the error
-     *                 or 0. Typically you will use the gcc
-     *                 macro __LINE__ here.
-     *  \param information additional information on the error,
-     *         e.g. how to fix the error. This string is intended to
-     *         be shown to the user.
-     */
-    void AddToCallstack(const char* file, int line, const std::string_view& information);
+    void AddToCallstack(const std::string_view& file = { }, unsigned line = 0, const std::string_view& information = { });
 
     /** \returns true if an error code was set
      *           and false if the error code is PdfErrorCode::Ok.
