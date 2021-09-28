@@ -145,8 +145,7 @@ enum class LogSeverity
 class PDFMM_API PdfErrorInfo
 {
 public:
-    PdfErrorInfo();
-    PdfErrorInfo(unsigned line, const std::string_view& file, const std::string_view& info);
+    PdfErrorInfo(unsigned line, std::string file, std::string info);
     PdfErrorInfo(const PdfErrorInfo& rhs) = default;
 
     PdfErrorInfo& operator=(const PdfErrorInfo& rhs) = default;
@@ -195,6 +194,7 @@ public:
      */
     static LogMessageCallback* SetLogMessageCallback(LogMessageCallback* logMessageCallback);
 
+public:
     /** Create a PdfError object initialized to PdfErrorCode::Ok.
      */
     PdfError();
@@ -207,51 +207,39 @@ public:
      *         Use the compiler macro __LINE__ to initialize the field.
      *  \param information additional information on this error
      */
-    explicit PdfError(const PdfErrorCode& code, const std::string_view& file = { }, unsigned line = 0,
-        const std::string_view& information = { });
+    PdfError(PdfErrorCode code, std::string file, unsigned line,
+        std::string information = { });
 
     /** Copy constructor
      *  \param rhs copy the contents of rhs into this object
      */
-    PdfError(const PdfError& rhs);
+    PdfError(const PdfError& rhs) = default;
 
     /** Assignment operator
      *  \param rhs another PdfError object
      *  \returns this object
      */
-    const PdfError& operator=(const PdfError& rhs);
+    PdfError& operator=(const PdfError& rhs) = default;
 
     /** Overloaded assignment operator
      *  \param code a PdfErrorCode code
      *  \returns this object
      */
-    const PdfError& operator=(const PdfErrorCode& code);
+    PdfError& operator=(const PdfErrorCode& code);
 
-    /** Comparison operator, compares 2 PdfError objects
-     *  \param rhs another PdfError object
-     *  \returns true if both objects have the same error code.
-     */
-    bool operator==(const PdfError& rhs);
-
-    /** Overloaded comparison operator, compares this PdfError object
+    /** Compares this PdfError object
      *  with an error code
      *  \param code an error code (value of the enum PdfErrorCode)
      *  \returns true if this object has the same error code.
      */
-    bool operator==(const PdfErrorCode& code);
+    bool operator==(PdfErrorCode code);
 
-    /** Comparison operator, compares 2 PdfError objects
-     *  \param rhs another PdfError object
-     *  \returns true if the objects have different error codes.
-     */
-    bool operator!=(const PdfError& rhs);
-
-    /** Overloaded comparison operator, compares this PdfError object
+    /** Compares this PdfError object
      *  with an error code
      *  \param code an error code (value of the enum PdfErrorCode)
      *  \returns true if this object has a different error code.
      */
-    bool operator!=(const PdfErrorCode& code);
+    bool operator!=(PdfErrorCode code);
 
     /** Return the error code of this object.
      *  \returns the error code of this object
@@ -262,21 +250,6 @@ public:
      *  \returns the callstack deque of PdfErrorInfo objects.
      */
     inline const PdErrorInfoQueue& GetCallstack() const { return m_callStack; }
-
-    /** Set the error code of this object.
-     *  \param code the error code of this object
-     *  \param file the filename of the source file causing
-     *                 the error or nullptr. Typically you will use
-     *                 the gcc macro __FILE__ here.
-     *  \param line    the line of source causing the error
-     *                 or 0. Typically you will use the gcc
-     *                 macro __LINE__ here.
-     *  \param information additional information on the error,
-     *         e.g. how to fix the error. This string is intended to
-     *         be shown to the user.
-     */
-    void SetError(const PdfErrorCode& code, const std::string_view& file = { },
-        unsigned line = 0, const std::string_view& information = { });
 
     /** Add callstack information to an error object. Always call this function
      *  if you get an error object but do not handle the error but throw it again.
@@ -291,7 +264,7 @@ public:
      *         e.g. how to fix the error. This string is intended to
      *         be shown to the user.
      */
-    void AddToCallstack(const std::string_view& file = { }, unsigned line = 0, const std::string_view& information = { });
+    void AddToCallstack(std::string file, unsigned line, std::string information = { });
 
     /** \returns true if an error code was set
      *           and false if the error code is PdfErrorCode::Ok.
@@ -364,15 +337,14 @@ private:
     static void LogMessageInternal(LogSeverity logSeverity, const char* msg, va_list& args);
 
 private:
-    PdfErrorCode m_error;
-
-    PdErrorInfoQueue m_callStack;
-
     static bool s_DgbEnabled;
     static bool s_LogEnabled;
 
     // OC 17.08.2010 New to optionally replace stderr output by a callback:
     static LogMessageCallback* m_LogMessageCallback;
+private:
+    PdfErrorCode m_error;
+    PdErrorInfoQueue m_callStack;
 };
 
 };

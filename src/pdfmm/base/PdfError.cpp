@@ -30,67 +30,36 @@ PdfError::LogMessageCallback* PdfError::SetLogMessageCallback(LogMessageCallback
     return old_LogMessageCallback;
 }
 
-PdfErrorInfo::PdfErrorInfo()
-    : m_Line(-1)
-{
-}
-
-PdfErrorInfo::PdfErrorInfo(unsigned line, const string_view& file, const string_view& info)
-    : m_Line(line), m_File(file), m_Info(info)
-{
-
-}
+PdfErrorInfo::PdfErrorInfo(unsigned line, string file, string info)
+    : m_Line(line), m_File(std::move(file)), m_Info(std::move(info)) { }
 
 PdfError::PdfError()
 {
     m_error = PdfErrorCode::Ok;
 }
 
-PdfError::PdfError(const PdfErrorCode& code, const string_view& file, unsigned line,
-    const string_view& information)
+PdfError::PdfError(PdfErrorCode code, string file, unsigned line,
+    string information)
 {
-    this->SetError(code, file, line, information);
+    m_error = code;
+    this->AddToCallstack(std::move(file), line, std::move(information));
 }
 
-PdfError::PdfError(const PdfError& rhs)
-{
-    this->operator=(rhs);
-}
-
-const PdfError& PdfError::operator=(const PdfError& rhs)
-{
-    m_error = rhs.m_error;
-    m_callStack = rhs.m_callStack;
-
-    return *this;
-}
-
-const PdfError& PdfError::operator=(const PdfErrorCode& code)
+PdfError& PdfError::operator=(const PdfErrorCode& code)
 {
     m_error = code;
     m_callStack.clear();
-
     return *this;
 }
 
-bool PdfError::operator==(const PdfError& rhs)
-{
-    return this->operator==(rhs.m_error);
-}
-
-bool PdfError::operator==(const PdfErrorCode& code)
+bool PdfError::operator==(PdfErrorCode code)
 {
     return m_error == code;
 }
 
-bool PdfError::operator!=(const PdfError& rhs)
+bool PdfError::operator!=(PdfErrorCode code)
 {
-    return this->operator!=(rhs.m_error);
-}
-
-bool PdfError::operator!=(const PdfErrorCode& code)
-{
-    return !this->operator==(code);
+    return m_error != code;
 }
 
 void PdfError::PrintErrorMsg() const
@@ -565,15 +534,9 @@ bool PdfError::DebugEnabled()
     return PdfError::s_DgbEnabled;
 }
 
-void PdfError::SetError(const PdfErrorCode& code, const string_view& file, unsigned line, const string_view& information)
+void PdfError::AddToCallstack(string file, unsigned line, string information)
 {
-    m_error = code;
-    this->AddToCallstack(file, line, information);
-}
-
-void PdfError::AddToCallstack(const string_view& file, unsigned line, const string_view& information)
-{
-    m_callStack.push_front(PdfErrorInfo(line, file, information.data()));
+    m_callStack.push_front(PdfErrorInfo(std::move(line), std::move(file), information));
 }
 
 bool PdfError::IsError() const
