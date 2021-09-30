@@ -104,11 +104,11 @@ PdfName PdfName::FromRaw(const string_view& rawcontent)
 void PdfName::Write(PdfOutputDevice& device, PdfWriteMode, const PdfEncrypt*) const
 {
     // Allow empty names, which are legal according to the PDF specification
-    device.Print("/");
+    device.Put('/');
     if (m_data->length() != 0)
     {
         string escaped = EscapeName(*m_data);
-        device.Write(escaped.c_str(), escaped.length());
+        device.Write(escaped);
     }
 }
 

@@ -128,7 +128,7 @@ void PdfWriter::Write(PdfOutputDevice& device)
 
 void PdfWriter::WritePdfHeader(PdfOutputDevice& device)
 {
-    device.Print("%s\n%%%s", s_PdfVersions[static_cast<int>(m_Version)], PDF_MAGIC);
+    device.Write(mm::Format("{}\n%{}", s_PdfVersions[static_cast<int>(m_Version)], PDF_MAGIC));
 }
 
 void PdfWriter::WritePdfObjects(PdfOutputDevice& device, const PdfIndirectObjectList& objects, PdfXRef& xref)

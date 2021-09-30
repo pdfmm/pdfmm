@@ -32,11 +32,11 @@ void PdfReference::Write(PdfOutputDevice& device, PdfWriteMode writeMode, const 
     if ((writeMode & PdfWriteMode::Compact) == PdfWriteMode::Compact)
     {
         // Write space before the reference
-        device.Print(" %i %hi R", m_ObjectNo, m_GenerationNo);
+        device.Write(mm::Format(" {} {} R", m_ObjectNo, m_GenerationNo));
     }
     else
     {
-        device.Print("%i %hi R", m_ObjectNo, m_GenerationNo);
+        device.Write(mm::Format("{} {} R", m_ObjectNo, m_GenerationNo));
     }
 }
 

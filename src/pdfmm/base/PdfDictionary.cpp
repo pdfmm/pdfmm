@@ -190,22 +190,22 @@ void PdfDictionary::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
     const PdfEncrypt* encrypt) const
 {
     if ((writeMode & PdfWriteMode::Clean) == PdfWriteMode::Clean)
-        device.Print("<<\n");
+        device.Write("<<\n");
     else
-        device.Print("<<");
+        device.Write("<<");
 
     if (this->HasKey(PdfName::KeyType))
     {
         // Type has to be the first key in any dictionary
         if ((writeMode & PdfWriteMode::Clean) == PdfWriteMode::Clean)
-            device.Print("/Type ");
+            device.Write("/Type ");
         else
-            device.Print("/Type");
+            device.Write("/Type");
 
         this->getKey(PdfName::KeyType)->GetVariant().Write(device, writeMode, encrypt);
 
         if ((writeMode & PdfWriteMode::Clean) == PdfWriteMode::Clean)
-            device.Print("\n");
+            device.Put('\n');
     }
 
     for (auto& pair : m_Map)
@@ -214,15 +214,15 @@ void PdfDictionary::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
         {
             pair.first.Write(device, writeMode, nullptr);
             if ((writeMode & PdfWriteMode::Clean) == PdfWriteMode::Clean)
-                device.Write(" ", 1); // write a separator
+                device.Put(' '); // write a separator
 
             pair.second.GetVariant().Write(device, writeMode, encrypt);
             if ((writeMode & PdfWriteMode::Clean) == PdfWriteMode::Clean)
-                device.Write("\n", 1);
+                device.Put('\n');
         }
     }
 
-    device.Print(">>");
+    device.Write(">>");
 }
 
 void PdfDictionary::ResetDirtyInternal()

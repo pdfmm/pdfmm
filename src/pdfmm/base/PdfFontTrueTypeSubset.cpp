@@ -505,7 +505,7 @@ void PdfFontTrueTypeSubset::GetData(PdfOutputDevice& output, unsigned offset, un
     m_Device->Seek(offset);
     m_tmpBuffer.resize(size);
     m_Device->Read(m_tmpBuffer.data(), size);
-    output.Write(m_tmpBuffer.data(), size);
+    output.Write(m_tmpBuffer);
 }
 
 void PdfFontTrueTypeSubset::GetData(void* dst, unsigned offset, unsigned size)
@@ -530,14 +530,14 @@ void TTFWriteUInt32(PdfOutputDevice& output, uint32_t value)
 {
     char buf[4];
     TTFWriteUInt32(buf, value);
-    output.Write(buf, 4);
+    output.Write(string_view(buf, 4));
 }
 
 void TTFWriteUInt16(PdfOutputDevice& output, uint16_t value)
 {
     char buf[2];
     TTFWriteUInt16(buf, value);
-    output.Write(buf, 2);
+    output.Write(string_view(buf, 2));
 }
 
 void TTFWriteUInt32(char* buf, uint32_t value)

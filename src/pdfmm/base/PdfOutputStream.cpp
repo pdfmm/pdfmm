@@ -98,7 +98,7 @@ PdfDeviceOutputStream::PdfDeviceOutputStream(PdfOutputDevice& device)
 
 void PdfDeviceOutputStream::WriteImpl(const char* data, size_t len)
 {
-    m_Device->Write(data, len);
+    m_Device->Write(string_view(data, len));
 }
 
 void PdfDeviceOutputStream::Close()

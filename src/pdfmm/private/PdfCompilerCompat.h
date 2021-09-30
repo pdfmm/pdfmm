@@ -30,22 +30,6 @@
 #  define PDFMM_IS_LITTLE_ENDIAN
 #endif
 
- // Different compilers use different format specifiers for 64-bit integers
- // (yay!).  Use these macros with C's automatic string concatenation to handle
- // that ghastly quirk.
- //
- // for example:   printf("Value of signed 64-bit integer: %"PDF_FORMAT_INT64" (more blah)", 128)
- //
-#if defined(_MSC_VER)
-#  define PDF_FORMAT_INT64 "I64d"
-#  define PDF_FORMAT_UINT64 "I64u"
-#  define PDF_SIZE_FORMAT "Iu"
-#else
-#  define PDF_FORMAT_INT64 "lld"
-#  define PDF_FORMAT_UINT64 "llu"
-#  define PDF_SIZE_FORMAT "zu"
-#endif
-
 #define AS_BIG_ENDIAN(n) mm::compat::HandleBigEndian(n)
 #define FROM_BIG_ENDIAN(n) mm::compat::HandleBigEndian(n)
 
@@ -174,9 +158,6 @@ namespace mm::compat
         return n;
     }
 #endif
-
-    // Locale invariant vsnprintf
-    int vsnprintf(char* buffer, size_t count, const char* format, va_list argptr);
 
     // Case-insensitive string compare functions aren't very portable
     int strcasecmp(const char* s1, const char* s2);

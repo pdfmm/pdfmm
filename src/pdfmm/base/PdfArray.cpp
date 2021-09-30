@@ -100,11 +100,11 @@ void PdfArray::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
 
     if ((writeMode & PdfWriteMode::Clean) == PdfWriteMode::Clean)
     {
-        device.Print("[ ");
+        device.Write("[ ");
     }
     else
     {
-        device.Print("[");
+        device.Put('[');
     }
 
     while (it != m_Objects.end())
@@ -112,14 +112,14 @@ void PdfArray::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
         it->GetVariant().Write(device, writeMode, encrypt);
         if ((writeMode & PdfWriteMode::Clean) == PdfWriteMode::Clean)
         {
-            device.Print((count % 10 == 0) ? "\n" : " ");
+            device.Put((count % 10 == 0) ? '\n' : ' ');
         }
 
         it++;
         count++;
     }
 
-    device.Print("]");
+    device.Put(']');
 }
 
 void PdfArray::ResetDirtyInternal()

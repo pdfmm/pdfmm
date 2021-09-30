@@ -36,28 +36,11 @@ public:
      */
     virtual ~PdfOutputDevice();
 
-    /** Write to the PdfOutputDevice. Usage is as the usage of printf.
+    /** Write the view to the PdfOutputDevice
      *
-     *  WARNING: Do not use this for doubles or floating point values
-     *           as the output might depend on the current locale.
-     *
-     *  \param format a format string as you would use it with printf
-     *
-     *  \see Write
+     *  \param view the view to be written
      */
-    void Print(const char* format, ...);
-
-    void Print(const char* format, va_list args);
-
-    /** Write data to the buffer. Use this call instead of Print if you
-     *  want to write binary data to the PdfOutputDevice.
-     *
-     *  \param buffer a pointer to the data buffer
-     *  \param len write len bytes of buffer to the PdfOutputDevice
-     *
-     *  \see Print
-     */
-    void Write(const char* buffer, size_t len);
+    void Write(const std::string_view& view);
 
     /** Write the character in the device
      *
@@ -97,17 +80,12 @@ public:
 protected:
     void SetLength(size_t length);
     void SetPosition(size_t position);
-    virtual void print(const char* format, size_t size, va_list args) = 0;
     virtual void write(const char* buffer, size_t len) = 0;
     virtual void seek(size_t offset) = 0;
     virtual size_t read(char* buffer, size_t len) = 0;
     virtual void flush() = 0;
 
     size_t Read(const char* src, size_t srcLen, char* dst, size_t dstLen);
-    void Print(char* dst, size_t dstSize, const char* format, va_list args);
-
-private:
-    void Print(const char* format, size_t formatLen, va_list args);
 
 private:
     size_t m_Length;
@@ -140,8 +118,6 @@ public:
 
 protected:
     PdfStreamOutputDevice(std::ostream* out, std::istream* in, bool streamOwned);
-
-    void print(const char* format, size_t size, va_list args) override;
     void write(const char* buffer, size_t len) override;
     void seek(size_t offset) override;
     size_t read(char* buffer, size_t len) override;
@@ -190,7 +166,6 @@ public:
     PdfMemoryOutputDevice(char* buffer, size_t len);
 
 protected:
-    void print(const char* format, size_t size, va_list args) override;
     void write(const char* buffer, size_t len) override;
     void seek(size_t offset) override;
     size_t read(char* buffer, size_t len) override;
@@ -213,15 +188,6 @@ public:
     }
 
 protected:
-    void print(const char* format, size_t formatLen, va_list args) override
-    {
-        size_t position = Tell();
-        if (position + formatLen > m_container->size())
-            m_container->resize(position + formatLen);
-
-        Print(m_container->data() + position, m_container->size() - position, format, args);
-    }
-
     void write(const char* buffer, size_t len) override
     {
         size_t position = Tell();
@@ -264,7 +230,6 @@ public:
     PdfNullOutputDevice();
 
 protected:
-    void print(const char* format, size_t size, va_list args) override;
     void write(const char* buffer, size_t len) override;
     void seek(size_t offset) override;
     size_t read(char* buffer, size_t len) override;

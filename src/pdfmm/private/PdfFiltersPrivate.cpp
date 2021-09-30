@@ -908,7 +908,7 @@ void PdfDCTFilter::BeginDecodeImpl(const PdfDictionary*)
 
 void PdfDCTFilter::DecodeBlockImpl(const char* buffer, size_t len)
 {
-    m_Device->Write(buffer, len);
+    m_Device->Write(string_view(buffer, len));
 }
 
 void PdfDCTFilter::EndDecodeImpl()

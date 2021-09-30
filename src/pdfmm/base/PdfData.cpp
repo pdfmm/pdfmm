@@ -40,7 +40,7 @@ void PdfData::Write(PdfOutputDevice& device, PdfWriteMode, const PdfEncrypt* enc
     if (m_writeBeacon != nullptr)
         *m_writeBeacon = device.Tell();
 
-    device.Write(m_data->c_str(), m_data->length());
+    device.Write(*m_data);
 }
 
 const PdfData& PdfData::operator=(const PdfData& rhs)

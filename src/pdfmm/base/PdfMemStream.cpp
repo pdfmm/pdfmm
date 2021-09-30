@@ -105,19 +105,19 @@ void PdfMemStream::copyFrom(const PdfMemStream& rhs)
 
 void PdfMemStream::Write(PdfOutputDevice& device, const PdfEncrypt* encrypt)
 {
-    device.Print("stream\n");
+    device.Write("stream\n");
     if (encrypt == nullptr)
     {
-        device.Write(this->Get(), this->GetLength());
+        device.Write(string_view(this->Get(), this->GetLength()));
     }
     else
     {
         string encrypted;
         encrypt->Encrypt({ this->Get(), this->GetLength() }, encrypted);
-        device.Write(encrypted.data(), encrypted.size());
+        device.Write(encrypted);
     }
 
-    device.Print("\nendstream\n");
+    device.Write("\nendstream\n");
 }
 
 const char* PdfMemStream::Get() const

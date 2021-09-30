@@ -154,11 +154,11 @@ void PdfObject::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
         // CHECK-ME We want to make this in all the cases for PDF/A Compatibility
         //if( (writeMode & EPdfWriteMode::Clean) == EPdfWriteMode::Clean )
         {
-            device.Print("%i %i obj\n", m_IndirectReference.ObjectNumber(), m_IndirectReference.GenerationNumber());
+            device.Write(mm::Format("{} {} obj\n", m_IndirectReference.ObjectNumber(), m_IndirectReference.GenerationNumber()));
         }
         //else
         //{
-        //    device.Print( "%i %i obj", m_reference.ObjectNumber(), m_reference.GenerationNumber() );
+        //    device.Write(mm::Format("{} {} obj", m_IndirectReference.ObjectNumber(), m_IndirectReference.GenerationNumber()));
         //}
     }
 
@@ -184,13 +184,13 @@ void PdfObject::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
     }
 
     m_Variant.Write(device, writeMode, encrypt);
-    device.Print("\n");
+    device.Put('\n');
 
     if (m_Stream != nullptr)
         m_Stream->Write(device, encrypt);
 
     if (m_IndirectReference.IsIndirect())
-        device.Print("endobj\n");
+        device.Write("endobj\n");
 
     // After write we ca reset the dirty flag
     const_cast<PdfObject&>(*this).ResetDirty();

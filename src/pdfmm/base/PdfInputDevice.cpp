@@ -9,7 +9,6 @@
 #include <pdfmm/private/PdfDefinesPrivate.h>
 #include "PdfInputDevice.h"
 
-#include <cstdarg>
 #include <fstream>
 #include <sstream>
 #include "PdfStream.h"

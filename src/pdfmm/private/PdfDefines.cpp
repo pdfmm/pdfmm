@@ -17,14 +17,6 @@
 using namespace std;
 using namespace mm;
 
-int compat::vsnprintf(char* buffer, size_t count, const char* format, va_list argptr)
-{
-    auto old = locale::global(locale::classic());
-    int ret = std::vsnprintf(buffer, count, format, argptr);
-    locale::global(old);
-    return ret;
-}
-
 int compat::strcasecmp(const char* s1, const char* s2)
 {
 #if defined(_WIN32)

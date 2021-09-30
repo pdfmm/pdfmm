@@ -130,26 +130,26 @@ void PdfVariant::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
         case PdfDataType::Bool:
         {
             if ((writeMode & PdfWriteMode::Compact) == PdfWriteMode::Compact)
-                device.Write(" ", 1); // Write space before true or false
+                device.Put(' '); // Write space before true or false
 
             if (m_Data.Bool)
-                device.Write("true", 4);
+                device.Write("true");
             else
-                device.Write("false", 5);
+                device.Write("false");
             break;
         }
         case PdfDataType::Number:
         {
             if ((writeMode & PdfWriteMode::Compact) == PdfWriteMode::Compact)
-                device.Write(" ", 1); // Write space before numbers
+                device.Put(' '); // Write space before numbers
 
-            device.Print("%" PDF_FORMAT_INT64, m_Data.Number);
+            device.Write(mm::Format("{}", m_Data.Number));
             break;
         }
         case PdfDataType::Real:
         {
             if ((writeMode & PdfWriteMode::Compact) == PdfWriteMode::Compact)
-                device.Write(" ", 1); // Write space before numbers
+                device.Put(' '); // Write space before numbers
 
             // Use ostringstream, so that locale does not matter
             // NOTE: Don't use printf() formatting! It may write the number
@@ -172,12 +172,12 @@ void PdfVariant::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
 
                 if (len == 0)
                 {
-                    device.Write("0", 1);
+                    device.Put('0');
                     break;
                 }
             }
 
-            device.Write(copy.c_str(), len);
+            device.Write(string_view(copy.c_str(), len));
             break;
         }
         case PdfDataType::Reference:
@@ -197,10 +197,10 @@ void PdfVariant::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
         {
             if ((writeMode & PdfWriteMode::Compact) == PdfWriteMode::Compact)
             {
-                device.Write(" ", 1); // Write space before null
+                device.Put(' '); // Write space before null
             }
 
-            device.Print("null");
+            device.Write("null");
             break;
         }
         case PdfDataType::Unknown:

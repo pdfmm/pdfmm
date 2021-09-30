@@ -245,7 +245,7 @@ void PdfXRef::MergeBlocks()
 
 void PdfXRef::BeginWrite(PdfOutputDevice& device)
 {
-    device.Print("xref\n");
+    device.Write("xref\n");
 }
 
 void PdfXRef::WriteSubSection(PdfOutputDevice& device, uint32_t first, uint32_t count)
@@ -253,7 +253,7 @@ void PdfXRef::WriteSubSection(PdfOutputDevice& device, uint32_t first, uint32_t 
 #ifdef DEBUG
     PdfError::LogMessage(LogSeverity::Debug, "Writing XRef section: {} {}", first, count);
 #endif // DEBUG
-    device.Print("%u %u\n", first, count);
+    device.Write(mm::Format("{} {}\n", first, count));
 }
 
 void PdfXRef::WriteXRefEntry(PdfOutputDevice& device, const PdfReference& ref, const PdfXRefEntry& entry)
@@ -276,7 +276,7 @@ void PdfXRef::WriteXRefEntry(PdfOutputDevice& device, const PdfReference& ref, c
             PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }
 
-    device.Print("%0.10" PDF_FORMAT_UINT64 " %0.5hu %c \n", variant, entry.Generation, XRefEntryTypeToChar(entry.Type));
+    device.Write(mm::Format("{:010d} {:05d} {} \n", variant, entry.Generation, XRefEntryTypeToChar(entry.Type)));
 }
 
 void PdfXRef::EndWriteImpl(PdfOutputDevice& device)
@@ -286,7 +286,7 @@ void PdfXRef::EndWriteImpl(PdfOutputDevice& device)
     // if we have a dummy offset we write also a prev entry to the trailer
     m_writer->FillTrailerObject(trailer, GetSize(), false);
 
-    device.Print("trailer\n");
+    device.Write("trailer\n");
 
     // NOTE: Do not encrypt the trailer dictionary
     trailer.Write(device, m_writer->GetWriteMode(), nullptr);
@@ -295,7 +295,7 @@ void PdfXRef::EndWriteImpl(PdfOutputDevice& device)
 void PdfXRef::EndWrite(PdfOutputDevice& device)
 {
     EndWriteImpl(device);
-    device.Print("startxref\n%" PDF_FORMAT_UINT64 "\n%%%%EOF\n", GetOffset());
+    device.Write(mm::Format("startxref\n{}\n%%EOF\n", GetOffset()));
 }
 
 void PdfXRef::SetFirstEmptyBlock()

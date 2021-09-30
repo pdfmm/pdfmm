@@ -144,7 +144,7 @@ void PdfString::Write(PdfOutputDevice& device, PdfWriteMode writeMode, const Pdf
         dataview = string_view(tempBuffer.data(), tempBuffer.size());
     }
 
-    device.Print(m_isHex ? "<" : "(");
+    device.Put(m_isHex ? '<' : '(');
     if (dataview.size() > 0)
     {
         char ch;
@@ -158,7 +158,7 @@ void PdfString::Write(PdfOutputDevice& device, PdfWriteMode writeMode, const Pdf
             {
                 ch = *buffer;
                 usr::WriteCharHexTo(data, ch);
-                device.Write(data, 2);
+                device.Write(string_view(data, 2));
                 buffer++;
             }
         }
@@ -171,12 +171,12 @@ void PdfString::Write(PdfOutputDevice& device, PdfWriteMode writeMode, const Pdf
                 char escaped = getEscapedCharacter(ch);
                 if (escaped == '\0')
                 {
-                    device.Write(&ch, 1);
+                    device.Put(ch);
                 }
                 else
                 {
-                    device.Write("\\", 1);
-                    device.Write(&escaped, 1);
+                    device.Put('\\');
+                    device.Put(escaped);
                 }
 
                 buffer++;
@@ -184,7 +184,7 @@ void PdfString::Write(PdfOutputDevice& device, PdfWriteMode writeMode, const Pdf
         }
     }
 
-    device.Print(m_isHex ? ">" : ")");
+    device.Put(m_isHex ? '>' : ')');
 }
 
 bool PdfString::IsUnicode() const
