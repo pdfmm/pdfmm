@@ -162,7 +162,7 @@ public:
         }
         catch (PdfError& e)
         {
-            e.AddToCallstack(__FILE__, __LINE__);
+            PDFMM_PUSH_FRAME(e);
             m_FilterFailed = true;
             throw;
         }
@@ -179,10 +179,8 @@ public:
         }
         catch (PdfError& e)
         {
-            ostringstream oss;
-            oss << "PdfFilter::EndDecode() failed in filter of type "
-                << PdfFilterFactory::FilterTypeToName(m_filter->GetType()) << ".\n";
-            e.AddToCallstack(__FILE__, __LINE__, oss.str());
+            PDFMM_PUSH_FRAME_INFO(e, "PdfFilter::EndDecode() failed in filter of type {}",
+                PdfFilterFactory::FilterTypeToName(m_filter->GetType()));
             m_FilterFailed = true;
             throw;
         }
@@ -358,7 +356,7 @@ PdfFilterType PdfFilterFactory::FilterNameToType(const PdfName& name, bool suppo
         }
     }
 
-    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, name.GetString().c_str());
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, name.GetString());
 }
 
 const char* PdfFilterFactory::FilterTypeToName(PdfFilterType filterType)
@@ -509,7 +507,7 @@ void PdfFilter::EndDecode()
     }
     catch (PdfError& e)
     {
-        e.AddToCallstack(__FILE__, __LINE__);
+        PDFMM_PUSH_FRAME(e);
         // Clean up and close stream
         this->FailEncodeDecode();
         throw;
@@ -524,7 +522,7 @@ void PdfFilter::EndDecode()
     }
     catch (PdfError& e)
     {
-        e.AddToCallstack(__FILE__, __LINE__, "Exception caught closing filter's output stream.\n");
+        PDFMM_PUSH_FRAME_INFO(e, "Exception caught closing filter's output stream");
         // Closing stream failed, just get rid of it
         m_OutputStream = nullptr;
         throw;

@@ -127,7 +127,7 @@ void PdfShadingPattern::Init(PdfShadingPatternType shadingType)
             break;
         default:
         {
-            PDFMM_RAISE_ERROR_INFO( EPdfError::InvalidEnumValue, "PdfShadingPattern::Init() failed because of an invalid shading pattern type." );
+            PDFMM_RAISE_ERROR_INFO( EPdfError::InvalidEnumValue, "PdfShadingPattern::Init() failed because of an invalid shading pattern type");
         }
         };
     */
@@ -163,7 +163,7 @@ void PdfAxialShadingPattern::Init(double x0, double y0, double x1, double y1, co
     coords.push_back(y1);
 
     if (start.GetColorSpace() != end.GetColorSpace())
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Colorspace of start and end color in PdfAxialShadingPattern does not match.");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Colorspace of start and end color in PdfAxialShadingPattern does not match");
 
     PdfArray c0 = start.ToArray();
     PdfArray c1 = end.ToArray();
@@ -211,7 +211,7 @@ void PdfAxialShadingPattern::Init(double x0, double y0, double x1, double y1, co
         case PdfColorSpace::Indexed:
         case PdfColorSpace::Unknown:
         default:
-            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::CannotConvertColor, "Colorspace not supported in PdfAxialShadingPattern.");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::CannotConvertColor, "Colorspace not supported in PdfAxialShadingPattern");
             break;
     }
 
@@ -229,7 +229,7 @@ PdfFunctionBaseShadingPattern::PdfFunctionBaseShadingPattern(PdfDocument& doc, c
 void PdfFunctionBaseShadingPattern::Init(const PdfColor& llCol, const PdfColor& ulCol, const PdfColor& lrCol, const PdfColor& urCol, const PdfArray& matrix)
 {
     if (llCol.GetColorSpace() != ulCol.GetColorSpace() || ulCol.GetColorSpace() != lrCol.GetColorSpace() || lrCol.GetColorSpace() != urCol.GetColorSpace())
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Colorspace of start and end color in PdfFunctionBaseShadingPattern does not match.");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Colorspace of start and end color in PdfFunctionBaseShadingPattern does not match");
 
     PdfArray domain;
     domain.push_back(0.0);
@@ -373,7 +373,7 @@ void PdfFunctionBaseShadingPattern::Init(const PdfColor& llCol, const PdfColor& 
         case PdfColorSpace::Indexed:
         case PdfColorSpace::Unknown:
         default:
-            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::CannotConvertColor, "Colorspace not supported in PdfFunctionBaseShadingPattern.");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::CannotConvertColor, "Colorspace not supported in PdfFunctionBaseShadingPattern");
             break;
     }
 
@@ -400,7 +400,7 @@ void PdfRadialShadingPattern::Init(double x0, double y0, double r0, double x1, d
     coords.push_back(r1);
 
     if (start.GetColorSpace() != end.GetColorSpace())
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Colorspace of start and end color in PdfRadialShadingPattern does not match.");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Colorspace of start and end color in PdfRadialShadingPattern does not match");
 
     PdfArray c0 = start.ToArray();
     PdfArray c1 = end.ToArray();
@@ -448,7 +448,7 @@ void PdfRadialShadingPattern::Init(double x0, double y0, double r0, double x1, d
         case PdfColorSpace::Indexed:
         case PdfColorSpace::Unknown:
         default:
-            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::CannotConvertColor, "Colorspace not supported in PdfRadialShadingPattern.");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::CannotConvertColor, "Colorspace not supported in PdfRadialShadingPattern");
             break;
     }
 
@@ -466,7 +466,7 @@ PdfTriangleShadingPattern::PdfTriangleShadingPattern(PdfDocument& doc, double x0
 void PdfTriangleShadingPattern::Init(double x0, double y0, const PdfColor& color0, double x1, double y1, const PdfColor& color1, double dX2, double dY2, const PdfColor& color2)
 {
     if (color0.GetColorSpace() != color1.GetColorSpace() || color0.GetColorSpace() != color2.GetColorSpace())
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Colorspace of start and end color in PdfTriangleShadingPattern does not match.");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Colorspace of start and end color in PdfTriangleShadingPattern does not match");
 
     PdfColor rgb0 = color0.ConvertToRGB();
     PdfColor rgb1 = color1.ConvertToRGB();

@@ -388,7 +388,8 @@ void readNextVariantSequence(PdfPostScriptTokenizer& tokenizer, PdfInputDevice& 
                 break;
             }
 
-            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidStream, string("CMap unable to read an end of sequence keyword ") + (string)endSequenceKeyword);
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidStream,
+                "CMap unable to read an end of sequence keyword {}", endSequenceKeyword);
         }
         case PdfPostScriptTokenType::Variant:
         {

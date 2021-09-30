@@ -20,7 +20,6 @@
 #include "PdfVariant.h"
 
 #include <iostream>
-#include <sstream>
 
 using namespace mm;
 using namespace std;
@@ -78,16 +77,14 @@ void PdfParserObject::ReadObjectNumber()
     }
     catch (PdfError& e)
     {
-        e.AddToCallstack(__FILE__, __LINE__, "Object and generation number cannot be read.");
+        PDFMM_PUSH_FRAME_INFO(e, "Object and generation number cannot be read");
         throw e;
     }
 
     if (!m_tokenizer.IsNextToken(*m_device, "obj"))
     {
-        ostringstream oss;
-        oss << "Error while reading object " << ref.ObjectNumber() << " "
-            << ref.GenerationNumber() << ": Next token is not 'obj'." << std::endl;
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoObject, oss.str().c_str());
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoObject, "Error while reading object {} {} R: Next token is not 'obj'",
+            ref.ObjectNumber(), ref.GenerationNumber());
     }
 }
 
@@ -150,7 +147,7 @@ void PdfParserObject::ParseFileComplete(bool isTrailer)
     string_view token;
     bool gotToken = m_tokenizer.TryReadNextToken(*m_device, token, tokenType);
     if (!gotToken)
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected variant.");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected variant");
 
     // Check if we have an empty object or data
     if (token != "endobj")
@@ -162,7 +159,7 @@ void PdfParserObject::ParseFileComplete(bool isTrailer)
             bool gotToken = m_tokenizer.TryReadNextToken(*m_device, token);
             if (!gotToken)
             {
-                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected 'endobj' or (if dict) 'stream', got EOF.");
+                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected 'endobj' or (if dict) 'stream', got EOF");
             }
             if (token == "endobj")
             {
@@ -176,7 +173,7 @@ void PdfParserObject::ParseFileComplete(bool isTrailer)
             }
             else
             {
-                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoObject, token.data());
+                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoObject, token);
             }
         }
     }
@@ -292,10 +289,9 @@ void PdfParserObject::DelayedLoadStreamImpl()
         }
         catch (PdfError& e)
         {
-            ostringstream s;
-            s << "Unable to parse the stream for object " << GetIndirectReference().ObjectNumber() << ' '
-                << GetIndirectReference().GenerationNumber() << " obj .";
-            e.AddToCallstack(__FILE__, __LINE__, s.str().c_str());
+            PDFMM_PUSH_FRAME_INFO(e, "Unable to parse the stream for object {} {} R",
+                GetIndirectReference().ObjectNumber(),
+                GetIndirectReference().GenerationNumber());
             throw;
         }
     }

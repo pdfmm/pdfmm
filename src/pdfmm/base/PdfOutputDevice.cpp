@@ -145,7 +145,7 @@ fstream* PdfFileOutputDevice::getFileStream(const std::string_view& filename, bo
     if (stream->fail())
     {
         delete stream;
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::FileNotFound, (string)filename);
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::FileNotFound, filename);
     }
 
     return stream;

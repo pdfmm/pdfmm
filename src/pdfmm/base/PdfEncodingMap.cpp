@@ -403,20 +403,20 @@ bool PdfDummyEncodingMap::tryGetCharCode(char32_t codePoint, PdfCharCode& codeUn
 {
     (void)codePoint;
     (void)codeUnit;
-    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "PdfDynamicEncoding can't be used only from a PdfFont")
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "PdfDynamicEncoding can't be used only from a PdfFont");
 }
 
 bool PdfDummyEncodingMap::tryGetCodePoints(const PdfCharCode& codeUnit, vector<char32_t>& codePoints) const
 {
     (void)codeUnit;
     (void)codePoints;
-    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "PdfDynamicEncoding can't be used only from a PdfFont")
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "PdfDynamicEncoding can't be used only from a PdfFont");
 }
 
 void PdfDummyEncodingMap::appendBaseFontEntries(PdfStream& stream) const
 {
     (void)stream;
-    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "PdfDynamicEncoding can't be used only from a PdfFont")
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "PdfDynamicEncoding can't be used only from a PdfFont");
 }
 
 PdfEncodingLimits::PdfEncodingLimits(unsigned char minCodeSize, unsigned char maxCodeSize,

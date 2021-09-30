@@ -47,8 +47,8 @@ PdfFontMetricsFreetype* PdfFontMetricsFreetype::CreateForSubsetting(FT_Library* 
     if (err != 0)
     {
         // throw an exception
-        PdfError::LogMessage(LogSeverity::Critical, "FreeType returned the error %i when calling FT_New_Face for font %s.",
-            err, filename.data());
+        PdfError::LogMessage(LogSeverity::Error, "FreeType returned the error {} when calling FT_New_Face for font {}",
+            (int)err, filename);
         PDFMM_RAISE_ERROR(PdfErrorCode::FreeType);
     }
 
@@ -63,8 +63,8 @@ PdfFontMetricsFreetype* PdfFontMetricsFreetype::CreateForSubsetting(FT_Library* 
     }
 
     // throw an exception
-    PdfError::LogMessage(LogSeverity::Critical, "FreeType returned the error %i when calling FT_Load_Sfnt_Table for font %s.",
-        err, filename.data());
+    PdfError::LogMessage(LogSeverity::Error, "FreeType returned the error {} when calling FT_Load_Sfnt_Table for font {}",
+        (int)err, filename);
     PDFMM_RAISE_ERROR(PdfErrorCode::FreeType);
 }
 
@@ -78,8 +78,8 @@ PdfFontMetricsFreetype::PdfFontMetricsFreetype(FT_Library* library, const string
     FT_Error err = FT_New_Face(*library, filename.data(), 0, &m_Face);
     if (err != 0)
     {
-        PdfError::LogMessage(LogSeverity::Critical, "FreeType returned the error %i when calling FT_New_Face for font %s.",
-            err, filename.data());
+        PdfError::LogMessage(LogSeverity::Error, "FreeType returned the error {} when calling FT_New_Face for font {}",
+            (int)err, filename);
         PDFMM_RAISE_ERROR(PdfErrorCode::FreeType);
     }
 
@@ -140,7 +140,8 @@ void PdfFontMetricsFreetype::InitFromBuffer(bool isSymbol)
     FT_Error err = FT_Open_Face(*m_Library, &openArgs, 0, &m_Face);
     if (err != 0)
     {
-        PdfError::LogMessage(LogSeverity::Critical, "FreeType returned the error %i when calling FT_Open_Face for a buffered font.", err);
+        PdfError::LogMessage(LogSeverity::Error,
+            "FreeType returned the error {} when calling FT_Open_Face for a buffered font", (int)err);
         PDFMM_RAISE_ERROR(PdfErrorCode::FreeType);
     }
 
@@ -155,7 +156,7 @@ void PdfFontMetricsFreetype::InitFromFace(bool isSymbol)
     {
         // We need to have identified the font type by this point
         // Unsupported font.
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFontFormat, m_Filename.c_str());
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFontFormat, m_Filename);
     }
 
     FT_Error rc;
@@ -178,7 +179,7 @@ void PdfFontMetricsFreetype::InitFromFace(bool isSymbol)
     rc = FT_Select_Charmap(m_Face, isSymbol ? FT_ENCODING_MS_SYMBOL : FT_ENCODING_UNICODE);
     if (rc != 0)
     {
-        PdfError::LogMessage(LogSeverity::Critical, "FreeType returned the error %i when calling FT_Select_Charmap for a buffered font.", rc);
+        PdfError::LogMessage(LogSeverity::Error, "FreeType returned the error {} when calling FT_Select_Charmap for a buffered font", (int)rc);
         PDFMM_RAISE_ERROR(PdfErrorCode::FreeType);
     }
 

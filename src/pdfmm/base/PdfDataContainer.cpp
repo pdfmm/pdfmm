@@ -43,7 +43,10 @@ PdfObject& PdfDataContainer::GetIndirectObject(const PdfReference& ref) const
 
     auto ret = document->GetObjects().GetObject(ref);
     if (ret == nullptr)
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Can't find reference with objnum: " + std::to_string(ref.ObjectNumber()) + ", gennum: " + std::to_string(ref.GenerationNumber()));
+    {
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Can't find object {} {} R",
+            ref.ObjectNumber(), ref.GenerationNumber());
+    }
 
     return *ret;
 }

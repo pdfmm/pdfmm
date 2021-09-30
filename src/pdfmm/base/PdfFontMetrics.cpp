@@ -76,7 +76,7 @@ PdfFontMetricsType PdfFontMetrics::GetFontMetricsTypeFromFilename(const string_v
     }
 
     if (fontType == PdfFontMetricsType::Unknown)
-        PdfError::DebugMessage("Warning: Unrecognized FontFormat: %s\n", filename.data());
+        PdfError::LogMessage(LogSeverity::Debug, "Warning: Unrecognized FontFormat: {}", filename);
 
     return fontType;
 }

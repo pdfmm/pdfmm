@@ -31,7 +31,7 @@ PdfInputDevice::PdfInputDevice(const string_view& filename)
 
     m_Stream = new ifstream(io::open_ifstream(filename, ios_base::in | ios_base::binary));
     if (m_Stream->fail())
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::FileNotFound, filename.data());
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::FileNotFound, filename);
 
     m_StreamOwned = true;
 }
@@ -155,7 +155,7 @@ void PdfInputDevice::Seek(streamoff off, ios_base::seekdir dir)
 void PdfInputDevice::seek(streamoff off, ios_base::seekdir dir)
 {
     if (!IsSeekable())
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Tried to seek an unseekable input device.");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Tried to seek an unseekable input device");
 
     // NOTE: Some c++ libraries don't reset eofbit prior seeking
     m_Stream->clear(m_Stream->rdstate() & ~ios_base::eofbit);

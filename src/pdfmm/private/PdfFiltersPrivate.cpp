@@ -529,7 +529,7 @@ void PdfFlateFilter::EncodeBlockInternal(const char* buffer, size_t len, int nMo
         {
             // clean up after any output stream errors
             FailEncodeDecode();
-            e.AddToCallstack(__FILE__, __LINE__);
+            PDFMM_PUSH_FRAME(e);
             throw e;
         }
     } while (m_stream.avail_out == 0);
@@ -572,7 +572,7 @@ void PdfFlateFilter::DecodeBlockImpl(const char* buffer, size_t len)
             case Z_DATA_ERROR:
             case Z_MEM_ERROR:
             {
-                PdfError::LogMessage(LogSeverity::Error, "Flate Decoding Error from ZLib: %i", flateErr);
+                PdfError::LogMessage(LogSeverity::Error, "Flate Decoding Error from ZLib: {}", flateErr);
                 (void)inflateEnd(&m_stream);
 
                 FailEncodeDecode();
@@ -594,7 +594,7 @@ void PdfFlateFilter::DecodeBlockImpl(const char* buffer, size_t len)
         {
             // clean up after any output stream errors
             FailEncodeDecode();
-            e.AddToCallstack(__FILE__, __LINE__);
+            PDFMM_PUSH_FRAME(e);
             throw e;
         }
     } while (m_stream.avail_out == 0);

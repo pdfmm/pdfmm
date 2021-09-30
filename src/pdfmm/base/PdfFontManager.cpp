@@ -200,7 +200,7 @@ PdfFont* PdfFontManager::GetFontSubset(const string_view& fontname, const PdfFon
                     params.Encoding, params.Bold, params.Italic,
                     params.IsSymbolCharset, true, true);
 #else       
-                PdfError::LogMessage(LogSeverity::Critical, "No path was found for the specified fontname: %s", fontname.data());
+                PdfError::LogMessage(LogSeverity::Error, "No path was found for the specified fontname: {}", fontname);
                 return nullptr;
 #endif // _WIN32
             }
@@ -230,7 +230,7 @@ PdfFont* PdfFontManager::GetFont(FT_Face face, const PdfEncoding& encoding,
     string name = FT_Get_Postscript_Name(face);
     if (name.empty())
     {
-        PdfError::LogMessage(LogSeverity::Critical, "Could not retrieve fontname for font!");
+        PdfError::LogMessage(LogSeverity::Error, "Could not retrieve fontname for font!");
         return nullptr;
     }
 
@@ -367,9 +367,9 @@ PdfFont* PdfFontManager::CreateFontObject(FontCacheMap& map, const string_view& 
     }
     catch (PdfError& e)
     {
-        e.AddToCallstack(__FILE__, __LINE__);
+        PDFMM_PUSH_FRAME(e);
         e.PrintErrorMsg();
-        PdfError::LogMessage(LogSeverity::Error, "Cannot initialize font: %s", fontName.empty() ? "" : fontName.data());
+        PdfError::LogMessage(LogSeverity::Error, "Cannot initialize font: {}", fontName);
         return nullptr;
     }
 

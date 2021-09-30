@@ -10,7 +10,6 @@
 #include "PdfPageTree.h"
 
 #include <algorithm>
-#include <sstream>
 #include <iostream>
 
 #include "PdfDocument.h"
@@ -139,8 +138,8 @@ void PdfPageTree::InsertPages(unsigned atIndex, const vector<PdfObject*>& pages)
     {
         if (this->GetPageCount() != 0)
         {
-            PdfError::LogMessage(LogSeverity::Critical,
-                "Cannot find page %i or page %i has no parents. Cannot insert new page.",
+            PdfError::LogMessage(LogSeverity::Error,
+                "Cannot find page {} or page {} has no parents. Cannot insert new page",
                 atIndex, atIndex);
             return;
         }
@@ -209,7 +208,7 @@ void PdfPageTree::DeletePage(unsigned atIndex)
     if (pageNode == nullptr)
     {
         PdfError::LogMessage(LogSeverity::Information,
-            "Invalid argument to PdfPageTree::DeletePage: %i - Page not found",
+            "Invalid argument to PdfPageTree::DeletePage: {} - Page not found",
             atIndex);
         PDFMM_RAISE_ERROR(PdfErrorCode::PageNotFound);
     }
@@ -223,7 +222,7 @@ void PdfPageTree::DeletePage(unsigned atIndex)
     else
     {
         PdfError::LogMessage(LogSeverity::Error,
-            "PdfPageTree::DeletePage: Page %i has no parent - cannot be deleted.",
+            "PdfPageTree::DeletePage: Page {} has no parent - cannot be deleted",
             atIndex);
         PDFMM_RAISE_ERROR(PdfErrorCode::PageNotFound);
     }
@@ -244,8 +243,8 @@ PdfObject* PdfPageTree::GetPageNode(unsigned index, PdfObject& parent,
 
     if (index > numKids)
     {
-        PdfError::LogMessage(LogSeverity::Critical,
-            "Cannot retrieve page %u from a document with only %u pages.",
+        PdfError::LogMessage(LogSeverity::Error,
+            "Cannot retrieve page {} from a document with only {} pages",
             index, numKids);
         return nullptr;
     }
@@ -262,7 +261,7 @@ PdfObject* PdfPageTree::GetPageNode(unsigned index, PdfObject& parent,
     {
         if (!child.IsReference())
         {
-            PdfError::LogMessage(LogSeverity::Critical, "Requesting page index %i. Invalid datatype in kids array: %s",
+            PdfError::LogMessage(LogSeverity::Error, "Requesting page index {}. Invalid datatype in kids array: {}",
                 index, child.GetDataTypeString());
             return nullptr;
         }
@@ -270,8 +269,8 @@ PdfObject* PdfPageTree::GetPageNode(unsigned index, PdfObject& parent,
         PdfObject* childObj = GetRoot().GetDocument()->GetObjects().GetObject(child.GetReference());
         if (childObj == nullptr)
         {
-            PdfError::LogMessage(LogSeverity::Critical, "Requesting page index %i. Child not found: %s",
-                index, child.GetReference().ToString().c_str());
+            PdfError::LogMessage(LogSeverity::Error, "Requesting page index {}. Child not found: {}",
+                index, child.GetReference().ToString());
             return nullptr;
         }
 
@@ -294,12 +293,11 @@ PdfObject* PdfPageTree::GetPageNode(unsigned index, PdfObject& parent,
                 if (std::find(parents.begin(), parents.end(), childObj)
                     != parents.end()) // cycle in parent list detected, fend
                 { // off security vulnerability similar to CVE-2017-8054 (infinite recursion)
-                    ostringstream oss;
-                    oss << "Cycle in page tree: child in /Kids array of object "
-                        << (*(parents.rbegin()))->GetIndirectReference().ToString()
-                        << " back-references to object " << childObj->GetIndirectReference()
-                        .ToString() << " one of whose descendants the former is.";
-                    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::PageNotFound, oss.str());
+                    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::PageNotFound,
+                        "Cycle in page tree: child in /Kids array of object {} back-references "
+                        "to object {} one of whose descendants the former is",
+                        (*(parents.rbegin()))->GetIndirectReference().ToString(),
+                        childObj->GetIndirectReference().ToString());
                 }
 
                 return this->GetPageNode(index, *childObj, parents);
@@ -323,10 +321,10 @@ PdfObject* PdfPageTree::GetPageNode(unsigned index, PdfObject& parent,
             const PdfReference& rLogRef = childObj->GetIndirectReference();
             uint32_t nLogObjNum = rLogRef.ObjectNumber();
             uint16_t nLogGenNum = rLogRef.GenerationNumber();
-            PdfError::LogMessage(LogSeverity::Critical,
-                "Requesting page index %u. "
-                "Invalid datatype referenced in kids array: %s\n"
-                "Reference to invalid object: %u %u R", index,
+            PdfError::LogMessage(LogSeverity::Error,
+                "Requesting page index {}. "
+                "Invalid datatype referenced in kids array: {}. "
+                "Reference to invalid object: {} {} R", index,
                 childObj->GetDataTypeString(), nLogObjNum, nLogGenNum);
             return nullptr;
         }

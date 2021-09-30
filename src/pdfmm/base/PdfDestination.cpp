@@ -127,7 +127,7 @@ void PdfDestination::Init(PdfObject& obj, PdfDocument& doc)
         if (memDoc == nullptr)
         {
             PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle,
-                "For reading from a document, only use PdfMemDocument.");
+                "For reading from a document, only use PdfMemDocument");
         }
 
         auto dests = memDoc->GetCatalog().GetDictionary().FindKey("Dests");
@@ -135,15 +135,15 @@ void PdfDestination::Init(PdfObject& obj, PdfDocument& doc)
         {
             // The error code has been chosen for its distinguishability.
             PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidKey,
-                "No PDF-1.1-compatible destination dictionary found.");
+                "No PDF-1.1-compatible destination dictionary found");
         }
         value = dests->GetDictionary().FindKey(obj.GetName());
         valueExpected = true;
     }
     else
     {
-        PdfError::LogMessage(LogSeverity::Error, "Unsupported object given to"
-            " PdfDestination::Init of type %s", obj.GetDataTypeString());
+        PdfError::LogMessage(LogSeverity::Error, "Unsupported object given to "
+            "PdfDestination::Init of type {}", obj.GetDataTypeString());
         m_array = PdfArray(); // needed to prevent crash on method calls
         // needed for GetObject() use w/o checking its return value for nullptr
         m_Object = doc.GetObjects().CreateObject(m_array);

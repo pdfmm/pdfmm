@@ -9,8 +9,6 @@
 #include <pdfmm/private/PdfDefinesPrivate.h>
 #include "PdfPage.h"
 
-#include <sstream>
-
 #include "PdfDictionary.h"
 #include "PdfRect.h"
 #include "PdfVariant.h"
@@ -212,10 +210,8 @@ const PdfObject* PdfPage::GetInheritedKeyFromObject(const string_view& key, cons
         obj = inObject.GetDictionary().FindKey("Parent");
         if (obj == &inObject)
         {
-            ostringstream oss;
-            oss << "Object " << inObject.GetIndirectReference().ObjectNumber() << " "
-                << inObject.GetIndirectReference().GenerationNumber() << " references itself as Parent";
-            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::BrokenFile, oss.str().c_str());
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::BrokenFile,
+                "Object {} references itself as Parent", inObject.GetIndirectReference().ToString());
         }
 
         if (obj != nullptr)
@@ -520,10 +516,9 @@ unsigned PdfPage::GetPageNumber() const
                 auto node = this->GetObject().GetDocument()->GetObjects().GetObject(child.GetReference());
                 if (node == nullptr)
                 {
-                    ostringstream oss;
-                    oss << "Object " << child.GetReference().ToString() << " not found from Kids array "
-                        << kidsObj->GetIndirectReference().ToString();
-                    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoObject, oss.str());
+                    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoObject,
+                        "Object {} not found from Kids array {}", child.GetReference().ToString(),
+                        kidsObj->GetIndirectReference().ToString());
                 }
 
                 if (node->GetDictionary().HasKey(PdfName::KeyType)

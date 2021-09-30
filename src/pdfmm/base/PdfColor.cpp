@@ -852,7 +852,7 @@ PdfColor PdfColor::FromArray(const PdfArray& arr)
     else if (arr.GetSize() == 4) // CMYK
         return PdfColor(arr[0].GetReal(), arr[1].GetReal(), arr[2].GetReal(), arr[3].GetReal());
 
-    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "PdfColor::FromArray supports only GrayScale, RGB and CMYK colors.");
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "PdfColor::FromArray supports only GrayScale, RGB and CMYK colors");
 }
 
 PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
@@ -1130,7 +1130,7 @@ PdfColorSpace PdfColor::GetColorSpaceForName(const PdfName& name)
     else
     {
         // TODO: other are not supported at the moment
-        PdfError::LogMessage(LogSeverity::Information, "Unsupported colorspace name: %s", name.GetString().c_str());
+        PdfError::LogMessage(LogSeverity::Information, "Unsupported colorspace name: {}", name.GetString());
     }
 
     return ePdfColorSpace;
@@ -1154,7 +1154,7 @@ PdfName PdfColor::GetNameForColorSpace(PdfColorSpace colorSpace)
             return PdfName("Indexed");
         case PdfColorSpace::Unknown:
         default:
-            PdfError::LogMessage(LogSeverity::Information, "Unsupported colorspace enum: %i", colorSpace);
+            PdfError::LogMessage(LogSeverity::Information, "Unsupported colorspace enum: {}", (int)colorSpace);
             return PdfName();
     }
 

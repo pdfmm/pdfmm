@@ -89,13 +89,13 @@ void PdfMemDocument::InitFromParser(PdfParser* parser)
     this->SetTrailer(trailer); // Set immediately as trailer
                                 // so that trailer has an owner
 
-    if (PdfError::DebugEnabled())
+    if (PdfError::IsLoggingSeverityEnabled(LogSeverity::Debug))
     {
         string buf;
         PdfStringOutputDevice debug(buf);
         GetTrailer().GetVariant().Write(debug, m_WriteMode, nullptr);
         debug.Write("\n", 1);
-        PdfError::LogMessage(LogSeverity::Information, "%.*s", buf.size(), buf.data());
+        PdfError::LogMessage(LogSeverity::Debug, buf);
     }
 
     auto catalog = GetTrailer().GetDictionary().FindKey("Root");
@@ -309,7 +309,7 @@ void PdfMemDocument::WriteUpdate(PdfOutputDevice& device, PdfSaveOptions options
     }
     catch (PdfError& e)
     {
-        e.AddToCallstack(__FILE__, __LINE__);
+        PDFMM_PUSH_FRAME(e);
         throw e;
     }
 }
@@ -413,7 +413,7 @@ void PdfMemDocument::FreeObjectMemory(PdfObject* obj, bool force)
     if (parserObject == nullptr)
     {
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle,
-            "FreeObjectMemory works only on classes of type PdfParserObject.");
+            "FreeObjectMemory works only on classes of type PdfParserObject");
     }
 
     parserObject->FreeObjectMemory(force);

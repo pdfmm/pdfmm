@@ -114,7 +114,7 @@ void PdfWriter::Write(PdfOutputDevice& device)
             m_EncryptObj = nullptr;
         }
 
-        e.AddToCallstack(__FILE__, __LINE__);
+        PDFMM_PUSH_FRAME(e);
         throw e;
     }
 
@@ -274,11 +274,8 @@ void PdfWriter::CreateFileIdentifier(PdfString& identifier, const PdfObject& tra
 
             if (infoObj == nullptr)
             {
-                ostringstream oss;
-                oss << "Error while retrieving info dictionary: "
-                    << ref.ObjectNumber() << " "
-                    << ref.GenerationNumber() << " R" << std::endl;
-                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, oss.str().c_str());
+                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Error while retrieving info dictionary: {} {} R",
+                    ref.ObjectNumber(), ref.GenerationNumber());
             }
             else
             {
@@ -296,7 +293,7 @@ void PdfWriter::CreateFileIdentifier(PdfString& identifier, const PdfObject& tra
         }
         else
         {
-            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Invalid ");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Invalid");
         }
     }
 

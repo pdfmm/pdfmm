@@ -173,7 +173,7 @@ void PdfImage::LoadFromFile(const string_view& filename)
 #endif
 
     }
-    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, filename.data());
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, filename);
 }
 
 void PdfImage::LoadFromData(const unsigned char* data, size_t len)
@@ -575,7 +575,7 @@ void PdfImage::LoadFromTiff(const string_view& filename)
 #endif
 
     if (hInfile == nullptr)
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::FileNotFound, filename.data());
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::FileNotFound, filename);
 
     try
     {
@@ -742,7 +742,7 @@ void PdfImage::LoadFromPngHandle(FILE* stream)
     if (fread(header, 1, 8, stream) != 8 ||
         png_sig_cmp(header, 0, 8))
     {
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, "The file could not be recognized as a PNG file.");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, "The file could not be recognized as a PNG file");
     }
 
     png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
@@ -801,7 +801,7 @@ void PdfImage::LoadFromPngData(const unsigned char* data, size_t len)
     pngData.read(header, 8);
     if (png_sig_cmp(header, 0, 8))
     {
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, "The file could not be recognized as a PNG file.");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, "The file could not be recognized as a PNG file");
     }
 
     png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);

@@ -115,7 +115,7 @@ const PdfDocument& PdfDocument::Append(const PdfDocument& doc, bool appendAll)
         m_Objects.PushObject(newObj);
         *newObj = *obj;
 
-        PdfError::LogMessage(LogSeverity::Information, "Fixing references in %i %i R by %i",
+        PdfError::LogMessage(LogSeverity::Information, "Fixing references in {} {} R by {}",
             newObj->GetIndirectReference().ObjectNumber(), newObj->GetIndirectReference().GenerationNumber(), difference);
         FixObjectReferences(*newObj, difference);
     }
@@ -203,7 +203,7 @@ const PdfDocument& PdfDocument::InsertExistingPageAt(const PdfDocument& doc, uns
         m_Objects.PushObject(newObj);
         *newObj = *obj;
 
-        PdfError::LogMessage(LogSeverity::Information, "Fixing references in %i %i R by %i",
+        PdfError::LogMessage(LogSeverity::Information, "Fixing references in {} {} R by {}",
             newObj->GetIndirectReference().ObjectNumber(), newObj->GetIndirectReference().GenerationNumber(), difference);
         FixObjectReferences(*newObj, difference);
     }

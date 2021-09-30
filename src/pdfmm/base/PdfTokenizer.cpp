@@ -205,7 +205,7 @@ void PdfTokenizer::ReadNextVariant(PdfInputDevice& device, PdfVariant& variant, 
     string_view token;
     bool gotToken = this->TryReadNextToken(device, token, tokenType);
     if (!gotToken)
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected variant.");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected variant");
 
     this->ReadNextVariant(device, token, tokenType, variant, encrypt);
 }
@@ -274,7 +274,7 @@ PdfTokenizer::PdfLiteralDataType PdfTokenizer::DetermineDataType(PdfInputDevice&
                 if (!(m_doubleParser >> val))
                 {
                     m_doubleParser.clear(); // clear error state
-                    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, token.data());
+                    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, token);
                 }
 
                 variant = PdfVariant(val);
@@ -399,7 +399,7 @@ void PdfTokenizer::ReadDictionary(PdfInputDevice& device, PdfVariant& variant, P
     {
         bool gotToken = this->TryReadNextToken(device, token, tokenType);
         if (!gotToken)
-            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected dictionary key name or >> delim.");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected dictionary key name or >> delim");
 
         if (tokenType == PdfTokenType::DoubleAngleBracketsRight)
             break;
@@ -411,7 +411,7 @@ void PdfTokenizer::ReadDictionary(PdfInputDevice& device, PdfVariant& variant, P
         // Try to get the next variant
         gotToken = this->TryReadNextToken(device, token, tokenType);
         if (!gotToken)
-            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected variant.");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected variant");
 
         PdfLiteralDataType dataType = DetermineDataType(device, token, tokenType, val);
         if (key == "Contents" && dataType == PdfLiteralDataType::HexString)
@@ -460,7 +460,7 @@ void PdfTokenizer::ReadArray(PdfInputDevice& device, PdfVariant& variant, PdfEnc
         bool gotToken = this->TryReadNextToken(device, token, tokenType);
         if (!gotToken)
         {
-            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected array item or ] delim.");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected array item or ] delim");
         }
         if (tokenType == PdfTokenType::SquareBracketRight)
             break;

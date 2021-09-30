@@ -14,7 +14,8 @@
 #include "pdfmmdefs.h"
 
 #include <queue>
-#include <cstdarg>
+#include <functional>
+#include <pdfmm/compat/format>
 
 /** \file PdfError.h
  *  Error information and logging is implemented in this file.
@@ -106,13 +107,11 @@ enum class PdfErrorCode
  */
 enum class LogSeverity
 {
-    Unknown = 0,         ///< Unknown log level
-    Critical,            ///< Critical unexpected error
+    None = 0,            ///< Logging disabled
     Error,               ///< Error
     Warning,             ///< Warning
-    Information,         ///< Information message
     Debug,               ///< Debug information
-    None,                ///< No specified level
+    Information,         ///< Information message
 };
 
 /** \def PDFMM_RAISE_ERROR(code)
@@ -120,7 +119,7 @@ enum class LogSeverity
  *  Throw an exception of type PdfError with the error code x, which should be
  *  one of the values of the enum PdfErrorCode. File and line info are included.
  */
-#define PDFMM_RAISE_ERROR(code) throw ::mm::PdfError(code, __FILE__, __LINE__);
+#define PDFMM_RAISE_ERROR(code) throw ::mm::PdfError(code, __FILE__, __LINE__, { })
 
 /** \def PDFMM_RAISE_ERROR_INFO(code, msg)
  *
@@ -130,16 +129,28 @@ enum class LogSeverity
  *  output by PdfError::PrintErrorMsg().
  *  msg can be a C string, but can also be a C++ std::string.
  */
-#define PDFMM_RAISE_ERROR_INFO(code, msg) throw ::mm::PdfError(code, __FILE__, __LINE__, msg);
+#define PDFMM_RAISE_ERROR_INFO(code, msg, ...) throw ::mm::PdfError(code, __FILE__, __LINE__, ::mm::Format(msg, __VA_ARGS__))
 
-/** \def PDFMM_RAISE_LOGIC_IF(cond, msg)
+ /** \def PDFMM_PUSH_FRAME(err, msg)
+  *
+  * Add frame to error callastack
+  */
+#define PDFMM_PUSH_FRAME(err) err.AddToCallstack(__FILE__, __LINE__, { })
+
+  /** \def PDFMM_PUSH_FRAME_INFO(err, msg)
+   *
+   * Add frame to error callastack with msg information
+   */
+#define PDFMM_PUSH_FRAME_INFO(err, msg, ...) err.AddToCallstack(__FILE__, __LINE__, ::mm::Format(msg, __VA_ARGS__))
+
+/** \def PDFMM_PUSH_FRAME(err, msg)
  *
  *  Evaluate `cond' as a binary predicate and if it is true, raise a logic error with the
  *  info string `msg' .
  */
-#define PDFMM_RAISE_LOGIC_IF(cond, msg) {\
+#define PDFMM_RAISE_LOGIC_IF(cond, msg, ...) {\
     if (cond)\
-        throw ::mm::PdfError(PdfErrorCode::InternalLogic, __FILE__, __LINE__, msg);\
+        throw ::mm::PdfError(PdfErrorCode::InternalLogic, __FILE__, __LINE__, ::mm::Format(msg, __VA_ARGS__));\
 };
 
 class PDFMM_API PdfErrorInfo
@@ -161,6 +172,7 @@ private:
 };
 
 typedef std::deque<PdfErrorInfo> PdErrorInfoQueue;
+typedef std::function<void(LogSeverity logSeverity, const std::string_view& msg)> LogMessageCallback;
 
 // This is required to generate the documentation with Doxygen.
 // Without this define doxygen thinks we have a class called PDFMM_EXCEPTION_API(PDFMM_API) ...
@@ -179,20 +191,11 @@ typedef std::deque<PdfErrorInfo> PdErrorInfoQueue;
 class PDFMM_EXCEPTION_API_DOXYGEN PdfError final
 {
 public:
-
-    // OC 17.08.2010 New to optionally replace stderr output by a callback:
-    class LogMessageCallback
-    {
-    public:
-        virtual ~LogMessageCallback() {}
-        virtual void LogMessage(LogSeverity logSeverity, const char* prefix, const char* msg, va_list& args) = 0;
-    };
-
     /** Set a global static LogMessageCallback functor to replace stderr output in LogMessageInternal.
      *  \param logMessageCallback the pointer to the new callback functor object
      *  \returns the pointer to the previous callback functor object
      */
-    static LogMessageCallback* SetLogMessageCallback(LogMessageCallback* logMessageCallback);
+    static void SetLogMessageCallback(const LogMessageCallback& logMessageCallback);
 
 public:
     /** Create a PdfError object initialized to PdfErrorCode::Ok.
@@ -208,7 +211,7 @@ public:
      *  \param information additional information on this error
      */
     PdfError(PdfErrorCode code, std::string file, unsigned line,
-        std::string information = { });
+        std::string information);
 
     /** Copy constructor
      *  \param rhs copy the contents of rhs into this object
@@ -264,7 +267,7 @@ public:
      *         e.g. how to fix the error. This string is intended to
      *         be shown to the user.
      */
-    void AddToCallstack(std::string file, unsigned line, std::string information = { });
+    void AddToCallstack(std::string file, unsigned line, std::string information);
 
     /** \returns true if an error code was set
      *           and false if the error code is PdfErrorCode::Ok.
@@ -281,6 +284,7 @@ public:
      */
     const char* what() const;
 
+public:
     /** Get the name for a certain error code.
      *  \returns the name or nullptr if no name for the specified
      *           error code is available.
@@ -298,50 +302,25 @@ public:
      *  \param logSeverity the severity of the log message
      *  \param msg       the message to be logged
      */
-    static void LogMessage(LogSeverity logSeverity, const char* msg, ...);
+    static void LogMessage(LogSeverity logSeverity, const std::string_view& msg);
 
-    /** Enable or disable logging.
-    *  \param enable       enable (true) or disable (false)
+    template <typename... Args>
+    static void LogMessage(LogSeverity logSeverity, const std::string_view& msg, const Args&... args)
+    {
+        LogMessage(logSeverity, mm::Format(msg, args...));
+    }
+
+    /** Set the minimum logging severity
     */
-    static void EnableLogging(bool enable);
+    static void SetMinLoggingSeverity(LogSeverity logSeverity);
 
-    /** Is the display of debugging messages enabled or not?
+    /** The if the given logging severity enabled or not
      */
-    static bool LoggingEnabled();
-
-    /** Log a message to the logging system defined for pdfmm for debugging.
-     *  \param msg       the message to be logged
-     */
-    static void DebugMessage(const char* msg, ...);
-
-    /** Enable or disable the display of debugging messages.
-     *  \param enable       enable (true) or disable (false)
-     */
-    static void EnableDebug(bool enable);
-
-    /** Is the display of debugging messages enabled or not?
-     */
-    static bool DebugEnabled();
+    static bool IsLoggingSeverityEnabled(LogSeverity logSeverity);
 
 private:
-    /** Log a message to the logging system defined for pdfmm.
-     *
-     *  This call does not check if logging is enabled and always
-     *  prints the error message.
-     *
-     *  \param logSeverity the severity of the log message
-     *  \param msg       the message to be logged
-     */
-    static void LogErrorMessage(LogSeverity logSeverity, const char* msg, ...);
+    void addToCallstack(std::string file, unsigned line, std::string information);
 
-    static void LogMessageInternal(LogSeverity logSeverity, const char* msg, va_list& args);
-
-private:
-    static bool s_DgbEnabled;
-    static bool s_LogEnabled;
-
-    // OC 17.08.2010 New to optionally replace stderr output by a callback:
-    static LogMessageCallback* m_LogMessageCallback;
 private:
     PdfErrorCode m_error;
     PdErrorInfoQueue m_callStack;

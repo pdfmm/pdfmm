@@ -145,8 +145,8 @@ PdfFont* PdfFontFactory::CreateFont(PdfObject& obj)
             if (baseFont == nullptr
                 || !PdfFontStandard14::IsStandard14Font(baseFont->GetName().GetString(), baseFontType))
             {
-                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoObject, "No BaseFont object found"
-                    " by reference in given object");
+                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoObject, "No BaseFont object found "
+                    "by reference in given object");
             }
 
             shared_ptr<const PdfFontMetrics> metrics;

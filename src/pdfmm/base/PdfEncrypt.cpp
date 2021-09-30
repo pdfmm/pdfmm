@@ -17,8 +17,6 @@
 #include "PdfDictionary.h"
 #include "PdfFilter.h"
 
-#include <sstream>
-
 #ifdef PDFMM_HAVE_LIBIDN
 // AES-256 dependencies :
 // SASL
@@ -438,13 +436,11 @@ unique_ptr<PdfEncrypt> PdfEncrypt::CreatePdfEncrypt(const PdfObject& encryptObj)
     if (!encryptObj.GetDictionary().HasKey("Filter") ||
         encryptObj.GetDictionary().GetKey("Filter")->GetName() != "Standard")
     {
-        ostringstream oss;
         if (encryptObj.GetDictionary().HasKey("Filter"))
-            oss << "Unsupported encryption filter: " << encryptObj.GetDictionary().GetKey("Filter")->GetName().GetString();
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, "Unsupported encryption filter: {}",
+                encryptObj.GetDictionary().GetKey("Filter")->GetName().GetString());
         else
-            oss << "Encryption dictionary does not have a key /Filter.";
-
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, oss.str().c_str());
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, "Encryption dictionary does not have a key /Filter");
     }
 
     int lV;
@@ -493,7 +489,7 @@ unique_ptr<PdfEncrypt> PdfEncrypt::CreatePdfEncrypt(const PdfObject& encryptObj)
     }
     catch (PdfError& e)
     {
-        e.AddToCallstack(__FILE__, __LINE__, "Invalid or missing key in encryption dictionary");
+        PDFMM_PUSH_FRAME_INFO(e, "Invalid or missing key in encryption dictionary");
         throw e;
     }
 
@@ -510,7 +506,7 @@ unique_ptr<PdfEncrypt> PdfEncrypt::CreatePdfEncrypt(const PdfObject& encryptObj)
         // stack-based buffer over-read later in this file
         if (length > MD5_DIGEST_LENGTH * CHAR_BIT) // length in bits, md5 in bytes
         {
-            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Given key length too large for MD5.");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Given key length too large for MD5");
         }
         return unique_ptr<PdfEncrypt>(new PdfEncryptRC4(oValue, uValue, pValue, rValue, PdfEncryptAlgorithm::RC4V2, static_cast<int>(length), encryptMetadata));
     }
@@ -534,9 +530,7 @@ unique_ptr<PdfEncrypt> PdfEncrypt::CreatePdfEncrypt(const PdfObject& encryptObj)
 #endif // PDFMM_HAVE_LIBIDN
         else
         {
-            ostringstream oss;
-            oss << "Unsupported encryption method Version=" << lV << " Revision=" << rValue;
-            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, oss.str().c_str());
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, "Unsupported encryption method Version={} Revision={}", lV , rValue);
         }
     }
 }

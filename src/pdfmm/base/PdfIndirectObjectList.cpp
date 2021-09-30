@@ -214,7 +214,7 @@ void PdfIndirectObjectList::AddFreeObject(const PdfReference& reference)
     if (it.first != it.second && !m_FreeObjects.empty())
     {
         // Be sure that no reference is added twice to free list
-        PdfError::DebugMessage("Adding %d to free list, is already contained in it!", reference.ObjectNumber());
+        PdfError::LogMessage(LogSeverity::Debug, "Adding {} to free list, is already contained in it!", reference.ObjectNumber());
         return;
     }
     else

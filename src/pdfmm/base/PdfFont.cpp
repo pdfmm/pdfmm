@@ -198,12 +198,12 @@ void PdfFont::EmbedFontSubset()
 
 void PdfFont::embedFont()
 {
-    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "Embedding not implemented for this font type.");
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "Embedding not implemented for this font type");
 }
 
 void PdfFont::embedFontSubset()
 {
-    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "Subsetting not implemented for this font type.");
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "Subsetting not implemented for this font type");
 }
 
 double PdfFont::GetStringWidth(const string_view& view, const PdfTextState& state) const

@@ -10,24 +10,23 @@
 // PdfDefinesPrivate.h will include PdfError.h for us.
 #include <pdfmm/private/PdfDefinesPrivate.h>
 
-#include <stdarg.h>
-#include <stdio.h>
+#include <iostream>
+#include <sstream>
 
 using namespace std;
 using namespace mm;
 
-bool PdfError::s_DgbEnabled = true;
-bool PdfError::s_LogEnabled = true;
+#ifdef DEBUG
+LogSeverity s_MinLogSeverity = LogSeverity::Debug;
+#else
+LogSeverity s_MinLogSeverity = LogSeverity::Information;
+#endif // DEBUG
 
-// OC 17.08.2010 New to optionally replace stderr output by a callback:
-PdfError::LogMessageCallback* PdfError::m_LogMessageCallback = nullptr;
+static LogMessageCallback s_LogMessageCallback;
 
-//static
-PdfError::LogMessageCallback* PdfError::SetLogMessageCallback(LogMessageCallback* logMessageCallback)
+void PdfError::SetLogMessageCallback(const LogMessageCallback& logMessageCallback)
 {
-    PdfError::LogMessageCallback* old_LogMessageCallback = m_LogMessageCallback;
-    m_LogMessageCallback = logMessageCallback;
-    return old_LogMessageCallback;
+    s_LogMessageCallback = logMessageCallback;
 }
 
 PdfErrorInfo::PdfErrorInfo(unsigned line, string file, string info)
@@ -67,29 +66,29 @@ void PdfError::PrintErrorMsg() const
     const char* msg = PdfError::ErrorMessage(m_error);
     const char* name = PdfError::ErrorName(m_error);
 
-    unsigned i = 0;
-
-    PdfError::LogErrorMessage(LogSeverity::Error, "\n\npdfmm encountered an error. Error: %i %s", m_error, name ? name : "");
+    ostringstream stream;
+    stream << endl << endl << "pdfmm encountered an error. Error: " << (int)m_error << (name == nullptr ? "" : name);
 
     if (msg != nullptr)
-        PdfError::LogErrorMessage(LogSeverity::Error, "\tError Description: %s", msg);
+        stream << "\tError Description: " << msg;
 
     if (m_callStack.size() != 0)
-        PdfError::LogErrorMessage(LogSeverity::Error, "\tCallstack:");
+        stream << "\tCallstack:";
 
+    unsigned i = 0;
     for (auto& info: m_callStack)
     {
         if (!info.GetFilename().empty())
-            PdfError::LogErrorMessage(LogSeverity::Error, "\t#%i Error Source: %s:%i", i, info.GetFilename().c_str(), info.GetLine());
+            stream << "\t#" << i << " Error Source : " << info.GetFilename() << ": " << info.GetLine();
 
         if (!info.GetInformation().empty())
-            PdfError::LogErrorMessage(LogSeverity::Error, "\t\tInformation: %s", info.GetInformation().c_str());
+            stream << "\t\t" << "Information: " << info.GetInformation();
 
+        stream << endl;
         i++;
     }
 
-
-    PdfError::LogErrorMessage(LogSeverity::Error, "\n");
+    PdfError::LogMessage(LogSeverity::Error, stream.str());
 }
 
 const char* PdfError::what() const
@@ -100,7 +99,6 @@ const char* PdfError::what() const
 const char* PdfError::ErrorName(PdfErrorCode code)
 {
     const char* msg = nullptr;
-
     switch (code)
     {
         case PdfErrorCode::Ok:
@@ -275,7 +273,6 @@ const char* PdfError::ErrorName(PdfErrorCode code)
 const char* PdfError::ErrorMessage(PdfErrorCode code)
 {
     const char* msg = nullptr;
-
     switch (code)
     {
         case PdfErrorCode::Ok:
@@ -417,121 +414,62 @@ const char* PdfError::ErrorMessage(PdfErrorCode code)
     return msg;
 }
 
-void PdfError::LogMessage(LogSeverity logSeverity, const char* msg, ...)
+void PdfError::LogMessage(LogSeverity logSeverity, const string_view& msg)
 {
-    if (!PdfError::LoggingEnabled())
+    if (logSeverity > s_MinLogSeverity)
         return;
 
-#ifdef DEBUG
-    const LogSeverity minSeverity = LogSeverity::Debug;
-#else
-    const LogSeverity minSeverity = LogSeverity::Information;
-#endif // DEBUG
-
-    if (logSeverity > minSeverity)
-        return;
-
-    va_list  args;
-    va_start(args, msg);
-
-    LogMessageInternal(logSeverity, msg, args);
-    va_end(args);
-}
-
-void PdfError::LogErrorMessage(LogSeverity logSeverity, const char* msg, ...)
-{
-    va_list  args;
-    va_start(args, msg);
-
-    LogMessageInternal(logSeverity, msg, args);
-    va_end(args);
-}
-
-void PdfError::LogMessageInternal(LogSeverity logSeverity, const char* msg, va_list& args)
-{
-    const char* prefix = nullptr;
-
-    switch (logSeverity)
+    if (s_LogMessageCallback == nullptr)
     {
-        case LogSeverity::Error:
-            break;
-        case LogSeverity::Critical:
-            prefix = "CRITICAL: ";
-            break;
-        case LogSeverity::Warning:
-            prefix = "WARNING: ";
-            break;
-        case LogSeverity::Information:
-            break;
-        case LogSeverity::Debug:
-            prefix = "DEBUG: ";
-            break;
-        case LogSeverity::None:
-        case LogSeverity::Unknown:
-        default:
-            break;
-    }
+        string_view prefix;
+        bool ouputstderr = false;
+        switch (logSeverity)
+        {
+            case LogSeverity::Error:
+                prefix = "ERROR: ";
+                ouputstderr = true;
+                break;
+            case LogSeverity::Warning:
+                prefix = "WARNING: ";
+                ouputstderr = true;
+                break;
+            case LogSeverity::Debug:
+                prefix = "DEBUG: ";
+                break;
+            case LogSeverity::Information:
+                break;
+            default:
+                PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+        }
 
-    // OC 17.08.2010 New to optionally replace stderr output by a callback:
-    if (m_LogMessageCallback != nullptr)
-    {
-        m_LogMessageCallback->LogMessage(logSeverity, prefix, msg, args);
-        return;
-    }
+        ostream* stream;
+        if (ouputstderr)
+            stream = &cerr;
+        else
+            stream = &cout;
 
-    if (prefix != nullptr)
-        fprintf(stderr, "%s", prefix);
+        if (!prefix.empty())
+            *stream << prefix;
 
-    vfprintf(stderr, msg, args);
-    fprintf(stderr, "\n");
-    fflush(stderr);
-}
-
-void PdfError::EnableLogging(bool enable)
-{
-    PdfError::s_LogEnabled = enable;
-}
-
-bool PdfError::LoggingEnabled()
-{
-    return PdfError::s_LogEnabled;
-}
-
-void PdfError::DebugMessage(const char* msg, ...)
-{
-    if (!PdfError::DebugEnabled())
-        return;
-
-    const char* prefix = "DEBUG: ";
-
-    va_list  args;
-    va_start(args, msg);
-
-    // OC 17.08.2010 New to optionally replace stderr output by a callback:
-    if (m_LogMessageCallback != nullptr)
-    {
-        m_LogMessageCallback->LogMessage(LogSeverity::Debug, prefix, msg, args);
+        *stream << msg << endl;
     }
     else
     {
-        if (prefix != nullptr)
-            fprintf(stderr, "%s", prefix);
-
-        vfprintf(stderr, msg, args);
+        s_LogMessageCallback(logSeverity, msg);
     }
-
-    // must call va_end after calling va_start (which allocates memory on some platforms)
-    va_end(args);
 }
 
-void PdfError::EnableDebug(bool enable)
+void PdfError::SetMinLoggingSeverity(LogSeverity logSeverity)
 {
-    PdfError::s_DgbEnabled = enable;
+    s_MinLogSeverity = logSeverity;
 }
 
-bool PdfError::DebugEnabled()
+bool PdfError::IsLoggingSeverityEnabled(LogSeverity logSeverity)
 {
-    return PdfError::s_DgbEnabled;
+    if (logSeverity == LogSeverity::None)
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Unexpected LogSeverity::None");
+
+    return logSeverity >= s_MinLogSeverity;
 }
 
 void PdfError::AddToCallstack(string file, unsigned line, string information)

@@ -24,14 +24,11 @@ void mm::PdfLocaleImbue(ios_base& s)
     }
     catch (const runtime_error& e)
     {
-        ostringstream err;
-        err << "Failed to set safe locale on stream being used for PDF I/O.";
-        err << "Locale set was: \"" << PdfIOLocale << "\".";
-        err << "Error reported by STL std::locale: \"" << e.what() << "\"";
-        // The info string is copied by PdfError so we're ok to just:
         PDFMM_RAISE_ERROR_INFO(
             PdfErrorCode::InvalidDeviceOperation,
-            err.str().c_str()
+            "Failed to set safe locale on stream being used for PDF I/O. "
+            "Locale set was: \"{}\". Error reported by STL std::locale: \"{}\"",
+            PdfIOLocale, e.what()
         );
     }
 }

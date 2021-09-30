@@ -42,7 +42,7 @@ PdfFileInputStream::PdfFileInputStream(const string_view& filename)
     : m_stream(io::open_ifstream(filename, ios_base::in | ios_base::binary))
 {
     if (m_stream.fail())
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::FileNotFound, filename.data());
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::FileNotFound, filename);
 }
 
 PdfFileInputStream::~PdfFileInputStream() { }
