@@ -299,33 +299,50 @@ void PdfCharCode::AppendTo(string& str, bool clear) const
 
 void PdfCharCode::WriteHexTo(string& str, bool wrap) const
 {
+    str.clear();
     const char* pattern;
-    // TODO: Use fmt
-    switch (CodeSpaceSize)
+    if (wrap)
     {
-        case 1:
-            pattern = "%02X";
-            break;
-        case 2:
-            pattern = "%04X";
-            break;
-        case 3:
-            pattern = "%06X";
-            break;
-        case 4:
-            pattern = "%08X";
-            break;
-        default:
-            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Code space must be [1,4]");
+        switch (CodeSpaceSize)
+        {
+            case 1:
+                pattern = "<{:02X}>";
+                break;
+            case 2:
+                pattern = "<{:04X}>";
+                break;
+            case 3:
+                pattern = "<{:06X}>";
+                break;
+            case 4:
+                pattern = "<{:08X}>";
+                break;
+            default:
+                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Code space must be [1,4]");
+        }
+    }
+    else
+    {
+        switch (CodeSpaceSize)
+        {
+            case 1:
+                pattern = "{:02X}";
+                break;
+            case 2:
+                pattern = "{:04X}";
+                break;
+            case 3:
+                pattern = "{:06X}";
+                break;
+            case 4:
+                pattern = "{:08X}";
+                break;
+            default:
+                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Code space must be [1,4]");
+        }
     }
 
-    size_t size = CodeSpaceSize * 2 + (wrap ? 2 : 0);
-    str.resize(size);
-    if (wrap)
-        str.front() = '<';
-    snprintf(str.data() + (wrap ? 1 : 0), size, pattern, Code);
-    if (wrap)
-        str.back() = '>';
+    mm::FormatTo(str, pattern, Code);
 }
 
 size_t PdfCharCodeMap::HashCharCode::operator()(const PdfCharCode& code) const

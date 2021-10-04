@@ -145,12 +145,6 @@ Error:
 
 PdfString PdfDate::createStringRepresentation(bool w3cstring) const
 {
-    string date;
-    if (w3cstring)
-        date.resize(W3C_DATE_BUFFER_SIZE);
-    else
-        date.resize(PDF_DATE_BUFFER_SIZE);
-
     auto secondsFromEpoch = m_secondsFromEpoch;
 
     string offset;
@@ -171,13 +165,11 @@ PdfString PdfDate::createStringRepresentation(bool w3cstring) const
             bool plus = minutesFromUtci > 0 ? true : false;
             if (w3cstring)
             {
-                offset.resize(6);
-                snprintf(const_cast<char*>(offset.data()), offset.size() + 1, "%s%02u:%02u", plus ? "+" : "-", offseth, offsetm);
+                mm::FormatTo(offset, "{}{:02}:{:02}", plus ? '+' : '-', offseth, offsetm);
             }
             else
             {
-                offset.resize(7);
-                snprintf(const_cast<char*>(offset.data()), offset.size() + 1, "%s%02u'%02u'", plus ? "+" : "-", offseth, offsetm);
+                mm::FormatTo(offset, "{}{:02}'{:02}'", plus ? '+' : '-', offseth, offsetm);
             }
         }
 
@@ -203,19 +195,19 @@ PdfString PdfDate::createStringRepresentation(bool w3cstring) const
     unsigned char M = (unsigned char)time.minutes().count();
     unsigned char s = (unsigned char)time.seconds().count();
 
-    int len;
+    string date;
     if (w3cstring)
     {
         // e.g. "1998-12-23T19:52:07-08:00"
-        len = snprintf(date.data(), W3C_DATE_BUFFER_SIZE, "%04d-%02u-%02uT%02u:%02u:%02u%s", y, m, d, h, M, s, offset.data());
+        mm::FormatTo(date, "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}{}", y, m, d, h, M, s, offset);
     }
     else
     {
         // e.g. "D:19981223195207−08'00'"
-        len = snprintf(date.data(), PDF_DATE_BUFFER_SIZE, "D:%04d%02u%02u%02u%02u%02u%s", y, m, d, h, M, s, offset.data());
+        mm::FormatTo(date, "D:{:04}{:02}{:02}{:02}{:02}{:02}{}", y, m, d, h, M, s, offset);
     }
 
-    return PdfString(string_view(date.data(), (size_t)len));
+    return PdfString(date);
 }
 
 bool PdfDate::ParseFixLenNumber(const char*& in, unsigned length, int min, int max, int& ret)

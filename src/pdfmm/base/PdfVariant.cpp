@@ -143,7 +143,7 @@ void PdfVariant::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
             if ((writeMode & PdfWriteMode::Compact) == PdfWriteMode::Compact)
                 device.Put(' '); // Write space before numbers
 
-            device.Write(mm::Format("{}", m_Data.Number));
+            device.Write(PDFMM_FORMAT("{}", m_Data.Number));
             break;
         }
         case PdfDataType::Real:
@@ -152,8 +152,6 @@ void PdfVariant::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
                 device.Put(' '); // Write space before numbers
 
             // Use ostringstream, so that locale does not matter
-            // NOTE: Don't use printf() formatting! It may write the number
-            // way that is incompatible in PDF
             ostringstream oss;
             PdfLocaleImbue(oss);
             oss << std::fixed << m_Data.Real;

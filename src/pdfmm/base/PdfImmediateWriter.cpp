@@ -118,7 +118,7 @@ void PdfImmediateWriter::Finish()
         trailer.Write(*m_Device, this->GetWriteMode(), nullptr);
     }
 
-    m_Device->Write(mm::Format("startxref\n{}\n%%EOF\n", lXRefOffset));
+    m_Device->Write(PDFMM_FORMAT("startxref\n{}\n%%EOF\n", lXRefOffset));
     m_Device->Flush();
 
     // we are done now

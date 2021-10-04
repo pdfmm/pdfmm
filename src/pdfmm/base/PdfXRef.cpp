@@ -253,7 +253,7 @@ void PdfXRef::WriteSubSection(PdfOutputDevice& device, uint32_t first, uint32_t 
 #ifdef DEBUG
     PdfError::LogMessage(LogSeverity::Debug, "Writing XRef section: {} {}", first, count);
 #endif // DEBUG
-    device.Write(mm::Format("{} {}\n", first, count));
+    device.Write(PDFMM_FORMAT("{} {}\n", first, count));
 }
 
 void PdfXRef::WriteXRefEntry(PdfOutputDevice& device, const PdfReference& ref, const PdfXRefEntry& entry)
@@ -276,7 +276,7 @@ void PdfXRef::WriteXRefEntry(PdfOutputDevice& device, const PdfReference& ref, c
             PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }
 
-    device.Write(mm::Format("{:010d} {:05d} {} \n", variant, entry.Generation, XRefEntryTypeToChar(entry.Type)));
+    device.Write(PDFMM_FORMAT("{:010d} {:05d} {} \n", variant, entry.Generation, XRefEntryTypeToChar(entry.Type)));
 }
 
 void PdfXRef::EndWriteImpl(PdfOutputDevice& device)
@@ -295,7 +295,7 @@ void PdfXRef::EndWriteImpl(PdfOutputDevice& device)
 void PdfXRef::EndWrite(PdfOutputDevice& device)
 {
     EndWriteImpl(device);
-    device.Write(mm::Format("startxref\n{}\n%%EOF\n", GetOffset()));
+    device.Write(PDFMM_FORMAT("startxref\n{}\n%%EOF\n", GetOffset()));
 }
 
 void PdfXRef::SetFirstEmptyBlock()

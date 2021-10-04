@@ -138,6 +138,7 @@ void PdfFontType1::embedFontSubset()
                         /*
                         if (m_usedSet.find(ch) != m_usedSet.end())
                         {
+                            // TODO: Use mm::FormatTo()
                             outIndex += sprintf(reinterpret_cast<char*>(&outBuff[outIndex]),
                                 "dup %u /%s put\r", (unsigned)ch,
                                 PdfDifferenceEncoding::UnicodeIDToName(ch).GetString().c_str());
@@ -531,6 +532,7 @@ bool PdfFontType1::FindSeac(const char* buffer, size_t length)
                     + next4;
             }
 
+            // TODO: Use mm::FormatTo()
             char num[32];
             sprintf(num, "%d ", number);
 
