@@ -436,13 +436,13 @@ void PdfTokenizer::ReadDictionary(PdfInputDevice& device, PdfVariant& variant, P
         // "Contents" is unencrypted in /Type/Sig and /Type/DocTimeStamp dictionaries 
         // https://issues.apache.org/jira/browse/PDFBOX-3173
         bool contentsUnencrypted = type != nullptr && type->GetDataType() == PdfDataType::Name &&
-            (type->GetName() == PdfName("Sig") || type->GetName() == PdfName("DocTimeStamp"));
+            (type->GetName() == "Sig" || type->GetName() == "DocTimeStamp");
 
-        PdfEncrypt* encrypt = nullptr;
+        PdfEncrypt* actualEncrypt = nullptr;
         if (!contentsUnencrypted)
-            encrypt = encrypt;
+            actualEncrypt = encrypt;
 
-        val = PdfString::FromHexData({ contentsHexBuffer->size() ? contentsHexBuffer->data() : "", contentsHexBuffer->size() }, encrypt);
+        val = PdfString::FromHexData({ contentsHexBuffer->size() ? contentsHexBuffer->data() : "", contentsHexBuffer->size() }, actualEncrypt);
         dict.AddKey("Contents", val);
     }
 }

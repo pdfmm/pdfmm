@@ -55,10 +55,9 @@ static void TTFWriteUInt32(char* buf, uint32_t value);
 static void TTFWriteUInt16(char* buf, uint16_t value);
 
 PdfFontTrueTypeSubset::PdfFontTrueTypeSubset(PdfInputDevice& device, TrueTypeFontFileType type,
-        const PdfFontMetrics& metrics, unsigned short faceIndex) :
+        unsigned short faceIndex) :
     m_Device(&device),
     m_FontFileType(type),
-    m_Metrics(&metrics),
     m_StartOfTTFOffsets(0),
     m_faceIndex(faceIndex),
     m_IsLongLoca(false),
@@ -69,9 +68,9 @@ PdfFontTrueTypeSubset::PdfFontTrueTypeSubset(PdfInputDevice& device, TrueTypeFon
 
 void PdfFontTrueTypeSubset::BuildFont(string& buffer, PdfInputDevice& input,
     TrueTypeFontFileType type, unsigned short faceIndex,
-    const PdfFontMetrics& metrics, const CIDToGIDMap& cidToGidMap)
+    const CIDToGIDMap& cidToGidMap)
 {
-    PdfFontTrueTypeSubset subset(input, type, metrics, faceIndex);
+    PdfFontTrueTypeSubset subset(input, type, faceIndex);
     subset.BuildFont(buffer, cidToGidMap);
 }
 

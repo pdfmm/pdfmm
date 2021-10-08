@@ -142,6 +142,8 @@ public:
      */
     inline bool GetEncrypted() const { return m_Encrypt != nullptr; }
 
+    inline PdfIndirectObjectList& GetObjects() { return *m_Objects; }
+
 protected:
     /**
      * Create a PdfWriter from a PdfIndirectObjectList
@@ -174,7 +176,6 @@ protected:
 
 
     const PdfObject& GetTrailer() { return m_Trailer; }
-    PdfIndirectObjectList& GetObjects() { return *m_Objects; }
     PdfEncrypt* GetEncrypt() { return m_Encrypt.get(); }
     PdfObject* GetEncryptObj() { return m_EncryptObj; }
     const PdfString& GetIdentifier() { return m_identifier; }
@@ -199,18 +200,6 @@ private:
     int64_t m_PrevXRefOffset;
     bool m_IncrementalUpdate;
     bool m_rewriteXRefTable; // Only used if incremental update
-
-    /**
-     * This value is required when writing
-     * a linearized PDF file.
-     * It represents the offset of the whitespace
-     * character before the first line in the XRef
-     * section.
-     */
-    size_t m_FirstInXRef;
-    size_t m_LinearizedOffset;
-    size_t m_LinearizedLastOffset;
-    size_t m_TrailerOffset;
 };
 
 };

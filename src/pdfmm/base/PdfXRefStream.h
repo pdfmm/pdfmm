@@ -36,7 +36,7 @@ public:
      *  \param parent a vector of PdfObject is required
      *                 to create a PdfObject for the XRef
      */
-    PdfXRefStream(PdfWriter& writer, PdfIndirectObjectList& parent);
+    PdfXRefStream(PdfWriter& writer);
 
     uint64_t GetOffset() const override;
 
@@ -60,7 +60,6 @@ private:
 #pragma pack(pop)
 
 private:
-    PdfIndirectObjectList* m_Parent;
     std::vector<XRefStreamEntry> m_rawEntries;
     int m_xrefStreamEntryIndex;
     PdfObject* m_xrefStreamObj;

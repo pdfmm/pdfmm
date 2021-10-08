@@ -45,7 +45,7 @@ PdfImmediateWriter::PdfImmediateWriter(PdfIndirectObjectList& objects, const Pdf
     this->SetWriteMode(writeMode);
     this->WritePdfHeader(*m_Device);
 
-    m_xRef.reset(GetUseXRefStream() ? new PdfXRefStream(*this, GetObjects()) : new PdfXRef(*this));
+    m_xRef.reset(GetUseXRefStream() ? new PdfXRefStream(*this) : new PdfXRef(*this));
 }
 
 PdfImmediateWriter::~PdfImmediateWriter()

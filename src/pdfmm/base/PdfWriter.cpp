@@ -39,11 +39,7 @@ PdfWriter::PdfWriter(PdfIndirectObjectList* objects, const PdfObject& trailer, P
     m_WriteMode(PdfWriteMode::Compact),
     m_PrevXRefOffset(0),
     m_IncrementalUpdate(false),
-    m_rewriteXRefTable(false),
-    m_FirstInXRef(0),
-    m_LinearizedOffset(0),
-    m_LinearizedLastOffset(0),
-    m_TrailerOffset(0)
+    m_rewriteXRefTable(false)
 {
 }
 
@@ -89,7 +85,7 @@ void PdfWriter::Write(PdfOutputDevice& device)
 
     unique_ptr<PdfXRef> pXRef;
     if (m_UseXRefStream)
-        pXRef.reset(new PdfXRefStream(*this, *m_Objects));
+        pXRef.reset(new PdfXRefStream(*this));
     else
         pXRef.reset(new PdfXRef(*this));
 

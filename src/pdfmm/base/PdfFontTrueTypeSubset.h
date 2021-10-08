@@ -42,7 +42,7 @@ class PDFMM_API PdfFontTrueTypeSubset final
 {
 private:
     PdfFontTrueTypeSubset(PdfInputDevice& device, TrueTypeFontFileType type,
-        const PdfFontMetrics& metrics, unsigned short faceIndex);
+        unsigned short faceIndex);
 
 public:
     /**
@@ -61,7 +61,7 @@ public:
      */
     static void BuildFont(std::string& output, PdfInputDevice& input,
         TrueTypeFontFileType type, unsigned short faceIndex,
-        const PdfFontMetrics& metrics, const CIDToGIDMap& cidToGidMap);
+        const CIDToGIDMap& cidToGidMap);
 
 private:
     PdfFontTrueTypeSubset(const PdfFontTrueTypeSubset& rhs) = delete;
@@ -125,8 +125,6 @@ private:
 private:
     PdfInputDevice* m_Device;          // Read data from this input device
     TrueTypeFontFileType m_FontFileType;
-    const PdfFontMetrics* m_Metrics;   // FontMetrics object which is required to convert
-                                       // unicode character points to glyph ids
 
     uint32_t m_StartOfTTFOffsets;	   // Start address of the truetype offset tables, differs from ttf to ttc.
     unsigned short m_faceIndex;

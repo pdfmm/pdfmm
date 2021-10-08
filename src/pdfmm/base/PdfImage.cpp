@@ -912,14 +912,23 @@ void LoadFromPngContent(PdfImage& image, png_structp png, png_infop info)
                 for (png_uint_32 c = 0; c < width; c++)
                 {
                     png_byte color;
-                    if (depth == 8)
-                        color = row[c];
-                    else if (depth == 4)
-                        color = c % 2 ? row[c / 2] >> 4 : row[c / 2] & 0xF;
-                    else if (depth == 2)
-                        color = (row[c / 4] >> c % 4 * 2) & 3;
-                    else if (depth == 1)
-                        color = (row[c / 4] >> c % 8) & 1;
+                    switch (depth)
+                    {
+                        case 8:
+                            color = row[c];
+                            break;
+                        case 4:
+                            color = c % 2 ? row[c / 2] >> 4 : row[c / 2] & 0xF;
+                            break;
+                        case 2:
+                            color = (row[c / 4] >> c % 4 * 2) & 3;
+                            break;
+                        case 1:
+                            color = (row[c / 4] >> c % 8) & 1;
+                            break;
+                        default:
+                            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+                    }
 
                     smask[smaskIndex++] = color < numTransColors ? paletteTrans[color] : 0xFF;
                 }

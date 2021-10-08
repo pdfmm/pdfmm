@@ -31,7 +31,7 @@ void PdfFontSimple::getWidthsArray(PdfArray& arr) const
     for (unsigned code = GetEncoding().GetFirstChar().Code; code <= GetEncoding().GetLastChar().Code; code++)
     {
         // NOTE: In non CID-keyed fonts char codes are equivalent to CID
-        widths.push_back(GetCIDWidthRaw({ code }));
+        widths.push_back(GetCIDWidthRaw(code));
     }
 
     arr.clear();

@@ -66,7 +66,7 @@ void PdfStream::GetFilteredCopy(unique_ptr<char[]>& buffer, size_t& len) const
         stream.Close();
     }
 
-    buffer = std::move(stream.TakeBuffer(len));
+    buffer = stream.TakeBuffer(len);
 }
 
 const PdfStream& PdfStream::operator=(const PdfStream& rhs)

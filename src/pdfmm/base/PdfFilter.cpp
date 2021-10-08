@@ -221,7 +221,7 @@ void PdfFilter::Encode(const char* inBuffer, size_t inLen, unique_ptr<char[]>& o
     const_cast<PdfFilter*>(this)->EncodeBlock(inBuffer, inLen);
     const_cast<PdfFilter*>(this)->EndEncode();
 
-    outBuffer = std::move(stream.TakeBuffer(outLen));
+    outBuffer = stream.TakeBuffer(outLen);
 }
 
 void PdfFilter::Decode(const char* inBuffer, size_t inLen, std::unique_ptr<char[]>& outBuffer, size_t& outLen,
@@ -236,7 +236,7 @@ void PdfFilter::Decode(const char* inBuffer, size_t inLen, std::unique_ptr<char[
     const_cast<PdfFilter*>(this)->DecodeBlock(inBuffer, inLen);
     const_cast<PdfFilter*>(this)->EndDecode();
 
-    outBuffer = std::move(stream.TakeBuffer(outLen));
+    outBuffer = stream.TakeBuffer(outLen);
 }
 
 //

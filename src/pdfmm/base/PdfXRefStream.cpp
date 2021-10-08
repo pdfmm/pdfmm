@@ -16,11 +16,10 @@
 
 using namespace mm;
 
-PdfXRefStream::PdfXRefStream(PdfWriter& writer, PdfIndirectObjectList& parent) :
+PdfXRefStream::PdfXRefStream(PdfWriter& writer) :
     PdfXRef(writer),
-    m_Parent(&parent),
     m_xrefStreamEntryIndex(-1),
-    m_xrefStreamObj(parent.CreateDictionaryObject("XRef")),
+    m_xrefStreamObj(writer.GetObjects().CreateDictionaryObject("XRef")),
     m_offset(-1)
 {
 }
