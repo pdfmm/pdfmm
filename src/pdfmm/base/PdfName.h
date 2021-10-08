@@ -45,7 +45,7 @@ public:
     PdfName(const std::string& str);
 
     // Delete constructor with nullptr
-    PdfName(nullptr_t) = delete;
+    PdfName(std::nullptr_t) = delete;
 
     /** Create a copy of an existing PdfName object.
      *  \param rhs another PdfName object

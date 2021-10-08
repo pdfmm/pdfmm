@@ -49,7 +49,7 @@ public:
     PdfString(const PdfString& rhs);
 
     // Delete constructor with nullptr
-    PdfString(nullptr_t) = delete;
+    PdfString(std::nullptr_t) = delete;
 
     /** Construct a new PdfString from an utf-8 encoded string.
      *
