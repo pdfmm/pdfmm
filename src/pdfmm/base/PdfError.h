@@ -15,7 +15,8 @@
 
 #include <queue>
 #include <functional>
-#include <pdfmm/compat/format.hpp>
+
+#include "PdfFormat.h"
 
 /** \file PdfError.h
  *  Error information and logging is implemented in this file.

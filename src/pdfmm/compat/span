@@ -1,11 +1,20 @@
 #ifndef COMPAT_SPAN_H
 #define COMPAT_SPAN_H
 
+#if __cplusplus >= 202002L
+
+#include <span>
+
+#else // __cplusplus < 202002L
+
 #include "span.hpp"
 
 namespace std
 {
-    using namespace tcb;
+	using namespace tcb;
 }
+
+#endif // __cplusplus
+
 
 #endif // COMPAT_SPAN_H
