@@ -835,7 +835,7 @@ vector<string> PdfPainter::GetMultiLineTextAsLines(double width, const string_vi
     {
         if (IsNewLineChar(*currentCharacter)) // hard-break!
         {
-            lines.push_back(string({ lineBegin, (size_t)(currentCharacter - lineBegin) }));
+            lines.push_back(string(lineBegin, (size_t)(currentCharacter - lineBegin)));
 
             lineBegin = currentCharacter + 1; // skip the line feed
             startOfWord = true;
@@ -849,11 +849,11 @@ vector<string> PdfPainter::GetMultiLineTextAsLines(double width, const string_vi
                 // -> Move it to the next one.
                 if (startOfCurrentWord > lineBegin)
                 {
-                    lines.push_back(string({ lineBegin, (size_t)(startOfCurrentWord - lineBegin) }));
+                    lines.push_back(string(lineBegin, (size_t)(startOfCurrentWord - lineBegin)));
                 }
                 else
                 {
-                    lines.push_back(string({ lineBegin, (size_t)(currentCharacter - lineBegin) }));
+                    lines.push_back(string(lineBegin, (size_t)(currentCharacter - lineBegin)));
                     if (skipSpaces)
                     {
                         // Skip all spaces at the end of the line
@@ -883,7 +883,7 @@ vector<string> PdfPainter::GetMultiLineTextAsLines(double width, const string_vi
             }
             ////else if( ( dCurWidthOfLine + m_Font->GetCharWidth( *currentCharacter, m_textState) ) > width )
             {
-                lines.push_back(string({ lineBegin, (size_t)(currentCharacter - lineBegin) }));
+                lines.push_back(string(lineBegin, (size_t)(currentCharacter - lineBegin)));
                 if (skipSpaces)
                 {
                     // Skip all spaces at the end of the line
@@ -924,14 +924,14 @@ vector<string> PdfPainter::GetMultiLineTextAsLines(double width, const string_vi
                     // Put as much as possible on this line.
                     if (lineBegin == currentCharacter)
                     {
-                        lines.push_back(string({ currentCharacter, 1 }));
+                        lines.push_back(string(currentCharacter, 1));
                         lineBegin = currentCharacter + 1;
                         startOfCurrentWord = currentCharacter + 1;
                         curWidthOfLine = 0;
                     }
                     else
                     {
-                        lines.push_back(string({ lineBegin, (size_t)(currentCharacter - lineBegin) }));
+                        lines.push_back(string(lineBegin, (size_t)(currentCharacter - lineBegin)));
                         lineBegin = currentCharacter;
                         startOfCurrentWord = currentCharacter;
                         ////dCurWidthOfLine = m_Font->GetCharWidth(*currentCharacter, m_textState);
@@ -941,7 +941,7 @@ vector<string> PdfPainter::GetMultiLineTextAsLines(double width, const string_vi
                 {
                     // The current word does not fit in the current line.
                     // -> Move it to the next one.
-                    lines.push_back(string({ lineBegin, (size_t)(startOfCurrentWord - lineBegin) }));
+                    lines.push_back(string(lineBegin, (size_t)(startOfCurrentWord - lineBegin)));
                     lineBegin = startOfCurrentWord;
                     curWidthOfLine = m_Font->GetStringWidth({ startOfCurrentWord, (size_t)((currentCharacter - startOfCurrentWord) + 1) }, m_textState);
                 }
@@ -960,14 +960,14 @@ vector<string> PdfPainter::GetMultiLineTextAsLines(double width, const string_vi
         {
             // The previous word does not fit in the current line.
             // -> Move it to the next one.
-            lines.push_back(string({ lineBegin, (size_t)(startOfCurrentWord - lineBegin) }));
+            lines.push_back(string(lineBegin, (size_t)(startOfCurrentWord - lineBegin)));
             lineBegin = startOfCurrentWord;
         }
         //else do nothing
 
         if (currentCharacter - lineBegin > 0)
         {
-            lines.push_back(string({ lineBegin, (size_t)(currentCharacter - lineBegin) }));
+            lines.push_back(string(lineBegin, (size_t)(currentCharacter - lineBegin)));
         }
         //else do nothing
     }

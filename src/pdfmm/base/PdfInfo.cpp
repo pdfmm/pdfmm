@@ -48,7 +48,7 @@ void PdfInfo::Init(PdfInfoInitial initial)
 optional<PdfString> PdfInfo::GetStringFromInfoDict(const PdfName& name) const
 {
     auto obj = this->GetObject().GetDictionary().FindKey(name);
-    return obj != nullptr && obj->IsString() ? optional(obj->GetString()) : std::nullopt;
+    return obj != nullptr && obj->IsString() ? std::make_optional(obj->GetString()) : std::nullopt;
 }
 
 const PdfName& PdfInfo::GetNameFromInfoDict(const PdfName& name) const
