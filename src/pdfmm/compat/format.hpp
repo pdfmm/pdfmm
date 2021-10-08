@@ -13,7 +13,7 @@
  *
   * Format the string, if needed
  */
-#define PDFMM_FORMAT(fmt, ...) ::mm::FormatHelper::TryFormat(fmt, __VA_ARGS__)
+#define PDFMM_FORMAT(fmt, ...) ::mm::FormatHelper::TryFormat(fmt, ##__VA_ARGS__)
 
 namespace mm
 {

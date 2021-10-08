@@ -129,7 +129,7 @@ enum class LogSeverity
  *  output by PdfError::PrintErrorMsg().
  *  msg can be a C string, but can also be a C++ std::string.
  */
-#define PDFMM_RAISE_ERROR_INFO(code, msg, ...) throw ::mm::PdfError(code, __FILE__, __LINE__, PDFMM_FORMAT(msg, __VA_ARGS__))
+#define PDFMM_RAISE_ERROR_INFO(code, msg, ...) throw ::mm::PdfError(code, __FILE__, __LINE__, PDFMM_FORMAT(msg, ##__VA_ARGS__))
 
  /** \def PDFMM_PUSH_FRAME(err, msg)
   *
@@ -141,7 +141,7 @@ enum class LogSeverity
    *
    * Add frame to error callastack with msg information
    */
-#define PDFMM_PUSH_FRAME_INFO(err, msg, ...) err.AddToCallstack(__FILE__, __LINE__, PDFMM_FORMAT(msg, __VA_ARGS__))
+#define PDFMM_PUSH_FRAME_INFO(err, msg, ...) err.AddToCallstack(__FILE__, __LINE__, PDFMM_FORMAT(msg, ##__VA_ARGS__))
 
 /** \def PDFMM_PUSH_FRAME(err, msg)
  *
@@ -150,7 +150,7 @@ enum class LogSeverity
  */
 #define PDFMM_RAISE_LOGIC_IF(cond, msg, ...) {\
     if (cond)\
-        throw ::mm::PdfError(PdfErrorCode::InternalLogic, __FILE__, __LINE__, PDFMM_FORMAT(msg, __VA_ARGS__));\
+        throw ::mm::PdfError(PdfErrorCode::InternalLogic, __FILE__, __LINE__, PDFMM_FORMAT(msg, ##__VA_ARGS__));\
 };
 
 class PDFMM_API PdfErrorInfo
