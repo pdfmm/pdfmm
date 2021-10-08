@@ -1,7 +1,11 @@
 #ifndef COMPAT_SPAN_H
 #define COMPAT_SPAN_H
 
-#define TCB_SPAN_NAMESPACE_NAME std
 #include "span.hpp"
+
+namespace std
+{
+    using namespace tcb;
+}
 
 #endif // COMPAT_SPAN_H
