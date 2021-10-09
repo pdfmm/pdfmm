@@ -67,6 +67,10 @@ PdfFont::~PdfFont() { }
 
 void PdfFont::initBase(const PdfEncoding& encoding)
 {
+    m_IsEmbedded = false;
+    m_EmbeddingEnabled = false;
+    m_SubsettingEnabled = false;
+
     if (m_Metrics == nullptr)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Metrics must me not null");
 
@@ -91,10 +95,6 @@ void PdfFont::initBase(const PdfEncoding& encoding)
             AddUsedGID(gid, cspan<char32_t>(&spaceCp, 1));
         }
     }
-
-    m_IsEmbedded = false;
-    m_EmbeddingEnabled = false;
-    m_SubsettingEnabled = false;
 
     ostringstream out;
     PdfLocaleImbue(out);
