@@ -98,7 +98,7 @@ enum class PdfVersion
 /** The default PDF Version used by new PDF documents
  *  in pdfmm.
  */
-constexpr PdfVersion PdfVersionDefault = PdfVersion::V1_3;
+constexpr PdfVersion PdfVersionDefault = PdfVersion::V1_4;
 
 /**
  * Specify additional options for writing the PDF.
