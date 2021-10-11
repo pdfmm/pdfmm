@@ -194,7 +194,7 @@ if(UNIX)
     set(PDFMM_HAVE_FONTCONFIG TRUE)
     message("Found fontconfig headers in ${FONTCONFIG_INCLUDE_DIR}, library at ${Fontconfig_LIBRARIES}")
     list(APPEND PLATFORM_SYSTEM_LIBRARIES ${Fontconfig_LIBRARIES})
-    list(APPEND PLATFORM_SYSTEM_HEADERS ${FONTCONFIG_INCLUDE_DIR})
+    list(APPEND PLATFORM_SYSTEM_HEADERS ${Fontconfig_INCLUDE_DIRS})
 endif()
 
 # The pdfmm library needs to be linked to these libraries
