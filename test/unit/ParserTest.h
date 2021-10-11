@@ -1,25 +1,13 @@
-/***************************************************************************
- *   Copyright (C) 2007 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+/**
+ * Copyright (C) 2007 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2021 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
-#ifndef _PARSER_TEST_H_
-#define _PARSER_TEST_H_
+#ifndef PARSER_TEST_H
+#define PARSER_TEST_H
 
 #include <cppunit/extensions/HelperMacros.h>
 
@@ -32,16 +20,16 @@
  */
 class ParserTest : public CppUnit::TestFixture
 {
-    CPPUNIT_TEST_SUITE( ParserTest );
-    CPPUNIT_TEST( testMaxObjectCount );
-    CPPUNIT_TEST( testReadDocumentStructure );
-    CPPUNIT_TEST( testReadXRefContents );
-    CPPUNIT_TEST( testReadXRefContents );
-    CPPUNIT_TEST( testReadXRefSubsection );
-    CPPUNIT_TEST( testReadXRefStreamContents );
-    CPPUNIT_TEST( testReadObjects );
-    CPPUNIT_TEST( testIsPdfFile );
-    CPPUNIT_TEST( testRoundTripIndirectTrailerID );
+    CPPUNIT_TEST_SUITE(ParserTest);
+    CPPUNIT_TEST(testMaxObjectCount);
+    CPPUNIT_TEST(testReadDocumentStructure);
+    CPPUNIT_TEST(testReadXRefContents);
+    CPPUNIT_TEST(testReadXRefContents);
+    CPPUNIT_TEST(testReadXRefSubsection);
+    CPPUNIT_TEST(testReadXRefStreamContents);
+    CPPUNIT_TEST(testReadObjects);
+    CPPUNIT_TEST(testIsPdfFile);
+    CPPUNIT_TEST(testRoundTripIndirectTrailerID);
     CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -81,10 +69,8 @@ public:
     void testRoundTripIndirectTrailerID();
 
 private:
-    std::string generateXRefEntries( size_t count );
+    std::string generateXRefEntries(size_t count);
     bool canOutOfMemoryKillUnitTests();
 };
 
-#endif // _PARSER_TEST_H_
-
-
+#endif // PARSER_TEST_H

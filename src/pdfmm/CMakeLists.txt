@@ -2,18 +2,28 @@ if(NOT PDFMM_MAIN_CMAKELISTS_READ)
     message(FATAL_ERROR "Run cmake on the CMakeLists.txt in the project root, not the one in the 'src' directory. You will need to delete CMakeCache.txt from the current directory.")
 endif()
 
+# Generate our configure file
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/pdfmm_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/pdfmm_config.h)
+
 # Needed for <date/date.h>
 add_definitions(-DHAS_UNCAUGHT_EXCEPTIONS=1)
 
-set(PDFMM_BASE_DEPEND_TARGET CACHE INTERNAL
-    "Which pdfmm library target to depend on when building tools and tests")
-set(PDFMM_DEPEND_TARGET CACHE INTERNAL
-    "Which pdfmm library target to depend on when building tools and tests")
+set(PDFMM_INCLUDE_DIRS
+    ${CMAKE_CURRENT_BINARY_DIR}
+    "${PROJECT_SOURCE_DIR}/src"
+    "${PROJECT_SOURCE_DIR}/3rdparty/include"
+    CACHE INTERNAL "pdfmm include directories"
+)
+
+include_directories(
+    ${PDFMM_INCLUDE_DIRS}
+    ${PDFMM_HEADERS_DEPENDS}
+)
 
 set(PDFMM_BASE_HEADERS
     pdfmm-base.h
     pdfmm.h
-    ${PROJECT_BINARY_DIR}/pdfmm_config.h
+    ${CMAKE_CURRENT_BINARY_DIR}/pdfmm_config.h
 )
 install(FILES ${PDFMM_BASE_HEADERS} DESTINATION "include/pdfmm")
 
@@ -63,14 +73,14 @@ if(PDFMM_BUILD_STATIC)
         OUTPUT_NAME "pdfmm"
         COMPILE_FLAGS "-DBUILDING_PDFMM"
     )
-    set(PDFMM_DEPEND_TARGET pdfmm_static
-        CACHE INTERNAL "Which pdfmm library variant to depend on")
     set(USING_SHARED_PDFMM FALSE)
     install(TARGETS pdfmm_static
         RUNTIME DESTINATION "bin"
         LIBRARY DESTINATION "${LIBDIRNAME}"
         ARCHIVE DESTINATION "${LIBDIRNAME}"
     )
+    set(PDFMM_LIBRARIES pdfmm_static
+        CACHE INTERNAL "Which pdfmm library variant to depend on")
 endif()
 
 if(PDFMM_BUILD_SHARED)
@@ -89,8 +99,6 @@ if(PDFMM_BUILD_SHARED)
     )
     # Since we're building a shared pdfmm, prefer to depend on this one for
     # tests and tools over the static library (if built).
-    set(PDFMM_DEPEND_TARGET pdfmm_shared
-        CACHE INTERNAL "Which pdfmm library variant to depend on")
     set(USING_SHARED_PDFMM TRUE)
     install(TARGETS pdfmm_shared
         RUNTIME DESTINATION "bin"
@@ -115,6 +123,9 @@ if(PDFMM_BUILD_SHARED)
     else()
         message("Pkg-config not found. No pkg-config file will be created.")
     endif()
+
+    set(PDFMM_LIBRARIES pdfmm_shared
+        CACHE INTERNAL "Which pdfmm library variant to depend on")
 endif()
 
 # Use these flags when compiling code that includes pdfmm headers.
@@ -133,5 +144,5 @@ file(APPEND
 )
 file(APPEND
     "${PROJECT_BINARY_DIR}/pdfmmConfig.cmake"
-    "set(PDFMM_DEPEND_TARGET ${PDFMM_DEPEND_TARGET})\n"
+    "set(PDFMM_LIBRARIES ${PDFMM_LIBRARIES})\n"
 )

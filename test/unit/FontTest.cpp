@@ -1,22 +1,10 @@
-/***************************************************************************
- *   Copyright (C) 2009 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+/**
+ * Copyright (C) 2009 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2021 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
 #include "FontTest.h"
 
@@ -27,13 +15,13 @@
 
 using namespace PoDoFo;
 
-CPPUNIT_TEST_SUITE_REGISTRATION( FontTest );
+CPPUNIT_TEST_SUITE_REGISTRATION(FontTest);
 
 void FontTest::setUp()
 {
     m_pDoc = new PdfMemDocument();
     m_pVecObjects = new PdfVecObjects();
-    m_pFontCache = new PdfFontCache( m_pVecObjects );
+    m_pFontCache = new PdfFontCache(m_pVecObjects);
 }
 
 void FontTest::tearDown()
@@ -52,61 +40,61 @@ void FontTest::testFonts()
     FcConfig* pConfig = NULL;
 
     // Initialize fontconfig
-    CPPUNIT_ASSERT_EQUAL( !FcInit(), false );
+    CPPUNIT_ASSERT_EQUAL(!FcInit(), false);
     pConfig = FcInitLoadConfigAndFonts();
-    CPPUNIT_ASSERT_EQUAL( !pConfig, false );
+    CPPUNIT_ASSERT_EQUAL(!pConfig, false);
 
     // Get all installed fonts
     pattern = FcPatternCreate();
-	objectSet = FcObjectSetBuild( FC_FAMILY, FC_STYLE, FC_FILE, FC_SLANT, FC_WEIGHT, NULL );
-    fontSet = FcFontList( NULL, pattern, objectSet );
+    objectSet = FcObjectSetBuild(FC_FAMILY, FC_STYLE, FC_FILE, FC_SLANT, FC_WEIGHT, NULL);
+    fontSet = FcFontList(NULL, pattern, objectSet);
 
-    FcObjectSetDestroy( objectSet );
-	FcPatternDestroy( pattern );
+    FcObjectSetDestroy(objectSet);
+    FcPatternDestroy(pattern);
 
-    if( fontSet )
+    if (fontSet)
     {
-        printf("Testing %i fonts\n", fontSet->nfont );
+        printf("Testing %i fonts\n", fontSet->nfont);
         int	j;
         for (j = 0; j < fontSet->nfont; j++)
         {
-            testSingleFont( fontSet->fonts[j], pConfig );
+            testSingleFont(fontSet->fonts[j], pConfig);
         }
 
-        FcFontSetDestroy( fontSet );
+        FcFontSetDestroy(fontSet);
     }
 
     // Shut fontconfig down
     // Causes an assertion in fontconfig FcFini();
 }
 
-void FontTest::testSingleFont(FcPattern* pFont, FcConfig* pConfig) 
+void FontTest::testSingleFont(FcPattern* pFont, FcConfig* pConfig)
 {
     std::string sFamily;
     std::string sPath;
     bool bBold;
     bool bItalic;
 
-    if( GetFontInfo( pFont, sFamily, sPath, bBold, bItalic ) ) 
+    if (GetFontInfo(pFont, sFamily, sPath, bBold, bItalic))
     {
-        std::string sPodofoFontPath = 
-            m_pFontCache->GetFontConfigFontPath( pConfig, sFamily.c_str(),
-                                                 bBold, bItalic );
-        
+        std::string sPodofoFontPath =
+            m_pFontCache->GetFontConfigFontPath(pConfig, sFamily.c_str(),
+                bBold, bItalic);
+
         std::string msg = "Font failed: " + sPodofoFontPath;
-        EPdfFontType eFontType = PdfFontFactory::GetFontType( sPath.c_str() );
-        if( eFontType == ePdfFontType_TrueType ) 
+        EPdfFontType eFontType = PdfFontFactory::GetFontType(sPath.c_str());
+        if (eFontType == ePdfFontType_TrueType)
         {
             try
             {
                 // Only TTF fonts can use identity encoding
-                PdfFont* pFont = m_pDoc->CreateFont( sFamily.c_str(), bBold, bItalic,
-                                                     new PdfIdentityEncoding() );
-                CPPUNIT_ASSERT_EQUAL_MESSAGE( msg, pFont != NULL, true );
+                PdfFont* pFont = m_pDoc->CreateFont(sFamily.c_str(), bBold, bItalic,
+                    new PdfIdentityEncoding());
+                CPPUNIT_ASSERT_EQUAL_MESSAGE(msg, pFont != NULL, true);
             }
-            catch( PdfError &error )
+            catch (PdfError& error)
             {
-                if( error.GetError() == ePdfError_UnsupportedFontFormat )
+                if (error.GetError() == ePdfError_UnsupportedFontFormat)
                 {
                     printf("Unsupported font format: %s\n", sPodofoFontPath.c_str());
                 }
@@ -116,65 +104,65 @@ void FontTest::testSingleFont(FcPattern* pFont, FcConfig* pConfig)
                 }
             }
         }
-        else if( eFontType != ePdfFontType_Unknown ) 
+        else if (eFontType != ePdfFontType_Unknown)
         {
-            PdfFont* pFont = m_pDoc->CreateFont( sFamily.c_str(), bBold, bItalic );
-            CPPUNIT_ASSERT_EQUAL_MESSAGE( msg, pFont != NULL, true ); 
+            PdfFont* pFont = m_pDoc->CreateFont(sFamily.c_str(), bBold, bItalic);
+            CPPUNIT_ASSERT_EQUAL_MESSAGE(msg, pFont != NULL, true);
         }
         else
         {
             printf("Ignoring font: %s\n", sPodofoFontPath.c_str());
         }
     }
-} 
+}
 
 void FontTest::testCreateFontFtFace()
 {
     FT_Face face;
     FT_Error error;
-    
+
     // TODO: Find font file on disc!
-    error = FT_New_Face( m_pDoc->GetFontLibrary(), "/usr/share/fonts/truetype/msttcorefonts/Arial.ttf", 0, &face );
+    error = FT_New_Face(m_pDoc->GetFontLibrary(), "/usr/share/fonts/truetype/msttcorefonts/Arial.ttf", 0, &face);
 
-    if( !error ) 
+    if (!error)
     {
-        PdfFont* pFont = m_pDoc->CreateFont( face );
+        PdfFont* pFont = m_pDoc->CreateFont(face);
 
-        CPPUNIT_ASSERT_MESSAGE( "Cannot create font from FT_Face.", pFont != NULL );
+        CPPUNIT_ASSERT_MESSAGE("Cannot create font from FT_Face.", pFont != NULL);
     }
 }
 
-bool FontTest::GetFontInfo( FcPattern* pFont, std::string & rsFamily, std::string & rsPath, 
-                            bool & rbBold, bool & rbItalic )
+bool FontTest::GetFontInfo(FcPattern* pFont, std::string& rsFamily, std::string& rsPath,
+    bool& rbBold, bool& rbItalic)
 {
     FcChar8* family = NULL;
     FcChar8* file = NULL;
     int slant;
     int weight;
-    
-    if( FcPatternGetString(pFont, FC_FAMILY, 0, &family) == FcResultMatch )
+
+    if (FcPatternGetString(pFont, FC_FAMILY, 0, &family) == FcResultMatch)
     {
         rsFamily = reinterpret_cast<char*>(family);
-        if( FcPatternGetString(pFont, FC_FILE, 0, &file) == FcResultMatch )
+        if (FcPatternGetString(pFont, FC_FILE, 0, &file) == FcResultMatch)
         {
             rsPath = reinterpret_cast<char*>(file);
-            
-            if( FcPatternGetInteger(pFont, FC_SLANT, 0, &slant) == FcResultMatch )
+
+            if (FcPatternGetInteger(pFont, FC_SLANT, 0, &slant) == FcResultMatch)
             {
-                if(slant == FC_SLANT_ROMAN) 
+                if (slant == FC_SLANT_ROMAN)
                     rbItalic = false;
-                else if(slant == FC_SLANT_ITALIC)
+                else if (slant == FC_SLANT_ITALIC)
                     rbItalic = true;
-                else 
+                else
                     return false;
 
-                if( FcPatternGetInteger(pFont, FC_WEIGHT, 0, &weight) == FcResultMatch )
+                if (FcPatternGetInteger(pFont, FC_WEIGHT, 0, &weight) == FcResultMatch)
                 {
-                    if(weight == FC_WEIGHT_MEDIUM)
+                    if (weight == FC_WEIGHT_MEDIUM)
                         rbBold = false;
-                    else if(weight == FC_WEIGHT_BOLD)
+                    else if (weight == FC_WEIGHT_BOLD)
                         rbBold = true;
-                    else 
+                    else
                         return false;
 
                     return true;

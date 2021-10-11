@@ -11,4 +11,4 @@
 
 add_compile_options(${PDFMM_CFLAGS})
 add_executable(helloworld-base14 helloworld-base14.cpp)
-target_link_libraries(helloworld-base14 ${PDFMM_DEPEND_TARGET})
+target_link_libraries(helloworld-base14 ${PDFMM_LIBRARIES})

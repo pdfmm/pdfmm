@@ -97,14 +97,6 @@ else()
     set(PLATFORM_SYSTEM_LIBRARIES)
 endif()
 
-if(UNIX)
-    set(WANT_FONTCONFIG TRUE CACHE INTERNAL
-        "True if pdfmm should be built with fontconfig support")
-else()
-    set(WANT_FONTCONFIG FALSE CACHE INTERNAL
-        "True if pdfmm should be built with fontconfig support")
-endif()
-
 if (MSVC)
     # Set the compiler less permissive and add some warnings
     # /w34388: 'expression': signed/unsigned mismatch
@@ -153,7 +145,6 @@ find_package(ZLIB REQUIRED)
 message("Found zlib headers in ${ZLIB_INCLUDE_DIR}, library at ${ZLIB_LIBRARIES}")
 
 find_package(OpenSSL REQUIRED)
-include_directories(${OPENSSL_INCLUDE_DIR})
 
 message("OPENSSL_VERSION: ${OPENSSL_LIBRARIES}")
 
@@ -161,11 +152,7 @@ find_package(LIBIDN)
 
 if(LIBIDN_FOUND)
     message("Found libidn headers in ${LIBIDN_INCLUDE_DIR}, library at ${LIBIDN_LIBRARIES}")
-endif()
-
-if(LIBIDN_FOUND)
     set(PDFMM_HAVE_LIBIDN TRUE)
-    include_directories(${LIBIDN_INCLUDE_DIR})
     message("Libidn found. AES-256 Encryption support will be enabled")
 else()
     message("Libidn not found. AES-256 Encryption support will be disabled")
@@ -176,7 +163,6 @@ find_package(JPEG)
 if(JPEG_FOUND)
     message("Found libjpeg headers in ${JPEG_INCLUDE_DIR}, library at ${JPEG_LIBRARIES}")
     set(PDFMM_HAVE_JPEG_LIB TRUE)
-    include_directories(${JPEG_INCLUDE_DIR})
 else()
     message("Libjpeg not found. JPEG support will be disabled")
 endif()
@@ -186,7 +172,6 @@ find_package(TIFF)
 if(TIFF_FOUND)
     message("Found libtiff headers in ${TIFF_INCLUDE_DIR}, library at ${TIFF_LIBRARIES}")
     set(PDFMM_HAVE_TIFF_LIB TRUE)
-    include_directories(${TIFF_INCLUDE_DIR})
 else()
     message("Libtiff not found. TIFF support will be disabled")
 endif()
@@ -196,7 +181,6 @@ find_package(PNG)
 if(PNG_FOUND)
     message("Found LibPng headers in ${PNG_INCLUDE_DIR}, library at ${PNG_LIBRARIES}")
     set(PDFMM_HAVE_PNG_LIB TRUE)
-    include_directories(${PNG_INCLUDE_DIR})
 else()
     message("LibPng not found. PNG support will be disabled")
     set(PNG_LIBRARIES "")
@@ -205,59 +189,38 @@ endif()
 find_package(Freetype REQUIRED)
 message("Found freetype library at ${FREETYPE_LIBRARIES}, headers ${FREETYPE_INCLUDE_DIRS}")
 
-if(WANT_FONTCONFIG)
+if(UNIX)
     find_package(Fontconfig REQUIRED)
     set(PDFMM_HAVE_FONTCONFIG TRUE)
-    set(PDFMM_LIB_FONTCONFIG:STRING fontconfig)
-    if(FONTCONFIG_FOUND)
-        message("Found fontconfig headers in ${FONTCONFIG_INCLUDE_DIR}, library at ${Fontconfig_LIBRARIES}")
-    else()
-        message("Could not find fontconfig.")
-    endif()
-else()
-    # Might as well look for it anyway. This also sets the appropriate
-    # variables to empty values.
-    find_package(Fontconfig)
-    set(PDFMM_LIB_FONTCONFIG:STRING)
+    message("Found fontconfig headers in ${FONTCONFIG_INCLUDE_DIR}, library at ${Fontconfig_LIBRARIES}")
+    list(APPEND PLATFORM_SYSTEM_LIBRARIES ${Fontconfig_LIBRARIES})
+    list(APPEND PLATFORM_SYSTEM_HEADERS ${FONTCONFIG_INCLUDE_DIR})
 endif()
 
-include_directories(
-    ${PROJECT_BINARY_DIR}
-    "${PROJECT_SOURCE_DIR}/src"
-    "${PROJECT_SOURCE_DIR}/3rdparty/include"
-    ${FREETYPE_INCLUDE_DIRS}
-    ${ZLIB_INCLUDE_DIR}
-)
-
-#
-# The pdfmm library needs to be linked to these libraries,
-# as do any apps or libraries linking to pdfmm. PDFMM_LIB
-# will include these and the correct pdfmm target, so clients
-# should specify only PDFMM_LIB .
-#
+# The pdfmm library needs to be linked to these libraries
 set(PDFMM_LIB_DEPENDS
-    ${LIBIDN_LIBRARIES}
     ${OPENSSL_LIBRARIES}
     ${JPEG_LIBRARIES}
     ${FREETYPE_LIBRARIES}
+    ${PLATFORM_SYSTEM_LIBRARIES}
     ${PNG_LIBRARIES}
     ${TIFF_LIBRARIES}
     ${ZLIB_LIBRARIES}
-    ${PLATFORM_SYSTEM_LIBRARIES}
 )
 
-if(FONTCONFIG_FOUND AND WANT_FONTCONFIG)
-    set(PDFMM_LIB_DEPENDS ${Fontconfig_LIBRARIES} ${PDFMM_LIB_DEPENDS})
-    include_directories(${Fontconfig_INCLUDE_DIRS})
-endif()
+set(PDFMM_HEADERS_DEPENDS
+    ${OPENSSL_INCLUDE_DIR}
+    ${FREETYPE_INCLUDE_DIRS}
+    ${PLATFORM_SYSTEM_HEADERS}
+    ${JPEG_INCLUDE_DIR}
+    ${PNG_INCLUDE_DIR}
+    ${TIFF_INCLUDE_DIR}
+    ${ZLIB_INCLUDE_DIR}
+)
 
-if(WIN32 OR PDFMM_BUILD_STATIC)
-    set(PDFMM_LIB
-        pdfmm
-        ${PDFMM_LIB_DEPENDS}
-    )
-else()
-    set(PDFMM_LIB pdfmm)
+if(LIBIDN_FOUND)
+    list(APPEND PDFMM_LIB_DEPENDS ${LIBIDN_LIBRARIES})
+    list(APPEND PDFMM_HEADERS_DEPENDS ${LIBIDN_INCLUDE_DIR})
 endif()
 
 # Create the config file. It'll be appended to as the subdirs run though
@@ -273,6 +236,8 @@ file(APPEND
 )
 
 add_subdirectory(src/pdfmm)
+include_directories(${PDFMM_INCLUDE_DIRS})
+
 if(NOT PDFMM_BUILD_LIB_ONLY)
     # Tell gtest to use shared crt (option /MD)
     set(gtest_force_shared_crt ON)
@@ -282,9 +247,6 @@ if(NOT PDFMM_BUILD_LIB_ONLY)
     add_subdirectory(examples)
 endif()
 
-# Generate our configure file
-configure_file(${PROJECT_SOURCE_DIR}/pdfmm_config.h.in ${PROJECT_BINARY_DIR}/pdfmm_config.h)
-
 # Export some variables into the config file so it's easier for others
 # to build and link against pdfmm
 
@@ -292,9 +254,9 @@ configure_file(${PROJECT_SOURCE_DIR}/pdfmm_config.h.in ${PROJECT_BINARY_DIR}/pdf
 # your build (eg -DPDFMM_DIR=/path/to/pdfmm when running cmake to configure
 # the app that'll use pdfmm). See: find_package(...) in the cmake docs.
 if(PDFMM_BUILD_SHARED)
-    export(TARGETS pdfmm_shared FILE "${CMAKE_CURRENT_BINARY_DIR}/pdfmmConfig.cmake")
+    export(TARGETS pdfmm_shared FILE "${PROJECT_BINARY_DIR}/pdfmmConfig.cmake")
 endif()
 
 if(PDFMM_BUILD_STATIC)
-    export(TARGETS pdfmm_static FILE "${CMAKE_CURRENT_BINARY_DIR}/pdfmmConfig.cmake")
+    export(TARGETS pdfmm_static FILE "${PROJECT_BINARY_DIR}/pdfmmConfig.cmake")
 endif()

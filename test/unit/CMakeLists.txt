@@ -1,33 +1,9 @@
-INCLUDE_DIRECTORIES(
-    ${PROJ_SOURCE_DIR}/src
-    ${PROJ_BINARY_DIR}/src
-    ${PROJ_BINARY_DIR}/src/os
-    ${PROJ_BINARY_DIR}/src/os/${OROCOS_TARGET}
-)
+file(GLOB SOURCE_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.h" "*.cpp")
+source_group("" FILES ${SOURCE_FILES})
 
 # repeat for each test
-ADD_EXECUTABLE(podofo-test
-    main.cpp
-    ColorTest.cpp
-    DeviceTest.cpp
-    ElementTest.cpp
-    EncodingTest.cpp
-    EncryptTest.cpp
-    FilterTest.cpp
-    FontTest.cpp
-    NameTest.cpp
-    PagesTreeTest.cpp
-    PageTest.cpp
-    PainterTest.cpp
-    ParserTest.cpp
-    TokenizerTest.cpp
-    StringTest.cpp
-    VariantTest.cpp
-    BasicTypeTest.cpp
-    TestUtils.cpp
-    DateTest.cpp
-)
-ADD_DEPENDENCIES(podofo-test ${PODOFO_DEPEND_TARGET})
-TARGET_LINK_LIBRARIES(podofo-test ${PODOFO_LIB} gtest_main)
-SET_TARGET_PROPERTIES(podofo-test PROPERTIES COMPILE_FLAGS "${PODOFO_CFLAGS}")
-ADD_TEST(podofo-test podofo-test)
+add_executable(pdfmm-test ${SOURCE_FILES})
+
+add_compile_options(${PDFMM_CFLAGS})
+target_link_libraries(pdfmm-test ${PDFMM_LIBRARIES} gtest_main)
+add_test(pdfmm-test pdfmm-test)

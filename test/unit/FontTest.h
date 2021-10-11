@@ -1,25 +1,13 @@
-/***************************************************************************
- *   Copyright (C) 2009 by Dominik Seichter                                *
- *   domseichter@web.de                                                    *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU Library General Public License as       *
- *   published by the Free Software Foundation; either version 2 of the    *
- *   License, or (at your option) any later version.                       *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU Library General Public     *
- *   License along with this program; if not, write to the                 *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+/**
+ * Copyright (C) 2009 by Dominik Seichter <domseichter@web.de>
+ * Copyright (C) 2021 by Francesco Pretto <ceztko@gmail.com>
+ *
+ * Licensed under GNU Library General Public 2.0 or later.
+ * Some rights reserved. See COPYING, AUTHORS.
+ */
 
-#ifndef _FONT_TEST_H_
-#define _FONT_TEST_H_
+#ifndef FONT_TEST_H
+#define FONT_TEST_H
 
 #include <cppunit/extensions/HelperMacros.h>
 
@@ -33,28 +21,28 @@
  */
 class FontTest : public CppUnit::TestFixture
 {
-  CPPUNIT_TEST_SUITE( FontTest );
+    CPPUNIT_TEST_SUITE(FontTest);
 #if defined(PODOFO_HAVE_FONTCONFIG)
-  CPPUNIT_TEST( testFonts );
-  CPPUNIT_TEST( testCreateFontFtFace );
+    CPPUNIT_TEST(testFonts);
+    CPPUNIT_TEST(testCreateFontFtFace);
 #endif
-  CPPUNIT_TEST_SUITE_END();
+    CPPUNIT_TEST_SUITE_END();
 
- public:
-  void setUp();
-  void tearDown();
+public:
+    void setUp();
+    void tearDown();
 
 #if defined(PODOFO_HAVE_FONTCONFIG)
-  void testFonts();
-  void testCreateFontFtFace();
+    void testFonts();
+    void testCreateFontFtFace();
 #endif
 
 private:
 #if defined(PODOFO_HAVE_FONTCONFIG)
     void testSingleFont(FcPattern* pFont, FcConfig* pConfig);
 
-    bool GetFontInfo( FcPattern* pFont, std::string & rsFamily, std::string & rsPath, 
-                      bool & rbBold, bool & rbItalic );
+    bool GetFontInfo(FcPattern* pFont, std::string& rsFamily, std::string& rsPath,
+        bool& rbBold, bool& rbItalic);
 #endif
 
 private:
@@ -64,6 +52,4 @@ private:
 
 };
 
-#endif // _FONT_TEST_H_
-
-
+#endif // FONT_TEST_H
