@@ -77,10 +77,9 @@ public:
      */
     const std::string& GetString() const;
 
-    /** \returns the unescaped length of this
-     *           name object
+    /** \returns true if the name is empty
      */
-    unsigned GetLength() const;
+    bool IsNull() const;
 
     /** \returns the raw data of this name object
      */
@@ -125,17 +124,22 @@ public:
     static const PdfName KeyFilter;
 
 private:
-    PdfName(const std::shared_ptr<chars>& rawdata);
+    PdfName(chars chars);
     void expandUtf8String() const;
     void initFromUtf8String(const std::string_view& view);
 
 private:
-    // The unescaped name raw data, without leading '/'.
-    // It can store also the utf8 expanded string, if coincident
-    std::shared_ptr<chars> m_data;
+    struct NameData
+    {
+        bool IsUtf8Expanded;
 
-    bool m_isUtf8Expanded;
-    std::shared_ptr<std::string> m_utf8String;
+        // The unescaped name raw data, without leading '/'.
+        // It can store also the utf8 expanded string, if coincident
+        chars Chars;
+        std::unique_ptr<std::string> Utf8String;
+    };
+private:
+    std::shared_ptr<NameData> m_data;
 };
 
 };

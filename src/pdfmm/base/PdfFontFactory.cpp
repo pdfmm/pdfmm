@@ -91,7 +91,7 @@ PdfFont* PdfFontFactory::CreateFont(PdfObject& obj)
     if (objTypeKey == nullptr)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Font: No Type");
 
-    if (objTypeKey->GetName() != PdfName("Font"))
+    if (objTypeKey->GetName() != "Font")
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
 
     auto subTypeKey = dict.FindKey(PdfName::KeySubtype);

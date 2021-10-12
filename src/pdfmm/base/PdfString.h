@@ -84,6 +84,8 @@ public:
      */
     bool IsUnicode() const;
 
+    bool IsEmpty() const;
+
     /** The contents of the string as UTF-8 string.
      *
      *  The string's contents are always returned as
@@ -97,12 +99,6 @@ public:
     const std::string& GetString() const;
 
     const std::string& GetRawData() const;
-
-    /** The length of the string data
-     *
-     *  \returns the length of the string,
-     */
-    unsigned GetLength() const;
 
     /** Write this PdfString in PDF format to a PdfOutputDevice.
      *
@@ -143,7 +139,7 @@ public:
     bool operator!=(const std::string_view& view) const;
 
 private:
-    PdfString(const std::shared_ptr<chars>& data, bool isHex);
+    PdfString(chars chars, bool isHex);
 
     /** Construct a new PdfString from a 0-terminated string.
      *
@@ -165,10 +161,14 @@ private:
         PdfDocEncoding,
         Unicode
     };
+    struct StringData
+    {
+        StringState State;
+        chars Chars;
+    };
 
 private:
-    std::shared_ptr<chars> m_data;
-    StringState m_state;
+    std::shared_ptr<StringData> m_data;
     bool m_isHex;    // This string is converted to hex during writing it out
 };
 

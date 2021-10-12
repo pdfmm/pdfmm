@@ -202,14 +202,11 @@ void PdfWriter::FillTrailerObject(PdfObject& trailer, size_t size, bool onlySize
 
         PdfArray array;
         // The ID is the same unless the PDF was incrementally updated
-        if (m_IncrementalUpdate && m_originalIdentifier.GetLength() > 0)
-        {
+        if (m_IncrementalUpdate && !m_originalIdentifier.IsEmpty())
             array.push_back(m_originalIdentifier);
-        }
         else
-        {
             array.push_back(m_identifier);
-        }
+
         array.push_back(m_identifier);
 
         // finally add the key to the trailer dictionary

@@ -141,7 +141,7 @@ const PdfDocument& PdfDocument::Append(const PdfDocument& doc, bool appendAll)
 
             // Deal with inherited attributes
             auto inherited = inheritableAttributes;
-            while (inherited->GetLength() != 0)
+            while (!inherited->IsNull())
             {
                 auto attribute = page.GetInheritedKey(*inherited);
                 if (attribute != nullptr)
@@ -230,7 +230,7 @@ const PdfDocument& PdfDocument::InsertExistingPageAt(const PdfDocument& doc, uns
 
         // Deal with inherited attributes
         const PdfName* inherited = inheritableAttributes;
-        while (inherited->GetLength() != 0)
+        while (!inherited->IsNull())
         {
             auto attribute = page.GetInheritedKey(*inherited);
             if (attribute != nullptr)

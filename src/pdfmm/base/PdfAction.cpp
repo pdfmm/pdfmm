@@ -39,7 +39,7 @@ PdfAction::PdfAction(PdfDocument& doc, PdfActionType action)
     : PdfElement(doc, "Action"), m_Type(action)
 {
     PdfName type(TypeNameForIndex((unsigned)action, s_names, (unsigned)std::size(s_names)));
-    if (type.GetLength() == 0)
+    if (type.IsNull())
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     this->GetObject().GetDictionary().AddKey("S", type);

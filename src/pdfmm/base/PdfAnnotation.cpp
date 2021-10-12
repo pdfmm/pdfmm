@@ -61,7 +61,7 @@ PdfAnnotation::PdfAnnotation(PdfPage& page, PdfAnnotationType annotType, const P
 {
     const PdfName name(TypeNameForIndex((unsigned)annotType, s_names, (unsigned)std::size(s_names)));
 
-    if (name.GetLength() == 0)
+    if (name.IsNull())
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     PdfArray arr;
@@ -140,7 +140,7 @@ void mm::SetAppearanceStreamForObject(PdfObject& obj, PdfXObject& xobj, PdfAnnot
         if (objAP->GetDataType() != PdfDataType::Dictionary)
             PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
 
-        if (state.GetLength() == 0)
+        if (state.IsNull())
         {
             // allow overwrite only reference by a reference
             if (objAP->GetDictionary().HasKey(name) && objAP->GetDictionary().GetKey(name)->GetDataType() != PdfDataType::Reference)
@@ -167,7 +167,7 @@ void mm::SetAppearanceStreamForObject(PdfObject& obj, PdfXObject& xobj, PdfAnnot
     }
     else
     {
-        if (state.GetLength() == 0)
+        if (state.IsNull())
         {
             dict.AddKey(name, xobj.GetObject().GetIndirectReference());
             obj.GetDictionary().AddKey("AP", dict);
@@ -180,7 +180,7 @@ void mm::SetAppearanceStreamForObject(PdfObject& obj, PdfXObject& xobj, PdfAnnot
         }
     }
 
-    if (state.GetLength() != 0)
+    if (!state.IsNull())
     {
         if (!obj.GetDictionary().HasKey("AS"))
             obj.GetDictionary().AddKey("AS", state);
@@ -213,7 +213,7 @@ PdfObject* PdfAnnotation::GetAppearanceStream(PdfAnnotationAppearance appearance
     if (apObjInn == nullptr)
         return nullptr;
 
-    if (state.GetLength() == 0)
+    if (state.IsNull())
         return apObjInn;
 
     return apObjInn->GetDictionary().FindKey(state);

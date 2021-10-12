@@ -9,6 +9,7 @@
 #include <pdfmm/private/PdfDefinesPrivate.h>
 #include "PdfString.h"
 
+#include <mutex>
 #include <utfcpp/utf8.h>
 
 #include "PdfEncrypt.h"
@@ -33,7 +34,7 @@ static char getEscapedCharacter(char ch);
 static StringEncoding getEncoding(const string_view& view);
 
 PdfString::PdfString()
-    : m_data(std::make_shared<chars>()), m_state(StringState::PdfDocEncoding), m_isHex(false)
+    : m_data(new StringData{ StringState::PdfDocEncoding }), m_isHex(false)
 {
 }
 
@@ -54,21 +55,21 @@ PdfString::PdfString(const PdfString& rhs)
     this->operator=(rhs);
 }
 
-PdfString::PdfString(const shared_ptr<chars>& data, bool isHex)
-    : m_data(data), m_state(StringState::RawBuffer), m_isHex(isHex)
+PdfString::PdfString(chars chars, bool isHex)
+    : m_data(new StringData{ StringState::RawBuffer, std::move(chars) }), m_isHex(isHex)
 {
 }
 
 PdfString PdfString::FromRaw(const string_view& view, bool isHex)
 {
-    return PdfString(std::make_shared<chars>(view), isHex);
+    return PdfString((chars)view, isHex);
 }
 
 PdfString PdfString::FromHexData(const string_view& hexView, PdfEncrypt* encrypt)
 {
     size_t len = hexView.size();
-    auto buffer = std::make_shared<chars>();
-    buffer->reserve(len % 2 ? (len + 1) >> 1 : len >> 1);
+    chars buffer;
+    buffer.reserve(len % 2 ? (len + 1) >> 1 : len >> 1);
 
     char val;
     char decodedChar = 0;
@@ -89,7 +90,7 @@ PdfString PdfString::FromHexData(const string_view& hexView, PdfEncrypt* encrypt
         {
             decodedChar = (decodedChar << 4) | val;
             low = true;
-            buffer->push_back(decodedChar);
+            buffer.push_back(decodedChar);
         }
     }
 
@@ -97,19 +98,19 @@ PdfString PdfString::FromHexData(const string_view& hexView, PdfEncrypt* encrypt
     {
         // an odd number of bytes was read,
         // so the last byte is 0
-        buffer->push_back(decodedChar);
+        buffer.push_back(decodedChar);
     }
 
     if (encrypt == nullptr)
     {
-        buffer->shrink_to_fit();
-        return PdfString(buffer, true);
+        buffer.shrink_to_fit();
+        return PdfString(std::move(buffer), true);
     }
     else
     {
-        auto decrypted = std::make_shared<chars>();
-        encrypt->Decrypt(*buffer, *decrypted);
-        return PdfString(decrypted, true);
+        chars decrypted;
+        encrypt->Decrypt(buffer, decrypted);
+        return PdfString(std::move(decrypted), true);
     }
 }
 
@@ -123,17 +124,17 @@ void PdfString::Write(PdfOutputDevice& device, PdfWriteMode writeMode, const Pdf
     // We are not encrypting the empty strings (was access violation)!
     chars tempBuffer;
     string_view dataview;
-    if (m_state == StringState::Unicode)
+    if (m_data->State == StringState::Unicode)
     {
         // Prepend utf-16 BOM
         tempBuffer.push_back(static_cast<char>(0xFE));
         tempBuffer.push_back(static_cast<char>(0xFF));
-        tempBuffer.insert(tempBuffer.end(), m_data->data(), m_data->data() + m_data->size());
+        tempBuffer.insert(tempBuffer.end(), m_data->Chars.data(), m_data->Chars.data() + m_data->Chars.size());
         dataview = string_view(tempBuffer.data(), tempBuffer.size());
     }
     else
     {
-        dataview = string_view(*m_data);
+        dataview = string_view(m_data->Chars);
     }
 
     if (encrypt != nullptr && dataview.size() > 0)
@@ -154,7 +155,7 @@ void PdfString::Write(PdfOutputDevice& device, PdfWriteMode writeMode, const Pdf
         if (m_isHex)
         {
             char data[2];
-            while (len--)
+            while (len-- != 0)
             {
                 ch = *buffer;
                 usr::WriteCharHexTo(data, ch);
@@ -165,7 +166,7 @@ void PdfString::Write(PdfOutputDevice& device, PdfWriteMode writeMode, const Pdf
         else
         {
             char ch;
-            while (len--)
+            while (len-- != 0)
             {
                 ch = *buffer;
                 char escaped = getEscapedCharacter(ch);
@@ -189,25 +190,23 @@ void PdfString::Write(PdfOutputDevice& device, PdfWriteMode writeMode, const Pdf
 
 bool PdfString::IsUnicode() const
 {
-    return m_state == StringState::Unicode;
+    return m_data->State == StringState::Unicode;
 }
 
 const string& PdfString::GetString() const
 {
     evaluateString();
-    return *m_data;
+    return m_data->Chars;
 }
 
-unsigned PdfString::GetLength() const
+bool PdfString::IsEmpty() const
 {
-    evaluateString();
-    return (unsigned)m_data->length();
+    return m_data->Chars.empty();
 }
 
 const PdfString& PdfString::operator=(const PdfString& rhs)
 {
     this->m_data = rhs.m_data;
-    this->m_state = rhs.m_state;
     this->m_isHex = rhs.m_isHex;
     return *this;
 }
@@ -223,7 +222,7 @@ bool PdfString::operator==(const PdfString& rhs) const
     if (this->m_data == rhs.m_data)
         return true;
 
-    return *this->m_data == *rhs.m_data;
+    return this->m_data->Chars == rhs.m_data->Chars;
 }
 
 bool PdfString::operator==(const char* str) const
@@ -241,7 +240,7 @@ bool PdfString::operator==(const string_view& view) const
     if (!isValidText())
         return false;
 
-    return *m_data == view;
+    return m_data->Chars == view;
 }
 
 bool PdfString::operator!=(const PdfString& rhs) const
@@ -255,7 +254,7 @@ bool PdfString::operator!=(const PdfString& rhs) const
     if (this->m_data == rhs.m_data)
         return false;
 
-    return *this->m_data != *rhs.m_data;
+    return this->m_data->Chars != rhs.m_data->Chars;
 }
 
 bool PdfString::operator!=(const char* str) const
@@ -273,79 +272,77 @@ bool PdfString::operator!=(const string_view& view) const
     if (!isValidText())
         return true;
 
-    return *m_data != view;
+    return m_data->Chars != view;
 }
 
 void PdfString::initFromUtf8String(const string_view& view)
 {
+    constexpr unsigned s = sizeof(mutex);
     if (view.data() == nullptr)
         throw runtime_error("String is null");
 
     if (view.length() == 0)
     {
-        m_data = make_shared<chars>();
-        m_state = StringState::PdfDocEncoding;
+        m_data.reset(new StringData{ StringState::PdfDocEncoding });
         return;
     }
 
-    m_data = std::make_shared<chars>(view);
-
     bool isPdfDocEncodingEqual;
     if (PdfDocEncoding::CheckValidUTF8ToPdfDocEcondingChars(view, isPdfDocEncodingEqual))
-        m_state = StringState::PdfDocEncoding;
+        m_data.reset(new StringData{ StringState::PdfDocEncoding, chars(view) });
     else
-        m_state = StringState::Unicode;
+        m_data.reset(new StringData{ StringState::Unicode, chars(view) });
 }
 
 void PdfString::evaluateString() const
 {
-    switch (m_state)
+    switch (m_data->State)
     {
         case StringState::PdfDocEncoding:
         case StringState::Unicode:
             return;
         case StringState::RawBuffer:
         {
-            auto encoding = getEncoding(*m_data);
+            auto encoding = getEncoding(m_data->Chars);
             switch (encoding)
             {
                 case StringEncoding::utf16be:
                 {
                     // Remove BOM and decode utf-16 string
                     string utf8;
-                    auto view = string_view(*m_data).substr(2);
+                    auto view = string_view(m_data->Chars).substr(2);
                     utf8::utf16to8(utf8::endianess::big_endian,
                         (const char16_t*)view.data(), (const char16_t*)(view.data() + view.size()),
                         std::back_inserter(utf8));
-                    utf8.swap(*m_data);
-                    const_cast<PdfString&>(*this).m_state = StringState::Unicode;
+                    utf8.swap(m_data->Chars);
+                    m_data->State = StringState::Unicode;
                     break;
                 }
                 case StringEncoding::utf16le:
                 {
                     // Remove BOM and decode utf-16 string
                     string utf8;
-                    auto view = string_view(*m_data).substr(2);
+                    auto view = string_view(m_data->Chars).substr(2);
                     utf8::utf16to8(utf8::endianess::little_endian,
                         (const char16_t*)view.data(), (const char16_t*)(view.data() + view.size()),
                         std::back_inserter(utf8));
-                    utf8.swap(*m_data);
-                    const_cast<PdfString&>(*this).m_state = StringState::Unicode;
+                    utf8.swap(m_data->Chars);
+                    m_data->State = StringState::Unicode;
                     break;
                 }
                 case StringEncoding::utf8:
                 {
                     // Remove BOM
-                    m_data->substr(3).swap(*m_data);
-                    const_cast<PdfString&>(*this).m_state = StringState::Unicode;
+                    m_data->Chars.substr(3).swap(m_data->Chars);
+                    m_data->State = StringState::Unicode;
                     break;
                 }
                 case StringEncoding::PdfDocEncoding:
                 {
                     bool isUTF8Equal;
-                    auto utf8 = PdfDocEncoding::ConvertPdfDocEncodingToUTF8(*m_data, isUTF8Equal);
-                    utf8.swap(*m_data);
-                    const_cast<PdfString&>(*this).m_state = StringState::PdfDocEncoding;
+                    auto utf8 = PdfDocEncoding::ConvertPdfDocEncodingToUTF8(m_data->Chars, isUTF8Equal);
+                    utf8.swap(m_data->Chars);
+                    m_data->State = StringState::PdfDocEncoding;
                     break;
                 }
                 default:
@@ -362,7 +359,7 @@ void PdfString::evaluateString() const
 // Returns true only if same state or it's valid text string
 bool PdfString::canPerformComparison(const PdfString& lhs, const PdfString& rhs)
 {
-    if (lhs.m_state == rhs.m_state)
+    if (lhs.m_data->State == rhs.m_data->State)
         return true;
 
     if (lhs.isValidText() || rhs.isValidText())
@@ -373,15 +370,15 @@ bool PdfString::canPerformComparison(const PdfString& lhs, const PdfString& rhs)
 
 const string& PdfString::GetRawData() const
 {
-    if (m_state != StringState::RawBuffer)
+    if (m_data->State != StringState::RawBuffer)
         throw runtime_error("The string buffer has been evaluated");
 
-    return *m_data;
+    return m_data->Chars;
 }
 
 bool PdfString::isValidText() const
 {
-    return m_state == StringState::PdfDocEncoding || m_state == StringState::Unicode;
+    return m_data->State == StringState::PdfDocEncoding || m_data->State == StringState::Unicode;
 }
 
 StringEncoding getEncoding(const string_view& view)

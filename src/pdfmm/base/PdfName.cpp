@@ -33,13 +33,13 @@ const PdfName PdfName::KeyType = PdfName("Type");
 const PdfName PdfName::KeyFilter = PdfName("Filter");
 
 PdfName::PdfName()
-    : m_data(std::make_shared<chars>()), m_isUtf8Expanded(true)
+    : m_data(new NameData{ true })
 {
 }
 
 PdfName::PdfName(const char* str)
 {
-    initFromUtf8String({ str, std::strlen(str) });
+    initFromUtf8String(string_view(str, std::strlen(str)));
 }
 
 PdfName::PdfName(const string& str)
@@ -53,12 +53,12 @@ PdfName::PdfName(const string_view& view)
 }
 
 PdfName::PdfName(const PdfName& rhs)
-    : m_data(rhs.m_data), m_isUtf8Expanded(rhs.m_isUtf8Expanded), m_utf8String(rhs.m_utf8String)
+    : m_data(rhs.m_data)
 {
 }
 
-PdfName::PdfName(const shared_ptr<chars>& rawdata)
-    : m_data(rawdata), m_isUtf8Expanded(false)
+PdfName::PdfName(chars chars)
+    : m_data(new NameData{ false, std::move(chars) })
 {
 }
 
@@ -69,8 +69,7 @@ void PdfName::initFromUtf8String(const string_view& view)
 
     if (view.length() == 0)
     {
-        m_data = std::make_shared<chars>();
-        m_isUtf8Expanded = true;
+        m_data.reset(new NameData{ true });
         return;
     }
 
@@ -79,16 +78,9 @@ void PdfName::initFromUtf8String(const string_view& view)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidName, "Characters in string must be PdfDocEncoding character set");
 
     if (isPdfDocEncodingEqual)
-    {
-        m_data = std::make_shared<chars>(view);
-    }
+        m_data.reset(new NameData{ true, chars(view) });
     else
-    {
-        m_data = std::make_shared<chars>(PdfDocEncoding::ConvertUTF8ToPdfDocEncoding(view));
-        m_utf8String = std::make_shared<string>(view);
-    }
-
-    m_isUtf8Expanded = true;
+        m_data.reset(new NameData{ true, PdfDocEncoding::ConvertUTF8ToPdfDocEncoding(view), std::make_unique<string>(view) });
 }
 
 PdfName PdfName::FromEscaped(const string_view& view)
@@ -98,40 +90,39 @@ PdfName PdfName::FromEscaped(const string_view& view)
 
 PdfName PdfName::FromRaw(const string_view& rawcontent)
 {
-    return PdfName(std::make_shared<chars>(rawcontent));
+    return PdfName((chars)rawcontent);
 }
 
 void PdfName::Write(PdfOutputDevice& device, PdfWriteMode, const PdfEncrypt*) const
 {
     // Allow empty names, which are legal according to the PDF specification
     device.Put('/');
-    if (m_data->length() != 0)
+    if (m_data->Chars.length() != 0)
     {
-        string escaped = EscapeName(*m_data);
+        string escaped = EscapeName(m_data->Chars);
         device.Write(escaped);
     }
 }
 
 string PdfName::GetEscapedName() const
 {
-    if (m_data->length() == 0)
+    if (m_data->Chars.length() == 0)
         return string();
 
-    return EscapeName(*m_data);
+    return EscapeName(m_data->Chars);
 }
 
 void PdfName::expandUtf8String() const
 {
-    if (!m_isUtf8Expanded)
+    if (!m_data->IsUtf8Expanded)
     {
-        auto& name = const_cast<PdfName&>(*this);
         bool isUtf8Equal;
-        auto utf8str = std::make_shared<string>();
-        PdfDocEncoding::ConvertPdfDocEncodingToUTF8(*m_data, *utf8str, isUtf8Equal);
+        string utf8str;
+        PdfDocEncoding::ConvertPdfDocEncodingToUTF8(m_data->Chars, utf8str, isUtf8Equal);
         if (!isUtf8Equal)
-            name.m_utf8String = utf8str;
+            m_data->Utf8String.reset(new string(std::move(utf8str)));
 
-        name.m_isUtf8Expanded = true;
+        m_data->IsUtf8Expanded = true;
     }
 }
 
@@ -231,37 +222,42 @@ string UnescapeName(const string_view& view)
 const string& PdfName::GetString() const
 {
     expandUtf8String();
-    if (m_utf8String == nullptr)
-        return *m_data;
+    if (m_data->Utf8String == nullptr)
+        return m_data->Chars;
     else
-        return *m_utf8String;
+        return *m_data->Utf8String;
 }
 
-unsigned PdfName::GetLength() const
+bool PdfName::IsNull() const
 {
-    expandUtf8String();
-    if (m_utf8String == nullptr)
-        return (unsigned)m_data->length();
-    else
-        return (unsigned)m_utf8String->length();
+    return m_data->Chars.empty();
 }
 
 const string& PdfName::GetRawData() const
 {
-    return *m_data;
+    return m_data->Chars;
 }
 
 const PdfName& PdfName::operator=(const PdfName& rhs)
 {
     m_data = rhs.m_data;
-    m_isUtf8Expanded = rhs.m_isUtf8Expanded;
-    m_utf8String = rhs.m_utf8String;
     return *this;
 }
 
 bool PdfName::operator==(const PdfName& rhs) const
 {
-    return *this->m_data == *rhs.m_data;
+    if (this->m_data == rhs.m_data)
+        return true;
+
+    return this->m_data->Chars == rhs.m_data->Chars;
+}
+
+bool PdfName::operator!=(const PdfName& rhs) const
+{
+    if (this->m_data == rhs.m_data)
+        return false;
+
+    return this->m_data->Chars != rhs.m_data->Chars;
 }
 
 bool PdfName::operator==(const char* str) const
@@ -278,11 +274,6 @@ bool PdfName::operator==(const string_view& view) const
 {
     auto& str = GetString();
     return str == view;
-}
-
-bool PdfName::operator!=(const PdfName& rhs) const
-{
-    return *this->m_data != *rhs.m_data;
 }
 
 bool PdfName::operator!=(const char* str) const
@@ -303,7 +294,7 @@ bool PdfName::operator!=(const string_view& view) const
 
 bool PdfName::operator<(const PdfName& rhs) const
 {
-    return *this->m_data < *rhs.m_data;
+    return this->m_data->Chars < rhs.m_data->Chars;
 }
 
 /**

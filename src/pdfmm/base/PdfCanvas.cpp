@@ -77,7 +77,7 @@ void PdfCanvas::AddColorResource(const PdfColor& color)
 
 void PdfCanvas::AddResource(const PdfName& identifier, const PdfReference& ref, const PdfName& name)
 {
-    if (name.GetLength() == 0 || identifier.GetLength() == 0)
+    if (name.IsNull() || identifier.IsNull())
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     auto& resources = this->GetResources();

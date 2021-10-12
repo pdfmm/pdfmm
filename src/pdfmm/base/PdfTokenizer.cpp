@@ -575,9 +575,9 @@ void PdfTokenizer::ReadString(PdfInputDevice& device, PdfVariant& variant, PdfEn
     {
         if (encrypt)
         {
-            auto decrypted = std::make_shared<chars>();
-            encrypt->Decrypt({ m_charBuffer.data(), m_charBuffer.size() }, *decrypted);
-            variant = PdfString(decrypted, false);
+            chars decrypted;
+            encrypt->Decrypt({ m_charBuffer.data(), m_charBuffer.size() }, decrypted);
+            variant = PdfString(std::move(decrypted), false);
         }
         else
         {
