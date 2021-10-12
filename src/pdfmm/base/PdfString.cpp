@@ -281,7 +281,7 @@ void PdfString::initFromUtf8String(const string_view& view)
 
     if (view.length() == 0)
     {
-        m_data.reset(new StringData{ StringState::PdfDocEncoding });
+        m_data.reset(new StringData{ StringState::PdfDocEncoding, { } });
         return;
     }
 
