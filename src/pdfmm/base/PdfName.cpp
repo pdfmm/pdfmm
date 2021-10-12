@@ -33,7 +33,7 @@ const PdfName PdfName::KeyType = PdfName("Type");
 const PdfName PdfName::KeyFilter = PdfName("Filter");
 
 PdfName::PdfName()
-    : m_data(new NameData{ true })
+    : m_data(new NameData{ true, { }, nullptr })
 {
 }
 
@@ -58,7 +58,7 @@ PdfName::PdfName(const PdfName& rhs)
 }
 
 PdfName::PdfName(chars chars)
-    : m_data(new NameData{ false, std::move(chars) })
+    : m_data(new NameData{ false, std::move(chars), nullptr })
 {
 }
 
@@ -69,7 +69,7 @@ void PdfName::initFromUtf8String(const string_view& view)
 
     if (view.length() == 0)
     {
-        m_data.reset(new NameData{ true });
+        m_data.reset(new NameData{ true, { }, nullptr });
         return;
     }
 
@@ -78,7 +78,7 @@ void PdfName::initFromUtf8String(const string_view& view)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidName, "Characters in string must be PdfDocEncoding character set");
 
     if (isPdfDocEncodingEqual)
-        m_data.reset(new NameData{ true, chars(view) });
+        m_data.reset(new NameData{ true, chars(view), nullptr });
     else
         m_data.reset(new NameData{ true, PdfDocEncoding::ConvertUTF8ToPdfDocEncoding(view), std::make_unique<string>(view) });
 }

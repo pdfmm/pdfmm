@@ -9,7 +9,6 @@
 #include <pdfmm/private/PdfDefinesPrivate.h>
 #include "PdfString.h"
 
-#include <mutex>
 #include <utfcpp/utf8.h>
 
 #include "PdfEncrypt.h"
@@ -34,7 +33,7 @@ static char getEscapedCharacter(char ch);
 static StringEncoding getEncoding(const string_view& view);
 
 PdfString::PdfString()
-    : m_data(new StringData{ StringState::PdfDocEncoding }), m_isHex(false)
+    : m_data(new StringData{ StringState::PdfDocEncoding, { } }), m_isHex(false)
 {
 }
 
@@ -277,7 +276,6 @@ bool PdfString::operator!=(const string_view& view) const
 
 void PdfString::initFromUtf8String(const string_view& view)
 {
-    constexpr unsigned s = sizeof(mutex);
     if (view.data() == nullptr)
         throw runtime_error("String is null");
 

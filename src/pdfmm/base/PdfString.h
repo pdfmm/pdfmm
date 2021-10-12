@@ -161,6 +161,7 @@ private:
         PdfDocEncoding,
         Unicode
     };
+
     struct StringData
     {
         StringState State;
