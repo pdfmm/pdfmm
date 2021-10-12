@@ -534,6 +534,7 @@ void PdfTokenizer::ReadString(PdfInputDevice& device, PdfVariant& variant, PdfEn
                 // so we check now for a digit to find stuff like \005
                 octValue = (ch - '0') & 0x07;
                 octEscape = true;
+                octCharCount = 1;
             }
             else
             {
