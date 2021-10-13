@@ -149,7 +149,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
     }
     else
     {
-        m_Weight = static_cast<unsigned>(descriptor->GetDictionary().FindKeyAs<int64_t>("FontWeight", 400));
+        m_Weight = static_cast<unsigned>(descriptor->GetDictionary().FindKeyAs<double>("FontWeight", 400));
         m_ItalicAngle = static_cast<int>(descriptor->GetDictionary().FindKeyAs<double>("ItalicAngle", 0));
         m_Ascent = descriptor->GetDictionary().FindKeyAs<double>("Ascent", 0.0) * m_matrix[3];
         m_Descent = descriptor->GetDictionary().FindKeyAs<double>("Descent", 0.0) * m_matrix[3];
