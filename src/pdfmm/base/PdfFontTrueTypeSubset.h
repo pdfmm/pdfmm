@@ -79,8 +79,8 @@ private:
     void InitTables();
     void GetStartOfTTFOffsets();
 
-    void GetData(PdfOutputDevice& output, unsigned offset, unsigned size);
-    void GetData(void* dst, unsigned offset, unsigned size);
+    void CopyData(PdfOutputDevice& output, unsigned offset, unsigned size);
+    void ReadData(void* dst, unsigned offset, unsigned size);
 
 private:
     /** Information of TrueType tables.
@@ -93,17 +93,26 @@ private:
         uint32_t Offset = 0;
     };
 
+    struct GlyphCompoundComponentData
+    {
+        unsigned Offset;
+        unsigned GlyphIndex;
+    };
+
     /** GlyphData contains the glyph address relative
      *  to the beginning of the "glyf" table.
      */
     struct GlyphData
     {
-        uint32_t GlyphLength = 0;
-        uint32_t GlyphAddress = 0; //In the original truetype file.
+        bool IsCompound;
+        unsigned GlyphOffset;       // Offset of common "glyph" data
+        unsigned GlyphLength;
+        unsigned GlyphAdvOffset;    // Offset of uncommon simple/compound "glyph" data
+        std::vector<GlyphCompoundComponentData> CompoundComponents;
     };
 
     // A CID indexed glyph map
-    typedef std::map<unsigned, GlyphData> GlyphMap;
+    typedef std::map<unsigned, GlyphData> GlyphDatas;
 
     struct GlyphContext
     {
@@ -111,30 +120,36 @@ private:
         unsigned LocaTableOffset = 0;
         // Used internaly during recursive load
         int16_t ContourCount = 0;
-        uint16_t ShortOffset = 0;
+    };
+
+    struct GlyphCompoundData
+    {
+        unsigned Flags;
+        unsigned GlyphIndex;
     };
 
     void LoadGlyphs(GlyphContext& ctx, const CIDToGIDMap& usedCodes);
     void LoadGID(GlyphContext& ctx, unsigned gid);
-    void LoadCompound(GlyphContext& ctx, unsigned offset);
-    void WriteGlyphTable(PdfOutputDevice& output, unsigned glyphTableOffset);
+    void LoadCompound(GlyphContext& ctx, const GlyphData& data);
+    void WriteGlyphTable(PdfOutputDevice& output);
     void WriteHmtxTable(PdfOutputDevice& output);
     void WriteLocaTable(PdfOutputDevice& output);
     void WriteTables(std::string& buffer);
+    void ReadGlyphCompoundData(GlyphCompoundData& data, unsigned offset);
 
 private:
     PdfInputDevice* m_Device;          // Read data from this input device
     TrueTypeFontFileType m_FontFileType;
 
-    uint32_t m_StartOfTTFOffsets;	   // Start address of the truetype offset tables, differs from ttf to ttc.
+    uint32_t m_startOfTTFOffsets;	   // Start address of the truetype offset tables, differs from ttf to ttc.
     unsigned short m_faceIndex;
-    bool m_IsLongLoca;
+    bool m_isLongLoca;
     uint16_t m_glyphCount;
     uint16_t m_HMetricsCount;
 
-    std::vector<TrueTypeTable> m_Tables;
-    GlyphMap m_GlyphMap;
-    std::vector<unsigned> m_OrderedGlyphs;
+    std::vector<TrueTypeTable> m_tables;
+    GlyphDatas m_glyphDatas;
+    std::vector<unsigned> m_orderedGIDs; // Ordered list of original GIDs as they will appear in the subset
     chars m_tmpBuffer;
 };
 
