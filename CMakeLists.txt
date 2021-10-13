@@ -193,29 +193,30 @@ if(UNIX)
     find_package(Fontconfig REQUIRED)
     set(PDFMM_HAVE_FONTCONFIG TRUE)
     message("Found fontconfig headers in ${FONTCONFIG_INCLUDE_DIR}, library at ${Fontconfig_LIBRARIES}")
-    list(APPEND PLATFORM_SYSTEM_LIBRARIES ${Fontconfig_LIBRARIES})
-    list(APPEND PLATFORM_SYSTEM_HEADERS ${Fontconfig_INCLUDE_DIRS})
 endif()
 
 # The pdfmm library needs to be linked to these libraries
+# NOTE: Be careful when adding/removing: the order may be platform sensible
 set(PDFMM_LIB_DEPENDS
     ${OPENSSL_LIBRARIES}
+    ${Fontconfig_LIBRARIES}
     ${FREETYPE_LIBRARIES}
-    ${PLATFORM_SYSTEM_LIBRARIES}
     ${JPEG_LIBRARIES}
     ${PNG_LIBRARIES}
     ${TIFF_LIBRARIES}
     ${ZLIB_LIBRARIES}
+    ${PLATFORM_SYSTEM_LIBRARIES}
 )
 
 set(PDFMM_HEADERS_DEPENDS
     ${OPENSSL_INCLUDE_DIR}
+    ${Fontconfig_INCLUDE_DIRS}
     ${FREETYPE_INCLUDE_DIRS}
-    ${PLATFORM_SYSTEM_HEADERS}
     ${JPEG_INCLUDE_DIR}
     ${PNG_INCLUDE_DIR}
     ${TIFF_INCLUDE_DIR}
     ${ZLIB_INCLUDE_DIR}
+    ${PLATFORM_SYSTEM_HEADERS}
 )
 
 if(LIBIDN_FOUND)
