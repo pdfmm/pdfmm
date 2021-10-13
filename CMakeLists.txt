@@ -200,9 +200,9 @@ endif()
 # The pdfmm library needs to be linked to these libraries
 set(PDFMM_LIB_DEPENDS
     ${OPENSSL_LIBRARIES}
-    ${JPEG_LIBRARIES}
     ${FREETYPE_LIBRARIES}
     ${PLATFORM_SYSTEM_LIBRARIES}
+    ${JPEG_LIBRARIES}
     ${PNG_LIBRARIES}
     ${TIFF_LIBRARIES}
     ${ZLIB_LIBRARIES}
