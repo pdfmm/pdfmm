@@ -35,13 +35,15 @@
 using namespace std;
 using namespace mm;
 
-PdfMemDocument::PdfMemDocument(bool empty)
-    : PdfDocument(empty), m_SoureHasXRefStream(false), m_PrevXRefOffset(-1)
+PdfMemDocument::PdfMemDocument(bool empty) :
+    PdfDocument(empty),
+    m_Version(PdfVersionDefault),
+    m_InitialVersion(PdfVersionDefault),
+    m_HasXRefStream(false),
+    m_PrevXRefOffset(-1),
+    m_WriteMode(PdfWriteModeDefault),
+    m_Linearized(false)
 {
-    m_Version = PdfVersionDefault;
-    m_WriteMode = PdfWriteModeDefault;
-    m_Linearized = false;
-    m_SourceVersion = m_Version;
 }
 
 PdfMemDocument::~PdfMemDocument()
@@ -51,23 +53,21 @@ PdfMemDocument::~PdfMemDocument()
 
 void PdfMemDocument::Clear()
 {
-    m_Encrypt = nullptr;
-    m_WriteMode = PdfWriteModeDefault;
-
-    m_SoureHasXRefStream = false;
+    m_HasXRefStream = false;
     m_PrevXRefOffset = -1;
-
+    m_WriteMode = PdfWriteModeDefault;
+    m_Linearized = false;
+    m_Encrypt = nullptr;
     GetObjects().SetCanReuseObjectNumbers(true);
-
     PdfDocument::Clear();
 }
 
 void PdfMemDocument::InitFromParser(PdfParser& parser)
 {
     m_Version = parser.GetPdfVersion();
+    m_InitialVersion = m_Version;
     m_Linearized = parser.IsLinearized();
-    m_SourceVersion = m_Version;
-    m_SoureHasXRefStream = parser.HasXRefStream();
+    m_HasXRefStream = parser.HasXRefStream();
     m_PrevXRefOffset = parser.GetXRefOffset();
 
     auto trailer = std::make_unique<PdfObject>(parser.GetTrailer());
@@ -253,14 +253,14 @@ void PdfMemDocument::WriteUpdate(PdfOutputDevice& device, PdfSaveOptions options
     writer.SetPdfVersion(this->GetPdfVersion());
     writer.SetWriteMode(m_WriteMode);
     writer.SetPrevXRefOffset(m_PrevXRefOffset);
-    writer.SetUseXRefStream(m_SoureHasXRefStream);
+    writer.SetUseXRefStream(m_HasXRefStream);
     writer.SetIncrementalUpdate(m_Linearized);
 
     if (m_Encrypt != nullptr)
         writer.SetEncrypted(*m_Encrypt);
 
     PdfObject* catalog;
-    if (m_SourceVersion < this->GetPdfVersion() && (catalog = this->getCatalog()) && catalog->IsDictionary())
+    if (m_InitialVersion < this->GetPdfVersion() && (catalog = this->getCatalog()) && catalog->IsDictionary())
     {
         if (this->GetPdfVersion() < PdfVersion::V1_0 || this->GetPdfVersion() > PdfVersion::V1_7)
             PDFMM_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);

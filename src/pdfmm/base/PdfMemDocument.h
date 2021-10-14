@@ -343,16 +343,13 @@ private:
     PdfMemDocument& operator=(const PdfMemDocument&) = delete;
 
 private:
-    bool m_Linearized;
     PdfVersion m_Version;
-
-    std::unique_ptr<PdfEncrypt> m_Encrypt;
-
-    PdfWriteMode m_WriteMode;
-
-    bool m_SoureHasXRefStream;
-    PdfVersion m_SourceVersion;
+    PdfVersion m_InitialVersion;
+    bool m_HasXRefStream;
     int64_t m_PrevXRefOffset;
+    PdfWriteMode m_WriteMode;
+    bool m_Linearized;
+    std::unique_ptr<PdfEncrypt> m_Encrypt;
 };
 
 };
