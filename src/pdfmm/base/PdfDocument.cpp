@@ -708,21 +708,28 @@ PdfFileSpec* PdfDocument::GetAttachment(const PdfString& name)
     return new PdfFileSpec(*obj);
 }
 
-void PdfDocument::SetInfo(std::unique_ptr<PdfInfo>& info)
-{
-    if (info == nullptr)
-        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
-
-    m_Info = std::move(info);
-}
-
-void PdfDocument::SetTrailer(std::unique_ptr<PdfObject>& obj)
+void PdfDocument::SetTrailer(unique_ptr<PdfObject> obj)
 {
     if (obj == nullptr)
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     m_Trailer = std::move(obj);
     m_Trailer->SetDocument(*this);
+
+    m_Catalog = m_Trailer->GetDictionary().FindKey("Root");
+    if (m_Catalog == nullptr)
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoObject, "Catalog object not found!");
+
+    auto infoObj = m_Trailer->GetDictionary().FindKey("Info");
+    if (infoObj == nullptr)
+    {
+        m_Info.reset(new PdfInfo(*this));
+        m_Trailer->GetDictionary().AddKey("Info", m_Info->GetObject().GetIndirectReference());
+    }
+    else
+    {
+        m_Info.reset(new PdfInfo(*infoObj));
+    }
 }
 
 PdfObject& PdfDocument::GetCatalog()

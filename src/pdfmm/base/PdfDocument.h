@@ -395,30 +395,13 @@ protected:
      */
     PdfDocument(bool empty = false);
 
-    /** Set the info object containing meta information.
-     *  Deletes any old info object.
-     *
-     *  \param info the new info object (will be owned by PdfDocument)
-     */
-    void SetInfo(std::unique_ptr<PdfInfo>& info);
-
     /** Set the trailer of this PdfDocument
      *  deleting the old one.
      *
      *  \param obj the new trailer object
      *         It will be owned by PdfDocument.
      */
-    void SetTrailer(std::unique_ptr<PdfObject>& obj);
-
-    /** Set the catalog of this PdfDocument
-     *  deleting the old one.
-     *
-     *  \param obj the new catalog object
-     *         It will be owned by PdfDocument.
-     */
-     // m_Catalog does not need to 
-     // be reowned
-    inline void SetCatalog(PdfObject* obj) { m_Catalog = obj; }
+    void SetTrailer(std::unique_ptr<PdfObject> obj);
 
     /** Get a dictionary from the catalog dictionary by its name.
      *  \param name will be converted into a PdfName

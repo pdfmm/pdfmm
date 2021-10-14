@@ -35,28 +35,13 @@
 using namespace std;
 using namespace mm;
 
-PdfMemDocument::PdfMemDocument()
-    : PdfDocument(), m_SoureHasXRefStream(false), m_PrevXRefOffset(-1)
+PdfMemDocument::PdfMemDocument(bool empty)
+    : PdfDocument(empty), m_SoureHasXRefStream(false), m_PrevXRefOffset(-1)
 {
     m_Version = PdfVersionDefault;
     m_WriteMode = PdfWriteModeDefault;
     m_Linearized = false;
     m_SourceVersion = m_Version;
-}
-
-PdfMemDocument::PdfMemDocument(bool onlyTrailer)
-    : PdfDocument(onlyTrailer), m_SoureHasXRefStream(false), m_PrevXRefOffset(-1)
-{
-    m_Version = PdfVersionDefault;
-    m_WriteMode = PdfWriteModeDefault;
-    m_Linearized = false;
-    m_SourceVersion = m_Version;
-}
-
-PdfMemDocument::PdfMemDocument(const string_view& filename)
-    : PdfDocument(), m_SoureHasXRefStream(false), m_PrevXRefOffset(-1)
-{
-    this->Load(filename);
 }
 
 PdfMemDocument::~PdfMemDocument()
@@ -77,16 +62,16 @@ void PdfMemDocument::Clear()
     PdfDocument::Clear();
 }
 
-void PdfMemDocument::InitFromParser(PdfParser* parser)
+void PdfMemDocument::InitFromParser(PdfParser& parser)
 {
-    m_Version = parser->GetPdfVersion();
-    m_Linearized = parser->IsLinearized();
+    m_Version = parser.GetPdfVersion();
+    m_Linearized = parser.IsLinearized();
     m_SourceVersion = m_Version;
-    m_SoureHasXRefStream = parser->HasXRefStream();
-    m_PrevXRefOffset = parser->GetXRefOffset();
+    m_SoureHasXRefStream = parser.HasXRefStream();
+    m_PrevXRefOffset = parser.GetXRefOffset();
 
-    auto trailer = std::make_unique<PdfObject>(parser->GetTrailer());
-    this->SetTrailer(trailer); // Set immediately as trailer
+    auto trailer = std::make_unique<PdfObject>(parser.GetTrailer());
+    this->SetTrailer(std::move(trailer)); // Set immediately as trailer
                                 // so that trailer has an owner
 
     if (PdfError::IsLoggingSeverityEnabled(LogSeverity::Debug))
@@ -98,31 +83,11 @@ void PdfMemDocument::InitFromParser(PdfParser* parser)
         PdfError::LogMessage(LogSeverity::Debug, buf);
     }
 
-    auto catalog = GetTrailer().GetDictionary().FindKey("Root");
-    if (catalog == nullptr)
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoObject, "Catalog object not found!");
-
-    this->SetCatalog(catalog);
-
-    auto infoObj = GetTrailer().GetDictionary().FindKey("Info");
-    unique_ptr<PdfInfo> info;
-    if (infoObj == nullptr)
-    {
-        info.reset(new PdfInfo(*this));
-        GetTrailer().GetDictionary().AddKey("Info", info->GetObject().GetIndirectReference());
-    }
-    else
-    {
-        info.reset(new PdfInfo(*infoObj));
-    }
-
-    this->SetInfo(info);
-
-    if (parser->IsEncrypted())
+    if (parser.IsEncrypted())
     {
         // All PdfParser instances have a pointer to a PdfEncrypt object.
         // So we have to take ownership of it (command the parser to give it).
-        m_Encrypt = parser->TakeEncrypt();
+        m_Encrypt = parser.TakeEncrypt();
     }
 
     InitPagesTree();
@@ -140,7 +105,7 @@ void PdfMemDocument::Load(const string_view& filename, const string_view& passwo
     PdfParser parser(PdfDocument::GetObjects());
     parser.SetPassword(password);
     parser.ParseFile(filename.data(), true);
-    InitFromParser(&parser);
+    InitFromParser(parser);
 }
 
 void PdfMemDocument::LoadFromBuffer(const string_view& buffer, const string_view& password)
@@ -155,7 +120,7 @@ void PdfMemDocument::LoadFromBuffer(const string_view& buffer, const string_view
     PdfParser parser(PdfDocument::GetObjects());
     parser.SetPassword(password);
     parser.ParseBuffer(buffer, true);
-    InitFromParser(&parser);
+    InitFromParser(parser);
 }
 
 void PdfMemDocument::LoadFromDevice(const std::shared_ptr<PdfInputDevice>& device, const string_view& password)
@@ -167,7 +132,7 @@ void PdfMemDocument::LoadFromDevice(const std::shared_ptr<PdfInputDevice>& devic
     PdfParser parser(PdfDocument::GetObjects());
     parser.SetPassword(password);
     parser.Parse(device, true);
-    InitFromParser(&parser);
+    InitFromParser(parser);
 }
 
 void PdfMemDocument::AddPdfExtension(const PdfName& ns, int64_t level)

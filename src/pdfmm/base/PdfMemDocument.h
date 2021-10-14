@@ -53,25 +53,9 @@ class PDFMM_API PdfMemDocument : public PdfDocument
     friend class PdfWriter;
 
 public:
-
-    /** Construct a new (empty) PdfMemDocument
+    /** Construct a new PdfMemDocument
      */
-    PdfMemDocument();
-
-    /** Construct a new (empty) PdfMemDocument
-     */
-    PdfMemDocument(bool onlyTrailer);
-
-    /** Construct a PdfMemDocument from an existing PDF (on disk)
-     *  \param filename filename of the file which is going to be parsed/opened
-     *  \param bForUpdate whether to load for incremental update
-     *
-     *  When the bForUpdate is set to true, the filename is copied
-     *  for later use by WriteUpdate.
-     *
-     *  \see WriteUpdate
-     */
-    PdfMemDocument(const std::string_view& filename);
+    PdfMemDocument(bool empty = false);
 
     /** Close down/destruct the PdfMemDocument
      */
@@ -344,7 +328,7 @@ private:
      *  The objects will be removed from the parser and are now
      *  owned by the PdfMemDocument.
      */
-    void InitFromParser(PdfParser* parser);
+    void InitFromParser(PdfParser& parser);
 
     /** Clear all internal variables
      */
@@ -358,6 +342,7 @@ private:
     PdfMemDocument(const PdfMemDocument&) = delete;
     PdfMemDocument& operator=(const PdfMemDocument&) = delete;
 
+private:
     bool m_Linearized;
     PdfVersion m_Version;
 
