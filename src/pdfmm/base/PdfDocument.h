@@ -245,6 +245,8 @@ public:
      */
     void SetBindingDirection(const PdfName& direction);
 
+    void CollectGarbage();
+
     /** Checks if printing this document is allowed.
      *  Every PDF-consuming application has to adhere to this value!
      *

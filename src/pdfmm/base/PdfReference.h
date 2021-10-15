@@ -121,4 +121,16 @@ private:
 
 };
 
+namespace std
+{
+    template<>
+    struct hash<mm::PdfReference>
+    {
+        std::size_t operator()(const mm::PdfReference& ref) const noexcept
+        {
+            return ref.ObjectNumber() ^ (ref.GenerationNumber() << 16);
+        }
+    };
+}
+
 #endif // PDF_REFERENCE_H

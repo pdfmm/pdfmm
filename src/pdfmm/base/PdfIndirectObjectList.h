@@ -9,8 +9,10 @@
 #ifndef PDF_INDIRECT_OBJECT_LIST_H
 #define PDF_INDIRECT_OBJECT_LIST_H
 
-#include <set>
 #include <list>
+#include <set>
+#include <unordered_set>
+
 #include "PdfDefines.h"
 #include "PdfReference.h"
 
@@ -41,6 +43,7 @@ class PDFMM_API PdfIndirectObjectList final
     friend class PdfDocument;
     friend class PdfParser;
     friend class PdfObjectStreamParser;
+    friend class PdfImmediateWriter;
 
 private:
     static bool CompareObject(const PdfObject* p1, const PdfObject* p2);
@@ -149,12 +152,12 @@ public:
      *  The caller has to delete the object by himself.
      *
      *  \param ref the object to be found
-     *  \param bMarkAsFree if true the removed object reference is marked as free object
+     *  \param markAsFree if true the removed object reference is marked as free object
      *                     you will always want to have this true
      *                     as invalid PDF files can be generated otherwise
      *  \returns The removed object.
      */
-    std::unique_ptr<PdfObject> RemoveObject(const PdfReference& ref, bool markAsFree = true);
+    std::unique_ptr<PdfObject> RemoveObject(const PdfReference& ref);
 
     /** Remove the object with the iterator it from the vector and return it
      *  \param it the object to remove
@@ -223,17 +226,6 @@ public:
      *  \param stream the stream object that is calling
      */
     void EndAppendStream(const PdfStream& stream);
-
-    /**
-     * Deletes all objects that are not references by other objects
-     * besides the trailer (which references the root dictionary, which in
-     * turn should reference all other objects).
-     *
-     * \param trailer trailer object of the PDF
-     *
-     * Warning this might be slow!
-     */
-    void CollectGarbage(PdfObject& trailer);
 
     /**
      * Set the object count so that the object described this reference
@@ -328,7 +320,18 @@ private:
      */
     void AddFreeObject(const PdfReference& reference);
 
+    std::unique_ptr<PdfObject> RemoveObject(const PdfReference& ref, bool markAsFree);
+
+    /**
+     * Deletes all objects that are not references by other objects
+     * besides the trailer (which references the root dictionary, which in
+     * turn should reference all other objects).
+     */
+    void CollectGarbage();
+
 private:
+    std::unique_ptr<PdfObject> removeObject(const iterator& it, bool markAsFree);
+
     void addNewObject(PdfObject* obj);
 
     /**
@@ -357,6 +360,8 @@ private:
      *  \see BuildReferenceCountVector
      */
     void garbageCollection(ReferencePointersList& list, PdfObject& trailer, ReferenceSet* notDelete = nullptr);
+
+    void visitObject(const PdfObject& obj, std::unordered_set<PdfReference>& referencedObj);
 
 public:
     /** Iterator pointing at the beginning of the vector

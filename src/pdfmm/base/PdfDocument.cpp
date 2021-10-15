@@ -589,6 +589,11 @@ void PdfDocument::SetBindingDirection(const PdfName& direction)
     SetViewerPreference("Direction", direction);
 }
 
+void PdfDocument::CollectGarbage()
+{
+    m_Objects.CollectGarbage();
+}
+
 void PdfDocument::SetPageLayout(PdfPageLayout layout)
 {
     switch (layout)

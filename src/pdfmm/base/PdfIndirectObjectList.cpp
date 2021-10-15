@@ -17,13 +17,13 @@
 #include "PdfObject.h"
 #include "PdfReference.h"
 #include "PdfStream.h"
+#include "PdfDocument.h"
 
 using namespace std;
 using namespace mm;
 
 static constexpr size_t MaxReserveSize = 8388607; // cf. Table C.1 in section C.2 of PDF32000_2008.pdf
-
-#define MAX_XREF_GEN_NUM 65535
+static constexpr unsigned MaxXRefGenerationNum = 65535;
 
 struct ObjectComparatorPredicate
 {
@@ -125,23 +125,31 @@ PdfObject* PdfIndirectObjectList::GetObject(const PdfReference& ref) const
     return *it;
 }
 
+unique_ptr<PdfObject> PdfIndirectObjectList::RemoveObject(const PdfReference& ref)
+{
+    return RemoveObject(ref, true);
+}
+
 unique_ptr<PdfObject> PdfIndirectObjectList::RemoveObject(const PdfReference& ref, bool markAsFree)
 {
     auto it = std::lower_bound(m_Objects.begin(), m_Objects.end(), ref, CompareReference);
     if (it == m_Objects.end() || (*it)->GetIndirectReference() != ref)
         return nullptr;
 
-    auto obj = *it;
-    if (markAsFree)
-        SafeAddFreeObject(obj->GetIndirectReference());
-
-    m_Objects.erase(it);
-    return unique_ptr<PdfObject>(obj);
+    return removeObject(it, markAsFree);
 }
 
 unique_ptr<PdfObject> PdfIndirectObjectList::RemoveObject(const iterator& it)
 {
+    return removeObject(it, true);
+}
+
+unique_ptr<PdfObject> PdfIndirectObjectList::removeObject(const iterator& it, bool markAsFree)
+{
     auto obj = *it;
+    if (markAsFree)
+        SafeAddFreeObject(obj->GetIndirectReference());
+
     m_Objects.erase(it);
     return unique_ptr<PdfObject>(obj);
 }
@@ -215,7 +223,7 @@ int32_t PdfIndirectObjectList::tryAddFreeObject(uint32_t objnum, uint32_t gennum
     // generation number is 65535; when a cross reference entry reaches
     // this value, it is never reused."
     // NOTE: gennum is uint32 to accomodate overflows from callers
-    if (gennum >= MAX_XREF_GEN_NUM)
+    if (gennum >= MaxXRefGenerationNum)
     {
         m_UnavailableObjects.insert(gennum);
         return -1;
@@ -274,16 +282,67 @@ void PdfIndirectObjectList::PushObject(PdfObject* obj)
     TryIncrementObjectCount(obj->GetIndirectReference());
 }
 
-#pragma region Untested
-
-void PdfIndirectObjectList::CollectGarbage(PdfObject& trailer)
+void PdfIndirectObjectList::CollectGarbage()
 {
-    // We do not have any objects that have
-    // to be on the top, like in a linearized PDF.
-    // So we just use an empty list.
-    ReferenceSet setLinearizedGroup;
-    this->RenumberObjects(trailer, &setLinearizedGroup, true);
+    unordered_set<PdfReference> referencedOjects;
+    visitObject(m_Document->GetTrailer(), referencedOjects);
+    ObjectList newlist(CompareObject);
+    for (PdfObject* obj : m_Objects)
+    {
+        if (referencedOjects.find(obj->GetIndirectReference()) == referencedOjects.end())
+        {
+            SafeAddFreeObject(obj->GetIndirectReference());
+            continue;
+        }
+
+        newlist.insert(obj);
+    }
+
+    m_Objects.swap(newlist);
 }
+
+void PdfIndirectObjectList::visitObject(const PdfObject& obj, unordered_set<PdfReference>& referencedObjects)
+{
+    if (obj.IsIndirect())
+    {
+        // Try to check if the object has been already visited
+        auto inserted = referencedObjects.insert(obj.GetIndirectReference());
+        if (!inserted.second)
+        {
+            // The object has been visited, just return
+            return;
+        }
+    }
+
+    switch (obj.GetDataType())
+    {
+        case PdfDataType::Reference:
+        {
+            auto childObj = GetObject(obj.GetReference());
+            if (childObj == nullptr)
+                break;
+
+            visitObject(*childObj, referencedObjects);
+            break;
+        }
+        case PdfDataType::Array:
+        {
+            auto& arr = obj.GetArray();
+            for (auto& child : arr)
+                visitObject(child, referencedObjects);
+            break;
+        }
+        case PdfDataType::Dictionary:
+        {
+            auto& dict = obj.GetDictionary();
+            for (auto& pair : dict)
+                visitObject(pair.second, referencedObjects);
+            break;
+        }
+    }
+}
+
+#pragma region Untested
 
 void PdfIndirectObjectList::RenumberObjects(PdfObject& trailer, ReferenceSet* notDelete, bool doGarbageCollection)
 {
