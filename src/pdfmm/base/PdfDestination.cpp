@@ -114,7 +114,7 @@ void PdfDestination::Init(PdfObject& obj, PdfDocument& doc)
     }
     else if (obj.GetDataType() == PdfDataType::String)
     {
-        auto names = doc.GetNamesTree(false);
+        auto names = doc.GetNameTree();
         if (names == nullptr)
             PDFMM_RAISE_ERROR(PdfErrorCode::NoObject);
 

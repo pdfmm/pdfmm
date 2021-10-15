@@ -46,20 +46,41 @@ PdfMemDocument::PdfMemDocument(bool empty) :
 {
 }
 
+PdfMemDocument::PdfMemDocument(const PdfMemDocument& rhs) :
+    PdfDocument(rhs),
+    m_Version(rhs.m_Version),
+    m_InitialVersion(rhs.m_InitialVersion),
+    m_HasXRefStream(rhs.m_HasXRefStream),
+    m_PrevXRefOffset(rhs.m_PrevXRefOffset),
+    m_WriteMode(rhs.m_WriteMode),
+    m_Linearized(rhs.m_Linearized)
+{
+    auto encryptObj = GetTrailer().GetDictionary().FindKey("Encrypt");
+    if (encryptObj != nullptr)
+        m_Encrypt = PdfEncrypt::CreatePdfEncrypt(*encryptObj);
+}
+
 PdfMemDocument::~PdfMemDocument()
 {
-    this->Clear();
+    // NOTE: Don't call PdfMemDocument::Clear() here,
+    // ~PdfDocument() will call its PdfDocument::Clear()
+    clear();
 }
 
 void PdfMemDocument::Clear()
+{
+    // Do clear both locally defined variables and inherited ones
+    clear();
+    PdfDocument::Clear();
+}
+
+void PdfMemDocument::clear()
 {
     m_HasXRefStream = false;
     m_PrevXRefOffset = -1;
     m_WriteMode = PdfWriteModeDefault;
     m_Linearized = false;
     m_Encrypt = nullptr;
-    GetObjects().SetCanReuseObjectNumbers(true);
-    PdfDocument::Clear();
 }
 
 void PdfMemDocument::InitFromParser(PdfParser& parser)
@@ -90,7 +111,7 @@ void PdfMemDocument::InitFromParser(PdfParser& parser)
         m_Encrypt = parser.TakeEncrypt();
     }
 
-    InitPagesTree();
+    Init();
 }
 
 void PdfMemDocument::Load(const string_view& filename, const string_view& password)

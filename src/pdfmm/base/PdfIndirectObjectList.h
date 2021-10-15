@@ -6,8 +6,8 @@
  * Some rights reserved. See COPYING, AUTHORS.
  */
 
-#ifndef PDF_VEC_OBJECTS_H
-#define PDF_VEC_OBJECTS_H
+#ifndef PDF_INDIRECT_OBJECT_LIST_H
+#define PDF_INDIRECT_OBJECT_LIST_H
 
 #include <set>
 #include <list>
@@ -41,6 +41,7 @@ class PDFMM_API PdfIndirectObjectList final
     friend class PdfDocument;
     friend class PdfParser;
     friend class PdfObjectStreamParser;
+
 private:
     static bool CompareObject(const PdfObject* p1, const PdfObject* p2);
     static bool CompareReference(const PdfObject* obj, const PdfReference& ref);
@@ -94,14 +95,12 @@ public:
     };
 
 public:
-    PdfIndirectObjectList(PdfDocument& document);
-
     ~PdfIndirectObjectList();
 
     /** Enable/disable object numbers re-use.
      *  By default object numbers re-use is enabled.
      *
-     *  \param bCanReuseObjectNumbers if true, free object numbers can be re-used when creating new objects.
+     *  \param canReuseObjectNumbers if true, free object numbers can be re-used when creating new objects.
      *
      *  If set to false, the list of free object numbers is automatically cleared.
      */
@@ -179,25 +178,6 @@ public:
      */
     PdfObject* CreateObject(const PdfVariant& variant);
 
-    /**
-     * Set the maximum number of elements Reserve() will work for (to fix
-     * CVE-2018-5783) which is called with a value from the PDF in the parser.
-     * The default is from Table C.1 in section C.2 of PDF32000_2008.pdf
-     * (PDF 1.7 standard free version).
-     * This sets a static variable, so don't use from multiple threads
-     * (without proper locking).
-     * \param size Number of elements to allow to be reserved
-     */
-    void SetMaxReserveSize(size_t size) { m_MaxReserveSize = size; }
-
-    /**
-     * Gets the maximum number of elements Reserve() will work for (to fix
-     * CVE-2018-5783) which is called with a value from the PDF in the parser.
-     * The default is from Table C.1 in section C.2 of PDF32000_2008.pdf
-     * (PDF 1.7 standard free version): 8388607.
-     */
-    size_t GetMaxReserveSize() const { return m_MaxReserveSize; }
-
     /** Attach a new observer
      *  \param pObserver to attach
      */
@@ -261,7 +241,7 @@ public:
      *
      * \param ref reference of newly added object
      */
-    void SetObjectCount(const PdfReference& ref);
+    void TryIncrementObjectCount(const PdfReference& ref);
 
 private:
     // Use deque as many insertions are here way faster than with using std::list
@@ -271,6 +251,7 @@ private:
     typedef std::set<PdfReference>                   ReferenceSet;
     typedef std::list<PdfReference*>                 ReferencePointers;
     typedef std::vector<ReferencePointers>           ReferencePointersList;
+    typedef std::vector<Observer*> ObserverList;
 
 private:
     // CHECK-ME: Should this function be public or stay private? Originally it was private
@@ -297,36 +278,13 @@ private:
      */
     void GetObjectDependencies(const PdfObject& obj, PdfReferenceList& list) const;
 
-public:
-    /** Iterator pointing at the beginning of the vector
-     *  \returns beginning iterator
-     */
-    iterator begin() const;
-
-    /** Iterator pointing at the end of the vector
-     *  \returns ending iterator
-     */
-    iterator end() const;
-
-    size_t size() const;
-
-public:
-    /** \returns a pointer to a PdfDocument that is the
-     *           parent of this vector.
-     *           Might be nullptr if the vector has no parent.
-     */
-    inline PdfDocument& GetDocument() const { return *m_Document; }
-
-    /**
-     *  \returns whether can re-use free object numbers when creating new objects.
-     */
-    inline bool GetCanReuseObjectNumbers() const { return m_CanReuseObjectNumbers; }
-
-    /** \returns a list of free references in this vector
-     */
-    inline const PdfReferenceList& GetFreeObjects() const { return m_FreeObjects; }
-
 private:
+    PdfIndirectObjectList(PdfDocument& document);
+    PdfIndirectObjectList(PdfDocument& document, const PdfIndirectObjectList& rhs);
+
+    PdfIndirectObjectList(const PdfIndirectObjectList&) = delete;
+    PdfIndirectObjectList& operator=(const PdfIndirectObjectList&) = delete;
+
     /** Insert an object into this vector so that
      *  the vector remains sorted w.r.t.
      *  the ordering based on object and generation numbers
@@ -400,29 +358,47 @@ private:
      */
     void garbageCollection(ReferencePointersList& list, PdfObject& trailer, ReferenceSet* notDelete = nullptr);
 
-private:
-    PdfIndirectObjectList(const PdfIndirectObjectList&) = delete;
-    PdfIndirectObjectList& operator=(const PdfIndirectObjectList&) = delete;
+public:
+    /** Iterator pointing at the beginning of the vector
+     *  \returns beginning iterator
+     */
+    iterator begin() const;
 
-private:
-    typedef std::vector<Observer*> ObserverList;
+    /** Iterator pointing at the end of the vector
+     *  \returns ending iterator
+     */
+    iterator end() const;
+
+    size_t size() const;
+
+public:
+    /** \returns a pointer to a PdfDocument that is the
+     *           parent of this vector.
+     *           Might be nullptr if the vector has no parent.
+     */
+    inline PdfDocument& GetDocument() const { return *m_Document; }
+
+    /**
+     *  \returns whether can re-use free object numbers when creating new objects.
+     */
+    inline bool GetCanReuseObjectNumbers() const { return m_CanReuseObjectNumbers; }
+
+    /** \returns a list of free references in this vector
+     */
+    inline const PdfReferenceList& GetFreeObjects() const { return m_FreeObjects; }
 
 private:
     PdfDocument* m_Document;
-    ObjectList m_Objects;
     bool m_CanReuseObjectNumbers;
+    ObjectList m_Objects;
     unsigned m_ObjectCount;
-
-    ObserverList m_observers;
     PdfReferenceList m_FreeObjects;
     ObjectNumList m_UnavailableObjects;
 
+    ObserverList m_observers;
     StreamFactory* m_StreamFactory;
-
-    std::string m_SubsetPrefix;		    // Prefix for BaseFont and FontName of subsetted font
-    static size_t m_MaxReserveSize;
 };
 
 };
 
-#endif // PDF_VEC_OBJECTS_H
+#endif // PDF_INDIRECT_OBJECT_LIST_H

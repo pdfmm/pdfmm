@@ -52,8 +52,17 @@ PdfDocument::PdfDocument(bool empty) :
         m_Trailer->GetDictionary().AddKey("Root", m_Catalog->GetIndirectReference());
         m_Trailer->GetDictionary().AddKey("Info", m_Info->GetObject().GetIndirectReference());
 
-        InitPagesTree();
+        Init();
     }
+}
+
+PdfDocument::PdfDocument(const PdfDocument& doc) :
+    m_Objects(*this, doc.m_Objects),
+    m_Catalog(nullptr),
+    m_FontManager(*this)
+{
+    SetTrailer(std::make_unique<PdfObject>(doc.GetTrailer()));
+    Init();
 }
 
 PdfDocument::~PdfDocument()
@@ -65,10 +74,11 @@ void PdfDocument::Clear()
 {
     m_FontManager.EmptyCache();
     m_Objects.Clear();
+    m_Objects.SetCanReuseObjectNumbers(true);
     m_Catalog = nullptr;
 }
 
-void PdfDocument::InitPagesTree()
+void PdfDocument::Init()
 {
     auto pagesRootObj = m_Catalog->GetDictionary().FindKey("Pages");
     if (pagesRootObj == nullptr)
@@ -80,6 +90,18 @@ void PdfDocument::InitPagesTree()
     {
         m_PageTree.reset(new PdfPageTree(*pagesRootObj));
     }
+
+    auto namesObj = GetNamedObjectFromCatalog("Names");
+    if (namesObj != nullptr)
+        m_NameTree.reset(new PdfNameTree(*namesObj));
+
+    auto outlinesObj = GetNamedObjectFromCatalog("Outlines");
+    if (outlinesObj != nullptr)
+        m_Outlines.reset(new PdfOutlines(*outlinesObj));
+
+    auto acroformObj = GetNamedObjectFromCatalog("AcroForm");
+    if (acroformObj != nullptr)
+        m_AcroForm.reset(new PdfAcroForm(*acroformObj));
 }
 
 PdfObject* PdfDocument::GetNamedObjectFromCatalog(const string_view& name) const
@@ -159,7 +181,7 @@ const PdfDocument& PdfDocument::Append(const PdfDocument& doc, bool appendAll)
 
         // append all outlines
         PdfOutlineItem* root = this->GetOutlines();
-        PdfOutlines* appendRoot = const_cast<PdfDocument&>(doc).GetOutlines(false);
+        PdfOutlines* appendRoot = const_cast<PdfDocument&>(doc).GetOutlines();
         if (appendRoot && appendRoot->First())
         {
             // only append outlines if appended document has outlines
@@ -248,7 +270,7 @@ const PdfDocument& PdfDocument::InsertExistingPageAt(const PdfDocument& doc, uns
 
     // append all outlines
     PdfOutlineItem* root = this->GetOutlines();
-    PdfOutlines* appendRoot = const_cast<PdfDocument&>(doc).GetOutlines(false);
+    PdfOutlines* appendRoot = const_cast<PdfDocument&>(doc).GetOutlines();
     if (appendRoot != nullptr && appendRoot->First())
     {
         // only append outlines if appended document has outlines
@@ -598,110 +620,56 @@ void PdfDocument::SetPageLayout(PdfPageLayout layout)
     }
 }
 
-PdfOutlines* PdfDocument::GetOutlines(bool create)
+PdfOutlines& PdfDocument::GetOrCreateOutlines()
 {
-    PdfObject* obj;
+    if (m_Outlines != nullptr)
+        return *m_Outlines.get();
 
-    if (m_Outlines == nullptr)
-    {
-        obj = GetNamedObjectFromCatalog("Outlines");
-        if (obj == nullptr)
-        {
-            if (!create)
-                return nullptr;
-
-            m_Outlines.reset(new PdfOutlines(*this));
-            m_Catalog->GetDictionary().AddKey("Outlines", m_Outlines->GetObject().GetIndirectReference());
-        }
-        else if (obj->GetDataType() != PdfDataType::Dictionary)
-        {
-            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
-        }
-        else
-            m_Outlines.reset(new PdfOutlines(*obj));
-    }
-
-    return m_Outlines.get();
+    m_Outlines.reset(new PdfOutlines(*this));
+    m_Catalog->GetDictionary().AddKey("Outlines", m_Outlines->GetObject().GetIndirectReference());
+    return *m_Outlines.get();
 }
 
-PdfNameTree* PdfDocument::GetNamesTree(bool create)
+PdfNameTree& PdfDocument::GetOrCreateNameTree()
 {
-    PdfObject* obj;
-    if (m_NameTree == nullptr)
-    {
-        obj = GetNamedObjectFromCatalog("Names");
-        if (obj == nullptr)
-        {
-            if (!create)
-                return nullptr;
+    if (m_NameTree != nullptr)
+        return *m_NameTree;
 
-            PdfNameTree tmpTree(*this);
-            obj = &tmpTree.GetObject();
-            m_Catalog->GetDictionary().AddKey("Names", obj->GetIndirectReference());
-            m_NameTree.reset(new PdfNameTree(*obj));
-        }
-        else if (obj->GetDataType() != PdfDataType::Dictionary)
-        {
-            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
-        }
-        else
-            m_NameTree.reset(new PdfNameTree(*obj));
-    }
-
-    return m_NameTree.get();
+    PdfNameTree tmpTree(*this);
+    auto obj = &tmpTree.GetObject();
+    m_Catalog->GetDictionary().AddKey("Names", obj->GetIndirectReference());
+    m_NameTree.reset(new PdfNameTree(*obj));
+    return *m_NameTree;
 }
 
-PdfAcroForm* PdfDocument::GetAcroForm(bool create, PdfAcroFormDefaulAppearance defaultAppearance)
+PdfAcroForm& PdfDocument::GetOrCreateAcroForm(PdfAcroFormDefaulAppearance defaultAppearance)
 {
-    if (m_AcroForms == nullptr)
-    {
-        auto obj = GetNamedObjectFromCatalog("AcroForm");
-        if (obj == nullptr)
-        {
-            if (!create)
-                return nullptr;
+    if (m_AcroForm != nullptr)
+        return *m_AcroForm.get();
 
-            m_AcroForms.reset(new PdfAcroForm(*this, defaultAppearance));
-            m_Catalog->GetDictionary().AddKey("AcroForm", m_AcroForms->GetObject().GetIndirectReference());
-        }
-        else if (obj->GetDataType() != PdfDataType::Dictionary)
-        {
-            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
-        }
-        else
-        {
-            m_AcroForms.reset(new PdfAcroForm(*obj, defaultAppearance));
-        }
-    }
-
-    return m_AcroForms.get();
+    m_AcroForm.reset(new PdfAcroForm(*this, defaultAppearance));
+    m_Catalog->GetDictionary().AddKey("AcroForm", m_AcroForm->GetObject().GetIndirectReference());
+    return *m_AcroForm.get();
 }
 
 void PdfDocument::AddNamedDestination(const PdfDestination& dest, const PdfString& name)
 {
-    auto names = GetNamesTree();
-    names->AddValue("Dests", name, dest.GetObject()->GetIndirectReference());
+    auto& names = GetOrCreateNameTree();
+    names.AddValue("Dests", name, dest.GetObject()->GetIndirectReference());
 }
 
 void PdfDocument::AttachFile(const PdfFileSpec& fileSpec)
 {
-    auto names = this->GetNamesTree(true);
-
-    if (names == nullptr)
-        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
-
-    names->AddValue("EmbeddedFiles", fileSpec.GetFilename(false), fileSpec.GetObject().GetIndirectReference());
+    auto& names = GetOrCreateNameTree();
+    names.AddValue("EmbeddedFiles", fileSpec.GetFilename(false), fileSpec.GetObject().GetIndirectReference());
 }
     
 PdfFileSpec* PdfDocument::GetAttachment(const PdfString& name)
 {
-    auto names = this->GetNamesTree();
-
-    if (names == nullptr)
+    if (m_NameTree == nullptr)
         return nullptr;
 
-    auto obj = names->GetValue("EmbeddedFiles", name);
-
+    auto obj = m_NameTree->GetValue("EmbeddedFiles", name);
     if (obj == nullptr)
         return nullptr;
 
@@ -763,7 +731,6 @@ PdfPageTree& PdfDocument::GetPageTree()
 
     return *m_PageTree;
 }
-
 
 PdfObject& PdfDocument::GetTrailer()
 {

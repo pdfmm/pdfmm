@@ -78,7 +78,7 @@ public:
      *                 or return nullptr if it does not exist
      *  \returns the Outlines/Bookmarks dictionary
      */
-    PdfOutlines* GetOutlines(bool create = true);
+    PdfOutlines& GetOrCreateOutlines();
 
     /** Get access to the Names dictionary (where all the named objects are stored)
      *  The returned PdfNameTree object is owned by the PdfDocument.
@@ -87,7 +87,7 @@ public:
      *                 or return nullptr if it does not exist
      *  \returns the Names dictionary
      */
-    PdfNameTree* GetNamesTree(bool create = true);
+    PdfNameTree& GetOrCreateNameTree();
 
     /** Get access to the AcroForm dictionary
      *
@@ -97,8 +97,7 @@ public:
      *
      *  \returns PdfObject the AcroForm dictionary
      */
-    PdfAcroForm* GetAcroForm(bool create = true,
-        PdfAcroFormDefaulAppearance eDefaultAppearance = PdfAcroFormDefaulAppearance::BlackText12pt);
+    PdfAcroForm& GetOrCreateAcroForm(PdfAcroFormDefaulAppearance eDefaultAppearance = PdfAcroFormDefaulAppearance::BlackText12pt);
 
     /** Embeds all pending subset fonts, is automatically done on Write().
      *  Just call explicitly in case the PdfDocument is needed as PdfXObject.
@@ -387,6 +386,12 @@ public:
      */
     inline const PdfIndirectObjectList& GetObjects() const { return m_Objects; }
 
+    inline PdfAcroForm* GetAcroForm() { return m_AcroForm.get(); }
+
+    inline PdfNameTree* GetNameTree() { return m_NameTree.get(); }
+
+    inline PdfOutlines* GetOutlines() { return m_Outlines.get(); }
+
     inline PdfFontManager& GetFontManager() { return m_FontManager; }
 
 protected:
@@ -394,6 +399,8 @@ protected:
      *  \param empty if true NO default objects (such as catalog) are created.
      */
     PdfDocument(bool empty = false);
+
+    PdfDocument(const PdfDocument& doc);
 
     /** Set the trailer of this PdfDocument
      *  deleting the old one.
@@ -411,7 +418,7 @@ protected:
 
     /** Internal method for initializing the pages tree for this document
      */
-    void InitPagesTree();
+    void Init();
 
     /** Recursively changes every PdfReference in the PdfObject and in any child
      *  that is either an PdfArray or a direct object.
@@ -448,11 +455,6 @@ protected:
     inline PdfObject* getCatalog() { return m_Catalog; }
 
 private:
-    // Prevent use of copy constructor and assignment operator.  These methods
-    // should never be referenced (given that code referencing them outside
-    // PdfDocument won't compile), and calling them will result in a link error
-    // as they're not defined.
-    explicit PdfDocument(const PdfDocument&);
     PdfDocument& operator=(const PdfDocument&) = delete;
 
 private:
@@ -461,7 +463,7 @@ private:
     PdfObject* m_Catalog;
     std::unique_ptr<PdfInfo> m_Info;
     std::unique_ptr<PdfPageTree> m_PageTree;
-    std::unique_ptr<PdfAcroForm> m_AcroForms;
+    std::unique_ptr<PdfAcroForm> m_AcroForm;
     std::unique_ptr<PdfOutlines> m_Outlines;
     std::unique_ptr<PdfNameTree> m_NameTree;
     PdfFontManager m_FontManager;

@@ -25,13 +25,13 @@ PdfSignature::PdfSignature(PdfPage& page, const PdfRect& rect)
     : PdfField(PdfFieldType::Signature, page, rect), m_ValueObj(nullptr)
 {
 
-    Init(*page.GetDocument().GetAcroForm());
+    Init(page.GetDocument().GetOrCreateAcroForm());
 }
 
 PdfSignature::PdfSignature(PdfDocument& doc, PdfAnnotation* widget, bool insertInAcroform)
     : PdfField(PdfFieldType::Signature, doc, widget, insertInAcroform), m_ValueObj(nullptr)
 {
-    Init(*doc.GetAcroForm());
+    Init(doc.GetOrCreateAcroForm());
 }
 
 PdfSignature::PdfSignature(PdfObject& obj, PdfAnnotation* widget)

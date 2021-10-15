@@ -36,10 +36,8 @@ public:
 
     /** Create a PdfAcroForm dictionary object from an existing PdfObject
      *	\param obj the object to create from
-     *  \param defaultAppearance specifies if a default appearance should be added
      */
-    PdfAcroForm(PdfObject& obj,
-        PdfAcroFormDefaulAppearance defaultAppearance = PdfAcroFormDefaulAppearance::BlackText12pt);
+    PdfAcroForm(PdfObject& obj);
 
     PdfArray& GetFieldsArray();
 

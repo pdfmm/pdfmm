@@ -72,8 +72,6 @@ protected:
 
     PdfField(PdfFieldType fieldType, PdfDocument& doc, PdfAnnotation* widget, bool insertInAcroform);
 
-    PdfField(PdfFieldType fieldType, PdfPage& page, const PdfRect& rect, bool bDefaultApperance);
-
     PdfField(PdfFieldType fieldType, PdfObject& obj, PdfAnnotation* widget);
 
     /**

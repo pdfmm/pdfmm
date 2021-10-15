@@ -57,9 +57,11 @@ public:
      */
     PdfMemDocument(bool empty = false);
 
-    /** Close down/destruct the PdfMemDocument
+    /** Construct a copy of the given document
      */
-    virtual ~PdfMemDocument();
+    PdfMemDocument(const PdfMemDocument& rhs);
+
+    ~PdfMemDocument();
 
     /** Load a PdfMemDocument from a file
      *
@@ -152,7 +154,7 @@ public:
      */
     void SetWriteMode(PdfWriteMode writeMode) { m_WriteMode = writeMode; }
 
-    PdfWriteMode GetWriteMode() const  override { return m_WriteMode; }
+    inline PdfWriteMode GetWriteMode() const  override { return m_WriteMode; }
 
     /** Set the PDF Version of the document. Has to be called before Write() to
      *  have an effect.
@@ -333,13 +335,9 @@ private:
     /** Clear all internal variables
      */
     void Clear();
+    void clear();
 
 private:
-    // Prevent use of copy constructor and assignment operator.  These methods
-    // should never be referenced (given that code referencing them outside
-    // PdfMemDocument won't compile), and calling them will result in a link error
-    // as they're not defined.
-    PdfMemDocument(const PdfMemDocument&) = delete;
     PdfMemDocument& operator=(const PdfMemDocument&) = delete;
 
 private:

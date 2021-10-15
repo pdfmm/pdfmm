@@ -21,12 +21,14 @@
 using namespace std;
 using namespace mm;
 
+static constexpr size_t MaxReserveSize = 8388607; // cf. Table C.1 in section C.2 of PDF32000_2008.pdf
+
 #define MAX_XREF_GEN_NUM 65535
 
 struct ObjectComparatorPredicate
 {
 public:
-    inline bool operator()(const PdfObject* const& obj1, const PdfObject* const& obj2) const
+    inline bool operator()(const PdfObject* obj1, const PdfObject* obj2) const
     {
         return obj1->GetIndirectReference() < obj2->GetIndirectReference();
     }
@@ -62,17 +64,32 @@ private:
     const PdfReference m_ref;
 };
 
-// This is static, IMHO (mabri) different values per-instance could cause confusion.
-// It has to be defined here because of the one-definition rule.
-size_t PdfIndirectObjectList::m_MaxReserveSize = static_cast<size_t>(8388607); // cf. Table C.1 in section C.2 of PDF32000_2008.pdf
-
 PdfIndirectObjectList::PdfIndirectObjectList(PdfDocument& document) :
     m_Document(&document),
-    m_Objects(CompareObject),
     m_CanReuseObjectNumbers(true),
+    m_Objects(CompareObject),
     m_ObjectCount(1),
     m_StreamFactory(nullptr)
 {
+}
+
+PdfIndirectObjectList::PdfIndirectObjectList(PdfDocument& document, const PdfIndirectObjectList& rhs)  :
+    m_Document(&document),
+    m_CanReuseObjectNumbers(rhs.m_CanReuseObjectNumbers),
+    m_Objects(CompareObject),
+    m_ObjectCount(rhs.m_ObjectCount),
+    m_FreeObjects(rhs.m_FreeObjects),
+    m_UnavailableObjects(rhs.m_UnavailableObjects),
+    m_StreamFactory(nullptr)
+{
+    // Copy all objects from source, resetting parent and indirect reference
+    for (auto obj : rhs.m_Objects)
+    {
+        auto newObj = new PdfObject(*obj);
+        newObj->SetIndirectReference(obj->GetIndirectReference());
+        newObj->SetDocument(document);
+        m_Objects.insert(newObj);
+    }
 }
 
 PdfIndirectObjectList::~PdfIndirectObjectList()
@@ -143,7 +160,7 @@ PdfReference PdfIndirectObjectList::getNextFreeObject()
     uint16_t nextObjectNum = static_cast<uint16_t>(m_ObjectCount);
     while (true)
     {
-        if ((size_t)(nextObjectNum + 1) == m_MaxReserveSize)
+        if ((size_t)(nextObjectNum + 1) == MaxReserveSize)
             PDFMM_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Reached the maximum number of indirect objects");
 
         // Check also if the object number it not available,
@@ -219,11 +236,11 @@ void PdfIndirectObjectList::AddFreeObject(const PdfReference& reference)
     }
     else
     {
-        // When append free objects from external doc we need plus one number objects
-        SetObjectCount(reference);
-
         // Insert so that list stays sorted
         m_FreeObjects.insert(it.first, reference);
+
+        // When append free objects from external doc we need plus one number objects
+        TryIncrementObjectCount(reference);
     }
 }
 
@@ -243,7 +260,6 @@ void PdfIndirectObjectList::addNewObject(PdfObject* obj)
 
 void PdfIndirectObjectList::PushObject(PdfObject* obj)
 {
-    SetObjectCount(obj->GetIndirectReference());
     obj->SetDocument(*m_Document);
     auto inserted = m_Objects.insert(obj);
     if (!inserted.second)
@@ -254,6 +270,8 @@ void PdfIndirectObjectList::PushObject(PdfObject* obj)
         m_Objects.erase(inserted.first);
         m_Objects.insert(obj);
     }
+
+    TryIncrementObjectCount(obj->GetIndirectReference());
 }
 
 #pragma region Untested
@@ -522,7 +540,7 @@ void PdfIndirectObjectList::SetStreamFactory(StreamFactory* factory)
     m_StreamFactory = factory;
 }
 
-void PdfIndirectObjectList::SetObjectCount(const PdfReference& ref)
+void PdfIndirectObjectList::TryIncrementObjectCount(const PdfReference& ref)
 {
     if (ref.ObjectNumber() >= m_ObjectCount)
     {

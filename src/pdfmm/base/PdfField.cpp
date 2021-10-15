@@ -35,29 +35,16 @@ PdfField::PdfField(PdfFieldType fieldType, PdfPage& page, const PdfRect& rect)
 {
     m_Widget = page.CreateAnnotation(PdfAnnotationType::Widget, rect);
     m_Object = &m_Widget->GetObject();
-    Init(page.GetDocument().GetAcroForm());
+    Init(&page.GetDocument().GetOrCreateAcroForm());
 }
 
 PdfField::PdfField(PdfFieldType fieldType, PdfDocument& doc, PdfAnnotation* widget, bool insertInAcroform)
     : m_Field(fieldType), m_Object(widget == nullptr ? nullptr : &widget->GetObject()), m_Widget(widget)
 {
-    auto parent = doc.GetAcroForm();
     if (m_Object == nullptr)
-        m_Object = parent->GetDocument().GetObjects().CreateDictionaryObject();
+        m_Object = doc.GetObjects().CreateDictionaryObject();
 
-    Init(insertInAcroform ? parent : nullptr);
-}
-
-PdfField::PdfField(PdfFieldType fieldType, PdfPage& page, const PdfRect& rect, bool bAppearanceNone)
-    : m_Field(fieldType)
-{
-    m_Widget = page.CreateAnnotation(PdfAnnotationType::Widget, rect);
-    m_Object = &m_Widget->GetObject();
-
-    Init(page.GetDocument().GetAcroForm(true,
-        bAppearanceNone ?
-        PdfAcroFormDefaulAppearance::None
-        : PdfAcroFormDefaulAppearance::BlackText12pt));
+    Init(insertInAcroform ? &doc.GetOrCreateAcroForm() : nullptr);
 }
 
 PdfField::PdfField(PdfFieldType fieldType, PdfObject& obj, PdfAnnotation* widget)

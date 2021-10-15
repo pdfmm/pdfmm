@@ -29,10 +29,9 @@ PdfAcroForm::PdfAcroForm(PdfDocument& doc, PdfAcroFormDefaulAppearance defaultAp
     Init(defaultAppearance);
 }
 
-PdfAcroForm::PdfAcroForm(PdfObject& obj, PdfAcroFormDefaulAppearance defaultAppearance)
+PdfAcroForm::PdfAcroForm(PdfObject& obj)
     : PdfElement(obj)
 {
-    Init(defaultAppearance);
 }
 
 PdfArray& PdfAcroForm::GetFieldsArray()
@@ -49,8 +48,7 @@ void PdfAcroForm::Init(PdfAcroFormDefaulAppearance defaultAppearance)
     // Add default appearance: black text, 12pt times 
     // -> only if we do not have a DA key yet
 
-    if (!this->GetObject().GetDictionary().HasKey("DA") &&
-        defaultAppearance == PdfAcroFormDefaulAppearance::BlackText12pt)
+    if (defaultAppearance == PdfAcroFormDefaulAppearance::BlackText12pt)
     {
         PdfFontCreationParams params;
         params.Embed = false;
