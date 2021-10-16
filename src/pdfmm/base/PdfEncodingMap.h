@@ -195,7 +195,7 @@ class PDFMM_API PdfEncodingMapBase : public PdfEncodingMap
     friend class PdfDynamicEncoding;
 
 protected:
-    PdfEncodingMapBase(PdfCharCodeMap&& map, const std::optional<PdfEncodingLimits>& limits = { });
+    PdfEncodingMapBase(PdfCharCodeMap&& map, const nullable<PdfEncodingLimits>& limits = { });
 
 protected:
     bool tryGetNextCharCode(std::string_view::iterator& it,

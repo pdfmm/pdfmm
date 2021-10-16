@@ -457,7 +457,7 @@ void PdfFontTrueTypeSubset::WriteTables(string& buffer)
         WriteUInt32(output, 0); // Table length (actual length not padded length)
     }
 
-    optional<size_t> headOffset;
+    nullable<size_t> headOffset;
     size_t tableOffset;
     for (unsigned i = 0; i < m_tables.size(); i++)
     {

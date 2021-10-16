@@ -30,7 +30,7 @@
 
 // Include some compatibility wrappers
 #include <pdfmm/compat/EnumFlags.h>
-#include <pdfmm/compat/optional>
+#include <pdfmm/compat/nullable.h>
 #include <pdfmm/compat/span>
 
 // Error Handling Defines
@@ -93,6 +93,19 @@ enum class PdfVersion
     V1_6,           ///< PDF 1.6
     V1_7,           ///< PDF 1.7
     V2_0,           ///< PDF 1.7
+};
+
+enum class PdfALevel
+{
+    Unknown = 0,
+    L1B,
+    L1A,
+    L2B,
+    L2A,
+    L2U,
+    L3B,
+    L3A,
+    L3U,
 };
 
 /** The default PDF Version used by new PDF documents

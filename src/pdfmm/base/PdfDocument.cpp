@@ -49,8 +49,8 @@ PdfDocument::PdfDocument(bool empty) :
 
         m_Info.reset(new PdfInfo(*this));
 
-        m_Trailer->GetDictionary().AddKey("Root", m_Catalog->GetIndirectReference());
-        m_Trailer->GetDictionary().AddKey("Info", m_Info->GetObject().GetIndirectReference());
+        m_Trailer->GetDictionary().AddKeyIndirect("Root", m_Catalog);
+        m_Trailer->GetDictionary().AddKeyIndirect("Info", &m_Info->GetObject());
 
         Init();
     }

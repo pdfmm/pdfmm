@@ -49,7 +49,7 @@ namespace mm
          * \param displayName an optional display string that is displayed in the viewer
          *                      instead of the value
          */
-        void InsertItem(const PdfString& value, const std::optional<PdfString>& displayName = {});
+        void InsertItem(const PdfString& value, nullable<const PdfString&> displayName = { });
 
         /**
          * Removes an item for the list
@@ -72,7 +72,7 @@ namespace mm
          *
          * \see GetItem
          */
-        std::optional<PdfString> GetItemDisplayText(int index) const;
+        nullable<PdfString> GetItemDisplayText(int index) const;
 
         /**
          * \returns the number of items in this list

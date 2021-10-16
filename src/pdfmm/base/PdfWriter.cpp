@@ -158,7 +158,7 @@ void PdfWriter::WritePdfObjects(PdfOutputDevice& device, const PdfIndirectObject
                 {
                     // The object will not be output in the XRef entries but it will be
                     // counted in trailer's /Size
-                    xref.AddInUseObject(obj->GetIndirectReference(), std::nullopt);
+                    xref.AddInUseObject(obj->GetIndirectReference(), nullptr);
                     continue;
                 }
             }

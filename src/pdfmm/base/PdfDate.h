@@ -44,7 +44,7 @@ public:
      *
      *  \see IsValid()
      */
-    PdfDate(const std::chrono::seconds& secondsFromEpoch, const std::optional<std::chrono::minutes>& offsetFromUTC);
+    PdfDate(const std::chrono::seconds& secondsFromEpoch, const nullable<std::chrono::minutes>& offsetFromUTC);
 
     /** Create a PdfDate with a specified date and time
      *  \param szDate the date and time of this object
@@ -58,7 +58,7 @@ public:
      */
     const std::chrono::seconds& GetSecondsFromEpoch() const { return m_secondsFromEpoch; }
 
-    const std::optional<std::chrono::minutes>& GetMinutesFromUtc() const { return m_minutesFromUtc; }
+    const nullable<std::chrono::minutes>& GetMinutesFromUtc() const { return m_minutesFromUtc; }
 
     /** The value returned by this function can be used in any PdfObject
      *  where a date is needed
@@ -86,7 +86,7 @@ private:
 
 private:
     std::chrono::seconds m_secondsFromEpoch;
-    std::optional<std::chrono::minutes> m_minutesFromUtc;
+    nullable<std::chrono::minutes> m_minutesFromUtc;
 };
 
 };

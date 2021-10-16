@@ -28,22 +28,22 @@ PdfXRef::PdfXRef(PdfWriter& writer)
 
 PdfXRef::~PdfXRef() { }
 
-void PdfXRef::AddInUseObject(const PdfReference& ref, optional<uint64_t> offset)
+void PdfXRef::AddInUseObject(const PdfReference& ref, nullable<uint64_t> offset)
 {
     AddObject(ref, offset, true);
 }
 
 void PdfXRef::AddFreeObject(const PdfReference& ref)
 {
-    AddObject(ref, std::nullopt, false);
+    AddObject(ref, nullptr, false);
 }
 
-void PdfXRef::AddObject(const PdfReference& ref, optional<uint64_t> offset, bool inUse)
+void PdfXRef::AddObject(const PdfReference& ref, nullable<uint64_t> offset, bool inUse)
 {
     if (ref.ObjectNumber() > m_maxObjCount)
         m_maxObjCount = ref.ObjectNumber();
 
-    if (inUse && offset == std::nullopt)
+    if (inUse && offset == nullptr)
     {
         // Objects with no offset provided will not be written
         // in the entry list
@@ -313,7 +313,7 @@ bool PdfXRef::ShouldSkipWrite(const PdfReference& ref)
     return false;
 }
 
-bool PdfXRef::PdfXRefBlock::InsertItem(const PdfReference& ref, std::optional<uint64_t> offset, bool inUse)
+bool PdfXRef::PdfXRefBlock::InsertItem(const PdfReference& ref, nullable<uint64_t> offset, bool inUse)
 {
     PDFMM_ASSERT(!inUse || offset.has_value());
     if (ref.ObjectNumber() == First + Count)

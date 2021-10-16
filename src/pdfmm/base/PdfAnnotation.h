@@ -201,7 +201,7 @@ public:
      *
      *  \see SetTitle
      */
-    std::optional<PdfString> GetTitle() const;
+    nullable<PdfString> GetTitle() const;
 
     /** Set the text of this annotation.
      *
@@ -217,7 +217,7 @@ public:
      *
      *  \see SetContents
      */
-    std::optional<PdfString> GetContents() const;
+    nullable<PdfString> GetContents() const;
 
     /** Set the destination for link annotations
      *  \param destination target of the link

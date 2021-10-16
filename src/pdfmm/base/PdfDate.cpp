@@ -48,7 +48,7 @@ PdfDate::PdfDate()
     m_secondsFromEpoch = chrono::seconds(now.time_since_epoch());
 }
 
-PdfDate::PdfDate(const chrono::seconds& secondsFromEpoch, const optional<chrono::minutes>& offsetFromUTC)
+PdfDate::PdfDate(const chrono::seconds& secondsFromEpoch, const nullable<chrono::minutes>& offsetFromUTC)
     : m_secondsFromEpoch(secondsFromEpoch), m_minutesFromUtc(offsetFromUTC)
 {
 }

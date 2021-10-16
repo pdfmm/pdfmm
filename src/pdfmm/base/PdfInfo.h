@@ -44,68 +44,82 @@ public:
      */
     PdfInfo(PdfObject& obj, PdfInfoInitial initial = PdfInfoInitial::None);
 
+    /** Set the title of the document.
+     *  \param title title
+     */
+    void SetTitle(nullable<const PdfString&> title);
+
+    /** Get the title of the document
+     *  \returns the title
+     */
+    nullable<PdfString> GetTitle() const;
+
     /** Set the author of the document.
      *  \param author author
      */
-    void SetAuthor(const PdfString& author);
+    void SetAuthor(nullable<const PdfString&> author);
 
     /** Get the author of the document
      *  \returns the author
      */
-    std::optional<PdfString> GetAuthor() const;
+    nullable<PdfString> GetAuthor() const;
+
+    /** Set the subject of the document.
+     *  \param subject subject
+     */
+    void SetSubject(nullable<const PdfString&> subject);
+
+    /** Get the subject of the document
+     *  \returns the subject
+     */
+    nullable<PdfString> GetSubject() const;
+
+    /** Set keywords for this document
+     *  \param keywords a list of keywords
+     */
+    void SetKeywords(nullable<const PdfString&> keywords);
+
+    /** Get the keywords of the document
+     *  \returns the keywords
+     */
+    nullable<PdfString> GetKeywords() const;
 
     /** Set the creator of the document.
      *  Typically the name of the application using the library.
      *  \param creator creator
      */
-    void SetCreator(const PdfString& creator);
+    void SetCreator(nullable<const PdfString&> creator);
 
     /** Get the creator of the document
      *  \returns the creator
      */
-    std::optional<PdfString> GetCreator() const;
-
-    /** Set keywords for this document
-     *  \param keywords a list of keywords
-     */
-    void SetKeywords(const PdfString& keywords);
-
-    /** Get the keywords of the document
-     *  \returns the keywords
-     */
-    std::optional<PdfString> GetKeywords() const;
-
-    /** Set the subject of the document.
-     *  \param subject subject
-     */
-    void SetSubject(const PdfString& subject);
-
-    /** Get the subject of the document
-     *  \returns the subject
-     */
-    std::optional<PdfString> GetSubject() const;
-
-    /** Set the title of the document.
-     *  \param title title
-     */
-    void SetTitle(const PdfString& title);
-
-    /** Get the title of the document
-     *  \returns the title
-     */
-    std::optional<PdfString> GetTitle() const;
+    nullable<PdfString> GetCreator() const;
 
     // Peter Petrov 27 April 2008
     /** Set the producer of the document.
      *  \param producer producer
      */
-    void SetProducer(const PdfString& producer);
+    void SetProducer(nullable<const PdfString&> producer);
 
     // Peter Petrov 27 April 2008
     /** Get the producer of the document
      *  \returns the producer
      */
-    std::optional<PdfString> GetProducer() const;
+    nullable<PdfString> GetProducer() const;
+
+    void SetCreationDate(nullable<PdfDate> date);
+
+    /** Get creation date of document
+     *  \return creation date
+     */
+    nullable<PdfDate> GetCreationDate() const;
+
+    void SetModDate(nullable<PdfDate> date);
+
+    /** Get modification date of document
+     *  \return modification date
+     */
+    nullable<PdfDate> GetModDate() const;
 
     /** Set the trapping state of the document.
      *  \param trapped trapped
@@ -116,16 +130,6 @@ public:
      *  \returns the title
      */
     const PdfName& GetTrapped() const;
-
-    /** Get creation date of document
-     *  \return creation date
-     */
-    PdfDate GetCreationDate() const;
-
-    /** Get modification date of document
-     *  \return modification date
-     */
-    PdfDate GetModDate() const;
 
     /** Set custom info key.
      * \param name Name of the key.
@@ -143,7 +147,7 @@ private:
      *  \para name the key to fetch from the info dictionary
      *  \return a value from the info dictionary
      */
-    std::optional<PdfString> GetStringFromInfoDict(const PdfName& name) const;
+    nullable<PdfString> GetStringFromInfoDict(const PdfName& name) const;
 
     /** Get a value from the info dictionary as name
     *  \para name the key to fetch from the info dictionary

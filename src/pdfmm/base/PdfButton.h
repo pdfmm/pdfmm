@@ -56,7 +56,7 @@ namespace mm
         /**
          *  \returns the caption of this button
          */
-        std::optional<PdfString> GetCaption() const;
+        nullable<PdfString> GetCaption() const;
     };
 }
 

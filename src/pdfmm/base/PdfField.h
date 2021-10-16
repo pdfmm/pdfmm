@@ -236,11 +236,11 @@ public:
 
     /** \returns the field name of this PdfField
      */
-    std::optional<PdfString> GetName() const;
+    nullable<PdfString> GetName() const;
 
     /** \returns the field name of this PdfField at this level of the hierarchy
      */
-    std::optional<PdfString> GetNameRaw() const;
+    nullable<PdfString> GetNameRaw() const;
 
     /** \returns the parents qualified name of this PdfField
      *
@@ -259,7 +259,7 @@ public:
 
     /** \returns the fields alternate name
      */
-    std::optional<PdfString> GetAlternateName() const;
+    nullable<PdfString> GetAlternateName() const;
 
     /**
      * Sets the fields mapping name which is used when exporting
@@ -271,7 +271,7 @@ public:
 
     /** \returns the mapping name of this field
      */
-    std::optional<PdfString> GetMappingName() const;
+    nullable<PdfString> GetMappingName() const;
 
     /** Set this field to be readonly.
      *  I.e. it will not interact with the user

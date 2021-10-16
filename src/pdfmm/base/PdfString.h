@@ -30,7 +30,7 @@ class PDFMM_API PdfString final : public PdfDataProvider
 {
     friend class PdfTokenizer;
 public:
-    /** Create an empty and invalid string
+    /** Create an empty string
      */
     PdfString();
 

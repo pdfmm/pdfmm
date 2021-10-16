@@ -51,7 +51,7 @@ protected:
 
         PdfXRefBlock(const PdfXRefBlock& rhs) = default;
 
-        bool InsertItem(const PdfReference& ref, std::optional<uint64_t> offset, bool bUsed);
+        bool InsertItem(const PdfReference& ref, nullable<uint64_t> offset, bool bUsed);
 
         bool operator<(const PdfXRefBlock& rhs) const
         {
@@ -82,7 +82,7 @@ public:
      *                if std::nullopt, the object will be accounted for
      *                 trailer's /Size but not written in the entries list
      */
-    void AddInUseObject(const PdfReference& ref, std::optional<uint64_t> offset);
+    void AddInUseObject(const PdfReference& ref, nullable<uint64_t> offset);
 
     /** Add a free object to the XRef table.
      *
@@ -164,7 +164,7 @@ protected:
     virtual void EndWriteImpl(PdfOutputDevice& device);
 
 private:
-    void AddObject(const PdfReference& ref, std::optional<uint64_t> offset, bool inUse);
+    void AddObject(const PdfReference& ref, nullable<uint64_t> offset, bool inUse);
 
     /** Called at the end of writing the XRef table.
      *  Sub classes can overload this method to finish a XRef table.

@@ -430,7 +430,7 @@ void PdfField::SetName(const PdfString& name)
     m_Object->GetDictionary().AddKey("T", name);
 }
 
-optional<PdfString> PdfField::GetName() const
+nullable<PdfString> PdfField::GetName() const
 {
     PdfObject* name = m_Object->GetDictionary().FindKeyParent("T");
     if (name == nullptr)
@@ -439,7 +439,7 @@ optional<PdfString> PdfField::GetName() const
     return name->GetString();
 }
 
-optional<PdfString> PdfField::GetNameRaw() const
+nullable<PdfString> PdfField::GetNameRaw() const
 {
     PdfObject* name = m_Object->GetDictionary().GetKey("T");
     if (name == nullptr)
@@ -460,7 +460,7 @@ void PdfField::SetAlternateName(const PdfString& name)
     m_Object->GetDictionary().AddKey("TU", name);
 }
 
-optional<PdfString> PdfField::GetAlternateName() const
+nullable<PdfString> PdfField::GetAlternateName() const
 {
     if (m_Object->GetDictionary().HasKey("TU"))
         return m_Object->GetDictionary().MustFindKey("TU").GetString();
@@ -473,7 +473,7 @@ void PdfField::SetMappingName(const PdfString& name)
     m_Object->GetDictionary().AddKey("TM", name);
 }
 
-optional<PdfString> PdfField::GetMappingName() const
+nullable<PdfString> PdfField::GetMappingName() const
 {
     if (m_Object->GetDictionary().HasKey("TM"))
         return m_Object->GetDictionary().MustFindKey("TM").GetString();

@@ -281,7 +281,7 @@ bool PdfEncodingMap::tryGetNextCodePoints(string_view::iterator& it, const strin
     return false;
 }
 
-PdfEncodingMapBase::PdfEncodingMapBase(PdfCharCodeMap&& map, const optional<PdfEncodingLimits>& limits) :
+PdfEncodingMapBase::PdfEncodingMapBase(PdfCharCodeMap&& map, const nullable<PdfEncodingLimits>& limits) :
     PdfEncodingMap(limits.has_value() ? *limits : findLimits(map)),
     m_charMap(std::make_shared<PdfCharCodeMap>(std::move(map)))
 {

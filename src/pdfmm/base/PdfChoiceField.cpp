@@ -28,14 +28,14 @@ PdChoiceField::PdChoiceField(PdfFieldType fieldType, PdfPage& page, const PdfRec
 {
 }
 
-void PdChoiceField::InsertItem(const PdfString& value, const optional<PdfString>& displayName)
+void PdChoiceField::InsertItem(const PdfString& value, nullable<const PdfString&> displayName)
 {
     PdfObject objToAdd;
     if (displayName.has_value())
     {
         PdfArray array;
         array.push_back(value);
-        array.push_back(displayName.value());
+        array.push_back(*displayName);
         objToAdd = array;
     }
     else
@@ -91,7 +91,7 @@ PdfString PdChoiceField::GetItem(unsigned index) const
     return item.GetString();
 }
 
-optional<PdfString> PdChoiceField::GetItemDisplayText(int index) const
+nullable<PdfString> PdChoiceField::GetItemDisplayText(int index) const
 {
     PdfObject* opt = GetObject().GetDictionary().FindKey("Opt");
     if (opt == nullptr)

@@ -45,10 +45,10 @@ void PdfInfo::Init(PdfInfoInitial initial)
         this->GetObject().GetDictionary().AddKey("Producer", PdfString(PRODUCER_STRING));
 }
 
-optional<PdfString> PdfInfo::GetStringFromInfoDict(const PdfName& name) const
+nullable<PdfString> PdfInfo::GetStringFromInfoDict(const PdfName& name) const
 {
     auto obj = this->GetObject().GetDictionary().FindKey(name);
-    return obj != nullptr && obj->IsString() ? std::make_optional(obj->GetString()) : std::nullopt;
+    return obj != nullptr && obj->IsString() ? nullable<PdfString>(obj->GetString()) : nullptr;
 }
 
 const PdfName& PdfInfo::GetNameFromInfoDict(const PdfName& name) const
@@ -62,36 +62,52 @@ void PdfInfo::SetCustomKey(const PdfName& name, const PdfString& value)
     this->GetObject().GetDictionary().AddKey(name, value);
 }
 
-void PdfInfo::SetAuthor(const PdfString& author)
+void PdfInfo::SetAuthor(nullable<const PdfString&> value)
 {
-    this->GetObject().GetDictionary().AddKey("Author", author);
+    if (value.has_value())
+        this->GetObject().GetDictionary().AddKey("Author", *value);
+    else
+        this->GetObject().GetDictionary().RemoveKey("Author");
 }
 
-void PdfInfo::SetCreator(const PdfString& creator)
+void PdfInfo::SetCreator(nullable<const PdfString&> value)
 {
-    this->GetObject().GetDictionary().AddKey("Creator", creator);
+    if (value.has_value())
+        this->GetObject().GetDictionary().AddKey("Creator", *value);
+    else
+        this->GetObject().GetDictionary().RemoveKey("Creator");
 }
 
-void PdfInfo::SetKeywords(const PdfString& keywords)
+void PdfInfo::SetKeywords(nullable<const PdfString&> value)
 {
-    this->GetObject().GetDictionary().AddKey("Keywords", keywords);
+    if (value.has_value())
+        this->GetObject().GetDictionary().AddKey("Keywords", *value);
+    else
+        this->GetObject().GetDictionary().RemoveKey("Keywords");
 }
 
-void PdfInfo::SetSubject(const PdfString& subject)
+void PdfInfo::SetSubject(nullable<const PdfString&> value)
 {
-    this->GetObject().GetDictionary().AddKey("Subject", subject);
+    if (value.has_value())
+        this->GetObject().GetDictionary().AddKey("Subject", *value);
+    else
+        this->GetObject().GetDictionary().RemoveKey("Subject");
 }
 
-void PdfInfo::SetTitle(const PdfString& title)
+void PdfInfo::SetTitle(nullable<const PdfString&> value)
 {
-    this->GetObject().GetDictionary().AddKey("Title", title);
+    if (value.has_value())
+        this->GetObject().GetDictionary().AddKey("Title", *value);
+    else
+        this->GetObject().GetDictionary().RemoveKey("Title");
 }
 
-// Peter Petrov 27 April 2008
-// We have added a SetProducer() method in PdfInfo
-void PdfInfo::SetProducer(const PdfString& producer)
+void PdfInfo::SetProducer(nullable<const PdfString&> value)
 {
-    this->GetObject().GetDictionary().AddKey("Producer", producer);
+    if (value.has_value())
+        this->GetObject().GetDictionary().AddKey("Producer", *value);
+    else
+        this->GetObject().GetDictionary().RemoveKey("Producer");
 }
 
 void PdfInfo::SetTrapped(const PdfName& trapped)
@@ -102,42 +118,37 @@ void PdfInfo::SetTrapped(const PdfName& trapped)
         this->GetObject().GetDictionary().AddKey("Trapped", PdfName("Unknown"));
 }
 
-optional<PdfString> PdfInfo::GetAuthor() const
+nullable<PdfString> PdfInfo::GetAuthor() const
 {
     return this->GetStringFromInfoDict("Author");
 }
 
-optional<PdfString> PdfInfo::GetCreator() const
+nullable<PdfString> PdfInfo::GetCreator() const
 {
     return this->GetStringFromInfoDict("Creator");
 }
 
-optional<PdfString> PdfInfo::GetKeywords() const
+nullable<PdfString> PdfInfo::GetKeywords() const
 {
     return this->GetStringFromInfoDict("Keywords");
 }
 
-optional<PdfString> PdfInfo::GetSubject() const
+nullable<PdfString> PdfInfo::GetSubject() const
 {
     return this->GetStringFromInfoDict("Subject");
 }
 
-optional<PdfString> PdfInfo::GetTitle() const
+nullable<PdfString> PdfInfo::GetTitle() const
 {
     return this->GetStringFromInfoDict("Title");
 }
 
-optional<PdfString> PdfInfo::GetProducer() const
+nullable<PdfString> PdfInfo::GetProducer() const
 {
     return this->GetStringFromInfoDict("Producer");
 }
 
-const PdfName& PdfInfo::GetTrapped() const
-{
-    return this->GetNameFromInfoDict("Trapped");
-}
-
-PdfDate PdfInfo::GetCreationDate() const
+nullable<PdfDate> PdfInfo::GetCreationDate() const
 {
     auto datestr = this->GetStringFromInfoDict("CreationDate");
     if (datestr == nullptr)
@@ -146,11 +157,32 @@ PdfDate PdfInfo::GetCreationDate() const
         return PdfDate(*datestr);
 }
 
-PdfDate PdfInfo::GetModDate() const
+nullable<PdfDate> PdfInfo::GetModDate() const
 {
     auto datestr = this->GetStringFromInfoDict("ModDate");
     if (datestr == nullptr)
         return PdfDate();
     else
         return PdfDate(*datestr);
+}
+
+const PdfName& PdfInfo::GetTrapped() const
+{
+    return this->GetNameFromInfoDict("Trapped");
+}
+
+void PdfInfo::SetCreationDate(nullable<PdfDate> value)
+{
+    if (value.has_value())
+        this->GetObject().GetDictionary().AddKey("CreationDate", value->ToString());
+    else
+        this->GetObject().GetDictionary().RemoveKey("CreationDate");
+}
+
+void PdfInfo::SetModDate(nullable<PdfDate> value)
+{
+    if (value.has_value())
+        this->GetObject().GetDictionary().AddKey("ModDate", value->ToString());
+    else
+        this->GetObject().GetDictionary().RemoveKey("ModDate");
 }

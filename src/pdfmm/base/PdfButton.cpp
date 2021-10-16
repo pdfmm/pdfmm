@@ -50,7 +50,7 @@ void PdfButton::SetCaption(const PdfString& text)
     mk->GetDictionary().AddKey("CA", text);
 }
 
-optional<PdfString> PdfButton::GetCaption() const
+nullable<PdfString> PdfButton::GetCaption() const
 {
     auto mk = this->GetAppearanceCharacteristics(false);
     if (mk != nullptr && mk->GetDictionary().HasKey("CA"))

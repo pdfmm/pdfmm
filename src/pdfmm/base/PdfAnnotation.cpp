@@ -256,7 +256,7 @@ void PdfAnnotation::SetTitle(const PdfString& title)
     this->GetObject().GetDictionary().AddKey("T", title);
 }
 
-optional<PdfString> PdfAnnotation::GetTitle() const
+nullable<PdfString> PdfAnnotation::GetTitle() const
 {
     if (this->GetObject().GetDictionary().HasKey("T"))
         return this->GetObject().GetDictionary().MustFindKey("T").GetString();
@@ -269,7 +269,7 @@ void PdfAnnotation::SetContents(const PdfString& contents)
     this->GetObject().GetDictionary().AddKey("Contents", contents);
 }
 
-optional<PdfString> PdfAnnotation::GetContents() const
+nullable<PdfString> PdfAnnotation::GetContents() const
 {
     if (this->GetObject().GetDictionary().HasKey("Contents"))
         return this->GetObject().GetDictionary().MustFindKey("Contents").GetString();

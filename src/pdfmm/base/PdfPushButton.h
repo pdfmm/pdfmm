@@ -38,7 +38,7 @@ namespace mm
         /**
          *  \returns the rollover caption of this button
          */
-        std::optional<PdfString> GetRolloverCaption() const;
+        nullable<PdfString> GetRolloverCaption() const;
 
         /** Set the alternate caption of this button
          *  which is displayed when the button is pressed.
@@ -50,7 +50,7 @@ namespace mm
         /**
          *  \returns the rollover caption of this button
          */
-        std::optional<PdfString> GetAlternateCaption() const;
+        nullable<PdfString> GetAlternateCaption() const;
 
     private:
         void Init();
