@@ -29,6 +29,7 @@ class PdfParserObject;
  */
 class PDFMM_API PdfParser
 {
+    PDFMM_UNIT_TEST(PdfParserTest);
     friend class PdfDocument;
     friend class PdfWriter;
 

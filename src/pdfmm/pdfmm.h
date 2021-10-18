@@ -13,9 +13,13 @@
  * all files required by pdfmm at once.
  */
 
+// Disable unit test friendship
+#ifdef PDFMM_UNIT_TEST
+#undef PDFMM_UNIT_TEST
+#endif
+#define PDFMM_UNIT_TEST(classname)
+
 #include "pdfmm-base.h"
 #include "pdfmm-contrib.h"
 
 #endif // PDFMM_H
-
-
