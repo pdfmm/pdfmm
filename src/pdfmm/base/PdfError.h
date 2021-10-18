@@ -111,8 +111,8 @@ enum class LogSeverity
     None = 0,            ///< Logging disabled
     Error,               ///< Error
     Warning,             ///< Warning
-    Debug,               ///< Debug information
     Information,         ///< Information message
+    Debug,               ///< Debug information
 };
 
 /** \def PDFMM_RAISE_ERROR(code)
