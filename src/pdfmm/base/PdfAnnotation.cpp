@@ -67,13 +67,9 @@ PdfAnnotation::PdfAnnotation(PdfPage& page, PdfAnnotationType annotType, const P
     PdfArray arr;
     rect.ToArray(arr);
 
-    PdfDate date;
-    PdfString dateStr = date.ToString();
-
     this->GetObject().GetDictionary().AddKey(PdfName::KeySubtype, name);
     this->GetObject().GetDictionary().AddKey(PdfName::KeyRect, arr);
     this->GetObject().GetDictionary().AddKey("P", page.GetObject().GetIndirectReference());
-    this->GetObject().GetDictionary().AddKey("M", dateStr);
 }
 
 PdfAnnotation::PdfAnnotation(PdfPage& page, PdfObject& obj)
