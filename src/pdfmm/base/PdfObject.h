@@ -339,12 +339,12 @@ public:
     /** Get a handle to a const PDF stream object.
      * Throws if there's no stream
      */
-    const PdfStream& GetStream() const;
+    const PdfStream& MustGetStream() const;
 
     /** Get a handle to a const PDF stream object.
      * Throws if there's no stream
      */
-    PdfStream& GetStream();
+    PdfStream& MustGetStream();
 
     bool TryGetStream(PdfStream*& stream);
     bool TryGetStream(const PdfStream*& stream) const;
@@ -460,6 +460,9 @@ public:
      * see this, it's an internal state flag only.
      */
     inline bool DelayedLoadDone() const { return m_DelayedLoadDone; }
+
+    inline const PdfStream* GetStream() const { return m_Stream.get(); }
+    inline PdfStream* GetStream() { return m_Stream.get(); }
 
 protected:
     PdfObject(const PdfVariant& var, bool isDirty);

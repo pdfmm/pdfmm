@@ -300,11 +300,6 @@ void PdfMemDocument::WriteUpdate(PdfOutputDevice& device, PdfSaveOptions options
     }
 }
 
-PdfObject* PdfMemDocument::GetNamedObjectFromCatalog(const string_view& name) const
-{
-    return const_cast<PdfMemDocument&>(*this).GetCatalog().GetDictionary().FindKey(name);
-}
-
 void PdfMemDocument::DeletePages(unsigned atIndex, unsigned pageCount)
 {
     for (unsigned i = 0; i < pageCount; i++)
@@ -363,26 +358,6 @@ void PdfMemDocument::SetEncrypted(const string& userPassword, const string& owne
 void PdfMemDocument::SetEncrypted(const PdfEncrypt& encrypt)
 {
     m_Encrypt = PdfEncrypt::CreatePdfEncrypt(encrypt);
-}
-
-PdfObject* PdfMemDocument::GetStructTreeRoot() const
-{
-    return GetNamedObjectFromCatalog("StructTreeRoot");
-}
-
-PdfObject* PdfMemDocument::GetMetadata() const
-{
-    return GetNamedObjectFromCatalog("Metadata");
-}
-
-PdfObject* PdfMemDocument::GetMarkInfo() const
-{
-    return GetNamedObjectFromCatalog("MarkInfo");
-}
-
-PdfObject* PdfMemDocument::GetLanguage() const
-{
-    return GetNamedObjectFromCatalog("Lang");
 }
 
 void PdfMemDocument::FreeObjectMemory(const PdfReference& ref, bool force)

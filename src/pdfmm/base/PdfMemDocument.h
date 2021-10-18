@@ -220,26 +220,6 @@ public:
 
     inline bool IsLinearized() const override { return m_Linearized; }
 
-    /** Get access to the StructTreeRoot dictionary
-     *  \returns PdfObject the StructTreeRoot dictionary
-     */
-    PdfObject* GetStructTreeRoot() const;
-
-    /** Get access to the Metadata stream
-     *  \returns PdfObject the Metadata stream (should be in XML, using XMP grammar)
-     */
-    PdfObject* GetMetadata() const;
-
-    /** Get access to the MarkInfo dictionary (ISO 32000-1:2008 14.7.1)
-     *  \returns PdfObject the MarkInfo dictionary
-     */
-    PdfObject* GetMarkInfo() const;
-
-    /** Get access to the RFC 3066 natural language id for the document (ISO 32000-1:2008 14.9.2.1)
-     *  \returns PdfObject the language ID string
-     */
-    PdfObject* GetLanguage() const;
-
     /** Copies one or more pages from another PdfMemDocument to this document
      *  \param doc the document to append
      *  \param atIndex the first page number to copy (0-based)
@@ -319,12 +299,6 @@ private:
      *  \returns this document
      */
     void DeletePages(unsigned atIndex, unsigned pageCount);
-
-    /** Get a dictioary from the catalog dictionary by its name.
-     *  \param name will be converted into a PdfName
-     *  \returns the dictionary if it was found or nullptr
-     */
-    PdfObject* GetNamedObjectFromCatalog(const std::string_view& name) const;
 
     /** Internal method to load all objects from a PdfParser object.
      *  The objects will be removed from the parser and are now

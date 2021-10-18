@@ -22,7 +22,7 @@ PdfCharCodeMap PdfFontType1Encoding::getUnicodeMap(const PdfObject& obj)
 {
     string buffer;
     PdfStringOutputStream outputStream(buffer);
-    obj.GetStream().GetFilteredCopy(outputStream);
+    obj.MustGetStream().GetFilteredCopy(outputStream);
 
     string_view view(buffer.data(), buffer.size());
     // Try to find binary part of the document and exclude it

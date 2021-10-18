@@ -211,7 +211,7 @@ PdfStream& PdfObject::GetOrCreateStream()
     return getOrCreateStream();
 }
 
-const PdfStream& PdfObject::GetStream() const
+const PdfStream& PdfObject::MustGetStream() const
 {
     DelayedLoadStream();
     if (m_Stream == nullptr)
@@ -220,7 +220,7 @@ const PdfStream& PdfObject::GetStream() const
     return *m_Stream.get();
 }
 
-PdfStream& PdfObject::GetStream()
+PdfStream& PdfObject::MustGetStream()
 {
     DelayedLoadStream();
     if (m_Stream == nullptr)

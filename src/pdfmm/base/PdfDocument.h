@@ -396,6 +396,28 @@ public:
 
     inline PdfFontManager& GetFontManager() { return m_FontManager; }
 
+    /** Get access to the StructTreeRoot dictionary
+     *  \returns PdfObject the StructTreeRoot dictionary
+     */
+    PdfObject* GetStructTreeRoot();
+
+    /** Get access to the Metadata stream
+     *  \returns PdfObject the Metadata stream (should be in XML, using XMP grammar)
+     */
+    PdfObject* GetMetadata();
+    const PdfObject* GetMetadata() const;
+    PdfObject& GetOrCreateMetadata();
+
+    /** Get access to the MarkInfo dictionary (ISO 32000-1:2008 14.7.1)
+     *  \returns PdfObject the MarkInfo dictionary
+     */
+    PdfObject* GetMarkInfo();
+
+    /** Get access to the RFC 3066 natural language id for the document (ISO 32000-1:2008 14.9.2.1)
+     *  \returns PdfObject the language ID string
+     */
+    PdfObject* GetLanguage();
+
 protected:
     /** Construct a new (empty) PdfDocument
      *  \param empty if true NO default objects (such as catalog) are created.
@@ -411,12 +433,6 @@ protected:
      *         It will be owned by PdfDocument.
      */
     void SetTrailer(std::unique_ptr<PdfObject> obj);
-
-    /** Get a dictionary from the catalog dictionary by its name.
-     *  \param name will be converted into a PdfName
-     *  \returns the dictionary if it was found or nullptr
-     */
-    PdfObject* GetNamedObjectFromCatalog(const std::string_view& name) const;
 
     /** Internal method for initializing the pages tree for this document
      */
