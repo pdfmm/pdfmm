@@ -29,8 +29,8 @@
 #include <vector>
 
 // Include some compatibility wrappers
-#include <pdfmm/compat/EnumFlags.h>
-#include <pdfmm/compat/nullable.h>
+#include <pdfmm/common/EnumFlags.h>
+#include <pdfmm/common/nullable.h>
 #include <pdfmm/compat/span>
 
 // Error Handling Defines
