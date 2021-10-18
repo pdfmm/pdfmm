@@ -98,6 +98,8 @@ public:
     };
 
 public:
+    PdfIndirectObjectList();
+
     ~PdfIndirectObjectList();
 
     /** Enable/disable object numbers re-use.
@@ -171,7 +173,8 @@ public:
      *  \param type optional value of the /Type key of the object
      *  \returns PdfObject pointer to the new PdfObject
      */
-    PdfObject* CreateDictionaryObject(const std::string_view& type = { });
+    PdfObject* CreateDictionaryObject(const std::string_view& type = { },
+        const std::string_view& subtype = { });
 
     /** Creates a new object (of type rVariants) and inserts it into the vector.
      *  This function assigns the next free object number to the PdfObject.

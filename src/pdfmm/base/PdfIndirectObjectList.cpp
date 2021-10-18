@@ -64,6 +64,15 @@ private:
     const PdfReference m_ref;
 };
 
+PdfIndirectObjectList::PdfIndirectObjectList() :
+    m_Document(nullptr),
+    m_CanReuseObjectNumbers(true),
+    m_Objects(CompareObject),
+    m_ObjectCount(0),
+    m_StreamFactory(nullptr)
+{
+}
+
 PdfIndirectObjectList::PdfIndirectObjectList(PdfDocument& document) :
     m_Document(&document),
     m_CanReuseObjectNumbers(true),
@@ -182,11 +191,15 @@ PdfReference PdfIndirectObjectList::getNextFreeObject()
     return PdfReference(nextObjectNum, 0);
 }
 
-PdfObject* PdfIndirectObjectList::CreateDictionaryObject(const string_view& type)
+PdfObject* PdfIndirectObjectList::CreateDictionaryObject(const string_view& type,
+    const std::string_view& subtype)
 {
     auto dict = PdfDictionary();
     if (!type.empty())
         dict.AddKey(PdfName::KeyType, PdfName(type));
+
+    if (!subtype.empty())
+        dict.AddKey(PdfName::KeySubtype, PdfName(subtype));
 
     auto ret = new PdfObject(dict, true);
     addNewObject(ret);
@@ -262,13 +275,14 @@ void PdfIndirectObjectList::addNewObject(PdfObject* obj)
 {
     PdfReference ref = getNextFreeObject();
     obj->SetIndirectReference(ref);
-    obj->SetDocument(*m_Document);
     PushObject(obj);
 }
 
 void PdfIndirectObjectList::PushObject(PdfObject* obj)
 {
-    obj->SetDocument(*m_Document);
+    if (m_Document != nullptr)
+        obj->SetDocument(*m_Document);
+
     auto inserted = m_Objects.insert(obj);
     if (!inserted.second)
     {
@@ -284,6 +298,9 @@ void PdfIndirectObjectList::PushObject(PdfObject* obj)
 
 void PdfIndirectObjectList::CollectGarbage()
 {
+    if (m_Document == nullptr)
+        return;
+
     unordered_set<PdfReference> referencedOjects;
     visitObject(m_Document->GetTrailer(), referencedOjects);
     ObjectList newlist(CompareObject);

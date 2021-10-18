@@ -34,7 +34,7 @@ static void pushMapping(PdfCharCodeMap& map, PdfEncodingLimits& limits,
     const std::vector<char32_t>& codePoints);
 
 PdfCMapEncoding::PdfCMapEncoding(const PdfObject& cmapObj)
-    : PdfCMapEncoding(parseCMapObject(cmapObj.GetStream()))
+    : PdfCMapEncoding(parseCMapObject(cmapObj.MustGetStream()))
 {
 }
 

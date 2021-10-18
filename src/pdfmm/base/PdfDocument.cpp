@@ -91,22 +91,18 @@ void PdfDocument::Init()
         m_PageTree.reset(new PdfPageTree(*pagesRootObj));
     }
 
-    auto namesObj = GetNamedObjectFromCatalog("Names");
+    auto& catalogDict = m_Catalog->GetDictionary();
+    auto namesObj = catalogDict.FindKey("Names");
     if (namesObj != nullptr)
         m_NameTree.reset(new PdfNameTree(*namesObj));
 
-    auto outlinesObj = GetNamedObjectFromCatalog("Outlines");
+    auto outlinesObj = catalogDict.FindKey("Outlines");
     if (outlinesObj != nullptr)
         m_Outlines.reset(new PdfOutlines(*outlinesObj));
 
-    auto acroformObj = GetNamedObjectFromCatalog("AcroForm");
+    auto acroformObj = catalogDict.FindKey("AcroForm");
     if (acroformObj != nullptr)
         m_AcroForm.reset(new PdfAcroForm(*acroformObj));
-}
-
-PdfObject* PdfDocument::GetNamedObjectFromCatalog(const string_view& name) const
-{
-    return m_Catalog->GetDictionary().FindKey(name);
 }
 
 void PdfDocument::EmbedSubsetFonts()
@@ -767,4 +763,44 @@ const PdfInfo& PdfDocument::GetInfo() const
         PDFMM_RAISE_ERROR(PdfErrorCode::NoObject);
 
     return *m_Info;
+}
+
+PdfObject* PdfDocument::GetStructTreeRoot()
+{
+    return GetCatalog().GetDictionary().FindKey("StructTreeRoot");
+}
+
+PdfObject* PdfDocument::GetMetadata()
+{
+    return GetCatalog().GetDictionary().FindKey("Metadata");
+}
+
+const PdfObject* PdfDocument::GetMetadata() const
+{
+    if (m_Catalog == nullptr)
+        return nullptr;
+
+    return m_Catalog->GetDictionary().FindKey("Metadata");
+}
+
+PdfObject& PdfDocument::GetOrCreateMetadata()
+{
+    auto& dict = GetCatalog().GetDictionary();
+    auto metadata = dict.FindKey("Metadata");
+    if (metadata != nullptr)
+        return *metadata;
+
+    metadata = m_Objects.CreateDictionaryObject("Metadata", "XML");
+    dict.AddKeyIndirect("Metadata", metadata);
+    return *metadata;
+}
+
+PdfObject* PdfDocument::GetMarkInfo()
+{
+    return GetCatalog().GetDictionary().FindKey("MarkInfo");
+}
+
+PdfObject* PdfDocument::GetLanguage()
+{
+    return GetCatalog().GetDictionary().FindKey("Lang");
 }
