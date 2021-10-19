@@ -346,9 +346,6 @@ public:
      */
     PdfStream& MustGetStream();
 
-    bool TryGetStream(PdfStream*& stream);
-    bool TryGetStream(const PdfStream*& stream) const;
-
     /** Check if this object has a PdfStream object
      *  appended.
      *
@@ -461,8 +458,8 @@ public:
      */
     inline bool DelayedLoadDone() const { return m_DelayedLoadDone; }
 
-    inline const PdfStream* GetStream() const { return m_Stream.get(); }
-    inline PdfStream* GetStream() { return m_Stream.get(); }
+    const PdfStream* GetStream() const;
+    PdfStream* GetStream();
 
 protected:
     PdfObject(const PdfVariant& var, bool isDirty);

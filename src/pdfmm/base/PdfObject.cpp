@@ -68,6 +68,18 @@ PdfObject::PdfObject(const PdfObject& rhs)
     copyFrom(rhs);
 }
 
+const PdfStream* PdfObject::GetStream() const
+{
+    DelayedLoadStream();
+    return m_Stream.get();
+}
+
+PdfStream* PdfObject::GetStream()
+{
+    DelayedLoadStream();
+    return m_Stream.get();
+}
+
 // NOTE: Dirty objects are those who are supposed to be serialized
 // or deserialized.
 PdfObject::PdfObject(const PdfVariant& var, bool isDirty)
@@ -227,36 +239,6 @@ PdfStream& PdfObject::MustGetStream()
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The object doesn't have a stream");
 
     return *m_Stream.get();
-}
-
-bool PdfObject::TryGetStream(PdfStream*& stream)
-{
-    DelayedLoadStream();
-    if (m_Stream == nullptr)
-    {
-        stream = nullptr;
-        return false;
-    }
-    else
-    {
-        stream = m_Stream.get();
-        return true;
-    }
-}
-
-bool PdfObject::TryGetStream(const PdfStream*& stream) const
-{
-    DelayedLoadStream();
-    if (m_Stream == nullptr)
-    {
-        stream = nullptr;
-        return false;
-    }
-    else
-    {
-        stream = m_Stream.get();
-        return true;
-    }
 }
 
 bool PdfObject::IsIndirect() const

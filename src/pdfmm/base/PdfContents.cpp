@@ -65,8 +65,8 @@ PdfStream & PdfContents::GetStreamForAppending(PdfStreamAppendFlags flags)
         PdfMemoryOutputStream memstream;
         for (unsigned i = 0; i < arr->GetSize(); i++)
         {
-            const PdfStream* stream;
-            if (arr->FindAt(i).TryGetStream(stream))
+            auto stream = arr->FindAt(i).GetStream();
+            if (stream != nullptr)
                 stream->GetFilteredCopy(memstream);
         }
 
