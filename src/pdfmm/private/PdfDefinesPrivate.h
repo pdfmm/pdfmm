@@ -92,6 +92,10 @@ namespace usr
         out = in;
         in = { };
     }
+
+#ifdef _WIN32
+    std::string GetWin32ErrorMessage(unsigned rc);
+#endif // _WIN32
 }
 
 namespace io
