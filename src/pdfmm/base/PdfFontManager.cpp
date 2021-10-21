@@ -33,9 +33,9 @@ using namespace mm;
 
 #ifdef _WIN32
 
-static bool GetFontFromCollection(HDC& hdc, chars& buffer);
-static bool GetDataFromHFONT(HFONT hf, chars& buffer);
-static bool GetDataFromLPFONT(const LOGFONTW* inFont, chars& buffer);
+static bool getFontData(chars& buffer, const LOGFONTW& inFont);
+static bool getFontData(chars& buffer, HDC hdc, HFONT hf);
+static void getFontDataTTC(chars& buffer, const chars& fileBuffer, const chars& ttcBuffer);
 
 #endif // _WIN32
 
@@ -306,7 +306,11 @@ PdfFont* PdfFontManager::GetWin32Font(FontCacheMap& map, const string_view& font
     lf.lfItalic = italic;
     lf.lfUnderline = 0;
     lf.lfStrikeOut = 0;
-    lf.lfCharSet = symbolCharset ? SYMBOL_CHARSET : DEFAULT_CHARSET;
+    // NOTE: ANSI_CHARSET should give a consistent result among
+    // different locale configurations but sometimes dont' match fonts.
+    // We prefer OEM_CHARSET over DEFAULT_CHARSET because it configures
+    // the mapper in a way that will match more fonts
+    lf.lfCharSet = symbolCharset ? SYMBOL_CHARSET : OEM_CHARSET;
     lf.lfOutPrecision = OUT_DEFAULT_PRECIS;
     lf.lfClipPrecision = CLIP_DEFAULT_PRECIS;
     lf.lfQuality = DEFAULT_QUALITY;
@@ -321,7 +325,7 @@ PdfFont* PdfFontManager::GetWin32Font(FontCacheMap& map, const string_view& font
     const LOGFONTW& logFont, const PdfEncoding& encoding, bool embed, bool subsetting)
 {
     chars buffer;
-    if (!GetDataFromLPFONT(&logFont, buffer))
+    if (!getFontData(buffer, logFont))
         return nullptr;
 
     auto metrics = std::make_shared<PdfFontMetricsFreetype>(&m_ftLibrary, buffer.data(), buffer.size(),
@@ -432,29 +436,73 @@ bool PdfFontManager::EqualElement::operator()(const Element& lhs, const Element&
 
 #ifdef _WIN32
 
-// This function will recieve the device context for the ttc font, it will then extract necessary tables,and create the correct buffer.
-// On error function return false
-bool GetFontFromCollection(HDC& hdc, chars& buffer)
+bool getFontData(chars& buffer, const LOGFONTW& inFont)
 {
-    const DWORD ttcf_const = 0x66637474;
-    unsigned fileLen = GetFontData(hdc, ttcf_const, 0, 0, 0);
-    unsigned ttcLen = GetFontData(hdc, 0, 0, 0, 0);
-    if (fileLen == GDI_ERROR || ttcLen == GDI_ERROR)
+    bool success = false;
+
+    HDC hdc = ::CreateCompatibleDC(nullptr);
+    HFONT hf = CreateFontIndirectW(&inFont);
+    if (hf != nullptr)
     {
-        return false;
+        success = getFontData(buffer, hdc, hf);
+        DeleteObject(hf);
+    }
+    ReleaseDC(0, hdc);
+    return success;
+}
+
+bool getFontData(chars& buffer, HDC hdc, HFONT hf)
+{
+    HGDIOBJ oldFont = SelectObject(hdc, hf);
+    bool sucess = false;
+
+    // try get data from true type collection
+    constexpr DWORD ttcf_const = 0x66637474;
+    unsigned fileLen = GetFontData(hdc, 0, 0, nullptr, 0);
+    unsigned ttcLen = GetFontData(hdc, ttcf_const, 0, nullptr, 0);
+
+    if (fileLen != GDI_ERROR)
+    {
+        if (ttcLen == GDI_ERROR)
+        {
+            buffer.resize(fileLen);
+            sucess = GetFontData(hdc, 0, 0, buffer.data(), (DWORD)fileLen) != GDI_ERROR;
+        }
+        else
+        {
+            chars fileBuffer(fileLen);
+            if (GetFontData(hdc, ttcf_const, 0, fileBuffer.data(), fileLen) == GDI_ERROR)
+            {
+                sucess = false;
+                goto Exit;
+            }
+
+            chars ttcBuffer(ttcLen);
+            if (GetFontData(hdc, 0, 0, ttcBuffer.data(), ttcLen) == GDI_ERROR)
+            {
+                sucess = false;
+                goto Exit;
+            }
+
+            getFontDataTTC(buffer, fileBuffer, ttcBuffer);
+            sucess = true;
+        }
     }
 
-    chars fileBuffer(fileLen);
-    chars ttcBuffer(ttcLen);
-    if (GetFontData(hdc, ttcf_const, 0, fileBuffer.data(), fileLen) == GDI_ERROR)
-        return false;
+Exit:
+    // clean up
+    SelectObject(hdc, oldFont);
+    return sucess;
+}
 
-    if (GetFontData(hdc, 0, 0, ttcBuffer.data(), ttcLen) == GDI_ERROR)
-        return false;
-
+// This function will recieve the device context for the
+// TrueType Collection font, it will then extract necessary,
+// tables and create the correct buffer.
+void getFontDataTTC(chars& buffer, const chars& fileBuffer, const chars& ttcBuffer)
+{
     uint16_t numTables = FROM_BIG_ENDIAN(*(uint16_t*)(ttcBuffer.data() + 4));
     unsigned outLen = 12 + 16 * numTables;
-    char* entry = ttcBuffer.data() + 12;
+    const char* entry = ttcBuffer.data() + 12;
 
     //us: see "http://www.microsoft.com/typography/otspec/otff.htm"
     for (unsigned i = 0; i < numTables; i++)
@@ -472,7 +520,7 @@ bool GetFontFromCollection(HDC& hdc, chars& buffer)
     uint32_t dstDataOffset = 12 + 16 * numTables;
 
     // process tables
-    char* srcEntry = ttcBuffer.data() + 12;
+    const char* srcEntry = ttcBuffer.data() + 12;
     char* dstEntry = buffer.data() + 12;
     for (unsigned i = 0; i < numTables; i++)
     {
@@ -493,51 +541,6 @@ bool GetFontFromCollection(HDC& hdc, chars& buffer)
         srcEntry += 16;
         dstEntry += 16;
     }
-
-    return true;
-}
-
-bool GetDataFromHFONT(HFONT hf, chars& buffer)
-{
-    HDC hdc = GetDC(0);
-    if (hdc == nullptr)
-        return false;
-
-    HGDIOBJ oldFont = SelectObject(hdc, hf);
-
-    bool sucess = false;
-
-    // try get data from true type collection
-    const DWORD ttcf_const = 0x66637474;
-    unsigned bufferLen = GetFontData(hdc, 0, 0, 0, 0);
-    unsigned ttcLen = GetFontData(hdc, ttcf_const, 0, 0, 0);
-
-    if (bufferLen != GDI_ERROR && ttcLen == GDI_ERROR)
-    {
-        buffer.resize(bufferLen);
-        sucess = GetFontData(hdc, 0, 0, buffer.data(), (DWORD)bufferLen) != GDI_ERROR;
-    }
-    else if (bufferLen != GDI_ERROR)
-    {
-        sucess = GetFontFromCollection(hdc, buffer);
-    }
-
-    // clean up
-    SelectObject(hdc, oldFont);
-    ReleaseDC(0, hdc);
-    return sucess;
-}
-
-bool GetDataFromLPFONT(const LOGFONTW* inFont, chars& buffer)
-{
-    bool success = false;
-    HFONT hf = CreateFontIndirectW(inFont);
-    if (hf != nullptr)
-    {
-        success = GetDataFromHFONT(hf, buffer);
-        DeleteObject(hf);
-    }
-    return success;
 }
 
 #endif // _WIN32
