@@ -141,7 +141,7 @@ void PdfFontCIDTrueType::embedFontFile(PdfObject& descriptor)
         PdfInputDevice input(metrics.GetFontData().data(), metrics.GetFontData().size());
         chars buffer;
 
-        PdfFontTrueTypeSubset::BuildFont(buffer, input, TrueTypeFontFileType::TTF, 0, cidToGidMap);
+        PdfFontTrueTypeSubset::BuildFont(buffer, input, 0, cidToGidMap);
         auto contents = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject();
         descriptor.GetDictionary().AddKeyIndirect("FontFile2", contents);
 

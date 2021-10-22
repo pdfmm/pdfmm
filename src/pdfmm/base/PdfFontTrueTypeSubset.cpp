@@ -49,10 +49,9 @@ static uint32_t GetTableCheksum(const char* buf, uint32_t size);
 
 static bool TryAdvanceCompoundOffset(unsigned& offset, unsigned flags);
 
-PdfFontTrueTypeSubset::PdfFontTrueTypeSubset(PdfInputDevice& device, TrueTypeFontFileType type,
-        unsigned short faceIndex) :
+PdfFontTrueTypeSubset::PdfFontTrueTypeSubset(PdfInputDevice& device, unsigned short faceIndex) :
     m_device(&device),
-    m_fontFileType(type),
+    m_fontFileType(TrueTypeFontFileType::Unknown),
     m_startOfTTFOffsets(0),
     m_faceIndex(faceIndex),
     m_isLongLoca(false),
@@ -62,10 +61,9 @@ PdfFontTrueTypeSubset::PdfFontTrueTypeSubset(PdfInputDevice& device, TrueTypeFon
 }
 
 void PdfFontTrueTypeSubset::BuildFont(string& buffer, PdfInputDevice& input,
-    TrueTypeFontFileType type, unsigned short faceIndex,
-    const CIDToGIDMap& cidToGidMap)
+    unsigned short faceIndex, const CIDToGIDMap& cidToGidMap)
 {
-    PdfFontTrueTypeSubset subset(input, type, faceIndex);
+    PdfFontTrueTypeSubset subset(input, faceIndex);
     subset.BuildFont(buffer, cidToGidMap);
 }
 
@@ -83,10 +81,29 @@ void PdfFontTrueTypeSubset::BuildFont(string& buffer,
 
 void PdfFontTrueTypeSubset::Init()
 {
+    DetermineFontType();
     GetStartOfTTFOffsets();
     InitTables();
     GetNumberOfGlyphs();
     SeeIfLongLocaOrNot();
+}
+
+void PdfFontTrueTypeSubset::DetermineFontType()
+{
+    m_tmpBuffer.resize(4);
+    m_device->Seek(0);
+    m_device->Read(m_tmpBuffer.data(), 4);
+
+    // https://docs.microsoft.com/en-us/typography/opentype/spec/otff#table-directory
+    if (std::memcmp(m_tmpBuffer.data(), "\000\001\000\000", 4) == 0)
+        m_fontFileType = TrueTypeFontFileType::TTF;
+    else if (m_tmpBuffer == "OTTO")
+        m_fontFileType = TrueTypeFontFileType::OTF;
+    // https://docs.microsoft.com/en-us/typography/opentype/spec/otff#ttc-header
+    else if (m_tmpBuffer == "ttcf")
+        m_fontFileType = TrueTypeFontFileType::TTC;
+    else
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFontFormat, "Unsupported true type font");
 }
 
 unsigned PdfFontTrueTypeSubset::GetTableOffset(unsigned tag)
@@ -200,7 +217,6 @@ void PdfFontTrueTypeSubset::GetStartOfTTFOffsets()
     switch (m_fontFileType)
     {
         case TrueTypeFontFileType::TTF:
-        case TrueTypeFontFileType::OTF:
             m_startOfTTFOffsets = 0;
             break;
         case TrueTypeFontFileType::TTC:

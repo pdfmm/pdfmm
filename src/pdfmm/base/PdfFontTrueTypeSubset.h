@@ -25,10 +25,10 @@ class PdfOutputDevice;
  */
 enum class TrueTypeFontFileType
 {
+    Unknown, ///< Unknown
     TTF,    ///< TrueType Font
     TTC,    ///< TrueType Collection
     OTF,    ///< OpenType Font
-    Unknown ///< Unknown
 };
 
 typedef std::map<unsigned, unsigned> CIDToGIDMap;
@@ -41,8 +41,7 @@ typedef std::map<unsigned, unsigned> CIDToGIDMap;
 class PDFMM_API PdfFontTrueTypeSubset final
 {
 private:
-    PdfFontTrueTypeSubset(PdfInputDevice& device, TrueTypeFontFileType type,
-        unsigned short faceIndex);
+    PdfFontTrueTypeSubset(PdfInputDevice& device, unsigned short faceIndex);
 
 public:
     /**
@@ -60,8 +59,7 @@ public:
      * \param cidSet the output /CidSet
      */
     static void BuildFont(std::string& output, PdfInputDevice& input,
-        TrueTypeFontFileType type, unsigned short faceIndex,
-        const CIDToGIDMap& cidToGidMap);
+        unsigned short faceIndex, const CIDToGIDMap& cidToGidMap);
 
 private:
     PdfFontTrueTypeSubset(const PdfFontTrueTypeSubset& rhs) = delete;
@@ -70,9 +68,7 @@ private:
     void BuildFont(std::string& buffer, const CIDToGIDMap& cidToGidMap);
 
     void Init();
-
-    /** Get the offset of a specified table.
-     */
+    void DetermineFontType();
     unsigned GetTableOffset(unsigned tag);
     void GetNumberOfGlyphs();
     void SeeIfLongLocaOrNot();
