@@ -357,14 +357,14 @@ void PdfEncodingMap::AppendUTF16CodeTo(PdfStream& stream, const cspan<char32_t>&
             stream.Append(" "); // Separate each character in the ligatures
 
         char32_t cp = codePoints[i];
-        usr::WriteToUtf16BE(u16tmp, cp);
+        utls::WriteToUtf16BE(u16tmp, cp);
 
         auto data = (const char*)u16tmp.data();
         size_t size = u16tmp.size() * sizeof(char16_t);
         for (unsigned l = 0; l < size; l++)
         {
             // Append hex codes of the converted utf16 string
-            usr::WriteCharHexTo(hexbuf, data[l]);
+            utls::WriteCharHexTo(hexbuf, data[l]);
             stream.Append(hexbuf, std::size(hexbuf));
         }
     }

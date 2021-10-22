@@ -62,8 +62,8 @@ PdfEncoding::PdfEncoding(const PdfObject& fontObj, const PdfEncodingMapConstPtr&
     {
         // If found valid /FirstChar and /LastChar, valorize
         //  also the code size limits
-        m_Limits.MinCodeSize = usr::GetCharCodeSize(m_Limits.FirstChar.Code);
-        m_Limits.MaxCodeSize = usr::GetCharCodeSize(m_Limits.LastChar.Code);
+        m_Limits.MinCodeSize = utls::GetCharCodeSize(m_Limits.FirstChar.Code);
+        m_Limits.MaxCodeSize = utls::GetCharCodeSize(m_Limits.LastChar.Code);
     }
 }
 
@@ -437,10 +437,10 @@ PdfCharCode getFallbackCharCode(char32_t codePoint, const PdfEncodingLimits& lim
 {
     // Get che code size needed to store the value, clamping
     // on admissible values
-    unsigned char codeSize = std::clamp(usr::GetCharCodeSize(codePoint),
+    unsigned char codeSize = std::clamp(utls::GetCharCodeSize(codePoint),
         limits.MinCodeSize, limits.MaxCodeSize);
     // Clamp the value to valid range
-    unsigned code = std::clamp((unsigned)codePoint, (unsigned)0, usr::GetCharCodeMaxValue((unsigned)codeSize));
+    unsigned code = std::clamp((unsigned)codePoint, (unsigned)0, utls::GetCharCodeMaxValue((unsigned)codeSize));
     return { code, codeSize };
 }
 

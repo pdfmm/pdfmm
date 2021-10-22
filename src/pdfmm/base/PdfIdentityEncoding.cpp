@@ -32,7 +32,7 @@ bool PdfIdentityEncoding::tryGetCharCode(char32_t codePoint, PdfCharCode& codeUn
 {
     auto& limits = GetLimits();
     PDFMM_INVARIANT(limits.MinCodeSize == limits.MaxCodeSize);
-    if (usr::GetCharCodeSize(codePoint) > limits.MaxCodeSize)
+    if (utls::GetCharCodeSize(codePoint) > limits.MaxCodeSize)
     {
         codeUnit = { };
         return false;

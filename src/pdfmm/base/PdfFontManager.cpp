@@ -423,7 +423,7 @@ const PdfFontManager::Element& PdfFontManager::Element::operator=(const Element&
 size_t PdfFontManager::HashElement::operator()(const Element& elem) const
 {
     size_t hash = 0;
-    usr::hash_combine(hash, elem.FontName, elem.EncodingId, elem.Bold, elem.Italic, elem.IsSymbolCharset);
+    utls::hash_combine(hash, elem.FontName, elem.EncodingId, elem.Bold, elem.Italic, elem.IsSymbolCharset);
     return hash;
 };
 

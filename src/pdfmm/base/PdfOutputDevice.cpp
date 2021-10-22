@@ -88,7 +88,7 @@ fstream* PdfFileOutputDevice::getFileStream(const std::string_view& filename, bo
     if (truncate)
         openmode |= ios_base::trunc;
 
-    auto stream = new fstream(io::open_fstream(filename, openmode));
+    auto stream = new fstream(utls::open_fstream(filename, openmode));
     if (stream->fail())
     {
         delete stream;

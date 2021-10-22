@@ -138,8 +138,8 @@ private:
     void ReadGlyphCompoundData(GlyphCompoundData& data, unsigned offset);
 
 private:
-    PdfInputDevice* m_Device;          // Read data from this input device
-    TrueTypeFontFileType m_FontFileType;
+    PdfInputDevice* m_device;          // Read data from this input device
+    TrueTypeFontFileType m_fontFileType;
 
     uint32_t m_startOfTTFOffsets;	   // Start address of the truetype offset tables, differs from ttf to ttc.
     unsigned short m_faceIndex;

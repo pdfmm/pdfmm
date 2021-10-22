@@ -36,10 +36,10 @@ PdfCharCodeMap& PdfCharCodeMap::operator=(PdfCharCodeMap&& map) noexcept
 void PdfCharCodeMap::move(PdfCharCodeMap& map) noexcept
 {
     m_cuMap = std::move(map.m_cuMap);
-    usr::move(map.m_maxCodeSpaceSize, m_maxCodeSpaceSize);
-    usr::move(map.m_MapDirty, m_MapDirty);
-    usr::move(map.m_cpMapHead, m_cpMapHead);
-    usr::move(map.m_depth, m_depth);
+    utls::move(map.m_maxCodeSpaceSize, m_maxCodeSpaceSize);
+    utls::move(map.m_MapDirty, m_MapDirty);
+    utls::move(map.m_cpMapHead, m_cpMapHead);
+    utls::move(map.m_depth, m_depth);
 }
 
 void PdfCharCodeMap::PushMapping(const PdfCharCode& codeUnit, const cspan<char32_t>& codePoints)
@@ -279,7 +279,7 @@ PdfCharCode::PdfCharCode()
 }
 
 PdfCharCode::PdfCharCode(unsigned code)
-    : Code(code), CodeSpaceSize(usr::GetCharCodeSize(code))
+    : Code(code), CodeSpaceSize(utls::GetCharCodeSize(code))
 {
 }
 

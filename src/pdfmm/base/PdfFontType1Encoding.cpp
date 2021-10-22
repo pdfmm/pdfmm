@@ -74,7 +74,7 @@ PdfCharCodeMap PdfFontType1Encoding::getUnicodeMap(const PdfObject& obj)
         char32_t cp = PdfDifferenceEncoding::NameToUnicodeID(name);
         if (cp != U'\0')
         {
-            unsigned char codeSize = usr::GetCharCodeSize(code);
+            unsigned char codeSize = utls::GetCharCodeSize(code);
             ret.PushMapping({ code, codeSize }, cp);
         }
 

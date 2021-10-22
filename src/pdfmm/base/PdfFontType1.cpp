@@ -86,7 +86,7 @@ void PdfFontType1::embedFontSubset()
     }
     else
     {
-        size = io::FileSize(m_Metrics->GetFilename());
+        size = utls::FileSize(m_Metrics->GetFilename());
         PdfInputDevice stream((string_view)m_Metrics->GetFilename());
         allocated.reset(new char[size]);
         stream.Read(allocated.get(), size);
@@ -332,7 +332,7 @@ void PdfFontType1::embedFontFile(PdfObject& descriptor)
     }
     else
     {
-        size = io::FileSize(m_Metrics->GetFilename());
+        size = utls::FileSize(m_Metrics->GetFilename());
         PdfInputDevice stream((string_view)m_Metrics->GetFilename());
         buffer.resize(size);
         stream.Read(buffer.data(), size);

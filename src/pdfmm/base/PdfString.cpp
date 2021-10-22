@@ -157,7 +157,7 @@ void PdfString::Write(PdfOutputDevice& device, PdfWriteMode writeMode, const Pdf
             while (len-- != 0)
             {
                 ch = *buffer;
-                usr::WriteCharHexTo(data, ch);
+                utls::WriteCharHexTo(data, ch);
                 device.Write(string_view(data, 2));
                 buffer++;
             }

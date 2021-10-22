@@ -107,7 +107,7 @@ PdfString PdfFileSpec::CreateFileSpecification(const string_view& filename) cons
 
 void PdfFileSpec::EmbeddFile(PdfObject& obj, const string_view& filename) const
 {
-    size_t size = io::FileSize(filename);
+    size_t size = utls::FileSize(filename);
 
     PdfFileInputStream stream(filename);
     obj.GetOrCreateStream().Set(stream);

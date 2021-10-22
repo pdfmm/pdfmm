@@ -161,7 +161,7 @@ void PdfFontCIDTrueType::embedFontFile(PdfObject& descriptor)
         // otherwise, load from disk
         if (m_Metrics->GetFontData().empty())
         {
-            size_t size = io::FileSize(m_Metrics->GetFilename());
+            size_t size = utls::FileSize(m_Metrics->GetFilename());
             PdfFileInputStream stream(m_Metrics->GetFilename());
 
             // NOTE: Set Length1 before creating the stream

@@ -37,11 +37,11 @@ int compat::strncasecmp(const char* s1, const char* s2, size_t n)
 #endif
 }
 
-size_t io::FileSize(const string_view& filename)
+size_t utls::FileSize(const string_view& filename)
 {
     streampos fbegin;
 
-    auto stream = io::open_ifstream(filename, ios_base::in | ios_base::binary);
+    auto stream = utls::open_ifstream(filename, ios_base::in | ios_base::binary);
     if (stream.fail())
         goto Error;
 
@@ -61,7 +61,7 @@ Error:
 // Read from stream an amount of bytes or less
 // without setting failbit
 // https://stackoverflow.com/a/22593639/213871
-size_t io::Read(istream& stream, char* buffer, size_t count)
+size_t utls::Read(istream& stream, char* buffer, size_t count)
 {
     if (count == 0 || stream.eof())
         return 0;
@@ -95,7 +95,7 @@ size_t io::Read(istream& stream, char* buffer, size_t count)
     return offset;
 }
 
-FILE* io::fopen(const string_view& filename, const string_view& mode)
+FILE* utls::fopen(const string_view& filename, const string_view& mode)
 {
 #ifdef _WIN32
     auto filename16 = utf8::utf8to16((string)filename);
@@ -106,7 +106,7 @@ FILE* io::fopen(const string_view& filename, const string_view& mode)
 #endif
 }
 
-ifstream io::open_ifstream(const string_view& filename, ios_base::openmode mode)
+ifstream utls::open_ifstream(const string_view& filename, ios_base::openmode mode)
 {
 #ifdef _WIN32
     auto filename16 = utf8::utf8to16((string)filename);
@@ -116,7 +116,7 @@ ifstream io::open_ifstream(const string_view& filename, ios_base::openmode mode)
 #endif
 }
 
-ofstream io::open_ofstream(const string_view& filename, ios_base::openmode mode)
+ofstream utls::open_ofstream(const string_view& filename, ios_base::openmode mode)
 {
 #ifdef _WIN32
     auto filename16 = utf8::utf8to16((string)filename);
@@ -126,7 +126,7 @@ ofstream io::open_ofstream(const string_view& filename, ios_base::openmode mode)
 #endif
 }
 
-fstream io::open_fstream(const string_view& filename, ios_base::openmode mode)
+fstream utls::open_fstream(const string_view& filename, ios_base::openmode mode)
 {
 #ifdef _WIN32
     auto filename16 = utf8::utf8to16((string)filename);
@@ -136,7 +136,7 @@ fstream io::open_fstream(const string_view& filename, ios_base::openmode mode)
 #endif
 }
 
-void usr::WriteCharHexTo(char buf[2], char ch)
+void utls::WriteCharHexTo(char buf[2], char ch)
 {
     buf[0] = (ch & 0xF0) >> 4;
     buf[0] += (buf[0] > 9 ? 'A' - 10 : '0');
@@ -146,7 +146,7 @@ void usr::WriteCharHexTo(char buf[2], char ch)
 }
 
 // Append the char to the supplied string as hexadecimal code
-void usr::WriteCharHexTo(string& str, char ch, bool clear)
+void utls::WriteCharHexTo(string& str, char ch, bool clear)
 {
     if (clear)
     {
@@ -161,7 +161,7 @@ void usr::WriteCharHexTo(string& str, char ch, bool clear)
     }
 }
 
-void usr::WriteToUtf16BE(u16string& str, char32_t codePoint, bool clear)
+void utls::WriteToUtf16BE(u16string& str, char32_t codePoint, bool clear)
 {
     // FIX-ME: This is very inefficient. We should improve
     // utfcpp to avoit conversion to utf8 first
@@ -176,7 +176,7 @@ void usr::WriteToUtf16BE(u16string& str, char32_t codePoint, bool clear)
 
 #ifdef _WIN32
 
-string usr::GetWin32ErrorMessage(unsigned rc)
+string utls::GetWin32ErrorMessage(unsigned rc)
 {
     LPWSTR psz{ nullptr };
     const DWORD cchMsg = FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM
@@ -201,12 +201,12 @@ string usr::GetWin32ErrorMessage(unsigned rc)
 
 #endif // _WIN322
 
-unsigned char usr::GetCharCodeSize(unsigned ch)
+unsigned char utls::GetCharCodeSize(unsigned ch)
 {
     return (unsigned char)(std::log(ch) / std::log(256)) + 1;
 }
 
-unsigned usr::GetCharCodeMaxValue(unsigned char codeSize)
+unsigned utls::GetCharCodeMaxValue(unsigned char codeSize)
 {
     return (unsigned)(std::pow(2, codeSize * CHAR_BIT)) - 1;
 }

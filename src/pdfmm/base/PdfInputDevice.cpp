@@ -28,7 +28,7 @@ PdfInputDevice::PdfInputDevice(const string_view& filename)
     if (filename.length() == 0)
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-    m_Stream = new ifstream(io::open_ifstream(filename, ios_base::in | ios_base::binary));
+    m_Stream = new ifstream(utls::open_ifstream(filename, ios_base::in | ios_base::binary));
     if (m_Stream->fail())
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::FileNotFound, filename);
 
@@ -165,7 +165,7 @@ void PdfInputDevice::seek(streamoff off, ios_base::seekdir dir)
 
 size_t PdfInputDevice::Read(char* buffer, size_t size)
 {
-    return io::Read(*m_Stream, buffer, size);
+    return utls::Read(*m_Stream, buffer, size);
 }
 
 bool PdfInputDevice::Eof() const

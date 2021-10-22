@@ -55,7 +55,7 @@
 
 #define CMAP_REGISTRY_NAME "pdfmm"
 
-namespace usr
+namespace utls
 {
     // Write the char to the supplied buffer as hexadecimal code
     void WriteCharHexTo(char buf[2], char ch);
@@ -96,10 +96,9 @@ namespace usr
 #ifdef _WIN32
     std::string GetWin32ErrorMessage(unsigned rc);
 #endif // _WIN32
-}
 
-namespace io
-{
+#pragma region IO
+
     size_t FileSize(const std::string_view& filename);
     size_t Read(std::istream& stream, char* buffer, size_t count);
 
@@ -110,6 +109,8 @@ namespace io
     // NOTE: Never use this function unless you really need a C FILE descriptor,
     // as in PdfImage.cpp . For all the other I/O, use an STL stream
     FILE* fopen(const std::string_view& view, const std::string_view& mode);
+
+#pragma endregion // IO
 }
 
 /**

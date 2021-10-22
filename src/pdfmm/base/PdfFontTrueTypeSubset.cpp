@@ -57,8 +57,8 @@ static bool TryAdvanceCompoundOffset(unsigned& offset, unsigned flags);
 
 PdfFontTrueTypeSubset::PdfFontTrueTypeSubset(PdfInputDevice& device, TrueTypeFontFileType type,
         unsigned short faceIndex) :
-    m_Device(&device),
-    m_FontFileType(type),
+    m_device(&device),
+    m_fontFileType(type),
     m_startOfTTFOffsets(0),
     m_faceIndex(faceIndex),
     m_isLongLoca(false),
@@ -203,7 +203,7 @@ void PdfFontTrueTypeSubset::InitTables()
 
 void PdfFontTrueTypeSubset::GetStartOfTTFOffsets()
 {
-    switch (m_FontFileType)
+    switch (m_fontFileType)
     {
         case TrueTypeFontFileType::TTF:
         case TrueTypeFontFileType::OTF:
@@ -568,16 +568,16 @@ bool TryAdvanceCompoundOffset(unsigned& offset, unsigned flags)
 
 void PdfFontTrueTypeSubset::CopyData(PdfOutputDevice& output, unsigned offset, unsigned size)
 {
-    m_Device->Seek(offset);
+    m_device->Seek(offset);
     m_tmpBuffer.resize(size);
-    m_Device->Read(m_tmpBuffer.data(), size);
+    m_device->Read(m_tmpBuffer.data(), size);
     output.Write(m_tmpBuffer);
 }
 
 void PdfFontTrueTypeSubset::ReadData(void* dst, unsigned offset, unsigned size)
 {
-    m_Device->Seek(offset);
-    m_Device->Read((char*)dst, size);
+    m_device->Seek(offset);
+    m_device->Read((char*)dst, size);
 }
 
 uint32_t GetTableCheksum(const char* buf, uint32_t size)

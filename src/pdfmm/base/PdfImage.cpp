@@ -226,7 +226,7 @@ void PdfImage::LoadFromData(const unsigned char* data, size_t len)
 
 void PdfImage::LoadFromJpeg(const string_view& filename)
 {
-    FILE* file = io::fopen(filename, "rb");
+    FILE* file = utls::fopen(filename, "rb");
     try
     {
         LoadFromJpegHandle(file, filename);
@@ -721,7 +721,7 @@ void PdfImage::LoadFromTiffData(const unsigned char* data, size_t len)
 
 void PdfImage::LoadFromPng(const std::string_view& filename)
 {
-    FILE* file = io::fopen(filename, "rb");
+    FILE* file = utls::fopen(filename, "rb");
 
     try
     {
