@@ -55,6 +55,12 @@
 
 #define CMAP_REGISTRY_NAME "pdfmm"
 
+namespace mm
+{
+    class PdfOutputDevice;
+    class PdfInputDevice;
+}
+
 namespace utls
 {
     // Write the char to the supplied buffer as hexadecimal code
@@ -109,6 +115,23 @@ namespace utls
     // NOTE: Never use this function unless you really need a C FILE descriptor,
     // as in PdfImage.cpp . For all the other I/O, use an STL stream
     FILE* fopen(const std::string_view& view, const std::string_view& mode);
+
+    void WriteUInt32BE(mm::PdfOutputDevice& output, uint32_t value);
+    void WriteInt32BE(mm::PdfOutputDevice& output, int32_t value);
+    void WriteUInt16BE(mm::PdfOutputDevice& output, uint16_t value);
+    void WriteInt16BE(mm::PdfOutputDevice& output, int16_t value);
+    void WriteUInt32BE(char* buf, uint32_t value);
+    void WriteInt32BE(char* buf, int32_t value);
+    void WriteUInt16BE(char* buf, uint16_t value);
+    void WriteInt16BE(char* buf, int16_t value);
+    void ReadUInt32BE(mm::PdfInputDevice& input, uint32_t& value);
+    void ReadInt32BE(mm::PdfInputDevice& input, int32_t& value);
+    void ReadUInt16BE(mm::PdfInputDevice& input, uint16_t& value);
+    void ReadInt16BE(mm::PdfInputDevice& input, int16_t& value);
+    void ReadUInt32BE(const char* buf, uint32_t& value);
+    void ReadInt32BE(const char* buf, int32_t& value);
+    void ReadUInt16BE(const char* buf, uint16_t& value);
+    void ReadInt16BE(const char* buf, int16_t& value);
 
 #pragma endregion // IO
 }

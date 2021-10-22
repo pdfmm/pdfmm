@@ -80,7 +80,6 @@ private:
     void GetStartOfTTFOffsets();
 
     void CopyData(PdfOutputDevice& output, unsigned offset, unsigned size);
-    void ReadData(void* dst, unsigned offset, unsigned size);
 
 private:
     /** Information of TrueType tables.

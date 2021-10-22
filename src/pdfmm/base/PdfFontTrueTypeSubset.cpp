@@ -43,16 +43,10 @@ ENABLE_BITMASK_OPERATORS(ReqTable);
 
 static constexpr unsigned LENGTH_HEADER12 = 12;
 static constexpr unsigned LENGTH_OFFSETTABLE16 = 16;
-static constexpr unsigned LENGTH_DWORD = 4;
-static constexpr unsigned LENGTH_WORD = 2;
 
 //Get the number of bytes to pad the ul, because of 4-byte-alignment.
 static uint32_t GetTableCheksum(const char* buf, uint32_t size);
 
-static void WriteUInt32(PdfOutputDevice& output, uint32_t value);
-static void WriteUInt16(PdfOutputDevice& output, uint16_t value);
-static void WriteUInt32(char* buf, uint32_t value);
-static void WriteUInt16(char* buf, uint16_t value);
 static bool TryAdvanceCompoundOffset(unsigned& offset, unsigned flags);
 
 PdfFontTrueTypeSubset::PdfFontTrueTypeSubset(PdfInputDevice& device, TrueTypeFontFileType type,
@@ -109,20 +103,20 @@ void PdfFontTrueTypeSubset::GetNumberOfGlyphs()
 {
     unsigned offset = GetTableOffset(TTAG_maxp);
 
-    ReadData(&m_glyphCount, offset + LENGTH_DWORD * 1, LENGTH_WORD);
-    m_glyphCount = FROM_BIG_ENDIAN(m_glyphCount);
+    m_device->Seek(offset + sizeof(uint32_t) * 1);
+    utls::ReadUInt16BE(*m_device, m_glyphCount);
 
     offset = GetTableOffset(TTAG_hhea);
 
-    ReadData(&m_HMetricsCount, offset + LENGTH_WORD * 17, LENGTH_WORD);
-    m_HMetricsCount = FROM_BIG_ENDIAN(m_HMetricsCount);
+    m_device->Seek(offset + sizeof(uint16_t) * 17);
+    utls::ReadUInt16BE(*m_device, m_HMetricsCount);
 }
 
 void PdfFontTrueTypeSubset::InitTables()
 {
     uint16_t tableCount;
-    ReadData(&tableCount, m_startOfTTFOffsets + LENGTH_DWORD * 1, LENGTH_WORD);
-    tableCount = FROM_BIG_ENDIAN(tableCount);
+    m_device->Seek(m_startOfTTFOffsets + sizeof(uint32_t) * 1);
+    utls::ReadUInt16BE(*m_device, tableCount);
 
     ReqTable tableMask = ReqTable::none;
     TrueTypeTable tbl;
@@ -130,20 +124,20 @@ void PdfFontTrueTypeSubset::InitTables()
     for (unsigned short i = 0; i < tableCount; i++)
     {
         // Name of each table:
-        ReadData(&tbl.Tag, m_startOfTTFOffsets + LENGTH_HEADER12 + LENGTH_OFFSETTABLE16 * i, LENGTH_DWORD);
-        tbl.Tag = FROM_BIG_ENDIAN(tbl.Tag);
+        m_device->Seek(m_startOfTTFOffsets + LENGTH_HEADER12 + LENGTH_OFFSETTABLE16 * i);
+        utls::ReadUInt32BE(*m_device, tbl.Tag);
 
         // Checksum of each table:
-        ReadData(&tbl.Checksum, m_startOfTTFOffsets + LENGTH_HEADER12 + LENGTH_OFFSETTABLE16 * i + LENGTH_DWORD * 1, LENGTH_DWORD);
-        tbl.Checksum = FROM_BIG_ENDIAN(tbl.Checksum);
+        m_device->Seek(m_startOfTTFOffsets + LENGTH_HEADER12 + LENGTH_OFFSETTABLE16 * i + sizeof(uint32_t) * 1);
+        utls::ReadUInt32BE(*m_device, tbl.Checksum);
 
         // Offset of each table:
-        ReadData(&tbl.Offset, m_startOfTTFOffsets + LENGTH_HEADER12 + LENGTH_OFFSETTABLE16 * i + LENGTH_DWORD * 2, LENGTH_DWORD);
-        tbl.Offset = FROM_BIG_ENDIAN(tbl.Offset);
+        m_device->Seek(m_startOfTTFOffsets + LENGTH_HEADER12 + LENGTH_OFFSETTABLE16 * i + sizeof(uint32_t) * 2);
+        utls::ReadUInt32BE(*m_device, tbl.Offset);
 
         // Length of each table:
-        ReadData(&tbl.Length, m_startOfTTFOffsets + LENGTH_HEADER12 + LENGTH_OFFSETTABLE16 * i + LENGTH_DWORD * 3, LENGTH_DWORD);
-        tbl.Length = FROM_BIG_ENDIAN(tbl.Length);
+        m_device->Seek(m_startOfTTFOffsets + LENGTH_HEADER12 + LENGTH_OFFSETTABLE16 * i + sizeof(uint32_t) * 3);
+        utls::ReadUInt32BE(*m_device, tbl.Length);
 
         // PDF 32000-1:2008 9.9 Embedded Font Programs
         // "These TrueType tables shall always be present if present in the original TrueType font program:
@@ -212,11 +206,11 @@ void PdfFontTrueTypeSubset::GetStartOfTTFOffsets()
         case TrueTypeFontFileType::TTC:
         {
             uint32_t ulnumFace;
-            ReadData(&ulnumFace, 8, LENGTH_DWORD);
-            ulnumFace = FROM_BIG_ENDIAN(ulnumFace);
+            m_device->Seek(8);
+            utls::ReadUInt32BE(*m_device, ulnumFace);
 
-            ReadData(&m_startOfTTFOffsets, (m_faceIndex + 3) * LENGTH_DWORD, LENGTH_DWORD);
-            m_startOfTTFOffsets = FROM_BIG_ENDIAN(m_startOfTTFOffsets);
+            m_device->Seek((m_faceIndex + 3) * sizeof(uint32_t));
+            utls::ReadUInt32BE(*m_device, m_startOfTTFOffsets);
         }
         break;
         case TrueTypeFontFileType::Unknown:
@@ -229,8 +223,8 @@ void PdfFontTrueTypeSubset::SeeIfLongLocaOrNot()
 {
     unsigned ulHeadOffset = GetTableOffset(TTAG_head);
     uint16_t isLong;
-    ReadData(&isLong, ulHeadOffset + 50, LENGTH_WORD);
-    isLong = FROM_BIG_ENDIAN(isLong);
+    m_device->Seek(ulHeadOffset + 50);
+    utls::ReadUInt16BE(*m_device, isLong);
     m_isLongLoca = (isLong == 0 ? false : true);  // 1 for long
 }
 
@@ -279,7 +273,7 @@ void PdfFontTrueTypeSubset::LoadGlyphs(GlyphContext& ctx, const CIDToGIDMap& use
             }
 
             // Insert the compound component using the actual assigned GID
-            glyphData.CompoundComponents.push_back({ (componentGlyphIdOffset + LENGTH_WORD) - glyphData.GlyphOffset, inserted.first->second });
+            glyphData.CompoundComponents.push_back({ (componentGlyphIdOffset + sizeof(uint16_t)) - glyphData.GlyphOffset, inserted.first->second });
             if (!TryAdvanceCompoundOffset(offset, cmpData.Flags))
                 break;
         }
@@ -299,11 +293,11 @@ void PdfFontTrueTypeSubset::LoadGID(GlyphContext& ctx, unsigned gid)
     {
         uint32_t offset;
         uint32_t length;
-        ReadData(&offset, ctx.LocaTableOffset + LENGTH_DWORD * gid, LENGTH_DWORD);
-        offset = FROM_BIG_ENDIAN(offset);
+        m_device->Seek(ctx.LocaTableOffset + sizeof(uint32_t) * gid);
+        utls::ReadUInt32BE(*m_device, offset);
 
-        ReadData(&length, ctx.LocaTableOffset + LENGTH_DWORD * (gid + 1), LENGTH_DWORD);
-        length = FROM_BIG_ENDIAN(length);
+        m_device->Seek(ctx.LocaTableOffset + sizeof(uint32_t) * (gid + 1));
+        utls::ReadUInt32BE(*m_device, length);
 
         glyphData.GlyphLength = length - offset;
         glyphData.GlyphOffset = ctx.GlyfTableOffset + offset;
@@ -313,22 +307,22 @@ void PdfFontTrueTypeSubset::LoadGID(GlyphContext& ctx, unsigned gid)
         uint16_t offset;
         uint16_t length;
 
-        ReadData(&offset, ctx.LocaTableOffset + LENGTH_WORD * gid, LENGTH_WORD);
-        offset = FROM_BIG_ENDIAN(offset);
+        m_device->Seek(ctx.LocaTableOffset + sizeof(uint16_t) * gid);
+        utls::ReadUInt16BE(*m_device, offset);
         offset <<= 1;
 
-        ReadData(&length, ctx.LocaTableOffset + LENGTH_WORD * (gid + 1), LENGTH_WORD);
-        length = FROM_BIG_ENDIAN(length);
+        m_device->Seek(ctx.LocaTableOffset + sizeof(uint16_t) * (gid + 1));
+        utls::ReadUInt16BE(*m_device, length);
         length <<= 1;
 
         glyphData.GlyphLength = length - offset;
         glyphData.GlyphOffset = ctx.GlyfTableOffset + offset;
     }
 
-    glyphData.GlyphAdvOffset = glyphData.GlyphOffset + 5 * LENGTH_WORD;
+    glyphData.GlyphAdvOffset = glyphData.GlyphOffset + 5 * sizeof(uint16_t);
 
-    ReadData(&ctx.ContourCount, glyphData.GlyphOffset, LENGTH_WORD);
-    ctx.ContourCount = FROM_BIG_ENDIAN(ctx.ContourCount);
+    m_device->Seek(glyphData.GlyphOffset);
+    utls::ReadInt16BE(*m_device, ctx.ContourCount);
     if (ctx.ContourCount < 0)
     {
         glyphData.IsCompound = true;
@@ -364,9 +358,10 @@ void PdfFontTrueTypeSubset::WriteGlyphTable(PdfOutputDevice& output)
             // as they will appear in the subset
 
             m_tmpBuffer.resize(glyphData.GlyphLength);
-            ReadData(m_tmpBuffer.data(), glyphData.GlyphOffset, glyphData.GlyphLength);
+            m_device->Seek(glyphData.GlyphOffset);
+            m_device->Read(m_tmpBuffer.data(), glyphData.GlyphLength);
             for (auto& component : glyphData.CompoundComponents)
-                WriteUInt16(m_tmpBuffer.data() + component.Offset, (uint16_t)component.GlyphIndex);
+                utls::WriteUInt16BE(m_tmpBuffer.data() + component.Offset, (uint16_t)component.GlyphIndex);
             output.Write(m_tmpBuffer);
         }
         else
@@ -401,30 +396,30 @@ void PdfFontTrueTypeSubset::WriteHmtxTable(PdfOutputDevice& output)
 // Ref: https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6loca.html
 void PdfFontTrueTypeSubset::WriteLocaTable(PdfOutputDevice& output)
 {
-    unsigned glyphAddress = 0;
+    uint32_t glyphAddress = 0;
     if (m_isLongLoca)
     {
         for (unsigned gid : m_orderedGIDs)
         {
             auto& glyphData = m_glyphDatas[gid];
-            WriteUInt32(output, glyphAddress);
+            utls::WriteUInt32BE(output, glyphAddress);
             glyphAddress += glyphData.GlyphLength;
         }
 
         // Last "extra" entry
-        WriteUInt32(output, glyphAddress);
+        utls::WriteUInt32BE(output, glyphAddress);
     }
     else
     {
         for (unsigned gid : m_orderedGIDs)
         {
             auto& glyphData = m_glyphDatas[gid];
-            WriteUInt16(output, static_cast<uint16_t>(glyphAddress >> 1));
+            utls::WriteUInt16BE(output, static_cast<uint16_t>(glyphAddress >> 1));
             glyphAddress += glyphData.GlyphLength;
         }
 
         // Last "extra" entry
-        WriteUInt16(output, static_cast<uint16_t>(glyphAddress >> 1));
+        utls::WriteUInt16BE(output, static_cast<uint16_t>(glyphAddress >> 1));
     }
 }
 
@@ -438,11 +433,11 @@ void PdfFontTrueTypeSubset::WriteTables(string& buffer)
 
     // Write the font directory table
     // https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6.html
-    WriteUInt32(output, 0x00010000);     // Scaler type, 0x00010000 is True type font
-    WriteUInt16(output, (uint16_t)m_tables.size());
-    WriteUInt16(output, searchRange);
-    WriteUInt16(output, entrySelector);
-    WriteUInt16(output, rangeShift);
+    utls::WriteUInt32BE(output, 0x00010000);     // Scaler type, 0x00010000 is True type font
+    utls::WriteUInt16BE(output, (uint16_t)m_tables.size());
+    utls::WriteUInt16BE(output, searchRange);
+    utls::WriteUInt16BE(output, entrySelector);
+    utls::WriteUInt16BE(output, rangeShift);
 
     size_t directoryTableOffset = output.Tell();
 
@@ -450,11 +445,11 @@ void PdfFontTrueTypeSubset::WriteTables(string& buffer)
     for (unsigned i = 0; i < m_tables.size(); i++)
     {
         auto& table = m_tables[i];
-        WriteUInt32(output, table.Tag);
+        utls::WriteUInt32BE(output, table.Tag);
         // Write empty placeholders
-        WriteUInt32(output, 0); // Table checksum
-        WriteUInt32(output, 0); // Table offset
-        WriteUInt32(output, 0); // Table length (actual length not padded length)
+        utls::WriteUInt32BE(output, 0); // Table checksum
+        utls::WriteUInt32BE(output, 0); // Table offset
+        utls::WriteUInt32BE(output, 0); // Table length (actual length not padded length)
     }
 
     nullable<size_t> headOffset;
@@ -469,25 +464,25 @@ void PdfFontTrueTypeSubset::WriteTables(string& buffer)
                 headOffset = tableOffset;
                 CopyData(output, table.Offset, table.Length);
                 // Set the checkSumAdjustment to 0
-                WriteUInt32(buffer.data() + tableOffset + 4, 0);
+                utls::WriteUInt32BE(buffer.data() + tableOffset + 4, 0);
                 break;
             case TTAG_maxp:
                 // https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6maxp.html
                 CopyData(output, table.Offset, table.Length);
                 // Write the number of glyphs in the font
-                WriteUInt16(buffer.data() + tableOffset + 4, (uint16_t)m_glyphDatas.size());
+                utls::WriteUInt16BE(buffer.data() + tableOffset + 4, (uint16_t)m_glyphDatas.size());
                 break;
             case TTAG_hhea:
                 // https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6hhea.html
                 CopyData(output, table.Offset, table.Length);
                 // Write numOfLongHorMetrics, see also 'hmtx' table
-                WriteUInt16(buffer.data() + tableOffset + 34, (uint16_t)m_glyphDatas.size());
+                utls::WriteUInt16BE(buffer.data() + tableOffset + 34, (uint16_t)m_glyphDatas.size());
                 break;
             case TTAG_post:
                 // https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6post.html
                 CopyData(output, table.Offset, table.Length);
                 // Enforce 'post' Format 3, written as a Fixed 16.16 number
-                WriteUInt32(buffer.data() + tableOffset, 0x00030000);
+                utls::WriteUInt32BE(buffer.data() + tableOffset, 0x00030000);
                 // Clear Type42/Type1 font information
                 memset(buffer.data() + tableOffset + 16, 0, 16);
                 break;
@@ -517,9 +512,9 @@ void PdfFontTrueTypeSubset::WriteTables(string& buffer)
 
         // Write dynamic font directory table entries
         size_t currDirTableOffset = directoryTableOffset + i * LENGTH_OFFSETTABLE16;
-        WriteUInt32(buffer.data() + currDirTableOffset + 4, GetTableCheksum(buffer.data() + tableOffset, (uint32_t)tableLength));
-        WriteUInt32(buffer.data() + currDirTableOffset + 8, (uint32_t)tableOffset);
-        WriteUInt32(buffer.data() + currDirTableOffset + 12, (uint32_t)tableLength);
+        utls::WriteUInt32BE(buffer.data() + currDirTableOffset + 4, GetTableCheksum(buffer.data() + tableOffset, (uint32_t)tableLength));
+        utls::WriteUInt32BE(buffer.data() + currDirTableOffset + 8, (uint32_t)tableOffset);
+        utls::WriteUInt32BE(buffer.data() + currDirTableOffset + 12, (uint32_t)tableLength);
     }
 
     // Check for head table
@@ -529,18 +524,18 @@ void PdfFontTrueTypeSubset::WriteTables(string& buffer)
     // As explained in the "Table Directory"
     // https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6.html#Directory
     uint32_t fontChecksum = 0xB1B0AFBA - GetTableCheksum(buffer.data(), (uint32_t)output.Tell());
-    WriteUInt32(buffer.data() + *headOffset + 4, fontChecksum);
+    utls::WriteUInt32BE(buffer.data() + *headOffset + 4, fontChecksum);
 }
 
 void PdfFontTrueTypeSubset::ReadGlyphCompoundData(GlyphCompoundData& data, unsigned offset)
 {
     uint16_t temp;
-    ReadData(&temp, offset, LENGTH_WORD);
-    temp = FROM_BIG_ENDIAN(temp);
+    m_device->Seek(offset);
+    utls::ReadUInt16BE(*m_device, temp);
     data.Flags = temp;
 
-    ReadData(&temp, offset + LENGTH_WORD, LENGTH_WORD);
-    temp = FROM_BIG_ENDIAN(temp);
+    m_device->Seek(offset + sizeof(uint16_t));
+    utls::ReadUInt16BE(*m_device, temp);
     data.GlyphIndex = temp;
 }
 
@@ -555,13 +550,13 @@ bool TryAdvanceCompoundOffset(unsigned& offset, unsigned flags)
     if ((flags & MORE_COMPONENTS) == 0)
         return false;
 
-    offset += (flags & ARG_1_AND_2_ARE_WORDS) ? 4 * LENGTH_WORD : 3 * LENGTH_WORD;
+    offset += (flags & ARG_1_AND_2_ARE_WORDS) ? 4 * sizeof(uint16_t) : 3 * sizeof(uint16_t);
     if ((flags & WE_HAVE_A_SCALE) != 0)
-        offset += LENGTH_WORD;
+        offset += sizeof(uint16_t);
     else if ((flags & WE_HAVE_AN_X_AND_Y_SCALE) != 0)
-        offset += 2 * LENGTH_WORD;
+        offset += 2 * sizeof(uint16_t);
     else if ((flags & WE_HAVE_TWO_BY_TWO) != 0)
-        offset += 4 * LENGTH_WORD;
+        offset += 4 * sizeof(uint16_t);
 
     return true;
 }
@@ -574,12 +569,6 @@ void PdfFontTrueTypeSubset::CopyData(PdfOutputDevice& output, unsigned offset, u
     output.Write(m_tmpBuffer);
 }
 
-void PdfFontTrueTypeSubset::ReadData(void* dst, unsigned offset, unsigned size)
-{
-    m_device->Seek(offset);
-    m_device->Read((char*)dst, size);
-}
-
 uint32_t GetTableCheksum(const char* buf, uint32_t size)
 {
     // As explained in the "Table Directory"
@@ -590,34 +579,4 @@ uint32_t GetTableCheksum(const char* buf, uint32_t size)
         sum += *buf++;
 
     return sum;
-}
-
-void WriteUInt32(PdfOutputDevice& output, uint32_t value)
-{
-    char buf[4];
-    WriteUInt32(buf, value);
-    output.Write(string_view(buf, 4));
-}
-
-void WriteUInt16(PdfOutputDevice& output, uint16_t value)
-{
-    char buf[2];
-    WriteUInt16(buf, value);
-    output.Write(string_view(buf, 2));
-}
-
-void WriteUInt32(char* buf, uint32_t value)
-{
-    // Write the unsigned integer in big-endian format
-    buf[0] = static_cast<char>((value >> 24) & 0xFF);
-    buf[1] = static_cast<char>((value >> 16) & 0xFF);
-    buf[2] = static_cast<char>((value >>  8) & 0xFF);
-    buf[3] = static_cast<char>((value >>  0) & 0xFF);
-}
-
-void WriteUInt16(char* buf, uint16_t value)
-{
-    // Write the unsigned integer in big-endian format
-    buf[0] = static_cast<char>((value >> 8) & 0xFF);
-    buf[1] = static_cast<char>((value >> 0) & 0xFF);
 }

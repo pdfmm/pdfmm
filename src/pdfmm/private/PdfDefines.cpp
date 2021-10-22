@@ -9,6 +9,8 @@
 #include "PdfDefinesPrivate.h"
 #include <utfcpp/utf8.h>
 #include <pdfmm/common/WindowsLeanMean.h>
+#include <pdfmm/base/PdfInputDevice.h>
+#include <pdfmm/base/PdfOutputDevice.h>
 
 #ifndef _WIN32
 // NOTE: There's no <cstrings>, <strings.h> is a posix header
@@ -228,4 +230,128 @@ chars::chars()
 chars::chars(size_t size)
 {
     resize(size);
+}
+
+void utls::WriteUInt32BE(PdfOutputDevice& output, uint32_t value)
+{
+    char buf[4];
+    WriteUInt32BE(buf, value);
+    output.Write(string_view(buf, 4));
+}
+
+void utls::WriteInt32BE(mm::PdfOutputDevice& output, int32_t value)
+{
+    char buf[4];
+    WriteInt32BE(buf, value);
+    output.Write(string_view(buf, 4));
+}
+
+void utls::WriteUInt16BE(PdfOutputDevice& output, uint16_t value)
+{
+    char buf[2];
+    WriteUInt16BE(buf, value);
+    output.Write(string_view(buf, 2));
+}
+
+void utls::WriteInt16BE(mm::PdfOutputDevice& output, int16_t value)
+{
+    char buf[2];
+    WriteInt16BE(buf, value);
+    output.Write(string_view(buf, 2));
+}
+
+void utls::WriteUInt32BE(char* buf, uint32_t value)
+{
+    value = AS_BIG_ENDIAN(value);
+    buf[0] = static_cast<char>((value >> 0 ) & 0xFF);
+    buf[1] = static_cast<char>((value >> 8 ) & 0xFF);
+    buf[2] = static_cast<char>((value >> 16) & 0xFF);
+    buf[3] = static_cast<char>((value >> 24) & 0xFF);
+}
+
+void utls::WriteInt32BE(char* buf, int32_t value)
+{
+    value = AS_BIG_ENDIAN(value);
+    buf[0] = static_cast<char>((value >> 0 ) & 0xFF);
+    buf[1] = static_cast<char>((value >> 8 ) & 0xFF);
+    buf[2] = static_cast<char>((value >> 16) & 0xFF);
+    buf[3] = static_cast<char>((value >> 24) & 0xFF);
+}
+
+void utls::WriteUInt16BE(char* buf, uint16_t value)
+{
+    value = AS_BIG_ENDIAN(value);
+    buf[0] = static_cast<char>((value >> 0) & 0xFF);
+    buf[1] = static_cast<char>((value >> 8) & 0xFF);
+}
+
+void utls::WriteInt16BE(char* buf, int16_t value)
+{
+    value = AS_BIG_ENDIAN(value);
+    buf[0] = static_cast<char>((value >> 0) & 0xFF);
+    buf[1] = static_cast<char>((value >> 8) & 0xFF);
+}
+
+void utls::ReadUInt32BE(PdfInputDevice& input, uint32_t& value)
+{
+    char buf[4];
+    input.Read(buf, 4);
+    ReadUInt32BE(buf, value);
+}
+
+void utls::ReadInt32BE(mm::PdfInputDevice& input, int32_t& value)
+{
+    char buf[2];
+    input.Read(buf, 2);
+    ReadInt32BE(buf, value);
+}
+
+void utls::ReadUInt16BE(PdfInputDevice& input, uint16_t& value)
+{
+    char buf[2];
+    input.Read(buf, 2);
+    ReadUInt16BE(buf, value);
+}
+
+void utls::ReadInt16BE(mm::PdfInputDevice& input, int16_t& value)
+{
+    char buf[2];
+    input.Read(buf, 2);
+    ReadInt16BE(buf, value);
+}
+
+void utls::ReadUInt32BE(const char* buf, uint32_t& value)
+{
+    value =
+          (uint32_t)(buf[0] & 0xFF) << 0
+        | (uint32_t)(buf[1] & 0xFF) << 8
+        | (uint32_t)(buf[2] & 0xFF) << 16
+        | (uint32_t)(buf[3] & 0xFF) << 24;
+    value = AS_BIG_ENDIAN(value);
+}
+
+void utls::ReadInt32BE(const char* buf, int32_t& value)
+{
+    value =
+          (int32_t)(buf[0] & 0xFF) << 0
+        | (int32_t)(buf[1] & 0xFF) << 8
+        | (int32_t)(buf[2] & 0xFF) << 16
+        | (int32_t)(buf[3] & 0xFF) << 24;
+    value = AS_BIG_ENDIAN(value);
+}
+
+void utls::ReadUInt16BE(const char* buf, uint16_t& value)
+{
+    value =
+          (uint16_t)(buf[0] & 0xFF) << 0
+        | (uint16_t)(buf[1] & 0xFF) << 8;
+    value = AS_BIG_ENDIAN(value);
+}
+
+void utls::ReadInt16BE(const char* buf, int16_t& value)
+{
+    value =
+          (int16_t)(buf[0] & 0xFF) << 0
+        | (int16_t)(buf[1] & 0xFF) << 8;
+    value = AS_BIG_ENDIAN(value);
 }

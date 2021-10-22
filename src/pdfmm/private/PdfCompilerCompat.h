@@ -30,8 +30,13 @@
 #  define PDFMM_IS_LITTLE_ENDIAN
 #endif
 
-#define AS_BIG_ENDIAN(n) mm::compat::HandleBigEndian(n)
-#define FROM_BIG_ENDIAN(n) mm::compat::HandleBigEndian(n)
+#ifdef PDFMM_IS_LITTLE_ENDIAN
+#define AS_BIG_ENDIAN(n) mm::compat::ByteSwap(n)
+#define FROM_BIG_ENDIAN(n) mm::compat::ByteSwap(n)
+#else // PDFMM_IS_BIG_ENDIAN
+#define AS_BIG_ENDIAN(n) n
+#define FROM_BIG_ENDIAN(n) n
+#endif
 
 namespace mm::compat
 {
@@ -94,68 +99,6 @@ namespace mm::compat
     inline int64_t ByteSwap(int64_t n)
     {
         return (int64_t)__builtin_bswap64((uint64_t)n);
-    }
-#endif
-
-#ifdef PDFMM_IS_LITTLE_ENDIAN
-    inline uint16_t HandleBigEndian(uint16_t n)
-    {
-        return ByteSwap(n);
-    }
-
-    inline uint32_t HandleBigEndian(uint32_t n)
-    {
-        return ByteSwap(n);
-    }
-
-    inline uint64_t HandleBigEndian(uint64_t n)
-    {
-        return ByteSwap(n);
-    }
-
-    inline int16_t HandleBigEndian(int16_t n)
-    {
-        return ByteSwap(n);
-    }
-
-    inline int32_t HandleBigEndian(int32_t n)
-    {
-        return ByteSwap(n);
-    }
-
-    inline int64_t HandleBigEndian(int64_t n)
-    {
-        return ByteSwap(n);
-    }
-#else
-    inline uint16_t HandleBigEndian(uint16_t n)
-    {
-        return n;
-    }
-
-    inline uint32_t HandleBigEndian(uint32_t n)
-    {
-        return n;
-    }
-
-    inline uint64_t HandleBigEndian(uint64_t n)
-    {
-        return n;
-    }
-
-    inline int16_t HandleBigEndian(int16_t n)
-    {
-        return n;
-    }
-
-    inline int32_t HandleBigEndian(int32_t n)
-    {
-        return n;
-    }
-
-    inline int64_t HandleBigEndian(int64_t n)
-    {
-        return n;
     }
 #endif
 
