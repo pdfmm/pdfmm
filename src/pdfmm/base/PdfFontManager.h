@@ -21,12 +21,10 @@
 #include "PdfFontConfigWrapper.h"
 #endif
 
-#ifdef _WIN32
-
+#if defined(_WIN32) && !defined(PDFMM_HAVE_FONTCONFIG)
 // To have LOGFONTW available
 typedef struct tagLOGFONTW LOGFONTW;
-
-#endif // _WIN32
+#endif
 
 namespace mm {
 
@@ -131,13 +129,11 @@ public:
         bool isSymbolCharset = false,
         bool embed = false);
 
-#ifdef _WIN32
-
+#if defined(_WIN32) && !defined(PDFMM_HAVE_FONTCONFIG)
     PdfFont* GetFont(const LOGFONTW& logFont,
         const PdfEncoding& encoding = PdfEncodingFactory::CreateWinAnsiEncoding(),
         bool embed = true);
-
-#endif // _WIN32
+#endif
 
     /** Returns the internal handle to the freetype library from font cache
      */
@@ -215,7 +211,7 @@ private:
         const PdfFontMetricsConstPtr& metrics, const PdfEncoding& encoding,
         bool bold, bool italic, bool embed, bool subsetting);
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(PDFMM_HAVE_FONTCONFIG)
     PdfFont* GetWin32Font(FontCacheMap& map, const std::string_view& fontName,
         const PdfEncoding& encoding, bool bold, bool italic, bool symbolCharset,
         bool embed, bool subsetting);
@@ -223,7 +219,7 @@ private:
     PdfFont* GetWin32Font(FontCacheMap& map, const std::string_view& fontName,
         const LOGFONTW& logFont, const PdfEncoding& encoding,
         bool embed, bool subsetting);
-#endif // _WIN32
+#endif
 
     void Init();
 

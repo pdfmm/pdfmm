@@ -9,7 +9,7 @@
 #include <pdfmm/private/PdfDefinesPrivate.h>
 #include "PdfFontManager.h" 
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(PDFMM_HAVE_FONTCONFIG)
 #include <pdfmm/common/WindowsLeanMean.h>
 #endif // _WIN32
 
@@ -31,7 +31,7 @@
 using namespace std;
 using namespace mm;
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(PDFMM_HAVE_FONTCONFIG)
 
 static bool getFontData(chars& buffer, const LOGFONTW& inFont);
 static bool getFontData(chars& buffer, HDC hdc, HFONT hf);
@@ -144,20 +144,18 @@ PdfFont* PdfFontManager::GetFont(const string_view& fontName, const PdfFontCreat
     }
 
     bool subsetting = (params.Flags & PdfFontCreationFlags::DoSubsetting) != PdfFontCreationFlags::None;
-    string path;
-    if (params.FilePath.empty())
+    string path = params.FilePath;
+    if (path.empty())
         path = this->GetFontPath(fontName, params.Bold, params.Italic);
-    else
-        path = params.FilePath;
 
     if (path.empty())
     {
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(PDFMM_HAVE_FONTCONFIG)
         return GetWin32Font(m_fontMap, fontName, params.Encoding, params.Bold, params.Italic,
             params.IsSymbolCharset, params.Embed, subsetting);
 #else
         return nullptr;
-#endif // _WIN32
+#endif
     }
     else
     {
@@ -189,25 +187,20 @@ PdfFont* PdfFontManager::GetFontSubset(const string_view& fontname, const PdfFon
         params.IsSymbolCharset));
     if (found == m_fontSubsetMap.end())
     {
-        string path;
-        if (params.FilePath.empty())
-        {
+        string path = params.FilePath;
+        if (path.empty())
             path = this->GetFontPath(fontname, params.Bold, params.Italic);
-            if (path.empty())
-            {
-#ifdef _WIN32
-                return GetWin32Font(m_fontSubsetMap, fontname,
-                    params.Encoding, params.Bold, params.Italic,
-                    params.IsSymbolCharset, true, true);
-#else       
-                PdfError::LogMessage(LogSeverity::Error, "No path was found for the specified fontname: {}", fontname);
-                return nullptr;
-#endif // _WIN32
-            }
-        }
-        else
+
+        if (path.empty())
         {
-            path = params.FilePath;
+#if defined(_WIN32) && !defined(PDFMM_HAVE_FONTCONFIG)
+            return GetWin32Font(m_fontSubsetMap, fontname,
+                params.Encoding, params.Bold, params.Italic,
+                params.IsSymbolCharset, true, true);
+#else
+            PdfError::LogMessage(LogSeverity::Error, "No path was found for the specified fontname: {}", fontname);
+            return nullptr;
+#endif
         }
 
         auto metrics = (PdfFontMetricsConstPtr)PdfFontMetricsFreetype::CreateForSubsetting(&m_ftLibrary, path,
@@ -261,7 +254,7 @@ void PdfFontManager::EmbedSubsetFonts()
         pair.second->EmbedFontSubset();
 }
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(PDFMM_HAVE_FONTCONFIG)
 
 PdfFont* PdfFontManager::GetFont(const LOGFONTW& logFont,
     const PdfEncoding& encoding, bool embed)
@@ -335,7 +328,7 @@ PdfFont* PdfFontManager::GetWin32Font(FontCacheMap& map, const string_view& font
         logFont.lfItalic ? true : false, embed, subsetting);
 }
 
-#endif // _WIN32
+#endif // defined(_WIN32) && !defined(PDFMM_HAVE_FONTCONFIG)
 
 string PdfFontManager::GetFontPath(const string_view& fontName, bool bold, bool italic)
 {
@@ -434,7 +427,7 @@ bool PdfFontManager::EqualElement::operator()(const Element& lhs, const Element&
         && lhs.IsSymbolCharset == rhs.IsSymbolCharset;
 }
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(PDFMM_HAVE_FONTCONFIG)
 
 bool getFontData(chars& buffer, const LOGFONTW& inFont)
 {
@@ -543,4 +536,4 @@ void getFontDataTTC(chars& buffer, const chars& fileBuffer, const chars& ttcBuff
     }
 }
 
-#endif // _WIN32
+#endif // defined(_WIN32) && !defined(PDFMM_HAVE_FONTCONFIG)
