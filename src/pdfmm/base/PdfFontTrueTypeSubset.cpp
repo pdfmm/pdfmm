@@ -359,7 +359,7 @@ void PdfFontTrueTypeSubset::LoadCompound(GlyphContext& ctx, const GlyphData& dat
     }
 }
 
-// Ref: https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6glyf.html
+// Ref: https://docs.microsoft.com/en-us/typography/opentype/spec/glyf
 void PdfFontTrueTypeSubset::WriteGlyphTable(PdfOutputDevice& output)
 {
     for (unsigned gid : m_orderedGIDs)
@@ -389,7 +389,7 @@ void PdfFontTrueTypeSubset::WriteGlyphTable(PdfOutputDevice& output)
 }
 
 // The 'hmtx' table contains the horizontal metrics for each glyph in the font
-// https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6hmtx.html
+// https://docs.microsoft.com/en-us/typography/opentype/spec/hmtx
 void PdfFontTrueTypeSubset::WriteHmtxTable(PdfOutputDevice& output)
 {
     struct LongHorMetrics
@@ -409,7 +409,7 @@ void PdfFontTrueTypeSubset::WriteHmtxTable(PdfOutputDevice& output)
 // the length of the last glyph element, there is an extra
 // entry after the offset that points to the last valid
 // index. This index points to the end of the glyph data"
-// Ref: https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6loca.html
+// Ref: https://docs.microsoft.com/en-us/typography/opentype/spec/loca
 void PdfFontTrueTypeSubset::WriteLocaTable(PdfOutputDevice& output)
 {
     uint32_t glyphAddress = 0;
@@ -448,7 +448,7 @@ void PdfFontTrueTypeSubset::WriteTables(string& buffer)
     uint16_t rangeShift = (16 * (uint16_t)m_tables.size()) - searchRange;
 
     // Write the font directory table
-    // https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6.html
+    // https://docs.microsoft.com/en-us/typography/opentype/spec/otff#tabledirectory
     utls::WriteUInt32BE(output, 0x00010000);     // Scaler type, 0x00010000 is True type font
     utls::WriteUInt16BE(output, (uint16_t)m_tables.size());
     utls::WriteUInt16BE(output, searchRange);
@@ -483,19 +483,19 @@ void PdfFontTrueTypeSubset::WriteTables(string& buffer)
                 utls::WriteUInt32BE(buffer.data() + tableOffset + 4, 0);
                 break;
             case TTAG_maxp:
-                // https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6maxp.html
+                // https://docs.microsoft.com/en-us/typography/opentype/spec/maxp
                 CopyData(output, table.Offset, table.Length);
                 // Write the number of glyphs in the font
                 utls::WriteUInt16BE(buffer.data() + tableOffset + 4, (uint16_t)m_glyphDatas.size());
                 break;
             case TTAG_hhea:
-                // https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6hhea.html
+                // https://docs.microsoft.com/en-us/typography/opentype/spec/hhea
                 CopyData(output, table.Offset, table.Length);
                 // Write numOfLongHorMetrics, see also 'hmtx' table
                 utls::WriteUInt16BE(buffer.data() + tableOffset + 34, (uint16_t)m_glyphDatas.size());
                 break;
             case TTAG_post:
-                // https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6post.html
+                // https://docs.microsoft.com/en-us/typography/opentype/spec/post
                 CopyData(output, table.Offset, table.Length);
                 // Enforce 'post' Format 3, written as a Fixed 16.16 number
                 utls::WriteUInt32BE(buffer.data() + tableOffset, 0x00030000);
@@ -538,7 +538,7 @@ void PdfFontTrueTypeSubset::WriteTables(string& buffer)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "'head' table missing");
 
     // As explained in the "Table Directory"
-    // https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6.html#Directory
+    // https://docs.microsoft.com/en-us/typography/opentype/spec/otff#tabledirectory
     uint32_t fontChecksum = 0xB1B0AFBA - GetTableCheksum(buffer.data(), (uint32_t)output.Tell());
     utls::WriteUInt32BE(buffer.data() + *headOffset + 4, fontChecksum);
 }
@@ -588,7 +588,7 @@ void PdfFontTrueTypeSubset::CopyData(PdfOutputDevice& output, unsigned offset, u
 uint32_t GetTableCheksum(const char* buf, uint32_t size)
 {
     // As explained in the "Table Directory"
-    // https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6.html#Directory
+    // https://docs.microsoft.com/en-us/typography/opentype/spec/otff#tabledirectory
     uint32_t sum = 0;
     uint32_t nLongs = (size + 3) / 4;
     while (nLongs-- > 0)
