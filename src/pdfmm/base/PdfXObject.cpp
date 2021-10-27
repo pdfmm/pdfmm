@@ -318,19 +318,18 @@ void PdfXObject::InitIdentifiers(PdfXObjectType subType, const string_view& pref
 void PdfXObject::InitResources()
 {
     // The PDF specification suggests that we send all available PDF Procedure sets
-    this->GetObject().GetDictionary().AddKey("Resources", PdfDictionary());
-    m_Resources = this->GetObject().GetDictionary().GetKey("Resources");
+    m_Resources = &this->GetObject().GetDictionary().AddKey("Resources", PdfDictionary());
     m_Resources->GetDictionary().AddKey("ProcSet", PdfCanvas::GetProcSet());
 }
 
 
-PdfObject& PdfXObject::GetContents()
+PdfObject& PdfXObject::GetOrCreateContents()
 {
-    return const_cast<PdfXObject&>(*this).GetObject();
+    return GetObject();
 }
 
-PdfObject& PdfXObject::GetResources()
+PdfObject& PdfXObject::GetOrCreateResources()
 {
-    const_cast<PdfXObject&>(*this).EnsureResourcesInitialized();
+    EnsureResourcesInitialized();
     return *m_Resources;
 }

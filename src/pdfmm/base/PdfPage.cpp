@@ -77,8 +77,7 @@ void PdfPage::InitNewPage(const PdfRect& size)
     SetMediaBox(size);
 
     // The PDF specification suggests that we send all available PDF Procedure sets
-    this->GetObject().GetDictionary().AddKey("Resources", PdfDictionary());
-    m_Resources = this->GetObject().GetDictionary().FindKey("Resources");
+    m_Resources = &this->GetObject().GetDictionary().AddKey("Resources", PdfDictionary());
     m_Resources->GetDictionary().AddKey("ProcSet", PdfCanvas::GetProcSet());
 }
 
@@ -99,8 +98,7 @@ void PdfPage::EnsureResourcesCreated() const
         return;
 
     auto& page = const_cast<PdfPage&>(*this);
-    page.GetObject().GetDictionary().AddKey("Resources", PdfDictionary());
-    page.m_Resources = page.GetObject().GetDictionary().FindKey("Resources");
+    page.m_Resources = &page.GetObject().GetDictionary().AddKey("Resources", PdfDictionary());
     m_Resources->GetDictionary().AddKey("ProcSet", PdfCanvas::GetProcSet());
 }
 
@@ -586,8 +584,8 @@ void PdfPage::SetICCProfile(const string_view& csTag, PdfInputStream& stream,
     // Create a colorspace object
     PdfObject* iccObject = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject();
     PdfName nameForCS = PdfColor::GetNameForColorSpace(alternateColorSpace);
-    iccObject->GetDictionary().AddKey(PdfName("Alternate"), nameForCS);
-    iccObject->GetDictionary().AddKey(PdfName("N"), colorComponents);
+    iccObject->GetDictionary().AddKey("Alternate", nameForCS);
+    iccObject->GetDictionary().AddKey("N", colorComponents);
     iccObject->GetOrCreateStream().Set(stream);
 
     // Add the colorspace
@@ -599,19 +597,32 @@ void PdfPage::SetICCProfile(const string_view& csTag, PdfInputStream& stream,
     iccBasedDictionary.AddKey(csTag, array);
 
     // Add the colorspace to resource
-    GetResources().GetDictionary().AddKey(PdfName("ColorSpace"), iccBasedDictionary);
+    GetOrCreateResources().GetDictionary().AddKey("ColorSpace", iccBasedDictionary);
 }
 
-PdfObject& PdfPage::GetContents()
+PdfObject& PdfPage::GetOrCreateContents()
 {
     EnsureContentsCreated();
     return m_contents->GetContents();
 }
 
-PdfObject& PdfPage::GetResources()
+PdfObject& PdfPage::GetOrCreateResources()
 {
     EnsureResourcesCreated();
     return *m_Resources;
+}
+
+const PdfObject* PdfPage::GetContents() const
+{
+    return const_cast<PdfPage&>(*this).GetContents();
+}
+
+PdfObject* PdfPage::GetContents()
+{
+    if (m_contents == nullptr)
+        return nullptr;
+
+    return &m_contents->GetContents();
 }
 
 PdfRect PdfPage::GetMediaBox() const

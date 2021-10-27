@@ -31,7 +31,7 @@ PdfArray PdfCanvas::GetProcSet()
 
 void PdfCanvas::AddColorResource(const PdfColor& color)
 {
-    auto& resources = GetResources();
+    auto& resources = GetOrCreateResources();
     switch (color.GetColorSpace())
     {
         case PdfColorSpace::Separation:
@@ -44,7 +44,7 @@ void PdfCanvas::AddColorResource(const PdfColor& color)
                 || !resources.GetDictionary().MustFindKey("ColorSpace").GetDictionary().HasKey(csPrefix + csName))
             {
                 // Build color-spaces for separation
-                PdfObject* csp = color.BuildColorSpace(*GetContents().GetDocument());
+                PdfObject* csp = color.BuildColorSpace(*GetOrCreateContents().GetDocument());
 
                 AddResource(csPrefix + csName, csp->GetIndirectReference(), "ColorSpace");
             }
@@ -57,7 +57,7 @@ void PdfCanvas::AddColorResource(const PdfColor& color)
                 || !resources.GetDictionary().MustFindKey("ColorSpace").GetDictionary().HasKey("ColorSpaceLab"))
             {
                 // Build color-spaces for CIE-lab
-                PdfObject* csp = color.BuildColorSpace(*GetContents().GetDocument());
+                PdfObject* csp = color.BuildColorSpace(*GetOrCreateContents().GetDocument());
 
                 AddResource("ColorSpaceCieLab", csp->GetIndirectReference(), "ColorSpace");
             }
@@ -80,7 +80,7 @@ void PdfCanvas::AddResource(const PdfName& identifier, const PdfReference& ref, 
     if (name.IsNull() || identifier.IsNull())
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-    auto& resources = this->GetResources();
+    auto& resources = this->GetOrCreateResources();
     if (!resources.GetDictionary().HasKey(name))
         resources.GetDictionary().AddKey(name, PdfDictionary());
 

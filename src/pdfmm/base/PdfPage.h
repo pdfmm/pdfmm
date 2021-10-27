@@ -203,9 +203,15 @@ public:
     void SetICCProfile(const std::string_view& csTag, PdfInputStream& stream, int64_t colorComponents,
         PdfColorSpace alternateColorSpace = PdfColorSpace::DeviceRGB);
 
-    PdfObject& GetContents() override;
+    PdfObject& GetOrCreateContents() override;
 
-    PdfObject& GetResources() override;
+    PdfObject& GetOrCreateResources() override;
+
+public:
+    const PdfObject* GetContents() const;
+    PdfObject* GetContents();
+    inline const PdfObject* GetResources() const { return m_Resources; }
+    inline PdfObject* GetResources() { return m_Resources; }
 
 private:
     PdfStream& GetStreamForAppending(PdfStreamAppendFlags flags) override;

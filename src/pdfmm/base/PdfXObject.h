@@ -100,9 +100,10 @@ public:
     */
     void EnsureResourcesInitialized();
 
-    PdfObject& GetResources() override;
+    PdfObject& GetOrCreateResources() override;
 
-    PdfObject& GetContents() override;
+    inline const PdfObject* GetResources() const { return m_Resources; }
+    inline PdfObject* GetResources() { return m_Resources; }
 
     /** Get the identifier used for drawig this object
      *  \returns identifier
@@ -120,6 +121,9 @@ public:
     inline const PdfReference& GetObjectReference() const { return m_Reference; }
 
     inline PdfXObjectType GetType() const { return m_type; }
+
+private:
+    PdfObject& GetOrCreateContents() override;
 
 private:
     static PdfXObjectType getPdfXObjectType(const PdfObject& obj);

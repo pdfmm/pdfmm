@@ -42,7 +42,7 @@ public:
      *  drawing commands to the stream of the Contents object.
      *  \returns a contents object
      */
-    virtual PdfObject& GetContents() = 0;
+    virtual PdfObject& GetOrCreateContents() = 0;
 
     /** Get access an object that you can use to ADD drawing to.
      *  If you want to draw onto the page, you have to add
@@ -55,7 +55,7 @@ public:
      *  This is most likely an internal object.
      *  \returns a resources object
      */
-    virtual PdfObject& GetResources() = 0;
+    virtual PdfObject& GetOrCreateResources() = 0;
 
     /** Get the current canvas size in PDF Units
      *  \returns a PdfRect containing the page size available for drawing
