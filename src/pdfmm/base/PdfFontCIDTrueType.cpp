@@ -13,7 +13,6 @@
 #include <iostream>
 #include <sstream>
 
-#include <ft2build.h>
 #include <freetype/freetype.h>
 
 #include "PdfDocument.h"

@@ -12,7 +12,6 @@
 #include <pdfmm/private/PdfDefinesPrivate.h>
 #include "PdfFontTrueTypeSubset.h"
 
-#include <ft2build.h>
 #include <freetype/freetype.h>
 #include <freetype/tttables.h>
 #include <freetype/tttags.h>

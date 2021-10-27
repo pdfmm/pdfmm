@@ -16,7 +16,6 @@
 #include <algorithm>
 
 #include <utfcpp/utf8.h>
-#include <ft2build.h>
 #include <freetype/freetype.h>
 
 #include "PdfDictionary.h"
@@ -168,7 +167,7 @@ PdfFont* PdfFontManager::getFont(const string_view& fontName, const PdfFontCreat
     }
     else
     {
-        auto metrics = std::make_shared<PdfFontMetricsFreetype>(&m_ftLibrary, path,
+        auto metrics = std::make_shared<PdfFontMetricsFreetype>(m_ftLibrary, path,
             params.IsSymbolCharset);
         return this->CreateFontObject(m_fontMap, fontName, metrics, params.Encoding,
             params.Bold, params.Italic, params.Embed, subsetting);
@@ -219,7 +218,7 @@ PdfFont* PdfFontManager::getFontSubset(const std::string_view& fontName, const P
 #endif
         }
 
-        auto metrics = (PdfFontMetricsConstPtr)PdfFontMetricsFreetype::CreateForSubsetting(&m_ftLibrary, path,
+        auto metrics = (PdfFontMetricsConstPtr)PdfFontMetricsFreetype::CreateForSubsetting(m_ftLibrary, path,
             params.IsSymbolCharset);
         return CreateFontObject(m_fontSubsetMap, fontName, metrics, params.Encoding,
             params.Bold, params.Italic, true, true);
@@ -254,7 +253,7 @@ PdfFont* PdfFontManager::GetFont(FT_Face face, const PdfEncoding& encoding,
         isSymbolCharset));
     if (found == m_fontMap.end())
     {
-        auto metrics = std::make_shared<PdfFontMetricsFreetype>(&m_ftLibrary, face, isSymbolCharset);
+        auto metrics = std::make_shared<PdfFontMetricsFreetype>(m_ftLibrary, face, isSymbolCharset);
         return this->CreateFontObject(m_fontMap, name, metrics, encoding,
             bold, italic, embed, false);
     }
@@ -337,7 +336,7 @@ PdfFont* PdfFontManager::GetWin32Font(FontCacheMap& map, const string_view& font
     if (!getFontData(buffer, logFont))
         return nullptr;
 
-    auto metrics = std::make_shared<PdfFontMetricsFreetype>(&m_ftLibrary, buffer.data(), buffer.size(),
+    auto metrics = std::make_shared<PdfFontMetricsFreetype>(m_ftLibrary, buffer.data(), buffer.size(),
         logFont.lfCharSet == SYMBOL_CHARSET);
     return this->CreateFontObject(map, fontName, metrics, encoding,
         logFont.lfWeight >= FW_BOLD ? true : false,

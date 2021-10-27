@@ -29,7 +29,7 @@ public:
      *  \param filename filename of a truetype file
      *  \param isSymbol whether use a symbol encoding, rather than unicode
      */
-    PdfFontMetricsFreetype(FT_Library* library, const std::string_view& filename,
+    PdfFontMetricsFreetype(FT_Library library, const std::string_view& filename,
         bool isSymbol);
 
     /** Create a font metrics object for a given memory buffer
@@ -38,7 +38,7 @@ public:
      *  \param size the length of the buffer
      *  \param isSymbol whether use a symbol encoding, rather than unicode
      */
-    PdfFontMetricsFreetype(FT_Library* library, const char* buffer, size_t size,
+    PdfFontMetricsFreetype(FT_Library library, const char* buffer, size_t size,
         bool isSymbol);
 
     /** Create a font metrics object for a given freetype font.
@@ -46,14 +46,14 @@ public:
      *  \param face a valid freetype font face
      *  \param isSymbol whether use a symbol encoding, rather than unicode
      */
-    PdfFontMetricsFreetype(FT_Library* library, FT_Face face, bool isSymbol);
+    PdfFontMetricsFreetype(FT_Library library, FT_Face face, bool isSymbol);
 
     /** Create a font metrics object suitable for subsetting for a given true type file
      *  \param library handle to an initialized FreeType2 library handle
      *  \param filename filename of a truetype file
      *  \param isSymbol whether use a symbol encoding, rather than unicode
      */
-    static PdfFontMetricsFreetype* CreateForSubsetting(FT_Library* library, const std::string_view& filename,
+    static PdfFontMetricsFreetype* CreateForSubsetting(FT_Library library, const std::string_view& filename,
         bool isSymbol);
 
     ~PdfFontMetricsFreetype();
@@ -104,7 +104,7 @@ public:
     inline FT_Face GetFace() const { return m_Face; }
 
 private:
-    PdfFontMetricsFreetype(FT_Library* library, const std::shared_ptr<chars>& buffer,
+    PdfFontMetricsFreetype(FT_Library library, const std::shared_ptr<chars>& buffer,
         bool isSymbol);
 
 private:
@@ -123,7 +123,7 @@ private:
     void InitFontSizes();
 
  protected:
-    FT_Library* m_Library;
+    FT_Library m_Library;
     FT_Face m_Face;
 
  private:
