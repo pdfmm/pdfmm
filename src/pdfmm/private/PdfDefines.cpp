@@ -8,12 +8,14 @@
 
 #include "PdfDefinesPrivate.h"
 #include <utfcpp/utf8.h>
-#include <pdfmm/common/WindowsLeanMean.h>
+
 #include <pdfmm/base/PdfInputDevice.h>
 #include <pdfmm/base/PdfOutputDevice.h>
 
-#ifndef _WIN32
-// NOTE: There's no <cstrings>, <strings.h> is a posix header
+#ifdef _WIN32
+#include <pdfmm/common/WindowsLeanMean.h>
+#else
+ // NOTE: There's no <cstrings>, <strings.h> is a posix header
 #include <strings.h>
 #endif
 

@@ -288,7 +288,8 @@ void PdfFontTrueTypeSubset::LoadGlyphs(GlyphContext& ctx, const CIDToGIDMap& use
             }
 
             // Insert the compound component using the actual assigned GID
-            glyphData.CompoundComponents.push_back({ (componentGlyphIdOffset + sizeof(uint16_t)) - glyphData.GlyphOffset, inserted.first->second });
+            glyphData.CompoundComponents.push_back(
+                { (unsigned)(componentGlyphIdOffset + sizeof(uint16_t)) - glyphData.GlyphOffset, inserted.first->second });
             if (!TryAdvanceCompoundOffset(offset, cmpData.Flags))
                 break;
         }
