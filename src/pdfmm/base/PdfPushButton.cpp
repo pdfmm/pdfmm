@@ -38,13 +38,13 @@ void PdfPushButton::Init()
 
 void PdfPushButton::SetRolloverCaption(const PdfString& text)
 {
-    auto mk = this->GetAppearanceCharacteristics(true);
-    mk->GetDictionary().AddKey("RC", text);
+    auto& mk = this->GetOrCreateAppearanceCharacteristics();
+    mk.GetDictionary().AddKey("RC", text);
 }
 
 nullable<PdfString>  PdfPushButton::GetRolloverCaption() const
 {
-    auto mk = this->GetAppearanceCharacteristics(false);
+    auto mk = this->GetAppearanceCharacteristics();
     if (mk != nullptr && mk->GetDictionary().HasKey("RC"))
         return mk->GetDictionary().MustFindKey("RC").GetString();
 
@@ -53,14 +53,14 @@ nullable<PdfString>  PdfPushButton::GetRolloverCaption() const
 
 void PdfPushButton::SetAlternateCaption(const PdfString& text)
 {
-    auto mk = this->GetAppearanceCharacteristics(true);
-    mk->GetDictionary().AddKey("AC", text);
+    auto& mk = this->GetOrCreateAppearanceCharacteristics();
+    mk.GetDictionary().AddKey("AC", text);
 
 }
 
 nullable<PdfString>  PdfPushButton::GetAlternateCaption() const
 {
-    auto mk = this->GetAppearanceCharacteristics(false);
+    auto mk = this->GetAppearanceCharacteristics();
     if (mk != nullptr && mk->GetDictionary().HasKey("AC"))
         return mk->GetDictionary().MustFindKey("AC").GetString();
 

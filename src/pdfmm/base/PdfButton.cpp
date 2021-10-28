@@ -46,13 +46,13 @@ bool PdfButton::IsRadioButton() const
 
 void PdfButton::SetCaption(const PdfString& text)
 {
-    PdfObject* mk = this->GetAppearanceCharacteristics(true);
-    mk->GetDictionary().AddKey("CA", text);
+    PdfObject& mk = this->GetOrCreateAppearanceCharacteristics();
+    mk.GetDictionary().AddKey("CA", text);
 }
 
 nullable<PdfString> PdfButton::GetCaption() const
 {
-    auto mk = this->GetAppearanceCharacteristics(false);
+    auto mk = this->GetAppearanceCharacteristics();
     if (mk != nullptr && mk->GetDictionary().HasKey("CA"))
         return mk->GetDictionary().MustFindKey("CA").GetString();
 

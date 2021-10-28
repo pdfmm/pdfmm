@@ -70,18 +70,18 @@ void PdChoiceField::RemoveItem(unsigned index)
 
 PdfString PdChoiceField::GetItem(unsigned index) const
 {
-    PdfObject* opt = GetObject().GetDictionary().FindKey("Opt");
+    auto opt = GetObject().GetDictionary().FindKey("Opt");
     if (opt == nullptr)
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-    PdfArray& optArray = opt->GetArray();
+    auto& optArray = opt->GetArray();
     if (index >= optArray.GetSize())
         PDFMM_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
 
-    PdfObject& item = optArray[index];
+    auto& item = optArray[index];
     if (item.IsArray())
     {
-        PdfArray& itemArray = item.GetArray();
+        auto& itemArray = item.GetArray();
         if (itemArray.size() < 2)
         {
             PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
@@ -95,20 +95,20 @@ PdfString PdChoiceField::GetItem(unsigned index) const
 
 nullable<PdfString> PdChoiceField::GetItemDisplayText(int index) const
 {
-    PdfObject* opt = GetObject().GetDictionary().FindKey("Opt");
+    auto* opt = GetObject().GetDictionary().FindKey("Opt");
     if (opt == nullptr)
         return { };
 
-    PdfArray& optArray = opt->GetArray();
+    auto& optArray = opt->GetArray();
     if (index < 0 || index >= static_cast<int>(optArray.size()))
     {
         PDFMM_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
     }
 
-    PdfObject& item = optArray[index];
+    auto& item = optArray[index];
     if (item.IsArray())
     {
-        PdfArray& itemArray = item.GetArray();
+        auto& itemArray = item.GetArray();
         if (itemArray.size() < 2)
         {
             PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
@@ -122,7 +122,7 @@ nullable<PdfString> PdChoiceField::GetItemDisplayText(int index) const
 
 size_t PdChoiceField::GetItemCount() const
 {
-    PdfObject* opt = GetObject().GetDictionary().FindKey("Opt");
+    auto* opt = GetObject().GetDictionary().FindKey("Opt");
     if (opt == nullptr)
         return 0;
 
@@ -139,16 +139,16 @@ void PdChoiceField::SetSelectedIndex(int index)
 int PdChoiceField::GetSelectedIndex() const
 {
     AssertTerminalField();
-    PdfObject* valueObj = GetObject().GetDictionary().FindKey("V");
+    auto* valueObj = GetObject().GetDictionary().FindKey("V");
     if (valueObj == nullptr || !valueObj->IsString())
         return -1;
 
-    PdfString value = valueObj->GetString();
-    PdfObject* opt = GetObject().GetDictionary().FindKey("Opt");
+    auto& value = valueObj->GetString();
+    auto* opt = GetObject().GetDictionary().FindKey("Opt");
     if (opt == nullptr)
         return -1;
 
-    PdfArray& optArray = opt->GetArray();
+    auto& optArray = opt->GetArray();
     for (unsigned i = 0; i < optArray.GetSize(); i++)
     {
         auto& found = optArray.FindAt(i);

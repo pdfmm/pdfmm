@@ -64,9 +64,11 @@ enum class PdfFieldFlags
     NoExport = 0x0004
 };
 
-// TODO: Inherit PdfElement
-class PDFMM_API PdfField
+class PDFMM_API PdfField : public PdfDictionaryElement
 {
+private:
+    PdfField(PdfFieldType fieldType, PdfDocument& doc, PdfAnnotation* widget);
+
 protected:
     PdfField(PdfFieldType fieldType, PdfPage& page, const PdfRect& rect);
 
@@ -108,7 +110,10 @@ protected:
      * \returns a pointer to the appearance characteristics dictionary
      *          of this object or nullptr if it does not exists.
      */
-    PdfObject* GetAppearanceCharacteristics(bool create) const;
+    PdfObject& GetOrCreateAppearanceCharacteristics();
+
+    PdfObject* GetAppearanceCharacteristics();
+    const PdfObject* GetAppearanceCharacteristics() const;
 
     void AssertTerminalField() const;
 
@@ -340,6 +345,7 @@ public:
 
 private:
     PdfField(const PdfField& rhs) = delete;
+    PdfField& operator=(const PdfField& rhs) = delete;
 
     void Init(PdfAcroForm* parent);
     void AddAlternativeAction(const PdfName& name, const PdfAction& action);
@@ -348,13 +354,9 @@ private:
 
 public:
     PdfAnnotation* GetWidgetAnnotation() const;
-    PdfObject& GetObject() const;
-    PdfDictionary& GetDictionary();
-    const PdfDictionary& GetDictionary() const;
 
 private:
-    PdfFieldType m_Field;
-    PdfObject* m_Object;
+    PdfFieldType m_FieldType;
     PdfAnnotation* m_Widget;
 };
 

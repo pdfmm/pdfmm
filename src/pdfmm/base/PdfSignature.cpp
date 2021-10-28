@@ -44,7 +44,7 @@ PdfSignature::PdfSignature(PdfObject& obj, PdfAnnotation* widget)
 void PdfSignature::SetAppearanceStream(PdfXObject& obj, PdfAnnotationAppearance appearance, const PdfName& state)
 {
     GetWidgetAnnotation()->SetAppearanceStream(obj, appearance, state);
-    this->GetAppearanceCharacteristics(true);
+    (void)this->GetOrCreateAppearanceCharacteristics();
 }
 
 void PdfSignature::Init(PdfAcroForm& acroForm)
