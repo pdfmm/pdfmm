@@ -23,7 +23,7 @@ enum  class PdfAcroFormDefaulAppearance
     BlackText12pt ///< Add a default appearance with Arial embedded and black text 12pt if no other DA key is present
 };
 
-class PDFMM_API PdfAcroForm final : public PdfElement
+class PDFMM_API PdfAcroForm final : public PdfDictionaryElement
 {
 public:
 

@@ -34,7 +34,7 @@ enum class PdfShadingPatternType
  * This class defined a shading pattern which can be used
  * to fill abitrary shapes with a pattern using PdfPainter.
  */
-class PDFMM_API PdfShadingPattern : public PdfElement
+class PDFMM_API PdfShadingPattern : public PdfDictionaryElement
 {
 public:
     /** Returns the identifier of this ShadingPattern how it is known

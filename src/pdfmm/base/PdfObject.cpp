@@ -441,6 +441,14 @@ PdfObject::operator const PdfVariant& () const
     return m_Variant;
 }
 
+PdfDocument& PdfObject::MustGetDocument() const
+{
+    if (m_Document == nullptr)
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
+
+    return *m_Document;
+}
+
 const PdfVariant& PdfObject::GetVariant() const
 {
     DelayedLoad();

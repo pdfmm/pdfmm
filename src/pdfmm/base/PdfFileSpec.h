@@ -22,7 +22,7 @@ class PdfDocument;
  *  The other file can be a file outside of the PDF or can be embedded into
  *  the PDF file itself.
  */
-class PDFMM_API PdfFileSpec final : public PdfElement
+class PDFMM_API PdfFileSpec final : public PdfDictionaryElement
 {
 public:
     PdfFileSpec(PdfDocument& doc, const std::string_view& filename, bool embed, bool striPath = false);

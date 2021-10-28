@@ -206,6 +206,13 @@ PdfObject* PdfIndirectObjectList::CreateDictionaryObject(const string_view& type
     return ret;
 }
 
+PdfObject* PdfIndirectObjectList::CreateArrayObject()
+{
+    auto ret = new PdfObject(PdfArray(), true);
+    addNewObject(ret);
+    return ret;
+}
+
 PdfObject* PdfIndirectObjectList::CreateObject(const PdfVariant& variant)
 {
     auto ret = new PdfObject(variant, true);

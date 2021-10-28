@@ -311,12 +311,12 @@ bool PdfNameTreeNode::Rebalance()
 
 // NOTE: The NamesTree dict does NOT have a /Type key!
 PdfNameTree::PdfNameTree(PdfDocument& doc)
-    : PdfElement(doc)
+    : PdfDictionaryElement(doc)
 {
 }
 
 PdfNameTree::PdfNameTree(PdfObject& obj)
-    : PdfElement(obj)
+    : PdfDictionaryElement(obj)
 {
 }
 

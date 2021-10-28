@@ -22,7 +22,7 @@ using namespace mm;
 
 // The AcroForm dict does NOT have a /Type key!
 PdfAcroForm::PdfAcroForm(PdfDocument& doc, PdfAcroFormDefaulAppearance defaultAppearance)
-    : PdfElement(doc)
+    : PdfDictionaryElement(doc)
 {
     // Initialize with an empty fields array
     this->GetObject().GetDictionary().AddKey("Fields", PdfArray());
@@ -30,7 +30,7 @@ PdfAcroForm::PdfAcroForm(PdfDocument& doc, PdfAcroFormDefaulAppearance defaultAp
 }
 
 PdfAcroForm::PdfAcroForm(PdfObject& obj)
-    : PdfElement(obj)
+    : PdfDictionaryElement(obj)
 {
 }
 

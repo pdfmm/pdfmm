@@ -37,7 +37,7 @@ enum class PdfXObjectType
  *
  *  \see PdfPainter
  */
-class PDFMM_API PdfXObject : public PdfElement, public PdfCanvas
+class PDFMM_API PdfXObject : public PdfDictionaryElement, public PdfCanvas
 {
 public:
     /** Create a new XObject with a specified dimension

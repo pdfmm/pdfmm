@@ -23,7 +23,7 @@ class PdfWriter;
  * This class defined a tiling pattern which can be used
  * to fill abitrary shapes with a pattern using PdfPainter.
  */
-class PDFMM_API PdfTilingPattern final : public PdfElement
+class PDFMM_API PdfTilingPattern final : public PdfDictionaryElement
 {
 public:
 

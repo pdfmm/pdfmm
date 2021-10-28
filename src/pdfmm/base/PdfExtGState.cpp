@@ -20,7 +20,7 @@ using namespace std;
 using namespace mm;
 
 PdfExtGState::PdfExtGState(PdfDocument& doc)
-    : PdfElement(doc, "ExtGState")
+    : PdfDictionaryElement(doc, "ExtGState")
 {
     ostringstream out;
     // We probably aren't doing anything locale sensitive here, but it's

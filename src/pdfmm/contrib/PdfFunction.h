@@ -35,7 +35,7 @@ enum class PdfFunctionType
  * Examples are device dependent rasterization for high quality
  * printing or color transformation functions for certain colorspaces.
  */
-class PDFMM_API PdfFunction : public PdfElement
+class PDFMM_API PdfFunction : public PdfDictionaryElement
 {
 public:
 

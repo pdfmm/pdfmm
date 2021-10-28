@@ -57,9 +57,9 @@ static const char* s_names[] = {
 static PdfName GetAppearanceName(PdfAnnotationAppearance appearance);
 
 PdfAnnotation::PdfAnnotation(PdfPage& page, PdfAnnotationType annotType, const PdfRect& rect)
-    : PdfElement(page.GetDocument(), "Annot"), m_AnnotationType(annotType), m_Page(&page)
+    : PdfDictionaryElement(page.GetDocument(), "Annot"), m_AnnotationType(annotType), m_Page(&page)
 {
-    const PdfName name(TypeNameForIndex((unsigned)annotType, s_names, (unsigned)std::size(s_names)));
+    const PdfName name(utls::TypeNameForIndex((unsigned)annotType, s_names, (unsigned)std::size(s_names)));
 
     if (name.IsNull())
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
@@ -73,9 +73,9 @@ PdfAnnotation::PdfAnnotation(PdfPage& page, PdfAnnotationType annotType, const P
 }
 
 PdfAnnotation::PdfAnnotation(PdfPage& page, PdfObject& obj)
-    : PdfElement(obj), m_AnnotationType(PdfAnnotationType::Unknown), m_Page(&page)
+    : PdfDictionaryElement(obj), m_AnnotationType(PdfAnnotationType::Unknown), m_Page(&page)
 {
-    m_AnnotationType = static_cast<PdfAnnotationType>(TypeNameToIndex(
+    m_AnnotationType = static_cast<PdfAnnotationType>(utls::TypeNameToIndex(
         this->GetObject().GetDictionary().FindKeyAs<PdfName>(PdfName::KeySubtype).GetString().c_str(),
         s_names, (unsigned)std::size(s_names), (int)PdfAnnotationType::Unknown));
 }

@@ -45,7 +45,7 @@ void mm::SignDocument(PdfMemDocument& doc, PdfOutputDevice& device, PdfSigner& s
     PrepareBeaconsData(beaconSize, beacons.ContentsBeacon, beacons.ByteRangeBeacon);
     signature.PrepareForSigning(signer.GetSignatureFilter(), signer.GetSignatureSubFilter(),
         signer.GetSignatureType(), beacons);
-    auto form = doc.GetOrCreateAcroForm();
+    auto& form = doc.GetOrCreateAcroForm();
     // TABLE 8.68 Signature flags: SignaturesExist (1) | AppendOnly (2)
     form.GetObject().GetDictionary().AddKey("SigFlags", PdfObject((int64_t)3));
 

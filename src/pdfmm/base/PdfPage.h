@@ -32,7 +32,7 @@ class PdfInputStream;
  *  It is possible to draw on a page using a PdfPainter object.
  *  Every document needs at least one page.
  */
-class PDFMM_API PdfPage final : public PdfElement, public PdfCanvas
+class PDFMM_API PdfPage final : public PdfDictionaryElement, public PdfCanvas
 {
 public:
     /** Create a new PdfPage object.

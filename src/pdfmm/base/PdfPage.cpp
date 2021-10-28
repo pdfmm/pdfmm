@@ -23,13 +23,13 @@ using namespace mm;
 static int normalize(int value, int start, int end);
 
 PdfPage::PdfPage(PdfDocument& parent, const PdfRect& size)
-    : PdfElement(parent, "Page"), PdfCanvas(), m_contents(nullptr)
+    : PdfDictionaryElement(parent, "Page"), PdfCanvas(), m_contents(nullptr)
 {
     InitNewPage(size);
 }
 
 PdfPage::PdfPage(PdfObject& obj, const deque<PdfObject*>& listOfParents)
-    : PdfElement(obj), PdfCanvas(), m_contents(nullptr)
+    : PdfDictionaryElement(obj), PdfCanvas(), m_contents(nullptr)
 {
     m_Resources = obj.GetDictionary().FindKey("Resources");
     if (m_Resources == nullptr)

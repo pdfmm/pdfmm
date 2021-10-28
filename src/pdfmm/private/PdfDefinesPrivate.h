@@ -63,6 +63,37 @@ namespace mm
 
 namespace utls
 {
+    /** Convert an enum or index to its string representation
+     *  which can be written to the PDF file.
+     *
+     *  This is a helper function for various classes
+     *  that need strings and enums for their SubTypes keys.
+     *
+     *  \param index the index or enum value
+     *  \param types an array of strings containing
+     *         the string mapping of the index
+     *  \param len the length of the string array
+     *
+     *  \returns the string representation or nullptr for
+     *           values out of range
+     */
+    const char* TypeNameForIndex(unsigned index, const char** types, unsigned len);
+
+    /** Convert a string type to an array index or enum.
+     *
+     *  This is a helper function for various classes
+     *  that need strings and enums for their SubTypes keys.
+     *
+     *  \param type the type as string
+     *  \param types an array of strings containing
+     *         the string mapping of the index
+     *  \param len the length of the string array
+     *  \param unknownValue the value that is returned when the type is unknown
+     *
+     *  \returns the index of the string in the array
+     */
+    int TypeNameToIndex(const char* type, const char** types, unsigned len, int unknownValue);
+
     // Write the char to the supplied buffer as hexadecimal code
     void WriteCharHexTo(char buf[2], char ch);
 

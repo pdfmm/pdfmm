@@ -23,7 +23,7 @@ using namespace std;
 using namespace mm;
 
 PdfPageTree::PdfPageTree(PdfDocument& doc)
-    : PdfElement(doc, "Pages"),
+    : PdfDictionaryElement(doc, "Pages"),
     m_cache(0)
 {
     GetObject().GetDictionary().AddKey("Kids", PdfArray());
@@ -31,7 +31,7 @@ PdfPageTree::PdfPageTree(PdfDocument& doc)
 }
 
 PdfPageTree::PdfPageTree(PdfObject& pagesRoot)
-    : PdfElement(pagesRoot),
+    : PdfDictionaryElement(pagesRoot),
     m_cache(GetChildCount(pagesRoot)) { }
 
 PdfPageTree::~PdfPageTree()

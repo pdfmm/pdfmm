@@ -48,8 +48,6 @@ class PdfXObject;
  */
 class PDFMM_API PdfDocument
 {
-    friend class PdfElement;
-
 public:
     /** Close down/destruct the PdfDocument
      */

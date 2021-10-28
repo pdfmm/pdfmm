@@ -100,7 +100,7 @@ enum class PdfAnnotationAppearance
  *
  *  \see PdfPage::CreateAnnotation
  */
-class PDFMM_API PdfAnnotation : public PdfElement
+class PDFMM_API PdfAnnotation : public PdfDictionaryElement
 {
 public:
     /** Create a new annotation object

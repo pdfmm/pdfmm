@@ -9,6 +9,8 @@
 #include <pdfmm/private/PdfDefinesPrivate.h>
 #include "PdfChoiceField.h"
 
+#include "PdfArray.h"
+
 using namespace std;
 using namespace mm;
 

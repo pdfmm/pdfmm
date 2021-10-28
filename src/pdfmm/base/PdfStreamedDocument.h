@@ -52,7 +52,6 @@ class PdfOutputDevice;
 class PDFMM_API PdfStreamedDocument : public PdfDocument
 {
     friend class PdfImage;
-    friend class PdfElement;
 
 public:
     /** Create a new PdfStreamedDocument.

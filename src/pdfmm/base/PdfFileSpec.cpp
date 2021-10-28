@@ -11,6 +11,7 @@
 #include <sstream>
 
 #include "PdfDictionary.h"
+#include "PdfDocument.h"
 #include "PdfInputStream.h"
 #include "PdfObject.h"
 #include "PdfStream.h"
@@ -19,19 +20,19 @@ using namespace std;
 using namespace mm;
 
 PdfFileSpec::PdfFileSpec(PdfDocument& doc, const string_view& filename, bool embed, bool striPath)
-    : PdfElement(doc, "Filespec")
+    : PdfDictionaryElement(doc, "Filespec")
 {
     Init(filename, embed, striPath);
 }
 
 PdfFileSpec::PdfFileSpec(PdfDocument& doc, const string_view& filename, const char* data, size_t size, bool striPath)
-    : PdfElement(doc, "Filespec")
+    : PdfDictionaryElement(doc, "Filespec")
 {
     Init(filename, data, size, striPath);
 }
 
 PdfFileSpec::PdfFileSpec(PdfObject& obj)
-    : PdfElement(obj)
+    : PdfDictionaryElement(obj)
 {
 }
 
@@ -44,7 +45,7 @@ void PdfFileSpec::Init(const string_view& filename, bool embed, bool striPath)
     {
         PdfDictionary ef;
 
-        auto embeddedStream = this->CreateObject("EmbeddedFile");
+        auto embeddedStream = this->GetDocument().GetObjects().CreateDictionaryObject("EmbeddedFile");
         this->EmbeddFile(*embeddedStream, filename);
 
         ef.AddKey("F", embeddedStream->GetIndirectReference());
@@ -60,7 +61,7 @@ void PdfFileSpec::Init(const string_view& filename, const char* data, size_t siz
 
     PdfDictionary ef;
 
-    auto embeddedStream = this->CreateObject("EmbeddedFile");
+    auto embeddedStream = this->GetDocument().GetObjects().CreateDictionaryObject("EmbeddedFile");
     this->EmbeddFileFromMem(*embeddedStream, data, size);
 
     ef.AddKey("F", embeddedStream->GetIndirectReference());

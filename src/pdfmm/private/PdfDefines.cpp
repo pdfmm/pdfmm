@@ -41,6 +41,25 @@ int compat::strncasecmp(const char* s1, const char* s2, size_t n)
 #endif
 }
 
+const char* utls::TypeNameForIndex(unsigned index, const char** types, unsigned len)
+{
+    return index < len ? types[index] : nullptr;
+}
+
+int utls::TypeNameToIndex(const char* type, const char** types, unsigned len, int unknownValue)
+{
+    if (type == nullptr)
+        return unknownValue;
+
+    for (unsigned i = 0; i < len; i++)
+    {
+        if (types[i] != nullptr && strcmp(type, types[i]) == 0)
+            return i;
+    }
+
+    return unknownValue;
+}
+
 size_t utls::FileSize(const string_view& filename)
 {
     streampos fbegin;

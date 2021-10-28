@@ -18,64 +18,69 @@
 using namespace std;
 using namespace mm;
 
-PdfElement::PdfElement(PdfDocument& parent, const string_view& type)
-{
-    m_Object = parent.m_Objects.CreateDictionaryObject(type);
-}
-
 PdfElement::PdfElement(PdfObject& obj)
+    : m_Object(&obj)
 {
-    if(!obj.IsDictionary())
-        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
-
-    m_Object = &obj;
+    if (obj.GetDocument() == nullptr)
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 }
 
-PdfElement::PdfElement(PdfDataType expectedDataType, PdfObject& obj)
+PdfElement::PdfElement(PdfObject& obj, PdfDataType expectedDataType)
+    : m_Object(&obj)
 {
+    if (obj.GetDocument() == nullptr)
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
+
     if (obj.GetDataType() != expectedDataType)
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
-
-    m_Object = &obj;
-}
-
-PdfElement::PdfElement(const PdfElement & element)
-{
-    m_Object = element.m_Object;
 }
 
 PdfElement::~PdfElement() { }
 
-const char* PdfElement::TypeNameForIndex(unsigned index, const char** types, unsigned len) const
-{
-    return index < len ? types[index] : nullptr;
-}
-
-int PdfElement::TypeNameToIndex(const char* type, const char** types, unsigned len, int unknownValue) const
-{
-    if (type == nullptr)
-        return unknownValue;
-
-    for (unsigned i = 0; i < len; i++)
-    {
-        if (types[i] != nullptr && strcmp(type, types[i]) == 0)
-            return i;
-    }
-
-    return unknownValue;
-}
-
-PdfObject* PdfElement::CreateObject(const string_view& type)
-{
-    return m_Object->GetDocument()->GetObjects().CreateDictionaryObject(type);
-}
-
-PdfDocument& PdfElement::GetDocument()
+PdfDocument& PdfElement::GetDocument() const
 {
     return *m_Object->GetDocument();
 }
 
-const PdfDocument& PdfElement::GetDocument() const
+PdfDictionaryElement::PdfDictionaryElement(PdfDocument& parent, const string_view& type,
+    const string_view& subtype)
+    : PdfElement(*parent.GetObjects().CreateDictionaryObject(type, subtype),
+        PdfDataType::Dictionary)
 {
-    return *m_Object->GetDocument();
+}
+
+PdfDictionaryElement::PdfDictionaryElement(PdfObject& obj)
+    : PdfElement(obj, PdfDataType::Dictionary)
+{
+}
+
+PdfDictionary& PdfDictionaryElement::GetDictionary()
+{
+    return GetObject().GetDictionary();
+}
+
+const PdfDictionary& PdfDictionaryElement::GetDictionary() const
+{
+    return GetObject().GetDictionary();
+}
+
+PdfArrayElement::PdfArrayElement(PdfDocument& parent)
+    : PdfElement(*parent.GetObjects().CreateObject(PdfArray()),
+        PdfDataType::Array)
+{
+}
+
+PdfArrayElement::PdfArrayElement(PdfObject& obj)
+    : PdfElement(obj, PdfDataType::Array)
+{
+}
+
+PdfArray& PdfArrayElement::GetArray()
+{
+    return GetObject().GetArray();
+}
+
+const PdfArray& PdfArrayElement::GetArray() const
+{
+    return GetObject().GetArray();
 }

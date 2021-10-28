@@ -27,7 +27,7 @@ enum class PdfNameLimits
     After
 };
 
-class PDFMM_API PdfNameTree final : public PdfElement
+class PDFMM_API PdfNameTree final : public PdfDictionaryElement
 {
 public:
     /** Create a new PdfNameTree object

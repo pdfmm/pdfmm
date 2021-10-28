@@ -19,13 +19,13 @@ using namespace std;
 using namespace mm;
 
 PdfInfo::PdfInfo(PdfDocument& doc, PdfInfoInitial initial)
-    : PdfElement(doc)
+    : PdfDictionaryElement(doc)
 {
     Init(initial);
 }
 
 PdfInfo::PdfInfo(PdfObject& obj, PdfInfoInitial initial)
-    : PdfElement(obj)
+    : PdfDictionaryElement(obj)
 {
     Init(initial);
 }

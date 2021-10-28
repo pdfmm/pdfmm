@@ -12,7 +12,7 @@
 
 #include "PdfArray.h"
 #include "PdfRect.h"
-#include "PdfReference.h"
+#include "PdfElement.h"
 
 namespace mm {
 
@@ -53,19 +53,17 @@ enum class PdfDestinationType
  *
  *  \see PdfOutlineItem \see PdfAnnotation \see PdfDocument
  */
-// TODO: Make this a PdfElement, after introduction of PdfElement that handles PdfArray as well
-class PDFMM_API PdfDestination final
+class PDFMM_API PdfDestination final : public PdfArrayElement
 {
 public:
-
-    /** Create an empty destination - points to nowhere
-     */
-    PdfDestination(PdfDocument& doc);
-
     /** Create a new PdfDestination from an existing PdfObject (such as loaded from a doc)
      *  \param obj the object to construct from
      */
     PdfDestination(PdfObject& obj);
+
+    /** Create an empty destination - points to nowhere
+     */
+    PdfDestination(PdfDocument& doc);
 
     /** Create a new PdfDestination with a page as destination
      *  \param page a page which is the destination
@@ -96,17 +94,9 @@ public:
      */
     PdfDestination(const PdfPage& page, PdfDestinationFit fit, double value);
 
-    /** Copy an existing PdfDestination
-     *  \param rhs copy this PdfDestination
-     */
-    PdfDestination(const PdfDestination& rhs);
+    static std::unique_ptr<PdfDestination> Create(PdfObject& obj);
 
-    /** Copy an existing PdfDestination
-     *  \param rhs copy this PdfDestination
-     *  \returns this object
-     */
-    const PdfDestination& operator=(const PdfDestination& rhs);
-
+public:
     /** Get the page that this destination points to
      *  Requires that this PdfDestination was somehow
      *  created by or from a PdfDocument. Won't work otherwise.
@@ -161,32 +151,6 @@ public:
      */
     double GetDValue() const;
 
-    /** Get access to the internal object
-     *
-     *  \returns the internal PdfObject
-     */
-    inline PdfObject* GetObject() { return m_Object; }
-
-    /** Get access to the internal object
-     *  This is an overloaded member function.
-     *
-     *  \returns the internal PdfObject
-     */
-    inline const PdfObject* GetObject() const { return m_Object; }
-
-    /** Get access to the internal array
-     *  \returns the internal PdfArray
-     */
-    inline PdfArray& GetArray() { return m_array; }
-
-    /** Get access to the internal array
-     *  This is an overloaded member function.
-     *
-     *  \returns the internal PdfArray
-     */
-    inline const PdfArray& GetArray() const { return m_array; }
-
-
     /** Adds this destination to an dictionary.
      *  This method handles the all the complexities of making sure it's added correctly
      *
@@ -195,21 +159,6 @@ public:
      *  \param dictionary the destination will be added to this dictionary
      */
     void AddToDictionary(PdfDictionary& dictionary) const;
-
-private:
-    /** Initialize a new PdfDestination from an existing PdfObject (such as loaded from a doc)
-     *  and a document.
-     *
-     *  \param obj the object to construct from
-     *  \param doc a PDF document owning this destination, needed to resolve pages
-     */
-    void Init(PdfObject& obj, PdfDocument& doc);
-
-    PdfDestination() = delete;
-
-private:
-    PdfArray m_array;
-    PdfObject* m_Object;
 };
 
 };

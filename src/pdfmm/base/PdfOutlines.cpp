@@ -20,7 +20,7 @@ using namespace mm;
 
 PdfOutlineItem::PdfOutlineItem(PdfDocument& doc, const PdfString& title, const shared_ptr<PdfDestination>& dest,
     PdfOutlineItem* parentOutline) :
-    PdfElement(doc),
+    PdfDictionaryElement(doc),
     m_ParentOutline(parentOutline), m_Prev(nullptr), m_Next(nullptr),
     m_First(nullptr), m_Last(nullptr), m_destination(nullptr), m_action(nullptr)
 {
@@ -33,7 +33,7 @@ PdfOutlineItem::PdfOutlineItem(PdfDocument& doc, const PdfString& title, const s
 
 PdfOutlineItem::PdfOutlineItem(PdfDocument& doc, const PdfString& title, const shared_ptr<PdfAction>& action,
     PdfOutlineItem* parentOutline) :
-    PdfElement(doc),
+    PdfDictionaryElement(doc),
     m_ParentOutline(parentOutline), m_Prev(nullptr), m_Next(nullptr),
     m_First(nullptr), m_Last(nullptr), m_destination(nullptr), m_action(nullptr)
 {
@@ -45,7 +45,7 @@ PdfOutlineItem::PdfOutlineItem(PdfDocument& doc, const PdfString& title, const s
 }
 
 PdfOutlineItem::PdfOutlineItem(PdfObject& obj, PdfOutlineItem* parentOutline, PdfOutlineItem* previous)
-    : PdfElement(obj), m_ParentOutline(parentOutline), m_Prev(previous),
+    : PdfDictionaryElement(obj), m_ParentOutline(parentOutline), m_Prev(previous),
     m_Next(nullptr), m_First(nullptr), m_Last(nullptr), m_destination(nullptr), m_action(nullptr)
 {
     PdfReference first, next;
@@ -71,7 +71,7 @@ PdfOutlineItem::PdfOutlineItem(PdfObject& obj, PdfOutlineItem* parentOutline, Pd
 }
 
 PdfOutlineItem::PdfOutlineItem(PdfDocument& doc)
-    : PdfElement(doc, "Outlines"), m_ParentOutline(nullptr), m_Prev(nullptr),
+    : PdfDictionaryElement(doc, "Outlines"), m_ParentOutline(nullptr), m_Prev(nullptr),
     m_Next(nullptr), m_First(nullptr), m_Last(nullptr), m_destination(nullptr), m_action(nullptr)
 {
 }
@@ -274,7 +274,7 @@ shared_ptr<PdfDestination> PdfOutlineItem::getDestination()
         if (obj == nullptr)
             return nullptr;
 
-        m_destination = std::make_shared<PdfDestination>(*obj);
+        m_destination = PdfDestination::Create(*obj);
     }
 
     return m_destination;

@@ -25,7 +25,7 @@ class PdfWriter;
  *  The main usage is for transparency, but it also support a variety
  *  of prepress features.
  */
-class PDFMM_API PdfExtGState final : public PdfElement
+class PDFMM_API PdfExtGState final : public PdfDictionaryElement
 {
 public:
     /** Create a new PdfExtGState object which will introduce itself

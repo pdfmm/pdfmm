@@ -23,7 +23,7 @@ using namespace std;
 using namespace mm;
 
 PdfXObject::PdfXObject(PdfDocument& doc, const PdfRect& rect, const string_view& prefix, bool withoutObjNum)
-    : PdfElement(doc, "XObject"), m_Rect(rect), m_Resources(nullptr)
+    : PdfDictionaryElement(doc, "XObject"), m_Rect(rect), m_Resources(nullptr)
 {
     InitXObject(rect, prefix);
     if (withoutObjNum)
@@ -31,7 +31,7 @@ PdfXObject::PdfXObject(PdfDocument& doc, const PdfRect& rect, const string_view&
 }
 
 PdfXObject::PdfXObject(PdfDocument& doc, const PdfDocument& sourceDoc, unsigned pageIndex, const string_view& prefix, bool useTrimBox)
-    : PdfElement(doc, "XObject"), m_Resources(nullptr)
+    : PdfDictionaryElement(doc, "XObject"), m_Resources(nullptr)
 {
     InitXObject(m_Rect, prefix);
 
@@ -48,7 +48,7 @@ PdfXObject::PdfXObject(PdfDocument& doc, const PdfDocument& sourceDoc, unsigned 
 }
 
 PdfXObject::PdfXObject(PdfDocument& doc, unsigned pageIndex, const string_view& prefix, bool useTrimBox)
-    : PdfElement(doc, "XObject"), PdfCanvas(), m_Resources(nullptr)
+    : PdfDictionaryElement(doc, "XObject"), PdfCanvas(), m_Resources(nullptr)
 {
     m_Rect = PdfRect();
 
@@ -61,7 +61,7 @@ PdfXObject::PdfXObject(PdfDocument& doc, unsigned pageIndex, const string_view& 
 }
 
 PdfXObject::PdfXObject(PdfObject& obj)
-    : PdfElement(obj), PdfCanvas(), m_Resources(nullptr)
+    : PdfDictionaryElement(obj), PdfCanvas(), m_Resources(nullptr)
 {
     InitIdentifiers(getPdfXObjectType(obj), { });
     m_Resources = obj.GetDictionary().FindKey("Resources");
@@ -71,7 +71,7 @@ PdfXObject::PdfXObject(PdfObject& obj)
 }
 
 PdfXObject::PdfXObject(PdfDocument& doc, PdfXObjectType subType, const string_view& prefix)
-    : PdfElement(doc, "XObject"), m_Resources(nullptr)
+    : PdfDictionaryElement(doc, "XObject"), m_Resources(nullptr)
 {
     InitIdentifiers(subType, prefix);
 
@@ -79,7 +79,7 @@ PdfXObject::PdfXObject(PdfDocument& doc, PdfXObjectType subType, const string_vi
 }
 
 PdfXObject::PdfXObject(PdfObject& obj, PdfXObjectType subType)
-    : PdfElement(obj), m_Resources(nullptr)
+    : PdfDictionaryElement(obj), m_Resources(nullptr)
 {
     if (getPdfXObjectType(obj) != subType)
     {

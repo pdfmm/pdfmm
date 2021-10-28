@@ -33,14 +33,14 @@ static string_view genSubsetBasename();
 
 PdfFont::PdfFont(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
     const PdfEncoding& encoding) :
-    PdfElement(doc, "Font"), m_Metrics(metrics), m_IsLoaded(false)
+    PdfDictionaryElement(doc, "Font"), m_Metrics(metrics), m_IsLoaded(false)
 {
     this->initBase(encoding);
 }
 
 PdfFont::PdfFont(PdfObject& obj, const PdfFontMetricsConstPtr& metrics,
     const PdfEncoding& encoding) :
-    PdfElement(obj), m_Metrics(metrics), m_IsLoaded(true)
+    PdfDictionaryElement(obj), m_Metrics(metrics), m_IsLoaded(true)
 {
     this->initBase(encoding);
 

@@ -51,24 +51,9 @@ public:
      */
     inline const PdfObject& GetObject() const { return *m_Object; }
 
-    PdfDocument& GetDocument();
-
-    const PdfDocument& GetDocument() const;
+    PdfDocument& GetDocument() const;
 
 protected:
-    /** Creates a new PdfElement
-     *  \param type type entry of the elements object
-     *  \param parent parent PdfDocument.
-     *                 Add a newly created object to this vector.
-     */
-    PdfElement(PdfDocument& parent, const std::string_view& type = { });
-
-    /** Create a PdfElement from an existing PdfObject
-     *  The object must be a dictionary.
-     *
-     *  \param obj pointer to the PdfObject that is modified
-     *                 by this PdfElement
-     */
     PdfElement(PdfObject& obj);
 
     /** Create a PdfElement from an existing PdfObject
@@ -77,62 +62,64 @@ protected:
      *  if not of the same datatype as the expected one.
      *  This is necessary in rare cases. E.g. in PdfContents.
      *
-     *  \param expectedDataType the expected datatype of this object
-     *  \param obj pointer to the PdfObject that is modified
+     *  \param obj refereence to the PdfObject that is modified
      *                 by this PdfElement
+     *  \param expectedDataType the expected datatype of this object
      */
-    PdfElement(PdfDataType expectedDataType, PdfObject& obj);
+    PdfElement(PdfObject& obj, PdfDataType expectedDataType);
 
-    PdfElement(const PdfElement& element);
-
-    /** Convert an enum or index to its string representation
-     *  which can be written to the PDF file.
-     *
-     *  This is a helper function for various PdfElement
-     *  subclasses that need strings and enums for their
-     *  SubTypes keys.
-     *
-     *  \param index the index or enum value
-     *  \param types an array of strings containing
-     *         the string mapping of the index
-     *  \param len the length of the string array
-     *
-     *  \returns the string representation or nullptr for
-     *           values out of range
-     */
-    const char* TypeNameForIndex(unsigned index, const char** types, unsigned len) const;
-
-    /** Convert a string type to an array index or enum.
-     *
-     *  This is a helper function for various PdfElement
-     *  subclasses that need strings and enums for their
-     *  SubTypes keys.
-     *
-     *  \param type the type as string
-     *  \param types an array of strings containing
-     *         the string mapping of the index
-     *  \param len the length of the string array
-     *  \param unknownValue the value that is returned when the type is unknown
-     *
-     *  \returns the index of the string in the array
-     */
-    int TypeNameToIndex(const char* type, const char** types, unsigned len, int unknownValue) const;
-
-    /** Create a PdfObject in the parent of this PdfElement which
-     *  might either be a PdfStreamedDocument, a PdfDocument or
-     *  a PdfIndirectObjectList
-     *
-     *  Use this function in an own subclass of PdfElement to create new
-     *  PdfObjects.
-     *
-     *  \param type an optional /Type key of the created object
-     *
-     *  \returns a PdfObject which is owned by the parent
-     */
-    PdfObject* CreateObject(const std::string_view& type = { });
+private:
+    PdfElement(const PdfElement& element) = delete;
+    PdfElement& operator=(const PdfElement& element) = delete;
 
 private:
     PdfObject* m_Object;
+};
+
+class PDFMM_API PdfDictionaryElement : public PdfElement
+{
+protected:
+    /** Creates a new PdfDictionaryElement
+     *  \param parent Add a newly created object to this document.
+     *  \param type type entry of the elements object
+     *  \param subtype optional value of the /SubType key of the object
+     */
+    PdfDictionaryElement(PdfDocument& parent,
+        const std::string_view& type = { },
+        const std::string_view& subtype = { });
+
+    /** Create a PdfDictionaryElement from an existing PdfObject
+     *  The object must be a dictionary.
+     *
+     *  \param obj pointer to the PdfObject that is modified
+     *                 by this PdfElement
+     */
+    PdfDictionaryElement(PdfObject& obj);
+
+public:
+    PdfDictionary& GetDictionary();
+    const PdfDictionary& GetDictionary() const;
+};
+
+class PDFMM_API PdfArrayElement : public PdfElement
+{
+protected:
+    /** Creates a new PdfArrayElement
+     *  \param parent Add a newly created object to this document.
+     */
+    PdfArrayElement(PdfDocument& parent);
+
+    /** Create a PdfArrayElement from an existing PdfObject
+     *  The object must be a dictionary.
+     *
+     *  \param obj reference to the PdfObject that is modified
+     *      by this PdfArrayElement
+     */
+    PdfArrayElement(PdfObject& obj);
+
+public:
+    PdfArray& GetArray();
+    const PdfArray& GetArray() const;
 };
 
 };

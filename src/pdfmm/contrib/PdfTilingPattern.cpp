@@ -32,7 +32,7 @@ PdfTilingPattern::PdfTilingPattern(PdfDocument& doc, PdfTilingPatternType tiling
     bool doFill, double fillR, double fillG, double fillB,
     double offsetX, double offsetY,
     PdfImage* image)
-    : PdfElement(doc, "Pattern")
+    : PdfDictionaryElement(doc, "Pattern")
 {
     ostringstream out;
     // We probably aren't doing anything locale sensitive here, but it's

@@ -39,7 +39,7 @@ typedef std::map<unsigned, PdfCID> UsedGIDsMap;
  *  This is only an abstract base class which is implemented
  *  for different font formats.
  */
-class PDFMM_API PdfFont : public PdfElement
+class PDFMM_API PdfFont : public PdfDictionaryElement
 {
     friend class PdfFontFactory;
     friend class PdfFontObject;

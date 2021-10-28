@@ -1,5 +1,4 @@
-### Short term
-- PdfElement-> PdfDictionaryElement, PdfArrayElement that have GetDictionary(), GetArray()
+### 0.9.20
 - Evaluate renaming PdfObject::GetOwner() -> GetParent()
 - Evaluate renaming PdfOwnedObject::GetOwner() -> GetParent()
 

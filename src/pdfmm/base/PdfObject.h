@@ -423,6 +423,11 @@ public:
      */
     inline PdfDocument* GetDocument() const { return m_Document; }
 
+    /** Get the document of this object.
+     *  \return the owner (if it wasn't changed anywhere, creator) of this object
+     */
+    PdfDocument& MustGetDocument() const;
+
     /** Get an indirect reference to this object.
      *  \returns a PdfReference pointing to this object.
      */

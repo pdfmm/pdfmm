@@ -45,11 +45,11 @@ class PdfRecursionGuard
   // see http://en.cppreference.com/w/cpp/language/raii
 
   // It's used like this in PdfParser methods
-  // PdfRecursionGuard guard(m_nRecursionDepth);
+  // PdfRecursionGuard guard(m_RecursionDepth);
 
 public:
-    PdfRecursionGuard(unsigned& nRecursionDepth)
-        : m_RecursionDepth(nRecursionDepth)
+    PdfRecursionGuard(unsigned& recursionDepth)
+        : m_RecursionDepth(recursionDepth)
     {
         // be careful changing this limit - overflow limits depend on the OS, linker settings, and how much stack space compiler allocates
         // 500 limit prevents overflow on Win7 with VC++ 2005 with default linker stack size (1000 caused overflow with same compiler/OS)

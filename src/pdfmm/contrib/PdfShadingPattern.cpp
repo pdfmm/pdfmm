@@ -25,7 +25,7 @@ using namespace std;
 using namespace mm;
 
 PdfShadingPattern::PdfShadingPattern(PdfDocument& doc, PdfShadingPatternType shadingType)
-    : PdfElement(doc, "Pattern")
+    : PdfDictionaryElement(doc, "Pattern")
 {
     ostringstream out;
     // We probably aren't doing anything locale sensitive here, but it's

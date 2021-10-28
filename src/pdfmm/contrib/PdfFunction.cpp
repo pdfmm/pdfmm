@@ -15,7 +15,7 @@
 using namespace mm;
 
 PdfFunction::PdfFunction(PdfDocument& doc, PdfFunctionType functionType, const PdfArray& domain)
-    : PdfElement(doc)
+    : PdfDictionaryElement(doc)
 {
     Init(functionType, domain);
 }

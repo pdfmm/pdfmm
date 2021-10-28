@@ -42,7 +42,7 @@ enum class PdfOutlineFormat
  * \see PdfOutlines
  * \see PdfDestination
  */
-class PDFMM_API PdfOutlineItem : public PdfElement
+class PDFMM_API PdfOutlineItem : public PdfDictionaryElement
 {
 public:
     virtual ~PdfOutlineItem();

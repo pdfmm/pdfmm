@@ -36,9 +36,9 @@ static const char* s_names[] = {
 };
 
 PdfAction::PdfAction(PdfDocument& doc, PdfActionType action)
-    : PdfElement(doc, "Action"), m_Type(action)
+    : PdfDictionaryElement(doc, "Action"), m_Type(action)
 {
-    PdfName type(TypeNameForIndex((unsigned)action, s_names, (unsigned)std::size(s_names)));
+    PdfName type(utls::TypeNameForIndex((unsigned)action, s_names, (unsigned)std::size(s_names)));
     if (type.IsNull())
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
@@ -47,9 +47,9 @@ PdfAction::PdfAction(PdfDocument& doc, PdfActionType action)
 
 PdfAction::PdfAction(PdfObject& obj)
 // The typename /Action is optional for PdfActions
-    : PdfElement(obj)
+    : PdfDictionaryElement(obj)
 {
-    m_Type = static_cast<PdfActionType>(TypeNameToIndex(
+    m_Type = static_cast<PdfActionType>(utls::TypeNameToIndex(
         this->GetObject().GetDictionary().FindKeyAs<PdfName>("S").GetString().c_str(),
         s_names, (unsigned)std::size(s_names), (int)PdfActionType::Unknown));
 }

@@ -55,7 +55,7 @@ enum class PdfActionType
 
 /** An action that can be performed in a PDF document
  */
-class PDFMM_API PdfAction final : public PdfElement
+class PDFMM_API PdfAction final : public PdfDictionaryElement
 {
     friend class PdfAnnotation;
 

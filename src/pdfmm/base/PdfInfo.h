@@ -24,7 +24,7 @@ class PdfString;
  *  info dictionary, which provides information
  *  about the PDF document.
  */
-class PDFMM_API PdfInfo final : public PdfElement
+class PDFMM_API PdfInfo final : public PdfDictionaryElement
 {
 public:
 

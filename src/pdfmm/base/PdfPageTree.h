@@ -26,7 +26,7 @@ class PdfRect;
  *
  *  \see PdfDocument
  */
-class PDFMM_API PdfPageTree final : public PdfElement
+class PDFMM_API PdfPageTree final : public PdfDictionaryElement
 {
     friend class PdfDocument;
     typedef std::deque<PdfObject*> PdfObjectList;

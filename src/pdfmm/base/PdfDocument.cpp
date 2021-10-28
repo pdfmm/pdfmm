@@ -240,7 +240,7 @@ const PdfDocument& PdfDocument::InsertExistingPageAt(const PdfDocument& doc, uns
         if (i != pageIndex)
             continue;
 
-        auto page = doc.GetPageTree().GetPage(i);
+        auto& page = doc.GetPageTree().GetPage(i);
         auto& obj = m_Objects.MustGetObject(PdfReference(page.GetObject().GetIndirectReference().ObjectNumber()
             + difference, page.GetObject().GetIndirectReference().GenerationNumber()));
         if (obj.IsDictionary() && obj.GetDictionary().HasKey("Parent"))
@@ -656,7 +656,7 @@ PdfAcroForm& PdfDocument::GetOrCreateAcroForm(PdfAcroFormDefaulAppearance defaul
 void PdfDocument::AddNamedDestination(const PdfDestination& dest, const PdfString& name)
 {
     auto& names = GetOrCreateNameTree();
-    names.AddValue("Dests", name, dest.GetObject()->GetIndirectReference());
+    names.AddValue("Dests", name, dest.GetObject().GetIndirectReference());
 }
 
 void PdfDocument::AttachFile(const PdfFileSpec& fileSpec)
