@@ -6,11 +6,11 @@
  * Some rights reserved. See COPYING, AUTHORS.
  */
 
-#include "PdfDefinesPrivate.h"
+#include <pdfmm/private/PdfDefinesPrivate.h>
 #include <utfcpp/utf8.h>
 
-#include <pdfmm/base/PdfInputDevice.h>
-#include <pdfmm/base/PdfOutputDevice.h>
+#include "PdfInputDevice.h"
+#include "PdfOutputDevice.h"
 
 #ifdef _WIN32
 #include <pdfmm/common/WindowsLeanMean.h>
