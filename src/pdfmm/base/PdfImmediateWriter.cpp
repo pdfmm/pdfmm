@@ -17,7 +17,7 @@
 using namespace mm;
 
 PdfImmediateWriter::PdfImmediateWriter(PdfIndirectObjectList& objects, const PdfObject& trailer,
-    PdfOutputDevice& device, PdfVersion version, PdfEncrypt* encrypt, PdfWriteMode writeMode) :
+    PdfOutputDevice& device, PdfVersion version, PdfEncrypt* encrypt, PdfSaveOptions opts) :
     PdfWriter(objects, trailer),
     m_attached(true),
     m_Device(&device),
@@ -42,7 +42,7 @@ PdfImmediateWriter::PdfImmediateWriter(PdfIndirectObjectList& objects, const Pdf
 
     // start with writing the header
     this->SetPdfVersion(version);
-    this->SetWriteMode(writeMode);
+    this->SetSaveOptions(opts);
     this->WritePdfHeader(*m_Device);
 
     m_xRef.reset(GetUseXRefStream() ? new PdfXRefStream(*this) : new PdfXRef(*this));

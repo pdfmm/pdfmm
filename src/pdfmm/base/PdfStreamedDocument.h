@@ -65,9 +65,10 @@ public:
      *  \param encrypt pointer to an encryption object or nullptr. If not nullptr
      *                  the PdfEncrypt object will be copied and used to encrypt the
      *                  created document.
-     *  \param writeMode additional options for writing the pdf
+     *  \param opts additional save options for writing the pdf
      */
-    PdfStreamedDocument(PdfOutputDevice& device, PdfVersion version = PdfVersionDefault, PdfEncrypt* encrypt = nullptr, PdfWriteMode writeMode = PdfWriteModeDefault);
+    PdfStreamedDocument(PdfOutputDevice& device, PdfVersion version = PdfVersionDefault,
+        PdfEncrypt* encrypt = nullptr, PdfSaveOptions opts = PdfSaveOptions::None);
 
     /** Create a new PdfStreamedDocument.
      *  All data is written to a file immediately.
@@ -79,9 +80,10 @@ public:
      *  \param encrypt pointer to an encryption object or nullptr. If not nullptr
      *                  the PdfEncrypt object will be copied and used to encrypt the
      *                  created document.
-     *  \param writeMode additional options for writing the pdf
+     *  \param opts additional options for writing the pdf
      */
-    PdfStreamedDocument(const std::string_view& filename, PdfVersion version = PdfVersionDefault, PdfEncrypt* encrypt = nullptr, PdfWriteMode writeMode = PdfWriteModeDefault);
+    PdfStreamedDocument(const std::string_view& filename, PdfVersion version = PdfVersionDefault,
+        PdfEncrypt* encrypt = nullptr, PdfSaveOptions opts = PdfSaveOptions::None);
 
     ~PdfStreamedDocument();
 
@@ -90,8 +92,6 @@ public:
      *  after calling this function.
      */
     void Close();
-
-    PdfWriteMode GetWriteMode() const override;
 
     PdfVersion GetPdfVersion() const override;
 
@@ -122,10 +122,10 @@ private:
      *  \param encrypt pointer to an encryption object or nullptr. If not nullptr
      *                  the PdfEncrypt object will be copied and used to encrypt the
      *                  created document.
-     *  \param writeMode additional options for writing the pdf
+     *  \param opts additional options for writing the pdf
      */
-    void Init(PdfOutputDevice& device, PdfVersion version = PdfVersionDefault,
-        PdfEncrypt* encrypt = nullptr, PdfWriteMode writeMode = PdfWriteModeDefault);
+    void Init(PdfOutputDevice& device, PdfVersion version,
+        PdfEncrypt* encrypt, PdfSaveOptions opts);
 
 private:
     PdfImmediateWriter* m_Writer;

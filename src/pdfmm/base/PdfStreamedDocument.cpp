@@ -11,17 +11,17 @@
 using namespace std;
 using namespace mm;
 
-PdfStreamedDocument::PdfStreamedDocument(PdfOutputDevice& device, PdfVersion version, PdfEncrypt* encrypt, PdfWriteMode writeMode)
+PdfStreamedDocument::PdfStreamedDocument(PdfOutputDevice& device, PdfVersion version, PdfEncrypt* encrypt, PdfSaveOptions opts)
     : m_Writer(nullptr), m_Device(nullptr), m_Encrypt(encrypt), m_OwnDevice(false)
 {
-    Init(device, version, encrypt, writeMode);
+    Init(device, version, encrypt, opts);
 }
 
-PdfStreamedDocument::PdfStreamedDocument(const string_view& filename, PdfVersion version, PdfEncrypt* encrypt, PdfWriteMode writeMode)
+PdfStreamedDocument::PdfStreamedDocument(const string_view& filename, PdfVersion version, PdfEncrypt* encrypt, PdfSaveOptions opts)
     : m_Writer(nullptr), m_Encrypt(encrypt), m_OwnDevice(true)
 {
     m_Device = new PdfFileOutputDevice(filename);
-    Init(*m_Device, version, encrypt, writeMode);
+    Init(*m_Device, version, encrypt, opts);
 }
 
 PdfStreamedDocument::~PdfStreamedDocument()
@@ -32,9 +32,9 @@ PdfStreamedDocument::~PdfStreamedDocument()
 }
 
 void PdfStreamedDocument::Init(PdfOutputDevice& device, PdfVersion version,
-    PdfEncrypt* encrypt, PdfWriteMode writeMode)
+    PdfEncrypt* encrypt, PdfSaveOptions opts)
 {
-    m_Writer = new PdfImmediateWriter(this->GetObjects(), this->GetTrailer(), device, version, encrypt, writeMode);
+    m_Writer = new PdfImmediateWriter(this->GetObjects(), this->GetTrailer(), device, version, encrypt, opts);
 }
 
 void PdfStreamedDocument::Close()
@@ -44,11 +44,6 @@ void PdfStreamedDocument::Close()
     GetFontManager().EmbedSubsetFonts();
 
     this->GetObjects().Finish();
-}
-
-PdfWriteMode PdfStreamedDocument::GetWriteMode() const
-{
-    return m_Writer->GetWriteMode();
 }
 
 PdfVersion PdfStreamedDocument::GetPdfVersion() const

@@ -45,7 +45,7 @@ public:
      */
     PdfImmediateWriter(PdfIndirectObjectList& objects, const PdfObject& trailer, PdfOutputDevice& device,
         PdfVersion version = PdfVersion::V1_5, PdfEncrypt* encrypt = nullptr,
-        PdfWriteMode writeMode = PdfWriteModeDefault);
+        PdfSaveOptions opts = PdfSaveOptions::None);
 
     ~PdfImmediateWriter();
 

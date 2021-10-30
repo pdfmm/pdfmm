@@ -41,7 +41,6 @@ PdfMemDocument::PdfMemDocument(bool empty) :
     m_InitialVersion(PdfVersionDefault),
     m_HasXRefStream(false),
     m_PrevXRefOffset(-1),
-    m_WriteMode(PdfWriteModeDefault),
     m_Linearized(false)
 {
 }
@@ -52,7 +51,6 @@ PdfMemDocument::PdfMemDocument(const PdfMemDocument& rhs) :
     m_InitialVersion(rhs.m_InitialVersion),
     m_HasXRefStream(rhs.m_HasXRefStream),
     m_PrevXRefOffset(rhs.m_PrevXRefOffset),
-    m_WriteMode(rhs.m_WriteMode),
     m_Linearized(rhs.m_Linearized)
 {
     auto encryptObj = GetTrailer().GetDictionary().FindKey("Encrypt");
@@ -78,7 +76,6 @@ void PdfMemDocument::clear()
 {
     m_HasXRefStream = false;
     m_PrevXRefOffset = -1;
-    m_WriteMode = PdfWriteModeDefault;
     m_Linearized = false;
     m_Encrypt = nullptr;
 }
@@ -99,7 +96,7 @@ void PdfMemDocument::InitFromParser(PdfParser& parser)
     {
         string buf;
         PdfStringOutputDevice debug(buf);
-        GetTrailer().GetVariant().Write(debug, m_WriteMode, nullptr);
+        GetTrailer().GetVariant().Write(debug, PdfWriteMode::None, nullptr);
         debug.Put('\n');
         PdfError::LogMessage(LogSeverity::Debug, buf);
     }
@@ -257,7 +254,6 @@ void PdfMemDocument::Write(PdfOutputDevice& device, PdfSaveOptions opts)
     PdfWriter writer(this->GetObjects(), this->GetTrailer());
     writer.SetPdfVersion(this->GetPdfVersion());
     writer.SetSaveOptions(opts);
-    writer.SetWriteMode(m_WriteMode);
 
     if (m_Encrypt != nullptr)
         writer.SetEncrypted(*m_Encrypt);
@@ -282,9 +278,8 @@ void PdfMemDocument::WriteUpdate(PdfOutputDevice& device, PdfSaveOptions opts)
     // makes sure pending subset-fonts are embedded
     GetFontManager().EmbedSubsetFonts();
     PdfWriter writer(this->GetObjects(), this->GetTrailer());
-    writer.SetSaveOptions(opts);
     writer.SetPdfVersion(this->GetPdfVersion());
-    writer.SetWriteMode(m_WriteMode);
+    writer.SetSaveOptions(opts);
     writer.SetPrevXRefOffset(m_PrevXRefOffset);
     writer.SetUseXRefStream(m_HasXRefStream);
     writer.SetIncrementalUpdate(m_Linearized);

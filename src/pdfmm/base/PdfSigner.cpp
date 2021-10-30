@@ -122,7 +122,7 @@ void AdjustByteRange(PdfOutputDevice& device, size_t byteRangeOffset,
     arr.push_back(PdfObject(static_cast<int64_t>(fileEnd - (conentsBeaconOffset + conentsBeaconSize))));
 
     device.Seek(byteRangeOffset);
-    arr.Write(device, PdfWriteMode::Compact, nullptr);
+    arr.Write(device, PdfWriteMode::None, nullptr);
 }
 
 void SetSignature(PdfOutputDevice& device, const string_view& contentsData,
@@ -133,7 +133,7 @@ void SetSignature(PdfOutputDevice& device, const string_view& contentsData,
     // Position at contents beacon after '<'
     device.Seek(conentsBeaconOffset);
     // Write the beacon data
-    sig.Write(device, PdfWriteMode::Compact, nullptr);
+    sig.Write(device, PdfWriteMode::None, nullptr);
 }
 
 void PrepareBeaconsData(size_t signatureSize, string& contentsBeacon, string& byteRangeBeacon)

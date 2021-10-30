@@ -163,15 +163,16 @@ void PdfObject::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
 
     if (m_IndirectReference.IsIndirect())
     {
-        // CHECK-ME We want to make this in all the cases for PDF/A Compatibility
-        //if( (writeMode & EPdfWriteMode::Clean) == EPdfWriteMode::Clean )
+        if ((writeMode & PdfWriteMode::Clean) == PdfWriteMode::None
+            && (writeMode & PdfWriteMode::NoPDFAPreserve) != PdfWriteMode::None)
         {
+            device.Write(PDFMM_FORMAT("{} {} obj", m_IndirectReference.ObjectNumber(), m_IndirectReference.GenerationNumber()));
+        }
+        else
+        {
+            // PDF/A compliance requires all objects to be written in a clean way
             device.Write(PDFMM_FORMAT("{} {} obj\n", m_IndirectReference.ObjectNumber(), m_IndirectReference.GenerationNumber()));
         }
-        //else
-        //{
-        //    device.Write(PDFMM_FORMAT("{} {} obj", m_IndirectReference.ObjectNumber(), m_IndirectReference.GenerationNumber()));
-        //}
     }
 
     if (encrypt != nullptr)

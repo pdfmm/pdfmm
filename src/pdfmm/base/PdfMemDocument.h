@@ -149,13 +149,6 @@ public:
      */
     void WriteUpdate(PdfOutputDevice& device, PdfSaveOptions opts = PdfSaveOptions::None);
 
-    /** Set the write mode to use when writing the PDF.
-     *  \param writeMode write mode
-     */
-    void SetWriteMode(PdfWriteMode writeMode) { m_WriteMode = writeMode; }
-
-    inline PdfWriteMode GetWriteMode() const  override { return m_WriteMode; }
-
     /** Set the PDF Version of the document. Has to be called before Write() to
      *  have an effect.
      *  \param version  version of the pdf document
@@ -319,7 +312,6 @@ private:
     PdfVersion m_InitialVersion;
     bool m_HasXRefStream;
     int64_t m_PrevXRefOffset;
-    PdfWriteMode m_WriteMode;
     bool m_Linearized;
     std::unique_ptr<PdfEncrypt> m_Encrypt;
 };

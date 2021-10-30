@@ -29,14 +29,16 @@
 using namespace std;
 using namespace mm;
 
+static PdfWriteMode ToWriteMode(PdfSaveOptions opts);
+
 PdfWriter::PdfWriter(PdfIndirectObjectList* objects, const PdfObject& trailer, PdfVersion version) :
     m_Objects(objects),
     m_Trailer(trailer),
     m_Version(version),
     m_UseXRefStream(false),
     m_EncryptObj(nullptr),
-    m_saveOptions(PdfSaveOptions::None),
-    m_WriteMode(PdfWriteMode::Compact),
+    m_SaveOptions(PdfSaveOptions::None),
+    m_WriteMode(PdfWriteMode::None),
     m_PrevXRefOffset(0),
     m_IncrementalUpdate(false),
     m_rewriteXRefTable(false)
@@ -62,6 +64,12 @@ void PdfWriter::SetIncrementalUpdate(bool rewriteXRefTable)
 const char* PdfWriter::GetPdfVersionString() const
 {
     return s_PdfVersionNums[static_cast<int>(m_Version)];
+}
+
+void PdfWriter::SetSaveOptions(PdfSaveOptions opts)
+{
+    m_SaveOptions = opts;
+    m_WriteMode = ToWriteMode(opts);
 }
 
 PdfWriter::~PdfWriter()
@@ -321,4 +329,12 @@ void PdfWriter::SetUseXRefStream(bool useXRefStream)
         this->SetPdfVersion(PdfVersion::V1_5);
 
     m_UseXRefStream = useXRefStream;
+}
+
+PdfWriteMode ToWriteMode(PdfSaveOptions opts)
+{
+    if (opts == PdfSaveOptions::Clean)
+        return PdfWriteMode::Clean;
+
+    return PdfWriteMode::None;
 }

@@ -53,11 +53,6 @@ public:
      */
     virtual ~PdfDocument();
 
-    /** Get the write mode used for writing the PDF
-     *  \returns the write mode
-     */
-    virtual PdfWriteMode GetWriteMode() const = 0;
-
     /** Get the PDF version of the document
      *  \returns PdfVersion version of the pdf document
      */

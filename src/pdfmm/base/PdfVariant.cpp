@@ -129,7 +129,7 @@ void PdfVariant::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
     {
         case PdfDataType::Bool:
         {
-            if ((writeMode & PdfWriteMode::Compact) == PdfWriteMode::Compact)
+            if ((writeMode & PdfWriteMode::NoInlineLiteral) == PdfWriteMode::None)
                 device.Put(' '); // Write space before true or false
 
             if (m_Data.Bool)
@@ -140,7 +140,7 @@ void PdfVariant::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
         }
         case PdfDataType::Number:
         {
-            if ((writeMode & PdfWriteMode::Compact) == PdfWriteMode::Compact)
+            if ((writeMode & PdfWriteMode::NoInlineLiteral) == PdfWriteMode::None)
                 device.Put(' '); // Write space before numbers
 
             device.Write(PDFMM_FORMAT("{}", m_Data.Number));
@@ -148,7 +148,7 @@ void PdfVariant::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
         }
         case PdfDataType::Real:
         {
-            if ((writeMode & PdfWriteMode::Compact) == PdfWriteMode::Compact)
+            if ((writeMode & PdfWriteMode::NoInlineLiteral) == PdfWriteMode::None)
                 device.Put(' '); // Write space before numbers
 
             // Use ostringstream, so that locale does not matter
@@ -158,7 +158,7 @@ void PdfVariant::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
             string copy = oss.str();
             size_t len = copy.size();
 
-            if ((writeMode & PdfWriteMode::Compact) == PdfWriteMode::Compact &&
+            if ((writeMode & PdfWriteMode::NoInlineLiteral) == PdfWriteMode::None &&
                 copy.find('.') != string::npos)
             {
                 const char* str = copy.c_str();
@@ -193,10 +193,8 @@ void PdfVariant::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
             break;
         case PdfDataType::Null:
         {
-            if ((writeMode & PdfWriteMode::Compact) == PdfWriteMode::Compact)
-            {
+            if ((writeMode & PdfWriteMode::NoInlineLiteral) == PdfWriteMode::None)
                 device.Put(' '); // Write space before null
-            }
 
             device.Write("null");
             break;

@@ -29,15 +29,10 @@ PdfReference::PdfReference(const uint32_t objectNo, const uint16_t generationNo)
 void PdfReference::Write(PdfOutputDevice& device, PdfWriteMode writeMode, const PdfEncrypt* encrypt) const
 {
     (void)encrypt;
-    if ((writeMode & PdfWriteMode::Compact) == PdfWriteMode::Compact)
-    {
-        // Write space before the reference
-        device.Write(PDFMM_FORMAT(" {} {} R", m_ObjectNo, m_GenerationNo));
-    }
-    else
-    {
-        device.Write(PDFMM_FORMAT("{} {} R", m_ObjectNo, m_GenerationNo));
-    }
+    if ((writeMode & PdfWriteMode::NoInlineLiteral) == PdfWriteMode::None)
+        device.Put(' '); // Write space before the reference
+
+    device.Write(PDFMM_FORMAT("{} {} R", m_ObjectNo, m_GenerationNo));
 }
 
 const string PdfReference::ToString() const

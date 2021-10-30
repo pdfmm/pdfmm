@@ -83,12 +83,7 @@ public:
      */
     const char* GetPdfVersionString() const;
 
-    inline void SetSaveOptions(PdfSaveOptions saveOptions) { m_saveOptions = saveOptions; }
-
-    /** Set the write mode to use when writing the PDF.
-     *  \param writeMode write mode
-     */
-    inline void SetWriteMode(PdfWriteMode writeMode) { m_WriteMode = writeMode; }
+    void SetSaveOptions(PdfSaveOptions saveOptions);
 
     /** Get the write mode used for writing the PDF
      *  \returns the write mode
@@ -192,7 +187,7 @@ private:
                                                // create an encryption dictionary in the trailer
     PdfObject* m_EncryptObj;                  // Used to temporarily store the encryption dictionary
 
-    PdfSaveOptions m_saveOptions;
+    PdfSaveOptions m_SaveOptions;
     PdfWriteMode m_WriteMode;
 
     PdfString m_identifier;
