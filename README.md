@@ -72,7 +72,7 @@ See [API Stability](https://github.com/pdfmm/pdfmm/wiki/API-Stability) for more 
 
 ## TODO
 
-There's a [TODO](https://github.com/pdfmm/pdfmm/wiki/TODO) list in the wiki and a list of
+There's a [TODO](https://github.com/pdfmm/pdfmm/blob/master/TODO.md) list in the wiki and a list of
 planned [tasks](https://github.com/pdfmm/pdfmm/issues?q=is%3Aissue+is%3Aopen+label%3Aup-for-grabs)
 in the issue tracker. **Urgent help needed**: pdfmm is first unveiled with a serious lack,
 which is the disabling of the unit test suite based on cppunit.
