@@ -69,6 +69,7 @@ Version 0.9.20-dev
     respectively have GetDictionary(), GetArray()
 - Added PdfDocument::GetPdfALevel()
 - Added PDFA preserving writing
+- Reviwed PdfWriteFlags, added PdfSaveOptions
 
 # Old PoDoFo ChangeLog
 
