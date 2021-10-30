@@ -33,16 +33,8 @@ namespace mm
         virtual std::string GetSignatureType() const = 0;
     };
 
-    enum class PdfSignFlags
-    {
-        None = 0,
-        // TODO:
-        // NoIncrementalUpdate = 1,
-        // NoAcroFormUpdate
-    };
-
     void SignDocument(PdfMemDocument& doc, PdfOutputDevice& device, PdfSigner& signer,
-        PdfSignature& signature, PdfSignFlags flags = PdfSignFlags::None);
+        PdfSignature& signature, PdfSaveOptions opts = PdfSaveOptions::None);
 }
 
 #endif // PDF_SIGNER_H

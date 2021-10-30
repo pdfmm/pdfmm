@@ -67,6 +67,8 @@ Version 0.9.20-dev
 - Remove printf, snprintf
 - Renamed PdfElement-> {PdfDictionaryElement|PdfArrayElement} that
     respectively have GetDictionary(), GetArray()
+- Added PdfDocument::GetPdfALevel()
+- Added PDFA preserving writing
 
 # Old PoDoFo ChangeLog
 

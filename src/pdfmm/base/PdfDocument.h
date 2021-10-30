@@ -416,6 +416,11 @@ public:
      */
     PdfObject* GetLanguage();
 
+    PdfALevel GetPdfALevel() const;
+
+    std::string GetMetadataStreamValue() const;
+    void SetMetadataStreamValue(const std::string_view& value);
+
 protected:
     /** Construct a new (empty) PdfDocument
      *  \param empty if true NO default objects (such as catalog) are created.
@@ -469,6 +474,9 @@ protected:
      *  \returns PdfObject the documents catalog
      */
     inline PdfObject* getCatalog() { return m_Catalog; }
+
+protected:
+    void updateModifyTimestamp(const PdfDate& modDate);
 
 private:
     PdfDocument& operator=(const PdfDocument&) = delete;

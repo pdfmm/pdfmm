@@ -98,7 +98,7 @@ public:
      *
      *  This is an overloaded member function for your convenience.
      */
-    void Write(const std::string_view& filename, PdfSaveOptions options = PdfSaveOptions::None);
+    void Write(const std::string_view& filename, PdfSaveOptions opts = PdfSaveOptions::None);
 
     /** Writes the complete document to an output device
      *
@@ -106,7 +106,7 @@ public:
      *
      *  \see WriteUpdate
      */
-    void Write(PdfOutputDevice& device, PdfSaveOptions options = PdfSaveOptions::None);
+    void Write(PdfOutputDevice& device, PdfSaveOptions opts = PdfSaveOptions::None);
 
     /** Writes the document changes to a file
      *
@@ -126,7 +126,7 @@ public:
      *
      *  This is an overloaded member function for your convenience.
      */
-    void WriteUpdate(const std::string_view& filename, PdfSaveOptions options = PdfSaveOptions::None);
+    void WriteUpdate(const std::string_view& filename, PdfSaveOptions opts = PdfSaveOptions::None);
 
     /** Writes the document changes to an output device
      *
@@ -147,7 +147,7 @@ public:
      *
      *  \see Write, WriteUpdate
      */
-    void WriteUpdate(PdfOutputDevice& device, PdfSaveOptions options = PdfSaveOptions::None);
+    void WriteUpdate(PdfOutputDevice& device, PdfSaveOptions opts = PdfSaveOptions::None);
 
     /** Set the write mode to use when writing the PDF.
      *  \param writeMode write mode

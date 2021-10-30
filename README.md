@@ -27,10 +27,11 @@ support rendering PDF content.
 To build pdfmm lib you'll need a c++17 compiler,
 CMake 3.16 and the following libraries:
 
-* zlib
 * freetype2
-* fontconfig (Unix platforms only)
+* fontconfig (required for Unix platforms, optional for Windows)
 * OpenSSL
+* LibXml2
+* zlib
 * libjpeg (optional)
 * libtiff (optional)
 * libidn (optional)

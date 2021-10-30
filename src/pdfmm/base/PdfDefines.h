@@ -305,6 +305,7 @@ enum class PdfHorizontalAlignment
 enum class PdfSaveOptions
 {
     None,
+    NoModifyDateUpdate,
 };
 
 /**
@@ -444,6 +445,7 @@ static const char s_PdfVersionNums[][4] = {
 
 };
 
+ENABLE_BITMASK_OPERATORS(mm::PdfSaveOptions);
 ENABLE_BITMASK_OPERATORS(mm::PdfWriteMode);
 ENABLE_BITMASK_OPERATORS(mm::PdfInfoInitial);
 

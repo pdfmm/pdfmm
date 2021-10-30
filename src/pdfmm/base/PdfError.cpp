@@ -404,6 +404,9 @@ const char* PdfError::ErrorMessage(PdfErrorCode code)
         case PdfErrorCode::CannotEncryptedForUpdate:
             msg = "Cannot load encrypted documents for update.";
             break;
+        case PdfErrorCode::XmpMetadata:
+            msg = "Error while reading or writing XMP metadata";
+            break;
         case PdfErrorCode::Unknown:
             msg = "Error code unknown.";
             break;

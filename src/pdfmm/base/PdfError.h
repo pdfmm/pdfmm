@@ -99,6 +99,8 @@ enum class PdfErrorCode
     OutlineItemAlreadyPresent,///< An outline item to be inserted was already in that outlines tree.
     NotLoadedForUpdate,       ///< The document had not been loaded for update.
     CannotEncryptedForUpdate, ///< Cannot load encrypted documents for update.
+
+    XmpMetadata,              ///< Error while creating or reading XMP metadata
 };
 
 /**
@@ -318,9 +320,6 @@ public:
     /** The if the given logging severity enabled or not
      */
     static bool IsLoggingSeverityEnabled(LogSeverity logSeverity);
-
-private:
-    void addToCallstack(std::string file, unsigned line, std::string information);
 
 private:
     PdfErrorCode m_error;

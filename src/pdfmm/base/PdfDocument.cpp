@@ -7,6 +7,7 @@
  */
 
 #include <pdfmm/private/PdfDefinesPrivate.h>
+#include <pdfmm/private/XMPUtils.h>
 #include "PdfDocument.h"
 
 #include <algorithm>
@@ -803,4 +804,55 @@ PdfObject* PdfDocument::GetMarkInfo()
 PdfObject* PdfDocument::GetLanguage()
 {
     return GetCatalog().GetDictionary().FindKey("Lang");
+}
+
+PdfALevel PdfDocument::GetPdfALevel() const
+{
+    string value = GetMetadataStreamValue();
+    if (value.length() == 0)
+        return PdfALevel::Unknown;
+
+    return mm::GetPdfALevel(value);
+}
+
+string PdfDocument::GetMetadataStreamValue() const
+{
+    string ret;
+    auto obj = GetMetadata();
+    if (obj == nullptr)
+        return ret;
+
+    auto stream = obj->GetStream();
+    if (stream == nullptr)
+        return ret;
+
+    PdfStringOutputStream ouput(ret);
+    stream->GetFilteredCopy(ouput);
+    return ret;
+}
+
+void PdfDocument::SetMetadataStreamValue(const string_view& value)
+{
+    auto& obj = GetOrCreateMetadata();
+    auto& stream = obj.GetOrCreateStream();
+    PdfMemoryInputStream input(value.data(), value.size());
+    stream.SetRawData(input);
+
+    // We are writing raw clear text, which is required in most
+    // relevant scenarions (eg. PDF/A). Remove any possibly
+    // existing filter
+    obj.GetDictionary().RemoveKey(PdfName::KeyFilter);
+}
+
+void PdfDocument::updateModifyTimestamp(const PdfDate& modDate)
+{
+    // Set The /Info entry /ModDate
+    GetInfo().SetModDate(modDate);
+
+    string value = GetMetadataStreamValue();
+    if (value.length() == 0)
+        return;
+
+    value = mm::UpdateXmpModDate(value, modDate);
+    SetMetadataStreamValue(value);
 }

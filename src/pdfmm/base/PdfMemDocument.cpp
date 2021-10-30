@@ -243,14 +243,20 @@ void PdfMemDocument::Write(const string_view& filename, PdfSaveOptions options)
     this->Write(device, options);
 }
 
-void PdfMemDocument::Write(PdfOutputDevice& device, PdfSaveOptions options)
+void PdfMemDocument::Write(PdfOutputDevice& device, PdfSaveOptions opts)
 {
+    if ((opts & PdfSaveOptions::NoModifyDateUpdate) ==
+        PdfSaveOptions::None)
+    {
+        updateModifyTimestamp(PdfDate());
+    }
+
     // makes sure pending subset-fonts are embedded
     GetFontManager().EmbedSubsetFonts();
 
     PdfWriter writer(this->GetObjects(), this->GetTrailer());
     writer.SetPdfVersion(this->GetPdfVersion());
-    writer.SetSaveOptions(options);
+    writer.SetSaveOptions(opts);
     writer.SetWriteMode(m_WriteMode);
 
     if (m_Encrypt != nullptr)
@@ -259,18 +265,24 @@ void PdfMemDocument::Write(PdfOutputDevice& device, PdfSaveOptions options)
     writer.Write(device);
 }
 
-void PdfMemDocument::WriteUpdate(const string_view& filename, PdfSaveOptions options)
+void PdfMemDocument::WriteUpdate(const string_view& filename, PdfSaveOptions opts)
 {
     PdfFileOutputDevice device(filename, false);
-    this->WriteUpdate(device, options);
+    this->WriteUpdate(device, opts);
 }
 
-void PdfMemDocument::WriteUpdate(PdfOutputDevice& device, PdfSaveOptions options)
+void PdfMemDocument::WriteUpdate(PdfOutputDevice& device, PdfSaveOptions opts)
 {
+    if ((opts & PdfSaveOptions::NoModifyDateUpdate) ==
+        PdfSaveOptions::None)
+    {
+        updateModifyTimestamp(PdfDate());
+    }
+
     // makes sure pending subset-fonts are embedded
     GetFontManager().EmbedSubsetFonts();
     PdfWriter writer(this->GetObjects(), this->GetTrailer());
-    writer.SetSaveOptions(options);
+    writer.SetSaveOptions(opts);
     writer.SetPdfVersion(this->GetPdfVersion());
     writer.SetWriteMode(m_WriteMode);
     writer.SetPrevXRefOffset(m_PrevXRefOffset);
