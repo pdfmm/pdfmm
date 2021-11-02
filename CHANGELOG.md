@@ -11,6 +11,7 @@ Version 0.9.20-dev
 - Added PdfSigner class and mm::SignDocument()
 - Added PdfFontType1Encoding, which support Type1 implicit encoding
 - Added support for PDF 2.0 UTF-8 strings (untested)
+- Added indirect iteration for PdfArray/PdfDictionary (see GetIndirectIterator methods)
 - Added PdfDocument::GetPdfALevel()
 - Added PDFA preserving writing
 - Reviewed PdfXObject hierarchy, added PdfXObjectForm, PdfXObjectPostScript

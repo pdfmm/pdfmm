@@ -86,6 +86,16 @@ void PdfArray::SetAtIndirect(const PdfObject& obj, unsigned idx)
     m_Objects.at(idx) = obj;
 }
 
+PdfArrayIterator PdfArray::GetIndirectIterator()
+{
+    return PdfArrayIterator(*this);
+}
+
+const PdfArrayIterator PdfArray::GetIndirectIterator() const
+{
+    return PdfArrayIterator(const_cast<PdfArray&>(*this));
+}
+
 void PdfArray::Clear()
 {
     clear();
@@ -354,4 +364,27 @@ bool PdfArray::operator!=(const PdfArray& rhs) const
 
     // We don't check owner
     return m_Objects != rhs.m_Objects;
+}
+
+PdfArrayIterator::PdfArrayIterator(PdfArray& arr)
+    : m_arr(&arr) { }
+
+PdfArrayIterator::iterator PdfArrayIterator::begin()
+{
+    return iterator(m_arr->begin());
+}
+
+PdfArrayIterator::iterator PdfArrayIterator::end()
+{
+    return iterator(m_arr->begin());
+}
+
+PdfArrayIterator::const_iterator PdfArrayIterator::begin() const
+{
+    return const_iterator(m_arr->begin());
+}
+
+PdfArrayIterator::const_iterator PdfArrayIterator::end() const
+{
+    return const_iterator(m_arr->begin());
 }
