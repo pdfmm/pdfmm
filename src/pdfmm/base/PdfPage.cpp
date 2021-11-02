@@ -21,35 +21,26 @@ using namespace std;
 using namespace mm;
 
 static int normalize(int value, int start, int end);
+static PdfResources* getResources(PdfObject& obj, const deque<PdfObject*>& listOfParents);
 
 PdfPage::PdfPage(PdfDocument& parent, const PdfRect& size)
-    : PdfDictionaryElement(parent, "Page"), PdfCanvas(), m_contents(nullptr)
+    : PdfDictionaryElement(parent, "Page"), m_Contents(nullptr)
 {
     InitNewPage(size);
 }
 
 PdfPage::PdfPage(PdfObject& obj, const deque<PdfObject*>& listOfParents)
-    : PdfDictionaryElement(obj), PdfCanvas(), m_contents(nullptr)
+    : PdfDictionaryElement(obj), m_Contents(nullptr), m_Resources(getResources(obj, listOfParents))
 {
-    m_Resources = obj.GetDictionary().FindKey("Resources");
-    if (m_Resources == nullptr)
-    {
-        // Resources might be inherited
-        for (auto& parent : listOfParents)
-            m_Resources = parent->GetDictionary().FindKey("Resources");
-    }
-
     PdfObject* contents = obj.GetDictionary().FindKey("Contents");
     if (contents != nullptr)
-        m_contents = new PdfContents(*this, *contents);
+        m_Contents.reset(new PdfContents(*this, *contents));
 }
 
 PdfPage::~PdfPage()
 {
     for (auto& pair : m_mapAnnotations)
         delete pair.second;
-
-    delete m_contents;
 }
 
 PdfRect PdfPage::GetRect() const
@@ -75,37 +66,30 @@ bool PdfPage::HasRotation(double& teta) const
 void PdfPage::InitNewPage(const PdfRect& size)
 {
     SetMediaBox(size);
-
-    // The PDF specification suggests that we send all available PDF Procedure sets
-    m_Resources = &this->GetObject().GetDictionary().AddKey("Resources", PdfDictionary());
-    m_Resources->GetDictionary().AddKey("ProcSet", PdfCanvas::GetProcSet());
 }
 
-void PdfPage::EnsureContentsCreated() const
+void PdfPage::EnsureContentsCreated()
 {
-    if (m_contents != nullptr)
+    if (m_Contents != nullptr)
         return;
 
-    auto& page = const_cast<PdfPage&>(*this);
-    page.m_contents = new PdfContents(page);
-    page.GetObject().GetDictionary().AddKey(PdfName::KeyContents,
-        m_contents->GetContents().GetIndirectReference());
+    m_Contents.reset(new PdfContents(*this));
+    GetObject().GetDictionary().AddKey(PdfName::KeyContents,
+        m_Contents->GetObject().GetIndirectReference());
 }
 
-void PdfPage::EnsureResourcesCreated() const
+void PdfPage::EnsureResourcesCreated()
 {
     if (m_Resources != nullptr)
         return;
 
-    auto& page = const_cast<PdfPage&>(*this);
-    page.m_Resources = &page.GetObject().GetDictionary().AddKey("Resources", PdfDictionary());
-    m_Resources->GetDictionary().AddKey("ProcSet", PdfCanvas::GetProcSet());
+    m_Resources.reset(new PdfResources(GetDictionary()));
 }
 
 PdfStream& PdfPage::GetStreamForAppending(PdfStreamAppendFlags flags)
 {
     EnsureContentsCreated();
-    return m_contents->GetStreamForAppending(flags);
+    return m_Contents->GetStreamForAppending(flags);
 }
 
 PdfRect PdfPage::CreateStandardPageSize(const PdfPageSize pageSize, bool landscape)
@@ -360,6 +344,14 @@ void PdfPage::DeleteAnnotation(unsigned index)
     arr->RemoveAt(index);
 }
 
+PdfObject* PdfPage::GetFromResources(const PdfName& type, const PdfName& key)
+{
+    if (m_Resources == nullptr)
+        return nullptr;
+
+    return m_Resources->GetFromResources(type, key);
+}
+
 void PdfPage::DeleteAnnotation(PdfObject& annotObj)
 {
     PdfArray* arr = GetAnnotationsArray();
@@ -547,29 +539,6 @@ unsigned PdfPage::GetPageNumber() const
     return ++pageNumber;
 }
 
-PdfObject* PdfPage::GetFromResources(const PdfName& type, const PdfName& key)
-{
-    if (m_Resources == nullptr)
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "No Resources");
-
-    if (m_Resources->GetDictionary().HasKey(type))
-    {
-        auto typeObj = m_Resources->GetDictionary().FindKey(type);
-        if (typeObj != nullptr && typeObj->IsDictionary() && typeObj->GetDictionary().HasKey(key))
-        {
-            auto obj = typeObj->GetDictionary().GetKey(key);
-            if (obj->IsReference())
-            {
-                const PdfReference& ref = typeObj->GetDictionary().GetKey(key)->GetReference();
-                return this->GetObject().GetDocument()->GetObjects().GetObject(ref);
-            }
-            return obj;
-        }
-    }
-
-    return nullptr;
-}
-
 void PdfPage::SetICCProfile(const string_view& csTag, PdfInputStream& stream,
     int64_t colorComponents, PdfColorSpace alternateColorSpace)
 {
@@ -593,36 +562,29 @@ void PdfPage::SetICCProfile(const string_view& csTag, PdfInputStream& stream,
     array.push_back(PdfName("ICCBased"));
     array.push_back(iccObject->GetIndirectReference());
 
-    mm::PdfDictionary iccBasedDictionary;
+    PdfDictionary iccBasedDictionary;
     iccBasedDictionary.AddKey(csTag, array);
 
     // Add the colorspace to resource
     GetOrCreateResources().GetDictionary().AddKey("ColorSpace", iccBasedDictionary);
 }
 
-PdfObject& PdfPage::GetOrCreateContents()
+PdfContents& PdfPage::GetOrCreateContents()
 {
     EnsureContentsCreated();
-    return m_contents->GetContents();
+    return *m_Contents;
 }
 
-PdfObject& PdfPage::GetOrCreateResources()
+PdfObject& PdfPage::GetOrCreateContentsObject()
+{
+    EnsureContentsCreated();
+    return m_Contents->GetObject();
+}
+
+PdfResources& PdfPage::GetOrCreateResources()
 {
     EnsureResourcesCreated();
     return *m_Resources;
-}
-
-const PdfObject* PdfPage::GetContents() const
-{
-    return const_cast<PdfPage&>(*this).GetContents();
-}
-
-PdfObject* PdfPage::GetContents()
-{
-    if (m_contents == nullptr)
-        return nullptr;
-
-    return &m_contents->GetContents();
 }
 
 PdfRect PdfPage::GetMediaBox() const
@@ -663,4 +625,20 @@ int normalize(int value, int start, int end)
 
     // + start to reset back to start of original range
     return offsetValue - (offsetValue / width) * width + start;
+}
+
+PdfResources* getResources(PdfObject& obj, const deque<PdfObject*>& listOfParents)
+{
+    auto resources = obj.GetDictionary().FindKey("Resources");
+    if (resources == nullptr)
+    {
+        // Resources might be inherited
+        for (auto& parent : listOfParents)
+            resources = parent->GetDictionary().FindKey("Resources");
+    }
+
+    if (resources == nullptr)
+        return nullptr;
+
+    return new PdfResources(*resources);
 }

@@ -1,6 +1,6 @@
 Version 0.9.20-dev
 
-- pdfmm requires now a C++17 compiler
+- pdfmm is now a C++17 library
 - Improved XRefStream support, added support in incremental saves
 - Many fixes in save incremental object/generation number incrementing
 - String backed with UTF-8 storage
@@ -11,6 +11,9 @@ Version 0.9.20-dev
 - Added PdfSigner class and mm::SignDocument()
 - Added PdfFontType1Encoding, which support Type1 implicit encoding
 - Added support for PDF 2.0 UTF-8 strings (untested)
+- Added PdfDocument::GetPdfALevel()
+- Added PDFA preserving writing
+- Reviewed PdfXObject hierarchy, added PdfXObjectForm, PdfXObjectPostScript
 - Added PdfTextState and use it to compute string widths in PdfFont
 - Improved PdfDocEncoding to expose conversion utf8 conversion facilities
 - PdfParser: Support also files with whitespace offset before magic start
@@ -67,8 +70,6 @@ Version 0.9.20-dev
 - Remove printf, snprintf
 - Renamed PdfElement-> {PdfDictionaryElement|PdfArrayElement} that
     respectively have GetDictionary(), GetArray()
-- Added PdfDocument::GetPdfALevel()
-- Added PDFA preserving writing
 - Reviwed PdfWriteFlags, added PdfSaveOptions
 
 # Old PoDoFo ChangeLog

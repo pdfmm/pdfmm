@@ -1013,7 +1013,7 @@ void PdfPainter::DrawXObject(double x, double y, const PdfXObject& obj, double s
 
     // use OriginalReference() as the XObject might have been written to disk
     // already and is not in memory anymore in this case.
-    this->AddToPageResources(obj.GetIdentifier(), obj.GetObjectReference(), "XObject");
+    this->AddToPageResources(obj.GetIdentifier(), obj.GetObject().GetIndirectReference(), "XObject");
 
     std::streamsize oldPrecision = m_tmpStream.precision(clPainterHighPrecision);
     m_tmpStream << "q" << std::endl

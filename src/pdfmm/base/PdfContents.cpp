@@ -32,7 +32,7 @@ PdfContents::PdfContents(PdfPage &parent)
     parent.GetObject().GetDictionary().AddKey("Contents", m_object->GetIndirectReference());
 }
 
-PdfObject & PdfContents::GetContents() const
+PdfObject & PdfContents::GetObject() const
 {
     return *m_object;
 }

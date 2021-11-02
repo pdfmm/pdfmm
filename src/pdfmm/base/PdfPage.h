@@ -17,9 +17,9 @@
 #include "PdfArray.h"
 #include "PdfCanvas.h"
 #include "PdfRect.h"
-#include "PdfAnnotation.h"
 #include "PdfContents.h"
 #include "PdfField.h"
+#include "PdfResources.h"
 
 namespace mm {
 
@@ -166,22 +166,22 @@ public:
      */
     void DeleteAnnotation(unsigned index);
 
+    /** Get an element from the pages resources dictionary,
+     *  using a type (category) and a key.
+     *
+     *  \param type the type of resource to fetch (e.g. /Font, or /XObject)
+     *  \param key the key of the resource
+     *
+     *  \returns the object of the resource or nullptr if it was not found
+     */
+    PdfObject* GetFromResources(const PdfName& type, const PdfName& key);
+
     /** Delete the annotation with the given object
      *  \param annotObj the object of an annotation
      *
      *  \see GetAnnotationCount
      */
     void DeleteAnnotation(PdfObject& annotObj);
-
-    /** Get an element from the pages resources dictionary,
-     *  using a type (category) and a key.
-     *
-     *  \param rType the type of resource to fetch (e.g. /Font, or /XObject)
-     *  \param rKey the key of the resource
-     *
-     *  \returns the object of the resource or nullptr if it was not found
-     */
-    PdfObject* GetFromResources(const PdfName& type, const PdfName& key);
 
     /** Method for getting a value that can be inherited
      *  Possible names that can be inherited according to
@@ -203,17 +203,18 @@ public:
     void SetICCProfile(const std::string_view& csTag, PdfInputStream& stream, int64_t colorComponents,
         PdfColorSpace alternateColorSpace = PdfColorSpace::DeviceRGB);
 
-    PdfObject& GetOrCreateContents() override;
-
-    PdfObject& GetOrCreateResources() override;
-
 public:
-    const PdfObject* GetContents() const;
-    PdfObject* GetContents();
-    inline const PdfObject* GetResources() const { return m_Resources; }
-    inline PdfObject* GetResources() { return m_Resources; }
+    PdfContents& GetOrCreateContents();
+    inline const PdfContents* GetContents() const { return m_Contents.get(); }
+    inline PdfContents* GetContents() { return m_Contents.get(); }
+    inline const PdfResources* GetResources() const { return m_Resources.get(); }
+    inline PdfResources* GetResources() { return m_Resources.get(); }
 
 private:
+    PdfObject& GetOrCreateContentsObject() override;
+
+    PdfResources& GetOrCreateResources() override;
+
     PdfStream& GetStreamForAppending(PdfStreamAppendFlags flags) override;
 
     /**
@@ -224,8 +225,8 @@ private:
      */
     void InitNewPage(const PdfRect& size);
 
-    void EnsureContentsCreated() const;
-    void EnsureResourcesCreated() const;
+    void EnsureContentsCreated();
+    void EnsureResourcesCreated();
 
     /** Get the bounds of a specified page box in PDF units.
      * This function is internal, since there are wrappers for all standard boxes
@@ -246,8 +247,8 @@ private:
     typedef std::map<PdfObject*, PdfAnnotation*> AnnotationDirectMap;
 
 private:
-    PdfContents* m_contents;
-    PdfObject* m_Resources;
+    std::unique_ptr<PdfContents> m_Contents;
+    std::unique_ptr<PdfResources> m_Resources;
     AnnotationDirectMap m_mapAnnotations;
 };
 

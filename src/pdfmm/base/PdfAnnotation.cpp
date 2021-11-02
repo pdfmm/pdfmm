@@ -18,7 +18,7 @@
 #include "PdfPage.h"
 #include "PdfRect.h"
 #include "PdfVariant.h"
-#include "PdfXObject.h"
+#include "PdfXObjectForm.h"
 
 using namespace std;
 using namespace mm;
@@ -97,10 +97,10 @@ void PdfAnnotation::SetRect(const PdfRect& rect)
     this->GetObject().GetDictionary().AddKey(PdfName::KeyRect, arr);
 }
 
-void mm::SetAppearanceStreamForObject(PdfObject& obj, PdfXObject& xobj, PdfAnnotationAppearance appearance, const PdfName& state)
+void mm::SetAppearanceStreamForObject(PdfObject& obj, PdfXObjectForm& xobj, PdfAnnotationAppearance appearance, const PdfName& state)
 {
     // Setting an object as appearance stream requires some resources to be created
-    xobj.EnsureResourcesInitialized();
+    xobj.EnsureResourcesCreated();
 
     PdfDictionary dict;
     PdfDictionary internal;
@@ -183,7 +183,7 @@ void mm::SetAppearanceStreamForObject(PdfObject& obj, PdfXObject& xobj, PdfAnnot
     }
 }
 
-void PdfAnnotation::SetAppearanceStream(PdfXObject& obj, PdfAnnotationAppearance appearance, const PdfName& state)
+void PdfAnnotation::SetAppearanceStream(PdfXObjectForm& obj, PdfAnnotationAppearance appearance, const PdfName& state)
 {
     SetAppearanceStreamForObject(this->GetObject(), obj, appearance, state);
 }

@@ -23,7 +23,7 @@ class PdfPage;
 class PdfRect;
 class PdfReference;
 class PdfString;
-class PdfXObject;
+class PdfXObjectForm;
 
 /** The type of the annotation.
  *  PDF supports different annotation types, each of
@@ -129,7 +129,7 @@ public:
      *  \param appearance an apperance type to set
      *  \param state the state for which set it the obj; states depend on the annotation type
      */
-    void SetAppearanceStream(PdfXObject& obj, PdfAnnotationAppearance appearance = PdfAnnotationAppearance::Normal, const PdfName& state = "");
+    void SetAppearanceStream(PdfXObjectForm& obj, PdfAnnotationAppearance appearance = PdfAnnotationAppearance::Normal, const PdfName& state = "");
 
     /**
      * \returns true if this annotation has an appearance stream
@@ -398,7 +398,7 @@ private:
 };
 
 // helper function, to avoid code duplication
-void SetAppearanceStreamForObject(PdfObject& obj, PdfXObject& xobj, PdfAnnotationAppearance appearance, const PdfName& state);
+void SetAppearanceStreamForObject(PdfObject& obj, PdfXObjectForm& xobj, PdfAnnotationAppearance appearance, const PdfName& state);
 
 };
 

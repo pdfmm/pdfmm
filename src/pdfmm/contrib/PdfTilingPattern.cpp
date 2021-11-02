@@ -187,7 +187,7 @@ void PdfTilingPattern::Init(PdfTilingPatternType tilingType,
     }
     else
     {
-        AddToResources(image->GetIdentifier(), image->GetObjectReference(), "XObject");
+        AddToResources(image->GetIdentifier(), image->GetObject().GetIndirectReference(), "XObject");
 
         out << rect.GetWidth() << " 0 0 "
             << rect.GetHeight() << " "

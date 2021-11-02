@@ -36,6 +36,8 @@ class PdfIndirectObjectList;
  */
 class PDFMM_API PdfImage final : public PdfXObject
 {
+    friend class PdfXObject;
+
 public:
     /** Constuct a new PdfImage object
      *  This is an overloaded constructor.
@@ -43,13 +45,7 @@ public:
      *  \param parent parent document
      *  \param prefix optional prefix for XObject-name
      */
-    PdfImage(PdfDocument & doc, const std::string_view & prefix = { });
-
-    /** Construct an image from an existing PdfObject
-     *
-     *  \param obj a PdfObject that has to be an image
-     */
-    PdfImage(PdfObject& obj);
+    PdfImage(PdfDocument& doc, const std::string_view& prefix = { });
 
     /** Set the color space of this image. The default value is
      *  PdfColorSpace::DeviceRGB.
@@ -114,7 +110,7 @@ public:
      *  \see SetImageData
      */
     void SetImageData(PdfInputStream& stream, unsigned width, unsigned height,
-        unsigned bitsPerComponent, bool writeRect = true);
+        unsigned bitsPerComponent);
 
     /** Set the actual image data from an input stream
      *
@@ -126,7 +122,7 @@ public:
      *  \param filters these filters will be applied to compress the image data
      */
     void SetImageData(PdfInputStream& stream, unsigned width, unsigned height,
-                      unsigned bitsPerComponent, PdfFilterList& filters, bool writeRect = true);
+                      unsigned bitsPerComponent, PdfFilterList& filters);
 
     /** Set the actual image data from an input stream.
      *  The data has to be encoded already and an appropriate
@@ -209,7 +205,14 @@ public:
      */
     void SetInterpolate(bool value);
 
+    PdfRect GetRect() const override;
+
 private:
+    /** Construct an image from an existing PdfObject
+     *
+     *  \param obj a PdfObject that has to be an image
+     */
+    PdfImage(PdfObject& obj);
 
     /** Converts a PdfColorSpace enum to a name key which can be used in a
      *  PDF dictionary.

@@ -29,7 +29,7 @@ public:
      *  It will either be a PdfStream or a PdfArray
      *  \returns a contents object
      */
-    PdfObject & GetContents() const;
+    PdfObject & GetObject() const;
 
     /** Get access to an object into which you can add contents
      *   at the end of the "stream".

@@ -106,22 +106,19 @@ void PdfImage::SetImageSoftmask(const PdfImage& softmask)
 }
 
 void PdfImage::SetImageData(PdfInputStream& stream, unsigned width, unsigned height,
-    unsigned bitsPerComponent, bool writeRect)
+    unsigned bitsPerComponent)
 {
     PdfFilterList filters;
     filters.push_back(PdfFilterType::FlateDecode);
 
-    this->SetImageData(stream, width, height, bitsPerComponent, filters, writeRect);
+    this->SetImageData(stream, width, height, bitsPerComponent, filters);
 }
 
 void PdfImage::SetImageData(PdfInputStream& stream, unsigned width, unsigned height,
-    unsigned bitsPerComponent, PdfFilterList& filters, bool writeRect)
+    unsigned bitsPerComponent, PdfFilterList& filters)
 {
     m_width = width;
     m_height = height;
-
-    if (writeRect)
-        SetRect(PdfRect(0, 0, width, height));
 
     this->GetObject().GetDictionary().AddKey("Width", PdfObject(static_cast<int64_t>(width)));
     this->GetObject().GetDictionary().AddKey("Height", PdfObject(static_cast<int64_t>(height)));
@@ -1036,6 +1033,11 @@ void PdfImage::SetImageChromaKeyMask(int64_t r, int64_t g, int64_t b, int64_t th
 void PdfImage::SetInterpolate(bool value)
 {
     this->GetObject().GetDictionary().AddKey("Interpolate", PdfObject(value));
+}
+
+PdfRect PdfImage::GetRect() const
+{
+    return PdfRect(0, 0, m_width, m_height);
 }
 
 unsigned PdfImage::GetWidth() const

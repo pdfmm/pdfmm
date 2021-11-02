@@ -10,7 +10,6 @@
 #define PDF_ELEMENT_H
 
 #include "PdfDefines.h"
-
 #include "PdfObject.h"
 
 namespace mm {

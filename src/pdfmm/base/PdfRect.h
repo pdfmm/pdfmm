@@ -14,8 +14,6 @@
 namespace mm {
 
 class PdfArray;
-class PdfPage;
-class PdfVariant;
 
 /** A rectangle as defined by the PDF reference
  */

@@ -9,25 +9,16 @@
 #ifndef PDF_XOBJECT_H
 #define PDF_XOBJECT_H
 
-#include "PdfDefines.h"
-
 #include "PdfElement.h"
 #include "PdfArray.h"
-#include "PdfCanvas.h"
 #include "PdfRect.h"
 
 namespace mm {
 
-class PdfDictionary;
 class PdfObject;
-
-enum class PdfXObjectType
-{
-    Unknown = 0,
-    Form,
-    Image,
-    PostScript,
-};
+class PdfImage;
+class PdfXObjectForm;
+class PdfXObjectPostScript;
 
 /** A XObject is a content stream with several drawing commands and data
  *  which can be used throughout a PDF document.
@@ -37,110 +28,73 @@ enum class PdfXObjectType
  *
  *  \see PdfPainter
  */
-class PDFMM_API PdfXObject : public PdfDictionaryElement, public PdfCanvas
+class PDFMM_API PdfXObject : public PdfDictionaryElement
 {
-public:
-    /** Create a new XObject with a specified dimension
-     *  in a given document
-     *
-     *  \param doc the parent document of the XObject
-     *  \param rect the size of the XObject
-     *  \param prefix optional prefix for XObject-name
-     *  \param withoutObjNum do not create an object identifier name
-     */
-    PdfXObject(PdfDocument& doc, const PdfRect& rect, const std::string_view& prefix = { }, bool withoutObjNum = false);
-
-    /** Create a new XObject from a page of another document
-     *  in a given document
-     *
-     *  \param doc the parent document of the XObject
-     *  \param sourceDoc the document to create the XObject from
-     *  \param pageIndex the page-number in doc to create the XObject from
-     *  \param prefix optional prefix for XObject-name
-     *	\param useTrimBox if true try to use trimbox for size of xobject
-     */
-    PdfXObject(PdfDocument& doc, const PdfDocument& sourceDoc, unsigned pageIndex, const std::string_view& prefix = { }, bool useTrimBox = false);
-
-    /** Create a new XObject from an existing page
-     *
-     *  \param doc the document to create the XObject at
-     *  \param pageIndex the page-number in doc to create the XObject from
-     *  \param prefix optional prefix for XObject-name
-     *  \param useTrimBox if true try to use trimbox for size of xobject
-     */
-    PdfXObject(PdfDocument& doc, unsigned pageIndex, const std::string_view& prefix = { }, bool useTrimBox = false);
-
-    /** Create a XObject from an existing PdfObject
-     *
-     *  \param obj an existing object which has to be
-     *                 a XObject
-     */
-    PdfXObject(PdfObject& obj);
-
 protected:
     PdfXObject(PdfDocument& doc, PdfXObjectType subType, const std::string_view& prefix);
     PdfXObject(PdfObject& obj, PdfXObjectType subType);
 
 public:
-    static bool TryCreateFromObject(PdfObject& obj, std::unique_ptr<PdfXObject>& xobj, PdfXObjectType& type);
+    static bool TryCreateFromObject(PdfObject& obj, std::unique_ptr<PdfXObject>& xobj);
+
+    template <typename XObjectT>
+    static bool TryCreateFromObject(PdfObject& obj, std::unique_ptr<XObjectT>& xobj);
 
     static std::string ToString(PdfXObjectType type);
     static PdfXObjectType FromString(const std::string& str);
 
-    PdfRect GetRect() const override;
-
-    bool HasRotation(double& teta) const override;
-
-    /** Set the rectangle of this xobject
-    *  \param rect a rectangle
-    */
-    void SetRect(const PdfRect& rect);
-
-    /** Ensure resources initialized on this XObject
-    */
-    void EnsureResourcesInitialized();
-
-    PdfObject& GetOrCreateResources() override;
-
-    inline const PdfObject* GetResources() const { return m_Resources; }
-    inline PdfObject* GetResources() { return m_Resources; }
+    virtual PdfRect GetRect() const = 0;
 
     /** Get the identifier used for drawig this object
      *  \returns identifier
      */
     inline const PdfName& GetIdentifier() const { return m_Identifier; }
 
-    /** Get the reference to the XObject in the PDF file
-     *  without having to access the PdfObject.
-     *
-     *  This allows to work with XObjects which have been
-     *  written to disk already.
-     *
-     *  \returns the reference of the PdfObject for this XObject
-     */
-    inline const PdfReference& GetObjectReference() const { return m_Reference; }
-
-    inline PdfXObjectType GetType() const { return m_type; }
+    inline PdfXObjectType GetType() const { return m_Type; }
 
 private:
-    PdfObject& GetOrCreateContents() override;
-
-private:
+    void initIdentifiers(const std::string_view& prefix);
     static PdfXObjectType getPdfXObjectType(const PdfObject& obj);
-    void InitXObject(const PdfRect& rect, const std::string_view& prefix);
-    void InitIdentifiers(PdfXObjectType subType, const std::string_view& prefix);
-    void InitAfterPageInsertion(const PdfDocument& doc, unsigned pageIndex);
-    void InitResources();
-    PdfStream& GetStreamForAppending(PdfStreamAppendFlags flags) override;
 
 private:
-    PdfRect m_Rect;
-    PdfXObjectType m_type;
-    PdfArray m_matrix;
-    PdfObject* m_Resources;
+    PdfXObjectType m_Type;
     PdfName m_Identifier;
-    PdfReference m_Reference;
 };
+
+template<typename XObjectT>
+inline bool PdfXObject::TryCreateFromObject(PdfObject& obj, std::unique_ptr<XObjectT>& xobj)
+{
+    PdfXObjectType xobjtype;
+    auto type = &typeid(XObjectT);
+    if (type == &typeid(PdfXObjectForm))
+    {
+        xobjtype = PdfXObjectType::Form;
+    }
+    else if (type == &typeid(PdfImage))
+    {
+        xobjtype = PdfXObjectType::Image;
+    }
+    else if (type == &typeid(PdfXObjectPostScript))
+    {
+        xobjtype = PdfXObjectType::PostScript;
+    }
+    else
+    {
+        xobj.reset();
+        return false;
+    }
+
+
+    std::unique_ptr<PdfXObject> xobj_;
+    if (!TryCreateFromObject(obj, xobj_)
+        || xobj_->GetType() != xobjtype)
+    {
+        return false;
+    }
+
+    xobj.reset((XObjectT*)xobj_.release());
+    return true;
+}
 
 };
 

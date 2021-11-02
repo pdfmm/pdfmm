@@ -58,7 +58,7 @@ public:
      *  \param appearance an appearance type to set
      *  \param state the state for which set it the obj; states depend on the annotation type
      */
-    void SetAppearanceStream(PdfXObject& obj, PdfAnnotationAppearance appearance = PdfAnnotationAppearance::Normal, const PdfName& state = "");
+    void SetAppearanceStream(PdfXObjectForm& obj, PdfAnnotationAppearance appearance = PdfAnnotationAppearance::Normal, const PdfName& state = "");
 
     /** Create space for signature
      *

@@ -99,5 +99,7 @@
 #include "base/PdfPainter.h"
 #include "base/PdfStreamedDocument.h"
 #include "base/PdfXObject.h"
+#include "base/PdfXObjectForm.h"
+#include "base/PdfXObjectPostScript.h"
 
 #endif // PDFMM_BASE_H

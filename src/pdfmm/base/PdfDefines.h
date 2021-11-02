@@ -27,6 +27,7 @@
 #include <string>
 #include <string_view>
 #include <vector>
+#include <typeinfo>
 
 // Include some compatibility wrappers
 #include <pdfmm/common/EnumFlags.h>
@@ -149,6 +150,14 @@ enum class PdfDataType : uint8_t
     Null,                  ///< The null datatype is always null
     Reference,             ///< The reference datatype contains references to PDF objects in the PDF file of the form 4 0 R. \see PdfObject
     RawData,               ///< Raw PDF data
+};
+
+enum class PdfXObjectType
+{
+    Unknown = 0,
+    Form,
+    Image,
+    PostScript,
 };
 
 /**

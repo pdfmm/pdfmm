@@ -14,7 +14,7 @@ using namespace mm;
 
 PdfCanvasInputDevice::PdfCanvasInputDevice(PdfCanvas& canvas)
 {
-    PdfObject& contents = canvas.GetOrCreateContents();
+    PdfObject& contents = canvas.GetOrCreateContentsObject();
     if (contents.IsArray())
     {
         PdfArray& contentsArr = contents.GetArray();
