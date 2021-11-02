@@ -312,9 +312,19 @@ PdfObject& PdfDictionary::MustFindKeyParent(const PdfName& key)
     return *obj;
 }
 
-size_t PdfDictionary::GetSize() const
+unsigned PdfDictionary::GetSize() const
 {
-    return m_Map.size();
+    return (unsigned)m_Map.size();
+}
+
+PdfDictionaryIterator PdfDictionary::GetIndirectIterator()
+{
+    return PdfDictionaryIterator(*this);
+}
+
+const PdfDictionaryIterator PdfDictionary::GetIndirectIterator() const
+{
+    return PdfDictionaryIterator(const_cast<PdfDictionary&>(*this));
 }
 
 const PdfObject& PdfDictionary::MustGetKey(const PdfName& key) const
@@ -326,7 +336,7 @@ const PdfObject& PdfDictionary::MustGetKey(const PdfName& key) const
     return *obj;
 }
 
-PdfObject& mm::PdfDictionary::MustGetKey(const PdfName& key)
+PdfObject& PdfDictionary::MustGetKey(const PdfName& key)
 {
     auto obj = getKey(key);
     if (obj == nullptr)
@@ -358,4 +368,29 @@ PdfDictionary::const_iterator PdfDictionary::end() const
 size_t PdfDictionary::size() const
 {
     return m_Map.size();
+}
+
+PdfDictionaryIterator::PdfDictionaryIterator(PdfDictionary& dict)
+    : m_dict(&dict)
+{
+}
+
+PdfDictionaryIterator::iterator PdfDictionaryIterator::begin()
+{
+    return iterator(m_dict->begin());
+}
+
+PdfDictionaryIterator::iterator PdfDictionaryIterator::end()
+{
+    return iterator(m_dict->end());
+}
+
+PdfDictionaryIterator::const_iterator PdfDictionaryIterator::begin() const
+{
+    return const_iterator(m_dict->begin());
+}
+
+PdfDictionaryIterator::const_iterator PdfDictionaryIterator::end() const
+{
+    return const_iterator(m_dict->end());
 }

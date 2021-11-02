@@ -11,6 +11,7 @@
 
 #include "PdfDefines.h"
 
+#include <pdfmm/common/refplaceholder.h>
 #include <map>
 
 #include "PdfDataContainer.h"
@@ -18,7 +19,57 @@
 
 namespace mm {
 
-class PdfOutputDevice;
+class PdfDictionary;
+
+class PdfDictionaryIterator
+{
+    friend class PdfDictionary;
+    typedef std::map<PdfName, PdfObject> Map;
+
+private:
+    PdfDictionaryIterator(PdfDictionary& dict);
+
+public:
+    template <typename TObject, typename TIterator>
+    class Iterator
+    {
+        friend class PdfDictionaryIterator;
+    public:
+        using difference_type = void;
+        using value_type = std::pair<PdfName, refplaceholder<TObject>>;
+        using pointer = value_type*;
+        using reference = value_type&;
+        using iterator_category = std::forward_iterator_tag;
+    private:
+        Iterator(const TIterator& iterator);
+    public:
+        Iterator(const Iterator&) = default;
+        Iterator& operator=(const Iterator&) = default;
+        bool operator==(const Iterator& rhs) const;
+        bool operator!=(const Iterator& rhs) const;
+        Iterator& operator++();
+        reference operator*();
+        pointer operator->();
+    private:
+        void resolve();
+    private:
+        TIterator m_iterator;
+        bool m_resolved;
+        value_type m_pair;
+    };
+
+    using iterator = Iterator<PdfObject, Map::iterator>;
+    using const_iterator = Iterator<const PdfObject, Map::const_iterator>;
+
+public:
+    iterator begin();
+    iterator end();
+    const_iterator begin() const;
+    const_iterator end() const;
+
+private:
+    PdfDictionary* m_dict;
+};
 
 /** The PDF dictionary data type of pdfmm (inherits from PdfDataContainer,
  *  the base class for such representations)
@@ -210,9 +261,13 @@ public:
     void Write(PdfOutputDevice& device, PdfWriteMode writeMode, const PdfEncrypt* encrypt) const override;
 
     /**
-    *  \returns the size of the internal map
-    */
-    size_t GetSize() const;
+     * \returns the size of the internal map
+     */
+    unsigned GetSize() const;
+
+    PdfDictionaryIterator GetIndirectIterator();
+
+    const PdfDictionaryIterator GetIndirectIterator() const;
 
 public:
     typedef std::map<PdfName, PdfObject> Map;
@@ -270,6 +325,67 @@ T PdfDictionary::FindKeyParentAs(const PdfName& key, const std::common_type_t<T>
         return defvalue;
 
     return  Object<T>::Get(*obj);
+}
+
+template<typename TObject, typename TIterator>
+PdfDictionaryIterator::Iterator<TObject, TIterator>::Iterator(const TIterator& iterator)
+    : m_iterator(iterator), m_resolved(false) { }
+
+template<typename TObject, typename TIterator>
+inline bool PdfDictionaryIterator::Iterator<TObject, TIterator>::operator==(const Iterator& rhs) const
+{
+    return m_iterator == rhs.m_iterator;
+}
+
+template<typename TObject, typename TIterator>
+bool PdfDictionaryIterator::Iterator<TObject, TIterator>::operator!=(const Iterator& rhs) const
+{
+    return m_iterator != rhs.m_iterator;
+}
+
+template<typename TObject, typename TIterator>
+PdfDictionaryIterator::Iterator<TObject, TIterator>& PdfDictionaryIterator::Iterator<TObject, TIterator>::operator++()
+{
+    m_iterator++;
+    m_resolved = false;
+    return *this;
+}
+
+template<typename TObject, typename TIterator>
+typename PdfDictionaryIterator::Iterator<TObject, TIterator>::reference PdfDictionaryIterator::Iterator<TObject, TIterator>::operator*()
+{
+    resolve();
+    return m_pair;
+}
+
+template<typename TObject, typename TIterator>
+typename PdfDictionaryIterator::Iterator<TObject, TIterator>::pointer PdfDictionaryIterator::Iterator<TObject, TIterator>::operator->()
+{
+    resolve();
+    return &m_pair;
+}
+
+template<typename TObject, typename TIterator>
+inline void PdfDictionaryIterator::Iterator<TObject, TIterator>::resolve()
+{
+    if (m_resolved)
+        return;
+
+    TObject& robj = m_iterator->second;
+    TObject* indirectobj;
+    PdfReference ref;
+    if (robj.TryGetReference(ref)
+        && ref.IsIndirect()
+        && (indirectobj = robj.GetDocument()->GetObjects().GetObject(ref)) != nullptr)
+    {
+        m_pair = value_type(m_iterator->first, *indirectobj);
+    }
+    else
+    {
+        m_pair = value_type(m_iterator->first, robj);
+    }
+
+    m_resolved = true;
 }
 
 }
