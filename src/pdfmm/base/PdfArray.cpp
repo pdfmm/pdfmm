@@ -86,14 +86,14 @@ void PdfArray::SetAtIndirect(const PdfObject& obj, unsigned idx)
     m_Objects.at(idx) = obj;
 }
 
-PdfArrayIterator PdfArray::GetIndirectIterator()
+PdfArrayIndirectIterator PdfArray::GetIndirectIterator()
 {
-    return PdfArrayIterator(*this);
+    return PdfArrayIndirectIterator(*this);
 }
 
-const PdfArrayIterator PdfArray::GetIndirectIterator() const
+const PdfArrayIndirectIterator PdfArray::GetIndirectIterator() const
 {
-    return PdfArrayIterator(const_cast<PdfArray&>(*this));
+    return PdfArrayIndirectIterator(const_cast<PdfArray&>(*this));
 }
 
 void PdfArray::Clear()
@@ -109,13 +109,9 @@ void PdfArray::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
     int count = 1;
 
     if ((writeMode & PdfWriteMode::Clean) == PdfWriteMode::Clean)
-    {
         device.Write("[ ");
-    }
     else
-    {
         device.Put('[');
-    }
 
     while (it != m_Objects.end())
     {
@@ -366,25 +362,25 @@ bool PdfArray::operator!=(const PdfArray& rhs) const
     return m_Objects != rhs.m_Objects;
 }
 
-PdfArrayIterator::PdfArrayIterator(PdfArray& arr)
+PdfArrayIndirectIterator::PdfArrayIndirectIterator(PdfArray& arr)
     : m_arr(&arr) { }
 
-PdfArrayIterator::iterator PdfArrayIterator::begin()
+PdfArrayIndirectIterator::iterator PdfArrayIndirectIterator::begin()
 {
     return iterator(m_arr->begin());
 }
 
-PdfArrayIterator::iterator PdfArrayIterator::end()
+PdfArrayIndirectIterator::iterator PdfArrayIndirectIterator::end()
 {
-    return iterator(m_arr->begin());
+    return iterator(m_arr->end());
 }
 
-PdfArrayIterator::const_iterator PdfArrayIterator::begin() const
+PdfArrayIndirectIterator::const_iterator PdfArrayIndirectIterator::begin() const
 {
     return const_iterator(m_arr->begin());
 }
 
-PdfArrayIterator::const_iterator PdfArrayIterator::end() const
+PdfArrayIndirectIterator::const_iterator PdfArrayIndirectIterator::end() const
 {
-    return const_iterator(m_arr->begin());
+    return const_iterator(m_arr->end());
 }
