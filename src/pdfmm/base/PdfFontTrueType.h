@@ -23,7 +23,7 @@ namespace mm {
  */
 class PdfFontTrueType final : public PdfFontSimple
 {
-    friend class PdfFontFactory;
+    friend class PdfFont;
 
 private:
 

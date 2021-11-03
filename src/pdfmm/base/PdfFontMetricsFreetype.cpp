@@ -18,7 +18,6 @@
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfVariant.h"
-#include "PdfFontFactory.h"
 
 #define PDFMM_FIRST_READABLE 31
 #define PDFMM_WIDTH_CACHE_SIZE 256

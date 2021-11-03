@@ -22,7 +22,6 @@
 #include "PdfInputDevice.h"
 #include "PdfOutputDevice.h"
 #include "PdfFont.h"
-#include "PdfFontFactory.h"
 #include "PdfFontMetricsFreetype.h"
 #include "PdfFontStandard14.h"
 #include "PdfFontType1.h"
@@ -98,16 +97,16 @@ PdfFont* PdfFontManager::GetFont(PdfObject& obj)
     }
 
     // Create a new font
-    PdfFont* font = PdfFontFactory::CreateFont(obj);
-    if (font == nullptr)
+    unique_ptr<PdfFont> font;
+    if (!PdfFont::TryCreateFromObject(obj, font))
         return nullptr;
 
-    m_fontMap.insert({ Element(font->GetMetrics().GetFontNameSafe(),
+    auto inserted = m_fontMap.insert({ Element(font->GetMetrics().GetFontNameSafe(),
         font->GetEncoding(),
         font->GetMetrics().IsBold(),
         font->GetMetrics().IsItalic(),
-        font->GetMetrics().IsSymbol()), font });
-    return font;
+        font->GetMetrics().IsSymbol()), font.release() });
+    return inserted.first->second;
 }
 
 PdfFont* PdfFontManager::GetFont(const string_view& fontName, const PdfFontCreationParams& params)
@@ -139,7 +138,7 @@ PdfFont* PdfFontManager::getFont(const string_view& fontName, const PdfFontCreat
         // For example, if we search for "Helvetica" and we set Bold=true, we want
         // to match "Helvetica-Bold"
         PdfFontInitParams initParams = { params.Bold, params.Italic, false, false };
-        auto font = PdfFontFactory::CreateStandard14Font(*m_doc, baseFont, params.Encoding, initParams);
+        auto font = PdfFont::CreateStandard14(*m_doc, baseFont, params.Encoding, initParams).release();
         if (font != nullptr)
         {
             m_fontMap.insert({ Element(fontName,
@@ -366,8 +365,7 @@ PdfFont* PdfFontManager::CreateFontObject(FontCacheMap& map, const string_view& 
     try
     {
         PdfFontInitParams params = { bold, italic, embed, subsetting };
-        font = PdfFontFactory::CreateFontObject(*m_doc, metrics, encoding, params);
-
+        font = PdfFont::Create(*m_doc, metrics, encoding, params).release();
         if (font != nullptr)
         {
             map.insert({ Element(fontName,

@@ -23,7 +23,7 @@ namespace mm {
  */
 class PdfFontType3 final : public PdfFontSimple
 {
-    friend class PdfFontFactory;
+    friend class PdfFont;
 private:
 
     /** Create a new Type3 font.

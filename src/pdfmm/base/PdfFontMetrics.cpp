@@ -17,7 +17,6 @@
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfVariant.h"
-#include "PdfFontFactory.h"
 
 using namespace std;
 using namespace mm;

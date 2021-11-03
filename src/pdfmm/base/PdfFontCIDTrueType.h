@@ -22,7 +22,7 @@ typedef std::map<unsigned, unsigned> CIDToGIDMap;
 // TODO: Move the common code to a PDfFontCID class and create a PdfFontCIDType1 class
 class PdfFontCIDTrueType final : public PdfFont
 {
-    friend class PdfFontFactory;
+    friend class PdfFont;
 
 private:
     /** Create a new CID font.

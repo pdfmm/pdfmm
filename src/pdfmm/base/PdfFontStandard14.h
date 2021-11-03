@@ -23,7 +23,8 @@ namespace mm {
  */
 class PdfFontStandard14 final : public PdfFont
 {
-    friend class PdfFontFactory;
+    friend class PdfFont;
+
 private:
     /** Create a new Type1 font object.
      *

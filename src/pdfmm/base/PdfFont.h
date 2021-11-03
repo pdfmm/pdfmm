@@ -29,6 +29,14 @@ class PdfCharCodeMap;
 
 typedef std::map<unsigned, PdfCID> UsedGIDsMap;
 
+struct PdfFontInitParams
+{
+    bool Bold = false;
+    bool Italic = false;
+    bool Embed = false;
+    bool Subsetting = false; // Subsetting implies embed
+};
+
 /** Before you can draw text on a PDF document, you have to create
  *  a font object first. You can reuse this font object as often
  *  as you want.
@@ -75,6 +83,43 @@ private:
 
 public:
     virtual ~PdfFont();
+
+public:
+    /** Create a new PdfFont object.
+     *
+     *  \param doc the parent of the created font.
+     *  \param metrics pointer to a font metrics object. The font in the PDF
+     *         file will match this fontmetrics object. The metrics object is
+     *         deleted along with the created font. In case of an error, it is deleted
+     *         here.
+     *  \param encoding the encoding of this font.
+     *  \param params params for font creation
+     *
+     *  \returns a new PdfFont object or nullptr
+     */
+    static std::unique_ptr<PdfFont> Create(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
+        const PdfEncoding& encoding, const PdfFontInitParams& params);
+
+    /**
+     * Creates a new standard 14 font object (of class PdfFontStandard14) if
+     * the font name (has to include variant) is one of the standard 14 fonts.
+     * The font name is to be given as specified (with an ASCII hyphen).
+     *
+     * \param doc the parent of the created font
+     * \param baseFont standard14 font type
+     * \param encoding an encoding compatible with the font
+     * \param params params for font creation
+     */
+    static std::unique_ptr<PdfFont> CreateStandard14(PdfDocument& doc, PdfStandard14FontType baseFont,
+        const PdfEncoding& encoding, const PdfFontInitParams& params);
+
+    /** Create a new PdfFont from an existing
+     *  font in a PDF file.
+     *
+     *  \param obj a PDF font object
+     *  \param font the created font object
+     */
+    static bool TryCreateFromObject(PdfObject& obj, std::unique_ptr<PdfFont>& font);
 
 public:
     /** Write a string to a PdfStream in a format so that it can
@@ -256,7 +301,7 @@ protected:
      * we retrieve the glyph index
      */
     virtual bool TryMapGIDToCID(unsigned gid, unsigned& cid) const;
-
+    
     /**
      * Get the raw width of a CID identifier
      */
@@ -302,6 +347,9 @@ private:
     double getStringWidth(const std::vector<PdfCID>& cids, const PdfTextState& state) const;
 
     double getCIDWidth(unsigned cid, const PdfTextState& state, bool ignoreCharSpacing) const;
+
+    static PdfFont* createFontForType(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
+        const PdfEncoding& encoding, PdfFontMetricsType type, bool subsetting);
 
 private:
     std::string m_BaseFont;

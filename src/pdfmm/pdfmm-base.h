@@ -76,7 +76,6 @@
 #include "base/PdfFileSpec.h"
 #include "base/PdfFontManager.h"
 #include "base/PdfFontCIDTrueType.h"
-#include "base/PdfFontFactory.h"
 #include "base/PdfFont.h"
 #include "base/PdfFontMetricsStandard14.h"
 #include "base/PdfFontMetricsFreetype.h"

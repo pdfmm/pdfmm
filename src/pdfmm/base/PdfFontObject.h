@@ -14,7 +14,7 @@ namespace mm {
 
 class PDFMM_API PdfFontObject final : public PdfFont
 {
-    friend class PdfFontFactory;
+    friend class PdfFont;
 
 private:
     /** Create a PdfFontObject based on an existing PdfObject

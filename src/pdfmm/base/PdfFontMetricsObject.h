@@ -27,7 +27,7 @@ class PdfVariant;
 
 class PDFMM_API PdfFontMetricsObject final : public PdfFontMetrics
 {
-    friend class PdfFontFactory;
+    friend class PdfFont;
 
 private:
     /** Create a font metrics object based on an existing PdfObject

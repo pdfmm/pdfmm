@@ -7,12 +7,12 @@
  */
 
 #include <pdfmm/private/PdfDefinesPrivate.h>
-#include "PdfFontFactory.h"
 
 #include "PdfDocument.h"
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfEncodingFactory.h"
+#include "PdfFont.h"
 #include "PdfFontObject.h"
 #include "PdfFontCIDTrueType.h"
 #include "PdfFontMetrics.h"
@@ -26,7 +26,7 @@
 using namespace std;
 using namespace mm;
 
-PdfFont* PdfFontFactory::CreateFontObject(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
+unique_ptr<PdfFont> PdfFont::Create(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
     const PdfEncoding& encoding, const PdfFontInitParams& params)
 {
     PdfFontMetricsType type = metrics->GetType();
@@ -34,10 +34,10 @@ PdfFont* PdfFontFactory::CreateFontObject(PdfDocument& doc, const PdfFontMetrics
     if (font != nullptr)
         font->InitImported(params.Embed, params.Subsetting);
 
-    return font;
+    return unique_ptr<PdfFont>(font);
 }
 
-PdfFont* PdfFontFactory::createFontForType(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
+PdfFont* PdfFont::createFontForType(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
     const PdfEncoding& encoding, PdfFontMetricsType type, bool subsetting)
 {
     PdfFont* font = nullptr;
@@ -84,7 +84,7 @@ PdfFont* PdfFontFactory::createFontForType(PdfDocument& doc, const PdfFontMetric
     return font;
 }
 
-PdfFont* PdfFontFactory::CreateFont(PdfObject& obj)
+bool PdfFont::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfFont>& font)
 {
     auto& dict = obj.GetDictionary();
     PdfObject* objTypeKey = dict.FindKey(PdfName::KeyType);
@@ -105,12 +105,12 @@ PdfFont* PdfFontFactory::CreateFont(PdfObject& obj)
 
         // The PDF reference states that DescendantFonts must be an array,
         // some applications (e.g. MS Word) put the array into an indirect object though.
-        PdfObject* pDescendantObj = dict.FindKey("DescendantFonts");
+        PdfObject* descendantObj = dict.FindKey("DescendantFonts");
 
-        if (pDescendantObj == nullptr)
+        if (descendantObj == nullptr)
             PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Type0 Font: No DescendantFonts");
 
-        PdfArray& descendants = pDescendantObj->GetArray();
+        PdfArray& descendants = descendantObj->GetArray();
         PdfObject* objFont = nullptr;
         PdfObject* objDescriptor = nullptr;
         if (descendants.size() != 0)
@@ -125,7 +125,8 @@ PdfFont* PdfFontFactory::CreateFont(PdfObject& obj)
             if (!encoding.IsNull())
             {
                 auto metrics = shared_ptr<PdfFontMetricsObject>(new PdfFontMetricsObject(*objFont, objDescriptor));
-                return new PdfFontObject(obj, metrics, encoding);
+                font.reset(new PdfFontObject(obj, metrics, encoding));
+                return true;
             }
         }
     }
@@ -183,7 +184,8 @@ PdfFont* PdfFontFactory::CreateFont(PdfObject& obj)
                     encoding = PdfEncodingFactory::CreateStandardEncoding();
                 }
 
-                return new PdfFontStandard14(obj, baseFontType, metrics, encoding);
+                font.reset(new PdfFontStandard14(obj, baseFontType, metrics, encoding));
+                return true;
             }
         }
 
@@ -191,7 +193,8 @@ PdfFont* PdfFontFactory::CreateFont(PdfObject& obj)
         if (!encoding.IsNull())
         {
             auto metrics = shared_ptr<PdfFontMetricsObject>(new PdfFontMetricsObject(obj, objDescriptor));
-            return new PdfFontObject(obj, metrics, encoding);
+            font.reset(new PdfFontObject(obj, metrics, encoding));
+            return true;
         }
     }
     else if (subType == "Type3")
@@ -201,7 +204,8 @@ PdfFont* PdfFontFactory::CreateFont(PdfObject& obj)
         if (!encoding.IsNull())
         {
             auto metrics = shared_ptr<PdfFontMetricsObject>(new PdfFontMetricsObject(obj, objDescriptor));
-            return new PdfFontObject(obj, metrics, encoding);
+            font.reset(new PdfFontObject(obj, metrics, encoding));
+            return true;
         }
     }
     else if (subType == "TrueType")
@@ -211,19 +215,21 @@ PdfFont* PdfFontFactory::CreateFont(PdfObject& obj)
         if (!encoding.IsNull())
         {
             auto metrics = shared_ptr<PdfFontMetricsObject>(new PdfFontMetricsObject(obj, objDescriptor));
-            return new PdfFontObject(obj, metrics, encoding);
+            font.reset(new PdfFontObject(obj, metrics, encoding));
+            return true;
         }
     }
-
-    return nullptr;
+    
+    font.reset();
+    return false;
 }
 
-PdfFont* PdfFontFactory::CreateStandard14Font(PdfDocument& doc, PdfStandard14FontType baseFont,
+unique_ptr<PdfFont> PdfFont::CreateStandard14(PdfDocument& doc, PdfStandard14FontType baseFont,
     const PdfEncoding& encoding, const PdfFontInitParams& params)
 {
     PdfFont* font = new PdfFontStandard14(doc, baseFont, encoding);
     if (font != nullptr)
         font->InitImported(params.Embed, params.Subsetting);
 
-    return font;
+    return unique_ptr<PdfFont>(font);
 }
