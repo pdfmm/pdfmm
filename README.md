@@ -1,4 +1,4 @@
-# pdfmm
+# pdfmm [![build](https://github.com/pdfmm/pdfmm/actions/workflows/build.yml/badge.svg)](https://github.com/pdfmm/pdfmm/actions/workflows/build.yml)
 
 1.  [What is pdfmm?](#what_is_pdfmm)
 2.  [Requirements](#requirements)
@@ -34,6 +34,7 @@ CMake 3.16 and the following libraries:
 * zlib
 * libjpeg (optional)
 * libtiff (optional)
+* libpng (optional)
 * libidn (optional)
 
 pdfmm is currently tested with the following compilers:
