@@ -53,6 +53,7 @@ public:
     inline PdfXObjectType GetType() const { return m_Type; }
 
 private:
+    static bool tryGetXObjectType(const std::type_info& type, PdfXObjectType& xobjType);
     void initIdentifiers(const std::string_view& prefix);
     static PdfXObjectType getPdfXObjectType(const PdfObject& obj);
 
@@ -65,25 +66,11 @@ template<typename XObjectT>
 inline bool PdfXObject::TryCreateFromObject(PdfObject& obj, std::unique_ptr<XObjectT>& xobj)
 {
     PdfXObjectType xobjtype;
-    auto type = &typeid(XObjectT);
-    if (type == &typeid(PdfXObjectForm))
-    {
-        xobjtype = PdfXObjectType::Form;
-    }
-    else if (type == &typeid(PdfImage))
-    {
-        xobjtype = PdfXObjectType::Image;
-    }
-    else if (type == &typeid(PdfXObjectPostScript))
-    {
-        xobjtype = PdfXObjectType::PostScript;
-    }
-    else
+    if (!tryGetXObjectType(typeid(XObjectT), xobjtype))
     {
         xobj.reset();
         return false;
     }
-
 
     std::unique_ptr<PdfXObject> xobj_;
     if (!TryCreateFromObject(obj, xobj_)

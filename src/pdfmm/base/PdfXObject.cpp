@@ -111,6 +111,30 @@ PdfXObjectType PdfXObject::FromString(const string& str)
         return PdfXObjectType::Unknown;
 }
 
+bool PdfXObject::tryGetXObjectType(const type_info& type, PdfXObjectType& xobjType)
+{
+    if (type == typeid(PdfXObjectForm))
+    {
+        xobjType = PdfXObjectType::Form;
+        return true;
+    }
+    else if (type == typeid(PdfImage))
+    {
+        xobjType = PdfXObjectType::Image;
+        return true;
+    }
+    else if (type == typeid(PdfXObjectPostScript))
+    {
+        xobjType = PdfXObjectType::PostScript;
+        return true;
+    }
+    else
+    {
+        xobjType = PdfXObjectType::Unknown;
+        return false;
+    }
+}
+
 void PdfXObject::initIdentifiers(const string_view& prefix)
 {
     ostringstream out;
