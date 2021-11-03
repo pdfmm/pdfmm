@@ -13,7 +13,7 @@
 #include <iostream>
 #include <sstream>
 
-#include <freetype/freetype.h>
+#include <pdfmm/private/FreetypePrivate.h>
 
 #include "PdfDocument.h"
 #include "PdfIndirectObjectList.h"

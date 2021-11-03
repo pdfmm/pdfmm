@@ -16,7 +16,7 @@
 #include <algorithm>
 
 #include <utfcpp/utf8.h>
-#include <freetype/freetype.h>
+#include <pdfmm/private/FreetypePrivate.h>
 
 #include "PdfDictionary.h"
 #include "PdfInputDevice.h"

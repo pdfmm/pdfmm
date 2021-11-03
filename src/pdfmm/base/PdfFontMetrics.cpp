@@ -9,11 +9,6 @@
 #include <pdfmm/private/PdfDefinesPrivate.h>
 #include "PdfFontMetrics.h"
 
-#include <sstream>
-
-#include <freetype/freetype.h>
-#include <freetype/tttables.h>
-
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfVariant.h"

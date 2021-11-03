@@ -12,8 +12,8 @@
 #include <iostream>
 #include <sstream>
 
-#include <freetype/freetype.h>
-#include <freetype/tttables.h>
+#include <pdfmm/private/FreetypePrivate.h>
+#include FT_TRUETYPE_TABLES_H
 
 #include "PdfArray.h"
 #include "PdfDictionary.h"

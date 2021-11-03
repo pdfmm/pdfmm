@@ -12,9 +12,9 @@
 #include <pdfmm/private/PdfDefinesPrivate.h>
 #include "PdfFontTrueTypeSubset.h"
 
-#include <freetype/freetype.h>
-#include <freetype/tttables.h>
-#include <freetype/tttags.h>
+#include <pdfmm/private/FreetypePrivate.h>
+#include FT_TRUETYPE_TABLES_H
+#include FT_TRUETYPE_TAGS_H
 
 #include <iostream>
 #include <algorithm>
