@@ -1,4 +1,4 @@
-# pdfmm [![build](https://github.com/pdfmm/pdfmm/actions/workflows/build.yml/badge.svg)](https://github.com/pdfmm/pdfmm/actions/workflows/build.yml)
+# pdfmm [![build-linux](https://github.com/pdfmm/pdfmm/actions/workflows/build-linux.yml/badge.svg)](https://github.com/pdfmm/pdfmm/actions/workflows/build-linux.yml) [![build-mac](https://github.com/pdfmm/pdfmm/actions/workflows/build-mac.yml/badge.svg)](https://github.com/pdfmm/pdfmm/actions/workflows/build-mac.yml)
 
 1.  [What is pdfmm?](#what_is_pdfmm)
 2.  [Requirements](#requirements)
