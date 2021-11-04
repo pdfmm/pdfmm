@@ -17,7 +17,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Install deps
-      run: sudo brew install fontconfig freetype openssl@1.1 libxml2 jpeg libpng libtiff
+      run: brew install fontconfig freetype openssl@1.1 libxml2 jpeg libpng libtiff
 
     - name: Configure CMake
       run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
