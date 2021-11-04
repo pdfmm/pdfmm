@@ -1,4 +1,4 @@
-name: build
+name: build-mac
 
 on:
   push:
@@ -11,13 +11,13 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: macos-11
 
     steps:
     - uses: actions/checkout@v2
 
     - name: Install deps
-      run: sudo apt-get install -y libfontconfig1-dev libfreetype-dev libssl-dev libjpeg-dev libpng-dev libxml2-dev libtiff-dev
+      run: sudo brew install fontconfig freetype openssl@1.1 libxml2 jpeg libpng libtiff
 
     - name: Configure CMake
       run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
