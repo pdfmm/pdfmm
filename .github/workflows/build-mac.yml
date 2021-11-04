@@ -24,9 +24,8 @@ jobs:
 
     - name: Configure CMake
       # NOTE: OpenSSL prefix must be explicitly set
-      run: |
-        export OPENSSL_ROOT_DIR=`brew --prefix openssl`
-        cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_PREFIX_PATH=/usr/local
+      run:
+        OPENSSL_ROOT_DIR=`brew --prefix openssl` cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_PREFIX_PATH=`brew --prefix`
 
     - name: Build
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
