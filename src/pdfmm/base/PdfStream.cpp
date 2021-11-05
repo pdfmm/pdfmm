@@ -48,6 +48,14 @@ void PdfStream::GetFilteredCopy(PdfOutputStream& stream) const
     }
 }
 
+string PdfStream::GetFilteredCopy() const
+{
+    string ret;
+    PdfStringOutputStream stream(ret);
+    GetFilteredCopy(stream);
+    return ret;
+}
+
 void PdfStream::GetFilteredCopy(unique_ptr<char[]>& buffer, size_t& len) const
 {
     PdfFilterList filters = PdfFilterFactory::CreateFilterList(*m_Parent);
