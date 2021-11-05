@@ -53,6 +53,7 @@ class PDFMM_API PdfFont : public PdfDictionaryElement
     friend class PdfFontObject;
     friend class PdfFontStandard14;
     friend class PdfEncoding;
+    friend class PdfFontManager;
 
 protected:
     /** Create a new PdfFont object which will introduce itself
@@ -64,7 +65,7 @@ protected:
      *         deleted along with the font.
      *  \param encoding the encoding of this font
      */
-    PdfFont(PdfDocument &doc, const PdfFontMetricsConstPtr& metrics,
+    PdfFont(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
         const PdfEncoding& encoding);
 
 private:
@@ -155,7 +156,7 @@ public:
     /**
      * \remarks Produces a partial result also in case of failures
      */
-    bool TryGetStringWidth(const std::string_view& view, const PdfTextState& state, double &width) const;
+    bool TryGetStringWidth(const std::string_view& view, const PdfTextState& state, double& width) const;
 
     /** Retrieve the width of a given encoded PdfString in PDF units when
      *  drawn with the current font
@@ -228,13 +229,6 @@ public:
      *  \see GetDescent
      */
     double GetDescent(const PdfTextState& state) const;
-
-    /** Embeds pending subset-font into PDF page
-     *  Only call if IsSubsetting() returns true. Might throw an exception otherwise.
-     *
-     *  \see IsSubsetting
-     */
-    void EmbedFontSubset();
 
     virtual bool SupportsSubsetting() const;
 
@@ -316,7 +310,7 @@ protected:
 
     /** Fill the /FontDescriptor object dictionary
      */
-    void FillDescriptor(PdfDictionary& dict);
+    void FillDescriptor(PdfDictionary& dict) const;
 
     /** Inititialization tasks for imported/created from scratch fonts
      */
@@ -327,6 +321,14 @@ protected:
     virtual void embedFontSubset();
 
 private:
+
+    /** Embeds pending subset-font into PDF page
+     *  Only call if IsSubsetting() returns true. Might throw an exception otherwise.
+     *
+     *  \see IsSubsetting
+     */
+    void EmbedFontSubset();
+
     /** Add glyph to used in case of subsetting
      *  It either maps them using the font encoding or generate a new code
      *

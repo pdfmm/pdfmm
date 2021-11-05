@@ -74,6 +74,18 @@ PdfFontMetricsType PdfFontMetrics::GetFontMetricsTypeFromFilename(const string_v
     return fontType;
 }
 
+const PdfObject* PdfFontMetrics::GetFontDataObject() const
+{
+    // Return nullptr by default
+    return nullptr;
+}
+
+string_view PdfFontMetrics::GetFontData() const
+{
+    // Return nothing by default
+    return { };
+}
+
 string PdfFontMetrics::GetFontNameSafe() const
 {
     string fontName = GetFontName();

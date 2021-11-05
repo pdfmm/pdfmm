@@ -206,20 +206,20 @@ private:
     /**
      * Get the path to a font file for a certain fontname
      */
-    std::string GetFontPath(const std::string_view& fontName, bool bold, bool italic);
+    std::string getFontPath(const std::string_view& fontName, bool bold, bool italic);
 
     /** Create a font and put it into the fontcache
      */
-    PdfFont* CreateFontObject(FontCacheMap& map, const std::string_view& fontName,
+    PdfFont* createFontObject(FontCacheMap& map, const std::string_view& fontName,
         const PdfFontMetricsConstPtr& metrics, const PdfEncoding& encoding,
         bool bold, bool italic, bool embed, bool subsetting);
 
 #if defined(_WIN32) && !defined(PDFMM_HAVE_FONTCONFIG)
-    PdfFont* GetWin32Font(FontCacheMap& map, const std::string_view& fontName,
+    PdfFont* getWin32Font(FontCacheMap& map, const std::string_view& fontName,
         const PdfEncoding& encoding, bool bold, bool italic, bool symbolCharset,
         bool embed, bool subsetting);
 
-    PdfFont* GetWin32Font(FontCacheMap& map, const std::string_view& fontName,
+    PdfFont* getWin32Font(FontCacheMap& map, const std::string_view& fontName,
         const LOGFONTW& logFont, const PdfEncoding& encoding,
         bool embed, bool subsetting);
 #endif

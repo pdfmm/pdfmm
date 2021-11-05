@@ -64,13 +64,13 @@ public:
 
     std::string GetFontName() const override;
 
+    const PdfObject* GetFontDataObject() const override;
+
     unsigned GetWeight() const override;
 
     double GetItalicAngle() const override;
 
     bool IsSymbol() const override;
-
-    std::string_view GetFontData() const override;
 
     bool IsBold() const override;
 
@@ -91,6 +91,7 @@ private:
     double m_Ascent;
     double m_Descent;
     double m_LineSpacing;
+    const PdfObject* m_FontDataObject;
 
     double m_UnderlineThickness;
     double m_UnderlinePosition;

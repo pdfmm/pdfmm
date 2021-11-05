@@ -149,12 +149,12 @@ PdfFont* PdfFontManager::getFont(const string_view& baseFontName, const PdfFontC
     bool subsetting = (params.Flags & PdfFontCreationFlags::DoSubsetting) != PdfFontCreationFlags::None;
     string path = params.FilePath;
     if (path.empty())
-        path = this->GetFontPath(baseFontName, params.Bold, params.Italic);
+        path = this->getFontPath(baseFontName, params.Bold, params.Italic);
 
     if (path.empty())
     {
 #if defined(_WIN32) && !defined(PDFMM_HAVE_FONTCONFIG)
-        return GetWin32Font(m_fontMap, fontName, params.Encoding, params.Bold, params.Italic,
+        return getWin32Font(m_fontMap, fontName, params.Encoding, params.Bold, params.Italic,
             params.IsSymbolCharset, params.Embed, subsetting);
 #else
         return nullptr;
@@ -164,7 +164,7 @@ PdfFont* PdfFontManager::getFont(const string_view& baseFontName, const PdfFontC
     {
         auto metrics = std::make_shared<PdfFontMetricsFreetype>(m_ftLibrary, path,
             params.IsSymbolCharset);
-        return this->CreateFontObject(m_fontMap, baseFontName, metrics, params.Encoding,
+        return this->createFontObject(m_fontMap, baseFontName, metrics, params.Encoding,
             params.Bold, params.Italic, params.Embed, subsetting);
     }
 }
@@ -200,12 +200,12 @@ PdfFont* PdfFontManager::getFontSubset(const std::string_view& baseFontName, con
     {
         string path = params.FilePath;
         if (path.empty())
-            path = this->GetFontPath(baseFontName, params.Bold, params.Italic);
+            path = this->getFontPath(baseFontName, params.Bold, params.Italic);
 
         if (path.empty())
         {
 #if defined(_WIN32) && !defined(PDFMM_HAVE_FONTCONFIG)
-            return GetWin32Font(m_fontSubsetMap, fontName,
+            return getWin32Font(m_fontSubsetMap, fontName,
                 params.Encoding, params.Bold, params.Italic,
                 params.IsSymbolCharset, true, true);
 #else
@@ -216,7 +216,7 @@ PdfFont* PdfFontManager::getFontSubset(const std::string_view& baseFontName, con
 
         auto metrics = (PdfFontMetricsConstPtr)PdfFontMetricsFreetype::CreateForSubsetting(m_ftLibrary, path,
             params.IsSymbolCharset);
-        return CreateFontObject(m_fontSubsetMap, baseFontName, metrics, params.Encoding,
+        return createFontObject(m_fontSubsetMap, baseFontName, metrics, params.Encoding,
             params.Bold, params.Italic, true, true);
     }
     else
@@ -250,7 +250,7 @@ PdfFont* PdfFontManager::GetFont(FT_Face face, const PdfEncoding& encoding,
     if (found == m_fontMap.end())
     {
         auto metrics = std::make_shared<PdfFontMetricsFreetype>(m_ftLibrary, face, isSymbolCharset);
-        return this->CreateFontObject(m_fontMap, name, metrics, encoding,
+        return this->createFontObject(m_fontMap, name, metrics, encoding,
             bold, italic, embed, false);
     }
     else
@@ -284,12 +284,12 @@ PdfFont* PdfFontManager::GetFont(const LOGFONTW& logFont,
         logFont.lfCharSet == SYMBOL_CHARSET));
 
     if (found == m_fontMap.end())
-        return GetWin32Font(m_fontMap, fontname, logFont, encoding, embed, false);
+        return getWin32Font(m_fontMap, fontname, logFont, encoding, embed, false);
     else
         return found->second;
 }
 
-PdfFont* PdfFontManager::GetWin32Font(FontCacheMap& map, const string_view& fontName,
+PdfFont* PdfFontManager::getWin32Font(FontCacheMap& map, const string_view& fontName,
     const PdfEncoding& encoding, bool bold, bool italic,
     bool symbolCharset, bool embed, bool subsetting)
 {
@@ -322,10 +322,10 @@ PdfFont* PdfFontManager::GetWin32Font(FontCacheMap& map, const string_view& font
 
     memset(lf.lfFaceName, 0, LF_FACESIZE * sizeof(char16_t));
     memcpy(lf.lfFaceName, fontnamew.c_str(), fontnamew.length() * sizeof(char16_t));
-    return GetWin32Font(map, fontName, lf, encoding, embed, subsetting);
+    return getWin32Font(map, fontName, lf, encoding, embed, subsetting);
 }
 
-PdfFont* PdfFontManager::GetWin32Font(FontCacheMap& map, const string_view& fontName,
+PdfFont* PdfFontManager::getWin32Font(FontCacheMap& map, const string_view& fontName,
     const LOGFONTW& logFont, const PdfEncoding& encoding, bool embed, bool subsetting)
 {
     chars buffer;
@@ -341,7 +341,7 @@ PdfFont* PdfFontManager::GetWin32Font(FontCacheMap& map, const string_view& font
 
 #endif // defined(_WIN32) && !defined(PDFMM_HAVE_FONTCONFIG)
 
-string PdfFontManager::GetFontPath(const string_view& fontName, bool bold, bool italic)
+string PdfFontManager::getFontPath(const string_view& fontName, bool bold, bool italic)
 {
 #if defined(PDFMM_HAVE_FONTCONFIG)
     return m_fontConfig->GetFontConfigFontPath(fontName, bold, italic);
@@ -353,7 +353,7 @@ string PdfFontManager::GetFontPath(const string_view& fontName, bool bold, bool 
 #endif
 }
 
-PdfFont* PdfFontManager::CreateFontObject(FontCacheMap& map, const string_view& fontName,
+PdfFont* PdfFontManager::createFontObject(FontCacheMap& map, const string_view& fontName,
     const PdfFontMetricsConstPtr& metrics, const PdfEncoding& encoding,
     bool bold, bool italic, bool embed, bool subsetting)
 {

@@ -310,7 +310,7 @@ void PdfFont::GetBoundingBox(PdfArray& arr) const
 
 }
 
-void PdfFont::FillDescriptor(PdfDictionary& dict)
+void PdfFont::FillDescriptor(PdfDictionary& dict) const
 {
     // Setting the FontDescriptor paras:
     PdfArray bbox;

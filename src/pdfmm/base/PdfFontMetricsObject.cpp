@@ -19,7 +19,7 @@ using namespace mm;
 using namespace std;
 
 PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObject* descriptor) :
-    PdfFontMetrics(PdfFontMetricsType::Unknown, { }), m_DefaultWidth(0)
+    PdfFontMetrics(PdfFontMetricsType::Unknown, { }), m_DefaultWidth(0), m_FontDataObject(nullptr)
 {
     const PdfName& subType = font.GetDictionary().MustFindKey(PdfName::KeySubtype).GetName();
 
@@ -43,6 +43,11 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
                 m_FontName = descriptor->GetDictionary().MustFindKey("FontName").GetName().GetString();
             if (descriptor->GetDictionary().HasKey("FontBBox"))
                 m_BBox = GetBBox(descriptor->GetDictionary().MustFindKey("FontBBox"));
+
+            if (subType == "Type1")
+                m_FontDataObject = descriptor->GetDictionary().FindKey("FontFile");
+            else if (subType == "TrueType")
+                m_FontDataObject = descriptor->GetDictionary().FindKey("FontFile2");
         }
 
         // Type3 fonts have a custom /FontMatrix
@@ -89,6 +94,13 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
         if (obj != nullptr)
             m_BBox = GetBBox(*obj);
 
+        if (subType == "CIDFontType0")
+            m_FontDataObject = descriptor->GetDictionary().FindKey("FontFile");
+        else if (subType == "CIDFontType2")
+            m_FontDataObject = descriptor->GetDictionary().FindKey("FontFile2");
+
+        if (m_FontDataObject == nullptr)
+            m_FontDataObject = descriptor->GetDictionary().FindKey("FontFile3");
 
         m_DefaultWidth = font.GetDictionary().FindKeyAs<double>("DW", 1000) * m_matrix[0];
         auto widths = font.GetDictionary().FindKey("W");
@@ -260,11 +272,6 @@ bool PdfFontMetricsObject::IsSymbol() const
     return m_IsSymbol;
 }
 
-string_view PdfFontMetricsObject::GetFontData() const
-{
-    return { };
-}
-
 bool PdfFontMetricsObject::IsBold() const
 {
     return m_IsBold;
@@ -273,6 +280,11 @@ bool PdfFontMetricsObject::IsBold() const
 bool PdfFontMetricsObject::IsItalic() const
 {
     return m_IsItalic;
+}
+
+const PdfObject* PdfFontMetricsObject::GetFontDataObject() const
+{
+    return m_FontDataObject;
 }
 
 vector<double> PdfFontMetricsObject::GetBBox(const PdfObject& obj)

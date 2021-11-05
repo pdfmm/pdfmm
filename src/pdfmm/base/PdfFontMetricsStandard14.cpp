@@ -149,6 +149,9 @@ void PdfFontMetricsStandard14::GetBoundingBox(std::vector<double>& bbox) const
 
 string_view PdfFontMetricsStandard14::GetFontData() const
 {
+    // TODO: We should return standard14 font data taken from PDFium
+    // https://github.com/mozilla/pdf.js/tree/master/external/standard_fonts
+    // https://opensource.google/projects/pdfium
     return { };
 }
 

@@ -122,10 +122,19 @@ public:
      */
     inline const std::string& GetFilename() const { return m_Filename; }
 
-    /** Get a pointer to the actual font data - if it was loaded from memory.
-     *  \returns a binary buffer of data containing the font data
+    /** Get the actual font data for a file loaded font, if available
+     *
+     * For font data coming from the /FontFile keys, use GetFontDataObject()
+     * \returns a binary buffer of data containing the font data
      */
-    virtual std::string_view GetFontData() const = 0;
+    virtual std::string_view GetFontData() const;
+
+    /** Get the actual font data object from a /FontFile like key, if available
+     *
+     * For font data coming from a file loaded font, see GetFontData()
+     * \returns a binary buffer of data containing the font data
+     */
+    virtual const PdfObject* GetFontDataObject() const;
 
     /** Get a string with either the actual /FontName or a base font name
      * inferred from a font file
