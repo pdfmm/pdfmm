@@ -16,9 +16,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Brew prefix OpenSSL
-      run: brew --prefix openssl@1.1
-
     - name: Install deps
       run: brew install fontconfig freetype openssl@1.1 libxml2 jpeg libpng libtiff
 

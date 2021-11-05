@@ -37,8 +37,6 @@ static void getFontDataTTC(chars& buffer, const chars& fileBuffer, const chars& 
 
 #endif // _WIN32
 
-string extractBaseName(const string_view& fontName, bool& isBold, bool& isItalic);
-
 PdfFontManager::PdfFontManager(PdfDocument& doc)
     : m_doc(&doc)
 {
@@ -115,14 +113,15 @@ PdfFont* PdfFontManager::GetFont(const string_view& fontName, const PdfFontCreat
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Invalid encoding");
 
     PdfFontCreationParams newParams = params;
-    string baseFontName = extractBaseName(fontName, newParams.Bold, newParams.Italic);
+    string baseFontName = PdfFont::ExtractBaseName(fontName, newParams.Bold, newParams.Italic);
     return getFont(baseFontName, newParams);
 }
 
-PdfFont* PdfFontManager::getFont(const string_view& fontName, const PdfFontCreationParams& params)
+// baseFontName is already normalized and cleaned from known suffixes
+PdfFont* PdfFontManager::getFont(const string_view& baseFontName, const PdfFontCreationParams& params)
 {
     auto found = m_fontMap.find(Element(
-        fontName,
+        baseFontName,
         params.Encoding,
         params.Bold,
         params.Italic,
@@ -130,18 +129,15 @@ PdfFont* PdfFontManager::getFont(const string_view& fontName, const PdfFontCreat
     if (found != m_fontMap.end())
         return found->second;
 
-    PdfStandard14FontType baseFont;
+    PdfStandard14FontType stdFont;
     if ((params.Flags & PdfFontCreationFlags::AutoSelectStandard14) == PdfFontCreationFlags::AutoSelectStandard14
-        && PdfFontStandard14::IsStandard14Font(fontName, baseFont))
+        && PdfFontStandard14::TryGetStandard14Font(baseFontName, params.Bold, params.Italic, stdFont))
     {
-        // TODO: Better handle params.Bold, params.Italic, params.IsSymbolCharset
-        // For example, if we search for "Helvetica" and we set Bold=true, we want
-        // to match "Helvetica-Bold"
         PdfFontInitParams initParams = { params.Bold, params.Italic, false, false };
-        auto font = PdfFont::CreateStandard14(*m_doc, baseFont, params.Encoding, initParams).release();
+        auto font = PdfFont::CreateStandard14(*m_doc, stdFont, params.Encoding, initParams).release();
         if (font != nullptr)
         {
-            m_fontMap.insert({ Element(fontName,
+            m_fontMap.insert({ Element(baseFontName,
                 params.Encoding,
                 font->GetMetrics().IsBold(),
                 font->GetMetrics().IsItalic(),
@@ -153,7 +149,7 @@ PdfFont* PdfFontManager::getFont(const string_view& fontName, const PdfFontCreat
     bool subsetting = (params.Flags & PdfFontCreationFlags::DoSubsetting) != PdfFontCreationFlags::None;
     string path = params.FilePath;
     if (path.empty())
-        path = this->GetFontPath(fontName, params.Bold, params.Italic);
+        path = this->GetFontPath(baseFontName, params.Bold, params.Italic);
 
     if (path.empty())
     {
@@ -168,7 +164,7 @@ PdfFont* PdfFontManager::getFont(const string_view& fontName, const PdfFontCreat
     {
         auto metrics = std::make_shared<PdfFontMetricsFreetype>(m_ftLibrary, path,
             params.IsSymbolCharset);
-        return this->CreateFontObject(m_fontMap, fontName, metrics, params.Encoding,
+        return this->CreateFontObject(m_fontMap, baseFontName, metrics, params.Encoding,
             params.Bold, params.Italic, params.Embed, subsetting);
     }
 }
@@ -187,14 +183,15 @@ PdfFont* PdfFontManager::GetFontSubset(const string_view& fontName, const PdfFon
     // WARNING: The characters are completely ignored right now!
 
     PdfFontCreationParams newParams = params;
-    string baseFontName = extractBaseName(fontName, newParams.Bold, newParams.Italic);
+    string baseFontName = PdfFont::ExtractBaseName(fontName, newParams.Bold, newParams.Italic);
     return getFontSubset(baseFontName, newParams);
 }
 
-PdfFont* PdfFontManager::getFontSubset(const std::string_view& fontName, const PdfFontCreationParams& params)
+// baseFontName is already normalized and cleaned from known suffixes
+PdfFont* PdfFontManager::getFontSubset(const std::string_view& baseFontName, const PdfFontCreationParams& params)
 {
     auto found = m_fontSubsetMap.find(Element(
-        fontName,
+        baseFontName,
         params.Encoding,
         params.Bold,
         params.Italic,
@@ -203,7 +200,7 @@ PdfFont* PdfFontManager::getFontSubset(const std::string_view& fontName, const P
     {
         string path = params.FilePath;
         if (path.empty())
-            path = this->GetFontPath(fontName, params.Bold, params.Italic);
+            path = this->GetFontPath(baseFontName, params.Bold, params.Italic);
 
         if (path.empty())
         {
@@ -212,14 +209,14 @@ PdfFont* PdfFontManager::getFontSubset(const std::string_view& fontName, const P
                 params.Encoding, params.Bold, params.Italic,
                 params.IsSymbolCharset, true, true);
 #else
-            PdfError::LogMessage(LogSeverity::Error, "No path was found for the specified fontname: {}", fontName);
+            PdfError::LogMessage(LogSeverity::Error, "No path was found for the specified fontname: {}", baseFontName);
             return nullptr;
 #endif
         }
 
         auto metrics = (PdfFontMetricsConstPtr)PdfFontMetricsFreetype::CreateForSubsetting(m_ftLibrary, path,
             params.IsSymbolCharset);
-        return CreateFontObject(m_fontSubsetMap, fontName, metrics, params.Encoding,
+        return CreateFontObject(m_fontSubsetMap, baseFontName, metrics, params.Encoding,
             params.Bold, params.Italic, true, true);
     }
     else
@@ -438,34 +435,6 @@ bool PdfFontManager::EqualElement::operator()(const Element& lhs, const Element&
     return lhs.EncodingId == rhs.EncodingId && lhs.Bold == rhs.Bold
         && lhs.Italic == rhs.Italic && lhs.FontName == rhs.FontName
         && lhs.IsSymbolCharset == rhs.IsSymbolCharset;
-}
-
-string extractBaseName(const string_view& fontName, bool& isBold, bool& isItalic)
-{
-    string name = (string)fontName;
-    auto index = fontName.find(",BoldItalic");
-    if (index != string_view::npos)
-    {
-        name.erase(index, char_traits<char>::length(",BoldItalic"));
-        isBold = true;
-        isItalic = true;
-    }
-
-    index = fontName.find(",Bold");
-    if (index != string_view::npos)
-    {
-        name.erase(index, char_traits<char>::length(",Bold"));
-        isBold = true;
-    }
-
-    index = fontName.find(",Italic");
-    if (index != string_view::npos)
-    {
-        name.erase(index, char_traits<char>::length(",Italic"));
-        isItalic = true;
-    }
-
-    return name;
 }
 
 #if defined(_WIN32) && !defined(PDFMM_HAVE_FONTCONFIG)

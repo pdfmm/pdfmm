@@ -240,6 +240,10 @@ public:
 
     virtual PdfFontType GetType() const = 0;
 
+    /** Extract base font name, removing known bold/italic suffixes
+     */
+    static std::string ExtractBaseName(const std::string_view& fontName, bool& isBold, bool& isItalic);
+
 public:
     /**
      * True if the font is loaded from a PdfObject
@@ -279,9 +283,10 @@ public:
 
     /** Get the base font name of this font
      *
-     *  \returns the base font name
+     *  \returns the font name, usually the /BaseFont key of a type1 or type0 font,
+     *  or the /FontName in a font descriptor
      */
-    inline const std::string& GetBaseFont() const { return m_BaseFont; }
+    inline const std::string& GetName() const { return m_Name; }
 
     const UsedGIDsMap& GetUsedGIDs() const { return m_UsedGIDs; }
 
@@ -352,7 +357,7 @@ private:
         const PdfEncoding& encoding, PdfFontMetricsType type, bool subsetting);
 
 private:
-    std::string m_BaseFont;
+    std::string m_Name;
     std::string m_SubsetPrefix;
     bool m_EmbeddingEnabled;
     bool m_IsEmbedded;

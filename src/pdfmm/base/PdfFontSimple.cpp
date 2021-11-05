@@ -44,7 +44,7 @@ void PdfFontSimple::getWidthsArray(PdfArray& arr) const
 void PdfFontSimple::Init(const string_view& subType, bool skipMetricsDescriptors)
 {
     this->GetObject().GetDictionary().AddKey(PdfName::KeySubtype, PdfName(subType));
-    this->GetObject().GetDictionary().AddKey("BaseFont", PdfName(GetBaseFont()));
+    this->GetObject().GetDictionary().AddKey("BaseFont", PdfName(GetName()));
     m_Encoding->ExportToDictionary(this->GetObject().GetDictionary());
 
     if (!skipMetricsDescriptors)

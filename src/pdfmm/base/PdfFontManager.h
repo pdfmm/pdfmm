@@ -200,8 +200,8 @@ private:
     typedef std::unordered_map<Element, PdfFont*, HashElement, EqualElement> FontCacheMap;
 
 private:
-    PdfFont* getFont(const std::string_view& fontName, const PdfFontCreationParams& params);
-    PdfFont* getFontSubset(const std::string_view& fontName, const PdfFontCreationParams& params);
+    PdfFont* getFont(const std::string_view& baseFontName, const PdfFontCreationParams& params);
+    PdfFont* getFontSubset(const std::string_view& baseFontName, const PdfFontCreationParams& params);
 
     /**
      * Get the path to a font file for a certain fontname

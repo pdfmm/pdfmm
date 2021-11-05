@@ -80,6 +80,7 @@ private:
     std::vector<double> GetBBox(const PdfObject& obj);
 
 private:
+    std::string m_BaseName;
     std::string m_FontName;
     std::vector<double> m_BBox;
     std::array<double, 6> m_matrix;
@@ -97,6 +98,8 @@ private:
     double m_StrikeOutPosition;
 
     bool m_IsSymbol;     // Internal member to singnal a symbol font
+    bool m_IsBold;
+    bool m_IsItalic;
 };
 
 };

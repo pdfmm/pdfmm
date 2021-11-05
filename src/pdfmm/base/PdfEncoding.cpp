@@ -324,7 +324,7 @@ void PdfEncoding::ExportToDictionary(PdfDictionary& dictionary, PdfEncodingExpor
         auto cmapObj = dictionary.GetOwner()->GetDocument()->GetObjects().CreateDictionaryObject();
         if (getActualLimits().MaxCodeSize > 1)
             PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "TODO");
-        fillCIDToGIDMap(*cmapObj, usedGids, font.GetBaseFont());
+        fillCIDToGIDMap(*cmapObj, usedGids, font.GetName());
         dictionary.AddKeyIndirect("Encoding", cmapObj);
     }
     else

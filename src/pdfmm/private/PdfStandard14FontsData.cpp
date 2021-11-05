@@ -11,20 +11,43 @@
 using namespace std;
 using namespace mm;
 
-#define  FONT_TIMES_ROMAN             "Times-Roman"
-#define  FONT_TIMES_ITALIC            "Times-Italic"
-#define  FONT_TIMES_BOLD              "Times-Bold"
-#define  FONT_TIMES_BOLD_ITALIC       "Times-BoldItalic"
-#define  FONT_HELVETICA               "Helvetica"
-#define  FONT_HELVETICA_OBLIQUE       "Helvetica-Oblique"
-#define  FONT_HELVETICA_BOLD          "Helvetica-Bold"
-#define  FONT_HELVETICA_BOLD_OBLIQUE  "Helvetica-BoldOblique"
-#define  FONT_COURIER                 "Courier"
-#define  FONT_COURIER_OBLIQUE         "Courier-Oblique"
-#define  FONT_COURIER_BOLD            "Courier-Bold"
-#define  FONT_COURIER_BOLD_OBLIQUE    "Courier-BoldOblique"
-#define  FONT_SYMBOL                  "Symbol"
-#define  FONT_ZAPF_DINGBATS           "ZapfDingbats"
+constexpr const char* FONT_TIMES_ROMAN_STD = "Times-Roman";
+constexpr const char* FONT_TIMES_ITALIC_STD = "Times-Italic";
+constexpr const char* FONT_TIMES_BOLD_STD = "Times-Bold";
+constexpr const char* FONT_TIMES_BOLD_ITALIC_STD = "Times-BoldItalic";
+constexpr const char* FONT_HELVETICA_STD = "Helvetica";
+constexpr const char* FONT_HELVETICA_OBLIQUE_STD =  "Helvetica-Bold";
+constexpr const char* FONT_HELVETICA_BOLD_STD = "Arial,Bold";
+constexpr const char* FONT_HELVETICA_BOLD_OBLIQUE_STD = "Helvetica-BoldOblique";
+constexpr const char* FONT_COURIER_STD = "Courier";
+constexpr const char* FONT_COURIER_OBLIQUE_STD = "Courier-Oblique";
+constexpr const char* FONT_COURIER_BOLD_STD = "Courier-Bold";
+constexpr const char* FONT_COURIER_BOLD_OBLIQUE_STD = "Courier-BoldOblique";
+constexpr const char* FONT_SYMBOL_STD = "Symbol";
+constexpr const char* FONT_ZAPF_DINGBATS_STD = "ZapfDingbats";
+
+constexpr const char* FONT_TIMES_ROMAN_ALT = "TimesNewRoman";
+constexpr const char* FONT_TIMES_ITALIC_ALT = "TimesNewRoman,Italic";
+constexpr const char* FONT_TIMES_BOLD_ALT = "TimesNewRoman,Bold";
+constexpr const char* FONT_TIMES_BOLD_ITALIC_ALT = "TimesNewRoman,BoldItalic";
+constexpr const char* FONT_HELVETICA_ALT = "Arial";
+constexpr const char* FONT_HELVETICA_OBLIQUE_ALT = "Arial,Italic";
+constexpr const char* FONT_HELVETICA_BOLD_ALT = "Helvetica-Oblique";
+constexpr const char* FONT_HELVETICA_BOLD_OBLIQUE_ALT = "Arial,BoldItalic";
+constexpr const char* FONT_COURIER_ALT = "CourierNew";
+constexpr const char* FONT_COURIER_OBLIQUE_ALT = "CourierNew,Italic";
+constexpr const char* FONT_COURIER_BOLD_ALT = "CourierNew,Bold";
+constexpr const char* FONT_COURIER_BOLD_OBLIQUE_ALT = "CourierNew,BoldItalic";
+
+enum class PdfStandard14FontFamily
+{
+    Unknown = 0,
+    Times,
+    Helvetica,
+    Courier,
+    Symbol,
+    ZapfDingbats,
+};
 
 struct Std14CPToGIDMapImp
 {
@@ -4262,33 +4285,33 @@ string_view mm::GetStandard14FontName(PdfStandard14FontType stdFont)
     switch (stdFont)
     {
         case PdfStandard14FontType::TimesRoman:
-            return FONT_TIMES_ROMAN;
+            return FONT_TIMES_ROMAN_STD;
         case PdfStandard14FontType::TimesItalic:
-            return FONT_TIMES_ITALIC;
+            return FONT_TIMES_ITALIC_STD;
         case PdfStandard14FontType::TimesBold:
-            return FONT_TIMES_BOLD;
+            return FONT_TIMES_BOLD_STD;
         case PdfStandard14FontType::TimesBoldItalic:
-            return FONT_TIMES_BOLD_ITALIC;
+            return FONT_TIMES_BOLD_ITALIC_STD;
         case PdfStandard14FontType::Helvetica:
-            return FONT_HELVETICA;
+            return FONT_HELVETICA_STD;
         case PdfStandard14FontType::HelveticaOblique:
-            return FONT_HELVETICA_OBLIQUE;
+            return FONT_HELVETICA_OBLIQUE_STD;
         case PdfStandard14FontType::HelveticaBold:
-            return FONT_HELVETICA_BOLD;
+            return FONT_HELVETICA_BOLD_STD;
         case PdfStandard14FontType::HelveticaBoldOblique:
-            return FONT_HELVETICA_BOLD_OBLIQUE;
+            return FONT_HELVETICA_BOLD_OBLIQUE_STD;
         case PdfStandard14FontType::Courier:
-            return FONT_COURIER;
+            return FONT_COURIER_STD;
         case PdfStandard14FontType::CourierOblique:
-            return FONT_COURIER_OBLIQUE;
+            return FONT_COURIER_OBLIQUE_STD;
         case PdfStandard14FontType::CourierBold:
-            return FONT_COURIER_BOLD;
+            return FONT_COURIER_BOLD_STD;
         case PdfStandard14FontType::CourierBoldOblique:
-            return FONT_COURIER_BOLD_OBLIQUE;
+            return FONT_COURIER_BOLD_OBLIQUE_STD;
         case PdfStandard14FontType::Symbol:
-            return FONT_SYMBOL;
+            return FONT_SYMBOL_STD;
         case PdfStandard14FontType::ZapfDingbats:
-            return FONT_ZAPF_DINGBATS;
+            return FONT_ZAPF_DINGBATS_STD;
         case PdfStandard14FontType::Unknown:
         default:
             PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
@@ -4297,72 +4320,72 @@ string_view mm::GetStandard14FontName(PdfStandard14FontType stdFont)
 
 bool mm::IsStandard14Font(const string_view& fontName, PdfStandard14FontType& stdFont)
 {
-    if (fontName == FONT_TIMES_ROMAN)
+    if (fontName == FONT_TIMES_ROMAN_STD || fontName == FONT_TIMES_ROMAN_ALT)
     {
         stdFont = PdfStandard14FontType::TimesRoman;
         return true;
     }
-    else if (fontName == FONT_TIMES_ITALIC)
+    else if (fontName == FONT_TIMES_ITALIC_STD || fontName == FONT_TIMES_ITALIC_ALT)
     {
         stdFont = PdfStandard14FontType::TimesItalic;
         return true;
     }
-    else if (fontName == FONT_TIMES_BOLD)
+    else if (fontName == FONT_TIMES_BOLD_STD || fontName == FONT_TIMES_BOLD_ALT)
     {
         stdFont = PdfStandard14FontType::TimesBold;
         return true;
     }
-    else if (fontName == FONT_TIMES_BOLD_ITALIC)
+    else if (fontName == FONT_TIMES_BOLD_ITALIC_STD || fontName == FONT_TIMES_BOLD_ITALIC_ALT)
     {
         stdFont = PdfStandard14FontType::TimesBoldItalic;
         return true;
     }
-    else if (fontName == FONT_HELVETICA)
+    else if (fontName == FONT_HELVETICA_STD || fontName == FONT_HELVETICA_ALT)
     {
         stdFont = PdfStandard14FontType::Helvetica;
         return true;
     }
-    else if (fontName == FONT_HELVETICA_OBLIQUE)
+    else if (fontName == FONT_HELVETICA_OBLIQUE_STD || fontName == FONT_HELVETICA_OBLIQUE_ALT)
     {
         stdFont = PdfStandard14FontType::HelveticaOblique;
         return true;
     }
-    else if (fontName == FONT_HELVETICA_BOLD)
+    else if (fontName == FONT_HELVETICA_BOLD_STD || fontName == FONT_HELVETICA_BOLD_ALT)
     {
         stdFont = PdfStandard14FontType::HelveticaBold;
         return true;
     }
-    else if (fontName == FONT_HELVETICA_BOLD_OBLIQUE)
+    else if (fontName == FONT_HELVETICA_BOLD_OBLIQUE_STD || fontName == FONT_HELVETICA_BOLD_OBLIQUE_ALT)
     {
         stdFont = PdfStandard14FontType::HelveticaBoldOblique;
         return true;
     }
-    else if (fontName == FONT_COURIER)
+    else if (fontName == FONT_COURIER_STD || fontName == FONT_COURIER_ALT)
     {
         stdFont = PdfStandard14FontType::Courier;
         return true;
     }
-    else if (fontName == FONT_COURIER_OBLIQUE)
+    else if (fontName == FONT_COURIER_OBLIQUE_STD || fontName == FONT_COURIER_OBLIQUE_ALT)
     {
         stdFont = PdfStandard14FontType::CourierOblique;
         return true;
     }
-    else if (fontName == FONT_COURIER_BOLD)
+    else if (fontName == FONT_COURIER_BOLD_STD || fontName == FONT_COURIER_BOLD_ALT)
     {
         stdFont = PdfStandard14FontType::CourierBold;
         return true;
     }
-    else if (fontName == FONT_COURIER_BOLD_OBLIQUE)
+    else if (fontName == FONT_COURIER_BOLD_OBLIQUE_STD || fontName == FONT_COURIER_BOLD_OBLIQUE_ALT)
     {
         stdFont = PdfStandard14FontType::CourierBoldOblique;
         return true;
     }
-    else if (fontName == FONT_SYMBOL)
+    else if (fontName == FONT_SYMBOL_STD)
     {
         stdFont = PdfStandard14FontType::Symbol;
         return true;
     }
-    else if (fontName == FONT_ZAPF_DINGBATS)
+    else if (fontName == FONT_ZAPF_DINGBATS_STD)
     {
         stdFont = PdfStandard14FontType::ZapfDingbats;
         return true;
@@ -4371,6 +4394,135 @@ bool mm::IsStandard14Font(const string_view& fontName, PdfStandard14FontType& st
     {
         stdFont = PdfStandard14FontType::Unknown;
         return false;
+    }
+}
+
+bool mm::TryGetStandard14Font(const std::string_view& baseFontName, bool bold, bool italic,
+    bool useAltNames, PdfStandard14FontType& stdFont)
+{
+    constexpr const char* TIMES_ROMAN_FAMILY_STD = "Times";
+    constexpr const char* TIMES_HELVETICA_FAMILY_STD = "Helvetica";
+    constexpr const char* TIMES_COURIER_FAMILY_STD = "Courier";
+    constexpr const char* TIMES_ROMAN_FAMILY_ALT = "TimesNewRoman";
+    constexpr const char* TIMES_HELVETICA_FAMILY_ALT = "Arial";
+    constexpr const char* TIMES_COURIER_FAMILY_ALT = "CourierNew";
+    PdfStandard14FontFamily family = PdfStandard14FontFamily::Unknown;
+    if (baseFontName == TIMES_ROMAN_FAMILY_STD || baseFontName == FONT_TIMES_ROMAN_STD)
+        family = PdfStandard14FontFamily::Times;
+    else if (baseFontName == TIMES_HELVETICA_FAMILY_STD)
+        family = PdfStandard14FontFamily::Helvetica;
+    else if (baseFontName == TIMES_COURIER_FAMILY_STD)
+        family = PdfStandard14FontFamily::Courier;
+    else if (baseFontName == FONT_SYMBOL_STD)
+        family = PdfStandard14FontFamily::Symbol;
+    else if (baseFontName == FONT_ZAPF_DINGBATS_STD)
+        family = PdfStandard14FontFamily::ZapfDingbats;
+
+    if (useAltNames && family != PdfStandard14FontFamily::Unknown)
+    {
+        if (baseFontName == TIMES_ROMAN_FAMILY_ALT)
+            family = PdfStandard14FontFamily::Times;
+        else if (baseFontName == TIMES_HELVETICA_FAMILY_ALT)
+            family = PdfStandard14FontFamily::Helvetica;
+        else if (baseFontName == TIMES_COURIER_FAMILY_ALT)
+            family = PdfStandard14FontFamily::Courier;
+    }
+
+    switch (family)
+    {
+        case PdfStandard14FontFamily::Times:
+        {
+            if (bold)
+            {
+                if (italic)
+                {
+                    stdFont = PdfStandard14FontType::TimesBoldItalic;
+                    return true;
+                }
+                else
+                {
+                    stdFont = PdfStandard14FontType::TimesBold;
+                    return true;
+                }
+            }
+            else if (italic)
+            {
+                stdFont = PdfStandard14FontType::TimesItalic;
+                return true;
+            }
+            else
+            {
+                stdFont = PdfStandard14FontType::TimesRoman;
+                return true;
+            }
+        }
+        case PdfStandard14FontFamily::Helvetica:
+        {
+            if (bold)
+            {
+                if (italic)
+                {
+                    stdFont = PdfStandard14FontType::HelveticaBoldOblique;
+                    return true;
+                }
+                else
+                {
+                    stdFont = PdfStandard14FontType::HelveticaBold;
+                    return true;
+                }
+            }
+            else if (italic)
+            {
+                stdFont = PdfStandard14FontType::HelveticaOblique;
+                return true;
+            }
+            else
+            {
+                stdFont = PdfStandard14FontType::Helvetica;
+                return true;
+            }
+        }
+        case PdfStandard14FontFamily::Courier:
+        {
+            if (bold)
+            {
+                if (italic)
+                {
+                    stdFont = PdfStandard14FontType::CourierBoldOblique;
+                    return true;
+                }
+                else
+                {
+                    stdFont = PdfStandard14FontType::CourierBold;
+                    return true;
+                }
+            }
+            else if (italic)
+            {
+                stdFont = PdfStandard14FontType::CourierOblique;
+                return true;
+            }
+            else
+            {
+                stdFont = PdfStandard14FontType::Courier;
+                return true;
+            }
+        }
+        case PdfStandard14FontFamily::Symbol:
+        {
+            stdFont = PdfStandard14FontType::Symbol;
+            return true;
+        }
+        case PdfStandard14FontFamily::ZapfDingbats:
+        {
+            stdFont = PdfStandard14FontType::ZapfDingbats;
+            return true;
+        }
+        default:
+        {
+            stdFont = PdfStandard14FontType::Unknown;
+            return false;
+        }
     }
 }
 

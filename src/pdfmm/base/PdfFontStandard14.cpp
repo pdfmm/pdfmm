@@ -46,6 +46,18 @@ bool PdfFontStandard14::IsStandard14Font(const string_view& fontName, PdfStandar
     return ::IsStandard14Font(fontName, stdFont);
 }
 
+bool PdfFontStandard14::TryGetStandard14Font(const string_view& baseFontName, bool bold, bool italic,
+    PdfStandard14FontType& stdFont)
+{
+    return TryGetStandard14Font(baseFontName, bold, italic, false, stdFont);
+}
+
+bool PdfFontStandard14::TryGetStandard14Font(const string_view& baseFontName, bool bold, bool italic,
+    bool useAltNames, PdfStandard14FontType& stdFont)
+{
+    return ::TryGetStandard14Font(baseFontName, bold, italic, useAltNames, stdFont);
+}
+
 PdfFontType PdfFontStandard14::GetType() const
 {
     return PdfFontType::Type1;
@@ -54,7 +66,7 @@ PdfFontType PdfFontStandard14::GetType() const
 void PdfFontStandard14::initImported()
 {
     this->GetObject().GetDictionary().AddKey(PdfName::KeySubtype, PdfName("Type1"));
-    this->GetObject().GetDictionary().AddKey("BaseFont", PdfName(GetBaseFont()));
+    this->GetObject().GetDictionary().AddKey("BaseFont", PdfName(GetName()));
     m_Encoding->ExportToDictionary(this->GetObject().GetDictionary());
 }
 

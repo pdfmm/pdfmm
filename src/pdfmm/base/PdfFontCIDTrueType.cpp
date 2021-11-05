@@ -76,7 +76,7 @@ void PdfFontCIDTrueType::initImported()
 
     // Now setting each of the entries of the font
     this->GetObject().GetDictionary().AddKey(PdfName::KeySubtype, PdfName("Type0"));
-    this->GetObject().GetDictionary().AddKey("BaseFont", PdfName(this->GetBaseFont()));
+    this->GetObject().GetDictionary().AddKey("BaseFont", PdfName(this->GetName()));
 
     // The descendant font is a CIDFont:
     m_descendantFont = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject("Font");
@@ -90,14 +90,14 @@ void PdfFontCIDTrueType::initImported()
     m_descendantFont->GetDictionary().AddKey(PdfName::KeySubtype, PdfName("CIDFontType2"));
 
     // Same base font as the owner font:
-    m_descendantFont->GetDictionary().AddKey("BaseFont", PdfName(this->GetBaseFont()));
+    m_descendantFont->GetDictionary().AddKey("BaseFont", PdfName(this->GetName()));
 
     // The CIDSystemInfo, should be an indirect object:
     auto cidSystemInfo = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject();
     m_descendantFont->GetDictionary().AddKeyIndirect("CIDSystemInfo", cidSystemInfo);
     // Setting the CIDSystemInfo params:
     cidSystemInfo->GetDictionary().AddKey("Registry", PdfString(CMAP_REGISTRY_NAME));
-    cidSystemInfo->GetDictionary().AddKey("Ordering", PdfString(GetBaseFont()));
+    cidSystemInfo->GetDictionary().AddKey("Ordering", PdfString(GetName()));
     cidSystemInfo->GetDictionary().AddKey("Supplement", PdfObject(static_cast<int64_t>(0)));
 
     m_descendantFont->GetDictionary().AddKey("CIDToGIDMap", PdfName("Identity"));

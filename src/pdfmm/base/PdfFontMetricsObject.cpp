@@ -156,6 +156,8 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
         m_Descent = descriptor->GetDictionary().FindKeyAs<double>("Descent", 0.0) * m_matrix[3];
     }
 
+    m_BaseName = PdfFont::ExtractBaseName(m_FontName, m_IsBold, m_IsItalic);
+
     m_LineSpacing = m_Ascent + m_Descent;
 
     // Try to fine some sensible values
@@ -265,14 +267,12 @@ string_view PdfFontMetricsObject::GetFontData() const
 
 bool PdfFontMetricsObject::IsBold() const
 {
-    // CHECK-ME: Can we infer it somehow?
-    return false;
+    return m_IsBold;
 }
 
 bool PdfFontMetricsObject::IsItalic() const
 {
-    // CHECK-ME: Can we infer it somehow?
-    return false;
+    return m_IsItalic;
 }
 
 vector<double> PdfFontMetricsObject::GetBBox(const PdfObject& obj)

@@ -54,7 +54,27 @@ private:
 
 public:
     static std::string_view GetStandard14FontName(PdfStandard14FontType stdFont);
-    static bool IsStandard14Font(const std::string_view& fontName, PdfStandard14FontType& baseFont);
+
+    /** Determine if font name is a Standard14 font
+     * \param fontName the unprocessed font name
+     */
+    static bool IsStandard14Font(const std::string_view& fontName, PdfStandard14FontType& stdFont);
+
+    /** Try get a standard14 font from a base font name, representing the family and bold/italic characteristic
+     *
+     * By default use only standard names, not alternative ones (Arial, TimesNewRoman, CourierNew) 
+     * \param baseFontName the processed font name
+     */
+    static bool TryGetStandard14Font(const std::string_view& baseFontName, bool bold, bool italic,
+        PdfStandard14FontType& stdFont);
+
+    /** Try get a standard14 font from a base font name, representing the family and bold/italic characteristic
+     * \param baseFontName the processed font name
+     * \param useAltNames use also the alternative names (Arial, TimesNewRoman, CourierNew) 
+     */
+    static bool TryGetStandard14Font(const std::string_view& baseFontName, bool bold, bool italic,
+        bool useAltNames, PdfStandard14FontType& stdFont);
+
     PdfStandard14FontType GetStd14Type() const { return m_FontType; }
 
     PdfFontType GetType() const override;

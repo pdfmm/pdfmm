@@ -106,7 +106,7 @@ void PdfFont::initBase(const PdfEncoding& encoding)
 
     // By default ensure the font has the /BaseFont name read
     // from the loaded metrics or inferred from a font file
-    m_BaseFont = m_Metrics->GetFontNameSafe();
+    m_Name = m_Metrics->GetFontNameSafe();
 }
 
 void PdfFont::WriteStringToStream(PdfStream& stream, const string_view& str) const
@@ -183,7 +183,7 @@ void PdfFont::InitImported(bool embeddingEnabled, bool subsettingEnabled)
             fontName += ",Italic";
     }
 
-    m_BaseFont = fontName;
+    m_Name = fontName;
     initImported();
 }
 
@@ -317,7 +317,7 @@ void PdfFont::FillDescriptor(PdfDictionary& dict)
     GetBoundingBox(bbox);
 
     // TODO: Handle custom measure units, like for /Type3 fonts, for Ascent/Descent/CapHeight...
-    dict.AddKey("FontName", PdfName(this->GetBaseFont()));
+    dict.AddKey("FontName", PdfName(this->GetName()));
     dict.AddKey(PdfName::KeyFlags, PdfObject(static_cast<int64_t>(32))); // TODO: 0 ????
     dict.AddKey("FontBBox", bbox);
     dict.AddKey("ItalicAngle", PdfObject(static_cast<int64_t>(m_Metrics->GetItalicAngle())));
@@ -476,4 +476,55 @@ string_view genSubsetBasename()
     }
 
     return s_ctx.Basename;
+}
+
+string PdfFont::ExtractBaseName(const string_view& fontName, bool& isBold, bool& isItalic)
+{
+    // TABLE H.3 Names of standard fonts
+    string name = (string)fontName;
+    size_t index = fontName.find(",BoldItalic");
+    if (index != string_view::npos)
+    {
+        name.erase(index, char_traits<char>::length(",BoldItalic"));
+        isBold = true;
+        isItalic = true;
+    }
+
+    index = fontName.find("-BoldOblique");
+    if (index != string_view::npos)
+    {
+        name.erase(index, char_traits<char>::length("-BoldOblique"));
+        isBold = true;
+        isItalic = true;
+    }
+
+    index = fontName.find(",Bold");
+    if (index != string_view::npos)
+    {
+        name.erase(index, char_traits<char>::length(",Bold"));
+        isBold = true;
+    }
+
+    index = fontName.find("-Bold");
+    if (index != string_view::npos)
+    {
+        name.erase(index, char_traits<char>::length("-Bold"));
+        isBold = true;
+    }
+
+    index = fontName.find(",Italic");
+    if (index != string_view::npos)
+    {
+        name.erase(index, char_traits<char>::length(",Italic"));
+        isItalic = true;
+    }
+
+    index = fontName.find("-Oblique");
+    if (index != string_view::npos)
+    {
+        name.erase(index, char_traits<char>::length("-Oblique"));
+        isItalic = true;
+    }
+
+    return name;
 }
