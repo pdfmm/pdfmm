@@ -153,6 +153,20 @@ unique_ptr<PdfObject> PdfIndirectObjectList::RemoveObject(const iterator& it)
     return removeObject(it, true);
 }
 
+unique_ptr<PdfObject> PdfIndirectObjectList::ReplaceObject(const PdfReference& ref, PdfObject* obj)
+{
+    auto it = std::lower_bound(m_Objects.begin(), m_Objects.end(), ref, CompareReference);
+    if (it == m_Objects.end())
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Unable to find object with reference {}", ref.ToString());
+
+    auto node = m_Objects.extract(it);
+    unique_ptr<PdfObject> ret(node.value());
+    node.value() = obj;
+    obj->SetIndirectReference(ref);
+    pushObject(node, obj);
+    return ret;
+}
+
 unique_ptr<PdfObject> PdfIndirectObjectList::removeObject(const iterator& it, bool markAsFree)
 {
     auto obj = *it;
@@ -290,16 +304,26 @@ void PdfIndirectObjectList::PushObject(PdfObject* obj)
     if (m_Document != nullptr)
         obj->SetDocument(*m_Document);
 
-    auto inserted = m_Objects.insert(obj);
-    if (!inserted.second)
+    ObjectList::node_type node;
+    auto it = m_Objects.find(obj);
+    if (it != m_Objects.end())
     {
-        // Pushing an existing object actually overwrites it.
-        // It appears to be the same behavior in Adobe sw solutions
-        delete* inserted.first;
-        m_Objects.erase(inserted.first);
-        m_Objects.insert(obj);
+        // Delete existing object and replace
+        // the pointer on its node
+        node = m_Objects.extract(it);
+        delete node.value();
+        node.value() = obj;
     }
 
+    pushObject(node, obj);
+}
+
+void PdfIndirectObjectList::pushObject(ObjectList::node_type& node, PdfObject* obj)
+{
+    if (node.empty())
+        m_Objects.insert(obj);
+    else
+        m_Objects.insert(std::move(node));
     TryIncrementObjectCount(obj->GetIndirectReference());
 }
 

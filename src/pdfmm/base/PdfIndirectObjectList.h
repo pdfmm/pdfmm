@@ -167,6 +167,8 @@ public:
      */
     std::unique_ptr<PdfObject> RemoveObject(const iterator& it);
 
+    std::unique_ptr<PdfObject> ReplaceObject(const PdfReference& ref, PdfObject* obj);
+
     /** Creates a new object and inserts it into the vector.
      *  This function assigns the next free object number to the PdfObject.
      *
@@ -336,6 +338,8 @@ private:
     void CollectGarbage();
 
 private:
+    void pushObject(ObjectList::node_type& it, PdfObject* obj);
+
     std::unique_ptr<PdfObject> removeObject(const iterator& it, bool markAsFree);
 
     void addNewObject(PdfObject* obj);
