@@ -86,13 +86,24 @@ string_view PdfFontMetrics::GetFontData() const
     return { };
 }
 
-string PdfFontMetrics::GetFontNameSafe() const
+string PdfFontMetrics::GetFontNameSafe(bool baseFirst) const
 {
-    string fontName = GetFontName();
-    if (!fontName.empty())
-        return fontName;
+    if (baseFirst)
+    {
+        string baseFontName = GetBaseFontName();
+        if (!baseFontName.empty())
+            return baseFontName;
 
-    return GetBaseFontName();
+        return GetFontName();
+    }
+    else
+    {
+        string fontName = GetFontName();
+        if (!fontName.empty())
+            return fontName;
+
+        return GetBaseFontName();
+    }
 }
 
 string PdfFontMetrics::GetBaseFontName() const

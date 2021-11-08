@@ -163,13 +163,6 @@ void PdfFont::InitImported(bool embeddingEnabled, bool subsettingEnabled)
         fontName.resize(currPos);
     }
 
-    if (m_EmbeddingEnabled && !m_SubsettingEnabled)
-    {
-        // Regular embedding is not done if subsetting is enabled
-        embedFont();
-        m_IsEmbedded = true;
-    }
-
     if (!m_Metrics->FontNameHasBoldItalicInfo())
     {
         if (m_Metrics->IsBold())
@@ -185,6 +178,13 @@ void PdfFont::InitImported(bool embeddingEnabled, bool subsettingEnabled)
 
     m_Name = fontName;
     initImported();
+
+    if (m_EmbeddingEnabled && !m_SubsettingEnabled)
+    {
+        // Regular embedding is not done if subsetting is enabled
+        embedFont();
+        m_IsEmbedded = true;
+    }
 }
 
 void PdfFont::EmbedFontSubset()

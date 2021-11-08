@@ -138,7 +138,7 @@ public:
     /** Get a string with either the actual /FontName or a base font name
      * inferred from a font file
      */
-    std::string GetFontNameSafe() const;
+    std::string GetFontNameSafe(bool baseFirst = false) const;
 
     /** Get a base name for the font that can be used to compose the final name, eg. "Arial"
      *

@@ -36,7 +36,7 @@ void PdfFontConfigWrapper::InitializeFontConfig()
     m_FcConfig = FcConfigGetCurrent();
 }
 
-std::string PdfFontConfigWrapper::GetFontConfigFontPath(const string_view fontName, bool bold, bool italic)
+string PdfFontConfigWrapper::GetFontConfigFontPath(const string_view fontName, bool bold, bool italic)
 {
     InitializeFontConfig();
 

@@ -50,6 +50,7 @@ struct PdfFontCreationParams
     bool Embed = true;
     PdfEncoding Encoding = PdfEncodingFactory::CreateWinAnsiEncoding();
     std::string FilePath;
+    unsigned short FaceIndex = 0;
 };
 
 /**
@@ -202,7 +203,8 @@ private:
     /**
      * Get the path to a font file for a certain fontname
      */
-    std::string getFontPath(const std::string_view& fontName, bool bold, bool italic);
+    std::string getFontPath(const std::string_view& fontName,
+        bool bold, bool italic, unsigned short& faceIndex);
 
     /** Create a font and put it into the fontcache
      */

@@ -24,13 +24,6 @@ class PdfVariant;
 class PDFMM_API PdfFontMetricsFreetype final : public PdfFontMetrics
 {
 public:
-    /** Create a font metrics object for a given true type file
-     *  \param library handle to an initialized FreeType2 library handle
-     *  \param filename filename of a truetype file
-     *  \param isSymbol whether use a symbol encoding, rather than unicode
-     */
-    PdfFontMetricsFreetype(const std::string_view& filename, bool isSymbol);
-
     /** Create a font metrics object for a given memory buffer
      *  \param library handle to an initialized FreeType2 library handle
      *  \param buffer block of memory representing the font data (PdfFontMetricsFreetype will copy the buffer)
@@ -51,8 +44,8 @@ public:
      *  \param filename filename of a truetype file
      *  \param isSymbol whether use a symbol encoding, rather than unicode
      */
-    static std::unique_ptr<PdfFontMetricsFreetype> CreateForSubsetting(
-        const std::string_view& filename, bool isSymbol);
+    static std::unique_ptr<PdfFontMetricsFreetype> CreateFromFile(
+        const std::string_view& filename, bool isSymbol, unsigned short faceIndex);
 
     ~PdfFontMetricsFreetype();
 
@@ -102,7 +95,7 @@ public:
     inline FT_Face GetFace() const { return m_Face; }
 
 private:
-    PdfFontMetricsFreetype(const std::shared_ptr<chars>& buffer, bool isSymbol);
+    PdfFontMetricsFreetype(const std::shared_ptr<chars>& buffer, PdfFontMetricsType fontType, bool isSymbol);
 
 private:
     /** Initialize this object from an in memory buffer
