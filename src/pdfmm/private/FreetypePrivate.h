@@ -5,4 +5,9 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
+namespace mm
+{
+    FT_Library GetFreeTypeLibrary();
+}
+
 #endif // PDFMM_FREETYPE_PRIVATE_H

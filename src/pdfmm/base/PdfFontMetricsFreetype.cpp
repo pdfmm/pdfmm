@@ -36,12 +36,12 @@ struct Scoped_FT_Face
     FT_Face FTFace;
 };
 
-PdfFontMetricsFreetype* PdfFontMetricsFreetype::CreateForSubsetting(FT_Library library, const string_view& filename,
-    bool isSymbol)
+unique_ptr<PdfFontMetricsFreetype> PdfFontMetricsFreetype::CreateForSubsetting(
+    const string_view& filename, bool isSymbol)
 {
     Scoped_FT_Face scoped_face;
 
-    FT_Error err = FT_New_Face(library, filename.data(), 0, &scoped_face.FTFace);
+    FT_Error err = FT_New_Face(mm::GetFreeTypeLibrary(), filename.data(), 0, &scoped_face.FTFace);
     if (err != 0)
     {
         // throw an exception
@@ -57,7 +57,7 @@ PdfFontMetricsFreetype* PdfFontMetricsFreetype::CreateForSubsetting(FT_Library l
         auto buffer = std::make_shared<chars>(length);
         err = FT_Load_Sfnt_Table(scoped_face.FTFace, 0, 0, reinterpret_cast<FT_Byte*>(buffer->data()), &length);
         if (err == 0)
-            return new PdfFontMetricsFreetype(library, buffer, isSymbol);
+            return unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(buffer, isSymbol));
     }
 
     // throw an exception
@@ -66,14 +66,13 @@ PdfFontMetricsFreetype* PdfFontMetricsFreetype::CreateForSubsetting(FT_Library l
     PDFMM_RAISE_ERROR(PdfErrorCode::FreeType);
 }
 
-PdfFontMetricsFreetype::PdfFontMetricsFreetype(FT_Library library, const string_view& filename,
+PdfFontMetricsFreetype::PdfFontMetricsFreetype(const string_view& filename,
         bool isSymbol) :
     PdfFontMetrics(PdfFontMetrics::GetFontMetricsTypeFromFilename(filename), filename),
-    m_Library(library),
     m_Face(nullptr),
     m_IsSymbol(isSymbol)
 {
-    FT_Error err = FT_New_Face(library, filename.data(), 0, &m_Face);
+    FT_Error err = FT_New_Face(mm::GetFreeTypeLibrary(), filename.data(), 0, &m_Face);
     if (err != 0)
     {
         PdfError::LogMessage(LogSeverity::Error, "FreeType returned the error {} when calling FT_New_Face for font {}",
@@ -84,10 +83,9 @@ PdfFontMetricsFreetype::PdfFontMetricsFreetype(FT_Library library, const string_
     InitFromFace(isSymbol);
 }
 
-PdfFontMetricsFreetype::PdfFontMetricsFreetype(FT_Library library, const char* buffer, size_t size,
+PdfFontMetricsFreetype::PdfFontMetricsFreetype(const char* buffer, size_t size,
         bool isSymbol) :
     PdfFontMetrics(PdfFontMetricsType::Unknown, { }),
-    m_Library(library),
     m_Face(nullptr),
     m_IsSymbol(isSymbol),
     m_FontData(std::make_shared<chars>(size))
@@ -96,10 +94,9 @@ PdfFontMetricsFreetype::PdfFontMetricsFreetype(FT_Library library, const char* b
     InitFromBuffer(isSymbol);
 }
 
-PdfFontMetricsFreetype::PdfFontMetricsFreetype(FT_Library library,
+PdfFontMetricsFreetype::PdfFontMetricsFreetype(
     const shared_ptr<chars>& buffer, bool isSymbol) :
     PdfFontMetrics(PdfFontMetricsType::Unknown, { }),
-    m_Library(library),
     m_Face(nullptr),
     m_IsSymbol(isSymbol),
     m_FontData(buffer)
@@ -107,13 +104,11 @@ PdfFontMetricsFreetype::PdfFontMetricsFreetype(FT_Library library,
     InitFromBuffer(isSymbol);
 }
 
-PdfFontMetricsFreetype::PdfFontMetricsFreetype(FT_Library library, FT_Face face,
-    bool isSymbol) :
+PdfFontMetricsFreetype::PdfFontMetricsFreetype(FT_Face face, bool isSymbol) :
     PdfFontMetrics(PdfFontMetricsType::TrueType,
         // Try to initialize the pathname from m_face
         // so that font embedding will work
         (face->stream ? reinterpret_cast<char*>(face->stream->pathname.pointer) : "")),
-    m_Library(library),
     m_Face(face),
     m_IsSymbol(isSymbol)
 {
@@ -135,7 +130,7 @@ void PdfFontMetricsFreetype::InitFromBuffer(bool isSymbol)
     openArgs.flags = FT_OPEN_MEMORY;
     openArgs.memory_base = reinterpret_cast<FT_Byte*>(m_FontData->data());
     openArgs.memory_size = static_cast<FT_Long>(m_FontData->size());
-    FT_Error err = FT_Open_Face(m_Library, &openArgs, 0, &m_Face);
+    FT_Error err = FT_Open_Face(mm::GetFreeTypeLibrary(), &openArgs, 0, &m_Face);
     if (err != 0)
     {
         PdfError::LogMessage(LogSeverity::Error,

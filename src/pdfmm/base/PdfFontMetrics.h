@@ -11,7 +11,6 @@
 
 #include "PdfDefines.h"
 
-#include "Pdf3rdPtyForwardDecl.h"
 #include "PdfString.h"
 #include "PdfEncoding.h"
 

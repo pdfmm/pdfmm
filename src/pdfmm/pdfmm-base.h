@@ -10,7 +10,6 @@
 
 #include "base/PdfVersion.h"
 #include "base/PdfDefines.h"
-#include "base/Pdf3rdPtyForwardDecl.h"
 #include "base/PdfArray.h"
 #include "base/PdfCanvas.h"
 #include "base/PdfColor.h"

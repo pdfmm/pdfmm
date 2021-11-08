@@ -43,25 +43,11 @@ PdfFontManager::PdfFontManager(PdfDocument& doc)
 #if defined(PDFMM_HAVE_FONTCONFIG)
     m_fontConfig = PdfFontConfigWrapper::GetInstance();
 #endif
-    Init();
 }
 
 PdfFontManager::~PdfFontManager()
 {
     this->EmptyCache();
-
-    if (m_ftLibrary != nullptr)
-    {
-        FT_Done_FreeType(m_ftLibrary);
-        m_ftLibrary = nullptr;
-    }
-}
-
-void PdfFontManager::Init()
-{
-    // Initialize all the fonts stuff
-    if (FT_Init_FreeType(&m_ftLibrary))
-        PDFMM_RAISE_ERROR(PdfErrorCode::FreeType);
 }
 
 void PdfFontManager::EmptyCache()
@@ -162,7 +148,7 @@ PdfFont* PdfFontManager::getFont(const string_view& baseFontName, const PdfFontC
     }
     else
     {
-        auto metrics = std::make_shared<PdfFontMetricsFreetype>(m_ftLibrary, path,
+        auto metrics = std::make_shared<PdfFontMetricsFreetype>(path,
             params.IsSymbolCharset);
         return this->createFontObject(m_fontMap, baseFontName, metrics, params.Encoding,
             params.Bold, params.Italic, params.Embed, subsetting);
@@ -214,7 +200,7 @@ PdfFont* PdfFontManager::getFontSubset(const std::string_view& baseFontName, con
 #endif
         }
 
-        auto metrics = (PdfFontMetricsConstPtr)PdfFontMetricsFreetype::CreateForSubsetting(m_ftLibrary, path,
+        auto metrics = (PdfFontMetricsConstPtr)PdfFontMetricsFreetype::CreateForSubsetting(path,
             params.IsSymbolCharset);
         return createFontObject(m_fontSubsetMap, baseFontName, metrics, params.Encoding,
             params.Bold, params.Italic, true, true);
@@ -249,7 +235,7 @@ PdfFont* PdfFontManager::GetFont(FT_Face face, const PdfEncoding& encoding,
         isSymbolCharset));
     if (found == m_fontMap.end())
     {
-        auto metrics = std::make_shared<PdfFontMetricsFreetype>(m_ftLibrary, face, isSymbolCharset);
+        auto metrics = std::make_shared<PdfFontMetricsFreetype>(face, isSymbolCharset);
         return this->createFontObject(m_fontMap, name, metrics, encoding,
             bold, italic, embed, false);
     }

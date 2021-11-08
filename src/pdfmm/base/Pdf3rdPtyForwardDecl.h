@@ -22,10 +22,6 @@
 extern "C" {
 #endif
 
-// Provide access to FT_Library
-struct FT_LibraryRec_;
-typedef struct FT_LibraryRec_  *FT_Library;
-
 // Provide access to FT_Face
 struct FT_FaceRec_;
 typedef struct FT_FaceRec_*  FT_Face;

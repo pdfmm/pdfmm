@@ -135,10 +135,6 @@ public:
         bool embed = true);
 #endif
 
-    /** Returns the internal handle to the freetype library from font cache
-     */
-    inline FT_Library GetFontLibrary() const { return this->m_ftLibrary; }
-
 #ifdef PDFMM_HAVE_FONTCONFIG
 
     /**
@@ -224,12 +220,9 @@ private:
         bool embed, bool subsetting);
 #endif
 
-    void Init();
-
 private:
     FontCacheMap m_fontMap;             // Sorted list of all fonts, currently in the cache
     FontCacheMap m_fontSubsetMap;
-    FT_Library m_ftLibrary;                 // Handle to the freetype library
     PdfDocument* m_doc;                     // Handle to parent for creating new fonts and objects
 
 #ifdef PDFMM_HAVE_FONTCONFIG
