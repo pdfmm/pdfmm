@@ -123,6 +123,8 @@ private:
 
 namespace std
 {
+    /** Overload hasher for PdfReference
+     */
     template<>
     struct hash<mm::PdfReference>
     {

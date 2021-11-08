@@ -144,4 +144,18 @@ private:
 
 };
 
+namespace std
+{
+    /** Overload hasher for PdfName
+     */
+    template<>
+    struct hash<mm::PdfName>
+    {
+        size_t operator()(const mm::PdfName& name) const noexcept
+        {
+            return hash<string_view>()(name.GetRawData());
+        }
+    };
+}
+
 #endif // PDF_NAME_H
