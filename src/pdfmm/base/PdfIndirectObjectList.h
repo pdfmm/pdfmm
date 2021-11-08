@@ -162,11 +162,16 @@ public:
     std::unique_ptr<PdfObject> RemoveObject(const PdfReference& ref);
 
     /** Remove the object with the iterator it from the vector and return it
-     *  \param it the object to remove
+     *  \param ref the reference of the object to remove
      *  \returns the removed object
      */
     std::unique_ptr<PdfObject> RemoveObject(const iterator& it);
 
+    /** Replace the object at the given reference
+     *  \param ref the reference of the object to replace
+     *  \param obj the object that will be inserted instead, must be non null
+     *  \returns the replaced object
+     */
     std::unique_ptr<PdfObject> ReplaceObject(const PdfReference& ref, PdfObject* obj);
 
     /** Creates a new object and inserts it into the vector.

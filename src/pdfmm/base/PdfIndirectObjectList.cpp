@@ -155,6 +155,9 @@ unique_ptr<PdfObject> PdfIndirectObjectList::RemoveObject(const iterator& it)
 
 unique_ptr<PdfObject> PdfIndirectObjectList::ReplaceObject(const PdfReference& ref, PdfObject* obj)
 {
+    if (obj == nullptr)
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Object must be non null");
+
     auto it = std::lower_bound(m_Objects.begin(), m_Objects.end(), ref, CompareReference);
     if (it == m_Objects.end())
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Unable to find object with reference {}", ref.ToString());
