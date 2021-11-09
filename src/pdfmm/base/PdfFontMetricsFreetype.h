@@ -76,6 +76,8 @@ public:
 
     std::string GetBaseFontName() const override;
 
+    std::string GetFontName() const override;
+
     unsigned int GetWeight() const override;
 
     double GetItalicAngle() const override;
@@ -134,6 +136,8 @@ private:
 
     std::shared_ptr<chars> m_FontData;
     std::vector<double> m_Widths;
+    std::string m_fontName;
+    std::string m_baseFontName;
 };
 
 };

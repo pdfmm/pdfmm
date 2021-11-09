@@ -10,6 +10,7 @@
 #include "PdfFont.h"
 
 #include <sstream>
+#include <regex>
 
 #include <pdfmm/private/PdfEncodingPrivate.h>
 
@@ -29,7 +30,7 @@ using namespace std;
 using namespace mm;
 
 // kind of ABCDEF+
-static string_view genSubsetBasename();
+static string_view genSubsetPrefix();
 
 PdfFont::PdfFont(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
     const PdfEncoding& encoding) :
@@ -147,7 +148,7 @@ void PdfFont::InitImported(bool embeddingEnabled, bool subsettingEnabled)
     string fontName = (string)m_Metrics->GetBaseFontName();
     if (m_SubsettingEnabled)
     {
-        m_SubsetPrefix = genSubsetBasename();
+        m_SubsetPrefix = genSubsetPrefix();
         PDFMM_ASSERT(!m_SubsetPrefix.empty());
         // replace all spaces in the base font name as suggested in 
         // the PDF reference section 5.5.2#
@@ -446,85 +447,100 @@ bool PdfFont::TryMapGIDToCID(unsigned gid, unsigned& cid) const
     return true;
 }
 
-string_view genSubsetBasename()
+string_view genSubsetPrefix()
 {
-    static constexpr unsigned SUBSET_BASENAME_LEN = 6; // + 2 for "+\0"
+    static constexpr unsigned SUBSET_PREFIX_LEN = 6; // + 2 for "+\0"
     struct SubsetBaseNameCtx
     {
         SubsetBaseNameCtx()
-            : Basename{ }
+            : Prefix{ }
         {
-            char* p = Basename;
-            for (unsigned i = 0; i < SUBSET_BASENAME_LEN; i++, p++)
+            char* p = Prefix;
+            for (unsigned i = 0; i < SUBSET_PREFIX_LEN; i++, p++)
                 *p = 'A';
 
-            Basename[SUBSET_BASENAME_LEN] = '+';
-            Basename[0]--;
+            Prefix[SUBSET_PREFIX_LEN] = '+';
+            Prefix[0]--;
         }
-        char Basename[SUBSET_BASENAME_LEN + 2];
+        char Prefix[SUBSET_PREFIX_LEN + 2];
     };
 
     static SubsetBaseNameCtx s_ctx;
 
-    for (unsigned i = 0; i < SUBSET_BASENAME_LEN; i++)
+    for (unsigned i = 0; i < SUBSET_PREFIX_LEN; i++)
     {
-        s_ctx.Basename[i]++;
-        if (s_ctx.Basename[i] <= 'Z')
+        s_ctx.Prefix[i]++;
+        if (s_ctx.Prefix[i] <= 'Z')
             break;
 
-        s_ctx.Basename[i] = 'A';
+        s_ctx.Prefix[i] = 'A';
     }
 
-    return s_ctx.Basename;
+    return s_ctx.Prefix;
 }
 
 string PdfFont::ExtractBaseName(const string_view& fontName, bool& isBold, bool& isItalic)
 {
     // TABLE H.3 Names of standard fonts
     string name = (string)fontName;
-    size_t index = fontName.find(",BoldItalic");
-    if (index != string_view::npos)
+    regex regex;
+    smatch matches;
+    isBold = false;
+    isItalic = false;
+    
+    // NOTE: For some reasons, "^[A-Z]{6}\+" doesn't work
+    regex = std::regex("^[A-Z][A-Z][A-Z][A-Z][A-Z][A-Z]\\+", regex_constants::ECMAScript);
+    if (std::regex_search(name, matches, regex))
     {
-        name.erase(index, char_traits<char>::length(",BoldItalic"));
+        // 5.5.3 Font Subsets: Remove EOODIA+ like prefixes
+        name.erase(matches[0].first - name.begin(), 7);
+    }
+
+    regex = std::regex("[,-]BoldItalic", regex_constants::ECMAScript);
+    if (std::regex_search(name, matches, regex))
+    {
+        name.erase(matches[0].first - name.begin(), char_traits<char>::length("BoldItalic") + 1);
         isBold = true;
         isItalic = true;
     }
 
-    index = fontName.find("-BoldOblique");
-    if (index != string_view::npos)
+    regex = std::regex("[,-]BoldOblique", regex_constants::ECMAScript);
+    if (std::regex_search(name, matches, regex))
     {
-        name.erase(index, char_traits<char>::length("-BoldOblique"));
+        name.erase(matches[0].first - name.begin(), char_traits<char>::length("BoldOblique") + 1);
         isBold = true;
         isItalic = true;
     }
 
-    index = fontName.find(",Bold");
-    if (index != string_view::npos)
+    regex = std::regex("[,-]Bold", regex_constants::ECMAScript);
+    if (std::regex_search(name, matches, regex))
     {
-        name.erase(index, char_traits<char>::length(",Bold"));
+        name.erase(matches[0].first - name.begin(), char_traits<char>::length("Bold") + 1);
         isBold = true;
     }
 
-    index = fontName.find("-Bold");
-    if (index != string_view::npos)
+    regex = std::regex("[,-]Italic", regex_constants::ECMAScript);
+    if (std::regex_search(name, matches, regex))
     {
-        name.erase(index, char_traits<char>::length("-Bold"));
-        isBold = true;
-    }
-
-    index = fontName.find(",Italic");
-    if (index != string_view::npos)
-    {
-        name.erase(index, char_traits<char>::length(",Italic"));
+        name.erase(matches[0].first - name.begin(), char_traits<char>::length("Italic") + 1);
         isItalic = true;
     }
 
-    index = fontName.find("-Oblique");
-    if (index != string_view::npos)
+    regex = std::regex("[,-]Oblique", regex_constants::ECMAScript);
+    if (std::regex_search(name, matches, regex))
     {
-        name.erase(index, char_traits<char>::length("-Oblique"));
+        name.erase(matches[0].first - name.begin(), char_traits<char>::length("Oblique") + 1);
         isItalic = true;
     }
 
+    // 5.5.2 TrueType Fonts: If the name contains any spaces, the spaces are removed
+    name.erase(std::remove(name.begin(), name.end(), ' '), name.end());
     return name;
+}
+
+string PdfFont::ExtractBaseName(const string_view& fontName)
+{
+    bool isBold;
+    bool isItalic;
+    return ExtractBaseName(fontName, isBold, isItalic);
 }

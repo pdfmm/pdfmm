@@ -169,7 +169,6 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
     }
 
     m_BaseName = PdfFont::ExtractBaseName(m_FontName, m_IsBold, m_IsItalic);
-
     m_LineSpacing = m_Ascent + m_Descent;
 
     // Try to fine some sensible values
@@ -184,6 +183,11 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
 string PdfFontMetricsObject::GetFontName() const
 {
     return m_FontName;
+}
+
+string PdfFontMetricsObject::GetBaseFontName() const
+{
+    return m_BaseName;
 }
 
 void PdfFontMetricsObject::GetBoundingBox(vector<double>& bbox) const

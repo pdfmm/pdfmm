@@ -234,9 +234,13 @@ public:
 
     virtual PdfFontType GetType() const = 0;
 
-    /** Extract base font name, removing known bold/italic suffixes
+    /** Extract base font name, removing known bold/italic/subset prefixes/suffixes
      */
     static std::string ExtractBaseName(const std::string_view& fontName, bool& isBold, bool& isItalic);
+
+    /** Extract base font name, removing known bold/italic/subset prefixes/suffixes
+     */
+    static std::string ExtractBaseName(const std::string_view& fontName);
 
 public:
     /**

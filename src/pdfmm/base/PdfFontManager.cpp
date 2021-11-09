@@ -98,8 +98,12 @@ PdfFont* PdfFontManager::GetFont(const string_view& fontName, const PdfFontCreat
     if (params.Encoding.IsNull())
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Invalid encoding");
 
+    string baseFontName;
     PdfFontCreationParams newParams = params;
-    string baseFontName = PdfFont::ExtractBaseName(fontName, newParams.Bold, newParams.Italic);
+    if (params.NormalizeFontName)
+        baseFontName = PdfFont::ExtractBaseName(fontName, newParams.Bold, newParams.Italic);
+    else
+        baseFontName = fontName;
     return getFont(baseFontName, newParams);
 }
 
@@ -169,8 +173,12 @@ PdfFont* PdfFontManager::GetFontSubset(const string_view& fontName, const PdfFon
 
     // WARNING: The characters are completely ignored right now!
 
+    string baseFontName;
     PdfFontCreationParams newParams = params;
-    string baseFontName = PdfFont::ExtractBaseName(fontName, newParams.Bold, newParams.Italic);
+    if (params.NormalizeFontName)
+        baseFontName = PdfFont::ExtractBaseName(fontName, newParams.Bold, newParams.Italic);
+    else
+        baseFontName = fontName;
     return getFontSubset(baseFontName, newParams);
 }
 

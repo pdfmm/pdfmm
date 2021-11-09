@@ -18,6 +18,7 @@
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfVariant.h"
+#include "PdfFont.h"
 
 #define PDFMM_FIRST_READABLE 31
 #define PDFMM_WIDTH_CACHE_SIZE 256
@@ -207,6 +208,13 @@ void PdfFontMetricsFreetype::InitFromFace(bool isSymbol)
     }
 
     InitFontSizes();
+
+    // Get the postscript name of the font and ensures it has no space:
+    // 5.5.2 TrueType Fonts, "If the name contains any spaces, the spaces are removed"
+    const char* name = FT_Get_Postscript_Name(m_Face);
+    m_fontName = string(name);
+    m_fontName.erase(std::remove(m_fontName.begin(), m_fontName.end(), ' '), m_fontName.end());
+    m_baseFontName = PdfFont::ExtractBaseName(m_fontName);
 }
 
 void PdfFontMetricsFreetype::InitFontSizes()
@@ -235,8 +243,12 @@ void PdfFontMetricsFreetype::InitFontSizes()
 
 string PdfFontMetricsFreetype::GetBaseFontName() const
 {
-    const char* name = FT_Get_Postscript_Name(m_Face);
-    return name == nullptr ? string() : string(name);
+    return m_baseFontName;
+}
+
+string PdfFontMetricsFreetype::GetFontName() const
+{
+    return m_fontName;
 }
 
 unsigned PdfFontMetricsFreetype::GetGlyphCount() const

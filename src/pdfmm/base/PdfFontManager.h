@@ -48,6 +48,7 @@ struct PdfFontCreationParams
     bool IsSymbolCharset = false; // CHECK-ME: Migrate this to a flag?
     PdfFontCreationFlags Flags = PdfFontCreationFlags::None;
     bool Embed = true;
+    bool NormalizeFontName = true;
     PdfEncoding Encoding = PdfEncodingFactory::CreateWinAnsiEncoding();
     std::string FilePath;
     unsigned short FaceIndex = 0;

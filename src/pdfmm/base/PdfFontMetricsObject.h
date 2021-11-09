@@ -64,6 +64,8 @@ public:
 
     std::string GetFontName() const override;
 
+    std::string GetBaseFontName() const override;
+
     const PdfObject* GetFontDataObject() const override;
 
     unsigned GetWeight() const override;
