@@ -909,7 +909,7 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
                     size.push_back(static_cast<int64_t>(2));
                     csTintFunc->GetDictionary().AddKey("Size", size);
 
-                    PdfMemoryInputStream stream(data, 1 * 2);
+                    PdfMemoryInputStream stream({ data, 1 * 2 });
                     csTintFunc->GetOrCreateStream().Set(stream);
 
                     PdfArray csArr;
@@ -947,7 +947,7 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
                     size.push_back(static_cast<int64_t>(2));
                     csTintFunc->GetDictionary().AddKey("Size", size);
 
-                    PdfMemoryInputStream stream(data, 3 * 2);
+                    PdfMemoryInputStream stream({ data, 3 * 2 });
                     csTintFunc->GetOrCreateStream().Set(stream);
 
                     PdfArray csArr;
@@ -995,7 +995,7 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
                     csArr.push_back(PdfName("DeviceCMYK"));
                     csArr.push_back(csTintFunc->GetIndirectReference());
 
-                    PdfMemoryInputStream stream(data, 4 * 2);
+                    PdfMemoryInputStream stream({ data, 4 * 2 });
                     csTintFunc->GetOrCreateStream().Set(stream); // set stream as last, so that it will work with PdfStreamedDocument
 
                     PdfObject* csp = document.GetObjects().CreateObject(csArr);
@@ -1027,7 +1027,7 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
                     size.push_back(static_cast<int64_t>(2));
                     csTintFunc->GetDictionary().AddKey("Size", size);
 
-                    PdfMemoryInputStream stream(data, 3 * 2);
+                    PdfMemoryInputStream stream({ data, 3 * 2 });
                     csTintFunc->GetOrCreateStream().Set(stream);
 
                     PdfArray csArr;

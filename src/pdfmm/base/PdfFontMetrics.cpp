@@ -16,9 +16,8 @@
 using namespace std;
 using namespace mm;
 
-PdfFontMetrics::PdfFontMetrics(PdfFontMetricsType fontType,
-    const string_view& filename)
-    : m_FontType(fontType), m_Filename(filename) { }
+PdfFontMetrics::PdfFontMetrics(PdfFontMetricsType fontType)
+    : m_FontType(fontType) { }
 
 PdfFontMetrics::~PdfFontMetrics() { }
 

@@ -835,7 +835,7 @@ void PdfDocument::SetMetadataStreamValue(const string_view& value)
 {
     auto& obj = GetOrCreateMetadata();
     auto& stream = obj.GetOrCreateStream();
-    PdfMemoryInputStream input(value.data(), value.size());
+    PdfMemoryInputStream input(value);
     stream.SetRawData(input);
 
     // We are writing raw clear text, which is required in most

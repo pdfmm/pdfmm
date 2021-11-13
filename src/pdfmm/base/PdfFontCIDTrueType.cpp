@@ -102,7 +102,7 @@ void PdfFontCIDTrueType::initImported()
 
     m_descendantFont->GetDictionary().AddKey("CIDToGIDMap", PdfName("Identity"));
 
-    if (!SubsettingEnabled())
+    if (!IsSubsettingEnabled())
     {
         createWidths(m_descendantFont->GetDictionary(), getCIDToGIDMap(false));
         m_Encoding->ExportToDictionary(this->GetObject().GetDictionary(),
@@ -128,7 +128,7 @@ void PdfFontCIDTrueType::embedFontSubset()
 
 void PdfFontCIDTrueType::embedFontFile(PdfObject& descriptor)
 {
-    if (SubsettingEnabled())
+    if (IsSubsettingEnabled())
     {
         // Prepare a CID to GID for the subsetting
         CIDToGIDMap cidToGidMap = getCIDToGIDMap(true);
@@ -160,13 +160,14 @@ void PdfFontCIDTrueType::embedFontFile(PdfObject& descriptor)
         // otherwise, load from disk
         if (m_Metrics->GetFontData().empty())
         {
-            size_t size = utls::FileSize(m_Metrics->GetFilename());
-            PdfFileInputStream stream(m_Metrics->GetFilename());
+            auto fontdata = m_Metrics->GetFontData();
+            PdfMemoryInputStream stream(fontdata);
 
             // NOTE: Set Length1 before creating the stream
             // as PdfStreamedDocument does not allow
             // adding keys to an object after a stream was written
-            contents->GetDictionary().AddKey("Length1", PdfObject(static_cast<int64_t>(size)));
+            contents->GetDictionary().AddKey("Length1",
+                PdfObject(static_cast<int64_t>(fontdata.size())));
             contents->GetOrCreateStream().Set(stream);
         }
         else

@@ -361,7 +361,7 @@ void PdfImage::LoadFromJpegData(const unsigned char* data, size_t len)
     // Set the filters key to DCTDecode
     this->GetObject().GetDictionary().AddKey(PdfName::KeyFilter, PdfName("DCTDecode"));
 
-    PdfMemoryInputStream inStream((const char*)data, len);
+    PdfMemoryInputStream inStream({ (const char*)data, len });
     this->SetImageDataRaw(inStream, cinfo.output_width, cinfo.output_height, 8);
 
     jpeg_destroy_decompress(&cinfo);
@@ -491,7 +491,7 @@ void PdfImage::LoadFromTiffHandle(void* handle)
 
         case PHOTOMETRIC_PALETTE:
         {
-            int numColors = (1 << bitsPixel);
+            unsigned numColors = (1 << bitsPixel);
 
             PdfArray decode;
             decode.insert(decode.end(), PdfObject(static_cast<int64_t>(0)));
@@ -505,13 +505,13 @@ void PdfImage::LoadFromTiffHandle(void* handle)
 
             char* datap = new char[numColors * 3];
 
-            for (int clr = 0; clr < numColors; clr++)
+            for (unsigned clr = 0; clr < numColors; clr++)
             {
                 datap[3 * clr + 0] = rgbRed[clr] / 257;
                 datap[3 * clr + 1] = rgbGreen[clr] / 257;
                 datap[3 * clr + 2] = rgbBlue[clr] / 257;
             }
-            PdfMemoryInputStream stream(datap, numColors * 3);
+            PdfMemoryInputStream stream({ datap, numColors * 3 });
 
             // Create a colorspace object
             PdfObject* pIdxObject = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject();
@@ -549,7 +549,7 @@ void PdfImage::LoadFromTiffHandle(void* handle)
         }
     }
 
-    PdfMemoryInputStream stream(buffer.data(), bufferSize);
+    PdfMemoryInputStream stream(buffer);
 
     SetImageData(stream, static_cast<unsigned>(width),
         static_cast<unsigned>(height),
@@ -957,7 +957,7 @@ void LoadFromPngContent(PdfImage& image, png_structp png, png_infop info)
             }
             len = width * height;
         }
-        PdfMemoryInputStream smaskstream(smask.data(), width * height);
+        PdfMemoryInputStream smaskstream(smask);
         PdfImage smakeImage(*image.GetObject().GetDocument());
         smakeImage.SetImageColorSpace(PdfColorSpace::DeviceGray);
         smakeImage.SetImageData(smaskstream, width, height, 8);
@@ -978,7 +978,7 @@ void LoadFromPngContent(PdfImage& image, png_structp png, png_infop info)
             data[3 * i + 1] = colors->green;
             data[3 * i + 2] = colors->blue;
         }
-        PdfMemoryInputStream stream(data, colorCount * 3);
+        PdfMemoryInputStream stream({ data, (size_t)(colorCount * 3) });
         PdfObject* pIdxObject = image.GetObject().GetDocument()->GetObjects().CreateDictionaryObject();
         pIdxObject->GetOrCreateStream().Set(stream);
 
@@ -998,7 +998,7 @@ void LoadFromPngContent(PdfImage& image, png_structp png, png_infop info)
     }
 
     // Set the image data and flate compress it
-    PdfMemoryInputStream stream(buffer.data(), len);
+    PdfMemoryInputStream stream(buffer);
     image.SetImageData(stream, width, height, depth);
 
     png_destroy_read_struct(&png, &info, (png_infopp)NULL);

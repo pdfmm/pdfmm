@@ -27,12 +27,14 @@ using namespace std;
 using namespace mm;
 
 unique_ptr<PdfFont> PdfFont::Create(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
-    const PdfEncoding& encoding, const PdfFontInitParams& params)
+    const PdfEncoding& encoding, PdfFontInitOptions flags)
 {
     PdfFontMetricsType type = metrics->GetType();
-    auto font = createFontForType(doc, metrics, encoding, type, params.Subsetting);
+    bool embeddingEnabled = (flags & PdfFontInitOptions::Embed) != PdfFontInitOptions::None;
+    bool subsettingEnabled = (flags & PdfFontInitOptions::Subset) != PdfFontInitOptions::None;
+    auto font = createFontForType(doc, metrics, encoding, type, subsettingEnabled);
     if (font != nullptr)
-        font->InitImported(params.Embed, params.Subsetting);
+        font->InitImported(embeddingEnabled, subsettingEnabled);
 
     return unique_ptr<PdfFont>(font);
 }
@@ -225,11 +227,16 @@ bool PdfFont::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfFont>& font)
 }
 
 unique_ptr<PdfFont> PdfFont::CreateStandard14(PdfDocument& doc, PdfStandard14FontType baseFont,
-    const PdfEncoding& encoding, const PdfFontInitParams& params)
+    const PdfEncoding& encoding, PdfFontInitOptions flags)
 {
+    (void)flags;
+    //bool embeddingEnabled = (flags & PdfFontInitOptions::Embed) != PdfFontInitOptions::None;
+    //bool subsettingEnabled = (flags & PdfFontInitOptions::Subset) != PdfFontInitOptions::None;
+    bool embeddingEnabled = false; // TODO
+    bool subsettingEnabled = false; // TODO
     PdfFont* font = new PdfFontStandard14(doc, baseFont, encoding);
     if (font != nullptr)
-        font->InitImported(params.Embed, params.Subsetting);
+        font->InitImported(embeddingEnabled, subsettingEnabled);
 
     return unique_ptr<PdfFont>(font);
 }

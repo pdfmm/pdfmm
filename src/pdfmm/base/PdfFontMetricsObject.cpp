@@ -19,7 +19,7 @@ using namespace mm;
 using namespace std;
 
 PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObject* descriptor) :
-    PdfFontMetrics(PdfFontMetricsType::Unknown, { }), m_DefaultWidth(0), m_FontDataObject(nullptr)
+    PdfFontMetrics(PdfFontMetricsType::Unknown), m_DefaultWidth(0), m_FontDataObject(nullptr)
 {
     const PdfName& subType = font.GetDictionary().MustFindKey(PdfName::KeySubtype).GetName();
 

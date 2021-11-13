@@ -26,85 +26,24 @@
 using namespace std;
 using namespace mm;
 
-struct Scoped_FT_Face
-{
-    Scoped_FT_Face() : FTFace(nullptr) { }
-    ~Scoped_FT_Face()
-    {
-        if (FTFace != nullptr)
-            FT_Done_Face(FTFace);
-    }
-    FT_Face FTFace;
-};
-
-unique_ptr<PdfFontMetricsFreetype> PdfFontMetricsFreetype::CreateFromFile(
-    const string_view& filename, bool isSymbol, unsigned short faceIndex)
-{
-    FT_Error rc;
-    FT_ULong length = 0;
-    Scoped_FT_Face scoped_face;
-    shared_ptr<chars> buffer;
-    auto type = PdfFontMetrics::GetFontMetricsTypeFromFilename(filename);
-    rc = FT_New_Face(mm::GetFreeTypeLibrary(), filename.data(), faceIndex, &scoped_face.FTFace);
-    if (rc != 0)
-    {
-        // throw an exception
-        PdfError::LogMessage(LogSeverity::Error, "FreeType returned the error {} when calling FT_New_Face for font {}",
-            (int)rc, filename);
-        PDFMM_RAISE_ERROR(PdfErrorCode::FreeType);
-    }
-
-    rc = FT_Load_Sfnt_Table(scoped_face.FTFace, 0, 0, nullptr, &length);
-    if (rc != 0)
-        goto Error;
-
-    buffer = std::make_shared<chars>(length);
-    rc = FT_Load_Sfnt_Table(scoped_face.FTFace, 0, 0, reinterpret_cast<FT_Byte*>(buffer->data()), &length);
-    if (rc != 0)
-        goto Error;
-
-    return unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(buffer, type, isSymbol));
-
-Error:
-    // throw an exception
-    PdfError::LogMessage(LogSeverity::Error, "FreeType returned the error {} when calling FT_Load_Sfnt_Table for font {}",
-        (int)rc, filename);
-    PDFMM_RAISE_ERROR(PdfErrorCode::FreeType);
-}
-
-PdfFontMetricsFreetype::PdfFontMetricsFreetype(const char* buffer, size_t size,
-        bool isSymbol) :
-    PdfFontMetrics(PdfFontMetricsType::Unknown, { }),
-    m_Face(nullptr),
-    m_IsSymbol(isSymbol),
-    m_FontData(std::make_shared<chars>(size))
-{
-    memcpy(m_FontData->data(), buffer, size);
-    InitFromBuffer(isSymbol);
-}
-
 PdfFontMetricsFreetype::PdfFontMetricsFreetype(
-    const shared_ptr<chars>& buffer, PdfFontMetricsType fontType, bool isSymbol) :
-    PdfFontMetrics(fontType, { }),
+    const shared_ptr<chars>& buffer, bool isSymbol) :
+    PdfFontMetrics(PdfFontMetricsType::TrueType), // TODO: Identify type
     m_Face(nullptr),
     m_IsSymbol(isSymbol),
     m_FontData(buffer)
 {
-    InitFromBuffer(isSymbol);
+    InitFromBuffer();
 }
 
-PdfFontMetricsFreetype::PdfFontMetricsFreetype(FT_Face face, bool isSymbol) :
-    PdfFontMetrics(PdfFontMetricsType::Unknown,
-        // Try to initialize the pathname from m_face
-        // so that font embedding will work
-        (face->stream ? reinterpret_cast<char*>(face->stream->pathname.pointer) : "")),
+PdfFontMetricsFreetype::PdfFontMetricsFreetype(FT_Face face,
+    const shared_ptr<chars>& buffer, bool isSymbol) :
+    PdfFontMetrics(PdfFontMetricsType::TrueType), // TODO: Identify type
     m_Face(face),
-    m_IsSymbol(isSymbol)
+    m_IsSymbol(isSymbol),
+    m_FontData(buffer)
 {
-    if (face == nullptr)
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Face can't be null");
-
-    InitFromFace(isSymbol);
+    InitFromFace();
 }
 
 PdfFontMetricsFreetype::~PdfFontMetricsFreetype()
@@ -112,7 +51,7 @@ PdfFontMetricsFreetype::~PdfFontMetricsFreetype()
     FT_Done_Face(m_Face);
 }
 
-void PdfFontMetricsFreetype::InitFromBuffer(bool isSymbol)
+void PdfFontMetricsFreetype::InitFromBuffer()
 {
     FT_Open_Args openArgs;
     memset(&openArgs, 0, sizeof(openArgs));
@@ -127,19 +66,13 @@ void PdfFontMetricsFreetype::InitFromBuffer(bool isSymbol)
         PDFMM_RAISE_ERROR(PdfErrorCode::FreeType);
     }
 
-    // Assume true type
-    this->SetFontType(PdfFontMetricsType::TrueType);
-    InitFromFace(isSymbol);
+    InitFromFace();
 }
 
-void PdfFontMetricsFreetype::InitFromFace(bool isSymbol)
+void PdfFontMetricsFreetype::InitFromFace()
 {
-    if (m_FontType == PdfFontMetricsType::Unknown)
-    {
-        // We need to have identified the font type by this point
-        // Unsupported font.
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFontFormat, m_Filename);
-    }
+    // We need to have identified the font type by this point
+    PDFMM_ASSERT(GetType() != PdfFontMetricsType::Unknown);
 
     FT_Error rc;
 
@@ -150,7 +83,6 @@ void PdfFontMetricsFreetype::InitFromFace(bool isSymbol)
     m_UnderlinePosition = 0.0;
     m_StrikeOutPosition = 0.0;
     m_StrikeOutThickness = 0.0;
-    m_IsSymbol = isSymbol;
 
     m_Ascent = m_Face->ascender / m_Face->units_per_EM;
     m_Descent = m_Face->descender / m_Face->units_per_EM;
@@ -158,7 +90,7 @@ void PdfFontMetricsFreetype::InitFromFace(bool isSymbol)
     m_IsItalic = (m_Face->style_flags & FT_STYLE_FLAG_ITALIC) != 0;
 
     // Try to get a unicode charmap
-    rc = FT_Select_Charmap(m_Face, isSymbol ? FT_ENCODING_MS_SYMBOL : FT_ENCODING_UNICODE);
+    rc = FT_Select_Charmap(m_Face, m_IsSymbol ? FT_ENCODING_MS_SYMBOL : FT_ENCODING_UNICODE);
     if (rc != 0)
     {
         PdfError::LogMessage(LogSeverity::Error, "FreeType returned the error {} when calling FT_Select_Charmap for a buffered font", (int)rc);
@@ -211,8 +143,7 @@ void PdfFontMetricsFreetype::InitFromFace(bool isSymbol)
 
     // Get the postscript name of the font and ensures it has no space:
     // 5.5.2 TrueType Fonts, "If the name contains any spaces, the spaces are removed"
-    const char* name = FT_Get_Postscript_Name(m_Face);
-    m_fontName = string(name);
+    m_fontName = FT_Get_Postscript_Name(m_Face);
     m_fontName.erase(std::remove(m_fontName.begin(), m_fontName.end(), ' '), m_fontName.end());
     m_baseFontName = PdfFont::ExtractBaseName(m_fontName);
 }
@@ -249,6 +180,20 @@ string PdfFontMetricsFreetype::GetBaseFontName() const
 string PdfFontMetricsFreetype::GetFontName() const
 {
     return m_fontName;
+}
+
+unique_ptr<PdfFontMetricsFreetype> PdfFontMetricsFreetype::FromBuffer(const string_view& buffer, bool isSymbol)
+{
+    return std::make_unique<PdfFontMetricsFreetype>(std::make_shared<chars>(buffer), isSymbol);
+}
+
+unique_ptr<PdfFontMetricsFreetype> PdfFontMetricsFreetype::FromFace(FT_Face face, bool isSymbol)
+{
+    if (face == nullptr)
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Face can't be null");
+
+    // TODO: Obtain the fontdata from face
+    return std::unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(face, nullptr, isSymbol));
 }
 
 unsigned PdfFontMetricsFreetype::GetGlyphCount() const

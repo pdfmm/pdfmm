@@ -200,7 +200,7 @@ void PdfTilingPattern::Init(PdfTilingPatternType tilingType,
     filters.push_back(PdfFilterType::FlateDecode);
 
     string str = out.str();
-    PdfMemoryInputStream stream(str.c_str(), str.length());
+    PdfMemoryInputStream stream(str);
 
     GetObject().GetOrCreateStream().Set(stream, filters);
 }

@@ -54,8 +54,8 @@ size_t PdfFileInputStream::ReadImpl(char* buffer, size_t len, bool& eof)
     return ret;
 }
 
-PdfMemoryInputStream::PdfMemoryInputStream(const char* buffer, size_t lBufferLen)
-    : m_Buffer(buffer), m_BufferLen(lBufferLen)
+PdfMemoryInputStream::PdfMemoryInputStream(const string_view& buffer)
+    : m_Buffer(buffer.data()), m_BufferLen(buffer.size())
 {
 }
 

@@ -42,13 +42,13 @@ void PdfFontTrueType::embedFontFile(PdfObject& descriptor)
     // otherwise, load from disk
     if (m_Metrics->GetFontData().empty())
     {
-        size_t size = utls::FileSize(m_Metrics->GetFilename());
-        PdfFileInputStream stream(m_Metrics->GetFilename());
+        auto fontdata = m_Metrics->GetFontData();
+        PdfFileInputStream stream(fontdata);
 
         // NOTE: Set Length1 before creating the stream
         // as PdfStreamedDocument does not allow
         // adding keys to an object after a stream was written
-        contents->GetDictionary().AddKey("Length1", PdfVariant(static_cast<int64_t>(size)));
+        contents->GetDictionary().AddKey("Length1", PdfVariant(static_cast<int64_t>(fontdata.size())));
         contents->GetOrCreateStream().Set(stream);
     }
     else

@@ -29,14 +29,6 @@ class PdfCharCodeMap;
 
 typedef std::map<unsigned, PdfCID> UsedGIDsMap;
 
-struct PdfFontInitParams
-{
-    bool Bold = false;
-    bool Italic = false;
-    bool Embed = false;
-    bool Subsetting = false; // Subsetting implies embed
-};
-
 /** Before you can draw text on a PDF document, you have to create
  *  a font object first. You can reuse this font object as often
  *  as you want.
@@ -94,12 +86,11 @@ public:
      *         deleted along with the created font. In case of an error, it is deleted
      *         here.
      *  \param encoding the encoding of this font.
-     *  \param params params for font creation
-     *
+     *  \param flags flags for font init
      *  \returns a new PdfFont object or nullptr
      */
     static std::unique_ptr<PdfFont> Create(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
-        const PdfEncoding& encoding, const PdfFontInitParams& params);
+        const PdfEncoding& encoding, PdfFontInitOptions flags);
 
     /**
      * Creates a new standard 14 font object (of class PdfFontStandard14) if
@@ -109,10 +100,10 @@ public:
      * \param doc the parent of the created font
      * \param baseFont standard14 font type
      * \param encoding an encoding compatible with the font
-     * \param params params for font creation
+     * \param flags flags for font init
      */
     static std::unique_ptr<PdfFont> CreateStandard14(PdfDocument& doc, PdfStandard14FontType baseFont,
-        const PdfEncoding& encoding, const PdfFontInitParams& params);
+        const PdfEncoding& encoding, PdfFontInitOptions flags);
 
     /** Create a new PdfFont from an existing
      *  font in a PDF file.
@@ -251,9 +242,9 @@ public:
     /** Check if this is a subsetting font.
      * \returns true if this is a subsetting font
      */
-    inline bool SubsettingEnabled() const { return m_SubsettingEnabled; }
+    inline bool IsSubsettingEnabled() const { return m_SubsettingEnabled; }
 
-    inline bool EmbeddingEnabled() const { return m_EmbeddingEnabled; }
+    inline bool IsEmbeddingEnabled() const { return m_EmbeddingEnabled; }
 
     /**
      * \returns empty string or a 6 uppercase letter and "+" sign prefix

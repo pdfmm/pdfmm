@@ -75,9 +75,8 @@ public:
     /** Open a file for reading data
      *
      *  \param buffer buffer to read from
-     *  \param lBufferLen length of the buffer
      */
-    PdfMemoryInputStream(const char* buffer, size_t lBufferLen);
+    PdfMemoryInputStream(const std::string_view& buffer);
     ~PdfMemoryInputStream();
 
 protected:

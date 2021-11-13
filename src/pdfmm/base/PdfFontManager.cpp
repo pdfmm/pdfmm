@@ -7,16 +7,17 @@
  */
 
 #include <pdfmm/private/PdfDefinesPrivate.h>
-#include "PdfFontManager.h" 
-
-#if defined(_WIN32) && !defined(PDFMM_HAVE_FONTCONFIG)
-#include <pdfmm/common/WindowsLeanMean.h>
-#endif // _WIN32
+#include "PdfFontManager.h"
 
 #include <algorithm>
 
-#include <utfcpp/utf8.h>
+ //#if defined(_WIN32) && !defined(PDFMM_HAVE_FONTCONFIG)
+#include <pdfmm/common/WindowsLeanMean.h>
+//#endif // _WIN32
+
 #include <pdfmm/private/FreetypePrivate.h>
+#include FT_TRUETYPE_TABLES_H
+#include <utfcpp/utf8.h>
 
 #include "PdfDictionary.h"
 #include "PdfInputDevice.h"
@@ -29,21 +30,22 @@
 using namespace std;
 using namespace mm;
 
-#if defined(_WIN32) && !defined(PDFMM_HAVE_FONTCONFIG)
+#if defined(_WIN32) && defined(PDFMM_HAVE_WIN32GDI)
 
-static bool getFontData(chars& buffer, const LOGFONTW& inFont);
+static std::unique_ptr<chars> getFontData(const LOGFONTW& inFont);
 static bool getFontData(chars& buffer, HDC hdc, HFONT hf);
 static void getFontDataTTC(chars& buffer, const chars& fileBuffer, const chars& ttcBuffer);
 
-#endif // _WIN32
+#endif // defined(_WIN32) && defined(PDFMM_HAVE_WIN32GDI)
+
+static unique_ptr<chars> getFontData(const string_view& filename, unsigned short faceIndex);
+
+#if defined(PDFMM_HAVE_FONTCONFIG)
+std::shared_ptr<PdfFontConfigWrapper> PdfFontManager::m_fontConfig;
+#endif
 
 PdfFontManager::PdfFontManager(PdfDocument& doc)
-    : m_doc(&doc)
-{
-#if defined(PDFMM_HAVE_FONTCONFIG)
-    m_fontConfig = PdfFontConfigWrapper::GetInstance();
-#endif
-}
+    : m_doc(&doc) { }
 
 PdfFontManager::~PdfFontManager()
 {
@@ -55,26 +57,14 @@ void PdfFontManager::EmptyCache()
     for (auto& pair : m_fontMap)
         delete pair.second;
 
-    for (auto& pair : m_fontSubsetMap)
-        delete pair.second;
-
     m_fontMap.clear();
-    m_fontSubsetMap.clear();
 }
 
 PdfFont* PdfFontManager::GetFont(PdfObject& obj)
 {
     const PdfReference& ref = obj.GetIndirectReference();
 
-    // Search if the object is a cached normal font
     for (auto& pair : m_fontMap)
-    {
-        if (pair.second->GetObject().GetIndirectReference() == ref)
-            return pair.second;
-    }
-
-    // Search if the object is a cached font subset
-    for (auto& pair : m_fontSubsetMap)
     {
         if (pair.second->GetObject().GetIndirectReference() == ref)
             return pair.second;
@@ -101,7 +91,7 @@ PdfFont* PdfFontManager::GetFont(const string_view& fontName, const PdfFontCreat
     string baseFontName;
     PdfFontCreationParams newParams = params;
     if (params.NormalizeFontName)
-        baseFontName = PdfFont::ExtractBaseName(fontName, newParams.Bold, newParams.Italic);
+        baseFontName = PdfFont::ExtractBaseName(fontName, newParams.SearchParams.Bold, newParams.SearchParams.Italic);
     else
         baseFontName = fontName;
     return getFont(baseFontName, newParams);
@@ -113,18 +103,22 @@ PdfFont* PdfFontManager::getFont(const string_view& baseFontName, const PdfFontC
     auto found = m_fontMap.find(Element(
         baseFontName,
         params.Encoding,
-        params.Bold,
-        params.Italic,
-        params.IsSymbolCharset));
+        params.SearchParams.Bold,
+        params.SearchParams.Italic,
+        params.SearchParams.SymbolCharset));
     if (found != m_fontMap.end())
         return found->second;
 
+    // NOTE: We don't support standard 14 fonts on subset
     PdfStandard14FontType stdFont;
-    if ((params.Flags & PdfFontCreationFlags::AutoSelectStandard14) == PdfFontCreationFlags::AutoSelectStandard14
-        && PdfFontStandard14::TryGetStandard14Font(baseFontName, params.Bold, params.Italic, stdFont))
+    if (params.FontInitOpts != PdfFontInitOptions::Subset &&
+        params.AutoSelectOpts != PdfAutoSelectFontOptions::None
+        && PdfFontStandard14::TryGetStandard14Font(baseFontName,
+            params.SearchParams.Bold, params.SearchParams.Italic,
+            params.AutoSelectOpts == PdfAutoSelectFontOptions::Standard14Alt, stdFont))
     {
-        PdfFontInitParams initParams = { params.Bold, params.Italic, false, false };
-        auto font = PdfFont::CreateStandard14(*m_doc, stdFont, params.Encoding, initParams).release();
+        auto font = PdfFont::CreateStandard14(*m_doc, stdFont, params.Encoding,
+            params.FontInitOpts).release();
         if (font != nullptr)
         {
             m_fontMap.insert({ Element(baseFontName,
@@ -136,98 +130,52 @@ PdfFont* PdfFontManager::getFont(const string_view& baseFontName, const PdfFontC
         }
     }
 
-    bool subsetting = (params.Flags & PdfFontCreationFlags::DoSubsetting) != PdfFontCreationFlags::None;
-    string path = params.FilePath;
-    unsigned short faceIndex = params.FaceIndex;
-    if (path.empty())
-        path = this->getFontPath(baseFontName, params.Bold, params.Italic, faceIndex);
-
-    if (path.empty())
-    {
-#if defined(_WIN32) && !defined(PDFMM_HAVE_FONTCONFIG)
-        return getWin32Font(m_fontMap, fontName, params.Encoding, params.Bold, params.Italic,
-            params.IsSymbolCharset, params.Embed, subsetting);
-#else
+    shared_ptr<chars> buffer = GetFontData(baseFontName, params.SearchParams);
+    if (buffer == nullptr)
         return nullptr;
-#endif
-    }
-    else
-    {
-        shared_ptr<PdfFontMetricsFreetype> metrics = PdfFontMetricsFreetype::CreateFromFile(path,
-            params.IsSymbolCharset, faceIndex);
-        return this->createFontObject(m_fontMap, baseFontName, metrics, params.Encoding,
-            params.Bold, params.Italic, params.Embed, subsetting);
-    }
+
+    auto metrics = std::make_shared<PdfFontMetricsFreetype>(buffer,
+        params.SearchParams.SymbolCharset);
+    return this->createFontObject(baseFontName, metrics,
+        params.Encoding, params.FontInitOpts);
 }
 
-PdfFont* PdfFontManager::GetFontSubset(const string_view& fontName, const PdfFontCreationParams& params)
+unique_ptr<chars> PdfFontManager::GetFontData(const string_view& fontName, const PdfFontSearchParams& params)
 {
-    if (params.Encoding.IsNull())
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Invalid encoding");
-
-    if (params.Flags != PdfFontCreationFlags::None)
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Invalid font subset creation parameters");
-
-    if (!params.Embed)
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Invalid font subset creation parameters");
-
-    // WARNING: The characters are completely ignored right now!
-
-    string baseFontName;
-    PdfFontCreationParams newParams = params;
-    if (params.NormalizeFontName)
-        baseFontName = PdfFont::ExtractBaseName(fontName, newParams.Bold, newParams.Italic);
-    else
-        baseFontName = fontName;
-    return getFontSubset(baseFontName, newParams);
+    return getFontData(fontName, { }, 0, params);
 }
 
-// baseFontName is already normalized and cleaned from known suffixes
-PdfFont* PdfFontManager::getFontSubset(const std::string_view& baseFontName, const PdfFontCreationParams& params)
+unique_ptr<chars> PdfFontManager::getFontData(const string_view& fontName,
+    string filepath, unsigned faceIndex, const PdfFontSearchParams& params)
 {
-    auto found = m_fontSubsetMap.find(Element(
-        baseFontName,
-        params.Encoding,
-        params.Bold,
-        params.Italic,
-        params.IsSymbolCharset));
-    if (found == m_fontSubsetMap.end())
+    faceIndex = 0; // TODO, implement searching the face index
+    if (filepath.empty())
     {
-        string path = params.FilePath;
-        unsigned short faceIndex = params.FaceIndex;
-        if (path.empty())
-            path = this->getFontPath(baseFontName, params.Bold, params.Italic, faceIndex);
-
-        if (path.empty())
-        {
-#if defined(_WIN32) && !defined(PDFMM_HAVE_FONTCONFIG)
-            return getWin32Font(m_fontSubsetMap, fontName,
-                params.Encoding, params.Bold, params.Italic,
-                params.IsSymbolCharset, true, true);
-#else
-            PdfError::LogMessage(LogSeverity::Error, "No path was found for the specified fontname: {}", baseFontName);
-            return nullptr;
+#ifdef PDFMM_HAVE_FONTCONFIG
+        auto fc = ensureInitializedFontConfig();
+        filepath = m_fontConfig->GetFontConfigFontPath(fontName, params.Bold, params.Italic);
 #endif
-        }
+    }
 
-        auto metrics = (PdfFontMetricsConstPtr)PdfFontMetricsFreetype::CreateFromFile(path,
-            params.IsSymbolCharset, faceIndex);
-        return createFontObject(m_fontSubsetMap, baseFontName, metrics, params.Encoding,
-            params.Bold, params.Italic, true, true);
-    }
-    else
-    {
-        return found->second;
-    }
+    unique_ptr<chars> ret;
+    if (!filepath.empty())
+        ret = ::getFontData(filepath, faceIndex);
+
+#if defined(_WIN32) && defined(PDFMM_HAVE_WIN32GDI)
+    if (ret == nullptr)
+        ret = getWin32FontData(fontName, params);
+#endif
+
+    return ret;
 }
 
 PdfFont* PdfFontManager::GetFont(FT_Face face, const PdfEncoding& encoding,
-    bool isSymbolCharset, bool embed)
+    bool isSymbolCharset, PdfFontInitOptions initOptions)
 {
     if (encoding.IsNull())
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Invalid encoding");
 
-    string name = FT_Get_Postscript_Name(face);
+    string name = PdfFont::ExtractBaseName(FT_Get_Postscript_Name(face));
     if (name.empty())
     {
         PdfError::LogMessage(LogSeverity::Error, "Could not retrieve fontname for font!");
@@ -243,32 +191,38 @@ PdfFont* PdfFontManager::GetFont(FT_Face face, const PdfEncoding& encoding,
         bold,
         italic,
         isSymbolCharset));
-    if (found == m_fontMap.end())
-    {
-        auto metrics = std::make_shared<PdfFontMetricsFreetype>(face, isSymbolCharset);
-        return this->createFontObject(m_fontMap, name, metrics, encoding,
-            bold, italic, embed, false);
-    }
-    else
-    {
+    if (found != m_fontMap.end())
         return found->second;
-    }
+
+    shared_ptr<PdfFontMetricsFreetype> metrics = PdfFontMetricsFreetype::FromFace(face, isSymbolCharset);
+    return this->createFontObject(name, metrics, encoding, initOptions);
 }
 
 void PdfFontManager::EmbedSubsetFonts()
 {
-    for (auto &pair : m_fontSubsetMap)
-        pair.second->EmbedFontSubset();
+    for (auto& pair : m_fontMap)
+    {
+        if (pair.second->IsSubsettingEnabled())
+            pair.second->EmbedFontSubset();
+    }
 }
 
-#if defined(_WIN32) && !defined(PDFMM_HAVE_FONTCONFIG)
+#if defined(_WIN32) && defined(PDFMM_HAVE_WIN32GDI)
 
-PdfFont* PdfFontManager::GetFont(const LOGFONTW& logFont,
-    const PdfEncoding& encoding, bool embed)
+PdfFont* PdfFontManager::GetFont(HFONT font,
+    const PdfEncoding& encoding, PdfFontInitOptions initOptions)
 {
+    if (font == nullptr)
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Font must be non null");
+
     if (encoding.IsNull())
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Invalid encoding");
 
+    LOGFONTW logFont;
+    if (::GetObjectW(font, sizeof(LOGFONTW), &logFont) == 0)
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "Invalid font");
+
+    // CHECK-ME: Normalize name or not?
     string fontname;
     utf8::utf16to8((char16_t*)logFont.lfFaceName, (char16_t*)logFont.lfFaceName + LF_FACESIZE, std::back_inserter(fontname));
 
@@ -279,15 +233,20 @@ PdfFont* PdfFontManager::GetFont(const LOGFONTW& logFont,
         logFont.lfItalic == 0 ? false : true,
         logFont.lfCharSet == SYMBOL_CHARSET));
 
-    if (found == m_fontMap.end())
-        return getWin32Font(m_fontMap, fontname, logFont, encoding, embed, false);
-    else
+    if (found != m_fontMap.end())
         return found->second;
+
+    shared_ptr<chars> buffer = ::getFontData(logFont);
+    if (buffer == nullptr)
+        return nullptr;
+
+    auto metrics = std::make_shared<PdfFontMetricsFreetype>(buffer,
+        logFont.lfCharSet == SYMBOL_CHARSET);
+    return this->createFontObject(fontname, metrics, encoding, initOptions);
 }
 
-PdfFont* PdfFontManager::getWin32Font(FontCacheMap& map, const string_view& fontName,
-    const PdfEncoding& encoding, bool bold, bool italic,
-    bool symbolCharset, bool embed, bool subsetting)
+std::unique_ptr<chars> PdfFontManager::getWin32FontData(
+    const string_view& fontName, const PdfFontSearchParams& params)
 {
     u16string fontnamew;
     utf8::utf8to16(fontName.begin(), fontName.end(), std::back_inserter(fontnamew));
@@ -302,15 +261,15 @@ PdfFont* PdfFontManager::getWin32Font(FontCacheMap& map, const string_view& font
     lf.lfWidth = 0;
     lf.lfEscapement = 0;
     lf.lfOrientation = 0;
-    lf.lfWeight = bold ? FW_BOLD : 0;
-    lf.lfItalic = italic;
+    lf.lfWeight = params.Bold ? FW_BOLD : 0;
+    lf.lfItalic = params.Italic;
     lf.lfUnderline = 0;
     lf.lfStrikeOut = 0;
     // NOTE: ANSI_CHARSET should give a consistent result among
     // different locale configurations but sometimes dont' match fonts.
     // We prefer OEM_CHARSET over DEFAULT_CHARSET because it configures
     // the mapper in a way that will match more fonts
-    lf.lfCharSet = symbolCharset ? SYMBOL_CHARSET : OEM_CHARSET;
+    lf.lfCharSet = params.SymbolCharset ? SYMBOL_CHARSET : OEM_CHARSET;
     lf.lfOutPrecision = OUT_DEFAULT_PRECIS;
     lf.lfClipPrecision = CLIP_DEFAULT_PRECIS;
     lf.lfQuality = DEFAULT_QUALITY;
@@ -318,52 +277,23 @@ PdfFont* PdfFontManager::getWin32Font(FontCacheMap& map, const string_view& font
 
     memset(lf.lfFaceName, 0, LF_FACESIZE * sizeof(char16_t));
     memcpy(lf.lfFaceName, fontnamew.c_str(), fontnamew.length() * sizeof(char16_t));
-    return getWin32Font(map, fontName, lf, encoding, embed, subsetting);
+    return ::getFontData(lf);
 }
 
-PdfFont* PdfFontManager::getWin32Font(FontCacheMap& map, const string_view& fontName,
-    const LOGFONTW& logFont, const PdfEncoding& encoding, bool embed, bool subsetting)
-{
-    chars buffer;
-    if (!getFontData(buffer, logFont))
-        return nullptr;
+#endif // defined(_WIN32) && defined(PDFMM_HAVE_WIN32GDI)
 
-    auto metrics = std::make_shared<PdfFontMetricsFreetype>(m_ftLibrary, buffer.data(), buffer.size(),
-        logFont.lfCharSet == SYMBOL_CHARSET);
-    return this->CreateFontObject(map, fontName, metrics, encoding,
-        logFont.lfWeight >= FW_BOLD ? true : false,
-        logFont.lfItalic ? true : false, embed, subsetting);
-}
-
-#endif // defined(_WIN32) && !defined(PDFMM_HAVE_FONTCONFIG)
-
-string PdfFontManager::getFontPath(const string_view& fontName,
-    bool bold, bool italic, unsigned short& faceIndex)
-{
-    faceIndex = 0; // TODO, implement searching the face index
-#if defined(PDFMM_HAVE_FONTCONFIG)
-    return m_fontConfig->GetFontConfigFontPath(fontName, bold, italic);
-#else
-    (void)fontName;
-    (void)bold;
-    (void)italic;
-    return string();
-#endif
-}
-
-PdfFont* PdfFontManager::createFontObject(FontCacheMap& map, const string_view& fontName,
+PdfFont* PdfFontManager::createFontObject(const string_view& fontName,
     const PdfFontMetricsConstPtr& metrics, const PdfEncoding& encoding,
-    bool bold, bool italic, bool embed, bool subsetting)
+    PdfFontInitOptions initOptions)
 {
     PdfFont* font;
 
     try
     {
-        PdfFontInitParams params = { bold, italic, embed, subsetting };
-        font = PdfFont::Create(*m_doc, metrics, encoding, params).release();
+        font = PdfFont::Create(*m_doc, metrics, encoding, initOptions).release();
         if (font != nullptr)
         {
-            map.insert({ Element(fontName,
+            m_fontMap.insert({ Element(fontName,
                 encoding,
                 metrics->IsBold(),
                 metrics->IsItalic(),
@@ -383,15 +313,33 @@ PdfFont* PdfFontManager::createFontObject(FontCacheMap& map, const string_view& 
 
 #ifdef PDFMM_HAVE_FONTCONFIG
 
-void PdfFontManager::SetFontConfigWrapper(PdfFontConfigWrapper* fontConfig)
+void PdfFontManager::SetFontConfigWrapper(const shared_ptr<PdfFontConfigWrapper>& fontConfig)
 {
     if (m_fontConfig == fontConfig)
         return;
 
     if (fontConfig == nullptr)
-        m_fontConfig = PdfFontConfigWrapper::GetInstance();
-    else
-        m_fontConfig = fontConfig;
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Fontconfig wrapper can't be null");
+
+    m_fontConfig = fontConfig;
+}
+
+PdfFontConfigWrapper& PdfFontManager::GetFontConfigWrapper()
+{
+    auto ret = ensureInitializedFontConfig();
+    return *ret;
+}
+
+shared_ptr<PdfFontConfigWrapper> PdfFontManager::ensureInitializedFontConfig()
+{
+    auto ret = m_fontConfig;
+    if (ret == nullptr)
+    {
+        ret.reset(new PdfFontConfigWrapper());
+        m_fontConfig = ret;
+    }
+
+    return ret;
 }
 
 #endif // PDFMM_HAVE_FONTCONFIG
@@ -435,12 +383,44 @@ bool PdfFontManager::EqualElement::operator()(const Element& lhs, const Element&
         && lhs.IsSymbolCharset == rhs.IsSymbolCharset;
 }
 
-#if defined(_WIN32) && !defined(PDFMM_HAVE_FONTCONFIG)
+unique_ptr<chars> getFontData(const string_view& filename, unsigned short faceIndex)
+{
+    FT_Error rc;
+    FT_ULong length = 0;
+    unique_ptr<chars> buffer;
+    FT_Face face;
+    rc = FT_New_Face(mm::GetFreeTypeLibrary(), filename.data(), faceIndex, &face);
+    if (rc != 0)
+    {
+        // throw an exception
+        PdfError::LogMessage(LogSeverity::Error, "FreeType returned the error {} when calling FT_New_Face for font {}",
+            (int)rc, filename);
+        return nullptr;
+    }
 
-bool getFontData(chars& buffer, const LOGFONTW& inFont)
+    unique_ptr<FT_FaceRec_, decltype(&FT_Done_Face)> face_(face, FT_Done_Face);
+    rc = FT_Load_Sfnt_Table(face, 0, 0, nullptr, &length);
+    if (rc != 0)
+        goto Error;
+
+    buffer = std::make_unique<chars>(length);
+    rc = FT_Load_Sfnt_Table(face, 0, 0, reinterpret_cast<FT_Byte*>(buffer->data()), &length);
+    if (rc != 0)
+        goto Error;
+
+    return buffer;
+Error:
+    PdfError::LogMessage(LogSeverity::Error, "FreeType returned the error {} when calling FT_Load_Sfnt_Table for font {}",
+        (int)rc, filename);
+    return nullptr;
+}
+
+#if defined(_WIN32) && defined(PDFMM_HAVE_WIN32GDI)
+
+unique_ptr<chars> getFontData(const LOGFONTW& inFont)
 {
     bool success = false;
-
+    chars buffer;
     HDC hdc = ::CreateCompatibleDC(nullptr);
     HFONT hf = CreateFontIndirectW(&inFont);
     if (hf != nullptr)
@@ -449,7 +429,11 @@ bool getFontData(chars& buffer, const LOGFONTW& inFont)
         DeleteObject(hf);
     }
     ReleaseDC(0, hdc);
-    return success;
+
+    if (success)
+        return std::make_unique<chars>(std::move(buffer));
+    else
+        return nullptr;
 }
 
 bool getFontData(chars& buffer, HDC hdc, HFONT hf)
@@ -544,4 +528,4 @@ void getFontDataTTC(chars& buffer, const chars& fileBuffer, const chars& ttcBuff
     }
 }
 
-#endif // defined(_WIN32) && !defined(PDFMM_HAVE_FONTCONFIG)
+#endif // defined(_WIN32) && defined(PDFMM_HAVE_WIN32GDI)

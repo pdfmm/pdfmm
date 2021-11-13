@@ -25,7 +25,7 @@ namespace mm {
 class PDFMM_API PdfFontMetrics
 {
 protected:
-    PdfFontMetrics(PdfFontMetricsType fontType, const std::string_view& filename);
+    PdfFontMetrics(PdfFontMetricsType fontType);
 
 public:
     virtual ~PdfFontMetrics();
@@ -116,11 +116,6 @@ public:
      */
     virtual double GetDescent() const = 0;
 
-    /** Get a pointer to the path of the font file.
-     *  \returns a zero terminated string containing the filename of the font file
-     */
-    inline const std::string& GetFilename() const { return m_Filename; }
-
     /** Get the actual font data for a file loaded font, if available
      *
      * For font data coming from the /FontFile keys, use GetFontDataObject()
@@ -206,15 +201,14 @@ protected:
      *  Set the fonttype.
      *  \param eFontType fonttype
      */
-    inline void SetFontType(PdfFontMetricsType eFontType) { m_FontType = eFontType; }
+    inline void SetType(PdfFontMetricsType eFontType) { m_FontType = eFontType; }
 
 private:
     PdfFontMetrics(const PdfFontMetrics& rhs) = delete;
     PdfFontMetrics& operator=(const PdfFontMetrics& rhs) = delete;
 
-protected:
+private:
     PdfFontMetricsType m_FontType;
-    std::string m_Filename;
 };
 
 /** Convenience typedef for a const PdfEncoding shared ptr

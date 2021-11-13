@@ -12,8 +12,6 @@
 
 #include "PdfDefines.h"
 
-#include <mutex>
-
 #include "Pdf3rdPtyForwardDecl.h"
 
 namespace mm {
@@ -56,19 +54,11 @@ public:
 
     FcConfig* GetFcConfig();
 
-    static PdfFontConfigWrapper* GetInstance();
-
 private:
     PdfFontConfigWrapper(const PdfFontConfigWrapper& rhs) = delete;
     const PdfFontConfigWrapper& operator=(const PdfFontConfigWrapper& rhs) = delete;
 
-    /**
-     * Do the lazy initialization of fontconfig
-     */
-    void InitializeFontConfig();
-
 private:
-    std::mutex m_mutex;
     FcConfig* m_FcConfig;
 };
 

@@ -21,7 +21,7 @@ PdfFontMetricsStandard14::PdfFontMetricsStandard14(PdfStandard14FontType fontTyp
         int16_t ascent, int16_t descent, uint16_t x_height,
         uint16_t cap_height, int16_t strikeout_pos,
         int16_t underline_pos, const PdfRect& mbbox) :
-    PdfFontMetrics(PdfFontMetricsType::Type1Standard14, { }),
+    PdfFontMetrics(PdfFontMetricsType::Type1Standard14),
     m_Std14FontType(fontType),
     m_data(data),
     m_dataSize(dataSize),

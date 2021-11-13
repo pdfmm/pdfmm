@@ -204,6 +204,24 @@ enum class PdfFontMetricsType
     Type3,
 };
 
+/** Flags to control font creation.
+ */
+enum class PdfAutoSelectFontOptions
+{
+    None = 0,                   ///< No auto selection
+    Standard14 = 1,             ///< Automatically select a Standard14 font if the fontname matches one of them
+    Standard14Alt = 2           ///< Automatically select a Standard14 font if the fontname matches one of them (standarda and alternative names)
+};
+
+/** Font init flags
+ */
+enum class PdfFontInitOptions
+{
+    None = 0,                 ///< No special settings
+    Embed = 1,                ///< Do embed font data
+    Subset = 2                ///< Create subsetted, which includes only used characters. Implies embed
+};
+
 /**
  * Enum for the colorspaces supported
  * by PDF.
@@ -463,6 +481,8 @@ static const char s_PdfVersionNums[][4] = {
 ENABLE_BITMASK_OPERATORS(mm::PdfSaveOptions);
 ENABLE_BITMASK_OPERATORS(mm::PdfWriteMode);
 ENABLE_BITMASK_OPERATORS(mm::PdfInfoInitial);
+ENABLE_BITMASK_OPERATORS(mm::PdfFontInitOptions);
+ENABLE_BITMASK_OPERATORS(mm::PdfAutoSelectFontOptions);
 
 /**
  * \mainpage

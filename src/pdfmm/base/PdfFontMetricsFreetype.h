@@ -25,31 +25,18 @@ class PDFMM_API PdfFontMetricsFreetype final : public PdfFontMetrics
 {
 public:
     /** Create a font metrics object for a given memory buffer
-     *  \param library handle to an initialized FreeType2 library handle
      *  \param buffer block of memory representing the font data (PdfFontMetricsFreetype will copy the buffer)
-     *  \param size the length of the buffer
      *  \param isSymbol whether use a symbol encoding, rather than unicode
      */
-    PdfFontMetricsFreetype(const char* buffer, size_t size, bool isSymbol);
-
-    /** Create a font metrics object for a given freetype font.
-     *  \param library handle to an initialized FreeType2 library handle
-     *  \param face a valid freetype font face
-     *  \param isSymbol whether use a symbol encoding, rather than unicode
-     */
-    PdfFontMetricsFreetype(FT_Face face, bool isSymbol);
-
-    /** Create a font metrics object suitable for subsetting for a given true type file
-     *  \param library handle to an initialized FreeType2 library handle
-     *  \param filename filename of a truetype file
-     *  \param isSymbol whether use a symbol encoding, rather than unicode
-     */
-    static std::unique_ptr<PdfFontMetricsFreetype> CreateFromFile(
-        const std::string_view& filename, bool isSymbol, unsigned short faceIndex);
+    PdfFontMetricsFreetype(const std::shared_ptr<chars>& buffer, bool isSymbol);
 
     ~PdfFontMetricsFreetype();
 
 public:
+    static std::unique_ptr<PdfFontMetricsFreetype> FromBuffer(const std::string_view& buffer, bool isSymbol);
+
+    static std::unique_ptr<PdfFontMetricsFreetype> FromFace(FT_Face face, bool isSymbol);
+
     unsigned GetGlyphCount() const override;
 
     bool TryGetGlyphWidth(unsigned gid, double& width) const override;
@@ -97,20 +84,19 @@ public:
     inline FT_Face GetFace() const { return m_Face; }
 
 private:
-    PdfFontMetricsFreetype(const std::shared_ptr<chars>& buffer, PdfFontMetricsType fontType, bool isSymbol);
+    PdfFontMetricsFreetype(FT_Face face, const std::shared_ptr<chars>& buffer, bool isSymbol);
 
-private:
     /** Initialize this object from an in memory buffer
      *  Called internally by the constructors
       * \param isSymbol Whether use a symbol charset, rather than unicode
      */
-    void InitFromBuffer(bool isSymbol);
+    void InitFromBuffer();
 
     /** Load the metric data from the FTFace data
      *		Called internally by the constructors
       * \param isSymbol Whether use a symbol charset, rather than unicode
      */
-    void InitFromFace(bool isSymbol);
+    void InitFromFace();
 
     void InitFontSizes();
 

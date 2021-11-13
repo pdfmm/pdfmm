@@ -16,30 +16,21 @@ using namespace mm;
 PdfFontConfigWrapper::PdfFontConfigWrapper(FcConfig* fcConfig)
     : m_FcConfig(fcConfig)
 {
+    if (fcConfig == nullptr)
+    {
+        // Default initialize FontConfig
+        FcInit();
+        m_FcConfig = FcConfigGetCurrent();
+    }
 }
 
 PdfFontConfigWrapper::~PdfFontConfigWrapper()
 {
-    unique_lock<mutex> lock(m_mutex);
-    if (m_FcConfig != nullptr)
-        FcConfigDestroy(m_FcConfig);
-}
-
-void PdfFontConfigWrapper::InitializeFontConfig()
-{
-    unique_lock<mutex> lock(m_mutex);
-    if (m_FcConfig != nullptr)
-        return;
-
-    // Default initialize FontConfig
-    FcInit();
-    m_FcConfig = FcConfigGetCurrent();
+    FcConfigDestroy(m_FcConfig);
 }
 
 string PdfFontConfigWrapper::GetFontConfigFontPath(const string_view fontName, bool bold, bool italic)
 {
-    InitializeFontConfig();
-
     FcPattern* pattern;
     FcPattern* matched;
     FcResult result = FcResultMatch;
@@ -66,8 +57,8 @@ string PdfFontConfigWrapper::GetFontConfigFontPath(const string_view fontName, b
         result = FcPatternGet(matched, FC_FILE, 0, &v);
         path = reinterpret_cast<const char*>(v.u.s);
 #ifdef PDFMM_VERBOSE_DEBUG
-        PdfError::LogMessage(eLogSeverity_Debug,
-            "Got Font %s for for %s\n", path.c_str(), pszFontName);
+        PdfError::LogMessage(LogSeverity::Debug,
+            "Got Font {} for for {}\n", path, fontName);
 #endif // PDFMM_DEBUG
     }
 
@@ -78,12 +69,5 @@ string PdfFontConfigWrapper::GetFontConfigFontPath(const string_view fontName, b
 
 FcConfig* PdfFontConfigWrapper::GetFcConfig()
 {
-    InitializeFontConfig();
     return m_FcConfig;
-}
-
-PdfFontConfigWrapper* PdfFontConfigWrapper::GetInstance()
-{
-    static PdfFontConfigWrapper wrapper;
-    return &wrapper;
 }

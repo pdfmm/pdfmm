@@ -77,21 +77,11 @@ void PdfFontType1::embedFontSubset()
     auto contents = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject();
     m_Descriptor->GetDictionary().AddKey("FontFile", contents->GetIndirectReference());
 
-    // if the data was loaded from memory - use it from there
-    // otherwise, load from disk
-    if (!m_Metrics->GetFontData().empty())
-    {
-        buffer = m_Metrics->GetFontData().data();
-        size = m_Metrics->GetFontData().size();
-    }
-    else
-    {
-        size = utls::FileSize(m_Metrics->GetFilename());
-        PdfInputDevice stream((string_view)m_Metrics->GetFilename());
-        allocated.reset(new char[size]);
-        stream.Read(allocated.get(), size);
-        buffer = allocated.get();
-    }
+    if (m_Metrics->GetFontData().empty())
+        PDFMM_RAISE_ERROR(PdfErrorCode::InternalLogic);
+
+    buffer = m_Metrics->GetFontData().data();
+    size = m_Metrics->GetFontData().size();
 
     // Allocate buffer for subsetted font, worst case size is input size
     chars outBuff(size);
@@ -323,20 +313,11 @@ void PdfFontType1::embedFontFile(PdfObject& descriptor)
 
     descriptor.GetDictionary().AddKey("FontFile", contents->GetIndirectReference());
 
-    // if the data was loaded from memory - use it from there
-    // otherwise, load from disk
-    if (!m_Metrics->GetFontData().empty())
-    {
-        buffer = (chars)m_Metrics->GetFontData();
-        size = m_Metrics->GetFontData().size();
-    }
-    else
-    {
-        size = utls::FileSize(m_Metrics->GetFilename());
-        PdfInputDevice stream((string_view)m_Metrics->GetFilename());
-        buffer.resize(size);
-        stream.Read(buffer.data(), size);
-    }
+    if (m_Metrics->GetFontData().empty())
+        PDFMM_RAISE_ERROR(PdfErrorCode::InternalLogic);
+
+    buffer = (chars)m_Metrics->GetFontData();
+    size = m_Metrics->GetFontData().size();
 
     // Remove binary segment headers from pfb
     unsigned char* data = reinterpret_cast<unsigned char*>(buffer.data());

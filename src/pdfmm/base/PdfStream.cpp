@@ -88,7 +88,7 @@ const PdfStream& PdfStream::operator=(const PdfStream& rhs)
 
 void PdfStream::CopyFrom(const PdfStream& rhs)
 {
-    PdfMemoryInputStream stream(rhs.GetInternalBuffer(), rhs.GetInternalBufferSize());
+    PdfMemoryInputStream stream({ rhs.GetInternalBuffer(), rhs.GetInternalBufferSize() });
     this->SetRawData(stream);
 }
 

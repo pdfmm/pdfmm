@@ -21,9 +21,9 @@
 #include "PdfFontConfigWrapper.h"
 #endif
 
-#if defined(_WIN32) && !defined(PDFMM_HAVE_FONTCONFIG)
+#if defined(_WIN32) && defined(PDFMM_HAVE_WIN32GDI)
 // To have LOGFONTW available
-typedef struct tagLOGFONTW LOGFONTW;
+typedef struct HFONT__* HFONT;
 #endif
 
 namespace mm {
@@ -31,23 +31,18 @@ namespace mm {
 class PdfFontMetrics;
 class PdfIndirectObjectList;
 
-/**
- * Flags to control font creation.
- */
-enum class PdfFontCreationFlags
+struct PdfFontSearchParams
 {
-    None = 0,                   ///< No special settings
-    AutoSelectStandard14 = 1,   ///< Create automatically a Standard14 font if the fontname matches one of them
-    DoSubsetting = 2            ///< Create subsetted, which includes only used characters
+    bool Bold = false;
+    bool Italic = false;
+    bool SymbolCharset = false; // CHECK-ME: Migrate this to a flag?
 };
 
 struct PdfFontCreationParams
 {
-    bool Bold = false;
-    bool Italic = false;
-    bool IsSymbolCharset = false; // CHECK-ME: Migrate this to a flag?
-    PdfFontCreationFlags Flags = PdfFontCreationFlags::None;
-    bool Embed = true;
+    PdfFontSearchParams SearchParams;
+    PdfAutoSelectFontOptions AutoSelectOpts = PdfAutoSelectFontOptions::None;
+    PdfFontInitOptions FontInitOpts = PdfFontInitOptions::Embed;
     bool NormalizeFontName = true;
     PdfEncoding Encoding = PdfEncodingFactory::CreateWinAnsiEncoding();
     std::string FilePath;
@@ -101,18 +96,11 @@ public:
      *  \returns a PdfFont object or nullptr if the font could
      *           not be created or found.
      */
-    PdfFont* GetFont(const std::string_view& fontName, const PdfFontCreationParams& params = { });
+    PdfFont* GetFont(const std::string_view& fontName,
+        const PdfFontCreationParams& params = { });
 
-    /** Get a fontsubset from the cache. If the font does not yet
-     *  exist, add it to the cache.
-     *
-     *  \param fontName a valid fontname
-     *  \param params params for font creation
-     *
-     *  \returns a PdfFont object or nullptr if the font could
-     *           not be created or found.
-     */
-    PdfFont* GetFontSubset(const std::string_view& fontName, const PdfFontCreationParams& params = { });
+    static std::unique_ptr<chars> GetFontData(const std::string_view& fontName,
+        const PdfFontSearchParams& params = { });
 
     /** Get a font from the cache. If the font does not yet
      *  exist, add it to the cache.
@@ -129,16 +117,15 @@ public:
     PdfFont* GetFont(FT_Face face,
         const PdfEncoding& encoding = PdfEncodingFactory::CreateWinAnsiEncoding(),
         bool isSymbolCharset = false,
-        bool embed = false);
+        PdfFontInitOptions initOptions = PdfFontInitOptions::Embed);
 
-#if defined(_WIN32) && !defined(PDFMM_HAVE_FONTCONFIG)
-    PdfFont* GetFont(const LOGFONTW& logFont,
+#if defined(_WIN32) && defined(PDFMM_HAVE_WIN32GDI)
+    PdfFont* GetFont(HFONT font,
         const PdfEncoding& encoding = PdfEncodingFactory::CreateWinAnsiEncoding(),
-        bool embed = true);
+        PdfFontInitOptions initOptions = PdfFontInitOptions::Embed);
 #endif
 
 #ifdef PDFMM_HAVE_FONTCONFIG
-
     /**
      * Set wrapper for the fontconfig library.
      * Useful to avoid initializing Fontconfig multiple times.
@@ -146,8 +133,9 @@ public:
      * This setter can be called until first use of Fontconfig
      * as the library is initialized at first use.
      */
-    void SetFontConfigWrapper(PdfFontConfigWrapper* fontConfig);
+    static void SetFontConfigWrapper(const std::shared_ptr<PdfFontConfigWrapper>& fontConfig);
 
+    static PdfFontConfigWrapper& GetFontConfigWrapper();
 #endif // PDFMM_HAVE_FONTCONFIG
 
     // These methods are available for PdfDocument only
@@ -198,43 +186,33 @@ private:
     typedef std::unordered_map<Element, PdfFont*, HashElement, EqualElement> FontCacheMap;
 
 private:
+#ifdef PDFMM_HAVE_FONTCONFIG
+    static std::shared_ptr<PdfFontConfigWrapper> ensureInitializedFontConfig();
+#endif // PDFMM_HAVE_FONTCONFIG
+    static std::unique_ptr<chars> getFontData(const std::string_view& fontName,
+        std::string filepath, unsigned faceIndex, const PdfFontSearchParams& params);
     PdfFont* getFont(const std::string_view& baseFontName, const PdfFontCreationParams& params);
-    PdfFont* getFontSubset(const std::string_view& baseFontName, const PdfFontCreationParams& params);
-
-    /**
-     * Get the path to a font file for a certain fontname
-     */
-    std::string getFontPath(const std::string_view& fontName,
-        bool bold, bool italic, unsigned short& faceIndex);
 
     /** Create a font and put it into the fontcache
      */
-    PdfFont* createFontObject(FontCacheMap& map, const std::string_view& fontName,
+    PdfFont* createFontObject(const std::string_view& fontName,
         const PdfFontMetricsConstPtr& metrics, const PdfEncoding& encoding,
-        bool bold, bool italic, bool embed, bool subsetting);
+        PdfFontInitOptions initOptions);
 
-#if defined(_WIN32) && !defined(PDFMM_HAVE_FONTCONFIG)
-    PdfFont* getWin32Font(FontCacheMap& map, const std::string_view& fontName,
-        const PdfEncoding& encoding, bool bold, bool italic, bool symbolCharset,
-        bool embed, bool subsetting);
-
-    PdfFont* getWin32Font(FontCacheMap& map, const std::string_view& fontName,
-        const LOGFONTW& logFont, const PdfEncoding& encoding,
-        bool embed, bool subsetting);
+#if defined(_WIN32) && defined(PDFMM_HAVE_WIN32GDI)
+    static std::unique_ptr<chars> getWin32FontData(const std::string_view& fontName,
+        const PdfFontSearchParams& params);
 #endif
 
 private:
     FontCacheMap m_fontMap;             // Sorted list of all fonts, currently in the cache
-    FontCacheMap m_fontSubsetMap;
-    PdfDocument* m_doc;                     // Handle to parent for creating new fonts and objects
+    PdfDocument* m_doc;                 // Handle to parent for creating new fonts and objects
 
 #ifdef PDFMM_HAVE_FONTCONFIG
-    PdfFontConfigWrapper* m_fontConfig;
+    static std::shared_ptr<PdfFontConfigWrapper> m_fontConfig;
 #endif
 };
 
 };
-
-ENABLE_BITMASK_OPERATORS(mm::PdfFontCreationFlags);
 
 #endif // PDF_FONT_CACHE_H
