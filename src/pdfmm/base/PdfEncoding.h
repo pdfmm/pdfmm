@@ -113,10 +113,6 @@ namespace mm
          */
         char32_t GetCodePoint(unsigned charCode) const;
 
-        inline const PdfEncodingMap& GetEncodingMap() const { return *m_Encoding; }
-
-        const PdfEncodingMap& GetToUnicodeMap() const;
-
         bool HasCIDMapping() const;
 
         /** This return the first char code used in the encoding
@@ -131,6 +127,8 @@ namespace mm
 
         void ExportToDictionary(PdfDictionary& dictionary, PdfEncodingExportFlags flags = { }) const;
 
+        bool IsNull() const;
+
         /**
          * Return an Id to be used in hashed containers.
          * Id 0 has a special meaning for PdfDynamicEncoding
@@ -138,7 +136,19 @@ namespace mm
          */
         size_t GetId() const { return m_Id; }
 
-        bool IsNull() const;
+        /** Get actual limits of the encoding
+         *
+         * May be the limits inferred from /Encoding or the limits inferred by /FirstChar, /LastChar
+         */
+        const PdfEncodingLimits& GetLimits() const;
+
+        inline const PdfEncodingMap& GetEncodingMap() const { return *m_Encoding; }
+
+        const PdfEncodingMap& GetToUnicodeMap() const;
+
+        inline const PdfEncodingMapConstPtr GetEncodingMapPtr() const { return m_Encoding; }
+
+        inline const PdfEncodingMapConstPtr GetToUnicodeMaptr() const { return m_ToUnicode; }
 
     public:
         PdfEncoding& operator=(const PdfEncoding&) = default;
@@ -150,7 +160,6 @@ namespace mm
     private:
         bool tryConvertEncodedToUtf8(const std::string_view& encoded, std::string& str) const;
         bool tryConvertEncodedToCIDs(const std::string_view& encoded, std::vector<PdfCID>& cids) const;
-        const PdfEncodingLimits & getActualLimits() const;
 
     private:
         size_t m_Id;

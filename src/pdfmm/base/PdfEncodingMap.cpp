@@ -211,9 +211,6 @@ bool PdfEncodingMap::HasLigaturesSupport() const
 
 void PdfEncodingMap::WriteToUnicodeCMap(PdfObject& cmapObj) const
 {
-    if (m_limits.MaxCodeSize > 1)
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "TODO");
-
     // CMap specification is in Adobe technical node #5014
     // The /ToUnicode dictionary doesn't need /CMap type, /CIDSystemInfo or /CMapName
     auto& stream = cmapObj.GetOrCreateStream();
@@ -229,9 +226,14 @@ void PdfEncodingMap::WriteToUnicodeCMap(PdfObject& cmapObj) const
         ">> def\n"
         "/CMapName /Adobe-Identity-UCS def\n"
         "/CMapType 2 def\n"     // As defined in Adobe Technical Notes #5099
-        "1 begincodespacerange\n"
-        "<00> <FF>\n"
-        "endcodespacerange\n");
+        "1 begincodespacerange\n");
+
+    string temp;
+    m_limits.FirstChar.WriteHexTo(temp);
+    stream.Append(temp);
+    m_limits.LastChar.WriteHexTo(temp);
+    stream.Append(temp);
+    stream.Append("\nendcodespacerange\n");
 
     appendBaseFontEntries(stream);
     stream.Append(
@@ -319,8 +321,18 @@ void PdfEncodingMapBase::appendBaseFontEntries(PdfStream& stream) const
 {
     // Very easy, just do a list of bfchar
     // Use PdfEncodingMap::AppendUTF16CodeTo
-    (void)stream;
-    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "TODO");
+    u16string u16temp;
+    string temp = std::to_string(m_charMap->GetSize());
+    stream.Append(temp).Append(" beginbfchar\n");
+    for (auto& pair : *m_charMap)
+    {
+        pair.first.WriteHexTo(temp);
+        stream.Append(temp);
+        stream.Append(" ");
+        PdfEncodingMap::AppendUTF16CodeTo(stream, pair.second, u16temp);
+        stream.Append("\n");
+    }
+    stream.Append("endbfchar");
 }
 
 PdfEncodingLimits PdfEncodingMapBase::findLimits(const PdfCharCodeMap& map)

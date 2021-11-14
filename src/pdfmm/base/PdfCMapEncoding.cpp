@@ -43,6 +43,11 @@ PdfCMapEncoding::PdfCMapEncoding(MapIdentity map)
 {
 }
 
+PdfCMapEncoding::PdfCMapEncoding(PdfCharCodeMap&& map)
+    : PdfEncodingMapBase(std::move(map))
+{
+}
+
 bool PdfCMapEncoding::HasCIDMapping() const
 {
     // CMap encodings can represent proper CID encoding

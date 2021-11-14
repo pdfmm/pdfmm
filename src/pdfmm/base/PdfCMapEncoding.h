@@ -16,7 +16,13 @@ namespace mm
     class PdfCMapEncoding : public PdfEncodingMapBase
     {
     public:
+        /** Construct a PdfCMapEncoding from an object
+         */
         PdfCMapEncoding(const PdfObject& cmapObj);
+
+        /** Construct a PdfCMapEncoding from a map
+         */
+        PdfCMapEncoding(PdfCharCodeMap&& map);
 
     public:
         bool HasCIDMapping() const override;

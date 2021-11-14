@@ -36,6 +36,7 @@ struct PdfFontSearchParams
     bool Bold = false;
     bool Italic = false;
     bool SymbolCharset = false; // CHECK-ME: Migrate this to a flag?
+    bool NormalizeFontName = true;
 };
 
 struct PdfFontCreationParams
@@ -43,7 +44,6 @@ struct PdfFontCreationParams
     PdfFontSearchParams SearchParams;
     PdfAutoSelectFontOptions AutoSelectOpts = PdfAutoSelectFontOptions::None;
     PdfFontInitOptions FontInitOpts = PdfFontInitOptions::Embed;
-    bool NormalizeFontName = true;
     PdfEncoding Encoding = PdfEncodingFactory::CreateWinAnsiEncoding();
     std::string FilePath;
     unsigned short FaceIndex = 0;

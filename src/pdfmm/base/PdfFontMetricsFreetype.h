@@ -20,6 +20,8 @@ namespace mm {
 class PdfArray;
 class PdfObject;
 class PdfVariant;
+class PdfEncodingMap;
+struct PdfEncodingLimits;
 
 class PDFMM_API PdfFontMetricsFreetype final : public PdfFontMetrics
 {
@@ -36,6 +38,15 @@ public:
     static std::unique_ptr<PdfFontMetricsFreetype> FromBuffer(const std::string_view& buffer, bool isSymbol);
 
     static std::unique_ptr<PdfFontMetricsFreetype> FromFace(FT_Face face, bool isSymbol);
+
+    /** Create a best effort /ToUnicode map based on the
+     * character unicode maps of the font
+     *
+     * This map may be unreliable because of ligatures,
+     * other kind of character subsitutions, or glyphs
+     * mapping to multiple unicode codepoints
+     */
+    std::unique_ptr<PdfEncodingMap> CreateToUnicodeMap(const PdfEncodingLimits& limitHints) const;
 
     unsigned GetGlyphCount() const override;
 

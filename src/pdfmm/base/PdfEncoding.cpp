@@ -299,7 +299,7 @@ bool PdfEncoding::HasCIDMapping() const
 
 const PdfCharCode& PdfEncoding::GetFirstChar() const
 {
-    auto& limits = getActualLimits();
+    auto& limits = GetLimits();
     if (limits.FirstChar.Code > limits.LastChar.Code)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "FirstChar shall be smaller than LastChar");
 
@@ -308,7 +308,7 @@ const PdfCharCode& PdfEncoding::GetFirstChar() const
 
 const PdfCharCode& PdfEncoding::GetLastChar() const
 {
-    auto& limits = getActualLimits();
+    auto& limits = GetLimits();
     if (limits.FirstChar.Code > limits.LastChar.Code)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "FirstChar shall be smaller than LastChar");
 
@@ -322,7 +322,7 @@ void PdfEncoding::ExportToDictionary(PdfDictionary& dictionary, PdfEncodingExpor
         auto& font = GetFont();
         auto& usedGids = font.GetUsedGIDs();
         auto cmapObj = dictionary.GetOwner()->GetDocument()->GetObjects().CreateDictionaryObject();
-        if (getActualLimits().MaxCodeSize > 1)
+        if (GetLimits().MaxCodeSize > 1)
             PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "TODO");
         fillCIDToGIDMap(*cmapObj, usedGids, font.GetName());
         dictionary.AddKeyIndirect("Encoding", cmapObj);
@@ -388,7 +388,7 @@ char32_t PdfEncoding::GetCodePoint(unsigned charCode) const
     return U'\0';
 }
 
-const PdfEncodingLimits& PdfEncoding::getActualLimits() const
+const PdfEncodingLimits& PdfEncoding::GetLimits() const
 {
     if (m_Limits.FirstChar.Code > m_Limits.LastChar.Code)
         return m_Encoding->GetLimits();
@@ -398,6 +398,9 @@ const PdfEncodingLimits& PdfEncoding::getActualLimits() const
 
 const PdfEncodingMap& PdfEncoding::GetToUnicodeMap() const
 {
+    // If no /ToUnicode map present result the main encoding
+    // CHECK-ME: This is probably wrong, we should throw instead
+    // and rely on checking the map existence first with GetToUnicodeMapPtr()
     if (m_ToUnicode == nullptr)
         return *m_Encoding;
     else

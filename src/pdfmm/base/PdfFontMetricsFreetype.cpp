@@ -19,6 +19,7 @@
 #include "PdfDictionary.h"
 #include "PdfVariant.h"
 #include "PdfFont.h"
+#include "PdfCMapEncoding.h"
 
 #define PDFMM_FIRST_READABLE 31
 #define PDFMM_WIDTH_CACHE_SIZE 256
@@ -221,6 +222,23 @@ bool PdfFontMetricsFreetype::TryGetGID(char32_t codePoint, unsigned& gid) const
 
     gid = FT_Get_Char_Index(m_Face, codePoint);
     return gid != 0;
+}
+
+
+unique_ptr<PdfEncodingMap> PdfFontMetricsFreetype::CreateToUnicodeMap(const PdfEncodingLimits& limitHints) const
+{
+    PdfCharCodeMap map;
+    FT_ULong charcode;
+    FT_UInt gid;
+
+    charcode = FT_Get_First_Char(m_Face, &gid);
+    while (gid != 0)
+    {
+        map.PushMapping({ gid, limitHints.MinCodeSize }, (char32_t)charcode);
+        charcode = FT_Get_Next_Char(m_Face, charcode, &gid);
+    }
+
+    return std::make_unique<PdfCMapEncoding>(std::move(map));
 }
 
 double PdfFontMetricsFreetype::GetDefaultCharWidth() const

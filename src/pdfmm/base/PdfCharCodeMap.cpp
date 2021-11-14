@@ -33,6 +33,11 @@ PdfCharCodeMap& PdfCharCodeMap::operator=(PdfCharCodeMap&& map) noexcept
     return *this;
 }
 
+unsigned PdfCharCodeMap::GetSize() const
+{
+    return (unsigned)m_cuMap.size();
+}
+
 void PdfCharCodeMap::move(PdfCharCodeMap& map) noexcept
 {
     m_cuMap = std::move(map.m_cuMap);

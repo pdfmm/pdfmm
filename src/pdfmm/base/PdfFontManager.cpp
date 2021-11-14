@@ -90,7 +90,7 @@ PdfFont* PdfFontManager::GetFont(const string_view& fontName, const PdfFontCreat
 
     string baseFontName;
     PdfFontCreationParams newParams = params;
-    if (params.NormalizeFontName)
+    if (params.SearchParams.NormalizeFontName)
         baseFontName = PdfFont::ExtractBaseName(fontName, newParams.SearchParams.Bold, newParams.SearchParams.Italic);
     else
         baseFontName = fontName;

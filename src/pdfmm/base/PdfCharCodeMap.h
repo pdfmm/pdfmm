@@ -86,6 +86,8 @@ namespace mm
 
         PdfCharCodeMap& operator=(PdfCharCodeMap&& map) noexcept;
 
+        unsigned GetSize() const;
+
     private:
         void move(PdfCharCodeMap& map) noexcept;
         void pushMapping(const PdfCharCode& codeUnit, std::vector<char32_t>&& codePoints);
