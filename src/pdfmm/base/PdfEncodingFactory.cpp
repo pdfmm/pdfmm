@@ -81,7 +81,7 @@ PdfEncoding PdfEncodingFactory::CreateEncoding(PdfObject& fontObj)
         else
         {
             // As a fallback, create an identity encoding of the size size of the /ToUnicode mapping
-            encoding = std::make_shared<PdfIdentityEncoding>(toUnicode->GetLimits().MaxCodeSize, PdfIdentityOrientation::Horizontal);
+            encoding = std::make_shared<PdfIdentityEncoding>(toUnicode->GetLimits().MaxCodeSize);
         }
     }
 

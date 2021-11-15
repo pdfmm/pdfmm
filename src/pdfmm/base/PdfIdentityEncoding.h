@@ -29,23 +29,30 @@ enum class PdfIdentityOrientation
  */
 class PDFMM_API PdfIdentityEncoding final : public PdfEncodingMap
 {
-    friend class PdfEncodingFactory;
-
 public:
     /**
      *  Create a new PdfIdentityEncoding.
      *
      *  \param codeSpaceSize size of the codespace size
-     *  \param orientation horizontal or vertical orientation
      */
-    PdfIdentityEncoding(unsigned char codeSpaceSize,
-        PdfIdentityOrientation orientation);
+    PdfIdentityEncoding(unsigned char codeSpaceSize);
+
+    /**
+     *  Create a standard 2 bytes CID PdfIdentityEncoding
+     */
+    PdfIdentityEncoding(PdfIdentityOrientation orientation);
 
 protected:
     bool tryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const override;
     bool tryGetCodePoints(const PdfCharCode& codeUnit, std::vector<char32_t>& codePoints) const override;
     void getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const override;
     void appendBaseFontEntries(PdfStream& stream) const override;
+
+public:
+    bool HasCIDMapping() const override;
+
+private:
+    PdfIdentityEncoding(unsigned char codeSpaceSize, PdfIdentityOrientation orientation);
 
 private:
     PdfIdentityOrientation m_orientation;

@@ -133,7 +133,7 @@ public:
      * \param name name to use
      * \param obj if not null the object will be used instead
      */
-    void GetExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const;
+    bool TryGetExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const;
 
 public:
     virtual ~PdfEncodingMap();

@@ -105,8 +105,7 @@ void PdfFontCIDTrueType::initImported()
     if (!IsSubsettingEnabled())
     {
         createWidths(m_descendantFont->GetDictionary(), getCIDToGIDMap(false));
-        m_Encoding->ExportToDictionary(this->GetObject().GetDictionary(),
-            PdfEncodingExportFlags::ExportCIDCMap);
+        m_Encoding->ExportToDictionary(this->GetObject().GetDictionary());
     }
 
     // The FontDescriptor, should be an indirect object:
@@ -133,8 +132,7 @@ void PdfFontCIDTrueType::embedFontFile(PdfObject& descriptor)
         // Prepare a CID to GID for the subsetting
         CIDToGIDMap cidToGidMap = getCIDToGIDMap(true);
         createWidths(m_descendantFont->GetDictionary(), cidToGidMap);
-        m_Encoding->ExportToDictionary(this->GetObject().GetDictionary(),
-            PdfEncodingExportFlags::ExportCIDCMap);
+        m_Encoding->ExportToDictionary(this->GetObject().GetDictionary());
 
         auto& metrics = GetMetrics();
         PdfInputDevice input(metrics.GetFontData().data(), metrics.GetFontData().size());
@@ -144,43 +142,22 @@ void PdfFontCIDTrueType::embedFontFile(PdfObject& descriptor)
         auto contents = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject();
         descriptor.GetDictionary().AddKeyIndirect("FontFile2", contents);
 
-        size_t size = buffer.size();
-        contents->GetDictionary().AddKey("Length1", PdfObject(static_cast<int64_t>(size)));
-        contents->GetOrCreateStream().Set(buffer.data(), size);
+        contents->GetDictionary().AddKey("Length1", PdfObject(static_cast<int64_t>(buffer.size())));
+        contents->GetOrCreateStream().Set(buffer);
     }
     else
     {
-        ////
-        throw runtime_error("Untested after utf8 migration");
-
         auto contents = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject();
         descriptor.GetDictionary().AddKeyIndirect("FontFile2", contents);
 
-        // if the data was loaded from memory - use it from there
-        // otherwise, load from disk
-        if (m_Metrics->GetFontData().empty())
-        {
-            auto fontdata = m_Metrics->GetFontData();
-            PdfMemoryInputStream stream(fontdata);
+        auto fontdata = m_Metrics->GetFontData();
 
-            // NOTE: Set Length1 before creating the stream
-            // as PdfStreamedDocument does not allow
-            // adding keys to an object after a stream was written
-            contents->GetDictionary().AddKey("Length1",
-                PdfObject(static_cast<int64_t>(fontdata.size())));
-            contents->GetOrCreateStream().Set(stream);
-        }
-        else
-        {
-            // FIXME const_cast<char*> is dangerous if string literals may ever be passed
-            const char* buffer = m_Metrics->GetFontData().data();
-            size_t size = m_Metrics->GetFontData().size();
-            // NOTE: Set Length1 before creating the stream
-            // as PdfStreamedDocument does not allow
-            // adding keys to an object after a stream was written
-            contents->GetDictionary().AddKey("Length1", PdfObject(static_cast<int64_t>(size)));
-            contents->GetOrCreateStream().Set(buffer, size);
-        }
+        // NOTE: Set Length1 before creating the stream
+        // as PdfStreamedDocument does not allow
+        // adding keys to an object after a stream was written
+        contents->GetDictionary().AddKey("Length1",
+            PdfObject(static_cast<int64_t>(fontdata.size())));
+        contents->GetOrCreateStream().Set(fontdata);
     }
 }
 

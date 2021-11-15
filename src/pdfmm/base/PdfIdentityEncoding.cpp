@@ -23,10 +23,14 @@ using namespace mm;
 
 static PdfEncodingLimits getLimits(unsigned char codeSpaceSize);
 
+PdfIdentityEncoding::PdfIdentityEncoding(unsigned char codeSpaceSize)
+    : PdfIdentityEncoding(codeSpaceSize, PdfIdentityOrientation::Unkwnown) { }
+
 PdfIdentityEncoding::PdfIdentityEncoding(unsigned char codeSpaceSize, PdfIdentityOrientation orientation)
-    : PdfEncodingMap(getLimits(codeSpaceSize)), m_orientation(orientation)
-{
-}
+    : PdfEncodingMap(getLimits(codeSpaceSize)), m_orientation(orientation) { }
+
+PdfIdentityEncoding::PdfIdentityEncoding(PdfIdentityOrientation orientation)
+    : PdfIdentityEncoding(2, orientation) { }
 
 bool PdfIdentityEncoding::tryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const
 {
@@ -80,6 +84,18 @@ void PdfIdentityEncoding::appendBaseFontEntries(PdfStream& stream) const
     // Use PdfEncodingMap::AppendUTF16CodeTo
     (void)stream;
     PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "TODO");
+}
+
+bool PdfIdentityEncoding::HasCIDMapping() const
+{
+    switch (m_orientation)
+    {
+        case PdfIdentityOrientation::Horizontal:
+        case PdfIdentityOrientation::Vertical:
+            return true;
+        default:
+            return false;
+    }
 }
 
 PdfEncodingLimits getLimits(unsigned char codeSpaceSize)

@@ -20,9 +20,7 @@ namespace mm
     enum class PdfEncodingExportFlags
     {
         None = 0,
-        ExportCIDCMap = 1,  ///< Export an /Encoding entry CMap dictionary
-                            ///< that maps character codes to CID
-        SkipToUnicode = 2,  ///< Skip exporting a /ToUnicode entry
+        SkipToUnicode = 1,  ///< Skip exporting a /ToUnicode entry
     };
 
     /**
@@ -158,6 +156,7 @@ namespace mm
         virtual PdfFont & GetFont() const;
 
     private:
+        bool tryExportObjectTo(PdfDictionary& dictionary) const;
         bool tryConvertEncodedToUtf8(const std::string_view& encoded, std::string& str) const;
         bool tryConvertEncodedToCIDs(const std::string_view& encoded, std::vector<PdfCID>& cids) const;
 

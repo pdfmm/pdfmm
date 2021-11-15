@@ -60,13 +60,13 @@ PdfEncodingMapConstPtr PdfEncodingMapFactory::ZapfDingbatsEncodingInstance()
 
 PdfEncodingMapConstPtr PdfEncodingMapFactory::TwoBytesHorizontalIdentityEncodingInstance()
 {
-    static shared_ptr<PdfIdentityEncoding> s_istance(new PdfIdentityEncoding(2, PdfIdentityOrientation::Horizontal));
+    static shared_ptr<PdfIdentityEncoding> s_istance(new PdfIdentityEncoding(PdfIdentityOrientation::Horizontal));
     return s_istance;
 }
 
 PdfEncodingMapConstPtr PdfEncodingMapFactory::TwoBytesVerticalIdentityEncodingInstance()
 {
-    static shared_ptr<PdfIdentityEncoding> s_istance(new PdfIdentityEncoding(2, PdfIdentityOrientation::Vertical));
+    static shared_ptr<PdfIdentityEncoding> s_istance(new PdfIdentityEncoding(PdfIdentityOrientation::Vertical));
     return s_istance;
 }
 

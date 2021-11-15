@@ -317,26 +317,25 @@ const PdfCharCode& PdfEncoding::GetLastChar() const
 
 void PdfEncoding::ExportToDictionary(PdfDictionary& dictionary, PdfEncodingExportFlags flags) const
 {
-    if ((flags & PdfEncodingExportFlags::ExportCIDCMap) == PdfEncodingExportFlags::ExportCIDCMap)
+    if (HasCIDMapping())
     {
-        auto& font = GetFont();
-        auto& usedGids = font.GetUsedGIDs();
-        auto cmapObj = dictionary.GetOwner()->GetDocument()->GetObjects().CreateDictionaryObject();
-        if (GetLimits().MaxCodeSize > 1)
-            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "TODO");
-        fillCIDToGIDMap(*cmapObj, usedGids, font.GetName());
-        dictionary.AddKeyIndirect("Encoding", cmapObj);
+        // Some CID encodings has a name representation, such as Identity-H/Identity-V
+        if (!tryExportObjectTo(dictionary))
+        {
+            // If it doesn't have a name represenation, try to export a CID CMap
+            auto& font = GetFont();
+            auto& usedGids = font.GetUsedGIDs();
+            auto cmapObj = dictionary.GetOwner()->GetDocument()->GetObjects().CreateDictionaryObject();
+            if (GetLimits().MaxCodeSize > 1)
+                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "TODO");
+            fillCIDToGIDMap(*cmapObj, usedGids, font.GetName());
+            dictionary.AddKeyIndirect("Encoding", cmapObj);
+        }
     }
     else
     {
-        auto& objects = dictionary.GetOwner()->GetDocument()->GetObjects();
-        PdfName name;
-        PdfObject* obj;
-        m_Encoding->GetExportObject(objects, name, obj);
-        if (obj == nullptr)
-            dictionary.AddKey("Encoding", name);
-        else
-            dictionary.AddKeyIndirect("Encoding", obj);
+        if (!tryExportObjectTo(dictionary))
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "The encoding should supply an export object");
     }
 
     if ((flags & PdfEncodingExportFlags::SkipToUnicode) == PdfEncodingExportFlags::None)
@@ -346,6 +345,22 @@ void PdfEncoding::ExportToDictionary(PdfDictionary& dictionary, PdfEncodingExpor
         toUnicode.WriteToUnicodeCMap(*cmapObj);
         dictionary.AddKeyIndirect("ToUnicode", cmapObj);
     }
+}
+
+bool PdfEncoding::tryExportObjectTo(PdfDictionary& dictionary) const
+{
+    auto& objects = dictionary.GetOwner()->GetDocument()->GetObjects();
+    PdfName name;
+    PdfObject* obj;
+    if (!m_Encoding->TryGetExportObject(objects, name, obj))
+        return false;
+
+    if (obj == nullptr)
+        dictionary.AddKey("Encoding", name);
+    else
+        dictionary.AddKeyIndirect("Encoding", obj);
+
+    return true;
 }
 
 bool PdfEncoding::IsNull() const

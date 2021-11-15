@@ -32,7 +32,7 @@ unique_ptr<PdfFont> PdfFont::Create(PdfDocument& doc, const PdfFontMetricsConstP
     PdfFontMetricsType type = metrics->GetType();
     bool embeddingEnabled = (flags & PdfFontInitOptions::Embed) != PdfFontInitOptions::None;
     bool subsettingEnabled = (flags & PdfFontInitOptions::Subset) != PdfFontInitOptions::None;
-    auto font = createFontForType(doc, metrics, encoding, type, subsettingEnabled);
+    auto font = createFontForType(doc, metrics, encoding, type);
     if (font != nullptr)
         font->InitImported(embeddingEnabled, subsettingEnabled);
 
@@ -40,10 +40,10 @@ unique_ptr<PdfFont> PdfFont::Create(PdfDocument& doc, const PdfFontMetricsConstP
 }
 
 PdfFont* PdfFont::createFontForType(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
-    const PdfEncoding& encoding, PdfFontMetricsType type, bool subsetting)
+    const PdfEncoding& encoding, PdfFontMetricsType type)
 {
     PdfFont* font = nullptr;
-    if (subsetting || encoding.HasCIDMapping())
+    if (encoding.HasCIDMapping())
     {
         switch (type)
         {

@@ -23,11 +23,12 @@ PdfEncodingMap::PdfEncodingMap(const PdfEncodingLimits& limits)
 
 PdfEncodingMap::~PdfEncodingMap() { }
 
-void PdfEncodingMap::GetExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const
+bool PdfEncodingMap::TryGetExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const
 {
     name = { };
     obj = nullptr;
     getExportObject(objects, name, obj);
+    return !(obj == nullptr && name.IsNull());
 }
 
 void PdfEncodingMap::getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const
