@@ -18,16 +18,17 @@ using namespace mm;
 
 PdfFontMetricsStandard14::PdfFontMetricsStandard14(PdfStandard14FontType fontType,
         const Standard14FontData* data, unsigned dataSize, bool isSymbol,
-        int16_t ascent, int16_t descent, uint16_t x_height,
-        uint16_t cap_height, int16_t strikeout_pos,
-        int16_t underline_pos, const PdfRect& mbbox) :
+        int16_t ascent, int16_t descent, uint16_t xHeight,
+        uint16_t capHeight, uint16_t stemv,
+        int16_t strikeout_pos, int16_t underline_pos, const PdfRect& bbox) :
     PdfFontMetrics(PdfFontMetricsType::Type1Standard14),
     m_Std14FontType(fontType),
     m_data(data),
     m_dataSize(dataSize),
-    m_x_height(x_height),
-    m_cap_height(cap_height),
-    m_BBox(mbbox),
+    m_XHeight(xHeight),
+    m_CapHeight(capHeight),
+    m_StemV(stemv),
+    m_BBox(bbox),
     m_IsSymbol(isSymbol)
 {
     m_Weight = 500;
@@ -127,6 +128,21 @@ unsigned PdfFontMetricsStandard14::GetWeight() const
     return m_Weight;
 }
 
+double PdfFontMetricsStandard14::GetCapHeight() const
+{
+    return m_CapHeight / 1000.0;
+}
+
+double PdfFontMetricsStandard14::GetXHeight() const
+{
+    return m_XHeight / 1000.0;
+}
+
+double PdfFontMetricsStandard14::GetStemV() const
+{
+    return m_StemV / 1000.0;
+}
+
 double PdfFontMetricsStandard14::GetItalicAngle() const
 {
     return m_ItalicAngle;
@@ -207,6 +223,7 @@ shared_ptr<const PdfFontMetricsStandard14> PdfFontMetricsStandard14::GetInstance
             -273,
             450,
             662,
+            80,
             262,
             -100,
             PdfRect(-168, -218, 1000, 898)
@@ -220,6 +237,7 @@ shared_ptr<const PdfFontMetricsStandard14> PdfFontMetricsStandard14::GetInstance
             -273,
             441,
             653,
+            72,
             262,
             -100,
             PdfRect(-169, -217, 1010, 883)
@@ -233,6 +251,7 @@ shared_ptr<const PdfFontMetricsStandard14> PdfFontMetricsStandard14::GetInstance
             -273,
             461,
             676,
+            136,
             262,
             -100,
             PdfRect(-168, -218, 1000, 935)
@@ -246,6 +265,7 @@ shared_ptr<const PdfFontMetricsStandard14> PdfFontMetricsStandard14::GetInstance
             -273,
             462,
             669,
+            124,
             262,
             -100,
             PdfRect(-200, -218, 996, 921)
@@ -259,6 +279,7 @@ shared_ptr<const PdfFontMetricsStandard14> PdfFontMetricsStandard14::GetInstance
             -250,
             523,
             718,
+            88,
             290,
             -100,
             PdfRect(-166, -225, 1000, 931)
@@ -272,6 +293,7 @@ shared_ptr<const PdfFontMetricsStandard14> PdfFontMetricsStandard14::GetInstance
             -250,
             532,
             718,
+            92,
             290,
             -100,
             PdfRect(-170, -225, 1116, 931)
@@ -285,6 +307,7 @@ shared_ptr<const PdfFontMetricsStandard14> PdfFontMetricsStandard14::GetInstance
             -250,
             532,
             718,
+            136,
             290,
             -100,
             PdfRect(-170, -228, 1003, 962)
@@ -298,6 +321,7 @@ shared_ptr<const PdfFontMetricsStandard14> PdfFontMetricsStandard14::GetInstance
             -250,
             532,
             718,
+            140,
             290,
             -100,
             PdfRect(-174, -228, 1114, 962)
@@ -311,6 +335,7 @@ shared_ptr<const PdfFontMetricsStandard14> PdfFontMetricsStandard14::GetInstance
             -373,
             426,
             562,
+            56,
             261,
             -224,
             PdfRect(-23, -250, 715, 805)
@@ -324,6 +349,7 @@ shared_ptr<const PdfFontMetricsStandard14> PdfFontMetricsStandard14::GetInstance
             -373,
             426,
             562,
+            56,
             261,
             -224,
             PdfRect(-27, -250, 849, 805)
@@ -337,6 +363,7 @@ shared_ptr<const PdfFontMetricsStandard14> PdfFontMetricsStandard14::GetInstance
             -373,
             439,
             562,
+            92,
             261,
             -224,
             PdfRect(-113, -250, 749, 801)
@@ -350,6 +377,7 @@ shared_ptr<const PdfFontMetricsStandard14> PdfFontMetricsStandard14::GetInstance
             -373,
             439,
             562,
+            92,
             261,
             -224,
             PdfRect(-57, -250, 869, 801)
@@ -363,6 +391,7 @@ shared_ptr<const PdfFontMetricsStandard14> PdfFontMetricsStandard14::GetInstance
             -217,
             462,
             669,
+            75,
             341,
             -100,
            PdfRect(-180, -293, 1090, 1010)
@@ -376,6 +405,7 @@ shared_ptr<const PdfFontMetricsStandard14> PdfFontMetricsStandard14::GetInstance
             -217,
             462,
             669,
+            75,
             341,
             -100,
             PdfRect(-1, -143, 981, 820)

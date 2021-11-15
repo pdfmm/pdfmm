@@ -28,8 +28,8 @@ private:
     PdfFontMetricsStandard14(PdfStandard14FontType fontType,
         const Standard14FontData* data, unsigned dataSize,
         bool isSymbol, int16_t ascent, int16_t descent,
-        uint16_t mx_height, uint16_t mcap_height,
-        int16_t mstrikeout_pos, int16_t munderline_pos,
+        uint16_t xHeight, uint16_t capHeight, uint16_t stemV,
+        int16_t strikeout_pos, int16_t underline_pos,
         const PdfRect& mbbox);
 
 public:
@@ -61,6 +61,12 @@ public:
 
     unsigned GetWeight() const override;
 
+    double GetCapHeight() const override;
+
+    double GetXHeight() const override;
+
+    double GetStemV() const override;
+
     double GetItalicAngle() const override;
 
     bool IsSymbol() const override;
@@ -80,8 +86,9 @@ private:
     PdfStandard14FontType m_Std14FontType;
     const Standard14FontData* m_data;
     const unsigned m_dataSize;
-    uint16_t m_x_height;
-    uint16_t m_cap_height;
+    uint16_t m_XHeight;
+    uint16_t m_CapHeight;
+    uint16_t m_StemV;
     PdfRect m_BBox;
 
     bool m_IsSymbol;

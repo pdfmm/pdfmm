@@ -164,12 +164,16 @@ void PdfFontMetricsFreetype::InitFontSizes()
     // Set default values for strikeout, in case the font has no direct values
     m_StrikeOutPosition = m_Ascent / 2.0;
     m_StrikeOutThickness = m_UnderlineThickness;
+    m_CapHeight = 0;
+    m_XHeight = 0;
 
     TT_OS2* os2Table = static_cast<TT_OS2*>(FT_Get_Sfnt_Table(m_Face, ft_sfnt_os2));
     if (os2Table != nullptr)
     {
         m_StrikeOutPosition = static_cast<double>(os2Table->yStrikeoutPosition) / m_Face->units_per_EM;
         m_StrikeOutThickness = static_cast<double>(os2Table->yStrikeoutSize) / m_Face->units_per_EM;
+        m_CapHeight = os2Table->sCapHeight / m_Face->units_per_EM;
+        m_XHeight = os2Table->sxHeight / m_Face->units_per_EM;
     }
 }
 
@@ -309,6 +313,23 @@ string_view PdfFontMetricsFreetype::GetFontData() const
 unsigned PdfFontMetricsFreetype::GetWeight() const
 {
     return m_Weight;
+}
+
+double PdfFontMetricsFreetype::GetCapHeight() const
+{
+    return m_CapHeight;
+}
+
+double PdfFontMetricsFreetype::GetXHeight() const
+{
+    return m_XHeight;
+}
+
+double PdfFontMetricsFreetype::GetStemV() const
+{
+    // ISO 32000:2007, Table 120 — Entries common to all font descriptors
+    // "A value of 0 indicates an unknown stem thickness"
+    return 0.0;
 }
 
 double PdfFontMetricsFreetype::GetItalicAngle() const

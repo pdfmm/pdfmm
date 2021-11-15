@@ -154,12 +154,25 @@ public:
      */
     virtual unsigned GetWeight() const = 0;
 
+    /** The vertical coordinate of the top of flat capital letters, measured from the baseline
+     */
+    virtual double GetCapHeight() const = 0;
+
+    /** The font’s x height: the vertical coordinate of the top of flat nonascending
+     * lowercase letters (like the letter x), measured from the baseline, in
+     * fonts that have Latin characters
+     */
+    virtual double GetXHeight() const = 0;
+
+    /** The thickness, measured horizontally, of the dominant vertical stems of glyphs in the font
+     */
+    virtual double GetStemV() const = 0;
+
     /** Get the italic angle of this font.
      *  Used to build the font dictionay
      *  \returns the italic angle of this font.
      */
     virtual double GetItalicAngle() const = 0;
-
 
     /** Get whether the font style is bold
      */

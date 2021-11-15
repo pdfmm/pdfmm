@@ -70,6 +70,12 @@ public:
 
     unsigned GetWeight() const override;
 
+    double GetCapHeight() const override;
+
+    double GetXHeight() const override;
+
+    double GetStemV() const override;
+
     double GetItalicAngle() const override;
 
     bool IsSymbol() const override;
@@ -89,6 +95,9 @@ private:
     std::vector<double> m_Widths;
     double m_DefaultWidth;
     unsigned m_Weight;
+    double m_CapHeight;
+    double m_XHeight;
+    double m_StemV;
     double m_ItalicAngle;
     double m_Ascent;
     double m_Descent;

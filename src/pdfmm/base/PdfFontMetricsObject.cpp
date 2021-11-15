@@ -155,6 +155,9 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
     if (descriptor == nullptr)
     {
         m_Weight = 400;
+        m_CapHeight = 0;
+        m_XHeight = 0;
+        m_StemV = 0;
         m_ItalicAngle = 0;
         m_Ascent = 0.0;
         m_Descent = 0.0;
@@ -163,6 +166,9 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
     {
         // NOTE: Found a valid document with "/FontWeight 400.0" so just read the value as double
         m_Weight = static_cast<unsigned>(descriptor->GetDictionary().FindKeyAs<double>("FontWeight", 400));
+        m_CapHeight = descriptor->GetDictionary().FindKeyAs<double>("CapHeight", 0) * m_matrix[3];
+        m_XHeight = descriptor->GetDictionary().FindKeyAs<double>("XHeight", 0) * m_matrix[3];
+        m_StemV = descriptor->GetDictionary().FindKeyAs<double>("StemV", 0) * m_matrix[3];
         m_ItalicAngle = static_cast<int>(descriptor->GetDictionary().FindKeyAs<double>("ItalicAngle", 0));
         m_Ascent = descriptor->GetDictionary().FindKeyAs<double>("Ascent", 0.0) * m_matrix[3];
         m_Descent = descriptor->GetDictionary().FindKeyAs<double>("Descent", 0.0) * m_matrix[3];
@@ -264,6 +270,21 @@ double PdfFontMetricsObject::GetDescent() const
 unsigned PdfFontMetricsObject::GetWeight() const
 {
     return m_Weight;
+}
+
+double PdfFontMetricsObject::GetCapHeight() const
+{
+    return m_CapHeight;
+}
+
+double PdfFontMetricsObject::GetXHeight() const
+{
+    return m_XHeight;
+}
+
+double PdfFontMetricsObject::GetStemV() const
+{
+    return m_StemV;
 }
 
 double PdfFontMetricsObject::GetItalicAngle() const

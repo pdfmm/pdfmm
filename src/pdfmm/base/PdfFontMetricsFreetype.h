@@ -76,7 +76,13 @@ public:
 
     std::string GetFontName() const override;
 
-    unsigned int GetWeight() const override;
+    unsigned GetWeight() const override;
+
+    double GetCapHeight() const override;
+
+    double GetXHeight() const override;
+
+    double GetStemV() const override;
 
     double GetItalicAngle() const override;
 
@@ -130,6 +136,8 @@ private:
     double m_UnderlinePosition;
     double m_StrikeOutThickness;
     double m_StrikeOutPosition;
+    double m_CapHeight;
+    double m_XHeight;
 
     std::shared_ptr<chars> m_FontData;
     std::vector<double> m_Widths;

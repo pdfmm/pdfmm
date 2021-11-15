@@ -321,11 +321,12 @@ void PdfFont::FillDescriptor(PdfDictionary& dict) const
     dict.AddKey("FontName", PdfName(this->GetName()));
     dict.AddKey(PdfName::KeyFlags, PdfObject(static_cast<int64_t>(32))); // TODO: 0 ????
     dict.AddKey("FontBBox", bbox);
-    dict.AddKey("ItalicAngle", PdfObject(static_cast<int64_t>(m_Metrics->GetItalicAngle())));
+    dict.AddKey("ItalicAngle", static_cast<int64_t>(m_Metrics->GetItalicAngle()));
     dict.AddKey("Ascent", static_cast<int64_t>(std::round(m_Metrics->GetAscent() * 1000)));
     dict.AddKey("Descent", static_cast<int64_t>(m_Metrics->GetDescent() * 1000));
-    dict.AddKey("CapHeight", static_cast<int64_t>(m_Metrics->GetAscent() * 1000)); // m_Metrics->CapHeight() );
-    dict.AddKey("StemV", PdfObject(static_cast<int64_t>(1))); // m_Metrics->StemV() );
+    dict.AddKey("CapHeight", static_cast<int64_t>(m_Metrics->GetCapHeight() * 1000));
+    dict.AddKey("XHeight", static_cast<int64_t>(m_Metrics->GetXHeight() * 1000));
+    dict.AddKey("StemV", static_cast<int64_t>(m_Metrics->GetStemV() * 1000));
 }
 
 void PdfFont::initImported()
