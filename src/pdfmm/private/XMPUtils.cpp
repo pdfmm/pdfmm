@@ -131,8 +131,8 @@ void setXMPMetadata(xmlDocPtr doc, xmlNodePtr xmpmeta, const PdfDocumentMetadata
     auto description = findOrCreateDescriptionElement(doc, rdf);
     if (metatata.Title.has_value())
         addXMPProperty(doc, description, MetadataKind::Title, metatata.Title->GetString());
-    if (metatata.Creator.has_value())
-        addXMPProperty(doc, description, MetadataKind::Creator, metatata.Creator->GetString());
+    if (metatata.Author.has_value())
+        addXMPProperty(doc, description, MetadataKind::Author, metatata.Author->GetString());
     if (metatata.Subject.has_value())
         addXMPProperty(doc, description, MetadataKind::Subject, metatata.Subject->GetString());
     if (metatata.Keywords.has_value())
