@@ -37,6 +37,12 @@ enum class PdfANamespaceKind
     PdfAId,
 };
 
+enum class XMPSequenceType
+{
+    Alt,
+    Seq,
+};
+
 static void setXMPMetadata(xmlDocPtr doc, xmlNodePtr xmpmeta, const PdfDocumentMetadata& metatata, PdfALevel pdfaLevel);
 static xmlDocPtr createXmpDoc(xmlNodePtr& root);
 static void addXMPProperty(xmlDocPtr doc, xmlNodePtr description,
@@ -56,6 +62,7 @@ static PdfALevel getPDFALevelFromString(const string_view& level);
 static void getPdfALevelComponents(PdfALevel level, string& levelStr, string& conformanceStr);
 static int xmlOutputStringWriter(void* context, const char* buffer, int len);
 static int xmlOutputStringWriterClose(void* context);
+static void setNodeSequenceContent(xmlNodePtr node, xmlDocPtr doc, XMPSequenceType seqType, const string_view& value);
 
 string mm::UpdateXmpModDate(const string_view& xmpview, const PdfDate& modDate)
 {
@@ -262,7 +269,9 @@ xmlNodePtr createDescriptionElement(xmlDocPtr doc, xmlNodePtr rdf)
         THROW_LIBXML_EXCEPTION("Can't find or create rdf namespace");
 
     xmlSetNs(description, nsRDF);
-    xmlSetNsProp(description, nsRDF, BAD_CAST "about", BAD_CAST "");
+    if (xmlSetNsProp(description, nsRDF, BAD_CAST "about", BAD_CAST "") == nullptr)
+        THROW_LIBXML_EXCEPTION(mm::Format("Can't set rdf:about attribute on rdf:Description node"));
+
     return description;
 }
 
@@ -361,7 +370,7 @@ void addXMPProperty(xmlDocPtr doc, xmlNodePtr description,
             break;
         case MetadataKind::Subject:
             xmlNs = findOrCreateNamespace(doc, description, PdfANamespaceKind::Dc);
-            propName = "subject";
+            propName = "description";
             break;
         case MetadataKind::Keywords:
             xmlNs = findOrCreateNamespace(doc, description, PdfANamespaceKind::Pdf);
@@ -395,9 +404,68 @@ void addXMPProperty(xmlDocPtr doc, xmlNodePtr description,
             throw runtime_error("Unsupported");
     }
 
-    auto element = xmlNewDocNode(doc, xmlNs, BAD_CAST propName, BAD_CAST value.data());
+    auto element = xmlNewDocNode(doc, xmlNs, BAD_CAST propName, nullptr);
     if (element == nullptr || xmlAddChild(description, element) == nullptr)
         THROW_LIBXML_EXCEPTION(mm::Format("Can't create xmp:{} node", propName));
+
+    switch (property)
+    {
+        case MetadataKind::Title:
+        case MetadataKind::Subject:
+        {
+            setNodeSequenceContent(element, doc, XMPSequenceType::Alt, value);
+            break;
+        }
+        case MetadataKind::Author:
+        {
+            setNodeSequenceContent(element, doc, XMPSequenceType::Seq, value);
+            break;
+        }
+        default:
+        {
+            xmlNodeSetContent(element, BAD_CAST value.data());
+            break;
+        }
+    }
+}
+
+void setNodeSequenceContent(xmlNodePtr node, xmlDocPtr doc, XMPSequenceType seqType, const string_view& value)
+{
+    const char* elemName;
+    bool xdefault;
+    switch (seqType)
+    {
+        case XMPSequenceType::Alt:
+            elemName = "Alt";
+            xdefault = true;
+            break;
+        case XMPSequenceType::Seq:
+            elemName = "Seq";
+            xdefault = false;
+            break;
+        default:
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+    }
+
+    auto rdfNs = xmlSearchNs(doc, node, BAD_CAST "rdf");
+    PDFMM_ASSERT(rdfNs != nullptr);
+    auto innerElem = xmlNewDocNode(doc, rdfNs, BAD_CAST elemName, nullptr);
+    if (innerElem == nullptr || xmlAddChild(node, innerElem) == nullptr)
+        THROW_LIBXML_EXCEPTION(mm::Format("Can't create rdf:{} node", elemName));
+
+    auto liElem = xmlNewDocNode(doc, rdfNs, BAD_CAST "li", nullptr);
+    if (liElem == nullptr || xmlAddChild(innerElem, liElem) == nullptr)
+        THROW_LIBXML_EXCEPTION(mm::Format("Can't create rdf:li node"));
+
+    if (xdefault)
+    {
+        auto xmlNs = xmlSearchNs(doc, node, BAD_CAST "xml");
+        PDFMM_ASSERT(xmlNs != nullptr);
+        if (xmlSetNsProp(liElem, xmlNs, BAD_CAST "lang", BAD_CAST "x-default") == nullptr)
+            THROW_LIBXML_EXCEPTION(mm::Format("Can't set xml:lang attribute on rdf:li node"));
+    }
+
+    xmlNodeSetContent(liElem, BAD_CAST value.data());
 }
 
 void removeXMPProperty(xmlNodePtr rdf, MetadataKind property)
@@ -416,7 +484,7 @@ void removeXMPProperty(xmlNodePtr rdf, MetadataKind property)
             break;
         case MetadataKind::Subject:
             ns = "dc";
-            propname = "subject";
+            propname = "description";
             break;
         case MetadataKind::Keywords:
             ns = "pdf";
