@@ -306,8 +306,8 @@ void PdfFont::GetBoundingBox(PdfArray& arr) const
     m_Metrics->GetBoundingBox(bbox);
     arr.push_back(PdfObject(static_cast<int64_t>(std::round(bbox[0] * 1000))));
     arr.push_back(PdfObject(static_cast<int64_t>(std::round(bbox[1] * 1000))));
-    arr.push_back(PdfObject(static_cast<int64_t>(std::round(bbox[1] * 1000))));
     arr.push_back(PdfObject(static_cast<int64_t>(std::round(bbox[2] * 1000))));
+    arr.push_back(PdfObject(static_cast<int64_t>(std::round(bbox[3] * 1000))));
 
 }
 
