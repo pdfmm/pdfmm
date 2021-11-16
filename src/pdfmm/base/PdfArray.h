@@ -136,11 +136,13 @@ public:
 
     void RemoveAt(unsigned idx);
 
-    void Add(const PdfObject& obj);
+    PdfObject& Add(const PdfObject& obj);
 
     void SetAt(const PdfObject& obj, unsigned idx);
 
-    void AddIndirect(const PdfObject& obj);
+    void AddIndirect(const PdfObject* obj);
+
+    PdfObject& AddIndirectSafe(const PdfObject& obj);
 
     void SetAtIndirect(const PdfObject& obj, unsigned idx);
 
@@ -281,7 +283,7 @@ protected:
     void SetOwner(PdfObject* owner) override;
 
 private:
-    void add(const PdfObject& obj);
+    PdfObject& add(const PdfObject& obj);
     iterator insertAt(const iterator& pos, const PdfObject& val);
     PdfObject& getAt(unsigned idx) const;
     PdfObject& findAt(unsigned idx) const;

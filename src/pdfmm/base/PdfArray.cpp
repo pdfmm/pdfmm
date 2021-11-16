@@ -49,23 +49,35 @@ unsigned PdfArray::GetSize() const
     return (unsigned)m_Objects.size();
 }
 
-void PdfArray::Add(const PdfObject& obj)
+PdfObject& PdfArray::Add(const PdfObject& obj)
 {
     AssertMutable();
-    add(obj);
+    auto& ret = add(obj);
+    SetDirty();
+    return ret;
+}
+
+void PdfArray::AddIndirect(const PdfObject* obj)
+{
+    AssertMutable();
+    if (obj == nullptr)
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Given object shall not be null");
+
+    if (IsIndirectReferenceAllowed(*obj))
+        add(obj->GetIndirectReference());
+    else
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Given object shall allow indirect insertion");
+
     SetDirty();
 }
 
-void PdfArray::AddIndirect(const PdfObject& obj)
+PdfObject& PdfArray::AddIndirectSafe(const PdfObject& obj)
 {
-    if (IsIndirectReferenceAllowed(obj))
-    {
-        Add(obj.GetIndirectReference());
-        return;
-    }
-
-    Add(obj);
-    return;
+    PdfObject& ret = IsIndirectReferenceAllowed(obj)
+        ? add(obj.GetIndirectReference())
+        : add(obj);
+    SetDirty();
+    return ret;
 }
 
 void PdfArray::SetAt(const PdfObject& obj, unsigned idx)
@@ -147,9 +159,9 @@ void PdfArray::SetOwner(PdfObject* owner)
     }
 }
 
-void PdfArray::add(const PdfObject& obj)
+PdfObject& PdfArray::add(const PdfObject& obj)
 {
-    insertAt(m_Objects.end(), obj);
+    return *insertAt(m_Objects.end(), obj);
 }
 
 PdfArray::iterator PdfArray::insertAt(const iterator& pos, const PdfObject& val)

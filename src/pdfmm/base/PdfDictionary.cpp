@@ -64,16 +64,16 @@ PdfObject& PdfDictionary::AddKey(const PdfName& key, const PdfObject& obj)
     return addKey(key, obj);
 }
 
-PdfObject& PdfDictionary::AddKeyIndirect(const PdfName& key, const PdfObject* obj)
+void PdfDictionary::AddKeyIndirect(const PdfName& key, const PdfObject* obj)
 {
     AssertMutable();
     if (obj == nullptr)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Given object shall not be null");
 
     if (IsIndirectReferenceAllowed(*obj))
-        return addKey(key, obj->GetIndirectReference());
+        (void)addKey(key, obj->GetIndirectReference());
     else
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Given object shall not be null");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Given object shall allow indirect insertion");
 }
 
 PdfObject& PdfDictionary::AddKeyIndirectSafe(const PdfName& key, const PdfObject& obj)
