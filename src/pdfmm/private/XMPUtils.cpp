@@ -167,7 +167,7 @@ xmlDocPtr createXmpDoc(xmlNodePtr& root)
 
     // https://wwwimages2.adobe.com/content/dam/acom/en/devnet/xmp/pdfs/XMP%20SDK%20Release%20cc-2016-08/XMPSpecificationPart1.pdf
     // See 7.3.2 XMP Packet Wrapper
-    auto xpacketBegin = xmlNewPI(BAD_CAST "xpacket", BAD_CAST "begin=\"ï»¿\" id=\"W5M0MpCehiHzreSzNTczkc9d\"");
+    auto xpacketBegin = xmlNewPI(BAD_CAST "xpacket", BAD_CAST "begin=\"\357\273\277\" id=\"W5M0MpCehiHzreSzNTczkc9d\"");
     xmlAddChild((xmlNodePtr)doc, xpacketBegin);
 
     // NOTE: x:xmpmeta element does't define any attribute
