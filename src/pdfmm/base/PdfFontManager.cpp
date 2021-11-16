@@ -11,9 +11,9 @@
 
 #include <algorithm>
 
- //#if defined(_WIN32) && !defined(PDFMM_HAVE_FONTCONFIG)
+#if defined(_WIN32) && defined(PDFMM_HAVE_WIN32GDI)
 #include <pdfmm/common/WindowsLeanMean.h>
-//#endif // _WIN32
+#endif // defined(_WIN32) && defined(PDFMM_HAVE_WIN32GDI)
 
 #include <pdfmm/private/FreetypePrivate.h>
 #include FT_TRUETYPE_TABLES_H
