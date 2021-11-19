@@ -135,7 +135,7 @@ void PdfFontCIDTrueType::embedFontFile(PdfObject& descriptor)
         m_Encoding->ExportToDictionary(this->GetObject().GetDictionary());
 
         auto& metrics = GetMetrics();
-        PdfInputDevice input(metrics.GetFontData().data(), metrics.GetFontData().size());
+        PdfInputDevice input(metrics.GetFontFileData().data(), metrics.GetFontFileData().size());
         chars buffer;
 
         PdfFontTrueTypeSubset::BuildFont(buffer, input, 0, cidToGidMap);
@@ -150,7 +150,7 @@ void PdfFontCIDTrueType::embedFontFile(PdfObject& descriptor)
         auto contents = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject();
         descriptor.GetDictionary().AddKeyIndirect("FontFile2", contents);
 
-        auto fontdata = m_Metrics->GetFontData();
+        auto fontdata = m_Metrics->GetFontFileData();
 
         // NOTE: Set Length1 before creating the stream
         // as PdfStreamedDocument does not allow

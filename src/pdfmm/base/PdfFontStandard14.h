@@ -21,7 +21,7 @@ namespace mm {
  * A PdfFont implementation that represents a
  * standard 14 type1 font
  */
-class PdfFontStandard14 final : public PdfFont
+class PdfFontStandard14 final : public PdfFontSimple
 {
     friend class PdfFont;
 
@@ -56,13 +56,20 @@ public:
     static std::string_view GetStandard14FontName(PdfStandard14FontType stdFont);
 
     /** Determine if font name is a Standard14 font
+     *
+     * By default use both standard names and alternative ones (Arial, TimesNewRoman, CourierNew)
      * \param fontName the unprocessed font name
      */
     static bool IsStandard14Font(const std::string_view& fontName, PdfStandard14FontType& stdFont);
 
+    /** Determine if font name is a Standard14 font
+     * \param fontName the unprocessed font name
+     */
+    static bool IsStandard14Font(const std::string_view& fontName, bool useAltNames, PdfStandard14FontType& stdFont);
+
     /** Try get a standard14 font from a base font name, representing the family and bold/italic characteristic
      *
-     * By default use only standard names, not alternative ones (Arial, TimesNewRoman, CourierNew) 
+     * By default use only standard names, *not* alternative ones (Arial, TimesNewRoman, CourierNew) 
      * \param baseFontName the processed font name
      */
     static bool TryGetStandard14Font(const std::string_view& baseFontName, bool bold, bool italic,
@@ -78,6 +85,10 @@ public:
     PdfStandard14FontType GetStd14Type() const { return m_FontType; }
 
     PdfFontType GetType() const override;
+
+    /** Return the encoding map for the given standard font type or nullptr for unknown
+     */
+    static PdfEncodingMapConstPtr GetStandard14FontEncodingMap(PdfStandard14FontType stdFont);
 
 protected:
     bool TryMapCIDToGID(unsigned cid, unsigned& gid) const override;

@@ -98,7 +98,7 @@ bool PdfEncoding::TryConvertToEncoded(const string_view& str, string& encoded) c
         return true;
 
     auto& font = GetFont();
-    if (font.IsLoaded())
+    if (font.IsObjectLoaded())
     {
         // The font is loaded from object. We will attempt to use
         // just the loaded map to perform the conversion
@@ -141,6 +141,7 @@ bool PdfEncoding::TryConvertToEncoded(const string_view& str, string& encoded) c
         // a glyph substitution mechanism
         vector<unsigned char> backwardMap;
         metrics.SubstituteGIDs(gids, backwardMap);
+
 
         // Add used gid to the font mapping afferent code points,
         // and append the returned code unit to encoded string

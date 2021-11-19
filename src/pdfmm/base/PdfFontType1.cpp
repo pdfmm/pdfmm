@@ -77,11 +77,11 @@ void PdfFontType1::embedFontSubset()
     auto contents = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject();
     m_Descriptor->GetDictionary().AddKey("FontFile", contents->GetIndirectReference());
 
-    if (m_Metrics->GetFontData().empty())
+    if (m_Metrics->GetFontFileData().empty())
         PDFMM_RAISE_ERROR(PdfErrorCode::InternalLogic);
 
-    buffer = m_Metrics->GetFontData().data();
-    size = m_Metrics->GetFontData().size();
+    buffer = m_Metrics->GetFontFileData().data();
+    size = m_Metrics->GetFontFileData().size();
 
     // Allocate buffer for subsetted font, worst case size is input size
     chars outBuff(size);
@@ -295,11 +295,6 @@ void PdfFontType1::embedFontSubset()
     contents->GetDictionary().AddKey("Length3", PdfObject(static_cast<int64_t>(length3)));
 }
 
-void PdfFontType1::initImported()
-{
-    this->Init("Type1");
-}
-
 void PdfFontType1::embedFontFile(PdfObject& descriptor)
 {
     size_t size = 0;
@@ -313,11 +308,11 @@ void PdfFontType1::embedFontFile(PdfObject& descriptor)
 
     descriptor.GetDictionary().AddKey("FontFile", contents->GetIndirectReference());
 
-    if (m_Metrics->GetFontData().empty())
+    if (m_Metrics->GetFontFileData().empty())
         PDFMM_RAISE_ERROR(PdfErrorCode::InternalLogic);
 
-    buffer = (chars)m_Metrics->GetFontData();
-    size = m_Metrics->GetFontData().size();
+    buffer = (chars)m_Metrics->GetFontFileData();
+    size = m_Metrics->GetFontFileData().size();
 
     // Remove binary segment headers from pfb
     unsigned char* data = reinterpret_cast<unsigned char*>(buffer.data());

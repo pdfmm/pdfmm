@@ -461,33 +461,6 @@ const char32_t PdfDocEncoding::s_cEncoding[256] = {
 // See: http://www.microsoft.com/globaldev/reference/sbcs/1252.mspx
 // -----------------------------------------------------
 
-void PdfWinAnsiEncoding::getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const
-{
-    PdfArray differences;
-    for (unsigned i = 0; i < 256; i++)
-    {
-        if (PdfWinAnsiEncoding::GetToUnicodeTable()[i] != this->GetToUnicodeTable()[i])
-        {
-            differences.push_back(PdfObject((int64_t)i));
-            char32_t shCode = this->GetToUnicodeTable()[i];
-            differences.push_back(PdfDifferenceEncoding::UnicodeIDToName(shCode));
-        }
-    }
-
-    if (differences.empty())
-    {
-        PdfPredefinedEncoding::getExportObject(objects, name, obj);
-        return;
-    }
-    else
-    {
-        obj = objects.CreateDictionaryObject();
-        auto& dict = obj->GetDictionary();
-        dict.AddKey("BaseEncoding", PdfWinAnsiEncoding::GetName());
-        dict.AddKey("Differences", differences);
-    }
-}
-
 PdfWinAnsiEncoding::PdfWinAnsiEncoding()
     : PdfPredefinedEncoding("WinAnsiEncoding")
 {

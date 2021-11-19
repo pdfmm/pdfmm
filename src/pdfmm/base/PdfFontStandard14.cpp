@@ -15,6 +15,7 @@
 #include "PdfDictionary.h"
 #include "PdfArray.h"
 #include "PdfFontMetricsStandard14.h"
+#include "PdfEncodingMapFactory.h"
 
 using namespace std;
 using namespace mm;
@@ -22,7 +23,7 @@ using namespace mm;
 PdfFontStandard14::PdfFontStandard14(PdfDocument& doc,
         PdfStandard14FontType fontType,
         const PdfEncoding& encoding) :
-    PdfFont(doc, PdfFontMetricsStandard14::GetInstance(fontType), encoding),
+    PdfFontSimple(doc, PdfFontMetricsStandard14::GetInstance(fontType), encoding),
     m_FontType(fontType)
 {
 }
@@ -31,7 +32,7 @@ PdfFontStandard14::PdfFontStandard14(PdfObject& obj,
         PdfStandard14FontType fontType,
         const PdfFontMetricsConstPtr& metrics,
         const PdfEncoding& encoding)
-    : PdfFont(obj, metrics, encoding),
+    : PdfFontSimple(obj, metrics, encoding),
     m_FontType(fontType)
 {
 }
@@ -43,7 +44,12 @@ string_view PdfFontStandard14::GetStandard14FontName(PdfStandard14FontType stdFo
 
 bool PdfFontStandard14::IsStandard14Font(const string_view& fontName, PdfStandard14FontType& stdFont)
 {
-    return ::IsStandard14Font(fontName, stdFont);
+    return ::IsStandard14Font(fontName, true, stdFont);
+}
+
+bool PdfFontStandard14::IsStandard14Font(const string_view& fontName, bool useAltNames, PdfStandard14FontType& stdFont)
+{
+    return ::IsStandard14Font(fontName, useAltNames, stdFont);
 }
 
 bool PdfFontStandard14::TryGetStandard14Font(const string_view& baseFontName, bool bold, bool italic,
@@ -63,11 +69,36 @@ PdfFontType PdfFontStandard14::GetType() const
     return PdfFontType::Type1;
 }
 
+PdfEncodingMapConstPtr PdfFontStandard14::GetStandard14FontEncodingMap(PdfStandard14FontType stdFont)
+{
+    switch (stdFont)
+    {
+        case PdfStandard14FontType::TimesRoman:
+        case PdfStandard14FontType::TimesItalic:
+        case PdfStandard14FontType::TimesBold:
+        case PdfStandard14FontType::TimesBoldItalic:
+        case PdfStandard14FontType::Helvetica:
+        case PdfStandard14FontType::HelveticaOblique:
+        case PdfStandard14FontType::HelveticaBold:
+        case PdfStandard14FontType::HelveticaBoldOblique:
+        case PdfStandard14FontType::Courier:
+        case PdfStandard14FontType::CourierOblique:
+        case PdfStandard14FontType::CourierBold:
+        case PdfStandard14FontType::CourierBoldOblique:
+            return PdfEncodingMapFactory::StandardEncodingInstance();
+        case PdfStandard14FontType::Symbol:
+            return PdfEncodingMapFactory::SymbolEncodingInstance();
+        case PdfStandard14FontType::ZapfDingbats:
+            return PdfEncodingMapFactory::ZapfDingbatsEncodingInstance();
+        case PdfStandard14FontType::Unknown:
+        default:
+            return nullptr;
+    }
+}
+
 void PdfFontStandard14::initImported()
 {
-    this->GetObject().GetDictionary().AddKey(PdfName::KeySubtype, PdfName("Type1"));
-    this->GetObject().GetDictionary().AddKey("BaseFont", PdfName(GetName()));
-    m_Encoding->ExportToDictionary(this->GetObject().GetDictionary());
+    Init(!IsEmbeddingEnabled());
 }
 
 bool PdfFontStandard14::TryMapCIDToGID(unsigned cid, unsigned& gid) const
@@ -97,7 +128,7 @@ bool PdfFontStandard14::TryMapGIDToCID(unsigned gid, unsigned& cid) const
     // Lookup the GID in the Standard14 fonts data, then encode back
     // the found code point to a CID
     unsigned size;
-    auto data = GetStd14FontData(m_FontType, size);
+    auto data = GetStd14FontChars(m_FontType, size);
     PdfCID fullCid;
     if (gid >= size
         || !GetEncoding().TryGetCID((char32_t)data[gid].CodePoint, fullCid))

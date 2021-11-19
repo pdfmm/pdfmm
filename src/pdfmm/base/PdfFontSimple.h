@@ -20,6 +20,8 @@ namespace mm {
  */
 class PdfFontSimple : public PdfFont
 {
+    friend class PdfFontStandard14;
+
 protected:
 
     /** Create a new PdfFont object which will introduce itself
@@ -36,16 +38,21 @@ protected:
     PdfFontSimple(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
         const PdfEncoding& encoding);
 
+private:
+    /** Create a PdfFont based on an existing PdfObject
+     * To be used PdfFontStandard14
+     */
+    PdfFontSimple(PdfObject& obj, const PdfFontMetricsConstPtr& metrics,
+        const PdfEncoding& encoding);
+
 protected:
-    void Init(const std::string_view& subType, bool skipMetricsDescriptors = false);
+    void Init(bool skipMetricsDescriptors = false);
 
     void embedFont() override final;
 
-    /** Embed the font file directly into the PDF file.
-     *
-     *  \param pDescriptor font descriptor object
-     */
-    virtual void embedFontFile(PdfObject& descriptor) = 0;
+    void initImported() override;
+
+    virtual void embedFontFile(PdfObject& descriptor);
 
 private:
     void getWidthsArray(PdfArray& widths) const;

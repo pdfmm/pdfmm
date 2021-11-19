@@ -88,7 +88,9 @@ public:
 
     bool IsSymbol() const override;
 
-    std::string_view GetFontData() const override;
+    PdfFontFileType GetFontFileType() const override;
+
+    std::string_view GetFontFileData() const override;
 
     bool IsBold() const override;
 

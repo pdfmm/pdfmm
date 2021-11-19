@@ -43,9 +43,9 @@ class PDFMM_API PdfFont : public PdfDictionaryElement
 {
     friend class PdfFontFactory;
     friend class PdfFontObject;
-    friend class PdfFontStandard14;
     friend class PdfEncoding;
     friend class PdfFontManager;
+    friend class PdfFontSimple;
 
 protected:
     /** Create a new PdfFont object which will introduce itself
@@ -62,14 +62,7 @@ protected:
 
 private:
     /** Create a PdfFont based on an existing PdfObject
-     * To be used by PdfFontObject, PdfFontStandard14
-     *
-     *  \param obj an existing PdfObject
-     *  \param metrics pointer to a font metrics object. The font in the PDF
-     *         file will match this fontmetrics object. The metrics object is
-     *         deleted along with the font.
-     *  \param encoding the encoding of this font. The font will take ownership of this object
-     *                   depending on pEncoding->IsAutoDelete()
+     * To be used by PdfFontObject, PdfFontSimple
      */
     PdfFont(PdfObject& obj, const PdfFontMetricsConstPtr& metrics,
         const PdfEncoding& encoding);
@@ -237,7 +230,7 @@ public:
     /**
      * True if the font is loaded from a PdfObject
      */
-    inline bool IsLoaded() const { return m_IsLoaded; }
+    inline bool IsObjectLoaded() const { return m_IsObjectLoaded; }
 
     /** Check if this is a subsetting font.
      * \returns true if this is a subsetting font
@@ -351,7 +344,7 @@ private:
     double getCIDWidth(unsigned cid, const PdfTextState& state, bool ignoreCharSpacing) const;
 
     static PdfFont* createFontForType(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
-        const PdfEncoding& encoding, PdfFontMetricsType type);
+        const PdfEncoding& encoding, PdfFontFileType type);
 
 private:
     std::string m_Name;
@@ -364,7 +357,7 @@ private:
 protected:
     PdfFontMetricsConstPtr m_Metrics;
     std::unique_ptr<PdfEncoding> m_Encoding;
-    bool m_IsLoaded;
+    bool m_IsObjectLoaded; // Font is loaded from object, as opposed as being imported
     std::shared_ptr<PdfCharCodeMap> m_DynCharCodeMap;
 
     PdfName m_Identifier;

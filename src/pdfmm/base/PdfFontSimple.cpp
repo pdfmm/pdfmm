@@ -25,6 +25,12 @@ PdfFontSimple::PdfFontSimple(PdfDocument& doc, const PdfFontMetricsConstPtr& met
 {
 }
 
+PdfFontSimple::PdfFontSimple(PdfObject& obj, const PdfFontMetricsConstPtr& metrics,
+    const PdfEncoding& encoding)
+    : PdfFont(obj, metrics, encoding), m_Descriptor(nullptr)
+{
+}
+
 void PdfFontSimple::getWidthsArray(PdfArray& arr) const
 {
     vector<double> widths;
@@ -41,8 +47,24 @@ void PdfFontSimple::getWidthsArray(PdfArray& arr) const
         arr.Add(PdfObject(static_cast<int64_t>(std::round(widths[i] * 1000))));
 }
 
-void PdfFontSimple::Init(const string_view& subType, bool skipMetricsDescriptors)
+void PdfFontSimple::Init(bool skipMetricsDescriptors)
 {
+    PdfName subType;
+    switch (GetType())
+    {
+        case PdfFontType::Type1:
+            subType = PdfName("Type1");
+            break;
+        case PdfFontType::TrueType:
+            subType = PdfName("TrueType");
+            break;
+        case PdfFontType::Type3:
+            subType = PdfName("Type3");
+            break;
+        default:
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+    }
+
     this->GetObject().GetDictionary().AddKey(PdfName::KeySubtype, PdfName(subType));
     this->GetObject().GetDictionary().AddKey("BaseFont", PdfName(GetName()));
     m_Encoding->ExportToDictionary(this->GetObject().GetDictionary());
@@ -56,10 +78,10 @@ void PdfFontSimple::Init(const string_view& subType, bool skipMetricsDescriptors
         PdfArray widths;
         this->getWidthsArray(widths);
 
-        auto widthsObj = this->GetObject().GetDocument()->GetObjects().CreateObject(widths);
+        auto widthsObj = GetDocument().GetObjects().CreateObject(widths);
         this->GetObject().GetDictionary().AddKeyIndirect("Widths", widthsObj);
 
-        auto descriptorObj = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject("FontDescriptor");
+        auto descriptorObj = GetDocument().GetObjects().CreateDictionaryObject("FontDescriptor");
         this->GetObject().GetDictionary().AddKeyIndirect("FontDescriptor", descriptorObj);
         FillDescriptor(descriptorObj->GetDictionary());
         m_Descriptor = descriptorObj;
@@ -68,5 +90,55 @@ void PdfFontSimple::Init(const string_view& subType, bool skipMetricsDescriptors
 
 void PdfFontSimple::embedFont()
 {
-    this->embedFontFile(*m_Descriptor);
+    if (m_Descriptor == nullptr)
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Descriptor must be initialized");
+
+    embedFontFile(*m_Descriptor);
+}
+
+void PdfFontSimple::initImported()
+{
+    this->Init();
+}
+
+void PdfFontSimple::embedFontFile(PdfObject& descriptor)
+{
+    PdfName fontFileName;
+    PdfName lengthName;
+    PdfName subtype;
+    switch (m_Metrics->GetFontFileType())
+    {
+        case PdfFontFileType::TrueType:
+            fontFileName = PdfName("FontFile");
+            lengthName = PdfName("Length2");
+            break;
+        case PdfFontFileType::OpenType:
+            fontFileName = PdfName("FontFile3");
+            subtype = PdfName("OpenType");
+            break;
+        case PdfFontFileType::Type1CCF:
+            fontFileName = PdfName("FontFile3");
+            subtype = PdfName("Type1C");
+            break;
+        default:
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Unsupported font type embedding");
+    }
+
+    auto contents = GetDocument().GetObjects().CreateDictionaryObject();
+    descriptor.GetDictionary().AddKeyIndirect(fontFileName, contents);
+
+    auto fontdata = m_Metrics->GetFontFileData();
+    if (fontdata.empty())
+        PDFMM_RAISE_ERROR(PdfErrorCode::InternalLogic);
+
+    // NOTE: Set lengths before creating the stream as
+    // PdfStreamedDocument does not allow adding keys
+    // to an object after a stream was written
+    if (!lengthName.IsNull())
+        contents->GetDictionary().AddKey(lengthName, PdfObject(static_cast<int64_t>(fontdata.size())));
+
+    if (!subtype.IsNull())
+        contents->GetDictionary().AddKey(PdfName::KeySubtype, subtype);
+
+    contents->GetOrCreateStream().Set(fontdata);
 }

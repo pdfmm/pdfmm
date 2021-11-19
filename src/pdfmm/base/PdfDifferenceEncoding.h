@@ -15,6 +15,8 @@
 
 namespace mm {
 
+class PdfFontMetrics;
+
 /** A helper class for PdfDifferenceEncoding that
  *  can be used to create a differences array.
  */
@@ -36,13 +38,8 @@ public:
      */
     PdfEncodingDifference();
 
-    /** Copy a PdfEncodingDifference object.
-     */
-    PdfEncodingDifference(const PdfEncodingDifference& rhs);
-
-    /** Copy a PdfEncodingDifference object.
-     */
-    const PdfEncodingDifference& operator=(const PdfEncodingDifference& rhs);
+    PdfEncodingDifference(const PdfEncodingDifference& rhs) = default;
+    PdfEncodingDifference& operator=(const PdfEncodingDifference& rhs) = default;
 
     /** Add a difference to the object.
      *
@@ -110,18 +107,6 @@ private:
     DifferenceList m_differences;
 };
 
-/**
- * Defines the base encoding from which a
- * PdfDifferenceEncoding differs.
- */
-enum class PdfBaseEncoding
-{
-    Implicit,  ///< See Table 5.11 PdfRefence 1.7
-    WinAnsi,   ///< Use WinAnsiEncoding as base encoding
-    MacRoman,  ///< Use MacRomanEncoding as base encoding
-    MacExpert  ///< Use MacExpertEncoding as base encoding
-};
-
 /** PdfDifferenceEncoding is an encoding, which is based
  *  on either the fonts encoding or a predefined encoding
  *  and defines differences to this base encoding.
@@ -133,19 +118,19 @@ public:
      *  a predefined encoding.
      *
      *  \param difference the differences in this encoding
-     *  \param eBaseEncoding the base encoding of this font
+     *  \param baseEncoding the base encoding of this font
      */
     PdfDifferenceEncoding(const PdfEncodingDifference& difference,
-        PdfBaseEncoding baseEncoding);
+        const PdfEncodingMapConstPtr& baseEncoding);
 
     /** Create a new PdfDifferenceEncoding from an existing object
      *  in a PDF file.
      *
-     *  \param obj an existing differences encoding
-     *  \param bAutoDelete if true the encoding is deleted by its owning font
-     *  \param bExplicitNames if true, glyph names are meaningless explicit keys on the font (used for Type3 fonts)
+     *  \param obj object for the difference encoding
+     *  \param metrics an existing font metrics
      */
-    PdfDifferenceEncoding(const PdfObject& obj, bool explicitNames = false);
+    static std::unique_ptr<PdfDifferenceEncoding> Create(const PdfObject& obj,
+        const PdfFontMetrics& metrics);
 
     /** Convert a standard character name to a unicode code point
      *
@@ -157,10 +142,10 @@ public:
 
     /** Convert an unicode code point to a standard character name
      *
-     *  \param inCodePoint a code point
+     *  \param codePoint a code point
      *  \returns a standard character name of /.notdef if none could be found
      */
-    static PdfName UnicodeIDToName(char32_t inCodePoint);
+    static PdfName UnicodeIDToName(char32_t codePoint);
 
     /**
      * Get read-only access to the object containing the actual
@@ -175,16 +160,9 @@ protected:
     bool tryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const override;
     bool tryGetCodePoints(const PdfCharCode& codeUnit, std::vector<char32_t>& codePoints) const override;
 
-private:
-    /** Get an object of type baseencoding
-     *
-     *  \returns a base encoding
-     */
-    const PdfEncodingMap& GetBaseEncoding() const;
-
  private:
     PdfEncodingDifference m_differences;
-    PdfBaseEncoding m_baseEncoding; // The base encoding of this font
+    PdfEncodingMapConstPtr m_baseEncoding;
 };
 
 };

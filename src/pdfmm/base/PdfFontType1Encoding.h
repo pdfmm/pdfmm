@@ -16,16 +16,17 @@ namespace mm {
  */
 class PDFMM_API PdfFontType1Encoding final : public PdfEncodingMapBase
 {
-    friend class PdfEncodingFactory;
-
 private:
-    PdfFontType1Encoding(const PdfObject& obj);
+    PdfFontType1Encoding(PdfCharCodeMap&& map);
+
+public:
+    static std::unique_ptr<PdfFontType1Encoding> Create(const PdfObject& obj);
 
 protected:
     void getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const override;
 
 private:
-    PdfCharCodeMap getUnicodeMap(const PdfObject& obj);
+    static PdfCharCodeMap getUnicodeMap(const PdfObject& obj);
 };
 
 };

@@ -20,6 +20,8 @@
 #include "PdfEncodingMapFactory.h"
 #include "PdfIndirectObjectList.h"
 #include "PdfFont.h"
+#include "PdfFontStandard14.h"
+#include "PdfFontType1Encoding.h"
 
 using namespace std;
 using namespace mm;
@@ -2181,17 +2183,6 @@ static struct {
 
 PdfEncodingDifference::PdfEncodingDifference() { }
 
-PdfEncodingDifference::PdfEncodingDifference(const PdfEncodingDifference& rhs)
-{
-    this->operator=(rhs);
-}
-
-const PdfEncodingDifference& PdfEncodingDifference::operator=(const PdfEncodingDifference& rhs)
-{
-    m_differences = rhs.m_differences;
-    return *this;
-}
-
 void PdfEncodingDifference::AddDifference(unsigned char code, char32_t codePoint)
 {
     this->AddDifference(code, codePoint, PdfDifferenceEncoding::UnicodeIDToName(codePoint));
@@ -2304,29 +2295,58 @@ size_t PdfEncodingDifference::GetCount() const
 }
 
 PdfDifferenceEncoding::PdfDifferenceEncoding(const PdfEncodingDifference& difference,
-        PdfBaseEncoding baseEncoding) :
+    const PdfEncodingMapConstPtr& baseEncoding) :
     PdfEncodingMapSimple({ 1, 1, PdfCharCode(0), PdfCharCode(0xFF) }),
     m_differences(difference),
     m_baseEncoding(baseEncoding)
 {
+    if (baseEncoding == nullptr)
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Base encoding must be non null");
 }
 
-PdfDifferenceEncoding::PdfDifferenceEncoding(const PdfObject& obj, bool explicitNames) :
-    PdfEncodingMapSimple({ 1, 1, PdfCharCode(0), PdfCharCode(0xFF) })
+unique_ptr<PdfDifferenceEncoding> PdfDifferenceEncoding::Create(
+    const PdfObject& obj, const PdfFontMetrics& metrics)
 {
-    m_baseEncoding = PdfBaseEncoding::Implicit;
-    if (obj.GetDictionary().HasKey("BaseEncoding"))
+    bool explicitNames = false;
+    if (metrics.GetFontFileType() == PdfFontFileType::Type3)
+        explicitNames = true;
+
+    // See Table 5.11 PdfRefence 1.7.
+    PdfEncodingMapConstPtr baseEncoding;
+    auto baseEncodingObj = obj.GetDictionary().FindKey("BaseEncoding");
+    if (baseEncodingObj != nullptr)
     {
-        const PdfName& baseEncodingName = obj.GetDictionary().MustFindKey("BaseEncoding").GetName();
+        const PdfName& baseEncodingName = baseEncodingObj->GetName();
         if (baseEncodingName == "WinAnsiEncoding")
-            m_baseEncoding = PdfBaseEncoding::WinAnsi;
+            baseEncoding = PdfEncodingMapFactory::WinAnsiEncodingInstance();
         else if (baseEncodingName == "MacRomanEncoding")
-            m_baseEncoding = PdfBaseEncoding::MacRoman;
+            baseEncoding = PdfEncodingMapFactory::MacRomanEncodingInstance();
         else if (baseEncodingName == "MacExpertEncoding")
-            m_baseEncoding = PdfBaseEncoding::MacExpert;
+            baseEncoding = PdfEncodingMapFactory::MacExpertEncodingInstance();
+        else
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "Invalid /BaseEncoding {}", baseEncodingName.GetString());;
     }
 
+    if (baseEncoding == nullptr)
+    {
+        // Implicit base encoding can be :
+        // 1) The implicit encoding of a standard 14 font
+        baseEncoding = PdfFontStandard14::GetStandard14FontEncodingMap(metrics.GetStandard14FontType());
+
+        if (baseEncoding == nullptr && metrics.GetFontFileType() == PdfFontFileType::Type1)
+        {
+            // 2) An encoding stored in the font program (see PdfFontType1Encoding)
+            auto fontFileObj = metrics.GetFontFileObject();
+            if (fontFileObj != nullptr)
+                baseEncoding = PdfFontType1Encoding::Create(*fontFileObj);
+        }
+    }
+
+    if (baseEncoding == nullptr)
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Base encoding must be non null");
+
     // Read the differences key
+    PdfEncodingDifference difference;
     if (obj.GetDictionary().HasKey("Differences"))
     {
         auto& differences = obj.GetDictionary().MustFindKey("Differences").GetArray();
@@ -2340,11 +2360,13 @@ PdfDifferenceEncoding::PdfDifferenceEncoding(const PdfObject& obj, bool explicit
             else if (diff.IsName())
             {
                 char32_t unicodeValue = PdfDifferenceEncoding::NameToUnicodeID(diff.GetName());
-                m_differences.AddDifference(static_cast<unsigned>(curCode), unicodeValue, diff.GetName(), explicitNames);
+                difference.AddDifference(static_cast<unsigned>(curCode), unicodeValue, diff.GetName(), explicitNames);
                 curCode++;
             }
         }
     }
+
+    return unique_ptr<PdfDifferenceEncoding>(new PdfDifferenceEncoding(difference, baseEncoding));
 }
 
 void PdfDifferenceEncoding::getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const
@@ -2352,21 +2374,18 @@ void PdfDifferenceEncoding::getExportObject(PdfIndirectObjectList& objects, PdfN
     (void)name;
     obj = objects.CreateDictionaryObject();
     auto& dict = obj->GetDictionary();
-    switch (m_baseEncoding)
-    {
-        case PdfBaseEncoding::WinAnsi:
-            dict.AddKey("BaseEncoding", PdfName("WinAnsiEncoding"));
-            break;
-        case PdfBaseEncoding::MacRoman:
-            dict.AddKey("BaseEncoding", PdfName("MacRomanEncoding"));
-            break;
-        case PdfBaseEncoding::MacExpert:
-            dict.AddKey("BaseEncoding", PdfName("MacExpertEncoding"));
-            break;
 
-        case PdfBaseEncoding::Implicit:
-        default:
-            break;
+    PdfName baseExportName;
+    PdfObject* baseExportObject;
+    if (m_baseEncoding->TryGetExportObject(objects, baseExportName, baseExportObject))
+    {
+        if (baseExportObject != nullptr)
+        {
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic,
+                "Unexpected non null base export object at this stage");
+        }
+
+        dict.AddKey("BaseEncoding", baseExportName);
     }
 
     if (m_differences.GetCount() != 0)
@@ -2387,15 +2406,13 @@ bool PdfDifferenceEncoding::tryGetCharCode(char32_t codePoint, PdfCharCode& code
     }
     else
     {
-        auto& encoding = this->GetBaseEncoding();
-        return encoding.TryGetCharCode(codePoint, codeUnit);
+        return m_baseEncoding->TryGetCharCode(codePoint, codeUnit);
     }
 }
 
 bool PdfDifferenceEncoding::tryGetCodePoints(const PdfCharCode& codeUnit, vector<char32_t>& codePoints) const
 {
     PDFMM_ASSERT(codeUnit.Code < 256);
-    auto& encoding = this->GetBaseEncoding();
     PdfName name;
     char32_t codePoint;
     if (m_differences.Contains((unsigned char)codeUnit.Code, name, codePoint))
@@ -2405,7 +2422,7 @@ bool PdfDifferenceEncoding::tryGetCodePoints(const PdfCharCode& codeUnit, vector
     }
     else
     {
-        return encoding.TryGetCodePoints(codeUnit, codePoints);
+        return m_baseEncoding->TryGetCodePoints(codeUnit, codePoints);
     }
 }
 
@@ -2456,28 +2473,4 @@ PdfName PdfDifferenceEncoding::UnicodeIDToName(char32_t inCodePoint)
     char buffer[BUFFER_LEN];
     mm::FormatTo(buffer, BUFFER_LEN, "cp0x{:X}", (unsigned)inCodePoint);
     return PdfName(buffer);
-}
-
-const PdfEncodingMap& PdfDifferenceEncoding::GetBaseEncoding() const
-{
-    switch (m_baseEncoding)
-    {
-        case PdfBaseEncoding::WinAnsi:
-            return *PdfEncodingMapFactory::WinAnsiEncodingInstance().get();
-
-        case PdfBaseEncoding::MacRoman:
-            return *PdfEncodingMapFactory::MacRomanEncodingInstance().get();
-
-        case PdfBaseEncoding::MacExpert:
-            return *PdfEncodingMapFactory::MacExpertEncodingInstance().get();
-
-        case PdfBaseEncoding::Implicit:
-        default:
-            // TODO: Implicit base encoding can be:
-            // 1) An encoding stored in the font program (see PdfFontType1Encoding)
-            // 2) The implicit encoding of a standard 14 font.
-            // Improve PdfDifferenceEncoding so it can retrieve the encoding in such
-            // cases
-            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "Not implemented");
-    }
 }

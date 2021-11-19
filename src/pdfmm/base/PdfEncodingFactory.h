@@ -12,6 +12,8 @@
 
 namespace mm {
 
+class PdfFontMetrics;
+
 /** This factory creates a PdfEncoding
  *  from an existing object in the PDF.
  */
@@ -21,12 +23,13 @@ public:
     /** Create a new PdfEncoding from either an
      *  encoding name or an encoding dictionary.
      *
-     *  \param obj must be a name or an encoding dictionary
+     *  \param fontObj font object
      *  \param toUnicode the optional ToUnicode dictionary
      *
      *  \returns a PdfEncoding or nullptr
      */
-    static PdfEncoding CreateEncoding(PdfObject& fontObj);
+    static PdfEncoding CreateEncoding(
+        const PdfObject& fontObj, const PdfFontMetrics& metrics);
 
 public:
     /** Singleton method which returns a global instance
@@ -106,7 +109,8 @@ public:
     static PdfEncoding CreateIso88592Encoding();
 
 private:
-    static PdfEncodingMapConstPtr createEncodingMap(PdfObject& obj, bool explicitNames);
+    static PdfEncodingMapConstPtr createEncodingMap(
+        const PdfObject& obj, const PdfFontMetrics& metrics);
 
 private:
     PdfEncodingFactory() = delete;

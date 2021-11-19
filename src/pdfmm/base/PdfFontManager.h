@@ -36,13 +36,13 @@ struct PdfFontSearchParams
     bool Bold = false;
     bool Italic = false;
     bool SymbolCharset = false; // CHECK-ME: Migrate this to a flag?
+    PdfAutoSelectFontOptions AutoSelectOpts = PdfAutoSelectFontOptions::None;
     bool NormalizeFontName = true;
 };
 
 struct PdfFontCreationParams
 {
     PdfFontSearchParams SearchParams;
-    PdfAutoSelectFontOptions AutoSelectOpts = PdfAutoSelectFontOptions::None;
     PdfFontInitOptions FontInitOpts = PdfFontInitOptions::Embed;
     PdfEncoding Encoding = PdfEncodingFactory::CreateWinAnsiEncoding();
     std::string FilePath;
@@ -76,16 +76,14 @@ public:
      */
     ~PdfFontManager();
 
-    /** Get a font from the cache. If the font does not yet
-     *  exist, add it to the cache. This font is created
-     *  from an existing object.
+    /** Get a font from the cache of objects loaded fonts
      *
      *  \param obj a PdfObject that is a font
      *
      *  \returns a PdfFont object or nullptr if the font could
      *           not be created or found.
      */
-    PdfFont* GetFont(PdfObject& obj);
+    PdfFont* GetLoadedFont(PdfObject& obj);
 
     /** Get a font from the cache. If the font does not yet
      *  exist, add it to the cache.
@@ -159,14 +157,14 @@ private:
      */
     struct Element
     {
-        Element(const std::string_view& fontname, const PdfEncoding& encoding,
-            bool bold, bool italic, bool isSymbolCharset);
+        Element(const std::string_view& fontname, PdfStandard14FontType stdType,
+            const PdfEncoding& encoding, bool bold, bool italic, bool isSymbolCharset);
 
-        Element(const Element& rhs);
-
-        const Element& operator=(const Element& rhs);
+        Element(const Element& rhs) = default;
+        Element& operator=(const Element& rhs) = default;
 
         std::string FontName;
+        PdfStandard14FontType StdType;
         size_t EncodingId;
         bool Bold;
         bool Italic;
@@ -183,7 +181,7 @@ private:
         bool operator()(const Element& lhs, const Element& rhs) const;
     };
 
-    typedef std::unordered_map<Element, PdfFont*, HashElement, EqualElement> FontCacheMap;
+    typedef std::unordered_map<Element, std::unique_ptr<PdfFont>, HashElement, EqualElement> FontCacheMap;
 
 private:
 #ifdef PDFMM_HAVE_FONTCONFIG
@@ -205,8 +203,11 @@ private:
 #endif
 
 private:
-    FontCacheMap m_fontMap;             // Sorted list of all fonts, currently in the cache
-    PdfDocument* m_doc;                 // Handle to parent for creating new fonts and objects
+    PdfDocument* m_doc;
+    // Sorted list of all imported fonts currently in the cache
+    FontCacheMap m_fontMap;
+    // Map of parsed fonts
+    std::unordered_map<PdfReference, std::unique_ptr<PdfFont>> m_loadedFontMap;
 
 #ifdef PDFMM_HAVE_FONTCONFIG
     static std::shared_ptr<PdfFontConfigWrapper> m_fontConfig;

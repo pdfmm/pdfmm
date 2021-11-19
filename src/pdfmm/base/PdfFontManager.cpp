@@ -41,7 +41,7 @@ static void getFontDataTTC(chars& buffer, const chars& fileBuffer, const chars& 
 static unique_ptr<chars> getFontData(const string_view& filename, unsigned short faceIndex);
 
 #if defined(PDFMM_HAVE_FONTCONFIG)
-std::shared_ptr<PdfFontConfigWrapper> PdfFontManager::m_fontConfig;
+shared_ptr<PdfFontConfigWrapper> PdfFontManager::m_fontConfig;
 #endif
 
 PdfFontManager::PdfFontManager(PdfDocument& doc)
@@ -54,39 +54,59 @@ PdfFontManager::~PdfFontManager()
 
 void PdfFontManager::EmptyCache()
 {
-    for (auto& pair : m_fontMap)
-        delete pair.second;
-
     m_fontMap.clear();
+    m_loadedFontMap.clear();
 }
 
-PdfFont* PdfFontManager::GetFont(PdfObject& obj)
+PdfFont* PdfFontManager::GetLoadedFont(PdfObject& obj)
 {
-    const PdfReference& ref = obj.GetIndirectReference();
+    // TODO: We should check that the font being loaded
+    // is not present in the imported font cache
+    if (!obj.IsIndirect())
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Object is not indirect");
 
-    for (auto& pair : m_fontMap)
-    {
-        if (pair.second->GetObject().GetIndirectReference() == ref)
-            return pair.second;
-    }
+    auto found = m_loadedFontMap.find(obj.GetIndirectReference());
+    if (found != m_loadedFontMap.end())
+        return found->second.get();
 
     // Create a new font
     unique_ptr<PdfFont> font;
     if (!PdfFont::TryCreateFromObject(obj, font))
         return nullptr;
 
-    auto inserted = m_fontMap.insert({ Element(font->GetMetrics().GetFontNameSafe(),
-        font->GetEncoding(),
-        font->GetMetrics().IsBold(),
-        font->GetMetrics().IsItalic(),
-        font->GetMetrics().IsSymbol()), font.release() });
-    return inserted.first->second;
+    auto inserted = m_loadedFontMap.insert({ obj.GetIndirectReference(), std::move(font) });
+    return inserted.first->second.get();
 }
 
 PdfFont* PdfFontManager::GetFont(const string_view& fontName, const PdfFontCreationParams& params)
 {
     if (params.Encoding.IsNull())
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Invalid encoding");
+
+    // NOTE: We don't support standard 14 fonts on subset
+    PdfStandard14FontType stdFont;
+    if (params.FontInitOpts != PdfFontInitOptions::Subset &&
+        params.SearchParams.AutoSelectOpts != PdfAutoSelectFontOptions::None
+        && PdfFontStandard14::IsStandard14Font(fontName,
+            params.SearchParams.AutoSelectOpts == PdfAutoSelectFontOptions::Standard14Alt, stdFont))
+    {
+        // Create a special element cache that just specify the standard type and encoding
+        Element element(
+            { },
+            stdFont,
+            params.Encoding,
+            false,
+            false,
+            false);
+        auto found = m_fontMap.find(element);
+        if (found != m_fontMap.end())
+            return found->second.get();
+
+        auto font = PdfFont::CreateStandard14(*m_doc, stdFont, params.Encoding,
+            params.FontInitOpts);
+        auto inserted = m_fontMap.insert({ element, std::move(font) });
+        return inserted.first->second.get();
+    }
 
     string baseFontName;
     PdfFontCreationParams newParams = params;
@@ -102,33 +122,13 @@ PdfFont* PdfFontManager::getFont(const string_view& baseFontName, const PdfFontC
 {
     auto found = m_fontMap.find(Element(
         baseFontName,
+        PdfStandard14FontType::Unknown,
         params.Encoding,
         params.SearchParams.Bold,
         params.SearchParams.Italic,
         params.SearchParams.SymbolCharset));
     if (found != m_fontMap.end())
-        return found->second;
-
-    // NOTE: We don't support standard 14 fonts on subset
-    PdfStandard14FontType stdFont;
-    if (params.FontInitOpts != PdfFontInitOptions::Subset &&
-        params.AutoSelectOpts != PdfAutoSelectFontOptions::None
-        && PdfFontStandard14::TryGetStandard14Font(baseFontName,
-            params.SearchParams.Bold, params.SearchParams.Italic,
-            params.AutoSelectOpts == PdfAutoSelectFontOptions::Standard14Alt, stdFont))
-    {
-        auto font = PdfFont::CreateStandard14(*m_doc, stdFont, params.Encoding,
-            params.FontInitOpts).release();
-        if (font != nullptr)
-        {
-            m_fontMap.insert({ Element(baseFontName,
-                params.Encoding,
-                font->GetMetrics().IsBold(),
-                font->GetMetrics().IsItalic(),
-                font->GetMetrics().IsSymbol()), font });
-            return font;
-        }
-    }
+        return found->second.get();
 
     shared_ptr<chars> buffer = GetFontData(baseFontName, params.SearchParams);
     if (buffer == nullptr)
@@ -187,12 +187,13 @@ PdfFont* PdfFontManager::GetFont(FT_Face face, const PdfEncoding& encoding,
 
     auto found = m_fontMap.find(Element(
         name,
+        PdfStandard14FontType::Unknown,
         encoding,
         bold,
         italic,
         isSymbolCharset));
     if (found != m_fontMap.end())
-        return found->second;
+        return found->second.get();
 
     shared_ptr<PdfFontMetricsFreetype> metrics = PdfFontMetricsFreetype::FromFace(face, isSymbolCharset);
     return this->createFontObject(name, metrics, encoding, initOptions);
@@ -228,13 +229,14 @@ PdfFont* PdfFontManager::GetFont(HFONT font,
 
     auto found = m_fontMap.find(Element(
         fontname,
+        PdfStandard14FontType::Unknown,
         encoding,
         logFont.lfWeight >= FW_BOLD ? true : false,
         logFont.lfItalic == 0 ? false : true,
         logFont.lfCharSet == SYMBOL_CHARSET));
 
     if (found != m_fontMap.end())
-        return found->second;
+        return found->second.get();
 
     shared_ptr<chars> buffer = ::getFontData(logFont);
     if (buffer == nullptr)
@@ -286,19 +288,19 @@ PdfFont* PdfFontManager::createFontObject(const string_view& fontName,
     const PdfFontMetricsConstPtr& metrics, const PdfEncoding& encoding,
     PdfFontInitOptions initOptions)
 {
-    PdfFont* font;
-
     try
     {
-        font = PdfFont::Create(*m_doc, metrics, encoding, initOptions).release();
-        if (font != nullptr)
-        {
-            m_fontMap.insert({ Element(fontName,
-                encoding,
-                metrics->IsBold(),
-                metrics->IsItalic(),
-                metrics->IsSymbol()), font });
-        }
+        auto font = PdfFont::Create(*m_doc, metrics, encoding, initOptions);
+        if (font == nullptr)
+            return nullptr;
+
+        auto inserted = m_fontMap.insert({ Element(fontName,
+            PdfStandard14FontType::Unknown,
+            encoding,
+            metrics->IsBold(),
+            metrics->IsItalic(),
+            metrics->IsSymbol()), std::move(font) });
+        return inserted.first->second.get();
     }
     catch (PdfError& e)
     {
@@ -307,8 +309,6 @@ PdfFont* PdfFontManager::createFontObject(const string_view& fontName,
         PdfError::LogMessage(LogSeverity::Error, "Cannot initialize font: {}", fontName);
         return nullptr;
     }
-
-    return font;
 }
 
 #ifdef PDFMM_HAVE_FONTCONFIG
@@ -344,35 +344,19 @@ shared_ptr<PdfFontConfigWrapper> PdfFontManager::ensureInitializedFontConfig()
 
 #endif // PDFMM_HAVE_FONTCONFIG
 
-PdfFontManager::Element::Element(const string_view& fontname, const PdfEncoding& encoding,
-    bool bold, bool italic, bool isSymbolCharset) :
+PdfFontManager::Element::Element(const string_view& fontname, PdfStandard14FontType stdType,
+    const PdfEncoding& encoding, bool bold, bool italic, bool isSymbolCharset) :
     FontName(fontname),
+    StdType(stdType),
     EncodingId(encoding.GetId()),
     Bold(bold),
     Italic(italic),
     IsSymbolCharset(isSymbolCharset) { }
 
-PdfFontManager::Element::Element(const Element& rhs) :
-    FontName(rhs.FontName),
-    EncodingId(rhs.EncodingId),
-    Bold(rhs.Bold),
-    Italic(rhs.Italic),
-    IsSymbolCharset(rhs.IsSymbolCharset) { }
-
-const PdfFontManager::Element& PdfFontManager::Element::operator=(const Element& rhs)
-{
-    FontName = rhs.FontName;
-    EncodingId = rhs.EncodingId;
-    Bold = rhs.Bold;
-    Italic = rhs.Italic;
-    IsSymbolCharset = rhs.IsSymbolCharset;
-    return *this;
-}
-
 size_t PdfFontManager::HashElement::operator()(const Element& elem) const
 {
     size_t hash = 0;
-    utls::hash_combine(hash, elem.FontName, elem.EncodingId, elem.Bold, elem.Italic, elem.IsSymbolCharset);
+    utls::hash_combine(hash, elem.FontName, elem.StdType, elem.EncodingId, elem.Bold, elem.Italic, elem.IsSymbolCharset);
     return hash;
 };
 

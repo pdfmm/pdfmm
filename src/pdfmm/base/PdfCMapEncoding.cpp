@@ -33,11 +33,6 @@ static void pushMapping(PdfCharCodeMap& map, PdfEncodingLimits& limits,
     const PdfCharCode& codeUnit,
     const std::vector<char32_t>& codePoints);
 
-PdfCMapEncoding::PdfCMapEncoding(const PdfObject& cmapObj)
-    : PdfCMapEncoding(parseCMapObject(cmapObj.MustGetStream()))
-{
-}
-
 PdfCMapEncoding::PdfCMapEncoding(MapIdentity map)
     : PdfEncodingMapBase(std::move(map.Map), map.Limits)
 {
@@ -46,6 +41,11 @@ PdfCMapEncoding::PdfCMapEncoding(MapIdentity map)
 PdfCMapEncoding::PdfCMapEncoding(PdfCharCodeMap&& map)
     : PdfEncodingMapBase(std::move(map))
 {
+}
+
+unique_ptr<PdfCMapEncoding> PdfCMapEncoding::Create(const PdfObject& cmapObj)
+{
+    return unique_ptr<PdfCMapEncoding>(new PdfCMapEncoding(parseCMapObject(cmapObj.MustGetStream())));
 }
 
 bool PdfCMapEncoding::HasCIDMapping() const

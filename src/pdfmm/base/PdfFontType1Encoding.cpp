@@ -15,8 +15,13 @@
 using namespace std;
 using namespace mm;
 
-PdfFontType1Encoding::PdfFontType1Encoding(const PdfObject& obj) :
-    PdfEncodingMapBase(getUnicodeMap(obj)) { }
+PdfFontType1Encoding::PdfFontType1Encoding(PdfCharCodeMap&& map) :
+    PdfEncodingMapBase(std::move(map)) { }
+
+unique_ptr<PdfFontType1Encoding> PdfFontType1Encoding::Create(const PdfObject& obj)
+{
+    return unique_ptr<PdfFontType1Encoding>(new PdfFontType1Encoding(getUnicodeMap(obj)));
+}
 
 PdfCharCodeMap PdfFontType1Encoding::getUnicodeMap(const PdfObject& obj)
 {

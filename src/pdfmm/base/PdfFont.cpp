@@ -34,14 +34,14 @@ static string_view genSubsetPrefix();
 
 PdfFont::PdfFont(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
     const PdfEncoding& encoding) :
-    PdfDictionaryElement(doc, "Font"), m_Metrics(metrics), m_IsLoaded(false)
+    PdfDictionaryElement(doc, "Font"), m_Metrics(metrics), m_IsObjectLoaded(false)
 {
     this->initBase(encoding);
 }
 
 PdfFont::PdfFont(PdfObject& obj, const PdfFontMetricsConstPtr& metrics,
     const PdfEncoding& encoding) :
-    PdfDictionaryElement(obj), m_Metrics(metrics), m_IsLoaded(true)
+    PdfDictionaryElement(obj), m_Metrics(metrics), m_IsObjectLoaded(true)
 {
     this->initBase(encoding);
 
@@ -85,7 +85,7 @@ void PdfFont::initBase(const PdfEncoding& encoding)
         m_Encoding.reset(new PdfEncodingShim(encoding, *this));
     }
 
-    if (!m_IsLoaded)
+    if (!(m_IsObjectLoaded || m_IsEmbedded))
     {
         unsigned gid;
         char32_t spaceCp = U' ';
@@ -400,9 +400,8 @@ double PdfFont::GetDescent(const PdfTextState& state) const
 
 PdfCID PdfFont::AddUsedGID(unsigned gid, const cspan<char32_t>& codePoints)
 {
-    PDFMM_ASSERT(!m_IsLoaded);
-
-    if (m_IsEmbedded)
+    PDFMM_ASSERT(!m_IsObjectLoaded);
+    if (m_SubsettingEnabled && m_IsEmbedded)
     {
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic,
             "Can't add more subsetting glyphs on an already embedded font");

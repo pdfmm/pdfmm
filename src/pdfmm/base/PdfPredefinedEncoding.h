@@ -110,7 +110,6 @@ namespace mm
         PdfWinAnsiEncoding();
 
     protected:
-        void getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const override;
         const char32_t* GetToUnicodeTable() const override;
 
     private:

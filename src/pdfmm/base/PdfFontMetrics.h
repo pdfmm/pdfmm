@@ -25,7 +25,7 @@ namespace mm {
 class PDFMM_API PdfFontMetrics
 {
 protected:
-    PdfFontMetrics(PdfFontMetricsType fontType);
+    PdfFontMetrics();
 
 public:
     virtual ~PdfFontMetrics();
@@ -116,19 +116,21 @@ public:
      */
     virtual double GetDescent() const = 0;
 
-    /** Get the actual font data for a file loaded font, if available
-     *
-     * For font data coming from the /FontFile keys, use GetFontDataObject()
-     * \returns a binary buffer of data containing the font data
-     */
-    virtual std::string_view GetFontData() const;
+    virtual PdfFontFileType GetFontFileType() const = 0;
 
-    /** Get the actual font data object from a /FontFile like key, if available
+    /** Get the actual font data for a file imported font, if available
      *
-     * For font data coming from a file loaded font, see GetFontData()
+     * For font data coming from the /FontFile keys, use GetFontFileObject()
      * \returns a binary buffer of data containing the font data
      */
-    virtual const PdfObject* GetFontDataObject() const;
+    virtual std::string_view GetFontFileData() const;
+
+    /** Get the actual font file object from a /FontFile like key, if available
+     *
+     * For font data coming from a file imported font, see GetFontFileData()
+     * \returns a binary buffer of data containing the font data
+     */
+    virtual const PdfObject* GetFontFileObject() const;
 
     /** Get a string with either the actual /FontName or a base font name
      * inferred from a font file
@@ -182,14 +184,15 @@ public:
      */
     virtual bool IsItalic() const = 0;
 
+    virtual PdfStandard14FontType GetStandard14FontType() const;
+
     /** State whether font name reports if the font is bold or italic, such has in "Helvetica-Bold"
      */
     virtual bool FontNameHasBoldItalicInfo() const;
 
-    /**
-     *  \returns the fonttype of the loaded font
+    /** Determine if the metrics are for Adobe Type1 like font
      */
-    inline PdfFontMetricsType GetType() const { return m_FontType; }
+    bool IsType1Kind() const;
 
     /** Symbol fonts do need special treatment in a few cases.
      *  Use this method to check if the current font is a symbol
@@ -200,28 +203,9 @@ public:
      */
     virtual bool IsSymbol() const = 0;
 
-    /** Try to detect the internal fonttype from
-     *  the file extension of a fontfile.
-     *
-     *  \param filename must be the filename of a font file
-     *
-     *  \return font type
-     */
-    static PdfFontMetricsType GetFontMetricsTypeFromFilename(const std::string_view& filename);
-
-protected:
-    /**
-     *  Set the fonttype.
-     *  \param eFontType fonttype
-     */
-    inline void SetType(PdfFontMetricsType eFontType) { m_FontType = eFontType; }
-
 private:
     PdfFontMetrics(const PdfFontMetrics& rhs) = delete;
     PdfFontMetrics& operator=(const PdfFontMetrics& rhs) = delete;
-
-private:
-    PdfFontMetricsType m_FontType;
 };
 
 /** Convenience typedef for a const PdfEncoding shared ptr

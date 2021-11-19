@@ -187,21 +187,20 @@ enum class PdfFontType
     Type1,
     Type3,
     TrueType,
-    CIDType1,
-    CIDTrueType,
+    CIDType1,    ///< This is a "CIDFontType0"
+    CIDTrueType, ///< This is a "CIDFontType2"
 };
 
-/**
- * Enum for the different font metrics formats supported by pdfmm
- */
-enum class PdfFontMetricsType
+enum class PdfFontFileType
 {
+    // Table 126 – Embedded font organization for various font types
     Unknown = 0,
-    TrueType,
-    Type1Pfa,
-    Type1Pfb,
-    Type1Standard14,
+    Type1,
     Type3,
+    TrueType,
+    Type1CCF,    ///< Compact Font Representation for /Type1 fonts. This is subtype /Type1C for /FontFile3
+    CIDType1CCF, ///< Compact Font Representation for /CIDFontType0 fonts. This is subtype /CIDFontType0C for /FontFile3
+    OpenType     ///< OpenType font. This is /Subtype "OpenType" for /FontFile3
 };
 
 /** Flags to control font creation.

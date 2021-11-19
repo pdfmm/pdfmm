@@ -27,14 +27,3 @@ PdfFontType PdfFontType3::GetType() const
 {
     return PdfFontType::Type3;
 }
-
-void PdfFontType3::initImported()
-{
-    this->Init("Type3");
-}
-
-void PdfFontType3::embedFontFile(PdfObject& descriptor)
-{
-    (void)descriptor;
-    PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFontFormat);
-}

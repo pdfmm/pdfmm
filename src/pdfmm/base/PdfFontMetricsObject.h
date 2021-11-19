@@ -27,17 +27,17 @@ class PdfVariant;
 
 class PDFMM_API PdfFontMetricsObject final : public PdfFontMetrics
 {
-    friend class PdfFont;
-
 private:
     /** Create a font metrics object based on an existing PdfObject
      *
      *  \param obj an existing font descriptor object
      *  \param pEncoding a PdfEncoding which will NOT be owned by PdfFontMetricsObject
      */
-    PdfFontMetricsObject(const PdfObject& font, const PdfObject* descriptor = nullptr);
+    PdfFontMetricsObject(const PdfObject& font, const PdfObject* descriptor);
 
 public:
+    static std::unique_ptr<PdfFontMetricsObject> Create(const PdfObject& font, const PdfObject* descriptor = nullptr);
+
     unsigned GetGlyphCount() const override;
 
     bool TryGetGlyphWidth(unsigned gid, double& width) const override;
@@ -66,7 +66,9 @@ public:
 
     std::string GetBaseFontName() const override;
 
-    const PdfObject* GetFontDataObject() const override;
+    PdfFontFileType GetFontFileType() const override;
+
+    const PdfObject* GetFontFileObject() const override;
 
     unsigned GetWeight() const override;
 
@@ -102,7 +104,8 @@ private:
     double m_Ascent;
     double m_Descent;
     double m_LineSpacing;
-    const PdfObject* m_FontDataObject;
+    const PdfObject* m_FontFileObject;
+    PdfFontFileType m_FontFileType;
 
     double m_UnderlineThickness;
     double m_UnderlinePosition;

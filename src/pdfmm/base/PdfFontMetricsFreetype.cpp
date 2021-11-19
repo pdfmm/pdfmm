@@ -29,7 +29,6 @@ using namespace mm;
 
 PdfFontMetricsFreetype::PdfFontMetricsFreetype(
     const shared_ptr<chars>& buffer, bool isSymbol) :
-    PdfFontMetrics(PdfFontMetricsType::TrueType), // TODO: Identify type
     m_Face(nullptr),
     m_IsSymbol(isSymbol),
     m_FontData(buffer)
@@ -39,7 +38,6 @@ PdfFontMetricsFreetype::PdfFontMetricsFreetype(
 
 PdfFontMetricsFreetype::PdfFontMetricsFreetype(FT_Face face,
     const shared_ptr<chars>& buffer, bool isSymbol) :
-    PdfFontMetrics(PdfFontMetricsType::TrueType), // TODO: Identify type
     m_Face(face),
     m_IsSymbol(isSymbol),
     m_FontData(buffer)
@@ -72,9 +70,6 @@ void PdfFontMetricsFreetype::InitFromBuffer()
 
 void PdfFontMetricsFreetype::InitFromFace()
 {
-    // We need to have identified the font type by this point
-    PDFMM_ASSERT(GetType() != PdfFontMetricsType::Unknown);
-
     FT_Error rc;
 
     m_Weight = 500;
@@ -305,7 +300,7 @@ double PdfFontMetricsFreetype::GetDescent() const
     return m_Descent;
 }
 
-string_view PdfFontMetricsFreetype::GetFontData() const
+string_view PdfFontMetricsFreetype::GetFontFileData() const
 {
     return string_view(m_FontData->data(), m_FontData->length());
 }
@@ -340,4 +335,10 @@ double PdfFontMetricsFreetype::GetItalicAngle() const
 bool PdfFontMetricsFreetype::IsSymbol() const
 {
     return m_IsSymbol;
+}
+
+PdfFontFileType PdfFontMetricsFreetype::GetFontFileType() const
+{
+    // TODO
+    return PdfFontFileType::TrueType;
 }

@@ -16,13 +16,14 @@ namespace mm
     class PdfCMapEncoding : public PdfEncodingMapBase
     {
     public:
-        /** Construct a PdfCMapEncoding from an object
-         */
-        PdfCMapEncoding(const PdfObject& cmapObj);
-
         /** Construct a PdfCMapEncoding from a map
          */
         PdfCMapEncoding(PdfCharCodeMap&& map);
+
+    public:
+        /** Construct a PdfCMapEncoding from an object
+         */
+        static std::unique_ptr<PdfCMapEncoding> Create(const PdfObject& cmapObj);
 
     public:
         bool HasCIDMapping() const override;

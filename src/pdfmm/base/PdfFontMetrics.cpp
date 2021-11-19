@@ -16,8 +16,7 @@
 using namespace std;
 using namespace mm;
 
-PdfFontMetrics::PdfFontMetrics(PdfFontMetricsType fontType)
-    : m_FontType(fontType) { }
+PdfFontMetrics::PdfFontMetrics() { }
 
 PdfFontMetrics::~PdfFontMetrics() { }
 
@@ -46,40 +45,13 @@ unsigned PdfFontMetrics::GetGID(char32_t codePoint) const
     return gid;
 }
 
-PdfFontMetricsType PdfFontMetrics::GetFontMetricsTypeFromFilename(const string_view& filename)
-{
-    PdfFontMetricsType fontType = PdfFontMetricsType::Unknown;
-
-    // We check by file extension right now
-    // which is not quite correct, but still better than before
-    if (filename.length() > 3)
-    {
-        const char* extension = filename.data() + filename.length() - 3;
-        if (compat::strncasecmp(extension, "ttf", 3) == 0)
-            fontType = PdfFontMetricsType::TrueType;
-        else if (compat::strncasecmp(extension, "otf", 3) == 0)
-            fontType = PdfFontMetricsType::TrueType;
-        else if (compat::strncasecmp(extension, "ttc", 3) == 0)
-            fontType = PdfFontMetricsType::TrueType;
-        else if (compat::strncasecmp(extension, "pfa", 3) == 0)
-            fontType = PdfFontMetricsType::Type1Pfa;
-        else if (compat::strncasecmp(extension, "pfb", 3) == 0)
-            fontType = PdfFontMetricsType::Type1Pfb;
-    }
-
-    if (fontType == PdfFontMetricsType::Unknown)
-        PdfError::LogMessage(LogSeverity::Debug, "Warning: Unrecognized FontFormat: {}", filename);
-
-    return fontType;
-}
-
-const PdfObject* PdfFontMetrics::GetFontDataObject() const
+const PdfObject* PdfFontMetrics::GetFontFileObject() const
 {
     // Return nullptr by default
     return nullptr;
 }
 
-string_view PdfFontMetrics::GetFontData() const
+string_view PdfFontMetrics::GetFontFileData() const
 {
     // Return nothing by default
     return { };
@@ -117,7 +89,25 @@ string PdfFontMetrics::GetFontName() const
     return string();
 }
 
+PdfStandard14FontType PdfFontMetrics::GetStandard14FontType() const
+{
+    return PdfStandard14FontType::Unknown;
+}
+
 bool PdfFontMetrics::FontNameHasBoldItalicInfo() const
 {
     return false;
+}
+
+bool PdfFontMetrics::IsType1Kind() const
+{
+    switch (GetFontFileType())
+    {
+        case PdfFontFileType::Type1:
+        case PdfFontFileType::Type1CCF:
+        case PdfFontFileType::CIDType1CCF:
+            return true;
+        default:
+            return false;
+    }
 }

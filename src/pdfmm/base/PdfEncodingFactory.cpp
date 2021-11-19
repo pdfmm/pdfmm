@@ -18,45 +18,47 @@
 #include "PdfFontType1Encoding.h"
 #include "PdfCMapEncoding.h"
 #include "PdfEncodingShim.h"
+#include "PdfFontStandard14.h"
 
 using namespace std;
 using namespace mm;
 
-PdfEncoding PdfEncodingFactory::CreateEncoding(PdfObject& fontObj)
+PdfEncoding PdfEncodingFactory::CreateEncoding(const PdfObject& fontObj, const PdfFontMetrics& metrics)
 {
-    auto subTypeKey = fontObj.GetDictionary().GetKey(PdfName::KeySubtype);
-    if (subTypeKey == nullptr)
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Font: No SubType");
-
-    bool explicitNames = false;
-    auto& subType = subTypeKey->GetName();
-    if (subType == "Type3")
-        explicitNames = true;
-
     // The /Encoding entry can be a predefined encoding, a CMap
     PdfEncodingMapConstPtr encoding;
-    auto objEncoding = fontObj.GetDictionary().FindKey("Encoding");
-    if (objEncoding != nullptr)
-        encoding = createEncodingMap(*objEncoding, explicitNames);;
 
-    if (encoding == nullptr)
+    auto encodingObj = fontObj.GetDictionary().FindKey("Encoding");
+    if (encodingObj != nullptr)
+        encoding = createEncodingMap(*encodingObj, metrics);
+
+    if (encoding == nullptr && metrics.GetFontFileType() == PdfFontFileType::Type1)
     {
-        PdfObject* objDescriptor;
-        if ((objDescriptor = fontObj.GetDictionary().FindKey("FontDescriptor")) != nullptr)
+        auto fontFileObj = metrics.GetFontFileObject();
+        if (fontFileObj == nullptr)
         {
-            auto fontFileObj = objDescriptor->GetDictionary().FindKey("FontFile");
-            if (fontFileObj == nullptr)
+            // encoding may be undefined, found a valid pdf with
+            //   20 0 obj
+            //   <<
+            //   /Type /Font
+            //   /BaseFont /ZapfDingbats
+            //   /Subtype /Type1
+            //   >>
+            //   endobj 
+            // If encoding is null then
+            // use StandardEncoding for Times, Helvetica, Courier font families
+            // special encodings for Symbol and ZapfDingbats
+            encoding = PdfFontStandard14::GetStandard14FontEncodingMap(metrics.GetStandard14FontType());
+            if (encoding == nullptr
+                && metrics.IsType1Kind()
+                && !metrics.IsSymbol())
             {
-                // Let's try to determine if its a symbolic font by reading the FontDescriptor Flags
-                // Flags & 4 --> Symbolic, Flags & 32 --> Nonsymbolic
-                int32_t flags = static_cast<int32_t>(objDescriptor->GetDictionary().FindKeyAs<double>("Flags", 0));
-                if (flags & 32) // Nonsymbolic, otherwise pEncoding remains nullptr
-                    encoding = PdfEncodingMapFactory::StandardEncodingInstance();
+                encoding = PdfEncodingMapFactory::StandardEncodingInstance();
             }
-            else
-            {
-                encoding.reset(new PdfFontType1Encoding(*fontFileObj));
-            }
+        }
+        else
+        {
+            encoding = PdfFontType1Encoding::Create(*fontFileObj);
         }
     }
 
@@ -66,9 +68,9 @@ PdfEncoding PdfEncodingFactory::CreateEncoding(PdfObject& fontObj)
     // The /ToUnicode CMap is the main entry to search
     // for text extraction
     PdfEncodingMapConstPtr toUnicode;
-    auto objToUnicode = fontObj.GetDictionary().FindKey("ToUnicode");
-    if (objToUnicode != nullptr)
-        toUnicode = createEncodingMap(*objToUnicode, explicitNames);
+    auto toUnicodeObj = fontObj.GetDictionary().FindKey("ToUnicode");
+    if (toUnicodeObj != nullptr)
+        toUnicode = createEncodingMap(*toUnicodeObj, metrics);
 
     if (encoding == nullptr)
     {
@@ -88,7 +90,8 @@ PdfEncoding PdfEncodingFactory::CreateEncoding(PdfObject& fontObj)
     return PdfEncoding(fontObj, encoding, toUnicode);
 }
 
-PdfEncodingMapConstPtr PdfEncodingFactory::createEncodingMap(PdfObject& obj, bool explicitNames)
+PdfEncodingMapConstPtr PdfEncodingFactory::createEncodingMap(
+    const PdfObject& obj, const PdfFontMetrics& metrics)
 {
     if (obj.IsName())
     {
@@ -121,8 +124,8 @@ PdfEncodingMapConstPtr PdfEncodingFactory::createEncodingMap(PdfObject& obj, boo
     }
     else if (obj.IsDictionary())
     {
-        PdfDictionary& dict = obj.GetDictionary();
-        PdfObject* cmapName = dict.FindKey("CMapName");
+        auto& dict = obj.GetDictionary();
+        auto* cmapName = dict.FindKey("CMapName");
         if (cmapName != nullptr)
         {
             if (cmapName->GetName() == "Identity-H")
@@ -134,10 +137,10 @@ PdfEncodingMapConstPtr PdfEncodingFactory::createEncodingMap(PdfObject& obj, boo
 
         // CHECK-ME: should we better verify if it's a CMap first?
         if (obj.HasStream())
-            return std::make_shared<PdfCMapEncoding>(obj);
+            return PdfCMapEncoding::Create(obj);
 
         // CHECK-ME: should we verify if it's a reference by searching /Differences?
-        return std::make_shared<PdfDifferenceEncoding>(obj, explicitNames);
+        return PdfDifferenceEncoding::Create(obj, metrics);
     }
 
     return nullptr;
