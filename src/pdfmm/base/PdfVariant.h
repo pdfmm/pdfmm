@@ -306,7 +306,7 @@ public:
      *  This will set the dirty flag of this object.
      *  \see IsDirty
      */
-    const PdfVariant& operator=(const PdfVariant& rhs);
+    PdfVariant& operator=(const PdfVariant& rhs);
 
     /**
      * Test to see if the value contained by this variant is the same
@@ -323,6 +323,7 @@ public:
     inline PdfDataType GetDataType() const { return m_DataType; }
 
 private:
+    void assign(const PdfVariant& rhs);
     bool tryGetDictionary(PdfDictionary*& dict) const;
     bool tryGetArray(PdfArray*& arr) const;
     bool tryGetName(const PdfName*& name) const;

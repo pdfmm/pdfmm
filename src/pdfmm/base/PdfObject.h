@@ -399,7 +399,7 @@ public:
      *  \param rhs PdfObject to clone
      *  \returns a reference to this object
      */
-    const PdfObject& operator=(const PdfObject& rhs);
+    PdfObject& operator=(const PdfObject& rhs);
 
     operator const PdfVariant& () const;
 

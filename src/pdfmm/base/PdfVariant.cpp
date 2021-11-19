@@ -86,7 +86,7 @@ PdfVariant::PdfVariant(const PdfData& data)
 PdfVariant::PdfVariant(const PdfVariant& rhs)
     : PdfVariant(PdfDataType::Unknown)
 {
-    this->operator=(rhs);
+    assign(rhs);
 }
 
 PdfVariant::~PdfVariant()
@@ -220,12 +220,16 @@ void PdfVariant::ToString(string& data, PdfWriteMode writeMode) const
     data = out.str();
 }
 
-const PdfVariant& PdfVariant::operator=(const PdfVariant& rhs)
+PdfVariant& PdfVariant::operator=(const PdfVariant& rhs)
 {
     Clear();
+    assign(rhs);
+    return *this;
+}
 
+void PdfVariant::assign(const PdfVariant& rhs)
+{
     m_DataType = rhs.m_DataType;
-
     switch (m_DataType)
     {
         case PdfDataType::Array:
@@ -266,8 +270,6 @@ const PdfVariant& PdfVariant::operator=(const PdfVariant& rhs)
         default:
             break;
     };
-
-    return *this;
 }
 
 const char* PdfVariant::GetDataTypeString() const
