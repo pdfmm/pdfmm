@@ -35,7 +35,6 @@ struct PdfFontSearchParams
 {
     bool Bold = false;
     bool Italic = false;
-    bool SymbolCharset = false; // CHECK-ME: Migrate this to a flag?
     PdfAutoSelectFontOptions AutoSelectOpts = PdfAutoSelectFontOptions::None;
     bool NormalizeFontName = true;
 };
@@ -109,7 +108,6 @@ public:
      *
      *  \param face a valid freetype font face (will be free'd by pdfmm)
      *  \param encoding the encoding of the font. The font will not take ownership of this object.
-     *  \param isSymbolCharset whether to use a symbol charset
      *  \param embed if true a font for embedding into
      *                 PDF will be created
      *
@@ -118,7 +116,6 @@ public:
      */
     PdfFont* GetFont(FT_Face face,
         const PdfEncoding& encoding = PdfEncodingFactory::CreateWinAnsiEncoding(),
-        bool isSymbolCharset = false,
         PdfFontInitOptions initOptions = PdfFontInitOptions::Embed);
 
 #if defined(_WIN32) && defined(PDFMM_HAVE_WIN32GDI)
@@ -162,7 +159,7 @@ private:
     struct Element
     {
         Element(const std::string_view& fontname, PdfStandard14FontType stdType,
-            const PdfEncoding& encoding, bool bold, bool italic, bool isSymbolCharset);
+            const PdfEncoding& encoding, bool bold, bool italic);
 
         Element(const Element& rhs) = default;
         Element& operator=(const Element& rhs) = default;
@@ -172,7 +169,6 @@ private:
         size_t EncodingId;
         bool Bold;
         bool Italic;
-        bool IsSymbolCharset;
     };
 
     struct HashElement

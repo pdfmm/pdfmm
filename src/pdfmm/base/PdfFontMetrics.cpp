@@ -89,14 +89,15 @@ string PdfFontMetrics::GetFontName() const
     return string();
 }
 
+bool PdfFontMetrics::IsStandard14FontMetrics() const
+{
+    PdfStandard14FontType std14Font;
+    return IsStandard14FontMetrics(std14Font);
+}
+
 bool PdfFontMetrics::IsStandard14FontMetrics(PdfStandard14FontType& std14Font) const
 {
     std14Font = PdfStandard14FontType::Unknown;
-    return false;
-}
-
-bool PdfFontMetrics::FontNameHasBoldItalicInfo() const
-{
     return false;
 }
 
@@ -111,6 +112,20 @@ bool PdfFontMetrics::IsType1Kind() const
         default:
             return false;
     }
+}
+
+bool PdfFontMetrics::IsPdfSymbolic() const
+{
+    auto flags = GetFlags();
+    return (flags & PdfFontDescriptorFlags::Symbolic) != PdfFontDescriptorFlags::None
+        || (flags & PdfFontDescriptorFlags::NonSymbolic) == PdfFontDescriptorFlags::None;
+}
+
+bool PdfFontMetrics::IsPdfNonSymbolic() const
+{
+    auto flags = GetFlags();
+    return (flags & PdfFontDescriptorFlags::Symbolic) == PdfFontDescriptorFlags::None
+        && (flags & PdfFontDescriptorFlags::NonSymbolic) != PdfFontDescriptorFlags::None;
 }
 
 unique_ptr<PdfEncodingMap> PdfFontMetrics::CreateToUnicodeMap(const PdfEncodingLimits& limitHints) const

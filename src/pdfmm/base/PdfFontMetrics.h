@@ -68,6 +68,8 @@ public:
      */
     virtual void GetBoundingBox(std::vector<double>& bbox) const = 0;
 
+    virtual PdfFontDescriptorFlags GetFlags() const = 0;
+
     /** Retrieve the line spacing for this font
      *  \returns the linespacing in PDF units
      */
@@ -184,24 +186,25 @@ public:
      */
     virtual bool IsItalic() const = 0;
 
-    virtual bool IsStandard14FontMetrics(PdfStandard14FontType& std14Font) const;
+    bool IsStandard14FontMetrics() const;
 
-    /** State whether font name reports if the font is bold or italic, such has in "Helvetica-Bold"
-     */
-    virtual bool FontNameHasBoldItalicInfo() const;
+    virtual bool IsStandard14FontMetrics(PdfStandard14FontType& std14Font) const;
 
     /** Determine if the metrics are for Adobe Type1 like font
      */
     bool IsType1Kind() const;
 
-    /** Symbol fonts do need special treatment in a few cases.
-     *  Use this method to check if the current font is a symbol
-     *  font. Symbold fonts are detected by checking
-     *  if they use FT_ENCODING_MS_SYMBOL as internal encoding.
+    /** Determine if the font is non symbolic according to the PDF definition
      *
-     * \returns true if this is a symbol font
+     * The font is symbolic if "contains glyphs outside the Standard Latin character set"
      */
-    virtual bool IsSymbol() const = 0;
+    bool IsPdfSymbolic() const;
+
+    /** Determine if the font is symbolic according to the PDF definition
+     *
+     * The font is symbolic if "uses the Standard Latin character set or a subset of it."
+     */
+    bool IsPdfNonSymbolic() const;
 
     /** Create a best effort /ToUnicode map based on the
      * character unicode maps of the font

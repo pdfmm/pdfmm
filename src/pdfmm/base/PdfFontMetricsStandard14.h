@@ -27,7 +27,7 @@ struct Standard14FontData
 {
     const Standard14FontChar* Widths;
     unsigned WidthsSize;
-    bool IsSymbol;
+    PdfFontDescriptorFlags Flags;
     int16_t Ascent;
     int16_t Descent;
     uint16_t XHeight;
@@ -64,6 +64,8 @@ public:
 
     bool TryGetGID(char32_t codePoint, unsigned& gid) const override;
 
+    PdfFontDescriptorFlags GetFlags() const override;
+
     double GetDefaultCharWidth() const override;
 
     void GetBoundingBox(std::vector<double>& bbox) const override;
@@ -96,19 +98,15 @@ public:
 
     double GetItalicAngle() const override;
 
-    bool IsSymbol() const override;
-
     PdfFontFileType GetFontFileType() const override;
 
     bool IsStandard14FontMetrics(PdfStandard14FontType& std14Font) const override;
 
     std::string_view GetFontFileData() const override;
 
-    bool IsBold() const override;
-
     bool IsItalic() const override;
 
-    bool FontNameHasBoldItalicInfo() const override;
+    bool IsBold() const override;
 
     inline const Standard14FontData& GetRawData() const { return m_data; }
 

@@ -44,6 +44,8 @@ public:
 
     bool TryGetGID(char32_t codePoint, unsigned& gid) const override;
 
+    PdfFontDescriptorFlags GetFlags() const override;
+
     double GetDefaultCharWidth() const override;
 
     void GetBoundingBox(std::vector<double>& bbox) const override;
@@ -80,8 +82,6 @@ public:
 
     double GetItalicAngle() const override;
 
-    bool IsSymbol() const override;
-
     bool IsBold() const override;
 
     bool IsItalic() const override;
@@ -95,6 +95,7 @@ private:
     std::vector<double> m_BBox;
     std::array<double, 6> m_matrix;
     std::vector<double> m_Widths;
+    PdfFontDescriptorFlags m_Flags;
     double m_DefaultWidth;
     unsigned m_Weight;
     double m_CapHeight;
@@ -112,7 +113,6 @@ private:
     double m_StrikeOutThickness;
     double m_StrikeOutPosition;
 
-    bool m_IsSymbol;     // Internal member to singnal a symbol font
     bool m_IsBold;
     bool m_IsItalic;
 };

@@ -121,6 +121,11 @@ bool PdfFontMetricsStandard14::TryGetGID(char32_t codePoint, unsigned& gid) cons
     return true;
 }
 
+PdfFontDescriptorFlags PdfFontMetricsStandard14::GetFlags() const
+{
+    return m_data.Flags;
+}
+
 double PdfFontMetricsStandard14::GetDefaultCharWidth() const
 {
     // Just assume there is no default width
@@ -197,11 +202,6 @@ double PdfFontMetricsStandard14::GetItalicAngle() const
     return m_ItalicAngle;
 }
 
-bool PdfFontMetricsStandard14::IsSymbol() const
-{
-    return m_data.IsSymbol;
-}
-
 PdfFontFileType PdfFontMetricsStandard14::GetFontFileType() const
 {
     return PdfFontFileType::Type1CCF;
@@ -260,9 +260,3 @@ bool PdfFontMetricsStandard14::IsItalic() const
     }
 }
 
-bool PdfFontMetricsStandard14::FontNameHasBoldItalicInfo() const
-{
-    // All font names states if they are bold or italic ("oblique"
-    //  corresponds to italic), except in symbolic fonts
-    return !m_data.IsSymbol;
-}

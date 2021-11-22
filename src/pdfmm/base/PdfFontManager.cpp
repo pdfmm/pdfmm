@@ -97,7 +97,6 @@ PdfFont* PdfFontManager::GetFont(const string_view& fontName, const PdfFontCreat
             stdFont,
             params.Encoding,
             false,
-            false,
             false);
         auto found = m_fontMap.find(element);
         if (found != m_fontMap.end())
@@ -126,8 +125,7 @@ PdfFont* PdfFontManager::getFont(const string_view& baseFontName, const PdfFontC
         PdfStandard14FontType::Unknown,
         params.Encoding,
         params.SearchParams.Bold,
-        params.SearchParams.Italic,
-        params.SearchParams.SymbolCharset));
+        params.SearchParams.Italic));
     if (found != m_fontMap.end())
         return found->second.get();
 
@@ -135,8 +133,7 @@ PdfFont* PdfFontManager::getFont(const string_view& baseFontName, const PdfFontC
     if (buffer == nullptr)
         return nullptr;
 
-    auto metrics = std::make_shared<PdfFontMetricsFreetype>(buffer,
-        params.SearchParams.SymbolCharset);
+    auto metrics = std::make_shared<PdfFontMetricsFreetype>(buffer);
     return this->createFontObject(baseFontName, metrics,
         params.Encoding, params.FontInitOpts);
 }
@@ -163,8 +160,7 @@ PdfFontMetricsConstPtr PdfFontManager::GetFontMetrics(const string_view& fontNam
     if (fontData == nullptr)
         return nullptr;
 
-    // TODO: Finally sort the symbol vs nosymbol stuff
-    return PdfFontMetricsConstPtr(new PdfFontMetricsFreetype(std::move(fontData), false));
+    return PdfFontMetricsConstPtr(new PdfFontMetricsFreetype(std::move(fontData)));
 }
 
 unique_ptr<chars> PdfFontManager::getFontData(const string_view& fontName,
@@ -198,7 +194,7 @@ unique_ptr<chars> PdfFontManager::getFontData(const string_view& fontName,
 }
 
 PdfFont* PdfFontManager::GetFont(FT_Face face, const PdfEncoding& encoding,
-    bool isSymbolCharset, PdfFontInitOptions initOptions)
+    PdfFontInitOptions initOptions)
 {
     if (encoding.IsNull())
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Invalid encoding");
@@ -218,12 +214,11 @@ PdfFont* PdfFontManager::GetFont(FT_Face face, const PdfEncoding& encoding,
         PdfStandard14FontType::Unknown,
         encoding,
         bold,
-        italic,
-        isSymbolCharset));
+        italic));
     if (found != m_fontMap.end())
         return found->second.get();
 
-    shared_ptr<PdfFontMetricsFreetype> metrics = PdfFontMetricsFreetype::FromFace(face, isSymbolCharset);
+    shared_ptr<PdfFontMetricsFreetype> metrics = PdfFontMetricsFreetype::FromFace(face);
     return this->createFontObject(name, metrics, encoding, initOptions);
 }
 
@@ -260,8 +255,7 @@ PdfFont* PdfFontManager::GetFont(HFONT font,
         PdfStandard14FontType::Unknown,
         encoding,
         logFont.lfWeight >= FW_BOLD ? true : false,
-        logFont.lfItalic == 0 ? false : true,
-        logFont.lfCharSet == SYMBOL_CHARSET));
+        logFont.lfItalic == 0 ? false : true));
 
     if (found != m_fontMap.end())
         return found->second.get();
@@ -270,8 +264,7 @@ PdfFont* PdfFontManager::GetFont(HFONT font,
     if (buffer == nullptr)
         return nullptr;
 
-    auto metrics = std::make_shared<PdfFontMetricsFreetype>(buffer,
-        logFont.lfCharSet == SYMBOL_CHARSET);
+    auto metrics = std::make_shared<PdfFontMetricsFreetype>(buffer);
     return this->createFontObject(fontname, metrics, encoding, initOptions);
 }
 
@@ -299,7 +292,7 @@ std::unique_ptr<chars> PdfFontManager::getWin32FontData(
     // different locale configurations but sometimes dont' match fonts.
     // We prefer OEM_CHARSET over DEFAULT_CHARSET because it configures
     // the mapper in a way that will match more fonts
-    lf.lfCharSet = params.SymbolCharset ? SYMBOL_CHARSET : OEM_CHARSET;
+    lf.lfCharSet = OEM_CHARSET;
     lf.lfOutPrecision = OUT_DEFAULT_PRECIS;
     lf.lfClipPrecision = CLIP_DEFAULT_PRECIS;
     lf.lfQuality = DEFAULT_QUALITY;
@@ -326,8 +319,7 @@ PdfFont* PdfFontManager::createFontObject(const string_view& fontName,
             PdfStandard14FontType::Unknown,
             encoding,
             metrics->IsBold(),
-            metrics->IsItalic(),
-            metrics->IsSymbol()), std::move(font) });
+            metrics->IsItalic()), std::move(font) });
         return inserted.first->second.get();
     }
     catch (PdfError& e)
@@ -373,26 +365,24 @@ shared_ptr<PdfFontConfigWrapper> PdfFontManager::ensureInitializedFontConfig()
 #endif // PDFMM_HAVE_FONTCONFIG
 
 PdfFontManager::Element::Element(const string_view& fontname, PdfStandard14FontType stdType,
-    const PdfEncoding& encoding, bool bold, bool italic, bool isSymbolCharset) :
+    const PdfEncoding& encoding, bool bold, bool italic) :
     FontName(fontname),
     StdType(stdType),
     EncodingId(encoding.GetId()),
     Bold(bold),
-    Italic(italic),
-    IsSymbolCharset(isSymbolCharset) { }
+    Italic(italic) { }
 
 size_t PdfFontManager::HashElement::operator()(const Element& elem) const
 {
     size_t hash = 0;
-    utls::hash_combine(hash, elem.FontName, elem.StdType, elem.EncodingId, elem.Bold, elem.Italic, elem.IsSymbolCharset);
+    utls::hash_combine(hash, elem.FontName, elem.StdType, elem.EncodingId, elem.Bold, elem.Italic);
     return hash;
 };
 
 bool PdfFontManager::EqualElement::operator()(const Element& lhs, const Element& rhs) const
 {
     return lhs.EncodingId == rhs.EncodingId && lhs.Bold == rhs.Bold
-        && lhs.Italic == rhs.Italic && lhs.FontName == rhs.FontName
-        && lhs.IsSymbolCharset == rhs.IsSymbolCharset;
+        && lhs.Italic == rhs.Italic && lhs.FontName == rhs.FontName;
 }
 
 unique_ptr<chars> getFontData(const string_view& filename, unsigned short faceIndex)

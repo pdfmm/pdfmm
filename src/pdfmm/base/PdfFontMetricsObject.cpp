@@ -225,11 +225,21 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
         m_ItalicAngle = 0;
         m_Ascent = 0.0;
         m_Descent = 0.0;
+        m_Flags = PdfFontDescriptorFlags::Symbolic;
     }
     else
     {
         auto& dict = descriptor->GetDictionary();
-        // NOTE: Found a valid document with "/FontWeight 400.0" so just read the value as double
+        m_Flags = (PdfFontDescriptorFlags)dict.FindKeyAs<double>("Flags", 0);
+        if ((m_Flags & PdfFontDescriptorFlags::Italic) != PdfFontDescriptorFlags::None)
+            m_IsItalic = true;
+
+        // NOTE1: It is not correct to check flag ForceBold to
+        // determine if the fond is bold. The ForceBold flag is
+        // just an hint for the viewer to draw glyphs with more
+        // pixels
+
+        // NOTE2: Found a valid document with "/FontWeight 400.0" so just read the value as double
         m_Weight = static_cast<unsigned>(dict.FindKeyAs<double>("FontWeight", 400));
         m_CapHeight = dict.FindKeyAs<double>("CapHeight", 0) * m_matrix[3];
         m_XHeight = dict.FindKeyAs<double>("XHeight", 0) * m_matrix[3];
@@ -247,15 +257,6 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
     m_UnderlinePosition = 0.0;
     m_StrikeOutThickness = m_UnderlinePosition;
     m_StrikeOutPosition = m_Ascent / 2.0;
-
-    /*
-    // Let's try to determine if its a symbolic font by reading the FontDescriptor Flags
-    // Flags & 4 --> Symbolic, Flags & 32 --> Nonsymbolic
-    int32_t flags = static_cast<int32_t>(objDescriptor->GetDictionary().FindKeyAs<double>("Flags", 0));
-    if (flags & 32) // Nonsymbolic, otherwise encoding remains nullptr
-        encoding = PdfEncodingMapFactory::StandardEncodingInstance();
-    */
-    m_IsSymbol = false; // TODO
 }
 
 string PdfFontMetricsObject::GetFontName() const
@@ -307,6 +308,11 @@ bool PdfFontMetricsObject::TryGetGID(char32_t codePoint, unsigned& gid) const
     // codepoints from loaded metrics
     gid = { };
     return false;
+}
+
+PdfFontDescriptorFlags PdfFontMetricsObject::GetFlags() const
+{
+    return m_Flags;
 }
 
 double PdfFontMetricsObject::GetDefaultCharWidth() const
@@ -372,11 +378,6 @@ double PdfFontMetricsObject::GetStemV() const
 double PdfFontMetricsObject::GetItalicAngle() const
 {
     return m_ItalicAngle;
-}
-
-bool PdfFontMetricsObject::IsSymbol() const
-{
-    return m_IsSymbol;
 }
 
 bool PdfFontMetricsObject::IsBold() const

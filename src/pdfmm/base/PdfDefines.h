@@ -181,6 +181,25 @@ enum class PdfFilterType
     Crypt
 };
 
+/**
+ * Enum for the font descriptor flags
+ *
+ * See ISO 32000-1:2008 Table 121 — Font flags
+ */
+enum class PdfFontDescriptorFlags
+{
+    None        = 0,
+    FixedPitch  = 1 << 0,
+    Serif       = 1 << 1,
+    Symbolic    = 1 << 2, ///< Font contains glyphs outside the Standard Latin character set. It does **not** mean the font is a symbol like font 
+    Script      = 1 << 3,
+    NonSymbolic = 1 << 5, ///< Font uses the Standard Latin character set or a subset of it. It does **not** mean the font uses only textual/non symbolic characters
+    Italic      = 1 << 6, ///< Glyphs have dominant vertical strokes that are slanted
+    AllCap      = 1 << 16,
+    SmallCap    = 1 << 17,
+    ForceBold   = 1 << 18, ///< Determine whether bold glyphs shall be painted with extra pixels even
+};
+
 /** Enum specifying the type of the font
  *
  * It doesn't necessarily specify the underline font file type,
@@ -489,6 +508,7 @@ ENABLE_BITMASK_OPERATORS(mm::PdfWriteMode);
 ENABLE_BITMASK_OPERATORS(mm::PdfInfoInitial);
 ENABLE_BITMASK_OPERATORS(mm::PdfFontInitOptions);
 ENABLE_BITMASK_OPERATORS(mm::PdfAutoSelectFontOptions);
+ENABLE_BITMASK_OPERATORS(mm::PdfFontDescriptorFlags);
 
 /**
  * \mainpage

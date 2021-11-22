@@ -4797,14 +4797,14 @@ string_view mm::GetStandard14FontBaseName(PdfStandard14FontType stdFont)
 shared_ptr<const PdfFontMetricsStandard14> PdfFontMetricsStandard14::GetInstance(PdfStandard14FontType baseFont)
 {
     // The following metrics were copied from libharu
-    // StemV values were copied from Acrobat Pro with
+    // /StemV and /Flags values were copied from Acrobat Pro with
     // font embedding tests
     static vector<shared_ptr<PdfFontMetricsStandard14>> PDFMM_BUILTIN_FONTS = {
         shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
             PdfStandard14FontType::TimesRoman, {
                 CHAR_DATA_TIMES_ROMAN,
                 (unsigned)std::size(CHAR_DATA_TIMES_ROMAN),
-                false,
+                PdfFontDescriptorFlags::Symbolic | PdfFontDescriptorFlags::Serif,
                 727,
                 -273,
                 450,
@@ -4819,7 +4819,7 @@ shared_ptr<const PdfFontMetricsStandard14> PdfFontMetricsStandard14::GetInstance
             PdfStandard14FontType::TimesItalic, {
                 CHAR_DATA_TIMES_ITALIC,
                 (unsigned)std::size(CHAR_DATA_TIMES_ITALIC),
-                false,
+                PdfFontDescriptorFlags::Symbolic | PdfFontDescriptorFlags::Serif | PdfFontDescriptorFlags::Italic,
                 727,
                 -273,
                 441,
@@ -4834,7 +4834,7 @@ shared_ptr<const PdfFontMetricsStandard14> PdfFontMetricsStandard14::GetInstance
             PdfStandard14FontType::TimesBold, {
                 CHAR_DATA_TIMES_BOLD,
                 (unsigned)std::size(CHAR_DATA_TIMES_BOLD),
-                false,
+                PdfFontDescriptorFlags::Symbolic | PdfFontDescriptorFlags::Serif,
                 727,
                 -273,
                 461,
@@ -4849,7 +4849,7 @@ shared_ptr<const PdfFontMetricsStandard14> PdfFontMetricsStandard14::GetInstance
             PdfStandard14FontType::TimesBoldItalic, {
                 CHAR_DATA_TIMES_BOLD_ITALIC,
                 (unsigned)std::size(CHAR_DATA_TIMES_BOLD_ITALIC),
-                false,
+                PdfFontDescriptorFlags::Symbolic | PdfFontDescriptorFlags::Serif | PdfFontDescriptorFlags::Italic,
                 727,
                 -273,
                 462,
@@ -4864,7 +4864,7 @@ shared_ptr<const PdfFontMetricsStandard14> PdfFontMetricsStandard14::GetInstance
             PdfStandard14FontType::Helvetica, {
                 CHAR_DATA_HELVETICA,
                 (unsigned)std::size(CHAR_DATA_HELVETICA),
-                false,
+                PdfFontDescriptorFlags::Symbolic,
                 750,
                 -250,
                 523,
@@ -4879,7 +4879,7 @@ shared_ptr<const PdfFontMetricsStandard14> PdfFontMetricsStandard14::GetInstance
             PdfStandard14FontType::HelveticaOblique, {
                 CHAR_DATA_HELVETICA_OBLIQUE,
                 (unsigned)std::size(CHAR_DATA_HELVETICA_OBLIQUE),
-                false,
+                PdfFontDescriptorFlags::Symbolic | PdfFontDescriptorFlags::Italic,
                 750,
                 -250,
                 532,
@@ -4894,7 +4894,7 @@ shared_ptr<const PdfFontMetricsStandard14> PdfFontMetricsStandard14::GetInstance
             PdfStandard14FontType::HelveticaBold, {
                CHAR_DATA_HELVETICA_BOLD,
                 (unsigned)std::size(CHAR_DATA_HELVETICA_BOLD),
-                false,
+                PdfFontDescriptorFlags::Symbolic,
                 750,
                 -250,
                 532,
@@ -4909,7 +4909,7 @@ shared_ptr<const PdfFontMetricsStandard14> PdfFontMetricsStandard14::GetInstance
             PdfStandard14FontType::HelveticaBoldOblique, {
                 CHAR_DATA_HELVETICA_BOLD_OBLIQUE,
                 (unsigned)std::size(CHAR_DATA_HELVETICA_BOLD_OBLIQUE),
-                false,
+                PdfFontDescriptorFlags::Symbolic | PdfFontDescriptorFlags::Italic,
                 750,
                 -250,
                 532,
@@ -4924,7 +4924,7 @@ shared_ptr<const PdfFontMetricsStandard14> PdfFontMetricsStandard14::GetInstance
             PdfStandard14FontType::Courier, {
                 CHAR_DATA_COURIER,
                 315,
-                false,
+                PdfFontDescriptorFlags::Symbolic | PdfFontDescriptorFlags::Serif,
                 627,
                 -373,
                 426,
@@ -4939,7 +4939,7 @@ shared_ptr<const PdfFontMetricsStandard14> PdfFontMetricsStandard14::GetInstance
             PdfStandard14FontType::CourierOblique, {
                 CHAR_DATA_COURIER_OBLIQUE,
                 315,
-                false,
+                PdfFontDescriptorFlags::Symbolic | PdfFontDescriptorFlags::Serif | PdfFontDescriptorFlags::Italic,
                 627,
                 -373,
                 426,
@@ -4954,7 +4954,7 @@ shared_ptr<const PdfFontMetricsStandard14> PdfFontMetricsStandard14::GetInstance
             PdfStandard14FontType::CourierBold, {
                 CHAR_DATA_COURIER_BOLD,
                 315,
-                false,
+                PdfFontDescriptorFlags::Symbolic | PdfFontDescriptorFlags::Serif,
                 627,
                 -373,
                 439,
@@ -4969,7 +4969,7 @@ shared_ptr<const PdfFontMetricsStandard14> PdfFontMetricsStandard14::GetInstance
             PdfStandard14FontType::CourierBoldOblique, {
                 CHAR_DATA_COURIER_BOLD_OBLIQUE,
                 315,
-                false,
+                PdfFontDescriptorFlags::Symbolic | PdfFontDescriptorFlags::Serif | PdfFontDescriptorFlags::Italic,
                 627,
                 -373,
                 439,
@@ -4984,7 +4984,7 @@ shared_ptr<const PdfFontMetricsStandard14> PdfFontMetricsStandard14::GetInstance
             PdfStandard14FontType::Symbol, {
                 CHAR_DATA_SYMBOL,
                 (unsigned)std::size(CHAR_DATA_SYMBOL),
-                true,
+                PdfFontDescriptorFlags::Symbolic,
                 683,
                 -217,
                 462,
@@ -4999,7 +4999,7 @@ shared_ptr<const PdfFontMetricsStandard14> PdfFontMetricsStandard14::GetInstance
             PdfStandard14FontType::ZapfDingbats, {
                 CHAR_DATA_ZAPF_DINGBATS,
                 (unsigned)std::size(CHAR_DATA_ZAPF_DINGBATS),
-                true,
+                PdfFontDescriptorFlags::Symbolic,
                 683,
                 -217,
                 462,

@@ -145,27 +145,14 @@ void PdfFont::InitImported(bool embeddingEnabled, bool subsettingEnabled)
         m_EmbeddingEnabled = embeddingEnabled;
     }
 
-    string fontName = (string)m_Metrics->GetBaseFontName();
-    if (m_SubsettingEnabled)
+    string fontName;
+    if (m_Metrics->IsStandard14FontMetrics())
     {
-        m_SubsetPrefix = genSubsetPrefix();
-        PDFMM_ASSERT(!m_SubsetPrefix.empty());
-        // replace all spaces in the base font name as suggested in 
-        // the PDF reference section 5.5.2#
-        fontName = m_SubsetPrefix + fontName;
-
-        int currPos = 0;
-        for (unsigned i = 0; i < fontName.size(); i++)
-        {
-            if (fontName[i] != ' ')
-                fontName[currPos++] = fontName[i];
-        }
-
-        fontName.resize(currPos);
+        fontName = m_Metrics->GetFontName();
     }
-
-    if (!m_Metrics->FontNameHasBoldItalicInfo())
+    else
     {
+        fontName = m_Metrics->GetBaseFontName();
         if (m_Metrics->IsBold())
         {
             if (m_Metrics->IsItalic())
@@ -174,7 +161,16 @@ void PdfFont::InitImported(bool embeddingEnabled, bool subsettingEnabled)
                 fontName += ",Bold";
         }
         else if (m_Metrics->IsItalic())
+        {
             fontName += ",Italic";
+        }
+    }
+
+    if (m_SubsettingEnabled)
+    {
+        m_SubsetPrefix = genSubsetPrefix();
+        PDFMM_ASSERT(!m_SubsetPrefix.empty());
+        fontName = m_SubsetPrefix + fontName;
     }
 
     m_Name = fontName;
@@ -319,7 +315,7 @@ void PdfFont::FillDescriptor(PdfDictionary& dict) const
 
     // TODO: Handle custom measure units, like for /Type3 fonts, for Ascent/Descent/CapHeight...
     dict.AddKey("FontName", PdfName(this->GetName()));
-    dict.AddKey(PdfName::KeyFlags, PdfObject(static_cast<int64_t>(32))); // TODO: 0 ????
+    dict.AddKey(PdfName::KeyFlags, PdfObject(static_cast<int64_t>(m_Metrics->GetFlags())));
     dict.AddKey("FontBBox", bbox);
     dict.AddKey("ItalicAngle", static_cast<int64_t>(m_Metrics->GetItalicAngle()));
     dict.AddKey("Ascent", static_cast<int64_t>(std::round(m_Metrics->GetAscent() * 1000)));

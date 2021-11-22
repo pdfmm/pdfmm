@@ -28,18 +28,16 @@ using namespace std;
 using namespace mm;
 
 PdfFontMetricsFreetype::PdfFontMetricsFreetype(
-    const shared_ptr<chars>& buffer, bool isSymbol) :
+    const shared_ptr<chars>& buffer) :
     m_Face(nullptr),
-    m_IsSymbol(isSymbol),
     m_FontData(buffer)
 {
     InitFromBuffer();
 }
 
 PdfFontMetricsFreetype::PdfFontMetricsFreetype(FT_Face face,
-    const shared_ptr<chars>& buffer, bool isSymbol) :
+    const shared_ptr<chars>& buffer) :
     m_Face(face),
-    m_IsSymbol(isSymbol),
     m_FontData(buffer)
 {
     InitFromFace();
@@ -85,25 +83,29 @@ void PdfFontMetricsFreetype::InitFromFace()
     m_IsBold = (m_Face->style_flags & FT_STYLE_FLAG_BOLD) != 0;
     m_IsItalic = (m_Face->style_flags & FT_STYLE_FLAG_ITALIC) != 0;
 
+    m_HasSymbolCharset = false;
+
     // Try to get a unicode charmap
-    rc = FT_Select_Charmap(m_Face, m_IsSymbol ? FT_ENCODING_MS_SYMBOL : FT_ENCODING_UNICODE);
+    rc = FT_Select_Charmap(m_Face, FT_ENCODING_UNICODE);
     if (rc != 0)
     {
-        PdfError::LogMessage(LogSeverity::Error, "FreeType returned the error {} when calling FT_Select_Charmap for a buffered font", (int)rc);
-        PDFMM_RAISE_ERROR(PdfErrorCode::FreeType);
-    }
-
-    // Try to determine if it is a symbol font
-    for (int c = 0; c < m_Face->num_charmaps; c++)
-    {
-        FT_CharMap charmap = m_Face->charmaps[c];
-        if (charmap->encoding == FT_ENCODING_MS_SYMBOL)
+        // Try to determine if it is a symbol font
+        for (int c = 0; c < m_Face->num_charmaps; c++)
         {
-            m_IsSymbol = true;
-            FT_Set_Charmap(m_Face, charmap);
-            break;
+            FT_CharMap charmap = m_Face->charmaps[c];
+            if (charmap->encoding == FT_ENCODING_MS_SYMBOL)
+            {
+                m_HasSymbolCharset = true;
+                rc = FT_Set_Charmap(m_Face, charmap);
+                break;
+            }
         }
-        // TODO: Also check for FT_ENCODING_ADOBE_CUSTOM and set it?
+
+        if (rc != 0)
+        {
+            PdfError::LogMessage(LogSeverity::Error, "FreeType returned the error {} when calling FT_Select_Charmap for a buffered font", (int)rc);
+            PDFMM_RAISE_ERROR(PdfErrorCode::FreeType);
+        }
     }
 
     // we cache the 256 first width entries as they
@@ -120,10 +122,8 @@ void PdfFontMetricsFreetype::InitFromFace()
         {
             int index = i;
             // Handle symbol fonts
-            if (m_IsSymbol)
-            {
+            if (m_HasSymbolCharset)
                 index = index | 0xF000;
-            }
 
             if (FT_Load_Char(m_Face, index, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP) == 0)  // | FT_LOAD_NO_RENDER
             {
@@ -182,18 +182,18 @@ string PdfFontMetricsFreetype::GetFontName() const
     return m_fontName;
 }
 
-unique_ptr<PdfFontMetricsFreetype> PdfFontMetricsFreetype::FromBuffer(const string_view& buffer, bool isSymbol)
+unique_ptr<PdfFontMetricsFreetype> PdfFontMetricsFreetype::FromBuffer(const string_view& buffer)
 {
-    return std::make_unique<PdfFontMetricsFreetype>(std::make_shared<chars>(buffer), isSymbol);
+    return std::make_unique<PdfFontMetricsFreetype>(std::make_shared<chars>(buffer));
 }
 
-unique_ptr<PdfFontMetricsFreetype> PdfFontMetricsFreetype::FromFace(FT_Face face, bool isSymbol)
+unique_ptr<PdfFontMetricsFreetype> PdfFontMetricsFreetype::FromFace(FT_Face face)
 {
     if (face == nullptr)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Face can't be null");
 
     // TODO: Obtain the fontdata from face
-    return std::unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(face, nullptr, isSymbol));
+    return std::unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(face, nullptr));
 }
 
 unsigned PdfFontMetricsFreetype::GetGlyphCount() const
@@ -216,7 +216,7 @@ bool PdfFontMetricsFreetype::TryGetGlyphWidth(unsigned gid, double& width) const
 
 bool PdfFontMetricsFreetype::TryGetGID(char32_t codePoint, unsigned& gid) const
 {
-    if (m_IsSymbol)
+    if (m_HasSymbolCharset)
         codePoint = codePoint | 0xF000;
 
     gid = FT_Get_Char_Index(m_Face, codePoint);
@@ -238,6 +238,19 @@ unique_ptr<PdfEncodingMap> PdfFontMetricsFreetype::CreateToUnicodeMap(const PdfE
     }
 
     return std::make_unique<PdfCMapEncoding>(std::move(map));
+}
+
+PdfFontDescriptorFlags PdfFontMetricsFreetype::GetFlags() const
+{
+    // TODO: Improve
+    auto ret = PdfFontDescriptorFlags::Symbolic;
+    if (m_IsItalic)
+        ret |= PdfFontDescriptorFlags::Italic;
+
+    // NOTE: It is not correct to write flags ForceBold if the
+    // font is already bold. The ForceBold flag is just an hint
+    // for the viewer to draw glyphs with more pixels
+    return ret;
 }
 
 double PdfFontMetricsFreetype::GetDefaultCharWidth() const
@@ -330,11 +343,6 @@ double PdfFontMetricsFreetype::GetStemV() const
 double PdfFontMetricsFreetype::GetItalicAngle() const
 {
     return m_ItalicAngle;
-}
-
-bool PdfFontMetricsFreetype::IsSymbol() const
-{
-    return m_IsSymbol;
 }
 
 PdfFontFileType PdfFontMetricsFreetype::GetFontFileType() const

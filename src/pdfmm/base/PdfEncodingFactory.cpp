@@ -51,7 +51,7 @@ PdfEncoding PdfEncodingFactory::CreateEncoding(const PdfObject& fontObj, const P
             PdfStandard14FontType std14Font;
             if (metrics.IsStandard14FontMetrics(std14Font))
                 encoding = PdfFontStandard14::GetStandard14FontEncodingMap(std14Font);
-            else if (metrics.IsType1Kind() && !metrics.IsSymbol())
+            else if (metrics.IsType1Kind() && metrics.IsPdfNonSymbolic())
                 encoding = PdfEncodingMapFactory::StandardEncodingInstance();
         }
         else

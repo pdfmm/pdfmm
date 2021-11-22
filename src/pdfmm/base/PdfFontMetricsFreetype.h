@@ -28,18 +28,19 @@ class PDFMM_API PdfFontMetricsFreetype final : public PdfFontMetrics
 public:
     /** Create a font metrics object for a given memory buffer
      *  \param buffer block of memory representing the font data (PdfFontMetricsFreetype will copy the buffer)
-     *  \param isSymbol whether use a symbol encoding, rather than unicode
      */
-    PdfFontMetricsFreetype(const std::shared_ptr<chars>& buffer, bool isSymbol);
+    PdfFontMetricsFreetype(const std::shared_ptr<chars>& buffer);
 
     ~PdfFontMetricsFreetype();
 
 public:
-    static std::unique_ptr<PdfFontMetricsFreetype> FromBuffer(const std::string_view& buffer, bool isSymbol);
+    static std::unique_ptr<PdfFontMetricsFreetype> FromBuffer(const std::string_view& buffer);
 
-    static std::unique_ptr<PdfFontMetricsFreetype> FromFace(FT_Face face, bool isSymbol);
+    static std::unique_ptr<PdfFontMetricsFreetype> FromFace(FT_Face face);
 
     std::unique_ptr<PdfEncodingMap> CreateToUnicodeMap(const PdfEncodingLimits& limitHints) const override;
+
+    PdfFontDescriptorFlags GetFlags() const override;
 
     unsigned GetGlyphCount() const override;
 
@@ -79,8 +80,6 @@ public:
 
     double GetItalicAngle() const override;
 
-    bool IsSymbol() const override;
-
     PdfFontFileType GetFontFileType() const override;
 
     std::string_view GetFontFileData() const override;
@@ -96,17 +95,15 @@ public:
     inline FT_Face GetFace() const { return m_Face; }
 
 private:
-    PdfFontMetricsFreetype(FT_Face face, const std::shared_ptr<chars>& buffer, bool isSymbol);
+    PdfFontMetricsFreetype(FT_Face face, const std::shared_ptr<chars>& buffer);
 
     /** Initialize this object from an in memory buffer
-     *  Called internally by the constructors
-      * \param isSymbol Whether use a symbol charset, rather than unicode
+     * Called internally by the constructors
      */
     void InitFromBuffer();
 
     /** Load the metric data from the FTFace data
-     *		Called internally by the constructors
-      * \param isSymbol Whether use a symbol charset, rather than unicode
+     * Called internally by the constructors
      */
     void InitFromFace();
 
@@ -116,7 +113,6 @@ private:
     FT_Face m_Face;
 
  private:
-    bool m_IsSymbol;         // Internal member to singnal a symbol font
     bool m_IsBold;
     bool m_IsItalic;
 
@@ -138,6 +134,8 @@ private:
     std::vector<double> m_Widths;
     std::string m_fontName;
     std::string m_baseFontName;
+
+    bool m_HasSymbolCharset;
 };
 
 };
