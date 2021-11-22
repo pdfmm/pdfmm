@@ -48,7 +48,7 @@ public:
 
 protected:
     void embedFontSubset() override;
-    void embedFontFile(PdfObject& descriptor) override;
+    //void embedFontFile(PdfObject& descriptor) override;
 
 private:
     bool FindSeac(const char* buffer, size_t length);

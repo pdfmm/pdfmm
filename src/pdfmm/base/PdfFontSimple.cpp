@@ -104,14 +104,18 @@ void PdfFontSimple::initImported()
 
 void PdfFontSimple::embedFontFile(PdfObject& descriptor)
 {
+    auto fontdata = m_Metrics->GetFontFileData();
+    if (fontdata.empty())
+        PDFMM_RAISE_ERROR(PdfErrorCode::InternalLogic);
+
     PdfName fontFileName;
-    PdfName lengthName;
+    nullable<unsigned> length1;
     PdfName subtype;
     switch (m_Metrics->GetFontFileType())
     {
         case PdfFontFileType::TrueType:
-            fontFileName = PdfName("FontFile");
-            lengthName = PdfName("Length2");
+            fontFileName = PdfName("FontFile2");
+            length1 = (unsigned)fontdata.size();
             break;
         case PdfFontFileType::OpenType:
             fontFileName = PdfName("FontFile3");
@@ -128,15 +132,11 @@ void PdfFontSimple::embedFontFile(PdfObject& descriptor)
     auto contents = GetDocument().GetObjects().CreateDictionaryObject();
     descriptor.GetDictionary().AddKeyIndirect(fontFileName, contents);
 
-    auto fontdata = m_Metrics->GetFontFileData();
-    if (fontdata.empty())
-        PDFMM_RAISE_ERROR(PdfErrorCode::InternalLogic);
-
     // NOTE: Set lengths before creating the stream as
     // PdfStreamedDocument does not allow adding keys
     // to an object after a stream was written
-    if (!lengthName.IsNull())
-        contents->GetDictionary().AddKey(lengthName, PdfObject(static_cast<int64_t>(fontdata.size())));
+    if (length1 != nullptr)
+        contents->GetDictionary().AddKey("Length1", PdfObject(static_cast<int64_t>(*length1)));
 
     if (!subtype.IsNull())
         contents->GetDictionary().AddKey(PdfName::KeySubtype, subtype);
