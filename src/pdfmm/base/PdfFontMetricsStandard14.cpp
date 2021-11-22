@@ -207,9 +207,10 @@ PdfFontFileType PdfFontMetricsStandard14::GetFontFileType() const
     return PdfFontFileType::Type1CCF;
 }
 
-PdfStandard14FontType PdfFontMetricsStandard14::GetStandard14FontType() const
+bool PdfFontMetricsStandard14::IsStandard14FontMetrics(PdfStandard14FontType& std14Font) const
 {
-    return m_Std14FontType;
+    std14Font = m_Std14FontType;
+    return true;
 }
 
 void PdfFontMetricsStandard14::GetBoundingBox(std::vector<double>& bbox) const

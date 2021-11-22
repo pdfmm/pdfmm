@@ -66,7 +66,7 @@ bool PdfFontStandard14::TryGetStandard14Font(const string_view& baseFontName, bo
 
 PdfFontType PdfFontStandard14::GetType() const
 {
-    return PdfFontType::Type1;
+    return PdfFontType::Standard14;
 }
 
 PdfEncodingMapConstPtr PdfFontStandard14::GetStandard14FontEncodingMap(PdfStandard14FontType stdFont)
@@ -92,7 +92,7 @@ PdfEncodingMapConstPtr PdfFontStandard14::GetStandard14FontEncodingMap(PdfStanda
             return PdfEncodingMapFactory::ZapfDingbatsEncodingInstance();
         case PdfStandard14FontType::Unknown:
         default:
-            return nullptr;
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "Invalid Standard14 font type");
     }
 }
 

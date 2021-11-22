@@ -20,7 +20,7 @@ class PdfFontMetrics;
 /** A helper class for PdfDifferenceEncoding that
  *  can be used to create a differences array.
  */
-class PDFMM_API PdfEncodingDifference
+class PDFMM_API PdfDifferenceList
 {
     struct Difference
     {
@@ -29,17 +29,17 @@ class PDFMM_API PdfEncodingDifference
         char32_t CodePoint = U'\0';
     };
 
-    typedef std::vector<Difference> DifferenceList;
+    typedef std::vector<Difference> List;
     typedef std::vector<Difference>::iterator iterator;
     typedef std::vector<Difference>::const_iterator const_iterator;
 
 public:
     /** Create a PdfEncodingDifference object.
      */
-    PdfEncodingDifference();
+    PdfDifferenceList();
 
-    PdfEncodingDifference(const PdfEncodingDifference& rhs) = default;
-    PdfEncodingDifference& operator=(const PdfEncodingDifference& rhs) = default;
+    PdfDifferenceList(const PdfDifferenceList& rhs) = default;
+    PdfDifferenceList& operator=(const PdfDifferenceList& rhs) = default;
 
     /** Add a difference to the object.
      *
@@ -104,14 +104,14 @@ private:
         }
     };
 
-    DifferenceList m_differences;
+    List m_differences;
 };
 
 /** PdfDifferenceEncoding is an encoding, which is based
  *  on either the fonts encoding or a predefined encoding
  *  and defines differences to this base encoding.
  */
-class PDFMM_API PdfDifferenceEncoding final : public PdfEncodingMapSimple
+class PDFMM_API PdfDifferenceEncoding final : public PdfEncodingMapOneByte
 {
 public:
     /** Create a new PdfDifferenceEncoding which is based on
@@ -120,7 +120,7 @@ public:
      *  \param difference the differences in this encoding
      *  \param baseEncoding the base encoding of this font
      */
-    PdfDifferenceEncoding(const PdfEncodingDifference& difference,
+    PdfDifferenceEncoding(const PdfDifferenceList& difference,
         const PdfEncodingMapConstPtr& baseEncoding);
 
     /** Create a new PdfDifferenceEncoding from an existing object
@@ -147,13 +147,15 @@ public:
      */
     static PdfName UnicodeIDToName(char32_t codePoint);
 
+    bool IsSimpleEncoding() const override;
+
     /**
      * Get read-only access to the object containing the actual
      * differences.
      *
      * \returns the container with the actual differences
      */
-    inline const PdfEncodingDifference& GetDifferences() const { return m_differences; }
+    inline const PdfDifferenceList& GetDifferences() const { return m_differences; }
 
 protected:
     void getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const override;
@@ -161,7 +163,7 @@ protected:
     bool tryGetCodePoints(const PdfCharCode& codeUnit, std::vector<char32_t>& codePoints) const override;
 
  private:
-    PdfEncodingDifference m_differences;
+    PdfDifferenceList m_differences;
     PdfEncodingMapConstPtr m_baseEncoding;
 };
 

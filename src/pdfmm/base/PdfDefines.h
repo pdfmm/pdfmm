@@ -181,9 +181,16 @@ enum class PdfFilterType
     Crypt
 };
 
+/** Enum specifying the type of the font
+ *
+ * It doesn't necessarily specify the underline font file type,
+ * as per the value Standard14. To know that, refer to
+ * PdfFontMetrics::GetFontFileType()
+ */
 enum class PdfFontType
 {
     Unknown = 0,
+    Standard14,
     Type1,
     Type3,
     TrueType,

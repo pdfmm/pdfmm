@@ -39,14 +39,7 @@ public:
 
     static std::unique_ptr<PdfFontMetricsFreetype> FromFace(FT_Face face, bool isSymbol);
 
-    /** Create a best effort /ToUnicode map based on the
-     * character unicode maps of the font
-     *
-     * This map may be unreliable because of ligatures,
-     * other kind of character subsitutions, or glyphs
-     * mapping to multiple unicode codepoints
-     */
-    std::unique_ptr<PdfEncodingMap> CreateToUnicodeMap(const PdfEncodingLimits& limitHints) const;
+    std::unique_ptr<PdfEncodingMap> CreateToUnicodeMap(const PdfEncodingLimits& limitHints) const override;
 
     unsigned GetGlyphCount() const override;
 

@@ -71,12 +71,12 @@ PdfFont* PdfFont::createFontForType(PdfDocument& doc, const PdfFontMetricsConstP
                 font = new PdfFontTrueType(doc, metrics, encoding);
                 break;
             case PdfFontFileType::Type1:
+            case PdfFontFileType::Type1CCF:
                 font = new PdfFontType1(doc, metrics, encoding);
                 break;
             case PdfFontFileType::Type3:
                 font = new PdfFontType3(doc, metrics, encoding);
                 break;
-            case PdfFontFileType::Type1CCF:
             case PdfFontFileType::CIDType1CCF:
             case PdfFontFileType::Unknown:
             default:

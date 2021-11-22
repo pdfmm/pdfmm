@@ -97,7 +97,11 @@ public:
     PdfFont* GetFont(const std::string_view& fontName,
         const PdfFontCreationParams& params = { });
 
-    static std::unique_ptr<chars> GetFontData(const std::string_view& fontName,
+    /** Try to search for fontmetrics from the given fontname and parameters
+     *
+     * \returns the found metrics. Null if not found 
+     */
+    static PdfFontMetricsConstPtr GetFontMetrics(const std::string_view& fontName,
         const PdfFontSearchParams& params = { });
 
     /** Get a font from the cache. If the font does not yet
@@ -187,8 +191,11 @@ private:
 #ifdef PDFMM_HAVE_FONTCONFIG
     static std::shared_ptr<PdfFontConfigWrapper> ensureInitializedFontConfig();
 #endif // PDFMM_HAVE_FONTCONFIG
+
     static std::unique_ptr<chars> getFontData(const std::string_view& fontName,
-        std::string filepath, unsigned faceIndex, const PdfFontSearchParams& params);
+        const PdfFontSearchParams& params);
+    static std::unique_ptr<chars> getFontData(const std::string_view& fontName,
+        std::string filepath, int faceIndex, const PdfFontSearchParams& params);
     PdfFont* getFont(const std::string_view& baseFontName, const PdfFontCreationParams& params);
 
     /** Create a font and put it into the fontcache

@@ -36,7 +36,6 @@ void PdfEncodingMap::getExportObject(PdfIndirectObjectList& objects, PdfName& na
     (void)objects;
     (void)name;
     (void)obj;
-    PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);
 }
 
 bool PdfEncodingMap::TryGetNextCharCode(string_view::iterator& it, const string_view::iterator& end, PdfCharCode& code) const
@@ -201,6 +200,11 @@ bool PdfEncodingMap::TryGetCodePoints(const PdfCharCode& codeUnit, vector<char32
 }
 
 bool PdfEncodingMap::HasCIDMapping() const
+{
+    return false;
+}
+
+bool PdfEncodingMap::IsSimpleEncoding() const
 {
     return false;
 }
@@ -384,7 +388,7 @@ void PdfEncodingMap::AppendUTF16CodeTo(PdfStream& stream, const cspan<char32_t>&
     stream.Append(">");
 }
 
-void PdfEncodingMapSimple::appendBaseFontEntries(PdfStream& stream) const
+void PdfEncodingMapOneByte::appendBaseFontEntries(PdfStream& stream) const
 {
     auto& limits = GetLimits();
     PDFMM_ASSERT(limits.MaxCodeSize == 1);
@@ -464,4 +468,45 @@ PdfCID::PdfCID(unsigned id, const PdfCharCode& unit)
 PdfCID::PdfCID(const PdfCharCode& unit)
     : Id(unit.Code), Unit(unit)
 {
+}
+
+PdfBuiltInEncoding::PdfBuiltInEncoding(const PdfName& name)
+    : PdfEncodingMapOneByte({ 1, 1, PdfCharCode(0), PdfCharCode(0xFF) }), m_Name(name)
+{
+}
+
+void PdfBuiltInEncoding::InitEncodingTable()
+{
+    if (!m_EncodingTable.empty())
+        return;
+
+    const char32_t* cpUnicodeTable = this->GetToUnicodeTable();
+    for (size_t i = 0; i < 256; i++)
+    {
+        // fill the table with data
+        m_EncodingTable[cpUnicodeTable[i]] =
+            static_cast<unsigned char>(i);
+    }
+}
+
+bool PdfBuiltInEncoding::tryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const
+{
+    const_cast<PdfBuiltInEncoding*>(this)->InitEncodingTable();
+    auto found = m_EncodingTable.find(codePoint);
+    if (found == m_EncodingTable.end())
+    {
+        codeUnit = { };
+        return false;
+    }
+
+    codeUnit = { (unsigned char)found->second, 1 };
+    return true;
+}
+
+bool PdfBuiltInEncoding::tryGetCodePoints(const PdfCharCode& codeUnit, std::vector<char32_t>& codePoints) const
+{
+    PDFMM_ASSERT(codeUnit.Code < 256);
+    const char32_t* cpUnicodeTable = this->GetToUnicodeTable();
+    codePoints.push_back(cpUnicodeTable[codeUnit.Code]);
+    return true;
 }

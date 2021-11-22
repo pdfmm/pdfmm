@@ -53,6 +53,7 @@ void PdfFontSimple::Init(bool skipMetricsDescriptors)
     switch (GetType())
     {
         case PdfFontType::Type1:
+        case PdfFontType::Standard14:
             subType = PdfName("Type1");
             break;
         case PdfFontType::TrueType:

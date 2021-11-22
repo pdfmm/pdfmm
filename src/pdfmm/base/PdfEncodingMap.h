@@ -122,6 +122,15 @@ public:
     virtual bool HasCIDMapping() const;
 
     /**
+     * True if the encoding is a "simple" encoding, that is valid
+     * both as a /Encoding entry and can be used to decode Unicode
+     * CodePoints. This is true for regular predefined, difference
+     * and Type1 implicit encodings and in general it is false for
+     * CID and identity encodings
+     */
+    virtual bool IsSimpleEncoding() const;
+
+    /**
      * True if the encoding has ligatures support
      */
     virtual bool HasLigaturesSupport() const;
@@ -220,16 +229,69 @@ private:
 };
 
 /**
- * PdfEncodingMap used by "simple" encodings like PdfPredefinedEncoding
- * or PdfDifferenceEncoding thats can define all their charset with
- * a single range
+ * PdfEncodingMap used by encodings like PdfBuiltInEncoding
+ * or PdfDifferenceEncoding thats can define all their charset
+ * with a single one byte range
  */
-class PDFMM_API PdfEncodingMapSimple : public PdfEncodingMap
+class PDFMM_API PdfEncodingMapOneByte : public PdfEncodingMap
 {
 protected:
     using PdfEncodingMap::PdfEncodingMap;
 
     void appendBaseFontEntries(PdfStream& stream) const override;
+};
+
+/**
+ * A common base class for built-in encodings which are
+ * known by name.
+ *
+ *  - StandardEncoding
+ *  - SymbolEncoding
+ *  - ZapfDingbatsEncoding
+ *  - PdfDocEncoding (only use this for strings which are not printed
+ *                    in the document. This is for meta data in the PDF).
+ *
+ * \see PdfStandardEncoding
+ * \see PdfSymbolEncoding
+ * \see PdfZapfDingbatsEncoding
+ * \see PdfDocEncoding
+ */
+class PDFMM_API PdfBuiltInEncoding : public PdfEncodingMapOneByte
+{
+protected:
+    PdfBuiltInEncoding(const PdfName& name);
+
+public:
+    /** Get the name of this encoding.
+     *
+     *  \returns the name of this encoding.
+     */
+    inline const PdfName& GetName() const { return m_Name; }
+
+protected:
+    bool tryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const override;
+    bool tryGetCodePoints(const PdfCharCode& codeUnit, std::vector<char32_t>& codePoints) const override;
+
+    /** Gets a table of 256 short values which are the
+     *  big endian Unicode code points that are assigned
+     *  to the 256 values of this encoding.
+     *
+     *  This table is used internally to convert an encoded
+     *  string of this encoding to and from Unicode.
+     *
+     *  \returns an array of 256 big endian Unicode code points
+     */
+    virtual const char32_t* GetToUnicodeTable() const = 0;
+
+private:
+    /** Initialize the internal table of mappings from Unicode code points
+     *  to encoded byte values.
+     */
+    void InitEncodingTable();
+
+private:
+    PdfName m_Name;         // The name of the encoding
+    std::unordered_map<char32_t, char> m_EncodingTable; // The helper table for conversions into this encoding
 };
 
 /** Dummy encoding map that will just throw

@@ -100,7 +100,7 @@ public:
 
     PdfFontFileType GetFontFileType() const override;
 
-    PdfStandard14FontType GetStandard14FontType() const override;
+    bool IsStandard14FontMetrics(PdfStandard14FontType& std14Font) const override;
 
     std::string_view GetFontFileData() const override;
 

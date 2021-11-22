@@ -14,11 +14,13 @@
 
 namespace mm {
 
+/** Orientation for predefined CID identity encodings
+ */
 enum class PdfIdentityOrientation
 {
     Unkwnown = 0,
-    Horizontal,
-    Vertical
+    Horizontal, // Corresponts to /Identity-H
+    Vertical,   // Corresponts to /Identity-V
 };
 
 /** PdfIdentityEncoding is a two-byte encoding which can be

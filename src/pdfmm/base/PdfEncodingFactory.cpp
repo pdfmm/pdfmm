@@ -48,13 +48,11 @@ PdfEncoding PdfEncodingFactory::CreateEncoding(const PdfObject& fontObj, const P
             // If encoding is null then
             // use StandardEncoding for Times, Helvetica, Courier font families
             // special encodings for Symbol and ZapfDingbats
-            encoding = PdfFontStandard14::GetStandard14FontEncodingMap(metrics.GetStandard14FontType());
-            if (encoding == nullptr
-                && metrics.IsType1Kind()
-                && !metrics.IsSymbol())
-            {
+            PdfStandard14FontType std14Font;
+            if (metrics.IsStandard14FontMetrics(std14Font))
+                encoding = PdfFontStandard14::GetStandard14FontEncodingMap(std14Font);
+            else if (metrics.IsType1Kind() && !metrics.IsSymbol())
                 encoding = PdfEncodingMapFactory::StandardEncodingInstance();
-            }
         }
         else
         {

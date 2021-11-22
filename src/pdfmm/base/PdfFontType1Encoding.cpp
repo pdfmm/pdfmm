@@ -23,6 +23,11 @@ unique_ptr<PdfFontType1Encoding> PdfFontType1Encoding::Create(const PdfObject& o
     return unique_ptr<PdfFontType1Encoding>(new PdfFontType1Encoding(getUnicodeMap(obj)));
 }
 
+bool PdfFontType1Encoding::IsSimpleEncoding() const
+{
+    return true;
+}
+
 PdfCharCodeMap PdfFontType1Encoding::getUnicodeMap(const PdfObject& obj)
 {
     string buffer;

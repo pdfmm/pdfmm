@@ -414,7 +414,7 @@ PdfCID PdfFont::AddUsedGID(unsigned gid, const cspan<char32_t>& codePoints)
             return found->second;
 
         PdfCharCode codeUnit;
-        if (!m_Encoding->GetToUnicodeMap().TryGetCharCode(codePoints, codeUnit))
+        if (!m_Encoding->GetToUnicodeMapSafe().TryGetCharCode(codePoints, codeUnit))
             PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "The encoding doesn't support these characters");
 
         // We start numberings CIDs from 1 since

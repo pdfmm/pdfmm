@@ -21,6 +21,7 @@ private:
 
 public:
     static std::unique_ptr<PdfFontType1Encoding> Create(const PdfObject& obj);
+    bool IsSimpleEncoding() const;
 
 protected:
     void getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const override;

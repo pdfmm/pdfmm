@@ -102,13 +102,16 @@ bool PdfEncoding::TryConvertToEncoded(const string_view& str, string& encoded) c
     {
         // The font is loaded from object. We will attempt to use
         // just the loaded map to perform the conversion
-        auto& map = GetToUnicodeMap();
+        const PdfEncodingMap* toUnicode;
+        if (!GetToUnicodeMapSafe(toUnicode))
+            return false;
+
         auto it = str.begin();
         auto end = str.end();
         while (it != end)
         {
             PdfCharCode code;
-            if (!map.TryGetNextCharCode(it, end, code))
+            if (!toUnicode->TryGetNextCharCode(it, end, code))
                 return false;
 
             code.AppendTo(encoded);
@@ -165,7 +168,7 @@ bool PdfEncoding::tryConvertEncodedToUtf8(const string_view& encoded, string& st
     if (encoded.empty())
         return true;
 
-    auto& map = GetToUnicodeMap();
+    auto& map = GetToUnicodeMapSafe();
     bool success = true;
     auto it = encoded.begin();
     auto end = encoded.end();
@@ -216,13 +219,16 @@ PdfCID PdfEncoding::GetCID(char32_t codePoint) const
 
 bool PdfEncoding::TryGetCID(char32_t codePoint, PdfCID& cid) const
 {
-    auto& toUnicode = GetToUnicodeMap();
     bool success = true;
     PdfCharCode codeUnit;
-    if (!toUnicode.TryGetCharCode(codePoint, codeUnit))
+    const PdfEncodingMap* toUnicode;
+    if (!GetToUnicodeMapSafe(toUnicode))
+        success = false;
+
+    if (!toUnicode->TryGetCharCode(codePoint, codeUnit))
     {
         success = false;
-        cid = getFallbackCID(codePoint, *m_Encoding, toUnicode);
+        cid = getFallbackCID(codePoint, *m_Encoding, *toUnicode);
     }
     else
     {
@@ -271,18 +277,21 @@ bool PdfEncoding::TryConvertToCIDs(const string_view& str, vector<PdfCID>& cids)
     if (str.empty())
         return true;
 
-    auto& toUnicode = GetToUnicodeMap();
+    bool success = true;
+    const PdfEncodingMap* toUnicode;
+    if (!GetToUnicodeMapSafe(toUnicode))
+        success = false;
+
     auto it = str.begin();
     auto end = str.end();
     PdfCharCode codeUnit;
-    bool success = true;
     while (it != end)
     {
-        if (!toUnicode.TryGetNextCharCode(it, end, codeUnit))
+        if (!toUnicode->TryGetNextCharCode(it, end, codeUnit))
         {
             success = false;
             char32_t codePoint = (char32_t)utf8::next(it, end);
-            cids.push_back(getFallbackCID(codePoint, *m_Encoding, toUnicode));
+            cids.push_back(getFallbackCID(codePoint, *m_Encoding, *toUnicode));
         }
         else
         {
@@ -341,6 +350,7 @@ void PdfEncoding::ExportToDictionary(PdfDictionary& dictionary, PdfEncodingExpor
 
     if ((flags & PdfEncodingExportFlags::SkipToUnicode) == PdfEncodingExportFlags::None)
     {
+        // NOTE: We definetely want a valid Unicode map at this point
         auto& toUnicode = GetToUnicodeMap();
         auto cmapObj = dictionary.GetOwner()->GetDocument()->GetObjects().CreateDictionaryObject();
         toUnicode.WriteToUnicodeCMap(*cmapObj);
@@ -376,7 +386,7 @@ PdfFont& PdfEncoding::GetFont() const
 
 char32_t PdfEncoding::GetCodePoint(const PdfCharCode& codeUnit) const
 {
-    auto& map = GetToUnicodeMap();
+    auto& map = GetToUnicodeMapSafe();
     vector<char32_t> codePoints;
     if (!map.TryGetCodePoints(codeUnit, codePoints)
         || codePoints.size() != 1)
@@ -389,7 +399,7 @@ char32_t PdfEncoding::GetCodePoint(const PdfCharCode& codeUnit) const
 
 char32_t PdfEncoding::GetCodePoint(unsigned charCode) const
 {
-    auto& map = GetToUnicodeMap();
+    auto& map = GetToUnicodeMapSafe();
     auto& limits = map.GetLimits();
     vector<char32_t> codePoints;
     for (unsigned char i = limits.MinCodeSize; i <= limits.MaxCodeSize; i++)
@@ -412,15 +422,40 @@ const PdfEncodingLimits& PdfEncoding::GetLimits() const
     return m_Limits;
 }
 
+bool PdfEncoding::HasValidToUnicodeMap() const
+{
+    const PdfEncodingMap* ret;
+    return GetToUnicodeMapSafe(ret);
+}
+
 const PdfEncodingMap& PdfEncoding::GetToUnicodeMap() const
 {
-    // If no /ToUnicode map present result the main encoding
-    // CHECK-ME: This is probably wrong, we should throw instead
-    // and rely on checking the map existence first with GetToUnicodeMapPtr()
-    if (m_ToUnicode == nullptr)
-        return *m_Encoding;
-    else
-        return *m_ToUnicode;
+    const PdfEncodingMap* ret;
+    if (!GetToUnicodeMapSafe(ret))
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "No valid /ToUnicode map present");
+
+    return *ret;
+}
+
+const PdfEncodingMap& PdfEncoding::GetToUnicodeMapSafe() const
+{
+    const PdfEncodingMap* ret;
+    (void)GetToUnicodeMapSafe(ret);
+    return *ret;
+}
+
+bool PdfEncoding::GetToUnicodeMapSafe(const PdfEncodingMap*& toUnicode) const
+{
+    if (m_ToUnicode != nullptr)
+    {
+        toUnicode = m_ToUnicode.get();
+        return true;
+    }
+
+    // Fallback to main /Encoding entry. It is a valid
+    // ToUnicode map for simple encodings
+    toUnicode = m_Encoding.get();
+    return m_Encoding->IsSimpleEncoding();
 }
 
 // Handle missing mapped code by just appending current

@@ -89,9 +89,10 @@ string PdfFontMetrics::GetFontName() const
     return string();
 }
 
-PdfStandard14FontType PdfFontMetrics::GetStandard14FontType() const
+bool PdfFontMetrics::IsStandard14FontMetrics(PdfStandard14FontType& std14Font) const
 {
-    return PdfStandard14FontType::Unknown;
+    std14Font = PdfStandard14FontType::Unknown;
+    return false;
 }
 
 bool PdfFontMetrics::FontNameHasBoldItalicInfo() const
@@ -110,4 +111,10 @@ bool PdfFontMetrics::IsType1Kind() const
         default:
             return false;
     }
+}
+
+unique_ptr<PdfEncodingMap> PdfFontMetrics::CreateToUnicodeMap(const PdfEncodingLimits& limitHints) const
+{
+    (void)limitHints;
+    PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);
 }

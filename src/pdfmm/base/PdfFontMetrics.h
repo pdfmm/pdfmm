@@ -184,7 +184,7 @@ public:
      */
     virtual bool IsItalic() const = 0;
 
-    virtual PdfStandard14FontType GetStandard14FontType() const;
+    virtual bool IsStandard14FontMetrics(PdfStandard14FontType& std14Font) const;
 
     /** State whether font name reports if the font is bold or italic, such has in "Helvetica-Bold"
      */
@@ -202,6 +202,16 @@ public:
      * \returns true if this is a symbol font
      */
     virtual bool IsSymbol() const = 0;
+
+    /** Create a best effort /ToUnicode map based on the
+     * character unicode maps of the font
+     *
+     * Thi is implemented just for PdfFontMetricsFreetype
+     * This map may be unreliable because of ligatures,
+     * other kind of character subsitutions, or glyphs
+     * mapping to multiple unicode codepoints.
+     */
+    virtual std::unique_ptr<PdfEncodingMap> CreateToUnicodeMap(const PdfEncodingLimits& limitHints) const;
 
 private:
     PdfFontMetrics(const PdfFontMetrics& rhs) = delete;

@@ -5044,6 +5044,6 @@ shared_ptr<const PdfFontMetricsStandard14> PdfFontMetricsStandard14::GetInstance
             return PDFMM_BUILTIN_FONTS[13];
         case PdfStandard14FontType::Unknown:
         default:
-            return nullptr;
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "Invalid Standard14 font type");
     }
 }

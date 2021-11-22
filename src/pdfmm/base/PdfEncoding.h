@@ -140,13 +140,29 @@ namespace mm
          */
         const PdfEncodingLimits& GetLimits() const;
 
-        inline const PdfEncodingMap& GetEncodingMap() const { return *m_Encoding; }
+        bool HasValidToUnicodeMap() const;
 
+        /** Get the ToUnicode map, throws if missing
+         */
         const PdfEncodingMap& GetToUnicodeMap() const;
 
-        inline const PdfEncodingMapConstPtr GetEncodingMapPtr() const { return m_Encoding; }
+        /** Get the ToUnicode map, fallback to the normal encoding if missing
+         *
+         * \param toUnicode the retrieved map
+         * \return true if the retrieved map is valid, false otherwise
+         */
+        bool GetToUnicodeMapSafe(const PdfEncodingMap*& toUnicode) const;
 
-        inline const PdfEncodingMapConstPtr GetToUnicodeMaptr() const { return m_ToUnicode; }
+        /** Get the ToUnicode map, fallback to the normal encoding if missing
+         *
+         * \return the retrieved map
+         * \remark As a general rule, we always use this method when converting encoded -> Unicode
+         */
+        const PdfEncodingMap& GetToUnicodeMapSafe() const;
+
+        inline const PdfEncodingMap& GetEncodingMap() const { return *m_Encoding; }
+
+        inline const PdfEncodingMapConstPtr GetEncodingMapPtr() const { return m_Encoding; }
 
     public:
         PdfEncoding& operator=(const PdfEncoding&) = default;

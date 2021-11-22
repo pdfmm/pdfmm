@@ -14,79 +14,27 @@
 namespace mm
 {
     /**
-     * A common base class for built-in encodings which are
+     * A common base class for Pdf defined predefined encodings which are
      * known by name.
      *
      *  - WinAnsiEncoding
      *  - MacRomanEncoding
      *  - MacExpertEncoding
-     *  - StandardEncoding
-     *  - SymbolEncoding
-     *  - ZapfDingbatsEncoding
-     *  - PdfDocEncoding (only use this for strings which are not printed
-     *                    in the document. This is for meta data in the PDF).
      *
      *  \see PdfWinAnsiEncoding
      *  \see PdfMacRomanEncoding
      *  \see PdfMacExportEncoding
-     *..\see PdfStandardEncoding
-     *  \see PdfSymbolEncoding
-     *  \see PdfZapfDingbatsEncoding
-     *
      */
-    // TODO: Move StandardEncoding, SymbolEncoding, ZapfDingbatsEncoding
-    // PdfDocEncoding away from the hierarchy. They are not true PDF
-    // built-in encodings
-    class PDFMM_API PdfPredefinedEncoding : public PdfEncodingMapSimple
+    class PDFMM_API PdfPredefinedEncoding : public PdfBuiltInEncoding
     {
     protected:
-        /**
-         *  Create a new simple PdfEncodingMap which uses 1 byte.
-         *
-         *  \param name the name of a standard PdfEncoding
-         *
-         *  As of now possible values are:
-         *  - MacRomanEncoding
-         *  - WinAnsiEncoding
-         *  - MacExpertEncoding
-         *
-         *  \see PdfWinAnsiEncoding
-         *  \see PdfMacRomanEncoding
-         *  \see PdfMacExportEncoding
-         */
         PdfPredefinedEncoding(const PdfName& name);
 
-        /** Get the name of this encoding.
-         *
-         *  \returns the name of this encoding.
-         */
-        inline const PdfName& GetName() const { return m_name; }
+    public:
+        bool IsSimpleEncoding() const override;
 
     protected:
         void getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const override;
-        bool tryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const override;
-        bool tryGetCodePoints(const PdfCharCode& codeUnit, std::vector<char32_t>& codePoints) const override;
-
-        /** Gets a table of 256 short values which are the
-         *  big endian Unicode code points that are assigned
-         *  to the 256 values of this encoding.
-         *
-         *  This table is used internally to convert an encoded
-         *  string of this encoding to and from Unicode.
-         *
-         *  \returns an array of 256 big endian Unicode code points
-         */
-        virtual const char32_t* GetToUnicodeTable() const = 0;
-
-    private:
-        /** Initialize the internal table of mappings from Unicode code points
-         *  to encoded byte values.
-         */
-        void InitEncodingTable();
-
-    private:
-        PdfName m_name;         // The name of the encoding
-        std::unordered_map<char32_t, char> m_EncodingTable; // The helper table for conversions into this encoding
     };
 
     /**
@@ -158,8 +106,7 @@ namespace mm
      *
      * \see PdfFont::DocEncoding
      */
-     // FIX-ME: This shouldn't be a PdfPredefinedEncoding
-    class PDFMM_API PdfDocEncoding final : public PdfPredefinedEncoding
+    class PDFMM_API PdfDocEncoding final : public PdfBuiltInEncoding
     {
         friend class PdfEncodingMapFactory;
 
@@ -191,8 +138,7 @@ namespace mm
     /**
      * StandardEncoding
      */
-     // FIX-ME: This shouldn't be a PdfPredefinedEncoding
-    class PDFMM_API PdfStandardEncoding final : public PdfPredefinedEncoding
+    class PDFMM_API PdfStandardEncoding final : public PdfBuiltInEncoding
     {
         friend class PdfEncodingMapFactory;
 
@@ -209,8 +155,7 @@ namespace mm
     /**
      * Symbol Encoding
      */
-     // FIX-ME: This shouldn't be a PdfPredefinedEncoding
-    class PDFMM_API PdfSymbolEncoding final : public PdfPredefinedEncoding
+    class PDFMM_API PdfSymbolEncoding final : public PdfBuiltInEncoding
     {
         friend class PdfEncodingMapFactory;
 
@@ -227,8 +172,7 @@ namespace mm
     /**
      * ZapfDingbats encoding
      */
-     // FIX-ME: This shouldn't be a PdfPredefinedEncoding
-    class PDFMM_API PdfZapfDingbatsEncoding final : public PdfPredefinedEncoding
+    class PDFMM_API PdfZapfDingbatsEncoding final : public PdfBuiltInEncoding
     {
         friend class PdfEncodingMapFactory;
 
@@ -245,8 +189,7 @@ namespace mm
     /**
      * WINDOWS-1250 encoding
      */
-    // FIX-ME: This shouldn't be a PdfPredefinedEncoding
-    class PDFMM_API PdfWin1250Encoding final : public PdfWinAnsiEncoding
+    class PDFMM_API PdfWin1250Encoding final : public PdfBuiltInEncoding
     {
         friend class PdfEncodingMapFactory;
 
@@ -263,8 +206,7 @@ namespace mm
     /**
      * ISO-8859-2 encoding
      */
-     // FIX-ME: This shouldn't be a PdfPredefinedEncoding
-    class PDFMM_API PdfIso88592Encoding final : public PdfWinAnsiEncoding
+    class PDFMM_API PdfIso88592Encoding final : public PdfBuiltInEncoding
     {
         friend class PdfEncodingMapFactory;
 

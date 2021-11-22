@@ -24,6 +24,7 @@
 #include "PdfOutputDevice.h"
 #include "PdfFont.h"
 #include "PdfFontMetricsFreetype.h"
+#include "PdfFontMetricsStandard14.h"
 #include "PdfFontStandard14.h"
 #include "PdfFontType1.h"
 
@@ -130,7 +131,7 @@ PdfFont* PdfFontManager::getFont(const string_view& baseFontName, const PdfFontC
     if (found != m_fontMap.end())
         return found->second.get();
 
-    shared_ptr<chars> buffer = GetFontData(baseFontName, params.SearchParams);
+    shared_ptr<chars> buffer = getFontData(baseFontName, params.SearchParams);
     if (buffer == nullptr)
         return nullptr;
 
@@ -140,13 +141,40 @@ PdfFont* PdfFontManager::getFont(const string_view& baseFontName, const PdfFontC
         params.Encoding, params.FontInitOpts);
 }
 
-unique_ptr<chars> PdfFontManager::GetFontData(const string_view& fontName, const PdfFontSearchParams& params)
+PdfFontMetricsConstPtr PdfFontManager::GetFontMetrics(const string_view& fontName, const PdfFontSearchParams& params)
 {
-    return getFontData(fontName, { }, 0, params);
+    // Early intercept Standard14 fonts
+    PdfStandard14FontType stdFont;
+    if (params.AutoSelectOpts != PdfAutoSelectFontOptions::None
+        && PdfFontStandard14::IsStandard14Font(fontName,
+            params.AutoSelectOpts == PdfAutoSelectFontOptions::Standard14Alt, stdFont))
+    {
+        return PdfFontMetricsStandard14::GetInstance(stdFont);
+    }
+
+    string baseFontName;
+    PdfFontSearchParams newParams = params;
+    if (params.NormalizeFontName)
+        baseFontName = PdfFont::ExtractBaseName(fontName, newParams.Bold, newParams.Italic);
+    else
+        baseFontName = fontName;
+
+    auto fontData = getFontData(baseFontName, params);
+    if (fontData == nullptr)
+        return nullptr;
+
+    // TODO: Finally sort the symbol vs nosymbol stuff
+    return PdfFontMetricsConstPtr(new PdfFontMetricsFreetype(std::move(fontData), false));
 }
 
 unique_ptr<chars> PdfFontManager::getFontData(const string_view& fontName,
-    string filepath, unsigned faceIndex, const PdfFontSearchParams& params)
+    const PdfFontSearchParams& params)
+{
+    return getFontData(fontName, { }, -1, params);
+}
+
+unique_ptr<chars> PdfFontManager::getFontData(const string_view& fontName,
+    string filepath, int faceIndex, const PdfFontSearchParams& params)
 {
     faceIndex = 0; // TODO, implement searching the face index
     if (filepath.empty())

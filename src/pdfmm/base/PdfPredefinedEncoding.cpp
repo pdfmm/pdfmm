@@ -20,55 +20,24 @@ using namespace mm;
 
 
 PdfPredefinedEncoding::PdfPredefinedEncoding(const PdfName& name)
-    : PdfEncodingMapSimple({ 1, 1, PdfCharCode(0), PdfCharCode(0xFF) }), m_name(name)
+    : PdfBuiltInEncoding(name)
 {
 }
 
-void PdfPredefinedEncoding::InitEncodingTable()
+bool PdfPredefinedEncoding::IsSimpleEncoding() const
 {
-    if (!m_EncodingTable.empty())
-        return;
-
-    const char32_t* cpUnicodeTable = this->GetToUnicodeTable();
-    for (size_t i = 0; i < 256; i++)
-    {
-        // fill the table with data
-        m_EncodingTable[cpUnicodeTable[i]] =
-            static_cast<unsigned char>(i);
-    }
+    return true;
 }
 
 void PdfPredefinedEncoding::getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const
 {
     (void)objects;
     (void)obj;
-    name = m_name;
-}
-
-bool PdfPredefinedEncoding::tryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const
-{
-    const_cast<PdfPredefinedEncoding*>(this)->InitEncodingTable();
-    auto found = m_EncodingTable.find(codePoint);
-    if (found == m_EncodingTable.end())
-    {
-        codeUnit = { };
-        return false;
-    }
-
-    codeUnit = { (unsigned char)found->second, 1 };
-    return true;
-}
-
-bool PdfPredefinedEncoding::tryGetCodePoints(const PdfCharCode& codeUnit, std::vector<char32_t>& codePoints) const
-{
-    PDFMM_ASSERT(codeUnit.Code < 256);
-    const char32_t* cpUnicodeTable = this->GetToUnicodeTable();
-    codePoints.push_back(cpUnicodeTable[codeUnit.Code]);
-    return true;
+    name = GetName();
 }
 
 PdfDocEncoding::PdfDocEncoding()
-    : PdfPredefinedEncoding("PdfDocEncoding")
+    : PdfBuiltInEncoding("PdfDocEncoding")
 { }
 
 bool PdfDocEncoding::CheckValidUTF8ToPdfDocEcondingChars(const string_view& view, bool& isPdfDocEncodingEqual)
@@ -1068,7 +1037,7 @@ const char32_t PdfMacExpertEncoding::s_cEncoding[256] = {
 // -----------------------------------------------------
 
 PdfStandardEncoding::PdfStandardEncoding()
-    : PdfPredefinedEncoding("StandardEncoding")
+    : PdfBuiltInEncoding("StandardEncoding")
 {
 }
 
@@ -1308,7 +1277,7 @@ const char32_t PdfStandardEncoding::s_cEncoding[256] = {
 // -----------------------------------------------------
 
 PdfSymbolEncoding::PdfSymbolEncoding()
-    : PdfPredefinedEncoding("SymbolEncoding")
+    : PdfBuiltInEncoding("SymbolEncoding")
 {
 }
 
@@ -1537,7 +1506,7 @@ const char32_t PdfSymbolEncoding::s_cEncoding[256] = {
 // -----------------------------------------------------
 
 PdfZapfDingbatsEncoding::PdfZapfDingbatsEncoding()
-    : PdfPredefinedEncoding("ZapfDingbatsEncoding")
+    : PdfBuiltInEncoding("ZapfDingbatsEncoding")
 {
 }
 
@@ -2033,6 +2002,7 @@ const char32_t PdfWin1250Encoding::s_cEncoding[256] = {
 };
 
 PdfWin1250Encoding::PdfWin1250Encoding()
+    : PdfBuiltInEncoding("Win1250Encoding")
 {
 }
 
@@ -2306,6 +2276,7 @@ const char32_t PdfIso88592Encoding::s_cEncoding[256] = {
 };
 
 PdfIso88592Encoding::PdfIso88592Encoding()
+    : PdfBuiltInEncoding("Iso88592Encoding")
 {
 }
 

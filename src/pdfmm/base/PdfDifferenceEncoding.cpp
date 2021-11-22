@@ -2181,14 +2181,14 @@ static struct {
     {0xFFFF, nullptr}
 };
 
-PdfEncodingDifference::PdfEncodingDifference() { }
+PdfDifferenceList::PdfDifferenceList() { }
 
-void PdfEncodingDifference::AddDifference(unsigned char code, char32_t codePoint)
+void PdfDifferenceList::AddDifference(unsigned char code, char32_t codePoint)
 {
     this->AddDifference(code, codePoint, PdfDifferenceEncoding::UnicodeIDToName(codePoint));
 }
 
-void PdfEncodingDifference::AddDifference(unsigned char code, char32_t codePoint,
+void PdfDifferenceList::AddDifference(unsigned char code, char32_t codePoint,
     const PdfName& name, bool explicitNames)
 {
     Difference dif;
@@ -2221,12 +2221,12 @@ void PdfEncodingDifference::AddDifference(unsigned char code, char32_t codePoint
     }
 }
 
-bool PdfEncodingDifference::Contains(unsigned char code, PdfName& name, char32_t& codePoint) const
+bool PdfDifferenceList::Contains(unsigned char code, PdfName& name, char32_t& codePoint) const
 {
-    return const_cast<PdfEncodingDifference&>(*this).contains(code, name, codePoint);
+    return const_cast<PdfDifferenceList&>(*this).contains(code, name, codePoint);
 }
 
-bool PdfEncodingDifference::contains(unsigned char code, PdfName& name, char32_t& codePoint)
+bool PdfDifferenceList::contains(unsigned char code, PdfName& name, char32_t& codePoint)
 {
     Difference diff;
     diff.Code = code;
@@ -2254,7 +2254,7 @@ bool PdfEncodingDifference::contains(unsigned char code, PdfName& name, char32_t
     return false;
 }
 
-bool PdfEncodingDifference::ContainsUnicodeValue(char32_t codePoint, unsigned char& code) const
+bool PdfDifferenceList::ContainsUnicodeValue(char32_t codePoint, unsigned char& code) const
 {
     for (auto& diff : m_differences)
     {
@@ -2268,7 +2268,7 @@ bool PdfEncodingDifference::ContainsUnicodeValue(char32_t codePoint, unsigned ch
     return false;
 }
 
-void PdfEncodingDifference::ToArray(PdfArray& arr) const
+void PdfDifferenceList::ToArray(PdfArray& arr) const
 {
     int64_t nLastCode = -2;
     arr.Clear();
@@ -2289,19 +2289,24 @@ void PdfEncodingDifference::ToArray(PdfArray& arr) const
     }
 }
 
-size_t PdfEncodingDifference::GetCount() const
+size_t PdfDifferenceList::GetCount() const
 {
     return m_differences.size();
 }
 
-PdfDifferenceEncoding::PdfDifferenceEncoding(const PdfEncodingDifference& difference,
+PdfDifferenceEncoding::PdfDifferenceEncoding(const PdfDifferenceList& difference,
     const PdfEncodingMapConstPtr& baseEncoding) :
-    PdfEncodingMapSimple({ 1, 1, PdfCharCode(0), PdfCharCode(0xFF) }),
+    PdfEncodingMapOneByte({ 1, 1, PdfCharCode(0), PdfCharCode(0xFF) }),
     m_differences(difference),
     m_baseEncoding(baseEncoding)
 {
     if (baseEncoding == nullptr)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Base encoding must be non null");
+}
+
+bool PdfDifferenceEncoding::IsSimpleEncoding() const
+{
+    return true;
 }
 
 unique_ptr<PdfDifferenceEncoding> PdfDifferenceEncoding::Create(
@@ -2331,9 +2336,12 @@ unique_ptr<PdfDifferenceEncoding> PdfDifferenceEncoding::Create(
     {
         // Implicit base encoding can be :
         // 1) The implicit encoding of a standard 14 font
-        baseEncoding = PdfFontStandard14::GetStandard14FontEncodingMap(metrics.GetStandard14FontType());
-
-        if (baseEncoding == nullptr && metrics.GetFontFileType() == PdfFontFileType::Type1)
+        PdfStandard14FontType std14Font;
+        if (metrics.IsStandard14FontMetrics(std14Font))
+        {
+            baseEncoding = PdfFontStandard14::GetStandard14FontEncodingMap(std14Font);
+        }
+        else if (metrics.GetFontFileType() == PdfFontFileType::Type1)
         {
             // 2) An encoding stored in the font program (see PdfFontType1Encoding)
             auto fontFileObj = metrics.GetFontFileObject();
@@ -2346,7 +2354,7 @@ unique_ptr<PdfDifferenceEncoding> PdfDifferenceEncoding::Create(
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Base encoding must be non null");
 
     // Read the differences key
-    PdfEncodingDifference difference;
+    PdfDifferenceList difference;
     if (obj.GetDictionary().HasKey("Differences"))
     {
         auto& differences = obj.GetDictionary().MustFindKey("Differences").GetArray();
