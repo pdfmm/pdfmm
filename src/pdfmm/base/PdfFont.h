@@ -91,11 +91,11 @@ public:
      * The font name is to be given as specified (with an ASCII hyphen).
      *
      * \param doc the parent of the created font
-     * \param baseFont standard14 font type
+     * \param std14Font standard14 font type
      * \param encoding an encoding compatible with the font
      * \param flags flags for font init
      */
-    static std::unique_ptr<PdfFont> CreateStandard14(PdfDocument& doc, PdfStandard14FontType baseFont,
+    static std::unique_ptr<PdfFont> CreateStandard14(PdfDocument& doc, PdfStandard14FontType std14Font,
         const PdfEncoding& encoding, PdfFontInitOptions flags);
 
     /** Create a new PdfFont from an existing
@@ -226,6 +226,20 @@ public:
      */
     static std::string ExtractBaseName(const std::string_view& fontName);
 
+    static std::string_view GetStandard14FontName(PdfStandard14FontType stdFont);
+
+    /** Determine if font name is a Standard14 font
+     *
+     * By default use both standard names and alternative ones (Arial, TimesNewRoman, CourierNew)
+     * \param fontName the unprocessed font name
+     */
+    static bool IsStandard14Font(const std::string_view& fontName, PdfStandard14FontType& stdFont);
+
+    /** Determine if font name is a Standard14 font
+     * \param fontName the unprocessed font name
+     */
+    static bool IsStandard14Font(const std::string_view& fontName, bool useAltNames, PdfStandard14FontType& stdFont);
+
 public:
     /**
      * True if the font is loaded from a PdfObject
@@ -280,14 +294,6 @@ protected:
      * we retrieve the glyph index
      */
     virtual bool TryMapCIDToGID(unsigned cid, unsigned& gid) const;
-
-    /** Optional function to map a CID to a GID
-     *
-     * Example for /Type2 CID fonts may have a /CIDToGIDMap
-     * For Standard14 fonts we have to convert CID to unicode then
-     * we retrieve the glyph index
-     */
-    virtual bool TryMapGIDToCID(unsigned gid, unsigned& cid) const;
     
     /**
      * Get the raw width of a CID identifier

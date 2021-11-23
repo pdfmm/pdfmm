@@ -109,6 +109,12 @@ bool PdfFontMetricsStandard14::TryGetGlyphWidth(unsigned gid, double& width) con
 
 bool PdfFontMetricsStandard14::TryGetGID(char32_t codePoint, unsigned& gid) const
 {
+    if (codePoint >= 0xFFFF)
+    {
+        gid = { };
+        return false;
+    }
+
     auto& map = GetStd14CPToGIDMap(m_Std14FontType);
     auto found = map.find((unsigned short)codePoint);
     if (found == map.end())

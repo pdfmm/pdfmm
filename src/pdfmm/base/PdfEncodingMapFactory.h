@@ -103,6 +103,10 @@ public:
 
     static PdfEncodingMapConstPtr GetDummyEncodingMap();
 
+    /** Return the encoding map for the given standard font type or nullptr for unknown
+     */
+    static PdfEncodingMapConstPtr GetStandard14FontEncodingMap(PdfStandard14FontType stdFont);
+
 private:
     PdfEncodingMapFactory() = delete;
 };

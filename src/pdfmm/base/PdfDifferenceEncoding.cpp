@@ -20,7 +20,6 @@
 #include "PdfEncodingMapFactory.h"
 #include "PdfIndirectObjectList.h"
 #include "PdfFont.h"
-#include "PdfFontStandard14.h"
 #include "PdfFontType1Encoding.h"
 
 using namespace std;
@@ -2334,7 +2333,7 @@ unique_ptr<PdfDifferenceEncoding> PdfDifferenceEncoding::Create(
         PdfStandard14FontType std14Font;
         if (metrics.IsStandard14FontMetrics(std14Font))
         {
-            baseEncoding = PdfFontStandard14::GetStandard14FontEncodingMap(std14Font);
+            baseEncoding = PdfEncodingMapFactory::GetStandard14FontEncodingMap(std14Font);
         }
         else if (metrics.GetFontFileType() == PdfFontFileType::Type1)
         {

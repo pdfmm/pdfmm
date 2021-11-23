@@ -22,8 +22,6 @@ std::string_view GetStandard14FontName(PdfStandard14FontType stdFont);
 
 bool IsStandard14Font(const std::string_view& fontName, bool useAltNames, PdfStandard14FontType& stdFont);
 
-bool TryGetStandard14Font(const std::string_view& baseFontName, bool bold, bool italic, bool useAltNames, PdfStandard14FontType& baseFont);
-
 const Standard14FontChar* GetStd14FontChars(PdfStandard14FontType stdFont, unsigned& size);
 
 const Std14CPToGIDMap& GetStd14CPToGIDMap(PdfStandard14FontType stdFont);

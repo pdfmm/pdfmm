@@ -209,7 +209,6 @@ enum class PdfFontDescriptorFlags
 enum class PdfFontType
 {
     Unknown = 0,
-    Standard14,
     Type1,
     Type3,
     TrueType,

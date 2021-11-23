@@ -31,11 +31,7 @@ private:
      *  \param metrics pointer to a font metrics object. The font in the PDF
      *         file will match this fontmetrics object. The metrics object is
      *         deleted along with the font.
-     *  \param encoding the encoding of this font. The font will take ownership of this object
-     *                   depending on pEncoding->IsAutoDelete()
-     *  \param embed specifies the embedding of font
-     *  \param subset specifies the subsetting of the font; forces bEmbed to false, if set
-     *
+     *  \param encoding the encoding of this font
      */
     PdfFontCIDTrueType(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
         const PdfEncoding& encoding);
@@ -43,6 +39,7 @@ private:
 public:
     bool SupportsSubsetting() const override;
     PdfFontType GetType() const override;
+    bool TryMapCIDToGID(unsigned cid, unsigned& gid) const override;
 
 protected:
     void embedFont() override;
@@ -52,6 +49,7 @@ private:
     void embedFontFile(PdfObject& descriptor);
     void createWidths(PdfDictionary& fontDict, const CIDToGIDMap& glyphWidths);
     CIDToGIDMap getCIDToGIDMap(bool subsetting);
+    bool tryMapGIDToCID(unsigned gid, unsigned& cid) const;
 
 protected:
     void initImported() override;

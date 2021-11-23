@@ -25,6 +25,7 @@
 #include "PdfEncodingShim.h"
 #include "PdfFontMetrics.h"
 #include "PdfPage.h"
+#include <pdfmm/private/PdfStandard14FontsData.h>
 
 using namespace std;
 using namespace mm;
@@ -51,17 +52,6 @@ PdfFont::PdfFont(PdfObject& obj, const PdfFontMetricsConstPtr& metrics,
     PdfLocaleImbue(out);
     out << "pdfmmFt" << this->GetObject().GetIndirectReference().ObjectNumber();
     m_Identifier = PdfName(out.str().c_str());
-
-    // TODO Read /CIDToGIDMap
-    //const PdfName& subType = obj.GetDictionary().FindKey(PdfName::KeySubtype)->GetName();
-    //if (subType == "CIDFontType2")
-    //{
-    //    auto cidToGidMap = obj.GetDictionary().FindKey("CIDToGIDMap");
-    //    if (cidToGidMap != nullptr)
-    //    {
-    //
-    //    }
-    //}
 }
 
 PdfFont::~PdfFont() { }
@@ -431,16 +421,23 @@ bool PdfFont::SupportsSubsetting() const
 
 bool PdfFont::TryMapCIDToGID(unsigned cid, unsigned& gid) const
 {
-    // By default it's identity with cid
-    gid = cid;
-    return true;
-}
+    if (m_Encoding->IsCMapEncoding())
+    {
+        // By default it's identity with gid
+        gid = cid;
+        return true;
+    }
+    else
+    {
+        char32_t mappedCodePoint = m_Encoding->GetCodePoint(cid);
+        if (mappedCodePoint == U'\0'
+            || !m_Metrics->TryGetGID(mappedCodePoint, gid))
+        {
+            return false;
+        }
 
-bool PdfFont::TryMapGIDToCID(unsigned gid, unsigned& cid) const
-{
-    // By default it's identity with gid
-    cid = gid;
-    return true;
+        return true;
+    }
 }
 
 string_view genSubsetPrefix()
@@ -539,4 +536,19 @@ string PdfFont::ExtractBaseName(const string_view& fontName)
     bool isBold;
     bool isItalic;
     return ExtractBaseName(fontName, isBold, isItalic);
+}
+
+string_view PdfFont::GetStandard14FontName(PdfStandard14FontType stdFont)
+{
+    return ::GetStandard14FontName(stdFont);
+}
+
+bool PdfFont::IsStandard14Font(const string_view& fontName, PdfStandard14FontType& stdFont)
+{
+    return ::IsStandard14Font(fontName, true, stdFont);
+}
+
+bool PdfFont::IsStandard14Font(const string_view& fontName, bool useAltNames, PdfStandard14FontType& stdFont)
+{
+    return ::IsStandard14Font(fontName, useAltNames, stdFont);
 }

@@ -70,6 +70,30 @@ PdfFontType PdfFontCIDTrueType::GetType() const
     return PdfFontType::CIDTrueType;
 }
 
+bool PdfFontCIDTrueType::TryMapCIDToGID(unsigned cid, unsigned& gid) const
+{
+    // TODO Read /CIDToGIDMap
+    //const PdfName& subType = obj.GetDictionary().FindKey(PdfName::KeySubtype)->GetName();
+    //if (subType == "CIDFontType2")
+    //{
+    //    auto cidToGidMap = obj.GetDictionary().FindKey("CIDToGIDMap");
+    //    if (cidToGidMap != nullptr)
+    //    {
+    //
+    //    }
+    //}
+
+    gid = cid;
+    return true;
+}
+
+bool PdfFontCIDTrueType::tryMapGIDToCID(unsigned gid, unsigned& cid) const
+{
+    // TODO: use "/CIDToGIDMap" if present
+    cid = gid;
+    return true;
+}
+
 void PdfFontCIDTrueType::initImported()
 {
     PdfArray arr;
@@ -189,7 +213,7 @@ CIDToGIDMap PdfFontCIDTrueType::getCIDToGIDMap(bool subsetting)
         for (unsigned gid = 0; gid < gidCount; gid++)
         {
             unsigned cid;
-            if (!TryMapGIDToCID(gid, cid))
+            if (!tryMapGIDToCID(gid, cid))
                 PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "Unable to map gid to cid");
             ret.insert(std::make_pair(cid, gid));
         }

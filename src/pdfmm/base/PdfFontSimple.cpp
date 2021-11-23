@@ -47,13 +47,12 @@ void PdfFontSimple::getWidthsArray(PdfArray& arr) const
         arr.Add(PdfObject(static_cast<int64_t>(std::round(widths[i] * 1000))));
 }
 
-void PdfFontSimple::Init(bool skipMetricsDescriptors)
+void PdfFontSimple::Init()
 {
     PdfName subType;
     switch (GetType())
     {
         case PdfFontType::Type1:
-        case PdfFontType::Standard14:
             subType = PdfName("Type1");
             break;
         case PdfFontType::TrueType:
@@ -70,9 +69,10 @@ void PdfFontSimple::Init(bool skipMetricsDescriptors)
     this->GetObject().GetDictionary().AddKey("BaseFont", PdfName(GetName()));
     m_Encoding->ExportToDictionary(this->GetObject().GetDictionary());
 
-    if (!skipMetricsDescriptors)
+    if (!GetMetrics().IsStandard14FontMetrics() || IsEmbeddingEnabled())
     {
         // Standard 14 fonts don't need any metrics descriptor
+        // if the font is not embedded
         this->GetObject().GetDictionary().AddKey("FirstChar", PdfVariant(static_cast<int64_t>(m_Encoding->GetFirstChar().Code)));
         this->GetObject().GetDictionary().AddKey("LastChar", PdfVariant(static_cast<int64_t>(m_Encoding->GetLastChar().Code)));
 

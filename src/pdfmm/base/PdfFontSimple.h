@@ -46,7 +46,7 @@ private:
         const PdfEncoding& encoding);
 
 protected:
-    void Init(bool skipMetricsDescriptors = false);
+    void Init();
 
     void embedFont() override final;
 

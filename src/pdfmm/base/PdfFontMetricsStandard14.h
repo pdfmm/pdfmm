@@ -115,7 +115,7 @@ private:
         PdfStandard14FontType fontType, const PdfObject* fontObj = nullptr);
 
 public:
-    static std::shared_ptr<const PdfFontMetricsStandard14> GetInstance(PdfStandard14FontType font);
+    static std::shared_ptr<const PdfFontMetricsStandard14> GetInstance(PdfStandard14FontType std14Font);
 
 private:
     PdfStandard14FontType m_Std14FontType;

@@ -87,3 +87,30 @@ PdfEncodingMapConstPtr PdfEncodingMapFactory::GetDummyEncodingMap()
     static PdfEncodingMapConstPtr s_instance(new PdfDummyEncodingMap());
     return s_instance;
 }
+
+PdfEncodingMapConstPtr PdfEncodingMapFactory::GetStandard14FontEncodingMap(PdfStandard14FontType stdFont)
+{
+    switch (stdFont)
+    {
+        case PdfStandard14FontType::TimesRoman:
+        case PdfStandard14FontType::TimesItalic:
+        case PdfStandard14FontType::TimesBold:
+        case PdfStandard14FontType::TimesBoldItalic:
+        case PdfStandard14FontType::Helvetica:
+        case PdfStandard14FontType::HelveticaOblique:
+        case PdfStandard14FontType::HelveticaBold:
+        case PdfStandard14FontType::HelveticaBoldOblique:
+        case PdfStandard14FontType::Courier:
+        case PdfStandard14FontType::CourierOblique:
+        case PdfStandard14FontType::CourierBold:
+        case PdfStandard14FontType::CourierBoldOblique:
+            return StandardEncodingInstance();
+        case PdfStandard14FontType::Symbol:
+            return SymbolEncodingInstance();
+        case PdfStandard14FontType::ZapfDingbats:
+            return ZapfDingbatsEncodingInstance();
+        case PdfStandard14FontType::Unknown:
+        default:
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "Invalid Standard14 font type");
+    }
+}

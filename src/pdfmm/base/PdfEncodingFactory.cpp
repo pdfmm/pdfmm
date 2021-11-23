@@ -18,7 +18,8 @@
 #include "PdfFontType1Encoding.h"
 #include "PdfCMapEncoding.h"
 #include "PdfEncodingShim.h"
-#include "PdfFontStandard14.h"
+#include "PdfFontMetrics.h"
+#include "PdfEncodingMapFactory.h"
 
 using namespace std;
 using namespace mm;
@@ -50,7 +51,7 @@ PdfEncoding PdfEncodingFactory::CreateEncoding(const PdfObject& fontObj, const P
             // special encodings for Symbol and ZapfDingbats
             PdfStandard14FontType std14Font;
             if (metrics.IsStandard14FontMetrics(std14Font))
-                encoding = PdfFontStandard14::GetStandard14FontEncodingMap(std14Font);
+                encoding = PdfEncodingMapFactory::GetStandard14FontEncodingMap(std14Font);
             else if (metrics.IsType1Kind() && metrics.IsPdfNonSymbolic())
                 encoding = PdfEncodingMapFactory::StandardEncodingInstance();
         }

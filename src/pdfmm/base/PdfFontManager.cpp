@@ -25,7 +25,6 @@
 #include "PdfFont.h"
 #include "PdfFontMetricsFreetype.h"
 #include "PdfFontMetricsStandard14.h"
-#include "PdfFontStandard14.h"
 #include "PdfFontType1.h"
 
 using namespace std;
@@ -88,7 +87,7 @@ PdfFont* PdfFontManager::GetFont(const string_view& fontName, const PdfFontCreat
     PdfStandard14FontType stdFont;
     if (params.FontInitOpts != PdfFontInitOptions::Subset &&
         params.SearchParams.AutoSelectOpts != PdfAutoSelectFontOptions::None
-        && PdfFontStandard14::IsStandard14Font(fontName,
+        && PdfFont::IsStandard14Font(fontName,
             params.SearchParams.AutoSelectOpts == PdfAutoSelectFontOptions::Standard14Alt, stdFont))
     {
         // Create a special element cache that just specify the standard type and encoding
@@ -143,7 +142,7 @@ PdfFontMetricsConstPtr PdfFontManager::GetFontMetrics(const string_view& fontNam
     // Early intercept Standard14 fonts
     PdfStandard14FontType stdFont;
     if (params.AutoSelectOpts != PdfAutoSelectFontOptions::None
-        && PdfFontStandard14::IsStandard14Font(fontName,
+        && PdfFont::IsStandard14Font(fontName,
             params.AutoSelectOpts == PdfAutoSelectFontOptions::Standard14Alt, stdFont))
     {
         return PdfFontMetricsStandard14::GetInstance(stdFont);
