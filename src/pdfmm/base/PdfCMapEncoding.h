@@ -26,7 +26,7 @@ namespace mm
         static std::unique_ptr<PdfCMapEncoding> Create(const PdfObject& cmapObj);
 
     public:
-        bool HasCIDMapping() const override;
+        bool IsCMapEncoding() const override;
         bool HasLigaturesSupport() const override;
 
     private:

@@ -111,7 +111,7 @@ namespace mm
          */
         char32_t GetCodePoint(unsigned charCode) const;
 
-        bool HasCIDMapping() const;
+        bool IsCMapEncoding() const;
 
         /** This return the first char code used in the encoding
          * \remarks Mostly useful for non cid-keyed fonts to export /FirstChar

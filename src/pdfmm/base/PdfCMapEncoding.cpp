@@ -48,9 +48,9 @@ unique_ptr<PdfCMapEncoding> PdfCMapEncoding::Create(const PdfObject& cmapObj)
     return unique_ptr<PdfCMapEncoding>(new PdfCMapEncoding(parseCMapObject(cmapObj.MustGetStream())));
 }
 
-bool PdfCMapEncoding::HasCIDMapping() const
+bool PdfCMapEncoding::IsCMapEncoding() const
 {
-    // CMap encodings can represent proper CID encoding
+    // PdfCMapEncoding represents a proper CMap
     return true;
 }
 

@@ -112,23 +112,29 @@ public:
     const PdfEncodingLimits& GetLimits() const { return m_limits; }
 
     /**
-     * True if the encoding has proper CID mapping
+     * True if the encoding represent a CMap encoding
      *
-     * Most maps represents just an identity CID encoding such
-     * as built-in/difference encodings and rely on presence
-     * of /FirstChar to map from a character code to a index
-     * in the glyph list
+     * This is true not only for PdfCMapEncoding that supplies
+     * a proper CMap but for PdfIndentityEncoding and other
+     * predefined CMap names as well (ISO 32000-1:2008 Table 118
+     * Predefined CJK CMap names, currently not implemented).
+     * Other marps rely on presence of /FirstChar to map from a
+     * character code to a index in the glyph list
      */
-    virtual bool HasCIDMapping() const;
+    virtual bool IsCMapEncoding() const;
 
     /**
      * True if the encoding is a "simple" encoding, that is valid
      * both as a /Encoding entry and can be used to decode Unicode
-     * CodePoints. This is true for regular predefined, difference
+     * codepoints.
+     * 
+     * This is true for regular predefined, difference
      * and Type1 implicit encodings and in general it is false for
-     * CID and identity encodings
+     * CMap and identity encodings. This property is complementary
+     * of IsCMapEncoding and is kept to use in other situations
+     * where it is more intuitive
      */
-    virtual bool IsSimpleEncoding() const;
+    bool IsSimpleEncoding() const;
 
     /**
      * True if the encoding has ligatures support

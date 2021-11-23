@@ -57,14 +57,6 @@ void PdfIdentityEncoding::getExportObject(PdfIndirectObjectList& objects, PdfNam
     (void)objects;
     (void)obj;
 
-    if (GetLimits().MinCodeSize != GetLimits().MaxCodeSize
-        || GetLimits().MinCodeSize != 2)
-    {
-        // Default identities are 2 bytes only
-        // TODO: Implement a CMap for other identities
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Unsupported");
-    }
-
     switch (m_orientation)
     {
         case PdfIdentityOrientation::Horizontal:
@@ -74,6 +66,8 @@ void PdfIdentityEncoding::getExportObject(PdfIndirectObjectList& objects, PdfNam
             name = PdfName("Identity-V");
             break;
         default:
+            // TODO: Implement a custom CMap that has the correct
+            // range for other identities
             PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Unsupported");
     }
 }
@@ -86,16 +80,11 @@ void PdfIdentityEncoding::appendBaseFontEntries(PdfStream& stream) const
     PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "TODO");
 }
 
-bool PdfIdentityEncoding::HasCIDMapping() const
+bool PdfIdentityEncoding::IsCMapEncoding() const
 {
-    switch (m_orientation)
-    {
-        case PdfIdentityOrientation::Horizontal:
-        case PdfIdentityOrientation::Vertical:
-            return true;
-        default:
-            return false;
-    }
+    // PdfIdentityEncoding represents either Identity-H/Identity-V
+    // predefined CMap names or exports a custom CMap
+    return true;
 }
 
 PdfEncodingLimits getLimits(unsigned char codeSpaceSize)

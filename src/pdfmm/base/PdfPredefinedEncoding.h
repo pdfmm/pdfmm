@@ -30,9 +30,6 @@ namespace mm
     protected:
         PdfPredefinedEncoding(const PdfName& name);
 
-    public:
-        bool IsSimpleEncoding() const override;
-
     protected:
         void getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const override;
     };

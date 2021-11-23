@@ -24,11 +24,6 @@ PdfPredefinedEncoding::PdfPredefinedEncoding(const PdfName& name)
 {
 }
 
-bool PdfPredefinedEncoding::IsSimpleEncoding() const
-{
-    return true;
-}
-
 void PdfPredefinedEncoding::getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const
 {
     (void)objects;

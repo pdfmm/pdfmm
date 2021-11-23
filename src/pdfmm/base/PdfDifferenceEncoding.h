@@ -147,8 +147,6 @@ public:
      */
     static PdfName UnicodeIDToName(char32_t codePoint);
 
-    bool IsSimpleEncoding() const override;
-
     /**
      * Get read-only access to the object containing the actual
      * differences.

@@ -2304,11 +2304,6 @@ PdfDifferenceEncoding::PdfDifferenceEncoding(const PdfDifferenceList& difference
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Base encoding must be non null");
 }
 
-bool PdfDifferenceEncoding::IsSimpleEncoding() const
-{
-    return true;
-}
-
 unique_ptr<PdfDifferenceEncoding> PdfDifferenceEncoding::Create(
     const PdfObject& obj, const PdfFontMetrics& metrics)
 {

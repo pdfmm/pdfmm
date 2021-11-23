@@ -32,18 +32,18 @@ unique_ptr<PdfFont> PdfFont::Create(PdfDocument& doc, const PdfFontMetricsConstP
     PdfFontFileType type = metrics->GetFontFileType();
     bool embeddingEnabled = (flags & PdfFontInitOptions::Embed) != PdfFontInitOptions::None;
     bool subsettingEnabled = (flags & PdfFontInitOptions::Subset) != PdfFontInitOptions::None;
-    auto font = createFontForType(doc, metrics, encoding, type);
+    auto font(createFontForType(doc, metrics, encoding, type));
     if (font != nullptr)
         font->InitImported(embeddingEnabled, subsettingEnabled);
 
-    return unique_ptr<PdfFont>(font);
+    return font;
 }
 
-PdfFont* PdfFont::createFontForType(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
+unique_ptr<PdfFont> PdfFont::createFontForType(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
     const PdfEncoding& encoding, PdfFontFileType type)
 {
     PdfFont* font = nullptr;
-    if (encoding.HasCIDMapping())
+    if (encoding.IsCMapEncoding())
     {
         switch (type)
         {
@@ -64,27 +64,35 @@ PdfFont* PdfFont::createFontForType(PdfDocument& doc, const PdfFontMetricsConstP
     }
     else
     {
-        switch (type)
+        PdfStandard14FontType std14Font;
+        if (metrics->IsStandard14FontMetrics(std14Font))
         {
-            case PdfFontFileType::TrueType:
-            case PdfFontFileType::OpenType:
-                font = new PdfFontTrueType(doc, metrics, encoding);
-                break;
-            case PdfFontFileType::Type1:
-            case PdfFontFileType::Type1CCF:
-                font = new PdfFontType1(doc, metrics, encoding);
-                break;
-            case PdfFontFileType::Type3:
-                font = new PdfFontType3(doc, metrics, encoding);
-                break;
-            case PdfFontFileType::CIDType1CCF:
-            case PdfFontFileType::Unknown:
-            default:
-                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFontFormat, "Unsupported font at this context");
+            font = new PdfFontStandard14(doc, std14Font, encoding);
+        }
+        else
+        {
+            switch (type)
+            {
+                case PdfFontFileType::TrueType:
+                case PdfFontFileType::OpenType:
+                    font = new PdfFontTrueType(doc, metrics, encoding);
+                    break;
+                case PdfFontFileType::Type1:
+                case PdfFontFileType::Type1CCF:
+                    font = new PdfFontType1(doc, metrics, encoding);
+                    break;
+                case PdfFontFileType::Type3:
+                    font = new PdfFontType3(doc, metrics, encoding);
+                    break;
+                case PdfFontFileType::CIDType1CCF:
+                case PdfFontFileType::Unknown:
+                default:
+                    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFontFormat, "Unsupported font at this context");
+            }
         }
     }
 
-    return font;
+    return unique_ptr<PdfFont>(font);
 }
 
 bool PdfFont::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfFont>& font)

@@ -51,7 +51,7 @@ protected:
     void appendBaseFontEntries(PdfStream& stream) const override;
 
 public:
-    bool HasCIDMapping() const override;
+    bool IsCMapEncoding() const override;
 
 private:
     PdfIdentityEncoding(unsigned char codeSpaceSize, PdfIdentityOrientation orientation);

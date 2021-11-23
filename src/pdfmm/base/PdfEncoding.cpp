@@ -302,9 +302,9 @@ bool PdfEncoding::TryConvertToCIDs(const string_view& str, vector<PdfCID>& cids)
     return success;
 }
 
-bool PdfEncoding::HasCIDMapping() const
+bool PdfEncoding::IsCMapEncoding() const
 {
-    return m_Encoding->HasCIDMapping();
+    return m_Encoding->IsCMapEncoding();
 }
 
 const PdfCharCode& PdfEncoding::GetFirstChar() const
@@ -327,9 +327,9 @@ const PdfCharCode& PdfEncoding::GetLastChar() const
 
 void PdfEncoding::ExportToDictionary(PdfDictionary& dictionary, PdfEncodingExportFlags flags) const
 {
-    if (HasCIDMapping())
+    if (IsCMapEncoding())
     {
-        // Some CID encodings has a name representation, such as Identity-H/Identity-V
+        // Some CMap encodings has a name representation, such as Identity-H/Identity-V
         if (!tryExportObjectTo(dictionary))
         {
             // If it doesn't have a name represenation, try to export a CID CMap

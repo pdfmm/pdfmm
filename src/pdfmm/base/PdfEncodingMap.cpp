@@ -112,7 +112,7 @@ bool PdfEncodingMap::TryGetCharCode(unsigned cid, PdfCharCode& codeUnit) const
 bool PdfEncodingMap::TryGetNextCID(string_view::iterator& it,
     const string_view::iterator& end, PdfCID& cid) const
 {
-    if (HasCIDMapping())
+    if (IsCMapEncoding())
     {
         vector<char32_t> codePoints;
         bool success = tryGetNextCodePoints(it, end, cid.Unit, codePoints);
@@ -171,7 +171,7 @@ bool PdfEncodingMap::TryGetNextCodePoints(string_view::iterator& it,
 
 bool PdfEncodingMap::TryGetCIDId(const PdfCharCode& codeUnit, unsigned& id) const
 {
-    if (HasCIDMapping())
+    if (IsCMapEncoding())
     {
         vector<char32_t> codePoints;
         bool success = tryGetCodePoints(codeUnit, codePoints);
@@ -199,14 +199,14 @@ bool PdfEncodingMap::TryGetCodePoints(const PdfCharCode& codeUnit, vector<char32
     return tryGetCodePoints(codeUnit, codePoints);
 }
 
-bool PdfEncodingMap::HasCIDMapping() const
+bool PdfEncodingMap::IsCMapEncoding() const
 {
     return false;
 }
 
 bool PdfEncodingMap::IsSimpleEncoding() const
 {
-    return false;
+    return !IsCMapEncoding();
 }
 
 bool PdfEncodingMap::HasLigaturesSupport() const
