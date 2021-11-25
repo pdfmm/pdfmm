@@ -21,9 +21,6 @@
 #include "PdfFont.h"
 #include "PdfCMapEncoding.h"
 
-#define PDFMM_FIRST_READABLE 31
-#define PDFMM_WIDTH_CACHE_SIZE 256
-
 using namespace std;
 using namespace mm;
 
@@ -69,20 +66,6 @@ void PdfFontMetricsFreetype::InitFromBuffer()
 void PdfFontMetricsFreetype::InitFromFace()
 {
     FT_Error rc;
-
-    m_Weight = 500;
-    m_ItalicAngle = 0;
-    m_LineSpacing = 0.0;
-    m_UnderlineThickness = 0.0;
-    m_UnderlinePosition = 0.0;
-    m_StrikeOutPosition = 0.0;
-    m_StrikeOutThickness = 0.0;
-
-    m_Ascent = m_Face->ascender / m_Face->units_per_EM;
-    m_Descent = m_Face->descender / m_Face->units_per_EM;
-    m_IsBold = (m_Face->style_flags & FT_STYLE_FLAG_BOLD) != 0;
-    m_IsItalic = (m_Face->style_flags & FT_STYLE_FLAG_ITALIC) != 0;
-
     m_HasSymbolCharset = false;
 
     // Try to get a unicode charmap
@@ -108,68 +91,59 @@ void PdfFontMetricsFreetype::InitFromFace()
         }
     }
 
-    // we cache the 256 first width entries as they
-    // are most likely needed quite often
-    m_Widths.clear();
-    m_Widths.reserve(PDFMM_WIDTH_CACHE_SIZE);
-    for (unsigned i = 0; i < PDFMM_WIDTH_CACHE_SIZE; i++)
+    m_Ascent = m_Face->ascender / (double)m_Face->units_per_EM;
+    m_Descent = m_Face->descender / (double)m_Face->units_per_EM;
+
+    // calculate the line spacing now, as it changes only with the font size
+    m_LineSpacing = m_Face->height / (double)m_Face->units_per_EM;
+    m_UnderlineThickness = m_Face->underline_thickness / (double)m_Face->units_per_EM;
+    m_UnderlinePosition = m_Face->underline_position / (double)m_Face->units_per_EM;
+    m_Ascent = m_Face->ascender / (double)m_Face->units_per_EM;
+    m_Descent = m_Face->descender / (double)m_Face->units_per_EM;
+
+    // Set some default values, in case the font has no direct values
+    m_StrikeOutPosition = m_Ascent / 2.0;
+    m_StrikeOutThickness = m_UnderlineThickness;
+    m_Weight = 400;
+    m_CapHeight = 0;
+    m_XHeight = 0;
+    m_ItalicAngle = 0;
+    m_DefaultWidth = 0;
+    m_IsFixedPitch = false;
+
+    TT_OS2* os2Table = static_cast<TT_OS2*>(FT_Get_Sfnt_Table(m_Face, FT_SFNT_OS2));
+    if (os2Table != nullptr)
     {
-        if (i < PDFMM_FIRST_READABLE)
-        {
-            m_Widths.push_back(0.0);
-        }
-        else
-        {
-            int index = i;
-            // Handle symbol fonts
-            if (m_HasSymbolCharset)
-                index = index | 0xF000;
-
-            if (FT_Load_Char(m_Face, index, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP) == 0)  // | FT_LOAD_NO_RENDER
-            {
-                m_Widths.push_back(static_cast<double>(m_Face->glyph->metrics.horiAdvance) / m_Face->units_per_EM);
-                continue;
-            }
-
-            m_Widths.push_back(0.0);
-        }
+        m_StrikeOutPosition = os2Table->yStrikeoutPosition / (double)m_Face->units_per_EM;
+        m_StrikeOutThickness = os2Table->yStrikeoutSize / (double)m_Face->units_per_EM;
+        m_CapHeight = os2Table->sCapHeight / (double)m_Face->units_per_EM;
+        m_XHeight = os2Table->sxHeight / (double)m_Face->units_per_EM;
+        m_Weight = os2Table->usWeightClass;
+        m_DefaultWidth = os2Table->xAvgCharWidth / (double)m_Face->units_per_EM;
     }
 
-    InitFontSizes();
+    TT_Postscript* psTable = static_cast<TT_Postscript*>(FT_Get_Sfnt_Table(m_Face, FT_SFNT_POST));
+    if (psTable != nullptr)
+    {
+        m_ItalicAngle = (double)psTable->italicAngle;
+        m_IsFixedPitch = psTable->isFixedPitch != 0;
+    }
+
+    // ISO 32000-1:2008: Table 122 – Entries common to all font descriptors
+    // The possible values shall be 100, 200, 300, 400, 500, 600, 700, 800,
+    // or 900, where each number indicates a weight that is at least as dark
+    // as its predecessor.A value of 400 shall indicate a normal weight;
+    // 700 shall indicate bold
+    m_IsBold = (m_Face->style_flags & FT_STYLE_FLAG_BOLD) != 0
+        || m_Weight >= 700;
+    m_IsItalic = (m_Face->style_flags & FT_STYLE_FLAG_ITALIC) != 0
+        || m_ItalicAngle != 0;
 
     // Get the postscript name of the font and ensures it has no space:
     // 5.5.2 TrueType Fonts, "If the name contains any spaces, the spaces are removed"
     m_fontName = FT_Get_Postscript_Name(m_Face);
     m_fontName.erase(std::remove(m_fontName.begin(), m_fontName.end(), ' '), m_fontName.end());
     m_baseFontName = PdfFont::ExtractBaseName(m_fontName);
-}
-
-void PdfFontMetricsFreetype::InitFontSizes()
-{
-    float size = 1.0f;
-    // TODO: Maybe we have to set this for charwidth!!!
-    FT_Set_Char_Size(m_Face, static_cast<int>(size * 64.0), 0, 72, 72);
-
-    // calculate the line spacing now, as it changes only with the font size
-    m_LineSpacing = (static_cast<double>(m_Face->height) / m_Face->units_per_EM);
-    m_UnderlineThickness = (static_cast<double>(m_Face->underline_thickness) / m_Face->units_per_EM);
-    m_UnderlinePosition = (static_cast<double>(m_Face->underline_position) / m_Face->units_per_EM);
-    m_Ascent = static_cast<double>(m_Face->ascender) / m_Face->units_per_EM;
-    m_Descent = static_cast<double>(m_Face->descender) / m_Face->units_per_EM;
-    // Set default values for strikeout, in case the font has no direct values
-    m_StrikeOutPosition = m_Ascent / 2.0;
-    m_StrikeOutThickness = m_UnderlineThickness;
-    m_CapHeight = 0;
-    m_XHeight = 0;
-
-    TT_OS2* os2Table = static_cast<TT_OS2*>(FT_Get_Sfnt_Table(m_Face, ft_sfnt_os2));
-    if (os2Table != nullptr)
-    {
-        m_StrikeOutPosition = static_cast<double>(os2Table->yStrikeoutPosition) / m_Face->units_per_EM;
-        m_StrikeOutThickness = static_cast<double>(os2Table->yStrikeoutSize) / m_Face->units_per_EM;
-        m_CapHeight = os2Table->sCapHeight / m_Face->units_per_EM;
-        m_XHeight = os2Table->sxHeight / m_Face->units_per_EM;
-    }
 }
 
 string PdfFontMetricsFreetype::GetBaseFontName() const
@@ -247,6 +221,9 @@ PdfFontDescriptorFlags PdfFontMetricsFreetype::GetFlags() const
     if (m_IsItalic)
         ret |= PdfFontDescriptorFlags::Italic;
 
+    if (m_IsFixedPitch)
+        ret |= PdfFontDescriptorFlags::FixedPitch;
+
     // NOTE: It is not correct to write flags ForceBold if the
     // font is already bold. The ForceBold flag is just an hint
     // for the viewer to draw glyphs with more pixels
@@ -255,8 +232,7 @@ PdfFontDescriptorFlags PdfFontMetricsFreetype::GetFlags() const
 
 double PdfFontMetricsFreetype::GetDefaultCharWidth() const
 {
-    // TODO
-    return 0.0;
+    return m_DefaultWidth;
 }
 
 void PdfFontMetricsFreetype::GetBoundingBox(vector<double>& bbox) const
@@ -318,7 +294,7 @@ string_view PdfFontMetricsFreetype::GetFontFileData() const
     return string_view(m_FontData->data(), m_FontData->length());
 }
 
-unsigned PdfFontMetricsFreetype::GetWeight() const
+int PdfFontMetricsFreetype::GetWeight() const
 {
     return m_Weight;
 }
@@ -335,9 +311,16 @@ double PdfFontMetricsFreetype::GetXHeight() const
 
 double PdfFontMetricsFreetype::GetStemV() const
 {
-    // ISO 32000:2007, Table 120 — Entries common to all font descriptors
-    // "A value of 0 indicates an unknown stem thickness"
-    return 0.0;
+    // ISO 32000-2:2017, Table 120 — Entries common to all font descriptors
+    // says: "A value of 0 indicates an unknown stem thickness". No mention
+    // is done about this in ISO 32000-1:2008, but we assume 0 is a safe
+    // value for all implementations
+    return 0;
+}
+
+double PdfFontMetricsFreetype::GetStemH() const
+{
+    return -1;
 }
 
 double PdfFontMetricsFreetype::GetItalicAngle() const

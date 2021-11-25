@@ -316,16 +316,33 @@ void PdfFont::FillDescriptor(PdfDictionary& dict) const
     PdfArray bbox;
     GetBoundingBox(bbox);
 
+    // Optional values
+    int weight = m_Metrics->GetWeight();
+    double stemH = m_Metrics->GetStemH();
+    double capHeight = m_Metrics->GetCapHeight();
+    double xHeight = m_Metrics->GetXHeight();
+
     // TODO: Handle custom measure units, like for /Type3 fonts, for Ascent/Descent/CapHeight...
     dict.AddKey("FontName", PdfName(this->GetName()));
     dict.AddKey(PdfName::KeyFlags, PdfObject(static_cast<int64_t>(m_Metrics->GetFlags())));
     dict.AddKey("FontBBox", bbox);
-    dict.AddKey("ItalicAngle", static_cast<int64_t>(m_Metrics->GetItalicAngle()));
+    dict.AddKey("StemV", static_cast<int64_t>(std::round(m_Metrics->GetStemV() * 1000)));
+    dict.AddKey("ItalicAngle", static_cast<int64_t>(std::round(m_Metrics->GetItalicAngle())));
     dict.AddKey("Ascent", static_cast<int64_t>(std::round(m_Metrics->GetAscent() * 1000)));
-    dict.AddKey("Descent", static_cast<int64_t>(m_Metrics->GetDescent() * 1000));
-    dict.AddKey("CapHeight", static_cast<int64_t>(m_Metrics->GetCapHeight() * 1000));
-    dict.AddKey("XHeight", static_cast<int64_t>(m_Metrics->GetXHeight() * 1000));
-    dict.AddKey("StemV", static_cast<int64_t>(m_Metrics->GetStemV() * 1000));
+    dict.AddKey("Descent", static_cast<int64_t>(std::round(m_Metrics->GetDescent() * 1000)));
+
+    if (weight >= 0)
+        dict.AddKey("FontWeight", static_cast<int64_t>(weight));
+
+    if (capHeight >= 0)
+        dict.AddKey("CapHeight", static_cast<int64_t>(std::round(capHeight * 1000)));
+
+    if (xHeight >= 0)
+        dict.AddKey("XHeight", static_cast<int64_t>(std::round(xHeight * 1000)));
+
+    if (stemH >= 0)
+        dict.AddKey("StemH", static_cast<int64_t>(std::round(stemH * 1000)));
+
 }
 
 void PdfFont::initImported()

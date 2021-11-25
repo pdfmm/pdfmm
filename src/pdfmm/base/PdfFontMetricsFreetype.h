@@ -70,13 +70,15 @@ public:
 
     std::string GetFontName() const override;
 
-    unsigned GetWeight() const override;
+    int GetWeight() const override;
 
     double GetCapHeight() const override;
 
     double GetXHeight() const override;
 
     double GetStemV() const override;
+
+    double GetStemH() const override;
 
     double GetItalicAngle() const override;
 
@@ -107,8 +109,6 @@ private:
      */
     void InitFromFace();
 
-    void InitFontSizes();
-
  protected:
     FT_Face m_Face;
 
@@ -116,11 +116,12 @@ private:
     bool m_IsBold;
     bool m_IsItalic;
 
-    unsigned m_Weight;
-    double m_ItalicAngle;
-
     double m_Ascent;
     double m_Descent;
+    double m_DefaultWidth;
+    unsigned m_Weight;
+    double m_ItalicAngle;
+    bool m_IsFixedPitch;
 
     double m_LineSpacing;
     double m_UnderlineThickness;
@@ -131,7 +132,6 @@ private:
     double m_XHeight;
 
     std::shared_ptr<chars> m_FontData;
-    std::vector<double> m_Widths;
     std::string m_fontName;
     std::string m_baseFontName;
 

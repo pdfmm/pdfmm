@@ -222,6 +222,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
         m_CapHeight = 0;
         m_XHeight = 0;
         m_StemV = 0;
+        m_StemH = 0;
         m_ItalicAngle = 0;
         m_Ascent = 0.0;
         m_Descent = 0.0;
@@ -230,23 +231,37 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
     else
     {
         auto& dict = descriptor->GetDictionary();
-        m_Flags = (PdfFontDescriptorFlags)dict.FindKeyAs<double>("Flags", 0);
-        if ((m_Flags & PdfFontDescriptorFlags::Italic) != PdfFontDescriptorFlags::None)
-            m_IsItalic = true;
 
-        // NOTE1: It is not correct to check flag ForceBold to
-        // determine if the fond is bold. The ForceBold flag is
-        // just an hint for the viewer to draw glyphs with more
-        // pixels
-
-        // NOTE2: Found a valid document with "/FontWeight 400.0" so just read the value as double
-        m_Weight = static_cast<unsigned>(dict.FindKeyAs<double>("FontWeight", 400));
+        // NOTE: Found a valid document with "/FontWeight 400.0" so just read the value as double
+        m_Weight = static_cast<int>(dict.FindKeyAs<double>("FontWeight", 400));
         m_CapHeight = dict.FindKeyAs<double>("CapHeight", 0) * m_matrix[3];
         m_XHeight = dict.FindKeyAs<double>("XHeight", 0) * m_matrix[3];
         m_StemV = dict.FindKeyAs<double>("StemV", 0) * m_matrix[3];
+        m_StemH = dict.FindKeyAs<double>("StemH", 0) * m_matrix[3];
         m_ItalicAngle = static_cast<int>(dict.FindKeyAs<double>("ItalicAngle", 0));
         m_Ascent = dict.FindKeyAs<double>("Ascent", 0.0) * m_matrix[3];
         m_Descent = dict.FindKeyAs<double>("Descent", 0.0) * m_matrix[3];
+        m_Flags = (PdfFontDescriptorFlags)dict.FindKeyAs<double>("Flags", 0);
+
+        if ((m_Flags & PdfFontDescriptorFlags::Italic) != PdfFontDescriptorFlags::None
+            || m_ItalicAngle != 0)
+        {
+            m_IsItalic = true;
+        }
+
+        // NOTE: It is not correct to check flag ForceBold to
+        // determine if the fond is bold. The ForceBold flag is
+        // just an hint for the viewer to draw glyphs with more
+        // pixels
+        if (m_Weight >= 700)
+        {
+            // ISO 32000-1:2008: Table 122 – Entries common to all font descriptors
+            // The possible values shall be 100, 200, 300, 400, 500, 600, 700, 800,
+            // or 900, where each number indicates a weight that is at least as dark
+            // as its predecessor.A value of 400 shall indicate a normal weight;
+            // 700 shall indicate bold
+            m_IsBold = true;
+        }
     }
 
     m_BaseName = PdfFont::ExtractBaseName(m_FontName, m_IsBold, m_IsItalic);
@@ -355,7 +370,7 @@ double PdfFontMetricsObject::GetDescent() const
     return m_Descent;
 }
 
-unsigned PdfFontMetricsObject::GetWeight() const
+int PdfFontMetricsObject::GetWeight() const
 {
     return m_Weight;
 }
@@ -373,6 +388,11 @@ double PdfFontMetricsObject::GetXHeight() const
 double PdfFontMetricsObject::GetStemV() const
 {
     return m_StemV;
+}
+
+double PdfFontMetricsObject::GetStemH() const
+{
+    return m_StemH;
 }
 
 double PdfFontMetricsObject::GetItalicAngle() const

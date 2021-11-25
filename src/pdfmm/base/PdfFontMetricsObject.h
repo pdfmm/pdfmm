@@ -72,13 +72,15 @@ public:
 
     const PdfObject* GetFontFileObject() const override;
 
-    unsigned GetWeight() const override;
+    int GetWeight() const override;
 
     double GetCapHeight() const override;
 
     double GetXHeight() const override;
 
     double GetStemV() const override;
+
+    double GetStemH() const override;
 
     double GetItalicAngle() const override;
 
@@ -97,10 +99,11 @@ private:
     std::vector<double> m_Widths;
     PdfFontDescriptorFlags m_Flags;
     double m_DefaultWidth;
-    unsigned m_Weight;
+    int m_Weight;
     double m_CapHeight;
     double m_XHeight;
     double m_StemV;
+    double m_StemH;
     double m_ItalicAngle;
     double m_Ascent;
     double m_Descent;

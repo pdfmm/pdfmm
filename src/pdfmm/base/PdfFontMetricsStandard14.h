@@ -32,7 +32,10 @@ struct Standard14FontData
     int16_t Descent;
     uint16_t XHeight;
     uint16_t CapHeight;
-    uint16_t StemV;
+    int16_t ItalicAngle;
+    int16_t Weight;
+    int16_t StemV;
+    int16_t StemH;
     int16_t StrikeoutPos;
     int16_t UnderlinePos;
     PdfRect BBox;
@@ -88,13 +91,15 @@ public:
 
     std::string GetBaseFontName() const override;
 
-    unsigned GetWeight() const override;
+    int GetWeight() const override;
 
     double GetCapHeight() const override;
 
     double GetXHeight() const override;
 
     double GetStemV() const override;
+
+    double GetStemH() const override;
 
     double GetItalicAngle() const override;
 
@@ -122,9 +127,6 @@ private:
     Standard14FontData m_data;
     // /Widths parsed from a font object, if available
     std::unique_ptr<std::vector<double>> m_parsedWidths;
-
-    unsigned m_Weight;
-    double m_ItalicAngle;
 
     double m_Ascent;
     double m_Descent;

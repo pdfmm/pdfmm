@@ -24,8 +24,6 @@ PdfFontMetricsStandard14::PdfFontMetricsStandard14(
     m_data(data),
     m_parsedWidths(std::move(parsedWidths))
 {
-    m_Weight = 500;
-    m_ItalicAngle = 0;
     m_LineSpacing = 0.0;
     m_UnderlineThickness = 0.05;
     m_StrikeOutThickness = m_UnderlineThickness;
@@ -183,9 +181,9 @@ string PdfFontMetricsStandard14::GetBaseFontName() const
     return (string)GetStandard14FontBaseName(m_Std14FontType);
 }
 
-unsigned PdfFontMetricsStandard14::GetWeight() const
+int PdfFontMetricsStandard14::GetWeight() const
 {
-    return m_Weight;
+    return m_data.Weight;
 }
 
 double PdfFontMetricsStandard14::GetCapHeight() const
@@ -203,9 +201,14 @@ double PdfFontMetricsStandard14::GetStemV() const
     return m_data.StemV / 1000.0;
 }
 
+double PdfFontMetricsStandard14::GetStemH() const
+{
+    return m_data.StemH / 1000.0;
+}
+
 double PdfFontMetricsStandard14::GetItalicAngle() const
 {
-    return m_ItalicAngle;
+    return m_data.ItalicAngle;
 }
 
 PdfFontFileType PdfFontMetricsStandard14::GetFontFileType() const

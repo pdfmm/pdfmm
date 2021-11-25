@@ -102,16 +102,16 @@ public:
     /** Get the ascent of this font in PDF
      *  units for the current font size.
      *
-     *  \returns the ascender for this font
+     * \returns the ascender for this font
      *
-     *  \see GetAscent
+     * \see GetAscent
      */
     virtual double GetAscent() const = 0;
 
     /** Get the descent of this font in PDF
      *  units for the current font size.
      *  This value is usually negative!
-     *
+    
      *  \returns the descender for this font
      *
      *  \see GetDescent
@@ -152,25 +152,36 @@ public:
      */
     virtual std::string GetFontName() const;
 
-    /** Get the weight of this font.
-     *  Used to build the font dictionay
-     *  \returns the weight of this font (500 is normal).
+    /** The thickness, measured horizontally, of the dominant vertical stems of glyphs in the font
      */
-    virtual unsigned GetWeight() const = 0;
+    virtual double GetStemV() const = 0;
+
+    /** Get the weight of this font.
+     *  \returns the weight of this font (400 <= x < 700 means normal, x >= 700 means bold)
+     *
+     * Negative if absent
+     */
+    virtual int GetWeight() const = 0;
 
     /** The vertical coordinate of the top of flat capital letters, measured from the baseline
+     *
+     * Negative if absent
      */
     virtual double GetCapHeight() const = 0;
 
     /** The font’s x height: the vertical coordinate of the top of flat nonascending
      * lowercase letters (like the letter x), measured from the baseline, in
      * fonts that have Latin characters
+     *
+     * Negative if absent
      */
     virtual double GetXHeight() const = 0;
 
-    /** The thickness, measured horizontally, of the dominant vertical stems of glyphs in the font
+    /** The thickness, measured vertically, of the dominant horizontal stems of glyphs in the font
+     *
+     * Negative if absent
      */
-    virtual double GetStemV() const = 0;
+    virtual double GetStemH() const = 0;
 
     /** Get the italic angle of this font.
      *  Used to build the font dictionay
