@@ -67,7 +67,7 @@ void PdfFontSimple::Init()
 
     this->GetObject().GetDictionary().AddKey(PdfName::KeySubtype, PdfName(subType));
     this->GetObject().GetDictionary().AddKey("BaseFont", PdfName(GetName()));
-    m_Encoding->ExportToDictionary(this->GetObject().GetDictionary());
+    m_Encoding->ExportToFont(*this);
 
     if (!GetMetrics().IsStandard14FontMetrics() || IsEmbeddingEnabled())
     {

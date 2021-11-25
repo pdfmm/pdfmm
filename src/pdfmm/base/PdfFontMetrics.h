@@ -12,7 +12,7 @@
 #include "PdfDefines.h"
 
 #include "PdfString.h"
-#include "PdfEncoding.h"
+#include "PdfCMapEncoding.h"
 
 namespace mm {
 
@@ -214,7 +214,7 @@ public:
      * other kind of character subsitutions, or glyphs
      * mapping to multiple unicode codepoints.
      */
-    virtual std::unique_ptr<PdfEncodingMap> CreateToUnicodeMap(const PdfEncodingLimits& limitHints) const;
+    virtual std::unique_ptr<PdfCMapEncoding> CreateToUnicodeMap(const PdfEncodingLimits& limitHints) const;
 
 private:
     PdfFontMetrics(const PdfFontMetrics& rhs) = delete;

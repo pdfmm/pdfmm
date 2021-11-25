@@ -40,16 +40,17 @@ public:
     bool SupportsSubsetting() const override;
     PdfFontType GetType() const override;
     bool TryMapCIDToGID(unsigned cid, unsigned& gid) const override;
+    bool TryMapGIDToCID(unsigned gid, unsigned& cid) const;
 
 protected:
     void embedFont() override;
     void embedFontSubset() override;
+    PdfObject* getDescendantFontObject() override;
 
 private:
     void embedFontFile(PdfObject& descriptor);
     void createWidths(PdfDictionary& fontDict, const CIDToGIDMap& glyphWidths);
     CIDToGIDMap getCIDToGIDMap(bool subsetting);
-    bool tryMapGIDToCID(unsigned gid, unsigned& cid) const;
 
 protected:
     void initImported() override;

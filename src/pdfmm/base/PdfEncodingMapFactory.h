@@ -101,7 +101,7 @@ public:
      */
     static PdfEncodingMapConstPtr Iso88592EncodingInstance();
 
-    static PdfEncodingMapConstPtr GetDummyEncodingMap();
+    static PdfEncodingMapConstPtr GetNullEncodingMap();
 
     /** Return the encoding map for the given standard font type or nullptr for unknown
      */

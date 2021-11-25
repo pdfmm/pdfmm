@@ -239,7 +239,7 @@ enum class PdfAutoSelectFontOptions
 
 /** Font init flags
  */
-enum class PdfFontInitOptions
+enum class PdfFontInitFlags
 {
     None = 0,                 ///< No special settings
     Embed = 1,                ///< Do embed font data
@@ -505,7 +505,7 @@ static const char s_PdfVersionNums[][4] = {
 ENABLE_BITMASK_OPERATORS(mm::PdfSaveOptions);
 ENABLE_BITMASK_OPERATORS(mm::PdfWriteMode);
 ENABLE_BITMASK_OPERATORS(mm::PdfInfoInitial);
-ENABLE_BITMASK_OPERATORS(mm::PdfFontInitOptions);
+ENABLE_BITMASK_OPERATORS(mm::PdfFontInitFlags);
 ENABLE_BITMASK_OPERATORS(mm::PdfAutoSelectFontOptions);
 ENABLE_BITMASK_OPERATORS(mm::PdfFontDescriptorFlags);
 

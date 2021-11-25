@@ -16,7 +16,7 @@
 
 #include "PdfTextState.h"
 #include "PdfName.h"
-#include "PdfEncodingFactory.h"
+#include "PdfEncoding.h"
 #include "PdfElement.h"
 #include "PdfFontMetrics.h"
 
@@ -83,7 +83,7 @@ public:
      *  \returns a new PdfFont object or nullptr
      */
     static std::unique_ptr<PdfFont> Create(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
-        const PdfEncoding& encoding, PdfFontInitOptions flags);
+        const PdfEncoding& encoding, PdfFontInitFlags flags);
 
     /**
      * Creates a new standard 14 font object (of class PdfFontStandard14) if
@@ -96,7 +96,7 @@ public:
      * \param flags flags for font init
      */
     static std::unique_ptr<PdfFont> CreateStandard14(PdfDocument& doc, PdfStandard14FontType std14Font,
-        const PdfEncoding& encoding, PdfFontInitOptions flags);
+        const PdfEncoding& encoding, PdfFontInitFlags flags);
 
     /** Create a new PdfFont from an existing
      *  font in a PDF file.
@@ -165,6 +165,18 @@ public:
     bool TryGetCharWidth(char32_t codePoint, const PdfTextState& state, double& width) const;
 
     double GetDefaultCharWidth(const PdfTextState& state, bool ignoreCharSpacing = false) const;
+
+    /** Optional function to map a CID to a GID
+     *
+     * Example for /Type2 CID fonts may have a /CIDToGIDMap
+     */
+    virtual bool TryMapCIDToGID(unsigned cid, unsigned& gid) const;
+
+    /** Optional function to map a GID to a CID
+     *
+     * Example for /Type2 CID fonts may have a /CIDToGIDMap
+     */
+    virtual bool TryMapGIDToCID(unsigned gid, unsigned& cid) const;
 
     /** Retrieve the line spacing for this font
      *  \returns the linespacing in PDF units
@@ -241,6 +253,10 @@ public:
     static bool IsStandard14Font(const std::string_view& fontName, bool useAltNames, PdfStandard14FontType& stdFont);
 
 public:
+    /** True if the font is CID keyed
+     */
+    bool IsCIDKeyed() const;
+
     /**
      * True if the font is loaded from a PdfObject
      */
@@ -286,15 +302,11 @@ public:
 
     const UsedGIDsMap& GetUsedGIDs() const { return m_UsedGIDs; }
 
+    PdfObject& GetDescendantFontObject();
+
 protected:
-    /** Optional function to map a CID to a GID
-     *
-     * Example for /Type2 CID fonts may have a /CIDToGIDMap
-     * For Standard14 fonts we have to convert CID to unicode then
-     * we retrieve the glyph index
-     */
-    virtual bool TryMapCIDToGID(unsigned cid, unsigned& gid) const;
-    
+    virtual PdfObject* getDescendantFontObject();
+
     /**
      * Get the raw width of a CID identifier
      */
@@ -315,7 +327,6 @@ protected:
     virtual void embedFontSubset();
 
 private:
-
     /** Embeds pending subset-font into PDF page
      *  Only call if IsSubsetting() returns true. Might throw an exception otherwise.
      *

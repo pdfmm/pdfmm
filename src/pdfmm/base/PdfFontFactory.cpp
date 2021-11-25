@@ -26,12 +26,12 @@ using namespace std;
 using namespace mm;
 
 unique_ptr<PdfFont> PdfFont::Create(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
-    const PdfEncoding& encoding, PdfFontInitOptions flags)
+    const PdfEncoding& encoding, PdfFontInitFlags flags)
 {
-    PdfFontFileType type = metrics->GetFontFileType();
-    bool embeddingEnabled = (flags & PdfFontInitOptions::Embed) != PdfFontInitOptions::None;
-    bool subsettingEnabled = (flags & PdfFontInitOptions::Subset) != PdfFontInitOptions::None;
-    auto font(createFontForType(doc, metrics, encoding, type));
+    // TODO: Evaluate adding another init flags to perform subsetting immediately
+    bool embeddingEnabled = (flags & PdfFontInitFlags::Embed) != PdfFontInitFlags::None;
+    bool subsettingEnabled = (flags & PdfFontInitFlags::Subset) != PdfFontInitFlags::None;
+    auto font = createFontForType(doc, metrics, encoding, metrics->GetFontFileType());
     if (font != nullptr)
         font->InitImported(embeddingEnabled, subsettingEnabled);
 
@@ -41,46 +41,28 @@ unique_ptr<PdfFont> PdfFont::Create(PdfDocument& doc, const PdfFontMetricsConstP
 unique_ptr<PdfFont> PdfFont::createFontForType(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
     const PdfEncoding& encoding, PdfFontFileType type)
 {
+    // TODO: Evaluate flag to prefer class font types over CID keyed ones
     PdfFont* font = nullptr;
-    if (encoding.IsCMapEncoding())
+    switch (type)
     {
-        switch (type)
-        {
-            case PdfFontFileType::TrueType:
-            case PdfFontFileType::OpenType:
-                font = new PdfFontCIDTrueType(doc, metrics, encoding);
-                break;
-            case PdfFontFileType::Type1:
-                // TODO
-                //font = new PdfFontCIDType1(doc, metrics, encoding);
-                //break;
-            case PdfFontFileType::Type1CCF:
-            case PdfFontFileType::CIDType1CCF:
-            case PdfFontFileType::Type3:
-            default:
-                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFontFormat, "Unsupported font at this context");
-        }
-    }
-    else
-    {
-        switch (type)
-        {
-            case PdfFontFileType::TrueType:
-            case PdfFontFileType::OpenType:
-                font = new PdfFontTrueType(doc, metrics, encoding);
-                break;
-            case PdfFontFileType::Type1:
-            case PdfFontFileType::Type1CCF:
-                font = new PdfFontType1(doc, metrics, encoding);
-                break;
-            case PdfFontFileType::Type3:
-                font = new PdfFontType3(doc, metrics, encoding);
-                break;
-            case PdfFontFileType::CIDType1CCF:
-            case PdfFontFileType::Unknown:
-            default:
-                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFontFormat, "Unsupported font at this context");
-        }
+        case PdfFontFileType::TrueType:
+        case PdfFontFileType::OpenType:
+            font = new PdfFontCIDTrueType(doc, metrics, encoding);
+            break;
+        case PdfFontFileType::Type1:
+        case PdfFontFileType::Type1CCF:
+            // TODO Move to PdfFontCIDType1, except standard14 ones
+            font = new PdfFontType1(doc, metrics, encoding);
+            break;
+        case PdfFontFileType::Type3:
+            font = new PdfFontType3(doc, metrics, encoding);
+            break;
+        case PdfFontFileType::CIDType1CCF:
+            // TODO
+            //font = new PdfFontCIDType1(doc, metrics, encoding);
+            //break;
+        default:
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFontFormat, "Unsupported font at this context");
     }
 
     return unique_ptr<PdfFont>(font);
@@ -193,11 +175,11 @@ Exit:
 }
 
 unique_ptr<PdfFont> PdfFont::CreateStandard14(PdfDocument& doc, PdfStandard14FontType std14Font,
-    const PdfEncoding& encoding, PdfFontInitOptions flags)
+    const PdfEncoding& encoding, PdfFontInitFlags flags)
 {
     (void)flags;
-    bool embeddingEnabled = (flags & PdfFontInitOptions::Embed) != PdfFontInitOptions::None;
-    //bool subsettingEnabled = (flags & PdfFontInitOptions::Subset) != PdfFontInitOptions::None;
+    bool embeddingEnabled = (flags & PdfFontInitFlags::Embed) != PdfFontInitFlags::None;
+    //bool subsettingEnabled = (flags & PdfFontInitFlags::Subset) != PdfFontInitFlags::None;
     bool subsettingEnabled = false; // TODO
     PdfFontMetricsConstPtr metrics = PdfFontMetricsStandard14::Create(std14Font);
     unique_ptr<PdfFont> font(new PdfFontType1(doc, metrics, encoding));

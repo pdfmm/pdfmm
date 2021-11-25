@@ -72,12 +72,19 @@ void PdfIdentityEncoding::getExportObject(PdfIndirectObjectList& objects, PdfNam
     }
 }
 
-void PdfIdentityEncoding::appendBaseFontEntries(PdfStream& stream) const
+void PdfIdentityEncoding::AppendToUnicodeEntries(PdfStream& stream) const
 {
     // Very easy, just do a single bfrange
     // Use PdfEncodingMap::AppendUTF16CodeTo
     (void)stream;
     PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "TODO");
+}
+
+void PdfIdentityEncoding::AppendCIDMappingEntries(PdfStream& stream, const PdfFont& font) const
+{
+    (void)stream;
+    (void)font;
+    PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);
 }
 
 bool PdfIdentityEncoding::IsCMapEncoding() const

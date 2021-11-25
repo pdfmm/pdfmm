@@ -19,11 +19,6 @@ PdfArray::PdfArray(const PdfObject& var)
     add(var);
 }
 
-PdfArray::PdfArray(const PdfArray& rhs)
-    : PdfDataContainer(rhs), m_Objects(rhs.m_Objects)
-{
-}
-
 void PdfArray::RemoveAt(unsigned idx)
 {
     // TODO: Set dirty only if really removed
@@ -347,13 +342,6 @@ PdfObject& PdfArray::back()
 const PdfObject& PdfArray::back() const
 {
     return m_Objects.back();
-}
-
-PdfArray& PdfArray::operator=(const PdfArray& rhs)
-{
-    m_Objects = rhs.m_Objects;
-    PdfDataContainer::operator=(rhs);
-    return *this;
 }
 
 bool PdfArray::operator==(const PdfArray& rhs) const

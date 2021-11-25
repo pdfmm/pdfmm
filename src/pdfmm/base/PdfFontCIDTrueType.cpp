@@ -87,7 +87,7 @@ bool PdfFontCIDTrueType::TryMapCIDToGID(unsigned cid, unsigned& gid) const
     return true;
 }
 
-bool PdfFontCIDTrueType::tryMapGIDToCID(unsigned gid, unsigned& cid) const
+bool PdfFontCIDTrueType::TryMapGIDToCID(unsigned gid, unsigned& cid) const
 {
     // TODO: use "/CIDToGIDMap" if present
     cid = gid;
@@ -116,20 +116,12 @@ void PdfFontCIDTrueType::initImported()
     // Same base font as the owner font:
     m_descendantFont->GetDictionary().AddKey("BaseFont", PdfName(this->GetName()));
 
-    // The CIDSystemInfo, should be an indirect object:
-    auto cidSystemInfo = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject();
-    m_descendantFont->GetDictionary().AddKeyIndirect("CIDSystemInfo", cidSystemInfo);
-    // Setting the CIDSystemInfo params:
-    cidSystemInfo->GetDictionary().AddKey("Registry", PdfString(CMAP_REGISTRY_NAME));
-    cidSystemInfo->GetDictionary().AddKey("Ordering", PdfString(GetName()));
-    cidSystemInfo->GetDictionary().AddKey("Supplement", PdfObject(static_cast<int64_t>(0)));
-
     m_descendantFont->GetDictionary().AddKey("CIDToGIDMap", PdfName("Identity"));
 
     if (!IsSubsettingEnabled())
     {
         createWidths(m_descendantFont->GetDictionary(), getCIDToGIDMap(false));
-        m_Encoding->ExportToDictionary(this->GetObject().GetDictionary());
+        m_Encoding->ExportToFont(*this);
     }
 
     // The FontDescriptor, should be an indirect object:
@@ -149,6 +141,11 @@ void PdfFontCIDTrueType::embedFontSubset()
     this->embedFontFile(*m_descriptor);
 }
 
+PdfObject* PdfFontCIDTrueType::getDescendantFontObject()
+{
+    return m_descendantFont;
+}
+
 void PdfFontCIDTrueType::embedFontFile(PdfObject& descriptor)
 {
     if (IsSubsettingEnabled())
@@ -156,7 +153,7 @@ void PdfFontCIDTrueType::embedFontFile(PdfObject& descriptor)
         // Prepare a CID to GID for the subsetting
         CIDToGIDMap cidToGidMap = getCIDToGIDMap(true);
         createWidths(m_descendantFont->GetDictionary(), cidToGidMap);
-        m_Encoding->ExportToDictionary(this->GetObject().GetDictionary());
+        m_Encoding->ExportToFont(*this);
 
         auto& metrics = GetMetrics();
         PdfInputDevice input(metrics.GetFontFileData().data(), metrics.GetFontFileData().size());
@@ -213,7 +210,7 @@ CIDToGIDMap PdfFontCIDTrueType::getCIDToGIDMap(bool subsetting)
         for (unsigned gid = 0; gid < gidCount; gid++)
         {
             unsigned cid;
-            if (!tryMapGIDToCID(gid, cid))
+            if (!TryMapGIDToCID(gid, cid))
                 PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "Unable to map gid to cid");
             ret.insert(std::make_pair(cid, gid));
         }

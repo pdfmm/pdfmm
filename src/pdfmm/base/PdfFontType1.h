@@ -33,10 +33,7 @@ private:
      *  \param metrics pointer to a font metrics object. The font in the PDF
      *         file will match this fontmetrics object. The metrics object is
      *         deleted along with the font.
-     *  \param encoding the encoding of this font. The font will take ownership of this object
-     *                   depending on pEncoding->IsAutoDelete()
-     *  \param embed if true the font will get embedded.
-     *  \param subsetting if true the font will use subsetting.
+     *  \param encoding the encoding of this font
      *
      */
     PdfFontType1(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
@@ -47,13 +44,12 @@ public:
     PdfFontType GetType() const override;
 
 protected:
-    void embedFontSubset() override;
+    //void embedFontSubset() override;
     //void embedFontFile(PdfObject& descriptor) override;
 
 private:
-    bool FindSeac(const char* buffer, size_t length);
-
-    ptrdiff_t FindInBuffer(const char* needle, const char* haystack, size_t len) const;
+    //bool FindSeac(const char* buffer, size_t length);
+    //ptrdiff_t FindInBuffer(const char* needle, const char* haystack, size_t len) const;
 };
 
 };

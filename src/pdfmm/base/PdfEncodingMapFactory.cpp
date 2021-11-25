@@ -82,9 +82,9 @@ PdfEncodingMapConstPtr PdfEncodingMapFactory::Iso88592EncodingInstance()
     return s_istance;
 }
 
-PdfEncodingMapConstPtr PdfEncodingMapFactory::GetDummyEncodingMap()
+PdfEncodingMapConstPtr PdfEncodingMapFactory::GetNullEncodingMap()
 {
-    static PdfEncodingMapConstPtr s_instance(new PdfDummyEncodingMap());
+    static PdfEncodingMapConstPtr s_instance(new PdfNullEncodingMap());
     return s_instance;
 }
 

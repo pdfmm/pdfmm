@@ -102,13 +102,13 @@ public:
      *
      *  \param rhs the array to copy
      */
-    PdfArray(const PdfArray& rhs);
+    PdfArray(const PdfArray& rhs) = default;
 
     /** assignment operator
      *
      *  \param rhs the array to assign
      */
-    PdfArray& operator=(const PdfArray& rhs);
+    PdfArray& operator=(const PdfArray& rhs) = default;
 
     /**
      *  \returns the size of the array

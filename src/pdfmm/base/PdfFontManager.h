@@ -42,7 +42,7 @@ struct PdfFontSearchParams
 struct PdfFontCreationParams
 {
     PdfFontSearchParams SearchParams;
-    PdfFontInitOptions FontInitOpts = PdfFontInitOptions::Embed;
+    PdfFontInitFlags InitFlags = PdfFontInitFlags::Embed;
     PdfEncoding Encoding = PdfEncodingFactory::CreateWinAnsiEncoding();
     std::string FilePath;
     unsigned short FaceIndex = 0;
@@ -116,12 +116,12 @@ public:
      */
     PdfFont* GetFont(FT_Face face,
         const PdfEncoding& encoding = PdfEncodingFactory::CreateWinAnsiEncoding(),
-        PdfFontInitOptions initOptions = PdfFontInitOptions::Embed);
+        PdfFontInitFlags initFlags = PdfFontInitFlags::Embed);
 
 #if defined(_WIN32) && defined(PDFMM_HAVE_WIN32GDI)
     PdfFont* GetFont(HFONT font,
         const PdfEncoding& encoding = PdfEncodingFactory::CreateWinAnsiEncoding(),
-        PdfFontInitOptions initOptions = PdfFontInitOptions::Embed);
+        PdfFontInitFlags initFlags = PdfFontInitFlags::Embed);
 #endif
 
 #ifdef PDFMM_HAVE_FONTCONFIG
@@ -198,7 +198,7 @@ private:
      */
     PdfFont* createFontObject(const std::string_view& fontName,
         const PdfFontMetricsConstPtr& metrics, const PdfEncoding& encoding,
-        PdfFontInitOptions initOptions);
+        PdfFontInitFlags initFlags);
 
 #if defined(_WIN32) && defined(PDFMM_HAVE_WIN32GDI)
     static std::unique_ptr<chars> getWin32FontData(const std::string_view& fontName,

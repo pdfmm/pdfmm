@@ -75,18 +75,6 @@ void PdfFont::initBase(const PdfEncoding& encoding)
         m_Encoding.reset(new PdfEncodingShim(encoding, *this));
     }
 
-    if (!(m_IsObjectLoaded || m_IsEmbedded))
-    {
-        unsigned gid;
-        char32_t spaceCp = U' ';
-        if (m_Metrics->TryGetGID(spaceCp, gid))
-        {
-            // If it exist a glyph for space character
-            // always add it for subsetting
-            AddUsedGID(gid, cspan<char32_t>(&spaceCp, 1));
-        }
-    }
-
     ostringstream out;
     PdfLocaleImbue(out);
 
@@ -123,6 +111,7 @@ void PdfFont::WriteStringToStream(ostream& stream, const string_view& str) const
 
 void PdfFont::InitImported(bool embeddingEnabled, bool subsettingEnabled)
 {
+    PDFMM_ASSERT(!m_IsObjectLoaded);
     if (subsettingEnabled && SupportsSubsetting())
     {
         // Subsetting implies embedded
@@ -133,6 +122,18 @@ void PdfFont::InitImported(bool embeddingEnabled, bool subsettingEnabled)
     {
         m_SubsettingEnabled = false;
         m_EmbeddingEnabled = embeddingEnabled;
+    }
+
+    if (m_SubsettingEnabled)
+    {
+        unsigned gid;
+        char32_t spaceCp = U' ';
+        if (m_Metrics->TryGetGID(spaceCp, gid))
+        {
+            // If it exist a glyph for space character
+            // always add it for subsetting
+            AddUsedGID(gid, cspan<char32_t>(&spaceCp, 1));
+        }
     }
 
     string fontName;
@@ -278,8 +279,20 @@ double PdfFont::GetDefaultCharWidth(const PdfTextState& state, bool ignoreCharSp
 double PdfFont::GetCIDWidthRaw(unsigned cid) const
 {
     unsigned gid;
-    if (!TryMapCIDToGID(cid, gid))
-        return m_Metrics->GetDefaultCharWidth();
+    if (m_Encoding->HasCIDMapping())
+    {
+        if (!TryMapCIDToGID(cid, gid))
+            return m_Metrics->GetDefaultCharWidth();
+    }
+    else
+    {
+        char32_t mappedCodePoint = m_Encoding->GetCodePoint(cid);
+        if (mappedCodePoint == U'\0'
+            || !m_Metrics->TryGetGID(mappedCodePoint, gid))
+        {
+            return m_Metrics->GetDefaultCharWidth();
+        }
+    }
 
     return m_Metrics->GetGlyphWidth(gid);
 }
@@ -419,25 +432,33 @@ bool PdfFont::SupportsSubsetting() const
     return false;
 }
 
+PdfObject& PdfFont::GetDescendantFontObject()
+{
+    auto obj = getDescendantFontObject();
+    if (obj == nullptr)
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Descendant font object must not be null");
+
+    return *obj;
+}
+
 bool PdfFont::TryMapCIDToGID(unsigned cid, unsigned& gid) const
 {
-    if (m_Encoding->IsCMapEncoding())
-    {
-        // By default it's identity with gid
-        gid = cid;
-        return true;
-    }
-    else
-    {
-        char32_t mappedCodePoint = m_Encoding->GetCodePoint(cid);
-        if (mappedCodePoint == U'\0'
-            || !m_Metrics->TryGetGID(mappedCodePoint, gid))
-        {
-            return false;
-        }
+    // By default it's identity with cid
+    gid = cid;
+    return true;
+}
 
-        return true;
-    }
+bool PdfFont::TryMapGIDToCID(unsigned gid, unsigned& cid) const
+{
+    // By default it's identity with gid
+    cid = gid;
+    return true;
+}
+
+PdfObject* PdfFont::getDescendantFontObject()
+{
+    // By default return null
+    return nullptr;
 }
 
 string_view genSubsetPrefix()
@@ -551,4 +572,16 @@ bool PdfFont::IsStandard14Font(const string_view& fontName, PdfStandard14FontTyp
 bool PdfFont::IsStandard14Font(const string_view& fontName, bool useAltNames, PdfStandard14FontType& stdFont)
 {
     return ::IsStandard14Font(fontName, useAltNames, stdFont);
+}
+
+bool PdfFont::IsCIDKeyed() const
+{
+    switch (GetType())
+    {
+        case PdfFontType::CIDTrueType:
+        case PdfFontType::CIDType1:
+            return true;
+        default:
+            return false;
+    }
 }

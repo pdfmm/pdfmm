@@ -111,8 +111,9 @@ namespace mm
          */
         char32_t GetCodePoint(unsigned charCode) const;
 
-        bool IsCMapEncoding() const;
+        void ExportToFont(PdfFont& font, PdfEncodingExportFlags flags = { }) const;
 
+    public:
         /** This return the first char code used in the encoding
          * \remarks Mostly useful for non cid-keyed fonts to export /FirstChar
          */
@@ -123,9 +124,13 @@ namespace mm
          */
         const PdfCharCode& GetLastChar() const;
 
-        void ExportToDictionary(PdfDictionary& dictionary, PdfEncodingExportFlags flags = { }) const;
-
+        /** Return true if the encoding is a dummy null encoding
+         */
         bool IsNull() const;
+
+        /** Return true if the encoding does CID mapping
+         */
+        bool HasCIDMapping() const;
 
         /**
          * Return an Id to be used in hashed containers.
@@ -164,6 +169,8 @@ namespace mm
 
         inline const PdfEncodingMapConstPtr GetEncodingMapPtr() const { return m_Encoding; }
 
+        const PdfEncodingMapConstPtr GetToUnicodeMapPtr() const;
+
     public:
         PdfEncoding& operator=(const PdfEncoding&) = default;
         PdfEncoding(const PdfEncoding&) = default;
@@ -172,9 +179,11 @@ namespace mm
         virtual PdfFont & GetFont() const;
 
     private:
-        bool tryExportObjectTo(PdfDictionary& dictionary) const;
+        bool tryExportObjectTo(PdfDictionary& dictionary, bool wantCidMapping) const;
         bool tryConvertEncodedToUtf8(const std::string_view& encoded, std::string& str) const;
         bool tryConvertEncodedToCIDs(const std::string_view& encoded, std::vector<PdfCID>& cids) const;
+        void writeCIDMapping(PdfObject& cmapObj, const PdfFont& font, const std::string_view& baseFont) const;
+        void writeToUnicodeCMap(PdfObject& cmapObj) const;
 
     private:
         size_t m_Id;

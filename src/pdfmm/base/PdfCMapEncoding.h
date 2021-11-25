@@ -6,6 +6,9 @@
  * Some rights reserved. See COPYING, AUTHORS.
  */
 
+#ifndef PDF_CMAP_ENCODING_H
+#define PDF_CMAP_ENCODING_H
+
 #include "PdfEncodingMap.h"
 
 namespace mm
@@ -39,3 +42,5 @@ namespace mm
         static MapIdentity parseCMapObject(const PdfStream& stream);
     };
 }
+
+#endif // PDF_CMAP_ENCODING_H

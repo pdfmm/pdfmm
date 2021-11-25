@@ -85,7 +85,7 @@ PdfFont* PdfFontManager::GetFont(const string_view& fontName, const PdfFontCreat
 
     // NOTE: We don't support standard 14 fonts on subset
     PdfStandard14FontType stdFont;
-    if (params.FontInitOpts != PdfFontInitOptions::Subset &&
+    if (params.InitFlags != PdfFontInitFlags::Subset &&
         params.SearchParams.AutoSelectOpts != PdfAutoSelectFontOptions::None
         && PdfFont::IsStandard14Font(fontName,
             params.SearchParams.AutoSelectOpts == PdfAutoSelectFontOptions::Standard14Alt, stdFont))
@@ -102,7 +102,7 @@ PdfFont* PdfFontManager::GetFont(const string_view& fontName, const PdfFontCreat
             return found->second.get();
 
         auto font = PdfFont::CreateStandard14(*m_doc, stdFont, params.Encoding,
-            params.FontInitOpts);
+            params.InitFlags);
         auto inserted = m_fontMap.insert({ element, std::move(font) });
         return inserted.first->second.get();
     }
@@ -134,7 +134,7 @@ PdfFont* PdfFontManager::getFont(const string_view& baseFontName, const PdfFontC
 
     auto metrics = std::make_shared<PdfFontMetricsFreetype>(buffer);
     return this->createFontObject(baseFontName, metrics,
-        params.Encoding, params.FontInitOpts);
+        params.Encoding, params.InitFlags);
 }
 
 PdfFontMetricsConstPtr PdfFontManager::GetFontMetrics(const string_view& fontName, const PdfFontSearchParams& params)
@@ -193,7 +193,7 @@ unique_ptr<chars> PdfFontManager::getFontData(const string_view& fontName,
 }
 
 PdfFont* PdfFontManager::GetFont(FT_Face face, const PdfEncoding& encoding,
-    PdfFontInitOptions initOptions)
+    PdfFontInitFlags initFlags)
 {
     if (encoding.IsNull())
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Invalid encoding");
@@ -218,7 +218,7 @@ PdfFont* PdfFontManager::GetFont(FT_Face face, const PdfEncoding& encoding,
         return found->second.get();
 
     shared_ptr<PdfFontMetricsFreetype> metrics = PdfFontMetricsFreetype::FromFace(face);
-    return this->createFontObject(name, metrics, encoding, initOptions);
+    return this->createFontObject(name, metrics, encoding, initFlags);
 }
 
 void PdfFontManager::EmbedSubsetFonts()
@@ -233,7 +233,7 @@ void PdfFontManager::EmbedSubsetFonts()
 #if defined(_WIN32) && defined(PDFMM_HAVE_WIN32GDI)
 
 PdfFont* PdfFontManager::GetFont(HFONT font,
-    const PdfEncoding& encoding, PdfFontInitOptions initOptions)
+    const PdfEncoding& encoding, PdfFontInitFlags initFlags)
 {
     if (font == nullptr)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Font must be non null");
@@ -264,7 +264,7 @@ PdfFont* PdfFontManager::GetFont(HFONT font,
         return nullptr;
 
     auto metrics = std::make_shared<PdfFontMetricsFreetype>(buffer);
-    return this->createFontObject(fontname, metrics, encoding, initOptions);
+    return this->createFontObject(fontname, metrics, encoding, initFlags);
 }
 
 std::unique_ptr<chars> PdfFontManager::getWin32FontData(
@@ -306,11 +306,11 @@ std::unique_ptr<chars> PdfFontManager::getWin32FontData(
 
 PdfFont* PdfFontManager::createFontObject(const string_view& fontName,
     const PdfFontMetricsConstPtr& metrics, const PdfEncoding& encoding,
-    PdfFontInitOptions initOptions)
+    PdfFontInitFlags initFlags)
 {
     try
     {
-        auto font = PdfFont::Create(*m_doc, metrics, encoding, initOptions);
+        auto font = PdfFont::Create(*m_doc, metrics, encoding, initFlags);
         if (font == nullptr)
             return nullptr;
 

@@ -18,6 +18,7 @@ namespace mm {
 
 class PdfIndirectObjectList;
 class PdfDynamicEncoding;
+class PdfFont;
 
 struct PDFMM_API PdfEncodingLimits
 {
@@ -61,6 +62,8 @@ struct PdfCID
  */
 class PDFMM_API PdfEncodingMap
 {
+    friend class PdfEncoding;
+
 protected:
     PdfEncodingMap(const PdfEncodingLimits& limits);
 
@@ -141,8 +144,6 @@ public:
      */
     virtual bool HasLigaturesSupport() const;
 
-    void WriteToUnicodeCMap(PdfObject& cmapObj) const;
-
     /** Get an export object that will be used during font init
      * \param objects list to use to create document objects
      * \param name name to use
@@ -187,12 +188,22 @@ protected:
      */
     virtual void getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const;
 
-    /** During a WriteToUnicodeCMap append "beginbfchar" and "beginbfrange" entries
-     *  "bf" stands for Base Font, see Adobe tecnichal notes #5014
-     */
-    virtual void appendBaseFontEntries(PdfStream& stream) const = 0;
-
     static void AppendUTF16CodeTo(PdfStream& stream, const cspan<char32_t>& codePoints, std::u16string& u16tmp);
+
+protected:
+    /** During a WriteToUnicodeCMap append "beginbfchar" and "beginbfrange"
+     * entries. "bf" stands for Base Font, see Adobe tecnichal notes #5014
+     *
+     * To be called by PdfEncoding
+     */
+    virtual void AppendToUnicodeEntries(PdfStream& stream) const = 0;
+
+    /** During a PdfEncoding::ExportToFont() append "begincidchar"
+     * and/or "begincidrange" entries. See Adobe tecnichal notes #5014\
+     *
+     * To be called by PdfEncoding
+     */
+    virtual void AppendCIDMappingEntries(PdfStream& stream, const PdfFont& font) const = 0;
 
 private:
     bool tryGetNextCodePoints(std::string_view::iterator& it, const std::string_view::iterator& end,
@@ -222,8 +233,11 @@ protected:
 
     bool tryGetCodePoints(const PdfCharCode& codeUnit, std::vector<char32_t>& codePoints) const override;
 
-    void appendBaseFontEntries(PdfStream& stream) const override;
+    void AppendToUnicodeEntries(PdfStream& stream) const override;
 
+    void AppendCIDMappingEntries(PdfStream& stream, const PdfFont& font) const override;
+
+public:
     inline const PdfCharCodeMap& GetCharMap() const { return *m_charMap; }
 
 private:
@@ -244,7 +258,9 @@ class PDFMM_API PdfEncodingMapOneByte : public PdfEncodingMap
 protected:
     using PdfEncodingMap::PdfEncodingMap;
 
-    void appendBaseFontEntries(PdfStream& stream) const override;
+    void AppendToUnicodeEntries(PdfStream& stream) const override;
+
+    void AppendCIDMappingEntries(PdfStream& stream, const PdfFont& font) const override;
 };
 
 /**
@@ -300,18 +316,21 @@ private:
     std::unordered_map<char32_t, char> m_EncodingTable; // The helper table for conversions into this encoding
 };
 
-/** Dummy encoding map that will just throw
+/** Dummy encoding map that will just throw exception
  */
-class PdfDummyEncodingMap final : public PdfEncodingMap
+class PDFMM_API PdfNullEncodingMap final : public PdfEncodingMap
 {
 public:
-    PdfDummyEncodingMap();
+    PdfNullEncodingMap();
 
+protected:
     bool tryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const override;
 
     bool tryGetCodePoints(const PdfCharCode& codeUnit, std::vector<char32_t>& codePoints) const override;
 
-    void appendBaseFontEntries(PdfStream& stream) const override;
+    void AppendToUnicodeEntries(PdfStream& stream) const override;
+
+    void AppendCIDMappingEntries(PdfStream& stream, const PdfFont& font) const override;
 };
 
 /** Convenience typedef for a const PdfEncoding shared ptr

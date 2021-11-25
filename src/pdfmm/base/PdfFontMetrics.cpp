@@ -128,7 +128,7 @@ bool PdfFontMetrics::IsPdfNonSymbolic() const
         && (flags & PdfFontDescriptorFlags::NonSymbolic) != PdfFontDescriptorFlags::None;
 }
 
-unique_ptr<PdfEncodingMap> PdfFontMetrics::CreateToUnicodeMap(const PdfEncodingLimits& limitHints) const
+unique_ptr<PdfCMapEncoding> PdfFontMetrics::CreateToUnicodeMap(const PdfEncodingLimits& limitHints) const
 {
     (void)limitHints;
     PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);

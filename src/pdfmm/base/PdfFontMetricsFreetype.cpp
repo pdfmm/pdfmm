@@ -224,7 +224,7 @@ bool PdfFontMetricsFreetype::TryGetGID(char32_t codePoint, unsigned& gid) const
 }
 
 
-unique_ptr<PdfEncodingMap> PdfFontMetricsFreetype::CreateToUnicodeMap(const PdfEncodingLimits& limitHints) const
+unique_ptr<PdfCMapEncoding> PdfFontMetricsFreetype::CreateToUnicodeMap(const PdfEncodingLimits& limitHints) const
 {
     PdfCharCodeMap map;
     FT_ULong charcode;

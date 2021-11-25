@@ -22,8 +22,26 @@
 using namespace std;
 using namespace mm;
 
-/** Helper Class needed for parsing type1-font for subsetting
- */
+PdfFontType1::PdfFontType1(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
+    const PdfEncoding& encoding) :
+    PdfFontSimple(doc, metrics, encoding)
+{
+}
+
+bool PdfFontType1::SupportsSubsetting() const
+{
+    // TODO: Re-enable me by fixing below code
+    // return true;
+    return false;
+}
+
+PdfFontType PdfFontType1::GetType() const
+{
+    return PdfFontType::Type1;
+}
+
+/*
+// Helper Class needed for parsing type1-font for subsetting
 class PdfType1Encrypt
 {
 public:
@@ -48,22 +66,6 @@ class PdfType1EncryptCharstring : public PdfType1Encrypt
 public:
     PdfType1EncryptCharstring();
 };
-
-PdfFontType1::PdfFontType1(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
-    const PdfEncoding& encoding) :
-    PdfFontSimple(doc, metrics, encoding)
-{
-}
-
-bool PdfFontType1::SupportsSubsetting() const
-{
-    return true;
-}
-
-PdfFontType PdfFontType1::GetType() const
-{
-    return PdfFontType::Type1;
-}
 
 void PdfFontType1::embedFontSubset()
 {
@@ -125,7 +127,6 @@ void PdfFontType1::embedFontSubset()
                     {
                         ////
                         throw runtime_error("Untested after utf8 migration");
-                        /*
                         if (m_usedSet.find(ch) != m_usedSet.end())
                         {
                             // TODO: Use mm::FormatTo()
@@ -133,7 +134,6 @@ void PdfFontType1::embedFontSubset()
                                 "dup %u /%s put\r", (unsigned)ch,
                                 PdfDifferenceEncoding::UnicodeIDToName(ch).GetString().c_str());
                         }
-                        */
                     }
                     dupFound = true;
                 }
@@ -192,7 +192,7 @@ void PdfFontType1::embedFontSubset()
 
                 ////
                 throw runtime_error("Untested after utf8 migration");
-                /*
+
                 // parse line for name and length of glyph
                 string glyphName = line;
                 unsigned glyphLen;
@@ -244,7 +244,6 @@ void PdfFontType1::embedFontSubset()
                     // glyph is not used, go back to saved position
                     outIndex = outIndexSave;
                 }
-                */
             }
             else
             {
@@ -391,7 +390,6 @@ void PdfFontType1::embedFontFile(PdfObject& descriptor)
     contents->GetDictionary().AddKey("Length2", PdfObject(static_cast<int64_t>(length2)));
     contents->GetDictionary().AddKey("Length3", PdfObject(static_cast<int64_t>(length3)));
 }
-*/
 
 bool PdfFontType1::FindSeac(const char* buffer, size_t length)
 {
@@ -400,7 +398,7 @@ bool PdfFontType1::FindSeac(const char* buffer, size_t length)
     return false;
     ////
     throw runtime_error("Untested after utf8 migration");
-    /*
+
     PdfType1EncryptCharstring crypt;
     auto stdEncoding = PdfEncodingFactory::CreateStandardEncoding();
 
@@ -521,7 +519,6 @@ bool PdfFontType1::FindSeac(const char* buffer, size_t length)
         }
     }
     return foundNewGlyph;
-    */
 }
 
 ptrdiff_t PdfFontType1::FindInBuffer(const char* needle, const char* haystack, size_t len) const
@@ -575,3 +572,4 @@ char PdfType1Encrypt::Decrypt(char cipher)
     m_r = (cipher + m_r) * m_c1 + m_c2;
     return (char)plain;
 }
+*/

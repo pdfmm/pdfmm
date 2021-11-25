@@ -27,11 +27,10 @@ static PdfCharCode fetchFallbackCharCode(string_view::iterator& it, const string
 static PdfCharCode getFallbackCharCode(char32_t codePoint, const PdfEncodingLimits& limits);
 static PdfCID getFallbackCID(char32_t codePoint, const PdfEncodingMap& toUnicode, const PdfEncodingMap& encoding);
 static PdfCID getCID(const PdfCharCode& codeUnit, const PdfEncodingMap& map, bool& success);
-static void fillCIDToGIDMap(PdfObject& cmapObj, const UsedGIDsMap& usedGIDs, const string_view& baseFont);
 static size_t getNextId();
 
 PdfEncoding::PdfEncoding()
-    : PdfEncoding(NullEncodingId, PdfEncodingMapFactory::GetDummyEncodingMap(), nullptr)
+    : PdfEncoding(NullEncodingId, PdfEncodingMapFactory::GetNullEncodingMap(), nullptr)
 {
 }
 
@@ -302,11 +301,6 @@ bool PdfEncoding::TryConvertToCIDs(const string_view& str, vector<PdfCID>& cids)
     return success;
 }
 
-bool PdfEncoding::IsCMapEncoding() const
-{
-    return m_Encoding->IsCMapEncoding();
-}
-
 const PdfCharCode& PdfEncoding::GetFirstChar() const
 {
     auto& limits = GetLimits();
@@ -325,44 +319,64 @@ const PdfCharCode& PdfEncoding::GetLastChar() const
     return limits.LastChar;
 }
 
-void PdfEncoding::ExportToDictionary(PdfDictionary& dictionary, PdfEncodingExportFlags flags) const
+void PdfEncoding::ExportToFont(PdfFont& font, PdfEncodingExportFlags flags) const
 {
-    if (IsCMapEncoding())
+    auto& fontDict = font.GetObject().GetDictionary();
+    if (font.IsCIDKeyed())
     {
+        auto fontName = font.GetName();
+
+        // The CIDSystemInfo, should be an indirect object
+        auto cidSystemInfo = font.GetDocument().GetObjects().CreateDictionaryObject();
+        cidSystemInfo->GetDictionary().AddKey("Registry", PdfString(CMAP_REGISTRY_NAME));
+        cidSystemInfo->GetDictionary().AddKey("Ordering", PdfString(fontName));
+        cidSystemInfo->GetDictionary().AddKey("Supplement", PdfObject(static_cast<int64_t>(0)));
+
+        // NOTE: Setting the CIDSystemInfo params in the descendant font object is required
+        font.GetDescendantFontObject().GetDictionary().AddKeyIndirect("CIDSystemInfo", cidSystemInfo);
+
         // Some CMap encodings has a name representation, such as Identity-H/Identity-V
-        if (!tryExportObjectTo(dictionary))
+        if (!tryExportObjectTo(fontDict, true))
         {
             // If it doesn't have a name represenation, try to export a CID CMap
             auto& font = GetFont();
-            auto& usedGids = font.GetUsedGIDs();
-            auto cmapObj = dictionary.GetOwner()->GetDocument()->GetObjects().CreateDictionaryObject();
-            if (GetLimits().MaxCodeSize > 1)
-                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "TODO");
-            fillCIDToGIDMap(*cmapObj, usedGids, font.GetName());
-            dictionary.AddKeyIndirect("Encoding", cmapObj);
+
+            auto cmapObj = fontDict.GetOwner()->GetDocument()->GetObjects().CreateDictionaryObject();
+
+            // NOTE: Setting the CIDSystemInfo params in the CMap stream object is required
+            cmapObj->GetDictionary().AddKeyIndirect("CIDSystemInfo", cidSystemInfo);
+
+            writeCIDMapping(*cmapObj, font, fontName);
+            fontDict.AddKeyIndirect("Encoding", cmapObj);
         }
     }
     else
     {
-        if (!tryExportObjectTo(dictionary))
+        if (!tryExportObjectTo(fontDict, false))
             PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "The encoding should supply an export object");
     }
 
     if ((flags & PdfEncodingExportFlags::SkipToUnicode) == PdfEncodingExportFlags::None)
     {
-        // NOTE: We definetely want a valid Unicode map at this point
-        auto& toUnicode = GetToUnicodeMap();
-        auto cmapObj = dictionary.GetOwner()->GetDocument()->GetObjects().CreateDictionaryObject();
-        toUnicode.WriteToUnicodeCMap(*cmapObj);
-        dictionary.AddKeyIndirect("ToUnicode", cmapObj);
+        auto cmapObj = fontDict.GetOwner()->GetDocument()->GetObjects().CreateDictionaryObject();
+        writeToUnicodeCMap(*cmapObj);
+        fontDict.AddKeyIndirect("ToUnicode", cmapObj);
     }
 }
 
-bool PdfEncoding::tryExportObjectTo(PdfDictionary& dictionary) const
+bool PdfEncoding::tryExportObjectTo(PdfDictionary& dictionary, bool wantCIDMapping) const
 {
+    if (wantCIDMapping && !HasCIDMapping())
+    {
+        // If we want a CID mapping but we don't have
+        // one, just return here
+        return false;
+    }
+
     auto& objects = dictionary.GetOwner()->GetDocument()->GetObjects();
     PdfName name;
     PdfObject* obj;
+
     if (!m_Encoding->TryGetExportObject(objects, name, obj))
         return false;
 
@@ -377,6 +391,15 @@ bool PdfEncoding::tryExportObjectTo(PdfDictionary& dictionary) const
 bool PdfEncoding::IsNull() const
 {
     return m_Id == NullEncodingId;
+}
+
+bool PdfEncoding::HasCIDMapping() const
+{
+    // The encoding of the font has a CID mapping when it's a
+    // predefined CMap name, such as Identity-H/Identity-V, when
+    // the main /Encoding is a CMap, or it exports a CMap anyway,
+    // such in case of custom PdfIdentityEncoding
+    return m_Encoding->IsCMapEncoding();
 }
 
 PdfFont& PdfEncoding::GetFont() const
@@ -442,6 +465,17 @@ const PdfEncodingMap& PdfEncoding::GetToUnicodeMapSafe() const
     const PdfEncodingMap* ret;
     (void)GetToUnicodeMapSafe(ret);
     return *ret;
+}
+
+const PdfEncodingMapConstPtr PdfEncoding::GetToUnicodeMapPtr() const
+{
+    if (m_ToUnicode != nullptr)
+        return m_ToUnicode;
+
+    if (m_Encoding->IsSimpleEncoding())
+        return m_Encoding;
+
+    return nullptr;
 }
 
 bool PdfEncoding::GetToUnicodeMapSafe(const PdfEncodingMap*& toUnicode) const
@@ -518,20 +552,17 @@ PdfCID getCID(const PdfCharCode& codeUnit, const PdfEncodingMap& map, bool& succ
     return { cidCode, codeUnit };
 }
 
-void fillCIDToGIDMap(PdfObject& cmapObj, const UsedGIDsMap& usedGIDs, const string_view& baseFont)
+void PdfEncoding::writeCIDMapping(PdfObject& cmapObj, const PdfFont& font, const string_view& fontName) const
 {
+    if (GetLimits().MaxCodeSize > 1)
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "TODO");
+
     // CMap specification is in Adobe technical node #5014
     auto& cmapDict = cmapObj.GetDictionary();
-    auto cmapName = string(baseFont).append("-subset");
+    auto cmapName = string(fontName).append("-subset");
     // Table 120: Additional entries in a CMap stream dictionary
     cmapDict.AddKey(PdfName::KeyType, PdfName("CMap"));
     cmapDict.AddKey("CMapName", PdfName(cmapName));
-    PdfDictionary cidSystemInfo;
-    // Setting the CIDSystemInfo params:
-    cidSystemInfo.AddKey("Registry", PdfString(CMAP_REGISTRY_NAME));
-    cidSystemInfo.AddKey("Ordering", PdfString(baseFont));
-    cidSystemInfo.AddKey("Supplement", PdfObject(static_cast<int64_t>(0)));
-    cmapDict.AddKey("CIDSystemInfo", cidSystemInfo);
 
     auto& stream = cmapObj.GetOrCreateStream();
     stream.BeginAppend();
@@ -541,7 +572,7 @@ void fillCIDToGIDMap(PdfObject& cmapObj, const UsedGIDsMap& usedGIDs, const stri
         "begincmap\n"
         "/CIDSystemInfo <<\n"
         "   /Registry (" CMAP_REGISTRY_NAME  ")\n"
-        "   /Ordering (").Append(baseFont).Append(")\n"
+        "   /Ordering (").Append(fontName).Append(")\n"
         "   /Supplement 0\n"
         ">> def\n"
         "/CMapName /").Append(cmapName).Append(" def\n"
@@ -550,17 +581,64 @@ void fillCIDToGIDMap(PdfObject& cmapObj, const UsedGIDsMap& usedGIDs, const stri
         "<00> <FF>\n"
         "endcodespacerange\n");
 
-    stream.Append(std::to_string(usedGIDs.size())).Append(" begincidchar\n");
-    string code;
-    for (auto& pair : usedGIDs)
+    if (font.IsSubsettingEnabled())
     {
-        auto& cid = pair.second;
-        cid.Unit.WriteHexTo(code);
-        stream.Append(code).Append(" ").Append(std::to_string(cid.Id)).Append("\n");;
+        auto& usedGids = font.GetUsedGIDs();
+        stream.Append(std::to_string(usedGids.size())).Append(" begincidchar\n");
+        string code;
+        for (auto& pair : usedGids)
+        {
+            auto& cid = pair.second;
+            cid.Unit.WriteHexTo(code);
+            stream.Append(code).Append(" ").Append(std::to_string(cid.Id)).Append("\n");;
+        }
+        stream.Append("endcidchar\n");
     }
+    else
+    {
+        m_Encoding->AppendCIDMappingEntries(stream, font);
+    }
+
     stream.Append(
-        "endcidchar\n"
         "endcmap\n"
+        "CMapName currentdict / CMap defineresource pop\n"
+        "end\n"
+        "end");
+    stream.EndAppend();
+}
+
+void PdfEncoding::writeToUnicodeCMap(PdfObject& cmapObj) const
+{
+    // NOTE: We definetely want a valid Unicode map at this point
+    auto& toUnicode = GetToUnicodeMap();
+    auto& stream = cmapObj.GetOrCreateStream();
+
+    // CMap specification is in Adobe technical node #5014
+    // The /ToUnicode dictionary doesn't need /CMap type, /CIDSystemInfo or /CMapName
+    stream.BeginAppend();
+    stream.Append(
+        "/CIDInit /ProcSet findresource begin\n"
+        "12 dict begin\n"
+        "begincmap\n"
+        "/CIDSystemInfo <<\n"
+        "   /Registry (Adobe)\n"
+        "   /Ordering (UCS)\n"
+        "   /Supplement 0\n"
+        ">> def\n"
+        "/CMapName /Adobe-Identity-UCS def\n"
+        "/CMapType 2 def\n"     // As defined in Adobe Technical Notes #5099
+        "1 begincodespacerange\n");
+
+    string temp;
+    toUnicode.GetLimits().FirstChar.WriteHexTo(temp);
+    stream.Append(temp);
+    toUnicode.GetLimits().LastChar.WriteHexTo(temp);
+    stream.Append(temp);
+    stream.Append("\nendcodespacerange\n");
+
+    toUnicode.AppendToUnicodeEntries(stream);
+    stream.Append(
+        "\nendcmap\n"
         "CMapName currentdict / CMap defineresource pop\n"
         "end\n"
         "end");

@@ -38,7 +38,7 @@ public:
 
     static std::unique_ptr<PdfFontMetricsFreetype> FromFace(FT_Face face);
 
-    std::unique_ptr<PdfEncodingMap> CreateToUnicodeMap(const PdfEncodingLimits& limitHints) const override;
+    std::unique_ptr<PdfCMapEncoding> CreateToUnicodeMap(const PdfEncodingLimits& limitHints) const override;
 
     PdfFontDescriptorFlags GetFlags() const override;
 

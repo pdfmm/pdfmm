@@ -20,6 +20,7 @@
 #include "base/PdfDate.h"
 #include "base/PdfDictionary.h"
 #include "base/PdfEncoding.h"
+#include "base/PdfCMapEncoding.h"
 #include "base/PdfEncodingFactory.h"
 #include "base/PdfDifferenceEncoding.h"
 #include "base/PdfIdentityEncoding.h"

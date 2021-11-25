@@ -51,7 +51,7 @@ void PdfAcroForm::Init(PdfAcroFormDefaulAppearance defaultAppearance)
     if (defaultAppearance == PdfAcroFormDefaulAppearance::BlackText12pt)
     {
         PdfFontCreationParams params;
-        params.FontInitOpts = PdfFontInitOptions::None;
+        params.InitFlags = PdfFontInitFlags::None;
         params.SearchParams.AutoSelectOpts = PdfAutoSelectFontOptions::Standard14;
         auto font = GetDocument().GetFontManager().GetFont("Helvetica", params);
 

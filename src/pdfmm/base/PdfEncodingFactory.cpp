@@ -148,7 +148,7 @@ PdfEncodingMapConstPtr PdfEncodingFactory::createEncodingMap(
 
 PdfEncoding PdfEncodingFactory::CreateDynamicEncoding()
 {
-    return PdfEncoding(DynamicEncodingId, PdfEncodingMapFactory::GetDummyEncodingMap());
+    return PdfEncoding(DynamicEncodingId, PdfEncodingMapFactory::GetNullEncodingMap());
 }
 
 PdfEncoding PdfEncodingFactory::CreateWinAnsiEncoding()
