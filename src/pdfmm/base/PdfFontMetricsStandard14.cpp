@@ -9,7 +9,7 @@
 #include <pdfmm/private/PdfDefinesPrivate.h>
 #include "PdfFontMetricsStandard14.h"
 
-#include <pdfmm/private/PdfStandard14FontsData.h>
+#include <pdfmm/private/PdfStandard14FontData.h>
 
 #include "PdfArray.h"
 #include "PdfDictionary.h"

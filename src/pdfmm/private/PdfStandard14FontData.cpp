@@ -6,7 +6,7 @@
  */
 
 #include "PdfDefinesPrivate.h"
-#include "PdfStandard14FontsData.h"
+#include "PdfStandard14FontData.h"
 #include <pdfmm/base/PdfFontMetricsStandard14.h>
 
 using namespace std;

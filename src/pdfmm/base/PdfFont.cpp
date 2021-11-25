@@ -25,7 +25,7 @@
 #include "PdfEncodingShim.h"
 #include "PdfFontMetrics.h"
 #include "PdfPage.h"
-#include <pdfmm/private/PdfStandard14FontsData.h>
+#include <pdfmm/private/PdfStandard14FontData.h>
 
 using namespace std;
 using namespace mm;
