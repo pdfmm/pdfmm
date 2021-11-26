@@ -29,7 +29,8 @@ public:
     /** Create a font metrics object for a given memory buffer
      *  \param buffer block of memory representing the font data (PdfFontMetricsFreetype will copy the buffer)
      */
-    PdfFontMetricsFreetype(const std::shared_ptr<chars>& buffer, const PdfFontMetrics* refMetrics = nullptr);
+    PdfFontMetricsFreetype(const std::shared_ptr<chars>& buffer,
+        nullable<const PdfFontMetrics&> refMetrics = { });
 
     ~PdfFontMetricsFreetype();
 
@@ -115,7 +116,7 @@ private:
 
     double m_Ascent;
     double m_Descent;
-    unsigned m_Weight;
+    int m_Weight;
     double m_CapHeight;
     double m_XHeight;
     double m_ItalicAngle;

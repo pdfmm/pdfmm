@@ -48,9 +48,9 @@ void PdfStream::GetFilteredCopy(PdfOutputStream& stream) const
     }
 }
 
-string PdfStream::GetFilteredCopy() const
+chars PdfStream::GetFilteredCopy() const
 {
-    string ret;
+    chars ret;
     PdfStringOutputStream stream(ret);
     GetFilteredCopy(stream);
     return ret;

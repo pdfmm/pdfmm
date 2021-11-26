@@ -25,11 +25,11 @@ using namespace std;
 using namespace mm;
 
 PdfFontMetricsFreetype::PdfFontMetricsFreetype(
-    const shared_ptr<chars>& buffer, const PdfFontMetrics* refMetrics) :
+    const shared_ptr<chars>& buffer, nullable<const PdfFontMetrics&> refMetrics) :
     m_Face(nullptr),
     m_FontData(buffer)
 {
-    initFromBuffer(refMetrics);
+    initFromBuffer(&*refMetrics);
 }
 
 PdfFontMetricsFreetype::PdfFontMetricsFreetype(FT_Face face,

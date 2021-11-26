@@ -13,6 +13,7 @@
 #include <regex>
 
 #include <pdfmm/private/PdfEncodingPrivate.h>
+#include <pdfmm/private/PdfStandard14FontData.h>
 
 #include "PdfArray.h"
 #include "PdfEncoding.h"
@@ -27,7 +28,8 @@
 #include "PdfPage.h"
 #include "PdfFontMetricsStandard14.h"
 #include "PdfFontManager.h"
-#include <pdfmm/private/PdfStandard14FontData.h>
+#include "PdfFontMetricsFreetype.h"
+
 
 using namespace std;
 using namespace mm;
@@ -60,30 +62,46 @@ PdfFont::~PdfFont() { }
 
 bool PdfFont::TryGetSubstituteFont(unique_ptr<PdfFont>& substFont)
 {
-    auto encoding = GetEncoding();
-    // Early intercept Standard14 fonts
-    PdfStandard14FontType std14Font;
-    PdfFontMetricsConstPtr metrics;
-    if (GetMetrics().IsStandard14FontMetrics(std14Font) ||
-        PdfFont::IsStandard14Font(GetMetrics().GetFontNameSafe(), true, std14Font))
+    shared_ptr<chars> data;
+    auto fontData = GetMetrics().GetFontFileObject();
+    if (fontData != nullptr)
     {
-        metrics = PdfFontMetricsStandard14::GetInstance(std14Font);
+        auto stream = fontData->GetStream();
+        if (stream != nullptr)
+            data = std::make_shared<chars>(stream->GetFilteredCopy());
+    }
+
+    auto encoding = GetEncoding();
+    PdfFontMetricsConstPtr metrics;
+    if (data == nullptr || data->length() == 0)
+    {
+        // Early intercept Standard14 fonts
+        PdfStandard14FontType std14Font;
+        if (GetMetrics().IsStandard14FontMetrics(std14Font) ||
+            PdfFont::IsStandard14Font(GetMetrics().GetFontNameSafe(), true, std14Font))
+        {
+            metrics = PdfFontMetricsStandard14::GetInstance(std14Font);
+        }
+        else
+        {
+            PdfFontSearchParams params;
+            params.Bold = GetMetrics().IsBold();
+            params.Italic = GetMetrics().IsItalic();
+            // Normalization is not needed anymore at this stage, we
+            // will use the base name supplied by the font
+            params.NormalizeFontName = false;
+
+            metrics = PdfFontManager::GetFontMetrics(GetMetrics().GetFontNameSafe(true), params);
+            if (metrics == nullptr)
+            {
+                substFont = nullptr;
+                return false;
+            }
+        }
     }
     else
     {
-        PdfFontSearchParams params;
-        params.Bold = GetMetrics().IsBold();
-        params.Italic = GetMetrics().IsItalic();
-        // Normalization is not needed anymore at this stage, we
-        // will use the base name supplied by the font
-        params.NormalizeFontName = false;
-
-        metrics = PdfFontManager::GetFontMetrics(GetMetrics().GetFontNameSafe(true), params);
-        if (metrics == nullptr)
-        {
-            substFont = nullptr;
-            return false;
-        }
+        metrics.reset(new PdfFontMetricsFreetype(data, GetMetrics()));
     }
 
     if (!encoding.HasValidToUnicodeMap())

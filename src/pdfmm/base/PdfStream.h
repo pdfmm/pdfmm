@@ -240,7 +240,7 @@ public:
      */
     void GetFilteredCopy(PdfOutputStream& stream) const;
 
-    std::string GetFilteredCopy() const;
+    chars GetFilteredCopy() const;
 
     /** Create a copy of a PdfStream object
      *  \param rhs the object to clone
