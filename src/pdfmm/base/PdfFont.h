@@ -107,6 +107,11 @@ public:
     static bool TryCreateFromObject(PdfObject& obj, std::unique_ptr<PdfFont>& font);
 
 public:
+    /** Try get a replacement font based on this font characteristics
+     *  \param substFont the created substitute font
+     */
+    bool TryGetSubstituteFont(std::unique_ptr<PdfFont>& substFont);
+
     /** Write a string to a PdfStream in a format so that it can
      *  be used with this font.
      *  This is used by PdfPainter::DrawText to display a text string.

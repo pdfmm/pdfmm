@@ -25,6 +25,8 @@
 #include "PdfEncodingShim.h"
 #include "PdfFontMetrics.h"
 #include "PdfPage.h"
+#include "PdfFontMetricsStandard14.h"
+#include "PdfFontManager.h"
 #include <pdfmm/private/PdfStandard14FontData.h>
 
 using namespace std;
@@ -55,6 +57,44 @@ PdfFont::PdfFont(PdfObject& obj, const PdfFontMetricsConstPtr& metrics,
 }
 
 PdfFont::~PdfFont() { }
+
+bool PdfFont::TryGetSubstituteFont(unique_ptr<PdfFont>& substFont)
+{
+    auto encoding = GetEncoding();
+    // Early intercept Standard14 fonts
+    PdfStandard14FontType std14Font;
+    PdfFontMetricsConstPtr metrics;
+    if (GetMetrics().IsStandard14FontMetrics(std14Font) ||
+        PdfFont::IsStandard14Font(GetMetrics().GetFontNameSafe(), true, std14Font))
+    {
+        metrics = PdfFontMetricsStandard14::GetInstance(std14Font);
+    }
+    else
+    {
+        PdfFontSearchParams params;
+        params.Bold = GetMetrics().IsBold();
+        params.Italic = GetMetrics().IsItalic();
+        // Normalization is not needed anymore at this stage, we
+        // will use the base name supplied by the font
+        params.NormalizeFontName = false;
+
+        metrics = PdfFontManager::GetFontMetrics(GetMetrics().GetFontNameSafe(true), params);
+        if (metrics == nullptr)
+        {
+            substFont = nullptr;
+            return false;
+        }
+    }
+
+    if (!encoding.HasValidToUnicodeMap())
+    {
+        shared_ptr<PdfCMapEncoding> toUnicode = metrics->CreateToUnicodeMap(encoding.GetLimits());
+        encoding = PdfEncoding(encoding.GetEncodingMapPtr(), toUnicode);
+    }
+
+    substFont = PdfFont::Create(GetDocument(), metrics, encoding, PdfFontInitFlags::Embed);
+    return true;
+}
 
 void PdfFont::initBase(const PdfEncoding& encoding)
 {
