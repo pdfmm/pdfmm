@@ -559,7 +559,10 @@ void PdfEncoding::writeCIDMapping(PdfObject& cmapObj, const PdfFont& font, const
 
     // CMap specification is in Adobe technical node #5014
     auto& cmapDict = cmapObj.GetDictionary();
-    auto cmapName = string(fontName).append("-subset");
+    string cmapName = (string)fontName;
+    if (font.IsSubsettingEnabled())
+        cmapName.append("-subset");
+
     // Table 120: Additional entries in a CMap stream dictionary
     cmapDict.AddKey(PdfName::KeyType, PdfName("CMap"));
     cmapDict.AddKey("CMapName", PdfName(cmapName));
