@@ -28,6 +28,7 @@
 #include <string_view>
 #include <vector>
 #include <typeinfo>
+#include <array>
 
 // Include some compatibility wrappers
 #include <pdfmm/common/EnumFlags.h>
@@ -56,6 +57,9 @@ namespace mm {
 // https://stackoverflow.com/questions/56845801/what-happened-to-stdcspan
 template <class T, size_t Extent = std::dynamic_extent>
 using cspan = std::span<const T, Extent>;
+
+// NOTE: This may change in the future
+using Matrix2D = std::array<double, 6>;
 
 /**
  * Convenient type for char array storage and/or buffer with

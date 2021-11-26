@@ -17,6 +17,9 @@
 
 using namespace mm;
 
+// TODO: Implement subsetting using PdfFontTrueTypeSubset
+// similarly to to PdfFontCIDTrueType
+
 PdfFontTrueType::PdfFontTrueType(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
     const PdfEncoding& encoding) :
     PdfFontSimple(doc, metrics, encoding)

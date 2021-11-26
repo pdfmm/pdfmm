@@ -35,14 +35,16 @@ class WidthExporter
 private:
     WidthExporter(unsigned cid, unsigned width);
 public:
-    static PdfArray GetPdfWidths(const CIDToGIDMap& glyphWidths, const PdfFontMetrics& metrics);
+    static PdfArray GetPdfWidths(const CIDToGIDMap& glyphWidths,
+        const PdfFontMetrics& metrics);
 private:
     void update(unsigned cid, unsigned width);
     PdfArray finish();
     void reset(unsigned cid, unsigned width);
     void emitSameWidth();
     void emitArrayWidths();
-    static unsigned getPdfWidth(unsigned gid, const PdfFontMetrics& metrics);
+    static unsigned getPdfWidth(unsigned gid, const PdfFontMetrics& metrics,
+        const Matrix2D& matrix);
 
 private:
     PdfArray m_output;
@@ -184,11 +186,14 @@ void PdfFontCIDTrueType::embedFontFile(PdfObject& descriptor)
 
 void PdfFontCIDTrueType::createWidths(PdfDictionary& fontDict, const CIDToGIDMap& cidToGidMap)
 {
-    PdfArray arr = WidthExporter::GetPdfWidths(cidToGidMap, GetMetrics());
+    auto& metrics = GetMetrics();
+    PdfArray arr = WidthExporter::GetPdfWidths(cidToGidMap, metrics);
     if (arr.size() == 0)
         return;
 
     fontDict.AddKey("W", arr);
+    fontDict.AddKey("DW", static_cast<int64_t>(
+        std::round(GetMetrics().GetDefaultWidth() / metrics.GetMatrix()[0])));
 }
 
 CIDToGIDMap PdfFontCIDTrueType::getCIDToGIDMap(bool subsetting)
@@ -275,15 +280,17 @@ PdfArray WidthExporter::finish()
     return m_output;
 }
 
-PdfArray WidthExporter::GetPdfWidths(const CIDToGIDMap& cidToGidMap, const PdfFontMetrics& metrics)
+PdfArray WidthExporter::GetPdfWidths(const CIDToGIDMap& cidToGidMap,
+    const PdfFontMetrics& metrics)
 {
     if (cidToGidMap.size() == 0)
         return PdfArray();
 
+    auto& matrix = metrics.GetMatrix();
     auto it = cidToGidMap.begin();
-    WidthExporter exporter(it->first, getPdfWidth(it->second, metrics));
+    WidthExporter exporter(it->first, getPdfWidth(it->second, metrics, matrix));
     while (++it != cidToGidMap.end())
-        exporter.update(it->first, getPdfWidth(it->second, metrics));
+        exporter.update(it->first, getPdfWidth(it->second, metrics, matrix));
 
     return exporter.finish();
 }
@@ -310,7 +317,8 @@ void WidthExporter::emitArrayWidths()
 }
 
 // Return thousands of PDF units
-unsigned WidthExporter::getPdfWidth(unsigned gid, const PdfFontMetrics& metrics)
+unsigned WidthExporter::getPdfWidth(unsigned gid, const PdfFontMetrics& metrics,
+    const Matrix2D& matrix)
 {
-    return (unsigned)std::round(metrics.GetGlyphWidth(gid) * 1000);
+    return (unsigned)std::round(metrics.GetGlyphWidth(gid) / matrix[0]);
 }

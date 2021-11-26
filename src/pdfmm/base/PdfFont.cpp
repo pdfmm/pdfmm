@@ -306,12 +306,12 @@ double PdfFont::GetDefaultCharWidth(const PdfTextState& state, bool ignoreCharSp
 {
     if (ignoreCharSpacing)
     {
-        return m_Metrics->GetDefaultCharWidth() * state.GetFontSize()
+        return m_Metrics->GetDefaultWidth() * state.GetFontSize()
             * state.GetFontScale();
     }
     else
     {
-        return (m_Metrics->GetDefaultCharWidth() * state.GetFontSize()
+        return (m_Metrics->GetDefaultWidth() * state.GetFontSize()
             + state.GetCharSpace()) * state.GetFontScale();
     }
 }
@@ -322,7 +322,7 @@ double PdfFont::GetCIDWidthRaw(unsigned cid) const
     if (m_Encoding->HasCIDMapping())
     {
         if (!TryMapCIDToGID(cid, gid))
-            return m_Metrics->GetDefaultCharWidth();
+            return m_Metrics->GetDefaultWidth();
     }
     else
     {
@@ -330,7 +330,7 @@ double PdfFont::GetCIDWidthRaw(unsigned cid) const
         if (mappedCodePoint == U'\0'
             || !m_Metrics->TryGetGID(mappedCodePoint, gid))
         {
-            return m_Metrics->GetDefaultCharWidth();
+            return m_Metrics->GetDefaultWidth();
         }
     }
 
@@ -339,50 +339,61 @@ double PdfFont::GetCIDWidthRaw(unsigned cid) const
 
 void PdfFont::GetBoundingBox(PdfArray& arr) const
 {
-    // TODO: Handle custom measure units, like for /Type3 fonts ?
+    auto& matrix = m_Metrics->GetMatrix();
     arr.Clear();
     vector<double> bbox;
     m_Metrics->GetBoundingBox(bbox);
-    arr.push_back(PdfObject(static_cast<int64_t>(std::round(bbox[0] * 1000))));
-    arr.push_back(PdfObject(static_cast<int64_t>(std::round(bbox[1] * 1000))));
-    arr.push_back(PdfObject(static_cast<int64_t>(std::round(bbox[2] * 1000))));
-    arr.push_back(PdfObject(static_cast<int64_t>(std::round(bbox[3] * 1000))));
-
+    arr.push_back(PdfObject(static_cast<int64_t>(std::round(bbox[0] / matrix[0]))));
+    arr.push_back(PdfObject(static_cast<int64_t>(std::round(bbox[1] / matrix[3]))));
+    arr.push_back(PdfObject(static_cast<int64_t>(std::round(bbox[2] / matrix[0]))));
+    arr.push_back(PdfObject(static_cast<int64_t>(std::round(bbox[3] / matrix[3]))));
 }
 
 void PdfFont::FillDescriptor(PdfDictionary& dict) const
 {
-    // Setting the FontDescriptor paras:
+    // Optional values
+    int weight;
+    double xHeight;
+    double stemH;
+
+    dict.AddKey("FontName", PdfName(this->GetName()));
+    dict.AddKey(PdfName::KeyFlags, PdfObject(static_cast<int64_t>(m_Metrics->GetFlags())));
+    dict.AddKey("ItalicAngle", static_cast<int64_t>(std::round(m_Metrics->GetItalicAngle())));
+    if ((weight = m_Metrics->GetWeightRaw()) >= 0)
+        dict.AddKey("FontWeight", static_cast<int64_t>(weight));
+
     PdfArray bbox;
     GetBoundingBox(bbox);
 
-    // Optional values
-    int weight = m_Metrics->GetWeight();
-    double stemH = m_Metrics->GetStemH();
-    double capHeight = m_Metrics->GetCapHeight();
-    double xHeight = m_Metrics->GetXHeight();
+    // The following entries are all optional in /Type3 fonts
+    if (GetType() != PdfFontType::Type3)
+    {
+        auto& matrix = m_Metrics->GetMatrix();
 
-    // TODO: Handle custom measure units, like for /Type3 fonts, for Ascent/Descent/CapHeight...
-    dict.AddKey("FontName", PdfName(this->GetName()));
-    dict.AddKey(PdfName::KeyFlags, PdfObject(static_cast<int64_t>(m_Metrics->GetFlags())));
-    dict.AddKey("FontBBox", bbox);
-    dict.AddKey("StemV", static_cast<int64_t>(std::round(m_Metrics->GetStemV() * 1000)));
-    dict.AddKey("ItalicAngle", static_cast<int64_t>(std::round(m_Metrics->GetItalicAngle())));
-    dict.AddKey("Ascent", static_cast<int64_t>(std::round(m_Metrics->GetAscent() * 1000)));
-    dict.AddKey("Descent", static_cast<int64_t>(std::round(m_Metrics->GetDescent() * 1000)));
+        dict.AddKey("FontBBox", bbox);
+        dict.AddKey("Ascent", static_cast<int64_t>(std::round(m_Metrics->GetAscent() / matrix[3])));
+        dict.AddKey("Descent", static_cast<int64_t>(std::round(m_Metrics->GetDescent() / matrix[3])));
+        dict.AddKey("CapHeight", static_cast<int64_t>(std::round(m_Metrics->GetCapHeight() / matrix[3])));
+        // NOTE: StemV is measured horizontally
+        dict.AddKey("StemV", static_cast<int64_t>(std::round(m_Metrics->GetStemV() / matrix[0])));
 
-    if (weight >= 0)
-        dict.AddKey("FontWeight", static_cast<int64_t>(weight));
+        if ((xHeight = m_Metrics->GetXHeightRaw()) >= 0)
+            dict.AddKey("XHeight", static_cast<int64_t>(std::round(xHeight / matrix[3])));
 
-    if (capHeight >= 0)
-        dict.AddKey("CapHeight", static_cast<int64_t>(std::round(capHeight * 1000)));
+        if ((stemH = m_Metrics->GetStemHRaw()) >= 0)
+        {
+            // NOTE: StemH is measured vertically
+            dict.AddKey("StemH", static_cast<int64_t>(std::round(stemH / matrix[3])));
+        }
 
-    if (xHeight >= 0)
-        dict.AddKey("XHeight", static_cast<int64_t>(std::round(xHeight * 1000)));
-
-    if (stemH >= 0)
-        dict.AddKey("StemH", static_cast<int64_t>(std::round(stemH * 1000)));
-
+        if (!IsCIDKeyed())
+        {
+            // We assume CID keyed fonts to use the /DW entry
+            // in the CIDFont dictionary. See 9.7.4.3 Glyph Metrics
+            // in CIDFonts in ISO 32000-1:2008
+            dict.AddKey("MissingWidth", static_cast<int64_t>(std::round(stemH / matrix[0])));
+        }
+    }
 }
 
 void PdfFont::initImported()

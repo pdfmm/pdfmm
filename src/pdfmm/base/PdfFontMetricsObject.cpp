@@ -27,7 +27,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
 
     // Widths of a Type 1 font, which are in thousandths
     // of a unit of text space
-    m_matrix = { 0.001, 0.0, 0.0, 0.001, 0, 0 };
+    m_Matrix = { 1e-3, 0.0, 0.0, 1e-3, 0, 0 };
 
     // /FirstChar /LastChar /Widths are in the Font dictionary and not in the FontDescriptor
     if (subType == "Type1" || subType == "Type3" || subType == "TrueType")
@@ -96,7 +96,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
         {
             auto& fontmatrixArr = fontmatrix->GetArray();
             for (int i = 0; i < 6; i++)
-                m_matrix[i] = fontmatrixArr[i].GetReal();
+                m_Matrix[i] = fontmatrixArr[i].GetReal();
         }
 
         auto widths = font.GetDictionary().FindKey("Widths");
@@ -105,22 +105,10 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
             auto& arrWidths = widths->GetArray();
             m_Widths.reserve(arrWidths.size());
             for (auto& obj : arrWidths)
-                m_Widths.push_back(obj.GetReal() * m_matrix[0]);
+                m_Widths.push_back(obj.GetReal() * m_Matrix[0]);
         }
 
-        const PdfObject* missingWidth = nullptr;
-        if (descriptor != nullptr)
-            missingWidth = descriptor->GetDictionary().FindKey("MissingWidth");
-
-        if (missingWidth == nullptr)
-        {
-            if (widths == nullptr)
-                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoObject, "Font object defines neither Widths, nor MissingWidth values!");
-        }
-        else
-        {
-            m_DefaultWidth = missingWidth->GetReal() * m_matrix[0];
-        }
+        m_DefaultWidth = descriptor->GetDictionary().FindKeyAs<double>("MissingWidth", 0);
     }
     else if (subType == "CIDFontType0" || subType == "CIDFontType2")
     {
@@ -166,7 +154,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
             }
         }
 
-        m_DefaultWidth = font.GetDictionary().FindKeyAs<double>("DW", 1000) * m_matrix[0];
+        m_DefaultWidth = font.GetDictionary().FindKeyAs<double>("DW", 1000.0) * m_Matrix[0];
         auto widths = font.GetDictionary().FindKey("W");
         if (widths != nullptr)
         {
@@ -194,7 +182,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
                         m_Widths.resize(length, m_DefaultWidth);
 
                     for (unsigned i = 0; i < arr.GetSize(); i++)
-                        m_Widths[start + i] = arr[i].GetReal() * m_matrix[0];
+                        m_Widths[start + i] = arr[i].GetReal() * m_Matrix[0];
                 }
                 else
                 {
@@ -204,7 +192,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
                     if (length > m_Widths.size())
                         m_Widths.resize(length, m_DefaultWidth);
 
-                    double width = widthsArr[pos++].GetReal() * m_matrix[0];
+                    double width = widthsArr[pos++].GetReal() * m_Matrix[0];
                     for (unsigned i = start; i <= end; i++)
                         m_Widths[i] = width;
                 }
@@ -233,38 +221,19 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
         auto& dict = descriptor->GetDictionary();
 
         // NOTE: Found a valid document with "/FontWeight 400.0" so just read the value as double
-        m_Weight = static_cast<int>(dict.FindKeyAs<double>("FontWeight", 400));
-        m_CapHeight = dict.FindKeyAs<double>("CapHeight", 0) * m_matrix[3];
-        m_XHeight = dict.FindKeyAs<double>("XHeight", 0) * m_matrix[3];
-        m_StemV = dict.FindKeyAs<double>("StemV", 0) * m_matrix[3];
-        m_StemH = dict.FindKeyAs<double>("StemH", 0) * m_matrix[3];
+        m_Weight = static_cast<int>(dict.FindKeyAs<double>("FontWeight", -1));
+        m_CapHeight = dict.FindKeyAs<double>("CapHeight", 0) * m_Matrix[3];
+        m_XHeight = dict.FindKeyAs<double>("XHeight", 0) * m_Matrix[3];
+        // NOTE: StemV is measured horizzontally, StemH vertically
+        m_StemV = dict.FindKeyAs<double>("StemV", 0) * m_Matrix[0];
+        m_StemH = dict.FindKeyAs<double>("StemH", -1) * m_Matrix[3];
         m_ItalicAngle = static_cast<int>(dict.FindKeyAs<double>("ItalicAngle", 0));
-        m_Ascent = dict.FindKeyAs<double>("Ascent", 0.0) * m_matrix[3];
-        m_Descent = dict.FindKeyAs<double>("Descent", 0.0) * m_matrix[3];
+        m_Ascent = dict.FindKeyAs<double>("Ascent", 0.0) * m_Matrix[3];
+        m_Descent = dict.FindKeyAs<double>("Descent", 0.0) * m_Matrix[3];
         m_Flags = (PdfFontDescriptorFlags)dict.FindKeyAs<double>("Flags", 0);
-
-        if ((m_Flags & PdfFontDescriptorFlags::Italic) != PdfFontDescriptorFlags::None
-            || m_ItalicAngle != 0)
-        {
-            m_IsItalic = true;
-        }
-
-        // NOTE: It is not correct to check flag ForceBold to
-        // determine if the fond is bold. The ForceBold flag is
-        // just an hint for the viewer to draw glyphs with more
-        // pixels
-        if (m_Weight >= 700)
-        {
-            // ISO 32000-1:2008: Table 122 – Entries common to all font descriptors
-            // The possible values shall be 100, 200, 300, 400, 500, 600, 700, 800,
-            // or 900, where each number indicates a weight that is at least as dark
-            // as its predecessor.A value of 400 shall indicate a normal weight;
-            // 700 shall indicate bold
-            m_IsBold = true;
-        }
     }
 
-    m_BaseName = PdfFont::ExtractBaseName(m_FontName, m_IsBold, m_IsItalic);
+    m_BaseName = PdfFont::ExtractBaseName(m_FontName, m_IsBoldHint, m_IsItalicHint);
     m_LineSpacing = m_Ascent + m_Descent;
 
     // Try to fine some sensible values
@@ -330,7 +299,7 @@ PdfFontDescriptorFlags PdfFontMetricsObject::GetFlags() const
     return m_Flags;
 }
 
-double PdfFontMetricsObject::GetDefaultCharWidth() const
+double PdfFontMetricsObject::GetDefaultWidth() const
 {
     return m_DefaultWidth;
 }
@@ -370,7 +339,7 @@ double PdfFontMetricsObject::GetDescent() const
     return m_Descent;
 }
 
-int PdfFontMetricsObject::GetWeight() const
+int PdfFontMetricsObject::GetWeightRaw() const
 {
     return m_Weight;
 }
@@ -380,7 +349,7 @@ double PdfFontMetricsObject::GetCapHeight() const
     return m_CapHeight;
 }
 
-double PdfFontMetricsObject::GetXHeight() const
+double PdfFontMetricsObject::GetXHeightRaw() const
 {
     return m_XHeight;
 }
@@ -390,7 +359,7 @@ double PdfFontMetricsObject::GetStemV() const
     return m_StemV;
 }
 
-double PdfFontMetricsObject::GetStemH() const
+double PdfFontMetricsObject::GetStemHRaw() const
 {
     return m_StemH;
 }
@@ -400,14 +369,19 @@ double PdfFontMetricsObject::GetItalicAngle() const
     return m_ItalicAngle;
 }
 
-bool PdfFontMetricsObject::IsBold() const
+const Matrix2D& PdfFontMetricsObject::GetMatrix() const
 {
-    return m_IsBold;
+    return m_Matrix;
 }
 
-bool PdfFontMetricsObject::IsItalic() const
+bool PdfFontMetricsObject::getIsBoldHint() const
 {
-    return m_IsItalic;
+    return m_IsBoldHint;
+}
+
+bool PdfFontMetricsObject::getIsItalicHint() const
+{
+    return m_IsItalicHint;
 }
 
 const PdfObject* PdfFontMetricsObject::GetFontFileObject() const
@@ -420,9 +394,9 @@ vector<double> PdfFontMetricsObject::GetBBox(const PdfObject& obj)
     vector<double> ret;
     ret.reserve(4);
     auto& arr = obj.GetArray();
-    ret.push_back(arr[0].GetNumberLenient() * m_matrix[0]);
-    ret.push_back(arr[1].GetNumberLenient() * m_matrix[0]);
-    ret.push_back(arr[2].GetNumberLenient() * m_matrix[0]);
-    ret.push_back(arr[3].GetNumberLenient() * m_matrix[0]);
+    ret.push_back(arr[0].GetNumberLenient() * m_Matrix[0]);
+    ret.push_back(arr[1].GetNumberLenient() * m_Matrix[3]);
+    ret.push_back(arr[2].GetNumberLenient() * m_Matrix[0]);
+    ret.push_back(arr[3].GetNumberLenient() * m_Matrix[3]);
     return ret;
 }

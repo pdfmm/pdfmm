@@ -130,10 +130,9 @@ PdfFontDescriptorFlags PdfFontMetricsStandard14::GetFlags() const
     return m_data.Flags;
 }
 
-double PdfFontMetricsStandard14::GetDefaultCharWidth() const
+double PdfFontMetricsStandard14::GetDefaultWidth() const
 {
-    // Just assume there is no default width
-    return 0;
+    return m_data.DefaultWidth / 1000.0;
 }
 
 double PdfFontMetricsStandard14::GetLineSpacing() const
@@ -181,7 +180,7 @@ string PdfFontMetricsStandard14::GetBaseFontName() const
     return (string)GetStandard14FontBaseName(m_Std14FontType);
 }
 
-int PdfFontMetricsStandard14::GetWeight() const
+int PdfFontMetricsStandard14::GetWeightRaw() const
 {
     return m_data.Weight;
 }
@@ -191,7 +190,7 @@ double PdfFontMetricsStandard14::GetCapHeight() const
     return m_data.CapHeight / 1000.0;
 }
 
-double PdfFontMetricsStandard14::GetXHeight() const
+double PdfFontMetricsStandard14::GetXHeightRaw() const
 {
     return m_data.XHeight / 1000.0;
 }
@@ -201,7 +200,7 @@ double PdfFontMetricsStandard14::GetStemV() const
     return m_data.StemV / 1000.0;
 }
 
-double PdfFontMetricsStandard14::GetStemH() const
+double PdfFontMetricsStandard14::GetStemHRaw() const
 {
     return m_data.StemH / 1000.0;
 }
@@ -237,7 +236,7 @@ string_view PdfFontMetricsStandard14::GetFontFileData() const
     return mm::GetStandard14FontFileData(m_Std14FontType);
 }
 
-bool PdfFontMetricsStandard14::IsBold() const
+bool PdfFontMetricsStandard14::getIsBoldHint() const
 {
     switch (m_Std14FontType)
     {
@@ -253,7 +252,7 @@ bool PdfFontMetricsStandard14::IsBold() const
     }
 }
 
-bool PdfFontMetricsStandard14::IsItalic() const
+bool PdfFontMetricsStandard14::getIsItalicHint() const
 {
     switch (m_Std14FontType)
     {

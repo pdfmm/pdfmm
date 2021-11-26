@@ -46,7 +46,7 @@ public:
 
     PdfFontDescriptorFlags GetFlags() const override;
 
-    double GetDefaultCharWidth() const override;
+    double GetDefaultWidth() const override;
 
     void GetBoundingBox(std::vector<double>& bbox) const override;
 
@@ -72,21 +72,24 @@ public:
 
     const PdfObject* GetFontFileObject() const override;
 
-    int GetWeight() const override;
+    int GetWeightRaw() const override;
 
     double GetCapHeight() const override;
 
-    double GetXHeight() const override;
+    double GetXHeightRaw() const override;
 
     double GetStemV() const override;
 
-    double GetStemH() const override;
+    double GetStemHRaw() const override;
 
     double GetItalicAngle() const override;
 
-    bool IsBold() const override;
+    const Matrix2D& GetMatrix() const override;
 
-    bool IsItalic() const override;
+protected:
+    bool getIsBoldHint() const override;
+
+    bool getIsItalicHint() const override;
 
 private:
     std::vector<double> GetBBox(const PdfObject& obj);
@@ -95,7 +98,7 @@ private:
     std::string m_BaseName;
     std::string m_FontName;
     std::vector<double> m_BBox;
-    std::array<double, 6> m_matrix;
+    Matrix2D m_Matrix;
     std::vector<double> m_Widths;
     PdfFontDescriptorFlags m_Flags;
     double m_DefaultWidth;
@@ -116,8 +119,8 @@ private:
     double m_StrikeOutThickness;
     double m_StrikeOutPosition;
 
-    bool m_IsBold;
-    bool m_IsItalic;
+    bool m_IsBoldHint;
+    bool m_IsItalicHint;
 };
 
 };

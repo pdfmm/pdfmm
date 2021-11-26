@@ -29,7 +29,7 @@ public:
     /** Create a font metrics object for a given memory buffer
      *  \param buffer block of memory representing the font data (PdfFontMetricsFreetype will copy the buffer)
      */
-    PdfFontMetricsFreetype(const std::shared_ptr<chars>& buffer);
+    PdfFontMetricsFreetype(const std::shared_ptr<chars>& buffer, const PdfFontMetrics* refMetrics = nullptr);
 
     ~PdfFontMetricsFreetype();
 
@@ -48,7 +48,7 @@ public:
 
     bool TryGetGID(char32_t codePoint, unsigned& gid) const override;
 
-    double GetDefaultCharWidth() const override;
+    double GetDefaultWidth() const override;
 
     void GetBoundingBox(std::vector<double>& bbox) const override;
 
@@ -70,15 +70,15 @@ public:
 
     std::string GetFontName() const override;
 
-    int GetWeight() const override;
+    int GetWeightRaw() const override;
 
     double GetCapHeight() const override;
 
-    double GetXHeight() const override;
+    double GetXHeightRaw() const override;
 
     double GetStemV() const override;
 
-    double GetStemH() const override;
+    double GetStemHRaw() const override;
 
     double GetItalicAngle() const override;
 
@@ -86,15 +86,16 @@ public:
 
     std::string_view GetFontFileData() const override;
 
-    bool IsBold() const override;
-
-    bool IsItalic() const override;
-
     /** Get direct access to the internal FreeType handle
      *
      *  \returns the internal freetype handle
      */
     inline FT_Face GetFace() const { return m_Face; }
+
+protected:
+    bool getIsBoldHint() const override;
+
+    bool getIsItalicHint() const override;
 
 private:
     PdfFontMetricsFreetype(FT_Face face, const std::shared_ptr<chars>& buffer);
@@ -102,34 +103,30 @@ private:
     /** Initialize this object from an in memory buffer
      * Called internally by the constructors
      */
-    void InitFromBuffer();
+    void initFromBuffer(const PdfFontMetrics* refMetrics);
 
     /** Load the metric data from the FTFace data
      * Called internally by the constructors
      */
-    void InitFromFace();
+    void initFromFace(const PdfFontMetrics* refMetrics);
 
- protected:
+private:
     FT_Face m_Face;
-
- private:
-    bool m_IsBold;
-    bool m_IsItalic;
 
     double m_Ascent;
     double m_Descent;
-    double m_DefaultWidth;
     unsigned m_Weight;
+    double m_CapHeight;
+    double m_XHeight;
     double m_ItalicAngle;
-    bool m_IsFixedPitch;
 
     double m_LineSpacing;
     double m_UnderlineThickness;
     double m_UnderlinePosition;
     double m_StrikeOutThickness;
     double m_StrikeOutPosition;
-    double m_CapHeight;
-    double m_XHeight;
+    double m_DefaultWidth;
+    PdfFontDescriptorFlags m_Flags;
 
     std::shared_ptr<chars> m_FontData;
     std::string m_fontName;

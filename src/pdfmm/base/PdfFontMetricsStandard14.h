@@ -28,6 +28,7 @@ struct Standard14FontData
     const Standard14FontChar* Widths;
     unsigned WidthsSize;
     PdfFontDescriptorFlags Flags;
+    uint16_t DefaultWidth;
     int16_t Ascent;
     int16_t Descent;
     uint16_t XHeight;
@@ -69,7 +70,7 @@ public:
 
     PdfFontDescriptorFlags GetFlags() const override;
 
-    double GetDefaultCharWidth() const override;
+    double GetDefaultWidth() const override;
 
     void GetBoundingBox(std::vector<double>& bbox) const override;
 
@@ -91,15 +92,15 @@ public:
 
     std::string GetBaseFontName() const override;
 
-    int GetWeight() const override;
+    int GetWeightRaw() const override;
 
     double GetCapHeight() const override;
 
-    double GetXHeight() const override;
+    double GetXHeightRaw() const override;
 
     double GetStemV() const override;
 
-    double GetStemH() const override;
+    double GetStemHRaw() const override;
 
     double GetItalicAngle() const override;
 
@@ -109,11 +110,12 @@ public:
 
     std::string_view GetFontFileData() const override;
 
-    bool IsItalic() const override;
-
-    bool IsBold() const override;
-
     inline const Standard14FontData& GetRawData() const { return m_data; }
+
+protected:
+    bool getIsItalicHint() const override;
+
+    bool getIsBoldHint() const override;
 
 private:
     static std::unique_ptr<PdfFontMetricsStandard14> create(

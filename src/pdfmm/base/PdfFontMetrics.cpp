@@ -16,6 +16,9 @@
 using namespace std;
 using namespace mm;
 
+// Default matrix: thousands of PDF units
+static Matrix2D s_DefaultMatrix = { 1e-3, 0.0, 0.0, 1e-3, 0, 0 };
+
 PdfFontMetrics::PdfFontMetrics() { }
 
 PdfFontMetrics::~PdfFontMetrics() { }
@@ -24,7 +27,7 @@ double PdfFontMetrics::GetGlyphWidth(unsigned gid) const
 {
     double width;
     if (!TryGetGlyphWidth(gid, width))
-        return GetDefaultCharWidth();
+        return GetDefaultWidth();
 
     return width;
 }
@@ -89,6 +92,56 @@ string PdfFontMetrics::GetFontName() const
     return string();
 }
 
+unsigned PdfFontMetrics::GetWeight() const
+{
+    int weight = GetWeightRaw();
+    if (weight < 0)
+    {
+        if (IsBold())
+            return 700;
+        else
+            return 400;
+    }
+
+    return (unsigned)weight;
+}
+
+double PdfFontMetrics::GetXHeight() const
+{
+    double xHeight = GetXHeightRaw();
+    if (xHeight < 0)
+        return 0;
+
+    return xHeight;
+}
+
+double PdfFontMetrics::GetStemH() const
+{
+    double stemH = GetStemHRaw();
+    if (stemH < 0)
+        return 0;
+
+    return stemH;
+}
+
+bool PdfFontMetrics::IsBold() const
+{
+    // ISO 32000-1:2008: Table 122 – Entries common to all font descriptors
+    // The possible values shall be 100, 200, 300, 400, 500, 600, 700, 800,
+    // or 900, where each number indicates a weight that is at least as dark
+    // as its predecessor. A value of 400 shall indicate a normal weight;
+    // 700 shall indicate bold
+    return getIsBoldHint()
+        || GetWeightRaw() >= 700;
+}
+
+bool PdfFontMetrics::IsItalic() const
+{
+    return getIsItalicHint()
+        || (GetFlags() & PdfFontDescriptorFlags::Italic) != PdfFontDescriptorFlags::None
+        || GetItalicAngle() != 0;
+}
+
 bool PdfFontMetrics::IsStandard14FontMetrics() const
 {
     PdfStandard14FontType std14Font;
@@ -99,6 +152,11 @@ bool PdfFontMetrics::IsStandard14FontMetrics(PdfStandard14FontType& std14Font) c
 {
     std14Font = PdfStandard14FontType::Unknown;
     return false;
+}
+
+const Matrix2D& PdfFontMetrics::GetMatrix() const
+{
+    return s_DefaultMatrix;
 }
 
 bool PdfFontMetrics::IsType1Kind() const

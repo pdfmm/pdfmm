@@ -42,9 +42,20 @@ void PdfFontSimple::getWidthsArray(PdfArray& arr) const
 
     arr.clear();
     arr.reserve(widths.size());
-    // TODO: Handle custom measure units, like for /Type3 fonts
+
+    auto matrix = m_Metrics->GetMatrix();
     for (unsigned i = 0; i < widths.size(); i++)
-        arr.Add(PdfObject(static_cast<int64_t>(std::round(widths[i] * 1000))));
+        arr.Add(PdfObject(static_cast<int64_t>(std::round(widths[i] / matrix[0]))));
+}
+
+void PdfFontSimple::getFontMatrixArray(PdfArray& fontMatrix) const
+{
+    fontMatrix.clear();
+    fontMatrix.reserve(6);
+
+    auto matrix = m_Metrics->GetMatrix();
+    for (unsigned i = 0; i < 6; i++)
+        fontMatrix.Add(PdfObject(matrix[i]));
 }
 
 void PdfFontSimple::Init()
@@ -76,11 +87,20 @@ void PdfFontSimple::Init()
         this->GetObject().GetDictionary().AddKey("FirstChar", PdfVariant(static_cast<int64_t>(m_Encoding->GetFirstChar().Code)));
         this->GetObject().GetDictionary().AddKey("LastChar", PdfVariant(static_cast<int64_t>(m_Encoding->GetLastChar().Code)));
 
-        PdfArray widths;
-        this->getWidthsArray(widths);
+        PdfArray arr;
+        this->getWidthsArray(arr);
 
-        auto widthsObj = GetDocument().GetObjects().CreateObject(widths);
+        auto widthsObj = GetDocument().GetObjects().CreateObject(arr);
         this->GetObject().GetDictionary().AddKeyIndirect("Widths", widthsObj);
+
+        if (GetType() == PdfFontType::Type3)
+        {
+            getFontMatrixArray(arr);
+            GetObject().GetDictionary().AddKey("FontMatrix", arr);
+
+            GetBoundingBox(arr);
+            GetObject().GetDictionary().AddKey("FontBBox", arr);
+        }
 
         auto descriptorObj = GetDocument().GetObjects().CreateDictionaryObject("FontDescriptor");
         this->GetObject().GetDictionary().AddKeyIndirect("FontDescriptor", descriptorObj);

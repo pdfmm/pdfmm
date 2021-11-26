@@ -40,7 +40,7 @@ public:
     double GetGlyphWidth(unsigned gid) const;
     virtual bool TryGetGlyphWidth(unsigned gid, double& width) const = 0;
 
-    virtual double GetDefaultCharWidth() const = 0;
+    virtual double GetDefaultWidth() const = 0;
 
     /**
      * Some fonts provides a glyph subsitution list, eg. for ligatures.
@@ -152,36 +152,31 @@ public:
      */
     virtual std::string GetFontName() const;
 
-    /** The thickness, measured horizontally, of the dominant vertical stems of glyphs in the font
-     */
-    virtual double GetStemV() const = 0;
-
     /** Get the weight of this font.
      *  \returns the weight of this font (400 <= x < 700 means normal, x >= 700 means bold)
-     *
-     * Negative if absent
      */
-    virtual int GetWeight() const = 0;
+    unsigned GetWeight() const;
+    virtual int GetWeightRaw() const = 0;
 
     /** The vertical coordinate of the top of flat capital letters, measured from the baseline
-     *
-     * Negative if absent
      */
     virtual double GetCapHeight() const = 0;
 
     /** The font’s x height: the vertical coordinate of the top of flat nonascending
      * lowercase letters (like the letter x), measured from the baseline, in
      * fonts that have Latin characters
-     *
-     * Negative if absent
      */
-    virtual double GetXHeight() const = 0;
+    double GetXHeight() const;
+    virtual double GetXHeightRaw() const = 0;
+
+    /** The thickness, measured horizontally, of the dominant vertical stems of glyphs in the font
+     */
+    virtual double GetStemV() const = 0;
 
     /** The thickness, measured vertically, of the dominant horizontal stems of glyphs in the font
-     *
-     * Negative if absent
      */
-    virtual double GetStemH() const = 0;
+    double GetStemH() const;
+    virtual double GetStemHRaw() const = 0;
 
     /** Get the italic angle of this font.
      *  Used to build the font dictionay
@@ -189,17 +184,27 @@ public:
      */
     virtual double GetItalicAngle() const = 0;
 
-    /** Get whether the font style is bold
+    /** Get whether the font style is bold.
+     *
+     * This is a logical value that can be inferred
+     * from several characteristics
      */
-    virtual bool IsBold() const = 0;
+    bool IsBold() const;
 
     /** Get whether the font style is italic
+     *
+     * This is a logical value that can be inferred
+     * from several characteristics
      */
-    virtual bool IsItalic() const = 0;
+    bool IsItalic() const;
 
     bool IsStandard14FontMetrics() const;
 
     virtual bool IsStandard14FontMetrics(PdfStandard14FontType& std14Font) const;
+
+    /** Returns the matrix mapping glyph space to text space
+     */
+    virtual const Matrix2D& GetMatrix() const;
 
     /** Determine if the metrics are for Adobe Type1 like font
      */
@@ -226,6 +231,10 @@ public:
      * mapping to multiple unicode codepoints.
      */
     virtual std::unique_ptr<PdfCMapEncoding> CreateToUnicodeMap(const PdfEncodingLimits& limitHints) const;
+
+protected:
+    virtual bool getIsBoldHint() const = 0;
+    virtual bool getIsItalicHint() const = 0;
 
 private:
     PdfFontMetrics(const PdfFontMetrics& rhs) = delete;
