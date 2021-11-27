@@ -34,32 +34,6 @@ protected:
     PdfInputDevice();
 
 public:
-    // TODO: Move it to a PdfFileInputDevice
-    /** Construct a new PdfInputDevice that reads all data from a file.
-     *
-     *  \param filename path to a file that will be opened and all data
-     *                     is read from this file.
-     */
-    explicit PdfInputDevice(const std::string_view& filename);
-
-    // TODO: Move it to a PdfMemInputDevice
-    /** Construct a new PdfInputDevice that reads all data from a memory buffer.
-     *  The buffer will not be owned by this object - it is COPIED.
-     *
-     *  \param buffer a buffer in memory
-     *  \param len the length of the buffer in memory
-     */
-    PdfInputDevice(const char* buffer, size_t len);
-
-    /** Construct a new PdfInputDevice that reads all data from a std::istream.
-     *
-     *  \param pInStream read from this std::istream
-     */
-    explicit PdfInputDevice(std::istream& stream);
-
-    // TODO: Move it to a PdfMemInputDevice
-    explicit PdfInputDevice(const PdfStream& stream);
-
     /** Destruct the PdfInputDevice object and close any open files.
      */
     virtual ~PdfInputDevice();
@@ -73,7 +47,7 @@ public:
     /** Get the current position in file.
      *  /returns the current position in the file
      */
-    virtual size_t Tell();
+    virtual size_t Tell() = 0;
 
     /** Get next char from stream.
      *  \returns the next character from the stream
@@ -83,12 +57,12 @@ public:
     /** Get next char from stream.
      *  \returns the next character from the stream
      */
-    virtual bool TryGetChar(char& ch);
+    virtual bool TryGetChar(char& ch) = 0;
 
     /** Peek at next char in stream.
      *  /returns the next char in the stream
      */
-    virtual int Look();
+    virtual int Look() = 0;
 
     /** Seek the device to the position offset from the beginning
      *  \param off from the beginning of the file
@@ -106,24 +80,81 @@ public:
      *  \returns the number of bytes that have been read.
      *      0 if the device reached eof
      */
-    virtual size_t Read(char* buffer, size_t size);
+    virtual size_t Read(char* buffer, size_t size) = 0;
 
     /**
      * \return True if the stream is at EOF
      */
-    virtual bool Eof() const;
+    virtual bool Eof() const = 0;
 
     /**
      * \return True if the stream is seekable
      */
-    virtual bool IsSeekable() const { return true; }
+    virtual bool IsSeekable() const = 0;
 
 protected:
-    void seek(std::streamoff off, std::ios_base::seekdir dir);
+    virtual void seek(std::streamoff off, std::ios_base::seekdir dir);
+};
+
+class PdfStreamInputDevice : public PdfInputDevice
+{
+protected:
+    PdfStreamInputDevice();
+
+public:
+    /** Construct a new PdfInputDevice that reads all data from a file.
+     *
+     *  \param filename path to a file that will be opened and all data
+     *                     is read from this file.
+     */
+    PdfStreamInputDevice(std::istream& stream);
+
+    ~PdfStreamInputDevice();
+
+    virtual size_t Tell() override;
+
+    virtual bool TryGetChar(char& ch) override;
+
+    int Look() override;
+
+    size_t Read(char* buffer, size_t size) override;
+
+    bool Eof() const override;
+
+    bool IsSeekable() const override { return true; }
+
+protected:
+    void seek(std::streamoff off, std::ios_base::seekdir dir) override;
+
+protected:
+    void SetStream(std::istream* stream, bool streamOwned);
 
 private:
     std::istream* m_Stream;
     bool m_StreamOwned;
+};
+
+class PdfFileInputDevice final : public PdfStreamInputDevice
+{
+public:
+    /** Construct a new PdfInputDevice that reads all data from a file.
+     *
+     *  \param filename path to a file that will be opened and all data
+     *                     is read from this file.
+     */
+    PdfFileInputDevice(const std::string_view& filename);
+};
+
+class PdfMemoryInputDevice final : public PdfStreamInputDevice
+{
+public:
+    /** Construct a new PdfInputDevice that reads all data from a memory buffer.
+     *  The buffer will not be owned by this object - it is COPIED.
+     */
+    PdfMemoryInputDevice(const char* buffer, size_t len);
+    PdfMemoryInputDevice(const cspan<char>& buffer);
+
+    PdfMemoryInputDevice(const PdfStream& stream);
 };
 
 };

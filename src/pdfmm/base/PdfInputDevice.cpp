@@ -16,55 +16,58 @@
 using namespace std;
 using namespace mm;
 
-PdfInputDevice::PdfInputDevice() :
-    m_Stream(nullptr),
-    m_StreamOwned(false)
-{
-}
+PdfInputDevice::PdfInputDevice() { }
 
-PdfInputDevice::PdfInputDevice(const string_view& filename)
-    : PdfInputDevice()
+PdfInputDevice::~PdfInputDevice() { }
+
+PdfFileInputDevice::PdfFileInputDevice(const string_view& filename)
 {
     if (filename.length() == 0)
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-    m_Stream = new ifstream(utls::open_ifstream(filename, ios_base::in | ios_base::binary));
-    if (m_Stream->fail())
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::FileNotFound, filename);
+    auto stream = new ifstream(utls::open_ifstream(filename, ios_base::in | ios_base::binary));
+    if (stream->fail())
+    {
+        delete stream;
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::FileNotFound, "File not found: {}", filename);
+    }
 
-    m_StreamOwned = true;
+    SetStream(stream, true);
 }
 
-PdfInputDevice::PdfInputDevice(const char* buffer, size_t len)
-    : PdfInputDevice()
+PdfMemoryInputDevice::PdfMemoryInputDevice(const char* buffer, size_t len)
 {
     if (len != 0 && buffer == nullptr)
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     // TODO: Optimize me, offer a version that does not copy the buffer
-    m_Stream = new istringstream(string(buffer, len), ios::binary);
-    m_StreamOwned = true;
+    SetStream(new istringstream(string(buffer, len), ios::binary), true);
 }
 
-PdfInputDevice::PdfInputDevice(istream& stream)
-    : PdfInputDevice()
+PdfMemoryInputDevice::PdfMemoryInputDevice(const cspan<char>& buffer)
+    : PdfMemoryInputDevice(buffer.data(), buffer.size()) { }
+
+PdfMemoryInputDevice::PdfMemoryInputDevice(const PdfStream& stream)
+{
+    string buffer;
+    PdfStringOutputStream outputStream(buffer);
+    stream.GetFilteredCopy(outputStream);
+    // TODO: Optimize me, offer a version that does not copy the buffer
+    SetStream(new istringstream(buffer, ios::binary), true);
+}
+
+PdfStreamInputDevice::PdfStreamInputDevice()
+    : m_Stream(nullptr), m_StreamOwned(false) { }
+
+PdfStreamInputDevice::PdfStreamInputDevice(istream& stream)
+    : m_StreamOwned(false)
 {
     m_Stream = &stream;
     if (!m_Stream->good())
         PDFMM_RAISE_ERROR(PdfErrorCode::FileNotFound);
 }
 
-PdfInputDevice::PdfInputDevice(const PdfStream& stream)
-{
-    string buffer;
-    PdfStringOutputStream outputStream(buffer);
-    stream.GetFilteredCopy(outputStream);
-    // TODO: Optimize me, offer a version that does not copy the buffer
-    m_Stream = new istringstream(buffer, ios::binary);
-    m_StreamOwned = true;
-}
-
-PdfInputDevice::~PdfInputDevice()
+PdfStreamInputDevice::~PdfStreamInputDevice()
 {
     this->Close();
     if (m_StreamOwned)
@@ -86,7 +89,22 @@ int PdfInputDevice::GetChar()
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to read the current character");
 }
 
-bool PdfInputDevice::TryGetChar(char& ch)
+void PdfInputDevice::Seek(streamoff off, ios_base::seekdir dir)
+{
+    if (!IsSeekable())
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Tried to seek an unseekable input device");
+
+    return seek(off, dir);
+}
+
+void PdfInputDevice::seek(streamoff off, ios_base::seekdir dir)
+{
+    (void)off;
+    (void)dir;
+    PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);
+}
+
+bool PdfStreamInputDevice::TryGetChar(char& ch)
 {
     if (m_Stream->eof())
     {
@@ -110,7 +128,7 @@ bool PdfInputDevice::TryGetChar(char& ch)
     return true;
 }
 
-int PdfInputDevice::Look()
+int PdfStreamInputDevice::Look()
 {
     // NOTE: We don't want a peek() call to set failbit
     if (m_Stream->eof())
@@ -123,7 +141,7 @@ int PdfInputDevice::Look()
     return ch;
 }
 
-size_t PdfInputDevice::Tell()
+size_t PdfStreamInputDevice::Tell()
 {
     streamoff ret;
     if (m_Stream->eof())
@@ -146,16 +164,8 @@ size_t PdfInputDevice::Tell()
     return (size_t)ret;
 }
 
-void PdfInputDevice::Seek(streamoff off, ios_base::seekdir dir)
+void PdfStreamInputDevice::seek(streamoff off, ios_base::seekdir dir)
 {
-    return seek(off, dir);
-}
-
-void PdfInputDevice::seek(streamoff off, ios_base::seekdir dir)
-{
-    if (!IsSeekable())
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Tried to seek an unseekable input device");
-
     // NOTE: Some c++ libraries don't reset eofbit prior seeking
     m_Stream->clear(m_Stream->rdstate() & ~ios_base::eofbit);
     m_Stream->seekg(off, dir);
@@ -163,12 +173,18 @@ void PdfInputDevice::seek(streamoff off, ios_base::seekdir dir)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to seek to given position in the stream");
 }
 
-size_t PdfInputDevice::Read(char* buffer, size_t size)
+void PdfStreamInputDevice::SetStream(istream* stream, bool streamOwned)
+{
+    m_Stream = stream;
+    m_StreamOwned = streamOwned;
+}
+
+size_t PdfStreamInputDevice::Read(char* buffer, size_t size)
 {
     return utls::Read(*m_Stream, buffer, size);
 }
 
-bool PdfInputDevice::Eof() const
+bool PdfStreamInputDevice::Eof() const
 {
     return m_Stream->eof();
 }

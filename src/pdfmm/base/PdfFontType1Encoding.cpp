@@ -40,7 +40,7 @@ PdfCharCodeMap PdfFontType1Encoding::getUnicodeMap(const PdfObject& obj)
     if (found != string_view::npos)
         view = view.substr(0, found + 5);
 
-    PdfInputDevice device(view.data(), view.length());
+    PdfMemoryInputDevice device(view);
     PdfPostScriptTokenizer tokenizer;
     PdfPostScriptTokenType tokenType;
     string_view keyword;

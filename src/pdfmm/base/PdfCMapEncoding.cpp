@@ -67,7 +67,7 @@ PdfCMapEncoding::MapIdentity PdfCMapEncoding::parseCMapObject(const PdfStream& s
     size_t streamBufferLen;
     stream.GetFilteredCopy(streamBuffer, streamBufferLen);
 
-    PdfInputDevice device(streamBuffer.get(), streamBufferLen);
+    PdfMemoryInputDevice device(streamBuffer.get(), streamBufferLen);
     PdfPostScriptTokenizer tokenizer;
     deque<unique_ptr<PdfVariant>> tokens;
     PdfString str;

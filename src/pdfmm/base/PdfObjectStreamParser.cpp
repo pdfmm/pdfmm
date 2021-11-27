@@ -48,7 +48,7 @@ void PdfObjectStreamParser::Parse(ObjectIdList const& list)
 
 void PdfObjectStreamParser::ReadObjectsFromStream(char* buffer, size_t bufferLen, int64_t num, int64_t first, ObjectIdList const& list)
 {
-    PdfInputDevice device(buffer, bufferLen);
+    PdfMemoryInputDevice device(buffer, bufferLen);
     PdfTokenizer tokenizer(m_buffer);
     PdfVariant var;
     int i = 0;

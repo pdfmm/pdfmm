@@ -818,7 +818,7 @@ PdfColor PdfColor::FromString(const string_view& name)
     // PdfArray
     else if (name[0] == '[')
     {
-        PdfInputDevice device(name.data(), name.size());
+        PdfMemoryInputDevice device(name);
         PdfTokenizer tokenizer;
         PdfVariant var;
 

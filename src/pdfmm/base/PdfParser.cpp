@@ -118,7 +118,7 @@ void PdfParser::ParseFile(const string_view& filename, bool loadOnDemand)
     if (filename.length() == 0)
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-    auto device = std::make_shared<PdfInputDevice>(filename);
+    auto device = std::make_shared<PdfFileInputDevice>(filename);
     this->Parse(device, loadOnDemand);
 }
 
@@ -127,7 +127,7 @@ void PdfParser::ParseBuffer(const string_view& buffer, bool loadOnDemand)
     if (buffer.length() == 0)
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-    auto device = std::make_shared<PdfInputDevice>(buffer.data(), buffer.length());
+    auto device = std::make_shared<PdfMemoryInputDevice>(buffer);
     this->Parse(device, loadOnDemand);
 }
 

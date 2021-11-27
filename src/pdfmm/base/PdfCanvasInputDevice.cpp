@@ -140,6 +140,6 @@ bool PdfCanvasInputDevice::tryGetNextDevice(PdfInputDevice*& device)
 
 void PdfCanvasInputDevice::popNextDevice()
 {
-    m_device = std::make_unique<PdfInputDevice>(m_contents.front()->GetOrCreateStream());
+    m_device = std::make_unique<PdfMemoryInputDevice>(m_contents.front()->GetOrCreateStream());
     m_contents.pop_front();
 }

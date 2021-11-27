@@ -158,7 +158,7 @@ void PdfFontCIDTrueType::embedFontFile(PdfObject& descriptor)
         m_Encoding->ExportToFont(*this);
 
         auto& metrics = GetMetrics();
-        PdfInputDevice input(metrics.GetFontFileData().data(), metrics.GetFontFileData().size());
+        PdfMemoryInputDevice input(metrics.GetFontFileData());
         chars buffer;
 
         PdfFontTrueTypeSubset::BuildFont(buffer, input, 0, cidToGidMap);
