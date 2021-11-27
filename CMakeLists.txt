@@ -1,8 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
 
-#
-# Project name and version
-#
 project(pdfmm)
 
 set(PDFMM_VERSION_MAJOR "0" CACHE STRING "Major part of pdfmm version number")
@@ -28,6 +25,14 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 # If users try to use something else the results can be confusing. We set a
 # variable here that we require to be set elsewhere, otherwise we'll complain.
 set(PDFMM_MAIN_CMAKELISTS_READ TRUE)
+
+if(NOT PDFMM_BUILD_LIB_ONLY)
+    # We assume a standalone build so we set output
+    # path to a fixed location
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/target)
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/target)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/target)
+endif()
 
 # If the user hasn't told use specifically what they want, build only
 # a static library or only a shared library on Windows.
@@ -245,11 +250,8 @@ add_subdirectory(src/pdfmm)
 include_directories(${PDFMM_INCLUDE_DIRS})
 
 if(NOT PDFMM_BUILD_LIB_ONLY)
-    # Tell gtest to use shared crt (option /MD)
-    set(gtest_force_shared_crt ON)
     enable_testing()
-    #add_subdirectory(extern/gtest)
-    #add_subdirectory(test) # Re-enable when fixing tests
+    #add_subdirectory(test)
     add_subdirectory(examples)
 endif()
 

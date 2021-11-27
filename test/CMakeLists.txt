@@ -1,15 +1,15 @@
-SUBDIRS(
-#	ContentParser
-#	CreationTest
-#	FilterTest
-#	FormTest
-#	LargeTest
-#	ObjectParserTest
-#	ParserTest
-#	SignatureTest
-#	TokenizerTest
-#	VariantTest
-#	WatermarkTest
-	unit
-	)
-
+include_directories(common)
+set(Catch2_DIR "${CMAKE_CURRENT_SOURCE_DIR}/common/cmake")
+find_package(Catch2 REQUIRED)
+#add_subdirectory(ContentParser)
+#add_subdirectory(CreationTest)
+#add_subdirectory(FilterTest)
+#add_subdirectory(FormTest)
+#add_subdirectory(LargeTest)
+#add_subdirectory(ObjectParserTest)
+#add_subdirectory(ParserTest)
+#add_subdirectory(SignatureTest)
+#add_subdirectory(TokenizerTest)
+#add_subdirectory(VariantTest)
+#add_subdirectory(WatermarkTest)
+add_subdirectory(unit)

@@ -6,30 +6,19 @@
  * Some rights reserved. See COPYING, AUTHORS.
  */
 
-#include "BasicTypeTest.h"
-#include <podofo.h>
-
+#include <catch.hpp>
 #include <limits>
 
-using namespace PoDoFo;
+#include <pdfmm/pdfmm.h>
+#include <iostream>
+using namespace std;
+using namespace mm;
 
-// Registers the fixture into the 'registry'
-CPPUNIT_TEST_SUITE_REGISTRATION(BasicTypeTest);
+/** This class tests the basic integer and other types PoDoFo uses
+ *  to make sure they satisfy its requirements for behaviour, size, etc.
+ */
 
-void BasicTypeTest::setUp()
+TEST_CASE("BasicTypeTest")
 {
-}
-
-void BasicTypeTest::tearDown()
-{
-}
-
-void BasicTypeTest::testXrefOffsetTypeSize()
-{
-    CPPUNIT_ASSERT_MESSAGE("pdf_uint64 is big enough to hold an xref entry", std::numeric_limits<uint64_t>::max() >= 9999999999);
-}
-
-void BasicTypeTest::testDefaultMaximumNumberOfObjects()
-{
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("PdfReference allows 8,388,607 indirect objects.", 8388607L, PdfParser::GetMaxObjectCount());
+    REQUIRE(std::numeric_limits<uint64_t>::max() >= 9999999999);
 }
