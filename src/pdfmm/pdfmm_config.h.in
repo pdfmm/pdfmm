@@ -21,4 +21,5 @@
 #cmakedefine PDFMM_HAVE_PNG_LIB
 #cmakedefine PDFMM_HAVE_TIFF_LIB
 #cmakedefine PDFMM_HAVE_FONTCONFIG
+#cmakedefine PDFMM_HAVE_WIN32GDI
 #cmakedefine PDFMM_HAVE_LIBIDN
