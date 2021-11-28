@@ -96,7 +96,7 @@ protected:
     virtual void seek(std::streamoff off, std::ios_base::seekdir dir);
 };
 
-class PdfStreamInputDevice : public PdfInputDevice
+class PDFMM_API PdfStreamInputDevice : public PdfInputDevice
 {
 protected:
     PdfStreamInputDevice();
@@ -134,7 +134,7 @@ private:
     bool m_StreamOwned;
 };
 
-class PdfFileInputDevice final : public PdfStreamInputDevice
+class PDFMM_API PdfFileInputDevice final : public PdfStreamInputDevice
 {
 public:
     /** Construct a new PdfInputDevice that reads all data from a file.
@@ -145,7 +145,7 @@ public:
     PdfFileInputDevice(const std::string_view& filename);
 };
 
-class PdfMemoryInputDevice final : public PdfStreamInputDevice
+class PDFMM_API PdfMemoryInputDevice final : public PdfStreamInputDevice
 {
 public:
     /** Construct a new PdfInputDevice that reads all data from a memory buffer.

@@ -62,9 +62,10 @@ PdfStreamInputDevice::PdfStreamInputDevice()
 PdfStreamInputDevice::PdfStreamInputDevice(istream& stream)
     : m_StreamOwned(false)
 {
-    m_Stream = &stream;
     if (!m_Stream->good())
         PDFMM_RAISE_ERROR(PdfErrorCode::FileNotFound);
+
+    m_Stream = &stream;
 }
 
 PdfStreamInputDevice::~PdfStreamInputDevice()
