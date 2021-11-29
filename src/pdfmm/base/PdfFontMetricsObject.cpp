@@ -230,7 +230,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
         m_ItalicAngle = static_cast<int>(dict.FindKeyAs<double>("ItalicAngle", 0));
         m_Ascent = dict.FindKeyAs<double>("Ascent", 0.0) * m_Matrix[3];
         m_Descent = dict.FindKeyAs<double>("Descent", 0.0) * m_Matrix[3];
-        m_Flags = (PdfFontDescriptorFlags)dict.FindKeyAs<double>("Flags", 0);
+        m_Flags = (PdfFontDescriptorFlags)dict.FindKeyAs<int64_t>("Flags", 0);
     }
 
     m_BaseName = PdfFont::ExtractBaseName(m_FontName, m_IsBoldHint, m_IsItalicHint);
