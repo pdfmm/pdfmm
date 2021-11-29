@@ -260,7 +260,7 @@ void utls::WriteUInt32BE(PdfOutputDevice& output, uint32_t value)
     output.Write(string_view(buf, 4));
 }
 
-void utls::WriteInt32BE(mm::PdfOutputDevice& output, int32_t value)
+void utls::WriteInt32BE(PdfOutputDevice& output, int32_t value)
 {
     char buf[4];
     WriteInt32BE(buf, value);
@@ -274,7 +274,7 @@ void utls::WriteUInt16BE(PdfOutputDevice& output, uint16_t value)
     output.Write(string_view(buf, 2));
 }
 
-void utls::WriteInt16BE(mm::PdfOutputDevice& output, int16_t value)
+void utls::WriteInt16BE(PdfOutputDevice& output, int16_t value)
 {
     char buf[2];
     WriteInt16BE(buf, value);
@@ -320,10 +320,10 @@ void utls::ReadUInt32BE(PdfInputDevice& input, uint32_t& value)
     ReadUInt32BE(buf, value);
 }
 
-void utls::ReadInt32BE(mm::PdfInputDevice& input, int32_t& value)
+void utls::ReadInt32BE(PdfInputDevice& input, int32_t& value)
 {
-    char buf[2];
-    input.Read(buf, 2);
+    char buf[4];
+    input.Read(buf, 4);
     ReadInt32BE(buf, value);
 }
 
@@ -334,7 +334,7 @@ void utls::ReadUInt16BE(PdfInputDevice& input, uint16_t& value)
     ReadUInt16BE(buf, value);
 }
 
-void utls::ReadInt16BE(mm::PdfInputDevice& input, int16_t& value)
+void utls::ReadInt16BE(PdfInputDevice& input, int16_t& value)
 {
     char buf[2];
     input.Read(buf, 2);
