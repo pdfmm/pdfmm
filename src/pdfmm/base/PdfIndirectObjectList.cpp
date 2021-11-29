@@ -390,6 +390,11 @@ void PdfIndirectObjectList::visitObject(const PdfObject& obj, unordered_set<PdfR
                 visitObject(pair.second, referencedObjects);
             break;
         }
+        default:
+        {
+            // Nothing to do
+            break;
+        }
     }
 }
 

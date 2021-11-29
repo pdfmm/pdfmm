@@ -294,9 +294,9 @@ void PdfFontType1::embedFontSubset()
     contents->GetDictionary().AddKey("Length3", PdfObject(static_cast<int64_t>(length3)));
 }
 
-/* TODO: Understand what this code was meant to do
-         Settle all the subsetting stuff
-         For now we just rely on the PdfFontSimple generic embedding 
+// TODO: Understand what this code was meant to do
+//       Settle all the subsetting stuff
+//       For now we just rely on the PdfFontSimple generic embedding
 void PdfFontType1::embedFontFile(PdfObject& descriptor)
 {
     size_t size = 0;

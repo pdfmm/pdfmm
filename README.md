@@ -37,12 +37,16 @@ CMake 3.16 and the following libraries:
 * libpng (optional)
 * libidn (optional)
 
-pdfmm is currently tested with the following compilers:
+pdfmm is regularly tested with the following toolchains,
+which can be assumed to be the minimum versions required:
 
 * Visual Studio 2017 15.9
-* Visual Studio 2019 16.10
 * gcc 7.3.1
-* clang 5.0
+* llvm/clang 7.0
+
+It is also tested with the following:
+
+* Visual Studio 2019 16.11
 
 ## Licensing
 

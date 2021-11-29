@@ -40,7 +40,7 @@ public:
     bool SupportsSubsetting() const override;
     PdfFontType GetType() const override;
     bool TryMapCIDToGID(unsigned cid, unsigned& gid) const override;
-    bool TryMapGIDToCID(unsigned gid, unsigned& cid) const;
+    bool TryMapGIDToCID(unsigned gid, unsigned& cid) const override;
 
 protected:
     void embedFont() override;
