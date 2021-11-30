@@ -17,9 +17,9 @@ using namespace std;
 using namespace mm;
 
 #ifdef DEBUG
-LogSeverity s_MinLogSeverity = LogSeverity::Debug;
+PdfLogSeverity s_MinLogSeverity = PdfLogSeverity::Debug;
 #else
-LogSeverity s_MinLogSeverity = LogSeverity::Information;
+PdfLogSeverity s_MinLogSeverity = PdfLogSeverity::Information;
 #endif // DEBUG
 
 static LogMessageCallback s_LogMessageCallback;
@@ -31,11 +31,6 @@ void PdfError::SetLogMessageCallback(const LogMessageCallback& logMessageCallbac
 
 PdfErrorInfo::PdfErrorInfo(unsigned line, string file, string info)
     : m_Line(line), m_File(std::move(file)), m_Info(std::move(info)) { }
-
-PdfError::PdfError()
-{
-    m_error = PdfErrorCode::Ok;
-}
 
 PdfError::PdfError(PdfErrorCode code, string file, unsigned line,
     string information)
@@ -88,7 +83,7 @@ void PdfError::PrintErrorMsg() const
         i++;
     }
 
-    PdfError::LogMessage(LogSeverity::Error, stream.str());
+    PdfError::LogMessage(PdfLogSeverity::Error, stream.str());
 }
 
 const char* PdfError::what() const
@@ -101,9 +96,6 @@ const char* PdfError::ErrorName(PdfErrorCode code)
     const char* msg = nullptr;
     switch (code)
     {
-        case PdfErrorCode::Ok:
-            msg = "PdfErrorCode::ErrOk";
-            break;
         case PdfErrorCode::TestFailed:
             msg = "PdfErrorCode::TestFailed";
             break;
@@ -275,9 +267,6 @@ const char* PdfError::ErrorMessage(PdfErrorCode code)
     const char* msg = nullptr;
     switch (code)
     {
-        case PdfErrorCode::Ok:
-            msg = "No error during execution.";
-            break;
         case PdfErrorCode::TestFailed:
             msg = "An error curred in an automatic test included in pdfmm.";
             break;
@@ -417,7 +406,7 @@ const char* PdfError::ErrorMessage(PdfErrorCode code)
     return msg;
 }
 
-void PdfError::LogMessage(LogSeverity logSeverity, const string_view& msg)
+void PdfError::LogMessage(PdfLogSeverity logSeverity, const string_view& msg)
 {
     if (logSeverity > s_MinLogSeverity)
         return;
@@ -428,18 +417,18 @@ void PdfError::LogMessage(LogSeverity logSeverity, const string_view& msg)
         bool ouputstderr = false;
         switch (logSeverity)
         {
-            case LogSeverity::Error:
+            case PdfLogSeverity::Error:
                 prefix = "ERROR: ";
                 ouputstderr = true;
                 break;
-            case LogSeverity::Warning:
+            case PdfLogSeverity::Warning:
                 prefix = "WARNING: ";
                 ouputstderr = true;
                 break;
-            case LogSeverity::Debug:
+            case PdfLogSeverity::Debug:
                 prefix = "DEBUG: ";
                 break;
-            case LogSeverity::Information:
+            case PdfLogSeverity::Information:
                 break;
             default:
                 PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
@@ -462,15 +451,15 @@ void PdfError::LogMessage(LogSeverity logSeverity, const string_view& msg)
     }
 }
 
-void PdfError::SetMinLoggingSeverity(LogSeverity logSeverity)
+void PdfError::SetMinLoggingSeverity(PdfLogSeverity logSeverity)
 {
     s_MinLogSeverity = logSeverity;
 }
 
-bool PdfError::IsLoggingSeverityEnabled(LogSeverity logSeverity)
+bool PdfError::IsLoggingSeverityEnabled(PdfLogSeverity logSeverity)
 {
-    if (logSeverity == LogSeverity::None)
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Unexpected LogSeverity::None");
+    if (logSeverity == PdfLogSeverity::None)
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Unexpected PdfLogSeverity::None");
 
     return logSeverity >= s_MinLogSeverity;
 }
@@ -478,9 +467,4 @@ bool PdfError::IsLoggingSeverityEnabled(LogSeverity logSeverity)
 void PdfError::AddToCallstack(string file, unsigned line, string information)
 {
     m_callStack.push_front(PdfErrorInfo(std::move(line), std::move(file), information));
-}
-
-bool PdfError::IsError() const
-{
-    return m_error != PdfErrorCode::Ok;
 }

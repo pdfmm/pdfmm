@@ -55,7 +55,7 @@ void PdfFontMetricsFreetype::initFromBuffer(const PdfFontMetrics* refMetrics)
     FT_Error rc = FT_Open_Face(mm::GetFreeTypeLibrary(), &openArgs, 0, &m_Face);
     if (rc != 0)
     {
-        PdfError::LogMessage(LogSeverity::Error,
+        PdfError::LogMessage(PdfLogSeverity::Error,
             "FreeType returned the error {} when calling FT_Open_Face for a buffered font", (int)rc);
         PDFMM_RAISE_ERROR(PdfErrorCode::FreeType);
     }
@@ -93,7 +93,7 @@ void PdfFontMetricsFreetype::initFromFace(const PdfFontMetrics* refMetrics)
 
         if (rc != 0)
         {
-            PdfError::LogMessage(LogSeverity::Error, "FreeType returned the error {} when calling FT_Select_Charmap for a buffered font", (int)rc);
+            PdfError::LogMessage(PdfLogSeverity::Error, "FreeType returned the error {} when calling FT_Select_Charmap for a buffered font", (int)rc);
             PDFMM_RAISE_ERROR(PdfErrorCode::FreeType);
         }
     }

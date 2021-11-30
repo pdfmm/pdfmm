@@ -232,7 +232,7 @@ void PdfParser::ReadDocumentStructure(const shared_ptr<PdfInputDevice>& device)
     }
     else
     {
-        PdfError::LogMessage(LogSeverity::Warning, "PDF Standard Violation: No /Size key was "
+        PdfError::LogMessage(PdfLogSeverity::Warning, "PDF Standard Violation: No /Size key was "
             "specified in the trailer directory. Will attempt to recover");
         // Treat the xref size as unknown, and expand the xref dynamically as we read it.
         m_objectCount = 0;
@@ -357,7 +357,7 @@ void PdfParser::HasLinearizationDict(const shared_ptr<PdfInputDevice>& device)
     }
     catch (PdfError& e)
     {
-        PdfError::LogMessage(LogSeverity::Warning, e.ErrorName(e.GetError()));
+        PdfError::LogMessage(PdfLogSeverity::Warning, e.ErrorName(e.GetError()));
         m_Linearization = nullptr;
         return;
     }
@@ -399,7 +399,7 @@ void PdfParser::HasLinearizationDict(const shared_ptr<PdfInputDevice>& device)
     {
         if (m_PdfVersion < PdfVersion::V1_5)
         {
-            PdfError::LogMessage(LogSeverity::Warning,
+            PdfError::LogMessage(PdfLogSeverity::Warning,
                 "Linearization dictionaries are only supported with PDF version 1.5. This is 1.{}. Trying to continue",
                 static_cast<int>(m_PdfVersion));
             // PDFMM_RAISE_ERROR( EPdfError::InvalidLinearization );
@@ -496,7 +496,7 @@ void PdfParser::ReadNextTrailer(const shared_ptr<PdfInputDevice>& device)
                 if (m_visitedXRefOffsets.find(offset) == m_visitedXRefOffsets.end())
                     ReadXRefContents(device, offset);
                 else
-                    PdfError::LogMessage(LogSeverity::Warning, "XRef contents at offset {} requested twice, skipping the second read",
+                    PdfError::LogMessage(PdfLogSeverity::Warning, "XRef contents at offset {} requested twice, skipping the second read",
                         static_cast<int64_t>(offset));
             }
             catch (PdfError& e)
@@ -549,7 +549,7 @@ void PdfParser::ReadTrailer(const shared_ptr<PdfInputDevice>& device)
         }
 
 #ifdef PDFMM_VERBOSE_DEBUG
-        PdfError::LogMessage(LogSeverity::Debug, "Size={}", m_Trailer->GetDictionary().GetKeyAs<int64_t>(PdfName::KeySize, 0));
+        PdfError::LogMessage(PdfLogSeverity::Debug, "Size={}", m_Trailer->GetDictionary().GetKeyAs<int64_t>(PdfName::KeySize, 0));
 #endif // PDFMM_VERBOSE_DEBUG
     }
 }
@@ -658,7 +658,7 @@ void PdfParser::ReadXRefContents(const shared_ptr<PdfInputDevice>& device, size_
             objectCount = m_tokenizer.ReadNextNumber(*device);
 
 #ifdef PDFMM_VERBOSE_DEBUG
-            PdfError::LogMessage(LogSeverity::Debug, "Reading numbers: {} {}", firstObject, objectCount);
+            PdfError::LogMessage(PdfLogSeverity::Debug, "Reading numbers: {} {}", firstObject, objectCount);
 #endif // PDFMM_VERBOSE_DEBUG
 
             if (positionAtEnd)
@@ -718,7 +718,7 @@ void PdfParser::ReadXRefSubsection(PdfInputDevice& device, int64_t& firstObject,
 {
     int64_t count = 0;
 #ifdef PDFMM_VERBOSE_DEBUG
-    PdfError::LogMessage(LogSeverity::Debug, "Reading XRef Section: {} {} Objects", firstObject, objectCount);
+    PdfError::LogMessage(PdfLogSeverity::Debug, "Reading XRef Section: {} {} Objects", firstObject, objectCount);
 #endif // PDFMM_VERBOSE_DEBUG 
 
     if (firstObject < 0)
@@ -735,7 +735,7 @@ void PdfParser::ReadXRefSubsection(PdfInputDevice& device, int64_t& firstObject,
             // Total number of xref entries to read is greater than the /Size
             // specified in the trailer if any. That's an error unless we're
             // trying to recover from a missing /Size entry.
-            PdfError::LogMessage(LogSeverity::Warning,
+            PdfError::LogMessage(PdfLogSeverity::Warning,
                 "There are more objects {} in this XRef "
                 "table than specified in the size key of the trailer directory ({})!"
                 , firstObject + objectCount,
@@ -769,7 +769,7 @@ void PdfParser::ReadXRefSubsection(PdfInputDevice& device, int64_t& firstObject,
     }
     else
     {
-        PdfError::LogMessage(LogSeverity::Error, "There are more objects ({} + {} seemingly) "
+        PdfError::LogMessage(PdfLogSeverity::Error, "There are more objects ({} + {} seemingly) "
             "in this XRef table than supported by standard PDF, or it's inconsistent",
             firstObject, objectCount);
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidXRef);
@@ -853,7 +853,7 @@ void PdfParser::ReadXRefSubsection(PdfInputDevice& device, int64_t& firstObject,
 
     if (count != objectCount)
     {
-        PdfError::LogMessage(LogSeverity::Warning, "Count of readobject is {}. Expected {}", count, objectCount);
+        PdfError::LogMessage(PdfLogSeverity::Warning, "Count of readobject is {}. Expected {}", count, objectCount);
         PDFMM_RAISE_ERROR(PdfErrorCode::NoXRef);
     }
 
@@ -915,7 +915,7 @@ void PdfParser::ReadObjects(const shared_ptr<PdfInputDevice>& device)
     if (encrypt != nullptr && !encrypt->IsNull())
     {
 #ifdef PDFMM_VERBOSE_DEBUG
-        PdfError::LogMessage(LogSeverity::Debug, "The PDF file is encrypted");
+        PdfError::LogMessage(PdfLogSeverity::Debug, "The PDF file is encrypted");
 #endif // PDFMM_VERBOSE_DEBUG
 
         if (encrypt->IsReference())
@@ -1007,7 +1007,7 @@ void PdfParser::ReadObjectsInternal(const shared_ptr<PdfInputDevice>& device)
                             }
                             else
                             {
-                                PdfError::LogMessage(LogSeverity::Warning,
+                                PdfError::LogMessage(PdfLogSeverity::Warning,
                                     "Found object with generation different than reported in XRef sections");
                             }
                         }
@@ -1048,7 +1048,7 @@ void PdfParser::ReadObjectsInternal(const shared_ptr<PdfInputDevice>& device)
                             delete obj;
                             if (m_IgnoreBrokenObjects)
                             {
-                                PdfError::LogMessage(LogSeverity::Error, "Error while loading object {} {} R, Offset={}, Index={}",
+                                PdfError::LogMessage(PdfLogSeverity::Error, "Error while loading object {} {} R, Offset={}, Index={}",
                                     obj->GetIndirectReference().ObjectNumber(),
                                     obj->GetIndirectReference().GenerationNumber(),
                                     entry.Offset, i);
@@ -1078,7 +1078,7 @@ void PdfParser::ReadObjectsInternal(const shared_ptr<PdfInputDevice>& device)
                         }
                         else
                         {
-                            PdfError::LogMessage(LogSeverity::Warning,
+                            PdfError::LogMessage(PdfLogSeverity::Warning,
                                 "Treating object {} 0 R as a free object", i);
                             m_Objects->AddFreeObject(PdfReference(i, 1));
                         }
@@ -1166,7 +1166,7 @@ void PdfParser::ReadCompressedObjectFromStream(uint32_t objNo, int index)
     {
         if (m_IgnoreBrokenObjects)
         {
-            PdfError::LogMessage(LogSeverity::Error, "Loading of object {} 0 R failed!", objNo);
+            PdfError::LogMessage(PdfLogSeverity::Error, "Loading of object {} 0 R failed!", objNo);
             return;
         }
         else
@@ -1301,7 +1301,7 @@ void PdfParser::UpdateDocumentVersion()
 
                 if (version.IsName() && version.GetName().GetString() == s_PdfVersionNums[i])
                 {
-                    PdfError::LogMessage(LogSeverity::Information,
+                    PdfError::LogMessage(PdfLogSeverity::Information,
                         "Updating version from {} to {}",
                         s_PdfVersionNums[static_cast<int>(m_PdfVersion)],
                         s_PdfVersionNums[i]);

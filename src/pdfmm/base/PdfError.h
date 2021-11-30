@@ -34,7 +34,6 @@ namespace mm {
 enum class PdfErrorCode
 {
     Unknown = 0,              ///< Unknown error
-    Ok,                       ///< The default value indicating no error.
 
     TestFailed,               ///< Used in pdfmm tests, to indicate that a test failed for some reason.
 
@@ -108,7 +107,7 @@ enum class PdfErrorCode
  *
  * \see PdfError::LogMessage
  */
-enum class LogSeverity
+enum class PdfLogSeverity
 {
     None = 0,            ///< Logging disabled
     Error,               ///< Error
@@ -175,7 +174,7 @@ private:
 };
 
 typedef std::deque<PdfErrorInfo> PdErrorInfoQueue;
-typedef std::function<void(LogSeverity logSeverity, const std::string_view& msg)> LogMessageCallback;
+typedef std::function<void(PdfLogSeverity logSeverity, const std::string_view& msg)> LogMessageCallback;
 
 // This is required to generate the documentation with Doxygen.
 // Without this define doxygen thinks we have a class called PDFMM_EXCEPTION_API(PDFMM_API) ...
@@ -272,11 +271,6 @@ public:
      */
     void AddToCallstack(std::string file, unsigned line, std::string information);
 
-    /** \returns true if an error code was set
-     *           and false if the error code is PdfErrorCode::Ok.
-     */
-    bool IsError() const;
-
     /** Print an error message to stderr. This includes callstack
      *  and extra info, if any of either was set.
      */
@@ -305,21 +299,21 @@ public:
      *  \param logSeverity the severity of the log message
      *  \param msg       the message to be logged
      */
-    static void LogMessage(LogSeverity logSeverity, const std::string_view& msg);
+    static void LogMessage(PdfLogSeverity logSeverity, const std::string_view& msg);
 
     template <typename... Args>
-    static void LogMessage(LogSeverity logSeverity, const std::string_view& msg, const Args&... args)
+    static void LogMessage(PdfLogSeverity logSeverity, const std::string_view& msg, const Args&... args)
     {
         LogMessage(logSeverity, PDFMM_FORMAT(msg, args...));
     }
 
     /** Set the minimum logging severity
     */
-    static void SetMinLoggingSeverity(LogSeverity logSeverity);
+    static void SetMinLoggingSeverity(PdfLogSeverity logSeverity);
 
     /** The if the given logging severity enabled or not
      */
-    static bool IsLoggingSeverityEnabled(LogSeverity logSeverity);
+    static bool IsLoggingSeverityEnabled(PdfLogSeverity logSeverity);
 
 private:
     PdfErrorCode m_error;

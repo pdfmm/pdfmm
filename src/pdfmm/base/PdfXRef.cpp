@@ -251,7 +251,7 @@ void PdfXRef::BeginWrite(PdfOutputDevice& device)
 void PdfXRef::WriteSubSection(PdfOutputDevice& device, uint32_t first, uint32_t count)
 {
 #ifdef DEBUG
-    PdfError::LogMessage(LogSeverity::Debug, "Writing XRef section: {} {}", first, count);
+    PdfError::LogMessage(PdfLogSeverity::Debug, "Writing XRef section: {} {}", first, count);
 #endif // DEBUG
     device.Write(PDFMM_FORMAT("{} {}\n", first, count));
 }

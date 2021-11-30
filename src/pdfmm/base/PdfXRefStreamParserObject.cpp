@@ -171,7 +171,7 @@ void PdfXRefStreamParserObject::ReadXRefStreamEntry(PdfXRefEntry& entry, char* b
     {
         if (wArray[i] > W_MAX_BYTES)
         {
-            PdfError::LogMessage(LogSeverity::Error,
+            PdfError::LogMessage(PdfLogSeverity::Error,
                 "The XRef stream dictionary has an entry in /W of size {}. The maximum supported value is {}",
                 wArray[i], W_MAX_BYTES);
 

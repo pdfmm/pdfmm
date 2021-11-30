@@ -201,7 +201,7 @@ PdfFont* PdfFontManager::GetFont(FT_Face face, const PdfEncoding& encoding,
     string name = PdfFont::ExtractBaseName(FT_Get_Postscript_Name(face));
     if (name.empty())
     {
-        PdfError::LogMessage(LogSeverity::Error, "Could not retrieve fontname for font!");
+        PdfError::LogMessage(PdfLogSeverity::Error, "Could not retrieve fontname for font!");
         return nullptr;
     }
 
@@ -325,7 +325,7 @@ PdfFont* PdfFontManager::createFontObject(const string_view& fontName,
     {
         PDFMM_PUSH_FRAME(e);
         e.PrintErrorMsg();
-        PdfError::LogMessage(LogSeverity::Error, "Cannot initialize font: {}", fontName);
+        PdfError::LogMessage(PdfLogSeverity::Error, "Cannot initialize font: {}", fontName);
         return nullptr;
     }
 }
@@ -394,7 +394,7 @@ unique_ptr<chars> getFontData(const string_view& filename, unsigned short faceIn
     if (rc != 0)
     {
         // throw an exception
-        PdfError::LogMessage(LogSeverity::Error, "FreeType returned the error {} when calling FT_New_Face for font {}",
+        PdfError::LogMessage(PdfLogSeverity::Error, "FreeType returned the error {} when calling FT_New_Face for font {}",
             (int)rc, filename);
         return nullptr;
     }
@@ -411,7 +411,7 @@ unique_ptr<chars> getFontData(const string_view& filename, unsigned short faceIn
 
     return buffer;
 Error:
-    PdfError::LogMessage(LogSeverity::Error, "FreeType returned the error {} when calling FT_Load_Sfnt_Table for font {}",
+    PdfError::LogMessage(PdfLogSeverity::Error, "FreeType returned the error {} when calling FT_Load_Sfnt_Table for font {}",
         (int)rc, filename);
     return nullptr;
 }

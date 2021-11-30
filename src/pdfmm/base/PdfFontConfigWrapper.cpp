@@ -57,7 +57,7 @@ string PdfFontConfigWrapper::GetFontConfigFontPath(const string_view fontName, b
         result = FcPatternGet(matched, FC_FILE, 0, &v);
         path = reinterpret_cast<const char*>(v.u.s);
 #ifdef PDFMM_VERBOSE_DEBUG
-        PdfError::LogMessage(LogSeverity::Debug,
+        PdfError::LogMessage(PdfLogSeverity::Debug,
             "Got Font {} for for {}\n", path, fontName);
 #endif // PDFMM_DEBUG
     }

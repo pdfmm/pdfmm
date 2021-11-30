@@ -92,13 +92,13 @@ void PdfMemDocument::InitFromParser(PdfParser& parser)
     this->SetTrailer(std::move(trailer)); // Set immediately as trailer
                                 // so that trailer has an owner
 
-    if (PdfError::IsLoggingSeverityEnabled(LogSeverity::Debug))
+    if (PdfError::IsLoggingSeverityEnabled(PdfLogSeverity::Debug))
     {
         string buf;
         PdfStringOutputDevice debug(buf);
         GetTrailer().GetVariant().Write(debug, PdfWriteMode::None, nullptr);
         debug.Put('\n');
-        PdfError::LogMessage(LogSeverity::Debug, buf);
+        PdfError::LogMessage(PdfLogSeverity::Debug, buf);
     }
 
     if (parser.IsEncrypted())

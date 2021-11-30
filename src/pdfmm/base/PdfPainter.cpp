@@ -93,7 +93,7 @@ PdfPainter::~PdfPainter() noexcept(false)
     // we can't throw here, but must abort.
     if (m_stream != nullptr)
     {
-        PdfError::LogMessage(LogSeverity::Error,
+        PdfError::LogMessage(PdfLogSeverity::Error,
             "PdfPainter::~PdfPainter(): FinishPage() has to be called after a page is completed!");
     }
 
