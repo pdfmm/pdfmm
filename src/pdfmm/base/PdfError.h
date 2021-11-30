@@ -308,8 +308,12 @@ public:
     }
 
     /** Set the minimum logging severity
-    */
+     */
     static void SetMinLoggingSeverity(PdfLogSeverity logSeverity);
+
+    /** Get the minimum logging severity
+     */
+    static PdfLogSeverity GetMinLoggingSeverity();
 
     /** The if the given logging severity enabled or not
      */

@@ -456,6 +456,11 @@ void PdfError::SetMinLoggingSeverity(PdfLogSeverity logSeverity)
     s_MinLogSeverity = logSeverity;
 }
 
+PdfLogSeverity PdfError::GetMinLoggingSeverity()
+{
+    return s_MinLogSeverity;
+}
+
 bool PdfError::IsLoggingSeverityEnabled(PdfLogSeverity logSeverity)
 {
     if (logSeverity == PdfLogSeverity::None)
