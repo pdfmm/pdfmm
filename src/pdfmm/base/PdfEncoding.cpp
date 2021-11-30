@@ -402,6 +402,11 @@ bool PdfEncoding::HasCIDMapping() const
     return m_Encoding->IsCMapEncoding();
 }
 
+bool PdfEncoding::HasParsedLimits() const
+{
+    return m_Limits.AreValid();
+}
+
 PdfFont& PdfEncoding::GetFont() const
 {
     PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "The encoding has not been binded to a font");
@@ -439,7 +444,7 @@ char32_t PdfEncoding::GetCodePoint(unsigned charCode) const
 
 const PdfEncodingLimits& PdfEncoding::GetLimits() const
 {
-    if (m_Limits.FirstChar.Code > m_Limits.LastChar.Code)
+    if (!m_Limits.AreValid())
         return m_Encoding->GetLimits();
 
     return m_Limits;

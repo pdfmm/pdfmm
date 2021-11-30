@@ -30,9 +30,12 @@
 #include "PdfFontManager.h"
 #include "PdfFontMetricsFreetype.h"
 
-
 using namespace std;
 using namespace mm;
+
+// All Standard14 fonts have glyphs that start with a
+// white space (code 0x20, or 32)
+static constexpr unsigned DEFAULT_STD14_FIRSTCHAR = 32;
 
 // kind of ABCDEF+
 static string_view genSubsetPrefix();
@@ -77,7 +80,7 @@ bool PdfFont::TryGetSubstituteFont(unique_ptr<PdfFont>& substFont)
     {
         // Early intercept Standard14 fonts
         PdfStandard14FontType std14Font;
-        if (GetMetrics().IsStandard14FontMetrics(std14Font) ||
+        if (m_Metrics->IsStandard14FontMetrics(std14Font) ||
             PdfFont::IsStandard14Font(GetMetrics().GetFontNameSafe(), true, std14Font))
         {
             metrics = PdfFontMetricsStandard14::GetInstance(std14Font);
@@ -337,20 +340,8 @@ double PdfFont::GetDefaultCharWidth(const PdfTextState& state, bool ignoreCharSp
 double PdfFont::GetCIDWidthRaw(unsigned cid) const
 {
     unsigned gid;
-    if (m_Encoding->HasCIDMapping())
-    {
-        if (!TryMapCIDToGID(cid, gid))
-            return m_Metrics->GetDefaultWidth();
-    }
-    else
-    {
-        char32_t mappedCodePoint = m_Encoding->GetCodePoint(cid);
-        if (mappedCodePoint == U'\0'
-            || !m_Metrics->TryGetGID(mappedCodePoint, gid))
-        {
-            return m_Metrics->GetDefaultWidth();
-        }
-    }
+    if (!TryMapCIDToGID(cid, gid))
+        return m_Metrics->GetDefaultWidth();
 
     return m_Metrics->GetGlyphWidth(gid);
 }
@@ -518,6 +509,16 @@ bool PdfFont::SupportsSubsetting() const
     return false;
 }
 
+bool PdfFont::IsStandard14Font() const
+{
+    return m_Metrics->IsStandard14FontMetrics();
+}
+
+bool PdfFont::IsStandard14Font(PdfStandard14FontType& std14Font) const
+{
+    return m_Metrics->IsStandard14FontMetrics(std14Font);
+}
+
 PdfObject& PdfFont::GetDescendantFontObject()
 {
     auto obj = getDescendantFontObject();
@@ -529,16 +530,58 @@ PdfObject& PdfFont::GetDescendantFontObject()
 
 bool PdfFont::TryMapCIDToGID(unsigned cid, unsigned& gid) const
 {
-    // By default it's identity with cid
-    gid = cid;
-    return true;
+    if (m_IsObjectLoaded)
+    {
+        if (m_Metrics->IsStandard14FontMetrics() && !m_Encoding->HasParsedLimits())
+        {
+            gid = cid - DEFAULT_STD14_FIRSTCHAR;
+        }
+        else
+        {
+            // We just convert to a GID using /FirstChar
+            gid = cid - m_Encoding->GetFirstChar().Code;
+        }
+
+        return true;
+    }
+    else
+    {
+        char32_t mappedCodePoint = m_Encoding->GetCodePoint(cid);
+        if (mappedCodePoint == U'\0'
+            || !m_Metrics->TryGetGID(mappedCodePoint, gid))
+        {
+            gid = 0;
+            return false;
+        }
+
+        return true;
+    }
 }
 
 bool PdfFont::TryMapGIDToCID(unsigned gid, unsigned& cid) const
 {
-    // By default it's identity with gid
-    cid = gid;
-    return true;
+    if (m_IsObjectLoaded)
+    {
+        if (m_Metrics->IsStandard14FontMetrics() && !m_Encoding->HasParsedLimits())
+        {
+            cid = gid + DEFAULT_STD14_FIRSTCHAR;
+        }
+        else
+        {
+            // We just convert to a CID using /FirstChar
+            cid = gid + m_Encoding->GetFirstChar().Code;
+        }
+
+        return true;
+    }
+    else
+    {
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic,
+            "We don't support mapping GID to CID from a not loaded font");
+        // NOTE: If it's needed a best effort /ToUnicode map
+        // inferred from a font file, use the function
+        // PdfFontMetrics::CreateToUnicodeMap()
+    }
 }
 
 PdfObject* PdfFont::getDescendantFontObject()

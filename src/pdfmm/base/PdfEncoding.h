@@ -132,6 +132,10 @@ namespace mm
          */
         bool HasCIDMapping() const;
 
+        /** Returns true if /FirstChar and /LastChar were parsed from object
+         */
+        bool HasParsedLimits() const;
+
         /**
          * Return an Id to be used in hashed containers.
          * Id 0 has a special meaning for PdfDynamicEncoding

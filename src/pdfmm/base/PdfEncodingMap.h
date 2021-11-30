@@ -27,6 +27,10 @@ public:
         const PdfCharCode& firstCharCode, const PdfCharCode& lastCharCode);
     PdfEncodingLimits();
 
+    /** Returns true if the limits are valid, such as FirstChar is <= LastChar
+     */
+    bool AreValid() const;
+
     unsigned char MinCodeSize;
     unsigned char MaxCodeSize;
     PdfCharCode FirstChar;     // The first defined character code

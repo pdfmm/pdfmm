@@ -132,7 +132,6 @@ bool PdfEncodingMap::TryGetNextCID(string_view::iterator& it,
     else
     {
         // If there's no CID mapping, we just iterate character codes
-        // and convert to a CID using /FirstChar
 
         // Save current iterator in the case the search is unsuccessful
         string_view::iterator curr = it;
@@ -149,9 +148,8 @@ bool PdfEncodingMap::TryGetNextCID(string_view::iterator& it,
             curr++;
             if (i == m_limits.MaxCodeSize)
             {
-                // Map the character code to a CID with /FirstChar
                 cid.Unit = { code, m_limits.MaxCodeSize };
-                cid.Id = code - m_limits.FirstChar.Code;
+                cid.Id = code; // We assume identity with CharCode
                 it = curr;
                 return true;
             }
@@ -189,8 +187,8 @@ bool PdfEncodingMap::TryGetCIDId(const PdfCharCode& codeUnit, unsigned& id) cons
     }
     else
     {
-        // If there's no CID mapping, we just convert to a CID using /FirstChar
-        id = codeUnit.Code - m_limits.FirstChar.Code;
+        // If there's no CID mapping, we just assume identity with CharCode
+        id = codeUnit.Code;
         return true;
     }
 }
@@ -470,6 +468,11 @@ PdfEncodingLimits::PdfEncodingLimits(unsigned char minCodeSize, unsigned char ma
 PdfEncodingLimits::PdfEncodingLimits() :
     PdfEncodingLimits(numeric_limits<unsigned char>::max(), 0, PdfCharCode(numeric_limits<unsigned>::max()), PdfCharCode(0))
 {
+}
+
+bool PdfEncodingLimits::AreValid() const
+{
+    return FirstChar.Code <= LastChar.Code;
 }
 
 PdfCID::PdfCID()
