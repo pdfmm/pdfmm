@@ -26,15 +26,17 @@ public:
     PdfContents(PdfPage &parent);
 
     /** Get access to the raw contents object.
-     *  It will either be a PdfStream or a PdfArray
+     *  It will either be a PdfObjectStream or a PdfArray
      *  \returns a contents object
      */
-    PdfObject & GetObject() const;
+    inline const PdfObject& GetObject() const { return *m_object; }
+
+    inline PdfObject& GetObject() { return *m_object; }
 
     /** Get access to an object into which you can add contents
      *   at the end of the "stream".
      */
-    PdfStream & GetStreamForAppending(PdfStreamAppendFlags flags);
+    PdfObjectStream & GetStreamForAppending(PdfStreamAppendFlags flags);
 
 private:
     PdfPage *m_parent;

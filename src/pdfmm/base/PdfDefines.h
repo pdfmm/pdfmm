@@ -77,7 +77,7 @@ public:
 
     chars(size_t size);
 
-    explicit chars(const std::string_view& view);
+    explicit chars(const cspan<char>& view);
 
     chars(std::string&& str);
 };

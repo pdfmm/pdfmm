@@ -19,7 +19,7 @@
 #include "PdfDictionary.h"
 #include "PdfImmediateWriter.h"
 #include "PdfObject.h"
-#include "PdfStream.h"
+#include "PdfObjectStream.h"
 #include "PdfIndirectObjectList.h"
 #include "PdfAcroForm.h"
 #include "PdfDestination.h"
@@ -327,7 +327,7 @@ PdfRect PdfDocument::FillXObjectFromPage(PdfXObject& xobj, const PdfPage& page, 
             // copy array as one stream to xobject
             PdfArray arr = contents.GetArray();
 
-            PdfStream& xobjStream = xobj.GetObject().GetOrCreateStream();
+            PdfObjectStream& xobjStream = xobj.GetObject().GetOrCreateStream();
 
             PdfFilterList filters;
             filters.push_back(PdfFilterType::FlateDecode);
@@ -348,7 +348,7 @@ PdfRect PdfDocument::FillXObjectFromPage(PdfXObject& xobj, const PdfPage& page, 
                         }
                         else if (obj->HasStream())
                         {
-                            PdfStream& contStream = obj->GetOrCreateStream();
+                            PdfObjectStream& contStream = obj->GetOrCreateStream();
 
                             unique_ptr<char[]> contStreamBuffer;
                             size_t contStreamLength;
@@ -376,8 +376,8 @@ PdfRect PdfDocument::FillXObjectFromPage(PdfXObject& xobj, const PdfPage& page, 
         else if (contents.HasStream())
         {
             // copy stream to xobject
-            PdfStream& xobjStream = xobj.GetObject().GetOrCreateStream();
-            PdfStream& contentsStream = contents.GetOrCreateStream();
+            PdfObjectStream& xobjStream = xobj.GetObject().GetOrCreateStream();
+            PdfObjectStream& contentsStream = contents.GetOrCreateStream();
 
             PdfFilterList filters;
             filters.push_back(PdfFilterType::FlateDecode);

@@ -73,7 +73,7 @@ void PdfXObjectForm::SetRect(const PdfRect& rect)
     m_Rect = rect;
 }
 
-inline PdfStream& PdfXObjectForm::GetStreamForAppending(PdfStreamAppendFlags flags)
+inline PdfObjectStream& PdfXObjectForm::GetStreamForAppending(PdfStreamAppendFlags flags)
 {
     (void)flags; // Flags have no use here
     return GetObject().GetOrCreateStream();

@@ -12,7 +12,7 @@
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfLocale.h"
-#include "PdfStream.h"
+#include "PdfObjectStream.h"
 #include "PdfTokenizer.h"
 #include "PdfVariant.h"
 #include "PdfInputDevice.h"

@@ -16,7 +16,7 @@
 #include "PdfInputDevice.h"
 #include "PdfInputStream.h"
 #include "PdfParser.h"
-#include "PdfStream.h"
+#include "PdfObjectStream.h"
 #include "PdfVariant.h"
 
 #include <iostream>

@@ -20,7 +20,7 @@ namespace mm {
 
 class PdfDocument;
 class PdfObject;
-class PdfStream;
+class PdfObjectStream;
 class PdfVariant;
 
 typedef std::deque<PdfReference> PdfReferenceList;
@@ -71,12 +71,12 @@ public:
         /** Called whenever appending to a stream is started.
          *  \param stream the stream object the user currently writes to.
          */
-        virtual void BeginAppendStream(const PdfStream& stream) = 0;
+        virtual void BeginAppendStream(const PdfObjectStream& stream) = 0;
 
         /** Called whenever appending to a stream has ended.
          *  \param stream the stream object the user currently writes to.
          */
-        virtual void EndAppendStream(const PdfStream& stream) = 0;
+        virtual void EndAppendStream(const PdfObjectStream& stream) = 0;
 
         virtual void Finish() = 0;
     };
@@ -94,7 +94,7 @@ public:
          *
          *  \returns a new stream object
          */
-        virtual PdfStream* CreateStream(PdfObject& parent) = 0;
+        virtual PdfObjectStream* CreateStream(PdfObject& parent) = 0;
     };
 
 public:
@@ -212,13 +212,13 @@ public:
     void SetStreamFactory(StreamFactory* factory);
 
     /** Creates a stream object
-     *  This method is a factory for PdfStream objects.
+     *  This method is a factory for PdfObjectStream objects.
      *
      *  \param parent parent object
      *
      *  \returns a new stream object
      */
-    PdfStream* CreateStream(PdfObject& parent);
+    PdfObjectStream* CreateStream(PdfObject& parent);
 
     /** Can be called to force objects to be written to disk.
      *
@@ -233,12 +233,12 @@ public:
     /** Every stream implementation has to call this in BeginAppend
      *  \param stream the stream object that is calling
      */
-    void BeginAppendStream(const PdfStream& stream);
+    void BeginAppendStream(const PdfObjectStream& stream);
 
     /** Every stream implementation has to call this in EndAppend
      *  \param stream the stream object that is calling
      */
-    void EndAppendStream(const PdfStream& stream);
+    void EndAppendStream(const PdfObjectStream& stream);
 
     /**
      * Set the object count so that the object described this reference

@@ -15,7 +15,7 @@
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfName.h"
-#include "PdfStream.h"
+#include "PdfObjectStream.h"
 #include "PdfDifferenceEncoding.h"
 #include "PdfDocument.h"
 

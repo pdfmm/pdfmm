@@ -13,10 +13,10 @@
 
 #include "PdfArray.h"
 #include "PdfDictionary.h"
-#include "PdfMemStream.h"
+#include "PdfMemoryObjectStream.h"
 #include "PdfObject.h"
 #include "PdfReference.h"
-#include "PdfStream.h"
+#include "PdfObjectStream.h"
 #include "PdfDocument.h"
 
 using namespace std;
@@ -594,10 +594,10 @@ void PdfIndirectObjectList::Detach(Observer* observer)
     }
 }
 
-PdfStream* PdfIndirectObjectList::CreateStream(PdfObject& parent)
+PdfObjectStream* PdfIndirectObjectList::CreateStream(PdfObject& parent)
 {
-    PdfStream* stream = m_StreamFactory == nullptr ?
-        new PdfMemStream(parent) :
+    PdfObjectStream* stream = m_StreamFactory == nullptr ?
+        new PdfMemoryObjectStream(parent) :
         m_StreamFactory->CreateStream(parent);
 
     return stream;
@@ -620,13 +620,13 @@ void PdfIndirectObjectList::Finish()
         observer->Finish();
 }
 
-void PdfIndirectObjectList::BeginAppendStream(const PdfStream& stream)
+void PdfIndirectObjectList::BeginAppendStream(const PdfObjectStream& stream)
 {
     for (auto& observer : m_observers)
         observer->BeginAppendStream(stream);
 }
 
-void PdfIndirectObjectList::EndAppendStream(const PdfStream& stream)
+void PdfIndirectObjectList::EndAppendStream(const PdfObjectStream& stream)
 {
     for (auto& observer : m_observers)
         observer->EndAppendStream(stream);

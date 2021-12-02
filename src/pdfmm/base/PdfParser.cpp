@@ -13,10 +13,10 @@
 #include "PdfDictionary.h"
 #include "PdfEncrypt.h"
 #include "PdfInputDevice.h"
-#include "PdfMemStream.h"
+#include "PdfMemoryObjectStream.h"
 #include "PdfObjectStreamParser.h"
 #include "PdfOutputDevice.h"
-#include "PdfStream.h"
+#include "PdfObjectStream.h"
 #include "PdfVariant.h"
 #include "PdfXRefStreamParserObject.h"
 
@@ -122,9 +122,9 @@ void PdfParser::ParseFile(const string_view& filename, bool loadOnDemand)
     this->Parse(device, loadOnDemand);
 }
 
-void PdfParser::ParseBuffer(const string_view& buffer, bool loadOnDemand)
+void PdfParser::ParseBuffer(const cspan<char>& buffer, bool loadOnDemand)
 {
-    if (buffer.length() == 0)
+    if (buffer.size() == 0)
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     auto device = std::make_shared<PdfMemoryInputDevice>(buffer);

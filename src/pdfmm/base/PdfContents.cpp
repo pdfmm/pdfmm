@@ -32,12 +32,7 @@ PdfContents::PdfContents(PdfPage &parent)
     parent.GetObject().GetDictionary().AddKey("Contents", m_object->GetIndirectReference());
 }
 
-PdfObject & PdfContents::GetObject() const
-{
-    return *m_object;
-}
-
-PdfStream & PdfContents::GetStreamForAppending(PdfStreamAppendFlags flags)
+PdfObjectStream & PdfContents::GetStreamForAppending(PdfStreamAppendFlags flags)
 {
     PdfArray *arr;
     if (m_object->IsArray())
@@ -48,9 +43,9 @@ PdfStream & PdfContents::GetStreamForAppending(PdfStreamAppendFlags flags)
     {
         // Create a /Contents array and put the current stream into it
         auto newObjArray = m_parent->GetObject().GetDocument()->GetObjects().CreateObject(PdfArray());
-        m_parent->GetObject().GetDictionary().AddKey("Contents", newObjArray->GetIndirectReference());
+        m_parent->GetObject().GetDictionary().AddKeyIndirect("Contents", newObjArray);
         arr = &newObjArray->GetArray();
-        arr->push_back(m_object->GetIndirectReference());
+        arr->AddIndirect(m_object);
         m_object = newObjArray;
     }
     else

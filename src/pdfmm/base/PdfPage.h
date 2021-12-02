@@ -215,7 +215,7 @@ private:
 
     PdfResources& GetOrCreateResources() override;
 
-    PdfStream& GetStreamForAppending(PdfStreamAppendFlags flags) override;
+    PdfObjectStream& GetStreamForAppending(PdfStreamAppendFlags flags) override;
 
     /**
      * Initialize a new page object.

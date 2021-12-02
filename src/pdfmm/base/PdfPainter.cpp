@@ -19,7 +19,7 @@
 #include "PdfFilter.h"
 #include "PdfName.h"
 #include "PdfRect.h"
-#include "PdfStream.h"
+#include "PdfObjectStream.h"
 #include "PdfString.h"
 #include "PdfLocale.h"
 #include "PdfContents.h"

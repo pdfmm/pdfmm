@@ -14,7 +14,7 @@
 #include "PdfDictionary.h"
 #include "PdfFilter.h"
 #include "PdfName.h"
-#include "PdfStream.h"
+#include "PdfObjectStream.h"
 
 using namespace std;
 using namespace mm;

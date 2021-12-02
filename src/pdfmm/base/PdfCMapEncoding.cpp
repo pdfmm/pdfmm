@@ -12,7 +12,7 @@
 #include <utfcpp/utf8.h>
 
 #include "PdfDictionary.h"
-#include "PdfStream.h"
+#include "PdfObjectStream.h"
 #include "PdfPostScriptTokenizer.h"
 #include "PdfArray.h"
 
@@ -60,7 +60,7 @@ bool PdfCMapEncoding::HasLigaturesSupport() const
     return true;
 }
 
-PdfCMapEncoding::MapIdentity PdfCMapEncoding::parseCMapObject(const PdfStream& stream)
+PdfCMapEncoding::MapIdentity PdfCMapEncoding::parseCMapObject(const PdfObjectStream& stream)
 {
     MapIdentity ret;
     unique_ptr<char[]> streamBuffer;

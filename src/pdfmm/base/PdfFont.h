@@ -112,7 +112,7 @@ public:
      */
     bool TryGetSubstituteFont(std::unique_ptr<PdfFont>& substFont);
 
-    /** Write a string to a PdfStream in a format so that it can
+    /** Write a string to a PdfObjectStream in a format so that it can
      *  be used with this font.
      *  This is used by PdfPainter::DrawText to display a text string.
      *  The following PDF operator will be Tj
@@ -121,9 +121,9 @@ public:
      *                 or following whitespaces.
      *  \param str a unicode or ansi string which will be displayed
      */
-    void WriteStringToStream(PdfStream& stream, const std::string_view& str) const;
+    void WriteStringToStream(PdfObjectStream& stream, const std::string_view& str) const;
 
-    /** Write a string to a PdfStream in a format so that it can
+    /** Write a string to a PdfObjectStream in a format so that it can
      *  be used with this font.
      *  This is used by PdfPainter::DrawText to display a text string.
      *  The following PDF operator will be Tj

@@ -6,8 +6,8 @@
  * Some rights reserved. See COPYING, AUTHORS.
  */
 
-#ifndef PDF_STREAM_H
-#define PDF_STREAM_H
+#ifndef PDF_OBJECT_STREAM_H
+#define PDF_OBJECT_STREAM_H
 
 #include "PdfDefines.h"
 
@@ -30,10 +30,10 @@ class PdfOutputStream;
  *  You have to use a concrete implementation of a stream,
  *  which can be retrieved from a StreamFactory.
  *  \see PdfIndirectObjectList
- *  \see PdfMemoryStream
- *  \see PdfFileStream
+ *  \see PdfMemoryObjectStream
+ *  \see PdfFileObjectStream
  */
-class PDFMM_API PdfStream
+class PDFMM_API PdfObjectStream
 {
     friend class PdfParserObject;
 public:
@@ -44,15 +44,15 @@ public:
     static enum PdfFilterType DefaultFilter;
 
 protected:
-    /** Create a new PdfStream object which has a parent PdfObject.
+    /** Create a new PdfObjectStream object which has a parent PdfObject.
      *  The stream will be deleted along with the parent.
      *  This constructor will be called by PdfObject::Stream() for you.
      *  \param parent parent object
      */
-    PdfStream(PdfObject& parent);
+    PdfObjectStream(PdfObject& parent);
 
 public:
-    virtual ~PdfStream();
+    virtual ~PdfObjectStream();
 
     /** Write the stream to an output device
      *  \param device write to this outputdevice.
@@ -65,10 +65,10 @@ public:
      * Use PdfFilterFactory::CreateFilterList() if you want to use the contents
      * of the stream dictionary's existing filter key.
      *
-     *  \param view buffer containing the stream data
+     *  \param buffer buffer containing the stream data
      *  \param filters a list of filters to use when appending data
      */
-    void Set(const std::string_view& view, const PdfFilterList& filters);
+    void Set(const cspan<char>& buffer, const PdfFilterList& filters);
 
     /** Set a binary buffer as stream data.
      *
@@ -84,9 +84,9 @@ public:
     /** Set a binary buffer as stream data.
      *  All data will be Flate-encoded.
      *
-     *  \param view buffer containing the stream data
+     *  \param buffer buffer containing the stream data
      */
-    void Set(const std::string_view& view);
+    void Set(const cspan<char>& buffer);
 
     /** Set a binary buffer as stream data.
      *  All data will be Flate-encoded.
@@ -130,7 +130,7 @@ public:
      *  This method has to be called before any of the append methods.
      *  All appended data will be Flate-encoded.
      *
-     *  \param bClearExisting if true any existing stream contents will
+     *  \param clearExisting if true any existing stream contents will
      *         be cleared.
      *
      *  \see Append
@@ -146,9 +146,9 @@ public:
      * of the stream dictionary's existing filter key.
      *
      *  \param filters a list of filters to use when appending data
-     *  \param bClearExisting if true any existing stream contents will
+     *  \param clearExisting if true any existing stream contents will
                be cleared.
-     *  \param bDeleteFilters if true existing filter keys are deleted if an
+     *  \param deleteFilters if true existing filter keys are deleted if an
      *         empty list of filters is passed (required for SetRawData())
      *
      *  \see Append
@@ -165,7 +165,7 @@ public:
      *  \see BeginAppend
      *  \see EndAppend
      */
-    PdfStream& Append(const std::string_view& view);
+    PdfObjectStream& Append(const std::string_view& view);
 
     /** Append a binary buffer to the current stream contents.
      *
@@ -177,7 +177,7 @@ public:
      *  \see BeginAppend
      *  \see EndAppend
      */
-    PdfStream& Append(const char* buffer, size_t len);
+    PdfObjectStream& Append(const char* buffer, size_t len);
 
     /** Finish appending data to this stream.
      *  BeginAppend() has to be called before this method.
@@ -242,11 +242,11 @@ public:
 
     chars GetFilteredCopy() const;
 
-    /** Create a copy of a PdfStream object
+    /** Create a copy of a PdfObjectStream object
      *  \param rhs the object to clone
      *  \returns a reference to this object
      */
-    const PdfStream& operator=(const PdfStream& rhs);
+    PdfObjectStream& operator=(const PdfObjectStream& rhs);
 
 protected:
     /** Required for the GetFilteredCopy() implementation
@@ -285,12 +285,12 @@ protected:
      */
     virtual void EndAppendImpl() = 0;
 
-    virtual void CopyFrom(const PdfStream& rhs);
+    virtual void CopyFrom(const PdfObjectStream& rhs);
 
     void EnsureAppendClosed();
 
 private:
-    PdfStream(const PdfStream& rhs) = delete;
+    PdfObjectStream(const PdfObjectStream& rhs) = delete;
 
     void append(const char* data, size_t len);
 
@@ -308,4 +308,4 @@ protected:
 
 };
 
-#endif // PDF_STREAM_H
+#endif // PDF_OBJECT_STREAM_H

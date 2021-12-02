@@ -259,7 +259,7 @@ PdfEncodingMapBase::PdfEncodingMapBase(PdfCharCodeMap&& map, const nullable<PdfE
 {
 }
 
-void PdfEncodingMapBase::AppendCIDMappingEntries(PdfStream& stream, const PdfFont& font) const
+void PdfEncodingMapBase::AppendCIDMappingEntries(PdfObjectStream& stream, const PdfFont& font) const
 {
     (void)stream;
     (void)font;
@@ -294,7 +294,7 @@ bool PdfEncodingMapBase::tryGetCodePoints(const PdfCharCode& code, vector<char32
     return m_charMap->TryGetCodePoints(code, codePoints);
 }
 
-void PdfEncodingMapBase::AppendToUnicodeEntries(PdfStream& stream) const
+void PdfEncodingMapBase::AppendToUnicodeEntries(PdfObjectStream& stream) const
 {
     // Very easy, just do a list of bfchar
     // Use PdfEncodingMap::AppendUTF16CodeTo
@@ -333,7 +333,7 @@ PdfEncodingLimits PdfEncodingMapBase::findLimits(const PdfCharCodeMap& map)
     return limits;
 }
 
-void PdfEncodingMap::AppendUTF16CodeTo(PdfStream& stream, const cspan<char32_t>& codePoints, u16string& u16tmp)
+void PdfEncodingMap::AppendUTF16CodeTo(PdfObjectStream& stream, const cspan<char32_t>& codePoints, u16string& u16tmp)
 {
     char hexbuf[2];
     stream.Append("<");
@@ -360,7 +360,7 @@ void PdfEncodingMap::AppendUTF16CodeTo(PdfStream& stream, const cspan<char32_t>&
     stream.Append(">");
 }
 
-void PdfEncodingMapOneByte::AppendToUnicodeEntries(PdfStream& stream) const
+void PdfEncodingMapOneByte::AppendToUnicodeEntries(PdfObjectStream& stream) const
 {
     auto& limits = GetLimits();
     PDFMM_ASSERT(limits.MaxCodeSize == 1);
@@ -386,7 +386,7 @@ void PdfEncodingMapOneByte::AppendToUnicodeEntries(PdfStream& stream) const
     stream.Append("endbfrange");
 }
 
-void PdfEncodingMapOneByte::AppendCIDMappingEntries(PdfStream& stream, const PdfFont& font) const
+void PdfEncodingMapOneByte::AppendCIDMappingEntries(PdfObjectStream& stream, const PdfFont& font) const
 {
     auto& limits = GetLimits();
     PDFMM_ASSERT(limits.MaxCodeSize == 1);
@@ -443,13 +443,13 @@ bool PdfNullEncodingMap::tryGetCodePoints(const PdfCharCode& codeUnit, vector<ch
     PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "PdfDynamicEncoding can be used only from a PdfFont");
 }
 
-void PdfNullEncodingMap::AppendToUnicodeEntries(PdfStream& stream) const
+void PdfNullEncodingMap::AppendToUnicodeEntries(PdfObjectStream& stream) const
 {
     (void)stream;
     PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "PdfDynamicEncoding can be used only from a PdfFont");
 }
 
-void PdfNullEncodingMap::AppendCIDMappingEntries(PdfStream& stream, const PdfFont& font) const
+void PdfNullEncodingMap::AppendCIDMappingEntries(PdfObjectStream& stream, const PdfFont& font) const
 {
     (void)stream;
     (void)font;

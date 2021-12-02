@@ -10,7 +10,7 @@
 
 #include <pdfmm/base/PdfArray.h>
 #include <pdfmm/base/PdfDictionary.h>
-#include <pdfmm/base/PdfStream.h>
+#include <pdfmm/base/PdfObjectStream.h>
 
 using namespace mm;
 

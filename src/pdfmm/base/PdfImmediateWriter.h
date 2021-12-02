@@ -66,9 +66,9 @@ public:
 private:
     void WriteObject(const PdfObject& obj) override;
     void Finish() override;
-    void BeginAppendStream(const PdfStream& stream) override;
-    void EndAppendStream(const PdfStream& stream) override;
-    PdfStream* CreateStream(PdfObject& parent) override;
+    void BeginAppendStream(const PdfObjectStream& stream) override;
+    void EndAppendStream(const PdfObjectStream& stream) override;
+    PdfObjectStream* CreateStream(PdfObject& parent) override;
 
     /** Assume the stream for the last object has
      *  been written complete.

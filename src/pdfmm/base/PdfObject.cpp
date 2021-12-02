@@ -13,11 +13,11 @@
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfEncrypt.h"
-#include "PdfFileStream.h"
+#include "PdfFileObjectStream.h"
 #include "PdfOutputDevice.h"
-#include "PdfStream.h"
+#include "PdfObjectStream.h"
 #include "PdfVariant.h"
-#include "PdfMemStream.h"
+#include "PdfMemoryObjectStream.h"
 
 #include <sstream>
 #include <fstream>
@@ -66,13 +66,13 @@ PdfObject::PdfObject(const PdfObject& rhs)
     copyFrom(rhs);
 }
 
-const PdfStream* PdfObject::GetStream() const
+const PdfObjectStream* PdfObject::GetStream() const
 {
     DelayedLoadStream();
     return m_Stream.get();
 }
 
-PdfStream* PdfObject::GetStream()
+PdfObjectStream* PdfObject::GetStream()
 {
     DelayedLoadStream();
     return m_Stream.get();
@@ -179,7 +179,7 @@ void PdfObject::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
     if (m_Stream != nullptr)
     {
         // Set length if it is a key
-        auto fileStream = dynamic_cast<PdfFileStream*>(m_Stream.get());
+        auto fileStream = dynamic_cast<PdfFileObjectStream*>(m_Stream.get());
         if (fileStream == nullptr)
         {
             // It's not a PdfFileStream. PdfFileStream handles length internally
@@ -216,13 +216,13 @@ size_t PdfObject::GetObjectLength(PdfWriteMode writeMode)
     return device.GetLength();
 }
 
-PdfStream& PdfObject::GetOrCreateStream()
+PdfObjectStream& PdfObject::GetOrCreateStream()
 {
     DelayedLoadStream();
     return getOrCreateStream();
 }
 
-const PdfStream& PdfObject::MustGetStream() const
+const PdfObjectStream& PdfObject::MustGetStream() const
 {
     DelayedLoadStream();
     if (m_Stream == nullptr)
@@ -231,7 +231,7 @@ const PdfStream& PdfObject::MustGetStream() const
     return *m_Stream.get();
 }
 
-PdfStream& PdfObject::MustGetStream()
+PdfObjectStream& PdfObject::MustGetStream()
 {
     DelayedLoadStream();
     if (m_Stream == nullptr)
@@ -251,7 +251,7 @@ bool PdfObject::HasStream() const
     return m_Stream != nullptr;
 }
 
-PdfStream& PdfObject::getOrCreateStream()
+PdfObjectStream& PdfObject::getOrCreateStream()
 {
     forceCreateStream();
     return *m_Stream;
@@ -266,12 +266,12 @@ void PdfObject::forceCreateStream()
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Tried to get stream of non-dictionary object");
 
     if (m_Document == nullptr)
-        m_Stream.reset(new PdfMemStream(*this));
+        m_Stream.reset(new PdfMemoryObjectStream(*this));
     else
         m_Stream.reset(m_Document->GetObjects().CreateStream(*this));
 }
 
-PdfStream* PdfObject::getStream()
+PdfObjectStream* PdfObject::getStream()
 {
     return m_Stream.get();
 }

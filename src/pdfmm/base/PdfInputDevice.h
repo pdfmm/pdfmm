@@ -17,7 +17,7 @@
 
 namespace mm {
 
-class PdfStream;
+class PdfObjectStream;
 
 // TODO: Refactor, PdfInputDevice should be an interface
 // with, implementing classes like PdfMemInputDevice or PdfFileInputDevice
@@ -154,7 +154,7 @@ public:
     PdfMemoryInputDevice(const char* buffer, size_t len);
     PdfMemoryInputDevice(const cspan<char>& buffer);
 
-    PdfMemoryInputDevice(const PdfStream& stream);
+    PdfMemoryInputDevice(const PdfObjectStream& stream);
 };
 
 };

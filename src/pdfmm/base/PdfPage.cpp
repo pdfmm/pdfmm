@@ -13,7 +13,7 @@
 #include "PdfRect.h"
 #include "PdfVariant.h"
 #include "PdfWriter.h"
-#include "PdfStream.h"
+#include "PdfObjectStream.h"
 #include "PdfColor.h"
 #include "PdfDocument.h"
 
@@ -86,7 +86,7 @@ void PdfPage::EnsureResourcesCreated()
     m_Resources.reset(new PdfResources(GetDictionary()));
 }
 
-PdfStream& PdfPage::GetStreamForAppending(PdfStreamAppendFlags flags)
+PdfObjectStream& PdfPage::GetStreamForAppending(PdfStreamAppendFlags flags)
 {
     EnsureContentsCreated();
     return m_Contents->GetStreamForAppending(flags);

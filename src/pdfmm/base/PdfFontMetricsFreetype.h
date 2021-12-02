@@ -35,7 +35,7 @@ public:
     ~PdfFontMetricsFreetype();
 
 public:
-    static std::unique_ptr<PdfFontMetricsFreetype> FromBuffer(const std::string_view& buffer);
+    static std::unique_ptr<PdfFontMetricsFreetype> FromBuffer(const cspan<char>& buffer);
 
     static std::unique_ptr<PdfFontMetricsFreetype> FromFace(FT_Face face);
 

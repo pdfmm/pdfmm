@@ -10,7 +10,7 @@
 #include "PdfXRefStream.h"
 
 #include "PdfObject.h"
-#include "PdfStream.h"
+#include "PdfObjectStream.h"
 #include "PdfWriter.h"
 #include "PdfDictionary.h"
 

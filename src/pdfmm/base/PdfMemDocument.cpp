@@ -19,7 +19,7 @@
 #include "PdfImmediateWriter.h"
 #include "PdfObject.h"
 #include "PdfParserObject.h"
-#include "PdfStream.h"
+#include "PdfObjectStream.h"
 #include "PdfIndirectObjectList.h"
 #include "PdfAcroForm.h"
 #include "PdfDestination.h"
@@ -126,9 +126,9 @@ void PdfMemDocument::Load(const string_view& filename, const string_view& passwo
     InitFromParser(parser);
 }
 
-void PdfMemDocument::LoadFromBuffer(const string_view& buffer, const string_view& password)
+void PdfMemDocument::LoadFromBuffer(const cspan<char>& buffer, const string_view& password)
 {
-    if (buffer.length() == 0)
+    if (buffer.size() == 0)
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     this->Clear();

@@ -19,7 +19,7 @@
 #include "PdfEncoding.h"
 #include "PdfEncodingFactory.h"
 #include "PdfInputStream.h"
-#include "PdfStream.h"
+#include "PdfObjectStream.h"
 #include "PdfWriter.h"
 #include "PdfLocale.h"
 #include "PdfCharCodeMap.h"
@@ -149,7 +149,7 @@ void PdfFont::initBase(const PdfEncoding& encoding)
     m_Name = m_Metrics->GetFontNameSafe();
 }
 
-void PdfFont::WriteStringToStream(PdfStream& stream, const string_view& str) const
+void PdfFont::WriteStringToStream(PdfObjectStream& stream, const string_view& str) const
 {
     stringstream ostream;
     WriteStringToStream(ostream, str);

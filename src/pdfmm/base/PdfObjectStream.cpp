@@ -7,7 +7,7 @@
  */
 
 #include <pdfmm/private/PdfDefinesPrivate.h>
-#include "PdfStream.h"
+#include "PdfObjectStream.h"
 
 #include "PdfDocument.h"
 #include "PdfArray.h"
@@ -22,16 +22,16 @@
 using namespace std;
 using namespace mm;
 
-enum PdfFilterType PdfStream::DefaultFilter = PdfFilterType::FlateDecode;
+enum PdfFilterType PdfObjectStream::DefaultFilter = PdfFilterType::FlateDecode;
 
-PdfStream::PdfStream(PdfObject& parent)
+PdfObjectStream::PdfObjectStream(PdfObject& parent)
     : m_Parent(&parent), m_Append(false)
 {
 }
 
-PdfStream::~PdfStream() { }
+PdfObjectStream::~PdfObjectStream() { }
 
-void PdfStream::GetFilteredCopy(PdfOutputStream& stream) const
+void PdfObjectStream::GetFilteredCopy(PdfOutputStream& stream) const
 {
     PdfFilterList filters = PdfFilterFactory::CreateFilterList(*m_Parent);
     if (filters.size() != 0)
@@ -48,7 +48,7 @@ void PdfStream::GetFilteredCopy(PdfOutputStream& stream) const
     }
 }
 
-chars PdfStream::GetFilteredCopy() const
+chars PdfObjectStream::GetFilteredCopy() const
 {
     chars ret;
     PdfStringOutputStream stream(ret);
@@ -56,7 +56,7 @@ chars PdfStream::GetFilteredCopy() const
     return ret;
 }
 
-void PdfStream::GetFilteredCopy(unique_ptr<char[]>& buffer, size_t& len) const
+void PdfObjectStream::GetFilteredCopy(unique_ptr<char[]>& buffer, size_t& len) const
 {
     PdfFilterList filters = PdfFilterFactory::CreateFilterList(*m_Parent);
     PdfMemoryOutputStream  stream;
@@ -77,32 +77,29 @@ void PdfStream::GetFilteredCopy(unique_ptr<char[]>& buffer, size_t& len) const
     buffer = stream.TakeBuffer(len);
 }
 
-const PdfStream& PdfStream::operator=(const PdfStream& rhs)
+PdfObjectStream& PdfObjectStream::operator=(const PdfObjectStream& rhs)
 {
-    if (&rhs == this)
-        return *this;
-
     CopyFrom(rhs);
     return (*this);
 }
 
-void PdfStream::CopyFrom(const PdfStream& rhs)
+void PdfObjectStream::CopyFrom(const PdfObjectStream& rhs)
 {
     PdfMemoryInputStream stream({ rhs.GetInternalBuffer(), rhs.GetInternalBufferSize() });
     this->SetRawData(stream);
 }
 
-void PdfStream::EnsureAppendClosed()
+void PdfObjectStream::EnsureAppendClosed()
 {
     PDFMM_RAISE_LOGIC_IF(m_Append, "EndAppend() should be called after appending to stream");
 }
 
-void PdfStream::Set(const string_view& view, const PdfFilterList& filters)
+void PdfObjectStream::Set(const cspan<char>& buffer, const PdfFilterList& filters)
 {
-    Set(view.data(), view.length(), filters);
+    Set(buffer.data(), buffer.size(), filters);
 }
 
-void PdfStream::Set(const char* buffer, size_t len, const PdfFilterList& filters)
+void PdfObjectStream::Set(const char* buffer, size_t len, const PdfFilterList& filters)
 {
     if (len == 0)
         return;
@@ -112,12 +109,12 @@ void PdfStream::Set(const char* buffer, size_t len, const PdfFilterList& filters
     this->endAppend();
 }
 
-void PdfStream::Set(const string_view& view)
+void PdfObjectStream::Set(const cspan<char>& buffer)
 {
-    Set(view.data(), view.length());
+    Set(buffer.data(), buffer.size());
 }
 
-void PdfStream::Set(const char* buffer, size_t len)
+void PdfObjectStream::Set(const char* buffer, size_t len)
 {
     if (len == 0)
         return;
@@ -127,7 +124,7 @@ void PdfStream::Set(const char* buffer, size_t len)
     this->endAppend();
 }
 
-void PdfStream::Set(PdfInputStream& stream)
+void PdfObjectStream::Set(PdfInputStream& stream)
 {
     PdfFilterList filters;
 
@@ -137,7 +134,7 @@ void PdfStream::Set(PdfInputStream& stream)
     this->Set(stream, filters);
 }
 
-void PdfStream::Set(PdfInputStream& stream, const PdfFilterList& filters)
+void PdfObjectStream::Set(PdfInputStream& stream, const PdfFilterList& filters)
 {
     constexpr size_t BUFFER_SIZE = 4096;
     size_t len = 0;
@@ -155,12 +152,12 @@ void PdfStream::Set(PdfInputStream& stream, const PdfFilterList& filters)
     this->endAppend();
 }
 
-void PdfStream::SetRawData(PdfInputStream& stream, ssize_t len)
+void PdfObjectStream::SetRawData(PdfInputStream& stream, ssize_t len)
 {
     SetRawData(stream, len, true);
 }
 
-void PdfStream::SetRawData(PdfInputStream& stream, ssize_t len, bool markObjectDirty)
+void PdfObjectStream::SetRawData(PdfInputStream& stream, ssize_t len, bool markObjectDirty)
 {
     constexpr size_t BUFFER_SIZE = 4096;
     char buffer[BUFFER_SIZE];
@@ -193,7 +190,7 @@ void PdfStream::SetRawData(PdfInputStream& stream, ssize_t len, bool markObjectD
     this->endAppend();
 }
 
-void PdfStream::BeginAppend(bool clearExisting)
+void PdfObjectStream::BeginAppend(bool clearExisting)
 {
     PdfFilterList filters;
 
@@ -203,12 +200,12 @@ void PdfStream::BeginAppend(bool clearExisting)
     this->BeginAppend(filters, clearExisting);
 }
 
-void PdfStream::BeginAppend(const PdfFilterList& filters, bool clearExisting, bool deleteFilters)
+void PdfObjectStream::BeginAppend(const PdfFilterList& filters, bool clearExisting, bool deleteFilters)
 {
     BeginAppend(filters, clearExisting, deleteFilters, true);
 }
 
-void PdfStream::BeginAppend(const PdfFilterList& filters, bool clearExisting, bool deleteFilters, bool markObjectDirty)
+void PdfObjectStream::BeginAppend(const PdfFilterList& filters, bool clearExisting, bool deleteFilters, bool markObjectDirty)
 {
     PDFMM_RAISE_LOGIC_IF(m_Append, "BeginAppend() failed because EndAppend() was not yet called!");
 
@@ -253,13 +250,13 @@ void PdfStream::BeginAppend(const PdfFilterList& filters, bool clearExisting, bo
         this->append(buffer.get(), len);
 }
 
-void PdfStream::EndAppend()
+void PdfObjectStream::EndAppend()
 {
     PDFMM_RAISE_LOGIC_IF(!m_Append, "EndAppend() failed because BeginAppend() was not yet called!");
     endAppend();
 }
 
-void PdfStream::endAppend()
+void PdfObjectStream::endAppend()
 {
     m_Append = false;
     this->EndAppendImpl();
@@ -269,13 +266,13 @@ void PdfStream::endAppend()
         document->GetObjects().EndAppendStream(*this);
 }
 
-PdfStream& PdfStream::Append(const string_view& view)
+PdfObjectStream& PdfObjectStream::Append(const string_view& view)
 {
     Append(view.data(), view.length());
     return *this;
 }
 
-PdfStream& PdfStream::Append(const char* buffer, size_t len)
+PdfObjectStream& PdfObjectStream::Append(const char* buffer, size_t len)
 {
     PDFMM_RAISE_LOGIC_IF(!m_Append, "Append() failed because BeginAppend() was not yet called!");
     if (len == 0)
@@ -285,7 +282,7 @@ PdfStream& PdfStream::Append(const char* buffer, size_t len)
     return *this;
 }
 
-void PdfStream::append(const char* data, size_t len)
+void PdfObjectStream::append(const char* data, size_t len)
 {
     this->AppendImpl(data, len);
 }

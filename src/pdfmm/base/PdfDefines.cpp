@@ -234,8 +234,8 @@ unsigned utls::GetCharCodeMaxValue(unsigned char codeSize)
     return (unsigned)(std::pow(2, codeSize * CHAR_BIT)) - 1;
 }
 
-chars::chars(const string_view& view)
-    : string(string(view))
+chars::chars(const cspan<char>& view)
+    : string(view.data(), view.size())
 {
 }
 

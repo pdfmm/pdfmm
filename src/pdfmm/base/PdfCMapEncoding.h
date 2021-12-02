@@ -14,7 +14,7 @@
 namespace mm
 {
     class PdfObject;
-    class PdfStream;
+    class PdfObjectStream;
 
     class PdfCMapEncoding : public PdfEncodingMapBase
     {
@@ -39,7 +39,7 @@ namespace mm
             PdfEncodingLimits Limits;
         };
         PdfCMapEncoding(MapIdentity map);
-        static MapIdentity parseCMapObject(const PdfStream& stream);
+        static MapIdentity parseCMapObject(const PdfObjectStream& stream);
     };
 }
 

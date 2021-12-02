@@ -17,7 +17,7 @@
 #include "PdfObject.h"
 #include "PdfParser.h"
 #include "PdfParserObject.h"
-#include "PdfStream.h"
+#include "PdfObjectStream.h"
 #include "PdfVariant.h"
 #include "PdfXRef.h"
 #include "PdfXRefStream.h"

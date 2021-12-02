@@ -76,7 +76,7 @@ public:
      *
      *  \param buffer buffer to read from
      */
-    PdfMemoryInputStream(const std::string_view& buffer);
+    PdfMemoryInputStream(const cspan<char>& buffer);
     ~PdfMemoryInputStream();
 
 protected:

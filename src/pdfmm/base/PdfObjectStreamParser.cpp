@@ -13,7 +13,7 @@
 #include "PdfEncrypt.h"
 #include "PdfInputDevice.h"
 #include "PdfParserObject.h"
-#include "PdfStream.h"
+#include "PdfObjectStream.h"
 #include "PdfIndirectObjectList.h"
 
 #include <algorithm>

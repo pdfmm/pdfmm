@@ -12,7 +12,7 @@
 #include "PdfParser.h"
 #include "PdfArray.h"
 #include "PdfDictionary.h"
-#include "PdfStream.h"
+#include "PdfObjectStream.h"
 #include "PdfVariant.h"
 
 using namespace std;

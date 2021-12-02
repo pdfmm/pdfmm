@@ -14,11 +14,15 @@ Version 0.9.20-dev
 - Added indirect iteration for PdfArray/PdfDictionary (see GetIndirectIterator methods)
 - Added PdfDocument::GetPdfALevel()
 - Added PDFA preserving writing
+- Refactored/Reviewed PdfInputDevice
+- Added font replacement facility PdfFont::TryCreateFontSubstitute()
+- Added standard14 fonts embedding, with font programs from PDFium
 - Reviewed PdfXObject hierarchy, added PdfXObjectForm, PdfXObjectPostScript
 - Added PdfTextState and use it to compute string widths in PdfFont
 - Improved PdfDocEncoding to expose conversion utf8 conversion facilities
 - PdfParser: Support also files with whitespace offset before magic start
 - PdfObject auto ownership
+- PdfContents: create on demand /Contents. First create a single stream, after array
 - Improved IsDirty handling: less dirty bit sets
 - Added PdfPostScriptTokenizer that as better general support for PostScript
 - PdfDictionary: Review/convert GetKey -> FindKey
@@ -42,7 +46,7 @@ Version 0.9.20-dev
 - PdfElement: GetDocument(), GetObject() refs
 - PdfVecObjects: GetParentDocument() -> GetDocument()
 - Remove PdfSignOutputDevice::SetSignatureSize(size)
-- Move inline code to .cpp
+- Moved inline code to .cpp
 - Remove comments on overrides
 - Cleaned CMakeFiles (removed custom Find<>.cmake)
 - NULL -> nullptr

@@ -14,7 +14,7 @@
 #include "PdfDocument.h"
 #include "PdfInputStream.h"
 #include "PdfObject.h"
-#include "PdfStream.h"
+#include "PdfObjectStream.h"
 
 using namespace std;
 using namespace mm;

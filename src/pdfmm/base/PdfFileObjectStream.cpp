@@ -6,7 +6,7 @@
  */
 
 #include <pdfmm/private/PdfDefinesPrivate.h>
-#include "PdfFileStream.h"
+#include "PdfFileObjectStream.h"
 
 #include "PdfDocument.h"
 #include "PdfEncrypt.h"
@@ -19,25 +19,25 @@
 using namespace std;
 using namespace mm;
 
-PdfFileStream::PdfFileStream(PdfObject& parent, PdfOutputDevice& device)
-    : PdfStream(parent), m_Device(&device),
+PdfFileObjectStream::PdfFileObjectStream(PdfObject& parent, PdfOutputDevice& device)
+    : PdfObjectStream(parent), m_Device(&device),
     m_initialLength(0), m_Length(0), m_CurrEncrypt(nullptr)
 {
     m_LengthObj = parent.GetDocument()->GetObjects().CreateObject(PdfVariant(static_cast<int64_t>(0)));
     m_Parent->GetDictionary().AddKey(PdfName::KeyLength, m_LengthObj->GetIndirectReference());
 }
 
-PdfFileStream::~PdfFileStream()
+PdfFileObjectStream::~PdfFileObjectStream()
 {
     EnsureAppendClosed();
 }
 
-void PdfFileStream::Write(PdfOutputDevice&, const PdfEncrypt*)
+void PdfFileObjectStream::Write(PdfOutputDevice&, const PdfEncrypt*)
 {
     PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);
 }
 
-void PdfFileStream::BeginAppendImpl(const PdfFilterList& filters)
+void PdfFileObjectStream::BeginAppendImpl(const PdfFilterList& filters)
 {
     m_Parent->GetDocument()->GetObjects().WriteObject(*m_Parent);
 
@@ -66,12 +66,12 @@ void PdfFileStream::BeginAppendImpl(const PdfFilterList& filters)
     }
 }
 
-void PdfFileStream::AppendImpl(const char* data, size_t len)
+void PdfFileObjectStream::AppendImpl(const char* data, size_t len)
 {
     m_Stream->Write(data, len);
 }
 
-void PdfFileStream::EndAppendImpl()
+void PdfFileObjectStream::EndAppendImpl()
 {
     if (m_Stream != nullptr)
     {
@@ -98,36 +98,36 @@ void PdfFileStream::EndAppendImpl()
     m_LengthObj->SetNumber(static_cast<int64_t>(m_Length));
 }
 
-void PdfFileStream::GetCopy(unique_ptr<char[]>& buffer, size_t& len) const
+void PdfFileObjectStream::GetCopy(unique_ptr<char[]>& buffer, size_t& len) const
 {
     (void)buffer;
     (void)len;
     PDFMM_RAISE_ERROR(PdfErrorCode::InternalLogic);
 }
 
-void PdfFileStream::GetCopy(PdfOutputStream&) const
+void PdfFileObjectStream::GetCopy(PdfOutputStream&) const
 {
     PDFMM_RAISE_ERROR(PdfErrorCode::InternalLogic);
 }
 
-void PdfFileStream::SetEncrypted(PdfEncrypt* encrypt)
+void PdfFileObjectStream::SetEncrypted(PdfEncrypt* encrypt)
 {
     m_CurrEncrypt = encrypt;
     if (m_CurrEncrypt != nullptr)
         m_CurrEncrypt->SetCurrentReference(m_Parent->GetIndirectReference());
 }
 
-size_t PdfFileStream::GetLength() const
+size_t PdfFileObjectStream::GetLength() const
 {
     return m_Length;
 }
 
-const char* PdfFileStream::GetInternalBuffer() const
+const char* PdfFileObjectStream::GetInternalBuffer() const
 {
     return nullptr;
 }
 
-size_t PdfFileStream::GetInternalBufferSize() const
+size_t PdfFileObjectStream::GetInternalBufferSize() const
 {
     return 0;
 }

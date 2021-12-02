@@ -5,8 +5,7 @@
 
 ### 1.0
 - Refactor/Review PdfField hierarchy
-- Refactor PdfInputDevice: should merge with PdfOutputDevice
-- PdfContents: create on demand /Contents. First create a single stream, after array
+- PdfInputDevice: should merge with PdfOutputDevice
 - Use unique_ptr/shared_ptr where possibile (PdfField), use shared_ptr in PdfIndirectObjectList?
 - Check/Review doxygen doc
 - FontManager could use unique_ptr or shared_ptr?

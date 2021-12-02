@@ -7,7 +7,7 @@
  */
 
 #include <pdfmm/private/PdfDefinesPrivate.h>
-#include "PdfMemStream.h"
+#include "PdfMemoryObjectStream.h"
 
 #include "PdfArray.h"
 #include "PdfEncrypt.h"
@@ -20,17 +20,17 @@
 using namespace std;
 using namespace mm;
 
-PdfMemStream::PdfMemStream(PdfObject& parent)
-    : PdfStream(parent)
+PdfMemoryObjectStream::PdfMemoryObjectStream(PdfObject& parent)
+    : PdfObjectStream(parent)
 {
 }
 
-PdfMemStream::~PdfMemStream()
+PdfMemoryObjectStream::~PdfMemoryObjectStream()
 {
     EnsureAppendClosed();
 }
 
-void PdfMemStream::BeginAppendImpl(const PdfFilterList& filters)
+void PdfMemoryObjectStream::BeginAppendImpl(const PdfFilterList& filters)
 {
     m_buffer.clear();
     if (filters.size() != 0)
@@ -44,12 +44,12 @@ void PdfMemStream::BeginAppendImpl(const PdfFilterList& filters)
     }
 }
 
-void PdfMemStream::AppendImpl(const char* data, size_t len)
+void PdfMemoryObjectStream::AppendImpl(const char* data, size_t len)
 {
     m_Stream->Write(data, len);
 }
 
-void PdfMemStream::EndAppendImpl()
+void PdfMemoryObjectStream::EndAppendImpl()
 {
     m_Stream->Close();
 
@@ -62,48 +62,36 @@ void PdfMemStream::EndAppendImpl()
     m_Stream = nullptr;
 }
 
-void PdfMemStream::GetCopy(unique_ptr<char[]>& buffer, size_t& len) const
+void PdfMemoryObjectStream::GetCopy(unique_ptr<char[]>& buffer, size_t& len) const
 {
     buffer.reset(new char[m_buffer.size()]);
     len = m_buffer.size();
     std::memcpy(buffer.get(), m_buffer.data(), m_buffer.size());
 }
 
-void PdfMemStream::GetCopy(PdfOutputStream& stream) const
+void PdfMemoryObjectStream::GetCopy(PdfOutputStream& stream) const
 {
     stream.Write(m_buffer.data(), m_buffer.size());
 }
 
-const PdfMemStream& PdfMemStream::operator=(const PdfStream& rhs)
+void PdfMemoryObjectStream::CopyFrom(const PdfObjectStream& rhs)
 {
-    CopyFrom(rhs);
-    return (*this);
-}
-
-const PdfMemStream& PdfMemStream::operator=(const PdfMemStream& rhs)
-{
-    CopyFrom(rhs);
-    return (*this);
-}
-
-void PdfMemStream::CopyFrom(const PdfStream& rhs)
-{
-    const PdfMemStream* memstream = dynamic_cast<const PdfMemStream*>(&rhs);
+    const PdfMemoryObjectStream* memstream = dynamic_cast<const PdfMemoryObjectStream*>(&rhs);
     if (memstream == nullptr)
     {
-        PdfStream::operator=(rhs);
+        PdfObjectStream::operator=(rhs);
         return;
     }
 
     copyFrom(*memstream);
 }
 
-void PdfMemStream::copyFrom(const PdfMemStream& rhs)
+void PdfMemoryObjectStream::copyFrom(const PdfMemoryObjectStream& rhs)
 {
     m_buffer = rhs.m_buffer;
 }
 
-void PdfMemStream::Write(PdfOutputDevice& device, const PdfEncrypt* encrypt)
+void PdfMemoryObjectStream::Write(PdfOutputDevice& device, const PdfEncrypt* encrypt)
 {
     device.Write("stream\n");
     if (encrypt == nullptr)
@@ -120,22 +108,22 @@ void PdfMemStream::Write(PdfOutputDevice& device, const PdfEncrypt* encrypt)
     device.Write("\nendstream\n");
 }
 
-const char* PdfMemStream::Get() const
+const char* PdfMemoryObjectStream::Get() const
 {
     return m_buffer.data();
 }
 
-const char* PdfMemStream::GetInternalBuffer() const
+const char* PdfMemoryObjectStream::GetInternalBuffer() const
 {
     return m_buffer.data();
 }
 
-size_t PdfMemStream::GetInternalBufferSize() const
+size_t PdfMemoryObjectStream::GetInternalBufferSize() const
 {
     return m_buffer.size();
 }
 
-size_t PdfMemStream::GetLength() const
+size_t PdfMemoryObjectStream::GetLength() const
 {
     return m_buffer.size();
 }

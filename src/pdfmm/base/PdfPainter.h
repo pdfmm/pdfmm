@@ -30,7 +30,7 @@ class PdfMemDocument;
 class PdfName;
 class PdfObject;
 class PdfReference;
-class PdfStream;
+class PdfObjectStream;
 class PdfXObject;
 
 enum class PdfPainterFlags
@@ -647,7 +647,7 @@ public:
      *
      *  \returns the current page canvas stream of the painter or nullptr if none is set
      */
-    inline PdfStream* GetStream() const { return m_stream; }
+    inline PdfObjectStream* GetStream() const { return m_stream; }
 
     /** Get current path string stream.
      * Stroke/Fill commands clear current path.
@@ -724,7 +724,7 @@ private:
      *  This object may not be nullptr. If it is nullptr any function accessing it should
      *  return ERROR_PDF_INVALID_HANDLE
      */
-    PdfStream* m_stream;
+    PdfObjectStream* m_stream;
 
     /** The page object is needed so that fonts etc. can be added
      *  to the page resource dictionary as appropriate.

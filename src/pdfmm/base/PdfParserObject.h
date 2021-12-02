@@ -95,7 +95,7 @@ public:
      *  when it's data is accessed for the first time.
      *  \param bDelayed if true the object is loaded delayed.
      */
-    inline void SetLoadOnDemand(bool bDelayed) { m_LoadOnDemand = bDelayed; }
+    inline void SetLoadOnDemand(bool delayed) { m_LoadOnDemand = delayed; }
 
     /** Gets an offset in which the object beginning is stored in the file.
      *  Note the offset points just after the object identificator ("0 0 obj").

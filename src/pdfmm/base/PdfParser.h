@@ -66,7 +66,7 @@ public:
 
     /** Open a PDF file and parse it.
      *
-     *  \param filename
+     *  \param buffer a buffer to parse
      *  \param loadOnDemand If true all objects will be read from the file at
      *                       the time they are accessed first.
      *                       If false all objects will be read immediately.
@@ -80,7 +80,7 @@ public:
      *
      *  \see SetPassword
      */
-    void ParseBuffer(const std::string_view& filename, bool loadOnDemand = true);
+    void ParseBuffer(const cspan<char>& buffer, bool loadOnDemand = true);
 
     /** Open a PDF file and parse it.
      *

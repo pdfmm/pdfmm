@@ -6,12 +6,12 @@
  * Some rights reserved. See COPYING, AUTHORS.
  */
 
-#ifndef PDF_MEM_STREAM_H
-#define PDF_MEM_STREAM_H
+#ifndef PDF_MEMORY_OBJECT_STREAM_H
+#define PDF_MEMORY_OBJECT_STREAM_H
 
 #include "PdfDefines.h"
 
-#include "PdfStream.h"
+#include "PdfObjectStream.h"
 #include "PdfDictionary.h"
 
 namespace mm {
@@ -27,21 +27,16 @@ class PdfObject;
  *  Most of the time it will contain either drawing commands
  *  to draw onto a page or binary data like a font or an image.
  *
- *  A PdfMemStream is implicitly shared and can therefore be copied very quickly.
+ *  A PdfMemoryObjectStream is implicitly shared and can therefore be copied very quickly.
  */
-class PDFMM_API PdfMemStream final : public PdfStream
+class PDFMM_API PdfMemoryObjectStream final : public PdfObjectStream
 {
     friend class PdfIndirectObjectList;
+
 public:
+    PdfMemoryObjectStream(PdfObject& parent);
 
-    /** Create a new PdfStream object which has a parent PdfObject.
-     *  The stream will be deleted along with the parent.
-     *  This constructor will be called by PdfObject::Stream() for you.
-     *  \param parent parent object
-     */
-    PdfMemStream(PdfObject& parent);
-
-    ~PdfMemStream();
+    ~PdfMemoryObjectStream();
 
     void Write(PdfOutputDevice& device, const PdfEncrypt* encrypt) override;
 
@@ -63,8 +58,7 @@ public:
      */
     const char* Get() const;
 
-    const PdfMemStream& operator=(const PdfMemStream& rhs);
-    const PdfMemStream& operator=(const PdfStream& rhs);
+    PdfMemoryObjectStream& operator=(const PdfMemoryObjectStream& rhs) = default;
 
  protected:
     const char* GetInternalBuffer() const override;
@@ -72,11 +66,10 @@ public:
     void BeginAppendImpl(const PdfFilterList& filters) override;
     void AppendImpl(const char* data, size_t len) override;
     void EndAppendImpl() override;
-    void CopyFrom(const PdfStream& rhs) override;
+    void CopyFrom(const PdfObjectStream& rhs) override;
 
 private:
-    PdfMemStream(const PdfMemStream& rhs) = delete;
-    void copyFrom(const PdfMemStream& rhs);
+    void copyFrom(const PdfMemoryObjectStream& rhs);
 
  private:
     chars m_buffer;
@@ -86,4 +79,4 @@ private:
 
 };
 
-#endif // PDF_MEM_STREAM_H
+#endif // PDF_MEMORY_OBJECT_STREAM_H

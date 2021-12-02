@@ -85,7 +85,7 @@ private:
 private:
     PdfObject& GetOrCreateContentsObject() override;
     PdfResources& GetOrCreateResources() override;
-    PdfStream& GetStreamForAppending(PdfStreamAppendFlags flags) override;
+    PdfObjectStream& GetStreamForAppending(PdfStreamAppendFlags flags) override;
     void InitXObject(const PdfRect& rect);
     void InitAfterPageInsertion(const PdfDocument& doc, unsigned pageIndex);
 

@@ -173,7 +173,7 @@ string PdfFontMetricsFreetype::GetFontName() const
     return m_fontName;
 }
 
-unique_ptr<PdfFontMetricsFreetype> PdfFontMetricsFreetype::FromBuffer(const string_view& buffer)
+unique_ptr<PdfFontMetricsFreetype> PdfFontMetricsFreetype::FromBuffer(const cspan<char>& buffer)
 {
     return std::make_unique<PdfFontMetricsFreetype>(std::make_shared<chars>(buffer));
 }

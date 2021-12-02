@@ -192,7 +192,7 @@ protected:
      */
     virtual void getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const;
 
-    static void AppendUTF16CodeTo(PdfStream& stream, const cspan<char32_t>& codePoints, std::u16string& u16tmp);
+    static void AppendUTF16CodeTo(PdfObjectStream& stream, const cspan<char32_t>& codePoints, std::u16string& u16tmp);
 
 protected:
     /** During a WriteToUnicodeCMap append "beginbfchar" and "beginbfrange"
@@ -200,14 +200,14 @@ protected:
      *
      * To be called by PdfEncoding
      */
-    virtual void AppendToUnicodeEntries(PdfStream& stream) const = 0;
+    virtual void AppendToUnicodeEntries(PdfObjectStream& stream) const = 0;
 
     /** During a PdfEncoding::ExportToFont() append "begincidchar"
      * and/or "begincidrange" entries. See Adobe tecnichal notes #5014\
      *
      * To be called by PdfEncoding
      */
-    virtual void AppendCIDMappingEntries(PdfStream& stream, const PdfFont& font) const = 0;
+    virtual void AppendCIDMappingEntries(PdfObjectStream& stream, const PdfFont& font) const = 0;
 
 private:
     bool tryGetNextCodePoints(std::string_view::iterator& it, const std::string_view::iterator& end,
@@ -237,9 +237,9 @@ protected:
 
     bool tryGetCodePoints(const PdfCharCode& codeUnit, std::vector<char32_t>& codePoints) const override;
 
-    void AppendToUnicodeEntries(PdfStream& stream) const override;
+    void AppendToUnicodeEntries(PdfObjectStream& stream) const override;
 
-    void AppendCIDMappingEntries(PdfStream& stream, const PdfFont& font) const override;
+    void AppendCIDMappingEntries(PdfObjectStream& stream, const PdfFont& font) const override;
 
 public:
     inline const PdfCharCodeMap& GetCharMap() const { return *m_charMap; }
@@ -262,9 +262,9 @@ class PDFMM_API PdfEncodingMapOneByte : public PdfEncodingMap
 protected:
     using PdfEncodingMap::PdfEncodingMap;
 
-    void AppendToUnicodeEntries(PdfStream& stream) const override;
+    void AppendToUnicodeEntries(PdfObjectStream& stream) const override;
 
-    void AppendCIDMappingEntries(PdfStream& stream, const PdfFont& font) const override;
+    void AppendCIDMappingEntries(PdfObjectStream& stream, const PdfFont& font) const override;
 };
 
 /**
@@ -332,9 +332,9 @@ protected:
 
     bool tryGetCodePoints(const PdfCharCode& codeUnit, std::vector<char32_t>& codePoints) const override;
 
-    void AppendToUnicodeEntries(PdfStream& stream) const override;
+    void AppendToUnicodeEntries(PdfObjectStream& stream) const override;
 
-    void AppendCIDMappingEntries(PdfStream& stream, const PdfFont& font) const override;
+    void AppendCIDMappingEntries(PdfObjectStream& stream, const PdfFont& font) const override;
 };
 
 /** Convenience typedef for a const PdfEncoding shared ptr

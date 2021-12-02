@@ -18,7 +18,7 @@
 #include "PdfDictionary.h"
 #include "PdfArray.h"
 #include "PdfColor.h"
-#include "PdfStream.h"
+#include "PdfObjectStream.h"
 
 // TIFF and JPEG headers already included through "PdfFiltersPrivate.h",
 // although in opposite order (first JPEG, then TIFF), if available of course

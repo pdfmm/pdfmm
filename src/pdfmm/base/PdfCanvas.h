@@ -50,7 +50,7 @@ public:
      *  drawing commands to the stream of the Contents object.
      *  \returns a contents object
      */
-    virtual PdfStream& GetStreamForAppending(PdfStreamAppendFlags flags) = 0;
+    virtual PdfObjectStream& GetStreamForAppending(PdfStreamAppendFlags flags) = 0;
 
     /** Get access to the resources object of this page.
      *  This is most likely an internal object.

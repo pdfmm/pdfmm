@@ -13,7 +13,7 @@
 #include "PdfReference.h"
 #include "PdfString.h"
 #include "PdfVariant.h"
-#include "PdfStream.h"
+#include "PdfObjectStream.h"
 
 namespace mm {
 
@@ -44,7 +44,7 @@ class PDFMM_API PdfObject
     friend class PdfArray;
     friend class PdfDictionary;
     friend class PdfDocument;
-    friend class PdfStream;
+    friend class PdfObjectStream;
     friend class PdfDataContainer;
     friend class PdfObjectStreamParser;
 
@@ -332,21 +332,21 @@ public:
     /** Get a handle to a PDF stream object.
      *  If the PDF object does not have a stream,
      *  one will be created.
-     *  \returns a PdfStream object
+     *  \returns a PdfObjectStream object
      */
-    PdfStream& GetOrCreateStream();
+    PdfObjectStream& GetOrCreateStream();
 
     /** Get a handle to a const PDF stream object.
      * Throws if there's no stream
      */
-    const PdfStream& MustGetStream() const;
+    const PdfObjectStream& MustGetStream() const;
 
     /** Get a handle to a const PDF stream object.
      * Throws if there's no stream
      */
-    PdfStream& MustGetStream();
+    PdfObjectStream& MustGetStream();
 
-    /** Check if this object has a PdfStream object
+    /** Check if this object has a PdfObjectStream object
      *  appended.
      *
      *  \returns true if the object has a stream
@@ -463,8 +463,8 @@ public:
      */
     inline bool DelayedLoadDone() const { return m_DelayedLoadDone; }
 
-    const PdfStream* GetStream() const;
-    PdfStream* GetStream();
+    const PdfObjectStream* GetStream() const;
+    PdfObjectStream* GetStream();
 
 protected:
     PdfObject(const PdfVariant& var, bool isDirty);
@@ -523,11 +523,11 @@ protected:
 
     void FreeStream();
 
-    PdfStream& getOrCreateStream();
+    PdfObjectStream& getOrCreateStream();
 
     void forceCreateStream();
 
-    PdfStream* getStream();
+    PdfObjectStream* getStream();
 
     void DelayedLoadStream() const;
 
@@ -572,7 +572,7 @@ private:
 
     mutable bool m_DelayedLoadDone;
     mutable bool m_DelayedLoadStreamDone;
-    std::unique_ptr<PdfStream> m_Stream;
+    std::unique_ptr<PdfObjectStream> m_Stream;
     // Tracks whether deferred loading is still pending (in which case it'll be
     // false). If true, deferred loading is not required or has been completed.
 };

@@ -72,7 +72,7 @@ void PdfIdentityEncoding::getExportObject(PdfIndirectObjectList& objects, PdfNam
     }
 }
 
-void PdfIdentityEncoding::AppendToUnicodeEntries(PdfStream& stream) const
+void PdfIdentityEncoding::AppendToUnicodeEntries(PdfObjectStream& stream) const
 {
     // Very easy, just do a single bfrange
     // Use PdfEncodingMap::AppendUTF16CodeTo
@@ -80,7 +80,7 @@ void PdfIdentityEncoding::AppendToUnicodeEntries(PdfStream& stream) const
     PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "TODO");
 }
 
-void PdfIdentityEncoding::AppendCIDMappingEntries(PdfStream& stream, const PdfFont& font) const
+void PdfIdentityEncoding::AppendCIDMappingEntries(PdfObjectStream& stream, const PdfFont& font) const
 {
     (void)stream;
     (void)font;

@@ -8,8 +8,8 @@
 #include <pdfmm/private/PdfDefinesPrivate.h>
 #include "PdfImmediateWriter.h"
 
-#include "PdfFileStream.h"
-#include "PdfMemStream.h"
+#include "PdfFileObjectStream.h"
+#include "PdfMemoryObjectStream.h"
 #include "PdfObject.h"
 #include "PdfXRef.h"
 #include "PdfXRefStream.h"
@@ -126,11 +126,11 @@ void PdfImmediateWriter::Finish()
     m_attached = false;
 }
 
-PdfStream* PdfImmediateWriter::CreateStream(PdfObject& parent)
+PdfObjectStream* PdfImmediateWriter::CreateStream(PdfObject& parent)
 {
     return m_OpenStream ?
-        static_cast<PdfStream*>(new PdfMemStream(parent)) :
-        static_cast<PdfStream*>(new PdfFileStream(parent, *m_Device));
+        static_cast<PdfObjectStream*>(new PdfMemoryObjectStream(parent)) :
+        static_cast<PdfObjectStream*>(new PdfFileObjectStream(parent, *m_Device));
 }
 
 void PdfImmediateWriter::FinishLastObject()
@@ -145,9 +145,9 @@ void PdfImmediateWriter::FinishLastObject()
     }
 }
 
-void PdfImmediateWriter::BeginAppendStream(const PdfStream& stream)
+void PdfImmediateWriter::BeginAppendStream(const PdfObjectStream& stream)
 {
-    auto fileStream = dynamic_cast<const PdfFileStream*>(&stream);
+    auto fileStream = dynamic_cast<const PdfFileObjectStream*>(&stream);
     if (fileStream != nullptr)
     {
         // Only one open file stream is allowed at a time
@@ -155,13 +155,13 @@ void PdfImmediateWriter::BeginAppendStream(const PdfStream& stream)
         m_OpenStream = true;
 
         if (GetEncrypt() != nullptr)
-            const_cast<PdfFileStream*>(fileStream)->SetEncrypted(GetEncrypt());
+            const_cast<PdfFileObjectStream*>(fileStream)->SetEncrypted(GetEncrypt());
     }
 }
 
-void PdfImmediateWriter::EndAppendStream(const PdfStream& stream)
+void PdfImmediateWriter::EndAppendStream(const PdfObjectStream& stream)
 {
-    auto fileStream = dynamic_cast<const PdfFileStream*>(&stream);
+    auto fileStream = dynamic_cast<const PdfFileObjectStream*>(&stream);
     if (fileStream != nullptr)
     {
         // A PdfFileStream has to be opened before

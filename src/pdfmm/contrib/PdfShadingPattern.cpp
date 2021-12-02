@@ -15,7 +15,7 @@
 #include <pdfmm/base/PdfColor.h>
 #include <pdfmm/base/PdfDictionary.h>
 #include <pdfmm/base/PdfLocale.h>
-#include <pdfmm/base/PdfStream.h>
+#include <pdfmm/base/PdfObjectStream.h>
 #include <pdfmm/base/PdfWriter.h>
 
 #include "PdfFunction.h"
