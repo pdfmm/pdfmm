@@ -234,28 +234,28 @@ void PdfVariant::assign(const PdfVariant& rhs)
     {
         case PdfDataType::Array:
         {
-            m_Data.Data = new PdfArray(*static_cast<PdfArray*>(rhs.m_Data.Data));
+            m_Data.Data = new PdfArray(*static_cast<const PdfArray*>(rhs.m_Data.Data));
             break;
         }
         case PdfDataType::Dictionary:
         {
-            m_Data.Data = new PdfDictionary(*static_cast<PdfDictionary*>(rhs.m_Data.Data));
+            m_Data.Data = new PdfDictionary(*static_cast<const PdfDictionary*>(rhs.m_Data.Data));
             break;
         }
         case PdfDataType::Name:
         {
-            m_Data.Data = new PdfName(*static_cast<PdfName*>(rhs.m_Data.Data));
+            m_Data.Data = new PdfName(*static_cast<const PdfName*>(rhs.m_Data.Data));
             break;
         }
         case PdfDataType::String:
         {
-            m_Data.Data = new PdfString(*static_cast<PdfString*>(rhs.m_Data.Data));
+            m_Data.Data = new PdfString(*static_cast<const PdfString*>(rhs.m_Data.Data));
             break;
         }
 
         case PdfDataType::RawData:
         {
-            m_Data.Data = new PdfData(*static_cast<PdfData*>(rhs.m_Data.Data));
+            m_Data.Data = new PdfData((*static_cast<const PdfData*>(rhs.m_Data.Data)));
             break;
         }
         case PdfDataType::Reference:

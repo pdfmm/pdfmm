@@ -207,7 +207,7 @@ bool PdfContentsTokenizer::tryReadInlineImgData(PdfData& data)
             {
                 if (PdfTokenizer::IsWhitespace(ch))
                 {
-                    data = string_view(m_buffer->data(), readCount - 2);
+                    data = cspan<char>(m_buffer->data(), readCount - 2);
                     return true;
                 }
                 else

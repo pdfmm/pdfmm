@@ -20,7 +20,7 @@ namespace mm
     public:
         virtual ~PdfSigner();
         virtual void Reset() = 0;
-        virtual void AppendData(const std::string_view& data) = 0;
+        virtual void AppendData(const cspan<char>& data) = 0;
         /**
          * \param buffer The buffer that will hold the signature
          * \param dryrun If true the buffer is not required to hold

@@ -53,12 +53,12 @@ public:
      *                    the current position in the stream
      *
      */
-    PdfData(const std::string_view& data, const std::shared_ptr<size_t>& writeBeacon = { });
+    PdfData(const cspan<char>& data, const std::shared_ptr<size_t>& writeBeacon = { });
 
     /** Copy an existing PdfData
      *  \param rhs another PdfData to copy
      */
-    PdfData(const PdfData& rhs);
+    PdfData(const PdfData& rhs) = default;
 
     void Write(PdfOutputDevice& device, PdfWriteMode writeMode, const PdfEncrypt* encrypt) const override;
 
@@ -66,7 +66,7 @@ public:
      *  \param rhs another PdfData to copy
      *  \returns this object
      */
-    const PdfData& operator=(const PdfData& rhs);
+    PdfData& operator=(const PdfData& rhs) = default;
 
     /**
      * Access the data as a std::string

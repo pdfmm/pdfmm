@@ -19,19 +19,14 @@ PdfData::PdfData()
 {
 }
 
-PdfData::PdfData(const string_view& data, const shared_ptr<size_t>& writeBeacon)
-    : m_data(std::make_shared<string>(data)), m_writeBeacon(writeBeacon)
+PdfData::PdfData(const cspan<char>& data, const shared_ptr<size_t>& writeBeacon)
+    : m_data(std::make_shared<string>(data.data(), data.size())), m_writeBeacon(writeBeacon)
 {
 }
 
 PdfData::PdfData(string&& data, const shared_ptr<size_t>& writeBeacon)
     : m_data(std::make_shared<string>(std::move(data))), m_writeBeacon(writeBeacon)
 {
-}
-
-PdfData::PdfData(const PdfData& rhs)
-{
-    this->operator=(rhs);
 }
 
 void PdfData::Write(PdfOutputDevice& device, PdfWriteMode, const PdfEncrypt* encrypt) const
@@ -41,11 +36,4 @@ void PdfData::Write(PdfOutputDevice& device, PdfWriteMode, const PdfEncrypt* enc
         *m_writeBeacon = device.Tell();
 
     device.Write(*m_data);
-}
-
-const PdfData& PdfData::operator=(const PdfData& rhs)
-{
-    m_data = rhs.m_data;
-    m_writeBeacon = rhs.m_writeBeacon;
-    return *this;
 }
