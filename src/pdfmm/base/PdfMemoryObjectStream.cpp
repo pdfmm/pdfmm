@@ -127,3 +127,9 @@ size_t PdfMemoryObjectStream::GetLength() const
 {
     return m_buffer.size();
 }
+
+PdfMemoryObjectStream& PdfMemoryObjectStream::operator=(const PdfMemoryObjectStream& rhs)
+{
+    CopyFrom(rhs);
+    return *this;
+}

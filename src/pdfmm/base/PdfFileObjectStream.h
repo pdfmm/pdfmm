@@ -59,7 +59,7 @@ public:
 
     size_t GetLength() const override;
 
-    PdfFileObjectStream& operator=(const PdfFileObjectStream& rhs) = default;
+    PdfFileObjectStream& operator=(const PdfFileObjectStream& rhs);
 
 protected:
     const char* GetInternalBuffer() const override;

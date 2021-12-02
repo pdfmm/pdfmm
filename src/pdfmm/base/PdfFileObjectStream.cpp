@@ -131,3 +131,9 @@ size_t PdfFileObjectStream::GetInternalBufferSize() const
 {
     return 0;
 }
+
+PdfFileObjectStream& PdfFileObjectStream::operator=(const PdfFileObjectStream& rhs)
+{
+    CopyFrom(rhs);
+    return *this;
+}

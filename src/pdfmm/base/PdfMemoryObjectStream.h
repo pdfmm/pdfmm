@@ -58,7 +58,7 @@ public:
      */
     const char* Get() const;
 
-    PdfMemoryObjectStream& operator=(const PdfMemoryObjectStream& rhs) = default;
+    PdfMemoryObjectStream& operator=(const PdfMemoryObjectStream& rhs);
 
  protected:
     const char* GetInternalBuffer() const override;
