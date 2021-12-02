@@ -26,7 +26,7 @@ const Standard14FontChar* GetStd14FontChars(PdfStandard14FontType stdFont, unsig
 
 const Std14CPToGIDMap& GetStd14CPToGIDMap(PdfStandard14FontType stdFont);
 
-std::string_view GetStandard14FontFileData(PdfStandard14FontType stdFont);
+cspan<char> GetStandard14FontFileData(PdfStandard14FontType stdFont);
 
 std::string_view GetStandard14FontBaseName(PdfStandard14FontType stdFont);
 

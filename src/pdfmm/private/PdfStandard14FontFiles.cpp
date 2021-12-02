@@ -16615,7 +16615,7 @@ const unsigned char FoxitDingbats[] = {
 0x1F, 0x8D, 0x8D, 0x05, 0x0B, 0x05, 0x89, 0x07, 0x0B
 };
 
-string_view mm::GetStandard14FontFileData(PdfStandard14FontType stdFont)
+mm::cspan<char> mm::GetStandard14FontFileData(PdfStandard14FontType stdFont)
 {
     switch (stdFont)
     {

@@ -139,7 +139,7 @@ public:
 
     inline bool CanDecode() const override { return true; }
 
-    void BeginDecodeImpl(const PdfDictionary* pDecodeParms) override;
+    void BeginDecodeImpl(const PdfDictionary* decodeParms) override;
 
     void DecodeBlockImpl(const char* buffer, size_t len) override;
 

@@ -295,9 +295,9 @@ double PdfFontMetricsFreetype::GetDescent() const
     return m_Descent;
 }
 
-string_view PdfFontMetricsFreetype::GetFontFileData() const
+cspan<char> PdfFontMetricsFreetype::GetFontFileData() const
 {
-    return string_view(m_FontData->data(), m_FontData->length());
+    return cspan<char>(m_FontData->data(), m_FontData->size());
 }
 
 int PdfFontMetricsFreetype::GetWeightRaw() const

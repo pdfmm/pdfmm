@@ -622,7 +622,7 @@ void PdfEncryptMD5Base::PadPassword(const string_view& password, unsigned char p
 }
 
 bool PdfEncryptMD5Base::Authenticate(const string_view& documentID, const string_view& password,
-    const string_view& uValue, const string_view& oValue,
+    const cspan<char>& uValue, const cspan<char>& oValue,
     PdfPermissions pValue, int lengthValue, int rValue)
 {
     m_pValue = pValue;
@@ -1511,8 +1511,8 @@ void PdfEncryptSHABase::ComputeEncryptionKey()
 }
     
 bool PdfEncryptSHABase::Authenticate(const string_view& documentID, const string_view& password,
-    const string_view& uValue, const string_view& ueValue,
-    const string_view& oValue, const string_view& oeValue,
+    const cspan<char>& uValue, const cspan<char>& ueValue,
+    const cspan<char>& oValue, const cspan<char>& oeValue,
     PdfPermissions pValue, const string_view& permsValue,
     int lengthValue, int rValue)
 {
@@ -1793,14 +1793,14 @@ int PdfEncrypt::GetKeyLength() const
     return m_keyLength * 8;
 }
 
-void PdfEncrypt::Encrypt(const string_view& view, string& out) const
+void PdfEncrypt::Encrypt(const cspan<char>& view, string& out) const
 {
     size_t outputLen = this->CalculateStreamLength(view.size());
     out.resize(outputLen);
     this->Encrypt(view.data(), view.size(), out.data(), outputLen);
 }
 
-void PdfEncrypt::Decrypt(const string_view& view, string& out) const
+void PdfEncrypt::Decrypt(const cspan<char>& view, string& out) const
 {
     // FIX-ME: The following clearly seems hardcoded for AES
     // It was found like this in PdfString and PdfTokenizer

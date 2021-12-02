@@ -88,7 +88,7 @@ PdfName PdfName::FromEscaped(const string_view& view)
     return FromRaw(UnescapeName(view));
 }
 
-PdfName PdfName::FromRaw(const string_view& rawcontent)
+PdfName PdfName::FromRaw(const cspan<char>& rawcontent)
 {
     return PdfName((chars)rawcontent);
 }

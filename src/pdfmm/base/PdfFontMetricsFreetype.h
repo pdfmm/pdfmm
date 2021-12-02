@@ -85,7 +85,7 @@ public:
 
     PdfFontFileType GetFontFileType() const override;
 
-    std::string_view GetFontFileData() const override;
+    cspan<char> GetFontFileData() const override;
 
     /** Get direct access to the internal FreeType handle
      *

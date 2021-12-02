@@ -541,13 +541,13 @@ void PdfFlateFilter::EndEncodeImpl()
     deflateEnd(&m_stream);
 }
 
-void PdfFlateFilter::BeginDecodeImpl(const PdfDictionary* pDecodeParms)
+void PdfFlateFilter::BeginDecodeImpl(const PdfDictionary* decodeParms)
 {
     m_stream.zalloc = Z_NULL;
     m_stream.zfree = Z_NULL;
     m_stream.opaque = Z_NULL;
 
-    m_Predictor = pDecodeParms ? new PdfPredictorDecoder(pDecodeParms) : nullptr;
+    m_Predictor = decodeParms == nullptr ? nullptr : new PdfPredictorDecoder(decodeParms);
 
     if (inflateInit(&m_stream) != Z_OK)
         PDFMM_RAISE_ERROR(PdfErrorCode::Flate);

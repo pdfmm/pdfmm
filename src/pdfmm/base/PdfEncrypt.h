@@ -344,13 +344,13 @@ public:
      */
     bool IsMetadataEncrypted() const { return m_EncryptMetadata; }
 
-    /** Encrypt a character string
+    /** Encrypt a character span
      */
-    void Encrypt(const std::string_view& view, std::string& out) const;
+    void Encrypt(const cspan<char>& view, std::string& out) const;
 
-    /** Decrypt a character string
+    /** Decrypt a character span
      */
-    void Decrypt(const std::string_view& view, std::string& out) const;
+    void Decrypt(const cspan<char>& view, std::string& out) const;
 
     /** Calculate stream size
      */
@@ -436,8 +436,8 @@ public:
     const unsigned char* GetPermsValue() const { return m_permsValue; }
 
     bool Authenticate(const std::string_view& documentID, const std::string_view& password,
-        const std::string_view& uValue, const std::string_view& ueValue,
-        const std::string_view& oValue, const std::string_view& oeValue,
+        const cspan<char>& uValue, const std::string_view& ueValue,
+        const cspan<char>& oValue, const std::string_view& oeValue,
         PdfPermissions pValue, const std::string_view& permsValue,
         int lengthValue, int rValue);
 
@@ -548,7 +548,7 @@ public:
     bool Authenticate(const std::string_view& password, const std::string_view& documentId) override = 0;
 
     bool Authenticate(const std::string_view& documentID, const std::string_view& password,
-        const std::string_view& uValue, const std::string_view& oValue,
+        const cspan<char>& uValue, const cspan<char>& oValue,
         PdfPermissions pValue, int lengthValue, int rValue);
 
 protected:

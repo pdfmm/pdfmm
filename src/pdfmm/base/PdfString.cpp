@@ -59,7 +59,7 @@ PdfString::PdfString(chars chars, bool isHex)
 {
 }
 
-PdfString PdfString::FromRaw(const string_view& view, bool isHex)
+PdfString PdfString::FromRaw(const cspan<char>& view, bool isHex)
 {
     return PdfString((chars)view, isHex);
 }

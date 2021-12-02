@@ -52,7 +52,7 @@ public:
      */
     PdfName(const PdfName& rhs);
 
-    static PdfName FromRaw(const std::string_view& rawcontent);
+    static PdfName FromRaw(const cspan<char>& rawcontent);
 
     /** Create a new PdfName object from a string containing an escaped
      *  name string without the leading / .

@@ -54,7 +54,7 @@ const PdfObject* PdfFontMetrics::GetFontFileObject() const
     return nullptr;
 }
 
-string_view PdfFontMetrics::GetFontFileData() const
+cspan<char> PdfFontMetrics::GetFontFileData() const
 {
     // Return nothing by default
     return { };
