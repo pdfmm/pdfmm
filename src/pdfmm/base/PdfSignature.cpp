@@ -92,11 +92,11 @@ void PdfSignature::PrepareForSigning(const string_view& filter,
     dict.AddKey(PdfName::KeyType, PdfName(type));
 
     // Prepare contents data
-    PdfData contentsData(beacons.ContentsBeacon, beacons.ContentsOffset);
+    PdfData contentsData = PdfData::Create(beacons.ContentsBeacon, beacons.ContentsOffset);
     m_ValueObj->GetDictionary().AddKey(PdfName::KeyContents, PdfObject(contentsData));
 
     // Prepare byte range data
-    PdfData byteRangeData(beacons.ByteRangeBeacon, beacons.ByteRangeOffset);
+    PdfData byteRangeData = PdfData::Create(beacons.ByteRangeBeacon, beacons.ByteRangeOffset);
     m_ValueObj->GetDictionary().AddKey("ByteRange", PdfObject(byteRangeData));
 }
 

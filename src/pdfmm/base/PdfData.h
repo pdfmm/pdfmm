@@ -41,7 +41,7 @@ public:
      *                    the current position in the stream
      *
      */
-    PdfData(std::string&& data, const std::shared_ptr<size_t>& writeBeacon = { });
+    PdfData(chars&& data, const std::shared_ptr<size_t>& writeBeacon = { });
 
     /**
      * Create a new PdfData object with valid PdfData
@@ -53,7 +53,7 @@ public:
      *                    the current position in the stream
      *
      */
-    PdfData(const cspan<char>& data, const std::shared_ptr<size_t>& writeBeacon = { });
+    static PdfData Create(const cspan<char>& data, const std::shared_ptr<size_t>& writeBeacon = { });
 
     /** Copy an existing PdfData
      *  \param rhs another PdfData to copy
@@ -68,14 +68,16 @@ public:
      */
     PdfData& operator=(const PdfData& rhs) = default;
 
+    PdfData& operator=(const cspan<char>& data);
+
     /**
      * Access the data as a std::string
      * \returns a const reference to the contained data
      */
-     inline const std::string& data() const { return *m_data; }
+     inline const std::string& data() const { return m_data; }
 
 private:
-    std::shared_ptr<std::string> m_data;
+    chars m_data;
     std::shared_ptr<size_t> m_writeBeacon;
 };
 

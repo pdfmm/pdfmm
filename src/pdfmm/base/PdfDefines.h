@@ -80,6 +80,8 @@ public:
     explicit chars(const cspan<char>& view);
 
     chars(std::string&& str);
+
+    operator cspan<char>() const;
 };
 
 // Enums

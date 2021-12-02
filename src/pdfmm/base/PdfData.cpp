@@ -15,18 +15,23 @@ using namespace std;
 using namespace mm;
 
 PdfData::PdfData()
-    : m_data(std::make_shared<string>())
 {
 }
 
-PdfData::PdfData(const cspan<char>& data, const shared_ptr<size_t>& writeBeacon)
-    : m_data(std::make_shared<string>(data.data(), data.size())), m_writeBeacon(writeBeacon)
+PdfData::PdfData(chars&& data, const shared_ptr<size_t>& writeBeacon)
+    : m_data(std::move(data)), m_writeBeacon(writeBeacon)
 {
 }
 
-PdfData::PdfData(string&& data, const shared_ptr<size_t>& writeBeacon)
-    : m_data(std::make_shared<string>(std::move(data))), m_writeBeacon(writeBeacon)
+PdfData PdfData::Create(const cspan<char>& data, const shared_ptr<size_t>& writeBeacon)
 {
+    return PdfData(chars(data), writeBeacon);
+}
+
+PdfData& PdfData::operator=(const cspan<char>& data)
+{
+    m_data = string(data.data(), data.size());
+    return *this;
 }
 
 void PdfData::Write(PdfOutputDevice& device, PdfWriteMode, const PdfEncrypt* encrypt) const
@@ -35,5 +40,5 @@ void PdfData::Write(PdfOutputDevice& device, PdfWriteMode, const PdfEncrypt* enc
     if (m_writeBeacon != nullptr)
         *m_writeBeacon = device.Tell();
 
-    device.Write(*m_data);
+    device.Write(m_data);
 }

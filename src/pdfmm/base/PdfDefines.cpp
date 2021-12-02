@@ -244,9 +244,12 @@ chars::chars(string&& str)
 {
 }
 
-chars::chars()
+chars::operator cspan<char>() const
 {
+    return cspan<char>(data(), size());
 }
+
+chars::chars() { }
 
 chars::chars(size_t size)
 {
