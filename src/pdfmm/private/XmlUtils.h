@@ -4,6 +4,10 @@
 #include <libxml/tree.h>
 #include <pdfmm/common/nullable.h>
 
+// Cast macro that keep or enforce const to use
+// instead of BAD_CAST
+#define XMLCHAR (const xmlChar*)
+
 namespace utls
 {
     void InitXml();

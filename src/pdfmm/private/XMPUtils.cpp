@@ -167,22 +167,22 @@ xmlDocPtr createXmpDoc(xmlNodePtr& root)
 
     // https://wwwimages2.adobe.com/content/dam/acom/en/devnet/xmp/pdfs/XMP%20SDK%20Release%20cc-2016-08/XMPSpecificationPart1.pdf
     // See 7.3.2 XMP Packet Wrapper
-    auto xpacketBegin = xmlNewPI(BAD_CAST "xpacket", BAD_CAST "begin=\"\357\273\277\" id=\"W5M0MpCehiHzreSzNTczkc9d\"");
+    auto xpacketBegin = xmlNewPI(XMLCHAR "xpacket", XMLCHAR "begin=\"\357\273\277\" id=\"W5M0MpCehiHzreSzNTczkc9d\"");
     xmlAddChild((xmlNodePtr)doc, xpacketBegin);
 
     // NOTE: x:xmpmeta element does't define any attribute
     // but other attributes can be defined (eg. x:xmptk)
     // and should be ignored by processors
-    auto xmpmeta = xmlNewDocNode(doc, nullptr, BAD_CAST "xmpmeta", nullptr);
+    auto xmpmeta = xmlNewDocNode(doc, nullptr, XMLCHAR "xmpmeta", nullptr);
     if (xmpmeta == nullptr || xmlAddChild((xmlNodePtr)doc, xmpmeta) == nullptr)
         THROW_LIBXML_EXCEPTION("Can't create x:xmpmeta node");
 
-    auto nsAdobeMeta = xmlNewNs(xmpmeta, BAD_CAST "adobe:ns:meta/", BAD_CAST "x");
+    auto nsAdobeMeta = xmlNewNs(xmpmeta, XMLCHAR "adobe:ns:meta/", XMLCHAR "x");
     if (nsAdobeMeta == nullptr)
         THROW_LIBXML_EXCEPTION("Can't find or create x namespace");
     xmlSetNs(xmpmeta, nsAdobeMeta);
 
-    auto xpacketEnd = xmlNewPI(BAD_CAST "xpacket", BAD_CAST "end=\"w\"");
+    auto xpacketEnd = xmlNewPI(XMLCHAR "xpacket", XMLCHAR "end=\"w\"");
     xmlAddChild((xmlNodePtr)doc, xpacketEnd);
     root = xmpmeta;
     return doc;
@@ -211,7 +211,7 @@ xmlNodePtr findOrCreateRDFElement(xmlDocPtr doc, xmlNodePtr xmpmeta)
 
 void ensureRDFNamespace(xmlDocPtr doc, xmlNodePtr element, bool create)
 {
-    auto rdfNs = xmlSearchNs(doc, element, BAD_CAST "rdf");
+    auto rdfNs = xmlSearchNs(doc, element, XMLCHAR "rdf");
     if (rdfNs == nullptr)
     {
         if (create)
@@ -230,7 +230,7 @@ void ensureRDFNamespace(xmlDocPtr doc, xmlNodePtr element, bool create)
 
 xmlNodePtr createRDFElement(xmlDocPtr doc, xmlNodePtr xmpmeta)
 {
-    auto rdf = xmlNewDocNode(doc, nullptr, BAD_CAST "RDF", nullptr);
+    auto rdf = xmlNewDocNode(doc, nullptr, XMLCHAR "RDF", nullptr);
     if (rdf == nullptr || xmlAddChild(xmpmeta, rdf) == nullptr)
         THROW_LIBXML_EXCEPTION("Can't create rdf:RDF node");
 
@@ -240,7 +240,7 @@ xmlNodePtr createRDFElement(xmlDocPtr doc, xmlNodePtr xmpmeta)
 
 void createRDFNamespace(xmlNodePtr rdf)
 {
-    auto rdfNs = xmlNewNs(rdf, BAD_CAST "http://www.w3.org/1999/02/22-rdf-syntax-ns#", BAD_CAST "rdf");
+    auto rdfNs = xmlNewNs(rdf, XMLCHAR "http://www.w3.org/1999/02/22-rdf-syntax-ns#", XMLCHAR "rdf");
     if (rdfNs == nullptr)
         THROW_LIBXML_EXCEPTION("Can't find or create rdf namespace");
     xmlSetNs(rdf, rdfNs);
@@ -260,16 +260,16 @@ xmlNodePtr findOrCreateDescriptionElement(xmlDocPtr doc, xmlNodePtr rdf)
 
 xmlNodePtr createDescriptionElement(xmlDocPtr doc, xmlNodePtr rdf)
 {
-    auto description = xmlNewDocNode(doc, nullptr, BAD_CAST "Description", nullptr);
+    auto description = xmlNewDocNode(doc, nullptr, XMLCHAR "Description", nullptr);
     if (description == nullptr || xmlAddChild(rdf, description) == nullptr)
         THROW_LIBXML_EXCEPTION("Can't create rdf:Description node");
 
-    auto nsRDF = xmlNewNs(description, BAD_CAST "http://www.w3.org/1999/02/22-rdf-syntax-ns#", BAD_CAST "rdf");
+    auto nsRDF = xmlNewNs(description, XMLCHAR "http://www.w3.org/1999/02/22-rdf-syntax-ns#", XMLCHAR "rdf");
     if (nsRDF == nullptr)
         THROW_LIBXML_EXCEPTION("Can't find or create rdf namespace");
 
     xmlSetNs(description, nsRDF);
-    if (xmlSetNsProp(description, nsRDF, BAD_CAST "about", BAD_CAST "") == nullptr)
+    if (xmlSetNsProp(description, nsRDF, XMLCHAR "about", XMLCHAR "") == nullptr)
         THROW_LIBXML_EXCEPTION(mm::Format("Can't set rdf:about attribute on rdf:Description node"));
 
     return description;
@@ -300,9 +300,9 @@ xmlNsPtr findOrCreateNamespace(xmlDocPtr doc, xmlNodePtr description, PdfANamesp
         default:
             throw runtime_error("Unsupported");
     }
-    auto xmlNs = xmlSearchNs(doc, description, BAD_CAST prefix);
+    auto xmlNs = xmlSearchNs(doc, description, XMLCHAR prefix);
     if (xmlNs == nullptr)
-        xmlNs = xmlNewNs(description, BAD_CAST href, BAD_CAST prefix);
+        xmlNs = xmlNewNs(description, XMLCHAR href, XMLCHAR prefix);
 
     if (xmlNs == nullptr)
         THROW_LIBXML_EXCEPTION(mm::Format("Can't find or create {} namespace", prefix));
@@ -404,7 +404,7 @@ void addXMPProperty(xmlDocPtr doc, xmlNodePtr description,
             throw runtime_error("Unsupported");
     }
 
-    auto element = xmlNewDocNode(doc, xmlNs, BAD_CAST propName, nullptr);
+    auto element = xmlNewDocNode(doc, xmlNs, XMLCHAR propName, nullptr);
     if (element == nullptr || xmlAddChild(description, element) == nullptr)
         THROW_LIBXML_EXCEPTION(mm::Format("Can't create xmp:{} node", propName));
 
@@ -423,7 +423,7 @@ void addXMPProperty(xmlDocPtr doc, xmlNodePtr description,
         }
         default:
         {
-            xmlNodeSetContent(element, BAD_CAST value.data());
+            xmlNodeSetContent(element, XMLCHAR value.data());
             break;
         }
     }
@@ -447,25 +447,25 @@ void setNodeSequenceContent(xmlNodePtr node, xmlDocPtr doc, XMPSequenceType seqT
             PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }
 
-    auto rdfNs = xmlSearchNs(doc, node, BAD_CAST "rdf");
+    auto rdfNs = xmlSearchNs(doc, node, XMLCHAR "rdf");
     PDFMM_ASSERT(rdfNs != nullptr);
-    auto innerElem = xmlNewDocNode(doc, rdfNs, BAD_CAST elemName, nullptr);
+    auto innerElem = xmlNewDocNode(doc, rdfNs, XMLCHAR elemName, nullptr);
     if (innerElem == nullptr || xmlAddChild(node, innerElem) == nullptr)
         THROW_LIBXML_EXCEPTION(mm::Format("Can't create rdf:{} node", elemName));
 
-    auto liElem = xmlNewDocNode(doc, rdfNs, BAD_CAST "li", nullptr);
+    auto liElem = xmlNewDocNode(doc, rdfNs, XMLCHAR "li", nullptr);
     if (liElem == nullptr || xmlAddChild(innerElem, liElem) == nullptr)
         THROW_LIBXML_EXCEPTION(mm::Format("Can't create rdf:li node"));
 
     if (xdefault)
     {
-        auto xmlNs = xmlSearchNs(doc, node, BAD_CAST "xml");
+        auto xmlNs = xmlSearchNs(doc, node, XMLCHAR "xml");
         PDFMM_ASSERT(xmlNs != nullptr);
-        if (xmlSetNsProp(liElem, xmlNs, BAD_CAST "lang", BAD_CAST "x-default") == nullptr)
+        if (xmlSetNsProp(liElem, xmlNs, XMLCHAR "lang", XMLCHAR "x-default") == nullptr)
             THROW_LIBXML_EXCEPTION(mm::Format("Can't set xml:lang attribute on rdf:li node"));
     }
 
-    xmlNodeSetContent(liElem, BAD_CAST value.data());
+    xmlNodeSetContent(liElem, XMLCHAR value.data());
 }
 
 void removeXMPProperty(xmlNodePtr rdf, MetadataKind property)
