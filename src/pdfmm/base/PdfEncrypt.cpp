@@ -11,7 +11,7 @@
 // Based on code from Ulrich Telle: http://wxcode.sourceforge.net/components/wxpdfdoc/
 // ---------------------------
 
-#include <pdfmm/private/PdfDefinesPrivate.h>
+#include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfEncrypt.h"
 
 #include "PdfDictionary.h"

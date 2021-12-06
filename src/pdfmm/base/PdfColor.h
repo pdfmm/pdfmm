@@ -8,7 +8,7 @@
 #ifndef PDF_COLOR_H
 #define PDF_COLOR_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 #include "PdfName.h"
 

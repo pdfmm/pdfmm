@@ -1,4 +1,4 @@
-#include <pdfmm/private/PdfDefinesPrivate.h>
+#include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfResources.h"
 #include "PdfDictionary.h"
 #include "PdfCanvas.h"

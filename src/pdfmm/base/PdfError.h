@@ -9,8 +9,8 @@
 #ifndef PDF_ERROR_H
 #define PDF_ERROR_H
 
-// NOTE: PdfError.h should not include PdfDefines.h, since it is included by it.
-// It should avoid depending on anything defined in PdfDefines.h .
+// NOTE: PdfError.h should not include PdfDeclarations.h, since it is included by it.
+// It should avoid depending on anything defined in PdfDeclarations.h .
 #include "pdfmmdefs.h"
 
 #include <queue>

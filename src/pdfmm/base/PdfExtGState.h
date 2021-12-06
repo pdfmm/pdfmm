@@ -9,7 +9,7 @@
 #ifndef PDF_EXTGSTATE_H
 #define PDF_EXTGSTATE_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 #include "PdfElement.h"
 #include "PdfName.h"
@@ -47,7 +47,7 @@ public:
     void SetStrokeOpacity(double opac);
 
     /** Sets the transparency blend mode
-     *  \param blendMode one of the predefined blending modes (see PdfDefines.h)
+     *  \param blendMode one of the predefined blending modes (see PdfDeclarations.h)
      */
     void SetBlendMode(const std::string_view& blendMode);
 

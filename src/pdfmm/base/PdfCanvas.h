@@ -9,7 +9,7 @@
 #ifndef PDF_CANVAS_H
 #define PDF_CANVAS_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 #include "PdfResources.h"
 #include "PdfArray.h"
 

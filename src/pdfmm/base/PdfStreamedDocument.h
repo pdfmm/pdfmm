@@ -8,7 +8,7 @@
 #ifndef PDF_STREAMED_DOCUMENT_H
 #define PDF_STREAMED_DOCUMENT_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 #include "PdfDocument.h"
 #include "PdfImmediateWriter.h"

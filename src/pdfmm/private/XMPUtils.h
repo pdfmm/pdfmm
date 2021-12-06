@@ -1,7 +1,7 @@
 #ifndef PDFMM_PDFA_FUNCTIONS_H
 #define PDFMM_PDFA_FUNCTIONS_H
 
-#include <pdfmm/base/PdfDefines.h>
+#include <pdfmm/base/PdfDeclarations.h>
 #include <pdfmm/base/PdfDate.h>
 
 namespace mm

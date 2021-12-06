@@ -9,7 +9,7 @@
 #ifndef PDF_FONT_METRICS_FREETYPE_H
 #define PDF_FONT_METRICS_FREETYPE_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 #include "Pdf3rdPtyForwardDecl.h"
 #include "PdfFontMetrics.h"

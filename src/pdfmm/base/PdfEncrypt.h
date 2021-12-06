@@ -9,7 +9,7 @@
 #ifndef PDF_ENCRYPT_H
 #define PDF_ENCRYPT_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 #include "PdfString.h"
 #include "PdfReference.h"
 

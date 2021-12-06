@@ -8,7 +8,7 @@
 #ifndef PDF_NAMES_TREE_H
 #define PDF_NAMES_TREE_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 #include "PdfElement.h"
 

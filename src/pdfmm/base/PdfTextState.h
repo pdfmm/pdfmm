@@ -8,7 +8,7 @@
 #ifndef PDF_TEXT_STATE_H
 #define PDF_TEXT_STATE_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 namespace mm
 {

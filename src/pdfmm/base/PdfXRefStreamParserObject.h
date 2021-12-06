@@ -9,7 +9,7 @@
 #ifndef PDF_XREF_STREAM_PARSER_OBJECT_H
 #define PDF_XREF_STREAM_PARSER_OBJECT_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 #include "PdfXRefEntry.h"
 #include "PdfParserObject.h"
 

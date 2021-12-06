@@ -5,7 +5,7 @@
  * Some rights reserved. See COPYING, AUTHORS.
  */
 
-#include <pdfmm/private/PdfDefinesPrivate.h>
+#include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfSigner.h"
 #include "PdfDictionary.h"
 #include "PdfOutputDevice.h"

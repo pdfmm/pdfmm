@@ -9,7 +9,7 @@
 #ifndef PDF_STRING_H
 #define PDF_STRING_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 #include "PdfDataProvider.h"
 

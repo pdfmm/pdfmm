@@ -9,7 +9,7 @@
 #ifndef PDF_RECT_H
 #define PDF_RECT_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 namespace mm {
 

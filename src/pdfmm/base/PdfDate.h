@@ -11,7 +11,7 @@
 
 #include <chrono>
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 #include "PdfString.h"
 
 namespace mm {

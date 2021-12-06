@@ -8,7 +8,7 @@
 #ifndef PDF_EXTENSION_H
 #define PDF_EXTENSION_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 namespace mm {
     

@@ -8,7 +8,7 @@
 #ifndef PDF_DESTINATION_H
 #define PDF_DESTINATION_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 #include "PdfArray.h"
 #include "PdfRect.h"

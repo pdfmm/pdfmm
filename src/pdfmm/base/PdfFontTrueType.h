@@ -9,7 +9,7 @@
 #ifndef PDF_FONT_TRUE_TYPE_H
 #define PDF_FONT_TRUE_TYPE_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 #include "PdfFontSimple.h"
 

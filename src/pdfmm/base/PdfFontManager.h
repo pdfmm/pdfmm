@@ -9,7 +9,7 @@
 #ifndef PDF_FONT_CACHE_H
 #define PDF_FONT_CACHE_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 #include <unordered_map>
 

@@ -6,7 +6,7 @@
  * Some rights reserved. See COPYING, AUTHORS.
  */
 
-#include <pdfmm/private/PdfDefinesPrivate.h>
+#include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfEncodingMapFactory.h"
 #include "PdfPredefinedEncoding.h"
 #include "PdfIdentityEncoding.h"

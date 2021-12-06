@@ -9,7 +9,7 @@
 #ifndef PDF_OBJECT_STREAM_PARSER_OBJECT_H
 #define PDF_OBJECT_STREAM_PARSER_OBJECT_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 #include "PdfParserObject.h"
 

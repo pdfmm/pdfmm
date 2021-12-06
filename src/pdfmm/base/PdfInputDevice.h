@@ -12,7 +12,7 @@
 #include <istream>
 #include <fstream>
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 #include "PdfLocale.h"
 
 namespace mm {

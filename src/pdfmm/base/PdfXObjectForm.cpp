@@ -1,4 +1,4 @@
-#include <pdfmm/private/PdfDefinesPrivate.h>
+#include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfXObjectForm.h"
 #include "PdfDictionary.h"
 #include "PdfDocument.h"

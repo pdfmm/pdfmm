@@ -10,7 +10,7 @@
 #ifndef PDF_XREF_ENTRY_H
 #define PDF_XREF_ENTRY_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 namespace mm
 {

@@ -10,7 +10,7 @@
 #define PDF_COMPILERCOMPAT_PRIVATE_H
 
 #ifndef PDF_DEFINES_PRIVATE_H
-#error Include PdfDefinesPrivate.h instead
+#error Include PdfDeclarationsPrivate.h instead
 #endif
 
 #define _USE_MATH_DEFINES

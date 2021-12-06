@@ -9,7 +9,7 @@
 #ifndef PDF_PAGE_H
 #define PDF_PAGE_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 #include <map>
 

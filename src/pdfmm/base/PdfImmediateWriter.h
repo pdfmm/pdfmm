@@ -8,7 +8,7 @@
 #ifndef PDF_IMMEDIATE_WRITER_H
 #define PDF_IMMEDIATE_WRITER_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 #include "PdfIndirectObjectList.h"
 #include "PdfWriter.h"
 

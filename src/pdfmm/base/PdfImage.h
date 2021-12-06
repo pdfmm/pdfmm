@@ -9,7 +9,7 @@
 #ifndef PDF_IMAGE_H
 #define PDF_IMAGE_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 #include <cstdio>
 

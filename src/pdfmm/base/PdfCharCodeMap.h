@@ -8,7 +8,7 @@
 #ifndef PDF_CHAR_CODE_MAP_H
 #define PDF_CHAR_CODE_MAP_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 #include <unordered_map>
 
 namespace mm

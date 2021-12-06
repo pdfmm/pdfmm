@@ -9,7 +9,7 @@
 #ifndef PDF_OUTPUT_DEVICE_H
 #define PDF_OUTPUT_DEVICE_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 #include <string_view>
 #include <ostream>

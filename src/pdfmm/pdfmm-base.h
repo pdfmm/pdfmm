@@ -9,7 +9,7 @@
 #define PDFMM_BASE_H
 
 #include "base/PdfVersion.h"
-#include "base/PdfDefines.h"
+#include "base/PdfDeclarations.h"
 #include "base/PdfArray.h"
 #include "base/PdfCanvas.h"
 #include "base/PdfColor.h"

@@ -9,7 +9,7 @@
 #ifndef PDF_WRITER_H
 #define PDF_WRITER_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 #include "PdfInputDevice.h"
 #include "PdfOutputDevice.h"
 #include "PdfIndirectObjectList.h"

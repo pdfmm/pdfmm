@@ -9,7 +9,7 @@
 #ifndef PDF_DOCUMENT_H
 #define PDF_DOCUMENT_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 #include "PdfObject.h"
 #include "PdfIndirectObjectList.h"

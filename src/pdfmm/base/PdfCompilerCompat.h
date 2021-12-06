@@ -10,10 +10,10 @@
 #define PDF_COMPILER_COMPAT_H
 
 //
-// *** THIS HEADER IS INCLUDED BY PdfDefines.h ***
+// *** THIS HEADER IS INCLUDED BY PdfDeclarations.h ***
 // *** DO NOT INCLUDE DIRECTLY ***
 #ifndef PDF_DEFINES_H
-#error Please include PdfDefines.h instead
+#error Please include PdfDeclarations.h instead
 #endif
 
 #include "pdfmm_config.h"

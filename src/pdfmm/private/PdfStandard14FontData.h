@@ -8,7 +8,7 @@
 #ifndef PDF_FONT_STANDARD14_DATA_H
 #define PDF_FONT_STANDARD14_DATA_H
 
-#include "PdfDefinesPrivate.h"
+#include "PdfDeclarationsPrivate.h"
 #include <unordered_map>
 #include <pdfmm/base/PdfRect.h>
 

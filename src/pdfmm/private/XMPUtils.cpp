@@ -1,4 +1,4 @@
-#include "PdfDefinesPrivate.h"
+#include "PdfDeclarationsPrivate.h"
 #include "XMPUtils.h"
 #include "XmlUtils.h"
 #include <libxml/xmlsave.h>

@@ -9,7 +9,7 @@
 #ifndef PDF_PARSER_H
 #define PDF_PARSER_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 #include "PdfParserObject.h"
 #include "PdfXRefEntry.h"
 #include "PdfIndirectObjectList.h"

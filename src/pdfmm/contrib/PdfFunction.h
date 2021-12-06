@@ -8,7 +8,7 @@
 #ifndef PDF_FUNCTION_H
 #define PDF_FUNCTION_H
 
-#include <pdfmm/base/PdfDefines.h>
+#include <pdfmm/base/PdfDeclarations.h>
 
 #include <list>
 

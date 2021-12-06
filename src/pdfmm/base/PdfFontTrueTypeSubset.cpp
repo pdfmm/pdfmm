@@ -9,7 +9,7 @@
 // The code was initally based on work by ZhangYang
 // (张杨.国际) <zhang_yang@founder.com>
 
-#include <pdfmm/private/PdfDefinesPrivate.h>
+#include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfFontTrueTypeSubset.h"
 
 #include <pdfmm/private/FreetypePrivate.h>

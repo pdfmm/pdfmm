@@ -9,7 +9,7 @@
 #ifndef PDF_ELEMENT_H
 #define PDF_ELEMENT_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 #include "PdfObject.h"
 
 namespace mm {

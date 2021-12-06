@@ -9,7 +9,7 @@
 #ifndef PDF_MEM_DOCUMENT_H
 #define PDF_MEM_DOCUMENT_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 #include "PdfDocument.h"
 #include "PdfExtension.h"

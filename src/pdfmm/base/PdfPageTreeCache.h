@@ -9,7 +9,7 @@
 #ifndef PDF_PAGES_TREE_CACHE_H
 #define PDF_PAGES_TREE_CACHE_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 namespace mm {
 

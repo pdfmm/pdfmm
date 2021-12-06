@@ -9,7 +9,7 @@
 #ifndef PDF_FONT_METRICS_STANDARD14_H
 #define PDF_FONT_METRICS_STANDARD14_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 #include "PdfFontMetrics.h"
 #include "PdfRect.h"

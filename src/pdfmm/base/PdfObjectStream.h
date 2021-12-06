@@ -9,7 +9,7 @@
 #ifndef PDF_OBJECT_STREAM_H
 #define PDF_OBJECT_STREAM_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 #include "PdfFilter.h"
 #include "PdfEncrypt.h"

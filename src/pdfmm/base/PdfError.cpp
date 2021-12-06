@@ -6,9 +6,9 @@
  * Some rights reserved. See COPYING, AUTHORS.
  */
 
-// PdfError.h doesn't, and can't, include PdfDefines.h so we do so here.
-// PdfDefinesPrivate.h will include PdfError.h for us.
-#include <pdfmm/private/PdfDefinesPrivate.h>
+// PdfError.h doesn't, and can't, include PdfDeclarations.h so we do so here.
+// PdfDeclarationsPrivate.h will include PdfError.h for us.
+#include <pdfmm/private/PdfDeclarationsPrivate.h>
 
 #include <iostream>
 #include <sstream>

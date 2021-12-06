@@ -10,7 +10,7 @@
 #ifndef PDF_SIGNATURE_H
 #define PDF_SIGNATURE_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 #include "PdfAnnotation.h"
 #include "PdfField.h"

@@ -9,7 +9,7 @@
 #ifndef PDF_TOKENIZER_H
 #define PDF_TOKENIZER_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 #include "PdfInputDevice.h"
 
 #include <deque>

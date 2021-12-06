@@ -9,7 +9,7 @@
 #ifndef PDF_ACRO_FORM_H
 #define PDF_ACRO_FORM_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 #include "PdfElement.h"
 

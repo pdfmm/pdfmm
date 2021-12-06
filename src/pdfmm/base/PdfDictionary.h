@@ -9,7 +9,7 @@
 #ifndef PDF_DICTIONARY_H
 #define PDF_DICTIONARY_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 #include <map>
 

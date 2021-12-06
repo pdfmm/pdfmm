@@ -10,7 +10,7 @@
 #ifndef PDF_FONT_CONFIG_WRAPPER_H
 #define PDF_FONT_CONFIG_WRAPPER_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 #include "Pdf3rdPtyForwardDecl.h"
 

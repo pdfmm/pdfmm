@@ -9,7 +9,7 @@
 #ifndef PDF_MEMORY_OBJECT_STREAM_H
 #define PDF_MEMORY_OBJECT_STREAM_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 #include "PdfObjectStream.h"
 #include "PdfDictionary.h"

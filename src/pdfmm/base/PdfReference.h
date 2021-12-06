@@ -9,7 +9,7 @@
 #ifndef PDF_REFERENCE_H
 #define PDF_REFERENCE_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 #include "PdfDataProvider.h"
 

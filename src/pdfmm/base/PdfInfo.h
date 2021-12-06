@@ -9,7 +9,7 @@
 #ifndef PDF_INFO_H
 #define PDF_INFO_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 #include "PdfName.h"
 #include "PdfDate.h"

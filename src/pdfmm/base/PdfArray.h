@@ -9,7 +9,7 @@
 #ifndef PDF_ARRAY_H
 #define PDF_ARRAY_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 #include "PdfDataContainer.h"
 
 namespace mm {

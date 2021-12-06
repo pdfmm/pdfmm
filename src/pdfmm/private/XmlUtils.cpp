@@ -1,4 +1,4 @@
-#include "PdfDefinesPrivate.h"
+#include "PdfDeclarationsPrivate.h"
 #include "XmlUtils.h"
 
 using namespace std;

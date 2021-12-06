@@ -9,7 +9,7 @@
 #ifndef PDF_PAGES_TREE_H
 #define PDF_PAGES_TREE_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 #include "PdfElement.h"
 #include "PdfArray.h"

@@ -8,7 +8,7 @@
 #ifndef PDF_FILE_OBJECT_STREAM_H
 #define PDF_FILE_OBJECT_STREAM_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 #include "PdfObjectStream.h"
 

@@ -10,11 +10,11 @@
 #define PDF_DEFINES_PRIVATE_H
 
 #ifndef BUILDING_PDFMM
-#error PdfDefinesPrivate.h is only available for use in the core pdfmm src/ build .cpp files
+#error PdfDeclarationsPrivate.h is only available for use in the core pdfmm src/ build .cpp files
 #endif
 
 #include "PdfCompilerCompat.h"
-#include <pdfmm/base/PdfDefines.h>
+#include <pdfmm/base/PdfDeclarations.h>
 
 #include <stdexcept>
 #include <limits>
@@ -170,7 +170,7 @@ namespace utls
 /**
  * \page <pdfmm PdfDefinesPrivate Header>
  *
- * <b>PdfDefinesPrivate.h</b> contains preprocessor definitions, inline functions, templates,
+ * <b>PdfDeclarationsPrivate.h</b> contains preprocessor definitions, inline functions, templates,
  * compile-time const variables, and other things that must be visible across the entirety of
  * the pdfmm library code base but should not be visible to users of the library's headers.
  *

@@ -13,7 +13,7 @@
 #include <set>
 #include <unordered_set>
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 #include "PdfReference.h"
 
 namespace mm {

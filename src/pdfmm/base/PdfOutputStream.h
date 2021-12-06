@@ -9,7 +9,7 @@
 #ifndef PDF_OUTPUT_STREAM_H
 #define PDF_OUTPUT_STREAM_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 namespace mm {
 

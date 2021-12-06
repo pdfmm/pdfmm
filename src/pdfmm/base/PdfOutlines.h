@@ -8,7 +8,7 @@
 #ifndef PDF_OUTLINE_H
 #define PDF_OUTLINE_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 #include "PdfElement.h"
 

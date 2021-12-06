@@ -8,7 +8,7 @@
 #ifndef PDF_FILTER_H
 #define PDF_FILTER_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 #include "PdfInputStream.h"
 #include "PdfOutputStream.h"

@@ -1,4 +1,4 @@
-#include "PdfDefinesPrivate.h"
+#include "PdfDeclarationsPrivate.h"
 #include "FreetypePrivate.h"
 
 FT_Library mm::GetFreeTypeLibrary()

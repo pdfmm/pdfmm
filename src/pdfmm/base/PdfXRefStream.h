@@ -9,7 +9,7 @@
 #ifndef PDF_XREF_STREAM_H
 #define PDF_XREF_STREAM_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 #include "PdfArray.h"
 #include "PdfXRef.h"

@@ -8,7 +8,7 @@
 #ifndef PDF_TILING_PATTERN_H
 #define PDF_TILING_PATTERN_H
 
-#include <pdfmm/base/PdfDefines.h>
+#include <pdfmm/base/PdfDeclarations.h>
 #include <pdfmm/base/PdfElement.h>
 #include <pdfmm/base/PdfName.h>
 

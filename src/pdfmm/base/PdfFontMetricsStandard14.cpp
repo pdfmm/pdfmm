@@ -6,7 +6,7 @@
  * Some rights reserved. See COPYING, AUTHORS.
  */
 
-#include <pdfmm/private/PdfDefinesPrivate.h>
+#include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfFontMetricsStandard14.h"
 
 #include <pdfmm/private/PdfStandard14FontData.h>

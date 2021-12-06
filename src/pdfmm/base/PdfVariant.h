@@ -9,7 +9,7 @@
 #ifndef PDF_VARIANT_H
 #define PDF_VARIANT_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 #include "PdfReference.h"
 #include "PdfName.h"
 #include "PdfString.h"

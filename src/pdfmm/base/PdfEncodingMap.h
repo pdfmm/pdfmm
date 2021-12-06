@@ -9,7 +9,7 @@
 #ifndef PDF_ENCODING_MAP_H
 #define PDF_ENCODING_MAP_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 #include "PdfObject.h"
 #include "PdfName.h"
 #include "PdfCharCodeMap.h"

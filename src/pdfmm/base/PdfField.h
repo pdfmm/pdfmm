@@ -9,7 +9,7 @@
 #ifndef PDF_FIELD_H
 #define PDF_FIELD_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 #include "PdfName.h"
 #include "PdfString.h"

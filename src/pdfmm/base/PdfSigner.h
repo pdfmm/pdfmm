@@ -8,7 +8,7 @@
 #ifndef PDF_SIGNER_H
 #define PDF_SIGNER_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 #include "PdfMemDocument.h"
 #include "PdfSignature.h"

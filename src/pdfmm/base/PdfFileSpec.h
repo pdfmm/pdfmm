@@ -8,7 +8,7 @@
 #ifndef PDF_FILE_SPEC_H
 #define PDF_FILE_SPEC_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 #include "PdfElement.h"
 #include "PdfString.h"

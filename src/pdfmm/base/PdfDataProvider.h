@@ -8,7 +8,7 @@
 #ifndef PDF_DATATYPE_H
 #define PDF_DATATYPE_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 namespace mm {
 

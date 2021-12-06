@@ -11,7 +11,7 @@
 
 #include <fstream>
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 namespace mm {
 

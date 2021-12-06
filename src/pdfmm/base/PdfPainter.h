@@ -9,7 +9,7 @@
 #ifndef PDF_PAINTER_H
 #define PDF_PAINTER_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 #include <sstream>
 

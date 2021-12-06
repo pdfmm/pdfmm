@@ -9,7 +9,7 @@
 #ifndef PDF_DEFINES_H
 #define PDF_DEFINES_H
 
-/** \file PdfDefines.h
+/** \file PdfDeclarations.h
  *        This file should be included as the FIRST file in every header of
  *        pdfmm lib. It includes all standard files, defines some useful
  *        macros, some datatypes and all important enumeration types. On

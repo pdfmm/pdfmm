@@ -9,7 +9,7 @@
 #ifndef PDF_ANNOTATION_H
 #define PDF_ANNOTATION_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 #include "PdfElement.h"
 #include "PdfAction.h"

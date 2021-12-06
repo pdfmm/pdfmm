@@ -9,7 +9,7 @@
 #ifndef PDF_FONT_CID_H
 #define PDF_FONT_CID_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 #include <set>
 #include "PdfFont.h"
 

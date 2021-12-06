@@ -9,7 +9,7 @@
 #ifndef PDF_ACTION_H
 #define PDF_ACTION_H
 
-#include "PdfDefines.h"
+#include "PdfDeclarations.h"
 
 #include "PdfElement.h"
 
