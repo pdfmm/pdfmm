@@ -27,9 +27,26 @@ PdfContents::PdfContents(PdfPage &parent, PdfObject &obj)
 }
 
 PdfContents::PdfContents(PdfPage &parent) 
-    : m_parent(&parent), m_object(parent.GetObject().GetDocument()->GetObjects().CreateObject(PdfArray()))
+    : m_parent(&parent), m_object(parent.GetObject().GetDocument()->GetObjects().CreateArrayObject())
 {
-    parent.GetObject().GetDictionary().AddKey("Contents", m_object->GetIndirectReference());
+    reset();
+}
+
+void PdfContents::Reset(PdfObject* obj)
+{
+    PdfDataType type = obj->GetDataType();
+    if (type == PdfDataType::Array || type == PdfDataType::Dictionary)
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The object is neither a Dictionary or an Array");
+
+    if (obj == nullptr)
+        m_object = m_parent->GetObject().GetDocument()->GetObjects().CreateArrayObject();
+    else
+        m_object = obj;
+}
+
+void PdfContents::reset()
+{
+    m_parent->GetObject().GetDictionary().AddKeyIndirect("Contents", m_object);
 }
 
 PdfObjectStream & PdfContents::GetStreamForAppending(PdfStreamAppendFlags flags)
@@ -87,4 +104,4 @@ PdfObjectStream & PdfContents::GetStreamForAppending(PdfStreamAppendFlags flags)
     else
         arr->push_back(newStm->GetIndirectReference());
     return newStm->GetOrCreateStream();
-};
+}

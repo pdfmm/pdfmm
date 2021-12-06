@@ -25,6 +25,13 @@ public:
 
     PdfContents(PdfPage &parent);
 
+    /** Reset the contents internal object
+     * \param obj the object to set as the /Contents. Must be
+     * a dictionary or an array. if nullptr, a new array object
+     * will be created
+     */
+    void Reset(PdfObject* obj = nullptr);
+
     /** Get access to the raw contents object.
      *  It will either be a PdfObjectStream or a PdfArray
      *  \returns a contents object
@@ -37,6 +44,9 @@ public:
      *   at the end of the "stream".
      */
     PdfObjectStream & GetStreamForAppending(PdfStreamAppendFlags flags);
+
+private:
+    void reset();
 
 private:
     PdfPage *m_parent;
