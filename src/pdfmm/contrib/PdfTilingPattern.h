@@ -20,6 +20,20 @@ class PdfPage;
 class PdfWriter;
 
 /**
+ * Enum for predefined tiling patterns.
+ */
+enum class PdfTilingPatternType
+{
+    BDiagonal = 1,
+    Cross,
+    DiagCross,
+    FDiagonal,
+    Horizontal,
+    Vertical,
+    Image
+};
+
+/**
  * This class defined a tiling pattern which can be used
  * to fill abitrary shapes with a pattern using PdfPainter.
  */

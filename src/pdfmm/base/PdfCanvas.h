@@ -36,14 +36,14 @@ public:
     /** Virtual destructor
      *  to avoid compiler warnings
      */
-    virtual ~PdfCanvas() {};
+    virtual ~PdfCanvas();
 
     /** Get access to the contents object of this page.
      *  If you want to draw onto the page, you have to add
      *  drawing commands to the stream of the Contents object.
      *  \returns a contents object
      */
-    virtual PdfObject& GetOrCreateContentsObject() = 0;
+    virtual const PdfObject* GetContentsObject() const = 0;
 
     /** Get access an object that you can use to ADD drawing to.
      *  If you want to draw onto the page, you have to add

@@ -25,7 +25,7 @@ class PdfObject;
 class PdfCanvasInputDevice : public PdfInputDevice
 {
 public:
-    PdfCanvasInputDevice(PdfCanvas& canvas);
+    PdfCanvasInputDevice(const PdfCanvas& canvas);
 public:
     bool TryGetChar(char& ch) override;
     size_t Tell() override;
@@ -35,10 +35,10 @@ public:
     bool IsSeekable() const override { return false; }
 private:
     bool tryGetNextDevice(PdfInputDevice*& device);
-    void popNextDevice();
+    bool tryPopNextDevice();
 private:
     bool m_eof;
-    std::list<PdfObject*> m_contents;
+    std::list<const PdfObject*> m_contents;
     std::unique_ptr<PdfInputDevice> m_device;
 };
 

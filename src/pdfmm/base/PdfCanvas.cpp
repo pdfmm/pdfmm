@@ -18,6 +18,8 @@
 using namespace std;
 using namespace mm;
 
+PdfCanvas::~PdfCanvas() { }
+
 PdfArray PdfCanvas::GetProcSet()
 {
     PdfArray procset;

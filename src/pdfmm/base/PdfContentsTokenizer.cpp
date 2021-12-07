@@ -21,7 +21,7 @@
 using namespace std;
 using namespace mm;
 
-PdfContentsTokenizer::PdfContentsTokenizer(PdfCanvas& canvas)
+PdfContentsTokenizer::PdfContentsTokenizer(const PdfCanvas& canvas)
     : PdfContentsTokenizer(std::make_shared<PdfCanvasInputDevice>(canvas))
 {
 }

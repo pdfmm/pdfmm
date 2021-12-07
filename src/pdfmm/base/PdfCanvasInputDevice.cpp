@@ -12,27 +12,30 @@
 using namespace std;
 using namespace mm;
 
-PdfCanvasInputDevice::PdfCanvasInputDevice(PdfCanvas& canvas)
+PdfCanvasInputDevice::PdfCanvasInputDevice(const PdfCanvas& canvas)
 {
-    PdfObject& contents = canvas.GetOrCreateContentsObject();
-    if (contents.IsArray())
+    auto contents = canvas.GetContentsObject();
+    if (contents != nullptr)
     {
-        PdfArray& contentsArr = contents.GetArray();
-        for (unsigned i = 0; i < contentsArr.GetSize(); i++)
+        if (contents->IsArray())
         {
-            auto& streamObj = contentsArr.FindAt(i);
-            m_contents.push_back(&streamObj);
+            auto& contentsArr = contents->GetArray();
+            for (unsigned i = 0; i < contentsArr.GetSize(); i++)
+            {
+                auto& streamObj = contentsArr.FindAt(i);
+                m_contents.push_back(&streamObj);
+            }
         }
-    }
-    else if (contents.IsDictionary())
-    {
-        // NOTE: Pages are allowed to be empty
-        if (contents.HasStream())
-            m_contents.push_back(&contents);
-    }
-    else
-    {
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Page /Contents not stream or array of streams");
+        else if (contents->IsDictionary())
+        {
+            // NOTE: Pages are allowed to be empty
+            if (contents->HasStream())
+                m_contents.push_back(contents);
+        }
+        else
+        {
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Page /Contents not stream or array of streams");
+        }
     }
 
     if (m_contents.size() == 0)
@@ -41,8 +44,10 @@ PdfCanvasInputDevice::PdfCanvasInputDevice(PdfCanvas& canvas)
     }
     else
     {
-        popNextDevice();
-        m_eof = m_device->Eof();
+        if (tryPopNextDevice())
+            m_eof = m_device->Eof();
+        else
+            m_eof = false;
     }
 }
 
@@ -133,13 +138,28 @@ bool PdfCanvasInputDevice::tryGetNextDevice(PdfInputDevice*& device)
         return false;
     }
 
-    popNextDevice();
+    if (!tryPopNextDevice())
+    {
+        device = nullptr;
+        return false;
+    }
+
     device = m_device.get();
     return true;
 }
 
-void PdfCanvasInputDevice::popNextDevice()
+bool PdfCanvasInputDevice::tryPopNextDevice()
 {
-    m_device = std::make_unique<PdfMemoryInputDevice>(m_contents.front()->GetOrCreateStream());
+    auto contents = m_contents.front()->GetStream();
     m_contents.pop_front();
+    if (contents == nullptr)
+    {
+        m_device = nullptr;
+        return false;
+    }
+    else
+    {
+        m_device = std::make_unique<PdfMemoryInputDevice>(*contents);
+        return true;
+    }
 }

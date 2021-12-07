@@ -55,10 +55,39 @@
 
 #define CMAP_REGISTRY_NAME "pdfmm"
 
+// character constants
+#define MAX_PDF_VERSION_STRING_INDEX  8
+
 namespace mm
 {
     class PdfOutputDevice;
     class PdfInputDevice;
+
+    // We use fixed bounds two dimensional arrays here so that
+    // they go into the const data section of the library
+    static const char s_PdfVersions[][9] = {
+        "%PDF-1.0",
+        "%PDF-1.1",
+        "%PDF-1.2",
+        "%PDF-1.3",
+        "%PDF-1.4",
+        "%PDF-1.5",
+        "%PDF-1.6",
+        "%PDF-1.7",
+        "%PDF-2.0",
+    };
+
+    static const char s_PdfVersionNums[][4] = {
+        "1.0",
+        "1.1",
+        "1.2",
+        "1.3",
+        "1.4",
+        "1.5",
+        "1.6",
+        "1.7",
+        "2.0",
+    };
 }
 
 namespace utls

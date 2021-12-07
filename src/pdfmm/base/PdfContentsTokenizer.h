@@ -49,7 +49,7 @@ public:
      *
      *  \param canvas an object that hold a PDF contents stream
      */
-    PdfContentsTokenizer(PdfCanvas& canvas);
+    PdfContentsTokenizer(const PdfCanvas& canvas);
 
     /** Read the next keyword or variant, returning true and setting reType if something was read.
      *  Either keyword or variant, but never both, have defined and usable values on

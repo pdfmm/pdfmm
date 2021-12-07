@@ -99,7 +99,7 @@ enum class PdfVersion
     V1_5,           ///< PDF 1.5
     V1_6,           ///< PDF 1.6
     V1_7,           ///< PDF 1.7
-    V2_0,           ///< PDF 1.7
+    V2_0,           ///< PDF 2.0
 };
 
 enum class PdfALevel
@@ -310,20 +310,6 @@ enum class PdfInfoInitial
 };
 
 /**
- * Enum for predefined tiling patterns.
- */
-enum class PdfTilingPatternType
-{
-    BDiagonal = 1,
-    Cross,
-    DiagCross,
-    FDiagonal,
-    Horizontal,
-    Vertical,
-    Image
-};
-
-/**
  * Enum for line cap styles when drawing.
  */
 enum class PdfLineCapStyle
@@ -370,34 +356,6 @@ enum class PdfSaveOptions
     NoModifyDateUpdate = 8,
     Clean = 16,
 };
-
-/**
- * List of defined Rendering intents
- */
-#define ePdfRenderingIntent_AbsoluteColorimetric	"AbsoluteColorimetric"
-#define ePdfRenderingIntent_RelativeColorimetric	"RelativeColorimetric"
-#define ePdfRenderingIntent_Perceptual			"Perceptual"
-#define ePdfRenderingIntent_Saturation			"Saturation"
-
-/**
- * List of defined transparency blending modes
- */
-#define ePdfBlendMode_Normal		"Normal"
-#define ePdfBlendMode_Multiply		"Multiply"
-#define ePdfBlendMode_Screen		"Screen"
-#define ePdfBlendMode_Overlay		"Overlay"
-#define ePdfBlendMode_Darken		"Darken"
-#define ePdfBlendMode_Lighten		"Lighten"
-#define ePdfBlendMode_ColorDodge	"ColorDodge"
-#define ePdfBlendMode_ColorBurn		"ColorBurn"
-#define ePdfBlendMode_HardLight		"HardLight"
-#define ePdfBlendMode_SoftLight		"SoftLight"
-#define ePdfBlendMode_Difference	"Difference"
-#define ePdfBlendMode_Exclusion		"Exclusion"
-#define ePdfBlendMode_Hue		"Hue"
-#define ePdfBlendMode_Saturation	"Saturation"
-#define ePdfBlendMode_Color		"Color"
-#define ePdfBlendMode_Luminosity	"Luminosity"
 
 /**
  * Enum holding the supported page sizes by pdfmm.
@@ -477,33 +435,136 @@ enum class PdfStandard14FontType
     ZapfDingbats,
 };
 
-// character constants
-#define MAX_PDF_VERSION_STRING_INDEX  8
-
-// We use fixed bounds two dimensional arrays here so that
-// they go into the const data section of the library.
-static const char s_PdfVersions[][9] = {
-    "%PDF-1.0",
-    "%PDF-1.1",
-    "%PDF-1.2",
-    "%PDF-1.3",
-    "%PDF-1.4",
-    "%PDF-1.5",
-    "%PDF-1.6",
-    "%PDF-1.7",
-    "%PDF-2.0",
+/**
+ * List of PDF stream content operators
+ */
+enum class PdfContentOperator
+{
+    Unknown = 0,
+    // ISO 32008-1:2008 Table 51 – Operator Categories
+    // General graphics state
+    w,
+    J,
+    j,
+    M,
+    d,
+    ri,
+    i,
+    gs,
+    // Special graphics state
+    q,
+    Q,
+    cm,
+    // Path construction
+    m,
+    l,
+    c,
+    v,
+    y,
+    h,
+    re,
+    // Path painting
+    S,
+    s,
+    f,
+    F,
+    f_Star,
+    B,
+    B_Star,
+    b,
+    b_Star,
+    n,
+    // Clipping paths
+    W,
+    W_Star,
+    // Text objects
+    BT,
+    ET,
+    // Text state
+    Tc,
+    Tw,
+    Tz,
+    TL,
+    Tf,
+    Tr,
+    Ts,
+    // Text positioning
+    Td,
+    TD,
+    Tm,
+    T_Star,
+    // Text showing
+    Tj,
+    TJ,
+    Quote,
+    DoubleQuote,
+    // Type 3 fonts
+    d0,
+    d1,
+    // Color
+    CS,
+    cs,
+    SC,
+    SCN,
+    sc,
+    scn,
+    G,
+    g,
+    RG,
+    rg,
+    K,
+    k,
+    // Shading patterns
+    sh,
+    // Inline images
+    BI,
+    ID,
+    EI,
+    // XObjects
+    Do,
+    // Marked content
+    MP,
+    DP,
+    BMC,
+    BDC,
+    EMC,
+    // Compatibility
+    BX,
+    EX,
 };
 
-static const char s_PdfVersionNums[][4] = {
-    "1.0",
-    "1.1",
-    "1.2",
-    "1.3",
-    "1.4",
-    "1.5",
-    "1.6",
-    "1.7",
-    "2.0",
+/**
+ * List of defined Rendering intents
+ */
+enum class PdfRenderingIntent
+{
+    AbsoluteColorimetric,
+    RelativeColorimetric,
+    Perceptual,
+    Saturation,
+};
+
+/**
+ * List of defined transparency blending modes
+ */
+enum class PdfBlendMode
+{
+    Normal,
+    Multiply,
+    Screen,
+    Overlay,
+    Darken,
+    Lighten,
+    ColorDodge,
+    ColorBurn,
+    HardLight,
+    SoftLight,
+    Difference,
+    Exclusion,
+    Hue,
+    Saturation,
+    Color,
+    Luminosity,
 };
 
 };
