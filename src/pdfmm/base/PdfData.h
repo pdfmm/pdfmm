@@ -74,7 +74,7 @@ public:
      * Access the data as a std::string
      * \returns a const reference to the contained data
      */
-     inline const std::string& data() const { return m_data; }
+     inline const chars& GetBuffer() const { return m_data; }
 
 private:
     chars m_data;
