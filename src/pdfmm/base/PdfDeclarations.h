@@ -438,7 +438,7 @@ enum class PdfStandard14FontType
 /**
  * List of PDF stream content operators
  */
-enum class PdfContentOperator
+enum class PdfOperator
 {
     Unknown = 0,
     // ISO 32008-1:2008 Table 51 – Operator Categories

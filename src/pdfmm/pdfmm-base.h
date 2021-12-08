@@ -10,10 +10,11 @@
 
 #include "base/PdfVersion.h"
 #include "base/PdfDeclarations.h"
+#include "base/PdfOperatorUtils.h"
 #include "base/PdfArray.h"
 #include "base/PdfCanvas.h"
 #include "base/PdfColor.h"
-#include "base/PdfContentsTokenizer.h"
+#include "base/PdfContentsReader.h"
 #include "base/PdfPostScriptTokenizer.h"
 #include "base/PdfData.h"
 #include "base/PdfDataProvider.h"

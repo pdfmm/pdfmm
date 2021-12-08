@@ -11,7 +11,6 @@
 #include <utfcpp/utf8.h>
 #include "PdfDictionary.h"
 #include "PdfArray.h"
-#include "PdfContentsTokenizer.h"
 #include "PdfDifferenceEncoding.h"
 #include "PdfIndirectObjectList.h"
 
