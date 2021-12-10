@@ -22,6 +22,9 @@ public:
 
 public:
     PdfObject* GetFromResources(const PdfName& type, const PdfName& key);
+    const PdfObject* GetFromResources(const PdfName& type, const PdfName& key) const;
+private:
+    PdfObject* getFromResources(const PdfName& type, const PdfName& key) const;
 };
 
 };

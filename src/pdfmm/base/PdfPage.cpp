@@ -575,6 +575,11 @@ PdfContents& PdfPage::GetOrCreateContents()
     return *m_Contents;
 }
 
+const PdfResources* PdfPage::GetResources() const
+{
+    return m_Resources.get();
+}
+
 const PdfObject* PdfPage::GetContentsObject() const
 {
     if (m_Contents == nullptr)

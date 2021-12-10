@@ -8,6 +8,7 @@
 #ifndef PDF_CONTENT_READER_H
 #define PDF_CONTENT_READER_H
 
+#include "PdfXObject.h"
 #include "PdfCanvas.h"
 #include "PdfData.h"
 #include "PdfDictionary.h"
@@ -24,15 +25,19 @@ enum class PdfContentType
     Operator,          ///< The token is a PDF operator
     ImageDictionary,   ///< Inline image dictionary
     ImageData,         ///< Raw inline image data found between ID and EI tags (see PDF ref section 4.8.6)
+    DoXObject,         ///< Issued when a Do operator is found and it is handled by the reader
+    EndXObjectForm,    ///< Issued when the end of a XObject form is detected
 };
 
 enum class PdfContentWarnings
 {
     None = 0,
     InvalidOperator = 1,            ///< Unknown operator or insufficient operand count
-    InvalidSpuriousOperands = 2,    ///< Operand count for the operator are more than necessary
+    SpuriousStackContent = 2,       ///< Operand count for the operator are more than necessary
     InvalidPostScriptContent = 4,   ///< Invalid PostScript statements found when reading for content
     InvalidXObject = 8,             ///< Invalid or not found XObject
+    RecursiveXObject = 16,          ///< Recursive XObject call detected
+    MissingEndImage = 32,           ///< Missing end inline image EI operator 
 };
 
 /** Content as read from content streams
@@ -40,12 +45,13 @@ enum class PdfContentWarnings
 struct PdfContent
 {
     PdfContentType Type = PdfContentType::Unknown;
+    PdfContentWarnings Warnings = PdfContentWarnings::None;
+    PdfVariantStack Stack;
     PdfOperator Operator = PdfOperator::Unknown;
     std::string_view Keyword;
-    PdfVariantStack Stack;
     PdfDictionary InlineImageDictionary;
     PdfData InlineImageData;
-    PdfContentWarnings Warnings = PdfContentWarnings::None;
+    std::shared_ptr<const PdfXObject> XObject;
 };
 
 enum class PdfContentReaderFlags
@@ -74,32 +80,33 @@ class PdfContentsReader final
 public:
     PdfContentsReader(const PdfCanvas& canvas, nullable<const PdfContentReaderArgs&> args = { });
 
-    PdfContentsReader(PdfInputDevice& device, nullable<const PdfContentReaderArgs&> args = { });
-
-    ~PdfContentsReader();
+    PdfContentsReader(const std::shared_ptr<PdfInputDevice>& device, nullable<const PdfContentReaderArgs&> args = { });
 
 private:
-    PdfContentsReader(PdfInputDevice* device, bool ownDevice, nullable<const PdfContentReaderArgs&> args);
+    PdfContentsReader(const std::shared_ptr<PdfInputDevice>& device, const PdfCanvas* canvas,
+        nullable<const PdfContentReaderArgs&> args);
 
 public:
     bool TryReadNext(PdfContent& data);
 
 private:
-    void resetContent(PdfContent& content);
+    void beforeReadReset(PdfContent& content);
 
-    void cleanContent(PdfContent& content);
+    void afterReadClear(PdfContent& content);
 
     bool tryReadNextContent(PdfContent& content);
 
-    bool tryHandleOperator(PdfContent& content, bool& handled);
+    bool tryHandleOperator(PdfContent& content);
 
     bool tryReadInlineImgDict(PdfContent& content);
 
     bool tryReadInlineImgData(PdfData& data);
 
-    bool tryFollowXObject(PdfContent& content);
+    void tryFollowXObject(PdfContent& content);
 
     void handleWarnings();
+
+    bool isCalledRecursively(const PdfObject* xobj);
 
 private:
     struct Storage
@@ -110,9 +117,15 @@ private:
         PdfName Name;
     };
 
+    struct Input
+    {
+        std::shared_ptr<const PdfXObject> Form;
+        std::shared_ptr<PdfInputDevice> Device;
+        const PdfCanvas* Canvas;
+    };
+
 private:
-    bool m_ownDevice;
-    PdfInputDevice* m_device;
+    std::vector<Input> m_inputs;
     PdfContentReaderArgs m_args;
     std::shared_ptr<chars> m_buffer;
     PdfPostScriptTokenizer m_tokenizer;

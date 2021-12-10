@@ -73,6 +73,11 @@ void PdfXObjectForm::SetRect(const PdfRect& rect)
     m_Rect = rect;
 }
 
+const PdfResources* PdfXObjectForm::GetResources() const
+{
+    return m_Resources.get();
+}
+
 inline PdfObjectStream& PdfXObjectForm::GetStreamForAppending(PdfStreamAppendFlags flags)
 {
     (void)flags; // Flags have no use here

@@ -19,7 +19,17 @@ PdfResources::PdfResources(PdfDictionary& dict)
 
 PdfObject* PdfResources::GetFromResources(const PdfName& type, const PdfName& key)
 {
-    auto typeObj = GetDictionary().FindKey(type);
+    return getFromResources(type, key);
+}
+
+const PdfObject* PdfResources::GetFromResources(const PdfName& type, const PdfName& key) const
+{
+    return getFromResources(type, key);
+}
+
+PdfObject* PdfResources::getFromResources(const PdfName& type, const PdfName& key) const
+{
+    auto typeObj = const_cast<PdfResources&>(*this).GetDictionary().FindKey(type);
     if (typeObj == nullptr || !typeObj->IsDictionary())
         return nullptr;
 

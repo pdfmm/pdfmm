@@ -52,9 +52,13 @@ public:
      */
     virtual PdfObjectStream& GetStreamForAppending(PdfStreamAppendFlags flags) = 0;
 
-    /** Get access to the resources object of this page.
-     *  This is most likely an internal object.
-     *  \returns a resources object
+    /** Get the resource object of this page.
+     * \returns a resources object
+     */
+    virtual const PdfResources* GetResources() const = 0;
+
+    /** Get or create the resource object of this page.
+     * \returns a resources object
      */
     virtual PdfResources& GetOrCreateResources() = 0;
 

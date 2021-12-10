@@ -75,8 +75,9 @@ public:
      */
     void SetRect(const PdfRect& rect);
 
+    const PdfResources* GetResources() const override;
+
 public:
-    inline const PdfResources* GetResources() const { return m_Resources.get(); }
     inline PdfResources* GetResources() { return m_Resources.get(); }
 
 private:
