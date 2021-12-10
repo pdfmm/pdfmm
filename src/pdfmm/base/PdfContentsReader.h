@@ -122,9 +122,9 @@ private:
     Storage m_temp;
 };
 
+};
+
 ENABLE_BITMASK_OPERATORS(mm::PdfContentReaderFlags);
 ENABLE_BITMASK_OPERATORS(mm::PdfContentWarnings);
-
-};
 
 #endif // PDF_CONTENT_READER_H
