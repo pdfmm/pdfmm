@@ -36,10 +36,12 @@ public:
 private:
     bool tryGetNextDevice(PdfInputDevice*& device);
     bool tryPopNextDevice();
+    void setEOF();
 private:
     bool m_eof;
     std::list<const PdfObject*> m_contents;
     std::unique_ptr<PdfInputDevice> m_device;
+    bool m_deviceSwitchOccurred;
 };
 
 }
