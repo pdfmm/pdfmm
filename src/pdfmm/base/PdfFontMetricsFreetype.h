@@ -11,9 +11,14 @@
 
 #include "PdfDeclarations.h"
 
-#include "Pdf3rdPtyForwardDecl.h"
 #include "PdfFontMetrics.h"
 #include "PdfString.h"
+
+extern "C" {
+// FreeType C forward declaration
+struct FT_FaceRec_;
+typedef struct FT_FaceRec_* FT_Face;
+};
 
 namespace mm {
 

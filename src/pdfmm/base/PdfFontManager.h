@@ -14,7 +14,6 @@
 #include <unordered_map>
 
 #include "PdfFont.h"
-#include "Pdf3rdPtyForwardDecl.h"
 #include "PdfEncodingFactory.h"
 
 #ifdef PDFMM_HAVE_FONTCONFIG
