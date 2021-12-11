@@ -84,10 +84,10 @@ void PdfInputDevice::Close()
 int PdfInputDevice::GetChar()
 {
     char ch;
-    if (TryGetChar(ch))
-        return -1;
-    else
+    if (!TryGetChar(ch))
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to read the current character");
+
+    return ch;
 }
 
 void PdfInputDevice::Seek(streamoff off, ios_base::seekdir dir)
