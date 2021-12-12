@@ -11,10 +11,10 @@
 #include "PdfDeclarations.h"
 
 #include "PdfName.h"
+#include "PdfArray.h"
 
 namespace mm {
 
-class PdfArray;
 class PdfObject;
 class PdfDocument;
 

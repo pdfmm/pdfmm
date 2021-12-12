@@ -23,7 +23,7 @@ namespace mm
         Compressed = 2,
     };
 
-    struct PdfXRefEntry final
+    struct PDFMM_API PdfXRefEntry final
     {
         PdfXRefEntry();
 
