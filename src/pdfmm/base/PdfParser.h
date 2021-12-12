@@ -128,6 +128,10 @@ public:
     const PdfObject& GetTrailer() const;
 
 public:
+    static unsigned GetMaxObjectCount();
+    static void SetMaxObjectCount(unsigned maxObjectCount);
+
+public:
     /** If you try to open an encrypted PDF file, which requires
      *  a password to open, pdfmm will throw a PdfError( PdfErrorCode::InvalidPassword )
      *  exception.
@@ -174,7 +178,7 @@ public:
 
     /** \returns the length of the file
      */
-    size_t GetFileSize() const { return m_FileSize; }
+    inline size_t GetFileSize() const { return m_FileSize; }
 
     /**
      * \returns the parsers encryption object or nullptr if the read PDF file was not encrypted

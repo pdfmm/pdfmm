@@ -35,7 +35,7 @@ static bool CheckEOL(char e1, char e2);
 static bool CheckXRefEntryType(char c);
 static bool ReadMagicWord(char ch, int& charidx);
 
-constexpr int64_t MaxNumIndirectObjects = (1 << 23) - 1;
+static unsigned s_MaxObjectCount = (1 << 23) - 1;
 
 class PdfRecursionGuard
 {
@@ -728,7 +728,8 @@ void PdfParser::ReadXRefSubsection(PdfInputDevice& device, int64_t& firstObject,
 
     // overflow guard, fixes CVE-2017-5853 (signed integer overflow)
     // also fixes CVE-2017-6844 (buffer overflow) together with below size check
-    if (MaxNumIndirectObjects >= objectCount && firstObject <= (MaxNumIndirectObjects - objectCount))
+    if ((int64_t)s_MaxObjectCount >= objectCount
+        && firstObject <= ((int64_t)s_MaxObjectCount - objectCount))
     {
         if (firstObject + objectCount > m_objectCount)
         {
@@ -1316,9 +1317,8 @@ void PdfParser::UpdateDocumentVersion()
 void PdfParser::ResizeEntries(size_t newSize)
 {
     // allow caller to specify a max object count to avoid very slow load times on large documents
-    if (newSize > MaxNumIndirectObjects)
+    if (newSize > s_MaxObjectCount)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "newSize is greater than m_MaxObjects");
-
 
     m_entries.resize(newSize);
 }
@@ -1394,6 +1394,15 @@ std::unique_ptr<PdfEncrypt> PdfParser::TakeEncrypt()
     return std::move(m_Encrypt);
 }
 
+unsigned PdfParser::GetMaxObjectCount()
+{
+    return s_MaxObjectCount;
+}
+
+void PdfParser::SetMaxObjectCount(unsigned maxObjectCount)
+{
+    s_MaxObjectCount = maxObjectCount;
+}
 
 // Read magic word keeping cursor
 bool ReadMagicWord(char ch, int& cursoridx)
