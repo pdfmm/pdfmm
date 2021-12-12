@@ -41,6 +41,18 @@
 // Include API macro definitions
 #include "pdfmmdefs.h"
 
+#define FORWARD_DECLARE_FCONFIG()\
+extern "C" {\
+    struct _FcConfig;\
+    typedef struct _FcConfig FcConfig;\
+}
+
+#define FORWARD_DECLARE_FTFACE()\
+extern "C" {\
+    struct FT_FaceRec_;\
+    typedef struct FT_FaceRec_* FT_Face;\
+}
+
 /**
  * \namespace mm
  *

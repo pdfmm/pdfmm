@@ -12,15 +12,7 @@
 
 #include "PdfDeclarations.h"
 
-extern "C" {
-// FontConfig C forward declaration
-struct _FcConfig;
-typedef struct _FcConfig FcConfig;
-
-// FreeType C forward declaration
-struct FT_FaceRec_;
-typedef struct FT_FaceRec_* FT_Face;
-};
+FORWARD_DECLARE_FCONFIG();
 
 namespace mm {
 

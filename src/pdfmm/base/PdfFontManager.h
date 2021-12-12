@@ -20,6 +20,8 @@
 #include "PdfFontConfigWrapper.h"
 #endif
 
+FORWARD_DECLARE_FTFACE();
+
 #if defined(_WIN32) && defined(PDFMM_HAVE_WIN32GDI)
 // To have LOGFONTW available
 typedef struct HFONT__* HFONT;

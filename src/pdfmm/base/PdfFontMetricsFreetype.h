@@ -14,11 +14,7 @@
 #include "PdfFontMetrics.h"
 #include "PdfString.h"
 
-extern "C" {
-// FreeType C forward declaration
-struct FT_FaceRec_;
-typedef struct FT_FaceRec_* FT_Face;
-};
+FORWARD_DECLARE_FTFACE();
 
 namespace mm {
 
