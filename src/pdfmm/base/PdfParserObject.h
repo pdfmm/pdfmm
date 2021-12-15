@@ -110,25 +110,28 @@ protected:
     void DelayedLoadStreamImpl() override;
 
 private:
+    PdfParserObject(const PdfParserObject&) = delete;
+    PdfParserObject& operator=(const PdfParserObject&) = delete;
+
     /** Starts reading at the file position m_StreamOffset and interprets all bytes
      *  as contents of the objects stream.
      *  It is assumed that the dictionary has a valid /Length key already.
      *
      *  Called from DelayedLoadStream(). Do not call directly.
      */
-    void ParseStream();
+    void parseStream();
 
     /** Initialize private members in this object with their default values
      */
-    void InitPdfParserObject();
+    void initParserObject();
 
     /** Parse the object data from the given file handle
      *  \param bIsTrailer whether this is a trailer dictionary or not.
      *                    trailer dictionaries do not have a object number etc.
      */
-    void ParseFileComplete(bool isTrailer);
+    void parseFileComplete(bool isTrailer);
 
-    void ReadObjectNumber();
+    void readObjectNumber();
 
 private:
     std::shared_ptr<PdfInputDevice> m_device;

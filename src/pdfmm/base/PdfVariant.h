@@ -33,7 +33,6 @@ class PdfString;
  *          that they are unsafe to call while a deferred load is already in progress
  *          (as recursion will occur).
  *
- * TODO: domseichter: Make this class implicitly shared
  */
 class PDFMM_API PdfVariant final
 {
@@ -109,15 +108,13 @@ public:
      *  \param rhs an existing variant which is copied.
      */
     PdfVariant(const PdfVariant& rhs);
+    PdfVariant(PdfVariant&& rhs) noexcept;
 
     ~PdfVariant();
 
     /** Clear all internal member variables and free the memory
      *  they have allocated.
      *  Sets the datatype to PdfDataType::Null
-     *
-     *  This will reset the dirty flag of this object to be clean.
-     *  \see IsDirty
      */
     void Clear();
 
@@ -307,6 +304,7 @@ public:
      *  \see IsDirty
      */
     PdfVariant& operator=(const PdfVariant& rhs);
+    PdfVariant& operator=(PdfVariant&& rhs) noexcept;
 
     /**
      * Test to see if the value contained by this variant is the same
@@ -323,6 +321,7 @@ public:
     inline PdfDataType GetDataType() const { return m_DataType; }
 
 private:
+    void clear();
     void assign(const PdfVariant& rhs);
     bool tryGetDictionary(PdfDictionary*& dict) const;
     bool tryGetArray(PdfArray*& arr) const;

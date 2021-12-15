@@ -45,30 +45,7 @@ public:
     inline const PdfObject* GetOwner() const { return m_Owner; }
     inline PdfObject* GetOwner() { return m_Owner; }
 
-    /**
-     * Retrieve if an object is immutable.
-     *
-     * This is used by PdfImmediateWriter and PdfStreamedDocument so
-     * that no keys can be added to an object after setting stream data on it.
-     *
-     * \returns true if the object is immutable
-     */
-    bool IsImmutable() const { return m_IsImmutable; }
-
-    /**
-     * Sets this object to immutable,
-     * so that no keys can be edited or changed.
-     *
-     * \param bImmutable if true set the object to be immutable
-     *
-     * This is used by PdfImmediateWriter and PdfStreamedDocument so
-     * that no keys can be added to an object after setting stream data on it.
-     *
-     */
-    void SetImmutable(bool immutable) { m_IsImmutable = immutable; }
-
 protected:
-    void AssertMutable() const;
     virtual void ResetDirtyInternal() = 0;
     PdfObject& GetIndirectObject(const PdfReference& reference) const;
     PdfDocument* GetObjectDocument();

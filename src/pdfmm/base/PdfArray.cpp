@@ -46,7 +46,6 @@ unsigned PdfArray::GetSize() const
 
 PdfObject& PdfArray::Add(const PdfObject& obj)
 {
-    AssertMutable();
     auto& ret = add(obj);
     SetDirty();
     return ret;
@@ -54,7 +53,6 @@ PdfObject& PdfArray::Add(const PdfObject& obj)
 
 void PdfArray::AddIndirect(const PdfObject* obj)
 {
-    AssertMutable();
     if (obj == nullptr)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Given object shall not be null");
 
@@ -77,7 +75,6 @@ PdfObject& PdfArray::AddIndirectSafe(const PdfObject& obj)
 
 void PdfArray::SetAt(const PdfObject& obj, unsigned idx)
 {
-    AssertMutable();
     if (IsIndirectReferenceAllowed(obj))
     {
         m_Objects.at(idx) = PdfObject(obj.GetIndirectReference());
@@ -89,7 +86,6 @@ void PdfArray::SetAt(const PdfObject& obj, unsigned idx)
 
 void PdfArray::SetAtIndirect(const PdfObject& obj, unsigned idx)
 {
-    AssertMutable();
     m_Objects.at(idx) = obj;
 }
 
@@ -192,7 +188,6 @@ PdfObject& PdfArray::findAt(unsigned idx) const
 
 void PdfArray::push_back(const PdfObject& obj)
 {
-    AssertMutable();
     add(obj);
     SetDirty();
 }
@@ -209,7 +204,6 @@ bool PdfArray::empty() const
 
 void PdfArray::clear()
 {
-    AssertMutable();
     if (m_Objects.size() == 0)
         return;
 
@@ -219,7 +213,6 @@ void PdfArray::clear()
 
 PdfArray::iterator PdfArray::insert(const iterator& pos, const PdfObject& obj)
 {
-    AssertMutable();
     auto ret = insertAt(pos, obj);
     SetDirty();
     return ret;
@@ -228,7 +221,6 @@ PdfArray::iterator PdfArray::insert(const iterator& pos, const PdfObject& obj)
 void PdfArray::erase(const iterator& pos)
 {
     // TODO: Set dirty only if really removed
-    AssertMutable();
     m_Objects.erase(pos);
     SetDirty();
 }
@@ -236,15 +228,12 @@ void PdfArray::erase(const iterator& pos)
 void PdfArray::erase(const iterator& first, const iterator& last)
 {
     // TODO: Set dirty only if really removed
-    AssertMutable();
     m_Objects.erase(first, last);
     SetDirty();
 }
 
 void PdfArray::resize(size_t count, const PdfObject& val)
 {
-    AssertMutable();
-
     size_t currentSize = m_Objects.size();
     m_Objects.resize(count, val);
     auto document = GetObjectDocument();
@@ -263,13 +252,11 @@ void PdfArray::resize(size_t count, const PdfObject& val)
 
 void PdfArray::reserve(size_type n)
 {
-    AssertMutable();
     m_Objects.reserve(n);
 }
 
 PdfObject& PdfArray::operator[](size_type idx)
 {
-    AssertMutable();
     return getAt((unsigned)idx);
 }
 
@@ -280,7 +267,6 @@ const PdfObject& PdfArray::operator[](size_type idx) const
 
 PdfArray::iterator PdfArray::begin()
 {
-    AssertMutable();
     return m_Objects.begin();
 }
 
@@ -291,7 +277,6 @@ PdfArray::const_iterator PdfArray::begin() const
 
 PdfArray::iterator PdfArray::end()
 {
-    AssertMutable();
     return m_Objects.end();
 }
 
@@ -302,7 +287,6 @@ PdfArray::const_iterator PdfArray::end() const
 
 PdfArray::reverse_iterator PdfArray::rbegin()
 {
-    AssertMutable();
     return m_Objects.rbegin();
 }
 
@@ -313,7 +297,6 @@ PdfArray::const_reverse_iterator PdfArray::rbegin() const
 
 PdfArray::reverse_iterator PdfArray::rend()
 {
-    AssertMutable();
     return m_Objects.rend();
 }
 
@@ -324,7 +307,6 @@ PdfArray::const_reverse_iterator PdfArray::rend() const
 
 PdfObject& PdfArray::front()
 {
-    AssertMutable();
     return m_Objects.front();
 }
 
@@ -335,7 +317,6 @@ const PdfObject& PdfArray::front() const
 
 PdfObject& PdfArray::back()
 {
-    AssertMutable();
     return m_Objects.back();
 }
 

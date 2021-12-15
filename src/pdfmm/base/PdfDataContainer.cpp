@@ -88,9 +88,3 @@ PdfDocument* PdfDataContainer::GetObjectDocument()
 {
     return m_Owner == nullptr ? nullptr : m_Owner->GetDocument();
 }
-
-void PdfDataContainer::AssertMutable() const
-{
-    if (IsImmutable())
-        PDFMM_RAISE_ERROR(PdfErrorCode::ChangeOnImmutable);
-}

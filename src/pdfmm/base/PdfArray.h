@@ -76,6 +76,7 @@ private:
  */
 class PDFMM_API PdfArray final : public PdfDataContainer
 {
+    friend class PdfObject;
 public:
     typedef size_t size_type;
     typedef PdfObject value_type;
@@ -297,8 +298,6 @@ void PdfArray::insert(const PdfArray::iterator& pos,
     const InputIterator& first,
     const InputIterator& last)
 {
-    AssertMutable();
-
     auto document = GetObjectDocument();
     iterator it1 = first;
     iterator it2 = pos;

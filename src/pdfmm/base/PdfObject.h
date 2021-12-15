@@ -63,6 +63,7 @@ public:
      *  \param var the value of the object
      */
     PdfObject(const PdfVariant& var);
+    PdfObject(PdfVariant&& var) noexcept;
 
     /** Construct a PdfObject with object and generation number -1
      *  and a bool as value.
@@ -125,17 +126,9 @@ public:
      *  \param rhs PdfObject to clone
      */
     PdfObject(const PdfObject& rhs);
+    PdfObject(PdfObject&& rhs) noexcept;
 
 public:
-    /** Clear all internal member variables and free the memory
-     *  they have allocated.
-     *  Sets the datatype to PdfDataType::Null
-     *
-     *  This will reset the dirty flag of this object to be clean.
-     *  \see IsDirty
-     */
-    void Clear();
-
     /** \returns the datatype of this object or PdfDataType::Unknown
      *  if it does not have a value.
      */
@@ -355,18 +348,6 @@ public:
 
     bool IsIndirect() const;
 
-    /**
-     * Sets this object to immutable,
-     * so that no keys can be edited or changed.
-     *
-     * \param isImmutable if true set the object to be immutable
-     *
-     * This is used by PdfImmediateWriter and PdfStreamedDocument so
-     * that no keys can be added to an object after setting stream data on it.
-     *
-     */
-    void SetImmutable(bool isImmutable);
-
     const PdfVariant& GetVariant() const;
 
 public:
@@ -396,10 +377,11 @@ public:
 
     /** Copy an existing PdfObject.
      *  All associated objects and streams will be copied along with the PdfObject.
-     *  \param rhs PdfObject to clone
+     *  \param rhs PdfObject to copy from
      *  \returns a reference to this object
      */
     PdfObject& operator=(const PdfObject& rhs);
+    PdfObject& operator=(PdfObject&& rhs) noexcept;
 
     operator const PdfVariant& () const;
 
@@ -436,32 +418,11 @@ public:
     inline const PdfDataContainer* GetParent() const { return m_Parent; }
 
     /**
-     * Retrieve if an object is immutable.
-     *
-     * This is used by PdfImmediateWriter and PdfStreamedDocument so
-     * that no keys can be added to an object after setting stream data on it.
-     *
-     * \returns true if the object is immutable
-     */
-    inline bool IsImmutable() const { return m_IsImmutable; };
-
-
-    /** Flag the object  incompletely loaded.  DelayedLoad() will be called
-     *  when any method that requires more information than is currently
-     *  available is loaded.
-     *
-     *  All constructors initialize a PdfVariant with delayed loading disabled .
-     *  If you want delayed loading you must ask for it. If you do so, call
-     *  this method early in your ctor and be sure to override DelayedLoadImpl().
-     */
-    inline void EnableDelayedLoading() { m_DelayedLoadDone = false; }
-
-    /**
      * Returns true if delayed loading is disabled, or if it is enabled
      * and loading has completed. External callers should never need to
      * see this, it's an internal state flag only.
      */
-    inline bool DelayedLoadDone() const { return m_DelayedLoadDone; }
+    inline bool IsDelayedLoadDone() const { return m_IsDelayedLoadDone; }
 
     const PdfObjectStream* GetStream() const;
     PdfObjectStream* GetStream();
@@ -497,13 +458,6 @@ protected:
 
     virtual void DelayedLoadStreamImpl();
 
-    /**
-     *  Will throw an exception if called on an immutable object,
-     *  so this should be called before actually changing a value!
-     *
-     */
-    void AssertMutable() const;
-
     /** Sets the dirty flag of this PdfVariant
      *
      *  \see IsDirty
@@ -537,11 +491,26 @@ protected:
 
     inline void SetIndirectReference(const PdfReference& reference) { m_IndirectReference = reference; }
 
+    /** Flag the object  incompletely loaded.  DelayedLoad() will be called
+     *  when any method that requires more information than is currently
+     *  available is loaded.
+     *
+     *  All constructors initialize a PdfVariant with delayed loading disabled .
+     *  If you want delayed loading you must ask for it. If you do so, call
+     *  this method early in your ctor and be sure to override DelayedLoadImpl().
+     */
+    inline void EnableDelayedLoading() { m_IsDelayedLoadDone = false; }
+
 private:
     // Assign function that doesn't set dirty
     void Assign(const PdfObject& rhs);
 
+    inline void SetParent(PdfDataContainer* parent) { m_Parent = parent; }
+
+private:
     void assign(const PdfObject& rhs);
+
+    void moveFrom(PdfObject& rhs);
 
     void ResetDirty();
 
@@ -553,12 +522,12 @@ private:
     template<typename T>
     PdfObject(T*) = delete;
 
-    void copyFrom(const PdfObject& obj);
+    void copyStreamFrom(const PdfObject& obj);
+
+    void moveStreamFrom(PdfObject& obj);
 
     // Shared initialization between all the ctors
-    void InitPdfObject();
-
-    inline void SetParent(PdfDataContainer* parent) { m_Parent = parent; }
+    void initObject();
 
 protected:
     PdfVariant m_Variant;
@@ -568,9 +537,8 @@ private:
     PdfDocument* m_Document;
     PdfDataContainer* m_Parent;
     bool m_IsDirty; // Indicates if this object was modified after construction
-    bool m_IsImmutable; // Indicates if this object may be modified
 
-    mutable bool m_DelayedLoadDone;
+    mutable bool m_IsDelayedLoadDone;
     mutable bool m_DelayedLoadStreamDone;
     std::unique_ptr<PdfObjectStream> m_Stream;
     // Tracks whether deferred loading is still pending (in which case it'll be

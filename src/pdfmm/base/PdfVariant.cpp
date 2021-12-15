@@ -84,17 +84,30 @@ PdfVariant::PdfVariant(const PdfData& data)
 }
 
 PdfVariant::PdfVariant(const PdfVariant& rhs)
-    : PdfVariant(PdfDataType::Unknown)
+    : m_Data{ }
 {
     assign(rhs);
 }
 
-PdfVariant::~PdfVariant()
+PdfVariant::PdfVariant(PdfVariant&& rhs) noexcept
+    : m_Data(rhs.m_Data), m_DataType(rhs.m_DataType)
 {
-    Clear();
+    rhs.m_Data = { };
+    rhs.m_DataType = PdfDataType::Null;
 }
 
+PdfVariant::~PdfVariant()
+{
+    clear();
+}
 void PdfVariant::Clear()
+{
+    clear();
+    m_DataType = PdfDataType::Null;
+    m_Data = { };
+}
+
+void PdfVariant::clear()
 {
     switch (m_DataType)
     {
@@ -116,10 +129,7 @@ void PdfVariant::Clear()
         case PdfDataType::Unknown:
         default:
             break;
-
     }
-
-    m_Data = { };
 }
 
 void PdfVariant::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
@@ -222,8 +232,18 @@ void PdfVariant::ToString(string& data, PdfWriteMode writeMode) const
 
 PdfVariant& PdfVariant::operator=(const PdfVariant& rhs)
 {
-    Clear();
+    clear();
     assign(rhs);
+    return *this;
+}
+
+PdfVariant& PdfVariant::operator=(PdfVariant&& rhs) noexcept
+{
+    clear();
+    m_DataType = rhs.m_DataType;
+    m_Data = rhs.m_Data;
+    rhs.m_DataType = PdfDataType::Null;
+    rhs.m_Data = { };
     return *this;
 }
 

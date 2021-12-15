@@ -58,7 +58,7 @@ private:
      * \param indices store the indices hare
      * \param size default value from /Size key
      */
-    void GetIndices(std::vector<int64_t>& indices, int64_t size);
+    void getIndices(std::vector<int64_t>& indices, int64_t size);
 
     /**
      * Parse the stream contents
@@ -68,9 +68,9 @@ private:
      *
      * \see GetIndices
      */
-    void ParseStream(const int64_t wArray[W_ARRAY_SIZE], const std::vector<int64_t>& indices);
+    void parseStream(const int64_t wArray[W_ARRAY_SIZE], const std::vector<int64_t>& indices);
 
-    void ReadXRefStreamEntry(PdfXRefEntry& entry, char* buffer, const int64_t wArray[W_ARRAY_SIZE]);
+    void readXRefStreamEntry(PdfXRefEntry& entry, char* buffer, const int64_t wArray[W_ARRAY_SIZE]);
 
 private:
     ssize_t m_NextOffset;

@@ -33,29 +33,61 @@ PdfObject::~PdfObject() { }
 PdfObject::PdfObject(const PdfVariant& var)
     : PdfObject(var, false) { }
 
+PdfObject::PdfObject(PdfVariant&& var) noexcept
+    : m_Variant(std::move(var)), m_IsDirty(false)
+{
+    initObject();
+    SetVariantOwner();
+}
+
 PdfObject::PdfObject(bool b)
-    : PdfObject(b, false) { }
+    : m_Variant(b), m_IsDirty(false)
+{
+    initObject();
+}
 
 PdfObject::PdfObject(int64_t l)
-    : PdfObject(l, false) { }
+    : m_Variant(l), m_IsDirty(false)
+{
+    initObject();
+}
 
 PdfObject::PdfObject(double d)
-    : PdfObject(d, false) { }
+    : m_Variant(d), m_IsDirty(false)
+{
+    initObject();
+}
 
 PdfObject::PdfObject(const PdfString& str)
-    : PdfObject(str, false) { }
-
+    : m_Variant(str), m_IsDirty(false)
+{
+    initObject();
+}
 PdfObject::PdfObject(const PdfName& name)
-    : PdfObject(name, false) { }
+    : m_Variant(name), m_IsDirty(false)
+{
+    initObject();
+}
 
 PdfObject::PdfObject(const PdfReference& ref)
-    : PdfObject(ref, false) { }
+    : m_Variant(ref), m_IsDirty(false)
+{
+    initObject();
+}
 
 PdfObject::PdfObject(const PdfArray& arr)
-    : PdfObject(arr, false) { }
+    : m_Variant(arr), m_IsDirty(false)
+{
+    initObject();
+    m_Variant.GetArray().SetOwner(this);
+}
 
 PdfObject::PdfObject(const PdfDictionary& dict)
-    : PdfObject(dict, false) { }
+    : m_Variant(dict), m_IsDirty(false)
+{
+    initObject();
+    m_Variant.GetDictionary().SetOwner(this);
+}
 
 // NOTE: Don't copy parent document/container. Copied objects must be
 // always detached. Ownership will be set automatically elsewhere.
@@ -63,7 +95,21 @@ PdfObject::PdfObject(const PdfDictionary& dict)
 PdfObject::PdfObject(const PdfObject& rhs)
     : PdfObject(rhs, false)
 {
-    copyFrom(rhs);
+    copyStreamFrom(rhs);
+}
+
+// NOTE: Don't move parent document/container. Copied objects must be
+// always detached. Ownership will be set automatically elsewhere.
+// Also don't move reference
+PdfObject::PdfObject(PdfObject&& rhs) noexcept :
+    m_Variant(std::move(rhs.m_Variant)),
+    m_Document(nullptr),
+    m_Parent(nullptr),
+    m_IsDirty(false),
+    m_IsDelayedLoadDone(true)
+{
+    SetVariantOwner();
+    moveStreamFrom(rhs);
 }
 
 const PdfObjectStream* PdfObject::GetStream() const
@@ -83,7 +129,8 @@ PdfObjectStream* PdfObject::GetStream()
 PdfObject::PdfObject(const PdfVariant& var, bool isDirty)
     : m_Variant(var), m_IsDirty(isDirty)
 {
-    InitPdfObject();
+    initObject();
+    SetVariantOwner();
 }
 
 void PdfObject::ForceCreateStream()
@@ -106,11 +153,11 @@ void PdfObject::SetDocument(PdfDocument& document)
 
 void PdfObject::DelayedLoad() const
 {
-    if (m_DelayedLoadDone)
+    if (m_IsDelayedLoadDone)
         return;
 
     const_cast<PdfObject&>(*this).DelayedLoadImpl();
-    m_DelayedLoadDone = true;
+    m_IsDelayedLoadDone = true;
     const_cast<PdfObject&>(*this).SetVariantOwner();
 }
 
@@ -127,10 +174,10 @@ void PdfObject::SetVariantOwner()
     switch (dataType)
     {
         case PdfDataType::Dictionary:
-            static_cast<PdfDataContainer&>(m_Variant.GetDictionary()).SetOwner(this);
+            m_Variant.GetDictionary().SetOwner(this);
             break;
         case PdfDataType::Array:
-            static_cast<PdfDataContainer&>(m_Variant.GetArray()).SetOwner(this);
+            m_Variant.GetArray().SetOwner(this);
             break;
         default:
             break;
@@ -142,15 +189,13 @@ void PdfObject::FreeStream()
     m_Stream = nullptr;
 }
 
-void PdfObject::InitPdfObject()
+void PdfObject::initObject()
 {
     m_Document = nullptr;
     m_Parent = nullptr;
-    m_IsImmutable = false;
-    m_DelayedLoadDone = true;
+    m_IsDelayedLoadDone = true;
     m_DelayedLoadStreamDone = true;
     m_Stream = nullptr;
-    SetVariantOwner();
 }
 
 void PdfObject::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
@@ -291,7 +336,6 @@ void PdfObject::delayedLoadStream() const
     }
 }
 
-// TODO1: Add const PdfObject & operator=(const PdfVariant& rhs) ???
 // TODO2: SetDirty only if the value to be added is different
 //        For value (numbers) types this is trivial.
 //        For dictionaries/lists maybe we can rely on auomatic dirty set
@@ -302,23 +346,34 @@ PdfObject& PdfObject::operator=(const PdfObject& rhs)
     return *this;
 }
 
-// NOTE: Don't copy parent document/container and indirect reference.
-// Objects being assigned always keep current ownership
-void PdfObject::copyFrom(const PdfObject& rhs)
+PdfObject& PdfObject::operator=(PdfObject&& rhs) noexcept
+{
+    moveFrom(rhs);
+    SetDirty();
+    return *this;
+}
+
+void PdfObject::copyStreamFrom(const PdfObject& obj)
 {
     // NOTE: Don't call rhs.DelayedLoad() here. It's implicitly
     // called in PdfVariant assignment or copy constructor
-    rhs.delayedLoadStream();
-    SetVariantOwner();
+    obj.delayedLoadStream();
 
-    if (rhs.m_Stream != nullptr)
+    if (obj.m_Stream != nullptr)
     {
         auto& stream = getOrCreateStream();
-        stream = *rhs.m_Stream;
+        stream = *obj.m_Stream;
     }
 
     // Assume the delayed load of the stream is performed
     m_DelayedLoadStreamDone = true;
+}
+
+void PdfObject::moveStreamFrom(PdfObject& obj)
+{
+    obj.DelayedLoadStream();
+    m_Stream = std::move(obj.m_Stream);
+    m_IsDelayedLoadDone = true;
 }
 
 void PdfObject::EnableDelayedLoadingStream()
@@ -341,16 +396,31 @@ void PdfObject::Assign(const PdfObject& rhs)
     assign(rhs);
 }
 
+// NOTE: Don't copy parent document/container and indirect reference.
+// Objects being assigned always keep current ownership
 void PdfObject::assign(const PdfObject& rhs)
 {
     rhs.DelayedLoad();
     m_Variant = rhs.m_Variant;
-    copyFrom(rhs);
+    m_IsDelayedLoadDone = true;
+    SetVariantOwner();
+    copyStreamFrom(rhs);
+}
+
+// NOTE: Don't move parent document/container and indirect reference.
+// Objects being assigned always keep current ownership
+void PdfObject::moveFrom(PdfObject& rhs)
+{
+    rhs.DelayedLoad();
+    m_Variant = std::move(rhs.m_Variant);
+    m_IsDelayedLoadDone = true;
+    SetVariantOwner();
+    moveStreamFrom(rhs);
 }
 
 void PdfObject::ResetDirty()
 {
-    PDFMM_ASSERT(m_DelayedLoadDone);
+    PDFMM_ASSERT(m_IsDelayedLoadDone);
     // Propagate new dirty state to subclasses
     switch (m_Variant.GetDataType())
     {
@@ -403,37 +473,6 @@ void PdfObject::resetDirty()
     m_IsDirty = false;
 }
 
-void PdfObject::SetImmutable(bool isImmutable)
-{
-    DelayedLoad();
-    m_IsImmutable = isImmutable;
-
-    switch (m_Variant.GetDataType())
-    {
-        // Arrays and Dictionaries
-        // handle dirty status by themselves
-        case PdfDataType::Array:
-            m_Variant.GetArray().SetImmutable(isImmutable);
-            break;
-        case PdfDataType::Dictionary:
-            m_Variant.GetDictionary().SetImmutable(isImmutable);
-            break;
-
-        case PdfDataType::Bool:
-        case PdfDataType::Number:
-        case PdfDataType::Real:
-        case PdfDataType::String:
-        case PdfDataType::Name:
-        case PdfDataType::RawData:
-        case PdfDataType::Reference:
-        case PdfDataType::Null:
-        case PdfDataType::Unknown:
-        default:
-            // Do nothing
-            break;
-    }
-}
-
 PdfObject::operator const PdfVariant& () const
 {
     DelayedLoad();
@@ -452,12 +491,6 @@ const PdfVariant& PdfObject::GetVariant() const
 {
     DelayedLoad();
     return m_Variant;
-}
-
-void PdfObject::Clear()
-{
-    DelayedLoad();
-    m_Variant.Clear();
 }
 
 PdfDataType PdfObject::GetDataType() const
@@ -618,7 +651,6 @@ bool PdfObject::TryGetReference(PdfReference& ref) const
 
 void PdfObject::SetBool(bool b)
 {
-    AssertMutable();
     DelayedLoad();
     m_Variant.SetBool(b);
     SetDirty();
@@ -626,7 +658,6 @@ void PdfObject::SetBool(bool b)
 
 void PdfObject::SetNumber(int64_t l)
 {
-    AssertMutable();
     DelayedLoad();
     m_Variant.SetNumber(l);
     SetDirty();
@@ -634,7 +665,6 @@ void PdfObject::SetNumber(int64_t l)
 
 void PdfObject::SetReal(double d)
 {
-    AssertMutable();
     DelayedLoad();
     m_Variant.SetReal(d);
     SetDirty();
@@ -642,7 +672,6 @@ void PdfObject::SetReal(double d)
 
 void PdfObject::SetName(const PdfName& name)
 {
-    AssertMutable();
     DelayedLoad();
     m_Variant.SetName(name);
     SetDirty();
@@ -650,7 +679,6 @@ void PdfObject::SetName(const PdfName& name)
 
 void PdfObject::SetString(const PdfString& str)
 {
-    AssertMutable();
     DelayedLoad();
     m_Variant.SetString(str);
     SetDirty();
@@ -658,7 +686,6 @@ void PdfObject::SetString(const PdfString& str)
 
 void PdfObject::SetReference(const PdfReference& ref)
 {
-    AssertMutable();
     DelayedLoad();
     m_Variant.SetReference(ref);
     SetDirty();
@@ -724,12 +751,6 @@ bool PdfObject::IsNull() const
 bool PdfObject::IsReference() const
 {
     return GetDataType() == PdfDataType::Reference;
-}
-
-void PdfObject::AssertMutable() const
-{
-    if (m_IsImmutable)
-        PDFMM_RAISE_ERROR(PdfErrorCode::ChangeOnImmutable);
 }
 
 bool PdfObject::operator<(const PdfObject& rhs) const

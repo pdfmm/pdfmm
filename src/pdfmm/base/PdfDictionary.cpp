@@ -49,8 +49,6 @@ bool PdfDictionary::operator!=(const PdfDictionary& rhs) const
 
 void PdfDictionary::Clear()
 {
-    AssertMutable();
-
     if (!m_Map.empty())
     {
         m_Map.clear();
@@ -60,13 +58,11 @@ void PdfDictionary::Clear()
 
 PdfObject& PdfDictionary::AddKey(const PdfName& key, const PdfObject& obj)
 {
-    AssertMutable();
     return addKey(key, obj);
 }
 
 void PdfDictionary::AddKeyIndirect(const PdfName& key, const PdfObject* obj)
 {
-    AssertMutable();
     if (obj == nullptr)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Given object shall not be null");
 
@@ -78,7 +74,6 @@ void PdfDictionary::AddKeyIndirect(const PdfName& key, const PdfObject* obj)
 
 PdfObject& PdfDictionary::AddKeyIndirectSafe(const PdfName& key, const PdfObject& obj)
 {
-    AssertMutable();
     if (IsIndirectReferenceAllowed(obj))
         return addKey(key, obj.GetIndirectReference());
     else
@@ -175,8 +170,6 @@ bool PdfDictionary::HasKey(const PdfName& key) const
 
 bool PdfDictionary::RemoveKey(const PdfName& identifier)
 {
-    AssertMutable();
-
     Map::iterator found = m_Map.find(identifier);
     if (found == m_Map.end())
         return false;

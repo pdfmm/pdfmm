@@ -35,18 +35,18 @@ PdfParserObject::PdfParserObject(PdfDocument& document, const shared_ptr<PdfInpu
     // Parsed objects by definition are initially not dirty
     resetDirty();
     SetDocument(document);
-    InitPdfParserObject();
+    initParserObject();
     m_Offset = offset < 0 ? device->Tell() : offset;
 }
 
 PdfParserObject::PdfParserObject()
     : PdfObject(PdfVariant::NullValue, true), m_Encrypt(nullptr)
 {
-    InitPdfParserObject();
+    initParserObject();
     m_Offset = -1;
 }
 
-void PdfParserObject::InitPdfParserObject()
+void PdfParserObject::initParserObject()
 {
     m_IsTrailer = false;
 
@@ -65,7 +65,7 @@ void PdfParserObject::InitPdfParserObject()
     m_StreamOffset = 0;
 }
 
-void PdfParserObject::ReadObjectNumber()
+void PdfParserObject::readObjectNumber()
 {
     PdfReference ref;
     try
@@ -95,7 +95,7 @@ void PdfParserObject::ParseFile(PdfEncrypt* encrypt, bool isTrailer)
         m_device->Seek(m_Offset);
 
     if (!isTrailer)
-        ReadObjectNumber();
+        readObjectNumber();
 
 #ifndef VERBOSE_DEBUG_DISABLED
     std::cerr << "Parsing object number: " << m_reference.ObjectNumber()
@@ -133,7 +133,7 @@ void PdfParserObject::ForceStreamParse()
 // Only called via the demand loading mechanism
 // Be very careful to avoid recursive demand loads via PdfVariant
 // or PdfObject method calls here.
-void PdfParserObject::ParseFileComplete(bool isTrailer)
+void PdfParserObject::parseFileComplete(bool isTrailer)
 {
     m_device->Seek(m_Offset);
     if (m_Encrypt != nullptr)
@@ -184,9 +184,9 @@ void PdfParserObject::ParseFileComplete(bool isTrailer)
 // Only called during delayed loading. Must be careful to avoid
 // triggering recursive delay loading due to use of accessors of
 // PdfVariant or PdfObject.
-void PdfParserObject::ParseStream()
+void PdfParserObject::parseStream()
 {
-    PDFMM_ASSERT(DelayedLoadDone());
+    PDFMM_ASSERT(IsDelayedLoadDone());
 
     int64_t len = -1;
     int c;
@@ -274,7 +274,7 @@ ReadStream:
 
 void PdfParserObject::DelayedLoadImpl()
 {
-    ParseFileComplete(m_IsTrailer);
+    parseFileComplete(m_IsTrailer);
 }
 
 void PdfParserObject::DelayedLoadStreamImpl()
@@ -286,7 +286,7 @@ void PdfParserObject::DelayedLoadStreamImpl()
     {
         try
         {
-            ParseStream();
+            parseStream();
         }
         catch (PdfError& e)
         {
@@ -302,7 +302,9 @@ void PdfParserObject::FreeObjectMemory(bool force)
 {
     if (this->IsLoadOnDemand() && (force || !this->IsDirty()))
     {
-        Clear();
+        if (IsDelayedLoadDone())
+            m_Variant.Clear();
+
         FreeStream();
         EnableDelayedLoading();
         EnableDelayedLoadingStream();

@@ -72,8 +72,6 @@ void PdfImmediateWriter::WriteObject(const PdfObject& obj)
 
     m_xRef->AddInUseObject(obj.GetIndirectReference(), m_Device->Tell());
     obj.Write(*m_Device, this->GetWriteMode(), GetEncrypt());
-    // Make sure, no one will add keys now to the object
-    const_cast<PdfObject&>(obj).SetImmutable(true);
 
     // Let's cheat a bit:
     // obj has written an "endobj\n" as last data to the file.
