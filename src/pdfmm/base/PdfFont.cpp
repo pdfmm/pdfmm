@@ -352,10 +352,10 @@ void PdfFont::GetBoundingBox(PdfArray& arr) const
     arr.Clear();
     vector<double> bbox;
     m_Metrics->GetBoundingBox(bbox);
-    arr.push_back(PdfObject(static_cast<int64_t>(std::round(bbox[0] / matrix[0]))));
-    arr.push_back(PdfObject(static_cast<int64_t>(std::round(bbox[1] / matrix[3]))));
-    arr.push_back(PdfObject(static_cast<int64_t>(std::round(bbox[2] / matrix[0]))));
-    arr.push_back(PdfObject(static_cast<int64_t>(std::round(bbox[3] / matrix[3]))));
+    arr.Add(PdfObject(static_cast<int64_t>(std::round(bbox[0] / matrix[0]))));
+    arr.Add(PdfObject(static_cast<int64_t>(std::round(bbox[1] / matrix[3]))));
+    arr.Add(PdfObject(static_cast<int64_t>(std::round(bbox[2] / matrix[0]))));
+    arr.Add(PdfObject(static_cast<int64_t>(std::round(bbox[3] / matrix[3]))));
 }
 
 void PdfFont::FillDescriptor(PdfDictionary& dict) const

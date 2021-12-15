@@ -2277,13 +2277,13 @@ void PdfDifferenceList::ToArray(PdfArray& arr) const
         {
             nLastCode = diff.Code;
 
-            arr.push_back(nLastCode);
-            arr.push_back(diff.Name);
+            arr.Add(nLastCode);
+            arr.Add(diff.Name);
         }
         else
         {
             nLastCode++;
-            arr.push_back(diff.Name);
+            arr.Add(diff.Name);
         }
     }
 }

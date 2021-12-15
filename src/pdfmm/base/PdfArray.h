@@ -116,6 +116,11 @@ public:
      */
     unsigned GetSize() const;
 
+    /**
+     *  \returns true if is empty
+     */
+    bool IsEmpty() const;
+
     /** Remove all elements from the array
      */
     void Clear();
@@ -151,39 +156,21 @@ public:
 
     const PdfArrayIndirectIterator GetIndirectIterator() const;
 
-public:
-    /** Adds a PdfObject to the array
-     *
-     *  \param var add a PdfObject to the array
-     *
-     *  This will set the dirty flag of this object.
-     *  \see IsDirty
-     */
-    void push_back(const PdfObject& obj);
-
-    /** Remove all elements from the array
-     */
-    void clear();
-
-    /**
-     *  \returns the size of the array
-     */
-    size_t size() const;
-
-    /**
-     *  \returns true if the array is empty.
-     */
-    bool empty() const;
-
-    PdfObject& operator[](size_type idx);
-    const PdfObject& operator[](size_type idx) const;
-
     /**
      * Resize the internal vector.
      * \param count new size
      * \param value refernce value
      */
-    void resize(size_t count, const PdfObject& val = PdfObject());
+    void Resize(size_t count, const PdfObject& val = PdfObject());
+
+public:
+    /**
+     *  \returns the size of the array
+     */
+    size_t size() const;
+
+    PdfObject& operator[](size_type idx);
+    const PdfObject& operator[](size_type idx) const;
 
     /**
      *  Returns a read/write iterator that points to the first

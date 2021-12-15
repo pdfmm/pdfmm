@@ -103,15 +103,15 @@ PdfResources& PdfXObjectForm::GetOrCreateResources()
 void PdfXObjectForm::InitXObject(const PdfRect& rect)
 {
     // Initialize static data
-    if (m_Matrix.empty())
+    if (m_Matrix.IsEmpty())
     {
         // This matrix is the same for all PdfXObjects so cache it
-        m_Matrix.push_back(PdfObject(static_cast<int64_t>(1)));
-        m_Matrix.push_back(PdfObject(static_cast<int64_t>(0)));
-        m_Matrix.push_back(PdfObject(static_cast<int64_t>(0)));
-        m_Matrix.push_back(PdfObject(static_cast<int64_t>(1)));
-        m_Matrix.push_back(PdfObject(static_cast<int64_t>(0)));
-        m_Matrix.push_back(PdfObject(static_cast<int64_t>(0)));
+        m_Matrix.Add(PdfObject(static_cast<int64_t>(1)));
+        m_Matrix.Add(PdfObject(static_cast<int64_t>(0)));
+        m_Matrix.Add(PdfObject(static_cast<int64_t>(0)));
+        m_Matrix.Add(PdfObject(static_cast<int64_t>(1)));
+        m_Matrix.Add(PdfObject(static_cast<int64_t>(0)));
+        m_Matrix.Add(PdfObject(static_cast<int64_t>(0)));
     }
 
     PdfArray bbox;
@@ -190,12 +190,12 @@ void PdfXObjectForm::InitAfterPageInsertion(const PdfDocument& doc, unsigned pag
     }
 
     PdfArray matrix;
-    matrix.push_back(PdfObject(a));
-    matrix.push_back(PdfObject(b));
-    matrix.push_back(PdfObject(c));
-    matrix.push_back(PdfObject(d));
-    matrix.push_back(PdfObject(e));
-    matrix.push_back(PdfObject(f));
+    matrix.Add(PdfObject(a));
+    matrix.Add(PdfObject(b));
+    matrix.Add(PdfObject(c));
+    matrix.Add(PdfObject(d));
+    matrix.Add(PdfObject(e));
+    matrix.Add(PdfObject(f));
 
     this->GetObject().GetDictionary().AddKey("Matrix", matrix);
 }

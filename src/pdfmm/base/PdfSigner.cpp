@@ -116,10 +116,10 @@ void AdjustByteRange(PdfOutputDevice& device, size_t byteRangeOffset,
     // Get final position
     size_t fileEnd = device.GetLength();
     PdfArray arr;
-    arr.push_back(PdfObject(static_cast<int64_t>(0)));
-    arr.push_back(PdfObject(static_cast<int64_t>(conentsBeaconOffset)));
-    arr.push_back(PdfObject(static_cast<int64_t>(conentsBeaconOffset + conentsBeaconSize)));
-    arr.push_back(PdfObject(static_cast<int64_t>(fileEnd - (conentsBeaconOffset + conentsBeaconSize))));
+    arr.Add(PdfObject(static_cast<int64_t>(0)));
+    arr.Add(PdfObject(static_cast<int64_t>(conentsBeaconOffset)));
+    arr.Add(PdfObject(static_cast<int64_t>(conentsBeaconOffset + conentsBeaconSize)));
+    arr.Add(PdfObject(static_cast<int64_t>(fileEnd - (conentsBeaconOffset + conentsBeaconSize))));
 
     device.Seek(byteRangeOffset);
     arr.Write(device, PdfWriteMode::None, nullptr);

@@ -48,8 +48,8 @@ void PdfXRefStream::BeginWrite(PdfOutputDevice&)
 
 void PdfXRefStream::WriteSubSection(PdfOutputDevice&, uint32_t first, uint32_t count)
 {
-    m_indices.push_back(static_cast<int64_t>(first));
-    m_indices.push_back(static_cast<int64_t>(count));
+    m_indices.Add(static_cast<int64_t>(first));
+    m_indices.Add(static_cast<int64_t>(count));
 }
 
 void PdfXRefStream::WriteXRefEntry(PdfOutputDevice& device, const PdfReference& ref, const PdfXRefEntry& entry)
@@ -80,9 +80,9 @@ void PdfXRefStream::WriteXRefEntry(PdfOutputDevice& device, const PdfReference& 
 void PdfXRefStream::EndWriteImpl(PdfOutputDevice& device)
 {
     PdfArray wArr;
-    wArr.push_back(static_cast<int64_t>(sizeof(XRefStreamEntry::Type)));
-    wArr.push_back(static_cast<int64_t>(sizeof(XRefStreamEntry::Variant)));
-    wArr.push_back(static_cast<int64_t>(sizeof(XRefStreamEntry::Generation)));
+    wArr.Add(static_cast<int64_t>(sizeof(XRefStreamEntry::Type)));
+    wArr.Add(static_cast<int64_t>(sizeof(XRefStreamEntry::Variant)));
+    wArr.Add(static_cast<int64_t>(sizeof(XRefStreamEntry::Generation)));
  
     m_xrefStreamObj->GetDictionary().AddKey("Index", m_indices);
     m_xrefStreamObj->GetDictionary().AddKey("W", wArr);

@@ -40,7 +40,7 @@ void PdfFontSimple::getWidthsArray(PdfArray& arr) const
         widths.push_back(GetCIDWidthRaw(code));
     }
 
-    arr.clear();
+    arr.Clear();
     arr.reserve(widths.size());
 
     auto matrix = m_Metrics->GetMatrix();
@@ -50,7 +50,7 @@ void PdfFontSimple::getWidthsArray(PdfArray& arr) const
 
 void PdfFontSimple::getFontMatrixArray(PdfArray& fontMatrix) const
 {
-    fontMatrix.clear();
+    fontMatrix.Clear();
     fontMatrix.reserve(6);
 
     auto matrix = m_Metrics->GetMatrix();

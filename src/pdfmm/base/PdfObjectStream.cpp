@@ -239,7 +239,7 @@ void PdfObjectStream::BeginAppend(const PdfFilterList& filters, bool clearExisti
     {
         PdfArray arrFilters;
         for (auto filterType : filters)
-            arrFilters.push_back(PdfName(PdfFilterFactory::FilterTypeToName(filterType)));
+            arrFilters.Add(PdfName(PdfFilterFactory::FilterTypeToName(filterType)));
 
         m_Parent->GetDictionary().AddKey(PdfName::KeyFilter, arrFilters);
     }

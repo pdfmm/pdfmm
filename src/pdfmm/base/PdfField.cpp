@@ -105,7 +105,7 @@ PdfField* PdfField::createChildField(PdfPage* page, const PdfRect& rect)
         kids = &dict.AddKey("Kids", PdfArray());
 
     auto& arr = kids->GetArray();
-    arr.push_back(childObj->GetIndirectReference());
+    arr.Add(childObj->GetIndirectReference());
     childObj->GetDictionary().AddKey("Parent", GetObject().GetIndirectReference());
     return field;
 }
@@ -189,7 +189,7 @@ void PdfField::Init(PdfAcroForm* parent)
     {
         // Insert into the parents kids array
         PdfArray& fields = parent->GetFieldsArray();
-        fields.push_back(GetObject().GetIndirectReference());
+        fields.Add(GetObject().GetIndirectReference());
     }
 
     PdfDictionary& dict = GetDictionary();
@@ -358,7 +358,7 @@ void PdfField::SetBorderColorTransparent()
 void PdfField::SetBorderColor(double gray)
 {
     PdfArray array;
-    array.push_back(gray);
+    array.Add(gray);
 
     auto& mk = this->GetOrCreateAppearanceCharacteristics();
     mk.GetDictionary().AddKey("BC", array);
@@ -367,9 +367,9 @@ void PdfField::SetBorderColor(double gray)
 void PdfField::SetBorderColor(double red, double green, double blue)
 {
     PdfArray array;
-    array.push_back(red);
-    array.push_back(green);
-    array.push_back(blue);
+    array.Add(red);
+    array.Add(green);
+    array.Add(blue);
 
     auto& mk = this->GetOrCreateAppearanceCharacteristics();
     mk.GetDictionary().AddKey("BC", array);
@@ -378,10 +378,10 @@ void PdfField::SetBorderColor(double red, double green, double blue)
 void PdfField::SetBorderColor(double cyan, double magenta, double yellow, double black)
 {
     PdfArray array;
-    array.push_back(cyan);
-    array.push_back(magenta);
-    array.push_back(yellow);
-    array.push_back(black);
+    array.Add(cyan);
+    array.Add(magenta);
+    array.Add(yellow);
+    array.Add(black);
 
     auto& mk = this->GetOrCreateAppearanceCharacteristics();
     mk.GetDictionary().AddKey("BC", array);
@@ -398,7 +398,7 @@ void PdfField::SetBackgroundColorTransparent()
 void PdfField::SetBackgroundColor(double gray)
 {
     PdfArray array;
-    array.push_back(gray);
+    array.Add(gray);
 
     auto& mk = this->GetOrCreateAppearanceCharacteristics();
     mk.GetDictionary().AddKey("BG", array);
@@ -407,9 +407,9 @@ void PdfField::SetBackgroundColor(double gray)
 void PdfField::SetBackgroundColor(double red, double green, double blue)
 {
     PdfArray array;
-    array.push_back(red);
-    array.push_back(green);
-    array.push_back(blue);
+    array.Add(red);
+    array.Add(green);
+    array.Add(blue);
 
     auto& mk = this->GetOrCreateAppearanceCharacteristics();
     mk.GetDictionary().AddKey("BG", array);
@@ -418,10 +418,10 @@ void PdfField::SetBackgroundColor(double red, double green, double blue)
 void PdfField::SetBackgroundColor(double cyan, double magenta, double yellow, double black)
 {
     PdfArray array;
-    array.push_back(cyan);
-    array.push_back(magenta);
-    array.push_back(yellow);
-    array.push_back(black);
+    array.Add(cyan);
+    array.Add(magenta);
+    array.Add(yellow);
+    array.Add(black);
 
     auto& mk = this->GetOrCreateAppearanceCharacteristics();
     mk.GetDictionary().AddKey("BG", array);

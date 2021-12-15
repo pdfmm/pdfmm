@@ -400,11 +400,11 @@ void PdfPageTree::InsertPagesIntoNode(PdfObject& parent, const PdfObjectList& pa
         {
             for (vector<PdfObject*>::const_iterator itPages = pages.begin(); itPages != pages.end(); itPages++)
             {
-                newKids.push_back((*itPages)->GetIndirectReference());    // Push all new kids at once
+                newKids.Add((*itPages)->GetIndirectReference());    // Push all new kids at once
             }
             isPushedIn = true;
         }
-        newKids.push_back(oldKid);    // Push in the old kids
+        newKids.Add(oldKid);    // Push in the old kids
         i++;
     }
 
@@ -413,7 +413,7 @@ void PdfPageTree::InsertPagesIntoNode(PdfObject& parent, const PdfObjectList& pa
     {
         for (vector<PdfObject*>::const_iterator itPages = pages.begin(); itPages != pages.end(); itPages++)
         {
-            newKids.push_back((*itPages)->GetIndirectReference());    // Push all new kids at once
+            newKids.Add((*itPages)->GetIndirectReference());    // Push all new kids at once
         }
         isPushedIn = true;
     }
@@ -498,7 +498,7 @@ bool PdfPageTree::IsEmptyPageNode(PdfObject& pageNode)
 
     auto kids = pageNode.GetDictionary().FindKey("Kids");
     if (kids != nullptr)
-        bKidsEmpty = kids->GetArray().empty();
+        bKidsEmpty = kids->GetArray().IsEmpty();
 
     return count == 0 || bKidsEmpty;
 }

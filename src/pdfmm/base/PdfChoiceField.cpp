@@ -36,8 +36,8 @@ void PdChoiceField::InsertItem(const PdfString& value, nullable<const PdfString&
     if (displayName.has_value())
     {
         PdfArray array;
-        array.push_back(value);
-        array.push_back(*displayName);
+        array.Add(value);
+        array.Add(*displayName);
         objToAdd = array;
     }
     else

@@ -38,8 +38,8 @@ PdfDestination::PdfDestination(const PdfPage& page, PdfDestinationFit fit)
         type = PdfName("FitB");
 
     auto& arr = GetArray();
-    arr.push_back(page.GetObject().GetIndirectReference());
-    arr.push_back(type);
+    arr.Add(page.GetObject().GetIndirectReference());
+    arr.Add(type);
 }
 
 PdfDestination::PdfDestination(const PdfPage& page, const PdfRect& rect)
@@ -49,8 +49,8 @@ PdfDestination::PdfDestination(const PdfPage& page, const PdfRect& rect)
     rect.ToArray(rectArr);
 
     auto& arr = GetArray();
-    arr.push_back(page.GetObject().GetIndirectReference());
-    arr.push_back(PdfName("FitR"));
+    arr.Add(page.GetObject().GetIndirectReference());
+    arr.Add(PdfName("FitR"));
     arr.insert(arr.end(), rectArr.begin(), rectArr.end());
 }
 
@@ -58,11 +58,11 @@ PdfDestination::PdfDestination(const PdfPage& page, double left, double top, dou
     : PdfDestination(page.GetDocument())
 {
     auto& arr = GetArray();
-    arr.push_back(page.GetObject().GetIndirectReference());
-    arr.push_back(PdfName("XYZ"));
-    arr.push_back(left);
-    arr.push_back(top);
-    arr.push_back(zoom);
+    arr.Add(page.GetObject().GetIndirectReference());
+    arr.Add(PdfName("XYZ"));
+    arr.Add(left);
+    arr.Add(top);
+    arr.Add(zoom);
 }
 
 PdfDestination::PdfDestination(const PdfPage& page, PdfDestinationFit fit, double value)
@@ -81,9 +81,9 @@ PdfDestination::PdfDestination(const PdfPage& page, PdfDestinationFit fit, doubl
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidKey);
 
     auto& arr = GetArray();
-    arr.push_back(page.GetObject().GetIndirectReference());
-    arr.push_back(type);
-    arr.push_back(value);
+    arr.Add(page.GetObject().GetIndirectReference());
+    arr.Add(type);
+    arr.Add(value);
 }
 
 unique_ptr<PdfDestination> PdfDestination::Create(PdfObject& obj)

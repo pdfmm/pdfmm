@@ -331,9 +331,9 @@ PdfOutlineFormat PdfOutlineItem::GetTextFormat() const
 void PdfOutlineItem::SetTextColor(double r, double g, double b)
 {
     PdfArray color;
-    color.push_back(r);
-    color.push_back(g);
-    color.push_back(b);
+    color.Add(r);
+    color.Add(g);
+    color.Add(b);
 
     this->GetObject().GetDictionary().AddKey("C", color);
 }

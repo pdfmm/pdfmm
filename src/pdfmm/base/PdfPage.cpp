@@ -284,7 +284,7 @@ PdfAnnotation* PdfPage::CreateAnnotation(PdfAnnotationType annotType, const PdfR
     PdfReference   ref = pAnnot->GetObject().GetIndirectReference();
 
     auto& arr = GetOrCreateAnnotationsArray();
-    arr.push_back(ref);
+    arr.Add(ref);
     m_mapAnnotations[&pAnnot->GetObject()] = pAnnot;
 
     // Default set print flag
@@ -559,8 +559,8 @@ void PdfPage::SetICCProfile(const string_view& csTag, PdfInputStream& stream,
 
     // Add the colorspace
     PdfArray array;
-    array.push_back(PdfName("ICCBased"));
-    array.push_back(iccObject->GetIndirectReference());
+    array.Add(PdfName("ICCBased"));
+    array.Add(iccObject->GetIndirectReference());
 
     PdfDictionary iccBasedDictionary;
     iccBasedDictionary.AddKey(csTag, array);

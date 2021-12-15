@@ -238,11 +238,11 @@ void PdfAnnotation::SetBorderStyle(double dHCorner, double dVCorner, double widt
     // TODO : Support for Border style for PDF Vers > 1.0
     PdfArray values;
 
-    values.push_back(dHCorner);
-    values.push_back(dVCorner);
-    values.push_back(width);
+    values.Add(dHCorner);
+    values.Add(dVCorner);
+    values.Add(width);
     if (strokeStyle.size() != 0)
-        values.push_back(strokeStyle);
+        values.Add(strokeStyle);
 
     this->GetObject().GetDictionary().AddKey("Border", values);
 }
@@ -403,26 +403,26 @@ PdfArray PdfAnnotation::GetColor() const
 void PdfAnnotation::SetColor(double r, double g, double b)
 {
     PdfArray c;
-    c.push_back(PdfObject(r));
-    c.push_back(PdfObject(g));
-    c.push_back(PdfObject(b));
+    c.Add(PdfObject(r));
+    c.Add(PdfObject(g));
+    c.Add(PdfObject(b));
     this->GetObject().GetDictionary().AddKey("C", c);
 }
 
 void PdfAnnotation::SetColor(double C, double M, double Y, double K)
 {
     PdfArray c;
-    c.push_back(PdfObject(C));
-    c.push_back(PdfObject(M));
-    c.push_back(PdfObject(Y));
-    c.push_back(PdfObject(K));
+    c.Add(PdfObject(C));
+    c.Add(PdfObject(M));
+    c.Add(PdfObject(Y));
+    c.Add(PdfObject(K));
     this->GetObject().GetDictionary().AddKey("C", c);
 }
 
 void PdfAnnotation::SetColor(double gray)
 {
     PdfArray c;
-    c.push_back(PdfVariant(gray));
+    c.Add(PdfVariant(gray));
     this->GetObject().GetDictionary().AddKey("C", c);
 }
 

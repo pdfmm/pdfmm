@@ -44,6 +44,11 @@ unsigned PdfArray::GetSize() const
     return (unsigned)m_Objects.size();
 }
 
+bool PdfArray::IsEmpty() const
+{
+    return m_Objects.empty();
+}
+
 PdfObject& PdfArray::Add(const PdfObject& obj)
 {
     auto& ret = add(obj);
@@ -101,7 +106,11 @@ const PdfArrayIndirectIterator PdfArray::GetIndirectIterator() const
 
 void PdfArray::Clear()
 {
-    clear();
+    if (m_Objects.size() == 0)
+        return;
+
+    m_Objects.clear();
+    SetDirty();
 }
 
 void PdfArray::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
@@ -186,29 +195,9 @@ PdfObject& PdfArray::findAt(unsigned idx) const
         return obj;
 }
 
-void PdfArray::push_back(const PdfObject& obj)
-{
-    add(obj);
-    SetDirty();
-}
-
 size_t PdfArray::size() const
 {
     return m_Objects.size();
-}
-
-bool PdfArray::empty() const
-{
-    return m_Objects.empty();
-}
-
-void PdfArray::clear()
-{
-    if (m_Objects.size() == 0)
-        return;
-
-    m_Objects.clear();
-    SetDirty();
 }
 
 PdfArray::iterator PdfArray::insert(const iterator& pos, const PdfObject& obj)
@@ -232,7 +221,7 @@ void PdfArray::erase(const iterator& first, const iterator& last)
     SetDirty();
 }
 
-void PdfArray::resize(size_t count, const PdfObject& val)
+void PdfArray::Resize(size_t count, const PdfObject& val)
 {
     size_t currentSize = m_Objects.size();
     m_Objects.resize(count, val);

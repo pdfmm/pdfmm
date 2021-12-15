@@ -95,8 +95,8 @@ void PdfImage::SetImageICCProfile(PdfInputStream& stream, unsigned colorComponen
 
     // Add the colorspace to our image
     PdfArray array;
-    array.push_back(PdfName("ICCBased"));
-    array.push_back(iccObject->GetIndirectReference());
+    array.Add(PdfName("ICCBased"));
+    array.Add(iccObject->GetIndirectReference());
     this->GetObject().GetDictionary().AddKey("ColorSpace", array);
 }
 
@@ -275,14 +275,14 @@ void PdfImage::LoadFromJpegHandle(FILE* inStream, const string_view& filename)
             // The jpeg-doc ist not specific in this point, but cmyk's seem to be stored
             // in a inverted fashion. Fix by attaching a decode array
             PdfArray decode;
-            decode.push_back(1.0);
-            decode.push_back(0.0);
-            decode.push_back(1.0);
-            decode.push_back(0.0);
-            decode.push_back(1.0);
-            decode.push_back(0.0);
-            decode.push_back(1.0);
-            decode.push_back(0.0);
+            decode.Add(1.0);
+            decode.Add(0.0);
+            decode.Add(1.0);
+            decode.Add(0.0);
+            decode.Add(1.0);
+            decode.Add(0.0);
+            decode.Add(1.0);
+            decode.Add(0.0);
 
             this->GetObject().GetDictionary().AddKey("Decode", decode);
             break;
@@ -341,14 +341,14 @@ void PdfImage::LoadFromJpegData(const unsigned char* data, size_t len)
             // The jpeg-doc ist not specific in this point, but cmyk's seem to be stored
             // in a inverted fashion. Fix by attaching a decode array
             PdfArray decode;
-            decode.push_back(1.0);
-            decode.push_back(0.0);
-            decode.push_back(1.0);
-            decode.push_back(0.0);
-            decode.push_back(1.0);
-            decode.push_back(0.0);
-            decode.push_back(1.0);
-            decode.push_back(0.0);
+            decode.Add(1.0);
+            decode.Add(0.0);
+            decode.Add(1.0);
+            decode.Add(0.0);
+            decode.Add(1.0);
+            decode.Add(0.0);
+            decode.Add(1.0);
+            decode.Add(0.0);
 
             this->GetObject().GetDictionary().AddKey("Decode", decode);
         }
@@ -519,10 +519,10 @@ void PdfImage::LoadFromTiffHandle(void* handle)
 
             // Add the colorspace to our image
             PdfArray array;
-            array.push_back(PdfName("Indexed"));
-            array.push_back(PdfName("DeviceRGB"));
-            array.push_back(static_cast<int64_t>(numColors) - 1);
-            array.push_back(pIdxObject->GetIndirectReference());
+            array.Add(PdfName("Indexed"));
+            array.Add(PdfName("DeviceRGB"));
+            array.Add(static_cast<int64_t>(numColors) - 1);
+            array.Add(pIdxObject->GetIndirectReference());
             this->GetObject().GetDictionary().AddKey(PdfName("ColorSpace"), array);
 
             delete[] datap;
@@ -983,9 +983,9 @@ void LoadFromPngContent(PdfImage& image, png_structp png, png_infop info)
         pIdxObject->GetOrCreateStream().Set(stream);
 
         PdfArray array;
-        array.push_back(PdfName("DeviceRGB"));
-        array.push_back(static_cast<int64_t>(colorCount - 1));
-        array.push_back(pIdxObject->GetIndirectReference());
+        array.Add(PdfName("DeviceRGB"));
+        array.Add(static_cast<int64_t>(colorCount - 1));
+        array.Add(pIdxObject->GetIndirectReference());
         image.SetImageColorSpace(PdfColorSpace::Indexed, &array);
     }
     else if (color_type == PNG_COLOR_TYPE_GRAY || color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
@@ -1020,12 +1020,12 @@ PdfName PdfImage::ColorspaceToName(PdfColorSpace colorSpace)
 void PdfImage::SetImageChromaKeyMask(int64_t r, int64_t g, int64_t b, int64_t threshold)
 {
     PdfArray array;
-    array.push_back(r - threshold);
-    array.push_back(r + threshold);
-    array.push_back(g - threshold);
-    array.push_back(g + threshold);
-    array.push_back(b - threshold);
-    array.push_back(b + threshold);
+    array.Add(r - threshold);
+    array.Add(r + threshold);
+    array.Add(g - threshold);
+    array.Add(g + threshold);
+    array.Add(b - threshold);
+    array.Add(b + threshold);
 
     this->GetObject().GetDictionary().AddKey("Mask", array);
 }

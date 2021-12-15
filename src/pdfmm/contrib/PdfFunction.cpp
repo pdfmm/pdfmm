@@ -37,7 +37,7 @@ void PdfSampledFunction::Init(const PdfArray& domain, const PdfArray& range, con
 {
     PdfArray Size;
     for (unsigned i = 0; i < domain.GetSize() / 2; i++)
-        Size.push_back(PdfObject(static_cast<int64_t>(domain.GetSize() / 2)));
+        Size.Add(PdfObject(static_cast<int64_t>(domain.GetSize() / 2)));
 
     this->GetObject().GetDictionary().AddKey("Domain", domain);
     this->GetObject().GetDictionary().AddKey("Range", range);
@@ -78,7 +78,7 @@ void PdfStitchingFunction::Init(const PdfFunction::List& functions, const PdfArr
     functionsArr.reserve(functions.size());
 
     for (auto& fun : functions)
-        functionsArr.push_back(fun.GetObject().GetIndirectReference());
+        functionsArr.Add(fun.GetObject().GetIndirectReference());
 
     this->GetObject().GetDictionary().AddKey("Functions", functionsArr);
     this->GetObject().GetDictionary().AddKey("Bounds", bounds);

@@ -154,7 +154,7 @@ void PdfSignature::AddCertificationReference(PdfCertPermission perm)
     catalog.GetDictionary().AddKey("Perms", permObject);
 
     PdfArray refers;
-    refers.push_back(*sigRef);
+    refers.Add(*sigRef);
 
     m_ValueObj->GetDictionary().AddKey("Reference", PdfVariant(refers));
 }

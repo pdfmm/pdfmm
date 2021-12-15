@@ -466,7 +466,7 @@ void PdfTokenizer::ReadArray(PdfInputDevice& device, PdfVariant& variant, PdfEnc
             break;
 
         this->ReadNextVariant(device, token, tokenType, var, encrypt);
-        array.push_back(var);
+        array.Add(var);
     }
 }
 

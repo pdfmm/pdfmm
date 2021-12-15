@@ -57,10 +57,10 @@ PdfRect::PdfRect(const PdfRect& rhs)
 void PdfRect::ToArray(PdfArray& arr) const
 {
     arr.Clear();
-    arr.push_back(PdfObject(m_Left));
-    arr.push_back(PdfObject(m_Bottom));
-    arr.push_back(PdfObject((m_Width + m_Left)));
-    arr.push_back(PdfObject((m_Height + m_Bottom)));
+    arr.Add(PdfObject(m_Left));
+    arr.Add(PdfObject(m_Bottom));
+    arr.Add(PdfObject((m_Width + m_Left)));
+    arr.Add(PdfObject((m_Height + m_Bottom)));
 }
 
 string PdfRect::ToString() const

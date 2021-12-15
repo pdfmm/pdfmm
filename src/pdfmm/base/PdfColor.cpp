@@ -671,34 +671,34 @@ PdfArray PdfColor::ToArray() const
     {
         case PdfColorSpace::DeviceGray:
         {
-            array.push_back(m_Color.gray);
+            array.Add(m_Color.gray);
             break;
         }
         case PdfColorSpace::DeviceRGB:
         {
-            array.push_back(m_Color.rgb[0]);
-            array.push_back(m_Color.rgb[1]);
-            array.push_back(m_Color.rgb[2]);
+            array.Add(m_Color.rgb[0]);
+            array.Add(m_Color.rgb[1]);
+            array.Add(m_Color.rgb[2]);
             break;
         }
         case PdfColorSpace::DeviceCMYK:
         {
-            array.push_back(m_Color.cmyk[0]);
-            array.push_back(m_Color.cmyk[1]);
-            array.push_back(m_Color.cmyk[2]);
-            array.push_back(m_Color.cmyk[3]);
+            array.Add(m_Color.cmyk[0]);
+            array.Add(m_Color.cmyk[1]);
+            array.Add(m_Color.cmyk[2]);
+            array.Add(m_Color.cmyk[3]);
             break;
         }
         case PdfColorSpace::CieLab:
         {
-            array.push_back(m_Color.lab[0]);
-            array.push_back(m_Color.lab[1]);
-            array.push_back(m_Color.lab[2]);
+            array.Add(m_Color.lab[0]);
+            array.Add(m_Color.lab[1]);
+            array.Add(m_Color.lab[2]);
             break;
         }
         case PdfColorSpace::Separation:
         {
-            array.push_back(m_separationDensity);
+            array.Add(m_separationDensity);
             break;
         }
         case PdfColorSpace::Indexed:
@@ -867,24 +867,24 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
             csTintFunc->GetDictionary().AddKey("BitsPerSample", static_cast<int64_t>(8));
 
             PdfArray decode;
-            decode.push_back(static_cast<int64_t>(0));
-            decode.push_back(static_cast<int64_t>(1));
-            decode.push_back(static_cast<int64_t>(0));
-            decode.push_back(static_cast<int64_t>(1));
-            decode.push_back(static_cast<int64_t>(0));
-            decode.push_back(static_cast<int64_t>(1));
-            decode.push_back(static_cast<int64_t>(0));
-            decode.push_back(static_cast<int64_t>(1));
+            decode.Add(static_cast<int64_t>(0));
+            decode.Add(static_cast<int64_t>(1));
+            decode.Add(static_cast<int64_t>(0));
+            decode.Add(static_cast<int64_t>(1));
+            decode.Add(static_cast<int64_t>(0));
+            decode.Add(static_cast<int64_t>(1));
+            decode.Add(static_cast<int64_t>(0));
+            decode.Add(static_cast<int64_t>(1));
             csTintFunc->GetDictionary().AddKey("Decode", decode);
 
             PdfArray domain;
-            domain.push_back(static_cast<int64_t>(0));
-            domain.push_back(static_cast<int64_t>(1));
+            domain.Add(static_cast<int64_t>(0));
+            domain.Add(static_cast<int64_t>(1));
             csTintFunc->GetDictionary().AddKey("Domain", domain);
 
             PdfArray encode;
-            encode.push_back(static_cast<int64_t>(0));
-            encode.push_back(static_cast<int64_t>(1));
+            encode.Add(static_cast<int64_t>(0));
+            encode.Add(static_cast<int64_t>(1));
             csTintFunc->GetDictionary().AddKey("Encode", encode);
 
             csTintFunc->GetDictionary().AddKey("Filter", PdfName("FlateDecode"));
@@ -901,22 +901,22 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
                     data[1] = static_cast<char> (m_Color.gray);
 
                     PdfArray range;
-                    range.push_back(static_cast<int64_t>(0));
-                    range.push_back(static_cast<int64_t>(1));
+                    range.Add(static_cast<int64_t>(0));
+                    range.Add(static_cast<int64_t>(1));
                     csTintFunc->GetDictionary().AddKey("Range", range);
 
                     PdfArray size;
-                    size.push_back(static_cast<int64_t>(2));
+                    size.Add(static_cast<int64_t>(2));
                     csTintFunc->GetDictionary().AddKey("Size", size);
 
                     PdfMemoryInputStream stream({ data, 1 * 2 });
                     csTintFunc->GetOrCreateStream().Set(stream);
 
                     PdfArray csArr;
-                    csArr.push_back(PdfName("Separation"));
-                    csArr.push_back(PdfName(m_separationName));
-                    csArr.push_back(PdfName("DeviceGray"));
-                    csArr.push_back(csTintFunc->GetIndirectReference());
+                    csArr.Add(PdfName("Separation"));
+                    csArr.Add(PdfName(m_separationName));
+                    csArr.Add(PdfName("DeviceGray"));
+                    csArr.Add(csTintFunc->GetIndirectReference());
 
                     PdfObject* csp = document.GetObjects().CreateObject(csArr);
 
@@ -935,26 +935,26 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
                     data[5] = static_cast<char> (m_Color.rgb[2] * 255);
 
                     PdfArray range;
-                    range.push_back(static_cast<int64_t>(0));
-                    range.push_back(static_cast<int64_t>(1));
-                    range.push_back(static_cast<int64_t>(0));
-                    range.push_back(static_cast<int64_t>(1));
-                    range.push_back(static_cast<int64_t>(0));
-                    range.push_back(static_cast<int64_t>(1));
+                    range.Add(static_cast<int64_t>(0));
+                    range.Add(static_cast<int64_t>(1));
+                    range.Add(static_cast<int64_t>(0));
+                    range.Add(static_cast<int64_t>(1));
+                    range.Add(static_cast<int64_t>(0));
+                    range.Add(static_cast<int64_t>(1));
                     csTintFunc->GetDictionary().AddKey("Range", range);
 
                     PdfArray size;
-                    size.push_back(static_cast<int64_t>(2));
+                    size.Add(static_cast<int64_t>(2));
                     csTintFunc->GetDictionary().AddKey("Size", size);
 
                     PdfMemoryInputStream stream({ data, 3 * 2 });
                     csTintFunc->GetOrCreateStream().Set(stream);
 
                     PdfArray csArr;
-                    csArr.push_back(PdfName("Separation"));
-                    csArr.push_back(PdfName(m_separationName));
-                    csArr.push_back(PdfName("DeviceRGB"));
-                    csArr.push_back(csTintFunc->GetIndirectReference());
+                    csArr.Add(PdfName("Separation"));
+                    csArr.Add(PdfName(m_separationName));
+                    csArr.Add(PdfName("DeviceRGB"));
+                    csArr.Add(csTintFunc->GetIndirectReference());
 
                     PdfObject* csp = document.GetObjects().CreateObject(csArr);
 
@@ -975,25 +975,25 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
                     data[7] = static_cast<char> (m_Color.cmyk[3] * 255);
 
                     PdfArray range;
-                    range.push_back(static_cast<int64_t>(0));
-                    range.push_back(static_cast<int64_t>(1));
-                    range.push_back(static_cast<int64_t>(0));
-                    range.push_back(static_cast<int64_t>(1));
-                    range.push_back(static_cast<int64_t>(0));
-                    range.push_back(static_cast<int64_t>(1));
-                    range.push_back(static_cast<int64_t>(0));
-                    range.push_back(static_cast<int64_t>(1));
+                    range.Add(static_cast<int64_t>(0));
+                    range.Add(static_cast<int64_t>(1));
+                    range.Add(static_cast<int64_t>(0));
+                    range.Add(static_cast<int64_t>(1));
+                    range.Add(static_cast<int64_t>(0));
+                    range.Add(static_cast<int64_t>(1));
+                    range.Add(static_cast<int64_t>(0));
+                    range.Add(static_cast<int64_t>(1));
                     csTintFunc->GetDictionary().AddKey("Range", range);
 
                     PdfArray size;
-                    size.push_back(static_cast<int64_t>(2));
+                    size.Add(static_cast<int64_t>(2));
                     csTintFunc->GetDictionary().AddKey("Size", size);
 
                     PdfArray csArr;
-                    csArr.push_back(PdfName("Separation"));
-                    csArr.push_back(PdfName(m_separationName));
-                    csArr.push_back(PdfName("DeviceCMYK"));
-                    csArr.push_back(csTintFunc->GetIndirectReference());
+                    csArr.Add(PdfName("Separation"));
+                    csArr.Add(PdfName(m_separationName));
+                    csArr.Add(PdfName("DeviceCMYK"));
+                    csArr.Add(csTintFunc->GetIndirectReference());
 
                     PdfMemoryInputStream stream({ data, 4 * 2 });
                     csTintFunc->GetOrCreateStream().Set(stream); // set stream as last, so that it will work with PdfStreamedDocument
@@ -1015,26 +1015,26 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
                     data[5] = static_cast<char> (m_Color.lab[2] * 255);
 
                     PdfArray range;
-                    range.push_back(static_cast<int64_t>(0));
-                    range.push_back(static_cast<int64_t>(1));
-                    range.push_back(static_cast<int64_t>(0));
-                    range.push_back(static_cast<int64_t>(1));
-                    range.push_back(static_cast<int64_t>(0));
-                    range.push_back(static_cast<int64_t>(1));
+                    range.Add(static_cast<int64_t>(0));
+                    range.Add(static_cast<int64_t>(1));
+                    range.Add(static_cast<int64_t>(0));
+                    range.Add(static_cast<int64_t>(1));
+                    range.Add(static_cast<int64_t>(0));
+                    range.Add(static_cast<int64_t>(1));
                     csTintFunc->GetDictionary().AddKey("Range", range);
 
                     PdfArray size;
-                    size.push_back(static_cast<int64_t>(2));
+                    size.Add(static_cast<int64_t>(2));
                     csTintFunc->GetDictionary().AddKey("Size", size);
 
                     PdfMemoryInputStream stream({ data, 3 * 2 });
                     csTintFunc->GetOrCreateStream().Set(stream);
 
                     PdfArray csArr;
-                    csArr.push_back(PdfName("Separation"));
-                    csArr.push_back(PdfName(m_separationName));
-                    csArr.push_back(PdfName("Lab"));
-                    csArr.push_back(csTintFunc->GetIndirectReference());
+                    csArr.Add(PdfName("Separation"));
+                    csArr.Add(PdfName(m_separationName));
+                    csArr.Add(PdfName("Lab"));
+                    csArr.Add(csTintFunc->GetIndirectReference());
 
                     PdfObject* csp = document.GetObjects().CreateObject(csArr);
 
@@ -1065,22 +1065,22 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
 
             // D65-whitepoint
             PdfArray wpArr;
-            wpArr.push_back(0.9505);
-            wpArr.push_back(1.0000);
-            wpArr.push_back(1.0890);
+            wpArr.Add(0.9505);
+            wpArr.Add(1.0000);
+            wpArr.Add(1.0890);
             labDict.AddKey("WhitePoint", wpArr);
 
             // Range for A,B, L is implicit 0..100
             PdfArray rangeArr;
-            rangeArr.push_back(static_cast<int64_t>(-128));
-            rangeArr.push_back(static_cast<int64_t>(127));
-            rangeArr.push_back(static_cast<int64_t>(-128));
-            rangeArr.push_back(static_cast<int64_t>(127));
+            rangeArr.Add(static_cast<int64_t>(-128));
+            rangeArr.Add(static_cast<int64_t>(127));
+            rangeArr.Add(static_cast<int64_t>(-128));
+            rangeArr.Add(static_cast<int64_t>(127));
             labDict.AddKey("Range", rangeArr);
 
             PdfArray labArr;
-            labArr.push_back(PdfName("Lab"));
-            labArr.push_back(labDict);
+            labArr.Add(PdfName("Lab"));
+            labArr.Add(labDict);
 
             PdfObject* labp = document.GetObjects().CreateObject(labArr);
 

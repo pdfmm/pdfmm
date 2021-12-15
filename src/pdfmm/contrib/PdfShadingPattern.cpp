@@ -157,10 +157,10 @@ PdfAxialShadingPattern::PdfAxialShadingPattern(PdfDocument& doc, double x0, doub
 void PdfAxialShadingPattern::Init(double x0, double y0, double x1, double y1, const PdfColor& start, const PdfColor& end)
 {
     PdfArray coords;
-    coords.push_back(x0);
-    coords.push_back(y0);
-    coords.push_back(x1);
-    coords.push_back(y1);
+    coords.Add(x0);
+    coords.Add(y0);
+    coords.Add(x1);
+    coords.Add(y1);
 
     if (start.GetColorSpace() != end.GetColorSpace())
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Colorspace of start and end color in PdfAxialShadingPattern does not match");
@@ -169,12 +169,12 @@ void PdfAxialShadingPattern::Init(double x0, double y0, double x1, double y1, co
     PdfArray c1 = end.ToArray();
     PdfArray extend;
 
-    extend.push_back(true);
-    extend.push_back(true);
+    extend.Add(true);
+    extend.Add(true);
 
     PdfArray domain;
-    domain.push_back(0.0);
-    domain.push_back(1.0);
+    domain.Add(0.0);
+    domain.Add(1.0);
 
     PdfExponentialFunction function(*this->GetObject().GetDocument(), domain, c0, c1, 1.0);
 
@@ -232,10 +232,10 @@ void PdfFunctionBaseShadingPattern::Init(const PdfColor& llCol, const PdfColor& 
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Colorspace of start and end color in PdfFunctionBaseShadingPattern does not match");
 
     PdfArray domain;
-    domain.push_back(0.0);
-    domain.push_back(1.0);
-    domain.push_back(0.0);
-    domain.push_back(1.0);
+    domain.Add(0.0);
+    domain.Add(1.0);
+    domain.Add(0.0);
+    domain.Add(1.0);
 
     PdfDictionary& shading = this->GetObject().GetDictionary().GetKey("Shading")->GetDictionary();
     PdfArray range;
@@ -245,12 +245,12 @@ void PdfFunctionBaseShadingPattern::Init(const PdfColor& llCol, const PdfColor& 
     {
         case PdfColorSpace::DeviceRGB:
         {
-            range.push_back(0.0);
-            range.push_back(1.0);
-            range.push_back(0.0);
-            range.push_back(1.0);
-            range.push_back(0.0);
-            range.push_back(1.0);
+            range.Add(0.0);
+            range.Add(1.0);
+            range.Add(0.0);
+            range.Add(1.0);
+            range.Add(0.0);
+            range.Add(1.0);
 
             samples.insert(samples.end(), static_cast<char> (llCol.GetRed() * 255.0));
             samples.insert(samples.end(), static_cast<char> (llCol.GetGreen() * 255.0));
@@ -274,14 +274,14 @@ void PdfFunctionBaseShadingPattern::Init(const PdfColor& llCol, const PdfColor& 
 
         case PdfColorSpace::DeviceCMYK:
         {
-            range.push_back(0.0);
-            range.push_back(1.0);
-            range.push_back(0.0);
-            range.push_back(1.0);
-            range.push_back(0.0);
-            range.push_back(1.0);
-            range.push_back(0.0);
-            range.push_back(1.0);
+            range.Add(0.0);
+            range.Add(1.0);
+            range.Add(0.0);
+            range.Add(1.0);
+            range.Add(0.0);
+            range.Add(1.0);
+            range.Add(0.0);
+            range.Add(1.0);
 
             samples.insert(samples.end(), static_cast<char> (llCol.GetCyan() * 255.0));
             samples.insert(samples.end(), static_cast<char> (llCol.GetMagenta() * 255.0));
@@ -309,8 +309,8 @@ void PdfFunctionBaseShadingPattern::Init(const PdfColor& llCol, const PdfColor& 
 
         case PdfColorSpace::DeviceGray:
         {
-            range.push_back(0.0);
-            range.push_back(1.0);
+            range.Add(0.0);
+            range.Add(1.0);
 
             samples.insert(samples.end(), static_cast<char> (llCol.GetGrayScale() * 255.0));
 
@@ -326,12 +326,12 @@ void PdfFunctionBaseShadingPattern::Init(const PdfColor& llCol, const PdfColor& 
 
         case PdfColorSpace::CieLab:
         {
-            range.push_back(0.0);
-            range.push_back(100.0);
-            range.push_back(-128.0);
-            range.push_back(127.0);
-            range.push_back(-128.0);
-            range.push_back(127.0);
+            range.Add(0.0);
+            range.Add(100.0);
+            range.Add(-128.0);
+            range.Add(127.0);
+            range.Add(-128.0);
+            range.Add(127.0);
 
             samples.insert(samples.end(), static_cast<char> (llCol.GetCieL() * 2.55));
             samples.insert(samples.end(), static_cast<char> (llCol.GetCieA() + 128));
@@ -357,8 +357,8 @@ void PdfFunctionBaseShadingPattern::Init(const PdfColor& llCol, const PdfColor& 
 
         case PdfColorSpace::Separation:
         {
-            range.push_back(0.0);
-            range.push_back(1.0);
+            range.Add(0.0);
+            range.Add(1.0);
 
             samples.insert(samples.end(), static_cast<char> (llCol.GetDensity() * 255.0));
             samples.insert(samples.end(), static_cast<char> (lrCol.GetDensity() * 255.0));
@@ -392,12 +392,12 @@ PdfRadialShadingPattern::PdfRadialShadingPattern(PdfDocument& doc, double x0, do
 void PdfRadialShadingPattern::Init(double x0, double y0, double r0, double x1, double y1, double r1, const PdfColor& start, const PdfColor& end)
 {
     PdfArray coords;
-    coords.push_back(x0);
-    coords.push_back(y0);
-    coords.push_back(r0);
-    coords.push_back(x1);
-    coords.push_back(y1);
-    coords.push_back(r1);
+    coords.Add(x0);
+    coords.Add(y0);
+    coords.Add(r0);
+    coords.Add(x1);
+    coords.Add(y1);
+    coords.Add(r1);
 
     if (start.GetColorSpace() != end.GetColorSpace())
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Colorspace of start and end color in PdfRadialShadingPattern does not match");
@@ -406,12 +406,12 @@ void PdfRadialShadingPattern::Init(double x0, double y0, double r0, double x1, d
     PdfArray c1 = end.ToArray();
     PdfArray extend;
 
-    extend.push_back(true);
-    extend.push_back(true);
+    extend.Add(true);
+    extend.Add(true);
 
     PdfArray domain;
-    domain.push_back(0.0);
-    domain.push_back(1.0);
+    domain.Add(0.0);
+    domain.Add(1.0);
 
     PdfExponentialFunction function(*this->GetObject().GetDocument(), domain, c0, c1, 1.0);
 
@@ -480,17 +480,17 @@ void PdfTriangleShadingPattern::Init(double x0, double y0, const PdfColor& color
     miny = std::min(std::min(y0, y1), dY2);
     maxy = std::max(std::max(y0, y1), dY2);
 
-    decode.push_back(minx);
-    decode.push_back(maxx);
-    decode.push_back(miny);
-    decode.push_back(maxy);
+    decode.Add(minx);
+    decode.Add(maxx);
+    decode.Add(miny);
+    decode.Add(maxy);
 
-    decode.push_back(static_cast<int64_t>(0));
-    decode.push_back(static_cast<int64_t>(1));
-    decode.push_back(static_cast<int64_t>(0));
-    decode.push_back(static_cast<int64_t>(1));
-    decode.push_back(static_cast<int64_t>(0));
-    decode.push_back(static_cast<int64_t>(1));
+    decode.Add(static_cast<int64_t>(0));
+    decode.Add(static_cast<int64_t>(1));
+    decode.Add(static_cast<int64_t>(0));
+    decode.Add(static_cast<int64_t>(1));
+    decode.Add(static_cast<int64_t>(0));
+    decode.Add(static_cast<int64_t>(1));
 
     PdfObject* shadingObject = this->GetObject().GetDictionary().FindKey("Shading");
     PdfDictionary& shading = shadingObject->GetDictionary();

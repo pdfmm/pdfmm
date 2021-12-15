@@ -23,11 +23,11 @@ PdfCanvas::~PdfCanvas() { }
 PdfArray PdfCanvas::GetProcSet()
 {
     PdfArray procset;
-    procset.push_back(PdfName("PDF"));
-    procset.push_back(PdfName("Text"));
-    procset.push_back(PdfName("ImageB"));
-    procset.push_back(PdfName("ImageC"));
-    procset.push_back(PdfName("ImageI"));
+    procset.Add(PdfName("PDF"));
+    procset.Add(PdfName("Text"));
+    procset.Add(PdfName("ImageB"));
+    procset.Add(PdfName("ImageC"));
+    procset.Add(PdfName("ImageI"));
     return procset;
 }
 

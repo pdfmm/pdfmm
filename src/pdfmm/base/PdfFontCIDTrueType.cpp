@@ -108,7 +108,7 @@ void PdfFontCIDTrueType::initImported()
     m_descendantFont = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject("Font");
 
     // The DecendantFonts, should be an indirect object:
-    arr.push_back(m_descendantFont->GetIndirectReference());
+    arr.Add(m_descendantFont->GetIndirectReference());
     this->GetObject().GetDictionary().AddKey("DescendantFonts", arr);
 
     // Setting the /DescendantFonts
@@ -237,19 +237,19 @@ void WidthExporter::update(unsigned cid, unsigned width)
         if (width - m_width != 0)
         {
             // different width, so emit if previous range was with same width
-            if ((m_rangeCount != 1) && m_widths.empty())
+            if ((m_rangeCount != 1) && m_widths.IsEmpty())
             {
                 emitSameWidth();
                 reset(cid, width);
                 return;
             }
-            m_widths.push_back(PdfObject(static_cast<int64_t>(m_width)));
+            m_widths.Add(PdfObject(static_cast<int64_t>(m_width)));
             m_width = width;
             m_rangeCount++;
             return;
         }
         // two or more gids with same width
-        if (!m_widths.empty())
+        if (!m_widths.IsEmpty())
         {
             emitArrayWidths();
             /* setup previous width as start position */
@@ -269,9 +269,9 @@ void WidthExporter::update(unsigned cid, unsigned width)
 PdfArray WidthExporter::finish()
 {
     // if there is a single glyph remaining, emit it as array
-    if (!m_widths.empty() || m_rangeCount == 1)
+    if (!m_widths.IsEmpty() || m_rangeCount == 1)
     {
-        m_widths.push_back(PdfObject(static_cast<int64_t>(m_width)));
+        m_widths.Add(PdfObject(static_cast<int64_t>(m_width)));
         emitArrayWidths();
         return m_output;
     }
@@ -304,15 +304,15 @@ void WidthExporter::reset(unsigned cid, unsigned width)
 
 void WidthExporter::emitSameWidth()
 {
-    m_output.push_back(static_cast<int64_t>(m_start));
-    m_output.push_back(static_cast<int64_t>(m_start + m_rangeCount - 1));
-    m_output.push_back(static_cast<int64_t>(std::round(m_width)));
+    m_output.Add(static_cast<int64_t>(m_start));
+    m_output.Add(static_cast<int64_t>(m_start + m_rangeCount - 1));
+    m_output.Add(static_cast<int64_t>(std::round(m_width)));
 }
 
 void WidthExporter::emitArrayWidths()
 {
-    m_output.push_back(static_cast<int64_t>(m_start));
-    m_output.push_back(m_widths);
+    m_output.Add(static_cast<int64_t>(m_start));
+    m_output.Add(m_widths);
     m_widths.Clear();
 }
 

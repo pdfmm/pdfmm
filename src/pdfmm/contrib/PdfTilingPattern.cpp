@@ -111,16 +111,16 @@ void PdfTilingPattern::Init(PdfTilingPatternType tilingType,
 
     if (offsetX < -1e-9 || offsetX > 1e-9 || offsetY < -1e-9 || offsetY > 1e-9)
     {
-        PdfArray array;
+        PdfArray arr;
 
-        array.push_back(static_cast<int64_t>(1));
-        array.push_back(static_cast<int64_t>(0));
-        array.push_back(static_cast<int64_t>(0));
-        array.push_back(static_cast<int64_t>(1));
-        array.push_back(offsetX);
-        array.push_back(offsetY);
+        arr.Add(static_cast<int64_t>(1));
+        arr.Add(static_cast<int64_t>(0));
+        arr.Add(static_cast<int64_t>(0));
+        arr.Add(static_cast<int64_t>(1));
+        arr.Add(offsetX);
+        arr.Add(offsetY);
 
-        this->GetObject().GetDictionary().AddKey("Matrix", array);
+        this->GetObject().GetDictionary().AddKey("Matrix", arr);
     }
 
     ostringstream out;

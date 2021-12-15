@@ -92,8 +92,8 @@ PdfObjectStream & PdfContents::GetStreamForAppending(PdfStreamAppendFlags flags)
             // TODO: Avoid adding unuseful \n prior Q
             stream.Append("\nQ");
             stream.EndAppend();
-            arr->clear();
-            arr->push_back(newobj->GetIndirectReference());
+            arr->Clear();
+            arr->Add(newobj->GetIndirectReference());
         }
     }
 
@@ -102,6 +102,6 @@ PdfObjectStream & PdfContents::GetStreamForAppending(PdfStreamAppendFlags flags)
     if ((flags & PdfStreamAppendFlags::Prepend) == PdfStreamAppendFlags::Prepend)
         arr->insert(arr->begin(), newStm->GetIndirectReference());
     else
-        arr->push_back(newStm->GetIndirectReference());
+        arr->Add(newStm->GetIndirectReference());
     return newStm->GetOrCreateStream();
 }

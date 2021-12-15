@@ -129,23 +129,23 @@ bool PdfNameTreeNode::AddValue(const PdfString& key, const PdfObject& value)
 
             if (it == array.end())
             {
-                array.push_back(key);
-                array.push_back(value);
+                array.Add(key);
+                array.Add(value);
             }
 
-            limits.push_back(*array.begin());
-            limits.push_back(*(array.end() - 2));
+            limits.Add(*array.begin());
+            limits.Add(*(array.end() - 2));
             rebalance = true;
         }
         else
         {
             // we create a completely new node
             PdfArray array;
-            array.push_back(key);
-            array.push_back(value);
+            array.Add(key);
+            array.Add(value);
 
-            limits.push_back(key);
-            limits.push_back(key);
+            limits.Add(key);
+            limits.Add(key);
 
             // create a child object
             PdfObject* child = this->GetObject()->GetDocument()->GetObjects().CreateDictionaryObject();
@@ -187,7 +187,7 @@ void PdfNameTreeNode::SetLimits()
                 && (limitsObj = child->GetDictionary().FindKey("Limits")) != nullptr
                 && limitsObj->IsArray())
             {
-                limits.push_back(limitsObj->GetArray().front());
+                limits.Add(limitsObj->GetArray().front());
             }
 
             auto refLast = kidsArr.back().GetReference();
@@ -196,7 +196,7 @@ void PdfNameTreeNode::SetLimits()
                 && (limitsObj = child->GetDictionary().FindKey("Limits")) != nullptr
                 && limitsObj->IsArray())
             {
-                limits.push_back(limitsObj->GetArray().back());
+                limits.Add(limitsObj->GetArray().back());
             }
         }
         else
@@ -213,8 +213,8 @@ void PdfNameTreeNode::SetLimits()
         if (namesObj != nullptr && namesObj->IsArray())
         {
             auto& namesArr = namesObj->GetArray();
-            limits.push_back(*namesArr.begin());
-            limits.push_back(*(namesArr.end() - 2));
+            limits.Add(*namesArr.begin());
+            limits.Add(*(namesArr.end() - 2));
         }
         else
             PdfError::LogMessage(PdfLogSeverity::Error,
@@ -280,8 +280,8 @@ bool PdfNameTreeNode::Rebalance()
 
         if (it == kids.end())
         {
-            kids.push_back(child1->GetIndirectReference());
-            kids.push_back(child2->GetIndirectReference());
+            kids.Add(child1->GetIndirectReference());
+            kids.Add(child2->GetIndirectReference());
         }
 
         if (m_Parent == nullptr)
