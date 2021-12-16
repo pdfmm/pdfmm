@@ -14,23 +14,21 @@
 using namespace std;
 using namespace mm;
 
-PdfData::PdfData()
-{
-}
+PdfData::PdfData() { }
 
 PdfData::PdfData(chars&& data, const shared_ptr<size_t>& writeBeacon)
     : m_data(std::move(data)), m_writeBeacon(writeBeacon)
 {
 }
 
-PdfData PdfData::Create(const cspan<char>& data, const shared_ptr<size_t>& writeBeacon)
+PdfData::PdfData(const cspan<char>& data, const shared_ptr<size_t>& writeBeacon)
+    : m_data(chars(data)), m_writeBeacon(writeBeacon)
 {
-    return PdfData(chars(data), writeBeacon);
 }
 
 PdfData& PdfData::operator=(const cspan<char>& data)
 {
-    m_data = string(data.data(), data.size());
+    m_data = data;
     return *this;
 }
 

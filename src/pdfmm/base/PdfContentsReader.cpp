@@ -170,7 +170,7 @@ void PdfContentsReader::afterReadClear(PdfContent& content)
         case PdfContentType::Operator:
         {
             content.InlineImageDictionary.Clear();
-            content.InlineImageData = PdfData();
+            content.InlineImageData.clear();
             content.XObject = nullptr;
             break;
         }
@@ -178,7 +178,7 @@ void PdfContentsReader::afterReadClear(PdfContent& content)
         {
             content.Operator = PdfOperator::Unknown;
             content.Keyword = string_view();
-            content.InlineImageData = PdfData();
+            content.InlineImageData.clear();
             content.XObject = nullptr;
             break;
         }
@@ -195,7 +195,7 @@ void PdfContentsReader::afterReadClear(PdfContent& content)
             content.Operator = PdfOperator::Unknown;
             content.Keyword = string_view();
             content.InlineImageDictionary.Clear();
-            content.InlineImageData = PdfData();
+            content.InlineImageData.clear();
             break;
         }
         case PdfContentType::EndXObjectForm:
@@ -206,7 +206,7 @@ void PdfContentsReader::afterReadClear(PdfContent& content)
             content.Operator = PdfOperator::Unknown;
             content.Keyword = string_view();
             content.InlineImageDictionary.Clear();
-            content.InlineImageData = PdfData();
+            content.InlineImageData.clear();
             content.XObject = nullptr;
             break;
         }
@@ -328,7 +328,7 @@ void PdfContentsReader::tryFollowXObject(PdfContent& content)
 }
 
 // Returns false in case of EOF
-bool PdfContentsReader::tryReadInlineImgData(PdfData& data)
+bool PdfContentsReader::tryReadInlineImgData(chars& data)
 {
     // Consume one whitespace between ID and data
     char ch;

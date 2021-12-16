@@ -16,15 +16,14 @@
 using namespace mm;
 
 PdfDataContainer::PdfDataContainer()
-    : m_Owner(nullptr), m_IsImmutable(false)
+    : m_Owner(nullptr)
 {
 }
 
-// NOTE: Don't copy owner. Copied objects must be always detached.
-// Ownership will be set automatically elsewhere
-PdfDataContainer::PdfDataContainer(const PdfDataContainer& rhs)
-    : PdfDataProvider(rhs), m_Owner(nullptr), m_IsImmutable(false)
+void PdfDataContainer::SetOwner(PdfObject& owner)
 {
+    m_Owner = &owner;
+    setChildrenParent();
 }
 
 void PdfDataContainer::ResetDirty()
@@ -51,12 +50,6 @@ PdfObject& PdfDataContainer::GetIndirectObject(const PdfReference& ref) const
     return *ret;
 }
 
-void PdfDataContainer::SetOwner(PdfObject* owner)
-{
-    PDFMM_ASSERT(owner != nullptr);
-    m_Owner = owner;
-}
-
 void PdfDataContainer::SetDirty()
 {
     if (m_Owner != nullptr)
@@ -75,13 +68,6 @@ bool PdfDataContainer::IsIndirectReferenceAllowed(const PdfObject& obj)
     }
 
     return false;
-}
-
-PdfDataContainer& PdfDataContainer::operator=(const PdfDataContainer& rhs)
-{
-    // NOTE: Don't copy owner. Objects being assigned will keep current ownership
-    PdfDataProvider::operator=(rhs);
-    return *this;
 }
 
 PdfDocument* PdfDataContainer::GetObjectDocument()

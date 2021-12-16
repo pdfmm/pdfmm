@@ -30,6 +30,8 @@ class PDFMM_API PdfData final : public PdfDataProvider
 {
 public:
     PdfData();
+    PdfData(const PdfData&) = default;
+    PdfData(PdfData&&) = default;
 
     /**
      * Create a new PdfData object with valid PdfData
@@ -53,21 +55,12 @@ public:
      *                    the current position in the stream
      *
      */
-    static PdfData Create(const cspan<char>& data, const std::shared_ptr<size_t>& writeBeacon = { });
-
-    /** Copy an existing PdfData
-     *  \param rhs another PdfData to copy
-     */
-    PdfData(const PdfData& rhs) = default;
+    explicit PdfData(const cspan<char>& data, const std::shared_ptr<size_t>& writeBeacon = { });
 
     void Write(PdfOutputDevice& device, PdfWriteMode writeMode, const PdfEncrypt* encrypt) const override;
 
-    /** Copy an existing PdfData
-     *  \param rhs another PdfData to copy
-     *  \returns this object
-     */
     PdfData& operator=(const PdfData& rhs) = default;
-
+    PdfData& operator=(PdfData&& rhs) = default;
     PdfData& operator=(const cspan<char>& data);
 
     /**

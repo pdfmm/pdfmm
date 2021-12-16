@@ -96,7 +96,7 @@ PdfIndirectObjectList::PdfIndirectObjectList(PdfDocument& document, const PdfInd
     {
         auto newObj = new PdfObject(*obj);
         newObj->SetIndirectReference(obj->GetIndirectReference());
-        newObj->SetDocument(document);
+        newObj->SetDocument(&document);
         m_Objects.insert(newObj);
     }
 }
@@ -304,8 +304,7 @@ void PdfIndirectObjectList::addNewObject(PdfObject* obj)
 
 void PdfIndirectObjectList::PushObject(PdfObject* obj)
 {
-    if (m_Document != nullptr)
-        obj->SetDocument(*m_Document);
+    obj->SetDocument(m_Document);
 
     ObjectList::node_type node;
     auto it = m_Objects.find(obj);

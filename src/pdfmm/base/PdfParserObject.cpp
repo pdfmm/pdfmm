@@ -34,7 +34,7 @@ PdfParserObject::PdfParserObject(PdfDocument& document, const shared_ptr<PdfInpu
 
     // Parsed objects by definition are initially not dirty
     resetDirty();
-    SetDocument(document);
+    SetDocument(&document);
     initParserObject();
     m_Offset = offset < 0 ? device->Tell() : offset;
 }

@@ -17,15 +17,28 @@ using namespace mm;
 PdfDictionary::PdfDictionary() { }
 
 PdfDictionary::PdfDictionary(const PdfDictionary& rhs)
-    : PdfDataContainer()
+    : m_Map(rhs.m_Map)
 {
-    this->operator=(rhs);
+    setChildrenParent();
 }
 
-const PdfDictionary& PdfDictionary::operator=(const PdfDictionary& rhs)
+PdfDictionary::PdfDictionary(PdfDictionary&& rhs) noexcept
+    : m_Map(std::move(rhs.m_Map))
+{
+    setChildrenParent();
+}
+
+PdfDictionary& PdfDictionary::operator=(const PdfDictionary& rhs)
 {
     m_Map = rhs.m_Map;
-    PdfDataContainer::operator=(rhs);
+    setChildrenParent();
+    return *this;
+}
+
+PdfDictionary& PdfDictionary::operator=(PdfDictionary&& rhs) noexcept
+{
+    m_Map = std::move(rhs.m_Map);
+    setChildrenParent();
     return *this;
 }
 
@@ -103,11 +116,7 @@ pair<PdfDictionary::Map::iterator, bool> PdfDictionary::addKey(const PdfName& id
             inserted.first->second = obj;
     }
 
-    inserted.first->second.SetParent(this);
-    auto document = GetObjectDocument();
-    if (document != nullptr)
-        inserted.first->second.SetDocument(*document);
-
+    inserted.first->second.SetParent(*this);
     return inserted;
 }
 
@@ -225,18 +234,11 @@ void PdfDictionary::ResetDirtyInternal()
         pair.second.ResetDirty();
 }
 
-void PdfDictionary::SetOwner(PdfObject* owner)
+void PdfDictionary::setChildrenParent()
 {
-    PdfDataContainer::SetOwner(owner);
-    auto document = owner->GetDocument();
-
-    // Set owmership for all children
+    // Set parent for all children
     for (auto& pair : m_Map)
-    {
-        pair.second.SetParent(this);
-        if (document != nullptr)
-            pair.second.SetDocument(*document);
-    }
+        pair.second.SetParent(*this);
 }
 
 const PdfObject* PdfDictionary::GetKey(const PdfName& key) const

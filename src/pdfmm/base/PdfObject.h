@@ -471,7 +471,7 @@ protected:
      *
      *  \param objects a vector of pdf objects
      */
-    void SetDocument(PdfDocument& document);
+    void SetDocument(PdfDocument* document);
 
     void SetVariantOwner();
 
@@ -505,7 +505,7 @@ private:
     // Assign function that doesn't set dirty
     void Assign(const PdfObject& rhs);
 
-    inline void SetParent(PdfDataContainer* parent) { m_Parent = parent; }
+    void SetParent(PdfDataContainer& parent);
 
 private:
     void assign(const PdfObject& rhs);

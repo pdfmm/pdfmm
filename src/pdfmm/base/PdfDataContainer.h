@@ -27,15 +27,12 @@ class PDFMM_API PdfDataContainer : public PdfDataProvider
     friend class PdfObject;
 
 protected:
-    /** Create a new PdfDataOwnedType.
-     *  Can only be called by subclasses
+    /** Create a new PdfDataOwnedType
+     * Can only be called by subclasses
+     * \remarks We don't define copy/move constructor as the
+     * the owner is not copied/movied
      */
     PdfDataContainer();
-
-    PdfDataContainer(const PdfDataContainer& rhs);
-
-public:
-    PdfDataContainer& operator=(const PdfDataContainer& rhs);
 
 public:
     /** \returns a pointer to a PdfObject that is the
@@ -49,16 +46,16 @@ protected:
     virtual void ResetDirtyInternal() = 0;
     PdfObject& GetIndirectObject(const PdfReference& reference) const;
     PdfDocument* GetObjectDocument();
-    virtual void SetOwner(PdfObject* owner);
     void SetDirty();
     bool IsIndirectReferenceAllowed(const PdfObject& obj);
+    virtual void setChildrenParent() = 0;
 
 private:
+    void SetOwner(PdfObject& owner);
     void ResetDirty();
 
 private:
     PdfObject* m_Owner;
-    bool m_IsImmutable;
 };
 
 }

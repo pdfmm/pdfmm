@@ -45,7 +45,7 @@ PdfDocument::PdfDocument(bool empty) :
     if (!empty)
     {
         m_Trailer.reset(new PdfObject()); // The trailer is NO part of the vector of objects
-        m_Trailer->SetDocument(*this);
+        m_Trailer->SetDocument(this);
         m_Catalog = m_Objects.CreateDictionaryObject("Catalog");
 
         m_Info.reset(new PdfInfo(*this));
@@ -684,7 +684,7 @@ void PdfDocument::SetTrailer(unique_ptr<PdfObject> obj)
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     m_Trailer = std::move(obj);
-    m_Trailer->SetDocument(*this);
+    m_Trailer->SetDocument(this);
 
     m_Catalog = m_Trailer->GetDictionary().FindKey("Root");
     if (m_Catalog == nullptr)

@@ -244,6 +244,12 @@ chars::chars(string&& str)
 {
 }
 
+chars& chars::operator=(const cspan<char>& view)
+{
+    string::assign(view.data(), view.size());
+    return *this;
+}
+
 chars::operator cspan<char>() const
 {
     return cspan<char>(data(), size());

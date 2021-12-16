@@ -89,6 +89,7 @@ public:
      *  \param rhs the PdfDictionary to copy
      */
     PdfDictionary(const PdfDictionary& rhs);
+    PdfDictionary(PdfDictionary&& rhs) noexcept;
 
     /** Assignment operator.
      *  Assign another PdfDictionary to this dictionary. This is a deep copy;
@@ -101,7 +102,8 @@ public:
      *  This will set the dirty flag of this object.
      *  \see IsDirty
      */
-    const PdfDictionary& operator=(const PdfDictionary& rhs);
+    PdfDictionary& operator=(const PdfDictionary& rhs);
+    PdfDictionary& operator=(PdfDictionary&& rhs) noexcept;
 
     /**
      * Comparison operator. If this dictionary contains all the same keys
@@ -284,7 +286,7 @@ public:
 
 protected:
     void ResetDirtyInternal() override;
-    void SetOwner(PdfObject* owner) override;
+    void setChildrenParent() override;
 
 private:
     PdfObject& addKey(const PdfName& key, const PdfObject& obj);

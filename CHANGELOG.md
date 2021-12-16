@@ -1,6 +1,7 @@
 Version 0.9.20-dev
 
 - pdfmm is now a C++17 library
+- Added move semantics for PdfVariant, PdfObject, PdfArray, PdfDictionary
 - Improved XRefStream support, added support in incremental saves
 - Many fixes in save incremental object/generation number incrementing
 - String backed with UTF-8 storage

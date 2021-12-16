@@ -86,13 +86,16 @@ class chars : public std::string
 {
 public:
     chars();
-
+    chars(const chars&) = default;
+    chars(chars&&) = default;
     chars(size_t size);
-
     explicit chars(const cspan<char>& view);
-
     chars(std::string&& str);
 
+public:
+    chars& operator=(const chars&) = default;
+    chars& operator=(chars&&) = default;
+    chars& operator=(const cspan<char>& view);
     operator cspan<char>() const;
 };
 

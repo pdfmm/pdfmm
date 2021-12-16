@@ -79,14 +79,14 @@ PdfObject::PdfObject(const PdfArray& arr)
     : m_Variant(arr), m_IsDirty(false)
 {
     initObject();
-    m_Variant.GetArray().SetOwner(this);
+    m_Variant.GetArray().SetOwner(*this);
 }
 
 PdfObject::PdfObject(const PdfDictionary& dict)
     : m_Variant(dict), m_IsDirty(false)
 {
     initObject();
-    m_Variant.GetDictionary().SetOwner(this);
+    m_Variant.GetDictionary().SetOwner(*this);
 }
 
 // NOTE: Don't copy parent document/container. Copied objects must be
@@ -139,15 +139,15 @@ void PdfObject::ForceCreateStream()
     forceCreateStream();
 }
 
-void PdfObject::SetDocument(PdfDocument& document)
+void PdfObject::SetDocument(PdfDocument* document)
 {
-    if (m_Document == &document)
+    if (m_Document == document)
     {
         // The inner document for variant data objects is guaranteed to be same
         return;
     }
 
-    m_Document = &document;
+    m_Document = document;
     SetVariantOwner();
 }
 
@@ -174,10 +174,10 @@ void PdfObject::SetVariantOwner()
     switch (dataType)
     {
         case PdfDataType::Dictionary:
-            m_Variant.GetDictionary().SetOwner(this);
+            m_Variant.GetDictionary().SetOwner(*this);
             break;
         case PdfDataType::Array:
-            m_Variant.GetArray().SetOwner(this);
+            m_Variant.GetArray().SetOwner(*this);
             break;
         default:
             break;
@@ -394,6 +394,13 @@ void PdfObject::Assign(const PdfObject& rhs)
         return;
 
     assign(rhs);
+}
+
+void PdfObject::SetParent(PdfDataContainer& parent)
+{
+    m_Parent = &parent;
+    auto document = parent.GetObjectDocument();
+    SetDocument(document);
 }
 
 // NOTE: Don't copy parent document/container and indirect reference.

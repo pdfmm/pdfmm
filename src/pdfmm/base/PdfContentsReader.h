@@ -50,7 +50,7 @@ struct PdfContent
     PdfOperator Operator = PdfOperator::Unknown;
     std::string_view Keyword;
     PdfDictionary InlineImageDictionary;
-    PdfData InlineImageData;
+    chars InlineImageData;
     std::shared_ptr<const PdfXObject> XObject;
 };
 
@@ -100,7 +100,7 @@ private:
 
     bool tryReadInlineImgDict(PdfContent& content);
 
-    bool tryReadInlineImgData(PdfData& data);
+    bool tryReadInlineImgData(chars& data);
 
     void tryFollowXObject(PdfContent& content);
 

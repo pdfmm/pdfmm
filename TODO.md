@@ -1,6 +1,4 @@
 ### 0.9.20
-- Evaluate renaming PdfObject::GetOwner() -> GetParent()
-- Evaluate renaming PdfOwnedObject::GetOwner() -> GetParent()
 - Re-enable unit tests with Catch (https://github.com/catchorg/Catch2)
 
 ### 1.0

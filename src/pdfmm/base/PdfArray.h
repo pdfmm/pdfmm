@@ -103,13 +103,15 @@ public:
      *
      *  \param rhs the array to copy
      */
-    PdfArray(const PdfArray& rhs) = default;
+    PdfArray(const PdfArray& rhs);
+    PdfArray(PdfArray&& rhs) noexcept;
 
     /** assignment operator
      *
      *  \param rhs the array to assign
      */
-    PdfArray& operator=(const PdfArray& rhs) = default;
+    PdfArray& operator=(const PdfArray& rhs);
+    PdfArray& operator=(PdfArray&& rhs) noexcept;
 
     /**
      *  \returns the size of the array
@@ -268,7 +270,7 @@ public:
 
 protected:
     void ResetDirtyInternal() override;
-    void SetOwner(PdfObject* owner) override;
+    void setChildrenParent() override;
 
 private:
     PdfObject& add(const PdfObject& obj);
@@ -291,8 +293,7 @@ void PdfArray::insert(const PdfArray::iterator& pos,
     for (; it1 != last; it1++, it2++)
     {
         it2 = m_Objects.insert(it2, *it1);
-        if (document != nullptr)
-            it2->SetDocument(*document);
+        it2->SetDocument(document);
     }
 
     SetDirty();

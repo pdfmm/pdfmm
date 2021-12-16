@@ -38,6 +38,10 @@ public:
      *                  or nullptr to not encrypt this object
      */
     virtual void Write(PdfOutputDevice& device, PdfWriteMode writeMode, const PdfEncrypt* encrypt) const = 0;
+
+protected:
+    PdfDataProvider(const PdfDataProvider&) = default;
+    PdfDataProvider& operator=(const PdfDataProvider&) = default;
 };
 
 }

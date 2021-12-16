@@ -19,6 +19,18 @@ PdfArray::PdfArray(const PdfObject& var)
     add(var);
 }
 
+PdfArray::PdfArray(const PdfArray& rhs)
+    : m_Objects(rhs.m_Objects)
+{
+    setChildrenParent();
+}
+
+PdfArray::PdfArray(PdfArray&& rhs) noexcept
+    : m_Objects(std::move(rhs.m_Objects))
+{
+    setChildrenParent();
+}
+
 void PdfArray::RemoveAt(unsigned idx)
 {
     // TODO: Set dirty only if really removed
@@ -37,6 +49,20 @@ const PdfObject& PdfArray::FindAt(unsigned idx) const
 PdfObject& PdfArray::FindAt(unsigned idx)
 {
     return findAt(idx);
+}
+
+PdfArray& PdfArray::operator=(const PdfArray& rhs)
+{
+    m_Objects = rhs.m_Objects;
+    setChildrenParent();
+    return *this;
+}
+
+PdfArray& PdfArray::operator=(PdfArray&& rhs) noexcept
+{
+    m_Objects = std::move(rhs.m_Objects);
+    setChildrenParent();
+    return *this;
 }
 
 unsigned PdfArray::GetSize() const
@@ -147,16 +173,11 @@ void PdfArray::ResetDirtyInternal()
         obj.ResetDirty();
 }
 
-void PdfArray::SetOwner(PdfObject* owner)
+void PdfArray::setChildrenParent()
 {
-    PdfDataContainer::SetOwner(owner);
-    auto document = owner->GetDocument();
-    if (document != nullptr)
-    {
-        // Set owmership for all children
-        for (auto& obj : m_Objects)
-            obj.SetDocument(*document);
-    }
+    // Set parent for all children
+    for (auto& obj : m_Objects)
+        obj.SetParent(*this);
 }
 
 PdfObject& PdfArray::add(const PdfObject& obj)
@@ -167,11 +188,7 @@ PdfObject& PdfArray::add(const PdfObject& obj)
 PdfArray::iterator PdfArray::insertAt(const iterator& pos, const PdfObject& val)
 {
     auto ret = m_Objects.insert(pos, val);
-    ret->SetParent(this);
-    auto document = GetObjectDocument();
-    if (document != nullptr)
-        ret->SetDocument(*document);
-
+    ret->SetParent(*this);
     return ret;
 }
 
@@ -225,14 +242,10 @@ void PdfArray::Resize(size_t count, const PdfObject& val)
 {
     size_t currentSize = m_Objects.size();
     m_Objects.resize(count, val);
-    auto document = GetObjectDocument();
-
     for (size_t i = currentSize; i < count; i++)
     {
         auto& obj = m_Objects[i];
-        obj.SetParent(this);
-        if (document != nullptr)
-            obj.SetDocument(*document);
+        obj.SetParent(*this);
     }
 
     if (currentSize != count)
