@@ -18,21 +18,23 @@ class PDFMM_API PdfVariantStack final
 
 public:
     using Stack = std::vector<PdfVariant>;
-    using iterator = std::vector<PdfVariant>::const_reverse_iterator;
+    using iterator = Stack::const_reverse_iterator;
 
 public:
+    void Push(const PdfVariant& var);
+    void Push(PdfVariant&& var);
+    void Pop();
+    void Clear();
     unsigned GetSize() const;
+
+public:
     const PdfVariant& operator[](size_t index) const;
     iterator begin() const;
     iterator end() const;
     size_t size() const;
 
 private:
-    void Push(const PdfVariant& var);
-    void Clear();
-
-private:
-    std::vector<PdfVariant> m_variants;
+    Stack m_variants;
 };
 
 }

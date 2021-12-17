@@ -427,7 +427,7 @@ void PdfTokenizer::ReadDictionary(PdfInputDevice& device, PdfVariant& variant, P
             PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Could not read variant");
 
         // Add the key without triggering SetDirty
-        dict.addKey(key, val, true);
+        dict.AddKey(key, std::move(val), true);
     }
 
     if (contentsHexBuffer.get() != nullptr)
@@ -443,7 +443,7 @@ void PdfTokenizer::ReadDictionary(PdfInputDevice& device, PdfVariant& variant, P
             actualEncrypt = encrypt;
 
         val = PdfString::FromHexData({ contentsHexBuffer->size() ? contentsHexBuffer->data() : "", contentsHexBuffer->size() }, actualEncrypt);
-        dict.AddKey("Contents", val);
+        dict.AddKey("Contents", std::move(val));
     }
 }
 
@@ -466,7 +466,7 @@ void PdfTokenizer::ReadArray(PdfInputDevice& device, PdfVariant& variant, PdfEnc
             break;
 
         this->ReadNextVariant(device, token, tokenType, var, encrypt);
-        array.Add(var);
+        array.Add(std::move(var));
     }
 }
 

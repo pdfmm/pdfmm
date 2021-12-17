@@ -14,11 +14,6 @@ using namespace mm;
 
 PdfArray::PdfArray() { }
 
-PdfArray::PdfArray(const PdfObject& var)
-{
-    add(var);
-}
-
 PdfArray::PdfArray(const PdfArray& rhs)
     : m_Objects(rhs.m_Objects)
 {
@@ -77,7 +72,14 @@ bool PdfArray::IsEmpty() const
 
 PdfObject& PdfArray::Add(const PdfObject& obj)
 {
-    auto& ret = add(obj);
+    auto& ret = add(PdfObject(obj));
+    SetDirty();
+    return ret;
+}
+
+PdfObject& PdfArray::Add(PdfObject&& obj)
+{
+    auto& ret = add(std::move(obj));
     SetDirty();
     return ret;
 }
@@ -97,27 +99,61 @@ void PdfArray::AddIndirect(const PdfObject* obj)
 
 PdfObject& PdfArray::AddIndirectSafe(const PdfObject& obj)
 {
-    PdfObject& ret = IsIndirectReferenceAllowed(obj)
+    auto& ret = IsIndirectReferenceAllowed(obj)
         ? add(obj.GetIndirectReference())
-        : add(obj);
+        : add(PdfObject(obj));
     SetDirty();
     return ret;
 }
 
-void PdfArray::SetAt(const PdfObject& obj, unsigned idx)
+PdfObject& PdfArray::SetAt(unsigned idx, const PdfObject& obj)
 {
-    if (IsIndirectReferenceAllowed(obj))
-    {
-        m_Objects.at(idx) = PdfObject(obj.GetIndirectReference());
-        return;
-    }
+    if (idx >= m_Objects.size())
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Index is out of bounds");
 
-    m_Objects.at(idx) = obj;
+    auto& ret = m_Objects[idx];
+    ret = obj;
+    // NOTE: No dirty set! The container itself is not modified
+    return ret;
 }
 
-void PdfArray::SetAtIndirect(const PdfObject& obj, unsigned idx)
+PdfObject& PdfArray::SetAt(unsigned idx, PdfObject&& obj)
 {
-    m_Objects.at(idx) = obj;
+    if (idx >= m_Objects.size())
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Index is out of bounds");
+
+    auto& ret = m_Objects[idx];
+    ret = std::move(obj);
+    // NOTE: No dirty set! The container itself is not modified
+    return ret;
+}
+
+void PdfArray::SetAtIndirect(unsigned idx, const PdfObject* obj)
+{
+    if (idx >= m_Objects.size())
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Index is out of bounds");
+
+    if (IsIndirectReferenceAllowed(*obj))
+        m_Objects[idx] = obj->GetIndirectReference();
+    else
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Given object shall allow indirect insertion");
+
+    // NOTE: No dirty set! The container itself is not modified
+}
+
+PdfObject& PdfArray::SetAtIndirectSafe(unsigned idx, const PdfObject& obj)
+{
+    if (idx >= m_Objects.size())
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Index is out of bounds");
+
+    auto& ret = m_Objects[idx];
+    if (IsIndirectReferenceAllowed(obj))
+        ret = obj.GetIndirectReference();
+    else
+        ret = PdfObject(obj);
+
+    // NOTE: No dirty set! The container itself is not modified
+    return ret;
 }
 
 PdfArrayIndirectIterator PdfArray::GetIndirectIterator()
@@ -180,14 +216,14 @@ void PdfArray::setChildrenParent()
         obj.SetParent(*this);
 }
 
-PdfObject& PdfArray::add(const PdfObject& obj)
+PdfObject& PdfArray::add(PdfObject&& obj)
 {
-    return *insertAt(m_Objects.end(), obj);
+    return *insertAt(m_Objects.end(), std::move(obj));
 }
 
-PdfArray::iterator PdfArray::insertAt(const iterator& pos, const PdfObject& val)
+PdfArray::iterator PdfArray::insertAt(const iterator& pos, PdfObject&& obj)
 {
-    auto ret = m_Objects.insert(pos, val);
+    auto ret = m_Objects.emplace(pos, std::move(obj));
     ret->SetParent(*this);
     return ret;
 }
@@ -219,9 +255,16 @@ size_t PdfArray::size() const
 
 PdfArray::iterator PdfArray::insert(const iterator& pos, const PdfObject& obj)
 {
-    auto ret = insertAt(pos, obj);
+    auto it = insertAt(pos, PdfObject(obj));
     SetDirty();
-    return ret;
+    return it;
+}
+
+PdfArray::iterator PdfArray::insert(const iterator& pos, PdfObject&& obj)
+{
+    auto it = insertAt(pos, std::move(obj));
+    SetDirty();
+    return it;
 }
 
 void PdfArray::erase(const iterator& pos)
@@ -238,7 +281,7 @@ void PdfArray::erase(const iterator& first, const iterator& last)
     SetDirty();
 }
 
-void PdfArray::Resize(size_t count, const PdfObject& val)
+void PdfArray::Resize(unsigned count, const PdfObject& val)
 {
     size_t currentSize = m_Objects.size();
     m_Objects.resize(count, val);
@@ -252,7 +295,7 @@ void PdfArray::Resize(size_t count, const PdfObject& val)
         SetDirty();
 }
 
-void PdfArray::reserve(size_type n)
+void PdfArray::Reserve(unsigned n)
 {
     m_Objects.reserve(n);
 }

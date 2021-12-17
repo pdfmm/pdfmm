@@ -132,6 +132,7 @@ public:
      *  \param obj object containing the data. The object is copied.
      */
     PdfObject& AddKey(const PdfName& key, const PdfObject& obj);
+    PdfObject& AddKey(const PdfName& key, PdfObject&& obj);
 
     /** Add a key to the dictionary.
      *  If an existing key of this name exists, its value is replaced and
@@ -289,8 +290,10 @@ protected:
     void setChildrenParent() override;
 
 private:
-    PdfObject& addKey(const PdfName& key, const PdfObject& obj);
-    std::pair<iterator, bool> addKey(const PdfName& identifier, const PdfObject& obj, bool noDirtySet);
+    std::pair<iterator, bool> AddKey(const PdfName& identifier, PdfObject&& obj, bool noDirtySet);
+
+private:
+    PdfObject& addKey(const PdfName& key, PdfObject&& obj);
     PdfObject* getKey(const PdfName& key) const;
     PdfObject* findKey(const PdfName& key) const;
     PdfObject* findKeyParent(const PdfName& key) const;

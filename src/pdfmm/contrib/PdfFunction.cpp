@@ -75,7 +75,7 @@ void PdfStitchingFunction::Init(const PdfFunction::List& functions, const PdfArr
 {
     PdfArray functionsArr;
 
-    functionsArr.reserve(functions.size());
+    functionsArr.Reserve(functions.size());
 
     for (auto& fun : functions)
         functionsArr.Add(fun.GetObject().GetIndirectReference());

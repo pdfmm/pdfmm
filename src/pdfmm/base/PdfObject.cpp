@@ -235,7 +235,7 @@ void PdfObject::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
 
             // Add the key without triggering SetDirty
             const_cast<PdfObject&>(*this).m_Variant.GetDictionary()
-                .addKey(PdfName::KeyLength, PdfObject(static_cast<int64_t>(length)), true);
+                .AddKey(PdfName::KeyLength, PdfObject(static_cast<int64_t>(length)), true);
         }
     }
 

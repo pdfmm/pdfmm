@@ -152,7 +152,8 @@ bool PdfNameTreeNode::AddValue(const PdfString& key, const PdfObject& value)
             child->GetDictionary().AddKey("Names", array);
             child->GetDictionary().AddKey("Limits", limits);
 
-            PdfArray kids(child->GetIndirectReference());
+            PdfArray kids;
+            kids.Add(child->GetIndirectReference());
             this->GetObject()->GetDictionary().AddKey("Kids", kids);
             m_HasKids = true;
         }

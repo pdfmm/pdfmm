@@ -71,7 +71,12 @@ void PdfDictionary::Clear()
 
 PdfObject& PdfDictionary::AddKey(const PdfName& key, const PdfObject& obj)
 {
-    return addKey(key, obj);
+    return addKey(key, PdfObject(obj));
+}
+
+PdfObject& PdfDictionary::AddKey(const PdfName& key, PdfObject&& obj)
+{
+    return addKey(key, std::move(obj));
 }
 
 void PdfDictionary::AddKeyIndirect(const PdfName& key, const PdfObject* obj)
@@ -90,24 +95,24 @@ PdfObject& PdfDictionary::AddKeyIndirectSafe(const PdfName& key, const PdfObject
     if (IsIndirectReferenceAllowed(obj))
         return addKey(key, obj.GetIndirectReference());
     else
-        return addKey(key, obj);
+        return addKey(key, PdfObject(obj));
 }
 
-PdfObject& PdfDictionary::addKey(const PdfName& key, const PdfObject& obj)
+PdfObject& PdfDictionary::addKey(const PdfName& key, PdfObject&& obj)
 {
-    auto added = addKey(key, obj, false);
+    auto added = AddKey(key, std::move(obj), false);
     if (added.second)
         SetDirty();
 
     return added.first->second;
 }
 
-pair<PdfDictionary::Map::iterator, bool> PdfDictionary::addKey(const PdfName& identifier, const PdfObject& obj, bool noDirtySet)
+pair<PdfDictionary::Map::iterator, bool> PdfDictionary::AddKey(const PdfName& identifier, PdfObject&& obj, bool noDirtySet)
 {
     // NOTE: Empty PdfNames are legal according to the PDF specification.
     // Don't check for it
 
-    pair<Map::iterator, bool> inserted = m_Map.insert(std::make_pair(identifier, obj));
+    pair<Map::iterator, bool> inserted = m_Map.try_emplace(identifier, std::move(obj));
     if (!inserted.second)
     {
         if (noDirtySet)

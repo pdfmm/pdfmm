@@ -92,13 +92,6 @@ public:
      */
     PdfArray();
 
-    /** Create an array and add one value to it.
-     *  The value is copied.
-     *
-     *  \param var add this object to the array.
-     */
-    explicit PdfArray(const PdfObject& var);
-
     /** Deep copy an existing PdfArray
      *
      *  \param rhs the array to copy
@@ -146,13 +139,19 @@ public:
 
     PdfObject& Add(const PdfObject& obj);
 
-    void SetAt(const PdfObject& obj, unsigned idx);
+    PdfObject& Add(PdfObject&& obj);
 
     void AddIndirect(const PdfObject* obj);
 
     PdfObject& AddIndirectSafe(const PdfObject& obj);
 
-    void SetAtIndirect(const PdfObject& obj, unsigned idx);
+    PdfObject& SetAt(unsigned idx, const PdfObject& obj);
+
+    PdfObject& SetAt(unsigned idx, PdfObject&& obj);
+
+    void SetAtIndirect(unsigned idx, const PdfObject* obj);
+
+    PdfObject& SetAtIndirectSafe(unsigned idx, const PdfObject& obj);
 
     PdfArrayIndirectIterator GetIndirectIterator();
 
@@ -163,7 +162,9 @@ public:
      * \param count new size
      * \param value refernce value
      */
-    void Resize(size_t count, const PdfObject& val = PdfObject());
+    void Resize(unsigned count, const PdfObject& val = PdfObject());
+
+    void Reserve(unsigned n);
 
 public:
     /**
@@ -230,15 +231,14 @@ public:
      */
     const_reverse_iterator rend() const;
 
+    iterator insert(const iterator& pos, const PdfObject& obj);
+    iterator insert(const iterator& pos, PdfObject&& obj);
+
     template<typename InputIterator>
     inline void insert(const iterator& pos, const InputIterator& first, const InputIterator& last);
 
-    iterator insert(const iterator& pos, const PdfObject& val);
-
     void erase(const iterator& pos);
     void erase(const iterator& first, const iterator& last);
-
-    void reserve(size_type n);
 
     /**
      *  \returns a read/write reference to the data at the first
@@ -273,8 +273,8 @@ protected:
     void setChildrenParent() override;
 
 private:
-    PdfObject& add(const PdfObject& obj);
-    iterator insertAt(const iterator& pos, const PdfObject& val);
+    PdfObject& add(PdfObject&& obj);
+    iterator insertAt(const iterator& pos, PdfObject&& obj);
     PdfObject& getAt(unsigned idx) const;
     PdfObject& findAt(unsigned idx) const;
 

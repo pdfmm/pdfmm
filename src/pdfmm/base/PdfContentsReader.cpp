@@ -144,7 +144,7 @@ bool PdfContentsReader::tryReadNextContent(PdfContent& content)
             }
             case PdfPostScriptTokenType::Variant:
             {
-                content.Stack.Push(m_temp.Variant);
+                content.Stack.Push(std::move(m_temp.Variant));
                 continue;
             }
             default:
@@ -285,7 +285,7 @@ bool PdfContentsReader::tryReadInlineImgDict(PdfContent& content)
         }
 
         if (m_tokenizer.TryReadNextVariant(*m_inputs.back().Device, m_temp.Variant))
-            content.InlineImageDictionary.AddKey(m_temp.Name, m_temp.Variant);
+            content.InlineImageDictionary.AddKey(m_temp.Name, std::move(m_temp.Variant));
         else
             return false;
     }
