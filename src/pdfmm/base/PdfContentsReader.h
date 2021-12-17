@@ -27,17 +27,18 @@ enum class PdfContentType
     ImageData,         ///< Raw inline image data found between ID and EI tags (see PDF ref section 4.8.6)
     DoXObject,         ///< Issued when a Do operator is found and it is handled by the reader
     EndXObjectForm,    ///< Issued when the end of a XObject form is detected
+    UnexpectedKeyword, ///< An unexpected keyword that can be a custom operator or invalid PostScript content   
 };
 
 enum class PdfContentWarnings
 {
     None = 0,
-    InvalidOperator = 1,            ///< Unknown operator or insufficient operand count
-    SpuriousStackContent = 2,       ///< Operand count for the operator are more than necessary
-    InvalidPostScriptContent = 4,   ///< Invalid PostScript statements found when reading for content
-    InvalidXObject = 8,             ///< Invalid or not found XObject
-    RecursiveXObject = 16,          ///< Recursive XObject call detected
-    MissingEndImage = 32,           ///< Missing end inline image EI operator 
+    InvalidOperator = 1,                ///< Unknown operator or insufficient operand count. Applies to Operator
+    SpuriousStackContent = 2,           ///< Operand count for the operator are more than necessary
+    InvalidXObject = 4,                 ///< Invalid or not found XObject
+    RecursiveXObject = 8,               ///< Recursive XObject call detected. Applies to DoXObject
+    InvalidImageDictionaryContent = 16, ///< Found invalid content while reading inline image dictionary. Applies to ImageDictionary
+    MissingEndImage = 32,               ///< Missing end inline image EI operator
 };
 
 /** Content as read from content streams
@@ -58,7 +59,7 @@ enum class PdfContentReaderFlags
 {
     None = 0,
     ThrowOnWarnings = 1,
-    DontFollowXObjects = 2,
+    DontFollowXObjectForms = 2, ///< Don't follow XObject Forms. Valid XObects are still reported as such
 };
 
 /** Custom handler for inline images

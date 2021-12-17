@@ -121,13 +121,13 @@ bool PdfContentsReader::tryReadNextContent(PdfContent& content)
         {
             case PdfPostScriptTokenType::Keyword:
             {
-                content.Type = PdfContentType::Operator;
                 if (!TryGetPdfOperator(content.Keyword, content.Operator))
                 {
-                    content.Warnings |= PdfContentWarnings::InvalidOperator;
+                    content.Type = PdfContentType::UnexpectedKeyword;
                     return true;
                 }
 
+                content.Type = PdfContentType::Operator;
                 int operandCount = mm::GetOperandCount(content.Operator);
                 if (operandCount != -1 && content.Stack.GetSize() != (unsigned)operandCount)
                 {
@@ -147,10 +147,15 @@ bool PdfContentsReader::tryReadNextContent(PdfContent& content)
                 content.Stack.Push(std::move(m_temp.Variant));
                 continue;
             }
+            case PdfPostScriptTokenType::ProcedureEnter:
+            case PdfPostScriptTokenType::ProcedureExit:
+            {
+                content.Type = PdfContentType::UnexpectedKeyword;
+                return true;
+            }
             default:
             {
-                content.Warnings |= PdfContentWarnings::InvalidPostScriptContent;
-                continue;
+                PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
             }
         }
     }
@@ -198,10 +203,17 @@ void PdfContentsReader::afterReadClear(PdfContent& content)
             content.InlineImageData.clear();
             break;
         }
-        case PdfContentType::EndXObjectForm:
-        case PdfContentType::Unknown:
+        case PdfContentType::UnexpectedKeyword:
         {
-            // Full reset in case of unknown content.
+            content.Operator = PdfOperator::Unknown;
+            content.InlineImageDictionary.Clear();
+            content.InlineImageData.clear();
+            content.XObject = nullptr;
+            break;
+        }
+        case PdfContentType::Unknown:
+        case PdfContentType::EndXObjectForm:
+        {
             // Used when it is reached the EOF
             content.Operator = PdfOperator::Unknown;
             content.Keyword = string_view();
@@ -225,10 +237,9 @@ bool PdfContentsReader::tryHandleOperator(PdfContent& content)
     {
         case PdfOperator::Do:
         {
-            if (m_inputs.back().Canvas == nullptr || (m_args.Flags & PdfContentReaderFlags::DontFollowXObjects)
-                != PdfContentReaderFlags::None)
+            if (m_inputs.back().Canvas == nullptr)
             {
-                // Don't follow XObject
+                // Don't follow XObject and return raw operator
                 return true;
             }
 
@@ -267,20 +278,22 @@ bool PdfContentsReader::tryReadInlineImgDict(PdfContent& content)
                 // Try to find end of dictionary
                 if (m_temp.Keyword == "ID")
                     return true;
-                else
-                    return false;
+
+                content.Warnings |= PdfContentWarnings::InvalidImageDictionaryContent;
+                continue;
             }
             case PdfPostScriptTokenType::Variant:
             {
                 if (m_temp.Variant.TryGetName(m_temp.Name))
                     break;
-                else
-                    return false;
+
+                content.Warnings |= PdfContentWarnings::InvalidImageDictionaryContent;
+                continue;
             }
             default:
             {
-                content.Warnings |= PdfContentWarnings::InvalidPostScriptContent;
-                break;
+                content.Warnings |= PdfContentWarnings::InvalidImageDictionaryContent;
+                continue;
             }
         }
 
@@ -309,16 +322,17 @@ void PdfContentsReader::tryFollowXObject(PdfContent& content)
         return;
     }
 
+    content.XObject.reset(xobj.release());
+    content.Type = PdfContentType::DoXObject;
+
     if (isCalledRecursively(xobjraw))
     {
         content.Warnings |= PdfContentWarnings::RecursiveXObject;
         return;
     }
 
-    content.XObject.reset(xobj.release());
-    content.Type = PdfContentType::DoXObject;
-
-    if (content.XObject->GetType() == PdfXObjectType::Form)
+    if (content.XObject->GetType() == PdfXObjectType::Form
+        && (m_args.Flags & PdfContentReaderFlags::DontFollowXObjectForms) == PdfContentReaderFlags::None)
     {
         m_inputs.push_back({
             content.XObject,
