@@ -40,14 +40,26 @@ const PdfVariant& PdfVariantStack::operator[](size_t index) const
 
 PdfVariantStack::iterator PdfVariantStack::begin() const
 {
-    // Iterate elements from the end
+    // Iterate elements from the end in the regular iteration
     return m_variants.rbegin();
 }
 
 PdfVariantStack::iterator PdfVariantStack::end() const
 {
-    // Iterate elements from the end
+    // Iterate elements from the end in the regular iteration
     return m_variants.rend();
+}
+
+PdfVariantStack::reverse_iterator PdfVariantStack::rbegin() const
+{
+    // Iterate elements from the begin the reverse iteration
+    return m_variants.begin();
+}
+
+PdfVariantStack::reverse_iterator PdfVariantStack::rend() const
+{
+    // Iterate elements from the begin the reverse iteration
+    return m_variants.end();
 }
 
 size_t PdfVariantStack::size() const
