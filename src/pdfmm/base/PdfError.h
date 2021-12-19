@@ -307,13 +307,15 @@ public:
         LogMessage(logSeverity, PDFMM_FORMAT(msg, args...));
     }
 
-    /** Set the minimum logging severity
+    /** Set the maximum logging severity.
+     * The higher the maximum (enum integral value), the more is logged
      */
-    static void SetMinLoggingSeverity(PdfLogSeverity logSeverity);
+    static void SetMaxLoggingSeverity(PdfLogSeverity logSeverity);
 
-    /** Get the minimum logging severity
+    /** Get the maximum logging severity
+     * The higher the maximum (enum integral value), the more is logged
      */
-    static PdfLogSeverity GetMinLoggingSeverity();
+    static PdfLogSeverity GetMaxLoggingSeverity();
 
     /** The if the given logging severity enabled or not
      */

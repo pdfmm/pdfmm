@@ -17,7 +17,7 @@ using namespace std;
 using namespace mm;
 
 #ifdef DEBUG
-PdfLogSeverity s_MinLogSeverity = PdfLogSeverity::Debug;
+PdfLogSeverity s_MaxLogSeverity = PdfLogSeverity::Debug;
 #else
 PdfLogSeverity s_MinLogSeverity = PdfLogSeverity::Information;
 #endif // DEBUG
@@ -408,7 +408,7 @@ const char* PdfError::ErrorMessage(PdfErrorCode code)
 
 void PdfError::LogMessage(PdfLogSeverity logSeverity, const string_view& msg)
 {
-    if (logSeverity > s_MinLogSeverity)
+    if (logSeverity > s_MaxLogSeverity)
         return;
 
     if (s_LogMessageCallback == nullptr)
@@ -451,22 +451,19 @@ void PdfError::LogMessage(PdfLogSeverity logSeverity, const string_view& msg)
     }
 }
 
-void PdfError::SetMinLoggingSeverity(PdfLogSeverity logSeverity)
+void PdfError::SetMaxLoggingSeverity(PdfLogSeverity logSeverity)
 {
-    s_MinLogSeverity = logSeverity;
+    s_MaxLogSeverity = logSeverity;
 }
 
-PdfLogSeverity PdfError::GetMinLoggingSeverity()
+PdfLogSeverity PdfError::GetMaxLoggingSeverity()
 {
-    return s_MinLogSeverity;
+    return s_MaxLogSeverity;
 }
 
 bool PdfError::IsLoggingSeverityEnabled(PdfLogSeverity logSeverity)
 {
-    if (logSeverity == PdfLogSeverity::None)
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Unexpected PdfLogSeverity::None");
-
-    return logSeverity >= s_MinLogSeverity;
+    return logSeverity <= s_MaxLogSeverity;
 }
 
 void PdfError::AddToCallstack(string file, unsigned line, string information)
