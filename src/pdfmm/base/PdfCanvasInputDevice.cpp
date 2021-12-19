@@ -204,7 +204,7 @@ bool PdfCanvasInputDevice::tryPopNextDevice()
     }
     else
     {
-        m_device = std::make_unique<PdfMemoryInputDevice>(*contents);
+        m_device = std::make_unique<PdfObjectStreamInputDevice>(*contents);
         return true;
     }
 }

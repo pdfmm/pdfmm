@@ -1,5 +1,6 @@
 #ifndef EXT_INPUT_STRING_VIEW_STREAM_H
 #define EXT_INPUT_STRING_VIEW_STREAM_H
+#pragma once
 
 /**
  * MIT License

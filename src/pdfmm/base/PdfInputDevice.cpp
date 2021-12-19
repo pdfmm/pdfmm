@@ -10,10 +10,12 @@
 #include "PdfInputDevice.h"
 
 #include <fstream>
-#include <sstream>
+#include <pdfmm/common/istringviewstream.h>
+
 #include "PdfObjectStream.h"
 
 using namespace std;
+using namespace ext;
 using namespace mm;
 
 PdfInputDevice::PdfInputDevice() { }
@@ -40,20 +42,17 @@ PdfMemoryInputDevice::PdfMemoryInputDevice(const char* buffer, size_t len)
     if (len != 0 && buffer == nullptr)
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-    // TODO: Optimize me, offer a version that does not copy the buffer
-    SetStream(new istringstream(string(buffer, len), ios::binary), true);
+    SetStream(new istringviewstream(buffer, len), true);
 }
 
 PdfMemoryInputDevice::PdfMemoryInputDevice(const cspan<char>& buffer)
     : PdfMemoryInputDevice(buffer.data(), buffer.size()) { }
 
-PdfMemoryInputDevice::PdfMemoryInputDevice(const PdfObjectStream& stream)
+PdfObjectStreamInputDevice::PdfObjectStreamInputDevice(const PdfObjectStream& stream)
 {
-    string buffer;
-    PdfStringOutputStream outputStream(buffer);
+    PdfStringOutputStream outputStream(m_buffer);
     stream.GetFilteredCopy(outputStream);
-    // TODO: Optimize me, offer a version that does not copy the buffer
-    SetStream(new istringstream(buffer, ios::binary), true);
+    SetStream(new istringviewstream(m_buffer), true);
 }
 
 PdfStreamInputDevice::PdfStreamInputDevice()

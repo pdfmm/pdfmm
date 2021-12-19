@@ -149,12 +149,18 @@ class PDFMM_API PdfMemoryInputDevice final : public PdfStreamInputDevice
 {
 public:
     /** Construct a new PdfInputDevice that reads all data from a memory buffer.
-     *  The buffer will not be owned by this object - it is COPIED.
+     *  The buffer is temporarily binded
      */
     PdfMemoryInputDevice(const char* buffer, size_t len);
     PdfMemoryInputDevice(const cspan<char>& buffer);
+};
 
-    PdfMemoryInputDevice(const PdfObjectStream& stream);
+class PDFMM_API PdfObjectStreamInputDevice final : public PdfStreamInputDevice
+{
+public:
+    PdfObjectStreamInputDevice(const PdfObjectStream& stream);
+private:
+    chars m_buffer;
 };
 
 };
