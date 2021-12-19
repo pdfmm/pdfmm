@@ -8,6 +8,10 @@
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfColor.h"
 
+#include <algorithm>
+#include <cctype>
+#include <pdfmm/common/istringviewstream.h>
+
 #include "PdfDocument.h"
 #include "PdfArray.h"
 #include "PdfDictionary.h"
@@ -17,10 +21,8 @@
 #include "PdfVariant.h"
 #include "PdfInputDevice.h"
 
-#include <algorithm>
-#include <ctype.h>
-
 using namespace std;
+using namespace ext;
 using namespace mm;
 
 /** A PdfNamedColor holds
@@ -727,7 +729,7 @@ PdfColor PdfColor::FromString(const string_view& name)
     {
         double grayVal = 0.0;
 
-        istringstream stream((string)name);
+        istringviewstream stream(name);
         PdfLocaleImbue(stream);
 
         if (stream >> grayVal)

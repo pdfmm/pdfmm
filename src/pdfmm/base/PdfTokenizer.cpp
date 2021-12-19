@@ -270,7 +270,7 @@ PdfTokenizer::PdfLiteralDataType PdfTokenizer::DetermineDataType(PdfInputDevice&
                 double val;
 
                 m_doubleParser.clear(); // clear error state
-                m_doubleParser.str((string)token);
+                m_doubleParser.str(token);
                 if (!(m_doubleParser >> val))
                 {
                     m_doubleParser.clear(); // clear error state

@@ -13,7 +13,7 @@
 #include "PdfInputDevice.h"
 
 #include <deque>
-#include <sstream>
+#include <pdfmm/common/istringviewstream.h>
 
 namespace mm {
 
@@ -260,10 +260,10 @@ private:
     TokenizerQueque m_tokenQueque;
     chars m_charBuffer;
 
-    // An istringstream which is used
+    // An input stream which is used
     // to read double values instead of strtod
     // which is locale depend.
-    std::istringstream m_doubleParser;
+    ext::istringviewstream m_doubleParser;
 };
 
 };
