@@ -19,7 +19,7 @@ using namespace mm;
 #ifdef DEBUG
 PdfLogSeverity s_MaxLogSeverity = PdfLogSeverity::Debug;
 #else
-PdfLogSeverity s_MinLogSeverity = PdfLogSeverity::Information;
+PdfLogSeverity s_MaxLogSeverity = PdfLogSeverity::Information;
 #endif // DEBUG
 
 static LogMessageCallback s_LogMessageCallback;
