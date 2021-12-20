@@ -353,7 +353,7 @@ private:
      *  \remarks To be called by PdfEncoding. In case of a ligature
      *      parameter, it must match entirely
      */
-    PdfCID AddUsedGID(unsigned gid, const cspan<char32_t>& mappedCodePoints);
+    PdfCID AddUsedGID(unsigned gid, const unicodeview& mappedCodePoints);
 
     PdfFont(const PdfFont& rhs) = delete;
 

@@ -125,7 +125,7 @@ public:
      * For font data coming from the /FontFile keys, use GetFontFileObject()
      * \returns a binary buffer of data containing the font data
      */
-    virtual cspan<char> GetFontFileData() const;
+    virtual bufferview GetFontFileData() const;
 
     /** Get the actual font file object from a /FontFile like key, if available
      *

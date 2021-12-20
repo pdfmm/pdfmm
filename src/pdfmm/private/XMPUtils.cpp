@@ -270,7 +270,7 @@ xmlNodePtr createDescriptionElement(xmlDocPtr doc, xmlNodePtr rdf)
 
     xmlSetNs(description, nsRDF);
     if (xmlSetNsProp(description, nsRDF, XMLCHAR "about", XMLCHAR "") == nullptr)
-        THROW_LIBXML_EXCEPTION(mm::Format("Can't set rdf:about attribute on rdf:Description node"));
+        THROW_LIBXML_EXCEPTION(cmn::Format("Can't set rdf:about attribute on rdf:Description node"));
 
     return description;
 }
@@ -305,7 +305,7 @@ xmlNsPtr findOrCreateNamespace(xmlDocPtr doc, xmlNodePtr description, PdfANamesp
         xmlNs = xmlNewNs(description, XMLCHAR href, XMLCHAR prefix);
 
     if (xmlNs == nullptr)
-        THROW_LIBXML_EXCEPTION(mm::Format("Can't find or create {} namespace", prefix));
+        THROW_LIBXML_EXCEPTION(cmn::Format("Can't find or create {} namespace", prefix));
 
     return xmlNs;
 }
@@ -406,7 +406,7 @@ void addXMPProperty(xmlDocPtr doc, xmlNodePtr description,
 
     auto element = xmlNewDocNode(doc, xmlNs, XMLCHAR propName, nullptr);
     if (element == nullptr || xmlAddChild(description, element) == nullptr)
-        THROW_LIBXML_EXCEPTION(mm::Format("Can't create xmp:{} node", propName));
+        THROW_LIBXML_EXCEPTION(cmn::Format("Can't create xmp:{} node", propName));
 
     switch (property)
     {
@@ -451,18 +451,18 @@ void setNodeSequenceContent(xmlNodePtr node, xmlDocPtr doc, XMPSequenceType seqT
     PDFMM_ASSERT(rdfNs != nullptr);
     auto innerElem = xmlNewDocNode(doc, rdfNs, XMLCHAR elemName, nullptr);
     if (innerElem == nullptr || xmlAddChild(node, innerElem) == nullptr)
-        THROW_LIBXML_EXCEPTION(mm::Format("Can't create rdf:{} node", elemName));
+        THROW_LIBXML_EXCEPTION(cmn::Format("Can't create rdf:{} node", elemName));
 
     auto liElem = xmlNewDocNode(doc, rdfNs, XMLCHAR "li", nullptr);
     if (liElem == nullptr || xmlAddChild(innerElem, liElem) == nullptr)
-        THROW_LIBXML_EXCEPTION(mm::Format("Can't create rdf:li node"));
+        THROW_LIBXML_EXCEPTION(cmn::Format("Can't create rdf:li node"));
 
     if (xdefault)
     {
         auto xmlNs = xmlSearchNs(doc, node, XMLCHAR "xml");
         PDFMM_ASSERT(xmlNs != nullptr);
         if (xmlSetNsProp(liElem, xmlNs, XMLCHAR "lang", XMLCHAR "x-default") == nullptr)
-            THROW_LIBXML_EXCEPTION(mm::Format("Can't set xml:lang attribute on rdf:li node"));
+            THROW_LIBXML_EXCEPTION(cmn::Format("Can't set xml:lang attribute on rdf:li node"));
     }
 
     xmlNodeSetContent(liElem, XMLCHAR value.data());

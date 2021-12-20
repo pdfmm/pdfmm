@@ -2473,6 +2473,6 @@ PdfName PdfDifferenceEncoding::UnicodeIDToName(char32_t inCodePoint)
     // so we'll just give it SOME name..
     constexpr unsigned BUFFER_LEN = 11;
     char buffer[BUFFER_LEN];
-    mm::FormatTo(buffer, BUFFER_LEN, "cp0x{:X}", (unsigned)inCodePoint);
+    cmn::FormatTo(buffer, BUFFER_LEN, "cp0x{:X}", (unsigned)inCodePoint);
     return PdfName(buffer);
 }

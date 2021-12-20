@@ -145,7 +145,7 @@ private:
     std::vector<TrueTypeTable> m_tables;
     GlyphDatas m_glyphDatas;
     std::vector<unsigned> m_orderedGIDs; // Ordered list of original GIDs as they will appear in the subset
-    chars m_tmpBuffer;
+    charbuff m_tmpBuffer;
 };
 
 };

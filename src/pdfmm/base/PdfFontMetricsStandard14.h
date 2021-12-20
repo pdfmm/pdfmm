@@ -108,7 +108,7 @@ public:
 
     bool IsStandard14FontMetrics(PdfStandard14FontType& std14Font) const override;
 
-    cspan<char> GetFontFileData() const override;
+    bufferview GetFontFileData() const override;
 
     inline const Standard14FontData& GetRawData() const { return m_data; }
 

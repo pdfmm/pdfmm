@@ -32,7 +32,7 @@ void PdfReference::Write(PdfOutputDevice& device, PdfWriteMode writeMode, const 
     if ((writeMode & PdfWriteMode::NoInlineLiteral) == PdfWriteMode::None)
         device.Put(' '); // Write space before the reference
 
-    device.Write(PDFMM_FORMAT("{} {} R", m_ObjectNo, m_GenerationNo));
+    device.Write(COMMON_FORMAT("{} {} R", m_ObjectNo, m_GenerationNo));
 }
 
 const string PdfReference::ToString() const

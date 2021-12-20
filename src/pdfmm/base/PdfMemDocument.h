@@ -80,7 +80,7 @@ public:
      *
      *  \see WriteUpdate, Load, LoadFromDevice
      */
-    void LoadFromBuffer(const cspan<char>& buffer, const std::string_view& password = { });
+    void LoadFromBuffer(const bufferview& buffer, const std::string_view& password = { });
 
     /** Load a PdfMemDocument from a PdfRefCountedInputDevice
      *

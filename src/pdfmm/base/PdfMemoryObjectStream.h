@@ -72,7 +72,7 @@ private:
     void copyFrom(const PdfMemoryObjectStream& rhs);
 
  private:
-    chars m_buffer;
+    charbuff m_buffer;
     std::unique_ptr<PdfOutputStream> m_Stream;
     std::unique_ptr<PdfOutputStream> m_BufferStream;
 };

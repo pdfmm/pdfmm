@@ -56,7 +56,7 @@ public:
      *  \param view a buffer
      *  \param hex true if the string should be written as hex string
      */
-    static PdfString FromRaw(const cspan<char>& view, bool hex = true);
+    static PdfString FromRaw(const bufferview& view, bool hex = true);
 
     /** Set hex-encoded data as the strings data.
      *  \param hexView must be hex-encoded data.
@@ -139,7 +139,7 @@ public:
     bool operator!=(const std::string_view& view) const;
 
 private:
-    PdfString(chars chars, bool isHex);
+    PdfString(charbuff chars, bool isHex);
 
     /** Construct a new PdfString from a 0-terminated string.
      *
@@ -165,7 +165,7 @@ private:
     struct StringData
     {
         StringState State;
-        chars Chars;
+        charbuff Chars;
     };
 
 private:

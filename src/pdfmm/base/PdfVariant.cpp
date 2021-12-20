@@ -153,7 +153,7 @@ void PdfVariant::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
             if ((writeMode & PdfWriteMode::NoInlineLiteral) == PdfWriteMode::None)
                 device.Put(' '); // Write space before numbers
 
-            device.Write(PDFMM_FORMAT("{}", m_Data.Number));
+            device.Write(COMMON_FORMAT("{}", m_Data.Number));
             break;
         }
         case PdfDataType::Real:

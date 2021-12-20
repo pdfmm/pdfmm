@@ -209,12 +209,12 @@ void PdfObject::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
         if ((writeMode & PdfWriteMode::Clean) == PdfWriteMode::None
             && (writeMode & PdfWriteMode::NoPDFAPreserve) != PdfWriteMode::None)
         {
-            device.Write(PDFMM_FORMAT("{} {} obj", m_IndirectReference.ObjectNumber(), m_IndirectReference.GenerationNumber()));
+            device.Write(COMMON_FORMAT("{} {} obj", m_IndirectReference.ObjectNumber(), m_IndirectReference.GenerationNumber()));
         }
         else
         {
             // PDF/A compliance requires all objects to be written in a clean way
-            device.Write(PDFMM_FORMAT("{} {} obj\n", m_IndirectReference.ObjectNumber(), m_IndirectReference.GenerationNumber()));
+            device.Write(COMMON_FORMAT("{} {} obj\n", m_IndirectReference.ObjectNumber(), m_IndirectReference.GenerationNumber()));
         }
     }
 

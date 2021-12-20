@@ -25,7 +25,7 @@ using namespace std;
 using namespace mm;
 
 PdfFontMetricsFreetype::PdfFontMetricsFreetype(
-    const shared_ptr<chars>& buffer, nullable<const PdfFontMetrics&> refMetrics) :
+    const shared_ptr<charbuff>& buffer, nullable<const PdfFontMetrics&> refMetrics) :
     m_Face(nullptr),
     m_FontData(buffer)
 {
@@ -33,7 +33,7 @@ PdfFontMetricsFreetype::PdfFontMetricsFreetype(
 }
 
 PdfFontMetricsFreetype::PdfFontMetricsFreetype(FT_Face face,
-    const shared_ptr<chars>& buffer) :
+    const shared_ptr<charbuff>& buffer) :
     m_Face(face),
     m_FontData(buffer)
 {
@@ -173,9 +173,9 @@ string PdfFontMetricsFreetype::GetFontName() const
     return m_fontName;
 }
 
-unique_ptr<PdfFontMetricsFreetype> PdfFontMetricsFreetype::FromBuffer(const cspan<char>& buffer)
+unique_ptr<PdfFontMetricsFreetype> PdfFontMetricsFreetype::FromBuffer(const bufferview& buffer)
 {
-    return std::make_unique<PdfFontMetricsFreetype>(std::make_shared<chars>(buffer));
+    return std::make_unique<PdfFontMetricsFreetype>(std::make_shared<charbuff>(buffer));
 }
 
 unique_ptr<PdfFontMetricsFreetype> PdfFontMetricsFreetype::FromFace(FT_Face face)
@@ -295,9 +295,9 @@ double PdfFontMetricsFreetype::GetDescent() const
     return m_Descent;
 }
 
-cspan<char> PdfFontMetricsFreetype::GetFontFileData() const
+bufferview PdfFontMetricsFreetype::GetFontFileData() const
 {
-    return cspan<char>(m_FontData->data(), m_FontData->size());
+    return bufferview(m_FontData->data(), m_FontData->size());
 }
 
 int PdfFontMetricsFreetype::GetWeightRaw() const

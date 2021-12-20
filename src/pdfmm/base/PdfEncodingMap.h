@@ -87,7 +87,7 @@ public:
      * \param codePoints it can be a single code point or a ligature
      * \return true if the code points match a character code
      */
-    bool TryGetCharCode(const cspan<char32_t>& codePoints, PdfCharCode& codeUnit) const;
+    bool TryGetCharCode(const unicodeview& codePoints, PdfCharCode& codeUnit) const;
 
     /**
      * Try get next char code unit from cid
@@ -172,7 +172,7 @@ protected:
      * \param ligature the span has at least 2 unicode code points
      * \remarks Default implementation just throws
      */
-    virtual bool tryGetCharCodeSpan(const cspan<char32_t>& ligature, PdfCharCode& codeUnit) const;
+    virtual bool tryGetCharCodeSpan(const unicodeview& ligature, PdfCharCode& codeUnit) const;
 
     /**
      * Try get char code unit from unicode code point
@@ -192,7 +192,7 @@ protected:
      */
     virtual void getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const;
 
-    static void AppendUTF16CodeTo(PdfObjectStream& stream, const cspan<char32_t>& codePoints, std::u16string& u16tmp);
+    static void AppendUTF16CodeTo(PdfObjectStream& stream, const unicodeview& codePoints, std::u16string& u16tmp);
 
 protected:
     /** During a WriteToUnicodeCMap append "beginbfchar" and "beginbfrange"
@@ -231,7 +231,7 @@ protected:
     bool tryGetNextCharCode(std::string_view::iterator& it,
         const std::string_view::iterator& end, PdfCharCode& codeUnit) const override;
 
-    bool tryGetCharCodeSpan(const cspan<char32_t>& codePoints, PdfCharCode& codeUnit) const override;
+    bool tryGetCharCodeSpan(const unicodeview& codePoints, PdfCharCode& codeUnit) const override;
 
     bool tryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const override;
 

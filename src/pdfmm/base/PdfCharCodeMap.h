@@ -58,7 +58,7 @@ namespace mm
         /** Method to push a mapping.
          * Given string can be a ligature, es "ffi"
          */
-        void PushMapping(const PdfCharCode& codeUnit, const cspan<char32_t>& codePoints);
+        void PushMapping(const PdfCharCode& codeUnit, const unicodeview& codePoints);
 
         /** Convenience method to push a single code point mapping
          */
@@ -78,7 +78,7 @@ namespace mm
         /** Try get char code from unicode code points
          * \param codePoints sequence of unicode code points. All the sequence must match
          */
-        bool TryGetCharCode(const cspan<char32_t>& codePoints, PdfCharCode& code) const;
+        bool TryGetCharCode(const unicodeview& codePoints, PdfCharCode& code) const;
 
         /** Try get char code from unicode code point
          */

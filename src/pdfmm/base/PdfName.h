@@ -52,7 +52,7 @@ public:
      */
     PdfName(const PdfName& rhs);
 
-    static PdfName FromRaw(const cspan<char>& rawcontent);
+    static PdfName FromRaw(const bufferview& rawcontent);
 
     /** Create a new PdfName object from a string containing an escaped
      *  name string without the leading / .
@@ -124,7 +124,7 @@ public:
     static const PdfName KeyFilter;
 
 private:
-    PdfName(chars chars);
+    PdfName(charbuff chars);
     void expandUtf8String() const;
     void initFromUtf8String(const std::string_view& view);
 
@@ -135,7 +135,7 @@ private:
 
         // The unescaped name raw data, without leading '/'.
         // It can store also the utf8 expanded string, if coincident
-        chars Chars;
+        charbuff Chars;
         std::unique_ptr<std::string> Utf8String;
     };
 private:

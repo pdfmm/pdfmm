@@ -48,9 +48,9 @@ void PdfObjectStream::GetFilteredCopy(PdfOutputStream& stream) const
     }
 }
 
-chars PdfObjectStream::GetFilteredCopy() const
+charbuff PdfObjectStream::GetFilteredCopy() const
 {
-    chars ret;
+    charbuff ret;
     PdfStringOutputStream stream(ret);
     GetFilteredCopy(stream);
     return ret;
@@ -94,7 +94,7 @@ void PdfObjectStream::EnsureAppendClosed()
     PDFMM_RAISE_LOGIC_IF(m_Append, "EndAppend() should be called after appending to stream");
 }
 
-void PdfObjectStream::Set(const cspan<char>& buffer, const PdfFilterList& filters)
+void PdfObjectStream::Set(const bufferview& buffer, const PdfFilterList& filters)
 {
     Set(buffer.data(), buffer.size(), filters);
 }
@@ -109,7 +109,7 @@ void PdfObjectStream::Set(const char* buffer, size_t len, const PdfFilterList& f
     this->endAppend();
 }
 
-void PdfObjectStream::Set(const cspan<char>& buffer)
+void PdfObjectStream::Set(const bufferview& buffer)
 {
     Set(buffer.data(), buffer.size());
 }

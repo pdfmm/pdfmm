@@ -156,7 +156,7 @@ private:
 };
 
 typedef PdfContainerOutputStream<std::string> PdfStringOutputStream;
-typedef PdfContainerOutputStream<chars> PdfCharsOutputStream;
+typedef PdfContainerOutputStream<charbuff> PdfCharsOutputStream;
 typedef PdfContainerOutputStream<std::vector<char>> PdfVectorOutputStream;
 
 };

@@ -47,7 +47,7 @@ void PdfCharCodeMap::move(PdfCharCodeMap& map) noexcept
     utls::move(map.m_depth, m_depth);
 }
 
-void PdfCharCodeMap::PushMapping(const PdfCharCode& codeUnit, const cspan<char32_t>& codePoints)
+void PdfCharCodeMap::PushMapping(const PdfCharCode& codeUnit, const unicodeview& codePoints)
 {
     if (codePoints.size() == 0)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "CodePoints must not be empty");
@@ -81,7 +81,7 @@ bool PdfCharCodeMap::TryGetNextCharCode(string_view::iterator& it, const string_
     return tryFindNextCharacterId(m_cpMapHead, it, end, code);
 }
 
-bool PdfCharCodeMap::TryGetCharCode(const cspan<char32_t>& codePoints, PdfCharCode& codeUnit) const
+bool PdfCharCodeMap::TryGetCharCode(const unicodeview& codePoints, PdfCharCode& codeUnit) const
 {
     const_cast<PdfCharCodeMap&>(*this).reviseCPMap();
     auto it = codePoints.begin();
@@ -347,7 +347,7 @@ void PdfCharCode::WriteHexTo(string& str, bool wrap) const
         }
     }
 
-    mm::FormatTo(str, pattern, Code);
+    cmn::FormatTo(str, pattern, Code);
 }
 
 size_t PdfCharCodeMap::HashCharCode::operator()(const PdfCharCode& code) const

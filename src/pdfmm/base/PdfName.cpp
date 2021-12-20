@@ -57,7 +57,7 @@ PdfName::PdfName(const PdfName& rhs)
 {
 }
 
-PdfName::PdfName(chars chars)
+PdfName::PdfName(charbuff chars)
     : m_data(new NameData{ false, std::move(chars), nullptr })
 {
 }
@@ -78,7 +78,7 @@ void PdfName::initFromUtf8String(const string_view& view)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidName, "Characters in string must be PdfDocEncoding character set");
 
     if (isPdfDocEncodingEqual)
-        m_data.reset(new NameData{ true, chars(view), nullptr });
+        m_data.reset(new NameData{ true, charbuff(view), nullptr });
     else
         m_data.reset(new NameData{ true, PdfDocEncoding::ConvertUTF8ToPdfDocEncoding(view), std::make_unique<string>(view) });
 }
@@ -88,9 +88,9 @@ PdfName PdfName::FromEscaped(const string_view& view)
     return FromRaw(UnescapeName(view));
 }
 
-PdfName PdfName::FromRaw(const cspan<char>& rawcontent)
+PdfName PdfName::FromRaw(const bufferview& rawcontent)
 {
-    return PdfName((chars)rawcontent);
+    return PdfName((charbuff)rawcontent);
 }
 
 void PdfName::Write(PdfOutputDevice& device, PdfWriteMode, const PdfEncrypt*) const

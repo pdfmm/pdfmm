@@ -24,15 +24,15 @@ using namespace std;
 using namespace mm;
 
 static char getEscapedCharacter(char ch);
-static void readHexString(PdfInputDevice& device, chars& buffer);
+static void readHexString(PdfInputDevice& device, charbuff& buffer);
 static bool isOctalChar(char ch);
 
 PdfTokenizer::PdfTokenizer(bool readReferences)
-    : PdfTokenizer(std::make_shared<chars>(BufferSize), readReferences)
+    : PdfTokenizer(std::make_shared<charbuff>(BufferSize), readReferences)
 {
 }
 
-PdfTokenizer::PdfTokenizer(const shared_ptr<chars>& buffer, bool readReferences)
+PdfTokenizer::PdfTokenizer(const shared_ptr<charbuff>& buffer, bool readReferences)
     : m_buffer(buffer), m_readReferences(readReferences)
 {
     if (buffer == nullptr)
@@ -390,7 +390,7 @@ void PdfTokenizer::ReadDictionary(PdfInputDevice& device, PdfVariant& variant, P
     PdfName key;
     PdfTokenType tokenType;
     string_view token;
-    unique_ptr<chars> contentsHexBuffer;
+    unique_ptr<charbuff> contentsHexBuffer;
 
     variant = PdfDictionary();
     PdfDictionary& dict = variant.GetDictionary();
@@ -418,7 +418,7 @@ void PdfTokenizer::ReadDictionary(PdfInputDevice& device, PdfVariant& variant, P
         {
             // 'Contents' key in signature dictionaries is an unencrypted Hex string:
             // save the string buffer for later check if it needed decryption
-            contentsHexBuffer = std::unique_ptr<chars>(new chars());
+            contentsHexBuffer = std::unique_ptr<charbuff>(new charbuff());
             readHexString(device, *contentsHexBuffer);
             continue;
         }
@@ -575,7 +575,7 @@ void PdfTokenizer::ReadString(PdfInputDevice& device, PdfVariant& variant, PdfEn
     {
         if (encrypt)
         {
-            chars decrypted;
+            charbuff decrypted;
             encrypt->Decrypt({ m_charBuffer.data(), m_charBuffer.size() }, decrypted);
             variant = PdfString(std::move(decrypted), false);
         }
@@ -798,7 +798,7 @@ char getEscapedCharacter(char ch)
     }
 }
 
-void readHexString(PdfInputDevice& device, chars& buffer)
+void readHexString(PdfInputDevice& device, charbuff& buffer)
 {
     buffer.clear();
     char ch;

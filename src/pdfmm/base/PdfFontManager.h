@@ -189,9 +189,9 @@ private:
     static std::shared_ptr<PdfFontConfigWrapper> ensureInitializedFontConfig();
 #endif // PDFMM_HAVE_FONTCONFIG
 
-    static std::unique_ptr<chars> getFontData(const std::string_view& fontName,
+    static std::unique_ptr<charbuff> getFontData(const std::string_view& fontName,
         const PdfFontSearchParams& params);
-    static std::unique_ptr<chars> getFontData(const std::string_view& fontName,
+    static std::unique_ptr<charbuff> getFontData(const std::string_view& fontName,
         std::string filepath, int faceIndex, const PdfFontSearchParams& params);
     PdfFont* getFont(const std::string_view& baseFontName, const PdfFontCreationParams& params);
 
@@ -202,7 +202,7 @@ private:
         PdfFontInitFlags initFlags);
 
 #if defined(_WIN32) && defined(PDFMM_HAVE_WIN32GDI)
-    static std::unique_ptr<chars> getWin32FontData(const std::string_view& fontName,
+    static std::unique_ptr<cmn::charbuff> getWin32FontData(const std::string_view& fontName,
         const PdfFontSearchParams& params);
 #endif
 

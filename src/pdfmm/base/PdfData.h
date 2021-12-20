@@ -43,7 +43,7 @@ public:
      *                    the current position in the stream
      *
      */
-    PdfData(chars&& data, const std::shared_ptr<size_t>& writeBeacon = { });
+    PdfData(charbuff&& data, const std::shared_ptr<size_t>& writeBeacon = { });
 
     /**
      * Create a new PdfData object with valid PdfData
@@ -55,22 +55,22 @@ public:
      *                    the current position in the stream
      *
      */
-    explicit PdfData(const cspan<char>& data, const std::shared_ptr<size_t>& writeBeacon = { });
+    explicit PdfData(const bufferview& data, const std::shared_ptr<size_t>& writeBeacon = { });
 
     void Write(PdfOutputDevice& device, PdfWriteMode writeMode, const PdfEncrypt* encrypt) const override;
 
     PdfData& operator=(const PdfData& rhs) = default;
     PdfData& operator=(PdfData&& rhs) = default;
-    PdfData& operator=(const cspan<char>& data);
+    PdfData& operator=(const bufferview& data);
 
     /**
      * Access the data as a std::string
      * \returns a const reference to the contained data
      */
-     inline const chars& GetBuffer() const { return m_data; }
+     inline const charbuff& GetBuffer() const { return m_data; }
 
 private:
-    chars m_data;
+    charbuff m_data;
     std::shared_ptr<size_t> m_writeBeacon;
 };
 

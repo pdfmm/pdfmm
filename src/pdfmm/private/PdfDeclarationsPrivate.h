@@ -90,6 +90,11 @@ namespace mm
     };
 }
 
+/**
+ * \namespace utls
+ *
+ * Namespace for private utilities and common functions
+ */
 namespace utls
 {
     /** Convert an enum or index to its string representation

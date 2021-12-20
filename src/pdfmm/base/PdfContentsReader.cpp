@@ -22,7 +22,7 @@ PdfContentsReader::PdfContentsReader(const shared_ptr<PdfInputDevice>& device,
 PdfContentsReader::PdfContentsReader(const shared_ptr<PdfInputDevice>& device,
     const PdfCanvas* canvas, nullable<const PdfContentReaderArgs&> args) :
     m_args(args.has_value() ? *args : PdfContentReaderArgs()),
-    m_buffer(std::make_shared<chars>(PdfTokenizer::BufferSize)),
+    m_buffer(std::make_shared<charbuff>(PdfTokenizer::BufferSize)),
     m_tokenizer(m_buffer),
     m_readingInlineImgData(false),
     m_temp{ }
@@ -342,7 +342,7 @@ void PdfContentsReader::tryFollowXObject(PdfContent& content)
 }
 
 // Returns false in case of EOF
-bool PdfContentsReader::tryReadInlineImgData(chars& data)
+bool PdfContentsReader::tryReadInlineImgData(charbuff& data)
 {
     // Consume one whitespace between ID and data
     char ch;
@@ -390,7 +390,7 @@ bool PdfContentsReader::tryReadInlineImgData(chars& data)
             {
                 if (PdfTokenizer::IsWhitespace(ch))
                 {
-                    data = cspan<char>(m_buffer->data(), readCount - 2);
+                    data = bufferview(m_buffer->data(), readCount - 2);
                     return true;
                 }
                 else

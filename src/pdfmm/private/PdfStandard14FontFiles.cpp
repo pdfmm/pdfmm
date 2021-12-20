@@ -19,6 +19,7 @@
 */
 
 using namespace std;
+using namespace mm;
 
 const unsigned char FoxitSerif[] = {
 0x01, 0x00, 0x04, 0x02, 0x00, 0x01, 0x01, 0x01, 0x0E, 0x43, 0x68, 0x72, 0x6F, 0x6D, 0x53, 0x65,
@@ -16615,7 +16616,7 @@ const unsigned char FoxitDingbats[] = {
 0x1F, 0x8D, 0x8D, 0x05, 0x0B, 0x05, 0x89, 0x07, 0x0B
 };
 
-mm::cspan<char> mm::GetStandard14FontFileData(PdfStandard14FontType stdFont)
+bufferview mm::GetStandard14FontFileData(PdfStandard14FontType stdFont)
 {
     switch (stdFont)
     {

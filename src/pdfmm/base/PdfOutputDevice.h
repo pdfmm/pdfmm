@@ -219,7 +219,7 @@ private:
 
 typedef PdfContainerOutputDevice<std::string> PdfStringOutputDevice;
 typedef PdfContainerOutputDevice<std::vector<char>> PdfVectorOutputDevice;
-typedef PdfContainerOutputDevice<chars> PdfCharsOutputDevice;
+typedef PdfContainerOutputDevice<charbuff> PdfCharsOutputDevice;
 
 /**
  * An output device that does nothing

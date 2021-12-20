@@ -29,8 +29,8 @@ enum class PdfCertPermission
 struct PdfSignatureBeacons
 {
     PdfSignatureBeacons();
-    chars ContentsBeacon;
-    chars ByteRangeBeacon;
+    charbuff ContentsBeacon;
+    charbuff ByteRangeBeacon;
     std::shared_ptr<size_t> ContentsOffset;
     std::shared_ptr<size_t> ByteRangeOffset;
 };

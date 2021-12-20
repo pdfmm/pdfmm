@@ -16,17 +16,17 @@ using namespace mm;
 
 PdfData::PdfData() { }
 
-PdfData::PdfData(chars&& data, const shared_ptr<size_t>& writeBeacon)
+PdfData::PdfData(charbuff&& data, const shared_ptr<size_t>& writeBeacon)
     : m_data(std::move(data)), m_writeBeacon(writeBeacon)
 {
 }
 
-PdfData::PdfData(const cspan<char>& data, const shared_ptr<size_t>& writeBeacon)
-    : m_data(chars(data)), m_writeBeacon(writeBeacon)
+PdfData::PdfData(const bufferview& data, const shared_ptr<size_t>& writeBeacon)
+    : m_data(charbuff(data)), m_writeBeacon(writeBeacon)
 {
 }
 
-PdfData& PdfData::operator=(const cspan<char>& data)
+PdfData& PdfData::operator=(const bufferview& data)
 {
     m_data = data;
     return *this;

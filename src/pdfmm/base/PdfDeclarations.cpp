@@ -234,30 +234,30 @@ unsigned utls::GetCharCodeMaxValue(unsigned char codeSize)
     return (unsigned)(std::pow(2, codeSize * CHAR_BIT)) - 1;
 }
 
-chars::chars(const cspan<char>& view)
+charbuff::charbuff(const bufferview& view)
     : string(view.data(), view.size())
 {
 }
 
-chars::chars(string&& str)
+charbuff::charbuff(string&& str)
     : string(std::move(str))
 {
 }
 
-chars& chars::operator=(const cspan<char>& view)
+charbuff& charbuff::operator=(const bufferview& view)
 {
     string::assign(view.data(), view.size());
     return *this;
 }
 
-chars::operator cspan<char>() const
+charbuff::operator bufferview() const
 {
-    return cspan<char>(data(), size());
+    return bufferview(data(), size());
 }
 
-chars::chars() { }
+charbuff::charbuff() { }
 
-chars::chars(size_t size)
+charbuff::charbuff(size_t size)
 {
     resize(size);
 }

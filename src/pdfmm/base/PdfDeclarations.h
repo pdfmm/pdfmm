@@ -19,27 +19,14 @@
 #include "PdfCompilerCompat.h"
 #include "PdfVersion.h"
 
+ // Include API macro definitions
+#include "basedefs.h"
+
 // Include common system files
-// (most are now pulled in my PdfCompilerCompat.h)
-
-// Include common STL files
-#include <memory>
-#include <string>
-#include <string_view>
-#include <vector>
-#include <typeinfo>
-#include <array>
-
-// Include some compatibility wrappers
-#include <pdfmm/common/EnumFlags.h>
-#include <pdfmm/common/nullable.h>
-#include <pdfmm/compat/span>
+#include "baseincludes.h"
 
 // Error Handling Defines
 #include "PdfError.h"
-
-// Include API macro definitions
-#include "pdfmmdefs.h"
 
 #define FORWARD_DECLARE_FCONFIG()\
 extern "C" {\
@@ -65,13 +52,9 @@ extern "C" {\
  */
 namespace mm {
 
-// Conventient const span type
-// https://stackoverflow.com/questions/56845801/what-happened-to-stdcspan
-template <class T, size_t Extent = std::dynamic_extent>
-using cspan = std::span<const T, Extent>;
-
-// NOTE: This may change in the future
-using Matrix2D = std::array<double, 6>;
+/** Convenient read-only char buffer span/view
+ */
+using bufferview = std::span<const char>;
 
 /**
  * Convenient type for char array storage and/or buffer with
@@ -79,25 +62,32 @@ using Matrix2D = std::array<double, 6>;
  *
  * \remarks don't use outside of pdfmm boundaries
  */
-// TODO: Optimize, we could maintain string compatibility
-// but have a custom allocator that does not zero initialize
-// allocated memory
-class chars : public std::string
+ // TODO: Optimize, we could maintain string compatibility
+ // but have a custom allocator that does not zero initialize
+ // allocated memory
+class PDFMM_API charbuff final : public std::string
 {
 public:
-    chars();
-    chars(const chars&) = default;
-    chars(chars&&) = default;
-    chars(size_t size);
-    explicit chars(const cspan<char>& view);
-    chars(std::string&& str);
+    charbuff();
+    charbuff(const charbuff&) = default;
+    charbuff(charbuff&&) = default;
+    charbuff(size_t size);
+    explicit charbuff(const bufferview& view);
+    charbuff(std::string&& str);
 
 public:
-    chars& operator=(const chars&) = default;
-    chars& operator=(chars&&) = default;
-    chars& operator=(const cspan<char>& view);
-    operator cspan<char>() const;
+    charbuff& operator=(const charbuff&) = default;
+    charbuff& operator=(charbuff&&) = default;
+    charbuff& operator=(const bufferview& view);
+    operator bufferview() const;
 };
+
+/** Unicode code point view
+ */
+using unicodeview = std::span<const char32_t>;
+
+// NOTE: This may change in the future
+using Matrix2D = std::array<double, 6>;
 
 // Enums
 

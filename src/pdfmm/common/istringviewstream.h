@@ -1,5 +1,5 @@
-#ifndef EXT_INPUT_STRING_VIEW_STREAM_H
-#define EXT_INPUT_STRING_VIEW_STREAM_H
+#ifndef INPUT_STRING_VIEW_STREAM_H
+#define INPUT_STRING_VIEW_STREAM_H
 #pragma once
 
 /**
@@ -33,7 +33,7 @@
 #include <string_view>
 #endif // __cplusplus >= 201703L
 
-namespace ext
+namespace cmn
 {
     // Based on https://stackoverflow.com/a/31597630/213871, catlan
     template <typename CharT>
@@ -216,4 +216,4 @@ namespace ext
     using wistringviewstream = basic_istringviewstream<wchar_t>;
 }
 
-#endif // EXT_INPUT_STRING_VIEW_STREAM_H
+#endif // INPUT_STRING_VIEW_STREAM_H

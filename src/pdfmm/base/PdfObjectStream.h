@@ -68,7 +68,7 @@ public:
      *  \param buffer buffer containing the stream data
      *  \param filters a list of filters to use when appending data
      */
-    void Set(const cspan<char>& buffer, const PdfFilterList& filters);
+    void Set(const bufferview& buffer, const PdfFilterList& filters);
 
     /** Set a binary buffer as stream data.
      *
@@ -86,7 +86,7 @@ public:
      *
      *  \param buffer buffer containing the stream data
      */
-    void Set(const cspan<char>& buffer);
+    void Set(const bufferview& buffer);
 
     /** Set a binary buffer as stream data.
      *  All data will be Flate-encoded.
@@ -240,7 +240,7 @@ public:
      */
     void GetFilteredCopy(PdfOutputStream& stream) const;
 
-    chars GetFilteredCopy() const;
+    charbuff GetFilteredCopy() const;
 
     /** Create a copy of a PdfObjectStream object
      *  \param rhs the object to clone

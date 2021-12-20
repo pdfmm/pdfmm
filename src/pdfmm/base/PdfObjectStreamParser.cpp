@@ -26,7 +26,7 @@ using namespace std;
 using namespace mm;
 
 PdfObjectStreamParser::PdfObjectStreamParser(PdfParserObject& parser,
-        PdfIndirectObjectList& objects, const shared_ptr<chars>& buffer)
+        PdfIndirectObjectList& objects, const shared_ptr<charbuff>& buffer)
     : m_Parser(&parser), m_Objects(&objects), m_buffer(buffer)
 {
     if (buffer == nullptr)

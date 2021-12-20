@@ -1,15 +1,18 @@
-#ifndef PDFMM_FORMAT_H
-#define PDFMM_FORMAT_H
+#ifndef COMMON_FORMAT_H
+#define COMMON_FORMAT_H
 
-#include <pdfmm/compat/format>
+#ifndef STL_FORMAT_H
+#define STL_FORMAT_H <format>
+#endif
+#include STL_FORMAT_H
 
-/** \def PDFMM_FORMAT(fmt, ...)
+/** \def COMMON_FORMAT(fmt, ...)
  *
   * Format the string, if needed
  */
-#define PDFMM_FORMAT(fmt, ...) ::mm::FormatHelper::TryFormat(fmt, ##__VA_ARGS__)
+#define COMMON_FORMAT(fmt, ...) ::cmn::FormatHelper::TryFormat(fmt, ##__VA_ARGS__)
 
-namespace mm
+namespace cmn
 {
     template <typename... Args>
     inline static std::string Format(const std::string_view& fmt, const Args&... args)
@@ -29,7 +32,7 @@ namespace mm
         std::format_to_n(dst, n, fmt, args...);
     }
 
-    /** Helper class. Use PDFMM_FORMAT macro instead
+    /** Helper class. Use COMMON_FORMAT macro instead
      */
     class FormatHelper
     {
@@ -62,4 +65,4 @@ namespace mm
     };
 }
 
-#endif // PDFMM_FORMAT_H
+#endif // COMMON_FORMAT_H

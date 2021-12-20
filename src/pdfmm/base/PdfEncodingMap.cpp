@@ -75,7 +75,7 @@ bool PdfEncodingMap::tryGetNextCharCode(string_view::iterator& it, const string_
     PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);
 }
 
-bool PdfEncodingMap::tryGetCharCodeSpan(const cspan<char32_t>& ligature, PdfCharCode& codeUnit) const
+bool PdfEncodingMap::tryGetCharCodeSpan(const unicodeview& ligature, PdfCharCode& codeUnit) const
 {
     (void)ligature;
     (void)codeUnit;
@@ -87,7 +87,7 @@ bool PdfEncodingMap::TryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) c
     return tryGetCharCode(codePoint, codeUnit);
 }
 
-bool PdfEncodingMap::TryGetCharCode(const cspan<char32_t>& codePoints, PdfCharCode& codeUnit) const
+bool PdfEncodingMap::TryGetCharCode(const unicodeview& codePoints, PdfCharCode& codeUnit) const
 {
     if (codePoints.size() == 1)
     {
@@ -279,7 +279,7 @@ bool PdfEncodingMapBase::tryGetNextCharCode(string_view::iterator& it, const str
     return m_charMap->TryGetNextCharCode(it, end, codeUnit);
 }
 
-bool PdfEncodingMapBase::tryGetCharCodeSpan(const cspan<char32_t>& codePoints, PdfCharCode& codeUnit) const
+bool PdfEncodingMapBase::tryGetCharCodeSpan(const unicodeview& codePoints, PdfCharCode& codeUnit) const
 {
     return m_charMap->TryGetCharCode(codePoints, codeUnit);
 }
@@ -333,7 +333,7 @@ PdfEncodingLimits PdfEncodingMapBase::findLimits(const PdfCharCodeMap& map)
     return limits;
 }
 
-void PdfEncodingMap::AppendUTF16CodeTo(PdfObjectStream& stream, const cspan<char32_t>& codePoints, u16string& u16tmp)
+void PdfEncodingMap::AppendUTF16CodeTo(PdfObjectStream& stream, const unicodeview& codePoints, u16string& u16tmp)
 {
     char hexbuf[2];
     stream.Append("<");

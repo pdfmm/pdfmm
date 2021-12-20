@@ -65,13 +65,13 @@ PdfFont::~PdfFont() { }
 
 bool PdfFont::TryGetSubstituteFont(unique_ptr<PdfFont>& substFont)
 {
-    shared_ptr<chars> data;
+    shared_ptr<charbuff> data;
     auto fontData = GetMetrics().GetFontFileObject();
     if (fontData != nullptr)
     {
         auto stream = fontData->GetStream();
         if (stream != nullptr)
-            data = std::make_shared<chars>(stream->GetFilteredCopy());
+            data = std::make_shared<charbuff>(stream->GetFilteredCopy());
     }
 
     auto encoding = GetEncoding();
@@ -193,7 +193,7 @@ void PdfFont::InitImported(bool embeddingEnabled, bool subsettingEnabled)
         {
             // If it exist a glyph for space character
             // always add it for subsetting
-            AddUsedGID(gid, cspan<char32_t>(&spaceCp, 1));
+            AddUsedGID(gid, unicodeview(&spaceCp, 1));
         }
     }
 
@@ -474,7 +474,7 @@ double PdfFont::GetDescent(const PdfTextState& state) const
     return m_Metrics->GetDescent() * state.GetFontSize();
 }
 
-PdfCID PdfFont::AddUsedGID(unsigned gid, const cspan<char32_t>& codePoints)
+PdfCID PdfFont::AddUsedGID(unsigned gid, const unicodeview& codePoints)
 {
     PDFMM_ASSERT(!m_IsObjectLoaded);
     if (m_SubsettingEnabled && m_IsEmbedded)

@@ -30,13 +30,13 @@ public:
     /** Create a font metrics object for a given memory buffer
      *  \param buffer block of memory representing the font data (PdfFontMetricsFreetype will copy the buffer)
      */
-    PdfFontMetricsFreetype(const std::shared_ptr<chars>& buffer,
+    PdfFontMetricsFreetype(const std::shared_ptr<charbuff>& buffer,
         nullable<const PdfFontMetrics&> refMetrics = { });
 
     ~PdfFontMetricsFreetype();
 
 public:
-    static std::unique_ptr<PdfFontMetricsFreetype> FromBuffer(const cspan<char>& buffer);
+    static std::unique_ptr<PdfFontMetricsFreetype> FromBuffer(const bufferview& buffer);
 
     static std::unique_ptr<PdfFontMetricsFreetype> FromFace(FT_Face face);
 
@@ -86,7 +86,7 @@ public:
 
     PdfFontFileType GetFontFileType() const override;
 
-    cspan<char> GetFontFileData() const override;
+    bufferview GetFontFileData() const override;
 
     /** Get direct access to the internal FreeType handle
      *
@@ -100,7 +100,7 @@ protected:
     bool getIsItalicHint() const override;
 
 private:
-    PdfFontMetricsFreetype(FT_Face face, const std::shared_ptr<chars>& buffer);
+    PdfFontMetricsFreetype(FT_Face face, const std::shared_ptr<charbuff>& buffer);
 
     /** Initialize this object from an in memory buffer
      * Called internally by the constructors
@@ -130,7 +130,7 @@ private:
     double m_DefaultWidth;
     PdfFontDescriptorFlags m_Flags;
 
-    std::shared_ptr<chars> m_FontData;
+    std::shared_ptr<charbuff> m_FontData;
     std::string m_fontName;
     std::string m_baseFontName;
 

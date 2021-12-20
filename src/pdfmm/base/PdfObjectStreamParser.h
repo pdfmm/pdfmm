@@ -37,7 +37,7 @@ public:
      * \param objects add loaded objects to this vector of objects
      * \param buffer use this allocated buffer for caching
      */
-    PdfObjectStreamParser(PdfParserObject& parser, PdfIndirectObjectList& objects, const std::shared_ptr<chars>& buffer);
+    PdfObjectStreamParser(PdfParserObject& parser, PdfIndirectObjectList& objects, const std::shared_ptr<charbuff>& buffer);
 
     void Parse(ObjectIdList const&);
 
@@ -47,7 +47,7 @@ private:
 private:
     PdfParserObject* m_Parser;
     PdfIndirectObjectList* m_Objects;
-    std::shared_ptr<chars> m_buffer;
+    std::shared_ptr<charbuff> m_buffer;
 };
 
 };

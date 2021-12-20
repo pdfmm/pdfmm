@@ -50,7 +50,7 @@ public:
 
 public:
     PdfTokenizer(bool readReferences = true);
-    PdfTokenizer(const std::shared_ptr<chars>& buffer, bool readReferences = true);
+    PdfTokenizer(const std::shared_ptr<charbuff>& buffer, bool readReferences = true);
 
     /** Reads the next token from the current file position
      *  ignoring all comments.
@@ -255,15 +255,15 @@ private:
     typedef std::deque<TokenizerPair> TokenizerQueque;
 
 private:
-    std::shared_ptr<chars> m_buffer;
+    std::shared_ptr<charbuff> m_buffer;
     bool m_readReferences;
     TokenizerQueque m_tokenQueque;
-    chars m_charBuffer;
+    charbuff m_charBuffer;
 
     // An input stream which is used
     // to read double values instead of strtod
     // which is locale depend.
-    ext::istringviewstream m_doubleParser;
+    cmn::istringviewstream m_doubleParser;
 };
 
 };

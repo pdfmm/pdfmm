@@ -54,20 +54,20 @@ PdfString::PdfString(const PdfString& rhs)
     this->operator=(rhs);
 }
 
-PdfString::PdfString(chars chars, bool isHex)
+PdfString::PdfString(charbuff chars, bool isHex)
     : m_data(new StringData{ StringState::RawBuffer, std::move(chars) }), m_isHex(isHex)
 {
 }
 
-PdfString PdfString::FromRaw(const cspan<char>& view, bool isHex)
+PdfString PdfString::FromRaw(const bufferview& view, bool isHex)
 {
-    return PdfString((chars)view, isHex);
+    return PdfString((charbuff)view, isHex);
 }
 
 PdfString PdfString::FromHexData(const string_view& hexView, PdfEncrypt* encrypt)
 {
     size_t len = hexView.size();
-    chars buffer;
+    charbuff buffer;
     buffer.reserve(len % 2 ? (len + 1) >> 1 : len >> 1);
 
     char val;
@@ -107,7 +107,7 @@ PdfString PdfString::FromHexData(const string_view& hexView, PdfEncrypt* encrypt
     }
     else
     {
-        chars decrypted;
+        charbuff decrypted;
         encrypt->Decrypt(buffer, decrypted);
         return PdfString(std::move(decrypted), true);
     }
@@ -121,7 +121,7 @@ void PdfString::Write(PdfOutputDevice& device, PdfWriteMode writeMode, const Pdf
     // this case has to be handled!
 
     // We are not encrypting the empty strings (was access violation)!
-    chars tempBuffer;
+    charbuff tempBuffer;
     string_view dataview;
     if (m_data->State == StringState::Unicode)
     {
@@ -138,7 +138,7 @@ void PdfString::Write(PdfOutputDevice& device, PdfWriteMode writeMode, const Pdf
 
     if (encrypt != nullptr && dataview.size() > 0)
     {
-        chars encrypted;
+        charbuff encrypted;
         encrypt->Encrypt(dataview, encrypted);
         encrypted.swap(tempBuffer);
         dataview = string_view(tempBuffer.data(), tempBuffer.size());
@@ -287,9 +287,9 @@ void PdfString::initFromUtf8String(const string_view& view)
 
     bool isPdfDocEncodingEqual;
     if (PdfDocEncoding::CheckValidUTF8ToPdfDocEcondingChars(view, isPdfDocEncodingEqual))
-        m_data.reset(new StringData{ StringState::PdfDocEncoding, chars(view) });
+        m_data.reset(new StringData{ StringState::PdfDocEncoding, charbuff(view) });
     else
-        m_data.reset(new StringData{ StringState::Unicode, chars(view) });
+        m_data.reset(new StringData{ StringState::Unicode, charbuff(view) });
 }
 
 void PdfString::evaluateString() const

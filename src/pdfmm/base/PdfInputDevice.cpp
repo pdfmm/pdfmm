@@ -15,7 +15,7 @@
 #include "PdfObjectStream.h"
 
 using namespace std;
-using namespace ext;
+using namespace cmn;
 using namespace mm;
 
 PdfInputDevice::PdfInputDevice() { }
@@ -45,7 +45,7 @@ PdfMemoryInputDevice::PdfMemoryInputDevice(const char* buffer, size_t len)
     SetStream(new istringviewstream(buffer, len), true);
 }
 
-PdfMemoryInputDevice::PdfMemoryInputDevice(const cspan<char>& buffer)
+PdfMemoryInputDevice::PdfMemoryInputDevice(const bufferview& buffer)
     : PdfMemoryInputDevice(buffer.data(), buffer.size()) { }
 
 PdfObjectStreamInputDevice::PdfObjectStreamInputDevice(const PdfObjectStream& stream)

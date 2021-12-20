@@ -80,7 +80,7 @@ public:
      *
      *  \see SetPassword
      */
-    void ParseBuffer(const cspan<char>& buffer, bool loadOnDemand = true);
+    void ParseBuffer(const bufferview& buffer, bool loadOnDemand = true);
 
     /** Open a PDF file and parse it.
      *
@@ -393,7 +393,7 @@ private:
     void ResizeEntries(size_t newSize);
 
 private:
-    std::shared_ptr<chars> m_buffer;
+    std::shared_ptr<charbuff> m_buffer;
     PdfTokenizer m_tokenizer;
 
     PdfVersion m_PdfVersion;

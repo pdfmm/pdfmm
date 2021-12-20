@@ -51,7 +51,7 @@ struct PdfContent
     PdfOperator Operator = PdfOperator::Unknown;
     std::string_view Keyword;
     PdfDictionary InlineImageDictionary;
-    chars InlineImageData;
+    charbuff InlineImageData;
     std::shared_ptr<const PdfXObject> XObject;
 };
 
@@ -101,7 +101,7 @@ private:
 
     bool tryReadInlineImgDict(PdfContent& content);
 
-    bool tryReadInlineImgData(chars& data);
+    bool tryReadInlineImgData(charbuff& data);
 
     void tryFollowXObject(PdfContent& content);
 
@@ -128,7 +128,7 @@ private:
 private:
     std::vector<Input> m_inputs;
     PdfContentReaderArgs m_args;
-    std::shared_ptr<chars> m_buffer;
+    std::shared_ptr<charbuff> m_buffer;
     PdfPostScriptTokenizer m_tokenizer;
     bool m_readingInlineImgData;  // A state of reading inline image data
 

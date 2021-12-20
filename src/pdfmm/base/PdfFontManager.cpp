@@ -32,13 +32,13 @@ using namespace mm;
 
 #if defined(_WIN32) && defined(PDFMM_HAVE_WIN32GDI)
 
-static std::unique_ptr<chars> getFontData(const LOGFONTW& inFont);
-static bool getFontData(chars& buffer, HDC hdc, HFONT hf);
-static void getFontDataTTC(chars& buffer, const chars& fileBuffer, const chars& ttcBuffer);
+static std::unique_ptr<charbuff> getFontData(const LOGFONTW& inFont);
+static bool getFontData(charbuff& buffer, HDC hdc, HFONT hf);
+static void getFontDataTTC(charbuff& buffer, const charbuff& fileBuffer, const charbuff& ttcBuffer);
 
 #endif // defined(_WIN32) && defined(PDFMM_HAVE_WIN32GDI)
 
-static unique_ptr<chars> getFontData(const string_view& filename, unsigned short faceIndex);
+static unique_ptr<charbuff> getFontData(const string_view& filename, unsigned short faceIndex);
 
 #if defined(PDFMM_HAVE_FONTCONFIG)
 shared_ptr<PdfFontConfigWrapper> PdfFontManager::m_fontConfig;
@@ -128,7 +128,7 @@ PdfFont* PdfFontManager::getFont(const string_view& baseFontName, const PdfFontC
     if (found != m_fontMap.end())
         return found->second.get();
 
-    shared_ptr<chars> buffer = getFontData(baseFontName, params.SearchParams);
+    shared_ptr<charbuff> buffer = getFontData(baseFontName, params.SearchParams);
     if (buffer == nullptr)
         return nullptr;
 
@@ -162,13 +162,13 @@ PdfFontMetricsConstPtr PdfFontManager::GetFontMetrics(const string_view& fontNam
     return PdfFontMetricsConstPtr(new PdfFontMetricsFreetype(std::move(fontData)));
 }
 
-unique_ptr<chars> PdfFontManager::getFontData(const string_view& fontName,
+unique_ptr<charbuff> PdfFontManager::getFontData(const string_view& fontName,
     const PdfFontSearchParams& params)
 {
     return getFontData(fontName, { }, -1, params);
 }
 
-unique_ptr<chars> PdfFontManager::getFontData(const string_view& fontName,
+unique_ptr<charbuff> PdfFontManager::getFontData(const string_view& fontName,
     string filepath, int faceIndex, const PdfFontSearchParams& params)
 {
     faceIndex = 0; // TODO, implement searching the face index
@@ -180,7 +180,7 @@ unique_ptr<chars> PdfFontManager::getFontData(const string_view& fontName,
 #endif
     }
 
-    unique_ptr<chars> ret;
+    unique_ptr<charbuff> ret;
     if (!filepath.empty())
         ret = ::getFontData(filepath, faceIndex);
 
@@ -259,7 +259,7 @@ PdfFont* PdfFontManager::GetFont(HFONT font,
     if (found != m_fontMap.end())
         return found->second.get();
 
-    shared_ptr<chars> buffer = ::getFontData(logFont);
+    shared_ptr<charbuff> buffer = ::getFontData(logFont);
     if (buffer == nullptr)
         return nullptr;
 
@@ -267,7 +267,7 @@ PdfFont* PdfFontManager::GetFont(HFONT font,
     return this->createFontObject(fontname, metrics, encoding, initFlags);
 }
 
-std::unique_ptr<chars> PdfFontManager::getWin32FontData(
+std::unique_ptr<charbuff> PdfFontManager::getWin32FontData(
     const string_view& fontName, const PdfFontSearchParams& params)
 {
     u16string fontnamew;
@@ -384,11 +384,11 @@ bool PdfFontManager::EqualElement::operator()(const Element& lhs, const Element&
         && lhs.Italic == rhs.Italic && lhs.FontName == rhs.FontName;
 }
 
-unique_ptr<chars> getFontData(const string_view& filename, unsigned short faceIndex)
+unique_ptr<charbuff> getFontData(const string_view& filename, unsigned short faceIndex)
 {
     FT_Error rc;
     FT_ULong length = 0;
-    unique_ptr<chars> buffer;
+    unique_ptr<charbuff> buffer;
     FT_Face face;
     rc = FT_New_Face(mm::GetFreeTypeLibrary(), filename.data(), faceIndex, &face);
     if (rc != 0)
@@ -404,7 +404,7 @@ unique_ptr<chars> getFontData(const string_view& filename, unsigned short faceIn
     if (rc != 0)
         goto Error;
 
-    buffer = std::make_unique<chars>(length);
+    buffer = std::make_unique<charbuff>(length);
     rc = FT_Load_Sfnt_Table(face, 0, 0, reinterpret_cast<FT_Byte*>(buffer->data()), &length);
     if (rc != 0)
         goto Error;
@@ -418,10 +418,10 @@ Error:
 
 #if defined(_WIN32) && defined(PDFMM_HAVE_WIN32GDI)
 
-unique_ptr<chars> getFontData(const LOGFONTW& inFont)
+unique_ptr<charbuff> getFontData(const LOGFONTW& inFont)
 {
     bool success = false;
-    chars buffer;
+    charbuff buffer;
     HDC hdc = ::CreateCompatibleDC(nullptr);
     HFONT hf = CreateFontIndirectW(&inFont);
     if (hf != nullptr)
@@ -432,12 +432,12 @@ unique_ptr<chars> getFontData(const LOGFONTW& inFont)
     ReleaseDC(0, hdc);
 
     if (success)
-        return std::make_unique<chars>(std::move(buffer));
+        return std::make_unique<charbuff>(std::move(buffer));
     else
         return nullptr;
 }
 
-bool getFontData(chars& buffer, HDC hdc, HFONT hf)
+bool getFontData(charbuff& buffer, HDC hdc, HFONT hf)
 {
     HGDIOBJ oldFont = SelectObject(hdc, hf);
     bool sucess = false;
@@ -456,14 +456,14 @@ bool getFontData(chars& buffer, HDC hdc, HFONT hf)
         }
         else
         {
-            chars fileBuffer(fileLen);
+            charbuff fileBuffer(fileLen);
             if (GetFontData(hdc, ttcf_const, 0, fileBuffer.data(), fileLen) == GDI_ERROR)
             {
                 sucess = false;
                 goto Exit;
             }
 
-            chars ttcBuffer(ttcLen);
+            charbuff ttcBuffer(ttcLen);
             if (GetFontData(hdc, 0, 0, ttcBuffer.data(), ttcLen) == GDI_ERROR)
             {
                 sucess = false;
@@ -484,7 +484,7 @@ Exit:
 // This function will recieve the device context for the
 // TrueType Collection font, it will then extract necessary,
 // tables and create the correct buffer.
-void getFontDataTTC(chars& buffer, const chars& fileBuffer, const chars& ttcBuffer)
+void getFontDataTTC(charbuff& buffer, const charbuff& fileBuffer, const charbuff& ttcBuffer)
 {
     uint16_t numTables = FROM_BIG_ENDIAN(*(uint16_t*)(ttcBuffer.data() + 4));
     unsigned outLen = 12 + 16 * numTables;

@@ -231,7 +231,7 @@ void PdfFontMetricsStandard14::GetBoundingBox(std::vector<double>& bbox) const
     bbox.push_back(m_data.BBox.GetHeight() / 1000.0);
 }
 
-cspan<char> PdfFontMetricsStandard14::GetFontFileData() const
+bufferview PdfFontMetricsStandard14::GetFontFileData() const
 {
     return mm::GetStandard14FontFileData(m_Std14FontType);
 }

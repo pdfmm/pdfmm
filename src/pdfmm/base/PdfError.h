@@ -11,12 +11,8 @@
 
 // NOTE: PdfError.h should not include PdfDeclarations.h, since it is included by it.
 // It should avoid depending on anything defined in PdfDeclarations.h .
-#include "pdfmmdefs.h"
-
-#include <queue>
-#include <functional>
-
-#include "PdfFormat.h"
+#include "basedefs.h"
+#include "baseincludes.h"
 
 /** \file PdfError.h
  *  Error information and logging is implemented in this file.
@@ -131,7 +127,7 @@ enum class PdfLogSeverity
  *  output by PdfError::PrintErrorMsg().
  *  msg can be a C string, but can also be a C++ std::string.
  */
-#define PDFMM_RAISE_ERROR_INFO(code, msg, ...) throw ::mm::PdfError(code, __FILE__, __LINE__, PDFMM_FORMAT(msg, ##__VA_ARGS__))
+#define PDFMM_RAISE_ERROR_INFO(code, msg, ...) throw ::mm::PdfError(code, __FILE__, __LINE__, COMMON_FORMAT(msg, ##__VA_ARGS__))
 
  /** \def PDFMM_PUSH_FRAME(err, msg)
   *
@@ -143,7 +139,7 @@ enum class PdfLogSeverity
    *
    * Add frame to error callastack with msg information
    */
-#define PDFMM_PUSH_FRAME_INFO(err, msg, ...) err.AddToCallstack(__FILE__, __LINE__, PDFMM_FORMAT(msg, ##__VA_ARGS__))
+#define PDFMM_PUSH_FRAME_INFO(err, msg, ...) err.AddToCallstack(__FILE__, __LINE__, COMMON_FORMAT(msg, ##__VA_ARGS__))
 
 /** \def PDFMM_PUSH_FRAME(err, msg)
  *
@@ -152,7 +148,7 @@ enum class PdfLogSeverity
  */
 #define PDFMM_RAISE_LOGIC_IF(cond, msg, ...) {\
     if (cond)\
-        throw ::mm::PdfError(PdfErrorCode::InternalLogic, __FILE__, __LINE__, PDFMM_FORMAT(msg, ##__VA_ARGS__));\
+        throw ::mm::PdfError(PdfErrorCode::InternalLogic, __FILE__, __LINE__, COMMON_FORMAT(msg, ##__VA_ARGS__));\
 };
 
 class PDFMM_API PdfErrorInfo
@@ -304,7 +300,7 @@ public:
     template <typename... Args>
     static void LogMessage(PdfLogSeverity logSeverity, const std::string_view& msg, const Args&... args)
     {
-        LogMessage(logSeverity, PDFMM_FORMAT(msg, args...));
+        LogMessage(logSeverity, COMMON_FORMAT(msg, args...));
     }
 
     /** Set the maximum logging severity.

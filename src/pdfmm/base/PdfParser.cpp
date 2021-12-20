@@ -76,7 +76,7 @@ private:
 };
 
 PdfParser::PdfParser(PdfIndirectObjectList& objects) :
-    m_buffer(std::make_shared<chars>(PdfTokenizer::BufferSize)),
+    m_buffer(std::make_shared<charbuff>(PdfTokenizer::BufferSize)),
     m_tokenizer(m_buffer, true),
     m_Objects(&objects),
     m_StrictParsing(false)
@@ -122,7 +122,7 @@ void PdfParser::ParseFile(const string_view& filename, bool loadOnDemand)
     this->Parse(device, loadOnDemand);
 }
 
-void PdfParser::ParseBuffer(const cspan<char>& buffer, bool loadOnDemand)
+void PdfParser::ParseBuffer(const bufferview& buffer, bool loadOnDemand)
 {
     if (buffer.size() == 0)
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
@@ -317,7 +317,7 @@ void PdfParser::HasLinearizationDict(const shared_ptr<PdfInputDevice>& device)
     // on smaller files, but jumping to the end is against the idea
     // of linearized PDF. Therefore just check if we read anything.
     constexpr streamoff MAX_READ = 1024;
-    chars linearizeBuffer(MAX_READ);
+    charbuff linearizeBuffer(MAX_READ);
 
     streamoff size = device->Read(linearizeBuffer.data(),
         linearizeBuffer.size());

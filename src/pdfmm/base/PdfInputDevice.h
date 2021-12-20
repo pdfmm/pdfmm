@@ -152,7 +152,7 @@ public:
      *  The buffer is temporarily binded
      */
     PdfMemoryInputDevice(const char* buffer, size_t len);
-    PdfMemoryInputDevice(const cspan<char>& buffer);
+    PdfMemoryInputDevice(const bufferview& buffer);
 };
 
 class PDFMM_API PdfObjectStreamInputDevice final : public PdfStreamInputDevice
@@ -160,7 +160,7 @@ class PDFMM_API PdfObjectStreamInputDevice final : public PdfStreamInputDevice
 public:
     PdfObjectStreamInputDevice(const PdfObjectStream& stream);
 private:
-    chars m_buffer;
+    charbuff m_buffer;
 };
 
 };
