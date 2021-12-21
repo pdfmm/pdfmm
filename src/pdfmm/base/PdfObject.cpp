@@ -103,11 +103,9 @@ PdfObject::PdfObject(const PdfObject& rhs)
 // Also don't move reference
 PdfObject::PdfObject(PdfObject&& rhs) noexcept :
     m_Variant(std::move(rhs.m_Variant)),
-    m_Document(nullptr),
-    m_Parent(nullptr),
-    m_IsDirty(false),
-    m_IsDelayedLoadDone(true)
+    m_IsDirty(false)
 {
+    initObject();
     SetVariantOwner();
     moveStreamFrom(rhs);
 }
@@ -193,9 +191,9 @@ void PdfObject::initObject()
 {
     m_Document = nullptr;
     m_Parent = nullptr;
+    // By default delayed load is disabled
     m_IsDelayedLoadDone = true;
-    m_DelayedLoadStreamDone = true;
-    m_Stream = nullptr;
+    m_IsDelayedLoadStreamDone = true;
 }
 
 void PdfObject::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
@@ -329,10 +327,10 @@ void PdfObject::DelayedLoadStream() const
 
 void PdfObject::delayedLoadStream() const
 {
-    if (!m_DelayedLoadStreamDone)
+    if (!m_IsDelayedLoadStreamDone)
     {
         const_cast<PdfObject&>(*this).DelayedLoadStreamImpl();
-        m_DelayedLoadStreamDone = true;
+        m_IsDelayedLoadStreamDone = true;
     }
 }
 
@@ -358,27 +356,22 @@ void PdfObject::copyStreamFrom(const PdfObject& obj)
     // NOTE: Don't call rhs.DelayedLoad() here. It's implicitly
     // called in PdfVariant assignment or copy constructor
     obj.delayedLoadStream();
-
     if (obj.m_Stream != nullptr)
     {
         auto& stream = getOrCreateStream();
         stream = *obj.m_Stream;
     }
-
-    // Assume the delayed load of the stream is performed
-    m_DelayedLoadStreamDone = true;
 }
 
 void PdfObject::moveStreamFrom(PdfObject& obj)
 {
     obj.DelayedLoadStream();
     m_Stream = std::move(obj.m_Stream);
-    m_IsDelayedLoadDone = true;
 }
 
 void PdfObject::EnableDelayedLoadingStream()
 {
-    m_DelayedLoadStreamDone = false;
+    m_IsDelayedLoadStreamDone = false;
 }
 
 void PdfObject::DelayedLoadStreamImpl()
@@ -412,6 +405,7 @@ void PdfObject::assign(const PdfObject& rhs)
     m_IsDelayedLoadDone = true;
     SetVariantOwner();
     copyStreamFrom(rhs);
+    m_IsDelayedLoadStreamDone = true;
 }
 
 // NOTE: Don't move parent document/container and indirect reference.
@@ -423,6 +417,7 @@ void PdfObject::moveFrom(PdfObject& rhs)
     m_IsDelayedLoadDone = true;
     SetVariantOwner();
     moveStreamFrom(rhs);
+    m_IsDelayedLoadStreamDone = true;
 }
 
 void PdfObject::ResetDirty()

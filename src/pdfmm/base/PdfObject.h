@@ -539,7 +539,7 @@ private:
     bool m_IsDirty; // Indicates if this object was modified after construction
 
     mutable bool m_IsDelayedLoadDone;
-    mutable bool m_DelayedLoadStreamDone;
+    mutable bool m_IsDelayedLoadStreamDone;
     std::unique_ptr<PdfObjectStream> m_Stream;
     // Tracks whether deferred loading is still pending (in which case it'll be
     // false). If true, deferred loading is not required or has been completed.
