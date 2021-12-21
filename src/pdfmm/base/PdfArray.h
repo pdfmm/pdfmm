@@ -231,6 +231,10 @@ public:
      */
     const_reverse_iterator rend() const;
 
+    void resize(size_t size);
+
+    void reserve(size_t size);
+
     iterator insert(const iterator& pos, const PdfObject& obj);
     iterator insert(const iterator& pos, PdfObject&& obj);
 

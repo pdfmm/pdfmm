@@ -10,6 +10,7 @@
 #include "PdfArray.h"
 #include "PdfOutputDevice.h"
 
+using namespace std;
 using namespace mm;
 
 PdfArray::PdfArray() { }
@@ -348,6 +349,24 @@ PdfArray::reverse_iterator PdfArray::rend()
 PdfArray::const_reverse_iterator PdfArray::rend() const
 {
     return m_Objects.rend();
+}
+
+void PdfArray::resize(size_t size)
+{
+#ifndef NDEBUG
+    if (size > numeric_limits<unsigned>::max())
+        throw length_error("Too big size");
+#endif
+    m_Objects.resize(size);
+}
+
+void PdfArray::reserve(size_t size)
+{
+#ifndef NDEBUG
+    if (size > numeric_limits<unsigned>::max())
+        throw length_error("Too big size");
+#endif
+    m_Objects.reserve(size);
 }
 
 PdfObject& PdfArray::front()

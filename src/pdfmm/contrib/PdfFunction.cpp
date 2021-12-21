@@ -74,8 +74,7 @@ PdfStitchingFunction::PdfStitchingFunction(PdfDocument& doc, const PdfFunction::
 void PdfStitchingFunction::Init(const PdfFunction::List& functions, const PdfArray& bounds, const PdfArray& encode)
 {
     PdfArray functionsArr;
-
-    functionsArr.Reserve(functions.size());
+    functionsArr.reserve(functions.size());
 
     for (auto& fun : functions)
         functionsArr.Add(fun.GetObject().GetIndirectReference());

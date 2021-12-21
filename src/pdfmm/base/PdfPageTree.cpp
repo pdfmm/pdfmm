@@ -390,7 +390,7 @@ void PdfPageTree::InsertPagesIntoNode(PdfObject& parent, const PdfObjectList& pa
     // 1. Add reference
     const PdfArray oldKids = parent.GetDictionary().MustFindKey("Kids").GetArray();
     PdfArray newKids;
-    newKids.Reserve(oldKids.GetSize() + pages.size());
+    newKids.reserve(oldKids.GetSize() + pages.size());
 
     bool isPushedIn = false;
     int i = 0;
