@@ -137,6 +137,12 @@ namespace utls
     // Append the unicode code point to a big endian encoded utf16 string
     void WriteToUtf16BE(std::u16string& str, char32_t codePoint, bool clear = true);
 
+    void ReadUtf16BEString(const mm::bufferview& buffer, std::string& utf8str);
+
+    void ReadUtf16LEString(const mm::bufferview& buffer, std::string& utf8str);
+
+    void ByteSwap(std::u16string& str);
+
     // https://stackoverflow.com/a/38140932/213871
     inline void hash_combine(std::size_t& seed)
     {

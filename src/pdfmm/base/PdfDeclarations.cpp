@@ -8,6 +8,7 @@
 
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include <utfcpp/utf8.h>
+#include <pdfmm/private/utfcpp_extensions.h>
 
 #include "PdfInputDevice.h"
 #include "PdfOutputDevice.h"
@@ -190,11 +191,32 @@ void utls::WriteToUtf16BE(u16string& str, char32_t codePoint, bool clear)
     // utfcpp to avoit conversion to utf8 first
     string u8str;
     utf8::append(codePoint, u8str);
-    u16string u16str = utf8::utf8to16(u8str, utf8::endianess::big_endian);
+    u16string u16str = utf8::utf8to16(u8str);
+#ifdef PDFMM_IS_LITTLE_ENDIAN
+    ByteSwap(u16str);
+#endif
     if (clear)
         str = std::move(u16str);
     else
         str.append(u16str.data(), u16str.length());
+}
+
+void utls::ReadUtf16BEString(const bufferview& buffer, string& utf8str)
+{
+    utf8::u16bechariterable iterable(buffer.data(), buffer.size());
+    utf8::utf16to8(iterable.begin(), iterable.end(), std::back_inserter(utf8str));
+}
+
+void utls::ReadUtf16LEString(const bufferview& buffer, string& utf8str)
+{
+    utf8::u16lechariterable iterable(buffer.data(), buffer.size());
+    utf8::utf16to8(iterable.begin(), iterable.end(), std::back_inserter(utf8str));
+}
+
+void utls::ByteSwap(u16string& str)
+{
+    for (unsigned i = 0; i < str.length(); i++)
+        str[i] = (char16_t)mm::compat::ByteSwap((uint16_t)str[i]);
 }
 
 #ifdef _WIN32

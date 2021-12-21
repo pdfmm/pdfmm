@@ -247,10 +247,7 @@ vector<char32_t> handleStringMapping(const PdfString& str)
 {
     auto& rawdata = str.GetRawData();
     string utf8;
-    utf8::utf16to8(utf8::endianess::big_endian,
-        (const char16_t*)rawdata.data(), (const char16_t*)(rawdata.data() + rawdata.size()),
-        std::back_inserter(utf8));
-
+    utls::ReadUtf16BEString(rawdata, utf8);
     return handleUtf8String(utf8);
 }
 

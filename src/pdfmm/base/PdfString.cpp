@@ -9,8 +9,6 @@
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfString.h"
 
-#include <utfcpp/utf8.h>
-
 #include "PdfEncrypt.h"
 #include "PdfPredefinedEncoding.h"
 #include "PdfEncodingFactory.h"
@@ -309,9 +307,7 @@ void PdfString::evaluateString() const
                     // Remove BOM and decode utf-16 string
                     string utf8;
                     auto view = string_view(m_data->Chars).substr(2);
-                    utf8::utf16to8(utf8::endianess::big_endian,
-                        (const char16_t*)view.data(), (const char16_t*)(view.data() + view.size()),
-                        std::back_inserter(utf8));
+                    utls::ReadUtf16BEString(view, utf8);
                     utf8.swap(m_data->Chars);
                     m_data->State = StringState::Unicode;
                     break;
@@ -321,9 +317,7 @@ void PdfString::evaluateString() const
                     // Remove BOM and decode utf-16 string
                     string utf8;
                     auto view = string_view(m_data->Chars).substr(2);
-                    utf8::utf16to8(utf8::endianess::little_endian,
-                        (const char16_t*)view.data(), (const char16_t*)(view.data() + view.size()),
-                        std::back_inserter(utf8));
+                    utls::ReadUtf16LEString(view, utf8);
                     utf8.swap(m_data->Chars);
                     m_data->State = StringState::Unicode;
                     break;

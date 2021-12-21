@@ -32,25 +32,6 @@ DEALINGS IN THE SOFTWARE.
 
 namespace utf8
 {
-    namespace internal
-    {
-        // Perform a runtime check to determine if byte swap is required
-        // with the given endianess hint (doesn't throw)
-        inline bool is_byte_swap_required_no_except(endianess hint) UTF_CPP_NOEXCEPT
-        {
-            int i = 1;
-            switch (hint)
-            {
-            case little_endian:
-                return *((char*)&i) == 0;
-            case big_endian:
-                return *((char*)&i) == 1;
-            default:
-                return false;
-            }
-        }
-    }
-
     namespace unchecked
     {
         template <typename octet_iterator>
@@ -83,21 +64,21 @@ namespace utf8
                 octet_iterator sequence_start = start;
                 internal::utf_error err_code = utf8::internal::validate_next(start, end);
                 switch (err_code) {
-                    case internal::utf8_ok:
+                    case internal::UTF8_OK :
                         for (octet_iterator it = sequence_start; it != start; ++it)
                             *out++ = *it;
                         break;
-                    case internal::not_enough_room:
+                    case internal::NOT_ENOUGH_ROOM:
                         out = utf8::unchecked::append (replacement, out);
                         start = end;
                         break;
-                    case internal::invalid_lead:
+                    case internal::INVALID_LEAD:
                         out = utf8::unchecked::append (replacement, out);
                         ++start;
                         break;
-                    case internal::incomplete_sequence:
-                    case internal::overlong_sequence:
-                    case internal::invalid_code_point:
+                    case internal::INCOMPLETE_SEQUENCE:
+                    case internal::OVERLONG_SEQUENCE:
+                    case internal::INVALID_CODE_POINT:
                         out = utf8::unchecked::append (replacement, out);
                         ++start;
                         // just one replacement mark for the sequence
@@ -186,14 +167,14 @@ namespace utf8
             return dist;
         }
 
-        template <typename swap_handler, typename u16bit_iterator, typename octet_iterator>
-        octet_iterator utf16to8_unchecked(u16bit_iterator start, u16bit_iterator end, octet_iterator result)
+        template <typename u16bit_iterator, typename octet_iterator>
+        octet_iterator utf16to8 (u16bit_iterator start, u16bit_iterator end, octet_iterator result)
         {
             while (start != end) {
-                uint32_t cp = HANDLE_U16C(swap_handler, *start++);
-                // Take care of surrogate pairs first
+                uint32_t cp = utf8::internal::mask16(*start++);
+            // Take care of surrogate pairs first
                 if (utf8::internal::is_lead_surrogate(cp)) {
-                    uint32_t trail_surrogate = HANDLE_U16C(swap_handler, *start++);
+                    uint32_t trail_surrogate = utf8::internal::mask16(*start++);
                     cp = (cp << 10) + trail_surrogate + internal::SURROGATE_OFFSET;
                 }
                 result = utf8::unchecked::append(cp, result);
@@ -201,61 +182,19 @@ namespace utf8
             return result;
         }
 
-        template <typename swap_handler, typename u16bit_iterator, typename octet_iterator>
-        u16bit_iterator utf8to16_unchecked(octet_iterator start, octet_iterator end, u16bit_iterator result)
+        template <typename u16bit_iterator, typename octet_iterator>
+        u16bit_iterator utf8to16 (octet_iterator start, octet_iterator end, u16bit_iterator result)
         {
             while (start < end) {
                 uint32_t cp = utf8::unchecked::next(start);
                 if (cp > 0xffff) { //make a surrogate pair
-                    *result++ = HANDLE_U16C(swap_handler, (cp >> 10) + internal::LEAD_OFFSET);
-                    *result++ = HANDLE_U16C(swap_handler, (cp & 0x3ff) + internal::TRAIL_SURROGATE_MIN);
+                    *result++ = static_cast<uint16_t>((cp >> 10)   + internal::LEAD_OFFSET);
+                    *result++ = static_cast<uint16_t>((cp & 0x3ff) + internal::TRAIL_SURROGATE_MIN);
                 }
                 else
-                    *result++ = HANDLE_U16C(swap_handler, cp);
+                    *result++ = static_cast<uint16_t>(cp);
             }
             return result;
-        }
-
-        template <typename u16bit_iterator, typename octet_iterator>
-        octet_iterator utf16to8(u16bit_iterator start, u16bit_iterator end, octet_iterator result)
-        {
-            return utf16to8_unchecked<unswapped>(start, end, result);
-        }
-
-        template <typename u16bit_iterator, typename octet_iterator>
-        octet_iterator utf16to8 (bool swapbytes, u16bit_iterator start, u16bit_iterator end, octet_iterator result)
-        {
-            if (swapbytes)
-                return utf16to8_unchecked<swapped>(start, end, result);
-            else
-                return utf16to8_unchecked<unswapped>(start, end, result);
-        }
-
-        template <typename u16bit_iterator, typename octet_iterator>
-        octet_iterator utf16to8(endianess hint, u16bit_iterator start, u16bit_iterator end, octet_iterator result)
-        {
-            return utf16to8(internal::is_byte_swap_required_no_except(hint), start, end, result);
-        }
-
-        template <typename u16bit_iterator, typename octet_iterator>
-        u16bit_iterator utf8to16 (bool swapbytes, octet_iterator start, octet_iterator end, u16bit_iterator result)
-        {
-            if (swapbytes)
-                return utf8to16_unchecked<swapped>(start, end, result);
-            else
-                return utf8to16_unchecked<unswapped>(start, end, result);
-        }
-
-        template <typename u16bit_iterator, typename octet_iterator>
-        u16bit_iterator utf8to16(octet_iterator start, octet_iterator end, u16bit_iterator result)
-        {
-            return utf8to16_unchecked<unswapped>(start, end, result);
-        }
-
-        template <typename u16bit_iterator, typename octet_iterator>
-        u16bit_iterator utf8to16(endianess hint, octet_iterator start, octet_iterator end, u16bit_iterator result)
-        {
-            return utf8to16(internal::is_byte_swap_required_no_except(hint), start, end, result);
         }
 
         template <typename octet_iterator, typename u32bit_iterator>
