@@ -17,8 +17,13 @@ namespace utf8
         u16beoctetiterable(const ByteT* buffer, size_t size, bool checked = true)
             : m_buffer(buffer), m_size(size)
         {
-            if (checked && size % sizeof(uint16_t) == 1)
-                throw std::length_error("Invalid utf16 span");
+            if (size % sizeof(uint16_t) == 1)
+            {
+                if (checked)
+                    throw std::range_error("Invalid utf16 range");
+                else
+                    m_size -= 1;
+            }
         }
 
     public:
@@ -90,8 +95,13 @@ namespace utf8
         u16leoctetiterable(const ByteT* buffer, size_t size, bool checked = true)
             : m_buffer(buffer), m_size(size)
         {
-            if (checked && size % sizeof(uint16_t) == 1)
-                throw std::length_error("Invalid utf16 span");
+            if (size % sizeof(uint16_t) == 1)
+            {
+                if (checked)
+                    throw std::range_error("Invalid utf16 range");
+                else
+                    m_size -= 1;
+            }
         }
 
     public:
