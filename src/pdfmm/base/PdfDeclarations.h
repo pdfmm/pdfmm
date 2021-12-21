@@ -132,11 +132,11 @@ enum class PdfWriteMode
 {
     None = 0,
     Clean = 1,             ///< Create a PDF that is readable in a text editor, i.e. insert spaces and linebreaks between tokens
+    NoInlineLiteral = 2,   ///< Don't write spaces before literal types (numerical, references, null)
 
     // NOTE: The following flags are actually never set but
     // they are kept for documenting some PDF peculiarities
     // when writing compact code
-    NoInlineLiteral = 2,   ///< Don't write spaces before literal types (numerical, references, null)
     NoPDFAPreserve = 4,    ///< When writing compact (PdfWriteMode::Clean is unset) code, preserving PDF/A compliance is not required
 };
 

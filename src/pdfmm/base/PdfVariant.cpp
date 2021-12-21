@@ -161,31 +161,25 @@ void PdfVariant::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
             if ((writeMode & PdfWriteMode::NoInlineLiteral) == PdfWriteMode::None)
                 device.Put(' '); // Write space before numbers
 
-            // Use ostringstream, so that locale does not matter
-            ostringstream oss;
-            PdfLocaleImbue(oss);
-            oss << std::fixed << m_Data.Real;
-            string copy = oss.str();
-            size_t len = copy.size();
+            string formatted;
+            cmn::FormatTo(formatted, "{:f}", m_Data.Real);
 
-            if ((writeMode & PdfWriteMode::NoInlineLiteral) == PdfWriteMode::None &&
-                copy.find('.') != string::npos)
+            // Remove trailing zeroes
+            const char* str = formatted.data();
+            size_t len = formatted.size();
+            while (str[len - 1] == '0')
+                len--;
+
+            if (str[len - 1] == '.')
+                len--;
+
+            if (len == 0)
             {
-                const char* str = copy.c_str();
-                while (str[len - 1] == '0')
-                    len--;
-
-                if (str[len - 1] == '.')
-                    len--;
-
-                if (len == 0)
-                {
-                    device.Put('0');
-                    break;
-                }
+                device.Put('0');
+                break;
             }
 
-            device.Write(string_view(copy.c_str(), len));
+            device.Write(string_view(formatted.data(), len));
             break;
         }
         case PdfDataType::Reference:
