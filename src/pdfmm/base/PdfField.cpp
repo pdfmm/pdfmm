@@ -259,10 +259,13 @@ void PdfField::AssertTerminalField() const
 
 void PdfField::SetFieldFlag(int64_t value, bool set)
 {
+    // Retrieve parent field flags
+    // CHECK-ME: It seems this semantics is not honored in all cases,
+    // example for CheckBoxesRadioButton (s)
     int64_t curr = 0;
-
-    if (GetDictionary().HasKey("Ff"))
-        curr = GetDictionary().MustFindKey("Ff").GetNumber();
+    auto fieldFlagsObj = GetDictionary().FindKeyParent("Ff");
+    if (fieldFlagsObj != nullptr)
+        curr = fieldFlagsObj->GetNumber();
 
     if (set)
     {
@@ -494,32 +497,32 @@ void PdfField::AddAlternativeAction(const PdfName& name, const PdfAction& action
 
 void PdfField::SetReadOnly(bool readOnly)
 {
-    this->SetFieldFlag(static_cast<int>(PdfFieldFlags::ReadOnly), readOnly);
+    this->SetFieldFlag(static_cast<int64_t>(PdfFieldFlags::ReadOnly), readOnly);
 }
 
 bool PdfField::IsReadOnly() const
 {
-    return this->GetFieldFlag(static_cast<int>(PdfFieldFlags::ReadOnly), false);
+    return this->GetFieldFlag(static_cast<int64_t>(PdfFieldFlags::ReadOnly), false);
 }
 
 void PdfField::SetRequired(bool required)
 {
-    this->SetFieldFlag(static_cast<int>(PdfFieldFlags::Required), required);
+    this->SetFieldFlag(static_cast<int64_t>(PdfFieldFlags::Required), required);
 }
 
 bool PdfField::IsRequired() const
 {
-    return this->GetFieldFlag(static_cast<int>(PdfFieldFlags::Required), false);
+    return this->GetFieldFlag(static_cast<int64_t>(PdfFieldFlags::Required), false);
 }
 
 void PdfField::SetNoExport(bool exprt)
 {
-    this->SetFieldFlag(static_cast<int>(PdfFieldFlags::NoExport), exprt);
+    this->SetFieldFlag(static_cast<int64_t>(PdfFieldFlags::NoExport), exprt);
 }
 
 bool PdfField::IsNoExport() const
 {
-    return this->GetFieldFlag(static_cast<int>(PdfFieldFlags::NoExport), false);
+    return this->GetFieldFlag(static_cast<int64_t>(PdfFieldFlags::NoExport), false);
 }
 
 PdfPage* PdfField::GetPage() const
