@@ -41,7 +41,7 @@ void PdfFontSimple::getWidthsArray(PdfArray& arr) const
     }
 
     arr.Clear();
-    arr.resize(widths.size());
+    arr.reserve(widths.size());
 
     auto matrix = m_Metrics->GetMatrix();
     for (unsigned i = 0; i < widths.size(); i++)
