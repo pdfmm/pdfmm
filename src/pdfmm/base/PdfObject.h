@@ -234,11 +234,13 @@ public:
      */
     const PdfString& GetString() const;
     bool TryGetString(PdfString& str) const;
+    bool TryGetString(const PdfString*& str) const;
 
     /** \returns the value of the object as name
      */
     const PdfName& GetName() const;
-    bool TryGetName(PdfName& str) const;
+    bool TryGetName(PdfName& name) const;
+    bool TryGetName(const PdfName*& name) const;
 
     /** Get the reference values of this object.
      *  \returns a PdfReference

@@ -52,7 +52,7 @@ struct PdfContent
     std::string_view Keyword;
     PdfDictionary InlineImageDictionary;
     charbuff InlineImageData;
-    PdfName Name;
+    const PdfName* Name = nullptr;
     std::shared_ptr<const PdfXObject> XObject;
 };
 

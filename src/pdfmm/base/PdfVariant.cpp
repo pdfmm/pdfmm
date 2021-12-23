@@ -620,6 +620,11 @@ bool PdfVariant::TryGetString(PdfString& str) const
     return true;
 }
 
+bool PdfVariant::TryGetString(const PdfString*& str) const
+{
+    return tryGetString(str);
+}
+
 bool PdfVariant::tryGetString(const PdfString*& str) const
 {
     if (m_DataType != PdfDataType::String)
@@ -652,6 +657,11 @@ bool PdfVariant::TryGetName(PdfName& name) const
 
     name = *ret;
     return true;
+}
+
+bool PdfVariant::TryGetName(const PdfName*& name) const
+{
+    return tryGetName(name);
 }
 
 bool PdfVariant::tryGetName(const PdfName*& name) const

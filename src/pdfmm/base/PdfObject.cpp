@@ -585,6 +585,12 @@ bool PdfObject::TryGetString(PdfString& str) const
     return m_Variant.TryGetString(str);
 }
 
+bool PdfObject::TryGetString(const PdfString*& str) const
+{
+    DelayedLoad();
+    return m_Variant.TryGetString(str);
+}
+
 const PdfName& PdfObject::GetName() const
 {
     DelayedLoad();
@@ -592,6 +598,12 @@ const PdfName& PdfObject::GetName() const
 }
 
 bool PdfObject::TryGetName(PdfName& name) const
+{
+    DelayedLoad();
+    return m_Variant.TryGetName(name);
+}
+
+bool PdfObject::TryGetName(const PdfName*& name) const
 {
     DelayedLoad();
     return m_Variant.TryGetName(name);
