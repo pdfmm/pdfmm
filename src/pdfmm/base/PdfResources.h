@@ -23,15 +23,14 @@ public:
 
 public:
     void AddResource(const PdfName& type, const PdfName& key, const PdfObject* obj);
-    PdfDictionaryIndirectIterable GetResourceIterator(const PdfName& type);
-    PdfDictionaryConstIndirectIterable GetResourceIterator(const PdfName& type) const;
-    void RemoveResource(const PdfName& type, const PdfName& key);
-
-    PdfObject* GetResource(const PdfName& type, const PdfName& key);
-    const PdfObject* GetResource(const PdfName& type, const PdfName& key) const;
+    PdfDictionaryIndirectIterable GetResourceIterator(const std::string_view& type);
+    PdfDictionaryConstIndirectIterable GetResourceIterator(const std::string_view& type) const;
+    void RemoveResource(const std::string_view& type, const std::string_view& key);
+    PdfObject* GetResource(const std::string_view& type, const std::string_view& key);
+    const PdfObject* GetResource(const std::string_view& type, const std::string_view& key) const;
 private:
-    PdfObject* getResource(const PdfName& type, const PdfName& key) const;
-    bool tryGetDictionary(const PdfName& type, PdfDictionary*& dict) const;
+    PdfObject* getResource(const std::string_view& type, const std::string_view& key) const;
+    bool tryGetDictionary(const std::string_view& type, PdfDictionary*& dict) const;
 };
 
 };

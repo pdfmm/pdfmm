@@ -297,6 +297,11 @@ bool PdfName::operator<(const PdfName& rhs) const
     return this->m_data->Chars < rhs.m_data->Chars;
 }
 
+PdfName::operator string_view() const
+{
+    return m_data->Chars;
+}
+
 /**
  * This function writes a hex encoded representation of the character
  * `ch' to `buf', advancing the iterator by two steps.

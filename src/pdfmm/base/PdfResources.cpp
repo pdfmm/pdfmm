@@ -19,9 +19,10 @@ PdfResources::PdfResources(PdfDictionary& dict)
 
 void PdfResources::AddResource(const PdfName& type, const PdfName& key, const PdfObject* obj)
 {
+    // TODO: Create the dictionary on demand
     PdfDictionary* dict;
     if (!tryGetDictionary(type, dict))
-        return;
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     if (obj == nullptr)
         dict->RemoveKey(key);
@@ -29,7 +30,7 @@ void PdfResources::AddResource(const PdfName& type, const PdfName& key, const Pd
         dict->AddKeyIndirect(key, obj);
 }
 
-PdfDictionaryIndirectIterable PdfResources::GetResourceIterator(const PdfName& type)
+PdfDictionaryIndirectIterable PdfResources::GetResourceIterator(const string_view& type)
 {
     PdfDictionary* dict;
     if (!tryGetDictionary(type, dict))
@@ -38,7 +39,7 @@ PdfDictionaryIndirectIterable PdfResources::GetResourceIterator(const PdfName& t
     return dict->GetIndirectIterator();
 }
 
-PdfDictionaryConstIndirectIterable PdfResources::GetResourceIterator(const PdfName& type) const
+PdfDictionaryConstIndirectIterable PdfResources::GetResourceIterator(const string_view& type) const
 {
     PdfDictionary* dict;
     if (!tryGetDictionary(type, dict))
@@ -47,7 +48,7 @@ PdfDictionaryConstIndirectIterable PdfResources::GetResourceIterator(const PdfNa
     return((const PdfDictionary&)*dict).GetIndirectIterator();
 }
 
-void PdfResources::RemoveResource(const PdfName& type, const PdfName& key)
+void PdfResources::RemoveResource(const string_view& type, const string_view& key)
 {
     PdfDictionary* dict;
     if (!tryGetDictionary(type, dict))
@@ -56,17 +57,17 @@ void PdfResources::RemoveResource(const PdfName& type, const PdfName& key)
     dict->RemoveKey(key);
 }
 
-PdfObject* PdfResources::GetResource(const PdfName& type, const PdfName& key)
+PdfObject* PdfResources::GetResource(const string_view& type, const string_view& key)
 {
     return getResource(type, key);
 }
 
-const PdfObject* PdfResources::GetResource(const PdfName& type, const PdfName& key) const
+const PdfObject* PdfResources::GetResource(const string_view& type, const string_view& key) const
 {
     return getResource(type, key);
 }
 
-PdfObject* PdfResources::getResource(const PdfName& type, const PdfName& key) const
+PdfObject* PdfResources::getResource(const string_view& type, const string_view& key) const
 {
     PdfDictionary* dict;
     auto typeObj = const_cast<PdfResources&>(*this).GetDictionary().FindKey(type);
@@ -76,7 +77,7 @@ PdfObject* PdfResources::getResource(const PdfName& type, const PdfName& key) co
     return dict->FindKey(key);
 }
 
-bool PdfResources::tryGetDictionary(const PdfName& type, PdfDictionary*& dict) const
+bool PdfResources::tryGetDictionary(const string_view& type, PdfDictionary*& dict) const
 {
     auto typeObj = const_cast<PdfResources&>(*this).GetDictionary().FindKey(type);
     if (typeObj == nullptr)

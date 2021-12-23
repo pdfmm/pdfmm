@@ -107,12 +107,12 @@ PdfObject& PdfDictionary::addKey(const PdfName& key, PdfObject&& obj)
     return added.first->second;
 }
 
-pair<PdfDictionaryMap::iterator, bool> PdfDictionary::AddKey(const PdfName& identifier, PdfObject&& obj, bool noDirtySet)
+pair<PdfDictionaryMap::iterator, bool> PdfDictionary::AddKey(const PdfName& key, PdfObject&& obj, bool noDirtySet)
 {
     // NOTE: Empty PdfNames are legal according to the PDF specification.
     // Don't check for it
 
-    pair<PdfDictionaryMap::iterator, bool> inserted = m_Map.try_emplace(identifier, std::move(obj));
+    pair<PdfDictionaryMap::iterator, bool> inserted = m_Map.try_emplace(key, std::move(obj));
     if (!inserted.second)
     {
         if (noDirtySet)
@@ -125,11 +125,10 @@ pair<PdfDictionaryMap::iterator, bool> PdfDictionary::AddKey(const PdfName& iden
     return inserted;
 }
 
-PdfObject* PdfDictionary::getKey(const PdfName& key) const
+PdfObject* PdfDictionary::getKey(const string_view& key) const
 {
-    if (key.IsNull())
-        return nullptr;
-
+    // NOTE: Empty PdfNames are legal according to the PDF,
+    // specification don't check for it
     auto it = m_Map.find(key);
     if (it == m_Map.end())
         return nullptr;
@@ -137,7 +136,7 @@ PdfObject* PdfDictionary::getKey(const PdfName& key) const
     return &const_cast<PdfObject&>(it->second);
 }
 
-PdfObject* PdfDictionary::findKey(const PdfName& key) const
+PdfObject* PdfDictionary::findKey(const string_view& key) const
 {
     PdfObject* obj = getKey(key);
     if (obj == nullptr)
@@ -151,7 +150,7 @@ PdfObject* PdfDictionary::findKey(const PdfName& key) const
     return nullptr;
 }
 
-PdfObject* PdfDictionary::findKeyParent(const PdfName& key) const
+PdfObject* PdfDictionary::findKeyParent(const string_view& key) const
 {
     PdfObject* obj = findKey(key);
     if (obj == nullptr)
@@ -175,16 +174,16 @@ PdfObject* PdfDictionary::findKeyParent(const PdfName& key) const
     }
 }
 
-bool PdfDictionary::HasKey(const PdfName& key) const
+bool PdfDictionary::HasKey(const string_view& key) const
 {
-    // NOTE: Empty PdfNames are legal according to the PDF specification,
-    // don't check for it
+    // NOTE: Empty PdfNames are legal according to the PDF,
+    // specification don't check for it
     return m_Map.find(key) != m_Map.end();
 }
 
-bool PdfDictionary::RemoveKey(const PdfName& identifier)
+bool PdfDictionary::RemoveKey(const string_view& key)
 {
-    PdfDictionaryMap::iterator found = m_Map.find(identifier);
+    PdfDictionaryMap::iterator found = m_Map.find(key);
     if (found == m_Map.end())
         return false;
 
@@ -246,27 +245,27 @@ void PdfDictionary::setChildrenParent()
         pair.second.SetParent(*this);
 }
 
-const PdfObject* PdfDictionary::GetKey(const PdfName& key) const
+const PdfObject* PdfDictionary::GetKey(const string_view& key) const
 {
     return getKey(key);
 }
 
-PdfObject* PdfDictionary::GetKey(const PdfName& key)
+PdfObject* PdfDictionary::GetKey(const string_view& key)
 {
     return getKey(key);
 }
 
-const PdfObject* PdfDictionary::FindKey(const PdfName& key) const
+const PdfObject* PdfDictionary::FindKey(const string_view& key) const
 {
     return findKey(key);
 }
 
-PdfObject* PdfDictionary::FindKey(const PdfName& key)
+PdfObject* PdfDictionary::FindKey(const string_view& key)
 {
     return findKey(key);
 }
 
-const PdfObject& PdfDictionary::MustFindKey(const PdfName& key) const
+const PdfObject& PdfDictionary::MustFindKey(const string_view& key) const
 {
     auto obj = findKey(key);
     if (obj == nullptr)
@@ -275,7 +274,7 @@ const PdfObject& PdfDictionary::MustFindKey(const PdfName& key) const
     return *obj;
 }
 
-PdfObject& PdfDictionary::MustFindKey(const PdfName& key)
+PdfObject& PdfDictionary::MustFindKey(const string_view& key)
 {
     auto obj = findKey(key);
     if (obj == nullptr)
@@ -284,17 +283,17 @@ PdfObject& PdfDictionary::MustFindKey(const PdfName& key)
     return *obj;
 }
 
-const PdfObject* PdfDictionary::FindKeyParent(const PdfName& key) const
+const PdfObject* PdfDictionary::FindKeyParent(const string_view& key) const
 {
     return findKeyParent(key);
 }
 
-PdfObject* PdfDictionary::FindKeyParent(const PdfName& key)
+PdfObject* PdfDictionary::FindKeyParent(const string_view& key)
 {
     return findKeyParent(key);
 }
 
-const PdfObject& PdfDictionary::MustFindKeyParent(const PdfName& key) const
+const PdfObject& PdfDictionary::MustFindKeyParent(const string_view& key) const
 {
     auto obj = findKeyParent(key);
     if (obj == nullptr)
@@ -303,7 +302,7 @@ const PdfObject& PdfDictionary::MustFindKeyParent(const PdfName& key) const
     return *obj;
 }
 
-PdfObject& PdfDictionary::MustFindKeyParent(const PdfName& key)
+PdfObject& PdfDictionary::MustFindKeyParent(const string_view& key)
 {
     auto obj = findKeyParent(key);
     if (obj == nullptr)
@@ -327,7 +326,7 @@ PdfDictionaryConstIndirectIterable PdfDictionary::GetIndirectIterator() const
     return PdfDictionaryConstIndirectIterable(const_cast<PdfDictionary&>(*this));
 }
 
-const PdfObject& PdfDictionary::MustGetKey(const PdfName& key) const
+const PdfObject& PdfDictionary::MustGetKey(const string_view& key) const
 {
     auto obj = getKey(key);
     if (obj == nullptr)
@@ -336,7 +335,7 @@ const PdfObject& PdfDictionary::MustGetKey(const PdfName& key) const
     return *obj;
 }
 
-PdfObject& PdfDictionary::MustGetKey(const PdfName& key)
+PdfObject& PdfDictionary::MustGetKey(const string_view& key)
 {
     auto obj = getKey(key);
     if (obj == nullptr)

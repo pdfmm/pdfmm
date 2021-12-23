@@ -112,6 +112,12 @@ public:
      */
     bool operator<(const PdfName& rhs) const;
 
+    /** Default cast to raw data string view
+     *
+     * It's used in PdfDictionary lookup 
+     */
+    operator std::string_view() const;
+
     // TODO: Move these somewhere else
     static const PdfName KeyContents;
     static const PdfName KeyFlags;

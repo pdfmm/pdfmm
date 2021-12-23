@@ -20,7 +20,27 @@ namespace mm {
 
 class PdfDictionary;
 
-typedef std::map<PdfName, PdfObject> PdfDictionaryMap;
+// Compartor to enable heterogeneous lookup in
+// PdfDictionary with both PdfName and string_view
+// See https://stackoverflow.com/a/31924435/213871
+struct PdfDictionaryComparator final
+{
+    using is_transparent = std::true_type;
+    bool operator()(const PdfName& lhs, const PdfName& rhs) const
+    {
+        return lhs < rhs;
+    }
+    bool operator()(const PdfName& lhs, const std::string_view& rhs) const
+    {
+        return lhs.GetRawData() < rhs;
+    }
+    bool operator()(const std::string_view& lhs, const PdfName& rhs) const
+    {
+        return lhs < rhs.GetRawData();
+    }
+};
+
+typedef std::map<PdfName, PdfObject, PdfDictionaryComparator> PdfDictionaryMap;
 
 /**
  * Helper class to iterate through indirect objects
@@ -76,7 +96,12 @@ using PdfDictionaryIndirectIterable = PdfDictionaryIndirectIterableBase<PdfObjec
 using PdfDictionaryConstIndirectIterable = PdfDictionaryIndirectIterableBase<const PdfObject, PdfDictionaryMap::const_iterator>;
 
 /** The PDF dictionary data type of pdfmm (inherits from PdfDataContainer,
- *  the base class for such representations)
+ * the base class for such representations)
+ * Note: manipulation function accepts PdfName for the key,
+ * while getters accept std::string_view. This is an optimization
+ * since we do lookup with both types. We also assume doing
+ * lookups with strings will only use characters compatible
+ * with PdfDocEncoding
  */
 class PDFMM_API PdfDictionary final : public PdfDataContainer
 {
@@ -176,7 +201,7 @@ public:
      *
      *  \returns pointer to the found value, or 0 if the key was not found.
      */
-    const PdfObject* GetKey(const PdfName& key) const;
+    const PdfObject* GetKey(const std::string_view& key) const;
 
     /** Get the key's value out of the dictionary.  This is an overloaded member
      * function.
@@ -189,7 +214,7 @@ public:
      *
      *  \returns the found value, or 0 if the key was not found.
      */
-    PdfObject* GetKey(const PdfName& key);
+    PdfObject* GetKey(const std::string_view& key);
 
     /** Get the keys value out of the dictionary
      *
@@ -200,10 +225,10 @@ public:
      *  \param key look for the key names key in the dictionary
      *  \returns pointer to the found value or 0 if the key was not found.
      */
-    const PdfObject* FindKey(const PdfName& key) const;
-    PdfObject* FindKey(const PdfName& key);
-    const PdfObject& MustFindKey(const PdfName& key) const;
-    PdfObject& MustFindKey(const PdfName& key);
+    const PdfObject* FindKey(const std::string_view& key) const;
+    PdfObject* FindKey(const std::string_view& key);
+    const PdfObject& MustFindKey(const std::string_view& key) const;
+    PdfObject& MustFindKey(const std::string_view& key);
 
     /** Get the keys value out of the dictionary
      *
@@ -215,10 +240,10 @@ public:
      *  \param key look for the key names key in the dictionary
      *  \returns pointer to the found value or 0 if the key was not found.
      */
-    const PdfObject* FindKeyParent(const PdfName& key) const;
-    PdfObject* FindKeyParent(const PdfName& key);
-    const PdfObject& MustFindKeyParent(const PdfName& key) const;
-    PdfObject& MustFindKeyParent(const PdfName& key);
+    const PdfObject* FindKeyParent(const std::string_view& key) const;
+    PdfObject* FindKeyParent(const std::string_view& key);
+    const PdfObject& MustFindKeyParent(const std::string_view& key) const;
+    PdfObject& MustFindKeyParent(const std::string_view& key);
 
     /** Get the key's value out of the dictionary.
      *
@@ -233,29 +258,29 @@ public:
      *  \returns reference to the found value (never 0).
      *  \throws PdfError(PdfErrorCode::NoObject).
      */
-    const PdfObject& MustGetKey(const PdfName& key) const;
-    PdfObject& MustGetKey(const PdfName& key);
+    const PdfObject& MustGetKey(const std::string_view& key) const;
+    PdfObject& MustGetKey(const std::string_view& key);
 
     template <typename T>
-    T GetKeyAs(const PdfName& key, const std::common_type_t<T>& defvalue = { }) const;
+    T GetKeyAs(const std::string_view& key, const std::common_type_t<T>& defvalue = { }) const;
 
     template <typename T>
-    T FindKeyAs(const PdfName& key, const std::common_type_t<T>& defvalue = { }) const;
+    T FindKeyAs(const std::string_view& key, const std::common_type_t<T>& defvalue = { }) const;
 
     template <typename T>
-    T FindKeyParentAs(const PdfName& key, const std::common_type_t<T>& defvalue = { }) const;
+    T FindKeyParentAs(const std::string_view& key, const std::common_type_t<T>& defvalue = { }) const;
 
     /** Allows to check if a dictionary contains a certain key.
      * \param key look for the key named key.Name() in the dictionary
      *
      *  \returns true if the key is part of the dictionary, otherwise false.
      */
-    bool HasKey(const PdfName& key) const;
+    bool HasKey(const std::string_view& key) const;
 
     /** Remove a key from this dictionary.  If the key does not exist, this
      * function does nothing.
      *
-     *  \param identifier the name of the key to delete
+     *  \param key the name of the key to delete
      *
      *  \returns true if the key was found in the object and was removed.
      *  If there was no key with this name, false is returned.
@@ -263,7 +288,7 @@ public:
      *  This will set the dirty flag of this object.
      *  \see IsDirty
      */
-    bool RemoveKey(const PdfName& identifier);
+    bool RemoveKey(const std::string_view& key);
 
     void Write(PdfOutputDevice& device, PdfWriteMode writeMode, const PdfEncrypt* encrypt) const override;
 
@@ -292,20 +317,20 @@ protected:
     void setChildrenParent() override;
 
 private:
-    std::pair<iterator, bool> AddKey(const PdfName& identifier, PdfObject&& obj, bool noDirtySet);
+    std::pair<iterator, bool> AddKey(const PdfName& key, PdfObject&& obj, bool noDirtySet);
 
 private:
     PdfObject& addKey(const PdfName& key, PdfObject&& obj);
-    PdfObject* getKey(const PdfName& key) const;
-    PdfObject* findKey(const PdfName& key) const;
-    PdfObject* findKeyParent(const PdfName& key) const;
+    PdfObject* getKey(const std::string_view& key) const;
+    PdfObject* findKey(const std::string_view& key) const;
+    PdfObject* findKeyParent(const std::string_view& key) const;
 
 private:
     PdfDictionaryMap m_Map;
 };
 
 template<typename T>
-T PdfDictionary::GetKeyAs(const PdfName& key, const std::common_type_t<T>& defvalue) const
+T PdfDictionary::GetKeyAs(const std::string_view& key, const std::common_type_t<T>& defvalue) const
 {
     auto obj = getKey(key);
     if (obj == nullptr)
@@ -315,7 +340,7 @@ T PdfDictionary::GetKeyAs(const PdfName& key, const std::common_type_t<T>& defva
 }
 
 template<typename T>
-T PdfDictionary::FindKeyAs(const PdfName& key, const std::common_type_t<T>& defvalue) const
+T PdfDictionary::FindKeyAs(const std::string_view& key, const std::common_type_t<T>& defvalue) const
 {
     auto obj = findKey(key);
     if (obj == nullptr)
@@ -325,7 +350,7 @@ T PdfDictionary::FindKeyAs(const PdfName& key, const std::common_type_t<T>& defv
 }
 
 template<typename T>
-T PdfDictionary::FindKeyParentAs(const PdfName& key, const std::common_type_t<T>& defvalue) const
+T PdfDictionary::FindKeyParentAs(const std::string_view& key, const std::common_type_t<T>& defvalue) const
 {
     auto obj = findKeyParent(key);
     T ret{ };
