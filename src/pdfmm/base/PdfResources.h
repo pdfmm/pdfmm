@@ -9,6 +9,7 @@
 #define PDF_RESOURCES_H
 
 #include "PdfElement.h"
+#include "PdfDictionary.h"
 
 namespace mm {
 
@@ -21,10 +22,16 @@ public:
     PdfResources(PdfDictionary& dict);
 
 public:
-    PdfObject* GetFromResources(const PdfName& type, const PdfName& key);
-    const PdfObject* GetFromResources(const PdfName& type, const PdfName& key) const;
+    void AddResource(const PdfName& type, const PdfName& key, const PdfObject* obj);
+    PdfDictionaryIndirectIterator GetResourceIterator(const PdfName& type);
+    const PdfDictionaryIndirectIterator GetResourceIterator(const PdfName& type) const;
+    void RemoveResource(const PdfName& type, const PdfName& key);
+
+    PdfObject* GetResource(const PdfName& type, const PdfName& key);
+    const PdfObject* GetResource(const PdfName& type, const PdfName& key) const;
 private:
-    PdfObject* getFromResources(const PdfName& type, const PdfName& key) const;
+    PdfObject* getResource(const PdfName& type, const PdfName& key) const;
+    bool tryGetDictionary(const PdfName& type, PdfDictionary*& dict) const;
 };
 
 };

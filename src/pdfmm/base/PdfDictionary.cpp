@@ -370,27 +370,40 @@ size_t PdfDictionary::size() const
     return m_Map.size();
 }
 
+PdfDictionaryIndirectIterator::PdfDictionaryIndirectIterator()
+    : m_dict(nullptr) { }
+
 PdfDictionaryIndirectIterator::PdfDictionaryIndirectIterator(PdfDictionary& dict)
-    : m_dict(&dict)
-{
-}
+    : m_dict(&dict) { }
 
 PdfDictionaryIndirectIterator::iterator PdfDictionaryIndirectIterator::begin()
 {
-    return iterator(m_dict->begin());
+    if (m_dict == nullptr)
+        return iterator();
+    else
+        return iterator(m_dict->begin());
 }
 
 PdfDictionaryIndirectIterator::iterator PdfDictionaryIndirectIterator::end()
 {
-    return iterator(m_dict->end());
+    if (m_dict == nullptr)
+        return iterator();
+    else
+        return iterator(m_dict->end());
 }
 
 PdfDictionaryIndirectIterator::const_iterator PdfDictionaryIndirectIterator::begin() const
 {
-    return const_iterator(m_dict->begin());
+    if (m_dict == nullptr)
+        return const_iterator();
+    else
+        return const_iterator(m_dict->begin());
 }
 
 PdfDictionaryIndirectIterator::const_iterator PdfDictionaryIndirectIterator::end() const
 {
-    return const_iterator(m_dict->end());
+    if (m_dict == nullptr)
+        return const_iterator();
+    else
+        return const_iterator(m_dict->end());
 }

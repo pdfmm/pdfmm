@@ -43,7 +43,8 @@ public:
      *  drawing commands to the stream of the Contents object.
      *  \returns a contents object
      */
-    virtual const PdfObject* GetContentsObject() const = 0;
+    const PdfObject* GetContentsObject() const;
+    PdfObject* GetContentsObject();
 
     /** Get access an object that you can use to ADD drawing to.
      *  If you want to draw onto the page, you have to add
@@ -94,6 +95,9 @@ public:
      *  \param name register under this key in the resource dictionary
      */
     void AddResource(const PdfName& identifier, const PdfReference& ref, const PdfName& name);
+
+protected:
+    virtual PdfObject* getContentsObject() const = 0;
 };
 
 };

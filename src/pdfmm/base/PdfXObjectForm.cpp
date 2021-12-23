@@ -89,9 +89,9 @@ PdfRect PdfXObjectForm::GetRect() const
     return m_Rect;
 }
 
-const PdfObject* PdfXObjectForm::GetContentsObject() const
+PdfObject* PdfXObjectForm::getContentsObject() const
 {
-    return &GetObject();
+    return &const_cast<PdfXObjectForm&>(*this).GetObject();
 }
 
 PdfResources& PdfXObjectForm::GetOrCreateResources()
@@ -205,5 +205,5 @@ PdfObject* PdfXObjectForm::GetFromResources(const PdfName& type, const PdfName& 
     if (m_Resources == nullptr)
         return nullptr;
 
-    return m_Resources->GetFromResources(type, key);
+    return m_Resources->GetResource(type, key);
 }

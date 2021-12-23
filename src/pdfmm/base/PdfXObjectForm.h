@@ -84,7 +84,7 @@ private:
     PdfXObjectForm(PdfObject& obj);
 
 private:
-    const PdfObject* GetContentsObject() const override;
+    PdfObject* getContentsObject() const override;
     PdfResources& GetOrCreateResources() override;
     PdfObjectStream& GetStreamForAppending(PdfStreamAppendFlags flags) override;
     void InitXObject(const PdfRect& rect);

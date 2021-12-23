@@ -56,6 +56,11 @@ charbuff PdfObjectStream::GetFilteredCopy() const
     return ret;
 }
 
+void PdfObjectStream::MoveTo(PdfObject& obj)
+{
+    obj.MoveStreamFrom(*m_Parent);
+}
+
 void PdfObjectStream::GetFilteredCopy(unique_ptr<char[]>& buffer, size_t& len) const
 {
     PdfFilterList filters = PdfFilterFactory::CreateFilterList(*m_Parent);

@@ -177,6 +177,7 @@ void PdfContentsReader::afterReadClear(PdfContent& content)
             content.InlineImageDictionary.Clear();
             content.InlineImageData.clear();
             content.XObject = nullptr;
+            content.Name = PdfName::KeyNull;
             break;
         }
         case PdfContentType::ImageDictionary:
@@ -185,6 +186,7 @@ void PdfContentsReader::afterReadClear(PdfContent& content)
             content.Keyword = string_view();
             content.InlineImageData.clear();
             content.XObject = nullptr;
+            content.Name = PdfName::KeyNull;
             break;
         }
         case PdfContentType::ImageData:
@@ -193,6 +195,7 @@ void PdfContentsReader::afterReadClear(PdfContent& content)
             content.Keyword = string_view();
             content.InlineImageDictionary.Clear();
             content.XObject = nullptr;
+            content.Name = PdfName::KeyNull;
             break;
         }
         case PdfContentType::DoXObject:
@@ -209,6 +212,7 @@ void PdfContentsReader::afterReadClear(PdfContent& content)
             content.InlineImageDictionary.Clear();
             content.InlineImageData.clear();
             content.XObject = nullptr;
+            content.Name = PdfName::KeyNull;
             break;
         }
         case PdfContentType::Unknown:
@@ -220,6 +224,7 @@ void PdfContentsReader::afterReadClear(PdfContent& content)
             content.InlineImageDictionary.Clear();
             content.InlineImageData.clear();
             content.XObject = nullptr;
+            content.Name = PdfName::KeyNull;
             break;
         }
         default:
@@ -308,14 +313,13 @@ bool PdfContentsReader::tryReadInlineImgDict(PdfContent& content)
 void PdfContentsReader::tryFollowXObject(PdfContent& content)
 {
     PDFMM_ASSERT(m_inputs.back().Canvas != nullptr);
-    PdfName xobjName;
     const PdfResources* resources;
     const PdfObject* xobjraw = nullptr;
     unique_ptr<PdfXObject> xobj;
     if (content.Stack.GetSize() != 1
-        || !content.Stack[0].TryGetName(xobjName)
+        || !content.Stack[0].TryGetName(content.Name)
         || (resources = m_inputs.back().Canvas->GetResources()) == nullptr
-        || (xobjraw = resources->GetFromResources("XObject", xobjName)) == nullptr
+        || (xobjraw = resources->GetResource("XObject", content.Name)) == nullptr
         || !PdfXObject::TryCreateFromObject(const_cast<PdfObject&>(*xobjraw), xobj))
     {
         content.Warnings |= PdfContentWarnings::InvalidXObject;

@@ -349,7 +349,7 @@ PdfObject* PdfPage::GetFromResources(const PdfName& type, const PdfName& key)
     if (m_Resources == nullptr)
         return nullptr;
 
-    return m_Resources->GetFromResources(type, key);
+    return m_Resources->GetResource(type, key);
 }
 
 void PdfPage::DeleteAnnotation(PdfObject& annotObj)
@@ -580,12 +580,12 @@ const PdfResources* PdfPage::GetResources() const
     return m_Resources.get();
 }
 
-const PdfObject* PdfPage::GetContentsObject() const
+PdfObject* PdfPage::getContentsObject() const
 {
     if (m_Contents == nullptr)
         return nullptr;
 
-    return &m_Contents->GetObject();
+    return &const_cast<PdfContents&>(*m_Contents).GetObject();
 }
 
 PdfResources& PdfPage::GetOrCreateResources()

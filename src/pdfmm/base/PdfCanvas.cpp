@@ -20,6 +20,16 @@ using namespace mm;
 
 PdfCanvas::~PdfCanvas() { }
 
+const PdfObject* PdfCanvas::GetContentsObject() const
+{
+    return getContentsObject();
+}
+
+PdfObject* PdfCanvas::GetContentsObject()
+{
+    return getContentsObject();
+}
+
 PdfArray PdfCanvas::GetProcSet()
 {
     PdfArray procset;

@@ -34,14 +34,18 @@ PdfContents::PdfContents(PdfPage &parent)
 
 void PdfContents::Reset(PdfObject* obj)
 {
-    PdfDataType type = obj->GetDataType();
-    if (!(type == PdfDataType::Array || type == PdfDataType::Dictionary))
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The object is neither a Dictionary or an Array");
-
     if (obj == nullptr)
+    {
         m_object = m_parent->GetObject().GetDocument()->GetObjects().CreateArrayObject();
+    }
     else
+    {
+        PdfDataType type = obj->GetDataType();
+        if (!(type == PdfDataType::Array || type == PdfDataType::Dictionary))
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The object is neither a Dictionary or an Array");
+
         m_object = obj;
+    }
 
     reset();
 }

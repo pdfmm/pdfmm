@@ -396,6 +396,12 @@ void PdfObject::SetParent(PdfDataContainer& parent)
     SetDocument(document);
 }
 
+void PdfObject::MoveStreamFrom(PdfObject& obj)
+{
+    moveStreamFrom(obj);
+    m_IsDelayedLoadStreamDone = true;
+}
+
 // NOTE: Don't copy parent document/container and indirect reference.
 // Objects being assigned always keep current ownership
 void PdfObject::assign(const PdfObject& rhs)

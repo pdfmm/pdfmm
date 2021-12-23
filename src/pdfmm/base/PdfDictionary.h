@@ -23,17 +23,20 @@ class PdfDictionary;
 /**
  * Helper class to iterate through indirect objects
  */
-class PdfDictionaryIndirectIterator
+class PDFMM_API PdfDictionaryIndirectIterator final
 {
     friend class PdfDictionary;
     typedef std::map<PdfName, PdfObject> Map;
+
+public:
+    PdfDictionaryIndirectIterator();
 
 private:
     PdfDictionaryIndirectIterator(PdfDictionary& dict);
 
 public:
     template <typename TObject, typename TMapIterator>
-    class Iterator
+    class Iterator final
     {
         friend class PdfDictionaryIndirectIterator;
     public:
@@ -43,6 +46,7 @@ public:
         using reference = const value_type&;
         using iterator_category = std::forward_iterator_tag;
     private:
+        Iterator();
         Iterator(const TMapIterator& iterator);
     public:
         Iterator(const Iterator&) = default;
@@ -336,6 +340,9 @@ T PdfDictionary::FindKeyParentAs(const PdfName& key, const std::common_type_t<T>
 template<typename TObject, typename TMapIterator>
 PdfDictionaryIndirectIterator::Iterator<TObject, TMapIterator>::Iterator(const TMapIterator& iterator)
     : m_iterator(iterator) { }
+
+template<typename TObject, typename TMapIterator>
+PdfDictionaryIndirectIterator::Iterator<TObject, TMapIterator>::Iterator() { }
 
 template<typename TObject, typename TMapIterator>
 bool PdfDictionaryIndirectIterator::Iterator<TObject, TMapIterator>::operator==(const Iterator& rhs) const

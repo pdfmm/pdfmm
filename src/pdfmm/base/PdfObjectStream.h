@@ -242,6 +242,8 @@ public:
 
     charbuff GetFilteredCopy() const;
 
+    void MoveTo(PdfObject& obj);
+
     /** Create a copy of a PdfObjectStream object
      *  \param rhs the object to clone
      *  \returns a reference to this object
@@ -303,6 +305,7 @@ private:
 protected:
     PdfObject* m_Parent;
 
+private:
     bool m_Append;
 };
 
