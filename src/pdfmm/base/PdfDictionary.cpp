@@ -107,12 +107,12 @@ PdfObject& PdfDictionary::addKey(const PdfName& key, PdfObject&& obj)
     return added.first->second;
 }
 
-pair<PdfDictionary::Map::iterator, bool> PdfDictionary::AddKey(const PdfName& identifier, PdfObject&& obj, bool noDirtySet)
+pair<PdfDictionaryMap::iterator, bool> PdfDictionary::AddKey(const PdfName& identifier, PdfObject&& obj, bool noDirtySet)
 {
     // NOTE: Empty PdfNames are legal according to the PDF specification.
     // Don't check for it
 
-    pair<Map::iterator, bool> inserted = m_Map.try_emplace(identifier, std::move(obj));
+    pair<PdfDictionaryMap::iterator, bool> inserted = m_Map.try_emplace(identifier, std::move(obj));
     if (!inserted.second)
     {
         if (noDirtySet)
@@ -184,7 +184,7 @@ bool PdfDictionary::HasKey(const PdfName& key) const
 
 bool PdfDictionary::RemoveKey(const PdfName& identifier)
 {
-    Map::iterator found = m_Map.find(identifier);
+    PdfDictionaryMap::iterator found = m_Map.find(identifier);
     if (found == m_Map.end())
         return false;
 
@@ -317,14 +317,14 @@ unsigned PdfDictionary::GetSize() const
     return (unsigned)m_Map.size();
 }
 
-PdfDictionaryIndirectIterator PdfDictionary::GetIndirectIterator()
+PdfDictionaryIndirectIterable PdfDictionary::GetIndirectIterator()
 {
-    return PdfDictionaryIndirectIterator(*this);
+    return PdfDictionaryIndirectIterable(*this);
 }
 
-const PdfDictionaryIndirectIterator PdfDictionary::GetIndirectIterator() const
+PdfDictionaryConstIndirectIterable PdfDictionary::GetIndirectIterator() const
 {
-    return PdfDictionaryIndirectIterator(const_cast<PdfDictionary&>(*this));
+    return PdfDictionaryConstIndirectIterable(const_cast<PdfDictionary&>(*this));
 }
 
 const PdfObject& PdfDictionary::MustGetKey(const PdfName& key) const
@@ -368,42 +368,4 @@ PdfDictionary::const_iterator PdfDictionary::end() const
 size_t PdfDictionary::size() const
 {
     return m_Map.size();
-}
-
-PdfDictionaryIndirectIterator::PdfDictionaryIndirectIterator()
-    : m_dict(nullptr) { }
-
-PdfDictionaryIndirectIterator::PdfDictionaryIndirectIterator(PdfDictionary& dict)
-    : m_dict(&dict) { }
-
-PdfDictionaryIndirectIterator::iterator PdfDictionaryIndirectIterator::begin()
-{
-    if (m_dict == nullptr)
-        return iterator();
-    else
-        return iterator(m_dict->begin());
-}
-
-PdfDictionaryIndirectIterator::iterator PdfDictionaryIndirectIterator::end()
-{
-    if (m_dict == nullptr)
-        return iterator();
-    else
-        return iterator(m_dict->end());
-}
-
-PdfDictionaryIndirectIterator::const_iterator PdfDictionaryIndirectIterator::begin() const
-{
-    if (m_dict == nullptr)
-        return const_iterator();
-    else
-        return const_iterator(m_dict->begin());
-}
-
-PdfDictionaryIndirectIterator::const_iterator PdfDictionaryIndirectIterator::end() const
-{
-    if (m_dict == nullptr)
-        return const_iterator();
-    else
-        return const_iterator(m_dict->end());
 }

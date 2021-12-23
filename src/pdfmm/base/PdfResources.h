@@ -23,8 +23,8 @@ public:
 
 public:
     void AddResource(const PdfName& type, const PdfName& key, const PdfObject* obj);
-    PdfDictionaryIndirectIterator GetResourceIterator(const PdfName& type);
-    const PdfDictionaryIndirectIterator GetResourceIterator(const PdfName& type) const;
+    PdfDictionaryIndirectIterable GetResourceIterator(const PdfName& type);
+    PdfDictionaryConstIndirectIterable GetResourceIterator(const PdfName& type) const;
     void RemoveResource(const PdfName& type, const PdfName& key);
 
     PdfObject* GetResource(const PdfName& type, const PdfName& key);

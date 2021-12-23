@@ -20,25 +20,26 @@ namespace mm {
 
 class PdfDictionary;
 
+typedef std::map<PdfName, PdfObject> PdfDictionaryMap;
+
 /**
  * Helper class to iterate through indirect objects
  */
-class PDFMM_API PdfDictionaryIndirectIterator final
+template <typename TObject, typename TMapIterator>
+class PDFMM_API PdfDictionaryIndirectIterableBase final
 {
     friend class PdfDictionary;
-    typedef std::map<PdfName, PdfObject> Map;
 
 public:
-    PdfDictionaryIndirectIterator();
+    PdfDictionaryIndirectIterableBase();
 
 private:
-    PdfDictionaryIndirectIterator(PdfDictionary& dict);
+    PdfDictionaryIndirectIterableBase(PdfDictionary& dict);
 
 public:
-    template <typename TObject, typename TMapIterator>
-    class Iterator final
+    class iterator final
     {
-        friend class PdfDictionaryIndirectIterator;
+        friend class PdfDictionaryIndirectIterableBase;
     public:
         using difference_type = void;
         using value_type = std::pair<PdfName, TObject*>;
@@ -46,14 +47,14 @@ public:
         using reference = const value_type&;
         using iterator_category = std::forward_iterator_tag;
     private:
-        Iterator();
-        Iterator(const TMapIterator& iterator);
+        iterator();
+        iterator(const TMapIterator& iterator);
     public:
-        Iterator(const Iterator&) = default;
-        Iterator& operator=(const Iterator&) = default;
-        bool operator==(const Iterator& rhs) const;
-        bool operator!=(const Iterator& rhs) const;
-        Iterator& operator++();
+        iterator(const iterator&) = default;
+        iterator& operator=(const iterator&) = default;
+        bool operator==(const iterator& rhs) const;
+        bool operator!=(const iterator& rhs) const;
+        iterator& operator++();
         reference operator*();
         pointer operator->();
     private:
@@ -63,18 +64,16 @@ public:
         value_type m_pair;
     };
 
-    using iterator = Iterator<PdfObject, Map::iterator>;
-    using const_iterator = Iterator<const PdfObject, Map::const_iterator>;
-
 public:
-    iterator begin();
-    iterator end();
-    const_iterator begin() const;
-    const_iterator end() const;
+    iterator begin() const;
+    iterator end() const;
 
 private:
     PdfDictionary* m_dict;
 };
+
+using PdfDictionaryIndirectIterable = PdfDictionaryIndirectIterableBase<PdfObject, PdfDictionaryMap::iterator>;
+using PdfDictionaryConstIndirectIterable = PdfDictionaryIndirectIterableBase<const PdfObject, PdfDictionaryMap::const_iterator>;
 
 /** The PDF dictionary data type of pdfmm (inherits from PdfDataContainer,
  *  the base class for such representations)
@@ -273,14 +272,13 @@ public:
      */
     unsigned GetSize() const;
 
-    PdfDictionaryIndirectIterator GetIndirectIterator();
+    PdfDictionaryIndirectIterable GetIndirectIterator();
 
-    const PdfDictionaryIndirectIterator GetIndirectIterator() const;
+    PdfDictionaryConstIndirectIterable GetIndirectIterator() const;
 
 public:
-    typedef std::map<PdfName, PdfObject> Map;
-    typedef Map::iterator iterator;
-    typedef Map::const_iterator const_iterator;
+    typedef PdfDictionaryMap::iterator iterator;
+    typedef PdfDictionaryMap::const_iterator const_iterator;
 
 public:
     iterator begin();
@@ -303,7 +301,7 @@ private:
     PdfObject* findKeyParent(const PdfName& key) const;
 
 private:
-    Map m_Map;
+    PdfDictionaryMap m_Map;
 };
 
 template<typename T>
@@ -337,48 +335,74 @@ T PdfDictionary::FindKeyParentAs(const PdfName& key, const std::common_type_t<T>
     return  Object<T>::Get(*obj);
 }
 
+template <typename TObject, typename TMapIterator>
+PdfDictionaryIndirectIterableBase<TObject, TMapIterator>::PdfDictionaryIndirectIterableBase()
+    : m_dict(nullptr) { }
+
+template <typename TObject, typename TMapIterator>
+PdfDictionaryIndirectIterableBase<TObject, TMapIterator>::PdfDictionaryIndirectIterableBase(PdfDictionary& dict)
+    : m_dict(&dict) { }
+
+template <typename TObject, typename TMapIterator>
+typename PdfDictionaryIndirectIterableBase<TObject, TMapIterator>::iterator PdfDictionaryIndirectIterableBase<TObject, TMapIterator>::begin() const
+{
+    if (m_dict == nullptr)
+        return iterator();
+    else
+        return iterator(m_dict->begin());
+}
+
+template <typename TObject, typename TMapIterator>
+typename PdfDictionaryIndirectIterableBase<TObject, TMapIterator>::iterator PdfDictionaryIndirectIterableBase<TObject, TMapIterator>::end() const
+{
+    if (m_dict == nullptr)
+        return iterator();
+    else
+        return iterator(m_dict->end());
+}
+
 template<typename TObject, typename TMapIterator>
-PdfDictionaryIndirectIterator::Iterator<TObject, TMapIterator>::Iterator(const TMapIterator& iterator)
+PdfDictionaryIndirectIterableBase<TObject, TMapIterator>::iterator::iterator(const TMapIterator& iterator)
     : m_iterator(iterator) { }
 
 template<typename TObject, typename TMapIterator>
-PdfDictionaryIndirectIterator::Iterator<TObject, TMapIterator>::Iterator() { }
+PdfDictionaryIndirectIterableBase<TObject, TMapIterator>::iterator::iterator() { }
 
 template<typename TObject, typename TMapIterator>
-bool PdfDictionaryIndirectIterator::Iterator<TObject, TMapIterator>::operator==(const Iterator& rhs) const
+bool PdfDictionaryIndirectIterableBase<TObject, TMapIterator>::iterator::operator==(const iterator& rhs) const
 {
     return m_iterator == rhs.m_iterator;
 }
 
 template<typename TObject, typename TMapIterator>
-bool PdfDictionaryIndirectIterator::Iterator<TObject, TMapIterator>::operator!=(const Iterator& rhs) const
+bool PdfDictionaryIndirectIterableBase<TObject, TMapIterator>::iterator::operator!=(const iterator& rhs) const
 {
     return m_iterator != rhs.m_iterator;
 }
 
 template<typename TObject, typename TMapIterator>
-PdfDictionaryIndirectIterator::Iterator<TObject, TMapIterator>& PdfDictionaryIndirectIterator::Iterator<TObject, TMapIterator>::operator++()
+typename PdfDictionaryIndirectIterableBase<TObject, TMapIterator>::iterator& PdfDictionaryIndirectIterableBase<TObject, TMapIterator>::iterator::operator++()
 {
     m_iterator++;
     return *this;
 }
 
 template<typename TObject, typename TMapIterator>
-typename PdfDictionaryIndirectIterator::Iterator<TObject, TMapIterator>::reference PdfDictionaryIndirectIterator::Iterator<TObject, TMapIterator>::operator*()
+typename PdfDictionaryIndirectIterableBase<TObject, TMapIterator>::iterator::reference PdfDictionaryIndirectIterableBase<TObject, TMapIterator>::iterator::operator*()
 {
     resolve();
     return m_pair;
 }
 
 template<typename TObject, typename TMapIterator>
-typename PdfDictionaryIndirectIterator::Iterator<TObject, TMapIterator>::pointer PdfDictionaryIndirectIterator::Iterator<TObject, TMapIterator>::operator->()
+typename PdfDictionaryIndirectIterableBase<TObject, TMapIterator>::iterator::pointer PdfDictionaryIndirectIterableBase<TObject, TMapIterator>::iterator::operator->()
 {
     resolve();
     return &m_pair;
 }
 
 template<typename TObject, typename TMapIterator>
-void PdfDictionaryIndirectIterator::Iterator<TObject, TMapIterator>::resolve()
+void PdfDictionaryIndirectIterableBase<TObject, TMapIterator>::iterator::resolve()
 {
     TObject& robj = m_iterator->second;
     TObject* indirectobj;

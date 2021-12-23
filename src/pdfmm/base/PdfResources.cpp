@@ -29,22 +29,22 @@ void PdfResources::AddResource(const PdfName& type, const PdfName& key, const Pd
         dict->AddKeyIndirect(key, obj);
 }
 
-PdfDictionaryIndirectIterator PdfResources::GetResourceIterator(const PdfName& type)
+PdfDictionaryIndirectIterable PdfResources::GetResourceIterator(const PdfName& type)
 {
     PdfDictionary* dict;
     if (!tryGetDictionary(type, dict))
-        return PdfDictionaryIndirectIterator();
+        return PdfDictionaryIndirectIterable();
 
     return dict->GetIndirectIterator();
 }
 
-const PdfDictionaryIndirectIterator PdfResources::GetResourceIterator(const PdfName& type) const
+PdfDictionaryConstIndirectIterable PdfResources::GetResourceIterator(const PdfName& type) const
 {
     PdfDictionary* dict;
     if (!tryGetDictionary(type, dict))
-        return PdfDictionaryIndirectIterator();
+        return PdfDictionaryConstIndirectIterable();
 
-    return dict->GetIndirectIterator();
+    return((const PdfDictionary&)*dict).GetIndirectIterator();
 }
 
 void PdfResources::RemoveResource(const PdfName& type, const PdfName& key)

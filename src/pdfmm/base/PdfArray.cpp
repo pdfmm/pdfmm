@@ -157,14 +157,14 @@ PdfObject& PdfArray::SetAtIndirectSafe(unsigned idx, const PdfObject& obj)
     return ret;
 }
 
-PdfArrayIndirectIterator PdfArray::GetIndirectIterator()
+PdfArrayIndirectIterable PdfArray::GetIndirectIterator()
 {
-    return PdfArrayIndirectIterator(*this);
+    return PdfArrayIndirectIterable(*this);
 }
 
-const PdfArrayIndirectIterator PdfArray::GetIndirectIterator() const
+PdfArrayConstIndirectIterable PdfArray::GetIndirectIterator() const
 {
-    return PdfArrayIndirectIterator(const_cast<PdfArray&>(*this));
+    return PdfArrayConstIndirectIterable(const_cast<PdfArray&>(*this));
 }
 
 void PdfArray::Clear()
@@ -405,27 +405,4 @@ bool PdfArray::operator!=(const PdfArray& rhs) const
 
     // We don't check owner
     return m_Objects != rhs.m_Objects;
-}
-
-PdfArrayIndirectIterator::PdfArrayIndirectIterator(PdfArray& arr)
-    : m_arr(&arr) { }
-
-PdfArrayIndirectIterator::iterator PdfArrayIndirectIterator::begin()
-{
-    return iterator(m_arr->begin());
-}
-
-PdfArrayIndirectIterator::iterator PdfArrayIndirectIterator::end()
-{
-    return iterator(m_arr->end());
-}
-
-PdfArrayIndirectIterator::const_iterator PdfArrayIndirectIterator::begin() const
-{
-    return const_iterator(m_arr->begin());
-}
-
-PdfArrayIndirectIterator::const_iterator PdfArrayIndirectIterator::end() const
-{
-    return const_iterator(m_arr->end());
 }
