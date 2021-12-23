@@ -9,6 +9,8 @@
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfTokenizer.h"
 
+#include <pdfmm/private/charconv_compat.h>
+
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfEncrypt.h"
@@ -17,8 +19,6 @@
 #include "PdfString.h"
 #include "PdfReference.h"
 #include "PdfVariant.h"
-
-#include <sstream>
 
 using namespace std;
 using namespace mm;
@@ -37,8 +37,6 @@ PdfTokenizer::PdfTokenizer(const shared_ptr<charbuff>& buffer, bool readReferenc
 {
     if (buffer == nullptr)
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
-
-    PdfLocaleImbue(m_doubleParser);
 }
 
 bool PdfTokenizer::TryReadNextToken(PdfInputDevice& device, string_view& token)
@@ -268,14 +266,8 @@ PdfTokenizer::PdfLiteralDataType PdfTokenizer::DetermineDataType(PdfInputDevice&
             if (dataType == PdfLiteralDataType::Real)
             {
                 double val;
-
-                m_doubleParser.clear(); // clear error state
-                m_doubleParser.str(token);
-                if (!(m_doubleParser >> val))
-                {
-                    m_doubleParser.clear(); // clear error state
+                if (std::from_chars(token.data(), token.data() + token.length(), val).ec != std::errc())
                     PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, token);
-                }
 
                 variant = PdfVariant(val);
                 return PdfLiteralDataType::Real;
