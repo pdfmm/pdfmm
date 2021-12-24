@@ -185,9 +185,8 @@ int64_t PdfTokenizer::ReadNextNumber(PdfInputDevice& device)
     if (!gotToken)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected number");
 
-    char* end;
-    long long num = strtoll(token.data(), &end, 10);
-    if (token == end)
+    int64_t num;
+    if (std::from_chars(token.data(), token.data() + token.size(), num).ec != std::errc())
     {
         // Don't consume the token
         this->EnqueueToken(token, tokenType);
@@ -267,14 +266,26 @@ PdfTokenizer::PdfLiteralDataType PdfTokenizer::DetermineDataType(PdfInputDevice&
             {
                 double val;
                 if (std::from_chars(token.data(), token.data() + token.length(), val).ec != std::errc())
-                    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, token);
+                {
+                    // Don't consume the token
+                    this->EnqueueToken(token, tokenType);
+                    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoNumber, token);
+                }
 
                 variant = PdfVariant(val);
                 return PdfLiteralDataType::Real;
             }
             else if (dataType == PdfLiteralDataType::Number)
             {
-                variant = PdfVariant(static_cast<int64_t>(strtoll(token.data(), nullptr, 10)));
+                int64_t num;
+                if (std::from_chars(token.data(), token.data() + token.size(), num).ec != std::errc())
+                {
+                    // Don't consume the token
+                    this->EnqueueToken(token, tokenType);
+                    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoNumber, token);
+                }
+
+                variant = PdfVariant(num);
                 if (!m_readReferences)
                     return PdfLiteralDataType::Number;
 
@@ -296,15 +307,14 @@ PdfTokenizer::PdfLiteralDataType PdfTokenizer::DetermineDataType(PdfInputDevice&
                     return PdfLiteralDataType::Number;
                 }
 
-                char* end;
-                long long l = strtoll(nextToken.data(), &end, 10);
-                if (nextToken.data() == end)
+                if (std::from_chars(nextToken.data(), nextToken.data() + nextToken.length(), num).ec != std::errc())
                 {
+                    // Don't consume the token
                     this->EnqueueToken(nextToken, secondTokenType);
                     return PdfLiteralDataType::Number;
                 }
 
-                std::string tmp(nextToken);
+                string tmp(nextToken);
                 PdfTokenType thirdTokenType;
                 gotToken = this->TryReadNextToken(device, nextToken, thirdTokenType);
                 if (!gotToken)
@@ -315,8 +325,7 @@ PdfTokenizer::PdfLiteralDataType PdfTokenizer::DetermineDataType(PdfInputDevice&
                 if (thirdTokenType == PdfTokenType::Literal &&
                     nextToken.length() == 1 && nextToken[0] == 'R')
                 {
-                    variant = PdfReference(static_cast<unsigned>(variant.GetNumber()),
-                        static_cast<uint16_t>(l));
+                    variant = PdfReference(static_cast<uint32_t>(variant.GetNumber()), static_cast<uint16_t>(num));
                     return PdfLiteralDataType::Reference;
                 }
                 else
