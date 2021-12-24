@@ -58,7 +58,7 @@ void PdfFontManager::EmptyCache()
     m_loadedFontMap.clear();
 }
 
-PdfFont* PdfFontManager::GetLoadedFont(PdfObject& obj)
+PdfFont* PdfFontManager::GetLoadedFont(const PdfObject& obj)
 {
     // TODO: We should check that the font being loaded
     // is not present in the imported font cache
@@ -71,7 +71,7 @@ PdfFont* PdfFontManager::GetLoadedFont(PdfObject& obj)
 
     // Create a new font
     unique_ptr<PdfFont> font;
-    if (!PdfFont::TryCreateFromObject(obj, font))
+    if (!PdfFont::TryCreateFromObject(const_cast<PdfObject&>(obj), font))
         return nullptr;
 
     auto inserted = m_loadedFontMap.insert({ obj.GetIndirectReference(), std::move(font) });

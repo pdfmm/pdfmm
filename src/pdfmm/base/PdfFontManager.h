@@ -83,7 +83,7 @@ public:
      *  \returns a PdfFont object or nullptr if the font could
      *           not be created or found.
      */
-    PdfFont* GetLoadedFont(PdfObject& obj);
+    PdfFont* GetLoadedFont(const PdfObject& obj);
 
     /** Get a font from the cache. If the font does not yet
      *  exist, add it to the cache.
