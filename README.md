@@ -37,16 +37,19 @@ CMake 3.16 and the following libraries:
 * libpng (optional)
 * libidn (optional)
 
-pdfmm is regularly tested with the following toolchains,
-which can be assumed to be the minimum versions required:
+For the most polular toolchains, pdfmm requires the following
+minimum versions:
 
 * Visual Studio 2017 15.9
-* gcc 7.3.1
-* llvm/clang 7.0
+* gcc 8.1
+* clang/llvm 7.0
 
-It is also tested with the following:
+It is regularly tested with the following toolchain versions:
 
+* Visual Studio 2017 15.9
 * Visual Studio 2019 16.11
+* gcc 9.3.1
+* clang/llvm 11.0.0
 
 ## Licensing
 
