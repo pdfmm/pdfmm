@@ -52,16 +52,6 @@ public:
         const std::string_view& prefix = { }, bool useTrimBox = false);
 
 public:
-    /** Get an element from the pages resources dictionary,
-     *  using a type (category) and a key.
-     *
-     *  \param type the type of resource to fetch (e.g. /Font, or /XObject)
-     *  \param key the key of the resource
-     *
-     *  \returns the object of the resource or nullptr if it was not found
-     */
-    PdfObject* GetFromResources(const PdfName& type, const PdfName& key);
-
     /** Ensure resources initialized on this XObject
     */
     void EnsureResourcesCreated();
@@ -75,16 +65,16 @@ public:
      */
     void SetRect(const PdfRect& rect);
 
-    const PdfResources* GetResources() const override;
-
 public:
     inline PdfResources* GetResources() { return m_Resources.get(); }
+    inline const PdfResources* GetResources() const { return m_Resources.get(); }
 
 private:
     PdfXObjectForm(PdfObject& obj);
 
 private:
     PdfObject* getContentsObject() const override;
+    PdfResources* getResources() const override;
     PdfResources& GetOrCreateResources() override;
     PdfObjectStream& GetStreamForAppending(PdfStreamAppendFlags flags) override;
     void InitXObject(const PdfRect& rect);

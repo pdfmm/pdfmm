@@ -53,10 +53,22 @@ public:
      */
     virtual PdfObjectStream& GetStreamForAppending(PdfStreamAppendFlags flags) = 0;
 
+    /** Get an element from the pages resources dictionary,
+     *  using a type (category) and a key.
+     *
+     *  \param type the type of resource to fetch (e.g. /Font, or /XObject)
+     *  \param key the key of the resource
+     *
+     *  \returns the object of the resource or nullptr if it was not found
+     */
+    PdfObject* GetFromResources(const std::string_view& type, const std::string_view& key);
+    const PdfObject* GetFromResources(const std::string_view& type, const std::string_view& key) const;
+
     /** Get the resource object of this page.
      * \returns a resources object
      */
-    virtual const PdfResources* GetResources() const = 0;
+    PdfResources* GetResources();
+    const PdfResources* GetResources() const;
 
     /** Get or create the resource object of this page.
      * \returns a resources object
@@ -79,6 +91,7 @@ public:
      */
     static PdfArray GetProcSet();
 
+    // TODO: Move to PdfResources
     /** Register a colourspace for a (separation) colour in the resource dictionary
      *  of this page or XObject so that it can be used for any following drawing
      *  operations.
@@ -87,6 +100,7 @@ public:
      */
     void AddColorResource(const PdfColor& color);
 
+    // TODO: Move to PdfResources
     /** Register an object in the resource dictionary of this page or XObbject
      *  so that it can be used for any following drawing operations.
      *
@@ -98,6 +112,10 @@ public:
 
 protected:
     virtual PdfObject* getContentsObject() const = 0;
+    virtual PdfResources* getResources() const = 0;
+
+private:
+    PdfObject* getFromResources(const std::string_view& type, const std::string_view& key) const;
 };
 
 };

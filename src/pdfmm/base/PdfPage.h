@@ -166,16 +166,6 @@ public:
      */
     void DeleteAnnotation(unsigned index);
 
-    /** Get an element from the pages resources dictionary,
-     *  using a type (category) and a key.
-     *
-     *  \param type the type of resource to fetch (e.g. /Font, or /XObject)
-     *  \param key the key of the resource
-     *
-     *  \returns the object of the resource or nullptr if it was not found
-     */
-    PdfObject* GetFromResources(const PdfName& type, const PdfName& key);
-
     /** Delete the annotation with the given object
      *  \param annotObj the object of an annotation
      *
@@ -203,15 +193,16 @@ public:
     void SetICCProfile(const std::string_view& csTag, PdfInputStream& stream, int64_t colorComponents,
         PdfColorSpace alternateColorSpace = PdfColorSpace::DeviceRGB);
 
-    const PdfResources* GetResources() const override;
-
 public:
     PdfContents& GetOrCreateContents();
     inline const PdfContents* GetContents() const { return m_Contents.get(); }
     inline PdfContents* GetContents() { return m_Contents.get(); }
+    inline const PdfResources* GetResources() const { return m_Resources.get(); }
     inline PdfResources* GetResources() { return m_Resources.get(); }
 
 private:
+    PdfResources* getResources() const override;
+
     PdfObject* getContentsObject() const override;
 
     PdfResources& GetOrCreateResources() override;

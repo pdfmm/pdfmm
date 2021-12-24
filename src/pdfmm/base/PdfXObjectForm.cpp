@@ -73,7 +73,7 @@ void PdfXObjectForm::SetRect(const PdfRect& rect)
     m_Rect = rect;
 }
 
-const PdfResources* PdfXObjectForm::GetResources() const
+PdfResources* PdfXObjectForm::getResources() const
 {
     return m_Resources.get();
 }
@@ -198,12 +198,4 @@ void PdfXObjectForm::InitAfterPageInsertion(const PdfDocument& doc, unsigned pag
     matrix.Add(PdfObject(f));
 
     this->GetObject().GetDictionary().AddKey("Matrix", matrix);
-}
-
-PdfObject* PdfXObjectForm::GetFromResources(const PdfName& type, const PdfName& key)
-{
-    if (m_Resources == nullptr)
-        return nullptr;
-
-    return m_Resources->GetResource(type, key);
 }

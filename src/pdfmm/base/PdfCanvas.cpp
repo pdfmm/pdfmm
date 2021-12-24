@@ -30,6 +30,36 @@ PdfObject* PdfCanvas::GetContentsObject()
     return getContentsObject();
 }
 
+PdfObject* PdfCanvas::GetFromResources(const string_view& type, const string_view& key)
+{
+    return getFromResources(type, key);
+}
+
+const PdfObject* PdfCanvas::GetFromResources(const string_view& type, const string_view& key) const
+{
+    return getFromResources(type, key);
+}
+
+PdfResources* PdfCanvas::GetResources()
+{
+    return getResources();
+}
+
+const PdfResources* PdfCanvas::GetResources() const
+{
+    return getResources();
+}
+
+PdfObject* PdfCanvas::getFromResources(const string_view& type, const string_view& key) const
+{
+    auto resources = getResources();
+    if (resources == nullptr)
+        return nullptr;
+
+    return resources->GetResource(type, key);
+
+}
+
 PdfArray PdfCanvas::GetProcSet()
 {
     PdfArray procset;

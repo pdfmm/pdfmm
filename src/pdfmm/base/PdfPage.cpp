@@ -30,7 +30,7 @@ PdfPage::PdfPage(PdfDocument& parent, const PdfRect& size)
 }
 
 PdfPage::PdfPage(PdfObject& obj, const deque<PdfObject*>& listOfParents)
-    : PdfDictionaryElement(obj), m_Contents(nullptr), m_Resources(getResources(obj, listOfParents))
+    : PdfDictionaryElement(obj), m_Contents(nullptr), m_Resources(::getResources(obj, listOfParents))
 {
     PdfObject* contents = obj.GetDictionary().FindKey("Contents");
     if (contents != nullptr)
@@ -344,14 +344,6 @@ void PdfPage::DeleteAnnotation(unsigned index)
     arr->RemoveAt(index);
 }
 
-PdfObject* PdfPage::GetFromResources(const PdfName& type, const PdfName& key)
-{
-    if (m_Resources == nullptr)
-        return nullptr;
-
-    return m_Resources->GetResource(type, key);
-}
-
 void PdfPage::DeleteAnnotation(PdfObject& annotObj)
 {
     PdfArray* arr = GetAnnotationsArray();
@@ -575,7 +567,7 @@ PdfContents& PdfPage::GetOrCreateContents()
     return *m_Contents;
 }
 
-const PdfResources* PdfPage::GetResources() const
+PdfResources* PdfPage::getResources() const
 {
     return m_Resources.get();
 }
