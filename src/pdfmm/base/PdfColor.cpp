@@ -10,7 +10,8 @@
 
 #include <algorithm>
 #include <cctype>
-#include <pdfmm/common/istringviewstream.h>
+#include <pdfmm/private/istringviewstream.h>
+#include <pdfmm/private/charconv_compat.h>
 
 #include "PdfDocument.h"
 #include "PdfArray.h"
@@ -1172,12 +1173,13 @@ PdfColor PdfNamedColor::FromRGBString(const string_view& name)
         && name[0] == '#'
         && isxdigit(name[1]))
     {
-        const unsigned NAME_CONVERTED_TO_LONG_HEX =
-            static_cast<unsigned>(strtol(&name[1], 0, 16));
+        unsigned nameConverted;
+        if (std::from_chars(name.data() + 1, name.data() + name.size(), nameConverted, 16).ec != std::errc())
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoNumber, "Could not read number");
 
-        const unsigned R = (NAME_CONVERTED_TO_LONG_HEX & 0x00FF0000) >> 16;
-        const unsigned G = (NAME_CONVERTED_TO_LONG_HEX & 0x0000FF00) >> 8;
-        const unsigned B = (NAME_CONVERTED_TO_LONG_HEX & 0x000000FF);
+        const unsigned R = (nameConverted & 0x00FF0000) >> 16;
+        const unsigned G = (nameConverted & 0x0000FF00) >> 8;
+        const unsigned B = (nameConverted & 0x000000FF);
 
         return PdfColor(static_cast<double>(R) / 255.0,
             static_cast<double>(G) / 255.0,

@@ -13,6 +13,7 @@
 #include <algorithm>
 
 #include <utfcpp/utf8.h>
+#include <pdfmm/private/charconv_compat.h>
 
 #include "PdfArray.h"
 #include "PdfDictionary.h"
@@ -2447,8 +2448,11 @@ char32_t PdfDifferenceEncoding::NameToUnicodeID(const string_view& name)
     {
         auto code = name.substr(3);
         // force base16 IF it's 4 characters line
-        char32_t val = static_cast<char32_t>(strtol(code.data(), nullptr, (code.length() == 4 ? 16 : 10)));
-        return val;
+        unsigned val;
+        if (std::from_chars(code.data() + 1, name.data() + name.length(), val, code.length() == 4 ? 16 : 10).ec != std::errc())
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoNumber, "Could not read number");
+
+        return (char32_t)val;
     }
 
     return U'\0';

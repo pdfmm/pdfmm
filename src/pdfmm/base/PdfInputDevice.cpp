@@ -10,7 +10,7 @@
 #include "PdfInputDevice.h"
 
 #include <fstream>
-#include <pdfmm/common/istringviewstream.h>
+#include <pdfmm/private/istringviewstream.h>
 
 #include "PdfObjectStream.h"
 
