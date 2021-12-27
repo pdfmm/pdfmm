@@ -25,18 +25,15 @@ using namespace mm;
 using namespace std;
 
 // TODO: Move to pass PdfInputDevice*
-PdfParserObject::PdfParserObject(PdfDocument& document, const shared_ptr<PdfInputDevice>& device,
+PdfParserObject::PdfParserObject(PdfDocument& document, PdfInputDevice& device,
         ssize_t offset)
-    : PdfObject(PdfVariant::NullValue, true), m_device(device), m_Encrypt(nullptr)
+    : PdfObject(PdfVariant::NullValue, true), m_device(&device), m_Encrypt(nullptr)
 {
-    if (device == nullptr)
-        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
-
     // Parsed objects by definition are initially not dirty
     resetDirty();
     SetDocument(&document);
     initParserObject();
-    m_Offset = offset < 0 ? device->Tell() : offset;
+    m_Offset = offset < 0 ? device.Tell() : offset;
 }
 
 PdfParserObject::PdfParserObject()

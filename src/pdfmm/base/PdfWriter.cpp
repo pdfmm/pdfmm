@@ -91,23 +91,23 @@ void PdfWriter::Write(PdfOutputDevice& device)
         m_Encrypt->CreateEncryptionDictionary(m_EncryptObj->GetDictionary());
     }
 
-    unique_ptr<PdfXRef> pXRef;
+    unique_ptr<PdfXRef> xRef;
     if (m_UseXRefStream)
-        pXRef.reset(new PdfXRefStream(*this));
+        xRef.reset(new PdfXRefStream(*this));
     else
-        pXRef.reset(new PdfXRef(*this));
+        xRef.reset(new PdfXRef(*this));
 
     try
     {
         if (!m_IncrementalUpdate)
             WritePdfHeader(device);
 
-        WritePdfObjects(device, *m_Objects, *pXRef);
+        WritePdfObjects(device, *m_Objects, *xRef);
 
         if (m_IncrementalUpdate)
-            pXRef->SetFirstEmptyBlock();
+            xRef->SetFirstEmptyBlock();
 
-        pXRef->Write(device);
+        xRef->Write(device);
     }
     catch (PdfError& e)
     {

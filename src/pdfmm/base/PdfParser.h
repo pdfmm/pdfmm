@@ -48,42 +48,6 @@ public:
 
     /** Open a PDF file and parse it.
      *
-     *  \param filename filename of the file which is going to be parsed
-     *  \param loadOnDemand If true all objects will be read from the file at
-     *                       the time they are accessed first.
-     *                       If false all objects will be read immediately.
-     *                       This is faster if you do not need the complete PDF
-     *                       file in memory.
-     *
-     *
-     *  This might throw a PdfError( PdfErrorCode::InvalidPassword ) exception
-     *  if a password is required to read this PDF.
-     *  Call SetPassword() with the correct password in this case.
-     *
-     *  \see SetPassword
-     */
-    void ParseFile(const std::string_view& filename, bool loadOnDemand = true);
-
-    /** Open a PDF file and parse it.
-     *
-     *  \param buffer a buffer to parse
-     *  \param loadOnDemand If true all objects will be read from the file at
-     *                       the time they are accessed first.
-     *                       If false all objects will be read immediately.
-     *                       This is faster if you do not need the complete PDF
-     *                       file in memory.
-     *
-     *
-     *  This might throw a PdfError( PdfErrorCode::InvalidPassword ) exception
-     *  if a password is required to read this PDF.
-     *  Call SetPassword() with the correct password in this case.
-     *
-     *  \see SetPassword
-     */
-    void ParseBuffer(const bufferview& buffer, bool loadOnDemand = true);
-
-    /** Open a PDF file and parse it.
-     *
      *  \param device the input device to read from
      *  \param loadOnDemand If true all objects will be read from the file at
      *                       the time they are accessed first.
@@ -98,7 +62,7 @@ public:
      *
      *  \see SetPassword
      */
-    void Parse(const std::shared_ptr<PdfInputDevice>& device, bool loadOnDemand = true);
+    void Parse(PdfInputDevice& device, bool loadOnDemand = true);
 
     /** Get the file format version of the pdf
      *  \returns the file format version as string
@@ -254,12 +218,12 @@ private:
      *  in the correct order in the memory
      *  and takes care for linearized pdf files.
      */
-    void ReadDocumentStructure(const std::shared_ptr<PdfInputDevice>& device);
+    void ReadDocumentStructure(PdfInputDevice& device);
 
     /** hecks whether this pdf is linearized or not.
      *  Initializes the linearization directory on success.
      */
-    void HasLinearizationDict(const std::shared_ptr<PdfInputDevice>& device);
+    void HasLinearizationDict(PdfInputDevice& device);
 
     /** Merge the information of this trailer object
      *  in the parsers main trailer object.
@@ -269,7 +233,7 @@ private:
 
     /** Read the trailer directory at the end of the file.
      */
-    void ReadTrailer(const std::shared_ptr<PdfInputDevice>& device);
+    void ReadTrailer(PdfInputDevice& device);
 
     /** Looks for a startxref entry at the current file position
      *  and saves its byteoffset to pXRefOffset.
@@ -285,7 +249,7 @@ private:
      *                        after the table, which allows reading
      *                        a following trailer dictionary.
      */
-    void ReadXRefContents(const std::shared_ptr<PdfInputDevice>& device, size_t offset, bool positionAtEnd = false);
+    void ReadXRefContents(PdfInputDevice& device, size_t offset, bool positionAtEnd = false);
 
     /** Read a xref subsection
      *
@@ -303,7 +267,7 @@ private:
      *  \param readOnlyTrailer only the trailer is skipped over, the contents
      *         of the xref stream are not parsed
      */
-    void ReadXRefStreamContents(const std::shared_ptr<PdfInputDevice>& device, size_t offset, bool readOnlyTrailer);
+    void ReadXRefStreamContents(PdfInputDevice& device, size_t offset, bool readOnlyTrailer);
 
     /** Reads all objects from the pdf into memory
      *  from the previously read entries
@@ -314,7 +278,7 @@ private:
      *  either if no encryption is required or a correct
      *  encryption object was initialized from SetPassword.
      */
-    void ReadObjects(const std::shared_ptr<PdfInputDevice>& device);
+    void ReadObjects(PdfInputDevice& device);
 
     /** Reads all objects from the pdf into memory
      *  from the previously read entries
@@ -328,7 +292,7 @@ private:
      *  \see ReadObjects
      *  \see SetPassword
      */
-    void ReadObjectsInternal(const std::shared_ptr<PdfInputDevice>& device);
+    void ReadObjectsInternal(PdfInputDevice& device);
 
     /** Read the object with index from the object stream nObjNo
      *  and push it on the objects vector
@@ -351,7 +315,7 @@ private:
      */
     bool IsPdfFile(PdfInputDevice& device);
 
-    void ReadNextTrailer(const std::shared_ptr<PdfInputDevice>& device);
+    void ReadNextTrailer(PdfInputDevice& device);
 
 
     /** Checks for the existence of the %%EOF marker at the end of the file.

@@ -291,13 +291,13 @@ private:
      *  \param pageCount the number of pages to delete
      *  \returns this document
      */
-    void DeletePages(unsigned atIndex, unsigned pageCount);
+    void deletePages(unsigned atIndex, unsigned pageCount);
 
     /** Internal method to load all objects from a PdfParser object.
      *  The objects will be removed from the parser and are now
      *  owned by the PdfMemDocument.
      */
-    void InitFromParser(PdfParser& parser);
+    void initFromParser(PdfParser& parser);
 
     /** Clear all internal variables
      */
@@ -314,6 +314,7 @@ private:
     int64_t m_PrevXRefOffset;
     bool m_Linearized;
     std::unique_ptr<PdfEncrypt> m_Encrypt;
+    std::shared_ptr<PdfInputDevice> m_device;
 };
 
 };

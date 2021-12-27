@@ -78,9 +78,10 @@ void PdfMemDocument::clear()
     m_PrevXRefOffset = -1;
     m_Linearized = false;
     m_Encrypt = nullptr;
+    m_device = nullptr;
 }
 
-void PdfMemDocument::InitFromParser(PdfParser& parser)
+void PdfMemDocument::initFromParser(PdfParser& parser)
 {
     m_Version = parser.GetPdfVersion();
     m_InitialVersion = m_Version;
@@ -116,14 +117,8 @@ void PdfMemDocument::Load(const string_view& filename, const string_view& passwo
     if (filename.length() == 0)
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-    this->Clear();
-
-    // Call parse file instead of using the constructor
-    // so that m_Parser is initialized for encrypted documents
-    PdfParser parser(PdfDocument::GetObjects());
-    parser.SetPassword(password);
-    parser.ParseFile(filename.data(), true);
-    InitFromParser(parser);
+    auto device = std::make_shared<PdfFileInputDevice>(filename);
+    LoadFromDevice(device, password);
 }
 
 void PdfMemDocument::LoadFromBuffer(const bufferview& buffer, const string_view& password)
@@ -131,26 +126,25 @@ void PdfMemDocument::LoadFromBuffer(const bufferview& buffer, const string_view&
     if (buffer.size() == 0)
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-    this->Clear();
-
-    // Call parse file instead of using the constructor
-    // so that m_Parser is initialized for encrypted documents
-    PdfParser parser(PdfDocument::GetObjects());
-    parser.SetPassword(password);
-    parser.ParseBuffer(buffer, true);
-    InitFromParser(parser);
+    auto device = std::make_shared<PdfMemoryInputDevice>(buffer);
+    LoadFromDevice(device, password);
 }
 
-void PdfMemDocument::LoadFromDevice(const std::shared_ptr<PdfInputDevice>& device, const string_view& password)
+void PdfMemDocument::LoadFromDevice(const shared_ptr<PdfInputDevice>& device, const string_view& password)
 {
+    if (device == nullptr)
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
+
     this->Clear();
+
+    m_device = device;
 
     // Call parse file instead of using the constructor
     // so that m_Parser is initialized for encrypted documents
     PdfParser parser(PdfDocument::GetObjects());
     parser.SetPassword(password);
-    parser.Parse(device, true);
-    InitFromParser(parser);
+    parser.Parse(*device, true);
+    initFromParser(parser);
 }
 
 void PdfMemDocument::AddPdfExtension(const PdfName& ns, int64_t level)
@@ -258,7 +252,15 @@ void PdfMemDocument::Write(PdfOutputDevice& device, PdfSaveOptions opts)
     if (m_Encrypt != nullptr)
         writer.SetEncrypted(*m_Encrypt);
 
-    writer.Write(device);
+    try
+    {
+        writer.Write(device);
+    }
+    catch (PdfError& e)
+    {
+        PDFMM_PUSH_FRAME(e);
+        throw e;
+    }
 }
 
 void PdfMemDocument::WriteUpdate(const string_view& filename, PdfSaveOptions opts)
@@ -307,7 +309,7 @@ void PdfMemDocument::WriteUpdate(PdfOutputDevice& device, PdfSaveOptions opts)
     }
 }
 
-void PdfMemDocument::DeletePages(unsigned atIndex, unsigned pageCount)
+void PdfMemDocument::deletePages(unsigned atIndex, unsigned pageCount)
 {
     for (unsigned i = 0; i < pageCount; i++)
         this->GetPageTree().DeletePage(atIndex);
@@ -348,9 +350,9 @@ const PdfMemDocument& PdfMemDocument::InsertPages(const PdfMemDocument& doc, uns
 
     // delete
     if (rightCount > 0)
-        this->DeletePages(rightStartPage, rightCount);
+        this->deletePages(rightStartPage, rightCount);
     if (leftCount > 0)
-        this->DeletePages(leftStartPage, leftCount);
+        this->deletePages(leftStartPage, leftCount);
 
     return *this;
 }

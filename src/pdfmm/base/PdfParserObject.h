@@ -34,7 +34,7 @@ public:
      *                 if lOffset = -1, the object will be read from the current
      *                 position in the file.
      */
-    PdfParserObject(PdfDocument& document, const std::shared_ptr<PdfInputDevice>& device, ssize_t offset = -1);
+    PdfParserObject(PdfDocument& document, PdfInputDevice& device, ssize_t offset = -1);
 
     /** Parse the object data for an internal object.
      *  You have to call ParseDictionaryKeys as next function call.
@@ -134,7 +134,7 @@ private:
     void readObjectNumber();
 
 private:
-    std::shared_ptr<PdfInputDevice> m_device;
+    PdfInputDevice *m_device;
     PdfTokenizer m_tokenizer;
     PdfEncrypt* m_Encrypt;
     bool m_IsTrailer;
