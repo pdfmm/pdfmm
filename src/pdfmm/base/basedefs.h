@@ -112,7 +112,7 @@
 #endif
 
 #ifndef PDFMM_UNIT_TEST
-#define PDFMM_UNIT_TEST(classname) friend class classname
+#define PDFMM_UNIT_TEST(classname)
 #endif
 
 // Disable warnings

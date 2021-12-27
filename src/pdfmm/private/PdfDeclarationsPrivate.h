@@ -14,6 +14,11 @@
 #endif
 
 #include "PdfCompilerCompat.h"
+
+// Macro to define friendship with test classes.
+// Must be defined before base declarations
+#define PDFMM_UNIT_TEST(classname) friend class classname
+
 #include <pdfmm/base/PdfDeclarations.h>
 
 #include <stdexcept>
