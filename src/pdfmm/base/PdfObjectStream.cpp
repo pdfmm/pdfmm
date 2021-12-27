@@ -58,6 +58,7 @@ charbuff PdfObjectStream::GetFilteredCopy() const
 
 void PdfObjectStream::MoveTo(PdfObject& obj)
 {
+    PDFMM_RAISE_LOGIC_IF(m_Append, "EndAppend() should be called before moving the stream");
     obj.MoveStreamFrom(*m_Parent);
 }
 
