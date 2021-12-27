@@ -327,11 +327,11 @@ void PdfObject::DelayedLoadStream() const
 
 void PdfObject::delayedLoadStream() const
 {
-    if (!m_IsDelayedLoadStreamDone)
-    {
-        const_cast<PdfObject&>(*this).DelayedLoadStreamImpl();
-        m_IsDelayedLoadStreamDone = true;
-    }
+    if (m_IsDelayedLoadStreamDone)
+        return;
+
+    const_cast<PdfObject&>(*this).DelayedLoadStreamImpl();
+    m_IsDelayedLoadStreamDone = true;
 }
 
 // TODO2: SetDirty only if the value to be added is different
