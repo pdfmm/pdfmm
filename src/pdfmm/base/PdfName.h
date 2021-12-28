@@ -43,6 +43,7 @@ public:
     PdfName(const std::string_view& str);
     PdfName(const char* str);
     PdfName(const std::string& str);
+    PdfName(charbuff&& chars);
 
     // Delete constructor with nullptr
     PdfName(std::nullptr_t) = delete;
@@ -130,7 +131,6 @@ public:
     static const PdfName KeyFilter;
 
 private:
-    PdfName(charbuff chars);
     void expandUtf8String() const;
     void initFromUtf8String(const std::string_view& view);
 

@@ -34,7 +34,7 @@ namespace mm
         PdfCharCode(unsigned code, unsigned char codeSpaceSize);
 
     public:
-        void AppendTo(std::string& str, bool clear = false) const;
+        void AppendTo(charbuff& str, bool clear = false) const;
         void WriteHexTo(std::string& str, bool wrap = true) const;
     };
 

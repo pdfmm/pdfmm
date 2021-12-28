@@ -81,16 +81,16 @@ bool PdfEncoding::TryConvertToUtf8(const PdfString& encodedStr, string& str) con
     return tryConvertEncodedToUtf8(encodedStr.GetRawData(), str);
 }
 
-string PdfEncoding::ConvertToEncoded(const string_view& str) const
+charbuff PdfEncoding::ConvertToEncoded(const string_view& str) const
 {
-    string ret;
+    charbuff ret;
     if (!TryConvertToEncoded(str, ret))
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The provided string can't be converted to CID encoding");
 
     return ret;
 }
 
-bool PdfEncoding::TryConvertToEncoded(const string_view& str, string& encoded) const
+bool PdfEncoding::TryConvertToEncoded(const string_view& str, charbuff& encoded) const
 {
     encoded.clear();
     if (str.empty())

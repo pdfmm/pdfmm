@@ -57,7 +57,7 @@ PdfName::PdfName(const PdfName& rhs)
 {
 }
 
-PdfName::PdfName(charbuff chars)
+PdfName::PdfName(charbuff&& chars)
     : m_data(new NameData{ false, std::move(chars), nullptr })
 {
 }

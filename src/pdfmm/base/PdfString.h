@@ -28,7 +28,6 @@ class PdfOutputDevice;
  */
 class PDFMM_API PdfString final : public PdfDataProvider
 {
-    friend class PdfTokenizer;
 public:
     /** Create an empty string
      */

@@ -61,9 +61,9 @@ namespace mm
         /**
          * \remarks It throws if conversion failed, totally or partially
          */
-        std::string ConvertToEncoded(const std::string_view& str) const;
+        charbuff ConvertToEncoded(const std::string_view& str) const;
 
-        bool TryConvertToEncoded(const std::string_view& str, std::string& encoded) const;
+        bool TryConvertToEncoded(const std::string_view& str, charbuff& encoded) const;
 
         /**
          * Get a cid codes from a utf8 string
