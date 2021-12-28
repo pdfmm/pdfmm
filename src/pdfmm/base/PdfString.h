@@ -34,6 +34,8 @@ public:
      */
     PdfString();
 
+    PdfString(charbuff&& chars, bool isHex);
+
     PdfString(const char* str);
 
     /** Construct a new PdfString from a utf-8 string
@@ -139,8 +141,6 @@ public:
     bool operator!=(const std::string_view& view) const;
 
 private:
-    PdfString(charbuff chars, bool isHex);
-
     /** Construct a new PdfString from a 0-terminated string.
      *
      *  The input string will be copied.

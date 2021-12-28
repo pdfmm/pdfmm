@@ -46,7 +46,7 @@ typedef std::map<PdfName, PdfObject, PdfDictionaryComparator> PdfDictionaryMap;
  * Helper class to iterate through indirect objects
  */
 template <typename TObject, typename TMapIterator>
-class PDFMM_API PdfDictionaryIndirectIterableBase final
+class PdfDictionaryIndirectIterableBase final
 {
     friend class PdfDictionary;
 

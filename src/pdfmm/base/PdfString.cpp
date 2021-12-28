@@ -35,6 +35,11 @@ PdfString::PdfString()
 {
 }
 
+PdfString::PdfString(charbuff&& buff, bool isHex)
+    : m_data(new StringData{ StringState::RawBuffer, std::move(buff) }), m_isHex(isHex)
+{
+}
+
 PdfString::PdfString(const char* str)
     : m_isHex(false)
 {
@@ -50,11 +55,6 @@ PdfString::PdfString(const string_view& view)
 PdfString::PdfString(const PdfString& rhs)
 {
     this->operator=(rhs);
-}
-
-PdfString::PdfString(charbuff chars, bool isHex)
-    : m_data(new StringData{ StringState::RawBuffer, std::move(chars) }), m_isHex(isHex)
-{
 }
 
 PdfString PdfString::FromRaw(const bufferview& view, bool isHex)

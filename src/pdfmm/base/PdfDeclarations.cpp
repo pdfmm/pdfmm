@@ -14,7 +14,7 @@
 #include "PdfOutputDevice.h"
 
 #ifdef _WIN32
-#include <pdfmm/common/WindowsLeanMean.h>
+#include <pdfmm/private/WindowsLeanMean.h>
 #else
  // NOTE: There's no <cstrings>, <strings.h> is a posix header
 #include <strings.h>

@@ -64,13 +64,13 @@ for details. The tests and examples which are included in pdfmm are
 licensed under the GPL 2.0. This may change at a later stage.
 See all the COPYING files in the relevant folders for details.
 
-## String encoding conventions
+## String encoding and buffer conventions
 
 All ```std::strings``` or ```std::string_view``` in the library are inteded
-to hold UTF-8 encoded string content unless the documentation states otherwise.
-For example ```std::string_view``` instances can also represents a generic ```char``` buffer.
-```PdfString``` and ```PdfName``` constructors accept UTF-8 encoded strings by default
-(```PdfName``` accept only characters in the ```PdfDocEncoding``` char set, though).
+to hold UTF-8 encoded string content. ```PdfString``` and ```PdfName``` constructors
+accept UTF-8 encoded strings by default (```PdfName``` accept only characters in the
+```PdfDocEncoding``` char set, though). ```charbuff``` abd ```bufferview```
+instead represent a generic octet buffer.
 
 ## API stability
 

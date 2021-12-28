@@ -12,7 +12,7 @@
 #include <algorithm>
 
 #if defined(_WIN32) && defined(PDFMM_HAVE_WIN32GDI)
-#include <pdfmm/common/WindowsLeanMean.h>
+#include <pdfmm/private/WindowsLeanMean.h>
 #endif // defined(_WIN32) && defined(PDFMM_HAVE_WIN32GDI)
 
 #include <pdfmm/private/FreetypePrivate.h>
