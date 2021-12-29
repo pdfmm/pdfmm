@@ -43,7 +43,7 @@ public:
     PdfName(const std::string_view& str);
     PdfName(const char* str);
     PdfName(const std::string& str);
-    PdfName(charbuff&& chars);
+    PdfName(charbuff&& buff);
 
     // Delete constructor with nullptr
     PdfName(std::nullptr_t) = delete;

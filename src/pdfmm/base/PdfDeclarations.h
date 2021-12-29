@@ -59,12 +59,7 @@ using bufferview = std::span<const char>;
 /**
  * Convenient type for char array storage and/or buffer with
  * std::string compatibility
- *
- * \remarks don't use outside of pdfmm boundaries
  */
- // TODO: Optimize, we could maintain string compatibility
- // but have a custom allocator that does not zero initialize
- // allocated memory
 class PDFMM_API charbuff final : public std::string
 {
 public:
@@ -73,7 +68,7 @@ public:
     charbuff(charbuff&&) = default;
     charbuff(size_t size);
     explicit charbuff(const bufferview& view);
-    charbuff(std::string&& str);
+    explicit charbuff(std::string&& str);
 
 public:
     charbuff& operator=(const charbuff&) = default;

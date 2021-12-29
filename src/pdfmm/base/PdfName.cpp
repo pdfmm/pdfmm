@@ -57,8 +57,8 @@ PdfName::PdfName(const PdfName& rhs)
 {
 }
 
-PdfName::PdfName(charbuff&& chars)
-    : m_data(new NameData{ false, std::move(chars), nullptr })
+PdfName::PdfName(charbuff&& buff)
+    : m_data(new NameData{ false, std::move(buff), nullptr })
 {
 }
 
@@ -80,7 +80,7 @@ void PdfName::initFromUtf8String(const string_view& view)
     if (isPdfDocEncodingEqual)
         m_data.reset(new NameData{ true, charbuff(view), nullptr });
     else
-        m_data.reset(new NameData{ true, PdfDocEncoding::ConvertUTF8ToPdfDocEncoding(view), std::make_unique<string>(view) });
+        m_data.reset(new NameData{ true, (charbuff)PdfDocEncoding::ConvertUTF8ToPdfDocEncoding(view), std::make_unique<string>(view) });
 }
 
 PdfName PdfName::FromEscaped(const string_view& view)

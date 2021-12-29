@@ -256,6 +256,11 @@ unsigned utls::GetCharCodeMaxValue(unsigned char codeSize)
     return (unsigned)(std::pow(2, codeSize * CHAR_BIT)) - 1;
 }
 
+// TODO: Optimize, maintaining string compatibility
+// Use basic_string::resize_and_overwrite in C++23
+// https://en.cppreference.com/w/cpp/string/basic_string/resize_and_overwrite
+charbuff::charbuff() { }
+
 charbuff::charbuff(const bufferview& view)
     : string(view.data(), view.size())
 {
@@ -276,8 +281,6 @@ charbuff::operator bufferview() const
 {
     return bufferview(data(), size());
 }
-
-charbuff::charbuff() { }
 
 charbuff::charbuff(size_t size)
 {

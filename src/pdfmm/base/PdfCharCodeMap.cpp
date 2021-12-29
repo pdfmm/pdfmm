@@ -293,7 +293,7 @@ PdfCharCode::PdfCharCode(unsigned code, unsigned char codeSpaceSize)
 {
 }
 
-void PdfCharCode::AppendTo(charbuff& str, bool clear) const
+void PdfCharCode::AppendTo(string& str, bool clear) const
 {
     if (clear)
         str.clear();
