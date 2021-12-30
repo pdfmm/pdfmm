@@ -196,7 +196,7 @@ void PdfObject::initObject()
     m_IsDelayedLoadStreamDone = true;
 }
 
-void PdfObject::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
+void PdfObject::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
     PdfEncrypt* encrypt) const
 {
     DelayedLoad();
@@ -204,8 +204,8 @@ void PdfObject::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
 
     if (m_IndirectReference.IsIndirect())
     {
-        if ((writeMode & PdfWriteMode::Clean) == PdfWriteMode::None
-            && (writeMode & PdfWriteMode::NoPDFAPreserve) != PdfWriteMode::None)
+        if ((writeMode & PdfWriteFlags::Clean) == PdfWriteFlags::None
+            && (writeMode & PdfWriteFlags::NoPDFAPreserve) != PdfWriteFlags::None)
         {
             device.Write(COMMON_FORMAT("{} {} obj", m_IndirectReference.ObjectNumber(), m_IndirectReference.GenerationNumber()));
         }
@@ -250,7 +250,7 @@ void PdfObject::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
     const_cast<PdfObject&>(*this).ResetDirty();
 }
 
-size_t PdfObject::GetObjectLength(PdfWriteMode writeMode)
+size_t PdfObject::GetObjectLength(PdfWriteFlags writeMode)
 {
     PdfNullOutputDevice device;
 
@@ -507,7 +507,7 @@ PdfDataType PdfObject::GetDataType() const
     return m_Variant.GetDataType();
 }
 
-void PdfObject::ToString(string& data, PdfWriteMode writeMode) const
+void PdfObject::ToString(string& data, PdfWriteFlags writeMode) const
 {
     DelayedLoad();
     m_Variant.ToString(data, writeMode);

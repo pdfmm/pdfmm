@@ -97,7 +97,7 @@ void PdfMemDocument::initFromParser(PdfParser& parser)
     {
         string buf;
         PdfStringOutputDevice debug(buf);
-        GetTrailer().GetVariant().Write(debug, PdfWriteMode::None, nullptr);
+        GetTrailer().GetVariant().Write(debug, PdfWriteFlags::None, nullptr);
         debug.Put('\n');
         PdfError::LogMessage(PdfLogSeverity::Debug, buf);
     }

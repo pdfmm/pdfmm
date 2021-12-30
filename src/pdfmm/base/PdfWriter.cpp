@@ -29,7 +29,7 @@
 using namespace std;
 using namespace mm;
 
-static PdfWriteMode ToWriteMode(PdfSaveOptions opts);
+static PdfWriteFlags ToWriteFlags(PdfSaveOptions opts);
 
 PdfWriter::PdfWriter(PdfIndirectObjectList* objects, const PdfObject& trailer, PdfVersion version) :
     m_Objects(objects),
@@ -38,7 +38,7 @@ PdfWriter::PdfWriter(PdfIndirectObjectList* objects, const PdfObject& trailer, P
     m_UseXRefStream(false),
     m_EncryptObj(nullptr),
     m_SaveOptions(PdfSaveOptions::None),
-    m_WriteMode(PdfWriteMode::None),
+    m_WriteFlags(PdfWriteFlags::None),
     m_PrevXRefOffset(0),
     m_IncrementalUpdate(false),
     m_rewriteXRefTable(false)
@@ -69,7 +69,7 @@ const char* PdfWriter::GetPdfVersionString() const
 void PdfWriter::SetSaveOptions(PdfSaveOptions opts)
 {
     m_SaveOptions = opts;
-    m_WriteMode = ToWriteMode(opts);
+    m_WriteFlags = ToWriteFlags(opts);
 }
 
 PdfWriter::~PdfWriter()
@@ -182,7 +182,7 @@ void PdfWriter::WritePdfObjects(PdfOutputDevice& device, const PdfIndirectObject
         {
             xref.AddInUseObject(obj->GetIndirectReference(), device.Tell());
             // Also make sure that we do not encrypt the encryption dictionary!
-            obj->Write(device, m_WriteMode, obj == m_EncryptObj ? nullptr : m_Encrypt.get());
+            obj->Write(device, m_WriteFlags, obj == m_EncryptObj ? nullptr : m_Encrypt.get());
         }
     }
 
@@ -299,11 +299,11 @@ void PdfWriter::CreateFileIdentifier(PdfString& identifier, const PdfObject& tra
     }
 
     info->GetDictionary().AddKey("Location", PdfString("SOMEFILENAME"));
-    info->Write(length, m_WriteMode, nullptr);
+    info->Write(length, m_WriteFlags, nullptr);
 
     charbuff buffer(length.GetLength());
     PdfStringOutputDevice device(buffer);
-    info->Write(device, m_WriteMode, nullptr);
+    info->Write(device, m_WriteFlags, nullptr);
 
     // calculate the MD5 Sum
     identifier = PdfEncryptMD5Base::GetMD5String(reinterpret_cast<unsigned char*>(buffer.data()),
@@ -331,10 +331,10 @@ void PdfWriter::SetUseXRefStream(bool useXRefStream)
     m_UseXRefStream = useXRefStream;
 }
 
-PdfWriteMode ToWriteMode(PdfSaveOptions opts)
+PdfWriteFlags ToWriteFlags(PdfSaveOptions opts)
 {
     if (opts == PdfSaveOptions::Clean)
-        return PdfWriteMode::Clean;
+        return PdfWriteFlags::Clean;
 
-    return PdfWriteMode::None;
+    return PdfWriteFlags::None;
 }

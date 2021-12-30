@@ -198,13 +198,18 @@ int64_t PdfTokenizer::ReadNextNumber(PdfInputDevice& device)
 
 void PdfTokenizer::ReadNextVariant(PdfInputDevice& device, PdfVariant& variant, PdfEncrypt* encrypt)
 {
+    if (!TryReadNextVariant(device, variant, encrypt))
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected variant");
+}
+
+bool PdfTokenizer::TryReadNextVariant(PdfInputDevice& device, PdfVariant& variant, PdfEncrypt* encrypt)
+{
     PdfTokenType tokenType;
     string_view token;
-    bool gotToken = this->TryReadNextToken(device, token, tokenType);
-    if (!gotToken)
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected variant");
+    if (!TryReadNextToken(device, token, tokenType))
+        return false;
 
-    this->ReadNextVariant(device, token, tokenType, variant, encrypt);
+    return PdfTokenizer::TryReadNextVariant(device, token, tokenType, variant, encrypt);
 }
 
 void PdfTokenizer::ReadNextVariant(PdfInputDevice& device, const string_view& token, PdfTokenType tokenType, PdfVariant& variant, PdfEncrypt* encrypt)

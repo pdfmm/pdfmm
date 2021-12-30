@@ -190,7 +190,7 @@ public:
      *  \param data the object string is returned in this object.
      *  \param writeMode additional options for writing to a string
      */
-    void ToString(std::string& data, PdfWriteMode writeMode = PdfWriteMode::Clean) const;
+    void ToString(std::string& data, PdfWriteFlags writeMode = PdfWriteFlags::Clean) const;
 
     /** Get the value if this object is a bool.
      *  \returns the bool value.
@@ -316,13 +316,13 @@ public:
      *  \param keyStop if not KeyNull and a key == keyStop is found
      *                 writing will stop right before this key!
      */
-    void Write(PdfOutputDevice& device, PdfWriteMode writeMode, PdfEncrypt* encrypt) const;
+    void Write(PdfOutputDevice& device, PdfWriteFlags writeMode, PdfEncrypt* encrypt) const;
 
     /** Get the length of the object in bytes if it was written to disk now.
      *  \param writeMode additional options for writing the object
      *  \returns  the length of the object
      */
-    size_t GetObjectLength(PdfWriteMode writeMode);
+    size_t GetObjectLength(PdfWriteFlags writeMode);
 
     /** Get a handle to a PDF stream object.
      *  If the PDF object does not have a stream,

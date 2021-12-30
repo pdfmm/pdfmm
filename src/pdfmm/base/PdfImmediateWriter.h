@@ -53,7 +53,7 @@ public:
     /** Get the write mode used for writing the PDF
      *  \returns the write mode
      */
-    PdfWriteMode GetWriteMode() const;
+    PdfWriteFlags GetWriteFlags() const;
 
     /** Get the PDF version of the document
      *  The PDF version can only be set in the constructor

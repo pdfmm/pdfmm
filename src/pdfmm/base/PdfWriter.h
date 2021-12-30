@@ -88,7 +88,7 @@ public:
     /** Get the write mode used for writing the PDF
      *  \returns the write mode
      */
-    inline PdfWriteMode GetWriteMode() const { return m_WriteMode; }
+    inline PdfWriteFlags GetWriteFlags() const { return m_WriteFlags; }
 
     /** Set the PDF Version of the document. Has to be called before Write() to
      *  have an effect.
@@ -188,7 +188,7 @@ private:
     PdfObject* m_EncryptObj;                  // Used to temporarily store the encryption dictionary
 
     PdfSaveOptions m_SaveOptions;
-    PdfWriteMode m_WriteMode;
+    PdfWriteFlags m_WriteFlags;
 
     PdfString m_identifier;
     PdfString m_originalIdentifier; // used for incremental update

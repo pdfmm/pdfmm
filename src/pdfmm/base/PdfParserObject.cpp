@@ -24,7 +24,6 @@
 using namespace mm;
 using namespace std;
 
-// TODO: Move to pass PdfInputDevice*
 PdfParserObject::PdfParserObject(PdfDocument& document, PdfInputDevice& device,
         ssize_t offset)
     : PdfObject(PdfVariant::NullValue, true), m_device(&device), m_Encrypt(nullptr)

@@ -289,7 +289,7 @@ void PdfXRef::EndWriteImpl(PdfOutputDevice& device)
     device.Write("trailer\n");
 
     // NOTE: Do not encrypt the trailer dictionary
-    trailer.Write(device, m_writer->GetWriteMode(), nullptr);
+    trailer.Write(device, m_writer->GetWriteFlags(), nullptr);
 }
 
 void PdfXRef::EndWrite(PdfOutputDevice& device)

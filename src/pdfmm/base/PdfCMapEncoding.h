@@ -16,7 +16,7 @@ namespace mm
     class PdfObject;
     class PdfObjectStream;
 
-    class PdfCMapEncoding : public PdfEncodingMapBase
+    class PDFMM_API PdfCMapEncoding : public PdfEncodingMapBase
     {
     public:
         /** Construct a PdfCMapEncoding from a map

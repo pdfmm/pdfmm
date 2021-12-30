@@ -132,14 +132,14 @@ void PdfVariant::clear()
     }
 }
 
-void PdfVariant::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
+void PdfVariant::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
     const PdfEncrypt* encrypt) const
 {
     switch (m_DataType)
     {
         case PdfDataType::Bool:
         {
-            if ((writeMode & PdfWriteMode::NoInlineLiteral) == PdfWriteMode::None)
+            if ((writeMode & PdfWriteFlags::NoInlineLiteral) == PdfWriteFlags::None)
                 device.Put(' '); // Write space before true or false
 
             if (m_Data.Bool)
@@ -150,7 +150,7 @@ void PdfVariant::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
         }
         case PdfDataType::Number:
         {
-            if ((writeMode & PdfWriteMode::NoInlineLiteral) == PdfWriteMode::None)
+            if ((writeMode & PdfWriteFlags::NoInlineLiteral) == PdfWriteFlags::None)
                 device.Put(' '); // Write space before numbers
 
             device.Write(COMMON_FORMAT("{}", m_Data.Number));
@@ -158,7 +158,7 @@ void PdfVariant::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
         }
         case PdfDataType::Real:
         {
-            if ((writeMode & PdfWriteMode::NoInlineLiteral) == PdfWriteMode::None)
+            if ((writeMode & PdfWriteFlags::NoInlineLiteral) == PdfWriteFlags::None)
                 device.Put(' '); // Write space before numbers
 
             string formatted;
@@ -197,7 +197,7 @@ void PdfVariant::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
             break;
         case PdfDataType::Null:
         {
-            if ((writeMode & PdfWriteMode::NoInlineLiteral) == PdfWriteMode::None)
+            if ((writeMode & PdfWriteFlags::NoInlineLiteral) == PdfWriteFlags::None)
                 device.Put(' '); // Write space before null
 
             device.Write("null");
@@ -212,7 +212,7 @@ void PdfVariant::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
     };
 }
 
-void PdfVariant::ToString(string& data, PdfWriteMode writeMode) const
+void PdfVariant::ToString(string& data, PdfWriteFlags writeMode) const
 {
     ostringstream out;
     // We don't need to this stream with the safe PDF locale because

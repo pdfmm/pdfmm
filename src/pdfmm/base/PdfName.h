@@ -71,7 +71,7 @@ public:
      */
     std::string GetEscapedName() const;
 
-    void Write(PdfOutputDevice& device, PdfWriteMode writeMode, const PdfEncrypt* encrypt) const override;
+    void Write(PdfOutputDevice& device, PdfWriteFlags writeMode, const PdfEncrypt* encrypt) const override;
 
     /** \returns the unescaped value of this name object
      *           without the leading slash

@@ -68,12 +68,17 @@ public:
     charbuff(charbuff&&) = default;
     charbuff(size_t size);
     explicit charbuff(const bufferview& view);
+    explicit charbuff(const std::string_view& view);
+    explicit charbuff(const std::string& str);
     explicit charbuff(std::string&& str);
 
 public:
     charbuff& operator=(const charbuff&) = default;
     charbuff& operator=(charbuff&&) = default;
+    charbuff& operator=(const std::string_view& view);
+    charbuff& operator=(const std::string& str);
     charbuff& operator=(const bufferview& view);
+    charbuff& operator=(std::string&& str);
     operator bufferview() const;
 };
 
@@ -123,7 +128,7 @@ constexpr PdfVersion PdfVersionDefault = PdfVersion::V1_4;
 /**
  * Specify additional options for writing the PDF.
  */
-enum class PdfWriteMode
+enum class PdfWriteFlags
 {
     None = 0,
     Clean = 1,             ///< Create a PDF that is readable in a text editor, i.e. insert spaces and linebreaks between tokens
@@ -132,7 +137,7 @@ enum class PdfWriteMode
     // NOTE: The following flags are actually never set but
     // they are kept for documenting some PDF peculiarities
     // when writing compact code
-    NoPDFAPreserve = 4,    ///< When writing compact (PdfWriteMode::Clean is unset) code, preserving PDF/A compliance is not required
+    NoPDFAPreserve = 4,    ///< When writing compact (PdfWriteFlags::Clean is unset) code, preserving PDF/A compliance is not required
 };
 
 /**
@@ -570,7 +575,7 @@ enum class PdfBlendMode
 };
 
 ENABLE_BITMASK_OPERATORS(mm::PdfSaveOptions);
-ENABLE_BITMASK_OPERATORS(mm::PdfWriteMode);
+ENABLE_BITMASK_OPERATORS(mm::PdfWriteFlags);
 ENABLE_BITMASK_OPERATORS(mm::PdfInfoInitial);
 ENABLE_BITMASK_OPERATORS(mm::PdfFontInitFlags);
 ENABLE_BITMASK_OPERATORS(mm::PdfAutoSelectFontOptions);

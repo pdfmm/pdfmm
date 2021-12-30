@@ -62,7 +62,7 @@ public:
       */
     PdfReference& operator=(const PdfReference& rhs) = default;
 
-    void Write(PdfOutputDevice& device, PdfWriteMode writeMode, const PdfEncrypt* encrypt) const;
+    void Write(PdfOutputDevice& device, PdfWriteFlags writeMode, const PdfEncrypt* encrypt) const;
 
     /**
      * Compare to PdfReference objects.

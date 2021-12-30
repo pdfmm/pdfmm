@@ -174,7 +174,7 @@ public:
      *  \param data the object string is returned in this object.
      *  \param writeMode additional options for writing to a string
      */
-    void ToString(std::string& data, PdfWriteMode writeMode = PdfWriteMode::Clean) const;
+    void ToString(std::string& data, PdfWriteFlags writeMode = PdfWriteFlags::Clean) const;
 
     /** Get the value if this object is a bool.
      *  \returns the bool value.
@@ -296,7 +296,7 @@ public:
      *  \param encrypt an encryption object which is used to encrypt this object
      *                  or nullptr to not encrypt this object
      */
-    void Write(PdfOutputDevice& device, PdfWriteMode writeMode,
+    void Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
         const PdfEncrypt* encrypt) const;
 
     /** Assign the values of another PdfVariant to this one.

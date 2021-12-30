@@ -99,6 +99,6 @@ void PdfXRefStream::EndWriteImpl(PdfOutputDevice& device)
     stream.EndAppend();
     GetWriter().FillTrailerObject(*m_xrefStreamObj, this->GetSize(), false);
 
-    m_xrefStreamObj->Write(device, GetWriter().GetWriteMode(), nullptr); // CHECK-ME: Requires encryption info??
+    m_xrefStreamObj->Write(device, GetWriter().GetWriteFlags(), nullptr); // CHECK-ME: Requires encryption info??
     m_offset = offset;
 }

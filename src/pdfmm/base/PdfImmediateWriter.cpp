@@ -54,9 +54,9 @@ PdfImmediateWriter::~PdfImmediateWriter()
         GetObjects().Detach(this);
 }
 
-PdfWriteMode PdfImmediateWriter::GetWriteMode() const
+PdfWriteFlags PdfImmediateWriter::GetWriteFlags() const
 {
-    return PdfWriter::GetWriteMode();
+    return PdfWriter::GetWriteFlags();
 }
 
 PdfVersion PdfImmediateWriter::GetPdfVersion() const
@@ -71,7 +71,7 @@ void PdfImmediateWriter::WriteObject(const PdfObject& obj)
     this->FinishLastObject();
 
     m_xRef->AddInUseObject(obj.GetIndirectReference(), m_Device->Tell());
-    obj.Write(*m_Device, this->GetWriteMode(), GetEncrypt());
+    obj.Write(*m_Device, this->GetWriteFlags(), GetEncrypt());
 
     // Let's cheat a bit:
     // obj has written an "endobj\n" as last data to the file.
@@ -113,7 +113,7 @@ void PdfImmediateWriter::Finish()
         FillTrailerObject(trailer, m_xRef->GetSize(), false);
 
         m_Device->Write("trailer\n");
-        trailer.Write(*m_Device, this->GetWriteMode(), nullptr);
+        trailer.Write(*m_Device, this->GetWriteFlags(), nullptr);
     }
 
     m_Device->Write(COMMON_FORMAT("startxref\n{}\n%%EOF\n", lXRefOffset));

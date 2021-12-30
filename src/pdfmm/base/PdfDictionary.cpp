@@ -192,10 +192,10 @@ bool PdfDictionary::RemoveKey(const string_view& key)
     return true;
 }
 
-void PdfDictionary::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
+void PdfDictionary::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
     const PdfEncrypt* encrypt) const
 {
-    if ((writeMode & PdfWriteMode::Clean) == PdfWriteMode::Clean)
+    if ((writeMode & PdfWriteFlags::Clean) == PdfWriteFlags::Clean)
         device.Write("<<\n");
     else
         device.Write("<<");
@@ -203,14 +203,14 @@ void PdfDictionary::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
     if (this->HasKey(PdfName::KeyType))
     {
         // Type has to be the first key in any dictionary
-        if ((writeMode & PdfWriteMode::Clean) == PdfWriteMode::Clean)
+        if ((writeMode & PdfWriteFlags::Clean) == PdfWriteFlags::Clean)
             device.Write("/Type ");
         else
             device.Write("/Type");
 
         this->getKey(PdfName::KeyType)->GetVariant().Write(device, writeMode, encrypt);
 
-        if ((writeMode & PdfWriteMode::Clean) == PdfWriteMode::Clean)
+        if ((writeMode & PdfWriteFlags::Clean) == PdfWriteFlags::Clean)
             device.Put('\n');
     }
 
@@ -219,11 +219,11 @@ void PdfDictionary::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
         if (pair.first != PdfName::KeyType)
         {
             pair.first.Write(device, writeMode, nullptr);
-            if ((writeMode & PdfWriteMode::Clean) == PdfWriteMode::Clean)
+            if ((writeMode & PdfWriteFlags::Clean) == PdfWriteFlags::Clean)
                 device.Put(' '); // write a separator
 
             pair.second.GetVariant().Write(device, writeMode, encrypt);
-            if ((writeMode & PdfWriteMode::Clean) == PdfWriteMode::Clean)
+            if ((writeMode & PdfWriteFlags::Clean) == PdfWriteFlags::Clean)
                 device.Put('\n');
         }
     }

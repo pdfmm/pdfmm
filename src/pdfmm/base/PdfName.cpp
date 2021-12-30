@@ -93,7 +93,7 @@ PdfName PdfName::FromRaw(const bufferview& rawcontent)
     return PdfName((charbuff)rawcontent);
 }
 
-void PdfName::Write(PdfOutputDevice& device, PdfWriteMode, const PdfEncrypt*) const
+void PdfName::Write(PdfOutputDevice& device, PdfWriteFlags, const PdfEncrypt*) const
 {
     // Allow empty names, which are legal according to the PDF specification
     device.Put('/');

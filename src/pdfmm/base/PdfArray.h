@@ -121,7 +121,7 @@ public:
      */
     void Clear();
 
-    void Write(PdfOutputDevice& device, PdfWriteMode eriteMode,
+    void Write(PdfOutputDevice& device, PdfWriteFlags eriteMode,
         const PdfEncrypt* encrypt) const override;
 
     /** Get the object at the given index out of the array.

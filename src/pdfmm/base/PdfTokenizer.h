@@ -105,6 +105,7 @@ public:
      *  \param encrypt an encryption object which is used to decrypt strings during parsing
      */
     void ReadNextVariant(PdfInputDevice& device, PdfVariant& variant, PdfEncrypt* encrypt = nullptr);
+    bool TryReadNextVariant(PdfInputDevice& device, PdfVariant& variant, PdfEncrypt* encrypt = nullptr);
 
 public:
     /** Returns true if the given character is a whitespace

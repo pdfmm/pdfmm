@@ -176,14 +176,14 @@ void PdfArray::Clear()
     SetDirty();
 }
 
-void PdfArray::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
+void PdfArray::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
     const PdfEncrypt* encrypt) const
 {
     auto it = m_Objects.begin();
 
     int count = 1;
 
-    if ((writeMode & PdfWriteMode::Clean) == PdfWriteMode::Clean)
+    if ((writeMode & PdfWriteFlags::Clean) == PdfWriteFlags::Clean)
         device.Write("[ ");
     else
         device.Put('[');
@@ -191,7 +191,7 @@ void PdfArray::Write(PdfOutputDevice& device, PdfWriteMode writeMode,
     while (it != m_Objects.end())
     {
         it->GetVariant().Write(device, writeMode, encrypt);
-        if ((writeMode & PdfWriteMode::Clean) == PdfWriteMode::Clean)
+        if ((writeMode & PdfWriteFlags::Clean) == PdfWriteFlags::Clean)
         {
             device.Put((count % 10 == 0) ? '\n' : ' ');
         }

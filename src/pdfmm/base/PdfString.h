@@ -108,7 +108,7 @@ public:
      *  \param encrypt an encryption object which is used to encrypt this object,
      *                  or nullptr to not encrypt this object
      */
-    void Write(PdfOutputDevice& device, PdfWriteMode writeMode, const PdfEncrypt* encrypt) const;
+    void Write(PdfOutputDevice& device, PdfWriteFlags writeMode, const PdfEncrypt* encrypt) const;
 
     /** Copy an existing PdfString
      *  \param rhs another PdfString to copy

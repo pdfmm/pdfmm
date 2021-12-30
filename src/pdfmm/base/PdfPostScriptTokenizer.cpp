@@ -19,18 +19,13 @@ PdfPostScriptTokenizer::PdfPostScriptTokenizer(const shared_ptr<charbuff>& buffe
 
 void PdfPostScriptTokenizer::ReadNextVariant(PdfInputDevice& device, PdfVariant& variant)
 {
-    if (!TryReadNextVariant(device, variant))
+    if (!PdfTokenizer::TryReadNextVariant(device, variant, nullptr))
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected variant");
 }
 
 bool PdfPostScriptTokenizer::TryReadNextVariant(PdfInputDevice& device, PdfVariant& variant)
 {
-    PdfTokenType tokenType;
-    string_view token;
-    if (!PdfTokenizer::TryReadNextToken(device, token, tokenType))
-        return false;
-
-    return PdfTokenizer::TryReadNextVariant(device, token, tokenType, variant, nullptr);
+    return PdfTokenizer::TryReadNextVariant(device, variant, nullptr);
 }
 
 bool PdfPostScriptTokenizer::TryReadNext(PdfInputDevice& device, PdfPostScriptTokenType& psTokenType, string_view& keyword, PdfVariant& variant)
