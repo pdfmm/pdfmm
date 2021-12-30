@@ -6,22 +6,16 @@
  * Some rights reserved. See COPYING, AUTHORS.
  */
 
-#include "FilterTest.h"
+#include <PdfTest.h>
 
-#include <cppunit/Asserter.h>
+using namespace std;
+using namespace mm;
 
-#include <stdlib.h>
+static void TestFilter(PdfFilterType eFilter, const char* testBuffer, size_t testLength);
 
-using namespace PoDoFo;
+static string_view s_testBuffer1 = "Man is distinguished, not only by his reason, but by this singular passion from other animals, which is a lust of the mind, that by a perseverance of delight in the continued and indefatigable generation of knowledge, exceeds the short vehemence of any carnal pleasure.";
 
-CPPUNIT_TEST_SUITE_REGISTRATION(FilterTest);
-
-static const char s_pTestBuffer1[] = "Man is distinguished, not only by his reason, but by this singular passion from other animals, which is a lust of the mind, that by a perseverance of delight in the continued and indefatigable generation of knowledge, exceeds the short vehemence of any carnal pleasure.";
-
-// We treat the buffer as _excluding_ the trailing \0
-static const long s_lTestLength1 = strlen(s_pTestBuffer1);
-
-const char s_pTestBuffer2[] = {
+const char s_testBuffer2[] = {
     0x01, 0x64, 0x65, static_cast<char>(0xFE), 0x6B, static_cast<char>(0x80), 0x45, 0x32, static_cast<char>(0x88), 0x12, static_cast<char>(0x71), static_cast<char>(0xEA), 0x01,
     0x01, 0x64, 0x65, static_cast<char>(0xFE), 0x6B, static_cast<char>(0x80), 0x45, 0x32, static_cast<char>(0x88), 0x12, static_cast<char>(0x71), static_cast<char>(0xEA), 0x03,
     0x01, 0x64, 0x65, static_cast<char>(0xFE), 0x6B, static_cast<char>(0x80), 0x45, 0x32, static_cast<char>(0x88), 0x12, static_cast<char>(0x71), static_cast<char>(0xEA), 0x02,
@@ -32,37 +26,47 @@ const char s_pTestBuffer2[] = {
 
 const long s_lTestLength2 = 6 * 13;
 
-void FilterTest::setUp()
+TEST_CASE("testFilters")
 {
-}
-
-void FilterTest::tearDown()
-{
-}
-
-void FilterTest::TestFilter(EPdfFilter eFilter, const char* pTestBuffer, const long lTestLength)
-{
-    char* pEncoded;
-    char* pDecoded;
-    pdf_long   lEncoded;
-    pdf_long   lDecoded;
-
-    std::unique_ptr<PdfFilter> pFilter = PdfFilterFactory::Create(eFilter);
-    if (!pFilter.get())
+    for (unsigned i = 0; i <= (unsigned)PdfFilterType::Crypt; i++)
     {
-        printf("!!! Filter %i not implemented.\n", eFilter);
+        TestFilter(static_cast<PdfFilterType>(i), s_testBuffer1.data(), s_testBuffer1.length());
+        TestFilter(static_cast<PdfFilterType>(i), s_testBuffer2, std::size(s_testBuffer2));
+    }
+}
+
+TEST_CASE("testCCITT")
+{
+    unique_ptr<PdfFilter> filter = PdfFilterFactory::Create(PdfFilterType::CCITTFaxDecode);
+    if (filter == nullptr)
+        INFO("!!! ePdfFilter_CCITTFaxDecode not implemented skipping test!");
+}
+
+void TestFilter(PdfFilterType eFilter, const char* testBuffer, size_t testLength)
+{
+    size_t encodedLength;
+    size_t decodedLength;
+    unique_ptr<char[]> encoded;
+    unique_ptr<char[]> decoded;
+
+    unique_ptr<PdfFilter> filter = PdfFilterFactory::Create(eFilter);
+    if (filter == nullptr)
+    {
+        INFO(cmn::Format("!!! Filter {} not implemented.\n", eFilter));
         return;
     }
 
-    printf("Testing Algorithm %i:\n", eFilter);
-    printf("\t-> Testing Encoding\n");
-    try {
-        pFilter->Encode(pTestBuffer, lTestLength, &pEncoded, &lEncoded);
+    INFO(cmn::Format("Testing Algorithm {}:", eFilter));
+    INFO("\t-> Testing Encoding");
+    try
+    {
+        filter->Encode(testBuffer, testLength, encoded, encodedLength);
     }
-    catch (PdfError& e) {
-        if (e == ePdfError_UnsupportedFilter)
+    catch (PdfError& e)
+    {
+        if (e == PdfErrorCode::UnsupportedFilter)
         {
-            printf("\t-> Encoding not supported for filter %i.\n", eFilter);
+            INFO(cmn::Format("\t-> Encoding not supported for filter {}.", eFilter));
             return;
         }
         else
@@ -72,12 +76,14 @@ void FilterTest::TestFilter(EPdfFilter eFilter, const char* pTestBuffer, const l
         }
     }
 
-    printf("\t-> Testing Decoding\n");
-    try {
-        pFilter->Decode(pEncoded, lEncoded, &pDecoded, &lDecoded);
+    INFO("\t-> Testing Decoding");
+    try
+    {
+        filter->Decode(encoded.get(), encodedLength, decoded, decodedLength);
     }
-    catch (PdfError& e) {
-        if (e == ePdfError_UnsupportedFilter)
+    catch (PdfError& e)
+    {
+        if (e == PdfErrorCode::UnsupportedFilter)
         {
             printf("\t-> Decoding not supported for filter %i.\n", eFilter);
             return;
@@ -89,36 +95,14 @@ void FilterTest::TestFilter(EPdfFilter eFilter, const char* pTestBuffer, const l
         }
     }
 
-    printf("\t-> Original Data Length: %li\n", lTestLength);
-    printf("\t-> Encoded  Data Length: %li\n", lEncoded);
-    printf("\t-> Decoded  Data Length: %li\n", lDecoded);
+    INFO(cmn::Format("\t-> Original Data Length: {}", testLength));
+    INFO(cmn::Format("\t-> Encoded  Data Length: {}", encodedLength));
+    INFO(cmn::Format("\t-> Decoded  Data Length: {}", decodedLength));
 
-    CPPUNIT_ASSERT_EQUAL(static_cast<long>(lTestLength), static_cast<long>(lDecoded));
-    CPPUNIT_ASSERT_EQUAL(memcmp(pTestBuffer, pDecoded, lTestLength), 0);
+    REQUIRE(testLength == decodedLength);
+    REQUIRE(memcmp(testBuffer, decoded.get(), testLength) == 0);
 
-    free(pEncoded);
-    free(pDecoded);
-
-    printf("\t-> Test succeeded!\n");
+    INFO("\t-> Test succeeded!");
 }
 
-void FilterTest::testFilters()
-{
-    for (int i = 0; i <= ePdfFilter_Crypt; i++)
-    {
-        TestFilter(static_cast<EPdfFilter>(i), s_pTestBuffer1, s_lTestLength1);
-        TestFilter(static_cast<EPdfFilter>(i), s_pTestBuffer2, s_lTestLength2);
-    }
-}
 
-void FilterTest::testCCITT()
-{
-    std::unique_ptr<PdfFilter> pFilter = PdfFilterFactory::Create(ePdfFilter_CCITTFaxDecode);
-    if (!pFilter.get())
-    {
-        printf("!!! ePdfFilter_CCITTFaxDecode not implemented skipping test!\n");
-        return;
-    }
-
-
-}

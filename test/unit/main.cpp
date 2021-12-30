@@ -14,6 +14,6 @@ using namespace mm;
 
 int main(int argc, char* argv[])
 {
-    PdfError::SetMinLoggingSeverity(LogSeverity::Warning);
+    PdfError::SetMaxLoggingSeverity(PdfLogSeverity::Warning);
     return Catch::Session().run(argc, argv);
 }

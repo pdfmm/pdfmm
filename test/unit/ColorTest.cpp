@@ -6,1051 +6,16 @@
  * Some rights reserved. See COPYING, AUTHORS.
  */
 
-#include "ColorTest.h"
-#include <podofo.h>
-#include "cppunitextensions.h"
-
 #include <map>
 #include <utility>
 #include <string>
 
-using namespace PoDoFo;
+#include <PdfTest.h>
 
-// Registers the fixture into the 'registry'
-CPPUNIT_TEST_SUITE_REGISTRATION(ColorTest);
+#include "TestExtension.h"
 
-//#define DEBUG_INFO
+using namespace mm;
 
-void ColorTest::setUp()
-{
-}
-
-void ColorTest::tearDown()
-{
-}
-
-void ColorTest::testDefaultConstructor()
-{
-#ifdef DEBUG_INFO
-    std::cout << "testDefaultConstructor" << std::endl;
-#endif
-
-    PdfColor color;
-
-    ASSERT_FALSE(color.IsGrayScale());
-    ASSERT_FALSE(color.IsRGB());
-    ASSERT_FALSE(color.IsCMYK());
-    ASSERT_FALSE(color.IsSeparation());
-    ASSERT_FALSE(color.IsCieLab());
-    ASSERT_EQ(color.GetColorSpace(), ePdfColorSpace_Unknown);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetAlternateColorSpace(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetGrayScale(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetRed(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetGreen(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetBlue(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetCyan(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetMagenta(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetYellow(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetBlack(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetName(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetDensity(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetCieL(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetCieA(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetCieB(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.ConvertToGrayScale(),
-        PdfError,
-        ePdfError_CannotConvertColor);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.ConvertToRGB(),
-        PdfError,
-        ePdfError_CannotConvertColor);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.ConvertToCMYK(),
-        PdfError,
-        ePdfError_CannotConvertColor);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.ToArray(),
-        PdfError,
-        ePdfError_CannotConvertColor);
-}
-
-void ColorTest::testGreyConstructor()
-{
-#ifdef DEBUG_INFO
-    std::cout << "testGreyConstructor" << std::endl;
-#endif
-
-    const double GREY_VALUE = 0.123;
-    PdfColor color(GREY_VALUE);
-
-    ASSERT_TRUE(color.IsGrayScale());
-    ASSERT_FALSE(color.IsRGB());
-    ASSERT_FALSE(color.IsCMYK());
-    ASSERT_FALSE(color.IsSeparation());
-    ASSERT_FALSE(color.IsCieLab());
-    ASSERT_EQ(color.GetColorSpace(), ePdfColorSpace_DeviceGray);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetAlternateColorSpace(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    ASSERT_EQ(color.GetGrayScale(), GREY_VALUE);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetRed(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetGreen(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetBlue(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetCyan(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetMagenta(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetYellow(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetBlack(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetName(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetDensity(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetCieL(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetCieA(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetCieB(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    ASSERT_TRUE(color == color.ConvertToGrayScale());
-
-    ASSERT_TRUE(PdfColor(GREY_VALUE, GREY_VALUE, GREY_VALUE) == color.ConvertToRGB());
-
-    ASSERT_TRUE(color.ConvertToRGB().ConvertToCMYK() == color.ConvertToCMYK());
-
-    const PdfArray COLOR_ARRAY = color.ToArray();
-    ASSERT_TRUE(1 == COLOR_ARRAY.GetSize());
-    ASSERT_TRUE(PdfObject(GREY_VALUE) == COLOR_ARRAY[0]);
-
-}
-
-void ColorTest::testGreyConstructorInvalid()
-{
-#ifdef DEBUG_INFO
-    std::cout << "testGreyConstructorInvalid" << std::endl;
-#endif
-
-    {
-        const double GREY_VALUE = 1.01;
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-            const PdfColor TEST_COLOR(GREY_VALUE),
-            PdfError,
-            ePdfError_ValueOutOfRange);
-    }
-
-    {
-        const double GREY_VALUE = -0.01;
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-            const PdfColor TEST_COLOR(GREY_VALUE),
-            PdfError,
-            ePdfError_ValueOutOfRange);
-    }
-}
-
-void ColorTest::testRGBConstructor()
-{
-#ifdef DEBUG_INFO
-    std::cout << "testRGBConstructor" << std::endl;
-#endif
-
-    const double R_VALUE = 0.023;
-    const double G_VALUE = 0.345;
-    const double B_VALUE = 0.678;
-    PdfColor color(R_VALUE, G_VALUE, B_VALUE);
-
-    ASSERT_FALSE(color.IsGrayScale());
-    ASSERT_TRUE(color.IsRGB());
-    ASSERT_FALSE(color.IsCMYK());
-    ASSERT_FALSE(color.IsSeparation());
-    ASSERT_FALSE(color.IsCieLab());
-    ASSERT_EQ(color.GetColorSpace(), ePdfColorSpace_DeviceRGB);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetAlternateColorSpace(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetGrayScale(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    ASSERT_EQ(color.GetRed(), R_VALUE);
-    ASSERT_EQ(color.GetGreen(), G_VALUE);
-    ASSERT_EQ(color.GetBlue(), B_VALUE);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetCyan(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetMagenta(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetYellow(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetBlack(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetName(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetDensity(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetCieL(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetCieA(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetCieB(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    ASSERT_TRUE(PdfColor(0.299 * R_VALUE + 0.587 * G_VALUE + 0.114 * B_VALUE) == color.ConvertToGrayScale());
-
-    ASSERT_TRUE(PdfColor(R_VALUE, G_VALUE, B_VALUE) == color.ConvertToRGB());
-
-    {
-        double dBlack = PDF_MIN(1.0 - R_VALUE, PDF_MIN(1.0 - G_VALUE, 1.0 - B_VALUE));
-        double dCyan = (1.0 - R_VALUE - dBlack) / (1.0 - dBlack);
-        double dMagenta = (1.0 - G_VALUE - dBlack) / (1.0 - dBlack);
-        double dYellow = (1.0 - B_VALUE - dBlack) / (1.0 - dBlack);
-
-        ASSERT_TRUE(PdfColor(dCyan, dMagenta, dYellow, dBlack) == color.ConvertToCMYK());
-    }
-
-    const PdfArray COLOR_ARRAY = color.ToArray();
-    ASSERT_TRUE(3 == COLOR_ARRAY.GetSize());
-    ASSERT_TRUE(PdfObject(R_VALUE) == COLOR_ARRAY[0]);
-    ASSERT_TRUE(PdfObject(G_VALUE) == COLOR_ARRAY[1]);
-    ASSERT_TRUE(PdfObject(B_VALUE) == COLOR_ARRAY[2]);
-}
-
-
-void ColorTest::testRGBConstructorInvalid()
-{
-#ifdef DEBUG_INFO
-    std::cout << "testRGBConstructorInvalid" << std::endl;
-#endif
-
-    {
-        const double R_VALUE = 1.023;
-        const double G_VALUE = 0.345;
-        const double B_VALUE = 0.678;
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-            const PdfColor TEST_COLOR(R_VALUE, G_VALUE, B_VALUE),
-            PdfError,
-            ePdfError_ValueOutOfRange);
-    }
-
-    {
-        const double R_VALUE = 0.023;
-        const double G_VALUE = 1.345;
-        const double B_VALUE = 0.678;
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-            const PdfColor TEST_COLOR(R_VALUE, G_VALUE, B_VALUE),
-            PdfError,
-            ePdfError_ValueOutOfRange);
-    }
-
-    {
-        const double R_VALUE = 0.023;
-        const double G_VALUE = 0.345;
-        const double B_VALUE = 2.678;
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-            const PdfColor TEST_COLOR(R_VALUE, G_VALUE, B_VALUE),
-            PdfError,
-            ePdfError_ValueOutOfRange);
-    }
-
-    {
-        const double R_VALUE = -0.023;
-        const double G_VALUE = 0.345;
-        const double B_VALUE = 0.678;
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-            const PdfColor TEST_COLOR(R_VALUE, G_VALUE, B_VALUE),
-            PdfError,
-            ePdfError_ValueOutOfRange);
-    }
-
-    {
-        const double R_VALUE = 0.023;
-        const double G_VALUE = -0.345;
-        const double B_VALUE = 0.678;
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-            const PdfColor TEST_COLOR(R_VALUE, G_VALUE, B_VALUE),
-            PdfError,
-            ePdfError_ValueOutOfRange);
-    }
-
-    {
-        const double R_VALUE = 0.023;
-        const double G_VALUE = 0.345;
-        const double B_VALUE = -0.678;
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-            const PdfColor TEST_COLOR(R_VALUE, G_VALUE, B_VALUE),
-            PdfError,
-            ePdfError_ValueOutOfRange);
-    }
-
-}
-
-void ColorTest::testCMYKConstructor()
-{
-#ifdef DEBUG_INFO
-    std::cout << "testCMYKConstructor" << std::endl;
-#endif
-
-    const double C_VALUE = 0.1;
-    const double M_VALUE = 0.2;
-    const double Y_VALUE = 0.3;
-    const double B_VALUE = 0.4;
-    PdfColor color(C_VALUE, M_VALUE, Y_VALUE, B_VALUE);
-
-    ASSERT_FALSE(color.IsGrayScale());
-    ASSERT_FALSE(color.IsRGB());
-    ASSERT_TRUE(color.IsCMYK());
-    ASSERT_FALSE(color.IsSeparation());
-    ASSERT_FALSE(color.IsCieLab());
-    ASSERT_EQ(color.GetColorSpace(), ePdfColorSpace_DeviceCMYK);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetAlternateColorSpace(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetGrayScale(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetRed(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetGreen(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetBlue(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    ASSERT_EQ(color.GetCyan(), C_VALUE);
-    ASSERT_EQ(color.GetMagenta(), M_VALUE);
-    ASSERT_EQ(color.GetYellow(), Y_VALUE);
-    ASSERT_EQ(color.GetBlack(), B_VALUE);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetName(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetDensity(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetCieL(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetCieA(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-        color.GetCieB(),
-        PdfError,
-        ePdfError_InternalLogic);
-
-    ASSERT_TRUE(color.ConvertToRGB().ConvertToGrayScale() == color.ConvertToGrayScale());
-
-    {
-        double dRed = C_VALUE * (1.0 - B_VALUE) + B_VALUE;
-        double dGreen = M_VALUE * (1.0 - B_VALUE) + B_VALUE;
-        double dBlue = Y_VALUE * (1.0 - B_VALUE) + B_VALUE;
-
-        ASSERT_TRUE(PdfColor(1.0 - dRed, 1.0 - dGreen, 1.0 - dBlue) == color.ConvertToRGB());
-    }
-
-    ASSERT_TRUE(PdfColor(C_VALUE, M_VALUE, Y_VALUE, B_VALUE) == color.ConvertToCMYK());
-
-    const PdfArray COLOR_ARRAY = color.ToArray();
-    ASSERT_TRUE(4 == COLOR_ARRAY.GetSize());
-    ASSERT_TRUE(PdfObject(C_VALUE) == COLOR_ARRAY[0]);
-    ASSERT_TRUE(PdfObject(M_VALUE) == COLOR_ARRAY[1]);
-    ASSERT_TRUE(PdfObject(Y_VALUE) == COLOR_ARRAY[2]);
-    ASSERT_TRUE(PdfObject(B_VALUE) == COLOR_ARRAY[3]);
-}
-
-void ColorTest::testCMYKConstructorInvalid()
-{
-#ifdef DEBUG_INFO
-    std::cout << "testCMYKConstructorInvalid" << std::endl;
-#endif
-
-    {
-        const double C_VALUE = 1.1;
-        const double M_VALUE = 0.2;
-        const double Y_VALUE = 0.3;
-        const double B_VALUE = 0.4;
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-            const PdfColor TEST_COLOR(C_VALUE, M_VALUE, Y_VALUE, B_VALUE),
-            PdfError,
-            ePdfError_ValueOutOfRange);
-    }
-
-    {
-        const double C_VALUE = 0.1;
-        const double M_VALUE = 1.2;
-        const double Y_VALUE = 0.3;
-        const double B_VALUE = 0.4;
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-            const PdfColor TEST_COLOR(C_VALUE, M_VALUE, Y_VALUE, B_VALUE),
-            PdfError,
-            ePdfError_ValueOutOfRange);
-    }
-
-    {
-        const double C_VALUE = 0.1;
-        const double M_VALUE = 0.2;
-        const double Y_VALUE = 1.3;
-        const double B_VALUE = 0.4;
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-            const PdfColor TEST_COLOR(C_VALUE, M_VALUE, Y_VALUE, B_VALUE),
-            PdfError,
-            ePdfError_ValueOutOfRange);
-    }
-
-    {
-        const double C_VALUE = 0.1;
-        const double M_VALUE = 0.2;
-        const double Y_VALUE = 0.3;
-        const double B_VALUE = 1.4;
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-            const PdfColor TEST_COLOR(C_VALUE, M_VALUE, Y_VALUE, B_VALUE),
-            PdfError,
-            ePdfError_ValueOutOfRange);
-    }
-
-    {
-        const double C_VALUE = -0.1;
-        const double M_VALUE = 0.2;
-        const double Y_VALUE = 0.3;
-        const double B_VALUE = 0.4;
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-            const PdfColor TEST_COLOR(C_VALUE, M_VALUE, Y_VALUE, B_VALUE),
-            PdfError,
-            ePdfError_ValueOutOfRange);
-    }
-
-    {
-        const double C_VALUE = 0.1;
-        const double M_VALUE = -0.2;
-        const double Y_VALUE = 0.3;
-        const double B_VALUE = 0.4;
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-            const PdfColor TEST_COLOR(C_VALUE, M_VALUE, Y_VALUE, B_VALUE),
-            PdfError,
-            ePdfError_ValueOutOfRange);
-    }
-
-    {
-        const double C_VALUE = 0.1;
-        const double M_VALUE = 0.2;
-        const double Y_VALUE = -0.3;
-        const double B_VALUE = 0.4;
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-            const PdfColor TEST_COLOR(C_VALUE, M_VALUE, Y_VALUE, B_VALUE),
-            PdfError,
-            ePdfError_ValueOutOfRange);
-    }
-
-    {
-        const double C_VALUE = 0.1;
-        const double M_VALUE = 0.2;
-        const double Y_VALUE = 0.3;
-        const double B_VALUE = -0.4;
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-            const PdfColor TEST_COLOR(C_VALUE, M_VALUE, Y_VALUE, B_VALUE),
-            PdfError,
-            ePdfError_ValueOutOfRange);
-    }
-
-}
-
-void ColorTest::testCopyConstructor()
-{
-#ifdef DEBUG_INFO
-    std::cout << "testCopyConstructor" << std::endl;
-#endif
-
-    {
-        const double GREY_VALUE = 0.123;
-        PdfColor initialColor(GREY_VALUE);
-        PdfColor color(initialColor);
-
-        ASSERT_TRUE(color.IsGrayScale());
-        ASSERT_FALSE(color.IsRGB());
-        ASSERT_FALSE(color.IsCMYK());
-        ASSERT_FALSE(color.IsSeparation());
-        ASSERT_FALSE(color.IsCieLab());
-        ASSERT_EQ(color.GetColorSpace(), ePdfColorSpace_DeviceGray);
-
-        ASSERT_EQ(color.GetGrayScale(), GREY_VALUE);
-    }
-
-    {
-        const double R_VALUE = 0.023;
-        const double G_VALUE = 0.345;
-        const double B_VALUE = 0.678;
-        PdfColor initialColor(R_VALUE, G_VALUE, B_VALUE);
-        PdfColor color(initialColor);
-
-        ASSERT_FALSE(color.IsGrayScale());
-        ASSERT_TRUE(color.IsRGB());
-        ASSERT_FALSE(color.IsCMYK());
-        ASSERT_FALSE(color.IsSeparation());
-        ASSERT_FALSE(color.IsCieLab());
-        ASSERT_EQ(color.GetColorSpace(), ePdfColorSpace_DeviceRGB);
-
-        ASSERT_EQ(color.GetRed(), R_VALUE);
-        ASSERT_EQ(color.GetGreen(), G_VALUE);
-        ASSERT_EQ(color.GetBlue(), B_VALUE);
-    }
-
-    {
-        const double C_VALUE = 0.1;
-        const double M_VALUE = 0.2;
-        const double Y_VALUE = 0.3;
-        const double B_VALUE = 0.4;
-        PdfColor initialColor(C_VALUE, M_VALUE, Y_VALUE, B_VALUE);
-        PdfColor color(initialColor);
-
-        ASSERT_FALSE(color.IsGrayScale());
-        ASSERT_FALSE(color.IsRGB());
-        ASSERT_TRUE(color.IsCMYK());
-        ASSERT_FALSE(color.IsSeparation());
-        ASSERT_FALSE(color.IsCieLab());
-        ASSERT_EQ(color.GetColorSpace(), ePdfColorSpace_DeviceCMYK);
-
-        ASSERT_EQ(color.GetCyan(), C_VALUE);
-        ASSERT_EQ(color.GetMagenta(), M_VALUE);
-        ASSERT_EQ(color.GetYellow(), Y_VALUE);
-        ASSERT_EQ(color.GetBlack(), B_VALUE);
-    }
-}
-
-void ColorTest::testAssignmentOperator()
-{
-#ifdef DEBUG_INFO
-    std::cout << "testAssignmentOperator" << std::endl;
-#endif
-
-    {
-        const double GREY_VALUE = 0.123;
-        PdfColor initialColor(GREY_VALUE);
-        PdfColor color;
-        color = initialColor;
-
-        ASSERT_TRUE(color.IsGrayScale());
-        ASSERT_FALSE(color.IsRGB());
-        ASSERT_FALSE(color.IsCMYK());
-        ASSERT_FALSE(color.IsSeparation());
-        ASSERT_FALSE(color.IsCieLab());
-        ASSERT_EQ(color.GetColorSpace(), ePdfColorSpace_DeviceGray);
-
-        ASSERT_EQ(color.GetGrayScale(), GREY_VALUE);
-    }
-
-    {
-        const double R_VALUE = 0.023;
-        const double G_VALUE = 0.345;
-        const double B_VALUE = 0.678;
-        PdfColor initialColor(R_VALUE, G_VALUE, B_VALUE);
-        PdfColor color;
-        color = initialColor;
-
-        ASSERT_FALSE(color.IsGrayScale());
-        ASSERT_TRUE(color.IsRGB());
-        ASSERT_FALSE(color.IsCMYK());
-        ASSERT_FALSE(color.IsSeparation());
-        ASSERT_FALSE(color.IsCieLab());
-        ASSERT_EQ(color.GetColorSpace(), ePdfColorSpace_DeviceRGB);
-
-        ASSERT_EQ(color.GetRed(), R_VALUE);
-        ASSERT_EQ(color.GetGreen(), G_VALUE);
-        ASSERT_EQ(color.GetBlue(), B_VALUE);
-    }
-
-    {
-        const double C_VALUE = 0.1;
-        const double M_VALUE = 0.2;
-        const double Y_VALUE = 0.3;
-        const double B_VALUE = 0.4;
-        PdfColor initialColor(C_VALUE, M_VALUE, Y_VALUE, B_VALUE);
-        PdfColor color;
-        color = initialColor;
-
-        ASSERT_FALSE(color.IsGrayScale());
-        ASSERT_FALSE(color.IsRGB());
-        ASSERT_TRUE(color.IsCMYK());
-        ASSERT_FALSE(color.IsSeparation());
-        ASSERT_FALSE(color.IsCieLab());
-        ASSERT_EQ(color.GetColorSpace(), ePdfColorSpace_DeviceCMYK);
-
-        ASSERT_EQ(color.GetCyan(), C_VALUE);
-        ASSERT_EQ(color.GetMagenta(), M_VALUE);
-        ASSERT_EQ(color.GetYellow(), Y_VALUE);
-        ASSERT_EQ(color.GetBlack(), B_VALUE);
-    }
-}
-
-void ColorTest::testEqualsOperator()
-{
-#ifdef DEBUG_INFO
-    std::cout << "testEqualsOperator" << std::endl;
-#endif
-
-    //Grey test
-    { //Positive
-        const double GREY_VALUE = 0.123;
-        PdfColor lColor(GREY_VALUE);
-        PdfColor rColor(GREY_VALUE);
-
-        ASSERT_TRUE(lColor == rColor);
-    }
-
-    { //Negative
-        const double L_GREY_VALUE = 0.123;
-        PdfColor lColor(L_GREY_VALUE);
-        const double R_GREY_VALUE = 0.124;
-        PdfColor rColor(R_GREY_VALUE);
-
-        ASSERT_FALSE(L_GREY_VALUE == R_GREY_VALUE);
-        ASSERT_FALSE(lColor == rColor);
-    }
-
-    //RGB tests
-    { //Positive
-        const double L_R_VALUE = 0.023;
-        const double L_G_VALUE = 0.345;
-        const double L_B_VALUE = 0.678;
-        PdfColor lColor(L_R_VALUE, L_G_VALUE, L_B_VALUE);
-        const double R_R_VALUE = 0.023;
-        const double R_G_VALUE = 0.345;
-        const double R_B_VALUE = 0.678;
-        PdfColor rColor(R_R_VALUE, R_G_VALUE, R_B_VALUE);
-
-        ASSERT_TRUE(L_R_VALUE == R_R_VALUE);
-        ASSERT_TRUE(L_G_VALUE == R_G_VALUE);
-        ASSERT_TRUE(L_B_VALUE == R_B_VALUE);
-        ASSERT_TRUE(lColor == rColor);
-    }
-
-    { //Negative
-        const double L_R_VALUE = 0.023;
-        const double L_G_VALUE = 0.345;
-        const double L_B_VALUE = 0.678;
-        PdfColor lColor(L_R_VALUE, L_G_VALUE, L_B_VALUE);
-        const double R_R_VALUE = 0.100;
-        const double R_G_VALUE = 0.345;
-        const double R_B_VALUE = 0.678;
-        PdfColor rColor(R_R_VALUE, R_G_VALUE, R_B_VALUE);
-
-        ASSERT_FALSE(L_R_VALUE == R_R_VALUE);
-        ASSERT_TRUE(L_G_VALUE == R_G_VALUE);
-        ASSERT_TRUE(L_B_VALUE == R_B_VALUE);
-        ASSERT_FALSE(lColor == rColor);
-    }
-
-    { //Negative
-        const double L_R_VALUE = 0.023;
-        const double L_G_VALUE = 0.345;
-        const double L_B_VALUE = 0.678;
-        PdfColor lColor(L_R_VALUE, L_G_VALUE, L_B_VALUE);
-        const double R_R_VALUE = 0.023;
-        const double R_G_VALUE = 0.340;
-        const double R_B_VALUE = 0.678;
-        PdfColor rColor(R_R_VALUE, R_G_VALUE, R_B_VALUE);
-
-        ASSERT_TRUE(L_R_VALUE == R_R_VALUE);
-        ASSERT_FALSE(L_G_VALUE == R_G_VALUE);
-        ASSERT_TRUE(L_B_VALUE == R_B_VALUE);
-        ASSERT_FALSE(lColor == rColor);
-    }
-
-    { //Negative
-        const double L_R_VALUE = 0.023;
-        const double L_G_VALUE = 0.345;
-        const double L_B_VALUE = 0.678;
-        PdfColor lColor(L_R_VALUE, L_G_VALUE, L_B_VALUE);
-        const double R_R_VALUE = 0.023;
-        const double R_G_VALUE = 0.345;
-        const double R_B_VALUE = 0.677;
-        PdfColor rColor(R_R_VALUE, R_G_VALUE, R_B_VALUE);
-
-        ASSERT_TRUE(L_R_VALUE == R_R_VALUE);
-        ASSERT_TRUE(L_G_VALUE == R_G_VALUE);
-        ASSERT_FALSE(L_B_VALUE == R_B_VALUE);
-        ASSERT_FALSE(lColor == rColor);
-    }
-
-    //CMYB tests
-    { //Positive
-        const double L_C_VALUE = 0.1;
-        const double L_M_VALUE = 0.2;
-        const double L_Y_VALUE = 0.3;
-        const double L_B_VALUE = 0.4;
-        PdfColor lColor(L_C_VALUE, L_M_VALUE, L_Y_VALUE, L_B_VALUE);
-        const double R_C_VALUE = 0.1;
-        const double R_M_VALUE = 0.2;
-        const double R_Y_VALUE = 0.3;
-        const double R_B_VALUE = 0.4;
-        PdfColor rColor(R_C_VALUE, R_M_VALUE, R_Y_VALUE, R_B_VALUE);
-
-        ASSERT_TRUE(L_C_VALUE == R_C_VALUE);
-        ASSERT_TRUE(L_M_VALUE == R_M_VALUE);
-        ASSERT_TRUE(L_Y_VALUE == R_Y_VALUE);
-        ASSERT_TRUE(L_B_VALUE == R_B_VALUE);
-        ASSERT_TRUE(lColor == rColor);
-    }
-
-    { //Negative
-        const double L_C_VALUE = 0.1;
-        const double L_M_VALUE = 0.2;
-        const double L_Y_VALUE = 0.3;
-        const double L_B_VALUE = 0.4;
-        PdfColor lColor(L_C_VALUE, L_M_VALUE, L_Y_VALUE, L_B_VALUE);
-        const double R_C_VALUE = 0.11;
-        const double R_M_VALUE = 0.2;
-        const double R_Y_VALUE = 0.3;
-        const double R_B_VALUE = 0.4;
-        PdfColor rColor(R_C_VALUE, R_M_VALUE, R_Y_VALUE, R_B_VALUE);
-
-        ASSERT_FALSE(L_C_VALUE == R_C_VALUE);
-        ASSERT_TRUE(L_M_VALUE == R_M_VALUE);
-        ASSERT_TRUE(L_Y_VALUE == R_Y_VALUE);
-        ASSERT_TRUE(L_B_VALUE == R_B_VALUE);
-        ASSERT_FALSE(lColor == rColor);
-    }
-
-    { //Negative
-        const double L_C_VALUE = 0.1;
-        const double L_M_VALUE = 0.2;
-        const double L_Y_VALUE = 0.3;
-        const double L_B_VALUE = 0.4;
-        PdfColor lColor(L_C_VALUE, L_M_VALUE, L_Y_VALUE, L_B_VALUE);
-        const double R_C_VALUE = 0.1;
-        const double R_M_VALUE = 0.21;
-        const double R_Y_VALUE = 0.3;
-        const double R_B_VALUE = 0.4;
-        PdfColor rColor(R_C_VALUE, R_M_VALUE, R_Y_VALUE, R_B_VALUE);
-
-        ASSERT_TRUE(L_C_VALUE == R_C_VALUE);
-        ASSERT_FALSE(L_M_VALUE == R_M_VALUE);
-        ASSERT_TRUE(L_Y_VALUE == R_Y_VALUE);
-        ASSERT_TRUE(L_B_VALUE == R_B_VALUE);
-        ASSERT_FALSE(lColor == rColor);
-    }
-
-    { //Negative
-        const double L_C_VALUE = 0.1;
-        const double L_M_VALUE = 0.2;
-        const double L_Y_VALUE = 0.31;
-        const double L_B_VALUE = 0.4;
-        PdfColor lColor(L_C_VALUE, L_M_VALUE, L_Y_VALUE, L_B_VALUE);
-        const double R_C_VALUE = 0.1;
-        const double R_M_VALUE = 0.2;
-        const double R_Y_VALUE = 0.3;
-        const double R_B_VALUE = 0.4;
-        PdfColor rColor(R_C_VALUE, R_M_VALUE, R_Y_VALUE, R_B_VALUE);
-
-        ASSERT_TRUE(L_C_VALUE == R_C_VALUE);
-        ASSERT_TRUE(L_M_VALUE == R_M_VALUE);
-        ASSERT_FALSE(L_Y_VALUE == R_Y_VALUE);
-        ASSERT_TRUE(L_B_VALUE == R_B_VALUE);
-        ASSERT_FALSE(lColor == rColor);
-    }
-
-    { //Negative
-        const double L_C_VALUE = 0.1;
-        const double L_M_VALUE = 0.2;
-        const double L_Y_VALUE = 0.3;
-        const double L_B_VALUE = 0.4;
-        PdfColor lColor(L_C_VALUE, L_M_VALUE, L_Y_VALUE, L_B_VALUE);
-        const double R_C_VALUE = 0.1;
-        const double R_M_VALUE = 0.2;
-        const double R_Y_VALUE = 0.3;
-        const double R_B_VALUE = 0.45;
-        PdfColor rColor(R_C_VALUE, R_M_VALUE, R_Y_VALUE, R_B_VALUE);
-
-        ASSERT_TRUE(L_C_VALUE == R_C_VALUE);
-        ASSERT_TRUE(L_M_VALUE == R_M_VALUE);
-        ASSERT_TRUE(L_Y_VALUE == R_Y_VALUE);
-        ASSERT_FALSE(L_B_VALUE == R_B_VALUE);
-        ASSERT_FALSE(lColor == rColor);
-    }
-
-}
-
-void ColorTest::testHexNames()
-{
-#ifdef DEBUG_INFO
-    std::cout << "testHexNames" << std::endl;
-#endif
-
-    {
-        PdfColor rgb = PdfColor::FromString("#FF0AEF");
-        ASSERT_TRUE(rgb.IsRGB());
-        ASSERT_EQ(static_cast<int>(rgb.GetRed() * 255.0), 0xFF);
-        ASSERT_EQ(static_cast<int>(rgb.GetGreen() * 255.0), 0x0A);
-        ASSERT_EQ(static_cast<int>(rgb.GetBlue() * 255.0), 0xEF);
-    }
-
-    {
-        PdfColor rgb = PdfColor::FromString("#012345");
-        ASSERT_TRUE(rgb.IsRGB());
-        ASSERT_EQ(static_cast<int>(rgb.GetRed() * 255.0), 0x01);
-        ASSERT_EQ(static_cast<int>(rgb.GetGreen() * 255.0), 0x23);
-        ASSERT_EQ(static_cast<int>(rgb.GetBlue() * 255.0), 0x45);
-    }
-
-    {
-        PdfColor rgb = PdfColor::FromString("#ABCDEF");
-        ASSERT_TRUE(rgb.IsRGB());
-        ASSERT_EQ(static_cast<int>(rgb.GetRed() * 255.0), 0xAB);
-        ASSERT_EQ(static_cast<int>(rgb.GetGreen() * 255.0), 0xCD);
-        ASSERT_EQ(static_cast<int>(rgb.GetBlue() * 255.0), 0xEF);
-    }
-
-    {
-        PdfColor rgb = PdfColor::FromString("#abcdef");
-        ASSERT_TRUE(rgb.IsRGB());
-        ASSERT_EQ(static_cast<int>(rgb.GetRed() * 255.0), 0xAB);
-        ASSERT_EQ(static_cast<int>(rgb.GetGreen() * 255.0), 0xCD);
-        ASSERT_EQ(static_cast<int>(rgb.GetBlue() * 255.0), 0xEF);
-    }
-
-    {
-        PdfColor invalidColour = PdfColor::FromString("#01");
-        ASSERT_TRUE(invalidColour == PdfColor());
-    }
-
-    {
-        PdfColor invalidColour = PdfColor::FromString("#123456789");
-        ASSERT_TRUE(invalidColour == PdfColor());
-    }
-
-    {
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-            PdfColor::FromString("#12345g"),
-            PdfError,
-            ePdfError_CannotConvertColor);
-    }
-
-    {
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
-            PdfColor::FromString("#1234g5"),
-            PdfError,
-            ePdfError_CannotConvertColor);
-    }
-
-    PdfColor cmyk = PdfColor::FromString("#ABCDEF01");
-    ASSERT_TRUE(cmyk.IsCMYK());
-    ASSERT_EQ(static_cast<int>(cmyk.GetCyan() * 255.0), 0xAB);
-    ASSERT_EQ(static_cast<int>(cmyk.GetMagenta() * 255.0), 0xCD);
-    ASSERT_EQ(static_cast<int>(cmyk.GetYellow() * 255.0), 0xEF);
-    ASSERT_EQ(static_cast<int>(cmyk.GetBlack() * 255.0), 0x01);
-}
-
-void ColorTest::testNamesGeneral()
-{
-#ifdef DEBUG_INFO
-    std::cout << "testNames" << std::endl;
-#endif
-
-    PdfColor aliceBlue = PdfColor::FromString("aliceblue");
-    ASSERT_TRUE(aliceBlue == PdfColor::FromString("#F0F8FF"));
-    ASSERT_EQ(aliceBlue.GetRed(), static_cast<double>(0xF0) / 255.0);
-    ASSERT_EQ(aliceBlue.GetGreen(), static_cast<double>(0xF8) / 255.0);
-    ASSERT_EQ(aliceBlue.GetBlue(), static_cast<double>(0xFF) / 255.0);
-
-    PdfColor lime = PdfColor::FromString("lime");
-    ASSERT_TRUE(lime == PdfColor(0.000, 1.000, 0.000));
-
-    PdfColor yellowGreen = PdfColor::FromString("yellowgreen");
-    ASSERT_TRUE(yellowGreen == PdfColor::FromString("#9ACD32"));
-
-    {
-        // Test a not existing color
-        PdfColor notExist = PdfColor::FromString("asfaf9q341");
-        ASSERT_TRUE(notExist == PdfColor());
-    }
-
-    {
-        // Test a not existing color
-        PdfColor notExist = PdfColor::FromString("A");
-        ASSERT_TRUE(notExist == PdfColor());
-    }
-
-    {
-        // Test a not existing color
-        PdfColor notExist = PdfColor::FromString("");
-        ASSERT_TRUE(notExist == PdfColor());
-    }
-
-    {
-        // Test a not existing color
-        PdfColor notExist = PdfColor::FromString("yellowgree");
-        ASSERT_TRUE(notExist == PdfColor());
-    }
-
-    {
-        // Test a not existing color
-        PdfColor notExist = PdfColor::FromString("yellowgreem");
-        ASSERT_TRUE(notExist == PdfColor());
-    }
-
-    {
-        // Test a not existing color
-        PdfColor notExist = PdfColor::FromString("yellowgreen ");
-        ASSERT_TRUE(notExist == PdfColor());
-    }
-}
-
-namespace
-{
 class TestColor
 {
 public:
@@ -1089,15 +54,909 @@ private:
     const char* m_colorName;
 };
 
+TEST_CASE("testDefaultConstructor")
+{
+    PdfColor color;
+
+    REQUIRE(!color.IsGrayScale());
+    REQUIRE(!color.IsRGB());
+    REQUIRE(!color.IsCMYK());
+    REQUIRE(!color.IsSeparation());
+    REQUIRE(!color.IsCieLab());
+    REQUIRE(color.GetColorSpace() == PdfColorSpace::Unknown);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetAlternateColorSpace(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetGrayScale(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetRed(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetGreen(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetBlue(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetCyan(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetMagenta(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetYellow(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetBlack(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetName(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetDensity(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetCieL(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetCieA(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetCieB(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.ConvertToGrayScale(),
+        PdfErrorCode::CannotConvertColor);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.ConvertToRGB(),
+        PdfErrorCode::CannotConvertColor);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.ConvertToCMYK(),
+        PdfErrorCode::CannotConvertColor);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.ToArray(),
+        PdfErrorCode::CannotConvertColor);
 }
 
-void ColorTest::testNamesOneByOne()
+TEST_CASE("testGreyConstructor")
 {
-#ifdef DEBUG_INFO
-    std::cout << "testNames" << std::endl;
-#endif
+    const double GREY_VALUE = 0.123;
+    PdfColor color(GREY_VALUE);
 
+    REQUIRE(color.IsGrayScale());
+    REQUIRE(!color.IsRGB());
+    REQUIRE(!color.IsCMYK());
+    REQUIRE(!color.IsSeparation());
+    REQUIRE(!color.IsCieLab());
+    REQUIRE(color.GetColorSpace() == PdfColorSpace::DeviceGray);
 
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetAlternateColorSpace(),
+        PdfErrorCode::InternalLogic);
+
+    REQUIRE(color.GetGrayScale() == GREY_VALUE);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetRed(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetGreen(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetBlue(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetCyan(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetMagenta(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetYellow(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetBlack(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetName(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetDensity(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetCieL(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetCieA(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetCieB(),
+        PdfErrorCode::InternalLogic);
+
+    REQUIRE(color.ConvertToGrayScale() == color);
+
+    REQUIRE(color.ConvertToRGB() == PdfColor(GREY_VALUE, GREY_VALUE, GREY_VALUE));
+
+    REQUIRE(color.ConvertToRGB().ConvertToCMYK() == color.ConvertToCMYK());
+
+    const PdfArray COLOR_ARRAY = color.ToArray();
+    REQUIRE(COLOR_ARRAY.GetSize() == 1);
+    REQUIRE(COLOR_ARRAY[0] == PdfObject(GREY_VALUE));
+
+}
+
+TEST_CASE("testGreyConstructorInvalid")
+{
+    {
+        const double GREY_VALUE = 1.01;
+        ASSERT_THROW_WITH_ERROR_CODE(
+            const PdfColor TEST_COLOR(GREY_VALUE),
+            PdfErrorCode::ValueOutOfRange);
+    }
+
+    {
+        const double GREY_VALUE = -0.01;
+        ASSERT_THROW_WITH_ERROR_CODE(
+            const PdfColor TEST_COLOR(GREY_VALUE),
+            PdfErrorCode::ValueOutOfRange);
+    }
+}
+
+TEST_CASE("testRGBConstructor")
+{
+    const double R_VALUE = 0.023;
+    const double G_VALUE = 0.345;
+    const double B_VALUE = 0.678;
+    PdfColor color(R_VALUE, G_VALUE, B_VALUE);
+
+    REQUIRE(!color.IsGrayScale());
+    REQUIRE(color.IsRGB());
+    REQUIRE(!color.IsCMYK());
+    REQUIRE(!color.IsSeparation());
+    REQUIRE(!color.IsCieLab());
+    REQUIRE(color.GetColorSpace() == PdfColorSpace::DeviceRGB);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetAlternateColorSpace(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetGrayScale(),
+        PdfErrorCode::InternalLogic);
+
+    REQUIRE(color.GetRed() == R_VALUE);
+    REQUIRE(color.GetGreen() == G_VALUE);
+    REQUIRE(color.GetBlue() == B_VALUE);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetCyan(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetMagenta(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetYellow(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetBlack(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetName(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetDensity(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetCieL(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetCieA(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetCieB(),
+        PdfErrorCode::InternalLogic);
+
+    REQUIRE(color.ConvertToGrayScale() == PdfColor(0.299 * R_VALUE + 0.587 * G_VALUE + 0.114 * B_VALUE));
+
+    REQUIRE(color.ConvertToRGB() == PdfColor(R_VALUE, G_VALUE, B_VALUE));
+
+    {
+        double dBlack = std::min(1.0 - R_VALUE, std::min(1.0 - G_VALUE, 1.0 - B_VALUE));
+        double dCyan = (1.0 - R_VALUE - dBlack) / (1.0 - dBlack);
+        double dMagenta = (1.0 - G_VALUE - dBlack) / (1.0 - dBlack);
+        double dYellow = (1.0 - B_VALUE - dBlack) / (1.0 - dBlack);
+
+        REQUIRE(color.ConvertToCMYK() == PdfColor(dCyan, dMagenta, dYellow, dBlack));
+    }
+
+    const PdfArray COLOR_ARRAY = color.ToArray();
+    REQUIRE(COLOR_ARRAY.GetSize() == 3);
+    REQUIRE(COLOR_ARRAY[0] == PdfObject(R_VALUE));
+    REQUIRE(COLOR_ARRAY[1] == PdfObject(G_VALUE));
+    REQUIRE(COLOR_ARRAY[2] == PdfObject(B_VALUE));
+}
+
+TEST_CASE("testRGBConstructorInvalid")
+{
+    {
+        const double R_VALUE = 1.023;
+        const double G_VALUE = 0.345;
+        const double B_VALUE = 0.678;
+        ASSERT_THROW_WITH_ERROR_CODE(
+            const PdfColor TEST_COLOR(R_VALUE, G_VALUE, B_VALUE),
+            PdfErrorCode::ValueOutOfRange);
+    }
+
+    {
+        const double R_VALUE = 0.023;
+        const double G_VALUE = 1.345;
+        const double B_VALUE = 0.678;
+        ASSERT_THROW_WITH_ERROR_CODE(
+            const PdfColor TEST_COLOR(R_VALUE, G_VALUE, B_VALUE),
+            PdfErrorCode::ValueOutOfRange);
+    }
+
+    {
+        const double R_VALUE = 0.023;
+        const double G_VALUE = 0.345;
+        const double B_VALUE = 2.678;
+        ASSERT_THROW_WITH_ERROR_CODE(
+            const PdfColor TEST_COLOR(R_VALUE, G_VALUE, B_VALUE),
+            PdfErrorCode::ValueOutOfRange);
+    }
+
+    {
+        const double R_VALUE = -0.023;
+        const double G_VALUE = 0.345;
+        const double B_VALUE = 0.678;
+        ASSERT_THROW_WITH_ERROR_CODE(
+            const PdfColor TEST_COLOR(R_VALUE, G_VALUE, B_VALUE),
+            PdfErrorCode::ValueOutOfRange);
+    }
+
+    {
+        const double R_VALUE = 0.023;
+        const double G_VALUE = -0.345;
+        const double B_VALUE = 0.678;
+        ASSERT_THROW_WITH_ERROR_CODE(
+            const PdfColor TEST_COLOR(R_VALUE, G_VALUE, B_VALUE),
+            PdfErrorCode::ValueOutOfRange);
+    }
+
+    {
+        const double R_VALUE = 0.023;
+        const double G_VALUE = 0.345;
+        const double B_VALUE = -0.678;
+        ASSERT_THROW_WITH_ERROR_CODE(
+            const PdfColor TEST_COLOR(R_VALUE, G_VALUE, B_VALUE),
+            PdfErrorCode::ValueOutOfRange);
+    }
+
+}
+
+TEST_CASE("testCMYKConstructor")
+{
+    const double C_VALUE = 0.1;
+    const double M_VALUE = 0.2;
+    const double Y_VALUE = 0.3;
+    const double B_VALUE = 0.4;
+    PdfColor color(C_VALUE, M_VALUE, Y_VALUE, B_VALUE);
+
+    REQUIRE(!color.IsGrayScale());
+    REQUIRE(!color.IsRGB());
+    REQUIRE(color.IsCMYK());
+    REQUIRE(!color.IsSeparation());
+    REQUIRE(!color.IsCieLab());
+    REQUIRE(color.GetColorSpace() == PdfColorSpace::DeviceCMYK);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetAlternateColorSpace(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetGrayScale(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetRed(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetGreen(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetBlue(),
+        PdfErrorCode::InternalLogic);
+
+    REQUIRE(color.GetCyan() == C_VALUE);
+    REQUIRE(color.GetMagenta() == M_VALUE);
+    REQUIRE(color.GetYellow() == Y_VALUE);
+    REQUIRE(color.GetBlack() == B_VALUE);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetName(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetDensity(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetCieL(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetCieA(),
+        PdfErrorCode::InternalLogic);
+
+    ASSERT_THROW_WITH_ERROR_CODE(
+        color.GetCieB(),
+        PdfErrorCode::InternalLogic);
+
+    REQUIRE(color.ConvertToRGB().ConvertToGrayScale() == color.ConvertToGrayScale());
+
+    {
+        double dRed = C_VALUE * (1.0 - B_VALUE) + B_VALUE;
+        double dGreen = M_VALUE * (1.0 - B_VALUE) + B_VALUE;
+        double dBlue = Y_VALUE * (1.0 - B_VALUE) + B_VALUE;
+
+        REQUIRE(color.ConvertToRGB() == PdfColor(1.0 - dRed, 1.0 - dGreen, 1.0 - dBlue));
+    }
+
+    REQUIRE(color.ConvertToCMYK() == PdfColor(C_VALUE, M_VALUE, Y_VALUE, B_VALUE));
+
+    const PdfArray COLOR_ARRAY = color.ToArray();
+    REQUIRE(COLOR_ARRAY.GetSize() == 4);
+    REQUIRE(COLOR_ARRAY[0] == PdfObject(C_VALUE));
+    REQUIRE(COLOR_ARRAY[1] == PdfObject(M_VALUE));
+    REQUIRE(COLOR_ARRAY[2] == PdfObject(Y_VALUE));
+    REQUIRE(COLOR_ARRAY[3] == PdfObject(B_VALUE));
+}
+
+TEST_CASE("testCMYKConstructorInvalid")
+{
+    {
+        const double C_VALUE = 1.1;
+        const double M_VALUE = 0.2;
+        const double Y_VALUE = 0.3;
+        const double B_VALUE = 0.4;
+        ASSERT_THROW_WITH_ERROR_CODE(
+            const PdfColor TEST_COLOR(C_VALUE, M_VALUE, Y_VALUE, B_VALUE),
+            PdfErrorCode::ValueOutOfRange);
+    }
+
+    {
+        const double C_VALUE = 0.1;
+        const double M_VALUE = 1.2;
+        const double Y_VALUE = 0.3;
+        const double B_VALUE = 0.4;
+        ASSERT_THROW_WITH_ERROR_CODE(
+            const PdfColor TEST_COLOR(C_VALUE, M_VALUE, Y_VALUE, B_VALUE),
+            PdfErrorCode::ValueOutOfRange);
+    }
+
+    {
+        const double C_VALUE = 0.1;
+        const double M_VALUE = 0.2;
+        const double Y_VALUE = 1.3;
+        const double B_VALUE = 0.4;
+        ASSERT_THROW_WITH_ERROR_CODE(
+            const PdfColor TEST_COLOR(C_VALUE, M_VALUE, Y_VALUE, B_VALUE),
+            PdfErrorCode::ValueOutOfRange);
+    }
+
+    {
+        const double C_VALUE = 0.1;
+        const double M_VALUE = 0.2;
+        const double Y_VALUE = 0.3;
+        const double B_VALUE = 1.4;
+        ASSERT_THROW_WITH_ERROR_CODE(
+            const PdfColor TEST_COLOR(C_VALUE, M_VALUE, Y_VALUE, B_VALUE),
+            PdfErrorCode::ValueOutOfRange);
+    }
+
+    {
+        const double C_VALUE = -0.1;
+        const double M_VALUE = 0.2;
+        const double Y_VALUE = 0.3;
+        const double B_VALUE = 0.4;
+        ASSERT_THROW_WITH_ERROR_CODE(
+            const PdfColor TEST_COLOR(C_VALUE, M_VALUE, Y_VALUE, B_VALUE),
+            PdfErrorCode::ValueOutOfRange);
+    }
+
+    {
+        const double C_VALUE = 0.1;
+        const double M_VALUE = -0.2;
+        const double Y_VALUE = 0.3;
+        const double B_VALUE = 0.4;
+        ASSERT_THROW_WITH_ERROR_CODE(
+            const PdfColor TEST_COLOR(C_VALUE, M_VALUE, Y_VALUE, B_VALUE),
+            PdfErrorCode::ValueOutOfRange);
+    }
+
+    {
+        const double C_VALUE = 0.1;
+        const double M_VALUE = 0.2;
+        const double Y_VALUE = -0.3;
+        const double B_VALUE = 0.4;
+        ASSERT_THROW_WITH_ERROR_CODE(
+            const PdfColor TEST_COLOR(C_VALUE, M_VALUE, Y_VALUE, B_VALUE),
+            PdfErrorCode::ValueOutOfRange);
+    }
+
+    {
+        const double C_VALUE = 0.1;
+        const double M_VALUE = 0.2;
+        const double Y_VALUE = 0.3;
+        const double B_VALUE = -0.4;
+        ASSERT_THROW_WITH_ERROR_CODE(
+            const PdfColor TEST_COLOR(C_VALUE, M_VALUE, Y_VALUE, B_VALUE),
+            PdfErrorCode::ValueOutOfRange);
+    }
+
+}
+
+TEST_CASE("testCopyConstructor")
+{
+    {
+        const double GREY_VALUE = 0.123;
+        PdfColor initialColor(GREY_VALUE);
+        PdfColor color(initialColor);
+
+        REQUIRE(color.IsGrayScale());
+        REQUIRE(!color.IsRGB());
+        REQUIRE(!color.IsCMYK());
+        REQUIRE(!color.IsSeparation());
+        REQUIRE(!color.IsCieLab());
+        REQUIRE(color.GetColorSpace() == PdfColorSpace::DeviceGray);
+
+        REQUIRE(color.GetGrayScale() == GREY_VALUE);
+    }
+
+    {
+        const double R_VALUE = 0.023;
+        const double G_VALUE = 0.345;
+        const double B_VALUE = 0.678;
+        PdfColor initialColor(R_VALUE, G_VALUE, B_VALUE);
+        PdfColor color(initialColor);
+
+        REQUIRE(!color.IsGrayScale());
+        REQUIRE(color.IsRGB());
+        REQUIRE(!color.IsCMYK());
+        REQUIRE(!color.IsSeparation());
+        REQUIRE(!color.IsCieLab());
+        REQUIRE(color.GetColorSpace() == PdfColorSpace::DeviceRGB);
+
+        REQUIRE(color.GetRed() == R_VALUE);
+        REQUIRE(color.GetGreen() == G_VALUE);
+        REQUIRE(color.GetBlue() == B_VALUE);
+    }
+
+    {
+        const double C_VALUE = 0.1;
+        const double M_VALUE = 0.2;
+        const double Y_VALUE = 0.3;
+        const double B_VALUE = 0.4;
+        PdfColor initialColor(C_VALUE, M_VALUE, Y_VALUE, B_VALUE);
+        PdfColor color(initialColor);
+
+        REQUIRE(!color.IsGrayScale());
+        REQUIRE(!color.IsRGB());
+        REQUIRE(color.IsCMYK());
+        REQUIRE(!color.IsSeparation());
+        REQUIRE(!color.IsCieLab());
+        REQUIRE(color.GetColorSpace() == PdfColorSpace::DeviceCMYK);
+
+        REQUIRE(color.GetCyan() == C_VALUE);
+        REQUIRE(color.GetMagenta() == M_VALUE);
+        REQUIRE(color.GetYellow() == Y_VALUE);
+        REQUIRE(color.GetBlack() == B_VALUE);
+    }
+}
+
+TEST_CASE("testAssignmentOperator")
+{
+    {
+        const double GREY_VALUE = 0.123;
+        PdfColor initialColor(GREY_VALUE);
+        PdfColor color;
+        color = initialColor;
+
+        REQUIRE(color.IsGrayScale());
+        REQUIRE(!color.IsRGB());
+        REQUIRE(!color.IsCMYK());
+        REQUIRE(!color.IsSeparation());
+        REQUIRE(!color.IsCieLab());
+        REQUIRE(color.GetColorSpace() == PdfColorSpace::DeviceGray);
+
+        REQUIRE(color.GetGrayScale() == GREY_VALUE);
+    }
+
+    {
+        const double R_VALUE = 0.023;
+        const double G_VALUE = 0.345;
+        const double B_VALUE = 0.678;
+        PdfColor initialColor(R_VALUE, G_VALUE, B_VALUE);
+        PdfColor color;
+        color = initialColor;
+
+        REQUIRE(!color.IsGrayScale());
+        REQUIRE(color.IsRGB());
+        REQUIRE(!color.IsCMYK());
+        REQUIRE(!color.IsSeparation());
+        REQUIRE(!color.IsCieLab());
+        REQUIRE(color.GetColorSpace() == PdfColorSpace::DeviceRGB);
+
+        REQUIRE(color.GetRed() == R_VALUE);
+        REQUIRE(color.GetGreen() == G_VALUE);
+        REQUIRE(color.GetBlue() == B_VALUE);
+    }
+
+    {
+        const double C_VALUE = 0.1;
+        const double M_VALUE = 0.2;
+        const double Y_VALUE = 0.3;
+        const double B_VALUE = 0.4;
+        PdfColor initialColor(C_VALUE, M_VALUE, Y_VALUE, B_VALUE);
+        PdfColor color;
+        color = initialColor;
+
+        REQUIRE(!color.IsGrayScale());
+        REQUIRE(!color.IsRGB());
+        REQUIRE(color.IsCMYK());
+        REQUIRE(!color.IsSeparation());
+        REQUIRE(!color.IsCieLab());
+        REQUIRE(color.GetColorSpace() == PdfColorSpace::DeviceCMYK);
+
+        REQUIRE(color.GetCyan() == C_VALUE);
+        REQUIRE(color.GetMagenta() == M_VALUE);
+        REQUIRE(color.GetYellow() == Y_VALUE);
+        REQUIRE(color.GetBlack() == B_VALUE);
+    }
+}
+
+TEST_CASE("testEqualsOperator")
+{
+    //Grey test
+    { //Positive
+        const double GREY_VALUE = 0.123;
+        PdfColor lColor(GREY_VALUE);
+        PdfColor rColor(GREY_VALUE);
+
+        REQUIRE(lColor == rColor);
+    }
+
+    { //Negative
+        const double L_GREY_VALUE = 0.123;
+        PdfColor lColor(L_GREY_VALUE);
+        const double R_GREY_VALUE = 0.124;
+        PdfColor rColor(R_GREY_VALUE);
+
+        REQUIRE(L_GREY_VALUE != R_GREY_VALUE);
+        REQUIRE(lColor != rColor);
+    }
+
+    //RGB tests
+    { //Positive
+        const double L_R_VALUE = 0.023;
+        const double L_G_VALUE = 0.345;
+        const double L_B_VALUE = 0.678;
+        PdfColor lColor(L_R_VALUE, L_G_VALUE, L_B_VALUE);
+        const double R_R_VALUE = 0.023;
+        const double R_G_VALUE = 0.345;
+        const double R_B_VALUE = 0.678;
+        PdfColor rColor(R_R_VALUE, R_G_VALUE, R_B_VALUE);
+
+        REQUIRE(L_R_VALUE == R_R_VALUE);
+        REQUIRE(L_G_VALUE == R_G_VALUE);
+        REQUIRE(L_B_VALUE == R_B_VALUE);
+        REQUIRE(lColor == rColor);
+    }
+
+    { //Negative
+        const double L_R_VALUE = 0.023;
+        const double L_G_VALUE = 0.345;
+        const double L_B_VALUE = 0.678;
+        PdfColor lColor(L_R_VALUE, L_G_VALUE, L_B_VALUE);
+        const double R_R_VALUE = 0.100;
+        const double R_G_VALUE = 0.345;
+        const double R_B_VALUE = 0.678;
+        PdfColor rColor(R_R_VALUE, R_G_VALUE, R_B_VALUE);
+
+        REQUIRE(L_R_VALUE != R_R_VALUE);
+        REQUIRE(L_G_VALUE == R_G_VALUE);
+        REQUIRE(L_B_VALUE == R_B_VALUE);
+        REQUIRE(lColor != rColor);
+    }
+
+    { //Negative
+        const double L_R_VALUE = 0.023;
+        const double L_G_VALUE = 0.345;
+        const double L_B_VALUE = 0.678;
+        PdfColor lColor(L_R_VALUE, L_G_VALUE, L_B_VALUE);
+        const double R_R_VALUE = 0.023;
+        const double R_G_VALUE = 0.340;
+        const double R_B_VALUE = 0.678;
+        PdfColor rColor(R_R_VALUE, R_G_VALUE, R_B_VALUE);
+
+        REQUIRE(L_R_VALUE == R_R_VALUE);
+        REQUIRE(L_G_VALUE != R_G_VALUE);
+        REQUIRE(L_B_VALUE == R_B_VALUE);
+        REQUIRE(lColor != rColor);
+    }
+
+    { //Negative
+        const double L_R_VALUE = 0.023;
+        const double L_G_VALUE = 0.345;
+        const double L_B_VALUE = 0.678;
+        PdfColor lColor(L_R_VALUE, L_G_VALUE, L_B_VALUE);
+        const double R_R_VALUE = 0.023;
+        const double R_G_VALUE = 0.345;
+        const double R_B_VALUE = 0.677;
+        PdfColor rColor(R_R_VALUE, R_G_VALUE, R_B_VALUE);
+
+        REQUIRE(L_R_VALUE == R_R_VALUE);
+        REQUIRE(L_G_VALUE == R_G_VALUE);
+        REQUIRE(L_B_VALUE != R_B_VALUE);
+        REQUIRE(lColor != rColor);
+    }
+
+    //CMYB tests
+    { //Positive
+        const double L_C_VALUE = 0.1;
+        const double L_M_VALUE = 0.2;
+        const double L_Y_VALUE = 0.3;
+        const double L_B_VALUE = 0.4;
+        PdfColor lColor(L_C_VALUE, L_M_VALUE, L_Y_VALUE, L_B_VALUE);
+        const double R_C_VALUE = 0.1;
+        const double R_M_VALUE = 0.2;
+        const double R_Y_VALUE = 0.3;
+        const double R_B_VALUE = 0.4;
+        PdfColor rColor(R_C_VALUE, R_M_VALUE, R_Y_VALUE, R_B_VALUE);
+
+        REQUIRE(L_C_VALUE == R_C_VALUE);
+        REQUIRE(L_M_VALUE == R_M_VALUE);
+        REQUIRE(L_Y_VALUE == R_Y_VALUE);
+        REQUIRE(L_B_VALUE == R_B_VALUE);
+        REQUIRE(lColor == rColor);
+    }
+
+    { //Negative
+        const double L_C_VALUE = 0.1;
+        const double L_M_VALUE = 0.2;
+        const double L_Y_VALUE = 0.3;
+        const double L_B_VALUE = 0.4;
+        PdfColor lColor(L_C_VALUE, L_M_VALUE, L_Y_VALUE, L_B_VALUE);
+        const double R_C_VALUE = 0.11;
+        const double R_M_VALUE = 0.2;
+        const double R_Y_VALUE = 0.3;
+        const double R_B_VALUE = 0.4;
+        PdfColor rColor(R_C_VALUE, R_M_VALUE, R_Y_VALUE, R_B_VALUE);
+
+        REQUIRE(L_C_VALUE != R_C_VALUE);
+        REQUIRE(L_M_VALUE == R_M_VALUE);
+        REQUIRE(L_Y_VALUE == R_Y_VALUE);
+        REQUIRE(L_B_VALUE == R_B_VALUE);
+        REQUIRE(lColor != rColor);
+    }
+
+    { //Negative
+        const double L_C_VALUE = 0.1;
+        const double L_M_VALUE = 0.2;
+        const double L_Y_VALUE = 0.3;
+        const double L_B_VALUE = 0.4;
+        PdfColor lColor(L_C_VALUE, L_M_VALUE, L_Y_VALUE, L_B_VALUE);
+        const double R_C_VALUE = 0.1;
+        const double R_M_VALUE = 0.21;
+        const double R_Y_VALUE = 0.3;
+        const double R_B_VALUE = 0.4;
+        PdfColor rColor(R_C_VALUE, R_M_VALUE, R_Y_VALUE, R_B_VALUE);
+
+        REQUIRE(L_C_VALUE == R_C_VALUE);
+        REQUIRE(L_M_VALUE != R_M_VALUE);
+        REQUIRE(L_Y_VALUE == R_Y_VALUE);
+        REQUIRE(L_B_VALUE == R_B_VALUE);
+        REQUIRE(lColor != rColor);
+    }
+
+    { //Negative
+        const double L_C_VALUE = 0.1;
+        const double L_M_VALUE = 0.2;
+        const double L_Y_VALUE = 0.31;
+        const double L_B_VALUE = 0.4;
+        PdfColor lColor(L_C_VALUE, L_M_VALUE, L_Y_VALUE, L_B_VALUE);
+        const double R_C_VALUE = 0.1;
+        const double R_M_VALUE = 0.2;
+        const double R_Y_VALUE = 0.3;
+        const double R_B_VALUE = 0.4;
+        PdfColor rColor(R_C_VALUE, R_M_VALUE, R_Y_VALUE, R_B_VALUE);
+
+        REQUIRE(L_C_VALUE == R_C_VALUE);
+        REQUIRE(L_M_VALUE == R_M_VALUE);
+        REQUIRE(L_Y_VALUE != R_Y_VALUE);
+        REQUIRE(L_B_VALUE == R_B_VALUE);
+        REQUIRE(lColor != rColor);
+    }
+
+    { //Negative
+        const double L_C_VALUE = 0.1;
+        const double L_M_VALUE = 0.2;
+        const double L_Y_VALUE = 0.3;
+        const double L_B_VALUE = 0.4;
+        PdfColor lColor(L_C_VALUE, L_M_VALUE, L_Y_VALUE, L_B_VALUE);
+        const double R_C_VALUE = 0.1;
+        const double R_M_VALUE = 0.2;
+        const double R_Y_VALUE = 0.3;
+        const double R_B_VALUE = 0.45;
+        PdfColor rColor(R_C_VALUE, R_M_VALUE, R_Y_VALUE, R_B_VALUE);
+
+        REQUIRE(L_C_VALUE == R_C_VALUE);
+        REQUIRE(L_M_VALUE == R_M_VALUE);
+        REQUIRE(L_Y_VALUE == R_Y_VALUE);
+        REQUIRE(L_B_VALUE != R_B_VALUE);
+        REQUIRE(lColor != rColor);
+    }
+
+}
+
+TEST_CASE("testHexNames")
+{
+    {
+        PdfColor rgb = PdfColor::FromString("#FF0AEF");
+        REQUIRE(rgb.IsRGB());
+        REQUIRE(static_cast<int>(rgb.GetRed() * 255.0) == 0xFF);
+        REQUIRE(static_cast<int>(rgb.GetGreen() * 255.0) == 0x0A);
+        REQUIRE(static_cast<int>(rgb.GetBlue() * 255.0) == 0xEF);
+    }
+
+    {
+        PdfColor rgb = PdfColor::FromString("#012345");
+        REQUIRE(rgb.IsRGB());
+        REQUIRE(static_cast<int>(rgb.GetRed() * 255.0) == 0x01);
+        REQUIRE(static_cast<int>(rgb.GetGreen() * 255.0) == 0x23);
+        REQUIRE(static_cast<int>(rgb.GetBlue() * 255.0) == 0x45);
+    }
+
+    {
+        PdfColor rgb = PdfColor::FromString("#ABCDEF");
+        REQUIRE(rgb.IsRGB());
+        REQUIRE(static_cast<int>(rgb.GetRed() * 255.0) == 0xAB);
+        REQUIRE(static_cast<int>(rgb.GetGreen() * 255.0) == 0xCD);
+        REQUIRE(static_cast<int>(rgb.GetBlue() * 255.0) == 0xEF);
+    }
+
+    {
+        PdfColor rgb = PdfColor::FromString("#abcdef");
+        REQUIRE(rgb.IsRGB());
+        REQUIRE(static_cast<int>(rgb.GetRed() * 255.0) == 0xAB);
+        REQUIRE(static_cast<int>(rgb.GetGreen() * 255.0) == 0xCD);
+        REQUIRE(static_cast<int>(rgb.GetBlue() * 255.0) == 0xEF);
+    }
+
+    {
+        PdfColor invalidColour = PdfColor::FromString("#01");
+        REQUIRE(invalidColour == PdfColor());
+    }
+
+    {
+        PdfColor invalidColour = PdfColor::FromString("#123456789");
+        REQUIRE(invalidColour == PdfColor());
+    }
+
+    {
+        ASSERT_THROW_WITH_ERROR_CODE(
+            PdfColor::FromString("#12345g"),
+            PdfErrorCode::CannotConvertColor);
+    }
+
+    {
+        ASSERT_THROW_WITH_ERROR_CODE(
+            PdfColor::FromString("#1234g5"),
+            PdfErrorCode::CannotConvertColor);
+    }
+
+    PdfColor cmyk = PdfColor::FromString("#ABCDEF01");
+    REQUIRE(cmyk.IsCMYK());
+    REQUIRE(static_cast<int>(cmyk.GetCyan() * 255.0) == 0xAB);
+    REQUIRE(static_cast<int>(cmyk.GetMagenta() * 255.0) == 0xCD);
+    REQUIRE(static_cast<int>(cmyk.GetYellow() * 255.0) == 0xEF);
+    REQUIRE(static_cast<int>(cmyk.GetBlack() * 255.0) == 0x01);
+}
+
+TEST_CASE("testNamesGeneral")
+{
+    PdfColor aliceBlue = PdfColor::FromString("aliceblue");
+    REQUIRE(aliceBlue == PdfColor::FromString("#F0F8FF"));
+    REQUIRE(aliceBlue.GetRed() == static_cast<double>(0xF0) / 255.0);
+    REQUIRE(aliceBlue.GetGreen() == static_cast<double>(0xF8) / 255.0);
+    REQUIRE(aliceBlue.GetBlue() == static_cast<double>(0xFF) / 255.0);
+
+    PdfColor lime = PdfColor::FromString("lime");
+    REQUIRE(lime == PdfColor(0.000, 1.000, 0.000));
+
+    PdfColor yellowGreen = PdfColor::FromString("yellowgreen");
+    REQUIRE(yellowGreen == PdfColor::FromString("#9ACD32"));
+
+    {
+        // Test a not existing color
+        PdfColor notExist = PdfColor::FromString("asfaf9q341");
+        REQUIRE(notExist == PdfColor());
+    }
+
+    {
+        // Test a not existing color
+        PdfColor notExist = PdfColor::FromString("A");
+        REQUIRE(notExist == PdfColor());
+    }
+
+    {
+        // Test a not existing color
+        PdfColor notExist = PdfColor::FromString("");
+        REQUIRE(notExist == PdfColor());
+    }
+
+    {
+        // Test a not existing color
+        PdfColor notExist = PdfColor::FromString("yellowgree");
+        REQUIRE(notExist == PdfColor());
+    }
+
+    {
+        // Test a not existing color
+        PdfColor notExist = PdfColor::FromString("yellowgreem");
+        REQUIRE(notExist == PdfColor());
+    }
+
+    {
+        // Test a not existing color
+        PdfColor notExist = PdfColor::FromString("yellowgreen ");
+        REQUIRE(notExist == PdfColor());
+    }
+}
+
+TEST_CASE("testNamesOneByOne")
+{
     //Copied and adjusted from http://cvsweb.xfree86.org/cvsweb/xc/programs/rgb/rgb.txt?rev=1.2
     const TestColor TABLE_OF_TEST_COLORS[] =
     {
@@ -1771,322 +1630,267 @@ void ColorTest::testNamesOneByOne()
 
         if (PdfColor() == COLOR_FROM_NAME)
         {
-#ifdef DEBUG_INFO
-            std::cout << "Color " << TEST_COLOR.getColorName() << " is not supported" << std::endl;
-#endif
+            INFO(cmn::Format("Color {} is not supported", TEST_COLOR.getColorName()));
         }
         else
         {
             bool result = EXPECTED_COLOR == COLOR_FROM_NAME;
-            ASSERT_TRUE(result);
+            REQUIRE(result);
         }
     }
 }
 
-void ColorTest::testColorGreyConstructor()
+TEST_CASE("testColorGreyConstructor")
 {
-#ifdef DEBUG_INFO
-    std::cout << "testColorGreyConstructor" << std::endl;
-#endif
-
     const double GREY_VALUE = 0.123;
     PdfColorGray color(GREY_VALUE);
 
-    ASSERT_TRUE(color.IsGrayScale());
-    ASSERT_FALSE(color.IsRGB());
-    ASSERT_FALSE(color.IsCMYK());
-    ASSERT_FALSE(color.IsSeparation());
-    ASSERT_FALSE(color.IsCieLab());
-    ASSERT_EQ(color.GetColorSpace(), ePdfColorSpace_DeviceGray);
+    REQUIRE(color.IsGrayScale());
+    REQUIRE(!color.IsRGB());
+    REQUIRE(!color.IsCMYK());
+    REQUIRE(!color.IsSeparation());
+    REQUIRE(!color.IsCieLab());
+    REQUIRE(color.GetColorSpace() == PdfColorSpace::DeviceGray);
 
-    ASSERT_EQ(color.GetGrayScale(), GREY_VALUE);
+    REQUIRE(color.GetGrayScale() == GREY_VALUE);
 }
 
-void ColorTest::testColorRGBConstructor()
+TEST_CASE("testColorRGBConstructor")
 {
-#ifdef DEBUG_INFO
-    std::cout << "testColorRGBConstructor" << std::endl;
-#endif
-
     const double R_VALUE = 0.023;
     const double G_VALUE = 0.345;
     const double B_VALUE = 0.678;
     PdfColorRGB color(R_VALUE, G_VALUE, B_VALUE);
 
-    ASSERT_FALSE(color.IsGrayScale());
-    ASSERT_TRUE(color.IsRGB());
-    ASSERT_FALSE(color.IsCMYK());
-    ASSERT_FALSE(color.IsSeparation());
-    ASSERT_FALSE(color.IsCieLab());
-    ASSERT_EQ(color.GetColorSpace(), ePdfColorSpace_DeviceRGB);
+    REQUIRE(!color.IsGrayScale());
+    REQUIRE(color.IsRGB());
+    REQUIRE(!color.IsCMYK());
+    REQUIRE(!color.IsSeparation());
+    REQUIRE(!color.IsCieLab());
+    REQUIRE(color.GetColorSpace() == PdfColorSpace::DeviceRGB);
 
-    ASSERT_EQ(color.GetRed(), R_VALUE);
-    ASSERT_EQ(color.GetGreen(), G_VALUE);
-    ASSERT_EQ(color.GetBlue(), B_VALUE);
+    REQUIRE(color.GetRed() == R_VALUE);
+    REQUIRE(color.GetGreen() == G_VALUE);
+    REQUIRE(color.GetBlue() == B_VALUE);
 }
 
-void ColorTest::testColorCMYKConstructor()
+TEST_CASE("testColorCMYKConstructor")
 {
-#ifdef DEBUG_INFO
-    std::cout << "testColorCMYKConstructor" << std::endl;
-#endif
-
     const double C_VALUE = 0.1;
     const double M_VALUE = 0.2;
     const double Y_VALUE = 0.3;
     const double B_VALUE = 0.4;
     PdfColorCMYK color(C_VALUE, M_VALUE, Y_VALUE, B_VALUE);
 
-    ASSERT_FALSE(color.IsGrayScale());
-    ASSERT_FALSE(color.IsRGB());
-    ASSERT_TRUE(color.IsCMYK());
-    ASSERT_FALSE(color.IsSeparation());
-    ASSERT_FALSE(color.IsCieLab());
-    ASSERT_EQ(color.GetColorSpace(), ePdfColorSpace_DeviceCMYK);
+    REQUIRE(!color.IsGrayScale());
+    REQUIRE(!color.IsRGB());
+    REQUIRE(color.IsCMYK());
+    REQUIRE(!color.IsSeparation());
+    REQUIRE(!color.IsCieLab());
+    REQUIRE(color.GetColorSpace() == PdfColorSpace::DeviceCMYK);
 
-    ASSERT_EQ(color.GetCyan(), C_VALUE);
-    ASSERT_EQ(color.GetMagenta(), M_VALUE);
-    ASSERT_EQ(color.GetYellow(), Y_VALUE);
-    ASSERT_EQ(color.GetBlack(), B_VALUE);
+    REQUIRE(color.GetCyan() == C_VALUE);
+    REQUIRE(color.GetMagenta() == M_VALUE);
+    REQUIRE(color.GetYellow() == Y_VALUE);
+    REQUIRE(color.GetBlack() == B_VALUE);
 }
 
-void ColorTest::testColorSeparationAllConstructor()
+TEST_CASE("testColorSeparationAllConstructor")
 {
-#ifdef DEBUG_INFO
-    std::cout << "testColorSeparationAllConstructor" << std::endl;
-#endif
-
     PdfColorSeparationAll color;
 
-    ASSERT_FALSE(color.IsGrayScale());
-    ASSERT_FALSE(color.IsRGB());
-    ASSERT_FALSE(color.IsCMYK());
-    ASSERT_TRUE(color.IsSeparation());
-    ASSERT_FALSE(color.IsCieLab());
-    ASSERT_EQ(color.GetColorSpace(), ePdfColorSpace_Separation);
-    ASSERT_EQ(color.GetAlternateColorSpace(), ePdfColorSpace_DeviceCMYK);
+    REQUIRE(!color.IsGrayScale());
+    REQUIRE(!color.IsRGB());
+    REQUIRE(!color.IsCMYK());
+    REQUIRE(color.IsSeparation());
+    REQUIRE(!color.IsCieLab());
+    REQUIRE(color.GetColorSpace() == PdfColorSpace::Separation);
+    REQUIRE(color.GetAlternateColorSpace() == PdfColorSpace::DeviceCMYK);
 
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+    ASSERT_THROW_WITH_ERROR_CODE(
         color.GetGrayScale(),
-        PdfError,
-        ePdfError_InternalLogic);
+        PdfErrorCode::InternalLogic);
 
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+    ASSERT_THROW_WITH_ERROR_CODE(
         color.GetRed(),
-        PdfError,
-        ePdfError_InternalLogic);
+        PdfErrorCode::InternalLogic);
 
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+    ASSERT_THROW_WITH_ERROR_CODE(
         color.GetGreen(),
-        PdfError,
-        ePdfError_InternalLogic);
+        PdfErrorCode::InternalLogic);
 
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+    ASSERT_THROW_WITH_ERROR_CODE(
         color.GetBlue(),
-        PdfError,
-        ePdfError_InternalLogic);
+        PdfErrorCode::InternalLogic);
 
-    ASSERT_EQ(color.GetCyan(), 1.0);
-    ASSERT_EQ(color.GetMagenta(), 1.0);
-    ASSERT_EQ(color.GetYellow(), 1.0);
-    ASSERT_EQ(color.GetBlack(), 1.0);
+    REQUIRE(color.GetCyan() == 1.0);
+    REQUIRE(color.GetMagenta() == 1.0);
+    REQUIRE(color.GetYellow() == 1.0);
+    REQUIRE(color.GetBlack() == 1.0);
 
-    ASSERT_EQ(color.GetName(), std::string("All"));
-    ASSERT_EQ(color.GetDensity(), 1.0);
+    REQUIRE(color.GetName() == "All");
+    REQUIRE(color.GetDensity() == 1.0);
 
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+    ASSERT_THROW_WITH_ERROR_CODE(
         color.GetCieL(),
-        PdfError,
-        ePdfError_InternalLogic);
+        PdfErrorCode::InternalLogic);
 
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+    ASSERT_THROW_WITH_ERROR_CODE(
         color.GetCieA(),
-        PdfError,
-        ePdfError_InternalLogic);
+        PdfErrorCode::InternalLogic);
 
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+    ASSERT_THROW_WITH_ERROR_CODE(
         color.GetCieB(),
-        PdfError,
-        ePdfError_InternalLogic);
+        PdfErrorCode::InternalLogic);
 
-    ASSERT_TRUE(PdfColor(0.0, 0.0, 0.0) == color.ConvertToGrayScale());
-    ASSERT_TRUE(PdfColor(0.0, 0.0, 0.0) == color.ConvertToRGB());
+    REQUIRE(color.ConvertToGrayScale() == PdfColor(0.0, 0.0, 0.0));
+    REQUIRE(color.ConvertToRGB() == PdfColor(0.0, 0.0, 0.0));
 
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+    ASSERT_THROW_WITH_ERROR_CODE(
         color.ConvertToCMYK(),
-        PdfError,
-        ePdfError_CannotConvertColor);
+        PdfErrorCode::CannotConvertColor);
 
     const PdfArray COLOR_ARRAY = color.ToArray();
-    ASSERT_TRUE(1 == COLOR_ARRAY.GetSize());
-    ASSERT_TRUE(PdfObject(1.0) == COLOR_ARRAY[0]);
+    REQUIRE(COLOR_ARRAY.GetSize() == 1);
+    REQUIRE(COLOR_ARRAY[0] == PdfObject(1.0));
 }
 
-void ColorTest::testColorSeparationNoneConstructor()
+TEST_CASE("testColorSeparationNoneConstructor")
 {
-#ifdef DEBUG_INFO
-    std::cout << "testColorSeparationNoneConstructor" << std::endl;
-#endif
-
     PdfColorSeparationNone color;
 
-    ASSERT_FALSE(color.IsGrayScale());
-    ASSERT_FALSE(color.IsRGB());
-    ASSERT_FALSE(color.IsCMYK());
-    ASSERT_TRUE(color.IsSeparation());
-    ASSERT_FALSE(color.IsCieLab());
-    ASSERT_EQ(color.GetColorSpace(), ePdfColorSpace_Separation);
-    ASSERT_EQ(color.GetAlternateColorSpace(), ePdfColorSpace_DeviceCMYK);
+    REQUIRE(!color.IsGrayScale());
+    REQUIRE(!color.IsRGB());
+    REQUIRE(!color.IsCMYK());
+    REQUIRE(color.IsSeparation());
+    REQUIRE(!color.IsCieLab());
+    REQUIRE(color.GetColorSpace() == PdfColorSpace::Separation);
+    REQUIRE(color.GetAlternateColorSpace() == PdfColorSpace::DeviceCMYK);
 
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+    ASSERT_THROW_WITH_ERROR_CODE(
         color.GetGrayScale(),
-        PdfError,
-        ePdfError_InternalLogic);
+        PdfErrorCode::InternalLogic);
 
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+    ASSERT_THROW_WITH_ERROR_CODE(
         color.GetRed(),
-        PdfError,
-        ePdfError_InternalLogic);
+        PdfErrorCode::InternalLogic);
 
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+    ASSERT_THROW_WITH_ERROR_CODE(
         color.GetGreen(),
-        PdfError,
-        ePdfError_InternalLogic);
+        PdfErrorCode::InternalLogic);
 
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+    ASSERT_THROW_WITH_ERROR_CODE(
         color.GetBlue(),
-        PdfError,
-        ePdfError_InternalLogic);
+        PdfErrorCode::InternalLogic);
 
-    ASSERT_EQ(color.GetCyan(), 0.0);
-    ASSERT_EQ(color.GetMagenta(), 0.0);
-    ASSERT_EQ(color.GetYellow(), 0.0);
-    ASSERT_EQ(color.GetBlack(), 0.0);
+    REQUIRE(color.GetCyan() == 0.0);
+    REQUIRE(color.GetMagenta() == 0.0);
+    REQUIRE(color.GetYellow() == 0.0);
+    REQUIRE(color.GetBlack() == 0.0);
 
-    ASSERT_EQ(color.GetName(), std::string("None"));
-    ASSERT_EQ(color.GetDensity(), 0.0);
+    REQUIRE(color.GetName() == "None");
+    REQUIRE(color.GetDensity() == 0.0);
 
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+    ASSERT_THROW_WITH_ERROR_CODE(
         color.GetCieL(),
-        PdfError,
-        ePdfError_InternalLogic);
+        PdfErrorCode::InternalLogic);
 
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+    ASSERT_THROW_WITH_ERROR_CODE(
         color.GetCieA(),
-        PdfError,
-        ePdfError_InternalLogic);
+        PdfErrorCode::InternalLogic);
 
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+    ASSERT_THROW_WITH_ERROR_CODE(
         color.GetCieB(),
-        PdfError,
-        ePdfError_InternalLogic);
+        PdfErrorCode::InternalLogic);
 
-    ASSERT_TRUE(PdfColor(1.0, 1.0, 1.0) == color.ConvertToGrayScale());
-    ASSERT_TRUE(PdfColor(1.0, 1.0, 1.0) == color.ConvertToRGB());
+    REQUIRE(color.ConvertToGrayScale() == PdfColor(1.0, 1.0, 1.0));
+    REQUIRE(color.ConvertToRGB() == PdfColor(1.0, 1.0, 1.0));
 
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+    ASSERT_THROW_WITH_ERROR_CODE(
         color.ConvertToCMYK(),
-        PdfError,
-        ePdfError_CannotConvertColor);
+        PdfErrorCode::CannotConvertColor);
 
     const PdfArray COLOR_ARRAY = color.ToArray();
-    ASSERT_TRUE(1 == COLOR_ARRAY.GetSize());
-    ASSERT_TRUE(PdfObject(0.0) == COLOR_ARRAY[0]);
+    REQUIRE(COLOR_ARRAY.GetSize() == 1);
+    REQUIRE(COLOR_ARRAY[0] == PdfObject(0.0));
 }
 
-void ColorTest::testColorSeparationConstructor()
+TEST_CASE("testColorSeparationConstructor")
 {
-#ifdef DEBUG_INFO
-    std::cout << "testColorSeparationConstructor" << std::endl;
-#endif
-
     { //alternate color is Greyscale
         const PdfColorGray ALTERNATE_COLOR(0.1234);
         const double DENSITY = 0.523456;
         const std::string NAME("Hello");
         PdfColorSeparation color("Hello", DENSITY, ALTERNATE_COLOR);
 
-        ASSERT_FALSE(color.IsGrayScale());
-        ASSERT_FALSE(color.IsRGB());
-        ASSERT_FALSE(color.IsCMYK());
-        ASSERT_TRUE(color.IsSeparation());
-        ASSERT_FALSE(color.IsCieLab());
-        ASSERT_EQ(color.GetColorSpace(), ePdfColorSpace_Separation);
-        ASSERT_EQ(color.GetAlternateColorSpace(), ePdfColorSpace_DeviceGray);
+        REQUIRE(!color.IsGrayScale());
+        REQUIRE(!color.IsRGB());
+        REQUIRE(!color.IsCMYK());
+        REQUIRE(color.IsSeparation());
+        REQUIRE(!color.IsCieLab());
+        REQUIRE(color.GetColorSpace() == PdfColorSpace::Separation);
+        REQUIRE(color.GetAlternateColorSpace() == PdfColorSpace::DeviceGray);
 
-        ASSERT_EQ(ALTERNATE_COLOR.GetGrayScale(), color.GetGrayScale());
+        REQUIRE(ALTERNATE_COLOR.GetGrayScale() == color.GetGrayScale());
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.GetRed(),
-            PdfError,
-            ePdfError_InternalLogic);
+            PdfErrorCode::InternalLogic);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.GetGreen(),
-            PdfError,
-            ePdfError_InternalLogic);
+            PdfErrorCode::InternalLogic);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.GetBlue(),
-            PdfError,
-            ePdfError_InternalLogic);
+            PdfErrorCode::InternalLogic);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.GetCyan(),
-            PdfError,
-            ePdfError_InternalLogic);
+            PdfErrorCode::InternalLogic);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.GetMagenta(),
-            PdfError,
-            ePdfError_InternalLogic);
+            PdfErrorCode::InternalLogic);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.GetYellow(),
-            PdfError,
-            ePdfError_InternalLogic);
+            PdfErrorCode::InternalLogic);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.GetBlack(),
-            PdfError,
-            ePdfError_InternalLogic);
+            PdfErrorCode::InternalLogic);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.GetCieL(),
-            PdfError,
-            ePdfError_InternalLogic);
+            PdfErrorCode::InternalLogic);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.GetCieA(),
-            PdfError,
-            ePdfError_InternalLogic);
+            PdfErrorCode::InternalLogic);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.GetCieB(),
-            PdfError,
-            ePdfError_InternalLogic);
+            PdfErrorCode::InternalLogic);
 
-        ASSERT_EQ(color.GetName(), NAME);
-        ASSERT_EQ(color.GetDensity(), DENSITY);
+        REQUIRE(color.GetName() == NAME);
+        REQUIRE(color.GetDensity() == DENSITY);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.ConvertToGrayScale(),
-            PdfError,
-            ePdfError_NotImplemented);
+            PdfErrorCode::NotImplemented);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.ConvertToRGB(),
-            PdfError,
-            ePdfError_NotImplemented);
+            PdfErrorCode::NotImplemented);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.ConvertToCMYK(),
-            PdfError,
-            ePdfError_CannotConvertColor);
+            PdfErrorCode::CannotConvertColor);
 
         const PdfArray COLOR_ARRAY = color.ToArray();
-        ASSERT_TRUE(1 == COLOR_ARRAY.GetSize());
-        ASSERT_TRUE(PdfObject(0.0) == COLOR_ARRAY[0]);
+        REQUIRE(COLOR_ARRAY.GetSize() == 1);
+        REQUIRE(COLOR_ARRAY[0] == PdfObject(0.0));
     }
 
     { //alternate color is RGB
@@ -2098,79 +1902,68 @@ void ColorTest::testColorSeparationConstructor()
         const std::string NAME("Hello");
         PdfColorSeparation color("Hello", DENSITY, ALTERNATE_COLOR);
 
-        ASSERT_FALSE(color.IsGrayScale());
-        ASSERT_FALSE(color.IsRGB());
-        ASSERT_FALSE(color.IsCMYK());
-        ASSERT_TRUE(color.IsSeparation());
-        ASSERT_FALSE(color.IsCieLab());
-        ASSERT_EQ(color.GetColorSpace(), ePdfColorSpace_Separation);
-        ASSERT_EQ(color.GetAlternateColorSpace(), ePdfColorSpace_DeviceRGB);
+        REQUIRE(!color.IsGrayScale());
+        REQUIRE(!color.IsRGB());
+        REQUIRE(!color.IsCMYK());
+        REQUIRE(color.IsSeparation());
+        REQUIRE(!color.IsCieLab());
+        REQUIRE(color.GetColorSpace() == PdfColorSpace::Separation);
+        REQUIRE(color.GetAlternateColorSpace() == PdfColorSpace::DeviceRGB);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.GetGrayScale(),
-            PdfError,
-            ePdfError_InternalLogic);
+            PdfErrorCode::InternalLogic);
 
-        ASSERT_EQ(ALTERNATE_COLOR.GetRed(), color.GetRed());
-        ASSERT_EQ(ALTERNATE_COLOR.GetGreen(), color.GetGreen());
-        ASSERT_EQ(ALTERNATE_COLOR.GetBlue(), color.GetBlue());
+        REQUIRE(ALTERNATE_COLOR.GetRed() == color.GetRed());
+        REQUIRE(ALTERNATE_COLOR.GetGreen() == color.GetGreen());
+        REQUIRE(ALTERNATE_COLOR.GetBlue() == color.GetBlue());
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.GetCyan(),
-            PdfError,
-            ePdfError_InternalLogic);
+            PdfErrorCode::InternalLogic);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.GetMagenta(),
-            PdfError,
-            ePdfError_InternalLogic);
+            PdfErrorCode::InternalLogic);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.GetYellow(),
-            PdfError,
-            ePdfError_InternalLogic);
+            PdfErrorCode::InternalLogic);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.GetBlack(),
-            PdfError,
-            ePdfError_InternalLogic);
+            PdfErrorCode::InternalLogic);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.GetCieL(),
-            PdfError,
-            ePdfError_InternalLogic);
+            PdfErrorCode::InternalLogic);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.GetCieA(),
-            PdfError,
-            ePdfError_InternalLogic);
+            PdfErrorCode::InternalLogic);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.GetCieB(),
-            PdfError,
-            ePdfError_InternalLogic);
+            PdfErrorCode::InternalLogic);
 
-        ASSERT_EQ(color.GetName(), NAME);
-        ASSERT_EQ(color.GetDensity(), DENSITY);
+        REQUIRE(color.GetName() == NAME);
+        REQUIRE(color.GetDensity() == DENSITY);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.ConvertToGrayScale(),
-            PdfError,
-            ePdfError_NotImplemented);
+            PdfErrorCode::NotImplemented);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.ConvertToRGB(),
-            PdfError,
-            ePdfError_NotImplemented);
+            PdfErrorCode::NotImplemented);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.ConvertToCMYK(),
-            PdfError,
-            ePdfError_CannotConvertColor);
+            PdfErrorCode::CannotConvertColor);
 
         const PdfArray COLOR_ARRAY = color.ToArray();
-        ASSERT_TRUE(1 == COLOR_ARRAY.GetSize());
-        ASSERT_TRUE(PdfObject(0.0) == COLOR_ARRAY[0]);
+        REQUIRE(COLOR_ARRAY.GetSize() == 1);
+        REQUIRE(COLOR_ARRAY[0] == PdfObject(0.0));
     }
 
     { //alternate color is CMYK
@@ -2183,65 +1976,57 @@ void ColorTest::testColorSeparationConstructor()
         const std::string NAME("Hello");
         PdfColorSeparation color("Hello", DENSITY, ALTERNATE_COLOR);
 
-        ASSERT_FALSE(color.IsGrayScale());
-        ASSERT_FALSE(color.IsRGB());
-        ASSERT_FALSE(color.IsCMYK());
-        ASSERT_TRUE(color.IsSeparation());
-        ASSERT_FALSE(color.IsCieLab());
-        ASSERT_EQ(color.GetColorSpace(), ePdfColorSpace_Separation);
-        ASSERT_EQ(color.GetAlternateColorSpace(), ePdfColorSpace_DeviceCMYK);
+        REQUIRE(!color.IsGrayScale());
+        REQUIRE(!color.IsRGB());
+        REQUIRE(!color.IsCMYK());
+        REQUIRE(color.IsSeparation());
+        REQUIRE(!color.IsCieLab());
+        REQUIRE(color.GetColorSpace() == PdfColorSpace::Separation);
+        REQUIRE(color.GetAlternateColorSpace() == PdfColorSpace::DeviceCMYK);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.GetGrayScale(),
-            PdfError,
-            ePdfError_InternalLogic);
+            PdfErrorCode::InternalLogic);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.GetRed(),
-            PdfError,
-            ePdfError_InternalLogic);
+            PdfErrorCode::InternalLogic);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.GetGreen(),
-            PdfError,
-            ePdfError_InternalLogic);
+            PdfErrorCode::InternalLogic);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.GetBlue(),
-            PdfError,
-            ePdfError_InternalLogic);
+            PdfErrorCode::InternalLogic);
 
-        ASSERT_EQ(ALTERNATE_COLOR.GetCyan(), color.GetCyan());
-        ASSERT_EQ(ALTERNATE_COLOR.GetMagenta(), color.GetMagenta());
-        ASSERT_EQ(ALTERNATE_COLOR.GetYellow(), color.GetYellow());
-        ASSERT_EQ(ALTERNATE_COLOR.GetBlack(), color.GetBlack());
+        REQUIRE(ALTERNATE_COLOR.GetCyan() == color.GetCyan());
+        REQUIRE(ALTERNATE_COLOR.GetMagenta() == color.GetMagenta());
+        REQUIRE(ALTERNATE_COLOR.GetYellow() == color.GetYellow());
+        REQUIRE(ALTERNATE_COLOR.GetBlack() == color.GetBlack());
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.GetCieL(),
-            PdfError,
-            ePdfError_InternalLogic);
+            PdfErrorCode::InternalLogic);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.GetCieA(),
-            PdfError,
-            ePdfError_InternalLogic);
+            PdfErrorCode::InternalLogic);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.GetCieB(),
-            PdfError,
-            ePdfError_InternalLogic);
+            PdfErrorCode::InternalLogic);
 
-        ASSERT_EQ(color.GetName(), NAME);
-        ASSERT_EQ(color.GetDensity(), DENSITY);
+        REQUIRE(color.GetName() == NAME);
+        REQUIRE(color.GetDensity() == DENSITY);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.ConvertToCMYK(),
-            PdfError,
-            ePdfError_CannotConvertColor);
+            PdfErrorCode::CannotConvertColor);
 
         const PdfArray COLOR_ARRAY = color.ToArray();
-        ASSERT_TRUE(1 == COLOR_ARRAY.GetSize());
-        ASSERT_TRUE(PdfObject(0.0) == COLOR_ARRAY[0]);
+        REQUIRE(COLOR_ARRAY.GetSize() == 1);
+        REQUIRE(COLOR_ARRAY[0] == PdfObject(0.0));
     }
 
     { //alternate color is CieLab
@@ -2253,187 +2038,154 @@ void ColorTest::testColorSeparationConstructor()
         const std::string NAME("Hello");
         PdfColorSeparation color("Hello", DENSITY, ALTERNATE_COLOR);
 
-        ASSERT_FALSE(color.IsGrayScale());
-        ASSERT_FALSE(color.IsRGB());
-        ASSERT_FALSE(color.IsCMYK());
-        ASSERT_TRUE(color.IsSeparation());
-        ASSERT_FALSE(color.IsCieLab());
-        ASSERT_EQ(color.GetColorSpace(), ePdfColorSpace_Separation);
-        ASSERT_EQ(color.GetAlternateColorSpace(), ePdfColorSpace_CieLab);
+        REQUIRE(!color.IsGrayScale());
+        REQUIRE(!color.IsRGB());
+        REQUIRE(!color.IsCMYK());
+        REQUIRE(color.IsSeparation());
+        REQUIRE(!color.IsCieLab());
+        REQUIRE(color.GetColorSpace() == PdfColorSpace::Separation);
+        REQUIRE(color.GetAlternateColorSpace() == PdfColorSpace::CieLab);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.GetGrayScale(),
-            PdfError,
-            ePdfError_InternalLogic);
+            PdfErrorCode::InternalLogic);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.GetRed(),
-            PdfError,
-            ePdfError_InternalLogic);
+            PdfErrorCode::InternalLogic);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.GetGreen(),
-            PdfError,
-            ePdfError_InternalLogic);
+            PdfErrorCode::InternalLogic);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.GetBlue(),
-            PdfError,
-            ePdfError_InternalLogic);
+            PdfErrorCode::InternalLogic);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.GetCyan(),
-            PdfError,
-            ePdfError_InternalLogic);
+            PdfErrorCode::InternalLogic);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.GetMagenta(),
-            PdfError,
-            ePdfError_InternalLogic);
+            PdfErrorCode::InternalLogic);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.GetYellow(),
-            PdfError,
-            ePdfError_InternalLogic);
+            PdfErrorCode::InternalLogic);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.GetBlack(),
-            PdfError,
-            ePdfError_InternalLogic);
+            PdfErrorCode::InternalLogic);
 
-        ASSERT_EQ(ALTERNATE_COLOR.GetCieL(), color.GetCieL());
-        ASSERT_EQ(ALTERNATE_COLOR.GetCieA(), color.GetCieA());
-        ASSERT_EQ(ALTERNATE_COLOR.GetCieB(), color.GetCieB());
+        REQUIRE(ALTERNATE_COLOR.GetCieL() == color.GetCieL());
+        REQUIRE(ALTERNATE_COLOR.GetCieA() == color.GetCieA());
+        REQUIRE(ALTERNATE_COLOR.GetCieB() == color.GetCieB());
 
-        ASSERT_EQ(color.GetName(), NAME);
-        ASSERT_EQ(color.GetDensity(), DENSITY);
+        REQUIRE(color.GetName() == NAME);
+        REQUIRE(color.GetDensity() == DENSITY);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.ConvertToGrayScale(),
-            PdfError,
-            ePdfError_NotImplemented);
+            PdfErrorCode::NotImplemented);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.ConvertToRGB(),
-            PdfError,
-            ePdfError_NotImplemented);
+            PdfErrorCode::NotImplemented);
 
-        CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+        ASSERT_THROW_WITH_ERROR_CODE(
             color.ConvertToCMYK(),
-            PdfError,
-            ePdfError_CannotConvertColor);
+            PdfErrorCode::CannotConvertColor);
 
         const PdfArray COLOR_ARRAY = color.ToArray();
-        ASSERT_TRUE(1 == COLOR_ARRAY.GetSize());
-        ASSERT_TRUE(PdfObject(0.0) == COLOR_ARRAY[0]);
+        REQUIRE(COLOR_ARRAY.GetSize() == 1);
+        REQUIRE(COLOR_ARRAY[0] == PdfObject(0.0));
     }
 }
 
-void ColorTest::testColorCieLabConstructor()
+TEST_CASE("testColorCieLabConstructor")
 {
-#ifdef DEBUG_INFO
-    std::cout << "testColorCieLabConstructor" << std::endl;
-#endif
-
     const double dCieL = 0.023;
     const double dCieA = 0.345;
     const double dCieB = 0.678;
     PdfColorCieLab color(dCieL, dCieA, dCieB);
 
-    ASSERT_FALSE(color.IsGrayScale());
-    ASSERT_FALSE(color.IsRGB());
-    ASSERT_FALSE(color.IsCMYK());
-    ASSERT_FALSE(color.IsSeparation());
-    ASSERT_TRUE(color.IsCieLab());
-    ASSERT_EQ(color.GetColorSpace(), ePdfColorSpace_CieLab);
+    REQUIRE(!color.IsGrayScale());
+    REQUIRE(!color.IsRGB());
+    REQUIRE(!color.IsCMYK());
+    REQUIRE(!color.IsSeparation());
+    REQUIRE(color.IsCieLab());
+    REQUIRE(color.GetColorSpace() == PdfColorSpace::CieLab);
 
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+    ASSERT_THROW_WITH_ERROR_CODE(
         color.GetAlternateColorSpace(),
-        PdfError,
-        ePdfError_InternalLogic);
+        PdfErrorCode::InternalLogic);
 
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+    ASSERT_THROW_WITH_ERROR_CODE(
         color.GetGrayScale(),
-        PdfError,
-        ePdfError_InternalLogic);
+        PdfErrorCode::InternalLogic);
 
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+    ASSERT_THROW_WITH_ERROR_CODE(
         color.GetRed(),
-        PdfError,
-        ePdfError_InternalLogic);
+        PdfErrorCode::InternalLogic);
 
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+    ASSERT_THROW_WITH_ERROR_CODE(
         color.GetGreen(),
-        PdfError,
-        ePdfError_InternalLogic);
+        PdfErrorCode::InternalLogic);
 
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+    ASSERT_THROW_WITH_ERROR_CODE(
         color.GetBlue(),
-        PdfError,
-        ePdfError_InternalLogic);
+        PdfErrorCode::InternalLogic);
 
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+    ASSERT_THROW_WITH_ERROR_CODE(
         color.GetCyan(),
-        PdfError,
-        ePdfError_InternalLogic);
+        PdfErrorCode::InternalLogic);
 
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+    ASSERT_THROW_WITH_ERROR_CODE(
         color.GetMagenta(),
-        PdfError,
-        ePdfError_InternalLogic);
+        PdfErrorCode::InternalLogic);
 
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+    ASSERT_THROW_WITH_ERROR_CODE(
         color.GetYellow(),
-        PdfError,
-        ePdfError_InternalLogic);
+        PdfErrorCode::InternalLogic);
 
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+    ASSERT_THROW_WITH_ERROR_CODE(
         color.GetBlack(),
-        PdfError,
-        ePdfError_InternalLogic);
+        PdfErrorCode::InternalLogic);
 
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+    ASSERT_THROW_WITH_ERROR_CODE(
         color.GetName(),
-        PdfError,
-        ePdfError_InternalLogic);
+        PdfErrorCode::InternalLogic);
 
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+    ASSERT_THROW_WITH_ERROR_CODE(
         color.GetDensity(),
-        PdfError,
-        ePdfError_InternalLogic);
+        PdfErrorCode::InternalLogic);
 
-    ASSERT_EQ(dCieL, color.GetCieL());
-    ASSERT_EQ(dCieA, color.GetCieA());
-    ASSERT_EQ(dCieB, color.GetCieB());
+    REQUIRE(color.GetCieL() == dCieL);
+    REQUIRE(color.GetCieA() == dCieA);
+    REQUIRE(color.GetCieB() == dCieB);
 
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+    ASSERT_THROW_WITH_ERROR_CODE(
         color.ConvertToGrayScale(),
-        PdfError,
-        ePdfError_CannotConvertColor);
+        PdfErrorCode::CannotConvertColor);
 
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+    ASSERT_THROW_WITH_ERROR_CODE(
         color.ConvertToRGB(),
-        PdfError,
-        ePdfError_CannotConvertColor);
+        PdfErrorCode::CannotConvertColor);
 
-    CPPUNIT_ASSERT_THROW_WITH_ERROR_TYPE(
+    ASSERT_THROW_WITH_ERROR_CODE(
         color.ConvertToCMYK(),
-        PdfError,
-        ePdfError_CannotConvertColor);
+        PdfErrorCode::CannotConvertColor);
 
     const PdfArray COLOR_ARRAY = color.ToArray();
-    ASSERT_TRUE(3 == COLOR_ARRAY.GetSize());
-    ASSERT_TRUE(PdfObject(dCieL) == COLOR_ARRAY[0]);
-    ASSERT_TRUE(PdfObject(dCieA) == COLOR_ARRAY[1]);
-    ASSERT_TRUE(PdfObject(dCieB) == COLOR_ARRAY[2]);
+    REQUIRE(COLOR_ARRAY.GetSize() == 3);
+    REQUIRE(PdfObject(dCieL) == COLOR_ARRAY[0]);
+    REQUIRE(PdfObject(dCieA) == COLOR_ARRAY[1]);
+    REQUIRE(PdfObject(dCieB) == COLOR_ARRAY[2]);
 }
 
-void ColorTest::testRGBtoCMYKConversions()
+TEST_CASE("testRGBtoCMYKConversions")
 {
-#ifdef DEBUG_INFO
-    std::cout << "testRGBtoCMYKConversions" << std::endl;
-#endif
-
     typedef std::pair<PdfColor, PdfColor> TPairOfColors;
     typedef std::map<std::string, TPairOfColors> TMapOfColors;
 
@@ -2456,9 +2208,8 @@ void ColorTest::testRGBtoCMYKConversions()
         PdfColor rgbColor(iter->second.first);
         PdfColor cmykColor(iter->second.second);
 
-        ASSERT_TRUE(namedColor.ConvertToRGB() == rgbColor);
-        ASSERT_TRUE(rgbColor.ConvertToCMYK() == cmykColor);
-        ASSERT_TRUE(rgbColor == cmykColor.ConvertToRGB());
+        REQUIRE(namedColor.ConvertToRGB() == rgbColor);
+        REQUIRE(rgbColor.ConvertToCMYK() == cmykColor);
+        REQUIRE(rgbColor == cmykColor.ConvertToRGB());
     }
 }
-

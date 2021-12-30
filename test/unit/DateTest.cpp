@@ -6,39 +6,46 @@
  * Some rights reserved. See COPYING, AUTHORS.
  */
 
-#include "DateTest.h"
-#include <podofo.h>
+#include <PdfTest.h>
 
-using namespace PoDoFo;
+#include <date/date.h>
 
-// Registers the fixture into the 'registry'
-CPPUNIT_TEST_SUITE_REGISTRATION(DateTest);
+using namespace std;
+using namespace mm;
 
-void DateTest::setUp()
+static void deconstruct(const PdfDate& date, short& y, unsigned char& m, unsigned char& d,
+    unsigned char& h, unsigned char& M, unsigned char& s);
+static void deconstruct(const PdfDate& date, date::year_month_day& ymd, date::hh_mm_ss<chrono::seconds>& time);
+
+static void checkExpected(const string_view& date, bool expectedValid)
 {
-}
-
-void DateTest::tearDown()
-{
-}
-
-void checkExpected(const char* pszDate, bool bExpected)
-{
-    PdfString tmp(pszDate);
-    PdfDate date(tmp);
-    if (pszDate != NULL)
+    bool valid;
+    try
     {
-        CPPUNIT_ASSERT_EQUAL_MESSAGE(pszDate, bExpected, date.IsValid());
+        PdfString tmp(date);
+        PdfDate date(tmp);
+        valid = true;
+    }
+    catch (...)
+    {
+        valid = false;
+    }
+
+    if (date.empty())
+    {
+        INFO("NULL");
     }
     else
     {
-        CPPUNIT_ASSERT_EQUAL_MESSAGE("NULL", bExpected, date.IsValid());
+        INFO(date);
     }
+
+    REQUIRE(valid == expectedValid);
 }
 
-void DateTest::testCreateDateFromString()
+TEST_CASE("testCreateDateFromString")
 {
-    checkExpected(NULL, false);
+    checkExpected({ }, false);
     checkExpected("D:2012", true);
     checkExpected("D:20120", false);
     checkExpected("D:201201", true);
@@ -61,84 +68,82 @@ void DateTest::testCreateDateFromString()
     checkExpected("INVALID", false);
 }
 
-void DateTest::testDateValue()
+TEST_CASE("testAdditional")
 {
-    const char* pszDate = "D:20120530235959Z00'00'";
-    PdfString tmp(pszDate);
-    PdfDate date(tmp);
-    CPPUNIT_ASSERT_EQUAL_MESSAGE(std::string(pszDate), true, date.IsValid());
-    const time_t& time = date.GetTime();
-    struct tm  _tm;
-    memset(&_tm, 0, sizeof(struct tm));
-    _tm.tm_year = 2012 - 1900;
-    _tm.tm_mon = 4;
-    _tm.tm_mday = 30;
-    _tm.tm_hour = 23;
-    _tm.tm_min = 59;
-    _tm.tm_sec = 59;
-    time_t time2 = mktime(&_tm);
-    CPPUNIT_ASSERT_EQUAL(true, time == time2);
-}
-
-void DateTest::testAdditional()
-{
-    struct name_date {
-        std::string name;
-        std::string date;
+    struct name_date
+    {
+        string name;
+        string date;
     };
 
-    const name_date data[] = {
-                  {"sample from pdf_reference_1_7.pdf", "D:199812231952-08'00'"},
-                  // UTC 1998-12-24 03:52:00
-                  {"all fields set", "D:20201223195200-08'00'"},   // UTC 2020-12-03:52:00
-                  {"set year", "D:2020"},   // UTC 2020-01-01 00:00:00
-                  {"set year, month", "D:202001"},   // UTC 2020-01-01 00:00:00
-                  {"set year, month, day", "D:20200101"},   // UTC 202001-01 00:00:00
-                  {"only year and timezone set", "D:2020-08'00'"},   // UTC 2020-01-01 08:00:00
-                  {"berlin", "D:20200315120820+01'00'"},   // UTC 2020-03-15 11:08:20
+    name_date data[] = {
+        {"sample from pdf_reference_1_7.pdf", "D:199812231952-08'00'"},
+        // UTC 1998-12-24 03:52:00
+        {"all fields set", "D:20201223195200-08'00'"},   // UTC 2020-12-03:52:00
+        {"set year", "D:2020"},   // UTC 2020-01-01 00:00:00
+        {"set year, month", "D:202001"},   // UTC 2020-01-01 00:00:00
+        {"set year, month, day", "D:20200101"},   // UTC 202001-01 00:00:00
+        {"only year and timezone set", "D:2020-08'00'"},   // UTC 2020-01-01 08:00:00
+        {"berlin", "D:20200315120820+01'00'"},   // UTC 2020-03-15 11:08:20
     };
 
-    for (const auto& d : data) {
-        std::cout << "Parse " << d.name << "\n";
-        assert(PoDoFo::PdfDate(d.date).IsValid());
+    for (auto& d : data)
+    {
+        cout << "Parse " << d.name << "\n";
+        checkExpected(d.date, true);
     }
 }
 
-
-void DateTest::testParseDateInvalid()
-{
-    PdfString tmp("D:2012020");
-    PdfDate date(tmp);
-
-    struct tm  _tm;
-    memset(&_tm, 0, sizeof(struct tm));
-
-    const time_t t = date.GetTime();
-
-    CPPUNIT_ASSERT_EQUAL(false, date.IsValid());
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("Invalid date should be equal to time_t(-1)", time_t(-1), t);
-}
-
-void DateTest::testParseDateValid()
+TEST_CASE("testParseDateValid")
 {
     PdfString tmp("D:20120205132456");
     PdfDate date(tmp);
 
-    struct tm  _tm;
-    memset(&_tm, 0, sizeof(struct tm));
+    short y; unsigned char m, d, h, M, s;
+    deconstruct(date, y, m, d, h, M, s);
 
-    const time_t t = date.GetTime();
-    localtime_r(&t, &_tm);
-
-    CPPUNIT_ASSERT_EQUAL(true, date.IsValid());
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("Year", 2012, _tm.tm_year + 1900);
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("Month", 2, _tm.tm_mon + 1);
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("Day", 5, _tm.tm_mday);
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("Hour", 13, _tm.tm_hour);
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("Minute", 24, _tm.tm_min);
-    CPPUNIT_ASSERT_EQUAL_MESSAGE("Second", 56, _tm.tm_sec);
-
+    INFO("Year"); REQUIRE(d == 2012);
+    INFO("Month"); REQUIRE((m + 1) == 2);
+    INFO("Day"); REQUIRE(d == 5);
+    INFO("Hour"); REQUIRE(h == 13);
+    INFO("Minute"); REQUIRE(M == 24);
+    INFO("Second"); REQUIRE(s == 56);
 }
 
 
+static void deconstruct(const PdfDate& date, short& y, unsigned char& m, unsigned char& d,
+    unsigned char& h, unsigned char& M, unsigned char& s)
+{
 
+    date::year_month_day ymd;
+    date::hh_mm_ss<chrono::seconds> time;
+    deconstruct(date, ymd, time);
+
+    y = (short)(int)ymd.year();
+    m = (unsigned char)(unsigned)ymd.month();
+    d = (unsigned char)(unsigned)ymd.day();
+    h = (unsigned char)time.hours().count();
+    M = (unsigned char)time.minutes().count();
+    s = (unsigned char)time.seconds().count();
+}
+
+void deconstruct(const PdfDate& date, date::year_month_day& ymd, date::hh_mm_ss<chrono::seconds>& time)
+{
+    auto minutesFromUtc = date.GetMinutesFromUtc();
+    if (minutesFromUtc.has_value())
+    {
+        // Assume sys time
+        auto secondsFromEpoch = (date::sys_seconds)(date.GetSecondsFromEpoch() + *minutesFromUtc);
+        auto dp = date::floor<date::days>(secondsFromEpoch);
+        ymd = date::year_month_day(dp);
+        time = date::hh_mm_ss<chrono::seconds>(chrono::floor<chrono::seconds>(secondsFromEpoch - dp));
+    }
+    else
+    {
+        // Assume local time
+        auto secondsFromEpoch = (date::local_seconds)date.GetSecondsFromEpoch();
+        auto dp = date::floor<date::days>(secondsFromEpoch);
+        ymd = date::year_month_day(dp);
+        time = date::hh_mm_ss<chrono::seconds>(chrono::floor<chrono::seconds>(secondsFromEpoch - dp));
+    }
+}

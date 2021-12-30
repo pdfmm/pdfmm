@@ -6,55 +6,41 @@
  * Some rights reserved. See COPYING, AUTHORS.
  */
 
-#include "PainterTest.h"
-#include "TestUtils.h"
+#include <PdfTest.h>
 
-#include <podofo.h>
+using namespace std;
+using namespace mm;
 
-using namespace PoDoFo;
+static void CompareStreamContent(PdfObjectStream& stream, const string_view& expected);
 
-// Registers the fixture into the 'registry'
-CPPUNIT_TEST_SUITE_REGISTRATION(PainterTest);
-
-void PainterTest::setUp()
+TEST_CASE("testAppend")
 {
-
-}
-
-void PainterTest::tearDown()
-{
-}
-
-void PainterTest::CompareStreamContent(PdfStream* pStream, const char* pszExpected)
-{
-    char* pBuffer;
-    pdf_long lLen;
-    pStream->GetFilteredCopy(&pBuffer, &lLen);
-
-    std::string str(pBuffer, lLen);
-    CPPUNIT_ASSERT_EQUAL(std::string(pszExpected), str);
-
-    free(pBuffer);
-}
-
-void PainterTest::testAppend()
-{
-    const char* pszExample1 = "BT (Hallo) Tj ET";
-    const char* pszColor = " 1.000 1.000 1.000 rg\n";
+    string_view example = "BT (Hallo) Tj ET";
+    string_view color = " 1.000 1.000 1.000 rg\n";
 
     PdfMemDocument doc;
-    PdfPage* pPage = doc.CreatePage(PdfPage::CreateStandardPageSize(ePdfPageSize_A4));
-    pPage->GetContents()->GetStream()->Set(pszExample1);
+    PdfPage* page = doc.GetPageTree().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+    auto& contents = page->GetOrCreateContents();
+    contents.GetStreamForAppending().Set(example);
 
-    this->CompareStreamContent(pPage->GetContents()->GetStream(), pszExample1);
+    CompareStreamContent(contents.GetObject().MustGetStream(), example);
 
     PdfPainter painter;
-    painter.SetCanvas(pPage);
+    painter.SetCanvas(page);
     painter.SetColor(PdfColor(1.0, 1.0, 1.0));
     painter.FinishDrawing();
 
-    std::string newContent = pszExample1;
-    newContent += pszColor;
+    string newContent = (string)example;
+    newContent += color;
 
-    this->CompareStreamContent(pPage->GetContents()->GetStream(), newContent.c_str());
+    CompareStreamContent(contents.GetObject().MustGetStream(), newContent);
+}
+
+void CompareStreamContent(PdfObjectStream& stream, const string_view& expected)
+{
+    size_t length;
+    unique_ptr<char[]> buffer;
+    stream.GetFilteredCopy(buffer, length);
+
+    REQUIRE(memcpy(buffer.get(), expected.data(), expected.size()) == 0);
 }

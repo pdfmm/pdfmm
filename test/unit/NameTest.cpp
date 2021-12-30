@@ -6,64 +6,57 @@
  * Some rights reserved. See COPYING, AUTHORS.
  */
 
-#include "NameTest.h"
+#include <PdfTest.h>
 
-#include <podofo.h>
+using namespace mm;
+using namespace std;
 
-using namespace PoDoFo;
+void TestName(const string_view& nameStr, const string_view& expectedEncoded);
+void TestEncodedName(const string_view& pszString, const string_view& pszExpected);
+void TestNameEquality(const string_view& name1, const string_view& name2);
+void TestWrite(const string_view& view, const string_view& expected);
+void TestFromEscape(const string_view& name1, const string_view& name2);
 
-// Registers the fixture into the 'registry'
-CPPUNIT_TEST_SUITE_REGISTRATION(NameTest);
-
-void NameTest::setUp()
+TEST_CASE("testParseAndWrite")
 {
-}
+    const char* data = "/#E5#8A#A8#E6#80#81#E8#BF#9E#E6#8E#A5#E7#BA#BF";
+    auto device = std::make_shared<PdfMemoryInputDevice>(data);
+    PdfTokenizer tokenizer;
 
-void NameTest::tearDown()
-{
-}
+    string_view token;
+    PdfTokenType type;
+    bool gotToken = tokenizer.TryReadNextToken(*device, token, type);
 
-void NameTest::testParseAndWrite()
-{
-    const char* pszData = "/#E5#8A#A8#E6#80#81#E8#BF#9E#E6#8E#A5#E7#BA#BF";
-    PdfTokenizer tokenizer(pszData, strlen(pszData));
+    REQUIRE(gotToken);
+    REQUIRE(type == PdfTokenType::Slash);
 
+    gotToken = tokenizer.TryReadNextToken(*device, token, type);
 
-    const char* pszToken;
-    EPdfTokenType eType;
-    bool bGotToken = tokenizer.GetNextToken(pszToken, &eType);
-
-    CPPUNIT_ASSERT_EQUAL(bGotToken, true);
-    CPPUNIT_ASSERT_EQUAL(eType, ePdfTokenType_Delimiter);
-
-    bGotToken = tokenizer.GetNextToken(pszToken, &eType);
-
-    CPPUNIT_ASSERT_EQUAL(bGotToken, true);
-    CPPUNIT_ASSERT_EQUAL(eType, ePdfTokenType_Token);
+    REQUIRE(gotToken);
+    REQUIRE(type == PdfTokenType::Literal);
 
     // Test with const char* constructor
-    PdfName name = PdfName::FromEscaped(pszToken);
+    PdfName name = PdfName::FromEscaped(token);
     PdfVariant var(name);
-    std::string str;
+    string str;
     var.ToString(str);
 
-    CPPUNIT_ASSERT_EQUAL(str == pszData, true);
+    REQUIRE(str == data);
     // str.c_str() + 1 <- ignore leading slash 
-    CPPUNIT_ASSERT_EQUAL(name.GetEscapedName() == (str.c_str() + 1), true);
+    REQUIRE(name.GetEscapedName() == (string_view)str.substr(1));
 
-    // Test with std::string constructor
-    std::string sToken = pszToken;
-    PdfName name2 = PdfName::FromEscaped(sToken);
+    // Test with string constructor
+    PdfName name2 = PdfName::FromEscaped(token);
     PdfVariant var2(name);
-    std::string str2;
+    string str2;
     var.ToString(str2);
 
-    CPPUNIT_ASSERT_EQUAL(str2 == pszData, true);
+    REQUIRE(str2 == data);
     // str.c_str() + 1 <- ignore leading slash 
-    CPPUNIT_ASSERT_EQUAL(name2.GetEscapedName() == (str2.c_str() + 1), true);
+    REQUIRE(name2.GetEscapedName() == (string_view)str2.substr(1));
 }
 
-void NameTest::testNameEncoding()
+TEST_CASE("testNameEncoding")
 {
     // Test some names. The first argument is the unencoded representation, the second
     // is the expected encoded result. The result must not only be /a/ correct encoded
@@ -74,7 +67,7 @@ void NameTest::testNameEncoding()
     TestName("Tab\tTest", "Tab#09Test");
 }
 
-void NameTest::testEncodedNames()
+TEST_CASE("testEncodedNames")
 {
     // Test some pre-encoded names. The first argument is the encoded name that'll be
     // read from the PDF; the second is the expected representation.
@@ -85,7 +78,7 @@ void NameTest::testEncodedNames()
     TestEncodedName("ANPA#20723-0#20AdPro", "ANPA 723-0 AdPro");
 }
 
-void NameTest::testEquality()
+TEST_CASE("testEquality")
 {
     // Make sure differently encoded names compare equal if their decoded values
     // are equal.
@@ -93,7 +86,7 @@ void NameTest::testEquality()
     TestNameEquality("#57#69#74#68#20#53#70#61#63#65#73", "With#20Spaces");
 }
 
-void NameTest::testWrite()
+TEST_CASE("testWrite")
 {
     // Make sure all names are written correctly to an output device!
     TestWrite("Length With Spaces", "/Length#20With#20Spaces");
@@ -102,7 +95,7 @@ void NameTest::testWrite()
     TestWrite("ANPA 723-0 AdPro", "/ANPA#20723-0#20AdPro");
 }
 
-void NameTest::testFromEscaped()
+TEST_CASE("testFromEscaped")
 {
     TestFromEscape("ANPA#20723-0#20AdPro", "ANPA 723-0 AdPro");
     TestFromEscape("Length#20With#20Spaces", "Length With Spaces");
@@ -113,66 +106,58 @@ void NameTest::testFromEscaped()
 // pszString : internal representation, ie unencoded name
 // pszExpectedEncoded: the encoded string PoDoFo should produce
 //
-void NameTest::TestName(const char* pszString, const char* pszExpectedEncoded)
+void TestName(const string_view& nameStr, const string_view& expectedEncoded)
 {
-    printf("Testing name: %s\n", pszString);
+    INFO(cmn::Format("Testing name: {}", nameStr));
 
-    PdfName name(pszString);
-    printf("   -> Expected   Value: %s\n", pszExpectedEncoded);
-    printf("   -> Got        Value: %s\n", name.GetEscapedName().c_str());
-    printf("   -> Unescaped  Value: %s\n", name.GetName().c_str());
+    PdfName name(nameStr);
+    INFO(cmn::Format("   -> Expected   Value: {}", expectedEncoded));
+    INFO(cmn::Format("   -> Got        Value: {}", name.GetEscapedName()));
+    INFO(cmn::Format("   -> Unescaped  Value: {}", name.GetString()));
 
-    CPPUNIT_ASSERT_EQUAL(strcmp(pszExpectedEncoded, name.GetEscapedName().c_str()), 0);
+    REQUIRE(name.GetEscapedName() == expectedEncoded);
 
     // Ensure the encoded string compares equal to its unencoded
     // variant
-    CPPUNIT_ASSERT_EQUAL(name == PdfName::FromEscaped(pszExpectedEncoded), true);
+    REQUIRE(PdfName::FromEscaped(expectedEncoded) == name);
 }
 
-void NameTest::TestEncodedName(const char* pszString, const char* pszExpected)
+void TestEncodedName(const string_view& escaped, const string_view& expected)
 {
-    PdfName name(PdfName::FromEscaped(pszString));
-    printf("Testing encoded name: %s\n", pszString);
-    printf("   -> Expected   Value: %s\n", pszExpected);
-    printf("   -> Got        Value: %s\n", name.GetName().c_str());
-    printf("   -> Escaped    Value: %s\n", name.GetEscapedName().c_str());
+    PdfName name(PdfName::FromEscaped(escaped));
+    INFO(cmn::Format("Testing encoded name: {}", escaped));
+    INFO(cmn::Format("   -> Expected   Value: {}", expected));
+    INFO(cmn::Format("   -> Got        Value: {}", name.GetString()));
+    INFO(cmn::Format("   -> Escaped    Value: {}", name.GetEscapedName()));
 
-    if (strcmp(pszExpected, name.GetName().c_str()) != 0)
-    {
-        PODOFO_RAISE_ERROR(ePdfError_TestFailed);
-    }
+    REQUIRE(name == expected);
 
     // Ensure the name compares equal with one constructed from the
     // expected unescaped form
-    CPPUNIT_ASSERT_EQUAL(name == PdfName(pszExpected), true);
+    REQUIRE(PdfName(expected) == name);
 }
 
-void NameTest::TestNameEquality(const char* pszName1, const char* pszName2)
+void TestNameEquality(const string_view& name1Str, const string_view& name2Str)
 {
-    PdfName name1(PdfName::FromEscaped(pszName1));
-    PdfName name2(PdfName::FromEscaped(pszName2));
+    PdfName name1(PdfName::FromEscaped(name1Str));
+    PdfName name2(PdfName::FromEscaped(name2Str));
 
-    printf("Testing equality of encoded names '%s' and '%s'\n", pszName1, pszName2);
-    printf("   -> Name1    Decoded Value: %s\n", name1.GetName().c_str());
-    printf("   -> Name2    Decoded Value: %s\n", name2.GetName().c_str());
+    INFO(cmn::Format("Testing equality of encoded names '{}' and '{}'", name1Str, name2Str));
+    INFO(cmn::Format("   -> Name1    Decoded Value: {}", name1.GetString()));
+    INFO(cmn::Format("   -> Name2    Decoded Value: {}", name2.GetString()));
 
-    CPPUNIT_ASSERT_EQUAL(name1 == name2, true); // use operator==
-    CPPUNIT_ASSERT_EQUAL(name1 != name2, false); // use operator!=
+    REQUIRE(name1 == name2); // use operator==
+    REQUIRE(name1 != name2); // use operator!=
 }
 
-void NameTest::TestWrite(const char* pszName, const char* pszResult)
+void TestWrite(const string_view& view, const string_view& expected)
 {
-    std::ostringstream oss;
-    PdfName            name(pszName);
-    PdfOutputDevice    device(&oss);
-
-    name.Write(&device, ePdfWriteMode_Default);
-    CPPUNIT_ASSERT_EQUAL(oss.str() == pszResult, true);
+    PdfName name(view);
+    REQUIRE(name.GetString() == expected);
 }
 
-void NameTest::TestFromEscape(const char* pszName1, const char* pszName2)
+void TestFromEscape(const string_view& name1, const string_view& name2)
 {
-    PdfName name = PdfName::FromEscaped(pszName1, strlen(pszName1));
-
-    CPPUNIT_ASSERT_EQUAL(name.GetName() == pszName2, true);
+    PdfName name = PdfName::FromEscaped(name1);
+    REQUIRE(name == name2);
 }

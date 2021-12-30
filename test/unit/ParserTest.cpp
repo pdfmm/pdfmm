@@ -18,126 +18,102 @@
        in those situations
 */
 
-#include "ParserTest.h"
-
-#include <cppunit/Asserter.h>
-
-#if defined( __APPLE__ )
-#include <sys/resource.h>
-#endif
-
 #include <limits>
 
-CPPUNIT_TEST_SUITE_REGISTRATION(ParserTest);
+#include <PdfTest.h>
+
+using namespace std;
+using namespace mm;
+
+static string generateXRefEntries(size_t count);
+static bool canOutOfMemoryKillUnitTests();
+static void testReadXRefSubsection();
 
 // this value is from Table C.1 in Appendix C.2 Architectural Limits in PDF 32000-1:2008
-// on 32-bit systems sizeof(PoDoFo::PdfParser::TXRefEntry)=16 => max size of m_offsets=16*8,388,607 = 134 MB
-// on 64-bit systems sizeof(PoDoFo::PdfParser::TXRefEntry)=24 => max size of m_offsets=16*8,388,607 = 201 MB
-const long maxNumberOfIndirectObjects = 8388607;
+// on 32-bit systems sizeof(PdfParser::TXRefEntry)=16 => max size of m_offsets=16*8,388,607 = 134 MB
+// on 64-bit systems sizeof(PdfParser::TXRefEntry)=24 => max size of m_offsets=16*8,388,607 = 201 MB
+constexpr unsigned maxNumberOfIndirectObjects = 8388607;
 
-class PdfParserTestWrapper : public PoDoFo::PdfParser
+namespace mm
 {
-public:
-    PdfParserTestWrapper(PoDoFo::PdfVecObjects* pVecObjects, const char* pBuffer, long lLen)
-        : PoDoFo::PdfParser(pVecObjects)
+    class PdfParserTestWrapper : public PdfParser
     {
-        // sets up parser ready to read pBuffer
-        m_device = PoDoFo::PdfRefCountedInputDevice(pBuffer, lLen);
-    }
+    public:
+        PdfParserTestWrapper(PdfIndirectObjectList& objectList, const string_view& buff)
+            : PdfParser(objectList), m_device(new PdfMemoryInputDevice(buff))
+        { }
 
-    void SetupTrailer()
-    {
-        // this creates m_pTrailer
-        PoDoFo::PdfParser::ReadTrailer();
-    }
+        void SetupTrailer()
+        {
+            // this creates m_pTrailer
+            PdfParser::ReadTrailer(*m_device);
+        }
 
-    PoDoFo::PdfRefCountedInputDevice& GetDevice() { return m_device; }
-    PoDoFo::PdfRefCountedBuffer& GetBuffer() { return m_buffer; }
+        void ReadXRefContents(size_t offset, bool positionAtEnd)
+        {
+            // call protected method
+            PdfParser::ReadXRefContents(*m_device, offset, positionAtEnd);
+        }
 
-    void ReadXRefContents(PoDoFo::pdf_long lOffset, bool bPositionAtEnd)
-    {
-        // call protected method
-        PoDoFo::PdfParser::ReadXRefContents(lOffset, bPositionAtEnd);
-    }
+        void ReadXRefSubsection(int64_t firstObject, int64_t objectCount)
+        {
+            // call protected method
+            PdfParser::ReadXRefSubsection(*m_device, firstObject, objectCount);
+        }
 
-    void ReadXRefSubsection(int64_t nFirstObject, int64_t nNumObjects)
-    {
-        // call protected method
-        PoDoFo::PdfParser::ReadXRefSubsection(nFirstObject, nNumObjects);
-    }
+        void ReadXRefStreamContents(size_t offset, bool readOnlyTrailer)
+        {
+            // call protected method
+            PdfParser::ReadXRefStreamContents(*m_device, offset, readOnlyTrailer);
+        }
 
-    void ReadXRefStreamContents(PoDoFo::pdf_long lOffset, bool bReadOnlyTrailer)
-    {
-        // call protected method
-        PoDoFo::PdfParser::ReadXRefStreamContents(lOffset, bReadOnlyTrailer);
-    }
+        void ReadObjects()
+        {
+            // call protected method
+            PdfParser::ReadObjects(*m_device);
+        }
 
-    void ReadObjects()
-    {
-        // call protected method
-        PoDoFo::PdfParser::ReadObjects();
-    }
+        void ReadTrailer()
+        {
+            // call protected method
+            PdfParser::ReadTrailer(*m_device);
+        }
 
-    void ReadTrailer()
-    {
-        // call protected method
-        PoDoFo::PdfParser::ReadTrailer();
-    }
+        bool IsPdfFile()
+        {
+            // call protected method
+            return PdfParser::IsPdfFile(*m_device);
+        }
 
-    bool IsPdfFile()
-    {
-        // call protected method
-        return PoDoFo::PdfParser::IsPdfFile();
-    }
-};
+        const shared_ptr<PdfInputDevice>& GetDevice() { return m_device; }
 
-void ParserTest::setUp()
-{
-    // Nothing todo here
+    private:
+        shared_ptr<PdfInputDevice> m_device;
+    };
 }
 
-void ParserTest::tearDown()
+TEST_CASE("TestMaxObjectCount")
 {
-    // Nothing todo here
-}
+    size_t defaultObjectCount = PdfParser::GetMaxObjectCount();
 
-void ParserTest::testMaxObjectCount()
-{
-    const long defaultObjectCount = PoDoFo::PdfParser::GetMaxObjectCount();
-
-    CPPUNIT_ASSERT(defaultObjectCount == maxNumberOfIndirectObjects);
+    REQUIRE(defaultObjectCount == maxNumberOfIndirectObjects);
 
     // test methods that use PdfParser::s_nMaxObjects or GetMaxObjectCount
     // with a range of different maximums
-    PoDoFo::PdfParser::SetMaxObjectCount(std::numeric_limits<long>::max());
+    PdfParser::SetMaxObjectCount(numeric_limits<unsigned>::max());
     testReadXRefSubsection();
-    testReadDocumentStructure();
 
-    PoDoFo::PdfParser::SetMaxObjectCount(maxNumberOfIndirectObjects);
+    PdfParser::SetMaxObjectCount(maxNumberOfIndirectObjects);
     testReadXRefSubsection();
-    testReadDocumentStructure();
 
-    PoDoFo::PdfParser::SetMaxObjectCount(std::numeric_limits<short>::max());
+    PdfParser::SetMaxObjectCount(numeric_limits<unsigned short>::max());
     testReadXRefSubsection();
-    testReadDocumentStructure();
 
-    PoDoFo::PdfParser::SetMaxObjectCount(std::numeric_limits<int>::max());
+    PdfParser::SetMaxObjectCount(numeric_limits<unsigned>::max());
     testReadXRefSubsection();
-    testReadDocumentStructure();
-
-    PoDoFo::PdfParser::SetMaxObjectCount(std::numeric_limits<long>::max());
-    testReadXRefSubsection();
-    testReadDocumentStructure();
-
-    PoDoFo::PdfParser::SetMaxObjectCount(defaultObjectCount);
 }
 
-void ParserTest::testReadDocumentStructure()
-{
-    // TODO no tests yet - stub method needed by testMaxObjectCount
-}
-
-void ParserTest::testReadXRefContents()
+TEST_CASE("TestReadXRefContents")
 {
     try
     {
@@ -151,25 +127,26 @@ void ParserTest::testReadXRefContents()
         // startxref
         // 0
         // %%EOF
-        std::ostringstream oss;
+        ostringstream oss;
         oss << "xref\r\n0 3\r\n";
         oss << generateXRefEntries(3);
         oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref 0\r\n";
         oss << "%EOF";
-        PoDoFo::PdfVecObjects objects;
-        PdfParserTestWrapper parser(&objects, oss.str().c_str(), oss.str().length());
+        PdfIndirectObjectList objects;
+        PdfParserTestWrapper parser(objects, oss.str());
         parser.SetupTrailer();
         parser.ReadXRefContents(0, false);
         // expected to succeed
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError&)
     {
-        CPPUNIT_FAIL("should not throw PdfError");
+        INFO("should not throw PdfError");
+        REQUIRE(false);
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Unexpected exception type");
+        FAIL("Unexpected exception type");
     }
 
     try
@@ -184,25 +161,25 @@ void ParserTest::testReadXRefContents()
         // startxref
         // 0
         // %%EOF        
-        std::ostringstream oss;
+        ostringstream oss;
         oss << "xref\r\n0 3\r\n";
         oss << generateXRefEntries(2); // 2 entries supplied, but expecting 3 entries
         oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref 0\r\n";
         oss << "%EOF";
-        PoDoFo::PdfVecObjects objects;
-        PdfParserTestWrapper parser(&objects, oss.str().c_str(), oss.str().length());
+        PdfIndirectObjectList objects;
+        PdfParserTestWrapper parser(objects, oss.str());
         parser.SetupTrailer();
         parser.ReadXRefContents(0, false);
         // expected to succeed
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError&)
     {
-        CPPUNIT_FAIL("should not throw PdfError");
+        FAIL("should not throw PdfError");
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Unexpected exception type");
+        FAIL("Unexpected exception type");
     }
 
     try
@@ -220,7 +197,7 @@ void ParserTest::testReadXRefContents()
         // startxref
         // 0
         // %%EOF
-        std::ostringstream oss;
+        ostringstream oss;
         oss << "xref\r\n0 5\r\n";
         oss << "000000000 65535\r\n";
         oss << "00000000065535 x\r\n";
@@ -229,19 +206,19 @@ void ParserTest::testReadXRefContents()
         oss << "trailer << /Root 1 0 R /Size 5 >>\r\n";
         oss << "startxref 0\r\n";
         oss << "%EOF";
-        PoDoFo::PdfVecObjects objects;
-        PdfParserTestWrapper parser(&objects, oss.str().c_str(), oss.str().length());
+        PdfIndirectObjectList objects;
+        PdfParserTestWrapper parser(objects, oss.str());
         parser.SetupTrailer();
         parser.ReadXRefContents(0, false);
         // succeeds reading badly formed xref entries  - should it?
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError& error)
     {
-        CPPUNIT_ASSERT(error.GetError() == PoDoFo::ePdfError_InvalidXRef);
+        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRef);
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Unexpected exception type");
+        FAIL("Unexpected exception type");
     }
 
     // CVE-2017-8053 ReadXRefContents and ReadXRefStreamContents are mutually recursive   
@@ -260,10 +237,10 @@ void ParserTest::testReadXRefContents()
         // startxref
         // offsetXrefStmObj2
         // %%EOF
-        std::ostringstream oss;
+        ostringstream oss;
 
         // object stream contents - length excludes trailing whitespace
-        std::string streamContents =
+        string streamContents =
             "01 0E8A 0\r\n"
             "02 0002 00\r\n";
         size_t streamContentsLength = streamContents.size() - strlen("\r\n");
@@ -298,19 +275,19 @@ void ParserTest::testReadXRefContents()
         oss << "startxref " << offsetXrefStm1 << "\r\n";
         oss << "%EOF";
 
-        PoDoFo::PdfVecObjects objects;
-        PdfParserTestWrapper parser(&objects, oss.str().c_str(), oss.str().length());
+        PdfIndirectObjectList objects;
+        PdfParserTestWrapper parser(objects, oss.str());
         parser.SetupTrailer();
         parser.ReadXRefContents(offsetXrefStm1, false);
         // succeeds in current code - should it?
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError& error)
     {
-        CPPUNIT_ASSERT(error.GetError() == PoDoFo::ePdfError_InvalidXRef);
+        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRef);
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Unexpected exception type");
+        FAIL("Unexpected exception type");
     }
 
     try
@@ -326,10 +303,10 @@ void ParserTest::testReadXRefContents()
         // startxref
         // offsetXrefStmObj2
         // %%EOF
-        std::ostringstream oss;
+        ostringstream oss;
 
         // object stream contents - length excludes trailing whitespace
-        std::string streamContents =
+        string streamContents =
             "01 0E8A 0\r\n"
             "02 0002 00\r\n";
         size_t streamContentsLength = streamContents.size() - strlen("\r\n");
@@ -357,7 +334,7 @@ void ParserTest::testReadXRefContents()
 
         // xrefstm at offsetXrefStm2
         size_t offsetXrefStm2 = oss.str().length();
-        CPPUNIT_ASSERT(offsetXrefStm2 == 185); // hard-coded in /Prev entry in XrefStm1 above
+        REQUIRE(offsetXrefStm2 == 185); // hard-coded in /Prev entry in XrefStm1 above
         oss << "3 0 obj ";
         oss << "<< /Type /XRef ";
         oss << "/Length " << streamContentsLength << " ";
@@ -376,19 +353,19 @@ void ParserTest::testReadXRefContents()
         oss << "startxref " << offsetXrefStm2 << "\r\n";
         oss << "%EOF";
 
-        PoDoFo::PdfVecObjects objects;
-        PdfParserTestWrapper parser(&objects, oss.str().c_str(), oss.str().length());
+        PdfIndirectObjectList objects;
+        PdfParserTestWrapper parser(objects, oss.str());
         parser.SetupTrailer();
         parser.ReadXRefContents(offsetXrefStm2, false);
         // succeeds in current code - should it?
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError& error)
     {
-        CPPUNIT_ASSERT(error.GetError() == PoDoFo::ePdfError_InvalidXRef);
+        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRef);
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Unexpected exception type");
+        FAIL("Unexpected exception type");
     }
 
     try
@@ -407,12 +384,12 @@ void ParserTest::testReadXRefContents()
         // startxref
         // offsetStreamObj(N)
         // %%EOF
-        std::ostringstream oss;
+        ostringstream oss;
         size_t prevOffset = 0;
         size_t currentOffset = 0;
 
         // object stream contents - length excludes trailing whitespace
-        std::string streamContents =
+        string streamContents =
             "01 0E8A 0\r\n"
             "02 0002 00\r\n";
         size_t streamContentsLength = streamContents.size() - strlen("\r\n");
@@ -426,7 +403,7 @@ void ParserTest::testReadXRefContents()
         // and on Windows 32-bit with around 1000 streams
 
         const int maxXrefStreams = 10000;
-        for (int i = 0; i < maxXrefStreams; ++i)
+        for (int i = 0; i < maxXrefStreams; i++)
         {
             int objNo = i + 2;
 
@@ -453,156 +430,158 @@ void ParserTest::testReadXRefContents()
         oss << "startxref " << currentOffset << "\r\n";
         oss << "%EOF";
 
-        PoDoFo::PdfVecObjects objects;
-        PdfParserTestWrapper parser(&objects, oss.str().c_str(), oss.str().length());
+        PdfIndirectObjectList objects;
+        PdfParserTestWrapper parser(objects, oss.str());
         parser.SetupTrailer();
         parser.ReadXRefContents(currentOffset, false);
         // succeeds in current code - should it?
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError& error)
     {
-        CPPUNIT_ASSERT(error.GetError() == PoDoFo::ePdfError_InvalidXRef);
+        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRef);
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Unexpected exception type");
+        FAIL("Unexpected exception type");
     }
 }
 
-void ParserTest::testReadXRefSubsection()
+void testReadXRefSubsection()
 {
-    int64_t nFirstObject = 0;
-    int64_t nNumObjects = 0;
+    int64_t firstObject = 0;
+    int64_t objectCount = 0;
 
-    // TODO does ReadXRefSubsection with nNumObjects = 0 make sense ???
+    // TODO does ReadXRefSubsection with objectCount = 0 make sense ???
 
     // CVE-2017-5855 m_offsets.resize() NULL ptr read
     // CVE-2017-6844 m_offsets.resize() buffer overwrite 
     // false positives due to AFL setting allocator_may_return_null=1 which causes
-    // ASAN to return NULL instead of throwing std::bad_alloc for out-of-memory conditions
+    // ASAN to return NULL instead of throwing bad_alloc for out-of-memory conditions
     // https://github.com/mirrorer/afl/blob/master/docs/env_variables.txt#L248
     // https://github.com/google/sanitizers/issues/295#issuecomment-234273218 
     // the test for CVE-2018-5296 below checks that PoDoFo restricts allocations
 
     // CVE-2018-5296 m_offsets.resize() malloc failure when large size specified
-    // check PoDoFo throws PdfError and not anything derived from std::exception
+    // check PoDoFo throws PdfError and not anything derived from exception
     // check PoDoFo can't allocate unrestricted amounts of memory
 
-    if (PoDoFo::PdfParser::GetMaxObjectCount() <= maxNumberOfIndirectObjects)
+    if (PdfParser::GetMaxObjectCount() <= maxNumberOfIndirectObjects)
     {
         try
         {
-            std::string strInputStream = generateXRefEntries(PoDoFo::PdfParser::GetMaxObjectCount());
-            PoDoFo::PdfVecObjects objects;
-            PdfParserTestWrapper parser(&objects, strInputStream.c_str(), strInputStream.length());
-            nFirstObject = 0;
-            nNumObjects = PoDoFo::PdfParser::GetMaxObjectCount();
-            parser.ReadXRefSubsection(nFirstObject, nNumObjects);
+            string strInput = generateXRefEntries(PdfParser::GetMaxObjectCount());
+            PdfIndirectObjectList objects;
+            PdfParserTestWrapper parser(objects, strInput);
+            firstObject = 0;
+            objectCount = PdfParser::GetMaxObjectCount();
+            parser.ReadXRefSubsection(firstObject, objectCount);
             // expected to succeed
         }
-        catch (PoDoFo::PdfError& error)
+        catch (PdfError&)
         {
-            CPPUNIT_FAIL("should not throw PdfError");
+            FAIL("should not throw PdfError");
         }
-        catch (std::exception& ex)
+        catch (exception&)
         {
-            CPPUNIT_FAIL("Unexpected exception type");
+            FAIL("Unexpected exception type");
         }
     }
     else
     {
-        // test has been called from testMaxObjectCount with PoDoFo::PdfParser::SetMaxObjectCount()
+        // test has been called from testMaxObjectCount with PdfParser::SetMaxObjectCount()
         // set to a large value (large allocs are tested in address space tests below)
     }
 
-    // don't run the following test if PoDoFo::PdfParser::GetMaxObjectCount()+1 will overflow
+    // don't run the following test if PdfParser::GetMaxObjectCount()+1 will overflow
     // in the numXRefEntries calculation below (otherwise we get an ASAN error)
-    if (PoDoFo::PdfParser::GetMaxObjectCount() < std::numeric_limits<long>::max())
+    if (PdfParser::GetMaxObjectCount() < numeric_limits<unsigned>::max())
     {
         // don't generate xrefs for high values of GetMaxObjectCount() e.g. don't try to generate 2**63 xrefs
-        size_t numXRefEntries = std::min(maxNumberOfIndirectObjects + 1, PoDoFo::PdfParser::GetMaxObjectCount() + 1);
+        unsigned numXRefEntries = std::min(maxNumberOfIndirectObjects + 1, PdfParser::GetMaxObjectCount() + 1);
 
         try
         {
-            std::string strInputStream = generateXRefEntries(numXRefEntries);
-            PoDoFo::PdfVecObjects objects;
-            PdfParserTestWrapper parser(&objects, strInputStream.c_str(), strInputStream.length());
-            nFirstObject = 0;
-            nNumObjects = PoDoFo::PdfParser::GetMaxObjectCount() + 1;
-            parser.ReadXRefSubsection(nFirstObject, nNumObjects);
-            CPPUNIT_FAIL("PdfError not thrown");
+            string strInput = generateXRefEntries(numXRefEntries);
+            PdfIndirectObjectList objects;
+            PdfParserTestWrapper parser(objects, strInput);
+            firstObject = 0;
+            objectCount = PdfParser::GetMaxObjectCount() + 1;
+            parser.ReadXRefSubsection(firstObject, objectCount);
+            FAIL("PdfError not thrown");
         }
-        catch (PoDoFo::PdfError& error)
+        catch (PdfError& error)
         {
-            // too many indirect objects in Trailer /Size key throws ePdfError_ValueOutOfRange
-            // but too many indirect objects in xref table throws ePdfError_InvalidXRef
-            CPPUNIT_ASSERT(error.GetError() == PoDoFo::ePdfError_InvalidXRef);
+            // too many indirect objects in Trailer /Size key throws PdfErrorCode::ValueOutOfRange
+            // but too many indirect objects in xref table throws PdfErrorCode::InvalidXRef
+            REQUIRE(error.GetError() == PdfErrorCode::InvalidXRef);
         }
-        catch (std::exception& ex)
+        catch (exception&)
         {
-            CPPUNIT_FAIL("Wrong exception type");
+            FAIL("Wrong exception type");
         }
     }
 
     // CVE-2018-5296 try to allocate more than address space size 
-    // should throw a std::bad_length exception in STL which is rethrown as a PdfError
+    // should throw a bad_length exception in STL which is rethrown as a PdfError
     try
     {
-        // this attempts to allocate std::numeric_limits<size_t>::max()/2 * sizeof(TXRefEntry)
+        // this attempts to allocate numeric_limits<size_t>::max()/2 * sizeof(TXRefEntry)
         // on 32-bit systems this allocates 2**31 * sizeof(TXRefEntry) = 2**31 * 16 (larger than 32-bit address space)
         // on LP64 (macOS,*nix) systems this allocates 2**63 * sizeof(TXRefEntry) = 2**63 * 24 (larger than 64-bit address space)
         // on LLP64 (Win64) systems this allocates 2**31 * sizeof(TXRefEntry) = 2**31 * 16 (smaller than 64-bit address space)
-        std::string strInputStream = " ";
-        PoDoFo::PdfVecObjects objects;
-        PdfParserTestWrapper parser(&objects, strInputStream.c_str(), strInputStream.length());
-        nFirstObject = 1;
-        nNumObjects = std::numeric_limits<size_t>::max() / 2 - 1;
-        parser.ReadXRefSubsection(nFirstObject, nNumObjects);
-        CPPUNIT_FAIL("PdfError not thrown");
+        string strInput = " ";
+        PdfIndirectObjectList objects;
+        PdfParserTestWrapper parser(objects, strInput);
+        firstObject = 1;
+        objectCount = numeric_limits<size_t>::max() / 2 - 1;
+        parser.ReadXRefSubsection(firstObject, objectCount);
+        FAIL("PdfError not thrown");
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError& error)
     {
-        // if nNumObjects > PdfParser::GetMaxObjectCount() then we'll see ePdfError_InvalidXRef
-        // otherwise we'll see ePdfError_ValueOutOfRange or ePdfError_OutOfMemory (see testMaxObjectCount)
-        CPPUNIT_ASSERT(error.GetError() == PoDoFo::ePdfError_InvalidXRef || error.GetError() == PoDoFo::ePdfError_ValueOutOfRange || error.GetError() == PoDoFo::ePdfError_OutOfMemory);
+        // if objectCount > PdfParser::GetMaxObjectCount() then we'll see PdfErrorCode::InvalidXRef
+        // otherwise we'll see PdfErrorCode::ValueOutOfRange or PdfErrorCode::OutOfMemory (see testMaxObjectCount)
+        REQUIRE((error.GetError() == PdfErrorCode::InvalidXRef
+            || error.GetError() == PdfErrorCode::ValueOutOfRange
+            || error.GetError() == PdfErrorCode::OutOfMemory));
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Wrong exception type");
+        FAIL("Wrong exception type");
     }
 
     // CVE-2018-5296 try to allocate 95% of VM address space size (which should always fail)
     if (!canOutOfMemoryKillUnitTests())
     {
-        size_t maxObjects = std::numeric_limits<size_t>::max() / sizeof(PoDoFo::PdfParser::TXRefEntry) / 100 * 95;
+        size_t maxObjects = numeric_limits<size_t>::max() / sizeof(PdfXRefEntry) / 100 * 95;
 
         try
         {
-            std::string strInputStream = " ";
-            PoDoFo::PdfVecObjects objects;
-            PdfParserTestWrapper parser(&objects, strInputStream.c_str(), strInputStream.length());
-            nFirstObject = 1;
-            nNumObjects = maxObjects;
-            parser.ReadXRefSubsection(nFirstObject, nNumObjects);
-            CPPUNIT_FAIL("PdfError not thrown");
+            string strInput = " ";
+            PdfIndirectObjectList objects;
+            PdfParserTestWrapper parser(objects, strInput);
+            firstObject = 1;
+            objectCount = maxObjects;
+            parser.ReadXRefSubsection(firstObject, objectCount);
+            FAIL("PdfError not thrown");
         }
-        catch (PoDoFo::PdfError& error)
+        catch (PdfError& error)
         {
-            if (maxObjects >= (size_t)PoDoFo::PdfParser::GetMaxObjectCount())
-                CPPUNIT_ASSERT(error.GetError() == PoDoFo::ePdfError_InvalidXRef);
+            if (maxObjects >= (size_t)PdfParser::GetMaxObjectCount())
+                REQUIRE(error.GetError() == PdfErrorCode::InvalidXRef);
             else
-                CPPUNIT_ASSERT(error.GetError() == PoDoFo::ePdfError_OutOfMemory);
+                REQUIRE(error.GetError() == PdfErrorCode::OutOfMemory);
         }
-        catch (std::exception& ex)
+        catch (exception&)
         {
-            CPPUNIT_FAIL("Wrong exception type");
+            FAIL("Wrong exception type");
         }
     }
 
     // CVE-2015-8981 happens because this->GetNextNumber() can return negative numbers 
     // in range (LONG_MIN to LONG_MAX) so the xref section below causes a buffer underflow
     // because m_offsets[-5].bParsed is set to true when first entry is read
-    // NOTE: std::vector operator[] is not bounds checked
+    // NOTE: vector operator[] is not bounds checked
 
     // xref
     // -5 5
@@ -621,28 +600,28 @@ void ParserTest::testReadXRefSubsection()
 
     try
     {
-        std::string strInputStream = "0000000000 65535 f\r\n";
-        PoDoFo::PdfVecObjects objects;
-        PdfParserTestWrapper parser(&objects, strInputStream.c_str(), strInputStream.length());
-        nFirstObject = -5LL;
-        nNumObjects = 5;
-        parser.ReadXRefSubsection(nFirstObject, nNumObjects);
-        CPPUNIT_FAIL("PdfError not thrown");
+        string strInput = "0000000000 65535 f\r\n";
+        PdfIndirectObjectList objects;
+        PdfParserTestWrapper parser(objects, strInput);
+        firstObject = -5LL;
+        objectCount = 5;
+        parser.ReadXRefSubsection(firstObject, objectCount);
+        FAIL("PdfError not thrown");
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError& error)
     {
-        CPPUNIT_ASSERT(error.GetError() == PoDoFo::ePdfError_ValueOutOfRange || error.GetError() == PoDoFo::ePdfError_NoXRef);
+        REQUIRE((error.GetError() == PdfErrorCode::ValueOutOfRange || error.GetError() == PdfErrorCode::NoXRef));
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Wrong exception type");
+        FAIL("Wrong exception type");
     }
 
-    // CVE-2015-8981 can also happen due to integer overflow in nFirstObject+nNumObjects
+    // CVE-2015-8981 can also happen due to integer overflow in firstObject+objectCount
     // in the example below 2147483647=0x7FFF, so 0x7FFF + 0x7FFF = 0XFFFE = -2 on a 32-bit system
     // which means m_offsets.size()=5 because m_offsets.resize() is never called and 
     // m_offsets[2147483647].bParsed is set to true when first entry is read
-    // NOTE: std::vector operator[] is not bounds checked
+    // NOTE: vector operator[] is not bounds checked
 
     // 2147483647 2147483647 
     // 0000000000 65535 f 
@@ -660,393 +639,393 @@ void ParserTest::testReadXRefSubsection()
 
     try
     {
-        std::string strInputStream = "0000000000 65535 f\r\n";
-        PoDoFo::PdfVecObjects objects;
-        PdfParserTestWrapper parser(&objects, strInputStream.c_str(), strInputStream.length());
-        nFirstObject = std::numeric_limits<long>::max();
-        nNumObjects = std::numeric_limits<long>::max();
-        parser.ReadXRefSubsection(nFirstObject, nNumObjects);
-        CPPUNIT_FAIL("PdfError not thrown");
+        string strInput = "0000000000 65535 f\r\n";
+        PdfIndirectObjectList objects;
+        PdfParserTestWrapper parser(objects, strInput);
+        firstObject = numeric_limits<unsigned>::max();
+        objectCount = numeric_limits<unsigned>::max();
+        parser.ReadXRefSubsection(firstObject, objectCount);
+        FAIL("PdfError not thrown");
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError& error)
     {
-        CPPUNIT_ASSERT(error.GetError() == PoDoFo::ePdfError_InvalidXRef);
+        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRef);
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Wrong exception type");
+        FAIL("Wrong exception type");
     }
 
     try
     {
-        std::string strInputStream = "0000000000 65535 f\r\n";
-        PoDoFo::PdfVecObjects objects;
-        PdfParserTestWrapper parser(&objects, strInputStream.c_str(), strInputStream.length());
-        nFirstObject = std::numeric_limits<int64_t>::max();
-        nNumObjects = std::numeric_limits<int64_t>::max();
-        parser.ReadXRefSubsection(nFirstObject, nNumObjects);
-        CPPUNIT_FAIL("PdfError not thrown");
+        string strInput = "0000000000 65535 f\r\n";
+        PdfIndirectObjectList objects;
+        PdfParserTestWrapper parser(objects, strInput);
+        firstObject = numeric_limits<int64_t>::max();
+        objectCount = numeric_limits<int64_t>::max();
+        parser.ReadXRefSubsection(firstObject, objectCount);
+        FAIL("PdfError not thrown");
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError& error)
     {
-        CPPUNIT_ASSERT(error.GetError() == PoDoFo::ePdfError_InvalidXRef);
+        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRef);
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Wrong exception type");
+        FAIL("Wrong exception type");
     }
 
     // test for integer overflows in ReadXRefSubsection (CVE-2017-5853) which caused
     // wrong buffer size to be calculated and then triggered buffer overflow (CVE-2017-6844)   
     // the overflow checks in ReadXRefSubsection depend on the value returned by GetMaxObjectCount
     // if the value changes these checks need looked at again
-    CPPUNIT_ASSERT(PoDoFo::PdfParser::GetMaxObjectCount() <= std::numeric_limits<long>::max());
+    REQUIRE(PdfParser::GetMaxObjectCount() <= numeric_limits<unsigned>::max());
 
-    // test CVE-2017-5853 signed integer overflow in nFirstObject + nNumObjects
-    // CVE-2017-5853 1.1 - nFirstObject < 0
+    // test CVE-2017-5853 signed integer overflow in firstObject + objectCount
+    // CVE-2017-5853 1.1 - firstObject < 0
     try
     {
-        std::string strInputStream = " ";
-        PoDoFo::PdfVecObjects objects;
-        PdfParserTestWrapper parser(&objects, strInputStream.c_str(), strInputStream.length());
-        nFirstObject = -1LL;
-        nNumObjects = 1;
-        parser.ReadXRefSubsection(nFirstObject, nNumObjects);
-        CPPUNIT_FAIL("PdfError not thrown");
+        string strInput = " ";
+        PdfIndirectObjectList objects;
+        PdfParserTestWrapper parser(objects, strInput);
+        firstObject = -1LL;
+        objectCount = 1;
+        parser.ReadXRefSubsection(firstObject, objectCount);
+        FAIL("PdfError not thrown");
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError& error)
     {
-        CPPUNIT_ASSERT(error.GetError() == PoDoFo::ePdfError_ValueOutOfRange);
+        REQUIRE(error.GetError() == PdfErrorCode::ValueOutOfRange);
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Wrong exception type");
+        FAIL("Wrong exception type");
     }
 
-    // CVE-2017-5853 1.2 - nFirstObject = min value of long
+    // CVE-2017-5853 1.2 - firstObject = min value of long
     try
     {
-        std::string strInputStream = " ";
-        PoDoFo::PdfVecObjects objects;
-        PdfParserTestWrapper parser(&objects, strInputStream.c_str(), strInputStream.length());
-        nFirstObject = std::numeric_limits<long>::min();
-        nNumObjects = 1;
-        parser.ReadXRefSubsection(nFirstObject, nNumObjects);
-        CPPUNIT_FAIL("PdfError not thrown");
+        string strInput = " ";
+        PdfIndirectObjectList objects;
+        PdfParserTestWrapper parser(objects, strInput);
+        firstObject = numeric_limits<unsigned>::min();
+        objectCount = 1;
+        parser.ReadXRefSubsection(firstObject, objectCount);
+        FAIL("PdfError not thrown");
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError& error)
     {
-        CPPUNIT_ASSERT(error.GetError() == PoDoFo::ePdfError_ValueOutOfRange);
+        REQUIRE(error.GetError() == PdfErrorCode::ValueOutOfRange);
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Wrong exception type");
+        FAIL("Wrong exception type");
     }
 
-    // CVE-2017-5853 1.3 - nFirstObject = min value of int64_t
+    // CVE-2017-5853 1.3 - firstObject = min value of int64_t
     try
     {
-        std::string strInputStream = " ";
-        PoDoFo::PdfVecObjects objects;
-        PdfParserTestWrapper parser(&objects, strInputStream.c_str(), strInputStream.length());
-        nFirstObject = std::numeric_limits<int64_t>::min();
-        nNumObjects = 1;
-        parser.ReadXRefSubsection(nFirstObject, nNumObjects);
-        CPPUNIT_FAIL("PdfError not thrown");
+        string strInput = " ";
+        PdfIndirectObjectList objects;
+        PdfParserTestWrapper parser(objects, strInput);
+        firstObject = numeric_limits<int64_t>::min();
+        objectCount = 1;
+        parser.ReadXRefSubsection(firstObject, objectCount);
+        FAIL("PdfError not thrown");
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError& error)
     {
-        CPPUNIT_ASSERT(error.GetError() == PoDoFo::ePdfError_ValueOutOfRange);
+        REQUIRE(error.GetError() == PdfErrorCode::ValueOutOfRange);
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Wrong exception type");
+        FAIL("Wrong exception type");
     }
 
-    // CVE-2017-5853 1.4 - nFirstObject = min value of size_t is zero (size_t is unsigned)
-    // and zero is a valid value for nFirstObject
+    // CVE-2017-5853 1.4 - firstObject = min value of size_t is zero (size_t is unsigned)
+    // and zero is a valid value for firstObject
 
-    // CVE-2017-5853 1.5 - nFirstObject = max value of long
+    // CVE-2017-5853 1.5 - firstObject = max value of long
     try
     {
-        std::string strInputStream = " ";
-        PoDoFo::PdfVecObjects objects;
-        PdfParserTestWrapper parser(&objects, strInputStream.c_str(), strInputStream.length());
-        nFirstObject = std::numeric_limits<long>::max();
-        nNumObjects = 1;
-        parser.ReadXRefSubsection(nFirstObject, nNumObjects);
-        CPPUNIT_FAIL("PdfError not thrown");
+        string strInput = " ";
+        PdfIndirectObjectList objects;
+        PdfParserTestWrapper parser(objects, strInput);
+        firstObject = numeric_limits<unsigned>::max();
+        objectCount = 1;
+        parser.ReadXRefSubsection(firstObject, objectCount);
+        FAIL("PdfError not thrown");
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError& error)
     {
-        CPPUNIT_ASSERT(error.GetError() == PoDoFo::ePdfError_InvalidXRef);
+        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRef);
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Wrong exception type");
+        FAIL("Wrong exception type");
     }
 
-    // CVE-2017-5853 1.6 - nFirstObject = max value of int64_t
+    // CVE-2017-5853 1.6 - firstObject = max value of int64_t
     try
     {
-        std::string strInputStream = " ";
-        PoDoFo::PdfVecObjects objects;
-        PdfParserTestWrapper parser(&objects, strInputStream.c_str(), strInputStream.length());
-        nFirstObject = std::numeric_limits<int64_t>::max();
-        nNumObjects = 1;
-        parser.ReadXRefSubsection(nFirstObject, nNumObjects);
-        CPPUNIT_FAIL("PdfError not thrown");
+        string strInput = " ";
+        PdfIndirectObjectList objects;
+        PdfParserTestWrapper parser(objects, strInput);
+        firstObject = numeric_limits<int64_t>::max();
+        objectCount = 1;
+        parser.ReadXRefSubsection(firstObject, objectCount);
+        FAIL("PdfError not thrown");
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError& error)
     {
-        CPPUNIT_ASSERT(error.GetError() == PoDoFo::ePdfError_InvalidXRef);
+        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRef);
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Wrong exception type");
+        FAIL("Wrong exception type");
     }
 
-    // CVE-2017-5853 1.7 - nFirstObject = max value of size_t
+    // CVE-2017-5853 1.7 - firstObject = max value of size_t
     try
     {
-        std::string strInputStream = " ";
-        PoDoFo::PdfVecObjects objects;
-        PdfParserTestWrapper parser(&objects, strInputStream.c_str(), strInputStream.length());
-        nFirstObject = std::numeric_limits<size_t>::max();
-        nNumObjects = 1;
-        parser.ReadXRefSubsection(nFirstObject, nNumObjects);
-        CPPUNIT_FAIL("PdfError not thrown");
+        string strInput = " ";
+        PdfIndirectObjectList objects;
+        PdfParserTestWrapper parser(objects, strInput);
+        firstObject = numeric_limits<size_t>::max();
+        objectCount = 1;
+        parser.ReadXRefSubsection(firstObject, objectCount);
+        FAIL("PdfError not thrown");
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError& error)
     {
         // weird: different errors returned depending on architecture 
-        CPPUNIT_ASSERT(error.GetError() == PoDoFo::ePdfError_ValueOutOfRange || sizeof(size_t) == 4);
-        CPPUNIT_ASSERT(error.GetError() == PoDoFo::ePdfError_InvalidXRef || sizeof(size_t) == 8);
+        REQUIRE((error.GetError() == PdfErrorCode::ValueOutOfRange || sizeof(size_t) == 4));
+        REQUIRE((error.GetError() == PdfErrorCode::InvalidXRef || sizeof(size_t) == 8));
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Wrong exception type");
+        FAIL("Wrong exception type");
     }
 
-    // CVE-2017-5853 1.8 - nFirstObject = PdfParser::GetMaxObjectCount()
+    // CVE-2017-5853 1.8 - firstObject = PdfParser::GetMaxObjectCount()
     try
     {
-        std::string strInputStream = " ";
-        PoDoFo::PdfVecObjects objects;
-        PdfParserTestWrapper parser(&objects, strInputStream.c_str(), strInputStream.length());
-        CPPUNIT_ASSERT(PoDoFo::PdfParser::GetMaxObjectCount() > 0);
-        nFirstObject = PoDoFo::PdfParser::GetMaxObjectCount();
-        nNumObjects = 1;
-        parser.ReadXRefSubsection(nFirstObject, nNumObjects);
-        CPPUNIT_FAIL("PdfError not thrown");
+        string strInput = " ";
+        PdfIndirectObjectList objects;
+        PdfParserTestWrapper parser(objects, strInput);
+        REQUIRE(PdfParser::GetMaxObjectCount() > 0);
+        firstObject = PdfParser::GetMaxObjectCount();
+        objectCount = 1;
+        parser.ReadXRefSubsection(firstObject, objectCount);
+        FAIL("PdfError not thrown");
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError& error)
     {
-        CPPUNIT_ASSERT(error.GetError() == PoDoFo::ePdfError_InvalidXRef);
+        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRef);
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Wrong exception type");
+        FAIL("Wrong exception type");
     }
 
-    // CVE-2017-5853 2.1 - nNumObjects < 0
+    // CVE-2017-5853 2.1 - objectCount < 0
     try
     {
-        std::string strInputStream = " ";
-        PoDoFo::PdfVecObjects objects;
-        PdfParserTestWrapper parser(&objects, strInputStream.c_str(), strInputStream.length());
-        nFirstObject = 1;
-        nNumObjects = -1LL;
-        parser.ReadXRefSubsection(nFirstObject, nNumObjects);
-        CPPUNIT_FAIL("PdfError not thrown");
+        string strInput = " ";
+        PdfIndirectObjectList objects;
+        PdfParserTestWrapper parser(objects, strInput);
+        firstObject = 1;
+        objectCount = -1LL;
+        parser.ReadXRefSubsection(firstObject, objectCount);
+        FAIL("PdfError not thrown");
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError& error)
     {
-        CPPUNIT_ASSERT(error.GetError() == PoDoFo::ePdfError_ValueOutOfRange);
+        REQUIRE(error.GetError() == PdfErrorCode::ValueOutOfRange);
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Wrong exception type");
+        FAIL("Wrong exception type");
     }
 
-    // CVE-2017-5853 2.2 - nNumObjects = min value of long
+    // CVE-2017-5853 2.2 - objectCount = min value of long
     try
     {
-        std::string strInputStream = " ";
-        PoDoFo::PdfVecObjects objects;
-        PdfParserTestWrapper parser(&objects, strInputStream.c_str(), strInputStream.length());
-        nFirstObject = 1;
-        nNumObjects = std::numeric_limits<long>::min();
-        parser.ReadXRefSubsection(nFirstObject, nNumObjects);
-        CPPUNIT_FAIL("PdfError not thrown");
+        string strInput = " ";
+        PdfIndirectObjectList objects;
+        PdfParserTestWrapper parser(objects, strInput);
+        firstObject = 1;
+        objectCount = numeric_limits<unsigned>::min();
+        parser.ReadXRefSubsection(firstObject, objectCount);
+        FAIL("PdfError not thrown");
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError& error)
     {
-        CPPUNIT_ASSERT(error.GetError() == PoDoFo::ePdfError_ValueOutOfRange);
+        REQUIRE(error.GetError() == PdfErrorCode::ValueOutOfRange);
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Wrong exception type");
+        FAIL("Wrong exception type");
     }
 
-    // CVE-2017-5853 2.3 - nNumObjects = min value of int64_t
+    // CVE-2017-5853 2.3 - objectCount = min value of int64_t
     try
     {
-        std::string strInputStream = " ";
-        PoDoFo::PdfVecObjects objects;
-        PdfParserTestWrapper parser(&objects, strInputStream.c_str(), strInputStream.length());
-        nFirstObject = 1;
-        nNumObjects = std::numeric_limits<int64_t>::min();
-        parser.ReadXRefSubsection(nFirstObject, nNumObjects);
-        CPPUNIT_FAIL("PdfError not thrown");
+        string strInput = " ";
+        PdfIndirectObjectList objects;
+        PdfParserTestWrapper parser(objects, strInput);
+        firstObject = 1;
+        objectCount = numeric_limits<int64_t>::min();
+        parser.ReadXRefSubsection(firstObject, objectCount);
+        FAIL("PdfError not thrown");
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError& error)
     {
-        CPPUNIT_ASSERT(error.GetError() == PoDoFo::ePdfError_ValueOutOfRange);
+        REQUIRE(error.GetError() == PdfErrorCode::ValueOutOfRange);
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Wrong exception type");
+        FAIL("Wrong exception type");
     }
 
-    // CVE-2017-5853 2.4 - nNumObjects = min value of size_t is zero (size_t is unsigned)
-    // and zero is a valid value for nFirstObject
+    // CVE-2017-5853 2.4 - objectCount = min value of size_t is zero (size_t is unsigned)
+    // and zero is a valid value for firstObject
     // TODO
 
-    // CVE-2017-5853 2.5 - nNumObjects = max value of long
+    // CVE-2017-5853 2.5 - objectCount = max value of long
     try
     {
-        std::string strInputStream = " ";
-        PoDoFo::PdfVecObjects objects;
-        PdfParserTestWrapper parser(&objects, strInputStream.c_str(), strInputStream.length());
-        nFirstObject = 1;
-        nNumObjects = std::numeric_limits<long>::max();
-        parser.ReadXRefSubsection(nFirstObject, nNumObjects);
-        CPPUNIT_FAIL("PdfError not thrown");
+        string strInput = " ";
+        PdfIndirectObjectList objects;
+        PdfParserTestWrapper parser(objects, strInput);
+        firstObject = 1;
+        objectCount = numeric_limits<unsigned>::max();
+        parser.ReadXRefSubsection(firstObject, objectCount);
+        FAIL("PdfError not thrown");
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError& error)
     {
-        CPPUNIT_ASSERT(error.GetError() == PoDoFo::ePdfError_InvalidXRef);
+        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRef);
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Wrong exception type");
+        FAIL("Wrong exception type");
     }
 
-    // CVE-2017-5853 2.6 - nNumObjects = max value of int64_t
+    // CVE-2017-5853 2.6 - objectCount = max value of int64_t
     try
     {
-        std::string strInputStream = " ";
-        PoDoFo::PdfVecObjects objects;
-        PdfParserTestWrapper parser(&objects, strInputStream.c_str(), strInputStream.length());
-        nFirstObject = 1;
-        nNumObjects = std::numeric_limits<int64_t>::max();
-        parser.ReadXRefSubsection(nFirstObject, nNumObjects);
-        CPPUNIT_FAIL("PdfError not thrown");
+        string strInput = " ";
+        PdfIndirectObjectList objects;
+        PdfParserTestWrapper parser(objects, strInput);
+        firstObject = 1;
+        objectCount = numeric_limits<int64_t>::max();
+        parser.ReadXRefSubsection(firstObject, objectCount);
+        FAIL("PdfError not thrown");
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError& error)
     {
-        CPPUNIT_ASSERT(error.GetError() == PoDoFo::ePdfError_InvalidXRef);
+        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRef);
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Wrong exception type");
+        FAIL("Wrong exception type");
     }
 
-    // CVE-2017-5853 2.7 - nNumObjects = max value of size_t
+    // CVE-2017-5853 2.7 - objectCount = max value of size_t
     try
     {
-        std::string strInputStream = " ";
-        PoDoFo::PdfVecObjects objects;
-        PdfParserTestWrapper parser(&objects, strInputStream.c_str(), strInputStream.length());
-        nFirstObject = 1;
-        nNumObjects = std::numeric_limits<size_t>::max();
-        parser.ReadXRefSubsection(nFirstObject, nNumObjects);
-        CPPUNIT_FAIL("PdfError not thrown");
+        string strInput = " ";
+        PdfIndirectObjectList objects;
+        PdfParserTestWrapper parser(objects, strInput);
+        firstObject = 1;
+        objectCount = numeric_limits<size_t>::max();
+        parser.ReadXRefSubsection(firstObject, objectCount);
+        FAIL("PdfError not thrown");
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError& error)
     {
         // weird: different errors returned depending on architecture 
-        CPPUNIT_ASSERT(error.GetError() == PoDoFo::ePdfError_ValueOutOfRange || sizeof(size_t) == 4);
-        CPPUNIT_ASSERT(error.GetError() == PoDoFo::ePdfError_InvalidXRef || sizeof(size_t) == 8);
+        REQUIRE((error.GetError() == PdfErrorCode::ValueOutOfRange || sizeof(size_t) == 4));
+        REQUIRE((error.GetError() == PdfErrorCode::InvalidXRef || sizeof(size_t) == 8));
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Wrong exception type");
+        FAIL("Wrong exception type");
     }
 
-    // CVE-2017-5853 2.8 - nNumObjects = PdfParser::GetMaxObjectCount()
+    // CVE-2017-5853 2.8 - objectCount = PdfParser::GetMaxObjectCount()
     try
     {
-        std::string strInputStream = " ";
-        PoDoFo::PdfVecObjects objects;
-        PdfParserTestWrapper parser(&objects, strInputStream.c_str(), strInputStream.length());
-        nFirstObject = 1;
-        nNumObjects = PoDoFo::PdfParser::GetMaxObjectCount();
-        parser.ReadXRefSubsection(nFirstObject, nNumObjects);
-        CPPUNIT_FAIL("PdfError not thrown");
+        string strInput = " ";
+        PdfIndirectObjectList objects;
+        PdfParserTestWrapper parser(objects, strInput);
+        firstObject = 1;
+        objectCount = PdfParser::GetMaxObjectCount();
+        parser.ReadXRefSubsection(firstObject, objectCount);
+        FAIL("PdfError not thrown");
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError& error)
     {
-        CPPUNIT_ASSERT(error.GetError() == PoDoFo::ePdfError_InvalidXRef);
+        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRef);
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Wrong exception type");
+        FAIL("Wrong exception type");
     }
 
     // CVE-2017-5853 2.9 - finally - loop through a set of interesting bit patterns
     static uint64_t s_values[] =
     {
-        //(1ull << 64) - 1,
-        //(1ull << 64),
-        //(1ull << 64) + 1,
-        (1ull << 63) - 1,
-        (1ull << 63),
-        (1ull << 63) + 1,
-        (1ull << 62) - 1,
-        (1ull << 62),
-        (1ull << 62) + 1,
+        //(1 << 64) - 1,
+        //(1 << 64),
+        //(1 << 64) + 1,
+        (1 << 63) - 1,
+        (1 << 63),
+        (1 << 63) + 1,
+        (1 << 62) - 1,
+        (1 << 62),
+        (1 << 62) + 1,
 
-        (1ull << 49) - 1,
-        (1ull << 49),
-        (1ull << 49) + 1,
-        (1ull << 48) - 1,
-        (1ull << 48),
-        (1ull << 48) + 1,
-        (1ull << 47) - 1,
-        (1ull << 47),
-        (1ull << 47) + 1,
+        (1 << 49) - 1,
+        (1 << 49),
+        (1 << 49) + 1,
+        (1 << 48) - 1,
+        (1 << 48),
+        (1 << 48) + 1,
+        (1 << 47) - 1,
+        (1 << 47),
+        (1 << 47) + 1,
 
-        (1ull << 33) - 1,
-        (1ull << 33),
-        (1ull << 33) + 1,
-        (1ull << 32) - 1,
-        (1ull << 32),
-        (1ull << 32) + 1,
-        (1ull << 31) - 1,
-        (1ull << 31),
-        (1ull << 31) + 1,
+        (1 << 33) - 1,
+        (1 << 33),
+        (1 << 33) + 1,
+        (1 << 32) - 1,
+        (1 << 32),
+        (1 << 32) + 1,
+        (1 << 31) - 1,
+        (1 << 31),
+        (1 << 31) + 1,
 
-        (1ull << 25) - 1,
-        (1ull << 33),
-        (1ull << 33) + 1,
-        (1ull << 24) - 1,
-        (1ull << 24),
-        (1ull << 24) + 1,
-        (1ull << 31) - 1,
-        (1ull << 31),
-        (1ull << 31) + 1,
+        (1 << 25) - 1,
+        (1 << 33),
+        (1 << 33) + 1,
+        (1 << 24) - 1,
+        (1 << 24),
+        (1 << 24) + 1,
+        (1 << 31) - 1,
+        (1 << 31),
+        (1 << 31) + 1,
 
-        (1ull << 17) - 1,
-        (1ull << 17),
-        (1ull << 17) + 1,
-        (1ull << 16) - 1,
-        (1ull << 16),
-        (1ull << 16) + 1,
-        (1ull << 15) - 1,
-        (1ull << 15),
-        (1ull << 15) + 1,
+        (1 << 17) - 1,
+        (1 << 17),
+        (1 << 17) + 1,
+        (1 << 16) - 1,
+        (1 << 16),
+        (1 << 16) + 1,
+        (1 << 15) - 1,
+        (1 << 15),
+        (1 << 15) + 1,
 
         (uint64_t)-1,
         0,
@@ -1054,51 +1033,53 @@ void ParserTest::testReadXRefSubsection()
     };
     const size_t numValues = sizeof(s_values) / sizeof(s_values[0]);
 
-    for (int i = 0; i < static_cast<int>(numValues); ++i)
+    for (int i = 0; i < static_cast<int>(numValues); i++)
     {
-        for (size_t j = 0; j < numValues; ++j)
+        for (size_t j = 0; j < numValues; j++)
         {
             try
             {
-                std::string strInputStream = " ";
-                PoDoFo::PdfVecObjects objects;
-                PdfParserTestWrapper parser(&objects, strInputStream.c_str(), strInputStream.length());
-                nFirstObject = s_values[i];
-                nNumObjects = s_values[j];
+                string strInput = " ";
+                PdfIndirectObjectList objects;
+                PdfParserTestWrapper parser(objects, strInput);
+                firstObject = s_values[i];
+                objectCount = s_values[j];
 
-                if (canOutOfMemoryKillUnitTests() && (nFirstObject > maxNumberOfIndirectObjects || nNumObjects > maxNumberOfIndirectObjects))
+                if (canOutOfMemoryKillUnitTests() && (firstObject > maxNumberOfIndirectObjects || objectCount > maxNumberOfIndirectObjects))
                 {
                     // can't call this in test environments where an out-of-memory condition terminates
                     // unit test process before all tests have run (e.g. AddressSanitizer)
                 }
                 else
                 {
-                    parser.ReadXRefSubsection(nFirstObject, nNumObjects);
-                    // some combinations of nFirstObject/nNumObjects from s_values are legal - so we expect to reach here sometimes
+                    parser.ReadXRefSubsection(firstObject, objectCount);
+                    // some combinations of firstObject/objectCount from s_values are legal - so we expect to reach here sometimes
                 }
             }
-            catch (PoDoFo::PdfError& error)
+            catch (PdfError& error)
             {
-                // other combinations of nFirstObject/nNumObjects from s_values are illegal 
+                // other combinations of firstObject/objectCount from s_values are illegal 
                 // if we reach here it should be an invalid xref value of some type
-                CPPUNIT_ASSERT(error.GetError() == PoDoFo::ePdfError_InvalidXRef || error.GetError() == PoDoFo::ePdfError_ValueOutOfRange || error.GetError() == PoDoFo::ePdfError_NoXRef || error.GetError() == PoDoFo::ePdfError_OutOfMemory);
+                REQUIRE((error.GetError() == PdfErrorCode::InvalidXRef || error.GetError() == PdfErrorCode::ValueOutOfRange
+                    || error.GetError() == PdfErrorCode::NoXRef
+                    || error.GetError() == PdfErrorCode::OutOfMemory));
             }
-            catch (std::exception& ex)
+            catch (exception&)
             {
                 // and should never reach here
-                CPPUNIT_FAIL("Wrong exception type");
+                FAIL("Wrong exception type");
             }
         }
     }
 }
 
-void ParserTest::testReadXRefStreamContents()
+TEST_CASE("testReadXRefStreamContents")
 {
     // test valid stream
     try
     {
         // generate an XRef stream with valid /W values
-        std::ostringstream oss;
+        ostringstream oss;
         size_t offsetStream;
         size_t offsetEndstream;
 
@@ -1123,34 +1104,34 @@ void ParserTest::testReadXRefStreamContents()
         offsetEndstream = oss.str().length();
         oss << "endstream\r\n";
         oss << "endobj\r\n";
-        CPPUNIT_ASSERT(offsetEndstream - offsetStream - strlen("\r\n") == lengthXRefObject); // hard-coded in /Length entry in XRef stream above
+        REQUIRE(offsetEndstream - offsetStream - strlen("\r\n") == lengthXRefObject); // hard-coded in /Length entry in XRef stream above
 
         // trailer        
         oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref " << offsetXRefObject << "\r\n";
         oss << "%EOF";
 
-        PoDoFo::PdfVecObjects objects;
-        PdfParserTestWrapper parser(&objects, oss.str().c_str(), oss.str().length());
+        PdfIndirectObjectList objects;
+        PdfParserTestWrapper parser(objects, oss.str());
 
         parser.SetupTrailer();
         parser.ReadXRefStreamContents(offsetXRefObject, false);
         // should succeed
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError&)
     {
-        CPPUNIT_FAIL("Unexpected PdfError");
+        FAIL("Unexpected PdfError");
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Unexpected exception type");
+        FAIL("Unexpected exception type");
     }
 
     // CVE-2018-5295: integer overflow caused by checking sum of /W entry values /W [ 1 2 9223372036854775807 ]
     // see https://bugzilla.redhat.com/show_bug.cgi?id=1531897 (/W values used were extracted from PoC file)
     try
     {
-        std::ostringstream oss;
+        ostringstream oss;
         size_t offsetStream;
         size_t offsetEndstream;
 
@@ -1175,40 +1156,41 @@ void ParserTest::testReadXRefStreamContents()
         offsetEndstream = oss.str().length();
         oss << "endstream\r\n";
         oss << "endobj\r\n";
-        CPPUNIT_ASSERT(offsetEndstream - offsetStream - strlen("\r\n") == lengthXRefObject); // check /Length entry in XRef stream above
+        REQUIRE(offsetEndstream - offsetStream - strlen("\r\n") == lengthXRefObject); // check /Length entry in XRef stream above
 
         // trailer
         oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref " << offsetXRefObject << "\r\n";
         oss << "%EOF";
 
-        PoDoFo::PdfVecObjects objects;
-        PoDoFo::PdfParser::TVecOffsets offsets;
-        PdfParserTestWrapper parser(&objects, oss.str().c_str(), oss.str().length());
-
-        PoDoFo::PdfXRefStreamParserObject xrefStreamParser(&objects, parser.GetDevice(),
-            parser.GetBuffer(), &offsets);
+        auto inputStr = oss.str();
+        PdfXRefEntries offsets;
+        auto device = std::make_shared<PdfMemoryInputDevice>(inputStr);
+        PdfMemDocument doc;
+        doc.LoadFromDevice(device);
+        PdfXRefStreamParserObject xrefStreamParser(doc, *device, offsets);
 
         // parse the dictionary then try reading the XRef stream using the invalid /W entries
         offsets.resize(5);
         xrefStreamParser.Parse();
         xrefStreamParser.ReadXRefTable();
-        CPPUNIT_FAIL("Should throw exception");
+        FAIL("Should throw exception");
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError& error)
     {
-        CPPUNIT_ASSERT(error.GetError() == PoDoFo::ePdfError_NoXRef || error.GetError() == PoDoFo::ePdfError_InvalidXRefStream);
+        REQUIRE((error.GetError() == PdfErrorCode::NoXRef
+            || error.GetError() == PdfErrorCode::InvalidXRefStream));
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Unexpected exception type");
+        FAIL("Unexpected exception type");
     }
 
     // CVE-2017-8787: heap based overflow caused by unchecked /W entry values /W [ 1 -4 2 ]
     // see https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=861738 for value of /W array
     try
     {
-        std::ostringstream oss;
+        ostringstream oss;
         size_t offsetStream;
         size_t offsetEndstream;
 
@@ -1233,39 +1215,39 @@ void ParserTest::testReadXRefStreamContents()
         offsetEndstream = oss.str().length();
         oss << "endstream\r\n";
         oss << "endobj\r\n";
-        CPPUNIT_ASSERT(offsetEndstream - offsetStream - strlen("\r\n") == lengthXRefObject); // check /Length entry in XRef stream above
+        REQUIRE(offsetEndstream - offsetStream - strlen("\r\n") == lengthXRefObject); // check /Length entry in XRef stream above
 
         // trailer
         oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref " << offsetXRefObject << "\r\n";
         oss << "%EOF";
 
-        PoDoFo::PdfVecObjects objects;
-        PoDoFo::PdfParser::TVecOffsets offsets;
-        PdfParserTestWrapper parser(&objects, oss.str().c_str(), oss.str().length());
-
-        PoDoFo::PdfXRefStreamParserObject xrefStreamParser(&objects, parser.GetDevice(),
-            parser.GetBuffer(), &offsets);
+        auto inputStr = oss.str();
+        PdfXRefEntries offsets;
+        auto device = std::make_shared<PdfMemoryInputDevice>(inputStr);
+        PdfMemDocument doc;
+        doc.LoadFromDevice(device);
+        PdfXRefStreamParserObject xrefStreamParser(doc, *device, offsets);
 
         // parse the dictionary then try reading the XRef stream using the invalid /W entries
         offsets.resize(5);
         xrefStreamParser.Parse();
         xrefStreamParser.ReadXRefTable();
-        CPPUNIT_FAIL("Should throw exception");
+        FAIL("Should throw exception");
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError& error)
     {
-        CPPUNIT_ASSERT(error.GetError() == PoDoFo::ePdfError_NoXRef);
+        REQUIRE(error.GetError() == PdfErrorCode::NoXRef);
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Unexpected exception type");
+        FAIL("Unexpected exception type");
     }
 
     // /W entry values /W [ 4095 1 1 ] for data in form 02 0002 00 (doesn't match size of entry)
     try
     {
-        std::ostringstream oss;
+        ostringstream oss;
         size_t offsetStream;
         size_t offsetEndstream;
 
@@ -1290,39 +1272,39 @@ void ParserTest::testReadXRefStreamContents()
         offsetEndstream = oss.str().length();
         oss << "endstream\r\n";
         oss << "endobj\r\n";
-        CPPUNIT_ASSERT(offsetEndstream - offsetStream - strlen("\r\n") == lengthXRefObject); // check /Length entry in XRef stream above
+        REQUIRE((offsetEndstream - offsetStream - strlen("\r\n")) == lengthXRefObject); // check /Length entry in XRef stream above
 
         // trailer
         oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref " << offsetXRefObject << "\r\n";
         oss << "%EOF";
 
-        PoDoFo::PdfVecObjects objects;
-        PoDoFo::PdfParser::TVecOffsets offsets;
-        PdfParserTestWrapper parser(&objects, oss.str().c_str(), oss.str().length());
-
-        PoDoFo::PdfXRefStreamParserObject xrefStreamParser(&objects, parser.GetDevice(),
-            parser.GetBuffer(), &offsets);
+        auto inputStr = oss.str();
+        PdfXRefEntries offsets;
+        auto device = std::make_shared<PdfMemoryInputDevice>(inputStr);
+        PdfMemDocument doc;
+        doc.LoadFromDevice(device);
+        PdfXRefStreamParserObject xrefStreamParser(doc, *device, offsets);
 
         // parse the dictionary then try reading the XRef stream using the invalid /W entries
         offsets.resize(5);
         xrefStreamParser.Parse();
         xrefStreamParser.ReadXRefTable();
-        CPPUNIT_FAIL("Should throw exception");
+        FAIL("Should throw exception");
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError& error)
     {
-        CPPUNIT_ASSERT(error.GetError() == PoDoFo::ePdfError_InvalidXRefStream);
+        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRefStream);
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Unexpected exception type");
+        FAIL("Unexpected exception type");
     }
 
     // /W entry values /W [ 4 4 4 ] for data in form 02 0002 00 (doesn't match size of entry)
     try
     {
-        std::ostringstream oss;
+        ostringstream oss;
         size_t offsetStream;
         size_t offsetEndstream;
 
@@ -1347,39 +1329,39 @@ void ParserTest::testReadXRefStreamContents()
         offsetEndstream = oss.str().length();
         oss << "endstream\r\n";
         oss << "endobj\r\n";
-        CPPUNIT_ASSERT(offsetEndstream - offsetStream - strlen("\r\n") == lengthXRefObject); // check /Length entry in XRef stream above
+        REQUIRE(offsetEndstream - offsetStream - strlen("\r\n") == lengthXRefObject); // check /Length entry in XRef stream above
 
         // trailer
         oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref " << offsetXRefObject << "\r\n";
         oss << "%EOF";
 
-        PoDoFo::PdfVecObjects objects;
-        PoDoFo::PdfParser::TVecOffsets offsets;
-        PdfParserTestWrapper parser(&objects, oss.str().c_str(), oss.str().length());
-
-        PoDoFo::PdfXRefStreamParserObject xrefStreamParser(&objects, parser.GetDevice(),
-            parser.GetBuffer(), &offsets);
+        auto inputStr = oss.str();
+        PdfXRefEntries offsets;
+        auto device = std::make_shared<PdfMemoryInputDevice>(inputStr);
+        PdfMemDocument doc;
+        doc.LoadFromDevice(device);
+        PdfXRefStreamParserObject xrefStreamParser(doc, *device, offsets);
 
         // parse the dictionary then try reading the XRef stream using the invalid /W entries
         offsets.resize(5);
         xrefStreamParser.Parse();
         xrefStreamParser.ReadXRefTable();
-        CPPUNIT_FAIL("Should throw exception");
+        FAIL("Should throw exception");
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError& error)
     {
-        CPPUNIT_ASSERT(error.GetError() == PoDoFo::ePdfError_InvalidXRefType);
+        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRefType);
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Unexpected exception type");
+        FAIL("Unexpected exception type");
     }
 
     // /W entry values /W [ 1 4 4 ] (size=9) for data 01 0E8A 0\r\n02 0002 00\r\n (size=8 bytes)
     try
     {
-        std::ostringstream oss;
+        ostringstream oss;
         size_t offsetStream;
         size_t offsetEndstream;
 
@@ -1401,39 +1383,39 @@ void ParserTest::testReadXRefStreamContents()
         offsetEndstream = oss.str().length();
         oss << "endstream\r\n";
         oss << "endobj\r\n";
-        CPPUNIT_ASSERT(offsetEndstream - offsetStream - strlen("\r\n") == lengthXRefObject); // check /Length entry in XRef stream above
+        REQUIRE(offsetEndstream - offsetStream - strlen("\r\n") == lengthXRefObject); // check /Length entry in XRef stream above
 
         // trailer
         oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref " << offsetXRefObject << "\r\n";
         oss << "%EOF";
 
-        PoDoFo::PdfVecObjects objects;
-        PoDoFo::PdfParser::TVecOffsets offsets;
-        PdfParserTestWrapper parser(&objects, oss.str().c_str(), oss.str().length());
-
-        PoDoFo::PdfXRefStreamParserObject xrefStreamParser(&objects, parser.GetDevice(),
-            parser.GetBuffer(), &offsets);
+        auto inputStr = oss.str();
+        PdfXRefEntries offsets;
+        auto device = std::make_shared<PdfMemoryInputDevice>(inputStr);
+        PdfMemDocument doc;
+        doc.LoadFromDevice(device);
+        PdfXRefStreamParserObject xrefStreamParser(doc, *device, offsets);
 
         // parse the dictionary then try reading the XRef stream using the invalid /W entries
         offsets.resize(5);
         xrefStreamParser.Parse();
         xrefStreamParser.ReadXRefTable();
-        CPPUNIT_FAIL("Should throw exception");
+        FAIL("Should throw exception");
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError& error)
     {
-        CPPUNIT_ASSERT(error.GetError() == PoDoFo::ePdfError_NoXRef);
+        REQUIRE(error.GetError() == PdfErrorCode::NoXRef);
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Unexpected exception type");
+        FAIL("Unexpected exception type");
     }
 
     // XRef stream with 5 entries but /Size 2 specified
     try
     {
-        std::ostringstream oss;
+        ostringstream oss;
         size_t offsetStream;
         size_t offsetEndstream;
 
@@ -1457,38 +1439,38 @@ void ParserTest::testReadXRefStreamContents()
         offsetEndstream = oss.str().length();
         oss << "endstream\r\n";
         oss << "endobj\r\n";
-        CPPUNIT_ASSERT(offsetEndstream - offsetStream - strlen("\r\n") == lengthXRefObject); // hard-coded in /Length entry in XRef stream above
+        REQUIRE(offsetEndstream - offsetStream - strlen("\r\n") == lengthXRefObject); // hard-coded in /Length entry in XRef stream above
 
         // trailer
         oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref " << offsetXRefObject << "\r\n";
         oss << "%EOF";
 
-        PoDoFo::PdfVecObjects objects;
-        PoDoFo::PdfParser::TVecOffsets offsets;
-        PdfParserTestWrapper parser(&objects, oss.str().c_str(), oss.str().length());
-
-        PoDoFo::PdfXRefStreamParserObject xrefStreamParser(&objects, parser.GetDevice(),
-            parser.GetBuffer(), &offsets);
+        auto inputStr = oss.str();
+        PdfXRefEntries offsets;
+        auto device = std::make_shared<PdfMemoryInputDevice>(inputStr);
+        PdfMemDocument doc;
+        doc.LoadFromDevice(device);
+        PdfXRefStreamParserObject xrefStreamParser(doc, *device, offsets);
 
         offsets.resize(2);
         xrefStreamParser.Parse();
         xrefStreamParser.ReadXRefTable();
         // should this succeed ???
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError&)
     {
-        CPPUNIT_FAIL("Unexpected PdfError");
+        FAIL("Unexpected PdfError");
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Unexpected exception type");
+        FAIL("Unexpected exception type");
     }
 
     // XRef stream with 5 entries but /Size 10 specified
     try
     {
-        std::ostringstream oss;
+        ostringstream oss;
         size_t offsetStream;
         size_t offsetEndstream;
 
@@ -1512,38 +1494,38 @@ void ParserTest::testReadXRefStreamContents()
         offsetEndstream = oss.str().length();
         oss << "endstream\r\n";
         oss << "endobj\r\n";
-        CPPUNIT_ASSERT(offsetEndstream - offsetStream - strlen("\r\n") == lengthXRefObject); // hard-coded in /Length entry in XRef stream above
+        REQUIRE(offsetEndstream - offsetStream - strlen("\r\n") == lengthXRefObject); // hard-coded in /Length entry in XRef stream above
 
         // trailer
         oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref " << offsetXRefObject << "\r\n";
         oss << "%EOF";
 
-        PoDoFo::PdfVecObjects objects;
-        PoDoFo::PdfParser::TVecOffsets offsets;
-        PdfParserTestWrapper parser(&objects, oss.str().c_str(), oss.str().length());
-
-        PoDoFo::PdfXRefStreamParserObject xrefStreamParser(&objects, parser.GetDevice(),
-            parser.GetBuffer(), &offsets);
+        auto inputStr = oss.str();
+        PdfXRefEntries offsets;
+        auto device = std::make_shared<PdfMemoryInputDevice>(inputStr);
+        PdfMemDocument doc;
+        doc.LoadFromDevice(device);
+        PdfXRefStreamParserObject xrefStreamParser(doc, *device, offsets);
 
         offsets.resize(2);
         xrefStreamParser.Parse();
         xrefStreamParser.ReadXRefTable();
         // should this succeed ???
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError&)
     {
-        CPPUNIT_FAIL("Unexpected PdfError");
+        FAIL("Unexpected PdfError");
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Unexpected exception type");
+        FAIL("Unexpected exception type");
     }
 
     // XRef stream with /Index [0 0] array
     try
     {
-        std::ostringstream oss;
+        ostringstream oss;
         size_t offsetStream;
         size_t offsetEndstream;
 
@@ -1567,38 +1549,38 @@ void ParserTest::testReadXRefStreamContents()
         offsetEndstream = oss.str().length();
         oss << "endstream\r\n";
         oss << "endobj\r\n";
-        CPPUNIT_ASSERT(offsetEndstream - offsetStream - strlen("\r\n") == lengthXRefObject); // hard-coded in /Length entry in XRef stream above
+        REQUIRE(offsetEndstream - offsetStream - strlen("\r\n") == lengthXRefObject); // hard-coded in /Length entry in XRef stream above
 
         // trailer
         oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref " << offsetXRefObject << "\r\n";
         oss << "%EOF";
 
-        PoDoFo::PdfVecObjects objects;
-        PoDoFo::PdfParser::TVecOffsets offsets;
-        PdfParserTestWrapper parser(&objects, oss.str().c_str(), oss.str().length());
-
-        PoDoFo::PdfXRefStreamParserObject xrefStreamParser(&objects, parser.GetDevice(),
-            parser.GetBuffer(), &offsets);
+        auto inputStr = oss.str();
+        PdfXRefEntries offsets;
+        auto device = std::make_shared<PdfMemoryInputDevice>(inputStr);
+        PdfMemDocument doc;
+        doc.LoadFromDevice(device);
+        PdfXRefStreamParserObject xrefStreamParser(doc, *device, offsets);
 
         offsets.resize(5);
         xrefStreamParser.Parse();
         xrefStreamParser.ReadXRefTable();
         // should this succeed ???
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError&)
     {
-        CPPUNIT_FAIL("Unexpected PdfError");
+        FAIL("Unexpected PdfError");
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Unexpected exception type");
+        FAIL("Unexpected exception type");
     }
 
     // XRef stream with /Index [-1 -1] array
     try
     {
-        std::ostringstream oss;
+        ostringstream oss;
         size_t offsetStream;
         size_t offsetEndstream;
 
@@ -1622,38 +1604,38 @@ void ParserTest::testReadXRefStreamContents()
         offsetEndstream = oss.str().length();
         oss << "endstream\r\n";
         oss << "endobj\r\n";
-        CPPUNIT_ASSERT(offsetEndstream - offsetStream - strlen("\r\n") == lengthXRefObject); // hard-coded in /Length entry in XRef stream above
+        REQUIRE(offsetEndstream - offsetStream - strlen("\r\n") == lengthXRefObject); // hard-coded in /Length entry in XRef stream above
 
         // trailer
         oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref " << offsetXRefObject << "\r\n";
         oss << "%EOF";
 
-        PoDoFo::PdfVecObjects objects;
-        PoDoFo::PdfParser::TVecOffsets offsets;
-        PdfParserTestWrapper parser(&objects, oss.str().c_str(), oss.str().length());
-
-        PoDoFo::PdfXRefStreamParserObject xrefStreamParser(&objects, parser.GetDevice(),
-            parser.GetBuffer(), &offsets);
+        auto inputStr = oss.str();
+        PdfXRefEntries offsets;
+        auto device = std::make_shared<PdfMemoryInputDevice>(inputStr);
+        PdfMemDocument doc;
+        doc.LoadFromDevice(device);
+        PdfXRefStreamParserObject xrefStreamParser(doc, *device, offsets);
 
         offsets.resize(5);
         xrefStreamParser.Parse();
         xrefStreamParser.ReadXRefTable();
         // should this succeed ???
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError&)
     {
-        CPPUNIT_FAIL("Unexpected PdfError");
+        FAIL("Unexpected PdfError");
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Unexpected exception type");
+        FAIL("Unexpected exception type");
     }
 
     // XRef stream with /Index array with no entries
     try
     {
-        std::ostringstream oss;
+        ostringstream oss;
         size_t offsetStream;
         size_t offsetEndstream;
 
@@ -1677,38 +1659,38 @@ void ParserTest::testReadXRefStreamContents()
         offsetEndstream = oss.str().length();
         oss << "endstream\r\n";
         oss << "endobj\r\n";
-        CPPUNIT_ASSERT(offsetEndstream - offsetStream - strlen("\r\n") == lengthXRefObject); // hard-coded in /Length entry in XRef stream above
+        REQUIRE(offsetEndstream - offsetStream - strlen("\r\n") == lengthXRefObject); // hard-coded in /Length entry in XRef stream above
 
         // trailer
         oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref " << offsetXRefObject << "\r\n";
         oss << "%EOF";
 
-        PoDoFo::PdfVecObjects objects;
-        PoDoFo::PdfParser::TVecOffsets offsets;
-        PdfParserTestWrapper parser(&objects, oss.str().c_str(), oss.str().length());
-
-        PoDoFo::PdfXRefStreamParserObject xrefStreamParser(&objects, parser.GetDevice(),
-            parser.GetBuffer(), &offsets);
+        auto inputStr = oss.str();
+        PdfXRefEntries offsets;
+        auto device = std::make_shared<PdfMemoryInputDevice>(inputStr);
+        PdfMemDocument doc;
+        doc.LoadFromDevice(device);
+        PdfXRefStreamParserObject xrefStreamParser(doc, *device, offsets);
 
         offsets.resize(5);
         xrefStreamParser.Parse();
         xrefStreamParser.ReadXRefTable();
         // should this succeed ???
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError&)
     {
-        CPPUNIT_FAIL("Unexpected PdfError");
+        FAIL("Unexpected PdfError");
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Unexpected exception type");
+        FAIL("Unexpected exception type");
     }
 
     // XRef stream with /Index array with 3 entries
     try
     {
-        std::ostringstream oss;
+        ostringstream oss;
         size_t offsetStream;
         size_t offsetEndstream;
 
@@ -1732,38 +1714,38 @@ void ParserTest::testReadXRefStreamContents()
         offsetEndstream = oss.str().length();
         oss << "endstream\r\n";
         oss << "endobj\r\n";
-        CPPUNIT_ASSERT(offsetEndstream - offsetStream - strlen("\r\n") == lengthXRefObject); // hard-coded in /Length entry in XRef stream above
+        REQUIRE(offsetEndstream - offsetStream - strlen("\r\n") == lengthXRefObject); // hard-coded in /Length entry in XRef stream above
 
         // trailer
         oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref " << offsetXRefObject << "\r\n";
         oss << "%EOF";
 
-        PoDoFo::PdfVecObjects objects;
-        PoDoFo::PdfParser::TVecOffsets offsets;
-        PdfParserTestWrapper parser(&objects, oss.str().c_str(), oss.str().length());
-
-        PoDoFo::PdfXRefStreamParserObject xrefStreamParser(&objects, parser.GetDevice(),
-            parser.GetBuffer(), &offsets);
+        auto inputStr = oss.str();
+        PdfXRefEntries offsets;
+        auto device = std::make_shared<PdfMemoryInputDevice>(inputStr);
+        PdfMemDocument doc;
+        doc.LoadFromDevice(device);
+        PdfXRefStreamParserObject xrefStreamParser(doc, *device, offsets);
 
         offsets.resize(5);
         xrefStreamParser.Parse();
         xrefStreamParser.ReadXRefTable();
-        CPPUNIT_FAIL("Should throw exception");
+        FAIL("Should throw exception");
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError& error)
     {
-        CPPUNIT_ASSERT(error.GetError() == PoDoFo::ePdfError_NoXRef);
+        REQUIRE(error.GetError() == PdfErrorCode::NoXRef);
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Unexpected exception type");
+        FAIL("Unexpected exception type");
     }
 
     // XRef stream with /Index array with 22 entries
     try
     {
-        std::ostringstream oss;
+        ostringstream oss;
         size_t offsetStream;
         size_t offsetEndstream;
 
@@ -1787,36 +1769,36 @@ void ParserTest::testReadXRefStreamContents()
         offsetEndstream = oss.str().length();
         oss << "endstream\r\n";
         oss << "endobj\r\n";
-        CPPUNIT_ASSERT(offsetEndstream - offsetStream - strlen("\r\n") == lengthXRefObject); // hard-coded in /Length entry in XRef stream above
+        REQUIRE(offsetEndstream - offsetStream - strlen("\r\n") == lengthXRefObject); // hard-coded in /Length entry in XRef stream above
 
         // trailer
         oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref " << offsetXRefObject << "\r\n";
         oss << "%EOF";
 
-        PoDoFo::PdfVecObjects objects;
-        PoDoFo::PdfParser::TVecOffsets offsets;
-        PdfParserTestWrapper parser(&objects, oss.str().c_str(), oss.str().length());
-
-        PoDoFo::PdfXRefStreamParserObject xrefStreamParser(&objects, parser.GetDevice(),
-            parser.GetBuffer(), &offsets);
+        auto inputStr = oss.str();
+        PdfXRefEntries offsets;
+        auto device = std::make_shared<PdfMemoryInputDevice>(inputStr);
+        PdfMemDocument doc;
+        doc.LoadFromDevice(device);
+        PdfXRefStreamParserObject xrefStreamParser(doc, *device, offsets);
 
         offsets.resize(5);
         xrefStreamParser.Parse();
         xrefStreamParser.ReadXRefTable();
-        CPPUNIT_FAIL("Should throw exception");
+        FAIL("Should throw exception");
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError& error)
     {
-        CPPUNIT_ASSERT(error.GetError() == PoDoFo::ePdfError_NoXRef);
+        REQUIRE(error.GetError() == PdfErrorCode::NoXRef);
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Unexpected exception type");
+        FAIL("Unexpected exception type");
     }
 }
 
-void ParserTest::testReadObjects()
+TEST_CASE("testReadObjects")
 {
     // CVE-2017-8378 - m_offsets out-of-bounds access when referenced encryption dictionary object doesn't exist
     try
@@ -1831,212 +1813,215 @@ void ParserTest::testReadObjects()
         // startxref
         // 0
         // %%EOF
-        std::ostringstream oss;
+        ostringstream oss;
         oss << "%PDF–1.0\r\n";
         oss << "xref\r\n0 3\r\n";
         oss << generateXRefEntries(3);
         oss << "trailer << /Root 1 0 R /Size 3 /Encrypt 2 0 R >>\r\n";
         oss << "startxref 0\r\n";
         oss << "%EOF";
-        PoDoFo::PdfVecObjects objects;
-        PdfParserTestWrapper parser(&objects, oss.str().c_str(), oss.str().length());
+        PdfIndirectObjectList objects;
+        PdfParserTestWrapper parser(objects, oss.str());
         parser.ReadTrailer();
         parser.ReadObjects();
-        CPPUNIT_FAIL("Should throw exception");
+        FAIL("Should throw exception");
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError& error)
     {
-        CPPUNIT_ASSERT(error.GetError() == PoDoFo::ePdfError_InvalidEncryptionDict);
+        REQUIRE(error.GetError() == PdfErrorCode::InvalidEncryptionDict);
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Unexpected exception type");
+        FAIL("Unexpected exception type");
     }
 }
 
-void ParserTest::testIsPdfFile()
+TEST_CASE("TestIsPdfFile")
 {
     try
     {
-        std::string strInputStream = "%PDF-1.0";
-        PoDoFo::PdfVecObjects objects;
-        PdfParserTestWrapper parser(&objects, strInputStream.c_str(), strInputStream.length());
-        CPPUNIT_ASSERT(parser.IsPdfFile());
+        string strInput = "%PDF-1.0";
+        PdfIndirectObjectList objects;
+        PdfParserTestWrapper parser(objects, strInput);
+        REQUIRE(parser.IsPdfFile());
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError&)
     {
-        CPPUNIT_FAIL("Unexpected PdfError");
+        FAIL("Unexpected PdfError");
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Wrong exception type");
-    }
-
-    try
-    {
-        std::string strInputStream = "%PDF-1.1";
-        PoDoFo::PdfVecObjects objects;
-        PdfParserTestWrapper parser(&objects, strInputStream.c_str(), strInputStream.length());
-        CPPUNIT_ASSERT(parser.IsPdfFile());
-    }
-    catch (PoDoFo::PdfError& error)
-    {
-        CPPUNIT_FAIL("Unexpected PdfError");
-    }
-    catch (std::exception& ex)
-    {
-        CPPUNIT_FAIL("Wrong exception type");
+        FAIL("Wrong exception type");
     }
 
     try
     {
-        std::string strInputStream = "%PDF-1.7";
-        PoDoFo::PdfVecObjects objects;
-        PdfParserTestWrapper parser(&objects, strInputStream.c_str(), strInputStream.length());
-        CPPUNIT_ASSERT(parser.IsPdfFile());
+        string strInput = "%PDF-1.1";
+        PdfIndirectObjectList objects;
+        PdfParserTestWrapper parser(objects, strInput);
+        REQUIRE(parser.IsPdfFile());
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError&)
     {
-        CPPUNIT_FAIL("Unexpected PdfError");
+        FAIL("Unexpected PdfError");
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Wrong exception type");
-    }
-
-    try
-    {
-        std::string strInputStream = "%PDF-1.9";
-        PoDoFo::PdfVecObjects objects;
-        PdfParserTestWrapper parser(&objects, strInputStream.c_str(), strInputStream.length());
-        CPPUNIT_ASSERT(parser.IsPdfFile());
-    }
-    catch (PoDoFo::PdfError& error)
-    {
-        CPPUNIT_FAIL("Unexpected PdfError");
-    }
-    catch (std::exception& ex)
-    {
-        CPPUNIT_FAIL("Wrong exception type");
+        FAIL("Wrong exception type");
     }
 
     try
     {
-        std::string strInputStream = "%PDF-1.99";
-        PoDoFo::PdfVecObjects objects;
-        PdfParserTestWrapper parser(&objects, strInputStream.c_str(), strInputStream.length());
-        CPPUNIT_ASSERT(parser.IsPdfFile());
+        string strInput = "%PDF-1.7";
+        PdfIndirectObjectList objects;
+        PdfParserTestWrapper parser(objects, strInput);
+        REQUIRE(parser.IsPdfFile());
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError&)
     {
-        CPPUNIT_FAIL("Unexpected PdfError");
+        FAIL("Unexpected PdfError");
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Wrong exception type");
-    }
-
-    try
-    {
-        std::string strInputStream = "%!PS-Adobe-2.0";
-        PoDoFo::PdfVecObjects objects;
-        PdfParserTestWrapper parser(&objects, strInputStream.c_str(), strInputStream.length());
-        CPPUNIT_ASSERT(!parser.IsPdfFile());
-    }
-    catch (PoDoFo::PdfError& error)
-    {
-        CPPUNIT_FAIL("Unexpected PdfError");
-    }
-    catch (std::exception& ex)
-    {
-        CPPUNIT_FAIL("Wrong exception type");
+        FAIL("Wrong exception type");
     }
 
     try
     {
-        std::string strInputStream = "GIF89a";
-        PoDoFo::PdfVecObjects objects;
-        PdfParserTestWrapper parser(&objects, strInputStream.c_str(), strInputStream.length());
-        CPPUNIT_ASSERT(!parser.IsPdfFile());
+        string strInput = "%PDF-1.9";
+        PdfIndirectObjectList objects;
+        PdfParserTestWrapper parser(objects, strInput);
+        REQUIRE(parser.IsPdfFile());
     }
-    catch (PoDoFo::PdfError& error)
+    catch (PdfError&)
     {
-        CPPUNIT_FAIL("Unexpected PdfError");
+        FAIL("Unexpected PdfError");
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
-        CPPUNIT_FAIL("Wrong exception type");
+        FAIL("Wrong exception type");
+    }
+
+    try
+    {
+        string strInput = "%PDF-1.99";
+        PdfIndirectObjectList objects;
+        PdfParserTestWrapper parser(objects, strInput);
+        REQUIRE(parser.IsPdfFile());
+    }
+    catch (PdfError&)
+    {
+        FAIL("Unexpected PdfError");
+    }
+    catch (exception&)
+    {
+        FAIL("Wrong exception type");
+    }
+
+    try
+    {
+        string strInput = "%!PS-Adobe-2.0";
+        PdfIndirectObjectList objects;
+        PdfParserTestWrapper parser(objects, strInput);
+        REQUIRE(!parser.IsPdfFile());
+    }
+    catch (PdfError&)
+    {
+        FAIL("Unexpected PdfError");
+    }
+    catch (exception&)
+    {
+        FAIL("Wrong exception type");
+    }
+
+    try
+    {
+        string strInput = "GIF89a";
+        PdfIndirectObjectList objects;
+        PdfParserTestWrapper parser(objects, strInput);
+        REQUIRE(!parser.IsPdfFile());
+    }
+    catch (PdfError&)
+    {
+        FAIL("Unexpected PdfError");
+    }
+    catch (exception&)
+    {
+        FAIL("Wrong exception type");
     }
 }
 
-void ParserTest::testRoundTripIndirectTrailerID()
+TEST_CASE("testRoundTripIndirectTrailerID")
 {
-    std::ostringstream oss;
+    ostringstream oss;
     oss << "%PDF-1.1\n";
-    int nCurObj = 0;
-    int objPos[20];
+    unsigned currObj = 0;
+    unsigned objPos[20];
 
     // Pages
 
-    int nPagesObj = nCurObj;
-    objPos[nCurObj] = oss.tellp();
-    oss << nCurObj++ << " 0 obj\n";
+    unsigned pagesObj = currObj;
+    objPos[currObj] = oss.tellp();
+    oss << currObj++ << " 0 obj\n";
     oss << "<</Type /Pages /Count 0 /Kids []>>\n";
     oss << "endobj";
 
     // Root catalog
 
-    int rootObj = nCurObj;
-    objPos[nCurObj] = oss.tellp();
-    oss << nCurObj++ << " 0 obj\n";
-    oss << "<</Type /Catalog /Pages " << nPagesObj << " 0 R>>\n";
+    unsigned rootObj = currObj;
+    objPos[currObj] = oss.tellp();
+    oss << currObj++ << " 0 obj\n";
+    oss << "<</Type /Catalog /Pages " << pagesObj << " 0 R>>\n";
     oss << "endobj\n";
 
     // ID
-    int nIdObj = nCurObj;
-    objPos[nCurObj] = oss.tellp();
-    oss << nCurObj++ << " 0 obj\n";
+    unsigned idObj = currObj;
+    objPos[currObj] = oss.tellp();
+    oss << currObj++ << " 0 obj\n";
     oss << "[<F1E375363A6314E3766EDF396D614748> <F1E375363A6314E3766EDF396D614748>]\n";
     oss << "endobj\n";
 
-    int nXrefPos = oss.tellp();
+    unsigned xrefPos = oss.tellp();
     oss << "xref\n";
-    oss << "0 " << nCurObj << "\n";
+    oss << "0 " << currObj << "\n";
     char objRec[21];
-    for (int i = 0; i < nCurObj; i++) {
+    for (unsigned i = 0; i < currObj; i++)
+    {
         snprintf(objRec, 21, "%010d 00000 n \n", objPos[i]);
         oss << objRec;
     }
     oss << "trailer <<\n"
-        << "  /Size " << nCurObj << "\n"
+        << "  /Size " << currObj << "\n"
         << "  /Root " << rootObj << " 0 R\n"
-        << "  /ID " << nIdObj << " 0 R\n" // indirect ID
+        << "  /ID " << idObj << " 0 R\n" // indirect ID
         << ">>\n"
         << "startxref\n"
-        << nXrefPos << "\n"
+        << xrefPos << "\n"
         << "%%EOF\n";
 
-    std::string sInBuf = oss.str();
-    try {
-        PoDoFo::PdfMemDocument doc;
+    string inputBuff = oss.str();
+    try
+    {
+        PdfMemDocument doc;
         // load for update
-        doc.LoadFromBuffer(sInBuf.c_str(), sInBuf.size(), true);
+        doc.LoadFromBuffer(inputBuff);
 
-        PoDoFo::PdfRefCountedBuffer outBuf;
-        PoDoFo::PdfOutputDevice outDev(&outBuf);
+        string outBuf;
+        PdfStringOutputDevice outDev(outBuf);
 
-        doc.WriteUpdate(&outDev);
+        doc.WriteUpdate(outBuf);
         // should not throw
-        CPPUNIT_ASSERT(true);
+        REQUIRE(true);
     }
-    catch (PoDoFo::PdfError& error) {
-        CPPUNIT_FAIL("Unexpected PdfError");
+    catch (PdfError&)
+    {
+        FAIL("Unexpected PdfError");
     }
 }
 
-std::string ParserTest::generateXRefEntries(size_t count)
+string generateXRefEntries(size_t count)
 {
-    std::string strXRefEntries;
+    string strXRefEntries;
 
     // generates a block of 20-byte xref entries
     // 0000000000 65535 f\r\n
@@ -2046,7 +2031,7 @@ std::string ParserTest::generateXRefEntries(size_t count)
     try
     {
         strXRefEntries.reserve(count * 20);
-        for (size_t i = 0; i < count; ++i)
+        for (size_t i = 0; i < count; i++)
         {
             if (i == 0)
                 strXRefEntries.append("0000000000 65535 f\r\n");
@@ -2054,23 +2039,23 @@ std::string ParserTest::generateXRefEntries(size_t count)
                 strXRefEntries.append("0000000120 00000 n\r\n");
         }
     }
-    catch (std::exception& ex)
+    catch (exception&)
     {
         // if this fails it's a bug in the unit tests and not PoDoFo
-        CPPUNIT_FAIL("generateXRefEntries memory allocation failure");
+        FAIL("generateXRefEntries memory allocation failure");
     }
 
     return strXRefEntries;
 }
 
-bool ParserTest::canOutOfMemoryKillUnitTests()
+bool canOutOfMemoryKillUnitTests()
 {
     // test if out of memory conditions will kill the unit test process
     // which prevents tests completing
 
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(_WIN32)
     // on Windows 32/64 allocations close to size of VM address space always fail gracefully
-    bool bCanTerminateProcess = false;
+    bool canTerminateProcess = false;
 #elif defined( __APPLE__ )
     // on macOS/iOS allocations close to size of VM address space fail gracefully
     // unless Address Sanitizer (ASAN) is enabled
@@ -2079,23 +2064,22 @@ bool ParserTest::canOutOfMemoryKillUnitTests()
     // to continue after an allocation doesn't work in C++ because new returns null which is
     // forbidden by the C++ spec and terminates process when 'this' is dereferenced in constructor
     // see https://github.com/google/sanitizers/issues/295
-    bool bCanTerminateProcess = true;
+    bool canTerminateProcess = true;
 #else
     // if alloc fails following message is logged
     // *** mach_vm_map failed (error code=3)
     // *** error: can't allocate region
     // *** set a breakpoint in malloc_error_break to debug
-    bool bCanTerminateProcess = false;
+    bool canTerminateProcess = false;
 #endif
 #elif defined( __linux__ )
     // TODO do big allocs succeed then trigger OOM-killer fiasco??
-    bool bCanTerminateProcess = false;
+    bool canTerminateProcess = false;
 #else
     // other systems - assume big allocs faily gracefully and throw bad_alloc
-    bool bCanTerminateProcess = false;
+    bool canTerminateProcess = false;
 #endif
-
-    return bCanTerminateProcess;
+    return canTerminateProcess;
 }
 
 

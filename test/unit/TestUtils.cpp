@@ -8,65 +8,40 @@
 
 #include "TestUtils.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <iostream>
 
-#if defined(_WIN32) || defined(_WIN64)
-#include <windows.h>
-
-#ifdef CreateFont
-#undef CreateFont
-#endif // CreateFont
-
-#ifdef DrawText
-#undef DrawText
-#endif // DrawText
-
-#endif // _WIN32 || _WIN64
-
-#include <podofo.h>
-
-std::string TestUtils::getTempFilename()
-{
-    const long lLen = 256;
-    char tmpFilename[lLen];
-#if defined(_WIN32) || defined(_WIN64)
-	char tmpDir[lLen];
-	GetTempPathA(lLen, tmpDir);
-	GetTempFileNameA(tmpDir, "podofo", 0, tmpFilename);
+#ifdef _WIN32
+#include <pdfmm/private/WindowsLeanMean.h>
 #else
-    strncpy( tmpFilename, "/tmp/podofoXXXXXX", lLen);
+#include <stdlib.h>
+#endif // _WIN32
+
+using namespace std;
+
+string TestUtils::getTempFilename()
+{
+    constexpr unsigned len = 260;
+    char tmpFilename[len];
+#ifdef _WIN32
+	char tmpDir[len];
+	GetTempPathA(len, tmpDir);
+	GetTempFileNameA(tmpDir, "podofo", 0, tmpFilename);
+#else // Unix
+    strncpy( tmpFilename, "/tmp/podofoXXXXXX", len);
     int handle = mkstemp(tmpFilename);
     close(handle);
-#endif // _WIN32 || _WIN64
+#endif
 
-    printf("Created tempfile: %s\n", tmpFilename);
-    std::string sFilename = tmpFilename;
-    return sFilename;
+    cout << "Created tempfile:" << tmpFilename << endl;
+    return tmpFilename;
 }
 
-void TestUtils::deleteFile( const char* pszFilename )
+void TestUtils::deleteFile(const string_view& filename)
 {
-#if defined(_WIN32) || defined(_WIN64)
-    _unlink(pszFilename);
-#else
-    unlink(pszFilename);
-#endif // _WIN32 || _WIN64
+#ifdef _WIN32
+    _unlink(filename.data());
+#else // Unix
+    unlink(filename.data());
+#endif
 }
-
-char* TestUtils::readDataFile( const char* pszFilename )
-{
-    // TODO: determine correct prefix during runtime
-    std::string sFilename = "/home/dominik/podofotmp/test/unit/data/";
-    sFilename = sFilename + pszFilename;
-    PoDoFo::PdfFileInputStream stream( sFilename.c_str() );
-    long lLen = stream.GetFileLength();
-
-    char* pBuffer = static_cast<char*>(malloc(sizeof(char) * lLen));
-    stream.Read(pBuffer, lLen);
-
-    return pBuffer;
-}
-
 

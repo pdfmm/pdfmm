@@ -15,18 +15,18 @@
  * This class contains utility methods that are
  * often needed when writing tests.
  */
-class TestUtils {
-
+class TestUtils
+{
 public:
     static std::string getTempFilename();
-    static void deleteFile(const char* pszFilename);
+    static void deleteFile(const std::string_view& filename);
 
     /**
      * Read a test data file into memory and return a malloc'ed buffer.
      *
-     * @param pszFilename filename of the data file. The path will be determined automatically.
+     * \param filename filename of the data file. The path will be determined automatically.
      */
-    static char* readDataFile(const char* pszFilename);
+    static char* readDataFile(const std::string_view& filename);
 };
 
 #endif // TEST_UTILS_H

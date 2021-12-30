@@ -270,7 +270,7 @@ include_directories(${PDFMM_INCLUDE_DIRS})
 
 if(NOT PDFMM_BUILD_LIB_ONLY)
     enable_testing()
-    #add_subdirectory(test)
+    add_subdirectory(test)
     add_subdirectory(examples)
 endif()
 
