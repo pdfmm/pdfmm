@@ -48,6 +48,15 @@ PdfMemoryInputDevice::PdfMemoryInputDevice(const char* buffer, size_t len)
 PdfMemoryInputDevice::PdfMemoryInputDevice(const bufferview& buffer)
     : PdfMemoryInputDevice(buffer.data(), buffer.size()) { }
 
+PdfMemoryInputDevice::PdfMemoryInputDevice(const string_view& view)
+    : PdfMemoryInputDevice(view.data(), view.size()) { }
+
+PdfMemoryInputDevice::PdfMemoryInputDevice(const string& str)
+    : PdfMemoryInputDevice(str.data(), str.size()) { }
+
+PdfMemoryInputDevice::PdfMemoryInputDevice(const char* str)
+    : PdfMemoryInputDevice(str, char_traits<char>::length(str)) { }
+
 PdfObjectStreamInputDevice::PdfObjectStreamInputDevice(const PdfObjectStream& stream)
 {
     PdfStringOutputStream outputStream(m_buffer);

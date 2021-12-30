@@ -96,9 +96,6 @@ const char* PdfError::ErrorName(PdfErrorCode code)
     const char* msg = nullptr;
     switch (code)
     {
-        case PdfErrorCode::TestFailed:
-            msg = "PdfErrorCode::TestFailed";
-            break;
         case PdfErrorCode::InvalidHandle:
             msg = "PdfErrorCode::InvalidHandle";
             break;
@@ -267,9 +264,6 @@ const char* PdfError::ErrorMessage(PdfErrorCode code)
     const char* msg = nullptr;
     switch (code)
     {
-        case PdfErrorCode::TestFailed:
-            msg = "An error curred in an automatic test included in pdfmm.";
-            break;
         case PdfErrorCode::InvalidHandle:
             msg = "A nullptr handle was passed, but initialized data was expected.";
             break;

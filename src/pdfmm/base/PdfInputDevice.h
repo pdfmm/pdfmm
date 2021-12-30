@@ -153,6 +153,11 @@ public:
      */
     PdfMemoryInputDevice(const char* buffer, size_t len);
     PdfMemoryInputDevice(const bufferview& buffer);
+    PdfMemoryInputDevice(const std::string_view& view);
+    PdfMemoryInputDevice(const std::string& str);
+    PdfMemoryInputDevice(const char* str);
+private:
+    PdfMemoryInputDevice(std::nullptr_t) = delete;
 };
 
 class PDFMM_API PdfObjectStreamInputDevice final : public PdfStreamInputDevice

@@ -100,7 +100,7 @@ void PdfMemoryObjectStream::Write(PdfOutputDevice& device, const PdfEncrypt* enc
     }
     else
     {
-        string encrypted;
+        charbuff encrypted;
         encrypt->Encrypt({ this->Get(), this->GetLength() }, encrypted);
         device.Write(encrypted);
     }

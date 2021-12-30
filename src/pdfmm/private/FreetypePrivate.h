@@ -5,9 +5,11 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
+#include <pdfmm/base/basedefs.h>
+
 namespace mm
 {
-    FT_Library GetFreeTypeLibrary();
+    FT_Library PDFMM_API GetFreeTypeLibrary();
 }
 
 #endif // PDFMM_FREETYPE_PRIVATE_H

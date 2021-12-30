@@ -30,9 +30,6 @@ namespace mm {
 enum class PdfErrorCode
 {
     Unknown = 0,              ///< Unknown error
-
-    TestFailed,               ///< Used in pdfmm tests, to indicate that a test failed for some reason.
-
     InvalidHandle,            ///< Null pointer was passed, but null pointer is not allowed.
     FileNotFound,             ///< A file was not found or cannot be opened.
     InvalidDeviceOperation,	  ///< Tried to do something unsupported to an I/O device like seek a non-seekable input device
@@ -133,7 +130,7 @@ enum class PdfLogSeverity
   *
   * Add frame to error callastack
   */
-#define PDFMM_PUSH_FRAME(err) err.AddToCallstack(__FILE__, __LINE__, { })
+#define PDFMM_PUSH_FRAME(err) err.AddToCallstack(__FILE__, __LINE__)
 
   /** \def PDFMM_PUSH_FRAME_INFO(err, msg)
    *
@@ -196,10 +193,6 @@ public:
     static void SetLogMessageCallback(const LogMessageCallback& logMessageCallback);
 
 public:
-    /** Create a PdfError object initialized to PdfErrorCode::Ok.
-     */
-    PdfError();
-
     /** Create a PdfError object with a given error code.
      *  \param code the error code of this object
      *  \param file the file in which the error has occurred.
@@ -265,7 +258,7 @@ public:
      *         e.g. how to fix the error. This string is intended to
      *         be shown to the user.
      */
-    void AddToCallstack(std::string file, unsigned line, std::string information);
+    void AddToCallstack(std::string file, unsigned line, std::string information = { });
 
     /** Print an error message to stderr. This includes callstack
      *  and extra info, if any of either was set.
