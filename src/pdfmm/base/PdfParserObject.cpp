@@ -299,7 +299,7 @@ void PdfParserObject::FreeObjectMemory(bool force)
     if (this->IsLoadOnDemand() && (force || !this->IsDirty()))
     {
         if (IsDelayedLoadDone())
-            m_Variant.Clear();
+            m_Variant = PdfVariant();
 
         FreeStream();
         EnableDelayedLoading();

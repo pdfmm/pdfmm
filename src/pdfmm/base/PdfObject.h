@@ -113,6 +113,7 @@ public:
      *  \param arr the value of the this PdfObject
      */
     PdfObject(const PdfArray& arr);
+    PdfObject(PdfArray&& arr) noexcept;
 
     /** Construct a PdfObject with object and generation number -1
      *  and a PdfDictionary as value.
@@ -120,6 +121,7 @@ public:
      *  \param dict the value of the this PdfObject
      */
     PdfObject(const PdfDictionary& dict);
+    PdfObject(PdfDictionary&& dict) noexcept;
 
     /** Creates a copy of an existing PdfObject.
      *  All associated objects and streams will be copied along with the PdfObject.

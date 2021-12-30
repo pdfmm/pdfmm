@@ -82,8 +82,22 @@ PdfObject::PdfObject(const PdfArray& arr)
     m_Variant.GetArray().SetOwner(*this);
 }
 
+PdfObject::PdfObject(PdfArray&& arr) noexcept
+    : m_Variant(std::move(arr)), m_IsDirty(false)
+{
+    initObject();
+    m_Variant.GetArray().SetOwner(*this);
+}
+
 PdfObject::PdfObject(const PdfDictionary& dict)
     : m_Variant(dict), m_IsDirty(false)
+{
+    initObject();
+    m_Variant.GetDictionary().SetOwner(*this);
+}
+
+PdfObject::PdfObject(PdfDictionary&& dict) noexcept
+    : m_Variant(std::move(dict)), m_IsDirty(false)
 {
     initObject();
     m_Variant.GetDictionary().SetOwner(*this);

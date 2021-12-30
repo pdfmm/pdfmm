@@ -31,7 +31,7 @@ class PDFMM_API PdfData final : public PdfDataProvider
 public:
     PdfData();
     PdfData(const PdfData&) = default;
-    PdfData(PdfData&&) = default;
+    PdfData(PdfData&&) noexcept = default;
 
     /**
      * Create a new PdfData object with valid PdfData

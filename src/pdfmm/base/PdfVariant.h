@@ -92,16 +92,19 @@ public:
      *  \param arr a list of variants
      */
     PdfVariant(const PdfArray& arr);
+    PdfVariant(PdfArray&& arr) noexcept;
 
     /** Construct a PdfVariant that is a dictionary.
      *  \param dict the value of the dictionary.
      */
     PdfVariant(const PdfDictionary& dict);
+    PdfVariant(PdfDictionary&& dict) noexcept;
 
     /** Construct a PdfVariant that contains raw PDF data.
      *  \param rData raw and valid PDF data.
      */
     PdfVariant(const PdfData& data);
+    PdfVariant(PdfData&& data) noexcept;
 
     /** Constructs a new PdfVariant which has the same
      *  contents as rhs.
@@ -111,12 +114,6 @@ public:
     PdfVariant(PdfVariant&& rhs) noexcept;
 
     ~PdfVariant();
-
-    /** Clear all internal member variables and free the memory
-     *  they have allocated.
-     *  Sets the datatype to PdfDataType::Null
-     */
-    void Clear();
 
     /** \returns a human readable string representation of GetDataType()
      *  The returned string must not be free'd.

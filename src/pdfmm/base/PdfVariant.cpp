@@ -71,10 +71,22 @@ PdfVariant::PdfVariant(const PdfArray& arr)
     m_Data.Data = new PdfArray(arr);
 }
 
+PdfVariant::PdfVariant(PdfArray&& arr) noexcept
+    : PdfVariant(PdfDataType::Array)
+{
+    m_Data.Data = new PdfArray(std::move(arr));
+}
+
 PdfVariant::PdfVariant(const PdfDictionary& dict)
     : PdfVariant(PdfDataType::Dictionary)
 {
     m_Data.Data = new PdfDictionary(dict);
+}
+
+PdfVariant::PdfVariant(PdfDictionary&& dict) noexcept
+    : PdfVariant(PdfDataType::Dictionary)
+{
+    m_Data.Data = new PdfDictionary(std::move(dict));
 }
 
 PdfVariant::PdfVariant(const PdfData& data)
@@ -82,6 +94,13 @@ PdfVariant::PdfVariant(const PdfData& data)
 {
     m_Data.Data = new PdfData(data);
 }
+
+PdfVariant::PdfVariant(PdfData&& data) noexcept
+    : PdfVariant(PdfDataType::RawData)
+{
+    m_Data.Data = new PdfData(std::move(data));
+}
+
 
 PdfVariant::PdfVariant(const PdfVariant& rhs)
     : m_Data{ }
@@ -99,12 +118,6 @@ PdfVariant::PdfVariant(PdfVariant&& rhs) noexcept
 PdfVariant::~PdfVariant()
 {
     clear();
-}
-void PdfVariant::Clear()
-{
-    clear();
-    m_DataType = PdfDataType::Null;
-    m_Data = { };
 }
 
 void PdfVariant::clear()
