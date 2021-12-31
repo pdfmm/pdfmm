@@ -86,13 +86,13 @@ TEST_CASE("testEscapeBrackets")
 
     REQUIRE(strUnic == unicode);
 
-    const char* utf16Expect =
+    string_view utf16Expect =
         "<28FEFF00480065006C006C006F0020005C28005C280075006E00620061006C0061006E00630065006400200057006F0072006C006429>";
 
     // Test reading the unicode string back in
     PdfVariant varRead;
     PdfTokenizer tokenizer;
-    PdfMemoryInputDevice input({ utf16Expect, char_traits<char>::length(utf16Expect) });
+    PdfMemoryInputDevice input(utf16Expect);
     (void)tokenizer.ReadNextVariant(input, varRead);
     REQUIRE(varRead.GetDataType() == PdfDataType::String);
     REQUIRE(varRead.GetString() == unicode);

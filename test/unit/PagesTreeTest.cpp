@@ -219,19 +219,21 @@ void testGetPages(PdfMemDocument& doc)
 
 void testGetPagesReverse(PdfMemDocument& doc)
 {
-    for (unsigned i = PODOFO_TEST_NUM_PAGES - 1; i >= 0; i--)
+    for (int i = PODOFO_TEST_NUM_PAGES - 1; i >= 0; i--)
     {
-        auto& page = doc.GetPageTree().GetPage(i);
-        REQUIRE(isPageNumber(page, i));
+        unsigned index = (unsigned)i;
+        auto& page = doc.GetPageTree().GetPage(index);
+        REQUIRE(isPageNumber(page, index));
     }
 
     // Now delete first page 
     doc.GetPageTree().DeletePage(0);
 
-    for (unsigned i = PODOFO_TEST_NUM_PAGES - 2; i >= 0; i--)
+    for (int i = PODOFO_TEST_NUM_PAGES - 2; i >= 0; i--)
     {
-        auto& page = doc.GetPageTree().GetPage(i);
-        REQUIRE(isPageNumber(page, i + 1));
+        unsigned index = (unsigned)i;
+        auto& page = doc.GetPageTree().GetPage(index);
+        REQUIRE(isPageNumber(page, index + 1));
     }
 }
 
