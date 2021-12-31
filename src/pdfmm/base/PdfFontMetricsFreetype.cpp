@@ -9,7 +9,6 @@
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfFontMetricsFreetype.h"
 
-#include <iostream>
 #include <sstream>
 
 #include <pdfmm/private/FreetypePrivate.h>

@@ -9,7 +9,6 @@
 #include "PdfLocale.h"
 #include "PdfError.h"
 
-#include <iostream>
 #include <sstream>
 
 using namespace std;

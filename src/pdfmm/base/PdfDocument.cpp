@@ -12,7 +12,6 @@
 
 #include <algorithm>
 #include <deque>
-#include <iostream>
 #include <sstream>
 
 #include "PdfArray.h"

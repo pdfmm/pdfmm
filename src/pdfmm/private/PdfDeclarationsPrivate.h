@@ -24,6 +24,7 @@
 #include <stdexcept>
 #include <limits>
 #include <algorithm>
+#include <iostream>
 
 /** \def VERBOSE_DEBUG_DISABLED
  *  Debug define. Enable it, if you need

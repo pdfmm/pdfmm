@@ -18,10 +18,6 @@
 
 #include <algorithm>
 
-#ifndef VERBOSE_DEBUG_DISABLED
-#include <iostream>
-#endif
-
 using namespace std;
 using namespace mm;
 

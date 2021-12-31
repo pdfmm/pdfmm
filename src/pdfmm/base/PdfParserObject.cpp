@@ -19,8 +19,6 @@
 #include "PdfObjectStream.h"
 #include "PdfVariant.h"
 
-#include <iostream>
-
 using namespace mm;
 using namespace std;
 

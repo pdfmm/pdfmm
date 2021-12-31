@@ -17,8 +17,6 @@
 #include "PdfOutputDevice.h"
 #include "PdfDictionary.h"
 
-#include <iostream>
-
 using namespace std;
 using namespace mm;
 

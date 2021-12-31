@@ -8,7 +8,6 @@
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfTilingPattern.h"
 
-#include <iostream>
 #include <iomanip>
 #include <sstream>
 

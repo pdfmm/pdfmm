@@ -9,7 +9,6 @@
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfPainter.h"
 
-#include <iostream>
 #include <iomanip>
 
 #include <utfcpp/utf8.h>

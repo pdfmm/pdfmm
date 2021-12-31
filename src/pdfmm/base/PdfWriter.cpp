@@ -9,8 +9,6 @@
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfWriter.h"
 
-#include <iostream>
-
 #include "PdfData.h"
 #include "PdfDate.h"
 #include "PdfDictionary.h"

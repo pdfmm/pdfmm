@@ -21,7 +21,6 @@
 #include "PdfXRefStreamParserObject.h"
 
 #include <algorithm>
-#include <iostream>
 
 #define PDF_VERSION_LENGHT  3
 #define PDF_MAGIC_LENGHT    8

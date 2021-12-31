@@ -10,7 +10,6 @@
 #include "PdfPageTree.h"
 
 #include <algorithm>
-#include <iostream>
 
 #include "PdfDocument.h"
 #include "PdfArray.h"

@@ -17,8 +17,6 @@
 #include "PdfDocument.h"
 #include "PdfPage.h"
 
-#include <iostream>
-
 using namespace mm;
 
 PdfContents::PdfContents(PdfPage &parent, PdfObject &obj)

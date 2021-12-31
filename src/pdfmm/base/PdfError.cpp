@@ -10,7 +10,6 @@
 // PdfDeclarationsPrivate.h will include PdfError.h for us.
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 
-#include <iostream>
 #include <sstream>
 
 using namespace std;

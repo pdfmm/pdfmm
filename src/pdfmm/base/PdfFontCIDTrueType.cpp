@@ -10,7 +10,6 @@
 #include "PdfFontCIDTrueType.h"
 
 #include <unordered_map>
-#include <iostream>
 #include <sstream>
 
 #include <pdfmm/private/FreetypePrivate.h>

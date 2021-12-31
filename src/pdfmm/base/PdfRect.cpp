@@ -12,7 +12,6 @@
 #include "PdfArray.h"
 #include "PdfVariant.h"
 
-#include <iostream>
 #include <sstream>
 #include <iomanip>
 
