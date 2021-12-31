@@ -13,7 +13,9 @@
 #ifdef _WIN32
 #include <pdfmm/private/WindowsLeanMean.h>
 #else
+#include <unistd.h>
 #include <stdlib.h>
+#include <cstring>
 #endif // _WIN32
 
 using namespace std;
@@ -27,7 +29,7 @@ string TestUtils::getTempFilename()
 	GetTempPathA(len, tmpDir);
 	GetTempFileNameA(tmpDir, "podofo", 0, tmpFilename);
 #else // Unix
-    strncpy( tmpFilename, "/tmp/podofoXXXXXX", len);
+    std::strncpy(tmpFilename, "/tmp/podofoXXXXXX", len);
     int handle = mkstemp(tmpFilename);
     close(handle);
 #endif
