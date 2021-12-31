@@ -10,7 +10,7 @@
 #include "PdfDate.h"
 
 #include <algorithm>
-#include <date/date.h>
+#include <pdfmm/private/chrono_compat.h>
 
 using namespace std;
 using namespace mm;
@@ -130,7 +130,7 @@ ParseShift:
     if (*date != '\0')
         goto Error;
 End:
-    m_secondsFromEpoch = (date::local_days(date::year(y) / m / d) + chrono::hours(h) + chrono::minutes(M) + chrono::seconds(s)).time_since_epoch();
+    m_secondsFromEpoch = (chrono::local_days(chrono::year(y) / m / d) + chrono::hours(h) + chrono::minutes(M) + chrono::seconds(s)).time_since_epoch();
     if (hasZoneShift)
     {
         m_minutesFromUtc = zoneShift * (chrono::hours(zoneHour) + chrono::minutes(zoneMin));
@@ -145,8 +145,8 @@ Error:
 PdfString PdfDate::createStringRepresentation(bool w3cstring) const
 {
     string offset;
-    date::hh_mm_ss<chrono::seconds> time;
-    date::year_month_day ymd;
+    chrono::hh_mm_ss<chrono::seconds> time;
+    chrono::year_month_day ymd;
     if (m_minutesFromUtc.has_value())
     {
         auto minutesFromUtc = *m_minutesFromUtc;
@@ -171,18 +171,18 @@ PdfString PdfDate::createStringRepresentation(bool w3cstring) const
         }
 
         // Assume sys time
-        auto secondsFromEpoch = (date::sys_seconds)(m_secondsFromEpoch + minutesFromUtc);
-        auto dp = date::floor<date::days>(secondsFromEpoch);
-        ymd = date::year_month_day(dp);
-        time = date::hh_mm_ss<chrono::seconds>(chrono::floor<chrono::seconds>(secondsFromEpoch - dp));
+        auto secondsFromEpoch = (chrono::sys_seconds)(m_secondsFromEpoch + minutesFromUtc);
+        auto dp = chrono::floor<chrono::days>(secondsFromEpoch);
+        ymd = chrono::year_month_day(dp);
+        time = chrono::hh_mm_ss<chrono::seconds>(chrono::floor<chrono::seconds>(secondsFromEpoch - dp));
     }
     else
     {
         // Assume local time
-        auto secondsFromEpoch = (date::local_seconds)m_secondsFromEpoch;
-        auto dp = date::floor<date::days>(secondsFromEpoch);
-        ymd = date::year_month_day(dp);
-        time = date::hh_mm_ss<chrono::seconds>(chrono::floor<chrono::seconds>(secondsFromEpoch - dp));
+        auto secondsFromEpoch = (chrono::local_seconds)m_secondsFromEpoch;
+        auto dp = chrono::floor<chrono::days>(secondsFromEpoch);
+        ymd = chrono::year_month_day(dp);
+        time = chrono::hh_mm_ss<chrono::seconds>(chrono::floor<chrono::seconds>(secondsFromEpoch - dp));
     }
 
     short y = (short)(int)ymd.year();
