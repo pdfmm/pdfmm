@@ -101,7 +101,6 @@ void PdfParser::Reset()
     m_LastEOFOffset = 0;
 
     m_Trailer = nullptr;
-    m_Linearization = nullptr;
     m_entries.clear();
     m_ObjectStreams.clear();
 
@@ -145,9 +144,6 @@ void PdfParser::Parse(PdfInputDevice& device, bool loadOnDemand)
 
 void PdfParser::ReadDocumentStructure(PdfInputDevice& device)
 {
-    // Ulrich Arnold 8.9.2009, deactivated because of problems during reading xref's
-    // HasLinearizationDict();
-
     // position at the end of the file to search the xref table.
     device.Seek(0, ios_base::end);
     m_FileSize = device.Tell();
@@ -183,30 +179,6 @@ void PdfParser::ReadDocumentStructure(PdfInputDevice& device)
         throw e;
     }
 
-    if (m_Linearization != nullptr)
-    {
-        try
-        {
-            ReadXRefContents(device, m_XRefOffset, true);
-        }
-        catch (PdfError& e)
-        {
-            PDFMM_PUSH_FRAME_INFO(e, "Unable to skip xref dictionary");
-            throw e;
-        }
-
-        // another trailer directory is to follow right after this XRef section
-        try
-        {
-            ReadNextTrailer(device);
-        }
-        catch (PdfError& e)
-        {
-            if (e != PdfErrorCode::NoTrailer)
-                throw e;
-        }
-    }
-
     if (m_Trailer->IsDictionary() && m_Trailer->GetDictionary().HasKey(PdfName::KeySize))
     {
         m_objectCount = static_cast<unsigned>(m_Trailer->GetDictionary().FindKeyAs<int64_t>(PdfName::KeySize));
@@ -220,22 +192,7 @@ void PdfParser::ReadDocumentStructure(PdfInputDevice& device)
     }
 
     if (m_objectCount > 0)
-    {
         ResizeEntries(m_objectCount);
-    }
-
-    if (m_Linearization != nullptr)
-    {
-        try
-        {
-            ReadXRefContents(device, m_XRefLinearizedOffset);
-        }
-        catch (PdfError& e)
-        {
-            PDFMM_PUSH_FRAME_INFO(e, "Unable to read linearized XRef section");
-            throw e;
-        }
-    }
 
     try
     {
@@ -278,120 +235,6 @@ bool PdfParser::IsPdfFile(PdfInputDevice& device)
     }
 
     return false;
-}
-
-void PdfParser::HasLinearizationDict(PdfInputDevice& device)
-{
-    if (m_Linearization != nullptr)
-    {
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic,
-            "HasLinarizationDict() called twice on one object");
-    }
-
-    device.Seek(0);
-
-    // The linearization dictionary must be in the first 1024 
-    // bytes of the PDF, our buffer might be larger so.
-    // Therefore read only the first 1024 byte.
-    // Normally we should jump to the end of the file, to determine
-    // it's filesize and read the min(1024, filesize) to not fail
-    // on smaller files, but jumping to the end is against the idea
-    // of linearized PDF. Therefore just check if we read anything.
-    constexpr streamoff MAX_READ = 1024;
-    charbuff linearizeBuffer(MAX_READ);
-
-    streamoff size = device.Read(linearizeBuffer.data(),
-        linearizeBuffer.size());
-    // Only fail if we read nothing, to allow files smaller than MAX_READ
-    if (static_cast<size_t>(size) <= 0)
-    {
-        // Ignore Error Code: ERROR_PDF_NO_TRAILER;
-        return;
-    }
-
-    const char* objStr = strstr(linearizeBuffer.data(), "obj");
-    if (objStr == nullptr)
-    {
-        // strange that there is no obj in the first 1024 bytes,
-        // but ignore it
-        return;
-    }
-
-    objStr--;
-    while (*objStr && (PdfTokenizer::IsWhitespace(*objStr) || (*objStr >= '0' && *objStr <= '9')))
-        objStr--;
-
-    m_Linearization.reset(new PdfParserObject(m_Objects->GetDocument(),
-        device, objStr - linearizeBuffer.data() + 2));
-
-    try
-    {
-        // Do not care for encryption here, as the linearization dictionary does not contain strings or streams
-        // ... hint streams do, but we do not load the hintstream.
-        m_Linearization->ParseFile(nullptr);
-        if (!(m_Linearization->IsDictionary() &&
-            m_Linearization->GetDictionary().HasKey("Linearized")))
-        {
-            m_Linearization = nullptr;
-            return;
-        }
-    }
-    catch (PdfError& e)
-    {
-        PdfError::LogMessage(PdfLogSeverity::Warning, e.ErrorName(e.GetError()));
-        m_Linearization = nullptr;
-        return;
-    }
-
-    int64_t xRef = -1;
-    xRef = m_Linearization->GetDictionary().FindKeyAs<int64_t>("T", xRef);
-    if (xRef == -1)
-    {
-        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidLinearization);
-    }
-
-    // avoid moving to a negative file position here
-    device.Seek(static_cast<size_t>(xRef - PDF_XREF_BUF) > 0 ? static_cast<size_t>(xRef - PDF_XREF_BUF) : PDF_XREF_BUF);
-    m_XRefLinearizedOffset = device.Tell();
-
-    char* buffer = m_buffer->data();
-    if (device.Read(buffer, PDF_XREF_BUF) != PDF_XREF_BUF)
-        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidLinearization);
-
-    buffer[PDF_XREF_BUF] = '\0';
-
-    // search backwards in the buffer in case the buffer contains null bytes
-    // because it is right after a stream (can't use strstr for this reason)
-    const int XREF_LEN = 4; // strlen( "xref" );
-    int i = 0;
-    const char* startStr = nullptr;
-    for (i = PDF_XREF_BUF - XREF_LEN; i >= 0; i--)
-    {
-        if (strncmp(buffer + i, "xref", XREF_LEN) == 0)
-        {
-            startStr = buffer + i;
-            break;
-        }
-    }
-
-    m_XRefLinearizedOffset += i;
-
-    if (startStr == nullptr)
-    {
-        if (m_PdfVersion < PdfVersion::V1_5)
-        {
-            PdfError::LogMessage(PdfLogSeverity::Warning,
-                "Linearization dictionaries are only supported with PDF version 1.5. This is 1.{}. Trying to continue",
-                static_cast<int>(m_PdfVersion));
-            // PDFMM_RAISE_ERROR( EPdfError::InvalidLinearization );
-        }
-
-        {
-            m_XRefLinearizedOffset = static_cast<size_t>(xRef);
-            //code = ReadXRefStreamContents();
-            //i     = 0;
-        }
-    }
 }
 
 void PdfParser::MergeTrailer(const PdfObject& trailer)
@@ -1007,12 +850,7 @@ void PdfParser::ReadObjectsInternal(PdfInputDevice& device)
                             }
                             last = reference.ObjectNumber();
 
-                            // final pdf should not contain a linerization dictionary as it contents are invalid 
-                            // as we change some objects and the final xref table
-                            if (m_Linearization != nullptr && last == m_Linearization->GetIndirectReference().ObjectNumber())
-                                m_Objects->SafeAddFreeObject(reference);
-                            else
-                                m_Objects->PushObject(reference, obj.release());
+                            m_Objects->PushObject(reference, obj.release());
                         }
                         catch (PdfError& e)
                         {
@@ -1346,11 +1184,6 @@ const PdfObject& PdfParser::GetTrailer() const
         PDFMM_RAISE_ERROR(PdfErrorCode::NoObject);
 
     return *m_Trailer;
-}
-
-bool PdfParser::IsLinearized() const
-{
-    return m_Linearization != nullptr;
 }
 
 bool PdfParser::IsEncrypted() const

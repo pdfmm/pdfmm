@@ -58,12 +58,6 @@ public:
      */
     virtual PdfVersion GetPdfVersion() const = 0;
 
-    /** Returns whether this PDF document is linearized, aka
-     *  web-optimized
-     *  \returns true if the PDF document is linearized
-     */
-    virtual bool IsLinearized() const = 0;
-
     /** Get access to the Outlines (Bookmarks) dictionary
      *  The returned outlines object is owned by the PdfDocument.
      *

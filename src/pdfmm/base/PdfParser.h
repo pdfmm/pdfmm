@@ -69,10 +69,6 @@ public:
      */
     const char* GetPdfVersionString() const;
 
-    /** \returns whether the parsed document contains linearization tables
-     */
-    bool IsLinearized() const;
-
     /**
      * \returns true if this PdfWriter creates an encrypted PDF file
      */
@@ -219,11 +215,6 @@ private:
      *  and takes care for linearized pdf files.
      */
     void ReadDocumentStructure(PdfInputDevice& device);
-
-    /** hecks whether this pdf is linearized or not.
-     *  Initializes the linearization directory on success.
-     */
-    void HasLinearizationDict(PdfInputDevice& device);
 
     /** Merge the information of this trailer object
      *  in the parsers main trailer object.
@@ -375,7 +366,6 @@ private:
     PdfIndirectObjectList* m_Objects;
 
     std::unique_ptr<PdfParserObject> m_Trailer;
-    std::unique_ptr<PdfParserObject> m_Linearization;
     std::unique_ptr<PdfEncrypt> m_Encrypt;
 
     std::string m_password;

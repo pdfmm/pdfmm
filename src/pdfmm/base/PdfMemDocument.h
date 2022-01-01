@@ -211,8 +211,6 @@ public:
      */
     inline bool IsEncrypted() const { return m_Encrypt != nullptr; }
 
-    inline bool IsLinearized() const override { return m_Linearized; }
-
     /** Copies one or more pages from another PdfMemDocument to this document
      *  \param doc the document to append
      *  \param atIndex the first page number to copy (0-based)
@@ -312,7 +310,6 @@ private:
     PdfVersion m_InitialVersion;
     bool m_HasXRefStream;
     int64_t m_PrevXRefOffset;
-    bool m_Linearized;
     std::unique_ptr<PdfEncrypt> m_Encrypt;
     std::shared_ptr<PdfInputDevice> m_device;
 };

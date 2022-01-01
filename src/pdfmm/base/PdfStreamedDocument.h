@@ -95,8 +95,6 @@ public:
 
     PdfVersion GetPdfVersion() const override;
 
-    bool IsLinearized() const override;
-
     bool IsPrintAllowed() const override;
 
     bool IsEditAllowed() const override;

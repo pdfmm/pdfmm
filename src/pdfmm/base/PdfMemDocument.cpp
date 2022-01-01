@@ -39,8 +39,7 @@ PdfMemDocument::PdfMemDocument(bool empty) :
     m_Version(PdfVersionDefault),
     m_InitialVersion(PdfVersionDefault),
     m_HasXRefStream(false),
-    m_PrevXRefOffset(-1),
-    m_Linearized(false)
+    m_PrevXRefOffset(-1)
 {
 }
 
@@ -49,8 +48,7 @@ PdfMemDocument::PdfMemDocument(const PdfMemDocument& rhs) :
     m_Version(rhs.m_Version),
     m_InitialVersion(rhs.m_InitialVersion),
     m_HasXRefStream(rhs.m_HasXRefStream),
-    m_PrevXRefOffset(rhs.m_PrevXRefOffset),
-    m_Linearized(rhs.m_Linearized)
+    m_PrevXRefOffset(rhs.m_PrevXRefOffset)
 {
     auto encryptObj = GetTrailer().GetDictionary().FindKey("Encrypt");
     if (encryptObj != nullptr)
@@ -75,7 +73,6 @@ void PdfMemDocument::clear()
 {
     m_HasXRefStream = false;
     m_PrevXRefOffset = -1;
-    m_Linearized = false;
     m_Encrypt = nullptr;
     m_device = nullptr;
 }
@@ -84,7 +81,6 @@ void PdfMemDocument::initFromParser(PdfParser& parser)
 {
     m_Version = parser.GetPdfVersion();
     m_InitialVersion = m_Version;
-    m_Linearized = parser.IsLinearized();
     m_HasXRefStream = parser.HasXRefStream();
     m_PrevXRefOffset = parser.GetXRefOffset();
 
@@ -283,7 +279,7 @@ void PdfMemDocument::WriteUpdate(PdfOutputDevice& device, PdfSaveOptions opts)
     writer.SetSaveOptions(opts);
     writer.SetPrevXRefOffset(m_PrevXRefOffset);
     writer.SetUseXRefStream(m_HasXRefStream);
-    writer.SetIncrementalUpdate(m_Linearized);
+    writer.SetIncrementalUpdate(false);
 
     if (m_Encrypt != nullptr)
         writer.SetEncrypted(*m_Encrypt);

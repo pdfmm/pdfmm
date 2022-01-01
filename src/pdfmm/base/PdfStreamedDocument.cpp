@@ -51,12 +51,6 @@ PdfVersion PdfStreamedDocument::GetPdfVersion() const
     return m_Writer->GetPdfVersion();
 }
 
-bool PdfStreamedDocument::IsLinearized() const
-{
-    // Linearization is currently not supported by PdfStreamedDocument
-    return false;
-}
-
 bool PdfStreamedDocument::IsPrintAllowed() const
 {
     return m_Encrypt ? m_Encrypt->IsPrintAllowed() : true;

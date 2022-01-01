@@ -123,7 +123,7 @@ public:
 
     /** Set whether writing an incremental update.
      *  Default is false.
-     *  \param bIncrementalUpdate if true an incremental update will be written
+     *  \param incrementalUpdate if true an incremental update will be written
      */
     void SetIncrementalUpdate(bool rewriteXRefTable);
 
