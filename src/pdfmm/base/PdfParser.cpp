@@ -973,33 +973,34 @@ void PdfParser::ReadObjectsInternal(PdfInputDevice& device)
                     if (entry.Offset > 0)
                     {
                         unique_ptr<PdfParserObject> obj(new PdfParserObject(m_Objects->GetDocument(), device, (ssize_t)entry.Offset));
-                        auto reference = obj->GetIndirectReference();
-                        if (reference.GenerationNumber() != entry.Generation)
-                        {
-                            if (m_StrictParsing)
-                            {
-                                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRef,
-                                    "Found object with generation different than reported in XRef sections");
-                            }
-                            else
-                            {
-                                PdfError::LogMessage(PdfLogSeverity::Warning,
-                                    "Found object with generation different than reported in XRef sections");
-                            }
-                        }
-
                         obj->SetLoadOnDemand(m_LoadOnDemand);
+                        PdfReference reference(i, (uint16_t)entry.Generation);
                         try
                         {
                             obj->ParseFile(m_Encrypt.get());
-                            if (m_Encrypt && obj->IsDictionary())
+                            if (obj->GetIndirectReference() != reference)
+                            {
+                                if (m_StrictParsing)
+                                {
+                                    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRef,
+                                        "Found object with reference {} different than reported {} in XRef sections",
+                                        obj->GetIndirectReference().ToString(), reference.ToString());
+                                }
+                                else
+                                {
+                                    PdfError::LogMessage(PdfLogSeverity::Warning,
+                                        "Found object with reference {} different than reported {} in XRef sections",
+                                        obj->GetIndirectReference().ToString(), reference.ToString());
+                                }
+                            }
+
+                            if (m_Encrypt != nullptr && obj->IsDictionary())
                             {
                                 auto typeObj = obj->GetDictionary().GetKey(PdfName::KeyType);
                                 if (typeObj != nullptr && typeObj->IsName() && typeObj->GetName() == "XRef")
                                 {
                                     // XRef is never encrypted
                                     obj.reset(new PdfParserObject(m_Objects->GetDocument(), device, (ssize_t)entry.Offset));
-                                    reference = obj->GetIndirectReference();
                                     obj->SetLoadOnDemand(m_LoadOnDemand);
                                     obj->ParseFile(nullptr);
                                 }
@@ -1009,13 +1010,9 @@ void PdfParser::ReadObjectsInternal(PdfInputDevice& device)
                             // final pdf should not contain a linerization dictionary as it contents are invalid 
                             // as we change some objects and the final xref table
                             if (m_Linearization != nullptr && last == m_Linearization->GetIndirectReference().ObjectNumber())
-                            {
                                 m_Objects->SafeAddFreeObject(reference);
-                            }
                             else
-                            {
-                                m_Objects->PushObject(obj.release());
-                            }
+                                m_Objects->PushObject(reference, obj.release());
                         }
                         catch (PdfError& e)
                         {
