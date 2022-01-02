@@ -89,7 +89,7 @@ TEST_CASE("testAdditional")
 
     for (auto& d : data)
     {
-        cout << "Parse " << d.name << "\n";
+        INFO(cmn::Format("Parse {}", d.name));
         checkExpected(d.date, true);
     }
 }
