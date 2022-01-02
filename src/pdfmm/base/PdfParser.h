@@ -196,7 +196,7 @@ private:
      *  \param range range in bytes in which to search
      *                beginning at the end of the file
      */
-    void FindToken(PdfInputDevice& device, const char* token, size_t range);
+    void FindTokenBackward(PdfInputDevice& device, const char* token, size_t range);
 
     // Peter Petrov 23 December 2008
     /** Searches backwards from the specified position of the file
@@ -230,7 +230,7 @@ private:
      *  and saves its byteoffset to pXRefOffset.
      *  \param xRefOffset store the byte offset of the xref section into this variable.
      */
-    void ReadXRef(PdfInputDevice& device, size_t* xRefOffset);
+    void FindXRef(PdfInputDevice& device, size_t* xRefOffset);
 
     /** Reads the xref table from a pdf file.
      *  If there is no xref table, ReadXRefStreamContents() is called.

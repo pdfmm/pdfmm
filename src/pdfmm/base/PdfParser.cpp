@@ -148,7 +148,7 @@ void PdfParser::ReadDocumentStructure(PdfInputDevice& device)
     device.Seek(0, ios_base::end);
     m_FileSize = device.Tell();
 
-    // James McGill 18.02.2011, validate the eof marker and when not in strict mode accept garbage after it
+    // Validate the eof marker and when not in strict mode accept garbage after it
     try
     {
         CheckEOFMarker(device);
@@ -161,7 +161,7 @@ void PdfParser::ReadDocumentStructure(PdfInputDevice& device)
 
     try
     {
-        ReadXRef(device, &m_XRefOffset);
+        FindXRef(device, &m_XRefOffset);
     }
     catch (PdfError& e)
     {
@@ -227,7 +227,7 @@ bool PdfParser::IsPdfFile(PdfInputDevice& device)
     // try to determine the excact PDF version of the file
     for (i = 0; i <= MAX_PDF_VERSION_STRING_INDEX; i++)
     {
-        if (strncmp(version, s_PdfVersionNums[i], PDF_VERSION_LENGHT) == 0)
+        if (std::strncmp(version, s_PdfVersionNums[i], PDF_VERSION_LENGHT) == 0)
         {
             m_PdfVersion = static_cast<PdfVersion>(i);
             return true;
@@ -330,7 +330,7 @@ void PdfParser::ReadNextTrailer(PdfInputDevice& device)
             }
         }
     }
-    else // OC 13.08.2010 BugFix: else belongs to IsNextToken( "trailer" ) and not to HasKey( "Prev" )
+    else // Else belongs to IsNextToken("trailer") and not to HasKey("Prev")
     {
         PDFMM_RAISE_ERROR(PdfErrorCode::NoTrailer);
     }
@@ -338,7 +338,7 @@ void PdfParser::ReadNextTrailer(PdfInputDevice& device)
 
 void PdfParser::ReadTrailer(PdfInputDevice& device)
 {
-    FindToken(device, "trailer", PDF_XREF_BUF);
+    FindTokenBackward(device, "trailer", PDF_XREF_BUF);
 
     if (!m_tokenizer.IsNextToken(device, "trailer"))
     {
@@ -378,16 +378,15 @@ void PdfParser::ReadTrailer(PdfInputDevice& device)
     }
 }
 
-void PdfParser::ReadXRef(PdfInputDevice& device, size_t* xRefOffset)
+void PdfParser::FindXRef(PdfInputDevice& device, size_t* xRefOffset)
 {
-    FindToken(device, "startxref", PDF_XREF_BUF);
-
+    FindTokenBackward(device, "startxref", PDF_XREF_BUF);
     if (!m_tokenizer.IsNextToken(device, "startxref"))
     {
         // Could be non-standard startref
         if (!m_StrictParsing)
         {
-            FindToken(device, "startref", PDF_XREF_BUF);
+            FindTokenBackward(device, "startref", PDF_XREF_BUF);
             if (!m_tokenizer.IsNextToken(device, "startref"))
                 PDFMM_RAISE_ERROR(PdfErrorCode::NoXRef);
         }
@@ -418,7 +417,6 @@ void PdfParser::ReadXRefContents(PdfInputDevice& device, size_t offset, bool pos
         m_visitedXRefOffsets.insert(offset);
     }
 
-
     size_t currPosition = device.Tell();
     device.Seek(0, ios_base::end);
     size_t fileSize = device.Tell();
@@ -428,7 +426,7 @@ void PdfParser::ReadXRefContents(PdfInputDevice& device, size_t offset, bool pos
     {
         // Invalid "startxref" Peter Petrov 23 December 2008
          // ignore returned value and get offset from the device
-        ReadXRef(device, &offset);
+        FindXRef(device, &offset);
         offset = device.Tell();
         // TODO: hard coded value "4"
         m_buffer->resize(PDF_XREF_BUF * 4);
@@ -444,7 +442,7 @@ void PdfParser::ReadXRefContents(PdfInputDevice& device, size_t offset, bool pos
 
     if (!m_tokenizer.IsNextToken(device, "xref"))
     {
-        //		Ulrich Arnold 19.10.2009, found linearized 1.3-pdf's with trailer-info in xref-stream
+        // Found linearized 1.3-pdf's with trailer-info in xref-stream
         if (m_PdfVersion < PdfVersion::V1_3)
         {
             PDFMM_RAISE_ERROR(PdfErrorCode::NoXRef);
@@ -458,12 +456,12 @@ void PdfParser::ReadXRefContents(PdfInputDevice& device, size_t offset, bool pos
     }
 
     // read all xref subsections
-    // OC 13.08.2010: Avoid exception to terminate endless loop
+    //  Avoid exception to terminate endless loop
     for (int xrefSectionCount = 0; ; xrefSectionCount++)
     {
         try
         {
-            // OC 13.08.2010: Avoid exception to terminate endless loop
+            // Avoid exception to terminate endless loop
             if (xrefSectionCount > 0)
             {
                 // something like PeekNextToken()
@@ -486,17 +484,9 @@ void PdfParser::ReadXRefContents(PdfInputDevice& device, size_t offset, bool pos
 #endif // PDFMM_VERBOSE_DEBUG
 
             if (positionAtEnd)
-            {
-#ifdef _WIN32
                 device.Seek(static_cast<streamoff>(objectCount * PDF_XREF_ENTRY_SIZE), ios_base::cur);
-#else
-                device.Seek(objectCount * PDF_XREF_ENTRY_SIZE, ios_base::cur);
-#endif // _WIN32
-            }
             else
-            {
                 ReadXRefSubsection(device, firstObject, objectCount);
-            }
         }
         catch (PdfError& e)
         {
@@ -1003,9 +993,9 @@ const char* PdfParser::GetPdfVersionString() const
     return s_PdfVersions[static_cast<int>(m_PdfVersion)];
 }
 
-void PdfParser::FindToken(PdfInputDevice& device, const char* token, size_t range)
+void PdfParser::FindTokenBackward(PdfInputDevice& device, const char* token, size_t range)
 {
-    // James McGill 18.02.2011, offset read position to the EOF marker if it is not the last thing in the file
+    // Offset read position to the EOF marker if it is not the last thing in the file
     device.Seek(-(streamoff)m_LastEOFOffset, ios_base::end);
 
     char* buffer = m_buffer->data();
@@ -1032,18 +1022,18 @@ void PdfParser::FindToken(PdfInputDevice& device, const char* token, size_t rang
     // because it is right after a stream (can't use strstr for this reason)
     for (i = xRefBuf - tokenLen; i >= 0; i--)
     {
-        if (strncmp(buffer + i, token, tokenLen) == 0)
+        if (std::strncmp(buffer + i, token, tokenLen) == 0)
             break;
     }
 
     if (i == 0)
         PDFMM_RAISE_ERROR(PdfErrorCode::InternalLogic);
 
-    // James McGill 18.02.2011, offset read position to the EOF marker if it is not the last thing in the file
+    // Ooffset read position to the EOF marker if it is not the last thing in the file
     device.Seek(-((streamoff)xRefBuf - i) - m_LastEOFOffset, ios_base::end);
 }
 
-// Peter Petrov 23 December 2008
+// CHECK-ME: This function is fishy or bad named
 void PdfParser::FindToken2(PdfInputDevice& device, const char* token, const size_t range, size_t searchEnd)
 {
     device.Seek(searchEnd, ios_base::beg);
@@ -1071,7 +1061,7 @@ void PdfParser::FindToken2(PdfInputDevice& device, const char* token, const size
     ssize_t i; // Do not use an unsigned variable here
     for (i = xRefBuf - tokenLen; i >= 0; i--)
     {
-        if (strncmp(buffer + i, token, tokenLen) == 0)
+        if (std::strncmp(buffer + i, token, tokenLen) == 0)
             break;
     }
 
@@ -1146,7 +1136,7 @@ void PdfParser::CheckEOFMarker(PdfInputDevice& device)
             && !device.Eof())
             PDFMM_RAISE_ERROR(PdfErrorCode::NoEOFToken);
 
-        if (strncmp(buff, EOFToken, EOFTokenLen) != 0)
+        if (std::strncmp(buff, EOFToken, EOFTokenLen) != 0)
             PDFMM_RAISE_ERROR(PdfErrorCode::NoEOFToken);
     }
     else
@@ -1160,7 +1150,7 @@ void PdfParser::CheckEOFMarker(PdfInputDevice& device)
             if (static_cast<size_t>(device.Read(buff, EOFTokenLen)) != EOFTokenLen)
                 PDFMM_RAISE_ERROR(PdfErrorCode::NoEOFToken);
 
-            if (strncmp(buff, EOFToken, EOFTokenLen) == 0)
+            if (std::strncmp(buff, EOFToken, EOFTokenLen) == 0)
             {
                 found = true;
                 break;
