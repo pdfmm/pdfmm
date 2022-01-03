@@ -43,12 +43,6 @@ namespace mm
             : PdfParser(objectList), m_device(new PdfMemoryInputDevice(buff))
         { }
 
-        void SetupTrailer()
-        {
-            // this creates m_pTrailer
-            PdfParser::ReadTrailer(*m_device);
-        }
-
         void ReadXRefContents(size_t offset, bool positionAtEnd)
         {
             // call protected method
@@ -71,12 +65,6 @@ namespace mm
         {
             // call protected method
             PdfParser::ReadObjects(*m_device);
-        }
-
-        void ReadTrailer()
-        {
-            // call protected method
-            PdfParser::ReadTrailer(*m_device);
         }
 
         bool IsPdfFile()
@@ -135,7 +123,6 @@ TEST_CASE("TestReadXRefContents")
         oss << "%EOF";
         PdfIndirectObjectList objects;
         PdfParserTestWrapper parser(objects, oss.str());
-        parser.SetupTrailer();
         parser.ReadXRefContents(0, false);
         // expected to succeed
     }
@@ -169,7 +156,6 @@ TEST_CASE("TestReadXRefContents")
         oss << "%EOF";
         PdfIndirectObjectList objects;
         PdfParserTestWrapper parser(objects, oss.str());
-        parser.SetupTrailer();
         parser.ReadXRefContents(0, false);
         // expected to succeed
     }
@@ -208,7 +194,6 @@ TEST_CASE("TestReadXRefContents")
         oss << "%EOF";
         PdfIndirectObjectList objects;
         PdfParserTestWrapper parser(objects, oss.str());
-        parser.SetupTrailer();
         parser.ReadXRefContents(0, false);
         // succeeds reading badly formed xref entries  - should it?
     }
@@ -277,7 +262,6 @@ TEST_CASE("TestReadXRefContents")
 
         PdfIndirectObjectList objects;
         PdfParserTestWrapper parser(objects, oss.str());
-        parser.SetupTrailer();
         parser.ReadXRefContents(offsetXrefStm1, false);
         // succeeds in current code - should it?
     }
@@ -355,7 +339,6 @@ TEST_CASE("TestReadXRefContents")
 
         PdfIndirectObjectList objects;
         PdfParserTestWrapper parser(objects, oss.str());
-        parser.SetupTrailer();
         parser.ReadXRefContents(offsetXrefStm2, false);
         // succeeds in current code - should it?
     }
@@ -432,7 +415,6 @@ TEST_CASE("TestReadXRefContents")
 
         PdfIndirectObjectList objects;
         PdfParserTestWrapper parser(objects, oss.str());
-        parser.SetupTrailer();
         parser.ReadXRefContents(currentOffset, false);
         // succeeds in current code - should it?
     }
@@ -1113,8 +1095,6 @@ TEST_CASE("testReadXRefStreamContents")
 
         PdfIndirectObjectList objects;
         PdfParserTestWrapper parser(objects, oss.str());
-
-        parser.SetupTrailer();
         parser.ReadXRefStreamContents(offsetXRefObject, false);
         // should succeed
     }
@@ -1171,7 +1151,7 @@ TEST_CASE("testReadXRefStreamContents")
         PdfXRefStreamParserObject xrefStreamParser(doc, *device, offsets);
 
         // parse the dictionary then try reading the XRef stream using the invalid /W entries
-        offsets.resize(5);
+        offsets.Enlarge(5);
         xrefStreamParser.Parse();
         xrefStreamParser.ReadXRefTable();
         FAIL("Should throw exception");
@@ -1230,7 +1210,7 @@ TEST_CASE("testReadXRefStreamContents")
         PdfXRefStreamParserObject xrefStreamParser(doc, *device, offsets);
 
         // parse the dictionary then try reading the XRef stream using the invalid /W entries
-        offsets.resize(5);
+        offsets.Enlarge(5);
         xrefStreamParser.Parse();
         xrefStreamParser.ReadXRefTable();
         FAIL("Should throw exception");
@@ -1287,7 +1267,7 @@ TEST_CASE("testReadXRefStreamContents")
         PdfXRefStreamParserObject xrefStreamParser(doc, *device, offsets);
 
         // parse the dictionary then try reading the XRef stream using the invalid /W entries
-        offsets.resize(5);
+        offsets.Enlarge(5);
         xrefStreamParser.Parse();
         xrefStreamParser.ReadXRefTable();
         FAIL("Should throw exception");
@@ -1344,7 +1324,7 @@ TEST_CASE("testReadXRefStreamContents")
         PdfXRefStreamParserObject xrefStreamParser(doc, *device, offsets);
 
         // parse the dictionary then try reading the XRef stream using the invalid /W entries
-        offsets.resize(5);
+        offsets.Enlarge(5);
         xrefStreamParser.Parse();
         xrefStreamParser.ReadXRefTable();
         FAIL("Should throw exception");
@@ -1398,7 +1378,7 @@ TEST_CASE("testReadXRefStreamContents")
         PdfXRefStreamParserObject xrefStreamParser(doc, *device, offsets);
 
         // parse the dictionary then try reading the XRef stream using the invalid /W entries
-        offsets.resize(5);
+        offsets.Enlarge(5);
         xrefStreamParser.Parse();
         xrefStreamParser.ReadXRefTable();
         FAIL("Should throw exception");
@@ -1453,7 +1433,7 @@ TEST_CASE("testReadXRefStreamContents")
         doc.LoadFromDevice(device);
         PdfXRefStreamParserObject xrefStreamParser(doc, *device, offsets);
 
-        offsets.resize(2);
+        offsets.Enlarge(2);
         xrefStreamParser.Parse();
         xrefStreamParser.ReadXRefTable();
         // should this succeed ???
@@ -1508,7 +1488,7 @@ TEST_CASE("testReadXRefStreamContents")
         doc.LoadFromDevice(device);
         PdfXRefStreamParserObject xrefStreamParser(doc, *device, offsets);
 
-        offsets.resize(2);
+        offsets.Enlarge(2);
         xrefStreamParser.Parse();
         xrefStreamParser.ReadXRefTable();
         // should this succeed ???
@@ -1563,7 +1543,7 @@ TEST_CASE("testReadXRefStreamContents")
         doc.LoadFromDevice(device);
         PdfXRefStreamParserObject xrefStreamParser(doc, *device, offsets);
 
-        offsets.resize(5);
+        offsets.Enlarge(5);
         xrefStreamParser.Parse();
         xrefStreamParser.ReadXRefTable();
         // should this succeed ???
@@ -1618,7 +1598,7 @@ TEST_CASE("testReadXRefStreamContents")
         doc.LoadFromDevice(device);
         PdfXRefStreamParserObject xrefStreamParser(doc, *device, offsets);
 
-        offsets.resize(5);
+        offsets.Enlarge(5);
         xrefStreamParser.Parse();
         xrefStreamParser.ReadXRefTable();
         // should this succeed ???
@@ -1673,7 +1653,7 @@ TEST_CASE("testReadXRefStreamContents")
         doc.LoadFromDevice(device);
         PdfXRefStreamParserObject xrefStreamParser(doc, *device, offsets);
 
-        offsets.resize(5);
+        offsets.Enlarge(5);
         xrefStreamParser.Parse();
         xrefStreamParser.ReadXRefTable();
         // should this succeed ???
@@ -1728,7 +1708,7 @@ TEST_CASE("testReadXRefStreamContents")
         doc.LoadFromDevice(device);
         PdfXRefStreamParserObject xrefStreamParser(doc, *device, offsets);
 
-        offsets.resize(5);
+        offsets.Enlarge(5);
         xrefStreamParser.Parse();
         xrefStreamParser.ReadXRefTable();
         FAIL("Should throw exception");
@@ -1783,7 +1763,7 @@ TEST_CASE("testReadXRefStreamContents")
         doc.LoadFromDevice(device);
         PdfXRefStreamParserObject xrefStreamParser(doc, *device, offsets);
 
-        offsets.resize(5);
+        offsets.Enlarge(5);
         xrefStreamParser.Parse();
         xrefStreamParser.ReadXRefTable();
         FAIL("Should throw exception");
@@ -1822,7 +1802,6 @@ TEST_CASE("testReadObjects")
         oss << "%EOF";
         PdfIndirectObjectList objects;
         PdfParserTestWrapper parser(objects, oss.str());
-        parser.ReadTrailer();
         parser.ReadObjects();
         FAIL("Should throw exception");
     }
@@ -1956,7 +1935,7 @@ TEST_CASE("testRoundTripIndirectTrailerID")
     ostringstream oss;
     oss << "%PDF-1.1\n";
     unsigned currObj = 0;
-    unsigned objPos[20];
+    streamoff objPos[20];
 
     // Pages
 
@@ -1981,13 +1960,13 @@ TEST_CASE("testRoundTripIndirectTrailerID")
     oss << "[<F1E375363A6314E3766EDF396D614748> <F1E375363A6314E3766EDF396D614748>]\n";
     oss << "endobj\n";
 
-    unsigned xrefPos = oss.tellp();
+    streamoff xrefPos = oss.tellp();
     oss << "xref\n";
     oss << "0 " << currObj << "\n";
-    char objRec[21];
+    string objRec;
     for (unsigned i = 0; i < currObj; i++)
     {
-        snprintf(objRec, 21, "%010d 00000 n \n", objPos[i]);
+        cmn::FormatTo(objRec, "{:010d} 00000 n \n", objPos[i]);
         oss << objRec;
     }
     oss << "trailer <<\n"

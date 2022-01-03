@@ -55,7 +55,7 @@ namespace mm
     char XRefEntryTypeToChar(XRefEntryType type);
     XRefEntryType XRefEntryTypeFromChar(char c);
 
-    class PdfXRefEntries final
+    class PDFMM_API PdfXRefEntries final
     {
     public:
         unsigned GetSize() const;
