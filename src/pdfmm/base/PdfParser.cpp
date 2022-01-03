@@ -22,19 +22,20 @@
 
 #include <algorithm>
 
-#define PDF_VERSION_LENGHT  3
-#define PDF_MAGIC_LENGHT    8
-#define PDF_XREF_ENTRY_SIZE 20
-#define PDF_XREF_BUF        512
+constexpr unsigned PDF_VERSION_LENGHT = 3;
+constexpr unsigned PDF_MAGIC_LENGHT = 8;
+constexpr unsigned PDF_XREF_ENTRY_SIZE = 20;
+constexpr unsigned PDF_XREF_BUF = 512;
+constexpr unsigned MAX_XREF_SESSION_COUNT = 512;
 
 using namespace std;
 using namespace mm;
 
 static bool CheckEOL(char e1, char e2);
 static bool CheckXRefEntryType(char c);
-static bool ReadMagicWord(char ch, int& charidx);
+static bool ReadMagicWord(char ch, unsigned& cursoridx);
 
-static unsigned s_MaxObjectCount = (1 << 23) - 1;
+static unsigned s_MaxObjectCount = (1U << 23) - 1;
 
 class PdfRecursionGuard
 {
@@ -52,11 +53,11 @@ public:
     {
         // be careful changing this limit - overflow limits depend on the OS, linker settings, and how much stack space compiler allocates
         // 500 limit prevents overflow on Win7 with VC++ 2005 with default linker stack size (1000 caused overflow with same compiler/OS)
-        constexpr unsigned maxRecursionDepth = 500;
+        constexpr unsigned MaxRecursionDepth = 500;
 
         m_RecursionDepth++;
 
-        if (m_RecursionDepth > maxRecursionDepth)
+        if (m_RecursionDepth > MaxRecursionDepth)
         {
             // avoid stack overflow on documents that have circular cross references in /Prev entries
             // in trailer and XRef streams (possible via a chain of entries with a loop)
@@ -96,12 +97,11 @@ void PdfParser::Reset()
     m_magicOffset = 0;
     m_HasXRefStream = false;
     m_XRefOffset = 0;
-    m_objectCount = 0;
     m_XRefLinearizedOffset = 0;
     m_LastEOFOffset = 0;
 
     m_Trailer = nullptr;
-    m_entries.clear();
+    m_entries.Clear();
     m_ObjectStreams.clear();
 
     m_Encrypt = nullptr;
@@ -171,31 +171,14 @@ void PdfParser::ReadDocumentStructure(PdfInputDevice& device)
 
     try
     {
-        ReadTrailer(device);
-    }
-    catch (PdfError& e)
-    {
-        PDFMM_PUSH_FRAME_INFO(e, "Unable to find trailer in file");
-        throw e;
-    }
-
-    if (m_Trailer->IsDictionary() && m_Trailer->GetDictionary().HasKey(PdfName::KeySize))
-    {
-        m_objectCount = static_cast<unsigned>(m_Trailer->GetDictionary().FindKeyAs<int64_t>(PdfName::KeySize));
-    }
-    else
-    {
-        PdfError::LogMessage(PdfLogSeverity::Warning, "PDF Standard Violation: No /Size key was "
-            "specified in the trailer directory. Will attempt to recover");
-        // Treat the xref size as unknown, and expand the xref dynamically as we read it.
-        m_objectCount = 0;
-    }
-
-    if (m_objectCount > 0)
-        ResizeEntries(m_objectCount);
-
-    try
-    {
+        // We begin read the first XRef content, without
+        // trying to read first the trailer alone as done
+        // previously. This is caused by the fact that
+        // the trailer of the last incremental update
+        // can't be find along the way close to the "startxref"
+        // line in case of linearized PDFs. See ISO 32000-1:2008
+        // "F.3.11 Main Cross-Reference and Trailer"
+        // https://stackoverflow.com/a/70564329/213871
         ReadXRefContents(device, m_XRefOffset);
     }
     catch (PdfError& e)
@@ -203,11 +186,25 @@ void PdfParser::ReadDocumentStructure(PdfInputDevice& device)
         PDFMM_PUSH_FRAME_INFO(e, "Unable to load xref entries");
         throw e;
     }
+
+    int64_t entriesCount;
+    if (m_Trailer != nullptr && m_Trailer->IsDictionary()
+        && (entriesCount = m_Trailer->GetDictionary().FindKeyAs<int64_t>(PdfName::KeySize, -1)) >= 0
+        && m_entries.GetSize() > (unsigned)entriesCount)
+    {
+        // Total number of xref entries to read is greater than the /Size
+        // specified in the trailer if any. That's an error unless we're
+        // trying to recover from a missing /Size entry.
+        PdfError::LogMessage(PdfLogSeverity::Warning,
+            "There are more objects {} in this XRef "
+            "table than specified in the size key of the trailer directory ({})!",
+            m_entries.GetSize(), entriesCount);
+    }
 }
 
 bool PdfParser::IsPdfFile(PdfInputDevice& device)
 {
-    int i = 0;
+    unsigned i = 0;
     device.Seek(0, ios_base::beg);
     while (true)
     {
@@ -239,66 +236,71 @@ bool PdfParser::IsPdfFile(PdfInputDevice& device)
 
 void PdfParser::MergeTrailer(const PdfObject& trailer)
 {
-    PdfVariant var;
+    PDFMM_ASSERT(m_Trailer != nullptr);
 
-    if (m_Trailer == nullptr)
-    {
-        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
-    }
+    // Only update keys, if not already present
+    auto obj = trailer.GetDictionary().GetKey(PdfName::KeySize);
+    if (obj != nullptr && !m_Trailer->GetDictionary().HasKey(PdfName::KeySize))
+        m_Trailer->GetDictionary().AddKey(PdfName::KeySize, *obj);
 
-    // Only update keys, if not already present                   
-    if (trailer.GetDictionary().HasKey(PdfName::KeySize)
-        && !m_Trailer->GetDictionary().HasKey(PdfName::KeySize))
-        m_Trailer->GetDictionary().AddKey(PdfName::KeySize, *(trailer.GetDictionary().GetKey(PdfName::KeySize)));
+    obj = trailer.GetDictionary().GetKey("Root");
+    if (obj != nullptr && !m_Trailer->GetDictionary().HasKey("Root"))
+        m_Trailer->GetDictionary().AddKey("Root", *obj);
 
-    if (trailer.GetDictionary().HasKey("Root")
-        && !m_Trailer->GetDictionary().HasKey("Root"))
-        m_Trailer->GetDictionary().AddKey("Root", *(trailer.GetDictionary().GetKey("Root")));
+    obj = trailer.GetDictionary().GetKey("Encrypt");
+    if (obj != nullptr && !m_Trailer->GetDictionary().HasKey("Encrypt"))
+        m_Trailer->GetDictionary().AddKey("Encrypt", *obj);
 
-    if (trailer.GetDictionary().HasKey("Encrypt")
-        && !m_Trailer->GetDictionary().HasKey("Encrypt"))
-        m_Trailer->GetDictionary().AddKey("Encrypt", *(trailer.GetDictionary().GetKey("Encrypt")));
+    obj = trailer.GetDictionary().GetKey("Info");
+    if (obj != nullptr && !m_Trailer->GetDictionary().HasKey("Info"))
+        m_Trailer->GetDictionary().AddKey("Info", *obj);
 
-    if (trailer.GetDictionary().HasKey("Info")
-        && !m_Trailer->GetDictionary().HasKey("Info"))
-        m_Trailer->GetDictionary().AddKey("Info", *(trailer.GetDictionary().GetKey("Info")));
-
-    if (trailer.GetDictionary().HasKey("ID")
-        && !m_Trailer->GetDictionary().HasKey("ID"))
-        m_Trailer->GetDictionary().AddKey("ID", *(trailer.GetDictionary().GetKey("ID")));
+    obj = trailer.GetDictionary().GetKey("ID");
+    if (obj != nullptr && !m_Trailer->GetDictionary().HasKey("ID"))
+        m_Trailer->GetDictionary().AddKey("ID", *obj);
 }
 
 void PdfParser::ReadNextTrailer(PdfInputDevice& device)
 {
     PdfRecursionGuard guard(m_RecursionDepth);
-
     if (m_tokenizer.IsNextToken(device, "trailer"))
     {
-        PdfParserObject trailer(m_Objects->GetDocument(), device);
+        auto trailer = new PdfParserObject(m_Objects->GetDocument(), device);
+
         try
         {
             // Ignore the encryption in the trailer as the trailer may not be encrypted
-            trailer.ParseFile(nullptr, true);
+            trailer->ParseFile(nullptr, true);
         }
         catch (PdfError& e)
         {
             PDFMM_PUSH_FRAME_INFO(e, "The linearized trailer was found in the file, but contains errors");
+            delete trailer;
             throw e;
         }
 
-        // now merge the information of this trailer with the main documents trailer
-        MergeTrailer(trailer);
+        unique_ptr<PdfParserObject> trailerTemp;
+        if (m_Trailer == nullptr)
+        {
+            m_Trailer.reset(trailer);
+        }
+        else
+        {
+            trailerTemp.reset(trailer);
+            // now merge the information of this trailer with the main documents trailer
+            MergeTrailer(*trailer);
+        }
 
-        if (trailer.GetDictionary().HasKey("XRefStm"))
+        if (trailer->GetDictionary().HasKey("XRefStm"))
         {
             // Whenever we read a XRefStm key, 
             // we know that the file was updated.
-            if (!trailer.GetDictionary().HasKey("Prev"))
+            if (!trailer->GetDictionary().HasKey("Prev"))
                 m_IncrementalUpdateCount++;
 
             try
             {
-                ReadXRefStreamContents(device, static_cast<size_t>(trailer.GetDictionary().FindKeyAs<int64_t>("XRefStm", 0)), false);
+                ReadXRefStreamContents(device, static_cast<size_t>(trailer->GetDictionary().FindKeyAs<int64_t>("XRefStm", 0)), false);
             }
             catch (PdfError& e)
             {
@@ -307,7 +309,7 @@ void PdfParser::ReadNextTrailer(PdfInputDevice& device)
             }
         }
 
-        if (trailer.GetDictionary().HasKey("Prev"))
+        if (trailer->GetDictionary().HasKey("Prev"))
         {
             // Whenever we read a Prev key, 
             // we know that the file was updated.
@@ -315,7 +317,7 @@ void PdfParser::ReadNextTrailer(PdfInputDevice& device)
 
             try
             {
-                size_t offset = static_cast<size_t>(trailer.GetDictionary().FindKeyAs<int64_t>("Prev", 0));
+                size_t offset = static_cast<size_t>(trailer->GetDictionary().FindKeyAs<int64_t>("Prev", 0));
 
                 if (m_visitedXRefOffsets.find(offset) == m_visitedXRefOffsets.end())
                     ReadXRefContents(device, offset);
@@ -336,50 +338,9 @@ void PdfParser::ReadNextTrailer(PdfInputDevice& device)
     }
 }
 
-void PdfParser::ReadTrailer(PdfInputDevice& device)
-{
-    FindTokenBackward(device, "trailer", PDF_XREF_BUF);
-
-    if (!m_tokenizer.IsNextToken(device, "trailer"))
-    {
-        if (m_PdfVersion < PdfVersion::V1_3)
-        {
-            PDFMM_RAISE_ERROR(PdfErrorCode::NoTrailer);
-        }
-        else
-        {
-            // Since PDF 1.5 trailer information can also be found
-            // in the crossreference stream object
-            // and a trailer dictionary is not required
-            device.Seek(m_XRefOffset);
-
-            m_Trailer.reset(new PdfParserObject(m_Objects->GetDocument(), device));
-            m_Trailer->ParseFile(nullptr, false);
-            return;
-        }
-    }
-    else
-    {
-        m_Trailer.reset(new PdfParserObject(m_Objects->GetDocument(), device));
-        try
-        {
-            // Ignore the encryption in the trailer as the trailer may not be encrypted
-            m_Trailer->ParseFile(nullptr, true);
-        }
-        catch (PdfError& e)
-        {
-            PDFMM_PUSH_FRAME_INFO(e, "The trailer was found in the file, but contains errors");
-            throw e;
-        }
-
-#ifdef PDFMM_VERBOSE_DEBUG
-        PdfError::LogMessage(PdfLogSeverity::Debug, "Size={}", m_Trailer->GetDictionary().GetKeyAs<int64_t>(PdfName::KeySize, 0));
-#endif // PDFMM_VERBOSE_DEBUG
-    }
-}
-
 void PdfParser::FindXRef(PdfInputDevice& device, size_t* xRefOffset)
 {
+    // ISO32000-1:2008, 7.5.5 File Trailer "Conforming readers should read a PDF file from its end"
     FindTokenBackward(device, "startxref", PDF_XREF_BUF);
     if (!m_tokenizer.IsNextToken(device, "startxref"))
     {
@@ -440,7 +401,11 @@ void PdfParser::ReadXRefContents(PdfInputDevice& device, size_t offset, bool pos
         device.Seek(offset);
     }
 
-    if (!m_tokenizer.IsNextToken(device, "xref"))
+    string_view token;
+    if (!m_tokenizer.TryReadNextToken(device, token))
+        PDFMM_RAISE_ERROR(PdfErrorCode::NoXRef);
+
+    if (token != "xref")
     {
         // Found linearized 1.3-pdf's with trailer-info in xref-stream
         if (m_PdfVersion < PdfVersion::V1_3)
@@ -456,24 +421,22 @@ void PdfParser::ReadXRefContents(PdfInputDevice& device, size_t offset, bool pos
     }
 
     // read all xref subsections
-    //  Avoid exception to terminate endless loop
-    for (int xrefSectionCount = 0; ; xrefSectionCount++)
+    for (unsigned xrefSectionCount = 0; ; xrefSectionCount++)
     {
+        if (xrefSectionCount == MAX_XREF_SESSION_COUNT)
+            PDFMM_RAISE_ERROR(PdfErrorCode::NoEOFToken);
+
         try
         {
-            // Avoid exception to terminate endless loop
-            if (xrefSectionCount > 0)
+            // something like PeekNextToken()
+            PdfTokenType tokenType;
+            string_view readToken;
+            bool gotToken = m_tokenizer.TryReadNextToken(device, readToken, tokenType);
+            if (gotToken)
             {
-                // something like PeekNextToken()
-                PdfTokenType tokenType;
-                string_view readToken;
-                bool gotToken = m_tokenizer.TryReadNextToken(device, readToken, tokenType);
-                if (gotToken)
-                {
-                    m_tokenizer.EnqueueToken(readToken, tokenType);
-                    if (readToken == "trailer")
-                        break;
-                }
+                m_tokenizer.EnqueueToken(readToken, tokenType);
+                if (readToken == "trailer")
+                    break;
             }
 
             firstObject = m_tokenizer.ReadNextNumber(device);
@@ -491,7 +454,9 @@ void PdfParser::ReadXRefContents(PdfInputDevice& device, size_t offset, bool pos
         catch (PdfError& e)
         {
             if (e == PdfErrorCode::NoNumber || e == PdfErrorCode::InvalidXRef || e == PdfErrorCode::UnexpectedEOF)
+            {
                 break;
+            }
             else
             {
                 PDFMM_PUSH_FRAME(e);
@@ -530,7 +495,6 @@ bool CheckXRefEntryType(char c)
 
 void PdfParser::ReadXRefSubsection(PdfInputDevice& device, int64_t& firstObject, int64_t& objectCount)
 {
-    int64_t count = 0;
 #ifdef PDFMM_VERBOSE_DEBUG
     PdfError::LogMessage(PdfLogSeverity::Debug, "Reading XRef Section: {} {} Objects", firstObject, objectCount);
 #endif // PDFMM_VERBOSE_DEBUG 
@@ -540,76 +504,29 @@ void PdfParser::ReadXRefSubsection(PdfInputDevice& device, int64_t& firstObject,
     if (objectCount < 0)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "ReadXRefSubsection: object count is negative");
 
-    // overflow guard, fixes CVE-2017-5853 (signed integer overflow)
-    // also fixes CVE-2017-6844 (buffer overflow) together with below size check
-    if ((int64_t)s_MaxObjectCount >= objectCount
-        && firstObject <= ((int64_t)s_MaxObjectCount - objectCount))
-    {
-        if (firstObject + objectCount > m_objectCount)
-        {
-            // Total number of xref entries to read is greater than the /Size
-            // specified in the trailer if any. That's an error unless we're
-            // trying to recover from a missing /Size entry.
-            PdfError::LogMessage(PdfLogSeverity::Warning,
-                "There are more objects {} in this XRef "
-                "table than specified in the size key of the trailer directory ({})!"
-                , firstObject + objectCount,
-                static_cast<int64_t>(m_objectCount));
-        }
-
-        if (static_cast<uint64_t>(firstObject) + static_cast<uint64_t>(objectCount) > static_cast<uint64_t>(std::numeric_limits<size_t>::max()))
-        {
-            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange,
-                "xref subsection's given entry numbers together too large");
-        }
-
-        if (firstObject + objectCount > m_objectCount)
-        {
-            try
-            {
-                m_objectCount = static_cast<unsigned>(firstObject + objectCount);
-                ResizeEntries((size_t)(firstObject + objectCount));
-
-            }
-            catch (std::exception&) {
-                // If ObjectCount*sizeof(TXRefEntry) > std::numeric_limits<size_t>::max() then
-                // resize() throws std::length_error, for smaller allocations that fail it may throw
-                // std::bad_alloc (implementation-dependent). "20.5.5.12 Restrictions on exception 
-                // handling" in the C++ Standard says any function that throws an exception is allowed 
-                // to throw implementation-defined exceptions derived the base type (std::exception)
-                // so we need to catch all std::exceptions here
-                PDFMM_RAISE_ERROR(PdfErrorCode::OutOfMemory);
-            }
-        }
-    }
-    else
-    {
-        PdfError::LogMessage(PdfLogSeverity::Error, "There are more objects ({} + {} seemingly) "
-            "in this XRef table than supported by standard PDF, or it's inconsistent",
-            firstObject, objectCount);
-        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidXRef);
-    }
+    m_entries.Enlarge((uint64_t)(firstObject + objectCount));
 
     // consume all whitespaces
     int charcode;
     while (m_tokenizer.IsWhitespace((charcode = device.Look())))
         (void)device.GetChar();
 
+    unsigned index = 0;
     char* buffer = m_buffer->data();
-    while (count < objectCount && device.Read(buffer, PDF_XREF_ENTRY_SIZE) == PDF_XREF_ENTRY_SIZE)
+    while (index < objectCount && device.Read(buffer, PDF_XREF_ENTRY_SIZE) == PDF_XREF_ENTRY_SIZE)
     {
         char empty1;
         char empty2;
         buffer[PDF_XREF_ENTRY_SIZE] = '\0';
 
-        const int objID = static_cast<int>(firstObject + count);
+        unsigned objIndex = static_cast<unsigned>(firstObject + index);
 
-        PdfXRefEntry& entry = m_entries[objID];
-        if (static_cast<size_t>(objID) < m_entries.size() && !entry.Parsed)
+        auto& entry = m_entries[objIndex];
+        if (objIndex < m_entries.GetSize() && !entry.Parsed)
         {
             uint64_t variant = 0;
             uint32_t generation = 0;
-            char cType = 0;
+            char chType = 0;
 
             // XRefEntry is defined in PDF spec section 7.5.4 Cross-Reference Table as
             // nnnnnnnnnn ggggg n eol
@@ -617,12 +534,12 @@ void PdfParser::ReadXRefSubsection(PdfInputDevice& device, int64_t& firstObject,
             // ggggg is a 5-digit generation number with max value 99999 (smaller than 2**17)
             // eol is a 2-character end-of-line sequence
             int read = sscanf(buffer, "%10" SCNu64 " %5" SCNu32 " %c%c%c",
-                &variant, &generation, &cType, &empty1, &empty2);
+                &variant, &generation, &chType, &empty1, &empty2);
 
-            if (!CheckXRefEntryType(cType))
+            if (!CheckXRefEntryType(chType))
                 PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRef, "Invalid used keyword, must be eiter 'n' or 'f'");
 
-            XRefEntryType type = XRefEntryTypeFromChar(cType);
+            XRefEntryType type = XRefEntryTypeFromChar(chType);
 
             if (read != 5 || !CheckEOL(empty1, empty2))
             {
@@ -663,15 +580,14 @@ void PdfParser::ReadXRefSubsection(PdfInputDevice& device, int64_t& firstObject,
             entry.Parsed = true;
         }
 
-        count++;
+        index++;
     }
 
-    if (count != objectCount)
+    if (index != (unsigned)objectCount)
     {
-        PdfError::LogMessage(PdfLogSeverity::Warning, "Count of readobject is {}. Expected {}", count, objectCount);
+        PdfError::LogMessage(PdfLogSeverity::Warning, "Count of readobject is {}. Expected {}", index, objectCount);
         PDFMM_RAISE_ERROR(PdfErrorCode::NoXRef);
     }
-
 }
 
 void PdfParser::ReadXRefStreamContents(PdfInputDevice& device, size_t offset, bool readOnlyTrailer)
@@ -679,23 +595,37 @@ void PdfParser::ReadXRefStreamContents(PdfInputDevice& device, size_t offset, bo
     PdfRecursionGuard guard(m_RecursionDepth);
 
     device.Seek(offset);
+    auto xrefObjTrailer = new PdfXRefStreamParserObject(m_Objects->GetDocument(), device, m_entries);
+    try
+    {
+        xrefObjTrailer->Parse();
+    }
+    catch (PdfError& ex)
+    {
+        PDFMM_PUSH_FRAME_INFO(ex, "The linearized trailer was found in the file, but contains errors");
+        delete xrefObjTrailer;
+        throw ex;
+    }
 
-    PdfXRefStreamParserObject xrefObject(m_Objects->GetDocument(), device, m_entries);
-    xrefObject.Parse();
-
+    unique_ptr<PdfXRefStreamParserObject> xrefObjectTemp;
     if (m_Trailer == nullptr)
-        m_Trailer.reset(new PdfParserObject(m_Objects->GetDocument(), device));
-
-    MergeTrailer(xrefObject);
+    {
+        m_Trailer.reset(xrefObjTrailer);
+    }
+    else
+    {
+        xrefObjectTemp.reset(xrefObjTrailer);
+        MergeTrailer(*xrefObjTrailer);
+    }
 
     if (readOnlyTrailer)
         return;
 
-    xrefObject.ReadXRefTable();
+    xrefObjTrailer->ReadXRefTable();
 
     // Check for a previous XRefStm or xref table
     size_t previousOffset;
-    if (xrefObject.TryGetPreviousOffset(previousOffset) && previousOffset != offset)
+    if (xrefObjTrailer->TryGetPreviousOffset(previousOffset) && previousOffset != offset)
     {
         try
         {
@@ -732,8 +662,8 @@ void PdfParser::ReadObjects(PdfInputDevice& device)
 
         if (encrypt->IsReference())
         {
-            int i = encrypt->GetReference().ObjectNumber();
-            if (i <= 0 || static_cast<size_t>(i) >= m_entries.size())
+            unsigned i = encrypt->GetReference().ObjectNumber();
+            if (i <= 0 || i >= m_entries.GetSize())
             {
                 PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidEncryptionDict,
                     "Encryption dictionary references a nonexistent object {} {} R",
@@ -788,14 +718,14 @@ void PdfParser::ReadObjectsInternal(PdfInputDevice& device)
     unsigned last = 0;
 
     // Read objects
-    for (unsigned i = 0; i < m_objectCount; i++)
+    for (unsigned i = 0; i < m_entries.GetSize(); i++)
     {
         PdfXRefEntry& entry = m_entries[i];
 #ifdef PDFMM_VERBOSE_DEBUG
-        std::cerr << "ReadObjectsInteral\t" << i << " "
+        cerr << "ReadObjectsInteral\t" << i << " "
             << (entry.Parsed ? "parsed" : "unparsed") << " "
             << entry.Offset << " "
-            << entry.Generation << std::endl;
+            << entry.Generation << endl;
 #endif
         if (entry.Parsed)
         {
@@ -918,7 +848,7 @@ void PdfParser::ReadObjectsInternal(PdfInputDevice& device)
     // Note that even if demand loading is enabled we still currently read all
     // objects from the stream into memory then free the stream.
     //
-    for (unsigned i = 0; i < m_objectCount; i++)
+    for (unsigned i = 0; i < m_entries.GetSize(); i++)
     {
         PdfXRefEntry& entry = m_entries[i];
         if (entry.Parsed && entry.Type == XRefEntryType::Compressed) // we have an compressed object stream
@@ -974,7 +904,7 @@ void PdfParser::ReadCompressedObjectFromStream(uint32_t objNo, int index)
     }
 
     PdfObjectStreamParser::ObjectIdList list;
-    for (unsigned i = 0; i < m_objectCount; i++)
+    for (unsigned i = 0; i < m_entries.GetSize(); i++)
     {
         PdfXRefEntry& entry = m_entries[i];
         if (entry.Parsed && entry.Type == XRefEntryType::Compressed &&
@@ -1097,7 +1027,9 @@ void PdfParser::UpdateDocumentVersion()
                     PDFMM_RAISE_ERROR(PdfErrorCode::InvalidName);
                 }
 
-                if (version.IsName() && version.GetName().GetString() == s_PdfVersionNums[i])
+                if (version.IsName()
+                    && version.GetName().GetString() == s_PdfVersionNums[i]
+                    && m_PdfVersion != static_cast<PdfVersion>(i))
                 {
                     PdfError::LogMessage(PdfLogSeverity::Information,
                         "Updating version from {} to {}",
@@ -1109,15 +1041,6 @@ void PdfParser::UpdateDocumentVersion()
             }
         }
     }
-}
-
-void PdfParser::ResizeEntries(size_t newSize)
-{
-    // allow caller to specify a max object count to avoid very slow load times on large documents
-    if (newSize > s_MaxObjectCount)
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "newSize is greater than m_MaxObjects");
-
-    m_entries.resize(newSize);
 }
 
 void PdfParser::CheckEOFMarker(PdfInputDevice& device)
@@ -1181,7 +1104,7 @@ bool PdfParser::IsEncrypted() const
     return m_Encrypt != nullptr;
 }
 
-std::unique_ptr<PdfEncrypt> PdfParser::TakeEncrypt()
+unique_ptr<PdfEncrypt> PdfParser::TakeEncrypt()
 {
     return std::move(m_Encrypt);
 }
@@ -1197,7 +1120,7 @@ void PdfParser::SetMaxObjectCount(unsigned maxObjectCount)
 }
 
 // Read magic word keeping cursor
-bool ReadMagicWord(char ch, int& cursoridx)
+bool ReadMagicWord(char ch, unsigned& cursoridx)
 {
     bool readchar;
     switch (cursoridx)
@@ -1221,7 +1144,7 @@ bool ReadMagicWord(char ch, int& cursoridx)
 
             break;
         default:
-            throw std::runtime_error("Unexpected flow");
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Unexpected flow");
     }
 
     if (readchar)

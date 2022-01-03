@@ -85,7 +85,7 @@ void PdfXRefStreamParserObject::ReadXRefTable()
     parseStream(wArray, indices);
 }
 
-void PdfXRefStreamParserObject::parseStream(const int64_t wArray[W_ARRAY_SIZE], const std::vector<int64_t>& indices)
+void PdfXRefStreamParserObject::parseStream(const int64_t wArray[W_ARRAY_SIZE], const vector<int64_t>& indices)
 {
     for (int64_t lengthSum = 0, i = 0; i < W_ARRAY_SIZE; i++)
     {
@@ -94,7 +94,7 @@ void PdfXRefStreamParserObject::parseStream(const int64_t wArray[W_ARRAY_SIZE], 
             PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoXRef,
                 "Negative field length in XRef stream");
         }
-        if (std::numeric_limits<int64_t>::max() - lengthSum < wArray[i])
+        if (numeric_limits<int64_t>::max() - lengthSum < wArray[i])
         {
             PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoXRef,
                 "Invalid entry length in XRef stream");
@@ -111,33 +111,32 @@ void PdfXRefStreamParserObject::parseStream(const int64_t wArray[W_ARRAY_SIZE], 
     size_t bufferLen;
     this->GetOrCreateStream().GetFilteredCopy(buffer, bufferLen);
 
-    std::vector<int64_t>::const_iterator it = indices.begin();
+    vector<int64_t>::const_iterator it = indices.begin();
     char* cursor = buffer.get();
     while (it != indices.end())
     {
         int64_t firstObj = *it++;
         int64_t count = *it++;
 
-        while (count > 0)
+        m_entries->Enlarge(firstObj + count);
+        for (unsigned index = 0; index < (unsigned)count; index++)
         {
             if ((size_t)(cursor - buffer.get()) >= bufferLen)
                 PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoXRef, "Invalid count in XRef stream");
 
-            auto& entry = (*m_entries)[static_cast<unsigned>(firstObj)];
-            if (firstObj >= 0 && firstObj < static_cast<int64_t>(m_entries->size())
-                && !entry.Parsed)
+            unsigned objIndex = (unsigned)firstObj + index;
+            auto& entry = (*m_entries)[objIndex];
+            if (objIndex < m_entries->GetSize() && !entry.Parsed)
             {
                 readXRefStreamEntry(entry, cursor, wArray);
             }
 
-            firstObj++;
             cursor += entryLen;
-            count--;
         }
     }
 }
 
-void PdfXRefStreamParserObject::getIndices(std::vector<int64_t>& indices, int64_t size)
+void PdfXRefStreamParserObject::getIndices(vector<int64_t>& indices, int64_t size)
 {
     // get the first object number in this crossref stream.
     // it is not required to have an index key though.

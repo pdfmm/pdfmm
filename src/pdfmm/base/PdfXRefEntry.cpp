@@ -8,6 +8,7 @@
 
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfXRefEntry.h"
+#include "PdfParser.h"
 
 using namespace mm;
 
@@ -71,4 +72,52 @@ XRefEntryType mm::XRefEntryTypeFromChar(char c)
         default:
             PDFMM_RAISE_ERROR(PdfErrorCode::InvalidXRef);
     }
+}
+
+unsigned PdfXRefEntries::GetSize() const
+{
+    return (unsigned)m_entries.size();
+}
+
+void PdfXRefEntries::Enlarge(int64_t newSize)
+{
+    if (newSize < 0)
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "New size must be positive");
+
+    // allow caller to specify a max object count to avoid very slow load times on large documents
+    if (newSize > (int64_t)PdfParser::GetMaxObjectCount())
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRef, "New size is greater than max pdf object count");
+
+    if (m_entries.size() >= (size_t)newSize)
+        return;
+
+    try
+    {
+        m_entries.resize((size_t)newSize);
+    }
+    catch (...)
+    {
+        // If ObjectCount*sizeof(TXRefEntry) > std::numeric_limits<size_t>::max() then
+        // resize() throws std::length_error, for smaller allocations that fail it may throw
+        // std::bad_alloc (implementation-dependent). "20.5.5.12 Restrictions on exception 
+        // handling" in the C++ Standard says any function that throws an exception is allowed 
+        // to throw implementation-defined exceptions derived the base type (std::exception)
+        // so we need to catch all std::exceptions here
+        PDFMM_RAISE_ERROR(PdfErrorCode::OutOfMemory);
+    }
+}
+
+void PdfXRefEntries::Clear()
+{
+    m_entries.clear();
+}
+
+PdfXRefEntry& PdfXRefEntries::operator[](unsigned index)
+{
+    return m_entries[index];
+}
+
+const PdfXRefEntry& PdfXRefEntries::operator[](unsigned index) const
+{
+    return m_entries[index];
 }

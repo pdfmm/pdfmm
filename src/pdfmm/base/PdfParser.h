@@ -222,10 +222,6 @@ private:
      */
     void MergeTrailer(const PdfObject& trailer);
 
-    /** Read the trailer directory at the end of the file.
-     */
-    void ReadTrailer(PdfInputDevice& device);
-
     /** Looks for a startxref entry at the current file position
      *  and saves its byteoffset to pXRefOffset.
      *  \param xRefOffset store the byte offset of the xref section into this variable.
@@ -338,15 +334,6 @@ private:
      */
     void UpdateDocumentVersion();
 
-
-    /** Resize the internal entries structure in a safe manner.
-     *  The limit for the maximum number of indirect objects in a PDF file is checked by this method.
-     *  The maximum is 2^23-1 (8.388.607).
-     *
-     *  \param newSize new size of the vector
-     */
-    void ResizeEntries(size_t newSize);
-
 private:
     std::shared_ptr<charbuff> m_buffer;
     PdfTokenizer m_tokenizer;
@@ -357,7 +344,6 @@ private:
     size_t m_magicOffset;
     bool m_HasXRefStream;
     size_t m_XRefOffset;
-    unsigned m_objectCount;
     size_t m_XRefLinearizedOffset;
     size_t m_FileSize;
     size_t m_LastEOFOffset;
