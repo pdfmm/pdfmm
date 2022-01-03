@@ -195,6 +195,7 @@ public:
 
 public:
     PdfContents& GetOrCreateContents();
+    PdfResources& GetOrCreateResources() override;
     inline const PdfContents* GetContents() const { return m_Contents.get(); }
     inline PdfContents* GetContents() { return m_Contents.get(); }
     inline const PdfResources* GetResources() const { return m_Resources.get(); }
@@ -204,8 +205,6 @@ private:
     PdfResources* getResources() const override;
 
     PdfObject* getContentsObject() const override;
-
-    PdfResources& GetOrCreateResources() override;
 
     PdfObjectStream& GetStreamForAppending(PdfStreamAppendFlags flags) override;
 

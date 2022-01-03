@@ -688,11 +688,11 @@ private:
     /** Register an object in the resource dictionary of this page
      *  so that it can be used for any following drawing operations.
      *
-     *  \param identifier identifier of this object, e.g. /Ft0
-     *  \param ref reference to the object you want to register
-     *  \param name register under this key in the resource dictionary
+     *  \param type register under this key in the resource dictionary
+     *  \param name identifier of this object, e.g. /Ft0
+     *  \param obj the object you want to register
      */
-    void AddToPageResources(const PdfName& identifier, const PdfReference& ref, const PdfName& name);
+    void AddToPageResources(const PdfName& type, const PdfName& identifier, const PdfObject& obj);
 
     /** Sets the color that was last set by the user as the current stroking color.
       *  You should always enclose this function by Save() and Restore()

@@ -188,44 +188,44 @@ void PdfPainter::finishDrawing()
     m_tmpStream.str("");
 }
 
-void PdfPainter::SetStrokingShadingPattern(const PdfShadingPattern& rPattern)
+void PdfPainter::SetStrokingShadingPattern(const PdfShadingPattern& pattern)
 {
     CheckStream();
-    this->AddToPageResources(rPattern.GetIdentifier(), rPattern.GetObject().GetIndirectReference(), "Pattern");
-    m_tmpStream << "/Pattern CS /" << rPattern.GetIdentifier().GetString() << " SCN" << std::endl;
+    this->AddToPageResources("Pattern", pattern.GetIdentifier(), pattern.GetObject());
+    m_tmpStream << "/Pattern CS /" << pattern.GetIdentifier().GetString() << " SCN" << endl;
 }
 
-void PdfPainter::SetShadingPattern(const PdfShadingPattern& rPattern)
+void PdfPainter::SetShadingPattern(const PdfShadingPattern& pattern)
 {
     CheckStream();
-    this->AddToPageResources(rPattern.GetIdentifier(), rPattern.GetObject().GetIndirectReference(), "Pattern");
-    m_tmpStream << "/Pattern cs /" << rPattern.GetIdentifier().GetString() << " scn" << std::endl;
+    this->AddToPageResources("Pattern", pattern.GetIdentifier(), pattern.GetObject());
+    m_tmpStream << "/Pattern cs /" << pattern.GetIdentifier().GetString() << " scn" << endl;
 }
 
-void PdfPainter::SetStrokingTilingPattern(const PdfTilingPattern& rPattern)
+void PdfPainter::SetStrokingTilingPattern(const PdfTilingPattern& pattern)
 {
     CheckStream();
-    this->AddToPageResources(rPattern.GetIdentifier(), rPattern.GetObject().GetIndirectReference(), "Pattern");
-    m_tmpStream << "/Pattern CS /" << rPattern.GetIdentifier().GetString() << " SCN" << std::endl;
+    this->AddToPageResources("Pattern", pattern.GetIdentifier(), pattern.GetObject());
+    m_tmpStream << "/Pattern CS /" << pattern.GetIdentifier().GetString() << " SCN" << endl;
 }
 
-void PdfPainter::SetStrokingTilingPattern(const string_view& rPatternName)
+void PdfPainter::SetStrokingTilingPattern(const string_view& patternName)
 {
     CheckStream();
-    m_tmpStream << "/Pattern CS /" << rPatternName << " SCN" << std::endl;
+    m_tmpStream << "/Pattern CS /" << patternName << " SCN" << endl;
 }
 
-void PdfPainter::SetTilingPattern(const PdfTilingPattern& rPattern)
+void PdfPainter::SetTilingPattern(const PdfTilingPattern& pattern)
 {
     CheckStream();
-    this->AddToPageResources(rPattern.GetIdentifier(), rPattern.GetObject().GetIndirectReference(), "Pattern");
-    m_tmpStream << "/Pattern cs /" << rPattern.GetIdentifier().GetString() << " scn" << std::endl;
+    this->AddToPageResources("Pattern", pattern.GetIdentifier(), pattern.GetObject());
+    m_tmpStream << "/Pattern cs /" << pattern.GetIdentifier().GetString() << " scn" << endl;
 }
 
-void PdfPainter::SetTilingPattern(const std::string_view& rPatternName)
+void PdfPainter::SetTilingPattern(const string_view& patternName)
 {
     CheckStream();
-    m_tmpStream << "/Pattern cs /" << rPatternName << " scn" << std::endl;
+    m_tmpStream << "/Pattern cs /" << patternName << " scn" << endl;
 }
 
 void PdfPainter::SetStrokingColor(const PdfColor& color)
@@ -239,7 +239,7 @@ void PdfPainter::SetStrokingColor(const PdfColor& color)
             m_tmpStream << color.GetRed() << " "
                 << color.GetGreen() << " "
                 << color.GetBlue()
-                << " RG" << std::endl;
+                << " RG" << endl;
             break;
         }
         case PdfColorSpace::DeviceCMYK:
@@ -248,28 +248,28 @@ void PdfPainter::SetStrokingColor(const PdfColor& color)
                 << color.GetMagenta() << " "
                 << color.GetYellow() << " "
                 << color.GetBlack()
-                << " K" << std::endl;
+                << " K" << endl;
             break;
         }
         case PdfColorSpace::DeviceGray:
         {
-            m_tmpStream << color.GetGrayScale() << " G" << std::endl;
+            m_tmpStream << color.GetGrayScale() << " G" << endl;
             break;
         }
         case PdfColorSpace::Separation:
         {
-            m_canvas->AddColorResource(color);
-            m_tmpStream << "/ColorSpace" << PdfName(color.GetName()).GetEscapedName() << " CS " << color.GetDensity() << " SCN" << std::endl;
+            m_canvas->GetOrCreateResources().AddColorResource(color);
+            m_tmpStream << "/ColorSpace" << PdfName(color.GetName()).GetEscapedName() << " CS " << color.GetDensity() << " SCN" << endl;
             break;
         }
         case PdfColorSpace::CieLab:
         {
-            m_canvas->AddColorResource(color);
+            m_canvas->GetOrCreateResources().AddColorResource(color);
             m_tmpStream << "/ColorSpaceCieLab" << " CS "
                 << color.GetCieL() << " "
                 << color.GetCieA() << " "
                 << color.GetCieB() <<
-                " SCN" << std::endl;
+                " SCN" << endl;
             break;
         }
         case PdfColorSpace::Unknown:
@@ -293,7 +293,7 @@ void PdfPainter::SetColor(const PdfColor& color)
             m_tmpStream << color.GetRed() << " "
                 << color.GetGreen() << " "
                 << color.GetBlue()
-                << " rg" << std::endl;
+                << " rg" << endl;
             break;
         }
         case PdfColorSpace::DeviceCMYK:
@@ -302,28 +302,28 @@ void PdfPainter::SetColor(const PdfColor& color)
                 << color.GetMagenta() << " "
                 << color.GetYellow() << " "
                 << color.GetBlack()
-                << " k" << std::endl;
+                << " k" << endl;
             break;
         }
         case PdfColorSpace::DeviceGray:
         {
-            m_tmpStream << color.GetGrayScale() << " g" << std::endl;
+            m_tmpStream << color.GetGrayScale() << " g" << endl;
             break;
         }
         case PdfColorSpace::Separation:
         {
-            m_canvas->AddColorResource(color);
-            m_tmpStream << "/ColorSpace" << PdfName(color.GetName()).GetEscapedName() << " cs " << color.GetDensity() << " scn" << std::endl;
+            m_canvas->GetOrCreateResources().AddColorResource(color);
+            m_tmpStream << "/ColorSpace" << PdfName(color.GetName()).GetEscapedName() << " cs " << color.GetDensity() << " scn" << endl;
             break;
         }
         case PdfColorSpace::CieLab:
         {
-            m_canvas->AddColorResource(color);
+            m_canvas->GetOrCreateResources().AddColorResource(color);
             m_tmpStream << "/ColorSpaceCieLab" << " cs "
                 << color.GetCieL() << " "
                 << color.GetCieA() << " "
                 << color.GetCieB() <<
-                " scn" << std::endl;
+                " scn" << endl;
             break;
         }
         case PdfColorSpace::Unknown:
@@ -337,7 +337,7 @@ void PdfPainter::SetColor(const PdfColor& color)
 void PdfPainter::SetStrokeWidth(double width)
 {
     CheckStream();
-    m_tmpStream << width << " w" << std::endl;
+    m_tmpStream << width << " w" << endl;
 }
 
 void PdfPainter::SetStrokeStyle(PdfStrokeStyle strokeStyle, const string_view& custom, bool inverted, double scale, bool subtractJoinCap)
@@ -461,19 +461,19 @@ void PdfPainter::SetStrokeStyle(PdfStrokeStyle strokeStyle, const string_view& c
     if (strokeStyle != PdfStrokeStyle::Custom)
         m_tmpStream << "] 0";
 
-    m_tmpStream << " d" << std::endl;
+    m_tmpStream << " d" << endl;
 }
 
 void PdfPainter::SetLineCapStyle(PdfLineCapStyle eCapStyle)
 {
     CheckStream();
-    m_tmpStream << static_cast<int>(eCapStyle) << " J" << std::endl;
+    m_tmpStream << static_cast<int>(eCapStyle) << " J" << endl;
 }
 
 void PdfPainter::SetLineJoinStyle(PdfLineJoinStyle eJoinStyle)
 {
     CheckStream();
-    m_tmpStream << static_cast<int>(eJoinStyle) << " j" << std::endl;
+    m_tmpStream << static_cast<int>(eJoinStyle) << " j" << endl;
 }
 
 void PdfPainter::SetFont(PdfFont* font)
@@ -496,7 +496,7 @@ void PdfPainter::SetTextRenderingMode(PdfTextRenderingMode mode)
 void PdfPainter::SetCurrentTextRenderingMode()
 {
     CheckStream();
-    m_tmpStream << (int)m_currentTextRenderingMode << " Tr" << std::endl;
+    m_tmpStream << (int)m_currentTextRenderingMode << " Tr" << endl;
 }
 
 void PdfPainter::SetClipRect(double x, double y, double width, double height)
@@ -506,20 +506,20 @@ void PdfPainter::SetClipRect(double x, double y, double width, double height)
         << y << " "
         << width << " "
         << height
-        << " re W n" << std::endl;
+        << " re W n" << endl;
 
     m_curPath
         << x << " "
         << y << " "
         << width << " "
         << height
-        << " re W n" << std::endl;
+        << " re W n" << endl;
 }
 
 void PdfPainter::SetMiterLimit(double value)
 {
     CheckStream();
-    m_tmpStream << value << " M" << std::endl;
+    m_tmpStream << value << " M" << endl;
 }
 
 void PdfPainter::DrawLine(double startX, double startY, double endX, double endY)
@@ -532,14 +532,14 @@ void PdfPainter::DrawLine(double startX, double startY, double endX, double endY
         << " m "
         << endX << " "
         << endY
-        << " l" << std::endl;
+        << " l" << endl;
 
     m_tmpStream << startX << " "
         << startY
         << " m "
         << endX << " "
         << endY
-        << " l S" << std::endl;
+        << " l S" << endl;
 }
 
 void PdfPainter::Rectangle(double x, double y, double width, double height,
@@ -569,13 +569,13 @@ void PdfPainter::Rectangle(double x, double y, double width, double height,
             << y << " "
             << width << " "
             << height
-            << " re" << std::endl;
+            << " re" << endl;
 
         m_tmpStream << x << " "
             << y << " "
             << width << " "
             << height
-            << " re" << std::endl;
+            << " re" << endl;
     }
 }
 
@@ -591,11 +591,11 @@ void PdfPainter::Ellipse(double x, double y, double width, double height)
     m_curPath
         << dPointX[0] << " "
         << dPointY[0]
-        << " m" << std::endl;
+        << " m" << endl;
 
     m_tmpStream << dPointX[0] << " "
         << dPointY[0]
-        << " m" << std::endl;
+        << " m" << endl;
 
     for (unsigned i = 1; i < BEZIER_POINTS; i += 3)
     {
@@ -606,7 +606,7 @@ void PdfPainter::Ellipse(double x, double y, double width, double height)
             << dPointY[i + 1] << " "
             << dPointX[i + 2] << " "
             << dPointY[i + 2]
-            << " c" << std::endl;
+            << " c" << endl;
 
         m_tmpStream << dPointX[i] << " "
             << dPointY[i] << " "
@@ -614,7 +614,7 @@ void PdfPainter::Ellipse(double x, double y, double width, double height)
             << dPointY[i + 1] << " "
             << dPointX[i + 2] << " "
             << dPointY[i + 2]
-            << " c" << std::endl;
+            << " c" << endl;
     }
 }
 
@@ -646,7 +646,7 @@ void PdfPainter::DrawText(double x, double y, const string_view& str)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Font should be set prior calling the method");
 
     auto expStr = this->ExpandTabs(str);
-    this->AddToPageResources(m_Font->GetIdentifier(), m_Font->GetObject().GetIndirectReference(), "Font");
+    this->AddToPageResources("Font", m_Font->GetIdentifier(), m_Font->GetObject());
 
     if (m_textState.IsUnderlined() || m_textState.IsStrikeOut())
     {
@@ -676,17 +676,17 @@ void PdfPainter::DrawText(double x, double y, const string_view& str)
         this->Restore();
     }
 
-    m_tmpStream << "BT" << std::endl << "/" << m_Font->GetIdentifier().GetString()
+    m_tmpStream << "BT" << endl << "/" << m_Font->GetIdentifier().GetString()
         << " " << m_textState.GetFontSize()
-        << " Tf" << std::endl;
+        << " Tf" << endl;
 
     if (m_currentTextRenderingMode != PdfTextRenderingMode::Fill)
         SetCurrentTextRenderingMode();
 
-    m_tmpStream << m_textState.GetFontScale() * 100 << " Tz" << std::endl;
-    m_tmpStream << m_textState.GetCharSpace() * (double)m_textState.GetFontSize() / 100.0 << " Tc" << std::endl;
+    m_tmpStream << m_textState.GetFontScale() * 100 << " Tz" << endl;
+    m_tmpStream << m_textState.GetCharSpace() * (double)m_textState.GetFontSize() / 100.0 << " Tc" << endl;
 
-    m_tmpStream << x << std::endl << y << std::endl << "Td ";
+    m_tmpStream << x << endl << y << endl << "Td ";
     m_Font->WriteStringToStream(m_tmpStream, expStr);
     m_tmpStream << " Tj\nET\n";
 }
@@ -700,20 +700,20 @@ void PdfPainter::BeginText(double x, double y)
     if (m_isTextOpen)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Text writing is already opened");
 
-    this->AddToPageResources(m_Font->GetIdentifier(), m_Font->GetObject().GetIndirectReference(), "Font");
+    this->AddToPageResources("Font", m_Font->GetIdentifier(), m_Font->GetObject());
 
-    m_tmpStream << "BT" << std::endl << "/" << m_Font->GetIdentifier().GetString()
+    m_tmpStream << "BT" << endl << "/" << m_Font->GetIdentifier().GetString()
         << " " << m_textState.GetFontSize()
-        << " Tf" << std::endl;
+        << " Tf" << endl;
 
     if (m_currentTextRenderingMode != PdfTextRenderingMode::Fill) {
         SetCurrentTextRenderingMode();
     }
 
-    m_tmpStream << m_textState.GetFontScale() * 100 << " Tz" << std::endl;
-    m_tmpStream << m_textState.GetCharSpace() * (double)m_textState.GetFontSize() / 100.0 << " Tc" << std::endl;
+    m_tmpStream << m_textState.GetFontScale() * 100 << " Tz" << endl;
+    m_tmpStream << m_textState.GetCharSpace() * (double)m_textState.GetFontSize() / 100.0 << " Tc" << endl;
 
-    m_tmpStream << x << " " << y << " Td" << std::endl;
+    m_tmpStream << x << " " << y << " Td" << endl;
 
     m_isTextOpen = true;
 }
@@ -727,7 +727,7 @@ void PdfPainter::MoveTextPos(double x, double y)
     if (!m_isTextOpen)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Text writing is not opened");
 
-    m_tmpStream << x << " " << y << " Td" << std::endl;
+    m_tmpStream << x << " " << y << " Td" << endl;
 }
 
 void PdfPainter::AddText(const string_view& str)
@@ -1012,22 +1012,22 @@ void PdfPainter::DrawXObject(double x, double y, const PdfXObject& obj, double s
 
     // use OriginalReference() as the XObject might have been written to disk
     // already and is not in memory anymore in this case.
-    this->AddToPageResources(obj.GetIdentifier(), obj.GetObject().GetIndirectReference(), "XObject");
+    this->AddToPageResources("XObject", obj.GetIdentifier(), obj.GetObject());
 
-    std::streamsize oldPrecision = m_tmpStream.precision(clPainterHighPrecision);
-    m_tmpStream << "q" << std::endl
+    streamsize oldPrecision = m_tmpStream.precision(clPainterHighPrecision);
+    m_tmpStream << "q" << endl
         << scaleX << " 0 0 "
         << scaleY << " "
         << x << " "
-        << y << " cm" << std::endl
-        << "/" << obj.GetIdentifier().GetString() << " Do" << std::endl << "Q" << std::endl;
+        << y << " cm" << endl
+        << "/" << obj.GetIdentifier().GetString() << " Do" << endl << "Q" << endl;
     m_tmpStream.precision(oldPrecision);
 }
 
 void PdfPainter::ClosePath()
 {
     CheckStream();
-    m_curPath << "h" << std::endl;
+    m_curPath << "h" << endl;
     m_tmpStream << "h\n";
 }
 
@@ -1037,11 +1037,11 @@ void PdfPainter::LineTo(double x, double y)
     m_curPath
         << x << " "
         << y
-        << " l" << std::endl;
+        << " l" << endl;
 
     m_tmpStream << x << " "
         << y
-        << " l" << std::endl;
+        << " l" << endl;
 }
 
 void PdfPainter::MoveTo(double x, double y)
@@ -1050,11 +1050,11 @@ void PdfPainter::MoveTo(double x, double y)
     m_curPath
         << x << " "
         << y
-        << " m" << std::endl;
+        << " m" << endl;
 
     m_tmpStream << x << " "
         << y
-        << " m" << std::endl;
+        << " m" << endl;
 }
 
 void PdfPainter::CubicBezierTo(double x1, double y1, double x2, double y2, double x3, double y3)
@@ -1067,7 +1067,7 @@ void PdfPainter::CubicBezierTo(double x1, double y1, double x2, double y2, doubl
         << y2 << " "
         << x3 << " "
         << y3
-        << " c" << std::endl;
+        << " c" << endl;
 
     m_tmpStream << x1 << " "
         << y1 << " "
@@ -1075,7 +1075,7 @@ void PdfPainter::CubicBezierTo(double x1, double y1, double x2, double y2, doubl
         << y2 << " "
         << x3 << " "
         << y3
-        << " c" << std::endl;
+        << " c" << endl;
 }
 
 void PdfPainter::HorizontalLineTo(double x)
@@ -1346,7 +1346,7 @@ void PdfPainter::InternalArc(double x, double y, double ray, double ang1,
 void PdfPainter::Close()
 {
     CheckStream();
-    m_curPath << "h" << std::endl;
+    m_curPath << "h" << endl;
     m_tmpStream << "h\n";
 }
 
@@ -1389,7 +1389,7 @@ void PdfPainter::Clip(bool useEvenOddRule)
 void PdfPainter::EndPath()
 {
     CheckStream();
-    m_curPath << "n" << std::endl;
+    m_curPath << "n" << endl;
     m_tmpStream << "n\n";
 }
 
@@ -1405,12 +1405,12 @@ void PdfPainter::Restore()
     m_tmpStream << "Q\n";
 }
 
-void PdfPainter::AddToPageResources(const PdfName& identifier, const PdfReference& ref, const PdfName& name)
+void PdfPainter::AddToPageResources(const PdfName& type, const PdfName& identifier, const PdfObject& obj)
 {
     if (m_canvas == nullptr)
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-    m_canvas->AddResource(identifier, ref, name);
+    m_canvas->GetOrCreateResources().AddResource(type, identifier, obj);
 }
 
 void PdfPainter::ConvertRectToBezier(double x, double y, double width, double height, double pointsX[], double pointsY[])
@@ -1462,7 +1462,7 @@ void PdfPainter::SetCurrentStrokingColor()
         m_tmpStream << m_curColor.GetRed() << " "
             << m_curColor.GetGreen() << " "
             << m_curColor.GetBlue()
-            << " SC" << std::endl;
+            << " SC" << endl;
     }
     else
     {
@@ -1475,28 +1475,28 @@ void PdfPainter::SetTransformationMatrix(double a, double b, double c, double d,
     CheckStream();
 
     // Need more precision for transformation-matrix !!
-    std::streamsize oldPrecision = m_tmpStream.precision(clPainterHighPrecision);
+    streamsize oldPrecision = m_tmpStream.precision(clPainterHighPrecision);
     m_tmpStream << a << " "
         << b << " "
         << c << " "
         << d << " "
         << e << " "
-        << f << " cm" << std::endl;
+        << f << " cm" << endl;
     m_tmpStream.precision(oldPrecision);
 }
 
 void PdfPainter::SetExtGState(const PdfExtGState& inGState)
 {
     CheckStream();
-    this->AddToPageResources(inGState.GetIdentifier(), inGState.GetObject().GetIndirectReference(), "ExtGState");
+    this->AddToPageResources("ExtGState", inGState.GetIdentifier(), inGState.GetObject());
     m_tmpStream << "/" << inGState.GetIdentifier().GetString()
-        << " gs" << std::endl;
+        << " gs" << endl;
 }
 
 void PdfPainter::SetRenderingIntent(const string_view& intent)
 {
     CheckStream();
-    m_tmpStream << "/" << intent << " ri" << std::endl;
+    m_tmpStream << "/" << intent << " ri" << endl;
 }
 
 void PdfPainter::SetDependICCProfileColor(const PdfColor& color, const string_view& csTag)
@@ -1509,7 +1509,7 @@ void PdfPainter::SetDependICCProfileColor(const PdfColor& color, const string_vi
     m_tmpStream << color.GetRed() << " "
         << color.GetGreen() << " "
         << color.GetBlue()
-        << " sc" << std::endl;
+        << " sc" << endl;
 }
 
 string PdfPainter::ExpandTabs(const string_view& str) const

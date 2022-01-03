@@ -91,25 +91,6 @@ public:
      */
     static PdfArray GetProcSet();
 
-    // TODO: Move to PdfResources
-    /** Register a colourspace for a (separation) colour in the resource dictionary
-     *  of this page or XObject so that it can be used for any following drawing
-     *  operations.
-     *
-     *  \param color reference to the PdfColor
-     */
-    void AddColorResource(const PdfColor& color);
-
-    // TODO: Move to PdfResources
-    /** Register an object in the resource dictionary of this page or XObbject
-     *  so that it can be used for any following drawing operations.
-     *
-     *  \param identifier identifier of this object, e.g. /Ft0
-     *  \param ref reference to the object you want to register
-     *  \param name register under this key in the resource dictionary
-     */
-    void AddResource(const PdfName& identifier, const PdfReference& ref, const PdfName& name);
-
 protected:
     virtual PdfObject* getContentsObject() const = 0;
     virtual PdfResources* getResources() const = 0;

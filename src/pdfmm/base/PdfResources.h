@@ -10,6 +10,7 @@
 
 #include "PdfElement.h"
 #include "PdfDictionary.h"
+#include "PdfColor.h"
 
 namespace mm {
 
@@ -22,15 +23,24 @@ public:
     PdfResources(PdfDictionary& dict);
 
 public:
+    void AddResource(const PdfName& type, const PdfName& key, const PdfObject& obj);
     void AddResource(const PdfName& type, const PdfName& key, const PdfObject* obj);
     PdfDictionaryIndirectIterable GetResourceIterator(const std::string_view& type);
     PdfDictionaryConstIndirectIterable GetResourceIterator(const std::string_view& type) const;
     void RemoveResource(const std::string_view& type, const std::string_view& key);
     PdfObject* GetResource(const std::string_view& type, const std::string_view& key);
     const PdfObject* GetResource(const std::string_view& type, const std::string_view& key) const;
+    /** Register a colourspace for a (separation) colour in the resource dictionary
+     *  of this page or XObject so that it can be used for any following drawing
+     *  operations.
+     *
+     *  \param color reference to the PdfColor
+     */
+    void AddColorResource(const PdfColor& color);
 private:
     PdfObject* getResource(const std::string_view& type, const std::string_view& key) const;
     bool tryGetDictionary(const std::string_view& type, PdfDictionary*& dict) const;
+    PdfDictionary& getOrCreateDictionary(const std::string_view& type);
 };
 
 };
