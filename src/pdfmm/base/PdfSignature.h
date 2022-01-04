@@ -136,21 +136,15 @@ public:
     */
     const PdfObject* GetSignatureDate() const;
 
-    /** Returns signature object for this signature field.
-     *  It can be nullptr, when the signature field was created
-     *  from an existing annotation and it didn't have set it.
-     *
-     *  \returns associated signature object, or nullptr
-     */
-    // TODO: Rename to ValueObject and add it to PdfField?
-    PdfObject* GetSignatureObject() const;
-
     /** Ensures that the signature field has set a signature object.
      *  The function does nothing, if the signature object is already
      *  set. This is useful for cases when the signature field had been
      *  created from an existing annotation, which didn't have it set.
      */
     void EnsureSignatureObject();
+
+protected:
+    PdfObject* getValueObject() const;
 
 private:
     void Init(PdfAcroForm& acroForm);

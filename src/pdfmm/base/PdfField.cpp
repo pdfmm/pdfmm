@@ -248,6 +248,11 @@ const PdfObject* PdfField::GetAppearanceCharacteristics() const
     return const_cast<PdfField&>(*this).GetAppearanceCharacteristics();
 }
 
+PdfObject* PdfField::getValueObject() const
+{
+    return const_cast<PdfField&>(*this).GetDictionary().FindKey("V");
+}
+
 void PdfField::AssertTerminalField() const
 {
     if (GetDictionary().HasKey("Kids"))
@@ -433,6 +438,16 @@ void PdfField::SetBackgroundColor(double cyan, double magenta, double yellow, do
 void PdfField::SetName(const PdfString& name)
 {
     GetDictionary().AddKey("T", name);
+}
+
+PdfObject* PdfField::GetValueObject()
+{
+    return getValueObject();
+}
+
+const PdfObject* PdfField::GetValueObject() const
+{
+    return getValueObject();
 }
 
 nullable<PdfString> PdfField::GetName() const

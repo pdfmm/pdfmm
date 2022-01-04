@@ -76,47 +76,6 @@ protected:
 
     PdfField(PdfFieldType fieldType, PdfObject& obj, PdfAnnotation* widget);
 
-    /**
-     *  Set a bit in the field flags value of the fields dictionary.
-     *
-     *  \param value the value specifying the bits to set
-     *  \param set if true the value will be set otherwise
-     *              they will be cleared.
-     *
-     *  \see GetFieldFlag
-     */
-    void SetFieldFlag(int64_t value, bool set);
-
-    /**
-     *  \param value it is checked if these bits are set
-     *  \param defvalue the returned value if no field flags are specified
-     *
-     *  \returns true if given bits are set in the field flags
-     *
-     *  \see SetFieldFlag
-     */
-    bool GetFieldFlag(int64_t value, bool defvalue) const;
-
-    /**
-    *  \param obj the object to test for field flags
-    *  \param value is set with the flag if found
-    *  \returns true if flag is found
-    */
-    static bool GetFieldFlags(const PdfObject& obj, int64_t& value);
-
-    /**
-     * \param create create the dictionary if it does not exist
-     *
-     * \returns a pointer to the appearance characteristics dictionary
-     *          of this object or nullptr if it does not exists.
-     */
-    PdfObject& GetOrCreateAppearanceCharacteristics();
-
-    PdfObject* GetAppearanceCharacteristics();
-    const PdfObject* GetAppearanceCharacteristics() const;
-
-    void AssertTerminalField() const;
-
 public:
     /** Create a PdfAcroForm dictionary object from an existing PdfObject
      *	\param obj the object to create from
@@ -239,6 +198,15 @@ public:
      */
     void SetName(const PdfString& name);
 
+    /** Returns signature object for this signature field.
+     *  It can be nullptr, when the signature field was created
+     *  from an existing annotation and it didn't have set it.
+     *
+     *  \returns associated signature object, or nullptr
+     */
+    PdfObject* GetValueObject();
+    const PdfObject* GetValueObject() const;
+
     /** \returns the field name of this PdfField
      */
     nullable<PdfString> GetName() const;
@@ -342,6 +310,50 @@ public:
     void SetValidateAction(const PdfAction& action);
 
     PdfFieldType GetType() const;
+
+protected:
+    /**
+     *  Set a bit in the field flags value of the fields dictionary.
+     *
+     *  \param value the value specifying the bits to set
+     *  \param set if true the value will be set otherwise
+     *              they will be cleared.
+     *
+     *  \see GetFieldFlag
+     */
+    void SetFieldFlag(int64_t value, bool set);
+
+    /**
+     *  \param value it is checked if these bits are set
+     *  \param defvalue the returned value if no field flags are specified
+     *
+     *  \returns true if given bits are set in the field flags
+     *
+     *  \see SetFieldFlag
+     */
+    bool GetFieldFlag(int64_t value, bool defvalue) const;
+
+    /**
+    *  \param obj the object to test for field flags
+    *  \param value is set with the flag if found
+    *  \returns true if flag is found
+    */
+    static bool GetFieldFlags(const PdfObject& obj, int64_t& value);
+
+    /**
+     * \param create create the dictionary if it does not exist
+     *
+     * \returns a pointer to the appearance characteristics dictionary
+     *          of this object or nullptr if it does not exists.
+     */
+    PdfObject& GetOrCreateAppearanceCharacteristics();
+
+    PdfObject* GetAppearanceCharacteristics();
+    const PdfObject* GetAppearanceCharacteristics() const;
+
+    PdfObject* getValueObject() const;
+
+    void AssertTerminalField() const;
 
 private:
     PdfField(const PdfField& rhs) = delete;

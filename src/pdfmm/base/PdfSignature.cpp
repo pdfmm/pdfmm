@@ -85,7 +85,7 @@ void PdfSignature::PrepareForSigning(const string_view& filter,
     const PdfSignatureBeacons& beacons)
 {
     EnsureSignatureObject();
-    auto& dict = GetSignatureObject()->GetDictionary();
+    auto& dict = m_ValueObj->GetDictionary();
     // This must be ensured before any signing operation
     dict.AddKey(PdfName::KeyFilter, PdfName(filter));
     dict.AddKey("SubFilter", PdfName(subFilter));
@@ -191,7 +191,7 @@ const PdfObject* PdfSignature::GetSignerName() const
     return m_ValueObj->GetDictionary().GetKey("Name");
 }
 
-PdfObject* PdfSignature::GetSignatureObject() const
+PdfObject* PdfSignature::getValueObject() const
 {
     return m_ValueObj;
 }
