@@ -14,7 +14,7 @@
 
 namespace mm {
 
-class PDFMM_API PdfXObjectForm : public PdfXObject, public PdfCanvas
+class PDFMM_API PdfXObjectForm final : public PdfXObject, public PdfCanvas
 {
     friend class PdfXObject;
 
@@ -56,6 +56,8 @@ public:
     */
     void EnsureResourcesCreated();
 
+    PdfResources& GetOrCreateResources() override;
+
     bool HasRotation(double& teta) const override;
 
     PdfRect GetRect() const override;
@@ -75,10 +77,16 @@ private:
 private:
     PdfObject* getContentsObject() const override;
     PdfResources* getResources() const override;
-    PdfResources& GetOrCreateResources() override;
+    PdfElement& getElement() const override;
     PdfObjectStream& GetStreamForAppending(PdfStreamAppendFlags flags) override;
-    void InitXObject(const PdfRect& rect);
-    void InitAfterPageInsertion(const PdfDocument& doc, unsigned pageIndex);
+    void initXObject(const PdfRect& rect);
+    void initAfterPageInsertion(const PdfDocument& doc, unsigned pageIndex);
+
+private:
+    PdfElement& GetElement() = delete;
+    const PdfElement& GetElement() const = delete;
+    PdfObject* GetContentsObject() = delete;
+    const PdfObject* GetContentsObject() const = delete;
 
 private:
     PdfRect m_Rect;

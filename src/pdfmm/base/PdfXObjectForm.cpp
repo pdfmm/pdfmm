@@ -10,13 +10,13 @@ using namespace mm;
 PdfXObjectForm::PdfXObjectForm(PdfDocument& doc, const PdfRect& rect, const string_view& prefix)
     : PdfXObject(doc, PdfXObjectType::Form, prefix), m_Rect(rect)
 {
-    InitXObject(rect);
+    initXObject(rect);
 }
 
 PdfXObjectForm::PdfXObjectForm(PdfDocument& doc, const PdfDocument& sourceDoc, unsigned pageIndex, const string_view& prefix, bool useTrimBox)
     : PdfXObject(doc, PdfXObjectType::Form, prefix)
 {
-    InitXObject(m_Rect);
+    initXObject(m_Rect);
 
     // Implementation note: source document must be different from distination
     if (&doc == reinterpret_cast<const PdfDocument*>(&sourceDoc))
@@ -25,18 +25,18 @@ PdfXObjectForm::PdfXObjectForm(PdfDocument& doc, const PdfDocument& sourceDoc, u
     // After filling set correct BBox, independent of rotation
     m_Rect = doc.FillXObjectFromDocumentPage(*this, sourceDoc, pageIndex, useTrimBox);
 
-    InitAfterPageInsertion(sourceDoc, pageIndex);
+    initAfterPageInsertion(sourceDoc, pageIndex);
 }
 
 PdfXObjectForm::PdfXObjectForm(PdfDocument& doc, unsigned pageIndex, const string_view& prefix, bool useTrimBox)
     : PdfXObject(doc, PdfXObjectType::Form, prefix)
 {
-    InitXObject(m_Rect);
+    initXObject(m_Rect);
 
     // After filling set correct BBox, independent of rotation
     m_Rect = doc.FillXObjectFromExistingPage(*this, pageIndex, useTrimBox);
 
-    InitAfterPageInsertion(doc, pageIndex);
+    initAfterPageInsertion(doc, pageIndex);
 }
 
 PdfXObjectForm::PdfXObjectForm(PdfObject& obj)
@@ -78,6 +78,11 @@ PdfResources* PdfXObjectForm::getResources() const
     return m_Resources.get();
 }
 
+PdfElement& PdfXObjectForm::getElement() const
+{
+    return const_cast<PdfXObjectForm&>(*this);
+}
+
 inline PdfObjectStream& PdfXObjectForm::GetStreamForAppending(PdfStreamAppendFlags flags)
 {
     (void)flags; // Flags have no use here
@@ -100,7 +105,7 @@ PdfResources& PdfXObjectForm::GetOrCreateResources()
     return *m_Resources;
 }
 
-void PdfXObjectForm::InitXObject(const PdfRect& rect)
+void PdfXObjectForm::initXObject(const PdfRect& rect)
 {
     // Initialize static data
     if (m_Matrix.IsEmpty())
@@ -122,7 +127,7 @@ void PdfXObjectForm::InitXObject(const PdfRect& rect)
     this->GetObject().GetDictionary().AddKey("Matrix", m_Matrix);
 }
 
-void PdfXObjectForm::InitAfterPageInsertion(const PdfDocument& doc, unsigned pageIndex)
+void PdfXObjectForm::initAfterPageInsertion(const PdfDocument& doc, unsigned pageIndex)
 {
     PdfArray bbox;
     m_Rect.ToArray(bbox);

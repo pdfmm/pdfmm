@@ -49,6 +49,16 @@ const PdfResources* PdfCanvas::GetResources() const
     return getResources();
 }
 
+PdfElement& PdfCanvas::GetElement()
+{
+    return getElement();
+}
+
+const PdfElement& PdfCanvas::GetElement() const
+{
+    return getElement();
+}
+
 PdfObject* PdfCanvas::getFromResources(const string_view& type, const string_view& key) const
 {
     auto resources = getResources();

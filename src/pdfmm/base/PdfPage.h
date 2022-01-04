@@ -206,6 +206,8 @@ private:
 
     PdfObject* getContentsObject() const override;
 
+    PdfElement& getElement() const override;
+
     PdfObjectStream& GetStreamForAppending(PdfStreamAppendFlags flags) override;
 
     /**
@@ -233,6 +235,12 @@ private:
 private:
     PdfArray* GetAnnotationsArray() const;
     PdfArray& GetOrCreateAnnotationsArray();
+
+private:
+    PdfElement& GetElement() = delete;
+    const PdfElement& GetElement() const = delete;
+    PdfObject* GetContentsObject() = delete;
+    const PdfObject* GetContentsObject() const = delete;
 
 private:
     typedef std::map<PdfObject*, PdfAnnotation*> AnnotationDirectMap;

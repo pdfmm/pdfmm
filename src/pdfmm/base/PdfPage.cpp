@@ -580,6 +580,11 @@ PdfObject* PdfPage::getContentsObject() const
     return &const_cast<PdfContents&>(*m_Contents).GetObject();
 }
 
+PdfElement& PdfPage::getElement() const
+{
+    return const_cast<PdfPage&>(*this);
+}
+
 PdfResources& PdfPage::GetOrCreateResources()
 {
     EnsureResourcesCreated();
