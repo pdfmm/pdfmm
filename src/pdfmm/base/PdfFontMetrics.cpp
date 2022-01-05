@@ -97,7 +97,7 @@ unsigned PdfFontMetrics::GetWeight() const
     int weight = GetWeightRaw();
     if (weight < 0)
     {
-        if (IsBold())
+        if ((GetStyle() & PdfFontStyle::Bold) == PdfFontStyle::Bold)
             return 700;
         else
             return 400;
@@ -124,22 +124,28 @@ double PdfFontMetrics::GetStemH() const
     return stemH;
 }
 
-bool PdfFontMetrics::IsBold() const
+PdfFontStyle PdfFontMetrics::GetStyle() const
 {
+    if (m_Style.has_value())
+        return *m_Style;
+
     // ISO 32000-1:2008: Table 122 – Entries common to all font descriptors
     // The possible values shall be 100, 200, 300, 400, 500, 600, 700, 800,
     // or 900, where each number indicates a weight that is at least as dark
     // as its predecessor. A value of 400 shall indicate a normal weight;
     // 700 shall indicate bold
-    return getIsBoldHint()
+    bool isBold = getIsBoldHint()
         || GetWeightRaw() >= 700;
-}
-
-bool PdfFontMetrics::IsItalic() const
-{
-    return getIsItalicHint()
+    bool isItalic = getIsItalicHint()
         || (GetFlags() & PdfFontDescriptorFlags::Italic) != PdfFontDescriptorFlags::None
         || GetItalicAngle() != 0;
+    PdfFontStyle style = PdfFontStyle::Regular;
+    if (isBold)
+        style |= PdfFontStyle::Bold;
+    if (isItalic)
+        style |= PdfFontStyle::Italic;
+    const_cast<PdfFontMetrics&>(*this).m_Style = style;
+    return *m_Style;
 }
 
 bool PdfFontMetrics::IsStandard14FontMetrics() const

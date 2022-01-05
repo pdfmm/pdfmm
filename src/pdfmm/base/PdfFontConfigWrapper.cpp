@@ -29,18 +29,21 @@ PdfFontConfigWrapper::~PdfFontConfigWrapper()
     FcConfigDestroy(m_FcConfig);
 }
 
-string PdfFontConfigWrapper::GetFontConfigFontPath(const string_view fontName, bool bold, bool italic)
+string PdfFontConfigWrapper::GetFontConfigFontPath(const string_view fontName, PdfFontStyle style)
 {
     FcPattern* pattern;
     FcPattern* matched;
     FcResult result = FcResultMatch;
     FcValue v;
 
+    bool isItalic = (style & PdfFontStyle::Italic) == PdfFontStyle::Italic;
+    bool isBold = (style & PdfFontStyle::Bold) == PdfFontStyle::Bold;
+
     string path;
     // Build a pattern to search using fontname, bold and italic
     pattern = FcPatternBuild(0, FC_FAMILY, FcTypeString, fontName.data(),
-        FC_WEIGHT, FcTypeInteger, (bold ? FC_WEIGHT_BOLD : FC_WEIGHT_MEDIUM),
-        FC_SLANT, FcTypeInteger, (italic ? FC_SLANT_ITALIC : FC_SLANT_ROMAN),
+        FC_WEIGHT, FcTypeInteger, (isBold ? FC_WEIGHT_BOLD : FC_WEIGHT_MEDIUM),
+        FC_SLANT, FcTypeInteger, (isItalic ? FC_SLANT_ITALIC : FC_SLANT_ROMAN),
         static_cast<char*>(0));
 
     FcDefaultSubstitute(pattern);

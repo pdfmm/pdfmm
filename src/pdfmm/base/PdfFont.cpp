@@ -88,8 +88,7 @@ bool PdfFont::TryGetSubstituteFont(unique_ptr<PdfFont>& substFont)
         else
         {
             PdfFontSearchParams params;
-            params.Bold = GetMetrics().IsBold();
-            params.Italic = GetMetrics().IsItalic();
+            params.Style = GetMetrics().GetStyle();
             // Normalization is not needed anymore at this stage, we
             // will use the base name supplied by the font
             params.NormalizeFontName = false;
@@ -205,14 +204,14 @@ void PdfFont::InitImported(bool embeddingEnabled, bool subsettingEnabled)
     else
     {
         fontName = m_Metrics->GetBaseFontName();
-        if (m_Metrics->IsBold())
+        if ((m_Metrics->GetStyle() & PdfFontStyle::Bold) == PdfFontStyle::Bold)
         {
-            if (m_Metrics->IsItalic())
+            if ((m_Metrics->GetStyle() & PdfFontStyle::Italic) == PdfFontStyle::Italic)
                 fontName += ",BoldItalic";
             else
                 fontName += ",Bold";
         }
-        else if (m_Metrics->IsItalic())
+        else if ((m_Metrics->GetStyle() & PdfFontStyle::Italic) == PdfFontStyle::Italic)
         {
             fontName += ",Italic";
         }
@@ -683,9 +682,9 @@ string PdfFont::ExtractBaseName(const string_view& fontName, bool& isBold, bool&
 
 string PdfFont::ExtractBaseName(const string_view& fontName)
 {
-    bool isBold;
     bool isItalic;
-    return ExtractBaseName(fontName, isBold, isItalic);
+    bool isBold;
+    return ExtractBaseName(fontName, isItalic, isBold);
 }
 
 string_view PdfFont::GetStandard14FontName(PdfStandard14FontType stdFont)

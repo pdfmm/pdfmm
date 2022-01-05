@@ -189,14 +189,7 @@ public:
      * This is a logical value that can be inferred
      * from several characteristics
      */
-    bool IsBold() const;
-
-    /** Get whether the font style is italic
-     *
-     * This is a logical value that can be inferred
-     * from several characteristics
-     */
-    bool IsItalic() const;
+    PdfFontStyle GetStyle() const;
 
     bool IsStandard14FontMetrics() const;
 
@@ -239,6 +232,9 @@ protected:
 private:
     PdfFontMetrics(const PdfFontMetrics& rhs) = delete;
     PdfFontMetrics& operator=(const PdfFontMetrics& rhs) = delete;
+
+private:
+    nullable<PdfFontStyle> m_Style;
 };
 
 /** Convenience typedef for a const PdfEncoding shared ptr

@@ -34,19 +34,15 @@ class PdfIndirectObjectList;
 
 struct PdfFontSearchParams
 {
-    bool Bold = false;
-    bool Italic = false;
-    PdfAutoSelectFontOptions AutoSelectOpts = PdfAutoSelectFontOptions::None;
+    PdfFontStyle Style;
+    PdfAutoSelectFontOptions AutoSelect = PdfAutoSelectFontOptions::None;
     bool NormalizeFontName = true;
 };
 
-struct PdfFontCreationParams
+struct PdfFontInitParams
 {
-    PdfFontSearchParams SearchParams;
-    PdfFontInitFlags InitFlags = PdfFontInitFlags::Embed;
+    PdfFontInitFlags Flags = PdfFontInitFlags::Default;
     PdfEncoding Encoding = PdfEncodingFactory::CreateWinAnsiEncoding();
-    std::string FilePath;
-    unsigned short FaceIndex = 0;
 };
 
 /**
@@ -95,7 +91,12 @@ public:
      *           not be created or found.
      */
     PdfFont* GetFont(const std::string_view& fontName,
-        const PdfFontCreationParams& params = { });
+        const PdfFontSearchParams& searchParams = { }, const PdfFontInitParams& initParams = { });
+
+    PdfFont* GetFont(const std::string_view& fontName, const PdfFontInitParams& initParams);
+
+    PdfFont* GetStandard14Font(PdfStandard14FontType stdFont,
+        const PdfFontInitParams& params = { });
 
     /** Try to search for fontmetrics from the given fontname and parameters
      *
@@ -160,7 +161,7 @@ private:
     struct Element
     {
         Element(const std::string_view& fontname, PdfStandard14FontType stdType,
-            const PdfEncoding& encoding, bool bold, bool italic);
+            const PdfEncoding& encoding, PdfFontStyle style);
 
         Element(const Element& rhs) = default;
         Element& operator=(const Element& rhs) = default;
@@ -168,8 +169,7 @@ private:
         std::string FontName;
         PdfStandard14FontType StdType;
         size_t EncodingId;
-        bool Bold;
-        bool Italic;
+        PdfFontStyle Style;
     };
 
     struct HashElement
@@ -193,7 +193,11 @@ private:
         const PdfFontSearchParams& params);
     static std::unique_ptr<charbuff> getFontData(const std::string_view& fontName,
         std::string filepath, int faceIndex, const PdfFontSearchParams& params);
-    PdfFont* getFont(const std::string_view& baseFontName, const PdfFontCreationParams& params);
+    PdfFont* getFont(const std::string_view& baseFontName,
+        const PdfFontSearchParams& searchParams, const PdfFontInitParams& initParams);
+    PdfFont* getStandard14Font(PdfStandard14FontType stdFont,
+        PdfFontInitFlags initFlags, const PdfEncoding& encoding);
+    static std::string adaptSearchParams(const std::string_view& fontName, PdfFontSearchParams& searchParams);
 
     /** Create a font and put it into the fontcache
      */

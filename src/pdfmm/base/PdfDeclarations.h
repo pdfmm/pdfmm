@@ -239,13 +239,22 @@ enum class PdfFontFileType
     OpenType     ///< OpenType font. This is /Subtype "OpenType" for /FontFile3
 };
 
+/** Font style flags used during searches
+ */
+enum class PdfFontStyle
+{
+    Regular = 0,
+    Italic = 1,
+    Bold = 2,
+};
+
 /** Flags to control font creation.
  */
 enum class PdfAutoSelectFontOptions
 {
     None = 0,                   ///< No auto selection
     Standard14 = 1,             ///< Automatically select a Standard14 font if the fontname matches one of them
-    Standard14Alt = 2           ///< Automatically select a Standard14 font if the fontname matches one of them (standarda and alternative names)
+    Standard14Alt = 2,          ///< Automatically select a Standard14 font if the fontname matches one of them (standard and alternative names)
 };
 
 /** Font init flags
@@ -254,7 +263,8 @@ enum class PdfFontInitFlags
 {
     None = 0,                 ///< No special settings
     Embed = 1,                ///< Do embed font data
-    Subset = 2                ///< Create subsetted, which includes only used characters. Implies embed
+    Subset = 2,               ///< Create subsetted, which includes only used characters. Implies embed
+    Default = Embed,
 };
 
 /**
@@ -577,6 +587,7 @@ enum class PdfBlendMode
 ENABLE_BITMASK_OPERATORS(mm::PdfSaveOptions);
 ENABLE_BITMASK_OPERATORS(mm::PdfWriteFlags);
 ENABLE_BITMASK_OPERATORS(mm::PdfInfoInitial);
+ENABLE_BITMASK_OPERATORS(mm::PdfFontStyle);
 ENABLE_BITMASK_OPERATORS(mm::PdfFontInitFlags);
 ENABLE_BITMASK_OPERATORS(mm::PdfAutoSelectFontOptions);
 ENABLE_BITMASK_OPERATORS(mm::PdfFontDescriptorFlags);

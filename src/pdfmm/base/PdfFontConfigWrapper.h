@@ -44,13 +44,11 @@ public:
      *  fontconfig support. Make sure to lock any FontConfig mutexes before
      *  calling this method by yourself!
      *
-     *  \param pConfig a handle to an initialized fontconfig library
-     *  \param pszFontName name of the requested font
-     *  \param bBold if true find a bold font
-     *  \param bItalic if true find an italic font
+     *  \param fontName name of the requested font
+     *  \param style font style
      *  \returns the path to the fontfile or an empty string
      */
-    std::string GetFontConfigFontPath(const std::string_view fontName, bool bold, bool italic);
+    std::string GetFontConfigFontPath(const std::string_view fontName, PdfFontStyle style);
 
     FcConfig* GetFcConfig();
 

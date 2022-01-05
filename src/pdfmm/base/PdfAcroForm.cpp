@@ -50,10 +50,11 @@ void PdfAcroForm::Init(PdfAcroFormDefaulAppearance defaultAppearance)
 
     if (defaultAppearance == PdfAcroFormDefaulAppearance::BlackText12pt)
     {
-        PdfFontCreationParams params;
-        params.InitFlags = PdfFontInitFlags::None;
-        params.SearchParams.AutoSelectOpts = PdfAutoSelectFontOptions::Standard14;
-        auto font = GetDocument().GetFontManager().GetFont("Helvetica", params);
+        PdfFontInitParams initParams;
+        PdfFontSearchParams searchParams;
+        initParams.Flags = PdfFontInitFlags::None;
+        searchParams.AutoSelect = PdfAutoSelectFontOptions::Standard14;
+        auto font = GetDocument().GetFontManager().GetFont("Helvetica", searchParams, initParams);
 
         // Create DR key
         if (!this->GetObject().GetDictionary().HasKey("DR"))

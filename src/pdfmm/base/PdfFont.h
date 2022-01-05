@@ -241,7 +241,7 @@ public:
 
     /** Extract base font name, removing known bold/italic/subset prefixes/suffixes
      */
-    static std::string ExtractBaseName(const std::string_view& fontName, bool& isBold, bool& isItalic);
+    static std::string ExtractBaseName(const std::string_view& fontName, bool& isItalic, bool& isBold);
 
     /** Extract base font name, removing known bold/italic/subset prefixes/suffixes
      */

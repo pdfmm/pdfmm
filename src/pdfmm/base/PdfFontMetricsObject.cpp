@@ -233,7 +233,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
         m_Flags = (PdfFontDescriptorFlags)dict.FindKeyAs<int64_t>("Flags", 0);
     }
 
-    m_BaseName = PdfFont::ExtractBaseName(m_FontName, m_IsBoldHint, m_IsItalicHint);
+    m_BaseName = PdfFont::ExtractBaseName(m_FontName, m_IsItalicHint, m_IsBoldHint);
     m_LineSpacing = m_Ascent + m_Descent;
 
     // Try to fine some sensible values
