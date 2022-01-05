@@ -42,21 +42,21 @@ TEST_CASE("testCCITT")
         INFO("!!! ePdfFilter_CCITTFaxDecode not implemented skipping test!");
 }
 
-void TestFilter(PdfFilterType eFilter, const char* testBuffer, size_t testLength)
+void TestFilter(PdfFilterType filterType, const char* testBuffer, size_t testLength)
 {
     size_t encodedLength;
     size_t decodedLength;
     unique_ptr<char[]> encoded;
     unique_ptr<char[]> decoded;
 
-    unique_ptr<PdfFilter> filter = PdfFilterFactory::Create(eFilter);
+    unique_ptr<PdfFilter> filter = PdfFilterFactory::Create(filterType);
     if (filter == nullptr)
     {
-        INFO(cmn::Format("!!! Filter {} not implemented.\n", eFilter));
+        INFO(cmn::Format("!!! Filter {} not implemented.\n", filterType));
         return;
     }
 
-    INFO(cmn::Format("Testing Algorithm {}:", eFilter));
+    INFO(cmn::Format("Testing Algorithm {}:", filterType));
     INFO("\t-> Testing Encoding");
     try
     {
@@ -66,7 +66,7 @@ void TestFilter(PdfFilterType eFilter, const char* testBuffer, size_t testLength
     {
         if (e == PdfErrorCode::UnsupportedFilter)
         {
-            INFO(cmn::Format("\t-> Encoding not supported for filter {}.", eFilter));
+            INFO(cmn::Format("\t-> Encoding not supported for filter {}.", (unsigned)filterType));
             return;
         }
         else
@@ -85,7 +85,7 @@ void TestFilter(PdfFilterType eFilter, const char* testBuffer, size_t testLength
     {
         if (e == PdfErrorCode::UnsupportedFilter)
         {
-            printf("\t-> Decoding not supported for filter %i.\n", eFilter);
+            INFO(cmn::Format("\t-> Decoding not supported for filter {}", filterType));
             return;
         }
         else

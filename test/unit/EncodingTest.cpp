@@ -321,11 +321,11 @@ TEST_CASE("testToUnicodeParse")
             // TODO not all invalid input throws an exception (e.g. no hex digits in <WXYZ>)
             //CPPUNIT_ASSERT( false );
         }
-        catch (PdfError& error)
+        catch (PdfError&)
         {
             // parsing every invalid test string should throw an exception
         }
-        catch (exception& ex)
+        catch (exception&)
         {
             FAIL("Unexpected exception type");
         }

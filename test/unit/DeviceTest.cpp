@@ -23,6 +23,6 @@ TEST_CASE("testDevices")
     for (unsigned i = 0; i < 100; i++)
         streamLarge.Write(testString);
 
-    if (static_cast<long>(buffer1.size()) != (testString.size() * 100 + testString.size()))
+    if (buffer1.size() != (testString.size() * 100 + testString.size()))
         FAIL(cmn::Format("Buffer1 size is wrong after 100 attaches: {}", buffer1.size()));
 }

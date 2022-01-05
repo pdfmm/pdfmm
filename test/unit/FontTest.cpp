@@ -17,7 +17,7 @@ using namespace mm;
 #ifdef PDFMM_HAVE_FONTCONFIG
 
 static bool getFontInfo(FcPattern* font, string& fontFamily, string& fontPath,
-    bool& bold, bool& italic);
+    PdfFontStyle& style);
 static void testSingleFont(FcPattern* font);
 
 TEST_CASE("testFonts")
@@ -70,18 +70,16 @@ void testSingleFont(FcPattern* font)
     PdfMemDocument doc;
     string fontFamily;
     string fontPath;
-    bool bold;
-    bool italic;
+    PdfFontStyle style;
     auto& fcWrapper = PdfFontManager::GetFontConfigWrapper();
 
-    if (getFontInfo(font, fontFamily, fontPath, bold, italic))
+    if (getFontInfo(font, fontFamily, fontPath, style))
     {
-        string fontPath = fcWrapper.GetFontConfigFontPath(fontFamily, bold, italic);
+        string fontPath = fcWrapper.GetFontConfigFontPath(fontFamily, style);
         if (fontPath.length() != 0)
         {
-            PdfFontCreationParams params;
-            params.SearchParams.Bold = bold;
-            params.SearchParams.Italic = italic;
+            PdfFontSearchParams params;
+            params.Style = style;
             auto font = doc.GetFontManager().GetFont(fontFamily, params);
             INFO(cmn::Format("Font failed: {}", fontPath));
             REQUIRE(font != nullptr);
@@ -90,12 +88,13 @@ void testSingleFont(FcPattern* font)
 }
 
 bool getFontInfo(FcPattern* pFont, string& fontFamily, string& fontPath,
-    bool& bold, bool& italic)
+    PdfFontStyle& style)
 {
     FcChar8* family = nullptr;
     FcChar8* path = nullptr;
     int slant;
     int weight;
+    style = PdfFontStyle::Regular;
 
     if (FcPatternGetString(pFont, FC_FAMILY, 0, &family) == FcResultMatch)
     {
@@ -106,21 +105,13 @@ bool getFontInfo(FcPattern* pFont, string& fontFamily, string& fontPath,
 
             if (FcPatternGetInteger(pFont, FC_SLANT, 0, &slant) == FcResultMatch)
             {
-                if (slant == FC_SLANT_ROMAN)
-                    italic = false;
-                else if (slant == FC_SLANT_ITALIC)
-                    italic = true;
-                else
-                    return false;
+                if (slant == FC_SLANT_ITALIC || slant == FC_SLANT_OBLIQUE)
+                    style |= PdfFontStyle::Italic;
 
                 if (FcPatternGetInteger(pFont, FC_WEIGHT, 0, &weight) == FcResultMatch)
                 {
-                    if (weight == FC_WEIGHT_MEDIUM)
-                        bold = false;
-                    else if (weight == FC_WEIGHT_BOLD)
-                        bold = true;
-                    else
-                        return false;
+                    if (weight >= FC_WEIGHT_BOLD)
+                        style |= PdfFontStyle::Bold;
 
                     return true;
                 }
