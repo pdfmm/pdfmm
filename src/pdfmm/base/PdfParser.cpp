@@ -715,8 +715,6 @@ void PdfParser::ReadObjects(PdfInputDevice& device)
 
 void PdfParser::ReadObjectsInternal(PdfInputDevice& device)
 {
-    unsigned last = 0;
-
     // Read objects
     for (unsigned i = 0; i < m_entries.GetSize(); i++)
     {
@@ -768,7 +766,6 @@ void PdfParser::ReadObjectsInternal(PdfInputDevice& device)
                                     obj->ParseFile(nullptr);
                                 }
                             }
-                            last = reference.ObjectNumber();
 
                             m_Objects->PushObject(reference, obj.release());
                         }
