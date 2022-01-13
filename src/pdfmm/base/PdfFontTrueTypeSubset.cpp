@@ -303,35 +303,36 @@ void PdfFontTrueTypeSubset::LoadGID(GlyphContext& ctx, unsigned gid)
     if (m_glyphDatas.find(gid) != m_glyphDatas.end())
         return;
 
+    // https://docs.microsoft.com/en-us/typography/opentype/spec/loca
     auto& glyphData = m_glyphDatas[gid] = { };
     if (m_isLongLoca)
     {
-        uint32_t offset;
-        uint32_t length;
+        uint32_t offset1;
+        uint32_t offset2;
         m_device->Seek(ctx.LocaTableOffset + sizeof(uint32_t) * gid);
-        utls::ReadUInt32BE(*m_device, offset);
+        utls::ReadUInt32BE(*m_device, offset1);
 
         m_device->Seek(ctx.LocaTableOffset + sizeof(uint32_t) * (gid + 1));
-        utls::ReadUInt32BE(*m_device, length);
+        utls::ReadUInt32BE(*m_device, offset2);
 
-        glyphData.GlyphLength = length - offset;
-        glyphData.GlyphOffset = ctx.GlyfTableOffset + offset;
+        glyphData.GlyphLength = offset2 - offset1;
+        glyphData.GlyphOffset = ctx.GlyfTableOffset + offset1;
     }
     else
     {
-        uint16_t offset;
-        uint16_t length;
+        uint16_t offset1;
+        uint16_t offset2;
 
         m_device->Seek(ctx.LocaTableOffset + sizeof(uint16_t) * gid);
-        utls::ReadUInt16BE(*m_device, offset);
-        offset <<= 1;
+        utls::ReadUInt16BE(*m_device, offset1);
+        unsigned uoffset1 = (unsigned)offset1 << 1u; // Handle the possible overflow
 
         m_device->Seek(ctx.LocaTableOffset + sizeof(uint16_t) * (gid + 1));
-        utls::ReadUInt16BE(*m_device, length);
-        length <<= 1;
+        utls::ReadUInt16BE(*m_device, offset2);
+        unsigned uoffset2 = (unsigned)offset2 << 1u; // Handle the possible overflow
 
-        glyphData.GlyphLength = length - offset;
-        glyphData.GlyphOffset = ctx.GlyfTableOffset + offset;
+        glyphData.GlyphLength = uoffset2 - uoffset1;
+        glyphData.GlyphOffset = ctx.GlyfTableOffset + uoffset1;
     }
 
     glyphData.GlyphAdvOffset = glyphData.GlyphOffset + 5 * sizeof(uint16_t);
