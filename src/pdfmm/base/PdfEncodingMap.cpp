@@ -266,6 +266,51 @@ void PdfEncodingMapBase::AppendCIDMappingEntries(PdfObjectStream& stream, const 
     PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);
 }
 
+void PdfEncodingMapBase::AppendCodeSpaceRange(PdfObjectStream& stream) const
+{
+    struct Limit
+    {
+        PdfCharCode FirstCode;
+        PdfCharCode LastCode;
+    };
+
+    unordered_map<unsigned char, Limit> ranges;
+    for (auto& pair : *m_charMap)
+    {
+        auto& codeUnit = pair.first;
+        auto found = ranges.find(codeUnit.CodeSpaceSize);
+        if (found == ranges.end())
+        {
+            ranges[codeUnit.CodeSpaceSize] = Limit{ codeUnit, codeUnit };
+        }
+        else
+        {
+            auto& limit = found->second;
+            if (codeUnit.Code < limit.FirstCode.Code)
+                limit.FirstCode = codeUnit;
+
+            if (codeUnit.Code > limit.LastCode.Code)
+                limit.LastCode = codeUnit;
+        }
+    }
+
+    bool first = true;
+    for (auto& pair : ranges)
+    {
+        if (first)
+            first = false;
+        else
+            stream.Append("\n");
+
+        auto& range = pair.second;
+        string temp;
+        range.FirstCode.WriteHexTo(temp);
+        stream.Append(temp);
+        range.LastCode.WriteHexTo(temp);
+        stream.Append(temp);
+    }
+}
+
 PdfEncodingMapBase::PdfEncodingMapBase(const shared_ptr<PdfCharCodeMap>& map)
     : PdfEncodingMap({ }), m_charMap(map)
 {
@@ -360,6 +405,15 @@ void PdfEncodingMap::AppendUTF16CodeTo(PdfObjectStream& stream, const unicodevie
     stream.Append(">");
 }
 
+void PdfEncodingMap::AppendCodeSpaceRange(PdfObjectStream& stream) const
+{
+    string temp;
+    m_limits.FirstChar.WriteHexTo(temp);
+    stream.Append(temp);
+    m_limits.LastChar.WriteHexTo(temp);
+    stream.Append(temp);
+}
+
 void PdfEncodingMapOneByte::AppendToUnicodeEntries(PdfObjectStream& stream) const
 {
     auto& limits = GetLimits();
@@ -394,7 +448,6 @@ void PdfEncodingMapOneByte::AppendCIDMappingEntries(PdfObjectStream& stream, con
     unsigned lastCode = limits.LastChar.Code;
     vector<char32_t> codePoints;
     unsigned gid;
-    unsigned cid;
     struct Mapping
     {
         PdfCharCode Code;
@@ -411,10 +464,9 @@ void PdfEncodingMapOneByte::AppendCIDMappingEntries(PdfObjectStream& stream, con
         if (!font.GetMetrics().TryGetGID(codePoints[0], gid))
             continue;
 
-        if (!font.TryMapGIDToCID(gid, cid))
-            continue;
-
-        mappings.push_back({ charCode, cid });
+        // NOTE: We will map the char code directly to the gid, so
+        // we assume cid == gid identity
+        mappings.push_back({ charCode, gid });
     }
 
     stream.Append(std::to_string(mappings.size())).Append(" begincidchar\n");

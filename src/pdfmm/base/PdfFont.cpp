@@ -29,27 +29,24 @@
 #include "PdfFontMetricsStandard14.h"
 #include "PdfFontManager.h"
 #include "PdfFontMetricsFreetype.h"
+#include "PdfDocument.h"
 
 using namespace std;
 using namespace mm;
-
-// All Standard14 fonts have glyphs that start with a
-// white space (code 0x20, or 32)
-static constexpr unsigned DEFAULT_STD14_FIRSTCHAR = 32;
 
 // kind of ABCDEF+
 static string_view genSubsetPrefix();
 
 PdfFont::PdfFont(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
     const PdfEncoding& encoding) :
-    PdfDictionaryElement(doc, "Font"), m_Metrics(metrics), m_IsObjectLoaded(false)
+    PdfDictionaryElement(doc, "Font"), m_Metrics(metrics)
 {
     this->initBase(encoding);
 }
 
 PdfFont::PdfFont(PdfObject& obj, const PdfFontMetricsConstPtr& metrics,
     const PdfEncoding& encoding) :
-    PdfDictionaryElement(obj), m_Metrics(metrics), m_IsObjectLoaded(true)
+    PdfDictionaryElement(obj), m_Metrics(metrics)
 {
     this->initBase(encoding);
 
@@ -63,7 +60,12 @@ PdfFont::PdfFont(PdfObject& obj, const PdfFontMetricsConstPtr& metrics,
 
 PdfFont::~PdfFont() { }
 
-bool PdfFont::TryGetSubstituteFont(unique_ptr<PdfFont>& substFont)
+bool PdfFont::TryGetSubstituteFont(PdfFont*& substFont)
+{
+    return TryGetSubstituteFont(PdfFontInitFlags::Default, substFont);
+}
+
+bool PdfFont::TryGetSubstituteFont(PdfFontInitFlags initFlags, PdfFont*& substFont)
 {
     shared_ptr<charbuff> data;
     auto fontData = GetMetrics().GetFontFileObject();
@@ -89,9 +91,6 @@ bool PdfFont::TryGetSubstituteFont(unique_ptr<PdfFont>& substFont)
         {
             PdfFontSearchParams params;
             params.Style = GetMetrics().GetStyle();
-            // Normalization is not needed anymore at this stage, we
-            // will use the base name supplied by the font
-            params.NormalizeFontName = false;
 
             metrics = PdfFontManager::GetFontMetrics(GetMetrics().GetFontNameSafe(true), params);
             if (metrics == nullptr)
@@ -112,7 +111,14 @@ bool PdfFont::TryGetSubstituteFont(unique_ptr<PdfFont>& substFont)
         encoding = PdfEncoding(encoding.GetEncodingMapPtr(), toUnicode);
     }
 
-    substFont = PdfFont::Create(GetDocument(), metrics, encoding, PdfFontInitFlags::Embed);
+    auto newFont = PdfFont::Create(GetDocument(), metrics, encoding, initFlags);
+    if (newFont == nullptr)
+    {
+        substFont = nullptr;
+        return false;
+    }
+
+    substFont = GetDocument().GetFontManager().AddImported(std::move(newFont));
     return true;
 }
 
@@ -169,10 +175,10 @@ void PdfFont::WriteStringToStream(ostream& stream, const string_view& str) const
     stream << ">";
 }
 
-void PdfFont::InitImported(bool embeddingEnabled, bool subsettingEnabled)
+void PdfFont::InitImported(bool wantEmbed, bool wantSubset)
 {
-    PDFMM_ASSERT(!m_IsObjectLoaded);
-    if (subsettingEnabled && SupportsSubsetting())
+    PDFMM_ASSERT(!IsObjectLoaded());
+    if (wantSubset && SupportsSubsetting())
     {
         // Subsetting implies embedded
         m_SubsettingEnabled = true;
@@ -181,7 +187,7 @@ void PdfFont::InitImported(bool embeddingEnabled, bool subsettingEnabled)
     else
     {
         m_SubsettingEnabled = false;
-        m_EmbeddingEnabled = embeddingEnabled;
+        m_EmbeddingEnabled = wantEmbed || wantSubset;
     }
 
     if (m_SubsettingEnabled)
@@ -192,7 +198,9 @@ void PdfFont::InitImported(bool embeddingEnabled, bool subsettingEnabled)
         {
             // If it exist a glyph for space character
             // always add it for subsetting
-            AddUsedGID(gid, unicodeview(&spaceCp, 1));
+            unicodeview codepoints(&spaceCp, 1);
+            PdfCID cid;
+            (void)tryAddSubsetGID(gid, codepoints, cid);
         }
     }
 
@@ -473,33 +481,96 @@ double PdfFont::GetDescent(const PdfTextState& state) const
     return m_Metrics->GetDescent() * state.GetFontSize();
 }
 
-PdfCID PdfFont::AddUsedGID(unsigned gid, const unicodeview& codePoints)
+PdfCID PdfFont::AddSubsetGID(unsigned gid, const unicodeview& codePoints)
 {
-    PDFMM_ASSERT(!m_IsObjectLoaded);
-    if (m_SubsettingEnabled && m_IsEmbedded)
+    if (m_IsEmbedded)
     {
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic,
             "Can't add more subsetting glyphs on an already embedded font");
     }
 
+    PdfCID ret;
+    if (!tryAddSubsetGID(gid, codePoints, ret))
+    {
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile,
+            "The encoding doesn't support these characters or the gid is already present");
+    }
+
+    return ret;
+}
+
+bool PdfFont::tryAddSubsetGID(unsigned gid, const unicodeview& codePoints, PdfCID& cid)
+{
+    (void)codePoints;
+    PDFMM_ASSERT(m_SubsettingEnabled && !IsObjectLoaded());
     if (m_DynCharCodeMap == nullptr)
     {
-        auto found = m_UsedGIDs.find(gid);
-        if (found != m_UsedGIDs.end())
-            return found->second;
-
         PdfCharCode codeUnit;
         if (!m_Encoding->GetToUnicodeMapSafe().TryGetCharCode(codePoints, codeUnit))
-            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "The encoding doesn't support these characters");
+        {
+            cid = { };
+            return false;
+        }
 
-        // We start numberings CIDs from 1 since
-        // CID 0 is reserved for fallbacks
-        m_UsedGIDs[gid] = PdfCID((unsigned)m_UsedGIDs.size() + 1, codeUnit);
-        return codeUnit;
+        // We start numberings CIDs from 1 since CID 0
+        // is reserved for fallbacks
+        auto inserted = m_SubsetGIDs.try_emplace(gid, PdfCID((unsigned)m_SubsetGIDs.size() + 1, codeUnit));
+        if (!inserted.second)
+        {
+            cid = { };
+            return false;
+        }
+
+        cid = inserted.first->second;
+        return true;
     }
     else
     {
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "TODO");
+    }
+}
+
+bool PdfFont::SubsetContainsGID(unsigned gid, PdfCID& cid)
+{
+    PDFMM_ASSERT(m_SubsettingEnabled);
+    auto found = m_SubsetGIDs.find(gid);
+    if (found != m_SubsetGIDs.end())
+    {
+        cid = found->second;
+        return true;
+    }
+
+    cid = { };
+    return false;
+}
+
+void PdfFont::AddSubsetGIDs(const PdfString& encodedStr)
+{
+    if (IsObjectLoaded())
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Can't add used GIDs to a loaded font");
+
+    if (m_DynCharCodeMap != nullptr)
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Can't add used GIDs from an encoded string to a font with a dynamic encoding");
+
+    if (!m_SubsettingEnabled)
+        return;
+
+    if (m_IsEmbedded)
+    {
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic,
+            "Can't add more subsetting glyphs on an already embedded font");
+    }
+
+    vector<PdfCID> cids;
+    unsigned gid;
+    (void)GetEncoding().TryConvertToCIDs(encodedStr, cids);
+    for (auto& cid : cids)
+    {
+        if (TryMapCIDToGID(cid.Id, gid))
+        {
+            (void)m_SubsetGIDs.try_emplace(gid,
+                PdfCID((unsigned)m_SubsetGIDs.size() + 1, cid.Unit));
+        }
     }
 }
 
@@ -529,22 +600,11 @@ PdfObject& PdfFont::GetDescendantFontObject()
 
 bool PdfFont::TryMapCIDToGID(unsigned cid, unsigned& gid) const
 {
-    if (m_IsObjectLoaded)
+    PDFMM_ASSERT(!IsObjectLoaded());
+    if (m_Encoding->GetEncodingMap().IsSimpleEncoding())
     {
-        if (m_Metrics->IsStandard14FontMetrics() && !m_Encoding->HasParsedLimits())
-        {
-            gid = cid - DEFAULT_STD14_FIRSTCHAR;
-        }
-        else
-        {
-            // We just convert to a GID using /FirstChar
-            gid = cid - m_Encoding->GetFirstChar().Code;
-        }
-
-        return true;
-    }
-    else
-    {
+        // Simple encodings must retrieve the gid from the
+        // metrics using the mapped unicode code point
         char32_t mappedCodePoint = m_Encoding->GetCodePoint(cid);
         if (mappedCodePoint == U'\0'
             || !m_Metrics->TryGetGID(mappedCodePoint, gid))
@@ -555,31 +615,14 @@ bool PdfFont::TryMapCIDToGID(unsigned cid, unsigned& gid) const
 
         return true;
     }
-}
-
-bool PdfFont::TryMapGIDToCID(unsigned gid, unsigned& cid) const
-{
-    if (m_IsObjectLoaded)
-    {
-        if (m_Metrics->IsStandard14FontMetrics() && !m_Encoding->HasParsedLimits())
-        {
-            cid = gid + DEFAULT_STD14_FIRSTCHAR;
-        }
-        else
-        {
-            // We just convert to a CID using /FirstChar
-            cid = gid + m_Encoding->GetFirstChar().Code;
-        }
-
-        return true;
-    }
     else
     {
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic,
-            "We don't support mapping GID to CID from a not loaded font");
-        // NOTE: If it's needed a best effort /ToUnicode map
-        // inferred from a font file, use the function
-        // PdfFontMetrics::CreateToUnicodeMap()
+        // We assume the font is not loaded, hence it's imported
+        // We assume cid == gid identity. CHECK-ME: Does it work
+        // if we font to create a substitute font of a loaded font
+        // with a /CIDToGIDMap ???
+        gid = cid;
+        return true;
     }
 }
 
@@ -621,14 +664,14 @@ string_view genSubsetPrefix()
     return s_ctx.Prefix;
 }
 
-string PdfFont::ExtractBaseName(const string_view& fontName, bool& isBold, bool& isItalic)
+string PdfFont::ExtractBaseName(const string_view& fontName, bool& isItalic, bool& isBold)
 {
     // TABLE H.3 Names of standard fonts
     string name = (string)fontName;
     regex regex;
     smatch matches;
-    isBold = false;
     isItalic = false;
+    isBold = false;
     
     // NOTE: For some reasons, "^[A-Z]{6}\+" doesn't work
     regex = std::regex("^[A-Z][A-Z][A-Z][A-Z][A-Z][A-Z]\\+", regex_constants::ECMAScript);
@@ -712,4 +755,9 @@ bool PdfFont::IsCIDKeyed() const
         default:
             return false;
     }
+}
+
+bool PdfFont::IsObjectLoaded() const
+{
+    return false;
 }

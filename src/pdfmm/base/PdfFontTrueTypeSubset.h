@@ -10,9 +10,6 @@
 #define PDF_FONT_TTF_SUBSET_H
 
 #include "PdfDeclarations.h"
-
-#include <map>
-
 #include "PdfFontMetrics.h"
 
 namespace mm {
@@ -31,7 +28,7 @@ enum class TrueTypeFontFileType
     OTF,    ///< OpenType Font
 };
 
-typedef std::map<unsigned, unsigned> CIDToGIDMap;
+using GIDList = std::span<const unsigned>;
 
 /**
  * This class is able to build a new TTF font with only
@@ -54,18 +51,17 @@ public:
      * \param type the type of the font
      * \param faceIndex index of the face inside of the font
      * \param metrics font metrics object for this font
-     * \param cidToGidMap a map from cids to gids. It shall be a map
-     *     of consecutive indices starting with 1
+     * \param gidList a list of gids to load
      * \param cidSet the output /CidSet
      */
     static void BuildFont(std::string& output, PdfInputDevice& input,
-        unsigned short faceIndex, const CIDToGIDMap& cidToGidMap);
+        unsigned short faceIndex, const GIDList& gidList);
 
 private:
     PdfFontTrueTypeSubset(const PdfFontTrueTypeSubset& rhs) = delete;
     PdfFontTrueTypeSubset& operator=(const PdfFontTrueTypeSubset& rhs) = delete;
 
-    void BuildFont(std::string& buffer, const CIDToGIDMap& cidToGidMap);
+    void BuildFont(std::string& buffer, const GIDList& gidList);
 
     void Init();
     void DetermineFontType();
@@ -123,7 +119,7 @@ private:
         unsigned GlyphIndex;
     };
 
-    void LoadGlyphs(GlyphContext& ctx, const CIDToGIDMap& usedCodes);
+    void LoadGlyphs(GlyphContext& ctx, const GIDList& gidList);
     void LoadGID(GlyphContext& ctx, unsigned gid);
     void LoadCompound(GlyphContext& ctx, const GlyphData& data);
     void WriteGlyphTable(PdfOutputDevice& output);

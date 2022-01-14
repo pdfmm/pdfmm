@@ -72,7 +72,7 @@ PdfDocument::~PdfDocument()
 
 void PdfDocument::Clear() 
 {
-    m_FontManager.EmptyCache();
+    m_FontManager.Clear();
     m_Objects.Clear();
     m_Objects.SetCanReuseObjectNumbers(true);
     m_Catalog = nullptr;
@@ -103,11 +103,6 @@ void PdfDocument::Init()
     auto acroformObj = catalogDict.FindKey("AcroForm");
     if (acroformObj != nullptr)
         m_AcroForm.reset(new PdfAcroForm(*acroformObj));
-}
-
-void PdfDocument::EmbedSubsetFonts()
-{
-	m_FontManager.EmbedSubsetFonts();
 }
 
 const PdfDocument& PdfDocument::Append(const PdfDocument& doc, bool appendAll)

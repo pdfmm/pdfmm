@@ -25,12 +25,6 @@ PdfFontSimple::PdfFontSimple(PdfDocument& doc, const PdfFontMetricsConstPtr& met
 {
 }
 
-PdfFontSimple::PdfFontSimple(PdfObject& obj, const PdfFontMetricsConstPtr& metrics,
-    const PdfEncoding& encoding)
-    : PdfFont(obj, metrics, encoding), m_Descriptor(nullptr)
-{
-}
-
 void PdfFontSimple::getWidthsArray(PdfArray& arr) const
 {
     vector<double> widths;

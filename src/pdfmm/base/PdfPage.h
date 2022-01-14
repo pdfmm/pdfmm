@@ -11,8 +11,6 @@
 
 #include "PdfDeclarations.h"
 
-#include <map>
-
 #include "PdfElement.h"
 #include "PdfArray.h"
 #include "PdfCanvas.h"

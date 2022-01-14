@@ -10,12 +10,9 @@
 #define PDF_FONT_CID_H
 
 #include "PdfDeclarations.h"
-#include <set>
 #include "PdfFont.h"
 
 namespace mm {
-
-typedef std::map<unsigned, unsigned> CIDToGIDMap;
 
 /** A PdfFont that represents a CID-keyed font that has a TrueType font backend
  */
@@ -39,8 +36,6 @@ private:
 public:
     bool SupportsSubsetting() const override;
     PdfFontType GetType() const override;
-    bool TryMapCIDToGID(unsigned cid, unsigned& gid) const override;
-    bool TryMapGIDToCID(unsigned gid, unsigned& cid) const override;
 
 protected:
     void embedFont() override;
@@ -50,7 +45,8 @@ protected:
 private:
     void embedFontFile(PdfObject& descriptor);
     void createWidths(PdfDictionary& fontDict, const CIDToGIDMap& glyphWidths);
-    CIDToGIDMap getCIDToGIDMap(bool subsetting);
+    CIDToGIDMap getIdentityCIDToGIDMap();
+    static CIDToGIDMap getCIDToGIDMapSubset(const UsedGIDsMap& usedGIDs);
 
 protected:
     void initImported() override;

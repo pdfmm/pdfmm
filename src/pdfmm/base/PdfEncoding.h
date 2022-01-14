@@ -68,6 +68,7 @@ namespace mm
         /**
          * Get a cid codes from a utf8 string
          *
+         * \param str utf8 encoded string
          * \remarks Doesn't throw if conversion failed, totally or partially
          */
         std::vector<PdfCID> ConvertToCIDs(const std::string_view& str) const;
@@ -75,6 +76,7 @@ namespace mm
         /**
          * Try to get a cid codes from a utf8 string
          *
+         * \param str utf8 encoded string
          * \remarks Produces a partial result also in case of failure
          */
         bool TryConvertToCIDs(const std::string_view& str, std::vector<PdfCID>& cids) const;
@@ -188,6 +190,7 @@ namespace mm
         bool tryConvertEncodedToCIDs(const std::string_view& encoded, std::vector<PdfCID>& cids) const;
         void writeCIDMapping(PdfObject& cmapObj, const PdfFont& font, const std::string_view& baseFont) const;
         void writeToUnicodeCMap(PdfObject& cmapObj) const;
+        PdfCharCode getCharCode(PdfFont& font, unsigned gid, const unicodeview& codePoints) const;
 
     private:
         size_t m_Id;

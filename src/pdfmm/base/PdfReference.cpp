@@ -32,14 +32,20 @@ void PdfReference::Write(PdfOutputDevice& device, PdfWriteFlags writeMode, const
     if ((writeMode & PdfWriteFlags::NoInlineLiteral) == PdfWriteFlags::None)
         device.Put(' '); // Write space before the reference
 
-    device.Write(COMMON_FORMAT("{} {} R", m_ObjectNo, m_GenerationNo));
+    device.Write(cmn::Format("{} {} R", m_ObjectNo, m_GenerationNo));
 }
 
-const string PdfReference::ToString() const
+string PdfReference::ToString() const
 {
-    ostringstream out;
-    out << m_ObjectNo << " " << m_GenerationNo << " R";
-    return out.str();
+    string ret;
+    ToString(ret);
+    return ret;
+}
+
+void PdfReference::ToString(string& str) const
+{
+    str.clear();
+    cmn::FormatTo(str, "{} {} R", m_ObjectNo, m_GenerationNo);
 }
 
 bool PdfReference::operator<(const PdfReference& rhs) const

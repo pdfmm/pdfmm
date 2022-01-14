@@ -11,8 +11,6 @@
 
 #include "PdfDeclarations.h"
 
-#include <map>
-
 #include "PdfDataContainer.h"
 #include "PdfName.h"
 

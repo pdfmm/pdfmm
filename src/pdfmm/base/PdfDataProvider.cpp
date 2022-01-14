@@ -7,9 +7,25 @@
 
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfDataProvider.h"
+#include "PdfOutputDevice.h"
 
+using namespace std;
 using namespace mm;
 
 PdfDataProvider::PdfDataProvider() { }
 
 PdfDataProvider::~PdfDataProvider() { }
+
+string PdfDataProvider::ToString() const
+{
+    string ret;
+    ToString(ret);
+    return ret;
+}
+
+void PdfDataProvider::ToString(string& str) const
+{
+    str.clear();
+    PdfStringOutputDevice device(str);
+    Write(device, PdfWriteFlags::None, nullptr);
+}

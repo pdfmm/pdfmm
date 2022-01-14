@@ -231,14 +231,7 @@ void PdfMemDocument::Write(const string_view& filename, PdfSaveOptions options)
 
 void PdfMemDocument::Write(PdfOutputDevice& device, PdfSaveOptions opts)
 {
-    if ((opts & PdfSaveOptions::NoModifyDateUpdate) ==
-        PdfSaveOptions::None)
-    {
-        updateModifyTimestamp(PdfDate());
-    }
-
-    // makes sure pending subset-fonts are embedded
-    GetFontManager().EmbedSubsetFonts();
+    beforeWrite(opts);
 
     PdfWriter writer(this->GetObjects(), this->GetTrailer());
     writer.SetPdfVersion(this->GetPdfVersion());
@@ -266,14 +259,8 @@ void PdfMemDocument::WriteUpdate(const string_view& filename, PdfSaveOptions opt
 
 void PdfMemDocument::WriteUpdate(PdfOutputDevice& device, PdfSaveOptions opts)
 {
-    if ((opts & PdfSaveOptions::NoModifyDateUpdate) ==
-        PdfSaveOptions::None)
-    {
-        updateModifyTimestamp(PdfDate());
-    }
+    beforeWrite(opts);
 
-    // makes sure pending subset-fonts are embedded
-    GetFontManager().EmbedSubsetFonts();
     PdfWriter writer(this->GetObjects(), this->GetTrailer());
     writer.SetPdfVersion(this->GetPdfVersion());
     writer.SetSaveOptions(opts);
@@ -302,6 +289,18 @@ void PdfMemDocument::WriteUpdate(PdfOutputDevice& device, PdfSaveOptions opts)
         PDFMM_PUSH_FRAME(e);
         throw e;
     }
+}
+
+void PdfMemDocument::beforeWrite(PdfSaveOptions opts)
+{
+    if ((opts & PdfSaveOptions::NoModifyDateUpdate) ==
+        PdfSaveOptions::None)
+    {
+        updateModifyTimestamp(PdfDate());
+    }
+
+    // makes sure pending subset-fonts are embedded
+    GetFontManager().HandleSave();
 }
 
 void PdfMemDocument::deletePages(unsigned atIndex, unsigned pageCount)

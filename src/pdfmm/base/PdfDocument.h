@@ -86,12 +86,6 @@ public:
      */
     PdfAcroForm& GetOrCreateAcroForm(PdfAcroFormDefaulAppearance eDefaultAppearance = PdfAcroFormDefaulAppearance::BlackText12pt);
 
-    /** Embeds all pending subset fonts, is automatically done on Write().
-     *  Just call explicitly in case the PdfDocument is needed as PdfXObject.
-     *
-     */
-    void EmbedSubsetFonts();
-
     /** Appends another PdfDocument to this document.
      *  \param doc the document to append
      *  \param appendAll specifies whether pages and outlines are appended too

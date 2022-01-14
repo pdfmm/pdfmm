@@ -152,12 +152,32 @@ bool PdfEncoding::TryConvertToEncoded(const string_view& str, charbuff& encoded)
         {
             unsigned char cpsSpanSize = backwardMap[i];
             span<char32_t> span(cps.data() + cpOffset, cpsSpanSize);
-            auto cid = font.AddUsedGID(gids[i], span);
-            cid.Unit.AppendTo(encoded);
+            auto unit = getCharCode(font, gids[i], span);
+            unit.AppendTo(encoded);
             cpOffset += cpsSpanSize;
         }
 
         return true;
+    }
+}
+
+PdfCharCode PdfEncoding::getCharCode(PdfFont& font, unsigned gid, const unicodeview& codePoints) const
+{
+    if (font.IsSubsettingEnabled())
+    {
+        PdfCID cid;
+        if (font.SubsetContainsGID(gid, cid))
+            return cid.Unit;
+
+        return font.AddSubsetGID(gid, codePoints).Unit;
+    }
+    else
+    {
+        PdfCharCode codeUnit;
+        if (!GetToUnicodeMapSafe().TryGetCharCode(codePoints, codeUnit))
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "The encoding doesn't support these characters");
+
+        return codeUnit;
     }
 }
 
@@ -335,18 +355,18 @@ void PdfEncoding::ExportToFont(PdfFont& font, PdfEncodingExportFlags flags) cons
         // NOTE: Setting the CIDSystemInfo params in the descendant font object is required
         font.GetDescendantFontObject().GetDictionary().AddKeyIndirect("CIDSystemInfo", cidSystemInfo);
 
-        // Some CMap encodings has a name representation, such as Identity-H/Identity-V
-        if (!tryExportObjectTo(fontDict, true))
+        // Some CMap encodings has a name representation, such as
+        // Identity-H/Identity-V. NOTE: Use a fixed representation only
+        // if we are not subsetting. In that case we want a CID mapping
+        if (font.IsSubsettingEnabled() || !tryExportObjectTo(fontDict, true))
         {
             // If it doesn't have a name represenation, try to export a CID CMap
-            auto& font = GetFont();
-
             auto cmapObj = fontDict.GetOwner()->GetDocument()->GetObjects().CreateDictionaryObject();
 
             // NOTE: Setting the CIDSystemInfo params in the CMap stream object is required
             cmapObj->GetDictionary().AddKeyIndirect("CIDSystemInfo", cidSystemInfo);
 
-            writeCIDMapping(*cmapObj, font, fontName);
+            writeCIDMapping(*cmapObj, GetFont(), fontName);
             fontDict.AddKeyIndirect("Encoding", cmapObj);
         }
     }
@@ -559,9 +579,6 @@ PdfCID getCID(const PdfCharCode& codeUnit, const PdfEncodingMap& map, bool& succ
 
 void PdfEncoding::writeCIDMapping(PdfObject& cmapObj, const PdfFont& font, const string_view& fontName) const
 {
-    if (GetLimits().MaxCodeSize > 1)
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "TODO");
-
     // CMap specification is in Adobe technical node #5014
     auto& cmapDict = cmapObj.GetDictionary();
     string cmapName = (string)fontName;
@@ -585,9 +602,59 @@ void PdfEncoding::writeCIDMapping(PdfObject& cmapObj, const PdfFont& font, const
         ">> def\n"
         "/CMapName /").Append(cmapName).Append(" def\n"
         "/CMapType 1 def\n"     // As defined in Adobe Technical Notes #5099
-        "1 begincodespacerange\n"
-        "<00> <FF>\n"
-        "endcodespacerange\n");
+        "1 begincodespacerange\n");
+
+    if (font.IsSubsettingEnabled())
+    {
+        struct Limit
+        {
+            PdfCharCode FirstCode;
+            PdfCharCode LastCode;
+        };
+
+        unordered_map<unsigned char, Limit> ranges;
+        auto& usedGids = font.GetUsedGIDs();
+        for (auto& pair : usedGids)
+        {
+            auto& codeUnit = pair.second.Unit;
+            auto found = ranges.find(codeUnit.CodeSpaceSize);
+            if (found == ranges.end())
+            {
+                ranges[codeUnit.CodeSpaceSize] = Limit{ codeUnit, codeUnit };
+            }
+            else
+            {
+                auto& limit = found->second;
+                if (codeUnit.Code < limit.FirstCode.Code)
+                    limit.FirstCode = codeUnit;
+
+                if (codeUnit.Code > limit.LastCode.Code)
+                    limit.LastCode = codeUnit;
+            }
+        }
+
+        bool first = true;
+        for (auto& pair : ranges)
+        {
+            if (first)
+                first = false;
+            else
+                stream.Append("\n");
+
+            auto& range = pair.second;
+            string temp;
+            range.FirstCode.WriteHexTo(temp);
+            stream.Append(temp);
+            range.LastCode.WriteHexTo(temp);
+            stream.Append(temp);
+        }
+    }
+    else
+    {
+        m_Encoding->AppendCodeSpaceRange(stream);
+    }
+
+    stream.Append("\nendcodespacerange\n");
 
     if (font.IsSubsettingEnabled())
     {
@@ -636,12 +703,7 @@ void PdfEncoding::writeToUnicodeCMap(PdfObject& cmapObj) const
         "/CMapName /Adobe-Identity-UCS def\n"
         "/CMapType 2 def\n"     // As defined in Adobe Technical Notes #5099
         "1 begincodespacerange\n");
-
-    string temp;
-    toUnicode.GetLimits().FirstChar.WriteHexTo(temp);
-    stream.Append(temp);
-    toUnicode.GetLimits().LastChar.WriteHexTo(temp);
-    stream.Append(temp);
+    toUnicode.AppendCodeSpaceRange(stream);
     stream.Append("\nendcodespacerange\n");
 
     toUnicode.AppendToUnicodeEntries(stream);

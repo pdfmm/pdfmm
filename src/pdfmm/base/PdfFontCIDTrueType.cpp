@@ -71,30 +71,6 @@ PdfFontType PdfFontCIDTrueType::GetType() const
     return PdfFontType::CIDTrueType;
 }
 
-bool PdfFontCIDTrueType::TryMapCIDToGID(unsigned cid, unsigned& gid) const
-{
-    // TODO Read /CIDToGIDMap
-    //const PdfName& subType = obj.GetDictionary().FindKey(PdfName::KeySubtype)->GetName();
-    //if (subType == "CIDFontType2")
-    //{
-    //    auto cidToGidMap = obj.GetDictionary().FindKey("CIDToGIDMap");
-    //    if (cidToGidMap != nullptr)
-    //    {
-    //
-    //    }
-    //}
-
-    gid = cid;
-    return true;
-}
-
-bool PdfFontCIDTrueType::TryMapGIDToCID(unsigned gid, unsigned& cid) const
-{
-    // TODO: use "/CIDToGIDMap" if present
-    cid = gid;
-    return true;
-}
-
 void PdfFontCIDTrueType::initImported()
 {
     PdfArray arr;
@@ -116,12 +92,11 @@ void PdfFontCIDTrueType::initImported()
 
     // Same base font as the owner font:
     m_descendantFont->GetDictionary().AddKey("BaseFont", PdfName(this->GetName()));
-
     m_descendantFont->GetDictionary().AddKey("CIDToGIDMap", PdfName("Identity"));
 
     if (!IsSubsettingEnabled())
     {
-        createWidths(m_descendantFont->GetDictionary(), getCIDToGIDMap(false));
+        createWidths(m_descendantFont->GetDictionary(), getIdentityCIDToGIDMap());
         m_Encoding->ExportToFont(*this);
     }
 
@@ -151,8 +126,9 @@ void PdfFontCIDTrueType::embedFontFile(PdfObject& descriptor)
 {
     if (IsSubsettingEnabled())
     {
+        auto& usedGIDs = GetUsedGIDs();
         // Prepare a CID to GID for the subsetting
-        CIDToGIDMap cidToGidMap = getCIDToGIDMap(true);
+        CIDToGIDMap cidToGidMap = getCIDToGIDMapSubset(usedGIDs);
         createWidths(m_descendantFont->GetDictionary(), cidToGidMap);
         m_Encoding->ExportToFont(*this);
 
@@ -160,12 +136,43 @@ void PdfFontCIDTrueType::embedFontFile(PdfObject& descriptor)
         PdfMemoryInputDevice input(metrics.GetFontFileData());
         charbuff buffer;
 
-        PdfFontTrueTypeSubset::BuildFont(buffer, input, 0, cidToGidMap);
+        // Prepare a gid list to be used for subsetting
+        vector<unsigned> gids;
+        for (auto& pair : cidToGidMap)
+            gids.push_back(pair.second);
+
+        PdfFontTrueTypeSubset::BuildFont(buffer, input, 0, gids);
         auto contents = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject();
         descriptor.GetDictionary().AddKeyIndirect("FontFile2", contents);
 
         contents->GetDictionary().AddKey("Length1", PdfObject(static_cast<int64_t>(buffer.size())));
         contents->GetOrCreateStream().Set(buffer);
+
+        // We prepare the /CIDSet content now. NOTE: The CIDSet
+        // entry is optional and it's actually deprecated in PDF 2.0
+        // but it's required for PDFA/1 compliance
+        string cidSetData;
+        for (auto& pair : usedGIDs)
+        {
+            // ISO 32000-1:2008: Table 124 – Additional font descriptor entries for CIDFonts
+            // CIDSet "The stream’s data shall be organized as a table of bits
+            // indexed by CID. The bits shall be stored in bytes with the
+            // high - order bit first.Each bit shall correspond to a CID.
+            // The most significant bit of the first byte shall correspond
+            // to CID 0, the next bit to CID 1, and so on"
+
+            static const char bits[] = { '\x80', '\x40', '\x20', '\x10', '\x08', '\x04', '\x02', '\x01' };
+            unsigned gid = pair.second.Id;
+            unsigned dataIndex = gid >> 3;
+            if (cidSetData.size() < dataIndex + 1)
+                cidSetData.resize(dataIndex + 1);
+
+            cidSetData[dataIndex] |= bits[gid & 7];
+        }
+
+        auto cidSetObj = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject();
+        cidSetObj->GetOrCreateStream().Set(cidSetData);
+        descriptor.GetDictionary().AddKeyIndirect("CIDSet", cidSetObj);
     }
     else
     {
@@ -195,29 +202,25 @@ void PdfFontCIDTrueType::createWidths(PdfDictionary& fontDict, const CIDToGIDMap
         std::round(GetMetrics().GetDefaultWidth() / metrics.GetMatrix()[0])));
 }
 
-CIDToGIDMap PdfFontCIDTrueType::getCIDToGIDMap(bool subsetting)
+CIDToGIDMap PdfFontCIDTrueType::getIdentityCIDToGIDMap()
+{
+    PDFMM_ASSERT(!IsSubsettingEnabled());
+    CIDToGIDMap ret;
+    unsigned gidCount = GetMetrics().GetGlyphCount();
+    for (unsigned gid = 0; gid < gidCount; gid++)
+        ret.insert(std::make_pair(gid, gid));
+
+    return ret;
+}
+
+CIDToGIDMap PdfFontCIDTrueType::getCIDToGIDMapSubset(const UsedGIDsMap& usedGIDs)
 {
     CIDToGIDMap ret;
-    if (subsetting)
+    for (auto& pair : usedGIDs)
     {
-        auto& usedGIDs = GetUsedGIDs();
-        for (auto& pair : usedGIDs)
-        {
-            unsigned gid = pair.first;
-            unsigned cid = pair.second.Id;
-            ret.insert(std::make_pair(cid, gid));
-        }
-    }
-    else
-    {
-        unsigned gidCount = GetMetrics().GetGlyphCount();
-        for (unsigned gid = 0; gid < gidCount; gid++)
-        {
-            unsigned cid;
-            if (!TryMapGIDToCID(gid, cid))
-                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "Unable to map gid to cid");
-            ret.insert(std::make_pair(cid, gid));
-        }
+        unsigned gid = pair.first;
+        unsigned cid = pair.second.Id;
+        ret.insert(std::make_pair(cid, gid));
     }
 
     return ret;
@@ -286,10 +289,9 @@ PdfArray WidthExporter::GetPdfWidths(const CIDToGIDMap& cidToGidMap,
         return PdfArray();
 
     auto& matrix = metrics.GetMatrix();
-    auto it = cidToGidMap.begin();
-    WidthExporter exporter(it->first, getPdfWidth(it->second, metrics, matrix));
-    while (++it != cidToGidMap.end())
-        exporter.update(it->first, getPdfWidth(it->second, metrics, matrix));
+    WidthExporter exporter(0, getPdfWidth(0, metrics, matrix));
+    for (auto& pair : cidToGidMap)
+        exporter.update(pair.first, getPdfWidth(pair.second, metrics, matrix));
 
     return exporter.finish();
 }

@@ -59,21 +59,20 @@ PdfFontTrueTypeSubset::PdfFontTrueTypeSubset(PdfInputDevice& device, unsigned sh
 }
 
 void PdfFontTrueTypeSubset::BuildFont(string& buffer, PdfInputDevice& input,
-    unsigned short faceIndex, const CIDToGIDMap& cidToGidMap)
+    unsigned short faceIndex, const GIDList& gidList)
 {
     PdfFontTrueTypeSubset subset(input, faceIndex);
-    subset.BuildFont(buffer, cidToGidMap);
+    subset.BuildFont(buffer, gidList);
 }
 
-void PdfFontTrueTypeSubset::BuildFont(string& buffer,
-    const CIDToGIDMap& cidToGidMap)
+void PdfFontTrueTypeSubset::BuildFont(string& buffer, const GIDList& gidList)
 {
     Init();
 
     GlyphContext context;
     context.GlyfTableOffset = GetTableOffset(TTAG_glyf);
     context.LocaTableOffset = GetTableOffset(TTAG_loca);
-    LoadGlyphs(context, cidToGidMap);
+    LoadGlyphs(context, gidList);
     WriteTables(buffer);
 }
 
@@ -235,35 +234,28 @@ void PdfFontTrueTypeSubset::GetStartOfTTFOffsets()
 
 void PdfFontTrueTypeSubset::SeeIfLongLocaOrNot()
 {
-    unsigned ulHeadOffset = GetTableOffset(TTAG_head);
+    unsigned headOffset = GetTableOffset(TTAG_head);
     uint16_t isLong;
-    m_device->Seek(ulHeadOffset + 50);
+    m_device->Seek(headOffset + 50);
     utls::ReadUInt16BE(*m_device, isLong);
     m_isLongLoca = (isLong == 0 ? false : true);  // 1 for long
 }
 
-void PdfFontTrueTypeSubset::LoadGlyphs(GlyphContext& ctx, const CIDToGIDMap& usedCodes)
+void PdfFontTrueTypeSubset::LoadGlyphs(GlyphContext& ctx, const GIDList& gidList)
 {
     // For any fonts, assume that glyph 0 is needed.
     LoadGID(ctx, 0);
-    unsigned prevCID = 0;
-    for (auto& pair : usedCodes)
-    {
-        if ((pair.first - prevCID) != 1)
-            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "The cid to gid map should be starting with 1 have consecutive indices");
-
-        LoadGID(ctx, pair.second);
-        prevCID = pair.first;
-    }
+    for (unsigned gid : gidList)
+        LoadGID(ctx, gid);
 
     // Map original GIDs to a new index as they will appear in the subset
     map<unsigned, unsigned> glyphIndexMap;
     glyphIndexMap.insert({ 0, 0 });
     m_orderedGIDs.push_back(0);
-    for (auto& pair : usedCodes)
+    for (unsigned gid : gidList)
     {
-        glyphIndexMap.insert({ pair.second, (unsigned)glyphIndexMap.size() });
-        m_orderedGIDs.push_back(pair.second);
+        glyphIndexMap.insert({ gid, (unsigned)glyphIndexMap.size() });
+        m_orderedGIDs.push_back(gid);
     }
 
     for (auto& pair : m_glyphDatas)

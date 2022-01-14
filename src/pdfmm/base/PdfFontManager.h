@@ -34,9 +34,9 @@ class PdfIndirectObjectList;
 
 struct PdfFontSearchParams
 {
-    PdfFontStyle Style;
+    PdfFontStyle Style = PdfFontStyle::Regular;
     PdfAutoSelectFontOptions AutoSelect = PdfAutoSelectFontOptions::None;
-    bool NormalizeFontName = true;
+    bool MatchExactName = false;
 };
 
 struct PdfFontInitParams
@@ -63,6 +63,7 @@ class PDFMM_API PdfFontManager final
     friend class PdfDocument;
     friend class PdfMemDocument;
     friend class PdfStreamedDocument;
+    friend class PdfFont;
 
     PdfFontManager(const PdfFontManager&) = delete;
     PdfFontManager& operator=(const PdfFontManager&) = delete;
@@ -139,32 +140,33 @@ public:
     static PdfFontConfigWrapper& GetFontConfigWrapper();
 #endif // PDFMM_HAVE_FONTCONFIG
 
-    // These methods are available for PdfDocument only
+    // These methods are reserved to use to selected friend classes
 private:
     PdfFontManager(PdfDocument& doc);
 
-    /** Embeds all pending subset-fonts
+    /** To be called by PdfDocument before saving
      */
-    void EmbedSubsetFonts();
+    void HandleSave();
 
     /**
      * Empty the internal font cache.
      * This should be done when ever a new document
      * is created or openened.
      */
-    void EmptyCache();
+    void Clear();
+
+    PdfFont* AddImported(std::unique_ptr<PdfFont>&& font);
 
 private:
-    /** A private structure,
-     *  which represents a font in the cache.
+    /** A private structure, which represents a cached font
      */
-    struct Element
+    struct Descriptor
     {
-        Element(const std::string_view& fontname, PdfStandard14FontType stdType,
+        Descriptor(const std::string_view& fontname, PdfStandard14FontType stdType,
             const PdfEncoding& encoding, PdfFontStyle style);
 
-        Element(const Element& rhs) = default;
-        Element& operator=(const Element& rhs) = default;
+        Descriptor(const Descriptor& rhs) = default;
+        Descriptor& operator=(const Descriptor& rhs) = default;
 
         std::string FontName;
         PdfStandard14FontType StdType;
@@ -174,16 +176,25 @@ private:
 
     struct HashElement
     {
-        size_t operator()(const Element& elem) const;
+        size_t operator()(const Descriptor& elem) const;
     };
 
     struct EqualElement
     {
-        bool operator()(const Element& lhs, const Element& rhs) const;
+        bool operator()(const Descriptor& lhs, const Descriptor& rhs) const;
     };
 
-    typedef std::unordered_map<Element, std::unique_ptr<PdfFont>, HashElement, EqualElement> FontCacheMap;
+    using ImportedFontMap = std::unordered_map<Descriptor, std::vector<PdfFont*>, HashElement, EqualElement>;
 
+    struct Storage
+    {
+        bool IsLoaded;
+        std::unique_ptr<PdfFont> Font;
+    };
+
+    using FontMap = std::unordered_map<PdfReference, Storage>;
+
+    using FontMatcher = std::function<PdfFont*(const std::vector<PdfFont*>&)>;
 private:
 #ifdef PDFMM_HAVE_FONTCONFIG
     static std::shared_ptr<PdfFontConfigWrapper> ensureInitializedFontConfig();
@@ -193,17 +204,14 @@ private:
         const PdfFontSearchParams& params);
     static std::unique_ptr<charbuff> getFontData(const std::string_view& fontName,
         std::string filepath, int faceIndex, const PdfFontSearchParams& params);
-    PdfFont* getFont(const std::string_view& baseFontName,
+    PdfFont* getImportedFont(const std::string_view& fontName, const std::string_view& baseFontName,
         const PdfFontSearchParams& searchParams, const PdfFontInitParams& initParams);
     PdfFont* getStandard14Font(PdfStandard14FontType stdFont,
         PdfFontInitFlags initFlags, const PdfEncoding& encoding);
     static std::string adaptSearchParams(const std::string_view& fontName, PdfFontSearchParams& searchParams);
-
-    /** Create a font and put it into the fontcache
-     */
-    PdfFont* createFontObject(const std::string_view& fontName,
-        const PdfFontMetricsConstPtr& metrics, const PdfEncoding& encoding,
-        PdfFontInitFlags initFlags);
+    PdfFont* getImportedFont(const PdfFontMetricsConstPtr& metrics, const PdfEncoding& encoding,
+        PdfFontInitFlags initFlags, const FontMatcher& matchFont);
+    PdfFont* addImported(std::vector<PdfFont*>& fonts, std::unique_ptr<PdfFont>&& font);
 
 #if defined(_WIN32) && defined(PDFMM_HAVE_WIN32GDI)
     static std::unique_ptr<charbuff> getWin32FontData(const std::string_view& fontName,
@@ -212,10 +220,10 @@ private:
 
 private:
     PdfDocument* m_doc;
-    // Sorted list of all imported fonts currently in the cache
-    FontCacheMap m_fontMap;
-    // Map of parsed fonts
-    std::unordered_map<PdfReference, std::unique_ptr<PdfFont>> m_loadedFontMap;
+    // Map of all imported fonts
+    ImportedFontMap m_importedFonts;
+    // Map of all fonts
+    FontMap m_fonts;
 
 #ifdef PDFMM_HAVE_FONTCONFIG
     static std::shared_ptr<PdfFontConfigWrapper> m_fontConfig;

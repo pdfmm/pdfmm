@@ -31,6 +31,13 @@ protected:
 public:
     virtual ~PdfDataProvider();
 
+    /** Converts the current object into a string representation
+     *  which can be written directly to a PDF file on disc.
+     *  \param str the object string is returned in this object.
+     */
+    std::string ToString() const;
+    void ToString(std::string& str) const;
+
     /** Write the complete datatype to a file.
      *  \param device write the object to this device
      *  \param writeMode additional options for writing this object

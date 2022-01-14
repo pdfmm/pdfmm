@@ -115,6 +115,7 @@ private:
 private:
     FT_Face m_Face;
 
+    PdfFontFileType m_FontFileType;
     double m_Ascent;
     double m_Descent;
     int m_Weight;

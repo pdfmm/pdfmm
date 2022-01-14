@@ -13,6 +13,7 @@
 
 #include <pdfmm/private/FreetypePrivate.h>
 #include FT_TRUETYPE_TABLES_H
+#include FT_FONT_FORMATS_H
 
 #include "PdfArray.h"
 #include "PdfDictionary.h"
@@ -65,6 +66,18 @@ void PdfFontMetricsFreetype::initFromBuffer(const PdfFontMetrics* refMetrics)
 void PdfFontMetricsFreetype::initFromFace(const PdfFontMetrics* refMetrics)
 {
     FT_Error rc;
+
+    string format = FT_Get_Font_Format(m_Face);
+    if (format == "TrueType")
+        m_FontFileType = PdfFontFileType::TrueType;
+    else if (format == "Type 1")
+        m_FontFileType = PdfFontFileType::Type1;
+    else if (format == "CID Type 1")
+        m_FontFileType = PdfFontFileType::CIDType1CCF;
+    else if (format == "CFF")
+        m_FontFileType = PdfFontFileType::Type1CCF;
+    else
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "Unsupported font type");
 
     // Get the postscript name of the font and ensures it has no space:
     // 5.5.2 TrueType Fonts, "If the name contains any spaces, the spaces are removed"
@@ -334,6 +347,5 @@ double PdfFontMetricsFreetype::GetItalicAngle() const
 
 PdfFontFileType PdfFontMetricsFreetype::GetFontFileType() const
 {
-    // TODO
-    return PdfFontFileType::TrueType;
+    return m_FontFileType;
 }

@@ -225,16 +225,34 @@ void PdfVariant::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
     };
 }
 
-void PdfVariant::ToString(string& data, PdfWriteFlags writeMode) const
+string PdfVariant::ToString() const
 {
-    ostringstream out;
-    // We don't need to this stream with the safe PDF locale because
-    // PdfOutputDevice will do so for us.
-    PdfStreamOutputDevice device(out);
+    string ret;
+    ToString(ret);
+    return ret;
+}
 
-    this->Write(device, writeMode, nullptr);
+void PdfVariant::ToString(string& str) const
+{
+    str.clear();
+    PdfWriteFlags writeFlags;
+    switch (m_DataType)
+    {
+        case PdfDataType::Null:
+        case PdfDataType::Bool:
+        case PdfDataType::Number:
+        case PdfDataType::Real:
+        case PdfDataType::Reference:
+            // By default we want the literals to not be spaced
+            writeFlags = PdfWriteFlags::NoInlineLiteral;
+            break;
+        default:
+            writeFlags = PdfWriteFlags::None;
+            break;
+    }
 
-    data = out.str();
+    PdfStringOutputDevice device(str);
+    this->Write(device, writeFlags, nullptr);
 }
 
 PdfVariant& PdfVariant::operator=(const PdfVariant& rhs)

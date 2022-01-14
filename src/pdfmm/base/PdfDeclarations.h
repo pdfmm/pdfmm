@@ -89,6 +89,8 @@ using unicodeview = std::span<const char32_t>;
 // NOTE: This may change in the future
 using Matrix2D = std::array<double, 6>;
 
+using CIDToGIDMap = std::map<unsigned, unsigned>;
+
 // Enums
 
 /**
@@ -264,7 +266,7 @@ enum class PdfFontInitFlags
     None = 0,                 ///< No special settings
     Embed = 1,                ///< Do embed font data
     Subset = 2,               ///< Create subsetted, which includes only used characters. Implies embed
-    Default = Embed,
+    Default = Subset,
 };
 
 /**

@@ -23,7 +23,6 @@ class PdfFontSimple : public PdfFont
     friend class PdfFontStandard14;
 
 protected:
-
     /** Create a new PdfFont object which will introduce itself
      *  automatically to every page object it is used on.
      *
@@ -36,13 +35,6 @@ protected:
      *
      */
     PdfFontSimple(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
-        const PdfEncoding& encoding);
-
-private:
-    /** Create a PdfFont based on an existing PdfObject
-     * To be used PdfFontStandard14
-     */
-    PdfFontSimple(PdfObject& obj, const PdfFontMetricsConstPtr& metrics,
         const PdfEncoding& encoding);
 
 protected:

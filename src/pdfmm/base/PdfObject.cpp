@@ -521,10 +521,16 @@ PdfDataType PdfObject::GetDataType() const
     return m_Variant.GetDataType();
 }
 
-void PdfObject::ToString(string& data, PdfWriteFlags writeMode) const
+string PdfObject::ToString() const
 {
     DelayedLoad();
-    m_Variant.ToString(data, writeMode);
+    return m_Variant.ToString();
+}
+
+void PdfObject::ToString(string& ret) const
+{
+    DelayedLoad();
+    m_Variant.ToString(ret);
 }
 
 bool PdfObject::GetBool() const

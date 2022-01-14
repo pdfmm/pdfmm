@@ -53,7 +53,8 @@ public:
      *
      *  \see PdfVariant::ToString
      */
-    const std::string ToString() const;
+    std::string ToString() const;
+    void ToString(std::string& str) const;
 
     /**
       * Assign the value of another object to this PdfReference.

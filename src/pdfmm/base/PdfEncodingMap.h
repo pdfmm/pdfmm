@@ -88,7 +88,6 @@ public:
      * \return true if the code points match a character code
      */
     bool TryGetCharCode(const unicodeview& codePoints, PdfCharCode& codeUnit) const;
-
     /**
      * Try get next char code unit from cid
      */
@@ -202,6 +201,8 @@ protected:
      */
     virtual void AppendToUnicodeEntries(PdfObjectStream& stream) const = 0;
 
+    virtual void AppendCodeSpaceRange(PdfObjectStream& stream) const;
+
     /** During a PdfEncoding::ExportToFont() append "begincidchar"
      * and/or "begincidrange" entries. See Adobe tecnichal notes #5014\
      *
@@ -243,6 +244,8 @@ protected:
 
 public:
     inline const PdfCharCodeMap& GetCharMap() const { return *m_charMap; }
+
+    void AppendCodeSpaceRange(PdfObjectStream& stream) const override;
 
 private:
     PdfEncodingMapBase(const std::shared_ptr<PdfCharCodeMap>& map);

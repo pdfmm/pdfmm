@@ -28,7 +28,6 @@ using namespace mm;
 unique_ptr<PdfFont> PdfFont::Create(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
     const PdfEncoding& encoding, PdfFontInitFlags flags)
 {
-    // TODO: Evaluate adding another init flags to perform subsetting immediately
     bool embeddingEnabled = (flags & PdfFontInitFlags::Embed) != PdfFontInitFlags::None;
     bool subsettingEnabled = (flags & PdfFontInitFlags::Subset) != PdfFontInitFlags::None;
     auto font = createFontForType(doc, metrics, encoding, metrics->GetFontFileType());
@@ -109,7 +108,7 @@ bool PdfFont::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfFont>& font)
             if (encoding.IsNull())
                 goto Exit;
 
-            font.reset(new PdfFontObject(obj, metrics, encoding));
+            font.reset(new PdfFontObject(obj, *objFont, metrics, encoding));
             return true;
         }
     }
@@ -179,8 +178,7 @@ unique_ptr<PdfFont> PdfFont::CreateStandard14(PdfDocument& doc, PdfStandard14Fon
 {
     (void)flags;
     bool embeddingEnabled = (flags & PdfFontInitFlags::Embed) != PdfFontInitFlags::None;
-    //bool subsettingEnabled = (flags & PdfFontInitFlags::Subset) != PdfFontInitFlags::None;
-    bool subsettingEnabled = false; // TODO
+    bool subsettingEnabled = (flags & PdfFontInitFlags::Subset) != PdfFontInitFlags::None;
     PdfFontMetricsConstPtr metrics = PdfFontMetricsStandard14::Create(std14Font);
     unique_ptr<PdfFont> font(new PdfFontType1(doc, metrics, encoding));
     if (font != nullptr)

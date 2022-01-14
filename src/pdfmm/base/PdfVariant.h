@@ -168,10 +168,10 @@ public:
 
     /** Converts the current object into a string representation
      *  which can be written directly to a PDF file on disc.
-     *  \param data the object string is returned in this object.
-     *  \param writeMode additional options for writing to a string
+     *  \param str the object string is returned in this object.
      */
-    void ToString(std::string& data, PdfWriteFlags writeMode = PdfWriteFlags::Clean) const;
+    std::string ToString() const;
+    void ToString(std::string& str) const;
 
     /** Get the value if this object is a bool.
      *  \returns the bool value.

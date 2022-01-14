@@ -302,6 +302,8 @@ private:
     void Clear();
     void clear();
 
+    void beforeWrite(PdfSaveOptions options);
+
 private:
     PdfMemDocument& operator=(const PdfMemDocument&) = delete;
 
