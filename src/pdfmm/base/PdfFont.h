@@ -373,6 +373,8 @@ private:
 
     double getCIDWidth(unsigned cid, const PdfTextState& state, bool ignoreCharSpacing) const;
 
+    bool tryGetCIDId(const PdfCharCode& codeUnit, unsigned& cid) const;
+
     static std::unique_ptr<PdfFont> createFontForType(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
         const PdfEncoding& encoding, PdfFontFileType type);
 

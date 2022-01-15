@@ -626,6 +626,31 @@ bool PdfFont::TryMapCIDToGID(unsigned cid, unsigned& gid) const
     }
 }
 
+bool PdfFont::tryGetCIDId(const PdfCharCode& codeUnit, unsigned& cid) const
+{
+    if (m_Encoding->HasCIDMapping())
+    {
+        return m_Encoding->GetEncodingMap().TryGetCIDId(codeUnit, cid);
+    }
+    else
+    {
+        // We don't have an available CID mapping: get
+        // retrieve the code point and get directly the
+        // a GID from the metrics
+        char32_t cp = m_Encoding->GetCodePoint(codeUnit);
+        unsigned gid;
+        if (cp == U'\0' || !m_Metrics->TryGetGID(cp, gid))
+        {
+            cid = 0;
+            return false;
+        }
+
+        // We assume cid == gid identity
+        cid = gid;
+        return true;
+    }
+}
+
 PdfObject* PdfFont::getDescendantFontObject()
 {
     // By default return null

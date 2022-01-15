@@ -169,28 +169,19 @@ bool PdfEncodingMap::TryGetNextCodePoints(string_view::iterator& it,
     return tryGetNextCodePoints(it, end, code, codePoints);
 }
 
-bool PdfEncodingMap::TryGetCIDId(const PdfCharCode& codeUnit, unsigned& id) const
+bool PdfEncodingMap::TryGetCIDId(const PdfCharCode& codeUnit, unsigned& cid) const
 {
-    if (IsCMapEncoding())
+    vector<char32_t> codePoints;
+    bool success = tryGetCodePoints(codeUnit, codePoints);
+    if (!success || codePoints.size() != 1)
     {
-        vector<char32_t> codePoints;
-        bool success = tryGetCodePoints(codeUnit, codePoints);
-        if (!success || codePoints.size() != 1)
-        {
-            // Return false on missing lookup or malformed multiple code points found
-            return false;
-        }
+        // Return false on missing lookup or malformed multiple code points found
+        return false;
+    }
 
-        // char32_t is also unsigned
-        id = (unsigned)codePoints[0];
-        return true;
-    }
-    else
-    {
-        // If there's no CID mapping, we just assume identity with CharCode
-        id = codeUnit.Code;
-        return true;
-    }
+    // char32_t is also unsigned
+    cid = (unsigned)codePoints[0];
+    return true;
 }
 
 bool PdfEncodingMap::TryGetCodePoints(const PdfCharCode& codeUnit, vector<char32_t>& codePoints) const
