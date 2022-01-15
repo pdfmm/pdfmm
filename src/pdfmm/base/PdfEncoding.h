@@ -35,6 +35,7 @@ namespace mm
     {
         friend class PdfEncodingFactory;
         friend class PdfEncodingShim;
+        friend class PdfFont;
 
     public:
         /** Null encoding
@@ -66,22 +67,6 @@ namespace mm
         bool TryConvertToEncoded(const std::string_view& str, charbuff& encoded) const;
 
         /**
-         * Get a cid codes from a utf8 string
-         *
-         * \param str utf8 encoded string
-         * \remarks Doesn't throw if conversion failed, totally or partially
-         */
-        std::vector<PdfCID> ConvertToCIDs(const std::string_view& str) const;
-
-        /**
-         * Try to get a cid codes from a utf8 string
-         *
-         * \param str utf8 encoded string
-         * \remarks Produces a partial result also in case of failure
-         */
-        bool TryConvertToCIDs(const std::string_view& str, std::vector<PdfCID>& cids) const;
-
-        /**
          * \remarks Doesn't throw if conversion failed, totally or partially
          */
         std::vector<PdfCID> ConvertToCIDs(const PdfString& encodedStr) const;
@@ -90,13 +75,6 @@ namespace mm
          * \remarks Produces a partial result also in case of failure
          */
         bool TryConvertToCIDs(const PdfString& encodedStr, std::vector<PdfCID>& cids) const;
-
-        /**
-         * \remarks Doesn't throw if conversion failed, totally or partially
-         */
-        PdfCID GetCID(char32_t codePoint) const;
-
-        bool TryGetCID(char32_t codePoint, PdfCID& cid) const;
 
         /** Get code point from char code unit
          *
@@ -133,6 +111,11 @@ namespace mm
         /** Return true if the encoding does CID mapping
          */
         bool HasCIDMapping() const;
+
+        /** Return true if the encoding is simple
+         * and has a non-CID mapping /Encoding entry
+         */
+        bool IsSimpleEncoding() const;
 
         /** Returns true if /FirstChar and /LastChar were parsed from object
          */
@@ -183,6 +166,9 @@ namespace mm
 
     protected:
         virtual PdfFont & GetFont() const;
+
+    private:
+        bool TryGetCIDId(const PdfCharCode& codeUnit, unsigned& cid) const;
 
     private:
         bool tryExportObjectTo(PdfDictionary& dictionary, bool wantCidMapping) const;

@@ -11,6 +11,7 @@
 
 #include <sstream>
 #include <regex>
+#include <utfcpp/utf8.h>
 
 #include <pdfmm/private/PdfEncodingPrivate.h>
 #include <pdfmm/private/PdfStandard14FontData.h>
@@ -36,6 +37,7 @@ using namespace mm;
 
 // kind of ABCDEF+
 static string_view genSubsetPrefix();
+static double getCharWidth(double widthGlyph, const PdfTextState& state, bool ignoreCharSpacing);
 
 PdfFont::PdfFont(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
     const PdfEncoding& encoding) :
@@ -262,23 +264,40 @@ void PdfFont::embedFontSubset()
     PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "Subsetting not implemented for this font type");
 }
 
-double PdfFont::GetStringWidth(const string_view& view, const PdfTextState& state) const
+double PdfFont::GetStringWidth(const string_view& str, const PdfTextState& state) const
 {
     // Ignore failures
     double width;
-    (void)TryGetStringWidth(view, state, width);
+    (void)TryGetStringWidth(str, state, width);
     return width;
 }
 
-bool PdfFont::TryGetStringWidth(const string_view& view, const PdfTextState& state, double& width) const
+bool PdfFont::TryGetStringWidth(const string_view& str, const PdfTextState& state, double& width) const
 {
-    vector<PdfCID> cids;
-    bool success = true;
-    if (!m_Encoding->TryConvertToCIDs(view, cids))
-        success = false;
+    if (IsObjectLoaded())
+    {
+        // NOTE: This is a best effort strategy. It's not intended to
+        // be accurate in loaded fonts
+        bool success = true;
+        auto it = str.begin();
+        auto end = str.end();
+        width = 0;
+        double charWidth;
+        while (it != end)
+        {
+            if (!tryGetCharWidthLoaded(utf8::next(it, end), state, false, charWidth))
+                success = false;
 
-    width = getStringWidth(cids, state);
-    return success;
+            width += charWidth;
+        }
+
+        return success;
+    }
+    else
+    {
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "TODO");
+        // Shall use gid substitution. See PdfEncoding::TryConvertToEncoded()
+    }
 }
 
 double PdfFont::GetStringWidth(const PdfString& encodedStr, const PdfTextState& state) const
@@ -318,17 +337,40 @@ bool PdfFont::TryGetCharWidth(char32_t codePoint, const PdfTextState& state, dou
 bool PdfFont::TryGetCharWidth(char32_t codePoint, const PdfTextState& state,
     bool ignoreCharSpacing, double& width) const
 {
-    bool success = true;
-    PdfCID cid;
-    if (!m_Encoding->TryGetCID(codePoint, cid))
+    if (IsObjectLoaded())
     {
-        width = -1;
+        return tryGetCharWidthLoaded(codePoint, state, ignoreCharSpacing, width);
+    }
+    else
+    {
+        unsigned gid;
+        if (!m_Metrics->TryGetGID(codePoint, gid))
+        {
+            width = getCharWidth(m_Metrics->GetDefaultWidth(), state, ignoreCharSpacing);
+            return false;
+        }
+
+        width = getCharWidth(m_Metrics->GetGlyphWidth(gid), state, ignoreCharSpacing);
+        return true;
+    }
+}
+
+
+bool PdfFont::tryGetCharWidthLoaded(char32_t codePoint, const PdfTextState& state, bool ignoreCharSpacing, double& width) const
+{
+    PdfCharCode codeUnit;
+    unsigned cid;
+    if (!m_Encoding->GetToUnicodeMapSafe().TryGetCharCode(codePoint, codeUnit)
+        || !m_Encoding->TryGetCIDId(codeUnit, cid))
+    {
+        width = getCharWidth(m_Metrics->GetDefaultWidth(), state, ignoreCharSpacing);
         return false;
     }
-
-    width = getCIDWidth(cid.Id, state, ignoreCharSpacing);
-    return success;
+    
+    width = getCIDWidth(cid, state, ignoreCharSpacing);
+    return true;
 }
+
 
 double PdfFont::GetDefaultCharWidth(const PdfTextState& state, bool ignoreCharSpacing) const
 {
@@ -426,20 +468,9 @@ double PdfFont::getStringWidth(const vector<PdfCID>& cids, const PdfTextState& s
     return width;
 }
 
-// TODO:
-// Handle word spacing Tw
-// 5.2.2 Word Spacing
-// Note: Word spacing is applied to every occurrence of the single-byte character code
-// 32 in a string when using a simple font or a composite font that defines code 32 as a
-// single - byte code.It does not apply to occurrences of the byte value 32 in multiplebyte
-// codes.
 double PdfFont::getCIDWidth(unsigned cid, const PdfTextState& state, bool ignoreCharSpacing) const
 {
-    double charWidth = GetCIDWidthRaw(cid);
-    if (ignoreCharSpacing)
-        return charWidth * state.GetFontSize() * state.GetFontScale();
-    else
-        return (charWidth * state.GetFontSize() + state.GetCharSpace()) * state.GetFontScale();
+    return getCharWidth(GetCIDWidthRaw(cid), state, ignoreCharSpacing);
 }
 
 double PdfFont::GetLineSpacing(const PdfTextState& state) const
@@ -601,7 +632,7 @@ PdfObject& PdfFont::GetDescendantFontObject()
 bool PdfFont::TryMapCIDToGID(unsigned cid, unsigned& gid) const
 {
     PDFMM_ASSERT(!IsObjectLoaded());
-    if (m_Encoding->GetEncodingMap().IsSimpleEncoding())
+    if (m_Encoding->IsSimpleEncoding())
     {
         // Simple encodings must retrieve the gid from the
         // metrics using the mapped unicode code point
@@ -626,67 +657,15 @@ bool PdfFont::TryMapCIDToGID(unsigned cid, unsigned& gid) const
     }
 }
 
-bool PdfFont::tryGetCIDId(const PdfCharCode& codeUnit, unsigned& cid) const
+bool PdfFont::TryGetCIDId(const PdfCharCode& codeUnit, unsigned& cid) const
 {
-    if (m_Encoding->HasCIDMapping())
-    {
-        return m_Encoding->GetEncodingMap().TryGetCIDId(codeUnit, cid);
-    }
-    else
-    {
-        // We don't have an available CID mapping: get
-        // retrieve the code point and get directly the
-        // a GID from the metrics
-        char32_t cp = m_Encoding->GetCodePoint(codeUnit);
-        unsigned gid;
-        if (cp == U'\0' || !m_Metrics->TryGetGID(cp, gid))
-        {
-            cid = 0;
-            return false;
-        }
-
-        // We assume cid == gid identity
-        cid = gid;
-        return true;
-    }
+    return m_Encoding->TryGetCIDId(codeUnit, cid);
 }
 
 PdfObject* PdfFont::getDescendantFontObject()
 {
     // By default return null
     return nullptr;
-}
-
-string_view genSubsetPrefix()
-{
-    static constexpr unsigned SUBSET_PREFIX_LEN = 6; // + 2 for "+\0"
-    struct SubsetBaseNameCtx
-    {
-        SubsetBaseNameCtx()
-            : Prefix{ }
-        {
-            char* p = Prefix;
-            for (unsigned i = 0; i < SUBSET_PREFIX_LEN; i++, p++)
-                *p = 'A';
-
-            Prefix[SUBSET_PREFIX_LEN] = '+';
-            Prefix[0]--;
-        }
-        char Prefix[SUBSET_PREFIX_LEN + 2];
-    };
-
-    static SubsetBaseNameCtx s_ctx;
-
-    for (unsigned i = 0; i < SUBSET_PREFIX_LEN; i++)
-    {
-        s_ctx.Prefix[i]++;
-        if (s_ctx.Prefix[i] <= 'Z')
-            break;
-
-        s_ctx.Prefix[i] = 'A';
-    }
-
-    return s_ctx.Prefix;
 }
 
 string PdfFont::ExtractBaseName(const string_view& fontName, bool& isItalic, bool& isBold)
@@ -785,4 +764,51 @@ bool PdfFont::IsCIDKeyed() const
 bool PdfFont::IsObjectLoaded() const
 {
     return false;
+}
+
+string_view genSubsetPrefix()
+{
+    static constexpr unsigned SUBSET_PREFIX_LEN = 6; // + 2 for "+\0"
+    struct SubsetBaseNameCtx
+    {
+        SubsetBaseNameCtx()
+            : Prefix{ }
+        {
+            char* p = Prefix;
+            for (unsigned i = 0; i < SUBSET_PREFIX_LEN; i++, p++)
+                *p = 'A';
+
+            Prefix[SUBSET_PREFIX_LEN] = '+';
+            Prefix[0]--;
+        }
+        char Prefix[SUBSET_PREFIX_LEN + 2];
+    };
+
+    static SubsetBaseNameCtx s_ctx;
+
+    for (unsigned i = 0; i < SUBSET_PREFIX_LEN; i++)
+    {
+        s_ctx.Prefix[i]++;
+        if (s_ctx.Prefix[i] <= 'Z')
+            break;
+
+        s_ctx.Prefix[i] = 'A';
+    }
+
+    return s_ctx.Prefix;
+}
+
+// TODO:
+// Handle word spacing Tw
+// 5.2.2 Word Spacing
+// Note: Word spacing is applied to every occurrence of the single-byte character code
+// 32 in a string when using a simple font or a composite font that defines code 32 as a
+// single - byte code.It does not apply to occurrences of the byte value 32 in multiplebyte
+// codes.
+double getCharWidth(double glyphWidth, const PdfTextState& state, bool ignoreCharSpacing)
+{
+    if (ignoreCharSpacing)
+        return glyphWidth * state.GetFontSize() * state.GetFontScale();
+    else
+        return (glyphWidth * state.GetFontSize() + state.GetCharSpace()) * state.GetFontScale();
 }

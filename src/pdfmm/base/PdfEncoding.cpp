@@ -24,9 +24,6 @@ using namespace mm;
 static atomic<size_t> s_nextid = CustomEncodingStartId;
 
 static PdfCharCode fetchFallbackCharCode(string_view::iterator& it, const string_view::iterator& end, const PdfEncodingLimits& limits);
-static PdfCharCode getFallbackCharCode(char32_t codePoint, const PdfEncodingLimits& limits);
-static PdfCID getFallbackCID(char32_t codePoint, const PdfEncodingMap& toUnicode, const PdfEncodingMap& encoding);
-static PdfCID getCID(const PdfCharCode& codeUnit, const PdfEncodingMap& map, bool& success);
 static size_t getNextId();
 
 PdfEncoding::PdfEncoding()
@@ -223,38 +220,44 @@ vector<PdfCID> PdfEncoding::ConvertToCIDs(const PdfString& encodedStr) const
     return cids;
 }
 
-bool PdfEncoding::TryConvertToCIDs(const PdfString& encodedStr, vector<PdfCID>& cids) const
+bool PdfEncoding::TryGetCIDId(const PdfCharCode& codeUnit, unsigned& cid) const
 {
-    return tryConvertEncodedToCIDs(encodedStr.GetRawData(), cids);
-}
-
-PdfCID PdfEncoding::GetCID(char32_t codePoint) const
-{
-    // Just ignore failures
-    PdfCID cid;
-    (void)TryGetCID(codePoint, cid);
-    return cid;
-}
-
-bool PdfEncoding::TryGetCID(char32_t codePoint, PdfCID& cid) const
-{
-    bool success = true;
-    PdfCharCode codeUnit;
-    const PdfEncodingMap* toUnicode;
-    if (!GetToUnicodeMapSafe(toUnicode))
-        success = false;
-
-    if (!toUnicode->TryGetCharCode(codePoint, codeUnit))
+    if (m_Encoding->IsCMapEncoding())
     {
-        success = false;
-        cid = getFallbackCID(codePoint, *m_Encoding, *toUnicode);
+        return m_Encoding->TryGetCIDId(codeUnit, cid);
     }
     else
     {
-        cid = getCID(codeUnit, *m_Encoding, success);
-    }
+        PDFMM_INVARIANT(m_Encoding->IsSimpleEncoding());
+        auto& font = GetFont();
+        if (font.IsObjectLoaded())
+        {
+            // Assume cid == charcode
+            cid = codeUnit.Code;
+            return true;
+        }
+        else
+        {
+            // Retrieve the code point and get directly the
+            // a GID from the metrics
+            char32_t cp = GetCodePoint(codeUnit);
+            unsigned gid;
+            if (cp == U'\0' || !font.GetMetrics().TryGetGID(cp, gid))
+            {
+                cid = 0;
+                return false;
+            }
 
-    return success;
+            // We assume cid == gid identity
+            cid = gid;
+            return true;
+        }
+    }
+}
+
+bool PdfEncoding::TryConvertToCIDs(const PdfString& encodedStr, vector<PdfCID>& cids) const
+{
+    return tryConvertEncodedToCIDs(encodedStr.GetRawData(), cids);
 }
 
 bool PdfEncoding::tryConvertEncodedToCIDs(const string_view& encoded, vector<PdfCID>& cids) const
@@ -277,45 +280,6 @@ bool PdfEncoding::tryConvertEncodedToCIDs(const string_view& encoded, vector<Pdf
         }
 
         cids.push_back(cid);
-    }
-
-    return success;
-}
-
-vector<PdfCID> PdfEncoding::ConvertToCIDs(const string_view& str) const
-{
-    // Just ignore failures
-    vector<PdfCID> ret;
-    (void)TryConvertToCIDs(str, ret);
-    return ret;
-}
-
-bool PdfEncoding::TryConvertToCIDs(const string_view& str, vector<PdfCID>& cids) const
-{
-    cids.clear();
-    if (str.empty())
-        return true;
-
-    bool success = true;
-    const PdfEncodingMap* toUnicode;
-    if (!GetToUnicodeMapSafe(toUnicode))
-        success = false;
-
-    auto it = str.begin();
-    auto end = str.end();
-    PdfCharCode codeUnit;
-    while (it != end)
-    {
-        if (!toUnicode->TryGetNextCharCode(it, end, codeUnit))
-        {
-            success = false;
-            char32_t codePoint = (char32_t)utf8::next(it, end);
-            cids.push_back(getFallbackCID(codePoint, *m_Encoding, *toUnicode));
-        }
-        else
-        {
-            cids.push_back(getCID(codeUnit, *m_Encoding, success));
-        }
     }
 
     return success;
@@ -420,6 +384,11 @@ bool PdfEncoding::HasCIDMapping() const
     // the main /Encoding is a CMap, or it exports a CMap anyway,
     // such in case of custom PdfIdentityEncoding
     return m_Encoding->IsCMapEncoding();
+}
+
+bool PdfEncoding::IsSimpleEncoding() const
+{
+    return m_Encoding->IsSimpleEncoding();
 }
 
 bool PdfEncoding::HasParsedLimits() const
@@ -541,40 +510,6 @@ PdfCharCode fetchFallbackCharCode(string_view::iterator& it, const string_view::
     }
 
     return { code, i };
-}
-
-// Handle missing mapped char code by just appending current
-// extracted unicode code point on the minimum char code size.
-// This is similar to what Adobe reader does for 1 byte encodings
-PdfCharCode getFallbackCharCode(char32_t codePoint, const PdfEncodingLimits& limits)
-{
-    // Get che code size needed to store the value, clamping
-    // on admissible values
-    unsigned char codeSize = std::clamp(utls::GetCharCodeSize(codePoint),
-        limits.MinCodeSize, limits.MaxCodeSize);
-    // Clamp the value to valid range
-    unsigned code = std::clamp((unsigned)codePoint, (unsigned)0, utls::GetCharCodeMaxValue((unsigned)codeSize));
-    return { code, codeSize };
-}
-
-PdfCID getFallbackCID(char32_t codePoint, const PdfEncodingMap& toUnicode, const PdfEncodingMap& encoding)
-{
-    auto codeUnit = getFallbackCharCode(codePoint, toUnicode.GetLimits());
-    bool success = false; // Ignore failure on fallback
-    return getCID(codeUnit, encoding, success);
-}
-
-PdfCID getCID(const PdfCharCode& codeUnit, const PdfEncodingMap& map, bool& success)
-{
-    unsigned cidCode;
-    if (!map.TryGetCIDId(codeUnit, cidCode))
-    {
-        // As a fallback, just push back the char code itself
-        success = false;
-        cidCode = codeUnit.Code;
-    }
-
-    return { cidCode, codeUnit };
 }
 
 void PdfEncoding::writeCIDMapping(PdfObject& cmapObj, const PdfFont& font, const string_view& fontName) const

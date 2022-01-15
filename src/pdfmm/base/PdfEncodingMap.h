@@ -109,12 +109,6 @@ public:
      */
     bool TryGetCodePoints(const PdfCharCode& codeUnit, std::vector<char32_t>& codePoints) const;
 
-    /** Try get CID identifier code from code unit
-     * \param id the identifier of the CID. The identifier is
-     * actually the PdfCID::Id part in the full CID representation
-     */
-    bool TryGetCIDId(const PdfCharCode& codeUnit, unsigned& id) const;
-
     const PdfEncodingLimits& GetLimits() const { return m_limits; }
 
     /**
@@ -211,6 +205,14 @@ protected:
     virtual void AppendCIDMappingEntries(PdfObjectStream& stream, const PdfFont& font) const = 0;
 
 private:
+    /** Try get CID identifier code from code unit
+     * \param id the identifier of the CID. The identifier is
+     * actually the PdfCID::Id part in the full CID representation
+     *
+     * To be called by PdfEncoding
+     */
+    bool TryGetCIDId(const PdfCharCode& codeUnit, unsigned& id) const;
+
     bool tryGetNextCodePoints(std::string_view::iterator& it, const std::string_view::iterator& end,
         PdfCharCode& codeUnit, std::vector<char32_t>& codePoints) const;
 

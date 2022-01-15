@@ -140,16 +140,17 @@ public:
 
     /** Retrieve the width of a given text string in PDF units when
      *  drawn with the current font
-     *  \param view a text string of which the width should be calculated
+     *  \param str a utf8 string of which the width should be calculated
      *  \returns the width in PDF units
      *  \remarks Doesn't throw if string glyphs could not be partially or totally found
      */
-    double GetStringWidth(const std::string_view& view, const PdfTextState& state) const;
+    double GetStringWidth(const std::string_view& str, const PdfTextState& state) const;
 
     /**
+     * \param str a utf8 string of which the width should be calculated
      * \remarks Produces a partial result also in case of failures
      */
-    bool TryGetStringWidth(const std::string_view& view, const PdfTextState& state, double& width) const;
+    bool TryGetStringWidth(const std::string_view& str, const PdfTextState& state, double& width) const;
 
     /** Retrieve the width of a given encoded PdfString in PDF units when
      *  drawn with the current font
@@ -323,6 +324,8 @@ protected:
      */
     double GetCIDWidthRaw(unsigned cid) const;
 
+    bool TryGetCIDId(const PdfCharCode& codeUnit, unsigned& cid) const;
+
     void GetBoundingBox(PdfArray& arr) const;
 
     /** Fill the /FontDescriptor object dictionary
@@ -369,11 +372,11 @@ private:
 
     void initBase(const PdfEncoding& encoding);
 
+    bool tryGetCharWidthLoaded(char32_t codePoint, const PdfTextState& state, bool ignoreCharSpacing, double& width) const;
+
     double getStringWidth(const std::vector<PdfCID>& cids, const PdfTextState& state) const;
 
     double getCIDWidth(unsigned cid, const PdfTextState& state, bool ignoreCharSpacing) const;
-
-    bool tryGetCIDId(const PdfCharCode& codeUnit, unsigned& cid) const;
 
     static std::unique_ptr<PdfFont> createFontForType(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
         const PdfEncoding& encoding, PdfFontFileType type);
