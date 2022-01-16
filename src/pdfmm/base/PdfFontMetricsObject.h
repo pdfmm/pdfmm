@@ -44,11 +44,7 @@ public:
 
     bool TryGetGID(char32_t codePoint, unsigned& gid) const override;
 
-    PdfFontDescriptorFlags GetFlags() const override;
-
-    double GetDefaultWidth() const override;
-
-    void GetBoundingBox(std::vector<double>& bbox) const override;
+    double GetDefaultWidthRaw() const override;
 
     double GetLineSpacing() const override;
 
@@ -60,17 +56,25 @@ public:
 
     double GetStrikeOutThickness() const override;
 
-    double GetAscent() const override;
-
-    double GetDescent() const override;
-
     std::string GetFontName() const override;
 
     std::string GetBaseFontName() const override;
 
-    PdfFontFileType GetFontFileType() const override;
+    std::string GetFontFamilyName() const override;
 
-    const PdfObject* GetFontFileObject() const override;
+    PdfFontStretch GetFontStretch() const override;
+
+    PdfFontDescriptorFlags GetFlags() const override;
+
+    void GetBoundingBox(std::vector<double>& bbox) const override;
+
+    double GetItalicAngle() const override;
+
+    double GetAscent() const override;
+
+    double GetDescent() const override;
+
+    double GetLeadingRaw() const override;
 
     int GetWeightRaw() const override;
 
@@ -82,7 +86,13 @@ public:
 
     double GetStemHRaw() const override;
 
-    double GetItalicAngle() const override;
+    double GetAvgWidthRaw() const override;
+
+    double GetMaxWidthRaw() const override;
+
+    PdfFontFileType GetFontFileType() const override;
+
+    const PdfObject* GetFontFileObject() const override;
 
     const Matrix2D& GetMatrix() const override;
 
@@ -95,25 +105,32 @@ private:
     std::vector<double> GetBBox(const PdfObject& obj);
 
 private:
-    std::string m_BaseName;
-    std::string m_FontName;
     std::vector<double> m_BBox;
     Matrix2D m_Matrix;
     std::vector<double> m_Widths;
-    PdfFontDescriptorFlags m_Flags;
-    double m_DefaultWidth;
+
+    std::string m_FontBaseName;
+    std::string m_FontName;
+    std::string m_FontFamilyName;
+    PdfFontStretch m_FontStretch;
     int m_Weight;
+    PdfFontDescriptorFlags m_Flags;
+    double m_ItalicAngle;
+    double m_Ascent;
+    double m_Descent;
+    double m_Leading;
     double m_CapHeight;
     double m_XHeight;
     double m_StemV;
     double m_StemH;
-    double m_ItalicAngle;
-    double m_Ascent;
-    double m_Descent;
-    double m_LineSpacing;
+    double m_AvgWidth;
+    double m_MaxWidth;
+    double m_DefaultWidth;
+
     const PdfObject* m_FontFileObject;
     PdfFontFileType m_FontFileType;
 
+    double m_LineSpacing;
     double m_UnderlineThickness;
     double m_UnderlinePosition;
     double m_StrikeOutThickness;

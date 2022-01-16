@@ -198,8 +198,13 @@ void PdfFontCIDTrueType::createWidths(PdfDictionary& fontDict, const CIDToGIDMap
         return;
 
     fontDict.AddKey("W", arr);
-    fontDict.AddKey("DW", static_cast<int64_t>(
-        std::round(GetMetrics().GetDefaultWidth() / metrics.GetMatrix()[0])));
+    double defaultWidth;
+    if ((defaultWidth = GetMetrics().GetDefaultWidthRaw()) >= 0)
+    {
+        // Default of /DW is 1000
+        fontDict.AddKey("DW", static_cast<int64_t>(
+            std::round(defaultWidth / metrics.GetMatrix()[0])));
+    }
 }
 
 CIDToGIDMap PdfFontCIDTrueType::getIdentityCIDToGIDMap()

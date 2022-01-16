@@ -38,6 +38,7 @@ using namespace mm;
 // kind of ABCDEF+
 static string_view genSubsetPrefix();
 static double getCharWidth(double widthGlyph, const PdfTextState& state, bool ignoreCharSpacing);
+static string_view toString(PdfFontStretch stretch);
 
 PdfFont::PdfFont(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
     const PdfEncoding& encoding) :
@@ -413,21 +414,36 @@ void PdfFont::FillDescriptor(PdfDictionary& dict) const
     int weight;
     double xHeight;
     double stemH;
+    string familyName;
+    double leading;
+    double avgWidth;
+    double maxWidth;
+    double defaultWidth;
+    PdfFontStretch stretch;
 
     dict.AddKey("FontName", PdfName(this->GetName()));
+    if ((familyName = m_Metrics->GetFontFamilyName()).length() != 0)
+        dict.AddKey("FontFamily", PdfString(familyName));
+    if ((stretch = m_Metrics->GetFontStretch()) != PdfFontStretch::Unknown)
+        dict.AddKey("FontStretch", PdfName(toString(stretch)));
     dict.AddKey(PdfName::KeyFlags, PdfObject(static_cast<int64_t>(m_Metrics->GetFlags())));
     dict.AddKey("ItalicAngle", static_cast<int64_t>(std::round(m_Metrics->GetItalicAngle())));
-    if ((weight = m_Metrics->GetWeightRaw()) >= 0)
-        dict.AddKey("FontWeight", static_cast<int64_t>(weight));
 
     PdfArray bbox;
     GetBoundingBox(bbox);
 
-    // The following entries are all optional in /Type3 fonts
-    if (GetType() != PdfFontType::Type3)
+    auto& matrix = m_Metrics->GetMatrix();
+    if (GetType() == PdfFontType::Type3)
     {
-        auto& matrix = m_Metrics->GetMatrix();
+        // ISO 32000-1:2008 "should be used for Type 3 fonts in Tagged PDF documents"
+        dict.AddKey("FontWeight", static_cast<int64_t>(m_Metrics->GetWeight()));
+    }
+    else
+    {
+        if ((weight = m_Metrics->GetWeightRaw()) > 0)
+            dict.AddKey("FontWeight", static_cast<int64_t>(weight));
 
+        // The following entries are all optional in /Type3 fonts
         dict.AddKey("FontBBox", bbox);
         dict.AddKey("Ascent", static_cast<int64_t>(std::round(m_Metrics->GetAscent() / matrix[3])));
         dict.AddKey("Descent", static_cast<int64_t>(std::round(m_Metrics->GetDescent() / matrix[3])));
@@ -435,10 +451,10 @@ void PdfFont::FillDescriptor(PdfDictionary& dict) const
         // NOTE: StemV is measured horizontally
         dict.AddKey("StemV", static_cast<int64_t>(std::round(m_Metrics->GetStemV() / matrix[0])));
 
-        if ((xHeight = m_Metrics->GetXHeightRaw()) >= 0)
+        if ((xHeight = m_Metrics->GetXHeightRaw()) > 0)
             dict.AddKey("XHeight", static_cast<int64_t>(std::round(xHeight / matrix[3])));
 
-        if ((stemH = m_Metrics->GetStemHRaw()) >= 0)
+        if ((stemH = m_Metrics->GetStemHRaw()) > 0)
         {
             // NOTE: StemH is measured vertically
             dict.AddKey("StemH", static_cast<int64_t>(std::round(stemH / matrix[3])));
@@ -446,12 +462,21 @@ void PdfFont::FillDescriptor(PdfDictionary& dict) const
 
         if (!IsCIDKeyed())
         {
-            // We assume CID keyed fonts to use the /DW entry
-            // in the CIDFont dictionary. See 9.7.4.3 Glyph Metrics
-            // in CIDFonts in ISO 32000-1:2008
-            dict.AddKey("MissingWidth", static_cast<int64_t>(std::round(stemH / matrix[0])));
+            // Default for /MissingWidth is 0
+            // NOTE: We assume CID keyed fonts to use the /DW entry
+            // in the CIDFont dictionary instead. See 9.7.4.3 Glyph
+            // Metrics in CIDFonts in ISO 32000-1:2008
+            if ((defaultWidth = m_Metrics->GetDefaultWidthRaw()) > 0)
+                dict.AddKey("MissingWidth", static_cast<int64_t>(std::round(defaultWidth / matrix[0])));
         }
     }
+
+    if ((leading = m_Metrics->GetLeadingRaw()) > 0)
+        dict.AddKey("Leading", static_cast<int64_t>(std::round(leading / matrix[3])));
+    if ((avgWidth = m_Metrics->GetAvgWidthRaw()) > 0)
+        dict.AddKey("AvgWidth", static_cast<int64_t>(std::round(avgWidth / matrix[0])));
+    if ((maxWidth = m_Metrics->GetMaxWidthRaw()) > 0)
+        dict.AddKey("MaxWidth", static_cast<int64_t>(std::round(maxWidth / matrix[0])));
 }
 
 void PdfFont::initImported()
@@ -811,4 +836,31 @@ double getCharWidth(double glyphWidth, const PdfTextState& state, bool ignoreCha
         return glyphWidth * state.GetFontSize() * state.GetFontScale();
     else
         return (glyphWidth * state.GetFontSize() + state.GetCharSpace()) * state.GetFontScale();
+}
+
+string_view toString(PdfFontStretch stretch)
+{
+    switch (stretch)
+    {
+        case PdfFontStretch::UltraCondensed:
+            return "UltraCondensed";
+        case PdfFontStretch::ExtraCondensed:
+            return "ExtraCondensed";
+        case PdfFontStretch::Condensed:
+            return "Condensed";
+        case PdfFontStretch::SemiCondensed:
+            return "SemiCondensed";
+        case PdfFontStretch::Normal:
+            return "Normal";
+        case PdfFontStretch::SemiExpanded:
+            return "SemiExpanded";
+        case PdfFontStretch::Expanded:
+            return "Expanded";
+        case PdfFontStretch::ExtraExpanded:
+            return "ExtraExpanded";
+        case PdfFontStretch::UltraExpanded:
+            return "UltraExpanded";
+        default:
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+    }
 }

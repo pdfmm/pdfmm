@@ -81,9 +81,9 @@ void PdfFontMetricsFreetype::initFromFace(const PdfFontMetrics* refMetrics)
 
     // Get the postscript name of the font and ensures it has no space:
     // 5.5.2 TrueType Fonts, "If the name contains any spaces, the spaces are removed"
-    m_fontName = FT_Get_Postscript_Name(m_Face);
-    m_fontName.erase(std::remove(m_fontName.begin(), m_fontName.end(), ' '), m_fontName.end());
-    m_baseFontName = PdfFont::ExtractBaseName(m_fontName);
+    m_FontName = FT_Get_Postscript_Name(m_Face);
+    m_FontName.erase(std::remove(m_FontName.begin(), m_FontName.end(), ' '), m_FontName.end());
+    m_FontBaseName = PdfFont::ExtractBaseName(m_FontName);
 
     m_HasSymbolCharset = false;
 
@@ -110,9 +110,6 @@ void PdfFontMetricsFreetype::initFromFace(const PdfFontMetrics* refMetrics)
         }
     }
 
-    m_Ascent = m_Face->ascender / (double)m_Face->units_per_EM;
-    m_Descent = m_Face->descender / (double)m_Face->units_per_EM;
-
     // calculate the line spacing now, as it changes only with the font size
     m_LineSpacing = m_Face->height / (double)m_Face->units_per_EM;
     m_UnderlineThickness = m_Face->underline_thickness / (double)m_Face->units_per_EM;
@@ -127,23 +124,43 @@ void PdfFontMetricsFreetype::initFromFace(const PdfFontMetrics* refMetrics)
         double width = (m_Face->bbox.xMax - m_Face->bbox.xMin) / (double)m_Face->units_per_EM;
         double height = (m_Face->bbox.yMax - m_Face->bbox.yMin) / (double)m_Face->units_per_EM;
 
-        m_ItalicAngle = 0;
-        m_DefaultWidth = width;
+        m_FontFamilyName.clear();
+        m_FontStretch = PdfFontStretch::Unknown;
         m_Weight = -1;
+        m_Flags = PdfFontDescriptorFlags::Symbolic;
+        m_ItalicAngle = 0;
+        m_Leading = -1;
         m_CapHeight = height;
         m_XHeight = 0;
-        m_Flags = PdfFontDescriptorFlags::Symbolic;
+        // ISO 32000-2:2017, Table 120 — Entries common to all font descriptors
+        // says: "A value of 0 indicates an unknown stem thickness". No mention
+        // is done about this in ISO 32000-1:2008, but we assume 0 is a safe
+        // value for all implementations
+        m_StemV = 0;
+        m_StemH = -1;
+        m_AvgWidth = -1;
+        m_MaxWidth = -1;
+        m_DefaultWidth = width;
+
         m_StrikeOutPosition = m_Ascent / 2.0;
         m_StrikeOutThickness = m_UnderlineThickness;
     }
     else
     {
-        m_ItalicAngle = refMetrics->GetItalicAngle();
-        m_DefaultWidth = refMetrics->GetDefaultWidth();
+        m_FontFamilyName = refMetrics->GetFontFamilyName();
+        m_FontStretch = refMetrics->GetFontStretch();
         m_Weight = refMetrics->GetWeightRaw();
+        m_Flags = refMetrics->GetFlags();
+        m_ItalicAngle = refMetrics->GetItalicAngle();
+        m_Leading = refMetrics->GetLeadingRaw();
         m_CapHeight = refMetrics->GetCapHeight();
         m_XHeight = refMetrics->GetXHeightRaw();
-        m_Flags = refMetrics->GetFlags();
+        m_StemV = refMetrics->GetStemV();
+        m_StemH = refMetrics->GetStemHRaw();
+        m_AvgWidth = refMetrics->GetAvgWidthRaw();
+        m_MaxWidth = refMetrics->GetMaxWidthRaw();
+        m_DefaultWidth = refMetrics->GetDefaultWidthRaw();
+
         m_StrikeOutPosition = refMetrics->GetStrikeOutPosition();
         m_StrikeOutThickness = refMetrics->GetStrikeOutThickness();
     }
@@ -176,12 +193,22 @@ void PdfFontMetricsFreetype::initFromFace(const PdfFontMetrics* refMetrics)
 
 string PdfFontMetricsFreetype::GetBaseFontName() const
 {
-    return m_baseFontName;
+    return m_FontBaseName;
 }
 
 string PdfFontMetricsFreetype::GetFontName() const
 {
-    return m_fontName;
+    return m_FontName;
+}
+
+string PdfFontMetricsFreetype::GetFontFamilyName() const
+{
+    return m_FontFamilyName;
+}
+
+PdfFontStretch PdfFontMetricsFreetype::GetFontStretch() const
+{
+    return m_FontStretch;
 }
 
 unique_ptr<PdfFontMetricsFreetype> PdfFontMetricsFreetype::FromBuffer(const bufferview& buffer)
@@ -247,7 +274,7 @@ PdfFontDescriptorFlags PdfFontMetricsFreetype::GetFlags() const
     return m_Flags;
 }
 
-double PdfFontMetricsFreetype::GetDefaultWidth() const
+double PdfFontMetricsFreetype::GetDefaultWidthRaw() const
 {
     return m_DefaultWidth;
 }
@@ -306,6 +333,11 @@ double PdfFontMetricsFreetype::GetDescent() const
     return m_Descent;
 }
 
+double PdfFontMetricsFreetype::GetLeadingRaw() const
+{
+    return m_Leading;
+}
+
 bufferview PdfFontMetricsFreetype::GetFontFileData() const
 {
     return bufferview(m_FontData->data(), m_FontData->size());
@@ -328,16 +360,22 @@ double PdfFontMetricsFreetype::GetXHeightRaw() const
 
 double PdfFontMetricsFreetype::GetStemV() const
 {
-    // ISO 32000-2:2017, Table 120 — Entries common to all font descriptors
-    // says: "A value of 0 indicates an unknown stem thickness". No mention
-    // is done about this in ISO 32000-1:2008, but we assume 0 is a safe
-    // value for all implementations
-    return 0;
+    return m_StemV;
 }
 
 double PdfFontMetricsFreetype::GetStemHRaw() const
 {
-    return -1;
+    return m_StemH;
+}
+
+double PdfFontMetricsFreetype::GetAvgWidthRaw() const
+{
+    return m_AvgWidth;
+}
+
+double PdfFontMetricsFreetype::GetMaxWidthRaw() const
+{
+    return m_MaxWidth;
 }
 
 double PdfFontMetricsFreetype::GetItalicAngle() const

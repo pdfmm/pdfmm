@@ -20,6 +20,10 @@ typedef std::unordered_map<unsigned short, unsigned short> Std14CPToGIDMap;
 
 std::string_view GetStandard14FontName(PdfStandard14FontType stdFont);
 
+std::string_view GetStandard14FontFamilyName(PdfStandard14FontType stdFont);
+
+std::string_view GetStandard14FontBaseName(PdfStandard14FontType stdFont);
+
 bool IsStandard14Font(const std::string_view& fontName, bool useAltNames, PdfStandard14FontType& stdFont);
 
 const Standard14FontChar* GetStd14FontChars(PdfStandard14FontType stdFont, unsigned& size);
@@ -27,8 +31,6 @@ const Standard14FontChar* GetStd14FontChars(PdfStandard14FontType stdFont, unsig
 const Std14CPToGIDMap& GetStd14CPToGIDMap(PdfStandard14FontType stdFont);
 
 bufferview GetStandard14FontFileData(PdfStandard14FontType stdFont);
-
-std::string_view GetStandard14FontBaseName(PdfStandard14FontType stdFont);
 
 };
 

@@ -213,6 +213,20 @@ enum class PdfFontDescriptorFlags
     ForceBold   = 1 << 18, ///< Determine whether bold glyphs shall be painted with extra pixels even
 };
 
+enum class PdfFontStretch
+{
+    Unknown = 0,
+    UltraCondensed,
+    ExtraCondensed,
+    Condensed,
+    SemiCondensed,
+    Normal,
+    SemiExpanded,
+    Expanded,
+    ExtraExpanded,
+    UltraExpanded,
+};
+
 /** Enum specifying the type of the font
  *
  * It doesn't necessarily specify the underline font file type,

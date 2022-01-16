@@ -18,6 +18,8 @@
 using namespace mm;
 using namespace std;
 
+static PdfFontStretch stretchFromString(const string_view& str);
+
 PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObject* descriptor) :
     m_DefaultWidth(0),
     m_FontFileObject(nullptr),
@@ -206,34 +208,60 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
 
     if (descriptor == nullptr)
     {
-        m_Weight = 400;
+        // Add some sensible defaults
+        m_FontFamilyName.clear();
+        m_FontStretch = PdfFontStretch::Unknown;
+        m_Weight = -1;
+        m_Flags = PdfFontDescriptorFlags::Symbolic;
+        m_ItalicAngle = 0;
+        m_Ascent = 0;
+        m_Descent = 0;
+        m_Leading = -1;
         m_CapHeight = 0;
         m_XHeight = 0;
         m_StemV = 0;
-        m_StemH = 0;
-        m_ItalicAngle = 0;
-        m_Ascent = 0.0;
-        m_Descent = 0.0;
-        m_Flags = PdfFontDescriptorFlags::Symbolic;
+        m_StemH = -1;
+        m_AvgWidth = -1;
+        m_MaxWidth = -1;
     }
     else
     {
         auto& dict = descriptor->GetDictionary();
+        m_FontFamilyName = dict.FindKeyAs<PdfString>("FontFamily").GetString();
+        auto stretchObj = dict.FindKey("FontStretch");
+        if (stretchObj == nullptr)
+        {
+            m_FontStretch = PdfFontStretch::Unknown;
+        }
+        else
+        {
+            const PdfName* name;
+            const PdfString* str;
+            if (stretchObj->TryGetName(name))
+                m_FontStretch = stretchFromString(name->GetString());
+            else if (stretchObj->TryGetString(str))
+                m_FontStretch = stretchFromString(name->GetString());
+            else
+                m_FontStretch = PdfFontStretch::Unknown;
+        }
 
         // NOTE: Found a valid document with "/FontWeight 400.0" so just read the value as double
         m_Weight = static_cast<int>(dict.FindKeyAs<double>("FontWeight", -1));
+        m_Flags = (PdfFontDescriptorFlags)dict.FindKeyAs<int64_t>("Flags", 0);
+        m_ItalicAngle = static_cast<int>(dict.FindKeyAs<double>("ItalicAngle", 0));
+        m_Ascent = dict.FindKeyAs<double>("Ascent", 0) * m_Matrix[3];
+        m_Descent = dict.FindKeyAs<double>("Descent", 0) * m_Matrix[3];
+        m_Leading = dict.FindKeyAs<double>("Leading", -1) * m_Matrix[3];
         m_CapHeight = dict.FindKeyAs<double>("CapHeight", 0) * m_Matrix[3];
         m_XHeight = dict.FindKeyAs<double>("XHeight", 0) * m_Matrix[3];
         // NOTE: StemV is measured horizzontally, StemH vertically
         m_StemV = dict.FindKeyAs<double>("StemV", 0) * m_Matrix[0];
         m_StemH = dict.FindKeyAs<double>("StemH", -1) * m_Matrix[3];
-        m_ItalicAngle = static_cast<int>(dict.FindKeyAs<double>("ItalicAngle", 0));
-        m_Ascent = dict.FindKeyAs<double>("Ascent", 0.0) * m_Matrix[3];
-        m_Descent = dict.FindKeyAs<double>("Descent", 0.0) * m_Matrix[3];
-        m_Flags = (PdfFontDescriptorFlags)dict.FindKeyAs<int64_t>("Flags", 0);
+        m_AvgWidth = dict.FindKeyAs<double>("AvgWidth", -1) * m_Matrix[0];
+        m_MaxWidth = dict.FindKeyAs<double>("MaxWidth", -1) * m_Matrix[0];
     }
 
-    m_BaseName = PdfFont::ExtractBaseName(m_FontName, m_IsItalicHint, m_IsBoldHint);
+    m_FontBaseName = PdfFont::ExtractBaseName(m_FontName, m_IsItalicHint, m_IsBoldHint);
     m_LineSpacing = m_Ascent + m_Descent;
 
     // Try to fine some sensible values
@@ -250,7 +278,17 @@ string PdfFontMetricsObject::GetFontName() const
 
 string PdfFontMetricsObject::GetBaseFontName() const
 {
-    return m_BaseName;
+    return m_FontBaseName;
+}
+
+string PdfFontMetricsObject::GetFontFamilyName() const
+{
+    return m_FontFamilyName;
+}
+
+PdfFontStretch PdfFontMetricsObject::GetFontStretch() const
+{
+    return m_FontStretch;
 }
 
 PdfFontFileType PdfFontMetricsObject::GetFontFileType() const
@@ -301,7 +339,7 @@ PdfFontDescriptorFlags PdfFontMetricsObject::GetFlags() const
     return m_Flags;
 }
 
-double PdfFontMetricsObject::GetDefaultWidth() const
+double PdfFontMetricsObject::GetDefaultWidthRaw() const
 {
     return m_DefaultWidth;
 }
@@ -341,6 +379,11 @@ double PdfFontMetricsObject::GetDescent() const
     return m_Descent;
 }
 
+double PdfFontMetricsObject::GetLeadingRaw() const
+{
+    return m_Leading;
+}
+
 int PdfFontMetricsObject::GetWeightRaw() const
 {
     return m_Weight;
@@ -364,6 +407,16 @@ double PdfFontMetricsObject::GetStemV() const
 double PdfFontMetricsObject::GetStemHRaw() const
 {
     return m_StemH;
+}
+
+double PdfFontMetricsObject::GetAvgWidthRaw() const
+{
+    return m_AvgWidth;
+}
+
+double PdfFontMetricsObject::GetMaxWidthRaw() const
+{
+    return m_MaxWidth;
 }
 
 double PdfFontMetricsObject::GetItalicAngle() const
@@ -401,4 +454,28 @@ vector<double> PdfFontMetricsObject::GetBBox(const PdfObject& obj)
     ret.push_back(arr[2].GetNumberLenient() * m_Matrix[0]);
     ret.push_back(arr[3].GetNumberLenient() * m_Matrix[3]);
     return ret;
+}
+
+PdfFontStretch stretchFromString(const string_view& str)
+{
+    if (str == "UltraCondensed")
+        return PdfFontStretch::UltraCondensed;
+    if (str == "ExtraCondensed")
+        return PdfFontStretch::ExtraCondensed;
+    if (str == "Condensed")
+        return PdfFontStretch::Condensed;
+    if (str == "SemiCondensed")
+        return PdfFontStretch::SemiCondensed;
+    if (str == "Normal")
+        return PdfFontStretch::Normal;
+    if (str == "SemiExpanded")
+        return PdfFontStretch::SemiExpanded;
+    if (str == "Expanded")
+        return PdfFontStretch::Expanded;
+    if (str == "ExtraExpanded")
+        return PdfFontStretch::ExtraExpanded;
+    if (str == "UltraExpanded")
+        return PdfFontStretch::UltraExpanded;
+    else
+        return PdfFontStretch::Unknown;
 }

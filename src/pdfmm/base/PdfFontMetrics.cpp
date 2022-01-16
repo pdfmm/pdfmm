@@ -106,6 +106,15 @@ unsigned PdfFontMetrics::GetWeight() const
     return (unsigned)weight;
 }
 
+double PdfFontMetrics::GetLeading() const
+{
+    double leading = GetLeadingRaw();
+    if (leading < 0)
+        return 0;
+
+    return leading;
+}
+
 double PdfFontMetrics::GetXHeight() const
 {
     double xHeight = GetXHeightRaw();
@@ -122,6 +131,33 @@ double PdfFontMetrics::GetStemH() const
         return 0;
 
     return stemH;
+}
+
+double PdfFontMetrics::GetAvgWidth() const
+{
+    double avgWidth = GetAvgWidthRaw();
+    if (avgWidth < 0)
+        return 0;
+
+    return avgWidth;
+}
+
+double PdfFontMetrics::GetMaxWidth() const
+{
+    double maxWidth = GetMaxWidthRaw();
+    if (maxWidth < 0)
+        return 0;
+
+    return maxWidth;
+}
+
+double PdfFontMetrics::GetDefaultWidth() const
+{
+    double defaultWidth = GetDefaultWidthRaw();
+    if (defaultWidth < 0)
+        return 0;
+
+    return defaultWidth;
 }
 
 PdfFontStyle PdfFontMetrics::GetStyle() const

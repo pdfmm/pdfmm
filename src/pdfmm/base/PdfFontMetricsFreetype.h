@@ -42,17 +42,13 @@ public:
 
     std::unique_ptr<PdfCMapEncoding> CreateToUnicodeMap(const PdfEncodingLimits& limitHints) const override;
 
-    PdfFontDescriptorFlags GetFlags() const override;
-
     unsigned GetGlyphCount() const override;
 
     bool TryGetGlyphWidth(unsigned gid, double& width) const override;
 
     bool TryGetGID(char32_t codePoint, unsigned& gid) const override;
 
-    double GetDefaultWidth() const override;
-
-    void GetBoundingBox(std::vector<double>& bbox) const override;
+    double GetDefaultWidthRaw() const override;
 
     double GetLineSpacing() const override;
 
@@ -64,15 +60,27 @@ public:
 
     double GetStrikeOutThickness() const override;
 
-    double GetAscent() const override;
-
-    double GetDescent() const override;
-
     std::string GetBaseFontName() const override;
 
     std::string GetFontName() const override;
 
+    std::string GetFontFamilyName() const override;
+
+    PdfFontStretch GetFontStretch() const override;
+
     int GetWeightRaw() const override;
+
+    PdfFontDescriptorFlags GetFlags() const override;
+
+    void GetBoundingBox(std::vector<double>& bbox) const override;
+
+    double GetItalicAngle() const override;
+
+    double GetAscent() const override;
+
+    double GetDescent() const override;
+
+    double GetLeadingRaw() const override;
 
     double GetCapHeight() const override;
 
@@ -82,7 +90,9 @@ public:
 
     double GetStemHRaw() const override;
 
-    double GetItalicAngle() const override;
+    double GetAvgWidthRaw() const override;
+
+    double GetMaxWidthRaw() const override;
 
     PdfFontFileType GetFontFileType() const override;
 
@@ -114,27 +124,33 @@ private:
 
 private:
     FT_Face m_Face;
-
     PdfFontFileType m_FontFileType;
+
+    std::string m_FontBaseName;
+    std::string m_FontName;
+    std::string m_FontFamilyName;
+    PdfFontStretch m_FontStretch;
+    int m_Weight;
+    PdfFontDescriptorFlags m_Flags;
+    double m_ItalicAngle;
     double m_Ascent;
     double m_Descent;
-    int m_Weight;
+    double m_Leading;
     double m_CapHeight;
     double m_XHeight;
-    double m_ItalicAngle;
+    double m_StemV;
+    double m_StemH;
+    double m_AvgWidth;
+    double m_MaxWidth;
+    double m_DefaultWidth;
 
     double m_LineSpacing;
     double m_UnderlineThickness;
     double m_UnderlinePosition;
     double m_StrikeOutThickness;
     double m_StrikeOutPosition;
-    double m_DefaultWidth;
-    PdfFontDescriptorFlags m_Flags;
 
     std::shared_ptr<charbuff> m_FontData;
-    std::string m_fontName;
-    std::string m_baseFontName;
-
     bool m_HasSymbolCharset;
 };
 

@@ -29,6 +29,7 @@ struct Standard14FontData
     unsigned WidthsSize;
     PdfFontDescriptorFlags Flags;
     uint16_t DefaultWidth;
+    PdfFontStretch Stretch;
     int16_t Ascent;
     int16_t Descent;
     uint16_t XHeight;
@@ -68,11 +69,7 @@ public:
 
     bool TryGetGID(char32_t codePoint, unsigned& gid) const override;
 
-    PdfFontDescriptorFlags GetFlags() const override;
-
-    double GetDefaultWidth() const override;
-
-    void GetBoundingBox(std::vector<double>& bbox) const override;
+    double GetDefaultWidthRaw() const override;
 
     double GetLineSpacing() const override;
 
@@ -84,15 +81,27 @@ public:
 
     double GetStrikeOutThickness() const override;
 
-    double GetAscent() const override;
-
-    double GetDescent() const override;
-
     std::string GetFontName() const override;
 
     std::string GetBaseFontName() const override;
 
+    std::string GetFontFamilyName() const override;
+
+    PdfFontStretch GetFontStretch() const override;
+
     int GetWeightRaw() const override;
+
+    PdfFontDescriptorFlags GetFlags() const override;
+
+    void GetBoundingBox(std::vector<double>& bbox) const override;
+
+    double GetItalicAngle() const override;
+
+    double GetAscent() const override;
+
+    double GetDescent() const override;
+
+    double GetLeadingRaw() const override;
 
     double GetCapHeight() const override;
 
@@ -102,7 +111,9 @@ public:
 
     double GetStemHRaw() const override;
 
-    double GetItalicAngle() const override;
+    double GetAvgWidthRaw() const override;
+
+    double GetMaxWidthRaw() const override;
 
     PdfFontFileType GetFontFileType() const override;
 

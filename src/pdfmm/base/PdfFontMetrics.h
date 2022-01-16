@@ -40,8 +40,6 @@ public:
     double GetGlyphWidth(unsigned gid) const;
     virtual bool TryGetGlyphWidth(unsigned gid, double& width) const = 0;
 
-    virtual double GetDefaultWidth() const = 0;
-
     /**
      * Some fonts provides a glyph subsitution list, eg. for ligatures.
      * OpenType fonts for example provides GSUB "Glyph Substitution Table"
@@ -61,14 +59,6 @@ public:
      */
     unsigned GetGID(char32_t codePoint) const;
     virtual bool TryGetGID(char32_t codePoint, unsigned& gid) const = 0;
-
-    /** Create the bounding box vector in PDF units
-     *
-     *  \param bbox write the bounding box to this vector
-     */
-    virtual void GetBoundingBox(std::vector<double>& bbox) const = 0;
-
-    virtual PdfFontDescriptorFlags GetFlags() const = 0;
 
     /** Retrieve the line spacing for this font
      *  \returns the linespacing in PDF units
@@ -99,25 +89,6 @@ public:
      */
     virtual double GetStrikeOutThickness() const = 0;
 
-    /** Get the ascent of this font in PDF
-     *  units for the current font size.
-     *
-     * \returns the ascender for this font
-     *
-     * \see GetAscent
-     */
-    virtual double GetAscent() const = 0;
-
-    /** Get the descent of this font in PDF
-     *  units for the current font size.
-     *  This value is usually negative!
-    
-     *  \returns the descender for this font
-     *
-     *  \see GetDescent
-     */
-    virtual double GetDescent() const = 0;
-
     virtual PdfFontFileType GetFontFileType() const = 0;
 
     /** Get the actual font data for a file imported font, if available
@@ -139,18 +110,26 @@ public:
      */
     std::string GetFontNameSafe(bool baseFirst = false) const;
 
-    /** Get a base name for the font that can be used to compose the final name, eg. "Arial"
-     *
-     *  Return empty string by default
+    /** Get a semantical base name for the font that can be used to
+     * compose the final name, eg. "Arial".
+     * 
+     * It's a preprocessed value and it's not supposed to correspond
+     * to any entry in the descriptor. Returns empty string by default
      */
     virtual std::string GetBaseFontName() const;
 
     /** Get the actual /FontName, eg. "AAAAAA+Arial,Bold", if available
      *
-     *  By default return empty string
+     *  By default returns empty string
      *  \returns the postscript name of the font or empty string if no postscript name is available.
      */
     virtual std::string GetFontName() const;
+
+    /** Get the actual /FontFamily, eg. "Times", if available
+     */
+    virtual std::string GetFontFamilyName() const = 0;
+
+    virtual PdfFontStretch GetFontStretch() const = 0;
 
     /** Get the weight of this font.
      *  \returns the weight of this font (400 <= x < 700 means normal, x >= 700 means bold)
@@ -158,13 +137,51 @@ public:
     unsigned GetWeight() const;
     virtual int GetWeightRaw() const = 0;
 
+    virtual PdfFontDescriptorFlags GetFlags() const = 0;
+
+    /** Create the bounding box vector in PDF units
+     *
+     *  \param bbox write the bounding box to this vector
+     */
+    virtual void GetBoundingBox(std::vector<double>& bbox) const = 0;
+
+    /** Get the italic angle of this font.
+     *  Used to build the font dictionay
+     *  \returns the italic angle of this font.
+     */
+    virtual double GetItalicAngle() const = 0;
+
+    /** Get the ascent of this font in PDF
+     *  units for the current font size.
+     *
+     * \returns the ascender for this font
+     *
+     * \see GetAscent
+     */
+    virtual double GetAscent() const = 0;
+
+    /** Get the descent of this font in PDF
+     *  units for the current font size.
+     *  This value is usually negative!
+
+     *  \returns the descender for this font
+     *
+     *  \see GetDescent
+     */
+    virtual double GetDescent() const = 0;
+
+    /* /Leading (optional, default 0)
+     */
+    double GetLeading() const;
+    virtual double GetLeadingRaw() const = 0;
+
     /** The vertical coordinate of the top of flat capital letters, measured from the baseline
      */
     virtual double GetCapHeight() const = 0;
 
     /** The font’s x height: the vertical coordinate of the top of flat nonascending
      * lowercase letters (like the letter x), measured from the baseline, in
-     * fonts that have Latin characters
+     * fonts that have Latin characters (optional, default 0)
      */
     double GetXHeight() const;
     virtual double GetXHeightRaw() const = 0;
@@ -173,16 +190,26 @@ public:
      */
     virtual double GetStemV() const = 0;
 
-    /** The thickness, measured vertically, of the dominant horizontal stems of glyphs in the font
+    /** The thickness, measured vertically, of the dominant horizontal
+     * stems of glyphs in the font (optional, default 0)
      */
     double GetStemH() const;
     virtual double GetStemHRaw() const = 0;
 
-    /** Get the italic angle of this font.
-     *  Used to build the font dictionay
-     *  \returns the italic angle of this font.
+    /** /AvgWidth (optional, default 0)
      */
-    virtual double GetItalicAngle() const = 0;
+    double GetAvgWidth() const;
+    virtual double GetAvgWidthRaw() const = 0;
+
+    /** /MaxWidth (optional, default 0)
+     */
+    double GetMaxWidth() const;
+    virtual double GetMaxWidthRaw() const = 0;
+
+    /** /MissingWidth or /DW in CID fonts (optional default 1000 in CID fonts, 0 otherwise)
+     */
+    double GetDefaultWidth() const;
+    virtual double GetDefaultWidthRaw() const = 0;
 
     /** Get whether the font style is bold.
      *

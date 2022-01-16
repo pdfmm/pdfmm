@@ -130,7 +130,7 @@ PdfFontDescriptorFlags PdfFontMetricsStandard14::GetFlags() const
     return m_data.Flags;
 }
 
-double PdfFontMetricsStandard14::GetDefaultWidth() const
+double PdfFontMetricsStandard14::GetDefaultWidthRaw() const
 {
     return m_data.DefaultWidth / 1000.0;
 }
@@ -170,6 +170,11 @@ double PdfFontMetricsStandard14::GetDescent() const
     return m_Descent;
 }
 
+double PdfFontMetricsStandard14::GetLeadingRaw() const
+{
+    return -1;
+}
+
 string PdfFontMetricsStandard14::GetFontName() const
 {
     return (string)GetStandard14FontName(m_Std14FontType);
@@ -178,6 +183,16 @@ string PdfFontMetricsStandard14::GetFontName() const
 string PdfFontMetricsStandard14::GetBaseFontName() const
 {
     return (string)GetStandard14FontBaseName(m_Std14FontType);
+}
+
+string PdfFontMetricsStandard14::GetFontFamilyName() const
+{
+    return (string)GetStandard14FontFamilyName(m_Std14FontType);
+}
+
+PdfFontStretch PdfFontMetricsStandard14::GetFontStretch() const
+{
+    return m_data.Stretch;
 }
 
 int PdfFontMetricsStandard14::GetWeightRaw() const
@@ -203,6 +218,16 @@ double PdfFontMetricsStandard14::GetStemV() const
 double PdfFontMetricsStandard14::GetStemHRaw() const
 {
     return m_data.StemH / 1000.0;
+}
+
+double PdfFontMetricsStandard14::GetAvgWidthRaw() const
+{
+    return -1;
+}
+
+double PdfFontMetricsStandard14::GetMaxWidthRaw() const
+{
+    return -1;
 }
 
 double PdfFontMetricsStandard14::GetItalicAngle() const
