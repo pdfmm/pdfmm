@@ -41,7 +41,7 @@ namespace mm
         /** Null encoding
          */
         PdfEncoding();
-        PdfEncoding(const PdfEncodingMapConstPtr& encoding, const PdfEncodingMapConstPtr& toUnicode = nullptr);
+        PdfEncoding(const PdfEncodingMapConstPtr& encoding, const PdfToUnicodeMapConstPtr& toUnicode = nullptr);
         virtual ~PdfEncoding();
 
     private:

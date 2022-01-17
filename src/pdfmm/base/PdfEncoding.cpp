@@ -31,7 +31,7 @@ PdfEncoding::PdfEncoding()
 {
 }
 
-PdfEncoding::PdfEncoding(const PdfEncodingMapConstPtr& encoding, const PdfEncodingMapConstPtr& toUnicode)
+PdfEncoding::PdfEncoding(const PdfEncodingMapConstPtr& encoding, const PdfToUnicodeMapConstPtr& toUnicode)
     : PdfEncoding(getNextId(), encoding, toUnicode)
 {
 }
@@ -44,7 +44,7 @@ PdfEncoding::PdfEncoding(size_t id, const PdfEncodingMapConstPtr& encoding, cons
 }
 
 PdfEncoding::PdfEncoding(const PdfObject& fontObj, const PdfEncodingMapConstPtr& encoding, const PdfEncodingMapConstPtr& toUnicode)
-    : PdfEncoding(encoding, toUnicode)
+    : PdfEncoding(getNextId(), encoding, toUnicode)
 {
     auto firstCharObj = fontObj.GetDictionary().FindKey("FirstChar");
     if (firstCharObj != nullptr)

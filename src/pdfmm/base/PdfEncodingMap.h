@@ -342,10 +342,15 @@ protected:
     void AppendCIDMappingEntries(PdfObjectStream& stream, const PdfFont& font) const override;
 };
 
-/** Convenience typedef for a const PdfEncoding shared ptr
+/** Convenience typedef for a const /Encoding map entry shared ptr
  */
-typedef std::shared_ptr<const PdfEncodingMap> PdfEncodingMapConstPtr;
+using PdfEncodingMapConstPtr = std::shared_ptr<const PdfEncodingMap>;
 
+class PdfCMapEncoding;
+
+/** Convenience alias for a const /ToUnicode CMap entry shared ptr
+ */
+using PdfToUnicodeMapConstPtr = std::shared_ptr<const PdfCMapEncoding>;
 }
 
 #endif // PDF_ENCODING_MAP_H

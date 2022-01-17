@@ -15,7 +15,8 @@ Version 0.9.20-dev
 - Added indirect iteration for PdfArray/PdfDictionary (see GetIndirectIterator methods)
 - Added PdfDocument::GetPdfALevel()
 - Added PDFA preserving writing
-- Refactored/Reviewed PdfInputDevice
+- Refactored/Reviewed PdfInputDevice: versions that take buffer
+  do not copy it (use istringviewstream)
 - Added font replacement facility PdfFont::TryCreateFontSubstitute()
 - Added standard14 fonts embedding, with font programs from PDFium
 - Reviewed PdfXObject hierarchy, added PdfXObjectForm, PdfXObjectPostScript
@@ -75,7 +76,7 @@ Version 0.9.20-dev
 - Clean PdfError, remove wchar_t
 - Remove printf, snprintf
 - Renamed PdfElement-> {PdfDictionaryElement|PdfArrayElement} that
-    respectively have GetDictionary(), GetArray()
+  respectively have GetDictionary(), GetArray()
 - Reviwed PdfWriteFlags, added PdfSaveOptions
 
 # Old PoDoFo ChangeLog
