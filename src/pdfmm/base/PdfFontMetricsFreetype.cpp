@@ -84,6 +84,7 @@ void PdfFontMetricsFreetype::initFromFace(const PdfFontMetrics* refMetrics)
     m_FontName = FT_Get_Postscript_Name(m_Face);
     m_FontName.erase(std::remove(m_FontName.begin(), m_FontName.end(), ' '), m_FontName.end());
     m_FontBaseName = PdfFont::ExtractBaseName(m_FontName);
+    m_FontFamilyName = m_Face->family_name;
 
     m_HasSymbolCharset = false;
 
