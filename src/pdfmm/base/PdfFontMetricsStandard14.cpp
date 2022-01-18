@@ -105,6 +105,11 @@ bool PdfFontMetricsStandard14::TryGetGlyphWidth(unsigned gid, double& width) con
     }
 }
 
+bool PdfFontMetricsStandard14::HasUnicodeMapping() const
+{
+    return true;
+}
+
 bool PdfFontMetricsStandard14::TryGetGID(char32_t codePoint, unsigned& gid) const
 {
     if (codePoint >= 0xFFFF)

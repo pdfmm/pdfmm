@@ -61,8 +61,11 @@ struct PdfCID
 
 /** 
  * A PdfEncodingMap is a low level interface to convert
- * between utf8 and encoded strings in Pdf.
- * \remarks Don't use this class directly, use PdfEncoding
+ * between utf8 and encoded strings in and to determine
+ * correct CID mapping
+ * \remarks Prefer using PdfEncoding methods instead:
+ * don't use this class directly unless you know what
+ * you are doing
  */
 class PDFMM_API PdfEncodingMap
 {
@@ -88,6 +91,7 @@ public:
      * \return true if the code points match a character code
      */
     bool TryGetCharCode(const unicodeview& codePoints, PdfCharCode& codeUnit) const;
+
     /**
      * Try get next char code unit from cid
      */

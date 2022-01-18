@@ -67,6 +67,8 @@ public:
 
     bool TryGetGlyphWidth(unsigned gid, double& width) const override;
 
+    bool HasUnicodeMapping() const override;
+
     bool TryGetGID(char32_t codePoint, unsigned& gid) const override;
 
     double GetDefaultWidthRaw() const override;

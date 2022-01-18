@@ -323,6 +323,11 @@ bool PdfFontMetricsObject::TryGetGlyphWidth(unsigned gid, double& width) const
     return true;
 }
 
+bool PdfFontMetricsObject::HasUnicodeMapping() const
+{
+    return false;
+}
+
 bool PdfFontMetricsObject::TryGetGID(char32_t codePoint, unsigned& gid) const
 {
     (void)codePoint;

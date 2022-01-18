@@ -86,11 +86,16 @@ void PdfFontMetricsFreetype::initFromFace(const PdfFontMetrics* refMetrics)
     m_FontBaseName = PdfFont::ExtractBaseName(m_FontName);
     m_FontFamilyName = m_Face->family_name;
 
+    m_HasUnicodeMapping = false;
     m_HasSymbolCharset = false;
 
     // Try to get a unicode charmap
     rc = FT_Select_Charmap(m_Face, FT_ENCODING_UNICODE);
-    if (rc != 0)
+    if (rc == 0)
+    {
+        m_HasUnicodeMapping = true;
+    }
+    else
     {
         // Try to determine if it is a symbol font
         for (int c = 0; c < m_Face->num_charmaps; c++)
@@ -98,16 +103,11 @@ void PdfFontMetricsFreetype::initFromFace(const PdfFontMetrics* refMetrics)
             FT_CharMap charmap = m_Face->charmaps[c];
             if (charmap->encoding == FT_ENCODING_MS_SYMBOL)
             {
+                m_HasUnicodeMapping = true;
                 m_HasSymbolCharset = true;
                 rc = FT_Set_Charmap(m_Face, charmap);
                 break;
             }
-        }
-
-        if (rc != 0)
-        {
-            PdfError::LogMessage(PdfLogSeverity::Error, "FreeType returned the error {} when calling FT_Select_Charmap for a buffered font", (int)rc);
-            PDFMM_RAISE_ERROR(PdfErrorCode::FreeType);
         }
     }
 
@@ -244,11 +244,17 @@ bool PdfFontMetricsFreetype::TryGetGlyphWidth(unsigned gid, double& width) const
     return true;
 }
 
+bool PdfFontMetricsFreetype::HasUnicodeMapping() const
+{
+    return m_HasUnicodeMapping;
+}
+
 bool PdfFontMetricsFreetype::TryGetGID(char32_t codePoint, unsigned& gid) const
 {
     if (m_HasSymbolCharset)
         codePoint = codePoint | 0xF000;
 
+    // NOTE: FT_Get_Char_Index returns 0 when no map is selected
     gid = FT_Get_Char_Index(m_Face, codePoint);
     return gid != 0;
 }

@@ -138,6 +138,15 @@ public:
      */
     void WriteStringToStream(std::ostream& stream, const std::string_view& str) const;
 
+    /** Get the GID by the codePoint
+     *
+     *  \param codePoint unicode codepoint
+     *  \returns the GID
+     *  \remarks throw if not found
+     */
+    unsigned GetGID(char32_t codePoint) const;
+    bool TryGetGID(char32_t codePoint, unsigned& gid) const;
+
     /** Retrieve the width of a given text string in PDF units when
      *  drawn with the current font
      *  \param str a utf8 string of which the width should be calculated
@@ -375,8 +384,6 @@ private:
     bool tryGetCharWidthLoaded(char32_t codePoint, const PdfTextState& state, bool ignoreCharSpacing, double& width) const;
 
     double getStringWidth(const std::vector<PdfCID>& cids, const PdfTextState& state) const;
-
-    double getCIDWidth(unsigned cid, const PdfTextState& state, bool ignoreCharSpacing) const;
 
     static std::unique_ptr<PdfFont> createFontForType(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
         const PdfEncoding& encoding, PdfFontFileType type);

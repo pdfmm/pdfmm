@@ -24,6 +24,8 @@ namespace mm {
  */
 class PDFMM_API PdfFontMetrics
 {
+    friend class PdfFont;
+
 protected:
     PdfFontMetrics();
 
@@ -51,13 +53,15 @@ public:
     virtual void SubstituteGIDs(std::vector<unsigned>& gids,
         std::vector<unsigned char>& backwardMap) const;
 
-    /** Get the GID by the codePoint
-     *
-     *  \param codePoint unicode codepoint
-     *  \returns the GID
-     *  \remarks throw if not found
+    /** Determines if the metrics has a valid Unicode
+     * code point to gid map
      */
-    unsigned GetGID(char32_t codePoint) const;
+    virtual bool HasUnicodeMapping() const = 0;
+
+    /** Try to retrieve the mapped gid from Unicode code point
+     * \remarks dont' use this method directly unless you know
+     * what you're doing: use PdfFont::TryGetGID instead
+     */
     virtual bool TryGetGID(char32_t codePoint, unsigned& gid) const = 0;
 
     /** Retrieve the line spacing for this font

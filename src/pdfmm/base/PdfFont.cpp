@@ -197,7 +197,7 @@ void PdfFont::InitImported(bool wantEmbed, bool wantSubset)
     {
         unsigned gid;
         char32_t spaceCp = U' ';
-        if (m_Metrics->TryGetGID(spaceCp, gid))
+        if (TryGetGID(spaceCp, gid))
         {
             // If it exist a glyph for space character
             // always add it for subsetting
@@ -263,6 +263,36 @@ void PdfFont::embedFont()
 void PdfFont::embedFontSubset()
 {
     PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "Subsetting not implemented for this font type");
+}
+
+unsigned PdfFont::GetGID(char32_t codePoint) const
+{
+    unsigned gid;
+    if (!TryGetGID(codePoint, gid))
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "Can't find a gid");
+
+    return gid;
+}
+
+bool PdfFont::TryGetGID(char32_t codePoint, unsigned& gid) const
+{
+    if (IsObjectLoaded() || !m_Metrics->HasUnicodeMapping())
+    {
+        PdfCharCode codeUnit;
+        unsigned cid;
+        if (!m_Encoding->GetToUnicodeMapSafe().TryGetCharCode(codePoint, codeUnit)
+            || !m_Encoding->TryGetCIDId(codeUnit, cid))
+        {
+            gid = 0;
+            return false;
+        }
+
+        return TryMapCIDToGID(cid, gid);
+    }
+    else
+    {
+        return m_Metrics->TryGetGID(codePoint, gid);
+    }
 }
 
 double PdfFont::GetStringWidth(const string_view& str, const PdfTextState& state) const
@@ -338,21 +368,16 @@ bool PdfFont::TryGetCharWidth(char32_t codePoint, const PdfTextState& state, dou
 bool PdfFont::TryGetCharWidth(char32_t codePoint, const PdfTextState& state,
     bool ignoreCharSpacing, double& width) const
 {
-    if (IsObjectLoaded())
+    unsigned gid;
+    if (TryGetGID(codePoint, gid))
     {
-        return tryGetCharWidthLoaded(codePoint, state, ignoreCharSpacing, width);
+        width = getCharWidth(m_Metrics->GetGlyphWidth(gid), state, ignoreCharSpacing);
+        return true;
     }
     else
     {
-        unsigned gid;
-        if (!m_Metrics->TryGetGID(codePoint, gid))
-        {
-            width = getCharWidth(m_Metrics->GetDefaultWidth(), state, ignoreCharSpacing);
-            return false;
-        }
-
-        width = getCharWidth(m_Metrics->GetGlyphWidth(gid), state, ignoreCharSpacing);
-        return true;
+        width = getCharWidth(m_Metrics->GetDefaultWidth(), state, ignoreCharSpacing);
+        return false;
     }
 }
 
@@ -368,7 +393,7 @@ bool PdfFont::tryGetCharWidthLoaded(char32_t codePoint, const PdfTextState& stat
         return false;
     }
     
-    width = getCIDWidth(cid, state, ignoreCharSpacing);
+    width = getCharWidth(GetCIDWidthRaw(cid), state, ignoreCharSpacing);
     return true;
 }
 
@@ -488,14 +513,9 @@ double PdfFont::getStringWidth(const vector<PdfCID>& cids, const PdfTextState& s
 {
     double width = 0;
     for (auto& cid : cids)
-        width += getCIDWidth(cid.Id, state, false);
+        width += getCharWidth(GetCIDWidthRaw(cid.Id), state, false);
 
     return width;
-}
-
-double PdfFont::getCIDWidth(unsigned cid, const PdfTextState& state, bool ignoreCharSpacing) const
-{
-    return getCharWidth(GetCIDWidthRaw(cid), state, ignoreCharSpacing);
 }
 
 double PdfFont::GetLineSpacing(const PdfTextState& state) const
@@ -657,7 +677,7 @@ PdfObject& PdfFont::GetDescendantFontObject()
 bool PdfFont::TryMapCIDToGID(unsigned cid, unsigned& gid) const
 {
     PDFMM_ASSERT(!IsObjectLoaded());
-    if (m_Encoding->IsSimpleEncoding())
+    if (m_Encoding->IsSimpleEncoding() && m_Metrics->HasUnicodeMapping())
     {
         // Simple encodings must retrieve the gid from the
         // metrics using the mapped unicode code point

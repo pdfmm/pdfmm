@@ -94,7 +94,7 @@ bool PdfEncoding::TryConvertToEncoded(const string_view& str, charbuff& encoded)
         return true;
 
     auto& font = GetFont();
-    if (font.IsObjectLoaded())
+    if (font.IsObjectLoaded() || !font.GetMetrics().HasUnicodeMapping())
     {
         // The font is loaded from object. We will attempt to use
         // just the loaded map to perform the conversion
@@ -230,7 +230,7 @@ bool PdfEncoding::TryGetCIDId(const PdfCharCode& codeUnit, unsigned& cid) const
     {
         PDFMM_INVARIANT(m_Encoding->IsSimpleEncoding());
         auto& font = GetFont();
-        if (font.IsObjectLoaded())
+        if (font.IsObjectLoaded() || !font.GetMetrics().HasUnicodeMapping())
         {
             // Assume cid == charcode
             cid = codeUnit.Code;

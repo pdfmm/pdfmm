@@ -171,16 +171,17 @@ bool PdfEncodingMap::TryGetNextCodePoints(string_view::iterator& it,
 
 bool PdfEncodingMap::TryGetCIDId(const PdfCharCode& codeUnit, unsigned& cid) const
 {
-    vector<char32_t> codePoints;
-    bool success = tryGetCodePoints(codeUnit, codePoints);
-    if (!success || codePoints.size() != 1)
+    // NOTE: Here we assume the map will actually
+    // contains cids, and not unicode codepoints
+    vector<char32_t> cids;
+    bool success = tryGetCodePoints(codeUnit, cids);
+    if (!success || cids.size() != 1)
     {
         // Return false on missing lookup or malformed multiple code points found
         return false;
     }
 
-    // char32_t is also unsigned
-    cid = (unsigned)codePoints[0];
+    cid = (unsigned)cids[0];
     return true;
 }
 
@@ -452,7 +453,7 @@ void PdfEncodingMapOneByte::AppendCIDMappingEntries(PdfObjectStream& stream, con
         if (!TryGetCodePoints(charCode, codePoints))
             PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "Unable to find character code");
 
-        if (!font.GetMetrics().TryGetGID(codePoints[0], gid))
+        if (!font.TryGetGID(codePoints[0], gid))
             continue;
 
         // NOTE: We will map the char code directly to the gid, so

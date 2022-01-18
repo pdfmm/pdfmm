@@ -46,6 +46,8 @@ public:
 
     bool TryGetGlyphWidth(unsigned gid, double& width) const override;
 
+    bool HasUnicodeMapping() const override;
+
     bool TryGetGID(char32_t codePoint, unsigned& gid) const override;
 
     double GetDefaultWidthRaw() const override;
@@ -151,6 +153,7 @@ private:
     double m_StrikeOutPosition;
 
     std::shared_ptr<charbuff> m_FontData;
+    bool m_HasUnicodeMapping;
     bool m_HasSymbolCharset;
 };
 
