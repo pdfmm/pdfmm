@@ -12,8 +12,9 @@
 #include <sstream>
 
 #include <pdfmm/private/FreetypePrivate.h>
-#include FT_TRUETYPE_TABLES_H
 #include FT_TRUETYPE_TAGS_H
+#include FT_TRUETYPE_TABLES_H
+#include FT_TYPE1_TABLES_H
 #include FT_FONT_FORMATS_H
 
 #include "PdfArray.h"
@@ -26,6 +27,7 @@ using namespace std;
 using namespace mm;
 
 static PdfFontFileType determineTrueTypeFormat(FT_Face face);
+static int determineType1FontWeight(const string_view& weight);
 
 PdfFontMetricsFreetype::PdfFontMetricsFreetype(
     const shared_ptr<charbuff>& buffer, nullable<const PdfFontMetrics&> refMetrics) :
@@ -164,6 +166,7 @@ void PdfFontMetricsFreetype::initFromFace(const PdfFontMetrics* refMetrics)
         m_StrikeOutThickness = refMetrics->GetStrikeOutThickness();
     }
 
+    // OS2 Table is available only in TT fonts
     TT_OS2* os2Table = static_cast<TT_OS2*>(FT_Get_Sfnt_Table(m_Face, FT_SFNT_OS2));
     if (os2Table != nullptr)
     {
@@ -174,11 +177,24 @@ void PdfFontMetricsFreetype::initFromFace(const PdfFontMetrics* refMetrics)
         m_Weight = os2Table->usWeightClass;
     }
 
+    // Postscript Table is available only in TT fonts
     TT_Postscript* psTable = static_cast<TT_Postscript*>(FT_Get_Sfnt_Table(m_Face, FT_SFNT_POST));
     if (psTable != nullptr)
     {
         m_ItalicAngle = (double)psTable->italicAngle;
         if (psTable->isFixedPitch != 0)
+            m_Flags |= PdfFontDescriptorFlags::FixedPitch;
+    }
+
+    // FontInfo Table is available only in type1 fonts
+    PS_FontInfoRec type1Info;
+    rc = FT_Get_PS_Font_Info(m_Face, &type1Info);
+    if (rc == 0)
+    {
+        m_ItalicAngle = (double)type1Info.italic_angle;
+        if (type1Info.weight != nullptr)
+            m_Weight = determineType1FontWeight(type1Info.weight);
+        if (type1Info.is_fixed_pitch != 0)
             m_Flags |= PdfFontDescriptorFlags::FixedPitch;
     }
 
@@ -496,4 +512,36 @@ PdfFontFileType determineTrueTypeFormat(FT_Face face)
 
     // Default legay TrueType
     return PdfFontFileType::TrueType;
+}
+
+int determineType1FontWeight(const string_view& weightraw)
+{
+    string weight = utls::ToLower(weightraw);
+    weight = utls::Trim(weight, ' ');
+    weight = utls::Trim(weight, '-');
+
+    // The following table was found randomly on gamedev.net, but seems
+    // to be consistent with PDF range [100,900] in ISO 32000-1:2008
+    // Table 122 – Entries common to all font descriptors /FontWeight
+    // https://www.gamedev.net/forums/topic/690570-font-weights-and-thickness-classification-in-freetype/
+    if (weight == "extralight" || weight == "ultralight")
+        return 100;
+    else if (weight == "light" || weight == "thin")
+        return 200;
+    else if (weight == "book" || weight == "demi")
+        return 300;
+    else if (weight == "normal" || weight == "regular")
+        return 400;
+    else if (weight == "medium")
+        return 500;
+    else if (weight == "semibold" || weight == "demibold")
+        return 600;
+    else if (weight == "bold")
+        return 700;
+    else if (weight == "black" || weight == "extrabold" || weight == "heavy")
+        return 800;
+    else if (weight == "extrablack" || weight == "fat" || weight == "poster" || weight == "ultrablack")
+        return 900;
+    else
+        return -1;
 }

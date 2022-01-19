@@ -147,6 +147,10 @@ namespace utls
 
     void ReadUtf16LEString(const mm::bufferview& buffer, std::string& utf8str);
 
+    std::string ToLower(const std::string_view& str);
+
+    std::string Trim(const std::string_view& str, char ch);
+
     void ByteSwap(std::u16string& str);
 
     // https://stackoverflow.com/a/38140932/213871

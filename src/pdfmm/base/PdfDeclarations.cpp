@@ -213,6 +213,21 @@ void utls::ReadUtf16LEString(const bufferview& buffer, string& utf8str)
     utf8::utf16to8(iterable.begin(), iterable.end(), std::back_inserter(utf8str));
 }
 
+string utls::ToLower(const string_view& str)
+{
+    string ret = (string)str;
+    std::transform(ret.begin(), ret.end(), ret.begin(),
+        [](unsigned char c) { return std::tolower(c); });
+    return ret;
+}
+
+string utls::Trim(const string_view& str, char ch)
+{
+    string ret = (string)str;
+    ret.erase(std::remove(ret.begin(), ret.end(), ch), ret.end());
+    return ret;
+}
+
 void utls::ByteSwap(u16string& str)
 {
     for (unsigned i = 0; i < str.length(); i++)
