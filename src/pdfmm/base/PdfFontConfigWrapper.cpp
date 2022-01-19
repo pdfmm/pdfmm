@@ -29,12 +29,13 @@ PdfFontConfigWrapper::~PdfFontConfigWrapper()
     FcConfigDestroy(m_FcConfig);
 }
 
-string PdfFontConfigWrapper::GetFontConfigFontPath(const string_view fontName, PdfFontStyle style)
+string PdfFontConfigWrapper::GetFontConfigFontPath(const string_view fontName,
+    PdfFontStyle style, unsigned& faceIndex)
 {
     FcPattern* pattern;
     FcPattern* matched;
     FcResult result = FcResultMatch;
-    FcValue v;
+    FcValue value;
 
     bool isItalic = (style & PdfFontStyle::Italic) == PdfFontStyle::Italic;
     bool isBold = (style & PdfFontStyle::Bold) == PdfFontStyle::Bold;
@@ -51,18 +52,21 @@ string PdfFontConfigWrapper::GetFontConfigFontPath(const string_view fontName, P
     if (!FcConfigSubstitute(m_FcConfig, pattern, FcMatchFont))
     {
         FcPatternDestroy(pattern);
+        faceIndex = 0;
         return path;
     }
 
     matched = FcFontMatch(m_FcConfig, pattern, &result);
     if (result != FcResultNoMatch)
     {
-        result = FcPatternGet(matched, FC_FILE, 0, &v);
-        path = reinterpret_cast<const char*>(v.u.s);
+        (void)FcPatternGet(matched, FC_FILE, 0, &value);
+        path = reinterpret_cast<const char*>(value.u.s);
+        (void)FcPatternGet(matched, FC_INDEX, 0, &value);
+        faceIndex = (unsigned)value.u.i;
 #ifdef PDFMM_VERBOSE_DEBUG
         PdfError::LogMessage(PdfLogSeverity::Debug,
-            "Got Font {} for for {}\n", path, fontName);
-#endif // PDFMM_DEBUG
+            "Got Font {}, face index {} for {}", path, faceIndex, fontName);
+#endif // PDFMM_VERBOSE_DEBUG
     }
 
     FcPatternDestroy(pattern);

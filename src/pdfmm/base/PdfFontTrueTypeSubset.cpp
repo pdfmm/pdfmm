@@ -47,22 +47,30 @@ static uint32_t GetTableCheksum(const char* buf, uint32_t size);
 
 static bool TryAdvanceCompoundOffset(unsigned& offset, unsigned flags);
 
-PdfFontTrueTypeSubset::PdfFontTrueTypeSubset(PdfInputDevice& device, unsigned short faceIndex) :
+PdfFontTrueTypeSubset::PdfFontTrueTypeSubset(PdfInputDevice& device) :
     m_device(&device),
     m_fontFileType(TrueTypeFontFileType::Unknown),
-    m_startOfTTFOffsets(0),
-    m_faceIndex(faceIndex),
     m_isLongLoca(false),
     m_glyphCount(0),
     m_HMetricsCount(0)
 {
 }
 
-void PdfFontTrueTypeSubset::BuildFont(string& buffer, PdfInputDevice& input,
-    unsigned short faceIndex, const GIDList& gidList)
+void PdfFontTrueTypeSubset::BuildFont(std::string& output, const PdfFontMetrics& metrics,
+    const GIDList& gidList)
 {
-    PdfFontTrueTypeSubset subset(input, faceIndex);
-    subset.BuildFont(buffer, gidList);
+    switch (metrics.GetFontFileType())
+    {
+        case PdfFontFileType::TrueType:
+        case PdfFontFileType::OpenType:
+            break;
+        default:
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "The font to be subsetted is not a TrueType font");
+    }
+
+    PdfMemoryInputDevice input(metrics.GetFontFileData());
+    PdfFontTrueTypeSubset subset(input);
+    subset.BuildFont(output, gidList);
 }
 
 void PdfFontTrueTypeSubset::BuildFont(string& buffer, const GIDList& gidList)
@@ -78,29 +86,9 @@ void PdfFontTrueTypeSubset::BuildFont(string& buffer, const GIDList& gidList)
 
 void PdfFontTrueTypeSubset::Init()
 {
-    DetermineFontType();
-    GetStartOfTTFOffsets();
     InitTables();
     GetNumberOfGlyphs();
     SeeIfLongLocaOrNot();
-}
-
-void PdfFontTrueTypeSubset::DetermineFontType()
-{
-    m_tmpBuffer.resize(4);
-    m_device->Seek(0);
-    m_device->Read(m_tmpBuffer.data(), 4);
-
-    // https://docs.microsoft.com/en-us/typography/opentype/spec/otff#table-directory
-    if (std::memcmp(m_tmpBuffer.data(), "\000\001\000\000", 4) == 0)
-        m_fontFileType = TrueTypeFontFileType::TTF;
-    else if (m_tmpBuffer == "OTTO")
-        m_fontFileType = TrueTypeFontFileType::OTF;
-    // https://docs.microsoft.com/en-us/typography/opentype/spec/otff#ttc-header
-    else if (m_tmpBuffer == "ttcf")
-        m_fontFileType = TrueTypeFontFileType::TTC;
-    else
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFontFormat, "Unsupported true type font");
 }
 
 unsigned PdfFontTrueTypeSubset::GetTableOffset(unsigned tag)
@@ -129,7 +117,7 @@ void PdfFontTrueTypeSubset::GetNumberOfGlyphs()
 void PdfFontTrueTypeSubset::InitTables()
 {
     uint16_t tableCount;
-    m_device->Seek(m_startOfTTFOffsets + sizeof(uint32_t) * 1);
+    m_device->Seek(sizeof(uint32_t) * 1);
     utls::ReadUInt16BE(*m_device, tableCount);
 
     ReqTable tableMask = ReqTable::none;
@@ -138,19 +126,19 @@ void PdfFontTrueTypeSubset::InitTables()
     for (unsigned short i = 0; i < tableCount; i++)
     {
         // Name of each table:
-        m_device->Seek(m_startOfTTFOffsets + LENGTH_HEADER12 + LENGTH_OFFSETTABLE16 * i);
+        m_device->Seek(LENGTH_HEADER12 + LENGTH_OFFSETTABLE16 * i);
         utls::ReadUInt32BE(*m_device, tbl.Tag);
 
         // Checksum of each table:
-        m_device->Seek(m_startOfTTFOffsets + LENGTH_HEADER12 + LENGTH_OFFSETTABLE16 * i + sizeof(uint32_t) * 1);
+        m_device->Seek(LENGTH_HEADER12 + LENGTH_OFFSETTABLE16 * i + sizeof(uint32_t) * 1);
         utls::ReadUInt32BE(*m_device, tbl.Checksum);
 
         // Offset of each table:
-        m_device->Seek(m_startOfTTFOffsets + LENGTH_HEADER12 + LENGTH_OFFSETTABLE16 * i + sizeof(uint32_t) * 2);
+        m_device->Seek(LENGTH_HEADER12 + LENGTH_OFFSETTABLE16 * i + sizeof(uint32_t) * 2);
         utls::ReadUInt32BE(*m_device, tbl.Offset);
 
         // Length of each table:
-        m_device->Seek(m_startOfTTFOffsets + LENGTH_HEADER12 + LENGTH_OFFSETTABLE16 * i + sizeof(uint32_t) * 3);
+        m_device->Seek(LENGTH_HEADER12 + LENGTH_OFFSETTABLE16 * i + sizeof(uint32_t) * 3);
         utls::ReadUInt32BE(*m_device, tbl.Length);
 
         // PDF 32000-1:2008 9.9 Embedded Font Programs
@@ -207,29 +195,6 @@ void PdfFontTrueTypeSubset::InitTables()
 
     if ((tableMask & ReqTable::all) == ReqTable::none)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFontFormat, "Required TrueType table missing");
-}
-
-void PdfFontTrueTypeSubset::GetStartOfTTFOffsets()
-{
-    switch (m_fontFileType)
-    {
-        case TrueTypeFontFileType::TTF:
-            m_startOfTTFOffsets = 0;
-            break;
-        case TrueTypeFontFileType::TTC:
-        {
-            uint32_t ulnumFace;
-            m_device->Seek(8);
-            utls::ReadUInt32BE(*m_device, ulnumFace);
-
-            m_device->Seek((m_faceIndex + 3) * sizeof(uint32_t));
-            utls::ReadUInt32BE(*m_device, m_startOfTTFOffsets);
-        }
-        break;
-        case TrueTypeFontFileType::Unknown:
-        default:
-            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Invalid font type");
-    }
 }
 
 void PdfFontTrueTypeSubset::SeeIfLongLocaOrNot()

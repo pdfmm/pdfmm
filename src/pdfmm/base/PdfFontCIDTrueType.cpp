@@ -132,16 +132,13 @@ void PdfFontCIDTrueType::embedFontFile(PdfObject& descriptor)
         createWidths(m_descendantFont->GetDictionary(), cidToGidMap);
         m_Encoding->ExportToFont(*this);
 
-        auto& metrics = GetMetrics();
-        PdfMemoryInputDevice input(metrics.GetFontFileData());
-        charbuff buffer;
-
         // Prepare a gid list to be used for subsetting
         vector<unsigned> gids;
         for (auto& pair : cidToGidMap)
             gids.push_back(pair.second);
 
-        PdfFontTrueTypeSubset::BuildFont(buffer, input, 0, gids);
+        charbuff buffer;
+        PdfFontTrueTypeSubset::BuildFont(buffer, GetMetrics(), gids);
         auto contents = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject();
         descriptor.GetDictionary().AddKeyIndirect("FontFile2", contents);
 

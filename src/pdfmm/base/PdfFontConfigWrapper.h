@@ -46,9 +46,10 @@ public:
      *
      *  \param fontName name of the requested font
      *  \param style font style
+     *  \param faceIndex index of the face
      *  \returns the path to the fontfile or an empty string
      */
-    std::string GetFontConfigFontPath(const std::string_view fontName, PdfFontStyle style);
+    std::string GetFontConfigFontPath(const std::string_view fontName, PdfFontStyle style, unsigned& faceIndex);
 
     FcConfig* GetFcConfig();
 

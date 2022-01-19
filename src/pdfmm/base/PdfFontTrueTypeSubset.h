@@ -38,24 +38,20 @@ using GIDList = std::span<const unsigned>;
 class PDFMM_API PdfFontTrueTypeSubset final
 {
 private:
-    PdfFontTrueTypeSubset(PdfInputDevice& device, unsigned short faceIndex);
+    PdfFontTrueTypeSubset(PdfInputDevice& device);
 
 public:
     /**
      * Actually generate the subsetted font
      * Create a new PdfFontTrueTypeSubset from an existing
-     * TTF font file using an input device.
+     * TTF font file retrived from a font metrics
      *
      * \param output write the font to this buffer
-     * \param inputDevice a PdfInputDevice
-     * \param type the type of the font
-     * \param faceIndex index of the face inside of the font
      * \param metrics font metrics object for this font
      * \param gidList a list of gids to load
-     * \param cidSet the output /CidSet
      */
-    static void BuildFont(std::string& output, PdfInputDevice& input,
-        unsigned short faceIndex, const GIDList& gidList);
+    static void BuildFont(std::string& output, const PdfFontMetrics& metrics,
+        const GIDList& gidList);
 
 private:
     PdfFontTrueTypeSubset(const PdfFontTrueTypeSubset& rhs) = delete;
@@ -64,12 +60,10 @@ private:
     void BuildFont(std::string& buffer, const GIDList& gidList);
 
     void Init();
-    void DetermineFontType();
     unsigned GetTableOffset(unsigned tag);
     void GetNumberOfGlyphs();
     void SeeIfLongLocaOrNot();
     void InitTables();
-    void GetStartOfTTFOffsets();
 
     void CopyData(PdfOutputDevice& output, unsigned offset, unsigned size);
 
@@ -129,11 +123,9 @@ private:
     void ReadGlyphCompoundData(GlyphCompoundData& data, unsigned offset);
 
 private:
-    PdfInputDevice* m_device;          // Read data from this input device
+    PdfInputDevice* m_device;
     TrueTypeFontFileType m_fontFileType;
 
-    uint32_t m_startOfTTFOffsets;	   // Start address of the truetype offset tables, differs from ttf to ttc.
-    unsigned short m_faceIndex;
     bool m_isLongLoca;
     uint16_t m_glyphCount;
     uint16_t m_HMetricsCount;

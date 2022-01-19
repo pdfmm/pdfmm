@@ -224,3 +224,8 @@ unique_ptr<PdfCMapEncoding> PdfFontMetrics::CreateToUnicodeMap(const PdfEncoding
     (void)limitHints;
     PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);
 }
+
+FT_Face PdfFontMetrics::GetFace() const
+{
+    PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);
+}

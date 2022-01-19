@@ -14,8 +14,6 @@
 #include "PdfFontMetrics.h"
 #include "PdfString.h"
 
-FORWARD_DECLARE_FTFACE();
-
 namespace mm {
 
 class PdfArray;
@@ -100,11 +98,7 @@ public:
 
     bufferview GetFontFileData() const override;
 
-    /** Get direct access to the internal FreeType handle
-     *
-     *  \returns the internal freetype handle
-     */
-    inline FT_Face GetFace() const { return m_Face; }
+    FT_Face GetFace() const override;
 
 protected:
     bool getIsBoldHint() const override;

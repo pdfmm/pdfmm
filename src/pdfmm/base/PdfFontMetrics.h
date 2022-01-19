@@ -14,6 +14,8 @@
 #include "PdfString.h"
 #include "PdfCMapEncoding.h"
 
+FORWARD_DECLARE_FTFACE();
+
 namespace mm {
 
 /**
@@ -255,6 +257,12 @@ public:
      * mapping to multiple unicode codepoints.
      */
     virtual std::unique_ptr<PdfCMapEncoding> CreateToUnicodeMap(const PdfEncodingLimits& limitHints) const;
+
+    /** Get direct access to the internal FreeType handle, if available
+     *
+     *  \returns the internal freetype handle
+     */
+    virtual FT_Face GetFace() const;
 
 protected:
     virtual bool getIsBoldHint() const = 0;

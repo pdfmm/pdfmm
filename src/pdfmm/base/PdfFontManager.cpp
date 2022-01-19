@@ -206,18 +206,17 @@ PdfFontMetricsConstPtr PdfFontManager::GetFontMetrics(const string_view& fontNam
 unique_ptr<charbuff> PdfFontManager::getFontData(const string_view& fontName,
     const PdfFontSearchParams& params)
 {
-    return getFontData(fontName, { }, -1, params);
+    return getFontData(fontName, { }, 0, params);
 }
 
 unique_ptr<charbuff> PdfFontManager::getFontData(const string_view& fontName,
-    string filepath, int faceIndex, const PdfFontSearchParams& params)
+    string filepath, unsigned faceIndex, const PdfFontSearchParams& params)
 {
-    faceIndex = 0; // TODO, implement searching the face index
     if (filepath.empty())
     {
 #ifdef PDFMM_HAVE_FONTCONFIG
         auto fc = ensureInitializedFontConfig();
-        filepath = m_fontConfig->GetFontConfigFontPath(fontName, params.Style);
+        filepath = m_fontConfig->GetFontConfigFontPath(fontName, params.Style, faceIndex);
 #endif
     }
 

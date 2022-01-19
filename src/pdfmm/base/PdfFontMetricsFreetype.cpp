@@ -13,6 +13,7 @@
 
 #include <pdfmm/private/FreetypePrivate.h>
 #include FT_TRUETYPE_TABLES_H
+#include FT_TRUETYPE_TAGS_H
 #include FT_FONT_FORMATS_H
 
 #include "PdfArray.h"
@@ -23,6 +24,8 @@
 
 using namespace std;
 using namespace mm;
+
+static PdfFontFileType determineTrueTypeFormat(FT_Face face);
 
 PdfFontMetricsFreetype::PdfFontMetricsFreetype(
     const shared_ptr<charbuff>& buffer, nullable<const PdfFontMetrics&> refMetrics) :
@@ -47,19 +50,14 @@ PdfFontMetricsFreetype::~PdfFontMetricsFreetype()
 
 void PdfFontMetricsFreetype::initFromBuffer(const PdfFontMetrics* refMetrics)
 {
-    FT_Open_Args openArgs;
-    memset(&openArgs, 0, sizeof(openArgs));
+    FT_Error rc;
+    FT_Open_Args openArgs{ };
     openArgs.flags = FT_OPEN_MEMORY;
     openArgs.memory_base = reinterpret_cast<FT_Byte*>(m_FontData->data());
     openArgs.memory_size = static_cast<FT_Long>(m_FontData->size());
-    FT_Error rc = FT_Open_Face(mm::GetFreeTypeLibrary(), &openArgs, 0, &m_Face);
-    if (rc != 0)
-    {
-        PdfError::LogMessage(PdfLogSeverity::Error,
-            "FreeType returned the error {} when calling FT_Open_Face for a buffered font", (int)rc);
-        PDFMM_RAISE_ERROR(PdfErrorCode::FreeType);
-    }
 
+    rc = FT_Open_Face(mm::GetFreeTypeLibrary(), &openArgs, 0, &m_Face);
+    CHECK_FT_RC(rc, FT_Open_Face);
     initFromFace(refMetrics);
 }
 
@@ -69,7 +67,7 @@ void PdfFontMetricsFreetype::initFromFace(const PdfFontMetrics* refMetrics)
 
     string format = FT_Get_Font_Format(m_Face);
     if (format == "TrueType")
-        m_FontFileType = PdfFontFileType::TrueType;
+        m_FontFileType = determineTrueTypeFormat(m_Face);
     else if (format == "Type 1")
         m_FontFileType = PdfFontFileType::Type1;
     else if (format == "CID Type 1")
@@ -184,6 +182,9 @@ void PdfFontMetricsFreetype::initFromFace(const PdfFontMetrics* refMetrics)
             m_Flags |= PdfFontDescriptorFlags::FixedPitch;
     }
 
+    // CHECK-ME: Try to read Type1 tables as well?
+    // https://freetype.org/freetype2/docs/reference/ft2-type1_tables.html
+
     // NOTE2: It is not correct to write flags ForceBold if the
     // font is already bold. The ForceBold flag is just an hint
     // for the viewer to draw glyphs with more pixels
@@ -222,7 +223,6 @@ unique_ptr<PdfFontMetricsFreetype> PdfFontMetricsFreetype::FromFace(FT_Face face
     if (face == nullptr)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Face can't be null");
 
-    // TODO: Obtain the fontdata from face
     return std::unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(face, nullptr));
 }
 
@@ -295,6 +295,11 @@ void PdfFontMetricsFreetype::GetBoundingBox(vector<double>& bbox) const
     bbox.push_back(m_Face->bbox.yMax / (double)m_Face->units_per_EM);
 }
 
+FT_Face PdfFontMetricsFreetype::GetFace() const
+{
+    return m_Face;
+}
+
 bool PdfFontMetricsFreetype::getIsBoldHint() const
 {
     return (m_Face->style_flags & FT_STYLE_FLAG_BOLD) != 0;
@@ -347,6 +352,30 @@ double PdfFontMetricsFreetype::GetLeadingRaw() const
 
 bufferview PdfFontMetricsFreetype::GetFontFileData() const
 {
+    if (m_FontData == nullptr)
+    {
+        // Lazy load the font data from the face
+        if (!(m_FontFileType == PdfFontFileType::TrueType ||
+            m_FontFileType == PdfFontFileType::OpenType))
+        {
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "Unsupported retrieving font data from face for not");
+        }
+
+        FT_Error rc;
+
+        // https://freetype.org/freetype2/docs/reference/ft2-truetype_tables.html#ft_load_sfnt_table
+        // Use value 0 if you want to access the whole font file
+        FT_ULong size = 0;
+        rc = FT_Load_Sfnt_Table(m_Face, 0, 0, nullptr, &size);
+        CHECK_FT_RC(rc, FT_Load_Sfnt_Table);
+
+        charbuff buffer(size);
+        rc = FT_Load_Sfnt_Table(m_Face, 0, 0, (FT_Byte*)buffer.data(), &size);
+        CHECK_FT_RC(rc, FT_Load_Sfnt_Table);
+
+        const_cast<PdfFontMetricsFreetype&>(*this).m_FontData.reset(new charbuff(std::move(buffer)));
+    }
+
     return bufferview(m_FontData->data(), m_FontData->size());
 }
 
@@ -393,4 +422,78 @@ double PdfFontMetricsFreetype::GetItalicAngle() const
 PdfFontFileType PdfFontMetricsFreetype::GetFontFileType() const
 {
     return m_FontFileType;
+}
+
+// Determines if the font is legacy TrueType or OpenType
+PdfFontFileType determineTrueTypeFormat(FT_Face face)
+{
+    FT_Error rc;
+    FT_ULong size;
+    FT_ULong tag;
+    rc = FT_Sfnt_Table_Info(face, 0, nullptr, &size);
+    CHECK_FT_RC(rc, FT_Sfnt_Table_Info);
+    for (FT_ULong i = 0, count = size; i < count; i++)
+    {
+        rc = FT_Sfnt_Table_Info(face, i, &tag, &size);
+        switch (tag)
+        {
+            // Legacy TrueType tables
+            // https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6.html
+            case TTAG_acnt:
+            case TTAG_ankr:
+            case TTAG_avar:
+            case TTAG_bdat:
+            case TTAG_bhed:
+            case TTAG_bloc:
+            case TTAG_bsln:
+            case TTAG_cmap:
+            case TTAG_cvar:
+            case TTAG_cvt:
+            case TTAG_EBSC:
+            case TTAG_fdsc:
+            case TTAG_feat:
+            case TTAG_fmtx:
+            case TTAG_fond:
+            case TTAG_fpgm:
+            case TTAG_fvar:
+            case TTAG_gasp:
+            case TTAG_gcid:
+            case TTAG_glyf:
+            case TTAG_gvar:
+            case TTAG_hdmx:
+            case TTAG_head:
+            case TTAG_hhea:
+            case TTAG_hmtx:
+            case TTAG_just:
+            case TTAG_kern:
+            case TTAG_kerx:
+            case TTAG_lcar:
+            case TTAG_loca:
+            case TTAG_ltag:
+            case TTAG_maxp:
+            case TTAG_meta:
+            case TTAG_mort:
+            case TTAG_morx:
+            case TTAG_name:
+            case TTAG_opbd:
+            case TTAG_OS2:
+            case TTAG_post:
+            case TTAG_prep:
+            case TTAG_prop:
+            case TTAG_sbix:
+            case TTAG_trak:
+            case TTAG_vhea:
+            case TTAG_vmtx:
+            case TTAG_xref:
+            case TTAG_Zapf:
+                // Continue on legacy tables
+                break;
+            default:
+                // Return OpenType on all other tables
+                return PdfFontFileType::OpenType;
+        }
+    }
+
+    // Default legay TrueType
+    return PdfFontFileType::TrueType;
 }
