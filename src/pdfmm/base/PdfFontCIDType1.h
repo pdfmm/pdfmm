@@ -1,21 +1,20 @@
 /**
- * Copyright (C) 2007 by Dominik Seichter <domseichter@web.de>
- * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
+ * Copyright (C) 2021 by Francesco Pretto <ceztko@gmail.com>
  *
- * Licensed under GNU Library General Public License 2.0 or later.
+ * Licensed under GNU Lesser General Public License 2.1.
  * Some rights reserved. See COPYING, AUTHORS.
  */
 
-#ifndef PDF_FONT_CID_TRUE_TYPE_H
-#define PDF_FONT_CID_TRUE_TYPE_H
+#ifndef PDF_FONT_CID_TYPE1_H
+#define PDF_FONT_CID_TYPE1_H
 
 #include "PdfFontCID.h"
 
 namespace mm {
 
-/** A PdfFont that represents a CID-keyed font that has a TrueType font backend
+/** A PdfFont that represents a CID-keyed font that has a Typ1 font backend
  */
-class PdfFontCIDTrueType final : public PdfFontCID
+class PdfFontCIDType1 final : public PdfFontCID
 {
     friend class PdfFont;
 
@@ -28,10 +27,11 @@ private:
      *         deleted along with the font.
      *  \param encoding the encoding of this font
      */
-    PdfFontCIDTrueType(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
+    PdfFontCIDType1(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
         const PdfEncoding& encoding);
 
 public:
+    bool SupportsSubsetting() const override;
     PdfFontType GetType() const override;
 
 protected:
@@ -40,4 +40,4 @@ protected:
 
 };
 
-#endif // PDF_FONT_CID_TRUE_TYPE_H
+#endif // PDF_FONT_CID_TYPE1_H
