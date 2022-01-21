@@ -75,7 +75,8 @@ void testSingleFont(FcPattern* font)
 
     if (getFontInfo(font, fontFamily, fontPath, style))
     {
-        string fontPath = fcWrapper.GetFontConfigFontPath(fontFamily, style);
+        unsigned faceIndex;
+        string fontPath = fcWrapper.GetFontConfigFontPath(fontFamily, style, faceIndex);
         if (fontPath.length() != 0)
         {
             PdfFontSearchParams params;
