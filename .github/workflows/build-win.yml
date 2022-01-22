@@ -16,11 +16,11 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        submodules: true
+          submodules: true
 
     - name: Configure CMake
-        working-directory: sandbox
-        run: cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -A x64 -DARCH=Win64
+      working-directory: .\sandbox
+      run: cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -A x64 -DARCH=Win64
 
     #- name: Build
     #  run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
