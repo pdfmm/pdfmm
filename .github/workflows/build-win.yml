@@ -19,7 +19,7 @@ jobs:
         submodules: true
 
     - name: Configure CMake
-        working-directory: ./sandbox
+        working-directory: sandbox
         run: cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -A x64 -DARCH=Win64
 
     #- name: Build
