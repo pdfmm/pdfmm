@@ -245,7 +245,7 @@ string utls::GetWin32ErrorMessage(unsigned rc)
         NULL, // (not used with FORMAT_MESSAGE_FROM_SYSTEM)
         rc,
         MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-        reinterpret_cast<LPTSTR>(&psz),
+        reinterpret_cast<LPWSTR>(&psz),
         0,
         NULL);
 
@@ -255,7 +255,7 @@ string utls::GetWin32ErrorMessage(unsigned rc)
     // Assign buffer to smart pointer with custom deleter so that memory gets released
     // in case String's c'tor throws an exception.
     auto deleter = [](void* p) { ::LocalFree(p); };
-    unique_ptr<TCHAR, decltype(deleter)> ptrBuffer(psz, deleter);
+    unique_ptr<WCHAR, decltype(deleter)> ptrBuffer(psz, deleter);
     return utf8::utf16to8((char16_t*)psz);
 }
 

@@ -1,0 +1,3 @@
+[submodule "extern/deps"]
+	path = extern/deps
+	url = git@github.com:pdfmm/pdfmm-deps.git

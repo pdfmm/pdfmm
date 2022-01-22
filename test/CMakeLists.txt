@@ -1,4 +1,5 @@
 include_directories(common)
+set_property(GLOBAL PROPERTY CTEST_TARGETS_ADDED 1)
 set(Catch2_DIR "${CMAKE_CURRENT_SOURCE_DIR}/common/cmake")
 find_package(Catch2 REQUIRED)
 #add_subdirectory(ContentParser)
