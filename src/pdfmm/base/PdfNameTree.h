@@ -87,13 +87,13 @@ public:
      */
     void ToDictionary(const PdfName& dictionary, PdfDictionary& dict);
 
-    /** Peter Petrov: 23 May 2008
+    /**
      * I have made it for access to "JavaScript" dictonary. This is "document-level javascript storage"
      *  \param create if true the javascript node is created if it does not exists.
      */
     PdfObject* GetJavaScriptNode(bool create = false) const;
 
-    /** Peter Petrov: 6 June 2008
+    /**
      * I have made it for access to "Dest" dictionary. This is "document-level named destination storage"
      *  \param create if true the dests node is created if it does not exists.
      */

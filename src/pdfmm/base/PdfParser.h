@@ -198,7 +198,6 @@ private:
      */
     void FindTokenBackward(PdfInputDevice& device, const char* token, size_t range);
 
-    // Peter Petrov 23 December 2008
     /** Searches backwards from the specified position of the file
      *  and tries to find a token.
      *  The current file is positioned right after the token.

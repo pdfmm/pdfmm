@@ -32,13 +32,8 @@ void PrintHelp()
 
 void HelloWorld(const string_view& filename)
 {
-    // PdfStreamedDocument is the class that can actually write a PDF file.
-    // PdfStreamedDocument is much faster than PdfDocument, but it is only
-    // suitable for creating/drawing PDF files and cannot modify existing
-    // PDF documents.
-    // 
     // The document is written directly to filename while being created.
-    PdfStreamedDocument document(filename);
+    PdfMemDocument document;
 
     // PdfPainter is the class which is able to draw text and graphics
     // directly on a PdfPage object.
@@ -115,7 +110,7 @@ void HelloWorld(const string_view& filename)
         document.GetInfo().SetKeywords(PdfString("Test;PDF;Hello World;"));
 
         // The last step is to close the document.
-        document.Close();
+        document.Save(filename);
     }
     catch (PdfError& e)
     {

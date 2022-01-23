@@ -496,7 +496,6 @@ public:
     void ArcTo(double x, double y, double radiusX, double radiusY,
         double rotation, bool large, bool sweep);
 
-    // Peter Petrov 5 January 2009 was delivered from libHaru
     /**
     */
     bool Arc(double x, double y, double radius, double angle1, double angle2);

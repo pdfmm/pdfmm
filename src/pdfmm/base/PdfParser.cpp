@@ -385,7 +385,7 @@ void PdfParser::ReadXRefContents(PdfInputDevice& device, size_t offset, bool pos
 
     if (offset > fileSize)
     {
-        // Invalid "startxref" Peter Petrov 23 December 2008
+        // Invalid "startxref"
          // ignore returned value and get offset from the device
         FindXRef(device, &offset);
         offset = device.Tell();

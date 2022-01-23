@@ -95,13 +95,11 @@ public:
      */
     nullable<PdfString> GetCreator() const;
 
-    // Peter Petrov 27 April 2008
     /** Set the producer of the document.
      *  \param producer producer
      */
     void SetProducer(nullable<const PdfString&> producer);
 
-    // Peter Petrov 27 April 2008
     /** Get the producer of the document
      *  \returns the producer
      */
@@ -130,12 +128,6 @@ public:
      *  \returns the title
      */
     const PdfName& GetTrapped() const;
-
-    /** Set custom info key.
-     * \param name Name of the key.
-     * \param value Value of the key.
-     */
-    void SetCustomKey(const PdfName& name, const PdfString& value);
 private:
     /** Add the initial document information to the dictionary.
      *  \param initial which information should be

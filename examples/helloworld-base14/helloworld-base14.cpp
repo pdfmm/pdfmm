@@ -31,17 +31,11 @@ void PrintHelp()
 }
 
 const char* GetBase14FontName(unsigned i);
-void DemoBase14Fonts(PdfPainter& painter, PdfPage& page, PdfStreamedDocument& document);
+void DemoBase14Fonts(PdfPainter& painter, PdfPage& page, PdfDocument& document);
 
 void HelloWorld(const string_view& filename)
 {
-    // PdfStreamedDocument is the class that can actually write a PDF file.
-    // PdfStreamedDocument is much faster than PdfDocument, but it is only
-    // suitable for creating/drawing PDF files and cannot modify existing
-    // PDF documents.
-    // 
-    // The document is written directly to filename while being created.
-    PdfStreamedDocument document(filename);
+    PdfMemDocument document;
 
     // PdfPainter is the class which is able to draw text and graphics
     // directly on a PdfPage object.
@@ -117,7 +111,7 @@ void HelloWorld(const string_view& filename)
         painter.FinishDrawing();
 
         // The last step is to close the document.
-        document.Close();
+        document.Save(filename);
 
     }
     catch (PdfError& e)
@@ -203,10 +197,10 @@ static const char* s_base14fonts[] =
 
 const char* GetBase14FontName(unsigned i)
 {
-    if (i >= 0 && i < std::size(s_base14fonts))
-        return s_base14fonts[i];
-    else
+    if (i >= std::size(s_base14fonts))
         return nullptr;
+
+    return s_base14fonts[i];
 }
 
 void DrawRedFrame(PdfPainter& painter, double x, double y, double width, double height)
@@ -227,7 +221,7 @@ void DrawRedFrame(PdfPainter& painter, double x, double y, double width, double 
 }
 
 
-void DemoBase14Fonts(PdfPainter& painter, PdfPage& page, PdfStreamedDocument& document)
+void DemoBase14Fonts(PdfPainter& painter, PdfPage& page, PdfDocument& document)
 {
     double x = 56, y = page.GetRect().GetHeight() - 56.69;
     char text[255];

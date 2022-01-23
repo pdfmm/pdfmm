@@ -57,11 +57,6 @@ const PdfName& PdfInfo::GetNameFromInfoDict(const PdfName& name) const
     return  obj != nullptr && obj->IsName() ? obj->GetName() : PdfName::KeyNull;
 }
 
-void PdfInfo::SetCustomKey(const PdfName& name, const PdfString& value)
-{
-    this->GetObject().GetDictionary().AddKey(name, value);
-}
-
 void PdfInfo::SetAuthor(nullable<const PdfString&> value)
 {
     if (value.has_value())

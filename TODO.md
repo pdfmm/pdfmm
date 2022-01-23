@@ -12,9 +12,11 @@
 - FontManager could use unique_ptr or shared_ptr?
 - Remove PdfLocaleImbue
 - PdfRect should avoid normalization
+- Finish PdfDynamicEncoding
 - PdfDifferenceEncoding: Move char code conversion data to private folder
 
 ### After 1.0
+- Check PdfStreamedDocument working
 - Check/Review doxygen doc
 - Add backtrace: https://github.com/boostorg/stacktrace
 - Fix PdfIndirectObjectList::RenumberObjects
