@@ -211,7 +211,6 @@ private:
 
     /** Reads the xref sections and the trailers of the file
      *  in the correct order in the memory
-     *  and takes care for linearized pdf files.
      */
     void ReadDocumentStructure(PdfInputDevice& device);
 

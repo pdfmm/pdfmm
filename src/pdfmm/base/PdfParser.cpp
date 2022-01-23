@@ -274,7 +274,7 @@ void PdfParser::ReadNextTrailer(PdfInputDevice& device)
         }
         catch (PdfError& e)
         {
-            PDFMM_PUSH_FRAME_INFO(e, "The linearized trailer was found in the file, but contains errors");
+            PDFMM_PUSH_FRAME_INFO(e, "The trailer was found in the file, but contains errors");
             delete trailer;
             throw e;
         }
@@ -602,7 +602,7 @@ void PdfParser::ReadXRefStreamContents(PdfInputDevice& device, size_t offset, bo
     }
     catch (PdfError& ex)
     {
-        PDFMM_PUSH_FRAME_INFO(ex, "The linearized trailer was found in the file, but contains errors");
+        PDFMM_PUSH_FRAME_INFO(ex, "The trailer was found in the file, but contains errors");
         delete xrefObjTrailer;
         throw ex;
     }

@@ -19,8 +19,6 @@
 - Check PdfStreamedDocument working
 - Check/Review doxygen doc
 - Add backtrace: https://github.com/boostorg/stacktrace
-- Fix PdfIndirectObjectList::RenumberObjects
-- Check working of linearization
 - Option to unfold Unicode ligatures to separate codepoints during encoded -> utf8 conversion
 - Option to convert Unicode ligatures <-> separate codepoints when drawing strings/converting to encoded
 - Optimize mm::chars to not initialize memory, keeping std::string compatibility

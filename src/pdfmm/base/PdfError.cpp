@@ -146,9 +146,6 @@ const char* PdfError::ErrorName(PdfErrorCode code)
         case PdfErrorCode::InvalidTrailerSize:
             msg = "PdfErrorCode::InvalidTrailerSize";
             break;
-        case PdfErrorCode::InvalidLinearization:
-            msg = "PdfErrorCode::InvalidLinearization";
-            break;
         case PdfErrorCode::InvalidDataType:
             msg = "PdfErrorCode::InvalidDataType";
             break;
@@ -313,7 +310,6 @@ const char* PdfError::ErrorMessage(PdfErrorCode code)
             break;
 
         case PdfErrorCode::InvalidTrailerSize:
-        case PdfErrorCode::InvalidLinearization:
         case PdfErrorCode::InvalidDataType:
         case PdfErrorCode::InvalidXRef:
         case PdfErrorCode::InvalidXRefStream:

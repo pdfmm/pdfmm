@@ -259,31 +259,6 @@ private:
     typedef std::vector<Observer*> ObserverList;
 
 private:
-    // CHECK-ME: Should this function be public or stay private? Originally it was private
-    /**
-     *  Renumbers all objects according to there current position in the vector.
-     *  All references remain intact.
-     *  Warning! This function is _very_ calculation intensive.
-     *
-     *  \param trailer the trailer object
-     *  \param notDelete a list of object which must not be deleted
-     *  \param doGarbageCollection enable garbage collection, which deletes
-     *         all objects that are not reachable from the trailer. This might be slow!
-     *
-     *  \see CollectGarbage
-     */
-    void RenumberObjects(PdfObject& trailer, ReferenceSet* notDelete = nullptr, bool doGarbageCollection = false);
-
-    // CHECK-ME: Should this function be public or stay private? Originally it was private
-    /** Get a set with all references of objects that the passed object
-     *  depends on.
-     *  \param obj the object to calculate all dependencies for
-     *  \param list write the list of dependencies to this list
-     *
-     */
-    void GetObjectDependencies(const PdfObject& obj, PdfReferenceList& list) const;
-
-private:
     PdfIndirectObjectList(PdfDocument& document);
     PdfIndirectObjectList(PdfDocument& document, const PdfIndirectObjectList& rhs);
 
@@ -356,24 +331,6 @@ private:
 
     int32_t tryAddFreeObject(uint32_t objnum, uint32_t gennum);
 
-    /**
-     * Create a list of all references that point to the object
-     * for each object in this vector.
-     * \param pList write all references to this list
-     */
-    void buildReferenceCountVector(ReferencePointersList& list);
-    void insertReferencesIntoVector(const PdfObject& obj, ReferencePointersList& list);
-
-    /** Assumes that the PdfIndirectObjectList is sorted
-     */
-    void insertOneReferenceIntoVector(const PdfObject& obj, ReferencePointersList& list);
-
-    /** Delete all objects from the vector which do not have references to them selves
-     *  \param pList must be a list created by BuildReferenceCountVector
-     *  \param trailer must be the trailer object so that it is not deleted
-     *  \param pNotDelete a list of object which must not be deleted
-     *  \see BuildReferenceCountVector
-     */
     void garbageCollection(ReferencePointersList& list, PdfObject& trailer, ReferenceSet* notDelete = nullptr);
 
     void visitObject(const PdfObject& obj, std::unordered_set<PdfReference>& referencedObj);

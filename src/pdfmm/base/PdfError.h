@@ -50,7 +50,6 @@ enum class PdfErrorCode
     NoEOFToken,               ///< The PDF file has no or an invalid EOF marker.
 
     InvalidTrailerSize,       ///< The trailer size is invalid.
-    InvalidLinearization,     ///< The linearization directory of a web-optimized PDF file is invalid.
     InvalidDataType,          ///< The passed datatype is invalid or was not recognized
     InvalidXRef,              ///< The XRef table is invalid
     InvalidXRefStream,        ///< A XRef steam is invalid
