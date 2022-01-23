@@ -113,12 +113,11 @@ PdfFont* PdfFontManager::GetFont(const string_view& fontName, const PdfFontSearc
 
     // NOTE: We don't support standard 14 fonts on subset
     PdfStandard14FontType stdFont;
-    if (initParams.Flags != PdfFontInitFlags::Subset &&
-        searchParams.AutoSelect != PdfAutoSelectFontOptions::None
+    if (searchParams.AutoSelect != PdfAutoSelectFontOptions::None
         && PdfFont::IsStandard14Font(fontName,
             searchParams.AutoSelect == PdfAutoSelectFontOptions::Standard14Alt, stdFont))
     {
-        getStandard14Font(stdFont, initParams.Flags, initParams.Encoding);
+        return getStandard14Font(stdFont, initParams.Flags, initParams.Encoding);
     }
 
     PdfFontSearchParams newSearchParams = searchParams;
