@@ -333,8 +333,6 @@ protected:
      */
     double GetCIDWidthRaw(unsigned cid) const;
 
-    bool TryGetCIDId(const PdfCharCode& codeUnit, unsigned& cid) const;
-
     void GetBoundingBox(PdfArray& arr) const;
 
     /** Fill the /FontDescriptor object dictionary
@@ -352,6 +350,9 @@ protected:
     virtual void embedFontSubset();
 
 private:
+    PdfFont(const PdfFont& rhs) = delete;
+
+private:
     /** Embeds pending subset-font into PDF page
      *  Only call if IsSubsetting() returns true. Might throw an exception otherwise.
      *
@@ -359,7 +360,11 @@ private:
      */
     void EmbedFontSubset();
 
-    PdfFont(const PdfFont& rhs) = delete;
+    /**
+     * Perform inititialization tasks for fonts imported or created
+     * from scratch
+     */
+    void InitImported(bool wantEmbed, bool wantSubset);
 
     /** Add glyph to used in case of subsetting
      *  It either maps them using the font encoding or generate a new code
@@ -370,18 +375,14 @@ private:
      * \return A mapped CID
      */
     PdfCID AddSubsetGID(unsigned gid, const unicodeview& codePoints);
-    bool tryAddSubsetGID(unsigned gid, const unicodeview& codePoints, PdfCID& cid);
+
     bool SubsetContainsGID(unsigned gid, PdfCID& cid);
 
-    /**
-     * Perform inititialization tasks for fonts imported or created
-     * from scratch
-     */
-    void InitImported(bool wantEmbed, bool wantSubset);
+private:
+    bool tryConvertToGIDs(const std::string_view& utf8Str, std::vector<unsigned>& gids) const;
+    bool tryAddSubsetGID(unsigned gid, const unicodeview& codePoints, PdfCID& cid);
 
     void initBase(const PdfEncoding& encoding);
-
-    bool tryGetCharWidthLoaded(char32_t codePoint, const PdfTextState& state, bool ignoreCharSpacing, double& width) const;
 
     double getStringWidth(const std::vector<PdfCID>& cids, const PdfTextState& state) const;
 

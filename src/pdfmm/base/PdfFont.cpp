@@ -305,30 +305,13 @@ double PdfFont::GetStringWidth(const string_view& str, const PdfTextState& state
 
 bool PdfFont::TryGetStringWidth(const string_view& str, const PdfTextState& state, double& width) const
 {
-    if (IsObjectLoaded())
-    {
-        // NOTE: This is a best effort strategy. It's not intended to
-        // be accurate in loaded fonts
-        bool success = true;
-        auto it = str.begin();
-        auto end = str.end();
-        width = 0;
-        double charWidth;
-        while (it != end)
-        {
-            if (!tryGetCharWidthLoaded(utf8::next(it, end), state, false, charWidth))
-                success = false;
+    vector<unsigned> gids;
+    bool success = tryConvertToGIDs(str, gids);
+    width = 0;
+    for (unsigned i = 0; i < gids.size(); i++)
+        width += getCharWidth(m_Metrics->GetGlyphWidth(gids[i]), state, false);
 
-            width += charWidth;
-        }
-
-        return success;
-    }
-    else
-    {
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "TODO");
-        // Shall use gid substitution. See PdfEncoding::TryConvertToEncoded()
-    }
+    return success;
 }
 
 double PdfFont::GetStringWidth(const PdfString& encodedStr, const PdfTextState& state) const
@@ -380,23 +363,6 @@ bool PdfFont::TryGetCharWidth(char32_t codePoint, const PdfTextState& state,
         return false;
     }
 }
-
-
-bool PdfFont::tryGetCharWidthLoaded(char32_t codePoint, const PdfTextState& state, bool ignoreCharSpacing, double& width) const
-{
-    PdfCharCode codeUnit;
-    unsigned cid;
-    if (!m_Encoding->GetToUnicodeMapSafe().TryGetCharCode(codePoint, codeUnit)
-        || !m_Encoding->TryGetCIDId(codeUnit, cid))
-    {
-        width = getCharWidth(m_Metrics->GetDefaultWidth(), state, ignoreCharSpacing);
-        return false;
-    }
-    
-    width = getCharWidth(GetCIDWidthRaw(cid), state, ignoreCharSpacing);
-    return true;
-}
-
 
 double PdfFont::GetDefaultCharWidth(const PdfTextState& state, bool ignoreCharSpacing) const
 {
@@ -575,6 +541,80 @@ PdfCID PdfFont::AddSubsetGID(unsigned gid, const unicodeview& codePoints)
     return ret;
 }
 
+bool PdfFont::tryConvertToGIDs(const std::string_view& utf8Str, std::vector<unsigned>& gids) const
+{
+    bool success = true;
+    if (IsObjectLoaded() || !m_Metrics->HasUnicodeMapping())
+    {
+        // NOTE: This is a best effort strategy. It's not intended to
+        // be accurate in loaded fonts
+        bool success = true;
+        auto it = utf8Str.begin();
+        auto end = utf8Str.end();
+
+        auto& toUnicode = m_Encoding->GetToUnicodeMapSafe();
+        while (it != end)
+        {
+            char32_t cp = utf8::next(it, end);
+            PdfCharCode codeUnit;
+            unsigned cid;
+            unsigned gid;
+            if (toUnicode.TryGetCharCode(cp, codeUnit))
+            {
+                if (m_Encoding->TryGetCIDId(codeUnit, cid))
+                {
+                    if (!TryMapCIDToGID(cid, gid))
+                    {
+                        // Fallback
+                        gid = cid;
+                        success = false;
+                    }
+                }
+                else
+                {
+                    // Fallback
+                    gid = codeUnit.Code;
+                    success = false;
+                }
+            }
+            else
+            {
+                // Fallback
+                gid = cp;
+                success = false;
+            }
+
+            gids.push_back(gid);
+        }
+    }
+    else
+    {
+        auto it = utf8Str.begin();
+        auto end = utf8Str.end();
+        vector<unsigned> gids;
+        while (it != end)
+        {
+            char32_t cp = utf8::next(it, end);
+            unsigned gid;
+            if (!m_Metrics->TryGetGID(cp, gid))
+            {
+                // Fallback
+                gid = cp;
+                success = false;
+            }
+
+            gids.push_back(gid);
+        }
+
+        // Try to subsistute GIDs for fonts that support
+        // a glyph substitution mechanism
+        vector<unsigned char> backwardMap;
+        m_Metrics->SubstituteGIDs(gids, backwardMap);
+    }
+
+    return success;
+}
+
 bool PdfFont::tryAddSubsetGID(unsigned gid, const unicodeview& codePoints, PdfCID& cid)
 {
     (void)codePoints;
@@ -700,11 +740,6 @@ bool PdfFont::TryMapCIDToGID(unsigned cid, unsigned& gid) const
         gid = cid;
         return true;
     }
-}
-
-bool PdfFont::TryGetCIDId(const PdfCharCode& codeUnit, unsigned& cid) const
-{
-    return m_Encoding->TryGetCIDId(codeUnit, cid);
 }
 
 PdfObject* PdfFont::getDescendantFontObject()

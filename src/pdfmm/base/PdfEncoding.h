@@ -16,6 +16,7 @@ namespace mm
 {
     class PdfFont;
     class PdfEncoding;
+    class PdfFontSimple;
 
     enum class PdfEncodingExportFlags
     {
@@ -36,6 +37,7 @@ namespace mm
         friend class PdfEncodingFactory;
         friend class PdfEncodingShim;
         friend class PdfFont;
+        friend class PdfFontSimple;
 
     public:
         /** Null encoding
@@ -168,6 +170,7 @@ namespace mm
         virtual PdfFont & GetFont() const;
 
     private:
+        // This method is to be called by PdfFont
         bool TryGetCIDId(const PdfCharCode& codeUnit, unsigned& cid) const;
 
     private:
