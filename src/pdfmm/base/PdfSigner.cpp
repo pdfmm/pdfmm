@@ -47,7 +47,7 @@ void mm::SignDocument(PdfMemDocument& doc, PdfOutputDevice& device, PdfSigner& s
     // TABLE 8.68 Signature flags: SignaturesExist (1) | AppendOnly (2)
     form.GetObject().GetDictionary().AddKey("SigFlags", PdfObject((int64_t)3));
 
-    doc.WriteUpdate(device, opts);
+    doc.SaveUpdate(device, opts);
     device.Flush();
 
     AdjustByteRange(device, *beacons.ByteRangeOffset, *beacons.ContentsOffset, beacons.ContentsBeacon.size());

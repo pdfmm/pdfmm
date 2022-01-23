@@ -22,7 +22,7 @@ TEST_CASE("testEmptyContentsStream")
     annot1->SetOpen(true);
 
     string filename = TestUtils::getTempFilename();
-    doc.Write(filename);
+    doc.Save(filename);
 
     // Read annotation again
     PdfMemDocument doc2;

@@ -1988,7 +1988,7 @@ TEST_CASE("testRoundTripIndirectTrailerID")
         string outBuf;
         PdfStringOutputDevice outDev(outBuf);
 
-        doc.WriteUpdate(outBuf);
+        doc.SaveUpdate(outBuf);
         // should not throw
         REQUIRE(true);
     }

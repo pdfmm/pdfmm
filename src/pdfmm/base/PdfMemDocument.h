@@ -90,25 +90,25 @@ public:
      */
     void LoadFromDevice(const std::shared_ptr<PdfInputDevice>& device, const std::string_view& password = { });
 
-    /** Writes the complete document to a file
+    /** Save the complete document to a file
      *
      *  \param filename filename of the document
      *
-     *  \see Write, WriteUpdate
+     *  \see Save, SaveUpdate
      *
      *  This is an overloaded member function for your convenience.
      */
-    void Write(const std::string_view& filename, PdfSaveOptions opts = PdfSaveOptions::None);
+    void Save(const std::string_view& filename, PdfSaveOptions opts = PdfSaveOptions::None);
 
-    /** Writes the complete document to an output device
+    /** Save the complete document to an output device
      *
      *  \param device write to this output device
      *
-     *  \see WriteUpdate
+     *  \see SaveUpdate
      */
-    void Write(PdfOutputDevice& device, PdfSaveOptions opts = PdfSaveOptions::None);
+    void Save(PdfOutputDevice& device, PdfSaveOptions opts = PdfSaveOptions::None);
 
-    /** Writes the document changes to a file
+    /** Save the document changes to a file
      *
      *  \param filename filename of the document
      *
@@ -122,13 +122,13 @@ public:
      *  because the destination file is truncated first and only then the source file
      *  content is copied into it.
      *
-     *  \see Write, WriteUpdate
+     *  \see Save, SaveUpdate
      *
      *  This is an overloaded member function for your convenience.
      */
-    void WriteUpdate(const std::string_view& filename, PdfSaveOptions opts = PdfSaveOptions::None);
+    void SaveUpdate(const std::string_view& filename, PdfSaveOptions opts = PdfSaveOptions::None);
 
-    /** Writes the document changes to an output device
+    /** Save the document changes to an output device
      *
      *  \param device write to this output device
      *  \param bTruncate whether to truncate the device first and fill it
@@ -145,9 +145,9 @@ public:
      *  the device at the place, where the update should be written (basically
      *  at the end of the stream).
      *
-     *  \see Write, WriteUpdate
+     *  \see Save, SaveUpdate
      */
-    void WriteUpdate(PdfOutputDevice& device, PdfSaveOptions opts = PdfSaveOptions::None);
+    void SaveUpdate(PdfOutputDevice& device, PdfSaveOptions opts = PdfSaveOptions::None);
 
     /** Set the PDF Version of the document. Has to be called before Write() to
      *  have an effect.

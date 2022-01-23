@@ -223,13 +223,13 @@ void PdfMemDocument::RemovePdfExtension(const PdfName& ns, int64_t level)
         this->GetCatalog().GetDictionary().FindKey("Extensions")->GetDictionary().RemoveKey("ns");
 }
 
-void PdfMemDocument::Write(const string_view& filename, PdfSaveOptions options)
+void PdfMemDocument::Save(const string_view& filename, PdfSaveOptions options)
 {
     PdfFileOutputDevice device(filename);
-    this->Write(device, options);
+    this->Save(device, options);
 }
 
-void PdfMemDocument::Write(PdfOutputDevice& device, PdfSaveOptions opts)
+void PdfMemDocument::Save(PdfOutputDevice& device, PdfSaveOptions opts)
 {
     beforeWrite(opts);
 
@@ -251,13 +251,13 @@ void PdfMemDocument::Write(PdfOutputDevice& device, PdfSaveOptions opts)
     }
 }
 
-void PdfMemDocument::WriteUpdate(const string_view& filename, PdfSaveOptions opts)
+void PdfMemDocument::SaveUpdate(const string_view& filename, PdfSaveOptions opts)
 {
     PdfFileOutputDevice device(filename, false);
-    this->WriteUpdate(device, opts);
+    this->SaveUpdate(device, opts);
 }
 
-void PdfMemDocument::WriteUpdate(PdfOutputDevice& device, PdfSaveOptions opts)
+void PdfMemDocument::SaveUpdate(PdfOutputDevice& device, PdfSaveOptions opts)
 {
     beforeWrite(opts);
 

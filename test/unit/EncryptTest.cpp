@@ -287,7 +287,7 @@ void createEncryptedPdf(const string_view& filename)
     painter.FinishDrawing();
 
     doc.SetEncrypted("user", "owner");
-    doc.Write(filename);
+    doc.Save(filename);
 
     INFO(cmn::Format("Wrote: {} (R={})", filename, doc.GetEncrypt()->GetRevision()));
 }
