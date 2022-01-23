@@ -101,10 +101,6 @@ namespace mm::compat
         return (int64_t)__builtin_bswap64((uint64_t)n);
     }
 #endif
-
-    // Case-insensitive string compare functions aren't very portable
-    int strcasecmp(const char* s1, const char* s2);
-    int strncasecmp(const char* s1, const char* s2, size_t n);
 }
 
 #endif // PDF_COMPILERCOMPAT_PRIVATE_H

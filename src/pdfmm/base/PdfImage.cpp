@@ -9,8 +9,9 @@
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfImage.h"
 
-#include <utfcpp/utf8.h>
 #include <sstream>
+#include <filesystem>
+#include <utfcpp/utf8.h>
 
 #include <pdfmm/private/PdfFiltersPrivate.h>
 
@@ -25,6 +26,7 @@
 
 using namespace std;
 using namespace mm;
+namespace fs = std::filesystem;
 
 #ifdef PDFMM_HAVE_PNG_LIB
 #include <png.h>
@@ -142,11 +144,11 @@ void PdfImage::LoadFromFile(const string_view& filename)
 {
     if (filename.length() > 3)
     {
-        const char* extension = filename.data() + filename.length() - 3;
+        auto extension = fs::u8path(filename).extension().u8string();
+        extension = utls::ToLower(extension);
 
 #ifdef PDFMM_HAVE_TIFF_LIB
-        if (compat::strncasecmp(extension, "tif", 3) == 0 ||
-            compat::strncasecmp(extension, "iff", 3) == 0) // "tiff"
+        if (extension == "tif" || extension == "tiff")
         {
             LoadFromTiff(filename);
             return;
@@ -154,7 +156,7 @@ void PdfImage::LoadFromFile(const string_view& filename)
 #endif
 
 #ifdef PDFMM_HAVE_JPEG_LIB
-        if (compat::strncasecmp(extension, "jpg", 3) == 0)
+        if (extension == "jpg" || extension == "jpeg")
         {
             LoadFromJpeg(filename);
             return;
@@ -162,7 +164,7 @@ void PdfImage::LoadFromFile(const string_view& filename)
 #endif
 
 #ifdef PDFMM_HAVE_PNG_LIB
-        if (compat::strncasecmp(extension, "png", 3) == 0)
+        if (extension == "png")
         {
             LoadFromPng(filename);
             return;

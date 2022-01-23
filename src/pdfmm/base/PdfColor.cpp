@@ -38,8 +38,8 @@ public:
      *         The string data will not be copied!
      *  \param color a PdfColor object
      */
-    PdfNamedColor(const char* name, const PdfColor& color)
-        : m_Name(name), m_color(color)
+    PdfNamedColor(const string_view& name, const PdfColor& color)
+        : m_Name(utls::ToLower(name)), m_color(color)
     {
     }
 
@@ -47,10 +47,10 @@ public:
      *
      *  \param name the name. The string must be allocated as static memory somewhere
      *         The string data will not be copied!
-     *  \param rColorName RGB hex value (e.g. #FFABCD)
+     *  \param colorName RGB hex value (e.g. #FFABCD)
      */
-    PdfNamedColor(const char* name, const char* colorName)
-        : m_Name(name), m_color(FromRGBString(colorName))
+    PdfNamedColor(const string_view& name, const string_view& colorCode)
+        : m_Name(name), m_color(FromRGBString(colorCode))
     {
     }
 
@@ -61,20 +61,14 @@ public:
     {
     }
 
-    /** Class destructor.
-     */
-    ~PdfNamedColor()
-    {
-    }
-
     /** Compare this color object to a name
      *  The comparison is case insensitive!
      *  \returns true if the passed string is smaller than the name
      *           of this color object.
      */
-    inline bool operator<(const char* name) const
+    inline bool operator<(const string_view& name) const
     {
-        return name ? compat::strcasecmp(m_Name, name) < 0 : true;
+        return m_Name < name;
     }
 
     /** Compare this color object to a PdfNamedColor comparing only the name.
@@ -84,7 +78,7 @@ public:
      */
     inline bool operator<(const PdfNamedColor& rhs) const
     {
-        return rhs.GetName() ? compat::strcasecmp(m_Name, rhs.GetName()) < 0 : true;
+        return m_Name < rhs.GetName();
     }
 
     /** Compare this color object to a name
@@ -92,9 +86,9 @@ public:
      *  \returns true if the passed string is the name
      *           of this color object.
      */
-    inline bool operator==(const char* name) const
+    inline bool operator==(const string_view& name) const
     {
-        return name ? mm::compat::strcasecmp(m_Name, name) == 0 : false;
+        return m_Name == name;
     }
 
     /**
@@ -108,7 +102,7 @@ public:
     /**
      * \returns a pointer to the name of the color
      */
-    inline const char* GetName() const
+    inline const string& GetName() const
     {
         return m_Name;
     }
@@ -127,8 +121,8 @@ private:
      */
     static PdfColor FromRGBString(const string_view& name);
 
-    const char* m_Name;
-    PdfColor    m_color;
+    string m_Name;
+    PdfColor m_color;
 };
 
 /**

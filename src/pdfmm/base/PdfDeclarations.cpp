@@ -23,25 +23,6 @@
 using namespace std;
 using namespace mm;
 
-int compat::strcasecmp(const char* s1, const char* s2)
-{
-#if defined(_WIN32)
-    return ::_stricmp(s1, s2);
-#else
-    return ::strcasecmp(s1, s2);
-#endif
-}
-
-int compat::strncasecmp(const char* s1, const char* s2, size_t n)
-{
-#if defined(_MSC_VER)
-    return ::_strnicmp(s1, s2, n);
-#else
-    // POSIX.1-2001
-    return ::strncasecmp(s1, s2, n);
-#endif
-}
-
 const char* utls::TypeNameForIndex(unsigned index, const char** types, unsigned len)
 {
     return index < len ? types[index] : nullptr;
