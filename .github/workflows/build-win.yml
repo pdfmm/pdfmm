@@ -19,11 +19,11 @@ jobs:
           submodules: true
 
     - name: Configure CMake
-      working-directory: .\sandbox
+      working-directory: .\playground
       run: cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -A x64 -DARCH=Win64
 
     - name: Build
-      working-directory: .\sandbox
+      working-directory: .\playground
       run: cmake --build build --config ${{env.BUILD_TYPE}}
     #
     #- name: Test
