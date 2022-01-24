@@ -35,8 +35,8 @@ class PdfIndirectObjectList;
 struct PdfFontSearchParams
 {
     PdfFontStyle Style = PdfFontStyle::Regular;
-    PdfAutoSelectFontOptions AutoSelect = PdfAutoSelectFontOptions::None;
-    bool MatchExactName = false;
+    PdfFontAutoSelectBehavior AutoSelect = PdfFontAutoSelectBehavior::None;
+    PdfFontMatchBehaviorFlags MatchBehavior = PdfFontMatchBehaviorFlags::None;
 };
 
 struct PdfFontInitParams
@@ -194,7 +194,7 @@ private:
 
     using FontMap = std::unordered_map<PdfReference, Storage>;
 
-    using FontMatcher = std::function<PdfFont*(const std::vector<PdfFont*>&)>;
+    using FontMatcher = std::function<PdfFont*(const std::span<PdfFont*>&)>;
 private:
 #ifdef PDFMM_HAVE_FONTCONFIG
     static std::shared_ptr<PdfFontConfigWrapper> ensureInitializedFontConfig();

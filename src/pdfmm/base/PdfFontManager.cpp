@@ -39,8 +39,9 @@ static void getFontDataTTC(charbuff& buffer, const charbuff& fileBuffer, const c
 #endif // defined(_WIN32) && defined(PDFMM_HAVE_WIN32GDI)
 
 static unique_ptr<charbuff> getFontData(const string_view& filename, unsigned short faceIndex);
-static PdfFont* matchFont(const vector<PdfFont*>& fonts, const string_view& fontName, const PdfFontSearchParams& params);
-static PdfFont* matchFont(const vector<PdfFont*>& fonts, const string_view& fontName, bool matchExactName = false);
+static PdfFont* matchFont(const span<PdfFont*>& fonts, const string_view& fontName, const PdfFontSearchParams& params);
+static PdfFont* matchFont(const span<PdfFont*>& fonts, const string_view& fontName,
+    PdfFontMatchBehaviorFlags matchBehavior = PdfFontMatchBehaviorFlags::None);
 
 #if defined(PDFMM_HAVE_FONTCONFIG)
 shared_ptr<PdfFontConfigWrapper> PdfFontManager::m_fontConfig;
@@ -113,9 +114,9 @@ PdfFont* PdfFontManager::GetFont(const string_view& fontName, const PdfFontSearc
 
     // NOTE: We don't support standard 14 fonts on subset
     PdfStandard14FontType stdFont;
-    if (searchParams.AutoSelect != PdfAutoSelectFontOptions::None
+    if (searchParams.AutoSelect != PdfFontAutoSelectBehavior::None
         && PdfFont::IsStandard14Font(fontName,
-            searchParams.AutoSelect == PdfAutoSelectFontOptions::Standard14Alt, stdFont))
+            searchParams.AutoSelect == PdfFontAutoSelectBehavior::Standard14Alt, stdFont))
     {
         return getStandard14Font(stdFont, initParams.Flags, initParams.Encoding);
     }
@@ -178,7 +179,7 @@ PdfFont* PdfFontManager::getImportedFont(const string_view& fontName, const stri
 
     auto metrics = std::make_shared<PdfFontMetricsFreetype>(buffer);
     return getImportedFont(metrics, initParams.Encoding, initParams.Flags,
-        [&searchParams,&fontName](const vector<PdfFont*>& fonts) {
+        [&searchParams,&fontName](const span<PdfFont*>& fonts) {
             return matchFont(fonts, fontName, searchParams);
         });
 }
@@ -187,9 +188,9 @@ PdfFontMetricsConstPtr PdfFontManager::GetFontMetrics(const string_view& fontNam
 {
     // Early intercept Standard14 fonts
     PdfStandard14FontType stdFont;
-    if (params.AutoSelect != PdfAutoSelectFontOptions::None
+    if (params.AutoSelect != PdfFontAutoSelectBehavior::None
         && PdfFont::IsStandard14Font(fontName,
-            params.AutoSelect == PdfAutoSelectFontOptions::Standard14Alt, stdFont))
+            params.AutoSelect == PdfFontAutoSelectBehavior::Standard14Alt, stdFont))
     {
         return PdfFontMetricsStandard14::GetInstance(stdFont);
     }
@@ -262,7 +263,7 @@ PdfFont* PdfFontManager::GetFont(FT_Face face, const PdfEncoding& encoding,
         return matchFont(found->second, fontName);
 
     shared_ptr<PdfFontMetricsFreetype> metrics = PdfFontMetricsFreetype::FromFace(face);
-    return getImportedFont(metrics, encoding, initFlags, [](const vector<PdfFont*> fonts)
+    return getImportedFont(metrics, encoding, initFlags, [](const span<PdfFont*> fonts)
     {
         return fonts[0];
     });
@@ -381,7 +382,8 @@ PdfFont* PdfFontManager::getImportedFont(const PdfFontMetricsConstPtr& metrics,
         return matchFont(fonts);
 
     auto font = PdfFont::Create(*m_doc, metrics, encoding, initFlags);
-    if (font == nullptr)
+    PdfFont* fontptr = font.get();
+    if (font == nullptr || matchFont(span<PdfFont*>(&fontptr, 1)) == nullptr)
         return nullptr;
 
     return addImported(fonts, std::move(font));
@@ -471,16 +473,16 @@ Error:
     return nullptr;
 }
 
-PdfFont* matchFont(const vector<PdfFont*>& fonts, const string_view& fontName, const PdfFontSearchParams& params)
+PdfFont* matchFont(const span<PdfFont*>& fonts, const string_view& fontName, const PdfFontSearchParams& params)
 {
     // NOTE: Matching base name is implied by the main lookup
-    return matchFont(fonts, fontName, params.MatchExactName);
+    return matchFont(fonts, fontName, params.MatchBehavior);
 }
 
-PdfFont* matchFont(const vector<PdfFont*>& fonts, const string_view& fontName, bool matchExactName)
+PdfFont* matchFont(const span<PdfFont*>& fonts, const string_view& fontName, PdfFontMatchBehaviorFlags matchBehavior)
 {
     PDFMM_ASSERT(fonts.size() != 0);
-    if (matchExactName)
+    if (matchBehavior == PdfFontMatchBehaviorFlags::MatchExactName)
     {
         for (auto font : fonts)
         {

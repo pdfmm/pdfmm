@@ -40,9 +40,8 @@ string PdfFontConfigWrapper::GetFontConfigFontPath(const string_view fontName,
     bool isItalic = (style & PdfFontStyle::Italic) == PdfFontStyle::Italic;
     bool isBold = (style & PdfFontStyle::Bold) == PdfFontStyle::Bold;
 
-    string path;
-    // Build a pattern to search using fontname, bold and italic
-    pattern = FcPatternBuild(0, FC_FAMILY, FcTypeString, fontName.data(),
+    // Build a pattern to search using postscript name, bold and italic
+    pattern = FcPatternBuild(0, FC_POSTSCRIPT_NAME, FcTypeString, fontName.data(),
         FC_WEIGHT, FcTypeInteger, (isBold ? FC_WEIGHT_BOLD : FC_WEIGHT_MEDIUM),
         FC_SLANT, FcTypeInteger, (isItalic ? FC_SLANT_ITALIC : FC_SLANT_ROMAN),
         static_cast<char*>(0));
@@ -53,9 +52,10 @@ string PdfFontConfigWrapper::GetFontConfigFontPath(const string_view fontName,
     {
         FcPatternDestroy(pattern);
         faceIndex = 0;
-        return path;
+        return { };
     }
 
+    string path;
     matched = FcFontMatch(m_FcConfig, pattern, &result);
     if (result != FcResultNoMatch)
     {

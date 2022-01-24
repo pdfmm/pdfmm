@@ -26,6 +26,7 @@ PdfFontType PdfFontCIDType1::GetType() const
 
 void PdfFontCIDType1::embedFontFile(PdfObject& descriptor)
 {
+    (void)descriptor;
     if (IsSubsettingEnabled())
     {
         PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);

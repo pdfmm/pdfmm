@@ -266,7 +266,7 @@ enum class PdfFontStyle
 
 /** Flags to control font creation.
  */
-enum class PdfAutoSelectFontOptions
+enum class PdfFontAutoSelectBehavior
 {
     None = 0,                   ///< No auto selection
     Standard14 = 1,             ///< Automatically select a Standard14 font if the fontname matches one of them
@@ -281,6 +281,12 @@ enum class PdfFontInitFlags
     Embed = 1,                ///< Do embed font data
     Subset = 2,               ///< Create subsetted, which includes only used characters. Implies embed
     Default = Subset,
+};
+
+enum class PdfFontMatchBehaviorFlags
+{
+    None,
+    MatchExactName,           ///< Match exact font name
 };
 
 /**
@@ -605,7 +611,7 @@ ENABLE_BITMASK_OPERATORS(mm::PdfWriteFlags);
 ENABLE_BITMASK_OPERATORS(mm::PdfInfoInitial);
 ENABLE_BITMASK_OPERATORS(mm::PdfFontStyle);
 ENABLE_BITMASK_OPERATORS(mm::PdfFontInitFlags);
-ENABLE_BITMASK_OPERATORS(mm::PdfAutoSelectFontOptions);
+ENABLE_BITMASK_OPERATORS(mm::PdfFontAutoSelectBehavior);
 ENABLE_BITMASK_OPERATORS(mm::PdfFontDescriptorFlags);
 
 /**

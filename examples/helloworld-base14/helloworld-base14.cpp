@@ -76,7 +76,7 @@ void HelloWorld(const string_view& filename)
         // 
         // The created PdfFont will be deleted by the PdfDocument.
         PdfFontSearchParams params;
-        params.AutoSelect = PdfAutoSelectFontOptions::Standard14;
+        params.AutoSelect = PdfFontAutoSelectBehavior::Standard14;
         font = document.GetFontManager().GetFont("Helvetica", params);
 
         // If the PdfFont object cannot be allocated return an error.
@@ -236,6 +236,9 @@ void DemoBase14Fonts(PdfPainter& painter, PdfPage& page, PdfDocument& document, 
         text.append(GetBase14FontName(i));
 
         PdfFont* font = document.GetFontManager().GetFont(GetBase14FontName(i), params);
+        if (font == nullptr)
+            throw runtime_error("Font not found");
+
         painter.SetFont(font);
         painter.GetTextState().SetFontSize(12.0);
 

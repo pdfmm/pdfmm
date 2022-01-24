@@ -802,6 +802,13 @@ string PdfFont::ExtractBaseName(const string_view& fontName, bool& isItalic, boo
         isItalic = true;
     }
 
+    regex = std::regex("[,-]Regular", regex_constants::ECMAScript);
+    if (std::regex_search(name, matches, regex))
+    {
+        name.erase(matches[0].first - name.begin(), char_traits<char>::length("Oblique") + 1);
+        // Nothing to set
+    }
+
     // 5.5.2 TrueType Fonts: If the name contains any spaces, the spaces are removed
     name.erase(std::remove(name.begin(), name.end(), ' '), name.end());
     return name;
