@@ -213,7 +213,7 @@ message("Found freetype library at ${FREETYPE_LIBRARIES}, headers ${FREETYPE_INC
 find_package(Fontconfig)
 if(Fontconfig_FOUND)
     set(PDFMM_HAVE_FONTCONFIG TRUE)
-    message("Found fontconfig headers in ${FONTCONFIG_INCLUDE_DIR}, library at ${Fontconfig_LIBRARIES}")
+    message("Found fontconfig headers in ${Fontconfig_INCLUDE_DIRS}, library at ${Fontconfig_LIBRARIES}")
 elseif(WIN32)
     # Fallback to GDI if FontConfig is missing in Windows
     set(PDFMM_HAVE_WIN32GDI TRUE)
