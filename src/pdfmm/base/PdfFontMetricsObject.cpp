@@ -23,7 +23,10 @@ static PdfFontStretch stretchFromString(const string_view& str);
 PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObject* descriptor) :
     m_DefaultWidth(0),
     m_FontFileObject(nullptr),
-    m_FontFileType(PdfFontFileType::Unknown)
+    m_FontFileType(PdfFontFileType::Unknown),
+    m_Length1(0),
+    m_Length2(0),
+    m_Length3(0)
 {
     const PdfName& subType = font.GetDictionary().MustFindKey(PdfName::KeySubtype).GetName();
 
@@ -154,6 +157,13 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
                     m_FontFileType = PdfFontFileType::OpenType;
                 }
             }
+        }
+
+        if (m_FontFileObject != nullptr)
+        {
+            m_Length1 = (unsigned)m_FontFileObject->GetDictionary().FindKeyAs<int64_t>("Length1", 0);
+            m_Length2 = (unsigned)m_FontFileObject->GetDictionary().FindKeyAs<int64_t>("Length2", 0);
+            m_Length3 = (unsigned)m_FontFileObject->GetDictionary().FindKeyAs<int64_t>("Length3", 0);
         }
 
         m_DefaultWidth = font.GetDictionary().FindKeyAs<double>("DW", 1000.0) * m_Matrix[0];
@@ -447,6 +457,21 @@ bool PdfFontMetricsObject::getIsItalicHint() const
 const PdfObject* PdfFontMetricsObject::GetFontFileObject() const
 {
     return m_FontFileObject;
+}
+
+unsigned PdfFontMetricsObject::GetFontFileLength1() const
+{
+    return m_Length1;
+}
+
+unsigned PdfFontMetricsObject::GetFontFileLength2() const
+{
+    return m_Length2;
+}
+
+unsigned PdfFontMetricsObject::GetFontFileLength3() const
+{
+    return m_Length3;
 }
 
 vector<double> PdfFontMetricsObject::GetBBox(const PdfObject& obj)

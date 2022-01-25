@@ -111,6 +111,18 @@ public:
      */
     virtual const PdfObject* GetFontFileObject() const;
 
+    /** Get /Length1 value for the font file, if available
+     */
+    virtual unsigned GetFontFileLength1() const = 0;
+
+    /** Get /Length2 value for the font file, if available
+     */
+    virtual unsigned GetFontFileLength2() const = 0;
+
+    /** Get /Length3 value for the font file, if available
+     */
+    virtual unsigned GetFontFileLength3() const = 0;
+
     /** Get a string with either the actual /FontName or a base font name
      * inferred from a font file
      */

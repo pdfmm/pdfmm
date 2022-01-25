@@ -123,6 +123,12 @@ public:
 
     bufferview GetFontFileData() const override;
 
+    unsigned GetFontFileLength1() const override;
+
+    unsigned GetFontFileLength2() const override;
+
+    unsigned GetFontFileLength3() const override;
+
     inline const Standard14FontData& GetRawData() const { return m_data; }
 
 protected:

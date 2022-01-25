@@ -96,6 +96,12 @@ public:
 
     const PdfObject* GetFontFileObject() const override;
 
+    unsigned GetFontFileLength1() const override;
+
+    unsigned GetFontFileLength2() const override;
+
+    unsigned GetFontFileLength3() const override;
+
     const Matrix2D& GetMatrix() const override;
 
 protected:
@@ -131,6 +137,10 @@ private:
 
     const PdfObject* m_FontFileObject;
     PdfFontFileType m_FontFileType;
+
+    unsigned m_Length1;
+    unsigned m_Length2;
+    unsigned m_Length3;
 
     double m_LineSpacing;
     double m_UnderlineThickness;

@@ -266,6 +266,24 @@ bufferview PdfFontMetricsStandard14::GetFontFileData() const
     return mm::GetStandard14FontFileData(m_Std14FontType);
 }
 
+unsigned PdfFontMetricsStandard14::GetFontFileLength1() const
+{
+    // No need for /Length1
+    return 0;
+}
+
+unsigned PdfFontMetricsStandard14::GetFontFileLength2() const
+{
+    // No need for /Length2
+    return 0;
+}
+
+unsigned PdfFontMetricsStandard14::GetFontFileLength3() const
+{
+    // No need for /Length3
+    return 0;
+}
+
 bool PdfFontMetricsStandard14::getIsBoldHint() const
 {
     switch (m_Std14FontType)

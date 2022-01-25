@@ -32,15 +32,24 @@ static int determineType1FontWeight(const string_view& weight);
 PdfFontMetricsFreetype::PdfFontMetricsFreetype(
     const shared_ptr<charbuff>& buffer, nullable<const PdfFontMetrics&> refMetrics) :
     m_Face(nullptr),
-    m_FontData(buffer)
+    m_FontData(buffer),
+    m_LengthsReady(false),
+    m_Length1(0),
+    m_Length2(0),
+    m_Length3(0)
 {
+    if (buffer == nullptr)
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The buffer can't be null");
+
     initFromBuffer(&*refMetrics);
 }
 
-PdfFontMetricsFreetype::PdfFontMetricsFreetype(FT_Face face,
-    const shared_ptr<charbuff>& buffer) :
+PdfFontMetricsFreetype::PdfFontMetricsFreetype(FT_Face face) :
     m_Face(face),
-    m_FontData(buffer)
+    m_LengthsReady(false),
+    m_Length1(0),
+    m_Length2(0),
+    m_Length3(0)
 {
     initFromFace(nullptr);
 }
@@ -209,6 +218,98 @@ void PdfFontMetricsFreetype::initFromFace(const PdfFontMetrics* refMetrics)
         m_Flags |= PdfFontDescriptorFlags::Italic;
 }
 
+void PdfFontMetricsFreetype::ensureLengthsReady()
+{
+    if (m_LengthsReady)
+        return;
+
+    switch (m_FontFileType)
+    {
+        case PdfFontFileType::Type1:
+            initType1Lengths(GetFontFileData());
+            break;
+        case PdfFontFileType::TrueType:
+            m_Length1 = (unsigned)GetFontFileData().size();
+            break;
+        default:
+            // Other font types dont't need lengths
+            break;
+    }
+
+    m_LengthsReady = true;
+}
+
+void PdfFontMetricsFreetype::initType1Lengths(const bufferview& view)
+{
+    // Specification: "Adobe Type 1 Font Format" : 2.3 Explanation of a Typical Font Program
+    
+    // Method taken from matplotlib
+    // https://github.com/matplotlib/matplotlib/blob/a6da11eebcfe3bbdb0b6e0f24348be63a06280db/lib/matplotlib/_type1font.py#L404
+    string_view sview = string_view(view.data(), view.size());
+    size_t found = sview.find("eexec");
+    if (found == string_view::npos)
+        return;
+
+    m_Length1 = (unsigned)found + 5;
+    while (true)
+    {
+        PDFMM_INVARIANT(m_Length1 <= sview.length());
+        if (m_Length1 == sview.length())
+            return;
+
+        switch (sview[m_Length1])
+        {
+            case '\n':
+            case '\r':
+            case '\t':
+            case ' ':
+                // Skip all whitespaces
+                m_Length1++;
+                continue;
+            default:
+                break;
+        }
+    }
+
+    found = sview.rfind("cleartomark");
+    if (found == string_view::npos || found == 0)
+    {
+        m_Length2 = sview.length() - m_Length1;
+        return;
+    }
+
+    unsigned zeros = 512;
+    size_t currIdx = found - 1;
+    while (true)
+    {
+        PDFMM_INVARIANT(currIdx > 0);
+        switch (sview[currIdx])
+        {
+            case '\n':
+            case '\r':
+                // Skip all newlines
+                break;
+            case '0':
+                zeros--;
+                break;
+            default:
+                // Found unexpected content
+                zeros = 0;
+                break;
+        }
+
+        if (zeros == 0)
+            break;
+
+        currIdx--;
+        if (currIdx == 0)
+            return;
+    }
+
+    m_Length2 = currIdx - m_Length1;
+    m_Length3 = sview.length() - m_Length2;
+}
+
 string PdfFontMetricsFreetype::GetBaseFontName() const
 {
     return m_FontBaseName;
@@ -239,7 +340,7 @@ unique_ptr<PdfFontMetricsFreetype> PdfFontMetricsFreetype::FromFace(FT_Face face
     if (face == nullptr)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Face can't be null");
 
-    return std::unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(face, nullptr));
+    return std::unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(face));
 }
 
 unsigned PdfFontMetricsFreetype::GetGlyphCount() const
@@ -395,9 +496,34 @@ bufferview PdfFontMetricsFreetype::GetFontFileData() const
     return bufferview(m_FontData->data(), m_FontData->size());
 }
 
+unsigned PdfFontMetricsFreetype::GetFontFileLength1() const
+{
+    switch (m_FontFileType)
+    {
+        case PdfFontFileType::Type1:
+        case PdfFontFileType::TrueType:
+            return (unsigned)GetFontFileData().size();
+        default:
+            return 0;
+    }
+}
+
+unsigned PdfFontMetricsFreetype::GetFontFileLength2() const
+{
+    const_cast<PdfFontMetricsFreetype&>(*this).ensureLengthsReady();
+    return m_Length1;
+}
+
+unsigned PdfFontMetricsFreetype::GetFontFileLength3() const
+{
+    const_cast<PdfFontMetricsFreetype&>(*this).ensureLengthsReady();
+    return m_Length1;
+}
+
 int PdfFontMetricsFreetype::GetWeightRaw() const
 {
-    return m_Weight;
+    const_cast<PdfFontMetricsFreetype&>(*this).ensureLengthsReady();
+    return m_Length1;
 }
 
 double PdfFontMetricsFreetype::GetCapHeight() const

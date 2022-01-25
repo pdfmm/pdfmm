@@ -98,6 +98,12 @@ public:
 
     bufferview GetFontFileData() const override;
 
+    unsigned GetFontFileLength1() const override;
+
+    unsigned GetFontFileLength2() const override;
+
+    unsigned GetFontFileLength3() const override;
+
     FT_Face GetFace() const override;
 
 protected:
@@ -106,7 +112,7 @@ protected:
     bool getIsItalicHint() const override;
 
 private:
-    PdfFontMetricsFreetype(FT_Face face, const std::shared_ptr<charbuff>& buffer);
+    PdfFontMetricsFreetype(FT_Face face);
 
     /** Initialize this object from an in memory buffer
      * Called internally by the constructors
@@ -118,9 +124,16 @@ private:
      */
     void initFromFace(const PdfFontMetrics* refMetrics);
 
+    void ensureLengthsReady();
+
+    void initType1Lengths(const bufferview& view);
+
 private:
     FT_Face m_Face;
     PdfFontFileType m_FontFileType;
+
+    bool m_HasUnicodeMapping;
+    bool m_HasSymbolCharset;
 
     std::string m_FontBaseName;
     std::string m_FontName;
@@ -147,8 +160,11 @@ private:
     double m_StrikeOutPosition;
 
     std::shared_ptr<charbuff> m_FontData;
-    bool m_HasUnicodeMapping;
-    bool m_HasSymbolCharset;
+
+    bool m_LengthsReady;
+    unsigned m_Length1;
+    unsigned m_Length2;
+    unsigned m_Length3;
 };
 
 };
