@@ -108,73 +108,11 @@ void PdfFontSimple::Init()
 
 void PdfFontSimple::embedFont()
 {
-    if (m_Descriptor == nullptr)
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Descriptor must be initialized");
-
-    embedFontFile(*m_Descriptor);
+    PDFMM_ASSERT(m_Descriptor != nullptr);
+    EmbedFontFile(*m_Descriptor);
 }
 
 void PdfFontSimple::initImported()
 {
     this->Init();
-}
-
-void PdfFontSimple::embedFontFile(PdfObject& descriptor)
-{
-    auto fontdata = m_Metrics->GetFontFileData();
-    if (fontdata.empty())
-        PDFMM_RAISE_ERROR(PdfErrorCode::InternalLogic);
-
-    PdfName fontFileName;
-    nullable<unsigned> length1;
-    nullable<unsigned> length2;
-    nullable<unsigned> length3;
-    PdfName subtype;
-    switch (m_Metrics->GetFontFileType())
-    {
-        case PdfFontFileType::Type1:
-            fontFileName = PdfName("FontFile");
-            length1 = m_Metrics->GetFontFileLength1();
-            length2 = m_Metrics->GetFontFileLength2();
-            length3 = m_Metrics->GetFontFileLength3();
-            break;
-        case PdfFontFileType::TrueType:
-            fontFileName = PdfName("FontFile2");
-            length1 = m_Metrics->GetFontFileLength1();
-            break;
-        case PdfFontFileType::OpenType:
-            fontFileName = PdfName("FontFile3");
-            subtype = PdfName("OpenType");
-            break;
-        case PdfFontFileType::Type1CCF:
-            fontFileName = PdfName("FontFile3");
-            subtype = PdfName("Type1C");
-            break;
-        case PdfFontFileType::CIDType1CCF:
-            fontFileName = PdfName("FontFile3");
-            subtype = PdfName("CIDFontType0C");
-            break;
-        default:
-            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Unsupported font type embedding");
-    }
-
-    auto contents = GetDocument().GetObjects().CreateDictionaryObject();
-    descriptor.GetDictionary().AddKeyIndirect(fontFileName, contents);
-
-    // NOTE: Set lengths before creating the stream as
-    // PdfStreamedDocument does not allow adding keys
-    // to an object after a stream was written
-    if (length1 != nullptr)
-        contents->GetDictionary().AddKey("Length1", PdfObject(static_cast<int64_t>(*length1)));
-
-    if (length2 != nullptr)
-        contents->GetDictionary().AddKey("Length2", PdfObject(static_cast<int64_t>(*length2)));
-
-    if (length3 != nullptr)
-        contents->GetDictionary().AddKey("Length3", PdfObject(static_cast<int64_t>(*length3)));
-
-    if (!subtype.IsNull())
-        contents->GetDictionary().AddKey(PdfName::KeySubtype, subtype);
-
-    contents->GetOrCreateStream().Set(fontdata);
 }

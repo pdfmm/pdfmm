@@ -35,7 +35,7 @@ public:
     PdfFontType GetType() const override;
 
 protected:
-    void embedFontFile(PdfObject& descriptor) override;
+    void embedFontSubset() override;
 };
 
 };

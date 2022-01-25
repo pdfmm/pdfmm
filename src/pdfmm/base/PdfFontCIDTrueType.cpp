@@ -26,67 +26,50 @@ PdfFontType PdfFontCIDTrueType::GetType() const
     return PdfFontType::CIDTrueType;
 }
 
-void PdfFontCIDTrueType::embedFontFile(PdfObject& descriptor)
+void PdfFontCIDTrueType::embedFontSubset()
 {
-    if (IsSubsettingEnabled())
+    auto& usedGIDs = GetUsedGIDs();
+    // Prepare a CID to GID for the subsetting
+    CIDToGIDMap cidToGidMap = getCIDToGIDMapSubset(usedGIDs);
+    createWidths(GetDescendantFont().GetDictionary(), cidToGidMap);
+    m_Encoding->ExportToFont(*this);
+
+    // Prepare a gid list to be used for subsetting
+    vector<unsigned> gids;
+    for (auto& pair : cidToGidMap)
+        gids.push_back(pair.second);
+
+    charbuff buffer;
+    PdfFontTrueTypeSubset::BuildFont(buffer, GetMetrics(), gids);
+    auto contents = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject();
+    GetDescriptor().GetDictionary().AddKeyIndirect("FontFile2", contents);
+
+    contents->GetDictionary().AddKey("Length1", PdfObject(static_cast<int64_t>(buffer.size())));
+    contents->GetOrCreateStream().Set(buffer);
+
+    // We prepare the /CIDSet content now. NOTE: The CIDSet
+    // entry is optional and it's actually deprecated in PDF 2.0
+    // but it's required for PDFA/1 compliance in TrueType CID fonts
+    string cidSetData;
+    for (auto& pair : usedGIDs)
     {
-        auto& usedGIDs = GetUsedGIDs();
-        // Prepare a CID to GID for the subsetting
-        CIDToGIDMap cidToGidMap = getCIDToGIDMapSubset(usedGIDs);
-        createWidths(GetDescendantFont().GetDictionary(), cidToGidMap);
-        m_Encoding->ExportToFont(*this);
+        // ISO 32000-1:2008: Table 124 – Additional font descriptor entries for CIDFonts
+        // CIDSet "The stream’s data shall be organized as a table of bits
+        // indexed by CID. The bits shall be stored in bytes with the
+        // high - order bit first.Each bit shall correspond to a CID.
+        // The most significant bit of the first byte shall correspond
+        // to CID 0, the next bit to CID 1, and so on"
 
-        // Prepare a gid list to be used for subsetting
-        vector<unsigned> gids;
-        for (auto& pair : cidToGidMap)
-            gids.push_back(pair.second);
+        static const char bits[] = { '\x80', '\x40', '\x20', '\x10', '\x08', '\x04', '\x02', '\x01' };
+        unsigned gid = pair.second.Id;
+        unsigned dataIndex = gid >> 3;
+        if (cidSetData.size() < dataIndex + 1)
+            cidSetData.resize(dataIndex + 1);
 
-        charbuff buffer;
-        PdfFontTrueTypeSubset::BuildFont(buffer, GetMetrics(), gids);
-        auto contents = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject();
-        descriptor.GetDictionary().AddKeyIndirect("FontFile2", contents);
-
-        contents->GetDictionary().AddKey("Length1", PdfObject(static_cast<int64_t>(buffer.size())));
-        contents->GetOrCreateStream().Set(buffer);
-
-        // We prepare the /CIDSet content now. NOTE: The CIDSet
-        // entry is optional and it's actually deprecated in PDF 2.0
-        // but it's required for PDFA/1 compliance in TrueType CID fonts
-        string cidSetData;
-        for (auto& pair : usedGIDs)
-        {
-            // ISO 32000-1:2008: Table 124 – Additional font descriptor entries for CIDFonts
-            // CIDSet "The stream’s data shall be organized as a table of bits
-            // indexed by CID. The bits shall be stored in bytes with the
-            // high - order bit first.Each bit shall correspond to a CID.
-            // The most significant bit of the first byte shall correspond
-            // to CID 0, the next bit to CID 1, and so on"
-
-            static const char bits[] = { '\x80', '\x40', '\x20', '\x10', '\x08', '\x04', '\x02', '\x01' };
-            unsigned gid = pair.second.Id;
-            unsigned dataIndex = gid >> 3;
-            if (cidSetData.size() < dataIndex + 1)
-                cidSetData.resize(dataIndex + 1);
-
-            cidSetData[dataIndex] |= bits[gid & 7];
-        }
-
-        auto cidSetObj = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject();
-        cidSetObj->GetOrCreateStream().Set(cidSetData);
-        descriptor.GetDictionary().AddKeyIndirect("CIDSet", cidSetObj);
+        cidSetData[dataIndex] |= bits[gid & 7];
     }
-    else
-    {
-        auto contents = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject();
-        descriptor.GetDictionary().AddKeyIndirect("FontFile2", contents);
 
-        auto fontdata = m_Metrics->GetFontFileData();
-
-        // NOTE: Set Length1 before creating the stream
-        // as PdfStreamedDocument does not allow
-        // adding keys to an object after a stream was written
-        contents->GetDictionary().AddKey("Length1",
-            PdfObject(static_cast<int64_t>(fontdata.size())));
-        contents->GetOrCreateStream().Set(fontdata);
-    }
+    auto cidSetObj = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject();
+    cidSetObj->GetOrCreateStream().Set(cidSetData);
+    GetDescriptor().GetDictionary().AddKeyIndirect("CIDSet", cidSetObj);
 }

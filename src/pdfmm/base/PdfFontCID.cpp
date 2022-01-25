@@ -112,12 +112,8 @@ void PdfFontCID::initImported()
 
 void PdfFontCID::embedFont()
 {
-    this->embedFontFile(*m_descriptor);
-}
-
-void PdfFontCID::embedFontSubset()
-{
-    this->embedFontFile(*m_descriptor);
+    PDFMM_ASSERT(m_descriptor != nullptr);
+    EmbedFontFile(*m_descriptor);
 }
 
 PdfObject* PdfFontCID::getDescendantFontObject()

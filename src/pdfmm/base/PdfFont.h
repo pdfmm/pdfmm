@@ -328,6 +328,8 @@ public:
     PdfObject& GetDescendantFontObject();
 
 protected:
+    void EmbedFontFile(PdfObject& descriptor);
+
     /**
      * Get the raw width of a CID identifier
      */

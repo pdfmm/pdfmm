@@ -24,15 +24,7 @@ PdfFontType PdfFontCIDType1::GetType() const
     return PdfFontType::CIDType1;
 }
 
-void PdfFontCIDType1::embedFontFile(PdfObject& descriptor)
+void PdfFontCIDType1::embedFontSubset()
 {
-    (void)descriptor;
-    if (IsSubsettingEnabled())
-    {
-        PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);
-    }
-    else
-    {
-
-    }
+    PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);
 }

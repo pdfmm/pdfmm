@@ -28,9 +28,7 @@ public:
 
 protected:
     void embedFont() override;
-    void embedFontSubset() override;
     PdfObject* getDescendantFontObject() override;
-    virtual void embedFontFile(PdfObject& descriptor) = 0;
     void createWidths(PdfDictionary& fontDict, const CIDToGIDMap& glyphWidths);
     static CIDToGIDMap getCIDToGIDMapSubset(const UsedGIDsMap& usedGIDs);
 
@@ -41,7 +39,8 @@ protected:
     void initImported() override;
 
 protected:
-    PdfObject& GetDescendantFont() { return *m_descendantFont; };
+    PdfObject& GetDescendantFont() { return *m_descendantFont; }
+    PdfObject& GetDescriptor() { return *m_descriptor; }
 
 private:
     PdfObject* m_descendantFont;

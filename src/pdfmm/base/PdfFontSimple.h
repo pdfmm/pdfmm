@@ -44,8 +44,6 @@ protected:
 
     void initImported() override;
 
-    virtual void embedFontFile(PdfObject& descriptor);
-
 private:
     void getWidthsArray(PdfArray& widths) const;
     void getFontMatrixArray(PdfArray& fontMatrix) const;
