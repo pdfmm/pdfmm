@@ -14,9 +14,7 @@
 
 namespace mm {
 
-struct Standard14FontChar;
-
-typedef std::unordered_map<unsigned short, unsigned short> Std14CPToGIDMap;
+typedef std::unordered_map<unsigned short, unsigned char> Std14CPToGIDMap;
 
 std::string_view GetStandard14FontName(PdfStandard14FontType stdFont);
 
@@ -26,7 +24,7 @@ std::string_view GetStandard14FontBaseName(PdfStandard14FontType stdFont);
 
 bool IsStandard14Font(const std::string_view& fontName, bool useAltNames, PdfStandard14FontType& stdFont);
 
-const Standard14FontChar* GetStd14FontChars(PdfStandard14FontType stdFont, unsigned& size);
+const unsigned short* GetStd14FontWidths(PdfStandard14FontType stdFont, unsigned& size);
 
 const Std14CPToGIDMap& GetStd14CPToGIDMap(PdfStandard14FontType stdFont);
 

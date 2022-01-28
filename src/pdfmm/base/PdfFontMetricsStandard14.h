@@ -17,15 +17,9 @@
 
 namespace mm {
 
-struct Standard14FontChar
-{
-    unsigned short CodePoint;
-    unsigned short Width;
-};
-
 struct Standard14FontData
 {
-    const Standard14FontChar* Widths;
+    const unsigned short* Widths;
     unsigned WidthsSize;
     PdfFontDescriptorFlags Flags;
     uint16_t DefaultWidth;

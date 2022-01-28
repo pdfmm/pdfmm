@@ -89,7 +89,7 @@ bool PdfFontMetricsStandard14::TryGetGlyphWidth(unsigned gid, double& width) con
             return false;
         }
 
-        width = m_data.Widths[gid].Width / 1000.0; // Convert to PDF units
+        width = m_data.Widths[gid] / 1000.0; // Convert to PDF units
         return true;
     }
     else
