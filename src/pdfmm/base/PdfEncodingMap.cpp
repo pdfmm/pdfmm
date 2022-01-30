@@ -18,10 +18,7 @@
 using namespace std;
 using namespace mm;
 
-PdfEncodingMap::PdfEncodingMap(const PdfEncodingLimits& limits)
-    : m_limits(limits)
-{
-}
+PdfEncodingMap::PdfEncodingMap() { }
 
 PdfEncodingMap::~PdfEncodingMap() { }
 
@@ -114,7 +111,7 @@ bool PdfEncodingMap::TryGetCharCode(unsigned cid, PdfCharCode& codeUnit) const
 bool PdfEncodingMap::TryGetNextCID(string_view::iterator& it,
     const string_view::iterator& end, PdfCID& cid) const
 {
-    if (IsCMapEncoding())
+    if (GetType() == PdfEncodingMapType::CMap)
     {
         vector<char32_t> codePoints;
         bool success = tryGetNextCodePoints(it, end, cid.Unit, codePoints);
@@ -138,7 +135,8 @@ bool PdfEncodingMap::TryGetNextCID(string_view::iterator& it,
 
         unsigned code = 0;
         unsigned char i = 1;
-        PDFMM_ASSERT(i <= m_limits.MaxCodeSize);
+        auto& limits = GetLimits();
+        PDFMM_ASSERT(i <= limits.MaxCodeSize);
         while (curr != end)
         {
             // Iterate the string and accumulate a
@@ -146,9 +144,9 @@ bool PdfEncodingMap::TryGetNextCID(string_view::iterator& it,
             code <<= 8;
             code |= (unsigned char)*curr;
             curr++;
-            if (i == m_limits.MaxCodeSize)
+            if (i == limits.MaxCodeSize)
             {
-                cid.Unit = { code, m_limits.MaxCodeSize };
+                cid.Unit = { code, limits.MaxCodeSize };
                 cid.Id = code; // We assume identity with CharCode
                 it = curr;
                 return true;
@@ -191,16 +189,6 @@ bool PdfEncodingMap::TryGetCodePoints(const PdfCharCode& codeUnit, vector<char32
     return tryGetCodePoints(codeUnit, codePoints);
 }
 
-bool PdfEncodingMap::IsCMapEncoding() const
-{
-    return false;
-}
-
-bool PdfEncodingMap::IsSimpleEncoding() const
-{
-    return !IsCMapEncoding();
-}
-
 bool PdfEncodingMap::HasLigaturesSupport() const
 {
     return false;
@@ -212,12 +200,12 @@ bool PdfEncodingMap::tryGetNextCodePoints(string_view::iterator& it, const strin
 {
     // Save current iterator in the case the search is unsuccessful
     string_view::iterator curr = it;
-
     unsigned code = 0;
     unsigned char i = 1;
+    auto& limits = GetLimits();
     while (curr != end)
     {
-        if (i > m_limits.MaxCodeSize)
+        if (i > limits.MaxCodeSize)
             return false;
 
         // CMap Mapping, PDF Reference 1.7, pg. 453
@@ -232,7 +220,7 @@ bool PdfEncodingMap::tryGetNextCodePoints(string_view::iterator& it, const strin
         code |= (uint8_t)*curr;
         curr++;
         codeUnit = { code, i };
-        if (i < m_limits.MinCodeSize || !tryGetCodePoints(codeUnit, codePoints))
+        if (i < limits.MinCodeSize || !tryGetCodePoints(codeUnit, codePoints))
         {
             i++;
             continue;
@@ -245,21 +233,29 @@ bool PdfEncodingMap::tryGetNextCodePoints(string_view::iterator& it, const strin
     return false;
 }
 
-PdfEncodingMapBase::PdfEncodingMapBase(PdfCharCodeMap&& map, const nullable<PdfEncodingLimits>& limits) :
-    PdfEncodingMap(limits.has_value() ? *limits : findLimits(map)),
-    m_charMap(std::make_shared<PdfCharCodeMap>(std::move(map)))
+PdfEncodingMapBase::PdfEncodingMapBase(PdfCharCodeMap&& map)
+    : m_charMap(std::make_shared<PdfCharCodeMap>(std::move(map)))
 {
 }
 
 void PdfEncodingMapBase::AppendCIDMappingEntries(PdfObjectStream& stream, const PdfFont& font) const
 {
-    (void)stream;
     (void)font;
-    PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);
+    stream.Append(std::to_string(m_charMap->GetSize())).Append(" begincidchar\n");
+    string code;
+    for (auto& pair : *m_charMap)
+    {
+        auto& unit = pair.first;
+        unsigned cid = pair.second[0]; // We assume the cid to be in the single element
+        unit.WriteHexTo(code);
+        stream.Append(code).Append(" ").Append(std::to_string(cid)).Append("\n");;
+    }
+    stream.Append("endcidchar\n");
 }
 
 void PdfEncodingMapBase::AppendCodeSpaceRange(PdfObjectStream& stream) const
 {
+    // CHECK-ME: The limit inferr may be not needed anymore
     struct Limit
     {
         PdfCharCode FirstCode;
@@ -303,8 +299,18 @@ void PdfEncodingMapBase::AppendCodeSpaceRange(PdfObjectStream& stream) const
     }
 }
 
+PdfEncodingMapType PdfEncodingMapBase::GetType() const
+{
+    return PdfEncodingMapType::CMap;
+}
+
+const PdfEncodingLimits& PdfEncodingMapBase::GetLimits() const
+{
+    return m_charMap->GetLimits();
+}
+
 PdfEncodingMapBase::PdfEncodingMapBase(const shared_ptr<PdfCharCodeMap>& map)
-    : PdfEncodingMap({ }), m_charMap(map)
+    : m_charMap(map)
 {
     if (map == nullptr)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Map must be not null");
@@ -349,27 +355,6 @@ void PdfEncodingMapBase::AppendToUnicodeEntries(PdfObjectStream& stream) const
     stream.Append("endbfchar");
 }
 
-PdfEncodingLimits PdfEncodingMapBase::findLimits(const PdfCharCodeMap& map)
-{
-    PdfEncodingLimits limits;
-    for (auto& pair : map)
-    {
-        if (pair.first.Code < limits.FirstChar.Code)
-            limits.FirstChar = pair.first;
-
-        if (pair.first.Code > limits.LastChar.Code)
-            limits.LastChar = pair.first;
-
-        if (pair.first.CodeSpaceSize < limits.MinCodeSize)
-            limits.MinCodeSize = pair.first.CodeSpaceSize;
-
-        if (pair.first.CodeSpaceSize > limits.MaxCodeSize)
-            limits.MaxCodeSize = pair.first.CodeSpaceSize;
-    }
-
-    return limits;
-}
-
 void PdfEncodingMap::AppendUTF16CodeTo(PdfObjectStream& stream, const unicodeview& codePoints, u16string& u16tmp)
 {
     char hexbuf[2];
@@ -400,11 +385,15 @@ void PdfEncodingMap::AppendUTF16CodeTo(PdfObjectStream& stream, const unicodevie
 void PdfEncodingMap::AppendCodeSpaceRange(PdfObjectStream& stream) const
 {
     string temp;
-    m_limits.FirstChar.WriteHexTo(temp);
+    auto& limits = GetLimits();
+    limits.FirstChar.WriteHexTo(temp);
     stream.Append(temp);
-    m_limits.LastChar.WriteHexTo(temp);
+    limits.LastChar.WriteHexTo(temp);
     stream.Append(temp);
 }
+
+PdfEncodingMapOneByte::PdfEncodingMapOneByte(const PdfEncodingLimits& limits)
+    : m_Limits(limits) { }
 
 void PdfEncodingMapOneByte::AppendToUnicodeEntries(PdfObjectStream& stream) const
 {
@@ -471,72 +460,56 @@ void PdfEncodingMapOneByte::AppendCIDMappingEntries(PdfObjectStream& stream, con
     stream.Append("endcidchar\n");
 }
 
-PdfNullEncodingMap::PdfNullEncodingMap() : PdfEncodingMap({ }) { }
+const PdfEncodingLimits& PdfEncodingMapOneByte::GetLimits() const
+{
+    return m_Limits;
+}
+
+PdfEncodingMapType PdfEncodingMapOneByte::GetType() const
+{
+    return PdfEncodingMapType::Simple;
+}
+
+PdfNullEncodingMap::PdfNullEncodingMap() { }
+
+PdfEncodingMapType PdfNullEncodingMap::GetType() const
+{
+    // NOTE: We assume PdfNullEncodingMap will used in the
+    // null PdfEncoding that replaced with PdfDynamicEncoding
+    // in PdfFont. See PdfFont implementation
+    return PdfEncodingMapType::CMap;
+}
+
+const PdfEncodingLimits& PdfNullEncodingMap::GetLimits() const
+{
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "The null encoding must be bound to a PdfFont");
+}
 
 bool PdfNullEncodingMap::tryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const
 {
     (void)codePoint;
     (void)codeUnit;
-    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "PdfDynamicEncoding can be used only from a PdfFont");
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "The null encoding must be bound to a PdfFont");
 }
 
 bool PdfNullEncodingMap::tryGetCodePoints(const PdfCharCode& codeUnit, vector<char32_t>& codePoints) const
 {
     (void)codeUnit;
     (void)codePoints;
-    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "PdfDynamicEncoding can be used only from a PdfFont");
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "The null encoding must be bound to a PdfFont");
 }
 
 void PdfNullEncodingMap::AppendToUnicodeEntries(PdfObjectStream& stream) const
 {
     (void)stream;
-    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "PdfDynamicEncoding can be used only from a PdfFont");
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "The null encoding must be bound to a PdfFont");
 }
 
 void PdfNullEncodingMap::AppendCIDMappingEntries(PdfObjectStream& stream, const PdfFont& font) const
 {
     (void)stream;
     (void)font;
-    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "PdfDynamicEncoding can be used only from a PdfFont");
-}
-
-PdfEncodingLimits::PdfEncodingLimits(unsigned char minCodeSize, unsigned char maxCodeSize,
-        const PdfCharCode& firstChar, const PdfCharCode& lastChar) :
-    MinCodeSize(minCodeSize),
-    MaxCodeSize(maxCodeSize),
-    FirstChar(firstChar),
-    LastChar(lastChar)
-{
-}
-
-PdfEncodingLimits::PdfEncodingLimits() :
-    PdfEncodingLimits(numeric_limits<unsigned char>::max(), 0, PdfCharCode(numeric_limits<unsigned>::max()), PdfCharCode(0))
-{
-}
-
-bool PdfEncodingLimits::AreValid() const
-{
-    return FirstChar.Code <= LastChar.Code;
-}
-
-PdfCID::PdfCID()
-    : Id(0)
-{
-}
-
-PdfCID::PdfCID(unsigned id)
-    : Id(id), Unit(id)
-{
-}
-
-PdfCID::PdfCID(unsigned id, const PdfCharCode& unit)
-    : Id(id), Unit(unit)
-{
-}
-
-PdfCID::PdfCID(const PdfCharCode& unit)
-    : Id(unit.Code), Unit(unit)
-{
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "The null encoding must be bound to a PdfFont");
 }
 
 PdfBuiltInEncoding::PdfBuiltInEncoding(const PdfName& name)

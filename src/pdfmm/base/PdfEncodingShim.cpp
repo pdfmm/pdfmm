@@ -12,6 +12,15 @@
 using namespace std;
 using namespace mm;
 
+namespace mm
+{
+    class PdfDynamicEncodingMap : public PdfEncodingMapBase
+    {
+    public:
+        PdfDynamicEncodingMap(const shared_ptr<PdfCharCodeMap>& map);
+    };
+}
+
 PdfEncodingShim::PdfEncodingShim(const PdfEncoding& encoding, PdfFont& font)
     : PdfEncoding(encoding), m_Font(&font)
 {
@@ -23,9 +32,16 @@ PdfFont& PdfEncodingShim::GetFont() const
 }
 
 // For the actual implementation, create the encoding map using the supplied char code map
-PdfDynamicEncoding::PdfDynamicEncoding(const shared_ptr<PdfCharCodeMap>& map, PdfFont& font)
-    : PdfEncoding(shared_ptr<PdfEncodingMap>(new PdfEncodingMapBase(map)), nullptr), m_font(&font)
+PdfDynamicEncoding::PdfDynamicEncoding(const shared_ptr<PdfCharCodeMap>& cidMap,
+    const shared_ptr<PdfCharCodeMap>& toUnicodeMap, PdfFont& font)
+    : PdfEncoding(GetNextId(), PdfEncodingMapConstPtr(new PdfDynamicEncodingMap(cidMap)),
+        PdfEncodingMapConstPtr(new PdfDynamicEncodingMap(toUnicodeMap))), m_font(&font)
 {
+}
+
+bool PdfDynamicEncoding::IsDynamicEncoding() const
+{
+    return true;
 }
 
 PdfFont& PdfDynamicEncoding::GetFont() const
@@ -33,3 +49,6 @@ PdfFont& PdfDynamicEncoding::GetFont() const
     PDFMM_ASSERT(m_font != nullptr);
     return *m_font;
 }
+
+PdfDynamicEncodingMap::PdfDynamicEncodingMap(const shared_ptr<PdfCharCodeMap>& map)
+    : PdfEncodingMapBase(map) { }

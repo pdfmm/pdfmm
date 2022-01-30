@@ -9,7 +9,6 @@ namespace mm
 {
     // Known encoding IDs
     constexpr size_t NullEncodingId             = 0;
-    constexpr size_t DynamicEncodingId          = 1;
     constexpr size_t WinAnsiEncodingId          = 11;
     constexpr size_t MacRomanEncodingId         = 12;
     constexpr size_t MacExpertEncodingId        = 13;

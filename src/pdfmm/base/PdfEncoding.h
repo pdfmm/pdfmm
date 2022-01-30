@@ -36,6 +36,7 @@ namespace mm
     {
         friend class PdfEncodingFactory;
         friend class PdfEncodingShim;
+        friend class PdfDynamicEncoding;
         friend class PdfFont;
         friend class PdfFontSimple;
 
@@ -123,9 +124,13 @@ namespace mm
          */
         bool HasParsedLimits() const;
 
+        /** Return true if the encoding is a dynamic CID mapping
+         */
+        virtual bool IsDynamicEncoding() const;
+
         /**
          * Return an Id to be used in hashed containers.
-         * Id 0 has a special meaning for PdfDynamicEncoding
+         * Id 0 has a special meaning to create a PdfDynamicEncoding
          *  \see PdfDynamicEncoding
          */
         size_t GetId() const { return m_Id; }
@@ -172,6 +177,7 @@ namespace mm
     private:
         // This method is to be called by PdfFont
         bool TryGetCIDId(const PdfCharCode& codeUnit, unsigned& cid) const;
+        size_t GetNextId();
 
     private:
         bool tryExportObjectTo(PdfDictionary& dictionary, bool wantCidMapping) const;

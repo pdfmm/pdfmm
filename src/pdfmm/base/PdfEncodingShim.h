@@ -43,13 +43,17 @@ namespace mm {
         friend class PdfEncodingFactory;
 
     public:
+        bool IsDynamicEncoding() const override;
+
+    protected:
         PdfFont& GetFont() const override;
 
     private:
         /**
          * To be used by PdfFont
          */
-        PdfDynamicEncoding(const std::shared_ptr<PdfCharCodeMap>& map, PdfFont& font);
+        PdfDynamicEncoding(const std::shared_ptr<PdfCharCodeMap>& cidMap,
+            const std::shared_ptr<PdfCharCodeMap>& toUnicodeMap, PdfFont& font);
 
     private:
         PdfFont* m_font;

@@ -27,22 +27,21 @@ PdfIdentityEncoding::PdfIdentityEncoding(unsigned char codeSpaceSize)
     : PdfIdentityEncoding(codeSpaceSize, PdfIdentityOrientation::Unkwnown) { }
 
 PdfIdentityEncoding::PdfIdentityEncoding(unsigned char codeSpaceSize, PdfIdentityOrientation orientation)
-    : PdfEncodingMap(getLimits(codeSpaceSize)), m_orientation(orientation) { }
+    : m_Limits(getLimits(codeSpaceSize)), m_orientation(orientation) { }
 
 PdfIdentityEncoding::PdfIdentityEncoding(PdfIdentityOrientation orientation)
     : PdfIdentityEncoding(2, orientation) { }
 
 bool PdfIdentityEncoding::tryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const
 {
-    auto& limits = GetLimits();
-    PDFMM_INVARIANT(limits.MinCodeSize == limits.MaxCodeSize);
-    if (utls::GetCharCodeSize(codePoint) > limits.MaxCodeSize)
+    PDFMM_INVARIANT(m_Limits.MinCodeSize == m_Limits.MaxCodeSize);
+    if (utls::GetCharCodeSize(codePoint) > m_Limits.MaxCodeSize)
     {
         codeUnit = { };
         return false;
     }
 
-    codeUnit = { (unsigned)codePoint, limits.MaxCodeSize };
+    codeUnit = { (unsigned)codePoint, m_Limits.MaxCodeSize };
     return true;
 }
 
@@ -87,11 +86,16 @@ void PdfIdentityEncoding::AppendCIDMappingEntries(PdfObjectStream& stream, const
     PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);
 }
 
-bool PdfIdentityEncoding::IsCMapEncoding() const
+PdfEncodingMapType PdfIdentityEncoding::GetType() const
 {
     // PdfIdentityEncoding represents either Identity-H/Identity-V
     // predefined CMap names or exports a custom CMap
-    return true;
+    return PdfEncodingMapType::CMap;
+}
+
+const PdfEncodingLimits& PdfIdentityEncoding::GetLimits() const
+{
+    return m_Limits;
 }
 
 PdfEncodingLimits getLimits(unsigned char codeSpaceSize)

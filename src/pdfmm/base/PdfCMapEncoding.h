@@ -16,7 +16,7 @@ namespace mm
     class PdfObject;
     class PdfObjectStream;
 
-    class PDFMM_API PdfCMapEncoding : public PdfEncodingMapBase
+    class PDFMM_API PdfCMapEncoding final : public PdfEncodingMapBase
     {
     public:
         /** Construct a PdfCMapEncoding from a map
@@ -28,18 +28,16 @@ namespace mm
          */
         static std::unique_ptr<PdfCMapEncoding> Create(const PdfObject& cmapObj);
 
+    private:
+        PdfCMapEncoding(PdfCharCodeMap&& map, const PdfEncodingLimits& limits);
+
     public:
-        bool IsCMapEncoding() const override;
+        PdfEncodingMapType GetType() const override;
         bool HasLigaturesSupport() const override;
+        const PdfEncodingLimits& GetLimits() const override;
 
     private:
-        struct MapIdentity
-        {
-            PdfCharCodeMap Map;
-            PdfEncodingLimits Limits;
-        };
-        PdfCMapEncoding(MapIdentity map);
-        static MapIdentity parseCMapObject(const PdfObjectStream& stream);
+        PdfEncodingLimits m_Limits;
     };
 }
 

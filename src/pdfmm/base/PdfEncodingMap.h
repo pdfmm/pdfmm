@@ -18,46 +18,8 @@ namespace mm {
 
 class PdfIndirectObjectList;
 class PdfDynamicEncoding;
+class PdfDynamicCIDEncoding;
 class PdfFont;
-
-struct PDFMM_API PdfEncodingLimits
-{
-public:
-    PdfEncodingLimits(unsigned char minCodeSize, unsigned char maxCodeSize,
-        const PdfCharCode& firstCharCode, const PdfCharCode& lastCharCode);
-    PdfEncodingLimits();
-
-    /** Returns true if the limits are valid, such as FirstChar is <= LastChar
-     */
-    bool AreValid() const;
-
-    unsigned char MinCodeSize;
-    unsigned char MaxCodeSize;
-    PdfCharCode FirstChar;     // The first defined character code
-    PdfCharCode LastChar;      // The last defined character code
-};
-
-/** Represent a CID (Character ID) with full code unit information
- */
-struct PdfCID
-{
-    unsigned Id;
-    PdfCharCode Unit;
-
-    PdfCID();
-
-    /**
-     * Create a CID that has an identical code unit of minimum size
-     */
-    explicit PdfCID(unsigned id);
-
-    PdfCID(unsigned id, const PdfCharCode& unit);
-
-    /**
-     * Create a CID that has an identical code as a code unit representation
-     */
-    PdfCID(const PdfCharCode& unit);
-};
 
 /** 
  * A PdfEncodingMap is a low level interface to convert
@@ -72,7 +34,7 @@ class PDFMM_API PdfEncodingMap
     friend class PdfEncoding;
 
 protected:
-    PdfEncodingMap(const PdfEncodingLimits& limits);
+    PdfEncodingMap();
 
 public:
     /** Try decode next char code from utf8 string range
@@ -113,32 +75,17 @@ public:
      */
     bool TryGetCodePoints(const PdfCharCode& codeUnit, std::vector<char32_t>& codePoints) const;
 
-    const PdfEncodingLimits& GetLimits() const { return m_limits; }
+    virtual const PdfEncodingLimits& GetLimits() const = 0;
 
     /**
-     * True if the encoding represent a CMap encoding
+     * Type of encoding, may be Simple or CMap
      *
-     * This is true not only for PdfCMapEncoding that supplies
-     * a proper CMap but for PdfIndentityEncoding and other
+     * Simple: built-in, difference and Type1 implicit encodings
+     * CMap: proper CMap or PdfIndentityEncoding and other
      * predefined CMap names as well (ISO 32000-1:2008 Table 118
-     * Predefined CJK CMap names, currently not implemented).
-     * Other marps rely on presence of /FirstChar to map from a
-     * character code to a index in the glyph list
+     * Predefined CJK CMap names, currently not implemented)
      */
-    virtual bool IsCMapEncoding() const;
-
-    /**
-     * True if the encoding is a "simple" encoding, that is valid
-     * both as a /Encoding entry and can be used to decode Unicode
-     * codepoints.
-     * 
-     * This is true for regular predefined, difference
-     * and Type1 implicit encodings and in general it is false for
-     * CMap and identity encodings. This property is complementary
-     * of IsCMapEncoding and is kept to use in other situations
-     * where it is more intuitive
-     */
-    bool IsSimpleEncoding() const;
+    virtual PdfEncodingMapType GetType() const = 0;
 
     /**
      * True if the encoding has ligatures support
@@ -219,9 +166,6 @@ private:
 
     bool tryGetNextCodePoints(std::string_view::iterator& it, const std::string_view::iterator& end,
         PdfCharCode& codeUnit, std::vector<char32_t>& codePoints) const;
-
-private:
-    PdfEncodingLimits m_limits;
 };
 
 /**
@@ -229,10 +173,10 @@ private:
  */
 class PDFMM_API PdfEncodingMapBase : public PdfEncodingMap
 {
-    friend class PdfDynamicEncoding;
+    friend class PdfDynamicEncodingMap;
 
 protected:
-    PdfEncodingMapBase(PdfCharCodeMap&& map, const nullable<PdfEncodingLimits>& limits = { });
+    PdfEncodingMapBase(PdfCharCodeMap&& map);
 
 protected:
     bool tryGetNextCharCode(std::string_view::iterator& it,
@@ -253,9 +197,12 @@ public:
 
     void AppendCodeSpaceRange(PdfObjectStream& stream) const override;
 
+    const PdfEncodingLimits& GetLimits() const override;
+
+    PdfEncodingMapType GetType() const override;
+
 private:
     PdfEncodingMapBase(const std::shared_ptr<PdfCharCodeMap>& map);
-    static PdfEncodingLimits findLimits(const PdfCharCodeMap& map);
 
 private:
     std::shared_ptr<PdfCharCodeMap> m_charMap;
@@ -269,11 +216,18 @@ private:
 class PDFMM_API PdfEncodingMapOneByte : public PdfEncodingMap
 {
 protected:
-    using PdfEncodingMap::PdfEncodingMap;
+    PdfEncodingMapOneByte(const PdfEncodingLimits& limits);
 
     void AppendToUnicodeEntries(PdfObjectStream& stream) const override;
 
     void AppendCIDMappingEntries(PdfObjectStream& stream, const PdfFont& font) const override;
+
+    const PdfEncodingLimits& GetLimits() const override;
+
+    PdfEncodingMapType GetType() const override;
+
+private:
+    PdfEncodingLimits m_Limits;
 };
 
 /**
@@ -333,8 +287,14 @@ private:
  */
 class PDFMM_API PdfNullEncodingMap final : public PdfEncodingMap
 {
-public:
+    friend class PdfEncodingMapFactory;
+
+private:
     PdfNullEncodingMap();
+
+public:
+    PdfEncodingMapType GetType() const override;
+    const PdfEncodingLimits& GetLimits() const;
 
 protected:
     bool tryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const override;

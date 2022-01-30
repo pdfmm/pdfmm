@@ -9,35 +9,11 @@
 #define PDF_CHAR_CODE_MAP_H
 
 #include "PdfDeclarations.h"
+#include "PdfEncodingCommon.h"
 #include <unordered_map>
 
 namespace mm
 {
-    /** A character code unit
-     *
-     * For generic terminology see https://en.wikipedia.org/wiki/Character_encoding#Terminology
-     * See also 5014.CIDFont_Spec, 2.1 Terminology
-     */
-    struct PDFMM_API PdfCharCode
-    {
-        unsigned Code;
-
-        // RangeSize example <cd> -> 1, <00cd> -> 2
-        unsigned char CodeSpaceSize;
-
-        PdfCharCode();
-
-        /** Create a code of minimum size
-         */
-        explicit PdfCharCode(unsigned code);
-
-        PdfCharCode(unsigned code, unsigned char codeSpaceSize);
-
-    public:
-        void AppendTo(std::string& str, bool clear = false) const;
-        void WriteHexTo(std::string& str, bool wrap = true) const;
-    };
-
     /**
      * A bidirectional map from character code units to generic code points
      *
@@ -88,6 +64,8 @@ namespace mm
 
         unsigned GetSize() const;
 
+        const PdfEncodingLimits& GetLimits() const;
+
     private:
         void move(PdfCharCodeMap& map) noexcept;
         void pushMapping(const PdfCharCode& codeUnit, std::vector<char32_t>&& codePoints);
@@ -136,8 +114,8 @@ namespace mm
         iterator end() const;
 
     private:
+        PdfEncodingLimits m_Limits;
         CUMap m_cuMap;
-        unsigned char m_maxCodeSpaceSize;
         bool m_MapDirty;
         CPMapNode* m_cpMapHead;           // Head of a BST to lookup code points
         int m_depth;

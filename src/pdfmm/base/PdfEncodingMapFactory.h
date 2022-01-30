@@ -17,6 +17,8 @@ namespace mm {
  */
 class PDFMM_API PdfEncodingMapFactory final
 {
+    friend class PdfEncoding;
+
 public:
     /** Singleton method which returns a global instance
      *  of PdfDocEncoding.
@@ -101,14 +103,15 @@ public:
      */
     static PdfEncodingMapConstPtr Iso88592EncodingInstance();
 
-    static PdfEncodingMapConstPtr GetNullEncodingMap();
-
     /** Return the encoding map for the given standard font type or nullptr for unknown
      */
     static PdfEncodingMapConstPtr GetStandard14FontEncodingMap(PdfStandard14FontType stdFont);
 
 private:
     PdfEncodingMapFactory() = delete;
+
+private:
+    static PdfEncodingMapConstPtr GetNullEncodingMap();
 };
 
 }

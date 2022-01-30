@@ -15,6 +15,7 @@
 #include "PdfFont.h"
 #include "PdfFontObject.h"
 #include "PdfFontCIDTrueType.h"
+#include "PdfFontCIDType1.h"
 #include "PdfFontMetrics.h"
 #include "PdfFontMetricsStandard14.h"
 #include "PdfFontMetricsObject.h"
@@ -26,11 +27,13 @@ using namespace std;
 using namespace mm;
 
 unique_ptr<PdfFont> PdfFont::Create(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
-    const PdfEncoding& encoding, PdfFontInitFlags flags)
+    const PdfFontCreateParams& createParams)
 {
-    bool embeddingEnabled = (flags & PdfFontInitFlags::Embed) != PdfFontInitFlags::None;
-    bool subsettingEnabled = (flags & PdfFontInitFlags::Subset) != PdfFontInitFlags::None;
-    auto font = createFontForType(doc, metrics, encoding, metrics->GetFontFileType());
+    bool embeddingEnabled = (createParams.Flags & PdfFontCreateFlags::Embed) != PdfFontCreateFlags::None;
+    bool subsettingEnabled = (createParams.Flags & PdfFontCreateFlags::Subset) != PdfFontCreateFlags::None;
+    bool preferNonCid = (createParams.Flags & PdfFontCreateFlags::PreferNonCID) != PdfFontCreateFlags::None;
+    auto font = createFontForType(doc, metrics, createParams.Encoding,
+        metrics->GetFontFileType(), preferNonCid);
     if (font != nullptr)
         font->InitImported(embeddingEnabled, subsettingEnabled);
 
@@ -38,28 +41,31 @@ unique_ptr<PdfFont> PdfFont::Create(PdfDocument& doc, const PdfFontMetricsConstP
 }
 
 unique_ptr<PdfFont> PdfFont::createFontForType(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
-    const PdfEncoding& encoding, PdfFontFileType type)
+    const PdfEncoding& encoding, PdfFontFileType type, bool preferNonCID)
 {
-    // TODO: Evaluate flag to prefer class font types over CID keyed ones
     PdfFont* font = nullptr;
     switch (type)
     {
         case PdfFontFileType::TrueType:
         case PdfFontFileType::OpenType:
-            font = new PdfFontCIDTrueType(doc, metrics, encoding);
+            if (preferNonCID && !encoding.HasCIDMapping())
+                font = new PdfFontTrueType(doc, metrics, encoding);
+            else
+                font = new PdfFontCIDTrueType(doc, metrics, encoding);
             break;
         case PdfFontFileType::Type1:
         case PdfFontFileType::Type1CCF:
-            // TODO Move to PdfFontCIDType1, except standard14 ones
-            font = new PdfFontType1(doc, metrics, encoding);
+            if (preferNonCID && !encoding.HasCIDMapping())
+                font = new PdfFontType1(doc, metrics, encoding);
+            else
+                font = new PdfFontCIDType1(doc, metrics, encoding);
             break;
         case PdfFontFileType::Type3:
             font = new PdfFontType3(doc, metrics, encoding);
             break;
         case PdfFontFileType::CIDType1:
-            // TODO
-            //font = new PdfFontCIDType1(doc, metrics, encoding);
-            //break;
+            font = new PdfFontCIDType1(doc, metrics, encoding);
+            break;
         default:
             PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFontFormat, "Unsupported font at this context");
     }
@@ -174,13 +180,18 @@ Exit:
 }
 
 unique_ptr<PdfFont> PdfFont::CreateStandard14(PdfDocument& doc, PdfStandard14FontType std14Font,
-    const PdfEncoding& encoding, PdfFontInitFlags flags)
+    const PdfFontCreateParams& createParams)
 {
-    (void)flags;
-    bool embeddingEnabled = (flags & PdfFontInitFlags::Embed) != PdfFontInitFlags::None;
-    bool subsettingEnabled = (flags & PdfFontInitFlags::Subset) != PdfFontInitFlags::None;
+    bool embeddingEnabled = (createParams.Flags & PdfFontCreateFlags::Embed) != PdfFontCreateFlags::None;
+    bool subsettingEnabled = (createParams.Flags & PdfFontCreateFlags::Subset) != PdfFontCreateFlags::None;
+    bool preferNonCid = (createParams.Flags & PdfFontCreateFlags::PreferNonCID) != PdfFontCreateFlags::None;
     PdfFontMetricsConstPtr metrics = PdfFontMetricsStandard14::Create(std14Font);
-    unique_ptr<PdfFont> font(new PdfFontType1(doc, metrics, encoding));
+    unique_ptr<PdfFont> font;
+    if (preferNonCid && !createParams.Encoding.HasCIDMapping())
+        font.reset(new PdfFontType1(doc, metrics, createParams.Encoding));
+    else
+        font.reset(new PdfFontCIDType1(doc, metrics, createParams.Encoding));
+
     if (font != nullptr)
         font->InitImported(embeddingEnabled, subsettingEnabled);
 

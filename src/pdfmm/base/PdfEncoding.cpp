@@ -21,10 +21,7 @@
 using namespace std;
 using namespace mm;
 
-static atomic<size_t> s_nextid = CustomEncodingStartId;
-
 static PdfCharCode fetchFallbackCharCode(string_view::iterator& it, const string_view::iterator& end, const PdfEncodingLimits& limits);
-static size_t getNextId();
 
 PdfEncoding::PdfEncoding()
     : PdfEncoding(NullEncodingId, PdfEncodingMapFactory::GetNullEncodingMap(), nullptr)
@@ -32,7 +29,7 @@ PdfEncoding::PdfEncoding()
 }
 
 PdfEncoding::PdfEncoding(const PdfEncodingMapConstPtr& encoding, const PdfToUnicodeMapConstPtr& toUnicode)
-    : PdfEncoding(getNextId(), encoding, toUnicode)
+    : PdfEncoding(GetNextId(), encoding, toUnicode)
 {
 }
 
@@ -44,7 +41,7 @@ PdfEncoding::PdfEncoding(size_t id, const PdfEncodingMapConstPtr& encoding, cons
 }
 
 PdfEncoding::PdfEncoding(const PdfObject& fontObj, const PdfEncodingMapConstPtr& encoding, const PdfEncodingMapConstPtr& toUnicode)
-    : PdfEncoding(getNextId(), encoding, toUnicode)
+    : PdfEncoding(GetNextId(), encoding, toUnicode)
 {
     auto firstCharObj = fontObj.GetDictionary().FindKey("FirstChar");
     if (firstCharObj != nullptr)
@@ -141,7 +138,6 @@ bool PdfEncoding::TryConvertToEncoded(const string_view& str, charbuff& encoded)
         vector<unsigned char> backwardMap;
         metrics.SubstituteGIDs(gids, backwardMap);
 
-
         // Add used gid to the font mapping afferent code points,
         // and append the returned code unit to encoded string
         unsigned cpOffset = 0;
@@ -162,19 +158,22 @@ PdfCharCode PdfEncoding::getCharCode(PdfFont& font, unsigned gid, const unicodev
 {
     if (font.IsSubsettingEnabled())
     {
-        PdfCID cid;
-        if (font.SubsetContainsGID(gid, cid))
-            return cid.Unit;
-
-        return font.AddSubsetGID(gid, codePoints).Unit;
+        return font.AddSubsetGIDSafe(gid, codePoints).Unit;
     }
     else
     {
-        PdfCharCode codeUnit;
-        if (!GetToUnicodeMapSafe().TryGetCharCode(codePoints, codeUnit))
-            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "The encoding doesn't support these characters");
+        if (IsDynamicEncoding())
+        {
+            return font.AddCharCodeSafe(gid, codePoints);
+        }
+        else
+        {
+            PdfCharCode codeUnit;
+            if (!GetToUnicodeMapSafe().TryGetCharCode(codePoints, codeUnit))
+                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "The encoding doesn't support these characters");
 
-        return codeUnit;
+            return codeUnit;
+        }
     }
 }
 
@@ -222,7 +221,7 @@ vector<PdfCID> PdfEncoding::ConvertToCIDs(const PdfString& encodedStr) const
 
 bool PdfEncoding::TryGetCIDId(const PdfCharCode& codeUnit, unsigned& cid) const
 {
-    if (m_Encoding->IsCMapEncoding())
+    if (m_Encoding->GetType() == PdfEncodingMapType::CMap)
     {
         return m_Encoding->TryGetCIDId(codeUnit, cid);
     }
@@ -383,17 +382,22 @@ bool PdfEncoding::HasCIDMapping() const
     // predefined CMap name, such as Identity-H/Identity-V, when
     // the main /Encoding is a CMap, or it exports a CMap anyway,
     // such in case of custom PdfIdentityEncoding
-    return m_Encoding->IsCMapEncoding();
+    return m_Encoding->GetType() == PdfEncodingMapType::CMap;
 }
 
 bool PdfEncoding::IsSimpleEncoding() const
 {
-    return m_Encoding->IsSimpleEncoding();
+    return m_Encoding->GetType() == PdfEncodingMapType::Simple;
 }
 
 bool PdfEncoding::HasParsedLimits() const
 {
     return m_Limits.AreValid();
+}
+
+bool PdfEncoding::IsDynamicEncoding() const
+{
+    return false;
 }
 
 PdfFont& PdfEncoding::GetFont() const
@@ -466,7 +470,7 @@ const PdfEncodingMapConstPtr PdfEncoding::GetToUnicodeMapPtr() const
     if (m_ToUnicode != nullptr)
         return m_ToUnicode;
 
-    if (m_Encoding->IsSimpleEncoding())
+    if (m_Encoding->GetType() == PdfEncodingMapType::Simple)
         return m_Encoding;
 
     return nullptr;
@@ -483,7 +487,7 @@ bool PdfEncoding::GetToUnicodeMapSafe(const PdfEncodingMap*& toUnicode) const
     // Fallback to main /Encoding entry. It is a valid
     // ToUnicode map for simple encodings
     toUnicode = m_Encoding.get();
-    return m_Encoding->IsSimpleEncoding();
+    return m_Encoding->GetType() == PdfEncodingMapType::Simple;
 }
 
 // Handle missing mapped code by just appending current
@@ -650,7 +654,8 @@ void PdfEncoding::writeToUnicodeCMap(PdfObject& cmapObj) const
     stream.EndAppend();
 }
 
-size_t getNextId()
+size_t PdfEncoding::GetNextId()
 {
+    static atomic<size_t> s_nextid = CustomEncodingStartId;
     return s_nextid++;
 }

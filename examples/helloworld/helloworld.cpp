@@ -95,7 +95,7 @@ void HelloWorld(const string_view& filename)
         // The position specifies the start of the baseline of the text.
         // 
         // All coordinates in pdfmm are in PDF units.
-        painter.DrawText(56.69, page->GetRect().GetHeight() - 56.69, "Hello World!");
+        painter.DrawText(56.69, page->GetRect().GetHeight() - 56.69, "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ");
 
         // Tell pdfmm that the page has been drawn completely.
         // This required to optimize drawing operations inside in pdfmm

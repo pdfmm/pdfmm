@@ -102,41 +102,33 @@ PdfFont* PdfFontManager::GetLoadedFont(const PdfObject& obj)
     return inserted.first->second.Font.get();
 }
 
-PdfFont* PdfFontManager::GetFont(const string_view& fontName, const PdfFontInitParams& initParams)
+PdfFont* PdfFontManager::GetFont(const string_view& fontName, const PdfFontCreateParams& createParams)
 {
-    return GetFont(fontName, PdfFontSearchParams(), initParams);
+    return GetFont(fontName, PdfFontSearchParams(), createParams);
 }
 
-PdfFont* PdfFontManager::GetFont(const string_view& fontName, const PdfFontSearchParams& searchParams, const PdfFontInitParams& initParams)
+PdfFont* PdfFontManager::GetFont(const string_view& fontName, const PdfFontSearchParams& searchParams, const PdfFontCreateParams& createParams)
 {
-    if (initParams.Encoding.IsNull())
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Invalid encoding");
-
     // NOTE: We don't support standard 14 fonts on subset
     PdfStandard14FontType stdFont;
     if (searchParams.AutoSelect != PdfFontAutoSelectBehavior::None
         && PdfFont::IsStandard14Font(fontName,
             searchParams.AutoSelect == PdfFontAutoSelectBehavior::Standard14Alt, stdFont))
     {
-        return getStandard14Font(stdFont, initParams.Flags, initParams.Encoding);
+        return GetStandard14Font(stdFont, createParams);
     }
 
     PdfFontSearchParams newSearchParams = searchParams;
-    return getImportedFont(fontName, adaptSearchParams(fontName, newSearchParams), newSearchParams, initParams);
+    return getImportedFont(fontName, adaptSearchParams(fontName, newSearchParams), newSearchParams, createParams);
 }
 
-PdfFont* PdfFontManager::GetStandard14Font(PdfStandard14FontType stdFont, const PdfFontInitParams& params)
-{
-    return getStandard14Font(stdFont, params.Flags, params.Encoding);
-}
-
-PdfFont* PdfFontManager::getStandard14Font(PdfStandard14FontType stdFont, PdfFontInitFlags initFlags, const PdfEncoding& encoding)
+PdfFont* PdfFontManager::GetStandard14Font(PdfStandard14FontType stdFont, const PdfFontCreateParams& params)
 {
     // Create a special descriptor cache that just specify the standard type and encoding
     Descriptor descriptor(
         { },
         stdFont,
-        encoding,
+        params.Encoding,
         PdfFontStyle::Regular);
     auto& fonts = m_importedFonts[descriptor];
     if (fonts.size() != 0)
@@ -145,7 +137,7 @@ PdfFont* PdfFontManager::getStandard14Font(PdfStandard14FontType stdFont, PdfFon
         return fonts[0];
     }
 
-    auto font = PdfFont::CreateStandard14(*m_doc, stdFont, encoding, initFlags);
+    auto font = PdfFont::CreateStandard14(*m_doc, stdFont, params);
     return addImported(fonts, std::move(font));
 }
 
@@ -163,12 +155,12 @@ string PdfFontManager::adaptSearchParams(const string_view& fontName, PdfFontSea
 
 // baseFontName is already normalized and cleaned from known suffixes
 PdfFont* PdfFontManager::getImportedFont(const string_view& fontName, const string_view& baseFontName,
-    const PdfFontSearchParams& searchParams, const PdfFontInitParams& initParams)
+    const PdfFontSearchParams& searchParams, const PdfFontCreateParams& createParams)
 {
     auto found = m_importedFonts.find(Descriptor(
         baseFontName,
         PdfStandard14FontType::Unknown,
-        initParams.Encoding,
+        createParams.Encoding,
         searchParams.Style));
     if (found != m_importedFonts.end())
         return matchFont(found->second, fontName, searchParams);
@@ -178,7 +170,7 @@ PdfFont* PdfFontManager::getImportedFont(const string_view& fontName, const stri
         return nullptr;
 
     auto metrics = std::make_shared<PdfFontMetricsFreetype>(buffer);
-    return getImportedFont(metrics, initParams.Encoding, initParams.Flags,
+    return getImportedFont(metrics, createParams,
         [&searchParams,&fontName](const span<PdfFont*>& fonts) {
             return matchFont(fonts, fontName, searchParams);
         });
@@ -232,12 +224,8 @@ unique_ptr<charbuff> PdfFontManager::getFontData(const string_view& fontName,
     return ret;
 }
 
-PdfFont* PdfFontManager::GetFont(FT_Face face, const PdfEncoding& encoding,
-    PdfFontInitFlags initFlags)
+PdfFont* PdfFontManager::GetFont(FT_Face face, const PdfFontCreateParams& params)
 {
-    if (encoding.IsNull())
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Invalid encoding");
-
     string fontName = FT_Get_Postscript_Name(face);
     if (fontName.empty())
     {
@@ -257,13 +245,13 @@ PdfFont* PdfFontManager::GetFont(FT_Face face, const PdfEncoding& encoding,
     auto found = m_importedFonts.find(Descriptor(
         baseFontName,
         PdfStandard14FontType::Unknown,
-        encoding,
+        params.Encoding,
         style));
     if (found != m_importedFonts.end())
         return matchFont(found->second, fontName);
 
     shared_ptr<PdfFontMetricsFreetype> metrics = PdfFontMetricsFreetype::FromFace(face);
-    return getImportedFont(metrics, encoding, initFlags, [](const span<PdfFont*> fonts)
+    return getImportedFont(metrics, params, [](const span<PdfFont*>& fonts)
     {
         return fonts[0];
     });
@@ -285,14 +273,10 @@ void PdfFontManager::HandleSave()
 
 #if defined(_WIN32) && defined(PDFMM_HAVE_WIN32GDI)
 
-PdfFont* PdfFontManager::GetFont(HFONT font,
-    const PdfEncoding& encoding, PdfFontInitFlags initFlags)
+PdfFont* PdfFontManager::GetFont(HFONT font, const PdfFontCreateParams& params)
 {
     if (font == nullptr)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Font must be non null");
-
-    if (encoding.IsNull())
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Invalid encoding");
 
     LOGFONTW logFont;
     if (::GetObjectW(font, sizeof(LOGFONTW), &logFont) == 0)
@@ -317,7 +301,7 @@ PdfFont* PdfFontManager::GetFont(HFONT font,
     auto found = m_importedFonts.find(Descriptor(
         baseFontName,
         PdfStandard14FontType::Unknown,
-        encoding,
+        params.Encoding,
         style));
     if (found != m_importedFonts.end())
         return matchFont(found->second, fontName);
@@ -327,7 +311,7 @@ PdfFont* PdfFontManager::GetFont(HFONT font,
         return nullptr;
 
     auto metrics = std::make_shared<PdfFontMetricsFreetype>(buffer);
-    return getImportedFont(metrics, encoding, initFlags, [](const vector<PdfFont*> fonts)
+    return getImportedFont(metrics, params, [](const span<PdfFont*>& fonts)
     {
         return fonts[0];
     });
@@ -371,17 +355,17 @@ std::unique_ptr<charbuff> PdfFontManager::getWin32FontData(
 #endif // defined(_WIN32) && defined(PDFMM_HAVE_WIN32GDI)
 
 PdfFont* PdfFontManager::getImportedFont(const PdfFontMetricsConstPtr& metrics,
-    const PdfEncoding& encoding, PdfFontInitFlags initFlags, const FontMatcher& matchFont)
+    const PdfFontCreateParams& params, const FontMatcher& matchFont)
 {
     Descriptor descriptor(metrics->GetBaseFontName(),
         PdfStandard14FontType::Unknown,
-        encoding,
+        params.Encoding,
         metrics->GetStyle());
     auto& fonts = m_importedFonts[descriptor];
     if (fonts.size() != 0)
         return matchFont(fonts);
 
-    auto font = PdfFont::Create(*m_doc, metrics, encoding, initFlags);
+    auto font = PdfFont::Create(*m_doc, metrics, params);
     PdfFont* fontptr = font.get();
     if (font == nullptr || matchFont(span<PdfFont*>(&fontptr, 1)) == nullptr)
         return nullptr;

@@ -52,12 +52,14 @@ protected:
     void AppendCIDMappingEntries(PdfObjectStream& stream, const PdfFont& font) const override;
 
 public:
-    bool IsCMapEncoding() const override;
+    PdfEncodingMapType GetType() const override;
+    const PdfEncodingLimits& GetLimits() const override;
 
 private:
     PdfIdentityEncoding(unsigned char codeSpaceSize, PdfIdentityOrientation orientation);
 
 private:
+    PdfEncodingLimits m_Limits;
     PdfIdentityOrientation m_orientation;
 };
 

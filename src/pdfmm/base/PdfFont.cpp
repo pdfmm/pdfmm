@@ -44,6 +44,9 @@ PdfFont::PdfFont(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
     const PdfEncoding& encoding) :
     PdfDictionaryElement(doc, "Font"), m_Metrics(metrics)
 {
+    if (metrics == nullptr)
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Metrics must me not null");
+
     this->initBase(encoding);
 }
 
@@ -51,6 +54,9 @@ PdfFont::PdfFont(PdfObject& obj, const PdfFontMetricsConstPtr& metrics,
     const PdfEncoding& encoding) :
     PdfDictionaryElement(obj), m_Metrics(metrics)
 {
+    if (metrics == nullptr)
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Metrics must me not null");
+
     this->initBase(encoding);
 
     // Implementation note: the identifier is always
@@ -65,10 +71,10 @@ PdfFont::~PdfFont() { }
 
 bool PdfFont::TryGetSubstituteFont(PdfFont*& substFont)
 {
-    return TryGetSubstituteFont(PdfFontInitFlags::Default, substFont);
+    return TryGetSubstituteFont(PdfFontCreateFlags::Default, substFont);
 }
 
-bool PdfFont::TryGetSubstituteFont(PdfFontInitFlags initFlags, PdfFont*& substFont)
+bool PdfFont::TryGetSubstituteFont(PdfFontCreateFlags initFlags, PdfFont*& substFont)
 {
     shared_ptr<charbuff> data;
     auto fontData = GetMetrics().GetFontFileObject();
@@ -114,7 +120,10 @@ bool PdfFont::TryGetSubstituteFont(PdfFontInitFlags initFlags, PdfFont*& substFo
         encoding = PdfEncoding(encoding.GetEncodingMapPtr(), toUnicode);
     }
 
-    auto newFont = PdfFont::Create(GetDocument(), metrics, encoding, initFlags);
+    PdfFontCreateParams params;
+    params.Encoding = encoding;
+    params.Flags = initFlags;
+    auto newFont = PdfFont::Create(GetDocument(), metrics, params);
     if (newFont == nullptr)
     {
         substFont = nullptr;
@@ -131,13 +140,11 @@ void PdfFont::initBase(const PdfEncoding& encoding)
     m_EmbeddingEnabled = false;
     m_SubsettingEnabled = false;
 
-    if (m_Metrics == nullptr)
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Metrics must me not null");
-
-    if (encoding.GetId() == DynamicEncodingId)
+    if (encoding.IsNull())
     {
-        m_DynCharCodeMap = std::make_shared<PdfCharCodeMap>();
-        m_Encoding.reset(new PdfDynamicEncoding(m_DynCharCodeMap, *this));
+        m_DynamicCIDMap = std::make_shared<PdfCharCodeMap>();
+        m_DynamicToUnicodeMap = std::make_shared<PdfCharCodeMap>();
+        m_Encoding.reset(new PdfDynamicEncoding(m_DynamicCIDMap, m_DynamicToUnicodeMap, *this));
     }
     else
     {
@@ -589,13 +596,12 @@ double PdfFont::GetDescent(const PdfTextState& state) const
     return m_Metrics->GetDescent() * state.GetFontSize();
 }
 
-PdfCID PdfFont::AddSubsetGID(unsigned gid, const unicodeview& codePoints)
+PdfCID PdfFont::AddSubsetGIDSafe(unsigned gid, const unicodeview& codePoints)
 {
-    if (m_IsEmbedded)
-    {
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic,
-            "Can't add more subsetting glyphs on an already embedded font");
-    }
+    PDFMM_ASSERT(m_SubsettingEnabled && !m_IsEmbedded);
+    auto found = m_SubsetGIDs.find(gid);
+    if (found != m_SubsetGIDs.end())
+        return found->second;
 
     PdfCID ret;
     if (!tryAddSubsetGID(gid, codePoints, ret))
@@ -605,6 +611,20 @@ PdfCID PdfFont::AddSubsetGID(unsigned gid, const unicodeview& codePoints)
     }
 
     return ret;
+}
+
+PdfCharCode PdfFont::AddCharCodeSafe(unsigned gid, const unicodeview& codePoints)
+{
+    PDFMM_ASSERT(!m_SubsettingEnabled && m_Encoding->IsDynamicEncoding());
+
+    PdfCharCode code;
+    if (m_DynamicToUnicodeMap->TryGetCharCode(codePoints, code))
+        return code;
+
+    code = PdfCharCode(m_DynamicToUnicodeMap->GetSize());
+    m_DynamicCIDMap->PushMapping(code, gid);
+    m_DynamicToUnicodeMap->PushMapping(code, codePoints);
+    return code;
 }
 
 bool PdfFont::tryConvertToGIDs(const std::string_view& utf8Str, std::vector<unsigned>& gids) const
@@ -685,7 +705,20 @@ bool PdfFont::tryAddSubsetGID(unsigned gid, const unicodeview& codePoints, PdfCI
 {
     (void)codePoints;
     PDFMM_ASSERT(m_SubsettingEnabled && !IsObjectLoaded());
-    if (m_DynCharCodeMap == nullptr)
+    if (m_Encoding->IsDynamicEncoding())
+    {
+        // We start numberings CIDs from 1 since CID 0
+        // is reserved for fallbacks
+        auto inserted = m_SubsetGIDs.try_emplace(gid, PdfCID((unsigned)m_SubsetGIDs.size() + 1));
+        cid = inserted.first->second;
+        if (!inserted.second)
+            return false;
+
+        m_DynamicCIDMap->PushMapping(cid.Unit, cid.Id);
+        m_DynamicToUnicodeMap->PushMapping(cid.Unit, codePoints);
+        return true;
+    }
+    else
     {
         PdfCharCode codeUnit;
         if (!m_Encoding->GetToUnicodeMapSafe().TryGetCharCode(codePoints, codeUnit))
@@ -697,33 +730,9 @@ bool PdfFont::tryAddSubsetGID(unsigned gid, const unicodeview& codePoints, PdfCI
         // We start numberings CIDs from 1 since CID 0
         // is reserved for fallbacks
         auto inserted = m_SubsetGIDs.try_emplace(gid, PdfCID((unsigned)m_SubsetGIDs.size() + 1, codeUnit));
-        if (!inserted.second)
-        {
-            cid = { };
-            return false;
-        }
-
         cid = inserted.first->second;
-        return true;
+        return inserted.second;
     }
-    else
-    {
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "TODO");
-    }
-}
-
-bool PdfFont::SubsetContainsGID(unsigned gid, PdfCID& cid)
-{
-    PDFMM_ASSERT(m_SubsettingEnabled);
-    auto found = m_SubsetGIDs.find(gid);
-    if (found != m_SubsetGIDs.end())
-    {
-        cid = found->second;
-        return true;
-    }
-
-    cid = { };
-    return false;
 }
 
 void PdfFont::AddSubsetGIDs(const PdfString& encodedStr)
@@ -731,7 +740,7 @@ void PdfFont::AddSubsetGIDs(const PdfString& encodedStr)
     if (IsObjectLoaded())
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Can't add used GIDs to a loaded font");
 
-    if (m_DynCharCodeMap != nullptr)
+    if (m_Encoding->IsDynamicEncoding())
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Can't add used GIDs from an encoded string to a font with a dynamic encoding");
 
     if (!m_SubsettingEnabled)

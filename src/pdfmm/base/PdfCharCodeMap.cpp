@@ -15,7 +15,7 @@ using namespace std;
 using namespace mm;
 
 PdfCharCodeMap::PdfCharCodeMap()
-    : m_maxCodeSpaceSize(0), m_MapDirty(false), m_cpMapHead(nullptr), m_depth(0) { }
+    : m_MapDirty(false), m_cpMapHead(nullptr), m_depth(0) { }
 
 PdfCharCodeMap::PdfCharCodeMap(PdfCharCodeMap&& map) noexcept
 {
@@ -38,10 +38,15 @@ unsigned PdfCharCodeMap::GetSize() const
     return (unsigned)m_cuMap.size();
 }
 
+const PdfEncodingLimits& PdfCharCodeMap::GetLimits() const
+{
+    return m_Limits;
+}
+
 void PdfCharCodeMap::move(PdfCharCodeMap& map) noexcept
 {
     m_cuMap = std::move(map.m_cuMap);
-    utls::move(map.m_maxCodeSpaceSize, m_maxCodeSpaceSize);
+    utls::move(map.m_Limits, m_Limits);
     utls::move(map.m_MapDirty, m_MapDirty);
     utls::move(map.m_cpMapHead, m_cpMapHead);
     utls::move(map.m_depth, m_depth);
@@ -90,16 +95,19 @@ bool PdfCharCodeMap::TryGetCharCode(const unicodeview& codePoints, PdfCharCode& 
     if (it == end)
         goto NotFound;
 
-    do
+    while (true)
     {
         // All the sequence must match
         node = findNode(node, *it);
         if (node == nullptr)
             goto NotFound;
 
-        node = node->Ligatures;
         it++;
-    } while (it != end);
+        if (it == end)
+            break;
+
+        node = node->Ligatures;
+    }
 
     if (node->CodeUnit.CodeSpaceSize == 0)
     {
@@ -137,8 +145,16 @@ void PdfCharCodeMap::pushMapping(const PdfCharCode& codeUnit, vector<char32_t>&&
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Code unit must be valid");
 
     m_cuMap[codeUnit] = std::move(codePoints);
-    if (codeUnit.CodeSpaceSize > m_maxCodeSpaceSize)
-        m_maxCodeSpaceSize = codeUnit.CodeSpaceSize;
+
+    // Update limits
+    if (codeUnit.CodeSpaceSize < m_Limits.MinCodeSize)
+        m_Limits.MinCodeSize = codeUnit.CodeSpaceSize;
+    if (codeUnit.CodeSpaceSize > m_Limits.MaxCodeSize)
+        m_Limits.MaxCodeSize = codeUnit.CodeSpaceSize;
+    if (codeUnit.Code < m_Limits.FirstChar.Code)
+        m_Limits.FirstChar = codeUnit;
+    if (codeUnit.Code > m_Limits.LastChar.Code)
+        m_Limits.LastChar = codeUnit;
 
     m_MapDirty = true;
 }
@@ -276,78 +292,6 @@ void PdfCharCodeMap::deleteNode(CPMapNode* node)
     deleteNode(node->Left);
     deleteNode(node->Right);
     delete node;
-}
-
-PdfCharCode::PdfCharCode()
-    : Code(0), CodeSpaceSize(0)
-{
-}
-
-PdfCharCode::PdfCharCode(unsigned code)
-    : Code(code), CodeSpaceSize(utls::GetCharCodeSize(code))
-{
-}
-
-PdfCharCode::PdfCharCode(unsigned code, unsigned char codeSpaceSize)
-    : Code(code), CodeSpaceSize(codeSpaceSize)
-{
-}
-
-void PdfCharCode::AppendTo(string& str, bool clear) const
-{
-    if (clear)
-        str.clear();
-
-    for (unsigned i = CodeSpaceSize; i >= 1; i--)
-        str.append(1, (char)((Code >> (i - 1) * CHAR_BIT) & 0xFF));
-}
-
-void PdfCharCode::WriteHexTo(string& str, bool wrap) const
-{
-    str.clear();
-    const char* pattern;
-    if (wrap)
-    {
-        switch (CodeSpaceSize)
-        {
-            case 1:
-                pattern = "<{:02X}>";
-                break;
-            case 2:
-                pattern = "<{:04X}>";
-                break;
-            case 3:
-                pattern = "<{:06X}>";
-                break;
-            case 4:
-                pattern = "<{:08X}>";
-                break;
-            default:
-                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Code space must be [1,4]");
-        }
-    }
-    else
-    {
-        switch (CodeSpaceSize)
-        {
-            case 1:
-                pattern = "{:02X}";
-                break;
-            case 2:
-                pattern = "{:04X}";
-                break;
-            case 3:
-                pattern = "{:06X}";
-                break;
-            case 4:
-                pattern = "{:08X}";
-                break;
-            default:
-                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Code space must be [1,4]");
-        }
-    }
-
-    cmn::FormatTo(str, pattern, Code);
 }
 
 size_t PdfCharCodeMap::HashCharCode::operator()(const PdfCharCode& code) const

@@ -37,13 +37,6 @@ public:
      *
      *  \returns global instance of PdfDocEncoding
      */
-    static PdfEncoding CreateDynamicEncoding();
-
-    /** Singleton method which returns a global instance
-     *  of PdfDocEncoding.
-     *
-     *  \returns global instance of PdfDocEncoding
-     */
     static PdfEncoding CreatePdfDocEncoding();
 
     /** Singleton method which returns a global instance

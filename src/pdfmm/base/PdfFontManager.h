@@ -39,12 +39,6 @@ struct PdfFontSearchParams
     PdfFontMatchBehaviorFlags MatchBehavior = PdfFontMatchBehaviorFlags::None;
 };
 
-struct PdfFontInitParams
-{
-    PdfFontInitFlags Flags = PdfFontInitFlags::Default;
-    PdfEncoding Encoding = PdfEncodingFactory::CreateWinAnsiEncoding();
-};
-
 /**
  * This class assists PdfDocument
  * with caching font information.
@@ -92,12 +86,12 @@ public:
      *           not be created or found.
      */
     PdfFont* GetFont(const std::string_view& fontName,
-        const PdfFontSearchParams& searchParams = { }, const PdfFontInitParams& initParams = { });
+        const PdfFontSearchParams& searchParams = { }, const PdfFontCreateParams& createParams = { });
 
-    PdfFont* GetFont(const std::string_view& fontName, const PdfFontInitParams& initParams);
+    PdfFont* GetFont(const std::string_view& fontName, const PdfFontCreateParams& createParams);
 
     PdfFont* GetStandard14Font(PdfStandard14FontType stdFont,
-        const PdfFontInitParams& params = { });
+        const PdfFontCreateParams& params = { });
 
     /** Try to search for fontmetrics from the given fontname and parameters
      *
@@ -106,25 +100,17 @@ public:
     static PdfFontMetricsConstPtr GetFontMetrics(const std::string_view& fontName,
         const PdfFontSearchParams& params = { });
 
-    /** Get a font from the cache. If the font does not yet
-     *  exist, add it to the cache.
-     *
+    /**
      *  \param face a valid freetype font face (will be free'd by pdfmm)
-     *  \param encoding the encoding of the font. The font will not take ownership of this object.
-     *  \param embed if true a font for embedding into
-     *                 PDF will be created
+     *  \param params font creation params
      *
      *  \returns a PdfFont object or nullptr if the font could
      *           not be created or found.
      */
-    PdfFont* GetFont(FT_Face face,
-        const PdfEncoding& encoding = PdfEncodingFactory::CreateWinAnsiEncoding(),
-        PdfFontInitFlags initFlags = PdfFontInitFlags::Embed);
+    PdfFont* GetFont(FT_Face face, const PdfFontCreateParams& params = { });
 
 #if defined(_WIN32) && defined(PDFMM_HAVE_WIN32GDI)
-    PdfFont* GetFont(HFONT font,
-        const PdfEncoding& encoding = PdfEncodingFactory::CreateWinAnsiEncoding(),
-        PdfFontInitFlags initFlags = PdfFontInitFlags::Embed);
+    PdfFont* GetFont(HFONT font, const PdfFontCreateParams& params = { });
 #endif
 
 #ifdef PDFMM_HAVE_FONTCONFIG
@@ -205,12 +191,11 @@ private:
     static std::unique_ptr<charbuff> getFontData(const std::string_view& fontName,
         std::string filepath, unsigned faceIndex, const PdfFontSearchParams& params);
     PdfFont* getImportedFont(const std::string_view& fontName, const std::string_view& baseFontName,
-        const PdfFontSearchParams& searchParams, const PdfFontInitParams& initParams);
-    PdfFont* getStandard14Font(PdfStandard14FontType stdFont,
-        PdfFontInitFlags initFlags, const PdfEncoding& encoding);
-    static std::string adaptSearchParams(const std::string_view& fontName, PdfFontSearchParams& searchParams);
-    PdfFont* getImportedFont(const PdfFontMetricsConstPtr& metrics, const PdfEncoding& encoding,
-        PdfFontInitFlags initFlags, const FontMatcher& matchFont);
+        const PdfFontSearchParams& searchParams, const PdfFontCreateParams& createParams);
+    static std::string adaptSearchParams(const std::string_view& fontName,
+        PdfFontSearchParams& searchParams);
+    PdfFont* getImportedFont(const PdfFontMetricsConstPtr& metrics,
+        const PdfFontCreateParams& params, const FontMatcher& matchFont);
     PdfFont* addImported(std::vector<PdfFont*>& fonts, std::unique_ptr<PdfFont>&& font);
 
 #if defined(_WIN32) && defined(PDFMM_HAVE_WIN32GDI)

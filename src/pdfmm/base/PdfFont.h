@@ -28,6 +28,12 @@ class PdfCharCodeMap;
 
 using UsedGIDsMap = std::map<unsigned, PdfCID>;
 
+struct PdfFontCreateParams
+{
+    PdfEncoding Encoding;
+    PdfFontCreateFlags Flags = PdfFontCreateFlags::Default;
+};
+
 /** Before you can draw text on a PDF document, you have to create
  *  a font object first. You can reuse this font object as often
  *  as you want.
@@ -92,7 +98,7 @@ private:
      * \returns a new PdfFont object or nullptr
      */
     static std::unique_ptr<PdfFont> Create(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
-        const PdfEncoding& encoding, PdfFontInitFlags flags);
+        const PdfFontCreateParams& createParams);
 
     /**
      * Creates a new standard 14 font object (of class PdfFontStandard14) if
@@ -107,14 +113,14 @@ private:
      * \returns a new PdfFont object
      */
     static std::unique_ptr<PdfFont> CreateStandard14(PdfDocument& doc, PdfStandard14FontType std14Font,
-        const PdfEncoding& encoding, PdfFontInitFlags flags);
+        const PdfFontCreateParams& createParams);
 
 public:
     /** Try get a replacement font based on this font characteristics
      *  \param substFont the created substitute font
      */
     bool TryGetSubstituteFont(PdfFont*& substFont);
-    bool TryGetSubstituteFont(PdfFontInitFlags initFlags, PdfFont*& substFont);
+    bool TryGetSubstituteFont(PdfFontCreateFlags initFlags, PdfFont*& substFont);
 
     /** Write a string to a PdfObjectStream in a format so that it can
      *  be used with this font.
@@ -379,11 +385,15 @@ private:
      * \param gid the gid to add
      * \param codePoints code points mapped by this gid. May be a single
      *      code point or a ligature
-     * \return A mapped CID
+     * \return A mapped CID. Return existing CID if already present
      */
-    PdfCID AddSubsetGID(unsigned gid, const unicodeview& codePoints);
+    PdfCID AddSubsetGIDSafe(unsigned gid, const unicodeview& codePoints);
 
-    bool SubsetContainsGID(unsigned gid, PdfCID& cid);
+    /** Add dynamic charcode from code points.
+     *
+     * \return A mapped code. Return existing code if already present
+     */
+    PdfCharCode AddCharCodeSafe(unsigned gid, const unicodeview& codePoints);
 
 private:
     bool tryConvertToGIDs(const std::string_view& utf8Str, std::vector<unsigned>& gids) const;
@@ -396,7 +406,7 @@ private:
     PdfObject* embedFontFileData(PdfObject& descriptor, const PdfName& fontFileName, const bufferview& data);
 
     static std::unique_ptr<PdfFont> createFontForType(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
-        const PdfEncoding& encoding, PdfFontFileType type);
+        const PdfEncoding& encoding, PdfFontFileType type, bool preferNonCID);
 
 private:
     std::string m_Name;
@@ -409,7 +419,8 @@ private:
 protected:
     PdfFontMetricsConstPtr m_Metrics;
     std::unique_ptr<PdfEncoding> m_Encoding;
-    std::shared_ptr<PdfCharCodeMap> m_DynCharCodeMap;
+    std::shared_ptr<PdfCharCodeMap> m_DynamicCIDMap;
+    std::shared_ptr<PdfCharCodeMap> m_DynamicToUnicodeMap;
     PdfName m_Identifier;
 };
 

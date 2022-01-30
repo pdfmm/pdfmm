@@ -194,6 +194,12 @@ enum class PdfFilterType
     Crypt
 };
 
+enum class PdfEncodingMapType
+{
+    Simple,                     ///< A legacy encoding, such as built-in or difference
+    CMap                        ///< A proper CMap encoding or pre-defined CMap names
+};
+
 /**
  * Enum for the font descriptor flags
  *
@@ -275,11 +281,12 @@ enum class PdfFontAutoSelectBehavior
 
 /** Font init flags
  */
-enum class PdfFontInitFlags
+enum class PdfFontCreateFlags
 {
     None = 0,                 ///< No special settings
-    Embed = 1,                ///< Do embed font data
-    Subset = 2,               ///< Create subsetted, which includes only used characters. Implies embed
+    PreferNonCID = 1,         ///< Prefer non CID, simple fonts (/Type1, /TrueType)
+    Embed = 2,                ///< Do embed font data
+    Subset = 4,               ///< Create subsetted, which includes only used characters. Implies embed
     Default = Subset,
 };
 
@@ -610,7 +617,7 @@ ENABLE_BITMASK_OPERATORS(mm::PdfSaveOptions);
 ENABLE_BITMASK_OPERATORS(mm::PdfWriteFlags);
 ENABLE_BITMASK_OPERATORS(mm::PdfInfoInitial);
 ENABLE_BITMASK_OPERATORS(mm::PdfFontStyle);
-ENABLE_BITMASK_OPERATORS(mm::PdfFontInitFlags);
+ENABLE_BITMASK_OPERATORS(mm::PdfFontCreateFlags);
 ENABLE_BITMASK_OPERATORS(mm::PdfFontAutoSelectBehavior);
 ENABLE_BITMASK_OPERATORS(mm::PdfFontDescriptorFlags);
 
