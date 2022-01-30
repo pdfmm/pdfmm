@@ -476,58 +476,64 @@ void PdfFont::EmbedFontFile(PdfObject& descriptor)
     if (fontdata.empty())
         PDFMM_RAISE_ERROR(PdfErrorCode::InternalLogic);
 
-    PdfName fontFileName;
-    nullable<unsigned> length1;
-    nullable<unsigned> length2;
-    nullable<unsigned> length3;
-    PdfName subtype;
     switch (m_Metrics->GetFontFileType())
     {
         case PdfFontFileType::Type1:
-            fontFileName = PdfName("FontFile");
-            length1 = m_Metrics->GetFontFileLength1();
-            length2 = m_Metrics->GetFontFileLength2();
-            length3 = m_Metrics->GetFontFileLength3();
-            break;
-        case PdfFontFileType::TrueType:
-            fontFileName = PdfName("FontFile2");
-            length1 = m_Metrics->GetFontFileLength1();
-            break;
-        case PdfFontFileType::OpenType:
-            fontFileName = PdfName("FontFile3");
-            subtype = PdfName("OpenType");
+        case PdfFontFileType::CIDType1:
+            EmbedFontFileType1(descriptor, fontdata, m_Metrics->GetFontFileLength1(), m_Metrics->GetFontFileLength2(), m_Metrics->GetFontFileLength3());
             break;
         case PdfFontFileType::Type1CCF:
-            fontFileName = PdfName("FontFile3");
-            subtype = PdfName("Type1C");
+            EmbedFontFileType1CCF(descriptor, fontdata);
             break;
-        case PdfFontFileType::CIDType1CCF:
-            fontFileName = PdfName("FontFile3");
-            subtype = PdfName("CIDFontType0C");
+        case PdfFontFileType::TrueType:
+            EmbedFontFileTrueType(descriptor, fontdata);
+            break;
+        case PdfFontFileType::OpenType:
+            EmbedFontFileOpenType(descriptor, fontdata);
             break;
         default:
             PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Unsupported font type embedding");
     }
+}
 
+void PdfFont::EmbedFontFileType1(PdfObject& descriptor, const bufferview& data, unsigned length1, unsigned length2, unsigned length3)
+{
+    auto contents = embedFontFileData(descriptor, "FontFile", data);
+    contents->GetDictionary().AddKey("Length1", PdfObject(static_cast<int64_t>(length1)));
+    contents->GetDictionary().AddKey("Length2", PdfObject(static_cast<int64_t>(length2)));
+    contents->GetDictionary().AddKey("Length3", PdfObject(static_cast<int64_t>(length3)));
+}
+
+void PdfFont::EmbedFontFileType1CCF(PdfObject& descriptor, const bufferview& data)
+{
+    auto contents = embedFontFileData(descriptor, "FontFile3", data);
+    PdfName subtype;
+    if (IsCIDKeyed())
+        subtype = PdfName("CIDFontType0C");
+    else
+        subtype = PdfName("Type1C");
+
+    contents->GetDictionary().AddKey(PdfName::KeySubtype, subtype);
+}
+
+void PdfFont::EmbedFontFileTrueType(PdfObject& descriptor, const bufferview& data)
+{
+    auto contents = embedFontFileData(descriptor, "FontFile2", data);
+    contents->GetDictionary().AddKey("Length1", PdfObject(static_cast<int64_t>(data.size())));
+}
+
+void PdfFont::EmbedFontFileOpenType(PdfObject& descriptor, const bufferview& data)
+{
+    auto contents = embedFontFileData(descriptor, "FontFile3", data);
+    contents->GetDictionary().AddKey(PdfName::KeySubtype, PdfName("OpenType"));
+}
+
+PdfObject* PdfFont::embedFontFileData(PdfObject& descriptor, const PdfName& fontFileName, const bufferview& data)
+{
     auto contents = GetDocument().GetObjects().CreateDictionaryObject();
     descriptor.GetDictionary().AddKeyIndirect(fontFileName, contents);
-
-    // NOTE: Set lengths before creating the stream as
-    // PdfStreamedDocument does not allow adding keys
-    // to an object after a stream was written
-    if (length1 != nullptr)
-        contents->GetDictionary().AddKey("Length1", PdfObject(static_cast<int64_t>(*length1)));
-
-    if (length2 != nullptr)
-        contents->GetDictionary().AddKey("Length2", PdfObject(static_cast<int64_t>(*length2)));
-
-    if (length3 != nullptr)
-        contents->GetDictionary().AddKey("Length3", PdfObject(static_cast<int64_t>(*length3)));
-
-    if (!subtype.IsNull())
-        contents->GetDictionary().AddKey(PdfName::KeySubtype, subtype);
-
-    contents->GetOrCreateStream().Set(fontdata);
+    contents->GetOrCreateStream().Set(data);
+    return contents;
 }
 
 void PdfFont::initImported()

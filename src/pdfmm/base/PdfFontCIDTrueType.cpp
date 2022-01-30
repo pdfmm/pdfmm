@@ -41,11 +41,7 @@ void PdfFontCIDTrueType::embedFontSubset()
 
     charbuff buffer;
     PdfFontTrueTypeSubset::BuildFont(buffer, GetMetrics(), gids);
-    auto contents = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject();
-    GetDescriptor().GetDictionary().AddKeyIndirect("FontFile2", contents);
-
-    contents->GetDictionary().AddKey("Length1", PdfObject(static_cast<int64_t>(buffer.size())));
-    contents->GetOrCreateStream().Set(buffer);
+    EmbedFontFileTrueType(GetDescriptor(), buffer);
 
     // We prepare the /CIDSet content now. NOTE: The CIDSet
     // entry is optional and it's actually deprecated in PDF 2.0

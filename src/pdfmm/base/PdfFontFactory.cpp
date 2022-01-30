@@ -56,7 +56,7 @@ unique_ptr<PdfFont> PdfFont::createFontForType(PdfDocument& doc, const PdfFontMe
         case PdfFontFileType::Type3:
             font = new PdfFontType3(doc, metrics, encoding);
             break;
-        case PdfFontFileType::CIDType1CCF:
+        case PdfFontFileType::CIDType1:
             // TODO
             //font = new PdfFontCIDType1(doc, metrics, encoding);
             //break;

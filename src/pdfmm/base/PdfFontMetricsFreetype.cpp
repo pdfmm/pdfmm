@@ -82,7 +82,7 @@ void PdfFontMetricsFreetype::initFromFace(const PdfFontMetrics* refMetrics)
     else if (format == "Type 1")
         m_FontFileType = PdfFontFileType::Type1;
     else if (format == "CID Type 1")
-        m_FontFileType = PdfFontFileType::CIDType1CCF;
+        m_FontFileType = PdfFontFileType::CIDType1;
     else if (format == "CFF")
         m_FontFileType = PdfFontFileType::Type1CCF;
     else

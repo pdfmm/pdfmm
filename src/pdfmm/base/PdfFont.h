@@ -329,6 +329,11 @@ public:
 
 protected:
     void EmbedFontFile(PdfObject& descriptor);
+    void EmbedFontFileType1(PdfObject& descriptor, const bufferview& data,
+        unsigned length1, unsigned length2, unsigned length3);
+    void EmbedFontFileType1CCF(PdfObject& descriptor, const bufferview& data);
+    void EmbedFontFileTrueType(PdfObject& descriptor, const bufferview& data);
+    void EmbedFontFileOpenType(PdfObject& descriptor, const bufferview& data);
 
     /**
      * Get the raw width of a CID identifier
@@ -387,6 +392,8 @@ private:
     void initBase(const PdfEncoding& encoding);
 
     double getStringWidth(const std::vector<PdfCID>& cids, const PdfTextState& state) const;
+
+    PdfObject* embedFontFileData(PdfObject& descriptor, const PdfName& fontFileName, const bufferview& data);
 
     static std::unique_ptr<PdfFont> createFontForType(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
         const PdfEncoding& encoding, PdfFontFileType type);
