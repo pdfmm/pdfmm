@@ -9,6 +9,8 @@
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfString.h"
 
+#include <pdfmm/private/PdfEncodingPrivate.h>
+
 #include "PdfEncrypt.h"
 #include "PdfPredefinedEncoding.h"
 #include "PdfEncodingFactory.h"
@@ -284,7 +286,7 @@ void PdfString::initFromUtf8String(const string_view& view)
     }
 
     bool isPdfDocEncodingEqual;
-    if (PdfDocEncoding::CheckValidUTF8ToPdfDocEcondingChars(view, isPdfDocEncodingEqual))
+    if (mm::CheckValidUTF8ToPdfDocEcondingChars(view, isPdfDocEncodingEqual))
         m_data.reset(new StringData{ StringState::PdfDocEncoding, charbuff(view) });
     else
         m_data.reset(new StringData{ StringState::Unicode, charbuff(view) });
@@ -332,7 +334,7 @@ void PdfString::evaluateString() const
                 case StringEncoding::PdfDocEncoding:
                 {
                     bool isUTF8Equal;
-                    auto utf8 = PdfDocEncoding::ConvertPdfDocEncodingToUTF8(m_data->Chars, isUTF8Equal);
+                    auto utf8 = mm::ConvertPdfDocEncodingToUTF8(m_data->Chars, isUTF8Equal);
                     utf8.swap(m_data->Chars);
                     m_data->State = StringState::PdfDocEncoding;
                     break;

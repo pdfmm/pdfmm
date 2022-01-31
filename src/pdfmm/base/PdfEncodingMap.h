@@ -233,17 +233,6 @@ private:
 /**
  * A common base class for built-in encodings which are
  * known by name.
- *
- *  - StandardEncoding
- *  - SymbolEncoding
- *  - ZapfDingbatsEncoding
- *  - PdfDocEncoding (only use this for strings which are not printed
- *                    in the document. This is for meta data in the PDF).
- *
- * \see PdfStandardEncoding
- * \see PdfSymbolEncoding
- * \see PdfZapfDingbatsEncoding
- * \see PdfDocEncoding
  */
 class PDFMM_API PdfBuiltInEncoding : public PdfEncodingMapOneByte
 {

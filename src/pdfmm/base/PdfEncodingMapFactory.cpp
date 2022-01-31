@@ -16,12 +16,6 @@
 using namespace std;
 using namespace mm;
 
-PdfEncodingMapConstPtr PdfEncodingMapFactory::PdfDocEncodingInstance()
-{
-    static shared_ptr<PdfDocEncoding> s_istance(new PdfDocEncoding());
-    return s_istance;
-}
-
 PdfEncodingMapConstPtr PdfEncodingMapFactory::WinAnsiEncodingInstance()
 {
     static shared_ptr<PdfWinAnsiEncoding> s_istance(new PdfWinAnsiEncoding());
@@ -34,27 +28,9 @@ PdfEncodingMapConstPtr PdfEncodingMapFactory::MacRomanEncodingInstance()
     return s_istance;
 }
 
-PdfEncodingMapConstPtr PdfEncodingMapFactory::StandardEncodingInstance()
-{
-    static shared_ptr<PdfStandardEncoding> s_istance(new PdfStandardEncoding());
-    return s_istance;
-}
-
 PdfEncodingMapConstPtr PdfEncodingMapFactory::MacExpertEncodingInstance()
 {
     static shared_ptr<PdfMacExpertEncoding> s_istance(new PdfMacExpertEncoding());
-    return s_istance;
-}
-
-PdfEncodingMapConstPtr PdfEncodingMapFactory::SymbolEncodingInstance()
-{
-    static shared_ptr<PdfSymbolEncoding> s_istance(new PdfSymbolEncoding());
-    return s_istance;
-}
-
-PdfEncodingMapConstPtr PdfEncodingMapFactory::ZapfDingbatsEncodingInstance()
-{
-    static shared_ptr<PdfZapfDingbatsEncoding> s_istance(new PdfZapfDingbatsEncoding());
     return s_istance;
 }
 
@@ -70,22 +46,28 @@ PdfEncodingMapConstPtr PdfEncodingMapFactory::TwoBytesVerticalIdentityEncodingIn
     return s_istance;
 }
 
-PdfEncodingMapConstPtr PdfEncodingMapFactory::Win1250EncodingInstance()
-{
-    static shared_ptr<PdfWin1250Encoding> s_istance(new PdfWin1250Encoding());
-    return s_istance;
-}
-
-PdfEncodingMapConstPtr PdfEncodingMapFactory::Iso88592EncodingInstance()
-{
-    static shared_ptr<PdfIso88592Encoding> s_istance(new PdfIso88592Encoding());
-    return s_istance;
-}
-
 PdfEncodingMapConstPtr PdfEncodingMapFactory::GetNullEncodingMap()
 {
     static PdfEncodingMapConstPtr s_instance(new PdfNullEncodingMap());
     return s_instance;
+}
+
+PdfEncodingMapConstPtr PdfEncodingMapFactory::StandardEncodingInstance()
+{
+    static shared_ptr<PdfStandardEncoding> s_istance(new PdfStandardEncoding());
+    return s_istance;
+}
+
+PdfEncodingMapConstPtr PdfEncodingMapFactory::SymbolEncodingInstance()
+{
+    static shared_ptr<PdfSymbolEncoding> s_istance(new PdfSymbolEncoding());
+    return s_istance;
+}
+
+PdfEncodingMapConstPtr PdfEncodingMapFactory::ZapfDingbatsEncodingInstance()
+{
+    static shared_ptr<PdfZapfDingbatsEncoding> s_istance(new PdfZapfDingbatsEncoding());
+    return s_istance;
 }
 
 PdfEncodingMapConstPtr PdfEncodingMapFactory::GetStandard14FontEncodingMap(PdfStandard14FontType stdFont)

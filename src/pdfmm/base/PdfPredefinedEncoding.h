@@ -97,42 +97,6 @@ namespace mm
     };
 
     /**
-     * The PdfDocEncoding is the default encoding for
-     * all strings in pdfmm which are data in the PDF
-     * file.
-     *
-     * \see PdfFont::DocEncoding
-     */
-    class PDFMM_API PdfDocEncoding final : public PdfBuiltInEncoding
-    {
-        friend class PdfEncodingMapFactory;
-
-    private:
-        PdfDocEncoding();
-
-    public:
-        /** Check if the chars in the given utf-8 view are elegible for PdfDocEncofing conversion
-         *
-         * /param isPdfDocEncoding the given utf-8 string is coincident in PdfDocEncoding representation
-         */
-        static bool CheckValidUTF8ToPdfDocEcondingChars(const std::string_view& view, bool& isPdfDocEncodingEqual);
-        static bool IsPdfDocEncodingCoincidentToUTF8(const std::string_view& view);
-        static bool TryConvertUTF8ToPdfDocEncoding(const std::string_view& view, std::string& pdfdocencstr);
-        static std::string ConvertUTF8ToPdfDocEncoding(const std::string_view& view);
-        static std::string ConvertPdfDocEncodingToUTF8(const std::string_view& view, bool& isUTF8Equal);
-        static void ConvertPdfDocEncodingToUTF8(const std::string_view& view, std::string& u8str, bool& isUTF8Equal);
-
-    public:
-        static const std::unordered_map<char32_t, char>& GetUTF8ToPdfEncodingMap();
-
-    protected:
-        const char32_t* GetToUnicodeTable() const override;
-
-    private:
-        static const char32_t s_cEncoding[256]; // conversion table from DocEncoding to unicode
-    };
-
-    /**
      * StandardEncoding
      */
     class PDFMM_API PdfStandardEncoding final : public PdfBuiltInEncoding
@@ -181,40 +145,6 @@ namespace mm
 
     private:
         static const char32_t s_cEncoding[256]; // conversion table from ZapfDingbatsEncoding to UTF16
-    };
-
-    /**
-     * WINDOWS-1250 encoding
-     */
-    class PDFMM_API PdfWin1250Encoding final : public PdfBuiltInEncoding
-    {
-        friend class PdfEncodingMapFactory;
-
-    private:
-        PdfWin1250Encoding();
-
-    protected:
-        const char32_t* GetToUnicodeTable() const override;
-
-    private:
-        static const char32_t s_cEncoding[256]; // conversion table from Win1250Encoding to UTF16
-    };
-
-    /**
-     * ISO-8859-2 encoding
-     */
-    class PDFMM_API PdfIso88592Encoding final : public PdfBuiltInEncoding
-    {
-        friend class PdfEncodingMapFactory;
-
-    private:
-        PdfIso88592Encoding();
-
-    protected:
-        const char32_t* GetToUnicodeTable() const override;
-
-    private:
-        static const char32_t s_cEncoding[256]; // conversion table from Iso88592Encoding to UTF16
     };
 }
 

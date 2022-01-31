@@ -18,21 +18,15 @@ namespace mm {
 class PDFMM_API PdfEncodingMapFactory final
 {
     friend class PdfEncoding;
+    friend class PdfEncodingFactory;
 
 public:
-    /** Singleton method which returns a global instance
-     *  of PdfDocEncoding.
-     *
-     *  \returns global instance of PdfDocEncoding
-     */
-    static PdfEncodingMapConstPtr PdfDocEncodingInstance();
-
     /** Singleton method which returns a global instance
      *  of WinAnsiEncoding.
      *
      *  \returns global instance of WinAnsiEncoding
      *
-     *  \see Win1250EncodingInstance, Iso88592EncodingInstance
+     *  \see Win1250EncodingInstance
      */
     static PdfEncodingMapConstPtr WinAnsiEncodingInstance();
 
@@ -44,32 +38,11 @@ public:
     static PdfEncodingMapConstPtr MacRomanEncodingInstance();
 
     /** Singleton method which returns a global instance
-     *  of StandardEncoding.
-     *
-     *  \returns global instance of StandardEncoding
-     */
-    static PdfEncodingMapConstPtr StandardEncodingInstance();
-
-    /** Singleton method which returns a global instance
      *  of MacExpertEncoding.
      *
      *  \returns global instance of MacExpertEncoding
      */
     static PdfEncodingMapConstPtr MacExpertEncodingInstance();
-
-    /** Singleton method which returns a global instance
-     *  of SymbolEncoding.
-     *
-     *  \returns global instance of SymbolEncoding
-     */
-    static PdfEncodingMapConstPtr SymbolEncodingInstance();
-
-    /** Singleton method which returns a global instance
-     *  of ZapfDingbatsEncoding.
-     *
-     *  \returns global instance of ZapfDingbatsEncoding
-     */
-    static PdfEncodingMapConstPtr ZapfDingbatsEncodingInstance();
 
     /** Singleton method which returns a global instance
      *  of Horizontal IndentityEncoding
@@ -85,24 +58,6 @@ public:
      */
     static PdfEncodingMapConstPtr TwoBytesVerticalIdentityEncodingInstance();
 
-    /** Singleton method which returns a global instance
-     *  of Win1250Encoding.
-     *
-     *  \returns global instance of Win1250Encoding
-     *
-     *  \see WinAnsiEncodingInstance, Iso88592EncodingInstance
-     */
-    static PdfEncodingMapConstPtr Win1250EncodingInstance();
-
-    /** Singleton method which returns a global instance
-     *  of Iso88592Encoding.
-     *
-     *  \returns global instance of Iso88592Encoding
-     *
-     *  \see WinAnsiEncodingInstance, Win1250EncodingInstance
-     */
-    static PdfEncodingMapConstPtr Iso88592EncodingInstance();
-
     /** Return the encoding map for the given standard font type or nullptr for unknown
      */
     static PdfEncodingMapConstPtr GetStandard14FontEncodingMap(PdfStandard14FontType stdFont);
@@ -110,7 +65,29 @@ public:
 private:
     PdfEncodingMapFactory() = delete;
 
-private:
+    // The following encodings are for internal use only
+
+    /** Singleton method which returns a global instance
+     *  of StandardEncoding.
+     *
+     *  \returns global instance of StandardEncoding
+     */
+    static PdfEncodingMapConstPtr StandardEncodingInstance();
+
+    /** Singleton method which returns a global instance
+     *  of SymbolEncoding.
+     *
+     *  \returns global instance of SymbolEncoding
+     */
+    static PdfEncodingMapConstPtr SymbolEncodingInstance();
+
+    /** Singleton method which returns a global instance
+     *  of ZapfDingbatsEncoding.
+     *
+     *  \returns global instance of ZapfDingbatsEncoding
+     */
+    static PdfEncodingMapConstPtr ZapfDingbatsEncodingInstance();
+
     static PdfEncodingMapConstPtr GetNullEncodingMap();
 };
 

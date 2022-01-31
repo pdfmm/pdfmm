@@ -101,17 +101,7 @@ PdfEncodingMapConstPtr PdfEncodingFactory::createEncodingMap(
             return PdfEncodingMapFactory::MacRomanEncodingInstance();
         else if (name == "MacExpertEncoding")
             return PdfEncodingMapFactory::MacExpertEncodingInstance();
-        // CHECK-ME The following StandardEncoding, SymbolEncoding,
-        // SymbolSetEncoding, ZapfDingbatsEncoding are not built-in
-        // encodings in Pdf, or they are not mentioned at all
-        else if (name == "StandardEncoding")
-            return PdfEncodingMapFactory::StandardEncodingInstance();
-        else if (name == "SymbolEncoding")
-            return PdfEncodingMapFactory::SymbolEncodingInstance();
-        else if (name == "SymbolSetEncoding")
-            return PdfEncodingMapFactory::SymbolEncodingInstance();
-        else if (name == "ZapfDingbatsEncoding")
-            return PdfEncodingMapFactory::ZapfDingbatsEncodingInstance();
+
         // TABLE 5.15 Predefined CJK CMap names: the generip H-V identifies
         // are mappings for 2-byte CID. "It maps 2-byte character codes ranging
         // from 0 to 65,535 to the same 2 - byte CID value, interpreted high
@@ -158,34 +148,4 @@ PdfEncoding PdfEncodingFactory::CreateMacRomanEncoding()
 PdfEncoding PdfEncodingFactory::CreateMacExpertEncoding()
 {
     return PdfEncoding(MacExpertEncodingId, PdfEncodingMapFactory::MacExpertEncodingInstance());
-}
-
-PdfEncoding PdfEncodingFactory::CreateStandardEncoding()
-{
-    return PdfEncoding(StandardEncodingId, PdfEncodingMapFactory::StandardEncodingInstance());
-}
-
-PdfEncoding PdfEncodingFactory::CreatePdfDocEncoding()
-{
-    return PdfEncoding(PdfDocEncodingId, PdfEncodingMapFactory::PdfDocEncodingInstance());
-}
-
-PdfEncoding PdfEncodingFactory::CreateSymbolEncoding()
-{
-    return PdfEncoding(SymbolEncodingId, PdfEncodingMapFactory::SymbolEncodingInstance());
-}
-
-PdfEncoding PdfEncodingFactory::CreateZapfDingbatsEncoding()
-{
-    return PdfEncoding(ZapfDingbatsEncodingId, PdfEncodingMapFactory::ZapfDingbatsEncodingInstance());
-}
-
-PdfEncoding PdfEncodingFactory::CreateWin1250Encoding()
-{
-    return PdfEncoding(WinAnsiEncodingId, PdfEncodingMapFactory::Win1250EncodingInstance());
-}
-
-PdfEncoding PdfEncodingFactory::CreateIso88592Encoding()
-{
-    return PdfEncoding(Iso88592EncodingId, PdfEncodingMapFactory::Iso88592EncodingInstance());
 }

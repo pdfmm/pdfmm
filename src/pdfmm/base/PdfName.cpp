@@ -9,6 +9,8 @@
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfName.h"
 
+#include <pdfmm/private/PdfEncodingPrivate.h>
+
 #include "PdfOutputDevice.h"
 #include "PdfTokenizer.h"
 #include "PdfPredefinedEncoding.h"
@@ -74,13 +76,13 @@ void PdfName::initFromUtf8String(const string_view& view)
     }
 
     bool isPdfDocEncodingEqual;
-    if (!PdfDocEncoding::CheckValidUTF8ToPdfDocEcondingChars(view, isPdfDocEncodingEqual))
+    if (!mm::CheckValidUTF8ToPdfDocEcondingChars(view, isPdfDocEncodingEqual))
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidName, "Characters in string must be PdfDocEncoding character set");
 
     if (isPdfDocEncodingEqual)
         m_data.reset(new NameData{ true, charbuff(view), nullptr });
     else
-        m_data.reset(new NameData{ true, (charbuff)PdfDocEncoding::ConvertUTF8ToPdfDocEncoding(view), std::make_unique<string>(view) });
+        m_data.reset(new NameData{ true, (charbuff)mm::ConvertUTF8ToPdfDocEncoding(view), std::make_unique<string>(view) });
 }
 
 PdfName PdfName::FromEscaped(const string_view& view)
@@ -118,7 +120,7 @@ void PdfName::expandUtf8String() const
     {
         bool isUtf8Equal;
         string utf8str;
-        PdfDocEncoding::ConvertPdfDocEncodingToUTF8(m_data->Chars, utf8str, isUtf8Equal);
+        mm::ConvertPdfDocEncodingToUTF8(m_data->Chars, utf8str, isUtf8Equal);
         if (!isUtf8Equal)
             m_data->Utf8String.reset(new string(std::move(utf8str)));
 
