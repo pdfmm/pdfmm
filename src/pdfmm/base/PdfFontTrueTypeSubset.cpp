@@ -49,7 +49,6 @@ static bool TryAdvanceCompoundOffset(unsigned& offset, unsigned flags);
 
 PdfFontTrueTypeSubset::PdfFontTrueTypeSubset(PdfInputDevice& device) :
     m_device(&device),
-    m_fontFileType(TrueTypeFontFileType::Unknown),
     m_isLongLoca(false),
     m_glyphCount(0),
     m_HMetricsCount(0)
