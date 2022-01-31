@@ -124,7 +124,6 @@ private:
 
 private:
     PdfInputDevice* m_device;
-    TrueTypeFontFileType m_fontFileType;
 
     bool m_isLongLoca;
     uint16_t m_glyphCount;

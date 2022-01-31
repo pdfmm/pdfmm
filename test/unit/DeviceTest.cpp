@@ -8,8 +8,6 @@
 
 #include <PdfTest.h>
 
-constexpr unsigned BUFFER_SIZE = 4096;
-
 using namespace std;
 using namespace mm;
 

@@ -24,8 +24,6 @@ const char s_testBuffer2[] = {
     0x00, 0x00, 0x00, 0x00, 0x6B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 };
 
-const long s_lTestLength2 = 6 * 13;
-
 TEST_CASE("testFilters")
 {
     for (unsigned i = 0; i <= (unsigned)PdfFilterType::Crypt; i++)
