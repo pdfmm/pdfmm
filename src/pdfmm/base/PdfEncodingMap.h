@@ -283,7 +283,7 @@ private:
 
 public:
     PdfEncodingMapType GetType() const override;
-    const PdfEncodingLimits& GetLimits() const;
+    const PdfEncodingLimits& GetLimits() const override;
 
 protected:
     bool tryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const override;

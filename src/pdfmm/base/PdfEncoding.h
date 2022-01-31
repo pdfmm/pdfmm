@@ -177,7 +177,7 @@ namespace mm
     private:
         // This method is to be called by PdfFont
         bool TryGetCIDId(const PdfCharCode& codeUnit, unsigned& cid) const;
-        size_t GetNextId();
+        static size_t GetNextId();
 
     private:
         bool tryExportObjectTo(PdfDictionary& dictionary, bool wantCidMapping) const;
