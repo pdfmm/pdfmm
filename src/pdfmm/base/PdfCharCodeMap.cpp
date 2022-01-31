@@ -52,22 +52,22 @@ void PdfCharCodeMap::move(PdfCharCodeMap& map) noexcept
     utls::move(map.m_depth, m_depth);
 }
 
-void PdfCharCodeMap::PushMapping(const PdfCharCode& codeUnit, const unicodeview& codePoints)
+void PdfCharCodeMap::PushMapping(const PdfCharCode& codeUnit, const codepointview& codePoints)
 {
     if (codePoints.size() == 0)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "CodePoints must not be empty");
 
-    vector<char32_t> copy(codePoints.begin(), codePoints.end());
+    vector<codepoint> copy(codePoints.begin(), codePoints.end());
     pushMapping(codeUnit, std::move(copy));
 }
 
-void PdfCharCodeMap::PushMapping(const PdfCharCode& codeUnit, char32_t codePoint)
+void PdfCharCodeMap::PushMapping(const PdfCharCode& codeUnit, codepoint codePoint)
 {
-    vector<char32_t> codePoints = { codePoint };
+    vector<codepoint> codePoints = { codePoint };
     pushMapping(codeUnit, std::move(codePoints));
 }
 
-bool PdfCharCodeMap::TryGetCodePoints(const PdfCharCode& codeUnit, vector<char32_t>& codePoints) const
+bool PdfCharCodeMap::TryGetCodePoints(const PdfCharCode& codeUnit, vector<codepoint>& codePoints) const
 {
     auto found = m_cuMap.find(codeUnit);
     if (found == m_cuMap.end())
@@ -86,7 +86,7 @@ bool PdfCharCodeMap::TryGetNextCharCode(string_view::iterator& it, const string_
     return tryFindNextCharacterId(m_cpMapHead, it, end, code);
 }
 
-bool PdfCharCodeMap::TryGetCharCode(const unicodeview& codePoints, PdfCharCode& codeUnit) const
+bool PdfCharCodeMap::TryGetCharCode(const codepointview& codePoints, PdfCharCode& codeUnit) const
 {
     const_cast<PdfCharCodeMap&>(*this).reviseCPMap();
     auto it = codePoints.begin();
@@ -125,7 +125,7 @@ NotFound:
     return false;
 }
 
-bool PdfCharCodeMap::TryGetCharCode(char32_t codePoint, PdfCharCode& code) const
+bool PdfCharCodeMap::TryGetCharCode(codepoint codePoint, PdfCharCode& code) const
 {
     const_cast<PdfCharCodeMap&>(*this).reviseCPMap();
     auto node = findNode(m_cpMapHead, codePoint);
@@ -139,7 +139,7 @@ bool PdfCharCodeMap::TryGetCharCode(char32_t codePoint, PdfCharCode& code) const
     return true;
 }
 
-void PdfCharCodeMap::pushMapping(const PdfCharCode& codeUnit, vector<char32_t>&& codePoints)
+void PdfCharCodeMap::pushMapping(const PdfCharCode& codeUnit, vector<codepoint>&& codePoints)
 {
     if (codeUnit.CodeSpaceSize == 0)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Code unit must be valid");
@@ -164,8 +164,8 @@ bool PdfCharCodeMap::tryFindNextCharacterId(const CPMapNode* node, string_view::
 {
     PDFMM_INVARIANT(it != end);
     string_view::iterator curr;
-    char32_t codepoint = (char32_t)utf8::next(it, end);
-    node = findNode(node, codepoint);
+    codepoint codePoint = (codepoint)utf8::next(it, end);
+    node = findNode(node, codePoint);
     if (node == nullptr)
         goto NotFound;
 
@@ -197,7 +197,7 @@ NotFound:
     return false;
 }
 
-const PdfCharCodeMap::CPMapNode* PdfCharCodeMap::findNode(const CPMapNode* node, char32_t codePoint)
+const PdfCharCodeMap::CPMapNode* PdfCharCodeMap::findNode(const CPMapNode* node, codepoint codePoint)
 {
     if (node == nullptr)
         return nullptr;
@@ -225,7 +225,7 @@ void PdfCharCodeMap::reviseCPMap()
     // so BST creation will be more balanced
     // https://en.wikipedia.org/wiki/Random_binary_tree
     // TODO: Create a perfectly balanced BST
-    vector<pair<PdfCharCode, vector<char32_t>>> pairs;
+    vector<pair<PdfCharCode, vector<codepoint>>> pairs;
     pairs.reserve(m_cuMap.size());
     std::copy(m_cuMap.begin(), m_cuMap.end(), std::back_inserter(pairs));
     std::mt19937 e(random_device{}());
@@ -256,7 +256,7 @@ void PdfCharCodeMap::reviseCPMap()
     m_MapDirty = false;
 }
 
-PdfCharCodeMap::CPMapNode* PdfCharCodeMap::findOrAddNode(CPMapNode*& node, char32_t codePoint)
+PdfCharCodeMap::CPMapNode* PdfCharCodeMap::findOrAddNode(CPMapNode*& node, codepoint codePoint)
 {
     if (node == nullptr)
     {

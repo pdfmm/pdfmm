@@ -14,12 +14,21 @@
 
 namespace mm
 {
+    /** A conventient typedef for an unspecified codepoint
+     * The underlying type is convenientely char32_t so
+     * it's a 32 bit fixed sized type that is also compatible
+     * with unicode code points
+     */
+    using codepoint = char32_t;
+    using codepointview = std::span<const codepoint>;
+
     /**
-     * A bidirectional map from character code units to generic code points
+     * A bidirectional map from character code units to unspecified code points
      *
-     * \remarks Code points actual encoding is unspecified, but it can be unicode code points
-     * or CID(s) as for CID keyed fonts
-     * For generic terminology see https://en.wikipedia.org/wiki/Character_encoding#Terminology
+     * \remarks The actual code point nature is unspecified, but
+     * it can either be unicode code points or CID(s) as used
+     * in CID keyed fonts. For generic terminology see
+     * https://en.wikipedia.org/wiki/Character_encoding#Terminology
      * See also 5014.CIDFont_Spec, 2.1 Terminology
      */
     class PDFMM_API PdfCharCodeMap
@@ -34,15 +43,15 @@ namespace mm
         /** Method to push a mapping.
          * Given string can be a ligature, es "ffi"
          */
-        void PushMapping(const PdfCharCode& codeUnit, const unicodeview& codePoints);
+        void PushMapping(const PdfCharCode& codeUnit, const codepointview& codePoints);
 
         /** Convenience method to push a single code point mapping
          */
-        void PushMapping(const PdfCharCode& codeUnit, char32_t codePoint);
+        void PushMapping(const PdfCharCode& codeUnit, codepoint codePoint);
 
         /** Returns false when no mapped identifiers are not found in the map
          */
-        bool TryGetCodePoints(const PdfCharCode& codeUnit, std::vector<char32_t>& codePoints) const;
+        bool TryGetCodePoints(const PdfCharCode& codeUnit, std::vector<codepoint>& codePoints) const;
 
         /** Try get char code from utf8 encoded range
          * \remarks It assumes it != and it will consumes the interator
@@ -54,11 +63,11 @@ namespace mm
         /** Try get char code from unicode code points
          * \param codePoints sequence of unicode code points. All the sequence must match
          */
-        bool TryGetCharCode(const unicodeview& codePoints, PdfCharCode& code) const;
+        bool TryGetCharCode(const codepointview& codePoints, PdfCharCode& code) const;
 
         /** Try get char code from unicode code point
          */
-        bool TryGetCharCode(char32_t codePoint, PdfCharCode& code) const;
+        bool TryGetCharCode(codepoint codePoint, PdfCharCode& code) const;
 
         PdfCharCodeMap& operator=(PdfCharCodeMap&& map) noexcept;
 
@@ -68,7 +77,7 @@ namespace mm
 
     private:
         void move(PdfCharCodeMap& map) noexcept;
-        void pushMapping(const PdfCharCode& codeUnit, std::vector<char32_t>&& codePoints);
+        void pushMapping(const PdfCharCode& codeUnit, std::vector<codepoint>&& codePoints);
 
         struct HashCharCode
         {
@@ -82,12 +91,12 @@ namespace mm
 
         // Map code units -> code point(s)
         // pp. 474-475 of PdfReference 1.7 "The value of dstString can be a string of up to 512 bytes"
-        typedef std::unordered_map<PdfCharCode, std::vector<char32_t>, HashCharCode, EqualCharCode> CUMap;
+        typedef std::unordered_map<PdfCharCode, std::vector<codepoint>, HashCharCode, EqualCharCode> CUMap;
 
         // Map code point(s) -> code units
         struct CPMapNode
         {
-            char32_t CodePoint;
+            codepoint CodePoint;
             PdfCharCode CodeUnit;
             CPMapNode* Ligatures;
             CPMapNode* Left;
@@ -102,9 +111,9 @@ namespace mm
         void reviseCPMap();
         static bool tryFindNextCharacterId(const CPMapNode* node, std::string_view::iterator &it,
             const std::string_view::iterator& end, PdfCharCode& cid);
-        static const CPMapNode* findNode(const CPMapNode* node, char32_t codePoint);
+        static const CPMapNode* findNode(const CPMapNode* node, codepoint codePoint);
         static void deleteNode(CPMapNode* node);
-        static CPMapNode* findOrAddNode(CPMapNode*& node, char32_t codePoint);
+        static CPMapNode* findOrAddNode(CPMapNode*& node, codepoint codePoint);
 
     public:
         typedef CUMap::const_iterator iterator;
