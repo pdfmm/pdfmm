@@ -11,8 +11,7 @@
 - Use unique_ptr/shared_ptr where possibile (PdfField), use shared_ptr in PdfIndirectObjectList?
 - FontManager could use unique_ptr or shared_ptr?
 - Remove PdfLocaleImbue
-- PdfRect should avoid normalization
-- Finish PdfDynamicEncoding
+- PdfRect should avoid normalization by default
 - PdfDifferenceEncoding: Move char code conversion data to private folder
 
 ### After 1.0

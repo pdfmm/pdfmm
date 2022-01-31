@@ -6,8 +6,10 @@ Version 0.9.20-dev
 - Many fixes in save incremental object/generation number incrementing
 - String backed with UTF-8 storage
 - PdfName backed with UTF-8 storage
-- Brand new PdfEncoding class with support for both /Encoding and /ToUnicode
-- PdfEncoding: More complete utf-8/Unicode support
+- Brand new PdfEncoding class with support for both /Encoding and /ToUnicode,
+  more complete Unicode support
+- Added a PdfDynamicEncoding class that creates a custom CID encoding
+  based on actual used glyphs used
 - Automatic creation of CIDMap and /ToUnicode
 - Added PdfSigner class and mm::SignDocument()
 - Added PdfFontType1Encoding, which support Type1 implicit encoding
