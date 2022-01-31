@@ -29,8 +29,8 @@ using namespace mm;
 unique_ptr<PdfFont> PdfFont::Create(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
     const PdfFontCreateParams& createParams)
 {
-    bool embeddingEnabled = (createParams.Flags & PdfFontCreateFlags::Embed) != PdfFontCreateFlags::None;
-    bool subsettingEnabled = (createParams.Flags & PdfFontCreateFlags::Subset) != PdfFontCreateFlags::None;
+    bool embeddingEnabled = (createParams.Flags & PdfFontCreateFlags::DontEmbed) == PdfFontCreateFlags::None;
+    bool subsettingEnabled = (createParams.Flags & PdfFontCreateFlags::DontSubset) == PdfFontCreateFlags::None;
     bool preferNonCid = (createParams.Flags & PdfFontCreateFlags::PreferNonCID) != PdfFontCreateFlags::None;
     auto font = createFontForType(doc, metrics, createParams.Encoding,
         metrics->GetFontFileType(), preferNonCid);
@@ -182,8 +182,8 @@ Exit:
 unique_ptr<PdfFont> PdfFont::CreateStandard14(PdfDocument& doc, PdfStandard14FontType std14Font,
     const PdfFontCreateParams& createParams)
 {
-    bool embeddingEnabled = (createParams.Flags & PdfFontCreateFlags::Embed) != PdfFontCreateFlags::None;
-    bool subsettingEnabled = (createParams.Flags & PdfFontCreateFlags::Subset) != PdfFontCreateFlags::None;
+    bool embeddingEnabled = (createParams.Flags & PdfFontCreateFlags::DontEmbed) == PdfFontCreateFlags::None;
+    bool subsettingEnabled = (createParams.Flags & PdfFontCreateFlags::DontSubset) == PdfFontCreateFlags::None;
     bool preferNonCid = (createParams.Flags & PdfFontCreateFlags::PreferNonCID) != PdfFontCreateFlags::None;
     PdfFontMetricsConstPtr metrics = PdfFontMetricsStandard14::Create(std14Font);
     unique_ptr<PdfFont> font;

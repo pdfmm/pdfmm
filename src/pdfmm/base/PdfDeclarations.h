@@ -284,10 +284,9 @@ enum class PdfFontAutoSelectBehavior
 enum class PdfFontCreateFlags
 {
     None = 0,                 ///< No special settings
-    PreferNonCID = 1,         ///< Prefer non CID, simple fonts (/Type1, /TrueType)
-    Embed = 2,                ///< Do embed font data
-    Subset = 4,               ///< Create subsetted, which includes only used characters. Implies embed
-    Default = Subset,
+    DontEmbed = 1,            ///< Do not embed font data
+    DontSubset = 2,           ///< Don't subset font data (includes all the font glyphs)
+    PreferNonCID = 4,         ///< Prefer non CID, simple fonts (/Type1, /TrueType)
 };
 
 enum class PdfFontMatchBehaviorFlags

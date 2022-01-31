@@ -71,7 +71,7 @@ PdfFont::~PdfFont() { }
 
 bool PdfFont::TryGetSubstituteFont(PdfFont*& substFont)
 {
-    return TryGetSubstituteFont(PdfFontCreateFlags::Default, substFont);
+    return TryGetSubstituteFont(PdfFontCreateFlags::None, substFont);
 }
 
 bool PdfFont::TryGetSubstituteFont(PdfFontCreateFlags initFlags, PdfFont*& substFont)
@@ -245,20 +245,26 @@ void PdfFont::InitImported(bool wantEmbed, bool wantSubset)
     m_Name = fontName;
     initImported();
 
-    if (m_EmbeddingEnabled && !m_SubsettingEnabled)
+    if (m_EmbeddingEnabled && !m_SubsettingEnabled
+        && !m_Encoding->IsDynamicEncoding())
     {
-        // Regular embedding is not done if subsetting is enabled
+        // Perform embedded immediately if subsetting is
+        // not enabled and there's no dynamic encoding
         embedFont();
         m_IsEmbedded = true;
     }
 }
 
-void PdfFont::EmbedFontSubset()
+void PdfFont::EmbedFont()
 {
-    if (m_IsEmbedded || !m_EmbeddingEnabled || !m_SubsettingEnabled)
+    if (m_IsEmbedded || !m_EmbeddingEnabled)
         return;
 
-    embedFontSubset();
+    if (m_SubsettingEnabled)
+        embedFontSubset();
+    else
+        embedFont();
+
     m_IsEmbedded = true;
 }
 
@@ -615,13 +621,19 @@ PdfCID PdfFont::AddSubsetGIDSafe(unsigned gid, const unicodeview& codePoints)
 
 PdfCharCode PdfFont::AddCharCodeSafe(unsigned gid, const unicodeview& codePoints)
 {
-    PDFMM_ASSERT(!m_SubsettingEnabled && m_Encoding->IsDynamicEncoding());
+    // NOTE: This method is supported only when doing fully embedding
+    // of an imported font with valid unicode mapping
+    PDFMM_ASSERT(!m_SubsettingEnabled
+        && m_Encoding->IsDynamicEncoding()
+        && !IsObjectLoaded()
+        && m_Metrics->HasUnicodeMapping());
 
     PdfCharCode code;
     if (m_DynamicToUnicodeMap->TryGetCharCode(codePoints, code))
         return code;
 
     code = PdfCharCode(m_DynamicToUnicodeMap->GetSize());
+    // NOTE: We assume in this context cid == gid identity
     m_DynamicCIDMap->PushMapping(code, gid);
     m_DynamicToUnicodeMap->PushMapping(code, codePoints);
     return code;

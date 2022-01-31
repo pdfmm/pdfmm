@@ -126,13 +126,13 @@ public:
     static PdfFontConfigWrapper& GetFontConfigWrapper();
 #endif // PDFMM_HAVE_FONTCONFIG
 
+    /** Called by PdfDocument before saving
+     */
+    void EmbedFonts();
+
     // These methods are reserved to use to selected friend classes
 private:
     PdfFontManager(PdfDocument& doc);
-
-    /** To be called by PdfDocument before saving
-     */
-    void HandleSave();
 
     /**
      * Empty the internal font cache.

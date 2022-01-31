@@ -299,8 +299,7 @@ void PdfMemDocument::beforeWrite(PdfSaveOptions opts)
         updateModifyTimestamp(PdfDate());
     }
 
-    // makes sure pending subset-fonts are embedded
-    GetFontManager().HandleSave();
+    GetFontManager().EmbedFonts();
 }
 
 void PdfMemDocument::deletePages(unsigned atIndex, unsigned pageCount)

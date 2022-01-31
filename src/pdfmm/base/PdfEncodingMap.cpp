@@ -482,34 +482,34 @@ PdfEncodingMapType PdfNullEncodingMap::GetType() const
 
 const PdfEncodingLimits& PdfNullEncodingMap::GetLimits() const
 {
-    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "The null encoding must be bound to a PdfFont");
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "The null encoding must be bound to a PdfFont");
 }
 
 bool PdfNullEncodingMap::tryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const
 {
     (void)codePoint;
     (void)codeUnit;
-    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "The null encoding must be bound to a PdfFont");
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "The null encoding must be bound to a PdfFont");
 }
 
 bool PdfNullEncodingMap::tryGetCodePoints(const PdfCharCode& codeUnit, vector<char32_t>& codePoints) const
 {
     (void)codeUnit;
     (void)codePoints;
-    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "The null encoding must be bound to a PdfFont");
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "The null encoding must be bound to a PdfFont");
 }
 
 void PdfNullEncodingMap::AppendToUnicodeEntries(PdfObjectStream& stream) const
 {
     (void)stream;
-    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "The null encoding must be bound to a PdfFont");
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "The null encoding must be bound to a PdfFont");
 }
 
 void PdfNullEncodingMap::AppendCIDMappingEntries(PdfObjectStream& stream, const PdfFont& font) const
 {
     (void)stream;
     (void)font;
-    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "The null encoding must be bound to a PdfFont");
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "The null encoding must be bound to a PdfFont");
 }
 
 PdfBuiltInEncoding::PdfBuiltInEncoding(const PdfName& name)

@@ -79,26 +79,8 @@ void PdfFontSimple::Init()
 
     if (!GetMetrics().IsStandard14FontMetrics() || IsEmbeddingEnabled())
     {
-        // Standard 14 fonts don't need any metrics descriptor
-        // if the font is not embedded
-        this->GetObject().GetDictionary().AddKey("FirstChar", PdfVariant(static_cast<int64_t>(m_Encoding->GetFirstChar().Code)));
-        this->GetObject().GetDictionary().AddKey("LastChar", PdfVariant(static_cast<int64_t>(m_Encoding->GetLastChar().Code)));
-
-        PdfArray arr;
-        this->getWidthsArray(arr);
-
-        auto widthsObj = GetDocument().GetObjects().CreateObject(arr);
-        this->GetObject().GetDictionary().AddKeyIndirect("Widths", widthsObj);
-
-        if (GetType() == PdfFontType::Type3)
-        {
-            getFontMatrixArray(arr);
-            GetObject().GetDictionary().AddKey("FontMatrix", arr);
-
-            GetBoundingBox(arr);
-            GetObject().GetDictionary().AddKey("FontBBox", arr);
-        }
-
+        // NOTE: Standard 14 fonts don't need any metrics
+        // descriptor if the font is not embedded
         auto descriptorObj = GetDocument().GetObjects().CreateDictionaryObject("FontDescriptor");
         this->GetObject().GetDictionary().AddKeyIndirect("FontDescriptor", descriptorObj);
         FillDescriptor(descriptorObj->GetDictionary());
@@ -109,6 +91,24 @@ void PdfFontSimple::Init()
 void PdfFontSimple::embedFont()
 {
     PDFMM_ASSERT(m_Descriptor != nullptr);
+    this->GetObject().GetDictionary().AddKey("FirstChar", PdfVariant(static_cast<int64_t>(m_Encoding->GetFirstChar().Code)));
+    this->GetObject().GetDictionary().AddKey("LastChar", PdfVariant(static_cast<int64_t>(m_Encoding->GetLastChar().Code)));
+
+    PdfArray arr;
+    this->getWidthsArray(arr);
+
+    auto widthsObj = GetDocument().GetObjects().CreateObject(arr);
+    this->GetObject().GetDictionary().AddKeyIndirect("Widths", widthsObj);
+
+    if (GetType() == PdfFontType::Type3)
+    {
+        getFontMatrixArray(arr);
+        GetObject().GetDictionary().AddKey("FontMatrix", arr);
+
+        GetBoundingBox(arr);
+        GetObject().GetDictionary().AddKey("FontBBox", arr);
+    }
+
     EmbedFontFile(*m_Descriptor);
 }
 

@@ -257,13 +257,13 @@ PdfFont* PdfFontManager::GetFont(FT_Face face, const PdfFontCreateParams& params
     });
 }
 
-void PdfFontManager::HandleSave()
+void PdfFontManager::EmbedFonts()
 {
     // Embed all imported fonts
     for (auto& pair : m_importedFonts)
     {
         for (auto& font : pair.second)
-            font->EmbedFontSubset();
+            font->EmbedFont();
     }
 
     // Clear imported font cache

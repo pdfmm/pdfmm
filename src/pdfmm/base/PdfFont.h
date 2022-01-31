@@ -31,7 +31,7 @@ using UsedGIDsMap = std::map<unsigned, PdfCID>;
 struct PdfFontCreateParams
 {
     PdfEncoding Encoding;
-    PdfFontCreateFlags Flags = PdfFontCreateFlags::Default;
+    PdfFontCreateFlags Flags = PdfFontCreateFlags::None;
 };
 
 /** Before you can draw text on a PDF document, you have to create
@@ -366,12 +366,9 @@ private:
     PdfFont(const PdfFont& rhs) = delete;
 
 private:
-    /** Embeds pending subset-font into PDF page
-     *  Only call if IsSubsetting() returns true. Might throw an exception otherwise.
-     *
-     *  \see IsSubsetting
+    /** Embeds pending font into PDF page
      */
-    void EmbedFontSubset();
+    void EmbedFont();
 
     /**
      * Perform inititialization tasks for fonts imported or created

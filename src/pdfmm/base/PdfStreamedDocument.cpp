@@ -39,10 +39,7 @@ void PdfStreamedDocument::Init(PdfOutputDevice& device, PdfVersion version,
 
 void PdfStreamedDocument::Close()
 {
-    // TODO: Check if this works correctly
-    // makes sure pending subset-fonts are embedded
-    GetFontManager().HandleSave();
-
+    GetFontManager().EmbedFonts();
     this->GetObjects().Finish();
 }
 

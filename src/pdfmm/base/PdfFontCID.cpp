@@ -97,12 +97,6 @@ void PdfFontCID::initImported()
     m_descendantFont->GetDictionary().AddKey("BaseFont", PdfName(this->GetName()));
     m_descendantFont->GetDictionary().AddKey("CIDToGIDMap", PdfName("Identity"));
 
-    if (!IsSubsettingEnabled())
-    {
-        createWidths(m_descendantFont->GetDictionary(), getIdentityCIDToGIDMap());
-        m_Encoding->ExportToFont(*this);
-    }
-
     // The FontDescriptor, should be an indirect object:
     auto descriptorObj = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject("FontDescriptor");
     m_descendantFont->GetDictionary().AddKeyIndirect("FontDescriptor", descriptorObj);
@@ -113,6 +107,8 @@ void PdfFontCID::initImported()
 void PdfFontCID::embedFont()
 {
     PDFMM_ASSERT(m_descriptor != nullptr);
+    createWidths(m_descendantFont->GetDictionary(), getIdentityCIDToGIDMap());
+    m_Encoding->ExportToFont(*this);
     EmbedFontFile(*m_descriptor);
 }
 
