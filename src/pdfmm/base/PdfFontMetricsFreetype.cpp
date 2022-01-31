@@ -274,7 +274,7 @@ void PdfFontMetricsFreetype::initType1Lengths(const bufferview& view)
     found = sview.rfind("cleartomark");
     if (found == string_view::npos || found == 0)
     {
-        m_Length2 = sview.length() - m_Length1;
+        m_Length2 = (unsigned)sview.length() - m_Length1;
         return;
     }
 
@@ -306,8 +306,8 @@ void PdfFontMetricsFreetype::initType1Lengths(const bufferview& view)
             return;
     }
 
-    m_Length2 = currIdx - m_Length1;
-    m_Length3 = sview.length() - m_Length2;
+    m_Length2 = (unsigned)currIdx - m_Length1;
+    m_Length3 = (unsigned)sview.length() - m_Length2;
 }
 
 string PdfFontMetricsFreetype::GetBaseFontName() const

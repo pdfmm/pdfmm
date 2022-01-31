@@ -17,7 +17,7 @@ PdfCIDToGIDMap PdfCIDToGIDMap::Create(const PdfObject& cidToGidMapObj)
     // a 2 - byte value stored in bytes 2 × c and 2 × c + 1,
     // where the first byte shall be the high - order byte"
     auto buffer = cidToGidMapObj.MustGetStream().GetFilteredCopy();
-    for (unsigned i = 0, count = buffer.size() / 2; i < count; i++)
+    for (unsigned i = 0, count = (unsigned)buffer.size() / 2; i < count; i++)
     {
         unsigned gid = (unsigned)buffer[i * 2 + 1] << 8 | (unsigned)buffer[i * 2 + 0];
         map[i] = gid;
