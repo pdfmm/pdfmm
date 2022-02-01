@@ -14,6 +14,7 @@
 
 #include "TestExtension.h"
 
+using namespace std;
 using namespace mm;
 
 class TestColor
@@ -1820,8 +1821,8 @@ TEST_CASE("testColorSeparationConstructor")
     { //alternate color is Greyscale
         const PdfColorGray ALTERNATE_COLOR(0.1234);
         const double DENSITY = 0.523456;
-        const std::string NAME("Hello");
-        PdfColorSeparation color("Hello", DENSITY, ALTERNATE_COLOR);
+        const string_view NAME("Hello");
+        PdfColorSeparation color(NAME, DENSITY, ALTERNATE_COLOR);
 
         REQUIRE(!color.IsGrayScale());
         REQUIRE(!color.IsRGB());
@@ -1890,7 +1891,7 @@ TEST_CASE("testColorSeparationConstructor")
 
         const PdfArray COLOR_ARRAY = color.ToArray();
         REQUIRE(COLOR_ARRAY.GetSize() == 1);
-        REQUIRE(COLOR_ARRAY[0] == PdfObject(0.0));
+        REQUIRE(COLOR_ARRAY[0] == PdfObject(DENSITY));
     }
 
     { //alternate color is RGB
@@ -1899,8 +1900,8 @@ TEST_CASE("testColorSeparationConstructor")
         const double B_VALUE = 0.678;
         const PdfColor ALTERNATE_COLOR(R_VALUE, G_VALUE, B_VALUE);
         const double DENSITY = 0.523456;
-        const std::string NAME("Hello");
-        PdfColorSeparation color("Hello", DENSITY, ALTERNATE_COLOR);
+        const string_view NAME("Hello");
+        PdfColorSeparation color(NAME, DENSITY, ALTERNATE_COLOR);
 
         REQUIRE(!color.IsGrayScale());
         REQUIRE(!color.IsRGB());
@@ -1963,7 +1964,7 @@ TEST_CASE("testColorSeparationConstructor")
 
         const PdfArray COLOR_ARRAY = color.ToArray();
         REQUIRE(COLOR_ARRAY.GetSize() == 1);
-        REQUIRE(COLOR_ARRAY[0] == PdfObject(0.0));
+        REQUIRE(COLOR_ARRAY[0] == PdfObject(DENSITY));
     }
 
     { //alternate color is CMYK
@@ -1973,8 +1974,8 @@ TEST_CASE("testColorSeparationConstructor")
         const double K_VALUE = 0.18;
         const PdfColor ALTERNATE_COLOR(C_VALUE, M_VALUE, Y_VALUE, K_VALUE);
         const double DENSITY = 0.123456;
-        const std::string NAME("Hello");
-        PdfColorSeparation color("Hello", DENSITY, ALTERNATE_COLOR);
+        const string_view NAME("Hello");
+        PdfColorSeparation color(NAME, DENSITY, ALTERNATE_COLOR);
 
         REQUIRE(!color.IsGrayScale());
         REQUIRE(!color.IsRGB());
@@ -2026,7 +2027,7 @@ TEST_CASE("testColorSeparationConstructor")
 
         const PdfArray COLOR_ARRAY = color.ToArray();
         REQUIRE(COLOR_ARRAY.GetSize() == 1);
-        REQUIRE(COLOR_ARRAY[0] == PdfObject(0.0));
+        REQUIRE(COLOR_ARRAY[0] == PdfObject(DENSITY));
     }
 
     { //alternate color is CieLab
@@ -2035,8 +2036,8 @@ TEST_CASE("testColorSeparationConstructor")
         const double dCieB = 0.678;
         const PdfColorCieLab ALTERNATE_COLOR(dCieL, dCieA, dCieB);
         const double DENSITY = 0.523456;
-        const std::string NAME("Hello");
-        PdfColorSeparation color("Hello", DENSITY, ALTERNATE_COLOR);
+        const string_view NAME("Hello");
+        PdfColorSeparation color(NAME, DENSITY, ALTERNATE_COLOR);
 
         REQUIRE(!color.IsGrayScale());
         REQUIRE(!color.IsRGB());
@@ -2099,7 +2100,7 @@ TEST_CASE("testColorSeparationConstructor")
 
         const PdfArray COLOR_ARRAY = color.ToArray();
         REQUIRE(COLOR_ARRAY.GetSize() == 1);
-        REQUIRE(COLOR_ARRAY[0] == PdfObject(0.0));
+        REQUIRE(COLOR_ARRAY[0] == PdfObject(DENSITY));
     }
 }
 
