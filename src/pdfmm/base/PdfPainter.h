@@ -274,54 +274,54 @@ public:
 
     /** Draw a single-line text string on a page using a given font object.
      *  You have to call SetFont before calling this function.
+     *  \param str the text string which should be printed
      *  \param x the x coordinate
      *  \param y the y coordinate
-     *  \param sText the text string which should be printed
      *
      *  \see SetFont()
      */
-    void DrawText(double x, double y, const std::string_view& str);
+    void DrawText(const std::string_view& str, double x, double y);
 
     /** Draw multiline text into a rectangle doing automatic wordwrapping.
      *  The current font is used and SetFont has to be called at least once
      *  before using this function
      *
+     *  \param str the text which should be drawn
      *  \param x the x coordinate of the text area (left)
      *  \param y the y coordinate of the text area (bottom)
      *  \param width width of the text area
      *  \param height height of the text area
-     *  \param text the text which should be drawn
-     *  \param eAlignment alignment of the individual text lines in the given bounding box
-     *  \param eVertical vertical alignment of the text in the given bounding box
-     *  \param bClip set the clipping rectangle to the given rect, otherwise no clipping is performed
-     *  \param bSkipSpaces whether the trailing whitespaces should be skipped, so that next line doesn't start with whitespace
+     *  \param hAlignment alignment of the individual text lines in the given bounding box
+     *  \param vAlignment vertical alignment of the text in the given bounding box
+     *  \param clip set the clipping rectangle to the given rect, otherwise no clipping is performed
+     *  \param skipSpaces whether the trailing whitespaces should be skipped, so that next line doesn't start with whitespace
      */
-    void DrawMultiLineText(double x, double y, double width, double height,
-        const std::string_view& str, PdfHorizontalAlignment hAlignment = PdfHorizontalAlignment::Left,
+    void DrawMultiLineText(const std::string_view& str, double x, double y, double width, double height,
+        PdfHorizontalAlignment hAlignment = PdfHorizontalAlignment::Left,
         PdfVerticalAlignment vAlignment = PdfVerticalAlignment::Top, bool clip = true, bool skipSpaces = true);
 
     /** Draw multiline text into a rectangle doing automatic wordwrapping.
      *  The current font is used and SetFont has to be called at least once
      *  before using this function
      *
+     *  \param str the text which should be drawn
      *  \param rect bounding rectangle of the text
-     *  \param text the text which should be drawn
-     *  \param eAlignment alignment of the individual text lines in the given bounding box
-     *  \param eVertical vertical alignment of the text in the given bounding box
-     *  \param bClip set the clipping rectangle to the given rect, otherwise no clipping is performed
-     *  \param bSkipSpaces whether the trailing whitespaces should be skipped, so that next line doesn't start with whitespace
+     *  \param hAlignment alignment of the individual text lines in the given bounding box
+     *  \param vAlignment vertical alignment of the text in the given bounding box
+     *  \param clip set the clipping rectangle to the given rect, otherwise no clipping is performed
+     *  \param skipSpaces whether the trailing whitespaces should be skipped, so that next line doesn't start with whitespace
      */
-    void DrawMultiLineText(const PdfRect& rect, const std::string_view& str, PdfHorizontalAlignment hAlignment = PdfHorizontalAlignment::Left,
+    void DrawMultiLineText(const std::string_view& str, const PdfRect& rect, PdfHorizontalAlignment hAlignment = PdfHorizontalAlignment::Left,
         PdfVerticalAlignment vAlignment = PdfVerticalAlignment::Top, bool clip = true, bool skipSpaces = true);
 
     /** Draw a single line of text horizontally aligned.
+     *  \param str the text to draw
      *  \param x the x coordinate of the text line
      *  \param y the y coordinate of the text line
      *  \param width the width of the text line
-     *  \param text the text to draw
-     *  \param eAlignment alignment of the text line
+     *  \param hAlignment alignment of the text line
      */
-    void DrawTextAligned(double x, double y, double width, const std::string_view& str, PdfHorizontalAlignment hAlignment);
+    void DrawTextAligned(const std::string_view& str, double x, double y, double width, PdfHorizontalAlignment hAlignment);
 
     /** Begin drawing multiple text strings on a page using a given font object.
      *  You have to call SetFont before calling this function.
@@ -391,7 +391,7 @@ public:
      *  \param scaleX option scaling factor in x direction
      *  \param scaleY option scaling factor in y direction
      */
-    void DrawImage(double x, double y, const PdfImage& obj, double scaleX = 1.0, double scaleY = 1.0);
+    void DrawImage(const PdfImage& obj, double x, double y, double scaleX = 1.0, double scaleY = 1.0);
 
     /** Draw an XObject on the current page. For PdfImage use DrawImage.
      *
@@ -403,7 +403,7 @@ public:
      *
      *  \see DrawImage
      */
-    void DrawXObject(double x, double y, const PdfXObject& obj, double scaleX = 1.0, double scaleY = 1.0);
+    void DrawXObject(const PdfXObject& obj, double x, double y, double scaleX = 1.0, double scaleY = 1.0);
 
     /** Closes the current path by drawing a line from the current point
      *  to the starting point of the path. Matches the PDF 'h' operator.
@@ -661,11 +661,11 @@ public:
 private:
     /** Gets the text divided into individual lines, using the current font and clipping rectangle.
      *
+     *  \param str the text which should be drawn
      *  \param width width of the text area
-     *  \param text the text which should be drawn
-     *  \param bSkipSpaces whether the trailing whitespaces should be skipped, so that next line doesn't start with whitespace
+     *  \param skipSpaces whether the trailing whitespaces should be skipped, so that next line doesn't start with whitespace
      */
-    std::vector<std::string> GetMultiLineTextAsLines(double width, const std::string_view& str, bool skipSpaces);
+    std::vector<std::string> GetMultiLineTextAsLines(const std::string_view& str, double width, bool skipSpaces);
 
     /** Coverts a rectangle to an array of points which can be used
      *  to draw an ellipse using 4 bezier curves.

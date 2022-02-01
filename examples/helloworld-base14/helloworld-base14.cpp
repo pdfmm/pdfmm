@@ -106,7 +106,7 @@ void HelloWorld(const string_view& filename)
         //
         // All coordinates in pdfmm are in PDF units.
         // You can also use PdfPainterMM which takes coordinates in 1/1000th mm.
-        painter.DrawText(56.69, page->GetRect().GetHeight() - 56.69, "Hello World!");
+        painter.DrawText("Hello World!", 56.69, page->GetRect().GetHeight() - 56.69);
 
         DemoBase14Fonts(painter, *page, document, params);
 
@@ -251,7 +251,7 @@ void DemoBase14Fonts(PdfPainter& painter, PdfPage& page, PdfDocument& document, 
         DrawRedFrame(painter, x, y, width, height);
 
         // draw text
-        painter.DrawText(x, y, text);
+        painter.DrawText(text, x, y);
     }
 
     // draw some individual characters:
@@ -276,7 +276,7 @@ void DemoBase14Fonts(PdfPainter& painter, PdfPage& page, PdfDocument& document, 
         DrawRedFrame(painter, x, y, width, height);
 
         // draw text
-        painter.DrawText(x, y, text);
+        painter.DrawText(text, x, y);
 
         if (i > 0)
         {
@@ -290,7 +290,7 @@ void DemoBase14Fonts(PdfPainter& painter, PdfPage& page, PdfDocument& document, 
             DrawRedFrame(painter, x + 100, y, width, height);
 
             // draw text
-            painter.DrawText(x + 100, y, text);
+            painter.DrawText(text, x + 100, y);
         }
     }
 }

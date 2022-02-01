@@ -639,7 +639,7 @@ void PdfPainter::Circle(double x, double y, double radius)
     Close();
 }
 
-void PdfPainter::DrawText(double x, double y, const string_view& str)
+void PdfPainter::DrawText(const string_view& str, double x, double y)
 {
     CheckStream();
     if (m_Font == nullptr)
@@ -760,7 +760,7 @@ void PdfPainter::EndText()
     m_isTextOpen = false;
 }
 
-void PdfPainter::DrawMultiLineText(double x, double y, double width, double height, const string_view& str,
+void PdfPainter::DrawMultiLineText(const string_view& str, double x, double y, double width, double height,
     PdfHorizontalAlignment hAlignment, PdfVerticalAlignment vAlignment, bool clip, bool skipSpaces)
 {
     CheckStream();
@@ -776,7 +776,7 @@ void PdfPainter::DrawMultiLineText(double x, double y, double width, double heig
 
     auto expanded = this->ExpandTabs(str);
 
-    vector<string> lines = GetMultiLineTextAsLines(width, expanded, skipSpaces);
+    vector<string> lines = GetMultiLineTextAsLines(expanded, width, skipSpaces);
     double dLineGap = m_Font->GetLineSpacing(m_textState) - m_Font->GetAscent(m_textState) + m_Font->GetDescent(m_textState);
     // Do vertical alignment
     switch (vAlignment)
@@ -798,7 +798,7 @@ void PdfPainter::DrawMultiLineText(double x, double y, double width, double heig
     while (it != lines.end())
     {
         if (it->length() != 0)
-            this->DrawTextAligned(x, y, width, *it, hAlignment);
+            this->DrawTextAligned(*it, x, y, width, hAlignment);
 
         y -= m_Font->GetLineSpacing(m_textState);
         it++;
@@ -809,19 +809,19 @@ void PdfPainter::DrawMultiLineText(double x, double y, double width, double heig
 // FIX-ME/CLEAN-ME: The following is a shit load of fuck that was found
 // in this deprecable state while cleaning the code
 // Fix/clean it to support Unicode, remove hungarian notation and simplify the code
-vector<string> PdfPainter::GetMultiLineTextAsLines(double width, const string_view& text, bool skipSpaces)
+vector<string> PdfPainter::GetMultiLineTextAsLines(const string_view& str, double width, bool skipSpaces)
 {
     // FIX-ME: This method is currently broken, just rewrite it later
-    vector<string> ret = { (string)text };
+    vector<string> ret = { (string)str };
     return ret;
 
     if (width <= 0.0) // nonsense arguments
         return vector<string>();
 
-    if (text.length() == 0) // empty string
-        return vector<string>(1, (string)text);
+    if (str.length() == 0) // empty string
+        return vector<string>(1, (string)str);
 
-    const char* const stringBegin = text.data();
+    const char* const stringBegin = str.data();
     const char* lineBegin = stringBegin;
     const char* currentCharacter = stringBegin;
     const char* startOfCurrentWord = stringBegin;
@@ -974,7 +974,7 @@ vector<string> PdfPainter::GetMultiLineTextAsLines(double width, const string_vi
     return lines;
 }
 
-void PdfPainter::DrawTextAligned(double x, double y, double width, const string_view& str, PdfHorizontalAlignment hAlignment)
+void PdfPainter::DrawTextAligned(const string_view& str, double x, double y, double width, PdfHorizontalAlignment hAlignment)
 {
     CheckStream();
     if (m_Font == nullptr)
@@ -996,17 +996,17 @@ void PdfPainter::DrawTextAligned(double x, double y, double width, const string_
             break;
     }
 
-    this->DrawText(x, y, str);
+    this->DrawText(str, x, y);
 }
 
-void PdfPainter::DrawImage(double x, double y, const PdfImage& obj, double scaleX, double scaleY)
+void PdfPainter::DrawImage(const PdfImage& obj, double x, double y, double scaleX, double scaleY)
 {
-    this->DrawXObject(x, y, obj,
+    this->DrawXObject(obj, x, y,
         scaleX * obj.GetRect().GetWidth(),
         scaleY * obj.GetRect().GetHeight());
 }
 
-void PdfPainter::DrawXObject(double x, double y, const PdfXObject& obj, double scaleX, double scaleY)
+void PdfPainter::DrawXObject(const PdfXObject& obj, double x, double y, double scaleX, double scaleY)
 {
     CheckStream();
 
@@ -1553,11 +1553,11 @@ void PdfPainter::Rectangle(const PdfRect& rect, double roundX, double roundY)
         roundX, roundY);
 }
 
-void PdfPainter::DrawMultiLineText(const PdfRect& rect, const string_view& str,
+void PdfPainter::DrawMultiLineText(const string_view& str, const PdfRect& rect,
     PdfHorizontalAlignment hAlignment, PdfVerticalAlignment vAlignment, bool clip, bool skipSpaces)
 {
-    this->DrawMultiLineText(rect.GetLeft(), rect.GetBottom(), rect.GetWidth(), rect.GetHeight(),
-        str, hAlignment, vAlignment, clip, skipSpaces);
+    this->DrawMultiLineText(str, rect.GetLeft(), rect.GetBottom(), rect.GetWidth(), rect.GetHeight(),
+        hAlignment, vAlignment, clip, skipSpaces);
 }
 
 void PdfPainter::CheckStream()

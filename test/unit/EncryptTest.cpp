@@ -283,7 +283,7 @@ void createEncryptedPdf(const string_view& filename)
 
     painter.SetFont(font);
     painter.GetTextState().SetFontSize(16);
-    painter.DrawText(100, 100, "Hello World");
+    painter.DrawText("Hello World", 100, 100);
     painter.FinishDrawing();
 
     doc.SetEncrypted("user", "owner");

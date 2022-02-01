@@ -107,14 +107,14 @@ TEST_CASE("testCreateDelete")
     painter.SetCanvas(page);
     painter.SetFont(font);
     painter.GetTextState().SetFontSize(16.0);
-    painter.DrawText(200, 200, "Page 1");
+    painter.DrawText("Page 1", 200, 200);
     painter.FinishDrawing();
     REQUIRE(doc.GetPageTree().GetPageCount() == 1);
 
     // write 2. page
     page = doc.GetPageTree().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
     painter.SetCanvas(page);
-    painter.DrawText(200, 200, "Page 2");
+    painter.DrawText("Page 2", 200, 200);
     painter.FinishDrawing();
     REQUIRE(doc.GetPageTree().GetPageCount() == 2);
 
@@ -125,7 +125,7 @@ TEST_CASE("testCreateDelete")
     // write 3. page
     page = doc.GetPageTree().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
     painter.SetCanvas(page);
-    painter.DrawText(200, 200, "Page 3");
+    painter.DrawText("Page 3", 200, 200);
     painter.FinishDrawing();
     REQUIRE(doc.GetPageTree().GetPageCount() == 2);
 }
@@ -341,7 +341,7 @@ vector<PdfPage*> createSamplePages(PdfMemDocument& doc, unsigned pageCount)
         painter.GetTextState().SetFontSize(16.0);
         ostringstream os;
         os << "Page " << i + 1;
-        painter.DrawText(200, 200, os.str());
+        painter.DrawText(os.str(), 200, 200);
         painter.FinishDrawing();
     }
 
