@@ -49,6 +49,7 @@ list(APPEND CMAKE_INCLUDE_PATH
     "${DEPS_PATH}/libjpeg/include"
     "${DEPS_PATH}/libtiff/include"
     "${DEPS_PATH}/openssl/include"
+    "${DEPS_PATH}/libidn/include"
 )
 
 # Set library folders for find_package()
@@ -61,10 +62,13 @@ list(APPEND CMAKE_LIBRARY_PATH
     "${DEPS_PATH}/libjpeg/lib/${ARCH}"
     "${DEPS_PATH}/libtiff/lib/${ARCH}"
     "${DEPS_PATH}/openssl/lib/${ARCH}"
+    "${DEPS_PATH}/libidn/lib/${ARCH}"
 )
 
 # Set use libxml2 static for fontconfig
 add_compile_definitions(LIBXML_STATIC)
+# Set use libidn static
+add_compile_definitions(LIBIDN_STATIC)
 
 if(WIN32)
     # Manually specify SSL
@@ -73,12 +77,6 @@ if(WIN32)
     set(LIB_EAY_RELEASE "${DEPS_PATH}/openssl/lib/${ARCH}/crypto.lib;Crypt32.lib" CACHE FILEPATH "" FORCE)
     set(SSL_EAY_DEBUG "${DEPS_PATH}/openssl/lib/${ARCH}/ssld.lib" CACHE FILEPATH "" FORCE)
     set(SSL_EAY_RELEASE "${DEPS_PATH}/openssl/lib/${ARCH}/ssl.lib" CACHE FILEPATH "" FORCE)
-    # Manually specify Libidn
-    # NOTE: Disabled for now
-    #add_definitions(-DLIBIDN_STATIC)
-    #set(LIBIDN_INCLUDE_DIR "${DEPS_PATH}/Libidn/include" CACHE PATH "" FORCE)
-    #set(LIBIDN_LIBRARY_DEBUG "${DEPS_PATH}/Libidn/lib/${ARCH}/libidn.lib" CACHE FILEPATH "" FORCE)
-    #set(LIBIDN_LIBRARY_RELEASE "${DEPS_PATH}/Libidn/lib/${ARCH}/libidn.lib" CACHE FILEPATH "" FORCE)
     # Libxml2
     set(LIBXML2_LIBRARY "optimized;${DEPS_PATH}/libxml2/lib/${ARCH}/libxml2.lib;debug;${DEPS_PATH}/libxml2/lib/${ARCH}/libxml2d.lib" CACHE FILEPATH "" FORCE)
     # Fontconfig

@@ -307,7 +307,7 @@ protected:
                     break;
                 }
 #ifdef PDFMM_HAVE_LIBIDN
-                case (size_t)EPdfKeyLength::L256 / 8:
+                case (size_t)PdfKeyLength::L256 / 8:
                 {
                     cipher = EVP_aes_256_cbc();
                     break;
@@ -521,9 +521,9 @@ unique_ptr<PdfEncrypt> PdfEncrypt::CreatePdfEncrypt(const PdfObject& encryptObj)
         else if ((lV == 5) && (rValue == 5)
             && PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::AESV3))
         {
-            PdfString permsValue = encryptObj->GetDictionary().GetKey("Perms")->GetString();
-            PdfString oeValue = encryptObj->GetDictionary().GetKey("OE")->GetString();
-            PdfString ueValue = encryptObj->GetDictionary().GetKey("UE")->GetString();
+            PdfString permsValue = encryptObj.GetDictionary().GetKey("Perms")->GetString();
+            PdfString oeValue = encryptObj.GetDictionary().GetKey("OE")->GetString();
+            PdfString ueValue = encryptObj.GetDictionary().GetKey("UE")->GetString();
 
             return unique_ptr<PdfEncrypt>(new PdfEncryptAESV3(oValue, oeValue, uValue, ueValue, pValue, permsValue));
         }
@@ -1149,8 +1149,8 @@ void PdfEncryptAESBase::BaseDecrypt(const unsigned char* key, unsigned keyLen, c
     if (keyLen == (int)PdfKeyLength::L128 / 8)
         rc = EVP_DecryptInit_ex(aes, EVP_aes_128_cbc(), nullptr, key, iv);
 #ifdef PDFMM_HAVE_LIBIDN
-    else if (keyLen == (int)EPdfKeyLength::L256 / 8)
-        status = EVP_DecryptInit_ex(aes, EVP_aes_256_cbc(), nullptr, key, iv);
+    else if (keyLen == (int)PdfKeyLength::L256 / 8)
+        rc = EVP_DecryptInit_ex(aes, EVP_aes_256_cbc(), nullptr, key, iv);
 #endif
     else
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Invalid AES key length");
@@ -1181,8 +1181,8 @@ void PdfEncryptAESBase::BaseEncrypt(const unsigned char* key, unsigned keyLen, c
     if (keyLen == (int)PdfKeyLength::L128 / 8)
         rc = EVP_EncryptInit_ex(aes, EVP_aes_128_cbc(), nullptr, key, iv);
 #ifdef PDFMM_HAVE_LIBIDN
-    else if (keyLen == (int)EPdfKeyLength::L256 / 8)
-        status = EVP_EncryptInit_ex(aes, EVP_aes_256_cbc(), nullptr, key, iv);
+    else if (keyLen == (int)PdfKeyLength::L256 / 8)
+        rc = EVP_EncryptInit_ex(aes, EVP_aes_256_cbc(), nullptr, key, iv);
 #endif
     else
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Invalid AES key length");
@@ -1416,17 +1416,17 @@ void PdfEncryptSHABase::ComputeUserKey(const unsigned char* userpswd, size_t len
 
     int status = EVP_EncryptInit_ex(aes, EVP_aes_256_cbc(), nullptr, hashValue, nullptr);
     if (status != 1)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error initializing AES encryption engine");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing AES encryption engine");
     EVP_CIPHER_CTX_set_padding(aes, 0); // disable padding
 
     int dataOutMoved;
     status = EVP_EncryptUpdate(aes, m_ueValue, &dataOutMoved, m_encryptionKey, m_keyLength);
     if (status != 1)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error AES-encrypting data");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-encrypting data");
 
     status = EVP_EncryptFinal_ex(aes, &m_ueValue[dataOutMoved], &dataOutMoved);
     if (status != 1)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error AES-encrypting data");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-encrypting data");
 
     EVP_CIPHER_CTX_free(aes);
 }
@@ -1472,17 +1472,17 @@ void PdfEncryptSHABase::ComputeOwnerKey(const unsigned char* ownerpswd, size_t l
 
     int status = EVP_EncryptInit_ex(aes, EVP_aes_256_cbc(), nullptr, hashValue, nullptr);
     if (status != 1)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error initializing AES encryption engine");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing AES encryption engine");
     EVP_CIPHER_CTX_set_padding(aes, 0); // disable padding
 
     int dataOutMoved;
     status = EVP_EncryptUpdate(aes, m_oeValue, &dataOutMoved, m_encryptionKey, m_keyLength);
     if (status != 1)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error AES-encrypting data");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-encrypting data");
 
     status = EVP_EncryptFinal_ex(aes, &m_oeValue[dataOutMoved], &dataOutMoved);
     if (status != 1)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error AES-encrypting data");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-encrypting data");
 
     EVP_CIPHER_CTX_free(aes);
 }
@@ -1492,7 +1492,7 @@ void PdfEncryptSHABase::PreprocessPassword(const string_view& password, unsigned
     char* password_sasl;
 
     if (stringprep_profile(password.data(), &password_sasl, "SASLprep", STRINGPREP_NO_UNASSIGNED) != STRINGPREP_OK)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidPassword, "Error processing password through SASLprep");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidPassword, "Error processing password through SASLprep");
 
     size_t l = strlen(password_sasl);
     len = l > 127 ? 127 : l;
@@ -1510,10 +1510,10 @@ void PdfEncryptSHABase::ComputeEncryptionKey()
         m_encryptionKey[i] = rand() % 255;
 }
     
-bool PdfEncryptSHABase::Authenticate(const string_view& documentID, const string_view& password,
-    const bufferview& uValue, const bufferview& ueValue,
-    const bufferview& oValue, const bufferview& oeValue,
-    PdfPermissions pValue, const string_view& permsValue,
+bool PdfEncryptSHABase::Authenticate(const std::string_view& documentID, const std::string_view& password,
+    const bufferview& uValue, const std::string_view& ueValue,
+    const bufferview& oValue, const std::string_view& oeValue,
+    PdfPermissions pValue, const std::string_view& permsValue,
     int lengthValue, int rValue)
 {
     m_pValue = pValue;
@@ -1617,17 +1617,17 @@ void PdfEncryptAESV3::GenerateEncryptionKey(const string_view& documentId)
 
     int status = EVP_EncryptInit_ex(aes, EVP_aes_256_ecb(), nullptr, m_encryptionKey, nullptr);
     if (status != 1)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error initializing AES encryption engine");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing AES encryption engine");
     EVP_CIPHER_CTX_set_padding(aes, 0); // disable padding
 
     int dataOutMoved;
     status = EVP_EncryptUpdate(aes, m_permsValue, &dataOutMoved, perms, 16);
     if (status != 1)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error AES-encrypting data");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-encrypting data");
 
     status = EVP_EncryptFinal_ex(aes, &m_permsValue[dataOutMoved], &dataOutMoved);
     if (status != 1)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "Error AES-encrypting data");
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error AES-encrypting data");
 
     EVP_CIPHER_CTX_free(aes);
 }
@@ -1713,20 +1713,20 @@ size_t PdfEncryptAESV3::CalculateStreamOffset() const
     return AES_IV_LENGTH;
 }
 
-void PdfEncryptAESV3::Encrypt(const unsigned char* inStr, size_t inLen,
-    unsigned char* outStr, size_t outLen) const
+void PdfEncryptAESV3::Encrypt(const char* inStr, size_t inLen,
+    char* outStr, size_t outLen) const
 {
     size_t offset = CalculateStreamOffset();
-    this->GenerateInitialVector(outStr);
-    this->BaseEncrypt(const_cast<unsigned char*>(m_encryptionKey), m_keyLength, outStr, inStr, inLen, &outStr[offset], outLen - offset);
+    this->GenerateInitialVector((unsigned char*)outStr);
+    this->BaseEncrypt(m_encryptionKey, m_keyLength, (unsigned char*)outStr, (const unsigned char*)inStr, inLen, (unsigned char*)outStr + offset, outLen - offset);
 }
 
-void PdfEncryptAESV3::Decrypt(const unsigned char* inStr, size_t inLen,
-    unsigned char* outStr, size_t& outLen) const
+void PdfEncryptAESV3::Decrypt(const char* inStr, size_t inLen,
+    char* outStr, size_t& outLen) const
 {
     size_t offset = CalculateStreamOffset();
 
-    this->BaseDecrypt(const_cast<unsigned char*>(m_encryptionKey), m_keyLength, inStr, &inStr[offset], inLen - offset, outStr, outLen);
+    this->BaseDecrypt(const_cast<unsigned char*>(m_encryptionKey), m_keyLength, (const unsigned char*)inStr, (const unsigned char*)inStr + offset, inLen - offset, (unsigned char*)outStr, outLen);
 }
 
 PdfEncryptAESV3::PdfEncryptAESV3(const string_view& userPassword, const string_view& ownerPassword, PdfPermissions protection) : PdfEncryptAESBase()
@@ -1737,8 +1737,8 @@ PdfEncryptAESV3::PdfEncryptAESV3(const string_view& userPassword, const string_v
     m_Algorithm = PdfEncryptAlgorithm::AESV3;
 
     m_rValue = 5;
-    m_KeyLength = EPdfKeyLength::L256;
-    m_keyLength = (int)EPdfKeyLength::L256 / 8;
+    m_eKeyLength = PdfKeyLength::L256;
+    m_keyLength = (int)PdfKeyLength::L256 / 8;
 
     // Init buffers
     std::memset(m_oValue, 0, 48);
@@ -1756,8 +1756,8 @@ PdfEncryptAESV3::PdfEncryptAESV3(PdfString oValue, PdfString oeValue, PdfString 
     m_pValue = pValue;
     m_Algorithm = PdfEncryptAlgorithm::AESV3;
 
-    m_KeyLength = EPdfKeyLength::L256;
-    m_keyLength = (int)EPdfKeyLength::L256 / 8;
+    m_eKeyLength = PdfKeyLength::L256;
+    m_keyLength = (int)PdfKeyLength::L256 / 8;
     m_rValue = 5;
     std::memcpy(m_oValue, oValue.GetRawData().data(), 48);
     std::memcpy(m_oeValue, oeValue.GetRawData().data(), 32);
@@ -1783,7 +1783,7 @@ unique_ptr<PdfInputStream> PdfEncryptAESV3::CreateEncryptionInputStream(PdfInput
 
 unique_ptr<PdfOutputStream> PdfEncryptAESV3::CreateEncryptionOutputStream(PdfOutputStream&)
 {
-    PDFMM_RAISE_ERROR_INFO(EPdfError::InternalLogic, "CreateEncryptionOutputStream does not yet support AESV3");
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "CreateEncryptionOutputStream does not yet support AESV3");
 }
     
 #endif // PDFMM_HAVE_LIBIDN

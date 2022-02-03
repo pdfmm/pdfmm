@@ -633,10 +633,10 @@ public:
     std::unique_ptr<PdfOutputStream> CreateEncryptionOutputStream(PdfOutputStream& outputStream) override;
 
     // Encrypt a character string
-    void Encrypt(const unsigned char* inStr, size_t inLen,
-        unsigned char* outStr, size_t outLen) const override;
-    void Decrypt(const unsigned char* inStr, size_t inLen,
-        unsigned char* outStr, size_t& outLen) const override;
+    void Encrypt(const char* inStr, size_t inLen,
+        char* outStr, size_t outLen) const override;
+    void Decrypt(const char* inStr, size_t inLen,
+        char* outStr, size_t& outLen) const override;
 
     size_t CalculateStreamOffset() const override;
 
@@ -645,7 +645,7 @@ public:
 protected:
     bool Authenticate(const std::string_view& password, const std::string_view& documentId) override;
 
-    void GenerateEncryptionKey(const string_view& documentId) override;
+    void GenerateEncryptionKey(const std::string_view& documentId) override;
 };
 
 #endif // PDFMM_HAVE_LIBIDN

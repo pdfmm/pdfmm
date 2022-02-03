@@ -169,10 +169,10 @@ find_package(OpenSSL REQUIRED)
 
 message("OPENSSL_VERSION: ${OPENSSL_LIBRARIES}")
 
-find_package(LIBIDN)
+find_package(Libidn)
 
-if(LIBIDN_FOUND)
-    message("Found libidn headers in ${LIBIDN_INCLUDE_DIR}, library at ${LIBIDN_LIBRARIES}")
+if(Libidn_FOUND)
+    message("Found Libidn headers in ${Libidn_INCLUDE_DIR}, library at ${Libidn_LIBRARIES}")
     set(PDFMM_HAVE_LIBIDN TRUE)
     message("Libidn found. AES-256 Encryption support will be enabled")
 else()
@@ -248,9 +248,9 @@ set(PDFMM_HEADERS_DEPENDS
     ${PLATFORM_SYSTEM_HEADERS}
 )
 
-if(LIBIDN_FOUND)
-    list(APPEND PDFMM_LIB_DEPENDS ${LIBIDN_LIBRARIES})
-    list(APPEND PDFMM_HEADERS_DEPENDS ${LIBIDN_INCLUDE_DIR})
+if(Libidn_FOUND)
+    list(APPEND PDFMM_LIB_DEPENDS ${Libidn_LIBRARIES})
+    list(APPEND PDFMM_HEADERS_DEPENDS ${Libidn_INCLUDE_DIR})
 endif()
 
 # Create the config file. It'll be appended to as the subdirs run though
