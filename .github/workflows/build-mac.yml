@@ -17,7 +17,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Install deps
-      run: brew install fontconfig freetype openssl@1.1 libxml2 jpeg libpng libtiff
+      run: brew install fontconfig freetype openssl@1.1 libxml2 jpeg libpng libtiff libidn
 
     - name: Configure CMake
       # NOTE: OpenSSL prefix must be explicitly set
