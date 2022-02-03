@@ -223,15 +223,16 @@ find_package(LibXml2 REQUIRED)
 message("Found libxml2 library at ${LIBXML2_LIBRARIES}, headers ${LIBXML2_INCLUDE_DIRS}")
 
 # The pdfmm library needs to be linked to these libraries
-# NOTE: Be careful when adding/removing: the order may be platform sensible
+# NOTE: Be careful when adding/removing: the order may be
+# platform sensible, so don't modify the current order
 set(PDFMM_LIB_DEPENDS
     ${OPENSSL_LIBRARIES}
     ${Fontconfig_LIBRARIES}
     ${FREETYPE_LIBRARIES}
     ${LIBXML2_LIBRARIES}
-    ${JPEG_LIBRARIES}
     ${PNG_LIBRARIES}
     ${TIFF_LIBRARIES}
+    ${JPEG_LIBRARIES}
     ${ZLIB_LIBRARIES}
     ${PLATFORM_SYSTEM_LIBRARIES}
 )
@@ -241,9 +242,9 @@ set(PDFMM_HEADERS_DEPENDS
     ${Fontconfig_INCLUDE_DIRS}
     ${FREETYPE_INCLUDE_DIRS}
     ${LIBXML2_INCLUDE_DIRS}
-    ${JPEG_INCLUDE_DIR}
     ${PNG_INCLUDE_DIR}
     ${TIFF_INCLUDE_DIR}
+    ${JPEG_INCLUDE_DIR} 
     ${ZLIB_INCLUDE_DIR}
     ${PLATFORM_SYSTEM_HEADERS}
 )
