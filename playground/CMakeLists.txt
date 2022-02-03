@@ -11,8 +11,8 @@ set(CMAKE_CONFIGURATION_TYPES "${CMAKE_BUILD_TYPE}")
 project(pdfmm)
 enable_testing() # Needed to enable "make test" from binary dir
 
-if ("${PDFMM_DIR}" STREQUAL "")
-    message("ARCH is not set. Run the boostrap scripts")
+if ("${ARCH}" STREQUAL "")
+    message(FATAL_ERROR "ARCH is not set. Run the boostrap scripts")
 endif()
 
 if ("${PDFMM_DIR}" STREQUAL "")
@@ -25,7 +25,7 @@ if ("${DEPS_PATH}" STREQUAL "")
 endif()
 
 if(NOT EXISTS "${DEPS_PATH}")
-    message("Deps path doesn't exists: try fetch git submodules")
+    message(FATAL_ERROR "Deps path doesn't exists: try fetch git submodules")
 endif()
 
 if (MSVC)
