@@ -1506,7 +1506,7 @@ void PdfEncryptSHABase::ComputeEncryptionKey()
     // Seed once for all
     srand((unsigned)time(nullptr));
 
-    for (int i = 0; i < m_keyLength; i++)
+    for (unsigned i = 0; i < m_keyLength; i++)
         m_encryptionKey[i] = rand() % 255;
 }
     

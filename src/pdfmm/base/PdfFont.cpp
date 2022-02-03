@@ -646,7 +646,6 @@ bool PdfFont::tryConvertToGIDs(const std::string_view& utf8Str, std::vector<unsi
     {
         // NOTE: This is a best effort strategy. It's not intended to
         // be accurate in loaded fonts
-        bool success = true;
         auto it = utf8Str.begin();
         auto end = utf8Str.end();
 
