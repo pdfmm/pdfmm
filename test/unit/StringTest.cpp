@@ -22,81 +22,53 @@ TEST_CASE("testStringUtf8")
     REQUIRE(PdfString(stringJapUtf8) == stringJapUtf8);
 }
 
-TEST_CASE("testGetStringUtf8")
+TEST_CASE("testPdfDocEncoding")
 {
-    const string src1 = "Hello World!";
-    const string src2 = src1;
-    const string src3 = "「Po\tDoFo」は今から日本語も話せます。";
+    const string src = "This string contains PdfDocEncoding Characters: ÄÖÜ";
 
     // Normal ascii string should be converted to UTF8
-    PdfString str1(src1.c_str());
-    string res1 = str1.GetString();
-
-    INFO("testing const char* ASCII -> UTF8");
-    REQUIRE(src1 == res1);
-
-    // Normal string string should be converted to UTF8
-    PdfString str2(src2);
-    string res2 = str2.GetString();
-
-    INFO("testing string ASCII -> UTF8");
-    REQUIRE(src2 == res2);
-
-    // UTF8 data in string cannot be converted as we do not know it is UTF8
-    PdfString str3(src3);
-    string res3 = str3.GetString();
-
-    INFO("testing string UTF8 -> UTF8");
-    REQUIRE(res3 != src3);
+    PdfString str(src);
+    REQUIRE(str == src);
+    REQUIRE(str.GetState() == PdfStringState::PdfDocEncoding);
 }
 
 TEST_CASE("testEscapeBrackets")
 {
     // Test balanced brackets ansi
-    const char* ascii = "Hello (balanced) World";
-    const char* asciiExpect = "(Hello \\(balanced\\) World)";
+    string_view balanced = "Hello (balanced) World";
+    string_view balancedExpect = "(Hello \\(balanced\\) World)";
 
-    PdfString pdfStrAscii(ascii);
+    PdfString pdfStrAscii(balanced);
     PdfVariant varAscii(pdfStrAscii);
     string strAscii;
     varAscii.ToString(strAscii);
 
     REQUIRE(pdfStrAscii.GetState() == PdfStringState::PdfDocEncoding);
-    REQUIRE(strAscii == asciiExpect);
+    REQUIRE(strAscii == balancedExpect);
 
     // Test un-balanced brackets ansi
-    const char* ascii2 = "Hello ((unbalanced World";
-    const char* asciiExpect2 = "(Hello \\(\\(unbalanced World)";
+    string_view unbalanced = "Hello ((unbalanced World";
+    string_view unbalancedExpect = "(Hello \\(\\(unbalanced World)";
 
-    PdfString pdfStrAscii2(ascii2);
+    PdfString pdfStrAscii2(unbalanced);
     PdfVariant varAscii2(pdfStrAscii2);
     string strAscii2;
     varAscii2.ToString(strAscii2);
 
-    REQUIRE(strAscii2 == asciiExpect2);
+    REQUIRE(strAscii2 == unbalancedExpect);
 
-    // Test balanced brackets unicode
-    const char* unicode = "Hello (balanced) World";
+    string_view utf16HexStr =
+        "<FEFF00480065006C006C006F0020002800280075006E00620061006C0061006E00630065006400200057006F0072006C00640029>";
 
-    // Force unicode string
-    PdfString pdfStrUnic(unicode);
-    PdfVariant varUnic(pdfStrUnic);
-    string strUnic;
-    varUnic.ToString(strUnic);
-
-    REQUIRE(strUnic == unicode);
-
-    string_view utf16Expect =
-        "<28FEFF00480065006C006C006F0020005C28005C280075006E00620061006C0061006E00630065006400200057006F0072006C006429>";
-
+    string_view utf16Expected = "Hello ((unbalanced World)";
     // Test reading the unicode string back in
     PdfVariant varRead;
     PdfTokenizer tokenizer;
-    PdfMemoryInputDevice input(utf16Expect);
+    PdfMemoryInputDevice input(utf16HexStr);
     (void)tokenizer.ReadNextVariant(input, varRead);
     REQUIRE(varRead.GetDataType() == PdfDataType::String);
-    REQUIRE(varRead.GetString() == unicode);
-    REQUIRE(varRead.GetString() == pdfStrUnic);
+    auto str = varRead.GetString().GetString();
+    REQUIRE(varRead.GetString() == utf16Expected);
 }
 
 TEST_CASE("testWriteEscapeSequences")
