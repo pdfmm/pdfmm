@@ -17,13 +17,12 @@ static void deconstruct(const PdfDate& date, short& y, unsigned char& m, unsigne
     unsigned char& h, unsigned char& M, unsigned char& s);
 static void deconstruct(const PdfDate& date, date::year_month_day& ymd, date::hh_mm_ss<chrono::seconds>& time);
 
-static void checkExpected(const string_view& date, bool expectedValid)
+static void checkExpected(const string_view& datestr, bool expectedValid)
 {
     bool valid;
     try
     {
-        PdfString tmp(date);
-        PdfDate date(tmp);
+        PdfDate date(datestr);
         valid = true;
     }
     catch (...)
@@ -31,13 +30,13 @@ static void checkExpected(const string_view& date, bool expectedValid)
         valid = false;
     }
 
-    if (date.empty())
+    if (datestr.empty())
     {
         INFO("NULL");
     }
     else
     {
-        INFO(date);
+        INFO(datestr);
     }
 
     REQUIRE(valid == expectedValid);
@@ -57,13 +56,14 @@ TEST_CASE("testCreateDateFromString")
     checkExpected("D:201201012359", true);
     checkExpected("D:2012010123595", false);
     checkExpected("D:20120101235959", true);
-    checkExpected("D:20120120135959Z", false);
-    checkExpected("D:20120120135959Z0", false);
-    checkExpected("D:20120120135959Z00", true);
-    checkExpected("D:20120120135959Z00'", false);
-    checkExpected("D:20120120135959Z00'0", false);
-    checkExpected("D:20120120135959Z00'00", false);
-    checkExpected("D:20120120135959Z00'00'", true);
+    checkExpected("D:20120120135959Z", true);
+    checkExpected("D:20120120135959Z00", false);
+    checkExpected("D:20120120135959+0", false);
+    checkExpected("D:20120120135959+00", true);
+    checkExpected("D:20120120135959+00'", false);
+    checkExpected("D:20120120135959+00'0", false);
+    checkExpected("D:20120120135959+00'00", true);
+    checkExpected("D:20120120135959-00'00", true);
 
     checkExpected("INVALID", false);
 }
@@ -96,8 +96,7 @@ TEST_CASE("testAdditional")
 
 TEST_CASE("testParseDateValid")
 {
-    PdfString tmp("D:20120205132456");
-    PdfDate date(tmp);
+    PdfDate date("D:20120205132456");
 
     short y; unsigned char m, d, h, M, s;
     deconstruct(date, y, m, d, h, M, s);

@@ -51,7 +51,7 @@ public:
      *         in PDF format. It has to be a string of
      *         the format  (D:YYYYMMDDHHmmSSOHH'mm').
      */
-    PdfDate(const PdfString& date);
+    PdfDate(const std::string_view& dateStr);
 
     /** \returns the date and time of this PdfDate in
      *  seconds since epoch.

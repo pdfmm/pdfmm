@@ -139,6 +139,10 @@ public:
     bool operator!=(const std::string& str) const;
     bool operator!=(const std::string_view& view) const;
 
+    /** Default cast to utf8 string view
+     */
+    operator std::string_view() const;
+
 private:
     /** Construct a new PdfString from a 0-terminated string.
      *

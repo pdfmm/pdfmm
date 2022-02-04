@@ -274,6 +274,12 @@ bool PdfString::operator!=(const string_view& view) const
     return m_data->Chars != view;
 }
 
+PdfString::operator string_view() const
+{
+    evaluateString();
+    return m_data->Chars;
+}
+
 void PdfString::initFromUtf8String(const string_view& view)
 {
     if (view.data() == nullptr)

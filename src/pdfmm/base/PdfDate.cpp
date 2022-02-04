@@ -53,7 +53,7 @@ PdfDate::PdfDate(const chrono::seconds& secondsFromEpoch, const nullable<chrono:
 {
 }
 
-PdfDate::PdfDate(const PdfString& sDate)
+PdfDate::PdfDate(const string_view& dateStr)
 {
     int y = 0;
     int m = 0;
@@ -67,7 +67,7 @@ PdfDate::PdfDate(const PdfString& sDate)
     int zoneHour = 0;
     int zoneMin = 0;
 
-    const char* date = sDate.GetString().data();
+    const char* date = dateStr.data();
     if (date == nullptr)
         goto Error;
 
@@ -81,7 +81,7 @@ PdfDate::PdfDate(const PdfString& sDate)
     PEEK_DATE_CHAR(date, zoneShift);
 
     if (!ParseFixLenNumber(date, 4, 0, 9999, y))
-        return;
+        goto Error;
 
     PEEK_DATE_CHAR(date, zoneShift);
 
