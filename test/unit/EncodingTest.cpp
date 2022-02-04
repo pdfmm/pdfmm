@@ -31,11 +31,11 @@ TEST_CASE("testDifferences")
     REQUIRE(difference.GetCount() == 0);
 
     // Adding 0 should work
-    difference.AddDifference(0, 0, "A");
+    difference.AddDifference(0, "A");
     REQUIRE(difference.GetCount() == 1);
 
     // Adding 255 should work
-    difference.AddDifference(255, 0, "B");
+    difference.AddDifference(255, "B");
     REQUIRE(difference.GetCount() == 2);
 
     // Convert to array
@@ -60,7 +60,7 @@ TEST_CASE("testDifferences")
     expected.Add(static_cast<int64_t>(255));
     expected.Add(PdfName("X"));
 
-    difference.AddDifference(255, 0, "X");
+    difference.AddDifference(255, "X");
 
     difference.ToArray(data);
 
@@ -83,11 +83,11 @@ TEST_CASE("testDifferences")
     expected.Add(static_cast<int64_t>(255));
     expected.Add(PdfName("X"));
 
-    difference.AddDifference(1, 0, "B");
-    difference.AddDifference(2, 0, "C");
-    difference.AddDifference(4, 0, "D");
-    difference.AddDifference(5, 0, "E");
-    difference.AddDifference(9, 0, "F");
+    difference.AddDifference(1, "B");
+    difference.AddDifference(2, "C");
+    difference.AddDifference(4, "D");
+    difference.AddDifference(5, "E");
+    difference.AddDifference(9, "F");
 
     difference.ToArray(data);
 
@@ -100,50 +100,43 @@ TEST_CASE("testDifferences")
     char32_t value;
     REQUIRE(difference.Contains(0, name, value));
     REQUIRE(name == "A");
-    REQUIRE(static_cast<int>(value) == 0x0041);
+    REQUIRE(static_cast<int>(value) == 0x41);
 
     REQUIRE(difference.Contains(9, name, value));
     REQUIRE(name == "F");
-    REQUIRE(static_cast<int>(value) == 0x0046);
+    REQUIRE(static_cast<int>(value) == 0x46);
 
     REQUIRE(difference.Contains(255, name, value));
     REQUIRE(name  == "X");
-    REQUIRE(static_cast<int>(value) == 0x0058);
+    REQUIRE(static_cast<int>(value) == 0x58);
 
-    REQUIRE(difference.Contains(100, name, value));
+    REQUIRE(!difference.Contains(100, name, value));
 }
 
 TEST_CASE("testDifferencesObject")
 {
     PdfDifferenceList difference;
-    difference.AddDifference(1, 0, "B");
-    difference.AddDifference(2, 0, "C");
-    difference.AddDifference(4, 0, "D");
-    difference.AddDifference(5, 0, "E");
-    difference.AddDifference(9, 0, "F");
+    difference.AddDifference(1, "B");
+    difference.AddDifference(2, "C");
+    difference.AddDifference(4, "D");
+    difference.AddDifference(5, "E");
+    difference.AddDifference(9, "F");
 
     PdfDifferenceEncoding encoding(difference, PdfEncodingMapFactory::MacRomanEncodingInstance());
-
 
     // Check for encoding key
     PdfMemDocument doc;
     PdfName name;
-    PdfObject* obj;
-    REQUIRE(encoding.TryGetExportObject(doc.GetObjects(), name, obj));
-    REQUIRE(obj != nullptr);
-    REQUIRE(obj->GetDictionary().HasKey("Encoding"));
-
-    PdfObject* pKey = obj->GetDictionary().GetKey("Encoding");
-    REQUIRE(pKey->IsReference());
-
-    PdfObject* pEncoding = doc.GetObjects().GetObject(pKey->GetReference());
+    PdfObject* encodingObj;
+    REQUIRE(encoding.TryGetExportObject(doc.GetObjects(), name, encodingObj));
+    REQUIRE(encodingObj != nullptr);
 
     // Test BaseEncoding
-    PdfObject* pBase = pEncoding->GetDictionary().GetKey("BaseEncoding");
-    REQUIRE(pBase->GetName() == "MacRomanEncoding");
+    PdfObject* baseObj = encodingObj->GetDictionary().GetKey("BaseEncoding");
+    REQUIRE(baseObj->GetName() == "MacRomanEncoding");
 
     // Test differences
-    PdfObject* diff = pEncoding->GetDictionary().GetKey("Differences");
+    PdfObject* diff = encodingObj->GetDictionary().GetKey("Differences");
     PdfArray expected;
 
     expected.Add(static_cast<int64_t>(1));
@@ -163,20 +156,22 @@ TEST_CASE("testDifferencesObject")
 
 TEST_CASE("testDifferencesEncoding")
 {
-    PdfMemDocument doc;
-
     // Create a differences encoding where A and B are exchanged
     PdfDifferenceList difference;
-    difference.AddDifference(0x0041, 0, "B");
-    difference.AddDifference(0x0042, 0, "A");
-    difference.AddDifference(0x0043, 0, "D");
+    difference.AddDifference((unsigned char)'A', "B");
+    difference.AddDifference((unsigned char)'B', "A");
+    difference.AddDifference((unsigned char)'C', "D");
 
-    PdfEncoding encoding (std::make_shared<PdfDifferenceEncoding>(difference, PdfEncodingMapFactory::WinAnsiEncodingInstance()));
+    PdfMemDocument doc;
 
-    auto encoded = PdfString(encoding.ConvertToEncoded("BAABC"));
-    //REQUIRE(encoded == ""); // TODO
-    auto unicode = encoding.ConvertToUtf8(encoded);
-    REQUIRE(encoded == unicode);
+    PdfFontCreateParams params;
+    params.Encoding = PdfEncoding(std::make_shared<PdfDifferenceEncoding>(difference, PdfEncodingMapFactory::WinAnsiEncodingInstance()));
+    auto font = doc.GetFontManager().GetStandard14Font(PdfStandard14FontType::Helvetica, params);
+
+    string_view unicode = "BAABC";
+    auto encoded = font->GetEncoding().ConvertToEncoded(unicode);
+    REQUIRE(encoded == "ABBAC");
+    REQUIRE(params.Encoding.ConvertToUtf8(PdfString::FromRaw(encoded)) == unicode);
 }
 
 TEST_CASE("testUnicodeNames")
@@ -257,8 +252,8 @@ TEST_CASE("testGetCharCode")
     outofRangeHelper(macRomanEncoding);
 
     PdfDifferenceList difference;
-    difference.AddDifference(0x0041, 0, "B");
-    difference.AddDifference(0x0042, 0, "A");
+    difference.AddDifference(0x0041, "B");
+    difference.AddDifference(0x0042, "A");
     PdfEncoding differenceEncoding(std::make_shared<PdfDifferenceEncoding>(difference, PdfEncodingMapFactory::WinAnsiEncodingInstance()));
     outofRangeHelper(differenceEncoding);
 }

@@ -2389,16 +2389,11 @@ PdfDifferenceList::PdfDifferenceList() { }
 
 void PdfDifferenceList::AddDifference(unsigned char code, char32_t codePoint)
 {
-    this->AddDifference(code, codePoint, PdfDifferenceEncoding::UnicodeIDToName(codePoint));
+    this->addDifference(code, codePoint, PdfDifferenceEncoding::UnicodeIDToName(codePoint));
 }
 
-void PdfDifferenceList::AddDifference(unsigned char code, char32_t codePoint,
-    const PdfName& name, bool explicitNames)
+void PdfDifferenceList::AddDifference(unsigned char code, const PdfName& name, bool explicitNames)
 {
-    Difference dif;
-    dif.Code = code;
-    dif.Name = name;
-
     // In type3 fonts, glyph names are explicit keys from the font's CharProcs
     // dictionary, therefore they have no meaning.
     // By setting unicodeValue to nCode, we keep PdfEncodingDifference::Contains
@@ -2407,21 +2402,29 @@ void PdfDifferenceList::AddDifference(unsigned char code, char32_t codePoint,
     // font's encoding is unicode-compatible, to preserve the characters' codes
     // in the process. This seems to be Adobe Reader's behaviour as well.
     if (explicitNames)
-        dif.CodePoint = code;
+        addDifference(code, code, name);
     else
-        dif.CodePoint = codePoint;
+        addDifference(code, PdfDifferenceEncoding::NameToUnicodeID(name), name);
+}
+
+void PdfDifferenceList::addDifference(unsigned char code, char32_t codePoint, const PdfName& name)
+{
+    Difference diff;
+    diff.Code = code;
+    diff.Name = name;
+    diff.CodePoint = codePoint;
 
     pair<iterator, iterator> it =
-        std::equal_range(m_differences.begin(), m_differences.end(), dif, DifferenceComparatorPredicate());
+        std::equal_range(m_differences.begin(), m_differences.end(), diff, DifferenceComparatorPredicate());
 
     if (it.first != it.second)
     {
         // replace existing object
-        *it.first = dif;
+        *it.first = diff;
     }
     else
     {
-        m_differences.insert(it.first, dif);
+        m_differences.insert(it.first, diff);
     }
 }
 
@@ -2557,8 +2560,7 @@ unique_ptr<PdfDifferenceEncoding> PdfDifferenceEncoding::Create(
             }
             else if (diff.IsName())
             {
-                char32_t unicodeValue = PdfDifferenceEncoding::NameToUnicodeID(diff.GetName());
-                difference.AddDifference(static_cast<unsigned>(curCode), unicodeValue, diff.GetName(), explicitNames);
+                difference.AddDifference(static_cast<unsigned>(curCode), diff.GetName(), explicitNames);
                 curCode++;
             }
         }

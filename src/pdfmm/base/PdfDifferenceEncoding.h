@@ -54,11 +54,10 @@ public:
     /** Add a difference to the object.
      *
      *  \param name unicode code point of the difference (0 to 255 are legal values)
-     *  \param codePoint actual unicode value for nCode; can be 0
      *  \param name name of the different code point or .notdef if none
      *  \param explicitNames if true, the unicode value is set to nCode as name is meaningless (Type3 fonts)
      */
-    void AddDifference(unsigned char code, char32_t codePoint, const PdfName& name, bool explicitNames = false);
+    void AddDifference(unsigned char code, const PdfName& name, bool explicitNames = false);
 
     /** Tests if the specified code is part of the
      *  differences.
@@ -93,6 +92,7 @@ public:
     const_iterator end() const { return m_differences.end(); }
 
 private:
+    void addDifference(unsigned char code, char32_t codePoint, const PdfName& name);
     bool contains(unsigned char code, PdfName& name, char32_t& codePoint);
 
     struct DifferenceComparatorPredicate
