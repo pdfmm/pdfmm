@@ -141,12 +141,15 @@ bool PdfEncoding::TryConvertToEncoded(const string_view& str, charbuff& encoded)
         // Add used gid to the font mapping afferent code points,
         // and append the returned code unit to encoded string
         unsigned cpOffset = 0;
+        PdfCharCode codeUnit;
         for (unsigned i = 0; i < gids.size(); i++)
         {
             unsigned char cpsSpanSize = backwardMap[i];
             span<char32_t> span(cps.data() + cpOffset, cpsSpanSize);
-            auto unit = getCharCode(font, gids[i], span);
-            unit.AppendTo(encoded);
+            if (!tryGetCharCode(font, gids[i], span, codeUnit))
+                return false;
+
+            codeUnit.AppendTo(encoded);
             cpOffset += cpsSpanSize;
         }
 
@@ -154,25 +157,26 @@ bool PdfEncoding::TryConvertToEncoded(const string_view& str, charbuff& encoded)
     }
 }
 
-PdfCharCode PdfEncoding::getCharCode(PdfFont& font, unsigned gid, const unicodeview& codePoints) const
+bool PdfEncoding::tryGetCharCode(PdfFont& font, unsigned gid, const unicodeview& codePoints, PdfCharCode& codeUnit) const
 {
     if (font.IsSubsettingEnabled())
     {
-        return font.AddSubsetGIDSafe(gid, codePoints).Unit;
+        codeUnit = font.AddSubsetGIDSafe(gid, codePoints).Unit;
+        return true;
     }
     else
     {
         if (IsDynamicEncoding())
         {
-            return font.AddCharCodeSafe(gid, codePoints);
+            codeUnit = font.AddCharCodeSafe(gid, codePoints);
+            return true;
         }
         else
         {
-            PdfCharCode codeUnit;
             if (!GetToUnicodeMapSafe().TryGetCharCode(codePoints, codeUnit))
-                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "The encoding doesn't support these characters");
+                return false;
 
-            return codeUnit;
+            return true;
         }
     }
 }

@@ -26,7 +26,7 @@ class PDFMM_API PdfDifferenceList
     {
         unsigned char Code = 0;
         PdfName Name;
-        char32_t CodePoint = U'\0';
+        char32_t MappedCodePoint = U'\0';
     };
 
     typedef std::vector<Difference> List;
@@ -59,19 +59,15 @@ public:
      */
     void AddDifference(unsigned char code, const PdfName& name, bool explicitNames = false);
 
-    /** Tests if the specified code is part of the
-     *  differences.
+    /** Get the mapped code point from a char code
      *
      *  \param code test if the given code is part of the differences
-     *  \param name write the associated name into this object if the
-     *               code is part of the difference
      *  \param codePoint write the associated unicode value of the name to this value
      *
      *  \returns true if the code is part of the difference
      */
-    bool Contains(unsigned char code, PdfName& name, char32_t& codePoint) const;
-
-    bool ContainsUnicodeValue(char32_t codePoint, unsigned char& code) const;
+    bool TryGetMappedName(unsigned char code, const PdfName*& name) const;
+    bool TryGetMappedName(unsigned char code, const PdfName*& name, char32_t& codePoint) const;
 
     /** Convert the PdfEncodingDifference to an array
      *
@@ -93,7 +89,7 @@ public:
 
 private:
     void addDifference(unsigned char code, char32_t codePoint, const PdfName& name);
-    bool contains(unsigned char code, PdfName& name, char32_t& codePoint);
+    bool contains(unsigned char code, const PdfName*& name, char32_t& codePoint);
 
     struct DifferenceComparatorPredicate
     {
@@ -160,9 +156,14 @@ protected:
     bool tryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const override;
     bool tryGetCodePoints(const PdfCharCode& codeUnit, std::vector<char32_t>& codePoints) const override;
 
- private:
+private:
+    void buildReverseMap();
+
+private:
     PdfDifferenceList m_differences;
     PdfEncodingMapConstPtr m_baseEncoding;
+    bool m_reverseMapBuilt;
+    std::unordered_map<char32_t, unsigned char> m_reverseMap;
 };
 
 };

@@ -96,21 +96,21 @@ TEST_CASE("testDifferences")
         REQUIRE(expected[i] == data[i]);
 
     // Test if contains works correctly
-    PdfName name;
+    const PdfName* name;
     char32_t value;
-    REQUIRE(difference.Contains(0, name, value));
-    REQUIRE(name == "A");
+    REQUIRE(difference.TryGetMappedName(0, name, value));
+    REQUIRE(*name == "A");
     REQUIRE(static_cast<int>(value) == 0x41);
 
-    REQUIRE(difference.Contains(9, name, value));
-    REQUIRE(name == "F");
+    REQUIRE(difference.TryGetMappedName(9, name, value));
+    REQUIRE(*name == "F");
     REQUIRE(static_cast<int>(value) == 0x46);
 
-    REQUIRE(difference.Contains(255, name, value));
-    REQUIRE(name  == "X");
+    REQUIRE(difference.TryGetMappedName(255, name, value));
+    REQUIRE(*name  == "X");
     REQUIRE(static_cast<int>(value) == 0x58);
 
-    REQUIRE(!difference.Contains(100, name, value));
+    REQUIRE(!difference.TryGetMappedName(100, name, value));
 }
 
 TEST_CASE("testDifferencesObject")
@@ -168,10 +168,13 @@ TEST_CASE("testDifferencesEncoding")
     params.Encoding = PdfEncoding(std::make_shared<PdfDifferenceEncoding>(difference, PdfEncodingMapFactory::WinAnsiEncodingInstance()));
     auto font = doc.GetFontManager().GetStandard14Font(PdfStandard14FontType::Helvetica, params);
 
-    string_view unicode = "BAABC";
-    auto encoded = font->GetEncoding().ConvertToEncoded(unicode);
-    REQUIRE(encoded == "ABBAC");
-    REQUIRE(params.Encoding.ConvertToUtf8(PdfString::FromRaw(encoded)) == unicode);
+    charbuff encoded;
+    INFO("'C' in \"BAABC\" is already reserved for mapping in 'D'");
+    REQUIRE(!font->GetEncoding().TryConvertToEncoded("BAABC", encoded));
+    encoded = font->GetEncoding().ConvertToEncoded("BAABI");
+    REQUIRE(encoded == "ABBAI");
+    auto unicode = params.Encoding.ConvertToUtf8(PdfString::FromRaw(encoded));
+    REQUIRE(unicode == "BAABI");
 }
 
 TEST_CASE("testUnicodeNames")

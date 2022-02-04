@@ -185,7 +185,7 @@ namespace mm
         bool tryConvertEncodedToCIDs(const std::string_view& encoded, std::vector<PdfCID>& cids) const;
         void writeCIDMapping(PdfObject& cmapObj, const PdfFont& font, const std::string_view& baseFont) const;
         void writeToUnicodeCMap(PdfObject& cmapObj) const;
-        PdfCharCode getCharCode(PdfFont& font, unsigned gid, const unicodeview& codePoints) const;
+        bool tryGetCharCode(PdfFont& font, unsigned gid, const unicodeview& codePoints, PdfCharCode& unit) const;
 
     private:
         size_t m_Id;

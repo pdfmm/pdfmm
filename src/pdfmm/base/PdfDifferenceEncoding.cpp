@@ -2412,7 +2412,7 @@ void PdfDifferenceList::addDifference(unsigned char code, char32_t codePoint, co
     Difference diff;
     diff.Code = code;
     diff.Name = name;
-    diff.CodePoint = codePoint;
+    diff.MappedCodePoint = codePoint;
 
     pair<iterator, iterator> it =
         std::equal_range(m_differences.begin(), m_differences.end(), diff, DifferenceComparatorPredicate());
@@ -2428,12 +2428,18 @@ void PdfDifferenceList::addDifference(unsigned char code, char32_t codePoint, co
     }
 }
 
-bool PdfDifferenceList::Contains(unsigned char code, PdfName& name, char32_t& codePoint) const
+bool PdfDifferenceList::TryGetMappedName(unsigned char code, const PdfName*& name) const
+{
+    char32_t codePoint;
+    return const_cast<PdfDifferenceList&>(*this).contains(code, name, codePoint);
+}
+
+bool PdfDifferenceList::TryGetMappedName(unsigned char code, const PdfName*& name, char32_t& codePoint) const
 {
     return const_cast<PdfDifferenceList&>(*this).contains(code, name, codePoint);
 }
 
-bool PdfDifferenceList::contains(unsigned char code, PdfName& name, char32_t& codePoint)
+bool PdfDifferenceList::contains(unsigned char code, const PdfName*& name, char32_t& codePoint)
 {
     Difference diff;
     diff.Code = code;
@@ -2444,23 +2450,9 @@ bool PdfDifferenceList::contains(unsigned char code, PdfName& name, char32_t& co
 
     if (it.first != it.second)
     {
-        name = it.first->Name;
-        codePoint = it.first->CodePoint;
+        name = &it.first->Name;
+        codePoint = it.first->MappedCodePoint;
         return true;
-    }
-
-    return false;
-}
-
-bool PdfDifferenceList::ContainsUnicodeValue(char32_t codePoint, unsigned char& code) const
-{
-    for (auto& diff : m_differences)
-    {
-        if (diff.CodePoint == codePoint)
-        {
-            code = diff.Code;
-            return true;
-        }
     }
 
     return false;
@@ -2468,20 +2460,20 @@ bool PdfDifferenceList::ContainsUnicodeValue(char32_t codePoint, unsigned char& 
 
 void PdfDifferenceList::ToArray(PdfArray& arr) const
 {
-    int64_t nLastCode = -2;
+    int64_t lastCode = -2;
     arr.Clear();
     for (auto& diff : m_differences)
     {
-        if (diff.Code != nLastCode + 1)
+        if (diff.Code != lastCode + 1)
         {
-            nLastCode = diff.Code;
+            lastCode = diff.Code;
 
-            arr.Add(nLastCode);
+            arr.Add(lastCode);
             arr.Add(diff.Name);
         }
         else
         {
-            nLastCode++;
+            lastCode++;
             arr.Add(diff.Name);
         }
     }
@@ -2496,7 +2488,8 @@ PdfDifferenceEncoding::PdfDifferenceEncoding(const PdfDifferenceList& difference
     const PdfEncodingMapConstPtr& baseEncoding) :
     PdfEncodingMapOneByte({ 1, 1, PdfCharCode(0), PdfCharCode(0xFF) }),
     m_differences(difference),
-    m_baseEncoding(baseEncoding)
+    m_baseEncoding(baseEncoding),
+    m_reverseMapBuilt(false)
 {
     if (baseEncoding == nullptr)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Base encoding must be non null");
@@ -2598,24 +2591,24 @@ void PdfDifferenceEncoding::getExportObject(PdfIndirectObjectList& objects, PdfN
 
 bool PdfDifferenceEncoding::tryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const
 {
-    unsigned char value;
-    if (m_differences.ContainsUnicodeValue(codePoint, value))
+    const_cast<PdfDifferenceEncoding&>(*this).buildReverseMap();
+    auto found = m_reverseMap.find(codePoint);
+    if (found == m_reverseMap.end())
     {
-        codeUnit = { value, 1 };
-        return true;
+        codeUnit = { };
+        return false;
     }
-    else
-    {
-        return m_baseEncoding->TryGetCharCode(codePoint, codeUnit);
-    }
+
+    codeUnit = PdfCharCode(found->second);
+    return true;
 }
 
 bool PdfDifferenceEncoding::tryGetCodePoints(const PdfCharCode& codeUnit, vector<char32_t>& codePoints) const
 {
     PDFMM_ASSERT(codeUnit.Code < 256);
-    PdfName name;
+    const PdfName* name;
     char32_t codePoint;
-    if (m_differences.Contains((unsigned char)codeUnit.Code, name, codePoint))
+    if (m_differences.TryGetMappedName((unsigned char)codeUnit.Code, name, codePoint))
     {
         codePoints.push_back(codePoint);
         return true;
@@ -2624,6 +2617,42 @@ bool PdfDifferenceEncoding::tryGetCodePoints(const PdfCharCode& codeUnit, vector
     {
         return m_baseEncoding->TryGetCodePoints(codeUnit, codePoints);
     }
+}
+
+void PdfDifferenceEncoding::buildReverseMap()
+{
+    if (m_reverseMapBuilt)
+        return;
+
+    auto& limits = m_baseEncoding->GetLimits();
+    vector<char32_t> codePoints;
+    const PdfName* name;
+
+    for (unsigned code = limits.FirstChar.Code, last = limits.LastChar.Code; code <= last; code++)
+    {
+        // Iterate all the codes of the encoding. NOTE: It's safe to assume
+        // the base encoding is a one byte encoding
+        codePoints.resize(1);
+        if (m_differences.TryGetMappedName((unsigned char)code, name, codePoints[0]))
+        {
+            // If there's a difference, use that instead
+            m_reverseMap[codePoints[0]] = code;
+            continue;
+        }
+
+        // If there's no difference use the mapping of the base encoding
+        if (!m_baseEncoding->TryGetCodePoints(PdfCharCode(code), codePoints))
+        {
+            // This should never happen
+            PDFMM_ASSERT(false);
+            continue;
+        }
+
+        // NOTE: It's safe to assume the base encoding maps to single code point
+        m_reverseMap[codePoints[0]] = code;
+    }
+
+    m_reverseMapBuilt = true;
 }
 
 char32_t PdfDifferenceEncoding::NameToUnicodeID(const PdfName& name)
