@@ -77,13 +77,10 @@ public:
     inline bool IsHex() const { return m_isHex; }
 
     /**
-     * PdfStrings are either PdfDocEncoded, or Unicode encoded (UTF-16BE or UTF-8) strings.
-     *
-     * This function returns true if this is an Unicode string object.
-     *
-     * \returns true if this is an Unicode string.
+     * A PdfString can be an unevaluated raw buffer, or
+     * can be a PdfDocEncoding or Unicode string
      */
-    bool IsUnicode() const;
+    PdfStringState GetState() const;
 
     bool IsEmpty() const;
 
@@ -158,16 +155,9 @@ private:
     static bool canPerformComparison(const PdfString& lhs, const PdfString& rhs);
 
 private:
-    enum class StringState : uint8_t
-    {
-        RawBuffer,
-        PdfDocEncoding,
-        Unicode
-    };
-
     struct StringData
     {
-        StringState State;
+        PdfStringState State;
         charbuff Chars;
     };
 

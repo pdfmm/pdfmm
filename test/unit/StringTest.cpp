@@ -61,7 +61,7 @@ TEST_CASE("testEscapeBrackets")
     string strAscii;
     varAscii.ToString(strAscii);
 
-    REQUIRE(!pdfStrAscii.IsUnicode());
+    REQUIRE(pdfStrAscii.GetState() == PdfStringState::PdfDocEncoding);
     REQUIRE(strAscii == asciiExpect);
 
     // Test un-balanced brackets ansi
@@ -167,11 +167,11 @@ TEST_CASE("testEmptyString")
 
 TEST_CASE("testInitFromUtf8")
 {
-    const char* utf8 = "This string contains UTF-8 Characters: ÄÖÜ.";
+    string_view utf8 = "This string contains non PdfDocEncoding Characters: ЙКЛМ";
     const PdfString str(utf8);
 
-    REQUIRE(str.IsUnicode());
-    REQUIRE(str.GetString().length() == char_traits<char>::length(utf8));
+    REQUIRE(str.GetState() == PdfStringState::Unicode);
+    REQUIRE(str.GetString().length() == utf8.length());
     REQUIRE(str.GetString() == string(utf8));
 }
 

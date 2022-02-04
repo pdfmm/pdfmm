@@ -122,6 +122,13 @@ enum class PdfALevel
     L3U,
 };
 
+enum class PdfStringState : uint8_t
+{
+    RawBuffer,
+    PdfDocEncoding,
+    Unicode
+};
+
 /** The default PDF Version used by new PDF documents
  *  in pdfmm.
  */
