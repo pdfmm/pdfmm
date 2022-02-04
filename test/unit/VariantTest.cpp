@@ -11,6 +11,18 @@
 using namespace std;
 using namespace mm;
 
+static string_view s_ObjectData =
+"242 0 obj\n"
+"<<\n"
+"/Type /Metadata\n"
+"/Length 4\n"
+"/Subtype /XML\n"
+">>\n"
+"stream\n"
+"test\n"
+"endstream\n"
+"endobj";
+
 static void TestObjectsDirty(
     const PdfObject& objBool,
     const PdfObject& objNum,
@@ -72,7 +84,24 @@ TEST_CASE("testIsDirtyTrue")
     objStream->GetOrCreateStream().Set("Test"sv);
     auto objVariant = doc.GetObjects().CreateObject(PdfVariant(false));
 
-    // IsDirty should be false after construction
+    // IsDirty should be true after construction
+    TestObjectsDirty(*objBool, *objNum, *objReal, *objStr, *objRef, *objArray, *objDict, *objStream, *objVariant, true);
+
+    (void)objBool->GetBool();
+    (void)objNum->GetNumber();
+    (void)objReal->GetReal();
+    (void)objStr->GetString();
+    (void)objName->GetName();
+    (void)objRef->GetReference();
+    (void)objArray->GetArray();
+    (void)objDict->GetDictionary();
+    (void)objVariant->GetBool();
+
+    string temp;
+    PdfStringOutputDevice out(temp);
+    doc.Save(out);
+
+    // IsDirty should be false after saving
     TestObjectsDirty(*objBool, *objNum, *objReal, *objStr, *objRef, *objArray, *objDict, *objStream, *objVariant, false);
 
     (void)objBool->GetBool();
@@ -99,10 +128,10 @@ TEST_CASE("testIsDirtyTrue")
     objStream->MustGetStream().Set("Test1"sv);
     *objVariant = *objNum;
 
-    // IsDirty should be false after calling setter
+    // IsDirty should be true after calling setter
     TestObjectsDirty(*objBool, *objNum, *objReal, *objStr, *objRef, *objArray, *objDict, *objStream, *objVariant, true);
 
-    auto device = std::make_shared<PdfMemoryInputDevice>("Test"sv);
+    auto device = std::make_shared<PdfMemoryInputDevice>(s_ObjectData);
     PdfParserObject parserObj(doc, *device);
     parserObj.SetLoadOnDemand(false);
     parserObj.ParseFile(nullptr);
@@ -110,9 +139,10 @@ TEST_CASE("testIsDirtyTrue")
 
     // IsDirty should be false after reading an object stream
     REQUIRE(stream->GetLength() == 4);
-    INFO("STREAM    IsDirty() == true"); REQUIRE(!parserObj.IsDirty());
+    INFO("STREAM    IsDirty() == false"); REQUIRE(!parserObj.IsDirty());
 
-    stream->Set("Test1"sv);
+    PdfMemoryInputStream in("Test1"sv);
+    stream->SetRawData(in);
 
     // IsDirty should be false after writing an object stream
     REQUIRE(stream->GetLength() == 5);
