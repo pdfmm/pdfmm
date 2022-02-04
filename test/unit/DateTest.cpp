@@ -102,7 +102,7 @@ TEST_CASE("testParseDateValid")
     deconstruct(date, y, m, d, h, M, s);
 
     INFO("Year"); REQUIRE(y == 2012);
-    INFO("Month"); REQUIRE((m + 1) == 2);
+    INFO("Month"); REQUIRE(m == 2);
     INFO("Day"); REQUIRE(d == 5);
     INFO("Hour"); REQUIRE(h == 13);
     INFO("Minute"); REQUIRE(M == 24);
