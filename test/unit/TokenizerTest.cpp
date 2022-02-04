@@ -17,21 +17,21 @@ static void TestStreamIsNextToken(const string_view& buffer, const char* tokens[
 
 TEST_CASE("testArrays")
 {
-    Test("[]", PdfDataType::Array, "[ ]");
-    Test("[ ]", PdfDataType::Array);
-    Test("[ / ]", PdfDataType::Array, "[ / ]"); // empty names are legal, too!
-    Test("[ / [ ] ]", PdfDataType::Array, "[ / [ ] ]"); // empty names are legal, too!
-    Test("[/[]]", PdfDataType::Array, "[ / [ ] ]"); // empty names are legal, too!
-    Test("[ 1 2 3 4 ]", PdfDataType::Array);
-    Test("[1 2 3 4]", PdfDataType::Array, "[ 1 2 3 4 ]");
-    Test("[ 2 (Hallo Welt!) 3.500000 /FMC ]", PdfDataType::Array);
-    Test("[ [ 1 2 ] (Hallo Welt!) 3.500000 /FMC ]", PdfDataType::Array);
-    Test("[/ImageA/ImageB/ImageC]", PdfDataType::Array, "[ /ImageA /ImageB /ImageC ]");
-    Test("[<530464995927cef8aaf46eb953b93373><530464995927cef8aaf46eb953b93373>]", PdfDataType::Array, "[ <530464995927CEF8AAF46EB953B93373> <530464995927CEF8AAF46EB953B93373> ]");
-    Test("[ 2 0 R (Test Data) 4 << /Key /Data >> 5 0 R ]", PdfDataType::Array, "[ 2 0 R (Test Data) 4 <<\n/Key /Data\n>> 5 0 R ]");
-    Test("[<</key/name>>2 0 R]", PdfDataType::Array, "[ <<\n/key /name\n>> 2 0 R ]");
-    Test("[<<//name>>2 0 R]", PdfDataType::Array, "[ <<\n/ /name\n>> 2 0 R ]");
-    Test("[ 27.673200 27.673200 566.256000 651.295000 ]", PdfDataType::Array);
+    Test("[]", PdfDataType::Array);
+    Test("[ ]", PdfDataType::Array, "[]");
+    Test("[ / ]", PdfDataType::Array, "[/]"); // empty names are legal, too!
+    Test("[ / [ ] ]", PdfDataType::Array, "[/[]]"); // empty names are legal, too!
+    Test("[/[]]", PdfDataType::Array, "[/[]]"); // empty names are legal, too!
+    Test("[ 1 2 3 4 ]", PdfDataType::Array, "[ 1 2 3 4]");
+    Test("[1 2 3 4]", PdfDataType::Array, "[ 1 2 3 4]");
+    Test("[ 2 (Hallo Welt!) 3.500000 /FMC ]", PdfDataType::Array, "[ 2(Hallo Welt!) 3.5/FMC]");
+    Test("[ [ 1 2 ] (Hallo Welt!) 3.500000 /FMC ]", PdfDataType::Array, "[[ 1 2](Hallo Welt!) 3.5/FMC]");
+    Test("[/ImageA/ImageB/ImageC]", PdfDataType::Array, "[/ImageA/ImageB/ImageC]");
+    Test("[<530464995927cef8aaf46eb953b93373><530464995927cef8aaf46eb953b93373>]", PdfDataType::Array, "[<530464995927CEF8AAF46EB953B93373><530464995927CEF8AAF46EB953B93373>]");
+    Test("[ 2 0 R (Test Data) 4 << /Key /Data >> 5 0 R ]", PdfDataType::Array, "[ 2 0 R(Test Data) 4<</Key/Data>> 5 0 R]");
+    Test("[<</key/name>>2 0 R]", PdfDataType::Array, "[<</key/name>> 2 0 R]");
+    Test("[<<//name>>2 0 R]", PdfDataType::Array, "[<<//name>> 2 0 R]");
+    Test("[ 27.673200 27.673200 566.256000 651.295000 ]", PdfDataType::Array, "[ 27.6732 27.6732 566.256 651.295]");
 }
 
 TEST_CASE("testBool")
@@ -89,10 +89,10 @@ TEST_CASE("testNumbers")
 {
     Test("145", PdfDataType::Number);
     Test("-12", PdfDataType::Number);
-    Test("3.141230", PdfDataType::Real);
-    Test("-2.970000", PdfDataType::Real);
+    Test("3.141230", PdfDataType::Real, "3.14123");
+    Test("-2.970000", PdfDataType::Real, "-2.97");
     Test("0", PdfDataType::Number);
-    Test("4.", PdfDataType::Real, "4.000000");
+    Test("4.", PdfDataType::Real, "4");
 }
 
 TEST_CASE("testReference")
@@ -132,12 +132,12 @@ TEST_CASE("testString")
 
 TEST_CASE("testDictionary")
 {
-    const char* pszDictIn =
+    string_view dictIn =
         "<< /CheckBox#C3#9Cbersetzungshinweis(False)/Checkbox#C3#9Cbersetzungstabelle(False) >>";
-    const char* pszDictOut =
-        "<<\n/CheckBox#C3#9Cbersetzungshinweis (False)\n/Checkbox#C3#9Cbersetzungstabelle (False)\n>>";
+    string_view dictOut =
+        "<</CheckBox#C3#9Cbersetzungshinweis(False)/Checkbox#C3#9Cbersetzungstabelle(False)>>";
 
-    Test(pszDictIn, PdfDataType::Dictionary, pszDictOut);
+    Test(dictIn, PdfDataType::Dictionary, dictOut);
 }
 
 TEST_CASE("testTokens")
@@ -176,8 +176,7 @@ TEST_CASE("testLocale")
     // Test with a locale thate uses "," instead of "." for doubles 
     char* old = setlocale(LC_ALL, "de_DE");
 
-    const char* pszNumber = "3.140000";
-    Test(pszNumber, PdfDataType::Real, pszNumber);
+    Test("3.140000", PdfDataType::Real, "3.14");
 
     setlocale(LC_ALL, old);
 }
