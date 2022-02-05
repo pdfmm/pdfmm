@@ -2605,7 +2605,9 @@ bool PdfDifferenceEncoding::tryGetCharCode(char32_t codePoint, PdfCharCode& code
 
 bool PdfDifferenceEncoding::tryGetCodePoints(const PdfCharCode& codeUnit, vector<char32_t>& codePoints) const
 {
-    PDFMM_ASSERT(codeUnit.Code < 256);
+    if (codeUnit.Code >= 256)
+        return false;
+
     const PdfName* name;
     char32_t codePoint;
     if (m_differences.TryGetMappedName((unsigned char)codeUnit.Code, name, codePoint))

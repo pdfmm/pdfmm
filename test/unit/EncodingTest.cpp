@@ -243,8 +243,9 @@ TEST_CASE("testUnicodeNames")
         }
     }
 
-    // FIX-ME: This test is fishy. It's not clear what "count"
-    // means and why (65535 - duplicatesCount) is different than count
+    // FIX-ME: This test is fishy. It's not clear what "codeCount"
+    // means and why (65535 - duplicatesCount) is different than codeCount
+    // Possibly there are more duplicates
     INFO(cmn::Format("Compared codes count: {}", codeCount));
     INFO(cmn::Format("Duplicate codes count: {}", duplicatesCount));
     REQUIRE(codeCount == 65421);
@@ -261,31 +262,31 @@ TEST_CASE("testGetCharCode")
     outofRangeHelper(macRomanEncoding);
 
     PdfDifferenceList difference;
-    difference.AddDifference(0x0041, "B");
-    difference.AddDifference(0x0042, "A");
+    difference.AddDifference((unsigned char)'A', "B");
+    difference.AddDifference((unsigned char)'B', "A");
     PdfEncoding differenceEncoding(std::make_shared<PdfDifferenceEncoding>(difference, PdfEncodingMapFactory::WinAnsiEncodingInstance()));
     outofRangeHelper(differenceEncoding);
 }
 
 TEST_CASE("testToUnicodeParse")
 {
-    const char* toUnicode =
+    string_view toUnicode =
         "3 beginbfrange\n"
         "<0001> <0004> <1001>\n"
         "<0005> <000A> [<000A> <0009> <0008> <0007> <0006> <0005>]\n"
         "<000B> <000F> <100B>\n"
         "endbfrange\n";
-    charbuff encodedStr("\x0\x1\x0\x2\x0\x3\x0\x4\x0\x5\x0\x6\x0\x7\x0\x8\x0\x9\x0\xA\x0\xB\x0\xC\x0\xD\x0\xE\x0\xF\x0\x0"sv);
-    string expected(""sv);
+    charbuff encodedStr("\x00\x01\x00\x02\x00\x03\x00\x04\x00\x05\x00\x06\x00\x07\x00\x08\x00\x09\x00\x0A\x00\x0B\x00\x0C\x00\x0D\x00\x0E\x00\x0F"sv);
+    string expected("\xE1\x80\x81\xE1\x80\x82\xE1\x80\x83\xE1\x80\x84\x0A\x09\x08\x07\x06\x05\xE1\x80\x8B\xE1\x80\x8C\xE1\x80\x8D\xE1\x80\x8E\xE1\x80\x8F"sv);
 
     PdfMemDocument doc;
     auto toUnicodeObj = doc.GetObjects().CreateDictionaryObject();
-    toUnicodeObj->GetOrCreateStream().Set(toUnicode, strlen(toUnicode));
+    toUnicodeObj->GetOrCreateStream().Set(toUnicode);
 
     PdfEncoding encoding(std::make_shared<PdfIdentityEncoding>(2), PdfCMapEncoding::Create(*toUnicodeObj));
 
-    auto utf8str = encoding.ConvertToUtf8(PdfString(encodedStr));
-    //REQUIRE(utf8str == expected); // TODO
+    auto utf8str = encoding.ConvertToUtf8(PdfString::FromRaw(encodedStr));
+    REQUIRE(utf8str == expected);
 
     const char* toUnicodeInvalidTests[] =
     {
@@ -312,18 +313,16 @@ TEST_CASE("testToUnicodeParse")
         try
         {
             PdfIndirectObjectList invalidList;
-            PdfObject* strmInvalidObject;
+            auto invalidObject = invalidList.CreateDictionaryObject();
+            invalidObject->GetOrCreateStream().Set(toUnicodeInvalidTests[i], strlen(toUnicodeInvalidTests[i]));
 
-            strmInvalidObject = invalidList.CreateObject(PdfVariant(PdfDictionary()));
-            strmInvalidObject->GetStream()->Set(toUnicodeInvalidTests[i], strlen(toUnicodeInvalidTests[i]));
+            PdfEncoding encodingTestInvalid(std::make_shared<PdfIdentityEncoding>(2), PdfCMapEncoding::Create(*invalidObject));
 
-            PdfEncoding encodingTestInvalid(std::make_shared<PdfIdentityEncoding>(2));
-
-            auto unicodeStringTestInvalid = encodingTestInvalid.ConvertToUtf8(PdfString(encodedStr));
+            auto unicodeStringTestInvalid = encodingTestInvalid.ConvertToUtf8(PdfString::FromRaw(encodedStr));
 
             // exception not thrown - should never get here
             // TODO not all invalid input throws an exception (e.g. no hex digits in <WXYZ>)
-            //CPPUNIT_ASSERT( false );
+            FAIL();
         }
         catch (PdfError&)
         {
@@ -338,8 +337,8 @@ TEST_CASE("testToUnicodeParse")
 
 void outofRangeHelper(PdfEncoding& encoding)
 {
-    REQUIRE(encoding.GetCodePoint(encoding.GetFirstChar()) != U'\0');
+    (void)encoding.GetCodePoint(encoding.GetFirstChar());
     REQUIRE(encoding.GetCodePoint(encoding.GetFirstChar().Code - 1) == U'\0');
-    REQUIRE(encoding.GetCodePoint(encoding.GetLastChar()) == U'\0');
+    (void)encoding.GetCodePoint(encoding.GetLastChar());
     REQUIRE(encoding.GetCodePoint(encoding.GetLastChar().Code + 1) == U'\0');
 }

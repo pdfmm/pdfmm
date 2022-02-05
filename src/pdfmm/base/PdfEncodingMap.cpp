@@ -547,7 +547,9 @@ bool PdfBuiltInEncoding::tryGetCharCode(char32_t codePoint, PdfCharCode& codeUni
 
 bool PdfBuiltInEncoding::tryGetCodePoints(const PdfCharCode& codeUnit, vector<char32_t>& codePoints) const
 {
-    PDFMM_ASSERT(codeUnit.Code < 256);
+    if (codeUnit.Code >= 256)
+        return false;
+
     const char32_t* cpUnicodeTable = this->GetToUnicodeTable();
     codePoints.push_back(cpUnicodeTable[codeUnit.Code]);
     return true;
