@@ -133,15 +133,15 @@ public:
      *  \param name a standard character name
      *  \returns an unicode code point
      */
-    static char32_t NameToUnicodeID(const PdfName& name);
-    static char32_t NameToUnicodeID(const std::string_view& name);
+    static char32_t NameToCodePoint(const PdfName& name);
+    static char32_t NameToCodePoint(const std::string_view& name);
 
     /** Convert an unicode code point to a standard character name
      *
      *  \param codePoint a code point
      *  \returns a standard character name of /.notdef if none could be found
      */
-    static PdfName UnicodeIDToName(char32_t codePoint);
+    static PdfName CodePointToName(char32_t codePoint);
 
     /**
      * Get read-only access to the object containing the actual

@@ -2389,7 +2389,7 @@ PdfDifferenceList::PdfDifferenceList() { }
 
 void PdfDifferenceList::AddDifference(unsigned char code, char32_t codePoint)
 {
-    this->addDifference(code, codePoint, PdfDifferenceEncoding::UnicodeIDToName(codePoint));
+    this->addDifference(code, codePoint, PdfDifferenceEncoding::CodePointToName(codePoint));
 }
 
 void PdfDifferenceList::AddDifference(unsigned char code, const PdfName& name, bool explicitNames)
@@ -2404,7 +2404,7 @@ void PdfDifferenceList::AddDifference(unsigned char code, const PdfName& name, b
     if (explicitNames)
         addDifference(code, code, name);
     else
-        addDifference(code, PdfDifferenceEncoding::NameToUnicodeID(name), name);
+        addDifference(code, PdfDifferenceEncoding::NameToCodePoint(name), name);
 }
 
 void PdfDifferenceList::addDifference(unsigned char code, char32_t codePoint, const PdfName& name)
@@ -2655,12 +2655,12 @@ void PdfDifferenceEncoding::buildReverseMap()
     m_reverseMapBuilt = true;
 }
 
-char32_t PdfDifferenceEncoding::NameToUnicodeID(const PdfName& name)
+char32_t PdfDifferenceEncoding::NameToCodePoint(const PdfName& name)
 {
-    return NameToUnicodeID((string_view)name.GetString());
+    return NameToCodePoint((string_view)name.GetString());
 }
 
-char32_t PdfDifferenceEncoding::NameToUnicodeID(const string_view& name)
+char32_t PdfDifferenceEncoding::NameToCodePoint(const string_view& name)
 {
     for (unsigned i = 0; nameToUnicodeTab[i].name != nullptr; i++)
     {
@@ -2675,7 +2675,7 @@ char32_t PdfDifferenceEncoding::NameToUnicodeID(const string_view& name)
         auto code = name.substr(3);
         // force base16 IF it's 4 characters line
         unsigned val;
-        if (std::from_chars(code.data() + 1, name.data() + name.length(), val, code.length() == 4 ? 16 : 10).ec != std::errc())
+        if (std::from_chars(code.data(), name.data() + name.length(), val, code.length() == 4 ? 16 : 10).ec != std::errc())
             PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoNumber, "Could not read number");
 
         return (char32_t)val;
@@ -2684,7 +2684,7 @@ char32_t PdfDifferenceEncoding::NameToUnicodeID(const string_view& name)
     return U'\0';
 }
 
-PdfName PdfDifferenceEncoding::UnicodeIDToName(char32_t inCodePoint)
+PdfName PdfDifferenceEncoding::CodePointToName(char32_t inCodePoint)
 {
     for (unsigned i = 0; UnicodeToNameTab[i].name; i++)
     {
@@ -2696,13 +2696,12 @@ PdfName PdfDifferenceEncoding::UnicodeIDToName(char32_t inCodePoint)
     for (unsigned i = 0; nameToUnicodeTab[i].name; i++)
     {
         if (nameToUnicodeTab[i].u == inCodePoint)
-            return PdfName(UnicodeToNameTab[i].name);
+            return PdfName(nameToUnicodeTab[i].name);
     }
 
     // if we get here, then we are looking up an undefined codepoint
-    // so we'll just give it SOME name..
-    constexpr unsigned BUFFER_LEN = 11;
-    char buffer[BUFFER_LEN];
-    cmn::FormatTo(buffer, BUFFER_LEN, "cp0x{:X}", (unsigned)inCodePoint);
+    // so we'll just give it an arbitrary name..
+    string buffer;
+    cmn::FormatTo(buffer, "uni{:04x}", (unsigned)inCodePoint);
     return PdfName(buffer);
 }

@@ -10,6 +10,7 @@
 #include "TestExtension.h"
 
 #include <ostream>
+#include <iostream>
 
 using namespace std;
 using namespace mm;
@@ -211,37 +212,42 @@ TEST_CASE("testUnicodeNames")
         nullptr
     };
 
-    int count = 0;
-    for (int i = 0; i <= 0xFFFF; i++)
+    unsigned duplicatesCount = 0;
+    unsigned codeCount = 0;
+    for (int i = 0; i < 0xFFFF; i++)
     {
-        PdfName name = PdfDifferenceEncoding::UnicodeIDToName(static_cast<char32_t>(i));
+        PdfName name = PdfDifferenceEncoding::CodePointToName(static_cast<char32_t>(i));
+        char32_t id = PdfDifferenceEncoding::NameToCodePoint(name);
 
-        char32_t id = PdfDifferenceEncoding::NameToUnicodeID(name);
-
-        bool found = false;
+        bool duplicateFound = false;
         const char** duplicate = duplicates;
         while (*duplicate != nullptr)
         {
             if (name == *duplicate)
             {
-                found = true;
+                duplicateFound = true;
                 break;
             }
 
             duplicate++;
         }
 
-        if (!found)
+        if (!duplicateFound)
         {
-            // Does not work because of too many duplicates...
-            //CPPUNIT_ASSERT_EQUAL_MESSAGE( name.GetName(), id, static_cast<pdf_utf16be>(i) );
             if (static_cast<char32_t>(i) == id)
-                count++;
+                codeCount++;
+        }
+        else
+        {
+            duplicatesCount++;
         }
     }
 
-    INFO("Compared codes count");
-    REQUIRE(count == 65422);
+    // FIX-ME: This test is fishy. It's not clear what "count"
+    // means and why (65535 - duplicatesCount) is different than count
+    INFO(cmn::Format("Compared codes count: {}", codeCount));
+    INFO(cmn::Format("Duplicate codes count: {}", duplicatesCount));
+    REQUIRE(codeCount == 65421);
 }
 
 TEST_CASE("testGetCharCode")
