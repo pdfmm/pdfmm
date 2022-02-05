@@ -52,8 +52,6 @@ TEST_CASE("testDefault")
     testEncrypt(*encrypt);
 }
 
-#ifndef PODOFO_HAVE_OPENSSL_NO_RC4
-
 TEST_CASE("testRC4")
 {
     auto encrypt = PdfEncrypt::CreatePdfEncrypt("user", "podofo", s_protection,
@@ -113,7 +111,6 @@ TEST_CASE("testRC4v2_128")
     testAuthenticate(*encrypt, 128, 3);
     testEncrypt(*encrypt);
 }
-#endif // PODOFO_HAVE_OPENSSL_NO_RC4
 
 TEST_CASE("testAESV2")
 {
@@ -127,7 +124,7 @@ TEST_CASE("testAESV2")
     //TestEncrypt(encrypt);
 }
 
-#ifdef PODOFO_HAVE_LIBIDN
+#ifdef PDFMM_HAVE_LIBIDN
 
 TEST_CASE("testAESV3")
 {
@@ -135,13 +132,13 @@ TEST_CASE("testAESV3")
         PdfEncryptAlgorithm::AESV3,
         PdfKeyLength::L256);
 
-    TestAuthenticate(encrypt, 256, 5);
+    testAuthenticate(*encrypt, 256, 5);
     // AES decryption is not yet implemented.
     // Therefore we have to disable this test.
     //TestEncrypt(encrypt);
 }
 
-#endif // PODOFO_HAVE_LIBIDN
+#endif // PDFMM_HAVE_LIBIDN
 
 void testAuthenticate(PdfEncrypt& encrypt, unsigned keyLength, unsigned rValue)
 {
@@ -297,38 +294,30 @@ TEST_CASE("testEnableAlgorithms")
     auto enabledAlgorithms = PdfEncrypt::GetEnabledEncryptionAlgorithms();
 
     // By default every algorithms should be enabled
-#ifndef PODOFO_HAVE_OPENSSL_NO_RC4
     REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::RC4V1));
     REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::RC4V2));
-#endif // PODOFO_HAVE_OPENSSL_NO_RC4
     REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::AESV2));
-#ifdef PODOFO_HAVE_LIBIDN
+#ifdef PDFMM_HAVE_LIBIDN
     REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::AESV3));
-#endif // PODOFO_HAVE_LIBIDN
+#endif // PDFMM_HAVE_LIBIDN
 
     PdfEncryptAlgorithm testAlgorithms = PdfEncryptAlgorithm::AESV2;
-#ifndef PODOFO_HAVE_OPENSSL_NO_RC4
     testAlgorithms |= PdfEncryptAlgorithm::RC4V1 | PdfEncryptAlgorithm::RC4V2;
-#endif // PODOFO_HAVE_OPENSSL_NO_RC4
-#ifdef PODOFO_HAVE_LIBIDN
+#ifdef PDFMM_HAVE_LIBIDN
     testAlgorithms |= PdfEncryptAlgorithm::AESV3;
-#endif // PODOFO_HAVE_LIBIDN
+#endif // PDFMM_HAVE_LIBIDN
     REQUIRE(testAlgorithms == PdfEncrypt::GetEnabledEncryptionAlgorithms());
 
     // Disable AES
-#ifndef PODOFO_HAVE_OPENSSL_NO_RC4
     PdfEncrypt::SetEnabledEncryptionAlgorithms(PdfEncryptAlgorithm::RC4V1 |
         PdfEncryptAlgorithm::RC4V2);
 
     REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::RC4V1));
     REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::RC4V2));
-#endif // PODOFO_HAVE_OPENSSL_NO_RC4
     REQUIRE(!PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::AESV2));
 
-#ifndef PODOFO_HAVE_OPENSSL_NO_RC4
     REQUIRE((PdfEncryptAlgorithm::RC4V1 | PdfEncryptAlgorithm::RC4V2) ==
         PdfEncrypt::GetEnabledEncryptionAlgorithms());
-#endif // PODOFO_HAVE_OPENSSL_NO_RC4
 
     PdfObject object;
     object.GetDictionary().AddKey("Filter", PdfName("Standard"));

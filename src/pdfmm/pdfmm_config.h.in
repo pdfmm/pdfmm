@@ -1,3 +1,6 @@
+#ifndef PDFMM_CONFIG_H
+#define PDFMM_CONFIG_H
+
 // Template filled out by CMake
 
 #define PDFMM_VERSION_MAJOR @PDFMM_VERSION_MAJOR@
@@ -13,3 +16,5 @@
 #cmakedefine PDFMM_HAVE_FONTCONFIG
 #cmakedefine PDFMM_HAVE_WIN32GDI
 #cmakedefine PDFMM_HAVE_LIBIDN
+
+#endif // PDFMM_CONFIG_H
