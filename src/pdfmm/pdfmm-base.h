@@ -8,7 +8,6 @@
 #ifndef PDFMM_BASE_H
 #define PDFMM_BASE_H
 
-#include "base/PdfVersion.h"
 #include "base/PdfDeclarations.h"
 #include "base/PdfOperatorUtils.h"
 #include "base/PdfArray.h"

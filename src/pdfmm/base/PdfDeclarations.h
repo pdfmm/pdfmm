@@ -16,14 +16,14 @@
  *        supporting platforms it will be precompiled to speed compilation.
  */
 
-#include "PdfCompilerCompat.h"
-#include "PdfVersion.h"
-
- // Include API macro definitions
+ // Include some base macro definitions
 #include "basedefs.h"
 
 // Include common system files
 #include "baseincludes.h"
+
+#include "PdfCompilerCompat.h"
+#include "PdfVersion.h"
 
 // Error Handling Defines
 #include "PdfError.h"

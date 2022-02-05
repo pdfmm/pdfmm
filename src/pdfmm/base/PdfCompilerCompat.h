@@ -16,8 +16,6 @@
 #error Please include PdfDeclarations.h instead
 #endif
 
-#include "pdfmm_config.h"
-
 #ifndef PDFMM_COMPILE_RC
 
 // Silence some annoying warnings from Visual Studio

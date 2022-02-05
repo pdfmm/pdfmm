@@ -1,9 +1,7 @@
 #ifndef PDFMM_VERSION_H
 #define PDFMM_VERSION_H
 
-#define PDFMM_VERSION_MAJOR 0
-#define PDFMM_VERSION_MINOR 9
-#define PDFMM_VERSION_PATCH 20
+#include <pdfmm_config.h>
 
 /**
  * pdfmm version - 24-bit integer representation.

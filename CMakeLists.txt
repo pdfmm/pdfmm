@@ -108,9 +108,6 @@ configure_file(
 add_custom_target(uninstall "${CMAKE_COMMAND}"
     -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake")
 
-# Check if we are big endian
-TEST_BIG_ENDIAN(TEST_BIG)
-
 if(WIN32)
     # We must explicitly link to the core win32 libraries
     set(PLATFORM_SYSTEM_LIBRARIES kernel32 user32 gdi32 winspool comdlg32 advapi32 shell32 ole32 oleaut32 uuid ws2_32)

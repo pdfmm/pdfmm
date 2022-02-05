@@ -20,4 +20,6 @@
 #define STL_FORMAT_H <pdfmm/compat/format>
 #include <pdfmm/common/Format.h>
 
+#include "pdfmm_config.h"
+
 #endif // PDFMM_BASE_INCLUDES

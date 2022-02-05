@@ -1,20 +1,10 @@
 // Template filled out by CMake
 
-// THIS HEADER IS INCLUDED BY PdfCompilerCompat.h
-// DO NOT INCLUDE DIRECTLY
-
-#ifndef PDF_COMPILER_COMPAT_H
-#error Please include PdfDefines.h instead
-#endif
-
 #define PDFMM_VERSION_MAJOR @PDFMM_VERSION_MAJOR@
 #define PDFMM_VERSION_MINOR @PDFMM_VERSION_MINOR@
 #define PDFMM_VERSION_PATCH @PDFMM_VERSION_PATCH@
 
 // pdfmm configuration options
-
-// Endianess
-#cmakedefine TEST_BIG
 
 // Libraries
 #cmakedefine PDFMM_HAVE_JPEG_LIB

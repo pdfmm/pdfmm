@@ -6,8 +6,8 @@
  * Some rights reserved. See COPYING, AUTHORS.
  */
 
-#ifndef PDF_COMPILERCOMPAT_PRIVATE_H
-#define PDF_COMPILERCOMPAT_PRIVATE_H
+#ifndef PDF_COMPILER_COMPAT_PRIVATE_H
+#define PDF_COMPILER_COMPAT_PRIVATE_H
 
 #ifndef PDF_DEFINES_PRIVATE_H
 #error Include PdfDeclarationsPrivate.h instead
@@ -24,11 +24,25 @@
 #include <cinttypes>
 #include <climits>
 
-#if defined(TEST_BIG)
-#  define PDFMM_IS_BIG_ENDIAN
-#else
-#  define PDFMM_IS_LITTLE_ENDIAN
+#ifdef _WIN32
+// Microsft itself assumes little endian
+// https://github.com/microsoft/STL/blob/b11945b73fc1139d3cf1115907717813930cedbf/stl/inc/bit#L336
+#define PDFMM_IS_LITTLE_ENDIAN
+#else // Unix
+
+#if !defined(__BYTE_ORDER__) || !defined(__ORDER_LITTLE_ENDIAN__) || !defined(__ORDER_BIG_ENDIAN__)
+#error "Byte order macros are not defined"
 #endif
+
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+#define PDFMM_IS_LITTLE_ENDIAN
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+#define PDFMM_IS_BIG_ENDIAN
+#else
+#error "__BYTE_ORDER__ macro has not"
+#endif
+
+#endif // _WIN32
 
 #ifdef PDFMM_IS_LITTLE_ENDIAN
 #define AS_BIG_ENDIAN(n) mm::compat::ByteSwap(n)
@@ -103,4 +117,4 @@ namespace mm::compat
 #endif
 }
 
-#endif // PDF_COMPILERCOMPAT_PRIVATE_H
+#endif // PDF_COMPILER_COMPAT_PRIVATE_H
