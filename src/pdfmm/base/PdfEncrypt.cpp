@@ -1490,8 +1490,9 @@ void PdfEncryptSHABase::ComputeOwnerKey(const unsigned char* ownerpswd, size_t l
 void PdfEncryptSHABase::PreprocessPassword(const string_view& password, unsigned char* outBuf, size_t& len)
 {
     char* password_sasl;
-
-    if (stringprep_profile(password.data(), &password_sasl, "SASLprep", STRINGPREP_NO_UNASSIGNED) != STRINGPREP_OK)
+    // NOTE: password view may be unterminated. Wrap it for stringprep_profile
+    int rc = stringprep_profile(string(password).data(), &password_sasl, "SASLprep", STRINGPREP_NO_UNASSIGNED);
+    if (rc != STRINGPREP_OK)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidPassword, "Error processing password through SASLprep");
 
     size_t l = strlen(password_sasl);
