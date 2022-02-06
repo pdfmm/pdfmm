@@ -36,10 +36,10 @@ constexpr unsigned maxNumberOfIndirectObjects = 8388607;
 
 namespace mm
 {
-    class PdfParserTestWrapper : public PdfParser
+    class PdfParserTest : public PdfParser
     {
     public:
-        PdfParserTestWrapper(PdfIndirectObjectList& objectList, const string_view& buff)
+        PdfParserTest(PdfIndirectObjectList& objectList, const string_view& buff)
             : PdfParser(objectList), m_device(new PdfMemoryInputDevice(buff))
         { }
 
@@ -122,7 +122,7 @@ TEST_CASE("TestReadXRefContents")
         oss << "startxref 0\r\n";
         oss << "%EOF";
         PdfIndirectObjectList objects;
-        PdfParserTestWrapper parser(objects, oss.str());
+        PdfParserTest parser(objects, oss.str());
         parser.ReadXRefContents(0, false);
         // expected to succeed
     }
@@ -155,7 +155,7 @@ TEST_CASE("TestReadXRefContents")
         oss << "startxref 0\r\n";
         oss << "%EOF";
         PdfIndirectObjectList objects;
-        PdfParserTestWrapper parser(objects, oss.str());
+        PdfParserTest parser(objects, oss.str());
         parser.ReadXRefContents(0, false);
         // expected to succeed
     }
@@ -193,7 +193,7 @@ TEST_CASE("TestReadXRefContents")
         oss << "startxref 0\r\n";
         oss << "%EOF";
         PdfIndirectObjectList objects;
-        PdfParserTestWrapper parser(objects, oss.str());
+        PdfParserTest parser(objects, oss.str());
         parser.ReadXRefContents(0, false);
         // succeeds reading badly formed xref entries  - should it?
     }
@@ -261,7 +261,7 @@ TEST_CASE("TestReadXRefContents")
         oss << "%EOF";
 
         PdfIndirectObjectList objects;
-        PdfParserTestWrapper parser(objects, oss.str());
+        PdfParserTest parser(objects, oss.str());
         parser.ReadXRefContents(offsetXrefStm1, false);
         // succeeds in current code - should it?
     }
@@ -338,7 +338,7 @@ TEST_CASE("TestReadXRefContents")
         oss << "%EOF";
 
         PdfIndirectObjectList objects;
-        PdfParserTestWrapper parser(objects, oss.str());
+        PdfParserTest parser(objects, oss.str());
         parser.ReadXRefContents(offsetXrefStm2, false);
         // succeeds in current code - should it?
     }
@@ -414,7 +414,7 @@ TEST_CASE("TestReadXRefContents")
         oss << "%EOF";
 
         PdfIndirectObjectList objects;
-        PdfParserTestWrapper parser(objects, oss.str());
+        PdfParserTest parser(objects, oss.str());
         parser.ReadXRefContents(currentOffset, false);
         // succeeds in current code - should it?
     }
@@ -453,7 +453,7 @@ void testReadXRefSubsection()
         {
             string strInput = generateXRefEntries(PdfParser::GetMaxObjectCount());
             PdfIndirectObjectList objects;
-            PdfParserTestWrapper parser(objects, strInput);
+            PdfParserTest parser(objects, strInput);
             firstObject = 0;
             objectCount = PdfParser::GetMaxObjectCount();
             parser.ReadXRefSubsection(firstObject, objectCount);
@@ -485,7 +485,7 @@ void testReadXRefSubsection()
         {
             string strInput = generateXRefEntries(numXRefEntries);
             PdfIndirectObjectList objects;
-            PdfParserTestWrapper parser(objects, strInput);
+            PdfParserTest parser(objects, strInput);
             firstObject = 0;
             objectCount = PdfParser::GetMaxObjectCount() + 1;
             parser.ReadXRefSubsection(firstObject, objectCount);
@@ -513,7 +513,7 @@ void testReadXRefSubsection()
         // on LLP64 (Win64) systems this allocates 2**31 * sizeof(TXRefEntry) = 2**31 * 16 (smaller than 64-bit address space)
         string strInput = " ";
         PdfIndirectObjectList objects;
-        PdfParserTestWrapper parser(objects, strInput);
+        PdfParserTest parser(objects, strInput);
         firstObject = 1;
         objectCount = numeric_limits<size_t>::max() / 2 - 1;
         parser.ReadXRefSubsection(firstObject, objectCount);
@@ -541,7 +541,7 @@ void testReadXRefSubsection()
         {
             string strInput = " ";
             PdfIndirectObjectList objects;
-            PdfParserTestWrapper parser(objects, strInput);
+            PdfParserTest parser(objects, strInput);
             firstObject = 1;
             objectCount = maxObjects;
             parser.ReadXRefSubsection(firstObject, objectCount);
@@ -584,7 +584,7 @@ void testReadXRefSubsection()
     {
         string strInput = "0000000000 65535 f\r\n";
         PdfIndirectObjectList objects;
-        PdfParserTestWrapper parser(objects, strInput);
+        PdfParserTest parser(objects, strInput);
         firstObject = -5LL;
         objectCount = 5;
         parser.ReadXRefSubsection(firstObject, objectCount);
@@ -623,7 +623,7 @@ void testReadXRefSubsection()
     {
         string strInput = "0000000000 65535 f\r\n";
         PdfIndirectObjectList objects;
-        PdfParserTestWrapper parser(objects, strInput);
+        PdfParserTest parser(objects, strInput);
         firstObject = numeric_limits<unsigned>::max();
         objectCount = numeric_limits<unsigned>::max();
         parser.ReadXRefSubsection(firstObject, objectCount);
@@ -642,7 +642,7 @@ void testReadXRefSubsection()
     {
         string strInput = "0000000000 65535 f\r\n";
         PdfIndirectObjectList objects;
-        PdfParserTestWrapper parser(objects, strInput);
+        PdfParserTest parser(objects, strInput);
         firstObject = numeric_limits<int64_t>::max();
         objectCount = numeric_limits<int64_t>::max();
         parser.ReadXRefSubsection(firstObject, objectCount);
@@ -669,7 +669,7 @@ void testReadXRefSubsection()
     {
         string strInput = " ";
         PdfIndirectObjectList objects;
-        PdfParserTestWrapper parser(objects, strInput);
+        PdfParserTest parser(objects, strInput);
         firstObject = -1LL;
         objectCount = 1;
         parser.ReadXRefSubsection(firstObject, objectCount);
@@ -689,7 +689,7 @@ void testReadXRefSubsection()
     {
         string strInput = " ";
         PdfIndirectObjectList objects;
-        PdfParserTestWrapper parser(objects, strInput);
+        PdfParserTest parser(objects, strInput);
         firstObject = numeric_limits<unsigned>::min();
         objectCount = 1;
         parser.ReadXRefSubsection(firstObject, objectCount);
@@ -709,7 +709,7 @@ void testReadXRefSubsection()
     {
         string strInput = " ";
         PdfIndirectObjectList objects;
-        PdfParserTestWrapper parser(objects, strInput);
+        PdfParserTest parser(objects, strInput);
         firstObject = numeric_limits<int64_t>::min();
         objectCount = 1;
         parser.ReadXRefSubsection(firstObject, objectCount);
@@ -732,7 +732,7 @@ void testReadXRefSubsection()
     {
         string strInput = " ";
         PdfIndirectObjectList objects;
-        PdfParserTestWrapper parser(objects, strInput);
+        PdfParserTest parser(objects, strInput);
         firstObject = numeric_limits<unsigned>::max();
         objectCount = 1;
         parser.ReadXRefSubsection(firstObject, objectCount);
@@ -752,7 +752,7 @@ void testReadXRefSubsection()
     {
         string strInput = " ";
         PdfIndirectObjectList objects;
-        PdfParserTestWrapper parser(objects, strInput);
+        PdfParserTest parser(objects, strInput);
         firstObject = numeric_limits<int64_t>::max();
         objectCount = 1;
         parser.ReadXRefSubsection(firstObject, objectCount);
@@ -772,7 +772,7 @@ void testReadXRefSubsection()
     {
         string strInput = " ";
         PdfIndirectObjectList objects;
-        PdfParserTestWrapper parser(objects, strInput);
+        PdfParserTest parser(objects, strInput);
         firstObject = numeric_limits<size_t>::max();
         objectCount = 1;
         parser.ReadXRefSubsection(firstObject, objectCount);
@@ -794,7 +794,7 @@ void testReadXRefSubsection()
     {
         string strInput = " ";
         PdfIndirectObjectList objects;
-        PdfParserTestWrapper parser(objects, strInput);
+        PdfParserTest parser(objects, strInput);
         REQUIRE(PdfParser::GetMaxObjectCount() > 0);
         firstObject = PdfParser::GetMaxObjectCount();
         objectCount = 1;
@@ -815,7 +815,7 @@ void testReadXRefSubsection()
     {
         string strInput = " ";
         PdfIndirectObjectList objects;
-        PdfParserTestWrapper parser(objects, strInput);
+        PdfParserTest parser(objects, strInput);
         firstObject = 1;
         objectCount = -1LL;
         parser.ReadXRefSubsection(firstObject, objectCount);
@@ -835,7 +835,7 @@ void testReadXRefSubsection()
     {
         string strInput = " ";
         PdfIndirectObjectList objects;
-        PdfParserTestWrapper parser(objects, strInput);
+        PdfParserTest parser(objects, strInput);
         firstObject = 1;
         objectCount = numeric_limits<unsigned>::min();
         parser.ReadXRefSubsection(firstObject, objectCount);
@@ -855,7 +855,7 @@ void testReadXRefSubsection()
     {
         string strInput = " ";
         PdfIndirectObjectList objects;
-        PdfParserTestWrapper parser(objects, strInput);
+        PdfParserTest parser(objects, strInput);
         firstObject = 1;
         objectCount = numeric_limits<int64_t>::min();
         parser.ReadXRefSubsection(firstObject, objectCount);
@@ -879,7 +879,7 @@ void testReadXRefSubsection()
     {
         string strInput = " ";
         PdfIndirectObjectList objects;
-        PdfParserTestWrapper parser(objects, strInput);
+        PdfParserTest parser(objects, strInput);
         firstObject = 1;
         objectCount = numeric_limits<unsigned>::max();
         parser.ReadXRefSubsection(firstObject, objectCount);
@@ -899,7 +899,7 @@ void testReadXRefSubsection()
     {
         string strInput = " ";
         PdfIndirectObjectList objects;
-        PdfParserTestWrapper parser(objects, strInput);
+        PdfParserTest parser(objects, strInput);
         firstObject = 1;
         objectCount = numeric_limits<int64_t>::max();
         parser.ReadXRefSubsection(firstObject, objectCount);
@@ -919,7 +919,7 @@ void testReadXRefSubsection()
     {
         string strInput = " ";
         PdfIndirectObjectList objects;
-        PdfParserTestWrapper parser(objects, strInput);
+        PdfParserTest parser(objects, strInput);
         firstObject = 1;
         objectCount = numeric_limits<size_t>::max();
         parser.ReadXRefSubsection(firstObject, objectCount);
@@ -941,7 +941,7 @@ void testReadXRefSubsection()
     {
         string strInput = " ";
         PdfIndirectObjectList objects;
-        PdfParserTestWrapper parser(objects, strInput);
+        PdfParserTest parser(objects, strInput);
         firstObject = 1;
         objectCount = PdfParser::GetMaxObjectCount();
         parser.ReadXRefSubsection(firstObject, objectCount);
@@ -1023,7 +1023,7 @@ void testReadXRefSubsection()
             {
                 string strInput = " ";
                 PdfIndirectObjectList objects;
-                PdfParserTestWrapper parser(objects, strInput);
+                PdfParserTest parser(objects, strInput);
                 firstObject = s_values[i];
                 objectCount = s_values[j];
 
@@ -1094,7 +1094,7 @@ TEST_CASE("testReadXRefStreamContents")
         oss << "%EOF";
 
         PdfIndirectObjectList objects;
-        PdfParserTestWrapper parser(objects, oss.str());
+        PdfParserTest parser(objects, oss.str());
         parser.ReadXRefStreamContents(offsetXRefObject, false);
         // should succeed
     }
@@ -1801,7 +1801,7 @@ TEST_CASE("testReadObjects")
         oss << "startxref 0\r\n";
         oss << "%EOF";
         PdfIndirectObjectList objects;
-        PdfParserTestWrapper parser(objects, oss.str());
+        PdfParserTest parser(objects, oss.str());
         parser.ReadObjects();
         FAIL("Should throw exception");
     }
@@ -1821,7 +1821,7 @@ TEST_CASE("testIsPdfFile")
     {
         string strInput = "%PDF-1.0";
         PdfIndirectObjectList objects;
-        PdfParserTestWrapper parser(objects, strInput);
+        PdfParserTest parser(objects, strInput);
         REQUIRE(parser.IsPdfFile());
     }
     catch (PdfError&)
@@ -1837,7 +1837,7 @@ TEST_CASE("testIsPdfFile")
     {
         string strInput = "%PDF-1.1";
         PdfIndirectObjectList objects;
-        PdfParserTestWrapper parser(objects, strInput);
+        PdfParserTest parser(objects, strInput);
         REQUIRE(parser.IsPdfFile());
     }
     catch (PdfError&)
@@ -1853,7 +1853,7 @@ TEST_CASE("testIsPdfFile")
     {
         string strInput = "%PDF-1.7";
         PdfIndirectObjectList objects;
-        PdfParserTestWrapper parser(objects, strInput);
+        PdfParserTest parser(objects, strInput);
         REQUIRE(parser.IsPdfFile());
     }
     catch (PdfError&)
@@ -1869,7 +1869,7 @@ TEST_CASE("testIsPdfFile")
     {
         string strInput = "%PDF-1.9";
         PdfIndirectObjectList objects;
-        PdfParserTestWrapper parser(objects, strInput);
+        PdfParserTest parser(objects, strInput);
         REQUIRE(!parser.IsPdfFile());
     }
     catch (PdfError&)
@@ -1885,7 +1885,7 @@ TEST_CASE("testIsPdfFile")
     {
         string strInput = "%PDF-2.0";
         PdfIndirectObjectList objects;
-        PdfParserTestWrapper parser(objects, strInput);
+        PdfParserTest parser(objects, strInput);
         REQUIRE(parser.IsPdfFile());
     }
     catch (PdfError&)
@@ -1901,7 +1901,7 @@ TEST_CASE("testIsPdfFile")
     {
         string strInput = "%!PS-Adobe-2.0";
         PdfIndirectObjectList objects;
-        PdfParserTestWrapper parser(objects, strInput);
+        PdfParserTest parser(objects, strInput);
         REQUIRE(!parser.IsPdfFile());
     }
     catch (PdfError&)
@@ -1917,7 +1917,7 @@ TEST_CASE("testIsPdfFile")
     {
         string strInput = "GIF89a";
         PdfIndirectObjectList objects;
-        PdfParserTestWrapper parser(objects, strInput);
+        PdfParserTest parser(objects, strInput);
         REQUIRE(!parser.IsPdfFile());
     }
     catch (PdfError&)

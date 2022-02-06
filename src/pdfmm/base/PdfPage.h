@@ -32,7 +32,10 @@ class PdfInputStream;
  */
 class PDFMM_API PdfPage final : public PdfDictionaryElement, public PdfCanvas
 {
-public:
+    PDFMM_UNIT_TEST(PdfPageTest);
+    friend class PdfPageTree;
+
+private:
     /** Create a new PdfPage object.
      *  \param size a PdfRect specifying the size of the page (i.e the /MediaBox key) in PDF units
      *  \param parent add the page to this parent
@@ -49,6 +52,7 @@ public:
      */
     PdfPage(PdfObject& obj, const std::deque<PdfObject*>& listOfParents);
 
+public:
     virtual ~PdfPage();
 
     PdfRect GetRect() const override;
