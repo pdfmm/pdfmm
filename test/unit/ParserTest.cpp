@@ -1815,7 +1815,7 @@ TEST_CASE("testReadObjects")
     }
 }
 
-TEST_CASE("TestIsPdfFile")
+TEST_CASE("testIsPdfFile")
 {
     try
     {
@@ -1870,7 +1870,7 @@ TEST_CASE("TestIsPdfFile")
         string strInput = "%PDF-1.9";
         PdfIndirectObjectList objects;
         PdfParserTestWrapper parser(objects, strInput);
-        REQUIRE(parser.IsPdfFile());
+        REQUIRE(!parser.IsPdfFile());
     }
     catch (PdfError&)
     {
@@ -1883,7 +1883,7 @@ TEST_CASE("TestIsPdfFile")
 
     try
     {
-        string strInput = "%PDF-1.99";
+        string strInput = "%PDF-2.0";
         PdfIndirectObjectList objects;
         PdfParserTestWrapper parser(objects, strInput);
         REQUIRE(parser.IsPdfFile());

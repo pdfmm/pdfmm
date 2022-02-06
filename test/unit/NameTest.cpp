@@ -11,10 +11,10 @@
 using namespace mm;
 using namespace std;
 
-void TestName(const string_view& nameStr, const string_view& expectedEncoded);
+void TestEscapedName(const string_view& nameStr, const string_view& expectedEncoded);
 void TestEncodedName(const string_view& pszString, const string_view& pszExpected);
 void TestNameEquality(const string_view& name1, const string_view& name2);
-void TestWrite(const string_view& view, const string_view& expected);
+void TestNameWrite(const string_view& view, const string_view& expected);
 void TestFromEscape(const string_view& name1, const string_view& name2);
 
 TEST_CASE("testParseAndWrite")
@@ -61,10 +61,10 @@ TEST_CASE("testNameEncoding")
     // Test some names. The first argument is the unencoded representation, the second
     // is the expected encoded result. The result must not only be /a/ correct encoded
     // name for the unencoded form, but must be the exact one PoDoFo should produce.
-    TestName("Length With Spaces", "Length#20With#20Spaces");
-    TestName("Length\001\002\003Spaces\177", "Length#01#02#03Spaces#7F");
-    TestName("Length#01#02#03Spaces#7F", "Length#2301#2302#2303Spaces#237F");
-    TestName("Tab\tTest", "Tab#09Test");
+    TestEscapedName("Length With Spaces", "Length#20With#20Spaces");
+    TestEscapedName("Length\001\002\003Spaces", "Length#01#02#03Spaces");
+    TestEscapedName("Length#01#02#03Spaces#7F", "Length#2301#2302#2303Spaces#237F");
+    TestEscapedName("Tab\tTest", "Tab#09Test");
 }
 
 TEST_CASE("testEncodedNames")
@@ -89,10 +89,10 @@ TEST_CASE("testEquality")
 TEST_CASE("testWrite")
 {
     // Make sure all names are written correctly to an output device!
-    TestWrite("Length With Spaces", "/Length#20With#20Spaces");
-    TestWrite("Length\001\002\003Spaces\177", "/Length#01#02#03Spaces#7F");
-    TestWrite("Tab\tTest", "/Tab#09Test");
-    TestWrite("ANPA 723-0 AdPro", "/ANPA#20723-0#20AdPro");
+    TestNameWrite("Length With Spaces", "/Length#20With#20Spaces");
+    TestNameWrite("Length\001\002\003Spaces", "/Length#01#02#03Spaces");
+    TestNameWrite("Tab\tTest", "/Tab#09Test");
+    TestNameWrite("ANPA 723-0 AdPro", "/ANPA#20723-0#20AdPro");
 }
 
 TEST_CASE("testFromEscaped")
@@ -106,7 +106,7 @@ TEST_CASE("testFromEscaped")
 // pszString : internal representation, ie unencoded name
 // pszExpectedEncoded: the encoded string PoDoFo should produce
 //
-void TestName(const string_view& nameStr, const string_view& expectedEncoded)
+void TestEscapedName(const string_view& nameStr, const string_view& expectedEncoded)
 {
     INFO(cmn::Format("Testing name: {}", nameStr));
 
@@ -147,13 +147,13 @@ void TestNameEquality(const string_view& name1Str, const string_view& name2Str)
     INFO(cmn::Format("   -> Name2    Decoded Value: {}", name2.GetString()));
 
     REQUIRE(name1 == name2); // use operator==
-    REQUIRE(name1 != name2); // use operator!=
+    REQUIRE(!(name1 != name2)); // use operator!=
 }
 
-void TestWrite(const string_view& view, const string_view& expected)
+void TestNameWrite(const string_view& view, const string_view& expected)
 {
     PdfName name(view);
-    REQUIRE(name.GetString() == expected);
+    REQUIRE(name.ToString() == expected);
 }
 
 void TestFromEscape(const string_view& name1, const string_view& name2)

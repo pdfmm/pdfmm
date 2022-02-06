@@ -17,7 +17,7 @@ using namespace mm;
 
 static const unordered_map<char32_t, char>& getUTF8ToPdfEncodingMap();
 
-static const char32_t s_cEncoding[256] = {
+static const char32_t s_cEncoding[] = {
     0x0000,
     0x0001,
     0x0002,
