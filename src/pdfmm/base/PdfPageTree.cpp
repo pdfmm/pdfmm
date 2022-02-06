@@ -164,8 +164,9 @@ void PdfPageTree::InsertPages(unsigned atIndex, const vector<PdfObject*>& pages)
 PdfPage* PdfPageTree::CreatePage(const PdfRect& size)
 {
     auto page = new PdfPage(*GetRoot().GetDocument(), size);
-    InsertPage(this->GetPageCount(), &page->GetObject());
-    m_cache.SetPage(this->GetPageCount(), page);
+    unsigned index = this->GetPageCount();
+    InsertPage(index, &page->GetObject());
+    m_cache.SetPage(index, page);
     return page;
 }
 
@@ -192,8 +193,9 @@ void PdfPageTree::CreatePages(const vector<PdfRect>& sizes)
         objects.push_back(&page->GetObject());
     }
 
-    InsertPages(this->GetPageCount(), objects);
-    m_cache.SetPages(this->GetPageCount(), pages);
+    unsigned index = this->GetPageCount();
+    InsertPages(index, objects);
+    m_cache.SetPages(index, pages);
 }
 
 void PdfPageTree::DeletePage(unsigned atIndex)
