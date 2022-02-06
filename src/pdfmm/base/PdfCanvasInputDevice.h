@@ -22,7 +22,7 @@ class PdfObject;
  * contents streams. Let's create a device correctly spanning
  * I/O reads into these
  */
-class PdfCanvasInputDevice : public PdfInputDevice
+class PDFMM_API PdfCanvasInputDevice : public PdfInputDevice
 {
 public:
     PdfCanvasInputDevice(const PdfCanvas& canvas);

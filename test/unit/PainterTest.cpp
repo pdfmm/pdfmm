@@ -16,24 +16,31 @@ static void CompareStreamContent(PdfObjectStream& stream, const string_view& exp
 TEST_CASE("testAppend")
 {
     string_view example = "BT (Hallo) Tj ET";
-    string_view color = " 1.000 1.000 1.000 rg\n";
+    string_view color = " 1 1 1 rg\n";
 
     PdfMemDocument doc;
     PdfPage* page = doc.GetPageTree().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
     auto& contents = page->GetOrCreateContents();
-    contents.GetStreamForAppending().Set(example);
+    auto& stream = contents.GetStreamForAppending();
+    stream.Set(example);
 
-    CompareStreamContent(contents.GetObject().MustGetStream(), example);
+    CompareStreamContent(stream, example);
 
     PdfPainter painter;
     painter.SetCanvas(page);
     painter.SetColor(PdfColor(1.0, 1.0, 1.0));
     painter.FinishDrawing();
 
-    string newContent = (string)example;
-    newContent += color;
+    PdfCanvasInputDevice device(*page);
+    string out;
+    char buffer[4096];
+    while (!device.Eof())
+    {
+        size_t read = device.Read(buffer, 4096);
+        out.append(buffer, read);
+    }
 
-    CompareStreamContent(contents.GetObject().MustGetStream(), newContent);
+    REQUIRE(out == "q\nBT (Hallo) Tj ET\nQ\nq\n1.000 1.000 1.000 rg\nQ\n");
 }
 
 void CompareStreamContent(PdfObjectStream& stream, const string_view& expected)
@@ -42,5 +49,5 @@ void CompareStreamContent(PdfObjectStream& stream, const string_view& expected)
     unique_ptr<char[]> buffer;
     stream.GetFilteredCopy(buffer, length);
 
-    REQUIRE(memcpy(buffer.get(), expected.data(), expected.size()) == 0);
+    REQUIRE(memcmp(buffer.get(), expected.data(), expected.size()) == 0);
 }

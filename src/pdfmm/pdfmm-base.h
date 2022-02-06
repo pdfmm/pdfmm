@@ -34,6 +34,7 @@
 #include "base/PdfFilter.h"
 #include "base/PdfImmediateWriter.h"
 #include "base/PdfInputDevice.h"
+#include "base/PdfCanvasInputDevice.h"
 #include "base/PdfInputStream.h"
 #include "base/PdfLocale.h"
 #include "base/PdfMemoryObjectStream.h"
