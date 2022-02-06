@@ -9,12 +9,13 @@
 #include <PdfTest.h>
 
 #include <pdfmm/private/FreetypePrivate.h>
-#include <fontconfig/fontconfig.h>
 
 using namespace std;
 using namespace mm;
 
 #ifdef PDFMM_HAVE_FONTCONFIG
+
+#include <fontconfig/fontconfig.h>
 
 static bool getFontInfo(FcPattern* font, string& fontFamily, string& fontPath,
     PdfFontStyle& style);
@@ -22,47 +23,25 @@ static void testSingleFont(FcPattern* font);
 
 TEST_CASE("testFonts")
 {
-    FcObjectSet* objectSet = nullptr;
-    FcFontSet* fontSet = nullptr;
-    FcPattern* pattern = nullptr;
-
     // Get all installed fonts
-    pattern = FcPatternCreate();
-    objectSet = FcObjectSetBuild(FC_FAMILY, FC_STYLE, FC_FILE, FC_SLANT, FC_WEIGHT, nullptr);
-    fontSet = FcFontList(nullptr, pattern, objectSet);
+    auto pattern = FcPatternCreate();
+    auto objectSet = FcObjectSetBuild(FC_FAMILY, FC_STYLE, FC_FILE, FC_SLANT, FC_WEIGHT, nullptr);
+    auto fontSet = FcFontList(nullptr, pattern, objectSet);
 
     FcObjectSetDestroy(objectSet);
     FcPatternDestroy(pattern);
 
-    if (fontSet)
+    if (fontSet == nullptr)
     {
-        INFO(cmn::Format("Testing {} fonts", fontSet->nfont));
-        for (int i = 0; i < fontSet->nfont; i++)
-            testSingleFont(fontSet->fonts[i]);
-
-        FcFontSetDestroy(fontSet);
+        INFO("Unable to search for fonts");
+        return;
     }
 
-    // Shut fontconfig down
-    // Causes an assertion in fontconfig FcFini();
-}
+    INFO(cmn::Format("Testing {} fonts", fontSet->nfont));
+    for (int i = 0; i < fontSet->nfont; i++)
+        testSingleFont(fontSet->fonts[i]);
 
-TEST_CASE("testCreateFontFtFace")
-{
-    FT_Face face;
-    FT_Error error;
-    PdfMemDocument doc;
-
-    // TODO: Find font file on disc!
-    error = FT_New_Face(mm::GetFreeTypeLibrary(), "/usr/share/fonts/truetype/msttcorefonts/Arial.ttf", 0, &face);
-
-    if (error == 0)
-    {
-        PdfFont* font = doc.GetFontManager().GetFont(face);
-
-        INFO("Cannot create font from FT_Face");
-        REQUIRE(font != nullptr);
-    }
+    FcFontSetDestroy(fontSet);
 }
 
 void testSingleFont(FcPattern* font)
@@ -83,7 +62,6 @@ void testSingleFont(FcPattern* font)
             params.Style = style;
             auto font = doc.GetFontManager().GetFont(fontFamily, params);
             INFO(cmn::Format("Font failed: {}", fontPath));
-            REQUIRE(font != nullptr);
         }
     }
 }
@@ -126,3 +104,21 @@ bool getFontInfo(FcPattern* pFont, string& fontFamily, string& fontPath,
 }
 
 #endif // PDFMM_HAVE_FONTCONFIG
+
+TEST_CASE("testCreateFontFtFace")
+{
+    FT_Face face;
+    FT_Error error;
+    PdfMemDocument doc;
+
+    // TODO: Find font file on disc!
+    error = FT_New_Face(mm::GetFreeTypeLibrary(), "/usr/share/fonts/truetype/msttcorefonts/Arial.ttf", 0, &face);
+
+    if (error == 0)
+    {
+        PdfFont* font = doc.GetFontManager().GetFont(face);
+
+        INFO("Cannot create font from FT_Face");
+        REQUIRE(font != nullptr);
+    }
+}
