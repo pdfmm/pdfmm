@@ -265,14 +265,12 @@ void testInsert(PdfMemDocument& doc)
         INSERTED_PAGE_FLAG1));
 
     // Insert in middle
-    page = doc.GetPageTree().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+    const unsigned INSERT_POINT = 50;
+    page = doc.GetPageTree().InsertPage(INSERT_POINT, PdfPage::CreateStandardPageSize(PdfPageSize::A4));
     page->GetObject().GetDictionary().AddKey(TEST_PAGE_KEY,
         static_cast<int64_t>(INSERTED_PAGE_FLAG2));
 
-    const unsigned INSERT_POINT = 50;
-    doc.GetPageTree().InsertPage(INSERT_POINT, PdfPage::CreateStandardPageSize(PdfPageSize::A4));
-
-    REQUIRE(isPageNumber(doc.GetPageTree().GetPage(INSERT_POINT + 1), INSERTED_PAGE_FLAG2));
+    REQUIRE(isPageNumber(doc.GetPageTree().GetPage(INSERT_POINT), INSERTED_PAGE_FLAG2));
 }
 
 void testDeleteAll(PdfMemDocument& doc)

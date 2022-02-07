@@ -49,8 +49,8 @@ void PdfPageTreeCache::SetPages(unsigned atIndex, const vector<PdfPage*>& pages)
     for (unsigned i = 0; i < pages.size(); i++)
     {
         // Delete any old pages if it is at the same position
-        PdfPage* pOldPage = GetPage(atIndex + i);
-        delete pOldPage;
+        PdfPage* oldPage = GetPage(atIndex + i);
+        delete oldPage;
 
         // Assign the new page
         m_PageObjs[(size_t)atIndex + i] = pages.at(i);
