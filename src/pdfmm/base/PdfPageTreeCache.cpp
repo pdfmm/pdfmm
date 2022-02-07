@@ -36,7 +36,7 @@ void PdfPageTreeCache::SetPage(unsigned atIndex, PdfPage* page)
     delete oldPage;
 
     if (atIndex >= m_PageObjs.size())
-        m_PageObjs.resize(atIndex + 1);
+        m_PageObjs.resize((size_t)atIndex + 1);
 
     m_PageObjs[atIndex] = page;
 }
@@ -53,17 +53,20 @@ void PdfPageTreeCache::SetPages(unsigned atIndex, const vector<PdfPage*>& pages)
         delete pOldPage;
 
         // Assign the new page
-        m_PageObjs[atIndex + i] = pages.at(i);
+        m_PageObjs[(size_t)atIndex + i] = pages.at(i);
     }
-}
-
-void PdfPageTreeCache::InsertPlaceHolder(unsigned atIndex)
-{
-    m_PageObjs.insert(m_PageObjs.begin() + atIndex, static_cast<PdfPage*>(nullptr));
 }
 
 void PdfPageTreeCache::InsertPlaceHolders(unsigned atIndex, unsigned count)
 {
+    if (atIndex >= m_PageObjs.size())
+    {
+        // Reserve the total space needed and
+        // resize to the the insertion index
+        m_PageObjs.reserve((size_t)atIndex + count);
+        m_PageObjs.resize(atIndex);
+    }
+
     for (unsigned i = 0; i < count; i++)
         m_PageObjs.insert(m_PageObjs.begin() + atIndex + i, static_cast<PdfPage*>(nullptr));
 }

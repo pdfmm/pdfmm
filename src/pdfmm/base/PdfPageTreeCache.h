@@ -22,7 +22,7 @@ class PdfPage;
  */
 class PDFMM_API PdfPageTreeCache final
 {
-    typedef std::deque<PdfPage*> PdfPageList;
+    typedef std::vector<PdfPage*> List;
 
 public:
     /** Construct a new PdfCachedPagesTree.
@@ -57,14 +57,6 @@ public:
     void SetPages(unsigned atIndex, const std::vector<PdfPage*>& pages);
 
     /**
-     * Insert a page placeholder at the given index
-     * therefore the cache has to be updated
-     *
-     * \param atIndex zero based index of the page we are inserting
-     */
-    void InsertPlaceHolder(unsigned atIndex);
-
-    /**
      * Insert several page placeholders at the given index
      * therefore the cache has to be updated
      *
@@ -86,7 +78,7 @@ public:
     void ClearCache();
 
 private:
-    PdfPageList m_PageObjs;
+    List m_PageObjs;
 };
 
 };
