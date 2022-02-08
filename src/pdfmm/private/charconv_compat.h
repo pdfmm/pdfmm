@@ -20,8 +20,11 @@ namespace std
 using chars_format = fast_float::chars_format;
 #endif // USE_FAST_FLOAT_CHARS_FORMAT
 
-inline from_chars_result from_chars(const char* first, const char* last, double& value,
-    chars_format fmt = chars_format::general)
+// NOTE: Don't provide an alias using default
+// parameter since it may create mysterious
+// issues on clang
+inline from_chars_result from_chars(const char* first, const char* last,
+    double& value, chars_format fmt)
 {
     auto ret = fast_float::from_chars(first, last, value, (fast_float::chars_format)fmt);
     return { ret.ptr, ret.ec };
