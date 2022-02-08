@@ -651,6 +651,7 @@ void PdfParser::ReadXRefStreamContents(PdfInputDevice& device, size_t offset, bo
 
 void PdfParser::ReadObjects(PdfInputDevice& device)
 {
+    PDFMM_ASSERT(m_Trailer != nullptr);
     // Check for encryption and make sure that the encryption object
     // is loaded before all other objects
     PdfObject* encrypt = m_Trailer->GetDictionary().GetKey("Encrypt");
@@ -1062,10 +1063,10 @@ void PdfParser::CheckEOFMarker(PdfInputDevice& device)
     else
     {
         // Search for the Marker from the end of the file
-        ssize_t currentPos = device.Tell();
+        ssize_t currentPos = (ssize_t)device.Tell();
 
         bool found = false;
-        while (currentPos >= 0)
+        while (true)
         {
             if (static_cast<size_t>(device.Read(buff, EOFTokenLen)) != EOFTokenLen)
                 PDFMM_RAISE_ERROR(PdfErrorCode::NoEOFToken);
@@ -1077,6 +1078,9 @@ void PdfParser::CheckEOFMarker(PdfInputDevice& device)
             }
 
             currentPos--;
+            if (currentPos < 0)
+                break;
+
             device.Seek(currentPos, ios_base::beg);
         }
 
