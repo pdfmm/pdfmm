@@ -61,6 +61,12 @@ namespace mm
             PdfParser::ReadXRefStreamContents(*m_device, offset, readOnlyTrailer);
         }
 
+        void ReadDocumentStructure()
+        {
+            // call protected method
+            PdfParser::ReadDocumentStructure(*m_device);
+        }
+
         void ReadObjects()
         {
             // call protected method
@@ -1066,7 +1072,7 @@ TEST_CASE("testReadXRefStreamContents")
         size_t offsetEndstream;
 
         // XRef stream with 5 entries
-        size_t lengthXRefObject = 57;
+        size_t lengthXRefObject = 58;
         size_t offsetXRefObject = oss.str().length();
         oss << "2 0 obj ";
         oss << "<< /Type /XRef ";
@@ -1078,7 +1084,7 @@ TEST_CASE("testReadXRefStreamContents")
         oss << ">>\r\n";
         oss << "stream\r\n";
         offsetStream = oss.str().length();
-        oss << "01 0E8A 0\r\n";
+        oss << "01 0E8A 00\r\n";
         oss << "02 0002 00\r\n";
         oss << "02 0002 01\r\n";
         oss << "02 0002 02\r\n";
@@ -1091,10 +1097,12 @@ TEST_CASE("testReadXRefStreamContents")
         // trailer        
         oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref " << offsetXRefObject << "\r\n";
-        oss << "%EOF";
+        oss << "%%EOF";
+
+        auto docBuffer = oss.str();
 
         PdfIndirectObjectList objects;
-        PdfParserTest parser(objects, oss.str());
+        PdfParserTest parser(objects, docBuffer);
         parser.ReadXRefStreamContents(offsetXRefObject, false);
         // should succeed
     }
@@ -1116,8 +1124,9 @@ TEST_CASE("testReadXRefStreamContents")
         size_t offsetEndstream;
 
         // XRef stream
-        size_t lengthXRefObject = 57;
-        size_t offsetXRefObject = 0;
+        size_t lengthXRefObject = 58;
+        size_t offsetXRefObject = 10;
+        oss << "%PDF-1.4\r\n";
         oss << "2 0 obj ";
         oss << "<< /Type /XRef ";
         oss << "/Length " << lengthXRefObject << " ";
@@ -1128,7 +1137,7 @@ TEST_CASE("testReadXRefStreamContents")
         oss << ">>\r\n";
         oss << "stream\r\n";
         offsetStream = oss.str().length();
-        oss << "01 0E8A 0\r\n";
+        oss << "01 0E8A 00\r\n";
         oss << "02 0002 00\r\n";
         oss << "02 0002 01\r\n";
         oss << "02 0002 02\r\n";
@@ -1141,25 +1150,19 @@ TEST_CASE("testReadXRefStreamContents")
         // trailer
         oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref " << offsetXRefObject << "\r\n";
-        oss << "%EOF";
+        oss << "%%EOF";
 
         auto inputStr = oss.str();
         PdfXRefEntries offsets;
         auto device = std::make_shared<PdfMemoryInputDevice>(inputStr);
         PdfMemDocument doc;
+        // Parse a doc using XRef stream with invalid /W entries
         doc.LoadFromDevice(device);
-        PdfXRefStreamParserObject xrefStreamParser(doc, *device, offsets);
-
-        // parse the dictionary then try reading the XRef stream using the invalid /W entries
-        offsets.Enlarge(5);
-        xrefStreamParser.Parse();
-        xrefStreamParser.ReadXRefTable();
         FAIL("Should throw exception");
     }
     catch (PdfError& error)
     {
-        REQUIRE((error.GetError() == PdfErrorCode::NoXRef
-            || error.GetError() == PdfErrorCode::InvalidXRefStream));
+        REQUIRE(error.GetError() == PdfErrorCode::NoXRef);
     }
     catch (exception&)
     {
@@ -1175,8 +1178,9 @@ TEST_CASE("testReadXRefStreamContents")
         size_t offsetEndstream;
 
         // XRef stream
-        size_t lengthXRefObject = 57;
-        size_t offsetXRefObject = 0;
+        size_t lengthXRefObject = 58;
+        size_t offsetXRefObject = 10;
+        oss << "%PDF-1.4\r\n";
         oss << "2 0 obj ";
         oss << "<< /Type /XRef ";
         oss << "/Length " << lengthXRefObject << " ";
@@ -1187,7 +1191,7 @@ TEST_CASE("testReadXRefStreamContents")
         oss << ">>\r\n";
         oss << "stream\r\n";
         offsetStream = oss.str().length();
-        oss << "01 0E8A 0\r\n";
+        oss << "01 0E8A 00\r\n";
         oss << "02 0002 00\r\n";
         oss << "02 0002 01\r\n";
         oss << "02 0002 02\r\n";
@@ -1200,19 +1204,14 @@ TEST_CASE("testReadXRefStreamContents")
         // trailer
         oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref " << offsetXRefObject << "\r\n";
-        oss << "%EOF";
+        oss << "%%EOF";
 
         auto inputStr = oss.str();
         PdfXRefEntries offsets;
         auto device = std::make_shared<PdfMemoryInputDevice>(inputStr);
         PdfMemDocument doc;
+        // Parse a doc using XRef stream with invalid /W entries
         doc.LoadFromDevice(device);
-        PdfXRefStreamParserObject xrefStreamParser(doc, *device, offsets);
-
-        // parse the dictionary then try reading the XRef stream using the invalid /W entries
-        offsets.Enlarge(5);
-        xrefStreamParser.Parse();
-        xrefStreamParser.ReadXRefTable();
         FAIL("Should throw exception");
     }
     catch (PdfError& error)
@@ -1232,8 +1231,9 @@ TEST_CASE("testReadXRefStreamContents")
         size_t offsetEndstream;
 
         // XRef stream
-        size_t lengthXRefObject = 57;
-        size_t offsetXRefObject = 0;
+        size_t lengthXRefObject = 58;
+        size_t offsetXRefObject = 10;
+        oss << "%PDF-1.4\r\n";
         oss << "2 0 obj ";
         oss << "<< /Type /XRef ";
         oss << "/Length " << lengthXRefObject << " ";
@@ -1244,7 +1244,7 @@ TEST_CASE("testReadXRefStreamContents")
         oss << ">>\r\n";
         oss << "stream\r\n";
         offsetStream = oss.str().length();
-        oss << "01 0E8A 0\r\n";
+        oss << "01 0E8A 00\r\n";
         oss << "02 0002 00\r\n";
         oss << "02 0002 01\r\n";
         oss << "02 0002 02\r\n";
@@ -1257,19 +1257,14 @@ TEST_CASE("testReadXRefStreamContents")
         // trailer
         oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref " << offsetXRefObject << "\r\n";
-        oss << "%EOF";
+        oss << "%%EOF";
 
         auto inputStr = oss.str();
         PdfXRefEntries offsets;
         auto device = std::make_shared<PdfMemoryInputDevice>(inputStr);
         PdfMemDocument doc;
+        // Parse a doc using XRef stream with invalid /W entries
         doc.LoadFromDevice(device);
-        PdfXRefStreamParserObject xrefStreamParser(doc, *device, offsets);
-
-        // parse the dictionary then try reading the XRef stream using the invalid /W entries
-        offsets.Enlarge(5);
-        xrefStreamParser.Parse();
-        xrefStreamParser.ReadXRefTable();
         FAIL("Should throw exception");
     }
     catch (PdfError& error)
@@ -1289,8 +1284,9 @@ TEST_CASE("testReadXRefStreamContents")
         size_t offsetEndstream;
 
         // XRef stream
-        size_t lengthXRefObject = 57;
-        size_t offsetXRefObject = 0;
+        size_t lengthXRefObject = 58;
+        size_t offsetXRefObject = 10;
+        oss << "%PDF-1.4\r\n";
         oss << "2 0 obj ";
         oss << "<< /Type /XRef ";
         oss << "/Length " << lengthXRefObject << " ";
@@ -1301,7 +1297,7 @@ TEST_CASE("testReadXRefStreamContents")
         oss << ">>\r\n";
         oss << "stream\r\n";
         offsetStream = oss.str().length();
-        oss << "01 0E8A 0\r\n";
+        oss << "01 0E8A 00\r\n";
         oss << "02 0002 00\r\n";
         oss << "02 0002 01\r\n";
         oss << "02 0002 02\r\n";
@@ -1314,19 +1310,14 @@ TEST_CASE("testReadXRefStreamContents")
         // trailer
         oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref " << offsetXRefObject << "\r\n";
-        oss << "%EOF";
+        oss << "%%EOF";
 
         auto inputStr = oss.str();
         PdfXRefEntries offsets;
         auto device = std::make_shared<PdfMemoryInputDevice>(inputStr);
         PdfMemDocument doc;
+        // Parse a doc using XRef stream with invalid /W entries
         doc.LoadFromDevice(device);
-        PdfXRefStreamParserObject xrefStreamParser(doc, *device, offsets);
-
-        // parse the dictionary then try reading the XRef stream using the invalid /W entries
-        offsets.Enlarge(5);
-        xrefStreamParser.Parse();
-        xrefStreamParser.ReadXRefTable();
         FAIL("Should throw exception");
     }
     catch (PdfError& error)
@@ -1346,8 +1337,9 @@ TEST_CASE("testReadXRefStreamContents")
         size_t offsetEndstream;
 
         // XRef stream
-        size_t lengthXRefObject = 21;
-        size_t offsetXRefObject = 0;
+        size_t lengthXRefObject = 22;
+        size_t offsetXRefObject = 10;
+        oss << "%PDF-1.4\r\n";
         oss << "2 0 obj ";
         oss << "<< /Type /XRef ";
         oss << "/Length " << lengthXRefObject << " ";
@@ -1358,7 +1350,7 @@ TEST_CASE("testReadXRefStreamContents")
         oss << ">>\r\n";
         oss << "stream\r\n";
         offsetStream = oss.str().length();
-        oss << "01 0E8A 0\r\n";
+        oss << "01 0E8A 00\r\n";
         oss << "02 0002 00\r\n";
         offsetEndstream = oss.str().length();
         oss << "endstream\r\n";
@@ -1368,19 +1360,14 @@ TEST_CASE("testReadXRefStreamContents")
         // trailer
         oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref " << offsetXRefObject << "\r\n";
-        oss << "%EOF";
+        oss << "%%EOF";
 
         auto inputStr = oss.str();
         PdfXRefEntries offsets;
         auto device = std::make_shared<PdfMemoryInputDevice>(inputStr);
         PdfMemDocument doc;
+        // Parse a doc using XRef stream with invalid /W entries
         doc.LoadFromDevice(device);
-        PdfXRefStreamParserObject xrefStreamParser(doc, *device, offsets);
-
-        // parse the dictionary then try reading the XRef stream using the invalid /W entries
-        offsets.Enlarge(5);
-        xrefStreamParser.Parse();
-        xrefStreamParser.ReadXRefTable();
         FAIL("Should throw exception");
     }
     catch (PdfError& error)
@@ -1399,8 +1386,9 @@ TEST_CASE("testReadXRefStreamContents")
         size_t offsetStream;
         size_t offsetEndstream;
 
-        size_t lengthXRefObject = 57;
-        size_t offsetXRefObject = oss.str().length();
+        size_t lengthXRefObject = 58;
+        size_t offsetXRefObject = 10;
+        oss << "%PDF-1.4\r\n";
         oss << "2 0 obj ";
         oss << "<< /Type /XRef ";
         oss << "/Length " << lengthXRefObject << " ";
@@ -1411,7 +1399,7 @@ TEST_CASE("testReadXRefStreamContents")
         oss << ">>\r\n";
         oss << "stream\r\n";
         offsetStream = oss.str().length();
-        oss << "01 0E8A 0\r\n";
+        oss << "01 0E8A 00\r\n";
         oss << "02 0002 00\r\n";
         oss << "02 0002 01\r\n";
         oss << "02 0002 02\r\n";
@@ -1424,18 +1412,13 @@ TEST_CASE("testReadXRefStreamContents")
         // trailer
         oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref " << offsetXRefObject << "\r\n";
-        oss << "%EOF";
+        oss << "%%EOF";
 
         auto inputStr = oss.str();
         PdfXRefEntries offsets;
         auto device = std::make_shared<PdfMemoryInputDevice>(inputStr);
         PdfMemDocument doc;
         doc.LoadFromDevice(device);
-        PdfXRefStreamParserObject xrefStreamParser(doc, *device, offsets);
-
-        offsets.Enlarge(2);
-        xrefStreamParser.Parse();
-        xrefStreamParser.ReadXRefTable();
         // should this succeed ???
     }
     catch (PdfError&)
@@ -1454,8 +1437,9 @@ TEST_CASE("testReadXRefStreamContents")
         size_t offsetStream;
         size_t offsetEndstream;
 
-        size_t lengthXRefObject = 57;
-        size_t offsetXRefObject = oss.str().length();
+        size_t lengthXRefObject = 58;
+        size_t offsetXRefObject = 10;
+        oss << "%PDF-1.4\r\n";
         oss << "2 0 obj ";
         oss << "<< /Type /XRef ";
         oss << "/Length " << lengthXRefObject << " ";
@@ -1466,7 +1450,7 @@ TEST_CASE("testReadXRefStreamContents")
         oss << ">>\r\n";
         oss << "stream\r\n";
         offsetStream = oss.str().length();
-        oss << "01 0E8A 0\r\n";
+        oss << "01 0E8A 00\r\n";
         oss << "02 0002 00\r\n";
         oss << "02 0002 01\r\n";
         oss << "02 0002 02\r\n";
@@ -1479,7 +1463,7 @@ TEST_CASE("testReadXRefStreamContents")
         // trailer
         oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref " << offsetXRefObject << "\r\n";
-        oss << "%EOF";
+        oss << "%%EOF";
 
         auto inputStr = oss.str();
         PdfXRefEntries offsets;
@@ -1509,8 +1493,9 @@ TEST_CASE("testReadXRefStreamContents")
         size_t offsetStream;
         size_t offsetEndstream;
 
-        size_t lengthXRefObject = 57;
-        size_t offsetXRefObject = oss.str().length();
+        size_t lengthXRefObject = 58;
+        size_t offsetXRefObject = 10;
+        oss << "%PDF-1.4\r\n";
         oss << "2 0 obj ";
         oss << "<< /Type /XRef ";
         oss << "/Length " << lengthXRefObject << " ";
@@ -1521,7 +1506,7 @@ TEST_CASE("testReadXRefStreamContents")
         oss << ">>\r\n";
         oss << "stream\r\n";
         offsetStream = oss.str().length();
-        oss << "01 0E8A 0\r\n";
+        oss << "01 0E8A 00\r\n";
         oss << "02 0002 00\r\n";
         oss << "02 0002 01\r\n";
         oss << "02 0002 02\r\n";
@@ -1534,7 +1519,7 @@ TEST_CASE("testReadXRefStreamContents")
         // trailer
         oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref " << offsetXRefObject << "\r\n";
-        oss << "%EOF";
+        oss << "%%EOF";
 
         auto inputStr = oss.str();
         PdfXRefEntries offsets;
@@ -1564,8 +1549,9 @@ TEST_CASE("testReadXRefStreamContents")
         size_t offsetStream;
         size_t offsetEndstream;
 
-        size_t lengthXRefObject = 57;
-        size_t offsetXRefObject = oss.str().length();
+        size_t lengthXRefObject = 58;
+        size_t offsetXRefObject = 10;
+        oss << "%PDF-1.4\r\n";
         oss << "2 0 obj ";
         oss << "<< /Type /XRef ";
         oss << "/Length " << lengthXRefObject << " ";
@@ -1576,7 +1562,7 @@ TEST_CASE("testReadXRefStreamContents")
         oss << ">>\r\n";
         oss << "stream\r\n";
         offsetStream = oss.str().length();
-        oss << "01 0E8A 0\r\n";
+        oss << "01 0E8A 00\r\n";
         oss << "02 0002 00\r\n";
         oss << "02 0002 01\r\n";
         oss << "02 0002 02\r\n";
@@ -1589,7 +1575,7 @@ TEST_CASE("testReadXRefStreamContents")
         // trailer
         oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref " << offsetXRefObject << "\r\n";
-        oss << "%EOF";
+        oss << "%%EOF";
 
         auto inputStr = oss.str();
         PdfXRefEntries offsets;
@@ -1619,8 +1605,9 @@ TEST_CASE("testReadXRefStreamContents")
         size_t offsetStream;
         size_t offsetEndstream;
 
-        size_t lengthXRefObject = 57;
-        size_t offsetXRefObject = oss.str().length();
+        size_t lengthXRefObject = 58;
+        size_t offsetXRefObject = 10;
+        oss << "%PDF-1.4\r\n";
         oss << "2 0 obj ";
         oss << "<< /Type /XRef ";
         oss << "/Length " << lengthXRefObject << " ";
@@ -1631,7 +1618,7 @@ TEST_CASE("testReadXRefStreamContents")
         oss << ">>\r\n";
         oss << "stream\r\n";
         offsetStream = oss.str().length();
-        oss << "01 0E8A 0\r\n";
+        oss << "01 0E8A 00\r\n";
         oss << "02 0002 00\r\n";
         oss << "02 0002 01\r\n";
         oss << "02 0002 02\r\n";
@@ -1644,7 +1631,7 @@ TEST_CASE("testReadXRefStreamContents")
         // trailer
         oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref " << offsetXRefObject << "\r\n";
-        oss << "%EOF";
+        oss << "%%EOF";
 
         auto inputStr = oss.str();
         PdfXRefEntries offsets;
@@ -1674,8 +1661,9 @@ TEST_CASE("testReadXRefStreamContents")
         size_t offsetStream;
         size_t offsetEndstream;
 
-        size_t lengthXRefObject = 57;
-        size_t offsetXRefObject = oss.str().length();
+        size_t lengthXRefObject = 58;
+        size_t offsetXRefObject = 10;
+        oss << "%PDF-1.4\r\n";
         oss << "2 0 obj ";
         oss << "<< /Type /XRef ";
         oss << "/Length " << lengthXRefObject << " ";
@@ -1686,7 +1674,7 @@ TEST_CASE("testReadXRefStreamContents")
         oss << ">>\r\n";
         oss << "stream\r\n";
         offsetStream = oss.str().length();
-        oss << "01 0E8A 0\r\n";
+        oss << "01 0E8A 00\r\n";
         oss << "02 0002 00\r\n";
         oss << "02 0002 01\r\n";
         oss << "02 0002 02\r\n";
@@ -1699,7 +1687,7 @@ TEST_CASE("testReadXRefStreamContents")
         // trailer
         oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref " << offsetXRefObject << "\r\n";
-        oss << "%EOF";
+        oss << "%%EOF";
 
         auto inputStr = oss.str();
         PdfXRefEntries offsets;
@@ -1729,8 +1717,9 @@ TEST_CASE("testReadXRefStreamContents")
         size_t offsetStream;
         size_t offsetEndstream;
 
-        size_t lengthXRefObject = 57;
-        size_t offsetXRefObject = oss.str().length();
+        size_t lengthXRefObject = 58;
+        size_t offsetXRefObject = 10;
+        oss << "%PDF-1.4\r\n";
         oss << "2 0 obj ";
         oss << "<< /Type /XRef ";
         oss << "/Length " << lengthXRefObject << " ";
@@ -1741,7 +1730,7 @@ TEST_CASE("testReadXRefStreamContents")
         oss << ">>\r\n";
         oss << "stream\r\n";
         offsetStream = oss.str().length();
-        oss << "00 0000 0\r\n";
+        oss << "00 0000 00\r\n";
         oss << "00 0000 00\r\n";
         oss << "00 0000 00\r\n";
         oss << "00 0000 00\r\n";
@@ -1754,7 +1743,7 @@ TEST_CASE("testReadXRefStreamContents")
         // trailer
         oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref " << offsetXRefObject << "\r\n";
-        oss << "%EOF";
+        oss << "%%EOF";
 
         auto inputStr = oss.str();
         PdfXRefEntries offsets;
@@ -1783,25 +1772,17 @@ TEST_CASE("testReadObjects")
     // CVE-2017-8378 - m_offsets out-of-bounds access when referenced encryption dictionary object doesn't exist
     try
     {
-        // generate an xref section
-        // xref
-        // 0 3
-        // 0000000000 65535 f 
-        // 0000000018 00000 n 
-        // 0000000077 00000 n
-        // trailer << /Root 1 0 R /Size 3 >>
-        // startxref
-        // 0
-        // %%EOF
         ostringstream oss;
-        oss << "%PDF–1.0\r\n";
+        oss << "%PDF-1.0\r\n";
         oss << "xref\r\n0 3\r\n";
         oss << generateXRefEntries(3);
-        oss << "trailer << /Root 1 0 R /Size 3 /Encrypt 2 0 R >>\r\n";
+        oss << "trailer << /Root 1 0 R /Size 3 /Encrypt 3 0 R >>\r\n";
         oss << "startxref 0\r\n";
-        oss << "%EOF";
+        oss << "%%EOF";
         PdfIndirectObjectList objects;
-        PdfParserTest parser(objects, oss.str());
+        auto docbuff = oss.str();
+        PdfParserTest parser(objects, docbuff);
+        parser.ReadDocumentStructure();
         parser.ReadObjects();
         FAIL("Should throw exception");
     }
