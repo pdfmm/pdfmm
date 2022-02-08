@@ -64,19 +64,17 @@ void PdfXRefStreamParserObject::ReadXRefTable()
     // The pdf reference states that W is always an array with 3 entries
     // all of them have to be integers
     if (!arr.IsArray() || arr.GetArray().size() != 3)
-    {
-        PDFMM_RAISE_ERROR(PdfErrorCode::NoXRef);
-    }
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoXRef, "Invalid XRef stream /W array");
 
     int64_t wArray[W_ARRAY_SIZE] = { 0, 0, 0 };
+    int64_t num;
     for (unsigned i = 0; i < W_ARRAY_SIZE; i++)
     {
-        if (!arr.GetArray()[i].IsNumber())
-        {
-            PDFMM_RAISE_ERROR(PdfErrorCode::NoXRef);
-        }
 
-        wArray[i] = static_cast<int64_t>(arr.GetArray()[i].GetNumber());
+        if (!arr.GetArray()[i].TryGetNumber(num))
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoXRef, "Invalid XRef stream /W array");
+
+        wArray[i] = num;
     }
 
     vector<int64_t> indices;
@@ -127,9 +125,7 @@ void PdfXRefStreamParserObject::parseStream(const int64_t wArray[W_ARRAY_SIZE], 
             unsigned objIndex = (unsigned)firstObj + index;
             auto& entry = (*m_entries)[objIndex];
             if (objIndex < m_entries->GetSize() && !entry.Parsed)
-            {
                 readXRefStreamEntry(entry, cursor, wArray);
-            }
 
             cursor += entryLen;
         }
@@ -139,28 +135,27 @@ void PdfXRefStreamParserObject::parseStream(const int64_t wArray[W_ARRAY_SIZE], 
 void PdfXRefStreamParserObject::getIndices(vector<int64_t>& indices, int64_t size)
 {
     // get the first object number in this crossref stream.
-    // it is not required to have an index key though.
-    if (this->GetDictionary().HasKey("Index"))
-    {
-        auto& arr = *(this->GetDictionary().GetKey("Index"));
-        if (!arr.IsArray())
-        {
-            PDFMM_RAISE_ERROR(PdfErrorCode::NoXRef);
-        }
-
-        for (auto index : arr.GetArray())
-            indices.push_back(index.GetNumber());
-    }
-    else
+    // it is not required to have an index key though
+    auto indexObj = this->GetDictionary().GetKey("Index");
+    if (indexObj == nullptr)
     {
         // Default
         indices.push_back(static_cast<int64_t>(0));
         indices.push_back(size);
     }
+    else
+    {
+        const PdfArray* arr;
+        if (!indexObj->TryGetArray(arr))
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoXRef, "Invalid XRef Stream /Index");
+
+        for (auto index : *arr)
+            indices.push_back(index.GetNumber());
+    }
 
     // indices must be a multiple of 2
     if (indices.size() % 2 != 0)
-        PDFMM_RAISE_ERROR(PdfErrorCode::NoXRef);
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoXRef, "Invalid XRef Stream /Index");
 }
 
 void PdfXRefStreamParserObject::readXRefStreamEntry(PdfXRefEntry& entry, char* buffer, const int64_t wArray[W_ARRAY_SIZE])
