@@ -59,11 +59,11 @@ void PdfPageTreeCache::SetPages(unsigned atIndex, const vector<PdfPage*>& pages)
 
 void PdfPageTreeCache::InsertPlaceHolders(unsigned atIndex, unsigned count)
 {
+    // Reserve the total space needed
+    m_PageObjs.reserve((size_t)atIndex + count);
     if (atIndex >= m_PageObjs.size())
     {
-        // Reserve the total space needed and
-        // resize to the the insertion index
-        m_PageObjs.reserve((size_t)atIndex + count);
+        // Resize to the the insertion index
         m_PageObjs.resize(atIndex);
     }
 
