@@ -237,7 +237,21 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
     else
     {
         auto& dict = descriptor->GetDictionary();
-        m_FontFamilyName = dict.FindKeyAs<PdfString>("FontFamily").GetString();
+        auto fontFamilyObj = dict.FindKey("FontFamily");
+        if (fontFamilyObj != nullptr)
+        {
+            const PdfString* str;
+            if (fontFamilyObj->TryGetString(str))
+            {
+                m_FontFamilyName = str->GetString();
+            }
+            else
+            {
+                const PdfName* name;
+                if (fontFamilyObj->TryGetName(name))
+                    m_FontFamilyName = name->GetString();
+            }
+        }
         auto stretchObj = dict.FindKey("FontStretch");
         if (stretchObj == nullptr)
         {
