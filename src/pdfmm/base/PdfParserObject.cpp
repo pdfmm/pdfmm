@@ -185,9 +185,6 @@ void PdfParserObject::parseStream()
     int64_t len = -1;
     int c;
 
-    if (GetDocument() == nullptr)
-        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
-
     auto& lengthObj = this->m_Variant.GetDictionary().MustFindKey(PdfName::KeyLength);
     if (!lengthObj.TryGetNumber(len))
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidStreamLength);
