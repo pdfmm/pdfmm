@@ -23,10 +23,12 @@ class PdfEncrypt;
  */
 class PDFMM_API PdfParserObject : public PdfObject
 {
-public:
+    friend class PdfParser;
+
+private:
     /** Parse the object data from the given file handle starting at
      *  the current position.
-     *  \param document document where to resolve object references
+     *  \param doc document where to resolve object references
      *  \param device an open reference counted input device which is positioned in
      *                 front of the object which is going to be parsed.
      *  \param buffer buffer to use for parsing to avoid reallocations
@@ -34,19 +36,18 @@ public:
      *                 if lOffset = -1, the object will be read from the current
      *                 position in the file.
      */
-    PdfParserObject(PdfDocument& document, PdfInputDevice& device, ssize_t offset = -1);
+    PdfParserObject(PdfDocument& doc, PdfInputDevice& device, ssize_t offset = -1);
 
-    /** Parse the object data for an internal object.
-     *  You have to call ParseDictionaryKeys as next function call.
-     *
-     *  The following two parameters are used to avoid allocation of a new
-     *  buffer in PdfSimpleParser.
-     *
-     *  \warning This constructor is for internal usage only!
-     *
+public:
+    /**
+     *  \warning This constructor is for testing usage only
      */
-    PdfParserObject();
+    PdfParserObject(PdfInputDevice& device, ssize_t offset = -1);
 
+protected:
+    PdfParserObject(PdfDocument* doc, PdfInputDevice& device, ssize_t offset);
+
+public:
     /** Tries to free all memory allocated by this
      *  PdfObject (variables and streams) and reads
      *  it from disk again if it is requested another time.

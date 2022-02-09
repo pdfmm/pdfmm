@@ -26,21 +26,30 @@ namespace mm
  */
 class PDFMM_API PdfXRefStreamParserObject final : public PdfParserObject
 {
+    friend class PdfParser;
+
     static constexpr unsigned W_ARRAY_SIZE = 3;
     static constexpr unsigned W_MAX_BYTES = 4;
 
-public:
-
+private:
     /** Parse the object data from the given file handle starting at
-     *  the current position.
-     *  \param document document where to resolve object references
+     * the current position.
+     * To be called by PdfParser
+     *  \param doc document where to resolve object references
      *  \param device an open reference counted input device which is positioned in
      *                 front of the object which is going to be parsed.
      *  \param buffer buffer to use for parsing to avoid reallocations
      */
-    PdfXRefStreamParserObject(PdfDocument& document, PdfInputDevice& device,
+    PdfXRefStreamParserObject(PdfDocument& doc, PdfInputDevice& device,
         PdfXRefEntries& entries);
 
+public:
+    /**
+     *  \warning This constructor is for testing usage only
+     */
+    PdfXRefStreamParserObject(PdfInputDevice& device, PdfXRefEntries& entries);
+
+public:
     void Parse();
 
     void ReadXRefTable();
@@ -51,6 +60,9 @@ public:
     bool TryGetPreviousOffset(size_t& previousOffset) const;
 
 private:
+    PdfXRefStreamParserObject(PdfDocument* doc, PdfInputDevice& device,
+        PdfXRefEntries& entries);
+
     /**
      * Read the /Index key from the current dictionary
      * and write it to a vector.

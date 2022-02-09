@@ -18,9 +18,14 @@
 using namespace std;
 using namespace mm;
 
-PdfXRefStreamParserObject::PdfXRefStreamParserObject(PdfDocument& document, PdfInputDevice& device,
-    PdfXRefEntries& entries)
-    : PdfParserObject(document, device), m_NextOffset(-1), m_entries(&entries)
+PdfXRefStreamParserObject::PdfXRefStreamParserObject(PdfDocument& doc, PdfInputDevice& device,
+    PdfXRefEntries& entries) : PdfXRefStreamParserObject(&doc, device, entries) { }
+
+PdfXRefStreamParserObject::PdfXRefStreamParserObject(PdfInputDevice& device, PdfXRefEntries& entries)
+    : PdfXRefStreamParserObject(nullptr, device, entries) { }
+
+PdfXRefStreamParserObject::PdfXRefStreamParserObject(PdfDocument* doc, PdfInputDevice& device, PdfXRefEntries& entries)
+    : PdfParserObject(doc, device, -1), m_NextOffset(-1), m_entries(&entries)
 {
 }
 

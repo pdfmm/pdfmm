@@ -22,22 +22,20 @@
 using namespace mm;
 using namespace std;
 
-PdfParserObject::PdfParserObject(PdfDocument& document, PdfInputDevice& device,
-        ssize_t offset)
+PdfParserObject::PdfParserObject(PdfDocument& doc, PdfInputDevice& device, ssize_t offset)
+    : PdfParserObject(&doc, device, offset) { }
+
+PdfParserObject::PdfParserObject(PdfInputDevice& device, ssize_t offset)
+    : PdfParserObject(nullptr, device, offset) { }
+
+PdfParserObject::PdfParserObject(PdfDocument* doc, PdfInputDevice& device, ssize_t offset)
     : PdfObject(PdfVariant::NullValue, true), m_device(&device), m_Encrypt(nullptr)
 {
     // Parsed objects by definition are initially not dirty
     resetDirty();
-    SetDocument(&document);
+    SetDocument(doc);
     initParserObject();
     m_Offset = offset < 0 ? device.Tell() : offset;
-}
-
-PdfParserObject::PdfParserObject()
-    : PdfObject(PdfVariant::NullValue, true), m_Encrypt(nullptr)
-{
-    initParserObject();
-    m_Offset = -1;
 }
 
 void PdfParserObject::initParserObject()
