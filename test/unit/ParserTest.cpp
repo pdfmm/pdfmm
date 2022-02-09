@@ -1094,8 +1094,7 @@ TEST_CASE("testReadXRefStreamContents")
         oss << "endobj\r\n";
         REQUIRE(offsetEndstream - offsetStream - strlen("\r\n") == lengthXRefObject); // hard-coded in /Length entry in XRef stream above
 
-        // trailer        
-        oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
+        // trailer
         oss << "startxref " << offsetXRefObject << "\r\n";
         oss << "%%EOF";
 
@@ -1148,7 +1147,6 @@ TEST_CASE("testReadXRefStreamContents")
         REQUIRE(offsetEndstream - offsetStream - strlen("\r\n") == lengthXRefObject); // check /Length entry in XRef stream above
 
         // trailer
-        oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref " << offsetXRefObject << "\r\n";
         oss << "%%EOF";
 
@@ -1202,7 +1200,6 @@ TEST_CASE("testReadXRefStreamContents")
         REQUIRE(offsetEndstream - offsetStream - strlen("\r\n") == lengthXRefObject); // check /Length entry in XRef stream above
 
         // trailer
-        oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref " << offsetXRefObject << "\r\n";
         oss << "%%EOF";
 
@@ -1255,7 +1252,6 @@ TEST_CASE("testReadXRefStreamContents")
         REQUIRE((offsetEndstream - offsetStream - strlen("\r\n")) == lengthXRefObject); // check /Length entry in XRef stream above
 
         // trailer
-        oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref " << offsetXRefObject << "\r\n";
         oss << "%%EOF";
 
@@ -1308,7 +1304,6 @@ TEST_CASE("testReadXRefStreamContents")
         REQUIRE(offsetEndstream - offsetStream - strlen("\r\n") == lengthXRefObject); // check /Length entry in XRef stream above
 
         // trailer
-        oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref " << offsetXRefObject << "\r\n";
         oss << "%%EOF";
 
@@ -1358,7 +1353,6 @@ TEST_CASE("testReadXRefStreamContents")
         REQUIRE(offsetEndstream - offsetStream - strlen("\r\n") == lengthXRefObject); // check /Length entry in XRef stream above
 
         // trailer
-        oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref " << offsetXRefObject << "\r\n";
         oss << "%%EOF";
 
@@ -1379,6 +1373,55 @@ TEST_CASE("testReadXRefStreamContents")
         FAIL("Unexpected exception type");
     }
 
+    try
+    {
+        ostringstream oss;
+        size_t offsetStream;
+        size_t offsetEndstream;
+
+        size_t lengthXRefObject = 22;
+        size_t offsetXRefObject = 34;
+        oss << "%PDF-1.4\r\n";
+        oss << "1 0 obj\r\n";
+        oss << "<< >>\r\n";
+        oss << "endobj\r\n";
+        oss << "2 0 obj\r\n";
+        oss << "<< /Type /XRef ";
+        oss << "/Length " << lengthXRefObject << " ";
+        oss << "/Index [1 2] ";
+        oss << "/Root 1 0 R ";
+        oss << "/Size 3 ";
+        oss << "/W [1 2 1] ";
+        oss << "/Filter /ASCIIHexDecode ";
+        oss << ">>\r\n";
+        oss << "stream\r\n";
+        offsetStream = oss.str().length();
+        oss << "01 000A 00\r\n";
+        oss << "01 001A 00\r\n";
+        offsetEndstream = oss.str().length();
+        oss << "endstream\r\n";
+        oss << "endobj\r\n";
+        REQUIRE(offsetEndstream - offsetStream - strlen("\r\n") == lengthXRefObject); // hard-coded in /Length entry in XRef stream above
+
+        // trailer
+        oss << "startxref " << offsetXRefObject << "\r\n";
+        oss << "%%EOF";
+
+        auto inputStr = oss.str();
+        PdfXRefEntries offsets;
+        auto device = std::make_shared<PdfMemoryInputDevice>(inputStr);
+        PdfMemDocument doc;
+        doc.LoadFromDevice(device);
+    }
+    catch (PdfError&)
+    {
+        FAIL("Unexpected PdfError");
+    }
+    catch (exception&)
+    {
+        FAIL("Unexpected exception type");
+    }
+
     // XRef stream with 5 entries but /Size 2 specified
     try
     {
@@ -1393,24 +1436,23 @@ TEST_CASE("testReadXRefStreamContents")
         oss << "<< /Type /XRef ";
         oss << "/Length " << lengthXRefObject << " ";
         oss << "/Index [2 2] ";
-        oss << "/Size 2 ";
+        oss << "/Size 10 ";
         oss << "/W [1 2 1] ";
         oss << "/Filter /ASCIIHexDecode ";
         oss << ">>\r\n";
         oss << "stream\r\n";
         offsetStream = oss.str().length();
         oss << "01 0E8A 00\r\n";
-        oss << "02 0002 00\r\n";
-        oss << "02 0002 01\r\n";
-        oss << "02 0002 02\r\n";
-        oss << "02 0002 03\r\n";
+        oss << "01 0002 00\r\n";
+        oss << "01 0002 01\r\n";
+        oss << "01 0002 02\r\n";
+        oss << "01 0002 03\r\n";
         offsetEndstream = oss.str().length();
         oss << "endstream\r\n";
         oss << "endobj\r\n";
         REQUIRE(offsetEndstream - offsetStream - strlen("\r\n") == lengthXRefObject); // hard-coded in /Length entry in XRef stream above
 
         // trailer
-        oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref " << offsetXRefObject << "\r\n";
         oss << "%%EOF";
 
@@ -1419,11 +1461,12 @@ TEST_CASE("testReadXRefStreamContents")
         auto device = std::make_shared<PdfMemoryInputDevice>(inputStr);
         PdfMemDocument doc;
         doc.LoadFromDevice(device);
-        // should this succeed ???
+        FAIL("Should throw exception");
     }
-    catch (PdfError&)
+    catch (PdfError& error)
     {
-        FAIL("Unexpected PdfError");
+        // FIXME We should throw on exact error
+        //REQUIRE(error.GetError() == PdfErrorCode::NoXRef);
     }
     catch (exception&)
     {
@@ -1451,17 +1494,16 @@ TEST_CASE("testReadXRefStreamContents")
         oss << "stream\r\n";
         offsetStream = oss.str().length();
         oss << "01 0E8A 00\r\n";
-        oss << "02 0002 00\r\n";
-        oss << "02 0002 01\r\n";
-        oss << "02 0002 02\r\n";
-        oss << "02 0002 03\r\n";
+        oss << "01 0002 00\r\n";
+        oss << "01 0002 01\r\n";
+        oss << "01 0002 02\r\n";
+        oss << "01 0002 03\r\n";
         offsetEndstream = oss.str().length();
         oss << "endstream\r\n";
         oss << "endobj\r\n";
         REQUIRE(offsetEndstream - offsetStream - strlen("\r\n") == lengthXRefObject); // hard-coded in /Length entry in XRef stream above
 
         // trailer
-        oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref " << offsetXRefObject << "\r\n";
         oss << "%%EOF";
 
@@ -1470,16 +1512,12 @@ TEST_CASE("testReadXRefStreamContents")
         auto device = std::make_shared<PdfMemoryInputDevice>(inputStr);
         PdfMemDocument doc;
         doc.LoadFromDevice(device);
-        PdfXRefStreamParserObject xrefStreamParser(doc, *device, offsets);
-
-        offsets.Enlarge(2);
-        xrefStreamParser.Parse();
-        xrefStreamParser.ReadXRefTable();
-        // should this succeed ???
+        FAIL("Should throw exception");
     }
-    catch (PdfError&)
+    catch (PdfError& error)
     {
-        FAIL("Unexpected PdfError");
+        // FIXME We should throw on exact error
+        //REQUIRE(error.GetError() == PdfErrorCode::NoXRef);
     }
     catch (exception&)
     {
@@ -1517,7 +1555,6 @@ TEST_CASE("testReadXRefStreamContents")
         REQUIRE(offsetEndstream - offsetStream - strlen("\r\n") == lengthXRefObject); // hard-coded in /Length entry in XRef stream above
 
         // trailer
-        oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref " << offsetXRefObject << "\r\n";
         oss << "%%EOF";
 
@@ -1526,16 +1563,12 @@ TEST_CASE("testReadXRefStreamContents")
         auto device = std::make_shared<PdfMemoryInputDevice>(inputStr);
         PdfMemDocument doc;
         doc.LoadFromDevice(device);
-        PdfXRefStreamParserObject xrefStreamParser(doc, *device, offsets);
-
-        offsets.Enlarge(5);
-        xrefStreamParser.Parse();
-        xrefStreamParser.ReadXRefTable();
-        // should this succeed ???
+        FAIL("Should throw exception");
     }
-    catch (PdfError&)
+    catch (PdfError& error)
     {
-        FAIL("Unexpected PdfError");
+        // FIXME We should throw on exact error
+        //REQUIRE(error.GetError() == PdfErrorCode::NoXRef);
     }
     catch (exception&)
     {
@@ -1573,7 +1606,6 @@ TEST_CASE("testReadXRefStreamContents")
         REQUIRE(offsetEndstream - offsetStream - strlen("\r\n") == lengthXRefObject); // hard-coded in /Length entry in XRef stream above
 
         // trailer
-        oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref " << offsetXRefObject << "\r\n";
         oss << "%%EOF";
 
@@ -1582,16 +1614,12 @@ TEST_CASE("testReadXRefStreamContents")
         auto device = std::make_shared<PdfMemoryInputDevice>(inputStr);
         PdfMemDocument doc;
         doc.LoadFromDevice(device);
-        PdfXRefStreamParserObject xrefStreamParser(doc, *device, offsets);
-
-        offsets.Enlarge(5);
-        xrefStreamParser.Parse();
-        xrefStreamParser.ReadXRefTable();
-        // should this succeed ???
+        FAIL("Should throw exception");
     }
-    catch (PdfError&)
+    catch (PdfError& error)
     {
-        FAIL("Unexpected PdfError");
+        // FIXME We should throw on exact error
+        //REQUIRE(error.GetError() == PdfErrorCode::NoXRef);
     }
     catch (exception&)
     {
@@ -1629,7 +1657,6 @@ TEST_CASE("testReadXRefStreamContents")
         REQUIRE(offsetEndstream - offsetStream - strlen("\r\n") == lengthXRefObject); // hard-coded in /Length entry in XRef stream above
 
         // trailer
-        oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref " << offsetXRefObject << "\r\n";
         oss << "%%EOF";
 
@@ -1638,16 +1665,12 @@ TEST_CASE("testReadXRefStreamContents")
         auto device = std::make_shared<PdfMemoryInputDevice>(inputStr);
         PdfMemDocument doc;
         doc.LoadFromDevice(device);
-        PdfXRefStreamParserObject xrefStreamParser(doc, *device, offsets);
-
-        offsets.Enlarge(5);
-        xrefStreamParser.Parse();
-        xrefStreamParser.ReadXRefTable();
-        // should this succeed ???
+        FAIL("Should throw exception");
     }
-    catch (PdfError&)
+    catch (PdfError& error)
     {
-        FAIL("Unexpected PdfError");
+        // FIXME We should throw on exact error
+        //REQUIRE(error.GetError() == PdfErrorCode::NoXRef);
     }
     catch (exception&)
     {
@@ -1685,7 +1708,6 @@ TEST_CASE("testReadXRefStreamContents")
         REQUIRE(offsetEndstream - offsetStream - strlen("\r\n") == lengthXRefObject); // hard-coded in /Length entry in XRef stream above
 
         // trailer
-        oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref " << offsetXRefObject << "\r\n";
         oss << "%%EOF";
 
@@ -1694,11 +1716,6 @@ TEST_CASE("testReadXRefStreamContents")
         auto device = std::make_shared<PdfMemoryInputDevice>(inputStr);
         PdfMemDocument doc;
         doc.LoadFromDevice(device);
-        PdfXRefStreamParserObject xrefStreamParser(doc, *device, offsets);
-
-        offsets.Enlarge(5);
-        xrefStreamParser.Parse();
-        xrefStreamParser.ReadXRefTable();
         FAIL("Should throw exception");
     }
     catch (PdfError& error)
@@ -1741,7 +1758,6 @@ TEST_CASE("testReadXRefStreamContents")
         REQUIRE(offsetEndstream - offsetStream - strlen("\r\n") == lengthXRefObject); // hard-coded in /Length entry in XRef stream above
 
         // trailer
-        oss << "trailer << /Root 1 0 R /Size 3 >>\r\n";
         oss << "startxref " << offsetXRefObject << "\r\n";
         oss << "%%EOF";
 
@@ -1750,11 +1766,6 @@ TEST_CASE("testReadXRefStreamContents")
         auto device = std::make_shared<PdfMemoryInputDevice>(inputStr);
         PdfMemDocument doc;
         doc.LoadFromDevice(device);
-        PdfXRefStreamParserObject xrefStreamParser(doc, *device, offsets);
-
-        offsets.Enlarge(5);
-        xrefStreamParser.Parse();
-        xrefStreamParser.ReadXRefTable();
         FAIL("Should throw exception");
     }
     catch (PdfError& error)

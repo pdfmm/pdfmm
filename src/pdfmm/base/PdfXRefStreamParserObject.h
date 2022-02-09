@@ -40,8 +40,7 @@ private:
      *                 front of the object which is going to be parsed.
      *  \param buffer buffer to use for parsing to avoid reallocations
      */
-    PdfXRefStreamParserObject(PdfDocument& doc, PdfInputDevice& device,
-        PdfXRefEntries& entries);
+    PdfXRefStreamParserObject(PdfDocument& doc, PdfInputDevice& device, PdfXRefEntries& entries);
 
 public:
     /**
@@ -50,7 +49,7 @@ public:
     PdfXRefStreamParserObject(PdfInputDevice& device, PdfXRefEntries& entries);
 
 public:
-    void Parse();
+    void DelayedLoadImpl() override;
 
     void ReadXRefTable();
 

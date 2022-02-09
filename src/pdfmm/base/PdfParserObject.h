@@ -36,6 +36,8 @@ private:
      *                 if lOffset = -1, the object will be read from the current
      *                 position in the file.
      */
+    PdfParserObject(PdfDocument& doc, const PdfReference& indirectReference,
+        PdfInputDevice& device, ssize_t offset = -1);
     PdfParserObject(PdfDocument& doc, PdfInputDevice& device, ssize_t offset = -1);
 
 public:
@@ -45,7 +47,8 @@ public:
     PdfParserObject(PdfInputDevice& device, ssize_t offset = -1);
 
 protected:
-    PdfParserObject(PdfDocument* doc, PdfInputDevice& device, ssize_t offset);
+    PdfParserObject(PdfDocument* doc, const PdfReference& indirectReference,
+        PdfInputDevice& device, ssize_t offset);
 
 public:
     /** Tries to free all memory allocated by this
@@ -65,38 +68,15 @@ public:
      */
     void FreeObjectMemory(bool force = false);
 
-    /** Parse the object data from the given file handle
-     *  If delayed loading is enabled, only the object and generation number
-     *  is read now and everything else is read later.
-     *
-     *  \param encrypt an encryption dictionary which is used to decrypt
-     *                  strings and streams during parsing or nullptr if the PDF
-     *                  file was not encrypted
-     *  \param isTrailer whether this is a trailer dictionary or not.
-     *                    trailer dictionaries do not have a object number etc.
-     */
-    void ParseFile(PdfEncrypt* encrypt, bool isTrailer = false);
+    void Parse();
 
-    void ForceStreamParse();
+    void ParseStream();
 
     /** Returns if this object has a stream object appended.
      *  which has to be parsed.
      *  \returns true if there is a stream
      */
     inline bool HasStreamToParse() const { return m_HasStream; }
-
-    /** \returns true if this PdfParser loads all objects at
-     *                the time they are accessed for the first time.
-     *                The default is to load all object immediately.
-     *                In this case false is returned.
-     */
-    inline bool IsLoadOnDemand() const { return m_LoadOnDemand; }
-
-    /** Sets whether this object shall be loaded on demand
-     *  when it's data is accessed for the first time.
-     *  \param bDelayed if true the object is loaded delayed.
-     */
-    inline void SetLoadOnDemand(bool delayed) { m_LoadOnDemand = delayed; }
 
     /** Gets an offset in which the object beginning is stored in the file.
      *  Note the offset points just after the object identificator ("0 0 obj").
@@ -106,9 +86,15 @@ public:
      */
     inline ssize_t GetOffset() const { return m_Offset; }
 
+    inline void SetEncrypt(PdfEncrypt* encrypt) { m_Encrypt = encrypt; }
+
+    inline void SetIsTrailer(bool isTrailer) { m_IsTrailer = isTrailer; }
+
 protected:
     void DelayedLoadImpl() override;
     void DelayedLoadStreamImpl() override;
+    PdfReference ReadReference(PdfTokenizer& tokenizer);
+    void Parse(PdfTokenizer& tokenizer);
 
 private:
     PdfParserObject(const PdfParserObject&) = delete;
@@ -122,33 +108,15 @@ private:
      */
     void parseStream();
 
-    /** Initialize private members in this object with their default values
-     */
-    void initParserObject();
+    PdfReference readReference(PdfTokenizer& tokenizer);
 
-    /** Parse the object data from the given file handle
-     *  \param bIsTrailer whether this is a trailer dictionary or not.
-     *                    trailer dictionaries do not have a object number etc.
-     */
-    void parseFileComplete(bool isTrailer);
-
-    void readObjectNumber();
+    void checkReference(PdfTokenizer& tokenizer);
 
 private:
     PdfInputDevice *m_device;
-    PdfTokenizer m_tokenizer;
     PdfEncrypt* m_Encrypt;
     bool m_IsTrailer;
-
-    // Should the object try to defer loading of its contents until needed?
-    // If false, object contents will be loaded during ParseFile(...). Note that
-    //          this still uses the delayed loading infrastructure.
-    // If true, loading will be triggered the first time the information is needed by
-    //          an external caller.
-    // Outside callers should not be able to tell the difference between the two modes
-    // of operation.
-    bool m_LoadOnDemand;
-    ssize_t m_Offset;
+    size_t m_Offset;
     bool m_HasStream;
     size_t m_StreamOffset;
 };

@@ -18,57 +18,57 @@
 using namespace std;
 using namespace mm;
 
-PdfXRefStreamParserObject::PdfXRefStreamParserObject(PdfDocument& doc, PdfInputDevice& device,
-    PdfXRefEntries& entries) : PdfXRefStreamParserObject(&doc, device, entries) { }
+PdfXRefStreamParserObject::PdfXRefStreamParserObject(PdfDocument& doc, PdfInputDevice& device, PdfXRefEntries& entries)
+    : PdfXRefStreamParserObject(&doc, device, entries) { }
 
 PdfXRefStreamParserObject::PdfXRefStreamParserObject(PdfInputDevice& device, PdfXRefEntries& entries)
     : PdfXRefStreamParserObject(nullptr, device, entries) { }
 
 PdfXRefStreamParserObject::PdfXRefStreamParserObject(PdfDocument* doc, PdfInputDevice& device, PdfXRefEntries& entries)
-    : PdfParserObject(doc, device, -1), m_NextOffset(-1), m_entries(&entries)
+    : PdfParserObject(doc, PdfReference(), device, -1), m_NextOffset(-1), m_entries(&entries)
 {
 }
 
-void PdfXRefStreamParserObject::Parse()
+void PdfXRefStreamParserObject::DelayedLoadImpl()
 {
-    // Ignore the encryption in the XREF as the XREF stream must no be encrypted (see PDF Reference 3.4.7)
-    this->ParseFile(nullptr);
+    // NOTE: Ignore the encryption in the XREF as the XREF stream must no be encrypted (see PDF Reference 3.4.7)
+
+    PdfTokenizer tokenizer;
+    auto reference = ReadReference(tokenizer);
+    SetIndirectReference(reference);
+    PdfParserObject::Parse(tokenizer);
 
     // Do some very basic error checking
-    if (!this->GetDictionary().HasKey(PdfName::KeyType))
+    auto& dict = m_Variant.GetDictionary();
+    auto keyObj = dict.FindKey(PdfName::KeyType);
+    if (keyObj == nullptr)
+        PDFMM_RAISE_ERROR(PdfErrorCode::NoXRef);
+
+    if (!keyObj->IsName() || keyObj->GetName() != "XRef")
+        PDFMM_RAISE_ERROR(PdfErrorCode::NoXRef);
+
+    if (!dict.HasKey(PdfName::KeySize)
+        || !dict.HasKey("W"))
     {
         PDFMM_RAISE_ERROR(PdfErrorCode::NoXRef);
     }
 
-    auto& obj = this->GetDictionary().MustFindKey(PdfName::KeyType);
-    if (!obj.IsName() || obj.GetName() != "XRef")
-    {
-        PDFMM_RAISE_ERROR(PdfErrorCode::NoXRef);
-    }
-
-    if (!this->GetDictionary().HasKey(PdfName::KeySize)
-        || !this->GetDictionary().HasKey("W"))
-    {
-        PDFMM_RAISE_ERROR(PdfErrorCode::NoXRef);
-    }
+    if (dict.HasKey("Prev"))
+        m_NextOffset = static_cast<ssize_t>(dict.FindKeyAs<double>("Prev", 0));
 
     if (!this->HasStreamToParse())
         PDFMM_RAISE_ERROR(PdfErrorCode::NoXRef);
-
-    if (this->GetDictionary().HasKey("Prev"))
-    {
-        m_NextOffset = static_cast<ssize_t>(this->GetDictionary().FindKeyAs<double>("Prev", 0));
-    }
 }
 
 void PdfXRefStreamParserObject::ReadXRefTable()
 {
     int64_t size = this->GetDictionary().FindKeyAs<int64_t>(PdfName::KeySize, 0);
-    auto& arr = this->GetDictionary().MustFindKey("W");
+    auto& arrObj = this->GetDictionary().MustFindKey("W");
 
     // The pdf reference states that W is always an array with 3 entries
     // all of them have to be integers
-    if (!arr.IsArray() || arr.GetArray().size() != 3)
+    const PdfArray* arr;
+    if (!arrObj.TryGetArray(arr) || arr->size() != 3)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoXRef, "Invalid XRef stream /W array");
 
     int64_t wArray[W_ARRAY_SIZE] = { 0, 0, 0 };
@@ -76,7 +76,7 @@ void PdfXRefStreamParserObject::ReadXRefTable()
     for (unsigned i = 0; i < W_ARRAY_SIZE; i++)
     {
 
-        if (!arr.GetArray()[i].TryGetNumber(num))
+        if (!(*arr)[i].TryGetNumber(num))
             PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoXRef, "Invalid XRef stream /W array");
 
         wArray[i] = num;

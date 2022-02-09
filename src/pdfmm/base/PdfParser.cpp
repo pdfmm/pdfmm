@@ -265,19 +265,9 @@ void PdfParser::ReadNextTrailer(PdfInputDevice& device)
     PdfRecursionGuard guard(m_RecursionDepth);
     if (m_tokenizer.IsNextToken(device, "trailer"))
     {
+        // Ignore the encryption in the trailer as the trailer may not be encrypted
         auto trailer = new PdfParserObject(m_Objects->GetDocument(), device);
-
-        try
-        {
-            // Ignore the encryption in the trailer as the trailer may not be encrypted
-            trailer->ParseFile(nullptr, true);
-        }
-        catch (PdfError& e)
-        {
-            PDFMM_PUSH_FRAME_INFO(e, "The trailer was found in the file, but contains errors");
-            delete trailer;
-            throw e;
-        }
+        trailer->SetIsTrailer(true);
 
         unique_ptr<PdfParserObject> trailerTemp;
         if (m_Trailer == nullptr)
@@ -599,6 +589,7 @@ void PdfParser::ReadXRefStreamContents(PdfInputDevice& device, size_t offset, bo
     try
     {
         xrefObjTrailer->Parse();
+        xrefObjTrailer->ParseStream();
     }
     catch (PdfError& ex)
     {
@@ -671,11 +662,11 @@ void PdfParser::ReadObjects(PdfInputDevice& device)
                     encrypt->GetReference().ObjectNumber(), encrypt->GetReference().GenerationNumber());
             }
 
-            unique_ptr<PdfParserObject> obj(new PdfParserObject(m_Objects->GetDocument(), device, (ssize_t)m_entries[i].Offset));
-            obj->SetLoadOnDemand(false); // Never load this on demand, as we will use it immediately
+            // The encryption dictionary is not encrypted
+            unique_ptr<PdfParserObject> obj(new PdfParserObject(device, (ssize_t)m_entries[i].Offset));
             try
             {
-                obj->ParseFile(nullptr); // The encryption dictionary is not encrypted
+                obj->Parse();
                 // Never add the encryption dictionary to m_Objects
                 // we create a new one, if we need it for writing
                 // m_Objects->push_back( obj );
@@ -734,41 +725,24 @@ void PdfParser::ReadObjectsInternal(PdfInputDevice& device)
                 {
                     if (entry.Offset > 0)
                     {
-                        unique_ptr<PdfParserObject> obj(new PdfParserObject(m_Objects->GetDocument(), device, (ssize_t)entry.Offset));
-                        obj->SetLoadOnDemand(m_LoadOnDemand);
                         PdfReference reference(i, (uint16_t)entry.Generation);
+                        unique_ptr<PdfParserObject> obj(new PdfParserObject(m_Objects->GetDocument(), reference, device, (ssize_t)entry.Offset));
                         try
                         {
-                            obj->ParseFile(m_Encrypt.get());
-                            if (obj->GetIndirectReference() != reference)
-                            {
-                                if (m_StrictParsing)
-                                {
-                                    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRef,
-                                        "Found object with reference {} different than reported {} in XRef sections",
-                                        obj->GetIndirectReference().ToString(), reference.ToString());
-                                }
-                                else
-                                {
-                                    PdfError::LogMessage(PdfLogSeverity::Warning,
-                                        "Found object with reference {} different than reported {} in XRef sections",
-                                        obj->GetIndirectReference().ToString(), reference.ToString());
-                                }
-                            }
-
+                            obj->SetEncrypt(m_Encrypt.get());
                             if (m_Encrypt != nullptr && obj->IsDictionary())
                             {
                                 auto typeObj = obj->GetDictionary().GetKey(PdfName::KeyType);
                                 if (typeObj != nullptr && typeObj->IsName() && typeObj->GetName() == "XRef")
                                 {
                                     // XRef is never encrypted
-                                    obj.reset(new PdfParserObject(m_Objects->GetDocument(), device, (ssize_t)entry.Offset));
-                                    obj->SetLoadOnDemand(m_LoadOnDemand);
-                                    obj->ParseFile(nullptr);
+                                    obj.reset(new PdfParserObject(m_Objects->GetDocument(), reference, device, (ssize_t)entry.Offset));
+                                    if (m_LoadOnDemand)
+                                        obj->DelayedLoad();
                                 }
                             }
 
-                            m_Objects->PushObject(reference, obj.release());
+                            m_Objects->PushObject(obj.release());
                         }
                         catch (PdfError& e)
                         {
@@ -867,7 +841,7 @@ void PdfParser::ReadObjectsInternal(PdfInputDevice& device)
         for (auto objToLoad : *m_Objects)
         {
             auto obj = dynamic_cast<PdfParserObject*>(objToLoad);
-            obj->ForceStreamParse();
+            obj->ParseStream();
         }
     }
 

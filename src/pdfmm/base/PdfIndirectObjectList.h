@@ -274,10 +274,6 @@ private:
      */
     void PushObject(PdfObject* obj);
 
-    /** Push an object with the givent reference. If one is existing, it will be replaced
-     */
-    void PushObject(const PdfReference& reference, PdfObject* obj);
-
     /** Mark a reference as unused so that it can be reused for new objects.
      *
      *  Add the object only if the generation is the allowed range

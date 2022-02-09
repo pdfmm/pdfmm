@@ -218,21 +218,24 @@ PdfObject* PdfIndirectObjectList::CreateDictionaryObject(const string_view& type
     if (!subtype.empty())
         dict.AddKey(PdfName::KeySubtype, PdfName(subtype));
 
-    auto ret = new PdfObject(dict, true);
+    auto ret = new PdfObject(std::move(dict));
+    ret->setDirty();
     addNewObject(ret);
     return ret;
 }
 
 PdfObject* PdfIndirectObjectList::CreateArrayObject()
 {
-    auto ret = new PdfObject(PdfArray(), true);
+    auto ret = new PdfObject(PdfArray());
+    ret->setDirty();
     addNewObject(ret);
     return ret;
 }
 
 PdfObject* PdfIndirectObjectList::CreateObject(const PdfVariant& variant)
 {
-    auto ret = new PdfObject(variant, true);
+    auto ret = new PdfObject(variant);
+    ret->setDirty();
     addNewObject(ret);
     return ret;
 }
@@ -287,12 +290,6 @@ void PdfIndirectObjectList::AddFreeObject(const PdfReference& reference)
         // When append free objects from external doc we need plus one number objects
         TryIncrementObjectCount(reference);
     }
-}
-
-void PdfIndirectObjectList::PushObject(const PdfReference& ref, PdfObject* obj)
-{
-    obj->SetIndirectReference(ref);
-    PushObject(obj);
 }
 
 void PdfIndirectObjectList::addNewObject(PdfObject* obj)

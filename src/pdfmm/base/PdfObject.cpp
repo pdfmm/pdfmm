@@ -26,12 +26,12 @@ using namespace std;
 using namespace mm;
 
 PdfObject::PdfObject()
-    : PdfObject(PdfDictionary(), false) { }
+    : PdfObject(PdfDictionary(), PdfReference(), false) { }
 
 PdfObject::~PdfObject() { }
 
 PdfObject::PdfObject(const PdfVariant& var)
-    : PdfObject(var, false) { }
+    : PdfObject(PdfVariant(var), PdfReference(), false) { }
 
 PdfObject::PdfObject(PdfVariant&& var) noexcept
     : m_Variant(std::move(var)), m_IsDirty(false)
@@ -103,11 +103,11 @@ PdfObject::PdfObject(PdfDictionary&& dict) noexcept
     m_Variant.GetDictionary().SetOwner(*this);
 }
 
-// NOTE: Don't copy parent document/container. Copied objects must be
-// always detached. Ownership will be set automatically elsewhere.
-// Also don't copy reference
+// NOTE: Don't copy parent document/container/indirect refernce.
+// Copied objects must be always detached. Ownership will be set
+// automatically elsewhere
 PdfObject::PdfObject(const PdfObject& rhs)
-    : PdfObject(rhs, false)
+    : PdfObject(PdfVariant(rhs.GetVariant()), PdfReference(), false)
 {
     copyStreamFrom(rhs);
 }
@@ -138,8 +138,8 @@ PdfObjectStream* PdfObject::GetStream()
 
 // NOTE: Dirty objects are those who are supposed to be serialized
 // or deserialized.
-PdfObject::PdfObject(const PdfVariant& var, bool isDirty)
-    : m_Variant(var), m_IsDirty(isDirty)
+PdfObject::PdfObject(PdfVariant&& var, const PdfReference& indirectReference, bool isDirty)
+    : m_Variant(std::move(var)), m_IndirectReference(indirectReference), m_IsDirty(isDirty)
 {
     initObject();
     SetVariantOwner();
@@ -381,6 +381,11 @@ void PdfObject::moveStreamFrom(PdfObject& obj)
 {
     obj.DelayedLoadStream();
     m_Stream = std::move(obj.m_Stream);
+}
+
+void PdfObject::EnableDelayedLoading()
+{
+    m_IsDelayedLoadDone = false;
 }
 
 void PdfObject::EnableDelayedLoadingStream()

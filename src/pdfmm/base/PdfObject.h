@@ -47,6 +47,7 @@ class PDFMM_API PdfObject
     friend class PdfObjectStream;
     friend class PdfDataContainer;
     friend class PdfObjectStreamParser;
+    friend class PdfParser;
 
 public:
 
@@ -432,7 +433,7 @@ public:
     PdfObjectStream* GetStream();
 
 protected:
-    PdfObject(const PdfVariant& var, bool isDirty);
+    PdfObject(PdfVariant&& var, const PdfReference& indirectReference, bool isDirty);
 
     /**
      * Dynamically load the contents of this object from a PDF file by calling
@@ -503,7 +504,7 @@ protected:
      *  If you want delayed loading you must ask for it. If you do so, call
      *  this method early in your ctor and be sure to override DelayedLoadImpl().
      */
-    inline void EnableDelayedLoading() { m_IsDelayedLoadDone = false; }
+    void EnableDelayedLoading();
 
 private:
     // Assign function that doesn't set dirty

@@ -22,112 +22,96 @@
 using namespace mm;
 using namespace std;
 
+PdfParserObject::PdfParserObject(PdfDocument& doc, const PdfReference& indirectReference, PdfInputDevice& device, ssize_t offset)
+    : PdfParserObject(&doc, indirectReference, device, offset)
+{
+    if (!indirectReference.IsIndirect())
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Indirect reference must be valid");
+}
+
 PdfParserObject::PdfParserObject(PdfDocument& doc, PdfInputDevice& device, ssize_t offset)
-    : PdfParserObject(&doc, device, offset) { }
+    : PdfParserObject(&doc, PdfReference(), device, offset)
+{
+}
 
 PdfParserObject::PdfParserObject(PdfInputDevice& device, ssize_t offset)
-    : PdfParserObject(nullptr, device, offset) { }
+    : PdfParserObject(nullptr, PdfReference(), device, offset) { }
 
-PdfParserObject::PdfParserObject(PdfDocument* doc, PdfInputDevice& device, ssize_t offset)
-    : PdfObject(PdfVariant::NullValue, true), m_device(&device), m_Encrypt(nullptr)
+PdfParserObject::PdfParserObject(PdfDocument* doc, const PdfReference& indirectReference,
+        PdfInputDevice& device, ssize_t offset) :
+    PdfObject(PdfVariant(PdfVariant::NullValue), indirectReference, true),
+    m_device(&device),
+    m_Encrypt(nullptr),
+    m_IsTrailer(false),
+    m_Offset(offset < 0 ? device.Tell() : offset),
+    m_HasStream(false),
+    m_StreamOffset(0)
 {
     // Parsed objects by definition are initially not dirty
     resetDirty();
     SetDocument(doc);
-    initParserObject();
-    m_Offset = offset < 0 ? device.Tell() : offset;
-}
-
-void PdfParserObject::initParserObject()
-{
-    m_IsTrailer = false;
-
-    // Whether or not demand loading is disabled we still don't load
-    // anything in the ctor. This just controls whether ::ParseFile(...)
-    // forces an immediate demand load, or lets it genuinely happen
-    // on demand.
-    m_LoadOnDemand = false;
 
     // We rely heavily on the demand loading infrastructure whether or not
     // we *actually* delay loading.
     EnableDelayedLoading();
     EnableDelayedLoadingStream();
-
-    m_HasStream = false;
-    m_StreamOffset = 0;
 }
 
-void PdfParserObject::readObjectNumber()
+
+void PdfParserObject::Parse()
 {
-    PdfReference ref;
-    try
-    {
-        int64_t obj = m_tokenizer.ReadNextNumber(*m_device);
-        int64_t gen = m_tokenizer.ReadNextNumber(*m_device);
-
-        ref = PdfReference(static_cast<uint32_t>(obj), static_cast<uint16_t>(gen));
-        SetIndirectReference(ref);
-    }
-    catch (PdfError& e)
-    {
-        PDFMM_PUSH_FRAME_INFO(e, "Object and generation number cannot be read");
-        throw e;
-    }
-
-    if (!m_tokenizer.IsNextToken(*m_device, "obj"))
-    {
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoObject, "Error while reading object {} {} R: Next token is not 'obj'",
-            ref.ObjectNumber(), ref.GenerationNumber());
-    }
+    // It's really just a call to DelayedLoad
+    DelayedLoad();
 }
 
-void PdfParserObject::ParseFile(PdfEncrypt* encrypt, bool isTrailer)
-{
-    if (m_Offset >= 0)
-        m_device->Seek(m_Offset);
-
-    if (!isTrailer)
-        readObjectNumber();
-
-#ifndef VERBOSE_DEBUG_DISABLED
-    std::cerr << "Parsing object number: " << m_reference.ObjectNumber()
-              << " " << m_reference.GenerationNumber() << " obj"
-              << " " << m_Offset << " offset"
-              << " (DL: " << (m_LoadOnDemand ? "on" : "off") << ")"
-              << endl;
-#endif // VERBOSE_DEBUG_DISABLED
-
-    m_Offset = m_device->Tell();
-    m_Encrypt = encrypt;
-    m_IsTrailer = isTrailer;
-
-    if (!m_LoadOnDemand)
-    {
-        // Force immediate loading of the object.  We need to do this through
-        // the deferred loading machinery to avoid getting the object into an
-        // inconsistent state.
-        // We can't do a full DelayedStreamLoad() because the stream might use
-        // an indirect /Length or /Length1 key that hasn't been read yet.
-        DelayedLoad();
-
-        // TODO: support immediate loading of the stream here too. For that, we need
-        // to be able to trigger the reading of not-yet-parsed indirect objects
-        // such as might appear in a /Length key with an indirect reference.
-    }
-}
-
-void PdfParserObject::ForceStreamParse()
+void PdfParserObject::ParseStream()
 {
     // It's really just a call to DelayedLoad
     DelayedLoadStream();
 }
 
+void PdfParserObject::DelayedLoadImpl()
+{
+    PdfTokenizer tokenizer;
+    m_device->Seek(m_Offset);
+    if (!m_IsTrailer)
+        checkReference(tokenizer);
+
+    Parse(tokenizer);
+}
+
+void PdfParserObject::DelayedLoadStreamImpl()
+{
+    PDFMM_ASSERT(getStream() == nullptr);
+
+    // Note: we can't use HasStream() here because it'll call DelayedLoad()
+    if (HasStreamToParse())
+    {
+        try
+        {
+            parseStream();
+        }
+        catch (PdfError& e)
+        {
+            PDFMM_PUSH_FRAME_INFO(e, "Unable to parse the stream for object {} {} R",
+                GetIndirectReference().ObjectNumber(),
+                GetIndirectReference().GenerationNumber());
+            throw;
+        }
+    }
+}
+
+PdfReference PdfParserObject::ReadReference(PdfTokenizer& tokenizer)
+{
+    m_device->Seek(m_Offset);
+    return readReference(tokenizer);
+}
+
 // Only called via the demand loading mechanism
 // Be very careful to avoid recursive demand loads via PdfVariant
 // or PdfObject method calls here.
-void PdfParserObject::parseFileComplete(bool isTrailer)
+void PdfParserObject::Parse(PdfTokenizer& tokenizer)
 {
-    m_device->Seek(m_Offset);
     if (m_Encrypt != nullptr)
         m_Encrypt->SetCurrentReference(GetIndirectReference());
 
@@ -138,18 +122,18 @@ void PdfParserObject::parseFileComplete(bool isTrailer)
 
     PdfTokenType tokenType;
     string_view token;
-    bool gotToken = m_tokenizer.TryReadNextToken(*m_device, token, tokenType);
+    bool gotToken = tokenizer.TryReadNextToken(*m_device, token, tokenType);
     if (!gotToken)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected variant");
 
     // Check if we have an empty object or data
     if (token != "endobj")
     {
-        m_tokenizer.ReadNextVariant(*m_device, token, tokenType, m_Variant, m_Encrypt);
+        tokenizer.ReadNextVariant(*m_device, token, tokenType, m_Variant, m_Encrypt);
 
-        if (!isTrailer)
+        if (!m_IsTrailer)
         {
-            bool gotToken = m_tokenizer.TryReadNextToken(*m_device, token);
+            bool gotToken = tokenizer.TryReadNextToken(*m_device, token);
             if (!gotToken)
             {
                 PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected 'endobj' or (if dict) 'stream', got EOF");
@@ -261,35 +245,45 @@ ReadStream:
     }
 }
 
-void PdfParserObject::DelayedLoadImpl()
+void PdfParserObject::checkReference(PdfTokenizer& tokenizer)
 {
-    parseFileComplete(m_IsTrailer);
+    auto reference = readReference(tokenizer);
+    if (GetIndirectReference() != reference)
+    {
+        PdfError::LogMessage(PdfLogSeverity::Warning,
+            "Found object with reference {} different than reported {} in XRef sections",
+            GetIndirectReference().ToString(), reference.ToString());
+    }
 }
 
-void PdfParserObject::DelayedLoadStreamImpl()
+PdfReference PdfParserObject::readReference(PdfTokenizer& tokenizer)
 {
-    PDFMM_ASSERT(getStream() == nullptr);
-
-    // Note: we can't use HasStream() here because it'll call DelayedLoad()
-    if (HasStreamToParse())
+    PdfReference reference;
+    try
     {
-        try
-        {
-            parseStream();
-        }
-        catch (PdfError& e)
-        {
-            PDFMM_PUSH_FRAME_INFO(e, "Unable to parse the stream for object {} {} R",
-                GetIndirectReference().ObjectNumber(),
-                GetIndirectReference().GenerationNumber());
-            throw;
-        }
+        int64_t obj = tokenizer.ReadNextNumber(*m_device);
+        int64_t gen = tokenizer.ReadNextNumber(*m_device);
+        reference = PdfReference(static_cast<uint32_t>(obj), static_cast<uint16_t>(gen));
+
     }
+    catch (PdfError& e)
+    {
+        PDFMM_PUSH_FRAME_INFO(e, "Object and generation number cannot be read");
+        throw e;
+    }
+
+    if (!tokenizer.IsNextToken(*m_device, "obj"))
+    {
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoObject, "Error while reading object {} {} R: Next token is not 'obj'",
+            reference.ObjectNumber(), reference.GenerationNumber());
+    }
+
+    return reference;
 }
 
 void PdfParserObject::FreeObjectMemory(bool force)
 {
-    if (this->IsLoadOnDemand() && (force || !this->IsDirty()))
+    if (!this->IsDirty() || force)
     {
         if (IsDelayedLoadDone())
             m_Variant = PdfVariant();

@@ -123,7 +123,8 @@ const PdfDocument& PdfDocument::Append(const PdfDocument& doc, bool appendAll)
     for (auto& obj : doc.GetObjects())
     {
         PdfReference ref(static_cast<uint32_t>(obj->GetIndirectReference().ObjectNumber() + difference), obj->GetIndirectReference().GenerationNumber());
-        auto newObj = new PdfObject(PdfDictionary(), true);
+        auto newObj = new PdfObject(PdfDictionary());
+        newObj->setDirty();
         newObj->SetIndirectReference(ref);
         m_Objects.PushObject(newObj);
         *newObj = *obj;
@@ -211,7 +212,8 @@ const PdfDocument& PdfDocument::InsertExistingPageAt(const PdfDocument& doc, uns
     for (auto& obj : GetObjects())
     {
         PdfReference ref(static_cast<uint32_t>(obj->GetIndirectReference().ObjectNumber() + difference), obj->GetIndirectReference().GenerationNumber());
-        auto newObj = new PdfObject(PdfDictionary(), true);
+        auto newObj = new PdfObject(PdfDictionary());
+        newObj->setDirty();
         newObj->SetIndirectReference(ref);
         m_Objects.PushObject(newObj);
         *newObj = *obj;

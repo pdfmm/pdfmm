@@ -79,8 +79,9 @@ void PdfObjectStreamParser::ReadObjectsFromStream(char* buffer, size_t bufferLen
             // The generation number of an object stream and of any
             // compressed object is implicitly zero
             PdfReference reference(static_cast<uint32_t>(objNo), 0);
-            auto obj = new PdfObject(var);
-            m_Objects->PushObject(reference, obj);
+            auto obj = new PdfObject(std::move(var));
+            obj->SetIndirectReference(reference);
+            m_Objects->PushObject(obj);
         }
 
         // move back to the position inside of the table of contents
