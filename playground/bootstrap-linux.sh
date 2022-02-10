@@ -1,11 +1,11 @@
 set -xe
 
 export pwd=`pwd`
-mkdir -p build-linux-x86_64-release
-cd build-linux-x86_64-release
+mkdir -p build-linux-Release
+cd build-linux-Release
 cmake -DCMAKE_BUILD_TYPE=Release -DARCH=linux-x86_64 ..
 
 cd $pwd
-mkdir -p build-linux-x86_64-debug
-cd build-linux-x86_64-debug
+mkdir -p build-linux-Debug
+cd build-linux-Debug
 cmake -DCMAKE_BUILD_TYPE=Debug -DARCH=linux-x86_64 ..

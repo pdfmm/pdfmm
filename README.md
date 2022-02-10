@@ -64,6 +64,15 @@ for details. The tests and examples which are included in pdfmm are
 licensed under the GPL 2.0. This may change at a later stage.
 See all the COPYING files in the relevant folders for details.
 
+## Development quickstart
+
+There's a playground area in the repository where you can find
+have access to pre-build dependencies for some popular architectures/operating
+systems. Have a look in the [Readme](https://github.com/pdfmm/pdfmm/tree/master/playground) there.
+Also the github workflow [definition](https://github.com/pdfmm/pdfmm/tree/master/.github/workflows)
+files are very useful as they provide booststrap commands to build
+pdfmm with latest packages from [brew](https://brew.sh/) under mac and `apt-get` under ubuntu.
+
 ## String encoding and buffer conventions
 
 All ```std::strings``` or ```std::string_view``` in the library are inteded

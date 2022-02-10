@@ -1,11 +1,11 @@
 set -xe
 
 export pwd=`pwd`
-mkdir -p build-macosx-x86_64-release
-cd build-macosx-x86_64-release
+mkdir -p build-macos-Release
+cd build-macos-Release
 cmake -DCMAKE_BUILD_TYPE=Release -DARCH=macosx-x86_64 ..
 
 cd $pwd
-mkdir -p build-macosx-x86_64-debug
-cd build-macosx-x86_64-debug
+mkdir -p build-macos-Debug
+cd build-macos-Debug
 cmake -DCMAKE_BUILD_TYPE=Debug -DARCH=macosx-x86_64 ..
