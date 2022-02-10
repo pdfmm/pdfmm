@@ -20,6 +20,8 @@
 #include <limits.h>
 #endif
 
+#include <TestConfig.h>
+
 using namespace std;
 namespace fs = std::filesystem;
 
@@ -27,32 +29,21 @@ static string GetExecutablePath();
 
 static struct TestPaths
 {
-    TestPaths()
-    {
-        auto path = fs::u8path(GetExecutablePath()).parent_path();
-        while (true)
-        {
-            if (fs::exists(path / "AUTHORS.md"))
-                break;
-
-            path = path.parent_path();
-        }
-
-        Base = path / "test";
-    }
-    fs::path Base;
+    TestPaths() :
+        Input(PDF_TEST_RESOURCE_PATH), Output(PDF_TEST_OUTPUT_PATH) { }
+    fs::path Input;
+    fs::path Output;
 } s_paths;
 
 
 string TestUtils::GetTestOutputFilePath(const string_view& filename)
 {
-    fs::create_directories(s_paths.Base / "out");
-    return (s_paths.Base / "out" / filename).u8string();
+    return (s_paths.Output / filename).u8string();
 }
 
 string TestUtils::GetTestInputFilePath(const string_view& filename)
 {
-    return (s_paths.Base / "resources" / filename).u8string();
+    return (s_paths.Input / filename).u8string();
 }
 
 #ifdef _WIN32
