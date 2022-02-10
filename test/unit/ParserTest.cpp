@@ -1922,11 +1922,11 @@ TEST_CASE("testIsPdfFile")
     }
 }
 
-TEST_CASE("testRoundTripIndirectTrailerID")
+TEST_CASE("testSaveIncrementalRoundTrip")
 {
     ostringstream oss;
     oss << "%PDF-1.1\n";
-    unsigned currObj = 0;
+    unsigned currObj = 1;
     streamoff objPos[20];
 
     // Pages
@@ -1935,7 +1935,7 @@ TEST_CASE("testRoundTripIndirectTrailerID")
     objPos[currObj] = oss.tellp();
     oss << currObj++ << " 0 obj\n";
     oss << "<</Type /Pages /Count 0 /Kids []>>\n";
-    oss << "endobj";
+    oss << "endobj\n";
 
     // Root catalog
 
@@ -1955,12 +1955,10 @@ TEST_CASE("testRoundTripIndirectTrailerID")
     streamoff xrefPos = oss.tellp();
     oss << "xref\n";
     oss << "0 " << currObj << "\n";
-    string objRec;
-    for (unsigned i = 0; i < currObj; i++)
-    {
-        cmn::FormatTo(objRec, "{:010d} 00000 n \n", objPos[i]);
-        oss << objRec;
-    }
+    oss << "0000000000 65535 f \n";
+    for (unsigned i = 1; i < currObj; i++)
+        oss << cmn::Format("{:010d} 00000 n \n", objPos[i]);
+
     oss << "trailer <<\n"
         << "  /Size " << currObj << "\n"
         << "  /Root " << rootObj << " 0 R\n"
@@ -1970,19 +1968,17 @@ TEST_CASE("testRoundTripIndirectTrailerID")
         << xrefPos << "\n"
         << "%%EOF\n";
 
-    string inputBuff = oss.str();
+    string docBuff = oss.str();
     try
     {
         PdfMemDocument doc;
         // load for update
-        doc.LoadFromBuffer(inputBuff);
+        doc.LoadFromBuffer(docBuff);
 
-        string outBuf;
-        PdfStringOutputDevice outDev(outBuf);
+        PdfStringOutputDevice outDev(docBuff);
 
-        doc.SaveUpdate(outBuf);
-        // should not throw
-        REQUIRE(true);
+        doc.SaveUpdate(outDev);
+        doc.LoadFromBuffer(docBuff);
     }
     catch (PdfError&)
     {
