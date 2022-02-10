@@ -18,15 +18,8 @@
 class TestUtils
 {
 public:
-    static std::string getTempFilename();
-    static void deleteFile(const std::string_view& filename);
-
-    /**
-     * Read a test data file into memory and return a malloc'ed buffer.
-     *
-     * \param filename filename of the data file. The path will be determined automatically.
-     */
-    static char* readDataFile(const std::string_view& filename);
+    static std::string GetTestOutputFilePath(const std::string_view& filename);
+    static std::string GetTestInputFilePath(const std::string_view& filename);
 };
 
 #endif // TEST_UTILS_H

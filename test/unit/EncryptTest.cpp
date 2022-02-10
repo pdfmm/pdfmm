@@ -23,9 +23,9 @@ PdfPermissions s_protection;
 #define PDF_USER_PASSWORD "user"
 #define PDF_OWNER_PASSWORD "pdfmm"
 
-struct Init
+struct Paths
 {
-    Init()
+    Paths()
     {
         const char* buffer1 = "Somekind of drawing \001 buffer that possibly \003 could contain PDF drawing commands";
         const char* buffer2 = " possibly could contain PDF drawing\003  commands";
@@ -197,81 +197,50 @@ TEST_CASE("testEnableAlgorithms")
 
 TEST_CASE("testLoadEncrypedFilePdfParser")
 {
-    string tempFile = TestUtils::getTempFilename();
+    string tempFile = TestUtils::GetTestOutputFilePath("testLoadEncrypedFilePdfParser.pdf");
+    createEncryptedPdf(tempFile);
+
+    auto device = std::make_shared<PdfFileInputDevice>(tempFile);
+    // Try loading with PdfParser
+    PdfIndirectObjectList objects;
+    PdfParser parser(objects);
 
     try
     {
-        createEncryptedPdf(tempFile);
+        parser.Parse(*device, true);
 
-        auto device = std::make_shared<PdfFileInputDevice>(tempFile);
-        // Try loading with PdfParser
-        PdfIndirectObjectList objects;
-        PdfParser parser(objects);
-
-        try
-        {
-            parser.Parse(*device, true);
-
-            // Must throw an exception
-            FAIL("Encrypted file not recognized!");
-        }
-        catch (PdfError& e)
-        {
-            if (e.GetError() != PdfErrorCode::InvalidPassword)
-                FAIL("Invalid encryption exception thrown!");
-        }
-
-        parser.SetPassword(PDF_USER_PASSWORD);
+        // Must throw an exception
+        FAIL("Encrypted file not recognized!");
     }
     catch (PdfError& e)
     {
-        e.PrintErrorMsg();
-
-        INFO(cmn::Format("Removing temp file: {}", tempFile));
-        TestUtils::deleteFile(tempFile);
-        throw e;
+        if (e.GetError() != PdfErrorCode::InvalidPassword)
+            FAIL("Invalid encryption exception thrown!");
     }
 
-    INFO(cmn::Format("Removing temp file: {}", tempFile));
-    TestUtils::deleteFile(tempFile);
+    parser.SetPassword(PDF_USER_PASSWORD);
 }
 
 TEST_CASE("testLoadEncrypedFilePdfMemDocument")
 {
-    string tempFile = TestUtils::getTempFilename();
+    string tempFile = TestUtils::GetTestOutputFilePath("testLoadEncrypedFilePdfMemDocument.pdf");
+    createEncryptedPdf(tempFile);
 
+    // Try loading with PdfParser
+    PdfMemDocument document;
     try
     {
-        createEncryptedPdf(tempFile);
+        document.Load(tempFile);
 
-        // Try loading with PdfParser
-        PdfMemDocument document;
-        try
-        {
-            document.Load(tempFile);
-
-            // Must throw an exception
-            FAIL("Encrypted file not recognized!");
-        }
-        catch (...)
-        {
-
-        }
-
-        document.Load(tempFile, PDF_USER_PASSWORD);
+        // Must throw an exception
+        FAIL("Encrypted file not recognized!");
     }
-    catch (PdfError& e)
+    catch (...)
     {
-        e.PrintErrorMsg();
 
-        INFO(cmn::Format("Removing temp file: {}", tempFile));
-        TestUtils::deleteFile(tempFile);
-
-        throw e;
     }
 
-    INFO(cmn::Format("Removing temp file: {}", tempFile));
-    TestUtils::deleteFile(tempFile);
+    document.Load(tempFile, PDF_USER_PASSWORD);
 }
 
 void testAuthenticate(PdfEncrypt& encrypt)

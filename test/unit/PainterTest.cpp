@@ -16,7 +16,6 @@ static void CompareStreamContent(PdfObjectStream& stream, const string_view& exp
 TEST_CASE("testAppend")
 {
     string_view example = "BT (Hallo) Tj ET";
-    string_view color = " 1 1 1 rg\n";
 
     PdfMemDocument doc;
     PdfPage* page = doc.GetPageTree().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));

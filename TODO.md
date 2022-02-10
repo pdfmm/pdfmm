@@ -1,8 +1,5 @@
-### 0.9.20
-- Re-enable unit tests with Catch (https://github.com/catchorg/Catch2)
-
-### 1.0
-- Refactor/Review PdfField hierarchy
+### 0.10.x
+- Refactor/Review PdfField hierarchy. Finish API review
 - Added version of PdfFont::TryGetSubstituteFont for rendering
   (metrics of loaded font override metrics found on /FontFile)
 - Added text extraction API
@@ -12,7 +9,7 @@
 - FontManager could use unique_ptr or shared_ptr?
 - Remove PdfLocaleImbue
 - PdfRect should avoid normalization by default
-- PdfDifferenceEncoding: Move char code conversion data to private folder
+- PdfDifferenceEncoding: Rework Adobe Glyph List handling and moving it to private folder
 
 ### After 1.0
 - Check PdfStreamedDocument working

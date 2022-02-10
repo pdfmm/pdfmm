@@ -21,7 +21,7 @@ TEST_CASE("testEmptyContentsStream")
     annot1->SetContents(title);
     annot1->SetOpen(true);
 
-    string filename = TestUtils::getTempFilename();
+    string filename = TestUtils::GetTestOutputFilePath("testEmptyContentsStream.pdf");
     doc.Save(filename);
 
     // Read annotation again
@@ -36,6 +36,4 @@ TEST_CASE("testEmptyContentsStream")
 
     auto& pageObj = page2.GetObject();
     REQUIRE(!pageObj.GetDictionary().HasKey("Contents"));
-
-    TestUtils::deleteFile(filename);
 }

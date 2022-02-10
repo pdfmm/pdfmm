@@ -60,7 +60,7 @@ void testSingleFont(FcPattern* font)
         {
             PdfFontSearchParams params;
             params.Style = style;
-            auto font = doc.GetFontManager().GetFont(fontFamily, params);
+            (void)doc.GetFontManager().GetFont(fontFamily, params);
             INFO(cmn::Format("Font failed: {}", fontPath));
         }
     }
