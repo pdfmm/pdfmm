@@ -915,7 +915,7 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
                     csArr.Add(PdfName("DeviceGray"));
                     csArr.Add(csTintFunc->GetIndirectReference());
 
-                    PdfObject* csp = document.GetObjects().CreateObject(csArr);
+                    PdfObject* csp = document.GetObjects().CreateObject(std::move(csArr));
 
                     return csp;
                 }
@@ -953,7 +953,7 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
                     csArr.Add(PdfName("DeviceRGB"));
                     csArr.Add(csTintFunc->GetIndirectReference());
 
-                    PdfObject* csp = document.GetObjects().CreateObject(csArr);
+                    PdfObject* csp = document.GetObjects().CreateObject(std::move(csArr));
 
                     return csp;
                 }
@@ -995,7 +995,7 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
                     PdfMemoryInputStream stream({ data, 4 * 2 });
                     csTintFunc->GetOrCreateStream().Set(stream); // set stream as last, so that it will work with PdfStreamedDocument
 
-                    PdfObject* csp = document.GetObjects().CreateObject(csArr);
+                    PdfObject* csp = document.GetObjects().CreateObject(std::move(csArr));
 
                     return csp;
                 }
@@ -1033,7 +1033,7 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
                     csArr.Add(PdfName("Lab"));
                     csArr.Add(csTintFunc->GetIndirectReference());
 
-                    PdfObject* csp = document.GetObjects().CreateObject(csArr);
+                    PdfObject* csp = document.GetObjects().CreateObject(std::move(csArr));
 
                     return csp;
                 }
@@ -1079,7 +1079,7 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
             labArr.Add(PdfName("Lab"));
             labArr.Add(labDict);
 
-            PdfObject* labp = document.GetObjects().CreateObject(labArr);
+            PdfObject* labp = document.GetObjects().CreateObject(std::move(labArr));
 
             return labp;
         }

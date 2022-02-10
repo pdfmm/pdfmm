@@ -139,11 +139,11 @@ void PdfShadingPattern::Init(PdfShadingPatternType shadingType)
     this->GetObject().GetDictionary().AddKey("PatternType", static_cast<int64_t>(2)); // Shading pattern
     if (shadingType < PdfShadingPatternType::FreeForm)
     {
-        this->GetObject().GetDictionary().AddKey("Shading", shading);
+        this->GetObject().GetDictionary().AddKey("Shading", std::move(shading));
     }
     else
     {
-        PdfObject* shadingObject = this->GetObject().GetDocument()->GetObjects().CreateObject(shading);
+        PdfObject* shadingObject = this->GetObject().GetDocument()->GetObjects().CreateObject(std::move(shading));
         this->GetObject().GetDictionary().AddKey("Shading", shadingObject->GetIndirectReference());
     }
 }

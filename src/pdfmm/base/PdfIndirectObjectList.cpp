@@ -232,9 +232,17 @@ PdfObject* PdfIndirectObjectList::CreateArrayObject()
     return ret;
 }
 
-PdfObject* PdfIndirectObjectList::CreateObject(const PdfVariant& variant)
+PdfObject* PdfIndirectObjectList::CreateObject(const PdfObject& obj)
 {
-    auto ret = new PdfObject(variant);
+    auto ret = new PdfObject(obj);
+    ret->setDirty();
+    addNewObject(ret);
+    return ret;
+}
+
+PdfObject* PdfIndirectObjectList::CreateObject(PdfObject&& obj)
+{
+    auto ret = new PdfObject(std::move(obj));
     ret->setDirty();
     addNewObject(ret);
     return ret;

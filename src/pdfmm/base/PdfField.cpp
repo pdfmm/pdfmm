@@ -200,11 +200,11 @@ void PdfField::Init(PdfAcroForm* parent)
             break;
         case PdfFieldType::PushButton:
             dict.AddKey("FT", PdfName("Btn"));
-            dict.AddKey("Ff", PdfObject((int64_t)PdfButton::ePdfButton_PushButton));
+            dict.AddKey("Ff", (int64_t)PdfButton::ePdfButton_PushButton);
             break;
         case PdfFieldType::RadioButton:
             dict.AddKey("FT", PdfName("Btn"));
-            dict.AddKey("Ff", PdfObject((int64_t)(PdfButton::ePdfButton_Radio | PdfButton::ePdfButton_NoToggleOff)));
+            dict.AddKey("Ff", (int64_t)(PdfButton::ePdfButton_Radio | PdfButton::ePdfButton_NoToggleOff));
             break;
         case PdfFieldType::TextField:
             dict.AddKey("FT", PdfName("Tx"));
@@ -214,7 +214,7 @@ void PdfField::Init(PdfAcroForm* parent)
             break;
         case PdfFieldType::ComboBox:
             dict.AddKey("FT", PdfName("Ch"));
-            dict.AddKey("Ff", PdfObject((int64_t)PdChoiceField::ePdfListField_Combo));
+            dict.AddKey("Ff", (int64_t)PdChoiceField::ePdfListField_Combo);
             break;
         case PdfFieldType::Signature:
             dict.AddKey("FT", PdfName("Sig"));

@@ -186,13 +186,15 @@ public:
 
     PdfObject* CreateArrayObject();
 
-    /** Creates a new object (of type rVariants) and inserts it into the vector.
+    /** Creates a new object and inserts it into the vector.
      *  This function assigns the next free object number to the PdfObject.
      *
-     *  \param variant value of the PdfObject
+     *  \param obj value of the PdfObject
      *  \returns PdfObject pointer to the new PdfObject
      */
-    PdfObject* CreateObject(const PdfVariant& variant);
+    PdfObject* CreateObject(const PdfObject& obj);
+    PdfObject* CreateObject(PdfObject&& obj);
+
 
     /** Attach a new observer
      *  \param pObserver to attach

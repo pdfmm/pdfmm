@@ -42,8 +42,8 @@ void PdfSampledFunction::Init(const PdfArray& domain, const PdfArray& range, con
     this->GetObject().GetDictionary().AddKey("Domain", domain);
     this->GetObject().GetDictionary().AddKey("Range", range);
     this->GetObject().GetDictionary().AddKey("Size", Size);
-    this->GetObject().GetDictionary().AddKey("Order", PdfObject(static_cast<int64_t>(1)));
-    this->GetObject().GetDictionary().AddKey("BitsPerSample", PdfObject(static_cast<int64_t>(8)));
+    this->GetObject().GetDictionary().AddKey("Order", static_cast<int64_t>(1));
+    this->GetObject().GetDictionary().AddKey("BitsPerSample", static_cast<int64_t>(8));
 
     this->GetObject().GetOrCreateStream().BeginAppend();
     for (char c : samples)

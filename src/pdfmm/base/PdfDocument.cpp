@@ -513,10 +513,9 @@ void PdfDocument::SetViewerPreference(const PdfName& whichPref, const PdfObject&
     if (prefsObj == nullptr)
     {
         // make me a new one and add it
-        PdfDictionary	vpDict;
+        PdfDictionary vpDict;
         vpDict.AddKey(whichPref, valueObj);
-
-        m_Catalog->GetDictionary().AddKey("ViewerPreferences", PdfObject(vpDict));
+        m_Catalog->GetDictionary().AddKey("ViewerPreferences", std::move(vpDict));
     }
     else
     {

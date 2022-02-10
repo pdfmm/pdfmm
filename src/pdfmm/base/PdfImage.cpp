@@ -122,9 +122,9 @@ void PdfImage::SetImageData(PdfInputStream& stream, unsigned width, unsigned hei
     m_width = width;
     m_height = height;
 
-    this->GetObject().GetDictionary().AddKey("Width", PdfObject(static_cast<int64_t>(width)));
-    this->GetObject().GetDictionary().AddKey("Height", PdfObject(static_cast<int64_t>(height)));
-    this->GetObject().GetDictionary().AddKey("BitsPerComponent", PdfObject(static_cast<int64_t>(bitsPerComponent)));
+    this->GetObject().GetDictionary().AddKey("Width", static_cast<int64_t>(width));
+    this->GetObject().GetDictionary().AddKey("Height", static_cast<int64_t>(height));
+    this->GetObject().GetDictionary().AddKey("BitsPerComponent", static_cast<int64_t>(bitsPerComponent));
     this->GetObject().GetOrCreateStream().Set(stream, filters);
 }
 
@@ -439,7 +439,7 @@ void PdfImage::LoadFromTiffHandle(void* handle)
                 decode.insert(decode.end(), PdfObject(static_cast<int64_t>(0)));
                 decode.insert(decode.end(), PdfObject(static_cast<int64_t>(1)));
                 this->GetObject().GetDictionary().AddKey("Decode", decode);
-                this->GetObject().GetDictionary().AddKey("ImageMask", PdfObject(true));
+                this->GetObject().GetDictionary().AddKey("ImageMask", true);
                 this->GetObject().GetDictionary().RemoveKey("ColorSpace");
             }
             else if (bitsPixel == 8 || bitsPixel == 16)
@@ -460,7 +460,7 @@ void PdfImage::LoadFromTiffHandle(void* handle)
                 decode.insert(decode.end(), PdfObject(static_cast<int64_t>(1)));
                 decode.insert(decode.end(), PdfObject(static_cast<int64_t>(0)));
                 this->GetObject().GetDictionary().AddKey("Decode", decode);
-                this->GetObject().GetDictionary().AddKey("ImageMask", PdfObject(true));
+                this->GetObject().GetDictionary().AddKey("ImageMask", true);
                 this->GetObject().GetDictionary().RemoveKey("ColorSpace");
             }
             else if (bitsPixel == 8 || bitsPixel == 16)
@@ -1034,7 +1034,7 @@ void PdfImage::SetImageChromaKeyMask(int64_t r, int64_t g, int64_t b, int64_t th
 
 void PdfImage::SetInterpolate(bool value)
 {
-    this->GetObject().GetDictionary().AddKey("Interpolate", PdfObject(value));
+    this->GetObject().GetDictionary().AddKey("Interpolate", value);
 }
 
 PdfRect PdfImage::GetRect() const

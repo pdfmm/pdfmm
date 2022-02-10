@@ -317,7 +317,7 @@ void PdfEncoding::ExportToFont(PdfFont& font, PdfEncodingExportFlags flags) cons
         auto cidSystemInfo = font.GetDocument().GetObjects().CreateDictionaryObject();
         cidSystemInfo->GetDictionary().AddKey("Registry", PdfString(CMAP_REGISTRY_NAME));
         cidSystemInfo->GetDictionary().AddKey("Ordering", PdfString(fontName));
-        cidSystemInfo->GetDictionary().AddKey("Supplement", PdfObject(static_cast<int64_t>(0)));
+        cidSystemInfo->GetDictionary().AddKey("Supplement", static_cast<int64_t>(0));
 
         // NOTE: Setting the CIDSystemInfo params in the descendant font object is required
         font.GetDescendantFontObject().GetDictionary().AddKeyIndirect("CIDSystemInfo", cidSystemInfo);

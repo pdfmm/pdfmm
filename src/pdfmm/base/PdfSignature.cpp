@@ -52,7 +52,7 @@ void PdfSignature::Init(PdfAcroForm& acroForm)
     // TABLE 8.68 Signature flags: SignaturesExist (1) | AppendOnly (2)
     // This will open signature panel when inspecting PDF with acrobat,
     // even if the signature is unsigned
-    acroForm.GetObject().GetDictionary().AddKey("SigFlags", PdfObject((int64_t)3));
+    acroForm.GetObject().GetDictionary().AddKey("SigFlags", (int64_t)3);
 }
 
 void PdfSignature::SetSignerName(const PdfString& text)
@@ -93,11 +93,11 @@ void PdfSignature::PrepareForSigning(const string_view& filter,
 
     // Prepare contents data
     PdfData contentsData = PdfData(beacons.ContentsBeacon, beacons.ContentsOffset);
-    m_ValueObj->GetDictionary().AddKey(PdfName::KeyContents, PdfObject(contentsData));
+    m_ValueObj->GetDictionary().AddKey(PdfName::KeyContents, PdfVariant(std::move(contentsData)));
 
     // Prepare byte range data
     PdfData byteRangeData = PdfData(beacons.ByteRangeBeacon, beacons.ByteRangeOffset);
-    m_ValueObj->GetDictionary().AddKey("ByteRange", PdfObject(byteRangeData));
+    m_ValueObj->GetDictionary().AddKey("ByteRange", PdfVariant(std::move(byteRangeData)));
 }
 
 void PdfSignature::SetSignatureLocation(const PdfString& text)
@@ -145,7 +145,7 @@ void PdfSignature::AddCertificationReference(PdfCertPermission perm)
 
     auto transParams = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject("TransformParams");
     transParams->GetDictionary().AddKey("V", PdfName("1.2"));
-    transParams->GetDictionary().AddKey("P", PdfObject((int64_t)perm));
+    transParams->GetDictionary().AddKey("P", (int64_t)perm);
     sigRef->GetDictionary().AddKey("TransformParams", *transParams);
 
     auto& catalog = GetObject().GetDocument()->GetCatalog();

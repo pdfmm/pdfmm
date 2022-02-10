@@ -430,7 +430,7 @@ void PdfFont::FillDescriptor(PdfDictionary& dict) const
         dict.AddKey("FontFamily", PdfString(familyName));
     if ((stretch = m_Metrics->GetFontStretch()) != PdfFontStretch::Unknown)
         dict.AddKey("FontStretch", PdfName(toString(stretch)));
-    dict.AddKey(PdfName::KeyFlags, PdfObject(static_cast<int64_t>(m_Metrics->GetFlags())));
+    dict.AddKey(PdfName::KeyFlags, static_cast<int64_t>(m_Metrics->GetFlags()));
     dict.AddKey("ItalicAngle", static_cast<int64_t>(std::round(m_Metrics->GetItalicAngle())));
 
     PdfArray bbox;
@@ -512,9 +512,9 @@ void PdfFont::EmbedFontFile(PdfObject& descriptor)
 void PdfFont::EmbedFontFileType1(PdfObject& descriptor, const bufferview& data, unsigned length1, unsigned length2, unsigned length3)
 {
     auto contents = embedFontFileData(descriptor, "FontFile", data);
-    contents->GetDictionary().AddKey("Length1", PdfObject(static_cast<int64_t>(length1)));
-    contents->GetDictionary().AddKey("Length2", PdfObject(static_cast<int64_t>(length2)));
-    contents->GetDictionary().AddKey("Length3", PdfObject(static_cast<int64_t>(length3)));
+    contents->GetDictionary().AddKey("Length1", static_cast<int64_t>(length1));
+    contents->GetDictionary().AddKey("Length2", static_cast<int64_t>(length2));
+    contents->GetDictionary().AddKey("Length3", static_cast<int64_t>(length3));
 }
 
 void PdfFont::EmbedFontFileType1CCF(PdfObject& descriptor, const bufferview& data)
@@ -532,7 +532,7 @@ void PdfFont::EmbedFontFileType1CCF(PdfObject& descriptor, const bufferview& dat
 void PdfFont::EmbedFontFileTrueType(PdfObject& descriptor, const bufferview& data)
 {
     auto contents = embedFontFileData(descriptor, "FontFile2", data);
-    contents->GetDictionary().AddKey("Length1", PdfObject(static_cast<int64_t>(data.size())));
+    contents->GetDictionary().AddKey("Length1", static_cast<int64_t>(data.size()));
 }
 
 void PdfFont::EmbedFontFileOpenType(PdfObject& descriptor, const bufferview& data)

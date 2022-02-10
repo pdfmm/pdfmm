@@ -26,7 +26,7 @@ PdfPageTree::PdfPageTree(PdfDocument& doc)
     m_cache(0)
 {
     GetObject().GetDictionary().AddKey("Kids", PdfArray());
-    GetObject().GetDictionary().AddKey("Count", PdfObject(static_cast<int64_t>(0)));
+    GetObject().GetDictionary().AddKey("Count", static_cast<int64_t>(0));
 }
 
 PdfPageTree::PdfPageTree(PdfObject& pagesRoot)

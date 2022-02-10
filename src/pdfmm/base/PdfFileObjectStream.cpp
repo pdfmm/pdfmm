@@ -23,7 +23,7 @@ PdfFileObjectStream::PdfFileObjectStream(PdfObject& parent, PdfOutputDevice& dev
     : PdfObjectStream(parent), m_Device(&device),
     m_initialLength(0), m_Length(0), m_CurrEncrypt(nullptr)
 {
-    m_LengthObj = parent.GetDocument()->GetObjects().CreateObject(PdfVariant(static_cast<int64_t>(0)));
+    m_LengthObj = parent.GetDocument()->GetObjects().CreateObject(static_cast<int64_t>(0));
     m_Parent->GetDictionary().AddKey(PdfName::KeyLength, m_LengthObj->GetIndirectReference());
 }
 

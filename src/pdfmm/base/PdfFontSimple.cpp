@@ -97,16 +97,16 @@ void PdfFontSimple::embedFont()
     PdfArray arr;
     this->getWidthsArray(arr);
 
-    auto widthsObj = GetDocument().GetObjects().CreateObject(arr);
+    auto widthsObj = GetDocument().GetObjects().CreateObject(std::move(arr));
     this->GetObject().GetDictionary().AddKeyIndirect("Widths", widthsObj);
 
     if (GetType() == PdfFontType::Type3)
     {
         getFontMatrixArray(arr);
-        GetObject().GetDictionary().AddKey("FontMatrix", arr);
+        GetObject().GetDictionary().AddKey("FontMatrix", std::move(arr));
 
         GetBoundingBox(arr);
-        GetObject().GetDictionary().AddKey("FontBBox", arr);
+        GetObject().GetDictionary().AddKey("FontBBox", std::move(arr));
     }
 
     EmbedFontFile(*m_Descriptor);
