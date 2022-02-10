@@ -39,9 +39,10 @@ namespace mm
     class PdfParserTest : public PdfParser
     {
     public:
-        PdfParserTest(PdfIndirectObjectList& objectList, const string_view& buff)
-            : PdfParser(objectList), m_device(new PdfMemoryInputDevice(buff))
-        { }
+        PdfParserTest(PdfIndirectObjectList& objectList, string buff)
+            : PdfParser(objectList), m_buffer(std::move(buff)), m_device(new PdfMemoryInputDevice(m_buffer))
+        {
+        }
 
         void ReadXRefContents(size_t offset, bool positionAtEnd)
         {
@@ -82,6 +83,7 @@ namespace mm
         const shared_ptr<PdfInputDevice>& GetDevice() { return m_device; }
 
     private:
+        string m_buffer;
         shared_ptr<PdfInputDevice> m_device;
     };
 }
@@ -134,8 +136,7 @@ TEST_CASE("TestReadXRefContents")
     }
     catch (PdfError&)
     {
-        INFO("should not throw PdfError");
-        REQUIRE(false);
+        FAIL("Should not throw PdfError");
     }
     catch (exception&)
     {
@@ -163,11 +164,10 @@ TEST_CASE("TestReadXRefContents")
         PdfIndirectObjectList objects;
         PdfParserTest parser(objects, oss.str());
         parser.ReadXRefContents(0, false);
-        // expected to succeed
     }
-    catch (PdfError&)
+    catch (PdfError& error)
     {
-        FAIL("should not throw PdfError");
+        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRef);
     }
     catch (exception&)
     {
@@ -273,7 +273,7 @@ TEST_CASE("TestReadXRefContents")
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRef);
+        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRefType);
     }
     catch (exception&)
     {
@@ -350,7 +350,7 @@ TEST_CASE("TestReadXRefContents")
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRef);
+        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRefType);
     }
     catch (exception&)
     {
@@ -426,7 +426,7 @@ TEST_CASE("TestReadXRefContents")
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRef);
+        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRefType);
     }
     catch (exception&)
     {
@@ -1098,10 +1098,8 @@ TEST_CASE("testReadXRefStreamContents")
         oss << "startxref " << offsetXRefObject << "\r\n";
         oss << "%%EOF";
 
-        auto docBuffer = oss.str();
-
         PdfIndirectObjectList objects;
-        PdfParserTest parser(objects, docBuffer);
+        PdfParserTest parser(objects, oss.str());
         parser.ReadXRefStreamContents(offsetXRefObject, false);
         // should succeed
     }
