@@ -178,7 +178,10 @@ TEST_CASE("testDifferencesEncoding")
     REQUIRE(unicode == "BAABI");
 }
 
-TEST_CASE("testUnicodeNames")
+// FIX-ME: This test passes but it's garbage and very slow
+// Fix it the whole thing by handling properly the Adobe Glyph List
+// in PdfDifferenceEncoding (or better a new separate function)
+TEST_CASE("testUnicodeNames", "[.]")
 {
     // List of items which are defined twice and cause
     // other ids to be returned than those which where send in

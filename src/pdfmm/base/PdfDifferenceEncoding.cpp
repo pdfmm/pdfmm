@@ -26,6 +26,8 @@
 using namespace std;
 using namespace mm;
 
+// TODO: The AGL handling is very bad. Read the actual
+// specification and attempt to implement it better
 // https://github.com/adobe-type-tools/agl-specification
 // https://github.com/adobe-type-tools/agl-aglfn/
 static struct
