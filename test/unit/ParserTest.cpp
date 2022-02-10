@@ -90,24 +90,20 @@ namespace mm
 
 TEST_CASE("TestMaxObjectCount")
 {
-    size_t defaultObjectCount = PdfParser::GetMaxObjectCount();
-
-    REQUIRE(defaultObjectCount == maxNumberOfIndirectObjects);
-
-    // test methods that use PdfParser::s_nMaxObjects or GetMaxObjectCount
-    // with a range of different maximums
-    PdfParser::SetMaxObjectCount(numeric_limits<unsigned>::max());
+    PdfParser::SetMaxObjectCount(numeric_limits<unsigned short>::max());
     testReadXRefSubsection();
 
     PdfParser::SetMaxObjectCount(maxNumberOfIndirectObjects);
     testReadXRefSubsection();
+}
 
-    PdfParser::SetMaxObjectCount(numeric_limits<unsigned short>::max());
-    testReadXRefSubsection();
-
+// NOTE: This test is too long to be normally done on every run
+TEST_CASE("TestMaxObjectCount2", "[.]")
+{
     PdfParser::SetMaxObjectCount(numeric_limits<unsigned>::max());
     testReadXRefSubsection();
 }
+
 
 TEST_CASE("TestReadXRefContents")
 {
@@ -493,7 +489,7 @@ void testReadXRefSubsection()
             PdfIndirectObjectList objects;
             PdfParserTest parser(objects, strInput);
             firstObject = 0;
-            objectCount = PdfParser::GetMaxObjectCount() + 1;
+            objectCount = (int64_t)PdfParser::GetMaxObjectCount() + 1;
             parser.ReadXRefSubsection(firstObject, objectCount);
             FAIL("PdfError not thrown");
         }
@@ -541,7 +537,7 @@ void testReadXRefSubsection()
     // CVE-2018-5296 try to allocate 95% of VM address space size (which should always fail)
     if (!canOutOfMemoryKillUnitTests())
     {
-        size_t maxObjects = numeric_limits<size_t>::max() / sizeof(PdfXRefEntry) / 100 * 95;
+        constexpr size_t maxObjects = numeric_limits<size_t>::max() / sizeof(PdfXRefEntry) / 100 * 95;
 
         try
         {
@@ -656,7 +652,7 @@ void testReadXRefSubsection()
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRef);
+        REQUIRE(error.GetError() == PdfErrorCode::ValueOutOfRange);
     }
     catch (exception&)
     {
@@ -703,7 +699,7 @@ void testReadXRefSubsection()
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::ValueOutOfRange);
+        REQUIRE(error.GetError() == PdfErrorCode::NoXRef);
     }
     catch (exception&)
     {
@@ -766,7 +762,7 @@ void testReadXRefSubsection()
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRef);
+        REQUIRE(error.GetError() == PdfErrorCode::ValueOutOfRange);
     }
     catch (exception&)
     {
@@ -836,14 +832,14 @@ void testReadXRefSubsection()
         FAIL("Wrong exception type");
     }
 
-    // CVE-2017-5853 2.2 - objectCount = min value of long
+    // CVE-2017-5853 2.2 - objectCount = min value of int
     try
     {
         string strInput = " ";
         PdfIndirectObjectList objects;
         PdfParserTest parser(objects, strInput);
         firstObject = 1;
-        objectCount = numeric_limits<unsigned>::min();
+        objectCount = numeric_limits<int>::min();
         parser.ReadXRefSubsection(firstObject, objectCount);
         FAIL("PdfError not thrown");
     }
@@ -913,7 +909,7 @@ void testReadXRefSubsection()
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::InvalidXRef);
+        REQUIRE(error.GetError() == PdfErrorCode::ValueOutOfRange);
     }
     catch (exception&)
     {
@@ -1019,7 +1015,7 @@ void testReadXRefSubsection()
         0,
         1
     };
-    const size_t numValues = sizeof(s_values) / sizeof(s_values[0]);
+    constexpr size_t numValues = sizeof(s_values) / sizeof(s_values[0]);
 
     for (int i = 0; i < static_cast<int>(numValues); i++)
     {
