@@ -59,6 +59,8 @@ private:
     PdfFontConfigWrapper(const PdfFontConfigWrapper& rhs) = delete;
     const PdfFontConfigWrapper& operator=(const PdfFontConfigWrapper& rhs) = delete;
 
+    void createDefaultConfig();
+
 private:
     FcConfig* m_FcConfig;
 };

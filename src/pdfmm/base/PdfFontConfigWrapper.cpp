@@ -6,6 +6,7 @@
  * Some rights reserved. See COPYING, AUTHORS.
  */
 
+#include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfFontConfigWrapper.h"
 
 #include <fontconfig/fontconfig.h>
@@ -17,11 +18,7 @@ PdfFontConfigWrapper::PdfFontConfigWrapper(FcConfig* fcConfig)
     : m_FcConfig(fcConfig)
 {
     if (fcConfig == nullptr)
-    {
-        // Default initialize FontConfig
-        FcInit();
-        m_FcConfig = FcConfigGetCurrent();
-    }
+        createDefaultConfig();
 }
 
 PdfFontConfigWrapper::~PdfFontConfigWrapper()
@@ -83,4 +80,63 @@ void PdfFontConfigWrapper::AddFontDirectory(const string_view& path)
 FcConfig* PdfFontConfigWrapper::GetFcConfig()
 {
     return m_FcConfig;
+}
+
+void PdfFontConfigWrapper::createDefaultConfig()
+{
+#ifdef _WIN32
+    const char* fontconf =
+        R"(<?xml version="1.0"?>
+<!DOCTYPE fontconfig SYSTEM "fonts.dtd">
+<fontconfig>
+    <dir>WINDOWSFONTDIR</dir>
+    <dir prefix="xdg">fonts</dir>
+    <cachedir>LOCAL_APPDATA_FONTCONFIG_CACHE</cachedir>
+    <cachedir prefix="xdg">fontconfig</cachedir>
+</fontconfig>
+)";
+#elif __ANDROID__
+    // On android fonts are located in /system/fonts
+    const char* fontconf =
+        R"(<?xml version="1.0"?>
+<!DOCTYPE fontconfig SYSTEM "fonts.dtd">
+<fontconfig>
+    <dir>/system/fonts</dir>
+</fontconfig>
+)";
+#elif __APPLE__
+    // Fonts location https://stackoverflow.com/a/2557291/213871
+    const char* fontconf =
+        R"(<?xml version="1.0"?>
+<!DOCTYPE fontconfig SYSTEM "fonts.dtd">
+<fontconfig>
+    <dir>/System/Library/Fonts</dir>
+</fontconfig>
+)";
+#endif
+
+#if defined(_WIN32) || defined(__ANDROID__) || defined(__APPLE__)
+    auto config = FcConfigCreate();
+    if (config == nullptr)
+        throw runtime_error("Could not allocate font config");
+
+    if (!FcConfigParseAndLoadFromMemory(config, (FcChar8*)fontconf, true))
+    {
+        FcConfigDestroy(config);
+        throw runtime_error("Could not parse font config");
+    }
+
+    if (!FcConfigSetCurrent(config))
+    {
+        FcConfigDestroy(config);
+        throw runtime_error("Could not set current font config");
+    }
+
+    m_FcConfig = config;
+#else // Other unix/linux
+    // Default initialize FontConfig
+    FcInit();
+    m_FcConfig = FcConfigGetCurrent();
+    PDFMM_ASSERT(m_FcConfig != nullptr);
+#endif
 }
