@@ -11,12 +11,16 @@
 #include <pdfmm/pdfmm.h>
 #include "TestUtils.h"
 
+using namespace std;
 using namespace mm;
 
 int main(int argc, char* argv[])
 {
     // Add a fonts directory for more consistents run
     auto fontPath = TestUtils::GetTestInputPath() / "Fonts";
+    if (!fs::exists(fontPath))
+        throw runtime_error("Missing Fonts directory");
+
     PdfFontManager::AddFontDirectory(fontPath.u8string());
     PdfError::SetMaxLoggingSeverity(PdfLogSeverity::Warning);
     return Catch::Session().run(argc, argv);

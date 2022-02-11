@@ -294,7 +294,7 @@ void createEncryptedPdf(const string_view& filename)
     PdfPainter painter;
     painter.SetCanvas(page);
 
-    PdfFont* font = doc.GetFontManager().GetFont("Arial");
+    PdfFont* font = doc.GetFontManager().GetFont("LiberationSans");
     if (font == nullptr)
         FAIL("Coult not find Arial font");
 
