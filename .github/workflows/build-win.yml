@@ -28,4 +28,8 @@ jobs:
 
     - name: Test
       working-directory: ${{github.workspace}}\build
-      run: ctest
+      # NOTE: The cmake build is forced to be single
+      # configuration (either Debug or Release) but it
+      #  must be specified when running tests on Windows
+      # because of MSVC solution oddities
+      run: ctest -C ${{env.BUILD_TYPE}}
