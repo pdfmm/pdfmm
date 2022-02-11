@@ -10,16 +10,24 @@
 #define TEST_UTILS_H
 
 #include <string>
+#include <filesystem>
 
-/**
- * This class contains utility methods that are
- * often needed when writing tests.
- */
-class TestUtils
+namespace mm
 {
-public:
-    static std::string GetTestOutputFilePath(const std::string_view& filename);
-    static std::string GetTestInputFilePath(const std::string_view& filename);
-};
+    namespace fs = std::filesystem;
+
+    /**
+     * This class contains utility methods that are
+     * often needed when writing tests.
+     */
+    class TestUtils
+    {
+    public:
+        static std::string GetTestOutputFilePath(const std::string_view& filename);
+        static std::string GetTestInputFilePath(const std::string_view& filename);
+        static const fs::path& GetTestInputPath();
+        static const fs::path& GetTestOutputPath();
+    };
+}
 
 #endif // TEST_UTILS_H

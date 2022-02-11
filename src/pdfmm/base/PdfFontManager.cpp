@@ -195,6 +195,44 @@ PdfFontMetricsConstPtr PdfFontManager::GetFontMetrics(const string_view& fontNam
     return PdfFontMetricsConstPtr(new PdfFontMetricsFreetype(std::move(fontData)));
 }
 
+void PdfFontManager::AddFontDirectory(const string_view& path)
+{
+#ifdef PDFMM_HAVE_FONTCONFIG
+    auto& fc = GetFontConfigWrapper();
+    fc.AddFontDirectory(path);
+#endif
+#if defined(_WIN32) && defined(PDFMM_HAVE_WIN32GDI)
+    string fontDir(path);
+    if (fontDir[fontDir.size() - 1] != '\\')
+        fontDir.push_back('\\');
+
+    WIN32_FIND_DATA findData;
+    u16string pattern = utf8::utf8to16(fontDir);
+    pattern.push_back(L'*');
+    HANDLE foundH = FindFirstFileW((wchar_t*)pattern.c_str(), &findData);
+    if (foundH == INVALID_HANDLE_VALUE)
+    {
+        if (GetLastError() == ERROR_FILE_NOT_FOUND)
+            return;
+
+        throw runtime_error(cmn::Format("Invalid font directory {}", fontDir));
+    }
+
+    do
+    {
+        if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
+        {
+            u16string filePath = utf8::utf8to16(fontDir);
+            filePath.append((char16_t*)findData.cFileName);
+            if (AddFontResourceExW((wchar_t*)filePath.c_str(), FR_PRIVATE, 0) == 0)
+                throw runtime_error(cmn::Format("Invalid font {}", utf8::utf16to8(filePath)));
+
+        }
+    }
+    while (FindNextFile(foundH, &findData) != 0);
+#endif
+}
+
 unique_ptr<charbuff> PdfFontManager::getFontData(const string_view& fontName,
     const PdfFontSearchParams& params)
 {
@@ -207,8 +245,8 @@ unique_ptr<charbuff> PdfFontManager::getFontData(const string_view& fontName,
     if (filepath.empty())
     {
 #ifdef PDFMM_HAVE_FONTCONFIG
-        auto fc = ensureInitializedFontConfig();
-        filepath = m_fontConfig->GetFontConfigFontPath(fontName, params.Style, faceIndex);
+        auto& fc = GetFontConfigWrapper();
+        filepath = fc.GetFontConfigFontPath(fontName, params.Style, faceIndex);
 #endif
     }
 

@@ -14,7 +14,7 @@
 #include <TestConfig.h>
 
 using namespace std;
-namespace fs = std::filesystem;
+using namespace mm;
 
 static struct TestPaths
 {
@@ -33,4 +33,14 @@ string TestUtils::GetTestOutputFilePath(const string_view& filename)
 string TestUtils::GetTestInputFilePath(const string_view& filename)
 {
     return (s_paths.Input / filename).u8string();
+}
+
+const fs::path& TestUtils::GetTestInputPath()
+{
+    return s_paths.Input;
+}
+
+const fs::path& TestUtils::GetTestOutputPath()
+{
+    return s_paths.Output;
 }

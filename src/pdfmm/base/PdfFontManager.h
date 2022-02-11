@@ -93,13 +93,6 @@ public:
     PdfFont* GetStandard14Font(PdfStandard14FontType stdFont,
         const PdfFontCreateParams& params = { });
 
-    /** Try to search for fontmetrics from the given fontname and parameters
-     *
-     * \returns the found metrics. Null if not found 
-     */
-    static PdfFontMetricsConstPtr GetFontMetrics(const std::string_view& fontName,
-        const PdfFontSearchParams& params = { });
-
     /**
      *  \param face a valid freetype font face (will be free'd by pdfmm)
      *  \param params font creation params
@@ -108,6 +101,15 @@ public:
      *           not be created or found.
      */
     PdfFont* GetFont(FT_Face face, const PdfFontCreateParams& params = { });
+
+    /** Try to search for fontmetrics from the given fontname and parameters
+     *
+     * \returns the found metrics. Null if not found
+     */
+    static PdfFontMetricsConstPtr GetFontMetrics(const std::string_view& fontName,
+        const PdfFontSearchParams& params = { });
+
+    static void AddFontDirectory(const std::string_view& path);
 
 #if defined(_WIN32) && defined(PDFMM_HAVE_WIN32GDI)
     PdfFont* GetFont(HFONT font, const PdfFontCreateParams& params = { });

@@ -51,6 +51,8 @@ public:
      */
     std::string GetFontConfigFontPath(const std::string_view fontName, PdfFontStyle style, unsigned& faceIndex);
 
+    void AddFontDirectory(const std::string_view& path);
+
     FcConfig* GetFcConfig();
 
 private:
