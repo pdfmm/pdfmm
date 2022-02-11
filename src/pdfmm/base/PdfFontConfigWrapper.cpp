@@ -76,7 +76,7 @@ string PdfFontConfigWrapper::GetFontConfigFontPath(const string_view fontName,
 
 void PdfFontConfigWrapper::AddFontDirectory(const string_view& path)
 {
-    if (!FcConfigAppFontAddDir(m_FcConfig, (FcChar8*)path.data()))
+    if (!FcConfigAppFontAddDir(m_FcConfig, (const FcChar8*)path.data()))
         throw runtime_error("Unable to add font directory");
 }
 
