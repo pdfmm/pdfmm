@@ -28,7 +28,7 @@ namespace mm {
  *
  * The fontconfig library is initialized on first used (lazy loading!)
  */
-class PDFMM_API PdfFontConfigWrapper
+class PDFMM_API PdfFontConfigWrapper final
 {
 public:
     /**

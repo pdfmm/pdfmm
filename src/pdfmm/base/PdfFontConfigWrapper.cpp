@@ -120,7 +120,7 @@ void PdfFontConfigWrapper::createDefaultConfig()
     if (config == nullptr)
         throw runtime_error("Could not allocate font config");
 
-    if (!FcConfigParseAndLoadFromMemory(config, (FcChar8*)fontconf, true))
+    if (!FcConfigParseAndLoadFromMemory(config, (const FcChar8*)fontconf, true))
     {
         FcConfigDestroy(config);
         throw runtime_error("Could not parse font config");
