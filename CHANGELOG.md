@@ -1,4 +1,4 @@
-Version 0.9.20-dev
+## Version 0.9.20
 
 - pdfmm is now a C++17 library
 - Added move semantics for PdfVariant, PdfObject, PdfArray, PdfDictionary
@@ -81,7 +81,7 @@ Version 0.9.20-dev
   respectively have GetDictionary(), GetArray()
 - Reviwed PdfWriteFlags, added PdfSaveOptions
 
-# Old PoDoFo ChangeLog
+## Old PoDoFo ChangeLog
 
 Version 0.7
 

@@ -1,4 +1,4 @@
-### 0.10.x
+### 0.10.x (Summer 2022)
 - Refactor/Review PdfField hierarchy. Finish API review
 - Added version of PdfFont::TryGetSubstituteFont for rendering
   (metrics of loaded font override metrics found on /FontFile)
@@ -11,7 +11,7 @@
 - PdfRect should avoid normalization by default
 - PdfDifferenceEncoding: Rework Adobe Glyph List handling and moving it to private folder
 
-### After 1.0
+### After 0.10
 - Check PdfStreamedDocument working
 - Check/Review doxygen doc
 - Add backtrace: https://github.com/boostorg/stacktrace
