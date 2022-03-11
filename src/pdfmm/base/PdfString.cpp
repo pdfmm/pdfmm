@@ -9,6 +9,8 @@
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfString.h"
 
+#include <utfcpp/utf8.h>
+
 #include <pdfmm/private/PdfEncodingPrivate.h>
 
 #include "PdfEncrypt.h"
@@ -121,21 +123,25 @@ void PdfString::Write(PdfOutputDevice& device, PdfWriteFlags writeMode, const Pd
     // this case has to be handled!
 
     // We are not encrypting the empty strings (was access violation)!
-    charbuff tempBuffer;
     string_view dataview;
+    u16string string16;
     if (m_data->State == PdfStringState::Unicode)
     {
-        // Prepend utf-16 BOM
-        tempBuffer.push_back(static_cast<char>(0xFE));
-        tempBuffer.push_back(static_cast<char>(0xFF));
-        tempBuffer.insert(tempBuffer.end(), m_data->Chars.data(), m_data->Chars.data() + m_data->Chars.size());
-        dataview = string_view(tempBuffer.data(), tempBuffer.size());
+        // Prepend utf-16 BE BOM
+        string16.push_back((char16_t)(0xFEFF));
+        utf8::utf8to16(m_data->Chars.data(), m_data->Chars.data() + m_data->Chars.size(), std::back_inserter(string16));
+#ifdef PDFMM_IS_LITTLE_ENDIAN
+        // Ensure the output will be BE
+        utls::ByteSwap(string16);
+#endif
+        dataview = string_view((const char*)string16.data(), string16.size() * sizeof(char16_t));
     }
     else
     {
         dataview = string_view(m_data->Chars);
     }
 
+    charbuff tempBuffer;
     if (encrypt != nullptr && dataview.size() > 0)
     {
         charbuff encrypted;
