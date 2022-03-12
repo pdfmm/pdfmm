@@ -19,7 +19,9 @@
 // AES-256 dependencies :
 // SASL
 #include <stringprep.h>
+#include <idn-free.h> // The entry point to the Windows memory de-allocation function
 #include <openssl/sha.h>
+#include <openssl/aes.h>
 #endif // PDFMM_HAVE_LIBIDN
 
 #include <openssl/opensslconf.h>
@@ -34,7 +36,8 @@ PdfEncryptAlgorithm PdfEncrypt::s_EnabledEncryptionAlgorithms =
 PdfEncryptAlgorithm::RC4V1 |
 PdfEncryptAlgorithm::RC4V2 |
 PdfEncryptAlgorithm::AESV2 |
-PdfEncryptAlgorithm::AESV3;
+PdfEncryptAlgorithm::AESV3 |
+PdfEncryptAlgorithm::AESV3R6;
 #else // PDFMM_HAVE_LIBIDN
 PdfEncryptAlgorithm PdfEncrypt::s_EnabledEncryptionAlgorithms =
 PdfEncryptAlgorithm::RC4V1 |
@@ -402,7 +405,11 @@ unique_ptr<PdfEncrypt> PdfEncrypt::CreatePdfEncrypt(const string_view& userPassw
     {
 #ifdef PDFMM_HAVE_LIBIDN
         case PdfEncryptAlgorithm::AESV3:
-            return unique_ptr<PdfEncrypt>(new PdfEncryptAESV3(userPassword, ownerPassword, protection));
+            return unique_ptr<PdfEncrypt>(new PdfEncryptAESV3(userPassword, ownerPassword,
+                PdfAESV3Revision::R5, protection));
+        case PdfEncryptAlgorithm::AESV3R6:
+            return unique_ptr<PdfEncrypt>(new PdfEncryptAESV3(userPassword, ownerPassword,
+                PdfAESV3Revision::R6, protection));
 #endif // PDFMM_HAVE_LIBIDN
         case PdfEncryptAlgorithm::RC4V2:
         case PdfEncryptAlgorithm::RC4V1:
@@ -500,14 +507,16 @@ unique_ptr<PdfEncrypt> PdfEncrypt::CreatePdfEncrypt(const PdfObject& encryptObj)
             return unique_ptr<PdfEncrypt>(new PdfEncryptAESV2(oValue, uValue, pValue, encryptMetadata));
         }
 #ifdef PDFMM_HAVE_LIBIDN
-        else if ((lV == 5) && (rValue == 5)
-            && PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::AESV3))
+        else if ((lV == 5) && (
+            (rValue == 5 && PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::AESV3))
+            || (rValue == 6 && PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::AESV3R6))))
         {
             PdfString permsValue = encryptObj.GetDictionary().GetKey("Perms")->GetString();
             PdfString oeValue = encryptObj.GetDictionary().GetKey("OE")->GetString();
             PdfString ueValue = encryptObj.GetDictionary().GetKey("UE")->GetString();
 
-            return unique_ptr<PdfEncrypt>(new PdfEncryptAESV3(oValue, oeValue, uValue, ueValue, pValue, permsValue));
+            return unique_ptr<PdfEncrypt>(new PdfEncryptAESV3(oValue, oeValue, uValue,
+                ueValue, pValue, permsValue, (PdfAESV3Revision)rValue));
         }
 #endif // PDFMM_HAVE_LIBIDN
         else
@@ -519,14 +528,21 @@ unique_ptr<PdfEncrypt> PdfEncrypt::CreatePdfEncrypt(const PdfObject& encryptObj)
 
 unique_ptr<PdfEncrypt> PdfEncrypt::CreatePdfEncrypt(const PdfEncrypt& rhs)
 {
-    if (rhs.m_Algorithm == PdfEncryptAlgorithm::AESV2)
-        return unique_ptr<PdfEncrypt>(new PdfEncryptAESV2(rhs));
+    switch (rhs.m_Algorithm)
+    {
+        case PdfEncryptAlgorithm::RC4V1:
+        case PdfEncryptAlgorithm::RC4V2:
+            return unique_ptr<PdfEncrypt>(new PdfEncryptRC4(rhs));
+        case PdfEncryptAlgorithm::AESV2:
+            return unique_ptr<PdfEncrypt>(new PdfEncryptAESV2(rhs));
 #ifdef PDFMM_HAVE_LIBIDN
-    else if (rhs.m_Algorithm == PdfEncryptAlgorithm::AESV3)
-        return unique_ptr<PdfEncrypt>(new PdfEncryptAESV3(rhs));
+        case PdfEncryptAlgorithm::AESV3:
+        case PdfEncryptAlgorithm::AESV3R6:
+            return unique_ptr<PdfEncrypt>(new PdfEncryptAESV3(rhs));
 #endif // PDFMM_HAVE_LIBIDN
-    else
-        return unique_ptr<PdfEncrypt>(new PdfEncryptRC4(rhs));
+        default:
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Invalid algorithm");
+    }
 }
 
 PdfEncrypt::PdfEncrypt() :
@@ -1082,6 +1098,7 @@ PdfEncryptRC4::PdfEncryptRC4(const string_view& userPassword, const string_view&
         case PdfEncryptAlgorithm::AESV2:
 #ifdef PDFMM_HAVE_LIBIDN
         case PdfEncryptAlgorithm::AESV3:
+        case PdfEncryptAlgorithm::AESV3R6:
 #endif // PDFMM_HAVE_LIBIDN
         {
             break;
@@ -1098,6 +1115,9 @@ PdfEncryptRC4::PdfEncryptRC4(const string_view& userPassword, const string_view&
     // Compute P value
     m_pValue = PERMS_DEFAULT | protection;
 }
+
+PdfEncryptRC4::PdfEncryptRC4(const PdfEncrypt& rhs)
+    : PdfEncryptMD5Base(rhs) {}
 
 unique_ptr<OutputStream> PdfEncryptRC4::CreateEncryptionOutputStream(OutputStream& outputStream, const PdfReference& objref)
 {
@@ -1288,6 +1308,9 @@ PdfEncryptAESV2::PdfEncryptAESV2(const string_view& userPassword, const string_v
     // Compute P value
     m_pValue = PERMS_DEFAULT | protection;
 }
+
+PdfEncryptAESV2::PdfEncryptAESV2(const PdfEncrypt& rhs)
+    : PdfEncryptMD5Base(rhs) { }
     
 PdfEncryptAESV2::PdfEncryptAESV2(PdfString oValue, PdfString uValue, PdfPermissions pValue, bool encryptMetadata) : PdfEncryptAESBase()
 {
@@ -1357,7 +1380,72 @@ PdfEncryptSHABase::PdfEncryptSHABase(const PdfEncrypt& rhs) : PdfEncrypt(rhs)
     std::memcpy(m_ueValue, static_cast<const PdfEncryptSHABase*>(ptr)->m_ueValue, sizeof(unsigned char) * 32);
     std::memcpy(m_oeValue, static_cast<const PdfEncryptSHABase*>(ptr)->m_oeValue, sizeof(unsigned char) * 32);
 }
-    
+
+void PdfEncryptSHABase::ComputeHash(const unsigned char* pswd, int pswdLen, unsigned char salt[8], unsigned char uValue[48], unsigned char hashValue[32])
+{
+    SHA256_CTX sha256;
+    SHA256_Init(&sha256);
+    if (pswdLen)
+        SHA256_Update(&sha256, pswd, pswdLen);
+    SHA256_Update(&sha256, salt, 8);
+    if (uValue)
+        SHA256_Update(&sha256, uValue, 48);
+    SHA256_Final(hashValue, &sha256);
+
+    if (m_rValue > 5) // AES-256 according to PDF 1.7 Adobe Extension Level 8 (PDF 2.0)
+    {
+        SHA512_CTX sha384;
+        SHA512_CTX sha512;
+        AES_KEY aes;
+        int dataLen = 0;
+        int blockLen = 32; // Start with current SHA256 hash
+        unsigned char data[(127 + 64 + 48) * 64]; // 127 for password, 64 for hash up to SHA512, 48 for uValue
+        unsigned char block[64];
+        memcpy(block, hashValue, 32);
+
+        for (int i = 0; i < 64 || i < 32 + data[dataLen - 1]; i++)
+        {
+            dataLen = pswdLen + blockLen;
+            memcpy(data, pswd, pswdLen);
+            memcpy(data + pswdLen, block, blockLen);
+            if (uValue) {
+                memcpy(data + dataLen, uValue, 48);
+                dataLen += 48;
+            }
+            for (int j = 1; j < 64; j++)
+                memcpy(data + j * dataLen, data, dataLen);
+            dataLen *= 64;
+
+            AES_set_encrypt_key(block, 128, &aes);
+            AES_cbc_encrypt(data, data, dataLen, &aes, block + 16, AES_ENCRYPT);
+            int sum = 0;
+            for (int j = 0; j < 16; j++)
+                sum += data[j];
+            blockLen = 32 + (sum % 3) * 16;
+
+            if (blockLen == 32)
+            {
+                SHA256_Init(&sha256);
+                SHA256_Update(&sha256, data, dataLen);
+                SHA256_Final(block, &sha256);
+            }
+            else if (blockLen == 48)
+            {
+                SHA384_Init(&sha384);
+                SHA384_Update(&sha384, data, dataLen);
+                SHA384_Final(block, &sha384);
+            }
+            else
+            {
+                SHA512_Init(&sha512);
+                SHA512_Update(&sha512, data, dataLen);
+                SHA512_Final(block, &sha512);
+            }
+        }
+        memcpy(hashValue, block, 32);
+    }
+}
+
 void PdfEncryptSHABase::ComputeUserKey(const unsigned char* userpswd, size_t len)
 {
     // Generate User Salts
@@ -1373,12 +1461,7 @@ void PdfEncryptSHABase::ComputeUserKey(const unsigned char* userpswd, size_t len
     // Generate hash for U
     unsigned char hashValue[32];
 
-    SHA256_CTX context;
-    SHA256_Init(&context);
-
-    SHA256_Update(&context, userpswd, len);
-    SHA256_Update(&context, vSalt, 8);
-    SHA256_Final(hashValue, &context);
+    ComputeHash(userpswd, len, vSalt, 0, hashValue);
 
     // U = hash + validation salt + key salt
     std::memcpy(m_uValue, hashValue, 32);
@@ -1386,10 +1469,7 @@ void PdfEncryptSHABase::ComputeUserKey(const unsigned char* userpswd, size_t len
     std::memcpy(m_uValue + 32 + 8, kSalt, 8);
 
     // Generate hash for UE
-    SHA256_Init(&context);
-    SHA256_Update(&context, userpswd, len);
-    SHA256_Update(&context, kSalt, 8);
-    SHA256_Final(hashValue, &context);
+    ComputeHash(userpswd, len, kSalt, 0, hashValue);
 
     // UE = AES-256 encoded file encryption key with key=hash
     // CBC mode, no padding, init vector=0
@@ -1428,12 +1508,7 @@ void PdfEncryptSHABase::ComputeOwnerKey(const unsigned char* ownerpswd, size_t l
 
     // Generate hash for O
     unsigned char hashValue[32];
-    SHA256_CTX context;
-    SHA256_Init(&context);
-    SHA256_Update(&context, ownerpswd, len);
-    SHA256_Update(&context, vSalt, 8);
-    SHA256_Update(&context, m_uValue, 48);
-    SHA256_Final(hashValue, &context);
+    ComputeHash(ownerpswd, len, vSalt, m_uValue, hashValue);
 
     // O = hash + validation salt + key salt
     std::memcpy(m_oValue, hashValue, 32);
@@ -1441,11 +1516,7 @@ void PdfEncryptSHABase::ComputeOwnerKey(const unsigned char* ownerpswd, size_t l
     std::memcpy(m_oValue + 32 + 8, kSalt, 8);
 
     // Generate hash for OE
-    SHA256_Init(&context);
-    SHA256_Update(&context, ownerpswd, len);
-    SHA256_Update(&context, kSalt, 8);
-    SHA256_Update(&context, m_uValue, 48);
-    SHA256_Final(hashValue, &context);
+    ComputeHash(ownerpswd, len, kSalt, m_uValue, hashValue);
 
     // OE = AES-256 encoded file encryption key with key=hash
     // CBC mode, no padding, init vector=0
@@ -1482,7 +1553,9 @@ void PdfEncryptSHABase::PreprocessPassword(const string_view& password, unsigned
     len = l > 127 ? 127 : l;
 
     std::memcpy(outBuf, password_sasl, len);
-    free(password_sasl);
+    // password_sasl is allocated by stringprep_profile (libidn), so use idn_free
+    // (in Windows the libidn.dll could use an other heap and then the normal free or podofo_free will crash while debugging podofo.)
+    idn_free(password_sasl);
 }
 
 void PdfEncryptSHABase::ComputeEncryptionKey()
@@ -1527,7 +1600,7 @@ void PdfEncryptSHABase::CreateEncryptionDictionary(PdfDictionary& dictionary) co
     PdfDictionary stdCf;
 
     dictionary.AddKey("V", static_cast<int64_t>(5));
-    dictionary.AddKey("R", static_cast<int64_t>(5));
+    dictionary.AddKey("R", static_cast<int64_t>(m_rValue));
     dictionary.AddKey("Length", static_cast<int64_t>(256));
 
     stdCf.AddKey("CFM", PdfName("AESV3"));
@@ -1599,7 +1672,7 @@ void PdfEncryptAESV3::GenerateEncryptionKey(const string_view& documentId)
     EVP_CIPHER_CTX* aes;
     aes = EVP_CIPHER_CTX_new();
 
-    int status = EVP_EncryptInit_ex(aes, EVP_aes_256_ecb(), nullptr, m_encryptionKey, nullptr);
+    int status = EVP_EncryptInit_ex(aes, EVP_aes_256_cbc(), nullptr, m_encryptionKey, nullptr);
     if (status != 1)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Error initializing AES encryption engine");
     EVP_CIPHER_CTX_set_padding(aes, 0); // disable padding
@@ -1628,21 +1701,13 @@ bool PdfEncryptAESV3::Authenticate(const string_view& password, const string_vie
 
     // Test 1: is it the user key ?
     unsigned char hashValue[32];
-    SHA256_CTX context;
-    SHA256_Init(&context);
-    SHA256_Update(&context, pswd_sasl, pswdLen); // password
-    SHA256_Update(&context, m_uValue + 32, 8); // user Validation Salt
-    SHA256_Final(hashValue, &context);
+    ComputeHash(pswd_sasl, pswdLen, m_uValue + 32, 0, hashValue); // user Validation Salt
 
     success = CheckKey(hashValue, m_uValue);
     if (!success)
     {
         // Test 2: is it the owner key ?
-        SHA256_Init(&context);
-        SHA256_Update(&context, pswd_sasl, pswdLen); // password
-        SHA256_Update(&context, m_oValue + 32, 8); // owner Validation Salt
-        SHA256_Update(&context, m_uValue, 48); // U string
-        SHA256_Final(hashValue, &context);
+        ComputeHash(pswd_sasl, pswdLen, m_oValue + 32, m_uValue, hashValue); // owner Validation Salt
 
         success = CheckKey(hashValue, m_oValue);
 
@@ -1651,11 +1716,7 @@ bool PdfEncryptAESV3::Authenticate(const string_view& password, const string_vie
             m_ownerPass = password;
             // ISO 32000: "Compute an intermediate owner key by computing the SHA-256 hash of
             // the UTF-8 password concatenated with the 8 bytes of owner Key Salt, concatenated with the 48-byte U string."
-            SHA256_Init(&context);
-            SHA256_Update(&context, pswd_sasl, pswdLen); // password
-            SHA256_Update(&context, m_oValue + 40, 8); // owner Key Salt
-            SHA256_Update(&context, m_uValue, 48); // U string
-            SHA256_Final(hashValue, &context);
+            ComputeHash(pswd_sasl, pswdLen, m_oValue + 40, m_uValue, hashValue); // owner Key Salt
 
             // ISO 32000: "The 32-byte result is the key used to decrypt the 32-byte OE string using
             // AES-256 in CBC mode with no padding and an initialization vector of zero.
@@ -1672,10 +1733,7 @@ bool PdfEncryptAESV3::Authenticate(const string_view& password, const string_vie
         m_userPass = password;
         // ISO 32000: "Compute an intermediate user key by computing the SHA-256 hash of
         // the UTF-8 password concatenated with the 8 bytes of user Key Salt"
-        SHA256_Init(&context);
-        SHA256_Update(&context, pswd_sasl, pswdLen); // password
-        SHA256_Update(&context, m_uValue + 40, 8); // user Key Salt
-        SHA256_Final(hashValue, &context);
+        ComputeHash(pswd_sasl, pswdLen, m_uValue + 40, 0, hashValue); // user Key Salt
 
         // ISO 32000: "The 32-byte result is the key used to decrypt the 32-byte UE string using
         // AES-256 in CBC mode with no padding and an initialization vector of zero.
@@ -1711,17 +1769,25 @@ void PdfEncryptAESV3::Decrypt(const char* inStr, size_t inLen, const PdfReferenc
 {
     (void)objref;
     size_t offset = CalculateStreamOffset();
+    if (inLen <= offset)
+    {
+        // Is empty
+        outLen = 0;
+        return;
+    }
+
     this->BaseDecrypt(const_cast<unsigned char*>(m_encryptionKey), m_keyLength, (const unsigned char*)inStr, (const unsigned char*)inStr + offset, inLen - offset, (unsigned char*)outStr, outLen);
 }
 
-PdfEncryptAESV3::PdfEncryptAESV3(const string_view& userPassword, const string_view& ownerPassword, PdfPermissions protection) : PdfEncryptAESBase()
+PdfEncryptAESV3::PdfEncryptAESV3(const string_view& userPassword, const string_view& ownerPassword,
+    PdfAESV3Revision revision, PdfPermissions protection) : PdfEncryptAESBase()
 {
     // setup object
     m_userPass = userPassword;
     m_ownerPass = ownerPassword;
-    m_Algorithm = PdfEncryptAlgorithm::AESV3;
+    m_Algorithm = revision == PdfAESV3Revision::R6 ? PdfEncryptAlgorithm::AESV3R6 : PdfEncryptAlgorithm::AESV3;
 
-    m_rValue = 5;
+    m_rValue = (int)revision;
     m_eKeyLength = PdfKeyLength::L256;
     m_keyLength = (int)PdfKeyLength::L256 / 8;
 
@@ -1736,14 +1802,18 @@ PdfEncryptAESV3::PdfEncryptAESV3(const string_view& userPassword, const string_v
     m_pValue = PERMS_DEFAULT | protection;
 }
 
-PdfEncryptAESV3::PdfEncryptAESV3(PdfString oValue, PdfString oeValue, PdfString uValue, PdfString ueValue, PdfPermissions pValue, PdfString permsValue) : PdfEncryptAESBase()
+PdfEncryptAESV3::PdfEncryptAESV3(const PdfEncrypt& rhs)
+    : PdfEncryptSHABase(rhs) {}
+
+PdfEncryptAESV3::PdfEncryptAESV3(PdfString oValue, PdfString oeValue, PdfString uValue,
+    PdfString ueValue, PdfPermissions pValue, PdfString permsValue, PdfAESV3Revision revision) : PdfEncryptAESBase()
 {
     m_pValue = pValue;
-    m_Algorithm = PdfEncryptAlgorithm::AESV3;
+    m_Algorithm = revision == PdfAESV3Revision::R6 ? PdfEncryptAlgorithm::AESV3R6 : PdfEncryptAlgorithm::AESV3;
 
     m_eKeyLength = PdfKeyLength::L256;
     m_keyLength = (int)PdfKeyLength::L256 / 8;
-    m_rValue = 5;
+    m_rValue = (int)revision;
     std::memcpy(m_oValue, oValue.GetRawData().data(), 48);
     std::memcpy(m_oeValue, oeValue.GetRawData().data(), 32);
     std::memcpy(m_uValue, uValue.GetRawData().data(), 48);

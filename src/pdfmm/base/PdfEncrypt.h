@@ -51,6 +51,14 @@ enum class PdfKeyLength
 #endif //PDFMM_HAVE_LIBIDN
 };
 
+#ifdef PDFMM_HAVE_LIBIDN
+enum class PdfAESV3Revision
+{
+    R5 = 5,
+    R6 = 6,
+};
+#endif //PDFMM_HAVE_LIBIDN
+
 /** Set user permissions/restrictions on a document
  */
 enum class PdfPermissions
@@ -80,11 +88,12 @@ enum class PdfPermissions
 enum class PdfEncryptAlgorithm
 {
     None = 0,
-    RC4V1 = 1, ///< RC4 Version 1 encryption using a 40bit key
-    RC4V2 = 2, ///< RC4 Version 2 encryption using a key with 40-128bit
-    AESV2 = 4, ///< AES encryption with a 128 bit key (PDF1.6)
+    RC4V1 = 1,      ///< RC4 Version 1 encryption using a 40bit key
+    RC4V2 = 2,      ///< RC4 Version 2 encryption using a key with 40-128bit
+    AESV2 = 4,      ///< AES encryption with a 128 bit key (PDF1.6)
 #ifdef PDFMM_HAVE_LIBIDN
-    AESV3 = 8 ///< AES encryption with a 256 bit key (PDF1.7 extension 3) - Support added by P. Zent
+    AESV3 = 8,      ///< AES encryption with a 256 bit key (PDF1.7 extension 3) - Support added by P. Zent
+    AESV3R6 = 16,   ///< AES encryption with a 256 bit key, Revision 6 (PDF1.7 extension 8, PDF 2.0)
 #endif //PDFMM_HAVE_LIBIDN
 };
 
@@ -438,6 +447,9 @@ protected:
     // Compute encryption key to be used with AES-256
     void ComputeEncryptionKey();
 
+    // Compute hash for password and salt with optional uValue
+    void ComputeHash(const unsigned char* pswd, int pswdLen, unsigned char salt[8], unsigned char uValue[48], unsigned char hashValue[32]);
+
     // Generate the U and UE entries
     void ComputeUserKey(const unsigned char* userpswd, size_t len);
 
@@ -578,9 +590,9 @@ class PdfEncryptAESV2 : public PdfEncryptMD5Base, public PdfEncryptAESBase
 {
 public:
     PdfEncryptAESV2(PdfString oValue, PdfString uValue, PdfPermissions pValue, bool bEncryptMetadata);
-    PdfEncryptAESV2(const PdfEncrypt& rhs) : PdfEncryptMD5Base(rhs) { }
     PdfEncryptAESV2(const std::string_view& userPassword, const std::string_view& ownerPassword,
         PdfPermissions protection = PdfPermissions::Default);
+    PdfEncryptAESV2(const PdfEncrypt& rhs);
 
     std::unique_ptr<InputStream> CreateEncryptionInputStream(InputStream& inputStream, size_t inputLen, const PdfReference& objref) override;
     std::unique_ptr<OutputStream> CreateEncryptionOutputStream(OutputStream& outputStream, const PdfReference& objref) override;
@@ -611,10 +623,11 @@ protected:
 class PdfEncryptAESV3 : public PdfEncryptSHABase, public PdfEncryptAESBase
 {
 public:
-    PdfEncryptAESV3(PdfString oValue, PdfString oeValue, PdfString uValue, PdfString ueValue, PdfPermissions pValue, PdfString permsValue);
-    PdfEncryptAESV3(const PdfEncrypt& rhs) : PdfEncryptSHABase(rhs) {}
+    PdfEncryptAESV3(PdfString oValue, PdfString oeValue, PdfString uValue, PdfString ueValue,
+        PdfPermissions pValue, PdfString permsValue, PdfAESV3Revision rev);
     PdfEncryptAESV3(const std::string_view& userPassword, const std::string_view& ownerPassword,
-        PdfPermissions protection = PdfPermissions::Default);
+        PdfAESV3Revision rev, PdfPermissions protection = PdfPermissions::Default);
+    PdfEncryptAESV3(const PdfEncrypt& rhs);
 
     std::unique_ptr<InputStream> CreateEncryptionInputStream(InputStream& inputStream, size_t inputLen, const PdfReference& objref) override;
     std::unique_ptr<OutputStream> CreateEncryptionOutputStream(OutputStream& outputStream, const PdfReference& objref) override;
@@ -648,11 +661,11 @@ class PdfEncryptRC4 : public PdfEncryptMD5Base
 public:
     PdfEncryptRC4(PdfString oValue, PdfString uValue,
         PdfPermissions pValue, int rValue, PdfEncryptAlgorithm algorithm, int length, bool encryptMetadata);
-    PdfEncryptRC4(const PdfEncrypt& rhs) : PdfEncryptMD5Base(rhs) {}
     PdfEncryptRC4(const std::string_view& userPassword, const std::string_view& ownerPassword,
         PdfPermissions protection = PdfPermissions::Default,
         PdfEncryptAlgorithm algorithm = PdfEncryptAlgorithm::RC4V1,
         PdfKeyLength keyLength = PdfKeyLength::L40);
+    PdfEncryptRC4(const PdfEncrypt& rhs);
 
     void Encrypt(const char* inStr, size_t inLen, const PdfReference& objref,
         char* outStr, size_t outLen) const override;

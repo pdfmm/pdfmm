@@ -139,6 +139,18 @@ TEST_CASE("testAESV3")
     //TestEncrypt(encrypt);
 }
 
+TEST_CASE("testAESV3R6")
+{
+    auto encrypt = PdfEncrypt::CreatePdfEncrypt(PDF_USER_PASSWORD, PDF_OWNER_PASSWORD, s_protection,
+        PdfEncryptAlgorithm::AESV3R6,
+        PdfKeyLength::L256);
+
+    testAuthenticate(*encrypt);
+    // AES decryption is not yet implemented.
+    // Therefore we have to disable this test.
+    //TestEncrypt(encrypt);
+}
+
 #endif // PDFMM_HAVE_LIBIDN
 
 TEST_CASE("testEnableAlgorithms")
@@ -151,12 +163,13 @@ TEST_CASE("testEnableAlgorithms")
     REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::AESV2));
 #ifdef PDFMM_HAVE_LIBIDN
     REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::AESV3));
+    REQUIRE(PdfEncrypt::IsEncryptionEnabled(PdfEncryptAlgorithm::AESV3R6));
 #endif // PDFMM_HAVE_LIBIDN
 
     PdfEncryptAlgorithm testAlgorithms = PdfEncryptAlgorithm::AESV2;
     testAlgorithms |= PdfEncryptAlgorithm::RC4V1 | PdfEncryptAlgorithm::RC4V2;
 #ifdef PDFMM_HAVE_LIBIDN
-    testAlgorithms |= PdfEncryptAlgorithm::AESV3;
+    testAlgorithms |= PdfEncryptAlgorithm::AESV3 | PdfEncryptAlgorithm::AESV3R6;;
 #endif // PDFMM_HAVE_LIBIDN
     REQUIRE(testAlgorithms == PdfEncrypt::GetEnabledEncryptionAlgorithms());
 
