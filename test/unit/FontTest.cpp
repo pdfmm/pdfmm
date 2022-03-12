@@ -44,6 +44,50 @@ TEST_CASE("testFonts")
     FcFontSetDestroy(fontSet);
 }
 
+TEST_CASE("testBig2Little")
+{
+    PdfMemDocument doc;
+    auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+
+    {
+        PdfPainter painter;
+        painter.SetCanvas(page);
+        auto font = doc.GetFonts().GetFont("Arial");
+        painter.GetTextState().SetFont(font, 30.0);
+        painter.DrawText("ěščř", 100, 600);
+        painter.FinishDrawing();
+    }
+
+    auto outputpath = TestUtils::GetTestOutputFilePath("testBig2Little.pdf");
+
+    try
+    {
+        FileStreamDevice stream(outputpath, FileMode::Create);
+        doc.Save(stream);
+    }
+    catch (const PdfError& error)
+    {
+        // Don't continue further the test in this case
+        if (error.GetError() == PdfErrorCode::UnsupportedFontFormat)
+            return;
+
+        throw;
+    }
+
+    // FIXME: The test crash if we tried to extract
+    // text directly on the original "doc" page
+
+    PdfMemDocument doc2;
+    doc2.Load(outputpath);
+
+    vector<PdfTextEntry> entries;
+    doc2.GetPages().GetPageAt(0).ExtractTextTo(entries);
+
+    REQUIRE(entries[0].Text == "ěščř");
+    REQUIRE(entries[0].X == 100);
+    REQUIRE(entries[0].Y == 600);
+}
+
 void testSingleFont(FcPattern* font)
 {
     PdfMemDocument doc;
