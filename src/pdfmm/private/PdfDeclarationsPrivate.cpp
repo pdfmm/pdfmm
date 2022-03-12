@@ -26,6 +26,22 @@ using namespace mm;
 
 constexpr unsigned BUFFER_SIZE = 4096;
 
+// Default stack sizes
+// Windows: 1MB on x32, x64, ARM https://docs.microsoft.com/en-us/cpp/build/reference/stack-stack-allocations?view=msvc-160
+// Windows IIS: 512 KB for 64-bit worker processes, 256 KB for 32-bit worker processes
+// macOS: 8MB on main thread, 512KB on secondary threads https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/Multithreading/CreatingThreads/CreatingThreads.html
+// iOS: 1MB on main thread, 512KB on secondary threads
+// Modern Linux distros: usually 8MB on main and secondary threads (but setting ulimit RLIMIT_STACK to unlimited *reduces* the secondary stack size on most architectures: see https://man7.org/linux/man-pages/man3/pthread_create.3.html#NOTES )
+// the amount allocated on stack for local variables and function parameters varies between x86 and x64
+// in x86 pointers are 32-bit but all function parameters are on stack
+// in x64 pointers are 64-bit but first 4 function params are passed in registers
+// the biggest difference is between debug and non-debug stacks: a debug stack frame can be around 3x larger
+// due to instrumentation like ASAN which put guard bytes around stack variables to detect buffer overflows
+constexpr unsigned MaxRecursionDepthDefault = 256;
+
+static unsigned s_MaxRecursionDepth = MaxRecursionDepthDefault;
+thread_local unsigned s_recursionDepth = 0;
+
 static const locale s_cachedLocale("C");
 
 static void removeTrailingZeroes(string& str);
@@ -1005,4 +1021,45 @@ void removeTrailingZeroes(string& str)
     {
         str.resize(len);
     }
+}
+
+void utls::RecursionGuard::Enter()
+{
+    s_recursionDepth++;
+    if (s_recursionDepth > s_MaxRecursionDepth)
+    {
+        // avoid stack overflow on documents that have circular cross references, loops
+        // or very deeply nested structures, can happen with
+        // /Prev entries in trailer and XRef streams (possible via a chain of entries with a loop)
+        // /Kids entries that loop back to self or parent
+        // deeply nested Dictionary or Array objects (possible with lots of [[[[[[[[]]]]]]]] brackets)
+        // mutually recursive loops involving several objects are possible
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidXRef, "Stack overflow");
+    }
+}
+
+void utls::RecursionGuard::Exit()
+{
+    s_recursionDepth--;
+}
+
+
+utls::RecursionGuard::RecursionGuard()
+{
+    Enter();
+}
+
+utls::RecursionGuard::~RecursionGuard()
+{
+    Exit();
+}
+
+void utls::RecursionGuard::SetMaxRecursionDepth(unsigned maxRecursionDepth)
+{
+    s_MaxRecursionDepth = maxRecursionDepth;
+}
+
+unsigned utls::RecursionGuard::GetMaxRecursionDepth()
+{
+    return s_MaxRecursionDepth;
 }

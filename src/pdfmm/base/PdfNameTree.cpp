@@ -444,6 +444,7 @@ void PdfNameTree::ToDictionary(const PdfName& tree, PdfDictionary& dict)
 
 void PdfNameTree::AddToDictionary(PdfObject& obj, PdfDictionary& dict)
 {
+    utls::RecursionGuard guard;
     if (obj.GetDictionary().HasKey("Kids"))
     {
         auto& kids = obj.GetDictionary().MustFindKey("Kids").GetArray();

@@ -46,6 +46,7 @@ PdfOutlineItem::PdfOutlineItem(PdfObject& obj, PdfOutlineItem* parentOutline, Pd
     : PdfDictionaryElement(obj), m_ParentOutline(parentOutline), m_Prev(previous),
     m_Next(nullptr), m_First(nullptr), m_Last(nullptr), m_destination(nullptr), m_action(nullptr)
 {
+    utls::RecursionGuard guard;
     PdfReference first, next;
 
     if (this->GetObject().GetDictionary().HasKey("First"))

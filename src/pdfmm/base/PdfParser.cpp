@@ -35,44 +35,6 @@ static bool ReadMagicWord(char ch, unsigned& cursoridx);
 
 static unsigned s_MaxObjectCount = (1U << 23) - 1;
 
-class PdfRecursionGuard
-{
-  // RAII recursion guard ensures m_nRecursionDepth is always decremented
-  // because the destructor is always called when control leaves a method
-  // via return or an exception.
-  // see http://en.cppreference.com/w/cpp/language/raii
-
-  // It's used like this in PdfParser methods
-  // PdfRecursionGuard guard(m_RecursionDepth);
-
-public:
-    PdfRecursionGuard(unsigned& recursionDepth)
-        : m_RecursionDepth(recursionDepth)
-    {
-        // be careful changing this limit - overflow limits depend on the OS, linker settings, and how much stack space compiler allocates
-        // 500 limit prevents overflow on Win7 with VC++ 2005 with default linker stack size (1000 caused overflow with same compiler/OS)
-        constexpr unsigned MaxRecursionDepth = 500;
-
-        m_RecursionDepth++;
-
-        if (m_RecursionDepth > MaxRecursionDepth)
-        {
-            // avoid stack overflow on documents that have circular cross references in /Prev entries
-            // in trailer and XRef streams (possible via a chain of entries with a loop)
-            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidXRef);
-        }
-    }
-
-    ~PdfRecursionGuard()
-    {
-        m_RecursionDepth--;
-    }
-
-private:
-    // must be a reference so that we modify m_nRecursionDepth in parent class
-    unsigned& m_RecursionDepth;
-};
-
 PdfParser::PdfParser(PdfIndirectObjectList& objects) :
     m_buffer(std::make_shared<charbuff>(PdfTokenizer::BufferSize)),
     m_tokenizer(m_buffer, true),
@@ -105,7 +67,6 @@ void PdfParser::Reset()
 
     m_IgnoreBrokenObjects = true;
     m_IncrementalUpdateCount = 0;
-    m_RecursionDepth = 0;
 }
 
 void PdfParser::Parse(InputStreamDevice& device, bool loadOnDemand)
@@ -255,7 +216,7 @@ void PdfParser::MergeTrailer(const PdfObject& trailer)
 
 void PdfParser::ReadNextTrailer(InputStreamDevice& device)
 {
-    PdfRecursionGuard guard(m_RecursionDepth);
+    utls::RecursionGuard guard;
     if (m_tokenizer.IsNextToken(device, "trailer"))
     {
         // Ignore the encryption in the trailer as the trailer may not be encrypted
@@ -346,7 +307,7 @@ void PdfParser::FindXRef(InputStreamDevice& device, size_t* xRefOffset)
 
 void PdfParser::ReadXRefContents(InputStreamDevice& device, size_t offset, bool positionAtEnd)
 {
-    PdfRecursionGuard guard(m_RecursionDepth);
+    utls::RecursionGuard guard;
 
     int64_t firstObject = 0;
     int64_t objectCount = 0;
@@ -577,7 +538,7 @@ void PdfParser::ReadXRefSubsection(InputStreamDevice& device, int64_t& firstObje
 
 void PdfParser::ReadXRefStreamContents(InputStreamDevice& device, size_t offset, bool readOnlyTrailer)
 {
-    PdfRecursionGuard guard(m_RecursionDepth);
+    utls::RecursionGuard guard;
 
     device.Seek(offset);
     auto xrefObjTrailer = new PdfXRefStreamParserObject(m_Objects->GetDocument(), device, m_entries);

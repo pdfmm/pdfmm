@@ -218,6 +218,7 @@ void PdfPageCollection::RemovePageAt(unsigned atIndex)
 PdfObject* PdfPageCollection::getPageNode(unsigned index, PdfObject& parent,
     PdfObjectList& parents)
 {
+    utls::RecursionGuard guard;
     if (!parent.GetDictionary().HasKey("Kids"))
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidKey);
 

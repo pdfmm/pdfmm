@@ -231,6 +231,7 @@ void PdfTokenizer::ReadNextVariant(InputStreamDevice& device, const string_view&
 
 bool PdfTokenizer::TryReadNextVariant(InputStreamDevice& device, const string_view& token, PdfTokenType tokenType, PdfVariant& variant, const PdfStatefulEncrypt& encrypt)
 {
+    utls::RecursionGuard guard;
     PdfLiteralDataType dataType = DetermineDataType(device, token, tokenType, variant);
     return tryReadDataType(device, dataType, variant, encrypt);
 }

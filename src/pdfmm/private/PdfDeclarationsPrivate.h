@@ -194,6 +194,29 @@ namespace mm
  */
 namespace utls
 {
+    /**
+     * RAII recursion guard ensures recursion depth is always decremented
+     * because the destructor is always called when control leaves a method
+     * via return or an exception.
+     * It's used like this:
+     * RecursionGuard guard;
+     */
+    class RecursionGuard
+    {
+    public:
+        RecursionGuard();
+        ~RecursionGuard();
+
+        // set maximum recursion depth (set to 0 to disable recursion check)
+        static void SetMaxRecursionDepth(unsigned maxRecursionDepth);
+
+        static unsigned GetMaxRecursionDepth();
+
+    private:
+        void Enter();
+        void Exit();
+    };
+
     const std::locale& GetInvariantLocale();
 
     bool IsValidUtf8String(const std::string_view& str);

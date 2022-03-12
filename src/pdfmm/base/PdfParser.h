@@ -351,7 +351,6 @@ private:
     bool m_IgnoreBrokenObjects;
 
     unsigned m_IncrementalUpdateCount;
-    unsigned m_RecursionDepth;
 
     std::set<size_t> m_visitedXRefOffsets;
 };
