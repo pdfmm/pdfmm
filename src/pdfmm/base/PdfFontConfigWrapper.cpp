@@ -145,6 +145,13 @@ void PdfFontConfigWrapper::createDefaultConfig()
             throw runtime_error("Could not parse font config");
         }
 
+        // Load fonts for the config
+        if (!FcConfigBuildFonts(config))
+        {
+            FcConfigDestroy(config);
+            throw runtime_error("Could not load fonts in fontconfig");
+        }
+
         m_FcConfig = config;
     }
     else
