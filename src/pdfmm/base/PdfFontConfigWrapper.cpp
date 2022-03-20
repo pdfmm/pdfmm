@@ -14,6 +14,13 @@
 using namespace std;
 using namespace mm;
 
+#if defined(_WIN32) || defined(__ANDROID__) || defined(__APPLE__)
+// Windows, Android and Apple architectures don't primarly
+// use fontconfig. We can supply a fallback configuration,
+// if a system configuration is not found
+#define HAS_FALLBACK_CONFIGURATION
+#endif
+
 PdfFontConfigWrapper::PdfFontConfigWrapper(FcConfig* fcConfig)
     : m_FcConfig(fcConfig)
 {
@@ -115,28 +122,41 @@ void PdfFontConfigWrapper::createDefaultConfig()
 )";
 #endif
 
-#if defined(_WIN32) || defined(__ANDROID__) || defined(__APPLE__)
+#ifdef HAS_FALLBACK_CONFIGURATION
+    // Implement the fallback as discussed in fontconfig mailing list
+    // https://lists.freedesktop.org/archives/fontconfig/2022-February/006883.html
+
     auto config = FcConfigCreate();
     if (config == nullptr)
         throw runtime_error("Could not allocate font config");
 
-    if (!FcConfigParseAndLoadFromMemory(config, (const FcChar8*)fontconf, true))
-    {
-        FcConfigDestroy(config);
-        throw runtime_error("Could not parse font config");
-    }
+    // Manually try to load the config to determine
+    // if a system configuration exists. Tell FontConfig
+    // to not complain if it doesn't
+    (void)FcConfigParseAndLoad(config, nullptr, FcFalse);
 
-    if (!FcConfigSetCurrent(config))
+    auto configFile = FcConfigGetFilename(config, nullptr);
+    if (configFile == nullptr)
     {
-        FcConfigDestroy(config);
-        throw runtime_error("Could not set current font config");
-    }
+        // No system config found, supply a fallback configuration
+        if (!FcConfigParseAndLoadFromMemory(config, (const FcChar8*)fontconf, true))
+        {
+            FcConfigDestroy(config);
+            throw runtime_error("Could not parse font config");
+        }
 
-    m_FcConfig = config;
-#else // Other unix/linux
-    // Default initialize FontConfig
-    FcInit();
-    m_FcConfig = FcConfigGetCurrent();
-    PDFMM_ASSERT(m_FcConfig != nullptr);
+        m_FcConfig = config;
+    }
+    else
+    {
+        // Destroy the temporary config
+        FcConfigDestroy(config);
+#endif
+        // Default initialize a local FontConfig configuration
+        // http://mces.blogspot.com/2015/05/how-to-use-custom-application-fonts.html
+        m_FcConfig = FcInitLoadConfigAndFonts();
+        PDFMM_ASSERT(m_FcConfig != nullptr);
+#ifdef HAS_FALLBACK_CONFIGURATION
+    }
 #endif
 }
