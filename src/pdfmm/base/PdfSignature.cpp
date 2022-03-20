@@ -84,7 +84,7 @@ void PdfSignature::PrepareForSigning(const string_view& filter,
     const string_view& subFilter, const std::string_view& type,
     const PdfSignatureBeacons& beacons)
 {
-    EnsureSignatureObject();
+    EnsureValueObject();
     auto& dict = m_ValueObj->GetDictionary();
     // This must be ensured before any signing operation
     dict.AddKey(PdfName::KeyFilter, PdfName(filter));
@@ -196,7 +196,7 @@ PdfObject* PdfSignature::getValueObject() const
     return m_ValueObj;
 }
 
-void PdfSignature::EnsureSignatureObject()
+void PdfSignature::EnsureValueObject()
 {
     if (m_ValueObj != nullptr)
         return;

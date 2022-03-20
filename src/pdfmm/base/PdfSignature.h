@@ -141,7 +141,7 @@ public:
      *  set. This is useful for cases when the signature field had been
      *  created from an existing annotation, which didn't have it set.
      */
-    void EnsureSignatureObject();
+    void EnsureValueObject();
 
 protected:
     PdfObject* getValueObject() const;
