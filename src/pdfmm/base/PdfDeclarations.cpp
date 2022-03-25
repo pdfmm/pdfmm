@@ -430,3 +430,11 @@ void utls::ReadInt16BE(const char* buf, int16_t& value)
         | (int16_t)(buf[1] & 0xFF) << 8;
     value = AS_BIG_ENDIAN(value);
 }
+
+datahandle::datahandle() { }
+
+datahandle::datahandle(const bufferview& view)
+    : m_view(view) { }
+
+datahandle::datahandle(const charbuff::const_ptr& buff)
+    : m_view(*buff), m_buff(buff) { }

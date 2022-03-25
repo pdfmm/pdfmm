@@ -9,6 +9,8 @@
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfFontMetrics.h"
 
+#include <pdfmm/private/FreetypePrivate.h>
+
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfVariant.h"
@@ -39,16 +41,35 @@ void PdfFontMetrics::SubstituteGIDs(vector<unsigned>& gids, vector<unsigned char
     // TODO: Try to implement the mechanism in some font type
 }
 
+bool PdfFontMetrics::HasFontFileData() const
+{
+    return GetOrLoadFontFileData().size() != 0;
+}
+
+bufferview PdfFontMetrics::GetOrLoadFontFileData() const
+{
+    return GetFontFileDataHandle().view();
+}
+
+FT_Face PdfFontMetrics::GetOrLoadFace() const
+{
+    FT_Face face;
+    if (!TryGetOrLoadFace(face))
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::FreeType, "Error loading FreeType face");
+
+    return face;
+}
+
+bool PdfFontMetrics::TryGetOrLoadFace(FT_Face& face) const
+{
+    face = GetFaceHandle().get();
+    return face != nullptr;
+}
+
 const PdfObject* PdfFontMetrics::GetFontFileObject() const
 {
     // Return nullptr by default
     return nullptr;
-}
-
-bufferview PdfFontMetrics::GetFontFileData() const
-{
-    // Return nothing by default
-    return { };
 }
 
 string PdfFontMetrics::GetFontNameSafe(bool baseFirst) const
@@ -225,7 +246,44 @@ unique_ptr<PdfCMapEncoding> PdfFontMetrics::CreateToUnicodeMap(const PdfEncoding
     PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);
 }
 
-FT_Face PdfFontMetrics::GetFace() const
+PdfFontMetricsBase::PdfFontMetricsBase()
+    : m_dataInit(false), m_faceInit(false) { }
+
+const datahandle& PdfFontMetricsBase::GetFontFileDataHandle() const
 {
-    PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);
+    if (!m_dataInit)
+    {
+        auto& rthis = const_cast<PdfFontMetricsBase&>(*this);
+        rthis.m_Data = getFontFileDataHandle();
+        rthis.m_dataInit = true;
+    }
+
+    return m_Data;
+}
+
+const FreeTypeFacePtr& PdfFontMetricsBase::GetFaceHandle() const
+{
+    if (!m_faceInit)
+    {
+        auto& rthis = const_cast<PdfFontMetricsBase&>(*this);
+        FT_Face face;
+        if (mm::TryCreateFreeTypeFace(GetFontFileDataHandle().view(), face))
+            rthis.m_Face = FreeTypeFacePtr(face);
+        else
+            rthis.m_Face = FreeTypeFacePtr();
+
+        rthis.m_faceInit = true;
+    }
+
+    return m_Face;
+}
+
+FreeTypeFacePtr::FreeTypeFacePtr() { }
+
+FreeTypeFacePtr::FreeTypeFacePtr(FT_Face face)
+    : shared_ptr<FT_FaceRec_>(face, FT_Done_Face) {}
+
+void FreeTypeFacePtr::reset(FT_Face face)
+{
+    shared_ptr<FT_FaceRec_>::reset(face, FT_Done_Face);
 }

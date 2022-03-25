@@ -169,7 +169,7 @@ PdfFont* PdfFontManager::getImportedFont(const string_view& fontName, const stri
     if (buffer == nullptr)
         return nullptr;
 
-    auto metrics = std::make_shared<PdfFontMetricsFreetype>(buffer);
+    shared_ptr<PdfFontMetrics> metrics = PdfFontMetricsFreetype::FromBuffer(buffer);
     return getImportedFont(metrics, createParams,
         [&searchParams,&fontName](const span<PdfFont*>& fonts) {
             return matchFont(fonts, fontName, searchParams);
@@ -192,7 +192,7 @@ PdfFontMetricsConstPtr PdfFontManager::GetFontMetrics(const string_view& fontNam
     if (fontData == nullptr)
         return nullptr;
 
-    return PdfFontMetricsConstPtr(new PdfFontMetricsFreetype(std::move(fontData)));
+    return PdfFontMetricsFreetype::FromBuffer(std::move(fontData));
 }
 
 void PdfFontManager::AddFontDirectory(const string_view& path)

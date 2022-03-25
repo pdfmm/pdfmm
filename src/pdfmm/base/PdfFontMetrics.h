@@ -14,9 +14,23 @@
 #include "PdfString.h"
 #include "PdfCMapEncoding.h"
 
-FORWARD_DECLARE_FTFACE();
+extern "C"
+{
+    struct FT_FaceRec_;
+    typedef struct FT_FaceRec_* FT_Face;
+}
 
 namespace mm {
+
+class PDFMM_API FreeTypeFacePtr final : public std::shared_ptr<FT_FaceRec_>
+{
+public:
+    FreeTypeFacePtr();
+    FreeTypeFacePtr(FT_Face face);
+    FreeTypeFacePtr(const FreeTypeFacePtr&) = default;
+    FreeTypeFacePtr& operator=(const FreeTypeFacePtr&) = default;
+    void reset(FT_Face face = nullptr);
+};
 
 /**
  * This abstract class provides access to font metrics information.
@@ -27,6 +41,7 @@ namespace mm {
 class PDFMM_API PdfFontMetrics
 {
     friend class PdfFont;
+    friend class PdfFontMetricsFreetype;
 
 protected:
     PdfFontMetrics();
@@ -97,12 +112,22 @@ public:
 
     virtual PdfFontFileType GetFontFileType() const = 0;
 
-    /** Get the actual font data for a file imported font, if available
+    bool HasFontFileData() const;
+
+    /** Get an actual font data view
      *
-     * For font data coming from the /FontFile keys, use GetFontFileObject()
+     * The data shall be resident. For font coming from the /FontFile
+     * keys, GetFontFileObject() may also be available.
      * \returns a binary buffer of data containing the font data
      */
-    virtual bufferview GetFontFileData() const;
+    bufferview GetOrLoadFontFileData() const;
+
+    /** Get direct access to the internal FreeType handle
+     *
+     *  \returns the internal freetype handle
+     */
+    bool TryGetOrLoadFace(FT_Face& face) const;
+    FT_Face GetOrLoadFace() const;
 
     /** Get the actual font file object from a /FontFile like key, if available
      *
@@ -270,15 +295,11 @@ public:
      */
     virtual std::unique_ptr<PdfCMapEncoding> CreateToUnicodeMap(const PdfEncodingLimits& limitHints) const;
 
-    /** Get direct access to the internal FreeType handle, if available
-     *
-     *  \returns the internal freetype handle
-     */
-    virtual FT_Face GetFace() const;
-
 protected:
     virtual bool getIsBoldHint() const = 0;
     virtual bool getIsItalicHint() const = 0;
+    virtual const datahandle& GetFontFileDataHandle() const = 0;
+    virtual const FreeTypeFacePtr& GetFaceHandle() const = 0;
 
 private:
     PdfFontMetrics(const PdfFontMetrics& rhs) = delete;
@@ -286,6 +307,23 @@ private:
 
 private:
     nullable<PdfFontStyle> m_Style;
+};
+
+class PDFMM_API PdfFontMetricsBase : public PdfFontMetrics
+{
+protected:
+    PdfFontMetricsBase();
+
+protected:
+    const datahandle& GetFontFileDataHandle() const override final;
+    const FreeTypeFacePtr& GetFaceHandle() const override final;
+    virtual datahandle getFontFileDataHandle() const = 0;
+
+private:
+    bool m_dataInit;
+    datahandle m_Data;
+    bool m_faceInit;
+    FreeTypeFacePtr m_Face;
 };
 
 /** Convenience typedef for a const PdfEncoding shared ptr

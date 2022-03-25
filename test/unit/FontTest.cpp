@@ -104,21 +104,3 @@ bool getFontInfo(FcPattern* pFont, string& fontFamily, string& fontPath,
 }
 
 #endif // PDFMM_HAVE_FONTCONFIG
-
-TEST_CASE("testCreateFontFtFace")
-{
-    FT_Face face;
-    FT_Error error;
-    PdfMemDocument doc;
-
-    // TODO: Find font file on disc!
-    error = FT_New_Face(mm::GetFreeTypeLibrary(), "/usr/share/fonts/truetype/msttcorefonts/Arial.ttf", 0, &face);
-
-    if (error == 0)
-    {
-        PdfFont* font = doc.GetFontManager().GetFont(face);
-
-        INFO("Cannot create font from FT_Face");
-        REQUIRE(font != nullptr);
-    }
-}

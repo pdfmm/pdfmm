@@ -25,17 +25,14 @@ struct PdfEncodingLimits;
 class PDFMM_API PdfFontMetricsFreetype final : public PdfFontMetrics
 {
 public:
-    /** Create a font metrics object for a given memory buffer
-     *  \param buffer block of memory representing the font data (PdfFontMetricsFreetype will copy the buffer)
-     */
-    PdfFontMetricsFreetype(const std::shared_ptr<charbuff>& buffer,
-        nullable<const PdfFontMetrics&> refMetrics = { });
+    static std::unique_ptr<PdfFontMetricsFreetype> FromMetrics(const PdfFontMetrics& metrics);
 
-    ~PdfFontMetricsFreetype();
+    static std::unique_ptr<PdfFontMetricsFreetype> FromBuffer(const charbuff::const_ptr& buffer);
 
-public:
-    static std::unique_ptr<PdfFontMetricsFreetype> FromBuffer(const bufferview& buffer);
-
+    /// <summary>
+    /// Create a metrics from a FT_Face
+    /// </summary>
+    /// <param name="face">The FT_Face. Font data is copied</param>
     static std::unique_ptr<PdfFontMetricsFreetype> FromFace(FT_Face face);
 
     std::unique_ptr<PdfCMapEncoding> CreateToUnicodeMap(const PdfEncodingLimits& limitHints) const override;
@@ -96,15 +93,15 @@ public:
 
     PdfFontFileType GetFontFileType() const override;
 
-    bufferview GetFontFileData() const override;
-
     unsigned GetFontFileLength1() const override;
 
     unsigned GetFontFileLength2() const override;
 
     unsigned GetFontFileLength3() const override;
 
-    FT_Face GetFace() const override;
+    const datahandle& GetFontFileDataHandle() const override;
+
+    const FreeTypeFacePtr& GetFaceHandle() const override;
 
 protected:
     bool getIsBoldHint() const override;
@@ -112,12 +109,9 @@ protected:
     bool getIsItalicHint() const override;
 
 private:
-    PdfFontMetricsFreetype(FT_Face face);
+    PdfFontMetricsFreetype(const datahandle& data, const FreeTypeFacePtr& face, const PdfFontMetrics* refMetrics);
 
-    /** Initialize this object from an in memory buffer
-     * Called internally by the constructors
-     */
-    void initFromBuffer(const PdfFontMetrics* refMetrics);
+    PdfFontMetricsFreetype(const datahandle& data, const FreeTypeFacePtr& face);
 
     /** Load the metric data from the FTFace data
      * Called internally by the constructors
@@ -129,7 +123,8 @@ private:
     void initType1Lengths(const bufferview& view);
 
 private:
-    FT_Face m_Face;
+    datahandle m_Data;
+    FreeTypeFacePtr m_Face;
     PdfFontFileType m_FontFileType;
 
     bool m_HasUnicodeMapping;
@@ -158,8 +153,6 @@ private:
     double m_UnderlinePosition;
     double m_StrikeOutThickness;
     double m_StrikeOutPosition;
-
-    std::shared_ptr<charbuff> m_FontData;
 
     bool m_LengthsReady;
     unsigned m_Length1;

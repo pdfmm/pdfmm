@@ -20,8 +20,6 @@
 #include "PdfFontConfigWrapper.h"
 #endif
 
-FORWARD_DECLARE_FTFACE();
-
 #if defined(_WIN32) && defined(PDFMM_HAVE_WIN32GDI)
 // To have LOGFONTW available
 typedef struct HFONT__* HFONT;
@@ -29,7 +27,6 @@ typedef struct HFONT__* HFONT;
 
 namespace mm {
 
-class PdfFontMetrics;
 class PdfIndirectObjectList;
 
 struct PdfFontSearchParams
@@ -94,11 +91,12 @@ public:
         const PdfFontCreateParams& params = { });
 
     /**
-     *  \param face a valid freetype font face (will be free'd by pdfmm)
-     *  \param params font creation params
+     * \param face a valid freetype font face. The face is
+     *        referenced and the font data is copied
+     * \param params font creation params
      *
-     *  \returns a PdfFont object or nullptr if the font could
-     *           not be created or found.
+     * \returns a PdfFont object or nullptr if the font could
+     *          not be created or found.
      */
     PdfFont* GetFont(FT_Face face, const PdfFontCreateParams& params = { });
 

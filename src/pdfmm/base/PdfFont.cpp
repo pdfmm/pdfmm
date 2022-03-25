@@ -76,33 +76,25 @@ bool PdfFont::TryGetSubstituteFont(PdfFont*& substFont)
 
 bool PdfFont::TryGetSubstituteFont(PdfFontCreateFlags initFlags, PdfFont*& substFont)
 {
-    shared_ptr<charbuff> data;
-    auto fontData = GetMetrics().GetFontFileObject();
-    if (fontData != nullptr)
-    {
-        auto stream = fontData->GetStream();
-        if (stream != nullptr)
-            data = std::make_shared<charbuff>(stream->GetFilteredCopy());
-    }
-
     auto encoding = GetEncoding();
-    PdfFontMetricsConstPtr metrics;
-    if (data == nullptr || data->length() == 0)
+    auto& metrics = GetMetrics();
+    PdfFontMetricsConstPtr newMetrics;
+    if (!metrics.HasFontFileData())
     {
         // Early intercept Standard14 fonts
         PdfStandard14FontType std14Font;
         if (m_Metrics->IsStandard14FontMetrics(std14Font) ||
-            PdfFont::IsStandard14Font(GetMetrics().GetFontNameSafe(), true, std14Font))
+            PdfFont::IsStandard14Font(metrics.GetFontNameSafe(), true, std14Font))
         {
-            metrics = PdfFontMetricsStandard14::GetInstance(std14Font);
+            newMetrics = PdfFontMetricsStandard14::GetInstance(std14Font);
         }
         else
         {
             PdfFontSearchParams params;
-            params.Style = GetMetrics().GetStyle();
+            params.Style = metrics.GetStyle();
 
-            metrics = PdfFontManager::GetFontMetrics(GetMetrics().GetFontNameSafe(true), params);
-            if (metrics == nullptr)
+            newMetrics = PdfFontManager::GetFontMetrics(metrics.GetFontNameSafe(true), params);
+            if (newMetrics == nullptr)
             {
                 substFont = nullptr;
                 return false;
@@ -111,19 +103,19 @@ bool PdfFont::TryGetSubstituteFont(PdfFontCreateFlags initFlags, PdfFont*& subst
     }
     else
     {
-        metrics.reset(new PdfFontMetricsFreetype(data, GetMetrics()));
+        newMetrics = PdfFontMetricsFreetype::FromMetrics(metrics);
     }
 
     if (!encoding.HasValidToUnicodeMap())
     {
-        shared_ptr<PdfCMapEncoding> toUnicode = metrics->CreateToUnicodeMap(encoding.GetLimits());
+        shared_ptr<PdfCMapEncoding> toUnicode = newMetrics->CreateToUnicodeMap(encoding.GetLimits());
         encoding = PdfEncoding(encoding.GetEncodingMapPtr(), toUnicode);
     }
 
     PdfFontCreateParams params;
     params.Encoding = encoding;
     params.Flags = initFlags;
-    auto newFont = PdfFont::Create(GetDocument(), metrics, params);
+    auto newFont = PdfFont::Create(GetDocument(), newMetrics, params);
     if (newFont == nullptr)
     {
         substFont = nullptr;
@@ -485,7 +477,7 @@ void PdfFont::FillDescriptor(PdfDictionary& dict) const
 
 void PdfFont::EmbedFontFile(PdfObject& descriptor)
 {
-    auto fontdata = m_Metrics->GetFontFileData();
+    auto fontdata = m_Metrics->GetOrLoadFontFileData();
     if (fontdata.empty())
         PDFMM_RAISE_ERROR(PdfErrorCode::InternalLogic);
 

@@ -2520,11 +2520,11 @@ unique_ptr<PdfDifferenceEncoding> PdfDifferenceEncoding::Create(
             PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "Invalid /BaseEncoding {}", baseEncodingName.GetString());;
     }
 
+    PdfStandard14FontType std14Font;
     if (baseEncoding == nullptr)
     {
         // Implicit base encoding can be :
         // 1) The implicit encoding of a standard 14 font
-        PdfStandard14FontType std14Font;
         if (metrics.IsStandard14FontMetrics(std14Font))
         {
             baseEncoding = PdfEncodingMapFactory::GetStandard14FontEncodingMap(std14Font);
@@ -2539,7 +2539,13 @@ unique_ptr<PdfDifferenceEncoding> PdfDifferenceEncoding::Create(
     }
 
     if (baseEncoding == nullptr)
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Base encoding must be non null");
+    {
+        // As a last chance, try check if the font name is actually a Standard14
+        if (PdfFont::IsStandard14Font(metrics.GetFontNameSafe(), std14Font))
+            baseEncoding = PdfEncodingMapFactory::GetStandard14FontEncodingMap(std14Font);
+        else
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Base encoding must be non null");
+    }
 
     // Read the differences key
     PdfDifferenceList difference;

@@ -25,7 +25,7 @@ class PdfArray;
 class PdfObject;
 class PdfVariant;
 
-class PDFMM_API PdfFontMetricsObject final : public PdfFontMetrics
+class PDFMM_API PdfFontMetricsObject final : public PdfFontMetricsBase
 {
 private:
     /** Create a font metrics object based on an existing PdfObject
@@ -109,10 +109,13 @@ protected:
 
     bool getIsItalicHint() const override;
 
-private:
-    std::vector<double> GetBBox(const PdfObject& obj);
+    datahandle getFontFileDataHandle() const override;
 
 private:
+    std::vector<double> getBBox(const PdfObject& obj);
+
+private:
+    std::shared_ptr<charbuff> m_Data;
     std::vector<double> m_BBox;
     Matrix2D m_Matrix;
     std::vector<double> m_Widths;

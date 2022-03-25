@@ -40,7 +40,7 @@ struct Standard14FontData
 /**
  * This is the main class to handle the Standard14 metric data.
  */
-class PDFMM_API PdfFontMetricsStandard14 final : public PdfFontMetrics
+class PDFMM_API PdfFontMetricsStandard14 final : public PdfFontMetricsBase
 {
 private:
     PdfFontMetricsStandard14(PdfStandard14FontType fontType,
@@ -115,8 +115,6 @@ public:
 
     bool IsStandard14FontMetrics(PdfStandard14FontType& std14Font) const override;
 
-    bufferview GetFontFileData() const override;
-
     unsigned GetFontFileLength1() const override;
 
     unsigned GetFontFileLength2() const override;
@@ -129,6 +127,8 @@ protected:
     bool getIsItalicHint() const override;
 
     bool getIsBoldHint() const override;
+
+    datahandle getFontFileDataHandle() const override;
 
 private:
     static std::unique_ptr<PdfFontMetricsStandard14> create(

@@ -29,56 +29,56 @@ using namespace mm;
 static PdfFontFileType determineTrueTypeFormat(FT_Face face);
 static int determineType1FontWeight(const string_view& weight);
 
-PdfFontMetricsFreetype::PdfFontMetricsFreetype(
-    const shared_ptr<charbuff>& buffer, nullable<const PdfFontMetrics&> refMetrics) :
-    m_Face(nullptr),
-    m_FontData(buffer),
-    m_LengthsReady(false),
-    m_Length1(0),
-    m_Length2(0),
-    m_Length3(0)
-{
-    if (buffer == nullptr)
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The buffer can't be null");
-
-    initFromBuffer(&*refMetrics);
-}
-
-PdfFontMetricsFreetype::PdfFontMetricsFreetype(FT_Face face) :
+PdfFontMetricsFreetype::PdfFontMetricsFreetype(const datahandle& data, const FreeTypeFacePtr& face,
+        const PdfFontMetrics* refMetrics) :
+    m_Data(data),
     m_Face(face),
     m_LengthsReady(false),
     m_Length1(0),
     m_Length2(0),
     m_Length3(0)
 {
-    initFromFace(nullptr);
-}
+    if (face == nullptr)
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "The buffer can't be null");
 
-PdfFontMetricsFreetype::~PdfFontMetricsFreetype()
-{
-    FT_Done_Face(m_Face);
-}
-
-void PdfFontMetricsFreetype::initFromBuffer(const PdfFontMetrics* refMetrics)
-{
-    FT_Error rc;
-    FT_Open_Args openArgs{ };
-    openArgs.flags = FT_OPEN_MEMORY;
-    openArgs.memory_base = reinterpret_cast<FT_Byte*>(m_FontData->data());
-    openArgs.memory_size = static_cast<FT_Long>(m_FontData->size());
-
-    rc = FT_Open_Face(mm::GetFreeTypeLibrary(), &openArgs, 0, &m_Face);
-    CHECK_FT_RC(rc, FT_Open_Face);
     initFromFace(refMetrics);
+}
+
+PdfFontMetricsFreetype::PdfFontMetricsFreetype(const datahandle& data, const FreeTypeFacePtr& face)
+    : PdfFontMetricsFreetype(data, face, nullptr)
+{
+}
+
+unique_ptr<PdfFontMetricsFreetype> PdfFontMetricsFreetype::FromMetrics(const PdfFontMetrics& metrics)
+{
+    return unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(metrics.GetFontFileDataHandle(),
+        metrics.GetFaceHandle(), &metrics));
+}
+
+unique_ptr<PdfFontMetricsFreetype> PdfFontMetricsFreetype::FromBuffer(const charbuff::const_ptr& buffer)
+{
+    FreeTypeFacePtr face = mm::CreateFreeTypeFace(*buffer);
+    return unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(buffer, face));
+}
+
+unique_ptr<PdfFontMetricsFreetype> PdfFontMetricsFreetype::FromFace(FT_Face face)
+{
+    if (face == nullptr)
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Face can't be null");
+
+    auto data = mm::GetDataFromFace(face);
+    // Increment the refcount for the face
+    FT_Reference_Face(face);
+    return unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(std::make_shared<charbuff>(data), face));
 }
 
 void PdfFontMetricsFreetype::initFromFace(const PdfFontMetrics* refMetrics)
 {
     FT_Error rc;
 
-    string format = FT_Get_Font_Format(m_Face);
+    string format = FT_Get_Font_Format(m_Face.get());
     if (format == "TrueType")
-        m_FontFileType = determineTrueTypeFormat(m_Face);
+        m_FontFileType = determineTrueTypeFormat(m_Face.get());
     else if (format == "Type 1")
         m_FontFileType = PdfFontFileType::Type1;
     else if (format == "CID Type 1")
@@ -90,7 +90,7 @@ void PdfFontMetricsFreetype::initFromFace(const PdfFontMetrics* refMetrics)
 
     // Get the postscript name of the font and ensures it has no space:
     // 5.5.2 TrueType Fonts, "If the name contains any spaces, the spaces are removed"
-    m_FontName = FT_Get_Postscript_Name(m_Face);
+    m_FontName = FT_Get_Postscript_Name(m_Face.get());
     m_FontName.erase(std::remove(m_FontName.begin(), m_FontName.end(), ' '), m_FontName.end());
     m_FontBaseName = PdfFont::ExtractBaseName(m_FontName);
     m_FontFamilyName = m_Face->family_name;
@@ -99,7 +99,7 @@ void PdfFontMetricsFreetype::initFromFace(const PdfFontMetrics* refMetrics)
     m_HasSymbolCharset = false;
 
     // Try to get a unicode charmap
-    rc = FT_Select_Charmap(m_Face, FT_ENCODING_UNICODE);
+    rc = FT_Select_Charmap(m_Face.get(), FT_ENCODING_UNICODE);
     if (rc == 0)
     {
         m_HasUnicodeMapping = true;
@@ -114,7 +114,7 @@ void PdfFontMetricsFreetype::initFromFace(const PdfFontMetrics* refMetrics)
             {
                 m_HasUnicodeMapping = true;
                 m_HasSymbolCharset = true;
-                rc = FT_Set_Charmap(m_Face, charmap);
+                rc = FT_Set_Charmap(m_Face.get(), charmap);
                 break;
             }
         }
@@ -176,7 +176,7 @@ void PdfFontMetricsFreetype::initFromFace(const PdfFontMetrics* refMetrics)
     }
 
     // OS2 Table is available only in TT fonts
-    TT_OS2* os2Table = static_cast<TT_OS2*>(FT_Get_Sfnt_Table(m_Face, FT_SFNT_OS2));
+    TT_OS2* os2Table = static_cast<TT_OS2*>(FT_Get_Sfnt_Table(m_Face.get(), FT_SFNT_OS2));
     if (os2Table != nullptr)
     {
         m_StrikeOutPosition = os2Table->yStrikeoutPosition / (double)m_Face->units_per_EM;
@@ -187,7 +187,7 @@ void PdfFontMetricsFreetype::initFromFace(const PdfFontMetrics* refMetrics)
     }
 
     // Postscript Table is available only in TT fonts
-    TT_Postscript* psTable = static_cast<TT_Postscript*>(FT_Get_Sfnt_Table(m_Face, FT_SFNT_POST));
+    TT_Postscript* psTable = static_cast<TT_Postscript*>(FT_Get_Sfnt_Table(m_Face.get(), FT_SFNT_POST));
     if (psTable != nullptr)
     {
         m_ItalicAngle = (double)psTable->italicAngle;
@@ -197,7 +197,7 @@ void PdfFontMetricsFreetype::initFromFace(const PdfFontMetrics* refMetrics)
 
     // FontInfo Table is available only in type1 fonts
     PS_FontInfoRec type1Info;
-    rc = FT_Get_PS_Font_Info(m_Face, &type1Info);
+    rc = FT_Get_PS_Font_Info(m_Face.get(), &type1Info);
     if (rc == 0)
     {
         m_ItalicAngle = (double)type1Info.italic_angle;
@@ -226,10 +226,10 @@ void PdfFontMetricsFreetype::ensureLengthsReady()
     switch (m_FontFileType)
     {
         case PdfFontFileType::Type1:
-            initType1Lengths(GetFontFileData());
+            initType1Lengths(m_Data.view());
             break;
         case PdfFontFileType::TrueType:
-            m_Length1 = (unsigned)GetFontFileData().size();
+            m_Length1 = (unsigned)m_Data.view().size();
             break;
         default:
             // Other font types dont't need lengths
@@ -330,34 +330,21 @@ PdfFontStretch PdfFontMetricsFreetype::GetFontStretch() const
     return m_FontStretch;
 }
 
-unique_ptr<PdfFontMetricsFreetype> PdfFontMetricsFreetype::FromBuffer(const bufferview& buffer)
-{
-    return std::make_unique<PdfFontMetricsFreetype>(std::make_shared<charbuff>(buffer));
-}
-
-unique_ptr<PdfFontMetricsFreetype> PdfFontMetricsFreetype::FromFace(FT_Face face)
-{
-    if (face == nullptr)
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Face can't be null");
-
-    return std::unique_ptr<PdfFontMetricsFreetype>(new PdfFontMetricsFreetype(face));
-}
-
 unsigned PdfFontMetricsFreetype::GetGlyphCount() const
 {
-    return (unsigned)m_Face->num_glyphs;
+    return (unsigned)m_Face.get()->num_glyphs;
 }
 
 bool PdfFontMetricsFreetype::TryGetGlyphWidth(unsigned gid, double& width) const
 {
-    if (FT_Load_Glyph(m_Face, gid, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP) != 0)
+    if (FT_Load_Glyph(m_Face.get(), gid, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP) != 0)
     {
         width = -1;
         return false;
     }
 
     // zero return code is success!
-    width = m_Face->glyph->metrics.horiAdvance / (double)m_Face->units_per_EM;
+    width = m_Face.get()->glyph->metrics.horiAdvance / (double)m_Face.get()->units_per_EM;
     return true;
 }
 
@@ -372,7 +359,7 @@ bool PdfFontMetricsFreetype::TryGetGID(char32_t codePoint, unsigned& gid) const
         codePoint = codePoint | 0xF000;
 
     // NOTE: FT_Get_Char_Index returns 0 when no map is selected
-    gid = FT_Get_Char_Index(m_Face, codePoint);
+    gid = FT_Get_Char_Index(m_Face.get(), codePoint);
     return gid != 0;
 }
 
@@ -383,11 +370,11 @@ unique_ptr<PdfCMapEncoding> PdfFontMetricsFreetype::CreateToUnicodeMap(const Pdf
     FT_ULong charcode;
     FT_UInt gid;
 
-    charcode = FT_Get_First_Char(m_Face, &gid);
+    charcode = FT_Get_First_Char(m_Face.get(), &gid);
     while (gid != 0)
     {
         map.PushMapping({ gid, limitHints.MinCodeSize }, (char32_t)charcode);
-        charcode = FT_Get_Next_Char(m_Face, charcode, &gid);
+        charcode = FT_Get_Next_Char(m_Face.get(), charcode, &gid);
     }
 
     return std::make_unique<PdfCMapEncoding>(std::move(map));
@@ -410,11 +397,6 @@ void PdfFontMetricsFreetype::GetBoundingBox(vector<double>& bbox) const
     bbox.push_back(m_Face->bbox.yMin / (double)m_Face->units_per_EM);
     bbox.push_back(m_Face->bbox.xMax / (double)m_Face->units_per_EM);
     bbox.push_back(m_Face->bbox.yMax / (double)m_Face->units_per_EM);
-}
-
-FT_Face PdfFontMetricsFreetype::GetFace() const
-{
-    return m_Face;
 }
 
 bool PdfFontMetricsFreetype::getIsBoldHint() const
@@ -467,42 +449,13 @@ double PdfFontMetricsFreetype::GetLeadingRaw() const
     return m_Leading;
 }
 
-bufferview PdfFontMetricsFreetype::GetFontFileData() const
-{
-    if (m_FontData == nullptr)
-    {
-        // Lazy load the font data from the face
-        if (!(m_FontFileType == PdfFontFileType::TrueType ||
-            m_FontFileType == PdfFontFileType::OpenType))
-        {
-            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "Unsupported retrieving font data from face for not");
-        }
-
-        FT_Error rc;
-
-        // https://freetype.org/freetype2/docs/reference/ft2-truetype_tables.html#ft_load_sfnt_table
-        // Use value 0 if you want to access the whole font file
-        FT_ULong size = 0;
-        rc = FT_Load_Sfnt_Table(m_Face, 0, 0, nullptr, &size);
-        CHECK_FT_RC(rc, FT_Load_Sfnt_Table);
-
-        charbuff buffer(size);
-        rc = FT_Load_Sfnt_Table(m_Face, 0, 0, (FT_Byte*)buffer.data(), &size);
-        CHECK_FT_RC(rc, FT_Load_Sfnt_Table);
-
-        const_cast<PdfFontMetricsFreetype&>(*this).m_FontData.reset(new charbuff(std::move(buffer)));
-    }
-
-    return bufferview(m_FontData->data(), m_FontData->size());
-}
-
 unsigned PdfFontMetricsFreetype::GetFontFileLength1() const
 {
     switch (m_FontFileType)
     {
         case PdfFontFileType::Type1:
         case PdfFontFileType::TrueType:
-            return (unsigned)GetFontFileData().size();
+            return (unsigned)m_Data.view().size();
         default:
             return 0;
     }
@@ -518,6 +471,16 @@ unsigned PdfFontMetricsFreetype::GetFontFileLength3() const
 {
     const_cast<PdfFontMetricsFreetype&>(*this).ensureLengthsReady();
     return m_Length1;
+}
+
+const datahandle& PdfFontMetricsFreetype::GetFontFileDataHandle() const
+{
+    return m_Data;
+}
+
+const FreeTypeFacePtr& PdfFontMetricsFreetype::GetFaceHandle() const
+{
+    return m_Face;
 }
 
 int PdfFontMetricsFreetype::GetWeightRaw() const

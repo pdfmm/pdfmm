@@ -34,12 +34,6 @@ extern "C" {\
     typedef struct _FcConfig FcConfig;\
 }
 
-#define FORWARD_DECLARE_FTFACE()\
-extern "C" {\
-    struct FT_FaceRec_;\
-    typedef struct FT_FaceRec_* FT_Face;\
-}
-
 /**
  * \namespace mm
  *
@@ -63,6 +57,10 @@ using bufferview = std::span<const char>;
 class PDFMM_API charbuff final : public std::string
 {
 public:
+    using ptr = std::shared_ptr<charbuff>;
+    using const_ptr = std::shared_ptr<charbuff>;
+
+public:
     charbuff();
     charbuff(const charbuff&) = default;
     charbuff(charbuff&&) = default;
@@ -80,6 +78,23 @@ public:
     charbuff& operator=(const bufferview& view);
     charbuff& operator=(std::string&& str);
     operator bufferview() const;
+};
+
+/** A const data provider that can hold a view to a
+ * static segments or a shared buffer
+ * 
+ */
+class PDFMM_API datahandle final
+{
+public:
+    datahandle();
+    datahandle(const bufferview& view);
+    datahandle(const charbuff::const_ptr& buff);
+public:
+    const bufferview& view() const { return m_view; }
+private:
+    bufferview m_view;
+    charbuff::const_ptr m_buff;
 };
 
 /** Unicode code point view

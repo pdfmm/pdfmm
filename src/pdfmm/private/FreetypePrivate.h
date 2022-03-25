@@ -12,7 +12,10 @@
 
 namespace mm
 {
-    FT_Library PDFMM_API GetFreeTypeLibrary();
+    FT_Library GetFreeTypeLibrary();
+    bool TryCreateFreeTypeFace(const bufferview& view, FT_Face& face);
+    FT_Face CreateFreeTypeFace(const bufferview& view);
+    charbuff GetDataFromFace(FT_Face face);
 }
 
 // Other legacy TrueType tables defined in Apple documentation

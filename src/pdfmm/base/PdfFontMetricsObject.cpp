@@ -28,7 +28,14 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
     m_Length2(0),
     m_Length3(0)
 {
+    const PdfObject* obj;
     const PdfName& subType = font.GetDictionary().MustFindKey(PdfName::KeySubtype).GetName();
+    // Accorting to ISO 32000-1:2008, /FontName "shall be the
+    // same as the value of /BaseFont in the font or CIDFont
+    //  dictionary that refers to this font descriptor".
+    // We consider 
+    if ((obj = font.GetDictionary().FindKey("BaseFont")) != nullptr)
+        m_FontName = obj->GetName().GetString();
 
     // Widths of a Type 1 font, which are in thousandths
     // of a unit of text space
@@ -53,17 +60,20 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
 
         if (descriptor == nullptr && subType == "Type3")
         {
-            if (font.GetDictionary().HasKey("Name"))
-                m_FontName = font.GetDictionary().MustFindKey("Name").GetName().GetString();
-            if (font.GetDictionary().HasKey("FontBBox"))
-                m_BBox = GetBBox(font.GetDictionary().MustFindKey("FontBBox"));
+            const PdfObject* obj;
+            if (m_FontName.length() == 0 && (obj = font.GetDictionary().FindKey("Name")) != nullptr)
+                m_FontName = obj->GetName().GetString();
+
+            if ((obj = font.GetDictionary().FindKey("FontBBox")) != nullptr)
+                m_BBox = getBBox(*obj);
         }
         else
         {
-            if (descriptor->GetDictionary().HasKey("FontName"))
-                m_FontName = descriptor->GetDictionary().MustFindKey("FontName").GetName().GetString();
-            if (descriptor->GetDictionary().HasKey("FontBBox"))
-                m_BBox = GetBBox(descriptor->GetDictionary().MustFindKey("FontBBox"));
+            if (m_FontName.length() == 0 && (obj = descriptor->GetDictionary().FindKey("FontName")) != nullptr)
+                m_FontName = obj->GetName().GetString();
+
+            if ((obj = descriptor->GetDictionary().FindKey("FontBBox")) != nullptr)
+                m_BBox = getBBox(*obj);
 
             if (subType == "Type1")
             {
@@ -120,13 +130,12 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
         if (descriptor == nullptr)
             PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoObject, "Missing descriptor for CID ont");
 
-        auto obj = descriptor->GetDictionary().FindKey("FontName");
-        if (obj != nullptr)
+        const PdfObject* obj;
+        if (m_FontName.length() == 0 && (obj = descriptor->GetDictionary().FindKey("FontName")) != nullptr)
             m_FontName = obj->GetName().GetString();
 
-        obj = descriptor->GetDictionary().FindKey("FontBBox");
-        if (obj != nullptr)
-            m_BBox = GetBBox(*obj);
+        if ((obj = descriptor->GetDictionary().FindKey("FontBBox")) != nullptr)
+            m_BBox = getBBox(*obj);
 
         if (subType == "CIDFontType0"
             && (m_FontFileObject = descriptor->GetDictionary().FindKey("FontFile")) != nullptr)
@@ -468,6 +477,15 @@ bool PdfFontMetricsObject::getIsItalicHint() const
     return m_IsItalicHint;
 }
 
+datahandle PdfFontMetricsObject::getFontFileDataHandle() const
+{
+    const PdfObjectStream* stream;
+    if (m_FontFileObject == nullptr || (stream = m_FontFileObject->GetStream()) == nullptr)
+        return datahandle();
+    else
+        return datahandle(std::make_shared<charbuff>(stream->GetFilteredCopy()));
+}
+
 const PdfObject* PdfFontMetricsObject::GetFontFileObject() const
 {
     return m_FontFileObject;
@@ -488,7 +506,7 @@ unsigned PdfFontMetricsObject::GetFontFileLength3() const
     return m_Length3;
 }
 
-vector<double> PdfFontMetricsObject::GetBBox(const PdfObject& obj)
+vector<double> PdfFontMetricsObject::getBBox(const PdfObject& obj)
 {
     vector<double> ret;
     ret.reserve(4);

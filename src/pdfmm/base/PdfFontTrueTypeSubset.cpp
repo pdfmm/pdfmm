@@ -67,7 +67,7 @@ void PdfFontTrueTypeSubset::BuildFont(std::string& output, const PdfFontMetrics&
             PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "The font to be subsetted is not a TrueType font");
     }
 
-    PdfMemoryInputDevice input(metrics.GetFontFileData());
+    PdfMemoryInputDevice input(metrics.GetOrLoadFontFileData());
     PdfFontTrueTypeSubset subset(input);
     subset.BuildFont(output, gidList);
 }
