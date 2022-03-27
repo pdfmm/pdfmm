@@ -15,7 +15,6 @@
 #include "PdfEncodingMapFactory.h"
 #include "PdfIdentityEncoding.h"
 #include "PdfDifferenceEncoding.h"
-#include "PdfFontType1Encoding.h"
 #include "PdfCMapEncoding.h"
 #include "PdfEncodingShim.h"
 #include "PdfFontMetrics.h"
@@ -33,33 +32,9 @@ PdfEncoding PdfEncodingFactory::CreateEncoding(const PdfObject& fontObj, const P
     if (encodingObj != nullptr)
         encoding = createEncodingMap(*encodingObj, metrics);
 
-    if (encoding == nullptr && metrics.GetFontFileType() == PdfFontFileType::Type1)
-    {
-        auto fontFileObj = metrics.GetFontFileObject();
-        if (fontFileObj == nullptr)
-        {
-            // encoding may be undefined, found a valid pdf with
-            //   20 0 obj
-            //   <<
-            //   /Type /Font
-            //   /BaseFont /ZapfDingbats
-            //   /Subtype /Type1
-            //   >>
-            //   endobj 
-            // If encoding is null then
-            // use StandardEncoding for Times, Helvetica, Courier font families
-            // special encodings for Symbol and ZapfDingbats
-            PdfStandard14FontType std14Font;
-            if (metrics.IsStandard14FontMetrics(std14Font))
-                encoding = PdfEncodingMapFactory::GetStandard14FontEncodingMap(std14Font);
-            else if (metrics.IsType1Kind() && metrics.IsPdfNonSymbolic())
-                encoding = PdfEncodingMapFactory::StandardEncodingInstance();
-        }
-        else
-        {
-            encoding = PdfFontType1Encoding::Create(*fontFileObj);
-        }
-    }
+    PdfEncodingMapConstPtr implicitEncoding;
+    if (encoding == nullptr && metrics.TryGetImplicitEncoding(implicitEncoding))
+        encoding = implicitEncoding;
 
     // TODO: Implement full text extraction, including search in predefined
     // CMap(s) as described in Pdf Reference and here https://stackoverflow.com/a/26910569/213871

@@ -34,6 +34,13 @@ extern "C" {\
     typedef struct _FcConfig FcConfig;\
 }
 
+#define FORWARD_DECLARE_FREETYPE()\
+extern "C"\
+{\
+    struct FT_FaceRec_;\
+    typedef struct FT_FaceRec_* FT_Face;\
+}
+
 /**
  * \namespace mm
  *

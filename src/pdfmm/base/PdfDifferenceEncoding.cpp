@@ -21,7 +21,6 @@
 #include "PdfEncodingMapFactory.h"
 #include "PdfIndirectObjectList.h"
 #include "PdfFont.h"
-#include "PdfFontType1Encoding.h"
 
 using namespace std;
 using namespace mm;
@@ -2520,32 +2519,9 @@ unique_ptr<PdfDifferenceEncoding> PdfDifferenceEncoding::Create(
             PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "Invalid /BaseEncoding {}", baseEncodingName.GetString());;
     }
 
-    PdfStandard14FontType std14Font;
-    if (baseEncoding == nullptr)
-    {
-        // Implicit base encoding can be :
-        // 1) The implicit encoding of a standard 14 font
-        if (metrics.IsStandard14FontMetrics(std14Font))
-        {
-            baseEncoding = PdfEncodingMapFactory::GetStandard14FontEncodingMap(std14Font);
-        }
-        else if (metrics.GetFontFileType() == PdfFontFileType::Type1)
-        {
-            // 2) An encoding stored in the font program (see PdfFontType1Encoding)
-            auto fontFileObj = metrics.GetFontFileObject();
-            if (fontFileObj != nullptr)
-                baseEncoding = PdfFontType1Encoding::Create(*fontFileObj);
-        }
-    }
-
-    if (baseEncoding == nullptr)
-    {
-        // As a last chance, try check if the font name is actually a Standard14
-        if (PdfFont::IsStandard14Font(metrics.GetFontNameSafe(), std14Font))
-            baseEncoding = PdfEncodingMapFactory::GetStandard14FontEncodingMap(std14Font);
-        else
-            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Base encoding must be non null");
-    }
+    PdfEncodingMapConstPtr implicitEncoding;
+    if (baseEncoding == nullptr && metrics.TryGetImplicitEncoding(implicitEncoding))
+        baseEncoding = implicitEncoding;
 
     // Read the differences key
     PdfDifferenceList difference;
@@ -2653,8 +2629,7 @@ void PdfDifferenceEncoding::buildReverseMap()
         // If there's no difference use the mapping of the base encoding
         if (!m_baseEncoding->TryGetCodePoints(PdfCharCode(code), codePoints))
         {
-            // This should never happen
-            PDFMM_ASSERT(false);
+            // It may happen the code is not found even in the base encoding
             continue;
         }
 

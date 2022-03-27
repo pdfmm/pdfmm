@@ -14,6 +14,8 @@
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfVariant.h"
+#include "PdfEncodingMapFactory.h"
+#include "PdfFont.h"
 
 using namespace std;
 using namespace mm;
@@ -246,6 +248,40 @@ unique_ptr<PdfCMapEncoding> PdfFontMetrics::CreateToUnicodeMap(const PdfEncoding
     PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);
 }
 
+bool PdfFontMetrics::TryGetImplicitEncoding(PdfEncodingMapConstPtr& encoding) const
+{
+    PdfStandard14FontType std14Font;
+    // Implicit base encoding can be :
+    // 1) The implicit encoding of a standard 14 font
+    PdfFontFileType type;
+    if (IsStandard14FontMetrics(std14Font))
+    {
+        encoding = PdfEncodingMapFactory::GetStandard14FontEncodingMap(std14Font);
+        return true;
+    }
+    else if (IsType1Kind())
+    {
+        // 2) An encoding stored in the font program (see PdfFontType1Encoding)
+        FT_Face face;
+        PdfEncodingMapConstPtr builtinEncoding;
+        if (TryGetOrLoadFace(face))
+        {
+            encoding = getFontType1Encoding(face);
+            return true;
+        }
+    }
+
+    // As a last chance, try check if the font name is actually a Standard14
+    if (PdfFont::IsStandard14Font(GetFontNameSafe(), std14Font))
+    {
+        encoding = PdfEncodingMapFactory::GetStandard14FontEncodingMap(std14Font);
+        return true;
+    }
+
+    encoding = nullptr;
+    return false;
+}
+
 PdfFontMetricsBase::PdfFontMetricsBase()
     : m_dataInit(false), m_faceInit(false) { }
 
@@ -266,8 +302,9 @@ const FreeTypeFacePtr& PdfFontMetricsBase::GetFaceHandle() const
     if (!m_faceInit)
     {
         auto& rthis = const_cast<PdfFontMetricsBase&>(*this);
+        auto view = GetFontFileDataHandle().view();
         FT_Face face;
-        if (mm::TryCreateFreeTypeFace(GetFontFileDataHandle().view(), face))
+        if (view.size() != 0 && mm::TryCreateFreeTypeFace(view, face))
             rthis.m_Face = FreeTypeFacePtr(face);
         else
             rthis.m_Face = FreeTypeFacePtr();

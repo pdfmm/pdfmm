@@ -6,119 +6,88 @@
  */
 
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
-#include "PdfFontType1Encoding.h"
-#include "PdfInputDevice.h"
-#include "PdfPostScriptTokenizer.h"
-#include "PdfObject.h"
-#include "PdfDifferenceEncoding.h"
+#include "PdfFontMetrics.h"
+#include <pdfmm/private/FreetypePrivate.h>
 
 using namespace std;
 using namespace mm;
 
-PdfFontType1Encoding::PdfFontType1Encoding(PdfCharCodeMap&& map) :
-    PdfEncodingMapBase(std::move(map)) { }
-
-unique_ptr<PdfFontType1Encoding> PdfFontType1Encoding::Create(const PdfObject& obj)
+/** A built-in encoding for a /Type1 font program
+ */
+class PDFMM_API PdfFontType1Encoding final : public PdfEncodingMapBase
 {
-    return unique_ptr<PdfFontType1Encoding>(new PdfFontType1Encoding(getUnicodeMap(obj)));
-}
+public:
+    PdfFontType1Encoding(PdfCharCodeMap && map)
+        : PdfEncodingMapBase(std::move(map)) { }
 
-PdfEncodingMapType PdfFontType1Encoding::GetType() const
-{
-    return PdfEncodingMapType::Simple;
-}
+public:
+    PdfEncodingMapType GetType() const override { return PdfEncodingMapType::Simple; }
 
-PdfCharCodeMap PdfFontType1Encoding::getUnicodeMap(const PdfObject& obj)
-{
-    string buffer;
-    PdfStringOutputStream outputStream(buffer);
-    obj.MustGetStream().GetFilteredCopy(outputStream);
-
-    string_view view(buffer.data(), buffer.size());
-    // Try to find binary part of the document and exclude it
-    auto found = view.find("eexec");
-    if (found != string_view::npos)
-        view = view.substr(0, found + 5);
-
-    PdfMemoryInputDevice device(view);
-    PdfPostScriptTokenizer tokenizer;
-    PdfPostScriptTokenType tokenType;
-    string_view keyword;
-    PdfVariant variant;
-    PdfName name;
-    int64_t number;
-    PdfCharCodeMap ret;
-
-    auto tryReadEntry = [&]()
+protected:
+    void getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const override
     {
-        while (true)
-        {
-            // Consume al tokens searching for "dup" keyword
-            if (!tokenizer.TryReadNext(device, tokenType, keyword, variant))
-                return false;
+        (void)objects;
+        (void)name;
+        (void)obj;
+        // Do nothing. PdfFontType1Encoding encoding is implicit in the font program
+    }
+};
 
-            if (tokenType == PdfPostScriptTokenType::Keyword
-                && keyword == "dup")
+PdfEncodingMapConstPtr PdfFontMetrics::getFontType1Encoding(FT_Face face)
+{
+    PdfCharCodeMap codeMap;
+    FT_Error rc;
+    FT_ULong code;
+    FT_UInt index;
+
+    auto oldCharmap = face->charmap;
+
+    map<FT_UInt, FT_ULong> unicodeMap;
+    rc = FT_Select_Charmap(face, FT_ENCODING_UNICODE);
+    CHECK_FT_RC(rc, FT_Select_Charmap);
+
+    code = FT_Get_First_Char(face, &index);
+    while (index != 0)
+    {
+        unicodeMap[index] = code;
+        code = FT_Get_Next_Char(face, code, &index);
+    }
+
+    // Search for a custom char map
+    map<FT_UInt, FT_ULong> customMap;
+    rc = FT_Select_Charmap(face, FT_ENCODING_ADOBE_CUSTOM);
+    if (rc == 0)
+    {
+        code = FT_Get_First_Char(face, &index);
+        while (index != 0)
+        {
+            customMap[index] = code;
+            code = FT_Get_Next_Char(face, code, &index);
+        }
+
+        rc = FT_Set_Charmap(face, oldCharmap);
+        CHECK_FT_RC(rc, FT_Select_Charmap);
+
+        for (auto& pair : customMap)
+        {
+            auto found = unicodeMap.find(pair.first);
+            if (found == unicodeMap.end())
             {
-                break;
+                // Some symbol characters may have no unicode representation
+                codeMap.PushMapping(PdfCharCode((unsigned)pair.second), U'\0');
+                continue;
             }
-        }
 
-        // Try to read CID
-        if (!tokenizer.TryReadNext(device, tokenType, keyword, variant)
-            || tokenType != PdfPostScriptTokenType::Variant
-            || !variant.TryGetNumber(number))
-        {
-            return false;
-        }
-
-        // Try to read character code
-        if (!tokenizer.TryReadNext(device, tokenType, keyword, variant)
-            || tokenType != PdfPostScriptTokenType::Variant
-            || !variant.TryGetName(name))
-        {
-            return false;
-        }
-
-        unsigned code = (unsigned)number;
-        char32_t cp = PdfDifferenceEncoding::NameToCodePoint(name);
-        if (cp != U'\0')
-        {
-            unsigned char codeSize = utls::GetCharCodeSize(code);
-            ret.PushMapping({ code, codeSize }, cp);
-        }
-
-        return true;
-    };
-
-    while (true)
-    {
-        // Consume all tokens searching for the /Encoding array
-        if (!tokenizer.TryReadNext(device, tokenType, keyword, variant))
-            return ret;
-
-        if (tokenType == PdfPostScriptTokenType::Variant
-            && variant.TryGetName(name)
-            && name.GetString() == "Encoding")
-        {
-            break;
+            codeMap.PushMapping(PdfCharCode((unsigned)pair.second), (char32_t)found->second);
         }
     }
-
-    while (true)
+    else
     {
-        // Read all the entries
-        if (!tryReadEntry())
-            return ret;
+        // NOTE: Some very strange CCF fonts just supply an unicode map
+        // For these, we just assume code identity with Unicode codepoint
+        for (auto& pair : unicodeMap)
+            codeMap.PushMapping(PdfCharCode((unsigned)pair.second), (char32_t)pair.second);
     }
 
-    return ret;
-}
-
-void PdfFontType1Encoding::getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const
-{
-    (void)objects;
-    (void)name;
-    (void)obj;
-    // Do nothing. PdfFontType1Encoding encoding is implicit in the font program
+    return PdfEncodingMapConstPtr(new PdfFontType1Encoding(std::move(codeMap)));
 }

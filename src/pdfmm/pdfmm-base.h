@@ -25,7 +25,6 @@
 #include "base/PdfEncodingMapFactory.h"
 #include "base/PdfDifferenceEncoding.h"
 #include "base/PdfIdentityEncoding.h"
-#include "base/PdfFontType1Encoding.h"
 #include "base/PdfPredefinedEncoding.h"
 #include "base/PdfEncrypt.h"
 #include "base/PdfError.h"

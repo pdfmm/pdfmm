@@ -11,7 +11,6 @@
 #include "PdfPredefinedEncoding.h"
 #include "PdfIdentityEncoding.h"
 #include "PdfDifferenceEncoding.h"
-#include "PdfFontType1Encoding.h"
 
 using namespace std;
 using namespace mm;

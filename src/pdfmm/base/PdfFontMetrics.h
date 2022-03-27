@@ -14,11 +14,7 @@
 #include "PdfString.h"
 #include "PdfCMapEncoding.h"
 
-extern "C"
-{
-    struct FT_FaceRec_;
-    typedef struct FT_FaceRec_* FT_Face;
-}
+FORWARD_DECLARE_FREETYPE();
 
 namespace mm {
 
@@ -295,6 +291,11 @@ public:
      */
     virtual std::unique_ptr<PdfCMapEncoding> CreateToUnicodeMap(const PdfEncodingLimits& limitHints) const;
 
+    /** Get an implicit encoding, such as the one of standard14 fonts,
+     * or the built-in encoding of a Type1 font, if available
+     */
+    bool TryGetImplicitEncoding(PdfEncodingMapConstPtr &encoding) const;
+
 protected:
     virtual bool getIsBoldHint() const = 0;
     virtual bool getIsItalicHint() const = 0;
@@ -304,6 +305,8 @@ protected:
 private:
     PdfFontMetrics(const PdfFontMetrics& rhs) = delete;
     PdfFontMetrics& operator=(const PdfFontMetrics& rhs) = delete;
+
+    static PdfEncodingMapConstPtr getFontType1Encoding(FT_Face face);
 
 private:
     nullable<PdfFontStyle> m_Style;
