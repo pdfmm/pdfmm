@@ -135,8 +135,8 @@ void PdfFontConfigWrapper::createDefaultConfig()
     // to not complain if it doesn't
     (void)FcConfigParseAndLoad(config, nullptr, FcFalse);
 
-    auto configFile = FcConfigGetFilename(config, nullptr);
-    if (configFile == nullptr)
+    auto configFiles = FcConfigGetConfigFiles(config);
+    if (FcStrListNext(configFiles) == nullptr)
     {
         // No system config found, supply a fallback configuration
         if (!FcConfigParseAndLoadFromMemory(config, (const FcChar8*)fontconf, true))
@@ -157,6 +157,7 @@ void PdfFontConfigWrapper::createDefaultConfig()
     else
     {
         // Destroy the temporary config
+        FcStrListDone(configFiles);
         FcConfigDestroy(config);
 #endif
         // Default initialize a local FontConfig configuration
