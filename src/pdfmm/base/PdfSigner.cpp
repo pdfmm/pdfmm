@@ -44,8 +44,19 @@ void mm::SignDocument(PdfMemDocument& doc, PdfOutputDevice& device, PdfSigner& s
     signature.PrepareForSigning(signer.GetSignatureFilter(), signer.GetSignatureSubFilter(),
         signer.GetSignatureType(), beacons);
     auto& form = doc.GetOrCreateAcroForm();
+
     // TABLE 8.68 Signature flags: SignaturesExist (1) | AppendOnly (2)
+    // NOTE: This enables the signature panel visualization
     form.GetObject().GetDictionary().AddKey("SigFlags", (int64_t)3);
+
+    auto acroForm = doc.GetAcroForm();
+    if (acroForm != nullptr)
+    {
+        // NOTE: Adobe is crazy and if the /NeedAppearances is set to true,
+        // it will not show up the signature upon signing. Just
+        // remore the key just in case it's present (defaults to false)
+        acroForm->GetDictionary().RemoveKey("NeedAppearances");
+    }
 
     doc.SaveUpdate(device, opts);
     device.Flush();
