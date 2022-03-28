@@ -253,7 +253,6 @@ bool PdfFontMetrics::TryGetImplicitEncoding(PdfEncodingMapConstPtr& encoding) co
     PdfStandard14FontType std14Font;
     // Implicit base encoding can be :
     // 1) The implicit encoding of a standard 14 font
-    PdfFontFileType type;
     if (IsStandard14FontMetrics(std14Font))
     {
         encoding = PdfEncodingMapFactory::GetStandard14FontEncodingMap(std14Font);
