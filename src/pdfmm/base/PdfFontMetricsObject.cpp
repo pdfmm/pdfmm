@@ -103,6 +103,8 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
                     }
                 }
             }
+
+            m_DefaultWidth = descriptor->GetDictionary().FindKeyAs<double>("MissingWidth", 0);
         }
 
         // Type3 fonts have a custom /FontMatrix
@@ -122,8 +124,6 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
             for (auto& obj : arrWidths)
                 m_Widths.push_back(obj.GetReal() * m_Matrix[0]);
         }
-
-        m_DefaultWidth = descriptor->GetDictionary().FindKeyAs<double>("MissingWidth", 0);
     }
     else if (subType == "CIDFontType0" || subType == "CIDFontType2")
     {
