@@ -2520,8 +2520,13 @@ unique_ptr<PdfDifferenceEncoding> PdfDifferenceEncoding::Create(
     }
 
     PdfEncodingMapConstPtr implicitEncoding;
-    if (baseEncoding == nullptr && metrics.TryGetImplicitEncoding(implicitEncoding))
-        baseEncoding = implicitEncoding;
+    if (baseEncoding == nullptr)
+    {
+        if (metrics.TryGetImplicitEncoding(implicitEncoding))
+            baseEncoding = implicitEncoding;
+        else // Assume StandardEncoding in case nothing else works
+            baseEncoding = PdfEncodingMapFactory::StandardEncodingInstance();
+    }
 
     // Read the differences key
     PdfDifferenceList difference;

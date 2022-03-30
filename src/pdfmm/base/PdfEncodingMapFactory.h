@@ -19,6 +19,7 @@ class PDFMM_API PdfEncodingMapFactory final
 {
     friend class PdfEncoding;
     friend class PdfEncodingFactory;
+    friend class PdfDifferenceEncoding;
 
 public:
     /** Singleton method which returns a global instance
