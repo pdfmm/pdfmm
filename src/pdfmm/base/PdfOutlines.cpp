@@ -61,13 +61,6 @@ PdfOutlineItem::PdfOutlineItem(PdfObject& obj, PdfOutlineItem* parentOutline, Pd
         next = this->GetObject().GetDictionary().GetKey("Next")->GetReference();
         m_Next = new PdfOutlineItem(obj.GetDocument()->GetObjects().MustGetObject(next), parentOutline, this);
     }
-    else
-    {
-        // if there is no next key,
-        // we have to set ourself as the last item of the parent
-        if (m_ParentOutline != nullptr)
-            m_ParentOutline->SetLast(this);
-    }
 }
 
 PdfOutlineItem::PdfOutlineItem(PdfDocument& doc)
@@ -245,10 +238,10 @@ void PdfOutlineItem::Erase()
         m_Next->SetPrevious(m_Prev);
     }
 
-    if (m_Prev == nullptr && m_ParentOutline && this == m_ParentOutline->First())
+    if (m_Prev == nullptr && m_ParentOutline != nullptr && this == m_ParentOutline->First())
         m_ParentOutline->SetFirst(m_Next);
 
-    if (m_Next == nullptr && m_ParentOutline && this == m_ParentOutline->Last())
+    if (m_Next == nullptr && m_ParentOutline != nullptr && this == m_ParentOutline->Last())
         m_ParentOutline->SetLast(m_Prev);
 
     m_Next = nullptr;
