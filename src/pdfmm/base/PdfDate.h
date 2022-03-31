@@ -51,7 +51,8 @@ public:
      *         in PDF format. It has to be a string of
      *         the format  (D:YYYYMMDDHHmmSSOHH'mm').
      */
-    PdfDate(const std::string_view& dateStr);
+    static PdfDate Parse(const std::string_view& dateStr);
+    static bool TryParse(const std::string_view& dateStr, PdfDate& date);
 
     /** \returns the date and time of this PdfDate in
      *  seconds since epoch.
@@ -70,19 +71,12 @@ public:
     PdfString ToStringW3C() const;
 
 private:
+    static bool tryParse(const std::string_view& dateStr, std::chrono::seconds& secondsFromEpoch, nullable<std::chrono::minutes>& minutesFromUtc);
+
     /** Creates the internal string representation from
      *  a time_t value and writes it to m_szDate.
      */
     PdfString createStringRepresentation(bool w3cstring) const;
-
-    /** Parse fixed length number from string
-     *  \param in string to read number from
-     *  \param length of number to read
-     *  \param min minimal value of number
-     *  \param max maximal value of number
-     *  \param ret parsed number
-     */
-    bool ParseFixLenNumber(const char*& in, unsigned length, int min, int max, int& ret);
 
 private:
     std::chrono::seconds m_secondsFromEpoch;

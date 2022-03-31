@@ -35,6 +35,7 @@ else if (tryReadShiftChar(*str, zoneShift))\
     goto ParseShift;\
 }
 
+static bool parseFixLenNumber(const char*& in, unsigned maxLength, int min, int max, int& ret);
 static int getLocalOffesetFromUTCMinutes();
 static bool tryReadShiftChar(char ch, int& zoneShift);
 
@@ -53,7 +54,30 @@ PdfDate::PdfDate(const chrono::seconds& secondsFromEpoch, const nullable<chrono:
 {
 }
 
-PdfDate::PdfDate(const string_view& dateStr)
+PdfDate PdfDate::Parse(const string_view& dateStr)
+{
+    PdfDate date;
+    if (!TryParse(dateStr, date))
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Date is invalid");
+
+    return date;
+}
+
+bool PdfDate::TryParse(const string_view& dateStr, PdfDate& date)
+{
+    chrono::seconds secondsFromEpoch;
+    nullable<chrono::minutes> minutesFromUtc;
+    if (!tryParse(dateStr, secondsFromEpoch, minutesFromUtc))
+    {
+        date = { };
+        return false;
+    }
+
+    date = PdfDate(secondsFromEpoch, minutesFromUtc);
+    return true;
+}
+
+bool PdfDate::tryParse(const string_view& dateStr, chrono::seconds& secondsFromEpoch, nullable<chrono::minutes>& minutesFromUtc)
 {
     int y = 0;
     int m = 0;
@@ -67,79 +91,89 @@ PdfDate::PdfDate(const string_view& dateStr)
     int zoneHour = 0;
     int zoneMin = 0;
 
-    const char* date = dateStr.data();
-    if (date == nullptr)
-        goto Error;
+    const char* cursor = dateStr.data();
+    if (cursor == nullptr)
+        return false;
 
-    if (*date == 'D')
+    if (*cursor == 'D')
     {
-        date++;
-        if (*date++ != ':')
-            goto Error;
+        cursor++;
+        if (*cursor++ != ':')
+            return false;
     }
 
-    PEEK_DATE_CHAR(date, zoneShift);
+    PEEK_DATE_CHAR(cursor, zoneShift);
 
-    if (!ParseFixLenNumber(date, 4, 0, 9999, y))
-        goto Error;
+    if (!parseFixLenNumber(cursor, 4, 0, 9999, y))
+        return false;
 
-    PEEK_DATE_CHAR(date, zoneShift);
+    PEEK_DATE_CHAR(cursor, zoneShift);
 
-    if (!ParseFixLenNumber(date, 2, 1, 12, m))
-        goto Error;
+    if (!parseFixLenNumber(cursor, 2, 1, 12, m))
+        return false;
 
-    PEEK_DATE_CHAR(date, zoneShift);
+    PEEK_DATE_CHAR(cursor, zoneShift);
 
-    if (!ParseFixLenNumber(date, 2, 1, 31, d))
-        goto Error;
+    if (!parseFixLenNumber(cursor, 2, 1, 31, d))
+        return false;
 
-    PEEK_DATE_CHAR(date, zoneShift);
+    PEEK_DATE_CHAR(cursor, zoneShift);
 
-    if (!ParseFixLenNumber(date, 2, 0, 23, h))
-        goto Error;
+    if (!parseFixLenNumber(cursor, 2, 0, 23, h))
+        return false;
 
-    PEEK_DATE_CHAR(date, zoneShift);
+    PEEK_DATE_CHAR(cursor, zoneShift);
 
-    if (!ParseFixLenNumber(date, 2, 0, 59, M))
-        goto Error;
+    if (!parseFixLenNumber(cursor, 2, 0, 59, M))
+        return false;
 
-    PEEK_DATE_CHAR(date, zoneShift);
+    PEEK_DATE_CHAR(cursor, zoneShift);
 
-    if (!ParseFixLenNumber(date, 2, 0, 59, s))
-        goto Error;
+    if (!parseFixLenNumber(cursor, 2, 0, 59, s))
+        return false;
 
-    PEEK_DATE_CHAR(date, zoneShift);
+    PEEK_DATE_CHAR(cursor, zoneShift);
 
 ParseShift:
     hasZoneShift = true;
-    if (zoneShift != 0)
+    if (*cursor != '\0')
     {
-        if (!ParseFixLenNumber(date, 2, 0, 59, zoneHour))
-            goto Error;
+        if (!parseFixLenNumber(cursor, 2, 0, 59, zoneHour))
+            goto End;
 
-        if (*date == '\'')
+        if (*cursor == '\'')
         {
-            date++;
-            if (!ParseFixLenNumber(date, 2, 0, 59, zoneMin))
-                goto Error;
-            if (*date != '\'') return;
-            date++;
+            cursor++;
+            if (*cursor != '\0')
+            {
+                if (!parseFixLenNumber(cursor, 2, 0, 59, zoneMin))
+                    return false;
+
+                if (*cursor == '\'')
+                    cursor++;
+            }
         }
+
+        if (zoneShift == 0 && (zoneHour != 0 || zoneMin != 0))
+            return false;
+
+        if (*cursor != '\0')
+            return false;
     }
 
-    if (*date != '\0')
-        goto Error;
 End:
-    m_secondsFromEpoch = (chrono::local_days(chrono::year(y) / m / d) + chrono::hours(h) + chrono::minutes(M) + chrono::seconds(s)).time_since_epoch();
+    secondsFromEpoch = (chrono::local_days(chrono::year(y) / m / d) + chrono::hours(h) + chrono::minutes(M) + chrono::seconds(s)).time_since_epoch();
     if (hasZoneShift)
     {
-        m_minutesFromUtc = zoneShift * (chrono::hours(zoneHour) + chrono::minutes(zoneMin));
-        m_secondsFromEpoch -= *m_minutesFromUtc;
+        minutesFromUtc = zoneShift * (chrono::hours(zoneHour) + chrono::minutes(zoneMin));
+        secondsFromEpoch -= *minutesFromUtc;
+    }
+    else
+    {
+        minutesFromUtc = { };
     }
 
-    return;
-Error:
-    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Date is invalid");
+    return true;
 }
 
 PdfString PdfDate::createStringRepresentation(bool w3cstring) const
@@ -207,19 +241,6 @@ PdfString PdfDate::createStringRepresentation(bool w3cstring) const
     return PdfString(date);
 }
 
-bool PdfDate::ParseFixLenNumber(const char*& in, unsigned length, int min, int max, int& ret)
-{
-    ret = 0;
-    for (unsigned i = 0; i < length; i++)
-    {
-        if (in == nullptr || !isdigit(*in)) return false;
-        ret = ret * 10 + (*in - '0');
-        in++;
-    }
-    if (ret < min || ret > max) return false;
-    return true;
-}
-
 PdfString PdfDate::ToString() const
 {
     return createStringRepresentation(false);
@@ -258,4 +279,21 @@ bool tryReadShiftChar(char ch, int& zoneShift)
         default:
             return false;
     }
+}
+
+bool parseFixLenNumber(const char*& in, unsigned maxLength, int min, int max, int& ret)
+{
+    ret = 0;
+    for (unsigned i = 0; i < maxLength; i++)
+    {
+        if (in == nullptr || !isdigit(*in))
+            return i != 0;
+
+        ret = ret * 10 + (*in - '0');
+        in++;
+    }
+    if (ret < min || ret > max)
+        return false;
+
+    return true;
 }

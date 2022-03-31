@@ -19,16 +19,8 @@ static void deconstruct(const PdfDate& date, date::year_month_day& ymd, date::hh
 
 static void checkExpected(const string_view& datestr, bool expectedValid)
 {
-    bool valid;
-    try
-    {
-        PdfDate date(datestr);
-        valid = true;
-    }
-    catch (...)
-    {
-        valid = false;
-    }
+    PdfDate date;
+    bool valid = PdfDate::TryParse(datestr, date);
 
     if (datestr.empty())
     {
@@ -46,22 +38,28 @@ TEST_CASE("testCreateDateFromString")
 {
     checkExpected({ }, false);
     checkExpected("D:2012", true);
-    checkExpected("D:20120", false);
+    checkExpected("D:20120", true);
     checkExpected("D:201201", true);
-    checkExpected("D:2012010", false);
+    checkExpected("D:201213", false);
+    checkExpected("D:2012010", true);
     checkExpected("D:20120101", true);
-    checkExpected("D:201201012", false);
+    checkExpected("D:201201012", true);
+    checkExpected("D:20120132", false);
     checkExpected("D:2012010123", true);
-    checkExpected("D:20120101235", false);
+    checkExpected("D:2012010125", false);
+    checkExpected("D:20120101235", true);
     checkExpected("D:201201012359", true);
-    checkExpected("D:2012010123595", false);
+    checkExpected("D:2012010123595", true);
     checkExpected("D:20120101235959", true);
     checkExpected("D:20120120135959Z", true);
-    checkExpected("D:20120120135959Z00", false);
-    checkExpected("D:20120120135959+0", false);
+    checkExpected("D:20120120135959Z00", true);
+    checkExpected("D:20120120135959Z00'", true);
+    checkExpected("D:20120120135959Z00'00", true);
+    checkExpected("D:20120120135959Z00'00'", true);
+    checkExpected("D:20120120135959+0", true);
     checkExpected("D:20120120135959+00", true);
-    checkExpected("D:20120120135959+00'", false);
-    checkExpected("D:20120120135959+00'0", false);
+    checkExpected("D:20120120135959+00'", true);
+    checkExpected("D:20120120135959+00'0", true);
     checkExpected("D:20120120135959+00'00", true);
     checkExpected("D:20120120135959-00'00", true);
 
@@ -96,7 +94,7 @@ TEST_CASE("testAdditional")
 
 TEST_CASE("testParseDateValid")
 {
-    PdfDate date("D:20120205132456");
+    auto date = PdfDate::Parse("D:20120205132456");
 
     short y; unsigned char m, d, h, M, s;
     deconstruct(date, y, m, d, h, M, s);

@@ -149,7 +149,7 @@ nullable<PdfDate> PdfInfo::GetCreationDate() const
     if (datestr == nullptr)
         return PdfDate();
     else
-        return PdfDate(*datestr);
+        return PdfDate::Parse(*datestr);
 }
 
 nullable<PdfDate> PdfInfo::GetModDate() const
@@ -158,7 +158,7 @@ nullable<PdfDate> PdfInfo::GetModDate() const
     if (datestr == nullptr)
         return PdfDate();
     else
-        return PdfDate(*datestr);
+        return PdfDate::Parse(*datestr);
 }
 
 const PdfName& PdfInfo::GetTrapped() const
