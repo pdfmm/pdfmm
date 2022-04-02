@@ -48,7 +48,7 @@ public:
     /** Return the number of pages in the entire tree
      *  \returns number of pages
      */
-    unsigned GetPageCount() const;
+    unsigned GetCount() const;
 
     /** Return a PdfPage for the specified Page index
      *  The returned page is owned by the pages tree and

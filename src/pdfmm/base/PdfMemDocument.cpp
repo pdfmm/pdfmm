@@ -332,8 +332,8 @@ const PdfMemDocument& PdfMemDocument::InsertPages(const PdfMemDocument& doc, uns
     unsigned leftStartPage = 0;
     unsigned leftCount = atIndex;
     unsigned rightStartPage = atIndex + pageCount;
-    unsigned rightCount = doc.GetPageTree().GetPageCount() - rightStartPage;
-    unsigned pageOffset = this->GetPageTree().GetPageCount();
+    unsigned rightCount = doc.GetPageTree().GetCount() - rightStartPage;
+    unsigned pageOffset = this->GetPageTree().GetCount();
 
     leftStartPage += pageOffset;
     rightStartPage += pageOffset;

@@ -38,14 +38,14 @@ PdfPageTree::~PdfPageTree()
     m_cache.ClearCache();
 }
 
-unsigned PdfPageTree::GetPageCount() const
+unsigned PdfPageTree::GetCount() const
 {
     return GetChildCount(GetObject());
 }
 
 PdfPage& PdfPageTree::GetPage(unsigned index)
 {
-    if (index >= GetPageCount())
+    if (index >= GetCount())
         PDFMM_RAISE_ERROR(PdfErrorCode::PageNotFound);
 
     return getPage(index);
@@ -53,7 +53,7 @@ PdfPage& PdfPageTree::GetPage(unsigned index)
 
 const PdfPage& PdfPageTree::GetPage(unsigned index) const
 {
-    if (index >= GetPageCount())
+    if (index >= GetCount())
         PDFMM_RAISE_ERROR(PdfErrorCode::PageNotFound);
 
     return const_cast<PdfPageTree&>(*this).getPage(index);
@@ -94,7 +94,7 @@ PdfPage& PdfPageTree::getPage(const PdfReference& ref)
     // We have to search through all pages,
     // as this is the only way
     // to instantiate the PdfPage with a correct list of parents
-    for (unsigned i = 0; i < this->GetPageCount(); i++)
+    for (unsigned i = 0; i < this->GetCount(); i++)
     {
         auto& page = this->getPage(i);
         if (page.GetObject().GetIndirectReference() == ref)
@@ -115,7 +115,7 @@ void PdfPageTree::InsertPages(unsigned atIndex, const vector<PdfObject*>& pages)
     bool insertAfterPivot = false;
     PdfObjectList parents;
     PdfObject* pivotPage = nullptr;
-    unsigned pageCount = this->GetPageCount();
+    unsigned pageCount = this->GetCount();
     if (pageCount != 0)
     {
         if (atIndex >= pageCount)
@@ -135,7 +135,7 @@ void PdfPageTree::InsertPages(unsigned atIndex, const vector<PdfObject*>& pages)
 
     if (pivotPage == nullptr || parents.size() == 0)
     {
-        if (this->GetPageCount() != 0)
+        if (this->GetCount() != 0)
         {
             PdfError::LogMessage(PdfLogSeverity::Error,
                 "Cannot find page {} or page {} has no parents. Cannot insert new page",
@@ -164,7 +164,7 @@ void PdfPageTree::InsertPages(unsigned atIndex, const vector<PdfObject*>& pages)
 PdfPage* PdfPageTree::CreatePage(const PdfRect& size)
 {
     auto page = new PdfPage(*GetRoot().GetDocument(), size);
-    unsigned index = this->GetPageCount();
+    unsigned index = this->GetCount();
     InsertPage(index, &page->GetObject());
     m_cache.SetPage(index, page);
     return page;
@@ -173,7 +173,7 @@ PdfPage* PdfPageTree::CreatePage(const PdfRect& size)
 PdfPage* PdfPageTree::InsertPage(unsigned atIndex, const PdfRect& size)
 {
     auto page = new PdfPage(*GetRoot().GetDocument(), size);
-    unsigned pageCount = this->GetPageCount();
+    unsigned pageCount = this->GetCount();
     if (atIndex > pageCount)
         atIndex = pageCount;
 
@@ -193,7 +193,7 @@ void PdfPageTree::CreatePages(const vector<PdfRect>& sizes)
         objects.push_back(&page->GetObject());
     }
 
-    unsigned index = this->GetPageCount();
+    unsigned index = this->GetCount();
     InsertPages(index, objects);
     m_cache.SetPages(index, pages);
 }

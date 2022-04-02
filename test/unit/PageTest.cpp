@@ -27,7 +27,7 @@ TEST_CASE("testEmptyContentsStream")
     // Read annotation again
     PdfMemDocument doc2;
     doc2.Load(filename);
-    REQUIRE(doc2.GetPageTree().GetPageCount() == 1);
+    REQUIRE(doc2.GetPageTree().GetCount() == 1);
     auto& page2 = doc2.GetPageTree().GetPage(0);
     REQUIRE(page2.GetAnnotationCount() == 1);
     PdfAnnotation* annot2 = page2.GetAnnotation(0);

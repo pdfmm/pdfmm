@@ -145,7 +145,7 @@ const PdfDocument& PdfDocument::Append(const PdfDocument& doc, bool appendAll)
         };
 
         // append all pages now to our page tree
-        for (unsigned i = 0; i < doc.GetPageTree().GetPageCount(); i++)
+        for (unsigned i = 0; i < doc.GetPageTree().GetCount(); i++)
         {
             auto& page = doc.GetPageTree().GetPage(i);
             auto& obj = m_Objects.MustGetObject(PdfReference(page.GetObject().GetIndirectReference().ObjectNumber()
@@ -168,7 +168,7 @@ const PdfDocument& PdfDocument::Append(const PdfDocument& doc, bool appendAll)
                 inherited++;
             }
 
-            m_PageTree->InsertPage(m_PageTree->GetPageCount(), &obj);
+            m_PageTree->InsertPage(m_PageTree->GetCount(), &obj);
         }
 
         // append all outlines
@@ -232,7 +232,7 @@ const PdfDocument& PdfDocument::InsertExistingPageAt(const PdfDocument& doc, uns
     };
 
     // append all pages now to our page tree
-    for (unsigned i = 0; i < doc.GetPageTree().GetPageCount(); i++)
+    for (unsigned i = 0; i < doc.GetPageTree().GetCount(); i++)
     {
         if (i != pageIndex)
             continue;
