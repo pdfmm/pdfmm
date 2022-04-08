@@ -34,7 +34,7 @@ enum class PdfFieldType
     PushButton,
     CheckBox,
     RadioButton,
-    TextField,
+    TextBox,
     ComboBox,
     ListBox,
     Signature,

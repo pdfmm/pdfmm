@@ -12,19 +12,19 @@
 using namespace mm;
 
 PdfTextBox::PdfTextBox(PdfObject& obj, PdfAnnotation* widget)
-    : PdfField(PdfFieldType::TextField, obj, widget)
+    : PdfField(PdfFieldType::TextBox, obj, widget)
 {
     // NOTE: We assume initialization was performed in the given object
 }
 
 PdfTextBox::PdfTextBox(PdfDocument& doc, PdfAnnotation* widget, bool insertInAcroform)
-    : PdfField(PdfFieldType::TextField, doc, widget, insertInAcroform)
+    : PdfField(PdfFieldType::TextBox, doc, widget, insertInAcroform)
 {
     Init();
 }
 
 PdfTextBox::PdfTextBox(PdfPage& page, const PdfRect& rect)
-    : PdfField(PdfFieldType::TextField, page, rect)
+    : PdfField(PdfFieldType::TextBox, page, rect)
 {
     Init();
 }
@@ -77,70 +77,70 @@ int64_t PdfTextBox::GetMaxLen() const
 
 void PdfTextBox::SetMultiLine(bool multiLine)
 {
-    this->SetFieldFlag(static_cast<int>(ePdfTextField_MultiLine), multiLine);
+    this->SetFieldFlag(static_cast<int>(PdfTextBox_MultiLine), multiLine);
 }
 
 bool PdfTextBox::IsMultiLine() const
 {
-    return this->GetFieldFlag(static_cast<int>(ePdfTextField_MultiLine), false);
+    return this->GetFieldFlag(static_cast<int>(PdfTextBox_MultiLine), false);
 }
 
 void PdfTextBox::SetPasswordField(bool password)
 {
-    this->SetFieldFlag(static_cast<int>(ePdfTextField_Password), password);
+    this->SetFieldFlag(static_cast<int>(PdfTextBox_Password), password);
 }
 
 bool PdfTextBox::IsPasswordField() const
 {
-    return this->GetFieldFlag(static_cast<int>(ePdfTextField_Password), false);
+    return this->GetFieldFlag(static_cast<int>(PdfTextBox_Password), false);
 }
 
 void PdfTextBox::SetFileField(bool file)
 {
-    this->SetFieldFlag(static_cast<int>(ePdfTextField_FileSelect), file);
+    this->SetFieldFlag(static_cast<int>(PdfTextBox_FileSelect), file);
 }
 
 bool PdfTextBox::IsFileField() const
 {
-    return this->GetFieldFlag(static_cast<int>(ePdfTextField_FileSelect), false);
+    return this->GetFieldFlag(static_cast<int>(PdfTextBox_FileSelect), false);
 }
 
 void PdfTextBox::SetSpellcheckingEnabled(bool spellcheck)
 {
-    this->SetFieldFlag(static_cast<int>(ePdfTextField_NoSpellcheck), !spellcheck);
+    this->SetFieldFlag(static_cast<int>(PdfTextBox_NoSpellcheck), !spellcheck);
 }
 
 bool PdfTextBox::IsSpellcheckingEnabled() const
 {
-    return this->GetFieldFlag(static_cast<int>(ePdfTextField_NoSpellcheck), true);
+    return this->GetFieldFlag(static_cast<int>(PdfTextBox_NoSpellcheck), true);
 }
 
 void PdfTextBox::SetScrollBarsEnabled(bool scroll)
 {
-    this->SetFieldFlag(static_cast<int>(ePdfTextField_NoScroll), !scroll);
+    this->SetFieldFlag(static_cast<int>(PdfTextBox_NoScroll), !scroll);
 }
 
 bool PdfTextBox::IsScrollBarsEnabled() const
 {
-    return this->GetFieldFlag(static_cast<int>(ePdfTextField_NoScroll), true);
+    return this->GetFieldFlag(static_cast<int>(PdfTextBox_NoScroll), true);
 }
 
 void PdfTextBox::SetCombs(bool combs)
 {
-    this->SetFieldFlag(static_cast<int>(ePdfTextField_Comb), combs);
+    this->SetFieldFlag(static_cast<int>(PdfTextBox_Comb), combs);
 }
 
 bool PdfTextBox::IsCombs() const
 {
-    return this->GetFieldFlag(static_cast<int>(ePdfTextField_Comb), false);
+    return this->GetFieldFlag(static_cast<int>(PdfTextBox_Comb), false);
 }
 
 void PdfTextBox::SetRichText(bool richText)
 {
-    this->SetFieldFlag(static_cast<int>(ePdfTextField_RichText), richText);
+    this->SetFieldFlag(static_cast<int>(PdfTextBox_RichText), richText);
 }
 
 bool PdfTextBox::IsRichText() const
 {
-    return this->GetFieldFlag(static_cast<int>(ePdfTextField_RichText), false);
+    return this->GetFieldFlag(static_cast<int>(PdfTextBox_RichText), false);
 }

@@ -26,13 +26,13 @@ namespace mm
     private:
         enum
         {
-            ePdfTextField_MultiLine = 0x0001000,
-            ePdfTextField_Password = 0x0002000,
-            ePdfTextField_FileSelect = 0x0100000,
-            ePdfTextField_NoSpellcheck = 0x0400000,
-            ePdfTextField_NoScroll = 0x0800000,
-            ePdfTextField_Comb = 0x1000000,
-            ePdfTextField_RichText = 0x2000000
+            PdfTextBox_MultiLine = 0x0001000,
+            PdfTextBox_Password = 0x0002000,
+            PdfTextBox_FileSelect = 0x0100000,
+            PdfTextBox_NoSpellcheck = 0x0400000,
+            PdfTextBox_NoScroll = 0x0800000,
+            PdfTextBox_Comb = 0x1000000,
+            PdfTextBox_RichText = 0x2000000
         };
 
     private:

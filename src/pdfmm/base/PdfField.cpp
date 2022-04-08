@@ -122,7 +122,7 @@ PdfField* PdfField::createField(PdfFieldType type, PdfObject& obj, PdfAnnotation
             return new PdfCheckBox(obj, widget);
         case PdfFieldType::RadioButton:
             return new PdfRadioButton(obj, widget);
-        case PdfFieldType::TextField:
+        case PdfFieldType::TextBox:
             return new PdfTextBox(obj, widget);
         case PdfFieldType::ComboBox:
             return new PdfComboBox(obj, widget);
@@ -159,7 +159,7 @@ PdfFieldType PdfField::GetFieldType(const PdfObject& obj)
     }
     else if (fieldType == "Tx")
     {
-        ret = PdfFieldType::TextField;
+        ret = PdfFieldType::TextBox;
     }
     else if (fieldType == "Ch")
     {
@@ -206,7 +206,7 @@ void PdfField::Init(PdfAcroForm* parent)
             dict.AddKey("FT", PdfName("Btn"));
             dict.AddKey("Ff", (int64_t)(PdfButton::ePdfButton_Radio | PdfButton::ePdfButton_NoToggleOff));
             break;
-        case PdfFieldType::TextField:
+        case PdfFieldType::TextBox:
             dict.AddKey("FT", PdfName("Tx"));
             break;
         case PdfFieldType::ListBox:
