@@ -12,6 +12,7 @@
 #include "PdfElement.h"
 #include "PdfArray.h"
 #include "PdfRect.h"
+#include "PdfMath.h"
 
 namespace mm {
 
@@ -19,6 +20,7 @@ class PdfObject;
 class PdfImage;
 class PdfXObjectForm;
 class PdfXObjectPostScript;
+class Matrix;
 
 /** A XObject is a content stream with several drawing commands and data
  *  which can be used throughout a PDF document.
@@ -44,6 +46,10 @@ public:
     static PdfXObjectType FromString(const std::string& str);
 
     virtual PdfRect GetRect() const = 0;
+
+    Matrix GetMatrix() const;
+
+    void SetMatrix(const Matrix& m);
 
     /** Get the identifier used for drawig this object
      *  \returns identifier

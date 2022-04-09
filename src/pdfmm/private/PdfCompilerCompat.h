@@ -13,16 +13,8 @@
 #error Include PdfDeclarationsPrivate.h instead
 #endif
 
-#define _USE_MATH_DEFINES
-
-#include <fstream>
+#include <cstdint>
 #include <cstdlib>
-#include <cstdio>
-#include <cmath>
-#include <cstring>
-#include <ctime>
-#include <cinttypes>
-#include <climits>
 
 #ifdef _WIN32
 // Microsft itself assumes little endian

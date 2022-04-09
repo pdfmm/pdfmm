@@ -15,6 +15,7 @@
 // Include some common and compatibility wrappers
 #include <pdfmm/compat/span>
 #include <pdfmm/compat/format>
+#include <pdfmm/compat/numbers>
 #include <pdfmm/common/EnumFlags.h>
 #include <pdfmm/common/nullable.h>
 #define STL_FORMAT_H <pdfmm/compat/format>

@@ -14,6 +14,7 @@
 namespace mm {
 
 class PdfArray;
+class Matrix;
 
 /** A rectangle as defined by the PDF reference
  */
@@ -37,7 +38,7 @@ public:
 
     /** Copy constructor
      */
-    PdfRect(const PdfRect& rhs);
+    PdfRect(const PdfRect& rhs) = default;
 
 public:
     /** Create a PdfRect from a couple of arbitrary points
@@ -66,6 +67,9 @@ public:
      */
     void Intersect(const PdfRect& rect);
 
+    PdfRect operator*(const Matrix& m) const;
+
+public:
     /** Get the right coordinate of the rectangle
      *  \returns bottom
      */
@@ -116,7 +120,8 @@ public:
      */
     inline void SetHeight(double height) { m_Height = height; }
 
-    PdfRect& operator=(const PdfRect& rhs);
+public:
+    PdfRect& operator=(const PdfRect& rhs) = default;
 
 private:
     double m_Left;

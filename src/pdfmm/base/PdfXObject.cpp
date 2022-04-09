@@ -111,6 +111,29 @@ PdfXObjectType PdfXObject::FromString(const string& str)
         return PdfXObjectType::Unknown;
 }
 
+Matrix PdfXObject::GetMatrix() const
+{
+    auto matrixObj = GetObject().GetDictionary().GetKey("Matrix");
+    if (matrixObj == nullptr)
+        return Matrix::Identity();
+
+    auto& arr = matrixObj->GetArray();
+    return Matrix::FromArray(arr);
+}
+
+void PdfXObject::SetMatrix(const Matrix& m)
+{
+    PdfArray arr;
+    arr.Add(m[0]);
+    arr.Add(m[1]);
+    arr.Add(m[2]);
+    arr.Add(m[3]);
+    arr.Add(m[4]);
+    arr.Add(m[5]);
+
+    GetObject().GetDictionary().AddKey("Matrix", std::move(arr));
+}
+
 bool PdfXObject::tryGetXObjectType(const type_info& type, PdfXObjectType& xobjType)
 {
     if (type == typeid(PdfXObjectForm))

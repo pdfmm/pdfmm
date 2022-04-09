@@ -13,18 +13,29 @@
 #error PdfDeclarationsPrivate.h is only available for use in the core pdfmm src/ build .cpp files
 #endif
 
-#include "PdfCompilerCompat.h"
-
 // Macro to define friendship with test classes.
 // Must be defined before base declarations
 #define PDFMM_UNIT_TEST(classname) friend class classname
 
-#include <pdfmm/base/PdfDeclarations.h>
+#include "PdfCompilerCompat.h"
+
+#define _USE_MATH_DEFINES
+
+#include <fstream>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
+#include <cstring>
+#include <ctime>
+#include <cinttypes>
+#include <climits>
 
 #include <stdexcept>
 #include <limits>
 #include <algorithm>
 #include <iostream>
+
+#include <pdfmm/base/PdfDeclarations.h>
 
 /** \def VERBOSE_DEBUG_DISABLED
  *  Debug define. Enable it, if you need

@@ -11,6 +11,7 @@
 
 #include "PdfArray.h"
 #include "PdfVariant.h"
+#include "PdfMath.h"
 
 #include <sstream>
 #include <iomanip>
@@ -46,11 +47,6 @@ PdfRect::PdfRect(const PdfArray& arr)
 {
     m_Bottom = m_Left = m_Width = m_Height = 0;
     FromArray(arr);
-}
-
-PdfRect::PdfRect(const PdfRect& rhs)
-{
-    this->operator=(rhs);
 }
 
 void PdfRect::ToArray(PdfArray& arr) const
@@ -132,14 +128,13 @@ void PdfRect::Intersect(const PdfRect& rect)
     }
 }
 
-PdfRect& PdfRect::operator=(const PdfRect& rhs)
+PdfRect PdfRect::operator*(const Matrix& m) const
 {
-    this->m_Bottom = rhs.m_Bottom;
-    this->m_Left = rhs.m_Left;
-    this->m_Width = rhs.m_Width;
-    this->m_Height = rhs.m_Height;
-
-    return *this;
+    Vector2 corner1(m_Left, m_Bottom);
+    Vector2 corner2(GetRight(), GetTop());
+    corner1 = corner1 * m;
+    corner2 = corner2 * m;
+    return PdfRect::FromCorners(corner1.X, corner1.Y, corner2.X, corner2.Y);
 }
 
 void CreateRect(double x1, double y1, double x2, double y2, double& left, double& bottom, double& width, double& height)
