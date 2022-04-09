@@ -1174,8 +1174,8 @@ void PdfPainter::ArcTo(double x, double y, double radiusX, double radiusY,
     double th0, th1, th_arc;
     int i, n_segs;
 
-    sin_th = sin(rot * (M_PI / 180));
-    cos_th = cos(rot * (M_PI / 180));
+    sin_th = sin(rot);
+    cos_th = cos(rot);
     a00 = cos_th / rx;
     a01 = sin_th / rx;
     a10 = -sin_th / ry;
@@ -1204,11 +1204,11 @@ void PdfPainter::ArcTo(double x, double y, double radiusX, double radiusY,
 
     th_arc = th1 - th0;
     if (th_arc < 0 && sweep)
-        th_arc += 2 * M_PI;
+        th_arc += 2 * numbers::pi;
     else if (th_arc > 0 && !sweep)
-        th_arc -= 2 * M_PI;
+        th_arc -= 2 * numbers::pi;
 
-    n_segs = static_cast<int>(ceil(fabs(th_arc / (M_PI * 0.5 + 0.001))));
+    n_segs = static_cast<int>(ceil(fabs(th_arc / (numbers::pi * 0.5 + 0.001))));
 
     for (i = 0; i < n_segs; i++)
     {
@@ -1229,8 +1229,8 @@ void PdfPainter::ArcTo(double x, double y, double radiusX, double radiusY,
         double t = 0.0;
         double th_half = 0.0;
 
-        nsin_th = sin(rot * (M_PI / 180));
-        ncos_th = cos(rot * (M_PI / 180));
+        nsin_th = sin(rot);
+        ncos_th = cos(rot);
         /* inverse transform compared with rsvg_path_arc */
         na00 = ncos_th * rx;
         na01 = -nsin_th * ry;
@@ -1264,6 +1264,9 @@ void PdfPainter::ArcTo(double x, double y, double radiusX, double radiusY,
 
 bool PdfPainter::Arc(double x, double y, double radius, double angle1, double angle2)
 {
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented,
+        "FIX-ME to accept input as radians. Degrees input is no more supported");
+
     bool cont_flg = false;
 
     if (angle1 >= angle2 || (angle2 - angle1) >= 360.0f)
@@ -1299,18 +1302,20 @@ bool PdfPainter::Arc(double x, double y, double radius, double angle1, double an
     return true;
 }
 
+// NOTE: This should have already been ported to use radians
+// but the code is still fishy, see delta_angle/new_angle
 void PdfPainter::InternalArc(double x, double y, double ray, double ang1,
     double ang2, bool contFlg)
 {
     double rx0, ry0, rx1, ry1, rx2, ry2, rx3, ry3;
     double x0, y0, x1, y1, x2, y2, x3, y3;
-    double delta_angle = (90.0f - static_cast<double>(ang1 + ang2) / 2.0f) / 180 * M_PI;
-    double new_angle = static_cast<double>(ang2 - ang1) / 2.0f / 180 * M_PI;
+    double delta_angle = numbers::pi / 2 - (ang1 + ang2) / 2.0;
+    double new_angle = (ang2 - ang1) / 2.0;
 
     rx0 = ray * cos(new_angle);
     ry0 = ray * sin(new_angle);
-    rx2 = (ray * 4.0f - rx0) / 3.0f;
-    ry2 = ((ray * 1.0f - rx0) * (rx0 - ray * 3.0f)) / (3.0 * ry0);
+    rx2 = (ray * 4.0 - rx0) / 3.0;
+    ry2 = ((ray * 1.0 - rx0) * (rx0 - ray * 3.0)) / (3.0 * ry0);
     rx1 = rx2;
     ry1 = -ry2;
     rx3 = rx0;

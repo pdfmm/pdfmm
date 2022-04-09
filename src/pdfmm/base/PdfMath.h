@@ -15,9 +15,6 @@ namespace mm
     class PdfRect;
     class PdfArray;
 
-    constexpr double DEG2RAD = std::numbers::pi / 180;
-    constexpr double RAD2DEG = 180 / std::numbers::pi;
-
     class Matrix;
 
     class PDFMM_API Vector2 final

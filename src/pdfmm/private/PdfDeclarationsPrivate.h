@@ -19,8 +19,6 @@
 
 #include "PdfCompilerCompat.h"
 
-#define _USE_MATH_DEFINES
-
 #include <fstream>
 #include <cstdlib>
 #include <cstdio>
@@ -34,6 +32,7 @@
 #include <limits>
 #include <algorithm>
 #include <iostream>
+#include <pdfmm/compat/numbers>
 
 #include <pdfmm/base/PdfDeclarations.h>
 
@@ -105,6 +104,9 @@ namespace mm
         "1.7",
         "2.0",
     };
+
+    constexpr double DEG2RAD = std::numbers::pi / 180;
+    constexpr double RAD2DEG = 180 / std::numbers::pi;
 }
 
 /**

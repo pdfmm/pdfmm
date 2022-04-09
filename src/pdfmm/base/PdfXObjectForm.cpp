@@ -161,7 +161,7 @@ void PdfXObjectForm::initAfterPageInsertion(const PdfDocument& doc, unsigned pag
     }
 
     // Build matrix for rotation and cropping
-    double alpha = -rotation / 360.0 * 2.0 * M_PI;
+    double alpha = -rotation / 360.0 * 2.0 * numbers::pi;
 
     double a, b, c, d, e, f;
 

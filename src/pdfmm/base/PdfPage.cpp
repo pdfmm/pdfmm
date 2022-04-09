@@ -59,7 +59,7 @@ bool PdfPage::HasRotation(double& teta) const
 
     // Convert to radians and make it a counterclockwise rotation,
     // as common mathematical notation for rotations
-    teta = -rotationRaw * M_PI / 180;
+    teta = -rotationRaw * DEG2RAD;
     return true;
 }
 

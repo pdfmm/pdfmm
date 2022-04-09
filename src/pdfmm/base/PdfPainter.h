@@ -487,17 +487,19 @@ public:
      *
      *  \param x x coordinate of the start point
      *  \param y y coordinate of the start point
-     *  \param dRadiusX x coordinate of the end point, which is the new current point
-     *  \param dRadiusY y coordinate of the end point, which is the new current point
-     *	\param dRotation degree of rotation in radians
-     *	\param bLarge large or small portion of the arc
-     *	\param bSweep sweep?
+     *  \param radiusX x coordinate of the end point, which is the new current point
+     *  \param radiusY y coordinate of the end point, which is the new current point
+     *	\param rotation degree of rotation in radians
+     *	\param large large or small portion of the arc
+     *	\param sweep sweep?
      */
     void ArcTo(double x, double y, double radiusX, double radiusY,
         double rotation, bool large, bool sweep);
 
     /**
-    */
+     *	\angle1 in radians
+     *	\angle2 in radians
+     */
     bool Arc(double x, double y, double radius, double angle1, double angle2);
 
     /** Close the current path. Matches the PDF 'h' operator.
