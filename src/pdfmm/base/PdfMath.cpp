@@ -89,12 +89,12 @@ Matrix Matrix::operator*(const Matrix& m2) const
 {
     auto m1 = m_mat;
     return Matrix(
-        m1[0] * m2[0] + m1[2] * m2[1],
-        m1[1] * m2[0] + m1[3] * m2[1],
-        m1[0] * m2[2] + m1[2] * m2[3],
-        m1[1] * m2[2] + m1[3] * m2[3],
-        m1[0] * m2[4] + m1[2] * m2[5] + m1[4],
-        m1[1] * m2[4] + m1[3] * m2[5] + m1[5]);
+        m1[0] * m2[0] + m1[1] * m2[2],
+        m1[0] * m2[1] + m1[1] * m2[3],
+        m1[2] * m2[0] + m1[3] * m2[2],
+        m1[2] * m2[1] + m1[3] * m2[3],
+        m1[4] * m2[0] + m1[5] * m2[2] + m2[4],
+        m1[4] * m2[1] + m1[5] * m2[3] + m2[5]);
 }
 
 Vector2 Matrix::GetScale() const
@@ -159,12 +159,12 @@ Vector2::Vector2(double x, double y)
 
 Vector2 Vector2::operator+(const Vector2& v) const
 {
-    return Vector2(X - v.X, Y - v.Y);
+    return Vector2(X + v.X, Y + v.Y);
 }
 
 Vector2 Vector2::operator-(const Vector2& v) const
 {
-    return Vector2(X + v.X, Y + v.Y);
+    return Vector2(X - v.X, Y - v.Y);
 }
 
 Vector2 Vector2::operator*(const Matrix& m) const
@@ -177,9 +177,6 @@ Vector2 Vector2::operator*(const Matrix& m) const
 
 static void NormalizeCoordinates(double& coord1, double& coord2);
 
-/// <summary>
-/// Get a rotation trasformation that aligns the rectangle to the axis after the rotation
-/// </summary>
 Matrix mm::GetFrameRotationTransform(const PdfRect& rect, double teta)
 {
     auto R = Matrix::CreateRotation(teta);
@@ -198,9 +195,6 @@ Matrix mm::GetFrameRotationTransform(const PdfRect& rect, double teta)
     return  R * Matrix::CreateTranslation(alignTx_1);
 }
 
-/// <summary>
-/// Get an inverse rotation trasformation that aligns the rectangle to the axis after the rotation
-/// </summary>
 Matrix mm::GetFrameRotationTransformInverse(const PdfRect& rect, double teta)
 {
     auto R = Matrix::CreateRotation(teta);

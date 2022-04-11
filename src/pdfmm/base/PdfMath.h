@@ -104,7 +104,12 @@ namespace mm
         double m_mat[6];
     };
 
+    /** Get a rotation trasformation that aligns the rectangle to the axis after the rotation
+     */
     Matrix PDFMM_API GetFrameRotationTransform(const PdfRect& rect, double teta);
+
+    /** Get an inverse rotation trasformation that aligns the rectangle to the axis after the rotation
+     */
     Matrix PDFMM_API GetFrameRotationTransformInverse(const PdfRect& rect, double teta);
 }
 
