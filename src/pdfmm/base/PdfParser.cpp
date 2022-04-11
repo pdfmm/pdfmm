@@ -253,26 +253,34 @@ void PdfParser::ReadNextTrailer(InputStreamDevice& device)
             }
         }
 
-        if (trailer->GetDictionary().HasKey("Prev"))
+        auto prevObj = trailer->GetDictionary().FindKey("Prev");
+        int64_t offset;
+        if (prevObj != nullptr
+            && prevObj->TryGetNumber(offset))
         {
-            // Whenever we read a Prev key, 
-            // we know that the file was updated.
-            m_IncrementalUpdateCount++;
-
-            try
+            if (offset > 0)
             {
-                size_t offset = static_cast<size_t>(trailer->GetDictionary().FindKeyAs<int64_t>("Prev", 0));
+                // Whenever we read a Prev key, 
+                // we know that the file was updated.
+                m_IncrementalUpdateCount++;
 
-                if (m_visitedXRefOffsets.find(offset) == m_visitedXRefOffsets.end())
-                    ReadXRefContents(device, offset);
-                else
-                    mm::LogMessage(PdfLogSeverity::Warning, "XRef contents at offset {} requested twice, skipping the second read",
-                        static_cast<int64_t>(offset));
+                try
+                {
+                    if (m_visitedXRefOffsets.find(offset) == m_visitedXRefOffsets.end())
+                        ReadXRefContents(device, offset);
+                    else
+                        mm::LogMessage(PdfLogSeverity::Warning, "XRef contents at offset {} requested twice, skipping the second read",
+                            static_cast<int64_t>(offset));
+                }
+                catch (PdfError& e)
+                {
+                    PDFMM_PUSH_FRAME_INFO(e, "Unable to load /Prev xref entries");
+                    throw e;
+                }
             }
-            catch (PdfError& e)
+            else
             {
-                PDFMM_PUSH_FRAME_INFO(e, "Unable to load /Prev xref entries");
-                throw e;
+                mm::LogMessage(PdfLogSeverity::Warning, "XRef offset {} is invalid, skipping the read", offset);
             }
         }
     }
