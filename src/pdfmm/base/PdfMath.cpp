@@ -21,10 +21,8 @@ using namespace mm;
 //                            | e f 1 |
 //
 
-Matrix Matrix::Identity()
-{
-    return Matrix(1, 0, 0, 1, 0, 0);
-}
+Matrix::Matrix()
+    : Matrix(1, 0, 0, 1, 0, 0) { }
 
 Matrix Matrix::FromArray(const double arr[6])
 {
@@ -34,6 +32,11 @@ Matrix Matrix::FromArray(const double arr[6])
 Matrix Matrix::FromArray(const PdfArray& arr)
 {
     return Matrix(arr[0].GetReal(), arr[1].GetReal(), arr[2].GetReal(), arr[3].GetReal(), arr[4].GetReal(), arr[5].GetReal());
+}
+
+Matrix Matrix::FromCoefficients(double a, double b, double c, double d, double e, double f)
+{
+    return Matrix(a, b, c, d, e, f);
 }
 
 Matrix Matrix::CreateTranslation(const Vector2& tx)
@@ -66,6 +69,20 @@ Matrix Matrix::CreateRotation(const Vector2& c, double teta)
     double alpha = cos(teta);
     double beta = sin(teta);
     return Matrix(alpha, beta, -beta, alpha, -c.X * alpha + c.Y * beta + c.X, -c.X * beta - c.Y * alpha + c.Y);
+}
+
+Matrix& Matrix::Translate(const Vector2& tx)
+{
+    m_mat[4] += tx.X;
+    m_mat[5] += tx.Y;
+    return *this;
+}
+
+Matrix Matrix::Translated(const Vector2& tx) const
+{
+    auto ret = *this;
+    ret.Translate(tx);
+    return ret;
 }
 
 Matrix Matrix::operator*(const Matrix& m2) const
@@ -101,6 +118,17 @@ void Matrix::ToArray(double arr[6]) const
     arr[3] = m_mat[3];
     arr[4] = m_mat[4];
     arr[5] = m_mat[5];
+}
+
+void Matrix::ToArray(PdfArray& arr) const
+{
+    arr.Clear();
+    arr.Add(m_mat[0]);
+    arr.Add(m_mat[1]);
+    arr.Add(m_mat[2]);
+    arr.Add(m_mat[3]);
+    arr.Add(m_mat[4]);
+    arr.Add(m_mat[5]);
 }
 
 const double& Matrix::operator[](unsigned idx) const

@@ -115,7 +115,7 @@ Matrix PdfXObject::GetMatrix() const
 {
     auto matrixObj = GetObject().GetDictionary().GetKey("Matrix");
     if (matrixObj == nullptr)
-        return Matrix::Identity();
+        return Matrix();
 
     auto& arr = matrixObj->GetArray();
     return Matrix::FromArray(arr);

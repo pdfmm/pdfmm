@@ -9,6 +9,7 @@
 #define PDF_MATH_H
 
 #include "PdfDeclarations.h"
+#include "PdfMathBase.h"
 
 namespace mm
 {
@@ -40,13 +41,44 @@ namespace mm
     class PDFMM_API Matrix final
     {
     public:
-        static Matrix Identity();
+        /** Constructs an identity matrix
+         */
+        Matrix();
+
+    public:
         static Matrix FromArray(const double arr[6]);
         static Matrix FromArray(const PdfArray& arr);
+        static Matrix FromCoefficients(double a, double b, double c, double d, double e, double f);
         static Matrix CreateTranslation(const Vector2& tx);
         static Matrix CreateScale(const Vector2& scale);
         static Matrix CreateRotation(double teta);
         static Matrix CreateRotation(const Vector2& center, double teta);
+
+    public:
+        Matrix& Translate(const Vector2& tx);
+        Matrix Translated(const Vector2& tx) const;
+
+        // TODO: Rotate/Scale
+
+    public:
+        template <AlgebraicTrait trait>
+        double Get() const
+        {
+            return MatrixTraits<trait>::Get(m_mat);
+        }
+
+        template <AlgebraicTrait trait>
+        void Set(double value)
+        {
+            MatrixTraits<trait>::Set(m_mat, value);
+        }
+
+        template <AlgebraicTrait trait>
+        Matrix& Apply(double value)
+        {
+            MatrixTraits<trait>::Apply(m_mat, value);
+            return *this;
+        }
 
     public:
         Matrix operator*(const Matrix& m) const;
@@ -55,6 +87,7 @@ namespace mm
         Vector2 GetScale() const;
         Vector2 GetTranslation() const;
         void ToArray(double arr[6]) const;
+        void ToArray(PdfArray& arr) const;
 
     public:
         Matrix(const Matrix&) = default;
