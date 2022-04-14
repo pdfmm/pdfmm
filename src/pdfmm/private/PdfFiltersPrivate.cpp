@@ -37,6 +37,12 @@ public:
         m_ColumnCount = static_cast<int>(decodeParms.FindKeyAs<int64_t>("Columns", 1));
         m_EarlyChange = static_cast<int>(decodeParms.FindKeyAs<int64_t>("EarlyChange", 1));
 
+        // check that input values are in range (CVE-2018-20797)
+        // ISO 32000-2008 specifies these values as all 1 or greater
+        // negative values for m_nColumns / m_nColors / m_nBPC result in huge podofo_calloc
+        if (m_ColumnCount < 1 || m_Colors < 1 || m_BitsPerComponent < 1)
+            PDFMM_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
+
         if (m_Predictor >= 10)
         {
             m_NextByteIsPredictor = true;
@@ -51,6 +57,17 @@ public:
         m_CurrRowIndex = 0;
         m_BytesPerPixel = (m_BitsPerComponent * m_Colors) >> 3;
         m_Rows = (m_ColumnCount * m_Colors * m_BitsPerComponent) >> 3;
+
+        // check for multiplication overflow on buffer sizes (e.g. if m_nBPC=2 and m_nColors=SIZE_MAX/2+1)
+        if (utls::DoesMultiplicationOverflow(m_BitsPerComponent, m_Colors)
+            || utls::DoesMultiplicationOverflow(m_ColumnCount, m_BitsPerComponent * m_Colors))
+        {
+            PDFMM_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
+        }
+
+        // check that computed allocation sizes are > 0 (CVE-2018-20797)
+        if (m_Rows < 1 || m_BitsPerComponent < 1)
+            PDFMM_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
 
         m_Prev.resize(m_Rows);
         memset(m_Prev.data(), 0, sizeof(char) * m_Rows);

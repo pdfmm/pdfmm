@@ -840,6 +840,32 @@ void utls::ByteSwap(u16string& str)
         str[i] = (char16_t)utls::ByteSwap((uint16_t)str[i]);
 }
 
+bool utls::DoesMultiplicationOverflow(size_t op1, size_t op2)
+{
+    // This overflow check is from OpenBSD reallocarray.c,
+    // and is also used in GifLib 5.1.2 onwards.
+    //
+    // Very old versions of calloc() in NetBSD and OS X 10.4
+    // just multiplied size*nmemb which can overflow size_t
+    // and allocate much less memory than expected
+    // e.g. 2*(SIZE_MAX/2+1) = 2 bytes.
+    // The calloc() overflow is also present in GCC 3.1.1,
+    // GNU Libc 2.2.5 and Visual C++ 6.
+    // http://cert.uni-stuttgart.de/ticker/advisories/calloc.html
+    //
+    //  MUL_NO_OVERFLOW is sqrt(SIZE_MAX+1), as s1*s2 <= SIZE_MAX
+    //  if both s1 < MUL_NO_OVERFLOW and s2 < MUL_NO_OVERFLOW
+
+    constexpr size_t MUL_NO_OVERFLOW = ((size_t)1 << (sizeof(size_t) * 4));
+    if ((op1 >= MUL_NO_OVERFLOW || op2 >= MUL_NO_OVERFLOW) &&
+        op1 > 0 && SIZE_MAX / op1 < op2)
+    {
+        return true;
+    }
+
+    return false;
+}
+
 #ifdef _WIN32
 
 string utls::GetWin32ErrorMessage(unsigned rc)

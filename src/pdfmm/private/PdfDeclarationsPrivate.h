@@ -217,6 +217,12 @@ namespace utls
         void Exit();
     };
 
+    /**
+     * Check if multiplying two numbers will overflow. This is crucial when calculating buffer sizes that are the product of two numbers/
+     * \returns true if multiplication will overflow
+     */
+    bool DoesMultiplicationOverflow(size_t op1, size_t op2);
+
     const std::locale& GetInvariantLocale();
 
     bool IsValidUtf8String(const std::string_view& str);
