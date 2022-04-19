@@ -175,8 +175,6 @@ Vector2 Vector2::operator*(const Matrix& m) const
     );
 }
 
-static void NormalizeCoordinates(double& coord1, double& coord2);
-
 Matrix mm::GetFrameRotationTransform(const PdfRect& rect, double teta)
 {
     auto R = Matrix::CreateRotation(teta);
