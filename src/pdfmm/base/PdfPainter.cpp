@@ -90,13 +90,11 @@ PdfPainter::~PdfPainter() noexcept(false)
     // Note that we can't do this for the user, since FinishPage() might
     // throw and we can't safely have that in a dtor. That also means
     // we can't throw here, but must abort.
-    if (m_stream != nullptr)
+    if (m_stream != nullptr && !std::uncaught_exceptions())
     {
         PdfError::LogMessage(PdfLogSeverity::Error,
-            "PdfPainter::~PdfPainter(): FinishPage() has to be called after a page is completed!");
+            "PdfPainter::~PdfPainter(): FinishDrawing() has to be called after drawing is completed!");
     }
-
-    PDFMM_ASSERT(m_stream == nullptr);
 }
 
 void PdfPainter::SetCanvas(PdfCanvas* canvas)
