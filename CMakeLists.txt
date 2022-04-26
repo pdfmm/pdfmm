@@ -220,6 +220,7 @@ if(NOT PDFMM_BUILD_LIB_ONLY)
     enable_testing()
     add_subdirectory(test)
     add_subdirectory(examples)
+    add_subdirectory(tools)
 endif()
 
 # Export some variables into the config file so it's easier for others
