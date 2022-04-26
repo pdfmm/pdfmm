@@ -290,7 +290,7 @@ void testEncrypt(PdfEncrypt& encrypt)
 void createEncryptedPdf(const string_view& filename)
 {
     PdfMemDocument doc;
-    PdfPage* page = doc.GetPageTree().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+    PdfPage* page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
     PdfPainter painter;
     painter.SetCanvas(page);
 

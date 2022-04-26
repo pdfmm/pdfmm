@@ -58,7 +58,7 @@ void HelloWorld(const string_view& filename)
         // 
         // You have to pass only one argument, i.e. the page size of the page to create.
         // There are predefined enums for some common page sizes.
-        page = document.GetPageTree().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+        page = document.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
 
         // If the page cannot be created because of an error (e.g. ePdfError_OutOfMemory )
         // a nullptr pointer is returned.

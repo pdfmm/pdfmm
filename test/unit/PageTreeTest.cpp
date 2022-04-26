@@ -45,10 +45,10 @@ TEST_CASE("testEmptyDoc")
     PdfMemDocument doc;
 
     // Empty document must have page count == 0
-    REQUIRE(doc.GetPageTree().GetCount() == 0);
+    REQUIRE(doc.GetPages().GetCount() == 0);
 
     // Retrieving any page from an empty document must be NULL
-    ASSERT_THROW_WITH_ERROR_CODE(doc.GetPageTree().GetPage(0), PdfErrorCode::PageNotFound);
+    ASSERT_THROW_WITH_ERROR_CODE(doc.GetPages().GetPage(0), PdfErrorCode::PageNotFound);
 }
 
 TEST_CASE("testCyclicTree")
@@ -56,11 +56,11 @@ TEST_CASE("testCyclicTree")
     {
         PdfMemDocument doc;
         createCyclicTree(doc, false);
-        for (unsigned pagenum = 0; pagenum < doc.GetPageTree().GetCount(); pagenum++)
+        for (unsigned pagenum = 0; pagenum < doc.GetPages().GetCount(); pagenum++)
         {
             // pass 0:
             // valid tree without cycles should yield all pages
-            PdfPage& page = doc.GetPageTree().GetPage(pagenum);
+            PdfPage& page = doc.GetPages().GetPage(pagenum);
             REQUIRE(isPageNumber(page, pagenum));
         }
     }
@@ -70,7 +70,7 @@ TEST_CASE("testCyclicTree")
         createCyclicTree(doc, true);
         // pass 1:
         // cyclic tree must throw exception to prevent infinite recursion
-        ASSERT_THROW_WITH_ERROR_CODE(doc.GetPageTree().GetPage(0), PdfErrorCode::PageNotFound);
+        ASSERT_THROW_WITH_ERROR_CODE(doc.GetPages().GetPage(0), PdfErrorCode::PageNotFound);
     }
 }
 
@@ -79,9 +79,9 @@ TEST_CASE("testEmptyKidsTree")
     PdfMemDocument doc;
     createEmptyKidsTree(doc);
     //doc.Write("tree_zerokids.pdf");
-    for (unsigned pagenum = 0; pagenum < doc.GetPageTree().GetCount(); pagenum++)
+    for (unsigned pagenum = 0; pagenum < doc.GetPages().GetCount(); pagenum++)
     {
-        PdfPage& page = doc.GetPageTree().GetPage(pagenum);
+        PdfPage& page = doc.GetPages().GetPage(pagenum);
         REQUIRE(isPageNumber(page, pagenum));
     }
 }
@@ -90,8 +90,8 @@ TEST_CASE("testNestedArrayTree")
 {
     PdfMemDocument doc;
     createNestedArrayTree(doc);
-    for (unsigned i = 0, count = doc.GetPageTree().GetCount(); i < count; i++)
-        ASSERT_THROW_WITH_ERROR_CODE(doc.GetPageTree().GetPage(i), PdfErrorCode::PageNotFound);
+    for (unsigned i = 0, count = doc.GetPages().GetCount(); i < count; i++)
+        ASSERT_THROW_WITH_ERROR_CODE(doc.GetPages().GetPage(i), PdfErrorCode::PageNotFound);
 }
 
 TEST_CASE("testCreateDelete")
@@ -106,31 +106,31 @@ TEST_CASE("testCreateDelete")
         FAIL("Coult not find Arial font");
 
     // write 1. page
-    page = doc.GetPageTree().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+    page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
     painter.SetCanvas(page);
     painter.SetFont(font);
     painter.GetTextState().SetFontSize(16.0);
     painter.DrawText("Page 1", 200, 200);
     painter.FinishDrawing();
-    REQUIRE(doc.GetPageTree().GetCount() == 1);
+    REQUIRE(doc.GetPages().GetCount() == 1);
 
     // write 2. page
-    page = doc.GetPageTree().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+    page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
     painter.SetCanvas(page);
     painter.DrawText("Page 2", 200, 200);
     painter.FinishDrawing();
-    REQUIRE(doc.GetPageTree().GetCount() == 2);
+    REQUIRE(doc.GetPages().GetCount() == 2);
 
     // try to delete second page, index is 0 based 
-    doc.GetPageTree().DeletePage(1);
-    REQUIRE(doc.GetPageTree().GetCount() == 1);
+    doc.GetPages().DeletePage(1);
+    REQUIRE(doc.GetPages().GetCount() == 1);
 
     // write 3. page
-    page = doc.GetPageTree().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+    page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
     painter.SetCanvas(page);
     painter.DrawText("Page 3", 200, 200);
     painter.FinishDrawing();
-    REQUIRE(doc.GetPageTree().GetCount() == 2);
+    REQUIRE(doc.GetPages().GetCount() == 2);
 }
 
 TEST_CASE("testGetPagesCustom")
@@ -193,26 +193,26 @@ void testGetPages(PdfMemDocument& doc)
 {
     for (unsigned i = 0; i < TEST_NUM_PAGES; i++)
     {
-        auto& page = doc.GetPageTree().GetPage(i);
+        auto& page = doc.GetPages().GetPage(i);
         REQUIRE(isPageNumber(page, i));
     }
 
     // Now delete first page 
-    doc.GetPageTree().DeletePage(0);
+    doc.GetPages().DeletePage(0);
 
     for (unsigned i = 0; i < TEST_NUM_PAGES - 1; i++)
     {
-        auto& page = doc.GetPageTree().GetPage(i);
+        auto& page = doc.GetPages().GetPage(i);
         REQUIRE(isPageNumber(page, i + 1));
     }
 
     // Now delete any page
     constexpr unsigned DELETED_PAGE = 50;
-    doc.GetPageTree().DeletePage(DELETED_PAGE);
+    doc.GetPages().DeletePage(DELETED_PAGE);
 
     for (unsigned i = 0; i < TEST_NUM_PAGES - 2; i++)
     {
-        auto& page = doc.GetPageTree().GetPage(i);
+        auto& page = doc.GetPages().GetPage(i);
         if (i < DELETED_PAGE)
             REQUIRE(isPageNumber(page, i + 1));
         else
@@ -225,17 +225,17 @@ void testGetPagesReverse(PdfMemDocument& doc)
     for (int i = TEST_NUM_PAGES - 1; i >= 0; i--)
     {
         unsigned index = (unsigned)i;
-        auto& page = doc.GetPageTree().GetPage(index);
+        auto& page = doc.GetPages().GetPage(index);
         REQUIRE(isPageNumber(page, index));
     }
 
     // Now delete first page 
-    doc.GetPageTree().DeletePage(0);
+    doc.GetPages().DeletePage(0);
 
     for (int i = TEST_NUM_PAGES - 2; i >= 0; i--)
     {
         unsigned index = (unsigned)i;
-        auto& page = doc.GetPageTree().GetPage(index);
+        auto& page = doc.GetPages().GetPage(index);
         REQUIRE(isPageNumber(page, index + 1));
     }
 }
@@ -246,57 +246,57 @@ void testInsert(PdfMemDocument& doc)
     const unsigned INSERTED_PAGE_FLAG1 = 1234 + 1;
     const unsigned INSERTED_PAGE_FLAG2 = 1234 + 2;
 
-    auto page = doc.GetPageTree().InsertPage(0, PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+    auto page = doc.GetPages().InsertPage(0, PdfPage::CreateStandardPageSize(PdfPageSize::A4));
     page->GetObject().GetDictionary().AddKey(TEST_PAGE_KEY,
         static_cast<int64_t>(INSERTED_PAGE_FLAG));
 
     // Find inserted page (beginning)
-    REQUIRE(isPageNumber(doc.GetPageTree().GetPage(0), INSERTED_PAGE_FLAG));
+    REQUIRE(isPageNumber(doc.GetPages().GetPage(0), INSERTED_PAGE_FLAG));
 
     // Find old first page
-    REQUIRE(isPageNumber(doc.GetPageTree().GetPage(1), 0));
+    REQUIRE(isPageNumber(doc.GetPages().GetPage(1), 0));
 
     // Insert at end 
-    page = doc.GetPageTree().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+    page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
     page->GetObject().GetDictionary().AddKey(TEST_PAGE_KEY,
         static_cast<int64_t>(INSERTED_PAGE_FLAG1));
 
-    REQUIRE(isPageNumber(doc.GetPageTree().GetPage(doc.GetPageTree().GetCount() - 1),
+    REQUIRE(isPageNumber(doc.GetPages().GetPage(doc.GetPages().GetCount() - 1),
         INSERTED_PAGE_FLAG1));
 
     // Insert in middle
     const unsigned INSERT_POINT = 50;
-    page = doc.GetPageTree().InsertPage(INSERT_POINT, PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+    page = doc.GetPages().InsertPage(INSERT_POINT, PdfPage::CreateStandardPageSize(PdfPageSize::A4));
     page->GetObject().GetDictionary().AddKey(TEST_PAGE_KEY,
         static_cast<int64_t>(INSERTED_PAGE_FLAG2));
 
-    REQUIRE(isPageNumber(doc.GetPageTree().GetPage(INSERT_POINT), INSERTED_PAGE_FLAG2));
+    REQUIRE(isPageNumber(doc.GetPages().GetPage(INSERT_POINT), INSERTED_PAGE_FLAG2));
 }
 
 void testDeleteAll(PdfMemDocument& doc)
 {
     for (unsigned i = 0; i < TEST_NUM_PAGES; i++)
     {
-        doc.GetPageTree().DeletePage(0);
-        REQUIRE(doc.GetPageTree().GetCount() == TEST_NUM_PAGES - (i + 1));
+        doc.GetPages().DeletePage(0);
+        REQUIRE(doc.GetPages().GetCount() == TEST_NUM_PAGES - (i + 1));
     }
-    REQUIRE(doc.GetPageTree().GetCount() == 0);
+    REQUIRE(doc.GetPages().GetCount() == 0);
 }
 
 void createTestTree(PdfMemDocument& doc)
 {
     for (unsigned i = 0; i < TEST_NUM_PAGES; i++)
     {
-        PdfPage* page = doc.GetPageTree().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+        PdfPage* page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
         page->GetObject().GetDictionary().AddKey(TEST_PAGE_KEY, static_cast<int64_t>(i));
-        REQUIRE(doc.GetPageTree().GetCount() == i + 1);
+        REQUIRE(doc.GetPages().GetCount() == i + 1);
     }
 }
 
 void PdfPageTest::CreateTestTreeCustom(PdfMemDocument& doc)
 {
     constexpr unsigned COUNT = TEST_NUM_PAGES / 10;
-    PdfObject& root = doc.GetPageTree().GetObject();
+    PdfObject& root = doc.GetPages().GetObject();
     PdfArray rootKids;
 
     for (unsigned i = 0; i < COUNT; i++)
@@ -371,7 +371,7 @@ void createCyclicTree(PdfMemDocument& doc, bool createCycle)
     auto nodes = createNodes(doc, 2);
 
     // manually insert pages into pagetree
-    auto& root = doc.GetPageTree().GetObject();
+    auto& root = doc.GetPages().GetObject();
 
     // tree layout (for !bCreateCycle):
     //
@@ -409,7 +409,7 @@ void createEmptyKidsTree(PdfMemDocument& doc)
     auto nodes = createNodes(doc, 3);
 
     // manually insert pages into pagetree
-    auto& root = doc.GetPageTree().GetObject();
+    auto& root = doc.GetPages().GetObject();
 
     // tree layout:
     //
@@ -441,7 +441,7 @@ void createNestedArrayTree(PdfMemDocument& doc)
     constexpr unsigned COUNT = 3;
 
     auto pages = PdfPageTest::CreateSamplePages(doc, COUNT);
-    auto& root = doc.GetPageTree().GetObject();
+    auto& root = doc.GetPages().GetObject();
 
     // create kids array
     PdfArray kids;

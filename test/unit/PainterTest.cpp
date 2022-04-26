@@ -18,7 +18,7 @@ TEST_CASE("testAppend")
     string_view example = "BT (Hallo) Tj ET";
 
     PdfMemDocument doc;
-    PdfPage* page = doc.GetPageTree().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+    PdfPage* page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
     auto& contents = page->GetOrCreateContents();
     auto& stream = contents.GetStreamForAppending();
     stream.Set(example);
