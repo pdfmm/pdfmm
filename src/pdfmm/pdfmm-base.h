@@ -97,7 +97,7 @@
 #include "base/PdfOutlines.h"
 #include "base/PdfPage.h"
 #include "base/PdfPageTreeCache.h"
-#include "base/PdfPageTree.h"
+#include "base/PdfPageCollection.h"
 #include "base/PdfPainter.h"
 #include "base/PdfStreamedDocument.h"
 #include "base/PdfXObject.h"

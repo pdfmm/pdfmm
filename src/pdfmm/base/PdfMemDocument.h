@@ -26,7 +26,7 @@ class PdfInfo;
 class PdfNameTree;
 class PdfOutlines;
 class PdfPage;
-class PdfPageTree;
+class PdfPageCollection;
 class PdfParser;
 class PdfRect;
 class PdfWriter;

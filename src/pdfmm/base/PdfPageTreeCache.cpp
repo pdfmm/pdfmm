@@ -10,7 +10,7 @@
 #include "PdfPageTreeCache.h"
 
 #include "PdfPage.h"
-#include "PdfPageTree.h"
+#include "PdfPageCollection.h"
 
 using namespace std;
 using namespace mm;

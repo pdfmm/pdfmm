@@ -133,7 +133,7 @@ void PdfXObjectForm::initAfterPageInsertion(const PdfDocument& doc, unsigned pag
     m_Rect.ToArray(bbox);
     this->GetObject().GetDictionary().AddKey("BBox", bbox);
 
-    int rotation = doc.GetPageTree().GetPage(pageIndex).GetRotationRaw();
+    int rotation = doc.GetPages().GetPage(pageIndex).GetRotationRaw();
     // correct negative rotation
     if (rotation < 0)
         rotation = 360 + rotation;

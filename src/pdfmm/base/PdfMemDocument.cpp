@@ -29,7 +29,7 @@
 #include "PdfNameTree.h"
 #include "PdfOutlines.h"
 #include "PdfPage.h"
-#include "PdfPageTree.h"
+#include "PdfPageCollection.h"
 
 using namespace std;
 using namespace mm;
@@ -305,7 +305,7 @@ void PdfMemDocument::beforeWrite(PdfSaveOptions opts)
 void PdfMemDocument::deletePages(unsigned atIndex, unsigned pageCount)
 {
     for (unsigned i = 0; i < pageCount; i++)
-        this->GetPageTree().DeletePage(atIndex);
+        this->GetPages().DeletePage(atIndex);
 }
 
 const PdfMemDocument& PdfMemDocument::InsertPages(const PdfMemDocument& doc, unsigned atIndex, unsigned pageCount)
@@ -332,8 +332,8 @@ const PdfMemDocument& PdfMemDocument::InsertPages(const PdfMemDocument& doc, uns
     unsigned leftStartPage = 0;
     unsigned leftCount = atIndex;
     unsigned rightStartPage = atIndex + pageCount;
-    unsigned rightCount = doc.GetPageTree().GetCount() - rightStartPage;
-    unsigned pageOffset = this->GetPageTree().GetCount();
+    unsigned rightCount = doc.GetPages().GetCount() - rightStartPage;
+    unsigned pageOffset = this->GetPages().GetCount();
 
     leftStartPage += pageOffset;
     rightStartPage += pageOffset;

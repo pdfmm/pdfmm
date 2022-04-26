@@ -29,7 +29,7 @@
 #include "PdfNameTree.h"
 #include "PdfOutlines.h"
 #include "PdfPage.h"
-#include "PdfPageTree.h"
+#include "PdfPageCollection.h"
 #include "PdfXObject.h"
 
 
@@ -83,12 +83,12 @@ void PdfDocument::Init()
     auto pagesRootObj = m_Catalog->GetDictionary().FindKey("Pages");
     if (pagesRootObj == nullptr)
     {
-        m_PageTree.reset(new PdfPageTree(*this));
+        m_PageTree.reset(new PdfPageCollection(*this));
         m_Catalog->GetDictionary().AddKey("Pages", m_PageTree->GetObject().GetIndirectReference());
     }
     else
     {
-        m_PageTree.reset(new PdfPageTree(*pagesRootObj));
+        m_PageTree.reset(new PdfPageCollection(*pagesRootObj));
     }
 
     auto& catalogDict = m_Catalog->GetDictionary();
@@ -145,9 +145,9 @@ const PdfDocument& PdfDocument::Append(const PdfDocument& doc, bool appendAll)
         };
 
         // append all pages now to our page tree
-        for (unsigned i = 0; i < doc.GetPageTree().GetCount(); i++)
+        for (unsigned i = 0; i < doc.GetPages().GetCount(); i++)
         {
-            auto& page = doc.GetPageTree().GetPage(i);
+            auto& page = doc.GetPages().GetPage(i);
             auto& obj = m_Objects.MustGetObject(PdfReference(page.GetObject().GetIndirectReference().ObjectNumber()
                 + difference, page.GetObject().GetIndirectReference().GenerationNumber()));
             if (obj.IsDictionary() && obj.GetDictionary().HasKey("Parent"))
@@ -232,12 +232,12 @@ const PdfDocument& PdfDocument::InsertExistingPageAt(const PdfDocument& doc, uns
     };
 
     // append all pages now to our page tree
-    for (unsigned i = 0; i < doc.GetPageTree().GetCount(); i++)
+    for (unsigned i = 0; i < doc.GetPages().GetCount(); i++)
     {
         if (i != pageIndex)
             continue;
 
-        auto& page = doc.GetPageTree().GetPage(i);
+        auto& page = doc.GetPages().GetPage(i);
         auto& obj = m_Objects.MustGetObject(PdfReference(page.GetObject().GetIndirectReference().ObjectNumber()
             + difference, page.GetObject().GetIndirectReference().GenerationNumber()));
         if (obj.IsDictionary() && obj.GetDictionary().HasKey("Parent"))
@@ -284,7 +284,7 @@ PdfRect PdfDocument::FillXObjectFromDocumentPage(PdfXObject& xobj, const PdfDocu
 {
     unsigned difference = static_cast<unsigned>(m_Objects.GetSize() + m_Objects.GetFreeObjects().size());
     Append(doc, false);
-    auto& page = doc.GetPageTree().GetPage(pageIndex);
+    auto& page = doc.GetPages().GetPage(pageIndex);
     return FillXObjectFromPage(xobj, page, useTrimBox, difference);
 }
 
@@ -713,7 +713,7 @@ const PdfObject& PdfDocument::GetCatalog() const
     return *m_Catalog;
 }
 
-const PdfPageTree& PdfDocument::GetPageTree() const
+const PdfPageCollection& PdfDocument::GetPages() const
 {
     if (m_PageTree == nullptr)
         PDFMM_RAISE_ERROR(PdfErrorCode::NoObject);
@@ -721,7 +721,7 @@ const PdfPageTree& PdfDocument::GetPageTree() const
     return *m_PageTree;
 }
 
-PdfPageTree& PdfDocument::GetPageTree()
+PdfPageCollection& PdfDocument::GetPages()
 {
     if (m_PageTree == nullptr)
         PDFMM_RAISE_ERROR(PdfErrorCode::NoObject);

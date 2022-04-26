@@ -16,7 +16,7 @@
 #include "PdfAcroForm.h"
 #include "PdfFontManager.h"
 #include "PdfInfo.h"
-#include "PdfPageTree.h"
+#include "PdfPageCollection.h"
 #include "PdfNameTree.h"
 
 namespace mm {
@@ -315,15 +315,15 @@ public:
      */
     const PdfObject& GetCatalog() const;
 
-    /** Get access to the pages tree.
+    /** Get access to the page tree.
      *  \returns the PdfPageTree of this document.
      */
-    PdfPageTree& GetPageTree();
+    PdfPageCollection& GetPages();
 
-    /** Get access to the pages tree.
+    /** Get access to the page tree.
      *  \returns the PdfPageTree of this document.
      */
-    const PdfPageTree& GetPageTree() const;
+    const PdfPageCollection& GetPages() const;
 
     /** Get access to the internal trailer dictionary
      *  or root object.
@@ -469,7 +469,7 @@ private:
     std::unique_ptr<PdfObject> m_Trailer;
     PdfObject* m_Catalog;
     std::unique_ptr<PdfInfo> m_Info;
-    std::unique_ptr<PdfPageTree> m_PageTree;
+    std::unique_ptr<PdfPageCollection> m_PageTree;
     std::unique_ptr<PdfAcroForm> m_AcroForm;
     std::unique_ptr<PdfOutlines> m_Outlines;
     std::unique_ptr<PdfNameTree> m_NameTree;

@@ -13,7 +13,7 @@
 #include "PdfMemDocument.h"
 #include "PdfNameTree.h"
 #include "PdfPage.h"
-#include "PdfPageTree.h"
+#include "PdfPageCollection.h"
 
 using namespace std;
 using namespace mm;
@@ -166,7 +166,7 @@ PdfPage* PdfDestination::GetPage()
         return nullptr;
 
     // first entry in the array is the page - so just make a new page from it!
-    return &GetObject().GetDocument()->GetPageTree().GetPage(arr[0].GetReference());
+    return &GetObject().GetDocument()->GetPages().GetPage(arr[0].GetReference());
 }
 
 PdfDestinationType PdfDestination::GetType() const

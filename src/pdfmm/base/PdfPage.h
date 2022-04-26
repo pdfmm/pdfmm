@@ -33,7 +33,7 @@ class PdfInputStream;
 class PDFMM_API PdfPage final : public PdfDictionaryElement, public PdfCanvas
 {
     PDFMM_UNIT_TEST(PdfPageTest);
-    friend class PdfPageTree;
+    friend class PdfPageCollection;
 
 private:
     /** Create a new PdfPage object.

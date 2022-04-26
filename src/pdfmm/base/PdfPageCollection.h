@@ -26,7 +26,7 @@ class PdfRect;
  *
  *  \see PdfDocument
  */
-class PDFMM_API PdfPageTree final : public PdfDictionaryElement
+class PDFMM_API PdfPageCollection final : public PdfDictionaryElement
 {
     friend class PdfDocument;
     typedef std::deque<PdfObject*> PdfObjectList;
@@ -34,16 +34,16 @@ class PDFMM_API PdfPageTree final : public PdfDictionaryElement
 public:
     /** Construct a new PdfPageTree
      */
-    PdfPageTree(PdfDocument& doc);
+    PdfPageCollection(PdfDocument& doc);
 
     /** Construct a PdfPageTree from the root /Pages object
      *  \param pagesRoot pointer to page tree dictionary
      */
-    PdfPageTree(PdfObject& pagesRoot);
+    PdfPageCollection(PdfObject& pagesRoot);
 
     /** Close/down destruct a PdfPageTree
      */
-    virtual ~PdfPageTree();
+    virtual ~PdfPageCollection();
 
     /** Return the number of pages in the entire tree
      *  \returns number of pages
