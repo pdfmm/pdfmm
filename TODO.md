@@ -8,13 +8,13 @@
 - Use unique_ptr/shared_ptr where possibile (PdfField), use shared_ptr in PdfIndirectObjectList?
 - FontManager could use unique_ptr or shared_ptr?
 - Remove PdfLocaleImbue
-- PdfRect should avoid normalization by default
-- PdfDifferenceEncoding: Rework Adobe Glyph List handling and moving it to private folder
+- Add a PdfRectRaw that avoid normalization by default
 
 ### After 0.10
 - Check PdfStreamedDocument working
 - Check/Review doxygen doc
 - Add backtrace: https://github.com/boostorg/stacktrace
+- PdfDifferenceEncoding: Rework Adobe Glyph List handling and moving it to private folder
 - Option to unfold Unicode ligatures to separate codepoints during encoded -> utf8 conversion
 - Option to convert Unicode ligatures <-> separate codepoints when drawing strings/converting to encoded
 - Optimize mm::chars to not initialize memory, keeping std::string compatibility

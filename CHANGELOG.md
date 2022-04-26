@@ -1,3 +1,9 @@
+## Version 0.10.0
+- Renamed PdfPageTree -> PdfPageCollection
+
+## Version 0.9.21
+- ...
+
 ## Version 0.9.20
 
 - pdfmm is now a C++17 library

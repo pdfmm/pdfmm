@@ -313,7 +313,7 @@ enum class PdfFontAutoSelectBehavior
 enum class PdfFontCreateFlags
 {
     None = 0,                 ///< No special settings
-    DontEmbed = 1,            ///< Do not embed font data
+    DontEmbed = 1,            ///< Do not embed font data. Not embedding Standard14 fonts implies non CID
     DontSubset = 2,           ///< Don't subset font data (includes all the font glyphs)
     PreferNonCID = 4,         ///< Prefer non CID, simple fonts (/Type1, /TrueType)
 };

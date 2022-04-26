@@ -180,18 +180,10 @@ void PdfFont::WriteStringToStream(ostream& stream, const string_view& str) const
 void PdfFont::InitImported(bool wantEmbed, bool wantSubset)
 {
     PDFMM_ASSERT(!IsObjectLoaded());
-    if (wantSubset && SupportsSubsetting())
-    {
-        // Subsetting implies embedded
-        m_SubsettingEnabled = true;
-        m_EmbeddingEnabled = true;
-    }
-    else
-    {
-        m_SubsettingEnabled = false;
-        m_EmbeddingEnabled = wantEmbed || wantSubset;
-    }
 
+    // No embedding implies no subsetting
+    m_EmbeddingEnabled = wantEmbed;
+    m_SubsettingEnabled = wantEmbed && wantSubset && SupportsSubsetting();
     if (m_SubsettingEnabled)
     {
         unsigned gid;

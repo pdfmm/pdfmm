@@ -79,8 +79,9 @@ void PdfFontSimple::Init()
 
     if (!GetMetrics().IsStandard14FontMetrics() || IsEmbeddingEnabled())
     {
-        // NOTE: Standard 14 fonts don't need any metrics
-        // descriptor if the font is not embedded
+        // NOTE: Non Standard14 fonts need at least the metrics
+        // descriptor. Instead Standard14 fonts don't need any
+        // metrics descriptor if the font is not embedded
         auto descriptorObj = GetDocument().GetObjects().CreateDictionaryObject("FontDescriptor");
         this->GetObject().GetDictionary().AddKeyIndirect("FontDescriptor", descriptorObj);
         FillDescriptor(descriptorObj->GetDictionary());

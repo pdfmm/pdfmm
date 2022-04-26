@@ -32,6 +32,7 @@ unique_ptr<PdfFont> PdfFont::Create(PdfDocument& doc, const PdfFontMetricsConstP
     bool embeddingEnabled = (createParams.Flags & PdfFontCreateFlags::DontEmbed) == PdfFontCreateFlags::None;
     bool subsettingEnabled = (createParams.Flags & PdfFontCreateFlags::DontSubset) == PdfFontCreateFlags::None;
     bool preferNonCid = (createParams.Flags & PdfFontCreateFlags::PreferNonCID) != PdfFontCreateFlags::None;
+
     auto font = createFontForType(doc, metrics, createParams.Encoding,
         metrics->GetFontFileType(), preferNonCid);
     if (font != nullptr)
@@ -184,7 +185,17 @@ unique_ptr<PdfFont> PdfFont::CreateStandard14(PdfDocument& doc, PdfStandard14Fon
 {
     bool embeddingEnabled = (createParams.Flags & PdfFontCreateFlags::DontEmbed) == PdfFontCreateFlags::None;
     bool subsettingEnabled = (createParams.Flags & PdfFontCreateFlags::DontSubset) == PdfFontCreateFlags::None;
-    bool preferNonCid = (createParams.Flags & PdfFontCreateFlags::PreferNonCID) != PdfFontCreateFlags::None;
+    bool preferNonCid;
+    if (embeddingEnabled)
+    {
+        preferNonCid = (createParams.Flags & PdfFontCreateFlags::PreferNonCID) != PdfFontCreateFlags::None;
+    }
+    else
+    {
+        // Standard14 fonts when not embedding should be non CID
+        preferNonCid = true;
+    }
+
     PdfFontMetricsConstPtr metrics = PdfFontMetricsStandard14::Create(std14Font);
     unique_ptr<PdfFont> font;
     if (preferNonCid && !createParams.Encoding.HasCIDMapping())

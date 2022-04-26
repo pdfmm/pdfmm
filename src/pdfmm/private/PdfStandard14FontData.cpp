@@ -3380,6 +3380,8 @@ string_view mm::GetStandard14FontFamilyName(PdfStandard14FontType stdFont)
     }
 }
 
+// NOTE: Adobe strictly checks for Standard14 names + alternative
+// names. No other combinations are possible
 bool mm::IsStandard14Font(const string_view& fontName, bool useAltNames, PdfStandard14FontType& stdFont)
 {
     if (fontName == FONT_TIMES_ROMAN_STD)
