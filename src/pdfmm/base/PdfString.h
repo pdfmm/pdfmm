@@ -78,7 +78,7 @@ public:
 
     /**
      * A PdfString can be an unevaluated raw buffer, or
-     * can be a PdfDocEncoding or Unicode string
+     * can be a Ascii, PdfDocEncoding or Unicode string
      */
     PdfStringState GetState() const;
 

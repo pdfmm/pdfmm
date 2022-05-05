@@ -276,11 +276,11 @@ static const char32_t s_cEncoding[] = {
     0x00FF
 };
 
-bool mm::CheckValidUTF8ToPdfDocEcondingChars(const string_view& view, bool& isPdfDocEncodingEqual)
+bool mm::CheckValidUTF8ToPdfDocEcondingChars(const string_view& view, bool& isAsciiEqual)
 {
     auto& map = getUTF8ToPdfEncodingMap();
 
-    isPdfDocEncodingEqual = true;
+    isAsciiEqual = true;
     char32_t cp = 0;
     auto it = view.begin();
     auto end = view.end();
@@ -291,14 +291,14 @@ bool mm::CheckValidUTF8ToPdfDocEcondingChars(const string_view& view, bool& isPd
         if (cp > 0xFFFF || (found = map.find(cp)) == map.end())
         {
             // Code point out of range or not present in the map
-            isPdfDocEncodingEqual = false;
+            isAsciiEqual = false;
             return false;
         }
 
         if (cp >= 0x80 || found->second != (char)cp) // >= 128 or different mapped code
         {
             // The utf-8 char is not coincident to PdfDocEncoding representation
-            isPdfDocEncodingEqual = false;
+            isAsciiEqual = false;
         }
     }
 
@@ -352,23 +352,23 @@ bool mm::TryConvertUTF8ToPdfDocEncoding(const string_view& view, string& pdfdoce
     return true;
 }
 
-string mm::ConvertPdfDocEncodingToUTF8(const string_view& view, bool& isUTF8Equal)
+string mm::ConvertPdfDocEncodingToUTF8(const string_view& view, bool& isAsciiEqual)
 {
     string ret;
-    ConvertPdfDocEncodingToUTF8(view, ret, isUTF8Equal);
+    ConvertPdfDocEncodingToUTF8(view, ret, isAsciiEqual);
     return ret;
 }
 
-void mm::ConvertPdfDocEncodingToUTF8(const string_view& view, string& u8str, bool& isUTF8Equal)
+void mm::ConvertPdfDocEncodingToUTF8(const string_view& view, string& u8str, bool& isAsciiEqual)
 {
     u8str.clear();
-    isUTF8Equal = true;
+    isAsciiEqual = true;
     for (size_t i = 0; i < view.length(); i++)
     {
-        unsigned char ch = view[i];
+        unsigned char ch = (unsigned char)view[i];
         char32_t mappedCode = s_cEncoding[ch];
-        if (mappedCode >= 0x80 || ch != mappedCode) // >= 128 or different mapped code
-            isUTF8Equal = false;
+        if (mappedCode >= 0x80 || ch != (char)mappedCode) // >= 128 or different mapped code
+            isAsciiEqual = false;
 
         utf8::append(mappedCode, u8str);
     }

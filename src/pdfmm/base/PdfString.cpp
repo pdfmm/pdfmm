@@ -35,7 +35,7 @@ static char getEscapedCharacter(char ch);
 static StringEncoding getEncoding(const string_view& view);
 
 PdfString::PdfString()
-    : m_data(new StringData{ PdfStringState::PdfDocEncoding, { } }), m_isHex(false)
+    : m_data(new StringData{ PdfStringState::Ascii, { } }), m_isHex(false)
 {
 }
 
@@ -125,20 +125,35 @@ void PdfString::Write(PdfOutputDevice& device, PdfWriteFlags writeMode, const Pd
     // We are not encrypting the empty strings (was access violation)!
     string_view dataview;
     u16string string16;
-    if (m_data->State == PdfStringState::Unicode)
+    string pdfDocEncoded;
+    switch (m_data->State)
     {
-        // Prepend utf-16 BE BOM
-        string16.push_back((char16_t)(0xFEFF));
-        utf8::utf8to16(m_data->Chars.data(), m_data->Chars.data() + m_data->Chars.size(), std::back_inserter(string16));
+        case PdfStringState::RawBuffer:
+        case PdfStringState::Ascii:
+        {
+            dataview = string_view(m_data->Chars);
+            break;
+        }
+        case PdfStringState::PdfDocEncoding:
+        {
+            (void)mm::TryConvertUTF8ToPdfDocEncoding(m_data->Chars, pdfDocEncoded);
+            dataview = string_view(pdfDocEncoded);
+            break;
+        }
+        case PdfStringState::Unicode:
+        {
+            // Prepend utf-16 BE BOM
+            string16.push_back((char16_t)(0xFEFF));
+            utf8::utf8to16(m_data->Chars.data(), m_data->Chars.data() + m_data->Chars.size(), std::back_inserter(string16));
 #ifdef PDFMM_IS_LITTLE_ENDIAN
-        // Ensure the output will be BE
-        utls::ByteSwap(string16);
+            // Ensure the output will be BE
+            utls::ByteSwap(string16);
 #endif
-        dataview = string_view((const char*)string16.data(), string16.size() * sizeof(char16_t));
-    }
-    else
-    {
-        dataview = string_view(m_data->Chars);
+            dataview = string_view((const char*)string16.data(), string16.size() * sizeof(char16_t));
+            break;
+        }
+        default:
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }
 
     charbuff tempBuffer;
@@ -293,13 +308,13 @@ void PdfString::initFromUtf8String(const string_view& view)
 
     if (view.length() == 0)
     {
-        m_data.reset(new StringData{ PdfStringState::PdfDocEncoding, { } });
+        m_data.reset(new StringData{ PdfStringState::Ascii, { } });
         return;
     }
 
-    bool isPdfDocEncodingEqual;
-    if (mm::CheckValidUTF8ToPdfDocEcondingChars(view, isPdfDocEncodingEqual))
-        m_data.reset(new StringData{ PdfStringState::PdfDocEncoding, charbuff(view) });
+    bool isAsciiEqual;
+    if (mm::CheckValidUTF8ToPdfDocEcondingChars(view, isAsciiEqual))
+        m_data.reset(new StringData{ isAsciiEqual ? PdfStringState::Ascii : PdfStringState::PdfDocEncoding, charbuff(view) });
     else
         m_data.reset(new StringData{ PdfStringState::Unicode, charbuff(view) });
 }
@@ -308,6 +323,7 @@ void PdfString::evaluateString() const
 {
     switch (m_data->State)
     {
+        case PdfStringState::Ascii:
         case PdfStringState::PdfDocEncoding:
         case PdfStringState::Unicode:
             return;
@@ -345,10 +361,10 @@ void PdfString::evaluateString() const
                 }
                 case StringEncoding::PdfDocEncoding:
                 {
-                    bool isUTF8Equal;
-                    auto utf8 = mm::ConvertPdfDocEncodingToUTF8(m_data->Chars, isUTF8Equal);
+                    bool isAsciiEqual;
+                    auto utf8 = mm::ConvertPdfDocEncodingToUTF8(m_data->Chars, isAsciiEqual);
                     utf8.swap(m_data->Chars);
-                    m_data->State = PdfStringState::PdfDocEncoding;
+                    m_data->State = isAsciiEqual ? PdfStringState::Ascii : PdfStringState::PdfDocEncoding;
                     break;
                 }
                 default:
@@ -384,7 +400,17 @@ const string& PdfString::GetRawData() const
 
 bool PdfString::isValidText() const
 {
-    return m_data->State == PdfStringState::PdfDocEncoding || m_data->State == PdfStringState::Unicode;
+    switch (m_data->State)
+    {
+        case PdfStringState::Ascii:
+        case PdfStringState::PdfDocEncoding:
+        case PdfStringState::Unicode:
+            return true;
+        case PdfStringState::RawBuffer:
+            return false;
+        default:
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+    }
 }
 
 StringEncoding getEncoding(const string_view& view)

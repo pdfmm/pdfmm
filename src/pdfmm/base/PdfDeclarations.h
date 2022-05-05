@@ -146,9 +146,10 @@ enum class PdfALevel
 
 enum class PdfStringState : uint8_t
 {
-    RawBuffer,
-    PdfDocEncoding,
-    Unicode
+    RawBuffer,          ///< The string is an unvaluated raw buffer
+    Ascii,              ///< The string use characters that are in both Ascii and PdfDocEncoding charsets
+    PdfDocEncoding,     ///< The string uses characters that are in the whole PdfDocEncoding charset
+    Unicode,            ///< The string uses characters that are in the whole Unicode charset
 };
 
 /** The default PDF Version used by new PDF documents
