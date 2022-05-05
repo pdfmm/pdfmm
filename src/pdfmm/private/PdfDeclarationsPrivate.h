@@ -32,7 +32,8 @@
 #include <limits>
 #include <algorithm>
 #include <iostream>
-#include <pdfmm/compat/numbers>
+
+#include "numbers_compat.h"
 
 #include <pdfmm/base/PdfDeclarations.h>
 
