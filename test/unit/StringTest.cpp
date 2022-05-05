@@ -30,6 +30,14 @@ TEST_CASE("testPdfDocEncoding")
     PdfString str(src);
     REQUIRE(str == src);
     REQUIRE(str.GetState() == PdfStringState::PdfDocEncoding);
+
+    // Serialize the string
+    string strPdfDocEncoding;
+    str.ToString(strPdfDocEncoding);
+
+    // Deserialize the string (remove the surrounding parenthesis '(' ')' )
+    str = PdfString::FromRaw(strPdfDocEncoding.substr(1, strPdfDocEncoding.length() - 2));
+    REQUIRE(str.GetString() == src);
 }
 
 TEST_CASE("testEscapeBrackets")
@@ -43,7 +51,7 @@ TEST_CASE("testEscapeBrackets")
     string strAscii;
     varAscii.ToString(strAscii);
 
-    REQUIRE(pdfStrAscii.GetState() == PdfStringState::PdfDocEncoding);
+    REQUIRE(pdfStrAscii.GetState() == PdfStringState::Ascii);
     REQUIRE(strAscii == balancedExpect);
 
     // Test un-balanced brackets ansi
