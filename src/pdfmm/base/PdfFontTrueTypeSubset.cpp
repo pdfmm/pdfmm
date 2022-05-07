@@ -51,7 +51,8 @@ PdfFontTrueTypeSubset::PdfFontTrueTypeSubset(PdfInputDevice& device) :
     m_device(&device),
     m_isLongLoca(false),
     m_glyphCount(0),
-    m_HMetricsCount(0)
+    m_HMetricsCount(0),
+    m_HMetricsCountNew(0)
 {
 }
 
@@ -259,6 +260,10 @@ void PdfFontTrueTypeSubset::LoadGID(GlyphContext& ctx, unsigned gid)
     if (m_glyphDatas.find(gid) != m_glyphDatas.end())
         return;
 
+    // Try to advance new count of HMetrics
+    if (gid < m_HMetricsCount)
+        m_HMetricsCountNew++;
+
     // https://docs.microsoft.com/en-us/typography/opentype/spec/loca
     auto& glyphData = m_glyphDatas[gid] = { };
     if (m_isLongLoca)
@@ -354,9 +359,29 @@ void PdfFontTrueTypeSubset::WriteHmtxTable(PdfOutputDevice& output)
         int16_t LeftSideBearing;
     };
 
-    unsigned tableOffset = GetTableOffset(TTAG_hmtx);
+    unsigned hmtxTableOffset = GetTableOffset(TTAG_hmtx);
+    unsigned leftSideBearingsOffset = hmtxTableOffset + m_HMetricsCount * sizeof(LongHorMetrics);
+    vector<int16_t> leftSideBearings;
     for (unsigned gid : m_orderedGIDs)
-        CopyData(output, tableOffset + gid * sizeof(LongHorMetrics), sizeof(LongHorMetrics));
+    {
+        if (gid < m_HMetricsCount)
+        {
+            // The full horizontal metrics exists, just copy it
+            CopyData(output, hmtxTableOffset + gid * sizeof(LongHorMetrics), sizeof(LongHorMetrics));
+        }
+        else
+        {
+            // The full horizontal metrics doesn't exists, just copy the left side bearibgs
+            m_device->Seek(leftSideBearingsOffset + sizeof(int16_t) * (gid - m_HMetricsCount));
+            int16_t leftSideBearing;
+            utls::ReadInt16BE(*m_device, leftSideBearing);
+            leftSideBearings.push_back(leftSideBearing);
+        }
+    }
+
+    // Write left side bearings
+    for (unsigned i = 0; i < leftSideBearings.size(); i++)
+        utls::WriteInt16BE(output, leftSideBearings[i]);
 }
 
 // "The 'loca' table stores the offsets to the locations
@@ -448,7 +473,7 @@ void PdfFontTrueTypeSubset::WriteTables(string& buffer)
                 // https://docs.microsoft.com/en-us/typography/opentype/spec/hhea
                 CopyData(output, table.Offset, table.Length);
                 // Write numOfLongHorMetrics, see also 'hmtx' table
-                utls::WriteUInt16BE(buffer.data() + tableOffset + 34, (uint16_t)m_glyphDatas.size());
+                utls::WriteUInt16BE(buffer.data() + tableOffset + 34, m_HMetricsCountNew);
                 break;
             case TTAG_post:
                 // https://docs.microsoft.com/en-us/typography/opentype/spec/post

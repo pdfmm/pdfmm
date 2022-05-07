@@ -128,6 +128,7 @@ private:
     bool m_isLongLoca;
     uint16_t m_glyphCount;
     uint16_t m_HMetricsCount;
+    uint16_t m_HMetricsCountNew;
 
     std::vector<TrueTypeTable> m_tables;
     GlyphDatas m_glyphDatas;
