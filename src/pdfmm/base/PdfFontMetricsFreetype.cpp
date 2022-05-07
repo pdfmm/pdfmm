@@ -485,8 +485,7 @@ const FreeTypeFacePtr& PdfFontMetricsFreetype::GetFaceHandle() const
 
 int PdfFontMetricsFreetype::GetWeightRaw() const
 {
-    const_cast<PdfFontMetricsFreetype&>(*this).ensureLengthsReady();
-    return m_Length1;
+    return m_Weight;
 }
 
 double PdfFontMetricsFreetype::GetCapHeight() const
