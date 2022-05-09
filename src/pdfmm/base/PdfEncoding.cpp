@@ -188,6 +188,7 @@ bool PdfEncoding::tryConvertEncodedToUtf8(const string_view& encoded, string& st
         return true;
 
     auto& map = GetToUnicodeMapSafe();
+    auto& limits = map.GetLimits();
     bool success = true;
     auto it = encoded.begin();
     auto end = encoded.end();
@@ -198,7 +199,7 @@ bool PdfEncoding::tryConvertEncodedToUtf8(const string_view& encoded, string& st
         {
             success = false;
             codePoints.clear();
-            codePoints.push_back((char32_t)fetchFallbackCharCode(it, end, map.GetLimits()).Code);
+            codePoints.push_back((char32_t)fetchFallbackCharCode(it, end, limits).Code);
         }
 
         for (size_t i = 0; i < codePoints.size(); i++)
@@ -272,13 +273,14 @@ bool PdfEncoding::tryConvertEncodedToCIDs(const string_view& encoded, vector<Pdf
     bool success = true;
     auto it = encoded.begin();
     auto end = encoded.end();
+    auto& limits = m_Encoding->GetLimits();
     PdfCID cid;
     while (it != end)
     {
         if (!m_Encoding->TryGetNextCID(it, end, cid))
         {
             success = false;
-            PdfCharCode unit = fetchFallbackCharCode(it, end, m_Encoding->GetLimits());
+            PdfCharCode unit = fetchFallbackCharCode(it, end, limits);
             cid = PdfCID(unit);
         }
 
@@ -441,10 +443,10 @@ char32_t PdfEncoding::GetCodePoint(unsigned charCode) const
 
 const PdfEncodingLimits& PdfEncoding::GetLimits() const
 {
-    if (!m_Limits.AreValid())
-        return m_Encoding->GetLimits();
+    if (m_Limits.AreValid())
+        return m_Limits;
 
-    return m_Limits;
+    return m_Encoding->GetLimits();
 }
 
 bool PdfEncoding::HasValidToUnicodeMap() const
