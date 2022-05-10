@@ -323,9 +323,14 @@ unique_ptr<PdfOutputStream> PdfFilterFactory::CreateDecodeStream(const PdfFilter
 
     PDFMM_RAISE_LOGIC_IF(filters.size() == 0, "Cannot create an DecodeStream from an empty list of filters");
 
-    // TODO: support arrays and indirect objects here and the short name /DP
-    if (dictionary != nullptr && dictionary->HasKey("DecodeParms") && dictionary->GetKey("DecodeParms")->IsDictionary())
-        dictionary = &(dictionary->GetKey("DecodeParms")->GetDictionary());
+    // TODO: Add also support for DP? (used in inline images)
+    const PdfObject* decodeParams;
+    if (dictionary != nullptr
+        && (decodeParams = dictionary->FindKey("DecodeParms")) != nullptr
+        && decodeParams->IsDictionary())
+    {
+        dictionary = &decodeParams->GetDictionary();
+    }
 
     PdfFilteredDecodeStream* filterStream = new PdfFilteredDecodeStream(stream, *it, false, dictionary);
     it++;
