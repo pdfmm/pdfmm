@@ -154,8 +154,8 @@ void PdfPageCollection::InsertPages(unsigned atIndex, const vector<PdfObject*>& 
     else
     {
         PdfObject* parentNode = parents.back();
-        int kidsIndex = insertAfterPivot ? this->GetPosInKids(*pivotPage, parentNode) : -1;
-        InsertPagesIntoNode(*parentNode, parents, kidsIndex, pages);
+        int posInKids = this->GetPosInKids(*pivotPage, parentNode);
+        InsertPagesIntoNode(*parentNode, parents, insertAfterPivot ? posInKids : posInKids - 1, pages);
     }
 
     m_cache.InsertPlaceHolders(atIndex, (unsigned)pages.size());

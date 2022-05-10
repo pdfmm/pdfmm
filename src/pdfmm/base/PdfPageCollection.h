@@ -146,9 +146,9 @@ private:
      bool IsTypePages(const PdfObject& obj) const;
 
      /**
-      * Find the position of pPageObj in the kids array of pPageParent
+      * Find the position of pageObj in the kids array of pageParent
       *
-      * \returns the index in the kids array or -1 if pPageObj is no child of pPageParent
+      * \returns the index in the kids array or -1 if pageObj is no child of pageParent
       */
      int GetPosInKids(PdfObject& pageObj, PdfObject* pageParent);
 
