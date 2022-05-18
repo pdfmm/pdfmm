@@ -53,6 +53,8 @@ PdfPainter::PdfPainter(PdfPainterFlags flags) :
     m_flags(flags),
     m_stream(nullptr),
     m_canvas(nullptr),
+    m_PainterGraphicsState(*this, m_GraphicsState),
+    m_PainterTextState(*this, m_TextState),
     m_TabWidth(4),
     m_isTextOpen(false),
     m_lpx(0),
@@ -66,61 +68,6 @@ PdfPainter::PdfPainter(PdfPainterFlags flags) :
     m_lrx(0),
     m_lry(0)
 {
-    m_GraphicsState.SetPropertyChangedCallback([&](PdfGraphicsStateProperty property) {
-        switch (property)
-        {
-            case PdfGraphicsStateProperty::CTM:
-                setTransformationMatrix();
-                break;
-            case PdfGraphicsStateProperty::LineWidth:
-                setLineWidth();
-                break;
-            case PdfGraphicsStateProperty::MiterLevel:
-                setMiterLimit();
-                break;
-            case PdfGraphicsStateProperty::LineCapStyle:
-                setLineCapStyle();
-                break;
-            case PdfGraphicsStateProperty::LineJoinStyle:
-                setLineJoinStyle();
-                break;
-            case PdfGraphicsStateProperty::RenderingIntent:
-                setRenderingIntent();
-                break;
-            case PdfGraphicsStateProperty::FillColor:
-                setFillColor();
-                break;
-            case PdfGraphicsStateProperty::StrokeColor:
-                setStrokeColor();
-                break;
-            default:
-                PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
-        }
-    });
-
-    m_TextState.SetPropertyChangedCallback([&](PdfTextStateProperty property)
-    {
-        switch (property)
-        {
-            case PdfTextStateProperty::Font:
-                setFont();
-                break;
-            case PdfTextStateProperty::FontScale:
-                m_tmpStream << m_TextState.GetFontScale() * 100 << " Tz" << endl;
-                break;
-            case PdfTextStateProperty::CharSpacing:
-                m_tmpStream << m_TextState.GetCharSpacing() << " Tc" << endl;
-                break;
-            case PdfTextStateProperty::WordSpacing:
-                m_tmpStream << m_TextState.GetWordSpacing() << " Tw" << endl;
-                break;
-            case PdfTextStateProperty::RenderingMode:
-                setTextRenderingMode();
-                break;
-            default:
-                PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
-        }
-    });
 }
 
 PdfPainter::~PdfPainter() noexcept(false)
@@ -389,23 +336,6 @@ void PdfPainter::SetStrokeStyle(PdfStrokeStyle strokeStyle, const string_view& c
     m_tmpStream << " d" << endl;
 }
 
-
-
-void PdfPainter::setFont()
-{
-    auto font = m_TextState.GetFont();
-    if (font == nullptr)
-        return;
-
-    checkStream();
-
-    this->addToPageResources("Font", font->GetIdentifier(), font->GetObject());
-
-    m_tmpStream << "/" << font->GetIdentifier().GetString()
-        << " " << m_TextState.GetFontSize()
-        << " Tf" << endl;
-}
-
 void PdfPainter::SetClipRect(const PdfRect& rect)
 {
     this->SetClipRect(rect.GetLeft(), rect.GetBottom(), rect.GetWidth(), rect.GetHeight());
@@ -516,24 +446,24 @@ void PdfPainter::DrawText(const string_view& str, double x, double y)
     checkFont();
 
     m_tmpStream << "BT" << endl;
-    drawText(str, x, y);
+    drawText(str, x, y, false, false);
     m_tmpStream << "ET" << endl;
 }
 
-void PdfPainter::drawText(const std::string_view& str, double x, double y)
+void PdfPainter::drawText(const std::string_view& str, double x, double y, bool isUnderline, bool isStrikeOut)
 {
     m_tmpStream << x << " " << y <<  " Td ";
 
-    auto& font = *m_TextState.GetFont();
+    auto& font = *m_TextState.Font;
     auto expStr = this->expandTabs(str);
 
-    if (m_TextState.IsUnderlined() || m_TextState.IsStrikeOut())
+    if (isUnderline || isStrikeOut)
     {
         this->Save();
 
         // Draw underline
         this->setLineWidth(font.GetUnderlineThickness(m_TextState));
-        if (m_TextState.IsUnderlined())
+        if (isUnderline)
         {
             this->DrawLine(x,
                 y + font.GetUnderlinePosition(m_TextState),
@@ -543,7 +473,7 @@ void PdfPainter::drawText(const std::string_view& str, double x, double y)
 
         // Draw strikeout
         this->setLineWidth(font.GetStrikeOutThickness(m_TextState));
-        if (m_TextState.IsStrikeOut())
+        if (isStrikeOut)
         {
             this->DrawLine(x,
                 y + font.GetStrikeOutPosition(m_TextState),
@@ -584,7 +514,7 @@ void PdfPainter::AddText(const string_view& str)
     auto expStr = this->expandTabs(str);
 
     // TODO: Underline and Strikeout not yet supported
-    m_TextState.GetFont()->WriteStringToStream((ostream&)m_tmpStream, expStr);
+    m_TextState.Font->WriteStringToStream((ostream&)m_tmpStream, expStr);
 
     m_tmpStream << " Tj" << endl;
 }
@@ -622,7 +552,7 @@ void PdfPainter::DrawMultiLineText(const string_view& str, double x, double y, d
 
 void PdfPainter::drawMultiLineText(const std::string_view& str, double x, double y, double width, double height, PdfHorizontalAlignment hAlignment, PdfVerticalAlignment vAlignment, bool clip, bool skipSpaces)
 {
-    auto& font = *m_TextState.GetFont();
+    auto& font = *m_TextState.Font;
 
     this->Save();
     if (clip)
@@ -674,7 +604,7 @@ vector<string> PdfPainter::getMultiLineTextAsLines(const string_view& str, doubl
     if (str.length() == 0) // empty string
         return vector<string>(1, (string)str);
 
-    auto& font = *m_TextState.GetFont();
+    auto& font = *m_TextState.Font;
     const char* const stringBegin = str.data();
     const char* lineBegin = stringBegin;
     const char* currentCharacter = stringBegin;
@@ -850,14 +780,14 @@ void PdfPainter::drawTextAligned(const std::string_view& str, double x, double y
         case PdfHorizontalAlignment::Left:
             break;
         case PdfHorizontalAlignment::Center:
-            x += (width - m_TextState.GetFont()->GetStringWidth(str, m_TextState)) / 2.0;
+            x += (width - m_TextState.Font->GetStringWidth(str, m_TextState)) / 2.0;
             break;
         case PdfHorizontalAlignment::Right:
-            x += (width - m_TextState.GetFont()->GetStringWidth(str, m_TextState));
+            x += (width - m_TextState.Font->GetStringWidth(str, m_TextState));
             break;
     }
 
-    this->drawText(str, x, y);
+    this->drawText(str, x, y, false, false);
 }
 
 void PdfPainter::DrawImage(const PdfImage& obj, double x, double y, double scaleX, double scaleY)
@@ -1330,10 +1260,9 @@ void PdfPainter::convertRectToBezier(double x, double y, double width, double he
     pointsY[0] = pointsY[12] = pointsY[6] = centerY;
 }
 
-void PdfPainter::setTransformationMatrix()
+void PdfPainter::SetTransformationMatrix(const Matrix& matrix)
 {
     checkStream();
-    auto& matrix = m_GraphicsState.GetCurrentMatrix();
     m_tmpStream
         << matrix[0] << " "
         << matrix[1] << " "
@@ -1343,40 +1272,44 @@ void PdfPainter::setTransformationMatrix()
         << matrix[5] << " cm" << endl;
 }
 
-void PdfPainter::setLineWidth()
+void PdfPainter::SetLineWidth(double value)
 {
     checkStream();
-    setLineWidth(m_GraphicsState.GetLineWidth());
+    setLineWidth(m_GraphicsState.LineWidth);
 }
 
-void PdfPainter::setMiterLimit()
+void PdfPainter::setLineWidth(double width)
 {
-    checkStream();
-    m_tmpStream << m_GraphicsState.GetMiterLevel() << " M" << endl;
+    m_tmpStream << width << " w" << endl;
 }
 
-void PdfPainter::setLineCapStyle()
+void PdfPainter::SetMiterLimit(double value)
 {
     checkStream();
-    m_tmpStream << static_cast<int>(m_GraphicsState.GetLineCapStyle()) << " J" << endl;
+    m_tmpStream << value << " M" << endl;
 }
 
-void PdfPainter::setLineJoinStyle()
+void PdfPainter::SetLineCapStyle(PdfLineCapStyle style)
 {
     checkStream();
-    m_tmpStream << static_cast<int>(m_GraphicsState.GetLineJoinStyle()) << " j" << endl;
+    m_tmpStream << static_cast<int>(style) << " J" << endl;
 }
 
-void PdfPainter::setRenderingIntent()
+void PdfPainter::SetLineJoinStyle(PdfLineJoinStyle style)
 {
     checkStream();
-    m_tmpStream << "/" << m_GraphicsState.GetRenderingIntent() << " ri" << endl;
+    m_tmpStream << static_cast<int>(style) << " j" << endl;
 }
 
-void PdfPainter::setFillColor()
+void PdfPainter::SetRenderingIntent(const string_view& intent)
 {
     checkStream();
-    auto& color = m_GraphicsState.GetFillColor();
+    m_tmpStream << "/" << intent << " ri" << endl;
+}
+
+void PdfPainter::SetFillColor(const PdfColor& color)
+{
+    checkStream();
     switch (color.GetColorSpace())
     {
         default:
@@ -1426,10 +1359,9 @@ void PdfPainter::setFillColor()
     }
 }
 
-void PdfPainter::setStrokeColor()
+void PdfPainter::SetStrokeColor(const PdfColor& color)
 {
     checkStream();
-    auto& color = m_GraphicsState.GetStrokeColor();
     switch (color.GetColorSpace())
     {
         default:
@@ -1479,15 +1411,42 @@ void PdfPainter::setStrokeColor()
     }
 }
 
-void PdfPainter::setTextRenderingMode()
+void PdfPainter::setFont(const PdfFont* font, double fontSize)
 {
+    if (font == nullptr)
+        return;
+
     checkStream();
-    m_tmpStream << (int)m_TextState.GetRenderingMode() << " Tr" << endl;
+
+    this->addToPageResources("Font", font->GetIdentifier(), font->GetObject());
+
+    m_tmpStream << "/" << font->GetIdentifier().GetString()
+        << " " << fontSize
+        << " Tf" << endl;
 }
 
-void PdfPainter::setLineWidth(double width)
+void PdfPainter::SetFontScale(double value)
 {
-    m_tmpStream << width << " w" << endl;
+    checkStream();
+    m_tmpStream << value * 100 << " Tz" << endl;
+}
+
+void PdfPainter::SetCharSpacing(double value)
+{
+    checkStream();
+    m_tmpStream << value << " Tc" << endl;
+}
+
+void PdfPainter::SetWordSpacing(double value)
+{
+    checkStream();
+    m_tmpStream << value << " Tw" << endl;
+}
+
+void PdfPainter::SetTextRenderingMode(PdfTextRenderingMode mode)
+{
+    checkStream();
+    m_tmpStream << (int)mode << " Tr" << endl;
 }
 
 string PdfPainter::expandTabs(const string_view& str) const
@@ -1520,7 +1479,7 @@ void PdfPainter::checkStream()
 
 void PdfPainter::checkFont()
 {
-    if (m_TextState.GetFont() == nullptr)
+    if (m_TextState.Font == nullptr)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Font should be set prior calling the method");
 }
 
@@ -1553,4 +1512,128 @@ string expandTabs(const string_view& str, unsigned tabWidth, unsigned tabCount)
     }
 
     return ret;
+}
+
+PdfPainterGraphicsState::PdfPainterGraphicsState(PdfPainter& painter, PdfGraphicsState& state)
+    : m_painter(&painter), m_state(&state) { }
+
+void PdfPainterGraphicsState::SetCurrentMatrix(const Matrix& matrix)
+{
+    if (m_state->CTM == matrix)
+        return;
+
+    m_state->CTM = matrix;
+    m_painter->SetTransformationMatrix(m_state->CTM);
+}
+
+void PdfPainterGraphicsState::SetLineWidth(double lineWidth)
+{
+    if (m_state->LineWidth == lineWidth)
+        return;
+
+    m_state->LineWidth = lineWidth;
+    m_painter->SetLineWidth(m_state->LineWidth);
+}
+
+void PdfPainterGraphicsState::SetMiterLevel(double value)
+{
+    if (m_state->MiterLimit == value)
+        return;
+
+    m_state->MiterLimit = value;
+    m_painter->SetMiterLimit(m_state->MiterLimit);
+}
+
+void PdfPainterGraphicsState::SetLineCapStyle(PdfLineCapStyle capStyle)
+{
+    if (m_state->LineCapStyle == capStyle)
+        return;
+
+    m_state->LineCapStyle = capStyle;
+    m_painter->SetLineCapStyle(m_state->LineCapStyle);
+}
+
+void PdfPainterGraphicsState::SetLineJoinStyle(PdfLineJoinStyle joinStyle)
+{
+    if (m_state->LineJoinStyle == joinStyle)
+        return;
+
+    m_state->LineJoinStyle = joinStyle;
+    m_painter->SetLineJoinStyle(m_state->LineJoinStyle);
+}
+
+void PdfPainterGraphicsState::SetRenderingIntent(const string_view& intent)
+{
+    if (m_state->RenderingIntent == intent)
+        return;
+
+    m_state->RenderingIntent = intent;
+    m_painter->SetRenderingIntent(m_state->RenderingIntent);
+}
+
+void PdfPainterGraphicsState::SetFillColor(const PdfColor& color)
+{
+    if (m_state->FillColor == color)
+        return;
+
+    m_state->FillColor = color;
+    m_painter->SetFillColor(m_state->FillColor);
+}
+
+void PdfPainterGraphicsState::SetStrokeColor(const PdfColor& color)
+{
+    if (m_state->StrokeColor == color)
+        return;
+
+    m_state->StrokeColor = color;
+    m_painter->SetStrokeColor(m_state->StrokeColor);
+}
+
+PdfPainterTextState::PdfPainterTextState(PdfPainter& painter, PdfTextState& state)
+    : m_painter(&painter), m_state(&state) { }
+
+void PdfPainterTextState::SetFont(const PdfFont* font, double fontSize)
+{
+    if (m_state->Font == font && m_state->FontSize == fontSize)
+        return;
+
+    m_state->Font = font;
+    m_state->FontSize = fontSize;
+    m_painter->setFont(m_state->Font, m_state->FontSize);
+}
+
+void PdfPainterTextState::SetFontScale(double scale)
+{
+    if (m_state->FontScale == scale)
+        return;
+
+    m_state->FontScale = scale;
+    m_painter->SetFontScale(m_state->FontScale);
+}
+
+void PdfPainterTextState::SetCharSpacing(double charSpacing)
+{
+    if (m_state->CharSpacing == charSpacing)
+        return;
+
+    m_state->CharSpacing = charSpacing;
+    m_painter->SetCharSpacing(m_state->CharSpacing);
+}
+
+void PdfPainterTextState::SetWordSpacing(double wordSpacing)
+{
+    if (m_state->WordSpacing == wordSpacing)
+        return;
+
+    m_state->WordSpacing = wordSpacing;
+    m_painter->SetWordSpacing(m_state->WordSpacing);
+}
+
+void PdfPainterTextState::SetRenderingMode(PdfTextRenderingMode mode)
+{
+    if (m_state->RenderingMode == mode)
+        return;
+
+    m_state->RenderingMode = mode;
+    m_painter->SetTextRenderingMode(m_state->RenderingMode);
 }

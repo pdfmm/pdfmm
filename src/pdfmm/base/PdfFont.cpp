@@ -365,13 +365,13 @@ double PdfFont::GetDefaultCharWidth(const PdfTextState& state, bool ignoreCharSp
 {
     if (ignoreCharSpacing)
     {
-        return m_Metrics->GetDefaultWidth() * state.GetFontSize()
-            * state.GetFontScale();
+        return m_Metrics->GetDefaultWidth() * state.FontSize
+            * state.FontScale;
     }
     else
     {
-        return (m_Metrics->GetDefaultWidth() * state.GetFontSize()
-            + state.GetCharSpacing()) * state.GetFontScale();
+        return (m_Metrics->GetDefaultWidth() * state.FontSize
+            + state.CharSpacing) * state.FontScale;
     }
 }
 
@@ -549,41 +549,41 @@ double PdfFont::getStringWidth(const vector<PdfCID>& cids, const PdfTextState& s
 
 double PdfFont::GetLineSpacing(const PdfTextState& state) const
 {
-    return m_Metrics->GetLineSpacing() * state.GetFontSize();
+    return m_Metrics->GetLineSpacing() * state.FontSize;
 }
 
 // CHECK-ME Should state.GetFontScale() be considered?
 double PdfFont::GetUnderlineThickness(const PdfTextState& state) const
 {
-    return m_Metrics->GetUnderlineThickness() * state.GetFontSize();
+    return m_Metrics->GetUnderlineThickness() * state.FontSize;
 }
 
 // CHECK-ME Should state.GetFontScale() be considered?
 double PdfFont::GetUnderlinePosition(const PdfTextState& state) const
 {
-    return m_Metrics->GetUnderlinePosition() * state.GetFontSize();
+    return m_Metrics->GetUnderlinePosition() * state.FontSize;
 }
 
 // CHECK-ME Should state.GetFontScale() be considered?
 double PdfFont::GetStrikeOutPosition(const PdfTextState& state) const
 {
-    return m_Metrics->GetStrikeOutPosition() * state.GetFontSize();
+    return m_Metrics->GetStrikeOutPosition() * state.FontSize;
 }
 
 // CHECK-ME Should state.GetFontScale() be considered?
 double PdfFont::GetStrikeOutThickness(const PdfTextState& state) const
 {
-    return m_Metrics->GetStrikeOutThickness() * state.GetFontSize();
+    return m_Metrics->GetStrikeOutThickness() * state.FontSize;
 }
 
 double PdfFont::GetAscent(const PdfTextState& state) const
 {
-    return m_Metrics->GetAscent() * state.GetFontSize();
+    return m_Metrics->GetAscent() * state.FontSize;
 }
 
 double PdfFont::GetDescent(const PdfTextState& state) const
 {
-    return m_Metrics->GetDescent() * state.GetFontSize();
+    return m_Metrics->GetDescent() * state.FontSize;
 }
 
 PdfCID PdfFont::AddSubsetGIDSafe(unsigned gid, const unicodeview& codePoints)
@@ -965,9 +965,9 @@ string_view genSubsetPrefix()
 double getCharWidth(double glyphWidth, const PdfTextState& state, bool ignoreCharSpacing)
 {
     if (ignoreCharSpacing)
-        return glyphWidth * state.GetFontSize() * state.GetFontScale();
+        return glyphWidth * state.FontSize * state.FontScale;
     else
-        return (glyphWidth * state.GetFontSize() + state.GetCharSpacing()) * state.GetFontScale();
+        return (glyphWidth * state.FontSize + state.CharSpacing) * state.FontScale;
 }
 
 string_view toString(PdfFontStretch stretch)

@@ -13,58 +13,20 @@
 
 namespace mm
 {
-    enum class PdfGraphicsStateProperty
+    // TODO: Add missing properties ISO 32000-1:2008 "8.4 Graphics State"
+    struct PDFMM_API PdfGraphicsState final
     {
-        CTM,
-        LineWidth,
-        MiterLevel,
-        LineCapStyle,
-        LineJoinStyle,
-        RenderingIntent,
-        FillColor,
-        StrokeColor,
-    };
-
-    class PDFMM_API PdfGraphicsState final
-    {
-        friend class PdfPainter;
-
     public:
         PdfGraphicsState();
-
     public:
-        void SetCurrentMatrix(const Matrix& matrix);
-        void SetLineWidth(double lineWidth);
-        void SetMiterLevel(double value);
-        void SetLineCapStyle(PdfLineCapStyle capStyle);
-        void SetLineJoinStyle(PdfLineJoinStyle joinStyle);
-        void SetRenderingIntent(const std::string_view& intent);
-        void SetFillColor(const PdfColor& color);
-        void SetStrokeColor(const PdfColor& color);
-
-    public:
-        const Matrix& GetCurrentMatrix() { return m_CTM; }
-        double GetLineWidth() const { return m_LineWidth; }
-        double GetMiterLevel() const { return m_MiterLevel; }
-        PdfLineCapStyle GetLineCapStyle() const { return m_LineCapStyle; }
-        PdfLineJoinStyle GetLineJoinStyle() const { return m_LineJoinStyle; }
-        const std::string& GetRenderingIntent() const { return m_RenderingIntent; }
-        const PdfColor& GetFillColor() const { return m_FillColor; }
-        const PdfColor& GetStrokeColor() const { return m_StrokeColor; }
-
-    private:
-        void SetPropertyChangedCallback(const std::function<void(PdfGraphicsStateProperty)>& callback);
-
-    private:
-        std::function<void(PdfGraphicsStateProperty)> m_PropertyChanged;
-        Matrix m_CTM;
-        double m_LineWidth;
-        double m_MiterLevel;
-        PdfLineCapStyle m_LineCapStyle;
-        PdfLineJoinStyle m_LineJoinStyle;
-        std::string m_RenderingIntent;
-        PdfColor m_FillColor;
-        PdfColor m_StrokeColor;
+        Matrix CTM;
+        double LineWidth;
+        double MiterLimit;
+        PdfLineCapStyle LineCapStyle;
+        PdfLineJoinStyle LineJoinStyle;
+        std::string RenderingIntent;
+        PdfColor FillColor;
+        PdfColor StrokeColor;
     };
 }
 

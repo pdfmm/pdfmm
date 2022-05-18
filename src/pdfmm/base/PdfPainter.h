@@ -42,6 +42,98 @@ enum class PdfPainterFlags
     RawCoordinates = 8,     ///< Does nothing for now
 };
 
+class PdfPainter;
+
+class PDFMM_API PdfPainterGraphicsState final
+{
+    friend class PdfPainter;
+
+private:
+    PdfPainterGraphicsState(PdfPainter& painter, PdfGraphicsState& m_state);
+
+public:
+    void SetCurrentMatrix(const Matrix& matrix);
+    void SetLineWidth(double lineWidth);
+    void SetMiterLevel(double value);
+    void SetLineCapStyle(PdfLineCapStyle capStyle);
+    void SetLineJoinStyle(PdfLineJoinStyle joinStyle);
+    void SetRenderingIntent(const std::string_view& intent);
+    void SetFillColor(const PdfColor& color);
+    void SetStrokeColor(const PdfColor& color);
+
+public:
+    const Matrix& GetCurrentMatrix() { return m_state->CTM; }
+    double GetLineWidth() const { return m_state->LineWidth; }
+    double GetMiterLevel() const { return m_state->MiterLimit; }
+    PdfLineCapStyle GetLineCapStyle() const { return m_state->LineCapStyle; }
+    PdfLineJoinStyle GetLineJoinStyle() const { return m_state->LineJoinStyle; }
+    const std::string& GetRenderingIntent() const { return m_state->RenderingIntent; }
+    const PdfColor& GetFillColor() const { return m_state->FillColor; }
+    const PdfColor& GetStrokeColor() const { return m_state->StrokeColor; }
+
+private:
+    PdfPainter* m_painter;
+    PdfGraphicsState* m_state;
+};
+
+class PDFMM_API PdfPainterTextState final
+{
+    friend class PdfPainter;
+
+private:
+    PdfPainterTextState(PdfPainter& painter, PdfTextState& state);
+
+public:
+    void SetFont(const PdfFont* font, double fontSize);
+
+    /** Set the current horizontal scaling (operator Tz)
+     *
+     *  \param scale scaling in [0,1]
+     */
+    void SetFontScale(double scale);
+
+    /** Set the character spacing (operator Tc)
+     *  \param charSpace character spacing in percent
+     */
+    void SetCharSpacing(double charSpacing);
+
+    /** Set the word spacing (operator Tw)
+     *  \param fWordSpace word spacing in PDF units
+     */
+    void SetWordSpacing(double wordSpacing);
+
+    void SetRenderingMode(PdfTextRenderingMode mode);
+
+public:
+    inline const PdfFont* GetFont() const { return m_state->Font; }
+
+    /** Retrieve the current font size (operator Tf, controlling Tfs)
+     *  \returns the current font size
+     */
+    inline double GetFontSize() const { return m_state->FontSize; }
+
+    /** Retrieve the current horizontal scaling (operator Tz)
+     *  \returns the current font scaling in [0,1]
+     */
+    inline double GetFontScale() const { return m_state->FontScale; }
+
+    /** Retrieve the character spacing (operator Tc)
+     *  \returns the current font character spacing
+     */
+    inline double GetCharSpacing() const { return m_state->CharSpacing; }
+
+    /** Retrieve the current word spacing (operator Tw)
+     *  \returns the current font word spacing in PDF units
+     */
+    inline double GetWordSpacing() const { return m_state->WordSpacing; }
+
+    inline PdfTextRenderingMode GetRenderingMode() const { return m_state->RenderingMode; }
+
+private:
+    PdfPainter* m_painter;
+    PdfTextState* m_state;
+};
+
 /**
  * This class provides an easy to use painter object which allows you to draw on a PDF page
  * object.
@@ -54,6 +146,9 @@ enum class PdfPainterFlags
  */
 class PDFMM_API PdfPainter final
 {
+    friend class PdfPainterGraphicsState;
+    friend class PdfPainterTextState;
+
 public:
     /** Create a new PdfPainter object.
      *
@@ -514,11 +609,11 @@ public:
     void EndMarkedContext();
 
 public:
-    inline const PdfTextState& GetTextState() const { return m_TextState; }
-    inline PdfTextState& GetTextState() { return m_TextState; }
+    inline const PdfPainterTextState& GetTextState() const { return m_PainterTextState; }
+    inline PdfPainterTextState& GetTextState() { return m_PainterTextState; }
 
-    inline const PdfGraphicsState& GetGraphicsState() const { return m_GraphicsState; }
-    inline PdfGraphicsState& GetGraphicsState() { return m_GraphicsState; }
+    inline const PdfPainterGraphicsState& GetGraphicsState() const { return m_PainterGraphicsState; }
+    inline PdfPainterGraphicsState& GetGraphicsState() { return m_PainterGraphicsState; }
 
     /** Set the tab width for the DrawText operation.
      *  Every tab '\\t' is replaced with tabWidth
@@ -550,6 +645,22 @@ public:
      *  \returns the current page canvas stream of the painter or nullptr if none is set
      */
     inline PdfObjectStream* GetStream() const { return m_stream; }
+
+private:
+    // To be called by state wrappers
+    void SetLineWidth(double value);
+    void SetMiterLimit(double value);
+    void SetLineCapStyle(PdfLineCapStyle style);
+    void SetLineJoinStyle(PdfLineJoinStyle style);
+    void SetFillColor(const PdfColor& color);
+    void SetStrokeColor(const PdfColor& color);
+    void SetRenderingIntent(const std::string_view& intent);
+    void SetTransformationMatrix(const Matrix& matrix);
+    void SetFontScale(double value);
+    void SetCharSpacing(double value);
+    void SetWordSpacing(double value);
+    void SetTextRenderingMode(PdfTextRenderingMode value);
+    void setFont(const PdfFont* font, double fontSize);
 
 private:
     /** Gets the text divided into individual lines, using the current font and clipping rectangle.
@@ -588,23 +699,12 @@ private:
 
     void drawTextAligned(const std::string_view& str, double x, double y, double width, PdfHorizontalAlignment hAlignment);
 
-    void drawText(const std::string_view& str, double x, double y);
+    void drawText(const std::string_view& str, double x, double y, bool isUnderline, bool isStrikeOut);
 
     void drawMultiLineText(const std::string_view& str, double x, double y, double width, double height,
         PdfHorizontalAlignment hAlignment, PdfVerticalAlignment vAlignment, bool clip, bool skipSpaces);
 
     void internalArc(double x, double y, double ray, double ang1, double ang2, bool contFlg);
-
-    void setLineWidth();
-    void setMiterLimit();
-    void setLineCapStyle();
-    void setLineJoinStyle();
-    void setFillColor();
-    void setStrokeColor();
-    void setRenderingIntent();
-    void setTransformationMatrix();
-    void setTextRenderingMode();
-    void setFont();
 
     void setLineWidth(double width);
 
@@ -640,6 +740,8 @@ private:
 
     PdfGraphicsState m_GraphicsState;
     PdfTextState m_TextState;
+    PdfPainterGraphicsState m_PainterGraphicsState;
+    PdfPainterTextState m_PainterTextState;
 
     /** Every tab '\\t' is replaced with m_TabWidth
      *  spaces before drawing text. Default is a value of 4
