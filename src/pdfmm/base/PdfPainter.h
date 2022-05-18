@@ -11,12 +11,12 @@
 
 #include "PdfDeclarations.h"
 
-#include <sstream>
-
 #include "PdfRect.h"
 #include "PdfColor.h"
 #include "PdfCanvas.h"
 #include "PdfTextState.h"
+#include "PdfGraphicsState.h"
+#include "PdfStringStream.h"
 
 #include <pdfmm/contrib/PdfShadingPattern.h>
 #include <pdfmm/contrib/PdfTilingPattern.h>
@@ -126,23 +126,6 @@ public:
      */
     void SetTilingPattern(const std::string_view& patternName);
 
-    /** Set the color for all following stroking operations.
-     *
-     *  \param color a PdfColor object
-     */
-    void SetStrokingColor(const PdfColor& color);
-
-    /** Set the color for all following non-stroking operations.
-     *
-     *  \param color a PdfColor object
-     */
-    void SetColor(const PdfColor& color);
-
-    /** Set the line width for all stroking operations.
-     *  \param width in PDF User Units.
-     */
-    void SetStrokeWidth(double width);
-
     /** Set the stoke style for all stroking operations.
      *  \param strokeStyle style of the stroking operations
      *  \param custom a custom stroking style which is used when
@@ -167,48 +150,6 @@ public:
      */
     void SetStrokeStyle(PdfStrokeStyle strokeStyle, const std::string_view& custom = { }, bool inverted = false, double scale = 1.0, bool subtractJoinCap = false);
 
-    /** Set the line cap style for all stroking operations.
-     *  \param eCapStyle the cap style.
-     *
-     *  Possible values:
-     *    PdfLineCapStyle::Butt,
-     *    PdfLineCapStyle::Round,
-     *    PdfLineCapStyle::Square
-     */
-    void SetLineCapStyle(PdfLineCapStyle capStyle);
-
-    /** Set the line join style for all stroking operations.
-     *  \param eJoinStyle the join style.
-     *
-     *  Possible values:
-     *    PdfLineJoinStyle::Miter
-     *    PdfLineJoinStyle::Round
-     *    PdfLineJoinStyle::Bevel
-     */
-    void SetLineJoinStyle(PdfLineJoinStyle joinStyle);
-
-    /** Set the font for all text drawing operations
-     *  \param font a handle to a valid PdfFont object
-     *
-     *  \see DrawText
-     */
-    void SetFont(PdfFont* font);
-
-    /** Set the text rendering mode
-     *  \param mode What text rendering mode to use.
-     *
-     *  Possible values:
-     *    PdfTextRenderingMode::Fill (default mode)
-     *    PdfTextRenderingMode::Stroke
-     *    PdfTextRenderingMode::FillAndStroke
-     *    PdfTextRenderingMode::Invisible
-     *    PdfTextRenderingMode::FillToClipPath
-     *    PdfTextRenderingMode::StrokeToClipPath
-     *    PdfTextRenderingMode::FillAndStrokeToClipPath
-     *    PdfTextRenderingMode::ToClipPath
-     */
-    void SetTextRenderingMode(PdfTextRenderingMode mode);
-
     /** Set a clipping rectangle
      *
      *  \param x x coordinate of the rectangle (left coordinate)
@@ -223,10 +164,6 @@ public:
      *  \param rect rectangle
      */
     void SetClipRect(const PdfRect& rect);
-
-    /** Set miter limit.
-     */
-    void SetMiterLimit(double value);
 
     /** Draw a line with the current color and line settings.
      *  \param startX x coordinate of the starting point
@@ -557,67 +494,31 @@ public:
      */
     void Restore();
 
-    /** Set the transformation matrix for the current coordinate system
-     *  See the operator 'cm' in PDF.
-     *
-     *  The six parameters are a standard 3x3 transformation matrix
-     *  where the 3 left parameters are 0 0 1.
-     *
-     *  \param a scale in x direction
-     *  \param b rotation
-     *  \param c rotation
-     *  \param d scale in y direction
-     *  \param e translate in x direction
-     *  \param f translate in y direction
-     *
-     *  \see Save()
-     *  \see Restore()
-     */
-    void SetTransformationMatrix(double a, double b, double c, double d, double e, double f);
-
     /** Sets a specific PdfExtGState as being active
      *	\param inGState the specific ExtGState to set
      */
     void SetExtGState(const PdfExtGState& inGState);
 
-    /** Sets a specific rendering intent
-     *	\param intent the specific intent to set
-     */
-    void SetRenderingIntent(const std::string_view& intent);
-
     /** Set the floating point precision.
      *
      *  \param precision write this many decimal places
      */
-    void SetPrecision(unsigned short precision);
+    void SetPrecision(unsigned char precision);
 
     /** Get the currently set floating point precision
      *  \returns how many decimal places will be written out for any floating point value
      */
-    unsigned short GetPrecision() const;
+    unsigned char GetPrecision() const;
 
-    /** Set rgb color that depend on color space setting, "cs" tag.
-     *
-     * \param color a PdfColor object
-     * \param csTag a CS tag used in PdfPage::SetICCProfile
-     *
-     * \see PdfPage::SetICCProfile()
-     */
-    void SetDependICCProfileColor(const PdfColor& color, const std::string_view& csTag);
+    void BeginMarkedContext(const std::string_view & tag);
+    void EndMarkedContext();
 
 public:
-    inline const PdfTextState& GetTextState() const { return m_textState; }
-    inline PdfTextState& GetTextState() { return m_textState; }
+    inline const PdfTextState& GetTextState() const { return m_TextState; }
+    inline PdfTextState& GetTextState() { return m_TextState; }
 
-    /** Gets current text rendering mode.
-     *  Default mode is PdfTextRenderingMode::Fill.
-     */
-    inline PdfTextRenderingMode GetTextRenderingMode() const { return m_currentTextRenderingMode; }
-
-    /** Get the current font:
-     *  \returns a font object or nullptr if no font was set.
-     */
-    inline PdfFont* GetFont() const { return m_Font; }
+    inline const PdfGraphicsState& GetGraphicsState() const { return m_GraphicsState; }
+    inline PdfGraphicsState& GetGraphicsState() { return m_GraphicsState; }
 
     /** Set the tab width for the DrawText operation.
      *  Every tab '\\t' is replaced with tabWidth
@@ -650,16 +551,6 @@ public:
      */
     inline PdfObjectStream* GetStream() const { return m_stream; }
 
-    /** Get current path string stream.
-     * Stroke/Fill commands clear current path.
-     * \returns std::ostringstream representing current path
-     */
-    inline std::ostringstream& GetCurrentPath() { return m_curPath; }
-
-    /** Get current temporary stream
-     */
-    inline std::ostringstream& GetStream() { return m_tmpStream; }
-
 private:
     /** Gets the text divided into individual lines, using the current font and clipping rectangle.
      *
@@ -667,7 +558,7 @@ private:
      *  \param width width of the text area
      *  \param skipSpaces whether the trailing whitespaces should be skipped, so that next line doesn't start with whitespace
      */
-    std::vector<std::string> GetMultiLineTextAsLines(const std::string_view& str, double width, bool skipSpaces);
+    std::vector<std::string> getMultiLineTextAsLines(const std::string_view& str, double width, bool skipSpaces);
 
     /** Coverts a rectangle to an array of points which can be used
      *  to draw an ellipse using 4 bezier curves.
@@ -684,7 +575,7 @@ private:
      *  \param pointsY pointer to an array were the y coordinates
      *                  of the resulting points will be stored
      */
-    void ConvertRectToBezier(double x, double y, double width, double height, double pointsX[], double pointsY[]);
+    void convertRectToBezier(double x, double y, double width, double height, double pointsX[], double pointsY[]);
 
     /** Register an object in the resource dictionary of this page
      *  so that it can be used for any following drawing operations.
@@ -693,16 +584,29 @@ private:
      *  \param name identifier of this object, e.g. /Ft0
      *  \param obj the object you want to register
      */
-    void AddToPageResources(const PdfName& type, const PdfName& identifier, const PdfObject& obj);
+    void addToPageResources(const PdfName& type, const PdfName& identifier, const PdfObject& obj);
 
-    /** Sets the color that was last set by the user as the current stroking color.
-      *  You should always enclose this function by Save() and Restore()
-      *
-      *  \see Save() \see Restore()
-      */
-    void SetCurrentStrokingColor();
+    void drawTextAligned(const std::string_view& str, double x, double y, double width, PdfHorizontalAlignment hAlignment);
 
-    void InternalArc(double x, double y, double ray, double ang1, double ang2, bool contFlg);
+    void drawText(const std::string_view& str, double x, double y);
+
+    void drawMultiLineText(const std::string_view& str, double x, double y, double width, double height,
+        PdfHorizontalAlignment hAlignment, PdfVerticalAlignment vAlignment, bool clip, bool skipSpaces);
+
+    void internalArc(double x, double y, double ray, double ang1, double ang2, bool contFlg);
+
+    void setLineWidth();
+    void setMiterLimit();
+    void setLineCapStyle();
+    void setLineJoinStyle();
+    void setFillColor();
+    void setStrokeColor();
+    void setRenderingIntent();
+    void setTransformationMatrix();
+    void setTextRenderingMode();
+    void setFont();
+
+    void setLineWidth(double width);
 
     /** Expand all tab characters in a string
      *  using spaces.
@@ -713,10 +617,12 @@ private:
      *  \returns an expanded copy of the passed string
      *  \see SetTabWidth
      */
-    std::string ExpandTabs(const std::string_view& str) const;
-    void CheckStream();
+    std::string expandTabs(const std::string_view& str) const;
+    void checkStream();
+    void checkFont();
+    void checkTextModeOpened();
+    void checkTextModeClosed();
     void finishDrawing();
-    void SetCurrentTextRenderingMode();
 
 private:
     PdfPainterFlags m_flags;
@@ -732,20 +638,13 @@ private:
      */
     PdfCanvas* m_canvas;
 
-    PdfTextState m_textState;
-
-    /** Font for all drawing operations
-     */
-    PdfFont* m_Font;
+    PdfGraphicsState m_GraphicsState;
+    PdfTextState m_TextState;
 
     /** Every tab '\\t' is replaced with m_TabWidth
      *  spaces before drawing text. Default is a value of 4
      */
     unsigned short m_TabWidth;
-
-    /** Save the current color for non stroking colors
-     */
-    PdfColor m_curColor;
 
     /** Is between BT and ET
      */
@@ -753,20 +652,7 @@ private:
 
     /** temporary stream buffer
      */
-    std::ostringstream  m_tmpStream;
-
-    /** current path
-     */
-    std::ostringstream  m_curPath;
-
-    /** True if should use color with ICC Profile
-     */
-    bool m_isCurColorICCDepend;
-    /** ColorSpace tag
-     */
-    std::string m_CSTag;
-
-    PdfTextRenderingMode m_currentTextRenderingMode;
+    PdfStringStream  m_tmpStream;
 
     // TODO: Next comment was found like this and it's is really bad.
     // Document the next fields accurately, possibly moving them

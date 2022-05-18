@@ -73,13 +73,10 @@ void HelloWorld(const string_view& filename)
         if (font == nullptr)
             PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-        // Set the font size
-        painter.GetTextState().SetFontSize(18.0);
-
         // Set the font as default font for drawing.
         // A font has to be set before you can draw text on
         // a PdfPainter.
-        painter.SetFont(font);
+        painter.GetTextState().SetFont(font, 18);
 
         // You could set a different color than black to draw
         // the text.

@@ -108,8 +108,7 @@ TEST_CASE("testCreateDelete")
     // write 1. page
     page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
     painter.SetCanvas(page);
-    painter.SetFont(font);
-    painter.GetTextState().SetFontSize(16.0);
+    painter.GetTextState().SetFont(font, 16.0);
     painter.DrawText("Page 1", 200, 200);
     painter.FinishDrawing();
     REQUIRE(doc.GetPages().GetCount() == 1);
@@ -337,8 +336,7 @@ vector<unique_ptr<PdfPage>> PdfPageTest::CreateSamplePages(PdfMemDocument& doc, 
 
         PdfPainter painter;
         painter.SetCanvas(pages[i].get());
-        painter.SetFont(font);
-        painter.GetTextState().SetFontSize(16.0);
+        painter.GetTextState().SetFont(font, 16.0);
         ostringstream os;
         os << "Page " << i + 1;
         painter.DrawText(os.str(), 200, 200);

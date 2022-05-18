@@ -47,7 +47,7 @@ public:
 
 private:
     TestColor();
-    TestColor& operator=(const TestColor&);
+    TestColor& operator=(const TestColor&) = delete;
 
     double m_r;
     double m_g;
@@ -59,19 +59,24 @@ TEST_CASE("testDefaultConstructor")
 {
     PdfColor color;
 
-    REQUIRE(!color.IsGrayScale());
+    REQUIRE(color.IsGrayScale());
+    REQUIRE(color.GetColorSpace() == PdfColorSpace::DeviceGray);
+    REQUIRE(color.GetGrayScale() == 0);
+    REQUIRE(color.ConvertToGrayScale().GetGrayScale() == 0);
+    REQUIRE(color.ConvertToRGB() == PdfColor(0, 0, 0));
+    REQUIRE(color.ConvertToCMYK() == PdfColor(0, 0, 0, 1));
+
+    auto arr = color.ToArray();
+    REQUIRE(arr.GetSize() == 1);
+    REQUIRE(arr[0] == PdfObject(0.0));
+
     REQUIRE(!color.IsRGB());
     REQUIRE(!color.IsCMYK());
     REQUIRE(!color.IsSeparation());
     REQUIRE(!color.IsCieLab());
-    REQUIRE(color.GetColorSpace() == PdfColorSpace::Unknown);
 
     ASSERT_THROW_WITH_ERROR_CODE(
         color.GetAlternateColorSpace(),
-        PdfErrorCode::InternalLogic);
-
-    ASSERT_THROW_WITH_ERROR_CODE(
-        color.GetGrayScale(),
         PdfErrorCode::InternalLogic);
 
     ASSERT_THROW_WITH_ERROR_CODE(
@@ -121,28 +126,12 @@ TEST_CASE("testDefaultConstructor")
     ASSERT_THROW_WITH_ERROR_CODE(
         color.GetCieB(),
         PdfErrorCode::InternalLogic);
-
-    ASSERT_THROW_WITH_ERROR_CODE(
-        color.ConvertToGrayScale(),
-        PdfErrorCode::CannotConvertColor);
-
-    ASSERT_THROW_WITH_ERROR_CODE(
-        color.ConvertToRGB(),
-        PdfErrorCode::CannotConvertColor);
-
-    ASSERT_THROW_WITH_ERROR_CODE(
-        color.ConvertToCMYK(),
-        PdfErrorCode::CannotConvertColor);
-
-    ASSERT_THROW_WITH_ERROR_CODE(
-        color.ToArray(),
-        PdfErrorCode::CannotConvertColor);
 }
 
 TEST_CASE("testGreyConstructor")
 {
-    const double GREY_VALUE = 0.123;
-    PdfColor color(GREY_VALUE);
+    const double GRAY_VALUE = 0.123;
+    PdfColor color(GRAY_VALUE);
 
     REQUIRE(color.IsGrayScale());
     REQUIRE(!color.IsRGB());
@@ -155,7 +144,7 @@ TEST_CASE("testGreyConstructor")
         color.GetAlternateColorSpace(),
         PdfErrorCode::InternalLogic);
 
-    REQUIRE(color.GetGrayScale() == GREY_VALUE);
+    REQUIRE(color.GetGrayScale() == GRAY_VALUE);
 
     ASSERT_THROW_WITH_ERROR_CODE(
         color.GetRed(),
@@ -207,29 +196,29 @@ TEST_CASE("testGreyConstructor")
 
     REQUIRE(color.ConvertToGrayScale() == color);
 
-    REQUIRE(color.ConvertToRGB() == PdfColor(GREY_VALUE, GREY_VALUE, GREY_VALUE));
+    REQUIRE(color.ConvertToRGB() == PdfColor(GRAY_VALUE, GRAY_VALUE, GRAY_VALUE));
 
     REQUIRE(color.ConvertToRGB().ConvertToCMYK() == color.ConvertToCMYK());
 
     const PdfArray COLOR_ARRAY = color.ToArray();
     REQUIRE(COLOR_ARRAY.GetSize() == 1);
-    REQUIRE(COLOR_ARRAY[0] == PdfObject(GREY_VALUE));
+    REQUIRE(COLOR_ARRAY[0] == PdfObject(GRAY_VALUE));
 
 }
 
-TEST_CASE("testGreyConstructorInvalid")
+TEST_CASE("testGrayConstructorInvalid")
 {
     {
-        const double GREY_VALUE = 1.01;
+        const double GRAY_VALUE = 1.01;
         ASSERT_THROW_WITH_ERROR_CODE(
-            const PdfColor TEST_COLOR(GREY_VALUE),
+            const PdfColor TEST_COLOR(GRAY_VALUE),
             PdfErrorCode::ValueOutOfRange);
     }
 
     {
-        const double GREY_VALUE = -0.01;
+        const double GRAY_VALUE = -0.01;
         ASSERT_THROW_WITH_ERROR_CODE(
-            const PdfColor TEST_COLOR(GREY_VALUE),
+            const PdfColor TEST_COLOR(GRAY_VALUE),
             PdfErrorCode::ValueOutOfRange);
     }
 }
@@ -541,8 +530,8 @@ TEST_CASE("testCMYKConstructorInvalid")
 TEST_CASE("testCopyConstructor")
 {
     {
-        const double GREY_VALUE = 0.123;
-        PdfColor initialColor(GREY_VALUE);
+        const double GRAY_VALUE = 0.123;
+        PdfColor initialColor(GRAY_VALUE);
         PdfColor color(initialColor);
 
         REQUIRE(color.IsGrayScale());
@@ -552,7 +541,7 @@ TEST_CASE("testCopyConstructor")
         REQUIRE(!color.IsCieLab());
         REQUIRE(color.GetColorSpace() == PdfColorSpace::DeviceGray);
 
-        REQUIRE(color.GetGrayScale() == GREY_VALUE);
+        REQUIRE(color.GetGrayScale() == GRAY_VALUE);
     }
 
     {
@@ -599,8 +588,8 @@ TEST_CASE("testCopyConstructor")
 TEST_CASE("testAssignmentOperator")
 {
     {
-        const double GREY_VALUE = 0.123;
-        PdfColor initialColor(GREY_VALUE);
+        const double GRAY_VALUE = 0.123;
+        PdfColor initialColor(GRAY_VALUE);
         PdfColor color;
         color = initialColor;
 
@@ -611,7 +600,7 @@ TEST_CASE("testAssignmentOperator")
         REQUIRE(!color.IsCieLab());
         REQUIRE(color.GetColorSpace() == PdfColorSpace::DeviceGray);
 
-        REQUIRE(color.GetGrayScale() == GREY_VALUE);
+        REQUIRE(color.GetGrayScale() == GRAY_VALUE);
     }
 
     {
@@ -661,9 +650,9 @@ TEST_CASE("testEqualsOperator")
 {
     //Grey test
     { //Positive
-        const double GREY_VALUE = 0.123;
-        PdfColor lColor(GREY_VALUE);
-        PdfColor rColor(GREY_VALUE);
+        const double GRAY_VALUE = 0.123;
+        PdfColor lColor(GRAY_VALUE);
+        PdfColor rColor(GRAY_VALUE);
 
         REQUIRE(lColor == rColor);
     }
@@ -1643,8 +1632,8 @@ TEST_CASE("testNamesOneByOne")
 
 TEST_CASE("testColorGreyConstructor")
 {
-    const double GREY_VALUE = 0.123;
-    PdfColorGray color(GREY_VALUE);
+    const double GRAY_VALUE = 0.123;
+    PdfColor color(GRAY_VALUE);
 
     REQUIRE(color.IsGrayScale());
     REQUIRE(!color.IsRGB());
@@ -1653,7 +1642,7 @@ TEST_CASE("testColorGreyConstructor")
     REQUIRE(!color.IsCieLab());
     REQUIRE(color.GetColorSpace() == PdfColorSpace::DeviceGray);
 
-    REQUIRE(color.GetGrayScale() == GREY_VALUE);
+    REQUIRE(color.GetGrayScale() == GRAY_VALUE);
 }
 
 TEST_CASE("testColorRGBConstructor")
@@ -1661,7 +1650,7 @@ TEST_CASE("testColorRGBConstructor")
     const double R_VALUE = 0.023;
     const double G_VALUE = 0.345;
     const double B_VALUE = 0.678;
-    PdfColorRGB color(R_VALUE, G_VALUE, B_VALUE);
+    PdfColor color(R_VALUE, G_VALUE, B_VALUE);
 
     REQUIRE(!color.IsGrayScale());
     REQUIRE(color.IsRGB());
@@ -1681,7 +1670,7 @@ TEST_CASE("testColorCMYKConstructor")
     const double M_VALUE = 0.2;
     const double Y_VALUE = 0.3;
     const double B_VALUE = 0.4;
-    PdfColorCMYK color(C_VALUE, M_VALUE, Y_VALUE, B_VALUE);
+    PdfColor color(C_VALUE, M_VALUE, Y_VALUE, B_VALUE);
 
     REQUIRE(!color.IsGrayScale());
     REQUIRE(!color.IsRGB());
@@ -1698,7 +1687,7 @@ TEST_CASE("testColorCMYKConstructor")
 
 TEST_CASE("testColorSeparationAllConstructor")
 {
-    PdfColorSeparationAll color;
+    auto color = PdfColor::CreateSeparationAll();
 
     REQUIRE(!color.IsGrayScale());
     REQUIRE(!color.IsRGB());
@@ -1758,7 +1747,7 @@ TEST_CASE("testColorSeparationAllConstructor")
 
 TEST_CASE("testColorSeparationNoneConstructor")
 {
-    PdfColorSeparationNone color;
+    auto color = PdfColor::CreateSeparationNone();
 
     REQUIRE(!color.IsGrayScale());
     REQUIRE(!color.IsRGB());
@@ -1819,10 +1808,10 @@ TEST_CASE("testColorSeparationNoneConstructor")
 TEST_CASE("testColorSeparationConstructor")
 {
     { //alternate color is Greyscale
-        const PdfColorGray ALTERNATE_COLOR(0.1234);
+        PdfColor ALTERNATE_COLOR(0.1234);
         const double DENSITY = 0.523456;
         const string_view NAME("Hello");
-        PdfColorSeparation color(NAME, DENSITY, ALTERNATE_COLOR);
+        auto color = PdfColor::CreateSeparation(NAME, DENSITY, ALTERNATE_COLOR);
 
         REQUIRE(!color.IsGrayScale());
         REQUIRE(!color.IsRGB());
@@ -1901,7 +1890,7 @@ TEST_CASE("testColorSeparationConstructor")
         const PdfColor ALTERNATE_COLOR(R_VALUE, G_VALUE, B_VALUE);
         const double DENSITY = 0.523456;
         const string_view NAME("Hello");
-        PdfColorSeparation color(NAME, DENSITY, ALTERNATE_COLOR);
+        auto color = PdfColor::CreateSeparation(NAME, DENSITY, ALTERNATE_COLOR);
 
         REQUIRE(!color.IsGrayScale());
         REQUIRE(!color.IsRGB());
@@ -1975,7 +1964,7 @@ TEST_CASE("testColorSeparationConstructor")
         const PdfColor ALTERNATE_COLOR(C_VALUE, M_VALUE, Y_VALUE, K_VALUE);
         const double DENSITY = 0.123456;
         const string_view NAME("Hello");
-        PdfColorSeparation color(NAME, DENSITY, ALTERNATE_COLOR);
+        auto color = PdfColor::CreateSeparation(NAME, DENSITY, ALTERNATE_COLOR);
 
         REQUIRE(!color.IsGrayScale());
         REQUIRE(!color.IsRGB());
@@ -2034,10 +2023,10 @@ TEST_CASE("testColorSeparationConstructor")
         const double dCieL = 0.023;
         const double dCieA = 0.345;
         const double dCieB = 0.678;
-        const PdfColorCieLab ALTERNATE_COLOR(dCieL, dCieA, dCieB);
+        auto ALTERNATE_COLOR = PdfColor::CreateCieLab(dCieL, dCieA, dCieB);
         const double DENSITY = 0.523456;
         const string_view NAME("Hello");
-        PdfColorSeparation color(NAME, DENSITY, ALTERNATE_COLOR);
+        auto color = PdfColor::CreateSeparation(NAME, DENSITY, ALTERNATE_COLOR);
 
         REQUIRE(!color.IsGrayScale());
         REQUIRE(!color.IsRGB());
@@ -2045,7 +2034,7 @@ TEST_CASE("testColorSeparationConstructor")
         REQUIRE(color.IsSeparation());
         REQUIRE(!color.IsCieLab());
         REQUIRE(color.GetColorSpace() == PdfColorSpace::Separation);
-        REQUIRE(color.GetAlternateColorSpace() == PdfColorSpace::CieLab);
+        REQUIRE(color.GetAlternateColorSpace() == PdfColorSpace::Lab);
 
         ASSERT_THROW_WITH_ERROR_CODE(
             color.GetGrayScale(),
@@ -2109,14 +2098,14 @@ TEST_CASE("testColorCieLabConstructor")
     const double dCieL = 0.023;
     const double dCieA = 0.345;
     const double dCieB = 0.678;
-    PdfColorCieLab color(dCieL, dCieA, dCieB);
+    auto color = PdfColor::CreateCieLab(dCieL, dCieA, dCieB);
 
     REQUIRE(!color.IsGrayScale());
     REQUIRE(!color.IsRGB());
     REQUIRE(!color.IsCMYK());
     REQUIRE(!color.IsSeparation());
     REQUIRE(color.IsCieLab());
-    REQUIRE(color.GetColorSpace() == PdfColorSpace::CieLab);
+    REQUIRE(color.GetColorSpace() == PdfColorSpace::Lab);
 
     ASSERT_THROW_WITH_ERROR_CODE(
         color.GetAlternateColorSpace(),

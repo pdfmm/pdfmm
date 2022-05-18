@@ -131,6 +131,26 @@ void Matrix::ToArray(PdfArray& arr) const
     arr.Add(m_mat[5]);
 }
 
+bool Matrix::operator==(const Matrix& m) const
+{
+    return m_mat[0] == m.m_mat[0]
+        && m_mat[1] == m.m_mat[1]
+        && m_mat[2] == m.m_mat[2]
+        && m_mat[3] == m.m_mat[3]
+        && m_mat[4] == m.m_mat[4]
+        && m_mat[5] == m.m_mat[5];
+}
+
+bool Matrix::operator!=(const Matrix& m) const
+{
+    return m_mat[0] != m.m_mat[0]
+        || m_mat[1] != m.m_mat[1]
+        || m_mat[2] != m.m_mat[2]
+        || m_mat[3] != m.m_mat[3]
+        || m_mat[4] != m.m_mat[4]
+        || m_mat[5] != m.m_mat[5];
+}
+
 const double& Matrix::operator[](unsigned idx) const
 {
     return m_mat[idx];

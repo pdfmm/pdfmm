@@ -88,7 +88,7 @@ void PdfResources::AddColorResource(const PdfColor& color)
         }
         break;
 
-        case PdfColorSpace::CieLab:
+        case PdfColorSpace::Lab:
         {
             if (!GetDictionary().HasKey("ColorSpace")
                 || !GetDictionary().MustFindKey("ColorSpace").GetDictionary().HasKey("ColorSpaceLab"))

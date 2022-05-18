@@ -28,10 +28,10 @@ class PdfDocument;
  *  Derived classes PdfColorGray, PdfColorRGB, PdfColorCMYK, PdfColorSeparation
  *  and PdfColorCieLab are available for easy construction
  */
-class PDFMM_API PdfColor
+class PDFMM_API PdfColor final
 {
 public:
-    /** Create a PdfColor object that is RGB black.
+    /** Create a PdfColor object that is grayscale black.
      */
     PdfColor();
 
@@ -65,36 +65,39 @@ public:
      *
      *  \param rhs copy rhs into this object
      */
-    PdfColor(const PdfColor& rhs);
+    PdfColor(const PdfColor& rhs) = default;
 
-    /** Destructor
+public:
+    /** Create a new PdfColor object with a CIE-LAB-value
+     *
+     *  \param cieL the value of the L component, must be between 0.0 and 100.0
+     *  \param cieA the value of the A component, must be between -128.0 and 127.0
+     *  \param cieB the value of the B component, must be between -128.0 and 127.0
      */
-    virtual ~PdfColor();
+    static PdfColor CreateCieLab(double cieL, double cieA, double cieB);
 
-    /** Assignment operator
+    /** Create a new PdfColor object with
+     *  a separation-name and an equivalent color
      *
-     *  \param rhs copy rhs into this object
-     *
-     *  \returns a reference to this color object
+     *  \param name Name of the separation color
+     *  \param density the density value of the separation color
+     *  \param alternateColor the alternate color, must be of type gray, rgb, cmyk or cie
      */
-    const PdfColor& operator=(const PdfColor& rhs);
+    static PdfColor CreateSeparation(const std::string_view& name, double density, const PdfColor& alternateColor);
 
-    /** Test for equality of colors.
+    /** Create a new PdfColor object with
+     *  Separation color None.
      *
-     *  \param rhs color to compare to
-     *
-     *  \returns true if object color is equal to rhs
      */
-    bool operator==(const PdfColor& rhs) const;
+    static PdfColor CreateSeparationNone();
 
-    /** Test for inequality of colors.
-     *
-     *  \param rhs color to compare to
-     *
-     *  \returns true if object color is not equal to rhs
-     */
-    bool operator!=(const PdfColor& rhs) const;
+   /** Create a new PdfColor object with
+    *  Separation color All.
+    *
+    */
+    static PdfColor CreateSeparationAll();
 
+public:
     /** Test if this is a grayscale color.
      *
      *  \returns true if this is a grayscale PdfColor object
@@ -368,191 +371,52 @@ public:
      */
     PdfObject* BuildColorSpace(PdfDocument& document) const;
 
-protected:
-    union
+public:
+    /** Assignment operator
+     *
+     *  \param rhs copy rhs into this object
+     *
+     *  \returns a reference to this color object
+     */
+    PdfColor& operator=(const PdfColor& rhs) = default;
+
+    /** Test for equality of colors.
+     *
+     *  \param rhs color to compare to
+     *
+     *  \returns true if object color is equal to rhs
+     */
+    bool operator==(const PdfColor& rhs) const;
+
+    /** Test for inequality of colors.
+     *
+     *  \param rhs color to compare to
+     *
+     *  \returns true if object color is not equal to rhs
+     */
+    bool operator!=(const PdfColor& rhs) const;
+
+private:
+    union Color
     {
         double cmyk[4];
         double rgb[3];
         double lab[3];
         double gray;
-    } m_Color;
-    std::string m_separationName;
-    double m_separationDensity;
+    };
+
+    PdfColor(const Color& data, std::string m_separationName, double separationDensity,
+        PdfColorSpace colorSpace, PdfColorSpace alternateColorSpace);
+
+private:
+    Color m_Color;
+    std::string m_SeparationName;
+    double m_SeparationDensity;
     PdfColorSpace m_ColorSpace;
     PdfColorSpace m_AlternateColorSpace;
 
 private:
     static const unsigned* const m_hexDigitMap; // Mapping of hex sequences to int value
-};
-
-class PDFMM_API PdfColorGray : public PdfColor
-{
-public:
-
-    /** Create a new PdfColor object with a grayscale value.
-     *
-     *  \param gray a grayscale value between 0.0 and 1.0
-     */
-    explicit PdfColorGray(double gray);
-
-private:
-    /** Default constructor, not implemented
-     */
-    PdfColorGray();
-
-    /** Copy constructor, not implemented
-     */
-    PdfColorGray(const PdfColorGray&);
-
-    /** Copy assignment operator, not implemented
-     */
-    PdfColorGray& operator=(const PdfColorGray&) = delete;
-};
-
-class PDFMM_API PdfColorRGB : public PdfColor
-{
-public:
-    /** Create a new PdfColor object with
-     *  a RGB color
-     *
-     *  \param red the value of the red component, must be between 0.0 and 1.0
-     *  \param green the value of the green component, must be between 0.0 and 1.0
-     *  \param blue the value of the blue component, must be between 0.0 and 1.0
-     */
-    PdfColorRGB(double red, double green, double blue);
-
-private:
-    /** Default constructor, not implemented
-     */
-    PdfColorRGB();
-
-    /** Copy constructor, not implemented
-     */
-    PdfColorRGB(const PdfColorRGB&);
-
-    /** Copy assignment operator, not implemented
-     */
-    PdfColorRGB& operator=(const PdfColorRGB&) = delete;
-};
-
-class PDFMM_API PdfColorCMYK : public PdfColor
-{
-public:
-
-    /** Create a new PdfColor object with a CMYK color
-     *
-     *  \param cyan the value of the cyan component, must be between 0.0 and 1.0
-     *  \param magenta the value of the magenta component, must be between 0.0 and 1.0
-     *  \param yellow the value of the yellow component, must be between 0.0 and 1.0
-     *  \param black the value of the black component, must be between 0.0 and 1.0
-     */
-    PdfColorCMYK(double cyan, double magenta, double yellow, double black);
-
-private:
-    /** Default constructor, not implemented
-     */
-    PdfColorCMYK();
-
-    /** Copy constructor, not implemented
-     */
-    PdfColorCMYK(const PdfColorCMYK&);
-
-    /** Copy assignment operator, not implemented
-     */
-    PdfColorCMYK& operator=(const PdfColorCMYK&) = delete;
-};
-
-class PDFMM_API PdfColorSeparationAll : public PdfColor
-{
-public:
-
-    /** Create a new PdfColor object with
-    *  Separation color All.
-    *
-    */
-    PdfColorSeparationAll();
-
-private:
-    /** Copy constructor, not implemented
-     */
-    PdfColorSeparationAll(const PdfColorSeparationAll&);
-
-    /** Copy assignment operator, not implemented
-     */
-    PdfColorSeparationAll& operator=(const PdfColorSeparationAll&) = delete;
-};
-
-class PDFMM_API PdfColorSeparationNone : public PdfColor
-{
-public:
-
-    /** Create a new PdfColor object with
-    *  Separation color None.
-    *
-    */
-    PdfColorSeparationNone();
-
-private:
-    /** Copy constructor, not implemented
-     */
-    PdfColorSeparationNone(const PdfColorSeparationNone&);
-
-    /** Copy assignment operator, not implemented
-     */
-    PdfColorSeparationNone& operator=(const PdfColorSeparationNone&) = delete;
-};
-
-class PDFMM_API PdfColorSeparation : public PdfColor
-{
-public:
-
-    /** Create a new PdfColor object with
-     *  a separation-name and an equivalent color
-     *
-     *  \param name Name of the separation color
-     *  \param density the density value of the separation color
-     *  \param alternateColor the alternate color, must be of type gray, rgb, cmyk or cie
-     */
-    PdfColorSeparation(const std::string_view& name, double density, const PdfColor& alternateColor);
-
-private:
-    /** Default constructor, not implemented
-     */
-    PdfColorSeparation();
-
-    /** Copy constructor, not implemented
-     */
-    PdfColorSeparation(const PdfColorSeparation&);
-
-    /** Copy assignment operator, not implemented
-     */
-    PdfColorSeparation& operator=(const PdfColorSeparation&) = delete;
-};
-
-class PDFMM_API PdfColorCieLab : public PdfColor
-{
-public:
-
-    /** Create a new PdfColor object with a CIE-LAB-value
-     *
-     *  \param cieL the value of the L component, must be between 0.0 and 100.0
-     *  \param cieA the value of the A component, must be between -128.0 and 127.0
-     *  \param cieB the value of the B component, must be between -128.0 and 127.0
-     */
-    PdfColorCieLab(double cieL, double cieA, double cieB);
-
-private:
-    /** Default constructor, not implemented
-     */
-    PdfColorCieLab();
-
-    /** Copy constructor, not implemented
-     */
-    PdfColorCieLab(const PdfColorCieLab&);
-
-    /** Copy assignment operator, not implemented
-     */
-    PdfColorCieLab& operator=(const PdfColorCieLab&) = delete;
 };
 
 };

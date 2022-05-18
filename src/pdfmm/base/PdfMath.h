@@ -92,6 +92,8 @@ namespace mm
     public:
         Matrix(const Matrix&) = default;
         Matrix& operator=(const Matrix&) = default;
+        bool operator==(const Matrix& m) const;
+        bool operator!=(const Matrix& m) const;
 
     public:
         const double& operator[](unsigned idx) const;

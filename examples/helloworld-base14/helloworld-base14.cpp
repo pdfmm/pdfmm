@@ -83,13 +83,10 @@ void HelloWorld(const string_view& filename)
         if (font == nullptr)
             PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-        // Set the font size
-        painter.GetTextState().SetFontSize(18.0);
-
         // Set the font as default font for drawing.
         // A font has to be set before you can draw text on
         // a PdfPainter.
-        painter.SetFont(font);
+        painter.GetTextState().SetFont(font, 18.0);
 
         // You could set a different color than black to draw
         // the text.
@@ -208,8 +205,8 @@ const char* GetBase14FontName(unsigned i)
 void DrawRedFrame(PdfPainter& painter, double x, double y, double width, double height)
 {
     // draw red box
-    painter.SetColor(PdfColor(1.0f, 0.0f, 0.0f));
-    painter.SetStrokingColor(PdfColor(1.0f, 0.0f, 0.0f));
+    painter.GetGraphicsState().SetFillColor(PdfColor(1.0f, 0.0f, 0.0f));
+    painter.GetGraphicsState().SetStrokeColor(PdfColor(1.0f, 0.0f, 0.0f));
     painter.DrawLine(x, y, x + width, y);
     if (height > 0.0f)
     {
@@ -218,8 +215,8 @@ void DrawRedFrame(PdfPainter& painter, double x, double y, double width, double 
         painter.DrawLine(x, y + height, x + width, y + height);
     }
     // restore to black
-    painter.SetColor(PdfColor(0.0f, 0.0f, 0.0f));
-    painter.SetStrokingColor(PdfColor(0.0f, 0.0f, 0.0f));
+    painter.GetGraphicsState().SetFillColor(PdfColor(0.0f, 0.0f, 0.0f));
+    painter.GetGraphicsState().SetStrokeColor(PdfColor(0.0f, 0.0f, 0.0f));
 }
 
 void DemoBase14Fonts(PdfPainter& painter, PdfPage& page, PdfDocument& document, const PdfFontSearchParams& params)
@@ -239,8 +236,7 @@ void DemoBase14Fonts(PdfPainter& painter, PdfPage& page, PdfDocument& document, 
         if (font == nullptr)
             throw runtime_error("Font not found");
 
-        painter.SetFont(font);
-        painter.GetTextState().SetFontSize(12.0);
+        painter.GetTextState().SetFont(font, 12.0);
 
         width = font->GetStringWidth(text, painter.GetTextState());
         height = font->GetMetrics().GetLineSpacing();
@@ -268,7 +264,7 @@ void DemoBase14Fonts(PdfPainter& painter, PdfPage& page, PdfDocument& document, 
             text = (string)demo_text2.substr(i, 1);
 
         PdfFont* font = document.GetFontManager().GetFont("Helvetica", params);
-        painter.SetFont(font);
+        painter.GetTextState().SetFont(font, 12);
         height = font->GetMetrics().GetLineSpacing();
         width = font->GetStringWidth(text, painter.GetTextState());
 
@@ -282,7 +278,7 @@ void DemoBase14Fonts(PdfPainter& painter, PdfPage& page, PdfDocument& document, 
         {
             // draw again, with non-Base14 font
             PdfFont* font2 = document.GetFontManager().GetFont("Arial", params);
-            painter.SetFont(font2);
+            painter.GetTextState().SetFont(font2, 12);
             height = font2->GetMetrics().GetLineSpacing();
             width = font2->GetStringWidth((string_view)text, painter.GetTextState());
 

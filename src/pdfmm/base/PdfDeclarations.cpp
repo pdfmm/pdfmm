@@ -7,6 +7,8 @@
  */
 
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
+
+#include <charconv>
 #include <utfcpp/utf8.h>
 #include <pdfmm/private/utfcpp_extensions.h>
 
@@ -22,6 +24,8 @@
 
 using namespace std;
 using namespace mm;
+
+static void removeTrailingZeroes(string& str);
 
 const char* utls::TypeNameForIndex(unsigned index, const char** types, unsigned len)
 {
@@ -192,6 +196,22 @@ void utls::ReadUtf16LEString(const bufferview& buffer, string& utf8str)
 {
     utf8::u16lechariterable iterable(buffer.data(), buffer.size());
     utf8::utf16to8(iterable.begin(), iterable.end(), std::back_inserter(utf8str));
+}
+
+void utls::FormatTo(string& str, float value, unsigned char precision)
+{
+    str.resize(numeric_limits<float>::max_digits10);
+    auto rval = std::to_chars(str.data(), str.data() + str.length(), value, chars_format::fixed, precision);
+    str.resize(rval.ptr - str.data());
+    removeTrailingZeroes(str);
+}
+
+void utls::FormatTo(string& str, double value, unsigned char precision)
+{
+    str.resize(numeric_limits<double>::max_digits10);
+    auto rval = std::to_chars(str.data(), str.data() + str.length(), value, chars_format::fixed, precision);
+    str.resize(rval.ptr - str.data());
+    removeTrailingZeroes(str);
 }
 
 string utls::ToLower(const string_view& str)
@@ -438,3 +458,25 @@ datahandle::datahandle(const bufferview& view)
 
 datahandle::datahandle(const charbuff::const_ptr& buff)
     : m_view(*buff), m_buff(buff) { }
+
+void removeTrailingZeroes(string& str)
+{
+    // Remove trailing zeroes
+    const char* cursor = str.data();
+    size_t len = str.size();
+    while (cursor[len - 1] == '0')
+        len--;
+
+    if (cursor[len - 1] == '.')
+        len--;
+
+    if (len == 0)
+    {
+        str.resize(1);
+        str[0] = '0';
+    }
+    else
+    {
+        str.resize(len);
+    }
+}

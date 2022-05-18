@@ -332,12 +332,17 @@ enum class PdfFontMatchBehaviorFlags
 enum class PdfColorSpace
 {
     Unknown = 0,
-    DeviceGray,        ///< Gray
-    DeviceRGB,         ///< RGB
-    DeviceCMYK,        ///< CMYK
-    Separation,        ///< Separation
-    CieLab,            ///< CIE-Lab
-    Indexed,           ///< Indexed
+    DeviceGray,
+    DeviceRGB,
+    DeviceCMYK,
+    CalGray,
+    CalRGB,
+    Lab,            ///< CIE-Lab
+    ICCBased,
+    Indexed,
+    Pattern,
+    Separation,
+    DeviceN
 };
 
 /**
@@ -346,14 +351,14 @@ enum class PdfColorSpace
 enum class PdfTextRenderingMode
 {
     Unknown = 0,
-    Fill,                     ///< Default mode, fill text
-    Stroke,                   ///< Stroke text
-    FillAndStroke,            ///< Fill, then stroke text
-    Invisible,                ///< Neither fill nor stroke text (invisible)
-    FillToClipPath,           ///< Fill text and add to path for clipping
-    StrokeToClipPath,         ///< Stroke text and add to path for clipping
-    FillAndStrokeToClipPath,  ///< Fill, then stroke text and add to path for clipping
-    ToClipPath,               ///< Add text to path for clipping
+    Fill,                      ///< Default mode, fill text
+    Stroke,                    ///< Stroke text
+    FillStroke,                ///< Fill, then stroke text
+    Invisible,                 ///< Neither fill nor stroke text (invisible)
+    FillAddToClipPath,         ///< Fill text and add to path for clipping
+    StrokeAddToClipPath,       ///< Stroke text and add to path for clipping
+    FillStrokeAddToClipPath,   ///< Fill, then stroke text and add to path for clipping
+    AddToClipPath,             ///< Add text to path for clipping
 };
 
 /**

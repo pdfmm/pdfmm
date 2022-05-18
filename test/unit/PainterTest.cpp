@@ -15,7 +15,7 @@ static void CompareStreamContent(PdfObjectStream& stream, const string_view& exp
 
 TEST_CASE("testAppend")
 {
-    string_view example = "BT (Hallo) Tj ET";
+    string_view example = "BT (Hello) Tj ET";
 
     PdfMemDocument doc;
     PdfPage* page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
@@ -27,7 +27,7 @@ TEST_CASE("testAppend")
 
     PdfPainter painter;
     painter.SetCanvas(page);
-    painter.SetColor(PdfColor(1.0, 1.0, 1.0));
+    painter.GetGraphicsState().SetFillColor(PdfColor(1.0, 1.0, 1.0));
     painter.FinishDrawing();
 
     PdfCanvasInputDevice device(*page);
@@ -39,7 +39,7 @@ TEST_CASE("testAppend")
         out.append(buffer, read);
     }
 
-    REQUIRE(out == "q\nBT (Hallo) Tj ET\nQ\nq\n1.000 1.000 1.000 rg\nQ\n");
+    REQUIRE(out == "q\nBT (Hello) Tj ET\nQ\nq\n1 1 1 rg\nQ\n");
 }
 
 void CompareStreamContent(PdfObjectStream& stream, const string_view& expected)

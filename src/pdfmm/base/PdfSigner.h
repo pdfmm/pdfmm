@@ -15,7 +15,7 @@
 
 namespace mm
 {
-    class PdfSigner
+    class PDFMM_API PdfSigner
     {
     public:
         virtual ~PdfSigner();

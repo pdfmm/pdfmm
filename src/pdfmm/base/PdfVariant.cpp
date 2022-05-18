@@ -21,6 +21,8 @@
 using namespace mm;
 using namespace std;
 
+constexpr unsigned char DefaultPrecision = 6;
+
 PdfVariant PdfVariant::NullValue;
 
 PdfVariant::PdfVariant(PdfDataType type)
@@ -175,24 +177,8 @@ void PdfVariant::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
                 device.Put(' '); // Write space before numbers
 
             string formatted;
-            cmn::FormatTo(formatted, "{:f}", m_Data.Real);
-
-            // Remove trailing zeroes
-            const char* str = formatted.data();
-            size_t len = formatted.size();
-            while (str[len - 1] == '0')
-                len--;
-
-            if (str[len - 1] == '.')
-                len--;
-
-            if (len == 0)
-            {
-                device.Put('0');
-                break;
-            }
-
-            device.Write(string_view(formatted.data(), len));
+            utls::FormatTo(formatted, m_Data.Real, DefaultPrecision);
+            device.Write(formatted);
             break;
         }
         case PdfDataType::Reference:

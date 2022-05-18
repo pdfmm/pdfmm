@@ -194,7 +194,7 @@ void PdfAxialShadingPattern::Init(double x0, double y0, double x1, double y1, co
             shading.AddKey("ColorSpace", PdfName("DeviceGray"));
             break;
 
-        case PdfColorSpace::CieLab:
+        case PdfColorSpace::Lab:
         {
             PdfObject* csp = start.BuildColorSpace(*this->GetObject().GetDocument());
             shading.AddKey("ColorSpace", csp->GetIndirectReference());
@@ -324,7 +324,7 @@ void PdfFunctionBaseShadingPattern::Init(const PdfColor& llCol, const PdfColor& 
         }
         break;
 
-        case PdfColorSpace::CieLab:
+        case PdfColorSpace::Lab:
         {
             range.Add(0.0);
             range.Add(100.0);
@@ -431,7 +431,7 @@ void PdfRadialShadingPattern::Init(double x0, double y0, double r0, double x1, d
             shading.AddKey("ColorSpace", PdfName("DeviceGray"));
             break;
 
-        case PdfColorSpace::CieLab:
+        case PdfColorSpace::Lab:
         {
             PdfObject* csp = start.BuildColorSpace(*this->GetObject().GetDocument());
             shading.AddKey("ColorSpace", csp->GetIndirectReference());

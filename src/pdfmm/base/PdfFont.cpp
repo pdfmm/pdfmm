@@ -371,7 +371,7 @@ double PdfFont::GetDefaultCharWidth(const PdfTextState& state, bool ignoreCharSp
     else
     {
         return (m_Metrics->GetDefaultWidth() * state.GetFontSize()
-            + state.GetCharSpace()) * state.GetFontScale();
+            + state.GetCharSpacing()) * state.GetFontScale();
     }
 }
 
@@ -967,7 +967,7 @@ double getCharWidth(double glyphWidth, const PdfTextState& state, bool ignoreCha
     if (ignoreCharSpacing)
         return glyphWidth * state.GetFontSize() * state.GetFontScale();
     else
-        return (glyphWidth * state.GetFontSize() + state.GetCharSpace()) * state.GetFontScale();
+        return (glyphWidth * state.GetFontSize() + state.GetCharSpacing()) * state.GetFontScale();
 }
 
 string_view toString(PdfFontStretch stretch)
