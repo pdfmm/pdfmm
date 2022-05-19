@@ -44,12 +44,12 @@ enum class PdfPainterFlags
 
 class PdfPainter;
 
-class PDFMM_API PdfPainterGraphicsState final
+class PDFMM_API PdfGraphicsStateWrapper final
 {
     friend class PdfPainter;
 
 private:
-    PdfPainterGraphicsState(PdfPainter& painter, PdfGraphicsState& m_state);
+    PdfGraphicsStateWrapper(PdfPainter& painter, PdfGraphicsState& state);
 
 public:
     void SetCurrentMatrix(const Matrix& matrix);
@@ -71,17 +71,23 @@ public:
     const PdfColor& GetFillColor() const { return m_state->FillColor; }
     const PdfColor& GetStrokeColor() const { return m_state->StrokeColor; }
 
+public:
+    operator const PdfGraphicsState&() const { return *m_state; }
+
+private:
+    void SetState(PdfGraphicsState& state) { m_state = &state; }
+
 private:
     PdfPainter* m_painter;
     PdfGraphicsState* m_state;
 };
 
-class PDFMM_API PdfPainterTextState final
+class PDFMM_API PdfTextStateWrapper final
 {
     friend class PdfPainter;
 
 private:
-    PdfPainterTextState(PdfPainter& painter, PdfTextState& state);
+    PdfTextStateWrapper(PdfPainter& painter, PdfTextState& state);
 
 public:
     void SetFont(const PdfFont* font, double fontSize);
@@ -129,6 +135,12 @@ public:
 
     inline PdfTextRenderingMode GetRenderingMode() const { return m_state->RenderingMode; }
 
+public:
+    operator const PdfTextState&() const { return *m_state; }
+
+private:
+    void SetState(PdfTextState& state) { m_state = &state; }
+
 private:
     PdfPainter* m_painter;
     PdfTextState* m_state;
@@ -146,8 +158,8 @@ private:
  */
 class PDFMM_API PdfPainter final
 {
-    friend class PdfPainterGraphicsState;
-    friend class PdfPainterTextState;
+    friend class PdfGraphicsStateWrapper;
+    friend class PdfTextStateWrapper;
 
 public:
     /** Create a new PdfPainter object.
@@ -609,11 +621,11 @@ public:
     void EndMarkedContext();
 
 public:
-    inline const PdfPainterTextState& GetTextState() const { return m_PainterTextState; }
-    inline PdfPainterTextState& GetTextState() { return m_PainterTextState; }
+    inline const PdfTextStateWrapper& GetTextState() const { return m_PainterTextState; }
+    inline PdfTextStateWrapper& GetTextState() { return m_PainterTextState; }
 
-    inline const PdfPainterGraphicsState& GetGraphicsState() const { return m_PainterGraphicsState; }
-    inline PdfPainterGraphicsState& GetGraphicsState() { return m_PainterGraphicsState; }
+    inline const PdfGraphicsStateWrapper& GetGraphicsState() const { return m_PainterGraphicsState; }
+    inline PdfGraphicsStateWrapper& GetGraphicsState() { return m_PainterGraphicsState; }
 
     /** Set the tab width for the DrawText operation.
      *  Every tab '\\t' is replaced with tabWidth
@@ -740,8 +752,8 @@ private:
 
     PdfGraphicsState m_GraphicsState;
     PdfTextState m_TextState;
-    PdfPainterGraphicsState m_PainterGraphicsState;
-    PdfPainterTextState m_PainterTextState;
+    PdfGraphicsStateWrapper m_PainterGraphicsState;
+    PdfTextStateWrapper m_PainterTextState;
 
     /** Every tab '\\t' is replaced with m_TabWidth
      *  spaces before drawing text. Default is a value of 4

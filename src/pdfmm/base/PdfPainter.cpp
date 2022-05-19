@@ -1514,10 +1514,10 @@ string expandTabs(const string_view& str, unsigned tabWidth, unsigned tabCount)
     return ret;
 }
 
-PdfPainterGraphicsState::PdfPainterGraphicsState(PdfPainter& painter, PdfGraphicsState& state)
+PdfGraphicsStateWrapper::PdfGraphicsStateWrapper(PdfPainter& painter, PdfGraphicsState& state)
     : m_painter(&painter), m_state(&state) { }
 
-void PdfPainterGraphicsState::SetCurrentMatrix(const Matrix& matrix)
+void PdfGraphicsStateWrapper::SetCurrentMatrix(const Matrix& matrix)
 {
     if (m_state->CTM == matrix)
         return;
@@ -1526,7 +1526,7 @@ void PdfPainterGraphicsState::SetCurrentMatrix(const Matrix& matrix)
     m_painter->SetTransformationMatrix(m_state->CTM);
 }
 
-void PdfPainterGraphicsState::SetLineWidth(double lineWidth)
+void PdfGraphicsStateWrapper::SetLineWidth(double lineWidth)
 {
     if (m_state->LineWidth == lineWidth)
         return;
@@ -1535,7 +1535,7 @@ void PdfPainterGraphicsState::SetLineWidth(double lineWidth)
     m_painter->SetLineWidth(m_state->LineWidth);
 }
 
-void PdfPainterGraphicsState::SetMiterLevel(double value)
+void PdfGraphicsStateWrapper::SetMiterLevel(double value)
 {
     if (m_state->MiterLimit == value)
         return;
@@ -1544,7 +1544,7 @@ void PdfPainterGraphicsState::SetMiterLevel(double value)
     m_painter->SetMiterLimit(m_state->MiterLimit);
 }
 
-void PdfPainterGraphicsState::SetLineCapStyle(PdfLineCapStyle capStyle)
+void PdfGraphicsStateWrapper::SetLineCapStyle(PdfLineCapStyle capStyle)
 {
     if (m_state->LineCapStyle == capStyle)
         return;
@@ -1553,7 +1553,7 @@ void PdfPainterGraphicsState::SetLineCapStyle(PdfLineCapStyle capStyle)
     m_painter->SetLineCapStyle(m_state->LineCapStyle);
 }
 
-void PdfPainterGraphicsState::SetLineJoinStyle(PdfLineJoinStyle joinStyle)
+void PdfGraphicsStateWrapper::SetLineJoinStyle(PdfLineJoinStyle joinStyle)
 {
     if (m_state->LineJoinStyle == joinStyle)
         return;
@@ -1562,7 +1562,7 @@ void PdfPainterGraphicsState::SetLineJoinStyle(PdfLineJoinStyle joinStyle)
     m_painter->SetLineJoinStyle(m_state->LineJoinStyle);
 }
 
-void PdfPainterGraphicsState::SetRenderingIntent(const string_view& intent)
+void PdfGraphicsStateWrapper::SetRenderingIntent(const string_view& intent)
 {
     if (m_state->RenderingIntent == intent)
         return;
@@ -1571,7 +1571,7 @@ void PdfPainterGraphicsState::SetRenderingIntent(const string_view& intent)
     m_painter->SetRenderingIntent(m_state->RenderingIntent);
 }
 
-void PdfPainterGraphicsState::SetFillColor(const PdfColor& color)
+void PdfGraphicsStateWrapper::SetFillColor(const PdfColor& color)
 {
     if (m_state->FillColor == color)
         return;
@@ -1580,7 +1580,7 @@ void PdfPainterGraphicsState::SetFillColor(const PdfColor& color)
     m_painter->SetFillColor(m_state->FillColor);
 }
 
-void PdfPainterGraphicsState::SetStrokeColor(const PdfColor& color)
+void PdfGraphicsStateWrapper::SetStrokeColor(const PdfColor& color)
 {
     if (m_state->StrokeColor == color)
         return;
@@ -1589,10 +1589,10 @@ void PdfPainterGraphicsState::SetStrokeColor(const PdfColor& color)
     m_painter->SetStrokeColor(m_state->StrokeColor);
 }
 
-PdfPainterTextState::PdfPainterTextState(PdfPainter& painter, PdfTextState& state)
+PdfTextStateWrapper::PdfTextStateWrapper(PdfPainter& painter, PdfTextState& state)
     : m_painter(&painter), m_state(&state) { }
 
-void PdfPainterTextState::SetFont(const PdfFont* font, double fontSize)
+void PdfTextStateWrapper::SetFont(const PdfFont* font, double fontSize)
 {
     if (m_state->Font == font && m_state->FontSize == fontSize)
         return;
@@ -1602,7 +1602,7 @@ void PdfPainterTextState::SetFont(const PdfFont* font, double fontSize)
     m_painter->setFont(m_state->Font, m_state->FontSize);
 }
 
-void PdfPainterTextState::SetFontScale(double scale)
+void PdfTextStateWrapper::SetFontScale(double scale)
 {
     if (m_state->FontScale == scale)
         return;
@@ -1611,7 +1611,7 @@ void PdfPainterTextState::SetFontScale(double scale)
     m_painter->SetFontScale(m_state->FontScale);
 }
 
-void PdfPainterTextState::SetCharSpacing(double charSpacing)
+void PdfTextStateWrapper::SetCharSpacing(double charSpacing)
 {
     if (m_state->CharSpacing == charSpacing)
         return;
@@ -1620,7 +1620,7 @@ void PdfPainterTextState::SetCharSpacing(double charSpacing)
     m_painter->SetCharSpacing(m_state->CharSpacing);
 }
 
-void PdfPainterTextState::SetWordSpacing(double wordSpacing)
+void PdfTextStateWrapper::SetWordSpacing(double wordSpacing)
 {
     if (m_state->WordSpacing == wordSpacing)
         return;
@@ -1629,7 +1629,7 @@ void PdfPainterTextState::SetWordSpacing(double wordSpacing)
     m_painter->SetWordSpacing(m_state->WordSpacing);
 }
 
-void PdfPainterTextState::SetRenderingMode(PdfTextRenderingMode mode)
+void PdfTextStateWrapper::SetRenderingMode(PdfTextRenderingMode mode)
 {
     if (m_state->RenderingMode == mode)
         return;
