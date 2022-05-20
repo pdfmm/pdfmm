@@ -32,8 +32,10 @@ namespace std
 
 namespace std
 {
+    // NOTE: The precision parameter is unsigned instead of int to
+    // overload the deleted function in VS2017 as a workaround
     inline to_chars_result to_chars(char* first, char* last, double value,
-        std::chars_format fmt, int precision)
+        std::chars_format fmt, unsigned precision)
     {
         (void)fmt;
         int rc = std::snprintf(first, last - first + 1, "%.*f", precision, value);
