@@ -232,7 +232,7 @@ string utls::Trim(const string_view& str, char ch)
 void utls::ByteSwap(u16string& str)
 {
     for (unsigned i = 0; i < str.length(); i++)
-        str[i] = (char16_t)mm::compat::ByteSwap((uint16_t)str[i]);
+        str[i] = (char16_t)utls::ByteSwap((uint16_t)str[i]);
 }
 
 #ifdef _WIN32

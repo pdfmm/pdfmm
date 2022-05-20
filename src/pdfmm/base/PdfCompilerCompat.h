@@ -75,9 +75,9 @@ typedef SSIZE_T ssize_t;
  * build and need not be visible to users of the library, put them in
  * PdfCompilerCompatPrivate.{cpp,h} instead.
  *
- * Please NEVER use symbols from this header or the mm::compat namespace in
- * a "using" directive. Always explicitly reference names so it's clear that
- * you're pulling them from the compat cruft.
+ * Please NEVER use symbols from this header in  a "using" directive.
+ * Always explicitly reference names so it's clear that you're pulling
+ * them from the compat cruft.
  */
 
 #endif // !PDFMM_COMPILE_RC
