@@ -12,6 +12,15 @@
 #define WANT_FROM_CHARS
 #endif
 
+#ifdef WANT_CHARS_FORMAT
+
+namespace std
+{
+    using chars_format = fast_float::chars_format;
+}
+
+#endif // WANT_CHARS_FORMAT
+
 #ifdef WANT_TO_CHARS
 
 #include <cstdio>
@@ -30,14 +39,11 @@ namespace std
 #endif // WANT_TO_CHARS
 
 #ifdef WANT_FROM_CHARS
+
 #include <fast_float.h>
 
 namespace std
 {
-#ifdef WANT_CHARS_FORMAT
-    using chars_format = fast_float::chars_format;
-#endif // WANT_CHARS_FORMAT
-
     // NOTE: Don't provide an alias using default
     // parameter since it may create mysterious
     // issues on clang
