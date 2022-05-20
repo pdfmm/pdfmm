@@ -10,6 +10,7 @@
 #define WANT_CHARS_FORMAT
 #elif defined(__clang__) && __clang_major__ < 14
 #define WANT_FROM_CHARS
+#define WANT_TO_CHARS
 #endif
 
 #if defined(WANT_CHARS_FORMAT) || defined(WANT_FROM_CHARS)
