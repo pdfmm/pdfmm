@@ -1275,7 +1275,7 @@ void PdfPainter::SetTransformationMatrix(const Matrix& matrix)
 void PdfPainter::SetLineWidth(double value)
 {
     checkStream();
-    setLineWidth(m_GraphicsState.LineWidth);
+    setLineWidth(value);
 }
 
 void PdfPainter::setLineWidth(double width)
