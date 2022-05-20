@@ -8,8 +8,8 @@
 
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 
-#include <charconv>
 #include <utfcpp/utf8.h>
+#include <pdfmm/private/charconv_compat.h>
 #include <pdfmm/private/utfcpp_extensions.h>
 
 #include "PdfInputDevice.h"
