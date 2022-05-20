@@ -12,6 +12,10 @@
 #define WANT_FROM_CHARS
 #endif
 
+#if defined(WANT_CHARS_FORMAT) || defined(WANT_FROM_CHARS)
+#include <fast_float.h>
+#endif
+
 #ifdef WANT_CHARS_FORMAT
 
 namespace std
@@ -39,8 +43,6 @@ namespace std
 #endif // WANT_TO_CHARS
 
 #ifdef WANT_FROM_CHARS
-
-#include <fast_float.h>
 
 namespace std
 {
