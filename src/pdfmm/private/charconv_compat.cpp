@@ -5,9 +5,9 @@
 #include <stdio.h>
 #include <locale.h>
 
-#if _WIN32
+#if _MSC_VER
 
-// In Windows snprintf_l is available as _snprintf_l
+// In MSVC snprintf_l is available as _snprintf_l
 // https://docs.microsoft.com/it-it/cpp/c-runtime-library/reference/snprintf-s-snprintf-s-l-snwprintf-s-snwprintf-s-l?view=msvc-170
 
 #define snprintf_l(str, size, loc, format, ...) _snprintf_l(str, size, format, loc, __VA_ARGS__)
