@@ -15,11 +15,29 @@
 #define newlocale(category_mask, locale, base) _create_locale(category_mask, locale)
 #define freelocale _free_locale
 
-#else // _WIN32
+#elif __APPLE__
 
+// Apple has snprintf_l
 #include <xlocale.h>
 
-#endif // _WIN32
+#else // Linux
+
+#include <stdarg.h>
+
+// Fallback snprintf_l implementation
+inline int snprintf_l(char* buffer, size_t size, locale_t locale, const char* format, ...)
+{
+    locale_t prevloc = uselocale((locale_t)0);
+    uselocale(locale);
+    va_list args;
+    va_start(args, format);
+    int rc = vsnprintf(buffer, size, format, args);
+    va_end(args);
+    uselocale(prevloc);
+    return rc;
+}
+
+#endif
 
 struct Locale
 {
