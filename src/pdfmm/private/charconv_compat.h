@@ -11,6 +11,8 @@
 #elif defined(__clang__) && __clang_major__ < 14
 #define WANT_FROM_CHARS
 #define WANT_TO_CHARS
+#elif defined(_MSC_VER) && _MSC_VER < 1920
+#define WANT_TO_CHARS
 #endif
 
 #if defined(WANT_CHARS_FORMAT) || defined(WANT_FROM_CHARS)
