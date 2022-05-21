@@ -2,6 +2,7 @@
 
 #ifdef WANT_TO_CHARS
 
+#include <stdio.h>
 #include <locale.h>
 
 #if _WIN32
@@ -9,10 +10,14 @@
 // In Windows snprintf_l is available as _snprintf_l
 // https://docs.microsoft.com/it-it/cpp/c-runtime-library/reference/snprintf-s-snprintf-s-l-snwprintf-s-snwprintf-s-l?view=msvc-170
 
-#define snprintf_l _snprintf_l
+#define snprintf_l(str, size, loc, format, ...) _snprintf_l(str, size, format, loc, __VA_ARGS__)
 #define locale_t _locale_t
 #define newlocale(category_mask, locale, base) _create_locale(category_mask, locale)
 #define freelocale _free_locale
+
+#else // _WIN32
+
+#include <xlocale.h>
 
 #endif // _WIN32
 
@@ -38,7 +43,7 @@ namespace std
         std::chars_format fmt, unsigned char precision)
     {
         (void)fmt;
-        int rc = snprintf_l(first, last - first + 1, "%.*f", s_locale.Handle, precision, value);
+        int rc = snprintf_l(first, last - first + 1, s_locale.Handle, "%.*f", precision, value);
         return { first + (rc < 0 ? 0 : rc), rc < 0 ? errc::value_too_large : errc{ } };
     }
 
@@ -46,7 +51,7 @@ namespace std
         std::chars_format fmt, unsigned char precision)
     {
         (void)fmt;
-        int rc = snprintf_l(first, last - first + 1, "%.*f", s_locale.Handle, precision, value);
+        int rc = snprintf_l(first, last - first + 1, s_locale.Handle, "%.*f", precision, value);
         return { first + (rc < 0 ? 0 : rc), rc < 0 ? errc::value_too_large : errc{ } };
     }
 }

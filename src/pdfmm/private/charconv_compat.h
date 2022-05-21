@@ -30,8 +30,6 @@ namespace std
 
 #ifdef WANT_TO_CHARS
 
-#include <cstdio>
-
 namespace std
 {
     // NOTE: The precision parameter is unsigned char instead of int to
