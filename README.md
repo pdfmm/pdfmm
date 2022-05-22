@@ -40,16 +40,17 @@ CMake 3.16 and the following libraries:
 For the most polular toolchains, pdfmm requires the following
 minimum versions:
 
-* Visual Studio 2017 15.9
+* msvc++ 14.16 (VS 2017 15.9)
 * gcc 8.1
 * clang/llvm 7.0
 
-It is regularly tested with the following toolchain versions:
+It is regularly tested with the following IDE/toolchains versions:
 
 * Visual Studio 2017 15.9
 * Visual Studio 2019 16.11
 * gcc 9.3.1
-* clang/llvm 11.0.0
+* XCode 13.3
+* NDK r23b
 
 ## Licensing
 
@@ -91,12 +92,7 @@ See [API Stability](https://github.com/pdfmm/pdfmm/wiki/API-Stability) for more 
 
 There's a [TODO](https://github.com/pdfmm/pdfmm/blob/master/TODO.md) list in the wiki and a list of
 planned [tasks](https://github.com/pdfmm/pdfmm/issues?q=is%3Aissue+is%3Aopen+label%3Aup-for-grabs)
-in the issue tracker. **Urgent help needed**: pdfmm is first unveiled with a serious lack,
-which is the disabling of the unit test suite based on cppunit.
-Another test suite not based on cppunit is run regularly but it can't be released,
-since it has a fixture of real world PDFs that can't be released
-without the permissions of the owners. See this [discussion](https://github.com/pdfmm/pdfmm/discussions/29)
-for details and if you can provide some help.
+in the issue tracker.
 
 ## No warranty
 
