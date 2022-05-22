@@ -177,7 +177,7 @@ void PdfArray::Clear()
 }
 
 void PdfArray::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
-    const PdfEncrypt* encrypt, charbuff& buffer) const
+    const PdfStatefulEncrypt& encrypt, charbuff& buffer) const
 {
     auto it = m_Objects.begin();
 

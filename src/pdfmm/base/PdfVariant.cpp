@@ -148,7 +148,7 @@ void PdfVariant::clear()
 }
 
 void PdfVariant::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
-    const PdfEncrypt* encrypt, charbuff& buffer) const
+    const PdfStatefulEncrypt& encrypt, charbuff& buffer) const
 {
     switch (m_DataType)
     {
@@ -182,7 +182,7 @@ void PdfVariant::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
             break;
         }
         case PdfDataType::Reference:
-            m_Data.Reference.Write(device, writeMode, encrypt, buffer);
+            m_Data.Reference.Write(device, writeMode, buffer);
             break;
         case PdfDataType::String:
         case PdfDataType::Name:
@@ -239,7 +239,7 @@ void PdfVariant::ToString(string& str) const
 
     charbuff buffer;
     PdfStringOutputDevice device(str);
-    this->Write(device, writeFlags, nullptr, buffer);
+    this->Write(device, writeFlags, PdfStatefulEncrypt(), buffer);
 }
 
 PdfVariant& PdfVariant::operator=(const PdfVariant& rhs)

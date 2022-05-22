@@ -58,7 +58,7 @@ public:
      *  \param device write to this outputdevice.
      *  \param encrypt encrypt stream data using this object
      */
-    virtual void Write(PdfOutputDevice& device, const PdfEncrypt* encrypt) = 0;
+    virtual void Write(PdfOutputDevice& device, const PdfStatefulEncrypt& encrypt) = 0;
 
     /** Set a binary buffer as stream data.
      *

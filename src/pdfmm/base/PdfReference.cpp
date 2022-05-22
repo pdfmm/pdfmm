@@ -26,9 +26,8 @@ PdfReference::PdfReference(const uint32_t objectNo, const uint16_t generationNo)
 {
 }
 
-void PdfReference::Write(PdfOutputDevice& device, PdfWriteFlags writeMode, const PdfEncrypt* encrypt, charbuff& buffer) const
+void PdfReference::Write(PdfOutputDevice& device, PdfWriteFlags writeMode, charbuff& buffer) const
 {
-    (void)encrypt;
     if ((writeMode & PdfWriteFlags::NoInlineLiteral) == PdfWriteFlags::None)
         device.Put(' '); // Write space before the reference
 

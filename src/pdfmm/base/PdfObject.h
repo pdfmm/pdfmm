@@ -320,7 +320,7 @@ public:
      *                 writing will stop right before this key!
      */
     void Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
-        PdfEncrypt* encrypt, charbuff& buffer) const;
+        const PdfEncrypt* encrypt, charbuff& buffer) const;
 
     /** Get a handle to a PDF stream object.
      *  If the PDF object does not have a stream,

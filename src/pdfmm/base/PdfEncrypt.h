@@ -203,7 +203,7 @@ public:
      *
      *  \returns a PdfInputStream that decrypts all data.
      */
-    virtual std::unique_ptr<PdfInputStream> CreateEncryptionInputStream(PdfInputStream& inputStream, size_t inputLen) = 0;
+    virtual std::unique_ptr<PdfInputStream> CreateEncryptionInputStream(PdfInputStream& inputStream, size_t inputLen, const PdfReference& objref) = 0;
 
     /** Create a PdfOutputStream that encrypts all data written to
      *  it using the current settings of the PdfEncrypt object.
@@ -215,7 +215,7 @@ public:
      *
      *  \returns a PdfOutputStream that encrypts all data.
      */
-    virtual std::unique_ptr<PdfOutputStream> CreateEncryptionOutputStream(PdfOutputStream& outputStream) = 0;
+    virtual std::unique_ptr<PdfOutputStream> CreateEncryptionOutputStream(PdfOutputStream& outputStream, const PdfReference& objref) = 0;
 
     /**
      * Tries to authenticate a user using either the user or owner password
@@ -346,11 +346,11 @@ public:
 
     /** Encrypt a character span
      */
-    void Encrypt(const bufferview& view, std::string& out) const;
+    void EncryptTo(std::string& out, const bufferview& view, const PdfReference& objref) const;
 
     /** Decrypt a character span
      */
-    void Decrypt(const bufferview& view, std::string& out) const;
+    void DecryptTo(std::string& out, const bufferview& view, const PdfReference& objref) const;
 
     /** Calculate stream size
      */
@@ -360,26 +360,16 @@ public:
      */
     virtual size_t CalculateStreamOffset() const = 0;
 
-
-    /** Set the reference of the object that is currently encrypted.
-     *
-     *  This value will be used in following calls of Encrypt
-     *  to encrypt the object.
-     *
-     *  \see Encrypt
-     */
-    void SetCurrentReference(const PdfReference& ref);
-
 protected:
     PdfEncrypt();
 
     PdfEncrypt(const PdfEncrypt& rhs);
 
 protected:
-    virtual void Decrypt(const char* inStr, size_t inLen,
+    virtual void Decrypt(const char* inStr, size_t inLen, const PdfReference& objref,
         char* outStr, size_t& outLen) const = 0;
 
-    virtual void Encrypt(const char* inStr, size_t inLen,
+    virtual void Encrypt(const char* inStr, size_t inLen, const PdfReference& objref,
         char* outStr, size_t outLen) const = 0;
 
     virtual bool Authenticate(const std::string_view& password, const  std::string_view& documentId) = 0;
@@ -399,7 +389,6 @@ protected:
     unsigned char m_uValue[48];        // U entry in pdf document
     unsigned char m_oValue[48];        // O entry in pdf document
     unsigned char m_encryptionKey[32]; // Encryption key
-    PdfReference m_curReference;       // Reference of the current PdfObject
     std::string m_documentId;          // DocumentID of the current document
     bool m_EncryptMetadata;            // Is metadata encrypted
 
@@ -574,7 +563,7 @@ protected:
      *  \param objkey pointer to an array of at least MD5_HASHBYTES (=16) bytes length
      *  \param pnKeyLen pointer to an integer where the actual keylength is stored.
      */
-    void CreateObjKey(unsigned char objkey[16], unsigned& pnKeyLen) const;
+    void CreateObjKey(unsigned char objkey[16], unsigned& pnKeyLen, const PdfReference& objref) const;
 
     unsigned char m_rc4key[16];         // last RC4 key
     unsigned char m_rc4last[256];       // last RC4 state table
@@ -595,12 +584,12 @@ public:
     PdfEncryptAESV2(const std::string_view& userPassword, const std::string_view& ownerPassword,
         PdfPermissions protection = PdfPermissions::Default);
 
-    std::unique_ptr<PdfInputStream> CreateEncryptionInputStream(PdfInputStream& inputStream, size_t inputLen) override;
-    std::unique_ptr<PdfOutputStream> CreateEncryptionOutputStream(PdfOutputStream& outputStream) override;
+    std::unique_ptr<PdfInputStream> CreateEncryptionInputStream(PdfInputStream& inputStream, size_t inputLen, const PdfReference& objref) override;
+    std::unique_ptr<PdfOutputStream> CreateEncryptionOutputStream(PdfOutputStream& outputStream, const PdfReference& objref) override;
 
-    void Encrypt(const char* inStr, size_t inLen,
+    void Encrypt(const char* inStr, size_t inLen, const PdfReference& objref,
         char* outStr, size_t outLen) const override;
-    void Decrypt(const char* inStr, size_t inLen,
+    void Decrypt(const char* inStr, size_t inLen, const PdfReference& objref,
         char* outStr, size_t& outLen) const override;
 
     size_t CalculateStreamOffset() const override;
@@ -629,13 +618,13 @@ public:
     PdfEncryptAESV3(const std::string_view& userPassword, const std::string_view& ownerPassword,
         PdfPermissions protection = PdfPermissions::Default);
 
-    std::unique_ptr<PdfInputStream> CreateEncryptionInputStream(PdfInputStream& inputStream, size_t inputLen) override;
-    std::unique_ptr<PdfOutputStream> CreateEncryptionOutputStream(PdfOutputStream& outputStream) override;
+    std::unique_ptr<PdfInputStream> CreateEncryptionInputStream(PdfInputStream& inputStream, size_t inputLen, const PdfReference& objref) override;
+    std::unique_ptr<PdfOutputStream> CreateEncryptionOutputStream(PdfOutputStream& outputStream, const PdfReference& objref) override;
 
     // Encrypt a character string
-    void Encrypt(const char* inStr, size_t inLen,
+    void Encrypt(const char* inStr, size_t inLen, const PdfReference& objref,
         char* outStr, size_t outLen) const override;
-    void Decrypt(const char* inStr, size_t inLen,
+    void Decrypt(const char* inStr, size_t inLen, const PdfReference& objref,
         char* outStr, size_t& outLen) const override;
 
     size_t CalculateStreamOffset() const override;
@@ -667,15 +656,15 @@ public:
         PdfEncryptAlgorithm algorithm = PdfEncryptAlgorithm::RC4V1,
         PdfKeyLength keyLength = PdfKeyLength::L40);
 
-    void Encrypt(const char* inStr, size_t inLen,
+    void Encrypt(const char* inStr, size_t inLen, const PdfReference& objref,
         char* outStr, size_t outLen) const override;
 
-    void Decrypt(const char* inStr, size_t inLen,
+    void Decrypt(const char* inStr, size_t inLen, const PdfReference& objref,
         char* outStr, size_t& outLen) const override;
 
-    std::unique_ptr<PdfInputStream> CreateEncryptionInputStream(PdfInputStream& inputStream, size_t inputLen) override;
+    std::unique_ptr<PdfInputStream> CreateEncryptionInputStream(PdfInputStream& inputStream, size_t inputLen, const PdfReference& objref) override;
 
-    std::unique_ptr<PdfOutputStream> CreateEncryptionOutputStream(PdfOutputStream& outputStream) override;
+    std::unique_ptr<PdfOutputStream> CreateEncryptionOutputStream(PdfOutputStream& outputStream, const PdfReference& objref) override;
 
     size_t CalculateStreamOffset() const override;
 

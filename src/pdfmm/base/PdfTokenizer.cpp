@@ -196,13 +196,13 @@ int64_t PdfTokenizer::ReadNextNumber(PdfInputDevice& device)
     return static_cast<int64_t>(num);
 }
 
-void PdfTokenizer::ReadNextVariant(PdfInputDevice& device, PdfVariant& variant, PdfEncrypt* encrypt)
+void PdfTokenizer::ReadNextVariant(PdfInputDevice& device, PdfVariant& variant, const PdfStatefulEncrypt& encrypt)
 {
     if (!TryReadNextVariant(device, variant, encrypt))
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected variant");
 }
 
-bool PdfTokenizer::TryReadNextVariant(PdfInputDevice& device, PdfVariant& variant, PdfEncrypt* encrypt)
+bool PdfTokenizer::TryReadNextVariant(PdfInputDevice& device, PdfVariant& variant, const PdfStatefulEncrypt& encrypt)
 {
     PdfTokenType tokenType;
     string_view token;
@@ -212,13 +212,13 @@ bool PdfTokenizer::TryReadNextVariant(PdfInputDevice& device, PdfVariant& varian
     return PdfTokenizer::TryReadNextVariant(device, token, tokenType, variant, encrypt);
 }
 
-void PdfTokenizer::ReadNextVariant(PdfInputDevice& device, const string_view& token, PdfTokenType tokenType, PdfVariant& variant, PdfEncrypt* encrypt)
+void PdfTokenizer::ReadNextVariant(PdfInputDevice& device, const string_view& token, PdfTokenType tokenType, PdfVariant& variant, const PdfStatefulEncrypt& encrypt)
 {
     if (!TryReadNextVariant(device, token, tokenType, variant, encrypt))
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Could not read a variant");
 }
 
-bool PdfTokenizer::TryReadNextVariant(PdfInputDevice& device, const string_view& token, PdfTokenType tokenType, PdfVariant& variant, PdfEncrypt* encrypt)
+bool PdfTokenizer::TryReadNextVariant(PdfInputDevice& device, const string_view& token, PdfTokenType tokenType, PdfVariant& variant, const PdfStatefulEncrypt& encrypt)
 {
     PdfLiteralDataType dataType = DetermineDataType(device, token, tokenType, variant);
     return tryReadDataType(device, dataType, variant, encrypt);
@@ -358,7 +358,7 @@ PdfTokenizer::PdfLiteralDataType PdfTokenizer::DetermineDataType(PdfInputDevice&
     }
 }
 
-bool PdfTokenizer::tryReadDataType(PdfInputDevice& device, PdfLiteralDataType dataType, PdfVariant& variant, PdfEncrypt* encrypt)
+bool PdfTokenizer::tryReadDataType(PdfInputDevice& device, PdfLiteralDataType dataType, PdfVariant& variant, const PdfStatefulEncrypt& encrypt)
 {
     switch (dataType)
     {
@@ -390,7 +390,7 @@ bool PdfTokenizer::tryReadDataType(PdfInputDevice& device, PdfLiteralDataType da
     }
 }
 
-void PdfTokenizer::ReadDictionary(PdfInputDevice& device, PdfVariant& variant, PdfEncrypt* encrypt)
+void PdfTokenizer::ReadDictionary(PdfInputDevice& device, PdfVariant& variant, const PdfStatefulEncrypt& encrypt)
 {
     PdfVariant val;
     PdfName key;
@@ -444,7 +444,7 @@ void PdfTokenizer::ReadDictionary(PdfInputDevice& device, PdfVariant& variant, P
         bool contentsUnencrypted = type != nullptr && type->GetDataType() == PdfDataType::Name &&
             (type->GetName() == "Sig" || type->GetName() == "DocTimeStamp");
 
-        PdfEncrypt* actualEncrypt = nullptr;
+        PdfStatefulEncrypt actualEncrypt;
         if (!contentsUnencrypted)
             actualEncrypt = encrypt;
 
@@ -453,7 +453,7 @@ void PdfTokenizer::ReadDictionary(PdfInputDevice& device, PdfVariant& variant, P
     }
 }
 
-void PdfTokenizer::ReadArray(PdfInputDevice& device, PdfVariant& variant, PdfEncrypt* encrypt)
+void PdfTokenizer::ReadArray(PdfInputDevice& device, PdfVariant& variant, const PdfStatefulEncrypt& encrypt)
 {
     string_view token;
     PdfTokenType tokenType;
@@ -476,7 +476,7 @@ void PdfTokenizer::ReadArray(PdfInputDevice& device, PdfVariant& variant, PdfEnc
     }
 }
 
-void PdfTokenizer::ReadString(PdfInputDevice& device, PdfVariant& variant, PdfEncrypt* encrypt)
+void PdfTokenizer::ReadString(PdfInputDevice& device, PdfVariant& variant, const PdfStatefulEncrypt& encrypt)
 {
     char ch;
     bool escape = false;
@@ -579,10 +579,10 @@ void PdfTokenizer::ReadString(PdfInputDevice& device, PdfVariant& variant, PdfEn
 
     if (m_charBuffer.size() != 0)
     {
-        if (encrypt)
+        if (encrypt.HasEncrypt())
         {
             charbuff decrypted;
-            encrypt->Decrypt({ m_charBuffer.data(), m_charBuffer.size() }, decrypted);
+            encrypt.DecryptTo(decrypted, { m_charBuffer.data(), m_charBuffer.size() });
             variant = PdfString(std::move(decrypted), false);
         }
         else
@@ -598,7 +598,7 @@ void PdfTokenizer::ReadString(PdfInputDevice& device, PdfVariant& variant, PdfEn
     }
 }
 
-void PdfTokenizer::ReadHexString(PdfInputDevice& device, PdfVariant& variant, PdfEncrypt* encrypt)
+void PdfTokenizer::ReadHexString(PdfInputDevice& device, PdfVariant& variant, const PdfStatefulEncrypt& encrypt)
 {
     readHexString(device, m_charBuffer);
     variant = PdfString::FromHexData({ m_charBuffer.size() ? m_charBuffer.data() : "", m_charBuffer.size() }, encrypt);

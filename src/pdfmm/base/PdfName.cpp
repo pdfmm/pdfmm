@@ -96,7 +96,7 @@ PdfName PdfName::FromRaw(const bufferview& rawcontent)
 }
 
 void PdfName::Write(PdfOutputDevice& device, PdfWriteFlags,
-    const PdfEncrypt* encrypt, charbuff& buffer) const
+    const PdfStatefulEncrypt& encrypt, charbuff& buffer) const
 {
     (void)encrypt;
     // Allow empty names, which are legal according to the PDF specification

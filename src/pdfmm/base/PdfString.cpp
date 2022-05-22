@@ -66,7 +66,7 @@ PdfString PdfString::FromRaw(const bufferview& view, bool isHex)
     return PdfString((charbuff)view, isHex);
 }
 
-PdfString PdfString::FromHexData(const string_view& hexView, PdfEncrypt* encrypt)
+PdfString PdfString::FromHexData(const string_view& hexView, const PdfStatefulEncrypt& encrypt)
 {
     size_t len = hexView.size();
     charbuff buffer;
@@ -102,21 +102,21 @@ PdfString PdfString::FromHexData(const string_view& hexView, PdfEncrypt* encrypt
         buffer.push_back(decodedChar);
     }
 
-    if (encrypt == nullptr)
+    if (encrypt.HasEncrypt())
+    {
+        charbuff decrypted;
+        encrypt.DecryptTo(decrypted, buffer);
+        return PdfString(std::move(decrypted), true);
+    }
+    else
     {
         buffer.shrink_to_fit();
         return PdfString(std::move(buffer), true);
     }
-    else
-    {
-        charbuff decrypted;
-        encrypt->Decrypt(buffer, decrypted);
-        return PdfString(std::move(decrypted), true);
-    }
 }
 
 void PdfString::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
-    const PdfEncrypt* encrypt, charbuff& buffer) const
+    const PdfStatefulEncrypt& encrypt, charbuff& buffer) const
 {
     (void)writeMode;
     (void)buffer; // TODO: Just use the supplied buffer istead of the many ones below
@@ -159,10 +159,10 @@ void PdfString::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
     }
 
     charbuff tempBuffer;
-    if (encrypt != nullptr && dataview.size() > 0)
+    if (encrypt.HasEncrypt() && dataview.size() > 0)
     {
         charbuff encrypted;
-        encrypt->Encrypt(dataview, encrypted);
+        encrypt.EncryptTo(encrypted, dataview);
         encrypted.swap(tempBuffer);
         dataview = string_view(tempBuffer.data(), tempBuffer.size());
     }

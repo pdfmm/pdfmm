@@ -570,7 +570,6 @@ PdfEncrypt::PdfEncrypt(const PdfEncrypt& rhs)
 
     m_keyLength = rhs.m_keyLength;
 
-    m_curReference = rhs.m_curReference;
     m_documentId = rhs.m_documentId;
     m_userPass = rhs.m_userPass;
     m_ownerPass = rhs.m_ownerPass;
@@ -811,10 +810,10 @@ void PdfEncryptMD5Base::ComputeEncryptionKey(const string_view& documentId,
         delete[] docId;
 }
 
-void PdfEncryptMD5Base::CreateObjKey(unsigned char objkey[16], unsigned& pnKeyLen) const
+void PdfEncryptMD5Base::CreateObjKey(unsigned char objkey[16], unsigned& pnKeyLen, const PdfReference& objref) const
 {
-    const unsigned n = static_cast<unsigned>(m_curReference.ObjectNumber());
-    const unsigned g = static_cast<unsigned>(m_curReference.GenerationNumber());
+    const unsigned n = static_cast<unsigned>(objref.ObjectNumber());
+    const unsigned g = static_cast<unsigned>(objref.GenerationNumber());
 
     unsigned nkeylen = m_keyLength + 5;
     unsigned char nkey[MD5_DIGEST_LENGTH + 5 + 4];
@@ -1028,28 +1027,28 @@ size_t PdfEncryptRC4::CalculateStreamLength(size_t length) const
     return length;
 }
 
-void PdfEncryptRC4::Encrypt(const char* inStr, size_t inLen,
+void PdfEncryptRC4::Encrypt(const char* inStr, size_t inLen, const PdfReference& objref,
     char* outStr, size_t outLen) const
 {
     unsigned char objkey[MD5_DIGEST_LENGTH];
     unsigned keylen;
-    CreateObjKey(objkey, keylen);
+    CreateObjKey(objkey, keylen, objref);
     this->RC4(objkey, keylen, (const unsigned char *)inStr, inLen,
         (unsigned char*)outStr, outLen);
 }
 
-void PdfEncryptRC4::Decrypt(const char* inStr, size_t inLen,
+void PdfEncryptRC4::Decrypt(const char* inStr, size_t inLen, const PdfReference& objref,
     char* outStr, size_t& outLen) const
 {
-    Encrypt(inStr, inLen, outStr, outLen);
+    Encrypt(inStr, inLen, objref, outStr, outLen);
 }
 
-unique_ptr<PdfInputStream> PdfEncryptRC4::CreateEncryptionInputStream(PdfInputStream& inputStream, size_t inputLen)
+unique_ptr<PdfInputStream> PdfEncryptRC4::CreateEncryptionInputStream(PdfInputStream& inputStream, size_t inputLen, const PdfReference& objref)
 {
     (void)inputLen;
     unsigned char objkey[MD5_DIGEST_LENGTH];
     unsigned keylen;
-    this->CreateObjKey(objkey, keylen);
+    this->CreateObjKey(objkey, keylen, objref);
     return unique_ptr<PdfInputStream>(new PdfRC4InputStream(inputStream, inputLen, m_rc4key, m_rc4last, objkey, keylen));
 }
 
@@ -1118,11 +1117,11 @@ PdfEncryptRC4::PdfEncryptRC4(const string_view& userPassword, const string_view&
     m_pValue = PERMS_DEFAULT | protection;
 }
 
-unique_ptr<PdfOutputStream> PdfEncryptRC4::CreateEncryptionOutputStream(PdfOutputStream& outputStream)
+unique_ptr<PdfOutputStream> PdfEncryptRC4::CreateEncryptionOutputStream(PdfOutputStream& outputStream, const PdfReference& objref)
 {
     unsigned char objkey[MD5_DIGEST_LENGTH];
     unsigned keylen;
-    this->CreateObjKey(objkey, keylen);
+    this->CreateObjKey(objkey, keylen, objref);
     return unique_ptr<PdfOutputStream>(new PdfRC4OutputStream(outputStream, m_rc4key, m_rc4last, objkey, keylen));
 }
     
@@ -1254,24 +1253,24 @@ size_t PdfEncryptAESV2::CalculateStreamOffset() const
     return AES_IV_LENGTH;
 }
     
-void PdfEncryptAESV2::Encrypt(const char* inStr, size_t inLen,
+void PdfEncryptAESV2::Encrypt(const char* inStr, size_t inLen, const PdfReference& objref,
     char* outStr, size_t outLen) const
 {
     unsigned char objkey[MD5_DIGEST_LENGTH];
     unsigned keylen;
-    CreateObjKey(objkey, keylen);
+    CreateObjKey(objkey, keylen, objref);
     size_t offset = CalculateStreamOffset();
     this->GenerateInitialVector((unsigned char *)outStr);
     this->BaseEncrypt(objkey, keylen, (unsigned char*)outStr, (const unsigned char*)inStr,
         inLen, (unsigned char*)outStr + offset, outLen - offset);
 }
 
-void PdfEncryptAESV2::Decrypt(const char* inStr, size_t inLen,
+void PdfEncryptAESV2::Decrypt(const char* inStr, size_t inLen, const PdfReference& objref,
     char* outStr, size_t& outLen) const
 {
     unsigned char objkey[MD5_DIGEST_LENGTH];
     unsigned keylen;
-    CreateObjKey(objkey, keylen);
+    CreateObjKey(objkey, keylen, objref);
 
     size_t offset = CalculateStreamOffset();
     if (inLen <= offset)
@@ -1335,16 +1334,18 @@ size_t PdfEncryptAESV2::CalculateStreamLength(size_t length) const
     return realLength;
 }
     
-unique_ptr<PdfInputStream> PdfEncryptAESV2::CreateEncryptionInputStream(PdfInputStream& inputStream, size_t inputLen)
+unique_ptr<PdfInputStream> PdfEncryptAESV2::CreateEncryptionInputStream(PdfInputStream& inputStream, size_t inputLen, const PdfReference& objref)
 {
     unsigned char objkey[MD5_DIGEST_LENGTH];
     unsigned keylen;
-    this->CreateObjKey(objkey, keylen);
+    this->CreateObjKey(objkey, keylen, objref);
     return unique_ptr<PdfInputStream>(new PdfAESInputStream(inputStream, inputLen, objkey, keylen));
 }
     
-unique_ptr<PdfOutputStream> PdfEncryptAESV2::CreateEncryptionOutputStream(PdfOutputStream&)
+unique_ptr<PdfOutputStream> PdfEncryptAESV2::CreateEncryptionOutputStream(PdfOutputStream& outputStream, const PdfReference& objref)
 {
+    (void)outputStream;
+    (void)objref;
     /*unsigned char objkey[MD5_DIGEST_LENGTH];
      int keylen;
 
@@ -1714,19 +1715,20 @@ size_t PdfEncryptAESV3::CalculateStreamOffset() const
     return AES_IV_LENGTH;
 }
 
-void PdfEncryptAESV3::Encrypt(const char* inStr, size_t inLen,
+void PdfEncryptAESV3::Encrypt(const char* inStr, size_t inLen, const PdfReference& objref,
     char* outStr, size_t outLen) const
 {
+    (void)objref;
     size_t offset = CalculateStreamOffset();
     this->GenerateInitialVector((unsigned char*)outStr);
     this->BaseEncrypt(m_encryptionKey, m_keyLength, (unsigned char*)outStr, (const unsigned char*)inStr, inLen, (unsigned char*)outStr + offset, outLen - offset);
 }
 
-void PdfEncryptAESV3::Decrypt(const char* inStr, size_t inLen,
+void PdfEncryptAESV3::Decrypt(const char* inStr, size_t inLen, const PdfReference& objref,
     char* outStr, size_t& outLen) const
 {
+    (void)objref;
     size_t offset = CalculateStreamOffset();
-
     this->BaseDecrypt(const_cast<unsigned char*>(m_encryptionKey), m_keyLength, (const unsigned char*)inStr, (const unsigned char*)inStr + offset, inLen - offset, (unsigned char*)outStr, outLen);
 }
 
@@ -1777,13 +1779,16 @@ size_t PdfEncryptAESV3::CalculateStreamLength(size_t length) const
     return realLength;
 }
 
-unique_ptr<PdfInputStream> PdfEncryptAESV3::CreateEncryptionInputStream(PdfInputStream& inputStream, size_t inputLen)
+unique_ptr<PdfInputStream> PdfEncryptAESV3::CreateEncryptionInputStream(PdfInputStream& inputStream, size_t inputLen, const PdfReference& objref)
 {
+    (void)objref;
     return unique_ptr<PdfInputStream>(new PdfAESInputStream(inputStream, inputLen, m_encryptionKey, 32));
 }
 
-unique_ptr<PdfOutputStream> PdfEncryptAESV3::CreateEncryptionOutputStream(PdfOutputStream&)
+unique_ptr<PdfOutputStream> PdfEncryptAESV3::CreateEncryptionOutputStream(PdfOutputStream& outputStream, const PdfReference& objref)
 {
+    (void)outputStream;
+    (void)objref;
     PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "CreateEncryptionOutputStream does not yet support AESV3");
 }
     
@@ -1794,14 +1799,14 @@ int PdfEncrypt::GetKeyLength() const
     return m_keyLength * 8;
 }
 
-void PdfEncrypt::Encrypt(const bufferview& view, string& out) const
+void PdfEncrypt::EncryptTo(string& out, const bufferview& view, const PdfReference& objref) const
 {
     size_t outputLen = this->CalculateStreamLength(view.size());
     out.resize(outputLen);
-    this->Encrypt(view.data(), view.size(), out.data(), outputLen);
+    this->Encrypt(view.data(), view.size(), objref, out.data(), outputLen);
 }
 
-void PdfEncrypt::Decrypt(const bufferview& view, string& out) const
+void PdfEncrypt::DecryptTo(string& out, const bufferview& view, const PdfReference& objref) const
 {
     // FIX-ME: The following clearly seems hardcoded for AES
     // It was found like this in PdfString and PdfTokenizer
@@ -1809,14 +1814,9 @@ void PdfEncrypt::Decrypt(const bufferview& view, string& out) const
     // needed, including RC4
     size_t outBufferLen = view.size() - this->CalculateStreamOffset();
     out.resize(outBufferLen + 16 - (outBufferLen % 16));
-    this->Decrypt(view.data(), view.size(), out.data(), outBufferLen);
+    this->Decrypt(view.data(), view.size(), objref, out.data(), outBufferLen);
     out.resize(outBufferLen);
     out.shrink_to_fit();
-}
-
-void PdfEncrypt::SetCurrentReference(const PdfReference& ref)
-{
-    m_curReference = ref;
 }
 
 bool PdfEncrypt::IsPrintAllowed() const

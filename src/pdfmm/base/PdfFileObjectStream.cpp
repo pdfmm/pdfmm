@@ -32,8 +32,10 @@ PdfFileObjectStream::~PdfFileObjectStream()
     EnsureAppendClosed();
 }
 
-void PdfFileObjectStream::Write(PdfOutputDevice&, const PdfEncrypt*)
+void PdfFileObjectStream::Write(PdfOutputDevice& device, const PdfStatefulEncrypt& encrypt)
 {
+    (void)device;
+    (void)encrypt;
     PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);
 }
 
@@ -48,7 +50,7 @@ void PdfFileObjectStream::BeginAppendImpl(const PdfFilterList& filters)
         m_DeviceStream = unique_ptr<PdfDeviceOutputStream>(new PdfDeviceOutputStream(*m_Device));
         if (m_CurrEncrypt != nullptr)
         {
-            m_EncryptStream = m_CurrEncrypt->CreateEncryptionOutputStream(*m_DeviceStream);
+            m_EncryptStream = m_CurrEncrypt->CreateEncryptionOutputStream(*m_DeviceStream, m_Parent->GetIndirectReference());
             m_Stream = PdfFilterFactory::CreateEncodeStream(filters, *m_EncryptStream);
         }
         else
@@ -59,7 +61,7 @@ void PdfFileObjectStream::BeginAppendImpl(const PdfFilterList& filters)
         if (m_CurrEncrypt != nullptr)
         {
             m_DeviceStream = unique_ptr<PdfDeviceOutputStream>(new PdfDeviceOutputStream(*m_Device));
-            m_Stream = m_CurrEncrypt->CreateEncryptionOutputStream(*m_DeviceStream);
+            m_Stream = m_CurrEncrypt->CreateEncryptionOutputStream(*m_DeviceStream, m_Parent->GetIndirectReference());
         }
         else
             m_Stream = unique_ptr<PdfDeviceOutputStream>(new PdfDeviceOutputStream(*m_Device));
@@ -113,8 +115,6 @@ void PdfFileObjectStream::GetCopy(PdfOutputStream&) const
 void PdfFileObjectStream::SetEncrypted(PdfEncrypt* encrypt)
 {
     m_CurrEncrypt = encrypt;
-    if (m_CurrEncrypt != nullptr)
-        m_CurrEncrypt->SetCurrentReference(m_Parent->GetIndirectReference());
 }
 
 size_t PdfFileObjectStream::GetLength() const

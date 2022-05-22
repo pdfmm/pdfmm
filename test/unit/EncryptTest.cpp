@@ -259,13 +259,11 @@ void testAuthenticate(PdfEncrypt& encrypt)
 
 void testEncrypt(PdfEncrypt& encrypt)
 {
-    encrypt.SetCurrentReference(PdfReference(7, 0));
-
     string encrypted;
     // Encrypt buffer
     try
     {
-        encrypt.Encrypt(s_encBuffer, encrypted);
+        encrypt.EncryptTo(encrypted, s_encBuffer, PdfReference(7, 0));
     }
     catch (PdfError& e)
     {
@@ -276,7 +274,7 @@ void testEncrypt(PdfEncrypt& encrypt)
     // Decrypt buffer
     try
     {
-        encrypt.Decrypt(encrypted, decrypted);
+        encrypt.DecryptTo(decrypted, encrypted, PdfReference(7, 0));
     }
     catch (PdfError& e)
     {

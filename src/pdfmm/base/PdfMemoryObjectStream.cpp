@@ -91,18 +91,18 @@ void PdfMemoryObjectStream::copyFrom(const PdfMemoryObjectStream& rhs)
     m_buffer = rhs.m_buffer;
 }
 
-void PdfMemoryObjectStream::Write(PdfOutputDevice& device, const PdfEncrypt* encrypt)
+void PdfMemoryObjectStream::Write(PdfOutputDevice& device, const PdfStatefulEncrypt& encrypt)
 {
     device.Write("stream\n");
-    if (encrypt == nullptr)
+    if (encrypt.HasEncrypt())
     {
-        device.Write(string_view(this->Get(), this->GetLength()));
+        charbuff encrypted;
+        encrypt.EncryptTo(encrypted, { this->Get(), this->GetLength() });
+        device.Write(encrypted);
     }
     else
     {
-        charbuff encrypted;
-        encrypt->Encrypt({ this->Get(), this->GetLength() }, encrypted);
-        device.Write(encrypted);
+        device.Write(string_view(this->Get(), this->GetLength()));
     }
 
     device.Write("\nendstream\n");

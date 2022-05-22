@@ -11,8 +11,6 @@
 
 #include "PdfDeclarations.h"
 
-#include "PdfDataProvider.h"
-
 namespace mm {
 
 class PdfOutputDevice;
@@ -63,7 +61,7 @@ public:
       */
     PdfReference& operator=(const PdfReference& rhs) = default;
 
-    void Write(PdfOutputDevice& device, PdfWriteFlags writeMode, const PdfEncrypt* encrypt, charbuff& buffer) const;
+    void Write(PdfOutputDevice& device, PdfWriteFlags writeMode, charbuff& buffer) const;
 
     /**
      * Compare to PdfReference objects.

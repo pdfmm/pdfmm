@@ -51,7 +51,7 @@ public:
      */
     void SetEncrypted(PdfEncrypt* encrypt);
 
-    void Write(PdfOutputDevice& device, const PdfEncrypt* encrypt) override;
+    void Write(PdfOutputDevice& device, const PdfStatefulEncrypt& encrypt) override;
 
     void GetCopy(std::unique_ptr<char[]>& buffer, size_t& len) const override;
 

@@ -211,10 +211,14 @@ void PdfObject::initObject()
 }
 
 void PdfObject::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
-    PdfEncrypt* encrypt, charbuff& buffer) const
+    const PdfEncrypt* encrypt_, charbuff& buffer) const
 {
     DelayedLoad();
     DelayedLoadStream();
+
+    PdfStatefulEncrypt encrypt;
+    if (encrypt_ != nullptr)
+        encrypt = PdfStatefulEncrypt(*encrypt_, m_IndirectReference);
 
     if (m_IndirectReference.IsIndirect())
     {
@@ -232,9 +236,6 @@ void PdfObject::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
         }
     }
 
-    if (encrypt != nullptr)
-        encrypt->SetCurrentReference(m_IndirectReference);
-
     if (m_Stream != nullptr)
     {
         // Set length if it is a key
@@ -244,8 +245,8 @@ void PdfObject::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
             // It's not a PdfFileStream. PdfFileStream handles length internally
 
             size_t length = m_Stream->GetLength();
-            if (encrypt != nullptr)
-                length = encrypt->CalculateStreamLength(length);
+            if (encrypt.HasEncrypt())
+                length = encrypt.CalculateStreamLength(length);
 
             // Add the key without triggering SetDirty
             const_cast<PdfObject&>(*this).m_Variant.GetDictionary()
@@ -521,14 +522,17 @@ PdfDataType PdfObject::GetDataType() const
 
 string PdfObject::ToString() const
 {
-    DelayedLoad();
-    return m_Variant.ToString();
+    string ret;
+    ToString(ret);
+    return ret;
 }
 
 void PdfObject::ToString(string& ret) const
 {
-    DelayedLoad();
-    m_Variant.ToString(ret);
+    ret.clear();
+    PdfStringOutputDevice device(ret);
+    charbuff buffer;
+    Write(device, PdfWriteFlags::None, nullptr, buffer);
 }
 
 bool PdfObject::GetBool() const

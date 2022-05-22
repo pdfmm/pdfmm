@@ -19,13 +19,13 @@ PdfPostScriptTokenizer::PdfPostScriptTokenizer(const shared_ptr<charbuff>& buffe
 
 void PdfPostScriptTokenizer::ReadNextVariant(PdfInputDevice& device, PdfVariant& variant)
 {
-    if (!PdfTokenizer::TryReadNextVariant(device, variant, nullptr))
+    if (!PdfTokenizer::TryReadNextVariant(device, variant, { }))
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected variant");
 }
 
 bool PdfPostScriptTokenizer::TryReadNextVariant(PdfInputDevice& device, PdfVariant& variant)
 {
-    return PdfTokenizer::TryReadNextVariant(device, variant, nullptr);
+    return PdfTokenizer::TryReadNextVariant(device, variant, { });
 }
 
 bool PdfPostScriptTokenizer::TryReadNext(PdfInputDevice& device, PdfPostScriptTokenType& psTokenType, string_view& keyword, PdfVariant& variant)
@@ -68,16 +68,16 @@ bool PdfPostScriptTokenizer::TryReadNext(PdfInputDevice& device, PdfPostScriptTo
             break;
 
         case PdfLiteralDataType::Dictionary:
-            this->ReadDictionary(device, variant, nullptr);
+            this->ReadDictionary(device, variant, { });
             break;
         case PdfLiteralDataType::Array:
-            this->ReadArray(device, variant, nullptr);
+            this->ReadArray(device, variant, { });
             break;
         case PdfLiteralDataType::String:
-            this->ReadString(device, variant, nullptr);
+            this->ReadString(device, variant, { });
             break;
         case PdfLiteralDataType::HexString:
-            this->ReadHexString(device, variant, nullptr);
+            this->ReadHexString(device, variant, { });
             break;
         case PdfLiteralDataType::Name:
             this->ReadName(device, variant);

@@ -14,7 +14,6 @@
 
 namespace mm {
 
-class PdfObject;
 class PdfDocument;
 class PdfReference;
 

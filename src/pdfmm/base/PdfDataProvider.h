@@ -9,10 +9,10 @@
 #define PDF_DATATYPE_H
 
 #include "PdfDeclarations.h"
+#include "PdfStatefulEncrypt.h"
 
 namespace mm {
 
-class PdfEncrypt;
 class PdfOutputDevice;
 
 /** An interface for data provider classes that are stored in a PdfVariant
@@ -45,7 +45,7 @@ public:
      *                  or nullptr to not encrypt this object
      */
     virtual void Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
-        const PdfEncrypt* encrypt, charbuff& buffer) const = 0;
+        const PdfStatefulEncrypt& encrypt, charbuff& buffer) const = 0;
 
 protected:
     PdfDataProvider(const PdfDataProvider&) = default;
