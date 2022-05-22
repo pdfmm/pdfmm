@@ -105,7 +105,7 @@ void PdfWriter::Write(PdfOutputDevice& device)
         if (m_IncrementalUpdate)
             xRef->SetFirstEmptyBlock();
 
-        xRef->Write(device);
+        xRef->Write(device, m_buffer);
     }
     catch (PdfError& e)
     {
@@ -130,7 +130,8 @@ void PdfWriter::Write(PdfOutputDevice& device)
 
 void PdfWriter::WritePdfHeader(PdfOutputDevice& device)
 {
-    device.Write(COMMON_FORMAT("{}\n%{}", s_PdfVersions[static_cast<int>(m_Version)], PDF_MAGIC));
+    cmn::FormatTo(m_buffer, "{}\n%{}", s_PdfVersions[static_cast<int>(m_Version)], PDF_MAGIC);
+    device.Write(m_buffer);
 }
 
 void PdfWriter::WritePdfObjects(PdfOutputDevice& device, const PdfIndirectObjectList& objects, PdfXRef& xref)
@@ -180,7 +181,7 @@ void PdfWriter::WritePdfObjects(PdfOutputDevice& device, const PdfIndirectObject
         {
             xref.AddInUseObject(obj->GetIndirectReference(), device.Tell());
             // Also make sure that we do not encrypt the encryption dictionary!
-            obj->Write(device, m_WriteFlags, obj == m_EncryptObj ? nullptr : m_Encrypt.get());
+            obj->Write(device, m_WriteFlags, obj == m_EncryptObj ? nullptr : m_Encrypt.get(), m_buffer);
         }
     }
 
@@ -226,7 +227,7 @@ void PdfWriter::FillTrailerObject(PdfObject& trailer, size_t size, bool onlySize
     }
 }
 
-void PdfWriter::CreateFileIdentifier(PdfString& identifier, const PdfObject& trailer, PdfString* originalIdentifier) const
+void PdfWriter::CreateFileIdentifier(PdfString& identifier, const PdfObject& trailer, PdfString* originalIdentifier)
 {
     PdfNullOutputDevice length;
     unique_ptr<PdfObject> info;
@@ -297,11 +298,11 @@ void PdfWriter::CreateFileIdentifier(PdfString& identifier, const PdfObject& tra
     }
 
     info->GetDictionary().AddKey("Location", PdfString("SOMEFILENAME"));
-    info->Write(length, m_WriteFlags, nullptr);
+    info->Write(length, m_WriteFlags, nullptr, m_buffer);
 
     charbuff buffer(length.GetLength());
     PdfStringOutputDevice device(buffer);
-    info->Write(device, m_WriteFlags, nullptr);
+    info->Write(device, m_WriteFlags, nullptr, m_buffer);
 
     // calculate the MD5 Sum
     identifier = PdfEncryptMD5Base::GetMD5String(reinterpret_cast<unsigned char*>(buffer.data()),

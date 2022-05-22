@@ -115,9 +115,11 @@ PdfString PdfString::FromHexData(const string_view& hexView, PdfEncrypt* encrypt
     }
 }
 
-void PdfString::Write(PdfOutputDevice& device, PdfWriteFlags writeMode, const PdfEncrypt* encrypt) const
+void PdfString::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
+    const PdfEncrypt* encrypt, charbuff& buffer) const
 {
     (void)writeMode;
+    (void)buffer; // TODO: Just use the supplied buffer istead of the many ones below
 
     // Strings in PDF documents may contain \0 especially if they are encrypted
     // this case has to be handled!

@@ -148,7 +148,7 @@ void PdfVariant::clear()
 }
 
 void PdfVariant::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
-    const PdfEncrypt* encrypt) const
+    const PdfEncrypt* encrypt, charbuff& buffer) const
 {
     switch (m_DataType)
     {
@@ -168,7 +168,8 @@ void PdfVariant::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
             if ((writeMode & PdfWriteFlags::NoInlineLiteral) == PdfWriteFlags::None)
                 device.Put(' '); // Write space before numbers
 
-            device.Write(COMMON_FORMAT("{}", m_Data.Number));
+            cmn::FormatTo(buffer, "{}", m_Data.Number);
+            device.Write(buffer);
             break;
         }
         case PdfDataType::Real:
@@ -176,13 +177,12 @@ void PdfVariant::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
             if ((writeMode & PdfWriteFlags::NoInlineLiteral) == PdfWriteFlags::None)
                 device.Put(' '); // Write space before numbers
 
-            string formatted;
-            utls::FormatTo(formatted, m_Data.Real, DefaultPrecision);
-            device.Write(formatted);
+            utls::FormatTo(buffer, m_Data.Real, DefaultPrecision);
+            device.Write(buffer);
             break;
         }
         case PdfDataType::Reference:
-            m_Data.Reference.Write(device, writeMode, encrypt);
+            m_Data.Reference.Write(device, writeMode, encrypt, buffer);
             break;
         case PdfDataType::String:
         case PdfDataType::Name:
@@ -192,7 +192,7 @@ void PdfVariant::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
             if (m_Data.Data == nullptr)
                 PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-            m_Data.Data->Write(device, writeMode, encrypt);
+            m_Data.Data->Write(device, writeMode, encrypt, buffer);
             break;
         case PdfDataType::Null:
         {
@@ -237,8 +237,9 @@ void PdfVariant::ToString(string& str) const
             break;
     }
 
+    charbuff buffer;
     PdfStringOutputDevice device(str);
-    this->Write(device, writeFlags, nullptr);
+    this->Write(device, writeFlags, nullptr, buffer);
 }
 
 PdfVariant& PdfVariant::operator=(const PdfVariant& rhs)

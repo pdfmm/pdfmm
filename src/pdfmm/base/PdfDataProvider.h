@@ -44,7 +44,8 @@ public:
      *  \param encrypt an encryption object which is used to encrypt this object
      *                  or nullptr to not encrypt this object
      */
-    virtual void Write(PdfOutputDevice& device, PdfWriteFlags writeMode, const PdfEncrypt* encrypt) const = 0;
+    virtual void Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
+        const PdfEncrypt* encrypt, charbuff& buffer) const = 0;
 
 protected:
     PdfDataProvider(const PdfDataProvider&) = default;

@@ -294,7 +294,7 @@ public:
      *                  or nullptr to not encrypt this object
      */
     void Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
-        const PdfEncrypt* encrypt) const;
+        const PdfEncrypt* encrypt, charbuff& buffer) const;
 
     /** Assign the values of another PdfVariant to this one.
      *  \param rhs an existing variant which is copied.

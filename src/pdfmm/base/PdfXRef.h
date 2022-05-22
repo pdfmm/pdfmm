@@ -99,7 +99,7 @@ public:
      *  \param device an output device (usually a PDF file)
      *
      */
-    void Write(PdfOutputDevice& device);
+    void Write(PdfOutputDevice& device, charbuff& buffer);
 
     /** Get the size of the XRef table.
      *  I.e. the highest object number + 1.
@@ -145,7 +145,7 @@ protected:
      *  \param first the object number of the first object in this subsection
      *  \param count the number of entries in this subsection
      */
-    virtual void WriteSubSection(PdfOutputDevice& device, uint32_t first, uint32_t count);
+    virtual void WriteSubSection(PdfOutputDevice& device, uint32_t first, uint32_t count, charbuff& buffer);
 
     /** Write a single entry to the XRef table
      *
@@ -154,17 +154,17 @@ protected:
      *  \param ref the reference of object of the entry
      *  \param entry the XRefEntry of this object
      */
-    virtual void WriteXRefEntry(PdfOutputDevice& device, const PdfReference& ref, const PdfXRefEntry& entry);
+    virtual void WriteXRefEntry(PdfOutputDevice& device, const PdfReference& ref, const PdfXRefEntry& entry, charbuff& buffer);
 
     /**  Sub classes can overload this method to finish a XRef table.
      *
      *  \param device the output device to which the XRef table
      *                 should be written.
      */
-    virtual void EndWriteImpl(PdfOutputDevice& device);
+    virtual void EndWriteImpl(PdfOutputDevice& device, charbuff& buffer);
 
 private:
-    void AddObject(const PdfReference& ref, nullable<uint64_t> offset, bool inUse);
+    void addObject(const PdfReference& ref, nullable<uint64_t> offset, bool inUse);
 
     /** Called at the end of writing the XRef table.
      *  Sub classes can overload this method to finish a XRef table.
@@ -172,10 +172,10 @@ private:
      *  \param device the output device to which the XRef table
      *                 should be written.
      */
-    void EndWrite(PdfOutputDevice& device);
+    void endWrite(PdfOutputDevice& device, charbuff& buffer);
 
-    const PdfReference* GetFirstFreeObject(XRefBlockList::const_iterator itBlock, ReferenceList::const_iterator itFree) const;
-    const PdfReference* GetNextFreeObject(XRefBlockList::const_iterator itBlock, ReferenceList::const_iterator itFree) const;
+    const PdfReference* getFirstFreeObject(XRefBlockList::const_iterator itBlock, ReferenceList::const_iterator itFree) const;
+    const PdfReference* getNextFreeObject(XRefBlockList::const_iterator itBlock, ReferenceList::const_iterator itFree) const;
 
     /** Merge all xref blocks that follow immediately after each other
      *  into a single block.
@@ -183,7 +183,7 @@ private:
      *  This results in slightly smaller PDF files which are easier to parse
      *  for other applications.
      */
-    void MergeBlocks();
+    void mergeBlocks();
 
 private:
     uint32_t m_maxObjCount;

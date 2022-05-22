@@ -90,11 +90,9 @@ void PdfMemDocument::initFromParser(PdfParser& parser)
 
     if (PdfError::IsLoggingSeverityEnabled(PdfLogSeverity::Debug))
     {
-        string buf;
-        PdfStringOutputDevice debug(buf);
-        GetTrailer().GetVariant().Write(debug, PdfWriteFlags::None, nullptr);
-        debug.Put('\n');
-        PdfError::LogMessage(PdfLogSeverity::Debug, buf);
+        auto debug = GetTrailer().GetVariant().ToString();
+        debug.push_back('\n');
+        PdfError::LogMessage(PdfLogSeverity::Debug, debug);
     }
 
     if (parser.IsEncrypted())

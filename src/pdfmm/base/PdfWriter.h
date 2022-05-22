@@ -167,7 +167,7 @@ protected:
      *  \param trailer trailer object
      *  \param pOriginalIdentifier write the original identifier (when using incremental update) to this string
      */
-    void CreateFileIdentifier(PdfString& identifier, const PdfObject& trailer, PdfString* pOriginalIdentifier = nullptr) const;
+    void CreateFileIdentifier(PdfString& identifier, const PdfObject& trailer, PdfString* originalIdentifier = nullptr);
 
 
     const PdfObject& GetTrailer() { return m_Trailer; }
@@ -176,6 +176,10 @@ protected:
     const PdfString& GetIdentifier() { return m_identifier; }
     void SetIdentifier(const PdfString& identifier) { m_identifier = identifier; }
     void SetEncryptObj(PdfObject* obj);
+
+protected:
+    charbuff m_buffer;
+
 private:
     PdfIndirectObjectList* m_Objects;
     PdfObject m_Trailer;

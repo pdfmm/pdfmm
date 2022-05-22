@@ -46,15 +46,18 @@ void PdfXRefStream::BeginWrite(PdfOutputDevice&)
     // Do nothing
 }
 
-void PdfXRefStream::WriteSubSection(PdfOutputDevice&, uint32_t first, uint32_t count)
+void PdfXRefStream::WriteSubSection(PdfOutputDevice&, uint32_t first, uint32_t count, charbuff& buffer)
 {
+    (void)buffer;
     m_indices.Add(static_cast<int64_t>(first));
     m_indices.Add(static_cast<int64_t>(count));
 }
 
-void PdfXRefStream::WriteXRefEntry(PdfOutputDevice& device, const PdfReference& ref, const PdfXRefEntry& entry)
+void PdfXRefStream::WriteXRefEntry(PdfOutputDevice& device, const PdfReference& ref,
+    const PdfXRefEntry& entry, charbuff& buffer)
 {
     (void)device;
+    (void)buffer;
     XRefStreamEntry stmEntry;
     stmEntry.Type = static_cast<uint8_t>(entry.Type);
 
@@ -77,7 +80,7 @@ void PdfXRefStream::WriteXRefEntry(PdfOutputDevice& device, const PdfReference& 
     m_rawEntries.push_back(stmEntry);
 }
 
-void PdfXRefStream::EndWriteImpl(PdfOutputDevice& device)
+void PdfXRefStream::EndWriteImpl(PdfOutputDevice& device, charbuff& buffer)
 {
     PdfArray wArr;
     wArr.Add(static_cast<int64_t>(sizeof(XRefStreamEntry::Type)));
@@ -99,6 +102,6 @@ void PdfXRefStream::EndWriteImpl(PdfOutputDevice& device)
     stream.EndAppend();
     GetWriter().FillTrailerObject(*m_xrefStreamObj, this->GetSize(), false);
 
-    m_xrefStreamObj->Write(device, GetWriter().GetWriteFlags(), nullptr); // CHECK-ME: Requires encryption info??
+    m_xrefStreamObj->Write(device, GetWriter().GetWriteFlags(), nullptr, buffer); // CHECK-ME: Requires encryption info??
     m_offset = offset;
 }

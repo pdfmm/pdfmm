@@ -177,7 +177,7 @@ void PdfArray::Clear()
 }
 
 void PdfArray::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
-    const PdfEncrypt* encrypt) const
+    const PdfEncrypt* encrypt, charbuff& buffer) const
 {
     auto it = m_Objects.begin();
 
@@ -190,7 +190,7 @@ void PdfArray::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
 
     while (it != m_Objects.end())
     {
-        it->GetVariant().Write(device, writeMode, encrypt);
+        it->GetVariant().Write(device, writeMode, encrypt, buffer);
         if ((writeMode & PdfWriteFlags::Clean) == PdfWriteFlags::Clean)
         {
             device.Put((count % 10 == 0) ? '\n' : ' ');

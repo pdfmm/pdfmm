@@ -57,7 +57,8 @@ public:
      */
     explicit PdfData(const bufferview& data, const std::shared_ptr<size_t>& writeBeacon = { });
 
-    void Write(PdfOutputDevice& device, PdfWriteFlags writeMode, const PdfEncrypt* encrypt) const override;
+    void Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
+        const PdfEncrypt* encrypt, charbuff& buffer) const override;
 
     PdfData& operator=(const PdfData& rhs) = default;
     PdfData& operator=(PdfData&& rhs) = default;

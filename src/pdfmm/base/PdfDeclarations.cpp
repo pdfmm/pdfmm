@@ -200,17 +200,13 @@ void utls::ReadUtf16LEString(const bufferview& buffer, string& utf8str)
 
 void utls::FormatTo(string& str, float value, unsigned char precision)
 {
-    str.resize(numeric_limits<float>::max_digits10);
-    auto rval = std::to_chars(str.data(), str.data() + str.length(), value, chars_format::fixed, precision);
-    str.resize(rval.ptr - str.data());
+    cmn::FormatTo(str, "{:.{}f}", value, precision);
     removeTrailingZeroes(str);
 }
 
 void utls::FormatTo(string& str, double value, unsigned char precision)
 {
-    str.resize(numeric_limits<double>::max_digits10);
-    auto rval = std::to_chars(str.data(), str.data() + str.length(), value, chars_format::fixed, precision);
-    str.resize(rval.ptr - str.data());
+    cmn::FormatTo(str, "{:.{}f}", value, precision);
     removeTrailingZeroes(str);
 }
 

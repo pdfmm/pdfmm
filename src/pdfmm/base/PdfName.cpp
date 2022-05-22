@@ -21,7 +21,7 @@ using namespace mm;
 template<typename T>
 void hexchr(const unsigned char ch, T& it);
 
-static string EscapeName(const string_view& view);
+static void EscapeNameTo(string& dst, const string_view& view);
 static string UnescapeName(const string_view& view);
 
 const PdfName PdfName::KeyNull = PdfName();
@@ -95,14 +95,16 @@ PdfName PdfName::FromRaw(const bufferview& rawcontent)
     return PdfName((charbuff)rawcontent);
 }
 
-void PdfName::Write(PdfOutputDevice& device, PdfWriteFlags, const PdfEncrypt*) const
+void PdfName::Write(PdfOutputDevice& device, PdfWriteFlags,
+    const PdfEncrypt* encrypt, charbuff& buffer) const
 {
+    (void)encrypt;
     // Allow empty names, which are legal according to the PDF specification
     device.Put('/');
     if (m_data->Chars.length() != 0)
     {
-        string escaped = EscapeName(m_data->Chars);
-        device.Write(escaped);
+        EscapeNameTo(buffer, m_data->Chars);
+        device.Write(buffer);
     }
 }
 
@@ -111,7 +113,9 @@ string PdfName::GetEscapedName() const
     if (m_data->Chars.length() == 0)
         return string();
 
-    return EscapeName(m_data->Chars);
+    string ret;
+    EscapeNameTo(ret, m_data->Chars);
+    return ret;
 }
 
 void PdfName::expandUtf8String() const
@@ -136,7 +140,7 @@ void PdfName::expandUtf8String() const
  *  \param length Length of input string
  *  \returns Escaped string
  */
-string EscapeName(const string_view& view)
+void EscapeNameTo(string& dst, const string_view& view)
 {
     // Scan the input string once to find out how much memory we need
     // to reserve for the encoded result string. We could do this in one
@@ -160,10 +164,9 @@ string EscapeName(const string_view& view)
     }
     // Reserve it. We can't use reserve() because the GNU STL doesn't seem to
     // do it correctly; the memory never seems to get allocated.
-    string ret;
-    ret.resize(outchars);
+    dst.resize(outchars);
     // and generate the encoded string
-    string::iterator bufIt(ret.begin());
+    string::iterator bufIt(dst.begin());
     for (size_t i = 0; i < view.length(); i++)
     {
         char ch = view[i];
@@ -180,7 +183,6 @@ string EscapeName(const string_view& view)
             hexchr(static_cast<unsigned char>(ch), bufIt);
         }
     }
-    return ret;
 }
 
 /** Interpret the passed string as an escaped PDF name

@@ -211,7 +211,7 @@ void PdfObject::initObject()
 }
 
 void PdfObject::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
-    PdfEncrypt* encrypt) const
+    PdfEncrypt* encrypt, charbuff& buffer) const
 {
     DelayedLoad();
     DelayedLoadStream();
@@ -221,12 +221,14 @@ void PdfObject::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
         if ((writeMode & PdfWriteFlags::Clean) == PdfWriteFlags::None
             && (writeMode & PdfWriteFlags::NoPDFAPreserve) != PdfWriteFlags::None)
         {
-            device.Write(COMMON_FORMAT("{} {} obj", m_IndirectReference.ObjectNumber(), m_IndirectReference.GenerationNumber()));
+            cmn::FormatTo(buffer, "{} {} obj", m_IndirectReference.ObjectNumber(), m_IndirectReference.GenerationNumber());
+            device.Write(buffer);
         }
         else
         {
             // PDF/A compliance requires all objects to be written in a clean way
-            device.Write(COMMON_FORMAT("{} {} obj\n", m_IndirectReference.ObjectNumber(), m_IndirectReference.GenerationNumber()));
+            cmn::FormatTo(buffer, "{} {} obj\n", m_IndirectReference.ObjectNumber(), m_IndirectReference.GenerationNumber());
+            device.Write(buffer);
         }
     }
 
@@ -251,7 +253,7 @@ void PdfObject::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
         }
     }
 
-    m_Variant.Write(device, writeMode, encrypt);
+    m_Variant.Write(device, writeMode, encrypt, buffer);
     device.Put('\n');
 
     if (m_Stream != nullptr)
@@ -262,15 +264,6 @@ void PdfObject::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
 
     // After write we ca reset the dirty flag
     const_cast<PdfObject&>(*this).ResetDirty();
-}
-
-size_t PdfObject::GetObjectLength(PdfWriteFlags writeMode)
-{
-    PdfNullOutputDevice device;
-
-    this->Write(device, writeMode, nullptr);
-
-    return device.GetLength();
 }
 
 PdfObjectStream& PdfObject::GetOrCreateStream()

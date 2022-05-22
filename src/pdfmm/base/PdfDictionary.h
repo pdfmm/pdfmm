@@ -288,7 +288,8 @@ public:
      */
     bool RemoveKey(const std::string_view& key);
 
-    void Write(PdfOutputDevice& device, PdfWriteFlags writeMode, const PdfEncrypt* encrypt) const override;
+    void Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
+        const PdfEncrypt* encrypt, charbuff& buffer) const override;
 
     /**
      * \returns the size of the internal map

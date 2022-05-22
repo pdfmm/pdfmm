@@ -193,7 +193,7 @@ bool PdfDictionary::RemoveKey(const string_view& key)
 }
 
 void PdfDictionary::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
-    const PdfEncrypt* encrypt) const
+    const PdfEncrypt* encrypt, charbuff& buffer) const
 {
     if ((writeMode & PdfWriteFlags::Clean) == PdfWriteFlags::Clean)
         device.Write("<<\n");
@@ -208,7 +208,7 @@ void PdfDictionary::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
         else
             device.Write("/Type");
 
-        this->getKey(PdfName::KeyType)->GetVariant().Write(device, writeMode, encrypt);
+        this->getKey(PdfName::KeyType)->GetVariant().Write(device, writeMode, encrypt, buffer);
 
         if ((writeMode & PdfWriteFlags::Clean) == PdfWriteFlags::Clean)
             device.Put('\n');
@@ -218,11 +218,11 @@ void PdfDictionary::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
     {
         if (pair.first != PdfName::KeyType)
         {
-            pair.first.Write(device, writeMode, nullptr);
+            pair.first.Write(device, writeMode, nullptr, buffer);
             if ((writeMode & PdfWriteFlags::Clean) == PdfWriteFlags::Clean)
                 device.Put(' '); // write a separator
 
-            pair.second.GetVariant().Write(device, writeMode, encrypt);
+            pair.second.GetVariant().Write(device, writeMode, encrypt, buffer);
             if ((writeMode & PdfWriteFlags::Clean) == PdfWriteFlags::Clean)
                 device.Put('\n');
         }

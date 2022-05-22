@@ -23,6 +23,7 @@ namespace cmn
     template <typename... Args>
     inline static void FormatTo(std::string& dst, const std::string_view& fmt, const Args&... args)
     {
+        dst.clear();
         std::format_to(std::back_inserter(dst), fmt, args...);
     }
 

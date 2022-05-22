@@ -44,9 +44,11 @@ public:
 
 protected:
     void BeginWrite(PdfOutputDevice& device) override;
-    void WriteSubSection(PdfOutputDevice& device, uint32_t first, uint32_t count) override;
-    void WriteXRefEntry(PdfOutputDevice& device, const PdfReference& ref, const PdfXRefEntry& entry) override;
-    void EndWriteImpl(PdfOutputDevice& device) override;
+    void WriteSubSection(PdfOutputDevice& device, uint32_t first, uint32_t count,
+        charbuff& buffer) override;
+    void WriteXRefEntry(PdfOutputDevice& device, const PdfReference& ref,
+        const PdfXRefEntry& entry, charbuff& buffer) override;
+    void EndWriteImpl(PdfOutputDevice& device, charbuff& buffer) override;
 
 private:
 #pragma pack(push, 1)

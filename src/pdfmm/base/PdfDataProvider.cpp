@@ -27,5 +27,6 @@ void PdfDataProvider::ToString(string& str) const
 {
     str.clear();
     PdfStringOutputDevice device(str);
-    Write(device, PdfWriteFlags::None, nullptr);
+    charbuff buffer;
+    Write(device, PdfWriteFlags::None, nullptr, buffer);
 }

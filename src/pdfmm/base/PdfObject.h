@@ -319,13 +319,8 @@ public:
      *  \param keyStop if not KeyNull and a key == keyStop is found
      *                 writing will stop right before this key!
      */
-    void Write(PdfOutputDevice& device, PdfWriteFlags writeMode, PdfEncrypt* encrypt) const;
-
-    /** Get the length of the object in bytes if it was written to disk now.
-     *  \param writeMode additional options for writing the object
-     *  \returns  the length of the object
-     */
-    size_t GetObjectLength(PdfWriteFlags writeMode);
+    void Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
+        PdfEncrypt* encrypt, charbuff& buffer) const;
 
     /** Get a handle to a PDF stream object.
      *  If the PDF object does not have a stream,

@@ -71,7 +71,7 @@ void PdfImmediateWriter::WriteObject(const PdfObject& obj)
     this->FinishLastObject();
 
     m_xRef->AddInUseObject(obj.GetIndirectReference(), m_Device->Tell());
-    obj.Write(*m_Device, this->GetWriteFlags(), GetEncrypt());
+    obj.Write(*m_Device, this->GetWriteFlags(), GetEncrypt(), m_buffer);
 
     // Let's cheat a bit:
     // obj has written an "endobj\n" as last data to the file.
@@ -99,7 +99,7 @@ void PdfImmediateWriter::Finish()
 
     // write the XRef
     uint64_t lXRefOffset = static_cast<uint64_t>(m_Device->Tell());
-    m_xRef->Write(*m_Device);
+    m_xRef->Write(*m_Device, m_buffer);
 
     // FIX-ME: The following is already done by PdfXRef now
     PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);
@@ -113,10 +113,11 @@ void PdfImmediateWriter::Finish()
         FillTrailerObject(trailer, m_xRef->GetSize(), false);
 
         m_Device->Write("trailer\n");
-        trailer.Write(*m_Device, this->GetWriteFlags(), nullptr);
+        trailer.Write(*m_Device, this->GetWriteFlags(), nullptr, m_buffer);
     }
 
-    m_Device->Write(COMMON_FORMAT("startxref\n{}\n%%EOF\n", lXRefOffset));
+    cmn::FormatTo(m_buffer, "startxref\n{}\n%%EOF\n", lXRefOffset);
+    m_Device->Write(m_buffer);
     m_Device->Flush();
 
     // we are done now
