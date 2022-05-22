@@ -9,7 +9,6 @@
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfImage.h"
 
-#include <sstream>
 #include <filesystem>
 #include <utfcpp/utf8.h>
 

@@ -9,8 +9,6 @@
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfFontMetricsFreetype.h"
 
-#include <sstream>
-
 #include <pdfmm/private/FreetypePrivate.h>
 #include FT_TRUETYPE_TAGS_H
 #include FT_TRUETYPE_TABLES_H

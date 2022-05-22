@@ -2,7 +2,8 @@
 - Renamed PdfPageTree -> PdfPageCollection
 
 ## Version 0.9.21
-- ...
+- Removed PdfLocaleImbue
+- PdfEncrypt: Removed PdfReference state. Added PdfStatefulEncrypt
 
 ## Version 0.9.20
 

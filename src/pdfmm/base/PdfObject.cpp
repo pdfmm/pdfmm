@@ -19,7 +19,6 @@
 #include "PdfVariant.h"
 #include "PdfMemoryObjectStream.h"
 
-#include <sstream>
 #include <fstream>
 
 using namespace std;

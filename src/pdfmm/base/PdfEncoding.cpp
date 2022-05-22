@@ -8,7 +8,6 @@
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfEncoding.h"
 
-#include <sstream>
 #include <atomic>
 #include <utfcpp/utf8.h>
 

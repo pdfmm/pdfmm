@@ -11,8 +11,6 @@
 
 #include "PdfOutputDevice.h"
 
-#include <sstream>
-
 using namespace std;
 using namespace mm;
 

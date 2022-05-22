@@ -9,7 +9,6 @@
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfFont.h"
 
-#include <sstream>
 #include <regex>
 #include <utfcpp/utf8.h>
 
@@ -22,7 +21,6 @@
 #include "PdfInputStream.h"
 #include "PdfObjectStream.h"
 #include "PdfWriter.h"
-#include "PdfLocale.h"
 #include "PdfCharCodeMap.h"
 #include "PdfEncodingShim.h"
 #include "PdfFontMetrics.h"
@@ -31,6 +29,7 @@
 #include "PdfFontManager.h"
 #include "PdfFontMetricsFreetype.h"
 #include "PdfDocument.h"
+#include "PdfStringStream.h"
 
 using namespace std;
 using namespace mm;
@@ -61,8 +60,7 @@ PdfFont::PdfFont(PdfObject& obj, const PdfFontMetricsConstPtr& metrics,
 
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /Ft for fonts.
-    ostringstream out;
-    PdfLocaleImbue(out);
+    PdfStringStream out;
     out << "pdfmmFt" << this->GetObject().GetIndirectReference().ObjectNumber();
     m_Identifier = PdfName(out.str().c_str());
 }
@@ -143,8 +141,7 @@ void PdfFont::initBase(const PdfEncoding& encoding)
         m_Encoding.reset(new PdfEncodingShim(encoding, *this));
     }
 
-    ostringstream out;
-    PdfLocaleImbue(out);
+    PdfStringStream out;
 
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /Ft for fonts.

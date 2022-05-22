@@ -9,7 +9,6 @@
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfDifferenceEncoding.h"
 
-#include <sstream>
 #include <algorithm>
 
 #include <utfcpp/utf8.h>

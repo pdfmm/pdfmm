@@ -7,7 +7,6 @@
 - PdfInputDevice: should merge with PdfOutputDevice
 - Use unique_ptr/shared_ptr where possibile (PdfField), use shared_ptr in PdfIndirectObjectList?
 - FontManager could use unique_ptr or shared_ptr?
-- Remove PdfLocaleImbue
 - Add a PdfRectRaw that avoid normalization by default
 
 ### After 0.10

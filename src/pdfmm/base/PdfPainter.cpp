@@ -20,7 +20,6 @@
 #include "PdfRect.h"
 #include "PdfObjectStream.h"
 #include "PdfString.h"
-#include "PdfLocale.h"
 #include "PdfContents.h"
 #include "PdfExtGState.h"
 #include "PdfFont.h"

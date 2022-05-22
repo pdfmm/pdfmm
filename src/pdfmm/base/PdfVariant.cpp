@@ -9,14 +9,11 @@
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfVariant.h"
 
-#include "PdfLocale.h"
 #include "PdfArray.h"
 #include "PdfData.h"
 #include "PdfDictionary.h"
 #include "PdfOutputDevice.h"
 #include "PdfParserObject.h"
-
-#include <sstream>
 
 using namespace mm;
 using namespace std;

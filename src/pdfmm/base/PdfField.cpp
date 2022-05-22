@@ -23,8 +23,6 @@
 #include "PdfComboBox.h"
 #include "PdfListBox.h"
 
-#include <sstream>
-
 using namespace std;
 using namespace mm;
 

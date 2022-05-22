@@ -8,8 +8,6 @@
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfNameTree.h"
 
-#include <sstream>
-
 #include "PdfDocument.h"
 #include "PdfArray.h"
 #include "PdfDictionary.h"

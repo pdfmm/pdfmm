@@ -11,11 +11,9 @@
 #include "PdfAcroForm.h"
 #include "PdfArray.h"
 #include "PdfDictionary.h"
-#include "PdfLocale.h"
 #include "PdfDocument.h"
 #include "PdfFont.h"
-
-#include <sstream>
+#include "PdfStringStream.h"
 
 using namespace std;
 using namespace mm;
@@ -67,10 +65,9 @@ void PdfAcroForm::Init(PdfAcroFormDefaulAppearance defaultAppearance)
         fontDict.GetDictionary().AddKey(font->GetIdentifier(), font->GetObject().GetIndirectReference());
 
         // Create DA key
-        ostringstream oss;
-        PdfLocaleImbue(oss);
-        oss << "0 0 0 rg /" << font->GetIdentifier().GetString() << " 12 Tf";
-        this->GetObject().GetDictionary().AddKey("DA", PdfString(oss.str()));
+        PdfStringStream ss;
+        ss << "0 0 0 rg /" << font->GetIdentifier().GetString() << " 12 Tf";
+        this->GetObject().GetDictionary().AddKey("DA", PdfString(ss.str()));
     }
 }
 

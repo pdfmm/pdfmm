@@ -10,13 +10,11 @@
 
 #include <algorithm>
 #include <cctype>
-#include <pdfmm/private/istringviewstream.h>
 #include <pdfmm/private/charconv_compat.h>
 
 #include "PdfDocument.h"
 #include "PdfArray.h"
 #include "PdfDictionary.h"
-#include "PdfLocale.h"
 #include "PdfObjectStream.h"
 #include "PdfTokenizer.h"
 #include "PdfVariant.h"
@@ -680,14 +678,10 @@ PdfColor PdfColor::FromString(const string_view& name)
     if (isdigit(name[0]) || name[0] == '.')
     {
         double grayVal = 0.0;
+        if (std::from_chars(name.data() + 1, name.data() + name.size(), grayVal, chars_format::fixed).ec != std::errc())
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoNumber, "Could not read number");
 
-        istringviewstream stream(name);
-        PdfLocaleImbue(stream);
-
-        if (stream >> grayVal)
-            return PdfColor(grayVal);
-        else
-            PDFMM_RAISE_ERROR(PdfErrorCode::CannotConvertColor);
+        return PdfColor(grayVal);
     }
     // now check for a hex value (#xxxxxx or #xxxxxxxx)
     else if (name[0] == '#')

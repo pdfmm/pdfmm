@@ -9,13 +9,11 @@
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfIdentityEncoding.h"
 
-#include <sstream>
 #include <stdexcept>
 
 #include <utfcpp/utf8.h>
 
 #include "PdfDictionary.h"
-#include "PdfLocale.h"
 #include "PdfFont.h"
 
 using namespace std;

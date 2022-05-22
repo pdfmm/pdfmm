@@ -8,8 +8,6 @@
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfFilter.h"
 
-#include <sstream>
-
 #include <pdfmm/private/PdfFiltersPrivate.h>
 
 #include "PdfDocument.h"

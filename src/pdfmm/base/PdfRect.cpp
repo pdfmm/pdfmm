@@ -13,7 +13,6 @@
 #include "PdfVariant.h"
 #include "PdfMath.h"
 
-#include <sstream>
 #include <iomanip>
 
 static void CreateRect(double x1, double y1, double x2, double y2,

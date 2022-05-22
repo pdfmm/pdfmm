@@ -9,10 +9,7 @@
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfXObject.h"
 
-#include <sstream>
-
 #include "PdfDictionary.h"
-#include "PdfLocale.h"
 #include "PdfRect.h"
 #include "PdfVariant.h"
 #include "PdfImage.h"
@@ -20,6 +17,7 @@
 #include "PdfDocument.h"
 #include "PdfXObjectForm.h"
 #include "PdfXObjectPostScript.h"
+#include "PdfStringStream.h"
 
 using namespace std;
 using namespace mm;
@@ -160,8 +158,7 @@ bool PdfXObject::tryGetXObjectType(const type_info& type, PdfXObjectType& xobjTy
 
 void PdfXObject::initIdentifiers(const string_view& prefix)
 {
-    ostringstream out;
-    PdfLocaleImbue(out);
+    PdfStringStream out;
 
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /XOb for XObject.

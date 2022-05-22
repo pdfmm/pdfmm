@@ -9,11 +9,9 @@
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfExtGState.h"
 
-#include <sstream>
-
 #include "PdfDictionary.h"
 #include "PdfWriter.h"
-#include "PdfLocale.h"
+#include "PdfStringStream.h"
 #include "PdfPage.h"
 
 using namespace std;
@@ -22,10 +20,7 @@ using namespace mm;
 PdfExtGState::PdfExtGState(PdfDocument& doc)
     : PdfDictionaryElement(doc, "ExtGState")
 {
-    ostringstream out;
-    // We probably aren't doing anything locale sensitive here, but it's
-    // best to be sure.
-    PdfLocaleImbue(out);
+    PdfStringStream out;
 
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /Ft for fonts.

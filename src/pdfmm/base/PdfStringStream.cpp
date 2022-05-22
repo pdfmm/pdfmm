@@ -8,8 +8,6 @@
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfStringStream.h"
 
-#include "PdfLocale.h"
-
 using namespace std;
 using namespace mm;
 
@@ -29,7 +27,8 @@ PdfStringStream& PdfStringStream::operator<<(double val)
 
 PdfStringStream::PdfStringStream()
 {
-    mm::PdfLocaleImbue(m_stream);
+    static const locale s_cachedLocale("C");
+    m_stream.imbue(s_cachedLocale);
 }
 
 PdfStringStream& PdfStringStream::operator<<(

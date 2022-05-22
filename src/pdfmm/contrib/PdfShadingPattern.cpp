@@ -8,15 +8,13 @@
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfShadingPattern.h"
 
-#include <sstream>
-
 #include <pdfmm/base/PdfDocument.h>
 #include <pdfmm/base/PdfArray.h>
 #include <pdfmm/base/PdfColor.h>
 #include <pdfmm/base/PdfDictionary.h>
-#include <pdfmm/base/PdfLocale.h>
 #include <pdfmm/base/PdfObjectStream.h>
 #include <pdfmm/base/PdfWriter.h>
+#include <pdfmm/base/PdfStringStream.h>
 
 #include "PdfFunction.h"
 
@@ -27,10 +25,7 @@ using namespace mm;
 PdfShadingPattern::PdfShadingPattern(PdfDocument& doc, PdfShadingPatternType shadingType)
     : PdfDictionaryElement(doc, "Pattern")
 {
-    ostringstream out;
-    // We probably aren't doing anything locale sensitive here, but it's
-    // best to be sure.
-    PdfLocaleImbue(out);
+    PdfStringStream out;
 
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /Ft for fonts.

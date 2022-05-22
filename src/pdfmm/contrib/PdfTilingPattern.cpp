@@ -9,17 +9,16 @@
 #include "PdfTilingPattern.h"
 
 #include <iomanip>
-#include <sstream>
 
 #include <pdfmm/base/PdfDocument.h>
 #include <pdfmm/base/PdfArray.h>
 #include <pdfmm/base/PdfColor.h>
 #include <pdfmm/base/PdfDictionary.h>
-#include <pdfmm/base/PdfLocale.h>
 #include <pdfmm/base/PdfRect.h>
 #include <pdfmm/base/PdfObjectStream.h>
 #include <pdfmm/base/PdfWriter.h>
 #include <pdfmm/base/PdfImage.h>
+#include <pdfmm/base/PdfStringStream.h>
 
 #include "PdfFunction.h"
 
@@ -33,10 +32,7 @@ PdfTilingPattern::PdfTilingPattern(PdfDocument& doc, PdfTilingPatternType tiling
     PdfImage* image)
     : PdfDictionaryElement(doc, "Pattern")
 {
-    ostringstream out;
-    // We probably aren't doing anything locale sensitive here, but it's
-    // best to be sure.
-    PdfLocaleImbue(out);
+    PdfStringStream out;
 
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /Ft for fonts.
@@ -122,10 +118,7 @@ void PdfTilingPattern::Init(PdfTilingPatternType tilingType,
         this->GetObject().GetDictionary().AddKey("Matrix", arr);
     }
 
-    ostringstream out;
-    out.flags(std::ios_base::fixed);
-    out.precision(1 /* clPainterDefaultPrecision */);
-    PdfLocaleImbue(out);
+    PdfStringStream out;
 
     if (image == nullptr)
     {

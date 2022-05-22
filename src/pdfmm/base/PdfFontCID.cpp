@@ -10,12 +10,10 @@
 #include "PdfFontCID.h"
 
 #include <unordered_map>
-#include <sstream>
 
 #include "PdfDocument.h"
 #include "PdfArray.h"
 #include "PdfDictionary.h"
-#include "PdfLocale.h"
 #include "PdfName.h"
 #include "PdfObjectStream.h"
 #include "PdfFontMetricsFreetype.h"
