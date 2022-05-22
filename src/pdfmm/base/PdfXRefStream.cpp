@@ -41,13 +41,16 @@ bool PdfXRefStream::ShouldSkipWrite(const PdfReference& ref)
         return false;
 }
 
-void PdfXRefStream::BeginWrite(PdfOutputDevice&)
+void PdfXRefStream::BeginWrite(PdfOutputDevice& device, charbuff& buffer)
 {
+    (void)device;
+    (void)buffer;
     // Do nothing
 }
 
-void PdfXRefStream::WriteSubSection(PdfOutputDevice&, uint32_t first, uint32_t count, charbuff& buffer)
+void PdfXRefStream::WriteSubSection(PdfOutputDevice& device, uint32_t first, uint32_t count, charbuff& buffer)
 {
+    (void)device;
     (void)buffer;
     m_indices.Add(static_cast<int64_t>(first));
     m_indices.Add(static_cast<int64_t>(count));

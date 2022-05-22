@@ -89,7 +89,7 @@ void PdfXRef::Write(PdfOutputDevice& device, charbuff& buffer)
     mergeBlocks();
 
     m_offset = device.Tell();
-    this->BeginWrite(device);
+    this->BeginWrite(device, buffer);
     while (it != m_blocks.end())
     {
         auto& block = *it;
@@ -247,8 +247,9 @@ void PdfXRef::mergeBlocks()
     }
 }
 
-void PdfXRef::BeginWrite(PdfOutputDevice& device)
+void PdfXRef::BeginWrite(PdfOutputDevice& device, charbuff& buffer)
 {
+    (void)buffer;
     device.Write("xref\n");
 }
 

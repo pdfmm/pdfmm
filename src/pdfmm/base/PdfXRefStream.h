@@ -43,7 +43,7 @@ public:
     bool ShouldSkipWrite(const PdfReference& ref) override;
 
 protected:
-    void BeginWrite(PdfOutputDevice& device) override;
+    void BeginWrite(PdfOutputDevice& device, charbuff& buffer) override;
     void WriteSubSection(PdfOutputDevice& device, uint32_t first, uint32_t count,
         charbuff& buffer) override;
     void WriteXRefEntry(PdfOutputDevice& device, const PdfReference& ref,

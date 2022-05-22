@@ -135,7 +135,7 @@ protected:
      *  \param device the output device to which the XRef table
      *                 should be written.
      */
-    virtual void BeginWrite(PdfOutputDevice& device);
+    virtual void BeginWrite(PdfOutputDevice& device, charbuff& buffer);
 
     /** Begin an XRef subsection.
      *  All following calls of WriteXRefEntry belong to this XRef subsection.
