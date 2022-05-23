@@ -1,12 +1,16 @@
 ## Version 0.10.0
 - Renamed PdfPageTree -> PdfPageCollection
 
-## Version 0.9.21
+## Version 0.9.22
 - Fixed serialization of strings with non ascii PdfDocEncoding
   characters
 - Removed PdfLocaleImbue
 - PdfEncrypt: Removed PdfReference state. Added PdfStatefulEncrypt
 - Removed use of std::ostringstream. Added efficient outstringstream
+
+## Version 0.9.21
+- Fixed serialization of UTF-16BE strings
+- More lenient PdfDate parsing
 
 ## Version 0.9.20
 
