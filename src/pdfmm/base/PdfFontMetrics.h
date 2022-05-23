@@ -13,6 +13,7 @@
 
 #include "PdfString.h"
 #include "PdfCMapEncoding.h"
+#include "PdfCIDToGIDMap.h"
 
 FORWARD_DECLARE_FREETYPE();
 
@@ -269,6 +270,10 @@ public:
      */
     bool IsType1Kind() const;
 
+    /** Determine if the metrics are TrueType like font
+     */
+    bool IsTrueTypeKind() const;
+
     /** Determine if the font is non symbolic according to the PDF definition
      *
      * The font is symbolic if "contains glyphs outside the Standard Latin character set"
@@ -303,13 +308,21 @@ protected:
     virtual const FreeTypeFacePtr& GetFaceHandle() const = 0;
 
 private:
+    // To be called by PdfFont
+    const PdfCIDToGIDMapConstPtr& GetBuiltinCIDToGIDMap() const;
+
+private:
     PdfFontMetrics(const PdfFontMetrics& rhs) = delete;
     PdfFontMetrics& operator=(const PdfFontMetrics& rhs) = delete;
 
     static PdfEncodingMapConstPtr getFontType1Encoding(FT_Face face);
 
+    void tryLoadCIDToGIDMap();
+
 private:
     nullable<PdfFontStyle> m_Style;
+    bool m_CIDToGIDMapLoaded;
+    PdfCIDToGIDMapConstPtr m_CIDToGIDMap;
 };
 
 class PDFMM_API PdfFontMetricsBase : public PdfFontMetrics
@@ -331,7 +344,7 @@ private:
 
 /** Convenience typedef for a const PdfEncoding shared ptr
  */
-typedef std::shared_ptr<const PdfFontMetrics> PdfFontMetricsConstPtr;
+using PdfFontMetricsConstPtr = std::shared_ptr<const PdfFontMetrics> ;
 
 };
 

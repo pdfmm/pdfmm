@@ -42,7 +42,7 @@ PdfCMapEncoding::PdfCMapEncoding(PdfCharCodeMap&& map)
     : PdfCMapEncoding(std::move(map), map.GetLimits()) { }
 
 PdfCMapEncoding::PdfCMapEncoding(PdfCharCodeMap&& map, const PdfEncodingLimits& limits)
-    : PdfEncodingMapBase(std::move(map)), m_Limits(limits) { }
+    : PdfEncodingMapBase(std::move(map), PdfEncodingMapType::CMap), m_Limits(limits) { }
 
 unique_ptr<PdfCMapEncoding> PdfCMapEncoding::Create(const PdfObject& cmapObj)
 {
@@ -69,11 +69,6 @@ bool PdfCMapEncoding::HasLigaturesSupport() const
 {
     // CMap encodings may have ligatures
     return true;
-}
-
-PdfEncodingMapType PdfCMapEncoding::GetType() const
-{
-    return PdfEncodingMapType::CMap;
 }
 
 PdfCharCodeMap parseCMapObject(const PdfObjectStream& stream, CodeLimits& limits)

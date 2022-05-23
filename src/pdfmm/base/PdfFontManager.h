@@ -11,8 +11,6 @@
 
 #include "PdfDeclarations.h"
 
-#include <unordered_map>
-
 #include "PdfFont.h"
 #include "PdfEncodingFactory.h"
 

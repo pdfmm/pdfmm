@@ -52,8 +52,8 @@ PdfFont::PdfFont(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
 }
 
 PdfFont::PdfFont(PdfObject& obj, const PdfFontMetricsConstPtr& metrics,
-    const PdfEncoding& encoding) :
-    PdfDictionaryElement(obj), m_Metrics(metrics)
+    const PdfEncoding& encoding, const PdfCIDToGIDMapConstPtr& cidToGidMap) :
+    PdfDictionaryElement(obj), m_cidToGidMap(cidToGidMap), m_Metrics(metrics)
 {
     if (metrics == nullptr)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Metrics must me not null");
@@ -143,6 +143,13 @@ void PdfFont::initBase(const PdfEncoding& encoding)
         m_Encoding.reset(new PdfEncodingShim(encoding, *this));
     }
 
+    if (m_Metrics->IsTrueTypeKind() &&
+        encoding.GetEncodingMap().GetType() == PdfEncodingMapType::Indeterminate)
+    {
+        // ISO 32000-1:2008 9.6.6.4 "Encodings for TrueType Fonts"
+        m_cidToGidMap = m_Metrics->GetBuiltinCIDToGIDMap();
+    }
+
     PdfStringStream out;
 
     // Implementation note: the identifier is always
@@ -187,7 +194,7 @@ void PdfFont::InitImported(bool wantEmbed, bool wantSubset)
     {
         unsigned gid;
         char32_t spaceCp = U' ';
-        if (TryGetGID(spaceCp, gid))
+        if (TryGetGID(spaceCp, PdfGlyphAccess::Width, gid))
         {
             // If it exist a glyph for space character
             // always add it for subsetting
@@ -261,16 +268,16 @@ void PdfFont::embedFontSubset()
     PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "Subsetting not implemented for this font type");
 }
 
-unsigned PdfFont::GetGID(char32_t codePoint) const
+unsigned PdfFont::GetGID(char32_t codePoint, PdfGlyphAccess access) const
 {
     unsigned gid;
-    if (!TryGetGID(codePoint, gid))
+    if (!TryGetGID(codePoint, access, gid))
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "Can't find a gid");
 
     return gid;
 }
 
-bool PdfFont::TryGetGID(char32_t codePoint, unsigned& gid) const
+bool PdfFont::TryGetGID(char32_t codePoint, PdfGlyphAccess access, unsigned& gid) const
 {
     if (IsObjectLoaded() || !m_Metrics->HasUnicodeMapping())
     {
@@ -283,7 +290,7 @@ bool PdfFont::TryGetGID(char32_t codePoint, unsigned& gid) const
             return false;
         }
 
-        return TryMapCIDToGID(cid, gid);
+        return TryMapCIDToGID(cid, access, gid);
     }
     else
     {
@@ -302,7 +309,7 @@ double PdfFont::GetStringWidth(const string_view& str, const PdfTextState& state
 bool PdfFont::TryGetStringWidth(const string_view& str, const PdfTextState& state, double& width) const
 {
     vector<unsigned> gids;
-    bool success = tryConvertToGIDs(str, gids);
+    bool success = tryConvertToGIDs(str, PdfGlyphAccess::Width, gids);
     width = 0;
     for (unsigned i = 0; i < gids.size(); i++)
         width += getCharWidth(m_Metrics->GetGlyphWidth(gids[i]), state, false);
@@ -348,7 +355,7 @@ bool PdfFont::TryGetCharWidth(char32_t codePoint, const PdfTextState& state,
     bool ignoreCharSpacing, double& width) const
 {
     unsigned gid;
-    if (TryGetGID(codePoint, gid))
+    if (TryGetGID(codePoint, PdfGlyphAccess::Width, gid))
     {
         width = getCharWidth(m_Metrics->GetGlyphWidth(gid), state, ignoreCharSpacing);
         return true;
@@ -377,7 +384,7 @@ double PdfFont::GetDefaultCharWidth(const PdfTextState& state, bool ignoreCharSp
 double PdfFont::GetCIDWidthRaw(unsigned cid) const
 {
     unsigned gid;
-    if (!TryMapCIDToGID(cid, gid))
+    if (!TryMapCIDToGID(cid, PdfGlyphAccess::Width, gid))
         return m_Metrics->GetDefaultWidth();
 
     return m_Metrics->GetGlyphWidth(gid);
@@ -622,7 +629,7 @@ PdfCharCode PdfFont::AddCharCodeSafe(unsigned gid, const unicodeview& codePoints
     return code;
 }
 
-bool PdfFont::tryConvertToGIDs(const std::string_view& utf8Str, std::vector<unsigned>& gids) const
+bool PdfFont::tryConvertToGIDs(const std::string_view& utf8Str, PdfGlyphAccess access, std::vector<unsigned>& gids) const
 {
     bool success = true;
     if (IsObjectLoaded() || !m_Metrics->HasUnicodeMapping())
@@ -643,7 +650,7 @@ bool PdfFont::tryConvertToGIDs(const std::string_view& utf8Str, std::vector<unsi
             {
                 if (m_Encoding->TryGetCIDId(codeUnit, cid))
                 {
-                    if (!TryMapCIDToGID(cid, gid))
+                    if (!TryMapCIDToGID(cid, access, gid))
                     {
                         // Fallback
                         gid = cid;
@@ -751,7 +758,7 @@ void PdfFont::AddSubsetGIDs(const PdfString& encodedStr)
     (void)GetEncoding().TryConvertToCIDs(encodedStr, cids);
     for (auto& cid : cids)
     {
-        if (TryMapCIDToGID(cid.Id, gid))
+        if (TryMapCIDToGID(cid.Id, PdfGlyphAccess::FontProgram, gid))
         {
             (void)m_SubsetGIDs.try_emplace(gid,
                 PdfCID((unsigned)m_SubsetGIDs.size() + 1, cid.Unit));
@@ -783,7 +790,15 @@ PdfObject& PdfFont::GetDescendantFontObject()
     return *obj;
 }
 
-bool PdfFont::TryMapCIDToGID(unsigned cid, unsigned& gid) const
+bool PdfFont::TryMapCIDToGID(unsigned cid, PdfGlyphAccess access, unsigned& gid) const
+{
+    if (m_cidToGidMap != nullptr && m_cidToGidMap->HasGlyphAccess(access))
+        return m_cidToGidMap->TryMapCIDToGID(cid, gid);
+
+    return tryMapCIDToGID(cid, gid);
+}
+
+bool PdfFont::tryMapCIDToGID(unsigned cid, unsigned& gid) const
 {
     PDFMM_ASSERT(!IsObjectLoaded());
     if (m_Encoding->IsSimpleEncoding() && m_Metrics->HasUnicodeMapping())
@@ -802,8 +817,8 @@ bool PdfFont::TryMapCIDToGID(unsigned cid, unsigned& gid) const
     }
     else
     {
-        // We assume the font is not loaded, hence it's imported
-        // We assume cid == gid identity. CHECK-ME: Does it work
+        // The font is not loaded, hence it's imported:
+        // we assume cid == gid identity. CHECK-ME: Does it work
         // if we font to create a substitute font of a loaded font
         // with a /CIDToGIDMap ???
         gid = cid;

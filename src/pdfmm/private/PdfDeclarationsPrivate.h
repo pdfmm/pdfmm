@@ -211,7 +211,7 @@ namespace utls
     }
 
     // Returns log(ch) / log(256) + 1
-    unsigned char GetCharCodeSize(unsigned ch);
+    unsigned char GetCharCodeSize(unsigned code);
 
     // Returns pow(2, size * 8) - 1
     unsigned GetCharCodeMaxValue(unsigned char codeSize);

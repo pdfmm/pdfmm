@@ -7,6 +7,7 @@
 #include <string_view>
 #include <vector>
 #include <map>
+#include <unordered_map>
 #include <typeinfo>
 #include <array>
 #include <queue>

@@ -18,7 +18,8 @@
 using namespace std;
 using namespace mm;
 
-PdfEncodingMap::PdfEncodingMap() { }
+PdfEncodingMap::PdfEncodingMap(PdfEncodingMapType type)
+    : m_Type(type) { }
 
 PdfEncodingMap::~PdfEncodingMap() { }
 
@@ -189,6 +190,11 @@ bool PdfEncodingMap::TryGetCodePoints(const PdfCharCode& codeUnit, vector<char32
     return tryGetCodePoints(codeUnit, codePoints);
 }
 
+bool PdfEncodingMap::IsBuiltinEncoding() const
+{
+    return false;
+}
+
 bool PdfEncodingMap::HasLigaturesSupport() const
 {
     return false;
@@ -233,8 +239,8 @@ bool PdfEncodingMap::tryGetNextCodePoints(string_view::iterator& it, const strin
     return false;
 }
 
-PdfEncodingMapBase::PdfEncodingMapBase(PdfCharCodeMap&& map)
-    : m_charMap(std::make_shared<PdfCharCodeMap>(std::move(map)))
+PdfEncodingMapBase::PdfEncodingMapBase(PdfCharCodeMap&& map, PdfEncodingMapType type)
+    : PdfEncodingMap(type), m_charMap(std::make_shared<PdfCharCodeMap>(std::move(map)))
 {
 }
 
@@ -299,18 +305,13 @@ void PdfEncodingMapBase::AppendCodeSpaceRange(PdfObjectStream& stream) const
     }
 }
 
-PdfEncodingMapType PdfEncodingMapBase::GetType() const
-{
-    return PdfEncodingMapType::CMap;
-}
-
 const PdfEncodingLimits& PdfEncodingMapBase::GetLimits() const
 {
     return m_charMap->GetLimits();
 }
 
-PdfEncodingMapBase::PdfEncodingMapBase(const shared_ptr<PdfCharCodeMap>& map)
-    : m_charMap(map)
+PdfEncodingMapBase::PdfEncodingMapBase(const shared_ptr<PdfCharCodeMap>& map, PdfEncodingMapType type)
+    : PdfEncodingMap(type), m_charMap(map)
 {
     if (map == nullptr)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Map must be not null");
@@ -393,7 +394,7 @@ void PdfEncodingMap::AppendCodeSpaceRange(PdfObjectStream& stream) const
 }
 
 PdfEncodingMapOneByte::PdfEncodingMapOneByte(const PdfEncodingLimits& limits)
-    : m_Limits(limits) { }
+    : PdfEncodingMap(PdfEncodingMapType::Simple), m_Limits(limits) { }
 
 void PdfEncodingMapOneByte::AppendToUnicodeEntries(PdfObjectStream& stream) const
 {
@@ -442,7 +443,11 @@ void PdfEncodingMapOneByte::AppendCIDMappingEntries(PdfObjectStream& stream, con
         if (!TryGetCodePoints(charCode, codePoints))
             PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "Unable to find character code");
 
-        if (!font.TryGetGID(codePoints[0], gid))
+        // NOTE: CID mapping entries in a CMap also map CIDs to glyph
+        // indices within the font program, unless a /CIDToGID map is
+        // used. Here, we won't provide one, so we ensure to query
+        // for the GID in the font program
+        if (!font.TryGetGID(codePoints[0], PdfGlyphAccess::FontProgram, gid))
             continue;
 
         // NOTE: We will map the char code directly to the gid, so
@@ -465,20 +470,11 @@ const PdfEncodingLimits& PdfEncodingMapOneByte::GetLimits() const
     return m_Limits;
 }
 
-PdfEncodingMapType PdfEncodingMapOneByte::GetType() const
-{
-    return PdfEncodingMapType::Simple;
-}
-
-PdfNullEncodingMap::PdfNullEncodingMap() { }
-
-PdfEncodingMapType PdfNullEncodingMap::GetType() const
-{
-    // NOTE: We assume PdfNullEncodingMap will used in the
-    // null PdfEncoding that replaced with PdfDynamicEncoding
-    // in PdfFont. See PdfFont implementation
-    return PdfEncodingMapType::CMap;
-}
+// NOTE: We assume PdfNullEncodingMap will used in the
+// null PdfEncoding that replaced with PdfDynamicEncoding
+// in PdfFont. See PdfFont implementation
+PdfNullEncodingMap::PdfNullEncodingMap()
+    : PdfEncodingMap(PdfEncodingMapType::CMap) { }
 
 const PdfEncodingLimits& PdfNullEncodingMap::GetLimits() const
 {

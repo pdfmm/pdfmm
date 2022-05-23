@@ -70,7 +70,7 @@ private:
      * To be used only by PdfFontObject!
      */
     PdfFont(PdfObject& obj, const PdfFontMetricsConstPtr& metrics,
-        const PdfEncoding& encoding);
+        const PdfEncoding& encoding, const PdfCIDToGIDMapConstPtr& cidToGidMap);
 
 public:
     virtual ~PdfFont();
@@ -150,8 +150,8 @@ public:
      *  \returns the GID
      *  \remarks throw if not found
      */
-    unsigned GetGID(char32_t codePoint) const;
-    bool TryGetGID(char32_t codePoint, unsigned& gid) const;
+    unsigned GetGID(char32_t codePoint, PdfGlyphAccess access) const;
+    bool TryGetGID(char32_t codePoint, PdfGlyphAccess access, unsigned& gid) const;
 
     /** Retrieve the width of a given text string in PDF units when
      *  drawn with the current font
@@ -196,12 +196,6 @@ public:
      * If the subsetting is not enabled it's a no-op
      */
     void AddSubsetGIDs(const PdfString& encodedStr);
-
-    /** Optional function to map a CID to a GID
-     *
-     * Example for /Type2 CID fonts may have a /CIDToGIDMap
-     */
-    virtual bool TryMapCIDToGID(unsigned cid, unsigned& gid) const;
 
     /** Retrieve the line spacing for this font
      *  \returns the linespacing in PDF units
@@ -341,6 +335,8 @@ protected:
     void EmbedFontFileTrueType(PdfObject& descriptor, const bufferview& data);
     void EmbedFontFileOpenType(PdfObject& descriptor, const bufferview& data);
 
+    virtual bool tryMapCIDToGID(unsigned cid, unsigned& gid) const;
+
     /**
      * Get the raw width of a CID identifier
      */
@@ -392,8 +388,14 @@ private:
      */
     PdfCharCode AddCharCodeSafe(unsigned gid, const unicodeview& codePoints);
 
+    /** Optional function to map a CID to a GID
+     *
+     * Example for /Type2 CID fonts may have a /CIDToGIDMap
+     */
+    bool TryMapCIDToGID(unsigned cid, PdfGlyphAccess access, unsigned& gid) const;
+
 private:
-    bool tryConvertToGIDs(const std::string_view& utf8Str, std::vector<unsigned>& gids) const;
+    bool tryConvertToGIDs(const std::string_view& utf8Str, PdfGlyphAccess access, std::vector<unsigned>& gids) const;
     bool tryAddSubsetGID(unsigned gid, const unicodeview& codePoints, PdfCID& cid);
 
     void initBase(const PdfEncoding& encoding);
@@ -412,6 +414,7 @@ private:
     bool m_IsEmbedded;
     bool m_SubsettingEnabled;
     UsedGIDsMap m_SubsetGIDs;
+    PdfCIDToGIDMapConstPtr m_cidToGidMap;
 
 protected:
     PdfFontMetricsConstPtr m_Metrics;

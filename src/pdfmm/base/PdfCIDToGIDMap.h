@@ -14,28 +14,39 @@
 namespace mm
 {
     /** Helper class to handle the /CIDToGIDMap entry in a Type2 CID font
+     * or /TrueType fonts implicit CID to GID mapping
      */
-    class PdfCIDToGIDMap
+    class PdfCIDToGIDMap final
     {
     public:
+        using iterator = CIDToGIDMap::const_iterator;
+
+    public:
+        PdfCIDToGIDMap(CIDToGIDMap&& map, PdfGlyphAccess access);
         PdfCIDToGIDMap(const PdfCIDToGIDMap&) = default;
         PdfCIDToGIDMap(PdfCIDToGIDMap&&) noexcept = default;
 
-        static PdfCIDToGIDMap Create(const PdfObject& cidToGidMapObj);
+        static PdfCIDToGIDMap Create(const PdfObject& cidToGidMapObj, PdfGlyphAccess access);
 
     public:
         bool TryMapCIDToGID(unsigned cid, unsigned& gid) const;
         void ExportTo(PdfObject& descendantFont);
 
-    public:
-        const CIDToGIDMap& GetCIDToGIDMap() const { return m_cidToGidMap; }
+        /** Determines if the current map provides the queried glyph access
+         */
+        bool HasGlyphAccess(PdfGlyphAccess access) const;
 
-    private:
-        PdfCIDToGIDMap(CIDToGIDMap&& map);
+    public:
+        unsigned GetSize() const;
+        iterator begin() const;
+        iterator end() const;
 
     private:
         CIDToGIDMap m_cidToGidMap;
+        PdfGlyphAccess m_access;
     };
+
+    using PdfCIDToGIDMapConstPtr = std::shared_ptr<const PdfCIDToGIDMap>;
 }
 
 #endif // PDF_CID_TO_GID_MAP_H

@@ -9,8 +9,6 @@
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfFontCID.h"
 
-#include <unordered_map>
-
 #include "PdfDocument.h"
 #include "PdfArray.h"
 #include "PdfDictionary.h"

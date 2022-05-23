@@ -9,7 +9,6 @@
 #define PDF_FONT_OBJECT_H
 
 #include "PdfFont.h"
-#include "PdfCIDToGIDMap.h"
 
 namespace mm {
 
@@ -22,20 +21,21 @@ private:
      *  To be used by PdfFontFactory
      */
     PdfFontObject(PdfObject& obj, const PdfFontMetricsConstPtr& metrics,
-        const PdfEncoding& encoding);
+        const PdfEncoding& encoding, const PdfCIDToGIDMapConstPtr& cidToGidMap);
 
-    PdfFontObject(PdfObject& obj, PdfObject& descendantObj,
+public:
+    static std::unique_ptr<PdfFontObject> Create(PdfObject& obj, PdfObject& descendantObj,
+        const PdfFontMetricsConstPtr& metrics, const PdfEncoding& encoding);
+
+    static std::unique_ptr<PdfFontObject> Create(PdfObject& obj,
         const PdfFontMetricsConstPtr& metrics, const PdfEncoding& encoding);
 
 public:
-    bool TryMapCIDToGID(unsigned cid, unsigned& gid) const override;
+    bool tryMapCIDToGID(unsigned cid, unsigned& gid) const override;
 
 public:
     bool IsObjectLoaded() const override;
     PdfFontType GetType() const override;
-
-private:
-    std::unique_ptr<PdfCIDToGIDMap> m_cidToGidMap;
 };
 
 }

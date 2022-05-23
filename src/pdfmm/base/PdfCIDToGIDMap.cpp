@@ -6,10 +6,10 @@
 using namespace std;
 using namespace mm;
 
-PdfCIDToGIDMap::PdfCIDToGIDMap(CIDToGIDMap&& map)
-    : m_cidToGidMap(std::move(map)) { }
+PdfCIDToGIDMap::PdfCIDToGIDMap(CIDToGIDMap&& map, PdfGlyphAccess access)
+    : m_cidToGidMap(std::move(map)), m_access(access) { }
 
-PdfCIDToGIDMap PdfCIDToGIDMap::Create(const PdfObject& cidToGidMapObj)
+PdfCIDToGIDMap PdfCIDToGIDMap::Create(const PdfObject& cidToGidMapObj, PdfGlyphAccess access)
 {
     CIDToGIDMap map;
     // Table 115 — Entries in a CIDFont dictionary
@@ -23,7 +23,7 @@ PdfCIDToGIDMap PdfCIDToGIDMap::Create(const PdfObject& cidToGidMapObj)
         map[i] = gid;
     }
 
-    return PdfCIDToGIDMap(std::move(map));
+    return PdfCIDToGIDMap(std::move(map), access);
 }
 
 bool PdfCIDToGIDMap::TryMapCIDToGID(unsigned cid, unsigned& gid) const
@@ -62,4 +62,24 @@ void PdfCIDToGIDMap::ExportTo(PdfObject& descendantFont)
         previousCid = cid;
     }
     stream.EndAppend();
+}
+
+bool PdfCIDToGIDMap::HasGlyphAccess(PdfGlyphAccess access) const
+{
+    return (m_access & access) != (PdfGlyphAccess)0;
+}
+
+unsigned PdfCIDToGIDMap::GetSize() const
+{
+    return m_cidToGidMap.size();
+}
+
+PdfCIDToGIDMap::iterator PdfCIDToGIDMap::begin() const
+{
+    return m_cidToGidMap.begin();
+}
+
+PdfCIDToGIDMap::iterator PdfCIDToGIDMap::end() const
+{
+    return m_cidToGidMap.end();
 }

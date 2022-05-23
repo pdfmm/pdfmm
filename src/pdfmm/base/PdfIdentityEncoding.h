@@ -52,7 +52,6 @@ protected:
     void AppendCIDMappingEntries(PdfObjectStream& stream, const PdfFont& font) const override;
 
 public:
-    PdfEncodingMapType GetType() const override;
     const PdfEncodingLimits& GetLimits() const override;
 
 private:

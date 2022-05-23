@@ -34,7 +34,7 @@ class PDFMM_API PdfEncodingMap
     friend class PdfEncoding;
 
 protected:
-    PdfEncodingMap();
+    PdfEncodingMap(PdfEncodingMapType type);
 
 public:
     /** Try decode next char code from utf8 string range
@@ -85,7 +85,12 @@ public:
      * predefined CMap names as well (ISO 32000-1:2008 Table 118
      * Predefined CJK CMap names, currently not implemented)
      */
-    virtual PdfEncodingMapType GetType() const = 0;
+    PdfEncodingMapType GetType() const { return m_Type; }
+
+    /**
+     * True if the encoding is builtin in a font program
+     */
+    virtual bool IsBuiltinEncoding() const;
 
     /**
      * True if the encoding has ligatures support
@@ -166,6 +171,9 @@ private:
 
     bool tryGetNextCodePoints(std::string_view::iterator& it, const std::string_view::iterator& end,
         PdfCharCode& codeUnit, std::vector<char32_t>& codePoints) const;
+
+private:
+    PdfEncodingMapType m_Type;
 };
 
 /**
@@ -176,7 +184,7 @@ class PDFMM_API PdfEncodingMapBase : public PdfEncodingMap
     friend class PdfDynamicEncodingMap;
 
 protected:
-    PdfEncodingMapBase(PdfCharCodeMap&& map);
+    PdfEncodingMapBase(PdfCharCodeMap&& map, PdfEncodingMapType type);
 
 protected:
     bool tryGetNextCharCode(std::string_view::iterator& it,
@@ -199,10 +207,8 @@ public:
 
     const PdfEncodingLimits& GetLimits() const override;
 
-    PdfEncodingMapType GetType() const override;
-
 private:
-    PdfEncodingMapBase(const std::shared_ptr<PdfCharCodeMap>& map);
+    PdfEncodingMapBase(const std::shared_ptr<PdfCharCodeMap>& map, PdfEncodingMapType type);
 
 private:
     std::shared_ptr<PdfCharCodeMap> m_charMap;
@@ -223,8 +229,6 @@ protected:
     void AppendCIDMappingEntries(PdfObjectStream& stream, const PdfFont& font) const override;
 
     const PdfEncodingLimits& GetLimits() const override;
-
-    PdfEncodingMapType GetType() const override;
 
 private:
     PdfEncodingLimits m_Limits;
@@ -282,7 +286,6 @@ private:
     PdfNullEncodingMap();
 
 public:
-    PdfEncodingMapType GetType() const override;
     const PdfEncodingLimits& GetLimits() const override;
 
 protected:

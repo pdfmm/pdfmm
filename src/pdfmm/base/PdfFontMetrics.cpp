@@ -16,6 +16,7 @@
 #include "PdfVariant.h"
 #include "PdfEncodingMapFactory.h"
 #include "PdfFont.h"
+#include "PdfIdentityEncoding.h"
 
 using namespace std;
 using namespace mm;
@@ -23,7 +24,8 @@ using namespace mm;
 // Default matrix: thousands of PDF units
 static Matrix2D s_DefaultMatrix = { 1e-3, 0.0, 0.0, 1e-3, 0, 0 };
 
-PdfFontMetrics::PdfFontMetrics() { }
+PdfFontMetrics::PdfFontMetrics()
+    : m_CIDToGIDMapLoaded(false) { }
 
 PdfFontMetrics::~PdfFontMetrics() { }
 
@@ -228,6 +230,18 @@ bool PdfFontMetrics::IsType1Kind() const
     }
 }
 
+bool PdfFontMetrics::IsTrueTypeKind() const
+{
+    switch (GetFontFileType())
+    {
+        case PdfFontFileType::TrueType:
+        case PdfFontFileType::OpenType:
+            return true;
+        default:
+            return false;
+    }
+}
+
 bool PdfFontMetrics::IsPdfSymbolic() const
 {
     auto flags = GetFlags();
@@ -260,12 +274,34 @@ bool PdfFontMetrics::TryGetImplicitEncoding(PdfEncodingMapConstPtr& encoding) co
     }
     else if (IsType1Kind())
     {
-        // 2) An encoding stored in the font program (see PdfFontType1Encoding)
+        // 2.1) An encoding stored in the font program (Type1)
+        // ISO 32000-1:2008 9.6.6.2 "Encodings for Type 1 Fonts"
         FT_Face face;
-        PdfEncodingMapConstPtr builtinEncoding;
         if (TryGetOrLoadFace(face))
         {
             encoding = getFontType1Encoding(face);
+            return true;
+        }
+    }
+    else if (IsTrueTypeKind())
+    {
+        // 2.2) An encoding stored in the font program (TrueType)
+        // ISO 32000-1:2008 9.6.6.4 "Encodings for TrueType Fonts"
+        // NOTE: We just take the inferred builtin CID to GID map and we create
+        // a identity encoding of the maximum code size. It should always be 1
+        // anyway
+        auto& map = GetBuiltinCIDToGIDMap();
+        if (map != nullptr)
+        {
+            // Find the maximum CID code size
+            unsigned maxCID = 0;
+            for (auto& pair : *map)
+            {
+                if (pair.first > maxCID)
+                    maxCID = pair.first;
+            }
+
+            encoding = std::make_shared<PdfIdentityEncoding>(utls::GetCharCodeSize(maxCID));
             return true;
         }
     }
@@ -279,6 +315,12 @@ bool PdfFontMetrics::TryGetImplicitEncoding(PdfEncodingMapConstPtr& encoding) co
 
     encoding = nullptr;
     return false;
+}
+
+const PdfCIDToGIDMapConstPtr& PdfFontMetrics::GetBuiltinCIDToGIDMap() const
+{
+    const_cast<PdfFontMetrics&>(*this).tryLoadCIDToGIDMap();
+    return m_CIDToGIDMap;
 }
 
 PdfFontMetricsBase::PdfFontMetricsBase()

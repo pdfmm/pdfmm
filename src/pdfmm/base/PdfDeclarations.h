@@ -111,6 +111,9 @@ using unicodeview = std::span<const char32_t>;
 // NOTE: This may change in the future
 using Matrix2D = std::array<double, 6>;
 
+/** A backing storage for a CID to GID map
+ * \remarks It must preserve ordering
+ */
 using CIDToGIDMap = std::map<unsigned, unsigned>;
 
 // Enums
@@ -226,6 +229,7 @@ enum class PdfFilterType
 
 enum class PdfEncodingMapType
 {
+    Indeterminate,              ///< Indeterminate map type, such as identity encodings
     Simple,                     ///< A legacy encoding, such as built-in or difference
     CMap                        ///< A proper CMap encoding or pre-defined CMap names
 };
@@ -293,11 +297,21 @@ enum class PdfFontFileType
 
 /** Font style flags used during searches
  */
-enum class PdfFontStyle
+enum class PdfFontStyle : uint8_t
 {
     Regular = 0,
     Italic = 1,
     Bold = 2,
+};
+
+/** When accessing a glyph, there may be a difference in
+ * the glyph ID to retrieve the width or to index it
+ * within the font program
+ */
+enum class PdfGlyphAccess : uint8_t
+{
+    Width = 1,         ///< The glyph is accessed in the widths arrays (/Widths, /W1 keys)
+    FontProgram = 2    ///< The glyph is accessed in the font program
 };
 
 /** Flags to control font creation.
@@ -654,6 +668,7 @@ ENABLE_BITMASK_OPERATORS(mm::PdfFontStyle);
 ENABLE_BITMASK_OPERATORS(mm::PdfFontCreateFlags);
 ENABLE_BITMASK_OPERATORS(mm::PdfFontAutoSelectBehavior);
 ENABLE_BITMASK_OPERATORS(mm::PdfFontDescriptorFlags);
+ENABLE_BITMASK_OPERATORS(mm::PdfGlyphAccess);
 
 /**
  * \mainpage

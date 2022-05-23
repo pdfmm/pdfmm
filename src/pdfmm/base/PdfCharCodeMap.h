@@ -10,7 +10,6 @@
 
 #include "PdfDeclarations.h"
 #include "PdfEncodingCommon.h"
-#include <unordered_map>
 
 namespace mm
 {

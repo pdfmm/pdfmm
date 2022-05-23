@@ -32,7 +32,6 @@ namespace mm
         PdfCMapEncoding(PdfCharCodeMap&& map, const PdfEncodingLimits& limits);
 
     public:
-        PdfEncodingMapType GetType() const override;
         bool HasLigaturesSupport() const override;
         const PdfEncodingLimits& GetLimits() const override;
 

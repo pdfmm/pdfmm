@@ -9,7 +9,6 @@
 #define PDF_FONT_STANDARD14_DATA_H
 
 #include "PdfDeclarationsPrivate.h"
-#include <unordered_map>
 #include <pdfmm/base/PdfRect.h>
 
 namespace mm {

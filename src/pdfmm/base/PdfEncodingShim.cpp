@@ -51,4 +51,4 @@ PdfFont& PdfDynamicEncoding::GetFont() const
 }
 
 PdfDynamicEncodingMap::PdfDynamicEncodingMap(const shared_ptr<PdfCharCodeMap>& map)
-    : PdfEncodingMapBase(map) { }
+    : PdfEncodingMapBase(map, PdfEncodingMapType::CMap) { }

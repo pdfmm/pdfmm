@@ -17,29 +17,33 @@ using namespace mm;
 static constexpr unsigned DEFAULT_STD14_FIRSTCHAR = 32;
 
 PdfFontObject::PdfFontObject(PdfObject& obj, const PdfFontMetricsConstPtr& metrics,
-        const PdfEncoding& encoding) :
-    PdfFont(obj, metrics, encoding) { }
+        const PdfEncoding& encoding, const PdfCIDToGIDMapConstPtr& cidToGidMap) :
+    PdfFont(obj, metrics, encoding, cidToGidMap) { }
 
-PdfFontObject::PdfFontObject(PdfObject& obj, PdfObject& descendantObj,
+unique_ptr<PdfFontObject> PdfFontObject::Create(PdfObject& obj, PdfObject& descendantObj,
     const PdfFontMetricsConstPtr& metrics, const PdfEncoding& encoding)
-    : PdfFontObject(obj, metrics, encoding)
 {
     const PdfName& subType = descendantObj.GetDictionary().FindKey(PdfName::KeySubtype)->GetName();
     PdfObject* cidToGidMapObj;
     PdfObjectStream* stream;
+    PdfCIDToGIDMapConstPtr cidToGidMap;
     if (subType == "CIDFontType2"
         && (cidToGidMapObj = obj.GetDictionary().FindKey("CIDToGIDMap")) != nullptr
         && (stream = cidToGidMapObj->GetStream()) != nullptr)
     {
-        m_cidToGidMap.reset(new PdfCIDToGIDMap(PdfCIDToGIDMap::Create(*cidToGidMapObj)));
+        cidToGidMap.reset(new PdfCIDToGIDMap(PdfCIDToGIDMap::Create(*cidToGidMapObj, PdfGlyphAccess::Width | PdfGlyphAccess::FontProgram)));
     }
+
+    return unique_ptr<PdfFontObject>(new PdfFontObject(obj, metrics, encoding, cidToGidMap));
 }
 
-bool PdfFontObject::TryMapCIDToGID(unsigned cid, unsigned& gid) const
+unique_ptr<PdfFontObject> PdfFontObject::Create(PdfObject& obj, const PdfFontMetricsConstPtr& metrics, const PdfEncoding& encoding)
 {
-    if (m_cidToGidMap != nullptr)
-        return m_cidToGidMap->TryMapCIDToGID(cid, gid);
+    return unique_ptr<PdfFontObject>(new PdfFontObject(obj, metrics, encoding, { }));
+}
 
+bool PdfFontObject::tryMapCIDToGID(unsigned cid, unsigned& gid) const
+{
     if (m_Metrics->IsStandard14FontMetrics() && !m_Encoding->HasParsedLimits())
     {
         gid = cid - DEFAULT_STD14_FIRSTCHAR;

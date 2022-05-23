@@ -9,7 +9,6 @@
 #include "PdfDeclarationsPrivate.h"
 #include "PdfEncodingPrivate.h"
 
-#include <unordered_map>
 #include <utfcpp/utf8.h>
 
 using namespace std;

@@ -258,9 +258,9 @@ string utls::GetWin32ErrorMessage(unsigned rc)
 
 #endif // _WIN322
 
-unsigned char utls::GetCharCodeSize(unsigned ch)
+unsigned char utls::GetCharCodeSize(unsigned code)
 {
-    return (unsigned char)(std::log(ch) / std::log(256)) + 1;
+    return (unsigned char)(std::log(code) / std::log(256)) + 1;
 }
 
 unsigned utls::GetCharCodeMaxValue(unsigned char codeSize)

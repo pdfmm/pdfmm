@@ -115,7 +115,7 @@ bool PdfFont::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfFont>& font)
             if (encoding.IsNull())
                 goto Exit;
 
-            font.reset(new PdfFontObject(obj, *objFont, metrics, encoding));
+            font = PdfFontObject::Create(obj, *objFont, metrics, encoding);
             return true;
         }
     }
@@ -140,7 +140,7 @@ bool PdfFont::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfFont>& font)
             if (encoding.IsNull())
                 goto Exit;
 
-            font.reset(new PdfFontObject(obj, metrics, encoding));
+            font = PdfFontObject::Create(obj, metrics, encoding);
             return true;
         }
 
@@ -149,7 +149,7 @@ bool PdfFont::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfFont>& font)
         if (encoding.IsNull())
             goto Exit;
 
-        font.reset(new PdfFontObject(obj, metrics, encoding));
+        font = PdfFontObject::Create(obj, metrics, encoding);
         return true;
     }
     else if (subType == "Type3")
@@ -160,7 +160,7 @@ bool PdfFont::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfFont>& font)
         if (encoding.IsNull())
             goto Exit;
 
-        font.reset(new PdfFontObject(obj, metrics, encoding));
+        font = PdfFontObject::Create(obj, metrics, encoding);
         return true;
     }
     else if (subType == "TrueType")
@@ -171,7 +171,7 @@ bool PdfFont::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfFont>& font)
         if (encoding.IsNull())
             goto Exit;
 
-        font.reset(new PdfFontObject(obj, metrics, encoding));
+        font = PdfFontObject::Create(obj, metrics, encoding);
         return true;
     }
 
