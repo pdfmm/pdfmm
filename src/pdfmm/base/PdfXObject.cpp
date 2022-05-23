@@ -167,5 +167,5 @@ void PdfXObject::initIdentifiers(const string_view& prefix)
     else
         out << prefix << this->GetObject().GetIndirectReference().ObjectNumber();
 
-    m_Identifier = PdfName(out.str().c_str());
+    m_Identifier = PdfName(out.GetString());
 }

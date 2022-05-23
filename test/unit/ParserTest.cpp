@@ -20,6 +20,8 @@
 
 #include <limits>
 
+#include <sstream>
+
 #include <PdfTest.h>
 
 using namespace std;

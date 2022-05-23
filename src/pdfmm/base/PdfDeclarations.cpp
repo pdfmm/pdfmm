@@ -198,13 +198,13 @@ void utls::ReadUtf16LEString(const bufferview& buffer, string& utf8str)
     utf8::utf16to8(iterable.begin(), iterable.end(), std::back_inserter(utf8str));
 }
 
-void utls::FormatTo(string& str, float value, unsigned char precision)
+void utls::FormatTo(string& str, float value, unsigned short precision)
 {
     cmn::FormatTo(str, "{:.{}f}", value, precision);
     removeTrailingZeroes(str);
 }
 
-void utls::FormatTo(string& str, double value, unsigned char precision)
+void utls::FormatTo(string& str, double value, unsigned short precision)
 {
     cmn::FormatTo(str, "{:.{}f}", value, precision);
     removeTrailingZeroes(str);

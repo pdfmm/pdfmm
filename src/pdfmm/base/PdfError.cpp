@@ -10,9 +10,10 @@
 // PdfDeclarationsPrivate.h will include PdfError.h for us.
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 
-#include <sstream>
+#include <pdfmm/private/outstringstream.h>
 
 using namespace std;
+using namespace cmn;
 using namespace mm;
 
 #ifdef DEBUG
@@ -60,7 +61,7 @@ void PdfError::PrintErrorMsg() const
     const char* msg = PdfError::ErrorMessage(m_error);
     const char* name = PdfError::ErrorName(m_error);
 
-    ostringstream stream;
+    outstringstream stream;
     stream << endl << endl << "pdfmm encountered an error. Error: " << (int)m_error << (name == nullptr ? "" : name);
 
     if (msg != nullptr)

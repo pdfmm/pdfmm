@@ -38,7 +38,7 @@ PdfTilingPattern::PdfTilingPattern(PdfDocument& doc, PdfTilingPatternType tiling
     // Prefix+ObjectNo. Prefix is /Ft for fonts.
     out << "Ptrn" << this->GetObject().GetIndirectReference().ObjectNumber();
 
-    m_Identifier = PdfName(out.str().c_str());
+    m_Identifier = PdfName(out.GetString());
 
     this->Init(tilingType, strokeR, strokeG, strokeB,
         doFill, fillR, fillG, fillB, offsetX, offsetY, image);
@@ -191,7 +191,7 @@ void PdfTilingPattern::Init(PdfTilingPatternType tilingType,
     PdfFilterList filters;
     filters.push_back(PdfFilterType::FlateDecode);
 
-    string str = out.str();
+    string str = out.TakeString();
     PdfMemoryInputStream stream(str);
 
     GetObject().GetOrCreateStream().Set(stream, filters);

@@ -610,12 +610,12 @@ public:
      *
      *  \param precision write this many decimal places
      */
-    void SetPrecision(unsigned char precision);
+    void SetPrecision(unsigned short precision);
 
     /** Get the currently set floating point precision
      *  \returns how many decimal places will be written out for any floating point value
      */
-    unsigned char GetPrecision() const;
+    unsigned short GetPrecision() const;
 
     void BeginMarkedContext(const std::string_view & tag);
     void EndMarkedContext();

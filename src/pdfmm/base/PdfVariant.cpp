@@ -18,7 +18,7 @@
 using namespace mm;
 using namespace std;
 
-constexpr unsigned char DefaultPrecision = 6;
+constexpr unsigned short DefaultPrecision = 6;
 
 PdfVariant PdfVariant::NullValue;
 

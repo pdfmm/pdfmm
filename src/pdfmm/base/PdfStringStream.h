@@ -10,10 +10,10 @@
 
 #include "PdfDeclarations.h"
 
-#include <sstream>
-
 namespace mm
 {
+    /** A specialized Pdf output string stream
+     */
     class PDFMM_API PdfStringStream
     {
     public:
@@ -22,7 +22,7 @@ namespace mm
         template <typename T>
         inline PdfStringStream& operator<<(T const& val)
         {
-            m_stream << val;
+            (*m_stream) << val;
             return *this;
         }
 
@@ -34,19 +34,23 @@ namespace mm
 
         PdfStringStream& operator<<(double val);
 
-        std::string str() const;
+        std::string_view GetString() const;
 
-        void str(const std::string_view& str);
+        std::string TakeString();
 
-        std::streamsize precision(std::streamsize n);
+        void Clear();
 
-        std::streamsize precision() const;
+        void SetPrecision(unsigned short value);
 
-        explicit operator std::ostream& () { return m_stream; }
+        unsigned short GetPrecision() const;
+
+        unsigned GetSize() const;
+
+        explicit operator std::ostream& () { return *m_stream; }
 
     private:
         std::string m_temp;
-        std::ostringstream m_stream;
+        std::unique_ptr<std::ostream> m_stream;
     };
 }
 

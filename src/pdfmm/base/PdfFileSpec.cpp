@@ -8,7 +8,7 @@
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfFileSpec.h"
 
-#include <sstream>
+#include <pdfmm/private/outstringstream.h>
 
 #include "PdfDictionary.h"
 #include "PdfDocument.h"
@@ -17,6 +17,7 @@
 #include "PdfObjectStream.h"
 
 using namespace std;
+using namespace cmn;
 using namespace mm;
 
 PdfFileSpec::PdfFileSpec(PdfDocument& doc, const string_view& filename, bool embed, bool striPath)
@@ -73,7 +74,7 @@ PdfString PdfFileSpec::CreateFileSpecification(const string_view& filename) cons
 {
     // FIX-ME: The following is not Unicode compliant
 
-    ostringstream str;
+    outstringstream str;
     char buff[5];
 
     // Construct a platform independent file specifier

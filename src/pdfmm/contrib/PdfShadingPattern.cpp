@@ -30,7 +30,7 @@ PdfShadingPattern::PdfShadingPattern(PdfDocument& doc, PdfShadingPatternType sha
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /Ft for fonts.
     out << "Sh" << this->GetObject().GetIndirectReference().ObjectNumber();
-    m_Identifier = PdfName(out.str().c_str());
+    m_Identifier = PdfName(out.GetString());
 
     this->Init(shadingType);
 }

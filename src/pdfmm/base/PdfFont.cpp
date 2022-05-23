@@ -14,6 +14,7 @@
 
 #include <pdfmm/private/PdfEncodingPrivate.h>
 #include <pdfmm/private/PdfStandard14FontData.h>
+#include <pdfmm/private/outstringstream.h>
 
 #include "PdfArray.h"
 #include "PdfEncoding.h"
@@ -32,6 +33,7 @@
 #include "PdfStringStream.h"
 
 using namespace std;
+using namespace cmn;
 using namespace mm;
 
 // kind of ABCDEF+
@@ -62,7 +64,7 @@ PdfFont::PdfFont(PdfObject& obj, const PdfFontMetricsConstPtr& metrics,
     // Prefix+ObjectNo. Prefix is /Ft for fonts.
     PdfStringStream out;
     out << "pdfmmFt" << this->GetObject().GetIndirectReference().ObjectNumber();
-    m_Identifier = PdfName(out.str().c_str());
+    m_Identifier = PdfName(out.GetString());
 }
 
 PdfFont::~PdfFont() { }
@@ -146,7 +148,7 @@ void PdfFont::initBase(const PdfEncoding& encoding)
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /Ft for fonts.
     out << "Ft" << this->GetObject().GetIndirectReference().ObjectNumber();
-    m_Identifier = PdfName(out.str().c_str());
+    m_Identifier = PdfName(out.GetString());
 
     // By default ensure the font has the /BaseFont name read
     // from the loaded metrics or inferred from a font file
@@ -155,7 +157,7 @@ void PdfFont::initBase(const PdfEncoding& encoding)
 
 void PdfFont::WriteStringToStream(PdfObjectStream& stream, const string_view& str) const
 {
-    stringstream ostream;
+    outstringstream ostream;
     WriteStringToStream(ostream, str);
     stream.Append(ostream.str());
 }

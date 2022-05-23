@@ -25,7 +25,7 @@ PdfExtGState::PdfExtGState(PdfDocument& doc)
     // Implementation note: the identifier is always
     // Prefix+ObjectNo. Prefix is /Ft for fonts.
     out << "ExtGS" << this->GetObject().GetIndirectReference().ObjectNumber();
-    m_Identifier = PdfName(out.str().c_str());
+    m_Identifier = PdfName(out.GetString());
 
     this->Init();
 }

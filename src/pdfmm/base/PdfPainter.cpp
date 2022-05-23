@@ -155,12 +155,12 @@ void PdfPainter::finishDrawing()
 
         if ((m_flags & PdfPainterFlags::NoSaveRestore) == PdfPainterFlags::NoSaveRestore)
         {
-            m_stream->Append(m_tmpStream.str());
+            m_stream->Append(m_tmpStream.GetString());
         }
         else
         {
             m_stream->Append("q\n");
-            m_stream->Append(m_tmpStream.str());
+            m_stream->Append(m_tmpStream.GetString());
             m_stream->Append("Q\n");
         }
 
@@ -168,7 +168,7 @@ void PdfPainter::finishDrawing()
     }
 
     // Reset temporary stream
-    m_tmpStream.str("");
+    m_tmpStream.Clear();
 }
 
 void PdfPainter::SetStrokingShadingPattern(const PdfShadingPattern& pattern)
@@ -1174,14 +1174,14 @@ void PdfPainter::Restore()
 }
 
 
-void PdfPainter::SetPrecision(unsigned char precision)
+void PdfPainter::SetPrecision(unsigned short precision)
 {
-    m_tmpStream.precision(precision);
+    m_tmpStream.SetPrecision(precision);
 }
 
-unsigned char PdfPainter::GetPrecision() const
+unsigned short PdfPainter::GetPrecision() const
 {
-    return static_cast<unsigned char>(m_tmpStream.precision());
+    return static_cast<unsigned char>(m_tmpStream.GetPrecision());
 }
 
 void PdfPainter::SetExtGState(const PdfExtGState& inGState)

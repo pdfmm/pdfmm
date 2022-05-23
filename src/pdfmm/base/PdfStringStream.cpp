@@ -8,52 +8,66 @@
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfStringStream.h"
 
+#include <pdfmm/private/outstringstream.h>
+
 using namespace std;
+using namespace cmn;
 using namespace mm;
+
+PdfStringStream::PdfStringStream()
+    : m_stream(new outstringstream())
+{
+    static const locale s_cachedLocale("C");
+    m_stream->imbue(s_cachedLocale);
+}
 
 PdfStringStream& PdfStringStream::operator<<(float val)
 {
-    utls::FormatTo(m_temp, val, (unsigned char)precision());
-    m_stream << m_temp;
+    utls::FormatTo(m_temp, val, (unsigned short)m_stream->precision());
+    (*m_stream) << m_temp;
     return *this;
 }
 
 PdfStringStream& PdfStringStream::operator<<(double val)
 {
-    utls::FormatTo(m_temp, val, (unsigned char)precision());
-    m_stream << m_temp;
+    utls::FormatTo(m_temp, val, (unsigned char)m_stream->precision());
+    (*m_stream) << m_temp;
     return *this;
-}
-
-PdfStringStream::PdfStringStream()
-{
-    static const locale s_cachedLocale("C");
-    m_stream.imbue(s_cachedLocale);
 }
 
 PdfStringStream& PdfStringStream::operator<<(
     std::ostream& (*pfn)(std::ostream&))
 {
-    pfn(m_stream);
+    pfn(*m_stream);
     return *this;
 }
 
-string PdfStringStream::str() const
+string_view PdfStringStream::GetString() const
 {
-    return m_stream.str();
+    return static_cast<const outstringstream&>(*m_stream).str();
 }
 
-void PdfStringStream::str(const string_view& st)
+string PdfStringStream::TakeString()
 {
-    m_stream.str(st.data());
+    return static_cast<outstringstream&>(*m_stream).take_str();
 }
 
-streamsize PdfStringStream::precision(streamsize n)
+void PdfStringStream::Clear()
 {
-    return m_stream.precision(n);
+    static_cast<outstringstream&>(*m_stream).clear();
 }
 
-streamsize PdfStringStream::precision() const
+void PdfStringStream::SetPrecision(unsigned short value)
 {
-    return m_stream.precision();
+    (void)m_stream->precision(value);
+}
+
+unsigned short PdfStringStream::GetPrecision() const
+{
+    return (unsigned short)m_stream->precision();
+}
+
+unsigned PdfStringStream::GetSize() const
+{
+    return (unsigned)static_cast<const outstringstream&>(*m_stream).size();
 }
