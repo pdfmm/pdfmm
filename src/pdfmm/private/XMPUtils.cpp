@@ -52,7 +52,7 @@ static unordered_map<string, XMPListType> s_knownListNodes = {
 
 static void normalizeXMPMetadata(xmlDocPtr doc, xmlNodePtr xmpmeta, xmlNodePtr& description);
 static void normalizeQualifiersAndValues(xmlDocPtr doc, xmlNsPtr rdfNs, xmlNodePtr node);
-static void normalizeElement(xmlDocPtr doc, xmlNodePtr elem);
+static void normalizeElement(xmlNodePtr elem);
 static void tryFixArrayElement(xmlDocPtr doc, xmlNodePtr& node, const string_view& nodeContent);
 static bool shouldSkipAttribute(xmlAttrPtr attr, vector<xmlAttrPtr>& attibsToRemove);
 static void setXMPMetadata(xmlDocPtr doc, xmlNodePtr xmpmeta, const PdfXMPMetadata& metatata);
@@ -212,16 +212,16 @@ void normalizeQualifiersAndValues(xmlDocPtr doc, xmlNsPtr rdfNs, xmlNodePtr elem
         // Some elements are arrays but they don't use
         // proper array notation
         tryFixArrayElement(doc, elem, *content);
-        normalizeElement(doc, elem);
+        normalizeElement(elem);
         return;
     }
 
-    normalizeElement(doc, elem);
+    normalizeElement(elem);
     for (; child != nullptr; child = xmlNextElementSibling(child))
         normalizeQualifiersAndValues(doc, rdfNs, child);
 }
 
-void normalizeElement(xmlDocPtr doc, xmlNodePtr elem)
+void normalizeElement(xmlNodePtr elem)
 {
     // ISO 16684-2:2014 "5.3 Property serialization"
     // ISO 16684-2:2014 "5.6 Qualifier serialization".
