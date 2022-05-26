@@ -18,4 +18,5 @@ namespace utls
     mm::nullable<std::string> FindAttribute(const xmlNodePtr element, const std::string_view& name);
     mm::nullable<std::string> FindAttribute(const xmlNodePtr element, const std::string_view& prefix, const std::string_view& name);
     mm::nullable<std::string> GetNodeContent(const xmlNodePtr element);
+    std::string GetAttributeValue(const xmlAttrPtr attr);
 }

@@ -45,7 +45,10 @@ inline bool IsNewLineChar(char32_t ch)
 
 inline bool IsSpaceChar(char32_t ch)
 {
-    return isspace(ch) != 0;
+    if (ch > 255)
+        return false;
+
+    return std::isspace((int)ch) != 0;
 }
 
 PdfPainter::PdfPainter(PdfPainterFlags flags) :

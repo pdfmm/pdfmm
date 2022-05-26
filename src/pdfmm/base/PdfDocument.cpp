@@ -847,6 +847,6 @@ void PdfDocument::updateModifyTimestamp(const PdfDate& modDate)
     if (value.length() == 0)
         return;
 
-    value = mm::UpdateXmpModDate(value, modDate);
+    value = mm::UpdateXMPModDate(value, modDate);
     SetMetadataStreamValue(value);
 }

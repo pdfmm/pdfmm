@@ -6,13 +6,11 @@
  * Some rights reserved. See COPYING, AUTHORS.
  */
 
-#include <map>
 #include <utility>
-#include <string>
 
 #include <PdfTest.h>
 
-#include "TestExtension.h"
+#include "TestUtils.h"
 
 using namespace std;
 using namespace mm;

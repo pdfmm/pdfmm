@@ -11,7 +11,7 @@ xmlNodePtr utls::FindChildElement(const xmlNodePtr element, const std::string_vi
 
 xmlNodePtr utls::FindChildElement(const xmlNodePtr element, const string_view& prefix, const string_view& name)
 {
-    for (auto child = xmlFirstElementChild(element); child; child = xmlNextElementSibling(child))
+    for (auto child = xmlFirstElementChild(element); child != nullptr; child = xmlNextElementSibling(child))
     {
         if (child->ns != nullptr
             && prefix == (const char*)child->ns->prefix
@@ -51,13 +51,13 @@ mm::nullable<string> utls::FindAttribute(const xmlNodePtr element, const std::st
 
 nullable<string> utls::FindAttribute(const xmlNodePtr element, const string_view& prefix, const string_view& name)
 {
-    for (xmlAttrPtr attribute = element->properties; attribute; attribute = attribute->next)
+    for (xmlAttrPtr attr = element->properties; attr != nullptr; attr = attr->next)
     {
-        if ((prefix.length() == 0 || (attribute->ns != nullptr
-                && prefix == (const char*)attribute->ns->prefix))
-            && name == (const char*)attribute->name)
+        if ((prefix.length() == 0 || (attr->ns != nullptr
+                && prefix == (const char*)attr->ns->prefix))
+            && name == (const char*)attr->name)
         {
-            return GetNodeContent((xmlNodePtr)attribute);
+            return GetNodeContent((xmlNodePtr)attr);
         }
     }
 
@@ -71,6 +71,14 @@ nullable<string> utls::GetNodeContent(const xmlNodePtr node)
     if (content == nullptr)
         return { };
 
+    unique_ptr<xmlChar, decltype(xmlFree)> contentFree(content, xmlFree);
+    return string((const char*)content);
+}
+
+string utls::GetAttributeValue(const xmlAttrPtr attr)
+{
+    PDFMM_ASSERT(attr != nullptr);
+    xmlChar* content = xmlNodeGetContent((const xmlNodePtr)attr);
     unique_ptr<xmlChar, decltype(xmlFree)> contentFree(content, xmlFree);
     return string((const char*)content);
 }

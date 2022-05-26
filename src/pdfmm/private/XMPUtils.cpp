@@ -15,7 +15,7 @@ using namespace mm;
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::XmpMetadata, "{}, internal error: {}", msg, error_->message);\
 }
 
-enum class MetadataKind
+enum class XMPMetadataKind
 {
     Title,
     Author,
@@ -27,6 +27,7 @@ enum class MetadataKind
     ModDate,
     PdfALevel,
     PdfAConformance,
+    PdfARevision,
 };
 
 enum class PdfANamespaceKind
@@ -37,144 +38,321 @@ enum class PdfANamespaceKind
     PdfAId,
 };
 
-enum class XMPSequenceType
+enum class XMPListType
 {
-    Alt,
+    LangAlt, ///< ISO 16684-1:2019 "8.2.2.4 Language alternative"
     Seq,
+    Bag,
 };
 
-static void setXMPMetadata(xmlDocPtr doc, xmlNodePtr xmpmeta, const PdfDocumentMetadata& metatata, PdfALevel pdfaLevel);
-static xmlDocPtr createXmpDoc(xmlNodePtr& root);
+static unordered_map<string, XMPListType> s_knownListNodes = {
+    { "dc:date", XMPListType::Seq },
+    { "dc:language", XMPListType::Bag },
+};
+
+static void normalizeXMPMetadata(xmlDocPtr doc, xmlNodePtr xmpmeta, xmlNodePtr& description);
+static void normalizeQualifiersAndValues(xmlDocPtr doc, xmlNsPtr rdfNs, xmlNodePtr node);
+static void normalizeElement(xmlDocPtr doc, xmlNodePtr elem);
+static void tryFixArrayElement(xmlDocPtr doc, xmlNodePtr& node, const string_view& nodeContent);
+static bool shouldSkipAttribute(xmlAttrPtr attr, vector<xmlAttrPtr>& attibsToRemove);
+static void setXMPMetadata(xmlDocPtr doc, xmlNodePtr xmpmeta, const PdfXMPMetadata& metatata);
+static xmlDocPtr createXMPDoc(xmlNodePtr& root);
 static void addXMPProperty(xmlDocPtr doc, xmlNodePtr description,
-    MetadataKind property, const string_view& value);
-static void removeXMPProperty(xmlNodePtr rdf, MetadataKind property);
-static PdfALevel getPdfALevel(const xmlNodePtr root);
+    XMPMetadataKind property, const string_view& value);
+static void removeXMPProperty(xmlNodePtr description, XMPMetadataKind property);
 static xmlNodePtr findRootXMPMeta(xmlDocPtr doc);
 static xmlNsPtr findOrCreateNamespace(xmlDocPtr doc, xmlNodePtr description, PdfANamespaceKind nsKind);
-static xmlNodePtr findOrCreateRDFElement(xmlDocPtr doc, xmlNodePtr xmpmeta);
-static void ensureRDFNamespace(xmlDocPtr doc, xmlNodePtr element, bool create = false);
-static xmlNodePtr createRDFElement(xmlDocPtr doc, xmlNodePtr xmpmeta);
+static xmlNodePtr createRDFElement(xmlNodePtr xmpmeta);
 static void createRDFNamespace(xmlNodePtr rdf);
-static xmlNodePtr findOrCreateDescriptionElement(xmlDocPtr doc, xmlNodePtr rdf);
-static xmlNodePtr createDescriptionElement(xmlDocPtr doc, xmlNodePtr xmpmeta);
-static string serializeXMPMetadata(xmlDocPtr xmpMeta);
+static xmlNodePtr createDescriptionElement(xmlNodePtr xmpmeta);
+static void serializeXMPMetadataTo(string& str, xmlDocPtr xmpMeta);
 static PdfALevel getPDFALevelFromString(const string_view& level);
-static void getPdfALevelComponents(PdfALevel level, string& levelStr, string& conformanceStr);
+static void getPdfALevelComponents(PdfALevel level, string& levelStr, string& conformanceStr, string& revision);
 static int xmlOutputStringWriter(void* context, const char* buffer, int len);
 static int xmlOutputStringWriterClose(void* context);
-static void setNodeSequenceContent(xmlNodePtr node, xmlDocPtr doc, XMPSequenceType seqType, const string_view& value);
+static void setListNodeContent(xmlDocPtr doc, xmlNodePtr node, XMPListType seqType,
+    const string_view& value, xmlNodePtr& newNode);
+static string getNodeName(xmlNodePtr node);
+static string getAttributeName(xmlAttrPtr attr);
 
-string mm::UpdateXmpModDate(const string_view& xmpview, const PdfDate& modDate)
+string mm::UpdateXMPModDate(const string_view& xmpview, const PdfDate& modDate)
+{
+    shared_ptr<PdfXMPPacket> xmpHandle;
+    auto metadata = mm::GetXMPMetadata(xmpview, xmpHandle);
+    if (metadata.PdfaLevel == PdfALevel::Unknown)
+        return { };
+
+    PDFMM_ASSERT(xmpHandle != nullptr);
+    auto description = xmpHandle->GetOrCreateDescription();
+    removeXMPProperty(description, XMPMetadataKind::ModDate);
+    addXMPProperty(xmpHandle->GetDoc(), description, XMPMetadataKind::ModDate, modDate.ToStringW3C().GetString());
+    return xmpHandle->ToString();
+}
+
+PdfXMPMetadata mm::GetXMPMetadata(const string_view& xmpview, shared_ptr<PdfXMPPacket>& packet)
 {
     utls::InitXml();
-    unique_ptr<xmlDoc, decltype(&xmlFreeDoc)> xmlDoc(
-        xmlReadMemory(xmpview.data(), (int)xmpview.size(), nullptr, nullptr, 0),
-        &xmlFreeDoc);
-    xmlNodePtr xmpmeta;
-    PdfALevel version;
-    if (xmlDoc == nullptr
-        || (xmpmeta = findRootXMPMeta(xmlDoc.get())) == nullptr
-        || (version = getPdfALevel(xmpmeta)) == PdfALevel::Unknown)
+
+    PdfXMPMetadata metadata;
+    xmlNodePtr description;
+    packet = PdfXMPPacket::Create(xmpview);
+    if (packet == nullptr || (description = packet->GetDescription()) == nullptr)
     {
-        // If the XMP metadata is missing or has insufficient data
-        //  to determine a PDF/A level, ignore updating it
-        return { };
+        // The the XMP metadata is missing or has insufficient data
+        // to determine a PDF/A level
+        return metadata;
     }
 
-    auto rdf = findOrCreateRDFElement(xmlDoc.get(), xmpmeta);
-    removeXMPProperty(rdf, MetadataKind::ModDate);
-    auto description = findOrCreateDescriptionElement(xmlDoc.get(), rdf);
-    addXMPProperty(xmlDoc.get(), description, MetadataKind::ModDate, modDate.ToStringW3C().GetString());
-    return serializeXMPMetadata(xmlDoc.get());
+    xmlNodePtr childElement = nullptr;
+    nullable<string> pdfaid_part;
+    nullable<string> pdfaid_conformance;
+
+    childElement = utls::FindChildElement(description, "pdfaid", "part");
+    if (childElement != nullptr)
+        pdfaid_part = utls::GetNodeContent(childElement);
+    childElement = utls::FindChildElement(description, "pdfaid", "conformance");
+    if (childElement != nullptr)
+        pdfaid_conformance = utls::GetNodeContent(childElement);
+
+    if (pdfaid_part.has_value() && pdfaid_conformance.has_value())
+        metadata.PdfaLevel = getPDFALevelFromString(*pdfaid_part + *pdfaid_conformance);
+
+    return metadata;
 }
 
 PdfALevel mm::GetPdfALevel(const string_view& xmpview)
 {
-    utls::InitXml();
-    unique_ptr<xmlDoc, decltype(&xmlFreeDoc)> xmpmeta(
-        xmlReadMemory(xmpview.data(), (int)xmpview.size(), nullptr, nullptr, 0),
-        &xmlFreeDoc);
-    xmlNodePtr root;
-    if (xmpmeta == nullptr || (root = findRootXMPMeta(xmpmeta.get())) == nullptr)
-    {
-        // The the XMP metadata is missing or has insufficient data
-        // to determine a PDF/A level
-        return PdfALevel::Unknown;
-    }
-
-    return getPdfALevel(root);
+    shared_ptr<PdfXMPPacket> xmpHandle;
+    auto metadata = mm::GetXMPMetadata(xmpview, xmpHandle);
+    return metadata.PdfaLevel;
 }
 
-string mm::UpdateOrCreateXMPMetadata(const string_view& xmpview, const PdfDocumentMetadata& metatata, PdfALevel pdfaLevel)
+void mm::UpdateOrCreateXMPMetadata(shared_ptr<PdfXMPPacket>& packet, const PdfXMPMetadata& metatata)
 {
     utls::InitXml();
-    xmlDocPtr docXml;
-    xmlNodePtr xmpmeta;
-    if (xmpview.length() == 0
-        || (docXml = xmlReadMemory(xmpview.data(), (int)xmpview.size(), nullptr, nullptr, 0)) == nullptr
-        || (xmpmeta = findRootXMPMeta(docXml)) == nullptr)
-    {
-        docXml = createXmpDoc(xmpmeta);
-    }
+    if (packet == nullptr)
+        packet.reset(new PdfXMPPacket());
 
-    unique_ptr<xmlDoc, decltype(&xmlFreeDoc)> free(docXml, xmlFreeDoc);
-    setXMPMetadata(docXml, xmpmeta, metatata, pdfaLevel);
-    return serializeXMPMetadata(docXml);
+    setXMPMetadata(packet->GetDoc(), packet->GetOrCreateDescription(), metatata);
 }
 
-void setXMPMetadata(xmlDocPtr doc, xmlNodePtr xmpmeta, const PdfDocumentMetadata& metatata, PdfALevel pdfaLevel)
+// Normalize XMP accordingly to ISO 16684-2:2014
+void normalizeXMPMetadata(xmlDocPtr doc, xmlNodePtr xmpmeta, xmlNodePtr& description)
 {
-    auto rdf = findOrCreateRDFElement(doc, xmpmeta);
-    removeXMPProperty(rdf, MetadataKind::Title);
-    removeXMPProperty(rdf, MetadataKind::Author);
-    removeXMPProperty(rdf, MetadataKind::Subject);
-    removeXMPProperty(rdf, MetadataKind::Keywords);
-    removeXMPProperty(rdf, MetadataKind::Creator);
-    removeXMPProperty(rdf, MetadataKind::Producer);
-    removeXMPProperty(rdf, MetadataKind::CreationDate);
-    removeXMPProperty(rdf, MetadataKind::ModDate);
-    removeXMPProperty(rdf, MetadataKind::PdfALevel);
-    removeXMPProperty(rdf, MetadataKind::PdfAConformance);
-    auto description = findOrCreateDescriptionElement(doc, rdf);
+    auto rdf = utls::FindChildElement(xmpmeta, "rdf", "RDF");
+    if (rdf == nullptr)
+    {
+        description = nullptr;
+        return;
+    }
+
+    normalizeQualifiersAndValues(doc, rdf->ns, rdf);
+
+    description = utls::FindChildElement(rdf, "rdf", "Description");
+    if (description == nullptr)
+        return;
+
+    // Merge top level rdf:Description elements
+    vector<xmlNodePtr> descriptionsToRemove;
+    auto element = description;
+    while (true)
+    {
+        element = utls::FindSiblingNode(element, "rdf", "Description");
+        if (element == nullptr)
+            break;
+        else
+            descriptionsToRemove.push_back(element);
+
+        vector<xmlNodePtr> childrenToMove;
+        for (auto child = xmlFirstElementChild(element); child != nullptr; child = xmlNextElementSibling(child))
+            childrenToMove.push_back(child);
+
+        for (auto child : childrenToMove)
+        {
+            xmlUnlinkNode(child);
+            xmlAddChild(description, child);
+        }
+    }
+
+    if (xmlReconciliateNs(doc, description) == -1)
+        THROW_LIBXML_EXCEPTION("Error fixing namespaces");
+
+    // Finally remove spurious rdf:Description elements
+    for (auto descToRemove : descriptionsToRemove)
+    {
+        xmlUnlinkNode(descToRemove);
+        xmlFreeNode(descToRemove);
+    }
+}
+
+void normalizeQualifiersAndValues(xmlDocPtr doc, xmlNsPtr rdfNs, xmlNodePtr elem)
+{
+    // TODO: Convert RDF Typed nodes from rdf:type notation with rdf:resource
+    // As specified in 16684-2:2014:
+    // "The RDF TypedNode notation defined in ISO 16684-1:2012,
+    // 7.9.2.5 shall not be used for an rdf:type qualifier".
+    // Eg. from:
+    //      <rdf:Description>
+    //          <rdf:type rdf:resource="http://ns.adobe.com/xmp-example/myType"/>
+    //          <xe:Field>value</xe:Field>
+    //      </rdf:Description>
+    //
+    // To:
+    //     <xe:MyType>
+    //         <xe:Field>value</xe:Field>
+    //     </xe:MyType>
+
+    auto child = xmlFirstElementChild(elem);
+    nullable<string> content;
+    if (child == nullptr
+        && (elem->children == nullptr || elem->children->type != XML_COMMENT_NODE)
+        && (content = utls::GetNodeContent(elem)) != nullptr
+        && !utls::IsStringEmptyOrWhiteSpace(*content))
+    {
+        // Some elements are arrays but they don't use
+        // proper array notation
+        tryFixArrayElement(doc, elem, *content);
+        normalizeElement(doc, elem);
+        return;
+    }
+
+    normalizeElement(doc, elem);
+    for (; child != nullptr; child = xmlNextElementSibling(child))
+        normalizeQualifiersAndValues(doc, rdfNs, child);
+}
+
+void normalizeElement(xmlDocPtr doc, xmlNodePtr elem)
+{
+    // ISO 16684-2:2014 "5.3 Property serialization"
+    // ISO 16684-2:2014 "5.6 Qualifier serialization".
+    // Try to convert XMP simple properties and qualifiers to elements
+    vector<xmlAttrPtr> attribsToRemove;
+    for (xmlAttrPtr attr = elem->properties; attr != nullptr; attr = attr->next)
+    {
+        if (shouldSkipAttribute(attr, attribsToRemove))
+            continue;
+
+        auto value = utls::GetAttributeValue(attr);
+        if (xmlNewChild(elem, attr->ns, attr->name, XMLCHAR value.data()) == nullptr)
+            THROW_LIBXML_EXCEPTION("Can't create value replacement node");
+
+        attribsToRemove.push_back(attr);
+    }
+
+    for (auto attr : attribsToRemove)
+        xmlRemoveProp(attr);
+}
+
+// ISO 16684-2:2014 "6.3.3 Array value data types"
+void tryFixArrayElement(xmlDocPtr doc, xmlNodePtr& node, const string_view& nodeContent)
+{
+    if (node->ns == nullptr)
+        return;
+
+    auto nodename = getNodeName(node);
+    auto found = s_knownListNodes.find(nodename);
+    if (found == s_knownListNodes.end())
+        return;
+
+    // Delete existing content
+    xmlNodeSetContent(node, nullptr);
+
+    xmlNodePtr newNode;
+    setListNodeContent(doc, node, found->second, nodeContent, newNode);
+    node = newNode;
+}
+
+bool shouldSkipAttribute(xmlAttrPtr attr, vector<xmlAttrPtr>& attibsToRemove)
+{
+    auto attrname = getAttributeName(attr);
+    if (attrname == "xml:lang")
+    {
+        return true;
+    }
+    else if (attrname == "rdf:about")
+    {
+        return true;
+    }
+    else if (attrname == "rdf:resource")
+    {
+        // ISO 16684-1:2019 "7.5 Simple valued XMP properties"
+        // The element content for an XMP property with a
+        // URI simple value shall be empty. The value shall be
+        // provided as the value of an rdf : resource attribute
+        // attached to the XML element.
+        return true;
+    }
+    else if (attrname == "rdf:parseType")
+    {
+        // ISO 16684-2:2014 "5.6 Qualifier serialization"
+        attibsToRemove.push_back(attr);
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+void setXMPMetadata(xmlDocPtr doc, xmlNodePtr description, const PdfXMPMetadata& metatata)
+{
+    removeXMPProperty(description, XMPMetadataKind::Title);
+    removeXMPProperty(description, XMPMetadataKind::Author);
+    removeXMPProperty(description, XMPMetadataKind::Subject);
+    removeXMPProperty(description, XMPMetadataKind::Keywords);
+    removeXMPProperty(description, XMPMetadataKind::Creator);
+    removeXMPProperty(description, XMPMetadataKind::Producer);
+    removeXMPProperty(description, XMPMetadataKind::CreationDate);
+    removeXMPProperty(description, XMPMetadataKind::ModDate);
+    removeXMPProperty(description, XMPMetadataKind::PdfALevel);
+    removeXMPProperty(description, XMPMetadataKind::PdfAConformance);
+    removeXMPProperty(description, XMPMetadataKind::PdfARevision);
     if (metatata.Title.has_value())
-        addXMPProperty(doc, description, MetadataKind::Title, metatata.Title->GetString());
+        addXMPProperty(doc, description, XMPMetadataKind::Title, metatata.Title->GetString());
     if (metatata.Author.has_value())
-        addXMPProperty(doc, description, MetadataKind::Author, metatata.Author->GetString());
+        addXMPProperty(doc, description, XMPMetadataKind::Author, metatata.Author->GetString());
     if (metatata.Subject.has_value())
-        addXMPProperty(doc, description, MetadataKind::Subject, metatata.Subject->GetString());
+        addXMPProperty(doc, description, XMPMetadataKind::Subject, metatata.Subject->GetString());
     if (metatata.Keywords.has_value())
-        addXMPProperty(doc, description, MetadataKind::Keywords, metatata.Keywords->GetString());
+        addXMPProperty(doc, description, XMPMetadataKind::Keywords, metatata.Keywords->GetString());
     if (metatata.Creator.has_value())
-        addXMPProperty(doc, description, MetadataKind::Creator, metatata.Creator->GetString());
+        addXMPProperty(doc, description, XMPMetadataKind::Creator, metatata.Creator->GetString());
     if (metatata.Producer.has_value())
-        addXMPProperty(doc, description, MetadataKind::Producer, metatata.Producer->GetString());
+        addXMPProperty(doc, description, XMPMetadataKind::Producer, metatata.Producer->GetString());
     if (metatata.CreationDate.has_value())
-        addXMPProperty(doc, description, MetadataKind::CreationDate, metatata.CreationDate->ToStringW3C().GetString());
+        addXMPProperty(doc, description, XMPMetadataKind::CreationDate, metatata.CreationDate->ToStringW3C().GetString());
     if (metatata.ModDate.has_value())
-        addXMPProperty(doc, description, MetadataKind::ModDate, metatata.ModDate->ToStringW3C().GetString());
+        addXMPProperty(doc, description, XMPMetadataKind::ModDate, metatata.ModDate->ToStringW3C().GetString());
 
     // Set actual PdfA level
     string levelStr;
     string conformanceStr;
-    getPdfALevelComponents(pdfaLevel, levelStr, conformanceStr);
-    addXMPProperty(doc, description, MetadataKind::PdfALevel, levelStr);
-    addXMPProperty(doc, description, MetadataKind::PdfAConformance, conformanceStr);
+    string revision;
+    getPdfALevelComponents(metatata.PdfaLevel, levelStr, conformanceStr, revision);
+    addXMPProperty(doc, description, XMPMetadataKind::PdfALevel, levelStr);
+    addXMPProperty(doc, description, XMPMetadataKind::PdfAConformance, conformanceStr);
+    if (revision.length() != 0)
+        addXMPProperty(doc, description, XMPMetadataKind::PdfARevision, revision);
 }
 
-xmlDocPtr createXmpDoc(xmlNodePtr& root)
+xmlDocPtr createXMPDoc(xmlNodePtr& root)
 {
     auto doc = xmlNewDoc(nullptr);
 
     // https://wwwimages2.adobe.com/content/dam/acom/en/devnet/xmp/pdfs/XMP%20SDK%20Release%20cc-2016-08/XMPSpecificationPart1.pdf
     // See 7.3.2 XMP Packet Wrapper
     auto xpacketBegin = xmlNewPI(XMLCHAR "xpacket", XMLCHAR "begin=\"\357\273\277\" id=\"W5M0MpCehiHzreSzNTczkc9d\"");
-    xmlAddChild((xmlNodePtr)doc, xpacketBegin);
+    if (xpacketBegin == nullptr || xmlAddChild((xmlNodePtr)doc, xpacketBegin) == nullptr)
+    {
+        xmlFreeNode(xpacketBegin);
+        THROW_LIBXML_EXCEPTION("Can't create xpacket begin node");
+    }
 
     // NOTE: x:xmpmeta element does't define any attribute
     // but other attributes can be defined (eg. x:xmptk)
     // and should be ignored by processors
-    auto xmpmeta = xmlNewDocNode(doc, nullptr, XMLCHAR "xmpmeta", nullptr);
-    if (xmpmeta == nullptr || xmlAddChild((xmlNodePtr)doc, xmpmeta) == nullptr)
+    auto xmpmeta = xmlNewChild((xmlNodePtr)doc, nullptr, XMLCHAR "xmpmeta", nullptr);
+    if (xmpmeta == nullptr)
         THROW_LIBXML_EXCEPTION("Can't create x:xmpmeta node");
 
     auto nsAdobeMeta = xmlNewNs(xmpmeta, XMLCHAR "adobe:ns:meta/", XMLCHAR "x");
@@ -183,7 +361,12 @@ xmlDocPtr createXmpDoc(xmlNodePtr& root)
     xmlSetNs(xmpmeta, nsAdobeMeta);
 
     auto xpacketEnd = xmlNewPI(XMLCHAR "xpacket", XMLCHAR "end=\"w\"");
-    xmlAddChild((xmlNodePtr)doc, xpacketEnd);
+    if (xpacketEnd == nullptr || xmlAddChild((xmlNodePtr)doc, xpacketEnd) == nullptr)
+    {
+        xmlFreeNode(xpacketEnd);
+        THROW_LIBXML_EXCEPTION("Can't create xpacket end node");
+    }
+
     root = xmpmeta;
     return doc;
 }
@@ -191,47 +374,17 @@ xmlDocPtr createXmpDoc(xmlNodePtr& root)
 xmlNodePtr findRootXMPMeta(xmlDocPtr doc)
 {
     auto root = xmlDocGetRootElement(doc);
-    if (root == nullptr || string_view((const char*)root->name) != "xmpmeta")
+    if (root == nullptr || (const char*)root->name != "xmpmeta"sv)
         return nullptr;
 
     return root;
 }
 
-xmlNodePtr findOrCreateRDFElement(xmlDocPtr doc, xmlNodePtr xmpmeta)
+
+xmlNodePtr createRDFElement(xmlNodePtr xmpmeta)
 {
-    auto rdf = utls::FindChildElement(xmpmeta, "rdf", "RDF");
-    if (rdf != nullptr)
-    {
-        ensureRDFNamespace(doc, rdf, true);
-        return rdf;
-    }
-
-    return createRDFElement(doc, xmpmeta);
-}
-
-void ensureRDFNamespace(xmlDocPtr doc, xmlNodePtr element, bool create)
-{
-    auto rdfNs = xmlSearchNs(doc, element, XMLCHAR "rdf");
-    if (rdfNs == nullptr)
-    {
-        if (create)
-        {
-            PDFMM_ASSERT(string_view((const char*)element->name) == "RDF");
-            createRDFNamespace(element);
-        }
-    }
-    else
-    {
-        if (element->ns != rdfNs)
-            xmlSetNs(element, rdfNs);
-    }
-}
-
-
-xmlNodePtr createRDFElement(xmlDocPtr doc, xmlNodePtr xmpmeta)
-{
-    auto rdf = xmlNewDocNode(doc, nullptr, XMLCHAR "RDF", nullptr);
-    if (rdf == nullptr || xmlAddChild(xmpmeta, rdf) == nullptr)
+    auto rdf = xmlNewChild(xmpmeta, nullptr, XMLCHAR "RDF", nullptr);
+    if (rdf == nullptr)
         THROW_LIBXML_EXCEPTION("Can't create rdf:RDF node");
 
     createRDFNamespace(rdf);
@@ -246,22 +399,10 @@ void createRDFNamespace(xmlNodePtr rdf)
     xmlSetNs(rdf, rdfNs);
 }
 
-xmlNodePtr findOrCreateDescriptionElement(xmlDocPtr doc, xmlNodePtr rdf)
+xmlNodePtr createDescriptionElement(xmlNodePtr rdf)
 {
-    auto description = utls::FindChildElement(rdf, "rdf", "Description");
-    if (description != nullptr)
-    {
-        ensureRDFNamespace(doc, description);
-        return description;
-    }
-
-    return createDescriptionElement(doc, rdf);
-}
-
-xmlNodePtr createDescriptionElement(xmlDocPtr doc, xmlNodePtr rdf)
-{
-    auto description = xmlNewDocNode(doc, nullptr, XMLCHAR "Description", nullptr);
-    if (description == nullptr || xmlAddChild(rdf, description) == nullptr)
+    auto description = xmlNewChild(rdf, nullptr, XMLCHAR "Description", nullptr);
+    if (description == nullptr)
         THROW_LIBXML_EXCEPTION("Can't create rdf:Description node");
 
     auto nsRDF = xmlNewNs(description, XMLCHAR "http://www.w3.org/1999/02/22-rdf-syntax-ns#", XMLCHAR "rdf");
@@ -310,115 +451,78 @@ xmlNsPtr findOrCreateNamespace(xmlDocPtr doc, xmlNodePtr description, PdfANamesp
     return xmlNs;
 }
 
-PdfALevel getPdfALevel(const xmlNodePtr root)
-{
-    auto element = utls::FindChildElement(root, "rdf", "RDF");
-    if (element == nullptr)
-        return PdfALevel::Unknown;
-
-    element = utls::FindChildElement(element, "rdf", "Description");
-    while (element != nullptr)
-    {
-        nullable<string> pdfaid_part;
-        nullable<string> pdfaid_conformance;
-        xmlNodePtr childElement = nullptr;
-        PdfALevel level = PdfALevel::Unknown;
-
-        childElement = utls::FindChildElement(element, "pdfaid", "part");
-        if (childElement == nullptr)
-            pdfaid_part = utls::FindAttribute(element, "pdfaid", "part");
-        else
-            pdfaid_part = utls::GetNodeContent(childElement);
-
-        if (!pdfaid_part.has_value())
-            goto Next;
-
-        childElement = utls::FindChildElement(element, "pdfaid", "conformance");
-        if (childElement == nullptr)
-            pdfaid_conformance = utls::FindAttribute(element, "pdfaid", "conformance");
-        else
-            pdfaid_conformance = utls::GetNodeContent(childElement);
-
-        if (!pdfaid_conformance.has_value())
-            goto Next;
-
-        level = getPDFALevelFromString(*pdfaid_part + *pdfaid_conformance);
-        if (level != PdfALevel::Unknown)
-            return level;
-
-    Next:
-        element = utls::FindSiblingNode(element, "rdf", "Description");
-    }
-
-    return PdfALevel::Unknown;
-}
-
 void addXMPProperty(xmlDocPtr doc, xmlNodePtr description,
-    MetadataKind property, const string_view& value)
+    XMPMetadataKind property, const string_view& value)
 {
     xmlNsPtr xmlNs;
     const char* propName;
     switch (property)
     {
-        case MetadataKind::Title:
+        case XMPMetadataKind::Title:
             xmlNs = findOrCreateNamespace(doc, description, PdfANamespaceKind::Dc);
             propName = "title";
             break;
-        case MetadataKind::Author:
+        case XMPMetadataKind::Author:
             xmlNs = findOrCreateNamespace(doc, description, PdfANamespaceKind::Dc);
             propName = "creator";
             break;
-        case MetadataKind::Subject:
+        case XMPMetadataKind::Subject:
             xmlNs = findOrCreateNamespace(doc, description, PdfANamespaceKind::Dc);
             propName = "description";
             break;
-        case MetadataKind::Keywords:
+        case XMPMetadataKind::Keywords:
             xmlNs = findOrCreateNamespace(doc, description, PdfANamespaceKind::Pdf);
             propName = "Keywords";
             break;
-        case MetadataKind::Creator:
+        case XMPMetadataKind::Creator:
             xmlNs = findOrCreateNamespace(doc, description, PdfANamespaceKind::Xmp);
             propName = "CreatorTool";
             break;
-        case MetadataKind::Producer:
+        case XMPMetadataKind::Producer:
             xmlNs = findOrCreateNamespace(doc, description, PdfANamespaceKind::Pdf);
             propName = "Producer";
             break;
-        case MetadataKind::CreationDate:
+        case XMPMetadataKind::CreationDate:
             xmlNs = findOrCreateNamespace(doc, description, PdfANamespaceKind::Xmp);
             propName = "CreateDate";
             break;
-        case MetadataKind::ModDate:
+        case XMPMetadataKind::ModDate:
             xmlNs = findOrCreateNamespace(doc, description, PdfANamespaceKind::Xmp);
             propName = "ModifyDate";
             break;
-        case MetadataKind::PdfALevel:
+        case XMPMetadataKind::PdfALevel:
             xmlNs = findOrCreateNamespace(doc, description, PdfANamespaceKind::PdfAId);
             propName = "part";
             break;
-        case MetadataKind::PdfAConformance:
+        case XMPMetadataKind::PdfAConformance:
             xmlNs = findOrCreateNamespace(doc, description, PdfANamespaceKind::PdfAId);
             propName = "conformance";
+            break;
+        case XMPMetadataKind::PdfARevision:
+            xmlNs = findOrCreateNamespace(doc, description, PdfANamespaceKind::PdfAId);
+            propName = "rev";
             break;
         default:
             throw runtime_error("Unsupported");
     }
 
-    auto element = xmlNewDocNode(doc, xmlNs, XMLCHAR propName, nullptr);
-    if (element == nullptr || xmlAddChild(description, element) == nullptr)
+    auto element = xmlNewChild(description, xmlNs, XMLCHAR propName, nullptr);
+    if (element == nullptr)
         THROW_LIBXML_EXCEPTION(cmn::Format("Can't create xmp:{} node", propName));
 
     switch (property)
     {
-        case MetadataKind::Title:
-        case MetadataKind::Subject:
+        case XMPMetadataKind::Title:
+        case XMPMetadataKind::Subject:
         {
-            setNodeSequenceContent(element, doc, XMPSequenceType::Alt, value);
+            xmlNodePtr newNode;
+            setListNodeContent(doc, element, XMPListType::LangAlt, value, newNode);
             break;
         }
-        case MetadataKind::Author:
+        case XMPMetadataKind::Author:
         {
-            setNodeSequenceContent(element, doc, XMPSequenceType::Seq, value);
+            xmlNodePtr newNode;
+            setListNodeContent(doc, element, XMPListType::Seq, value, newNode);
             break;
         }
         default:
@@ -429,19 +533,20 @@ void addXMPProperty(xmlDocPtr doc, xmlNodePtr description,
     }
 }
 
-void setNodeSequenceContent(xmlNodePtr node, xmlDocPtr doc, XMPSequenceType seqType, const string_view& value)
+void setListNodeContent(xmlDocPtr doc, xmlNodePtr node, XMPListType seqType,
+    const string_view& value, xmlNodePtr& newNode)
 {
     const char* elemName;
-    bool xdefault;
     switch (seqType)
     {
-        case XMPSequenceType::Alt:
+        case XMPListType::LangAlt:
             elemName = "Alt";
-            xdefault = true;
             break;
-        case XMPSequenceType::Seq:
+        case XMPListType::Seq:
             elemName = "Seq";
-            xdefault = false;
+            break;
+        case XMPListType::Bag:
+            elemName = "Bag";
             break;
         default:
             PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
@@ -449,16 +554,18 @@ void setNodeSequenceContent(xmlNodePtr node, xmlDocPtr doc, XMPSequenceType seqT
 
     auto rdfNs = xmlSearchNs(doc, node, XMLCHAR "rdf");
     PDFMM_ASSERT(rdfNs != nullptr);
-    auto innerElem = xmlNewDocNode(doc, rdfNs, XMLCHAR elemName, nullptr);
-    if (innerElem == nullptr || xmlAddChild(node, innerElem) == nullptr)
+    auto innerElem = xmlNewChild(node, rdfNs, XMLCHAR elemName, nullptr);
+    if (innerElem == nullptr)
         THROW_LIBXML_EXCEPTION(cmn::Format("Can't create rdf:{} node", elemName));
 
-    auto liElem = xmlNewDocNode(doc, rdfNs, XMLCHAR "li", nullptr);
-    if (liElem == nullptr || xmlAddChild(innerElem, liElem) == nullptr)
+    auto liElem = xmlNewChild(innerElem, rdfNs, XMLCHAR "li", nullptr);
+    if (liElem == nullptr)
         THROW_LIBXML_EXCEPTION(cmn::Format("Can't create rdf:li node"));
 
-    if (xdefault)
+    if (seqType == XMPListType::LangAlt)
     {
+        // Set a xml:lang "x-default" attribute, accordingly
+        // ISO 16684-1:2019 "8.2.2.4 Language alternative"
         auto xmlNs = xmlSearchNs(doc, node, XMLCHAR "xml");
         PDFMM_ASSERT(xmlNs != nullptr);
         if (xmlSetNsProp(liElem, xmlNs, XMLCHAR "lang", XMLCHAR "x-default") == nullptr)
@@ -466,59 +573,63 @@ void setNodeSequenceContent(xmlNodePtr node, xmlDocPtr doc, XMPSequenceType seqT
     }
 
     xmlNodeSetContent(liElem, XMLCHAR value.data());
+    newNode = liElem;
 }
 
-void removeXMPProperty(xmlNodePtr rdf, MetadataKind property)
+void removeXMPProperty(xmlNodePtr description, XMPMetadataKind property)
 {
     const char* propname;
     const char* ns;
     switch (property)
     {
-        case MetadataKind::Title:
+        case XMPMetadataKind::Title:
             ns = "dc";
             propname = "title";
             break;
-        case MetadataKind::Author:
+        case XMPMetadataKind::Author:
             ns = "dc";
             propname = "creator";
             break;
-        case MetadataKind::Subject:
+        case XMPMetadataKind::Subject:
             ns = "dc";
             propname = "description";
             break;
-        case MetadataKind::Keywords:
+        case XMPMetadataKind::Keywords:
             ns = "pdf";
             propname = "Keywords";
             break;
-        case MetadataKind::Creator:
+        case XMPMetadataKind::Creator:
             ns = "xmp";
             propname = "CreatorTool";
             break;
-        case MetadataKind::Producer:
+        case XMPMetadataKind::Producer:
             ns = "pdf";
             propname = "Producer";
             break;
-        case MetadataKind::CreationDate:
+        case XMPMetadataKind::CreationDate:
             ns = "xmp";
             propname = "CreateDate";
             break;
-        case MetadataKind::ModDate:
+        case XMPMetadataKind::ModDate:
             ns = "xmp";
             propname = "ModifyDate";
             break;
-        case MetadataKind::PdfALevel:
+        case XMPMetadataKind::PdfALevel:
             ns = "pdfaid";
             propname = "part";
             break;
-        case MetadataKind::PdfAConformance:
+        case XMPMetadataKind::PdfAConformance:
             ns = "pdfaid";
             propname = "conformance";
+            break;
+        case XMPMetadataKind::PdfARevision:
+            ns = "pdfaid";
+            propname = "rev";
             break;
         default:
             throw runtime_error("Unsupported");
     }
 
-    xmlNodePtr description = utls::FindChildElement(rdf, "rdf", "Description");
     xmlNodePtr elemModDate = nullptr;
     do
     {
@@ -537,14 +648,11 @@ void removeXMPProperty(xmlNodePtr rdf, MetadataKind property)
     }
 }
 
-string serializeXMPMetadata(xmlDocPtr xmpMeta)
+void serializeXMPMetadataTo(string& str, xmlDocPtr xmpMeta)
 {
-    string ret;
-    auto ctx = xmlSaveToIO(xmlOutputStringWriter, xmlOutputStringWriterClose, &ret, nullptr, XML_SAVE_NO_DECL | XML_SAVE_FORMAT);
+    auto ctx = xmlSaveToIO(xmlOutputStringWriter, xmlOutputStringWriterClose, &str, nullptr, XML_SAVE_NO_DECL | XML_SAVE_FORMAT);
     if (ctx == nullptr || xmlSaveDoc(ctx, xmpMeta) == -1 || xmlSaveClose(ctx) == -1)
         THROW_LIBXML_EXCEPTION("Can't save XPM fragment");
-
-    return ret;
 }
 
 PdfALevel getPDFALevelFromString(const string_view& pdfaid)
@@ -565,49 +673,91 @@ PdfALevel getPDFALevelFromString(const string_view& pdfaid)
         return PdfALevel::L3A;
     else if (pdfaid == "3U")
         return PdfALevel::L3U;
+    else if (pdfaid == "4E")
+        return PdfALevel::L4E;
+    else if (pdfaid == "4F")
+        return PdfALevel::L4F;
     else
         return PdfALevel::Unknown;
 }
 
-void getPdfALevelComponents(PdfALevel level, string& levelStr, string& conformanceStr)
+void getPdfALevelComponents(PdfALevel level, string& levelStr, string& conformanceStr, string& revision)
 {
     switch (level)
     {
         case PdfALevel::L1B:
             levelStr = "1";
             conformanceStr = "B";
+            revision.clear();
             return;
         case PdfALevel::L1A:
             levelStr = "1";
             conformanceStr = "A";
+            revision.clear();
             return;
         case PdfALevel::L2B:
             levelStr = "2";
             conformanceStr = "B";
+            revision.clear();
             return;
         case PdfALevel::L2A:
             levelStr = "2";
             conformanceStr = "A";
+            revision.clear();
             return;
         case PdfALevel::L2U:
             levelStr = "2";
             conformanceStr = "U";
+            revision.clear();
             return;
         case PdfALevel::L3B:
             levelStr = "3";
             conformanceStr = "B";
+            revision.clear();
             return;
         case PdfALevel::L3A:
             levelStr = "3";
             conformanceStr = "A";
+            revision.clear();
             return;
         case PdfALevel::L3U:
             levelStr = "3";
             conformanceStr = "U";
+            revision.clear();
+            return;
+        case PdfALevel::L4E:
+            levelStr = "4";
+            conformanceStr = "E";
+            revision = "2020";
+            return;
+        case PdfALevel::L4F:
+            levelStr = "4";
+            conformanceStr = "F";
+            revision = "2020";
             return;
         default:
             throw runtime_error("Unsupported");
     }
+}
+
+string getNodeName(xmlNodePtr node)
+{
+    if (node->ns == nullptr)
+    {
+        return (const char*)node->name;
+    }
+    else
+    {
+        string nodename((const char*)node->ns->prefix);
+        nodename.push_back(':');
+        nodename.append((const char*)node->name);
+        return nodename;
+    }
+}
+
+string getAttributeName(xmlAttrPtr attr)
+{
+    return getNodeName((xmlNodePtr)attr);
 }
 
 int xmlOutputStringWriter(void* context, const char* buffer, int len)
@@ -622,4 +772,68 @@ int xmlOutputStringWriterClose(void* context)
     (void)context;
     // Do nothing
     return 0;
+}
+
+PdfXMPMetadata::PdfXMPMetadata()
+    : PdfaLevel(PdfALevel::Unknown) { }
+
+PdfXMPPacket::PdfXMPPacket()
+    : m_Description(nullptr)
+{
+    m_Doc = createXMPDoc(m_XMPMeta);
+}
+
+PdfXMPPacket::PdfXMPPacket(xmlDocPtr doc, xmlNodePtr xmpmeta)
+    : m_Doc(doc), m_XMPMeta(xmpmeta), m_Description(nullptr) { }
+
+PdfXMPPacket::~PdfXMPPacket()
+{
+    xmlFreeDoc(m_Doc);
+}
+
+unique_ptr<PdfXMPPacket> PdfXMPPacket::Create(const string_view& xmpview)
+{
+    auto doc = xmlReadMemory(xmpview.data(), (int)xmpview.size(), nullptr, nullptr, XML_PARSE_NOBLANKS);
+    xmlNodePtr xmpmeta;
+    if (doc == nullptr
+        || (xmpmeta = findRootXMPMeta(doc)) == nullptr)
+    {
+        xmlFreeDoc(doc);
+        return nullptr;
+    }
+
+    xmlNodePtr description = nullptr;
+    unique_ptr<PdfXMPPacket> ret(new PdfXMPPacket(doc, xmpmeta));
+    normalizeXMPMetadata(doc, xmpmeta, ret->m_Description);
+    return std::move(ret);
+}
+
+
+xmlNodePtr PdfXMPPacket::GetOrCreateDescription()
+{
+    if (m_Description != nullptr)
+        return m_Description;
+
+    auto rdf = utls::FindChildElement(m_XMPMeta, "rdf", "RDF");
+    if (rdf == nullptr)
+        rdf = createRDFElement(m_XMPMeta);
+
+    auto description = utls::FindChildElement(rdf, "rdf", "Description");
+    if (description == nullptr)
+        description = createDescriptionElement(rdf);
+
+    m_Description = description;
+    return description;
+}
+
+void PdfXMPPacket::ToString(string& str) const
+{
+    serializeXMPMetadataTo(str, m_Doc);
+}
+
+string PdfXMPPacket::ToString() const
+{
+    string ret;
+    ToString(ret);
+    return ret;
 }

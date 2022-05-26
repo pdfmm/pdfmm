@@ -145,6 +145,8 @@ enum class PdfALevel
     L3B,
     L3A,
     L3U,
+    L4E,
+    L4F,
 };
 
 enum class PdfStringState : uint8_t

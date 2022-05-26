@@ -144,6 +144,8 @@ namespace mm
  */
 namespace utls
 {
+    bool IsStringEmptyOrWhiteSpace(const std::string_view& str);
+
     /** Convert an enum or index to its string representation
      *  which can be written to the PDF file.
      *

@@ -8,13 +8,16 @@
 
 #include "TestUtils.h"
 
-#include <utfcpp/utf8.h>
+#include <fstream>
 #include <filesystem>
 
+#include <utfcpp/utf8.h>
 #include <TestConfig.h>
 
 using namespace std;
 using namespace mm;
+
+static void readTestInputFileTo(string& str, const string_view& filepath);
 
 static struct TestPaths
 {
@@ -43,4 +46,28 @@ const fs::path& TestUtils::GetTestInputPath()
 const fs::path& TestUtils::GetTestOutputPath()
 {
     return s_paths.Output;
+}
+
+void TestUtils::ReadTestInputFileTo(string& str, const string_view& filename)
+{
+    readTestInputFileTo(str, GetTestInputFilePath(filename));
+}
+
+void readTestInputFileTo(string& str, const string_view& filepath)
+{
+#ifdef _WIN32
+    auto filepath16 = utf8::utf8to16((string)filepath);
+    ifstream stream((wchar_t*)filepath16.c_str(), ios_base::in | ios_base::binary);
+#else
+    ifstream stream((string)filepath, ios_base::in | ios_base::binary);
+#endif
+
+    stream.seekg(0, ios::end);
+    if (stream.tellg() == -1)
+        throw runtime_error("Error reading from stream");
+
+    str.reserve((size_t)stream.tellg());
+    stream.seekg(0, ios::beg);
+
+    str.assign((istreambuf_iterator<char>(stream)), istreambuf_iterator<char>());
 }

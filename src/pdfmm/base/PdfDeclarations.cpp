@@ -27,6 +27,16 @@ using namespace mm;
 
 static void removeTrailingZeroes(string& str);
 
+bool utls::IsStringEmptyOrWhiteSpace(const string_view& str)
+{
+    for (unsigned i = 0; i < str.size(); i++)
+    {
+        if (!std::isspace((unsigned char)str[i]))
+            return false;
+    }
+    return true;
+}
+
 const char* utls::TypeNameForIndex(unsigned index, const char** types, unsigned len)
 {
     return index < len ? types[index] : nullptr;
