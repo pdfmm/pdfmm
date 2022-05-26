@@ -72,10 +72,10 @@ public:
     charbuff(const charbuff&) = default;
     charbuff(charbuff&&) = default;
     charbuff(size_t size);
+    charbuff(std::string&& str);
     explicit charbuff(const bufferview& view);
     explicit charbuff(const std::string_view& view);
     explicit charbuff(const std::string& str);
-    explicit charbuff(std::string&& str);
 
 public:
     charbuff& operator=(const charbuff&) = default;
