@@ -1015,7 +1015,7 @@ void pngReadData(png_structp pngPtr, png_bytep data, png_size_t length)
 
 PdfName PdfImage::ColorspaceToName(PdfColorSpace colorSpace)
 {
-    return PdfColor::GetNameForColorSpace(colorSpace).GetString();
+    return PdfColor::GetNameForColorSpace(colorSpace);
 }
 
 void PdfImage::SetImageChromaKeyMask(int64_t r, int64_t g, int64_t b, int64_t threshold)
