@@ -7,14 +7,14 @@
 
 CustomPainter::CustomPainter()
 {
-  maxImageHeightPerRow = 0.0f;
+  m_maxImageHeightPerRow = 0.0f;
 }
 
-void CustomPainter::addNewPage()
+void CustomPainter::AddNewPage()
 {
   PdfPage* page = document.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
-  pageHeight = page->GetRect().GetHeight();
-  pageWidth = page->GetRect().GetWidth();
+  m_pageHeight = page->GetRect().GetHeight();
+  m_pageWidth = page->GetRect().GetWidth();
   painter.SetCanvas(page);
   font = document.GetFontManager().GetFont("Arial");
   if (font == nullptr)
@@ -23,27 +23,27 @@ void CustomPainter::addNewPage()
   pages.emplace_back(page);
 }
 
-void CustomPainter::insertText(const string_view &str, double x, double y, double fontSize)
+void CustomPainter::InsertText(const string_view &str, double x, double y, double fontSize)
 {
   painter.GetTextState().SetFont(font, fontSize);
   painter.DrawText(str, x * 72, y * 72);
 }
 
-void CustomPainter::insertLine(double startX, double startY, double endX, double endY)
+void CustomPainter::InsertLine(double startX, double startY, double endX, double endY)
 {
   painter.DrawLine(startX * 72, startY * 72, endX * 72, endY * 72);
 }
 
-void CustomPainter::insertRect(double x1, double y1, double x2, double y2, bool drawLeftEdge)
+void CustomPainter::InsertRect(double x1, double y1, double x2, double y2, bool drawLeftEdge)
 {
-  insertLine(x1, y1, x2, y1);
-  insertLine(x2, y1, x2, y2);
-  insertLine(x2, y2, x1, y2);
+  InsertLine(x1, y1, x2, y1);
+  InsertLine(x2, y1, x2, y2);
+  InsertLine(x2, y2, x1, y2);
   if (drawLeftEdge)
-    insertLine(x1, y2, x1, y1);
+    InsertLine(x1, y2, x1, y1);
 }
 
-void CustomPainter::insertImage(const std::string_view& imagePath, double posX, double posY)
+void CustomPainter::InsertImage(const std::string_view& imagePath, double posX, double posY)
 {
   posX *= 72;
   posY *= 72;
@@ -97,12 +97,12 @@ void CustomPainter::insertImage(const std::string_view& imagePath, double posX, 
   painter.DrawImage(pdfImage, posX, posY, scaleX, scaleY);
 }
 
-void CustomPainter::terminate()
+void CustomPainter::Terminate()
 {
   painter.FinishDrawing();
 }
 
-int CustomPainter::writeDocumentToFile(const char *filepath)
+int CustomPainter::WriteDocumentToFile(const char *filepath)
 {
   terminate();
   document.GetInfo().SetCreator(PdfString("pdfmm"));
@@ -114,117 +114,117 @@ int CustomPainter::writeDocumentToFile(const char *filepath)
   return 0;
 }
 
-double CustomPainter::getPageHeight() const
+double CustomPainter::GetPageHeight() const
 {
-  return pageHeight;
+  return m_pageHeight;
 }
 
-double CustomPainter::getPageWidth() const
+double CustomPainter::GetPageWidth() const
 {
-  return pageWidth;
+  return m_pageWidth;
 }
 
-void CustomPainter::outputTableColHeaders(const std::string *headingTexts, double fontSize, float rowTop)
+void CustomPainter::OutputTableColHeaders(const std::string *headingTexts, double fontSize, float rowTop)
 {
   if (rowTop == -1.0f)
   {
-    rowTop = topRowStart;
+    rowTop = m_topRowStart;
   }
 
   float runningColStart = 0;
-  float previousColStart = firstColumnStart;
-  for (int i = 0; i < totalCols; ++i)
+  float previousColStart = m_firstColumnStart;
+  for (int i = 0; i < m_totalCols; ++i)
   {
-    runningColStart = previousColStart + (i > 0 ? colWidths[i - 1] + 0.05f : 0.0f);
-    insertText(headingTexts[i], runningColStart, rowTop, fontSize);
-    insertLine(runningColStart - 0.06f, rowTop - 0.07f, runningColStart + colWidths[i], rowTop - 0.07f);
+    runningColStart = previousColStart + (i > 0 ? m_colWidths[i - 1] + 0.05f : 0.0f);
+    InsertText(headingTexts[i], runningColStart, rowTop, fontSize);
+    InsertLine(runningColStart - 0.06f, rowTop - 0.07f, runningColStart + m_colWidths[i], rowTop - 0.07f);
     previousColStart = runningColStart;
   }
   currentTableRowOffset = rowTop;
 }
 
-void CustomPainter::outputTableRowValues(const std::string *valueTexts, double fontSize, const bool outputBottomLine)
+void CustomPainter::OutputTableRowValues(const std::string *valueTexts, double fontSize, const bool outputBottomLine)
 {
   float runningColStart = 0;
-  float previousColStart = firstColumnStart;
-  currentTableRowOffset -= tableRowPositionOffset;
-  for (int i = 0; i < totalCols; ++i)
+  float previousColStart = m_firstColumnStart;
+  currentTableRowOffset -= m_tableRowPositionOffset;
+  for (int i = 0; i < m_totalCols; ++i)
   {
-    runningColStart = previousColStart + (i > 0 ? colWidths[i - 1] + 0.05f : 0.0f);
-    insertText(valueTexts[i], runningColStart, currentTableRowOffset, fontSize);
-    if (i == imageColumnIndex) // image column
+    runningColStart = previousColStart + (i > 0 ? m_colWidths[i - 1] + 0.05f : 0.0f);
+    InsertText(valueTexts[i], runningColStart, currentTableRowOffset, fontSize);
+    if (i == m_imageColumnIndex) // image column
     {
       cout << "start-value for image column: " << runningColStart << endl;
-      string imageFullPath = imagesFolder + "/" + valueTexts[i];
+      string imageFullPath = m_imagesFolder + "/" + valueTexts[i];
       cout << "image-full-path: " << imageFullPath << endl;
-      insertImage(imageFullPath, runningColStart, currentTableRowOffset - maxImageHeightPerRow);
+      InsertImage(imageFullPath, runningColStart, currentTableRowOffset - m_maxImageHeightPerRow);
     }
     else
     {
       cout << "start-value for column " << (i + 1) << " : " << runningColStart << endl;
     }
     if (outputBottomLine)
-      insertLine(runningColStart - 0.06f, currentTableRowOffset - maxImageHeightPerRow - 0.075f, runningColStart + colWidths[i], currentTableRowOffset - maxImageHeightPerRow - 0.075f);
+      InsertLine(runningColStart - 0.06f, currentTableRowOffset - m_maxImageHeightPerRow - 0.075f, runningColStart + m_colWidths[i], currentTableRowOffset - m_maxImageHeightPerRow - 0.075f);
     previousColStart = runningColStart;
   }
-  currentTableRowOffset -= maxImageHeightPerRow;
+  currentTableRowOffset -= m_maxImageHeightPerRow;
 }
 
-void CustomPainter::outputTableOuterLines()
+void CustomPainter::OutputTableOuterLines()
 {
   float runningColStart = 0;
-  float previousColStart = firstColumnStart;
-  float colsTopStart = topRowStart + 0.2;
+  float previousColStart = m_firstColumnStart;
+  float colsTopStart = m_topRowStart + 0.2;
   currentTableRowOffset -= 0.07f;
-  for (int i = 0; i < totalCols; ++i)
+  for (int i = 0; i < m_totalCols; ++i)
   {
-    runningColStart = previousColStart + (i > 0 ? colWidths[i - 1] + 0.05f : 0.0f);
-    insertRect(runningColStart - 0.06f, currentTableRowOffset, runningColStart + colWidths[i], colsTopStart, i == 0);
+    runningColStart = previousColStart + (i > 0 ? m_colWidths[i - 1] + 0.05f : 0.0f);
+    InsertRect(runningColStart - 0.06f, currentTableRowOffset, runningColStart + m_colWidths[i], colsTopStart, i == 0);
     previousColStart = runningColStart;
   }
 }
 
-void CustomPainter::setTotalCols(const int value)
+void CustomPainter::SetTotalCols(const int value)
 {
-  totalCols = value;
+  m_totalCols = value;
 }
 
-void CustomPainter::setFirstColumnStart(float value)
+void CustomPainter::SetFirstColumnStart(float value)
 {
-  firstColumnStart = value;
+  m_firstColumnStart = value;
 }
 
-void CustomPainter::setTopRowStart(float value)
+void CustomPainter::SetTopRowStart(float value)
 {
-  topRowStart = value;
+  m_topRowStart = value;
 }
 
-void CustomPainter::setColWidths(float *values)
+void CustomPainter::SetColWidths(float *values)
 {
-  colWidths = values;
+  m_colWidths = values;
 }
 
-void CustomPainter::setTableRowPositionOffset(float value)
+void CustomPainter::SetTableRowPositionOffset(float value)
 {
-  tableRowPositionOffset = value;
+  m_tableRowPositionOffset = value;
 }
 
-void CustomPainter::setMaxImageHeightPerRow(float value)
+void CustomPainter::SetMaxImageHeightPerRow(float value)
 {
-  maxImageHeightPerRow = value;
+  m_maxImageHeightPerRow = value;
 }
 
-void CustomPainter::setImageColumnIndex(float value)
+void CustomPainter::SetImageColumnIndex(float value)
 {
-  imageColumnIndex = value;
+  m_imageColumnIndex = value;
 }
 
-void CustomPainter::setImagesFolder(const char* value)
+void CustomPainter::SetImagesFolder(const char* value)
 {
-  imagesFolder = string(value);
+  m_imagesFolder = string(value);
 }
 
-void CustomPainter::setImagesFolder(const string &value)
+void CustomPainter::SetImagesFolder(const string &value)
 {
-  imagesFolder = value;
+  m_imagesFolder = value;
 }

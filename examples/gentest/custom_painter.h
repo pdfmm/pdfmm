@@ -15,53 +15,59 @@ class CustomPainter
 {
 public:
 
+  // generic methods
   CustomPainter();
 
-  void addNewPage();
+  void AddNewPage();
 
-  void insertText(const std::string_view& str, double x, double y, double fontSize);
-  void insertLine(double startX, double startY, double endX, double endY);
-  void insertRect(double x, double y, double x2, double y2, bool drawLeftEdge = true);
-  void insertImage(const std::string_view& imagePath, double posX, double posY);
+  void InsertText(const std::string_view& str, double x, double y, double fontSize);
+  void InsertLine(double startX, double startY, double endX, double endY);
+  void InsertRect(double x, double y, double x2, double y2, bool drawLeftEdge = true);
+  void InsertImage(const std::string_view& imagePath, double posX, double posY);
 
-  void terminate();
-  int writeDocumentToFile(const char *filepath);
+  void Terminate();
+  int WriteDocumentToFile(const char *filepath);
 
-  double getPageHeight() const;
-  double getPageWidth() const;
+  double GetPageHeight() const;
+  double GetPageWidth() const;
 
-  void outputTableColHeaders(const std::string *headingTexts, double fontSize, float rowTop = -1.0f);
-  void outputTableRowValues(const std::string *valueTexts, double fontSize, const bool outputBottomLine = true);
-  void outputTableOuterLines();
+  // example/sample specific methods
+  void OutputTableColHeaders(const std::string *headingTexts, double fontSize, float rowTop = -1.0f);
+  void OutputTableRowValues(const std::string *valueTexts, double fontSize, const bool outputBottomLine = true);
+  void OutputTableOuterLines();
 
-  void setTotalCols(const int totalCols);
-  void setFirstColumnStart(float value);
-  void setTopRowStart(float value);
-  void setColWidths(float *values);
-  void setTableRowPositionOffset(float value);
-  void setMaxImageHeightPerRow(float maxImageHeightPerRow);
-  void setImageColumnIndex(float imageColumnIndex);
-  void setImagesFolder(const char* imagesFolder);
-  void setImagesFolder(const string &imagesFolder);
+  // generic setter methods
+  void SetTotalCols(const int totalCols);
+  void SetFirstColumnStart(float value);
+  void SetTopRowStart(float value);
+  void SetColWidths(float *values);
+  void SetTableRowPositionOffset(float value);
+  void SetMaxImageHeightPerRow(float maxImageHeightPerRow);
+  void SetImageColumnIndex(float imageColumnIndex);
+  void SetImagesFolder(const char* imagesFolder);
+  void SetImagesFolder(const string &imagesFolder);
 
 private:
+  // fields only used within this class
   PdfMemDocument document;
   PdfPainter painter;
   PdfFont* font;
   std::vector<PdfPage*> pages;
-
-  double pageHeight;
-  double pageWidth;
-
-  int totalCols;
-  float firstColumnStart;
-  float topRowStart;
-  float* colWidths;
-  float tableRowPositionOffset;
   float currentTableRowOffset;
-  float maxImageHeightPerRow;
-  float imageColumnIndex;
-  std::string imagesFolder;
+
+  // fields with getters
+  double m_pageHeight;
+  double m_pageWidth;
+
+  // fields with setters
+  int m_totalCols;
+  float m_firstColumnStart;
+  float m_topRowStart;
+  float* m_colWidths;
+  float m_tableRowPositionOffset;
+  float m_maxImageHeightPerRow;
+  float m_imageColumnIndex;
+  std::string m_imagesFolder;
 
 };
 
