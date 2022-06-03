@@ -50,6 +50,8 @@ if(NOT PDFMM_BUILD_LIB_ONLY)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/target)
 endif()
 
+set(PDFMM_BUILD_SHARED TRUE)
+
 # If the user hasn't told use specifically what they want, build only
 # a static library or only a shared library on Windows.
 if(NOT DEFINED PDFMM_BUILD_SHARED AND NOT DEFINED PDFMM_BUILD_STATIC)
