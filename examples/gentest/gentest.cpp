@@ -59,38 +59,40 @@ void GeneratePdfFile(const string_view& filename)
   CustomPainter customPainter;
     try
     {
-      customPainter.addNewPage();
+      customPainter.AddNewPage();
 
-      customPainter.setTotalCols(totalCols); // top most start position
-      customPainter.setTopRowStart(11.25f); // top most start position
-      customPainter.setFirstColumnStart(0.26f); // left most start position
-      customPainter.setColWidths(colLineWidths);
+      customPainter.SetTotalCols(totalCols); // top most start position
+      customPainter.SetTopStart(11.45f); // top most start position
+      customPainter.SetFirstColumnStart(0.26f); // left most start position
+      customPainter.SetColWidths(colLineWidths);
 
-      customPainter.outputTableColHeaders(colHeadTexts, 12.96f);
+      customPainter.OutputTableColHeaders(colHeadTexts, 12.96f);
 
       // output data
-      customPainter.setTableRowPositionOffset(0.25f); // vertical difference between each data row
-      customPainter.setMaxImageHeightPerRow(2.2f);
-      customPainter.setImageColumnIndex(2);
-      customPainter.setImagesFolder(currentFolder);
+      customPainter.SetTableRowHeight(0.25f); // vertical difference between each data row
+      customPainter.SetTableRowTopPadding(0.25f); // top padding for each data row
+      customPainter.SetMaxImageWidthPerRow(4.05f);
+      customPainter.SetMaxImageHeightPerRow(2.4f);
+      customPainter.SetImageColumnIndex(2); // zero-based index
+      customPainter.SetImagesFolder(currentFolder);
       for (int i = 0; i < totalRows; ++i)
       {
         if (i % 4 == 0 && i > 0)
         {
           // output outer lines for completed previous page
-          customPainter.outputTableOuterLines();
+          customPainter.OutputTableOuterLines();
 
           // start next page
-          customPainter.addNewPage();
-          customPainter.outputTableColHeaders(colHeadTexts, 12.96f);
+          customPainter.AddNewPage();
+          customPainter.OutputTableColHeaders(colHeadTexts, 12.96f);
         }
-        customPainter.outputTableRowValues(colValues[i], 11.04f, i < totalRows - 1);
+        customPainter.OutputTableRowValues(colValues[i], 11.04f);
       }
 
       // output outer lines for last page
-      customPainter.outputTableOuterLines();
+      customPainter.OutputTableOuterLines();
 
-      customPainter.writeDocumentToFile(filename.data());
+      customPainter.WriteDocumentToFile(filename.data());
     }
     catch (PdfError& e)
     {
@@ -99,7 +101,7 @@ void GeneratePdfFile(const string_view& filename)
         // or who will get an assert in its destructor
         try
         {
-          customPainter.terminate();
+          customPainter.Terminate();
         }
         catch (...)
         {

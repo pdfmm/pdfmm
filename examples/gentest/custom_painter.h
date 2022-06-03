@@ -33,19 +33,21 @@ public:
 
   // example/sample specific methods
   void OutputTableColHeaders(const std::string *headingTexts, double fontSize, float rowTop = -1.0f);
-  void OutputTableRowValues(const std::string *valueTexts, double fontSize, const bool outputBottomLine = true);
+  void OutputTableRowValues(const std::string *valueTexts, double fontSize);
   void OutputTableOuterLines();
 
   // generic setter methods
   void SetTotalCols(const int totalCols);
   void SetFirstColumnStart(float value);
-  void SetTopRowStart(float value);
+  void SetTopStart(float value);
   void SetColWidths(float *values);
-  void SetTableRowPositionOffset(float value);
+  void SetTableRowHeight(float value);
   void SetMaxImageHeightPerRow(float maxImageHeightPerRow);
-  void SetImageColumnIndex(float imageColumnIndex);
+  void SetImageColumnIndex(int imageColumnIndex);
   void SetImagesFolder(const char* imagesFolder);
   void SetImagesFolder(const string &imagesFolder);
+  void SetMaxImageWidthPerRow(float maxImageHeightPerRow);
+  void SetTableRowTopPadding(float value);
 
 private:
   // fields only used within this class
@@ -62,12 +64,14 @@ private:
   // fields with setters
   int m_totalCols;
   float m_firstColumnStart;
-  float m_topRowStart;
+  float m_topStart;
   float* m_colWidths;
-  float m_tableRowPositionOffset;
+  float m_tableRowHeight;
   float m_maxImageHeightPerRow;
-  float m_imageColumnIndex;
+  int m_imageColumnIndex;
   std::string m_imagesFolder;
+  float m_maxImageWidthPerRow;
+  float m_tableRowTopPadding;
 
 };
 

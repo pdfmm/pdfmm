@@ -8,18 +8,19 @@
 CustomPainter::CustomPainter()
 {
   m_maxImageHeightPerRow = 0.0f;
+  m_imageColumnIndex = -1;
+  m_topStart = 11.55f;
 }
 
 void CustomPainter::AddNewPage()
 {
-  PdfPage* page = document.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+  PdfPage *page = document.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
   m_pageHeight = page->GetRect().GetHeight();
   m_pageWidth = page->GetRect().GetWidth();
   painter.SetCanvas(page);
   font = document.GetFontManager().GetFont("Arial");
   if (font == nullptr)
     PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
-//  painter.GetTextState().SetFont(font, 12.96);
   pages.emplace_back(page);
 }
 
@@ -43,58 +44,48 @@ void CustomPainter::InsertRect(double x1, double y1, double x2, double y2, bool 
     InsertLine(x1, y2, x1, y1);
 }
 
-void CustomPainter::InsertImage(const std::string_view& imagePath, double posX, double posY)
+void CustomPainter::InsertImage(const std::string_view &imagePath, double posX, double posY)
 {
-  posX *= 72;
-  posY *= 72;
-//  float actualImgWidth = 600.0f;
-//  float actualImgHeight = 338.0f;
-
-//  PdfStringStream m_tmpStream;
-//  m_tmpStream << posX << " "
-//              << posY << " "
-//              << actualImgWidth/2 << " "
-//              << actualImgHeight/2
-//              << " re" << endl
-//  PdfObject obj(m_tmpStream);
-//  PdfImage pdfImage(obj);
+  double adjustmentForLettersWithHangingPart = 1.0f;
+  float imageTopPadding = 0.05f; // 0.05f
 
   PdfImage pdfImage(document);
   pdfImage.LoadFromFile(imagePath);
   unsigned int oWidth = pdfImage.GetWidth();
-//  cout << "image-width = " << oWidth << endl;
   unsigned int oHeight = pdfImage.GetHeight();
-//  cout << "image-height = " << oHeight << endl;
 
   double scaleX = 1.0f;
   double scaleY = 1.0f;
-  if (oWidth > 300)
+  float finalImageHeight = oHeight;
+  double maxWidth = m_maxImageWidthPerRow * 72;
+  double maxHeight = (m_maxImageHeightPerRow - 0.2) * 72;
+  if (oWidth > maxWidth)
   {
-    scaleX = 300.0f / oWidth;
+    scaleX = maxWidth / oWidth;
     scaleY = scaleX; // maintain aspect ratio
-//    cout << "scale-x = " << scaleX << endl;
-    double scaleXHeight = oHeight * scaleX;
-//    double scaleXWidth = oWidth * scaleX;
-//    cout << "scale-x width = " << scaleXWidth << endl;
-//    cout << "scale-x height = " << scaleXHeight << endl;
-    if (scaleXHeight > 169)
+    double scaleXHeight = oHeight * scaleY;
+    finalImageHeight = scaleXHeight;
+    double scaleXWidth = (oWidth * scaleX);
+    if (scaleXHeight > maxHeight)
     {
-      scaleY = 169.0f / scaleXHeight;
-//      cout << "scale-y = " << scaleY << endl;
-//      cout << "scale-y width = " << (scaleXWidth * scaleY) << endl;
-//      cout << "scale-y height = " << (scaleXHeight * scaleY) << endl;
+      scaleY = maxHeight / scaleXHeight;
       scaleY = (scaleXHeight * scaleY) / oHeight;
       scaleX = scaleY; // maintain aspect ratio
-//      cout << "scale final = " << scaleY << endl;
+      finalImageHeight = oHeight * scaleY;
     }
   }
+
+  float tblRowHeightPixels = m_tableRowHeight * 72;
+  float imageHeightAdjustment = (finalImageHeight - tblRowHeightPixels) / 72;
+  posY = currentTableRowOffset - (finalImageHeight / 72) - imageTopPadding;
 
 //  Matrix matrix;
 //  matrix = matrix.CreateScale({scaleX, scaleX});
 //  pdfImage.SetMatrix(matrix);
-//  matrix.
 
-  painter.DrawImage(pdfImage, posX, posY, scaleX, scaleY);
+  posX *= 72;
+  posY *= 72;
+  painter.DrawImage(pdfImage, posX, posY - adjustmentForLettersWithHangingPart, scaleX, scaleY);
 }
 
 void CustomPainter::Terminate()
@@ -104,7 +95,7 @@ void CustomPainter::Terminate()
 
 int CustomPainter::WriteDocumentToFile(const char *filepath)
 {
-  terminate();
+  Terminate();
   document.GetInfo().SetCreator(PdfString("pdfmm"));
   document.GetInfo().SetAuthor(PdfString("Umar Ali Khan - FutureIT"));
   document.GetInfo().SetTitle(PdfString("Image Processing Results"));
@@ -128,58 +119,61 @@ void CustomPainter::OutputTableColHeaders(const std::string *headingTexts, doubl
 {
   if (rowTop == -1.0f)
   {
-    rowTop = m_topRowStart;
+    rowTop = m_topStart;
   }
 
+  float headerHeight = 0.25f;
   float runningColStart = 0;
   float previousColStart = m_firstColumnStart;
+  float leftPadding = 0.05f;
+  float topPadding = 0.05f;
+  float bottomPadding = 0.07f;
+  float rowTop00 = rowTop - headerHeight + topPadding + bottomPadding;
   for (int i = 0; i < m_totalCols; ++i)
   {
-    runningColStart = previousColStart + (i > 0 ? m_colWidths[i - 1] + 0.05f : 0.0f);
-    InsertText(headingTexts[i], runningColStart, rowTop, fontSize);
-    InsertLine(runningColStart - 0.06f, rowTop - 0.07f, runningColStart + m_colWidths[i], rowTop - 0.07f);
+    runningColStart = previousColStart + (i > 0 ? m_colWidths[i - 1] : 0.0f);
+    InsertLine(runningColStart, rowTop, runningColStart + m_colWidths[i], rowTop);
+    InsertText(headingTexts[i], runningColStart + leftPadding, rowTop00 - topPadding, fontSize);
+    InsertLine(runningColStart, rowTop - headerHeight, runningColStart + m_colWidths[i], rowTop - headerHeight);
     previousColStart = runningColStart;
   }
-  currentTableRowOffset = rowTop;
+  currentTableRowOffset = rowTop - headerHeight;
 }
 
-void CustomPainter::OutputTableRowValues(const std::string *valueTexts, double fontSize, const bool outputBottomLine)
+void CustomPainter::OutputTableRowValues(const std::string *valueTexts, double fontSize)
 {
   float runningColStart = 0;
   float previousColStart = m_firstColumnStart;
-  currentTableRowOffset -= m_tableRowPositionOffset;
+  float rowHeight = m_imageColumnIndex > -1 ? max(m_tableRowHeight, m_maxImageHeightPerRow) : m_tableRowHeight;
+  float leftPadding = 0.05f;
+  float bottomPadding = 0.07f;
+  float rowTop00 = currentTableRowOffset - m_tableRowHeight + bottomPadding;
   for (int i = 0; i < m_totalCols; ++i)
   {
-    runningColStart = previousColStart + (i > 0 ? m_colWidths[i - 1] + 0.05f : 0.0f);
-    InsertText(valueTexts[i], runningColStart, currentTableRowOffset, fontSize);
+    runningColStart = previousColStart + (i > 0 ? m_colWidths[i - 1] : 0.0f);
+    InsertText(valueTexts[i], runningColStart + leftPadding, rowTop00, fontSize);
     if (i == m_imageColumnIndex) // image column
     {
-      cout << "start-value for image column: " << runningColStart << endl;
       string imageFullPath = m_imagesFolder + "/" + valueTexts[i];
-      cout << "image-full-path: " << imageFullPath << endl;
-      InsertImage(imageFullPath, runningColStart, currentTableRowOffset - m_maxImageHeightPerRow);
+      InsertImage(imageFullPath, runningColStart + leftPadding, rowTop00);
     }
-    else
-    {
-      cout << "start-value for column " << (i + 1) << " : " << runningColStart << endl;
-    }
-    if (outputBottomLine)
-      InsertLine(runningColStart - 0.06f, currentTableRowOffset - m_maxImageHeightPerRow - 0.075f, runningColStart + m_colWidths[i], currentTableRowOffset - m_maxImageHeightPerRow - 0.075f);
+    double bottomLineOffset = currentTableRowOffset - rowHeight;
+    InsertLine(runningColStart, bottomLineOffset, runningColStart + m_colWidths[i], bottomLineOffset);
     previousColStart = runningColStart;
   }
-  currentTableRowOffset -= m_maxImageHeightPerRow;
+  currentTableRowOffset -= rowHeight;
 }
 
 void CustomPainter::OutputTableOuterLines()
 {
   float runningColStart = 0;
   float previousColStart = m_firstColumnStart;
-  float colsTopStart = m_topRowStart + 0.2;
-  currentTableRowOffset -= 0.07f;
+  float colsTopStart = m_topStart;
+  InsertLine(m_firstColumnStart, currentTableRowOffset, m_firstColumnStart, colsTopStart);
   for (int i = 0; i < m_totalCols; ++i)
   {
-    runningColStart = previousColStart + (i > 0 ? m_colWidths[i - 1] + 0.05f : 0.0f);
-    InsertRect(runningColStart - 0.06f, currentTableRowOffset, runningColStart + m_colWidths[i], colsTopStart, i == 0);
+    runningColStart = previousColStart + (i > 0 ? m_colWidths[i - 1] : 0.0f);
+    InsertLine(runningColStart + m_colWidths[i], currentTableRowOffset, runningColStart + m_colWidths[i], colsTopStart);
     previousColStart = runningColStart;
   }
 }
@@ -194,9 +188,9 @@ void CustomPainter::SetFirstColumnStart(float value)
   m_firstColumnStart = value;
 }
 
-void CustomPainter::SetTopRowStart(float value)
+void CustomPainter::SetTopStart(float value)
 {
-  m_topRowStart = value;
+  m_topStart = value;
 }
 
 void CustomPainter::SetColWidths(float *values)
@@ -204,9 +198,9 @@ void CustomPainter::SetColWidths(float *values)
   m_colWidths = values;
 }
 
-void CustomPainter::SetTableRowPositionOffset(float value)
+void CustomPainter::SetTableRowHeight(float value)
 {
-  m_tableRowPositionOffset = value;
+  m_tableRowHeight = value;
 }
 
 void CustomPainter::SetMaxImageHeightPerRow(float value)
@@ -214,12 +208,12 @@ void CustomPainter::SetMaxImageHeightPerRow(float value)
   m_maxImageHeightPerRow = value;
 }
 
-void CustomPainter::SetImageColumnIndex(float value)
+void CustomPainter::SetImageColumnIndex(int value)
 {
   m_imageColumnIndex = value;
 }
 
-void CustomPainter::SetImagesFolder(const char* value)
+void CustomPainter::SetImagesFolder(const char *value)
 {
   m_imagesFolder = string(value);
 }
@@ -227,4 +221,14 @@ void CustomPainter::SetImagesFolder(const char* value)
 void CustomPainter::SetImagesFolder(const string &value)
 {
   m_imagesFolder = value;
+}
+
+void CustomPainter::SetMaxImageWidthPerRow(float value)
+{
+  m_maxImageWidthPerRow = value;
+}
+
+void CustomPainter::SetTableRowTopPadding(float value)
+{
+  m_tableRowTopPadding = value;
 }
