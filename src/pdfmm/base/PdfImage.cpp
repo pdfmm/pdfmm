@@ -147,7 +147,7 @@ void PdfImage::LoadFromFile(const string_view& filename)
         extension = utls::ToLower(extension);
 
 #ifdef PDFMM_HAVE_TIFF_LIB
-        if (extension == "tif" || extension == "tiff")
+        if (extension == ".tif" || extension == ".tiff")
         {
             LoadFromTiff(filename);
             return;
@@ -155,7 +155,7 @@ void PdfImage::LoadFromFile(const string_view& filename)
 #endif
 
 #ifdef PDFMM_HAVE_JPEG_LIB
-        if (extension == "jpg" || extension == "jpeg")
+        if (extension == ".jpg" || extension == ".jpeg")
         {
             LoadFromJpeg(filename);
             return;
@@ -163,7 +163,7 @@ void PdfImage::LoadFromFile(const string_view& filename)
 #endif
 
 #ifdef PDFMM_HAVE_PNG_LIB
-        if (extension == "png")
+        if (extension == ".png")
         {
             LoadFromPng(filename);
             return;

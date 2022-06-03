@@ -22,6 +22,7 @@ include_directories(
 
 set(PDFMM_BASE_HEADERS
     pdfmm-base.h
+    pdfmm-contrib.h
     pdfmm.h
     ${CMAKE_CURRENT_BINARY_DIR}/pdfmm_config.h
 )
@@ -36,17 +37,36 @@ endif()
 # Set visual studio source group
 source_group("" FILES ${PDFMM_SOURCES})
 
+file(GLOB PDFMM_CONFIG_FILE ${CMAKE_CURRENT_BINARY_DIR}/pdfmm_config.h)
 foreach(subdir common compat base contrib private)
-    file(GLOB_RECURSE SOURCE_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "${subdir}/*")
+    file(GLOB DEPLOY_FILES_AND_DIRS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "${subdir}/*")
+    unset(DIRS_TO_DEPLOY)
+    unset(FILES_TO_DEPLOY)
+    foreach(ITEM ${DEPLOY_FILES_AND_DIRS})
+        IF( IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/${ITEM}" )
+            LIST( APPEND DIRS_TO_DEPLOY "${ITEM}" )
+        ELSE()
+            LIST( APPEND FILES_TO_DEPLOY "${ITEM}" )
+        ENDIF()
+    endforeach()
+
     # Set visual studio source group
-    source_group(${subdir} FILES ${SOURCE_FILES})
+    source_group(${subdir} FILES ${FILES_TO_DEPLOY})
+
     # Add subdir to source files
-    list(APPEND PDFMM_SOURCES ${SOURCE_FILES})
+    list(APPEND PDFMM_SOURCES ${FILES_TO_DEPLOY})
+
     if (NOT "${subdir}" STREQUAL "private")
+        if ("${subdir}" STREQUAL "base")
+            # Add pdfmm_config.h file to source files
+            list(APPEND FILES_TO_DEPLOY ${PDFMM_CONFIG_FILE})
+        endif()
+
         # Set non private headers for install
-        set(HEADER_FILES ${SOURCE_FILES})
-        list(FILTER HEADER_FILES EXCLUDE REGEX "\.cpp$")
+        set(HEADER_FILES ${FILES_TO_DEPLOY})
+        list(FILTER HEADER_FILES EXCLUDE REGEX ".*\\.cpp$")
         install(FILES ${HEADER_FILES} DESTINATION "include/pdfmm/${subdir}")
+        INSTALL(DIRECTORY ${DIRS_TO_DEPLOY} DESTINATION "include/pdfmm/${subdir}")
     endif()
 endforeach()
 

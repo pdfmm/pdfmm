@@ -27,7 +27,7 @@ void PrintHelp()
         << "It creates a small PDF file containing the text >Hello World!<" << std::endl
         << "Please see https://github.com/pdfmm/pdfmm for more information" << std::endl << std::endl;
     std::cout << "Usage:" << std::endl;
-    std::cout << "  examplehelloworld [outputfile.pdf]" << std::endl << std::endl;
+    std::cout << "  helloworld [outputfile.pdf]" << std::endl << std::endl;
 }
 
 const char* GetBase14FontName(unsigned i);
