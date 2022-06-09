@@ -27,7 +27,7 @@ void PrintHelp()
         << "It creates a small PDF file containing the text >Hello World!<" << std::endl
         << "Please see https://github.com/pdfmm/pdfmm for more information" << std::endl << std::endl;
     std::cout << "Usage:" << std::endl;
-    std::cout << "  examplehelloworld [outputfile.pdf]" << std::endl << std::endl;
+    std::cout << "  helloworld [outputfile.pdf]" << std::endl << std::endl;
 }
 
 void HelloWorld(const string_view& filename)
@@ -92,7 +92,10 @@ void HelloWorld(const string_view& filename)
         // The position specifies the start of the baseline of the text.
         // 
         // All coordinates in pdfmm are in PDF units.
-        painter.DrawText("АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЬЫЭЮЯ", 56.69, page->GetRect().GetHeight() - 56.69);
+        painter.DrawText("ABCDEFGHIKLMNOPQRSTVXYZ", 56.69, page->GetRect().GetHeight() - 56.69);
+
+        // Add also some non-ASCII characters (Cyrillic alphabet)
+        painter.DrawText("АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЬЫЭЮЯ", 56.69, page->GetRect().GetHeight() - 80);
 
         // Tell pdfmm that the page has been drawn completely.
         // This required to optimize drawing operations inside in pdfmm
