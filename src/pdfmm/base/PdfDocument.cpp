@@ -31,25 +31,27 @@
 #include "PdfPageCollection.h"
 #include "PdfXObject.h"
 
-
 using namespace std;
 using namespace mm;
 
 PdfDocument::PdfDocument(bool empty) :
     m_Objects(*this),
-    m_Catalog(nullptr),
+    m_Metadata(*this),
     m_FontManager(*this)
 {
     if (!empty)
     {
-        m_Trailer.reset(new PdfObject()); // The trailer is NO part of the vector of objects
-        m_Trailer->SetDocument(this);
-        m_Catalog = m_Objects.CreateDictionaryObject("Catalog");
+        m_TrailerObj.reset(new PdfObject()); // The trailer is NO part of the vector of objects
+        m_TrailerObj->SetDocument(this);
+        auto catalog = m_Objects.CreateDictionaryObject("Catalog");
+        m_Trailer.reset(new PdfTrailer(*m_TrailerObj));
 
-        m_Info.reset(new PdfInfo(*this));
+        m_Catalog.reset(new PdfCatalog(*catalog));
+        m_TrailerObj->GetDictionary().AddKeyIndirect("Root", catalog);
 
-        m_Trailer->GetDictionary().AddKeyIndirect("Root", m_Catalog);
-        m_Trailer->GetDictionary().AddKeyIndirect("Info", &m_Info->GetObject());
+        auto info = m_Objects.CreateDictionaryObject();
+        m_Info.reset(new PdfInfo(*info));
+        m_TrailerObj->GetDictionary().AddKeyIndirect("Info", info);
 
         Init();
     }
@@ -57,10 +59,10 @@ PdfDocument::PdfDocument(bool empty) :
 
 PdfDocument::PdfDocument(const PdfDocument& doc) :
     m_Objects(*this, doc.m_Objects),
-    m_Catalog(nullptr),
+    m_Metadata(*this),
     m_FontManager(*this)
 {
-    SetTrailer(std::make_unique<PdfObject>(doc.GetTrailer()));
+    SetTrailer(std::make_unique<PdfObject>(doc.GetTrailer().GetObject()));
     Init();
 }
 
@@ -74,7 +76,6 @@ void PdfDocument::Clear()
     m_FontManager.Clear();
     m_Objects.Clear();
     m_Objects.SetCanReuseObjectNumbers(true);
-    m_Catalog = nullptr;
 }
 
 void PdfDocument::Init()
@@ -82,12 +83,12 @@ void PdfDocument::Init()
     auto pagesRootObj = m_Catalog->GetDictionary().FindKey("Pages");
     if (pagesRootObj == nullptr)
     {
-        m_PageTree.reset(new PdfPageCollection(*this));
-        m_Catalog->GetDictionary().AddKey("Pages", m_PageTree->GetObject().GetIndirectReference());
+        m_Pages.reset(new PdfPageCollection(*this));
+        m_Catalog->GetDictionary().AddKey("Pages", m_Pages->GetObject().GetIndirectReference());
     }
     else
     {
-        m_PageTree.reset(new PdfPageCollection(*pagesRootObj));
+        m_Pages.reset(new PdfPageCollection(*pagesRootObj));
     }
 
     auto& catalogDict = m_Catalog->GetDictionary();
@@ -107,7 +108,6 @@ void PdfDocument::Init()
 const PdfDocument& PdfDocument::Append(const PdfDocument& doc, bool appendAll)
 {
     unsigned difference = static_cast<unsigned>(m_Objects.GetSize() + m_Objects.GetFreeObjects().size());
-
 
     // Because GetNextObject uses m_ObjectCount instead 
     // of m_Objects.GetSize() + m_Objects.GetFreeObjects().size() + 1
@@ -167,7 +167,7 @@ const PdfDocument& PdfDocument::Append(const PdfDocument& doc, bool appendAll)
                 inherited++;
             }
 
-            m_PageTree->InsertPage(m_PageTree->GetCount(), &obj);
+            m_Pages->InsertPage(m_Pages->GetCount(), &obj);
         }
 
         // append all outlines
@@ -257,7 +257,7 @@ const PdfDocument& PdfDocument::InsertExistingPageAt(const PdfDocument& doc, uns
             inherited++;
         }
 
-        m_PageTree->InsertPage(atIndex, &obj);
+        m_Pages->InsertPage(atIndex, &obj);
     }
 
     // append all outlines
@@ -289,7 +289,7 @@ PdfRect PdfDocument::FillXObjectFromDocumentPage(PdfXObject& xobj, const PdfDocu
 
 PdfRect PdfDocument::FillXObjectFromExistingPage(PdfXObject& xobj, unsigned pageIndex, bool useTrimBox)
 {
-    auto& page = m_PageTree->GetPage(pageIndex);
+    auto& page = m_Pages->GetPage(pageIndex);
     return FillXObjectFromPage(xobj, page, useTrimBox, 0);
 }
 
@@ -432,188 +432,9 @@ void PdfDocument::FixObjectReferences(PdfObject& obj, int difference)
     }
 }
 
-PdfPageMode PdfDocument::GetPageMode() const
-{
-    // PageMode is optional; the default value is UseNone
-    PdfPageMode thePageMode = PdfPageMode::UseNone;
-
-    PdfObject* pageModeObj = m_Catalog->GetDictionary().FindKey("PageMode");
-    if (pageModeObj != nullptr)
-    {
-        PdfName pmName = pageModeObj->GetName();
-        if (pmName == "UseNone")
-            thePageMode = PdfPageMode::UseNone;
-        else if (pmName == "UseThumbs")
-            thePageMode = PdfPageMode::UseThumbs;
-        else if (pmName == "UseOutlines")
-            thePageMode = PdfPageMode::UseBookmarks;
-        else if (pmName == "FullScreen")
-            thePageMode = PdfPageMode::FullScreen;
-        else if (pmName == "UseOC")
-            thePageMode = PdfPageMode::UseOC;
-        else if (pmName == "UseAttachments")
-            thePageMode = PdfPageMode::UseAttachments;
-        else
-            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidName);
-    }
-
-    return thePageMode;
-}
-
-void PdfDocument::SetPageMode(PdfPageMode inMode)
-{
-    switch (inMode) {
-        default:
-        case PdfPageMode::DontCare:
-            // this value means leave it alone!
-            break;
-
-        case PdfPageMode::UseNone:
-            m_Catalog->GetDictionary().AddKey("PageMode", PdfName("UseNone"));
-            break;
-
-        case PdfPageMode::UseThumbs:
-            m_Catalog->GetDictionary().AddKey("PageMode", PdfName("UseThumbs"));
-            break;
-
-        case PdfPageMode::UseBookmarks:
-            m_Catalog->GetDictionary().AddKey("PageMode", PdfName("UseOutlines"));
-            break;
-
-        case PdfPageMode::FullScreen:
-            m_Catalog->GetDictionary().AddKey("PageMode", PdfName("FullScreen"));
-            break;
-
-        case PdfPageMode::UseOC:
-            m_Catalog->GetDictionary().AddKey("PageMode", PdfName("UseOC"));
-            break;
-
-        case PdfPageMode::UseAttachments:
-            m_Catalog->GetDictionary().AddKey("PageMode", PdfName("UseAttachments"));
-            break;
-    }
-}
-
-void PdfDocument::SetUseFullScreen()
-{
-    // first, we get the current mode
-    PdfPageMode	curMode = GetPageMode();
-
-    // if current mode is anything but "don't care", we need to move that to non-full-screen
-    if (curMode != PdfPageMode::DontCare)
-        SetViewerPreference("NonFullScreenPageMode", PdfObject(m_Catalog->GetDictionary().MustFindKey("PageMode")));
-
-    SetPageMode(PdfPageMode::FullScreen);
-}
-
-void PdfDocument::SetViewerPreference(const PdfName& whichPref, const PdfObject& valueObj)
-{
-    PdfObject* prefsObj = m_Catalog->GetDictionary().FindKey("ViewerPreferences");
-    if (prefsObj == nullptr)
-    {
-        // make me a new one and add it
-        PdfDictionary vpDict;
-        vpDict.AddKey(whichPref, valueObj);
-        m_Catalog->GetDictionary().AddKey("ViewerPreferences", std::move(vpDict));
-    }
-    else
-    {
-        // modify the existing one
-        prefsObj->GetDictionary().AddKey(whichPref, valueObj);
-    }
-}
-
-void PdfDocument::SetViewerPreference(const PdfName& whichPref, bool inValue)
-{
-    SetViewerPreference(whichPref, PdfObject(inValue));
-}
-
-void PdfDocument::SetHideToolbar()
-{
-    SetViewerPreference("HideToolbar", true);
-}
-
-void PdfDocument::SetHideMenubar()
-{
-    SetViewerPreference("HideMenubar", true);
-}
-
-void PdfDocument::SetHideWindowUI()
-{
-    SetViewerPreference("HideWindowUI", true);
-}
-
-void PdfDocument::SetFitWindow()
-{
-    SetViewerPreference("FitWindow", true);
-}
-
-void PdfDocument::SetCenterWindow()
-{
-    SetViewerPreference("CenterWindow", true);
-}
-
-void PdfDocument::SetDisplayDocTitle()
-{
-    SetViewerPreference("DisplayDocTitle", true);
-}
-
-void PdfDocument::SetPrintScaling(const PdfName& scalingType)
-{
-    SetViewerPreference("PrintScaling", scalingType);
-}
-
-void PdfDocument::SetBaseURI(const string_view& inBaseURI)
-{
-    PdfDictionary uriDict;
-    uriDict.AddKey("Base", PdfString(inBaseURI));
-    m_Catalog->GetDictionary().AddKey("URI", PdfDictionary(uriDict));
-}
-
-void PdfDocument::SetLanguage(const string_view& language)
-{
-    m_Catalog->GetDictionary().AddKey("Lang", PdfString(language));
-}
-
-void PdfDocument::SetBindingDirection(const PdfName& direction)
-{
-    SetViewerPreference("Direction", direction);
-}
-
 void PdfDocument::CollectGarbage()
 {
     m_Objects.CollectGarbage();
-}
-
-void PdfDocument::SetPageLayout(PdfPageLayout layout)
-{
-    switch (layout)
-    {
-        default:
-        case PdfPageLayout::Ignore:
-            break;	// means do nothing
-        case PdfPageLayout::Default:
-            m_Catalog->GetDictionary().RemoveKey("PageLayout");
-            break;
-        case PdfPageLayout::SinglePage:
-            m_Catalog->GetDictionary().AddKey("PageLayout", PdfName("SinglePage"));
-            break;
-        case PdfPageLayout::OneColumn:
-            m_Catalog->GetDictionary().AddKey("PageLayout", PdfName("OneColumn"));
-            break;
-        case PdfPageLayout::TwoColumnLeft:
-            m_Catalog->GetDictionary().AddKey("PageLayout", PdfName("TwoColumnLeft"));
-            break;
-        case PdfPageLayout::TwoColumnRight:
-            m_Catalog->GetDictionary().AddKey("PageLayout", PdfName("TwoColumnRight"));
-            break;
-        case PdfPageLayout::TwoPageLeft:
-            m_Catalog->GetDictionary().AddKey("PageLayout", PdfName("TwoPageLeft"));
-            break;
-        case PdfPageLayout::TwoPageRight:
-            m_Catalog->GetDictionary().AddKey("PageLayout", PdfName("TwoPageRight"));
-            break;
-    }
 }
 
 PdfOutlines& PdfDocument::GetOrCreateOutlines()
@@ -677,176 +498,70 @@ void PdfDocument::SetTrailer(unique_ptr<PdfObject> obj)
     if (obj == nullptr)
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-    m_Trailer = std::move(obj);
-    m_Trailer->SetDocument(this);
+    m_TrailerObj = std::move(obj);
+    m_TrailerObj->SetDocument(this);
+    m_Trailer.reset(new PdfTrailer(*m_TrailerObj));
 
-    m_Catalog = m_Trailer->GetDictionary().FindKey("Root");
-    if (m_Catalog == nullptr)
+    auto catalog = m_TrailerObj->GetDictionary().FindKey("Root");
+    if (catalog == nullptr)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoObject, "Catalog object not found!");
 
-    auto infoObj = m_Trailer->GetDictionary().FindKey("Info");
-    if (infoObj == nullptr)
+    m_Catalog.reset(new PdfCatalog(*catalog));
+
+    auto info = m_TrailerObj->GetDictionary().FindKey("Info");
+    if (info == nullptr)
     {
-        m_Info.reset(new PdfInfo(*this));
-        m_Trailer->GetDictionary().AddKey("Info", m_Info->GetObject().GetIndirectReference());
+        info = m_Objects.CreateDictionaryObject();
+        m_Info.reset(new PdfInfo(*info));
+        m_TrailerObj->GetDictionary().AddKeyIndirect("Info", info);
     }
     else
     {
-        m_Info.reset(new PdfInfo(*infoObj));
+        m_Info.reset(new PdfInfo(*info));
     }
 }
 
-PdfObject& PdfDocument::GetCatalog()
+bool PdfDocument::IsEncrypted() const
 {
-    if (m_Catalog == nullptr)
-        PDFMM_RAISE_ERROR(PdfErrorCode::NoObject);
-
-    return *m_Catalog;
+    return GetEncrypt() != nullptr;
 }
 
-const PdfObject& PdfDocument::GetCatalog() const
+bool PdfDocument::IsPrintAllowed() const
 {
-    if (m_Catalog == nullptr)
-        PDFMM_RAISE_ERROR(PdfErrorCode::NoObject);
-
-    return *m_Catalog;
+    return GetEncrypt() == nullptr ? true : GetEncrypt()->IsPrintAllowed();
 }
 
-const PdfPageCollection& PdfDocument::GetPages() const
+bool PdfDocument::IsEditAllowed() const
 {
-    if (m_PageTree == nullptr)
-        PDFMM_RAISE_ERROR(PdfErrorCode::NoObject);
-
-    return *m_PageTree;
+    return GetEncrypt() == nullptr ? true : GetEncrypt()->IsEditAllowed();
 }
 
-PdfPageCollection& PdfDocument::GetPages()
+bool PdfDocument::IsCopyAllowed() const
 {
-    if (m_PageTree == nullptr)
-        PDFMM_RAISE_ERROR(PdfErrorCode::NoObject);
-
-    return *m_PageTree;
+    return GetEncrypt() == nullptr ? true : GetEncrypt()->IsCopyAllowed();
 }
 
-PdfObject& PdfDocument::GetTrailer()
+bool PdfDocument::IsEditNotesAllowed() const
 {
-    if (m_Trailer == nullptr)
-        PDFMM_RAISE_ERROR(PdfErrorCode::NoObject);
-
-    return *m_Trailer;
+    return GetEncrypt() == nullptr ? true : GetEncrypt()->IsEditNotesAllowed();
 }
 
-const PdfObject& PdfDocument::GetTrailer() const
+bool PdfDocument::IsFillAndSignAllowed() const
 {
-    if (m_Trailer == nullptr)
-        PDFMM_RAISE_ERROR(PdfErrorCode::NoObject);
-
-    return *m_Trailer;
+    return GetEncrypt() == nullptr ? true : GetEncrypt()->IsFillAndSignAllowed();
 }
 
-PdfInfo& PdfDocument::GetInfo()
+bool PdfDocument::IsAccessibilityAllowed() const
 {
-    if (m_Info == nullptr)
-        PDFMM_RAISE_ERROR(PdfErrorCode::NoObject);
-
-    return *m_Info;
+    return GetEncrypt() == nullptr ? true : GetEncrypt()->IsAccessibilityAllowed();
 }
 
-const PdfInfo& PdfDocument::GetInfo() const
+bool PdfDocument::IsDocAssemblyAllowed() const
 {
-    if (m_Info == nullptr)
-        PDFMM_RAISE_ERROR(PdfErrorCode::NoObject);
-
-    return *m_Info;
+    return GetEncrypt() == nullptr ? true : GetEncrypt()->IsDocAssemblyAllowed();
 }
 
-PdfObject* PdfDocument::GetStructTreeRoot()
+bool PdfDocument::IsHighPrintAllowed() const
 {
-    return GetCatalog().GetDictionary().FindKey("StructTreeRoot");
-}
-
-PdfObject* PdfDocument::GetMetadata()
-{
-    return GetCatalog().GetDictionary().FindKey("Metadata");
-}
-
-const PdfObject* PdfDocument::GetMetadata() const
-{
-    if (m_Catalog == nullptr)
-        return nullptr;
-
-    return m_Catalog->GetDictionary().FindKey("Metadata");
-}
-
-PdfObject& PdfDocument::GetOrCreateMetadata()
-{
-    auto& dict = GetCatalog().GetDictionary();
-    auto metadata = dict.FindKey("Metadata");
-    if (metadata != nullptr)
-        return *metadata;
-
-    metadata = m_Objects.CreateDictionaryObject("Metadata", "XML");
-    dict.AddKeyIndirect("Metadata", metadata);
-    return *metadata;
-}
-
-PdfObject* PdfDocument::GetMarkInfo()
-{
-    return GetCatalog().GetDictionary().FindKey("MarkInfo");
-}
-
-PdfObject* PdfDocument::GetLanguage()
-{
-    return GetCatalog().GetDictionary().FindKey("Lang");
-}
-
-PdfALevel PdfDocument::GetPdfALevel() const
-{
-    string value = GetMetadataStreamValue();
-    if (value.length() == 0)
-        return PdfALevel::Unknown;
-
-    return mm::GetPdfALevel(value);
-}
-
-string PdfDocument::GetMetadataStreamValue() const
-{
-    string ret;
-    auto obj = GetMetadata();
-    if (obj == nullptr)
-        return ret;
-
-    auto stream = obj->GetStream();
-    if (stream == nullptr)
-        return ret;
-
-    PdfStringOutputStream ouput(ret);
-    stream->GetFilteredCopy(ouput);
-    return ret;
-}
-
-void PdfDocument::SetMetadataStreamValue(const string_view& value)
-{
-    auto& obj = GetOrCreateMetadata();
-    auto& stream = obj.GetOrCreateStream();
-    PdfMemoryInputStream input(value);
-    stream.SetRawData(input);
-
-    // We are writing raw clear text, which is required in most
-    // relevant scenarions (eg. PDF/A). Remove any possibly
-    // existing filter
-    obj.GetDictionary().RemoveKey(PdfName::KeyFilter);
-}
-
-void PdfDocument::updateModifyTimestamp(const PdfDate& modDate)
-{
-    // Set The /Info entry /ModDate
-    GetInfo().SetModDate(modDate);
-
-    string value = GetMetadataStreamValue();
-    if (value.length() == 0)
-        return;
-
-    value = mm::UpdateXMPModDate(value, modDate);
-    SetMetadataStreamValue(value);
+    return GetEncrypt() == nullptr ? true : GetEncrypt()->IsHighPrintAllowed();
 }

@@ -340,7 +340,7 @@ void PdfIndirectObjectList::CollectGarbage()
         return;
 
     unordered_set<PdfReference> referencedOjects;
-    visitObject(m_Document->GetTrailer(), referencedOjects);
+    visitObject(m_Document->GetTrailer().GetObject(), referencedOjects);
     ObjectList newlist(CompareObject);
     for (PdfObject* obj : m_Objects)
     {

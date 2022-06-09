@@ -1,5 +1,6 @@
-## Version 0.10.0
+## Version 0.9.23
 - Renamed PdfPageTree -> PdfPageCollection
+- Added XMP metadata reading/saving. Added PdfMetadata class
 
 ## Version 0.9.22
 - Fixed serialization of strings with non ascii PdfDocEncoding

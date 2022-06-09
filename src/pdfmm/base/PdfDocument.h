@@ -11,11 +11,12 @@
 
 #include "PdfDeclarations.h"
 
-#include "PdfObject.h"
+#include "PdfTrailer.h"
+#include "PdfCatalog.h"
 #include "PdfIndirectObjectList.h"
 #include "PdfAcroForm.h"
 #include "PdfFontManager.h"
-#include "PdfInfo.h"
+#include "PdfMetadata.h"
 #include "PdfPageCollection.h"
 #include "PdfNameTree.h"
 
@@ -48,15 +49,12 @@ class PdfXObject;
  */
 class PDFMM_API PdfDocument
 {
+    friend class PdfMetadata;
+
 public:
     /** Close down/destruct the PdfDocument
      */
     virtual ~PdfDocument();
-
-    /** Get the PDF version of the document
-     *  \returns PdfVersion version of the pdf document
-     */
-    virtual PdfVersion GetPdfVersion() const = 0;
 
     /** Get access to the Outlines (Bookmarks) dictionary
      *  The returned outlines object is owned by the PdfDocument.
@@ -150,82 +148,6 @@ public:
      */
     void AddNamedDestination(const PdfDestination& dest, const PdfString& name);
 
-    /** Sets the opening mode for a document.
-     *  \param inMode which mode to set
-     */
-    void SetPageMode(PdfPageMode inMode);
-
-    /** Gets the opening mode for a document.
-     *  \returns which mode is set
-     */
-    PdfPageMode GetPageMode() const;
-
-    /** Sets the opening mode for a document to be in full screen.
-     */
-    void SetUseFullScreen();
-
-    /** Sets the page layout for a document.
-     */
-    void SetPageLayout(PdfPageLayout inLayout);
-
-    /** Set the document's Viewer Preferences:
-     *  Hide the toolbar in the viewer.
-     */
-    void SetHideToolbar();
-
-    /** Set the document's Viewer Preferences:
-     *  Hide the menubar in the viewer.
-     */
-    void SetHideMenubar();
-
-    /** Set the document's Viewer Preferences:
-     *  Show only the documents contents and no control
-     *  elements such as buttons and scrollbars in the viewer.
-     */
-    void SetHideWindowUI();
-
-    /** Set the document's Viewer Preferences:
-     *  Fit the document in the viewer's window.
-     */
-    void SetFitWindow();
-
-    /** Set the document's Viewer Preferences:
-     *  Center the document in the viewer's window.
-     */
-    void SetCenterWindow();
-
-    /** Set the document's Viewer Preferences:
-     *  Display the title from the document information
-     *  in the title of the viewer.
-     *
-     *  \see SetTitle
-     */
-    void SetDisplayDocTitle();
-
-    /** Set the document's Viewer Preferences:
-     *  Set the default print scaling of the document.
-     *
-     *  TODO: DS use an enum here!
-     */
-    void SetPrintScaling(const PdfName& scalingType);
-
-    /** Set the document's Viewer Preferences:
-     *  Set the base URI of the document.
-     *
-     *  TODO: DS document value!
-     */
-    void SetBaseURI(const std::string_view& baseURI);
-
-    /** Set the document's Viewer Preferences:
-     *  Set the language of the document.
-     */
-    void SetLanguage(const std::string_view& language);
-
-    /** Set the document's Viewer Preferences:
-        Set the document's binding direction.
-     */
-    void SetBindingDirection(const PdfName& direction);
-
     void CollectGarbage();
 
     /** Checks if printing this document is allowed.
@@ -235,7 +157,7 @@ public:
      *
      *  \see PdfEncrypt to set own document permissions.
      */
-    virtual bool IsPrintAllowed() const = 0;
+    bool IsPrintAllowed() const;
 
     /** Checks if modifying this document (besides annotations, form fields or substituting pages) is allowed.
      *  Every PDF-consuming application has to adhere to this value!
@@ -244,7 +166,7 @@ public:
      *
      *  \see PdfEncrypt to set own document permissions.
      */
-    virtual bool IsEditAllowed() const = 0;
+    bool IsEditAllowed() const;
 
     /** Checks if text and graphics extraction is allowed.
      *  Every PDF-consuming application has to adhere to this value!
@@ -253,7 +175,7 @@ public:
      *
      *  \see PdfEncrypt to set own document permissions.
      */
-    virtual bool IsCopyAllowed() const = 0;
+    bool IsCopyAllowed() const;
 
     /** Checks if it is allowed to add or modify annotations or form fields.
      *  Every PDF-consuming application has to adhere to this value!
@@ -262,7 +184,7 @@ public:
      *
      *  \see PdfEncrypt to set own document permissions.
      */
-    virtual bool IsEditNotesAllowed() const = 0;
+    bool IsEditNotesAllowed() const;
 
     /** Checks if it is allowed to fill in existing form or signature fields.
      *  Every PDF-consuming application has to adhere to this value!
@@ -271,7 +193,7 @@ public:
      *
      *  \see PdfEncrypt to set own document permissions.
      */
-    virtual bool IsFillAndSignAllowed() const = 0;
+    bool IsFillAndSignAllowed() const;
 
     /** Checks if it is allowed to extract text and graphics to support users with disabilities.
      *  Every PDF-consuming application has to adhere to this value!
@@ -280,7 +202,7 @@ public:
      *
      *  \see PdfEncrypt to set own document permissions.
      */
-    virtual bool IsAccessibilityAllowed() const = 0;
+    bool IsAccessibilityAllowed() const;
 
     /** Checks if it is allowed to insert, create, rotate, or delete pages or add bookmarks.
      *  Every PDF-consuming application has to adhere to this value!
@@ -289,7 +211,7 @@ public:
      *
      *  \see PdfEncrypt to set own document permissions.
      */
-    virtual bool IsDocAssemblyAllowed() const = 0;
+    bool IsDocAssemblyAllowed() const;
 
     /** Checks if it is allowed to print a high quality version of this document
      *  Every PDF-consuming application has to adhere to this value!
@@ -298,7 +220,15 @@ public:
      *
      *  \see PdfEncrypt to set own document permissions.
      */
-    virtual bool IsHighPrintAllowed() const = 0;
+    bool IsHighPrintAllowed() const;
+
+public:
+    virtual const PdfEncrypt* GetEncrypt() const = 0;
+
+    /**
+     * \returns true if this PdfMemDocument creates an encrypted PDF file
+     */
+    bool IsEncrypted() const;
 
 public:
     /** Get access to the internal Catalog dictionary
@@ -306,38 +236,38 @@ public:
      *
      *  \returns PdfObject the documents catalog
      */
-    PdfObject& GetCatalog();
+    PdfCatalog& GetCatalog() { return *m_Catalog; }
 
     /** Get access to the internal Catalog dictionary
      *  or root object.
      *
      *  \returns PdfObject the documents catalog
      */
-    const PdfObject& GetCatalog() const;
+    const PdfCatalog& GetCatalog() const { return *m_Catalog; }
 
     /** Get access to the page tree.
      *  \returns the PdfPageTree of this document.
      */
-    PdfPageCollection& GetPages();
+    PdfPageCollection& GetPages() { return *m_Pages; }
 
     /** Get access to the page tree.
      *  \returns the PdfPageTree of this document.
      */
-    const PdfPageCollection& GetPages() const;
+    const PdfPageCollection& GetPages() const { return *m_Pages; }
 
     /** Get access to the internal trailer dictionary
      *  or root object.
      *
      *  \returns PdfObject the documents catalog
      */
-    PdfObject& GetTrailer();
+    PdfTrailer &GetTrailer() { return *m_Trailer; }
 
     /** Get access to the internal trailer dictionary
      *  or root object.
      *
      *  \returns PdfObject the documents catalog
      */
-    const PdfObject& GetTrailer() const;
+    const PdfTrailer& GetTrailer() const { return *m_Trailer; }
 
     /** Get access to the internal Info dictionary
      *  You can set the author, title etc. of the
@@ -345,64 +275,33 @@ public:
      *
      *  \returns the info dictionary
      */
-    PdfInfo& GetInfo();
+    const PdfInfo& GetInfo() const { return *m_Info; }
 
-    /** Get access to the internal Info dictionary
-     *  You can set the author, title etc. of the
-     *  document using the info dictionary.
-     *
-     *  \returns the info dictionary
-     */
-    const PdfInfo& GetInfo() const;
+    PdfMetadata& GetMetadata() { return m_Metadata; }
+
+    const PdfMetadata& GetMetadata() const { return m_Metadata; }
 
     /** Get access to the internal vector of objects
      *  or root object.
      *
      *  \returns the vector of objects
      */
-    inline PdfIndirectObjectList& GetObjects() { return m_Objects; }
+    PdfIndirectObjectList& GetObjects() { return m_Objects; }
 
     /** Get access to the internal vector of objects
      *  or root object.
      *
      *  \returns the vector of objects
      */
-    inline const PdfIndirectObjectList& GetObjects() const { return m_Objects; }
+    const PdfIndirectObjectList& GetObjects() const { return m_Objects; }
 
-    inline PdfAcroForm* GetAcroForm() { return m_AcroForm.get(); }
+    PdfAcroForm* GetAcroForm() { return m_AcroForm.get(); }
 
-    inline PdfNameTree* GetNameTree() { return m_NameTree.get(); }
+    PdfNameTree* GetNameTree() { return m_NameTree.get(); }
 
-    inline PdfOutlines* GetOutlines() { return m_Outlines.get(); }
+    PdfOutlines* GetOutlines() { return m_Outlines.get(); }
 
-    inline PdfFontManager& GetFontManager() { return m_FontManager; }
-
-    /** Get access to the StructTreeRoot dictionary
-     *  \returns PdfObject the StructTreeRoot dictionary
-     */
-    PdfObject* GetStructTreeRoot();
-
-    /** Get access to the Metadata stream
-     *  \returns PdfObject the Metadata stream (should be in XML, using XMP grammar)
-     */
-    PdfObject* GetMetadata();
-    const PdfObject* GetMetadata() const;
-    PdfObject& GetOrCreateMetadata();
-
-    /** Get access to the MarkInfo dictionary (ISO 32000-1:2008 14.7.1)
-     *  \returns PdfObject the MarkInfo dictionary
-     */
-    PdfObject* GetMarkInfo();
-
-    /** Get access to the RFC 3066 natural language id for the document (ISO 32000-1:2008 14.9.2.1)
-     *  \returns PdfObject the language ID string
-     */
-    PdfObject* GetLanguage();
-
-    PdfALevel GetPdfALevel() const;
-
-    std::string GetMetadataStreamValue() const;
-    void SetMetadataStreamValue(const std::string_view& value);
+    PdfFontManager& GetFontManager() { return m_FontManager; }
 
 protected:
     /** Construct a new (empty) PdfDocument
@@ -433,47 +332,38 @@ protected:
      */
     void FixObjectReferences(PdfObject& obj, int difference);
 
-    /** Low-level APIs for setting a viewer preference.
-     *  \param whichPref the dictionary key to set
-     *  \param valueObj the object to be set
-     */
-    void SetViewerPreference(const PdfName& whichPref, const PdfObject& valueObj);
-
-    /** Low-level APIs for setting a viewer preference.
-     *  Convenience overload.
-     *  \param whichPref the dictionary key to set
-     *  \param inValue the object to be set
-     */
-    void SetViewerPreference(const PdfName& whichPref, bool inValue);
-
     /** Clear all internal variables
      *  and reset PdfDocument to an intial state.
      */
     void Clear();
 
-    /** Get access to the internal trailer dictionary
-     *  or root object.
-     *
-     *  \returns PdfObject the documents catalog
+    /** Get the PDF version of the document
+     *  \returns PdfVersion version of the pdf document
      */
-    inline PdfObject* getCatalog() { return m_Catalog; }
+    virtual PdfVersion GetPdfVersion() const = 0;
 
-protected:
-    void updateModifyTimestamp(const PdfDate& modDate);
+    /** Get the PDF version of the document
+ *  \returns PdfVersion version of the pdf document
+ */
+    virtual void SetPdfVersion(PdfVersion version) = 0;
 
 private:
     PdfDocument& operator=(const PdfDocument&) = delete;
 
+    PdfInfo& GetInfo() { return *m_Info; }
+
 private:
     PdfIndirectObjectList m_Objects;
-    std::unique_ptr<PdfObject> m_Trailer;
-    PdfObject* m_Catalog;
+    PdfMetadata m_Metadata;
+    PdfFontManager m_FontManager;
+    std::unique_ptr<PdfObject> m_TrailerObj;
+    std::unique_ptr<PdfTrailer> m_Trailer;
+    std::unique_ptr<PdfCatalog> m_Catalog;
     std::unique_ptr<PdfInfo> m_Info;
-    std::unique_ptr<PdfPageCollection> m_PageTree;
+    std::unique_ptr<PdfPageCollection> m_Pages;
     std::unique_ptr<PdfAcroForm> m_AcroForm;
     std::unique_ptr<PdfOutlines> m_Outlines;
     std::unique_ptr<PdfNameTree> m_NameTree;
-    PdfFontManager m_FontManager;
 };
 
 };

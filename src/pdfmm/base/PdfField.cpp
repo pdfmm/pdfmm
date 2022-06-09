@@ -186,7 +186,7 @@ void PdfField::Init(PdfAcroForm* parent)
     if (parent != nullptr)
     {
         // Insert into the parents kids array
-        PdfArray& fields = parent->GetFieldsArray();
+        auto& fields = parent->GetOrCreateFieldsArray();
         fields.Add(GetObject().GetIndirectReference());
     }
 
@@ -601,16 +601,6 @@ void PdfField::SetKeystrokeAction(const PdfAction& action)
 void PdfField::SetValidateAction(const PdfAction& action)
 {
     this->AddAlternativeAction("V", action);
-}
-
-PdfFieldType PdfField::GetType() const
-{
-    return m_FieldType;
-}
-
-PdfAnnotation* PdfField::GetWidgetAnnotation() const
-{
-    return m_Widget;
 }
 
 void getFullName(const PdfObject& obj, bool escapePartialNames, string& fullname)

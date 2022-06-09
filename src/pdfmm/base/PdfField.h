@@ -24,7 +24,6 @@ class PdfDocument;
 class PdfPage;
 class PdfRect;
 class PdfReference;
-class PdfStreamedDocument;
 
 /** The type of PDF field
  */
@@ -309,7 +308,11 @@ public:
     void SetKeystrokeAction(const PdfAction& action);
     void SetValidateAction(const PdfAction& action);
 
-    PdfFieldType GetType() const;
+public:
+    PdfFieldType GetType() const { return m_FieldType; }
+
+    PdfAnnotation* GetWidgetAnnotation() const { return m_Widget; }
+
 
 protected:
     /**
@@ -363,9 +366,6 @@ private:
     void AddAlternativeAction(const PdfName& name, const PdfAction& action);
     static PdfField* createField(PdfFieldType type, PdfObject& obj, PdfAnnotation* widget);
     PdfField* createChildField(PdfPage* page, const PdfRect& rect);
-
-public:
-    PdfAnnotation* GetWidgetAnnotation() const;
 
 private:
     PdfFieldType m_FieldType;

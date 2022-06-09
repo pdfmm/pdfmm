@@ -100,11 +100,11 @@ void HelloWorld(const string_view& filename)
         painter.FinishDrawing();
 
         // Set some additional information on the PDF file.
-        document.GetInfo().SetCreator(PdfString("examplahelloworld - A pdfmm test application"));
-        document.GetInfo().SetAuthor(PdfString("Dominik Seichter"));
-        document.GetInfo().SetTitle(PdfString("Hello World"));
-        document.GetInfo().SetSubject(PdfString("Testing the pdfmm PDF Library"));
-        document.GetInfo().SetKeywords(PdfString("Test;PDF;Hello World;"));
+        document.GetMetadata().SetCreator(PdfString("examplahelloworld - A pdfmm test application"));
+        document.GetMetadata().SetAuthor(PdfString("Dominik Seichter"));
+        document.GetMetadata().SetTitle(PdfString("Hello World"));
+        document.GetMetadata().SetSubject(PdfString("Testing the pdfmm PDF Library"));
+        document.GetMetadata().SetKeywords(vector<string>({ "Test", "PDF", "Hello World" }));
 
         // The last step is to close the document.
         document.Save(filename);

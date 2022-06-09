@@ -99,42 +99,24 @@
 
 #define CMAP_REGISTRY_NAME "pdfmm"
 
-// character constants
-#define MAX_PDF_VERSION_STRING_INDEX  8
-
 namespace mm
 {
     class PdfOutputDevice;
     class PdfInputDevice;
 
-    // We use fixed bounds two dimensional arrays here so that
-    // they go into the const data section of the library
-    static const char s_PdfVersions[][9] = {
-        "%PDF-1.0",
-        "%PDF-1.1",
-        "%PDF-1.2",
-        "%PDF-1.3",
-        "%PDF-1.4",
-        "%PDF-1.5",
-        "%PDF-1.6",
-        "%PDF-1.7",
-        "%PDF-2.0",
-    };
+    PdfVersion GetPdfVersion(const std::string_view& str);
 
-    static const char s_PdfVersionNums[][4] = {
-        "1.0",
-        "1.1",
-        "1.2",
-        "1.3",
-        "1.4",
-        "1.5",
-        "1.6",
-        "1.7",
-        "2.0",
-    };
+    std::string_view GetPdfVersionName(PdfVersion version);
 
     constexpr double DEG2RAD = std::numbers::pi / 180;
     constexpr double RAD2DEG = 180 / std::numbers::pi;
+
+    // https://stackoverflow.com/questions/56845801/what-happened-to-stdcspan
+    template <class T, size_t Extent = std::dynamic_extent>
+    using cspan = std::span<const T, Extent>;
+
+    std::vector<std::string> ToPdfKeywordsList(const std::string_view& str);
+    std::string ToPdfKeywordsString(const cspan<std::string>& keywords);
 }
 
 /**

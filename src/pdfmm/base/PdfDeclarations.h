@@ -123,15 +123,16 @@ using CIDToGIDMap = std::map<unsigned, unsigned>;
  */
 enum class PdfVersion
 {
-    V1_0 = 0,       ///< PDF 1.0
-    V1_1,           ///< PDF 1.1
-    V1_2,           ///< PDF 1.2
-    V1_3,           ///< PDF 1.3
-    V1_4,           ///< PDF 1.4
-    V1_5,           ///< PDF 1.5
-    V1_6,           ///< PDF 1.6
-    V1_7,           ///< PDF 1.7
-    V2_0,           ///< PDF 2.0
+    Unknown = 0,
+    V1_0 = 10,       ///< PDF 1.0
+    V1_1 = 11,       ///< PDF 1.1
+    V1_2 = 12,       ///< PDF 1.2
+    V1_3 = 13,       ///< PDF 1.3
+    V1_4 = 14,       ///< PDF 1.4
+    V1_5 = 15,       ///< PDF 1.5
+    V1_6 = 16,       ///< PDF 1.6
+    V1_7 = 17,       ///< PDF 1.7
+    V2_0 = 20,       ///< PDF 2.0
 };
 
 enum class PdfALevel

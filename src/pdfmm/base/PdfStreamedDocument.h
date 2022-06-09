@@ -49,7 +49,7 @@ class PdfOutputDevice;
  *
  *  document.Close();
  */
-class PDFMM_API PdfStreamedDocument : public PdfDocument
+class PDFMM_API PdfStreamedDocument final : public PdfDocument
 {
     friend class PdfImage;
 
@@ -67,7 +67,7 @@ public:
      *                  created document.
      *  \param opts additional save options for writing the pdf
      */
-    PdfStreamedDocument(PdfOutputDevice& device, PdfVersion version = PdfVersionDefault,
+    PdfStreamedDocument(const std::shared_ptr<PdfOutputDevice>& device, PdfVersion version = PdfVersionDefault,
         PdfEncrypt* encrypt = nullptr, PdfSaveOptions opts = PdfSaveOptions::None);
 
     /** Create a new PdfStreamedDocument.
@@ -85,31 +85,16 @@ public:
     PdfStreamedDocument(const std::string_view& filename, PdfVersion version = PdfVersionDefault,
         PdfEncrypt* encrypt = nullptr, PdfSaveOptions opts = PdfSaveOptions::None);
 
-    ~PdfStreamedDocument();
-
     /** Close the document. The PDF file on disk is finished.
-     *  No other member function of this class maybe called
+     *  No other member function of this class may be called
      *  after calling this function.
      */
     void Close();
 
+protected:
     PdfVersion GetPdfVersion() const override;
 
-    bool IsPrintAllowed() const override;
-
-    bool IsEditAllowed() const override;
-
-    bool IsCopyAllowed() const override;
-
-    bool IsEditNotesAllowed() const override;
-
-    bool IsFillAndSignAllowed() const override;
-
-    bool IsAccessibilityAllowed() const override;
-
-    bool IsDocAssemblyAllowed() const override;
-
-    bool IsHighPrintAllowed() const override;
+    void SetPdfVersion(PdfVersion version);
 
 private:
     /** Initialize the PdfStreamedDocument with an output device
@@ -122,16 +107,12 @@ private:
      *                  created document.
      *  \param opts additional options for writing the pdf
      */
-    void Init(PdfOutputDevice& device, PdfVersion version,
-        PdfEncrypt* encrypt, PdfSaveOptions opts);
+    void init(PdfVersion version, PdfSaveOptions opts);
 
 private:
-    PdfImmediateWriter* m_Writer;
-    PdfOutputDevice* m_Device;
-
+    std::unique_ptr<PdfImmediateWriter> m_Writer;
+    std::shared_ptr<PdfOutputDevice> m_Device;
     PdfEncrypt* m_Encrypt;
-
-    bool m_OwnDevice; // If true m_Device is owned by this object and has to be deleted
 };
 
 };

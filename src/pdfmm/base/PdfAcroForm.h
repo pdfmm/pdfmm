@@ -39,7 +39,7 @@ public:
      */
     PdfAcroForm(PdfObject& obj);
 
-    PdfArray& GetFieldsArray();
+    PdfArray& GetOrCreateFieldsArray();
 
     /** Set the value of the NeedAppearances key in the interactive forms
      *  dictionary.

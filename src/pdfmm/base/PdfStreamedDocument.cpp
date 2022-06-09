@@ -11,30 +11,27 @@
 using namespace std;
 using namespace mm;
 
-PdfStreamedDocument::PdfStreamedDocument(PdfOutputDevice& device, PdfVersion version, PdfEncrypt* encrypt, PdfSaveOptions opts)
-    : m_Writer(nullptr), m_Device(nullptr), m_Encrypt(encrypt), m_OwnDevice(false)
+PdfStreamedDocument::PdfStreamedDocument(const shared_ptr<PdfOutputDevice>& device, PdfVersion version,
+        PdfEncrypt* encrypt, PdfSaveOptions opts) :
+    m_Writer(nullptr),
+    m_Device(device),
+    m_Encrypt(encrypt)
 {
-    Init(device, version, encrypt, opts);
+    init(version, opts);
 }
 
-PdfStreamedDocument::PdfStreamedDocument(const string_view& filename, PdfVersion version, PdfEncrypt* encrypt, PdfSaveOptions opts)
-    : m_Writer(nullptr), m_Encrypt(encrypt), m_OwnDevice(true)
+PdfStreamedDocument::PdfStreamedDocument(const string_view& filename, PdfVersion version,
+        PdfEncrypt* encrypt, PdfSaveOptions opts) :
+    m_Writer(nullptr),
+    m_Device(new PdfFileOutputDevice(filename)),
+    m_Encrypt(encrypt)
 {
-    m_Device = new PdfFileOutputDevice(filename);
-    Init(*m_Device, version, encrypt, opts);
+    init(version, opts);
 }
 
-PdfStreamedDocument::~PdfStreamedDocument()
+void PdfStreamedDocument::init(PdfVersion version, PdfSaveOptions opts)
 {
-    delete m_Writer;
-    if (m_OwnDevice)
-        delete m_Device;
-}
-
-void PdfStreamedDocument::Init(PdfOutputDevice& device, PdfVersion version,
-    PdfEncrypt* encrypt, PdfSaveOptions opts)
-{
-    m_Writer = new PdfImmediateWriter(this->GetObjects(), this->GetTrailer(), device, version, encrypt, opts);
+    m_Writer.reset(new PdfImmediateWriter(this->GetObjects(), this->GetTrailer().GetObject(), *m_Device, version, m_Encrypt, opts));
 }
 
 void PdfStreamedDocument::Close()
@@ -48,42 +45,8 @@ PdfVersion PdfStreamedDocument::GetPdfVersion() const
     return m_Writer->GetPdfVersion();
 }
 
-bool PdfStreamedDocument::IsPrintAllowed() const
+void PdfStreamedDocument::SetPdfVersion(PdfVersion version)
 {
-    return m_Encrypt ? m_Encrypt->IsPrintAllowed() : true;
-}
-
-bool PdfStreamedDocument::IsEditAllowed() const
-{
-    return m_Encrypt ? m_Encrypt->IsEditAllowed() : true;
-}
-
-bool PdfStreamedDocument::IsCopyAllowed() const
-{
-    return m_Encrypt ? m_Encrypt->IsCopyAllowed() : true;
-}
-
-bool PdfStreamedDocument::IsEditNotesAllowed() const
-{
-    return m_Encrypt ? m_Encrypt->IsEditNotesAllowed() : true;
-}
-
-bool PdfStreamedDocument::IsFillAndSignAllowed() const
-{
-    return m_Encrypt ? m_Encrypt->IsFillAndSignAllowed() : true;
-}
-
-bool PdfStreamedDocument::IsAccessibilityAllowed() const
-{
-    return m_Encrypt ? m_Encrypt->IsAccessibilityAllowed() : true;
-}
-
-bool PdfStreamedDocument::IsDocAssemblyAllowed() const
-{
-    return m_Encrypt ? m_Encrypt->IsDocAssemblyAllowed() : true;
-}
-
-bool PdfStreamedDocument::IsHighPrintAllowed() const
-{
-    return m_Encrypt ? m_Encrypt->IsHighPrintAllowed() : true;
+    (void)version;
+    PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);
 }

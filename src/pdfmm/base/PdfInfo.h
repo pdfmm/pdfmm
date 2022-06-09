@@ -9,8 +9,6 @@
 #ifndef PDF_INFO_H
 #define PDF_INFO_H
 
-#include "PdfDeclarations.h"
-
 #include "PdfName.h"
 #include "PdfDate.h"
 #include "PdfElement.h"
@@ -27,15 +25,6 @@ class PdfString;
 class PDFMM_API PdfInfo final : public PdfDictionaryElement
 {
 public:
-
-    /** Create a new PdfInfo object
-     *  \param parent the parent of this object
-     *  \param initial which information should be
-     *         writting initially to the information dictionary
-     */
-    PdfInfo(PdfDocument& doc,
-        PdfInfoInitial initial = PdfInfoInitial::WriteCreationTime | PdfInfoInitial::WriteProducer);
-
     /** Create a PdfInfo object from an existing
      *  object in the PDF file.
      *  \param obj must be an info dictionary.
@@ -128,25 +117,25 @@ public:
      *  \returns the title
      */
     const PdfName& GetTrapped() const;
+
 private:
     /** Add the initial document information to the dictionary.
      *  \param initial which information should be
      *         writting initially to the information
      */
-    void Init(PdfInfoInitial initial);
+    void init(PdfInfoInitial initial);
 
     /** Get a value from the info dictionary as name
      *  \para name the key to fetch from the info dictionary
      *  \return a value from the info dictionary
      */
-    nullable<PdfString> GetStringFromInfoDict(const PdfName& name) const;
+    nullable<PdfString> getStringFromInfoDict(const PdfName& name) const;
 
     /** Get a value from the info dictionary as name
     *  \para name the key to fetch from the info dictionary
     *  \return a value from the info dictionary
     */
-    const PdfName& GetNameFromInfoDict(const PdfName& name) const;
-
+    const PdfName& getNameFromInfoDict(const PdfName& name) const;
 };
 
 };

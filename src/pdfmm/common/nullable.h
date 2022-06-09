@@ -79,6 +79,12 @@ public:
     friend bool operator!=(const nullable<T2>& op1, const nullable<T2>& op2);
 
     template <typename T2>
+    friend bool operator==(const nullable<T2>& op1, const nullable<const T2&>& op2);
+
+    template <typename T2>
+    friend bool operator!=(const nullable<T2>& op1, const nullable<const T2&>& op2);
+
+    template <typename T2>
     friend bool operator==(const nullable<T2>& op, const T2& value);
 
     template <typename T2>
@@ -107,7 +113,7 @@ private:
     T m_value;
 };
 
-// Template spacialization for templates
+// Template spacialization for references
 template <typename T>
 class nullable<T&> final
 {
@@ -159,6 +165,12 @@ public:
     friend bool operator!=(const nullable<T2>& op1, const nullable<T2>& op2);
 
     template <typename T2>
+    friend bool operator==(const nullable<T2>& op1, const nullable<const T2&>& op2);
+
+    template <typename T2>
+    friend bool operator!=(const nullable<T2>& op1, const nullable<const T2&>& op2);
+
+    template <typename T2>
     friend bool operator==(const nullable<T2>& op, std::nullptr_t);
 
     template <typename T2>
@@ -195,6 +207,30 @@ bool operator!=(const nullable<T2>& op1, const nullable<T2>& op2)
 
     if (op1.m_hasValue)
         return op1.m_value != op2.m_value;
+    else
+        return false;
+}
+
+template <typename T2>
+bool operator==(const nullable<T2>& op1, const nullable<const T2&>& op2)
+{
+    if (op1.m_hasValue != op2.m_hasValue)
+        return true;
+
+    if (op1.m_hasValue)
+        return op1.m_value != *op2.m_value;
+    else
+        return false;
+}
+
+template <typename T2>
+bool operator!=(const nullable<T2>& op1, const nullable<const T2&>& op2)
+{
+    if (op1.m_hasValue != op2.m_hasValue)
+        return true;
+
+    if (op1.m_hasValue)
+        return op1.m_value != *op2.m_value;
     else
         return false;
 }

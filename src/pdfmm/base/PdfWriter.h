@@ -78,11 +78,6 @@ public:
     void FillTrailerObject(PdfObject& trailer, size_t size, bool onlySizeKey) const;
 
 public:
-    /** Get the file format version of the pdf
-     *  \returns the file format version as string
-     */
-    const char* GetPdfVersionString() const;
-
     void SetSaveOptions(PdfSaveOptions saveOptions);
 
     /** Get the write mode used for writing the PDF

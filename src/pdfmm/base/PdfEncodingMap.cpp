@@ -214,13 +214,13 @@ bool PdfEncodingMap::tryGetNextCodePoints(string_view::iterator& it, const strin
         if (i > limits.MaxCodeSize)
             return false;
 
-        // CMap Mapping, PDF Reference 1.7, pg. 453
-        // A sequence of one or more bytes is extracted from the string and matched against
+        // ISO 32000-1:2008 "9.7.6.2 CMap Mapping"
+        // "A sequence of one or more bytes is extracted from the string and matched against
         // the codespace ranges in the CMap. That is, the first byte is matched against 1-byte
         // codespace ranges; if no match is found, a second byte is extracted, and the 2-byte
-        // srcCode is matched against 2-byte codespace ranges. This process continues for successively
-        // longer codes until a match is found or all codespace ranges have been
-        // tested. There will be at most one match because codespace ranges do not overlap.
+        // srcCode is matched against 2-byte codespace ranges. This process continues for
+        // successively longer codes until a match is found or all codespace ranges have been
+        // tested. There will be at most one match because codespace ranges do not overlap."
 
         code <<= 8;
         code |= (uint8_t)*curr;

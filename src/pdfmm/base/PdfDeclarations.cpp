@@ -27,6 +27,111 @@ using namespace mm;
 
 static void removeTrailingZeroes(string& str);
 
+struct VersionIdentity
+{
+    string_view Name;
+    PdfVersion Version;
+};
+
+static VersionIdentity s_PdfVersions[] = {
+    { "1.0", PdfVersion::V1_0 },
+    { "1.1", PdfVersion::V1_1 },
+    { "1.2", PdfVersion::V1_2 },
+    { "1.3", PdfVersion::V1_3 },
+    { "1.4", PdfVersion::V1_4 },
+    { "1.5", PdfVersion::V1_5 },
+    { "1.6", PdfVersion::V1_6 },
+    { "1.7", PdfVersion::V1_7 },
+    { "2.0", PdfVersion::V2_0 },
+};
+
+PdfVersion mm::GetPdfVersion(const string_view& str)
+{
+    for (unsigned i = 0; i < std::size(s_PdfVersions); i++)
+    {
+        auto& version = s_PdfVersions[i];
+        if (version.Name == str)
+            return version.Version;
+    }
+
+    return PdfVersion::Unknown;
+}
+
+string_view mm::GetPdfVersionName(PdfVersion version)
+{
+    switch (version)
+    {
+        case PdfVersion::V1_0:
+            return s_PdfVersions[0].Name;
+        case PdfVersion::V1_1:
+            return s_PdfVersions[1].Name;
+        case PdfVersion::V1_2:
+            return s_PdfVersions[2].Name;
+        case PdfVersion::V1_3:
+            return s_PdfVersions[3].Name;
+        case PdfVersion::V1_4:
+            return s_PdfVersions[4].Name;
+        case PdfVersion::V1_5:
+            return s_PdfVersions[5].Name;
+        case PdfVersion::V1_6:
+            return s_PdfVersions[6].Name;
+        case PdfVersion::V1_7:
+            return s_PdfVersions[7].Name;
+        case PdfVersion::V2_0:
+            return s_PdfVersions[8].Name;
+        default:
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+    }
+}
+
+vector<string> mm::ToPdfKeywordsList(const string_view& str)
+{
+    vector<string> ret;
+    auto it = str.begin();
+    auto tokenStart = it;
+    auto end = str.end();
+    string token;
+    while (it != end)
+    {
+        auto ch = (char32_t)utf8::next(it, end);
+        switch (ch)
+        {
+            case U'\r':
+            case U'\n':
+            {
+                token = string(tokenStart, it);
+                if (token.length() != 0)
+                    ret.push_back(std::move(token));
+                tokenStart = it;
+                break;
+            }
+        }
+    }
+
+    token = string(tokenStart, it);
+    if (token.length() != 0)
+        ret.push_back(std::move(token));
+
+    return ret;
+}
+
+string mm::ToPdfKeywordsString(const cspan<string>& keywords)
+{
+    string ret;
+    bool first = true;
+    for (auto& keyword : keywords)
+    {
+        if (first)
+            first = false;
+        else
+            ret.append("\r\n");
+
+        ret.append(keyword);
+    }
+
+    return ret;
+}
+
 bool utls::IsStringEmptyOrWhiteSpace(const string_view& str)
 {
     for (unsigned i = 0; i < str.size(); i++)

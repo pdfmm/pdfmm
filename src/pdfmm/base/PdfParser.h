@@ -64,11 +64,6 @@ public:
      */
     void Parse(PdfInputDevice& device, bool loadOnDemand = true);
 
-    /** Get the file format version of the pdf
-     *  \returns the file format version as string
-     */
-    const char* GetPdfVersionString() const;
-
     /**
      * \returns true if this PdfWriter creates an encrypted PDF file
      */

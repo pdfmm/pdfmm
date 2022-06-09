@@ -25,32 +25,51 @@ using namespace mm;
 // a W3C date has a maximum of 26 bytes incuding the terminating \0
 #define W3C_DATE_BUFFER_SIZE 26
 
-#define PEEK_DATE_CHAR(str, zoneShift) if (*str == '\0')\
+#define PEEK_DATE_CHAR(str, zoneShift)\
+if (*str == '\0')\
 {\
     goto End;\
 }\
-else if (tryReadShiftChar(*str, zoneShift))\
+else if (tryReadShiftChar(str, zoneShift))\
+{\
+    goto ParseShift;\
+}
+
+#define PEEK_DATE_CHAR_W3C(str, separator)\
+if (*str == '\0')\
+{\
+    goto End;\
+}\
+else if (*str != separator)\
+{\
+    return false;\
+}\
+else\
 {\
     str++;\
-    goto ParseShift;\
 }
 
 static bool parseFixLenNumber(const char*& in, unsigned maxLength, int min, int max, int& ret);
 static int getLocalOffesetFromUTCMinutes();
-static bool tryReadShiftChar(char ch, int& zoneShift);
+static bool tryReadShiftChar(const char*& in, int& zoneShift);
+static bool tryParse(const string_view & dateStr, chrono::seconds & secondsFromEpoch, nullable<chrono::minutes>&minutesFromUtc);
+static bool tryParseW3C(const string_view & dateStr, chrono::seconds & secondsFromEpoch, nullable<chrono::minutes>&minutesFromUtc);
+static void inferTimeComponents(int y, int m, int d, int h, int M, int s,
+    bool hasZoneShift, int zoneShift, int zoneHour, int zoneMin,
+    chrono::seconds & secondsFromEpoch, nullable<chrono::minutes>&minutesFromUtc);
 
 PdfDate::PdfDate()
 {
-    m_minutesFromUtc = chrono::minutes(getLocalOffesetFromUTCMinutes());
+    m_MinutesFromUtc = chrono::minutes(getLocalOffesetFromUTCMinutes());
     // Cast now() to seconds. We assume system_clock epoch is
     //  always 1970/1/1 UTC in all platforms, like in C++20
     auto now = chrono::time_point_cast<chrono::seconds>(chrono::system_clock::now());
     // We forget about realtionship with UTC, convert to local seconds
-    m_secondsFromEpoch = chrono::seconds(now.time_since_epoch());
+    m_SecondsFromEpoch = chrono::seconds(now.time_since_epoch());
 }
 
 PdfDate::PdfDate(const chrono::seconds& secondsFromEpoch, const nullable<chrono::minutes>& offsetFromUTC)
-    : m_secondsFromEpoch(secondsFromEpoch), m_minutesFromUtc(offsetFromUTC)
+    : m_SecondsFromEpoch(secondsFromEpoch), m_MinutesFromUtc(offsetFromUTC)
 {
 }
 
@@ -77,7 +96,115 @@ bool PdfDate::TryParse(const string_view& dateStr, PdfDate& date)
     return true;
 }
 
-bool PdfDate::tryParse(const string_view& dateStr, chrono::seconds& secondsFromEpoch, nullable<chrono::minutes>& minutesFromUtc)
+PdfDate PdfDate::ParseW3C(const string_view& dateStr)
+{
+    PdfDate date;
+    if (!TryParseW3C(dateStr, date))
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Date is invalid");
+
+    return date;
+}
+
+bool PdfDate::TryParseW3C(const string_view& dateStr, PdfDate& date)
+{
+    chrono::seconds secondsFromEpoch;
+    nullable<chrono::minutes> minutesFromUtc;
+    if (!tryParseW3C(dateStr, secondsFromEpoch, minutesFromUtc))
+    {
+        date = { };
+        return false;
+    }
+
+    date = PdfDate(secondsFromEpoch, minutesFromUtc);
+    return true;
+}
+
+PdfString PdfDate::createStringRepresentation(bool w3cstring) const
+{
+    string offset;
+    chrono::hh_mm_ss<chrono::seconds> time;
+    chrono::year_month_day ymd;
+    if (m_MinutesFromUtc.has_value())
+    {
+        auto minutesFromUtc = *m_MinutesFromUtc;
+        int minutesFromUtci = (int)minutesFromUtc.count();
+        unsigned offseth = std::abs(minutesFromUtci) / 60;
+        unsigned offsetm = std::abs(minutesFromUtci) % 60;
+        if (minutesFromUtci == 0)
+        {
+            offset = "Z";
+        }
+        else
+        {
+            bool plus = minutesFromUtci > 0 ? true : false;
+            if (w3cstring)
+            {
+                cmn::FormatTo(offset, "{}{:02}:{:02}", plus ? '+' : '-', offseth, offsetm);
+            }
+            else
+            {
+                cmn::FormatTo(offset, "{}{:02}'{:02}'", plus ? '+' : '-', offseth, offsetm);
+            }
+        }
+
+        // Assume sys time
+        auto secondsFromEpoch = (chrono::sys_seconds)(m_SecondsFromEpoch + minutesFromUtc);
+        auto dp = chrono::floor<chrono::days>(secondsFromEpoch);
+        ymd = chrono::year_month_day(dp);
+        time = chrono::hh_mm_ss<chrono::seconds>(chrono::floor<chrono::seconds>(secondsFromEpoch - dp));
+    }
+    else
+    {
+        // Assume local time
+        auto secondsFromEpoch = (chrono::local_seconds)m_SecondsFromEpoch;
+        auto dp = chrono::floor<chrono::days>(secondsFromEpoch);
+        ymd = chrono::year_month_day(dp);
+        time = chrono::hh_mm_ss<chrono::seconds>(chrono::floor<chrono::seconds>(secondsFromEpoch - dp));
+    }
+
+    short y = (short)(int)ymd.year();
+    unsigned char m = (unsigned char)(unsigned)ymd.month();
+    unsigned char d = (unsigned char)(unsigned)ymd.day();
+    unsigned char h = (unsigned char)time.hours().count();
+    unsigned char M = (unsigned char)time.minutes().count();
+    unsigned char s = (unsigned char)time.seconds().count();
+
+    string date;
+    if (w3cstring)
+    {
+        // e.g. "1998-12-23T19:52:07-08:00"
+        cmn::FormatTo(date, "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}{}", y, m, d, h, M, s, offset);
+    }
+    else
+    {
+        // e.g. "D:19981223195207−08'00'"
+        cmn::FormatTo(date, "D:{:04}{:02}{:02}{:02}{:02}{:02}{}", y, m, d, h, M, s, offset);
+    }
+
+    return PdfString(date);
+}
+
+PdfString PdfDate::ToString() const
+{
+    return createStringRepresentation(false);
+}
+
+PdfString PdfDate::ToStringW3C() const
+{
+    return createStringRepresentation(true);
+}
+
+bool PdfDate::operator==(const PdfDate& rhs) const
+{
+    return m_MinutesFromUtc == rhs.m_MinutesFromUtc && m_SecondsFromEpoch == rhs.m_SecondsFromEpoch;
+}
+
+bool PdfDate::operator!=(const PdfDate& rhs) const
+{
+    return m_MinutesFromUtc != rhs.m_MinutesFromUtc || m_SecondsFromEpoch != rhs.m_SecondsFromEpoch;
+}
+
+bool tryParse(const string_view& dateStr, chrono::seconds& secondsFromEpoch, nullable<chrono::minutes>& minutesFromUtc)
 {
     int y = 0;
     int m = 0;
@@ -162,6 +289,101 @@ ParseShift:
     }
 
 End:
+    inferTimeComponents(y, m, d, h, M, s,
+        hasZoneShift, zoneShift, zoneHour, zoneMin,
+        secondsFromEpoch, minutesFromUtc);
+
+    return true;
+}
+
+bool tryParseW3C(const string_view& dateStr, chrono::seconds& secondsFromEpoch, nullable<chrono::minutes>& minutesFromUtc)
+{
+    int y = 0;
+    int m = 0;
+    int d = 0;
+    int h = 0;
+    int M = 0;
+    int s = 0;
+
+    bool hasZoneShift = false;
+    int zoneShift = 0;
+    int zoneHour = 0;
+    int zoneMin = 0;
+
+    const char* cursor = dateStr.data();
+    if (cursor == nullptr || *cursor == '\0')
+        return false;
+
+    if (!parseFixLenNumber(cursor, 4, 0, 9999, y))
+        return false;
+
+    PEEK_DATE_CHAR_W3C(cursor, '-');
+
+    if (!parseFixLenNumber(cursor, 2, 1, 12, m))
+        return false;
+
+    PEEK_DATE_CHAR_W3C(cursor, '-');
+
+    if (!parseFixLenNumber(cursor, 2, 1, 31, d))
+        return false;
+
+    PEEK_DATE_CHAR_W3C(cursor, 'T');
+
+    if (!parseFixLenNumber(cursor, 2, 0, 23, h))
+        return false;
+
+    PEEK_DATE_CHAR_W3C(cursor, ':');
+
+    if (!parseFixLenNumber(cursor, 2, 0, 59, M))
+        return false;
+
+    if (tryReadShiftChar(cursor, zoneShift))
+        goto ParseShift;
+
+    PEEK_DATE_CHAR_W3C(cursor, ':');
+
+    if (!parseFixLenNumber(cursor, 2, 0, 59, s))
+        return false;
+
+    if (!tryReadShiftChar(cursor, zoneShift))
+        goto End;
+
+ParseShift:
+    hasZoneShift = true;
+    if (*cursor != '\0')
+    {
+        if (!parseFixLenNumber(cursor, 2, 0, 59, zoneHour))
+            goto End;
+
+        if (*cursor == ':')
+        {
+            cursor++;
+            if (*cursor != '\0')
+            {
+                if (!parseFixLenNumber(cursor, 2, 0, 59, zoneMin))
+                    return false;
+            }
+        }
+
+        if (zoneShift == 0 && (zoneHour != 0 || zoneMin != 0))
+            return false;
+
+        if (*cursor != '\0')
+            return false;
+    }
+
+End:
+    inferTimeComponents(y, m, d, h, M, s,
+        hasZoneShift, zoneShift, zoneHour, zoneMin,
+        secondsFromEpoch, minutesFromUtc);
+
+    return true;
+}
+
+void inferTimeComponents(int y, int m, int d, int h, int M, int s,
+    bool hasZoneShift, int zoneShift, int zoneHour, int zoneMin,
+    chrono::seconds& secondsFromEpoch, nullable<chrono::minutes>& minutesFromUtc)
+{
     secondsFromEpoch = (chrono::local_days(chrono::year(y) / m / d) + chrono::hours(h) + chrono::minutes(M) + chrono::seconds(s)).time_since_epoch();
     if (hasZoneShift)
     {
@@ -172,83 +394,6 @@ End:
     {
         minutesFromUtc = { };
     }
-
-    return true;
-}
-
-PdfString PdfDate::createStringRepresentation(bool w3cstring) const
-{
-    string offset;
-    chrono::hh_mm_ss<chrono::seconds> time;
-    chrono::year_month_day ymd;
-    if (m_minutesFromUtc.has_value())
-    {
-        auto minutesFromUtc = *m_minutesFromUtc;
-        int minutesFromUtci = (int)minutesFromUtc.count();
-        unsigned offseth = std::abs(minutesFromUtci) / 60;
-        unsigned offsetm = std::abs(minutesFromUtci) % 60;
-        if (minutesFromUtci == 0)
-        {
-            offset = "Z";
-        }
-        else
-        {
-            bool plus = minutesFromUtci > 0 ? true : false;
-            if (w3cstring)
-            {
-                cmn::FormatTo(offset, "{}{:02}:{:02}", plus ? '+' : '-', offseth, offsetm);
-            }
-            else
-            {
-                cmn::FormatTo(offset, "{}{:02}'{:02}'", plus ? '+' : '-', offseth, offsetm);
-            }
-        }
-
-        // Assume sys time
-        auto secondsFromEpoch = (chrono::sys_seconds)(m_secondsFromEpoch + minutesFromUtc);
-        auto dp = chrono::floor<chrono::days>(secondsFromEpoch);
-        ymd = chrono::year_month_day(dp);
-        time = chrono::hh_mm_ss<chrono::seconds>(chrono::floor<chrono::seconds>(secondsFromEpoch - dp));
-    }
-    else
-    {
-        // Assume local time
-        auto secondsFromEpoch = (chrono::local_seconds)m_secondsFromEpoch;
-        auto dp = chrono::floor<chrono::days>(secondsFromEpoch);
-        ymd = chrono::year_month_day(dp);
-        time = chrono::hh_mm_ss<chrono::seconds>(chrono::floor<chrono::seconds>(secondsFromEpoch - dp));
-    }
-
-    short y = (short)(int)ymd.year();
-    unsigned char m = (unsigned char)(unsigned)ymd.month();
-    unsigned char d = (unsigned char)(unsigned)ymd.day();
-    unsigned char h = (unsigned char)time.hours().count();
-    unsigned char M = (unsigned char)time.minutes().count();
-    unsigned char s = (unsigned char)time.seconds().count();
-
-    string date;
-    if (w3cstring)
-    {
-        // e.g. "1998-12-23T19:52:07-08:00"
-        cmn::FormatTo(date, "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}{}", y, m, d, h, M, s, offset);
-    }
-    else
-    {
-        // e.g. "D:19981223195207−08'00'"
-        cmn::FormatTo(date, "D:{:04}{:02}{:02}{:02}{:02}{:02}{}", y, m, d, h, M, s, offset);
-    }
-
-    return PdfString(date);
-}
-
-PdfString PdfDate::ToString() const
-{
-    return createStringRepresentation(false);
-}
-
-PdfString PdfDate::ToStringW3C() const
-{
-    return createStringRepresentation(true);
 }
 
 // degski, https://stackoverflow.com/a/57520245/213871
@@ -263,22 +408,25 @@ int getLocalOffesetFromUTCMinutes()
     return (int)(timegm(locg) - mktime(&locl)) / 60;
 }
 
-bool tryReadShiftChar(char ch, int& zoneShift)
+bool tryReadShiftChar(const char*& in, int& zoneShift)
 {
-    switch (ch)
+    switch (*in)
     {
         case '+':
             zoneShift = 1;
-            return true;
+            break;
         case '-':
             zoneShift = -1;
-            return true;
+            break;
         case 'Z':
             zoneShift = 0;
-            return true;
+            break;
         default:
             return false;
     }
+
+    in++;
+    return true;
 }
 
 bool parseFixLenNumber(const char*& in, unsigned maxLength, int min, int max, int& ret)

@@ -216,22 +216,17 @@ bool PdfParser::IsPdfFile(PdfInputDevice& device)
             break;
     }
 
-    char version[PDF_VERSION_LENGHT];
-    if (device.Read(version, PDF_VERSION_LENGHT) != PDF_VERSION_LENGHT)
+    char versionStr[PDF_VERSION_LENGHT];
+    if (device.Read(versionStr, PDF_VERSION_LENGHT) != PDF_VERSION_LENGHT)
         return false;
 
     m_magicOffset = device.Tell() - PDF_MAGIC_LENGHT;
     // try to determine the excact PDF version of the file
-    for (i = 0; i <= MAX_PDF_VERSION_STRING_INDEX; i++)
-    {
-        if (std::strncmp(version, s_PdfVersionNums[i], PDF_VERSION_LENGHT) == 0)
-        {
-            m_PdfVersion = static_cast<PdfVersion>(i);
-            return true;
-        }
-    }
+    m_PdfVersion = mm::GetPdfVersion(string_view(versionStr, std::size(versionStr)));
+    if (m_PdfVersion == PdfVersion::Unknown)
+        return false;
 
-    return false;
+    return true;
 }
 
 void PdfParser::MergeTrailer(const PdfObject& trailer)
@@ -890,11 +885,6 @@ void PdfParser::ReadCompressedObjectFromStream(uint32_t objNo, int index)
     parserObject.Parse(list);
 }
 
-const char* PdfParser::GetPdfVersionString() const
-{
-    return s_PdfVersions[static_cast<int>(m_PdfVersion)];
-}
-
 void PdfParser::FindTokenBackward(PdfInputDevice& device, const char* token, size_t range)
 {
     // Offset read position to the EOF marker if it is not the last thing in the file
@@ -990,26 +980,23 @@ void PdfParser::UpdateDocumentVersion()
             && catalog->IsDictionary()
             && catalog->GetDictionary().HasKey("Version"))
         {
-            auto& version = catalog->GetDictionary().MustGetKey("Version");
-            for (int i = 0; i <= MAX_PDF_VERSION_STRING_INDEX; i++)
+            auto& versionObj = catalog->GetDictionary().MustGetKey("Version");
+            if (versionObj.IsName())
             {
-                if (IsStrictParsing() && !version.IsName())
-                {
-                    // Version must be of type name, according to PDF Specification
-                    PDFMM_RAISE_ERROR(PdfErrorCode::InvalidName);
-                }
-
-                if (version.IsName()
-                    && version.GetName().GetString() == s_PdfVersionNums[i]
-                    && m_PdfVersion != static_cast<PdfVersion>(i))
+                auto version = mm::GetPdfVersion(versionObj.GetName().GetString());
+                if (version != PdfVersion::Unknown)
                 {
                     PdfError::LogMessage(PdfLogSeverity::Information,
                         "Updating version from {} to {}",
-                        s_PdfVersionNums[static_cast<int>(m_PdfVersion)],
-                        s_PdfVersionNums[i]);
-                    m_PdfVersion = static_cast<PdfVersion>(i);
-                    break;
+                        mm::GetPdfVersionName(m_PdfVersion),
+                        mm::GetPdfVersionName(version));
+                    m_PdfVersion = version;
                 }
+            }
+            else if (IsStrictParsing())
+            {
+                // Version must be of type name, according to PDF Specification
+                PDFMM_RAISE_ERROR(PdfErrorCode::InvalidName);
             }
         }
     }

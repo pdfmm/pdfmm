@@ -9,8 +9,6 @@
 #ifndef PDF_MEM_DOCUMENT_H
 #define PDF_MEM_DOCUMENT_H
 
-#include "PdfDeclarations.h"
-
 #include "PdfDocument.h"
 #include "PdfExtension.h"
 
@@ -48,14 +46,16 @@ class PdfWriter;
  *  \see PdfParser
  *  \see PdfWriter
  */
-class PDFMM_API PdfMemDocument : public PdfDocument
+class PDFMM_API PdfMemDocument final : public PdfDocument
 {
     friend class PdfWriter;
 
 public:
     /** Construct a new PdfMemDocument
      */
-    PdfMemDocument(bool empty = false);
+    PdfMemDocument();
+
+    PdfMemDocument(const std::shared_ptr<PdfInputDevice>& device, const std::string_view& password = { });
 
     /** Construct a copy of the given document
      */
@@ -131,31 +131,14 @@ public:
     /** Save the document changes to an output device
      *
      *  \param device write to this output device
-     *  \param bTruncate whether to truncate the device first and fill it
-     *                   with the content of the source document; the default is true.
      *
      *  Writes the document changes to the output device as an incremental update.
      *  The document should be loaded with bForUpdate = true, otherwise
      *  an exception is thrown.
      *
-     *  The bTruncate is used to determine whether saving to the same file or not.
-     *  In case the bTruncate is true, a new source stream is opened and its whole
-     *  content is copied to the device first. Otherwise the device is the same
-     *  file which had been loaded and the caller is responsible to position
-     *  the device at the place, where the update should be written (basically
-     *  at the end of the stream).
-     *
      *  \see Save, SaveUpdate
      */
     void SaveUpdate(PdfOutputDevice& device, PdfSaveOptions opts = PdfSaveOptions::None);
-
-    /** Set the PDF Version of the document. Has to be called before Write() to
-     *  have an effect.
-     *  \param version  version of the pdf document
-     */
-    inline void SetPdfVersion(PdfVersion version) { m_Version = version; }
-
-    inline PdfVersion GetPdfVersion() const override { return m_Version; }
 
     /** Add a vendor-specific extension to the current PDF version.
      *  \param ns namespace of the extension
@@ -206,11 +189,6 @@ public:
      */
     void SetEncrypted(const PdfEncrypt& encrypt);
 
-    /**
-     * \returns true if this PdfMemDocument creates an encrypted PDF file
-     */
-    inline bool IsEncrypted() const { return m_Encrypt != nullptr; }
-
     /** Copies one or more pages from another PdfMemDocument to this document
      *  \param doc the document to append
      *  \param atIndex the first page number to copy (0-based)
@@ -218,22 +196,6 @@ public:
      *  \returns this document
      */
     const PdfMemDocument& InsertPages(const PdfMemDocument& doc, unsigned atIndex, unsigned pageCount);
-
-    bool IsPrintAllowed() const override;
-
-    bool IsEditAllowed() const override;
-
-    bool IsCopyAllowed() const override;
-
-    bool IsEditNotesAllowed() const override;
-
-    bool IsFillAndSignAllowed() const override;
-
-    bool IsAccessibilityAllowed() const override;
-
-    bool IsDocAssemblyAllowed() const override;
-
-    bool IsHighPrintAllowed() const override;
 
     /** Tries to free all memory allocated by the given
      *  PdfObject (variables and streams) and reads
@@ -274,12 +236,23 @@ public:
      */
     void FreeObjectMemory(PdfObject* obj, bool force = false);
 
-    /**
-     * \returns the parsers encryption object or nullptr if the read PDF file was not encrypted
+    const PdfEncrypt* GetEncrypt() const override;
+
+protected:
+    /** Set the PDF Version of the document. Has to be called before Write() to
+     *  have an effect.
+     *  \param version  version of the pdf document
      */
-    inline const PdfEncrypt* GetEncrypt() const { return m_Encrypt.get(); }
+    void SetPdfVersion(PdfVersion version) override;
+
+    PdfVersion GetPdfVersion() const override;
 
 private:
+    PdfMemDocument(bool empty);
+
+private:
+    void loadFromDevice(const std::shared_ptr<PdfInputDevice>& device, const std::string_view& password);
+
     /** Deletes one or more pages from this document
      *  It does NOT remove any PdfObjects from memory - just the reference from the pages tree.
      *  If you want to delete resources of this page, you have to delete them yourself,

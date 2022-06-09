@@ -18,19 +18,13 @@
 using namespace std;
 using namespace mm;
 
-PdfInfo::PdfInfo(PdfDocument& doc, PdfInfoInitial initial)
-    : PdfDictionaryElement(doc)
-{
-    Init(initial);
-}
-
 PdfInfo::PdfInfo(PdfObject& obj, PdfInfoInitial initial)
     : PdfDictionaryElement(obj)
 {
-    Init(initial);
+    init(initial);
 }
 
-void PdfInfo::Init(PdfInfoInitial initial)
+void PdfInfo::init(PdfInfoInitial initial)
 {
     PdfDate date;
     PdfString str = date.ToString();
@@ -45,13 +39,13 @@ void PdfInfo::Init(PdfInfoInitial initial)
         this->GetObject().GetDictionary().AddKey("Producer", PdfString(PRODUCER_STRING));
 }
 
-nullable<PdfString> PdfInfo::GetStringFromInfoDict(const PdfName& name) const
+nullable<PdfString> PdfInfo::getStringFromInfoDict(const PdfName& name) const
 {
     auto obj = this->GetObject().GetDictionary().FindKey(name);
     return obj != nullptr && obj->IsString() ? nullable<PdfString>(obj->GetString()) : nullptr;
 }
 
-const PdfName& PdfInfo::GetNameFromInfoDict(const PdfName& name) const
+const PdfName& PdfInfo::getNameFromInfoDict(const PdfName& name) const
 {
     auto obj = this->GetObject().GetDictionary().FindKey(name);
     return  obj != nullptr && obj->IsName() ? obj->GetName() : PdfName::KeyNull;
@@ -115,55 +109,55 @@ void PdfInfo::SetTrapped(const PdfName& trapped)
 
 nullable<PdfString> PdfInfo::GetAuthor() const
 {
-    return this->GetStringFromInfoDict("Author");
+    return this->getStringFromInfoDict("Author");
 }
 
 nullable<PdfString> PdfInfo::GetCreator() const
 {
-    return this->GetStringFromInfoDict("Creator");
+    return this->getStringFromInfoDict("Creator");
 }
 
 nullable<PdfString> PdfInfo::GetKeywords() const
 {
-    return this->GetStringFromInfoDict("Keywords");
+    return this->getStringFromInfoDict("Keywords");
 }
 
 nullable<PdfString> PdfInfo::GetSubject() const
 {
-    return this->GetStringFromInfoDict("Subject");
+    return this->getStringFromInfoDict("Subject");
 }
 
 nullable<PdfString> PdfInfo::GetTitle() const
 {
-    return this->GetStringFromInfoDict("Title");
+    return this->getStringFromInfoDict("Title");
 }
 
 nullable<PdfString> PdfInfo::GetProducer() const
 {
-    return this->GetStringFromInfoDict("Producer");
+    return this->getStringFromInfoDict("Producer");
 }
 
 nullable<PdfDate> PdfInfo::GetCreationDate() const
 {
-    auto datestr = this->GetStringFromInfoDict("CreationDate");
+    auto datestr = this->getStringFromInfoDict("CreationDate");
     if (datestr == nullptr)
-        return PdfDate();
+        return nullptr;
     else
         return PdfDate::Parse(*datestr);
 }
 
 nullable<PdfDate> PdfInfo::GetModDate() const
 {
-    auto datestr = this->GetStringFromInfoDict("ModDate");
+    auto datestr = this->getStringFromInfoDict("ModDate");
     if (datestr == nullptr)
-        return PdfDate();
+        return nullptr;
     else
         return PdfDate::Parse(*datestr);
 }
 
 const PdfName& PdfInfo::GetTrapped() const
 {
-    return this->GetNameFromInfoDict("Trapped");
+    return this->getNameFromInfoDict("Trapped");
 }
 
 void PdfInfo::SetCreationDate(nullable<PdfDate> value)

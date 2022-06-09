@@ -47,19 +47,27 @@ public:
     PdfDate(const std::chrono::seconds& secondsFromEpoch, const nullable<std::chrono::minutes>& offsetFromUTC);
 
     /** Create a PdfDate with a specified date and time
-     *  \param szDate the date and time of this object
+     *  \param dateStr the date and time of this object
      *         in PDF format. It has to be a string of
-     *         the format  (D:YYYYMMDDHHmmSSOHH'mm').
+     *         in the format "D:YYYYMMDDHHmmSSOHH'mm'"
      */
     static PdfDate Parse(const std::string_view& dateStr);
     static bool TryParse(const std::string_view& dateStr, PdfDate& date);
 
+    /** Create a PdfDate with a specified date and time
+     *  \param dateStr the date and time of this object
+     *         in W3C format. It has to be a string of
+     *         the format "YYYY-MM-DDTHH:mm:SSOHH:mm"
+     */
+    static PdfDate ParseW3C(const std::string_view& dateStr);
+    static bool TryParseW3C(const std::string_view& dateStr, PdfDate& date);
+
     /** \returns the date and time of this PdfDate in
      *  seconds since epoch.
      */
-    const std::chrono::seconds& GetSecondsFromEpoch() const { return m_secondsFromEpoch; }
+    const std::chrono::seconds& GetSecondsFromEpoch() const { return m_SecondsFromEpoch; }
 
-    const nullable<std::chrono::minutes>& GetMinutesFromUtc() const { return m_minutesFromUtc; }
+    const nullable<std::chrono::minutes>& GetMinutesFromUtc() const { return m_MinutesFromUtc; }
 
     /** The value returned by this function can be used in any PdfObject
      *  where a date is needed
@@ -70,17 +78,18 @@ public:
      */
     PdfString ToStringW3C() const;
 
-private:
-    static bool tryParse(const std::string_view& dateStr, std::chrono::seconds& secondsFromEpoch, nullable<std::chrono::minutes>& minutesFromUtc);
+    bool operator==(const PdfDate& rhs) const;
+    bool operator!=(const PdfDate& rhs) const;
 
+private:
     /** Creates the internal string representation from
      *  a time_t value and writes it to m_szDate.
      */
     PdfString createStringRepresentation(bool w3cstring) const;
 
 private:
-    std::chrono::seconds m_secondsFromEpoch;
-    nullable<std::chrono::minutes> m_minutesFromUtc;
+    std::chrono::seconds m_SecondsFromEpoch;
+    nullable<std::chrono::minutes> m_MinutesFromUtc;
 };
 
 };

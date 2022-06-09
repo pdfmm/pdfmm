@@ -59,11 +59,6 @@ void PdfWriter::SetIncrementalUpdate(bool rewriteXRefTable)
     m_rewriteXRefTable = rewriteXRefTable;
 }
 
-const char* PdfWriter::GetPdfVersionString() const
-{
-    return s_PdfVersionNums[static_cast<int>(m_Version)];
-}
-
 void PdfWriter::SetSaveOptions(PdfSaveOptions opts)
 {
     m_SaveOptions = opts;
@@ -130,7 +125,7 @@ void PdfWriter::Write(PdfOutputDevice& device)
 
 void PdfWriter::WritePdfHeader(PdfOutputDevice& device)
 {
-    cmn::FormatTo(m_buffer, "{}\n%{}", s_PdfVersions[static_cast<int>(m_Version)], PDF_MAGIC);
+    cmn::FormatTo(m_buffer, "%PDF-{}\n%{}", mm::GetPdfVersionName(m_Version), PDF_MAGIC);
     device.Write(m_buffer);
 }
 

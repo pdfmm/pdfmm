@@ -32,7 +32,7 @@ PdfAcroForm::PdfAcroForm(PdfObject& obj)
 {
 }
 
-PdfArray& PdfAcroForm::GetFieldsArray()
+PdfArray& PdfAcroForm::GetOrCreateFieldsArray()
 {
     auto fields = GetObject().GetDictionary().FindKey("Fields");
     if (fields == nullptr)

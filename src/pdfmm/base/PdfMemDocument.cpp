@@ -34,6 +34,9 @@
 using namespace std;
 using namespace mm;
 
+PdfMemDocument::PdfMemDocument()
+    : PdfMemDocument(false) { }
+
 PdfMemDocument::PdfMemDocument(bool empty) :
     PdfDocument(empty),
     m_Version(PdfVersionDefault),
@@ -41,6 +44,15 @@ PdfMemDocument::PdfMemDocument(bool empty) :
     m_HasXRefStream(false),
     m_PrevXRefOffset(-1)
 {
+}
+
+PdfMemDocument::PdfMemDocument(const shared_ptr<PdfInputDevice>& device, const string_view& password)
+    : PdfMemDocument(true)
+{
+    if (device == nullptr)
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
+
+    loadFromDevice(device, password);
 }
 
 PdfMemDocument::PdfMemDocument(const PdfMemDocument& rhs) :
@@ -90,7 +102,7 @@ void PdfMemDocument::initFromParser(PdfParser& parser)
 
     if (PdfError::IsLoggingSeverityEnabled(PdfLogSeverity::Debug))
     {
-        auto debug = GetTrailer().GetVariant().ToString();
+        auto debug = GetTrailer().GetObject().GetVariant().ToString();
         debug.push_back('\n');
         PdfError::LogMessage(PdfLogSeverity::Debug, debug);
     }
@@ -129,7 +141,11 @@ void PdfMemDocument::LoadFromDevice(const shared_ptr<PdfInputDevice>& device, co
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     this->Clear();
+    loadFromDevice(device, password);
+}
 
+void PdfMemDocument::loadFromDevice(const shared_ptr<PdfInputDevice>& device, const string_view& password)
+{
     m_device = device;
 
     // Call parse file instead of using the constructor
@@ -148,7 +164,7 @@ void PdfMemDocument::AddPdfExtension(const PdfName& ns, int64_t level)
         PdfObject* extensions = this->GetCatalog().GetDictionary().FindKey("Extensions");
         PdfDictionary newExtension;
 
-        newExtension.AddKey("BaseVersion", PdfName(s_PdfVersionNums[(unsigned)m_Version]));
+        newExtension.AddKey("BaseVersion", PdfName(mm::GetPdfVersionName(m_Version)));
         newExtension.AddKey("ExtensionLevel", PdfVariant(level));
 
         if (extensions != nullptr && extensions->IsDictionary())
@@ -201,11 +217,9 @@ vector<PdfExtension> PdfMemDocument::GetPdfExtensions() const
         if (bv != nullptr && el != nullptr && bv->IsName() && el->IsNumber())
         {
             // Convert BaseVersion name to PdfVersion
-            for (unsigned i = 0; i <= MAX_PDF_VERSION_STRING_INDEX; i++)
-            {
-                if (bv->GetName().GetString() == s_PdfVersionNums[i])
-                    ret.push_back(PdfExtension(pair.first.GetString().c_str(), static_cast<PdfVersion>(i), el->GetNumber()));
-            }
+            auto version = mm::GetPdfVersion(bv->GetName().GetString());
+            if (version != PdfVersion::Unknown)
+                ret.push_back(PdfExtension(pair.first.GetString(), version, el->GetNumber()));
         }
     }
     return ret;
@@ -231,7 +245,7 @@ void PdfMemDocument::Save(PdfOutputDevice& device, PdfSaveOptions opts)
 {
     beforeWrite(opts);
 
-    PdfWriter writer(this->GetObjects(), this->GetTrailer());
+    PdfWriter writer(this->GetObjects(), this->GetTrailer().GetObject());
     writer.SetPdfVersion(this->GetPdfVersion());
     writer.SetSaveOptions(opts);
 
@@ -259,7 +273,7 @@ void PdfMemDocument::SaveUpdate(PdfOutputDevice& device, PdfSaveOptions opts)
 {
     beforeWrite(opts);
 
-    PdfWriter writer(this->GetObjects(), this->GetTrailer());
+    PdfWriter writer(this->GetObjects(), this->GetTrailer().GetObject());
     writer.SetPdfVersion(this->GetPdfVersion());
     writer.SetSaveOptions(opts);
     writer.SetPrevXRefOffset(m_PrevXRefOffset);
@@ -269,13 +283,12 @@ void PdfMemDocument::SaveUpdate(PdfOutputDevice& device, PdfSaveOptions opts)
     if (m_Encrypt != nullptr)
         writer.SetEncrypted(*m_Encrypt);
 
-    PdfObject* catalog;
-    if (m_InitialVersion < this->GetPdfVersion() && (catalog = this->getCatalog()) && catalog->IsDictionary())
+    if (m_InitialVersion < this->GetPdfVersion())
     {
         if (this->GetPdfVersion() < PdfVersion::V1_0 || this->GetPdfVersion() > PdfVersion::V1_7)
             PDFMM_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
 
-        catalog->GetDictionary().AddKey("Version", PdfName(s_PdfVersionNums[(unsigned)this->GetPdfVersion()]));
+        GetCatalog().GetDictionary().AddKey("Version", PdfName(mm::GetPdfVersionName(GetPdfVersion())));
     }
 
     try
@@ -294,7 +307,7 @@ void PdfMemDocument::beforeWrite(PdfSaveOptions opts)
     if ((opts & PdfSaveOptions::NoModifyDateUpdate) ==
         PdfSaveOptions::None)
     {
-        updateModifyTimestamp(PdfDate());
+        GetMetadata().SetModifyDate(PdfDate(), true);
     }
 
     GetFontManager().EmbedFonts();
@@ -380,42 +393,17 @@ void PdfMemDocument::FreeObjectMemory(PdfObject* obj, bool force)
     parserObject->FreeObjectMemory(force);
 }
 
-bool PdfMemDocument::IsPrintAllowed() const
+const PdfEncrypt* PdfMemDocument::GetEncrypt() const
 {
-    return m_Encrypt == nullptr ? true : m_Encrypt->IsPrintAllowed();
+    return m_Encrypt.get();
 }
 
-bool PdfMemDocument::IsEditAllowed() const
+void PdfMemDocument::SetPdfVersion(PdfVersion version)
 {
-    return m_Encrypt == nullptr ? true : m_Encrypt->IsEditAllowed();
+    m_Version = version;
 }
 
-bool PdfMemDocument::IsCopyAllowed() const
+PdfVersion PdfMemDocument::GetPdfVersion() const
 {
-    return m_Encrypt == nullptr ? true : m_Encrypt->IsCopyAllowed();
-}
-
-bool PdfMemDocument::IsEditNotesAllowed() const
-{
-    return m_Encrypt == nullptr ? true : m_Encrypt->IsEditNotesAllowed();
-}
-
-bool PdfMemDocument::IsFillAndSignAllowed() const
-{
-    return m_Encrypt == nullptr ? true : m_Encrypt->IsFillAndSignAllowed();
-}
-
-bool PdfMemDocument::IsAccessibilityAllowed() const
-{
-    return m_Encrypt == nullptr ? true : m_Encrypt->IsAccessibilityAllowed();
-}
-
-bool PdfMemDocument::IsDocAssemblyAllowed() const
-{
-    return m_Encrypt == nullptr ? true : m_Encrypt->IsDocAssemblyAllowed();
-}
-
-bool PdfMemDocument::IsHighPrintAllowed() const
-{
-    return m_Encrypt == nullptr ? true : m_Encrypt->IsHighPrintAllowed();
+    return m_Version;
 }
