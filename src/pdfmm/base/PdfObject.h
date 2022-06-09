@@ -555,7 +555,7 @@ private:
         static T Get(const PdfObject& obj)
         {
             (void)obj;
-            PDFMM_RAISE_ERROR(PdfErrorCode::InternalLogic);
+            throw PdfError(PdfErrorCode::InternalLogic, __FILE__, __LINE__);
         }
     };
 

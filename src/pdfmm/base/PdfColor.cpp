@@ -1078,7 +1078,7 @@ PdfColorSpace PdfColor::GetColorSpaceForName(const PdfName& name)
     else
     {
         // TODO: other are not supported at the moment
-        PdfError::LogMessage(PdfLogSeverity::Information, "Unsupported colorspace name: {}", name.GetString());
+        mm::LogMessage(PdfLogSeverity::Information, "Unsupported colorspace name: {}", name.GetString());
     }
 
     return ePdfColorSpace;
@@ -1102,7 +1102,7 @@ PdfName PdfColor::GetNameForColorSpace(PdfColorSpace colorSpace)
             return PdfName("Indexed");
         case PdfColorSpace::Unknown:
         default:
-            PdfError::LogMessage(PdfLogSeverity::Information, "Unsupported colorspace enum: {}", (int)colorSpace);
+            mm::LogMessage(PdfLogSeverity::Information, "Unsupported colorspace enum: {}", (int)colorSpace);
             return PdfName();
     }
 

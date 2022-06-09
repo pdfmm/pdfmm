@@ -104,7 +104,7 @@ void PdfMemDocument::initFromParser(PdfParser& parser)
     {
         auto debug = GetTrailer().GetObject().GetVariant().ToString();
         debug.push_back('\n');
-        PdfError::LogMessage(PdfLogSeverity::Debug, debug);
+        mm::LogMessage(PdfLogSeverity::Debug, debug);
     }
 
     if (parser.IsEncrypted())

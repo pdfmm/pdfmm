@@ -81,7 +81,7 @@ void HelloWorld(const string_view& filename)
 
         // If the PdfFont object cannot be allocated return an error.
         if (font == nullptr)
-            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
+            throw runtime_error("Invalid handle");
 
         // Set the font as default font for drawing.
         // A font has to be set before you can draw text on

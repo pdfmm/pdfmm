@@ -204,7 +204,7 @@ protected:
     void seek(size_t offset) override
     {
         if (offset >= m_container->size())
-            PDFMM_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
+            throw PdfError(PdfErrorCode::ValueOutOfRange, __FILE__, __LINE__);
     }
 
     void flush() override

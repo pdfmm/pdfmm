@@ -267,7 +267,7 @@ PdfFont* PdfFontManager::GetFont(FT_Face face, const PdfFontCreateParams& params
     string fontName = FT_Get_Postscript_Name(face);
     if (fontName.empty())
     {
-        PdfError::LogMessage(PdfLogSeverity::Error, "Could not retrieve fontname for font!");
+        mm::LogMessage(PdfLogSeverity::Error, "Could not retrieve fontname for font!");
         return nullptr;
     }
 
@@ -325,7 +325,7 @@ PdfFont* PdfFontManager::GetFont(HFONT font, const PdfFontCreateParams& params)
     utf8::utf16to8((char16_t*)logFont.lfFaceName, (char16_t*)logFont.lfFaceName + LF_FACESIZE, std::back_inserter(fontname));
     if (fontName.empty())
     {
-        PdfError::LogMessage(PdfLogSeverity::Error, "Could not retrieve fontname for font!");
+        mm::LogMessage(PdfLogSeverity::Error, "Could not retrieve fontname for font!");
         return nullptr;
     }
 
@@ -473,7 +473,7 @@ unique_ptr<charbuff> getFontData(const string_view& filename, unsigned short fac
     if (rc != 0)
     {
         // throw an exception
-        PdfError::LogMessage(PdfLogSeverity::Error, "FreeType returned the error {} when calling FT_New_Face for font {}",
+        mm::LogMessage(PdfLogSeverity::Error, "FreeType returned the error {} when calling FT_New_Face for font {}",
             (int)rc, filename);
         return nullptr;
     }
@@ -490,7 +490,7 @@ unique_ptr<charbuff> getFontData(const string_view& filename, unsigned short fac
 
     return buffer;
 Error:
-    PdfError::LogMessage(PdfLogSeverity::Error, "FreeType returned the error {} when calling FT_Load_Sfnt_Table for font {}",
+    mm::LogMessage(PdfLogSeverity::Error, "FreeType returned the error {} when calling FT_Load_Sfnt_Table for font {}",
         (int)rc, filename);
     return nullptr;
 }

@@ -68,7 +68,7 @@ string PdfFontConfigWrapper::GetFontConfigFontPath(const string_view fontName,
         (void)FcPatternGet(matched, FC_INDEX, 0, &value);
         faceIndex = (unsigned)value.u.i;
 #ifdef PDFMM_VERBOSE_DEBUG
-        PdfError::LogMessage(PdfLogSeverity::Debug,
+        mm::LogMessage(PdfLogSeverity::Debug,
             "Got Font {}, face index {} for {}", path, faceIndex, fontName);
 #endif // PDFMM_VERBOSE_DEBUG
     }

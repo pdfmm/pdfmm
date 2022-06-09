@@ -1,3 +1,4 @@
+#include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfOperatorUtils.h"
 
 using namespace std;

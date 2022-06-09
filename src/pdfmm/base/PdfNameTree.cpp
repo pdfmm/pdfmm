@@ -200,7 +200,7 @@ void PdfNameTreeNode::SetLimits()
         }
         else
         {
-            PdfError::LogMessage(PdfLogSeverity::Error,
+            mm::LogMessage(PdfLogSeverity::Error,
                 "Object {} {} R does not have Kids array",
                 this->GetObject()->GetIndirectReference().ObjectNumber(),
                 this->GetObject()->GetIndirectReference().GenerationNumber());
@@ -216,7 +216,7 @@ void PdfNameTreeNode::SetLimits()
             limits.Add(*(namesArr.end() - 2));
         }
         else
-            PdfError::LogMessage(PdfLogSeverity::Error,
+            mm::LogMessage(PdfLogSeverity::Error,
                 "Object {} {} R does not have Names array",
                 this->GetObject()->GetIndirectReference().ObjectNumber(),
                 this->GetObject()->GetIndirectReference().GenerationNumber());
@@ -354,7 +354,7 @@ PdfObject* PdfNameTree::GetKeyValue(PdfObject& obj, const PdfString& key) const
             auto childObj = this->GetObject().GetDocument()->GetObjects().GetObject(child.GetReference());
             if (childObj == nullptr)
             {
-                PdfError::LogMessage(PdfLogSeverity::Debug, "Object {} {} R is child of nametree but was not found!",
+                mm::LogMessage(PdfLogSeverity::Debug, "Object {} {} R is child of nametree but was not found!",
                     child.GetReference().ObjectNumber(),
                     child.GetReference().GenerationNumber());
             }
@@ -428,7 +428,7 @@ PdfNameLimits PdfNameTree::CheckLimits(const PdfObject& obj, const PdfString& ke
     }
     else
     {
-        PdfError::LogMessage(PdfLogSeverity::Debug, "Name tree object {} {} R does not have a limits key!",
+        mm::LogMessage(PdfLogSeverity::Debug, "Name tree object {} {} R does not have a limits key!",
             obj.GetIndirectReference().ObjectNumber(),
             obj.GetIndirectReference().GenerationNumber());
     }
@@ -454,7 +454,7 @@ void PdfNameTree::AddToDictionary(PdfObject& obj, PdfDictionary& dict)
             auto childObj = this->GetObject().GetDocument()->GetObjects().GetObject(child.GetReference());
             if (childObj == nullptr)
             {
-                PdfError::LogMessage(PdfLogSeverity::Debug, "Object {} {} R is child of nametree but was not found!",
+                mm::LogMessage(PdfLogSeverity::Debug, "Object {} {} R is child of nametree but was not found!",
                     child.GetReference().ObjectNumber(),
                     child.GetReference().GenerationNumber());
             }
@@ -478,7 +478,7 @@ void PdfNameTree::AddToDictionary(PdfObject& obj, PdfDictionary& dict)
             it++;
             if (it == names.end())
             {
-                PdfError::LogMessage(PdfLogSeverity::Warning,
+                mm::LogMessage(PdfLogSeverity::Warning,
                     "No reference in /Names array last element in "
                     "object {} {} R, possible exploit attempt!",
                     obj.GetIndirectReference().ObjectNumber(),

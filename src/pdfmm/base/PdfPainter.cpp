@@ -82,7 +82,7 @@ PdfPainter::~PdfPainter() noexcept(false)
     // we can't throw here, but must abort.
     if (m_stream != nullptr && !std::uncaught_exceptions())
     {
-        PdfError::LogMessage(PdfLogSeverity::Error,
+        mm::LogMessage(PdfLogSeverity::Error,
             "PdfPainter::~PdfPainter(): FinishDrawing() has to be called after drawing is completed!");
     }
 }

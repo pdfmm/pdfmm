@@ -250,7 +250,7 @@ void PdfParserObject::checkReference(PdfTokenizer& tokenizer)
     auto reference = readReference(tokenizer);
     if (GetIndirectReference() != reference)
     {
-        PdfError::LogMessage(PdfLogSeverity::Warning,
+        mm::LogMessage(PdfLogSeverity::Warning,
             "Found object with reference {} different than reported {} in XRef sections",
             GetIndirectReference().ToString(), reference.ToString());
     }

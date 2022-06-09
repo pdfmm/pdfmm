@@ -1,10 +1,7 @@
 #ifndef COMMON_FORMAT_H
 #define COMMON_FORMAT_H
 
-#ifndef STL_FORMAT_H
-#define STL_FORMAT_H <format>
-#endif
-#include STL_FORMAT_H
+#include "format_compat.h"
 
 /** \def COMMON_FORMAT(fmt, ...)
  *

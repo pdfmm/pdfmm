@@ -572,7 +572,7 @@ void PdfFlateFilter::DecodeBlockImpl(const char* buffer, size_t len)
             case Z_DATA_ERROR:
             case Z_MEM_ERROR:
             {
-                PdfError::LogMessage(PdfLogSeverity::Error, "Flate Decoding Error from ZLib: {}", flateErr);
+                mm::LogMessage(PdfLogSeverity::Error, "Flate Decoding Error from ZLib: {}", flateErr);
                 (void)inflateEnd(&m_stream);
 
                 FailEncodeDecode();

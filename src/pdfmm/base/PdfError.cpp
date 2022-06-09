@@ -83,7 +83,7 @@ void PdfError::PrintErrorMsg() const
         i++;
     }
 
-    PdfError::LogMessage(PdfLogSeverity::Error, stream.str());
+    mm::LogMessage(PdfLogSeverity::Error, stream.str());
 }
 
 const char* PdfError::what() const
@@ -396,7 +396,27 @@ const char* PdfError::ErrorMessage(PdfErrorCode code)
     return msg;
 }
 
-void PdfError::LogMessage(PdfLogSeverity logSeverity, const string_view& msg)
+void PdfError::SetMaxLoggingSeverity(PdfLogSeverity logSeverity)
+{
+    s_MaxLogSeverity = logSeverity;
+}
+
+PdfLogSeverity PdfError::GetMaxLoggingSeverity()
+{
+    return s_MaxLogSeverity;
+}
+
+bool PdfError::IsLoggingSeverityEnabled(PdfLogSeverity logSeverity)
+{
+    return logSeverity <= s_MaxLogSeverity;
+}
+
+void PdfError::AddToCallstack(string file, unsigned line, string information)
+{
+    m_callStack.push_front(PdfErrorInfo(std::move(line), std::move(file), information));
+}
+
+void mm::LogMessage(PdfLogSeverity logSeverity, const string_view& msg)
 {
     if (logSeverity > s_MaxLogSeverity)
         return;
@@ -439,24 +459,4 @@ void PdfError::LogMessage(PdfLogSeverity logSeverity, const string_view& msg)
     {
         s_LogMessageCallback(logSeverity, msg);
     }
-}
-
-void PdfError::SetMaxLoggingSeverity(PdfLogSeverity logSeverity)
-{
-    s_MaxLogSeverity = logSeverity;
-}
-
-PdfLogSeverity PdfError::GetMaxLoggingSeverity()
-{
-    return s_MaxLogSeverity;
-}
-
-bool PdfError::IsLoggingSeverityEnabled(PdfLogSeverity logSeverity)
-{
-    return logSeverity <= s_MaxLogSeverity;
-}
-
-void PdfError::AddToCallstack(string file, unsigned line, string information)
-{
-    m_callStack.push_front(PdfErrorInfo(std::move(line), std::move(file), information));
 }

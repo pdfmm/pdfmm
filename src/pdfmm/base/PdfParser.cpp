@@ -195,7 +195,7 @@ void PdfParser::ReadDocumentStructure(PdfInputDevice& device)
         // Total number of xref entries to read is greater than the /Size
         // specified in the trailer if any. That's an error unless we're
         // trying to recover from a missing /Size entry.
-        PdfError::LogMessage(PdfLogSeverity::Warning,
+        mm::LogMessage(PdfLogSeverity::Warning,
             "There are more objects {} in this XRef "
             "table than specified in the size key of the trailer directory ({})!",
             m_entries.GetSize(), entriesCount);
@@ -307,7 +307,7 @@ void PdfParser::ReadNextTrailer(PdfInputDevice& device)
                 if (m_visitedXRefOffsets.find(offset) == m_visitedXRefOffsets.end())
                     ReadXRefContents(device, offset);
                 else
-                    PdfError::LogMessage(PdfLogSeverity::Warning, "XRef contents at offset {} requested twice, skipping the second read",
+                    mm::LogMessage(PdfLogSeverity::Warning, "XRef contents at offset {} requested twice, skipping the second read",
                         static_cast<int64_t>(offset));
             }
             catch (PdfError& e)
@@ -428,7 +428,7 @@ void PdfParser::ReadXRefContents(PdfInputDevice& device, size_t offset, bool pos
             objectCount = m_tokenizer.ReadNextNumber(device);
 
 #ifdef PDFMM_VERBOSE_DEBUG
-            PdfError::LogMessage(PdfLogSeverity::Debug, "Reading numbers: {} {}", firstObject, objectCount);
+            mm::LogMessage(PdfLogSeverity::Debug, "Reading numbers: {} {}", firstObject, objectCount);
 #endif // PDFMM_VERBOSE_DEBUG
 
             if (positionAtEnd)
@@ -481,7 +481,7 @@ bool CheckXRefEntryType(char c)
 void PdfParser::ReadXRefSubsection(PdfInputDevice& device, int64_t& firstObject, int64_t& objectCount)
 {
 #ifdef PDFMM_VERBOSE_DEBUG
-    PdfError::LogMessage(PdfLogSeverity::Debug, "Reading XRef Section: {} {} Objects", firstObject, objectCount);
+    mm::LogMessage(PdfLogSeverity::Debug, "Reading XRef Section: {} {} Objects", firstObject, objectCount);
 #endif // PDFMM_VERBOSE_DEBUG 
 
     if (firstObject < 0)
@@ -570,7 +570,7 @@ void PdfParser::ReadXRefSubsection(PdfInputDevice& device, int64_t& firstObject,
 
     if (index != (unsigned)objectCount)
     {
-        PdfError::LogMessage(PdfLogSeverity::Warning, "Count of readobject is {}. Expected {}", index, objectCount);
+        mm::LogMessage(PdfLogSeverity::Warning, "Count of readobject is {}. Expected {}", index, objectCount);
         PDFMM_RAISE_ERROR(PdfErrorCode::NoXRef);
     }
 }
@@ -644,7 +644,7 @@ void PdfParser::ReadObjects(PdfInputDevice& device)
     if (encrypt != nullptr && !encrypt->IsNull())
     {
 #ifdef PDFMM_VERBOSE_DEBUG
-        PdfError::LogMessage(PdfLogSeverity::Debug, "The PDF file is encrypted");
+        mm::LogMessage(PdfLogSeverity::Debug, "The PDF file is encrypted");
 #endif // PDFMM_VERBOSE_DEBUG
 
         if (encrypt->IsReference())
@@ -743,7 +743,7 @@ void PdfParser::ReadObjectsInternal(PdfInputDevice& device)
                         {
                             if (m_IgnoreBrokenObjects)
                             {
-                                PdfError::LogMessage(PdfLogSeverity::Error, "Error while loading object {} {} R, Offset={}, Index={}",
+                                mm::LogMessage(PdfLogSeverity::Error, "Error while loading object {} {} R, Offset={}, Index={}",
                                     obj->GetIndirectReference().ObjectNumber(),
                                     obj->GetIndirectReference().GenerationNumber(),
                                     entry.Offset, i);
@@ -773,7 +773,7 @@ void PdfParser::ReadObjectsInternal(PdfInputDevice& device)
                         }
                         else
                         {
-                            PdfError::LogMessage(PdfLogSeverity::Warning,
+                            mm::LogMessage(PdfLogSeverity::Warning,
                                 "Treating object {} 0 R as a free object", i);
                             m_Objects->AddFreeObject(PdfReference(i, 1));
                         }
@@ -861,7 +861,7 @@ void PdfParser::ReadCompressedObjectFromStream(uint32_t objNo, int index)
     {
         if (m_IgnoreBrokenObjects)
         {
-            PdfError::LogMessage(PdfLogSeverity::Error, "Loading of object {} 0 R failed!", objNo);
+            mm::LogMessage(PdfLogSeverity::Error, "Loading of object {} 0 R failed!", objNo);
             return;
         }
         else
@@ -986,7 +986,7 @@ void PdfParser::UpdateDocumentVersion()
                 auto version = mm::GetPdfVersion(versionObj.GetName().GetString());
                 if (version != PdfVersion::Unknown)
                 {
-                    PdfError::LogMessage(PdfLogSeverity::Information,
+                    mm::LogMessage(PdfLogSeverity::Information,
                         "Updating version from {} to {}",
                         mm::GetPdfVersionName(m_PdfVersion),
                         mm::GetPdfVersionName(version));

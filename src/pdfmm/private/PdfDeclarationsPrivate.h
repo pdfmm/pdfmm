@@ -28,6 +28,7 @@
 #include <algorithm>
 #include <iostream>
 
+#include "Format.h"
 #include "numbers_compat.h"
 
  // Macro to define friendship with test classes.
@@ -99,6 +100,45 @@
 
 #define CMAP_REGISTRY_NAME "pdfmm"
 
+/** \def PDFMM_RAISE_ERROR(code)
+ *
+ *  Throw an exception of type PdfError with the error code x, which should be
+ *  one of the values of the enum PdfErrorCode. File and line info are included.
+ */
+#define PDFMM_RAISE_ERROR(code) throw ::mm::PdfError(code, __FILE__, __LINE__)
+
+ /** \def PDFMM_RAISE_ERROR_INFO(code, msg)
+  *
+  *  Throw an exception of type PdfError with the error code, which should be
+  *  one of the values of the enum PdfErrorCode. File and line info are included.
+  *  Additionally extra information on the error, msg is set, which will also be
+  *  output by PdfError::PrintErrorMsg().
+  *  msg can be a C string, but can also be a C++ std::string.
+  */
+#define PDFMM_RAISE_ERROR_INFO(code, msg, ...) throw ::mm::PdfError(code, __FILE__, __LINE__, COMMON_FORMAT(msg, ##__VA_ARGS__))
+
+  /** \def PDFMM_PUSH_FRAME(err, msg)
+   *
+   * Add frame to error callastack
+   */
+#define PDFMM_PUSH_FRAME(err) err.AddToCallstack(__FILE__, __LINE__)
+
+   /** \def PDFMM_PUSH_FRAME_INFO(err, msg)
+    *
+    * Add frame to error callastack with msg information
+    */
+#define PDFMM_PUSH_FRAME_INFO(err, msg, ...) err.AddToCallstack(__FILE__, __LINE__, COMMON_FORMAT(msg, ##__VA_ARGS__))
+
+    /** \def PDFMM_PUSH_FRAME(err, msg)
+     *
+     *  Evaluate `cond' as a binary predicate and if it is true, raise a logic error with the
+     *  info string `msg' .
+     */
+#define PDFMM_RAISE_LOGIC_IF(cond, msg, ...) {\
+    if (cond)\
+        throw ::mm::PdfError(PdfErrorCode::InternalLogic, __FILE__, __LINE__, COMMON_FORMAT(msg, ##__VA_ARGS__));\
+};
+
 namespace mm
 {
     class PdfOutputDevice;
@@ -117,6 +157,18 @@ namespace mm
 
     std::vector<std::string> ToPdfKeywordsList(const std::string_view& str);
     std::string ToPdfKeywordsString(const cspan<std::string>& keywords);
+
+    /** Log a message to the logging system defined for pdfmm.
+     *  \param logSeverity the severity of the log message
+     *  \param msg       the message to be logged
+     */
+    void LogMessage(PdfLogSeverity logSeverity, const std::string_view& msg);
+
+    template <typename... Args>
+    void LogMessage(PdfLogSeverity logSeverity, const std::string_view& msg, const Args&... args)
+    {
+        LogMessage(logSeverity, COMMON_FORMAT(msg, args...));
+    }
 }
 
 /**

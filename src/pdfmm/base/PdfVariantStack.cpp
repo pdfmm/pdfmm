@@ -1,3 +1,4 @@
+#include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfVariantStack.h"
 
 using namespace std;

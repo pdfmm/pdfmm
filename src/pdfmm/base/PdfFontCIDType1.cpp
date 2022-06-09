@@ -5,6 +5,7 @@
  * Some rights reserved. See COPYING, AUTHORS.
  */
 
+#include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfFontCIDType1.h"
 
 using namespace std;
