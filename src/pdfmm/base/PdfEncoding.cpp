@@ -18,6 +18,7 @@
 #include "PdfEncodingMapFactory.h"
 
 using namespace std;
+using namespace cmn;
 using namespace mm;
 
 static PdfCharCode fetchFallbackCharCode(string_view::iterator& it, const string_view::iterator& end, const PdfEncodingLimits& limits);
@@ -144,7 +145,7 @@ bool PdfEncoding::TryConvertToEncoded(const string_view& str, charbuff& encoded)
         for (unsigned i = 0; i < gids.size(); i++)
         {
             unsigned char cpsSpanSize = backwardMap[i];
-            span<char32_t> span(cps.data() + cpOffset, cpsSpanSize);
+            unicodeview span(cps.data() + cpOffset, cpsSpanSize);
             if (!tryGetCharCode(font, gids[i], span, codeUnit))
                 return false;
 

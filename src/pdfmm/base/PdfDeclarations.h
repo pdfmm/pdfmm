@@ -55,7 +55,7 @@ namespace mm {
 
 /** Convenient read-only char buffer span/view
  */
-using bufferview = std::span<const char>;
+using bufferview = cmn::cspan<char>;
 
 /**
  * Convenient type for char array storage and/or buffer with
@@ -106,7 +106,7 @@ private:
 
 /** Unicode code point view
  */
-using unicodeview = std::span<const char32_t>;
+using unicodeview = cmn::cspan<char32_t>;
 
 // NOTE: This may change in the future
 using Matrix2D = std::array<double, 6>;

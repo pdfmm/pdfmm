@@ -28,7 +28,7 @@ enum class TrueTypeFontFileType
     OTF,    ///< OpenType Font
 };
 
-using GIDList = std::span<const unsigned>;
+using GIDList = cmn::cspan<unsigned>;
 
 /**
  * This class is able to build a new TTF font with only

@@ -6,6 +6,7 @@
 #include "XmlUtils.h"
 
 using namespace std;
+using namespace cmn;
 using namespace mm;
 
 #define THROW_LIBXML_EXCEPTION(msg)\
@@ -279,7 +280,7 @@ void tryFixArrayElement(xmlDocPtr doc, xmlNodePtr& node, const string& nodeConte
     xmlNodeSetContent(node, nullptr);
 
     xmlNodePtr newNode;
-    setListNodeContent(doc, node, found->second, span(&nodeContent, 1), newNode);
+    setListNodeContent(doc, node, found->second, cspan<string>(&nodeContent, 1), newNode);
     node = newNode;
 }
 
@@ -477,7 +478,7 @@ xmlNsPtr findOrCreateNamespace(xmlDocPtr doc, xmlNodePtr description, PdfANamesp
 
 void addXMPProperty(xmlDocPtr doc, xmlNodePtr description, XMPMetadataKind prop, const string& value)
 {
-    addXMPProperty(doc, description, prop, span(&value, 1));
+    addXMPProperty(doc, description, prop, cspan<string>(&value, 1));
 }
 
 void addXMPProperty(xmlDocPtr doc, xmlNodePtr description,

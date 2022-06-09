@@ -151,12 +151,8 @@ namespace mm
     constexpr double DEG2RAD = std::numbers::pi / 180;
     constexpr double RAD2DEG = 180 / std::numbers::pi;
 
-    // https://stackoverflow.com/questions/56845801/what-happened-to-stdcspan
-    template <class T, size_t Extent = std::dynamic_extent>
-    using cspan = std::span<const T, Extent>;
-
     std::vector<std::string> ToPdfKeywordsList(const std::string_view& str);
-    std::string ToPdfKeywordsString(const cspan<std::string>& keywords);
+    std::string ToPdfKeywordsString(const cmn::cspan<std::string>&keywords);
 
     /** Log a message to the logging system defined for pdfmm.
      *  \param logSeverity the severity of the log message

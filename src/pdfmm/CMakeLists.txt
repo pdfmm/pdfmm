@@ -39,7 +39,7 @@ endif()
 # Set visual studio source group
 source_group("" FILES ${PDFMM_SOURCES})
 
-foreach(subdir common compat base contrib private)
+foreach(subdir common base contrib private)
     file(GLOB_RECURSE SOURCE_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "${subdir}/*")
     # Set visual studio source group
     source_group(${subdir} FILES ${SOURCE_FILES})

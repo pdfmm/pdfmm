@@ -13,8 +13,8 @@
 #include <queue>
 #include <functional>
 
-// Include some common and compatibility wrappers
-#include <pdfmm/compat/span>
+// Include some common headers
+#include <pdfmm/common/span.h>
 #include <pdfmm/common/EnumFlags.h>
 #include <pdfmm/common/nullable.h>
 

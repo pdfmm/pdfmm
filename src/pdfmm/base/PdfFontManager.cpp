@@ -28,6 +28,7 @@
 #include "PdfFontType1.h"
 
 using namespace std;
+using namespace cmn;
 using namespace mm;
 
 #if defined(_WIN32) && defined(PDFMM_HAVE_WIN32GDI)
@@ -39,8 +40,8 @@ static void getFontDataTTC(charbuff& buffer, const charbuff& fileBuffer, const c
 #endif // defined(_WIN32) && defined(PDFMM_HAVE_WIN32GDI)
 
 static unique_ptr<charbuff> getFontData(const string_view& filename, unsigned short faceIndex);
-static PdfFont* matchFont(const span<PdfFont*>& fonts, const string_view& fontName, const PdfFontSearchParams& params);
-static PdfFont* matchFont(const span<PdfFont*>& fonts, const string_view& fontName,
+static PdfFont* matchFont(const mspan<PdfFont*>& fonts, const string_view& fontName, const PdfFontSearchParams& params);
+static PdfFont* matchFont(const mspan<PdfFont*>& fonts, const string_view& fontName,
     PdfFontMatchBehaviorFlags matchBehavior = PdfFontMatchBehaviorFlags::None);
 
 #if defined(PDFMM_HAVE_FONTCONFIG)
@@ -171,7 +172,7 @@ PdfFont* PdfFontManager::getImportedFont(const string_view& fontName, const stri
 
     shared_ptr<PdfFontMetrics> metrics = PdfFontMetricsFreetype::FromBuffer(buffer);
     return getImportedFont(metrics, createParams,
-        [&searchParams,&fontName](const span<PdfFont*>& fonts) {
+        [&searchParams,&fontName](const mspan<PdfFont*>& fonts) {
             return matchFont(fonts, fontName, searchParams);
         });
 }
@@ -289,7 +290,7 @@ PdfFont* PdfFontManager::GetFont(FT_Face face, const PdfFontCreateParams& params
         return matchFont(found->second, fontName);
 
     shared_ptr<PdfFontMetricsFreetype> metrics = PdfFontMetricsFreetype::FromFace(face);
-    return getImportedFont(metrics, params, [](const span<PdfFont*>& fonts)
+    return getImportedFont(metrics, params, [](const mspan<PdfFont*>& fonts)
     {
         return fonts[0];
     });
@@ -405,7 +406,7 @@ PdfFont* PdfFontManager::getImportedFont(const PdfFontMetricsConstPtr& metrics,
 
     auto font = PdfFont::Create(*m_doc, metrics, params);
     PdfFont* fontptr = font.get();
-    if (font == nullptr || matchFont(span<PdfFont*>(&fontptr, 1)) == nullptr)
+    if (font == nullptr || matchFont(mspan<PdfFont*>(&fontptr, 1)) == nullptr)
         return nullptr;
 
     return addImported(fonts, std::move(font));
@@ -495,13 +496,13 @@ Error:
     return nullptr;
 }
 
-PdfFont* matchFont(const span<PdfFont*>& fonts, const string_view& fontName, const PdfFontSearchParams& params)
+PdfFont* matchFont(const mspan<PdfFont*>& fonts, const string_view& fontName, const PdfFontSearchParams& params)
 {
     // NOTE: Matching base name is implied by the main lookup
     return matchFont(fonts, fontName, params.MatchBehavior);
 }
 
-PdfFont* matchFont(const span<PdfFont*>& fonts, const string_view& fontName, PdfFontMatchBehaviorFlags matchBehavior)
+PdfFont* matchFont(const mspan<PdfFont*>& fonts, const string_view& fontName, PdfFontMatchBehaviorFlags matchBehavior)
 {
     PDFMM_ASSERT(fonts.size() != 0);
     if (matchBehavior == PdfFontMatchBehaviorFlags::MatchExactName)

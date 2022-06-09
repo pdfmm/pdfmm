@@ -19,7 +19,7 @@ namespace mm
      * with unicode code points
      */
     using codepoint = char32_t;
-    using codepointview = std::span<const codepoint>;
+    using codepointview = cmn::cspan<codepoint>;
 
     /**
      * A bidirectional map from character code units to unspecified code points

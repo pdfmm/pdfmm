@@ -23,6 +23,7 @@
 #endif
 
 using namespace std;
+using namespace cmn;
 using namespace mm;
 
 static void removeTrailingZeroes(string& str);
