@@ -2,6 +2,7 @@ CMakeFiles/
 bin/
 obj/
 out/
+cmake-build-*/
 build*/
 target/
 target-*/
