@@ -22,6 +22,7 @@ include_directories(
 
 set(PDFMM_BASE_HEADERS
     pdfmm-base.h
+    pdfmm-contrib.h
     pdfmm.h
     ${CMAKE_CURRENT_BINARY_DIR}/pdfmm_config.h
 )
