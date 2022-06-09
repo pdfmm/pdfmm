@@ -8,6 +8,7 @@
 - Removed PdfLocaleImbue
 - PdfEncrypt: Removed PdfReference state. Added PdfStatefulEncrypt
 - Removed use of std::ostringstream. Added efficient outstringstream
+- Added PdfMath functionalities (matrix transformations and so on)
 
 ## Version 0.9.21
 - Fixed serialization of UTF-16BE strings
