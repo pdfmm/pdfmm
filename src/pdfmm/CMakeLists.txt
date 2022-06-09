@@ -24,11 +24,13 @@ set(PDFMM_BASE_HEADERS
     pdfmm-base.h
     pdfmm-contrib.h
     pdfmm.h
-    ${CMAKE_CURRENT_BINARY_DIR}/pdfmm_config.h
 )
-install(FILES ${PDFMM_BASE_HEADERS} DESTINATION "include/pdfmm")
+set(PDFMM_CONFIG_HEADER ${CMAKE_CURRENT_BINARY_DIR}/pdfmm_config.h)
 
-set(PDFMM_SOURCES ${PDFMM_BASE_HEADERS})
+install(FILES ${PDFMM_BASE_HEADERS} DESTINATION "include/pdfmm")
+install(FILES ${PDFMM_CONFIG_HEADER} DESTINATION "include/pdfmm/base")
+
+set(PDFMM_SOURCES ${PDFMM_BASE_HEADERS} ${PDFMM_CONFIG_HEADER})
 if(WIN32 AND PDFMM_BUILD_SHARED)
     # If we build for windows systems, we also include the resource file
     list(APPEND PDFMM_SOURCES pdfmm.rc)
