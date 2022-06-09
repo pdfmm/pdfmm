@@ -35,9 +35,8 @@ namespace mm
 
     public:
         xmlDocPtr GetDoc() { return m_Doc; }
-        const xmlDocPtr GetDoc() const { return m_Doc; }
         xmlNodePtr GetOrCreateDescription();
-        const xmlNodePtr GetDescription() const { return m_Description; }
+        xmlNodePtr GetDescription() const { return m_Description; }
 
     public:
         PdfXMPPacket& operator=(const PdfXMPPacket&) = delete;

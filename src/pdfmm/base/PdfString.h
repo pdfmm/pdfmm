@@ -33,7 +33,7 @@ public:
      */
     PdfString();
 
-    PdfString(charbuff&& buff, bool isHex = true);
+    PdfString(charbuff&& buff, bool isHex);
 
     PdfString(const char* str);
 

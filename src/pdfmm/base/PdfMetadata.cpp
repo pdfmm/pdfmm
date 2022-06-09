@@ -15,8 +15,6 @@
 using namespace std;
 using namespace mm;
 
-static vector<string> toKeywords(const PdfString& keywords);
-
 PdfMetadata::PdfMetadata(PdfDocument& doc)
     : m_doc(&doc), m_initialized(false), m_xmpSynced(false)
 {
@@ -313,9 +311,4 @@ void PdfMetadata::syncXMPMetadata(bool forceCreationXMP)
     mm::UpdateOrCreateXMPMetadata(m_packet, m_metadata);
     m_doc->GetCatalog().SetMetadataStreamValue(m_packet->ToString());
     m_xmpSynced = true;
-}
-
-vector<string> toKeywords(const PdfString& keywords)
-{
-    return mm::ToPdfKeywordsList(keywords.GetString());
 }

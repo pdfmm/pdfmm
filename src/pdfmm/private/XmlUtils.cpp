@@ -4,12 +4,12 @@
 using namespace std;
 using namespace mm;
 
-xmlNodePtr utls::FindChildElement(const xmlNodePtr element, const std::string_view& name)
+xmlNodePtr utls::FindChildElement(xmlNodePtr element, const std::string_view& name)
 {
     return FindChildElement(element, { }, name);
 }
 
-xmlNodePtr utls::FindChildElement(const xmlNodePtr element, const string_view& prefix, const string_view& name)
+xmlNodePtr utls::FindChildElement(xmlNodePtr element, const string_view& prefix, const string_view& name)
 {
     for (auto child = xmlFirstElementChild(element); child != nullptr; child = xmlNextElementSibling(child))
     {
@@ -24,12 +24,12 @@ xmlNodePtr utls::FindChildElement(const xmlNodePtr element, const string_view& p
     return nullptr;
 }
 
-xmlNodePtr utls::FindSiblingNode(const xmlNodePtr element, const std::string_view& name)
+xmlNodePtr utls::FindSiblingNode(xmlNodePtr element, const std::string_view& name)
 {
     return FindSiblingNode(element, { }, name);
 }
 
-xmlNodePtr utls::FindSiblingNode(const xmlNodePtr element, const string_view& prefix, const string_view& name)
+xmlNodePtr utls::FindSiblingNode(xmlNodePtr element, const string_view& prefix, const string_view& name)
 {
     for (auto sibling = xmlNextElementSibling(element); sibling; sibling = xmlNextElementSibling(sibling))
     {
@@ -44,12 +44,12 @@ xmlNodePtr utls::FindSiblingNode(const xmlNodePtr element, const string_view& pr
     return nullptr;
 }
 
-mm::nullable<string> utls::FindAttribute(const xmlNodePtr element, const std::string_view& name)
+mm::nullable<string> utls::FindAttribute(xmlNodePtr element, const std::string_view& name)
 {
     return FindAttribute(element, { }, name);
 }
 
-nullable<string> utls::FindAttribute(const xmlNodePtr element, const string_view& prefix, const string_view& name)
+nullable<string> utls::FindAttribute(xmlNodePtr element, const string_view& prefix, const string_view& name)
 {
     for (xmlAttrPtr attr = element->properties; attr != nullptr; attr = attr->next)
     {
@@ -64,7 +64,7 @@ nullable<string> utls::FindAttribute(const xmlNodePtr element, const string_view
     return { };
 }
 
-nullable<string> utls::GetNodeContent(const xmlNodePtr node)
+nullable<string> utls::GetNodeContent(xmlNodePtr node)
 {
     PDFMM_ASSERT(node != nullptr);
     xmlChar* content = xmlNodeGetContent(node);
@@ -75,10 +75,10 @@ nullable<string> utls::GetNodeContent(const xmlNodePtr node)
     return string((const char*)content);
 }
 
-string utls::GetAttributeValue(const xmlAttrPtr attr)
+string utls::GetAttributeValue(xmlAttrPtr attr)
 {
     PDFMM_ASSERT(attr != nullptr);
-    xmlChar* content = xmlNodeGetContent((const xmlNodePtr)attr);
+    xmlChar* content = xmlNodeGetContent((xmlNodePtr)attr);
     unique_ptr<xmlChar, decltype(xmlFree)> contentFree(content, xmlFree);
     return string((const char*)content);
 }

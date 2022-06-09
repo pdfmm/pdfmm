@@ -854,10 +854,9 @@ unique_ptr<PdfXMPPacket> PdfXMPPacket::Create(const string_view& xmpview)
         return nullptr;
     }
 
-    xmlNodePtr description = nullptr;
     unique_ptr<PdfXMPPacket> ret(new PdfXMPPacket(doc, xmpmeta));
     normalizeXMPMetadata(doc, xmpmeta, ret->m_Description);
-    return std::move(ret);
+    return ret;
 }
 
 
