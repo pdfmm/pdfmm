@@ -303,5 +303,5 @@ void createEncryptedPdf(const string_view& filename)
     doc.SetEncrypted(PDF_USER_PASSWORD, "owner");
     doc.Save(filename);
 
-    INFO(cmn::Format("Wrote: {} (R={})", filename, doc.GetEncrypt()->GetRevision()));
+    INFO(utls::Format("Wrote: {} (R={})", filename, doc.GetEncrypt()->GetRevision()));
 }

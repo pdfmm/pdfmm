@@ -249,8 +249,8 @@ TEST_CASE("testUnicodeNames", "[.]")
     // FIX-ME: This test is fishy. It's not clear what "codeCount"
     // means and why (65535 - duplicatesCount) is different than codeCount
     // Possibly there are more duplicates
-    INFO(cmn::Format("Compared codes count: {}", codeCount));
-    INFO(cmn::Format("Duplicate codes count: {}", duplicatesCount));
+    INFO(utls::Format("Compared codes count: {}", codeCount));
+    INFO(utls::Format("Duplicate codes count: {}", duplicatesCount));
     REQUIRE(codeCount == 65421);
 }
 

@@ -152,7 +152,7 @@ namespace mm
     constexpr double RAD2DEG = 180 / std::numbers::pi;
 
     std::vector<std::string> ToPdfKeywordsList(const std::string_view& str);
-    std::string ToPdfKeywordsString(const cmn::cspan<std::string>&keywords);
+    std::string ToPdfKeywordsString(const cspan<std::string>&keywords);
 
     /** Log a message to the logging system defined for pdfmm.
      *  \param logSeverity the severity of the log message

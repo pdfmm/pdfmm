@@ -14,9 +14,12 @@
 #include <functional>
 
 // Include some common headers
-#include <pdfmm/common/span.h>
+
+#define COMMON_NAMESPACE mm
 #include <pdfmm/common/EnumFlags.h>
+#include <pdfmm/common/span.h>
 #include <pdfmm/common/nullable.h>
+#include <pdfmm/common/types.h>
 
 #include "pdfmm_config.h"
 

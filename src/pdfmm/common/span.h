@@ -1,9 +1,10 @@
-#ifndef SPAN_H
-#define SPAN_H
+#ifndef COMMON_SPAN_H
+#define COMMON_SPAN_H
+#pragma once
 
 #include "span.hpp"
 
-namespace cmn
+namespace COMMON_NAMESPACE
 {
     // https://stackoverflow.com/questions/56845801/what-happened-to-stdcspan
     /** Constant span
@@ -17,4 +18,4 @@ namespace cmn
     using mspan = tcb::span<T, Extent>;
 }
 
-#endif // SPAN_H
+#endif // COMMON_SPAN_H

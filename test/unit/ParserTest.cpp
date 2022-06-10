@@ -1953,7 +1953,7 @@ TEST_CASE("testSaveIncrementalRoundTrip")
     oss << "0 " << currObj << "\n";
     oss << "0000000000 65535 f \n";
     for (unsigned i = 1; i < currObj; i++)
-        oss << cmn::Format("{:010d} 00000 n \n", objPos[i]);
+        oss << utls::Format("{:010d} 00000 n \n", objPos[i]);
 
     oss << "trailer <<\n"
         << "  /Size " << currObj << "\n"

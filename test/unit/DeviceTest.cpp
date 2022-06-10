@@ -22,5 +22,5 @@ TEST_CASE("testDevices")
         streamLarge.Write(testString);
 
     if (buffer1.size() != testString.size() * 100)
-        FAIL(cmn::Format("Buffer1 size is wrong after 100 attaches: {}", buffer1.size()));
+        FAIL(utls::Format("Buffer1 size is wrong after 100 attaches: {}", buffer1.size()));
 }

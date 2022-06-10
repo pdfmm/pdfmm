@@ -160,7 +160,7 @@ void TestWriteEscapeSequences(const string_view& str, const string_view& expecte
     PdfVariant variant;
     string ret;
 
-    INFO(cmn::Format("Testing with value: {}", str));
+    INFO(utls::Format("Testing with value: {}", str));
     PdfPostScriptTokenizer tokenizer;
     PdfMemoryInputDevice device(str);
 
@@ -168,7 +168,7 @@ void TestWriteEscapeSequences(const string_view& str, const string_view& expecte
     REQUIRE(variant.GetDataType() == PdfDataType::String);
 
     variant.ToString(ret);
-    INFO(cmn::Format("   -> Convert To String: {}", ret));
+    INFO(utls::Format("   -> Convert To String: {}", ret));
 
     REQUIRE(expected == ret);
 }

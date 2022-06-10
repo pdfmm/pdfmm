@@ -108,12 +108,12 @@ TEST_CASE("testFromEscaped")
 //
 void TestEscapedName(const string_view& nameStr, const string_view& expectedEncoded)
 {
-    INFO(cmn::Format("Testing name: {}", nameStr));
+    INFO(utls::Format("Testing name: {}", nameStr));
 
     PdfName name(nameStr);
-    INFO(cmn::Format("   -> Expected   Value: {}", expectedEncoded));
-    INFO(cmn::Format("   -> Got        Value: {}", name.GetEscapedName()));
-    INFO(cmn::Format("   -> Unescaped  Value: {}", name.GetString()));
+    INFO(utls::Format("   -> Expected   Value: {}", expectedEncoded));
+    INFO(utls::Format("   -> Got        Value: {}", name.GetEscapedName()));
+    INFO(utls::Format("   -> Unescaped  Value: {}", name.GetString()));
 
     REQUIRE(name.GetEscapedName() == expectedEncoded);
 
@@ -125,10 +125,10 @@ void TestEscapedName(const string_view& nameStr, const string_view& expectedEnco
 void TestEncodedName(const string_view& escaped, const string_view& expected)
 {
     PdfName name(PdfName::FromEscaped(escaped));
-    INFO(cmn::Format("Testing encoded name: {}", escaped));
-    INFO(cmn::Format("   -> Expected   Value: {}", expected));
-    INFO(cmn::Format("   -> Got        Value: {}", name.GetString()));
-    INFO(cmn::Format("   -> Escaped    Value: {}", name.GetEscapedName()));
+    INFO(utls::Format("Testing encoded name: {}", escaped));
+    INFO(utls::Format("   -> Expected   Value: {}", expected));
+    INFO(utls::Format("   -> Got        Value: {}", name.GetString()));
+    INFO(utls::Format("   -> Escaped    Value: {}", name.GetEscapedName()));
 
     REQUIRE(name == expected);
 
@@ -142,9 +142,9 @@ void TestNameEquality(const string_view& name1Str, const string_view& name2Str)
     PdfName name1(PdfName::FromEscaped(name1Str));
     PdfName name2(PdfName::FromEscaped(name2Str));
 
-    INFO(cmn::Format("Testing equality of encoded names '{}' and '{}'", name1Str, name2Str));
-    INFO(cmn::Format("   -> Name1    Decoded Value: {}", name1.GetString()));
-    INFO(cmn::Format("   -> Name2    Decoded Value: {}", name2.GetString()));
+    INFO(utls::Format("Testing equality of encoded names '{}' and '{}'", name1Str, name2Str));
+    INFO(utls::Format("   -> Name1    Decoded Value: {}", name1.GetString()));
+    INFO(utls::Format("   -> Name2    Decoded Value: {}", name2.GetString()));
 
     REQUIRE(name1 == name2); // use operator==
     REQUIRE(!(name1 != name2)); // use operator!=

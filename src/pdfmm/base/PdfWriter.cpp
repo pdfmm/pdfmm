@@ -125,7 +125,7 @@ void PdfWriter::Write(PdfOutputDevice& device)
 
 void PdfWriter::WritePdfHeader(PdfOutputDevice& device)
 {
-    cmn::FormatTo(m_buffer, "%PDF-{}\n%{}", mm::GetPdfVersionName(m_Version), PDF_MAGIC);
+    utls::FormatTo(m_buffer, "%PDF-{}\n%{}", mm::GetPdfVersionName(m_Version), PDF_MAGIC);
     device.Write(m_buffer);
 }
 

@@ -139,11 +139,11 @@ PdfString PdfDate::createStringRepresentation(bool w3cstring) const
             bool plus = minutesFromUtci > 0 ? true : false;
             if (w3cstring)
             {
-                cmn::FormatTo(offset, "{}{:02}:{:02}", plus ? '+' : '-', offseth, offsetm);
+                utls::FormatTo(offset, "{}{:02}:{:02}", plus ? '+' : '-', offseth, offsetm);
             }
             else
             {
-                cmn::FormatTo(offset, "{}{:02}'{:02}'", plus ? '+' : '-', offseth, offsetm);
+                utls::FormatTo(offset, "{}{:02}'{:02}'", plus ? '+' : '-', offseth, offsetm);
             }
         }
 
@@ -173,12 +173,12 @@ PdfString PdfDate::createStringRepresentation(bool w3cstring) const
     if (w3cstring)
     {
         // e.g. "1998-12-23T19:52:07-08:00"
-        cmn::FormatTo(date, "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}{}", y, m, d, h, M, s, offset);
+        utls::FormatTo(date, "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}{}", y, m, d, h, M, s, offset);
     }
     else
     {
         // e.g. "D:19981223195207−08'00'"
-        cmn::FormatTo(date, "D:{:04}{:02}{:02}{:02}{:02}{:02}{}", y, m, d, h, M, s, offset);
+        utls::FormatTo(date, "D:{:04}{:02}{:02}{:02}{:02}{:02}{}", y, m, d, h, M, s, offset);
     }
 
     return PdfString(date);

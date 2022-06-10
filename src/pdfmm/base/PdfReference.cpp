@@ -29,7 +29,7 @@ void PdfReference::Write(PdfOutputDevice& device, PdfWriteFlags writeMode, charb
     if ((writeMode & PdfWriteFlags::NoInlineLiteral) == PdfWriteFlags::None)
         device.Put(' '); // Write space before the reference
 
-    cmn::FormatTo(buffer, "{} {} R", m_ObjectNo, m_GenerationNo);
+    utls::FormatTo(buffer, "{} {} R", m_ObjectNo, m_GenerationNo);
     device.Write(buffer);
 }
 
@@ -43,7 +43,7 @@ string PdfReference::ToString() const
 void PdfReference::ToString(string& str) const
 {
     str.clear();
-    cmn::FormatTo(str, "{} {} R", m_ObjectNo, m_GenerationNo);
+    utls::FormatTo(str, "{} {} R", m_ObjectNo, m_GenerationNo);
 }
 
 bool PdfReference::operator<(const PdfReference& rhs) const

@@ -18,7 +18,6 @@
 #include "PdfEncodingMapFactory.h"
 
 using namespace std;
-using namespace cmn;
 using namespace mm;
 
 static PdfCharCode fetchFallbackCharCode(string_view::iterator& it, const string_view::iterator& end, const PdfEncodingLimits& limits);

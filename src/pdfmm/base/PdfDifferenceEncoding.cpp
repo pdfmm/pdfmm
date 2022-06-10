@@ -2691,6 +2691,6 @@ PdfName PdfDifferenceEncoding::CodePointToName(char32_t inCodePoint)
     // if we get here, then we are looking up an undefined codepoint
     // so we'll just give it an arbitrary name..
     string buffer;
-    cmn::FormatTo(buffer, "uni{:04x}", (unsigned)inCodePoint);
+    utls::FormatTo(buffer, "uni{:04x}", (unsigned)inCodePoint);
     return PdfName(buffer);
 }

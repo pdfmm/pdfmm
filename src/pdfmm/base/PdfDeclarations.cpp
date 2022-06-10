@@ -23,7 +23,6 @@
 #endif
 
 using namespace std;
-using namespace cmn;
 using namespace mm;
 
 static void removeTrailingZeroes(string& str);
@@ -380,13 +379,13 @@ void utls::ReadUtf16LEString(const bufferview& buffer, string& utf8str)
 
 void utls::FormatTo(string& str, float value, unsigned short precision)
 {
-    cmn::FormatTo(str, "{:.{}f}", value, precision);
+    utls::FormatTo(str, "{:.{}f}", value, precision);
     removeTrailingZeroes(str);
 }
 
 void utls::FormatTo(string& str, double value, unsigned short precision)
 {
-    cmn::FormatTo(str, "{:.{}f}", value, precision);
+    utls::FormatTo(str, "{:.{}f}", value, precision);
     removeTrailingZeroes(str);
 }
 
@@ -446,61 +445,6 @@ unsigned char utls::GetCharCodeSize(unsigned code)
 unsigned utls::GetCharCodeMaxValue(unsigned char codeSize)
 {
     return (unsigned)(std::pow(2, codeSize * CHAR_BIT)) - 1;
-}
-
-// TODO: Optimize, maintaining string compatibility
-// Use basic_string::resize_and_overwrite in C++23
-// https://en.cppreference.com/w/cpp/string/basic_string/resize_and_overwrite
-charbuff::charbuff() { }
-
-charbuff::charbuff(const bufferview& view)
-    : string(view.data(), view.size()) { }
-
-charbuff::charbuff(const string& str)
-    : string(str)
-{
-}
-
-charbuff::charbuff(const string_view& view)
-    : string(view) { }
-
-charbuff::charbuff(string&& str)
-    : string(std::move(str))
-{
-}
-
-charbuff& charbuff::operator=(const bufferview& view)
-{
-    string::assign(view.data(), view.size());
-    return *this;
-}
-
-charbuff& charbuff::operator=(const string_view& view)
-{
-    string::assign(view.data(), view.size());
-    return *this;
-}
-
-charbuff& charbuff::operator=(const string& str)
-{
-    string::assign(str.data(), str.size());
-    return *this;
-}
-
-charbuff& charbuff::operator=(string&& str)
-{
-    string::operator=(std::move(str));
-    return *this;
-}
-
-charbuff::operator bufferview() const
-{
-    return bufferview(data(), size());
-}
-
-charbuff::charbuff(size_t size)
-{
-    resize(size);
 }
 
 void utls::WriteUInt32BE(PdfOutputDevice& output, uint32_t value)
@@ -626,14 +570,6 @@ void utls::ReadInt16BE(const char* buf, int16_t& value)
         | (int16_t)(buf[1] & 0xFF) << 8;
     value = AS_BIG_ENDIAN(value);
 }
-
-datahandle::datahandle() { }
-
-datahandle::datahandle(const bufferview& view)
-    : m_view(view) { }
-
-datahandle::datahandle(const charbuff::const_ptr& buff)
-    : m_view(*buff), m_buff(buff) { }
 
 void removeTrailingZeroes(string& str)
 {

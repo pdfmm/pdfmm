@@ -21,7 +21,6 @@
 #include "PdfInputDevice.h"
 
 using namespace std;
-using namespace cmn;
 using namespace mm;
 
 /** A PdfNamedColor holds

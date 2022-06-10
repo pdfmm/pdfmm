@@ -6,7 +6,6 @@
 #include "XmlUtils.h"
 
 using namespace std;
-using namespace cmn;
 using namespace mm;
 
 #define THROW_LIBXML_EXCEPTION(msg)\
@@ -436,7 +435,7 @@ xmlNodePtr createDescriptionElement(xmlNodePtr rdf)
 
     xmlSetNs(description, nsRDF);
     if (xmlSetNsProp(description, nsRDF, XMLCHAR "about", XMLCHAR "") == nullptr)
-        THROW_LIBXML_EXCEPTION(cmn::Format("Can't set rdf:about attribute on rdf:Description node"));
+        THROW_LIBXML_EXCEPTION(utls::Format("Can't set rdf:about attribute on rdf:Description node"));
 
     return description;
 }
@@ -471,7 +470,7 @@ xmlNsPtr findOrCreateNamespace(xmlDocPtr doc, xmlNodePtr description, PdfANamesp
         xmlNs = xmlNewNs(description, XMLCHAR href, XMLCHAR prefix);
 
     if (xmlNs == nullptr)
-        THROW_LIBXML_EXCEPTION(cmn::Format("Can't find or create {} namespace", prefix));
+        THROW_LIBXML_EXCEPTION(utls::Format("Can't find or create {} namespace", prefix));
 
     return xmlNs;
 }
@@ -538,7 +537,7 @@ void addXMPProperty(xmlDocPtr doc, xmlNodePtr description,
 
     auto element = xmlNewChild(description, xmlNs, XMLCHAR propName, nullptr);
     if (element == nullptr)
-        THROW_LIBXML_EXCEPTION(cmn::Format("Can't create xmp:{} node", propName));
+        THROW_LIBXML_EXCEPTION(utls::Format("Can't create xmp:{} node", propName));
 
     switch (property)
     {
@@ -586,13 +585,13 @@ void setListNodeContent(xmlDocPtr doc, xmlNodePtr node, XMPListType seqType,
     PDFMM_ASSERT(rdfNs != nullptr);
     auto innerElem = xmlNewChild(node, rdfNs, XMLCHAR elemName, nullptr);
     if (innerElem == nullptr)
-        THROW_LIBXML_EXCEPTION(cmn::Format("Can't create rdf:{} node", elemName));
+        THROW_LIBXML_EXCEPTION(utls::Format("Can't create rdf:{} node", elemName));
 
     for (auto& view : values)
     {
         auto liElem = xmlNewChild(innerElem, rdfNs, XMLCHAR "li", nullptr);
         if (liElem == nullptr)
-            THROW_LIBXML_EXCEPTION(cmn::Format("Can't create rdf:li node"));
+            THROW_LIBXML_EXCEPTION(utls::Format("Can't create rdf:li node"));
 
         if (seqType == XMPListType::LangAlt)
         {
@@ -601,7 +600,7 @@ void setListNodeContent(xmlDocPtr doc, xmlNodePtr node, XMPListType seqType,
             auto xmlNs = xmlSearchNs(doc, node, XMLCHAR "xml");
             PDFMM_ASSERT(xmlNs != nullptr);
             if (xmlSetNsProp(liElem, xmlNs, XMLCHAR "lang", XMLCHAR "x-default") == nullptr)
-                THROW_LIBXML_EXCEPTION(cmn::Format("Can't set xml:lang attribute on rdf:li node"));
+                THROW_LIBXML_EXCEPTION(utls::Format("Can't set xml:lang attribute on rdf:li node"));
         }
 
         xmlNodeSetContent(liElem, XMLCHAR view.data());

@@ -180,13 +180,13 @@ void TestObjectsDirty(
     const PdfObject& objVariant,
     bool testValue)
 {
-    INFO(cmn::Format("BOOL      IsDirty() == {}", testValue)); REQUIRE(objBool.IsDirty() == testValue);
-    INFO(cmn::Format("LONG      IsDirty() == {}", testValue)); REQUIRE(objNum.IsDirty() == testValue);
-    INFO(cmn::Format("DOUBLE    IsDirty() == {}", testValue)); REQUIRE(objReal.IsDirty() == testValue);
-    INFO(cmn::Format("STRING    IsDirty() == {}", testValue)); REQUIRE(objStr.IsDirty() == testValue);
-    INFO(cmn::Format("REFERENCE IsDirty() == {}", testValue)); REQUIRE(objRef.IsDirty() == testValue);
-    INFO(cmn::Format("ARRAY     IsDirty() == {}", testValue)); REQUIRE(objArray.IsDirty() == testValue);
-    INFO(cmn::Format("DICT      IsDirty() == {}", testValue)); REQUIRE(objDict.IsDirty() == testValue);
-    INFO(cmn::Format("STREAM    IsDirty() == {}", testValue)); REQUIRE(objStream.IsDirty() == testValue);
-    INFO(cmn::Format("VARIANT   IsDirty() == {}", testValue)); REQUIRE(objVariant.IsDirty() == testValue);
+    INFO(utls::Format("BOOL      IsDirty() == {}", testValue)); REQUIRE(objBool.IsDirty() == testValue);
+    INFO(utls::Format("LONG      IsDirty() == {}", testValue)); REQUIRE(objNum.IsDirty() == testValue);
+    INFO(utls::Format("DOUBLE    IsDirty() == {}", testValue)); REQUIRE(objReal.IsDirty() == testValue);
+    INFO(utls::Format("STRING    IsDirty() == {}", testValue)); REQUIRE(objStr.IsDirty() == testValue);
+    INFO(utls::Format("REFERENCE IsDirty() == {}", testValue)); REQUIRE(objRef.IsDirty() == testValue);
+    INFO(utls::Format("ARRAY     IsDirty() == {}", testValue)); REQUIRE(objArray.IsDirty() == testValue);
+    INFO(utls::Format("DICT      IsDirty() == {}", testValue)); REQUIRE(objDict.IsDirty() == testValue);
+    INFO(utls::Format("STREAM    IsDirty() == {}", testValue)); REQUIRE(objStream.IsDirty() == testValue);
+    INFO(utls::Format("VARIANT   IsDirty() == {}", testValue)); REQUIRE(objVariant.IsDirty() == testValue);
 }

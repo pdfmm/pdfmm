@@ -99,7 +99,7 @@ PdfString PdfFileSpec::CreateFileSpecification(const string_view& filename) cons
         }
         else
         {
-            cmn::FormatTo(buff, 5, "{:02X}", ch & 0xFF);
+            utls::FormatTo(buff, 5, "{:02X}", ch & 0xFF);
             str << buff;
         }
     }

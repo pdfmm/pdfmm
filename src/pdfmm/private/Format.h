@@ -1,5 +1,5 @@
-#ifndef COMMON_FORMAT_H
-#define COMMON_FORMAT_H
+#ifndef FORMAT_H
+#define FORMAT_H
 
 #include "format_compat.h"
 
@@ -7,9 +7,9 @@
  *
   * Format the string, if needed
  */
-#define COMMON_FORMAT(fmt, ...) ::cmn::FormatHelper::TryFormat(fmt, ##__VA_ARGS__)
+#define COMMON_FORMAT(fmt, ...) ::utls::FormatHelper::TryFormat(fmt, ##__VA_ARGS__)
 
-namespace cmn
+namespace utls
 {
     template <typename... Args>
     inline static std::string Format(const std::string_view& fmt, const Args&... args)
@@ -63,4 +63,4 @@ namespace cmn
     };
 }
 
-#endif // COMMON_FORMAT_H
+#endif // FORMAT_H

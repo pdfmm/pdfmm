@@ -224,13 +224,13 @@ void PdfObject::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
         if ((writeMode & PdfWriteFlags::Clean) == PdfWriteFlags::None
             && (writeMode & PdfWriteFlags::NoPDFAPreserve) != PdfWriteFlags::None)
         {
-            cmn::FormatTo(buffer, "{} {} obj", m_IndirectReference.ObjectNumber(), m_IndirectReference.GenerationNumber());
+            utls::FormatTo(buffer, "{} {} obj", m_IndirectReference.ObjectNumber(), m_IndirectReference.GenerationNumber());
             device.Write(buffer);
         }
         else
         {
             // PDF/A compliance requires all objects to be written in a clean way
-            cmn::FormatTo(buffer, "{} {} obj\n", m_IndirectReference.ObjectNumber(), m_IndirectReference.GenerationNumber());
+            utls::FormatTo(buffer, "{} {} obj\n", m_IndirectReference.ObjectNumber(), m_IndirectReference.GenerationNumber());
             device.Write(buffer);
         }
     }

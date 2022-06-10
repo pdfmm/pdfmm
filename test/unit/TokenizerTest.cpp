@@ -76,8 +76,8 @@ TEST_CASE("testName2")
     REQUIRE(variant.GetName() == name);
     REQUIRE(name == nameStr);
 
-    INFO(cmn::Format("!!! Name=[{}]\n", variant.GetName().GetString()));
-    INFO(cmn::Format("!!! Name2=[{}]\n", name.GetString()));
+    INFO(utls::Format("!!! Name=[{}]\n", variant.GetName().GetString()));
+    INFO(utls::Format("!!! Name2=[{}]\n", name.GetString()));
 }
 
 TEST_CASE("testNull")
@@ -185,20 +185,20 @@ void Test(const string_view& buffer, PdfDataType dataType, string_view expected)
 {
     expected = expected.empty() ? buffer : expected;
 
-    INFO(cmn::Format("Testing with value: {}", buffer));
+    INFO(utls::Format("Testing with value: {}", buffer));
 
     PdfMemoryInputDevice device(buffer);
     PdfTokenizer tokenizer;
     PdfVariant variant;
     REQUIRE(tokenizer.TryReadNextVariant(device, variant));
 
-    INFO(cmn::Format("   -> Expected Datatype: {}", dataType));
-    INFO(cmn::Format("   -> Got      Datatype: {}", variant.GetDataType()));
+    INFO(utls::Format("   -> Expected Datatype: {}", dataType));
+    INFO(utls::Format("   -> Got      Datatype: {}", variant.GetDataType()));
     REQUIRE(variant.GetDataType() == dataType);
 
     string variantStr;
     variant.ToString(variantStr);
-    INFO(cmn::Format("   -> Convert To String: {}", variantStr));
+    INFO(utls::Format("   -> Convert To String: {}", variantStr));
 
     REQUIRE(variantStr == expected);
 }

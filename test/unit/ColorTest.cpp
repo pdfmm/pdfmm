@@ -1618,7 +1618,7 @@ TEST_CASE("testNamesOneByOne")
 
         if (PdfColor() == COLOR_FROM_NAME)
         {
-            INFO(cmn::Format("Color {} is not supported", TEST_COLOR.getColorName()));
+            INFO(utls::Format("Color {} is not supported", TEST_COLOR.getColorName()));
         }
         else
         {

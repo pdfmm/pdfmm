@@ -50,11 +50,11 @@ void TestFilter(PdfFilterType filterType, const char* testBuffer, size_t testLen
     unique_ptr<PdfFilter> filter = PdfFilterFactory::Create(filterType);
     if (filter == nullptr)
     {
-        INFO(cmn::Format("!!! Filter {} not implemented.\n", filterType));
+        INFO(utls::Format("!!! Filter {} not implemented.\n", filterType));
         return;
     }
 
-    INFO(cmn::Format("Testing Algorithm {}:", filterType));
+    INFO(utls::Format("Testing Algorithm {}:", filterType));
     INFO("\t-> Testing Encoding");
     try
     {
@@ -64,7 +64,7 @@ void TestFilter(PdfFilterType filterType, const char* testBuffer, size_t testLen
     {
         if (e == PdfErrorCode::UnsupportedFilter)
         {
-            INFO(cmn::Format("\t-> Encoding not supported for filter {}.", (unsigned)filterType));
+            INFO(utls::Format("\t-> Encoding not supported for filter {}.", (unsigned)filterType));
             return;
         }
         else
@@ -83,7 +83,7 @@ void TestFilter(PdfFilterType filterType, const char* testBuffer, size_t testLen
     {
         if (e == PdfErrorCode::UnsupportedFilter)
         {
-            INFO(cmn::Format("\t-> Decoding not supported for filter {}", filterType));
+            INFO(utls::Format("\t-> Decoding not supported for filter {}", filterType));
             return;
         }
         else
@@ -93,9 +93,9 @@ void TestFilter(PdfFilterType filterType, const char* testBuffer, size_t testLen
         }
     }
 
-    INFO(cmn::Format("\t-> Original Data Length: {}", testLength));
-    INFO(cmn::Format("\t-> Encoded  Data Length: {}", encodedLength));
-    INFO(cmn::Format("\t-> Decoded  Data Length: {}", decodedLength));
+    INFO(utls::Format("\t-> Original Data Length: {}", testLength));
+    INFO(utls::Format("\t-> Encoded  Data Length: {}", encodedLength));
+    INFO(utls::Format("\t-> Decoded  Data Length: {}", decodedLength));
 
     REQUIRE(testLength == decodedLength);
     REQUIRE(memcmp(testBuffer, decoded.get(), testLength) == 0);

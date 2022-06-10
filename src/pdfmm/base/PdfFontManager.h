@@ -178,7 +178,7 @@ private:
 
     using FontMap = std::unordered_map<PdfReference, Storage>;
 
-    using FontMatcher = std::function<PdfFont*(const cmn::mspan<PdfFont*>&)>;
+    using FontMatcher = std::function<PdfFont*(const mspan<PdfFont*>&)>;
 private:
 #ifdef PDFMM_HAVE_FONTCONFIG
     static std::shared_ptr<PdfFontConfigWrapper> ensureInitializedFontConfig();

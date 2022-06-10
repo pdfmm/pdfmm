@@ -37,7 +37,7 @@ TEST_CASE("testFonts")
         return;
     }
 
-    INFO(cmn::Format("Testing {} fonts", fontSet->nfont));
+    INFO(utls::Format("Testing {} fonts", fontSet->nfont));
     for (int i = 0; i < fontSet->nfont; i++)
         testSingleFont(fontSet->fonts[i]);
 
@@ -61,7 +61,7 @@ void testSingleFont(FcPattern* font)
             PdfFontSearchParams params;
             params.Style = style;
             (void)doc.GetFontManager().GetFont(fontFamily, params);
-            INFO(cmn::Format("Font failed: {}", fontPath));
+            INFO(utls::Format("Font failed: {}", fontPath));
         }
     }
 }

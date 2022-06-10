@@ -116,7 +116,7 @@ void PdfImmediateWriter::Finish()
         trailer.Write(*m_Device, this->GetWriteFlags(), nullptr, m_buffer);
     }
 
-    cmn::FormatTo(m_buffer, "startxref\n{}\n%%EOF\n", lXRefOffset);
+    utls::FormatTo(m_buffer, "startxref\n{}\n%%EOF\n", lXRefOffset);
     m_Device->Write(m_buffer);
     m_Device->Flush();
 

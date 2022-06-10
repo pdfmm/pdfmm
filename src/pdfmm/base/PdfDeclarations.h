@@ -53,61 +53,6 @@ extern "C"\
  */
 namespace mm {
 
-/** Convenient read-only char buffer span/view
- */
-using bufferview = cmn::cspan<char>;
-
-/**
- * Convenient type for char array storage and/or buffer with
- * std::string compatibility
- */
-class PDFMM_API charbuff final : public std::string
-{
-public:
-    using ptr = std::shared_ptr<charbuff>;
-    using const_ptr = std::shared_ptr<charbuff>;
-
-public:
-    charbuff();
-    charbuff(const charbuff&) = default;
-    charbuff(charbuff&&) = default;
-    charbuff(size_t size);
-    charbuff(std::string&& str);
-    explicit charbuff(const bufferview& view);
-    explicit charbuff(const std::string_view& view);
-    explicit charbuff(const std::string& str);
-
-public:
-    charbuff& operator=(const charbuff&) = default;
-    charbuff& operator=(charbuff&&) = default;
-    charbuff& operator=(const std::string_view& view);
-    charbuff& operator=(const std::string& str);
-    charbuff& operator=(const bufferview& view);
-    charbuff& operator=(std::string&& str);
-    operator bufferview() const;
-};
-
-/** A const data provider that can hold a view to a
- * static segments or a shared buffer
- * 
- */
-class PDFMM_API datahandle final
-{
-public:
-    datahandle();
-    datahandle(const bufferview& view);
-    datahandle(const charbuff::const_ptr& buff);
-public:
-    const bufferview& view() const { return m_view; }
-private:
-    bufferview m_view;
-    charbuff::const_ptr m_buff;
-};
-
-/** Unicode code point view
- */
-using unicodeview = cmn::cspan<char32_t>;
-
 // NOTE: This may change in the future
 using Matrix2D = std::array<double, 6>;
 

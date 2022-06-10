@@ -73,7 +73,7 @@ void PdfCharCode::WriteHexTo(string& str, bool wrap) const
         }
     }
 
-    cmn::FormatTo(str, pattern, Code);
+    utls::FormatTo(str, pattern, Code);
 }
 
 PdfCID::PdfCID()

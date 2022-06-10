@@ -28,7 +28,6 @@
 #include "PdfFontType1.h"
 
 using namespace std;
-using namespace cmn;
 using namespace mm;
 
 #if defined(_WIN32) && defined(PDFMM_HAVE_WIN32GDI)
@@ -216,7 +215,7 @@ void PdfFontManager::AddFontDirectory(const string_view& path)
         if (GetLastError() == ERROR_FILE_NOT_FOUND)
             return;
 
-        throw runtime_error(cmn::Format("Invalid font directory {}", fontDir));
+        throw runtime_error(utls::Format("Invalid font directory {}", fontDir));
     }
 
     do
@@ -226,7 +225,7 @@ void PdfFontManager::AddFontDirectory(const string_view& path)
             u16string filePath = utf8::utf8to16(fontDir);
             filePath.append((char16_t*)findData.cFileName);
             if (AddFontResourceExW((wchar_t*)filePath.c_str(), FR_PRIVATE, 0) == 0)
-                throw runtime_error(cmn::Format("Invalid font {}", utf8::utf16to8(filePath)));
+                throw runtime_error(utls::Format("Invalid font {}", utf8::utf16to8(filePath)));
 
         }
     }

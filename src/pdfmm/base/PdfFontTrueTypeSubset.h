@@ -28,7 +28,7 @@ enum class TrueTypeFontFileType
     OTF,    ///< OpenType Font
 };
 
-using GIDList = cmn::cspan<unsigned>;
+using GIDList = cspan<unsigned>;
 
 /**
  * This class is able to build a new TTF font with only

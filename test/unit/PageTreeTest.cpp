@@ -464,7 +464,7 @@ bool isPageNumber(PdfPage& page, unsigned number)
 
     if (pageNumber != static_cast<int64_t>(number))
     {
-        INFO(cmn::Format("PagesTreeTest: Expected page number {} but got {}", number, pageNumber));
+        INFO(utls::Format("PagesTreeTest: Expected page number {} but got {}", number, pageNumber));
         return false;
     }
     else

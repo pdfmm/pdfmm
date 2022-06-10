@@ -87,7 +87,7 @@ TEST_CASE("testAdditional")
 
     for (auto& d : data)
     {
-        INFO(cmn::Format("Parse {}", d.name));
+        INFO(utls::Format("Parse {}", d.name));
         checkExpected(d.date, true);
     }
 }
