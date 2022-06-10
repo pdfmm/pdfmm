@@ -72,7 +72,7 @@ PdfString PdfString::FromHexData(const string_view& hexView, const PdfStatefulEn
     charbuff buffer;
     buffer.reserve(len % 2 ? (len + 1) >> 1 : len >> 1);
 
-    char val;
+    unsigned char val;
     char decodedChar = 0;
     bool low = true;
     for (size_t i = 0; i < len; i++)
@@ -81,15 +81,15 @@ PdfString PdfString::FromHexData(const string_view& hexView, const PdfStatefulEn
         if (PdfTokenizer::IsWhitespace(ch))
             continue;
 
-        val = PdfTokenizer::GetHexValue(ch);
+        (void)utls::TryGetHexValue(ch, val);
         if (low)
         {
-            decodedChar = val & 0x0F;
+            decodedChar = (char)(val & 0x0F);
             low = false;
         }
         else
         {
-            decodedChar = (decodedChar << 4) | val;
+            decodedChar = (char)((decodedChar << 4) | val);
             low = true;
             buffer.push_back(decodedChar);
         }

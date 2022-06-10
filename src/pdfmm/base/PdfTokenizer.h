@@ -137,22 +137,6 @@ public:
      */
     static bool IsPrintable(unsigned char ch);
 
-    /**
-     * Get the hex value from a static map of a given hex character (0-9, A-F, a-f).
-     *
-     * \param ch hex character
-     *
-     * \returns hex value or HEX_NOT_FOUND if invalid
-     *
-     * \see HEX_NOT_FOUND
-     */
-    static int GetHexValue(unsigned char ch);
-
-    /**
-     * Constant which is returned for invalid hex values.
-     */
-    static constexpr unsigned HEX_NOT_FOUND = std::numeric_limits<unsigned>::max();
-
 protected:
     // This enum differs from regular PdfDataType in the sense
     // it enumerates only data types that can be determined literally

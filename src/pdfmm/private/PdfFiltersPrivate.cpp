@@ -255,8 +255,7 @@ void PdfHexFilter::BeginDecodeImpl(const PdfDictionary*)
 
 void PdfHexFilter::DecodeBlockImpl(const char* buffer, size_t len)
 {
-    char val;
-
+    unsigned char val;
     while (len--)
     {
         if (PdfTokenizer::IsWhitespace(*buffer))
@@ -265,15 +264,15 @@ void PdfHexFilter::DecodeBlockImpl(const char* buffer, size_t len)
             continue;
         }
 
-        val = PdfTokenizer::GetHexValue(*buffer);
+        (void)utls::TryGetHexValue(*buffer, val);
         if (m_Low)
         {
-            m_DecodedByte = (val & 0x0F);
+            m_DecodedByte = (char)(val & 0x0F);
             m_Low = false;
         }
         else
         {
-            m_DecodedByte = ((m_DecodedByte << 4) | val);
+            m_DecodedByte = (char)((m_DecodedByte << 4) | val);
             m_Low = true;
 
             GetStream()->Write(&m_DecodedByte, 1);

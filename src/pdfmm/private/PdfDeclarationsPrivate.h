@@ -207,6 +207,8 @@ namespace utls
      */
     int TypeNameToIndex(const char* type, const char** types, unsigned len, int unknownValue);
 
+    bool TryGetHexValue(char ch, unsigned char& value);
+
     // Write the char to the supplied buffer as hexadecimal code
     void WriteCharHexTo(char buf[2], char ch);
 

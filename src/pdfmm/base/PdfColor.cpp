@@ -688,74 +688,63 @@ PdfColor PdfColor::FromString(const string_view& name)
     {
         if (name.size() == 7) // RGB
         {
-            const unsigned R_HI = static_cast<unsigned>(PdfTokenizer::GetHexValue(name[1]));
-            const unsigned R_LO = static_cast<unsigned>(PdfTokenizer::GetHexValue(name[2]));
-            const unsigned R = (R_HI << 4) | R_LO;
+            unsigned char R_HI;
+            unsigned char R_LO;
+            unsigned char G_HI;
+            unsigned char G_LO;
+            unsigned char B_HI;
+            unsigned char B_LO;
 
-            const unsigned G_HI = static_cast<unsigned>(PdfTokenizer::GetHexValue(name[3]));
-            const unsigned G_LO = static_cast<unsigned>(PdfTokenizer::GetHexValue(name[4]));
-            const unsigned G = (G_HI << 4) | G_LO;
-
-            const unsigned B_HI = static_cast<unsigned>(PdfTokenizer::GetHexValue(name[5]));
-            const unsigned B_LO = static_cast<unsigned>(PdfTokenizer::GetHexValue(name[6]));
-            const unsigned B = (B_HI << 4) | B_LO;
-
-            if (
-                (R_HI != PdfTokenizer::HEX_NOT_FOUND) &&
-                (R_LO != PdfTokenizer::HEX_NOT_FOUND) &&
-                (G_HI != PdfTokenizer::HEX_NOT_FOUND) &&
-                (G_LO != PdfTokenizer::HEX_NOT_FOUND) &&
-                (B_HI != PdfTokenizer::HEX_NOT_FOUND) &&
-                (B_LO != PdfTokenizer::HEX_NOT_FOUND)
-                )
-            {
-                return PdfColor(static_cast<double>(R) / 255.0,
-                    static_cast<double>(G) / 255.0,
-                    static_cast<double>(B) / 255.0);
-            }
-            else
+            if (!utls::TryGetHexValue(name[1], R_HI)
+                || !utls::TryGetHexValue(name[2], R_LO)
+                || !utls::TryGetHexValue(name[3], G_HI)
+                || !utls::TryGetHexValue(name[4], G_LO)
+                || !utls::TryGetHexValue(name[5], B_HI)
+                || !utls::TryGetHexValue(name[6], B_LO))
             {
                 PDFMM_RAISE_ERROR(PdfErrorCode::CannotConvertColor);
             }
+
+            const unsigned R = (R_HI << 4) | R_LO;
+            const unsigned G = (G_HI << 4) | G_LO;
+            const unsigned B = (B_HI << 4) | B_LO;
+
+            return PdfColor(static_cast<double>(R) / 255.0,
+                static_cast<double>(G) / 255.0,
+                static_cast<double>(B) / 255.0);
         }
         else if (name.size() == 9) // CMYK
         {
-            const unsigned C_HI = static_cast<unsigned>(PdfTokenizer::GetHexValue(name[1]));
-            const unsigned C_LO = static_cast<unsigned>(PdfTokenizer::GetHexValue(name[2]));
-            const unsigned C = (C_HI << 4) | C_LO;
+            unsigned char C_HI;
+            unsigned char C_LO;
+            unsigned char M_HI;
+            unsigned char M_LO;
+            unsigned char Y_HI;
+            unsigned char Y_LO;
+            unsigned char K_HI;
+            unsigned char K_LO;
 
-            const unsigned M_HI = static_cast<unsigned>(PdfTokenizer::GetHexValue(name[3]));
-            const unsigned M_LO = static_cast<unsigned>(PdfTokenizer::GetHexValue(name[4]));
-            const unsigned M = (M_HI << 4) | M_LO;
-
-            const unsigned Y_HI = static_cast<unsigned>(PdfTokenizer::GetHexValue(name[5]));
-            const unsigned Y_LO = static_cast<unsigned>(PdfTokenizer::GetHexValue(name[6]));
-            const unsigned Y = (Y_HI << 4) | Y_LO;
-
-            const unsigned K_HI = static_cast<unsigned>(PdfTokenizer::GetHexValue(name[7]));
-            const unsigned K_LO = static_cast<unsigned>(PdfTokenizer::GetHexValue(name[8]));
-            const unsigned K = (K_HI << 4) | K_LO;
-
-            if (
-                (C_HI != PdfTokenizer::HEX_NOT_FOUND) &&
-                (C_LO != PdfTokenizer::HEX_NOT_FOUND) &&
-                (M_HI != PdfTokenizer::HEX_NOT_FOUND) &&
-                (M_LO != PdfTokenizer::HEX_NOT_FOUND) &&
-                (Y_HI != PdfTokenizer::HEX_NOT_FOUND) &&
-                (Y_LO != PdfTokenizer::HEX_NOT_FOUND) &&
-                (K_HI != PdfTokenizer::HEX_NOT_FOUND) &&
-                (K_LO != PdfTokenizer::HEX_NOT_FOUND)
-                )
-            {
-                return PdfColor(static_cast<double>(C) / 255.0,
-                    static_cast<double>(M) / 255.0,
-                    static_cast<double>(Y) / 255.0,
-                    static_cast<double>(K) / 255.0);
-            }
-            else
+            if (!utls::TryGetHexValue(name[1], C_HI)
+                || !utls::TryGetHexValue(name[2], C_LO)
+                || !utls::TryGetHexValue(name[3], M_HI)
+                || !utls::TryGetHexValue(name[4], M_LO)
+                || !utls::TryGetHexValue(name[5], Y_HI)
+                || !utls::TryGetHexValue(name[6], Y_LO)
+                || !utls::TryGetHexValue(name[7], K_HI)
+                || !utls::TryGetHexValue(name[8], K_LO))
             {
                 PDFMM_RAISE_ERROR(PdfErrorCode::CannotConvertColor);
             }
+
+            const unsigned C = (C_HI << 4) | C_LO;
+            const unsigned M = (M_HI << 4) | M_LO;
+            const unsigned Y = (Y_HI << 4) | Y_LO;
+            const unsigned K = (K_HI << 4) | K_LO;
+
+            return PdfColor(static_cast<double>(C) / 255.0,
+                static_cast<double>(M) / 255.0,
+                static_cast<double>(Y) / 255.0,
+                static_cast<double>(K) / 255.0);
         }
         else
         {

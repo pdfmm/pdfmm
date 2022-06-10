@@ -162,6 +162,70 @@ int utls::TypeNameToIndex(const char* type, const char** types, unsigned len, in
     return unknownValue;
 }
 
+bool utls::TryGetHexValue(char ch, unsigned char& value)
+{
+    switch (ch)
+    {
+        case '0':
+            value = 0x0;
+            return true;
+        case '1':
+            value = 0x1;
+            return true;
+        case '2':
+            value = 0x2;
+            return true;
+        case '3':
+            value = 0x3;
+            return true;
+        case '4':
+            value = 0x4;
+            return true;
+        case '5':
+            value = 0x5;
+            return true;
+        case '6':
+            value = 0x6;
+            return true;
+        case '7':
+            value = 0x7;
+            return true;
+        case '8':
+            value = 0x8;
+            return true;
+        case '9':
+            value = 0x9;
+            return true;
+        case 'a':
+        case 'A':
+            value = 0xA;
+            return true;
+        case 'b':
+        case 'B':
+            value = 0xB;
+            return true;
+        case 'c':
+        case 'C':
+            value = 0xC;
+            return true;
+        case 'd':
+        case 'D':
+            value = 0xD;
+            return true;
+        case 'e':
+        case 'E':
+            value = 0xE;
+            return true;
+        case 'f':
+        case 'F':
+            value = 0xF;
+            return true;
+        default:
+            value = 0x0;
+            return false;
+    }
+}
+
 size_t utls::FileSize(const string_view& filename)
 {
     streampos fbegin;
