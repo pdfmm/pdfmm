@@ -9,6 +9,7 @@
 #ifndef PDF_TOKENIZER_H
 #define PDF_TOKENIZER_H
 
+#include <limits>
 #include "PdfDeclarations.h"
 #include "PdfInputDevice.h"
 #include "PdfStatefulEncrypt.h"
