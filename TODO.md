@@ -7,12 +7,14 @@
 - Add a PdfRectRaw that avoid normalization by default
 
 ### After 0.10
-- Added version of PdfFont::TryGetSubstituteFont for rendering
-  (metrics of loaded font override metrics found on /FontFile)
+- Check PdfSignature to have correct /ByteRange and /Contents
+values in the dictionary after signing with SignDocument
 - Check PdfStreamedDocument working
 - Check/Review doxygen doc
 
 ### After 1.0
+- Added version of PdfFont::TryGetSubstituteFont for rendering
+  (metrics of loaded font override metrics found on /FontFile)
 - Add backtrace: https://github.com/boostorg/stacktrace
 - PdfDifferenceEncoding: Rework Adobe Glyph List handling and moving it to private folder
 - Option to unfold Unicode ligatures to separate codepoints during encoded -> utf8 conversion
