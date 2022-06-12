@@ -25,6 +25,8 @@
 using namespace std;
 using namespace mm;
 
+static const locale s_cachedLocale("C");
+
 static void removeTrailingZeroes(string& str);
 
 struct VersionIdentity
@@ -132,14 +134,30 @@ string mm::ToPdfKeywordsString(const cspan<string>& keywords)
     return ret;
 }
 
+const locale& utls::GetInvariantLocale()
+{
+    return s_cachedLocale;
+}
+
 bool utls::IsStringEmptyOrWhiteSpace(const string_view& str)
 {
     for (unsigned i = 0; i < str.size(); i++)
     {
-        if (!std::isspace((unsigned char)str[i]))
+        if (!std::isspace((unsigned char)str[i], s_cachedLocale))
             return false;
     }
     return true;
+}
+
+string utls::TrimSpacesEnd(const string_view& str)
+{
+    for (int i = (int)str.length() - 1; i >= 0; i--)
+    {
+        if (!std::isspace(str[i], s_cachedLocale))
+            return (string)str.substr(0, i + 1);
+    }
+
+    return string();
 }
 
 const char* utls::TypeNameForIndex(unsigned index, const char** types, unsigned len)
@@ -334,22 +352,13 @@ void utls::WriteCharHexTo(char buf[2], char ch)
 }
 
 // Append the char to the supplied string as hexadecimal code
-void utls::WriteCharHexTo(string& str, char ch, bool clear)
+void utls::WriteCharHexTo(string& str, char ch)
 {
-    if (clear)
-    {
-        str.resize(2);
-        WriteCharHexTo(str.data(), ch);
-    }
-    else
-    {
-        size_t initialLen = str.length();
-        str.resize(initialLen + 2);
-        WriteCharHexTo(str.data() + initialLen, ch);
-    }
+    str.resize(2);
+    WriteCharHexTo(str.data(), ch);
 }
 
-void utls::WriteToUtf16BE(u16string& str, char32_t codePoint, bool clear)
+void utls::WriteUtf16BETo(u16string& str, char32_t codePoint)
 {
     // FIX-ME: This is very inefficient. We should improve
     // utfcpp to avoit conversion to utf8 first
@@ -359,10 +368,7 @@ void utls::WriteToUtf16BE(u16string& str, char32_t codePoint, bool clear)
 #ifdef PDFMM_IS_LITTLE_ENDIAN
     ByteSwap(u16str);
 #endif
-    if (clear)
-        str = std::move(u16str);
-    else
-        str.append(u16str.data(), u16str.length());
+    str = std::move(u16str);
 }
 
 void utls::ReadUtf16BEString(const bufferview& buffer, string& utf8str)

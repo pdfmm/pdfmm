@@ -29,9 +29,9 @@ class PDFMM_API PdfDifferenceList
         char32_t MappedCodePoint = U'\0';
     };
 
-    typedef std::vector<Difference> List;
-    typedef std::vector<Difference>::iterator iterator;
-    typedef std::vector<Difference>::const_iterator const_iterator;
+    using List = std::vector<Difference>;
+    using iterator = std::vector<Difference>::iterator;
+    using const_iterator = std::vector<Difference>::const_iterator;
 
 public:
     /** Create a PdfEncodingDifference object.

@@ -19,11 +19,8 @@ PdfCharCode::PdfCharCode(unsigned code, unsigned char codeSpaceSize)
 {
 }
 
-void PdfCharCode::AppendTo(string& str, bool clear) const
+void PdfCharCode::AppendTo(string& str) const
 {
-    if (clear)
-        str.clear();
-
     for (unsigned i = CodeSpaceSize; i >= 1; i--)
         str.append(1, (char)((Code >> (i - 1) * CHAR_BIT) & 0xFF));
 }

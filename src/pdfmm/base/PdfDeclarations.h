@@ -146,6 +146,14 @@ enum class PdfDataType : uint8_t
     RawData,               ///< Raw PDF data
 };
 
+enum class PdfTextExtractFlags
+{
+    None = 0,
+    IgnoreCase = 1,
+    KeepWhiteTokens = 2,
+    TokenizeWords = 4,
+};
+
 enum class PdfXObjectType
 {
     Unknown = 0,
@@ -617,6 +625,7 @@ ENABLE_BITMASK_OPERATORS(mm::PdfFontCreateFlags);
 ENABLE_BITMASK_OPERATORS(mm::PdfFontAutoSelectBehavior);
 ENABLE_BITMASK_OPERATORS(mm::PdfFontDescriptorFlags);
 ENABLE_BITMASK_OPERATORS(mm::PdfGlyphAccess);
+ENABLE_BITMASK_OPERATORS(mm::PdfTextExtractFlags);
 
 /**
  * \mainpage

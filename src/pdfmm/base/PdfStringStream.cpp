@@ -17,8 +17,7 @@ using namespace mm;
 PdfStringStream::PdfStringStream()
     : m_stream(new outstringstream())
 {
-    static const locale s_cachedLocale("C");
-    m_stream->imbue(s_cachedLocale);
+    m_stream->imbue(utls::GetInvariantLocale());
 }
 
 PdfStringStream& PdfStringStream::operator<<(float val)

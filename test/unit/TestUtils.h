@@ -58,6 +58,8 @@
     } while (false);
 
 
+#define ASSERT_EQUAL(expected, actual) TestUtils::AssertEqual(expected, actual)
+
 namespace mm
 {
     namespace fs = std::filesystem;
@@ -69,11 +71,14 @@ namespace mm
     class TestUtils
     {
     public:
+        static constexpr double THRESHOLD = 0.001;
+
         static std::string GetTestOutputFilePath(const std::string_view& filename);
         static std::string GetTestInputFilePath(const std::string_view& filename);
         static const fs::path& GetTestInputPath();
         static const fs::path& GetTestOutputPath();
         static void ReadTestInputFileTo(std::string& str, const std::string_view& filename);
+        static void AssertEqual(double expected, double actual, double threshold = THRESHOLD);
     };
 }
 

@@ -97,7 +97,7 @@ private:
     };
 
     // A CID indexed glyph map
-    typedef std::map<unsigned, GlyphData> GlyphDatas;
+    using GlyphDatas = std::map<unsigned, GlyphData>;
 
     struct GlyphContext
     {

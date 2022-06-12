@@ -57,11 +57,14 @@ public:
      */
     std::string ToString() const;
 
+    bool Contains(double x, double y) const;
+
     /** Assigns the values of this PdfRect from the 4 values in the array
      *  \param inArray the array to load the values from
      */
     void FromArray(const PdfArray& arr);
 
+    // REMOVE-ME: The name of this method is bad and it's also
     /** Intersect with another rect
      *  \param rect the rect to intersect with
      */

@@ -38,9 +38,8 @@ enum class PdfFunctionType
 class PDFMM_API PdfFunction : public PdfDictionaryElement
 {
 public:
-
-    typedef std::list<PdfFunction> List;
-    typedef std::list<char> Sample;
+    using List = std::list<PdfFunction>;
+    using Sample = std::list<char>;
 
 protected:
     /** Create a new PdfFunction object.

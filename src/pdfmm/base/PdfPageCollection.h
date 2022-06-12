@@ -29,7 +29,7 @@ class PdfRect;
 class PDFMM_API PdfPageCollection final : public PdfDictionaryElement
 {
     friend class PdfDocument;
-    typedef std::deque<PdfObject*> PdfObjectList;
+    using PdfObjectList = std::deque<PdfObject*>;
 
 public:
     /** Construct a new PdfPageTree

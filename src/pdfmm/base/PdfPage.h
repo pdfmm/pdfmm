@@ -26,6 +26,22 @@ class PdfDictionary;
 class PdfIndirectObjectList;
 class PdfInputStream;
 
+struct PdfTextEntry final
+{
+    std::string Text;
+    int Page;
+    double X;
+    double Y;
+    double RawX;
+    double RawY;
+};
+
+struct PdfTextExtractParams
+{
+    nullable<PdfRect> ClipRect;
+    PdfTextExtractFlags Flags;
+};
+
 /** PdfPage is one page in the pdf document.
  *  It is possible to draw on a page using a PdfPainter object.
  *  Every document needs at least one page.
@@ -54,6 +70,13 @@ private:
 
 public:
     virtual ~PdfPage();
+
+    void ExtractTextTo(std::vector<PdfTextEntry>& entries,
+        const PdfTextExtractParams& params) const;
+
+    void ExtractTextTo(std::vector<PdfTextEntry>& entries,
+        const std::string_view& pattern = { },
+        const PdfTextExtractParams& params = { }) const;
 
     PdfRect GetRect() const override;
 
@@ -245,7 +268,7 @@ private:
     const PdfObject* GetContentsObject() const = delete;
 
 private:
-    typedef std::map<PdfObject*, PdfAnnotation*> AnnotationDirectMap;
+    using AnnotationDirectMap = std::map<PdfObject*, PdfAnnotation*>;
 
 private:
     std::unique_ptr<PdfContents> m_Contents;

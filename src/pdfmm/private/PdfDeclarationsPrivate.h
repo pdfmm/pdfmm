@@ -174,7 +174,11 @@ namespace mm
  */
 namespace utls
 {
+    const std::locale& GetInvariantLocale();
+
     bool IsStringEmptyOrWhiteSpace(const std::string_view& str);
+
+    std::string TrimSpacesEnd(const std::string_view& str);
 
     /** Convert an enum or index to its string representation
      *  which can be written to the PDF file.
@@ -213,10 +217,10 @@ namespace utls
     void WriteCharHexTo(char buf[2], char ch);
 
     // Append the char to the supplied string as hexadecimal code
-    void WriteCharHexTo(std::string& str, char ch, bool clear = true);
+    void WriteCharHexTo(std::string& str, char ch);
 
     // Append the unicode code point to a big endian encoded utf16 string
-    void WriteToUtf16BE(std::u16string& str, char32_t codePoint, bool clear = true);
+    void WriteUtf16BETo(std::u16string& str, char32_t codePoint);
 
     void ReadUtf16BEString(const mm::bufferview& buffer, std::string& utf8str);
 

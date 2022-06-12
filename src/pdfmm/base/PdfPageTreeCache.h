@@ -22,7 +22,7 @@ class PdfPage;
  */
 class PDFMM_API PdfPageTreeCache final
 {
-    typedef std::vector<PdfPage*> List;
+    using List = std::vector<PdfPage*>;
 
 public:
     /** Construct a new PdfCachedPagesTree.

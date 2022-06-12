@@ -20,7 +20,7 @@ class PdfName;
 class PdfObject;
 class PdfOutputStream;
 
-typedef std::vector<PdfFilterType> PdfFilterList;
+using PdfFilterList = std::vector<PdfFilterType>;
 
 /** Every filter in pdfmm has to implement this interface.
  *

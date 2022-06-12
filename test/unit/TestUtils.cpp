@@ -11,6 +11,8 @@
 #include <fstream>
 #include <filesystem>
 
+#include <catch.hpp>
+
 #include <utfcpp/utf8.h>
 #include <TestConfig.h>
 
@@ -51,6 +53,12 @@ const fs::path& TestUtils::GetTestOutputPath()
 void TestUtils::ReadTestInputFileTo(string& str, const string_view& filename)
 {
     readTestInputFileTo(str, GetTestInputFilePath(filename));
+}
+
+void TestUtils::AssertEqual(double expected, double actual, double threshold)
+{
+    if (std::abs(actual - expected) > threshold)
+        FAIL("Expected different than actual");
 }
 
 void readTestInputFileTo(string& str, const string_view& filepath)

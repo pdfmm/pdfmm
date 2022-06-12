@@ -13,7 +13,7 @@
 
 namespace mm {
 
-typedef std::unordered_map<unsigned short, unsigned char> Std14CPToGIDMap;
+using Std14CPToGIDMap = std::unordered_map<unsigned short, unsigned char>;
 
 std::string_view GetStandard14FontName(PdfStandard14FontType stdFont);
 

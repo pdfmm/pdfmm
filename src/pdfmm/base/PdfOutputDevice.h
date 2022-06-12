@@ -216,9 +216,9 @@ private:
     TContainer* m_container;
 };
 
-typedef PdfContainerOutputDevice<std::string> PdfStringOutputDevice;
-typedef PdfContainerOutputDevice<std::vector<char>> PdfVectorOutputDevice;
-typedef PdfContainerOutputDevice<charbuff> PdfCharsOutputDevice;
+using PdfStringOutputDevice = PdfContainerOutputDevice<std::string>;
+using PdfVectorOutputDevice = PdfContainerOutputDevice<std::vector<char>>;
+using PdfCharsOutputDevice = PdfContainerOutputDevice<charbuff>;
 
 /**
  * An output device that does nothing

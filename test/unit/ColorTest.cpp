@@ -2174,8 +2174,8 @@ TEST_CASE("testColorCieLabConstructor")
 
 TEST_CASE("testRGBtoCMYKConversions")
 {
-    typedef std::pair<PdfColor, PdfColor> TPairOfColors;
-    typedef std::map<std::string, TPairOfColors> TMapOfColors;
+    using TPairOfColors = std::pair<PdfColor, PdfColor>;
+    using TMapOfColors = std::map<std::string, TPairOfColors>;
 
     TMapOfColors colorTable;
     colorTable["red"] = TPairOfColors(PdfColor(1.0, 0.0, 0.0), PdfColor(0.0, 1.0, 1.0, 0.0));

@@ -235,8 +235,8 @@ private:
     bool tryReadDataType(PdfInputDevice& device, PdfLiteralDataType dataType, PdfVariant& variant, const PdfStatefulEncrypt& encrypt);
 
 private:
-    typedef std::pair<std::string, PdfTokenType> TokenizerPair;
-    typedef std::deque<TokenizerPair> TokenizerQueque;
+    using TokenizerPair = std::pair<std::string, PdfTokenType>;
+    using TokenizerQueque = std::deque<TokenizerPair>;
 
 private:
     std::shared_ptr<charbuff> m_buffer;

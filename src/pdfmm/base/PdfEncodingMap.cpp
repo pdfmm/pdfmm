@@ -369,7 +369,7 @@ void PdfEncodingMap::AppendUTF16CodeTo(PdfObjectStream& stream, const unicodevie
             stream.Append(" "); // Separate each character in the ligatures
 
         char32_t cp = codePoints[i];
-        utls::WriteToUtf16BE(u16tmp, cp);
+        utls::WriteUtf16BETo(u16tmp, cp);
 
         auto data = (const char*)u16tmp.data();
         size_t size = u16tmp.size() * sizeof(char16_t);

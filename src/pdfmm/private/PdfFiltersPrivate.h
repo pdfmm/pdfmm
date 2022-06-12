@@ -193,9 +193,9 @@ class PdfLZWFilter : public PdfFilter
         std::vector<unsigned char> value;
     };
 
-    typedef std::vector<TLzwItem> TLzwTable;
-    typedef TLzwTable::iterator TILzwTable;
-    typedef TLzwTable::const_iterator TCILzwTable;
+    using TLzwTable = std::vector<TLzwItem>;
+    using TILzwTable = TLzwTable::iterator;
+    using TCILzwTable = TLzwTable::const_iterator;
 
 public:
     PdfLZWFilter();

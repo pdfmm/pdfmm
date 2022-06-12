@@ -41,8 +41,8 @@ protected:
         }
     };
 
-    typedef std::vector<XRefItem> XRefItemList;
-    typedef std::vector<PdfReference> ReferenceList;
+    using XRefItemList = std::vector<XRefItem>;
+    using ReferenceList = std::vector<PdfReference>;
 
     struct PdfXRefBlock
     {
@@ -66,7 +66,7 @@ protected:
         ReferenceList FreeItems;
     };
 
-    typedef std::vector<PdfXRefBlock> XRefBlockList;
+    using XRefBlockList = std::vector<PdfXRefBlock>;
 
 public:
     PdfXRef(PdfWriter& pWriter);

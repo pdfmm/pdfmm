@@ -90,7 +90,7 @@ namespace mm
 
         // Map code units -> code point(s)
         // pp. 474-475 of PdfReference 1.7 "The value of dstString can be a string of up to 512 bytes"
-        typedef std::unordered_map<PdfCharCode, std::vector<codepoint>, HashCharCode, EqualCharCode> CUMap;
+        using CUMap = std::unordered_map<PdfCharCode, std::vector<codepoint>, HashCharCode, EqualCharCode>;
 
         // Map code point(s) -> code units
         struct CPMapNode
@@ -115,7 +115,7 @@ namespace mm
         static CPMapNode* findOrAddNode(CPMapNode*& node, codepoint codePoint);
 
     public:
-        typedef CUMap::const_iterator iterator;
+        using iterator = CUMap::const_iterator;
 
     public:
         iterator begin() const;

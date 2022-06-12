@@ -986,13 +986,13 @@ void PdfDCTFilter::EndDecodeImpl()
 */
 
 /* Expanded data source object for memory input */
-typedef struct
+struct my_source_mgr
 {
     struct jpeg_source_mgr pub; /* public fields */
     JOCTET eoi_buffer[2]; /* a place to put a dummy EOI */
-} my_source_mgr;
+};
 
-typedef my_source_mgr* my_src_ptr;
+using my_src_ptr = my_source_mgr*;
 
 /*
  * Initialize source, called by jpeg_read_header

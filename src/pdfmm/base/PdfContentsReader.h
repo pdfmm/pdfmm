@@ -67,7 +67,7 @@ enum class PdfContentReaderFlags
  * \param imageDict dictionary for the inline image
  * \returns false if EOF 
  */
-typedef std::function<bool(const PdfDictionary& imageDict, PdfInputDevice& device)> PdfInlineImageHandler;
+using PdfInlineImageHandler = std::function<bool(const PdfDictionary& imageDict, PdfInputDevice& device)>;
 
 struct PdfContentReaderArgs
 {

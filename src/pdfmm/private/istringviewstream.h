@@ -40,10 +40,10 @@ namespace cmn
     class stringviewbuffer : public std::basic_streambuf<CharT>
     {
     public:
-        typedef std::char_traits<CharT> traits_type;
-        typedef typename traits_type::int_type int_type;
-        typedef typename traits_type::pos_type pos_type;
-        typedef typename traits_type::off_type off_type;
+        using traits_type = std::char_traits<CharT>;
+        using int_type = typename traits_type::int_type;
+        using pos_type = typename traits_type::pos_type;
+        using off_type = typename traits_type::off_type;
 
     public:
         stringviewbuffer()

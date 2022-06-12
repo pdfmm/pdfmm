@@ -23,7 +23,7 @@ class PdfObject;
 class PdfObjectStream;
 class PdfVariant;
 
-typedef std::deque<PdfReference> PdfReferenceList;
+using PdfReferenceList = std::deque<PdfReference>;
 
 /** A list of PdfObjects that constitutes the indirect object list
  *  of the document
@@ -50,13 +50,13 @@ private:
     static bool CompareReference(const PdfObject* obj, const PdfReference& ref);
 
 private:
-    typedef std::set<PdfObject*, decltype(CompareObject)*> ObjectList;
+    using ObjectList = std::set<PdfObject*, decltype(CompareObject)*>;
 
 public:
     // An incomplete set of container typedefs, just enough to handle
     // the begin() and end() methods we wrap from the internal vector.
     // TODO: proper wrapper iterator class.
-    typedef ObjectList::const_iterator iterator;
+    using iterator = ObjectList::const_iterator;
 
     /** Every observer of PdfIndirectObjectList has to implement this interface.
      */
@@ -254,11 +254,11 @@ private:
     // Use deque as many insertions are here way faster than with using std::list
     // This is especially useful for PDFs like PDFReference17.pdf with
     // lots of free objects.
-    typedef std::set<uint32_t>                       ObjectNumList;
-    typedef std::set<PdfReference>                   ReferenceSet;
-    typedef std::list<PdfReference*>                 ReferencePointers;
-    typedef std::vector<ReferencePointers>           ReferencePointersList;
-    typedef std::vector<Observer*> ObserverList;
+    using ObjectNumList = std::set<uint32_t>;
+    using ReferenceSet = std::set<PdfReference>;
+    using ReferencePointers = std::list<PdfReference*>;
+    using ReferencePointersList = std::vector<ReferencePointers>;
+    using ObserverList = std::vector<Observer*>;
 
 private:
     PdfIndirectObjectList(PdfDocument& document);
@@ -328,8 +328,6 @@ private:
     PdfReference getNextFreeObject();
 
     int32_t tryAddFreeObject(uint32_t objnum, uint32_t gennum);
-
-    void garbageCollection(ReferencePointersList& list, PdfObject& trailer, ReferenceSet* notDelete = nullptr);
 
     void visitObject(const PdfObject& obj, std::unordered_set<PdfReference>& referencedObj);
 

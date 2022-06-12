@@ -15,7 +15,7 @@
 namespace mm {
 
 class PdfArray;
-typedef std::vector<PdfObject> PdfArrayList;
+using PdfArrayList = std::vector<PdfObject>;
 
 /**
  * Helper class to iterate through array indirect objects
@@ -80,14 +80,14 @@ class PDFMM_API PdfArray final : public PdfDataContainer
 {
     friend class PdfObject;
 public:
-    typedef size_t size_type;
-    typedef PdfObject value_type;
-    typedef value_type& reference;
-    typedef const value_type& const_reference;
-    typedef PdfArrayList::iterator iterator;
-    typedef PdfArrayList::const_iterator const_iterator;
-    typedef PdfArrayList::reverse_iterator reverse_iterator;
-    typedef PdfArrayList::const_reverse_iterator const_reverse_iterator;
+    using size_type = size_t;
+    using value_type = PdfObject;
+    using reference = value_type&;
+    using const_reference = const value_type&;
+    using iterator = PdfArrayList::iterator;
+    using const_iterator = PdfArrayList::const_iterator;
+    using reverse_iterator = PdfArrayList::reverse_iterator;
+    using const_reverse_iterator = PdfArrayList::const_reverse_iterator;
 
     /** Create an empty array
      */

@@ -155,9 +155,9 @@ private:
     TContainer* m_container;
 };
 
-typedef PdfContainerOutputStream<std::string> PdfStringOutputStream;
-typedef PdfContainerOutputStream<charbuff> PdfCharsOutputStream;
-typedef PdfContainerOutputStream<std::vector<char>> PdfVectorOutputStream;
+using PdfStringOutputStream = PdfContainerOutputStream<std::string>;
+using PdfCharsOutputStream = PdfContainerOutputStream<charbuff>;
+using PdfVectorOutputStream = PdfContainerOutputStream<std::vector<char>>;
 
 };
 

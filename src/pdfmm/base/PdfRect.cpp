@@ -66,6 +66,12 @@ string PdfRect::ToString() const
     return str;
 }
 
+bool PdfRect::Contains(double x, double y) const
+{
+	return x >= m_Left && x <= m_Left + m_Width
+		&& y >= m_Bottom && y <= m_Bottom + m_Height;
+}
+
 void PdfRect::FromArray(const PdfArray& arr)
 {
     if (arr.size() == 4)

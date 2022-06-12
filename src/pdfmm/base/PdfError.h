@@ -126,8 +126,8 @@ private:
     std::string m_Info;
 };
 
-typedef std::deque<PdfErrorInfo> PdErrorInfoQueue;
-typedef std::function<void(PdfLogSeverity logSeverity, const std::string_view& msg)> LogMessageCallback;
+using PdErrorInfoQueue = std::deque<PdfErrorInfo>;
+using LogMessageCallback = std::function<void(PdfLogSeverity logSeverity, const std::string_view& msg)>;
 
 // This is required to generate the documentation with Doxygen.
 // Without this define doxygen thinks we have a class called PDFMM_EXCEPTION_API(PDFMM_API) ...

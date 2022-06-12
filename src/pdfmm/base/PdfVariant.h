@@ -357,7 +357,7 @@ private:
      *  we use a union here, as there is always only
      *  one of those members used.
      */
-    typedef union
+    union Variant
     {
         /** Holds references, strings,
          *  names, dictionaries and arrays
@@ -367,7 +367,7 @@ private:
         PdfDataProvider* Data;
         PdfReference Reference;
         bool Bool;
-    } Variant;
+    };
 
     Variant m_Data;
     PdfDataType m_DataType;

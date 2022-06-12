@@ -27,7 +27,7 @@ class PdfIndirectObjectList;
 class PdfObjectStreamParser
 {
 public:
-    typedef std::vector<int64_t> ObjectIdList;
+    using ObjectIdList = std::vector<int64_t>;
     /**
      * Create a new PdfObjectStreamParserObject from an existing
      * PdfParserObject. The PdfParserObject will be removed and deleted.

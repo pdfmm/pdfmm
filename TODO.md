@@ -1,6 +1,5 @@
 ### 0.10.x (Summer 2022)
 - Refactor/Review PdfField hierarchy. Finish API review
-- Added text extraction API
 - PdfInputDevice: should merge with PdfOutputDevice
 - Use unique_ptr/shared_ptr where possibile (PdfField), use shared_ptr in PdfIndirectObjectList?
 - FontManager could use unique_ptr or shared_ptr?
@@ -9,6 +8,8 @@
 ### After 0.10
 - Check PdfSignature to have correct /ByteRange and /Contents
 values in the dictionary after signing with SignDocument
+- Add PdfString(string&&) and PdfName(string&&) constructors that
+either assume UTF-8 and/or checks for used codepoints
 - Check PdfStreamedDocument working
 - Check/Review doxygen doc
 

@@ -38,7 +38,7 @@ struct PdfDictionaryComparator final
     }
 };
 
-typedef std::map<PdfName, PdfObject, PdfDictionaryComparator> PdfDictionaryMap;
+using PdfDictionaryMap = std::map<PdfName, PdfObject, PdfDictionaryComparator>;
 
 /**
  * Helper class to iterate through indirect objects
@@ -301,8 +301,8 @@ public:
     PdfDictionaryConstIndirectIterable GetIndirectIterator() const;
 
 public:
-    typedef PdfDictionaryMap::iterator iterator;
-    typedef PdfDictionaryMap::const_iterator const_iterator;
+    using iterator = PdfDictionaryMap::iterator;
+    using const_iterator = PdfDictionaryMap::const_iterator;
 
 public:
     iterator begin();
