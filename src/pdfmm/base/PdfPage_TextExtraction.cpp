@@ -387,7 +387,7 @@ void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const string_view& pa
             }
             case PdfContentType::EndXObjectForm:
             {
-                assert(context.XObjectStateIndices.size() != 0);
+                PDFMM_ASSERT(context.XObjectStateIndices.size() != 0);
                 context.States.Pop(context.States.GetSize() - context.XObjectStateIndices.back().TextStateIndex);
                 context.XObjectStateIndices.pop_back();
                 break;
@@ -506,9 +506,9 @@ void addEntry(vector<PdfTextEntry> &textEntries, StringChunkList &chunks, const 
         }
     }
 
-    assert(chunks.size() != 0);
+    PDFMM_ASSERT(chunks.size() != 0);
     auto &firstChunk = *chunks.front();
-    assert(firstChunk.size() != 0);
+    PDFMM_ASSERT(firstChunk.size() != 0);
     auto &firstStr = firstChunk.front();
     if (clipRect.has_value() && !clipRect->Contains(firstStr.Pos.X, firstStr.Pos.Y))
     {
@@ -769,7 +769,7 @@ void ExtractionContext::AdvanceSpace(double tx)
 
 void ExtractionContext::PushString(const StatefulString &str, bool pushchunk)
 {
-    assert(str.String.length() != 0);
+    PDFMM_ASSERT(str.String.length() != 0);
     if (std::isnan(CurrentEntryT_rm_y))
     {
         // Initalize tracking for line
@@ -822,7 +822,7 @@ void ExtractionContext::addEntry()
 
 void ExtractionContext::tryAddEntry()
 {
-    assert(Chunk != nullptr);
+    PDFMM_ASSERT(Chunk != nullptr);
     if (Chunks.size() > 0 || Chunk->size() > 0)
     {
         if (!AreEqual(States.Current->T_rm.Get<Ty>(), CurrentEntryT_rm_y)
@@ -850,7 +850,7 @@ bool ExtractionContext::areChunksSplitted()
 // Separate chunk words by spaces
 void SplitChunkBySpaces(vector<StringChunkPtr> &splittedChunks, const StringChunk &chunk)
 {
-    assert(chunk.size() != 0);
+    PDFMM_ASSERT(chunk.size() != 0);
     splittedChunks.clear();
 
     vector<StatefulString> separatedStrings;
@@ -880,7 +880,7 @@ void SplitChunkBySpaces(vector<StringChunkPtr> &splittedChunks, const StringChun
 // Separate string words by spaces
 void SplitStringBySpaces(vector<StatefulString> &separatedStrings, const StatefulString &str)
 {
-    assert(str.String.length() != 0);
+    PDFMM_ASSERT(str.String.length() != 0);
     separatedStrings.clear();
 
     string separatedStr;
