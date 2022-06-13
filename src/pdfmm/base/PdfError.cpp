@@ -10,6 +10,7 @@
 // PdfDeclarationsPrivate.h will include PdfError.h for us.
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 
+#include <pdfmm/private/FileSystem.h>
 #include <pdfmm/private/outstringstream.h>
 
 using namespace std;
@@ -22,6 +23,16 @@ PdfLogSeverity s_MaxLogSeverity = PdfLogSeverity::Debug;
 PdfLogSeverity s_MaxLogSeverity = PdfLogSeverity::Information;
 #endif // DEBUG
 
+// Retrieve the basepath of the source directory
+struct SourcePathOffset
+{
+    SourcePathOffset()
+        : Value(fs::u8path(__FILE__).parent_path().parent_path()
+            .u8string().length() + 1) { }
+    const size_t Value;
+};
+
+static SourcePathOffset s_PathOffset;
 static LogMessageCallback s_LogMessageCallback;
 
 void PdfError::SetLogMessageCallback(const LogMessageCallback& logMessageCallback)
@@ -29,14 +40,14 @@ void PdfError::SetLogMessageCallback(const LogMessageCallback& logMessageCallbac
     s_LogMessageCallback = logMessageCallback;
 }
 
-PdfErrorInfo::PdfErrorInfo(unsigned line, string file, string info)
-    : m_Line(line), m_File(std::move(file)), m_Info(std::move(info)) { }
+PdfErrorInfo::PdfErrorInfo(string filepath, unsigned line, string info)
+    : m_Line(line), m_FilePath(std::move(filepath)), m_Info(std::move(info)) { }
 
-PdfError::PdfError(PdfErrorCode code, string file, unsigned line,
+PdfError::PdfError(PdfErrorCode code, string filepath, unsigned line,
     string information)
 {
     m_error = code;
-    this->AddToCallstack(std::move(file), line, std::move(information));
+    this->AddToCallstack(std::move(filepath), line, std::move(information));
 }
 
 PdfError& PdfError::operator=(const PdfErrorCode& code)
@@ -73,8 +84,9 @@ void PdfError::PrintErrorMsg() const
     unsigned i = 0;
     for (auto& info: m_callStack)
     {
-        if (!info.GetFilename().empty())
-            stream << "\t#" << i << " Error Source : " << info.GetFilename() << ": " << info.GetLine();
+        auto filepath = info.GetFilePath();
+        if (!filepath.empty())
+            stream << "\t#" << i << " Error Source : " << filepath << ": " << info.GetLine();
 
         if (!info.GetInformation().empty())
             stream << "\t\t" << "Information: " << info.GetInformation();
@@ -411,9 +423,9 @@ bool PdfError::IsLoggingSeverityEnabled(PdfLogSeverity logSeverity)
     return logSeverity <= s_MaxLogSeverity;
 }
 
-void PdfError::AddToCallstack(string file, unsigned line, string information)
+void PdfError::AddToCallstack(string filepath, unsigned line, string information)
 {
-    m_callStack.push_front(PdfErrorInfo(std::move(line), std::move(file), information));
+    m_callStack.push_front(PdfErrorInfo(std::move(filepath), line, information));
 }
 
 void mm::LogMessage(PdfLogSeverity logSeverity, const string_view& msg)
@@ -459,4 +471,9 @@ void mm::LogMessage(PdfLogSeverity logSeverity, const string_view& msg)
     {
         s_LogMessageCallback(logSeverity, msg);
     }
+}
+
+string_view PdfErrorInfo::GetFilePath() const
+{
+    return ((string_view)m_FilePath).substr(s_PathOffset.Value);
 }

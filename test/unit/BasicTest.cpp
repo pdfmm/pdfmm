@@ -6,11 +6,9 @@
  * Some rights reserved. See COPYING, AUTHORS.
  */
 
-#include <catch.hpp>
-#include <limits>
+#include <PdfTest.h>
+#include "TestUtils.h"
 
-#include <pdfmm/pdfmm.h>
-#include <iostream>
 using namespace std;
 using namespace mm;
 
@@ -21,4 +19,18 @@ using namespace mm;
 TEST_CASE("BasicTypeTest")
 {
     REQUIRE(std::numeric_limits<uint64_t>::max() >= 9999999999);
+}
+
+TEST_CASE("ErrorFilePath")
+{
+    try
+    {
+        PdfObject test;
+        test.GetString();
+    }
+    catch (const PdfError& err)
+    {
+        auto path = err.GetCallstack().front().GetFilePath();
+        REQUIRE(fs::u8path(path) == fs::u8path("base") / "PdfVariant.cpp");
+    }
 }

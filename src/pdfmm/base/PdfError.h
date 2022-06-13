@@ -108,21 +108,25 @@ enum class PdfLogSeverity
     Debug,               ///< Debug information
 };
 
-class PDFMM_API PdfErrorInfo
+class PDFMM_API PdfErrorInfo final
 {
 public:
-    PdfErrorInfo(unsigned line, std::string file, std::string info);
+    PdfErrorInfo(std::string filepath, unsigned line, std::string info);
     PdfErrorInfo(const PdfErrorInfo& rhs) = default;
-
     PdfErrorInfo& operator=(const PdfErrorInfo& rhs) = default;
 
+public:
+    /** Get the file path of the error info relative to
+     * source directory path
+     */
+    std::string_view GetFilePath() const;
+    const std::string& GetFullFilePath() const { return m_FilePath; }
     inline unsigned GetLine() const { return m_Line; }
-    inline const std::string& GetFilename() const { return m_File; }
     inline const std::string& GetInformation() const { return m_Info; }
 
 private:
     unsigned m_Line;
-    std::string m_File;
+    std::string m_FilePath;
     std::string m_Info;
 };
 
@@ -155,13 +159,13 @@ public:
 public:
     /** Create a PdfError object with a given error code.
      *  \param code the error code of this object
-     *  \param file the file in which the error has occurred.
+     *  \param filepath the file in which the error has occurred.
      *         Use the compiler macro __FILE__ to initialize the field.
      *  \param line the line in which the error has occurred.
      *         Use the compiler macro __LINE__ to initialize the field.
      *  \param information additional information on this error
      */
-    PdfError(PdfErrorCode code, std::string file, unsigned line,
+    PdfError(PdfErrorCode code, std::string filepath, unsigned line,
         std::string information = { });
 
     /** Copy constructor
@@ -208,7 +212,7 @@ public:
     /** Add callstack information to an error object. Always call this function
      *  if you get an error object but do not handle the error but throw it again.
      *
-     *  \param file the filename of the source file causing
+     *  \param filepath the filename of the source file causing
      *                 the error or nullptr. Typically you will use
      *                 the gcc macro __FILE__ here.
      *  \param line    the line of source causing the error
@@ -218,7 +222,7 @@ public:
      *         e.g. how to fix the error. This string is intended to
      *         be shown to the user.
      */
-    void AddToCallstack(std::string file, unsigned line, std::string information = { });
+    void AddToCallstack(std::string filepath, unsigned line, std::string information = { });
 
     /** Print an error message to stderr. This includes callstack
      *  and extra info, if any of either was set.

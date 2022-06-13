@@ -4,6 +4,8 @@
 - Use unique_ptr/shared_ptr where possibile (PdfField), use shared_ptr in PdfIndirectObjectList?
 - FontManager could use unique_ptr or shared_ptr?
 - Add a PdfRectRaw that avoid normalization by default
+- Fix PdfFontMetrics handling of symbol encoding
+- Fix/complete handling of text extraction in rotated pages
 
 ### After 0.10
 - Check PdfSignature to have correct /ByteRange and /Contents

@@ -9,9 +9,9 @@
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfImage.h"
 
-#include <filesystem>
 #include <utfcpp/utf8.h>
 
+#include <pdfmm/private/FileSystem.h>
 #include <pdfmm/private/PdfFiltersPrivate.h>
 
 #include "PdfDocument.h"
@@ -25,7 +25,6 @@
 
 using namespace std;
 using namespace mm;
-namespace fs = std::filesystem;
 
 #ifdef PDFMM_HAVE_PNG_LIB
 #include <png.h>
