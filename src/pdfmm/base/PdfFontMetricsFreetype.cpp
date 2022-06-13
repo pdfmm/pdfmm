@@ -88,10 +88,13 @@ void PdfFontMetricsFreetype::initFromFace(const PdfFontMetrics* refMetrics)
 
     // Get the postscript name of the font and ensures it has no space:
     // 5.5.2 TrueType Fonts, "If the name contains any spaces, the spaces are removed"
-    m_FontName = FT_Get_Postscript_Name(m_Face.get());
+    auto psname = FT_Get_Postscript_Name(m_Face.get());
+    if (psname != nullptr)
+        m_FontName = psname;
     m_FontName.erase(std::remove(m_FontName.begin(), m_FontName.end(), ' '), m_FontName.end());
     m_FontBaseName = PdfFont::ExtractBaseName(m_FontName);
-    m_FontFamilyName = m_Face->family_name;
+    if (m_Face->family_name != nullptr)
+        m_FontFamilyName = m_Face->family_name;
 
     m_HasUnicodeMapping = false;
     m_HasSymbolCharset = false;
@@ -132,7 +135,6 @@ void PdfFontMetricsFreetype::initFromFace(const PdfFontMetrics* refMetrics)
         double width = (m_Face->bbox.xMax - m_Face->bbox.xMin) / (double)m_Face->units_per_EM;
         double height = (m_Face->bbox.yMax - m_Face->bbox.yMin) / (double)m_Face->units_per_EM;
 
-        m_FontFamilyName.clear();
         m_FontStretch = PdfFontStretch::Unknown;
         m_Weight = -1;
         m_Flags = PdfFontDescriptorFlags::Symbolic;
@@ -155,7 +157,12 @@ void PdfFontMetricsFreetype::initFromFace(const PdfFontMetrics* refMetrics)
     }
     else
     {
-        m_FontFamilyName = refMetrics->GetFontFamilyName();
+        if (m_FontName.empty())
+            m_FontName = refMetrics->GetFontName();
+        if (m_FontBaseName.empty())
+            m_FontBaseName = refMetrics->GetBaseFontName();
+        if (m_FontFamilyName.empty())
+            m_FontFamilyName = refMetrics->GetFontFamilyName();
         m_FontStretch = refMetrics->GetFontStretch();
         m_Weight = refMetrics->GetWeightRaw();
         m_Flags = refMetrics->GetFlags();
