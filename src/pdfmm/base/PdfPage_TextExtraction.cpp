@@ -28,7 +28,7 @@ using namespace mm;
 constexpr double SAME_LINE_THRESHOLD = 0.01;
 constexpr double SPACE_SEPARATION_EPSILON = 0.0000001;
 #define ASSERT(condition, message, ...) if (!condition)\
-    mm::LogMessage(PdfLogSeverity::Warning, message, __VA_ARGS__);
+    mm::LogMessage(PdfLogSeverity::Warning, message, ##__VA_ARGS__);
 
 static constexpr float NaN = numeric_limits<float>::quiet_NaN();
 
