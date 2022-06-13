@@ -597,12 +597,11 @@ StatefulString::StatefulString(const string_view &str, double length, const Text
 
 StatefulString StatefulString::GetTrimmedBegin() const
 {
-    locale loc;
     int i = 0;
     auto &str = String;
     for (; i < (int)str.length(); i++)
     {
-        if (!std::isspace(str[i], loc))
+        if (!std::isspace((unsigned char)str[i]))
             break;
     }
 
@@ -894,12 +893,11 @@ void SplitStringBySpaces(vector<StatefulString> &separatedStrings, const Statefu
         state.RecomputeT_rm();
     };
 
-    locale locale;
     bool isPreviousWhiteSpace = true;
     for (int i = 0; i < (int)str.String.size(); i++)
     {
         char ch = str.String[i];
-        bool isCurrentWhiteSpace = std::isspace(ch, locale);
+        bool isCurrentWhiteSpace = std::isspace((unsigned char)ch);
         if (separatedStr.length() != 0 && isCurrentWhiteSpace != isPreviousWhiteSpace)
             pushString();
 

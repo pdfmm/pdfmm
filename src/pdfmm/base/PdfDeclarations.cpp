@@ -143,7 +143,7 @@ bool utls::IsStringEmptyOrWhiteSpace(const string_view& str)
 {
     for (unsigned i = 0; i < str.size(); i++)
     {
-        if (!std::isspace((unsigned char)str[i], s_cachedLocale))
+        if (!std::isspace((unsigned char)str[i]))
             return false;
     }
     return true;
@@ -153,7 +153,7 @@ string utls::TrimSpacesEnd(const string_view& str)
 {
     for (int i = (int)str.length() - 1; i >= 0; i--)
     {
-        if (!std::isspace(str[i], s_cachedLocale))
+        if (!std::isspace((unsigned char)str[i]))
             return (string)str.substr(0, i + 1);
     }
 
