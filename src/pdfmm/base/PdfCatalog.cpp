@@ -66,6 +66,9 @@ void PdfCatalog::SetMetadataStreamValue(const string_view& value)
     // relevant scenarions (eg. PDF/A). Remove any possibly
     // existing filter
     obj.GetDictionary().RemoveKey(PdfName::KeyFilter);
+
+    // Invalidate current metadata
+    GetDocument().GetMetadata().Invalidate();
 }
 
 PdfObject* PdfCatalog::GetStructTreeRootObject()

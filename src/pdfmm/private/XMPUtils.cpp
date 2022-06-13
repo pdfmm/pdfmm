@@ -81,7 +81,7 @@ static string getAttributeName(xmlAttrPtr attr);
 static nullable<PdfString> getListElementText(xmlNodePtr elem);
 static nullable<PdfString> getElementText(xmlNodePtr elem);
 
-PdfXMPMetadata mm::GetXMPMetadata(const string_view& xmpview, shared_ptr<PdfXMPPacket>& packet)
+PdfXMPMetadata mm::GetXMPMetadata(const string_view& xmpview, unique_ptr<PdfXMPPacket>& packet)
 {
     utls::InitXml();
 
@@ -148,7 +148,7 @@ PdfXMPMetadata mm::GetXMPMetadata(const string_view& xmpview, shared_ptr<PdfXMPP
     return metadata;
 }
 
-void mm::UpdateOrCreateXMPMetadata(shared_ptr<PdfXMPPacket>& packet, const PdfXMPMetadata& metatata)
+void mm::UpdateOrCreateXMPMetadata(unique_ptr<PdfXMPPacket>& packet, const PdfXMPMetadata& metatata)
 {
     utls::InitXml();
     if (packet == nullptr)

@@ -246,6 +246,13 @@ void PdfMetadata::SetPdfALevel(PdfALevel level, bool syncXMP)
     if (m_metadata.PdfaLevel == level)
         return;
 
+    if (level != PdfALevel::Unknown)
+    {
+        // The PDF/A level can be set only in XMP,
+        // metadata let's ensure it exists
+        EnsureXMPMetadata();
+    }
+
     m_metadata.PdfaLevel = level;
     if (syncXMP)
         syncXMPMetadata(false);
@@ -260,6 +267,42 @@ void PdfMetadata::SyncXMPMetadata(bool forceCreationXMP)
         return;
 
     syncXMPMetadata(forceCreationXMP);
+}
+
+unique_ptr<PdfXMPPacket> PdfMetadata::TakeXMPPacket()
+{
+    if (m_packet == nullptr)
+        return nullptr;
+
+    if (!m_xmpSynced)
+    {
+        // If the XMP packet is not synced, do it now
+        mm::UpdateOrCreateXMPMetadata(m_packet, m_metadata);
+    }
+
+    invalidate();
+    return std::move(m_packet);
+}
+
+void PdfMetadata::EnsureXMPMetadata()
+{
+    if (m_packet != nullptr)
+        return;
+
+    mm::UpdateOrCreateXMPMetadata(m_packet, m_metadata);
+}
+
+void PdfMetadata::Invalidate()
+{
+    invalidate();
+    m_packet = nullptr;
+}
+
+void PdfMetadata::invalidate()
+{
+    m_initialized = false;
+    m_xmpSynced = false;
+    m_metadata = { };
 }
 
 void PdfMetadata::ensureInitialized()

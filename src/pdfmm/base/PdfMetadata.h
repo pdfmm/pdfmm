@@ -19,6 +19,7 @@ namespace mm
     class PDFMM_API PdfMetadata final
     {
         friend class PdfDocument;
+        friend class PdfCatalog;
 
     private:
         PdfMetadata(PdfDocument& doc);
@@ -127,7 +128,18 @@ namespace mm
 
         void SetPdfALevel(PdfALevel level, bool syncXMP = false);
 
-        void SyncXMPMetadata(bool forceCreationXMP = false);
+        /** Ensure the XMP metadata is created
+         */
+        void EnsureXMPMetadata();
+
+        void SyncXMPMetadata(bool forceCreationXMP);
+
+        /** Take the XMP packet, if available, and invalidate the data
+         */
+        std::unique_ptr<PdfXMPPacket> TakeXMPPacket();
+
+    private:
+        void Invalidate();
 
     private:
         PdfMetadata& operator=(PdfMetadata&) = delete;
@@ -135,13 +147,14 @@ namespace mm
         void setKeywords(nullable<const PdfString&> keywords, bool syncXMP = false);
         void ensureInitialized();
         void syncXMPMetadata(bool forceCreationXMP);
+        void invalidate();
 
     private:
         PdfDocument* m_doc;
         PdfXMPMetadata m_metadata;
         bool m_initialized;
         bool m_xmpSynced;
-        std::shared_ptr<PdfXMPPacket> m_packet;
+        std::unique_ptr<PdfXMPPacket> m_packet;
     };
 }
 

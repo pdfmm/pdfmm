@@ -18,7 +18,7 @@ static void TestNormalizeXMP(string_view filename)
     string sourceXmp;
     TestUtils::ReadTestInputFileTo(sourceXmp, string(filename) + ".xml");
 
-    shared_ptr<PdfXMPPacket> packet;
+    unique_ptr<PdfXMPPacket> packet;
     auto metadata = mm::GetXMPMetadata(sourceXmp, packet);
     auto normalizedXmp = packet->ToString();
 
