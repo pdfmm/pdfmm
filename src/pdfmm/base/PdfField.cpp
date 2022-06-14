@@ -38,13 +38,13 @@ PdfField::PdfField(PdfFieldType fieldType, PdfDocument& doc, PdfAnnotation* widg
 PdfField::PdfField(PdfFieldType fieldType, PdfPage& page, const PdfRect& rect)
     : PdfField(fieldType, page.GetDocument(), page.CreateAnnotation(PdfAnnotationType::Widget, rect))
 {
-    Init(&page.GetDocument().GetOrCreateAcroForm());
+    init(&page.GetDocument().GetOrCreateAcroForm());
 }
 
 PdfField::PdfField(PdfFieldType fieldType, PdfDocument& doc, PdfAnnotation* widget, bool insertInAcroform)
     : PdfField(fieldType, doc, widget)
 {
-    Init(insertInAcroform ? &doc.GetOrCreateAcroForm() : nullptr);
+    init(insertInAcroform ? &doc.GetOrCreateAcroForm() : nullptr);
 }
 
 PdfField::PdfField(PdfFieldType fieldType, PdfObject& obj, PdfAnnotation* widget)
@@ -58,43 +58,47 @@ PdfField::PdfField(PdfObject& obj, PdfAnnotation* widget)
     m_FieldType = GetFieldType(obj);
 }
 
-PdfField* PdfField::CreateField(PdfObject& obj)
+bool PdfField::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfField>& field)
 {
-    return createField(GetFieldType(obj), obj, nullptr);
+    return tryCreateField(GetFieldType(obj), obj, nullptr, field);
 }
 
-PdfField* PdfField::CreateField(PdfAnnotation& widget)
+bool PdfField::TryCreateFromAnnotation(PdfAnnotation& annot, unique_ptr<PdfField>& field)
 {
-    PdfObject& obj = widget.GetObject();
-    return createField(GetFieldType(obj), obj, &widget);
+    if (annot.GetType() != PdfAnnotationType::Widget)
+    {
+        field.reset();
+        return false;
+    }
+    return tryCreateField(GetFieldType(annot.GetObject()), annot.GetObject(), &annot, field);
 }
 
-PdfField* PdfField::CreateChildField()
+unique_ptr<PdfField> PdfField::CreateChildField()
 {
     return createChildField(nullptr, PdfRect());
 }
 
-PdfField* PdfField::CreateChildField(PdfPage& page, const PdfRect& rect)
+unique_ptr<PdfField> PdfField::CreateChildField(PdfPage& page, const PdfRect& rect)
 {
     return createChildField(&page, rect);
 }
 
-PdfField* PdfField::createChildField(PdfPage* page, const PdfRect& rect)
+unique_ptr<PdfField> PdfField::createChildField(PdfPage* page, const PdfRect& rect)
 {
     PdfFieldType type = GetType();
     auto& doc = GetDocument();
-    PdfField* field;
+    unique_ptr<PdfField> field;
     PdfObject* childObj;
     if (page == nullptr)
     {
         childObj = doc.GetObjects().CreateDictionaryObject();
-        field = createField(type, *childObj, nullptr);
+        (void)tryCreateField(type, *childObj, nullptr, field);
     }
     else
     {
         PdfAnnotation* annot = page->CreateAnnotation(PdfAnnotationType::Widget, rect);
         childObj = &annot->GetObject();
-        field = createField(type, *childObj, annot);
+        (void)tryCreateField(type, *childObj, annot, field);
     }
 
     auto& dict = GetDictionary();
@@ -108,28 +112,38 @@ PdfField* PdfField::createChildField(PdfPage* page, const PdfRect& rect)
     return field;
 }
 
-PdfField* PdfField::createField(PdfFieldType type, PdfObject& obj, PdfAnnotation* widget)
+bool PdfField::tryCreateField(PdfFieldType type, PdfObject& obj, PdfAnnotation* annot,
+    std::unique_ptr<PdfField>& field)
 {
     switch (type)
     {
         case PdfFieldType::Unknown:
-            return new PdfField(obj, widget);
+            field.reset(new PdfField(obj, annot));
+            return true;
         case PdfFieldType::PushButton:
-            return new PdfPushButton(obj, widget);
+            field.reset(new PdfPushButton(obj, annot));
+            return true;
         case PdfFieldType::CheckBox:
-            return new PdfCheckBox(obj, widget);
+            field.reset(new PdfCheckBox(obj, annot));
+            return true;
         case PdfFieldType::RadioButton:
-            return new PdfRadioButton(obj, widget);
+            field.reset(new PdfRadioButton(obj, annot));
+            return true;
         case PdfFieldType::TextBox:
-            return new PdfTextBox(obj, widget);
+            field.reset(new PdfTextBox(obj, annot));
+            return true;
         case PdfFieldType::ComboBox:
-            return new PdfComboBox(obj, widget);
+            field.reset(new PdfComboBox(obj, annot));
+            return true;
         case PdfFieldType::ListBox:
-            return new PdfListBox(obj, widget);
+            field.reset(new PdfListBox(obj, annot));
+            return true;
         case PdfFieldType::Signature:
-            return new PdfSignature(obj, widget);
+            field.reset(new PdfSignature(obj, annot));
+            return true;
         default:
-            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+            field.reset();
+            return false;
     }
 }
 
@@ -181,7 +195,7 @@ PdfFieldType PdfField::GetFieldType(const PdfObject& obj)
     return ret;
 }
 
-void PdfField::Init(PdfAcroForm* parent)
+void PdfField::init(PdfAcroForm* parent)
 {
     if (parent != nullptr)
     {
@@ -499,7 +513,7 @@ nullable<PdfString> PdfField::GetMappingName() const
     return { };
 }
 
-void PdfField::AddAlternativeAction(const PdfName& name, const PdfAction& action)
+void PdfField::addAlternativeAction(const PdfName& name, const PdfAction& action)
 {
     auto aaObj = GetDictionary().FindKey("AA");
     if (aaObj == nullptr)
@@ -545,62 +559,62 @@ PdfPage* PdfField::GetPage() const
 
 void PdfField::SetMouseEnterAction(const PdfAction& action)
 {
-    this->AddAlternativeAction("E", action);
+    this->addAlternativeAction("E", action);
 }
 
 void PdfField::SetMouseLeaveAction(const PdfAction& action)
 {
-    this->AddAlternativeAction("X", action);
+    this->addAlternativeAction("X", action);
 }
 
 void PdfField::SetMouseDownAction(const PdfAction& action)
 {
-    this->AddAlternativeAction("D", action);
+    this->addAlternativeAction("D", action);
 }
 
 void PdfField::SetMouseUpAction(const PdfAction& action)
 {
-    this->AddAlternativeAction("U", action);
+    this->addAlternativeAction("U", action);
 }
 
 void PdfField::SetFocusEnterAction(const PdfAction& action)
 {
-    this->AddAlternativeAction("Fo", action);
+    this->addAlternativeAction("Fo", action);
 }
 
 void PdfField::SetFocusLeaveAction(const PdfAction& action)
 {
-    this->AddAlternativeAction("BI", action);
+    this->addAlternativeAction("BI", action);
 }
 
 void PdfField::SetPageOpenAction(const PdfAction& action)
 {
-    this->AddAlternativeAction("PO", action);
+    this->addAlternativeAction("PO", action);
 }
 
 void PdfField::SetPageCloseAction(const PdfAction& action)
 {
-    this->AddAlternativeAction("PC", action);
+    this->addAlternativeAction("PC", action);
 }
 
 void PdfField::SetPageVisibleAction(const PdfAction& action)
 {
-    this->AddAlternativeAction("PV", action);
+    this->addAlternativeAction("PV", action);
 }
 
 void PdfField::SetPageInvisibleAction(const PdfAction& action)
 {
-    this->AddAlternativeAction("PI", action);
+    this->addAlternativeAction("PI", action);
 }
 
 void PdfField::SetKeystrokeAction(const PdfAction& action)
 {
-    this->AddAlternativeAction("K", action);
+    this->addAlternativeAction("K", action);
 }
 
 void PdfField::SetValidateAction(const PdfAction& action)
 {
-    this->AddAlternativeAction("V", action);
+    this->addAlternativeAction("V", action);
 }
 
 void getFullName(const PdfObject& obj, bool escapePartialNames, string& fullname)

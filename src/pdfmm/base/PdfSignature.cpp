@@ -41,7 +41,7 @@ PdfSignature::PdfSignature(PdfObject& obj, PdfAnnotation* widget)
     m_ValueObj = this->GetObject().GetDictionary().FindKey("V");
 }
 
-void PdfSignature::SetAppearanceStream(PdfXObjectForm& obj, PdfAnnotationAppearance appearance, const PdfName& state)
+void PdfSignature::SetAppearanceStream(PdfXObjectForm& obj, PdfAppearanceType appearance, const PdfName& state)
 {
     GetWidgetAnnotation()->SetAppearanceStream(obj, appearance, state);
     (void)this->GetOrCreateAppearanceCharacteristics();

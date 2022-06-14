@@ -54,7 +54,7 @@ static const char* s_names[] = {
     "WebMedia",       // PDF 1.7 IPDF ExtensionLevel 1
 };
 
-static PdfName GetAppearanceName(PdfAnnotationAppearance appearance);
+static PdfName GetAppearanceName(PdfAppearanceType appearance);
 
 PdfAnnotation::PdfAnnotation(PdfPage& page, PdfAnnotationType annotType, const PdfRect& rect)
     : PdfDictionaryElement(page.GetDocument(), "Annot"), m_AnnotationType(annotType), m_Page(&page)
@@ -80,8 +80,6 @@ PdfAnnotation::PdfAnnotation(PdfPage& page, PdfObject& obj)
         s_names, (unsigned)std::size(s_names), (int)PdfAnnotationType::Unknown));
 }
 
-PdfAnnotation::~PdfAnnotation() { }
-
 PdfRect PdfAnnotation::GetRect() const
 {
     if (this->GetObject().GetDictionary().HasKey(PdfName::KeyRect))
@@ -97,83 +95,36 @@ void PdfAnnotation::SetRect(const PdfRect& rect)
     this->GetObject().GetDictionary().AddKey(PdfName::KeyRect, arr);
 }
 
-void mm::SetAppearanceStreamForObject(PdfObject& obj, PdfXObjectForm& xobj, PdfAnnotationAppearance appearance, const PdfName& state)
+void mm::SetAppearanceStreamForObject(PdfObject& obj, PdfXObjectForm& xobj,
+    PdfAppearanceType appearance, const PdfName& state)
 {
     // Setting an object as appearance stream requires some resources to be created
     xobj.EnsureResourcesCreated();
 
-    PdfDictionary dict;
-    PdfDictionary internal;
     PdfName name;
-
-    if (appearance == PdfAnnotationAppearance::Rollover)
-    {
+    if (appearance == PdfAppearanceType::Rollover)
         name = "R";
-    }
-    else if (appearance == PdfAnnotationAppearance::Down)
-    {
+    else if (appearance == PdfAppearanceType::Down)
         name = "D";
-    }
     else // PdfAnnotationAppearance::Normal
-    {
         name = "N";
-    }
 
-    if (obj.GetDictionary().HasKey("AP"))
+    auto apObj = obj.GetDictionary().FindKey("AP");
+    if (apObj == nullptr || !apObj->IsDictionary())
+        apObj = &obj.GetDictionary().AddKey("AP", PdfDictionary());
+
+    if (state.IsNull())
     {
-        PdfObject* objAP = obj.GetDictionary().GetKey("AP");
-        if (objAP->GetDataType() == PdfDataType::Reference)
-        {
-            auto document = objAP->GetDocument();
-            if (document == nullptr)
-                PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
-
-            objAP = document->GetObjects().GetObject(objAP->GetReference());
-            if (objAP == nullptr)
-                PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
-        }
-
-        if (objAP->GetDataType() != PdfDataType::Dictionary)
-            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
-
-        if (state.IsNull())
-        {
-            // allow overwrite only reference by a reference
-            if (objAP->GetDictionary().HasKey(name) && objAP->GetDictionary().GetKey(name)->GetDataType() != PdfDataType::Reference)
-                PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
-
-            objAP->GetDictionary().AddKey(name, xobj.GetObject().GetIndirectReference());
-        }
-        else
-        {
-            // when the state is defined, then the appearance is expected to be a dictionary
-            if (objAP->GetDictionary().HasKey(name) && objAP->GetDictionary().GetKey(name)->GetDataType() != PdfDataType::Dictionary)
-                PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
-
-            if (objAP->GetDictionary().HasKey(name))
-            {
-                objAP->GetDictionary().GetKey(name)->GetDictionary().AddKey(state, xobj.GetObject().GetIndirectReference());
-            }
-            else
-            {
-                internal.AddKey(state, xobj.GetObject().GetIndirectReference());
-                objAP->GetDictionary().AddKey(name, internal);
-            }
-        }
+        apObj->GetDictionary().AddKeyIndirectSafe(name, xobj.GetObject());
     }
     else
     {
-        if (state.IsNull())
-        {
-            dict.AddKey(name, xobj.GetObject().GetIndirectReference());
-            obj.GetDictionary().AddKey("AP", dict);
-        }
-        else
-        {
-            internal.AddKey(state, xobj.GetObject().GetIndirectReference());
-            dict.AddKey(name, internal);
-            obj.GetDictionary().AddKey("AP", dict);
-        }
+        // when the state is defined, then the appearance is expected to be a dictionary
+        auto apInnerObj = apObj->GetDictionary().FindKey(name);
+        if (apInnerObj == nullptr || !apInnerObj->IsDictionary())
+            apInnerObj = &apObj->GetDictionary().AddKey(name, PdfDictionary());
+
+        apInnerObj->GetDictionary().AddKeyIndirectSafe(state, xobj.GetObject());
     }
 
     if (!state.IsNull())
@@ -183,29 +134,75 @@ void mm::SetAppearanceStreamForObject(PdfObject& obj, PdfXObjectForm& xobj, PdfA
     }
 }
 
-void PdfAnnotation::SetAppearanceStream(PdfXObjectForm& obj, PdfAnnotationAppearance appearance, const PdfName& state)
+void PdfAnnotation::SetAppearanceStream(PdfXObjectForm& obj, PdfAppearanceType appearance, const PdfName& state)
 {
     SetAppearanceStreamForObject(this->GetObject(), obj, appearance, state);
 }
 
-bool PdfAnnotation::HasAppearanceStream() const
+void PdfAnnotation::GetAppearanceStreams(vector<PdfAppearanceIdentity>& streams) const
 {
-    return this->GetObject().GetDictionary().HasKey("AP");
+    streams.clear();
+    auto apDict = getAppearanceDictionary();
+    if (apDict == nullptr)
+        return;
+
+    PdfReference reference;
+    for (auto& pair1 : apDict->GetIndirectIterator())
+    {
+        PdfAppearanceType apType;
+        if (pair1.first == "R")
+            apType = PdfAppearanceType::Rollover;
+        else if (pair1.first == "D")
+            apType = PdfAppearanceType::Down;
+        else if (pair1.first == "N")
+            apType = PdfAppearanceType::Normal;
+        else
+            continue;
+
+        PdfDictionary* apStateDict;
+        if ( pair1.second->HasStream())
+        {
+            streams.push_back({ pair1.second, apType, PdfName() });
+        }
+        else if (pair1.second->TryGetDictionary(apStateDict))
+        {
+            for (auto& pair2 : apStateDict->GetIndirectIterator())
+            {
+                if (pair2.second->HasStream())
+                    streams.push_back({ pair2.second, apType, pair2.first });
+            }
+        }
+    }
 }
 
-PdfObject* PdfAnnotation::GetAppearanceDictionary()
+PdfObject* PdfAnnotation::GetAppearanceDictionaryObject()
 {
-    return GetObject().GetDictionary().FindKey("AP");
+    return GetDictionary().FindKey("AP");
 }
 
-PdfObject* PdfAnnotation::GetAppearanceStream(PdfAnnotationAppearance appearance, const PdfName& state)
+const PdfObject* PdfAnnotation::GetAppearanceDictionaryObject() const
 {
-    PdfObject* apObj = GetAppearanceDictionary();
-    if (apObj == nullptr)
+    return GetDictionary().FindKey("AP");
+}
+
+PdfObject* PdfAnnotation::GetAppearanceStream(PdfAppearanceType appearance, const PdfName& state)
+{
+    return getAppearanceStream(appearance, state);
+}
+
+const PdfObject* PdfAnnotation::GetAppearanceStream(PdfAppearanceType appearance, const PdfName& state) const
+{
+    return getAppearanceStream(appearance, state);
+}
+
+PdfObject* PdfAnnotation::getAppearanceStream(PdfAppearanceType appearance, const PdfName& state) const
+{
+    auto apDict = getAppearanceDictionary();
+    if (apDict == nullptr)
         return nullptr;
 
     PdfName apName = GetAppearanceName(appearance);
-    PdfObject* apObjInn = apObj->GetDictionary().FindKey(apName);
+    PdfObject* apObjInn = apDict->FindKey(apName);
     if (apObjInn == nullptr)
         return nullptr;
 
@@ -213,6 +210,17 @@ PdfObject* PdfAnnotation::GetAppearanceStream(PdfAnnotationAppearance appearance
         return apObjInn;
 
     return apObjInn->GetDictionary().FindKey(state);
+}
+
+PdfDictionary* PdfAnnotation::getAppearanceDictionary() const
+{
+    auto apObj = const_cast<PdfAnnotation&>(*this).GetAppearanceDictionaryObject();
+    if (apObj == nullptr)
+        return nullptr;
+
+    PdfDictionary* apDict;
+    (void)apObj->TryGetDictionary(apDict);
+    return apDict;
 }
 
 void PdfAnnotation::SetFlags(PdfAnnotationFlags uiFlags)
@@ -426,21 +434,21 @@ void PdfAnnotation::SetColor(double gray)
     this->GetObject().GetDictionary().AddKey("C", c);
 }
 
-void PdfAnnotation::SetColor()
+void PdfAnnotation::ResetColor()
 {
     PdfArray c;
     this->GetObject().GetDictionary().AddKey("C", c);
 }
 
-PdfName GetAppearanceName(PdfAnnotationAppearance appearance)
+PdfName GetAppearanceName(PdfAppearanceType appearance)
 {
     switch (appearance)
     {
-        case mm::PdfAnnotationAppearance::Normal:
+        case PdfAppearanceType::Normal:
             return PdfName("N");
-        case mm::PdfAnnotationAppearance::Rollover:
+        case PdfAppearanceType::Rollover:
             return PdfName("R");
-        case mm::PdfAnnotationAppearance::Down:
+        case PdfAppearanceType::Down:
             return PdfName("D");
         default:
             PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Invalid appearance type");

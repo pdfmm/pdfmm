@@ -82,22 +82,17 @@ public:
      */
     PdfField(PdfObject& obj, PdfAnnotation* widget);
 
-    virtual ~PdfField() { }
+    /** Try create a field from an object, in the absence of an annotation
+     */
+    static bool TryCreateFromObject(PdfObject& obj, std::unique_ptr<PdfField>& field);
 
-    /** Create a PdfAcroForm dictionary object from an existing annottion
-    *  \param widget the widget annotation of this field
-    *  \returns the pointer to the created field
-    */
-    static PdfField* CreateField(PdfAnnotation& widget);
+    /** Try create a field from an annotation
+     */
+    static bool TryCreateFromAnnotation(PdfAnnotation& annot, std::unique_ptr<PdfField>& field);
 
-    /** Create a PdfAcroForm dictionary object from an existing object
-    *  \returns the pointer to the created field
-    */
-    static PdfField* CreateField(PdfObject& obj);
+    std::unique_ptr<PdfField> CreateChildField();
 
-    PdfField* CreateChildField();
-
-    PdfField* CreateChildField(PdfPage& page, const PdfRect& rect);
+    std::unique_ptr<PdfField> CreateChildField(PdfPage& page, const PdfRect& rect);
 
     /** Infer the field type from the given object
     *  \param obj the object to infer the field type from
@@ -362,10 +357,11 @@ private:
     PdfField(const PdfField& rhs) = delete;
     PdfField& operator=(const PdfField& rhs) = delete;
 
-    void Init(PdfAcroForm* parent);
-    void AddAlternativeAction(const PdfName& name, const PdfAction& action);
-    static PdfField* createField(PdfFieldType type, PdfObject& obj, PdfAnnotation* widget);
-    PdfField* createChildField(PdfPage* page, const PdfRect& rect);
+    void init(PdfAcroForm* parent);
+    void addAlternativeAction(const PdfName& name, const PdfAction& action);
+    static bool tryCreateField(PdfFieldType type, PdfObject& obj, PdfAnnotation* annot,
+        std::unique_ptr<PdfField>& field);
+    std::unique_ptr<PdfField> createChildField(PdfPage* page, const PdfRect& rect);
 
 private:
     PdfFieldType m_FieldType;

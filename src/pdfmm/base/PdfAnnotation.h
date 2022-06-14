@@ -88,11 +88,18 @@ enum class PdfAnnotationFlags
 /**
  * Type of the annotation appearance.
  */
-enum class PdfAnnotationAppearance
+enum class PdfAppearanceType
 {
     Normal = 0, ///< Normal appearance
     Rollover,   ///< Rollover appearance; the default is PdfAnnotationAppearance::Normal
     Down        ///< Down appearance; the default is PdfAnnotationAppearance::Normal
+};
+
+struct PdfAppearanceIdentity final
+{
+    const PdfObject* Object;
+    PdfAppearanceType Type;
+    PdfName State;
 };
 
 /** An annotation to a PdfPage
@@ -121,32 +128,29 @@ public:
      */
     PdfAnnotation(PdfPage& page, PdfObject& obj);
 
-    ~PdfAnnotation();
-
     /** Set an appearance stream for this object
      *  to specify its visual appearance
      *  \param obj an XObject
      *  \param appearance an apperance type to set
      *  \param state the state for which set it the obj; states depend on the annotation type
      */
-    void SetAppearanceStream(PdfXObjectForm& obj, PdfAnnotationAppearance appearance = PdfAnnotationAppearance::Normal, const PdfName& state = "");
+    void SetAppearanceStream(PdfXObjectForm& obj, PdfAppearanceType appearance = PdfAppearanceType::Normal, const PdfName& state = "");
+
+    void GetAppearanceStreams(std::vector<PdfAppearanceIdentity>& streams) const;
 
     /**
-     * \returns true if this annotation has an appearance stream
-     */
-    bool HasAppearanceStream() const;
-
-    /**
-    * \returns the appearance object /AP for this object
+    * \returns the appearance /AP object for this annotation
     */
-    PdfObject* GetAppearanceDictionary();
+    PdfObject* GetAppearanceDictionaryObject();
+    const PdfObject* GetAppearanceDictionaryObject() const;
 
     /**
     * \returns the appearance stream for this object
      *  \param appearance an apperance type to get
      *  \param state a child state. Meaning depends on the annotation type
     */
-    PdfObject* GetAppearanceStream(PdfAnnotationAppearance appearance = PdfAnnotationAppearance::Normal, const PdfName& state = "");
+    PdfObject* GetAppearanceStream(PdfAppearanceType appearance = PdfAppearanceType::Normal, const PdfName& state = "");
+    const PdfObject* GetAppearanceStream(PdfAppearanceType appearance = PdfAppearanceType::Normal, const PdfName& state = "") const;
 
     /** Get the rectangle of this annotation.
      *  \returns a rectangle
@@ -205,7 +209,7 @@ public:
 
     /** Set the text of this annotation.
      *
-     *  \param sContents text of the annoation as string in PDF format
+     *  \param contents text of the annoation as string in PDF format
      *
      *  \see GetContents
      */
@@ -369,8 +373,7 @@ public:
      *  as per 8.4 of the pdf spec., makes the annotation transparent
      *
      */
-
-    void SetColor();
+    void ResetColor();
 
 public:
     /** Get the type of this annotation
@@ -388,6 +391,8 @@ private:
     std::shared_ptr<PdfDestination> getDestination();
     std::shared_ptr<PdfAction> getAction();
     std::shared_ptr<PdfFileSpec> getFileAttachment();
+    PdfObject* getAppearanceStream(PdfAppearanceType appearance, const PdfName& state) const;
+    PdfDictionary* getAppearanceDictionary() const;
 
 private:
     PdfAnnotationType m_AnnotationType;
@@ -398,7 +403,7 @@ private:
 };
 
 // helper function, to avoid code duplication
-void SetAppearanceStreamForObject(PdfObject& obj, PdfXObjectForm& xobj, PdfAnnotationAppearance appearance, const PdfName& state);
+void SetAppearanceStreamForObject(PdfObject& obj, PdfXObjectForm& xobj, PdfAppearanceType appearance, const PdfName& state);
 
 };
 

@@ -897,7 +897,7 @@ void SplitStringBySpaces(vector<StatefulString> &separatedStrings, const Statefu
     for (int i = 0; i < (int)str.String.size(); i++)
     {
         char ch = str.String[i];
-        bool isCurrentWhiteSpace = std::isspace((unsigned char)ch);
+        bool isCurrentWhiteSpace = std::isspace((unsigned char)ch) != 0;
         if (separatedStr.length() != 0 && isCurrentWhiteSpace != isPreviousWhiteSpace)
             pushString();
 
