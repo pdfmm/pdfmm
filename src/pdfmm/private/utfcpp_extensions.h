@@ -164,6 +164,47 @@ namespace utf8
 
     using u16bechariterable = u16beoctetiterable<char>;
     using u16lechariterable = u16leoctetiterable<char>;
+
+    template <typename word_iterator>
+    word_iterator append16(uint32_t cp, word_iterator result)
+    {
+        if (!utf8::internal::is_code_point_valid(cp))
+            throw invalid_code_point(cp);
+
+        if (cp < 0x10000u) {                    // one word
+            *(result++) = static_cast<uint16_t>(cp);
+        }
+        else {                                  // two words
+            uint32_t cp_1 = cp - 0x10000u;
+            *(result++) = static_cast<uint16_t>(cp_1 / 0x400u + 0xd800u);
+            *(result++) = static_cast<uint16_t>(cp_1 % 0x400u + 0xdc00u);
+        }
+
+        return result;
+    }
+
+    namespace unchecked
+    {
+        template <typename word_iterator>
+        word_iterator append16(uint32_t cp, word_iterator result)
+        {
+            if (cp < 0x10000u) {                    // one word
+                *(result++) = static_cast<uint16_t>(cp);
+            }
+            else {                                  // two words
+                uint32_t cp_1 = cp - 0x10000u;
+                *(result++) = static_cast<uint16_t>(cp_1 / 0x400u + 0xd800u);
+                *(result++) = static_cast<uint16_t>(cp_1 % 0x400u + 0xdc00u);
+            }
+
+            return result;
+        }
+    }
+
+    inline void append(char32_t cp, std::u16string& s)
+    {
+        append16(uint32_t(cp), std::back_inserter(s));
+    }
 }
 
 #endif // UTFCPP_EXTENSIONS_H

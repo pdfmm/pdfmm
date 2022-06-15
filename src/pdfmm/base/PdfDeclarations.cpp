@@ -360,15 +360,11 @@ void utls::WriteCharHexTo(string& str, char ch)
 
 void utls::WriteUtf16BETo(u16string& str, char32_t codePoint)
 {
-    // FIX-ME: This is very inefficient. We should improve
-    // utfcpp to avoit conversion to utf8 first
-    string u8str;
-    utf8::append(codePoint, u8str);
-    u16string u16str = utf8::utf8to16(u8str);
+    str.clear();
+    utf8::unchecked::append16(codePoint, std::back_inserter(str));
 #ifdef PDFMM_IS_LITTLE_ENDIAN
-    ByteSwap(u16str);
+    ByteSwap(str);
 #endif
-    str = std::move(u16str);
 }
 
 void utls::ReadUtf16BEString(const bufferview& buffer, string& utf8str)
