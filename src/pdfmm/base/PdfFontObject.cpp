@@ -28,7 +28,7 @@ unique_ptr<PdfFontObject> PdfFontObject::Create(PdfObject& obj, PdfObject& desce
     PdfObjectStream* stream;
     PdfCIDToGIDMapConstPtr cidToGidMap;
     if (subType == "CIDFontType2"
-        && (cidToGidMapObj = obj.GetDictionary().FindKey("CIDToGIDMap")) != nullptr
+        && (cidToGidMapObj = descendantObj.GetDictionary().FindKey("CIDToGIDMap")) != nullptr
         && (stream = cidToGidMapObj->GetStream()) != nullptr)
     {
         cidToGidMap.reset(new PdfCIDToGIDMap(PdfCIDToGIDMap::Create(*cidToGidMapObj, PdfGlyphAccess::Width | PdfGlyphAccess::FontProgram)));
