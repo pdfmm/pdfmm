@@ -108,6 +108,8 @@ protected:
 
     bool getIsItalicHint() const override;
 
+    const PdfCIDToGIDMapConstPtr& getCIDToGIDMap() const;
+
 private:
     PdfFontMetricsFreetype(const datahandle& data, const FreeTypeFacePtr& face, const PdfFontMetrics* refMetrics);
 
@@ -124,6 +126,7 @@ private:
 
 private:
     datahandle m_Data;
+    PdfCIDToGIDMapConstPtr m_CIDToGIDMap;
     FreeTypeFacePtr m_Face;
     PdfFontFileType m_FontFileType;
 

@@ -21,7 +21,7 @@ private:
      *  To be used by PdfFontFactory
      */
     PdfFontObject(PdfObject& obj, const PdfFontMetricsConstPtr& metrics,
-        const PdfEncoding& encoding, const PdfCIDToGIDMapConstPtr& cidToGidMap);
+        const PdfEncoding& encoding);
 
 public:
     static std::unique_ptr<PdfFontObject> Create(PdfObject& obj, PdfObject& descendantObj,

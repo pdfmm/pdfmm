@@ -301,15 +301,14 @@ public:
      */
     bool TryGetImplicitEncoding(PdfEncodingMapConstPtr &encoding) const;
 
+    PdfCIDToGIDMapConstPtr GetCIDToGIDMap() const;
+
 protected:
+    virtual const PdfCIDToGIDMapConstPtr& getCIDToGIDMap() const;
     virtual bool getIsBoldHint() const = 0;
     virtual bool getIsItalicHint() const = 0;
     virtual const datahandle& GetFontFileDataHandle() const = 0;
     virtual const FreeTypeFacePtr& GetFaceHandle() const = 0;
-
-private:
-    // To be called by PdfFont
-    const PdfCIDToGIDMapConstPtr& GetBuiltinCIDToGIDMap() const;
 
 private:
     PdfFontMetrics(const PdfFontMetrics& rhs) = delete;
@@ -317,12 +316,8 @@ private:
 
     static PdfEncodingMapConstPtr getFontType1Encoding(FT_Face face);
 
-    void tryLoadCIDToGIDMap();
-
 private:
     nullable<PdfFontStyle> m_Style;
-    bool m_CIDToGIDMapLoaded;
-    PdfCIDToGIDMapConstPtr m_CIDToGIDMap;
 };
 
 class PDFMM_API PdfFontMetricsBase : public PdfFontMetrics

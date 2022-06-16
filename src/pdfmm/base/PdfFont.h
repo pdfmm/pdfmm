@@ -70,7 +70,7 @@ private:
      * To be used only by PdfFontObject!
      */
     PdfFont(PdfObject& obj, const PdfFontMetricsConstPtr& metrics,
-        const PdfEncoding& encoding, const PdfCIDToGIDMapConstPtr& cidToGidMap);
+        const PdfEncoding& encoding);
 
 public:
     virtual ~PdfFont();

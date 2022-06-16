@@ -115,7 +115,7 @@ bool PdfFont::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfFont>& font)
             if (encoding.IsNull())
                 goto Exit;
 
-            font = PdfFontObject::Create(obj, *objFont, metrics, encoding);
+            font = PdfFontObject::Create(obj, metrics, encoding);
             return true;
         }
     }

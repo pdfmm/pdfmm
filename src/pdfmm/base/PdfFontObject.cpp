@@ -17,29 +17,20 @@ using namespace mm;
 static constexpr unsigned DEFAULT_STD14_FIRSTCHAR = 32;
 
 PdfFontObject::PdfFontObject(PdfObject& obj, const PdfFontMetricsConstPtr& metrics,
-        const PdfEncoding& encoding, const PdfCIDToGIDMapConstPtr& cidToGidMap) :
-    PdfFont(obj, metrics, encoding, cidToGidMap) { }
+        const PdfEncoding& encoding) :
+    PdfFont(obj, metrics, encoding) { }
 
 unique_ptr<PdfFontObject> PdfFontObject::Create(PdfObject& obj, PdfObject& descendantObj,
     const PdfFontMetricsConstPtr& metrics, const PdfEncoding& encoding)
 {
-    const PdfName& subType = descendantObj.GetDictionary().FindKey(PdfName::KeySubtype)->GetName();
-    PdfObject* cidToGidMapObj;
-    PdfObjectStream* stream;
-    PdfCIDToGIDMapConstPtr cidToGidMap;
-    if (subType == "CIDFontType2"
-        && (cidToGidMapObj = descendantObj.GetDictionary().FindKey("CIDToGIDMap")) != nullptr
-        && (stream = cidToGidMapObj->GetStream()) != nullptr)
-    {
-        cidToGidMap.reset(new PdfCIDToGIDMap(PdfCIDToGIDMap::Create(*cidToGidMapObj, PdfGlyphAccess::Width | PdfGlyphAccess::FontProgram)));
-    }
-
-    return unique_ptr<PdfFontObject>(new PdfFontObject(obj, metrics, encoding, cidToGidMap));
+    (void)descendantObj;
+    // TODO: MAke a virtual GetDescendantFontObject()
+    return unique_ptr<PdfFontObject>(new PdfFontObject(obj, metrics, encoding));
 }
 
 unique_ptr<PdfFontObject> PdfFontObject::Create(PdfObject& obj, const PdfFontMetricsConstPtr& metrics, const PdfEncoding& encoding)
 {
-    return unique_ptr<PdfFontObject>(new PdfFontObject(obj, metrics, encoding, { }));
+    return unique_ptr<PdfFontObject>(new PdfFontObject(obj, metrics, encoding));
 }
 
 bool PdfFontObject::tryMapCIDToGID(unsigned cid, unsigned& gid) const

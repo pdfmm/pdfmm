@@ -24,8 +24,7 @@ using namespace mm;
 // Default matrix: thousands of PDF units
 static Matrix2D s_DefaultMatrix = { 1e-3, 0.0, 0.0, 1e-3, 0, 0 };
 
-PdfFontMetrics::PdfFontMetrics()
-    : m_CIDToGIDMapLoaded(false) { }
+PdfFontMetrics::PdfFontMetrics() { }
 
 PdfFontMetrics::~PdfFontMetrics() { }
 
@@ -290,7 +289,7 @@ bool PdfFontMetrics::TryGetImplicitEncoding(PdfEncodingMapConstPtr& encoding) co
         // NOTE: We just take the inferred builtin CID to GID map and we create
         // a identity encoding of the maximum code size. It should always be 1
         // anyway
-        auto& map = GetBuiltinCIDToGIDMap();
+        auto& map = getCIDToGIDMap();
         if (map != nullptr)
         {
             // Find the maximum CID code size
@@ -317,10 +316,15 @@ bool PdfFontMetrics::TryGetImplicitEncoding(PdfEncodingMapConstPtr& encoding) co
     return false;
 }
 
-const PdfCIDToGIDMapConstPtr& PdfFontMetrics::GetBuiltinCIDToGIDMap() const
+PdfCIDToGIDMapConstPtr PdfFontMetrics::GetCIDToGIDMap() const
 {
-    const_cast<PdfFontMetrics&>(*this).tryLoadCIDToGIDMap();
-    return m_CIDToGIDMap;
+    return getCIDToGIDMap();
+}
+
+const PdfCIDToGIDMapConstPtr& PdfFontMetrics::getCIDToGIDMap() const
+{
+    static PdfCIDToGIDMapConstPtr s_null;
+    return s_null;
 }
 
 PdfFontMetricsBase::PdfFontMetricsBase()

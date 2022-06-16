@@ -157,12 +157,15 @@ void PdfFontMetricsFreetype::initFromFace(const PdfFontMetrics* refMetrics)
     }
     else
     {
+        m_CIDToGIDMap = refMetrics->GetCIDToGIDMap();
+
         if (m_FontName.empty())
             m_FontName = refMetrics->GetFontName();
         if (m_FontBaseName.empty())
             m_FontBaseName = refMetrics->GetBaseFontName();
         if (m_FontFamilyName.empty())
             m_FontFamilyName = refMetrics->GetFontFamilyName();
+
         m_FontStretch = refMetrics->GetFontStretch();
         m_Weight = refMetrics->GetWeightRaw();
         m_Flags = refMetrics->GetFlags();
@@ -412,6 +415,11 @@ bool PdfFontMetricsFreetype::getIsBoldHint() const
 bool PdfFontMetricsFreetype::getIsItalicHint() const
 {
     return (m_Face->style_flags & FT_STYLE_FLAG_ITALIC) != 0;
+}
+
+const PdfCIDToGIDMapConstPtr& PdfFontMetricsFreetype::getCIDToGIDMap() const
+{
+    return m_CIDToGIDMap;
 }
 
 double PdfFontMetricsFreetype::GetLineSpacing() const

@@ -111,11 +111,16 @@ protected:
 
     datahandle getFontFileDataHandle() const override;
 
+    const PdfCIDToGIDMapConstPtr& getCIDToGIDMap() const override;
+
 private:
     std::vector<double> getBBox(const PdfObject& obj);
 
+    void tryLoadBuiltinCIDToGIDMap();
+
 private:
     std::shared_ptr<charbuff> m_Data;
+    PdfCIDToGIDMapConstPtr m_CIDToGIDMap;
     std::vector<double> m_BBox;
     Matrix2D m_Matrix;
     std::vector<double> m_Widths;

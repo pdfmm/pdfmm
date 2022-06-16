@@ -52,8 +52,8 @@ PdfFont::PdfFont(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
 }
 
 PdfFont::PdfFont(PdfObject& obj, const PdfFontMetricsConstPtr& metrics,
-    const PdfEncoding& encoding, const PdfCIDToGIDMapConstPtr& cidToGidMap) :
-    PdfDictionaryElement(obj), m_cidToGidMap(cidToGidMap), m_Metrics(metrics)
+    const PdfEncoding& encoding) :
+    PdfDictionaryElement(obj), m_Metrics(metrics)
 {
     if (metrics == nullptr)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Metrics must me not null");
@@ -131,6 +131,7 @@ void PdfFont::initBase(const PdfEncoding& encoding)
     m_IsEmbedded = false;
     m_EmbeddingEnabled = false;
     m_SubsettingEnabled = false;
+    m_cidToGidMap = m_Metrics->GetCIDToGIDMap();
 
     if (encoding.IsNull())
     {
@@ -141,13 +142,6 @@ void PdfFont::initBase(const PdfEncoding& encoding)
     else
     {
         m_Encoding.reset(new PdfEncodingShim(encoding, *this));
-    }
-
-    if (m_Metrics->IsTrueTypeKind() &&
-        encoding.GetEncodingMap().GetType() == PdfEncodingMapType::Indeterminate)
-    {
-        // ISO 32000-1:2008 9.6.6.4 "Encodings for TrueType Fonts"
-        m_cidToGidMap = m_Metrics->GetBuiltinCIDToGIDMap();
     }
 
     PdfStringStream out;
