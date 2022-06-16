@@ -129,6 +129,8 @@ namespace mm
         void SetPdfALevel(PdfALevel level, bool syncXMP = false);
 
         /** Ensure the XMP metadata is created
+         * Also, ensure some /Info metadata is normalized
+         * so it will be compatible with the corrispondent XMP
          */
         void EnsureXMPMetadata();
 

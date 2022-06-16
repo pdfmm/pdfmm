@@ -286,10 +286,13 @@ unique_ptr<PdfXMPPacket> PdfMetadata::TakeXMPPacket()
 
 void PdfMetadata::EnsureXMPMetadata()
 {
-    if (m_packet != nullptr)
-        return;
+    if (m_packet == nullptr)
+        mm::UpdateOrCreateXMPMetadata(m_packet, m_metadata);
 
-    mm::UpdateOrCreateXMPMetadata(m_packet, m_metadata);
+    // NOTE: Found dates without prefix "D:" that
+    // won't validate in veraPDF. Let's reset them
+    m_doc->GetInfo().SetCreationDate(m_metadata.CreationDate);
+    m_doc->GetInfo().SetModDate(m_metadata.ModDate);
 }
 
 void PdfMetadata::Invalidate()
