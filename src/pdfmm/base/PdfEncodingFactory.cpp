@@ -99,9 +99,8 @@ PdfEncodingMapConstPtr PdfEncodingFactory::createEncodingMap(
                 return PdfEncodingMapFactory::TwoBytesVerticalIdentityEncodingInstance();
         }
 
-        // CHECK-ME: should we better verify if it's a CMap first?
         if (obj.HasStream())
-            return PdfCMapEncoding::Create(obj);
+            return PdfEncodingMap::CreateFromObject(obj);
 
         // CHECK-ME: should we verify if it's a reference by searching /Differences?
         return PdfDifferenceEncoding::Create(obj, metrics);

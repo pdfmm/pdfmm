@@ -22,17 +22,23 @@ using namespace mm;
 static PdfEncodingLimits getLimits(unsigned char codeSpaceSize);
 
 PdfIdentityEncoding::PdfIdentityEncoding(unsigned char codeSpaceSize)
-    : PdfIdentityEncoding(codeSpaceSize, PdfIdentityOrientation::Unkwnown) { }
+    : PdfIdentityEncoding(PdfEncodingMapType::Indeterminate,
+        getLimits(codeSpaceSize), PdfIdentityOrientation::Unkwnown) { }
 
 // PdfIdentityEncoding represents either Identity-H/Identity-V
 // predefined CMap names
-PdfIdentityEncoding::PdfIdentityEncoding(unsigned char codeSpaceSize, PdfIdentityOrientation orientation) :
-    PdfEncodingMap(orientation == PdfIdentityOrientation::Unkwnown
-        ? PdfEncodingMapType::Indeterminate : PdfEncodingMapType::CMap),
-    m_Limits(getLimits(codeSpaceSize)), m_orientation(orientation) { }
+PdfIdentityEncoding::PdfIdentityEncoding(PdfEncodingMapType type,
+        const PdfEncodingLimits& limits, PdfIdentityOrientation orientation) :
+    PdfEncodingMap(type),
+    m_Limits(limits),
+    m_orientation(orientation) { }
 
 PdfIdentityEncoding::PdfIdentityEncoding(PdfIdentityOrientation orientation)
-    : PdfIdentityEncoding(2, orientation) { }
+    : PdfIdentityEncoding(PdfEncodingMapType::CMap, getLimits(2), orientation)
+{
+    if (orientation == PdfIdentityOrientation::Unkwnown)
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidEnumValue, "Unsupported orientation");
+}
 
 bool PdfIdentityEncoding::tryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const
 {
@@ -77,8 +83,19 @@ void PdfIdentityEncoding::AppendToUnicodeEntries(PdfObjectStream& stream) const
 {
     // Very easy, just do a single bfrange
     // Use PdfEncodingMap::AppendUTF16CodeTo
-    (void)stream;
-    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "TODO");
+
+    u16string u16temp;
+    string temp;
+    stream.Append("1 beginbfrange\n");
+    m_Limits.FirstChar.WriteHexTo(temp);
+    stream.Append(temp);
+    stream.Append(" ");
+    m_Limits.LastChar.WriteHexTo(temp);
+    stream.Append(temp);
+    stream.Append(" ");
+    PdfEncodingMap::AppendUTF16CodeTo(stream, m_Limits.FirstChar.Code, u16temp);
+    stream.Append("\n");
+    stream.Append("endbfrange");
 }
 
 void PdfIdentityEncoding::AppendCIDMappingEntries(PdfObjectStream& stream, const PdfFont& font) const

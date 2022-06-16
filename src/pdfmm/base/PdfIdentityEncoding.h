@@ -31,6 +31,8 @@ enum class PdfIdentityOrientation
  */
 class PDFMM_API PdfIdentityEncoding final : public PdfEncodingMap
 {
+    friend class PdfEncodingMap;
+
 public:
     /**
      *  Create a new PdfIdentityEncoding.
@@ -55,7 +57,8 @@ public:
     const PdfEncodingLimits& GetLimits() const override;
 
 private:
-    PdfIdentityEncoding(unsigned char codeSpaceSize, PdfIdentityOrientation orientation);
+    PdfIdentityEncoding(PdfEncodingMapType type, const PdfEncodingLimits& limits,
+        PdfIdentityOrientation orientation);
 
 private:
     PdfEncodingLimits m_Limits;

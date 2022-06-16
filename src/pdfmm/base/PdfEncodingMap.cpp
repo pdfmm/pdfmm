@@ -38,6 +38,11 @@ void PdfEncodingMap::getExportObject(PdfIndirectObjectList& objects, PdfName& na
     (void)obj;
 }
 
+void PdfEncodingMap::AppendUTF16CodeTo(PdfObjectStream& stream, char32_t codePoint, u16string& u16tmp)
+{
+    return AppendUTF16CodeTo(stream, unicodeview(&codePoint, 1), u16tmp);
+}
+
 bool PdfEncodingMap::TryGetNextCharCode(string_view::iterator& it, const string_view::iterator& end, PdfCharCode& code) const
 {
     if (it == end)
@@ -239,6 +244,43 @@ bool PdfEncodingMap::tryGetNextCodePoints(string_view::iterator& it, const strin
     return false;
 }
 
+void PdfEncodingMap::AppendUTF16CodeTo(PdfObjectStream& stream, const unicodeview& codePoints, u16string& u16tmp)
+{
+    char hexbuf[2];
+    stream.Append("<");
+    bool first = true;
+    for (unsigned i = 0; i < codePoints.size(); i++)
+    {
+        if (first)
+            first = false;
+        else
+            stream.Append(" "); // Separate each character in the ligatures
+
+        char32_t cp = codePoints[i];
+        utls::WriteUtf16BETo(u16tmp, cp);
+
+        auto data = (const char*)u16tmp.data();
+        size_t size = u16tmp.size() * sizeof(char16_t);
+        for (unsigned l = 0; l < size; l++)
+        {
+            // Append hex codes of the converted utf16 string
+            utls::WriteCharHexTo(hexbuf, data[l]);
+            stream.Append(hexbuf, std::size(hexbuf));
+        }
+    }
+    stream.Append(">");
+}
+
+void PdfEncodingMap::AppendCodeSpaceRange(PdfObjectStream& stream) const
+{
+    string temp;
+    auto& limits = GetLimits();
+    limits.FirstChar.WriteHexTo(temp);
+    stream.Append(temp);
+    limits.LastChar.WriteHexTo(temp);
+    stream.Append(temp);
+}
+
 PdfEncodingMapBase::PdfEncodingMapBase(PdfCharCodeMap&& map, PdfEncodingMapType type)
     : PdfEncodingMap(type), m_charMap(std::make_shared<PdfCharCodeMap>(std::move(map)))
 {
@@ -305,9 +347,22 @@ void PdfEncodingMapBase::AppendCodeSpaceRange(PdfObjectStream& stream) const
     }
 }
 
-const PdfEncodingLimits& PdfEncodingMapBase::GetLimits() const
+void PdfEncodingMapBase::AppendToUnicodeEntries(PdfObjectStream& stream) const
 {
-    return m_charMap->GetLimits();
+    // Very easy, just do a list of bfchar
+    // Use PdfEncodingMap::AppendUTF16CodeTo
+    u16string u16temp;
+    string temp = std::to_string(m_charMap->GetSize());
+    stream.Append(temp).Append(" beginbfchar\n");
+    for (auto& pair : *m_charMap)
+    {
+        pair.first.WriteHexTo(temp);
+        stream.Append(temp);
+        stream.Append(" ");
+        PdfEncodingMap::AppendUTF16CodeTo(stream, pair.second, u16temp);
+        stream.Append("\n");
+    }
+    stream.Append("endbfchar");
 }
 
 PdfEncodingMapBase::PdfEncodingMapBase(const shared_ptr<PdfCharCodeMap>& map, PdfEncodingMapType type)
@@ -338,59 +393,9 @@ bool PdfEncodingMapBase::tryGetCodePoints(const PdfCharCode& code, vector<char32
     return m_charMap->TryGetCodePoints(code, codePoints);
 }
 
-void PdfEncodingMapBase::AppendToUnicodeEntries(PdfObjectStream& stream) const
+const PdfEncodingLimits& PdfEncodingMapBase::GetLimits() const
 {
-    // Very easy, just do a list of bfchar
-    // Use PdfEncodingMap::AppendUTF16CodeTo
-    u16string u16temp;
-    string temp = std::to_string(m_charMap->GetSize());
-    stream.Append(temp).Append(" beginbfchar\n");
-    for (auto& pair : *m_charMap)
-    {
-        pair.first.WriteHexTo(temp);
-        stream.Append(temp);
-        stream.Append(" ");
-        PdfEncodingMap::AppendUTF16CodeTo(stream, pair.second, u16temp);
-        stream.Append("\n");
-    }
-    stream.Append("endbfchar");
-}
-
-void PdfEncodingMap::AppendUTF16CodeTo(PdfObjectStream& stream, const unicodeview& codePoints, u16string& u16tmp)
-{
-    char hexbuf[2];
-    stream.Append("<");
-    bool first = true;
-    for (unsigned i = 0; i < codePoints.size(); i++)
-    {
-        if (first)
-            first = false;
-        else
-            stream.Append(" "); // Separate each character in the ligatures
-
-        char32_t cp = codePoints[i];
-        utls::WriteUtf16BETo(u16tmp, cp);
-
-        auto data = (const char*)u16tmp.data();
-        size_t size = u16tmp.size() * sizeof(char16_t);
-        for (unsigned l = 0; l < size; l++)
-        {
-            // Append hex codes of the converted utf16 string
-            utls::WriteCharHexTo(hexbuf, data[l]);
-            stream.Append(hexbuf, std::size(hexbuf));
-        }
-    }
-    stream.Append(">");
-}
-
-void PdfEncodingMap::AppendCodeSpaceRange(PdfObjectStream& stream) const
-{
-    string temp;
-    auto& limits = GetLimits();
-    limits.FirstChar.WriteHexTo(temp);
-    stream.Append(temp);
-    limits.LastChar.WriteHexTo(temp);
-    stream.Append(temp);
+    return m_charMap->GetLimits();
 }
 
 PdfEncodingMapOneByte::PdfEncodingMapOneByte(const PdfEncodingLimits& limits)

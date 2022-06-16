@@ -18,15 +18,12 @@ namespace mm
 
     class PDFMM_API PdfCMapEncoding final : public PdfEncodingMapBase
     {
+        friend class PdfEncodingMap;
+
     public:
         /** Construct a PdfCMapEncoding from a map
          */
         PdfCMapEncoding(PdfCharCodeMap&& map);
-
-    public:
-        /** Construct a PdfCMapEncoding from an object
-         */
-        static std::unique_ptr<PdfCMapEncoding> Create(const PdfObject& cmapObj);
 
     private:
         PdfCMapEncoding(PdfCharCodeMap&& map, const PdfEncodingLimits& limits);

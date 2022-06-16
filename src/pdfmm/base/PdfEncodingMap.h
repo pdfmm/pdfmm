@@ -37,6 +37,11 @@ protected:
     PdfEncodingMap(PdfEncodingMapType type);
 
 public:
+    /** Construct an encoding map from an object
+     */
+    static std::unique_ptr<PdfEncodingMap> CreateFromObject(const PdfObject& cmapObj);
+
+public:
     /** Try decode next char code from utf8 string range
      */
     bool TryGetNextCharCode(std::string_view::iterator& it,
@@ -140,6 +145,8 @@ protected:
      * \remarks Default implementation just throws
      */
     virtual void getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const;
+
+    static void AppendUTF16CodeTo(PdfObjectStream& stream, char32_t codePoint, std::u16string& u16tmp);
 
     static void AppendUTF16CodeTo(PdfObjectStream& stream, const unicodeview& codePoints, std::u16string& u16tmp);
 

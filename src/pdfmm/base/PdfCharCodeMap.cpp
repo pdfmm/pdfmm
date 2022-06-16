@@ -15,7 +15,7 @@ using namespace std;
 using namespace mm;
 
 PdfCharCodeMap::PdfCharCodeMap()
-    : m_MapDirty(false), m_cpMapHead(nullptr), m_depth(0) { }
+    : m_MapDirty(false), m_codePointMapHead(nullptr), m_depth(0) { }
 
 PdfCharCodeMap::PdfCharCodeMap(PdfCharCodeMap&& map) noexcept
 {
@@ -24,7 +24,7 @@ PdfCharCodeMap::PdfCharCodeMap(PdfCharCodeMap&& map) noexcept
 
 PdfCharCodeMap::~PdfCharCodeMap()
 {
-    deleteNode(m_cpMapHead);
+    deleteNode(m_codePointMapHead);
 }
 
 PdfCharCodeMap& PdfCharCodeMap::operator=(PdfCharCodeMap&& map) noexcept
@@ -35,7 +35,7 @@ PdfCharCodeMap& PdfCharCodeMap::operator=(PdfCharCodeMap&& map) noexcept
 
 unsigned PdfCharCodeMap::GetSize() const
 {
-    return (unsigned)m_cuMap.size();
+    return (unsigned)m_CodeUnitMap.size();
 }
 
 const PdfEncodingLimits& PdfCharCodeMap::GetLimits() const
@@ -45,10 +45,10 @@ const PdfEncodingLimits& PdfCharCodeMap::GetLimits() const
 
 void PdfCharCodeMap::move(PdfCharCodeMap& map) noexcept
 {
-    m_cuMap = std::move(map.m_cuMap);
+    m_CodeUnitMap = std::move(map.m_CodeUnitMap);
     utls::move(map.m_Limits, m_Limits);
     utls::move(map.m_MapDirty, m_MapDirty);
-    utls::move(map.m_cpMapHead, m_cpMapHead);
+    utls::move(map.m_codePointMapHead, m_codePointMapHead);
     utls::move(map.m_depth, m_depth);
 }
 
@@ -69,8 +69,8 @@ void PdfCharCodeMap::PushMapping(const PdfCharCode& codeUnit, codepoint codePoin
 
 bool PdfCharCodeMap::TryGetCodePoints(const PdfCharCode& codeUnit, vector<codepoint>& codePoints) const
 {
-    auto found = m_cuMap.find(codeUnit);
-    if (found == m_cuMap.end())
+    auto found = m_CodeUnitMap.find(codeUnit);
+    if (found == m_CodeUnitMap.end())
     {
         codePoints.clear();
         return false;
@@ -83,7 +83,7 @@ bool PdfCharCodeMap::TryGetCodePoints(const PdfCharCode& codeUnit, vector<codepo
 bool PdfCharCodeMap::TryGetNextCharCode(string_view::iterator& it, const string_view::iterator& end, PdfCharCode& code) const
 {
     const_cast<PdfCharCodeMap&>(*this).reviseCPMap();
-    return tryFindNextCharacterId(m_cpMapHead, it, end, code);
+    return tryFindNextCharacterId(m_codePointMapHead, it, end, code);
 }
 
 bool PdfCharCodeMap::TryGetCharCode(const codepointview& codePoints, PdfCharCode& codeUnit) const
@@ -91,7 +91,7 @@ bool PdfCharCodeMap::TryGetCharCode(const codepointview& codePoints, PdfCharCode
     const_cast<PdfCharCodeMap&>(*this).reviseCPMap();
     auto it = codePoints.begin();
     auto end = codePoints.end();
-    const CPMapNode* node = m_cpMapHead;
+    const CPMapNode* node = m_codePointMapHead;
     if (it == end)
         goto NotFound;
 
@@ -128,7 +128,7 @@ NotFound:
 bool PdfCharCodeMap::TryGetCharCode(codepoint codePoint, PdfCharCode& code) const
 {
     const_cast<PdfCharCodeMap&>(*this).reviseCPMap();
-    auto node = findNode(m_cpMapHead, codePoint);
+    auto node = findNode(m_codePointMapHead, codePoint);
     if (node == nullptr)
     {
         code = { };
@@ -144,7 +144,7 @@ void PdfCharCodeMap::pushMapping(const PdfCharCode& codeUnit, vector<codepoint>&
     if (codeUnit.CodeSpaceSize == 0)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Code unit must be valid");
 
-    m_cuMap[codeUnit] = std::move(codePoints);
+    m_CodeUnitMap[codeUnit] = std::move(codePoints);
 
     // Update limits
     if (codeUnit.CodeSpaceSize < m_Limits.MinCodeSize)
@@ -215,10 +215,10 @@ void PdfCharCodeMap::reviseCPMap()
     if (!m_MapDirty)
         return;
 
-    if (m_cpMapHead != nullptr)
+    if (m_codePointMapHead != nullptr)
     {
-        deleteNode(m_cpMapHead);
-        m_cpMapHead = nullptr;
+        deleteNode(m_codePointMapHead);
+        m_codePointMapHead = nullptr;
     }
 
     // Randomize items in the map in a separate list
@@ -226,14 +226,14 @@ void PdfCharCodeMap::reviseCPMap()
     // https://en.wikipedia.org/wiki/Random_binary_tree
     // TODO: Create a perfectly balanced BST
     vector<pair<PdfCharCode, vector<codepoint>>> pairs;
-    pairs.reserve(m_cuMap.size());
-    std::copy(m_cuMap.begin(), m_cuMap.end(), std::back_inserter(pairs));
+    pairs.reserve(m_CodeUnitMap.size());
+    std::copy(m_CodeUnitMap.begin(), m_CodeUnitMap.end(), std::back_inserter(pairs));
     std::mt19937 e(random_device{}());
     std::shuffle(pairs.begin(), pairs.end(), e);
 
     for (auto& pair : pairs)
     {
-        CPMapNode** curr = &m_cpMapHead;      // Node root being searched
+        CPMapNode** curr = &m_codePointMapHead;      // Node root being searched
         CPMapNode* found;                     // Last found node
         auto it = pair.second.begin();
         auto end = pair.second.end();
@@ -275,12 +275,12 @@ PdfCharCodeMap::CPMapNode* PdfCharCodeMap::findOrAddNode(CPMapNode*& node, codep
 
 PdfCharCodeMap::iterator PdfCharCodeMap::begin() const
 {
-    return m_cuMap.begin();
+    return m_CodeUnitMap.begin();
 }
 
 PdfCharCodeMap::iterator PdfCharCodeMap::end() const
 {
-    return m_cuMap.end();
+    return m_CodeUnitMap.end();
 }
 
 void PdfCharCodeMap::deleteNode(CPMapNode* node)
@@ -292,14 +292,4 @@ void PdfCharCodeMap::deleteNode(CPMapNode* node)
     deleteNode(node->Left);
     deleteNode(node->Right);
     delete node;
-}
-
-size_t PdfCharCodeMap::HashCharCode::operator()(const PdfCharCode& code) const
-{
-    return code.CodeSpaceSize << 24 | code.Code;
-}
-
-bool PdfCharCodeMap::EqualCharCode::operator()(const PdfCharCode& lhs, const PdfCharCode& rhs) const
-{
-    return lhs.CodeSpaceSize == rhs.CodeSpaceSize && lhs.Code == rhs.Code;
 }

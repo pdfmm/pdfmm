@@ -53,8 +53,6 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
         else if (subType == "TrueType")
         {
             m_FontFileType = PdfFontFileType::TrueType;
-            if (!font.GetDictionary().HasKey("Encoding"))
-                tryLoadBuiltinCIDToGIDMap();
         }
         else if (subType == "Type3")
         {
@@ -62,7 +60,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
             m_FontFileType = PdfFontFileType::Type3;
         }
 
-        if (descriptor == nullptr && subType == "Type3")
+        if (descriptor == nullptr && m_FontFileType == PdfFontFileType::Type3)
         {
             const PdfObject* obj;
             if (m_FontName.length() == 0 && (obj = font.GetDictionary().FindKey("Name")) != nullptr)
@@ -79,29 +77,34 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
             if ((obj = descriptor->GetDictionary().FindKey("FontBBox")) != nullptr)
                 m_BBox = getBBox(*obj);
 
-            if (subType == "Type1")
+            if (m_FontFileType == PdfFontFileType::Type1)
             {
                 m_FontFileObject = descriptor->GetDictionary().FindKey("FontFile");
             }
-            else if (subType == "TrueType")
+            else if (m_FontFileType == PdfFontFileType::TrueType)
             {
                 m_FontFileObject = descriptor->GetDictionary().FindKey("FontFile2");
+                // Try to eagerly load a built-in CIDToGID map, if needed
+                // NOTE: This has to be done after having retrieved
+                // the font file object
+                if (!font.GetDictionary().HasKey("Encoding"))
+                    tryLoadBuiltinCIDToGIDMap();
             }
 
-            if (subType != "Type3" && m_FontFileObject == nullptr)
+            if (m_FontFileType != PdfFontFileType::Type3 && m_FontFileObject == nullptr)
             {
                 m_FontFileObject = descriptor->GetDictionary().FindKey("FontFile3");
                 if (m_FontFileObject != nullptr)
                 {
                     auto fontFileSubtype = m_FontFileObject->GetDictionary().FindKeyAs<PdfName>(PdfName::KeySubtype);
-                    if (subType == "Type1")
+                    if (m_FontFileType == PdfFontFileType::Type1)
                     {
                         if (fontFileSubtype == "Type1C")
                             m_FontFileType = PdfFontFileType::Type1CCF;
                         else if (fontFileSubtype == "OpenType")
                             m_FontFileType = PdfFontFileType::OpenType;
                     }
-                    else if (subType == "TrueType" && fontFileSubtype == "OpenType")
+                    else if (m_FontFileType == PdfFontFileType::TrueType && fontFileSubtype == "OpenType")
                     {
                         m_FontFileType = PdfFontFileType::OpenType;
                     }
@@ -113,7 +116,7 @@ PdfFontMetricsObject::PdfFontMetricsObject(const PdfObject& font, const PdfObjec
 
         // Type3 fonts have a custom /FontMatrix
         const PdfObject* fontmatrix = nullptr;
-        if (subType == "Type3" && (fontmatrix = font.GetDictionary().FindKey("FontMatrix")) != nullptr)
+        if (m_FontFileType == PdfFontFileType::Type3 && (fontmatrix = font.GetDictionary().FindKey("FontMatrix")) != nullptr)
         {
             auto& fontmatrixArr = fontmatrix->GetArray();
             for (int i = 0; i < 6; i++)
@@ -494,8 +497,8 @@ datahandle PdfFontMetricsObject::getFontFileDataHandle() const
     const PdfObjectStream* stream;
     if (m_FontFileObject == nullptr || (stream = m_FontFileObject->GetStream()) == nullptr)
         return datahandle();
-    else
-        return datahandle(std::make_shared<charbuff>(stream->GetFilteredCopy()));
+
+    return datahandle(std::make_shared<charbuff>(stream->GetFilteredCopy()));
 }
 
 const PdfCIDToGIDMapConstPtr& PdfFontMetricsObject::getCIDToGIDMap() const

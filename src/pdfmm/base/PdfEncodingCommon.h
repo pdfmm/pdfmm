@@ -17,7 +17,7 @@ namespace mm
      * For generic terminology see https://en.wikipedia.org/wiki/Character_encoding#Terminology
      * See also 5014.CIDFont_Spec, 2.1 Terminology
      */
-    struct PDFMM_API PdfCharCode
+    struct PDFMM_API PdfCharCode final
     {
         unsigned Code;
 
@@ -32,6 +32,10 @@ namespace mm
 
         PdfCharCode(unsigned code, unsigned char codeSpaceSize);
 
+        bool operator<(const PdfCharCode& rhs) const;
+
+        bool operator==(const PdfCharCode& rhs) const;
+
     public:
         void AppendTo(std::string& str) const;
         void WriteHexTo(std::string& str, bool wrap = true) const;
@@ -39,7 +43,7 @@ namespace mm
 
     /** Represent a CID (Character ID) with full code unit information
      */
-    struct PdfCID
+    struct PdfCID final
     {
         unsigned Id;
         PdfCharCode Unit;
@@ -59,7 +63,7 @@ namespace mm
         PdfCID(const PdfCharCode& unit);
     };
 
-    struct PDFMM_API PdfEncodingLimits
+    struct PDFMM_API PdfEncodingLimits final
     {
     public:
         PdfEncodingLimits(unsigned char minCodeSize, unsigned char maxCodeSize,
@@ -80,6 +84,20 @@ namespace mm
         unsigned char MaxCodeSize;
         PdfCharCode FirstChar;     // The first defined character code
         PdfCharCode LastChar;      // The last defined character code
+    };
+}
+
+namespace std
+{
+    /** Overload hasher for PdfCharCode
+     */
+    template<>
+    struct hash<mm::PdfCharCode>
+    {
+        size_t operator()(const mm::PdfCharCode& code) const noexcept
+        {
+            return code.CodeSpaceSize << 24 | code.Code;
+        }
     };
 }
 

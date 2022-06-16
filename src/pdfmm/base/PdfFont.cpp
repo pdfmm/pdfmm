@@ -79,7 +79,11 @@ bool PdfFont::TryGetSubstituteFont(PdfFontCreateFlags initFlags, PdfFont*& subst
     auto encoding = GetEncoding();
     auto& metrics = GetMetrics();
     PdfFontMetricsConstPtr newMetrics;
-    if (!metrics.HasFontFileData())
+    if (metrics.HasFontFileData())
+    {
+        newMetrics = PdfFontMetricsFreetype::FromMetrics(metrics);
+    }
+    else
     {
         // Early intercept Standard14 fonts
         PdfStandard14FontType std14Font;
@@ -100,10 +104,6 @@ bool PdfFont::TryGetSubstituteFont(PdfFontCreateFlags initFlags, PdfFont*& subst
                 return false;
             }
         }
-    }
-    else
-    {
-        newMetrics = PdfFontMetricsFreetype::FromMetrics(metrics);
     }
 
     if (!encoding.HasValidToUnicodeMap())

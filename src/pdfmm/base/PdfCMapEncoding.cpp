@@ -15,6 +15,7 @@
 #include "PdfObjectStream.h"
 #include "PdfPostScriptTokenizer.h"
 #include "PdfArray.h"
+#include "PdfIdentityEncoding.h"
 
 using namespace std;
 using namespace mm;
@@ -44,7 +45,7 @@ PdfCMapEncoding::PdfCMapEncoding(PdfCharCodeMap&& map)
 PdfCMapEncoding::PdfCMapEncoding(PdfCharCodeMap&& map, const PdfEncodingLimits& limits)
     : PdfEncodingMapBase(std::move(map), PdfEncodingMapType::CMap), m_Limits(limits) { }
 
-unique_ptr<PdfCMapEncoding> PdfCMapEncoding::Create(const PdfObject& cmapObj)
+unique_ptr<PdfEncodingMap> PdfEncodingMap::CreateFromObject(const PdfObject& cmapObj)
 {
     CodeLimits codeLimits;
     auto map = parseCMapObject(cmapObj.MustGetStream(), codeLimits);
@@ -56,6 +57,36 @@ unique_ptr<PdfCMapEncoding> PdfCMapEncoding::Create(const PdfObject& cmapObj)
         mapLimits.MinCodeSize = codeLimits.MinCodeSize;
     if (codeLimits.MaxCodeSize > mapLimits.MaxCodeSize)
         mapLimits.MaxCodeSize = codeLimits.MaxCodeSize;
+
+    if (map.GetSize() != 0
+        && mapLimits.MinCodeSize == mapLimits.MaxCodeSize)
+    {
+        // Try to determine if the encoding is actually
+        // an identity encoding
+        auto it = map.begin();
+        auto end = map.end();
+        unsigned prev = it->first.Code - 1;
+        bool identity = true;
+        do
+        {
+            if (it->second.size() > 1
+                || it->first.Code != it->second[0]
+                || it->first.Code > (prev + 1))
+            {
+                identity = false;
+                break;
+            }
+
+            prev = it->first.Code;
+            it++;
+        } while (it != end);
+
+        if (identity)
+        {
+            return unique_ptr<PdfIdentityEncoding>(new PdfIdentityEncoding(
+                PdfEncodingMapType::CMap, mapLimits, PdfIdentityOrientation::Unkwnown));
+        }
+    }
 
     return unique_ptr<PdfCMapEncoding>(new PdfCMapEncoding(std::move(map), mapLimits));
 }
@@ -299,17 +330,21 @@ static uint32_t getCodeFromVariant(const PdfVariant& var, unsigned char& codeSiz
 {
     if (var.IsNumber())
     {
-        int64_t temp = var.GetNumber();
-        uint32_t ret = (uint32_t)temp;
-        codeSize = 0;
-        while (temp != 0)
+        int64_t num = var.GetNumber();
+        uint32_t ret = (uint32_t)num;
+        if (num == 0)
         {
-            temp >>= 8;
-            codeSize++;
+            codeSize = 1;
         }
-
-        if (codeSize > 2)
-            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "PdfEncoding: unsupported code bigger than 16 bits");
+        else
+        {
+            codeSize = 0;
+            do
+            {
+                codeSize++;
+                num >>= 8;
+            } while (num != 0);
+        }
 
         return ret;
     }

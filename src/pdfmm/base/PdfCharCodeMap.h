@@ -30,7 +30,7 @@ namespace mm
      * https://en.wikipedia.org/wiki/Character_encoding#Terminology
      * See also 5014.CIDFont_Spec, 2.1 Terminology
      */
-    class PDFMM_API PdfCharCodeMap
+    class PDFMM_API PdfCharCodeMap final
     {
     public:
         PdfCharCodeMap();
@@ -78,20 +78,6 @@ namespace mm
         void move(PdfCharCodeMap& map) noexcept;
         void pushMapping(const PdfCharCode& codeUnit, std::vector<codepoint>&& codePoints);
 
-        struct HashCharCode
-        {
-            size_t operator()(const PdfCharCode& code) const;
-        };
-
-        struct EqualCharCode
-        {
-            bool operator()(const PdfCharCode& lhs, const PdfCharCode& rhs) const;
-        };
-
-        // Map code units -> code point(s)
-        // pp. 474-475 of PdfReference 1.7 "The value of dstString can be a string of up to 512 bytes"
-        using CUMap = std::unordered_map<PdfCharCode, std::vector<codepoint>, HashCharCode, EqualCharCode>;
-
         // Map code point(s) -> code units
         struct CPMapNode
         {
@@ -115,7 +101,10 @@ namespace mm
         static CPMapNode* findOrAddNode(CPMapNode*& node, codepoint codePoint);
 
     public:
-        using iterator = CUMap::const_iterator;
+        // Map code units -> code point(s)
+        // pp. 474-475 of PdfReference 1.7 "The value of dstString can be a string of up to 512 bytes"
+        using CodeUnitMap = std::map<PdfCharCode, std::vector<codepoint>>;
+        using iterator = CodeUnitMap::const_iterator;
 
     public:
         iterator begin() const;
@@ -123,9 +112,9 @@ namespace mm
 
     private:
         PdfEncodingLimits m_Limits;
-        CUMap m_cuMap;
+        CodeUnitMap m_CodeUnitMap;
         bool m_MapDirty;
-        CPMapNode* m_cpMapHead;           // Head of a BST to lookup code points
+        CPMapNode* m_codePointMapHead;           // Head of a BST to lookup code points
         int m_depth;
     };
 }
