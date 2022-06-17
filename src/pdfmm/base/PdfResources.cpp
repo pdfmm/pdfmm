@@ -66,6 +66,11 @@ void PdfResources::RemoveResource(const string_view& type, const string_view& ke
     dict->RemoveKey(key);
 }
 
+void PdfResources::RemoveResources(const string_view& type)
+{
+    GetDictionary().RemoveKey(type);
+}
+
 PdfObject* PdfResources::GetResource(const string_view& type, const string_view& key)
 {
     return getResource(type, key);

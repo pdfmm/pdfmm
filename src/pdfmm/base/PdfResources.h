@@ -15,6 +15,18 @@
 
 namespace mm {
 
+// TODO: Use it in PdfResources
+enum class PdfResourceType
+{
+    ExtGState,
+    ColorSpace,
+    Pattern,
+    Shading,
+    XObject,
+    Font,
+    Properties
+};
+
 /** A interface that provides a wrapper around /Resources
  */
 class PDFMM_API PdfResources : public PdfDictionaryElement
@@ -29,6 +41,7 @@ public:
     PdfDictionaryIndirectIterable GetResourceIterator(const std::string_view& type);
     PdfDictionaryConstIndirectIterable GetResourceIterator(const std::string_view& type) const;
     void RemoveResource(const std::string_view& type, const std::string_view& key);
+    void RemoveResources(const std::string_view& type);
     PdfObject* GetResource(const std::string_view& type, const std::string_view& key);
     const PdfObject* GetResource(const std::string_view& type, const std::string_view& key) const;
     /** Register a colourspace for a (separation) colour in the resource dictionary
