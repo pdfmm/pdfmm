@@ -56,6 +56,7 @@ charbuff PdfObjectStream::GetFilteredCopy() const
 
 void PdfObjectStream::MoveTo(PdfObject& obj)
 {
+    PDFMM_RAISE_LOGIC_IF(!obj.IsDictionary(), "Target object should be a dictionary");
     PDFMM_RAISE_LOGIC_IF(m_Append, "EndAppend() should be called before moving the stream");
     obj.MoveStreamFrom(*m_Parent);
 }
@@ -109,7 +110,7 @@ void PdfObjectStream::Set(const char* buffer, size_t len, const PdfFilterList& f
         return;
 
     this->BeginAppend(filters);
-    this->append(buffer, len);
+    AppendImpl(buffer, len);
     this->endAppend();
 }
 
@@ -124,7 +125,7 @@ void PdfObjectStream::Set(const char* buffer, size_t len)
         return;
 
     this->BeginAppend();
-    this->append(buffer, len);
+    AppendImpl(buffer, len);
     this->endAppend();
 }
 
@@ -150,7 +151,7 @@ void PdfObjectStream::Set(PdfInputStream& stream, const PdfFilterList& filters)
     do
     {
         len = stream.Read(buffer, BUFFER_SIZE, eof);
-        this->append(buffer, len);
+        AppendImpl(buffer, len);
     } while (!eof);
 
     this->endAppend();
@@ -177,7 +178,7 @@ void PdfObjectStream::SetRawData(PdfInputStream& stream, ssize_t len, bool markO
         do
         {
             lenRead = stream.Read(buffer, BUFFER_SIZE, eof);
-            this->append(buffer, lenRead);
+            AppendImpl(buffer, lenRead);
         } while (!eof);
     }
     else
@@ -187,7 +188,7 @@ void PdfObjectStream::SetRawData(PdfInputStream& stream, ssize_t len, bool markO
         {
             lenRead = stream.Read(buffer, std::min(BUFFER_SIZE, (size_t)len), eof);
             len -= lenRead;
-            this->append(buffer, lenRead);
+            AppendImpl(buffer, lenRead);
         } while (len > 0 && !eof);
     }
 
@@ -251,7 +252,7 @@ void PdfObjectStream::BeginAppend(const PdfFilterList& filters, bool clearExisti
     this->BeginAppendImpl(filters);
     m_Append = true;
     if (buffer != nullptr)
-        this->append(buffer.get(), len);
+        AppendImpl(buffer.get(), len);
 }
 
 void PdfObjectStream::EndAppend()
@@ -282,11 +283,6 @@ PdfObjectStream& PdfObjectStream::Append(const char* buffer, size_t len)
     if (len == 0)
         return *this;
 
-    append(buffer, len);
+    AppendImpl(buffer, len);
     return *this;
-}
-
-void PdfObjectStream::append(const char* data, size_t len)
-{
-    this->AppendImpl(data, len);
 }

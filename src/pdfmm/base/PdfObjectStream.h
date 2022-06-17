@@ -294,8 +294,6 @@ protected:
 private:
     PdfObjectStream(const PdfObjectStream& rhs) = delete;
 
-    void append(const char* data, size_t len);
-
     void endAppend();
 
     void SetRawData(PdfInputStream& stream, ssize_t len, bool markObjectDirty);
