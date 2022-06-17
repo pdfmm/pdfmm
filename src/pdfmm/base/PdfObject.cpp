@@ -410,7 +410,17 @@ void PdfObject::SetParent(PdfDataContainer& parent)
 
 void PdfObject::MoveStreamFrom(PdfObject& obj)
 {
+    PDFMM_ASSERT(m_IsDelayedLoadDone && m_Variant.GetDataType() == PdfDataType::Dictionary);
     moveStreamFrom(obj);
+    // TODO: We could optimize and avoid checking
+    // that both objects are dictionaries
+    auto& dict = obj.GetDictionary();
+    auto filter = dict.FindKey("Filter");
+    if (filter != nullptr)
+    {
+        m_Variant.GetDictionary().AddKey("Filter", *filter);
+        dict.RemoveKey("Filter");
+    }
     m_IsDelayedLoadStreamDone = true;
 }
 
