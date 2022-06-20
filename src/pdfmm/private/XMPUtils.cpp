@@ -54,7 +54,7 @@ static unordered_map<string, XMPListType> s_knownListNodes = {
 
 static void normalizeXMPMetadata(xmlDocPtr doc, xmlNodePtr xmpmeta, xmlNodePtr& description);
 static void normalizeQualifiersAndValues(xmlDocPtr doc, xmlNsPtr rdfNs, xmlNodePtr node);
-static void normalizeElement(xmlNodePtr elem);
+static void normalizeElement(xmlDocPtr doc, xmlNodePtr elem);
 static void tryFixArrayElement(xmlDocPtr doc, xmlNodePtr& node, const string& nodeContent);
 static bool shouldSkipAttribute(xmlAttrPtr attr, vector<xmlAttrPtr>& attibsToRemove);
 static void setXMPMetadata(xmlDocPtr doc, xmlNodePtr xmpmeta, const PdfXMPMetadata& metatata);
@@ -233,17 +233,62 @@ void normalizeQualifiersAndValues(xmlDocPtr doc, xmlNsPtr rdfNs, xmlNodePtr elem
         // Some elements are arrays but they don't use
         // proper array notation
         tryFixArrayElement(doc, elem, *content);
-        normalizeElement(elem);
+        normalizeElement(doc, elem);
         return;
     }
 
-    normalizeElement(elem);
+    normalizeElement(doc, elem);
     for (; child != nullptr; child = xmlNextElementSibling(child))
         normalizeQualifiersAndValues(doc, rdfNs, child);
 }
 
-void normalizeElement(xmlNodePtr elem)
+void normalizeElement(xmlDocPtr doc, xmlNodePtr elem)
 {
+    xmlAttrPtr found;
+    auto parseType = utls::FindAttribute(elem, "rdf", "parseType", found);
+    if (parseType != nullptr && *parseType == "Resource")
+    {
+        // ISO 16684-2:2014 "5.6 Qualifier serialization"
+        auto descElem = xmlNewDocNode(doc, found->ns, XMLCHAR "Description", nullptr);
+        if (descElem == nullptr)
+            THROW_LIBXML_EXCEPTION("Can't rdf:Description node");
+
+        vector<xmlAttrPtr> attribsToMove;
+        for (xmlAttrPtr attr = elem->properties; attr != nullptr; attr = attr->next)
+        {
+            if (attr == found)
+                continue;
+
+            attribsToMove.push_back(attr);
+        }
+
+        for (auto attr : attribsToMove)
+        {
+            xmlUnlinkNode((xmlNodePtr)attr);
+            if (xmlAddChild(descElem, (xmlNodePtr)attr) == nullptr)
+                THROW_LIBXML_EXCEPTION("Can't add attribute to new node");
+        }
+
+        // Finally remove the found rdf:parseType attribute
+        xmlRemoveProp(found);
+
+        vector<xmlNodePtr> elementsToMove;
+        for (auto child = xmlFirstElementChild(elem); child != nullptr; child = xmlNextElementSibling(child))
+            elementsToMove.push_back(child);
+
+        for (auto childElement : elementsToMove)
+        {
+            xmlUnlinkNode(childElement);
+            if (xmlAddChild(descElem, childElement) == nullptr)
+                THROW_LIBXML_EXCEPTION("Can't add children to rdf:Description");
+        }
+
+        if (xmlAddChild(elem, descElem) == nullptr)
+            THROW_LIBXML_EXCEPTION("Can't add rdf:Description to existing node");
+
+        return;
+    }
+
     // ISO 16684-2:2014 "5.3 Property serialization"
     // ISO 16684-2:2014 "5.6 Qualifier serialization".
     // Try to convert XMP simple properties and qualifiers to elements
@@ -301,12 +346,6 @@ bool shouldSkipAttribute(xmlAttrPtr attr, vector<xmlAttrPtr>& attibsToRemove)
         // URI simple value shall be empty. The value shall be
         // provided as the value of an rdf : resource attribute
         // attached to the XML element.
-        return true;
-    }
-    else if (attrname == "rdf:parseType")
-    {
-        // ISO 16684-2:2014 "5.6 Qualifier serialization"
-        attibsToRemove.push_back(attr);
         return true;
     }
     else

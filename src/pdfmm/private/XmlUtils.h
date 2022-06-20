@@ -17,6 +17,8 @@ namespace utls
     xmlNodePtr FindSiblingNode(xmlNodePtr element, const std::string_view& prefix, const std::string_view& name);
     mm::nullable<std::string> FindAttribute(xmlNodePtr element, const std::string_view& name);
     mm::nullable<std::string> FindAttribute(xmlNodePtr element, const std::string_view& prefix, const std::string_view& name);
+    mm::nullable<std::string> FindAttribute(xmlNodePtr element, const std::string_view& name, xmlAttrPtr& ptr);
+    mm::nullable<std::string> FindAttribute(xmlNodePtr element, const std::string_view& prefix, const std::string_view& name, xmlAttrPtr& ptr);
     mm::nullable<std::string> GetNodeContent(xmlNodePtr element);
     std::string GetAttributeValue(const xmlAttrPtr attr);
 }

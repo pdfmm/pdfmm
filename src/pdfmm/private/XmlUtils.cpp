@@ -44,12 +44,24 @@ xmlNodePtr utls::FindSiblingNode(xmlNodePtr element, const string_view& prefix, 
     return nullptr;
 }
 
-mm::nullable<string> utls::FindAttribute(xmlNodePtr element, const std::string_view& name)
+nullable<string> utls::FindAttribute(xmlNodePtr element, const string_view& name)
 {
-    return FindAttribute(element, { }, name);
+    xmlAttrPtr attr;
+    return FindAttribute(element, { }, name, attr);
 }
 
-nullable<string> utls::FindAttribute(xmlNodePtr element, const string_view& prefix, const string_view& name)
+nullable<std::string> utls::FindAttribute(xmlNodePtr element, const string_view& prefix, const string_view& name)
+{
+    xmlAttrPtr attr;
+    return FindAttribute(element, prefix, name, attr);
+}
+
+nullable<string> utls::FindAttribute(xmlNodePtr element, const string_view& name, xmlAttrPtr& attr)
+{
+    return FindAttribute(element, { }, name, attr);
+}
+
+nullable<string> utls::FindAttribute(xmlNodePtr element, const string_view& prefix, const string_view& name, xmlAttrPtr& found)
 {
     for (xmlAttrPtr attr = element->properties; attr != nullptr; attr = attr->next)
     {
@@ -57,10 +69,12 @@ nullable<string> utls::FindAttribute(xmlNodePtr element, const string_view& pref
                 && prefix == (const char*)attr->ns->prefix))
             && name == (const char*)attr->name)
         {
+            found = attr;
             return GetNodeContent((xmlNodePtr)attr);
         }
     }
 
+    found = nullptr;
     return { };
 }
 

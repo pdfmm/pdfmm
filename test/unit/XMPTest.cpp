@@ -32,4 +32,5 @@ TEST_CASE("TestNormalizeXMP")
 {
     TestNormalizeXMP("TestXMP1");
     TestNormalizeXMP("TestXMP5");
+    TestNormalizeXMP("TestXMP7");
 }
