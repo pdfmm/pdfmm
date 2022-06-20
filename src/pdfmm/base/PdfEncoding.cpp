@@ -30,6 +30,8 @@ PdfEncoding::PdfEncoding()
 PdfEncoding::PdfEncoding(const PdfEncodingMapConstPtr& encoding, const PdfToUnicodeMapConstPtr& toUnicode)
     : PdfEncoding(GetNextId(), encoding, toUnicode)
 {
+    if (toUnicode->GetType() != PdfEncodingMapType::CMap)
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "The encoding map must be CMap type");
 }
 
 PdfEncoding::PdfEncoding(size_t id, const PdfEncodingMapConstPtr& encoding, const PdfEncodingMapConstPtr& toUnicode)

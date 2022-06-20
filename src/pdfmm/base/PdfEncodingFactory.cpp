@@ -100,7 +100,7 @@ PdfEncodingMapConstPtr PdfEncodingFactory::createEncodingMap(
         }
 
         if (obj.HasStream())
-            return PdfEncodingMap::CreateFromObject(obj);
+            return PdfCMapEncoding::CreateFromObject(obj);
 
         // CHECK-ME: should we verify if it's a reference by searching /Differences?
         return PdfDifferenceEncoding::Create(obj, metrics);

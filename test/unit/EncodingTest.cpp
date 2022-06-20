@@ -286,7 +286,7 @@ TEST_CASE("testToUnicodeParse")
     auto toUnicodeObj = doc.GetObjects().CreateDictionaryObject();
     toUnicodeObj->GetOrCreateStream().Set(toUnicode);
 
-    PdfEncoding encoding(std::make_shared<PdfIdentityEncoding>(2), PdfCMapEncoding::Create(*toUnicodeObj));
+    PdfEncoding encoding(std::make_shared<PdfIdentityEncoding>(2), PdfCMapEncoding::CreateFromObject(*toUnicodeObj));
 
     auto utf8str = encoding.ConvertToUtf8(PdfString::FromRaw(encodedStr));
     REQUIRE(utf8str == expected);
@@ -319,7 +319,7 @@ TEST_CASE("testToUnicodeParse")
             auto invalidObject = invalidList.CreateDictionaryObject();
             invalidObject->GetOrCreateStream().Set(toUnicodeInvalidTests[i], strlen(toUnicodeInvalidTests[i]));
 
-            PdfEncoding encodingTestInvalid(std::make_shared<PdfIdentityEncoding>(2), PdfCMapEncoding::Create(*invalidObject));
+            PdfEncoding encodingTestInvalid(std::make_shared<PdfIdentityEncoding>(2), PdfCMapEncoding::CreateFromObject(*invalidObject));
 
             auto unicodeStringTestInvalid = encodingTestInvalid.ConvertToUtf8(PdfString::FromRaw(encodedStr));
 

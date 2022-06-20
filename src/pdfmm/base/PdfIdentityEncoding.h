@@ -31,7 +31,7 @@ enum class PdfIdentityOrientation
  */
 class PDFMM_API PdfIdentityEncoding final : public PdfEncodingMap
 {
-    friend class PdfEncodingMap;
+    friend class PdfCMapEncoding;
 
 public:
     /**

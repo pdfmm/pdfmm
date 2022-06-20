@@ -25,6 +25,11 @@ namespace mm
          */
         PdfCMapEncoding(PdfCharCodeMap&& map);
 
+    public:
+        /** Construct an encoding map from an object
+         */
+        static std::unique_ptr<PdfEncodingMap> CreateFromObject(const PdfObject& cmapObj);
+
     private:
         PdfCMapEncoding(PdfCharCodeMap&& map, const PdfEncodingLimits& limits);
 

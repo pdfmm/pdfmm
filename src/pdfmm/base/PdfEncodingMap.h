@@ -37,11 +37,6 @@ protected:
     PdfEncodingMap(PdfEncodingMapType type);
 
 public:
-    /** Construct an encoding map from an object
-     */
-    static std::unique_ptr<PdfEncodingMap> CreateFromObject(const PdfObject& cmapObj);
-
-public:
     /** Try decode next char code from utf8 string range
      */
     bool TryGetNextCharCode(std::string_view::iterator& it,
@@ -313,7 +308,7 @@ class PdfCMapEncoding;
 
 /** Convenience alias for a const /ToUnicode CMap entry shared ptr
  */
-using PdfToUnicodeMapConstPtr = std::shared_ptr<const PdfCMapEncoding>;
+using PdfToUnicodeMapConstPtr = std::shared_ptr<const PdfEncodingMap>;
 }
 
 #endif // PDF_ENCODING_MAP_H

@@ -45,7 +45,7 @@ PdfCMapEncoding::PdfCMapEncoding(PdfCharCodeMap&& map)
 PdfCMapEncoding::PdfCMapEncoding(PdfCharCodeMap&& map, const PdfEncodingLimits& limits)
     : PdfEncodingMapBase(std::move(map), PdfEncodingMapType::CMap), m_Limits(limits) { }
 
-unique_ptr<PdfEncodingMap> PdfEncodingMap::CreateFromObject(const PdfObject& cmapObj)
+unique_ptr<PdfEncodingMap> PdfCMapEncoding::CreateFromObject(const PdfObject& cmapObj)
 {
     CodeLimits codeLimits;
     auto map = parseCMapObject(cmapObj.MustGetStream(), codeLimits);
