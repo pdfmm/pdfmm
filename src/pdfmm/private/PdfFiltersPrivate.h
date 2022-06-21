@@ -127,8 +127,6 @@ class PdfFlateFilter : public PdfFilter
 public:
     PdfFlateFilter();
 
-    virtual ~PdfFlateFilter();
-
     inline bool CanEncode() const override { return true; }
 
     void BeginEncodeImpl() override;
@@ -154,7 +152,7 @@ private:
     unsigned char m_buffer[PDFMM_FILTER_INTERNAL_BUFFER_SIZE];
 
     z_stream m_stream;
-    PdfPredictorDecoder* m_Predictor;
+    std::shared_ptr<PdfPredictorDecoder> m_Predictor;
 };
 
 /** The RLE filter.
@@ -200,8 +198,6 @@ class PdfLZWFilter : public PdfFilter
 public:
     PdfLZWFilter();
 
-    virtual ~PdfLZWFilter();
-
     inline bool CanEncode() const override { return false; }
 
     void BeginEncodeImpl() override;
@@ -236,7 +232,7 @@ private:
 
     bool m_First;
 
-    PdfPredictorDecoder* m_Predictor;
+    std::shared_ptr<PdfPredictorDecoder> m_Predictor;
 };
 
 #ifdef PDFMM_HAVE_JPEG_LIB

@@ -49,13 +49,13 @@ const unsigned s_Powers85[] = { 85 * 85 * 85 * 85, 85 * 85 * 85, 85 * 85, 85, 1 
 class PdfPredictorDecoder
 {
 public:
-    PdfPredictorDecoder(const PdfDictionary* decodeParms)
+    PdfPredictorDecoder(const PdfDictionary& decodeParms)
     {
-        m_Predictor = static_cast<int>(decodeParms->FindKeyAs<int64_t>("Predictor", 1));
-        m_Colors = static_cast<int>(decodeParms->FindKeyAs<int64_t>("Colors", 1));
-        m_BytesPerComponent = static_cast<int>(decodeParms->FindKeyAs<int64_t>("BitsPerComponent", 8));
-        m_ColumnCount = static_cast<int>(decodeParms->FindKeyAs<int64_t>("Columns", 1));
-        m_EarlyChange = static_cast<int>(decodeParms->FindKeyAs<int64_t>("EarlyChange", 1));
+        m_Predictor = static_cast<int>(decodeParms.FindKeyAs<int64_t>("Predictor", 1));
+        m_Colors = static_cast<int>(decodeParms.FindKeyAs<int64_t>("Colors", 1));
+        m_BytesPerComponent = static_cast<int>(decodeParms.FindKeyAs<int64_t>("BitsPerComponent", 8));
+        m_ColumnCount = static_cast<int>(decodeParms.FindKeyAs<int64_t>("Columns", 1));
+        m_EarlyChange = static_cast<int>(decodeParms.FindKeyAs<int64_t>("EarlyChange", 1));
 
         if (m_Predictor >= 10)
         {
@@ -472,15 +472,9 @@ void PdfAscii85Filter::WidePut(unsigned tuple, int bytes) const
 #pragma endregion PdfFlateFilter
 
 PdfFlateFilter::PdfFlateFilter()
-    : m_Predictor(0)
 {
     memset(m_buffer, 0, sizeof(m_buffer));
     memset(&m_stream, 0, sizeof(m_stream));
-}
-
-PdfFlateFilter::~PdfFlateFilter()
-{
-    delete m_Predictor;
 }
 
 void PdfFlateFilter::BeginEncodeImpl()
@@ -546,7 +540,8 @@ void PdfFlateFilter::BeginDecodeImpl(const PdfDictionary* decodeParms)
     m_stream.zfree = Z_NULL;
     m_stream.opaque = Z_NULL;
 
-    m_Predictor = decodeParms == nullptr ? nullptr : new PdfPredictorDecoder(decodeParms);
+    if (decodeParms != nullptr)
+        m_Predictor.reset(new PdfPredictorDecoder(*decodeParms));
 
     if (inflateInit(&m_stream) != Z_OK)
         PDFMM_RAISE_ERROR(PdfErrorCode::Flate);
@@ -601,10 +596,8 @@ void PdfFlateFilter::DecodeBlockImpl(const char* buffer, size_t len)
 
 void PdfFlateFilter::EndDecodeImpl()
 {
-    delete m_Predictor;
-    m_Predictor = nullptr;
-
     (void)inflateEnd(&m_stream);
+    m_Predictor.reset();
 }
 
 #pragma endregion // PdfFlateFilter
@@ -673,18 +666,12 @@ const unsigned short PdfLZWFilter::s_masks[] = { 0x01FF, 0x03FF, 0x07FF, 0x0FFF 
 const unsigned short PdfLZWFilter::s_clear = 0x0100;      // clear table
 const unsigned short PdfLZWFilter::s_eod = 0x0101;      // end of data
 
-PdfLZWFilter::PdfLZWFilter()
-    : m_mask(0),
+PdfLZWFilter::PdfLZWFilter() :
+    m_mask(0),
     m_code_len(0),
     m_character(0),
-    m_First(false),
-    m_Predictor(0)
+    m_First(false)
 {
-}
-
-PdfLZWFilter::~PdfLZWFilter()
-{
-    delete m_Predictor;
 }
 
 void PdfLZWFilter::BeginEncodeImpl()
@@ -702,7 +689,7 @@ void PdfLZWFilter::EndEncodeImpl()
     PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
 }
 
-void PdfLZWFilter::BeginDecodeImpl(const PdfDictionary* pDecodeParms)
+void PdfLZWFilter::BeginDecodeImpl(const PdfDictionary* decodeParms)
 {
     m_mask = 0;
     m_code_len = 9;
@@ -710,7 +697,8 @@ void PdfLZWFilter::BeginDecodeImpl(const PdfDictionary* pDecodeParms)
 
     m_First = true;
 
-    m_Predictor = pDecodeParms ? new PdfPredictorDecoder(pDecodeParms) : nullptr;
+    if (decodeParms != nullptr)
+        m_Predictor.reset(new PdfPredictorDecoder(*decodeParms));
 
     InitTable();
 }
@@ -812,8 +800,7 @@ void PdfLZWFilter::DecodeBlockImpl(const char* buffer, size_t len)
 
 void PdfLZWFilter::EndDecodeImpl()
 {
-    delete m_Predictor;
-    m_Predictor = nullptr;
+    m_Predictor.reset();
 }
 
 void PdfLZWFilter::InitTable()
@@ -939,7 +926,7 @@ void PdfDCTFilter::EndDecodeImpl()
         {
             for (unsigned i = 0, c = 0; i < m_cinfo.output_width; i++, c += 4)
             {
-                buffer[c] = scanLines[0][i * 4];
+                buffer[c + 0] = scanLines[0][i * 4 + 0];
                 buffer[c + 1] = scanLines[0][i * 4 + 1];
                 buffer[c + 2] = scanLines[0][i * 4 + 2];
                 buffer[c + 3] = scanLines[0][i * 4 + 3];
@@ -949,7 +936,7 @@ void PdfDCTFilter::EndDecodeImpl()
         {
             for (unsigned i = 0, c = 0; i < m_cinfo.output_width; i++, c += 3)
             {
-                buffer[c] = scanLines[0][i * 3];
+                buffer[c + 0] = scanLines[0][i * 3 + 0];
                 buffer[c + 1] = scanLines[0][i * 3 + 1];
                 buffer[c + 2] = scanLines[0][i * 3 + 2];
             }
