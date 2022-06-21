@@ -35,17 +35,17 @@ static void LoadFromPngContent(PdfImage& image, png_structp png, png_infop info)
 PdfImage::PdfImage(PdfDocument& doc, const string_view& prefix)
     : PdfXObject(doc, PdfXObjectType::Image, prefix)
 {
-    this->SetImageColorSpace(PdfColorSpace::DeviceRGB);
+    this->SetColorSpace(PdfColorSpace::DeviceRGB);
 }
 
 PdfImage::PdfImage(PdfObject& obj)
     : PdfXObject(obj, PdfXObjectType::Image)
 {
-    m_width = static_cast<unsigned>(this->GetObject().GetDictionary().MustFindKey("Width").GetNumber());
-    m_height = static_cast<unsigned>(this->GetObject().GetDictionary().MustFindKey("Height").GetNumber());
+    m_width = static_cast<unsigned>(this->GetDictionary().MustFindKey("Width").GetNumber());
+    m_height = static_cast<unsigned>(this->GetDictionary().MustFindKey("Height").GetNumber());
 }
 
-void PdfImage::SetImageColorSpace(PdfColorSpace colorSpace, const PdfArray* indexedData)
+void PdfImage::SetColorSpace(PdfColorSpace colorSpace, const PdfArray* indexedData)
 {
     if (colorSpace == PdfColorSpace::Indexed)
     {
@@ -54,17 +54,17 @@ void PdfImage::SetImageColorSpace(PdfColorSpace colorSpace, const PdfArray* inde
         PdfArray array(*indexedData);
 
         array.insert(array.begin(), ColorspaceToName(colorSpace));
-        this->GetObject().GetDictionary().AddKey("ColorSpace", array);
+        this->GetDictionary().AddKey("ColorSpace", array);
     }
     else
     {
-        this->GetObject().GetDictionary().AddKey("ColorSpace", ColorspaceToName(colorSpace));
+        this->GetDictionary().AddKey("ColorSpace", ColorspaceToName(colorSpace));
     }
 }
 
-PdfColorSpace PdfImage::GetImageColorSpace()
+PdfColorSpace PdfImage::GetColorSpace() const
 {
-    PdfObject* colorSpace = GetObject().GetDictionary().FindKey("ColorSpace");
+    auto colorSpace = GetDictionary().FindKey("ColorSpace");
     if (colorSpace == nullptr)
         return PdfColorSpace::Unknown;
 
@@ -77,7 +77,7 @@ PdfColorSpace PdfImage::GetImageColorSpace()
     return PdfColorSpace::Unknown;
 }
 
-void PdfImage::SetImageICCProfile(PdfInputStream& stream, unsigned colorComponents, PdfColorSpace alternateColorSpace)
+void PdfImage::SetICCProfile(PdfInputStream& stream, unsigned colorComponents, PdfColorSpace alternateColorSpace)
 {
     // Check lColorComponents for a valid value
     if (colorComponents != 1 &&
@@ -88,7 +88,7 @@ void PdfImage::SetImageICCProfile(PdfInputStream& stream, unsigned colorComponen
     }
 
     // Create a colorspace object
-    PdfObject* iccObject = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject();
+    PdfObject* iccObject = this->GetDocument().GetObjects().CreateDictionaryObject();
     iccObject->GetDictionary().AddKey("Alternate", ColorspaceToName(alternateColorSpace));
     iccObject->GetDictionary().AddKey("N", static_cast<int64_t>(colorComponents));
     iccObject->GetOrCreateStream().Set(stream);
@@ -97,44 +97,44 @@ void PdfImage::SetImageICCProfile(PdfInputStream& stream, unsigned colorComponen
     PdfArray array;
     array.Add(PdfName("ICCBased"));
     array.Add(iccObject->GetIndirectReference());
-    this->GetObject().GetDictionary().AddKey("ColorSpace", array);
+    this->GetDictionary().AddKey("ColorSpace", array);
 }
 
-void PdfImage::SetImageSoftmask(const PdfImage& softmask)
+void PdfImage::SetSoftmask(const PdfImage& softmask)
 {
-    GetObject().GetDictionary().AddKey("SMask", softmask.GetObject().GetIndirectReference());
+    GetDictionary().AddKey("SMask", softmask.GetObject().GetIndirectReference());
 }
 
-void PdfImage::SetImageData(PdfInputStream& stream, unsigned width, unsigned height,
+void PdfImage::SetData(PdfInputStream& stream, unsigned width, unsigned height,
     unsigned bitsPerComponent)
 {
     PdfFilterList filters;
     filters.push_back(PdfFilterType::FlateDecode);
 
-    this->SetImageData(stream, width, height, bitsPerComponent, filters);
+    this->SetData(stream, width, height, bitsPerComponent, filters);
 }
 
-void PdfImage::SetImageData(PdfInputStream& stream, unsigned width, unsigned height,
+void PdfImage::SetData(PdfInputStream& stream, unsigned width, unsigned height,
     unsigned bitsPerComponent, PdfFilterList& filters)
 {
     m_width = width;
     m_height = height;
 
-    this->GetObject().GetDictionary().AddKey("Width", static_cast<int64_t>(width));
-    this->GetObject().GetDictionary().AddKey("Height", static_cast<int64_t>(height));
-    this->GetObject().GetDictionary().AddKey("BitsPerComponent", static_cast<int64_t>(bitsPerComponent));
+    this->GetDictionary().AddKey("Width", static_cast<int64_t>(width));
+    this->GetDictionary().AddKey("Height", static_cast<int64_t>(height));
+    this->GetDictionary().AddKey("BitsPerComponent", static_cast<int64_t>(bitsPerComponent));
     this->GetObject().GetOrCreateStream().Set(stream, filters);
 }
 
-void PdfImage::SetImageDataRaw(PdfInputStream& stream, unsigned width, unsigned height,
+void PdfImage::SetDataRaw(PdfInputStream& stream, unsigned width, unsigned height,
     unsigned bitsPerComponent)
 {
     m_width = width;
     m_height = height;
 
-    this->GetObject().GetDictionary().AddKey("Width", PdfVariant(static_cast<int64_t>(width)));
-    this->GetObject().GetDictionary().AddKey("Height", PdfVariant(static_cast<int64_t>(height)));
-    this->GetObject().GetDictionary().AddKey("BitsPerComponent", PdfVariant(static_cast<int64_t>(bitsPerComponent)));
+    this->GetDictionary().AddKey("Width", PdfVariant(static_cast<int64_t>(width)));
+    this->GetDictionary().AddKey("Height", PdfVariant(static_cast<int64_t>(height)));
+    this->GetDictionary().AddKey("BitsPerComponent", PdfVariant(static_cast<int64_t>(bitsPerComponent)));
     this->GetObject().GetOrCreateStream().SetRawData(stream, -1);
 }
 
@@ -266,12 +266,12 @@ void PdfImage::LoadFromJpegHandle(FILE* inStream, const string_view& filename)
     {
         case 3:
         {
-            this->SetImageColorSpace(PdfColorSpace::DeviceRGB);
+            this->SetColorSpace(PdfColorSpace::DeviceRGB);
             break;
         }
         case 4:
         {
-            this->SetImageColorSpace(PdfColorSpace::DeviceCMYK);
+            this->SetColorSpace(PdfColorSpace::DeviceCMYK);
             // The jpeg-doc ist not specific in this point, but cmyk's seem to be stored
             // in a inverted fashion. Fix by attaching a decode array
             PdfArray decode;
@@ -284,12 +284,12 @@ void PdfImage::LoadFromJpegHandle(FILE* inStream, const string_view& filename)
             decode.Add(1.0);
             decode.Add(0.0);
 
-            this->GetObject().GetDictionary().AddKey("Decode", decode);
+            this->GetDictionary().AddKey("Decode", decode);
             break;
         }
         default:
         {
-            this->SetImageColorSpace(PdfColorSpace::DeviceGray);
+            this->SetColorSpace(PdfColorSpace::DeviceGray);
             break;
         }
     }
@@ -299,7 +299,7 @@ void PdfImage::LoadFromJpegHandle(FILE* inStream, const string_view& filename)
 
     // Do not apply any filters as JPEG data is already DCT encoded.
     PdfFileInputStream stream(filename);
-    this->SetImageDataRaw(stream, cinfo.output_width, cinfo.output_height, 8);
+    this->SetDataRaw(stream, cinfo.output_width, cinfo.output_height, 8);
     jpeg_destroy_decompress(&cinfo);
 }
 
@@ -332,12 +332,12 @@ void PdfImage::LoadFromJpegData(const unsigned char* data, size_t len)
     {
         case 3:
         {
-            this->SetImageColorSpace(PdfColorSpace::DeviceRGB);
+            this->SetColorSpace(PdfColorSpace::DeviceRGB);
             break;
         }
         case 4:
         {
-            this->SetImageColorSpace(PdfColorSpace::DeviceCMYK);
+            this->SetColorSpace(PdfColorSpace::DeviceCMYK);
             // The jpeg-doc ist not specific in this point, but cmyk's seem to be stored
             // in a inverted fashion. Fix by attaching a decode array
             PdfArray decode;
@@ -350,19 +350,19 @@ void PdfImage::LoadFromJpegData(const unsigned char* data, size_t len)
             decode.Add(1.0);
             decode.Add(0.0);
 
-            this->GetObject().GetDictionary().AddKey("Decode", decode);
+            this->GetDictionary().AddKey("Decode", decode);
         }
         break;
         default:
-            this->SetImageColorSpace(PdfColorSpace::DeviceGray);
+            this->SetColorSpace(PdfColorSpace::DeviceGray);
             break;
     }
 
     // Set the filters key to DCTDecode
-    this->GetObject().GetDictionary().AddKey(PdfName::KeyFilter, PdfName("DCTDecode"));
+    this->GetDictionary().AddKey(PdfName::KeyFilter, PdfName("DCTDecode"));
 
     PdfMemoryInputStream inStream({ (const char*)data, len });
-    this->SetImageDataRaw(inStream, cinfo.output_width, cinfo.output_height, 8);
+    this->SetDataRaw(inStream, cinfo.output_width, cinfo.output_height, 8);
 
     jpeg_destroy_decompress(&cinfo);
 }
@@ -436,12 +436,12 @@ void PdfImage::LoadFromTiffHandle(void* handle)
                 PdfArray decode;
                 decode.insert(decode.end(), PdfObject(static_cast<int64_t>(0)));
                 decode.insert(decode.end(), PdfObject(static_cast<int64_t>(1)));
-                this->GetObject().GetDictionary().AddKey("Decode", decode);
-                this->GetObject().GetDictionary().AddKey("ImageMask", true);
-                this->GetObject().GetDictionary().RemoveKey("ColorSpace");
+                this->GetDictionary().AddKey("Decode", decode);
+                this->GetDictionary().AddKey("ImageMask", true);
+                this->GetDictionary().RemoveKey("ColorSpace");
             }
             else if (bitsPixel == 8 || bitsPixel == 16)
-                SetImageColorSpace(PdfColorSpace::DeviceGray);
+                SetColorSpace(PdfColorSpace::DeviceGray);
             else
             {
                 TIFFClose(hInTiffHandle);
@@ -457,12 +457,12 @@ void PdfImage::LoadFromTiffHandle(void* handle)
                 PdfArray decode;
                 decode.insert(decode.end(), PdfObject(static_cast<int64_t>(1)));
                 decode.insert(decode.end(), PdfObject(static_cast<int64_t>(0)));
-                this->GetObject().GetDictionary().AddKey("Decode", decode);
-                this->GetObject().GetDictionary().AddKey("ImageMask", true);
-                this->GetObject().GetDictionary().RemoveKey("ColorSpace");
+                this->GetDictionary().AddKey("Decode", decode);
+                this->GetDictionary().AddKey("ImageMask", true);
+                this->GetDictionary().RemoveKey("ColorSpace");
             }
             else if (bitsPixel == 8 || bitsPixel == 16)
-                SetImageColorSpace(PdfColorSpace::DeviceGray);
+                SetColorSpace(PdfColorSpace::DeviceGray);
             else
             {
                 TIFFClose(hInTiffHandle);
@@ -477,7 +477,7 @@ void PdfImage::LoadFromTiffHandle(void* handle)
                 TIFFClose(hInTiffHandle);
                 PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedImageFormat);
             }
-            SetImageColorSpace(PdfColorSpace::DeviceRGB);
+            SetColorSpace(PdfColorSpace::DeviceRGB);
             break;
 
         case PHOTOMETRIC_SEPARATED:
@@ -486,7 +486,7 @@ void PdfImage::LoadFromTiffHandle(void* handle)
                 TIFFClose(hInTiffHandle);
                 PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedImageFormat);
             }
-            SetImageColorSpace(PdfColorSpace::DeviceCMYK);
+            SetColorSpace(PdfColorSpace::DeviceCMYK);
             break;
 
         case PHOTOMETRIC_PALETTE:
@@ -496,7 +496,7 @@ void PdfImage::LoadFromTiffHandle(void* handle)
             PdfArray decode;
             decode.insert(decode.end(), PdfObject(static_cast<int64_t>(0)));
             decode.insert(decode.end(), PdfObject(static_cast<int64_t>(numColors) - 1));
-            this->GetObject().GetDictionary().AddKey("Decode", decode);
+            this->GetDictionary().AddKey("Decode", decode);
 
             uint16* rgbRed;
             uint16* rgbGreen;
@@ -514,7 +514,7 @@ void PdfImage::LoadFromTiffHandle(void* handle)
             PdfMemoryInputStream stream({ datap, numColors * 3 });
 
             // Create a colorspace object
-            PdfObject* pIdxObject = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject();
+            PdfObject* pIdxObject = this->GetDocument().GetObjects().CreateDictionaryObject();
             pIdxObject->GetOrCreateStream().Set(stream);
 
             // Add the colorspace to our image
@@ -523,7 +523,7 @@ void PdfImage::LoadFromTiffHandle(void* handle)
             array.Add(PdfName("DeviceRGB"));
             array.Add(static_cast<int64_t>(numColors) - 1);
             array.Add(pIdxObject->GetIndirectReference());
-            this->GetObject().GetDictionary().AddKey(PdfName("ColorSpace"), array);
+            this->GetDictionary().AddKey(PdfName("ColorSpace"), array);
 
             delete[] datap;
         }
@@ -551,7 +551,7 @@ void PdfImage::LoadFromTiffHandle(void* handle)
 
     PdfMemoryInputStream stream(buffer);
 
-    SetImageData(stream, static_cast<unsigned>(width),
+    SetData(stream, static_cast<unsigned>(width),
         static_cast<unsigned>(height),
         static_cast<unsigned>(bitsPerSample));
 }
@@ -958,10 +958,10 @@ void LoadFromPngContent(PdfImage& image, png_structp png, png_infop info)
             len = width * height;
         }
         PdfMemoryInputStream smaskstream(smask);
-        PdfImage smakeImage(*image.GetObject().GetDocument());
-        smakeImage.SetImageColorSpace(PdfColorSpace::DeviceGray);
-        smakeImage.SetImageData(smaskstream, width, height, 8);
-        image.SetImageSoftmask(smakeImage);
+        PdfImage smakeImage(image.GetDocument());
+        smakeImage.SetColorSpace(PdfColorSpace::DeviceGray);
+        smakeImage.SetData(smaskstream, width, height, 8);
+        image.SetSoftmask(smakeImage);
     }
 
     // Set color space
@@ -979,27 +979,27 @@ void LoadFromPngContent(PdfImage& image, png_structp png, png_infop info)
             data[3 * i + 2] = colors->blue;
         }
         PdfMemoryInputStream stream({ data, (size_t)(colorCount * 3) });
-        PdfObject* pIdxObject = image.GetObject().GetDocument()->GetObjects().CreateDictionaryObject();
+        PdfObject* pIdxObject = image.GetDocument().GetObjects().CreateDictionaryObject();
         pIdxObject->GetOrCreateStream().Set(stream);
 
         PdfArray array;
         array.Add(PdfName("DeviceRGB"));
         array.Add(static_cast<int64_t>(colorCount - 1));
         array.Add(pIdxObject->GetIndirectReference());
-        image.SetImageColorSpace(PdfColorSpace::Indexed, &array);
+        image.SetColorSpace(PdfColorSpace::Indexed, &array);
     }
     else if (color_type == PNG_COLOR_TYPE_GRAY || color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
     {
-        image.SetImageColorSpace(PdfColorSpace::DeviceGray);
+        image.SetColorSpace(PdfColorSpace::DeviceGray);
     }
     else
     {
-        image.SetImageColorSpace(PdfColorSpace::DeviceRGB);
+        image.SetColorSpace(PdfColorSpace::DeviceRGB);
     }
 
     // Set the image data and flate compress it
     PdfMemoryInputStream stream(buffer);
-    image.SetImageData(stream, width, height, depth);
+    image.SetData(stream, width, height, depth);
 
     png_destroy_read_struct(&png, &info, (png_infopp)NULL);
 }
@@ -1017,7 +1017,7 @@ PdfName PdfImage::ColorspaceToName(PdfColorSpace colorSpace)
     return PdfColor::GetNameForColorSpace(colorSpace);
 }
 
-void PdfImage::SetImageChromaKeyMask(int64_t r, int64_t g, int64_t b, int64_t threshold)
+void PdfImage::SetChromaKeyMask(int64_t r, int64_t g, int64_t b, int64_t threshold)
 {
     PdfArray array;
     array.Add(r - threshold);
@@ -1027,12 +1027,12 @@ void PdfImage::SetImageChromaKeyMask(int64_t r, int64_t g, int64_t b, int64_t th
     array.Add(b - threshold);
     array.Add(b + threshold);
 
-    this->GetObject().GetDictionary().AddKey("Mask", array);
+    this->GetDictionary().AddKey("Mask", array);
 }
 
 void PdfImage::SetInterpolate(bool value)
 {
-    this->GetObject().GetDictionary().AddKey("Interpolate", value);
+    this->GetDictionary().AddKey("Interpolate", value);
 }
 
 PdfRect PdfImage::GetRect() const

@@ -57,13 +57,13 @@ public:
      *
      *  \see SetImageICCProfile to set an ICC profile instead of a simple colorspace
      */
-    void SetImageColorSpace(PdfColorSpace colorSpace, const PdfArray* indexedData = nullptr);
+    void SetColorSpace(PdfColorSpace colorSpace, const PdfArray* indexedData = nullptr);
 
     /** Get the color space of the image
     *
     *  \returns the color space of the image
     */
-    PdfColorSpace GetImageColorSpace();
+    PdfColorSpace GetColorSpace() const;
 
     /** Set an ICC profile for this image.
      *
@@ -73,7 +73,7 @@ public:
      *
      *  \see SetImageColorSpace to set an colorspace instead of an ICC profile for this image
      */
-    void SetImageICCProfile(PdfInputStream& stream, unsigned colorComponents,
+    void SetICCProfile(PdfInputStream& stream, unsigned colorComponents,
         PdfColorSpace alternateColorSpace = PdfColorSpace::DeviceRGB);
 
     //PdfColorSpace GetImageColorSpace() const;
@@ -82,7 +82,7 @@ public:
      *  \param pSoftmask a PdfImage pointer to the image, which is to be set as softmask, must be 8-Bit-Grayscale
      *
      */
-    void SetImageSoftmask(const PdfImage& softmask);
+    void SetSoftmask(const PdfImage& softmask);
 
     /** Get the width of the image when drawn in PDF units
      *  \returns the width in PDF units
@@ -109,7 +109,7 @@ public:
      *
      *  \see SetImageData
      */
-    void SetImageData(PdfInputStream& stream, unsigned width, unsigned height,
+    void SetData(PdfInputStream& stream, unsigned width, unsigned height,
         unsigned bitsPerComponent);
 
     /** Set the actual image data from an input stream
@@ -121,7 +121,7 @@ public:
      *                           but is 8 in most cases)
      *  \param filters these filters will be applied to compress the image data
      */
-    void SetImageData(PdfInputStream& stream, unsigned width, unsigned height,
+    void SetData(PdfInputStream& stream, unsigned width, unsigned height,
                       unsigned bitsPerComponent, PdfFilterList& filters);
 
     /** Set the actual image data from an input stream.
@@ -134,7 +134,7 @@ public:
      *  \param bitsPerComponent bits per color component of the image (depends on the image colorspace you have set
      *                           but is 8 in most cases)
      */
-    void SetImageDataRaw(PdfInputStream& stream, unsigned width, unsigned height,
+    void SetDataRaw(PdfInputStream& stream, unsigned width, unsigned height,
         unsigned bitsPerComponent);
 
     /** Load the image data from a file
@@ -195,7 +195,7 @@ public:
      *  \param b blue RGB value of color that should be masked
      *  \param threshold colors are masked that are in the range [(r-threshold, r+threshold),(g-threshold, g+threshold),(b-threshold, b+threshold)]
      */
-    void SetImageChromaKeyMask(int64_t r, int64_t g, int64_t b, int64_t threshold = 0);
+    void SetChromaKeyMask(int64_t r, int64_t g, int64_t b, int64_t threshold = 0);
 
     /**
      * Apply an interpolation to the image if the source resolution
