@@ -56,7 +56,7 @@ static void normalizeXMPMetadata(xmlDocPtr doc, xmlNodePtr xmpmeta, xmlNodePtr& 
 static void normalizeQualifiersAndValues(xmlDocPtr doc, xmlNsPtr rdfNs, xmlNodePtr node);
 static void normalizeElement(xmlDocPtr doc, xmlNodePtr elem);
 static void tryFixArrayElement(xmlDocPtr doc, xmlNodePtr& node, const string& nodeContent);
-static bool shouldSkipAttribute(xmlAttrPtr attr, vector<xmlAttrPtr>& attibsToRemove);
+static bool shouldSkipAttribute(xmlAttrPtr attr);
 static void setXMPMetadata(xmlDocPtr doc, xmlNodePtr xmpmeta, const PdfXMPMetadata& metatata);
 static xmlDocPtr createXMPDoc(xmlNodePtr& root);
 static void addXMPProperty(xmlDocPtr doc, xmlNodePtr description,
@@ -295,7 +295,7 @@ void normalizeElement(xmlDocPtr doc, xmlNodePtr elem)
     vector<xmlAttrPtr> attribsToRemove;
     for (xmlAttrPtr attr = elem->properties; attr != nullptr; attr = attr->next)
     {
-        if (shouldSkipAttribute(attr, attribsToRemove))
+        if (shouldSkipAttribute(attr))
             continue;
 
         auto value = utls::GetAttributeValue(attr);
@@ -328,7 +328,7 @@ void tryFixArrayElement(xmlDocPtr doc, xmlNodePtr& node, const string& nodeConte
     node = newNode;
 }
 
-bool shouldSkipAttribute(xmlAttrPtr attr, vector<xmlAttrPtr>& attibsToRemove)
+bool shouldSkipAttribute(xmlAttrPtr attr)
 {
     auto attrname = getAttributeName(attr);
     if (attrname == "xml:lang")
