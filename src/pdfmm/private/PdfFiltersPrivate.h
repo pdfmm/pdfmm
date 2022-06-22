@@ -62,7 +62,7 @@ class PdfOutputDevice;
 
 /** The ascii hex filter.
  */
-class PdfHexFilter : public PdfFilter
+class PdfHexFilter final : public PdfFilter
 {
 public:
     PdfHexFilter();
@@ -88,7 +88,7 @@ private:
 
 /** The Ascii85 filter.
  */
-class PdfAscii85Filter : public PdfFilter
+class PdfAscii85Filter final : public PdfFilter
 {
 public:
     PdfAscii85Filter();
@@ -122,7 +122,7 @@ private:
 
 /** The Flate filter.
  */
-class PdfFlateFilter : public PdfFilter
+class PdfFlateFilter final : public PdfFilter
 {
 public:
     PdfFlateFilter();
@@ -157,7 +157,7 @@ private:
 
 /** The RLE filter.
  */
-class PdfRLEFilter : public PdfFilter
+class PdfRLEFilter final : public PdfFilter
 {
 public:
     PdfRLEFilter();
@@ -184,7 +184,7 @@ private:
 
 /** The LZW filter.
  */
-class PdfLZWFilter : public PdfFilter
+class PdfLZWFilter final : public PdfFilter
 {
     struct TLzwItem
     {
@@ -250,7 +250,7 @@ extern "C"
  *
  *  This filter requires JPEG lib to be available
  */
-class PdfDCTFilter : public PdfFilter
+class PdfDCTFilter final : public PdfFilter
 {
 public:
     PdfDCTFilter();
@@ -289,7 +289,7 @@ private:
  *
  *  This filter requires TIFFlib to be available
  */
-class PdfCCITTFilter : public PdfFilter
+class PdfCCITTFilter final : public PdfFilter
 {
 public:
     PdfCCITTFilter();

@@ -300,7 +300,7 @@ public:
      *  \returns a new PdfFilter allocated using new, or nullptr if no
      *           filter is available for this type.
      */
-    static std::unique_ptr<PdfFilter> Create(const PdfFilterType filterType);
+    static std::unique_ptr<PdfFilter> Create(PdfFilterType filterType);
 
     /** Create a PdfOutputStream that applies a list of filters
      *  on all data written to it.

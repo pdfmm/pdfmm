@@ -115,36 +115,33 @@ private:
  */
 class PdfFilteredDecodeStream : public PdfOutputStream
 {
-public:
-    /** Create a filtered output stream.
-     *
-     *  All data written to this stream is decoded using the passed filter type
-     *  and written to the passed output stream which will be deleted
-     *  by this PdfFilteredDecodeStream if the parameter bOwnStream is true.
-     *
-     *  \param outputStream write all data to this output stream after decoding the data.
-     *         The PdfOutputStream is deleted along with this object if bOwnStream is true.
-     *  \param filterType use this filter for decoding.
-     *  \param ownStream if true outputStream will be deleted along with this stream
-     *  \param decodeParms additional parameters for decoding
-     */
-    PdfFilteredDecodeStream(PdfOutputStream& outputStream, const PdfFilterType filterType, bool ownStream,
-        const PdfDictionary* decodeParms = nullptr)
-        : m_OutputStream(&outputStream), m_FilterFailed(false)
+private:
+    void init(PdfOutputStream& outputStream, const PdfFilterType filterType,
+        const PdfDictionary* decodeParms)
     {
         m_filter = PdfFilterFactory::Create(filterType);
         if (m_filter == nullptr)
             PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
 
         m_filter->BeginDecode(outputStream, decodeParms);
-
-        if (!ownStream)
-            m_OutputStream = nullptr;
     }
 
-    virtual ~PdfFilteredDecodeStream()
+public:
+    PdfFilteredDecodeStream(PdfOutputStream& outputStream, const PdfFilterType filterType,
+        const PdfDictionary* decodeParms)
+        : m_FilterFailed(false)
     {
-        delete m_OutputStream;
+        init(outputStream, filterType, decodeParms);
+    }
+
+    PdfFilteredDecodeStream(unique_ptr<PdfOutputStream> outputStream, const PdfFilterType filterType,
+        const PdfDictionary* decodeParms)
+        : m_OutputStream(std::move(outputStream)), m_FilterFailed(false)
+    {
+        if (outputStream == nullptr)
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Output stream must be not null");
+
+        init(*outputStream, filterType, decodeParms);
     }
 
     /** Write data to the output stream
@@ -185,7 +182,7 @@ public:
     }
 
 private:
-    PdfOutputStream* m_OutputStream;
+    shared_ptr<PdfOutputStream> m_OutputStream;
     unique_ptr<PdfFilter> m_filter;
     bool m_FilterFailed;
 };
@@ -241,7 +238,7 @@ void PdfFilter::Decode(const char* inBuffer, size_t inLen, std::unique_ptr<char[
 // PdfFilterFactory code
 //
 
-std::unique_ptr<PdfFilter> PdfFilterFactory::Create(const PdfFilterType filterType)
+std::unique_ptr<PdfFilter> PdfFilterFactory::Create(PdfFilterType filterType)
 {
     PdfFilter* filter = nullptr;
     switch (filterType)
@@ -330,16 +327,16 @@ unique_ptr<PdfOutputStream> PdfFilterFactory::CreateDecodeStream(const PdfFilter
         dictionary = &decodeParams->GetDictionary();
     }
 
-    PdfFilteredDecodeStream* filterStream = new PdfFilteredDecodeStream(stream, *it, false, dictionary);
+    unique_ptr<PdfOutputStream> filterStream(new PdfFilteredDecodeStream(stream, *it, dictionary));
     it++;
 
     while (it != filters.rend())
     {
-        filterStream = new PdfFilteredDecodeStream(*filterStream, *it, true, dictionary);
+        filterStream.reset(new PdfFilteredDecodeStream(std::move(filterStream), *it, dictionary));
         it++;
     }
 
-    return unique_ptr<PdfOutputStream>(filterStream);
+    return filterStream;
 }
 
 PdfFilterType PdfFilterFactory::FilterNameToType(const PdfName& name, bool supportShortNames)
