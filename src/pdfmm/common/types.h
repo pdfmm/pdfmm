@@ -72,6 +72,8 @@ namespace COMMON_NAMESPACE
         {
             return bufferview(data(), size());
         }
+    private:
+        size_t length() const = delete;
     };
 
     using charbuff = charbuff_t<>;

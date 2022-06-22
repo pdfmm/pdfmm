@@ -105,11 +105,10 @@ bool PdfCMapEncoding::HasLigaturesSupport() const
 PdfCharCodeMap parseCMapObject(const PdfObjectStream& stream, CodeLimits& limits)
 {
     PdfCharCodeMap ret;
-    unique_ptr<char[]> streamBuffer;
-    size_t streamBufferLen;
-    stream.GetFilteredCopy(streamBuffer, streamBufferLen);
+    charbuff streamBuffer;
+    stream.GetFilteredCopy(streamBuffer);
 
-    PdfMemoryInputDevice device(streamBuffer.get(), streamBufferLen);
+    PdfMemoryInputDevice device(streamBuffer);
     PdfPostScriptTokenizer tokenizer;
     deque<unique_ptr<PdfVariant>> tokens;
     PdfString str;

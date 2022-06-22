@@ -74,7 +74,6 @@ void PdfFontType1::embedFontSubset()
     unsigned length2 = 0;
     unsigned length3 = 0;
     const char* buffer;
-    unique_ptr<char[]> allocated;
 
     auto contents = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject();
     m_Descriptor->GetDictionary().AddKey("FontFile", contents->GetIndirectReference());

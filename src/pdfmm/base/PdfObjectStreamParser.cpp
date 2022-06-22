@@ -34,11 +34,10 @@ void PdfObjectStreamParser::Parse(ObjectIdList const& list)
     int64_t num = m_Parser->GetDictionary().FindKeyAs<int64_t>("N", 0);
     int64_t first = m_Parser->GetDictionary().FindKeyAs<int64_t>("First", 0);
 
-    unique_ptr<char[]> buffer;
-    size_t bufferLen;
-    m_Parser->GetOrCreateStream().GetFilteredCopy(buffer, bufferLen);
+    charbuff buffer;
+    m_Parser->GetOrCreateStream().GetFilteredCopy(buffer);
 
-    this->ReadObjectsFromStream(buffer.get(), bufferLen, num, first, list);
+    this->ReadObjectsFromStream(buffer.data(), buffer.size(), num, first, list);
     m_Parser = nullptr;
 }
 

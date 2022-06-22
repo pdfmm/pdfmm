@@ -204,25 +204,13 @@ public:
      */
     virtual size_t GetLength() const = 0;
 
-    /** Get a malloc()'d buffer of the current stream.
-     *  No filters will be applied to the buffer, so
-     *  if the stream is Flate-compressed the compressed copy
-     *  will be returned.
-     *
-     *  The caller has to the buffer.
-     *
-     *  \param buffer pointer to the buffer
-     *  \param len pointer to the buffer length
-     */
-    virtual void GetCopy(std::unique_ptr<char[]>& buffer, size_t& len) const = 0;
-
     /** Get a copy of a the stream and write it to a PdfOutputStream
      *
      *  \param stream data is written to this stream.
      */
     virtual void GetCopy(PdfOutputStream& stream) const = 0;
 
-    /** Get a malloc()'d buffer of the current stream which has been
+    /** Get a buffer of the current stream which has been
      *  filtered by all filters as specified in the dictionary's
      *  /Filter key. For example, if the stream is Flate-compressed,
      *  the buffer returned from this method will have been decompressed.
@@ -230,9 +218,8 @@ public:
      *  The caller has to the buffer.
      *
      *  \param buffer pointer to the buffer
-     *  \param len    pointer to the buffer length
      */
-    void GetFilteredCopy(std::unique_ptr<char[]>& buffer, size_t& len) const;
+    void GetFilteredCopy(charbuff& buffer) const;
 
     /** Get a filtered copy of a the stream and write it to a PdfOutputStream
      *

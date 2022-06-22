@@ -29,6 +29,12 @@ PdfObjectStream::PdfObjectStream(PdfObject& parent)
 
 PdfObjectStream::~PdfObjectStream() { }
 
+void PdfObjectStream::GetFilteredCopy(charbuff& buffer) const
+{
+    PdfCharsOutputStream stream(buffer);
+    GetFilteredCopy(stream);
+}
+
 void PdfObjectStream::GetFilteredCopy(PdfOutputStream& stream) const
 {
     PdfFilterList filters = PdfFilterFactory::CreateFilterList(*m_Parent);
@@ -59,27 +65,6 @@ void PdfObjectStream::MoveTo(PdfObject& obj)
     PDFMM_RAISE_LOGIC_IF(!obj.IsDictionary(), "Target object should be a dictionary");
     PDFMM_RAISE_LOGIC_IF(m_Append, "EndAppend() should be called before moving the stream");
     obj.MoveStreamFrom(*m_Parent);
-}
-
-void PdfObjectStream::GetFilteredCopy(unique_ptr<char[]>& buffer, size_t& len) const
-{
-    PdfFilterList filters = PdfFilterFactory::CreateFilterList(*m_Parent);
-    PdfMemoryOutputStream  stream;
-    if (filters.size())
-    {
-        auto decodeStream = PdfFilterFactory::CreateDecodeStream(filters, stream,
-            &m_Parent->GetDictionary());
-
-        decodeStream->Write(this->GetInternalBuffer(), this->GetInternalBufferSize());
-        decodeStream->Close();
-    }
-    else
-    {
-        stream.Write(this->GetInternalBuffer(), this->GetInternalBufferSize());
-        stream.Close();
-    }
-
-    buffer = stream.TakeBuffer(len);
 }
 
 PdfObjectStream& PdfObjectStream::operator=(const PdfObjectStream& rhs)
@@ -225,10 +210,9 @@ void PdfObjectStream::BeginAppend(const PdfFilterList& filters, bool clearExisti
     if (document != nullptr)
         document->GetObjects().BeginAppendStream(*this);
 
-    size_t len = 0;
-    unique_ptr<char[]> buffer;
+    charbuff buffer;
     if (!clearExisting && this->GetLength() != 0)
-        this->GetFilteredCopy(buffer, len);
+        this->GetFilteredCopy(buffer);
 
     if (filters.size() == 0)
     {
@@ -251,8 +235,8 @@ void PdfObjectStream::BeginAppend(const PdfFilterList& filters, bool clearExisti
 
     this->BeginAppendImpl(filters);
     m_Append = true;
-    if (buffer != nullptr)
-        AppendImpl(buffer.get(), len);
+    if (buffer.size() != 0)
+        AppendImpl(buffer.data(), buffer.size());
 }
 
 void PdfObjectStream::EndAppend()

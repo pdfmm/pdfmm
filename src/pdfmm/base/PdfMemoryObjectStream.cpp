@@ -62,13 +62,6 @@ void PdfMemoryObjectStream::EndAppendImpl()
     m_Stream = nullptr;
 }
 
-void PdfMemoryObjectStream::GetCopy(unique_ptr<char[]>& buffer, size_t& len) const
-{
-    buffer.reset(new char[m_buffer.size()]);
-    len = m_buffer.size();
-    std::memcpy(buffer.get(), m_buffer.data(), m_buffer.size());
-}
-
 void PdfMemoryObjectStream::GetCopy(PdfOutputStream& stream) const
 {
     stream.Write(m_buffer.data(), m_buffer.size());

@@ -110,12 +110,11 @@ void PdfXRefStreamParserObject::parseStream(const int64_t wArray[W_ARRAY_SIZE], 
 
     const size_t entryLen = static_cast<size_t>(wArray[0] + wArray[1] + wArray[2]);
 
-    unique_ptr<char[]> buffer;
-    size_t bufferLen;
-    this->GetOrCreateStream().GetFilteredCopy(buffer, bufferLen);
+    charbuff buffer;
+    this->GetOrCreateStream().GetFilteredCopy(buffer);
 
     vector<int64_t>::const_iterator it = indices.begin();
-    char* cursor = buffer.get();
+    char* cursor = buffer.data();
     while (it != indices.end())
     {
         int64_t firstObj = *it++;
@@ -124,7 +123,7 @@ void PdfXRefStreamParserObject::parseStream(const int64_t wArray[W_ARRAY_SIZE], 
         m_entries->Enlarge(firstObj + count);
         for (unsigned index = 0; index < (unsigned)count; index++)
         {
-            if ((size_t)(cursor - buffer.get()) >= bufferLen)
+            if ((size_t)(cursor - buffer.data()) >= buffer.size())
                 PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NoXRef, "Invalid count in XRef stream");
 
             unsigned objIndex = (unsigned)firstObj + index;

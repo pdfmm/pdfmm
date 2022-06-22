@@ -53,8 +53,6 @@ public:
 
     void Write(PdfOutputDevice& device, const PdfStatefulEncrypt& encrypt) override;
 
-    void GetCopy(std::unique_ptr<char[]>& buffer, size_t& len) const override;
-
     void GetCopy(PdfOutputStream& stream) const override;
 
     size_t GetLength() const override;
