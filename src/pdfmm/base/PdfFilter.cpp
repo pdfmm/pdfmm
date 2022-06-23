@@ -55,19 +55,8 @@ static const char* s_shortFilters[] = {
  */
 class PdfFilteredEncodeStream : public PdfOutputStream
 {
-public:
-    /** Create a filtered output stream.
-     *
-     *  All data written to this stream is encoded using the passed filter type
-     *  and written to the passed output stream which will be deleted
-     *  by this PdfFilteredEncodeStream.
-     *
-     *  \param outputStream write all data to this output stream after encoding the data.
-     *  \param filterType use this filter for encoding.
-     *  \param ownStream if true outputStream will be deleted along with this filter
-     */
-    PdfFilteredEncodeStream(PdfOutputStream& outputStream, const PdfFilterType filterType, bool ownStream)
-        : m_OutputStream(&outputStream)
+private:
+    void init(PdfOutputStream& outputStream, PdfFilterType filterType)
     {
         m_filter = PdfFilterFactory::Create(filterType);
 
@@ -75,14 +64,18 @@ public:
             PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
 
         m_filter->BeginEncode(outputStream);
-
-        if (!ownStream)
-            m_OutputStream = nullptr;
     }
 
-    virtual ~PdfFilteredEncodeStream()
+public:
+    PdfFilteredEncodeStream(PdfOutputStream& outputStream, PdfFilterType filterType)
     {
-        delete m_OutputStream;
+        init(outputStream, filterType);
+    }
+
+    PdfFilteredEncodeStream(unique_ptr<PdfOutputStream> outputStream, PdfFilterType filterType)
+        : m_OutputStream(std::move(outputStream))
+    {
+        init(*outputStream, filterType);
     }
 
     /** Write data to the output stream
@@ -101,8 +94,8 @@ public:
     }
 
 private:
-    PdfOutputStream* m_OutputStream;
-    std::unique_ptr<PdfFilter> m_filter;
+    unique_ptr<PdfOutputStream> m_OutputStream;
+    unique_ptr<PdfFilter> m_filter;
 };
 
 /** Create a filter that is a PdfOutputStream.
@@ -234,7 +227,7 @@ void PdfFilter::DecodeTo(charbuff& outBuffer, const bufferview& inBuffer,
 // PdfFilterFactory code
 //
 
-std::unique_ptr<PdfFilter> PdfFilterFactory::Create(PdfFilterType filterType)
+unique_ptr<PdfFilter> PdfFilterFactory::Create(PdfFilterType filterType)
 {
     PdfFilter* filter = nullptr;
     switch (filterType)
@@ -295,16 +288,16 @@ unique_ptr<PdfOutputStream> PdfFilterFactory::CreateEncodeStream(const PdfFilter
 
     PDFMM_RAISE_LOGIC_IF(!filters.size(), "Cannot create an EncodeStream from an empty list of filters");
 
-    auto filter = new PdfFilteredEncodeStream(stream, *it, false);
+    unique_ptr<PdfOutputStream> filter(new PdfFilteredEncodeStream(stream, *it));
     it++;
 
     while (it != filters.end())
     {
-        filter = new PdfFilteredEncodeStream(*filter, *it, true);
+        filter.reset(new PdfFilteredEncodeStream(std::move(filter), *it));
         it++;
     }
 
-    return unique_ptr<PdfOutputStream>(filter);
+    return filter;
 }
 
 unique_ptr<PdfOutputStream> PdfFilterFactory::CreateDecodeStream(const PdfFilterList& filters, PdfOutputStream& stream,
