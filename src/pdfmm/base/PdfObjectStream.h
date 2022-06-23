@@ -177,7 +177,8 @@ public:
      *  \see BeginAppend
      *  \see EndAppend
      */
-    PdfObjectStream& Append(const char* buffer, size_t len);
+    PdfObjectStream& AppendBuffer(const char* buffer, size_t size);
+    PdfObjectStream& AppendBuffer(const bufferview& buffer);
 
     /** Finish appending data to this stream.
      *  BeginAppend() has to be called before this method.

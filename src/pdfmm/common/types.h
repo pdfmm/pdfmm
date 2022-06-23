@@ -2,6 +2,7 @@
 #define COMMON_TYPES_H
 #pragma once
 
+#include <string>
 #include "span.h"
 
 namespace COMMON_NAMESPACE
@@ -34,7 +35,7 @@ namespace COMMON_NAMESPACE
         charbuff_t(charbuff_t&&) = default;
         charbuff_t(size_t size)
         {
-            resize(size);
+            std::string::resize(size);
         }
         charbuff_t(std::string&& str)
             : std::string(std::move(str)) { }
@@ -68,13 +69,61 @@ namespace COMMON_NAMESPACE
             std::string::operator=(std::move(str));
             return *this;
         }
-        operator bufferview() const
+        bool operator==(const charbuff_t& rhs) const
         {
-            return bufferview(data(), size());
+            return static_cast<const std::string&>(*this) == static_cast<const std::string&>(rhs);
         }
     private:
         size_t length() const = delete;
     };
+
+    template <typename = void>
+    bool operator==(const charbuff_t<>& lhs, const char* rhs)
+    {
+        return std::operator==((std::string_view)lhs, rhs);
+    }
+
+    template <typename = void>
+    bool operator==(const char* lhs, const charbuff_t<>& rhs)
+    {
+        return std::operator==(lhs, (std::string_view)rhs);
+    }
+
+    template <typename = void>
+    bool operator==(const charbuff_t<>& lhs, const bufferview& rhs)
+    {
+        return std::operator==((std::string_view)lhs, std::string_view(rhs.data(), rhs.size()));
+    }
+
+    template <typename = void>
+    bool operator==(const bufferview& lhs, const charbuff_t<>& rhs)
+    {
+        return std::operator==(std::string_view(lhs.data(), lhs.size()), (std::string_view)rhs);
+    }
+
+    template <typename = void>
+    bool operator==(const charbuff_t<>& lhs, const std::string_view& rhs)
+    {
+        return std::operator==((std::string_view)lhs, rhs);
+    }
+
+    template <typename = void>
+    bool operator==(const std::string_view& lhs, const charbuff_t<>& rhs)
+    {
+        return std::operator==(lhs, (std::string_view)rhs);
+    }
+
+    template <typename = void>
+    bool operator==(const charbuff_t<>& lhs, const std::string& rhs)
+    {
+        return std::operator==((std::string)lhs, rhs);
+    }
+
+    template <typename = void>
+    bool operator==(const std::string& lhs, const charbuff_t<>& rhs)
+    {
+        return std::operator==(lhs, (std::string)rhs);
+    }
 
     using charbuff = charbuff_t<>;
 

@@ -101,7 +101,7 @@ void PdfXRefStream::EndWriteImpl(PdfOutputDevice& device, charbuff& buffer)
     // Write the actual entries data to the XRefStm object stream
     auto& stream = m_xrefStreamObj->GetOrCreateStream();
     stream.BeginAppend();
-    stream.Append((const char*)m_rawEntries.data(), m_rawEntries.size() * sizeof(XRefStreamEntry));
+    stream.AppendBuffer((const char*)m_rawEntries.data(), m_rawEntries.size() * sizeof(XRefStreamEntry));
     stream.EndAppend();
     GetWriter().FillTrailerObject(*m_xrefStreamObj, this->GetSize(), false);
 

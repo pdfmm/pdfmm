@@ -265,7 +265,7 @@ void PdfEncodingMap::AppendUTF16CodeTo(PdfObjectStream& stream, const unicodevie
         {
             // Append hex codes of the converted utf16 string
             utls::WriteCharHexTo(hexbuf, data[l]);
-            stream.Append(hexbuf, std::size(hexbuf));
+            stream.AppendBuffer(hexbuf, std::size(hexbuf));
         }
     }
     stream.Append(">");

@@ -257,16 +257,22 @@ void PdfObjectStream::endAppend()
 
 PdfObjectStream& PdfObjectStream::Append(const string_view& view)
 {
-    Append(view.data(), view.length());
+    AppendBuffer(view.data(), view.length());
     return *this;
 }
 
-PdfObjectStream& PdfObjectStream::Append(const char* buffer, size_t len)
+PdfObjectStream& PdfObjectStream::AppendBuffer(const bufferview& buffer)
+{
+    AppendBuffer(buffer.data(), buffer.size());
+    return *this;
+}
+
+PdfObjectStream& PdfObjectStream::AppendBuffer(const char* buffer, size_t size)
 {
     PDFMM_RAISE_LOGIC_IF(!m_Append, "Append() failed because BeginAppend() was not yet called!");
-    if (len == 0)
+    if (size == 0)
         return *this;
 
-    AppendImpl(buffer, len);
+    AppendImpl(buffer, size);
     return *this;
 }

@@ -29,50 +29,14 @@ void PdfOutputStream::Write(const char* buffer, size_t len)
     WriteImpl(buffer, len);
 }
 
-PdfMemoryOutputStream::PdfMemoryOutputStream(size_t initialSize)
-    : m_Length(0), m_OwnBuffer(true)
+PdfMemoryOutputStream::PdfMemoryOutputStream(size_t initialCapacity)
 {
-    m_Capacity = initialSize;
-    m_Buffer = new char[m_Capacity];
-}
-
-PdfMemoryOutputStream::PdfMemoryOutputStream(char* buffer, size_t size)
-    : m_Length(0), m_OwnBuffer(false)
-{
-    if (buffer == nullptr && size != 0)
-        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
-
-    m_Capacity = size;
-    m_Buffer = buffer;
-}
-
-PdfMemoryOutputStream::~PdfMemoryOutputStream()
-{
-    if (m_OwnBuffer)
-        delete[] m_Buffer;
+    m_Buffer.reserve(initialCapacity);
 }
 
 void PdfMemoryOutputStream::WriteImpl(const char* data, size_t len)
 {
-    if (m_Length + len > m_Capacity)
-    {
-        if (m_OwnBuffer)
-        {
-            // A reallocation is required
-            m_Capacity = std::max(m_Length + len, m_Capacity << 1);
-            auto newbuffer = new char[m_Capacity];
-            std::memcpy(newbuffer, m_Buffer, m_Length);
-            delete m_Buffer;
-            m_Buffer = newbuffer;
-        }
-        else
-        {
-            PDFMM_RAISE_ERROR(PdfErrorCode::OutOfMemory);
-        }
-    }
-
-    std::memcpy(m_Buffer + m_Length, data, len);
-    m_Length += len;
+    m_Buffer.append(data, len);
 }
 
 void PdfMemoryOutputStream::Close()
@@ -80,17 +44,9 @@ void PdfMemoryOutputStream::Close()
     // Do nothing
 }
 
-unique_ptr<char[]> PdfMemoryOutputStream::TakeBuffer(size_t& length)
+charbuff PdfMemoryOutputStream::TakeBuffer()
 {
-    if (!m_OwnBuffer)
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Unsupported");
-
-    length = m_Length;
-    char* buffer = m_Buffer;
-    m_Buffer = new char[0];
-    m_Length = 0;
-    m_Capacity = 0;
-    return unique_ptr<char[]>(buffer);
+    return std::move(m_Buffer);
 }
 
 PdfDeviceOutputStream::PdfDeviceOutputStream(PdfOutputDevice& device)

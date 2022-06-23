@@ -11,7 +11,7 @@
 using namespace std;
 using namespace mm;
 
-static void TestFilter(PdfFilterType eFilter, const char* testBuffer, size_t testLength);
+static void testFilter(PdfFilterType filterType, const bufferview& buffer);
 
 static string_view s_testBuffer1 = "Man is distinguished, not only by his reason, but by this singular passion from other animals, which is a lust of the mind, that by a perseverance of delight in the continued and indefatigable generation of knowledge, exceeds the short vehemence of any carnal pleasure.";
 
@@ -28,8 +28,8 @@ TEST_CASE("testFilters")
 {
     for (unsigned i = 0; i <= (unsigned)PdfFilterType::Crypt; i++)
     {
-        TestFilter(static_cast<PdfFilterType>(i), s_testBuffer1.data(), s_testBuffer1.length());
-        TestFilter(static_cast<PdfFilterType>(i), s_testBuffer2, std::size(s_testBuffer2));
+        testFilter(static_cast<PdfFilterType>(i), { s_testBuffer1.data(), s_testBuffer1.length() });
+        testFilter(static_cast<PdfFilterType>(i), { s_testBuffer2, std::size(s_testBuffer2) });
     }
 }
 
@@ -40,12 +40,10 @@ TEST_CASE("testCCITT")
         INFO("!!! ePdfFilter_CCITTFaxDecode not implemented skipping test!");
 }
 
-void TestFilter(PdfFilterType filterType, const char* testBuffer, size_t testLength)
+void testFilter(PdfFilterType filterType, const bufferview& view)
 {
-    size_t encodedLength;
-    size_t decodedLength;
-    unique_ptr<char[]> encoded;
-    unique_ptr<char[]> decoded;
+    charbuff encoded;
+    charbuff decoded;
 
     unique_ptr<PdfFilter> filter = PdfFilterFactory::Create(filterType);
     if (filter == nullptr)
@@ -58,7 +56,7 @@ void TestFilter(PdfFilterType filterType, const char* testBuffer, size_t testLen
     INFO("\t-> Testing Encoding");
     try
     {
-        filter->Encode(testBuffer, testLength, encoded, encodedLength);
+        filter->EncodeTo(encoded, view);
     }
     catch (PdfError& e)
     {
@@ -77,7 +75,7 @@ void TestFilter(PdfFilterType filterType, const char* testBuffer, size_t testLen
     INFO("\t-> Testing Decoding");
     try
     {
-        filter->Decode(encoded.get(), encodedLength, decoded, decodedLength);
+        filter->DecodeTo(decoded, encoded);
     }
     catch (PdfError& e)
     {
@@ -93,14 +91,11 @@ void TestFilter(PdfFilterType filterType, const char* testBuffer, size_t testLen
         }
     }
 
-    INFO(utls::Format("\t-> Original Data Length: {}", testLength));
-    INFO(utls::Format("\t-> Encoded  Data Length: {}", encodedLength));
-    INFO(utls::Format("\t-> Decoded  Data Length: {}", decodedLength));
+    INFO(utls::Format("\t-> Original Data Length: {}", view.size()));
+    INFO(utls::Format("\t-> Encoded  Data Length: {}", encoded.size()));
+    INFO(utls::Format("\t-> Decoded  Data Length: {}", decoded.size()));
 
-    REQUIRE(testLength == decodedLength);
-    REQUIRE(memcmp(testBuffer, decoded.get(), testLength) == 0);
+    REQUIRE(decoded == view);
 
     INFO("\t-> Test succeeded!");
 }
-
-

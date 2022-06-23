@@ -54,11 +54,11 @@ void PdfCIDToGIDMap::ExportTo(PdfObject& descendantFont)
         for (; cid < pair.first; cid++)
         {
             // Write zeroes for missing mappings
-            stream.Append(entry.data(), 2);
+            stream.AppendBuffer(entry.data(), 2);
         }
 
         utls::WriteUInt16BE(entry.data(), (uint16_t)pair.second);
-        stream.Append(entry.data(), 2);
+        stream.AppendBuffer(entry.data(), 2);
         previousCid = cid;
     }
     stream.EndAppend();

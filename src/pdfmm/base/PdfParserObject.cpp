@@ -136,9 +136,8 @@ void PdfParserObject::Parse(PdfTokenizer& tokenizer)
         {
             bool gotToken = tokenizer.TryReadNextToken(*m_device, token);
             if (!gotToken)
-            {
                 PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected 'endobj' or (if dict) 'stream', got EOF");
-            }
+
             if (token == "endobj")
             {
                 // nothing to do, just validate that the PDF is correct

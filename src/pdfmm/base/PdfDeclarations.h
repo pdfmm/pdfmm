@@ -315,6 +315,15 @@ enum class PdfColorSpace
     DeviceN
 };
 
+enum class PdfPixelFormat
+{
+    Unknown = 0,
+    ARGB,
+    BGRA,
+    Gray,
+    CMYK,
+};
+
 /**
  * Enum for text rendering mode (Tr)
  */

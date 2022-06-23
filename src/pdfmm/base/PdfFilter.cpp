@@ -92,7 +92,7 @@ public:
      */
     void WriteImpl(const char* buffer, size_t len) override
     {
-        m_filter->EncodeBlock(buffer, len);
+        m_filter->EncodeBlock({ buffer, len });
     }
 
     void Close() override
@@ -153,7 +153,7 @@ public:
     {
         try
         {
-            m_filter->DecodeBlock(buffer, len);
+            m_filter->DecodeBlock({ buffer, len });
         }
         catch (PdfError& e)
         {
@@ -205,33 +205,29 @@ PdfFilter::~PdfFilter()
     PDFMM_ASSERT(m_OutputStream == nullptr);
 }
 
-void PdfFilter::Encode(const char* inBuffer, size_t inLen, unique_ptr<char[]>& outBuffer, size_t& outLen) const
+void PdfFilter::EncodeTo(charbuff& outBuffer, const bufferview& inBuffer) const
 {
     if (!this->CanEncode())
         PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
 
     PdfMemoryOutputStream stream;
-
     const_cast<PdfFilter*>(this)->BeginEncode(stream);
-    const_cast<PdfFilter*>(this)->EncodeBlock(inBuffer, inLen);
+    const_cast<PdfFilter*>(this)->EncodeBlock(inBuffer);
     const_cast<PdfFilter*>(this)->EndEncode();
-
-    outBuffer = stream.TakeBuffer(outLen);
+    outBuffer = stream.TakeBuffer();
 }
 
-void PdfFilter::Decode(const char* inBuffer, size_t inLen, std::unique_ptr<char[]>& outBuffer, size_t& outLen,
+void PdfFilter::DecodeTo(charbuff& outBuffer, const bufferview& inBuffer,
     const PdfDictionary* decodeParms) const
 {
     if (!this->CanDecode())
         PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
 
     PdfMemoryOutputStream stream;
-
     const_cast<PdfFilter*>(this)->BeginDecode(stream, decodeParms);
-    const_cast<PdfFilter*>(this)->DecodeBlock(inBuffer, inLen);
+    const_cast<PdfFilter*>(this)->DecodeBlock(inBuffer);
     const_cast<PdfFilter*>(this)->EndDecode();
-
-    outBuffer = stream.TakeBuffer(outLen);
+    outBuffer = stream.TakeBuffer();
 }
 
 //
@@ -429,13 +425,13 @@ void PdfFilter::BeginEncode(PdfOutputStream& output)
     }
 }
 
-void PdfFilter::EncodeBlock(const char* buffer, size_t len)
+void PdfFilter::EncodeBlock(const bufferview& view)
 {
     PDFMM_RAISE_LOGIC_IF(m_OutputStream == nullptr, "EncodeBlock() without BeginEncode() or on failed filter");
 
     try
     {
-        EncodeBlockImpl(buffer, len);
+        EncodeBlockImpl(view.data(), view.size());
     }
     catch (...)
     {
@@ -481,13 +477,13 @@ void PdfFilter::BeginDecode(PdfOutputStream& output, const PdfDictionary* decode
     }
 }
 
-void PdfFilter::DecodeBlock(const char* buffer, size_t len)
+void PdfFilter::DecodeBlock(const bufferview& view)
 {
     PDFMM_RAISE_LOGIC_IF(m_OutputStream == nullptr, "DecodeBlock() without BeginDecode() or on failed filter")
 
     try
     {
-        DecodeBlockImpl(buffer, len);
+        DecodeBlockImpl(view.data(), view.size());
     }
     catch (...)
     {

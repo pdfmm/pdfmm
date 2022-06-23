@@ -86,13 +86,13 @@ PdfObjectStream & PdfContents::GetStreamForAppending(PdfStreamAppendFlags flags)
                 stream->GetFilteredCopy(memstream);
         }
 
-        if (memstream.GetLength() != 0)
+        if (memstream.GetBuffer().size() != 0)
         {
             PdfObject* newobj = m_object->GetDocument()->GetObjects().CreateDictionaryObject();
             auto &stream = newobj->GetOrCreateStream();
             stream.BeginAppend();
             stream.Append("q\n");
-            stream.Append(memstream.GetBuffer(), memstream.GetLength());
+            stream.AppendBuffer(memstream.GetBuffer());
             // TODO: Avoid adding unuseful \n prior Q
             stream.Append("\nQ");
             stream.EndAppend();

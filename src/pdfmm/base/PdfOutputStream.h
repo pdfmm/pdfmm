@@ -55,50 +55,30 @@ protected:
 class PDFMM_API PdfMemoryOutputStream : public PdfOutputStream
 {
 public:
-    static constexpr size_t INITIAL_SIZE = 4096;
+    static constexpr size_t INITIAL_CAPACITY = 2048;
 
     /**
      *  Construct a new PdfMemoryOutputStream
      *  \param lInitial initial size of the buffer
      */
-    PdfMemoryOutputStream(size_t initialSize = INITIAL_SIZE);
-
-    /**
-     * Construct a new PdfMemoryOutputStream that writes to an existing buffer
-     * \param buffer handle to the buffer
-     * \param len length of the buffer
-     */
-    PdfMemoryOutputStream(char* buffer, size_t len);
-
-    virtual ~PdfMemoryOutputStream();
+    PdfMemoryOutputStream(size_t initialCapacity = INITIAL_CAPACITY);
 
     void Close() override;
 
-    inline const char* GetBuffer() const { return m_Buffer; }
-
-    /** \returns the length of the written data
-     */
-    inline size_t GetLength() const { return m_Length; }
+    const charbuff& GetBuffer() const { return m_Buffer; }
 
     /**
      *  \returns a handle to the internal buffer.
      *
      *  The internal buffer is now owned by the caller
-     *  and will not be deleted by PdfMemoryOutputStream.
-     *  Further calls to Write() are not allowed.
-     *
-     *  The caller has to free() the returned malloc()'ed buffer!
      */
-    std::unique_ptr<char[]> TakeBuffer(size_t& length);
+    charbuff TakeBuffer();
 
 protected:
     void WriteImpl(const char* data, size_t len) override;
 
 private:
-    char* m_Buffer;
-    size_t m_Length;
-    size_t m_Capacity;
-    bool m_OwnBuffer;
+    charbuff m_Buffer;
 };
 
 /** An output stream that writes to a PdfOutputDevice

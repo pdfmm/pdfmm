@@ -47,7 +47,7 @@ void PdfSampledFunction::Init(const PdfArray& domain, const PdfArray& range, con
 
     this->GetObject().GetOrCreateStream().BeginAppend();
     for (char c : samples)
-        this->GetObject().GetOrCreateStream().Append(&c, 1);
+        this->GetObject().GetOrCreateStream().AppendBuffer(&c, 1);
 
     this->GetObject().GetOrCreateStream().EndAppend();
 }

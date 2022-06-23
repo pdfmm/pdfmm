@@ -50,12 +50,10 @@ public:
      *  internally, so it's not safe to use when progressive encoding
      *  is in progress.
      *
-     *  \param inBuffer input buffer
-     *  \param inLen    length of the input buffer
      *  \param outBuffer receives pointer to the buffer of the encoded data
-     *  \param outLen pointer to where to write the output buffer's length
+     *  \param inBuffer input buffer
      */
-    void Encode(const char* inBuffer, size_t inLen, std::unique_ptr<char[]>& outBuffer, size_t& outLen) const;
+    void EncodeTo(charbuff& outBuffer, const bufferview& inBuffer) const;
 
     /** Begin progressively encoding data using this filter.
      *
@@ -86,15 +84,14 @@ public:
      *
      *  BeginEncode() must be called before this function.
      *
-     *  \param buffer pointer to a buffer with data to encode
-     *  \param len length of data to encode.
+     *  \param view a buffer with data to encode
      *
      *  Call EndEncode() after all data has been encoded.
      *
      *  \see BeginEncode
      *  \see EndEncode
      */
-    void EncodeBlock(const char* buffer, size_t len);
+    void EncodeBlock(const bufferview& view);
 
     /**
      *  Finish encoding of data and reset the stream's state.
@@ -113,16 +110,14 @@ public:
     /** Decodes a buffer using a filter. The buffer has
      *  to be free'd by the caller.
      *
+     *  \param outBuffer receives pointer to the buffer of the encoded data
      *  \param inBuffer input buffer
-     *  \param inLen    length of the input buffer
-     *  \param outBuffer receives pointer to the buffer of the decoded data
-     *  \param outLen pointer to where to write the output buffer's length
      *  \param decodeParms optional pointer to a decode-parameters dictionary
      *                      containing additional information to decode
      *                      the data. This pointer must be nullptr if no
      *                      decode-parameters dictionary is available.
      */
-    void Decode(const char* inBuffer, size_t inLen, std::unique_ptr<char[]>& outBuffer, size_t& outLen, const PdfDictionary* decodeParms = nullptr) const;
+    void DecodeTo(charbuff& outBuffer, const bufferview& inBuffer, const PdfDictionary* decodeParms = nullptr) const;
 
     /** Begin progressively decoding data using this filter.
      *
@@ -155,15 +150,14 @@ public:
      *
      *  BeginDecode() must be called before this function.
      *
-     *  \param buffer pointer to a buffer with data to encode
-     *  \param len length of data to encode.
+     *  \param view a buffer with data to encode
      *
      *  Call EndDecode() after all data has been decoded.
      *
      *  \see BeginDecode
      *  \see EndDecode
      */
-    void DecodeBlock(const char* buffer, size_t len);
+    void DecodeBlock(const bufferview& view);
 
     /**
      *  Finish decoding of data and reset the stream's state.

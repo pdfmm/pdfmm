@@ -166,14 +166,12 @@ void PdfFont::WriteStringToStream(PdfObjectStream& stream, const string_view& st
 void PdfFont::WriteStringToStream(ostream& stream, const string_view& str) const
 {
     auto encoded = m_Encoding->ConvertToEncoded(str);
-    size_t len = 0;
-
     unique_ptr<PdfFilter> filter = PdfFilterFactory::Create(PdfFilterType::ASCIIHexDecode);
-    unique_ptr<char[]> buffer;
-    filter->Encode(encoded.data(), encoded.size(), buffer, len);
+    charbuff buffer;
+    filter->EncodeTo(buffer, encoded);
 
     stream << "<";
-    stream.write(buffer.get(), len);
+    stream.write(buffer.data(), buffer.size());
     stream << ">";
 }
 
