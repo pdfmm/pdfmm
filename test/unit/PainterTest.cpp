@@ -45,8 +45,7 @@ TEST_CASE("testAppend")
 void CompareStreamContent(PdfObjectStream& stream, const string_view& expected)
 {
     size_t length;
-    unique_ptr<char[]> buffer;
-    stream.GetFilteredCopy(buffer, length);
-
-    REQUIRE(memcmp(buffer.get(), expected.data(), expected.size()) == 0);
+    charbuff buffer;
+    stream.GetFilteredCopy(buffer);
+    REQUIRE(buffer == expected);
 }
