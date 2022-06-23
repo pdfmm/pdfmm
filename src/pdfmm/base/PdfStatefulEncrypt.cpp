@@ -10,13 +10,13 @@ PdfStatefulEncrypt::PdfStatefulEncrypt() : m_encrypt(nullptr) { }
 PdfStatefulEncrypt::PdfStatefulEncrypt(const PdfEncrypt& encrypt, const PdfReference& objref)
     : m_encrypt(&encrypt), m_currReference(objref) { }
 
-void PdfStatefulEncrypt::EncryptTo(string& out, const bufferview& view) const
+void PdfStatefulEncrypt::EncryptTo(charbuff& out, const bufferview& view) const
 {
     PDFMM_INVARIANT(m_encrypt != nullptr);
     m_encrypt->EncryptTo(out, view, m_currReference);
 }
 
-void PdfStatefulEncrypt::DecryptTo(string& out, const bufferview& view) const
+void PdfStatefulEncrypt::DecryptTo(charbuff& out, const bufferview& view) const
 {
     PDFMM_INVARIANT(m_encrypt != nullptr);
     m_encrypt->DecryptTo(out, view, m_currReference);

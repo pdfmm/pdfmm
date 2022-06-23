@@ -346,11 +346,11 @@ public:
 
     /** Encrypt a character span
      */
-    void EncryptTo(std::string& out, const bufferview& view, const PdfReference& objref) const;
+    void EncryptTo(charbuff& out, const bufferview& view, const PdfReference& objref) const;
 
     /** Decrypt a character span
      */
-    void DecryptTo(std::string& out, const bufferview& view, const PdfReference& objref) const;
+    void DecryptTo(charbuff& out, const bufferview& view, const PdfReference& objref) const;
 
     /** Calculate stream size
      */

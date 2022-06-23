@@ -259,7 +259,7 @@ void testAuthenticate(PdfEncrypt& encrypt)
 
 void testEncrypt(PdfEncrypt& encrypt)
 {
-    string encrypted;
+    charbuff encrypted;
     // Encrypt buffer
     try
     {
@@ -270,7 +270,7 @@ void testEncrypt(PdfEncrypt& encrypt)
         FAIL(e.ErrorMessage(e.GetError()));
     }
 
-    string decrypted;
+    charbuff decrypted;
     // Decrypt buffer
     try
     {
@@ -288,11 +288,11 @@ void testEncrypt(PdfEncrypt& encrypt)
 void createEncryptedPdf(const string_view& filename)
 {
     PdfMemDocument doc;
-    PdfPage* page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+    auto page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
     PdfPainter painter;
     painter.SetCanvas(page);
 
-    PdfFont* font = doc.GetFontManager().GetFont("LiberationSans");
+    auto font = doc.GetFontManager().GetFont("LiberationSans");
     if (font == nullptr)
         FAIL("Coult not find Arial font");
 

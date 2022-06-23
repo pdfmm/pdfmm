@@ -24,11 +24,11 @@ namespace mm
     public:
         /** Encrypt a character span
          */
-        void EncryptTo(std::string& out, const bufferview& view) const;
+        void EncryptTo(charbuff& out, const bufferview& view) const;
 
         /** Decrypt a character span
          */
-        void DecryptTo(std::string& out, const bufferview& view) const;
+        void DecryptTo(charbuff& out, const bufferview& view) const;
 
         size_t CalculateStreamLength(size_t length) const;
 

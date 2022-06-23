@@ -1799,14 +1799,14 @@ int PdfEncrypt::GetKeyLength() const
     return m_keyLength * 8;
 }
 
-void PdfEncrypt::EncryptTo(string& out, const bufferview& view, const PdfReference& objref) const
+void PdfEncrypt::EncryptTo(charbuff& out, const bufferview& view, const PdfReference& objref) const
 {
     size_t outputLen = this->CalculateStreamLength(view.size());
     out.resize(outputLen);
     this->Encrypt(view.data(), view.size(), objref, out.data(), outputLen);
 }
 
-void PdfEncrypt::DecryptTo(string& out, const bufferview& view, const PdfReference& objref) const
+void PdfEncrypt::DecryptTo(charbuff& out, const bufferview& view, const PdfReference& objref) const
 {
     // FIX-ME: The following clearly seems hardcoded for AES
     // It was found like this in PdfString and PdfTokenizer
