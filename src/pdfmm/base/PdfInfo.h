@@ -27,11 +27,17 @@ class PDFMM_API PdfInfo final : public PdfDictionaryElement
 public:
     /** Create a PdfInfo object from an existing
      *  object in the PDF file.
+     *  \param obj must be an info dictionary
+     */
+    PdfInfo(PdfObject& obj);
+
+    /** Create a PdfInfo object from an existing
+     *  object in the PDF file.
      *  \param obj must be an info dictionary.
      *  \param initial which information should be
      *         writting initially to the information
      */
-    PdfInfo(PdfObject& obj, PdfInfoInitial initial = PdfInfoInitial::None);
+    PdfInfo(PdfObject& obj, PdfInfoInitial initial);
 
     /** Set the title of the document.
      *  \param title title

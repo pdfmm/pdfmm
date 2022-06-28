@@ -18,8 +18,13 @@
 using namespace std;
 using namespace mm;
 
-PdfInfo::PdfInfo(PdfObject& obj, PdfInfoInitial initial)
+PdfInfo::PdfInfo(PdfObject& obj)
     : PdfDictionaryElement(obj)
+{
+}
+
+PdfInfo::PdfInfo(PdfObject& obj, PdfInfoInitial initial)
+    : PdfInfo(obj)
 {
     init(initial);
 }

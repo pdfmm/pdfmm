@@ -50,7 +50,8 @@ PdfDocument::PdfDocument(bool empty) :
         m_TrailerObj->GetDictionary().AddKeyIndirect("Root", catalog);
 
         auto info = m_Objects.CreateDictionaryObject();
-        m_Info.reset(new PdfInfo(*info));
+        m_Info.reset(new PdfInfo(*info,
+            PdfInfoInitial::WriteProducer | PdfInfoInitial::WriteCreationTime));
         m_TrailerObj->GetDictionary().AddKeyIndirect("Info", info);
 
         Init();
