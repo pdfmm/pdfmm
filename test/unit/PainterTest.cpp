@@ -44,7 +44,6 @@ TEST_CASE("testAppend")
 
 void CompareStreamContent(PdfObjectStream& stream, const string_view& expected)
 {
-    size_t length;
     charbuff buffer;
     stream.GetFilteredCopy(buffer);
     REQUIRE(buffer == expected);
