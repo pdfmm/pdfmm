@@ -236,7 +236,10 @@ void PdfWriter::CreateFileIdentifier(PdfString& identifier, const PdfObject& tra
         PdfString str;
         if (it != idObj->GetArray().end() && it->TryGetString(str))
         {
-            *originalIdentifier = PdfString::FromRaw(it->GetString().GetRawData());
+            if (str.IsHex())
+                *originalIdentifier = it->GetString();
+            else
+                *originalIdentifier = PdfString::FromRaw(it->GetString().GetRawData());
             originalIdentifierFound = true;
         }
     }
