@@ -78,21 +78,21 @@ PdfObjectStream & PdfContents::GetStreamForAppending(PdfStreamAppendFlags flags)
     {
         // Record all content and readd into a new stream that
         // substitue all the previous streams
-        PdfMemoryOutputStream memstream;
+        charbuff buffer;
         for (unsigned i = 0; i < arr->GetSize(); i++)
         {
             auto stream = arr->FindAt(i).GetStream();
             if (stream != nullptr)
-                stream->GetFilteredCopy(memstream);
+                stream->ExtractTo(buffer);
         }
 
-        if (memstream.GetBuffer().size() != 0)
+        if (buffer.size() != 0)
         {
             PdfObject* newobj = m_object->GetDocument()->GetObjects().CreateDictionaryObject();
             auto &stream = newobj->GetOrCreateStream();
             stream.BeginAppend();
             stream.Append("q\n");
-            stream.AppendBuffer(memstream.GetBuffer());
+            stream.AppendBuffer(buffer);
             // TODO: Avoid adding unuseful \n prior Q
             stream.Append("\nQ");
             stream.EndAppend();

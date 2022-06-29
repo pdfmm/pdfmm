@@ -8,6 +8,8 @@
 
 #include <PdfTest.h>
 
+#include "TestUtils.h"
+
 using namespace std;
 using namespace mm;
 
@@ -23,4 +25,15 @@ TEST_CASE("testDevices")
 
     if (buffer1.size() != testString.size() * 100)
         FAIL(utls::Format("Buffer1 size is wrong after 100 attaches: {}", buffer1.size()));
+}
+
+TEST_CASE("testSaveIncremental")
+{
+    PdfMemDocument doc;
+    auto testPath = TestUtils::GetTestOutputFilePath("testSaveIncremental.pdf");
+    doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+    doc.Save(testPath);
+    doc.Load(testPath);
+    doc.SaveUpdate(testPath);
+    doc.Load(testPath);
 }

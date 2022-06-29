@@ -13,7 +13,7 @@
 #include "PdfDocument.h"
 #include "PdfArray.h"
 #include "PdfDictionary.h"
-#include "PdfOutputStream.h"
+#include "PdfOutputDevice.h"
 
 using namespace std;
 using namespace mm;
@@ -59,7 +59,6 @@ private:
     void init(PdfOutputStream& outputStream, PdfFilterType filterType)
     {
         m_filter = PdfFilterFactory::Create(filterType);
-
         if (m_filter == nullptr)
             PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
 
@@ -77,18 +76,12 @@ public:
     {
         init(*outputStream, filterType);
     }
-
-    /** Write data to the output stream
-     *
-     *  \param buffer the data is read from this buffer
-     *  \param len the size of the buffer
-     */
-    void WriteImpl(const char* buffer, size_t len) override
+protected:
+    void writeBuffer(const char* buffer, size_t len) override
     {
         m_filter->EncodeBlock({ buffer, len });
     }
-
-    void Close() override
+    void flush() override
     {
         m_filter->EndEncode();
     }
@@ -137,12 +130,8 @@ public:
         init(*outputStream, filterType, decodeParms);
     }
 
-    /** Write data to the output stream
-     *
-     *  \param buffer the data is read from this buffer
-     *  \param len the size of the buffer
-     */
-    void WriteImpl(const char* buffer, size_t len) override
+protected:
+    void writeBuffer(const char* buffer, size_t len) override
     {
         try
         {
@@ -155,15 +144,12 @@ public:
             throw;
         }
     }
-
-    void Close() override
+    void flush() override
     {
         try
         {
             if (!m_FilterFailed)
-            {
                 m_filter->EndDecode();
-            }
         }
         catch (PdfError& e)
         {
@@ -203,11 +189,10 @@ void PdfFilter::EncodeTo(charbuff& outBuffer, const bufferview& inBuffer) const
     if (!this->CanEncode())
         PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
 
-    PdfMemoryOutputStream stream;
+    PdfCharsOutputDevice stream(outBuffer);
     const_cast<PdfFilter*>(this)->BeginEncode(stream);
     const_cast<PdfFilter*>(this)->EncodeBlock(inBuffer);
     const_cast<PdfFilter*>(this)->EndEncode();
-    outBuffer = stream.TakeBuffer();
 }
 
 void PdfFilter::DecodeTo(charbuff& outBuffer, const bufferview& inBuffer,
@@ -216,11 +201,10 @@ void PdfFilter::DecodeTo(charbuff& outBuffer, const bufferview& inBuffer,
     if (!this->CanDecode())
         PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
 
-    PdfMemoryOutputStream stream;
+    PdfCharsOutputDevice stream(outBuffer);
     const_cast<PdfFilter*>(this)->BeginDecode(stream, decodeParms);
     const_cast<PdfFilter*>(this)->DecodeBlock(inBuffer);
     const_cast<PdfFilter*>(this)->EndDecode();
-    outBuffer = stream.TakeBuffer();
 }
 
 //
@@ -301,6 +285,17 @@ unique_ptr<PdfOutputStream> PdfFilterFactory::CreateEncodeStream(const PdfFilter
 }
 
 unique_ptr<PdfOutputStream> PdfFilterFactory::CreateDecodeStream(const PdfFilterList& filters, PdfOutputStream& stream,
+    const PdfDictionary& dictionary)
+{
+    return createDecodeStream(filters, stream, &dictionary);
+}
+
+unique_ptr<PdfOutputStream> PdfFilterFactory::CreateDecodeStream(const PdfFilterList& filters, PdfOutputStream& stream)
+{
+    return createDecodeStream(filters, stream, nullptr);
+}
+
+unique_ptr<PdfOutputStream> PdfFilterFactory::createDecodeStream(const PdfFilterList& filters, PdfOutputStream& stream,
     const PdfDictionary* dictionary)
 {
     PdfFilterList::const_reverse_iterator it = filters.rbegin();
@@ -449,7 +444,7 @@ void PdfFilter::EndEncode()
         throw;
     }
 
-    m_OutputStream->Close();
+    m_OutputStream->Flush();
     m_OutputStream = nullptr;
 }
 
@@ -505,7 +500,7 @@ void PdfFilter::EndDecode()
     {
         if (m_OutputStream != nullptr)
         {
-            m_OutputStream->Close();
+            m_OutputStream->Flush();
             m_OutputStream = nullptr;
         }
     }
@@ -521,7 +516,7 @@ void PdfFilter::EndDecode()
 void PdfFilter::FailEncodeDecode()
 {
     if (m_OutputStream != nullptr)
-        m_OutputStream->Close();
+        m_OutputStream->Flush();
 
     m_OutputStream = nullptr;
 }

@@ -38,7 +38,7 @@ void PdfData::Write(PdfOutputDevice& device, PdfWriteFlags,
     (void)encrypt;
     (void)buffer;
     if (m_writeBeacon != nullptr)
-        *m_writeBeacon = device.Tell();
+        *m_writeBeacon = device.GetPosition();
 
     device.Write(m_data);
 }

@@ -152,7 +152,7 @@ void PdfVariant::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
         case PdfDataType::Bool:
         {
             if ((writeMode & PdfWriteFlags::NoInlineLiteral) == PdfWriteFlags::None)
-                device.Put(' '); // Write space before true or false
+                device.Write(' '); // Write space before true or false
 
             if (m_Data.Bool)
                 device.Write("true");
@@ -163,7 +163,7 @@ void PdfVariant::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
         case PdfDataType::Number:
         {
             if ((writeMode & PdfWriteFlags::NoInlineLiteral) == PdfWriteFlags::None)
-                device.Put(' '); // Write space before numbers
+                device.Write(' '); // Write space before numbers
 
             utls::FormatTo(buffer, "{}", m_Data.Number);
             device.Write(buffer);
@@ -172,7 +172,7 @@ void PdfVariant::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
         case PdfDataType::Real:
         {
             if ((writeMode & PdfWriteFlags::NoInlineLiteral) == PdfWriteFlags::None)
-                device.Put(' '); // Write space before numbers
+                device.Write(' '); // Write space before numbers
 
             utls::FormatTo(buffer, m_Data.Real, DefaultPrecision);
             device.Write(buffer);
@@ -194,7 +194,7 @@ void PdfVariant::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
         case PdfDataType::Null:
         {
             if ((writeMode & PdfWriteFlags::NoInlineLiteral) == PdfWriteFlags::None)
-                device.Put(' '); // Write space before null
+                device.Write(' '); // Write space before null
 
             device.Write("null");
             break;

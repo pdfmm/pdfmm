@@ -436,7 +436,7 @@ void PdfFontTrueTypeSubset::WriteTables(string& buffer)
     utls::WriteUInt16BE(output, entrySelector);
     utls::WriteUInt16BE(output, rangeShift);
 
-    size_t directoryTableOffset = output.Tell();
+    size_t directoryTableOffset = output.GetPosition();
 
     // Prepare table offsets
     for (unsigned i = 0; i < m_tables.size(); i++)
@@ -454,7 +454,7 @@ void PdfFontTrueTypeSubset::WriteTables(string& buffer)
     for (unsigned i = 0; i < m_tables.size(); i++)
     {
         auto& table = m_tables[i];
-        tableOffset = output.Tell();
+        tableOffset = output.GetPosition();
         switch (table.Tag)
         {
             case TTAG_head:
@@ -502,10 +502,10 @@ void PdfFontTrueTypeSubset::WriteTables(string& buffer)
         }
 
         // Align the table length to 4 bytes and pad remaing space with zeroes
-        size_t tableLength = output.Tell() - tableOffset;
+        size_t tableLength = output.GetPosition() - tableOffset;
         size_t tableLengthPadded = (tableLength + 3) & ~3;
         for (size_t i = tableLength; i < tableLengthPadded; i++)
-            output.Put('\0');
+            output.Write('\0');
 
         // Write dynamic font directory table entries
         size_t currDirTableOffset = directoryTableOffset + i * LENGTH_OFFSETTABLE16;
@@ -520,7 +520,7 @@ void PdfFontTrueTypeSubset::WriteTables(string& buffer)
 
     // As explained in the "Table Directory"
     // https://docs.microsoft.com/en-us/typography/opentype/spec/otff#tabledirectory
-    uint32_t fontChecksum = 0xB1B0AFBA - GetTableCheksum(buffer.data(), (uint32_t)output.Tell());
+    uint32_t fontChecksum = 0xB1B0AFBA - GetTableCheksum(buffer.data(), (uint32_t)output.GetPosition());
     utls::WriteUInt32BE(buffer.data() + *headOffset + 4, fontChecksum);
 }
 

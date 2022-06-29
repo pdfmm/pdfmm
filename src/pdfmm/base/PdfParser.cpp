@@ -146,7 +146,7 @@ void PdfParser::ReadDocumentStructure(PdfInputDevice& device)
 {
     // position at the end of the file to search the xref table.
     device.Seek(0, ios_base::end);
-    m_FileSize = device.Tell();
+    m_FileSize = device.GetPosition();
 
     // Validate the eof marker and when not in strict mode accept garbage after it
     try
@@ -209,7 +209,7 @@ bool PdfParser::IsPdfFile(PdfInputDevice& device)
     while (true)
     {
         char ch;
-        if (!device.TryGetChar(ch))
+        if (!device.Read(ch))
             return false;
 
         if (ReadMagicWord(ch, i))
@@ -220,7 +220,7 @@ bool PdfParser::IsPdfFile(PdfInputDevice& device)
     if (device.Read(versionStr, PDF_VERSION_LENGHT) != PDF_VERSION_LENGHT)
         return false;
 
-    m_magicOffset = device.Tell() - PDF_MAGIC_LENGHT;
+    m_magicOffset = device.GetPosition() - PDF_MAGIC_LENGHT;
     // try to determine the excact PDF version of the file
     m_PdfVersion = mm::GetPdfVersion(string_view(versionStr, std::size(versionStr)));
     if (m_PdfVersion == PdfVersion::Unknown)
@@ -363,9 +363,9 @@ void PdfParser::ReadXRefContents(PdfInputDevice& device, size_t offset, bool pos
         m_visitedXRefOffsets.insert(offset);
     }
 
-    size_t currPosition = device.Tell();
+    size_t currPosition = device.GetPosition();
     device.Seek(0, ios_base::end);
-    size_t fileSize = device.Tell();
+    size_t fileSize = device.GetPosition();
     device.Seek(currPosition, ios_base::beg);
 
     if (offset > fileSize)
@@ -373,12 +373,12 @@ void PdfParser::ReadXRefContents(PdfInputDevice& device, size_t offset, bool pos
         // Invalid "startxref"
          // ignore returned value and get offset from the device
         FindXRef(device, &offset);
-        offset = device.Tell();
+        offset = device.GetPosition();
         // TODO: hard coded value "4"
         m_buffer->resize(PDF_XREF_BUF * 4);
         FindToken2(device, "xref", PDF_XREF_BUF * 4, offset);
         m_buffer->resize(PDF_XREF_BUF);
-        offset = device.Tell();
+        offset = device.GetPosition();
         m_XRefOffset = offset;
     }
     else
@@ -493,8 +493,8 @@ void PdfParser::ReadXRefSubsection(PdfInputDevice& device, int64_t& firstObject,
 
     // consume all whitespaces
     int charcode;
-    while (m_tokenizer.IsWhitespace((charcode = device.Look())))
-        (void)device.GetChar();
+    while (m_tokenizer.IsWhitespace((charcode = device.Peek())))
+        (void)device.ReadChar();
 
     unsigned index = 0;
     char* buffer = m_buffer->data();
@@ -891,7 +891,7 @@ void PdfParser::FindTokenBackward(PdfInputDevice& device, const char* token, siz
     device.Seek(-(streamoff)m_LastEOFOffset, ios_base::end);
 
     char* buffer = m_buffer->data();
-    streamoff fileSize = device.Tell();
+    streamoff fileSize = device.GetPosition();
     if (fileSize == -1)
     {
         PDFMM_RAISE_ERROR_INFO(
@@ -930,7 +930,7 @@ void PdfParser::FindToken2(PdfInputDevice& device, const char* token, const size
 {
     device.Seek(searchEnd, ios_base::beg);
 
-    streamoff fileSize = device.Tell();
+    streamoff fileSize = device.GetPosition();
     if (fileSize == -1)
     {
         PDFMM_RAISE_ERROR_INFO(
@@ -1024,7 +1024,7 @@ void PdfParser::CheckEOFMarker(PdfInputDevice& device)
     else
     {
         // Search for the Marker from the end of the file
-        ssize_t currentPos = (ssize_t)device.Tell();
+        ssize_t currentPos = (ssize_t)device.GetPosition();
 
         bool found = false;
         while (true)
@@ -1047,7 +1047,7 @@ void PdfParser::CheckEOFMarker(PdfInputDevice& device)
 
         // Try and deal with garbage by offsetting the buffer reads in PdfParser from now on
         if (found)
-            m_LastEOFOffset = (m_FileSize - (device.Tell() - 1)) + EOFTokenLen;
+            m_LastEOFOffset = (m_FileSize - (device.GetPosition() - 1)) + EOFTokenLen;
         else
             PDFMM_RAISE_ERROR(PdfErrorCode::NoEOFToken);
     }

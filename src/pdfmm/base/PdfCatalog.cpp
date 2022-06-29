@@ -9,6 +9,8 @@
 #include "PdfCatalog.h"
 #include "PdfDictionary.h"
 #include "PdfDocument.h"
+#include "PdfInputDevice.h"
+#include "PdfOutputDevice.h"
 
 using namespace std;
 using namespace mm;
@@ -49,8 +51,8 @@ string PdfCatalog::GetMetadataStreamValue() const
     if (stream == nullptr)
         return ret;
 
-    PdfStringOutputStream ouput(ret);
-    stream->GetFilteredCopy(ouput);
+    PdfStringOutputDevice ouput(ret);
+    stream->ExtractTo(ouput);
     return ret;
 }
 
@@ -59,7 +61,7 @@ void PdfCatalog::SetMetadataStreamValue(const string_view& value)
 {
     auto& obj = GetOrCreateMetadataObject();
     auto& stream = obj.GetOrCreateStream();
-    PdfMemoryInputStream input(value);
+    PdfMemoryInputDevice input(value);
     stream.SetRawData(input);
 
     // We are writing raw clear text, which is required in most

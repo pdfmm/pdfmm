@@ -11,9 +11,10 @@
 
 #include "PdfDeclarations.h"
 
-#include <string_view>
 #include <ostream>
 #include <fstream>
+
+#include "PdfOutputStream.h"
 
 namespace mm {
 
@@ -26,69 +27,56 @@ namespace mm {
  *  devices of your own for pdfmm.
  *  Just override the required virtual methods.
  */
-class PDFMM_API PdfOutputDevice
+class PDFMM_API PdfOutputDevice : public PdfOutputStream
 {
 public:
-    PdfOutputDevice();
-
     /** Destruct the PdfOutputDevice object and close any open files.
      */
     virtual ~PdfOutputDevice();
 
-    /** Write the view to the PdfOutputDevice
-     *
-     *  \param view the view to be written
-     */
-    void Write(const std::string_view& view);
-
-    /** Write the character in the device
-     *
-     *  \param ch the character to wrte
-     */
-    void Put(char ch);
-
     /** Read data from the device
      *  \param buffer a pointer to the data buffer
-     *  \param len length of the output buffer
+     *  \param size length of the output buffer
      *  \returns Number of read bytes. Return 0 if EOF
      */
-    size_t Read(char* buffer, size_t len);
+    size_t Read(char* buffer, size_t size);
 
     /** Seek the device to the position offset from the beginning
      *  \param offset from the beginning of the file
      */
     void Seek(size_t offset);
 
-    /** The number of bytes written to this object.
-     *  \returns the number of bytes written to this object.
-     *
-     *  \see Init
-     */
-    inline size_t GetLength() const { return m_Length; }
-
-    /** Get the current offset from the beginning of the file.
-     *  \return the offset form the beginning of the file.
-     */
-    inline size_t Tell() const { return m_Position; }
-
     /** Flush the output files buffer to disk if this devices
      *  operates on a disk.
      */
     void Flush();
 
+    void Close();
+
+public:
+    /**
+     * \return True if the stream is at EOF
+     */
+    virtual bool Eof() const = 0;
+
+    /** The number of bytes written to this object.
+     *  \returns the number of bytes written to this object.
+     *
+     *  \see Init
+     */
+    virtual size_t GetLength() const = 0;
+
+    /** Get the current offset from the beginning of the file.
+     *  \return the offset form the beginning of the file.
+     */
+    virtual size_t GetPosition() const = 0;
+
+    virtual bool CanSeek() const;
+
 protected:
-    void SetLength(size_t length);
-    void SetPosition(size_t position);
-    virtual void write(const char* buffer, size_t len) = 0;
+    virtual size_t readBuffer(char* buffer, size_t size) = 0;
     virtual void seek(size_t offset) = 0;
-    virtual size_t read(char* buffer, size_t len) = 0;
-    virtual void flush() = 0;
-
-    size_t Read(const char* src, size_t srcLen, char* dst, size_t dstLen);
-
-private:
-    size_t m_Length;
-    size_t m_Position;
+    virtual void close();
 };
 
 class PDFMM_API PdfStreamOutputDevice : public PdfOutputDevice
@@ -96,40 +84,43 @@ class PDFMM_API PdfStreamOutputDevice : public PdfOutputDevice
 public:
     /** Construct a new PdfOutputDevice that writes all data to a std::ostream.
      *
-     *  WARNING: pdfmm will change the stream's locale.  It will be restored when
-     *  the PdfOutputStream controlling the stream is destroyed.
-     *
-     *  \param pOutStream write to this std::ostream
+     *  \param stream write to this std::ostream
      */
     PdfStreamOutputDevice(std::ostream& stream);
 
+    PdfStreamOutputDevice(std::istream& stream);
+
     /** Construct a new PdfOutputDevice that writes all data to a std::iostream
      *  and reads from it as well.
-     *
-     *  WARNING: pdfmm will change the stream's locale.  It will be restored when
-     *  the PdfOutputStream controlling the stream is destroyed.
-     *
      *  \param stream read/write from/to this std::iostream
      */
     PdfStreamOutputDevice(std::iostream& stream);
 
     ~PdfStreamOutputDevice();
 
+public:
+    size_t GetLength() const override;
+
+    size_t GetPosition() const override;
+
+    bool CanSeek() const override;
+
+    bool Eof() const override;
+
 protected:
-    PdfStreamOutputDevice(std::ostream* out, std::istream* in, bool streamOwned);
-    void write(const char* buffer, size_t len) override;
+    PdfStreamOutputDevice(std::ios_base* stream, bool streamOwned);
+    void writeBuffer(const char* buffer, size_t size) override;
+    size_t readBuffer(char* buffer, size_t size) override;
     void seek(size_t offset) override;
-    size_t read(char* buffer, size_t len) override;
     void flush() override;
 
-    std::ostream& GetStream() { return *m_Stream; }
-    std::istream& GetReadStream() { return *m_ReadStream; }
+    inline std::ios_base& GetStream() { return *m_Stream; }
 
 private:
-    std::ostream* m_Stream;
-    std::istream* m_ReadStream;
+    std::ios_base* m_Stream;
+    std::istream* m_istream;
+    std::ostream* m_ostream;
     bool m_StreamOwned;
-    std::string  m_printBuffer;
 };
 
 class PDFMM_API PdfFileOutputDevice final : public PdfStreamOutputDevice
@@ -148,31 +139,11 @@ public:
      */
     PdfFileOutputDevice(const std::string_view& filename, bool truncate = true);
 
-private:
-    PdfFileOutputDevice(std::fstream* stream);
-    std::fstream* getFileStream(const std::string_view& filename, bool truncate);
-};
-
-class PDFMM_API PdfMemoryOutputDevice final : public PdfOutputDevice
-{
-public:
-    /** Construct a new PdfOutputDevice that writes all data to a memory buffer.
-     *  The buffer will not be owned by this object and has to be allocated before.
-     *
-     *  \param buffer a buffer in memory
-     *  \param len the length of the buffer in memory
-     */
-    PdfMemoryOutputDevice(char* buffer, size_t len);
-
 protected:
-    void write(const char* buffer, size_t len) override;
-    void seek(size_t offset) override;
-    size_t read(char* buffer, size_t len) override;
-    void flush() override;
+    void close() override;
 
 private:
-    char* m_Buffer;
-    size_t m_BufferLen;
+    std::fstream* getFileStream(const std::string_view& filename, bool truncate);
 };
 
 template <typename TContainer>
@@ -180,31 +151,41 @@ class PdfContainerOutputDevice final : public PdfOutputDevice
 {
 public:
     PdfContainerOutputDevice(TContainer& container) :
-        m_container(&container)
-    {
-        SetLength(container.size());
-        SetPosition(container.size());
-    }
+        m_container(&container), m_Position(container.size()) { }
+
+public:
+    size_t GetLength() const override { return m_container->size(); }
+
+    size_t GetPosition() const override { return m_Position; }
+
+    bool CanSeek() const override { return true; }
+
+    bool Eof() const override { return m_Position == m_container->size(); }
 
 protected:
-    void write(const char* buffer, size_t len) override
+    void writeBuffer(const char* buffer, size_t size) override
     {
-        size_t position = Tell();
-        if (position + len > m_container->size())
-            m_container->resize(position + len);
+        if (m_Position + size > m_container->size())
+            m_container->resize(m_Position + size);
 
-        std::memcpy(m_container->data() + position, buffer, len);
+        std::memcpy(m_container->data() + m_Position, buffer, size);
+        m_Position += size;
     }
 
-    size_t read(char* buffer, size_t len) override
+    size_t readBuffer(char* buffer, size_t size) override
     {
-        return Read(m_container->data(), m_container->size(), buffer, len);
+        size_t readCount = std::min(size, m_container->size() - m_Position);
+        std::memcpy(buffer, m_container->data() + m_Position, readCount);
+        m_Position += readCount;
+        return readCount;
     }
 
     void seek(size_t offset) override
     {
         if (offset >= m_container->size())
-            throw PdfError(PdfErrorCode::ValueOutOfRange, __FILE__, __LINE__);
+            throw PdfError(PdfErrorCode::InvalidDeviceOperation, __FILE__, __LINE__, "Can't seek past container");
+
+        m_Position = offset;
     }
 
     void flush() override
@@ -212,8 +193,14 @@ protected:
         // Do nothing
     }
 
+    void close() override
+    {
+        // Do nothing
+    }
+
 private:
     TContainer* m_container;
+    size_t m_Position;
 };
 
 using PdfStringOutputDevice = PdfContainerOutputDevice<std::string>;
@@ -223,16 +210,26 @@ using PdfCharsOutputDevice = PdfContainerOutputDevice<charbuff>;
 /**
  * An output device that does nothing
  */
-class PDFMM_API PdfNullOutputDevice : public PdfOutputDevice
+class PDFMM_API PdfNullOutputDevice final : public PdfOutputDevice
 {
 public:
     PdfNullOutputDevice();
 
+public:
+    size_t GetLength() const override;
+
+    size_t GetPosition() const override;
+
+    bool Eof() const override;
+
 protected:
-    void write(const char* buffer, size_t len) override;
+    void writeBuffer(const char* buffer, size_t size) override;
+    size_t readBuffer(char* buffer, size_t size) override;
     void seek(size_t offset) override;
-    size_t read(char* buffer, size_t len) override;
-    void flush() override;
+
+private:
+    size_t m_Length;
+    size_t m_Position;
 };
 
 };

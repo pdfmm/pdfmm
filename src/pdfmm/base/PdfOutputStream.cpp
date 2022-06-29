@@ -14,50 +14,35 @@
 using namespace std;
 using namespace mm;
 
-void PdfOutputStream::Write(const string_view& view)
-{
-    Write(view.data(), view.length());
-}
-
 PdfOutputStream::~PdfOutputStream() { }
 
-void PdfOutputStream::Write(const char* buffer, size_t len)
+void PdfOutputStream::Write(char ch)
 {
-    if (len == 0)
+    writeBuffer(&ch, 1);
+}
+
+void PdfOutputStream::Write(const string_view& view)
+{
+    if (view.length() == 0)
         return;
 
-    WriteImpl(buffer, len);
+    writeBuffer(view.data(), view.size());
 }
 
-PdfMemoryOutputStream::PdfMemoryOutputStream(size_t initialCapacity)
+void PdfOutputStream::Write(const char* buffer, size_t size)
 {
-    m_Buffer.reserve(initialCapacity);
+    if (size == 0)
+        return;
+
+    writeBuffer(buffer, size);
 }
 
-void PdfMemoryOutputStream::WriteImpl(const char* data, size_t len)
+void PdfOutputStream::Flush()
 {
-    m_Buffer.append(data, len);
+    flush();
 }
 
-void PdfMemoryOutputStream::Close()
-{
-    // Do nothing
-}
-
-charbuff PdfMemoryOutputStream::TakeBuffer()
-{
-    return std::move(m_Buffer);
-}
-
-PdfDeviceOutputStream::PdfDeviceOutputStream(PdfOutputDevice& device)
-    : m_Device(&device) { }
-
-void PdfDeviceOutputStream::WriteImpl(const char* data, size_t len)
-{
-    m_Device->Write(string_view(data, len));
-}
-
-void PdfDeviceOutputStream::Close()
+void PdfOutputStream::flush()
 {
     // Do nothing
 }

@@ -267,8 +267,52 @@ namespace utls
 
 #pragma region IO
 
+    // Helper classes to access some std::istream,
+    // std::ostream members polymorfically
+    template <typename TStream>
+    struct stream_helper;
+
+    template <>
+    struct stream_helper<std::istream>
+    {
+        static std::streampos tell(std::istream& stream)
+        {
+            return stream.tellg();
+        }
+
+        static std::istream& seek(std::istream& stream, std::streampos pos)
+        {
+            return stream.seekg(pos);
+        }
+
+        static std::istream& seek(std::istream& stream, std::streamoff off, std::ios_base::seekdir dir)
+        {
+            return stream.seekg(off, dir);
+        }
+    };
+
+    template <>
+    struct stream_helper<std::ostream>
+    {
+        static std::streampos tell(std::ostream& stream)
+        {
+            return stream.tellp();
+        }
+
+        static std::ostream& seek(std::ostream& stream, std::streampos pos)
+        {
+            return stream.seekp(pos);
+        }
+
+        static std::ostream& seek(std::ostream& stream, std::streamoff off, std::ios_base::seekdir dir)
+        {
+            return stream.seekp(off, dir);
+        }
+    };
+
     size_t FileSize(const std::string_view& filename);
-    size_t Read(std::istream& stream, char* buffer, size_t count);
+    size_t ReadBuffer(std::istream& stream, char* buffer, size_t count);
+    bool ReadChar(std::istream& stream, char& ch);
 
     std::ifstream open_ifstream(const std::string_view& filename, std::ios_base::openmode mode);
     std::ofstream open_ofstream(const std::string_view& filename, std::ios_base::openmode mode);

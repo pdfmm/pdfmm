@@ -350,7 +350,7 @@ bool PdfContentsReader::tryReadInlineImgData(charbuff& data)
 {
     // Consume one whitespace between ID and data
     char ch;
-    if (!m_inputs.back().Device->TryGetChar(ch))
+    if (!m_inputs.back().Device->Read(ch))
         return false;
 
     // Read "EI"
@@ -370,7 +370,7 @@ bool PdfContentsReader::tryReadInlineImgData(charbuff& data)
     // comprehensive heuristic, similarly to what pdf.js does
     ReadEIStatus status = ReadEIStatus::ReadE;
     unsigned readCount = 0;
-    while (m_inputs.back().Device->TryGetChar(ch))
+    while (m_inputs.back().Device->Read(ch))
     {
         switch (status)
         {

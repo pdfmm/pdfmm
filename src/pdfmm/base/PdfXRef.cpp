@@ -88,7 +88,7 @@ void PdfXRef::Write(PdfOutputDevice& device, charbuff& buffer)
 
     mergeBlocks();
 
-    m_offset = device.Tell();
+    m_offset = device.GetPosition();
     this->BeginWrite(device, buffer);
     while (it != m_blocks.end())
     {

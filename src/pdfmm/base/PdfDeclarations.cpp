@@ -267,10 +267,9 @@ Error:
 // Read from stream an amount of bytes or less
 // without setting failbit
 // https://stackoverflow.com/a/22593639/213871
-size_t utls::Read(istream& stream, char* buffer, size_t count)
+size_t utls::ReadBuffer(istream& stream, char* buffer, size_t count)
 {
-    if (count == 0 || stream.eof())
-        return 0;
+    PDFMM_ASSERT(!stream.eof());
 
     size_t offset = 0;
     size_t reads;
@@ -299,6 +298,18 @@ size_t utls::Read(istream& stream, char* buffer, size_t count)
     } while (count != 0 && !stream.eof());
 
     return offset;
+}
+
+// See utls:Read(stream, buffer, count) above
+bool utls::ReadChar(istream& stream, char& ch)
+{
+    PDFMM_ASSERT(!stream.eof());
+    streamsize read = stream.rdbuf()->sgetn(&ch, 1);
+    (void)stream.rdstate();
+    (void)stream.peek();
+    if (stream.fail())
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Stream I/O error while reading");
+    return read == 1;
 }
 
 FILE* utls::fopen(const string_view& filename, const string_view& mode)

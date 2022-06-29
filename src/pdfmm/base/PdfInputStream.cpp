@@ -9,76 +9,54 @@
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfInputStream.h"
 
-#include "PdfInputDevice.h"
+#include "PdfOutputStream.h"
 
 using namespace std;
 using namespace mm;
 
-PdfInputStream::PdfInputStream() :
-    m_eof(false)
+PdfInputStream::~PdfInputStream() { }
+
+bool PdfInputStream::Read(char& ch, bool& eof)
 {
+    return readChar(ch, eof);
 }
 
-size_t PdfInputStream::Read(char* buffer, size_t len, bool& eof)
+size_t PdfInputStream::Read(char* buffer, size_t size, bool& eof)
 {
-    if (m_eof)
-    {
-        eof = true;
-        return 0;
-    }
-
-    if (len == 0)
-        return 0;
-
     if (buffer == nullptr)
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-    size_t ret = ReadImpl(buffer, len, m_eof);
-    eof = m_eof;
-    return ret;
+    return readBuffer(buffer, size, eof);
 }
 
-PdfFileInputStream::PdfFileInputStream(const string_view& filename)
-    : m_stream(utls::open_ifstream(filename, ios_base::in | ios_base::binary))
+void PdfInputStream::CopyTo(PdfOutputStream& stream)
 {
-    if (m_stream.fail())
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::FileNotFound, filename);
+    constexpr size_t BUFFER_SIZE = 4096;
+    size_t len = 0;
+    char buffer[BUFFER_SIZE];
+
+    bool eof;
+    do
+    {
+        len = Read(buffer, BUFFER_SIZE, eof);
+        stream.Write(buffer, len);
+    } while (!eof);
+
+    stream.Flush();
 }
 
-PdfFileInputStream::~PdfFileInputStream() { }
-
-size_t PdfFileInputStream::ReadImpl(char* buffer, size_t len, bool& eof)
+size_t PdfInputStream::ReadBuffer(PdfInputStream& stream, char* buffer, size_t size, bool& eof)
 {
-    size_t ret = utls::Read(m_stream, buffer, len);
-    eof = m_stream.eof();
-    return ret;
+    return stream.readBuffer(buffer, size, eof);
 }
 
-PdfMemoryInputStream::PdfMemoryInputStream(const bufferview& buffer)
-    : m_Buffer(buffer.data()), m_BufferLen(buffer.size()) { }
-
-PdfMemoryInputStream::~PdfMemoryInputStream()
+bool PdfInputStream::ReadChar(PdfInputStream& stream, char& ch, bool& eof)
 {
+    return stream.readChar(ch, eof);
 }
 
-size_t PdfMemoryInputStream::ReadImpl(char* buffer, size_t len, bool& eof)
+bool PdfInputStream::readChar(char& ch, bool& eof)
 {
-    len = std::min(m_BufferLen, len);
-    memcpy(buffer, m_Buffer, len);
-    m_BufferLen -= len;
-    m_Buffer += len;
-    eof = m_BufferLen == 0;
-    return len;
-}
-
-PdfDeviceInputStream::PdfDeviceInputStream(PdfInputDevice& device)
-    : m_Device(&device)
-{
-}
-
-size_t PdfDeviceInputStream::ReadImpl(char* buffer, size_t len, bool& eof)
-{
-    size_t ret = m_Device->Read(buffer, len);
-    eof = m_Device->Eof();
-    return ret;
+    ch = '\0';
+    return readBuffer(&ch, 1, eof) == 1;
 }

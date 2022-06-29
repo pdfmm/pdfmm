@@ -19,6 +19,7 @@ TEST_CASE("testAppend")
 
     PdfMemDocument doc;
     PdfPage* page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+
     auto& contents = page->GetOrCreateContents();
     auto& stream = contents.GetStreamForAppending();
     stream.Set(example);
@@ -30,14 +31,10 @@ TEST_CASE("testAppend")
     painter.GetGraphicsState().SetFillColor(PdfColor(1.0, 1.0, 1.0));
     painter.FinishDrawing();
 
-    PdfCanvasInputDevice device(*page);
+    PdfCanvasInputDevice input(doc.GetPages().GetPage(0));
     string out;
-    char buffer[4096];
-    while (!device.Eof())
-    {
-        size_t read = device.Read(buffer, 4096);
-        out.append(buffer, read);
-    }
+    PdfStringOutputDevice output(out);
+    input.CopyTo(output);
 
     REQUIRE(out == "q\nBT (Hello) Tj ET\nQ\nq\n1 1 1 rg\nQ\n");
 }
@@ -45,6 +42,6 @@ TEST_CASE("testAppend")
 void CompareStreamContent(PdfObjectStream& stream, const string_view& expected)
 {
     charbuff buffer;
-    stream.GetFilteredCopy(buffer);
+    stream.ExtractTo(buffer);
     REQUIRE(buffer == expected);
 }

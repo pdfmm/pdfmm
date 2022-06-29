@@ -51,17 +51,16 @@ public:
      */
     void SetEncrypted(PdfEncrypt* encrypt);
 
-    void Write(PdfOutputDevice& device, const PdfStatefulEncrypt& encrypt) override;
+    void Write(PdfOutputStream& stream, const PdfStatefulEncrypt& encrypt) override;
 
-    void GetCopy(PdfOutputStream& stream) const override;
+    void CopyTo(PdfOutputStream& stream) const override;
 
     size_t GetLength() const override;
 
     PdfFileObjectStream& operator=(const PdfFileObjectStream& rhs);
 
 protected:
-    const char* GetInternalBuffer() const override;
-    size_t GetInternalBufferSize() const override;
+    std::unique_ptr<PdfInputStream> GetInputStream() const override;
     void BeginAppendImpl(const PdfFilterList& filters) override;
     void AppendImpl(const char* data, size_t len) override;
     void EndAppendImpl() override;
@@ -69,14 +68,12 @@ protected:
 private:
     PdfOutputDevice* m_Device;
     std::unique_ptr<PdfOutputStream> m_Stream;
-    std::unique_ptr<PdfOutputStream> m_DeviceStream;
     std::unique_ptr<PdfOutputStream> m_EncryptStream;
 
     size_t m_initialLength;
     size_t m_Length;
 
     PdfObject* m_LengthObj;
-
     PdfEncrypt* m_CurrEncrypt;
 };
 

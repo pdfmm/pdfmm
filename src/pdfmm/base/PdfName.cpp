@@ -100,7 +100,7 @@ void PdfName::Write(PdfOutputDevice& device, PdfWriteFlags,
 {
     (void)encrypt;
     // Allow empty names, which are legal according to the PDF specification
-    device.Put('/');
+    device.Write('/');
     if (m_data->Chars.size() != 0)
     {
         EscapeNameTo(buffer, m_data->Chars);

@@ -70,14 +70,14 @@ void PdfImmediateWriter::WriteObject(const PdfObject& obj)
 
     this->FinishLastObject();
 
-    m_xRef->AddInUseObject(obj.GetIndirectReference(), m_Device->Tell());
+    m_xRef->AddInUseObject(obj.GetIndirectReference(), m_Device->GetPosition());
     obj.Write(*m_Device, this->GetWriteFlags(), GetEncrypt(), m_buffer);
 
     // Let's cheat a bit:
     // obj has written an "endobj\n" as last data to the file.
     // we simply overwrite this string with "stream\n" which 
     // has excatly the same length.
-    m_Device->Seek(m_Device->Tell() - endObjLenght);
+    m_Device->Seek(m_Device->GetPosition() - endObjLenght);
     m_Device->Write("stream\n");
     m_Last = const_cast<PdfObject*>(&obj);
 }
@@ -98,7 +98,7 @@ void PdfImmediateWriter::Finish()
     this->WritePdfObjects(*m_Device, GetObjects(), *m_xRef);
 
     // write the XRef
-    uint64_t lXRefOffset = static_cast<uint64_t>(m_Device->Tell());
+    uint64_t lXRefOffset = static_cast<uint64_t>(m_Device->GetPosition());
     m_xRef->Write(*m_Device, m_buffer);
 
     // FIX-ME: The following is already done by PdfXRef now

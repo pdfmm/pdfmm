@@ -27,7 +27,7 @@ PdfReference::PdfReference(const uint32_t objectNo, const uint16_t generationNo)
 void PdfReference::Write(PdfOutputDevice& device, PdfWriteFlags writeMode, charbuff& buffer) const
 {
     if ((writeMode & PdfWriteFlags::NoInlineLiteral) == PdfWriteFlags::None)
-        device.Put(' '); // Write space before the reference
+        device.Write(' '); // Write space before the reference
 
     utls::FormatTo(buffer, "{} {} R", m_ObjectNo, m_GenerationNo);
     device.Write(buffer);

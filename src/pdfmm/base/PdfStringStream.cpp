@@ -54,6 +54,7 @@ string PdfStringStream::TakeString()
 void PdfStringStream::Clear()
 {
     static_cast<outstringstream&>(*m_stream).clear();
+    m_temp.clear();
 }
 
 void PdfStringStream::SetPrecision(unsigned short value)

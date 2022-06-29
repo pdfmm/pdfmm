@@ -211,7 +211,7 @@ void PdfDictionary::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
         this->getKey(PdfName::KeyType)->GetVariant().Write(device, writeMode, encrypt, buffer);
 
         if ((writeMode & PdfWriteFlags::Clean) == PdfWriteFlags::Clean)
-            device.Put('\n');
+            device.Write('\n');
     }
 
     for (auto& pair : m_Map)
@@ -220,11 +220,11 @@ void PdfDictionary::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
         {
             pair.first.Write(device, writeMode, encrypt, buffer);
             if ((writeMode & PdfWriteFlags::Clean) == PdfWriteFlags::Clean)
-                device.Put(' '); // write a separator
+                device.Write(' '); // write a separator
 
             pair.second.GetVariant().Write(device, writeMode, encrypt, buffer);
             if ((writeMode & PdfWriteFlags::Clean) == PdfWriteFlags::Clean)
-                device.Put('\n');
+                device.Write('\n');
         }
     }
 

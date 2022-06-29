@@ -167,7 +167,7 @@ void PdfString::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
         dataview = string_view(tempBuffer.data(), tempBuffer.size());
     }
 
-    device.Put(m_isHex ? '<' : '(');
+    device.Write(m_isHex ? '<' : '(');
     if (dataview.size() > 0)
     {
         char ch;
@@ -194,12 +194,12 @@ void PdfString::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
                 char escaped = getEscapedCharacter(ch);
                 if (escaped == '\0')
                 {
-                    device.Put(ch);
+                    device.Write(ch);
                 }
                 else
                 {
-                    device.Put('\\');
-                    device.Put(escaped);
+                    device.Write('\\');
+                    device.Write(escaped);
                 }
 
                 buffer++;
@@ -207,7 +207,7 @@ void PdfString::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
         }
     }
 
-    device.Put(m_isHex ? '>' : ')');
+    device.Write(m_isHex ? '>' : ')');
 }
 
 PdfStringState PdfString::GetState() const

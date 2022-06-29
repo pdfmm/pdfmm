@@ -174,7 +174,7 @@ void PdfWriter::WritePdfObjects(PdfOutputDevice& device, const PdfIndirectObject
         }
         else
         {
-            xref.AddInUseObject(obj->GetIndirectReference(), device.Tell());
+            xref.AddInUseObject(obj->GetIndirectReference(), device.GetPosition());
             // Also make sure that we do not encrypt the encryption dictionary!
             obj->Write(device, m_WriteFlags, obj == m_EncryptObj ? nullptr : m_Encrypt.get(), m_buffer);
         }

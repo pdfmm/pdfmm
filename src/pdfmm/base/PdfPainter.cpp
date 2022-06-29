@@ -138,11 +138,11 @@ void PdfPainter::finishDrawing()
         }
         else
         {
-            PdfMemoryOutputStream memstream;
+            charbuff buffer;
             if (m_stream->GetLength() != 0)
-                m_stream->GetFilteredCopy(memstream);
+                m_stream->ExtractTo(buffer);
 
-            if (memstream.GetBuffer().size() == 0)
+            if (buffer.size() == 0)
             {
                 m_stream->BeginAppend(false);
             }
@@ -150,7 +150,7 @@ void PdfPainter::finishDrawing()
             {
                 m_stream->BeginAppend(true);
                 m_stream->Append("q\n");
-                m_stream->AppendBuffer(memstream.GetBuffer());
+                m_stream->Append(buffer);
                 m_stream->Append("Q\n");
             }
         }

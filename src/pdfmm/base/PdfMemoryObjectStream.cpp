@@ -13,8 +13,8 @@
 #include "PdfEncrypt.h"
 #include "PdfFilter.h"
 #include "PdfObject.h"
+#include "PdfInputDevice.h"
 #include "PdfOutputDevice.h"
-#include "PdfOutputStream.h"
 #include "PdfVariant.h"
 
 using namespace std;
@@ -30,17 +30,22 @@ PdfMemoryObjectStream::~PdfMemoryObjectStream()
     EnsureAppendClosed();
 }
 
+unique_ptr<PdfInputStream> PdfMemoryObjectStream::GetInputStream() const
+{
+    return std::unique_ptr<PdfInputStream>(new PdfMemoryInputDevice(m_buffer));
+}
+
 void PdfMemoryObjectStream::BeginAppendImpl(const PdfFilterList& filters)
 {
     m_buffer.clear();
     if (filters.size() != 0)
     {
-        m_BufferStream = unique_ptr<PdfCharsOutputStream>(new PdfCharsOutputStream(m_buffer));
+        m_BufferStream = unique_ptr<PdfCharsOutputDevice>(new PdfCharsOutputDevice(m_buffer));
         m_Stream = PdfFilterFactory::CreateEncodeStream(filters, *m_BufferStream);
     }
     else
     {
-        m_Stream = unique_ptr<PdfCharsOutputStream>(new PdfCharsOutputStream(m_buffer));
+        m_Stream = unique_ptr<PdfCharsOutputDevice>(new PdfCharsOutputDevice(m_buffer));
     }
 }
 
@@ -51,18 +56,17 @@ void PdfMemoryObjectStream::AppendImpl(const char* data, size_t len)
 
 void PdfMemoryObjectStream::EndAppendImpl()
 {
-    m_Stream->Close();
+    m_Stream->Flush();
+    m_Stream = nullptr;
 
     if (m_BufferStream != nullptr)
     {
-        m_BufferStream->Close();
+        m_BufferStream->Flush();
         m_BufferStream = nullptr;
     }
-
-    m_Stream = nullptr;
 }
 
-void PdfMemoryObjectStream::GetCopy(PdfOutputStream& stream) const
+void PdfMemoryObjectStream::CopyTo(PdfOutputStream& stream) const
 {
     stream.Write(m_buffer.data(), m_buffer.size());
 }
@@ -84,36 +88,27 @@ void PdfMemoryObjectStream::copyFrom(const PdfMemoryObjectStream& rhs)
     m_buffer = rhs.m_buffer;
 }
 
-void PdfMemoryObjectStream::Write(PdfOutputDevice& device, const PdfStatefulEncrypt& encrypt)
+void PdfMemoryObjectStream::Write(PdfOutputStream& stream, const PdfStatefulEncrypt& encrypt)
 {
-    device.Write("stream\n");
+    stream.Write("stream\n");
     if (encrypt.HasEncrypt())
     {
         charbuff encrypted;
         encrypt.EncryptTo(encrypted, { this->Get(), this->GetLength() });
-        device.Write(encrypted);
+        stream.Write(encrypted);
     }
     else
     {
-        device.Write(string_view(this->Get(), this->GetLength()));
+        stream.Write(string_view(this->Get(), this->GetLength()));
     }
 
-    device.Write("\nendstream\n");
+    stream.Write("\nendstream\n");
+    stream.Flush();
 }
 
 const char* PdfMemoryObjectStream::Get() const
 {
     return m_buffer.data();
-}
-
-const char* PdfMemoryObjectStream::GetInternalBuffer() const
-{
-    return m_buffer.data();
-}
-
-size_t PdfMemoryObjectStream::GetInternalBufferSize() const
-{
-    return m_buffer.size();
 }
 
 size_t PdfMemoryObjectStream::GetLength() const

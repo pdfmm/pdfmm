@@ -31,6 +31,7 @@ class PdfOutlines;
 class PdfPage;
 class PdfRect;
 class PdfXObject;
+class PdfEncrypt;
 
 /** PdfDocument is the core interface for working with PDF documents.
  *

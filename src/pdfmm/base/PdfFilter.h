@@ -324,7 +324,8 @@ public:
      *  \see PdfFilterFactory::CreateFilterList
      */
     static std::unique_ptr<PdfOutputStream> CreateDecodeStream(const PdfFilterList& filters, PdfOutputStream& stream,
-        const PdfDictionary* dictionary = nullptr);
+        const PdfDictionary& dictionary);
+    static std::unique_ptr<PdfOutputStream> CreateDecodeStream(const PdfFilterList& filters, PdfOutputStream& stream);
 
     /** Converts a filter name to the corresponding enum
      *  \param name of the filter without leading
@@ -354,6 +355,9 @@ public:
 
 private:
     PdfFilterFactory() = delete;
+
+    static std::unique_ptr<PdfOutputStream> createDecodeStream(const PdfFilterList& filters, PdfOutputStream& stream,
+        const PdfDictionary* dictionary);
 };
 
 }

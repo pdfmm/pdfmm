@@ -845,8 +845,8 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
                     size.Add(static_cast<int64_t>(2));
                     csTintFunc->GetDictionary().AddKey("Size", size);
 
-                    PdfMemoryInputStream stream({ data, 1 * 2 });
-                    csTintFunc->GetOrCreateStream().Set(stream);
+                    PdfMemoryInputDevice input({ data, 1 * 2 });
+                    csTintFunc->GetOrCreateStream().Set(input);
 
                     PdfArray csArr;
                     csArr.Add(PdfName("Separation"));
@@ -883,8 +883,8 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
                     size.Add(static_cast<int64_t>(2));
                     csTintFunc->GetDictionary().AddKey("Size", size);
 
-                    PdfMemoryInputStream stream({ data, 3 * 2 });
-                    csTintFunc->GetOrCreateStream().Set(stream);
+                    PdfMemoryInputDevice input({ data, 3 * 2 });
+                    csTintFunc->GetOrCreateStream().Set(input);
 
                     PdfArray csArr;
                     csArr.Add(PdfName("Separation"));
@@ -931,8 +931,8 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
                     csArr.Add(PdfName("DeviceCMYK"));
                     csArr.Add(csTintFunc->GetIndirectReference());
 
-                    PdfMemoryInputStream stream({ data, 4 * 2 });
-                    csTintFunc->GetOrCreateStream().Set(stream); // set stream as last, so that it will work with PdfStreamedDocument
+                    PdfMemoryInputDevice input({ data, 4 * 2 });
+                    csTintFunc->GetOrCreateStream().Set(input); // set stream as last, so that it will work with PdfStreamedDocument
 
                     PdfObject* csp = document.GetObjects().CreateObject(std::move(csArr));
 
@@ -963,8 +963,8 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
                     size.Add(static_cast<int64_t>(2));
                     csTintFunc->GetDictionary().AddKey("Size", size);
 
-                    PdfMemoryInputStream stream({ data, 3 * 2 });
-                    csTintFunc->GetOrCreateStream().Set(stream);
+                    PdfMemoryInputDevice input({ data, 3 * 2 });
+                    csTintFunc->GetOrCreateStream().Set(input);
 
                     PdfArray csArr;
                     csArr.Add(PdfName("Separation"));

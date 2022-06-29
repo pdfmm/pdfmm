@@ -35,7 +35,7 @@ void PdfObjectStreamParser::Parse(ObjectIdList const& list)
     int64_t first = m_Parser->GetDictionary().FindKeyAs<int64_t>("First", 0);
 
     charbuff buffer;
-    m_Parser->GetOrCreateStream().GetFilteredCopy(buffer);
+    m_Parser->GetOrCreateStream().ExtractTo(buffer);
 
     this->ReadObjectsFromStream(buffer.data(), buffer.size(), num, first, list);
     m_Parser = nullptr;
@@ -52,7 +52,7 @@ void PdfObjectStreamParser::ReadObjectsFromStream(char* buffer, size_t bufferLen
     {
         const int64_t objNo = tokenizer.ReadNextNumber(device);
         const int64_t offset = tokenizer.ReadNextNumber(device);
-        size_t pos = device.Tell();
+        size_t pos = device.GetPosition();
 
         if (first >= std::numeric_limits<int64_t>::max() - offset)
         {

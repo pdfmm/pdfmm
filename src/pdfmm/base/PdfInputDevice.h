@@ -13,63 +13,32 @@
 #include <fstream>
 
 #include "PdfDeclarations.h"
+#include "PdfInputStream.h"
 
 namespace mm {
 
-class PdfObjectStream;
-
-// TODO: Refactor, PdfInputDevice should be an interface
-// with, implementing classes like PdfMemInputDevice or PdfFileInputDevice
-/** This class provides an Input device which operates
- *  either on a file, a buffer in memory or any arbitrary std::istream
- *
- *  This class is suitable for inheritance to provide input
- *  devices of your own for pdfmm.
- *  Just override the required virtual methods.
+/** This class represents an input device which operates
+ * either on a file, a buffer in memory or any arbitrary std::istream
+ * Differently from PdfInputStream all its operation are blocking
+ * and it can be optionally seekable
  */
-class PDFMM_API PdfInputDevice
+class PDFMM_API PdfInputDevice : public PdfInputStream
 {
-protected:
-    PdfInputDevice();
-
 public:
     /** Destruct the PdfInputDevice object and close any open files.
      */
     virtual ~PdfInputDevice();
 
-    /** Close the input device.
-     *  No further operations may be performed on this device
-     *  after calling this function.
+    /** Get next char from stream.
+     * \returns the next character from the stream
      */
-    virtual void Close();
-
-    /** Get the current position in file.
-     *  /returns the current position in the file
-     */
-    virtual size_t Tell() = 0;
+    char ReadChar();
 
     /** Get next char from stream.
-     *  \returns the next character from the stream
+     * \param ch the read character
+     * \returns false if EOF
      */
-    int GetChar();
-
-    /** Get next char from stream.
-     *  \returns the next character from the stream
-     */
-    virtual bool TryGetChar(char& ch) = 0;
-
-    /** Peek at next char in stream.
-     *  /returns the next char in the stream
-     */
-    virtual int Look() = 0;
-
-    /** Seek the device to the position offset from the beginning
-     *  \param off from the beginning of the file
-     *  \param dir where to start (start, cur, end)
-     *
-     *  A non-seekable input device will throw an InvalidDeviceOperation.
-     */
-    void Seek(std::streamoff off, std::ios_base::seekdir dir = std::ios_base::beg);
+    bool Read(char& ch);
 
     /** Read a certain number of bytes from the input device.
      *
@@ -79,7 +48,31 @@ public:
      *  \returns the number of bytes that have been read.
      *      0 if the device reached eof
      */
-    virtual size_t Read(char* buffer, size_t size) = 0;
+    size_t Read(char* buffer, size_t size);
+
+    /** Close the input device.
+     *  No further operations may be performed on this device
+     *  after calling this function.
+     */
+    void Close();
+
+    /** Get the current position in file.
+     *  /returns the current position in the file
+     */
+    virtual size_t GetPosition() = 0;
+
+    /** Peek at next char in stream.
+     *  /returns the next char in the stream
+     */
+    virtual int Peek() = 0;
+
+    /** Seek the device to the position offset from the beginning
+     *  \param off from the beginning of the file
+     *  \param dir where to start (start, cur, end)
+     *
+     *  A non-seekable input device will throw an InvalidDeviceOperation.
+     */
+    void Seek(std::streamoff off, std::ios_base::seekdir dir = std::ios_base::beg);
 
     /**
      * \return True if the stream is at EOF
@@ -89,10 +82,26 @@ public:
     /**
      * \return True if the stream is seekable
      */
-    virtual bool IsSeekable() const = 0;
+    virtual bool CanSeek() const;
 
 protected:
     virtual void seek(std::streamoff off, std::ios_base::seekdir dir);
+    virtual void close();
+
+    /**
+     * \returns the number of bytes that have been read.
+     * 0 if the device reached eof
+     */
+    virtual size_t readBufferImpl(char* buffer, size_t size) = 0;
+
+    /**
+     * \returns true if success, false if EOF
+     */
+    virtual bool readCharImpl(char& ch);
+
+protected:
+    size_t readBuffer(char* buffer, size_t size, bool& eof) override final;
+    bool readChar(char& ch, bool& eof) override final;
 };
 
 class PDFMM_API PdfStreamInputDevice : public PdfInputDevice
@@ -110,20 +119,18 @@ public:
 
     ~PdfStreamInputDevice();
 
-    virtual size_t Tell() override;
+    virtual size_t GetPosition() override;
 
-    virtual bool TryGetChar(char& ch) override;
-
-    int Look() override;
-
-    size_t Read(char* buffer, size_t size) override;
+    int Peek() override;
 
     bool Eof() const override;
 
-    bool IsSeekable() const override { return true; }
+    bool CanSeek() const override;
 
 protected:
     void seek(std::streamoff off, std::ios_base::seekdir dir) override;
+    size_t readBufferImpl(char* buffer, size_t size) override;
+    bool readCharImpl(char& ch) override;
 
 protected:
     void SetStream(std::istream* stream, bool streamOwned);
@@ -144,27 +151,38 @@ public:
     PdfFileInputDevice(const std::string_view& filename);
 };
 
-class PDFMM_API PdfMemoryInputDevice final : public PdfStreamInputDevice
+class PDFMM_API PdfMemoryInputDevice final : public PdfInputDevice
 {
 public:
     /** Construct a new PdfInputDevice that reads all data from a memory buffer.
      *  The buffer is temporarily binded
      */
-    PdfMemoryInputDevice(const char* buffer, size_t len);
+    PdfMemoryInputDevice(const char* buffer, size_t size);
     PdfMemoryInputDevice(const bufferview& buffer);
     PdfMemoryInputDevice(const std::string_view& view);
     PdfMemoryInputDevice(const std::string& str);
     PdfMemoryInputDevice(const char* str);
+
+    virtual size_t GetPosition() override;
+
+    int Peek() override;
+
+    bool Eof() const override;
+
+    bool CanSeek() const override;
+
+protected:
+    void seek(std::streamoff off, std::ios_base::seekdir dir) override;
+    size_t readBufferImpl(char* buffer, size_t size) override;
+    bool readCharImpl(char& ch) override;
+
 private:
     PdfMemoryInputDevice(std::nullptr_t) = delete;
-};
 
-class PDFMM_API PdfObjectStreamInputDevice final : public PdfStreamInputDevice
-{
-public:
-    PdfObjectStreamInputDevice(const PdfObjectStream& stream);
 private:
-    charbuff m_buffer;
+    const char* m_buffer;
+    size_t m_Length;
+    size_t m_Position;
 };
 
 };

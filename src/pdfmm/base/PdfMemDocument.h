@@ -11,22 +11,11 @@
 
 #include "PdfDocument.h"
 #include "PdfExtension.h"
+#include "PdfInputDevice.h"
 
 namespace mm {
 
-class PdfAcroForm;
-class PdfDestination;
-class PdfDictionary;
-class PdfEncrypt;
-class PdfFileSpec;
-class PdfFont;
-class PdfInfo;
-class PdfNameTree;
-class PdfOutlines;
-class PdfPage;
-class PdfPageCollection;
 class PdfParser;
-class PdfRect;
 class PdfWriter;
 
 /** PdfMemDocument is the core class for reading and manipulating

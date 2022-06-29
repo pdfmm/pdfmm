@@ -193,29 +193,13 @@ public:
     {
     }
 
-    /** Write data to the output stream
-     *
-     *  \param buffer the data is read from this buffer
-     *  \param len    the size of the buffer
-     */
-    void WriteImpl(const char* buffer, size_t len) override
+    void writeBuffer(const char* buffer, size_t size) override
     {
-        charbuff outputBuffer(len);
-        std::memcpy(outputBuffer.data(), buffer, len);
+        charbuff outputBuffer(size);
+        std::memcpy(outputBuffer.data(), buffer, size);
 
-        m_stream.Encrypt(outputBuffer.data(), len);
-        m_OutputStream->Write(outputBuffer.data(), len);
-    }
-
-    /** Close the PdfOutputStream.
-     *  This method may throw exceptions and has to be called
-     *  before the destructor to end writing.
-     *
-     *  No more data may be written to the output device
-     *  after calling close.
-     */
-    void Close() override
-    {
+        m_stream.Encrypt(outputBuffer.data(), size);
+        m_OutputStream->Write(outputBuffer.data(), size);
     }
 
 private:
@@ -236,15 +220,15 @@ public:
         m_stream(rc4key, rc4last, key, keylen) { }
 
 protected:
-    size_t ReadImpl(char* buffer, size_t len, bool& eof) override
+    size_t readBuffer(char* buffer, size_t size, bool& eof) override
     {
         // CHECK-ME: The code has never been tested after refactor
         // If it's correct, remove this warning
         bool streameof;
-        size_t read = m_InputStream->Read(buffer, std::min(len, m_inputLen), streameof);
-        m_inputLen -= read;
+        size_t count = ReadBuffer(*m_InputStream, buffer, std::min(size, m_inputLen), streameof);
+        m_inputLen -= count;
         eof = streameof || m_inputLen == 0;
-        return m_stream.Encrypt(buffer, read);
+        return m_stream.Encrypt(buffer, count);
     }
 
 private:
@@ -280,7 +264,7 @@ public:
     }
 
 protected:
-    size_t ReadImpl(char* buffer, size_t len, bool& eof) override
+    size_t readBuffer(char* buffer, size_t len, bool& eof) override
     {
         int outlen = 0;
         size_t drainLen;
@@ -294,7 +278,7 @@ protected:
             // Read the initialization vector separately first
             char iv[AES_IV_LENGTH];
             bool streameof;
-            read = m_InputStream->Read(iv, AES_IV_LENGTH, streameof);
+            read = ReadBuffer(*m_InputStream, iv, AES_IV_LENGTH, streameof);
             if (read != AES_IV_LENGTH)
                 PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Can't read enough bytes for AES IV");
 
@@ -326,7 +310,7 @@ protected:
         }
 
         bool streameof;
-        read = m_InputStream->Read(buffer, std::min(len, m_inputLen), streameof);
+        read = ReadBuffer(*m_InputStream, buffer, std::min(len, m_inputLen), streameof);
         m_inputLen -= read;
 
         // Quote openssl.org: "the decrypted data buffer out passed to EVP_DecryptUpdate() should have sufficient room

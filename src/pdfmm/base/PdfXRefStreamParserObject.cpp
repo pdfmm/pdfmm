@@ -111,7 +111,7 @@ void PdfXRefStreamParserObject::parseStream(const int64_t wArray[W_ARRAY_SIZE], 
     const size_t entryLen = static_cast<size_t>(wArray[0] + wArray[1] + wArray[2]);
 
     charbuff buffer;
-    this->GetOrCreateStream().GetFilteredCopy(buffer);
+    this->GetOrCreateStream().ExtractTo(buffer);
 
     vector<int64_t>::const_iterator it = indices.begin();
     char* cursor = buffer.data();

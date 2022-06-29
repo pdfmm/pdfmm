@@ -36,6 +36,8 @@ class PdfOutputStream;
 class PDFMM_API PdfObjectStream
 {
     friend class PdfParserObject;
+    friend class PdfObjectInputStream;
+
 public:
     /** The default filter to use when changing the stream content.
      *  It's a static member and applies to all newly created/changed streams.
@@ -58,7 +60,7 @@ public:
      *  \param device write to this outputdevice.
      *  \param encrypt encrypt stream data using this object
      */
-    virtual void Write(PdfOutputDevice& device, const PdfStatefulEncrypt& encrypt) = 0;
+    virtual void Write(PdfOutputStream& stream, const PdfStatefulEncrypt& encrypt) = 0;
 
     /** Set a binary buffer as stream data.
      *
@@ -188,16 +190,6 @@ public:
      */
     void EndAppend();
 
-    /**
-     * \returns true if code is between BeginAppend()
-     *          and EndAppend() at the moment, i.e. it
-     *          is safe to call EndAppend() now.
-     *
-     *  \see BeginAppend
-     *  \see Append
-     */
-    inline bool IsAppending() const { return m_Append; }
-
     /** Get the stream's length with all filters applied (e.g. if the stream is
      * Flate-compressed, the length of the compressed data stream).
      *
@@ -209,7 +201,7 @@ public:
      *
      *  \param stream data is written to this stream.
      */
-    virtual void GetCopy(PdfOutputStream& stream) const = 0;
+    virtual void CopyTo(PdfOutputStream& stream) const = 0;
 
     /** Get a buffer of the current stream which has been
      *  filtered by all filters as specified in the dictionary's
@@ -220,13 +212,13 @@ public:
      *
      *  \param buffer pointer to the buffer
      */
-    void GetFilteredCopy(charbuff& buffer) const;
+    void ExtractTo(charbuff& buffer) const;
 
     /** Get a filtered copy of a the stream and write it to a PdfOutputStream
      *
      *  \param stream filtered data is written to this stream.
      */
-    void GetFilteredCopy(PdfOutputStream& stream) const;
+    void ExtractTo(PdfOutputStream& stream) const;
 
     charbuff GetFilteredCopy() const;
 
@@ -239,16 +231,6 @@ public:
     PdfObjectStream& operator=(const PdfObjectStream& rhs);
 
 protected:
-    /** Required for the GetFilteredCopy() implementation
-     *  \returns a handle to the internal buffer
-     */
-    virtual const char* GetInternalBuffer() const = 0;
-
-    /** Required for the GetFilteredCopy() implementation
-     *  \returns the size of the internal buffer
-     */
-    virtual size_t GetInternalBufferSize() const = 0;
-
     /** Begin appending data to this stream.
      *  Clears the current stream contents.
      *
@@ -279,6 +261,10 @@ protected:
 
     void EnsureAppendClosed();
 
+    PdfObject& GetParent() { return *m_Parent; }
+
+    virtual std::unique_ptr<PdfInputStream> GetInputStream() const = 0;
+
 private:
     PdfObjectStream(const PdfObjectStream& rhs) = delete;
 
@@ -288,10 +274,8 @@ private:
 
     void BeginAppend(const PdfFilterList& filters, bool clearExisting, bool deleteFilters, bool markObjectDirty);
 
-protected:
-    PdfObject* m_Parent;
-
 private:
+    PdfObject* m_Parent;
     bool m_Append;
 };
 

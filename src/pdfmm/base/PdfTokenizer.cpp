@@ -69,14 +69,14 @@ bool PdfTokenizer::TryReadNextToken(PdfInputDevice& device, string_view& token, 
 
     tokenType = PdfTokenType::Literal;
 
-    while ((c = device.Look()) != EOF
+    while ((c = device.Peek()) != EOF
         && counter + 1 < static_cast<int64_t>(bufferSize))
     {
         // ignore leading whitespaces
         if (counter == 0 && IsWhitespace(c))
         {
             // Consume the whitespace character
-            (void)device.GetChar();
+            (void)device.ReadChar();
             continue;
         }
         // ignore comments
@@ -85,8 +85,8 @@ bool PdfTokenizer::TryReadNextToken(PdfInputDevice& device, string_view& token, 
             // Consume all characters before the next line break
             do
             {
-                (void)device.GetChar();
-            } while ((c = device.Look()) != EOF && c != '\n' && c != '\r');
+                (void)device.ReadChar();
+            } while ((c = device.Peek()) != EOF && c != '\n' && c != '\r');
 
             // If we've already read one or more chars of a token, return them, since
             // comments are treated as token-delimiting whitespace. Otherwise keep reading
@@ -98,16 +98,16 @@ bool PdfTokenizer::TryReadNextToken(PdfInputDevice& device, string_view& token, 
         else if (counter == 0 && (c == '<' || c == '>'))
         {
             // Really consume character from stream
-            (void)device.GetChar();
+            (void)device.ReadChar();
             buffer[counter] = c;
             counter++;
 
-            char n = device.Look();
+            char n = device.Peek();
             // Is n another < or > , ie are we opening/closing a dictionary?
             // If so, consume that character too.
             if (n == c)
             {
-                (void)device.GetChar();
+                (void)device.ReadChar();
                 buffer[counter] = n;
                 if (c == '<')
                     tokenType = PdfTokenType::DoubleAngleBracketsLeft;
@@ -134,7 +134,7 @@ bool PdfTokenizer::TryReadNextToken(PdfInputDevice& device, string_view& token, 
         else
         {
             // Consume the next character and add it to the token we're building.
-            (void)device.GetChar();
+            (void)device.ReadChar();
             buffer[counter] = c;
             counter++;
 
@@ -486,7 +486,7 @@ void PdfTokenizer::ReadString(PdfInputDevice& device, PdfVariant& variant, const
     int balanceCount = 0; // Balanced parathesis do not have to be escaped in strings
 
     m_charBuffer.clear();
-    while (device.TryGetChar(ch))
+    while (device.Read(ch))
     {
         if (escape)
         {
@@ -611,7 +611,7 @@ void PdfTokenizer::ReadName(PdfInputDevice& device, PdfVariant& variant)
     // and we have to take care for stuff like:
     // 10 0 obj / endobj
     // which stupid but legal PDF
-    int c = device.Look();
+    int c = device.Peek();
     if (IsWhitespace(c)) // Delimeters are handled correctly by tryReadNextToken
     {
         // We are an empty PdfName
@@ -761,7 +761,7 @@ void readHexString(PdfInputDevice& device, charbuff& buffer)
 {
     buffer.clear();
     char ch;
-    while (device.TryGetChar(ch))
+    while (device.Read(ch))
     {
         // end of stream reached
         if (ch == '>')

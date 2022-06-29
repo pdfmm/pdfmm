@@ -43,7 +43,7 @@ PdfParserObject::PdfParserObject(PdfDocument* doc, const PdfReference& indirectR
     m_device(&device),
     m_Encrypt(nullptr),
     m_IsTrailer(false),
-    m_Offset(offset < 0 ? device.Tell() : offset),
+    m_Offset(offset < 0 ? device.GetPosition() : offset),
     m_HasStream(false),
     m_StreamOffset(0)
 {
@@ -146,7 +146,7 @@ void PdfParserObject::Parse(PdfTokenizer& tokenizer)
             else if (m_Variant.IsDictionary() && token == "stream")
             {
                 m_HasStream = true;
-                m_StreamOffset = m_device->Tell(); // NOTE: whitespace after "stream" handle in stream parser!
+                m_StreamOffset = m_device->GetPosition(); // NOTE: whitespace after "stream" handle in stream parser!
             }
             else
             {
@@ -164,11 +164,11 @@ void PdfParserObject::parseStream()
 {
     PDFMM_ASSERT(IsDelayedLoadDone());
 
-    int64_t len = -1;
+    int64_t size = -1;
     int c;
 
     auto& lengthObj = this->m_Variant.GetDictionary().MustFindKey(PdfName::KeyLength);
-    if (!lengthObj.TryGetNumber(len))
+    if (!lengthObj.TryGetNumber(size))
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidStreamLength);
 
     m_device->Seek(m_StreamOffset);
@@ -176,7 +176,7 @@ void PdfParserObject::parseStream()
     streamoff streamOffset;
     while (true)
     {
-        c = m_device->Look();
+        c = m_device->Peek();
         switch (c)
         {
             // Skip spaces between the stream keyword and the carriage return/line
@@ -184,7 +184,7 @@ void PdfParserObject::parseStream()
             // but certain PDFs have additionals whitespaces
             case ' ':
             case '\t':
-                (void)m_device->GetChar();
+                (void)m_device->ReadChar();
                 break;
             // From PDF 32000:2008 7.3.8.1 General
             // "The keyword stream that follows the stream dictionary shall be
@@ -192,30 +192,28 @@ void PdfParserObject::parseStream()
             // RETURN and a LINE FEED or just a LINE FEED, and not by a CARRIAGE
             // RETURN alone"
             case '\r':
-                streamOffset = m_device->Tell();
-                (void)m_device->GetChar();
-                c = m_device->Look();
+                streamOffset = m_device->GetPosition();
+                (void)m_device->ReadChar();
+                c = m_device->Peek();
                 if (c == '\n')
                 {
-                    (void)m_device->GetChar();
-                    streamOffset = m_device->Tell();
+                    (void)m_device->ReadChar();
+                    streamOffset = m_device->GetPosition();
                 }
                 goto ReadStream;
             case '\n':
-                (void)m_device->GetChar();
-                streamOffset = m_device->Tell();
+                (void)m_device->ReadChar();
+                streamOffset = m_device->GetPosition();
                 goto ReadStream;
             // Assume malformed PDF with no whitespaces after the stream keyword
             default:
-                streamOffset = m_device->Tell();
+                streamOffset = m_device->GetPosition();
                 goto ReadStream;
         }
     }
 
 ReadStream:
     m_device->Seek(streamOffset);	// reset it before reading!
-    PdfDeviceInputStream reader(*m_device);
-
     if (m_Encrypt != nullptr && !m_Encrypt->IsMetadataEncrypted())
     {
         // If metadata is not encrypted the Filter is set to "Crypt"
@@ -235,12 +233,12 @@ ReadStream:
     // Set stream raw data without marking the object dirty
     if (m_Encrypt != nullptr)
     {
-        auto input = m_Encrypt->CreateEncryptionInputStream(reader, static_cast<size_t>(len), GetIndirectReference());
-        getOrCreateStream().SetRawData(*input, static_cast<ssize_t>(len), false);
+        auto input = m_Encrypt->CreateEncryptionInputStream(*m_device, static_cast<size_t>(size), GetIndirectReference());
+        getOrCreateStream().SetRawData(*input, static_cast<ssize_t>(size), false);
     }
     else
     {
-        getOrCreateStream().SetRawData(reader, static_cast<ssize_t>(len), false);
+        getOrCreateStream().SetRawData(*m_device, static_cast<ssize_t>(size), false);
     }
 }
 

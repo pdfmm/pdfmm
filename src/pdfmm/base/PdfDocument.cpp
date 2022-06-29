@@ -347,7 +347,7 @@ PdfRect PdfDocument::FillXObjectFromPage(PdfXObject& xobj, const PdfPage& page, 
                             PdfObjectStream& contStream = obj->GetOrCreateStream();
 
                             charbuff contStreamBuffer;
-                            contStream.GetFilteredCopy(contStreamBuffer);
+                            contStream.ExtractTo(contStreamBuffer);
                             xobjStream.Append(contStreamBuffer);
                             break;
                         }
@@ -378,7 +378,7 @@ PdfRect PdfDocument::FillXObjectFromPage(PdfXObject& xobj, const PdfPage& page, 
             filters.push_back(PdfFilterType::FlateDecode);
             xobjStream.BeginAppend(filters);
             charbuff contStreamBuffer;
-            contentsStream.GetFilteredCopy(contStreamBuffer);
+            contentsStream.ExtractTo(contStreamBuffer);
             xobjStream.Append(contStreamBuffer);
             xobjStream.EndAppend();
         }

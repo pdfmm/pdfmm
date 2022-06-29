@@ -94,7 +94,7 @@ void PdfXRefStream::EndWriteImpl(PdfOutputDevice& device, charbuff& buffer)
     m_xrefStreamObj->GetDictionary().AddKey("W", wArr);
  
     // Set the actual offset of the XRefStm object
-    uint32_t offset = (uint32_t)device.Tell();
+    uint32_t offset = (uint32_t)device.GetPosition();
     PDFMM_ASSERT(m_xrefStreamEntryIndex >= 0);
     m_rawEntries[m_xrefStreamEntryIndex].Variant = AS_BIG_ENDIAN(offset);
  

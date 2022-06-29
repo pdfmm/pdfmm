@@ -52,11 +52,11 @@ PdfCanvasInputDevice::PdfCanvasInputDevice(const PdfCanvas& canvas)
     }
 }
 
-bool PdfCanvasInputDevice::TryGetChar(char& ch)
+bool PdfCanvasInputDevice::readCharImpl(char& ch)
 {
     if (m_eof)
     {
-        ch = 0;
+        ch = '\0';
         return false;
     }
 
@@ -71,7 +71,7 @@ bool PdfCanvasInputDevice::TryGetChar(char& ch)
 
         if (m_deviceSwitchOccurred)
         {
-            if (device->Look() == EOF)
+            if (device->Peek() == char_traits<char>::eof())
                 continue;
 
             // Handle device switch by returning a
@@ -81,15 +81,15 @@ bool PdfCanvasInputDevice::TryGetChar(char& ch)
             return true;
         }
 
-        if (device->TryGetChar(ch))
+        if (device->Read(ch))
             return true;
     }
 }
 
-int PdfCanvasInputDevice::Look()
+int PdfCanvasInputDevice::Peek()
 {
     if (m_eof)
-        return EOF;
+        return char_traits<char>::eof();
 
     PdfInputDevice* device = nullptr;
     while (true)
@@ -97,11 +97,11 @@ int PdfCanvasInputDevice::Look()
         if (!tryGetNextDevice(device))
         {
             setEOF();
-            return EOF;
+            return char_traits<char>::eof();
         }
 
-        int ret = device->Look();
-        if (ret != EOF)
+        int ret = device->Peek();
+        if (ret != char_traits<char>::eof())
         {
             if (m_deviceSwitchOccurred)
             {
@@ -116,7 +116,7 @@ int PdfCanvasInputDevice::Look()
     }
 }
 
-size_t PdfCanvasInputDevice::Read(char* buffer, size_t size)
+size_t PdfCanvasInputDevice::readBufferImpl(char* buffer, size_t size)
 {
     if (size == 0 || m_eof)
         return 0;
@@ -134,7 +134,7 @@ size_t PdfCanvasInputDevice::Read(char* buffer, size_t size)
 
         if (m_deviceSwitchOccurred)
         {
-            if (device->Look() == EOF)
+            if (device->Peek() == char_traits<char>::eof())
                 continue;
 
             // Handle device switch by inserting
@@ -157,7 +157,7 @@ size_t PdfCanvasInputDevice::Read(char* buffer, size_t size)
     }
 }
 
-size_t PdfCanvasInputDevice::Tell()
+size_t PdfCanvasInputDevice::GetPosition()
 {
     throw runtime_error("Unsupported");
 }
@@ -204,7 +204,8 @@ bool PdfCanvasInputDevice::tryPopNextDevice()
     }
     else
     {
-        m_device = std::make_unique<PdfObjectStreamInputDevice>(*contents);
+        contents->ExtractTo(m_buffer);
+        m_device = std::make_unique<PdfMemoryInputDevice>(m_buffer);
         return true;
     }
 }

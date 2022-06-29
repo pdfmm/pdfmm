@@ -254,7 +254,7 @@ void PdfObject::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
     }
 
     m_Variant.Write(device, writeMode, encrypt, buffer);
-    device.Put('\n');
+    device.Write('\n');
 
     if (m_Stream != nullptr)
         m_Stream->Write(device, encrypt);
