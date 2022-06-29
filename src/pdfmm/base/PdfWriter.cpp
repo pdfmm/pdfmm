@@ -228,20 +228,15 @@ void PdfWriter::CreateFileIdentifier(PdfString& identifier, const PdfObject& tra
     unique_ptr<PdfObject> info;
     bool originalIdentifierFound = false;
 
-    if (originalIdentifier != nullptr && trailer.GetDictionary().HasKey("ID"))
+    const PdfObject* idObj;
+    if (originalIdentifier != nullptr &&
+        (idObj = trailer.GetDictionary().FindKey("ID")) != nullptr)
     {
-        const PdfObject* idObj = trailer.GetDictionary().GetKey("ID");
-        // The PDF spec, section 7.5.5, implies that the ID may be
-        // indirect as long as the PDF is not encrypted. Handle that
-        // case.
-        if (idObj->IsReference())
-            idObj = &m_Objects->MustGetObject(idObj->GetReference());
-
         auto it = idObj->GetArray().begin();
         PdfString str;
-        if (it != idObj->GetArray().end() && it->TryGetString(str) && str.IsHex())
+        if (it != idObj->GetArray().end() && it->TryGetString(str))
         {
-            *originalIdentifier = it->GetString();
+            *originalIdentifier = PdfString::FromRaw(it->GetString().GetRawData());
             originalIdentifierFound = true;
         }
     }
