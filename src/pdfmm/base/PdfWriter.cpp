@@ -31,7 +31,7 @@ static PdfWriteFlags ToWriteFlags(PdfSaveOptions opts);
 
 PdfWriter::PdfWriter(PdfIndirectObjectList* objects, const PdfObject& trailer, PdfVersion version) :
     m_Objects(objects),
-    m_Trailer(trailer),
+    m_Trailer(&trailer),
     m_Version(version),
     m_UseXRefStream(false),
     m_EncryptObj(nullptr),
@@ -72,7 +72,7 @@ PdfWriter::~PdfWriter()
 
 void PdfWriter::Write(PdfOutputDevice& device)
 {
-    CreateFileIdentifier(m_identifier, m_Trailer, &m_originalIdentifier);
+    CreateFileIdentifier(m_identifier, *m_Trailer, &m_originalIdentifier);
 
     // setup encrypt dictionary
     if (m_Encrypt != nullptr)
@@ -192,12 +192,12 @@ void PdfWriter::FillTrailerObject(PdfObject& trailer, size_t size, bool onlySize
 
     if (!onlySizeKey)
     {
-        if (m_Trailer.GetDictionary().HasKey("Root"))
-            trailer.GetDictionary().AddKey("Root", *m_Trailer.GetDictionary().GetKey("Root"));
+        if (m_Trailer->GetDictionary().HasKey("Root"))
+            trailer.GetDictionary().AddKey("Root", *m_Trailer->GetDictionary().GetKey("Root"));
         // It makes no sense to simple copy an encryption key
         // Either we have no encryption or we encrypt again by ourselves
-        if (m_Trailer.GetDictionary().HasKey("Info"))
-            trailer.GetDictionary().AddKey("Info", *m_Trailer.GetDictionary().GetKey("Info"));
+        if (m_Trailer->GetDictionary().HasKey("Info"))
+            trailer.GetDictionary().AddKey("Info", *m_Trailer->GetDictionary().GetKey("Info"));
 
         if (m_EncryptObj != nullptr)
             trailer.GetDictionary().AddKey(PdfName("Encrypt"), m_EncryptObj->GetIndirectReference());

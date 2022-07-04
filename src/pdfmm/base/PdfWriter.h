@@ -165,7 +165,7 @@ protected:
     void CreateFileIdentifier(PdfString& identifier, const PdfObject& trailer, PdfString* originalIdentifier = nullptr);
 
 
-    const PdfObject& GetTrailer() { return m_Trailer; }
+    const PdfObject& GetTrailer() { return *m_Trailer; }
     PdfEncrypt* GetEncrypt() { return m_Encrypt.get(); }
     PdfObject* GetEncryptObj() { return m_EncryptObj; }
     const PdfString& GetIdentifier() { return m_identifier; }
@@ -177,7 +177,7 @@ protected:
 
 private:
     PdfIndirectObjectList* m_Objects;
-    PdfObject m_Trailer;
+    const PdfObject* m_Trailer;
     PdfVersion m_Version;
 
     bool m_UseXRefStream;
