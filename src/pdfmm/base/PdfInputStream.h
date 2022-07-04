@@ -13,42 +13,55 @@
 
 namespace mm {
 
-class PdfOutputStream;
+class OutputStream;
 
 /** An interface for reading blocks of data from a data source.
  * It supports non-blocking read operations
  */
-class PDFMM_API PdfInputStream
+class PDFMM_API InputStream
 {
 public:
-    virtual ~PdfInputStream();
+    virtual ~InputStream();
 
-    /** Get next char from stream.
-     *
-     * \returns true if success
-     */
-    bool Read(char& ch, bool& eof);
+    // REMOVE-ME
+    size_t Read(char* buffer, size_t size);
 
-    /** Read a certain number of bytes from the input device.
-     *
-     * \param buffer store bytes in this buffer.
-     *      The buffer has to be large enough.
-     * \param size number of bytes to read
-     * \param eof true if eof
-     * \returns number of bytes read
+    /** Read data from the device
+     * \param buffer a pointer to the data buffer
+     * \param size length of the output buffer
+     * \param eof stream reached EOF during the read
+     * \returns Number of read bytes
      */
     size_t Read(char* buffer, size_t size, bool& eof);
 
-    void CopyTo(PdfOutputStream& stream);
+    /** Get next char from stream.
+     * \returns the next character from the stream
+     */
+    char ReadChar();
+
+    /** Get next char from stream.
+     * \param ch the read character
+     * \returns false if EOF
+     */
+    bool Read(char& ch);
+
+    void CopyTo(OutputStream& stream);
 
 protected:
-    static size_t ReadBuffer(PdfInputStream& stream, char* buffer, size_t size, bool& eof);
-    static bool ReadChar(PdfInputStream& stream, char& ch, bool& eof);
+    static size_t ReadBuffer(InputStream& stream, char* buffer, size_t size, bool& eof);
+    static bool ReadChar(InputStream& stream, char& ch);
 
 protected:
+    /** Read a buffer from the stream
+     * /param eof true if the stream reached eof during read
+     * /returns number of read bytes
+     */
     virtual size_t readBuffer(char* buffer, size_t size, bool& eof) = 0;
-    // Allow an optmized version for chars
-    virtual bool readChar(char& ch, bool& eof);
+
+    /** Read the next char in stream.
+     *  /returns true if success, false if EOF
+     */
+    virtual bool readChar(char& ch);
 };
 
 };

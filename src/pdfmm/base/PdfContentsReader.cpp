@@ -15,11 +15,11 @@ PdfContentsReader::PdfContentsReader(const PdfCanvas& canvas,
     PdfContentsReader(std::make_shared<PdfCanvasInputDevice>(canvas),
         &canvas, args) { }
 
-PdfContentsReader::PdfContentsReader(const shared_ptr<PdfInputDevice>& device,
+PdfContentsReader::PdfContentsReader(const shared_ptr<InputStreamDevice>& device,
         nullable<const PdfContentReaderArgs&> args) :
     PdfContentsReader(device, nullptr, args) { }
 
-PdfContentsReader::PdfContentsReader(const shared_ptr<PdfInputDevice>& device,
+PdfContentsReader::PdfContentsReader(const shared_ptr<InputStreamDevice>& device,
     const PdfCanvas* canvas, nullable<const PdfContentReaderArgs&> args) :
     m_args(args.has_value() ? *args : PdfContentReaderArgs()),
     m_buffer(std::make_shared<charbuff>(PdfTokenizer::BufferSize)),

@@ -58,7 +58,7 @@ namespace mm {
 #define PDFMM_FILTER_INTERNAL_BUFFER_SIZE 4096
 
 class PdfPredictorDecoder;
-class PdfOutputDevice;
+class OutputStreamDevice;
 
 /** The ascii hex filter.
  */
@@ -278,7 +278,7 @@ private:
     struct jpeg_error_mgr m_jerr;
 
     charbuff m_buffer;
-    PdfOutputDevice* m_Device;
+    OutputStreamDevice* m_Device;
 };
 
 #endif // PDFMM_HAVE_JPEG_LIB

@@ -16,7 +16,6 @@
 
 namespace mm {
 
-class PdfOutputDevice;
 class PdfWriter;
 
 /**
@@ -99,7 +98,7 @@ public:
      *  \param device an output device (usually a PDF file)
      *
      */
-    void Write(PdfOutputDevice& device, charbuff& buffer);
+    void Write(OutputStreamDevice& device, charbuff& buffer);
 
     /** Get the size of the XRef table.
      *  I.e. the highest object number + 1.
@@ -135,7 +134,7 @@ protected:
      *  \param device the output device to which the XRef table
      *                 should be written.
      */
-    virtual void BeginWrite(PdfOutputDevice& device, charbuff& buffer);
+    virtual void BeginWrite(OutputStreamDevice& device, charbuff& buffer);
 
     /** Begin an XRef subsection.
      *  All following calls of WriteXRefEntry belong to this XRef subsection.
@@ -145,7 +144,7 @@ protected:
      *  \param first the object number of the first object in this subsection
      *  \param count the number of entries in this subsection
      */
-    virtual void WriteSubSection(PdfOutputDevice& device, uint32_t first, uint32_t count, charbuff& buffer);
+    virtual void WriteSubSection(OutputStreamDevice& device, uint32_t first, uint32_t count, charbuff& buffer);
 
     /** Write a single entry to the XRef table
      *
@@ -154,14 +153,14 @@ protected:
      *  \param ref the reference of object of the entry
      *  \param entry the XRefEntry of this object
      */
-    virtual void WriteXRefEntry(PdfOutputDevice& device, const PdfReference& ref, const PdfXRefEntry& entry, charbuff& buffer);
+    virtual void WriteXRefEntry(OutputStreamDevice& device, const PdfReference& ref, const PdfXRefEntry& entry, charbuff& buffer);
 
     /**  Sub classes can overload this method to finish a XRef table.
      *
      *  \param device the output device to which the XRef table
      *                 should be written.
      */
-    virtual void EndWriteImpl(PdfOutputDevice& device, charbuff& buffer);
+    virtual void EndWriteImpl(OutputStreamDevice& device, charbuff& buffer);
 
 private:
     void addObject(const PdfReference& ref, nullable<uint64_t> offset, bool inUse);
@@ -172,7 +171,7 @@ private:
      *  \param device the output device to which the XRef table
      *                 should be written.
      */
-    void endWrite(PdfOutputDevice& device, charbuff& buffer);
+    void endWrite(OutputStreamDevice& device, charbuff& buffer);
 
     const PdfReference* getFirstFreeObject(XRefBlockList::const_iterator itBlock, ReferenceList::const_iterator itFree) const;
     const PdfReference* getNextFreeObject(XRefBlockList::const_iterator itBlock, ReferenceList::const_iterator itFree) const;

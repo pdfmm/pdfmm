@@ -38,9 +38,9 @@ public:
     PdfPostScriptTokenizer();
     PdfPostScriptTokenizer(const std::shared_ptr<charbuff>& buffer);
 public:
-    bool TryReadNext(PdfInputDevice& device, PdfPostScriptTokenType& tokenType, std::string_view& keyword, PdfVariant& variant);
-    void ReadNextVariant(PdfInputDevice& device, PdfVariant& variant);
-    bool TryReadNextVariant(PdfInputDevice& device, PdfVariant& variant);
+    bool TryReadNext(InputStreamDevice& device, PdfPostScriptTokenType& tokenType, std::string_view& keyword, PdfVariant& variant);
+    void ReadNextVariant(InputStreamDevice& device, PdfVariant& variant);
+    bool TryReadNextVariant(InputStreamDevice& device, PdfVariant& variant);
 };
 
 };

@@ -24,7 +24,7 @@ using namespace std;
 using namespace mm;
 
 static char getEscapedCharacter(char ch);
-static void readHexString(PdfInputDevice& device, charbuff& buffer);
+static void readHexString(InputStreamDevice& device, charbuff& buffer);
 static bool isOctalChar(char ch);
 
 PdfTokenizer::PdfTokenizer(bool readReferences)
@@ -39,13 +39,13 @@ PdfTokenizer::PdfTokenizer(const shared_ptr<charbuff>& buffer, bool readReferenc
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 }
 
-bool PdfTokenizer::TryReadNextToken(PdfInputDevice& device, string_view& token)
+bool PdfTokenizer::TryReadNextToken(InputStreamDevice& device, string_view& token)
 {
     PdfTokenType tokenType;
     return TryReadNextToken(device, token, tokenType);
 }
 
-bool PdfTokenizer::TryReadNextToken(PdfInputDevice& device, string_view& token, PdfTokenType& tokenType)
+bool PdfTokenizer::TryReadNextToken(InputStreamDevice& device, string_view& token, PdfTokenType& tokenType)
 {
     int c;
     int64_t counter = 0;
@@ -69,7 +69,7 @@ bool PdfTokenizer::TryReadNextToken(PdfInputDevice& device, string_view& token, 
 
     tokenType = PdfTokenType::Literal;
 
-    while ((c = device.Peek()) != EOF
+    while ((c = device.Peek()) != -1
         && counter + 1 < static_cast<int64_t>(bufferSize))
     {
         // ignore leading whitespaces
@@ -86,7 +86,7 @@ bool PdfTokenizer::TryReadNextToken(PdfInputDevice& device, string_view& token, 
             do
             {
                 (void)device.ReadChar();
-            } while ((c = device.Peek()) != EOF && c != '\n' && c != '\r');
+            } while ((c = device.Peek()) != -1 && c != '\n' && c != '\r');
 
             // If we've already read one or more chars of a token, return them, since
             // comments are treated as token-delimiting whitespace. Otherwise keep reading
@@ -152,7 +152,7 @@ bool PdfTokenizer::TryReadNextToken(PdfInputDevice& device, string_view& token, 
 
     buffer[counter] = '\0';
 
-    if (c == EOF && counter == 0)
+    if (c == -1 && counter == 0)
     {
         // No characters were read before EOF, so we're out of data.
         // Ensure the buffer points to nullptr in case someone fails to check the return value.
@@ -164,7 +164,7 @@ bool PdfTokenizer::TryReadNextToken(PdfInputDevice& device, string_view& token, 
     return true;
 }
 
-bool PdfTokenizer::IsNextToken(PdfInputDevice& device, const string_view& token)
+bool PdfTokenizer::IsNextToken(InputStreamDevice& device, const string_view& token)
 {
     if (token.length() == 0)
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
@@ -177,7 +177,7 @@ bool PdfTokenizer::IsNextToken(PdfInputDevice& device, const string_view& token)
     return token == readToken;
 }
 
-int64_t PdfTokenizer::ReadNextNumber(PdfInputDevice& device)
+int64_t PdfTokenizer::ReadNextNumber(InputStreamDevice& device)
 {
     PdfTokenType tokenType;
     string_view token;
@@ -196,13 +196,13 @@ int64_t PdfTokenizer::ReadNextNumber(PdfInputDevice& device)
     return static_cast<int64_t>(num);
 }
 
-void PdfTokenizer::ReadNextVariant(PdfInputDevice& device, PdfVariant& variant, const PdfStatefulEncrypt& encrypt)
+void PdfTokenizer::ReadNextVariant(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt& encrypt)
 {
     if (!TryReadNextVariant(device, variant, encrypt))
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected variant");
 }
 
-bool PdfTokenizer::TryReadNextVariant(PdfInputDevice& device, PdfVariant& variant, const PdfStatefulEncrypt& encrypt)
+bool PdfTokenizer::TryReadNextVariant(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt& encrypt)
 {
     PdfTokenType tokenType;
     string_view token;
@@ -212,19 +212,19 @@ bool PdfTokenizer::TryReadNextVariant(PdfInputDevice& device, PdfVariant& varian
     return PdfTokenizer::TryReadNextVariant(device, token, tokenType, variant, encrypt);
 }
 
-void PdfTokenizer::ReadNextVariant(PdfInputDevice& device, const string_view& token, PdfTokenType tokenType, PdfVariant& variant, const PdfStatefulEncrypt& encrypt)
+void PdfTokenizer::ReadNextVariant(InputStreamDevice& device, const string_view& token, PdfTokenType tokenType, PdfVariant& variant, const PdfStatefulEncrypt& encrypt)
 {
     if (!TryReadNextVariant(device, token, tokenType, variant, encrypt))
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDataType, "Could not read a variant");
 }
 
-bool PdfTokenizer::TryReadNextVariant(PdfInputDevice& device, const string_view& token, PdfTokenType tokenType, PdfVariant& variant, const PdfStatefulEncrypt& encrypt)
+bool PdfTokenizer::TryReadNextVariant(InputStreamDevice& device, const string_view& token, PdfTokenType tokenType, PdfVariant& variant, const PdfStatefulEncrypt& encrypt)
 {
     PdfLiteralDataType dataType = DetermineDataType(device, token, tokenType, variant);
     return tryReadDataType(device, dataType, variant, encrypt);
 }
 
-PdfTokenizer::PdfLiteralDataType PdfTokenizer::DetermineDataType(PdfInputDevice& device,
+PdfTokenizer::PdfLiteralDataType PdfTokenizer::DetermineDataType(InputStreamDevice& device,
     const string_view& token, PdfTokenType tokenType, PdfVariant& variant)
 {
     switch (tokenType)
@@ -358,7 +358,7 @@ PdfTokenizer::PdfLiteralDataType PdfTokenizer::DetermineDataType(PdfInputDevice&
     }
 }
 
-bool PdfTokenizer::tryReadDataType(PdfInputDevice& device, PdfLiteralDataType dataType, PdfVariant& variant, const PdfStatefulEncrypt& encrypt)
+bool PdfTokenizer::tryReadDataType(InputStreamDevice& device, PdfLiteralDataType dataType, PdfVariant& variant, const PdfStatefulEncrypt& encrypt)
 {
     switch (dataType)
     {
@@ -390,7 +390,7 @@ bool PdfTokenizer::tryReadDataType(PdfInputDevice& device, PdfLiteralDataType da
     }
 }
 
-void PdfTokenizer::ReadDictionary(PdfInputDevice& device, PdfVariant& variant, const PdfStatefulEncrypt& encrypt)
+void PdfTokenizer::ReadDictionary(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt& encrypt)
 {
     PdfVariant val;
     PdfName key;
@@ -453,7 +453,7 @@ void PdfTokenizer::ReadDictionary(PdfInputDevice& device, PdfVariant& variant, c
     }
 }
 
-void PdfTokenizer::ReadArray(PdfInputDevice& device, PdfVariant& variant, const PdfStatefulEncrypt& encrypt)
+void PdfTokenizer::ReadArray(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt& encrypt)
 {
     string_view token;
     PdfTokenType tokenType;
@@ -461,13 +461,12 @@ void PdfTokenizer::ReadArray(PdfInputDevice& device, PdfVariant& variant, const 
     variant = PdfArray();
     PdfArray& array = variant.GetArray();
 
-    for (;; )
+    while (true)
     {
         bool gotToken = this->TryReadNextToken(device, token, tokenType);
         if (!gotToken)
-        {
             PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected array item or ] delim");
-        }
+
         if (tokenType == PdfTokenType::SquareBracketRight)
             break;
 
@@ -476,7 +475,7 @@ void PdfTokenizer::ReadArray(PdfInputDevice& device, PdfVariant& variant, const 
     }
 }
 
-void PdfTokenizer::ReadString(PdfInputDevice& device, PdfVariant& variant, const PdfStatefulEncrypt& encrypt)
+void PdfTokenizer::ReadString(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt& encrypt)
 {
     char ch;
     bool escape = false;
@@ -598,13 +597,13 @@ void PdfTokenizer::ReadString(PdfInputDevice& device, PdfVariant& variant, const
     }
 }
 
-void PdfTokenizer::ReadHexString(PdfInputDevice& device, PdfVariant& variant, const PdfStatefulEncrypt& encrypt)
+void PdfTokenizer::ReadHexString(InputStreamDevice& device, PdfVariant& variant, const PdfStatefulEncrypt& encrypt)
 {
     readHexString(device, m_charBuffer);
     variant = PdfString::FromHexData({ m_charBuffer.size() ? m_charBuffer.data() : "", m_charBuffer.size() }, encrypt);
 }
 
-void PdfTokenizer::ReadName(PdfInputDevice& device, PdfVariant& variant)
+void PdfTokenizer::ReadName(InputStreamDevice& device, PdfVariant& variant)
 {
     // Do special checking for empty names
     // as tryReadNextToken will ignore white spaces
@@ -757,7 +756,7 @@ char getEscapedCharacter(char ch)
     }
 }
 
-void readHexString(PdfInputDevice& device, charbuff& buffer)
+void readHexString(InputStreamDevice& device, charbuff& buffer)
 {
     buffer.clear();
     char ch;

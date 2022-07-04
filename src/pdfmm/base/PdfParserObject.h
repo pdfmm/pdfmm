@@ -37,18 +37,18 @@ private:
      *                 position in the file.
      */
     PdfParserObject(PdfDocument& doc, const PdfReference& indirectReference,
-        PdfInputDevice& device, ssize_t offset = -1);
-    PdfParserObject(PdfDocument& doc, PdfInputDevice& device, ssize_t offset = -1);
+        InputStreamDevice& device, ssize_t offset = -1);
+    PdfParserObject(PdfDocument& doc, InputStreamDevice& device, ssize_t offset = -1);
 
 public:
     /**
      *  \warning This constructor is for testing usage only
      */
-    PdfParserObject(PdfInputDevice& device, ssize_t offset = -1);
+    PdfParserObject(InputStreamDevice& device, ssize_t offset = -1);
 
 protected:
     PdfParserObject(PdfDocument* doc, const PdfReference& indirectReference,
-        PdfInputDevice& device, ssize_t offset);
+        InputStreamDevice& device, ssize_t offset);
 
 public:
     /** Tries to free all memory allocated by this
@@ -113,7 +113,7 @@ private:
     void checkReference(PdfTokenizer& tokenizer);
 
 private:
-    PdfInputDevice *m_device;
+    InputStreamDevice*m_device;
     PdfEncrypt* m_Encrypt;
     bool m_IsTrailer;
     size_t m_Offset;

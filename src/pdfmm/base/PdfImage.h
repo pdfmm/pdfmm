@@ -20,7 +20,7 @@ namespace mm {
 
 class PdfArray;
 class PdfDocument;
-class PdfInputStream;
+class InputStream;
 class PdfObject;
 class PdfIndirectObjectList;
 
@@ -73,7 +73,7 @@ public:
      *
      *  \see SetImageColorSpace to set an colorspace instead of an ICC profile for this image
      */
-    void SetICCProfile(PdfInputStream& stream, unsigned colorComponents,
+    void SetICCProfile(InputStream& stream, unsigned colorComponents,
         PdfColorSpace alternateColorSpace = PdfColorSpace::DeviceRGB);
 
     //PdfColorSpace GetImageColorSpace() const;
@@ -109,7 +109,7 @@ public:
      *
      *  \see SetImageData
      */
-    void SetData(PdfInputStream& stream, unsigned width, unsigned height,
+    void SetData(InputStream& stream, unsigned width, unsigned height,
         unsigned bitsPerComponent);
 
     /** Set the actual image data from an input stream
@@ -121,7 +121,7 @@ public:
      *                           but is 8 in most cases)
      *  \param filters these filters will be applied to compress the image data
      */
-    void SetData(PdfInputStream& stream, unsigned width, unsigned height,
+    void SetData(InputStream& stream, unsigned width, unsigned height,
                       unsigned bitsPerComponent, PdfFilterList& filters);
 
     /** Set the actual image data from an input stream.
@@ -134,7 +134,7 @@ public:
      *  \param bitsPerComponent bits per color component of the image (depends on the image colorspace you have set
      *                           but is 8 in most cases)
      */
-    void SetDataRaw(PdfInputStream& stream, unsigned width, unsigned height,
+    void SetDataRaw(InputStream& stream, unsigned width, unsigned height,
         unsigned bitsPerComponent);
 
     /** Load the image data from a file

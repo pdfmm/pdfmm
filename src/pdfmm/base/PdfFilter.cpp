@@ -13,7 +13,7 @@
 #include "PdfDocument.h"
 #include "PdfArray.h"
 #include "PdfDictionary.h"
-#include "PdfOutputDevice.h"
+#include "PdfStreamDevice.h"
 
 using namespace std;
 using namespace mm;
@@ -45,18 +45,10 @@ static const char* s_shortFilters[] = {
     "", // There is no shortname for Crypt
 };
 
-/** Create a filter that is a PdfOutputStream.
- *
- *  All data written to this stream is encoded using a
- *  filter and written to another PdfOutputStream.
- *
- *  The passed output stream is owned by this PdfOutputStream
- *  and deleted along with it.
- */
-class PdfFilteredEncodeStream : public PdfOutputStream
+class PdfFilteredEncodeStream : public OutputStream
 {
 private:
-    void init(PdfOutputStream& outputStream, PdfFilterType filterType)
+    void init(OutputStream& outputStream, PdfFilterType filterType)
     {
         m_filter = PdfFilterFactory::Create(filterType);
         if (m_filter == nullptr)
@@ -66,12 +58,12 @@ private:
     }
 
 public:
-    PdfFilteredEncodeStream(PdfOutputStream& outputStream, PdfFilterType filterType)
+    PdfFilteredEncodeStream(OutputStream& outputStream, PdfFilterType filterType)
     {
         init(outputStream, filterType);
     }
 
-    PdfFilteredEncodeStream(unique_ptr<PdfOutputStream> outputStream, PdfFilterType filterType)
+    PdfFilteredEncodeStream(unique_ptr<OutputStream> outputStream, PdfFilterType filterType)
         : m_OutputStream(std::move(outputStream))
     {
         init(*outputStream, filterType);
@@ -87,22 +79,14 @@ protected:
     }
 
 private:
-    unique_ptr<PdfOutputStream> m_OutputStream;
+    unique_ptr<OutputStream> m_OutputStream;
     unique_ptr<PdfFilter> m_filter;
 };
 
-/** Create a filter that is a PdfOutputStream.
- *
- *  All data written to this stream is decoded using a
- *  filter and written to another PdfOutputStream.
- *
- *  The passed output stream is owned by this PdfOutputStream
- *  and deleted along with it (optionally, see constructor).
- */
-class PdfFilteredDecodeStream : public PdfOutputStream
+class PdfFilteredDecodeStream : public OutputStream
 {
 private:
-    void init(PdfOutputStream& outputStream, const PdfFilterType filterType,
+    void init(OutputStream& outputStream, const PdfFilterType filterType,
         const PdfDictionary* decodeParms)
     {
         m_filter = PdfFilterFactory::Create(filterType);
@@ -113,14 +97,14 @@ private:
     }
 
 public:
-    PdfFilteredDecodeStream(PdfOutputStream& outputStream, const PdfFilterType filterType,
+    PdfFilteredDecodeStream(OutputStream& outputStream, const PdfFilterType filterType,
         const PdfDictionary* decodeParms)
         : m_FilterFailed(false)
     {
         init(outputStream, filterType, decodeParms);
     }
 
-    PdfFilteredDecodeStream(unique_ptr<PdfOutputStream> outputStream, const PdfFilterType filterType,
+    PdfFilteredDecodeStream(unique_ptr<OutputStream> outputStream, const PdfFilterType filterType,
         const PdfDictionary* decodeParms)
         : m_OutputStream(std::move(outputStream)), m_FilterFailed(false)
     {
@@ -161,7 +145,7 @@ protected:
     }
 
 private:
-    shared_ptr<PdfOutputStream> m_OutputStream;
+    shared_ptr<OutputStream> m_OutputStream;
     unique_ptr<PdfFilter> m_filter;
     bool m_FilterFailed;
 };
@@ -189,7 +173,7 @@ void PdfFilter::EncodeTo(charbuff& outBuffer, const bufferview& inBuffer) const
     if (!this->CanEncode())
         PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
 
-    PdfCharsOutputDevice stream(outBuffer);
+    BufferStreamDevice stream(outBuffer);
     const_cast<PdfFilter*>(this)->BeginEncode(stream);
     const_cast<PdfFilter*>(this)->EncodeBlock(inBuffer);
     const_cast<PdfFilter*>(this)->EndEncode();
@@ -201,7 +185,7 @@ void PdfFilter::DecodeTo(charbuff& outBuffer, const bufferview& inBuffer,
     if (!this->CanDecode())
         PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
 
-    PdfCharsOutputDevice stream(outBuffer);
+    BufferStreamDevice stream(outBuffer);
     const_cast<PdfFilter*>(this)->BeginDecode(stream, decodeParms);
     const_cast<PdfFilter*>(this)->DecodeBlock(inBuffer);
     const_cast<PdfFilter*>(this)->EndDecode();
@@ -266,13 +250,13 @@ unique_ptr<PdfFilter> PdfFilterFactory::Create(PdfFilterType filterType)
     return unique_ptr<PdfFilter>(filter);
 }
 
-unique_ptr<PdfOutputStream> PdfFilterFactory::CreateEncodeStream(const PdfFilterList& filters, PdfOutputStream& stream)
+unique_ptr<OutputStream> PdfFilterFactory::CreateEncodeStream(const PdfFilterList& filters, OutputStream& stream)
 {
     PdfFilterList::const_iterator it = filters.begin();
 
     PDFMM_RAISE_LOGIC_IF(!filters.size(), "Cannot create an EncodeStream from an empty list of filters");
 
-    unique_ptr<PdfOutputStream> filter(new PdfFilteredEncodeStream(stream, *it));
+    unique_ptr<OutputStream> filter(new PdfFilteredEncodeStream(stream, *it));
     it++;
 
     while (it != filters.end())
@@ -284,18 +268,18 @@ unique_ptr<PdfOutputStream> PdfFilterFactory::CreateEncodeStream(const PdfFilter
     return filter;
 }
 
-unique_ptr<PdfOutputStream> PdfFilterFactory::CreateDecodeStream(const PdfFilterList& filters, PdfOutputStream& stream,
+unique_ptr<OutputStream> PdfFilterFactory::CreateDecodeStream(const PdfFilterList& filters, OutputStream& stream,
     const PdfDictionary& dictionary)
 {
     return createDecodeStream(filters, stream, &dictionary);
 }
 
-unique_ptr<PdfOutputStream> PdfFilterFactory::CreateDecodeStream(const PdfFilterList& filters, PdfOutputStream& stream)
+unique_ptr<OutputStream> PdfFilterFactory::CreateDecodeStream(const PdfFilterList& filters, OutputStream& stream)
 {
     return createDecodeStream(filters, stream, nullptr);
 }
 
-unique_ptr<PdfOutputStream> PdfFilterFactory::createDecodeStream(const PdfFilterList& filters, PdfOutputStream& stream,
+unique_ptr<OutputStream> PdfFilterFactory::createDecodeStream(const PdfFilterList& filters, OutputStream& stream,
     const PdfDictionary* dictionary)
 {
     PdfFilterList::const_reverse_iterator it = filters.rbegin();
@@ -311,7 +295,7 @@ unique_ptr<PdfOutputStream> PdfFilterFactory::createDecodeStream(const PdfFilter
         dictionary = &decodeParams->GetDictionary();
     }
 
-    unique_ptr<PdfOutputStream> filterStream(new PdfFilteredDecodeStream(stream, *it, dictionary));
+    unique_ptr<OutputStream> filterStream(new PdfFilteredDecodeStream(stream, *it, dictionary));
     it++;
 
     while (it != filters.rend())
@@ -396,7 +380,7 @@ PdfFilterList PdfFilterFactory::CreateFilterList(const PdfObject& filtersObj)
     return filters;
 }
 
-void PdfFilter::BeginEncode(PdfOutputStream& output)
+void PdfFilter::BeginEncode(OutputStream& output)
 {
     PDFMM_RAISE_LOGIC_IF(m_OutputStream != nullptr, "BeginEncode() on failed filter or without EndEncode()");
     m_OutputStream = &output;
@@ -448,7 +432,7 @@ void PdfFilter::EndEncode()
     m_OutputStream = nullptr;
 }
 
-void PdfFilter::BeginDecode(PdfOutputStream& output, const PdfDictionary* decodeParms)
+void PdfFilter::BeginDecode(OutputStream& output, const PdfDictionary* decodeParms)
 {
     PDFMM_RAISE_LOGIC_IF(m_OutputStream != nullptr, "BeginDecode() on failed filter or without EndDecode()");
     m_OutputStream = &output;

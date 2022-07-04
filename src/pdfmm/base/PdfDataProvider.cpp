@@ -7,7 +7,7 @@
 
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfDataProvider.h"
-#include "PdfOutputDevice.h"
+#include "PdfStreamDevice.h"
 
 using namespace std;
 using namespace mm;
@@ -26,7 +26,7 @@ string PdfDataProvider::ToString() const
 void PdfDataProvider::ToString(string& str) const
 {
     str.clear();
-    PdfStringOutputDevice device(str);
+    StringStreamDevice device(str);
     charbuff buffer;
     Write(device, PdfWriteFlags::None, { }, buffer);
 }

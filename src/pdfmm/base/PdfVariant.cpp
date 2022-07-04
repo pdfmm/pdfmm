@@ -12,8 +12,8 @@
 #include "PdfArray.h"
 #include "PdfData.h"
 #include "PdfDictionary.h"
-#include "PdfOutputDevice.h"
 #include "PdfParserObject.h"
+#include "PdfStreamDevice.h"
 
 using namespace mm;
 using namespace std;
@@ -144,7 +144,7 @@ void PdfVariant::clear()
     }
 }
 
-void PdfVariant::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
+void PdfVariant::Write(OutputStreamDevice& device, PdfWriteFlags writeMode,
     const PdfStatefulEncrypt& encrypt, charbuff& buffer) const
 {
     switch (m_DataType)
@@ -235,7 +235,7 @@ void PdfVariant::ToString(string& str) const
     }
 
     charbuff buffer;
-    PdfStringOutputDevice device(str);
+    StringStreamDevice device(str);
     this->Write(device, writeFlags, PdfStatefulEncrypt(), buffer);
 }
 

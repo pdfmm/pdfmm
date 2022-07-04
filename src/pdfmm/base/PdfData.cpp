@@ -32,7 +32,7 @@ PdfData& PdfData::operator=(const bufferview& data)
     return *this;
 }
 
-void PdfData::Write(PdfOutputDevice& device, PdfWriteFlags,
+void PdfData::Write(OutputStreamDevice& device, PdfWriteFlags,
     const PdfStatefulEncrypt& encrypt, charbuff& buffer) const
 {
     (void)encrypt;

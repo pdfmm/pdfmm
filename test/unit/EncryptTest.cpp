@@ -200,7 +200,7 @@ TEST_CASE("testLoadEncrypedFilePdfParser")
     string tempFile = TestUtils::GetTestOutputFilePath("testLoadEncrypedFilePdfParser.pdf");
     createEncryptedPdf(tempFile);
 
-    auto device = std::make_shared<PdfFileInputDevice>(tempFile);
+    auto device = std::make_shared<FileStreamDevice>(tempFile);
     // Try loading with PdfParser
     PdfIndirectObjectList objects;
     PdfParser parser(objects);

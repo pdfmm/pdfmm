@@ -25,14 +25,14 @@ static void TestObjectsDirty(
 
 TEST_CASE("testEmptyObject")
 {
-    auto device = std::make_shared<PdfMemoryInputDevice>("10 0 obj\nendobj\n"sv);
+    auto device = std::make_shared<SpanStreamDevice>("10 0 obj\nendobj\n"sv);
     PdfParserObject parserObj(*device);
     REQUIRE(parserObj.IsNull());
 }
 
 TEST_CASE("testEmptyStream")
 {
-    auto device = std::make_shared<PdfMemoryInputDevice>("10 0 obj<</Length 0>>stream\nendstream\nendobj\n"sv);
+    auto device = std::make_shared<SpanStreamDevice>("10 0 obj<</Length 0>>stream\nendstream\nendobj\n"sv);
     PdfParserObject parserObj(*device);
     REQUIRE(parserObj.IsDictionary());
     REQUIRE(parserObj.HasStream());
@@ -41,7 +41,7 @@ TEST_CASE("testEmptyStream")
 
 TEST_CASE("testNameObject")
 {
-    auto device = std::make_shared<PdfMemoryInputDevice>("10 0 obj / endobj\n"sv);
+    auto device = std::make_shared<SpanStreamDevice>("10 0 obj / endobj\n"sv);
     PdfParserObject parserObj(*device);
     REQUIRE(parserObj.IsName());
     REQUIRE(parserObj.GetName().GetString() == "");
@@ -77,7 +77,7 @@ TEST_CASE("testIsDirtyTrue")
     (void)objVariant->GetBool();
 
     string temp;
-    PdfStringOutputDevice out(temp);
+    StringStreamDevice out(temp);
     doc.Save(out);
 
     // IsDirty should be false after saving

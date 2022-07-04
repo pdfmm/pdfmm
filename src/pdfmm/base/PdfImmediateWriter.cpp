@@ -17,7 +17,7 @@
 using namespace mm;
 
 PdfImmediateWriter::PdfImmediateWriter(PdfIndirectObjectList& objects, const PdfObject& trailer,
-    PdfOutputDevice& device, PdfVersion version, PdfEncrypt* encrypt, PdfSaveOptions opts) :
+    OutputStreamDevice& device, PdfVersion version, PdfEncrypt* encrypt, PdfSaveOptions opts) :
     PdfWriter(objects, trailer),
     m_attached(true),
     m_Device(&device),

@@ -15,8 +15,6 @@
 
 namespace mm {
 
-class PdfOutputDevice;
-
 /** PdfStreamedDocument is the preferred class for
  *  creating new PDF documents.
  *
@@ -67,7 +65,7 @@ public:
      *                  created document.
      *  \param opts additional save options for writing the pdf
      */
-    PdfStreamedDocument(const std::shared_ptr<PdfOutputDevice>& device, PdfVersion version = PdfVersionDefault,
+    PdfStreamedDocument(const std::shared_ptr<OutputStreamDevice>& device, PdfVersion version = PdfVersionDefault,
         PdfEncrypt* encrypt = nullptr, PdfSaveOptions opts = PdfSaveOptions::None);
 
     /** Create a new PdfStreamedDocument.
@@ -111,7 +109,7 @@ private:
 
 private:
     std::unique_ptr<PdfImmediateWriter> m_Writer;
-    std::shared_ptr<PdfOutputDevice> m_Device;
+    std::shared_ptr<OutputStreamDevice> m_Device;
     PdfEncrypt* m_Encrypt;
 };
 

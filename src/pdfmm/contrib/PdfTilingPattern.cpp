@@ -19,6 +19,7 @@
 #include <pdfmm/base/PdfWriter.h>
 #include <pdfmm/base/PdfImage.h>
 #include <pdfmm/base/PdfStringStream.h>
+#include <pdfmm/base/PdfStreamDevice.h>
 
 #include "PdfFunction.h"
 
@@ -192,7 +193,7 @@ void PdfTilingPattern::Init(PdfTilingPatternType tilingType,
     filters.push_back(PdfFilterType::FlateDecode);
 
     string str = out.TakeString();
-    PdfMemoryInputDevice input(str);
+    SpanStreamDevice input(str);
 
     GetObject().GetOrCreateStream().Set(input, filters);
 }

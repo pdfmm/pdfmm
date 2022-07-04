@@ -72,7 +72,7 @@ TEST_CASE("testEscapeBrackets")
     // Test reading the unicode string back in
     PdfVariant varRead;
     PdfTokenizer tokenizer;
-    PdfMemoryInputDevice input(utf16HexStr);
+    SpanStreamDevice input(utf16HexStr);
     (void)tokenizer.ReadNextVariant(input, varRead);
     REQUIRE(varRead.GetDataType() == PdfDataType::String);
     auto str = varRead.GetString().GetString();
@@ -162,7 +162,7 @@ void TestWriteEscapeSequences(const string_view& str, const string_view& expecte
 
     INFO(utls::Format("Testing with value: {}", str));
     PdfPostScriptTokenizer tokenizer;
-    PdfMemoryInputDevice device(str);
+    SpanStreamDevice device(str);
 
     tokenizer.TryReadNextVariant(device, variant);
     REQUIRE(variant.GetDataType() == PdfDataType::String);

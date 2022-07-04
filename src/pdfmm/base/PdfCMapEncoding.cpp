@@ -16,6 +16,7 @@
 #include "PdfPostScriptTokenizer.h"
 #include "PdfArray.h"
 #include "PdfIdentityEncoding.h"
+#include "PdfStreamDevice.h"
 
 using namespace std;
 using namespace mm;
@@ -26,7 +27,7 @@ struct CodeLimits
     unsigned char MaxCodeSize = 0;
 };
 
-static void readNextVariantSequence(PdfPostScriptTokenizer& tokenizer, PdfInputDevice& device,
+static void readNextVariantSequence(PdfPostScriptTokenizer& tokenizer, InputStreamDevice& device,
     PdfVariant& variant, const string_view& endSequenceKeyword, bool& endOfSequence);
 static uint32_t getCodeFromVariant(const PdfVariant& var, CodeLimits& limits);
 static uint32_t getCodeFromVariant(const PdfVariant& var, CodeLimits& limits, unsigned char& codeSize);
@@ -108,7 +109,7 @@ PdfCharCodeMap parseCMapObject(const PdfObjectStream& stream, CodeLimits& limits
     charbuff streamBuffer;
     stream.ExtractTo(streamBuffer);
 
-    PdfMemoryInputDevice device(streamBuffer);
+    SpanStreamDevice device(streamBuffer);
     PdfPostScriptTokenizer tokenizer;
     deque<unique_ptr<PdfVariant>> tokens;
     PdfString str;
@@ -408,7 +409,7 @@ vector<char32_t> handleUtf8String(const string& str)
 // end of sequence marker, and Acrobat preflight treats them as valid,
 // so we must determine end of sequnce only on the end of
 // sequence keyword
-void readNextVariantSequence(PdfPostScriptTokenizer& tokenizer, PdfInputDevice& device,
+void readNextVariantSequence(PdfPostScriptTokenizer& tokenizer, InputStreamDevice& device,
     PdfVariant& variant, const string_view& endSequenceKeyword, bool& endOfSequence)
 {
     PdfPostScriptTokenType tokenType;

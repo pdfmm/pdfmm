@@ -2,6 +2,8 @@
 - Renamed PdfPageTree -> PdfPageCollection
 - Added XMP metadata reading/saving. Added PdfMetadata class
 - Added text extraction API
+- Review I/O API: Merged InputDevice/OutputDevice into StreamDevice.
+  New hierarchy deriving StreamDevice
 
 ## Version 0.9.22
 - Fixed serialization of strings with non ascii PdfDocEncoding

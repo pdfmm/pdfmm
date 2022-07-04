@@ -8,6 +8,7 @@
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfCanvasInputDevice.h"
 #include "PdfCanvas.h"
+#include "PdfStreamDevice.h"
 
 using namespace std;
 using namespace mm;
@@ -52,7 +53,7 @@ PdfCanvasInputDevice::PdfCanvasInputDevice(const PdfCanvas& canvas)
     }
 }
 
-bool PdfCanvasInputDevice::readCharImpl(char& ch)
+bool PdfCanvasInputDevice::peek(char& ch) const
 {
     if (m_eof)
     {
@@ -60,70 +61,50 @@ bool PdfCanvasInputDevice::readCharImpl(char& ch)
         return false;
     }
 
-    PdfInputDevice* device = nullptr;
+    InputStreamDevice* device = nullptr;
+    auto& mref = const_cast<PdfCanvasInputDevice&>(*this);
     while (true)
     {
-        if (!tryGetNextDevice(device))
+        if (!mref.tryGetNextDevice(device))
         {
-            setEOF();
+            mref.setEOF();
+            ch = '\0';
             return false;
         }
 
-        if (m_deviceSwitchOccurred)
-        {
-            if (device->Peek() == char_traits<char>::eof())
-                continue;
-
-            // Handle device switch by returning a
-            // newline separator and reset the flag
-            ch = '\n';
-            m_deviceSwitchOccurred = false;
-            return true;
-        }
-
-        if (device->Read(ch))
-            return true;
-    }
-}
-
-int PdfCanvasInputDevice::Peek()
-{
-    if (m_eof)
-        return char_traits<char>::eof();
-
-    PdfInputDevice* device = nullptr;
-    while (true)
-    {
-        if (!tryGetNextDevice(device))
-        {
-            setEOF();
-            return char_traits<char>::eof();
-        }
-
         int ret = device->Peek();
-        if (ret != char_traits<char>::eof())
+        if (ret != -1)
         {
             if (m_deviceSwitchOccurred)
             {
                 // Handle device switch by returning
                 // a newline separator. NOTE: Don't
                 // reset the switch flag
-                return '\n';
+                ch = '\n';
+                return true;
             }
 
-            return ret;
+            ch = (char)ret;
+            return true;
         }
     }
 }
 
-size_t PdfCanvasInputDevice::readBufferImpl(char* buffer, size_t size)
+size_t PdfCanvasInputDevice::readBufferImpl(char* buffer, size_t size, bool& eof)
+{
+    size_t ret = readBufferPriv(buffer, size);
+    eof = m_eof;
+    return ret;
+}
+
+size_t PdfCanvasInputDevice::readBufferPriv(char* buffer, size_t size)
 {
     if (size == 0 || m_eof)
         return 0;
 
     size_t readLocal;
     size_t readCount = 0;
-    PdfInputDevice* device = nullptr;
+    InputStreamDevice* device = nullptr;
     while (true)
     {
         if (!tryGetNextDevice(device))
@@ -134,7 +115,7 @@ size_t PdfCanvasInputDevice::readBufferImpl(char* buffer, size_t size)
 
         if (m_deviceSwitchOccurred)
         {
-            if (device->Peek() == char_traits<char>::eof())
+            if (device->Peek() == -1)
                 continue;
 
             // Handle device switch by inserting
@@ -149,6 +130,8 @@ size_t PdfCanvasInputDevice::readBufferImpl(char* buffer, size_t size)
         }
 
         // Span reads into multple input devices
+        // FIX-ME: We should eagerly check if the device(s)
+        // reached EOF before retuning
         readLocal = device->Read(buffer + readCount, size);
         size -= readLocal;
         readCount += readLocal;
@@ -157,12 +140,51 @@ size_t PdfCanvasInputDevice::readBufferImpl(char* buffer, size_t size)
     }
 }
 
-size_t PdfCanvasInputDevice::GetPosition()
+bool PdfCanvasInputDevice::readCharImpl(char& ch)
 {
-    throw runtime_error("Unsupported");
+    if (m_eof)
+    {
+        ch = '\0';
+        return false;
+    }
+
+    InputStreamDevice* device = nullptr;
+    while (true)
+    {
+        if (!tryGetNextDevice(device))
+        {
+            setEOF();
+            return false;
+        }
+
+        if (m_deviceSwitchOccurred)
+        {
+            if (device->Peek() == -1)
+                continue;
+
+            // Handle device switch by returning a
+            // newline separator and reset the flag
+            ch = '\n';
+            m_deviceSwitchOccurred = false;
+            return true;
+        }
+
+        if (device->Read(ch))
+            return true;
+    }
 }
 
-bool PdfCanvasInputDevice::tryGetNextDevice(PdfInputDevice*& device)
+size_t PdfCanvasInputDevice::GetLength() const
+{
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "Unsupported");
+}
+
+size_t PdfCanvasInputDevice::GetPosition() const
+{
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "Unsupported");
+}
+
+bool PdfCanvasInputDevice::tryGetNextDevice(InputStreamDevice*& device)
 {
     PDFMM_ASSERT(m_device != nullptr);
     if (device == nullptr)
@@ -205,7 +227,7 @@ bool PdfCanvasInputDevice::tryPopNextDevice()
     else
     {
         contents->ExtractTo(m_buffer);
-        m_device = std::make_unique<PdfMemoryInputDevice>(m_buffer);
+        m_device = std::make_unique<SpanStreamDevice>(m_buffer);
         return true;
     }
 }

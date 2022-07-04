@@ -19,6 +19,7 @@
 #include "PdfVariant.h"
 #include "PdfXRef.h"
 #include "PdfXRefStream.h"
+#include "PdfStreamDevice.h"
 
 #define PDF_MAGIC           "\xe2\xe3\xcf\xd3\n"
 // 10 spaces
@@ -70,7 +71,7 @@ PdfWriter::~PdfWriter()
     m_Objects = nullptr;
 }
 
-void PdfWriter::Write(PdfOutputDevice& device)
+void PdfWriter::Write(OutputStreamDevice& device)
 {
     CreateFileIdentifier(m_identifier, *m_Trailer, &m_originalIdentifier);
 
@@ -123,13 +124,13 @@ void PdfWriter::Write(PdfOutputDevice& device)
     }
 }
 
-void PdfWriter::WritePdfHeader(PdfOutputDevice& device)
+void PdfWriter::WritePdfHeader(OutputStreamDevice& device)
 {
     utls::FormatTo(m_buffer, "%PDF-{}\n%{}", mm::GetPdfVersionName(m_Version), PDF_MAGIC);
     device.Write(m_buffer);
 }
 
-void PdfWriter::WritePdfObjects(PdfOutputDevice& device, const PdfIndirectObjectList& objects, PdfXRef& xref)
+void PdfWriter::WritePdfObjects(OutputStreamDevice& device, const PdfIndirectObjectList& objects, PdfXRef& xref)
 {
     for (PdfObject* obj : objects)
     {
@@ -224,7 +225,7 @@ void PdfWriter::FillTrailerObject(PdfObject& trailer, size_t size, bool onlySize
 
 void PdfWriter::CreateFileIdentifier(PdfString& identifier, const PdfObject& trailer, PdfString* originalIdentifier)
 {
-    PdfNullOutputDevice length;
+    NullStreamDevice length;
     unique_ptr<PdfObject> info;
     bool originalIdentifierFound = false;
 
@@ -247,7 +248,7 @@ void PdfWriter::CreateFileIdentifier(PdfString& identifier, const PdfObject& tra
     // create a dictionary with some unique information.
     // This dictionary is based on the PDF files information
     // dictionary if it exists.
-    auto infoObj = trailer.GetDictionary().GetKey("Info");;
+    auto infoObj = trailer.GetDictionary().GetKey("Info");
     if (infoObj == nullptr)
     {
         PdfDate date;
@@ -294,7 +295,7 @@ void PdfWriter::CreateFileIdentifier(PdfString& identifier, const PdfObject& tra
     info->Write(length, m_WriteFlags, nullptr, m_buffer);
 
     charbuff buffer(length.GetLength());
-    PdfStringOutputDevice device(buffer);
+    StringStreamDevice device(buffer);
     info->Write(device, m_WriteFlags, nullptr, m_buffer);
 
     // calculate the MD5 Sum

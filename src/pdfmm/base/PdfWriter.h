@@ -54,7 +54,7 @@ public:
      *  \param device write to this output device
      *  \param bRewriteXRefTable whether will rewrite whole XRef table (used only if GetIncrementalUpdate() returns true)
      */
-    void Write(PdfOutputDevice& device);
+    void Write(OutputStreamDevice& device);
 
     /** Create a XRef stream which is in some case
      *  more compact but requires at least PDF 1.5
@@ -143,7 +143,7 @@ protected:
     /** Writes the pdf header to the current file.
      *  \param device write to this output device
      */
-    void WritePdfHeader(PdfOutputDevice& device);
+    void WritePdfHeader(OutputStreamDevice& device);
 
     /** Write pdf objects to file
      *  \param device write to this output device
@@ -151,7 +151,7 @@ protected:
      *  \param pXref add all written objects to this XRefTable
      *  \param bRewriteXRefTable whether will rewrite whole XRef table (used only if GetIncrementalUpdate() returns true)
      */
-    void WritePdfObjects(PdfOutputDevice& device, const PdfIndirectObjectList& objects, PdfXRef& xref);
+    void WritePdfObjects(OutputStreamDevice& device, const PdfIndirectObjectList& objects, PdfXRef& xref);
 
     /** Creates a file identifier which is required in several
      *  PDF workflows.

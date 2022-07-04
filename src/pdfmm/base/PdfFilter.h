@@ -18,7 +18,7 @@ namespace mm {
 class PdfDictionary;
 class PdfName;
 class PdfObject;
-class PdfOutputStream;
+class OutputStream;
 
 using PdfFilterList = std::vector<PdfFilterType>;
 
@@ -69,9 +69,9 @@ public:
      *  \see EncodeBlock
      *  \see EndEncode
      */
-    void BeginEncode(PdfOutputStream& output);
+    void BeginEncode(OutputStream& output);
 
-    /** Encode a block of data and write it to the PdfOutputStream
+    /** Encode a block of data and write it to the OutputStream
      *  specified by BeginEncode(). Ownership of the block is not taken
      *  and remains with the caller.
      *
@@ -135,9 +135,9 @@ public:
      *  \see DecodeBlock
      *  \see EndDecode
      */
-    void BeginDecode(PdfOutputStream& output, const PdfDictionary* decodeParms = nullptr);
+    void BeginDecode(OutputStream& output, const PdfDictionary* decodeParms = nullptr);
 
-    /** Decode a block of data and write it to the PdfOutputStream
+    /** Decode a block of data and write it to the OutputStream
      *  specified by BeginDecode(). Ownership of the block is not taken
      *  and remains with the caller.
      *
@@ -171,8 +171,6 @@ public:
      *  \returns the type of this filter
      */
     virtual PdfFilterType GetType() const = 0;
-
-    inline PdfOutputStream* GetStream() const { return m_OutputStream; }
 
 protected:
     /**
@@ -272,8 +270,10 @@ protected:
      */
     virtual void EndDecodeImpl() { }
 
+    inline OutputStream* GetStream() const { return m_OutputStream; }
+
 private:
-    PdfOutputStream* m_OutputStream;
+    OutputStream* m_OutputStream;
 };
 
 /** A factory to create a filter object for a filter type (as GetType() gives)
@@ -296,36 +296,36 @@ public:
      */
     static std::unique_ptr<PdfFilter> Create(PdfFilterType filterType);
 
-    /** Create a PdfOutputStream that applies a list of filters
+    /** Create an OutputStream that applies a list of filters
      *  on all data written to it.
      *
      *  \param filters a list of filters
-     *  \param stream write all data to this PdfOutputStream after it has been
+     *  \param stream write all data to this OutputStream after it has been
      *         encoded
-     *  \returns a new PdfOutputStream that has to be deleted by the caller.
+     *  \returns a new OutputStream that has to be deleted by the caller.
      *
      *  \see PdfFilterFactory::CreateFilterList
      */
-    static std::unique_ptr<PdfOutputStream> CreateEncodeStream(const PdfFilterList& filters, PdfOutputStream& stream);
+    static std::unique_ptr<OutputStream> CreateEncodeStream(const PdfFilterList& filters, OutputStream& stream);
 
-    /** Create a PdfOutputStream that applies a list of filters
+    /** Create an OutputStream that applies a list of filters
      *  on all data written to it.
      *
      *  \param filters a list of filters
-     *  \param stream write all data to this PdfOutputStream
+     *  \param stream write all data to this OutputStream
      *         after it has been decoded.
      *  \param dictionary pointer to a dictionary that might
      *         contain additional parameters for stream decoding.
      *         This method will look for a key named DecodeParms
      *         in this dictionary and pass the information found
      *         in that dictionary to the filters.
-     *  \returns a new PdfOutputStream that has to be deleted by the caller.
+     *  \returns a new OutputStream that has to be deleted by the caller.
      *
      *  \see PdfFilterFactory::CreateFilterList
      */
-    static std::unique_ptr<PdfOutputStream> CreateDecodeStream(const PdfFilterList& filters, PdfOutputStream& stream,
+    static std::unique_ptr<OutputStream> CreateDecodeStream(const PdfFilterList& filters, OutputStream& stream,
         const PdfDictionary& dictionary);
-    static std::unique_ptr<PdfOutputStream> CreateDecodeStream(const PdfFilterList& filters, PdfOutputStream& stream);
+    static std::unique_ptr<OutputStream> CreateDecodeStream(const PdfFilterList& filters, OutputStream& stream);
 
     /** Converts a filter name to the corresponding enum
      *  \param name of the filter without leading
@@ -356,7 +356,7 @@ public:
 private:
     PdfFilterFactory() = delete;
 
-    static std::unique_ptr<PdfOutputStream> createDecodeStream(const PdfFilterList& filters, PdfOutputStream& stream,
+    static std::unique_ptr<OutputStream> createDecodeStream(const PdfFilterList& filters, OutputStream& stream,
         const PdfDictionary* dictionary);
 };
 

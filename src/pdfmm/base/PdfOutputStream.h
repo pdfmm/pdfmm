@@ -16,10 +16,10 @@ namespace mm {
 /** An interface for writing blocks of data to
  *  a data source.
  */
-class PDFMM_API PdfOutputStream
+class PDFMM_API OutputStream
 {
 public:
-    virtual ~PdfOutputStream();
+    virtual ~OutputStream();
 
     /** Write the character in the device
      *
@@ -27,7 +27,7 @@ public:
      */
     void Write(char ch);
 
-    /** Write the view to the PdfOutputDevice
+    /** Write the view to the OutputStream
      *
      *  \param view the view to be written
      */

@@ -40,13 +40,13 @@ private:
      *                 front of the object which is going to be parsed.
      *  \param buffer buffer to use for parsing to avoid reallocations
      */
-    PdfXRefStreamParserObject(PdfDocument& doc, PdfInputDevice& device, PdfXRefEntries& entries);
+    PdfXRefStreamParserObject(PdfDocument& doc, InputStreamDevice& device, PdfXRefEntries& entries);
 
 public:
     /**
      *  \warning This constructor is for testing usage only
      */
-    PdfXRefStreamParserObject(PdfInputDevice& device, PdfXRefEntries& entries);
+    PdfXRefStreamParserObject(InputStreamDevice& device, PdfXRefEntries& entries);
 
 public:
     void DelayedLoadImpl() override;
@@ -59,7 +59,7 @@ public:
     bool TryGetPreviousOffset(size_t& previousOffset) const;
 
 private:
-    PdfXRefStreamParserObject(PdfDocument* doc, PdfInputDevice& device,
+    PdfXRefStreamParserObject(PdfDocument* doc, InputStreamDevice& device,
         PdfXRefEntries& entries);
 
     /**

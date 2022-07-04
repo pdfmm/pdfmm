@@ -141,8 +141,8 @@
 
 namespace mm
 {
-    class PdfOutputDevice;
-    class PdfInputDevice;
+    class OutputStream;
+    class InputStream;
 
     PdfVersion GetPdfVersion(const std::string_view& str);
 
@@ -311,7 +311,14 @@ namespace utls
     };
 
     size_t FileSize(const std::string_view& filename);
-    size_t ReadBuffer(std::istream& stream, char* buffer, size_t count);
+    /**
+     * \returns number or read bytes
+     * \param eof true if the stream reached EOF during read
+     */
+    size_t ReadBuffer(std::istream& stream, char* buffer, size_t size, bool& eof);
+    /**
+     * \returns true if success, false if eof
+     */
     bool ReadChar(std::istream& stream, char& ch);
 
     std::ifstream open_ifstream(const std::string_view& filename, std::ios_base::openmode mode);
@@ -322,18 +329,18 @@ namespace utls
     // as in PdfImage.cpp . For all the other I/O, use an STL stream
     FILE* fopen(const std::string_view& view, const std::string_view& mode);
 
-    void WriteUInt32BE(mm::PdfOutputDevice& output, uint32_t value);
-    void WriteInt32BE(mm::PdfOutputDevice& output, int32_t value);
-    void WriteUInt16BE(mm::PdfOutputDevice& output, uint16_t value);
-    void WriteInt16BE(mm::PdfOutputDevice& output, int16_t value);
+    void WriteUInt32BE(mm::OutputStream& output, uint32_t value);
+    void WriteInt32BE(mm::OutputStream& output, int32_t value);
+    void WriteUInt16BE(mm::OutputStream& output, uint16_t value);
+    void WriteInt16BE(mm::OutputStream& output, int16_t value);
     void WriteUInt32BE(char* buf, uint32_t value);
     void WriteInt32BE(char* buf, int32_t value);
     void WriteUInt16BE(char* buf, uint16_t value);
     void WriteInt16BE(char* buf, int16_t value);
-    void ReadUInt32BE(mm::PdfInputDevice& input, uint32_t& value);
-    void ReadInt32BE(mm::PdfInputDevice& input, int32_t& value);
-    void ReadUInt16BE(mm::PdfInputDevice& input, uint16_t& value);
-    void ReadInt16BE(mm::PdfInputDevice& input, int16_t& value);
+    void ReadUInt32BE(mm::InputStream& input, uint32_t& value);
+    void ReadInt32BE(mm::InputStream& input, int32_t& value);
+    void ReadUInt16BE(mm::InputStream& input, uint16_t& value);
+    void ReadInt16BE(mm::InputStream& input, int16_t& value);
     void ReadUInt32BE(const char* buf, uint32_t& value);
     void ReadInt32BE(const char* buf, int32_t& value);
     void ReadUInt16BE(const char* buf, uint16_t& value);

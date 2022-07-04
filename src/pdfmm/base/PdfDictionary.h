@@ -288,7 +288,7 @@ public:
      */
     bool RemoveKey(const std::string_view& key);
 
-    void Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
+    void Write(OutputStreamDevice& device, PdfWriteFlags writeMode,
         const PdfStatefulEncrypt& encrypt, charbuff& buffer) const override;
 
     /**

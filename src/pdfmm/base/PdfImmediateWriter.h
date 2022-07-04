@@ -15,18 +15,18 @@
 namespace mm {
 
 class PdfEncrypt;
-class PdfOutputDevice;
+class OutputStreamDevice;
 class PdfXRef;
 
 /** A kind of PdfWriter that writes objects with streams immediately to
- *  a PdfOutputDevice
+ *  an OutputStreamDevice
  */
 class PDFMM_API PdfImmediateWriter : private PdfWriter,
     private PdfIndirectObjectList::Observer,
     private PdfIndirectObjectList::StreamFactory
 {
 public:
-    /** Create a new PdfWriter that writes objects with streams immediately to a PdfOutputDevice
+    /** Create a new PdfWriter that writes objects with streams immediately to an OutputStreamDevice
      *
      *  This has the advantage that large documents can be created without
      *  having to keep the whole document in memory.
@@ -43,7 +43,7 @@ public:
      *                  created document.
      *  \param writeMode additional options for writing the pdf
      */
-    PdfImmediateWriter(PdfIndirectObjectList& objects, const PdfObject& trailer, PdfOutputDevice& device,
+    PdfImmediateWriter(PdfIndirectObjectList& objects, const PdfObject& trailer, OutputStreamDevice& device,
         PdfVersion version = PdfVersion::V1_5, PdfEncrypt* encrypt = nullptr,
         PdfSaveOptions opts = PdfSaveOptions::None);
 
@@ -80,7 +80,7 @@ private:
 
 private:
     bool m_attached;
-    PdfOutputDevice* m_Device;
+    OutputStreamDevice* m_Device;
     std::unique_ptr<PdfXRef> m_xRef;
     PdfObject* m_Last;
     bool m_OpenStream;

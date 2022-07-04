@@ -7,11 +7,12 @@
 
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfStreamedDocument.h"
+#include "PdfStreamDevice.h"
 
 using namespace std;
 using namespace mm;
 
-PdfStreamedDocument::PdfStreamedDocument(const shared_ptr<PdfOutputDevice>& device, PdfVersion version,
+PdfStreamedDocument::PdfStreamedDocument(const shared_ptr<OutputStreamDevice>& device, PdfVersion version,
         PdfEncrypt* encrypt, PdfSaveOptions opts) :
     m_Writer(nullptr),
     m_Device(device),
@@ -23,7 +24,7 @@ PdfStreamedDocument::PdfStreamedDocument(const shared_ptr<PdfOutputDevice>& devi
 PdfStreamedDocument::PdfStreamedDocument(const string_view& filename, PdfVersion version,
         PdfEncrypt* encrypt, PdfSaveOptions opts) :
     m_Writer(nullptr),
-    m_Device(new PdfFileOutputDevice(filename)),
+    m_Device(new FileStreamDevice(filename, FileMode::Create)),
     m_Encrypt(encrypt)
 {
     init(version, opts);

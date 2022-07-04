@@ -30,6 +30,7 @@
 #include "PdfOutlines.h"
 #include "PdfPage.h"
 #include "PdfPageCollection.h"
+#include "PdfStreamDevice.h"
 
 using namespace std;
 using namespace mm;
@@ -46,7 +47,7 @@ PdfMemDocument::PdfMemDocument(bool empty) :
 {
 }
 
-PdfMemDocument::PdfMemDocument(const shared_ptr<PdfInputDevice>& device, const string_view& password)
+PdfMemDocument::PdfMemDocument(const shared_ptr<InputStreamDevice>& device, const string_view& password)
     : PdfMemDocument(true)
 {
     if (device == nullptr)
@@ -122,7 +123,7 @@ void PdfMemDocument::Load(const string_view& filename, const string_view& passwo
     if (filename.length() == 0)
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-    auto device = std::make_shared<PdfFileInputDevice>(filename);
+    auto device = std::make_shared<FileStreamDevice>(filename);
     LoadFromDevice(device, password);
 }
 
@@ -131,11 +132,11 @@ void PdfMemDocument::LoadFromBuffer(const bufferview& buffer, const string_view&
     if (buffer.size() == 0)
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
-    auto device = std::make_shared<PdfMemoryInputDevice>(buffer);
+    auto device = std::make_shared<SpanStreamDevice>(buffer);
     LoadFromDevice(device, password);
 }
 
-void PdfMemDocument::LoadFromDevice(const shared_ptr<PdfInputDevice>& device, const string_view& password)
+void PdfMemDocument::LoadFromDevice(const shared_ptr<InputStreamDevice>& device, const string_view& password)
 {
     if (device == nullptr)
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
@@ -144,7 +145,7 @@ void PdfMemDocument::LoadFromDevice(const shared_ptr<PdfInputDevice>& device, co
     loadFromDevice(device, password);
 }
 
-void PdfMemDocument::loadFromDevice(const shared_ptr<PdfInputDevice>& device, const string_view& password)
+void PdfMemDocument::loadFromDevice(const shared_ptr<InputStreamDevice>& device, const string_view& password)
 {
     m_device = device;
 
@@ -237,11 +238,11 @@ void PdfMemDocument::RemovePdfExtension(const PdfName& ns, int64_t level)
 
 void PdfMemDocument::Save(const string_view& filename, PdfSaveOptions options)
 {
-    PdfFileOutputDevice device(filename);
+    FileStreamDevice device(filename, FileMode::Create);
     this->Save(device, options);
 }
 
-void PdfMemDocument::Save(PdfOutputDevice& device, PdfSaveOptions opts)
+void PdfMemDocument::Save(OutputStreamDevice& device, PdfSaveOptions opts)
 {
     beforeWrite(opts);
 
@@ -265,11 +266,11 @@ void PdfMemDocument::Save(PdfOutputDevice& device, PdfSaveOptions opts)
 
 void PdfMemDocument::SaveUpdate(const string_view& filename, PdfSaveOptions opts)
 {
-    PdfFileOutputDevice device(filename, false);
+    FileStreamDevice device(filename, FileMode::Append);
     this->SaveUpdate(device, opts);
 }
 
-void PdfMemDocument::SaveUpdate(PdfOutputDevice& device, PdfSaveOptions opts)
+void PdfMemDocument::SaveUpdate(OutputStreamDevice& device, PdfSaveOptions opts)
 {
     beforeWrite(opts);
 
@@ -293,6 +294,7 @@ void PdfMemDocument::SaveUpdate(PdfOutputDevice& device, PdfSaveOptions opts)
 
     try
     {
+        device.Seek(0, SeekDirection::End);
         writer.Write(device);
     }
     catch (PdfError& e)

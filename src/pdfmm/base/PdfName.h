@@ -15,9 +15,6 @@
 
 namespace mm {
 
-class PdfOutputDevice;
-class PdfName;
-
 /** This class represents a PdfName.
  *  Whenever a key is required you have to use a PdfName object.
  *
@@ -71,7 +68,7 @@ public:
      */
     std::string GetEscapedName() const;
 
-    void Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
+    void Write(OutputStreamDevice& device, PdfWriteFlags writeMode,
         const PdfStatefulEncrypt& encrypt, charbuff& buffer) const override;
 
     /** \returns the unescaped value of this name object

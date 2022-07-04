@@ -41,14 +41,14 @@ bool PdfXRefStream::ShouldSkipWrite(const PdfReference& ref)
         return false;
 }
 
-void PdfXRefStream::BeginWrite(PdfOutputDevice& device, charbuff& buffer)
+void PdfXRefStream::BeginWrite(OutputStreamDevice& device, charbuff& buffer)
 {
     (void)device;
     (void)buffer;
     // Do nothing
 }
 
-void PdfXRefStream::WriteSubSection(PdfOutputDevice& device, uint32_t first, uint32_t count, charbuff& buffer)
+void PdfXRefStream::WriteSubSection(OutputStreamDevice& device, uint32_t first, uint32_t count, charbuff& buffer)
 {
     (void)device;
     (void)buffer;
@@ -56,7 +56,7 @@ void PdfXRefStream::WriteSubSection(PdfOutputDevice& device, uint32_t first, uin
     m_indices.Add(static_cast<int64_t>(count));
 }
 
-void PdfXRefStream::WriteXRefEntry(PdfOutputDevice& device, const PdfReference& ref,
+void PdfXRefStream::WriteXRefEntry(OutputStreamDevice& device, const PdfReference& ref,
     const PdfXRefEntry& entry, charbuff& buffer)
 {
     (void)device;
@@ -83,7 +83,7 @@ void PdfXRefStream::WriteXRefEntry(PdfOutputDevice& device, const PdfReference& 
     m_rawEntries.push_back(stmEntry);
 }
 
-void PdfXRefStream::EndWriteImpl(PdfOutputDevice& device, charbuff& buffer)
+void PdfXRefStream::EndWriteImpl(OutputStreamDevice& device, charbuff& buffer)
 {
     PdfArray wArr;
     wArr.Add(static_cast<int64_t>(sizeof(XRefStreamEntry::Type)));

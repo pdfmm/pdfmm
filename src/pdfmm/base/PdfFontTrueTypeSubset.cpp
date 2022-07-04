@@ -12,14 +12,13 @@
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfFontTrueTypeSubset.h"
 
+#include <algorithm>
+
 #include <pdfmm/private/FreetypePrivate.h>
 #include FT_TRUETYPE_TABLES_H
 #include FT_TRUETYPE_TAGS_H
 
-#include <algorithm>
-
-#include "PdfInputDevice.h"
-#include "PdfOutputDevice.h"
+#include "PdfStreamDevice.h"
 
 using namespace std;
 using namespace mm;
@@ -47,7 +46,7 @@ static uint32_t GetTableCheksum(const char* buf, uint32_t size);
 
 static bool TryAdvanceCompoundOffset(unsigned& offset, unsigned flags);
 
-PdfFontTrueTypeSubset::PdfFontTrueTypeSubset(PdfInputDevice& device) :
+PdfFontTrueTypeSubset::PdfFontTrueTypeSubset(InputStreamDevice& device) :
     m_device(&device),
     m_isLongLoca(false),
     m_glyphCount(0),
@@ -68,7 +67,7 @@ void PdfFontTrueTypeSubset::BuildFont(std::string& output, const PdfFontMetrics&
             PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "The font to be subsetted is not a TrueType font");
     }
 
-    PdfMemoryInputDevice input(metrics.GetOrLoadFontFileData());
+    SpanStreamDevice input(metrics.GetOrLoadFontFileData());
     PdfFontTrueTypeSubset subset(input);
     subset.BuildFont(output, gidList);
 }
@@ -321,7 +320,7 @@ void PdfFontTrueTypeSubset::LoadCompound(GlyphContext& ctx, const GlyphData& dat
 }
 
 // Ref: https://docs.microsoft.com/en-us/typography/opentype/spec/glyf
-void PdfFontTrueTypeSubset::WriteGlyphTable(PdfOutputDevice& output)
+void PdfFontTrueTypeSubset::WriteGlyphTable(OutputStream& output)
 {
     for (unsigned gid : m_orderedGIDs)
     {
@@ -351,7 +350,7 @@ void PdfFontTrueTypeSubset::WriteGlyphTable(PdfOutputDevice& output)
 
 // The 'hmtx' table contains the horizontal metrics for each glyph in the font
 // https://docs.microsoft.com/en-us/typography/opentype/spec/hmtx
-void PdfFontTrueTypeSubset::WriteHmtxTable(PdfOutputDevice& output)
+void PdfFontTrueTypeSubset::WriteHmtxTable(OutputStream& output)
 {
     struct LongHorMetrics
     {
@@ -391,7 +390,7 @@ void PdfFontTrueTypeSubset::WriteHmtxTable(PdfOutputDevice& output)
 // entry after the offset that points to the last valid
 // index. This index points to the end of the glyph data"
 // Ref: https://docs.microsoft.com/en-us/typography/opentype/spec/loca
-void PdfFontTrueTypeSubset::WriteLocaTable(PdfOutputDevice& output)
+void PdfFontTrueTypeSubset::WriteLocaTable(OutputStream& output)
 {
     uint32_t glyphAddress = 0;
     if (m_isLongLoca)
@@ -422,7 +421,7 @@ void PdfFontTrueTypeSubset::WriteLocaTable(PdfOutputDevice& output)
 
 void PdfFontTrueTypeSubset::WriteTables(string& buffer)
 {
-    PdfStringOutputDevice output(buffer);
+    StringStreamDevice output(buffer);
 
     uint16_t entrySelector = (uint16_t)std::ceil(std::log2(m_tables.size()));
     uint16_t searchRange = (uint16_t)std::pow(2, entrySelector);
@@ -558,7 +557,7 @@ bool TryAdvanceCompoundOffset(unsigned& offset, unsigned flags)
     return true;
 }
 
-void PdfFontTrueTypeSubset::CopyData(PdfOutputDevice& output, unsigned offset, unsigned size)
+void PdfFontTrueTypeSubset::CopyData(OutputStream& output, unsigned offset, unsigned size)
 {
     m_device->Seek(offset);
     m_tmpBuffer.resize(size);

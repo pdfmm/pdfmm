@@ -9,9 +9,8 @@
 #include "PdfFiltersPrivate.h"
 
 #include <pdfmm/base/PdfDictionary.h>
-#include <pdfmm/base/PdfOutputDevice.h>
-#include <pdfmm/base/PdfOutputStream.h>
 #include <pdfmm/base/PdfTokenizer.h>
+#include <pdfmm/base/PdfStreamDevice.h>
 
 #ifdef PDFMM_HAVE_JPEG_LIB
 extern "C" {
@@ -79,7 +78,7 @@ public:
         memset(m_UpperLeftPixelComponents.data(), 0, sizeof(char) * m_BytesPerPixel);
     }
 
-    void Decode(const char* buffer, size_t len, PdfOutputStream* stream)
+    void Decode(const char* buffer, size_t len, OutputStream* stream)
     {
         if (m_Predictor == 1)
         {
@@ -889,7 +888,7 @@ void PdfDCTFilter::BeginDecodeImpl(const PdfDictionary*)
     if (error.length() != 0)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, error);
 
-    m_Device = new PdfStringOutputDevice(m_buffer);
+    m_Device = new StringStreamDevice(m_buffer);
 }
 
 void PdfDCTFilter::DecodeBlockImpl(const char* buffer, size_t len)

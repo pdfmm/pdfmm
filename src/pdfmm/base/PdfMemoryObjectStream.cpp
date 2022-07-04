@@ -13,9 +13,7 @@
 #include "PdfEncrypt.h"
 #include "PdfFilter.h"
 #include "PdfObject.h"
-#include "PdfInputDevice.h"
-#include "PdfOutputDevice.h"
-#include "PdfVariant.h"
+#include "PdfStreamDevice.h"
 
 using namespace std;
 using namespace mm;
@@ -30,22 +28,22 @@ PdfMemoryObjectStream::~PdfMemoryObjectStream()
     EnsureAppendClosed();
 }
 
-unique_ptr<PdfInputStream> PdfMemoryObjectStream::GetInputStream() const
+unique_ptr<InputStream> PdfMemoryObjectStream::GetInputStream() const
 {
-    return std::unique_ptr<PdfInputStream>(new PdfMemoryInputDevice(m_buffer));
+    return std::unique_ptr<InputStream>(new SpanStreamDevice(m_buffer));
 }
 
 void PdfMemoryObjectStream::BeginAppendImpl(const PdfFilterList& filters)
 {
     m_buffer.clear();
-    if (filters.size() != 0)
+    if (filters.size() == 0)
     {
-        m_BufferStream = unique_ptr<PdfCharsOutputDevice>(new PdfCharsOutputDevice(m_buffer));
-        m_Stream = PdfFilterFactory::CreateEncodeStream(filters, *m_BufferStream);
+        m_Stream = unique_ptr<BufferStreamDevice>(new BufferStreamDevice(m_buffer));
     }
     else
     {
-        m_Stream = unique_ptr<PdfCharsOutputDevice>(new PdfCharsOutputDevice(m_buffer));
+        m_BufferStream = unique_ptr<BufferStreamDevice>(new BufferStreamDevice(m_buffer));
+        m_Stream = PdfFilterFactory::CreateEncodeStream(filters, *m_BufferStream);
     }
 }
 
@@ -66,7 +64,7 @@ void PdfMemoryObjectStream::EndAppendImpl()
     }
 }
 
-void PdfMemoryObjectStream::CopyTo(PdfOutputStream& stream) const
+void PdfMemoryObjectStream::CopyTo(OutputStream& stream) const
 {
     stream.Write(m_buffer.data(), m_buffer.size());
 }
@@ -88,7 +86,7 @@ void PdfMemoryObjectStream::copyFrom(const PdfMemoryObjectStream& rhs)
     m_buffer = rhs.m_buffer;
 }
 
-void PdfMemoryObjectStream::Write(PdfOutputStream& stream, const PdfStatefulEncrypt& encrypt)
+void PdfMemoryObjectStream::Write(OutputStream& stream, const PdfStatefulEncrypt& encrypt)
 {
     stream.Write("stream\n");
     if (encrypt.HasEncrypt())

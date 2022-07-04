@@ -13,8 +13,8 @@
 #include "PdfArray.h"
 #include "PdfFilter.h"
 #include "PdfInputDevice.h"
-#include "PdfOutputDevice.h"
 #include "PdfDictionary.h"
+#include "PdfStreamDevice.h"
 
 using namespace std;
 using namespace mm;
@@ -31,24 +31,24 @@ PdfObjectStream::~PdfObjectStream() { }
 void PdfObjectStream::ExtractTo(charbuff& buffer) const
 {
     buffer.clear();
-    PdfCharsOutputDevice stream(buffer);
+    BufferStreamDevice stream(buffer);
     ExtractTo(stream);
 }
 
-void PdfObjectStream::ExtractTo(PdfOutputStream& stream) const
+void PdfObjectStream::ExtractTo(OutputStream& stream) const
 {
     PdfFilterList filters = PdfFilterFactory::CreateFilterList(*m_Parent);
     auto inputStream = GetInputStream();
-    if (filters.size() != 0)
+    if (filters.size() == 0)
+    {
+        inputStream->CopyTo(stream);
+    }
+    else
     {
         auto decodeStream = PdfFilterFactory::CreateDecodeStream(filters, stream,
             m_Parent->GetDictionary());
 
         inputStream->CopyTo(*decodeStream);
-    }
-    else
-    {
-        inputStream->CopyTo(stream);
     }
 
     stream.Flush();
@@ -57,7 +57,7 @@ void PdfObjectStream::ExtractTo(PdfOutputStream& stream) const
 charbuff PdfObjectStream::GetFilteredCopy() const
 {
     charbuff ret;
-    PdfStringOutputDevice stream(ret);
+    StringStreamDevice stream(ret);
     ExtractTo(stream);
     return ret;
 }
@@ -116,7 +116,7 @@ void PdfObjectStream::Set(const char* buffer, size_t size)
     this->endAppend();
 }
 
-void PdfObjectStream::Set(PdfInputStream& stream)
+void PdfObjectStream::Set(InputStream& stream)
 {
     PdfFilterList filters;
     if (DefaultFilter != PdfFilterType::None)
@@ -125,7 +125,7 @@ void PdfObjectStream::Set(PdfInputStream& stream)
     this->Set(stream, filters);
 }
 
-void PdfObjectStream::Set(PdfInputStream& stream, const PdfFilterList& filters)
+void PdfObjectStream::Set(InputStream& stream, const PdfFilterList& filters)
 {
     constexpr size_t BUFFER_SIZE = 4096;
     size_t read = 0;
@@ -143,16 +143,16 @@ void PdfObjectStream::Set(PdfInputStream& stream, const PdfFilterList& filters)
     this->endAppend();
 }
 
-void PdfObjectStream::SetRawData(PdfInputStream& stream, ssize_t size)
+void PdfObjectStream::SetRawData(InputStream& stream, ssize_t size)
 {
     SetRawData(stream, size, true);
 }
 
-void PdfObjectStream::SetRawData(PdfInputStream& stream, ssize_t size, bool markObjectDirty)
+void PdfObjectStream::SetRawData(InputStream& stream, ssize_t size, bool markObjectDirty)
 {
     constexpr size_t BUFFER_SIZE = 4096;
     char buffer[BUFFER_SIZE];
-    size_t lenRead;
+    size_t read;
     PdfFilterList filters;
 
     // TODO: DS, give begin append a size hint so that it knows
@@ -163,8 +163,8 @@ void PdfObjectStream::SetRawData(PdfInputStream& stream, ssize_t size, bool mark
         bool eof;
         do
         {
-            lenRead = stream.Read(buffer, BUFFER_SIZE, eof);
-            AppendImpl(buffer, lenRead);
+            read = stream.Read(buffer, BUFFER_SIZE, eof);
+            AppendImpl(buffer, read);
         } while (!eof);
     }
     else
@@ -172,9 +172,9 @@ void PdfObjectStream::SetRawData(PdfInputStream& stream, ssize_t size, bool mark
         bool eof;
         do
         {
-            lenRead = stream.Read(buffer, std::min(BUFFER_SIZE, (size_t)size), eof);
-            size -= lenRead;
-            AppendImpl(buffer, lenRead);
+            read = stream.Read(buffer, std::min(BUFFER_SIZE, (size_t)size), eof);
+            size -= read;
+            AppendImpl(buffer, read);
         } while (size > 0 && !eof);
     }
 

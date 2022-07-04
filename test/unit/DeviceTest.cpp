@@ -19,7 +19,7 @@ TEST_CASE("testDevices")
     charbuff buffer1;
 
     // large appends
-    PdfStringOutputDevice streamLarge(buffer1);
+    StringStreamDevice streamLarge(buffer1);
     for (unsigned i = 0; i < 100; i++)
         streamLarge.Write(testString);
 

@@ -20,7 +20,6 @@ class PdfArray;
 class PdfData;
 class PdfDataProvider;
 class PdfDictionary;
-class PdfOutputDevice;
 class PdfString;
 
 /**
@@ -292,7 +291,7 @@ public:
      *  \param encrypt an encryption object which is used to encrypt this object
      *                  or nullptr to not encrypt this object
      */
-    void Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
+    void Write(OutputStreamDevice& device, PdfWriteFlags writeMode,
         const PdfStatefulEncrypt& encrypt, charbuff& buffer) const;
 
     /** Assign the values of another PdfVariant to this one.

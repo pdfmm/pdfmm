@@ -15,8 +15,6 @@
 
 namespace mm {
 
-class PdfOutputDevice;
-
 /** A datatype that allows to write arbitrary data
  *  to a PDF file. 
  *  The user of this class has to ensure that the data
@@ -57,7 +55,7 @@ public:
      */
     explicit PdfData(const bufferview& data, const std::shared_ptr<size_t>& writeBeacon = { });
 
-    void Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
+    void Write(OutputStreamDevice& device, PdfWriteFlags writeMode,
         const PdfStatefulEncrypt& encrypt, charbuff& buffer) const override;
 
     PdfData& operator=(const PdfData& rhs) = default;

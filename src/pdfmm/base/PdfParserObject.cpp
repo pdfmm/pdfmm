@@ -22,23 +22,23 @@
 using namespace mm;
 using namespace std;
 
-PdfParserObject::PdfParserObject(PdfDocument& doc, const PdfReference& indirectReference, PdfInputDevice& device, ssize_t offset)
+PdfParserObject::PdfParserObject(PdfDocument& doc, const PdfReference& indirectReference, InputStreamDevice& device, ssize_t offset)
     : PdfParserObject(&doc, indirectReference, device, offset)
 {
     if (!indirectReference.IsIndirect())
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Indirect reference must be valid");
 }
 
-PdfParserObject::PdfParserObject(PdfDocument& doc, PdfInputDevice& device, ssize_t offset)
+PdfParserObject::PdfParserObject(PdfDocument& doc, InputStreamDevice& device, ssize_t offset)
     : PdfParserObject(&doc, PdfReference(), device, offset)
 {
 }
 
-PdfParserObject::PdfParserObject(PdfInputDevice& device, ssize_t offset)
+PdfParserObject::PdfParserObject(InputStreamDevice& device, ssize_t offset)
     : PdfParserObject(nullptr, PdfReference(), device, offset) { }
 
 PdfParserObject::PdfParserObject(PdfDocument* doc, const PdfReference& indirectReference,
-        PdfInputDevice& device, ssize_t offset) :
+    InputStreamDevice& device, ssize_t offset) :
     PdfObject(PdfVariant(PdfVariant::NullValue), indirectReference, true),
     m_device(&device),
     m_Encrypt(nullptr),

@@ -267,17 +267,16 @@ Error:
 // Read from stream an amount of bytes or less
 // without setting failbit
 // https://stackoverflow.com/a/22593639/213871
-size_t utls::ReadBuffer(istream& stream, char* buffer, size_t count)
+size_t utls::ReadBuffer(istream& stream, char* buffer, size_t size, bool& eof)
 {
     PDFMM_ASSERT(!stream.eof());
 
-    size_t offset = 0;
-    size_t reads;
+    size_t read = 0;
     do
     {
         // This consistently fails on gcc (linux) 4.8.1 with failbit set on read
         // failure. This apparently never fails on VS2010 and VS2013 (Windows 7)
-        reads = (size_t)stream.rdbuf()->sgetn(buffer + offset, (streamsize)count);
+        read += (size_t)stream.rdbuf()->sgetn(buffer + read, (streamsize)(size - read));
 
         // This rarely sets failbit on VS2010 and VS2013 (Windows 7) on read
         // failure of the previous sgetn()
@@ -293,23 +292,36 @@ size_t utls::ReadBuffer(istream& stream, char* buffer, size_t count)
         if (stream.fail())
             PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Stream I/O error while reading");
 
-        offset += reads;
-        count -= reads;
-    } while (count != 0 && !stream.eof());
+        eof = stream.eof();
 
-    return offset;
+        if (read == size)
+            return read;
+
+    } while (!eof);
+
+    return read;
 }
 
 // See utls:Read(stream, buffer, count) above
 bool utls::ReadChar(istream& stream, char& ch)
 {
     PDFMM_ASSERT(!stream.eof());
-    streamsize read = stream.rdbuf()->sgetn(&ch, 1);
-    (void)stream.rdstate();
-    (void)stream.peek();
-    if (stream.fail())
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Stream I/O error while reading");
-    return read == 1;
+
+    streamsize read;
+    do
+    {
+        read = stream.rdbuf()->sgetn(&ch, 1);
+        (void)stream.rdstate();
+        (void)stream.peek();
+        if (stream.fail())
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Stream I/O error while reading");
+
+        if (read == 1)
+            return true;
+
+    } while (!stream.eof());
+
+    return false;
 }
 
 FILE* utls::fopen(const string_view& filename, const string_view& mode)
@@ -460,28 +472,28 @@ unsigned utls::GetCharCodeMaxValue(unsigned char codeSize)
     return (unsigned)(std::pow(2, codeSize * CHAR_BIT)) - 1;
 }
 
-void utls::WriteUInt32BE(PdfOutputDevice& output, uint32_t value)
+void utls::WriteUInt32BE(OutputStream& output, uint32_t value)
 {
     char buf[4];
     WriteUInt32BE(buf, value);
     output.Write(string_view(buf, 4));
 }
 
-void utls::WriteInt32BE(PdfOutputDevice& output, int32_t value)
+void utls::WriteInt32BE(OutputStream& output, int32_t value)
 {
     char buf[4];
     WriteInt32BE(buf, value);
     output.Write(string_view(buf, 4));
 }
 
-void utls::WriteUInt16BE(PdfOutputDevice& output, uint16_t value)
+void utls::WriteUInt16BE(OutputStream& output, uint16_t value)
 {
     char buf[2];
     WriteUInt16BE(buf, value);
     output.Write(string_view(buf, 2));
 }
 
-void utls::WriteInt16BE(PdfOutputDevice& output, int16_t value)
+void utls::WriteInt16BE(OutputStream& output, int16_t value)
 {
     char buf[2];
     WriteInt16BE(buf, value);
@@ -520,28 +532,28 @@ void utls::WriteInt16BE(char* buf, int16_t value)
     buf[1] = static_cast<char>((value >> 8) & 0xFF);
 }
 
-void utls::ReadUInt32BE(PdfInputDevice& input, uint32_t& value)
+void utls::ReadUInt32BE(InputStream& input, uint32_t& value)
 {
     char buf[4];
     input.Read(buf, 4);
     ReadUInt32BE(buf, value);
 }
 
-void utls::ReadInt32BE(PdfInputDevice& input, int32_t& value)
+void utls::ReadInt32BE(InputStream& input, int32_t& value)
 {
     char buf[4];
     input.Read(buf, 4);
     ReadInt32BE(buf, value);
 }
 
-void utls::ReadUInt16BE(PdfInputDevice& input, uint16_t& value)
+void utls::ReadUInt16BE(InputStream& input, uint16_t& value)
 {
     char buf[2];
     input.Read(buf, 2);
     ReadUInt16BE(buf, value);
 }
 
-void utls::ReadInt16BE(PdfInputDevice& input, int16_t& value)
+void utls::ReadInt16BE(InputStream& input, int16_t& value)
 {
     char buf[2];
     input.Read(buf, 2);

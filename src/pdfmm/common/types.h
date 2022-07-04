@@ -7,9 +7,13 @@
 
 namespace COMMON_NAMESPACE
 {
-    /** Convenient read-only char buffer span/view
+    /** Convenient read-only char buffer span
      */
     using bufferview = cspan<char>;
+
+    /** Convenient writable char buffer span
+     */
+    using bufferspan = mspan<char>;
 
     /** Unicode code point view
      */

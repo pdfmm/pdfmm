@@ -17,18 +17,18 @@ PdfPostScriptTokenizer::PdfPostScriptTokenizer()
 PdfPostScriptTokenizer::PdfPostScriptTokenizer(const shared_ptr<charbuff>& buffer)
     : PdfTokenizer(buffer, false) { }
 
-void PdfPostScriptTokenizer::ReadNextVariant(PdfInputDevice& device, PdfVariant& variant)
+void PdfPostScriptTokenizer::ReadNextVariant(InputStreamDevice& device, PdfVariant& variant)
 {
     if (!PdfTokenizer::TryReadNextVariant(device, variant, { }))
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Expected variant");
 }
 
-bool PdfPostScriptTokenizer::TryReadNextVariant(PdfInputDevice& device, PdfVariant& variant)
+bool PdfPostScriptTokenizer::TryReadNextVariant(InputStreamDevice& device, PdfVariant& variant)
 {
     return PdfTokenizer::TryReadNextVariant(device, variant, { });
 }
 
-bool PdfPostScriptTokenizer::TryReadNext(PdfInputDevice& device, PdfPostScriptTokenType& psTokenType, string_view& keyword, PdfVariant& variant)
+bool PdfPostScriptTokenizer::TryReadNext(InputStreamDevice& device, PdfPostScriptTokenType& psTokenType, string_view& keyword, PdfVariant& variant)
 {
     PdfTokenType tokenType;
     string_view token;

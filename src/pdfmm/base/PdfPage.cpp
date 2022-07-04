@@ -531,7 +531,7 @@ unsigned PdfPage::GetPageNumber() const
     return ++pageNumber;
 }
 
-void PdfPage::SetICCProfile(const string_view& csTag, PdfInputStream& stream,
+void PdfPage::SetICCProfile(const string_view& csTag, InputStream& stream,
     int64_t colorComponents, PdfColorSpace alternateColorSpace)
 {
     // Check nColorComponents for a valid value

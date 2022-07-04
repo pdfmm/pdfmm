@@ -19,7 +19,7 @@
 using namespace std;
 using namespace mm;
 
-PdfFileObjectStream::PdfFileObjectStream(PdfObject& parent, PdfOutputDevice& device)
+PdfFileObjectStream::PdfFileObjectStream(PdfObject& parent, OutputStreamDevice& device)
     : PdfObjectStream(parent), m_Device(&device),
     m_initialLength(0), m_Length(0), m_CurrEncrypt(nullptr)
 {
@@ -32,14 +32,14 @@ PdfFileObjectStream::~PdfFileObjectStream()
     EnsureAppendClosed();
 }
 
-void PdfFileObjectStream::Write(PdfOutputStream& stream, const PdfStatefulEncrypt& encrypt)
+void PdfFileObjectStream::Write(OutputStream& stream, const PdfStatefulEncrypt& encrypt)
 {
     (void)stream;
     (void)encrypt;
     PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);
 }
 
-unique_ptr<PdfInputStream> PdfFileObjectStream::GetInputStream() const
+unique_ptr<InputStream> PdfFileObjectStream::GetInputStream() const
 {
     // TODO
     PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);
@@ -99,7 +99,7 @@ void PdfFileObjectStream::EndAppendImpl()
     m_LengthObj->SetNumber(static_cast<int64_t>(m_Length));
 }
 
-void PdfFileObjectStream::CopyTo(PdfOutputStream&) const
+void PdfFileObjectStream::CopyTo(OutputStream&) const
 {
     PDFMM_RAISE_ERROR(PdfErrorCode::InternalLogic);
 }

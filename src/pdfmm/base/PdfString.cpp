@@ -115,7 +115,7 @@ PdfString PdfString::FromHexData(const string_view& hexView, const PdfStatefulEn
     }
 }
 
-void PdfString::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
+void PdfString::Write(OutputStreamDevice& device, PdfWriteFlags writeMode,
     const PdfStatefulEncrypt& encrypt, charbuff& buffer) const
 {
     (void)writeMode;

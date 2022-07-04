@@ -80,6 +80,11 @@ enum class PdfVersion
     V2_0 = 20,       ///< PDF 2.0
 };
 
+/** The default PDF Version used by new PDF documents
+ *  in pdfmm.
+ */
+constexpr PdfVersion PdfVersionDefault = PdfVersion::V1_4;
+
 enum class PdfALevel
 {
     Unknown = 0,
@@ -103,10 +108,12 @@ enum class PdfStringState : uint8_t
     Unicode,            ///< The string uses characters that are in the whole Unicode charset
 };
 
-/** The default PDF Version used by new PDF documents
- *  in pdfmm.
- */
-constexpr PdfVersion PdfVersionDefault = PdfVersion::V1_4;
+enum class PdfEncodingMapType
+{
+    Indeterminate,              ///< Indeterminate map type, such as identity encodings
+    Simple,                     ///< A legacy encoding, such as built-in or difference
+    CMap                        ///< A proper CMap encoding or pre-defined CMap names
+};
 
 /**
  * Specify additional options for writing the PDF.
@@ -181,13 +188,6 @@ enum class PdfFilterType
     DCTDecode,
     JPXDecode,
     Crypt
-};
-
-enum class PdfEncodingMapType
-{
-    Indeterminate,              ///< Indeterminate map type, such as identity encodings
-    Simple,                     ///< A legacy encoding, such as built-in or difference
-    CMap                        ///< A proper CMap encoding or pre-defined CMap names
 };
 
 /**

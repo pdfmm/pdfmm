@@ -42,7 +42,7 @@ namespace mm
     {
     public:
         PdfParserTest(PdfIndirectObjectList& objectList, string buff)
-            : PdfParser(objectList), m_buffer(std::move(buff)), m_device(new PdfMemoryInputDevice(m_buffer))
+            : PdfParser(objectList), m_buffer(std::move(buff)), m_device(new SpanStreamDevice(m_buffer))
         {
         }
 
@@ -82,11 +82,11 @@ namespace mm
             return PdfParser::IsPdfFile(*m_device);
         }
 
-        const shared_ptr<PdfInputDevice>& GetDevice() { return m_device; }
+        const shared_ptr<InputStreamDevice>& GetDevice() { return m_device; }
 
     private:
         string m_buffer;
-        shared_ptr<PdfInputDevice> m_device;
+        shared_ptr<InputStreamDevice> m_device;
     };
 }
 
@@ -1148,7 +1148,7 @@ TEST_CASE("testReadXRefStreamContents")
 
         auto inputStr = oss.str();
         PdfXRefEntries offsets;
-        auto device = std::make_shared<PdfMemoryInputDevice>(inputStr);
+        auto device = std::make_shared<SpanStreamDevice>(inputStr);
         PdfMemDocument doc;
         // Parse a doc using XRef stream with invalid /W entries
         doc.LoadFromDevice(device);
@@ -1201,7 +1201,7 @@ TEST_CASE("testReadXRefStreamContents")
 
         auto inputStr = oss.str();
         PdfXRefEntries offsets;
-        auto device = std::make_shared<PdfMemoryInputDevice>(inputStr);
+        auto device = std::make_shared<SpanStreamDevice>(inputStr);
         PdfMemDocument doc;
         // Parse a doc using XRef stream with invalid /W entries
         doc.LoadFromDevice(device);
@@ -1253,7 +1253,7 @@ TEST_CASE("testReadXRefStreamContents")
 
         auto inputStr = oss.str();
         PdfXRefEntries offsets;
-        auto device = std::make_shared<PdfMemoryInputDevice>(inputStr);
+        auto device = std::make_shared<SpanStreamDevice>(inputStr);
         PdfMemDocument doc;
         // Parse a doc using XRef stream with invalid /W entries
         doc.LoadFromDevice(device);
@@ -1305,7 +1305,7 @@ TEST_CASE("testReadXRefStreamContents")
 
         auto inputStr = oss.str();
         PdfXRefEntries offsets;
-        auto device = std::make_shared<PdfMemoryInputDevice>(inputStr);
+        auto device = std::make_shared<SpanStreamDevice>(inputStr);
         PdfMemDocument doc;
         // Parse a doc using XRef stream with invalid /W entries
         doc.LoadFromDevice(device);
@@ -1354,7 +1354,7 @@ TEST_CASE("testReadXRefStreamContents")
 
         auto inputStr = oss.str();
         PdfXRefEntries offsets;
-        auto device = std::make_shared<PdfMemoryInputDevice>(inputStr);
+        auto device = std::make_shared<SpanStreamDevice>(inputStr);
         PdfMemDocument doc;
         // Parse a doc using XRef stream with invalid /W entries
         doc.LoadFromDevice(device);
@@ -1405,7 +1405,7 @@ TEST_CASE("testReadXRefStreamContents")
 
         auto inputStr = oss.str();
         PdfXRefEntries offsets;
-        auto device = std::make_shared<PdfMemoryInputDevice>(inputStr);
+        auto device = std::make_shared<SpanStreamDevice>(inputStr);
         PdfMemDocument doc;
         doc.LoadFromDevice(device);
     }
@@ -1454,7 +1454,7 @@ TEST_CASE("testReadXRefStreamContents")
 
         auto inputStr = oss.str();
         PdfXRefEntries offsets;
-        auto device = std::make_shared<PdfMemoryInputDevice>(inputStr);
+        auto device = std::make_shared<SpanStreamDevice>(inputStr);
         PdfMemDocument doc;
         doc.LoadFromDevice(device);
         FAIL("Should throw exception");
@@ -1505,7 +1505,7 @@ TEST_CASE("testReadXRefStreamContents")
 
         auto inputStr = oss.str();
         PdfXRefEntries offsets;
-        auto device = std::make_shared<PdfMemoryInputDevice>(inputStr);
+        auto device = std::make_shared<SpanStreamDevice>(inputStr);
         PdfMemDocument doc;
         doc.LoadFromDevice(device);
         FAIL("Should throw exception");
@@ -1556,7 +1556,7 @@ TEST_CASE("testReadXRefStreamContents")
 
         auto inputStr = oss.str();
         PdfXRefEntries offsets;
-        auto device = std::make_shared<PdfMemoryInputDevice>(inputStr);
+        auto device = std::make_shared<SpanStreamDevice>(inputStr);
         PdfMemDocument doc;
         doc.LoadFromDevice(device);
         FAIL("Should throw exception");
@@ -1607,7 +1607,7 @@ TEST_CASE("testReadXRefStreamContents")
 
         auto inputStr = oss.str();
         PdfXRefEntries offsets;
-        auto device = std::make_shared<PdfMemoryInputDevice>(inputStr);
+        auto device = std::make_shared<SpanStreamDevice>(inputStr);
         PdfMemDocument doc;
         doc.LoadFromDevice(device);
         FAIL("Should throw exception");
@@ -1658,7 +1658,7 @@ TEST_CASE("testReadXRefStreamContents")
 
         auto inputStr = oss.str();
         PdfXRefEntries offsets;
-        auto device = std::make_shared<PdfMemoryInputDevice>(inputStr);
+        auto device = std::make_shared<SpanStreamDevice>(inputStr);
         PdfMemDocument doc;
         doc.LoadFromDevice(device);
         FAIL("Should throw exception");
@@ -1709,7 +1709,7 @@ TEST_CASE("testReadXRefStreamContents")
 
         auto inputStr = oss.str();
         PdfXRefEntries offsets;
-        auto device = std::make_shared<PdfMemoryInputDevice>(inputStr);
+        auto device = std::make_shared<SpanStreamDevice>(inputStr);
         PdfMemDocument doc;
         doc.LoadFromDevice(device);
         FAIL("Should throw exception");
@@ -1759,7 +1759,7 @@ TEST_CASE("testReadXRefStreamContents")
 
         auto inputStr = oss.str();
         PdfXRefEntries offsets;
-        auto device = std::make_shared<PdfMemoryInputDevice>(inputStr);
+        auto device = std::make_shared<SpanStreamDevice>(inputStr);
         PdfMemDocument doc;
         doc.LoadFromDevice(device);
         FAIL("Should throw exception");
@@ -1971,7 +1971,7 @@ TEST_CASE("testSaveIncrementalRoundTrip")
         // load for update
         doc.LoadFromBuffer(docBuff);
 
-        PdfStringOutputDevice outDev(docBuff);
+        StringStreamDevice outDev(docBuff);
 
         doc.SaveUpdate(outDev);
         doc.LoadFromBuffer(docBuff);

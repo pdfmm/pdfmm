@@ -62,7 +62,7 @@ public:
      *
      *  \see SetPassword
      */
-    void Parse(PdfInputDevice& device, bool loadOnDemand = true);
+    void Parse(InputStreamDevice& device, bool loadOnDemand = true);
 
     /**
      * \returns true if this PdfWriter creates an encrypted PDF file
@@ -191,7 +191,7 @@ private:
      *  \param range range in bytes in which to search
      *                beginning at the end of the file
      */
-    void FindTokenBackward(PdfInputDevice& device, const char* token, size_t range);
+    void FindTokenBackward(InputStreamDevice& device, const char* token, size_t range);
 
     /** Searches backwards from the specified position of the file
      *  and tries to find a token.
@@ -202,12 +202,12 @@ private:
      *                beginning at the specified position of the file
      *  \param searchEnd specifies position
      */
-    void FindToken2(PdfInputDevice& device, const char* token, size_t range, size_t searchEnd);
+    void FindToken2(InputStreamDevice& device, const char* token, size_t range, size_t searchEnd);
 
     /** Reads the xref sections and the trailers of the file
      *  in the correct order in the memory
      */
-    void ReadDocumentStructure(PdfInputDevice& device);
+    void ReadDocumentStructure(InputStreamDevice& device);
 
     /** Merge the information of this trailer object
      *  in the parsers main trailer object.
@@ -219,7 +219,7 @@ private:
      *  and saves its byteoffset to pXRefOffset.
      *  \param xRefOffset store the byte offset of the xref section into this variable.
      */
-    void FindXRef(PdfInputDevice& device, size_t* xRefOffset);
+    void FindXRef(InputStreamDevice& device, size_t* xRefOffset);
 
     /** Reads the xref table from a pdf file.
      *  If there is no xref table, ReadXRefStreamContents() is called.
@@ -229,7 +229,7 @@ private:
      *                        after the table, which allows reading
      *                        a following trailer dictionary.
      */
-    void ReadXRefContents(PdfInputDevice& device, size_t offset, bool positionAtEnd = false);
+    void ReadXRefContents(InputStreamDevice& device, size_t offset, bool positionAtEnd = false);
 
     /** Read a xref subsection
      *
@@ -240,14 +240,14 @@ private:
      *  \param firstObject object number of the first object
      *  \param objectCount  how many objects should be read from this section
      */
-    void ReadXRefSubsection(PdfInputDevice& device, int64_t& firstObject, int64_t& objectCount);
+    void ReadXRefSubsection(InputStreamDevice& device, int64_t& firstObject, int64_t& objectCount);
 
     /** Reads an XRef stream contents object
      *  \param offset read the stream from this offset
      *  \param readOnlyTrailer only the trailer is skipped over, the contents
      *         of the xref stream are not parsed
      */
-    void ReadXRefStreamContents(PdfInputDevice& device, size_t offset, bool readOnlyTrailer);
+    void ReadXRefStreamContents(InputStreamDevice& device, size_t offset, bool readOnlyTrailer);
 
     /** Reads all objects from the pdf into memory
      *  from the previously read entries
@@ -258,7 +258,7 @@ private:
      *  either if no encryption is required or a correct
      *  encryption object was initialized from SetPassword.
      */
-    void ReadObjects(PdfInputDevice& device);
+    void ReadObjects(InputStreamDevice& device);
 
     /** Reads all objects from the pdf into memory
      *  from the previously read entries
@@ -272,7 +272,7 @@ private:
      *  \see ReadObjects
      *  \see SetPassword
      */
-    void ReadObjectsInternal(PdfInputDevice& device);
+    void ReadObjectsInternal(InputStreamDevice& device);
 
     /** Read the object with index from the object stream nObjNo
      *  and push it on the objects vector
@@ -293,9 +293,9 @@ private:
      *
      *  \returns true if this is a pdf file, otherwise false
      */
-    bool IsPdfFile(PdfInputDevice& device);
+    bool IsPdfFile(InputStreamDevice& device);
 
-    void ReadNextTrailer(PdfInputDevice& device);
+    void ReadNextTrailer(InputStreamDevice& device);
 
 
     /** Checks for the existence of the %%EOF marker at the end of the file.
@@ -304,7 +304,7 @@ private:
      *  Simply raises an error if there is a problem with the marker.
      *
      */
-    void CheckEOFMarker(PdfInputDevice& device);
+    void CheckEOFMarker(InputStreamDevice& device);
 
     /** Initializes all private members
      *  with their initial values.

@@ -33,7 +33,7 @@ TEST_CASE("testAppend")
 
     PdfCanvasInputDevice input(doc.GetPages().GetPage(0));
     string out;
-    PdfStringOutputDevice output(out);
+    StringStreamDevice output(out);
     input.CopyTo(output);
 
     REQUIRE(out == "q\nBT (Hello) Tj ET\nQ\nq\n1 1 1 rg\nQ\n");

@@ -20,7 +20,7 @@ void TestFromEscape(const string_view& name1, const string_view& name2);
 TEST_CASE("testParseAndWrite")
 {
     const char* data = "/#E5#8A#A8#E6#80#81#E8#BF#9E#E6#8E#A5#E7#BA#BF";
-    auto device = std::make_shared<PdfMemoryInputDevice>(data);
+    auto device = std::make_shared<SpanStreamDevice>(data);
     PdfTokenizer tokenizer;
 
     string_view token;

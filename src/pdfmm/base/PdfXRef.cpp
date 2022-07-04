@@ -76,7 +76,7 @@ void PdfXRef::addObject(const PdfReference& ref, nullable<uint64_t> offset, bool
     }
 }
 
-void PdfXRef::Write(PdfOutputDevice& device, charbuff& buffer)
+void PdfXRef::Write(OutputStreamDevice& device, charbuff& buffer)
 {
     auto it = m_blocks.begin();
     XRefItemList::const_iterator itItems;
@@ -247,13 +247,13 @@ void PdfXRef::mergeBlocks()
     }
 }
 
-void PdfXRef::BeginWrite(PdfOutputDevice& device, charbuff& buffer)
+void PdfXRef::BeginWrite(OutputStreamDevice& device, charbuff& buffer)
 {
     (void)buffer;
     device.Write("xref\n");
 }
 
-void PdfXRef::WriteSubSection(PdfOutputDevice& device, uint32_t first, uint32_t count, charbuff& buffer)
+void PdfXRef::WriteSubSection(OutputStreamDevice& device, uint32_t first, uint32_t count, charbuff& buffer)
 {
 #ifndef VERBOSE_DEBUG_DISABLED
     mm::LogMessage(PdfLogSeverity::Debug, "Writing XRef section: {} {}", first, count);
@@ -262,7 +262,7 @@ void PdfXRef::WriteSubSection(PdfOutputDevice& device, uint32_t first, uint32_t 
     device.Write(buffer);
 }
 
-void PdfXRef::WriteXRefEntry(PdfOutputDevice& device, const PdfReference& ref, const PdfXRefEntry& entry, charbuff& buffer)
+void PdfXRef::WriteXRefEntry(OutputStreamDevice& device, const PdfReference& ref, const PdfXRefEntry& entry, charbuff& buffer)
 {
     (void)ref;
     uint64_t variant;
@@ -286,7 +286,7 @@ void PdfXRef::WriteXRefEntry(PdfOutputDevice& device, const PdfReference& ref, c
     device.Write(buffer);
 }
 
-void PdfXRef::EndWriteImpl(PdfOutputDevice& device, charbuff& buffer)
+void PdfXRef::EndWriteImpl(OutputStreamDevice& device, charbuff& buffer)
 {
     PdfObject  trailer;
 
@@ -299,7 +299,7 @@ void PdfXRef::EndWriteImpl(PdfOutputDevice& device, charbuff& buffer)
     trailer.Write(device, m_writer->GetWriteFlags(), nullptr, buffer);
 }
 
-void PdfXRef::endWrite(PdfOutputDevice& device, charbuff& buffer)
+void PdfXRef::endWrite(OutputStreamDevice& device, charbuff& buffer)
 {
     EndWriteImpl(device, buffer);
     utls::FormatTo(buffer, "startxref\n{}\n%%EOF\n", GetOffset());

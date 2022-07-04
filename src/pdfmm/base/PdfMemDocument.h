@@ -44,7 +44,7 @@ public:
      */
     PdfMemDocument();
 
-    PdfMemDocument(const std::shared_ptr<PdfInputDevice>& device, const std::string_view& password = { });
+    PdfMemDocument(const std::shared_ptr<InputStreamDevice>& device, const std::string_view& password = { });
 
     /** Construct a copy of the given document
      */
@@ -77,7 +77,7 @@ public:
      *
      *  \see WriteUpdate, Load, LoadFromBuffer
      */
-    void LoadFromDevice(const std::shared_ptr<PdfInputDevice>& device, const std::string_view& password = { });
+    void LoadFromDevice(const std::shared_ptr<InputStreamDevice>& device, const std::string_view& password = { });
 
     /** Save the complete document to a file
      *
@@ -95,7 +95,7 @@ public:
      *
      *  \see SaveUpdate
      */
-    void Save(PdfOutputDevice& device, PdfSaveOptions opts = PdfSaveOptions::None);
+    void Save(OutputStreamDevice& device, PdfSaveOptions opts = PdfSaveOptions::None);
 
     /** Save the document changes to a file
      *
@@ -127,7 +127,7 @@ public:
      *
      *  \see Save, SaveUpdate
      */
-    void SaveUpdate(PdfOutputDevice& device, PdfSaveOptions opts = PdfSaveOptions::None);
+    void SaveUpdate(OutputStreamDevice& device, PdfSaveOptions opts = PdfSaveOptions::None);
 
     /** Add a vendor-specific extension to the current PDF version.
      *  \param ns namespace of the extension
@@ -240,7 +240,7 @@ private:
     PdfMemDocument(bool empty);
 
 private:
-    void loadFromDevice(const std::shared_ptr<PdfInputDevice>& device, const std::string_view& password);
+    void loadFromDevice(const std::shared_ptr<InputStreamDevice>& device, const std::string_view& password);
 
     /** Deletes one or more pages from this document
      *  It does NOT remove any PdfObjects from memory - just the reference from the pages tree.
@@ -275,7 +275,7 @@ private:
     bool m_HasXRefStream;
     int64_t m_PrevXRefOffset;
     std::unique_ptr<PdfEncrypt> m_Encrypt;
-    std::shared_ptr<PdfInputDevice> m_device;
+    std::shared_ptr<InputStreamDevice> m_device;
 };
 
 };

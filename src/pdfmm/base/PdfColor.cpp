@@ -19,6 +19,7 @@
 #include "PdfTokenizer.h"
 #include "PdfVariant.h"
 #include "PdfInputDevice.h"
+#include "PdfStreamDevice.h"
 
 using namespace std;
 using namespace mm;
@@ -754,7 +755,7 @@ PdfColor PdfColor::FromString(const string_view& name)
     // PdfArray
     else if (name[0] == '[')
     {
-        PdfMemoryInputDevice device(name);
+        SpanStreamDevice device(name);
         PdfTokenizer tokenizer;
         PdfVariant var;
 
@@ -845,7 +846,7 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
                     size.Add(static_cast<int64_t>(2));
                     csTintFunc->GetDictionary().AddKey("Size", size);
 
-                    PdfMemoryInputDevice input({ data, 1 * 2 });
+                    SpanStreamDevice input({ data, 1 * 2 });
                     csTintFunc->GetOrCreateStream().Set(input);
 
                     PdfArray csArr;
@@ -883,7 +884,7 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
                     size.Add(static_cast<int64_t>(2));
                     csTintFunc->GetDictionary().AddKey("Size", size);
 
-                    PdfMemoryInputDevice input({ data, 3 * 2 });
+                    SpanStreamDevice input({ data, 3 * 2 });
                     csTintFunc->GetOrCreateStream().Set(input);
 
                     PdfArray csArr;
@@ -931,7 +932,7 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
                     csArr.Add(PdfName("DeviceCMYK"));
                     csArr.Add(csTintFunc->GetIndirectReference());
 
-                    PdfMemoryInputDevice input({ data, 4 * 2 });
+                    SpanStreamDevice input({ data, 4 * 2 });
                     csTintFunc->GetOrCreateStream().Set(input); // set stream as last, so that it will work with PdfStreamedDocument
 
                     PdfObject* csp = document.GetObjects().CreateObject(std::move(csArr));
@@ -963,7 +964,7 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
                     size.Add(static_cast<int64_t>(2));
                     csTintFunc->GetDictionary().AddKey("Size", size);
 
-                    PdfMemoryInputDevice input({ data, 3 * 2 });
+                    SpanStreamDevice input({ data, 3 * 2 });
                     csTintFunc->GetOrCreateStream().Set(input);
 
                     PdfArray csArr;

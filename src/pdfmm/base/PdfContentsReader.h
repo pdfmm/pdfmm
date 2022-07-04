@@ -67,7 +67,7 @@ enum class PdfContentReaderFlags
  * \param imageDict dictionary for the inline image
  * \returns false if EOF 
  */
-using PdfInlineImageHandler = std::function<bool(const PdfDictionary& imageDict, PdfInputDevice& device)>;
+using PdfInlineImageHandler = std::function<bool(const PdfDictionary& imageDict, InputStreamDevice& device)>;
 
 struct PdfContentReaderArgs
 {
@@ -82,10 +82,10 @@ class PdfContentsReader final
 public:
     PdfContentsReader(const PdfCanvas& canvas, nullable<const PdfContentReaderArgs&> args = { });
 
-    PdfContentsReader(const std::shared_ptr<PdfInputDevice>& device, nullable<const PdfContentReaderArgs&> args = { });
+    PdfContentsReader(const std::shared_ptr<InputStreamDevice>& device, nullable<const PdfContentReaderArgs&> args = { });
 
 private:
-    PdfContentsReader(const std::shared_ptr<PdfInputDevice>& device, const PdfCanvas* canvas,
+    PdfContentsReader(const std::shared_ptr<InputStreamDevice>& device, const PdfCanvas* canvas,
         nullable<const PdfContentReaderArgs&> args);
 
 public:
@@ -122,7 +122,7 @@ private:
     struct Input
     {
         std::shared_ptr<const PdfXObject> Form;
-        std::shared_ptr<PdfInputDevice> Device;
+        std::shared_ptr<InputStreamDevice> Device;
         const PdfCanvas* Canvas;
     };
 

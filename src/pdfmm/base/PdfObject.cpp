@@ -14,12 +14,8 @@
 #include "PdfDictionary.h"
 #include "PdfEncrypt.h"
 #include "PdfFileObjectStream.h"
-#include "PdfOutputDevice.h"
-#include "PdfObjectStream.h"
-#include "PdfVariant.h"
 #include "PdfMemoryObjectStream.h"
-
-#include <fstream>
+#include "PdfStreamDevice.h"
 
 using namespace std;
 using namespace mm;
@@ -209,7 +205,7 @@ void PdfObject::initObject()
     m_IsDelayedLoadStreamDone = true;
 }
 
-void PdfObject::Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
+void PdfObject::Write(OutputStreamDevice& device, PdfWriteFlags writeMode,
     const PdfEncrypt* encrypt_, charbuff& buffer) const
 {
     DelayedLoad();
@@ -539,7 +535,7 @@ string PdfObject::ToString() const
 void PdfObject::ToString(string& ret) const
 {
     ret.clear();
-    PdfStringOutputDevice device(ret);
+    StringStreamDevice device(ret);
     charbuff buffer;
     Write(device, PdfWriteFlags::None, nullptr, buffer);
 }

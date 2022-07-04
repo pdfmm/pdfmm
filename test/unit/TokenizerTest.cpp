@@ -64,7 +64,7 @@ TEST_CASE("testName2")
 {
     // Some additional tests, which cause errors for Sebastian Loch
     string_view buffer = "/CheckBox#C3#9Cbersetzungshinweis";
-    PdfMemoryInputDevice device(buffer);
+    SpanStreamDevice device(buffer);
 
     PdfTokenizer tokenizer;
     PdfVariant variant;
@@ -187,7 +187,7 @@ void Test(const string_view& buffer, PdfDataType dataType, string_view expected)
 
     INFO(utls::Format("Testing with value: {}", buffer));
 
-    PdfMemoryInputDevice device(buffer);
+    SpanStreamDevice device(buffer);
     PdfTokenizer tokenizer;
     PdfVariant variant;
     REQUIRE(tokenizer.TryReadNextVariant(device, variant));
@@ -205,7 +205,7 @@ void Test(const string_view& buffer, PdfDataType dataType, string_view expected)
 
 void TestStream(const string_view& buffer, const char* tokens[])
 {
-    PdfMemoryInputDevice device(buffer);
+    SpanStreamDevice device(buffer);
     PdfTokenizer tokenizer;
     string_view token;
     unsigned i = 0;
@@ -223,7 +223,7 @@ void TestStream(const string_view& buffer, const char* tokens[])
 
 void TestStreamIsNextToken(const string_view& buffer, const char* tokens[])
 {
-    PdfMemoryInputDevice device(buffer);
+    SpanStreamDevice device(buffer);
     PdfTokenizer tokenizer;
 
     unsigned i = 0;

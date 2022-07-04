@@ -13,7 +13,7 @@
 
 namespace mm {
 
-class PdfOutputDevice;
+class OutputStreamDevice;
 
 /**
  * A reference is a pointer to a object in the PDF file of the form
@@ -61,7 +61,7 @@ public:
       */
     PdfReference& operator=(const PdfReference& rhs) = default;
 
-    void Write(PdfOutputDevice& device, PdfWriteFlags writeMode, charbuff& buffer) const;
+    void Write(OutputStreamDevice& device, PdfWriteFlags writeMode, charbuff& buffer) const;
 
     /**
      * Compare to PdfReference objects.

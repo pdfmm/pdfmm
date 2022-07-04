@@ -8,7 +8,7 @@
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfSigner.h"
 #include "PdfDictionary.h"
-#include "PdfOutputDevice.h"
+#include "PdfStreamDevice.h"
 
 using namespace std;
 using namespace mm;
@@ -16,12 +16,12 @@ using namespace mm;
 constexpr const char* ByteRangeBeacon = "[ 0 1234567890 1234567890 1234567890]";
 constexpr size_t BufferSize = 65536;
 
-static size_t readForSignature(PdfOutputDevice& device,
+static size_t readForSignature(StreamDevice& device,
     size_t conentsBeaconOffset, size_t conentsBeaconSize,
     char* buffer, size_t size);
-static void adjustByteRange(PdfOutputDevice& device, size_t byteRangeOffset,
+static void adjustByteRange(StreamDevice& device, size_t byteRangeOffset,
     size_t conentsBeaconOffset, size_t conentsBeaconSize, charbuff& buffer);
-static void setSignature(PdfOutputDevice& device, const string_view& sigData,
+static void setSignature(StreamDevice& device, const string_view& sigData,
     size_t conentsBeaconOffset, charbuff& buffer);
 static void prepareBeaconsData(size_t signatureSize, string& contentsBeacon, string& byteRangeBeacon);
 
@@ -33,7 +33,7 @@ string PdfSigner::GetSignatureFilter() const
     return "Adobe.PPKLite";
 }
 
-void mm::SignDocument(PdfMemDocument& doc, PdfOutputDevice& device, PdfSigner& signer,
+void mm::SignDocument(PdfMemDocument& doc, StreamDevice& device, PdfSigner& signer,
     PdfSignature& signature, PdfSaveOptions opts)
 {
     string signatureBuf;
@@ -89,7 +89,7 @@ void mm::SignDocument(PdfMemDocument& doc, PdfOutputDevice& device, PdfSigner& s
     device.Flush();
 }
 
-size_t readForSignature(PdfOutputDevice& device, size_t conentsBeaconOffset, size_t conentsBeaconSize,
+size_t readForSignature(StreamDevice& device, size_t conentsBeaconOffset, size_t conentsBeaconSize,
     char* buffer, size_t size)
 {
     if (device.Eof())
@@ -126,7 +126,7 @@ size_t readForSignature(PdfOutputDevice& device, size_t conentsBeaconOffset, siz
     return numRead + device.Read(buffer, size);
 }
 
-void adjustByteRange(PdfOutputDevice& device, size_t byteRangeOffset,
+void adjustByteRange(StreamDevice& device, size_t byteRangeOffset,
     size_t conentsBeaconOffset, size_t conentsBeaconSize, charbuff& buffer)
 {
     // Get final position
@@ -141,7 +141,7 @@ void adjustByteRange(PdfOutputDevice& device, size_t byteRangeOffset,
     arr.Write(device, PdfWriteFlags::None, { }, buffer);
 }
 
-void setSignature(PdfOutputDevice& device, const string_view& contentsData,
+void setSignature(StreamDevice& device, const string_view& contentsData,
     size_t conentsBeaconOffset, charbuff& buffer)
 {
     auto sig = PdfString::FromRaw(contentsData);

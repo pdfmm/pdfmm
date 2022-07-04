@@ -9,19 +9,17 @@
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfOutputStream.h"
 
-#include "PdfOutputDevice.h"
-
 using namespace std;
 using namespace mm;
 
-PdfOutputStream::~PdfOutputStream() { }
+OutputStream::~OutputStream() { }
 
-void PdfOutputStream::Write(char ch)
+void OutputStream::Write(char ch)
 {
     writeBuffer(&ch, 1);
 }
 
-void PdfOutputStream::Write(const string_view& view)
+void OutputStream::Write(const string_view& view)
 {
     if (view.length() == 0)
         return;
@@ -29,7 +27,7 @@ void PdfOutputStream::Write(const string_view& view)
     writeBuffer(view.data(), view.size());
 }
 
-void PdfOutputStream::Write(const char* buffer, size_t size)
+void OutputStream::Write(const char* buffer, size_t size)
 {
     if (size == 0)
         return;
@@ -37,12 +35,12 @@ void PdfOutputStream::Write(const char* buffer, size_t size)
     writeBuffer(buffer, size);
 }
 
-void PdfOutputStream::Flush()
+void OutputStream::Flush()
 {
     flush();
 }
 
-void PdfOutputStream::flush()
+void OutputStream::flush()
 {
     // Do nothing
 }

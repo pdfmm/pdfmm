@@ -16,10 +16,10 @@
 
 namespace mm {
 
-class PdfInputStream;
+class InputStream;
 class PdfName;
 class PdfObject;
-class PdfOutputStream;
+class OutputStream;
 
 /** A PDF stream can be appended to any PdfObject
  *  and can contain arbitrary data.
@@ -60,7 +60,7 @@ public:
      *  \param device write to this outputdevice.
      *  \param encrypt encrypt stream data using this object
      */
-    virtual void Write(PdfOutputStream& stream, const PdfStatefulEncrypt& encrypt) = 0;
+    virtual void Write(OutputStream& stream, const PdfStatefulEncrypt& encrypt) = 0;
 
     /** Set a binary buffer as stream data.
      *
@@ -98,22 +98,22 @@ public:
      */
     void Set(const char* buffer, size_t len);
 
-    /** Set a binary buffer whose contents are read from a PdfInputStream
+    /** Set a binary buffer whose contents are read from an InputStream
      *  All data will be Flate-encoded.
      *
-     *  \param stream read stream contents from this PdfInputStream
+     *  \param stream read stream contents from this InputStream
      */
-    void Set(PdfInputStream& stream);
+    void Set(InputStream& stream);
 
-    /** Set a binary buffer whose contents are read from a PdfInputStream
+    /** Set a binary buffer whose contents are read from an InputStream
      *
      * Use PdfFilterFactory::CreateFilterList() if you want to use the contents
      * of the stream dictionary's existing filter key.
      *
-     *  \param stream read stream contents from this PdfInputStream
+     *  \param stream read stream contents from this InputStream
      *  \param filters a list of filters to use when appending data
      */
-    void Set(PdfInputStream& stream, const PdfFilterList& filters);
+    void Set(InputStream& stream, const PdfFilterList& filters);
 
     /** Sets raw data for this stream which is read from an input stream.
      *  This method does neither encode nor decode the read data.
@@ -125,7 +125,7 @@ public:
      *                 if len = -1 read until the end of the input stream
      *                 was reached.
      */
-    void SetRawData(PdfInputStream& stream, ssize_t len = -1);
+    void SetRawData(InputStream& stream, ssize_t len = -1);
 
     /** Start appending data to this stream.
      *
@@ -197,11 +197,11 @@ public:
      */
     virtual size_t GetLength() const = 0;
 
-    /** Get a copy of a the stream and write it to a PdfOutputStream
+    /** Get a copy of a the stream and write it to an OutputStream
      *
      *  \param stream data is written to this stream.
      */
-    virtual void CopyTo(PdfOutputStream& stream) const = 0;
+    virtual void CopyTo(OutputStream& stream) const = 0;
 
     /** Get a buffer of the current stream which has been
      *  filtered by all filters as specified in the dictionary's
@@ -214,11 +214,11 @@ public:
      */
     void ExtractTo(charbuff& buffer) const;
 
-    /** Get a filtered copy of a the stream and write it to a PdfOutputStream
+    /** Get a filtered copy of a the stream and write it to an OutputStream
      *
      *  \param stream filtered data is written to this stream.
      */
-    void ExtractTo(PdfOutputStream& stream) const;
+    void ExtractTo(OutputStream& stream) const;
 
     charbuff GetFilteredCopy() const;
 
@@ -263,14 +263,14 @@ protected:
 
     PdfObject& GetParent() { return *m_Parent; }
 
-    virtual std::unique_ptr<PdfInputStream> GetInputStream() const = 0;
+    virtual std::unique_ptr<InputStream> GetInputStream() const = 0;
 
 private:
     PdfObjectStream(const PdfObjectStream& rhs) = delete;
 
     void endAppend();
 
-    void SetRawData(PdfInputStream& stream, ssize_t len, bool markObjectDirty);
+    void SetRawData(InputStream& stream, ssize_t len, bool markObjectDirty);
 
     void BeginAppend(const PdfFilterList& filters, bool clearExisting, bool deleteFilters, bool markObjectDirty);
 

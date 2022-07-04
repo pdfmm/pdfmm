@@ -9,9 +9,6 @@
 #ifndef PDF_OBJECT_H
 #define PDF_OBJECT_H
 
-#include "PdfName.h"
-#include "PdfReference.h"
-#include "PdfString.h"
 #include "PdfVariant.h"
 #include "PdfObjectStream.h"
 
@@ -19,7 +16,6 @@ namespace mm {
 
 class PdfEncrypt;
 class PdfObject;
-class PdfOutputDevice;
 class PdfIndirectObjectList;
 class PdfDictionary;
 class PdfArray;
@@ -319,7 +315,7 @@ public:
      *  \param keyStop if not KeyNull and a key == keyStop is found
      *                 writing will stop right before this key!
      */
-    void Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
+    void Write(OutputStreamDevice& device, PdfWriteFlags writeMode,
         const PdfEncrypt* encrypt, charbuff& buffer) const;
 
     /** Get a handle to a PDF stream object.

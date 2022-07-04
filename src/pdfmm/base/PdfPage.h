@@ -24,7 +24,7 @@ namespace mm {
 class PdfDocument;
 class PdfDictionary;
 class PdfIndirectObjectList;
-class PdfInputStream;
+class InputStream;
 
 struct PdfTextEntry final
 {
@@ -215,7 +215,7 @@ public:
      *
      *  \see PdfPainter::SetDependICCProfileColor()
      */
-    void SetICCProfile(const std::string_view& csTag, PdfInputStream& stream, int64_t colorComponents,
+    void SetICCProfile(const std::string_view& csTag, InputStream& stream, int64_t colorComponents,
         PdfColorSpace alternateColorSpace = PdfColorSpace::DeviceRGB);
 
 public:

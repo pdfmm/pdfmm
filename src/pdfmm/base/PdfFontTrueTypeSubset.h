@@ -14,8 +14,8 @@
 
 namespace mm {
 
-class PdfInputDevice;
-class PdfOutputDevice;
+class InputStreamDevice;
+class OutputStream;
 
 /**
  * Internal enum specifying the type of a fontfile.
@@ -38,7 +38,7 @@ using GIDList = cspan<unsigned>;
 class PDFMM_API PdfFontTrueTypeSubset final
 {
 private:
-    PdfFontTrueTypeSubset(PdfInputDevice& device);
+    PdfFontTrueTypeSubset(InputStreamDevice& device);
 
 public:
     /**
@@ -65,7 +65,7 @@ private:
     void SeeIfLongLocaOrNot();
     void InitTables();
 
-    void CopyData(PdfOutputDevice& output, unsigned offset, unsigned size);
+    void CopyData(OutputStream& output, unsigned offset, unsigned size);
 
 private:
     /** Information of TrueType tables.
@@ -116,14 +116,14 @@ private:
     void LoadGlyphs(GlyphContext& ctx, const GIDList& gidList);
     void LoadGID(GlyphContext& ctx, unsigned gid);
     void LoadCompound(GlyphContext& ctx, const GlyphData& data);
-    void WriteGlyphTable(PdfOutputDevice& output);
-    void WriteHmtxTable(PdfOutputDevice& output);
-    void WriteLocaTable(PdfOutputDevice& output);
+    void WriteGlyphTable(OutputStream& output);
+    void WriteHmtxTable(OutputStream& output);
+    void WriteLocaTable(OutputStream& output);
     void WriteTables(std::string& buffer);
     void ReadGlyphCompoundData(GlyphCompoundData& data, unsigned offset);
 
 private:
-    PdfInputDevice* m_device;
+    InputStreamDevice* m_device;
 
     bool m_isLongLoca;
     uint16_t m_glyphCount;

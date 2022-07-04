@@ -12,9 +12,9 @@
 
 #include "PdfDictionary.h"
 #include "PdfDocument.h"
-#include "PdfInputDevice.h"
 #include "PdfObject.h"
 #include "PdfObjectStream.h"
+#include "PdfStreamDevice.h"
 
 using namespace std;
 using namespace cmn;
@@ -111,7 +111,7 @@ void PdfFileSpec::EmbeddFile(PdfObject& obj, const string_view& filename) const
 {
     size_t size = utls::FileSize(filename);
 
-    PdfFileInputDevice input(filename);
+    FileStreamDevice input(filename);
     obj.GetOrCreateStream().Set(input);
 
     // Add additional information about the embedded file to the stream
@@ -146,7 +146,7 @@ string PdfFileSpec::MaybeStripPath(const string_view& filename, bool stripPath) 
 
 void PdfFileSpec::EmbeddFileFromMem(PdfObject& obj, const char* data, size_t size) const
 {
-    PdfMemoryInputDevice memstream({ reinterpret_cast<const char*>(data), size });
+    SpanStreamDevice memstream({ reinterpret_cast<const char*>(data), size });
     obj.GetOrCreateStream().Set(memstream);
 
     // Add additional information about the embedded file to the stream

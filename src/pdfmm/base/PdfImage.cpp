@@ -19,7 +19,7 @@
 #include "PdfArray.h"
 #include "PdfColor.h"
 #include "PdfObjectStream.h"
-#include "PdfInputDevice.h"
+#include "PdfStreamDevice.h"
 
 // TIFF and JPEG headers already included through "PdfFiltersPrivate.h",
 // although in opposite order (first JPEG, then TIFF), if available of course
@@ -78,7 +78,7 @@ PdfColorSpace PdfImage::GetColorSpace() const
     return PdfColorSpace::Unknown;
 }
 
-void PdfImage::SetICCProfile(PdfInputStream& stream, unsigned colorComponents, PdfColorSpace alternateColorSpace)
+void PdfImage::SetICCProfile(InputStream& stream, unsigned colorComponents, PdfColorSpace alternateColorSpace)
 {
     // Check lColorComponents for a valid value
     if (colorComponents != 1 &&
@@ -106,7 +106,7 @@ void PdfImage::SetSoftmask(const PdfImage& softmask)
     GetDictionary().AddKey("SMask", softmask.GetObject().GetIndirectReference());
 }
 
-void PdfImage::SetData(PdfInputStream& stream, unsigned width, unsigned height,
+void PdfImage::SetData(InputStream& stream, unsigned width, unsigned height,
     unsigned bitsPerComponent)
 {
     PdfFilterList filters;
@@ -115,7 +115,7 @@ void PdfImage::SetData(PdfInputStream& stream, unsigned width, unsigned height,
     this->SetData(stream, width, height, bitsPerComponent, filters);
 }
 
-void PdfImage::SetData(PdfInputStream& stream, unsigned width, unsigned height,
+void PdfImage::SetData(InputStream& stream, unsigned width, unsigned height,
     unsigned bitsPerComponent, PdfFilterList& filters)
 {
     m_width = width;
@@ -127,7 +127,7 @@ void PdfImage::SetData(PdfInputStream& stream, unsigned width, unsigned height,
     this->GetObject().GetOrCreateStream().Set(stream, filters);
 }
 
-void PdfImage::SetDataRaw(PdfInputStream& stream, unsigned width, unsigned height,
+void PdfImage::SetDataRaw(InputStream& stream, unsigned width, unsigned height,
     unsigned bitsPerComponent)
 {
     m_width = width;
@@ -299,7 +299,7 @@ void PdfImage::LoadFromJpegHandle(FILE* inStream, const string_view& filename)
     this->GetObject().GetDictionary().AddKey(PdfName::KeyFilter, PdfName("DCTDecode"));
 
     // Do not apply any filters as JPEG data is already DCT encoded.
-    PdfFileInputDevice input(filename);
+    FileStreamDevice input(filename);
     this->SetDataRaw(input, cinfo.output_width, cinfo.output_height, 8);
     jpeg_destroy_decompress(&cinfo);
 }
@@ -362,7 +362,7 @@ void PdfImage::LoadFromJpegData(const unsigned char* data, size_t len)
     // Set the filters key to DCTDecode
     this->GetDictionary().AddKey(PdfName::KeyFilter, PdfName("DCTDecode"));
 
-    PdfMemoryInputDevice input({ (const char*)data, len });
+    SpanStreamDevice input({ (const char*)data, len });
     this->SetDataRaw(input, cinfo.output_width, cinfo.output_height, 8);
 
     jpeg_destroy_decompress(&cinfo);
@@ -512,7 +512,7 @@ void PdfImage::LoadFromTiffHandle(void* handle)
                 datap[3 * clr + 1] = rgbGreen[clr] / 257;
                 datap[3 * clr + 2] = rgbBlue[clr] / 257;
             }
-            PdfMemoryInputDevice input({ datap, numColors * 3 });
+            SpanStreamDevice input({ datap, numColors * 3 });
 
             // Create a colorspace object
             PdfObject* pIdxObject = this->GetDocument().GetObjects().CreateDictionaryObject();
@@ -550,8 +550,7 @@ void PdfImage::LoadFromTiffHandle(void* handle)
         }
     }
 
-    PdfMemoryInputDevice input(buffer);
-
+    SpanStreamDevice input(buffer);
     SetData(input, static_cast<unsigned>(width),
         static_cast<unsigned>(height),
         static_cast<unsigned>(bitsPerSample));
@@ -958,7 +957,7 @@ void LoadFromPngContent(PdfImage& image, png_structp png, png_infop info)
             }
             len = width * height;
         }
-        PdfMemoryInputDevice smaskinput(smask);
+        SpanStreamDevice smaskinput(smask);
         PdfImage smakeImage(image.GetDocument());
         smakeImage.SetColorSpace(PdfColorSpace::DeviceGray);
         smakeImage.SetData(smaskinput, width, height, 8);
@@ -979,7 +978,7 @@ void LoadFromPngContent(PdfImage& image, png_structp png, png_infop info)
             data[3 * i + 1] = colors->green;
             data[3 * i + 2] = colors->blue;
         }
-        PdfMemoryInputDevice input({ data, (size_t)(colorCount * 3) });
+        SpanStreamDevice input({ data, (size_t)(colorCount * 3) });
         PdfObject* pIdxObject = image.GetDocument().GetObjects().CreateDictionaryObject();
         pIdxObject->GetOrCreateStream().Set(input);
 
@@ -999,7 +998,7 @@ void LoadFromPngContent(PdfImage& image, png_structp png, png_infop info)
     }
 
     // Set the image data and flate compress it
-    PdfMemoryInputDevice input(buffer);
+    SpanStreamDevice input(buffer);
     image.SetData(input, width, height, depth);
 
     png_destroy_read_struct(&png, &info, (png_infopp)NULL);

@@ -181,13 +181,13 @@ private:
 
 };
 
-/** A PdfOutputStream that encrypt all data written
+/** An OutputStream that encrypt all data written
  *  using the RC4 encryption algorithm
  */
-class PdfRC4OutputStream : public PdfOutputStream
+class PdfRC4OutputStream : public OutputStream
 {
 public:
-    PdfRC4OutputStream(PdfOutputStream& outputStream, unsigned char rc4key[256],
+    PdfRC4OutputStream(OutputStream& outputStream, unsigned char rc4key[256],
         unsigned char rc4last[256], unsigned char* key, unsigned keylen) :
         m_OutputStream(&outputStream), m_stream(rc4key, rc4last, key, keylen)
     {
@@ -203,17 +203,17 @@ public:
     }
 
 private:
-    PdfOutputStream* m_OutputStream;
+    OutputStream* m_OutputStream;
     PdfRC4Stream m_stream;
 };
 
-/** A PdfInputStream that decrypts all data read
+/** An InputStream that decrypts all data read
  *  using the RC4 encryption algorithm
  */
-class PdfRC4InputStream : public PdfInputStream
+class PdfRC4InputStream : public InputStream
 {
 public:
-    PdfRC4InputStream(PdfInputStream& inputStream, size_t inputLen, unsigned char rc4key[256], unsigned char rc4last[256],
+    PdfRC4InputStream(InputStream& inputStream, size_t inputLen, unsigned char rc4key[256], unsigned char rc4last[256],
         unsigned char* key, unsigned keylen) :
         m_InputStream(&inputStream),
         m_inputLen(inputLen),
@@ -232,7 +232,7 @@ protected:
     }
 
 private:
-    PdfInputStream* m_InputStream;
+    InputStream* m_InputStream;
     size_t m_inputLen;
     PdfRC4Stream m_stream;
 };
@@ -240,10 +240,10 @@ private:
 /** A PdfAESInputStream that decrypts all data read
  *  using the AES encryption algorithm
  */
-class PdfAESInputStream : public PdfInputStream
+class PdfAESInputStream : public InputStream
 {
 public:
-    PdfAESInputStream(PdfInputStream& inputStream, size_t inputLen, unsigned char* key, unsigned keylen) :
+    PdfAESInputStream(InputStream& inputStream, size_t inputLen, unsigned char* key, unsigned keylen) :
         m_InputStream(&inputStream),
         m_inputLen(inputLen),
         m_inputEof(false),
@@ -352,7 +352,7 @@ protected:
 
 private:
     EVP_CIPHER_CTX* m_ctx;
-    PdfInputStream* m_InputStream;
+    InputStream* m_InputStream;
     size_t m_inputLen;
     bool m_inputEof;
     bool m_init;
@@ -1027,13 +1027,13 @@ void PdfEncryptRC4::Decrypt(const char* inStr, size_t inLen, const PdfReference&
     Encrypt(inStr, inLen, objref, outStr, outLen);
 }
 
-unique_ptr<PdfInputStream> PdfEncryptRC4::CreateEncryptionInputStream(PdfInputStream& inputStream, size_t inputLen, const PdfReference& objref)
+unique_ptr<InputStream> PdfEncryptRC4::CreateEncryptionInputStream(InputStream& inputStream, size_t inputLen, const PdfReference& objref)
 {
     (void)inputLen;
     unsigned char objkey[MD5_DIGEST_LENGTH];
     unsigned keylen;
     this->CreateObjKey(objkey, keylen, objref);
-    return unique_ptr<PdfInputStream>(new PdfRC4InputStream(inputStream, inputLen, m_rc4key, m_rc4last, objkey, keylen));
+    return unique_ptr<InputStream>(new PdfRC4InputStream(inputStream, inputLen, m_rc4key, m_rc4last, objkey, keylen));
 }
 
 PdfEncryptRC4::PdfEncryptRC4(PdfString oValue, PdfString uValue, PdfPermissions pValue, int rValue,
@@ -1101,12 +1101,12 @@ PdfEncryptRC4::PdfEncryptRC4(const string_view& userPassword, const string_view&
     m_pValue = PERMS_DEFAULT | protection;
 }
 
-unique_ptr<PdfOutputStream> PdfEncryptRC4::CreateEncryptionOutputStream(PdfOutputStream& outputStream, const PdfReference& objref)
+unique_ptr<OutputStream> PdfEncryptRC4::CreateEncryptionOutputStream(OutputStream& outputStream, const PdfReference& objref)
 {
     unsigned char objkey[MD5_DIGEST_LENGTH];
     unsigned keylen;
     this->CreateObjKey(objkey, keylen, objref);
-    return unique_ptr<PdfOutputStream>(new PdfRC4OutputStream(outputStream, m_rc4key, m_rc4last, objkey, keylen));
+    return unique_ptr<OutputStream>(new PdfRC4OutputStream(outputStream, m_rc4key, m_rc4last, objkey, keylen));
 }
     
 PdfEncryptAESBase::PdfEncryptAESBase()
@@ -1318,15 +1318,15 @@ size_t PdfEncryptAESV2::CalculateStreamLength(size_t length) const
     return realLength;
 }
     
-unique_ptr<PdfInputStream> PdfEncryptAESV2::CreateEncryptionInputStream(PdfInputStream& inputStream, size_t inputLen, const PdfReference& objref)
+unique_ptr<InputStream> PdfEncryptAESV2::CreateEncryptionInputStream(InputStream& inputStream, size_t inputLen, const PdfReference& objref)
 {
     unsigned char objkey[MD5_DIGEST_LENGTH];
     unsigned keylen;
     this->CreateObjKey(objkey, keylen, objref);
-    return unique_ptr<PdfInputStream>(new PdfAESInputStream(inputStream, inputLen, objkey, keylen));
+    return unique_ptr<InputStream>(new PdfAESInputStream(inputStream, inputLen, objkey, keylen));
 }
     
-unique_ptr<PdfOutputStream> PdfEncryptAESV2::CreateEncryptionOutputStream(PdfOutputStream& outputStream, const PdfReference& objref)
+unique_ptr<OutputStream> PdfEncryptAESV2::CreateEncryptionOutputStream(OutputStream& outputStream, const PdfReference& objref)
 {
     (void)outputStream;
     (void)objref;
@@ -1763,13 +1763,13 @@ size_t PdfEncryptAESV3::CalculateStreamLength(size_t length) const
     return realLength;
 }
 
-unique_ptr<PdfInputStream> PdfEncryptAESV3::CreateEncryptionInputStream(PdfInputStream& inputStream, size_t inputLen, const PdfReference& objref)
+unique_ptr<InputStream> PdfEncryptAESV3::CreateEncryptionInputStream(InputStream& inputStream, size_t inputLen, const PdfReference& objref)
 {
     (void)objref;
-    return unique_ptr<PdfInputStream>(new PdfAESInputStream(inputStream, inputLen, m_encryptionKey, 32));
+    return unique_ptr<InputStream>(new PdfAESInputStream(inputStream, inputLen, m_encryptionKey, 32));
 }
 
-unique_ptr<PdfOutputStream> PdfEncryptAESV3::CreateEncryptionOutputStream(PdfOutputStream& outputStream, const PdfReference& objref)
+unique_ptr<OutputStream> PdfEncryptAESV3::CreateEncryptionOutputStream(OutputStream& outputStream, const PdfReference& objref)
 {
     (void)outputStream;
     (void)objref;

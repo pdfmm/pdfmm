@@ -16,7 +16,6 @@
 
 namespace mm {
 
-class PdfOutputDevice;
 class PdfIndirectObjectList;
 
 /**
@@ -43,12 +42,12 @@ public:
     bool ShouldSkipWrite(const PdfReference& ref) override;
 
 protected:
-    void BeginWrite(PdfOutputDevice& device, charbuff& buffer) override;
-    void WriteSubSection(PdfOutputDevice& device, uint32_t first, uint32_t count,
+    void BeginWrite(OutputStreamDevice& device, charbuff& buffer) override;
+    void WriteSubSection(OutputStreamDevice& device, uint32_t first, uint32_t count,
         charbuff& buffer) override;
-    void WriteXRefEntry(PdfOutputDevice& device, const PdfReference& ref,
+    void WriteXRefEntry(OutputStreamDevice& device, const PdfReference& ref,
         const PdfXRefEntry& entry, charbuff& buffer) override;
-    void EndWriteImpl(PdfOutputDevice& device, charbuff& buffer) override;
+    void EndWriteImpl(OutputStreamDevice& device, charbuff& buffer) override;
 
 private:
 #pragma pack(push, 1)

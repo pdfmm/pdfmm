@@ -15,8 +15,6 @@
 
 namespace mm {
 
-class PdfOutputDevice;
-
 /** A string that can be written to a PDF document.
  *  If it contains binary data it is automatically
  *  converted into a hex string, otherwise a normal PDF
@@ -98,14 +96,7 @@ public:
 
     const std::string& GetRawData() const;
 
-    /** Write this PdfString in PDF format to a PdfOutputDevice.
-     *
-     *  \param device the output device.
-     *  \param writeMode additional options for writing this object
-     *  \param encrypt an encryption object which is used to encrypt this object,
-     *                  or nullptr to not encrypt this object
-     */
-    void Write(PdfOutputDevice& device, PdfWriteFlags writeMode,
+    void Write(OutputStreamDevice& device, PdfWriteFlags writeMode,
         const PdfStatefulEncrypt& encrypt, charbuff& buffer) const override;
 
     /** Copy an existing PdfString

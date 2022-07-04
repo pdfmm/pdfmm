@@ -15,6 +15,8 @@
 
 namespace mm
 {
+    class StreamDevice;
+
     class PDFMM_API PdfSigner
     {
     public:
@@ -33,7 +35,7 @@ namespace mm
         virtual std::string GetSignatureType() const = 0;
     };
 
-    void SignDocument(PdfMemDocument& doc, PdfOutputDevice& device, PdfSigner& signer,
+    void SignDocument(PdfMemDocument& doc, StreamDevice& device, PdfSigner& signer,
         PdfSignature& signature, PdfSaveOptions opts = PdfSaveOptions::None);
 }
 
