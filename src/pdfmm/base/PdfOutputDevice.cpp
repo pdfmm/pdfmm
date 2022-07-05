@@ -20,19 +20,7 @@ OutputStreamDevice::OutputStreamDevice(bool init)
         SetAccess(DeviceAccess::Write);
 }
 
-void OutputStreamDevice::writeBuffer(const char* buffer, size_t size)
+void OutputStreamDevice::checkWrite() const
 {
     EnsureAccess(DeviceAccess::Write);
-    writeBufferImpl(buffer, size);
-}
-
-void OutputStreamDevice::flush()
-{
-    EnsureAccess(DeviceAccess::Write);
-    flushImpl();
-}
-
-void OutputStreamDevice::flushImpl()
-{
-    // Do nothing
 }

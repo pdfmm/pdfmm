@@ -21,6 +21,7 @@ size_t InputStream::Read(char* buffer, size_t size)
     if (buffer == nullptr)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Invalid buffer");
 
+    checkRead();
     bool eof;
     size_t read = 0;
     do
@@ -36,6 +37,7 @@ size_t InputStream::Read(char* buffer, size_t size)
 
 char InputStream::ReadChar()
 {
+    checkRead();
     char ch;
     if (!readChar(ch))
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Reached EOF while reading from the stream");
@@ -45,6 +47,7 @@ char InputStream::ReadChar()
 
 bool InputStream::Read(char& ch)
 {
+    checkRead();
     return readChar(ch);
 }
 
@@ -53,6 +56,7 @@ size_t InputStream::Read(char* buffer, size_t size, bool& eof)
     if (buffer == nullptr)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Invalid buffer");
 
+    checkRead();
     size_t read = 0;
     do
     {
@@ -93,6 +97,11 @@ bool InputStream::readChar(char& ch)
     } while (!eof);
 
     return  false;
+}
+
+void InputStream::checkRead() const
+{
+    // Do nothing
 }
 
 size_t InputStream::ReadBuffer(InputStream& stream, char* buffer, size_t size, bool& eof)

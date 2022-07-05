@@ -35,11 +35,11 @@ private:
     bool tryPopNextDevice();
     void setEOF();
 protected:
-    size_t readBufferImpl(char* buffer, size_t size, bool& eof) override;
-    bool readCharImpl(char& ch) override;
+    size_t readBuffer(char* buffer, size_t size, bool& eof) override;
+    bool readChar(char& ch) override;
     bool peek(char& ch) const override;
 private:
-    size_t readBufferPriv(char* buffer, size_t size);
+    size_t readBuffer(char* buffer, size_t size);
 private:
     bool m_eof;
     std::list<const PdfObject*> m_contents;

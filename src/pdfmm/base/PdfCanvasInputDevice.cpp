@@ -90,14 +90,14 @@ bool PdfCanvasInputDevice::peek(char& ch) const
     }
 }
 
-size_t PdfCanvasInputDevice::readBufferImpl(char* buffer, size_t size, bool& eof)
+size_t PdfCanvasInputDevice::readBuffer(char* buffer, size_t size, bool& eof)
 {
-    size_t ret = readBufferPriv(buffer, size);
+    size_t ret = readBuffer(buffer, size);
     eof = m_eof;
     return ret;
 }
 
-size_t PdfCanvasInputDevice::readBufferPriv(char* buffer, size_t size)
+size_t PdfCanvasInputDevice::readBuffer(char* buffer, size_t size)
 {
     if (size == 0 || m_eof)
         return 0;
@@ -140,7 +140,7 @@ size_t PdfCanvasInputDevice::readBufferPriv(char* buffer, size_t size)
     }
 }
 
-bool PdfCanvasInputDevice::readCharImpl(char& ch)
+bool PdfCanvasInputDevice::readChar(char& ch)
 {
     if (m_eof)
     {

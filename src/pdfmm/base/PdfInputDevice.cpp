@@ -37,14 +37,7 @@ bool InputStreamDevice::Peek(char& ch) const
     return peek(ch);
 }
 
-size_t InputStreamDevice::readBuffer(char* buffer, size_t size, bool& eof)
+void InputStreamDevice::checkRead() const
 {
     EnsureAccess(DeviceAccess::Read);
-    return readBufferImpl(buffer, size, eof);
-}
-
-bool InputStreamDevice::readChar(char& ch)
-{
-    EnsureAccess(DeviceAccess::Read);
-    return readCharImpl(ch);
 }

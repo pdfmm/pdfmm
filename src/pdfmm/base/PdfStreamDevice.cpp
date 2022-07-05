@@ -252,7 +252,7 @@ bool StandardStreamDevice::Eof() const
     return m_Stream->eof();
 }
 
-void StandardStreamDevice::writeBufferImpl(const char* buffer, size_t size)
+void StandardStreamDevice::writeBuffer(const char* buffer, size_t size)
 {
     PDFMM_INVARIANT(m_ostream != nullptr);
     m_ostream->write(buffer, size);
@@ -260,7 +260,7 @@ void StandardStreamDevice::writeBufferImpl(const char* buffer, size_t size)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to write the given buffer");
 }
 
-void StandardStreamDevice::flushImpl()
+void StandardStreamDevice::flush()
 {
     PDFMM_INVARIANT(m_ostream != nullptr);
     m_ostream->flush();
@@ -268,7 +268,7 @@ void StandardStreamDevice::flushImpl()
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to flush the stream");
 }
 
-size_t StandardStreamDevice::readBufferImpl(char* buffer, size_t size, bool& eof)
+size_t StandardStreamDevice::readBuffer(char* buffer, size_t size, bool& eof)
 {
     PDFMM_INVARIANT(m_Stream != nullptr);
     if (m_istream->eof())
@@ -280,7 +280,7 @@ size_t StandardStreamDevice::readBufferImpl(char* buffer, size_t size, bool& eof
     return utls::ReadBuffer(*m_istream, buffer, size, eof);
 }
 
-bool StandardStreamDevice::readCharImpl(char& ch)
+bool StandardStreamDevice::readChar(char& ch)
 {
     PDFMM_INVARIANT(m_Stream != nullptr);
     if (m_istream->eof())
@@ -478,7 +478,7 @@ bool NullStreamDevice::Eof() const
     return m_Position == m_Length;
 }
 
-void NullStreamDevice::writeBufferImpl(const char* buffer, size_t size)
+void NullStreamDevice::writeBuffer(const char* buffer, size_t size)
 {
     (void)buffer;
     m_Position = m_Position + size;
@@ -486,7 +486,7 @@ void NullStreamDevice::writeBufferImpl(const char* buffer, size_t size)
         m_Length = m_Position;
 }
 
-size_t NullStreamDevice::readBufferImpl(char* buffer, size_t size, bool& eof)
+size_t NullStreamDevice::readBuffer(char* buffer, size_t size, bool& eof)
 {
     (void)buffer;
     size_t prevpos = m_Position;
@@ -495,7 +495,7 @@ size_t NullStreamDevice::readBufferImpl(char* buffer, size_t size, bool& eof)
     return m_Position - prevpos;
 }
 
-bool NullStreamDevice::readCharImpl(char& ch)
+bool NullStreamDevice::readChar(char& ch)
 {
     ch = '\0';
     if (m_Position == m_Length)
@@ -565,7 +565,7 @@ bool SpanStreamDevice::CanSeek() const
     return true;
 }
 
-void SpanStreamDevice::writeBufferImpl(const char* buffer, size_t size)
+void SpanStreamDevice::writeBuffer(const char* buffer, size_t size)
 {
     if (m_Position + size > m_Length)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Attempt to write out of span bounds");
@@ -574,7 +574,7 @@ void SpanStreamDevice::writeBufferImpl(const char* buffer, size_t size)
     m_Position += size;
 }
 
-size_t SpanStreamDevice::readBufferImpl(char* buffer, size_t size, bool& eof)
+size_t SpanStreamDevice::readBuffer(char* buffer, size_t size, bool& eof)
 {
     size_t readCount = std::min(size, m_Length - m_Position);
     std::memcpy(buffer, m_buffer + m_Position, readCount);
@@ -583,7 +583,7 @@ size_t SpanStreamDevice::readBufferImpl(char* buffer, size_t size, bool& eof)
     return readCount;
 }
 
-bool SpanStreamDevice::readCharImpl(char& ch)
+bool SpanStreamDevice::readChar(char& ch)
 {
     if (m_Position == m_Length)
     {

@@ -45,16 +45,7 @@ protected:
      */
     virtual bool peek(char& ch) const = 0;
 
-    virtual size_t readBufferImpl(char* buffer, size_t size, bool& eof) = 0;
-
-    /** Read the next char in stream.
-     *  /returns true if success, EOF if false
-     */
-    virtual bool readCharImpl(char& ch) = 0;
-
-private:
-    size_t readBuffer(char* buffer, size_t size, bool& eof) override final;
-    bool readChar(char& ch) override final;
+    void checkRead() const override;
 };
 
 };

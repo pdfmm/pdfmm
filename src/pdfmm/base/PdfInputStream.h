@@ -62,6 +62,11 @@ protected:
      *  /returns true if success, false if EOF
      */
     virtual bool readChar(char& ch);
+
+    /** Optional checks before reading
+     * By default does nothing
+     */
+    virtual void checkRead() const;
 };
 
 };

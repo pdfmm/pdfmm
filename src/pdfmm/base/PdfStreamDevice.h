@@ -66,10 +66,10 @@ public:
 
 protected:
     StandardStreamDevice(DeviceAccess access, std::ios& stream, bool streamOwned);
-    void writeBufferImpl(const char* buffer, size_t size) override;
-    void flushImpl() override;
-    size_t readBufferImpl(char* buffer, size_t size, bool& eof) override;
-    bool readCharImpl(char& ch) override;
+    void writeBuffer(const char* buffer, size_t size) override;
+    void flush() override;
+    size_t readBuffer(char* buffer, size_t size, bool& eof) override;
+    bool readChar(char& ch) override;
     bool peek(char& ch) const override;
     void seek(ssize_t offset, SeekDirection direction) override;
 
@@ -146,7 +146,7 @@ public:
     bool Eof() const override { return m_Position == m_container->size(); }
 
 protected:
-    void writeBufferImpl(const char* buffer, size_t size) override
+    void writeBuffer(const char* buffer, size_t size) override
     {
         if (m_Position + size > m_container->size())
             m_container->resize(m_Position + size);
@@ -155,7 +155,7 @@ protected:
         m_Position += size;
     }
 
-    size_t readBufferImpl(char* buffer, size_t size, bool& eof) override
+    size_t readBuffer(char* buffer, size_t size, bool& eof) override
     {
         size_t readCount = std::min(size, m_container->size() - m_Position);
         std::memcpy(buffer, m_container->data() + m_Position, readCount);
@@ -164,7 +164,7 @@ protected:
         return readCount;
     }
 
-    bool readCharImpl(char& ch) override
+    bool readChar(char& ch) override
     {
         if (m_Position == m_container->size())
         {
@@ -225,9 +225,9 @@ public:
     bool CanSeek() const override;
 
 protected:
-    void writeBufferImpl(const char* buffer, size_t size) override;
-    size_t readBufferImpl(char* buffer, size_t size, bool& eof) override;
-    bool readCharImpl(char& ch) override;
+    void writeBuffer(const char* buffer, size_t size) override;
+    size_t readBuffer(char* buffer, size_t size, bool& eof) override;
+    bool readChar(char& ch) override;
     bool peek(char& ch) const override;
     void seek(ssize_t offset, SeekDirection direction) override;
 
@@ -256,9 +256,9 @@ public:
     bool Eof() const override;
 
 protected:
-    void writeBufferImpl(const char* buffer, size_t size) override;
-    size_t readBufferImpl(char* buffer, size_t size, bool& eof) override;
-    bool readCharImpl(char& ch) override;
+    void writeBuffer(const char* buffer, size_t size) override;
+    size_t readBuffer(char* buffer, size_t size, bool& eof) override;
+    bool readChar(char& ch) override;
     bool peek(char& ch) const override;
     void seek(ssize_t offset, SeekDirection direction) override;
 

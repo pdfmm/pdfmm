@@ -24,12 +24,7 @@ protected:
     OutputStreamDevice(bool init);
 
 protected:
-    virtual void writeBufferImpl(const char* buffer, size_t size) = 0;
-    virtual void flushImpl();
-
-private:
-    void writeBuffer(const char* buffer, size_t size) override final;
-    void flush() override final;
+    void checkWrite() const override;
 };
 
 };

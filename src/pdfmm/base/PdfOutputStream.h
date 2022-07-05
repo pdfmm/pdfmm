@@ -45,6 +45,11 @@ public:
 protected:
     virtual void writeBuffer(const char* buffer, size_t size) = 0;
     virtual void flush();
+
+    /** Optional checks before writing
+     * By default does nothing
+     */
+    virtual void checkWrite() const;
 };
 
 };
