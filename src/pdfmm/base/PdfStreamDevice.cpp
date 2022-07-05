@@ -165,12 +165,12 @@ StandardStreamDevice::StandardStreamDevice(iostream& stream)
             "Unsupported mistmatch between read and read position in stream");
 }
 
-StandardStreamDevice::StandardStreamDevice(DeviceAccess access, ios_base& stream, bool streamOwned)
+StandardStreamDevice::StandardStreamDevice(DeviceAccess access, ios& stream, bool streamOwned)
     : StandardStreamDevice(access, &stream, dynamic_cast<istream*>(&stream), dynamic_cast<ostream*>(&stream), streamOwned)
 {
 }
 
-StandardStreamDevice::StandardStreamDevice(DeviceAccess access, ios_base* stream, istream* istream, ostream* ostream, bool streamOwned) :
+StandardStreamDevice::StandardStreamDevice(DeviceAccess access, ios* stream, istream* istream, ostream* ostream, bool streamOwned) :
     StreamDevice(access),
     m_Stream(stream),
     m_istream(istream),

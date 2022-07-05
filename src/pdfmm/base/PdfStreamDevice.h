@@ -65,7 +65,7 @@ public:
     bool Eof() const override;
 
 protected:
-    StandardStreamDevice(DeviceAccess access, std::ios_base& stream, bool streamOwned);
+    StandardStreamDevice(DeviceAccess access, std::ios& stream, bool streamOwned);
     void writeBufferImpl(const char* buffer, size_t size) override;
     void flushImpl() override;
     size_t readBufferImpl(char* buffer, size_t size, bool& eof) override;
@@ -73,13 +73,13 @@ protected:
     bool peek(char& ch) const override;
     void seek(ssize_t offset, SeekDirection direction) override;
 
-    inline std::ios_base& GetStream() { return *m_Stream; }
+    inline std::ios& GetStream() { return *m_Stream; }
 
 private:
-    StandardStreamDevice(DeviceAccess access, std::ios_base* stream, std::istream* istream, std::ostream* ostream, bool streamOwned);
+    StandardStreamDevice(DeviceAccess access, std::ios* stream, std::istream* istream, std::ostream* ostream, bool streamOwned);
 
 private:
-    std::ios_base* m_Stream;
+    std::ios* m_Stream;
     std::istream* m_istream;
     std::ostream* m_ostream;
     bool m_StreamOwned;
