@@ -51,3 +51,8 @@ void PdfStreamedDocument::SetPdfVersion(PdfVersion version)
     (void)version;
     PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);
 }
+
+const PdfEncrypt* PdfStreamedDocument::GetEncrypt() const
+{
+    return m_Encrypt;
+}

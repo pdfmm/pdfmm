@@ -89,10 +89,13 @@ public:
      */
     void Close();
 
+public:
+    const PdfEncrypt* GetEncrypt() const override;
+
 protected:
     PdfVersion GetPdfVersion() const override;
 
-    void SetPdfVersion(PdfVersion version);
+    void SetPdfVersion(PdfVersion version) override;
 
 private:
     /** Initialize the PdfStreamedDocument with an output device
