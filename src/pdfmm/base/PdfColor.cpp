@@ -846,7 +846,7 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
                     size.Add(static_cast<int64_t>(2));
                     csTintFunc->GetDictionary().AddKey("Size", size);
 
-                    SpanStreamDevice input({ data, 1 * 2 });
+                    SpanStreamDevice input((const char*)data, 1 * 2);
                     csTintFunc->GetOrCreateStream().Set(input);
 
                     PdfArray csArr;
@@ -884,7 +884,7 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
                     size.Add(static_cast<int64_t>(2));
                     csTintFunc->GetDictionary().AddKey("Size", size);
 
-                    SpanStreamDevice input({ data, 3 * 2 });
+                    SpanStreamDevice input((const char*)data, 3 * 2);
                     csTintFunc->GetOrCreateStream().Set(input);
 
                     PdfArray csArr;
@@ -932,7 +932,7 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
                     csArr.Add(PdfName("DeviceCMYK"));
                     csArr.Add(csTintFunc->GetIndirectReference());
 
-                    SpanStreamDevice input({ data, 4 * 2 });
+                    SpanStreamDevice input((const char*)data, 4 * 2);
                     csTintFunc->GetOrCreateStream().Set(input); // set stream as last, so that it will work with PdfStreamedDocument
 
                     PdfObject* csp = document.GetObjects().CreateObject(std::move(csArr));
@@ -964,7 +964,7 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
                     size.Add(static_cast<int64_t>(2));
                     csTintFunc->GetDictionary().AddKey("Size", size);
 
-                    SpanStreamDevice input({ data, 3 * 2 });
+                    SpanStreamDevice input((const char*)data, 3 * 2);
                     csTintFunc->GetOrCreateStream().Set(input);
 
                     PdfArray csArr;

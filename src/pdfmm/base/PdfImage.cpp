@@ -362,7 +362,7 @@ void PdfImage::LoadFromJpegData(const unsigned char* data, size_t len)
     // Set the filters key to DCTDecode
     this->GetDictionary().AddKey(PdfName::KeyFilter, PdfName("DCTDecode"));
 
-    SpanStreamDevice input({ (const char*)data, len });
+    SpanStreamDevice input((const char*)data, len);
     this->SetDataRaw(input, cinfo.output_width, cinfo.output_height, 8);
 
     jpeg_destroy_decompress(&cinfo);
@@ -512,7 +512,7 @@ void PdfImage::LoadFromTiffHandle(void* handle)
                 datap[3 * clr + 1] = rgbGreen[clr] / 257;
                 datap[3 * clr + 2] = rgbBlue[clr] / 257;
             }
-            SpanStreamDevice input({ datap, numColors * 3 });
+            SpanStreamDevice input((const char*)datap, numColors * 3);
 
             // Create a colorspace object
             PdfObject* pIdxObject = this->GetDocument().GetObjects().CreateDictionaryObject();
@@ -978,7 +978,7 @@ void LoadFromPngContent(PdfImage& image, png_structp png, png_infop info)
             data[3 * i + 1] = colors->green;
             data[3 * i + 2] = colors->blue;
         }
-        SpanStreamDevice input({ data, (size_t)(colorCount * 3) });
+        SpanStreamDevice input((const char*)data, (size_t)(colorCount * 3));
         PdfObject* pIdxObject = image.GetDocument().GetObjects().CreateDictionaryObject();
         pIdxObject->GetOrCreateStream().Set(input);
 

@@ -146,7 +146,7 @@ string PdfFileSpec::MaybeStripPath(const string_view& filename, bool stripPath) 
 
 void PdfFileSpec::EmbeddFileFromMem(PdfObject& obj, const char* data, size_t size) const
 {
-    SpanStreamDevice memstream({ reinterpret_cast<const char*>(data), size });
+    SpanStreamDevice memstream(reinterpret_cast<const char*>(data), size);
     obj.GetOrCreateStream().Set(memstream);
 
     // Add additional information about the embedded file to the stream

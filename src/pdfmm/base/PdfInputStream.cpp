@@ -85,7 +85,6 @@ bool InputStream::readChar(char& ch)
 {
     ch = '\0';
     bool eof;
-    size_t read;
     do
     {
         if (readBuffer(&ch, 1, eof) == 1)

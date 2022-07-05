@@ -381,6 +381,8 @@ fstream* FileStreamDevice::getFileStream(const string_view& filename, FileMode m
             if ((access & DeviceAccess::Read) != DeviceAccess{ })
                 PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Invalid combination FileMode::Append and DeviceAccess::Read or DeviceAccess::ReadWrite");
             break;
+        default:
+            break;
     }
 
     ios_base::openmode openmode = fstream::binary;
@@ -509,7 +511,7 @@ void NullStreamDevice::seek(ssize_t offset, SeekDirection direction)
 }
 
 SpanStreamDevice::SpanStreamDevice(const char* buffer, size_t size)
-    : StreamDevice(DeviceAccess::Read), m_buffer((char*)buffer), m_Length(size), m_Position(0)
+    : StreamDevice(DeviceAccess::Read), m_buffer(const_cast<char*>(buffer)), m_Length(size), m_Position(0)
 {
 }
 
