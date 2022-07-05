@@ -17,8 +17,7 @@
 
 namespace mm {
 
-/** This class represents an input device which operates
- * either on a file, a buffer in memory or any arbitrary std::istream
+/** This class represents an input device
  * It optionally supports peeking
  */
 class PDFMM_API InputStreamDevice : virtual public StreamDeviceBase, public InputStream

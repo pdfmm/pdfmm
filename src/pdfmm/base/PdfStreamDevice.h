@@ -22,14 +22,11 @@ namespace mm {
  *  Additionally it can count the bytes written to the device.
  *
  *  This class is suitable for inheritance to provide output
- *  devices of your own for pdfmm.
- *  Just override the required virtual methods.
+ *  devices of your own. Just override the required virtual methods.
  */
 class PDFMM_API StreamDevice : public InputStreamDevice, public OutputStreamDevice
 {
 protected:
-    /** Destruct the IOStreamDevice object and close any open files.
-     */
     StreamDevice(DeviceAccess access);
 
 protected:
@@ -85,39 +82,45 @@ private:
     bool m_StreamOwned;
 };
 
-// This is the .NET System.IO file opening modes
+// These are the .NET System.IO file opening modes
 // https://docs.microsoft.com/en-us/dotnet/api/system.io.filemode?view=net-6.0
 enum class FileMode
 {
-    CreateNew = 1,
-    Create,
-    Open,
-    OpenOrCreate,
-    Truncate,
-    Append,
+    CreateNew = 1,     ///< Create a new file (throw if existing) for writing/reading
+    Create,            ///< Create a new file or truncate existing one for writing/reading
+    Open,              ///< Open an existing file for reading and/or writing
+    OpenOrCreate,      ///< Open an existing file or create a new one for writing/reading
+    Truncate,          ///< Truncate an existing file for writing/reading
+    Append,            ///< Open an existing file and seek to the end for writing
 };
 
 class PDFMM_API FileStreamDevice final : public StandardStreamDevice
 {
 public:
-    /** Open for reading the supplied filename
+    /** Open for reading the supplied filepath
      */
-    FileStreamDevice(const std::string_view & filename);
+    FileStreamDevice(const std::string_view & filepath);
 
-    /** Open for reading/writing the supplied filename with the given filemode
+    /** Open for reading/writing the supplied filepath with the given filemode
      */
-    FileStreamDevice(const std::string_view & filename, FileMode mode);
+    FileStreamDevice(const std::string_view & filepath, FileMode mode);
 
-    /** Open for the supplied filename with the given filemode and access
+    /** Open for the supplied filepath with the given filemode and access
      */
-    FileStreamDevice(const std::string_view& filename, FileMode mode,
+    FileStreamDevice(const std::string_view& filepath, FileMode mode,
         DeviceAccess access);
+
+public:
+    const std::string& GetFilepath() const { return m_Filepath; }
 
 protected:
     void close() override;
 
 private:
     std::fstream* getFileStream(const std::string_view& filename, FileMode mode, DeviceAccess access);
+
+private:
+    std::string m_Filepath;
 };
 
 template <typename TContainer>

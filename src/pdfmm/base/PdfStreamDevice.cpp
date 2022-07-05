@@ -337,18 +337,18 @@ void StandardStreamDevice::seek(ssize_t offset, SeekDirection direction)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to seek to given position in the stream");
 }
 
-FileStreamDevice::FileStreamDevice(const string_view& filename)
-    : FileStreamDevice(filename, FileMode::Open, DeviceAccess::Read)
+FileStreamDevice::FileStreamDevice(const string_view& filepath)
+    : FileStreamDevice(filepath, FileMode::Open, DeviceAccess::Read)
 {
 }
 
-FileStreamDevice::FileStreamDevice(const string_view& filename, FileMode mode)
-    : FileStreamDevice(filename, mode, mode == FileMode::Append ? DeviceAccess::Write : DeviceAccess::ReadWrite)
+FileStreamDevice::FileStreamDevice(const string_view& filepath, FileMode mode)
+    : FileStreamDevice(filepath, mode, mode == FileMode::Append ? DeviceAccess::Write : DeviceAccess::ReadWrite)
 {
 }
 
-FileStreamDevice::FileStreamDevice(const string_view& filename, FileMode mode, DeviceAccess access)
-    : StandardStreamDevice(access, *getFileStream(filename, mode, access), true)
+FileStreamDevice::FileStreamDevice(const string_view& filepath, FileMode mode, DeviceAccess access)
+    : StandardStreamDevice(access, *getFileStream(filepath, mode, access), true), m_Filepath(filepath)
 {
 }
 
