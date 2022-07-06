@@ -4,7 +4,6 @@
 - PdfObjectStream: GetInputStream() implmenting PdfInputStream,
   protecting the instance similary to BeginAppend()
 - Review PdfObjectStream::PdfGetFilterCopy API
-- Remove InputStream:ReadChar/Read deprecated overloads
 
 ### After 0.10
 - PdfPageCollection::CreatePage() with PdfPageSize or default inferred from doc
