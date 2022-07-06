@@ -701,7 +701,7 @@ void testReadXRefSubsection()
     }
     catch (PdfError& error)
     {
-        REQUIRE(error.GetError() == PdfErrorCode::NoXRef);
+        REQUIRE(error.GetError() == PdfErrorCode::UnexpectedEOF);
     }
     catch (exception&)
     {
@@ -1047,7 +1047,7 @@ void testReadXRefSubsection()
                 // other combinations of firstObject/objectCount from s_values are illegal 
                 // if we reach here it should be an invalid xref value of some type
                 REQUIRE((error.GetError() == PdfErrorCode::InvalidXRef || error.GetError() == PdfErrorCode::ValueOutOfRange
-                    || error.GetError() == PdfErrorCode::NoXRef
+                    || error.GetError() == PdfErrorCode::UnexpectedEOF
                     || error.GetError() == PdfErrorCode::OutOfMemory));
             }
             catch (exception&)

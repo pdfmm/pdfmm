@@ -39,12 +39,10 @@ protected:
     bool readChar(char& ch) override;
     bool peek(char& ch) const override;
 private:
-    size_t readBuffer(char* buffer, size_t size);
-private:
     bool m_eof;
     std::list<const PdfObject*> m_contents;
     charbuff m_buffer;
-    std::unique_ptr<InputStreamDevice> m_device;
+    std::unique_ptr<InputStreamDevice> m_currDevice;
     bool m_deviceSwitchOccurred;
 };
 

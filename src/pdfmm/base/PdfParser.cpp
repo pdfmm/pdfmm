@@ -217,7 +217,8 @@ bool PdfParser::IsPdfFile(InputStreamDevice& device)
     }
 
     char versionStr[PDF_VERSION_LENGHT];
-    if (device.Read(versionStr, PDF_VERSION_LENGHT) != PDF_VERSION_LENGHT)
+    bool eof;
+    if (device.Read(versionStr, PDF_VERSION_LENGHT, eof) != PDF_VERSION_LENGHT)
         return false;
 
     m_magicOffset = device.GetPosition() - PDF_MAGIC_LENGHT;
@@ -498,8 +499,10 @@ void PdfParser::ReadXRefSubsection(InputStreamDevice& device, int64_t& firstObje
 
     unsigned index = 0;
     char* buffer = m_buffer->data();
-    while (index < objectCount && device.Read(buffer, PDF_XREF_ENTRY_SIZE) == PDF_XREF_ENTRY_SIZE)
+    while (index < objectCount)
     {
+        device.Read(buffer, PDF_XREF_ENTRY_SIZE);
+
         char empty1;
         char empty2;
         buffer[PDF_XREF_ENTRY_SIZE] = '\0';
@@ -891,28 +894,17 @@ void PdfParser::FindTokenBackward(InputStreamDevice& device, const char* token, 
     device.Seek(-(ssize_t)m_LastEOFOffset, SeekDirection::End);
 
     char* buffer = m_buffer->data();
-    streamoff fileSize = device.GetPosition();
-    if (fileSize == -1)
-    {
-        PDFMM_RAISE_ERROR_INFO(
-            PdfErrorCode::NoXRef,
-            "Failed to seek to EOF when looking for xref");
-    }
-
-    size_t xRefBuf = std::min(static_cast<size_t>(fileSize), range);
-    size_t tokenLen = strlen(token);
-
-    device.Seek(-(ssize_t)xRefBuf, SeekDirection::Current);
-    if (device.Read(buffer, xRefBuf) != xRefBuf && !device.Eof())
-        PDFMM_RAISE_ERROR(PdfErrorCode::NoXRef);
-
-    buffer[xRefBuf] = '\0';
-
-    ssize_t i; // Do not make this unsigned, this will cause infinte loops in files without trailer
+    size_t currpos = device.GetPosition();
+    size_t searchSize = std::min(currpos, range);
+    device.Seek(-(ssize_t)searchSize, SeekDirection::Current);
+    device.Read(buffer, searchSize);
+    buffer[searchSize] = '\0';
 
     // search backwards in the buffer in case the buffer contains null bytes
     // because it is right after a stream (can't use strstr for this reason)
-    for (i = xRefBuf - tokenLen; i >= 0; i--)
+    ssize_t i; // Do not use an unsigned variable here
+    size_t tokenLen = char_traits<char>::length(token);
+    for (i = searchSize - tokenLen; i >= 0; i--)
     {
         if (std::strncmp(buffer + i, token, tokenLen) == 0)
             break;
@@ -922,7 +914,7 @@ void PdfParser::FindTokenBackward(InputStreamDevice& device, const char* token, 
         PDFMM_RAISE_ERROR(PdfErrorCode::InternalLogic);
 
     // Ooffset read position to the EOF marker if it is not the last thing in the file
-    device.Seek(-((ssize_t)xRefBuf - i) - m_LastEOFOffset, SeekDirection::End);
+    device.Seek(-((ssize_t)searchSize - i) - m_LastEOFOffset, SeekDirection::End);
 }
 
 // CHECK-ME: This function is fishy or bad named
@@ -930,28 +922,18 @@ void PdfParser::FindToken2(InputStreamDevice& device, const char* token, const s
 {
     device.Seek((ssize_t)searchEnd, SeekDirection::Begin);
 
-    streamoff fileSize = device.GetPosition();
-    if (fileSize == -1)
-    {
-        PDFMM_RAISE_ERROR_INFO(
-            PdfErrorCode::NoXRef,
-            "Failed to seek to EOF when looking for xref");
-    }
-
-    size_t xRefBuf = std::min(static_cast<size_t>(fileSize), range);
-    size_t tokenLen = strlen(token);
     char* buffer = m_buffer->data();
-
-    device.Seek(-(ssize_t)xRefBuf, SeekDirection::Current);
-    if (device.Read(buffer, xRefBuf) != xRefBuf && !device.Eof())
-        PDFMM_RAISE_ERROR(PdfErrorCode::NoXRef);
-
-    buffer[xRefBuf] = '\0';
+    size_t currpos = device.GetPosition();
+    size_t searchSize = std::min(currpos, range);
+    device.Seek(-(ssize_t)searchSize, SeekDirection::Current);
+    device.Read(buffer, searchSize);
+    buffer[searchSize] = '\0';
 
     // search backwards in the buffer in case the buffer contains null bytes
     // because it is right after a stream (can't use strstr for this reason)
     ssize_t i; // Do not use an unsigned variable here
-    for (i = xRefBuf - tokenLen; i >= 0; i--)
+    size_t tokenLen = char_traits<char>::length(token);
+    for (i = searchSize - tokenLen; i >= 0; i--)
     {
         if (std::strncmp(buffer + i, token, tokenLen) == 0)
             break;
@@ -960,7 +942,7 @@ void PdfParser::FindToken2(InputStreamDevice& device, const char* token, const s
     if (i == 0)
         PDFMM_RAISE_ERROR(PdfErrorCode::InternalLogic);
 
-    device.Seek((ssize_t)(searchEnd - (xRefBuf - i)), SeekDirection::Begin);
+    device.Seek((ssize_t)(searchEnd - (searchSize - i)), SeekDirection::Begin);
 }
 
 const PdfString& PdfParser::GetDocumentId()
@@ -1014,10 +996,7 @@ void PdfParser::CheckEOFMarker(InputStreamDevice& device)
     if (IsStrictParsing())
     {
         // For strict mode EOF marker must be at the very end of the file
-        if (static_cast<size_t>(device.Read(buff, EOFTokenLen)) != EOFTokenLen
-            && !device.Eof())
-            PDFMM_RAISE_ERROR(PdfErrorCode::NoEOFToken);
-
+        device.Read(buff, EOFTokenLen);
         if (std::strncmp(buff, EOFToken, EOFTokenLen) != 0)
             PDFMM_RAISE_ERROR(PdfErrorCode::NoEOFToken);
     }
@@ -1029,9 +1008,7 @@ void PdfParser::CheckEOFMarker(InputStreamDevice& device)
         bool found = false;
         while (true)
         {
-            if (static_cast<size_t>(device.Read(buff, EOFTokenLen)) != EOFTokenLen)
-                PDFMM_RAISE_ERROR(PdfErrorCode::NoEOFToken);
-
+            device.Read(buff, EOFTokenLen);
             if (std::strncmp(buff, EOFToken, EOFTokenLen) == 0)
             {
                 found = true;

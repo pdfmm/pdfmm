@@ -16,7 +16,7 @@ using namespace mm;
 
 InputStream::~InputStream() { }
 
-size_t InputStream::Read(char* buffer, size_t size)
+void InputStream::Read(char* buffer, size_t size)
 {
     if (buffer == nullptr)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Invalid buffer");
@@ -28,11 +28,11 @@ size_t InputStream::Read(char* buffer, size_t size)
     {
         read += readBuffer(buffer + read, size - read, eof);
         if (read == size)
-            return read;
+            return;
 
     } while (!eof);
 
-    return read;
+    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Unexpected EOF when reading from stream");
 }
 
 char InputStream::ReadChar()

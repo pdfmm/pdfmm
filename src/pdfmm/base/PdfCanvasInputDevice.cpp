@@ -14,7 +14,7 @@ using namespace std;
 using namespace mm;
 
 PdfCanvasInputDevice::PdfCanvasInputDevice(const PdfCanvas& canvas)
-    : m_deviceSwitchOccurred(false)
+    : m_deviceSwitchOccurred(false), m_eof(false)
 {
     auto contents = canvas.GetContentsObject();
     if (contents != nullptr)
@@ -40,17 +40,8 @@ PdfCanvasInputDevice::PdfCanvasInputDevice(const PdfCanvas& canvas)
         }
     }
 
-    if (m_contents.size() == 0)
-    {
+    if (!tryPopNextDevice())
         m_eof = true;
-    }
-    else
-    {
-        if (tryPopNextDevice())
-            m_eof = m_device->Eof();
-        else
-            m_eof = false;
-    }
 }
 
 bool PdfCanvasInputDevice::peek(char& ch) const
@@ -72,70 +63,65 @@ bool PdfCanvasInputDevice::peek(char& ch) const
             return false;
         }
 
-        if (device->Peek(ch))
+        if (m_deviceSwitchOccurred)
         {
-            if (m_deviceSwitchOccurred)
-            {
-                // Handle device switch by returning
-                // a newline separator. NOTE: Don't
-                // reset the switch flag
-                ch = '\n';
-                return true;
-            }
-
+            // Handle device switch by returning
+            // a newline separator. NOTE: Don't
+            // reset the switch flag
+            ch = '\n';
             return true;
         }
+
+        if (!device->Peek(ch))
+            continue;
+
+        return true;
     }
 }
 
 size_t PdfCanvasInputDevice::readBuffer(char* buffer, size_t size, bool& eof)
 {
-    size_t ret = readBuffer(buffer, size);
-    eof = m_eof;
-    return ret;
-}
-
-size_t PdfCanvasInputDevice::readBuffer(char* buffer, size_t size)
-{
-    if (size == 0 || m_eof)
+    PDFMM_ASSERT(size != 0);
+    if (m_eof)
+    {
+        eof = true;
         return 0;
+    }
 
-    char ch;
-    size_t readLocal;
-    size_t readCount = 0;
+    size_t read;
+    size_t count = 0;
     InputStreamDevice* device = nullptr;
     while (true)
     {
         if (!tryGetNextDevice(device))
         {
             setEOF();
-            return readCount;
+            eof = true;
+            return count;
         }
+
+        if (size == 0)
+            return count;
 
         if (m_deviceSwitchOccurred)
         {
-            if (!device->Peek(ch))
-                continue;
-
             // Handle device switch by inserting
             // a newline separator in the buffer
             // and reset the flag
-            *(buffer + readCount) = '\n';
+            *(buffer + count) = '\n';
             size -= 1;
-            readCount += 1;
+            count += 1;
             m_deviceSwitchOccurred = false;
             if (size == 0)
-                return readCount;
+                return count;
         }
 
         // Span reads into multple input devices
-        // FIX-ME: We should eagerly check if the device(s)
-        // reached EOF before retuning
-        readLocal = device->Read(buffer + readCount, size);
-        size -= readLocal;
-        readCount += readLocal;
-        if (size == 0)
-            return readCount;
+        // NOTE: we ignore if the device reached EOF, and
+        // we try pop another device at the next iteration
+        read = device->Read(buffer + count, size, eof);
+        size -= read;
+        count += read;
     }
 }
 
@@ -158,9 +144,6 @@ bool PdfCanvasInputDevice::readChar(char& ch)
 
         if (m_deviceSwitchOccurred)
         {
-            if (!device->Peek(ch))
-                continue;
-
             // Handle device switch by returning a
             // newline separator and reset the flag
             ch = '\n';
@@ -168,8 +151,10 @@ bool PdfCanvasInputDevice::readChar(char& ch)
             return true;
         }
 
-        if (device->Read(ch))
-            return true;
+        if (!device->Read(ch))
+            continue;
+
+        return true;
     }
 }
 
@@ -185,17 +170,12 @@ size_t PdfCanvasInputDevice::GetPosition() const
 
 bool PdfCanvasInputDevice::tryGetNextDevice(InputStreamDevice*& device)
 {
-    PDFMM_ASSERT(m_device != nullptr);
+    PDFMM_ASSERT(m_currDevice != nullptr);
     if (device == nullptr)
     {
-        device = m_device.get();
+        // Initial step, just return back current device
+        device = m_currDevice.get();
         return true;
-    }
-
-    if (m_contents.size() == 0)
-    {
-        device = nullptr;
-        return false;
     }
 
     if (!tryPopNextDevice())
@@ -210,25 +190,30 @@ bool PdfCanvasInputDevice::tryGetNextDevice(InputStreamDevice*& device)
     // We will handle the device switch by addind a
     // newline separator
     m_deviceSwitchOccurred = true;
-    device = m_device.get();
+    device = m_currDevice.get();
     return true;
 }
 
+// Returns true if one device was succesfully
+// popped out of the queue and is not EOF
 bool PdfCanvasInputDevice::tryPopNextDevice()
 {
-    auto contents = m_contents.front()->GetStream();
-    m_contents.pop_front();
-    if (contents == nullptr)
+    while (m_contents.size() != 0)
     {
-        m_device = nullptr;
-        return false;
-    }
-    else
-    {
+        auto contents = m_contents.front()->GetStream();
+        m_contents.pop_front();
+        if (contents == nullptr)
+            continue;
+
         contents->ExtractTo(m_buffer);
-        m_device = std::make_unique<SpanStreamDevice>(m_buffer);
+        if (m_buffer.size() == 0)
+            continue;
+
+        m_currDevice = std::make_unique<SpanStreamDevice>(m_buffer);
         return true;
     }
+
+    return false;
 }
 
 void PdfCanvasInputDevice::setEOF()

@@ -28,7 +28,8 @@ protected:
 
 public:
     /** Peek at next char in stream.
-     * /returns true if success, false if EOF
+     * /returns true if success, false if EOF is encountered
+     * before peeking the character
      */
     bool Peek(char& ch) const;
 

@@ -23,25 +23,33 @@ class PDFMM_API InputStream
 public:
     virtual ~InputStream();
 
-    // REMOVE-ME
-    size_t Read(char* buffer, size_t size);
+    /** Read data from the device
+     * \param buffer a pointer to the data buffer
+     * \param size length of the output buffer
+     * \remarks throws if EOF is encountered before
+     * reading the required size
+     */
+    void Read(char* buffer, size_t size);
 
     /** Read data from the device
      * \param buffer a pointer to the data buffer
      * \param size length of the output buffer
-     * \param eof stream reached EOF during the read
+     * \param eof stream encountered EOF during the read
      * \returns Number of read bytes
      */
     size_t Read(char* buffer, size_t size, bool& eof);
 
     /** Get next char from stream.
      * \returns the next character from the stream
+     * \remarks throws if EOF is encountered before
+     * reading the character
      */
     char ReadChar();
 
     /** Get next char from stream.
      * \param ch the read character
-     * \returns false if EOF
+     * \returns true if success, false if EOF is encountered
+     * before reading the character
      */
     bool Read(char& ch);
 

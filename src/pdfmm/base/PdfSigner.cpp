@@ -90,40 +90,41 @@ void mm::SignDocument(PdfMemDocument& doc, StreamDevice& device, PdfSigner& sign
 }
 
 size_t readForSignature(StreamDevice& device, size_t conentsBeaconOffset, size_t conentsBeaconSize,
-    char* buffer, size_t size)
+    char* buffer, size_t bufferSize)
 {
     if (device.Eof())
         return 0;
 
     size_t pos = device.GetPosition();
-    size_t numRead = 0;
+    size_t readSize = 0;
     // Check if we are before beacon
     if (pos < conentsBeaconOffset)
     {
-        size_t readSize = std::min(size, conentsBeaconOffset - pos);
+        readSize = std::min(bufferSize, conentsBeaconOffset - pos);
         if (readSize > 0)
         {
-            numRead = device.Read(buffer, readSize);
-            buffer += numRead;
-            size -= numRead;
-            if (size == 0)
-                return numRead;
+            device.Read(buffer, readSize);
+            buffer += readSize;
+            bufferSize -= readSize;
+            if (bufferSize == 0)
+                return readSize;
         }
     }
 
     // shift at the end of beacon
-    if ((pos + numRead) >= conentsBeaconOffset
+    if ((pos + readSize) >= conentsBeaconOffset
         && pos < (conentsBeaconOffset + conentsBeaconSize))
     {
         device.Seek(conentsBeaconOffset + conentsBeaconSize);
     }
 
     // read after beacon
-    size = std::min(size, device.GetLength() - device.GetPosition());
-    if (size == 0)
-        return numRead;
+    bufferSize = std::min(bufferSize, device.GetLength() - device.GetPosition());
+    if (bufferSize == 0)
+        return readSize;
 
-    return numRead + device.Read(buffer, size);
+    device.Read(buffer, bufferSize);
+    return readSize + bufferSize;
 }
 
 void adjustByteRange(StreamDevice& device, size_t byteRangeOffset,
