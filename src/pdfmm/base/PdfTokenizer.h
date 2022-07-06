@@ -113,29 +113,29 @@ public:
      *
      *  \returns true if it is a whitespace character otherwise false
      */
-    static bool IsWhitespace(unsigned char ch);
+    static bool IsWhitespace(char ch);
 
     /** Returns true if the given character is a delimiter
      *  according to the pdf reference
      */
-    static bool IsDelimiter(unsigned char ch);
+    static bool IsDelimiter(char ch);
 
     /** Returns true if the given character is a token delimiter
      */
-    static bool IsTokenDelimiter(unsigned char ch, PdfTokenType& tokenType);
+    static bool IsTokenDelimiter(char ch, PdfTokenType& tokenType);
 
     /**
      * True if the passed character is a regular character according to the PDF
      * reference (Section 3.1.1, Character Set); ie it is neither a white-space
      * nor a delimiter character.
      */
-    static bool IsRegular(unsigned char ch);
+    static bool IsRegular(char ch);
 
     /**
      * True if the passed character is within the generally accepted "printable"
      * ASCII range.
      */
-    static bool IsPrintable(unsigned char ch);
+    static bool IsPrintable(char ch);
 
 protected:
     // This enum differs from regular PdfDataType in the sense

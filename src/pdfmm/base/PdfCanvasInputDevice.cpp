@@ -72,8 +72,7 @@ bool PdfCanvasInputDevice::peek(char& ch) const
             return false;
         }
 
-        int ret = device->Peek();
-        if (ret != -1)
+        if (device->Peek(ch))
         {
             if (m_deviceSwitchOccurred)
             {
@@ -84,7 +83,6 @@ bool PdfCanvasInputDevice::peek(char& ch) const
                 return true;
             }
 
-            ch = (char)ret;
             return true;
         }
     }
@@ -102,6 +100,7 @@ size_t PdfCanvasInputDevice::readBuffer(char* buffer, size_t size)
     if (size == 0 || m_eof)
         return 0;
 
+    char ch;
     size_t readLocal;
     size_t readCount = 0;
     InputStreamDevice* device = nullptr;
@@ -115,7 +114,7 @@ size_t PdfCanvasInputDevice::readBuffer(char* buffer, size_t size)
 
         if (m_deviceSwitchOccurred)
         {
-            if (device->Peek() == -1)
+            if (!device->Peek(ch))
                 continue;
 
             // Handle device switch by inserting
@@ -159,7 +158,7 @@ bool PdfCanvasInputDevice::readChar(char& ch)
 
         if (m_deviceSwitchOccurred)
         {
-            if (device->Peek() == -1)
+            if (!device->Peek(ch))
                 continue;
 
             // Handle device switch by returning a

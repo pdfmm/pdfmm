@@ -170,7 +170,6 @@ void EscapeNameTo(string& dst, const string_view& view)
     for (size_t i = 0; i < view.length(); i++)
     {
         char ch = view[i];
-
         if (PdfTokenizer::IsRegular(ch)
             && PdfTokenizer::IsPrintable(ch)
             && ch != '#')

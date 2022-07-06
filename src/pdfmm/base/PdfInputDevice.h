@@ -28,12 +28,6 @@ protected:
 
 public:
     /** Peek at next char in stream.
-     * /returns the next char in the stream, or -1 if EOF
-     */
-    // REMOVE-ME
-    int Peek() const;
-
-    /** Peek at next char in stream.
      * /returns true if success, false if EOF
      */
     bool Peek(char& ch) const;

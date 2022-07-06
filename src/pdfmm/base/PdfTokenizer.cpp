@@ -47,8 +47,6 @@ bool PdfTokenizer::TryReadNextToken(InputStreamDevice& device, string_view& toke
 
 bool PdfTokenizer::TryReadNextToken(InputStreamDevice& device, string_view& token, PdfTokenType& tokenType)
 {
-    int c;
-    int64_t counter = 0;
     char* buffer = m_buffer->data();
     size_t bufferSize = m_buffer->size();
 
@@ -69,63 +67,73 @@ bool PdfTokenizer::TryReadNextToken(InputStreamDevice& device, string_view& toke
 
     tokenType = PdfTokenType::Literal;
 
-    while ((c = device.Peek()) != -1
-        && counter + 1 < static_cast<int64_t>(bufferSize))
+    char ch1;
+    char ch2;
+    size_t count = 0;
+    while (count + 1 < bufferSize) // NOTE: Including the null termination
     {
+        if (!device.Peek(ch1))
+            goto Eof;
+
         // ignore leading whitespaces
-        if (counter == 0 && IsWhitespace(c))
+        if (count == 0 && IsWhitespace(ch1))
         {
             // Consume the whitespace character
             (void)device.ReadChar();
             continue;
         }
         // ignore comments
-        else if (c == '%')
+        else if (ch1 == '%')
         {
             // Consume all characters before the next line break
             do
             {
                 (void)device.ReadChar();
-            } while ((c = device.Peek()) != -1 && c != '\n' && c != '\r');
+                if (!device.Peek(ch1))
+                    goto Eof;
+
+            } while (ch1 != '\n' && ch1 != '\r');
 
             // If we've already read one or more chars of a token, return them, since
             // comments are treated as token-delimiting whitespace. Otherwise keep reading
             // at the start of the next line.
-            if (counter != 0)
+            if (count != 0)
                 break;
         }
         // special handling for << and >> tokens
-        else if (counter == 0 && (c == '<' || c == '>'))
+        else if (count == 0 && (ch1 == '<' || ch1 == '>'))
         {
             // Really consume character from stream
             (void)device.ReadChar();
-            buffer[counter] = c;
-            counter++;
+            buffer[count] = ch1;
+            count++;
 
-            char n = device.Peek();
+            if (!device.Peek(ch2))
+                goto Eof;
+
             // Is n another < or > , ie are we opening/closing a dictionary?
             // If so, consume that character too.
-            if (n == c)
+            if (ch2 == ch1)
             {
                 (void)device.ReadChar();
-                buffer[counter] = n;
-                if (c == '<')
+                buffer[count] = ch2;
+                if (ch1 == '<')
                     tokenType = PdfTokenType::DoubleAngleBracketsLeft;
                 else
                     tokenType = PdfTokenType::DoubleAngleBracketsRight;
-                counter++;
-
+                count++;
             }
             else
             {
-                if (c == '<')
+                if (ch1 == '<')
                     tokenType = PdfTokenType::AngleBracketLeft;
                 else
                     tokenType = PdfTokenType::AngleBracketRight;
             }
+
             break;
         }
-        else if (counter != 0 && (IsWhitespace(c) || IsDelimiter(c)))
+        else if (count != 0 && (IsWhitespace(ch1) || IsDelimiter(ch1)))
         {
             // Next (unconsumed) character is a token-terminating char, so
             // we have a complete token and can return it.
@@ -135,11 +143,11 @@ bool PdfTokenizer::TryReadNextToken(InputStreamDevice& device, string_view& toke
         {
             // Consume the next character and add it to the token we're building.
             (void)device.ReadChar();
-            buffer[counter] = c;
-            counter++;
+            buffer[count] = ch1;
+            count++;
 
             PdfTokenType tokenDelimiterType;
-            if (IsTokenDelimiter(c, tokenDelimiterType))
+            if (IsTokenDelimiter(ch1, tokenDelimiterType))
             {
                 // All delimeters except << and >> (handled above) are
                 // one-character tokens, so if we hit one we can just return it
@@ -150,9 +158,13 @@ bool PdfTokenizer::TryReadNextToken(InputStreamDevice& device, string_view& toke
         }
     }
 
-    buffer[counter] = '\0';
+Exit:
+    buffer[count] = '\0';
+    token = string_view(buffer, count);
+    return true;
 
-    if (c == -1 && counter == 0)
+Eof:
+    if (count == 0)
     {
         // No characters were read before EOF, so we're out of data.
         // Ensure the buffer points to nullptr in case someone fails to check the return value.
@@ -160,8 +172,7 @@ bool PdfTokenizer::TryReadNextToken(InputStreamDevice& device, string_view& toke
         return false;
     }
 
-    token = buffer;
-    return true;
+    goto Exit;
 }
 
 bool PdfTokenizer::IsNextToken(InputStreamDevice& device, const string_view& token)
@@ -610,10 +621,11 @@ void PdfTokenizer::ReadName(InputStreamDevice& device, PdfVariant& variant)
     // and we have to take care for stuff like:
     // 10 0 obj / endobj
     // which stupid but legal PDF
-    int c = device.Peek();
-    if (IsWhitespace(c)) // Delimeters are handled correctly by tryReadNextToken
+    char ch;
+    if (!device.Peek(ch) || IsWhitespace(ch))
     {
-        // We are an empty PdfName
+        // We have an empty PdfName
+        // NOTE: Delimeters are handled correctly by tryReadNextToken
         variant = PdfName();
         return;
     }
@@ -640,7 +652,7 @@ void PdfTokenizer::EnqueueToken(const string_view& token, PdfTokenType tokenType
     m_tokenQueque.push_back(TokenizerPair(string(token), tokenType));
 }
 
-bool PdfTokenizer::IsWhitespace(unsigned char ch)
+bool PdfTokenizer::IsWhitespace(char ch)
 {
     switch (ch)
     {
@@ -661,7 +673,7 @@ bool PdfTokenizer::IsWhitespace(unsigned char ch)
     }
 }
 
-bool PdfTokenizer::IsDelimiter(unsigned char ch)
+bool PdfTokenizer::IsDelimiter(char ch)
 {
     switch (ch)
     {
@@ -690,7 +702,7 @@ bool PdfTokenizer::IsDelimiter(unsigned char ch)
     }
 }
 
-bool PdfTokenizer::IsTokenDelimiter(unsigned char ch, PdfTokenType& tokenType)
+bool PdfTokenizer::IsTokenDelimiter(char ch, PdfTokenType& tokenType)
 {
     switch (ch)
     {
@@ -721,12 +733,12 @@ bool PdfTokenizer::IsTokenDelimiter(unsigned char ch, PdfTokenType& tokenType)
     }
 }
 
-bool PdfTokenizer::IsRegular(unsigned char ch)
+bool PdfTokenizer::IsRegular(char ch)
 {
     return !IsWhitespace(ch) && !IsDelimiter(ch);
 }
 
-bool PdfTokenizer::IsPrintable(unsigned char ch)
+bool PdfTokenizer::IsPrintable(char ch)
 {
     return ch > 32U && ch < 125U;
 }

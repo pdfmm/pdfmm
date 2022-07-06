@@ -165,7 +165,7 @@ void PdfParserObject::parseStream()
     PDFMM_ASSERT(IsDelayedLoadDone());
 
     int64_t size = -1;
-    int c;
+    char ch;
 
     auto& lengthObj = this->m_Variant.GetDictionary().MustFindKey(PdfName::KeyLength);
     if (!lengthObj.TryGetNumber(size))
@@ -173,11 +173,13 @@ void PdfParserObject::parseStream()
 
     m_device->Seek(m_StreamOffset);
 
-    streamoff streamOffset;
+    size_t streamOffset;
     while (true)
     {
-        c = m_device->Peek();
-        switch (c)
+        if (!m_device->Peek(ch))
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Unexpected EOF when reading stream");
+
+        switch (ch)
         {
             // Skip spaces between the stream keyword and the carriage return/line
             // feed or line feed. Actually, this is not required by PDF Reference,
@@ -194,8 +196,10 @@ void PdfParserObject::parseStream()
             case '\r':
                 streamOffset = m_device->GetPosition();
                 (void)m_device->ReadChar();
-                c = m_device->Peek();
-                if (c == '\n')
+                if (!m_device->Peek(ch))
+                    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnexpectedEOF, "Unexpected EOF when reading stream");
+
+                if (ch == '\n')
                 {
                     (void)m_device->ReadChar();
                     streamOffset = m_device->GetPosition();

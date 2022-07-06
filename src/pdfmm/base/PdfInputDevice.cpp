@@ -21,16 +21,6 @@ InputStreamDevice::InputStreamDevice(bool init)
         SetAccess(DeviceAccess::Read);
 }
 
-int InputStreamDevice::Peek() const
-{
-    EnsureAccess(DeviceAccess::Read);
-    char ch;
-    if (peek(ch))
-        return ch;
-    else
-        return -1;
-}
-
 bool InputStreamDevice::Peek(char& ch) const
 {
     EnsureAccess(DeviceAccess::Read);
