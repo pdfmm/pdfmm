@@ -36,8 +36,6 @@ using namespace std;
 using namespace cmn;
 using namespace mm;
 
-// kind of ABCDEF+
-static string_view genSubsetPrefix();
 static double getCharWidth(double widthGlyph, const PdfTextState& state, bool ignoreCharSpacing);
 static string_view toString(PdfFontStretch stretch);
 
@@ -219,7 +217,7 @@ void PdfFont::InitImported(bool wantEmbed, bool wantSubset)
 
     if (m_SubsettingEnabled)
     {
-        m_SubsetPrefix = genSubsetPrefix();
+        m_SubsetPrefix = GetDocument().GetFontManager().GenerateSubsetPrefix();
         PDFMM_ASSERT(!m_SubsetPrefix.empty());
         fontName = m_SubsetPrefix + fontName;
     }
@@ -927,38 +925,6 @@ bool PdfFont::IsCIDKeyed() const
 bool PdfFont::IsObjectLoaded() const
 {
     return false;
-}
-
-string_view genSubsetPrefix()
-{
-    static constexpr unsigned SUBSET_PREFIX_LEN = 6; // + 2 for "+\0"
-    struct SubsetBaseNameCtx
-    {
-        SubsetBaseNameCtx()
-            : Prefix{ }
-        {
-            char* p = Prefix;
-            for (unsigned i = 0; i < SUBSET_PREFIX_LEN; i++, p++)
-                *p = 'A';
-
-            Prefix[SUBSET_PREFIX_LEN] = '+';
-            Prefix[0]--;
-        }
-        char Prefix[SUBSET_PREFIX_LEN + 2];
-    };
-
-    static SubsetBaseNameCtx s_ctx;
-
-    for (unsigned i = 0; i < SUBSET_PREFIX_LEN; i++)
-    {
-        s_ctx.Prefix[i]++;
-        if (s_ctx.Prefix[i] <= 'Z')
-            break;
-
-        s_ctx.Prefix[i] = 'A';
-    }
-
-    return s_ctx.Prefix;
 }
 
 // TODO:

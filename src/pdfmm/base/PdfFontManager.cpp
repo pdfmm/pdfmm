@@ -47,8 +47,13 @@ static PdfFont* matchFont(const mspan<PdfFont*>& fonts, const string_view& fontN
 shared_ptr<PdfFontConfigWrapper> PdfFontManager::m_fontConfig;
 #endif
 
+static constexpr unsigned SUBSET_PREFIX_LEN = 6;
+
 PdfFontManager::PdfFontManager(PdfDocument& doc)
-    : m_doc(&doc) { }
+    : m_doc(&doc)
+{
+    m_currentPrefix = "AAAAAA+";
+}
 
 PdfFontManager::~PdfFontManager()
 {
@@ -68,6 +73,20 @@ PdfFont* PdfFontManager::AddImported(unique_ptr<PdfFont>&& font)
         font->GetEncoding(),
         font->GetMetrics().GetStyle());
     return addImported(m_importedFonts[descriptor], std::move(font));
+}
+
+string PdfFontManager::GenerateSubsetPrefix()
+{
+    for (unsigned i = 0; i < SUBSET_PREFIX_LEN; i++)
+    {
+        m_currentPrefix[i]++;
+        if (m_currentPrefix[i] <= 'Z')
+            break;
+
+        m_currentPrefix[i] = 'A';
+    }
+
+    return m_currentPrefix;
 }
 
 PdfFont* PdfFontManager::addImported(vector<PdfFont*>& fonts, unique_ptr<PdfFont>&& font)

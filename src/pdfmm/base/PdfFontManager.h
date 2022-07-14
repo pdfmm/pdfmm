@@ -141,6 +141,10 @@ private:
 
     PdfFont* AddImported(std::unique_ptr<PdfFont>&& font);
 
+    /** Returns a new ABCDEF+ like font subset prefix
+     */
+    std::string GenerateSubsetPrefix();
+
 private:
     /** A private structure, which represents a cached font
      */
@@ -203,6 +207,8 @@ private:
 
 private:
     PdfDocument* m_doc;
+    std::string m_currentPrefix;
+
     // Map of all imported fonts
     ImportedFontMap m_importedFonts;
     // Map of all fonts
