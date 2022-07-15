@@ -36,7 +36,7 @@ string PdfSigner::GetSignatureFilter() const
 void mm::SignDocument(PdfMemDocument& doc, StreamDevice& device, PdfSigner& signer,
     PdfSignature& signature, PdfSaveOptions opts)
 {
-    string signatureBuf;
+    charbuff signatureBuf;
     signer.ComputeSignature(signatureBuf, true);
     size_t beaconSize = signatureBuf.size();
     PdfSignatureBeacons beacons;
