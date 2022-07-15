@@ -58,8 +58,15 @@ namespace mm
         virtual std::string GetSignatureType() const = 0;
     };
 
+    /** Sign the document on the given signature field
+     * \param doc the document to be signed
+     * \param device the input/output device where the document will be saved
+     * \param signer the signer implementation that will compute the signature
+     * \param signature the signature field where the signature will be applied
+     * \param options document saving options
+     */
     void SignDocument(PdfMemDocument& doc, StreamDevice& device, PdfSigner& signer,
-        PdfSignature& signature, PdfSaveOptions opts = PdfSaveOptions::None);
+        PdfSignature& signature, PdfSaveOptions saveOptions = PdfSaveOptions::None);
 }
 
 #endif // PDF_SIGNER_H
