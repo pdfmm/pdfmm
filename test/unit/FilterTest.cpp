@@ -48,11 +48,11 @@ void testFilter(PdfFilterType filterType, const bufferview& view)
     unique_ptr<PdfFilter> filter = PdfFilterFactory::Create(filterType);
     if (filter == nullptr)
     {
-        INFO(utls::Format("!!! Filter {} not implemented.\n", filterType));
+        INFO(utls::Format("!!! Filter {} not implemented.\n", (int)filterType));
         return;
     }
 
-    INFO(utls::Format("Testing Algorithm {}:", filterType));
+    INFO(utls::Format("Testing Algorithm {}:", (int)filterType));
     INFO("\t-> Testing Encoding");
     try
     {
@@ -81,7 +81,7 @@ void testFilter(PdfFilterType filterType, const bufferview& view)
     {
         if (e == PdfErrorCode::UnsupportedFilter)
         {
-            INFO(utls::Format("\t-> Decoding not supported for filter {}", filterType));
+            INFO(utls::Format("\t-> Decoding not supported for filter {}", (int)filterType));
             return;
         }
         else

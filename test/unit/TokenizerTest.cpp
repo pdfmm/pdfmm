@@ -192,8 +192,8 @@ void Test(const string_view& buffer, PdfDataType dataType, string_view expected)
     PdfVariant variant;
     REQUIRE(tokenizer.TryReadNextVariant(device, variant));
 
-    INFO(utls::Format("   -> Expected Datatype: {}", dataType));
-    INFO(utls::Format("   -> Got      Datatype: {}", variant.GetDataType()));
+    INFO(utls::Format("   -> Expected Datatype: {}", (int)dataType));
+    INFO(utls::Format("   -> Got      Datatype: {}", (int)variant.GetDataType()));
     REQUIRE(variant.GetDataType() == dataType);
 
     string variantStr;
