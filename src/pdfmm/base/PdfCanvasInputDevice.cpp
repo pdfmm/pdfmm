@@ -14,7 +14,7 @@ using namespace std;
 using namespace mm;
 
 PdfCanvasInputDevice::PdfCanvasInputDevice(const PdfCanvas& canvas)
-    : m_deviceSwitchOccurred(false), m_eof(false)
+    : m_eof(false), m_deviceSwitchOccurred(false)
 {
     auto contents = canvas.GetContentsObject();
     if (contents != nullptr)
