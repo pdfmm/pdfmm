@@ -8,7 +8,7 @@
 #else // __cplusplus < 202002L
 
 #define FMT_HEADER_ONLY
-#include "fmt/format.h"
+#include <fmt/format.h>
 
 namespace std
 {
