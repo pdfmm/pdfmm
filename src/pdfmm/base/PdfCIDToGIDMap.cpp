@@ -71,7 +71,7 @@ bool PdfCIDToGIDMap::HasGlyphAccess(PdfGlyphAccess access) const
 
 unsigned PdfCIDToGIDMap::GetSize() const
 {
-    return m_cidToGidMap.size();
+    return (unsigned)m_cidToGidMap.size();
 }
 
 PdfCIDToGIDMap::iterator PdfCIDToGIDMap::begin() const
