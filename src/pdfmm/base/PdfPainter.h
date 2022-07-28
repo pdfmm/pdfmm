@@ -668,11 +668,19 @@ private:
     void SetStrokeColor(const PdfColor& color);
     void SetRenderingIntent(const std::string_view& intent);
     void SetTransformationMatrix(const Matrix& matrix);
+    void SetFont(const PdfFont* font, double fontSize);
     void SetFontScale(double value);
     void SetCharSpacing(double value);
     void SetWordSpacing(double value);
     void SetTextRenderingMode(PdfTextRenderingMode value);
+
+private:
+    void writeTextState();
     void setFont(const PdfFont* font, double fontSize);
+    void setFontScale(double value);
+    void setCharSpacing(double value);
+    void setWordSpacing(double value);
+    void setTextRenderingMode(PdfTextRenderingMode value);
 
 private:
     /** Gets the text divided into individual lines, using the current font and clipping rectangle.

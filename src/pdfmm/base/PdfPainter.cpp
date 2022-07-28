@@ -447,6 +447,7 @@ void PdfPainter::DrawText(const string_view& str, double x, double y)
     checkFont();
 
     m_tmpStream << "BT" << endl;
+    writeTextState();
     drawText(str, x, y, false, false);
     m_tmpStream << "ET" << endl;
 }
@@ -547,7 +548,23 @@ void PdfPainter::DrawMultiLineText(const string_view& str, double x, double y, d
         return;
 
     m_tmpStream << "BT" << endl;
+    writeTextState();
     drawMultiLineText(str, x, y, width, height, hAlignment, vAlignment, clip, skipSpaces);
+    m_tmpStream << "ET" << endl;
+}
+
+void PdfPainter::DrawTextAligned(const string_view& str, double x, double y, double width, PdfHorizontalAlignment hAlignment)
+{
+    if (width <= 0.0) // nonsense arguments
+        return;
+
+    checkStream();
+    checkTextModeClosed();
+    checkFont();
+
+    m_tmpStream << "BT" << endl;
+    writeTextState();
+    drawTextAligned(str, x, y, width, hAlignment);
     m_tmpStream << "ET" << endl;
 }
 
@@ -757,20 +774,6 @@ vector<string> PdfPainter::getMultiLineTextAsLines(const string_view& str, doubl
     }
 
     return lines;
-}
-
-void PdfPainter::DrawTextAligned(const string_view& str, double x, double y, double width, PdfHorizontalAlignment hAlignment)
-{
-    checkStream();
-    checkTextModeClosed();
-    checkFont();
-
-    if (width <= 0.0) // nonsense arguments
-        return;
-
-    m_tmpStream << "BT" << endl;
-    drawTextAligned(str, x, y, width, hAlignment);
-    m_tmpStream << "ET" << endl;
 }
 
 void PdfPainter::drawTextAligned(const std::string_view& str, double x, double y, double width, PdfHorizontalAlignment hAlignment)
@@ -1412,15 +1415,37 @@ void PdfPainter::SetStrokeColor(const PdfColor& color)
     }
 }
 
-void PdfPainter::setFont(const PdfFont* font, double fontSize)
+void PdfPainter::writeTextState()
+{
+    if (m_TextState.Font != nullptr)
+        setFont(m_TextState.Font, m_TextState.FontSize);
+
+    if (m_TextState.FontScale != 1)
+        setFontScale(m_TextState.FontScale);
+
+    if (m_TextState.CharSpacing != 0)
+        setCharSpacing(m_TextState.CharSpacing);
+
+    if (m_TextState.WordSpacing != 0)
+        setWordSpacing(m_TextState.WordSpacing);
+
+    if (m_TextState.RenderingMode != PdfTextRenderingMode::Fill)
+        setTextRenderingMode(m_TextState.RenderingMode);
+}
+
+void PdfPainter::SetFont(const PdfFont* font, double fontSize)
 {
     if (font == nullptr)
         return;
 
-    checkStream();
-
     this->addToPageResources("Font", font->GetIdentifier(), font->GetObject());
+    if (m_isTextOpen)
+        setFont(font, fontSize);
+}
 
+void PdfPainter::setFont(const PdfFont* font, double fontSize)
+{
+    checkStream();
     m_tmpStream << "/" << font->GetIdentifier().GetString()
         << " " << fontSize
         << " Tf" << endl;
@@ -1428,11 +1453,23 @@ void PdfPainter::setFont(const PdfFont* font, double fontSize)
 
 void PdfPainter::SetFontScale(double value)
 {
+    if (m_isTextOpen)
+        setFontScale(value);
+}
+
+void PdfPainter::setFontScale(double value)
+{
     checkStream();
     m_tmpStream << value * 100 << " Tz" << endl;
 }
 
 void PdfPainter::SetCharSpacing(double value)
+{
+    if (m_isTextOpen)
+        setCharSpacing(value);
+}
+
+void PdfPainter::setCharSpacing(double value)
 {
     checkStream();
     m_tmpStream << value << " Tc" << endl;
@@ -1440,14 +1477,26 @@ void PdfPainter::SetCharSpacing(double value)
 
 void PdfPainter::SetWordSpacing(double value)
 {
+    if (m_isTextOpen)
+        setWordSpacing(value);
+}
+
+void PdfPainter::setWordSpacing(double value)
+{
     checkStream();
     m_tmpStream << value << " Tw" << endl;
 }
 
-void PdfPainter::SetTextRenderingMode(PdfTextRenderingMode mode)
+void PdfPainter::SetTextRenderingMode(PdfTextRenderingMode value)
+{
+    if (m_isTextOpen)
+        setTextRenderingMode(value);
+}
+
+void PdfPainter::setTextRenderingMode(PdfTextRenderingMode value)
 {
     checkStream();
-    m_tmpStream << (int)mode << " Tr" << endl;
+    m_tmpStream << (int)value << " Tr" << endl;
 }
 
 string PdfPainter::expandTabs(const string_view& str) const
@@ -1600,7 +1649,7 @@ void PdfTextStateWrapper::SetFont(const PdfFont* font, double fontSize)
 
     m_state->Font = font;
     m_state->FontSize = fontSize;
-    m_painter->setFont(m_state->Font, m_state->FontSize);
+    m_painter->SetFont(m_state->Font, m_state->FontSize);
 }
 
 void PdfTextStateWrapper::SetFontScale(double scale)
