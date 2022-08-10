@@ -40,8 +40,10 @@ static double getCharWidth(double widthGlyph, const PdfTextState& state, bool ig
 static string_view toString(PdfFontStretch stretch);
 
 PdfFont::PdfFont(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
-    const PdfEncoding& encoding) :
-    PdfDictionaryElement(doc, "Font"), m_Metrics(metrics)
+        const PdfEncoding& encoding) :
+    PdfDictionaryElement(doc, "Font"),
+    m_wordSpacingWidthRaw(-1),
+    m_Metrics(metrics)
 {
     if (metrics == nullptr)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Metrics must me not null");
@@ -50,8 +52,10 @@ PdfFont::PdfFont(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
 }
 
 PdfFont::PdfFont(PdfObject& obj, const PdfFontMetricsConstPtr& metrics,
-    const PdfEncoding& encoding) :
-    PdfDictionaryElement(obj), m_Metrics(metrics)
+        const PdfEncoding& encoding) :
+    PdfDictionaryElement(obj),
+    m_wordSpacingWidthRaw(-1),
+    m_Metrics(metrics)
 {
     if (metrics == nullptr)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Metrics must me not null");
@@ -326,6 +330,12 @@ bool PdfFont::TryGetStringWidth(const PdfString& encodedStr, const PdfTextState&
     return success;
 }
 
+double PdfFont::GetWordSpacingWidth(const PdfTextState& state) const
+{
+    const_cast<PdfFont&>(*this).initWordSpacingWidth();
+    return getCharWidth(m_wordSpacingWidthRaw, state, false);
+}
+
 double PdfFont::GetCharWidth(char32_t codePoint, const PdfTextState& state, bool ignoreCharSpacing) const
 {
     // Ignore failures
@@ -527,6 +537,26 @@ PdfObject* PdfFont::embedFontFileData(PdfObject& descriptor, const PdfName& font
     descriptor.GetDictionary().AddKeyIndirect(fontFileName, contents);
     contents->GetOrCreateStream().Set(data);
     return contents;
+}
+
+void PdfFont::initWordSpacingWidth()
+{
+    if (m_wordSpacingWidthRaw >= 0)
+        return;
+
+    double width;
+    unsigned gid;
+    if (!TryGetGID(U' ', PdfGlyphAccess::Width, gid)
+        || m_Metrics->TryGetGlyphWidth(gid, m_wordSpacingWidthRaw))
+    {
+        m_wordSpacingWidthRaw = numeric_limits<double>::max();
+        for (unsigned i = 0, count = m_Metrics->GetGlyphCount(); i < count; i++)
+        {
+            double glyphWidth = m_Metrics->GetGlyphWidth(i);
+            if (glyphWidth < m_wordSpacingWidthRaw)
+                m_wordSpacingWidthRaw = glyphWidth;
+        }
+    }
 }
 
 void PdfFont::initImported()

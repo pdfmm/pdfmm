@@ -45,6 +45,7 @@ struct TextState
     double SpaceSize = 0;
     void RecomputeT_rm();
 
+    double GetWordSpacingWidth() const;
     double GetCharWidth(char32_t ch) const;
     double GetStringWidth(const string_view& str) const;        // utf8 string
     double GetStringWidth(const PdfString& encodedStr) const;   // pdf encoded
@@ -704,7 +705,7 @@ void ExtractionContext::Tf_Operator(const PdfName &fontname, double fontsize)
     }
     else
     {
-        spacesize = States.Current->GetCharWidth(U' ');
+        spacesize = States.Current->GetWordSpacingWidth();
     }
 
     States.Current->SpaceSize = spacesize;
@@ -978,6 +979,11 @@ bool AreEqual(double lhs, double rhs)
 void TextState::RecomputeT_rm()
 {
     T_rm = T_m * CTM;
+}
+
+double TextState::GetWordSpacingWidth() const
+{
+    return PdfState.Font->GetWordSpacingWidth(PdfState);
 }
 
 double TextState::GetCharWidth(char32_t ch) const

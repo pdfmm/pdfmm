@@ -181,6 +181,11 @@ public:
     bool TryGetStringWidth(const PdfString& encodedStr, const PdfTextState& state, double& width) const;
 
     /**
+     *  \returns The spacing width
+     */
+    double GetWordSpacingWidth(const PdfTextState& state) const;
+
+    /**
      *  \remarks Doesn't throw if characater glyph could not be found
      */
     double GetCharWidth(char32_t codePoint, const PdfTextState& state, bool ignoreCharSpacing = false) const;
@@ -407,6 +412,8 @@ private:
     static std::unique_ptr<PdfFont> createFontForType(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
         const PdfEncoding& encoding, PdfFontFileType type, bool preferNonCID);
 
+    void initWordSpacingWidth();
+
 private:
     std::string m_Name;
     std::string m_SubsetPrefix;
@@ -415,6 +422,7 @@ private:
     bool m_SubsettingEnabled;
     UsedGIDsMap m_SubsetGIDs;
     PdfCIDToGIDMapConstPtr m_cidToGidMap;
+    double m_wordSpacingWidthRaw;
 
 protected:
     PdfFontMetricsConstPtr m_Metrics;
