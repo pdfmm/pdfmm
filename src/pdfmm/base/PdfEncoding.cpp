@@ -394,6 +394,20 @@ bool PdfEncoding::HasCIDMapping() const
 
 bool PdfEncoding::IsSimpleEncoding() const
 {
+    switch (m_Encoding->GetType())
+    {
+        case PdfEncodingMapType::Simple:
+            return true;
+        case PdfEncodingMapType::Indeterminate:
+            // NOTE: See TrueType implicit encoding
+            // CHECK-ME: Maybe we should check font type instead,
+            // eg. /Type1 and /Type3 can use only simple encodings
+            return m_ParsedLimits.AreValid();
+        case PdfEncodingMapType::CMap:
+            return false;
+        default:
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+    }
     return m_Encoding->GetType() == PdfEncodingMapType::Simple;
 }
 

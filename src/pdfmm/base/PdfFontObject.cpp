@@ -41,8 +41,16 @@ bool PdfFontObject::tryMapCIDToGID(unsigned cid, unsigned& gid) const
     }
     else
     {
-        // We just convert to a GID using /FirstChar
-        gid = cid - m_Encoding->GetFirstChar().Code;
+        if (m_Encoding->IsSimpleEncoding())
+        {
+            // We just convert to a GID using /FirstChar
+            gid = cid - m_Encoding->GetFirstChar().Code;
+        }
+        else
+        {
+            // Else we assume identity
+            gid = cid;
+        }
     }
 
     return true;
