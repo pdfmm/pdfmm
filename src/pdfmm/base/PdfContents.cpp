@@ -12,7 +12,7 @@
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfName.h"
-#include "PdfOutputDevice.h"
+#include "PdfStreamDevice.h"
 
 #include "PdfDocument.h"
 #include "PdfPage.h"
@@ -83,7 +83,10 @@ PdfObjectStream & PdfContents::GetStreamForAppending(PdfStreamAppendFlags flags)
         {
             auto stream = arr->FindAt(i).GetStream();
             if (stream != nullptr)
-                stream->ExtractTo(buffer);
+            {
+                BufferStreamDevice device(buffer);
+                stream->ExtractTo(device);
+            }
         }
 
         if (buffer.size() != 0)
