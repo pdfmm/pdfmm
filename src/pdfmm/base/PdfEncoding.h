@@ -191,7 +191,7 @@ namespace mm
         size_t m_Id;
         PdfEncodingMapConstPtr m_Encoding;
         PdfEncodingMapConstPtr m_ToUnicode;
-        PdfEncodingLimits m_Limits;
+        PdfEncodingLimits m_ParsedLimits;
     };
 }
 

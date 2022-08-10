@@ -46,18 +46,18 @@ PdfEncoding::PdfEncoding(const PdfObject& fontObj, const PdfEncodingMapConstPtr&
 {
     auto firstCharObj = fontObj.GetDictionary().FindKey("FirstChar");
     if (firstCharObj != nullptr)
-        m_Limits.FirstChar = PdfCharCode(static_cast<unsigned>(firstCharObj->GetNumber()));
+        m_ParsedLimits.FirstChar = PdfCharCode(static_cast<unsigned>(firstCharObj->GetNumber()));
 
     auto lastCharObj = fontObj.GetDictionary().FindKey("LastChar");
     if (lastCharObj != nullptr)
-        m_Limits.LastChar = PdfCharCode(static_cast<unsigned>(lastCharObj->GetNumber()));
+        m_ParsedLimits.LastChar = PdfCharCode(static_cast<unsigned>(lastCharObj->GetNumber()));
 
-    if (m_Limits.LastChar.Code > m_Limits.FirstChar.Code)
+    if (m_ParsedLimits.LastChar.Code > m_ParsedLimits.FirstChar.Code)
     {
         // If found valid /FirstChar and /LastChar, valorize
         //  also the code size limits
-        m_Limits.MinCodeSize = utls::GetCharCodeSize(m_Limits.FirstChar.Code);
-        m_Limits.MaxCodeSize = utls::GetCharCodeSize(m_Limits.LastChar.Code);
+        m_ParsedLimits.MinCodeSize = utls::GetCharCodeSize(m_ParsedLimits.FirstChar.Code);
+        m_ParsedLimits.MaxCodeSize = utls::GetCharCodeSize(m_ParsedLimits.LastChar.Code);
     }
 }
 
@@ -399,7 +399,7 @@ bool PdfEncoding::IsSimpleEncoding() const
 
 bool PdfEncoding::HasParsedLimits() const
 {
-    return m_Limits.AreValid();
+    return m_ParsedLimits.AreValid();
 }
 
 bool PdfEncoding::IsDynamicEncoding() const
@@ -444,8 +444,8 @@ char32_t PdfEncoding::GetCodePoint(unsigned charCode) const
 
 const PdfEncodingLimits& PdfEncoding::GetLimits() const
 {
-    if (m_Limits.AreValid())
-        return m_Limits;
+    if (m_ParsedLimits.AreValid())
+        return m_ParsedLimits;
 
     return m_Encoding->GetLimits();
 }
