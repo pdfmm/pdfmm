@@ -843,8 +843,8 @@ bool ExtractionContext::areChunksSplitted()
     // TODO: to improve the situation:
     // 1) Apply the T_rm transformation to the string widths;
     // 2) Handle the word spacing Tw state.
-    return std::abs((States.Current->T_rm.Get<Tx>()) - PrevChunkT_rm_x) + SPACE_SEPARATION_EPSILON
-        >= States.Current->SpaceSize;
+    double dx = std::abs((States.Current->T_rm.Get<Tx>()) - PrevChunkT_rm_x) + SPACE_SEPARATION_EPSILON;
+    return dx >= States.Current->SpaceSize;
 }
 
 // Separate chunk words by spaces

@@ -553,6 +553,13 @@ void PdfFont::initWordSpacingWidth()
         for (unsigned i = 0, count = m_Metrics->GetGlyphCount(); i < count; i++)
         {
             double glyphWidth = m_Metrics->GetGlyphWidth(i);
+            if (glyphWidth == 0)
+                continue;
+
+            // NOTE: Take just half of the glyph width,
+            // empirically this looks like similar to what
+            // Adobe does when inferring the word spacing
+            glyphWidth /= 2;
             if (glyphWidth < m_wordSpacingWidthRaw)
                 m_wordSpacingWidthRaw = glyphWidth;
         }
