@@ -36,6 +36,10 @@ using namespace std;
 using namespace cmn;
 using namespace mm;
 
+// pdf.js seems to just ship with an hardcoded word spacing
+// https://github.com/mozilla/pdf.js/blob/ab1297f0538c51e8e7ece037768e38a9991dcc37/src/core/evaluator.js#L2348
+double MISSING_WORD_SPACING_WIDTH = 0.1;
+
 static double getCharWidth(double widthGlyph, const PdfTextState& state, bool ignoreCharSpacing);
 static string_view toString(PdfFontStretch stretch);
 
@@ -549,20 +553,7 @@ void PdfFont::initWordSpacingWidth()
     if (!TryGetGID(U' ', PdfGlyphAccess::Width, gid)
         || m_Metrics->TryGetGlyphWidth(gid, m_wordSpacingWidthRaw))
     {
-        m_wordSpacingWidthRaw = numeric_limits<double>::max();
-        for (unsigned i = 0, count = m_Metrics->GetGlyphCount(); i < count; i++)
-        {
-            double glyphWidth = m_Metrics->GetGlyphWidth(i);
-            if (glyphWidth == 0)
-                continue;
-
-            // NOTE: Take just half of the glyph width,
-            // empirically this looks like similar to what
-            // Adobe does when inferring the word spacing
-            glyphWidth /= 2;
-            if (glyphWidth < m_wordSpacingWidthRaw)
-                m_wordSpacingWidthRaw = glyphWidth;
-        }
+        m_wordSpacingWidthRaw = MISSING_WORD_SPACING_WIDTH;
     }
 }
 
