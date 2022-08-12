@@ -752,19 +752,6 @@ void ExtractionContext::AdvanceSpace(double tx)
 {
     States.Current->T_m.Apply<Tx>(tx);
     States.Current->RecomputeT_rm();
-
-    // FIXME: This is spurious, the only tryAddEntry in PushString should be enough
-    // but that can't be track properly advances in x because of unreliable gliph
-    // length determination. Fix that first, and following can be removed
-    if (States.Current->SpaceSize > 0 && (Chunks.size() > 0 || Chunk->size() > 0))
-    {
-        if (tx > States.Current->SpaceSize)
-        {
-            TryPushChunk();
-            addEntry();
-        }
-    }
-
 }
 
 void ExtractionContext::PushString(const StatefulString &str, bool pushchunk)

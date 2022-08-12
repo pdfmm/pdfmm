@@ -26,7 +26,10 @@ TEST_CASE("TextExtraction1")
     REQUIRE(entries[1].Text == "language and numerical computing environment developed by MathWorks. MATLAB allows matrix");
     ASSERT_EQUAL(entries[1].X, 29.000000232);
     ASSERT_EQUAL(entries[1].Y, 684.920205479362);
-    REQUIRE(entries[11].Text == "interfaces, and interfacing with programs written in other languages.");
-    ASSERT_EQUAL(entries[11].X, 29.000000232);
-    ASSERT_EQUAL(entries[11].Y, 664.872605318981);
+    REQUIRE(entries[2].Text == "manipulations, plotting of functions and data, implementation of algorithms, creation of user");
+    ASSERT_EQUAL(entries[2].X, 28.977805831822455);
+    ASSERT_EQUAL(entries[2].Y, 674.89580539916642);
+    REQUIRE(entries[3].Text == "interfaces, and interfacing with programs written in other languages.");
+    ASSERT_EQUAL(entries[3].X, 29.000000232);
+    ASSERT_EQUAL(entries[3].Y, 664.872605318981);
 }
