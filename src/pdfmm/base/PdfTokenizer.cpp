@@ -48,20 +48,22 @@ bool PdfTokenizer::TryReadNextToken(InputStreamDevice& device, string_view& toke
 bool PdfTokenizer::TryReadNextToken(InputStreamDevice& device, string_view& token, PdfTokenType& tokenType)
 {
     char* buffer = m_buffer->data();
-    size_t bufferSize = m_buffer->size();
+    // NOTE: Reserve 1 byte for the null termination
+    size_t bufferSize = m_buffer->size() - 1;
 
     // check first if there are queued tokens and return them first
     if (m_tokenQueque.size() != 0)
     {
-        TokenizerPair pair = m_tokenQueque.front();
-        m_tokenQueque.pop_front();
-
+        auto& pair = m_tokenQueque.front();
         tokenType = pair.second;
 
+        size_t size = std::min(bufferSize, pair.first.size());
         // make sure buffer is \0 terminated
-        strncpy(buffer, pair.first.c_str(), bufferSize);
-        buffer[bufferSize - 1] = '\0';
-        token = buffer;
+        std::memcpy(buffer, pair.first.data(), size);
+        buffer[size] = '\0';
+        token = string_view(buffer, size);
+
+        m_tokenQueque.pop_front();
         return true;
     }
 
@@ -70,7 +72,7 @@ bool PdfTokenizer::TryReadNextToken(InputStreamDevice& device, string_view& toke
     char ch1;
     char ch2;
     size_t count = 0;
-    while (count + 1 < bufferSize) // NOTE: Including the null termination
+    while (count < bufferSize)
     {
         if (!device.Peek(ch1))
             goto Eof;
@@ -470,7 +472,7 @@ void PdfTokenizer::ReadArray(InputStreamDevice& device, PdfVariant& variant, con
     PdfTokenType tokenType;
     PdfVariant var;
     variant = PdfArray();
-    PdfArray& array = variant.GetArray();
+    PdfArray& arr = variant.GetArray();
 
     while (true)
     {
@@ -482,7 +484,7 @@ void PdfTokenizer::ReadArray(InputStreamDevice& device, PdfVariant& variant, con
             break;
 
         this->ReadNextVariant(device, token, tokenType, var, encrypt);
-        array.Add(std::move(var));
+        arr.Add(std::move(var));
     }
 }
 
