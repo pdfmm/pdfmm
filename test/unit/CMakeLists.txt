@@ -14,8 +14,8 @@ include_directories(
 # repeat for each test
 add_executable(pdfmm-unit ${SOURCE_FILES})
 target_link_libraries(pdfmm-unit
-    ${PDFMM_LIBRARIES}
     pdfmm_private
+    ${PDFMM_LIBRARIES}
     ${PDFMM_LIB_DEPENDS}
 )
 add_compile_options(${PDFMM_CFLAGS})

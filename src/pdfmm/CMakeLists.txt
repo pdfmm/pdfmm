@@ -68,7 +68,7 @@ endif()
 if(PDFMM_BUILD_STATIC)
     message("Building static pdfmm library")
     add_library(pdfmm_static STATIC ${PDFMM_SOURCES})
-    target_link_libraries(pdfmm_static ${PDFMM_LIB_DEPENDS} pdfmm_private)
+    target_link_libraries(pdfmm_static pdfmm_private ${PDFMM_LIB_DEPENDS})
     set_target_properties(pdfmm_static PROPERTIES
         VERSION "${PDFMM_LIBVERSION}"
         SOVERSION "${PDFMM_SOVERSION}"
@@ -88,7 +88,7 @@ endif()
 if(PDFMM_BUILD_SHARED)
     message("Building shared pdfmm library")
     add_library(pdfmm_shared SHARED ${PDFMM_SOURCES})
-    target_link_libraries(pdfmm_shared PRIVATE ${PDFMM_LIB_DEPENDS} PRIVATE pdfmm_private)
+    target_link_libraries(pdfmm_shared PRIVATE pdfmm_private PRIVATE ${PDFMM_LIB_DEPENDS})
     # TODO: set /wd4251 flag if we're doing a debug build with
     # Visual Studio, since it produces invalid warnings about STL
     # use.
