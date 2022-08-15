@@ -222,13 +222,21 @@ namespace utls
 
     void ReadUtf16LEString(const mm::bufferview& buffer, std::string& utf8str);
 
-    void FormatTo(std::string& str, int value);
+    void FormatTo(std::string& str, int8_t value);
 
-    void FormatTo(std::string& str, unsigned value);
+    void FormatTo(std::string& str, uint8_t value);
 
-    void FormatTo(std::string& str, long long int value);
+    void FormatTo(std::string& str, int16_t value);
 
-    void FormatTo(std::string& str, long long unsigned value);
+    void FormatTo(std::string& str, uint16_t value);
+
+    void FormatTo(std::string& str, int32_t value);
+
+    void FormatTo(std::string& str, uint32_t value);
+
+    void FormatTo(std::string& str, int64_t value);
+
+    void FormatTo(std::string& str, uint64_t value);
 
     void FormatTo(std::string& str, float value, unsigned short precision);
 

@@ -742,7 +742,7 @@ bool PdfTokenizer::IsRegular(char ch)
 
 bool PdfTokenizer::IsPrintable(char ch)
 {
-    return ch > 32U && ch < 125U;
+    return ch > 32 && ch < 125;
 }
 
 char getEscapedCharacter(char ch)

@@ -91,9 +91,9 @@ void TestUtils::SaveFramePPM(OutputStream& stream, const void* data,
         }
         case PdfPixelFormat::BGRA:
         {
-            for (int i1 = 0; i1 < height; i1++)
+            for (unsigned i1 = 0; i1 < height; i1++)
             {
-                for (int i2 = 0; i2 < width; i2++)
+                for (unsigned i2 = 0; i2 < width; i2++)
                 {
                     scanline[i2 * 4 + 0] = ((const unsigned char*)data)[i1 * lineSize + i2 * 4 + 2];
                     scanline[i2 * 4 + 1] = ((const unsigned char*)data)[i1 * lineSize + i2 * 4 + 1];

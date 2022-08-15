@@ -283,5 +283,5 @@ if(PDFMM_BUILD_SHARED)
 endif()
 
 if(PDFMM_BUILD_STATIC)
-    export(TARGETS pdfmm_static FILE "${PROJECT_BINARY_DIR}/pdfmmConfig.cmake")
+    export(TARGETS pdfmm_static pdfmm_private FILE "${PROJECT_BINARY_DIR}/pdfmmConfig.cmake")
 endif()
