@@ -460,42 +460,52 @@ void utls::ReadUtf16LEString(const bufferview& buffer, string& utf8str)
     utf8::utf16to8(iterable.begin(), iterable.end(), std::back_inserter(utf8str));
 }
 
-void utls::FormatTo(string& str, int8_t value)
+void utls::FormatTo(string& str, signed char value)
 {
     formatTo(str, value);
 }
 
-void utls::FormatTo(string& str, uint8_t value)
+void utls::FormatTo(string& str, unsigned char value)
 {
     formatTo(str, value);
 }
 
-void utls::FormatTo(string& str, int16_t value)
+void utls::FormatTo(string& str, short value)
 {
     formatTo(str, value);
 }
 
-void utls::FormatTo(string& str, uint16_t value)
+void utls::FormatTo(string& str, unsigned short value)
 {
     formatTo(str, value);
 }
 
-void utls::FormatTo(string& str, int32_t value)
+void utls::FormatTo(string& str, int value)
 {
     formatTo(str, value);
 }
 
-void utls::FormatTo(string& str, uint32_t value)
+void utls::FormatTo(string& str, unsigned value)
 {
     formatTo(str, value);
 }
 
-void utls::FormatTo(string& str, int64_t value)
+void utls::FormatTo(string& str, long value)
 {
     formatTo(str, value);
 }
 
-void utls::FormatTo(string& str, uint64_t value)
+void utls::FormatTo(string& str, unsigned long value)
+{
+    formatTo(str, value);
+}
+
+void utls::FormatTo(string& str, long long value)
+{
+    formatTo(str, value);
+}
+
+void utls::FormatTo(string& str, unsigned long long value)
 {
     formatTo(str, value);
 }
