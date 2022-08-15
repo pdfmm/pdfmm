@@ -1,7 +1,6 @@
 ### 0.10.x (Summer 2022)
 - Refactor/Review PdfField hierarchy. Finish API review
-- PdfObjectStream: GetInputStream() implmenting PdfInputStream,
-  protecting the instance similary to BeginAppend()
+- PdfImage: make it read only, remove SetImageData()
 - Make PdfObjectStream not filter by default in PdfMemDocument
 
 Ideas:
