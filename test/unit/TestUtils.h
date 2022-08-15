@@ -9,7 +9,8 @@
 #ifndef TEST_UTILS_H
 #define TEST_UTILS_H
 
-#include <string>
+#include "PdfTest.h"
+
 #include <sstream>
 #include <filesystem>
 
@@ -68,7 +69,7 @@ namespace mm
      * This class contains utility methods that are
      * often needed when writing tests.
      */
-    class TestUtils
+    class TestUtils final
     {
     public:
         static constexpr double THRESHOLD = 0.001;
@@ -79,6 +80,10 @@ namespace mm
         static const fs::path& GetTestOutputPath();
         static void ReadTestInputFileTo(std::string& str, const std::string_view& filename);
         static void AssertEqual(double expected, double actual, double threshold = THRESHOLD);
+        static void SaveFramePPM(charbuff& buffer, const void* data,
+            PdfPixelFormat srcPixelFormat, unsigned width, unsigned height);
+        static void SaveFramePPM(OutputStream& stream, const void* data,
+            PdfPixelFormat srcPixelFormat, unsigned width, unsigned height);
     };
 }
 

@@ -417,12 +417,12 @@ unique_ptr<PdfEncrypt> PdfEncrypt::CreatePdfEncrypt(const string_view& userPassw
 
 unique_ptr<PdfEncrypt> PdfEncrypt::CreatePdfEncrypt(const PdfObject& encryptObj)
 {
-    if (!encryptObj.GetDictionary().HasKey("Filter") ||
-        encryptObj.GetDictionary().GetKey("Filter")->GetName() != "Standard")
+    if (!encryptObj.GetDictionary().HasKey(PdfName::KeyFilter) ||
+        encryptObj.GetDictionary().GetKey(PdfName::KeyFilter)->GetName() != "Standard")
     {
-        if (encryptObj.GetDictionary().HasKey("Filter"))
+        if (encryptObj.GetDictionary().HasKey(PdfName::KeyFilter))
             PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, "Unsupported encryption filter: {}",
-                encryptObj.GetDictionary().GetKey("Filter")->GetName().GetString());
+                encryptObj.GetDictionary().GetKey(PdfName::KeyFilter)->GetName().GetString());
         else
             PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, "Encryption dictionary does not have a key /Filter");
     }
@@ -905,7 +905,7 @@ PdfString PdfEncryptMD5Base::GetMD5String(const unsigned char* buffer, unsigned 
     
 void PdfEncryptMD5Base::CreateEncryptionDictionary(PdfDictionary& dictionary) const
 {
-    dictionary.AddKey("Filter", PdfName("Standard"));
+    dictionary.AddKey(PdfName::KeyFilter, PdfName("Standard"));
 
     if (m_Algorithm == PdfEncryptAlgorithm::AESV2 || !m_EncryptMetadata)
     {
@@ -1523,7 +1523,7 @@ void PdfEncryptSHABase::GenerateInitialVector(unsigned char iv[]) const
     
 void PdfEncryptSHABase::CreateEncryptionDictionary(PdfDictionary& dictionary) const
 {
-    dictionary.AddKey("Filter", PdfName("Standard"));
+    dictionary.AddKey(PdfName::KeyFilter, PdfName("Standard"));
 
     PdfDictionary cf;
     PdfDictionary stdCf;

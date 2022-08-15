@@ -21,6 +21,7 @@ class OutputStream;
 class PDFMM_API InputStream
 {
 public:
+    InputStream();
     virtual ~InputStream();
 
     /** Read data from the device
@@ -55,6 +56,8 @@ public:
 
     void CopyTo(OutputStream& stream);
 
+    void CopyTo(OutputStream& stream, size_t size);
+
 protected:
     static size_t ReadBuffer(InputStream& stream, char* buffer, size_t size, bool& eof);
     static bool ReadChar(InputStream& stream, char& ch);
@@ -75,6 +78,10 @@ protected:
      * By default does nothing
      */
     virtual void checkRead() const;
+
+private:
+    InputStream(const InputStream&) = delete;
+    InputStream& operator=(const InputStream&) = delete;
 };
 
 };

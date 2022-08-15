@@ -14,6 +14,10 @@
 using namespace std;
 using namespace mm;
 
+constexpr size_t BUFFER_SIZE = 4096;
+
+InputStream::InputStream() { }
+
 InputStream::~InputStream() { }
 
 void InputStream::Read(char* buffer, size_t size)
@@ -71,7 +75,6 @@ size_t InputStream::Read(char* buffer, size_t size, bool& eof)
 
 void InputStream::CopyTo(OutputStream& stream)
 {
-    constexpr size_t BUFFER_SIZE = 4096;
     size_t read = 0;
     char buffer[BUFFER_SIZE];
 
@@ -81,6 +84,22 @@ void InputStream::CopyTo(OutputStream& stream)
         read = readBuffer(buffer, BUFFER_SIZE, eof);
         stream.Write(buffer, read);
     } while (!eof);
+
+    stream.Flush();
+}
+
+void InputStream::CopyTo(OutputStream& stream, size_t size)
+{
+    size_t read = 0;
+    char buffer[BUFFER_SIZE];
+
+    bool eof;
+    do
+    {
+        read = readBuffer(buffer, std::min(BUFFER_SIZE, size), eof);
+        size -= read;
+        stream.Write(buffer, read);
+    } while (size > 0 && !eof);
 
     stream.Flush();
 }

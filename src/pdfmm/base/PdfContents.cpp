@@ -85,22 +85,21 @@ PdfObjectStream & PdfContents::GetStreamForAppending(PdfStreamAppendFlags flags)
             if (stream != nullptr)
             {
                 BufferStreamDevice device(buffer);
-                stream->ExtractTo(device);
+                stream->UnwrapTo(device);
             }
         }
 
         if (buffer.size() != 0)
         {
-            PdfObject* newobj = m_object->GetDocument()->GetObjects().CreateDictionaryObject();
-            auto &stream = newobj->GetOrCreateStream();
-            stream.BeginAppend();
-            stream.Append("q\n");
-            stream.AppendBuffer(buffer);
-            // TODO: Avoid adding unuseful \n prior Q
-            stream.Append("\nQ");
-            stream.EndAppend();
             arr->Clear();
-            arr->Add(newobj->GetIndirectReference());
+            auto newobj = m_object->GetDocument()->GetObjects().CreateDictionaryObject();
+            arr->AddIndirect(newobj);
+            auto &stream = newobj->GetOrCreateStream();
+            auto output = stream.GetOutputStream();
+            output.Write("q\n");
+            output.Write(buffer);
+            // TODO: Avoid adding unuseful \n prior Q
+            output.Write("\nQ");
         }
     }
 

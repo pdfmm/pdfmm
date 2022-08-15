@@ -586,7 +586,6 @@ void PdfParser::ReadXRefStreamContents(InputStreamDevice& device, size_t offset,
     auto xrefObjTrailer = new PdfXRefStreamParserObject(m_Objects->GetDocument(), device, m_entries);
     try
     {
-        xrefObjTrailer->Parse();
         xrefObjTrailer->ParseStream();
     }
     catch (PdfError& ex)

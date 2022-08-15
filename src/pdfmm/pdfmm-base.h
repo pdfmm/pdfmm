@@ -30,7 +30,7 @@
 #include "base/PdfEncrypt.h"
 #include "base/PdfError.h"
 #include "base/PdfExtension.h"
-#include "base/PdfFileObjectStream.h"
+#include "base/PdfStreamedObjectStream.h"
 #include "base/PdfFilter.h"
 #include "base/PdfStreamDeviceBase.h"
 #include "base/PdfInputStream.h"

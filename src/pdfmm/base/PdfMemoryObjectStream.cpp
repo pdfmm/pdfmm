@@ -25,48 +25,18 @@ PdfMemoryObjectStream::PdfMemoryObjectStream(PdfObject& parent)
 
 PdfMemoryObjectStream::~PdfMemoryObjectStream()
 {
-    EnsureAppendClosed();
+    EnsureClosed();
 }
 
-unique_ptr<InputStream> PdfMemoryObjectStream::GetInputStream() const
+unique_ptr<InputStream> PdfMemoryObjectStream::getInputStream()
 {
-    return std::unique_ptr<InputStream>(new SpanStreamDevice(m_buffer));
+    return unique_ptr<InputStream>(new SpanStreamDevice(m_buffer));
 }
 
-void PdfMemoryObjectStream::BeginAppendImpl(const PdfFilterList& filters)
+unique_ptr<OutputStream> PdfMemoryObjectStream::getOutputStream()
 {
     m_buffer.clear();
-    if (filters.size() == 0)
-    {
-        m_Stream = unique_ptr<BufferStreamDevice>(new BufferStreamDevice(m_buffer));
-    }
-    else
-    {
-        m_BufferStream = unique_ptr<BufferStreamDevice>(new BufferStreamDevice(m_buffer));
-        m_Stream = PdfFilterFactory::CreateEncodeStream(filters, *m_BufferStream);
-    }
-}
-
-void PdfMemoryObjectStream::AppendImpl(const char* data, size_t len)
-{
-    m_Stream->Write(data, len);
-}
-
-void PdfMemoryObjectStream::EndAppendImpl()
-{
-    m_Stream->Flush();
-    m_Stream = nullptr;
-
-    if (m_BufferStream != nullptr)
-    {
-        m_BufferStream->Flush();
-        m_BufferStream = nullptr;
-    }
-}
-
-void PdfMemoryObjectStream::CopyTo(OutputStream& stream) const
-{
-    stream.Write(m_buffer.data(), m_buffer.size());
+    return unique_ptr<OutputStream>(new StringStreamDevice(m_buffer));
 }
 
 void PdfMemoryObjectStream::CopyFrom(const PdfObjectStream& rhs)

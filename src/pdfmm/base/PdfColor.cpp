@@ -824,7 +824,7 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
             encode.Add(static_cast<int64_t>(1));
             csTintFunc->GetDictionary().AddKey("Encode", encode);
 
-            csTintFunc->GetDictionary().AddKey("Filter", PdfName("FlateDecode"));
+            csTintFunc->GetDictionary().AddKey(PdfName::KeyFilter, PdfName("FlateDecode"));
             csTintFunc->GetDictionary().AddKey("FunctionType", PdfVariant(static_cast<int64_t>(0)));
             //csTintFunc->GetDictionary().AddKey( "FunctionType", 
             //                                    PdfVariant( static_cast<int64_t>(EPdfFunctionType::Sampled) ) );
@@ -846,8 +846,7 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
                     size.Add(static_cast<int64_t>(2));
                     csTintFunc->GetDictionary().AddKey("Size", size);
 
-                    SpanStreamDevice input((const char*)data, 1 * 2);
-                    csTintFunc->GetOrCreateStream().Set(input);
+                    csTintFunc->GetOrCreateStream().SetData(bufferview(data, 1 * 2));
 
                     PdfArray csArr;
                     csArr.Add(PdfName("Separation"));
@@ -884,8 +883,7 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
                     size.Add(static_cast<int64_t>(2));
                     csTintFunc->GetDictionary().AddKey("Size", size);
 
-                    SpanStreamDevice input((const char*)data, 3 * 2);
-                    csTintFunc->GetOrCreateStream().Set(input);
+                    csTintFunc->GetOrCreateStream().SetData(bufferview(data, 3 * 2));
 
                     PdfArray csArr;
                     csArr.Add(PdfName("Separation"));
@@ -932,8 +930,7 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
                     csArr.Add(PdfName("DeviceCMYK"));
                     csArr.Add(csTintFunc->GetIndirectReference());
 
-                    SpanStreamDevice input((const char*)data, 4 * 2);
-                    csTintFunc->GetOrCreateStream().Set(input); // set stream as last, so that it will work with PdfStreamedDocument
+                    csTintFunc->GetOrCreateStream().SetData(bufferview(data, 4 * 2)); // set stream as last, so that it will work with PdfStreamedDocument
 
                     PdfObject* csp = document.GetObjects().CreateObject(std::move(csArr));
 
@@ -964,8 +961,7 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
                     size.Add(static_cast<int64_t>(2));
                     csTintFunc->GetDictionary().AddKey("Size", size);
 
-                    SpanStreamDevice input((const char*)data, 3 * 2);
-                    csTintFunc->GetOrCreateStream().Set(input);
+                    csTintFunc->GetOrCreateStream().SetData(bufferview(data, 3 * 2));
 
                     PdfArray csArr;
                     csArr.Add(PdfName("Separation"));

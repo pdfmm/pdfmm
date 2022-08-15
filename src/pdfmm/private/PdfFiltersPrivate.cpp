@@ -12,23 +12,6 @@
 #include <pdfmm/base/PdfTokenizer.h>
 #include <pdfmm/base/PdfStreamDevice.h>
 
-#ifdef PDFMM_HAVE_JPEG_LIB
-extern "C" {
-#include <jerror.h>
-}
-#endif // PDFMM_HAVE_JPEG_LIB
-
-#ifdef PDFMM_HAVE_TIFF_LIB
-extern "C" {
-#ifdef _WIN32		// For O_RDONLY
-    // TODO: DS
-#else
-#include <sys/stat.h>
-#include <fcntl.h>
-#endif
-}
-#endif // PDFMM_HAVE_TIFF_LIB
-
 using namespace std;
 using namespace mm;
 
@@ -86,7 +69,7 @@ public:
             return;
         }
 
-        while (len--)
+        while (len-- != 0)
         {
             if (m_NextByteIsPredictor)
             {
@@ -274,7 +257,7 @@ void PdfHexFilter::DecodeBlockImpl(const char* buffer, size_t len)
             m_DecodedByte = (char)((m_DecodedByte << 4) | val);
             m_Low = true;
 
-            GetStream()->Write(&m_DecodedByte, 1);
+            GetStream()->Write(m_DecodedByte);
         }
 
         buffer++;
@@ -287,7 +270,7 @@ void PdfHexFilter::EndDecodeImpl()
     {
         // an odd number of bytes was read,
         // so the last byte is 0
-        GetStream()->Write(&m_DecodedByte, 1);
+        GetStream()->Write(m_DecodedByte);
     }
 }
 
@@ -500,7 +483,7 @@ void PdfFlateFilter::EncodeBlockInternal(const char* buffer, size_t len, int nMo
 
     do
     {
-        m_stream.avail_out = PDFMM_FILTER_INTERNAL_BUFFER_SIZE;
+        m_stream.avail_out = BUFFER_SIZE;
         m_stream.next_out = m_buffer;
 
         if (deflate(&m_stream, nMode) == Z_STREAM_ERROR)
@@ -509,7 +492,7 @@ void PdfFlateFilter::EncodeBlockInternal(const char* buffer, size_t len, int nMo
             PDFMM_RAISE_ERROR(PdfErrorCode::Flate);
         }
 
-        nWrittenData = PDFMM_FILTER_INTERNAL_BUFFER_SIZE - m_stream.avail_out;
+        nWrittenData = BUFFER_SIZE - m_stream.avail_out;
         try
         {
             if (nWrittenData > 0)
@@ -556,7 +539,7 @@ void PdfFlateFilter::DecodeBlockImpl(const char* buffer, size_t len)
 
     do
     {
-        m_stream.avail_out = PDFMM_FILTER_INTERNAL_BUFFER_SIZE;
+        m_stream.avail_out = BUFFER_SIZE;
         m_stream.next_out = m_buffer;
 
         switch ((flateErr = inflate(&m_stream, Z_NO_FLUSH)))
@@ -575,7 +558,7 @@ void PdfFlateFilter::DecodeBlockImpl(const char* buffer, size_t len)
                 break;
         }
 
-        writtenDataSize = PDFMM_FILTER_INTERNAL_BUFFER_SIZE - m_stream.avail_out;
+        writtenDataSize = BUFFER_SIZE - m_stream.avail_out;
         try
         {
             if (m_Predictor != nullptr)
@@ -767,9 +750,9 @@ void PdfLZWFilter::DecodeBlockImpl(const char* buffer, size_t len)
 
                 // Write data to the output device
                 if (m_Predictor != nullptr)
-                    m_Predictor->Decode(reinterpret_cast<char*>(&(data[0])), data.size(), GetStream());
+                    m_Predictor->Decode(reinterpret_cast<char*>(data.data()), data.size(), GetStream());
                 else
-                    GetStream()->Write(reinterpret_cast<char*>(&(data[0])), data.size());
+                    GetStream()->Write(reinterpret_cast<char*>(data.data()), data.size());
 
                 m_character = data[0];
                 if (old < m_table.size()) // fix the first loop
@@ -823,405 +806,3 @@ void PdfLZWFilter::InitTable()
 }
 
 #pragma endregion // PdfLZWFilter
-
-
-#pragma region PdfDCTFilter
-
-#ifdef PDFMM_HAVE_JPEG_LIB
-
-/*
- * Handlers for errors inside the JPeg library
- */
-extern "C"
-{
-    void JPegErrorExit(j_common_ptr cinfo)
-    {
-        auto& error = *reinterpret_cast<string*>(cinfo->client_data);
-        error.resize(JMSG_LENGTH_MAX);
-        /* Create the message */
-        (*cinfo->err->format_message) (cinfo, error.data());
-
-        jpeg_destroy(cinfo);
-    }
-
-    void JPegErrorOutput(j_common_ptr, int)
-    {
-    }
-};
-
-/*
- * The actual filter implementation
- */
-PdfDCTFilter::PdfDCTFilter()
-    : m_Device(nullptr)
-{
-    memset(&m_cinfo, 0, sizeof(struct jpeg_decompress_struct));
-    memset(&m_jerr, 0, sizeof(struct jpeg_error_mgr));
-}
-
-void PdfDCTFilter::BeginEncodeImpl()
-{
-    PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
-}
-
-void PdfDCTFilter::EncodeBlockImpl(const char*, size_t)
-{
-    PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
-}
-
-void PdfDCTFilter::EndEncodeImpl()
-{
-    PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
-}
-
-void PdfDCTFilter::BeginDecodeImpl(const PdfDictionary*)
-{
-    // Setup variables for JPEGLib
-    string error;
-    m_cinfo.client_data = &error;
-    m_cinfo.err = jpeg_std_error(&m_jerr);
-    m_jerr.error_exit = &JPegErrorExit;
-    m_jerr.emit_message = &JPegErrorOutput;
-
-    jpeg_create_decompress(&m_cinfo);
-
-    if (error.length() != 0)
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, error);
-
-    m_Device = new StringStreamDevice(m_buffer);
-}
-
-void PdfDCTFilter::DecodeBlockImpl(const char* buffer, size_t len)
-{
-    m_Device->Write(string_view(buffer, len));
-}
-
-void PdfDCTFilter::EndDecodeImpl()
-{
-    delete m_Device;
-    m_Device = nullptr;
-
-    mm::jpeg_memory_src(&m_cinfo, reinterpret_cast<JOCTET*>(m_buffer.data()), m_buffer.size());
-
-    if (jpeg_read_header(&m_cinfo, TRUE) <= 0)
-    {
-        jpeg_destroy_decompress(&m_cinfo);
-
-        PDFMM_RAISE_ERROR(PdfErrorCode::UnexpectedEOF);
-    }
-
-    jpeg_start_decompress(&m_cinfo);
-
-    unsigned rowBytes = (unsigned)(m_cinfo.output_width * m_cinfo.output_components);
-    const int componentCount = m_cinfo.output_components;
-
-    // buffer will be deleted by jpeg_destroy_decompress
-    JSAMPARRAY scanLines = (*m_cinfo.mem->alloc_sarray)(reinterpret_cast<j_common_ptr>(&m_cinfo), JPOOL_IMAGE, rowBytes, 1);
-    charbuff buffer(rowBytes);
-    while (m_cinfo.output_scanline < m_cinfo.output_height)
-    {
-        jpeg_read_scanlines(&m_cinfo, scanLines, 1);
-        if (componentCount == 4)
-        {
-            for (unsigned i = 0, c = 0; i < m_cinfo.output_width; i++, c += 4)
-            {
-                buffer[c + 0] = scanLines[0][i * 4 + 0];
-                buffer[c + 1] = scanLines[0][i * 4 + 1];
-                buffer[c + 2] = scanLines[0][i * 4 + 2];
-                buffer[c + 3] = scanLines[0][i * 4 + 3];
-            }
-        }
-        else if (componentCount == 3)
-        {
-            for (unsigned i = 0, c = 0; i < m_cinfo.output_width; i++, c += 3)
-            {
-                buffer[c + 0] = scanLines[0][i * 3 + 0];
-                buffer[c + 1] = scanLines[0][i * 3 + 1];
-                buffer[c + 2] = scanLines[0][i * 3 + 2];
-            }
-        }
-        else if (componentCount == 1)
-        {
-            memcpy(buffer.data(), scanLines[0], m_cinfo.output_width);
-        }
-        else
-        {
-            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "DCTDecode unknown components");
-        }
-
-        GetStream()->Write(reinterpret_cast<char*>(buffer.data()), rowBytes);
-    }
-
-    jpeg_destroy_decompress(&m_cinfo);
-}
-
-/*
- * memsrc.c
- *
- * Copyright (C) 1994-1996, Thomas G. Lane.
- * This file is part of the Independent JPEG Group's software.
- * For conditions of distribution and use, see the accompanying README file.
- *
- * This file contains decompression data source routines for the case of
- * reading JPEG data from a memory buffer that is preloaded with the entire
- * JPEG file. This would not seem especially useful at first sight, but
- * a number of people have asked for it.
- * This is really just a stripped-down version of jdatasrc.c. Comparison
- * of this code with jdatasrc.c may be helpful in seeing how to make
- * custom source managers for other purposes.
-*/
-
-/* Expanded data source object for memory input */
-struct my_source_mgr
-{
-    struct jpeg_source_mgr pub; /* public fields */
-    JOCTET eoi_buffer[2]; /* a place to put a dummy EOI */
-};
-
-using my_src_ptr = my_source_mgr*;
-
-/*
- * Initialize source, called by jpeg_read_header
- * before any data is actually read.
- */
-
-METHODDEF(void) init_source(j_decompress_ptr)
-{
-    /* No work, since jpeg_memory_src set up the buffer pointer and count.
-     * Indeed, if we want to read multiple JPEG images from one buffer,
-     * this *must* not do anything to the pointer.
-     */
-}
-
-/*
- * Fill the input buffer, called whenever buffer is emptied.
- *
- * In this application, this routine should never be called; if it is called,
- * the decompressor has overrun the end of the input buffer, implying we
- * supplied an incomplete or corrupt JPEG datastream. A simple error exit
- * might be the most appropriate response.
- *
- * But what we choose to do in this code is to supply dummy EOI markers
- * in order to force the decompressor to finish processing and supply
- * some sort of output image, no matter how corrupted.
- */
-
-METHODDEF(boolean) fill_input_buffer(j_decompress_ptr cinfo)
-{
-    my_src_ptr src = reinterpret_cast<my_src_ptr>(cinfo->src);
-    WARNMS(cinfo, JWRN_JPEG_EOF);
-
-    /* Create a fake EOI marker */
-    src->eoi_buffer[0] = static_cast<JOCTET>(0xFF);
-    src->eoi_buffer[1] = static_cast<JOCTET>(JPEG_EOI);
-    src->pub.next_input_byte = src->eoi_buffer;
-    src->pub.bytes_in_buffer = 2;
-
-    return TRUE;
-}
-
-/*
- * Skip data, used to skip over a potentially large amount of
- * uninteresting data (such as an APPn marker).
- *
- * If we overrun the end of the buffer, we let fill_input_buffer deal with
- * it. An extremely large skip could cause some time-wasting here, but
- * it really isn't supposed to happen ... and the decompressor will never
- * skip more than 64K anyway.
- */
-METHODDEF(void) skip_input_data(j_decompress_ptr cinfo, long num_bytes)
-{
-    my_src_ptr src = reinterpret_cast<my_src_ptr>(cinfo->src);
-
-    if (num_bytes > 0)
-    {
-        while (num_bytes > static_cast<long>(src->pub.bytes_in_buffer))
-        {
-            num_bytes -= static_cast<long>(src->pub.bytes_in_buffer);
-            fill_input_buffer(cinfo);
-            /* note we assume that fill_input_buffer will never return FALSE,
-             * so suspension need not be handled.
-             */
-        }
-
-        src->pub.next_input_byte += static_cast<size_t>(num_bytes);
-        src->pub.bytes_in_buffer -= static_cast<size_t>(num_bytes);
-    }
-}
-
-/*
- * An additional method that can be provided by data source modules is the
- * resync_to_restart method for error recovery in the presence of RST markers.
- * For the moment, this source module just uses the default resync method
- * provided by the JPEG library. That method assumes that no backtracking
- * is possible.
- */
-
-/*
- * Terminate source, called by jpeg_finish_decompress
- * after all data has been read. Often a no-op.
- *
- * NB: *not* called by jpeg_abort or jpeg_destroy; surrounding
- * application must deal with any cleanup that should happen even
- * for error exit.
- */
-METHODDEF(void) term_source(j_decompress_ptr)
-{
-    /* no work necessary here */
-}
-
-/*
- * Prepare for input from a memory buffer.
- */
-void mm::jpeg_memory_src(j_decompress_ptr cinfo, const JOCTET* buffer, size_t bufsize)
-{
-    my_src_ptr src;
-
-    /* The source object is made permanent so that a series of JPEG images
-     * can be read from a single buffer by calling jpeg_memory_src
-     * only before the first one.
-     * This makes it unsafe to use this manager and a different source
-     * manager serially with the same JPEG object. Caveat programmer.
-     */
-
-    if (cinfo->src == nullptr)
-    {
-        // first time for this JPEG object?
-        cinfo->src = static_cast<struct jpeg_source_mgr*>(
-            (*cinfo->mem->alloc_small) (reinterpret_cast<j_common_ptr>(cinfo), JPOOL_PERMANENT,
-                sizeof(my_source_mgr)));
-    }
-
-    src = reinterpret_cast<my_src_ptr>(cinfo->src);
-    src->pub.init_source = init_source;
-    src->pub.fill_input_buffer = fill_input_buffer;
-    src->pub.skip_input_data = skip_input_data;
-    src->pub.resync_to_restart = jpeg_resync_to_restart; /* use default method */
-    src->pub.term_source = term_source;
-
-    src->pub.next_input_byte = buffer;
-    src->pub.bytes_in_buffer = bufsize;
-}
-
-#endif // PDFMM_HAVE_JPEG_LIB
-
-#pragma endregion // PdfDCTFilter
-
-#pragma region PdfCCITTFilter
-
-#ifdef PDFMM_HAVE_TIFF_LIB
-
-#ifdef DS_CCITT_DEVELOPMENT_CODE
-
-static tsize_t dummy_read(thandle_t, tdata_t, tsize_t)
-{
-    return 0;
-}
-
-static tsize_t dummy_write(thandle_t, tdata_t, tsize_t size)
-{
-    return size;
-}
-
-static toff_t dummy_seek(thandle_t, toff_t, int)
-{
-
-}
-
-static int dummy_close(thandle_t)
-{
-
-}
-
-static toff_t dummy_size(thandle_t)
-{
-
-}
-
-#endif
-
-PdfCCITTFilter::PdfCCITTFilter()
-    : m_tiff(nullptr)
-{
-}
-
-void PdfCCITTFilter::BeginEncodeImpl()
-{
-    PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
-}
-
-void PdfCCITTFilter::EncodeBlockImpl(const char*, size_t)
-{
-    PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
-}
-
-void PdfCCITTFilter::EndEncodeImpl()
-{
-    PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
-}
-
-void PdfCCITTFilter::BeginDecodeImpl(const PdfDictionary* dict)
-{
-#ifdef DS_CCITT_DEVELOPMENT_CODE
-
-    if (dict == nullptr)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "PdfCCITTFilter required a DecodeParms dictionary");
-
-    m_tiff = TIFFClientOpen("pdfmm", "w", reinterpret_cast<thandle_t>(-1),
-        dummy_read, dummy_write,
-        dummy_seek, dummy_close, dummy_size, nullptr, nullptr);
-
-    if (m_tiff == nullptr)
-        PDFMM_RAISE_ERROR_INFO(EPdfError::InvalidHandle, "TIFFClientOpen failed");
-
-    m_tiff->tif_mode = O_RDONLY;
-
-    TIFFSetField(m_tiff, TIFFTAG_IMAGEWIDTH, dict->GetAs<int64_t>(PdfName("Columns"), 1728));
-    TIFFSetField(m_tiff, TIFFTAG_SAMPLESPERPIXEL, 1);
-    TIFFSetField(m_tiff, TIFFTAG_BITSPERSAMPLE, 1);
-    TIFFSetField(m_tiff, TIFFTAG_FILLORDER, FILLORDER_LSB2MSB);
-    TIFFSetField(m_tiff, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
-    TIFFSetField(m_tiff, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISWHITE);
-    TIFFSetField(m_tiff, TIFFTAG_YRESOLUTION, 196.);
-    TIFFSetField(m_tiff, TIFFTAG_RESOLUTIONUNIT, RESUNIT_INCH);
-
-    /*
-    m_tiff->tif_scanlinesize = TIFFSetField(m_tiff);
-
-    if (dict != nullptr)
-    {
-        int64_t encoding = dict->GetAs<int64_t>(PdfName("K"), 0);
-        if (encoding == 0) // pure 1D encoding, Group3 1D
-        {
-            TIFFSetField(faxTIFF, TIFFTAG_GROUP3OPTIONS, GROUP3OPT_1DENCODING);
-        }
-        else if (encoding < 0) // pure 2D encoding, Group4
-        {
-            TIFFSetField(faxTIFF, TIFFTAG_GROUP4OPTIONS, GROUP4OPT_2DENCODING);
-        }
-        else //if (encoding > 0)  // mixed, Group3 2D
-        {
-            TIFFSetField(faxTIFF, TIFFTAG_GROUP3OPTIONS, GROUP3OPT_2DENCODING);
-        }
-    }
-    */
-
-#else // DS_CCITT_DEVELOPMENT_CODE
-    (void)dict;
-    PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
-#endif // DS_CCITT_DEVELOPMENT_CODE
-}
-
-void PdfCCITTFilter::DecodeBlockImpl(const char*, size_t)
-{
-    PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
-}
-
-void PdfCCITTFilter::EndDecodeImpl()
-{
-    PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedFilter);
-}
-
-#endif // PDFMM_HAVE_TIFF_LIB
-
-#pragma endregion // PdfCCITTFilter

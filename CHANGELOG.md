@@ -4,6 +4,12 @@
 - Added text extraction API
 - Review I/O API: Merged InputDevice/OutputDevice into StreamDevice.
   New hierarchy deriving StreamDevice
+- Reviewed PdfObjectStream API: added streaming operations,
+    GetInputStream(), GetOutputStream(). Renamed
+    GetFilteredCopy() -> GetUnwrappedCopy()/UnwrapTo().
+    They only unwrap non media filters (see PdfImage::DecodeTo
+    for media ones)
+- PdfImage: Added DecodeTo(pixelFormat)
 
 ## Version 0.9.22
 - Fixed serialization of strings with non ascii PdfDocEncoding

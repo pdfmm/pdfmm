@@ -19,53 +19,92 @@
 using namespace std;
 using namespace mm;
 
-enum PdfFilterType PdfObjectStream::DefaultFilter = PdfFilterType::FlateDecode;
+constexpr PdfFilterType DefaultFilter = PdfFilterType::FlateDecode;
 
 PdfObjectStream::PdfObjectStream(PdfObject& parent)
-    : m_Parent(&parent), m_Append(false)
+    : m_Parent(&parent), m_locked(false)
 {
 }
 
 PdfObjectStream::~PdfObjectStream() { }
 
-void PdfObjectStream::ExtractTo(charbuff& buffer) const
+PdfObjectOutputStream PdfObjectStream::GetOutputStreamRaw(bool append)
+{
+    EnsureClosed();
+    return PdfObjectOutputStream(*this, { }, append);
+}
+
+PdfObjectOutputStream PdfObjectStream::GetOutputStream(bool append)
+{
+    EnsureClosed();
+    return PdfObjectOutputStream(*this, { DefaultFilter }, append);
+}
+
+PdfObjectOutputStream PdfObjectStream::GetOutputStream(const PdfFilterList& filters, bool append)
+{
+    EnsureClosed();
+    return PdfObjectOutputStream(*this, PdfFilterList(filters), append);
+}
+
+PdfObjectInputStream PdfObjectStream::GetInputStream(bool unpack)
+{
+    EnsureClosed();
+    return PdfObjectInputStream(*this, unpack);
+}
+
+void PdfObjectStream::UnwrapTo(charbuff& buffer) const
 {
     buffer.clear();
     BufferStreamDevice stream(buffer);
-    ExtractTo(stream);
+    UnwrapTo(stream);
 }
 
-void PdfObjectStream::ExtractTo(OutputStream& stream) const
+void PdfObjectStream::UnwrapToSafe(charbuff& buffer) const
 {
-    PdfFilterList filters = PdfFilterFactory::CreateFilterList(*m_Parent);
-    auto inputStream = GetInputStream();
-    if (filters.size() == 0)
-    {
-        inputStream->CopyTo(stream);
-    }
-    else
-    {
-        auto decodeStream = PdfFilterFactory::CreateDecodeStream(filters, stream,
-            m_Parent->GetDictionary());
+    buffer.clear();
+    BufferStreamDevice stream(buffer);
+    UnwrapToSafe(stream);
+}
 
-        inputStream->CopyTo(*decodeStream);
-    }
-
+void PdfObjectStream::UnwrapTo(OutputStream& stream) const
+{
+    PdfFilterList mediaFilters;
+    auto inputStream = const_cast<PdfObjectStream&>(*this).getInputStream(true, mediaFilters);
+    if (mediaFilters.size() != 0)
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, "Unsupported expansion with media filters. Use GetInputStream(true) instead");
+        
+    inputStream->CopyTo(stream);
     stream.Flush();
 }
 
-charbuff PdfObjectStream::GetFilteredCopy() const
+void PdfObjectStream::UnwrapToSafe(OutputStream& stream) const
+{
+    PdfFilterList mediaFilters;
+    auto inputStream = const_cast<PdfObjectStream&>(*this).getInputStream(true, mediaFilters);
+    inputStream->CopyTo(stream);
+    stream.Flush();
+}
+
+charbuff PdfObjectStream::GetUnwrappedCopy() const
 {
     charbuff ret;
     StringStreamDevice stream(ret);
-    ExtractTo(stream);
+    UnwrapTo(stream);
+    return ret;
+}
+
+charbuff PdfObjectStream::GetUnwrappedCopySafe() const
+{
+    charbuff ret;
+    StringStreamDevice stream(ret);
+    UnwrapToSafe(stream);
     return ret;
 }
 
 void PdfObjectStream::MoveTo(PdfObject& obj)
 {
     PDFMM_RAISE_LOGIC_IF(!obj.IsDictionary(), "Target object should be a dictionary");
-    PDFMM_RAISE_LOGIC_IF(m_Append, "EndAppend() should be called before moving the stream");
+    EnsureClosed();
     obj.MoveStreamFrom(*m_Parent);
 }
 
@@ -77,128 +116,65 @@ PdfObjectStream& PdfObjectStream::operator=(const PdfObjectStream& rhs)
 
 void PdfObjectStream::CopyFrom(const PdfObjectStream& rhs)
 {
-    auto stream = rhs.GetInputStream();
-    this->SetRawData(*stream);
+    auto stream = const_cast<PdfObjectStream&>(rhs).getInputStream();
+    this->SetData(*stream, true);
 }
 
-void PdfObjectStream::EnsureAppendClosed()
+void PdfObjectStream::SetData(const bufferview& buffer, bool raw)
 {
-    PDFMM_RAISE_LOGIC_IF(m_Append, "EndAppend() should be called after appending to stream");
+    EnsureClosed();
+    SpanStreamDevice stream(buffer);
+    if (raw)
+        setData(stream, { }, -1, true);
+    else
+        setData(stream, { DefaultFilter }, -1, true);
 }
 
-void PdfObjectStream::Set(const bufferview& buffer, const PdfFilterList& filters)
+void PdfObjectStream::SetData(const bufferview& buffer, const PdfFilterList& filters)
 {
-    Set(buffer.data(), buffer.size(), filters);
+    EnsureClosed();
+    SpanStreamDevice stream(buffer);
+    setData(stream, filters, -1, true);
 }
 
-void PdfObjectStream::Set(const char* buffer, size_t size, const PdfFilterList& filters)
+void PdfObjectStream::SetData(InputStream& stream, bool raw)
 {
-    if (size == 0)
-        return;
-
-    this->BeginAppend(filters);
-    AppendImpl(buffer, size);
-    this->endAppend();
+    EnsureClosed();
+    if (raw)
+        setData(stream, { DefaultFilter }, -1, true);
+    else
+        setData(stream, { }, -1, true);
 }
 
-void PdfObjectStream::Set(const bufferview& buffer)
+void PdfObjectStream::SetData(InputStream& stream, const PdfFilterList& filters)
 {
-    Set(buffer.data(), buffer.size());
+    EnsureClosed();
+    setData(stream, filters, -1, true);
 }
 
-void PdfObjectStream::Set(const char* buffer, size_t size)
+unique_ptr<InputStream> PdfObjectStream::getInputStream(bool unpack, PdfFilterList& mediaFilters)
 {
-    if (size == 0)
-        return;
-
-    this->BeginAppend();
-    AppendImpl(buffer, size);
-    this->endAppend();
-}
-
-void PdfObjectStream::Set(InputStream& stream)
-{
-    PdfFilterList filters;
-    if (DefaultFilter != PdfFilterType::None)
-        filters.push_back(DefaultFilter);
-
-    this->Set(stream, filters);
-}
-
-void PdfObjectStream::Set(InputStream& stream, const PdfFilterList& filters)
-{
-    constexpr size_t BUFFER_SIZE = 4096;
-    size_t read = 0;
-    char buffer[BUFFER_SIZE];
-
-    this->BeginAppend(filters);
-
-    bool eof;
-    do
+    if (unpack)
     {
-        read = stream.Read(buffer, BUFFER_SIZE, eof);
-        AppendImpl(buffer, read);
-    } while (!eof);
-
-    this->endAppend();
-}
-
-void PdfObjectStream::SetRawData(InputStream& stream, ssize_t size)
-{
-    SetRawData(stream, size, true);
-}
-
-void PdfObjectStream::SetRawData(InputStream& stream, ssize_t size, bool markObjectDirty)
-{
-    constexpr size_t BUFFER_SIZE = 4096;
-    char buffer[BUFFER_SIZE];
-    size_t read;
-    PdfFilterList filters;
-
-    // TODO: DS, give begin append a size hint so that it knows
-    //       how many data has to be allocated
-    this->BeginAppend(filters, true, false, markObjectDirty);
-    if (size < 0)
-    {
-        bool eof;
-        do
+        auto filters = PdfFilterFactory::CreateFilterList(*m_Parent, mediaFilters);
+        if (filters.size() == 0)
         {
-            read = stream.Read(buffer, BUFFER_SIZE, eof);
-            AppendImpl(buffer, read);
-        } while (!eof);
+            return getInputStream();
+        }
+        else
+        {
+            return PdfFilterFactory::CreateDecodeStream(getInputStream(),
+                filters, m_Parent->GetDictionary());
+        }
     }
     else
     {
-        bool eof;
-        do
-        {
-            read = stream.Read(buffer, std::min(BUFFER_SIZE, (size_t)size), eof);
-            size -= read;
-            AppendImpl(buffer, read);
-        } while (size > 0 && !eof);
+        return getInputStream();
     }
-
-    this->endAppend();
 }
 
-void PdfObjectStream::BeginAppend(bool clearExisting)
+void PdfObjectStream::setData(InputStream& stream, PdfFilterList filters, ssize_t size, bool markObjectDirty)
 {
-    PdfFilterList filters;
-    if (DefaultFilter != PdfFilterType::None)
-        filters.push_back(DefaultFilter);
-
-    this->BeginAppend(filters, clearExisting);
-}
-
-void PdfObjectStream::BeginAppend(const PdfFilterList& filters, bool clearExisting, bool deleteFilters)
-{
-    BeginAppend(filters, clearExisting, deleteFilters, true);
-}
-
-void PdfObjectStream::BeginAppend(const PdfFilterList& filters, bool clearExisting, bool deleteFilters, bool markObjectDirty)
-{
-    PDFMM_RAISE_LOGIC_IF(m_Append, "BeginAppend() failed because EndAppend() was not yet called!");
-
     if (markObjectDirty)
     {
         // We must make sure the parent will be set dirty. All methods
@@ -206,73 +182,148 @@ void PdfObjectStream::BeginAppend(const PdfFilterList& filters, bool clearExisti
         m_Parent->SetDirty();
     }
 
-    auto document = m_Parent->GetDocument();
+    PdfObjectOutputStream output(*this, std::move(filters), false);
+    if (size < 0)
+        stream.CopyTo(output);
+    else
+        stream.CopyTo(output, (size_t)size);
+}
+
+void PdfObjectStream::InitData(InputStream& stream, size_t size)
+{
+    PdfObjectOutputStream output(*this);
+    stream.CopyTo(output, size);
+}
+
+void PdfObjectStream::EnsureClosed()
+{
+    PDFMM_RAISE_LOGIC_IF(m_locked, "The stream should have no read/write operations in progress");
+}
+
+PdfObjectInputStream::PdfObjectInputStream()
+    : m_stream(nullptr) { }
+
+PdfObjectInputStream::~PdfObjectInputStream()
+{
+    if (m_stream != nullptr)
+        m_stream->m_locked = false;
+}
+
+PdfObjectInputStream::PdfObjectInputStream(PdfObjectInputStream&& rhs) noexcept
+{
+    utls::move(rhs.m_stream, m_stream);
+}
+
+PdfObjectInputStream::PdfObjectInputStream(PdfObjectStream& stream, bool unpack)
+    : m_stream(&stream)
+{
+    m_stream->m_locked = true;
+    m_input = stream.getInputStream(unpack, m_MediaFilters);
+}
+
+size_t PdfObjectInputStream::readBuffer(char* buffer, size_t size, bool& eof)
+{
+    return ReadBuffer(*m_input, buffer, size, eof);
+}
+
+bool PdfObjectInputStream::readChar(char& ch)
+{
+    return ReadChar(*m_input, ch);
+}
+
+PdfObjectInputStream& PdfObjectInputStream::operator=(PdfObjectInputStream&& rhs) noexcept
+{
+    utls::move(rhs.m_stream, m_stream);
+    return *this;
+}
+
+PdfObjectOutputStream::PdfObjectOutputStream()
+    : m_stream(nullptr) { }
+
+PdfObjectOutputStream::~PdfObjectOutputStream()
+{
+    if (m_stream != nullptr)
+        m_stream->m_locked = false;
+}
+
+PdfObjectOutputStream::PdfObjectOutputStream(PdfObjectOutputStream&& rhs) noexcept
+    : m_filters(std::move(rhs.m_filters))
+{
+    utls::move(rhs.m_stream, m_stream);
+}
+
+PdfObjectOutputStream::PdfObjectOutputStream(PdfObjectStream& stream,
+        PdfFilterList&& filters, bool append)
+    : PdfObjectOutputStream(stream, std::move(filters), append, false)
+{
+}
+
+PdfObjectOutputStream::PdfObjectOutputStream(PdfObjectStream& stream)
+    : PdfObjectOutputStream(stream, { }, false, true)
+{
+}
+
+PdfObjectOutputStream::PdfObjectOutputStream(PdfObjectStream& stream, PdfFilterList&& filters,
+        bool append, bool preserveFilters)
+    : m_stream(&stream), m_filters(std::move(filters))
+{
+    auto& parent = stream.GetParent();
+    auto document = parent.GetDocument();
     if (document != nullptr)
-        document->GetObjects().BeginAppendStream(*this);
+        document->GetObjects().BeginAppendStream(stream);
 
     charbuff buffer;
-    if (!clearExisting && this->GetLength() != 0)
-        this->ExtractTo(buffer);
+    if (append)
+        stream.UnwrapTo(buffer);
 
-    if (filters.size() == 0)
+    if (m_filters.size() == 0)
     {
-        if (deleteFilters)
-            m_Parent->GetDictionary().RemoveKey(PdfName::KeyFilter);
+        if (!preserveFilters)
+            parent.GetDictionary().RemoveKey(PdfName::KeyFilter);
     }
-    else if (filters.size() == 1)
+    else if (m_filters.size() == 1)
     {
-        m_Parent->GetDictionary().AddKey(PdfName::KeyFilter,
-            PdfName(PdfFilterFactory::FilterTypeToName(filters.front())));
+        parent.GetDictionary().AddKey(PdfName::KeyFilter,
+            PdfName(PdfFilterFactory::FilterTypeToName(m_filters.front())));
     }
     else // filters.size() > 1
     {
         PdfArray arrFilters;
-        for (auto filterType : filters)
+        for (auto filterType : m_filters)
             arrFilters.Add(PdfName(PdfFilterFactory::FilterTypeToName(filterType)));
 
-        m_Parent->GetDictionary().AddKey(PdfName::KeyFilter, arrFilters);
+        parent.GetDictionary().AddKey(PdfName::KeyFilter, arrFilters);
     }
 
-    this->BeginAppendImpl(filters);
-    m_Append = true;
+    m_stream->m_locked = true;
+    if (m_filters.size() == 0)
+    {
+        m_output = stream.getOutputStream();
+    }
+    else
+    {
+        m_output = PdfFilterFactory::CreateEncodeStream(stream.getOutputStream(),
+            m_filters);
+    }
+
     if (buffer.size() != 0)
-        AppendImpl(buffer.data(), buffer.size());
+        WriteBuffer(*m_output, buffer.data(), buffer.size());
 }
 
-void PdfObjectStream::EndAppend()
+void PdfObjectOutputStream::writeBuffer(const char* buffer, size_t size)
 {
-    PDFMM_RAISE_LOGIC_IF(!m_Append, "EndAppend() failed because BeginAppend() was not yet called!");
-    endAppend();
+    WriteBuffer(*m_output, buffer, size);
 }
 
-void PdfObjectStream::endAppend()
+void PdfObjectOutputStream::flush()
 {
-    m_Append = false;
-    this->EndAppendImpl();
-
-    PdfDocument* document;
-    if ((document = m_Parent->GetDocument()) != nullptr)
-        document->GetObjects().EndAppendStream(*this);
+    Flush(*m_output);
 }
 
-PdfObjectStream& PdfObjectStream::Append(const string_view& view)
+PdfObjectOutputStream& PdfObjectOutputStream::operator=(PdfObjectOutputStream&& rhs) noexcept
 {
-    AppendBuffer(view.data(), view.length());
-    return *this;
-}
-
-PdfObjectStream& PdfObjectStream::AppendBuffer(const bufferview& buffer)
-{
-    AppendBuffer(buffer.data(), buffer.size());
-    return *this;
-}
-
-PdfObjectStream& PdfObjectStream::AppendBuffer(const char* buffer, size_t size)
-{
-    PDFMM_RAISE_LOGIC_IF(!m_Append, "Append() failed because BeginAppend() was not yet called!");
-    if (size == 0)
-        return *this;
-
-    AppendImpl(buffer, size);
+    utls::move(rhs.m_stream, m_stream);
+    m_output = std::move(rhs.m_output);
+    m_filters = std::move(rhs.m_filters);
     return *this;
 }

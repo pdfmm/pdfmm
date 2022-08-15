@@ -223,8 +223,12 @@ public:
     PdfResources& GetOrCreateResources() override;
     inline const PdfContents* GetContents() const { return m_Contents.get(); }
     inline PdfContents* GetContents() { return m_Contents.get(); }
+    const PdfContents& MustGetContents() const;
+    PdfContents& MustGetContents();
     inline const PdfResources* GetResources() const { return m_Resources.get(); }
     inline PdfResources* GetResources() { return m_Resources.get(); }
+    const PdfResources& MustGetResources() const;
+    PdfResources& MustGetResources();
 
 private:
     PdfResources* getResources() const override;

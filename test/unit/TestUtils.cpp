@@ -6,6 +6,7 @@
  * Some rights reserved. See COPYING, AUTHORS.
  */
 
+#include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "TestUtils.h"
 
 #include <fstream>
@@ -59,6 +60,55 @@ void TestUtils::AssertEqual(double expected, double actual, double threshold)
 {
     if (std::abs(actual - expected) > threshold)
         FAIL("Expected different than actual");
+}
+
+void TestUtils::SaveFramePPM(charbuff& buffer, const void* data,
+    PdfPixelFormat srcPixelFormat, unsigned width, unsigned height)
+{
+    BufferStreamDevice stream(buffer);
+    SaveFramePPM(stream, data, srcPixelFormat, width, height);
+}
+
+void TestUtils::SaveFramePPM(OutputStream& stream, const void* data,
+    PdfPixelFormat srcPixelFormat, unsigned width, unsigned height)
+{
+    // Write header
+    stringstream headerStream;
+    headerStream << "P7\nWIDTH " << width << "\nHEIGHT " << height << "\nDEPTH 4\nMAXVAL 255\nTUPLTYPE RGB_ALPHA\nENDHDR\n";
+
+    stream.Write(headerStream.str());
+
+    unsigned lineSize = width * 4;
+    charbuff scanline(lineSize);
+
+    // Write pixel data
+    switch (srcPixelFormat)
+    {
+        case PdfPixelFormat::RGBA:
+        {
+            stream.Write((const char*)data, width * height * 4);
+            break;
+        }
+        case PdfPixelFormat::BGRA:
+        {
+            for (int i1 = 0; i1 < height; i1++)
+            {
+                for (int i2 = 0; i2 < width; i2++)
+                {
+                    scanline[i2 * 4 + 0] = ((const unsigned char*)data)[i1 * lineSize + i2 * 4 + 2];
+                    scanline[i2 * 4 + 1] = ((const unsigned char*)data)[i1 * lineSize + i2 * 4 + 1];
+                    scanline[i2 * 4 + 2] = ((const unsigned char*)data)[i1 * lineSize + i2 * 4 + 0];
+                    scanline[i2 * 4 + 3] = ((const unsigned char*)data)[i1 * lineSize + i2 * 4 + 3];
+                }
+
+                stream.Write(scanline.data(), scanline.size());
+            }
+            break;
+        }
+        case PdfPixelFormat::Unknown:
+        default:
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+    }
 }
 
 void readTestInputFileTo(string& str, const string_view& filepath)

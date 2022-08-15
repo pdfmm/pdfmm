@@ -530,6 +530,11 @@ SpanStreamDevice::SpanStreamDevice(const string& str)
 {
 }
 
+SpanStreamDevice::SpanStreamDevice(string& str, DeviceAccess access)
+    : SpanStreamDevice(str.data(), str.size(), access)
+{
+}
+
 SpanStreamDevice::SpanStreamDevice(const char* str)
     : SpanStreamDevice(str, char_traits<char>::length(str))
 {

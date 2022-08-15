@@ -121,52 +121,51 @@ void PdfPainter::finishDrawing()
 {
     if (m_stream != nullptr)
     {
+        PdfObjectOutputStream output;
         if ((m_flags & PdfPainterFlags::NoSaveRestorePrior) == PdfPainterFlags::NoSaveRestorePrior)
         {
             // GetLength() must be called before BeginAppend()
             if (m_stream->GetLength() == 0)
             {
-                m_stream->BeginAppend(false);
+                output = m_stream->GetOutputStream();
             }
             else
             {
-                m_stream->BeginAppend(false);
+                output = m_stream->GetOutputStream();
                 // there is already content here - so let's assume we are appending
                 // as such, we MUST put in a "space" to separate whatever we do.
-                m_stream->Append("\n");
+                output.Write("\n");
             }
         }
         else
         {
             charbuff buffer;
             if (m_stream->GetLength() != 0)
-                m_stream->ExtractTo(buffer);
+                m_stream->UnwrapTo(buffer);
 
             if (buffer.size() == 0)
             {
-                m_stream->BeginAppend(false);
+                output = m_stream->GetOutputStream();
             }
             else
             {
-                m_stream->BeginAppend(true);
-                m_stream->Append("q\n");
-                m_stream->Append(buffer);
-                m_stream->Append("Q\n");
+                output = m_stream->GetOutputStream(true);
+                output.Write("q\n");
+                output.Write(buffer);
+                output.Write("Q\n");
             }
         }
 
         if ((m_flags & PdfPainterFlags::NoSaveRestore) == PdfPainterFlags::NoSaveRestore)
         {
-            m_stream->Append(m_tmpStream.GetString());
+            output.Write(m_tmpStream.GetString());
         }
         else
         {
-            m_stream->Append("q\n");
-            m_stream->Append(m_tmpStream.GetString());
-            m_stream->Append("Q\n");
+            output.Write("q\n");
+            output.Write(m_tmpStream.GetString());
+            output.Write("Q\n");
         }
-
-        m_stream->EndAppend();
     }
 
     // Reset temporary stream
@@ -486,7 +485,7 @@ void PdfPainter::drawText(const std::string_view& str, double x, double y, bool 
         this->Restore();
     }
 
-    font.WriteStringToStream((ostream&)m_tmpStream, expStr);
+    font.WriteStringToStream(m_tmpStream, expStr);
     m_tmpStream << " Tj" << endl;
 }
 
@@ -516,7 +515,7 @@ void PdfPainter::AddText(const string_view& str)
     auto expStr = this->expandTabs(str);
 
     // TODO: Underline and Strikeout not yet supported
-    m_TextState.Font->WriteStringToStream((ostream&)m_tmpStream, expStr);
+    m_TextState.Font->WriteStringToStream(m_tmpStream, expStr);
 
     m_tmpStream << " Tj" << endl;
 }

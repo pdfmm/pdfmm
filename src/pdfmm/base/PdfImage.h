@@ -47,6 +47,10 @@ public:
      */
     PdfImage(PdfDocument& doc, const std::string_view& prefix = { });
 
+    void DecodeTo(charbuff& buff, PdfPixelFormat format);
+    void DecodeTo(OutputStream& stream, PdfPixelFormat format);
+    charbuff GetDecodedCopy(PdfPixelFormat format);
+
     /** Set the color space of this image. The default value is
      *  PdfColorSpace::DeviceRGB.
      *  \param colorSpace one of PdfColorSpace::DeviceGray, PdfColorSpace::DeviceRGB and
@@ -98,7 +102,7 @@ public:
      *
      *  The image data will be flate compressed.
      *  If you want no compression or another filter to be applied
-     *  use the overload of SetImageData which takes a TVecFilters
+     *  use the overload of SetImageData which takes a filter list
      *  as argument.
      *
      *  \param stream stream supplieding raw image data
@@ -214,25 +218,28 @@ private:
      */
     PdfImage(PdfObject& obj);
 
+    void getScanLineInfo(PdfPixelFormat format, unsigned& lineSize, charbuff& smask);
+
     /** Converts a PdfColorSpace enum to a name key which can be used in a
      *  PDF dictionary.
      *  \param colorSpace a valid colorspace
      *  \returns a valid key for this colorspace.
      */
-    static PdfName ColorspaceToName(PdfColorSpace colorSpace);
+    static PdfName colorSpaceToName(PdfColorSpace colorSpace);
 
 #ifdef PDFMM_HAVE_JPEG_LIB
-    void LoadFromJpegHandle(FILE* stream, const std::string_view& filename);
+    void loadFromJpegHandle(FILE* stream, const std::string_view& filename);
 #endif // PDFMM_HAVE_JPEG_LIB
 #ifdef PDFMM_HAVE_TIFF_LIB
-    void LoadFromTiffHandle(void* handle);
+    void loadFromTiffHandle(void* handle);
 #endif // PDFMM_HAVE_TIFF_LIB
 #ifdef PDFMM_HAVE_PNG_LIB
-    void LoadFromPngHandle(FILE* stream);
+    void loadFromPngHandle(FILE* stream);
 #endif // PDFMM_HAVE_PNG_LIB
 
-    unsigned m_width;
-    unsigned m_height;
+private:
+    unsigned m_Width;
+    unsigned m_Height;
 };
 
 };

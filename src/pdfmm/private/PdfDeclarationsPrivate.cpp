@@ -12,8 +12,10 @@
 #include <pdfmm/private/charconv_compat.h>
 #include <pdfmm/private/utfcpp_extensions.h>
 
-#include "PdfInputDevice.h"
-#include "PdfOutputDevice.h"
+#include <pdfmm/base/PdfInputStream.h>
+#include <pdfmm/base/PdfOutputStream.h>
+
+#include <pdfmm/private/istringviewstream.h>
 
 #ifdef _WIN32
 #include <pdfmm/private/WindowsLeanMean.h>
@@ -24,6 +26,8 @@
 
 using namespace std;
 using namespace mm;
+
+constexpr unsigned BUFFER_SIZE = 4096;
 
 static const locale s_cachedLocale("C");
 
@@ -46,6 +50,15 @@ static VersionIdentity s_PdfVersions[] = {
     { "1.7", PdfVersion::V1_7 },
     { "2.0", PdfVersion::V2_0 },
 };
+
+template<typename TInt, class = typename std::enable_if_t<std::is_integral_v<TInt>>>
+void formatTo(string& str, TInt value)
+{
+    str.clear();
+    array<char, numeric_limits<TInt>::digits10> arr;
+    auto res = std::to_chars(arr.data(), arr.data() + arr.size(), value);
+    str.append(arr.data(), res.ptr - arr.data());
+}
 
 PdfVersion mm::GetPdfVersion(const string_view& str)
 {
@@ -264,6 +277,51 @@ Error:
     PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidDeviceOperation, "Failed to read file size");
 }
 
+void utls::CopyTo(ostream& dst, istream& src)
+{
+    if (src.eof())
+        return;
+
+    array<char, BUFFER_SIZE> buffer;
+    bool eof;
+    do
+    {
+        streamsize read = utls::ReadBuffer(src, buffer.data(), BUFFER_SIZE, eof);
+        dst.write(buffer.data(), read);
+    } while (!eof);
+}
+
+void utls::ReadTo(charbuff& str, const string_view& filepath)
+{
+    ifstream istream = utls::open_ifstream(filepath, ios_base::binary);
+    ReadTo(str, istream);
+}
+
+void utls::ReadTo(charbuff& str, istream& stream)
+{
+    stream.seekg(0, ios::end);
+    if (stream.tellg() == -1)
+        throw runtime_error("Error reading from stream");
+
+    str.reserve((size_t)stream.tellg());
+    stream.seekg(0, ios::beg);
+
+    str.assign((istreambuf_iterator<char>(stream)),
+        istreambuf_iterator<char>());
+}
+
+void utls::WriteTo(const string_view& filepath, const bufferview& view)
+{
+    ofstream ostream = utls::open_ofstream(string(filepath), ios_base::binary);
+    WriteTo(ostream, view);
+}
+
+void utls::WriteTo(ostream& stream, const bufferview& view)
+{
+    cmn::istringviewstream istream(view.data(), view.size());
+    CopyTo(stream, istream);
+}
+
 // Read from stream an amount of bytes or less
 // without setting failbit
 // https://stackoverflow.com/a/22593639/213871
@@ -402,6 +460,26 @@ void utls::ReadUtf16LEString(const bufferview& buffer, string& utf8str)
     utf8::utf16to8(iterable.begin(), iterable.end(), std::back_inserter(utf8str));
 }
 
+void utls::FormatTo(string& str, int value)
+{
+    formatTo(str, value);
+}
+
+void utls::FormatTo(string& str, unsigned value)
+{
+    formatTo(str, value);
+}
+
+void utls::FormatTo(string& str, long long int value)
+{
+    formatTo(str, value);
+}
+
+void utls::FormatTo(string& str, long long unsigned value)
+{
+    formatTo(str, value);
+}
+
 void utls::FormatTo(string& str, float value, unsigned short precision)
 {
     utls::FormatTo(str, "{:.{}f}", value, precision);
@@ -476,28 +554,28 @@ void utls::WriteUInt32BE(OutputStream& output, uint32_t value)
 {
     char buf[4];
     WriteUInt32BE(buf, value);
-    output.Write(string_view(buf, 4));
+    output.Write(buf, 4);
 }
 
 void utls::WriteInt32BE(OutputStream& output, int32_t value)
 {
     char buf[4];
     WriteInt32BE(buf, value);
-    output.Write(string_view(buf, 4));
+    output.Write(buf, 4);
 }
 
 void utls::WriteUInt16BE(OutputStream& output, uint16_t value)
 {
     char buf[2];
     WriteUInt16BE(buf, value);
-    output.Write(string_view(buf, 2));
+    output.Write(buf, 2);
 }
 
 void utls::WriteInt16BE(OutputStream& output, int16_t value)
 {
     char buf[2];
     WriteInt16BE(buf, value);
-    output.Write(string_view(buf, 2));
+    output.Write(buf, 2);
 }
 
 void utls::WriteUInt32BE(char* buf, uint32_t value)

@@ -620,7 +620,7 @@ void PdfField::SetValidateAction(const PdfAction& action)
 void getFullName(const PdfObject& obj, bool escapePartialNames, string& fullname)
 {
     auto& dict = obj.GetDictionary();
-    auto parent = dict.FindKey("Parent");;
+    auto parent = dict.FindKey("Parent");
     if (parent != nullptr)
         getFullName(*parent, escapePartialNames, fullname);
 
@@ -641,7 +641,7 @@ void getFullName(const PdfObject& obj, bool escapePartialNames, string& fullname
             size_t currpos = 0;
             while ((currpos = name.find('.', currpos)) != std::string::npos)
             {
-                name.replace(currpos, 1, "..");
+                name.replace(currpos, 1, "..", 2);
                 currpos += 2;
             }
         }

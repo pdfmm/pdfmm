@@ -8,16 +8,17 @@
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfImmediateWriter.h"
 
-#include "PdfFileObjectStream.h"
+#include "PdfStreamedObjectStream.h"
 #include "PdfMemoryObjectStream.h"
 #include "PdfObject.h"
 #include "PdfXRef.h"
 #include "PdfXRefStream.h"
 
+using namespace std;
 using namespace mm;
 
 PdfImmediateWriter::PdfImmediateWriter(PdfIndirectObjectList& objects, const PdfObject& trailer,
-    OutputStreamDevice& device, PdfVersion version, PdfEncrypt* encrypt, PdfSaveOptions opts) :
+        OutputStreamDevice& device, PdfVersion version, PdfEncrypt* encrypt, PdfSaveOptions opts) :
     PdfWriter(objects, trailer),
     m_attached(true),
     m_Device(&device),
@@ -129,38 +130,39 @@ PdfObjectStream* PdfImmediateWriter::CreateStream(PdfObject& parent)
 {
     return m_OpenStream ?
         static_cast<PdfObjectStream*>(new PdfMemoryObjectStream(parent)) :
-        static_cast<PdfObjectStream*>(new PdfFileObjectStream(parent, *m_Device));
+        static_cast<PdfObjectStream*>(new PdfStreamedObjectStream(parent, *m_Device));
 }
 
 void PdfImmediateWriter::FinishLastObject()
 {
-    if (m_Last != nullptr)
-    {
-        m_Device->Write("\nendstream\n");
-        m_Device->Write("endobj\n");
+    if (m_Last == nullptr)
+        return;
 
-        GetObjects().RemoveObject(m_Last->GetIndirectReference(), false);
-        m_Last = nullptr;
-    }
+    m_Device->Write("\nendstream\n");
+    m_Device->Write("endobj\n");
+
+    GetObjects().RemoveObject(m_Last->GetIndirectReference(), false);
+    m_Last = nullptr;
 }
 
 void PdfImmediateWriter::BeginAppendStream(const PdfObjectStream& stream)
 {
-    auto fileStream = dynamic_cast<const PdfFileObjectStream*>(&stream);
+    auto fileStream = dynamic_cast<const PdfStreamedObjectStream*>(&stream);
     if (fileStream != nullptr)
     {
         // Only one open file stream is allowed at a time
         PDFMM_ASSERT(!m_OpenStream);
         m_OpenStream = true;
 
-        if (GetEncrypt() != nullptr)
-            const_cast<PdfFileObjectStream*>(fileStream)->SetEncrypted(GetEncrypt());
+        auto encrypt = GetEncrypt();
+        if (encrypt != nullptr)
+            const_cast<PdfStreamedObjectStream*>(fileStream)->SetEncrypted(*encrypt);
     }
 }
 
 void PdfImmediateWriter::EndAppendStream(const PdfObjectStream& stream)
 {
-    auto fileStream = dynamic_cast<const PdfFileObjectStream*>(&stream);
+    auto fileStream = dynamic_cast<const PdfStreamedObjectStream*>(&stream);
     if (fileStream != nullptr)
     {
         // A PdfFileStream has to be opened before

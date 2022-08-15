@@ -131,18 +131,7 @@ public:
      *                 or following whitespaces.
      *  \param str a unicode or ansi string which will be displayed
      */
-    void WriteStringToStream(PdfObjectStream& stream, const std::string_view& str) const;
-
-    /** Write a string to a PdfObjectStream in a format so that it can
-     *  be used with this font.
-     *  This is used by PdfPainter::DrawText to display a text string.
-     *  The following PDF operator will be Tj
-     *
-     *  \param stream the string will be appended to the stream without any leading
-     *                 or following whitespaces.
-     *  \param str a unicode or ansi string which will be displayed
-     */
-    void WriteStringToStream(std::ostream& stream, const std::string_view& str) const;
+    void WriteStringToStream(OutputStream& stream, const std::string_view& str) const;
 
     /** Get the GID by the codePoint
      *

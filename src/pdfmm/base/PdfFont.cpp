@@ -162,23 +162,13 @@ void PdfFont::initBase(const PdfEncoding& encoding)
     m_Name = m_Metrics->GetFontNameSafe();
 }
 
-void PdfFont::WriteStringToStream(PdfObjectStream& stream, const string_view& str) const
+void PdfFont::WriteStringToStream(OutputStream& stream, const string_view& str) const
 {
-    outstringstream ostream;
-    WriteStringToStream(ostream, str);
-    stream.Append(ostream.str());
-}
-
-void PdfFont::WriteStringToStream(ostream& stream, const string_view& str) const
-{
+    stream.Write("<");
     auto encoded = m_Encoding->ConvertToEncoded(str);
     unique_ptr<PdfFilter> filter = PdfFilterFactory::Create(PdfFilterType::ASCIIHexDecode);
-    charbuff buffer;
-    filter->EncodeTo(buffer, encoded);
-
-    stream << "<";
-    stream.write(buffer.data(), buffer.size());
-    stream << ">";
+    filter->EncodeTo(stream, encoded);
+    stream.Write(">");
 }
 
 void PdfFont::InitImported(bool wantEmbed, bool wantSubset)
@@ -539,7 +529,7 @@ PdfObject* PdfFont::embedFontFileData(PdfObject& descriptor, const PdfName& font
 {
     auto contents = GetDocument().GetObjects().CreateDictionaryObject();
     descriptor.GetDictionary().AddKeyIndirect(fontFileName, contents);
-    contents->GetOrCreateStream().Set(data);
+    contents->GetOrCreateStream().SetData(data);
     return contents;
 }
 
@@ -548,7 +538,6 @@ void PdfFont::initWordSpacingWidth()
     if (m_wordSpacingWidthRaw >= 0)
         return;
 
-    double width;
     unsigned gid;
     if (!TryGetGID(U' ', PdfGlyphAccess::Width, gid)
         || m_Metrics->TryGetGlyphWidth(gid, m_wordSpacingWidthRaw))

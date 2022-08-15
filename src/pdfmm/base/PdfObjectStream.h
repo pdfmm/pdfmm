@@ -13,13 +13,62 @@
 
 #include "PdfFilter.h"
 #include "PdfEncrypt.h"
+#include "PdfOutputStream.h"
+#include "PdfInputStream.h"
 
 namespace mm {
 
 class InputStream;
 class PdfName;
 class PdfObject;
-class OutputStream;
+class PdfObjectStream;
+
+class PdfObjectInputStream : public InputStream
+{
+    friend class PdfObjectStream;
+public:
+    PdfObjectInputStream();
+    ~PdfObjectInputStream();
+    PdfObjectInputStream(PdfObjectInputStream&& rhs) noexcept;
+private:
+    PdfObjectInputStream(PdfObjectStream& stream, bool unpack);
+public:
+    const PdfFilterList& GetMediaFilters() const { return m_MediaFilters; }
+protected:
+    size_t readBuffer(char* buffer, size_t size, bool& eof) override;
+    bool readChar(char& ch) override;
+public:
+    PdfObjectInputStream& operator=(PdfObjectInputStream&& rhs) noexcept;
+private:
+    PdfObjectStream* m_stream;
+    std::unique_ptr<InputStream> m_input;
+    PdfFilterList m_MediaFilters;
+};
+
+class PdfObjectOutputStream : public OutputStream
+{
+    friend class PdfObjectStream;
+public:
+    PdfObjectOutputStream();
+    ~PdfObjectOutputStream();
+    PdfObjectOutputStream(PdfObjectOutputStream&& rhs) noexcept;
+private:
+    PdfObjectOutputStream(PdfObjectStream& stream, PdfFilterList&& filters,
+        bool append);
+    PdfObjectOutputStream(PdfObjectStream& stream);
+private:
+    PdfObjectOutputStream(PdfObjectStream& stream, PdfFilterList&& filters,
+        bool append, bool preserveFilter);
+protected:
+    void writeBuffer(const char* buffer, size_t size) override;
+    void flush() override;
+public:
+    PdfObjectOutputStream& operator=(PdfObjectOutputStream&& rhs) noexcept;
+private:
+    PdfObjectStream* m_stream;
+    PdfFilterList m_filters;
+    std::unique_ptr<OutputStream> m_output;
+};
 
 /** A PDF stream can be appended to any PdfObject
  *  and can contain arbitrary data.
@@ -35,15 +84,10 @@ class OutputStream;
  */
 class PDFMM_API PdfObjectStream
 {
+    friend class PdfObject;
     friend class PdfParserObject;
     friend class PdfObjectInputStream;
-
-public:
-    /** The default filter to use when changing the stream content.
-     *  It's a static member and applies to all newly created/changed streams.
-     *  The default value is PdfFilterType::FlateDecode.
-     */
-    static enum PdfFilterType DefaultFilter;
+    friend class PdfObjectOutputStream;
 
 protected:
     /** Create a new PdfObjectStream object which has a parent PdfObject.
@@ -56,13 +100,22 @@ protected:
 public:
     virtual ~PdfObjectStream();
 
-    /** Write the stream to an output device
-     *  \param device write to this outputdevice.
-     *  \param encrypt encrypt stream data using this object
-     */
-    virtual void Write(OutputStream& stream, const PdfStatefulEncrypt& encrypt) = 0;
+    PdfObjectOutputStream GetOutputStreamRaw(bool append = false);
 
-    /** Set a binary buffer as stream data.
+    PdfObjectOutputStream GetOutputStream(bool append = false);
+
+    PdfObjectOutputStream GetOutputStream(const PdfFilterList& filters, bool append = false);
+
+    PdfObjectInputStream GetInputStream(bool unpack = true);
+
+    /** Set the data contents copying from a buffer
+     *  All data will be Flate-encoded.
+     *
+     *  \param buffer buffer containing the stream data
+     */
+    void SetData(const bufferview& buffer, bool raw = false);
+
+    /** Set the data contents copying from a buffer
      *
      * Use PdfFilterFactory::CreateFilterList() if you want to use the contents
      * of the stream dictionary's existing filter key.
@@ -70,42 +123,16 @@ public:
      *  \param buffer buffer containing the stream data
      *  \param filters a list of filters to use when appending data
      */
-    void Set(const bufferview& buffer, const PdfFilterList& filters);
+    void SetData(const bufferview& buffer, const PdfFilterList& filters);
 
-    /** Set a binary buffer as stream data.
-     *
-     * Use PdfFilterFactory::CreateFilterList() if you want to use the contents
-     * of the stream dictionary's existing filter key.
-     *
-     *  \param buffer buffer containing the stream data
-     *  \param len length of the buffer
-     *  \param filters a list of filters to use when appending data
-     */
-    void Set(const char* buffer, size_t len, const PdfFilterList& filters);
-
-    /** Set a binary buffer as stream data.
-     *  All data will be Flate-encoded.
-     *
-     *  \param buffer buffer containing the stream data
-     */
-    void Set(const bufferview& buffer);
-
-    /** Set a binary buffer as stream data.
-     *  All data will be Flate-encoded.
-     *
-     *  \param buffer buffer containing the stream data
-     *  \param len length of the buffer
-     */
-    void Set(const char* buffer, size_t len);
-
-    /** Set a binary buffer whose contents are read from an InputStream
+    /** Set the data contents reading from an InputStream
      *  All data will be Flate-encoded.
      *
      *  \param stream read stream contents from this InputStream
      */
-    void Set(InputStream& stream);
+    void SetData(InputStream& stream, bool raw = false);
 
-    /** Set a binary buffer whose contents are read from an InputStream
+    /** Set the data contents reading from an InputStream
      *
      * Use PdfFilterFactory::CreateFilterList() if you want to use the contents
      * of the stream dictionary's existing filter key.
@@ -113,82 +140,36 @@ public:
      *  \param stream read stream contents from this InputStream
      *  \param filters a list of filters to use when appending data
      */
-    void Set(InputStream& stream, const PdfFilterList& filters);
+    void SetData(InputStream& stream, const PdfFilterList& filters);
 
-    /** Sets raw data for this stream which is read from an input stream.
-     *  This method does neither encode nor decode the read data.
-     *  The filters of the object are not modified and the data is expected
-     *  encoded as stated by the /Filters key in the stream's object.
-     *
-     *  \param stream read data from this input stream
-     *  \param len    read exactly len bytes from the input stream,
-     *                 if len = -1 read until the end of the input stream
-     *                 was reached.
+    /** Get an unwrapped copy of the stream, unpacking non media filters
+     * \remarks throws if the stream contains media filters, like DCTDecode
      */
-    void SetRawData(InputStream& stream, ssize_t len = -1);
+    charbuff GetUnwrappedCopy() const;
 
-    /** Start appending data to this stream.
-     *
-     *  This method has to be called before any of the append methods.
-     *  All appended data will be Flate-encoded.
-     *
-     *  \param clearExisting if true any existing stream contents will
-     *         be cleared.
-     *
-     *  \see Append
-     *  \see EndAppend
-     *  \see eDefaultFilter
+    /** Get an unwrapped copy of the stream, unpacking non media filters
      */
-    void BeginAppend(bool clearExisting = true);
+    charbuff GetUnwrappedCopySafe() const;
 
-    /** Start appending data to this stream.
-     *  This method has to be called before any of the append methods.
-     *
-     * Use PdfFilterFactory::CreateFilterList() if you want to use the contents
-     * of the stream dictionary's existing filter key.
-     *
-     *  \param filters a list of filters to use when appending data
-     *  \param clearExisting if true any existing stream contents will
-               be cleared.
-     *  \param deleteFilters if true existing filter keys are deleted if an
-     *         empty list of filters is passed (required for SetRawData())
-     *
-     *  \see Append
-     *  \see EndAppend
+    /** Unwrap the stream to the given buffer, unpacking non media filters
+     * \remarks throws if the stream contains media filters, like DCTDecode
      */
-    void BeginAppend(const PdfFilterList& filters, bool clearExisting = true, bool deleteFilters = true);
+    void UnwrapTo(charbuff& buffer) const;
 
-    /** Append a binary buffer to the current stream contents.
-     *
-     *  Make sure BeginAppend() has been called before.
-     *
-     *  \param view a buffer
-     *
-     *  \see BeginAppend
-     *  \see EndAppend
+    /** Unwrap the stream to the given buffer, unpacking non media filters
      */
-    PdfObjectStream& Append(const std::string_view& view);
+    void UnwrapToSafe(charbuff& buffer) const;
 
-    /** Append a binary buffer to the current stream contents.
-     *
-     *  Make sure BeginAppend() has been called before.
-     *
-     *  \param buffer a buffer
-     *  \param len size of the buffer
-     *
-     *  \see BeginAppend
-     *  \see EndAppend
+    /** Unwrap the stream and write it to the given stream, unpacking non media filters
+     * \remarks throws if the stream contains media filters, like DCTDecode
      */
-    PdfObjectStream& AppendBuffer(const char* buffer, size_t size);
-    PdfObjectStream& AppendBuffer(const bufferview& buffer);
+    void UnwrapTo(OutputStream& stream) const;
 
-    /** Finish appending data to this stream.
-     *  BeginAppend() has to be called before this method.
-     *
-     *  \see BeginAppend
-     *  \see Append
+    /** Unwrap the stream and write it to the given stream, unpacking non media filters
      */
-    void EndAppend();
+    void UnwrapToSafe(OutputStream& stream) const;
+
+    void MoveTo(PdfObject& obj);
 
     /** Get the stream's length with all filters applied (e.g. if the stream is
      * Flate-compressed, the length of the compressed data stream).
@@ -197,33 +178,6 @@ public:
      */
     virtual size_t GetLength() const = 0;
 
-    /** Get a copy of a the stream and write it to an OutputStream
-     *
-     *  \param stream data is written to this stream.
-     */
-    virtual void CopyTo(OutputStream& stream) const = 0;
-
-    /** Get a buffer of the current stream which has been
-     *  filtered by all filters as specified in the dictionary's
-     *  /Filter key. For example, if the stream is Flate-compressed,
-     *  the buffer returned from this method will have been decompressed.
-     *
-     *  The caller has to the buffer.
-     *
-     *  \param buffer pointer to the buffer
-     */
-    void ExtractTo(charbuff& buffer) const;
-
-    /** Get a filtered copy of a the stream and write it to an OutputStream
-     *
-     *  \param stream filtered data is written to this stream.
-     */
-    void ExtractTo(OutputStream& stream) const;
-
-    charbuff GetFilteredCopy() const;
-
-    void MoveTo(PdfObject& obj);
-
     /** Create a copy of a PdfObjectStream object
      *  \param rhs the object to clone
      *  \returns a reference to this object
@@ -231,52 +185,36 @@ public:
     PdfObjectStream& operator=(const PdfObjectStream& rhs);
 
 protected:
-    /** Begin appending data to this stream.
-     *  Clears the current stream contents.
-     *
-     * Use PdfFilterFactory::CreateFilterList() if you want to use the contents
-     * of the stream dictionary's existing filter key.
-     *
-     *  \param filters use these filters to encode any data written
-     *         to the stream.
+    /** Write the stream to an output device
+     *  \param device write to this outputdevice.
+     *  \param encrypt encrypt stream data using this object
      */
-    virtual void BeginAppendImpl(const PdfFilterList& filters) = 0;
-
-    /** Append a binary buffer to the current stream contents.
-     *
-     *  \param data a buffer
-     *  \param len length of the buffer
-     *
-     *  \see BeginAppend
-     *  \see Append
-     *  \see EndAppend
-     */
-    virtual void AppendImpl(const char* data, size_t len) = 0;
-
-    /** Finish appending data to the stream
-     */
-    virtual void EndAppendImpl() = 0;
+    virtual void Write(OutputStream& stream, const PdfStatefulEncrypt& encrypt) = 0;
 
     virtual void CopyFrom(const PdfObjectStream& rhs);
 
-    void EnsureAppendClosed();
+    virtual std::unique_ptr<InputStream> getInputStream() = 0;
+
+    virtual std::unique_ptr<OutputStream> getOutputStream() = 0;
+
+    void EnsureClosed();
 
     PdfObject& GetParent() { return *m_Parent; }
 
-    virtual std::unique_ptr<InputStream> GetInputStream() const = 0;
+private:
+    void InitData(InputStream& stream, size_t len);
+
+private:
+    std::unique_ptr<InputStream> getInputStream(bool expand, PdfFilterList& mediaFilters);
+
+    void setData(InputStream& stream, PdfFilterList filters, ssize_t size, bool markObjectDirty);
 
 private:
     PdfObjectStream(const PdfObjectStream& rhs) = delete;
 
-    void endAppend();
-
-    void SetRawData(InputStream& stream, ssize_t len, bool markObjectDirty);
-
-    void BeginAppend(const PdfFilterList& filters, bool clearExisting, bool deleteFilters, bool markObjectDirty);
-
 private:
     PdfObject* m_Parent;
-    bool m_Append;
+    bool m_locked;
 };
 
 };

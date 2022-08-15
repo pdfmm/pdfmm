@@ -189,11 +189,5 @@ void PdfTilingPattern::Init(PdfTilingPatternType tilingType,
         out << "/" << image->GetIdentifier().GetString() << " Do" << std::endl;
     }
 
-    PdfFilterList filters;
-    filters.push_back(PdfFilterType::FlateDecode);
-
-    string str = out.TakeString();
-    SpanStreamDevice input(str);
-
-    GetObject().GetOrCreateStream().Set(input, filters);
+    GetObject().GetOrCreateStream().SetData(out.GetString(), { PdfFilterType::FlateDecode });
 }

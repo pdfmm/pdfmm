@@ -323,11 +323,8 @@ PdfRect PdfDocument::FillXObjectFromPage(PdfXObject& xobj, const PdfPage& page, 
             // copy array as one stream to xobject
             PdfArray arr = contents.GetArray();
 
-            PdfObjectStream& xobjStream = xobj.GetObject().GetOrCreateStream();
-
-            PdfFilterList filters;
-            filters.push_back(PdfFilterType::FlateDecode);
-            xobjStream.BeginAppend(filters);
+            auto& xobjStream = xobj.GetObject().GetOrCreateStream();
+            auto output = xobjStream.GetOutputStream({ PdfFilterType::FlateDecode });
 
             for (auto& child : arr)
             {
@@ -347,8 +344,8 @@ PdfRect PdfDocument::FillXObjectFromPage(PdfXObject& xobj, const PdfPage& page, 
                             PdfObjectStream& contStream = obj->GetOrCreateStream();
 
                             charbuff contStreamBuffer;
-                            contStream.ExtractTo(contStreamBuffer);
-                            xobjStream.Append(contStreamBuffer);
+                            contStream.UnwrapTo(contStreamBuffer);
+                            output.Write(contStreamBuffer);
                             break;
                         }
                         else
@@ -362,25 +359,20 @@ PdfRect PdfDocument::FillXObjectFromPage(PdfXObject& xobj, const PdfPage& page, 
                 {
                     string str;
                     child.ToString(str);
-                    xobjStream.Append(str);
-                    xobjStream.Append(" ");
+                    output.Write(str);
+                    output.Write(" ");
                 }
             }
-            xobjStream.EndAppend();
         }
         else if (contents.HasStream())
         {
             // copy stream to xobject
-            PdfObjectStream& xobjStream = xobj.GetObject().GetOrCreateStream();
-            PdfObjectStream& contentsStream = contents.GetOrCreateStream();
+            auto& contentsStream = contents.GetOrCreateStream();
+            auto contentsInput = contentsStream.GetInputStream();
 
-            PdfFilterList filters;
-            filters.push_back(PdfFilterType::FlateDecode);
-            xobjStream.BeginAppend(filters);
-            charbuff contStreamBuffer;
-            contentsStream.ExtractTo(contStreamBuffer);
-            xobjStream.Append(contStreamBuffer);
-            xobjStream.EndAppend();
+            auto& xobjStream = xobj.GetObject().GetOrCreateStream();
+            auto output = xobjStream.GetOutputStream({ PdfFilterType::FlateDecode });
+            contentsInput.CopyTo(output);
         }
         else
         {

@@ -547,7 +547,7 @@ void PdfPage::SetICCProfile(const string_view& csTag, InputStream& stream,
     PdfName nameForCS = PdfColor::GetNameForColorSpace(alternateColorSpace);
     iccObject->GetDictionary().AddKey("Alternate", nameForCS);
     iccObject->GetDictionary().AddKey("N", colorComponents);
-    iccObject->GetOrCreateStream().Set(stream);
+    iccObject->GetOrCreateStream().SetData(stream);
 
     // Add the colorspace
     PdfArray array;
@@ -588,6 +588,38 @@ PdfElement& PdfPage::getElement() const
 PdfResources& PdfPage::GetOrCreateResources()
 {
     EnsureResourcesCreated();
+    return *m_Resources;
+}
+
+const PdfContents& PdfPage::MustGetContents() const
+{
+    if (m_Contents == nullptr)
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
+
+    return *m_Contents;
+}
+
+PdfContents& PdfPage::MustGetContents()
+{
+    if (m_Contents == nullptr)
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
+
+    return *m_Contents;
+}
+
+const PdfResources& PdfPage::MustGetResources() const
+{
+    if (m_Resources == nullptr)
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
+
+    return *m_Resources;
+}
+
+PdfResources& PdfPage::MustGetResources()
+{
+    if (m_Resources == nullptr)
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
+
     return *m_Resources;
 }
 

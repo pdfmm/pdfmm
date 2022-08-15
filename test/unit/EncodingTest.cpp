@@ -284,7 +284,7 @@ TEST_CASE("testToUnicodeParse")
 
     PdfMemDocument doc;
     auto toUnicodeObj = doc.GetObjects().CreateDictionaryObject();
-    toUnicodeObj->GetOrCreateStream().Set(toUnicode);
+    toUnicodeObj->GetOrCreateStream().SetData(toUnicode);
 
     PdfEncoding encoding(std::make_shared<PdfIdentityEncoding>(2), PdfCMapEncoding::CreateFromObject(*toUnicodeObj));
 
@@ -317,7 +317,7 @@ TEST_CASE("testToUnicodeParse")
         {
             PdfIndirectObjectList invalidList;
             auto invalidObject = invalidList.CreateDictionaryObject();
-            invalidObject->GetOrCreateStream().Set(toUnicodeInvalidTests[i], strlen(toUnicodeInvalidTests[i]));
+            invalidObject->GetOrCreateStream().SetData(bufferview(toUnicodeInvalidTests[i], char_traits<char>::length(toUnicodeInvalidTests[i])));
 
             PdfEncoding encodingTestInvalid(std::make_shared<PdfIdentityEncoding>(2), PdfCMapEncoding::CreateFromObject(*invalidObject));
 

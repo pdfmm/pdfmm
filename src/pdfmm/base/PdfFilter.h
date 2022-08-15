@@ -54,6 +54,7 @@ public:
      *  \param inBuffer input buffer
      */
     void EncodeTo(charbuff& outBuffer, const bufferview& inBuffer) const;
+    void EncodeTo(OutputStream& stream, const bufferview& inBuffer) const;
 
     /** Begin progressively encoding data using this filter.
      *
@@ -118,6 +119,7 @@ public:
      *                      decode-parameters dictionary is available.
      */
     void DecodeTo(charbuff& outBuffer, const bufferview& inBuffer, const PdfDictionary* decodeParms = nullptr) const;
+    void DecodeTo(OutputStream& stream, const bufferview& inBuffer, const PdfDictionary* decodeParms = nullptr) const;
 
     /** Begin progressively decoding data using this filter.
      *
@@ -273,6 +275,10 @@ protected:
     inline OutputStream* GetStream() const { return m_OutputStream; }
 
 private:
+    void encodeTo(OutputStream& stream, const bufferview& inBuffer);
+    void decodeTo(OutputStream& stream, const bufferview& inBuffer, const PdfDictionary* decodeParms);
+
+private:
     OutputStream* m_OutputStream;
 };
 
@@ -306,9 +312,10 @@ public:
      *
      *  \see PdfFilterFactory::CreateFilterList
      */
-    static std::unique_ptr<OutputStream> CreateEncodeStream(const PdfFilterList& filters, OutputStream& stream);
+    static std::unique_ptr<OutputStream> CreateEncodeStream(const std::shared_ptr<OutputStream>& stream,
+        const PdfFilterList& filters);
 
-    /** Create an OutputStream that applies a list of filters
+    /** Create an InputStream that applies a list of filters
      *  on all data written to it.
      *
      *  \param filters a list of filters
@@ -323,9 +330,10 @@ public:
      *
      *  \see PdfFilterFactory::CreateFilterList
      */
-    static std::unique_ptr<OutputStream> CreateDecodeStream(const PdfFilterList& filters, OutputStream& stream,
-        const PdfDictionary& dictionary);
-    static std::unique_ptr<OutputStream> CreateDecodeStream(const PdfFilterList& filters, OutputStream& stream);
+    static std::unique_ptr<InputStream> CreateDecodeStream(const std::shared_ptr<InputStream>& stream,
+        const PdfFilterList& filters, const PdfDictionary& dictionary);
+    static std::unique_ptr<InputStream> CreateDecodeStream(const std::shared_ptr<InputStream>& stream,
+        const PdfFilterList& filters);
 
     /** Converts a filter name to the corresponding enum
      *  \param name of the filter without leading
@@ -335,7 +343,7 @@ public:
      *         This is often used in inline images.
      *  \returns the filter as enum
      */
-    static PdfFilterType FilterNameToType(const PdfName& name, bool supportShortNames = true);
+    static PdfFilterType FilterNameToType(const std::string_view& name, bool supportShortNames = true);
 
     /** Converts a filter type enum to the corresponding PdfName
      *  \param filterType a filter type
@@ -346,18 +354,19 @@ public:
     /** The passed PdfObject has to be a dictionary with a Filters key,
      *  a (possibly empty) array of filter names or a filter name.
      *
-     *  \param filtersObj must define a filter or list of filters (can be
-     *         empty, although then you should use TVecFilters' default)
+     *  \param filtersObj must define a filter or list of filters
      *
      *  \returns a list of filters
      */
-    static PdfFilterList CreateFilterList(const PdfObject& filtersObj);
+    static PdfFilterList CreateFilterList(const PdfObject& filtersObj, PdfFilterList& mediaFilters);
+
+private:
+    static void addFilterTo(PdfFilterList& filters, PdfFilterList& mediaFilters, const std::string_view& filterName);
+    static std::unique_ptr<InputStream> createDecodeStream(const PdfFilterList& filters,
+        const std::shared_ptr<InputStream>& stream, const PdfDictionary* dictionary);
 
 private:
     PdfFilterFactory() = delete;
-
-    static std::unique_ptr<OutputStream> createDecodeStream(const PdfFilterList& filters, OutputStream& stream,
-        const PdfDictionary* dictionary);
 };
 
 }

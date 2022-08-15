@@ -50,8 +50,8 @@ protected:
     bool tryGetCharCode(char32_t codePoint, PdfCharCode& codeUnit) const override;
     bool tryGetCodePoints(const PdfCharCode& codeUnit, std::vector<char32_t>& codePoints) const override;
     void getExportObject(PdfIndirectObjectList& objects, PdfName& name, PdfObject*& obj) const override;
-    void AppendToUnicodeEntries(PdfObjectStream& stream) const override;
-    void AppendCIDMappingEntries(PdfObjectStream& stream, const PdfFont& font) const override;
+    void AppendToUnicodeEntries(OutputStream& stream, charbuff& temp) const override;
+    void AppendCIDMappingEntries(OutputStream& stream, const PdfFont& font, charbuff& temp) const override;
 
 public:
     const PdfEncodingLimits& GetLimits() const override;

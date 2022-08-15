@@ -13,7 +13,7 @@
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfEncrypt.h"
-#include "PdfFileObjectStream.h"
+#include "PdfStreamedObjectStream.h"
 #include "PdfMemoryObjectStream.h"
 #include "PdfStreamDevice.h"
 
@@ -234,7 +234,7 @@ void PdfObject::Write(OutputStreamDevice& device, PdfWriteFlags writeMode,
     if (m_Stream != nullptr)
     {
         // Set length if it is a key
-        auto fileStream = dynamic_cast<PdfFileObjectStream*>(m_Stream.get());
+        auto fileStream = dynamic_cast<PdfStreamedObjectStream*>(m_Stream.get());
         if (fileStream == nullptr)
         {
             // It's not a PdfFileStream. PdfFileStream handles length internally
@@ -411,11 +411,11 @@ void PdfObject::MoveStreamFrom(PdfObject& obj)
     // TODO: We could optimize and avoid checking
     // that both objects are dictionaries
     auto& dict = obj.GetDictionary();
-    auto filter = dict.FindKey("Filter");
+    auto filter = dict.FindKey(PdfName::KeyFilter);
     if (filter != nullptr)
     {
-        m_Variant.GetDictionary().AddKey("Filter", *filter);
-        dict.RemoveKey("Filter");
+        m_Variant.GetDictionary().AddKey(PdfName::KeyFilter, *filter);
+        dict.RemoveKey(PdfName::KeyFilter);
     }
     m_IsDelayedLoadStreamDone = true;
 }

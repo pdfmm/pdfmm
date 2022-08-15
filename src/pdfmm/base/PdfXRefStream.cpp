@@ -100,9 +100,7 @@ void PdfXRefStream::EndWriteImpl(OutputStreamDevice& device, charbuff& buffer)
  
     // Write the actual entries data to the XRefStm object stream
     auto& stream = m_xrefStreamObj->GetOrCreateStream();
-    stream.BeginAppend();
-    stream.AppendBuffer((const char*)m_rawEntries.data(), m_rawEntries.size() * sizeof(XRefStreamEntry));
-    stream.EndAppend();
+    stream.SetData(bufferview((const char*)m_rawEntries.data(), m_rawEntries.size() * sizeof(XRefStreamEntry)));
     GetWriter().FillTrailerObject(*m_xrefStreamObj, this->GetSize(), false);
 
     m_xrefStreamObj->Write(device, GetWriter().GetWriteFlags(), nullptr, buffer); // CHECK-ME: Requires encryption info??

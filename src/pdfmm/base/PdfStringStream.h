@@ -9,12 +9,15 @@
 #define PDF_STRING_STREAM
 
 #include "PdfDeclarations.h"
+#include "PdfOutputStream.h"
 
 namespace mm
 {
     /** A specialized Pdf output string stream
+     * It suplies an iostream-like operator<< interface,
+     * while still inheriting OutputStream
      */
-    class PDFMM_API PdfStringStream
+    class PDFMM_API PdfStringStream final : public OutputStream
     {
     public:
         PdfStringStream();
@@ -48,8 +51,15 @@ namespace mm
 
         explicit operator std::ostream& () { return *m_stream; }
 
+    protected:
+        void writeBuffer(const char* buffer, size_t size);
+
     private:
-        std::string m_temp;
+        using OutputStream::Flush;
+        using OutputStream::Write;
+
+    private:
+        charbuff m_temp;
         std::unique_ptr<std::ostream> m_stream;
     };
 }

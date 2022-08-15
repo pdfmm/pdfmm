@@ -12,6 +12,8 @@
 using namespace std;
 using namespace mm;
 
+OutputStream::OutputStream() { }
+
 OutputStream::~OutputStream() { }
 
 void OutputStream::Write(char ch)
@@ -41,6 +43,16 @@ void OutputStream::Write(const char* buffer, size_t size)
 void OutputStream::Flush()
 {
     flush();
+}
+
+void OutputStream::WriteBuffer(OutputStream& stream, const char* buffer, size_t size)
+{
+    stream.writeBuffer(buffer, size);
+}
+
+void OutputStream::Flush(OutputStream& stream)
+{
+    stream.flush();
 }
 
 void OutputStream::flush()

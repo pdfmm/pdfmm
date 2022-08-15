@@ -205,7 +205,7 @@ bool PdfCanvasInputDevice::tryPopNextDevice()
         if (contents == nullptr)
             continue;
 
-        contents->ExtractTo(m_buffer);
+        contents->UnwrapTo(m_buffer);
         if (m_buffer.size() == 0)
             continue;
 

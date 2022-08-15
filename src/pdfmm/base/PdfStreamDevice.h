@@ -212,6 +212,8 @@ public:
     SpanStreamDevice(const bufferview& buffer);
     SpanStreamDevice(const std::string_view& view);
     SpanStreamDevice(const std::string& str);
+    SpanStreamDevice(std::string& str,
+        DeviceAccess access = DeviceAccess::ReadWrite);
     SpanStreamDevice(const char* str);
     SpanStreamDevice(char* buffer, size_t size,
         DeviceAccess access = DeviceAccess::ReadWrite);

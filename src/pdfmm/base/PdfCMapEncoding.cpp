@@ -107,7 +107,7 @@ PdfCharCodeMap parseCMapObject(const PdfObjectStream& stream, CodeLimits& limits
 {
     PdfCharCodeMap ret;
     charbuff streamBuffer;
-    stream.ExtractTo(streamBuffer);
+    stream.UnwrapTo(streamBuffer);
 
     SpanStreamDevice device(streamBuffer);
     PdfPostScriptTokenizer tokenizer;

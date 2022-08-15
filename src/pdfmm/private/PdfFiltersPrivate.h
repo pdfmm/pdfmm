@@ -22,40 +22,7 @@
 
 #include <zlib.h>
 
-#ifdef PDFMM_HAVE_JPEG_LIB
-extern "C" {
-#ifdef _WIN32		// Collision between Win32 and libjpeg headers
-#define XMD_H
-#undef FAR
-
-#ifndef HAVE_BOOLEAN
-#define HAVE_BOOLEAN
-#define PDFMM_JPEG_HAVE_BOOLEAN // not to be defined in the build system
-#endif
-
-#endif
-#include <jpeglib.h>
-
-#ifdef PDFMM_JPEG_HAVE_BOOLEAN
-#undef HAVE_BOOLEAN
-#endif
-}
-#endif // PDFMM_HAVE_JPEG_LIB
-
-#ifdef PDFMM_HAVE_TIFF_LIB
-extern "C" {
-#include <tiffio.h>
-#ifdef _WIN32		// Collision between tiff and jpeg-headers
-#define XMD_H
-#undef FAR
-#endif
-}
-#endif // PDFMM_HAVE_TIFF_LIB
-
-
 namespace mm {
-
-#define PDFMM_FILTER_INTERNAL_BUFFER_SIZE 4096
 
 class PdfPredictorDecoder;
 class OutputStreamDevice;
@@ -124,6 +91,8 @@ private:
  */
 class PdfFlateFilter final : public PdfFilter
 {
+    static constexpr unsigned BUFFER_SIZE = 4096;
+
 public:
     PdfFlateFilter();
 
@@ -149,7 +118,7 @@ private:
     void EncodeBlockInternal(const char* buffer, size_t len, int nMode);
 
 private:
-    unsigned char m_buffer[PDFMM_FILTER_INTERNAL_BUFFER_SIZE];
+    unsigned char m_buffer[BUFFER_SIZE];
 
     z_stream m_stream;
     std::shared_ptr<PdfPredictorDecoder> m_Predictor;
@@ -235,90 +204,6 @@ private:
     std::shared_ptr<PdfPredictorDecoder> m_Predictor;
 };
 
-#ifdef PDFMM_HAVE_JPEG_LIB
-
-void PDFMM_API jpeg_memory_src(j_decompress_ptr cinfo, const JOCTET* buffer, size_t bufsize);
-
-extern "C"
-{
-    void JPegErrorExit(j_common_ptr cinfo);
-
-    void JPegErrorOutput(j_common_ptr, int);
-};
-
-/** The DCT filter can decoded JPEG compressed data.
- *
- *  This filter requires JPEG lib to be available
- */
-class PdfDCTFilter final : public PdfFilter
-{
-public:
-    PdfDCTFilter();
-
-    inline bool CanEncode() const override { return false; }
-
-    void BeginEncodeImpl() override;
-
-    void EncodeBlockImpl(const char* buffer, size_t len) override;
-
-    void EndEncodeImpl() override;
-
-    inline bool CanDecode() const override { return true; }
-
-    void BeginDecodeImpl(const PdfDictionary*) override;
-
-    void DecodeBlockImpl(const char* buffer, size_t len) override;
-
-    void EndDecodeImpl() override;
-
-    inline PdfFilterType GetType() const override { return PdfFilterType::DCTDecode; }
-
-private:
-    struct jpeg_decompress_struct m_cinfo;
-    struct jpeg_error_mgr m_jerr;
-
-    charbuff m_buffer;
-    OutputStreamDevice* m_Device;
-};
-
-#endif // PDFMM_HAVE_JPEG_LIB
-
-#ifdef PDFMM_HAVE_TIFF_LIB
-
-/** The CCITT filter can decoded CCITTFaxDecode compressed data.
- *
- *  This filter requires TIFFlib to be available
- */
-class PdfCCITTFilter final : public PdfFilter
-{
-public:
-    PdfCCITTFilter();
-
-    inline bool CanEncode() const override { return false; }
-
-    void BeginEncodeImpl() override;
-
-    void EncodeBlockImpl(const char* buffer, size_t len) override;
-
-    void EndEncodeImpl() override;
-
-    inline bool CanDecode() const override { return true; }
-
-    void BeginDecodeImpl(const PdfDictionary*) override;
-
-    void DecodeBlockImpl(const char* buffer, size_t len) override;
-
-    void EndDecodeImpl() override;
-
-    inline PdfFilterType GetType() const override { return PdfFilterType::CCITTFaxDecode; }
-
-private:
-    TIFF* m_tiff;
-};
-
-#endif // PDFMM_HAVE_TIFF_LIB
-
-};
-
+}
 
 #endif // PDF_FILTERS_PRIVATE_H

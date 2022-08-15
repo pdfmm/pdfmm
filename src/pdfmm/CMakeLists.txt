@@ -20,6 +20,8 @@ include_directories(
     ${PDFMM_HEADERS_DEPENDS}
 )
 
+add_subdirectory(private)
+
 set(PDFMM_BASE_HEADERS
     pdfmm-base.h
     pdfmm-contrib.h
@@ -39,18 +41,16 @@ endif()
 # Set visual studio source group
 source_group("" FILES ${PDFMM_SOURCES})
 
-foreach(subdir common base contrib private)
+foreach(subdir common base contrib)
     file(GLOB_RECURSE SOURCE_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "${subdir}/*")
     # Set visual studio source group
     source_group(${subdir} FILES ${SOURCE_FILES})
     # Add subdir to source files
     list(APPEND PDFMM_SOURCES ${SOURCE_FILES})
-    if (NOT "${subdir}" STREQUAL "private")
-        # Set non private headers for install
-        set(HEADER_FILES ${SOURCE_FILES})
-        list(FILTER HEADER_FILES EXCLUDE REGEX "\.cpp$")
-        install(FILES ${HEADER_FILES} DESTINATION "include/pdfmm/${subdir}")
-    endif()
+    # Set non private headers for install
+    set(HEADER_FILES ${SOURCE_FILES})
+    list(FILTER HEADER_FILES EXCLUDE REGEX "\.cpp$")
+    install(FILES ${HEADER_FILES} DESTINATION "include/pdfmm/${subdir}")
 endforeach()
 
 if(NOT PDFMM_HAVE_FONTCONFIG)
@@ -68,13 +68,12 @@ endif()
 if(PDFMM_BUILD_STATIC)
     message("Building static pdfmm library")
     add_library(pdfmm_static STATIC ${PDFMM_SOURCES})
-    target_link_libraries(pdfmm_static ${PDFMM_LIB_DEPENDS})
+    target_link_libraries(pdfmm_static PRIVATE ${PDFMM_LIB_DEPENDS} pdfmm_private)
     set_target_properties(pdfmm_static PROPERTIES
         VERSION "${PDFMM_LIBVERSION}"
         SOVERSION "${PDFMM_SOVERSION}"
         CLEAN_DIRECT_OUTPUT 1
         OUTPUT_NAME "pdfmm"
-        COMPILE_FLAGS "-DBUILDING_PDFMM"
     )
     set(USING_SHARED_PDFMM FALSE)
     install(TARGETS pdfmm_static
@@ -89,7 +88,7 @@ endif()
 if(PDFMM_BUILD_SHARED)
     message("Building shared pdfmm library")
     add_library(pdfmm_shared SHARED ${PDFMM_SOURCES})
-    target_link_libraries(pdfmm_shared ${PDFMM_LIB_DEPENDS})
+    target_link_libraries(pdfmm_shared PRIVATE ${PDFMM_LIB_DEPENDS} pdfmm_private)
     # TODO: set /wd4251 flag if we're doing a debug build with
     # Visual Studio, since it produces invalid warnings about STL
     # use.
@@ -98,7 +97,6 @@ if(PDFMM_BUILD_SHARED)
         SOVERSION "${PDFMM_SOVERSION}"
         CLEAN_DIRECT_OUTPUT 1
         OUTPUT_NAME "pdfmm"
-        COMPILE_FLAGS "-DBUILDING_PDFMM"
     )
     # Since we're building a shared pdfmm, prefer to depend on this one for
     # tests and tools over the static library (if built).

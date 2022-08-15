@@ -22,7 +22,7 @@ TEST_CASE("testAppend")
 
     auto& contents = page->GetOrCreateContents();
     auto& stream = contents.GetStreamForAppending();
-    stream.Set(example);
+    stream.SetData(example);
 
     CompareStreamContent(stream, example);
 
@@ -42,6 +42,6 @@ TEST_CASE("testAppend")
 void CompareStreamContent(PdfObjectStream& stream, const string_view& expected)
 {
     charbuff buffer;
-    stream.ExtractTo(buffer);
+    stream.UnwrapTo(buffer);
     REQUIRE(buffer == expected);
 }

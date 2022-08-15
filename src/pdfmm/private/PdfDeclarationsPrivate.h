@@ -9,10 +9,6 @@
 #ifndef PDF_DEFINES_PRIVATE_H
 #define PDF_DEFINES_PRIVATE_H
 
-#ifndef BUILDING_PDFMM
-#error PdfDeclarationsPrivate.h is only available for use in the core pdfmm src/ build .cpp files
-#endif
-
 #include <fstream>
 #include <cstdint>
 #include <cstdlib>
@@ -226,6 +222,14 @@ namespace utls
 
     void ReadUtf16LEString(const mm::bufferview& buffer, std::string& utf8str);
 
+    void FormatTo(std::string& str, int value);
+
+    void FormatTo(std::string& str, unsigned value);
+
+    void FormatTo(std::string& str, long long int value);
+
+    void FormatTo(std::string& str, long long unsigned value);
+
     void FormatTo(std::string& str, float value, unsigned short precision);
 
     void FormatTo(std::string& str, double value, unsigned short precision);
@@ -311,11 +315,19 @@ namespace utls
     };
 
     size_t FileSize(const std::string_view& filename);
+
+    void CopyTo(std::ostream& dst, std::istream& src);
+    void ReadTo(mm::charbuff& str, const std::string_view& filepath);
+    void ReadTo(mm::charbuff& str, std::istream& stream);
+    void WriteTo(const std::string_view& filepath, const mm::bufferview& view);
+    void WriteTo(std::ostream& stream, const mm::bufferview& view);
+
     /**
      * \returns number or read bytes
      * \param eof true if the stream reached EOF during read
      */
     size_t ReadBuffer(std::istream& stream, char* buffer, size_t size, bool& eof);
+
     /**
      * \returns true if success, false if eof
      */

@@ -8,7 +8,6 @@
 
 #define CATCH_CONFIG_RUNNER
 #include <catch.hpp>
-#include <pdfmm/pdfmm.h>
 #include "TestUtils.h"
 
 using namespace std;

@@ -79,29 +79,29 @@ void PdfIdentityEncoding::getExportObject(PdfIndirectObjectList& objects, PdfNam
     }
 }
 
-void PdfIdentityEncoding::AppendToUnicodeEntries(PdfObjectStream& stream) const
+void PdfIdentityEncoding::AppendToUnicodeEntries(OutputStream& stream, charbuff& temp) const
 {
     // Very easy, just do a single bfrange
     // Use PdfEncodingMap::AppendUTF16CodeTo
 
     u16string u16temp;
-    string temp;
-    stream.Append("1 beginbfrange\n");
+    stream.Write("1 beginbfrange\n");
     m_Limits.FirstChar.WriteHexTo(temp);
-    stream.Append(temp);
-    stream.Append(" ");
+    stream.Write(temp);
+    stream.Write(" ");
     m_Limits.LastChar.WriteHexTo(temp);
-    stream.Append(temp);
-    stream.Append(" ");
+    stream.Write(temp);
+    stream.Write(" ");
     PdfEncodingMap::AppendUTF16CodeTo(stream, m_Limits.FirstChar.Code, u16temp);
-    stream.Append("\n");
-    stream.Append("endbfrange");
+    stream.Write("\n");
+    stream.Write("endbfrange");
 }
 
-void PdfIdentityEncoding::AppendCIDMappingEntries(PdfObjectStream& stream, const PdfFont& font) const
+void PdfIdentityEncoding::AppendCIDMappingEntries(OutputStream& stream, const PdfFont& font, charbuff& temp) const
 {
     (void)stream;
     (void)font;
+    (void)temp;
     PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);
 }
 

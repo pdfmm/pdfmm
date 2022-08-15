@@ -1,11 +1,15 @@
 ### 0.10.x (Summer 2022)
 - Refactor/Review PdfField hierarchy. Finish API review
-- Add a PdfRect-like class PdfCorners that avoid normalization by default
 - PdfObjectStream: GetInputStream() implmenting PdfInputStream,
   protecting the instance similary to BeginAppend()
-- Review PdfObjectStream::PdfGetFilterCopy API
+- Make PdfObjectStream not filter by default in PdfMemDocument
+
+Ideas:
+- PdfObject::TryFindKeyAsSafe()
+- Evaluate rename PdfDocument::GetFontManager() -> GetFonts()
 
 ### After 0.10
+- PdfElement: Optmize, keep dictionary/array pointer. Add GetObjectPtr()
 - PdfPageCollection::CreatePage() with PdfPageSize or default inferred from doc
 - Fix PdfFontMetrics handling of symbol encoding
 - Fix/complete handling of text extraction in rotated pages
@@ -15,6 +19,11 @@
 values in the dictionary after signing with SignDocument
 - Add PdfString(string&&) and PdfName(string&&) constructors that
 either assume UTF-8 and/or checks for used codepoints
+- Added PdfResources::GetResource with enum type
+- Add a PdfRect-like class PdfCorners that avoid coordinates normalization
+  by default
+- Add PdfPage::GetRectRaw(), make GetRect() return normalized rotation rect
+- Make PdfMemDocument do collect garbage by default
 - Check PdfStreamedDocument working
 - Check/Review doxygen doc
 
@@ -28,6 +37,3 @@ either assume UTF-8 and/or checks for used codepoints
 - Option to convert Unicode ligatures <-> separate codepoints when drawing strings/converting to encoded
 - Optimize mm::chars to not initialize memory, keeping std::string compatibility
 - Add backtrace: https://github.com/boostorg/stacktrace
-
-Ideas:
-- PdfObject::TryFindKeyAsSafe()

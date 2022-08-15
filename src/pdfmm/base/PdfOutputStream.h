@@ -19,6 +19,7 @@ namespace mm {
 class PDFMM_API OutputStream
 {
 public:
+    OutputStream();
     virtual ~OutputStream();
 
     /** Write the character in the device
@@ -43,6 +44,10 @@ public:
     void Flush();
 
 protected:
+    static void WriteBuffer(OutputStream& stream, const char* buffer, size_t size);
+    static void Flush(OutputStream& stream);
+
+protected:
     virtual void writeBuffer(const char* buffer, size_t size) = 0;
     virtual void flush();
 
@@ -50,6 +55,10 @@ protected:
      * By default does nothing
      */
     virtual void checkWrite() const;
+
+private:
+    OutputStream(const OutputStream&) = delete;
+    OutputStream& operator=(const OutputStream&) = delete;
 };
 
 };

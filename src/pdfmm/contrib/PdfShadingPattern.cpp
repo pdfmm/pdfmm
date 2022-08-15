@@ -521,5 +521,5 @@ void PdfTriangleShadingPattern::Init(double x0, double y0, const PdfColor& color
     buff[16] = static_cast<char>(255.0 * rgb2.GetGreen());
     buff[17] = static_cast<char>(255.0 * rgb2.GetBlue());
 
-    shadingObject->GetOrCreateStream().Set(buff, len);
+    shadingObject->GetOrCreateStream().SetData(bufferview(buff, len));
 }

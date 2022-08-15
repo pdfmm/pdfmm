@@ -30,51 +30,48 @@ class OutputStream;
  *  \see PdfIndirectObjectList
  *  \see PdfObjectStream
  */
-class PDFMM_API PdfFileObjectStream final : public PdfObjectStream
+class PDFMM_API PdfStreamedObjectStream final : public PdfObjectStream
 {
+    class ObjectOutputStream;
+    friend class ObjectOutputStream;
+
 public:
-    /** Create a new PdfFileObjectStream object which has a parent PdfObject.
+    /** Create a new PdfDeviceObjectStream object which has a parent PdfObject.
      *  The stream will be deleted along with the parent.
      *  This constructor will be called by PdfObject::Stream() for you.
      *
      *  \param parent parent object
      *  \param device output device
      */
-    PdfFileObjectStream(PdfObject& parent, OutputStreamDevice& device);
+    PdfStreamedObjectStream(PdfObject& parent, OutputStreamDevice& device);
 
-    ~PdfFileObjectStream();
+    ~PdfStreamedObjectStream();
 
     /** Set an encryption object which is used to encrypt
      *  all data written to this stream.
      *
      *  \param encrypt an encryption object or nullptr if no encryption should be done
      */
-    void SetEncrypted(PdfEncrypt* encrypt);
+    void SetEncrypted(PdfEncrypt& encrypt);
 
     void Write(OutputStream& stream, const PdfStatefulEncrypt& encrypt) override;
 
-    void CopyTo(OutputStream& stream) const override;
-
     size_t GetLength() const override;
 
-    PdfFileObjectStream& operator=(const PdfFileObjectStream& rhs);
+    PdfStreamedObjectStream& operator=(const PdfStreamedObjectStream& rhs);
 
 protected:
-    std::unique_ptr<InputStream> GetInputStream() const override;
-    void BeginAppendImpl(const PdfFilterList& filters) override;
-    void AppendImpl(const char* data, size_t len) override;
-    void EndAppendImpl() override;
+    std::unique_ptr<InputStream> getInputStream() override;
+    std::unique_ptr<OutputStream> getOutputStream() override;
+
+private:
+    void FinishOutput(size_t initialLength);
 
 private:
     OutputStreamDevice* m_Device;
-    std::unique_ptr<OutputStream> m_Stream;
-    std::unique_ptr<OutputStream> m_EncryptStream;
-
-    size_t m_initialLength;
-    size_t m_Length;
-
-    PdfObject* m_LengthObj;
     PdfEncrypt* m_CurrEncrypt;
+    size_t m_Length;
+    PdfObject* m_LengthObj;
 };
 
 };

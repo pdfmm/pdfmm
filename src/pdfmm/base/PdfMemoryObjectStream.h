@@ -40,8 +40,6 @@ public:
 
     void Write(OutputStream& stream, const PdfStatefulEncrypt& encrypt) override;
 
-    void CopyTo(OutputStream& stream) const override;
-
     size_t GetLength() const override;
 
     /** Get a read-only handle to the current stream data.
@@ -59,10 +57,8 @@ public:
     PdfMemoryObjectStream& operator=(const PdfMemoryObjectStream& rhs);
 
 protected:
-    std::unique_ptr<InputStream> GetInputStream() const override;
-    void BeginAppendImpl(const PdfFilterList& filters) override;
-    void AppendImpl(const char* data, size_t len) override;
-    void EndAppendImpl() override;
+    std::unique_ptr<InputStream> getInputStream() override;
+    std::unique_ptr<OutputStream> getOutputStream() override;
     void CopyFrom(const PdfObjectStream& rhs) override;
 
 private:
@@ -70,8 +66,6 @@ private:
 
  private:
     charbuff m_buffer;
-    std::unique_ptr<OutputStream> m_Stream;
-    std::unique_ptr<OutputStream> m_BufferStream;
 };
 
 };

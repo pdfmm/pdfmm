@@ -549,20 +549,22 @@ void PdfEncoding::writeCIDMapping(PdfObject& cmapObj, const PdfFont& font, const
     cmapDict.AddKey(PdfName::KeyType, PdfName("CMap"));
     cmapDict.AddKey("CMapName", PdfName(cmapName));
 
+    charbuff temp;
     auto& stream = cmapObj.GetOrCreateStream();
-    stream.BeginAppend();
-    stream.Append(
+    auto output = stream.GetOutputStream();
+    utls::FormatTo(temp,
         "/CIDInit /ProcSet findresource begin\n"
         "12 dict begin\n"
         "begincmap\n"
         "/CIDSystemInfo <<\n"
         "   /Registry (" CMAP_REGISTRY_NAME  ")\n"
-        "   /Ordering (").Append(fontName).Append(")\n"
+        "   /Ordering ({})\n"
         "   /Supplement 0\n"
         ">> def\n"
-        "/CMapName /").Append(cmapName).Append(" def\n"
+        "/CMapName /{} def\n"
         "/CMapType 1 def\n"     // As defined in Adobe Technical Notes #5099
-        "1 begincodespacerange\n");
+        "1 begincodespacerange\n", fontName, cmapName);
+    output.Write(temp);
 
     if (font.IsSubsettingEnabled())
     {
@@ -599,59 +601,62 @@ void PdfEncoding::writeCIDMapping(PdfObject& cmapObj, const PdfFont& font, const
             if (first)
                 first = false;
             else
-                stream.Append("\n");
+                output.Write("\n");
 
             auto& range = pair.second;
-            string temp;
             range.FirstCode.WriteHexTo(temp);
-            stream.Append(temp);
+            output.Write(temp);
             range.LastCode.WriteHexTo(temp);
-            stream.Append(temp);
+            output.Write(temp);
         }
     }
     else
     {
-        m_Encoding->AppendCodeSpaceRange(stream);
+        m_Encoding->AppendCodeSpaceRange(output, temp);
     }
 
-    stream.Append("\nendcodespacerange\n");
+    output.Write("\nendcodespacerange\n");
 
     if (font.IsSubsettingEnabled())
     {
         auto& usedGids = font.GetUsedGIDs();
-        stream.Append(std::to_string(usedGids.size())).Append(" begincidchar\n");
+        output.Write(std::to_string(usedGids.size()));
+        output.Write(" begincidchar\n");
         string code;
         for (auto& pair : usedGids)
         {
             auto& cid = pair.second;
             cid.Unit.WriteHexTo(code);
-            stream.Append(code).Append(" ").Append(std::to_string(cid.Id)).Append("\n");;
+            output.Write(code);
+            output.Write(" ");
+            output.Write(std::to_string(cid.Id));
+            output.Write("\n");;
         }
-        stream.Append("endcidchar\n");
+        output.Write("endcidchar\n");
     }
     else
     {
-        m_Encoding->AppendCIDMappingEntries(stream, font);
+        m_Encoding->AppendCIDMappingEntries(output, font, temp);
     }
 
-    stream.Append(
+    output.Write(
         "endcmap\n"
         "CMapName currentdict / CMap defineresource pop\n"
         "end\n"
         "end");
-    stream.EndAppend();
 }
 
 void PdfEncoding::writeToUnicodeCMap(PdfObject& cmapObj) const
 {
     // NOTE: We definetely want a valid Unicode map at this point
+    charbuff temp;
     auto& toUnicode = GetToUnicodeMap();
     auto& stream = cmapObj.GetOrCreateStream();
+    auto output = stream.GetOutputStream();
 
     // CMap specification is in Adobe technical node #5014
     // The /ToUnicode dictionary doesn't need /CMap type, /CIDSystemInfo or /CMapName
-    stream.BeginAppend();
-    stream.Append(
+    output.Write(
         "/CIDInit /ProcSet findresource begin\n"
         "12 dict begin\n"
         "begincmap\n"
@@ -663,16 +668,15 @@ void PdfEncoding::writeToUnicodeCMap(PdfObject& cmapObj) const
         "/CMapName /Adobe-Identity-UCS def\n"
         "/CMapType 2 def\n"     // As defined in Adobe Technical Notes #5099
         "1 begincodespacerange\n");
-    toUnicode.AppendCodeSpaceRange(stream);
-    stream.Append("\nendcodespacerange\n");
+    toUnicode.AppendCodeSpaceRange(output, temp);
+    output.Write("\nendcodespacerange\n");
 
-    toUnicode.AppendToUnicodeEntries(stream);
-    stream.Append(
+    toUnicode.AppendToUnicodeEntries(output, temp);
+    output.Write(
         "\nendcmap\n"
         "CMapName currentdict / CMap defineresource pop\n"
         "end\n"
         "end");
-    stream.EndAppend();
 }
 
 size_t PdfEncoding::GetNextId()

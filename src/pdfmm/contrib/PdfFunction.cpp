@@ -39,17 +39,16 @@ void PdfSampledFunction::Init(const PdfArray& domain, const PdfArray& range, con
     for (unsigned i = 0; i < domain.GetSize() / 2; i++)
         Size.Add(PdfObject(static_cast<int64_t>(domain.GetSize() / 2)));
 
-    this->GetObject().GetDictionary().AddKey("Domain", domain);
-    this->GetObject().GetDictionary().AddKey("Range", range);
-    this->GetObject().GetDictionary().AddKey("Size", Size);
-    this->GetObject().GetDictionary().AddKey("Order", static_cast<int64_t>(1));
-    this->GetObject().GetDictionary().AddKey("BitsPerSample", static_cast<int64_t>(8));
+    this->GetDictionary().AddKey("Domain", domain);
+    this->GetDictionary().AddKey("Range", range);
+    this->GetDictionary().AddKey("Size", Size);
+    this->GetDictionary().AddKey("Order", static_cast<int64_t>(1));
+    this->GetDictionary().AddKey("BitsPerSample", static_cast<int64_t>(8));
 
-    this->GetObject().GetOrCreateStream().BeginAppend();
+    auto& stream = this->GetObject().GetOrCreateStream();
+    auto output = stream.GetOutputStream();
     for (char c : samples)
-        this->GetObject().GetOrCreateStream().AppendBuffer(&c, 1);
-
-    this->GetObject().GetOrCreateStream().EndAppend();
+        output.Write(c);
 }
 
 PdfExponentialFunction::PdfExponentialFunction(PdfDocument& doc, const PdfArray& domain, const PdfArray& c0, const PdfArray& c1, double exponent)
@@ -60,9 +59,9 @@ PdfExponentialFunction::PdfExponentialFunction(PdfDocument& doc, const PdfArray&
 
 void PdfExponentialFunction::Init(const PdfArray& c0, const PdfArray& c1, double exponent)
 {
-    this->GetObject().GetDictionary().AddKey("C0", c0);
-    this->GetObject().GetDictionary().AddKey("C1", c1);
-    this->GetObject().GetDictionary().AddKey("N", exponent);
+    this->GetDictionary().AddKey("C0", c0);
+    this->GetDictionary().AddKey("C1", c1);
+    this->GetDictionary().AddKey("N", exponent);
 }
 
 PdfStitchingFunction::PdfStitchingFunction(PdfDocument& doc, const PdfFunction::List& functions, const PdfArray& domain, const PdfArray& bounds, const PdfArray& encode)

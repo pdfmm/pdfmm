@@ -60,7 +60,7 @@ TEST_CASE("testIsDirtyTrue")
     auto objArray = doc.GetObjects().CreateArrayObject();
     auto objDict = doc.GetObjects().CreateDictionaryObject();
     auto objStream = doc.GetObjects().CreateDictionaryObject();
-    objStream->GetOrCreateStream().Set("Test"sv);
+    objStream->GetOrCreateStream().SetData("Test"sv);
     auto objVariant = doc.GetObjects().CreateObject(PdfVariant(false));
 
     // IsDirty should be true after construction
@@ -92,7 +92,7 @@ TEST_CASE("testIsDirtyTrue")
     (void)objArray->GetArray();
     (void)objDict->GetDictionary();
     (void)objVariant->GetBool();
-    (void)objStream->MustGetStream().GetFilteredCopy();
+    (void)objStream->MustGetStream().GetUnwrappedCopy();
 
     // IsDirty should be false after calling getter
     TestObjectsDirty(*objBool, *objNum, *objReal, *objStr, *objRef, *objArray, *objDict, *objStream, *objVariant, false);
@@ -105,7 +105,7 @@ TEST_CASE("testIsDirtyTrue")
     objRef->SetReference(PdfReference(2, 0));
     objArray->GetArray().Add(*objBool);
     objDict->GetDictionary().AddKey(objName->GetName(), *objStr);
-    objStream->MustGetStream().Set("Test2"sv);
+    objStream->MustGetStream().SetData("Test2"sv);
     *objVariant = *objNum;
 
     // IsDirty should be true after calling setter
@@ -130,7 +130,7 @@ TEST_CASE("testIsDirtyFalse")
     PdfObject objArray = PdfObject(PdfArray());
     PdfObject objDict = PdfObject(PdfDictionary());
     PdfObject objStream = PdfObject(PdfDictionary());
-    objStream.GetOrCreateStream().Set("Test"sv);
+    objStream.GetOrCreateStream().SetData("Test"sv);
     PdfObject objVariant(objBool);
     PdfObject objEmpty;
     PdfObject objData(PdfData("/Name"));
@@ -161,7 +161,7 @@ TEST_CASE("testIsDirtyFalse")
     objRef.SetReference(PdfReference(2, 0));
     objArray.GetArray().Add(objBool);
     objDict.GetDictionary().AddKey(objName.GetName(), objStr);
-    objStream.MustGetStream().Set("Test1"sv);
+    objStream.MustGetStream().SetData("Test1"sv);
     objVariant = objNum;
 
     // IsDirty should be false after calling setter

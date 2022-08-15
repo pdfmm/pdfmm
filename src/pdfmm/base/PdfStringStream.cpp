@@ -71,3 +71,8 @@ unsigned PdfStringStream::GetSize() const
 {
     return (unsigned)static_cast<const outstringstream&>(*m_stream).size();
 }
+
+void PdfStringStream::writeBuffer(const char* buffer, size_t size)
+{
+    m_stream->write(buffer, size);
+}
