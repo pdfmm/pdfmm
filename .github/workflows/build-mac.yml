@@ -19,7 +19,8 @@ jobs:
           submodules: true
 
     - name: Install deps
-      run: brew update # NOTE: We need to ensure jpeg-turbo is at least version 2.14
+      # NOTE: We need to ensure jpeg-turbo is at least version 2.14
+      run: brew update
            && brew install fontconfig freetype openssl@1.1 libxml2 jpeg-turbo libpng libtiff libidn
 
     - name: Configure CMake
