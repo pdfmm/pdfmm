@@ -20,7 +20,7 @@ jobs:
 
     - name: Install deps
       run: brew update
-      run: brew install fontconfig freetype openssl@1.1 libxml2 jpeg-turbo libpng libtiff libidn
+           && brew install fontconfig freetype openssl@1.1 libxml2 jpeg-turbo libpng libtiff libidn
 
     - name: Configure CMake
       # NOTE: OpenSSL prefix must be explicitly set
