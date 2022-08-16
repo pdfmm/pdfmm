@@ -11,6 +11,9 @@ set(CMAKE_CONFIGURATION_TYPES "${CMAKE_BUILD_TYPE}")
 project(pdfmm)
 enable_testing() # Needed to enable "make test" from binary dir
 
+# An useful variable to check if we are running from playground
+set(PDFMM_PLAYGROUND TRUE)
+
 if ("${ARCH}" STREQUAL "")
     message(FATAL_ERROR "ARCH is not set. Run the boostrap scripts")
 endif()

@@ -7,7 +7,6 @@
 
 #include <PdfTest.h>
 
-#include "TestUtils.h"
 #include <pdfmm/private/XMPUtils.h>
 
 using namespace std;

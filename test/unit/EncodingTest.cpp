@@ -7,7 +7,6 @@
  */
 
 #include <PdfTest.h>
-#include "TestUtils.h"
 
 #include <ostream>
 #include <iostream>

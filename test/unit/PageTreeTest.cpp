@@ -7,9 +7,6 @@
  */
 
 #include <PdfTest.h>
-#include "TestUtils.h"
-
-#include <sstream>
 
 constexpr const char* TEST_PAGE_KEY = "TestPageNumber";
 constexpr unsigned TEST_NUM_PAGES = 100;

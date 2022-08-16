@@ -8,7 +8,8 @@
 
 #define CATCH_CONFIG_RUNNER
 #include <catch.hpp>
-#include "TestUtils.h"
+
+#include <PdfTest.h>
 
 using namespace std;
 using namespace mm;

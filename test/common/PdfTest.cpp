@@ -6,16 +6,9 @@
  * Some rights reserved. See COPYING, AUTHORS.
  */
 
-#include <pdfmm/private/PdfDeclarationsPrivate.h>
-#include "TestUtils.h"
-
-#include <fstream>
-#include <filesystem>
-
-#include <catch.hpp>
+#include "PdfTest.h"
 
 #include <utfcpp/utf8.h>
-#include <TestConfig.h>
 
 using namespace std;
 using namespace mm;

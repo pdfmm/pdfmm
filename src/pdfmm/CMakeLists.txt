@@ -3,7 +3,7 @@ if(NOT PDFMM_MAIN_CMAKELISTS_READ)
 endif()
 
 # Generate our configure file
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/pdfmm_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/pdfmm_config.h)
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/pdfmm_config.h.in" "${CMAKE_CURRENT_BINARY_DIR}/pdfmm_config.h")
 
 # Needed for <date/date.h>
 add_definitions(-DHAS_UNCAUGHT_EXCEPTIONS=1)
@@ -27,7 +27,7 @@ set(PDFMM_BASE_HEADERS
     pdfmm-contrib.h
     pdfmm.h
 )
-set(PDFMM_CONFIG_HEADER ${CMAKE_CURRENT_BINARY_DIR}/pdfmm_config.h)
+set(PDFMM_CONFIG_HEADER "${CMAKE_CURRENT_BINARY_DIR}/pdfmm_config.h")
 
 install(FILES ${PDFMM_BASE_HEADERS} DESTINATION "include/pdfmm")
 install(FILES ${PDFMM_CONFIG_HEADER} DESTINATION "include/pdfmm/base")

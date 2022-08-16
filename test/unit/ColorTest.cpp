@@ -10,8 +10,6 @@
 
 #include <PdfTest.h>
 
-#include "TestUtils.h"
-
 using namespace std;
 using namespace mm;
 

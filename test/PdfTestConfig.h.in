@@ -1,4 +1,9 @@
-#pragma once
+#ifndef PDF_TEST_CONFIG_H
+#define PDF_TEST_CONFIG_H
+
+#cmakedefine PDFMM_PLAYGROUND
 
 #define PDF_TEST_RESOURCE_PATH R"(@PDF_TEST_RESOURCE_PATH@)"
 #define PDF_TEST_OUTPUT_PATH R"(@PDF_TEST_OUTPUT_PATH@)"
+
+#endif // PDF_TEST_CONFIG_H
