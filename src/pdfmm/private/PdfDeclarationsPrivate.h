@@ -212,9 +212,6 @@ namespace utls
     // Write the char to the supplied buffer as hexadecimal code
     void WriteCharHexTo(char buf[2], char ch);
 
-    // Append the char to the supplied string as hexadecimal code
-    void WriteCharHexTo(std::string& str, char ch);
-
     // Append the unicode code point to a big endian encoded utf16 string
     void WriteUtf16BETo(std::u16string& str, char32_t codePoint);
 

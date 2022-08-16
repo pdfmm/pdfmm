@@ -215,16 +215,10 @@ PdfHexFilter::PdfHexFilter()
 void PdfHexFilter::EncodeBlockImpl(const char* buffer, size_t len)
 {
     char data[2];
-    while (len--)
+    while (len-- != 0)
     {
-        data[0] = (*buffer & 0xF0) >> 4;
-        data[0] += (data[0] > 9 ? 'A' - 10 : '0');
-
-        data[1] = (*buffer & 0x0F);
-        data[1] += (data[1] > 9 ? 'A' - 10 : '0');
-
+        utls::WriteCharHexTo(data, *buffer);
         GetStream()->Write(data, 2);
-
         buffer++;
     }
 }
@@ -238,7 +232,7 @@ void PdfHexFilter::BeginDecodeImpl(const PdfDictionary*)
 void PdfHexFilter::DecodeBlockImpl(const char* buffer, size_t len)
 {
     unsigned char val;
-    while (len--)
+    while (len-- != 0)
     {
         if (PdfTokenizer::IsWhitespace(*buffer))
         {
@@ -322,7 +316,7 @@ void PdfAscii85Filter::EncodeBlockImpl(const char* buffer, size_t len)
     unsigned c;
     const char* z = "z";
 
-    while (len)
+    while (len != 0)
     {
         c = *buffer & 0xFF;
         switch (m_count++) {
@@ -703,7 +697,7 @@ void PdfLZWFilter::DecodeBlockImpl(const char* buffer, size_t len)
         m_First = false;
     }
 
-    while (len)
+    while (len != 0)
     {
         // Fill the buffer
         while (buffer_size <= (buffer_max - 8) && len)

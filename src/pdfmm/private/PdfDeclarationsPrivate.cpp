@@ -432,13 +432,6 @@ void utls::WriteCharHexTo(char buf[2], char ch)
     buf[1] += (buf[1] > 9 ? 'A' - 10 : '0');
 }
 
-// Append the char to the supplied string as hexadecimal code
-void utls::WriteCharHexTo(string& str, char ch)
-{
-    str.resize(2);
-    WriteCharHexTo(str.data(), ch);
-}
-
 void utls::WriteUtf16BETo(u16string& str, char32_t codePoint)
 {
     str.clear();
