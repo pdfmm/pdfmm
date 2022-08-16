@@ -31,4 +31,5 @@ jobs:
 
     - name: Test
       working-directory: ${{github.workspace}}/build
-      run: ctest
+#      run: ctest
+      run: target/pdfmm-unit TestImage2
