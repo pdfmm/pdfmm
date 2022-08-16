@@ -102,6 +102,8 @@ void TestUtils::SaveFramePPM(OutputStream& stream, const void* data,
         default:
             PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }
+
+    stream.Flush();
 }
 
 void readTestInputFileTo(string& str, const string_view& filepath)
