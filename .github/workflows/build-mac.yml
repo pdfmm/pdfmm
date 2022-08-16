@@ -19,7 +19,7 @@ jobs:
           submodules: true
 
     - name: Install deps
-      run: brew install fontconfig freetype openssl@1.1 libxml2 jpeg libpng libtiff libidn
+      run: brew install fontconfig freetype openssl@1.1 libxml2 jpeg-turbo libpng libtiff libidn
 
     - name: Configure CMake
       # NOTE: OpenSSL prefix must be explicitly set
@@ -31,5 +31,4 @@ jobs:
 
     - name: Test
       working-directory: ${{github.workspace}}/build
-#      run: ctest
-      run: target/pdfmm-unit TestImage2
+      run: ctest
