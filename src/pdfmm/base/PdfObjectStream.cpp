@@ -46,30 +46,30 @@ PdfObjectOutputStream PdfObjectStream::GetOutputStream(const PdfFilterList& filt
     return PdfObjectOutputStream(*this, PdfFilterList(filters), append);
 }
 
-PdfObjectInputStream PdfObjectStream::GetInputStream(bool unpack)
+PdfObjectInputStream PdfObjectStream::GetInputStream(bool raw)
 {
     EnsureClosed();
-    return PdfObjectInputStream(*this, unpack);
+    return PdfObjectInputStream(*this, raw);
 }
 
-void PdfObjectStream::UnwrapTo(charbuff& buffer) const
+void PdfObjectStream::CopyTo(charbuff& buffer, bool raw) const
 {
     buffer.clear();
     BufferStreamDevice stream(buffer);
-    UnwrapTo(stream);
+    CopyTo(stream);
 }
 
-void PdfObjectStream::UnwrapToSafe(charbuff& buffer) const
+void PdfObjectStream::CopyToSafe(charbuff& buffer) const
 {
     buffer.clear();
     BufferStreamDevice stream(buffer);
-    UnwrapToSafe(stream);
+    CopyToSafe(stream);
 }
 
-void PdfObjectStream::UnwrapTo(OutputStream& stream) const
+void PdfObjectStream::CopyTo(OutputStream& stream, bool raw) const
 {
     PdfFilterList mediaFilters;
-    auto inputStream = const_cast<PdfObjectStream&>(*this).getInputStream(true, mediaFilters);
+    auto inputStream = const_cast<PdfObjectStream&>(*this).getInputStream(raw, mediaFilters);
     if (mediaFilters.size() != 0)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, "Unsupported expansion with media filters. Use GetInputStream(true) instead");
         
@@ -77,27 +77,27 @@ void PdfObjectStream::UnwrapTo(OutputStream& stream) const
     stream.Flush();
 }
 
-void PdfObjectStream::UnwrapToSafe(OutputStream& stream) const
+void PdfObjectStream::CopyToSafe(OutputStream& stream) const
 {
     PdfFilterList mediaFilters;
-    auto inputStream = const_cast<PdfObjectStream&>(*this).getInputStream(true, mediaFilters);
+    auto inputStream = const_cast<PdfObjectStream&>(*this).getInputStream(false, mediaFilters);
     inputStream->CopyTo(stream);
     stream.Flush();
 }
 
-charbuff PdfObjectStream::GetUnwrappedCopy() const
+charbuff PdfObjectStream::GetCopy(bool raw) const
 {
     charbuff ret;
     StringStreamDevice stream(ret);
-    UnwrapTo(stream);
+    CopyTo(stream, raw);
     return ret;
 }
 
-charbuff PdfObjectStream::GetUnwrappedCopySafe() const
+charbuff PdfObjectStream::GetCopySafe() const
 {
     charbuff ret;
     StringStreamDevice stream(ret);
-    UnwrapToSafe(stream);
+    CopyToSafe(stream);
     return ret;
 }
 
@@ -152,9 +152,13 @@ void PdfObjectStream::SetData(InputStream& stream, const PdfFilterList& filters)
     setData(stream, filters, -1, true);
 }
 
-unique_ptr<InputStream> PdfObjectStream::getInputStream(bool unpack, PdfFilterList& mediaFilters)
+unique_ptr<InputStream> PdfObjectStream::getInputStream(bool raw, PdfFilterList& mediaFilters)
 {
-    if (unpack)
+    if (raw)
+    {
+        return getInputStream();
+    }
+    else
     {
         auto filters = PdfFilterFactory::CreateFilterList(*m_Parent, mediaFilters);
         if (filters.size() == 0)
@@ -166,10 +170,6 @@ unique_ptr<InputStream> PdfObjectStream::getInputStream(bool unpack, PdfFilterLi
             return PdfFilterFactory::CreateDecodeStream(getInputStream(),
                 filters, m_Parent->GetDictionary());
         }
-    }
-    else
-    {
-        return getInputStream();
     }
 }
 
@@ -214,11 +214,11 @@ PdfObjectInputStream::PdfObjectInputStream(PdfObjectInputStream&& rhs) noexcept
     utls::move(rhs.m_stream, m_stream);
 }
 
-PdfObjectInputStream::PdfObjectInputStream(PdfObjectStream& stream, bool unpack)
+PdfObjectInputStream::PdfObjectInputStream(PdfObjectStream& stream, bool raw)
     : m_stream(&stream)
 {
     m_stream->m_locked = true;
-    m_input = stream.getInputStream(unpack, m_MediaFilters);
+    m_input = stream.getInputStream(raw, m_MediaFilters);
 }
 
 size_t PdfObjectInputStream::readBuffer(char* buffer, size_t size, bool& eof)
@@ -274,7 +274,7 @@ PdfObjectOutputStream::PdfObjectOutputStream(PdfObjectStream& stream, PdfFilterL
 
     charbuff buffer;
     if (append)
-        stream.UnwrapTo(buffer);
+        stream.CopyTo(buffer);
 
     if (m_filters.size() == 0)
     {

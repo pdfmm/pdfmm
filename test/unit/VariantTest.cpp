@@ -92,7 +92,7 @@ TEST_CASE("testIsDirtyTrue")
     (void)objArray->GetArray();
     (void)objDict->GetDictionary();
     (void)objVariant->GetBool();
-    (void)objStream->MustGetStream().GetUnwrappedCopy();
+    (void)objStream->MustGetStream().GetCopy();
 
     // IsDirty should be false after calling getter
     TestObjectsDirty(*objBool, *objNum, *objReal, *objStr, *objRef, *objArray, *objDict, *objStream, *objVariant, false);

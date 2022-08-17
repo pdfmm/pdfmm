@@ -48,7 +48,9 @@ public:
     PdfImage(PdfDocument& doc, const std::string_view& prefix = { });
 
     void DecodeTo(charbuff& buff, PdfPixelFormat format);
-    void DecodeTo(OutputStream& stream, PdfPixelFormat format);
+    void DecodeTo(void* buffer, PdfPixelFormat format, int stride);
+    void DecodeTo(OutputStream& stream, PdfPixelFormat format, int stride = -1);
+
     charbuff GetDecodedCopy(PdfPixelFormat format);
 
     /** Set the color space of this image. The default value is
@@ -218,7 +220,9 @@ private:
      */
     PdfImage(PdfObject& obj);
 
-    void getScanLineInfo(PdfPixelFormat format, unsigned& lineSize, charbuff& smask);
+    charbuff initScanLine(PdfPixelFormat format, int stride, charbuff& smask);
+
+    unsigned getBufferSize(PdfPixelFormat format) const;
 
     /** Converts a PdfColorSpace enum to a name key which can be used in a
      *  PDF dictionary.

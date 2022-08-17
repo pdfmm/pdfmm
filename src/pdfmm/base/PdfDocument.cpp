@@ -344,7 +344,7 @@ PdfRect PdfDocument::FillXObjectFromPage(PdfXObject& xobj, const PdfPage& page, 
                             PdfObjectStream& contStream = obj->GetOrCreateStream();
 
                             charbuff contStreamBuffer;
-                            contStream.UnwrapTo(contStreamBuffer);
+                            contStream.CopyTo(contStreamBuffer);
                             output.Write(contStreamBuffer);
                             break;
                         }

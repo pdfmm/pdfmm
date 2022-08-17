@@ -42,10 +42,10 @@ TEST_CASE("TestImage2")
     charbuff buffer;
 
     // Unpacking directly the stream shall throw since it has jpeg content
-    ASSERT_THROW_WITH_ERROR_CODE(imageObj->GetStream()->UnwrapTo(buffer), PdfErrorCode::UnsupportedFilter);
+    ASSERT_THROW_WITH_ERROR_CODE(imageObj->GetStream()->CopyTo(buffer), PdfErrorCode::UnsupportedFilter);
 
     // Unpacking using UnpackToSafe() should succeed
-    imageObj->GetStream()->UnwrapToSafe(buffer);
+    imageObj->GetStream()->CopyToSafe(buffer);
 
     unique_ptr<PdfImage> image;
     REQUIRE(PdfXObject::TryCreateFromObject<PdfImage>(*imageObj, image));

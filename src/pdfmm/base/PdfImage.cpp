@@ -57,13 +57,20 @@ PdfImage::PdfImage(PdfDocument& doc, const string_view& prefix)
 
 void PdfImage::DecodeTo(charbuff& buffer, PdfPixelFormat format)
 {
-    buffer.clear();
-    BufferStreamDevice stream(buffer);
+    buffer.resize(getBufferSize(format));
+    SpanStreamDevice stream(buffer);
     DecodeTo(stream, format);
 }
 
+void PdfImage::DecodeTo(void* buffer, PdfPixelFormat format, int stride)
+{
+    bufferspan span((char*)buffer, numeric_limits<size_t>::max());
+    SpanStreamDevice stream(span);
+    DecodeTo(stream, format, stride);
+}
+
 // TODO: Improve performance and format support
-void PdfImage::DecodeTo(OutputStream& stream, PdfPixelFormat format)
+void PdfImage::DecodeTo(OutputStream& stream, PdfPixelFormat format, int stride)
 {
     auto istream = GetObject().MustGetStream().GetInputStream();
     auto& mediaFilters = istream.GetMediaFilters();
@@ -71,15 +78,14 @@ void PdfImage::DecodeTo(OutputStream& stream, PdfPixelFormat format)
     ContainerStreamDevice device(buffer);
     istream.CopyTo(device);
 
+    charbuff smaskData;
+    charbuff scanLine = initScanLine(format, stride, smaskData);
+
     if (mediaFilters.size() == 0)
     {
         if (GetColorSpace() != PdfColorSpace::DeviceRGB)
             PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedImageFormat);
 
-        charbuff smaskData;
-        unsigned lineSize;
-        getScanLineInfo(format, lineSize, smaskData);
-        charbuff scanLine(lineSize);
         unsigned srcLineSize = m_Width * 3;
         if (smaskData.size() == 0)
         {
@@ -138,10 +144,6 @@ void PdfImage::DecodeTo(OutputStream& stream, PdfPixelFormat format)
 
                 // buffer will be deleted by jpeg_destroy_decompress
                 JSAMPARRAY jScanLine = (*jdecompress.mem->alloc_sarray)(reinterpret_cast<j_common_ptr>(&jdecompress), JPOOL_IMAGE, rowBytes, 1);
-                charbuff smaskData;
-                unsigned lineSize;
-                getScanLineInfo(format, lineSize, smaskData);
-                charbuff scanLine(lineSize);
                 if (smaskData.size() == 0)
                 {
                     for (unsigned i = 0; i < jdecompress.output_height; i++)
@@ -190,26 +192,56 @@ PdfImage::PdfImage(PdfObject& obj)
     m_Height = static_cast<unsigned>(this->GetDictionary().MustFindKey("Height").GetNumber());
 }
 
-void PdfImage::getScanLineInfo(PdfPixelFormat format, unsigned& lineSize, charbuff& smaskData)
+charbuff PdfImage::initScanLine(PdfPixelFormat format, int stride, charbuff& smaskData)
 {
+    unsigned defaultStride;
     switch (format)
     {
         case PdfPixelFormat::RGBA:
         case PdfPixelFormat::BGRA:
         {
             auto smaskObj = GetObject().GetDictionary().FindKey("SMask");
-            unique_ptr<PdfImage> smask;
-            if (PdfXObject::TryCreateFromObject(*smaskObj, smask))
-                smask->GetObject().MustGetStream().UnwrapTo(smaskData);
+            if (smaskObj != nullptr)
+            {
+                unique_ptr<PdfImage> smask;
+                if (PdfXObject::TryCreateFromObject(*smaskObj, smask))
+                    smask->GetObject().MustGetStream().CopyTo(smaskData);
+            }
 
-            lineSize = 4 * m_Width;
+            defaultStride = 4 * m_Width;
             break;
         }
         case PdfPixelFormat::Grayscale:
         {
-            lineSize = m_Width;
+            defaultStride = m_Width;
             break;
         }
+        default:
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+    }
+
+    if (stride < 0)
+    {
+        return charbuff(defaultStride);
+    }
+    else
+    {
+        if (stride < defaultStride)
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, "The buffer stride is too small");
+
+        return charbuff((size_t)stride);
+    }
+}
+
+unsigned PdfImage::getBufferSize(PdfPixelFormat format) const
+{
+    switch (format)
+    {
+        case PdfPixelFormat::RGBA:
+        case PdfPixelFormat::BGRA:
+            return 4 * m_Width * m_Height;
+        case PdfPixelFormat::Grayscale:
+            return m_Width * m_Height;
         default:
             PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }

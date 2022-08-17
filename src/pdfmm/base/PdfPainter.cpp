@@ -141,7 +141,7 @@ void PdfPainter::finishDrawing()
         {
             charbuff buffer;
             if (m_stream->GetLength() != 0)
-                m_stream->UnwrapTo(buffer);
+                m_stream->CopyTo(buffer);
 
             if (buffer.size() == 0)
             {

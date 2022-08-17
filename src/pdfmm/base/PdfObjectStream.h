@@ -31,7 +31,7 @@ public:
     ~PdfObjectInputStream();
     PdfObjectInputStream(PdfObjectInputStream&& rhs) noexcept;
 private:
-    PdfObjectInputStream(PdfObjectStream& stream, bool unpack);
+    PdfObjectInputStream(PdfObjectStream& stream, bool raw);
 public:
     const PdfFilterList& GetMediaFilters() const { return m_MediaFilters; }
 protected:
@@ -106,7 +106,7 @@ public:
 
     PdfObjectOutputStream GetOutputStream(const PdfFilterList& filters, bool append = false);
 
-    PdfObjectInputStream GetInputStream(bool unpack = true);
+    PdfObjectInputStream GetInputStream(bool raw = false);
 
     /** Set the data contents copying from a buffer
      *  All data will be Flate-encoded.
@@ -145,29 +145,29 @@ public:
     /** Get an unwrapped copy of the stream, unpacking non media filters
      * \remarks throws if the stream contains media filters, like DCTDecode
      */
-    charbuff GetUnwrappedCopy() const;
+    charbuff GetCopy(bool raw = false) const;
 
     /** Get an unwrapped copy of the stream, unpacking non media filters
      */
-    charbuff GetUnwrappedCopySafe() const;
+    charbuff GetCopySafe() const;
 
     /** Unwrap the stream to the given buffer, unpacking non media filters
      * \remarks throws if the stream contains media filters, like DCTDecode
      */
-    void UnwrapTo(charbuff& buffer) const;
+    void CopyTo(charbuff& buffer, bool raw = false) const;
 
     /** Unwrap the stream to the given buffer, unpacking non media filters
      */
-    void UnwrapToSafe(charbuff& buffer) const;
+    void CopyToSafe(charbuff& buffer) const;
 
     /** Unwrap the stream and write it to the given stream, unpacking non media filters
      * \remarks throws if the stream contains media filters, like DCTDecode
      */
-    void UnwrapTo(OutputStream& stream) const;
+    void CopyTo(OutputStream& stream, bool raw = false) const;
 
     /** Unwrap the stream and write it to the given stream, unpacking non media filters
      */
-    void UnwrapToSafe(OutputStream& stream) const;
+    void CopyToSafe(OutputStream& stream) const;
 
     void MoveTo(PdfObject& obj);
 
@@ -205,7 +205,7 @@ private:
     void InitData(InputStream& stream, size_t len);
 
 private:
-    std::unique_ptr<InputStream> getInputStream(bool expand, PdfFilterList& mediaFilters);
+    std::unique_ptr<InputStream> getInputStream(bool raw, PdfFilterList& mediaFilters);
 
     void setData(InputStream& stream, PdfFilterList filters, ssize_t size, bool markObjectDirty);
 

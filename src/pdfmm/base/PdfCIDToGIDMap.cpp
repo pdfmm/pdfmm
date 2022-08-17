@@ -16,7 +16,7 @@ PdfCIDToGIDMap PdfCIDToGIDMap::Create(const PdfObject& cidToGidMapObj, PdfGlyphA
     // "The glyph index for a particular CID value c shall be
     // a 2 - byte value stored in bytes 2 × c and 2 × c + 1,
     // where the first byte shall be the high - order byte"
-    auto buffer = cidToGidMapObj.MustGetStream().GetUnwrappedCopy();
+    auto buffer = cidToGidMapObj.MustGetStream().GetCopy();
     for (unsigned i = 0, count = (unsigned)buffer.size() / 2; i < count; i++)
     {
         unsigned gid = (unsigned)buffer[i * 2 + 0] << 8 | (unsigned)buffer[i * 2 + 1];

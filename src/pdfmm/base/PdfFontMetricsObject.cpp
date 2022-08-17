@@ -498,7 +498,7 @@ datahandle PdfFontMetricsObject::getFontFileDataHandle() const
     if (m_FontFileObject == nullptr || (stream = m_FontFileObject->GetStream()) == nullptr)
         return datahandle();
 
-    return datahandle(std::make_shared<charbuff>(stream->GetUnwrappedCopy()));
+    return datahandle(std::make_shared<charbuff>(stream->GetCopy()));
 }
 
 const PdfCIDToGIDMapConstPtr& PdfFontMetricsObject::getCIDToGIDMap() const

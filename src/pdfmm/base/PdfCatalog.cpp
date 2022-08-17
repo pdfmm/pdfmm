@@ -51,7 +51,7 @@ string PdfCatalog::GetMetadataStreamValue() const
         return ret;
 
     StringStreamDevice ouput(ret);
-    stream->UnwrapTo(ouput);
+    stream->CopyTo(ouput);
     return ret;
 }
 

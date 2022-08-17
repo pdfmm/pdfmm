@@ -85,7 +85,7 @@ PdfObjectStream & PdfContents::GetStreamForAppending(PdfStreamAppendFlags flags)
             if (stream != nullptr)
             {
                 BufferStreamDevice device(buffer);
-                stream->UnwrapTo(device);
+                stream->CopyTo(device);
             }
         }
 
