@@ -119,7 +119,7 @@ public:
     void TryPushChunk();
     void TryAddLastEntry();
 private:
-    bool areChunksSplitted();
+    bool areChunksSpaced(double& dx);
     void pushChunk();
     void addEntry();
     void tryAddEntry();
@@ -778,8 +778,10 @@ void ExtractionContext::PushString(const StatefulString &str, bool pushchunk)
 
 void ExtractionContext::TryPushChunk()
 {
-    if (Chunk->size() != 0)
-        pushChunk();
+    if (Chunk->size() == 0)
+        return;
+
+    pushChunk();
 }
 
 void ExtractionContext::pushChunk()
@@ -809,20 +811,50 @@ void ExtractionContext::addEntry()
 
 void ExtractionContext::tryAddEntry()
 {
-    PDFMM_ASSERT(Chunk != nullptr);
+    PDFMM_INVARIANT(Chunk != nullptr);
     if (Chunks.size() > 0 || Chunk->size() > 0)
     {
-        if (!AreEqual(States.Current->T_rm.Get<Ty>(), CurrentEntryT_rm_y)
-            || (Options.TokenizeWords && areChunksSplitted()))
+        if (AreEqual(States.Current->T_rm.Get<Ty>(), CurrentEntryT_rm_y))
         {
-            // Current entry is not on same line or it's separated by space
+            double dx;
+            if (areChunksSpaced(dx))
+            {
+                if (Options.TokenizeWords)
+                {
+                    // Current entry is separated and
+                    // we tokenize words, not lines
+                    TryPushChunk();
+                    addEntry();
+                }
+                else
+                {
+                    const StatefulString* prevString;
+                    if (Chunk->size() > 0)
+                    {
+                        prevString = &Chunk->back();
+                    }
+                    else
+                    {
+                        PDFMM_INVARIANT(Chunks.back()->size() != 0);
+                        prevString = &Chunks.back()->back();
+                    }
+
+                    // We push a filling space
+                    Chunk->push_back(StatefulString(" ", dx, prevString->State));
+                }
+            }
+        }
+        else
+        {
+            // Current entry is not on same line
             TryPushChunk();
             addEntry();
+
         }
     }
 }
 
-bool ExtractionContext::areChunksSplitted()
+bool ExtractionContext::areChunksSpaced(double& dx)
 {
     // NOTE: This is a simple euristic that assumes that all string
     // chunks must be separated by 10 spaces to split them
@@ -830,7 +862,7 @@ bool ExtractionContext::areChunksSplitted()
     // TODO: to improve the situation:
     // 1) Apply the T_rm transformation to the string widths;
     // 2) Handle the word spacing Tw state.
-    double dx = std::abs((States.Current->T_rm.Get<Tx>()) - PrevChunkT_rm_x) + SPACE_SEPARATION_EPSILON;
+    dx = std::abs((States.Current->T_rm.Get<Tx>()) - PrevChunkT_rm_x) + SPACE_SEPARATION_EPSILON;
     return dx >= States.Current->SpaceSize;
 }
 
