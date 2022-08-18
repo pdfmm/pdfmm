@@ -56,7 +56,7 @@ void PdfObjectStream::CopyTo(charbuff& buffer, bool raw) const
 {
     buffer.clear();
     BufferStreamDevice stream(buffer);
-    CopyTo(stream);
+    CopyTo(stream, raw);
 }
 
 void PdfObjectStream::CopyToSafe(charbuff& buffer) const
