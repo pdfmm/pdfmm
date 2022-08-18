@@ -226,7 +226,7 @@ charbuff PdfImage::initScanLine(PdfPixelFormat format, int stride, charbuff& sma
     }
     else
     {
-        if (stride < defaultStride)
+        if (stride < (int)defaultStride)
             PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, "The buffer stride is too small");
 
         return charbuff((size_t)stride);
