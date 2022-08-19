@@ -122,7 +122,7 @@ private:
     bool areChunksSpaced(double& dx);
     void pushChunk();
     void addEntry();
-    void tryAddEntry(const StatefulString& str);
+    void tryAddEntry();
     const PdfCanvas& getActualCanvas();
 private:
     const PdfPage& m_page;
@@ -765,7 +765,7 @@ void ExtractionContext::PushString(const StatefulString &str, bool pushchunk)
         CurrentEntryT_rm_y = States.Current->T_rm.Get<Ty>();
     }
 
-    tryAddEntry(str);
+    tryAddEntry();
 
     // Set current line tracking
     CurrentEntryT_rm_y = States.Current->T_rm.Get<Ty>();
@@ -811,7 +811,7 @@ void ExtractionContext::addEntry()
     ::addEntry(Entries, Chunks, Pattern, Options, ClipRect, PageIndex, Rotation.get());
 }
 
-void ExtractionContext::tryAddEntry(const StatefulString& str)
+void ExtractionContext::tryAddEntry()
 {
     PDFMM_INVARIANT(Chunk != nullptr);
     if (Chunks.size() > 0 || Chunk->size() > 0)
