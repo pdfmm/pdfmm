@@ -172,6 +172,8 @@ namespace utls
 {
     const std::locale& GetInvariantLocale();
 
+    bool IsWhiteSpace(char ch);
+
     bool IsStringEmptyOrWhiteSpace(const std::string_view& str);
 
     std::string TrimSpacesEnd(const std::string_view& str);

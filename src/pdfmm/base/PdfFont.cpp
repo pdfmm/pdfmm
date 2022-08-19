@@ -540,7 +540,7 @@ void PdfFont::initWordSpacingWidth()
 
     unsigned gid;
     if (!TryGetGID(U' ', PdfGlyphAccess::Width, gid)
-        || m_Metrics->TryGetGlyphWidth(gid, m_wordSpacingWidthRaw))
+        || !m_Metrics->TryGetGlyphWidth(gid, m_wordSpacingWidthRaw))
     {
         m_wordSpacingWidthRaw = MISSING_WORD_SPACING_WIDTH;
     }

@@ -152,11 +152,16 @@ const locale& utls::GetInvariantLocale()
     return s_cachedLocale;
 }
 
+bool utls::IsWhiteSpace(char ch)
+{
+    return std::isspace((unsigned char)ch) != 0;
+}
+
 bool utls::IsStringEmptyOrWhiteSpace(const string_view& str)
 {
     for (unsigned i = 0; i < str.size(); i++)
     {
-        if (!std::isspace((unsigned char)str[i]))
+        if (std::isspace((unsigned char)str[i]) == 0)
             return false;
     }
     return true;
@@ -166,7 +171,7 @@ string utls::TrimSpacesEnd(const string_view& str)
 {
     for (int i = (int)str.length() - 1; i >= 0; i--)
     {
-        if (!std::isspace((unsigned char)str[i]))
+        if (std::isspace((unsigned char)str[i]) == 0)
             return (string)str.substr(0, i + 1);
     }
 

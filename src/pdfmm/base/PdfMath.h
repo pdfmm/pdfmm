@@ -55,7 +55,10 @@ namespace mm
         static Matrix CreateRotation(const Vector2& center, double teta);
 
     public:
+        // Prepend the given translation to the current matrix
         Matrix& Translate(const Vector2& tx);
+
+        // Return the matrix with the given translation prepended
         Matrix Translated(const Vector2& tx) const;
 
         // TODO: Rotate/Scale
@@ -73,6 +76,7 @@ namespace mm
             MatrixTraits<trait>::Set(m_mat, value);
         }
 
+        // Apply (prepend) the given operation
         template <AlgebraicTrait trait>
         Matrix& Apply(double value)
         {

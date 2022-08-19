@@ -40,7 +40,7 @@ namespace mm
 
         static void Apply(double m[6], double value)
         {
-            m[4] += value;
+            m[4] = value * m[0] + m[4];
         }
     };
 
@@ -59,7 +59,7 @@ namespace mm
 
         static void Apply(double m[6], double value)
         {
-            m[5] += value;
+            m[5] = value * m[3] + m[5];
         }
     };
 }

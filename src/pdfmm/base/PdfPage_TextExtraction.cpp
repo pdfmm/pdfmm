@@ -122,7 +122,7 @@ private:
     bool areChunksSpaced(double& dx);
     void pushChunk();
     void addEntry();
-    void tryAddEntry();
+    void tryAddEntry(const StatefulString& str);
     const PdfCanvas& getActualCanvas();
 private:
     const PdfPage& m_page;
@@ -284,7 +284,7 @@ void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const string_view& pa
                         if (DecodeString(str, *context.States.Current, decoded, length)
                             && decoded.length() != 0)
                         {
-                            context.PushString({ decoded, length, *context.States.Current }, true);
+                            context.PushString(StatefulString(decoded, length, *context.States.Current), true);
                         }
 
                         if (content.Operator == PdfOperator::Quote
@@ -311,7 +311,7 @@ void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const string_view& pa
                                 if (DecodeString(obj.GetString(), *context.States.Current, decoded, length)
                                     && decoded.length() != 0)
                                 {
-                                    context.PushString({ decoded, length, *context.States.Current });
+                                    context.PushString(StatefulString(decoded, length, *context.States.Current));
                                 }
                             }
                             else if (obj.IsNumberOrReal())
@@ -594,7 +594,10 @@ bool DecodeString(const PdfString &str, TextState &state, string &decoded, doubl
 
 StatefulString::StatefulString(const string_view &str, double length, const TextState &state)
     : String((string)str), State(state), Pos(state.T_rm.GetTranslation()),
-      Length(length), IsWhiteSpace(utls::IsStringEmptyOrWhiteSpace(str)) { }
+      Length(length), IsWhiteSpace(utls::IsStringEmptyOrWhiteSpace(str))
+{
+    PDFMM_ASSERT(str.length() != 0);
+}
 
 StatefulString StatefulString::GetTrimmedBegin() const
 {
@@ -602,7 +605,7 @@ StatefulString StatefulString::GetTrimmedBegin() const
     auto &str = String;
     for (; i < (int)str.length(); i++)
     {
-        if (!std::isspace((unsigned char)str[i]))
+        if (!utls::IsWhiteSpace(str[i]))
             break;
     }
 
@@ -735,8 +738,7 @@ void ExtractionContext::Tm_Operator(double a, double b, double c, double d, doub
 void ExtractionContext::TdTD_Operator(double tx, double ty)
 {
     // 5.5 Text-positioning operators, Td/TD
-    Matrix tdm = Matrix::CreateTranslation({ tx, ty });
-    States.Current->T_lm = tdm * States.Current->T_lm;
+    States.Current->T_lm = States.Current->T_lm.Translate(Vector2(tx, ty));
     States.Current->T_m = States.Current->T_lm;
     States.Current->RecomputeT_rm();
 }
@@ -763,7 +765,7 @@ void ExtractionContext::PushString(const StatefulString &str, bool pushchunk)
         CurrentEntryT_rm_y = States.Current->T_rm.Get<Ty>();
     }
 
-    tryAddEntry();
+    tryAddEntry(str);
 
     // Set current line tracking
     CurrentEntryT_rm_y = States.Current->T_rm.Get<Ty>();
@@ -809,7 +811,7 @@ void ExtractionContext::addEntry()
     ::addEntry(Entries, Chunks, Pattern, Options, ClipRect, PageIndex, Rotation.get());
 }
 
-void ExtractionContext::tryAddEntry()
+void ExtractionContext::tryAddEntry(const StatefulString& str)
 {
     PDFMM_INVARIANT(Chunk != nullptr);
     if (Chunks.size() > 0 || Chunk->size() > 0)
@@ -839,7 +841,6 @@ void ExtractionContext::tryAddEntry()
                         prevString = &Chunks.back()->back();
                     }
 
-                    // We push a filling space
                     Chunk->push_back(StatefulString(" ", dx, prevString->State));
                 }
             }

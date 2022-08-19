@@ -73,8 +73,8 @@ Matrix Matrix::CreateRotation(const Vector2& c, double teta)
 
 Matrix& Matrix::Translate(const Vector2& tx)
 {
-    m_mat[4] += tx.X;
-    m_mat[5] += tx.Y;
+    m_mat[4] = tx.X * m_mat[0] + tx.Y * m_mat[2] + m_mat[4];
+    m_mat[5] = tx.X * m_mat[1] + tx.Y * m_mat[3] + m_mat[5];
     return *this;
 }
 

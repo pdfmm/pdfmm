@@ -25,6 +25,8 @@ either assume UTF-8 and/or checks for used codepoints
 - Make PdfMemDocument do collect garbage by default
 - Check PdfStreamedDocument working
 - Check/Review doxygen doc
+- Move IO System headers to common/
+- Extract Matrix PdfMath.h -> Matrix.h, move it to common/
 
 ### After 1.0
 - Added version of PdfFont::TryGetSubstituteFont for rendering
