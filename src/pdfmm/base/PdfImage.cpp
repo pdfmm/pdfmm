@@ -98,7 +98,7 @@ void PdfImage::DecodeTo(OutputStream& stream, PdfPixelFormat format, int stride)
         }
         else
         {
-            for (unsigned i = 0; i < m_Width; i++)
+            for (unsigned i = 0; i < m_Height; i++)
             {
                 fetchScanLine((unsigned char*)scanLine.data(),
                     format, m_Width, (const unsigned char*)buffer.data() + i * srcLineSize,
