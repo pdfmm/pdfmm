@@ -152,30 +152,62 @@ const locale& utls::GetInvariantLocale()
     return s_cachedLocale;
 }
 
-bool utls::IsWhiteSpace(char ch)
+bool utls::IsWhiteSpace(char32_t ch)
 {
-    return std::isspace((unsigned char)ch) != 0;
+    switch (ch)
+    {
+        case U' ':
+        case U'\n':
+        case U'\t':
+        case U'\v':
+        case U'\f':
+        case U'\r':
+            return true;
+        default:
+            return false;
+    }
 }
 
 bool utls::IsStringEmptyOrWhiteSpace(const string_view& str)
 {
-    for (unsigned i = 0; i < str.size(); i++)
+    auto it = str.begin();
+    auto end = str.end();
+    while (it != end)
     {
-        if (std::isspace((unsigned char)str[i]) == 0)
+        char32_t cp = utf8::next(it, end);
+        if (!utls::IsWhiteSpace(cp))
             return false;
     }
+
     return true;
 }
 
 string utls::TrimSpacesEnd(const string_view& str)
 {
-    for (int i = (int)str.length() - 1; i >= 0; i--)
+    auto it = str.begin();
+    auto end = str.end();
+    auto prev = it;
+    auto firstWhiteSpace = end;
+    while (it != end)
     {
-        if (std::isspace((unsigned char)str[i]) == 0)
-            return (string)str.substr(0, i + 1);
+        char32_t cp = utf8::next(it, end);
+        if (utls::IsWhiteSpace(cp))
+        {
+            if (firstWhiteSpace == end)
+                firstWhiteSpace = prev;
+        }
+        else
+        {
+            firstWhiteSpace = end;
+        }
+
+        prev = it;
     }
 
-    return string();
+    if (firstWhiteSpace == end)
+        return (string)str;
+    else
+        return (string)str.substr(0, firstWhiteSpace - str.begin());
 }
 
 const char* utls::TypeNameForIndex(unsigned index, const char** types, unsigned len)

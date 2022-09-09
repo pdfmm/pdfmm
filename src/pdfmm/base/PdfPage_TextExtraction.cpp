@@ -12,6 +12,8 @@
 #include <deque>
 #include <stack>
 
+#include <utfcpp/utf8.h>
+
 #include "PdfDocument.h"
 #include "PdfTextState.h"
 #include "PdfMath.h"
@@ -56,6 +58,8 @@ class StatefulString
 public:
     StatefulString(const string_view &str, double length, const TextState &state);
 public:
+    bool BeginsWithWhiteSpace() const;
+    bool EndsWithWhiteSpace() const;
     StatefulString GetTrimmedBegin() const;
     StatefulString GetTrimmedEnd() const;
 public:
@@ -119,10 +123,10 @@ public:
     void TryPushChunk();
     void TryAddLastEntry();
 private:
-    bool areChunksSpaced(double& dx);
+    bool areChunksSpaced(double& distance);
     void pushChunk();
     void addEntry();
-    void tryAddEntry();
+    void tryAddEntry(const StatefulString& currStr);
     const PdfCanvas& getActualCanvas();
 private:
     const PdfPage& m_page;
@@ -138,7 +142,7 @@ public:
     TextStateStack States;
     vector<XObjectState> XObjectStateIndices;
     double CurrentEntryT_rm_y = NaN;    // Tracks line changing
-    double PrevChunkT_rm_x = 0;         // Tracks space separation
+    Vector2 PrevChunkT_rm_Pos;          // Tracks space separation
     bool BlockOpen = false;
 };
 
@@ -593,7 +597,7 @@ bool DecodeString(const PdfString &str, TextState &state, string &decoded, doubl
 }
 
 StatefulString::StatefulString(const string_view &str, double length, const TextState &state)
-    : String((string)str), State(state), Pos(state.T_rm.GetTranslation()),
+    : String((string)str), State(state), Pos(state.T_rm.GetTranslationVector()),
       Length(length), IsWhiteSpace(utls::IsStringEmptyOrWhiteSpace(str))
 {
     PDFMM_ASSERT(str.length() != 0);
@@ -601,28 +605,63 @@ StatefulString::StatefulString(const string_view &str, double length, const Text
 
 StatefulString StatefulString::GetTrimmedBegin() const
 {
-    int i = 0;
     auto &str = String;
-    for (; i < (int)str.length(); i++)
+    auto it = str.begin();
+    auto end = str.end();
+    auto prev = it;
+    while (it != end)
     {
-        if (!utls::IsWhiteSpace(str[i]))
+        char32_t cp = utf8::next(it, end);
+        if (!utls::IsWhiteSpace(cp))
             break;
+
+        prev = it;
     }
 
     // First, advance the x position by finding the space string size with the current font
     auto state = State;
     double spacestrWidth = 0;
-    if (i != 0)
+    size_t trimmedLen = prev - str.begin();
+    if (trimmedLen != 0)
     {
-        auto spacestr = str.substr(0, i);
+        auto spacestr = str.substr(0, trimmedLen);
         spacestrWidth = GetStringWidth(spacestr, state);
         state.T_m.Apply<Tx>(spacestrWidth);
         state.RecomputeT_rm();
     }
 
     // After, rewrite the string without spaces
-    string trimmedStr = str.substr(i);
-    return StatefulString(str.substr(i), Length - spacestrWidth, state);
+    return StatefulString(str.substr(trimmedLen), Length - spacestrWidth, state);
+}
+
+bool StatefulString::BeginsWithWhiteSpace() const
+{
+    auto& str = String;
+    auto it = str.begin();
+    auto end = str.end();
+    while (it != end)
+    {
+        char32_t cp = utf8::next(it, end);
+        if (utls::IsWhiteSpace(cp))
+            return true;
+    }
+
+    return false;
+}
+
+bool StatefulString::EndsWithWhiteSpace() const
+{
+    bool isPrevWhiteSpace = false;
+    auto& str = String;
+    auto it = str.begin();
+    auto end = str.end();
+    while (it != end)
+    {
+        char32_t cp = utf8::next(it, end);
+        isPrevWhiteSpace = utls::IsWhiteSpace(cp);
+    }
+
+    return isPrevWhiteSpace;
 }
 
 StatefulString StatefulString::GetTrimmedEnd() const
@@ -765,7 +804,7 @@ void ExtractionContext::PushString(const StatefulString &str, bool pushchunk)
         CurrentEntryT_rm_y = States.Current->T_rm.Get<Ty>();
     }
 
-    tryAddEntry();
+    tryAddEntry(str);
 
     // Set current line tracking
     CurrentEntryT_rm_y = States.Current->T_rm.Get<Ty>();
@@ -775,7 +814,7 @@ void ExtractionContext::PushString(const StatefulString &str, bool pushchunk)
 
     States.Current->T_m.Apply<Tx>(str.Length);
     States.Current->RecomputeT_rm();
-    PrevChunkT_rm_x = States.Current->T_rm.Get<Tx>();
+    PrevChunkT_rm_Pos = States.Current->T_rm.GetTranslationVector();
 }
 
 void ExtractionContext::TryPushChunk()
@@ -811,15 +850,15 @@ void ExtractionContext::addEntry()
     ::addEntry(Entries, Chunks, Pattern, Options, ClipRect, PageIndex, Rotation.get());
 }
 
-void ExtractionContext::tryAddEntry()
+void ExtractionContext::tryAddEntry(const StatefulString& currStr)
 {
     PDFMM_INVARIANT(Chunk != nullptr);
     if (Chunks.size() > 0 || Chunk->size() > 0)
     {
         if (AreEqual(States.Current->T_rm.Get<Ty>(), CurrentEntryT_rm_y))
         {
-            double dx;
-            if (areChunksSpaced(dx))
+            double distance;
+            if (areChunksSpaced(distance))
             {
                 if (Options.TokenizeWords)
                 {
@@ -841,7 +880,9 @@ void ExtractionContext::tryAddEntry()
                         prevString = &Chunks.back()->back();
                     }
 
-                    Chunk->push_back(StatefulString(" ", dx, prevString->State));
+                    // Add "fake" space
+                    if (!(prevString->EndsWithWhiteSpace() || currStr.BeginsWithWhiteSpace()))
+                        Chunk->push_back(StatefulString(" ", distance, prevString->State));
                 }
             }
         }
@@ -855,16 +896,15 @@ void ExtractionContext::tryAddEntry()
     }
 }
 
-bool ExtractionContext::areChunksSpaced(double& dx)
+bool ExtractionContext::areChunksSpaced(double& distance)
 {
-    // NOTE: This is a simple euristic that assumes that all string
-    // chunks must be separated by 10 spaces to split them
-    // This is because we are very bad at computing string widths.
-    // TODO: to improve the situation:
-    // 1) Apply the T_rm transformation to the string widths;
+    // TODO
+    // 1) Handle arbitraries rotations
     // 2) Handle the word spacing Tw state.
-    dx = std::abs((States.Current->T_rm.Get<Tx>()) - PrevChunkT_rm_x) + SPACE_SEPARATION_EPSILON;
-    return dx >= States.Current->SpaceSize;
+    // 3) Handle vertical scripts (HARD)
+    distance = (States.Current->T_rm.GetTranslationVector() - PrevChunkT_rm_Pos).GetLength();
+    auto space1 = Vector2(States.Current->SpaceSize, 0) * States.Current->T_m.GetScalingRotation();
+    return distance + SPACE_SEPARATION_EPSILON >= space1.GetLength();
 }
 
 // Separate chunk words by spaces

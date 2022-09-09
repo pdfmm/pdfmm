@@ -97,15 +97,27 @@ Matrix Matrix::operator*(const Matrix& m2) const
         m1[4] * m2[1] + m1[5] * m2[3] + m2[5]);
 }
 
-Vector2 Matrix::GetScale() const
+Matrix Matrix::GetScalingRotation() const
+{
+    return Matrix(m_mat[0], m_mat[1], m_mat[2], m_mat[3], 0, 0);
+}
+
+Matrix Matrix::GetRotation() const
+{
+    double scalex = std::sqrt(m_mat[0] * m_mat[0] + m_mat[2] * m_mat[2]);
+    double scaley = std::sqrt(m_mat[1] * m_mat[1] + m_mat[3] * m_mat[3]);
+    return Matrix(m_mat[0] / scalex, m_mat[1] / scaley, m_mat[2] / scalex, m_mat[3] / scaley, 0, 0);
+}
+
+Vector2 Matrix::GetScaleVector() const
 {
     return Vector2(
-        sqrt(m_mat[0] * m_mat[0] + m_mat[2] * m_mat[2]),
-        sqrt(m_mat[1] * m_mat[1] + m_mat[3] * m_mat[3])
+        std::sqrt(m_mat[0] * m_mat[0] + m_mat[2] * m_mat[2]),
+        std::sqrt(m_mat[1] * m_mat[1] + m_mat[3] * m_mat[3])
     );
 }
 
-Vector2 Matrix::GetTranslation() const
+Vector2 Matrix::GetTranslationVector() const
 {
     return Vector2(m_mat[4], m_mat[5]);
 }
@@ -176,6 +188,16 @@ Vector2::Vector2()
 
 Vector2::Vector2(double x, double y)
     : X(x), Y(y) { }
+
+double Vector2::GetLength() const
+{
+    return std::sqrt(X * X + Y * Y);
+}
+
+double Vector2::GetSquaredLength() const
+{
+    return X * X + Y * Y;
+}
 
 Vector2 Vector2::operator+(const Vector2& v) const
 {

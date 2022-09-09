@@ -25,6 +25,9 @@ namespace mm
         Vector2(double x, double y);
 
     public:
+        double GetLength() const;
+        double GetSquaredLength() const;
+
         Vector2 operator+(const Vector2& v) const;
         Vector2 operator-(const Vector2& v) const;
         Vector2 operator*(const Matrix& m) const;
@@ -88,8 +91,10 @@ namespace mm
         Matrix operator*(const Matrix& m) const;
 
     public:
-        Vector2 GetScale() const;
-        Vector2 GetTranslation() const;
+        Matrix GetScalingRotation() const;
+        Matrix GetRotation() const;
+        Vector2 GetScaleVector() const;
+        Vector2 GetTranslationVector() const;
         void ToArray(double arr[6]) const;
         void ToArray(PdfArray& arr) const;
 
