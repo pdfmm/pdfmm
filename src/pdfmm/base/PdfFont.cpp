@@ -375,6 +375,13 @@ double PdfFont::GetDefaultCharWidth(const PdfTextState& state, bool ignoreCharSp
     }
 }
 
+vector<PdfSplittedString> PdfFont::SplitByWhiteSpaces(const PdfString& str) const
+{
+    // TODO: retrieve space character codes with m_Encoding->GetToUnicodeMapSafe().TryGetCharCode(codePoint, codeUnit),
+    // then iterate char codes and return splitted strings
+    PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);
+}
+
 double PdfFont::GetCIDWidthRaw(unsigned cid) const
 {
     unsigned gid;
@@ -538,6 +545,8 @@ void PdfFont::initWordSpacingWidth()
     if (m_wordSpacingWidthRaw >= 0)
         return;
 
+    // TODO: Maybe try looking up other characters if U' ' is missing?
+    // https://docs.microsoft.com/it-it/dotnet/api/system.char.iswhitespace
     unsigned gid;
     if (!TryGetGID(U' ', PdfGlyphAccess::Width, gid)
         || !m_Metrics->TryGetGlyphWidth(gid, m_wordSpacingWidthRaw))

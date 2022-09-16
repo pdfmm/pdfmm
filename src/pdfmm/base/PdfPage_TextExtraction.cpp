@@ -901,8 +901,9 @@ bool ExtractionContext::areChunksSpaced(double& distance)
 {
     // TODO
     // 1) Handle arbitraries rotations
-    // 2) Handle the word spacing Tw state.
-    // 3) Handle vertical scripts (HARD)
+    // 2) Handle the word spacing Tw state
+    // 3) Handle the char spacing Tc state (is it actually needed?)
+    // 4) Handle vertical scripts (HARD)
     distance = (States.Current->T_rm.GetTranslationVector() - PrevChunkT_rm_Pos).GetLength();
     auto space1 = Vector2(States.Current->SpaceSize, 0) * States.Current->T_m.GetScalingRotation();
     return distance + SPACE_SEPARATION_EPSILON >= space1.GetLength();

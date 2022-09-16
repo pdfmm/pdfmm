@@ -34,6 +34,12 @@ struct PdfFontCreateParams
     PdfFontCreateFlags Flags = PdfFontCreateFlags::None;
 };
 
+struct PdfSplittedString
+{
+    PdfString String;
+    bool IsSeparator = false;
+};
+
 /** Before you can draw text on a PDF document, you have to create
  *  a font object first. You can reuse this font object as often
  *  as you want.
@@ -184,6 +190,11 @@ public:
     bool TryGetCharWidth(char32_t codePoint, const PdfTextState& state, double& width) const;
 
     double GetDefaultCharWidth(const PdfTextState& state, bool ignoreCharSpacing = false) const;
+
+    /** Split the given string by white spaces
+     * \remarks Also return separator chunks
+     */
+    std::vector<PdfSplittedString> SplitByWhiteSpaces(const PdfString& str) const;
 
     /** Add used GIDs to this font for subsetting from an encoded string
      *
