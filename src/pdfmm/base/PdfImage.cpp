@@ -1257,7 +1257,7 @@ void fetchScanLine(unsigned char* dstScanLine, PdfPixelFormat format, unsigned w
                 dstScanLine[i * 4 + 0] = srcScanLine[i * 3 + 2];
                 dstScanLine[i * 4 + 1] = srcScanLine[i * 3 + 1];
                 dstScanLine[i * 4 + 2] = srcScanLine[i * 3 + 0];
-                dstScanLine[i * 4 + 3] = 1;
+                dstScanLine[i * 4 + 3] = 255;
             }
             break;
         }
@@ -1268,7 +1268,7 @@ void fetchScanLine(unsigned char* dstScanLine, PdfPixelFormat format, unsigned w
                 dstScanLine[i * 4 + 0] = srcScanLine[i * 3 + 0];
                 dstScanLine[i * 4 + 1] = srcScanLine[i * 3 + 1];
                 dstScanLine[i * 4 + 2] = srcScanLine[i * 3 + 2];
-                dstScanLine[i * 4 + 3] = 1;
+                dstScanLine[i * 4 + 3] = 255;
             }
             break;
         }
