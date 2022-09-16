@@ -146,15 +146,15 @@ public:
     bool BlockOpen = false;
 };
 
-static EntryOptions FromFlags(PdfTextExtractFlags flags);
-static bool DecodeString(const PdfString &str, TextState &state, string &decoded, double &length);
-static bool AreEqual(double lhs, double rhs);
-static bool IsWhiteSpaceChunk(const StringChunk &chunk);
-static void SplitChunkBySpaces(vector<StringChunkPtr> &splittedChunks, const StringChunk &chunk);
-static void SplitStringBySpaces(vector<StatefulString> &separatedStrings, const StatefulString &string);
-static void TrimSpacesBegin(StringChunk &chunk);
-static void TrimSpacesEnd(StringChunk &chunk);
-static double GetStringWidth(const string_view &str, const TextState &state);
+
+static bool decodeString(const PdfString &str, TextState &state, string &decoded, double &length);
+static bool areEqual(double lhs, double rhs);
+static bool isWhiteSpaceChunk(const StringChunk &chunk);
+static void splitChunkBySpaces(vector<StringChunkPtr> &splittedChunks, const StringChunk &chunk);
+static void splitStringBySpaces(vector<StatefulString> &separatedStrings, const StatefulString &string);
+static void trimSpacesBegin(StringChunk &chunk);
+static void trimSpacesEnd(StringChunk &chunk);
+static double getStringWidth(const string_view &str, const TextState &state);
 static void addEntry(vector<PdfTextEntry> &textEntries, StringChunkList &strings,
     const string_view &pattern, const EntryOptions &options, const nullable<PdfRect> &clipRect,
     int pageIndex, const Matrix* rotation);
@@ -163,6 +163,7 @@ static void addEntry(vector<PdfTextEntry> &textEntries, StringChunkList &strings
     int pageIndex, const Matrix* rotation);
 static void read(const PdfVariantStack& stack, double &tx, double &ty);
 static void read(const PdfVariantStack& stack, double &a, double &b, double &c, double &d, double &e, double &f);
+static EntryOptions fromFlags(PdfTextExtractFlags flags);
 
 void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const PdfTextExtractParams& params) const
 {
@@ -172,7 +173,7 @@ void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const PdfTextExtractP
 void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const string_view& pattern,
     const PdfTextExtractParams& params) const
 {
-    ExtractionContext context(entries, *this, pattern, FromFlags(params.Flags), params.ClipRect);
+    ExtractionContext context(entries, *this, pattern, fromFlags(params.Flags), params.ClipRect);
 
     // Look FIGURE 4.1 Graphics objects
     PdfContentsReader reader(*this);
@@ -285,7 +286,7 @@ void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const string_view& pa
 
                         string decoded;
                         double length;
-                        if (DecodeString(str, *context.States.Current, decoded, length)
+                        if (decodeString(str, *context.States.Current, decoded, length)
                             && decoded.length() != 0)
                         {
                             context.PushString(StatefulString(decoded, length, *context.States.Current), true);
@@ -312,7 +313,7 @@ void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const string_view& pa
                             {
                                 string decoded;
                                 double length;
-                                if (DecodeString(obj.GetString(), *context.States.Current, decoded, length)
+                                if (decodeString(obj.GetString(), *context.States.Current, decoded, length)
                                     && decoded.length() != 0)
                                 {
                                     context.PushString(StatefulString(decoded, length, *context.States.Current));
@@ -435,10 +436,10 @@ void addEntry(vector<PdfTextEntry> &textEntries, StringChunkList &chunks, const 
             auto chunk = std::move(chunks.front());
             chunks.pop_front();
 
-            SplitChunkBySpaces(sepratedChunks, *chunk);
+            splitChunkBySpaces(sepratedChunks, *chunk);
             for (auto &sepratedChunk : sepratedChunks)
             {
-                if (IsWhiteSpaceChunk(*sepratedChunk))
+                if (isWhiteSpaceChunk(*sepratedChunk))
                 {
                     // A white space chunk is separating words. Try to push a batch
                     if (currentBatch->size() != 0)
@@ -486,13 +487,13 @@ void addEntry(vector<PdfTextEntry> &textEntries, StringChunkList &chunks, const 
                 return;
 
             auto &front = chunks.front();
-            if (IsWhiteSpaceChunk(*front))
+            if (isWhiteSpaceChunk(*front))
             {
                 chunks.pop_front();
                 continue;
             }
 
-            TrimSpacesBegin(*front);
+            trimSpacesBegin(*front);
             break;
         }
 
@@ -500,13 +501,13 @@ void addEntry(vector<PdfTextEntry> &textEntries, StringChunkList &chunks, const 
         while (true)
         {
             auto &back = chunks.back();
-            if (IsWhiteSpaceChunk(*back))
+            if (isWhiteSpaceChunk(*back))
             {
                 chunks.pop_back();
                 continue;
             }
 
-            TrimSpacesEnd(*back);
+            trimSpacesEnd(*back);
             break;
         }
     }
@@ -576,7 +577,7 @@ void read(const PdfVariantStack& tokens, double & a, double & b, double & c, dou
     a = tokens[5].GetReal();
 }
 
-bool DecodeString(const PdfString &str, TextState &state, string &decoded, double &length)
+bool decodeString(const PdfString &str, TextState &state, string &decoded, double &length)
 {
     if (state.PdfState.Font == nullptr)
     {
@@ -625,7 +626,7 @@ StatefulString StatefulString::GetTrimmedBegin() const
     if (trimmedLen != 0)
     {
         auto spacestr = str.substr(0, trimmedLen);
-        spacestrWidth = GetStringWidth(spacestr, state);
+        spacestrWidth = getStringWidth(spacestr, state);
         state.T_m.Apply<Tx>(spacestrWidth);
         state.RecomputeT_rm();
     }
@@ -667,7 +668,7 @@ bool StatefulString::EndsWithWhiteSpace() const
 StatefulString StatefulString::GetTrimmedEnd() const
 {
     string trimmedStr = utls::TrimSpacesEnd(String);
-    return StatefulString(trimmedStr, GetStringWidth(trimmedStr, State), State);
+    return StatefulString(trimmedStr, getStringWidth(trimmedStr, State), State);
 }
 
 TextStateStack::TextStateStack()
@@ -855,7 +856,7 @@ void ExtractionContext::tryAddEntry(const StatefulString& currStr)
     PDFMM_INVARIANT(Chunk != nullptr);
     if (Chunks.size() > 0 || Chunk->size() > 0)
     {
-        if (AreEqual(States.Current->T_rm.Get<Ty>(), CurrentEntryT_rm_y))
+        if (areEqual(States.Current->T_rm.Get<Ty>(), CurrentEntryT_rm_y))
         {
             double distance;
             if (areChunksSpaced(distance))
@@ -908,7 +909,7 @@ bool ExtractionContext::areChunksSpaced(double& distance)
 }
 
 // Separate chunk words by spaces
-void SplitChunkBySpaces(vector<StringChunkPtr> &splittedChunks, const StringChunk &chunk)
+void splitChunkBySpaces(vector<StringChunkPtr> &splittedChunks, const StringChunk &chunk)
 {
     PDFMM_ASSERT(chunk.size() != 0);
     splittedChunks.clear();
@@ -918,7 +919,7 @@ void SplitChunkBySpaces(vector<StringChunkPtr> &splittedChunks, const StringChun
     {
         auto separatedChunk = std::make_unique<StringChunk>();
         bool previousWhiteSpace = true;
-        SplitStringBySpaces(separatedStrings, str);
+        splitStringBySpaces(separatedStrings, str);
         for (auto &separatedStr : separatedStrings)
         {
             if (separatedChunk->size() != 0 && separatedStr.IsWhiteSpace != previousWhiteSpace)
@@ -938,7 +939,7 @@ void SplitChunkBySpaces(vector<StringChunkPtr> &splittedChunks, const StringChun
 }
 
 // Separate string words by spaces
-void SplitStringBySpaces(vector<StatefulString> &separatedStrings, const StatefulString &str)
+void splitStringBySpaces(vector<StatefulString> &separatedStrings, const StatefulString &str)
 {
     PDFMM_ASSERT(str.String.length() != 0);
     separatedStrings.clear();
@@ -947,7 +948,7 @@ void SplitStringBySpaces(vector<StatefulString> &separatedStrings, const Statefu
     auto state = str.State;
 
     auto pushString = [&]() {
-        double length = GetStringWidth(separatedStr, state);
+        double length = getStringWidth(separatedStr, state);
         separatedStrings.push_back({ separatedStr , length, state });
         separatedStr.clear();
         state.T_m.Apply<Tx>(length);
@@ -971,7 +972,7 @@ void SplitStringBySpaces(vector<StatefulString> &separatedStrings, const Statefu
         pushString();
 }
 
-void TrimSpacesBegin(StringChunk &chunk)
+void trimSpacesBegin(StringChunk &chunk)
 {
     while (true)
     {
@@ -992,7 +993,7 @@ void TrimSpacesBegin(StringChunk &chunk)
     }
 }
 
-void TrimSpacesEnd(StringChunk &chunk)
+void trimSpacesEnd(StringChunk &chunk)
 {
     while (true)
     {
@@ -1012,7 +1013,7 @@ void TrimSpacesEnd(StringChunk &chunk)
     }
 }
 
-double GetStringWidth(const string_view &str, const TextState &state)
+double getStringWidth(const string_view &str, const TextState &state)
 {
     if (state.PdfState.Font == nullptr)
         return 0;
@@ -1020,7 +1021,7 @@ double GetStringWidth(const string_view &str, const TextState &state)
     return state.GetStringWidth(str);
 }
 
-bool IsWhiteSpaceChunk(const StringChunk &chunk)
+bool isWhiteSpaceChunk(const StringChunk &chunk)
 {
     for (auto &str : chunk)
     {
@@ -1031,7 +1032,7 @@ bool IsWhiteSpaceChunk(const StringChunk &chunk)
     return true;
 }
 
-bool AreEqual(double lhs, double rhs)
+bool areEqual(double lhs, double rhs)
 {
     return std::abs(lhs - rhs) < SAME_LINE_THRESHOLD;
 }
@@ -1061,7 +1062,7 @@ double TextState::GetStringWidth(const PdfString& encodedStr) const
     return PdfState.Font->GetStringWidth(encodedStr, PdfState);
 }
 
-EntryOptions FromFlags(PdfTextExtractFlags flags)
+EntryOptions fromFlags(PdfTextExtractFlags flags)
 {
     EntryOptions ret;
     ret.IgnoreCase = (flags & PdfTextExtractFlags::IgnoreCase) != PdfTextExtractFlags::None;
