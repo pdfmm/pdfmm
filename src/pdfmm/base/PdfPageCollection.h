@@ -114,9 +114,6 @@ public:
     void DeletePage(unsigned atIndex);
 
 private:
-    PdfPage& getPage(unsigned index);
-    PdfPage& getPage(const PdfReference& ref);
-
     /**
      * Insert page at the given index
      * \remarks Can be used by PdfDocument
@@ -127,36 +124,40 @@ private:
      * Insert pages at the given index
      * \remarks Can be used by PdfDocument
      */
-    void InsertPages(unsigned atIndex, const std::vector<PdfObject*>& pages);
+    void InsertPage(unsigned atIndex, const std::vector<PdfObject*>& pages);
 
-     PdfObject* GetPageNode(unsigned index, PdfObject& parent, PdfObjectList& parents);
+private:
+    PdfPage& getPage(unsigned index);
+    PdfPage& getPage(const PdfReference& ref);
 
-     unsigned GetChildCount(const PdfObject& nodeObj) const;
+    PdfObject* getPageNode(unsigned index, PdfObject& parent, PdfObjectList& parents);
 
-     /**
-      * Test if a PdfObject is a page node
-      * \return true if PdfObject is a page node
-      */
-     bool IsTypePage(const PdfObject& obj) const;
+    unsigned getChildCount(const PdfObject& nodeObj) const;
 
-     /**
-      * Test if a PdfObject is a pages node
-      * \return true if PdfObject is a pages node
-      */
-     bool IsTypePages(const PdfObject& obj) const;
+    /**
+     * Test if a PdfObject is a page node
+     * \return true if PdfObject is a page node
+     */
+    bool isTypePage(const PdfObject& obj) const;
 
-     /**
-      * Find the position of pageObj in the kids array of pageParent
-      *
-      * \returns the index in the kids array or -1 if pageObj is no child of pageParent
-      */
-     int GetPosInKids(PdfObject& pageObj, PdfObject* pageParent);
+    /**
+     * Test if a PdfObject is a pages node
+     * \return true if PdfObject is a pages node
+     */
+    bool isTypePages(const PdfObject& obj) const;
 
-     /** Private method for adjusting the page count in a tree
-      */
-     unsigned ChangePagesCount(PdfObject& pageObj, int delta);
+    /**
+     * Find the position of pageObj in the kids array of pageParent
+     *
+     * \returns the index in the kids array or -1 if pageObj is no child of pageParent
+     */
+    int getPosInKids(PdfObject& pageObj, PdfObject* pageParent);
 
-     /**
+    /** Private method for adjusting the page count in a tree
+     */
+    unsigned changePagesCount(PdfObject& pageObj, int delta);
+
+    /**
      * Insert a vector of page objects into a pages node
      * Same as InsertPageIntoNode except that it allows for adding multiple pages at one time
      * Note that adding many pages onto the same node will create an unbalanced page tree
@@ -167,7 +168,7 @@ private:
      * \param index index where page is to be inserted in node's kids array
      * \param pages a vector of the page objects which are to be inserted
      */
-    void InsertPagesIntoNode(PdfObject& node, const PdfObjectList& parents,
+    void insertPagesIntoNode(PdfObject& node, const PdfObjectList& parents,
         int index, const std::vector<PdfObject*>& pages);
 
     /**
@@ -179,7 +180,7 @@ private:
      * \param index index where page is to be deleted in node's kids array
      * \param page the page object which is to be deleted
      */
-    void DeletePageFromNode(PdfObject& node, const PdfObjectList& parents,
+    void deletePageFromNode(PdfObject& node, const PdfObjectList& parents,
         unsigned index, PdfObject& page);
 
     /**
@@ -188,22 +189,23 @@ private:
      * \param parent the parent of the page node which is deleted
      * \param index index to remove from the kids array of parent
      */
-    void DeletePageNode(PdfObject& parent, unsigned index);
+    void deletePageNode(PdfObject& parent, unsigned index);
 
     /**
      * Tests if a page node is emtpy
      *
      * \returns true if Count of page is 0 or the Kids array is empty
      */
-    bool IsEmptyPageNode(PdfObject& pageNode);
+    bool isEmptyPageNode(PdfObject& pageNode);
 
+private:
     /** Private method to access the Root of the tree using a logical name
      */
     inline PdfObject& GetRoot() { return this->GetObject(); }
     inline const PdfObject& GetRoot() const { return this->GetObject(); }
 
 private:
-      PdfPageTreeCache m_cache;
+    PdfPageTreeCache m_cache;
 };
 
 };
