@@ -36,10 +36,6 @@ using namespace std;
 using namespace cmn;
 using namespace mm;
 
-// pdf.js seems to just ship with an hardcoded word spacing
-// https://github.com/mozilla/pdf.js/blob/ab1297f0538c51e8e7ece037768e38a9991dcc37/src/core/evaluator.js#L2348
-double MISSING_WORD_SPACING_WIDTH = 0.1;
-
 static double getCharWidth(double widthGlyph, const PdfTextState& state, bool ignoreCharSpacing);
 static string_view toString(PdfFontStretch stretch);
 
@@ -551,7 +547,28 @@ void PdfFont::initWordSpacingWidth()
     if (!TryGetGID(U' ', PdfGlyphAccess::Width, gid)
         || !m_Metrics->TryGetGlyphWidth(gid, m_wordSpacingWidthRaw))
     {
+#if USE_EXPERIMENTAL_SPACING_WIDTH_INFERENCE
+        // See https://stackoverflow.com/a/73420359/213871
+        double widthsum = 0;
+        unsigned nonZeroCount = 0;
+        for (unsigned i = 0, count = m_Metrics->GetGlyphCount(); i < count; i++)
+        {
+            double width;
+            m_Metrics->TryGetGlyphWidth(i, width);
+            if (width > 0)
+            {
+                widthsum += width;
+                nonZeroCount++;
+            }
+        }
+
+        m_wordSpacingWidthRaw = widthsum / nonZeroCount / 7;
+#else
+        // pdf.js seems to just ship with an hardcoded word spacing
+        // https://github.com/mozilla/pdf.js/blob/ab1297f0538c51e8e7ece037768e38a9991dcc37/src/core/evaluator.js#L2348
+        constexpr double MISSING_WORD_SPACING_WIDTH = 0.1;
         m_wordSpacingWidthRaw = MISSING_WORD_SPACING_WIDTH;
+#endif
     }
 }
 
