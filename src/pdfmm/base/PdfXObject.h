@@ -39,8 +39,13 @@ protected:
 public:
     static bool TryCreateFromObject(PdfObject& obj, std::unique_ptr<PdfXObject>& xobj);
 
+    static bool TryCreateFromObject(const PdfObject& obj, std::unique_ptr<const PdfXObject>& xobj);
+
     template <typename XObjectT>
     static bool TryCreateFromObject(PdfObject& obj, std::unique_ptr<XObjectT>& xobj);
+
+    template <typename XObjectT>
+    static bool TryCreateFromObject(const PdfObject& obj, std::unique_ptr<const XObjectT>& xobj);
 
     static std::string ToString(PdfXObjectType type);
     static PdfXObjectType FromString(const std::string& str);
@@ -59,7 +64,8 @@ public:
     inline PdfXObjectType GetType() const { return m_Type; }
 
 private:
-    static bool tryGetXObjectType(const std::type_info& type, PdfXObjectType& xobjType);
+    static bool tryCreateFromObject(const PdfObject& obj, PdfXObjectType targetType, PdfXObject*& xobj);
+    static bool tryCreateFromObject(const PdfObject& obj, const std::type_info& targetType, PdfXObject*& xobj);
     void initIdentifiers(const std::string_view& prefix);
     static PdfXObjectType getPdfXObjectType(const PdfObject& obj);
 
@@ -71,21 +77,22 @@ private:
 template<typename XObjectT>
 inline bool PdfXObject::TryCreateFromObject(PdfObject& obj, std::unique_ptr<XObjectT>& xobj)
 {
-    PdfXObjectType xobjtype;
-    if (!tryGetXObjectType(typeid(XObjectT), xobjtype))
-    {
-        xobj.reset();
+    PdfXObject* xobj_;
+    if (!tryCreateFromObject(obj, typeid(XObjectT), xobj_))
         return false;
-    }
 
-    std::unique_ptr<PdfXObject> xobj_;
-    if (!TryCreateFromObject(obj, xobj_)
-        || xobj_->GetType() != xobjtype)
-    {
+    xobj.reset((XObjectT*)xobj_);
+    return true;
+}
+
+template<typename XObjectT>
+inline bool PdfXObject::TryCreateFromObject(const PdfObject& obj, std::unique_ptr<const XObjectT>& xobj)
+{
+    PdfXObject* xobj_;
+    if (!tryCreateFromObject(obj, typeid(XObjectT), xobj_))
         return false;
-    }
 
-    xobj.reset((XObjectT*)xobj_.release());
+    xobj.reset((const XObjectT*)xobj_);
     return true;
 }
 

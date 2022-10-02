@@ -37,31 +37,63 @@ PdfXObject::PdfXObject(PdfObject& obj, PdfXObjectType subType)
 
 bool PdfXObject::TryCreateFromObject(PdfObject& obj, unique_ptr<PdfXObject>& xobj)
 {
-    auto typeObj = obj.GetDictionary().GetKey(PdfName::KeyType);
-    if (typeObj == nullptr
-        || !typeObj->IsName()
-        || typeObj->GetName().GetString() != "XObject")
+    PdfXObject* xobj_;
+    if (!tryCreateFromObject(obj, PdfXObjectType::Unknown, xobj_))
     {
         xobj.reset();
         return false;
     }
 
+    xobj.reset(xobj_);
+    return true;
+}
+
+bool PdfXObject::TryCreateFromObject(const PdfObject& obj, unique_ptr<const PdfXObject>& xobj)
+{
+    PdfXObject* xobj_;
+    if (!tryCreateFromObject(obj, PdfXObjectType::Unknown, xobj_))
+    {
+        xobj.reset();
+        return false;
+    }
+
+    xobj.reset(xobj_);
+    return true;
+}
+
+bool PdfXObject::tryCreateFromObject(const PdfObject& obj, PdfXObjectType targetType, PdfXObject*& xobj)
+{
+    auto typeObj = obj.GetDictionary().GetKey(PdfName::KeyType);
+    if (typeObj == nullptr
+        || !typeObj->IsName()
+        || typeObj->GetName().GetString() != "XObject")
+    {
+        xobj = nullptr;
+        return false;
+    }
+
     auto type = getPdfXObjectType(obj);
+    if (targetType != PdfXObjectType::Unknown && type != targetType)
+    {
+        xobj = nullptr;
+        return false;
+    }
+
     switch (type)
     {
         case PdfXObjectType::Form:
         {
-            xobj.reset(new PdfXObjectForm(obj));
+            xobj = new PdfXObjectForm(const_cast<PdfObject&>(obj));
             return true;
         }
         case PdfXObjectType::PostScript:
         {
-            xobj.reset(new PdfXObjectPostScript(obj));
+            xobj = new PdfXObjectPostScript(const_cast<PdfObject&>(obj));
             return true;
         }
         case PdfXObjectType::Image:
         {
-            xobj.reset(new PdfImage(obj));
+            xobj = new PdfImage(const_cast<PdfObject&>(obj));
             return true;
         }
         default:
@@ -132,28 +164,19 @@ void PdfXObject::SetMatrix(const Matrix& m)
     GetObject().GetDictionary().AddKey("Matrix", std::move(arr));
 }
 
-bool PdfXObject::tryGetXObjectType(const type_info& type, PdfXObjectType& xobjType)
+bool PdfXObject::tryCreateFromObject(const PdfObject& obj, const type_info& targetType, PdfXObject*& xobj)
 {
-    if (type == typeid(PdfXObjectForm))
-    {
+    PdfXObjectType xobjType;
+    if (targetType == typeid(PdfXObjectForm))
         xobjType = PdfXObjectType::Form;
-        return true;
-    }
-    else if (type == typeid(PdfImage))
-    {
+    else if (targetType == typeid(PdfImage))
         xobjType = PdfXObjectType::Image;
-        return true;
-    }
-    else if (type == typeid(PdfXObjectPostScript))
-    {
+    else if (targetType == typeid(PdfXObjectPostScript))
         xobjType = PdfXObjectType::PostScript;
-        return true;
-    }
     else
-    {
-        xobjType = PdfXObjectType::Unknown;
-        return false;
-    }
+        PDFMM_RAISE_ERROR(PdfErrorCode::InternalLogic);
+
+    return tryCreateFromObject(obj, xobjType, xobj);
 }
 
 void PdfXObject::initIdentifiers(const string_view& prefix)
