@@ -147,15 +147,8 @@ using LogMessageCallback = std::function<void(PdfLogSeverity logSeverity, const 
  *  for the error codes which are values of the enum PdfErrorCode,
  *  which are all codes pdfmm uses (except the first and last one).
  */
-class PDFMM_EXCEPTION_API_DOXYGEN PdfError final
+class PDFMM_EXCEPTION_API_DOXYGEN PdfError final : public std::exception
 {
-public:
-    /** Set a global static LogMessageCallback functor to replace stderr output in LogMessageInternal.
-     *  \param logMessageCallback the pointer to the new callback functor object
-     *  \returns the pointer to the previous callback functor object
-     */
-    static void SetLogMessageCallback(const LogMessageCallback& logMessageCallback);
-
 public:
     /** Create a PdfError object with a given error code.
      *  \param code the error code of this object
@@ -232,35 +225,21 @@ public:
     /** Obtain error description.
      *  \returns a C string describing the error.
      */
-    const char* what() const;
+    const char* what() const override;
 
 public:
     /** Get the name for a certain error code.
      *  \returns the name or nullptr if no name for the specified
      *           error code is available.
      */
-    static const char* ErrorName(PdfErrorCode code);
+    static std::string_view ErrorName(PdfErrorCode code);
 
     /** Get the error message for a certain error code.
      *  \returns the error message or nullptr if no error
      *           message for the specified error code
      *           is available.
      */
-    static const char* ErrorMessage(PdfErrorCode code);
-
-    /** Set the maximum logging severity.
-     * The higher the maximum (enum integral value), the more is logged
-     */
-    static void SetMaxLoggingSeverity(PdfLogSeverity logSeverity);
-
-    /** Get the maximum logging severity
-     * The higher the maximum (enum integral value), the more is logged
-     */
-    static PdfLogSeverity GetMaxLoggingSeverity();
-
-    /** The if the given logging severity enabled or not
-     */
-    static bool IsLoggingSeverityEnabled(PdfLogSeverity logSeverity);
+    static std::string_view ErrorMessage(PdfErrorCode code);
 
 private:
     PdfErrorCode m_error;

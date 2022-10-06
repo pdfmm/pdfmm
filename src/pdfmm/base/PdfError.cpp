@@ -17,12 +17,6 @@ using namespace std;
 using namespace cmn;
 using namespace mm;
 
-#ifdef DEBUG
-PdfLogSeverity s_MaxLogSeverity = PdfLogSeverity::Debug;
-#else
-PdfLogSeverity s_MaxLogSeverity = PdfLogSeverity::Information;
-#endif // DEBUG
-
 // Retrieve the basepath of the source directory
 struct SourcePathOffset
 {
@@ -33,12 +27,6 @@ struct SourcePathOffset
 };
 
 static SourcePathOffset s_PathOffset;
-static LogMessageCallback s_LogMessageCallback;
-
-void PdfError::SetLogMessageCallback(const LogMessageCallback& logMessageCallback)
-{
-    s_LogMessageCallback = logMessageCallback;
-}
 
 PdfErrorInfo::PdfErrorInfo(string filepath, unsigned line, string info)
     : m_Line(line), m_FilePath(std::move(filepath)), m_Info(std::move(info)) { }
@@ -69,8 +57,8 @@ bool PdfError::operator!=(PdfErrorCode code)
 
 void PdfError::PrintErrorMsg() const
 {
-    const char* msg = PdfError::ErrorMessage(m_error);
-    const char* name = PdfError::ErrorName(m_error);
+    auto msg = PdfError::ErrorMessage(m_error);
+    auto name = PdfError::ErrorName(m_error);
 
     outstringstream stream;
     stream << endl << endl << "pdfmm encountered an error. Error: " << (int)m_error << (name == nullptr ? "" : name);
@@ -100,228 +88,158 @@ void PdfError::PrintErrorMsg() const
 
 const char* PdfError::what() const
 {
-    return PdfError::ErrorName(m_error);
+    return PdfError::ErrorName(m_error).data();
 }
 
-const char* PdfError::ErrorName(PdfErrorCode code)
+string_view PdfError::ErrorName(PdfErrorCode code)
 {
-    const char* msg = nullptr;
     switch (code)
     {
         case PdfErrorCode::InvalidHandle:
-            msg = "PdfErrorCode::InvalidHandle";
-            break;
+            return "PdfErrorCode::InvalidHandle"sv;
         case PdfErrorCode::FileNotFound:
-            msg = "PdfErrorCode::FileNotFound";
-            break;
+            return "PdfErrorCode::FileNotFound"sv;
         case PdfErrorCode::InvalidDeviceOperation:
-            msg = "PdfErrorCode::InvalidDeviceOperation";
-            break;
+            return "PdfErrorCode::InvalidDeviceOperation"sv;
         case PdfErrorCode::UnexpectedEOF:
-            msg = "PdfErrorCode::UnexpectedEOF";
-            break;
+            return "PdfErrorCode::UnexpectedEOF"sv;
         case PdfErrorCode::OutOfMemory:
-            msg = "PdfErrorCode::OutOfMemory";
-            break;
+            return "PdfErrorCode::OutOfMemory"sv;
         case PdfErrorCode::ValueOutOfRange:
-            msg = "PdfErrorCode::ValueOutOfRange";
-            break;
+            return "PdfErrorCode::ValueOutOfRange"sv;
         case PdfErrorCode::InternalLogic:
-            msg = "PdfErrorCode::InternalLogic";
-            break;
+            return "PdfErrorCode::InternalLogic"sv;
         case PdfErrorCode::InvalidEnumValue:
-            msg = "PdfErrorCode::InvalidEnumValue";
-            break;
+            return "PdfErrorCode::InvalidEnumValue"sv;
         case PdfErrorCode::BrokenFile:
-            msg = "PdfErrorCode::BrokenFile";
-            break;
+            return "PdfErrorCode::BrokenFile"sv;
         case PdfErrorCode::PageNotFound:
-            msg = "PdfErrorCode::PageNotFound";
-            break;
+            return "PdfErrorCode::PageNotFound"sv;
         case PdfErrorCode::NoPdfFile:
-            msg = "PdfErrorCode::NoPdfFile";
-            break;
+            return "PdfErrorCode::NoPdfFile"sv;
         case PdfErrorCode::NoXRef:
-            msg = "PdfErrorCode::NoXRef";
-            break;
+            return "PdfErrorCode::NoXRef"sv;
         case PdfErrorCode::NoTrailer:
-            msg = "PdfErrorCode::NoTrailer";
-            break;
+            return "PdfErrorCode::NoTrailer"sv;
         case PdfErrorCode::NoNumber:
-            msg = "PdfErrorCode::NoNumber";
-            break;
+            return "PdfErrorCode::NoNumber"sv;
         case PdfErrorCode::NoObject:
-            msg = "PdfErrorCode::NoObject";
-            break;
+            return "PdfErrorCode::NoObject"sv;
         case PdfErrorCode::NoEOFToken:
-            msg = "PdfErrorCode::NoEOFToken";
-            break;
+            return "PdfErrorCode::NoEOFToken"sv;
         case PdfErrorCode::InvalidTrailerSize:
-            msg = "PdfErrorCode::InvalidTrailerSize";
-            break;
+            return "PdfErrorCode::InvalidTrailerSize"sv;
         case PdfErrorCode::InvalidDataType:
-            msg = "PdfErrorCode::InvalidDataType";
-            break;
+            return "PdfErrorCode::InvalidDataType"sv;
         case PdfErrorCode::InvalidXRef:
-            msg = "PdfErrorCode::InvalidXRef";
-            break;
+            return "PdfErrorCode::InvalidXRef"sv;
         case PdfErrorCode::InvalidXRefStream:
-            msg = "PdfErrorCode::InvalidXRefStream";
-            break;
+            return "PdfErrorCode::InvalidXRefStream"sv;
         case PdfErrorCode::InvalidXRefType:
-            msg = "PdfErrorCode::InvalidXRefType";
-            break;
+            return "PdfErrorCode::InvalidXRefType"sv;
         case PdfErrorCode::InvalidPredictor:
-            msg = "PdfErrorCode::InvalidPredictor";
-            break;
+            return "PdfErrorCode::InvalidPredictor"sv;
         case PdfErrorCode::InvalidStrokeStyle:
-            msg = "PdfErrorCode::InvalidStrokeStyle";
-            break;
+            return "PdfErrorCode::InvalidStrokeStyle"sv;
         case PdfErrorCode::InvalidHexString:
-            msg = "PdfErrorCode::InvalidHexString";
-            break;
+            return "PdfErrorCode::InvalidHexString"sv;
         case PdfErrorCode::InvalidStream:
-            msg = "PdfErrorCode::InvalidStream";
-            break;
+            return "PdfErrorCode::InvalidStream"sv;
         case PdfErrorCode::InvalidStreamLength:
-            msg = "PdfErrorCode::InvalidStream";
-            break;
+            return "PdfErrorCode::InvalidStream"sv;
         case PdfErrorCode::InvalidKey:
-            msg = "PdfErrorCode::InvalidKey";
-            break;
+            return "PdfErrorCode::InvalidKey"sv;
         case PdfErrorCode::InvalidName:
-            msg = "PdfErrorCode::InvalidName";
-            break;
-        case PdfErrorCode::InvalidEncryptionDict:
-            msg = "PdfErrorCode::InvalidEncryptionDict";    /**< The encryption dictionary is invalid or misses a required key */
-            break;
-        case PdfErrorCode::InvalidPassword:                    /**< The password used to open the PDF file was invalid */
-            msg = "PdfErrorCode::InvalidPassword";
-            break;
+            return "PdfErrorCode::InvalidName"sv;
+        case PdfErrorCode::InvalidEncryptionDict:              ///< The encryption dictionary is invalid or misses a required key
+            return "PdfErrorCode::InvalidEncryptionDict"sv;
+        case PdfErrorCode::InvalidPassword:                    ///< The password used to open the PDF file was invalid
+            return "PdfErrorCode::InvalidPassword"sv;
         case PdfErrorCode::InvalidFontFile:
-            msg = "PdfErrorCode::InvalidFontFile";
-            break;
+            return "PdfErrorCode::InvalidFontFile"sv;
         case PdfErrorCode::InvalidContentStream:
-            msg = "PdfErrorCode::InvalidContentStream";
-            break;
+            return "PdfErrorCode::InvalidContentStream"sv;
         case PdfErrorCode::UnsupportedFilter:
-            msg = "PdfErrorCode::UnsupportedFilter";
-            break;
-        case PdfErrorCode::UnsupportedFontFormat:    /**< This font format is not supported by pdfmm. */
-            msg = "PdfErrorCode::UnsupportedFontFormat";
-            break;
+            return "PdfErrorCode::UnsupportedFilter"sv;
+        case PdfErrorCode::UnsupportedFontFormat:               ///< This font format is not supported by pdfmm.
+            return "PdfErrorCode::UnsupportedFontFormat"sv;
         case PdfErrorCode::ActionAlreadyPresent:
-            msg = "PdfErrorCode::ActionAlreadyPresent";
-            break;
+            return "PdfErrorCode::ActionAlreadyPresent"sv;
         case PdfErrorCode::WrongDestinationType:
-            msg = "PdfErrorCode::WrongDestinationType";
-            break;
+            return "PdfErrorCode::WrongDestinationType"sv;
         case PdfErrorCode::MissingEndStream:
-            msg = "PdfErrorCode::MissingEndStream";
-            break;
+            return "PdfErrorCode::MissingEndStream"sv;
         case PdfErrorCode::Date:
-            msg = "PdfErrorCode::Date";
-            break;
+            return "PdfErrorCode::Date"sv;
         case PdfErrorCode::Flate:
-            msg = "PdfErrorCode::Flate";
-            break;
+            return "PdfErrorCode::Flate"sv;
         case PdfErrorCode::FreeType:
-            msg = "PdfErrorCode::FreeType";
-            break;
+            return "PdfErrorCode::FreeType"sv;
         case PdfErrorCode::SignatureError:
-            msg = "PdfErrorCode::SignatureError";
-            break;
-        case PdfErrorCode::UnsupportedImageFormat:    /**< This image format is not supported by pdfmm. */
-            msg = "PdfErrorCode::UnsupportedImageFormat";
-            break;
-        case PdfErrorCode::CannotConvertColor:       /**< This color format cannot be converted. */
-            msg = "PdfErrorCode::CannotConvertColor";
-            break;
+            return "PdfErrorCode::SignatureError"sv;
+        case PdfErrorCode::UnsupportedImageFormat:              ///< This image format is not supported by pdfmm.
+            return "PdfErrorCode::UnsupportedImageFormat"sv;
+        case PdfErrorCode::CannotConvertColor:                  ///< This color format cannot be converted.
+            return "PdfErrorCode::CannotConvertColor"sv;
         case PdfErrorCode::NotImplemented:
-            msg = "PdfErrorCode::NotImplemented";
-            break;
+            return "PdfErrorCode::NotImplemented"sv;
         case PdfErrorCode::NotCompiled:
-            msg = "PdfErrorCode::NotCompiled";
-            break;
+            return "PdfErrorCode::NotCompiled"sv;
         case PdfErrorCode::DestinationAlreadyPresent:
-            msg = "PdfErrorCode::DestinationAlreadyPresent";
-            break;
+            return "PdfErrorCode::DestinationAlreadyPresent"sv;
         case PdfErrorCode::ChangeOnImmutable:
-            msg = "PdfErrorCode::ChangeOnImmutable";
-            break;
+            return "PdfErrorCode::ChangeOnImmutable"sv;
         case PdfErrorCode::OutlineItemAlreadyPresent:
-            msg = "PdfErrorCode::OutlineItemAlreadyPresent";
-            break;
+            return "PdfErrorCode::OutlineItemAlreadyPresent"sv;
         case PdfErrorCode::NotLoadedForUpdate:
-            msg = "PdfErrorCode::NotLoadedForUpdate";
-            break;
+            return "PdfErrorCode::NotLoadedForUpdate"sv;
         case PdfErrorCode::CannotEncryptedForUpdate:
-            msg = "PdfErrorCode::CannotEncryptedForUpdate";
-            break;
+            return "PdfErrorCode::CannotEncryptedForUpdate"sv;
         case PdfErrorCode::Unknown:
-            msg = "PdfErrorCode::Unknown";
-            break;
+            return "PdfErrorCode::Unknown"sv;
         default:
             break;
     }
 
-    return msg;
+    return { };
 }
 
-const char* PdfError::ErrorMessage(PdfErrorCode code)
+string_view PdfError::ErrorMessage(PdfErrorCode code)
 {
-    const char* msg = nullptr;
     switch (code)
     {
         case PdfErrorCode::InvalidHandle:
-            msg = "A nullptr handle was passed, but initialized data was expected.";
-            break;
+            return "A nullptr handle was passed, but initialized data was expected."sv;
         case PdfErrorCode::FileNotFound:
-            msg = "The specified file was not found.";
-            break;
+            return "The specified file was not found."sv;
         case PdfErrorCode::InvalidDeviceOperation:
-            msg = "Tried to do something unsupported to an I/O device like seek a non-seekable input device";
-            break;
+            return "Tried to do something unsupported to an I/O device like seek a non-seekable input device"sv;
         case PdfErrorCode::UnexpectedEOF:
-            msg = "End of file was reached unxexpectedly.";
-            break;
+            return "End of file was reached unxexpectedly."sv;
         case PdfErrorCode::OutOfMemory:
-            msg = "pdfmm is out of memory.";
-            break;
+            return "pdfmm is out of memory."sv;
         case PdfErrorCode::ValueOutOfRange:
-            msg = "The passed value is out of range.";
-            break;
+            return "The passed value is out of range."sv;
         case PdfErrorCode::InternalLogic:
-            msg = "An internal error occurred.";
-            break;
+            return "An internal error occurred."sv;
         case PdfErrorCode::InvalidEnumValue:
-            msg = "An invalid enum value was specified.";
-            break;
+            return "An invalid enum value was specified."sv;
         case PdfErrorCode::BrokenFile:
-            msg = "The file content is broken.";
-            break;
+            return "The file content is broken."sv;
         case PdfErrorCode::PageNotFound:
-            msg = "The requested page could not be found in the PDF.";
-            break;
+            return "The requested page could not be found in the PDF."sv;
         case PdfErrorCode::NoPdfFile:
-            msg = "This is not a PDF file.";
-            break;
+            return "This is not a PDF file."sv;
         case PdfErrorCode::NoXRef:
-            msg = "No XRef table was found in the PDF file.";
-            break;
+            return "No XRef table was found in the PDF file."sv;
         case PdfErrorCode::NoTrailer:
-            msg = "No trailer was found in the PDF file.";
-            break;
+            return "No trailer was found in the PDF file."sv;
         case PdfErrorCode::NoNumber:
-            msg = "A number was expected but not found.";
-            break;
+            return "A number was expected but not found."sv;
         case PdfErrorCode::NoObject:
-            msg = "A object was expected but not found.";
-            break;
+            return "A object was expected but not found."sv;
         case PdfErrorCode::NoEOFToken:
-            msg = "No EOF Marker was found in the PDF file.";
-            break;
-
+            return "No EOF Marker was found in the PDF file."sv;
         case PdfErrorCode::InvalidTrailerSize:
         case PdfErrorCode::InvalidDataType:
         case PdfErrorCode::InvalidXRef:
@@ -336,141 +254,61 @@ const char* PdfError::ErrorMessage(PdfErrorCode code)
         case PdfErrorCode::InvalidName:
             break;
         case PdfErrorCode::InvalidEncryptionDict:
-            msg = "The encryption dictionary is invalid or misses a required key.";
-            break;
+            return "The encryption dictionary is invalid or misses a required key."sv;
         case PdfErrorCode::InvalidPassword:
-            msg = "The password used to open the PDF file was invalid.";
-            break;
+            return "The password used to open the PDF file was invalid."sv;
         case PdfErrorCode::InvalidFontFile:
-            msg = "The font file is invalid.";
-            break;
+            return "The font file is invalid."sv;
         case PdfErrorCode::InvalidContentStream:
-            msg = "The content stream is invalid due to mismatched context pairing or other problems.";
-            break;
+            return "The content stream is invalid due to mismatched context pairing or other problems."sv;
         case PdfErrorCode::UnsupportedFilter:
             break;
         case PdfErrorCode::UnsupportedFontFormat:
-            msg = "This font format is not supported by pdfmm.";
-            break;
+            return "This font format is not supported by pdfmm."sv;
         case PdfErrorCode::DestinationAlreadyPresent:
         case PdfErrorCode::ActionAlreadyPresent:
-            msg = "Outlines can have either destinations or actions.";
-            break;
+            return "Outlines can have either destinations or actions."sv;
         case PdfErrorCode::WrongDestinationType:
-            msg = "The requested field is not available for the given destination type";
-            break;
+            return "The requested field is not available for the given destination type"sv;
         case PdfErrorCode::MissingEndStream:
         case PdfErrorCode::Date:
             break;
         case PdfErrorCode::Flate:
-            msg = "ZLib returned an error.";
-            break;
+            return "ZLib returned an error."sv;
         case PdfErrorCode::FreeType:
-            msg = "FreeType returned an error.";
-            break;
+            return "FreeType returned an error."sv;
         case PdfErrorCode::SignatureError:
-            msg = "The signature contains an error.";
-            break;
+            return "The signature contains an error."sv;
         case PdfErrorCode::UnsupportedImageFormat:
-            msg = "This image format is not supported by pdfmm.";
-            break;
+            return "This image format is not supported by pdfmm."sv;
         case PdfErrorCode::CannotConvertColor:
-            msg = "This color format cannot be converted.";
-            break;
+            return "This color format cannot be converted."sv;
         case PdfErrorCode::ChangeOnImmutable:
-            msg = "Changing values on immutable objects is not allowed.";
-            break;
+            return "Changing values on immutable objects is not allowed."sv;
         case PdfErrorCode::NotImplemented:
-            msg = "This feature is currently not implemented.";
-            break;
+            return "This feature is currently not implemented."sv;
         case PdfErrorCode::NotCompiled:
-            msg = "This feature was disabled during compile time.";
-            break;
+            return "This feature was disabled during compile time."sv;
         case PdfErrorCode::OutlineItemAlreadyPresent:
-            msg = "Given OutlineItem already present in destination tree.";
-            break;
+            return "Given OutlineItem already present in destination tree."sv;
         case PdfErrorCode::NotLoadedForUpdate:
-            msg = "The document had not been loaded for update.";
-            break;
+            return "The document had not been loaded for update."sv;
         case PdfErrorCode::CannotEncryptedForUpdate:
-            msg = "Cannot load encrypted documents for update.";
-            break;
+            return "Cannot load encrypted documents for update."sv;
         case PdfErrorCode::XmpMetadata:
-            msg = "Error while reading or writing XMP metadata";
-            break;
+            return "Error while reading or writing XMP metadata"sv;
         case PdfErrorCode::Unknown:
-            msg = "Error code unknown.";
-            break;
+            return "Error code unknown."sv;
         default:
             break;
     }
 
-    return msg;
-}
-
-void PdfError::SetMaxLoggingSeverity(PdfLogSeverity logSeverity)
-{
-    s_MaxLogSeverity = logSeverity;
-}
-
-PdfLogSeverity PdfError::GetMaxLoggingSeverity()
-{
-    return s_MaxLogSeverity;
-}
-
-bool PdfError::IsLoggingSeverityEnabled(PdfLogSeverity logSeverity)
-{
-    return logSeverity <= s_MaxLogSeverity;
+    return { };
 }
 
 void PdfError::AddToCallstack(string filepath, unsigned line, string information)
 {
     m_callStack.push_front(PdfErrorInfo(std::move(filepath), line, information));
-}
-
-void mm::LogMessage(PdfLogSeverity logSeverity, const string_view& msg)
-{
-    if (logSeverity > s_MaxLogSeverity)
-        return;
-
-    if (s_LogMessageCallback == nullptr)
-    {
-        string_view prefix;
-        bool ouputstderr = false;
-        switch (logSeverity)
-        {
-            case PdfLogSeverity::Error:
-                prefix = "ERROR: ";
-                ouputstderr = true;
-                break;
-            case PdfLogSeverity::Warning:
-                prefix = "WARNING: ";
-                ouputstderr = true;
-                break;
-            case PdfLogSeverity::Debug:
-                prefix = "DEBUG: ";
-                break;
-            case PdfLogSeverity::Information:
-                break;
-            default:
-                PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
-        }
-
-        ostream* stream;
-        if (ouputstderr)
-            stream = &cerr;
-        else
-            stream = &cout;
-
-        if (!prefix.empty())
-            *stream << prefix;
-
-        *stream << msg << endl;
-    }
-    else
-    {
-        s_LogMessageCallback(logSeverity, msg);
-    }
 }
 
 string_view PdfErrorInfo::GetFilePath() const

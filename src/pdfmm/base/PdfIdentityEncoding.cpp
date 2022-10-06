@@ -9,8 +9,6 @@
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfIdentityEncoding.h"
 
-#include <stdexcept>
-
 #include <utfcpp/utf8.h>
 
 #include "PdfDictionary.h"

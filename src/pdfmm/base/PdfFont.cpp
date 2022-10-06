@@ -373,6 +373,7 @@ double PdfFont::GetDefaultCharWidth(const PdfTextState& state, bool ignoreCharSp
 
 vector<PdfSplittedString> PdfFont::SplitByWhiteSpaces(const PdfString& str) const
 {
+    (void)str;
     // TODO: retrieve space character codes with m_Encoding->GetToUnicodeMapSafe().TryGetCharCode(codePoint, codeUnit),
     // then iterate char codes and return splitted strings
     PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);

@@ -9,6 +9,8 @@
 #define PDFMM_BASE_H
 
 #include "base/PdfDeclarations.h"
+#include "base/PdfError.h"
+#include "base/PdfCommon.h"
 #include "base/PdfMath.h"
 #include "base/PdfOperatorUtils.h"
 #include "base/PdfArray.h"
@@ -28,7 +30,6 @@
 #include "base/PdfIdentityEncoding.h"
 #include "base/PdfPredefinedEncoding.h"
 #include "base/PdfEncrypt.h"
-#include "base/PdfError.h"
 #include "base/PdfExtension.h"
 #include "base/PdfStreamedObjectStream.h"
 #include "base/PdfFilter.h"

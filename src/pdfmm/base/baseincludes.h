@@ -13,6 +13,7 @@
 #include <queue>
 #include <functional>
 #include <ios>
+#include <exception>
 
 // Include some common headers
 

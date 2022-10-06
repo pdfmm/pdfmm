@@ -31,6 +31,7 @@
 #include "PdfPage.h"
 #include "PdfPageCollection.h"
 #include "PdfStreamDevice.h"
+#include "PdfCommon.h"
 
 using namespace std;
 using namespace mm;
@@ -101,7 +102,7 @@ void PdfMemDocument::initFromParser(PdfParser& parser)
     this->SetTrailer(std::move(trailer)); // Set immediately as trailer
                                 // so that trailer has an owner
 
-    if (PdfError::IsLoggingSeverityEnabled(PdfLogSeverity::Debug))
+    if (PdfCommon::IsLoggingSeverityEnabled(PdfLogSeverity::Debug))
     {
         auto debug = GetTrailer().GetObject().GetVariant().ToString();
         debug.push_back('\n');
