@@ -75,6 +75,7 @@ struct EntryOptions
     bool IgnoreCase;
     bool TrimSpaces;
     bool TokenizeWords;
+    bool MatchWholeWord;
     bool RegexPattern;
 };
 
@@ -533,6 +534,7 @@ void addEntryChunk(vector<PdfTextEntry> &textEntries, StringChunkList &chunks, c
     string str = stream.take_str();
     if (pattern.length() != 0)
     {
+        bool match;
         if (options.RegexPattern)
         {
             auto flags = regex_constants::ECMAScript;
@@ -542,25 +544,30 @@ void addEntryChunk(vector<PdfTextEntry> &textEntries, StringChunkList &chunks, c
             // NOTE: regex_search returns true when a sub-part of the string
             // matches the regex
             regex pieces_regex((string)pattern, flags);
-            if (!std::regex_search(str, pieces_regex))
-            {
-                chunks.clear();
-                return;
-            }
+            match = std::regex_search(str, pieces_regex);
         }
         else
         {
-            size_t pos;
-            if (options.IgnoreCase)
-                pos = utls::ToLower(str).find(utls::ToLower(pattern));
-            else
-                pos = str.find(pattern);
-
-            if (pos == string::npos)
+            if (options.MatchWholeWord)
             {
-                chunks.clear();
-                return;
+                if (options.IgnoreCase)
+                    match = utls::ToLower(str) == utls::ToLower(pattern);
+                else
+                    match = str == pattern;
             }
+            else
+            {
+                if (options.IgnoreCase)
+                    match = utls::ToLower(str).find(utls::ToLower(pattern)) != string::npos;
+                else
+                    match = str.find(pattern) != string::npos;
+            }
+        }
+
+        if (!match)
+        {
+            chunks.clear();
+            return;
         }
     }
 
@@ -1085,6 +1092,7 @@ EntryOptions fromFlags(PdfTextExtractFlags flags)
 {
     EntryOptions ret;
     ret.IgnoreCase = (flags & PdfTextExtractFlags::IgnoreCase) != PdfTextExtractFlags::None;
+    ret.MatchWholeWord = (flags & PdfTextExtractFlags::MatchWholeWord) != PdfTextExtractFlags::None;
     ret.RegexPattern = (flags & PdfTextExtractFlags::RegexPattern) != PdfTextExtractFlags::None;
     ret.TokenizeWords = (flags & PdfTextExtractFlags::TokenizeWords) != PdfTextExtractFlags::None;
     ret.TrimSpaces = (flags & PdfTextExtractFlags::KeepWhiteTokens) == PdfTextExtractFlags::None || ret.TokenizeWords;

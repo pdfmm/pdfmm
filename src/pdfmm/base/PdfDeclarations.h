@@ -159,7 +159,8 @@ enum class PdfTextExtractFlags
     IgnoreCase = 1,
     KeepWhiteTokens = 2,
     TokenizeWords = 4,
-    RegexPattern = 8,
+    MatchWholeWord = 8,
+    RegexPattern = 16,
 };
 
 enum class PdfXObjectType
