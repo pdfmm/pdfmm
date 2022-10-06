@@ -75,6 +75,7 @@ struct EntryOptions
     bool IgnoreCase;
     bool TrimSpaces;
     bool TokenizeWords;
+    bool RegexPattern;
 };
 
 using StringChunk = list<StatefulString>;
@@ -158,8 +159,8 @@ static double getStringWidth(const string_view &str, const TextState &state);
 static void addEntry(vector<PdfTextEntry> &textEntries, StringChunkList &strings,
     const string_view &pattern, const EntryOptions &options, const nullable<PdfRect> &clipRect,
     int pageIndex, const Matrix* rotation);
-static void addEntry(vector<PdfTextEntry> &textEntries, StringChunkList &strings,
-    const string_view &pattern, bool ignoreCase, bool trimSpaces, const nullable<PdfRect> &clipRect,
+static void addEntryChunk(vector<PdfTextEntry> &textEntries, StringChunkList &strings,
+    const string_view &pattern, const EntryOptions& options, const nullable<PdfRect> &clipRect,
     int pageIndex, const Matrix* rotation);
 static void read(const PdfVariantStack& stack, double &tx, double &ty);
 static void read(const PdfVariantStack& stack, double &a, double &b, double &c, double &d, double &e, double &f);
@@ -464,21 +465,21 @@ void addEntry(vector<PdfTextEntry> &textEntries, StringChunkList &chunks, const 
 
         for (auto& batch : batches)
         {
-            addEntry(textEntries, *batch, pattern, options.IgnoreCase,
-                options.TrimSpaces, clipRect, pageIndex, rotation);
+            addEntryChunk(textEntries, *batch, pattern, options,
+                clipRect, pageIndex, rotation);
         }
     }
     else
     {
-        addEntry(textEntries, chunks, pattern, options.IgnoreCase,
-            options.TrimSpaces, clipRect, pageIndex, rotation);
+        addEntryChunk(textEntries, chunks, pattern, options,
+            clipRect, pageIndex, rotation);
     }
 }
 
-void addEntry(vector<PdfTextEntry> &textEntries, StringChunkList &chunks, const string_view &pattern,
-    bool ignoreCase, bool trimSpaces, const nullable<PdfRect> &clipRect, int pageIndex, const Matrix* rotation)
+void addEntryChunk(vector<PdfTextEntry> &textEntries, StringChunkList &chunks, const string_view &pattern,
+    const EntryOptions& options, const nullable<PdfRect> &clipRect, int pageIndex, const Matrix* rotation)
 {
-    if (trimSpaces)
+    if (options.TrimSpaces)
     {
         // Trim spaces at the begin of the string
         while (true)
@@ -532,17 +533,34 @@ void addEntry(vector<PdfTextEntry> &textEntries, StringChunkList &chunks, const 
     string str = stream.take_str();
     if (pattern.length() != 0)
     {
-        auto flags = regex_constants::ECMAScript;
-        if (ignoreCase)
-            flags |= regex_constants::icase;
-
-        // regex_search returns true when a sub-part of the string
-        // matches the regex
-        regex pieces_regex((string)pattern, flags);
-        if (!std::regex_search(str, pieces_regex))
+        if (options.RegexPattern)
         {
-            chunks.clear();
-            return;
+            auto flags = regex_constants::ECMAScript;
+            if (options.IgnoreCase)
+                flags |= regex_constants::icase;
+
+            // NOTE: regex_search returns true when a sub-part of the string
+            // matches the regex
+            regex pieces_regex((string)pattern, flags);
+            if (!std::regex_search(str, pieces_regex))
+            {
+                chunks.clear();
+                return;
+            }
+        }
+        else
+        {
+            size_t pos;
+            if (options.IgnoreCase)
+                pos = utls::ToLower(str).find(utls::ToLower(pattern));
+            else
+                pos = str.find(pattern);
+
+            if (pos == string::npos)
+            {
+                chunks.clear();
+                return;
+            }
         }
     }
 
@@ -1067,6 +1085,7 @@ EntryOptions fromFlags(PdfTextExtractFlags flags)
 {
     EntryOptions ret;
     ret.IgnoreCase = (flags & PdfTextExtractFlags::IgnoreCase) != PdfTextExtractFlags::None;
+    ret.RegexPattern = (flags & PdfTextExtractFlags::RegexPattern) != PdfTextExtractFlags::None;
     ret.TokenizeWords = (flags & PdfTextExtractFlags::TokenizeWords) != PdfTextExtractFlags::None;
     ret.TrimSpaces = (flags & PdfTextExtractFlags::KeepWhiteTokens) == PdfTextExtractFlags::None || ret.TokenizeWords;
     return ret;

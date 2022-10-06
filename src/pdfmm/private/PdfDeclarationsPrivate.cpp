@@ -576,6 +576,7 @@ void utls::FormatTo(string& str, double value, unsigned short precision)
     removeTrailingZeroes(str);
 }
 
+// NOTE: This is clearly limited, since it's supporting only ASCII
 string utls::ToLower(const string_view& str)
 {
     string ret = (string)str;
