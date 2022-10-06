@@ -86,7 +86,7 @@ void PdfError::PrintErrorMsg() const
     mm::LogMessage(PdfLogSeverity::Error, stream.str());
 }
 
-const char* PdfError::what() const
+const char* PdfError::what() const noexcept
 {
     return PdfError::ErrorName(m_error).data();
 }

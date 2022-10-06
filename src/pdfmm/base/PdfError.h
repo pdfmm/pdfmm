@@ -225,7 +225,7 @@ public:
     /** Obtain error description.
      *  \returns a C string describing the error.
      */
-    const char* what() const override;
+    const char* what() const noexcept override;
 
 public:
     /** Get the name for a certain error code.
