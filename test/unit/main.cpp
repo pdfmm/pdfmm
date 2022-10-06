@@ -22,6 +22,6 @@ int main(int argc, char* argv[])
         throw runtime_error("Missing Fonts directory");
 
     PdfFontManager::AddFontDirectory(fontPath.u8string());
-    PdfError::SetMaxLoggingSeverity(PdfLogSeverity::Warning);
+    PdfCommon::SetMaxLoggingSeverity(PdfLogSeverity::Warning);
     return Catch::Session().run(argc, argv);
 }
