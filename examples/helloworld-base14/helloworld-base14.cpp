@@ -238,7 +238,7 @@ void DemoBase14Fonts(PdfPainter& painter, PdfPage& page, PdfDocument& document, 
 
         painter.GetTextState().SetFont(font, 12.0);
 
-        width = font->GetStringWidth(text, painter.GetTextState());
+        width = font->GetStringLength(text, painter.GetTextState());
         height = font->GetMetrics().GetLineSpacing();
 
         std::cout << GetBase14FontName(i) << " Width = " << width << " Height = " << height << std::endl;
@@ -266,7 +266,7 @@ void DemoBase14Fonts(PdfPainter& painter, PdfPage& page, PdfDocument& document, 
         PdfFont* font = document.GetFontManager().GetFont("Helvetica", params);
         painter.GetTextState().SetFont(font, 12);
         height = font->GetMetrics().GetLineSpacing();
-        width = font->GetStringWidth(text, painter.GetTextState());
+        width = font->GetStringLength(text, painter.GetTextState());
 
         // draw red box
         DrawRedFrame(painter, x, y, width, height);
@@ -280,7 +280,7 @@ void DemoBase14Fonts(PdfPainter& painter, PdfPage& page, PdfDocument& document, 
             PdfFont* font2 = document.GetFontManager().GetFont("Arial", params);
             painter.GetTextState().SetFont(font2, 12);
             height = font2->GetMetrics().GetLineSpacing();
-            width = font2->GetStringWidth((string_view)text, painter.GetTextState());
+            width = font2->GetStringLength((string_view)text, painter.GetTextState());
 
             // draw red box
             DrawRedFrame(painter, x + 100, y, width, height);
