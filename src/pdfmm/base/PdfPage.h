@@ -32,8 +32,8 @@ struct PdfTextEntry final
     int Page;
     double X;
     double Y;
-    double RawX;
-    double RawY;
+    double Length;
+    nullable<PdfRect> BoundingBox;
 };
 
 struct PdfTextExtractParams

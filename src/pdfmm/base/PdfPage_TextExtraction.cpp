@@ -61,7 +61,7 @@ struct TextState
 class StatefulString
 {
 public:
-    StatefulString(const string_view &str, double length, const TextState &state);
+    StatefulString(const string_view &str, double lengthRaw, const TextState &state);
 public:
     bool BeginsWithWhiteSpace() const;
     bool EndsWithWhiteSpace() const;
@@ -71,6 +71,7 @@ public:
     const string String;
     const TextState State;
     Vector2 Pos;
+    const double LengthRaw;
     const double Length;
     const bool IsWhiteSpace;
 };
@@ -82,6 +83,8 @@ struct EntryOptions
     bool TokenizeWords;
     bool MatchWholeWord;
     bool RegexPattern;
+    bool ComputeBoundingBox;
+    bool RawCoordinates;
 };
 
 using StringChunk = list<StatefulString>;
@@ -168,6 +171,8 @@ static void addEntry(vector<PdfTextEntry> &textEntries, StringChunkList &strings
 static void addEntryChunk(vector<PdfTextEntry> &textEntries, StringChunkList &strings,
     const string_view &pattern, const EntryOptions& options, const nullable<PdfRect> &clipRect,
     int pageIndex, const Matrix* rotation);
+static void processChunks(StringChunkList& chunks, string& str, double& length);
+static void processChunks(StringChunkList& chunks, string& str, double& length, PdfRect& bbox);
 static void read(const PdfVariantStack& stack, double &tx, double &ty);
 static void read(const PdfVariantStack& stack, double &a, double &b, double &c, double &d, double &e, double &f);
 static EntryOptions fromFlags(PdfTextExtractFlags flags);
@@ -529,14 +534,20 @@ void addEntryChunk(vector<PdfTextEntry> &textEntries, StringChunkList &chunks, c
         return;
     }
 
-    outstringstream stream;
-    for (auto &chunk : chunks)
+    nullable<PdfRect> bbox;
+    string str;
+    double length;
+    if (options.ComputeBoundingBox)
     {
-        for (auto &str : *chunk)
-            stream << str.String;
+        PdfRect bbox_;
+        processChunks(chunks, str, length, bbox_);
+        bbox = bbox_;
+    }
+    else
+    {
+        processChunks(chunks, str, length);
     }
 
-    string str = stream.take_str();
     if (pattern.length() != 0)
     {
         bool match;
@@ -577,15 +588,17 @@ void addEntryChunk(vector<PdfTextEntry> &textEntries, StringChunkList &chunks, c
     }
 
     // Rotate to canonical frame
-    if (rotation == nullptr)
+    if (rotation == nullptr || options.RawCoordinates)
     {
-        textEntries.push_back({ str, pageIndex, firstStr.Pos.X, firstStr.Pos.Y, firstStr.Pos.X, firstStr.Pos.Y });
+        textEntries.push_back(PdfTextEntry{ str, pageIndex,
+            firstStr.Pos.X, firstStr.Pos.Y, length, bbox });
     }
     else
     {
         Vector2 rawp(firstStr.Pos.X, firstStr.Pos.Y);
         auto p_1 = rawp * (*rotation);
-        textEntries.push_back({ str, pageIndex, p_1.X, p_1.Y, firstStr.Pos.X, firstStr.Pos.Y });
+        textEntries.push_back(PdfTextEntry{ str, pageIndex,
+            p_1.X, p_1.Y, length, bbox });
     }
 
     chunks.clear();
@@ -627,9 +640,9 @@ bool decodeString(const PdfString &str, TextState &state, string &decoded, doubl
     return true;
 }
 
-StatefulString::StatefulString(const string_view &str, double length, const TextState &state)
+StatefulString::StatefulString(const string_view &str, double lengthRaw, const TextState &state)
     : String((string)str), State(state), Pos(state.T_rm.GetTranslationVector()),
-      Length(length), IsWhiteSpace(utls::IsStringEmptyOrWhiteSpace(str))
+      LengthRaw(lengthRaw), Length(), IsWhiteSpace(utls::IsStringEmptyOrWhiteSpace(str))
 {
     PDFMM_ASSERT(str.length() != 0);
 }
@@ -662,7 +675,7 @@ StatefulString StatefulString::GetTrimmedBegin() const
     }
 
     // After, rewrite the string without spaces
-    return StatefulString(str.substr(trimmedLen), Length - spacestrLength, state);
+    return StatefulString(str.substr(trimmedLen), LengthRaw - spacestrLength, state);
 }
 
 bool StatefulString::BeginsWithWhiteSpace() const
@@ -843,7 +856,7 @@ void ExtractionContext::PushString(const StatefulString &str, bool pushchunk)
     if (pushchunk)
         pushChunk();
 
-    States.Current->T_m.Apply<Tx>(str.Length);
+    States.Current->T_m.Apply<Tx>(str.LengthRaw);
     States.Current->ComputeDependentState();
     PrevChunkT_rm_Pos = States.Current->T_rm.GetTranslationVector();
 }
@@ -1113,5 +1126,32 @@ EntryOptions fromFlags(PdfTextExtractFlags flags)
     ret.RegexPattern = (flags & PdfTextExtractFlags::RegexPattern) != PdfTextExtractFlags::None;
     ret.TokenizeWords = (flags & PdfTextExtractFlags::TokenizeWords) != PdfTextExtractFlags::None;
     ret.TrimSpaces = (flags & PdfTextExtractFlags::KeepWhiteTokens) == PdfTextExtractFlags::None || ret.TokenizeWords;
+    ret.ComputeBoundingBox = (flags & PdfTextExtractFlags::ComputeBoundingBox) != PdfTextExtractFlags::None;
+    ret.RawCoordinates = (flags & PdfTextExtractFlags::RawCoordinates) != PdfTextExtractFlags::None;
     return ret;
 }
+
+void processChunks(StringChunkList& chunks, string& dest, double& length)
+{
+    // TODO bbox/length
+    length = 0;
+    dest.clear();
+    for (auto& chunk : chunks)
+    {
+        for (auto& str : *chunk)
+            dest.append(str.String.data(), str.String.length());
+    }
+}
+
+void processChunks(StringChunkList& chunks, string& dest, double& length, PdfRect& bbox)
+{
+    // TODO bbox/length
+    length = 0;
+    dest.clear();
+    for (auto& chunk : chunks)
+    {
+        for (auto& str : *chunk)
+            dest.append(str.String.data(), str.String.length());
+    }
+}
+

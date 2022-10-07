@@ -161,6 +161,8 @@ enum class PdfTextExtractFlags
     TokenizeWords = 4,
     MatchWholeWord = 8,
     RegexPattern = 16,
+    ComputeBoundingBox = 32,    ///< NOTE: Currently the bounding is inaccurate
+    RawCoordinates = 64,
 };
 
 enum class PdfXObjectType
