@@ -28,7 +28,9 @@ using namespace cmn;
 using namespace mm;
 
 constexpr double SAME_LINE_THRESHOLD = 0.01;
-constexpr double SPACE_SEPARATION_EPSILON = 0.0000001;
+constexpr double SEPARATION_EPSILON = 0.0000001;
+// Inferred empirically on Adobe Acrobat Pro
+constexpr unsigned HARD_SEPARATION_SPACING_MULTIPLIER = 6;
 #define ASSERT(condition, message, ...) if (!condition)\
     mm::LogMessage(PdfLogSeverity::Warning, message, ##__VA_ARGS__);
 
@@ -44,13 +46,16 @@ struct TextState
     Matrix T_lm;  // Current T_lm
     double T_l = 0;             // Leading text Tl
     PdfTextState PdfState;
-    double SpaceSize = 0;
-    void RecomputeT_rm();
+    Vector2 WordSpacingVectorRaw;
+    double WordSpacingLength = 0;
+    void ComputeDependentState();
+    void ComputeSpaceLength();
+    void ComputeT_rm();
 
-    double GetWordSpacingWidth() const;
-    double GetCharWidth(char32_t ch) const;
-    double GetStringWidth(const string_view& str) const;        // utf8 string
-    double GetStringWidth(const PdfString& encodedStr) const;   // pdf encoded
+    double GetWordSpacingLength() const;
+    double GetCharLength(char32_t ch) const;
+    double GetStringLength(const string_view& str) const;        // utf8 string
+    double GetStringLength(const PdfString& encodedStr) const;   // pdf encoded
 };
 
 class StatefulString
@@ -156,7 +161,7 @@ static void splitChunkBySpaces(vector<StringChunkPtr> &splittedChunks, const Str
 static void splitStringBySpaces(vector<StatefulString> &separatedStrings, const StatefulString &string);
 static void trimSpacesBegin(StringChunk &chunk);
 static void trimSpacesEnd(StringChunk &chunk);
-static double getStringWidth(const string_view &str, const TextState &state);
+static double getStringLength(const string_view &str, const TextState &state);
 static void addEntry(vector<PdfTextEntry> &textEntries, StringChunkList &strings,
     const string_view &pattern, const EntryOptions &options, const nullable<PdfRect> &clipRect,
     int pageIndex, const Matrix* rotation);
@@ -618,7 +623,7 @@ bool decodeString(const PdfString &str, TextState &state, string &decoded, doubl
     }
 
     decoded = state.PdfState.Font->GetEncoding().ConvertToUtf8(str);
-    length = state.GetStringWidth(str);
+    length = state.GetStringLength(str);
     return true;
 }
 
@@ -646,18 +651,18 @@ StatefulString StatefulString::GetTrimmedBegin() const
 
     // First, advance the x position by finding the space string size with the current font
     auto state = State;
-    double spacestrWidth = 0;
+    double spacestrLength = 0;
     size_t trimmedLen = prev - str.begin();
     if (trimmedLen != 0)
     {
         auto spacestr = str.substr(0, trimmedLen);
-        spacestrWidth = getStringWidth(spacestr, state);
-        state.T_m.Apply<Tx>(spacestrWidth);
-        state.RecomputeT_rm();
+        spacestrLength = getStringLength(spacestr, state);
+        state.T_m.Apply<Tx>(spacestrLength);
+        state.ComputeDependentState();
     }
 
     // After, rewrite the string without spaces
-    return StatefulString(str.substr(trimmedLen), Length - spacestrWidth, state);
+    return StatefulString(str.substr(trimmedLen), Length - spacestrLength, state);
 }
 
 bool StatefulString::BeginsWithWhiteSpace() const
@@ -693,7 +698,7 @@ bool StatefulString::EndsWithWhiteSpace() const
 StatefulString StatefulString::GetTrimmedEnd() const
 {
     string trimmedStr = utls::TrimSpacesEnd(String);
-    return StatefulString(trimmedStr, getStringWidth(trimmedStr, State), State);
+    return StatefulString(trimmedStr, getStringLength(trimmedStr, State), State);
 }
 
 TextStateStack::TextStateStack()
@@ -757,7 +762,7 @@ void ExtractionContext::EndText()
     ASSERT(BlockOpen, "No text block open");
     States.Current->T_m = Matrix();
     States.Current->T_lm = Matrix();
-    States.Current->RecomputeT_rm();
+    States.Current->ComputeDependentState();
     BlockOpen = false;
 }
 
@@ -765,7 +770,7 @@ void ExtractionContext::Tf_Operator(const PdfName &fontname, double fontsize)
 {
     auto fontObj = getActualCanvas().GetFromResources("Font", fontname);
     auto &doc = m_page.GetDocument();
-    double spacesize = 0;
+    double spacingLengthRaw = 0;
     States.Current->PdfState.FontSize = fontsize;
     if (fontObj == nullptr || (States.Current->PdfState.Font = doc.GetFontManager().GetLoadedFont(*fontObj)) == nullptr)
     {
@@ -773,14 +778,14 @@ void ExtractionContext::Tf_Operator(const PdfName &fontname, double fontsize)
     }
     else
     {
-        spacesize = States.Current->GetWordSpacingWidth();
+        spacingLengthRaw = States.Current->GetWordSpacingLength();
     }
 
-    States.Current->SpaceSize = spacesize;
-    if (spacesize == 0)
+    States.Current->WordSpacingVectorRaw = Vector2(spacingLengthRaw, 0);
+    if (spacingLengthRaw == 0)
     {
         mm::LogMessage(PdfLogSeverity::Warning, "Unable to provide a space size, setting default font size");
-        States.Current->SpaceSize = fontsize;
+        States.Current->WordSpacingVectorRaw = Vector2(fontsize, 0);
     }
 }
 
@@ -790,14 +795,14 @@ void ExtractionContext::cm_Operator(double a, double b, double c, double d, doub
     // matrix (CTM) by concatenating the specified matrix
     Matrix cm = Matrix::FromCoefficients(a, b, c, d, e, f);
     States.Current->CTM = cm * States.Current->CTM;
-    States.Current->RecomputeT_rm();
+    States.Current->ComputeT_rm();
 }
 
 void ExtractionContext::Tm_Operator(double a, double b, double c, double d, double e, double f)
 {
     States.Current->T_lm = Matrix::FromCoefficients(a, b, c, d, e, f);
     States.Current->T_m = States.Current->T_lm;
-    States.Current->RecomputeT_rm();
+    States.Current->ComputeDependentState();
 }
 
 void ExtractionContext::TdTD_Operator(double tx, double ty)
@@ -805,20 +810,20 @@ void ExtractionContext::TdTD_Operator(double tx, double ty)
     // 5.5 Text-positioning operators, Td/TD
     States.Current->T_lm = States.Current->T_lm.Translate(Vector2(tx, ty));
     States.Current->T_m = States.Current->T_lm;
-    States.Current->RecomputeT_rm();
+    States.Current->ComputeDependentState();
 }
 
 void ExtractionContext::TStar_Operator()
 {
     States.Current->T_lm.Apply<Ty>(-States.Current->T_l);
     States.Current->T_m = States.Current->T_lm;
-    States.Current->RecomputeT_rm();
+    States.Current->ComputeDependentState();
 }
 
 void ExtractionContext::AdvanceSpace(double tx)
 {
     States.Current->T_m.Apply<Tx>(tx);
-    States.Current->RecomputeT_rm();
+    States.Current->ComputeDependentState();
 }
 
 void ExtractionContext::PushString(const StatefulString &str, bool pushchunk)
@@ -839,7 +844,7 @@ void ExtractionContext::PushString(const StatefulString &str, bool pushchunk)
         pushChunk();
 
     States.Current->T_m.Apply<Tx>(str.Length);
-    States.Current->RecomputeT_rm();
+    States.Current->ComputeDependentState();
     PrevChunkT_rm_Pos = States.Current->T_rm.GetTranslationVector();
 }
 
@@ -886,10 +891,12 @@ void ExtractionContext::tryAddEntry(const StatefulString& currStr)
             double distance;
             if (areChunksSpaced(distance))
             {
-                if (Options.TokenizeWords)
+                if (Options.TokenizeWords
+                    || distance + SEPARATION_EPSILON >
+                        States.Current->WordSpacingLength * HARD_SEPARATION_SPACING_MULTIPLIER)
                 {
-                    // Current entry is separated and
-                    // we tokenize words, not lines
+                    // Current entry is space separated and either we
+                    //  tokenize words, or it's an hard entry separation
                     TryPushChunk();
                     addEntry();
                 }
@@ -930,8 +937,7 @@ bool ExtractionContext::areChunksSpaced(double& distance)
     // 3) Handle the char spacing Tc state (is it actually needed?)
     // 4) Handle vertical scripts (HARD)
     distance = (States.Current->T_rm.GetTranslationVector() - PrevChunkT_rm_Pos).GetLength();
-    auto space1 = Vector2(States.Current->SpaceSize, 0) * States.Current->T_m.GetScalingRotation();
-    return distance + SPACE_SEPARATION_EPSILON >= space1.GetLength();
+    return distance + SEPARATION_EPSILON >= States.Current->WordSpacingLength;
 }
 
 // Separate chunk words by spaces
@@ -974,11 +980,11 @@ void splitStringBySpaces(vector<StatefulString> &separatedStrings, const Statefu
     auto state = str.State;
 
     auto pushString = [&]() {
-        double length = getStringWidth(separatedStr, state);
+        double length = getStringLength(separatedStr, state);
         separatedStrings.push_back({ separatedStr , length, state });
         separatedStr.clear();
         state.T_m.Apply<Tx>(length);
-        state.RecomputeT_rm();
+        state.ComputeDependentState();
     };
 
     bool isPreviousWhiteSpace = true;
@@ -1039,12 +1045,12 @@ void trimSpacesEnd(StringChunk &chunk)
     }
 }
 
-double getStringWidth(const string_view &str, const TextState &state)
+double getStringLength(const string_view &str, const TextState &state)
 {
     if (state.PdfState.Font == nullptr)
         return 0;
 
-    return state.GetStringWidth(str);
+    return state.GetStringLength(str);
 }
 
 bool isWhiteSpaceChunk(const StringChunk &chunk)
@@ -1063,29 +1069,40 @@ bool areEqual(double lhs, double rhs)
     return std::abs(lhs - rhs) < SAME_LINE_THRESHOLD;
 }
 
-void TextState::RecomputeT_rm()
+void TextState::ComputeDependentState()
+{
+    ComputeSpaceLength();
+    ComputeT_rm();
+}
+
+void TextState::ComputeSpaceLength()
+{
+    WordSpacingLength = (WordSpacingVectorRaw * T_m.GetScalingRotation()).GetLength();
+}
+
+void TextState::ComputeT_rm()
 {
     T_rm = T_m * CTM;
 }
 
-double TextState::GetWordSpacingWidth() const
+double TextState::GetWordSpacingLength() const
 {
-    return PdfState.Font->GetWordSpacingWidth(PdfState);
+    return PdfState.Font->GetWordSpacingLength(PdfState);
 }
 
-double TextState::GetCharWidth(char32_t ch) const
+double TextState::GetCharLength(char32_t ch) const
 {
-    return PdfState.Font->GetCharWidth(ch, PdfState);
+    return PdfState.Font->GetCharLength(ch, PdfState);
 }
 
-double TextState::GetStringWidth(const string_view& str) const
+double TextState::GetStringLength(const string_view& str) const
 {
-    return PdfState.Font->GetStringWidth(str, PdfState);
+    return PdfState.Font->GetStringLength(str, PdfState);
 }
 
-double TextState::GetStringWidth(const PdfString& encodedStr) const
+double TextState::GetStringLength(const PdfString& encodedStr) const
 {
-    return PdfState.Font->GetStringWidth(encodedStr, PdfState);
+    return PdfState.Font->GetStringLength(encodedStr, PdfState);
 }
 
 EntryOptions fromFlags(PdfTextExtractFlags flags)

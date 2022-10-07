@@ -36,13 +36,13 @@ using namespace std;
 using namespace cmn;
 using namespace mm;
 
-static double getCharWidth(double widthGlyph, const PdfTextState& state, bool ignoreCharSpacing);
+static double getCharLength(double glyphLength, const PdfTextState& state, bool ignoreCharSpacing);
 static string_view toString(PdfFontStretch stretch);
 
 PdfFont::PdfFont(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
         const PdfEncoding& encoding) :
     PdfDictionaryElement(doc, "Font"),
-    m_wordSpacingWidthRaw(-1),
+    m_WordSpacingLengthRaw(-1),
     m_Metrics(metrics)
 {
     if (metrics == nullptr)
@@ -54,7 +54,7 @@ PdfFont::PdfFont(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
 PdfFont::PdfFont(PdfObject& obj, const PdfFontMetricsConstPtr& metrics,
         const PdfEncoding& encoding) :
     PdfDictionaryElement(obj),
-    m_wordSpacingWidthRaw(-1),
+    m_WordSpacingLengthRaw(-1),
     m_Metrics(metrics)
 {
     if (metrics == nullptr)
@@ -282,82 +282,82 @@ bool PdfFont::TryGetGID(char32_t codePoint, PdfGlyphAccess access, unsigned& gid
     }
 }
 
-double PdfFont::GetStringWidth(const string_view& str, const PdfTextState& state) const
+double PdfFont::GetStringLength(const string_view& str, const PdfTextState& state) const
 {
     // Ignore failures
-    double width;
-    (void)TryGetStringWidth(str, state, width);
-    return width;
+    double length;
+    (void)TryGetStringLength(str, state, length);
+    return length;
 }
 
-bool PdfFont::TryGetStringWidth(const string_view& str, const PdfTextState& state, double& width) const
+bool PdfFont::TryGetStringLength(const string_view& str, const PdfTextState& state, double& length) const
 {
     vector<unsigned> gids;
     bool success = tryConvertToGIDs(str, PdfGlyphAccess::Width, gids);
-    width = 0;
+    length = 0;
     for (unsigned i = 0; i < gids.size(); i++)
-        width += getCharWidth(m_Metrics->GetGlyphWidth(gids[i]), state, false);
+        length += getCharLength(m_Metrics->GetGlyphWidth(gids[i]), state, false);
 
     return success;
 }
 
-double PdfFont::GetStringWidth(const PdfString& encodedStr, const PdfTextState& state) const
+double PdfFont::GetStringLength(const PdfString& encodedStr, const PdfTextState& state) const
 {
     // Ignore failures
-    double width;
-    (void)TryGetStringWidth(encodedStr, state, width);
-    return width;
+    double length;
+    (void)TryGetStringLength(encodedStr, state, length);
+    return length;
 }
 
-bool PdfFont::TryGetStringWidth(const PdfString& encodedStr, const PdfTextState& state, double& width) const
+bool PdfFont::TryGetStringLength(const PdfString& encodedStr, const PdfTextState& state, double& length) const
 {
     vector<PdfCID> cids;
     bool success = true;
     if (!m_Encoding->TryConvertToCIDs(encodedStr, cids))
         success = false;
 
-    width = getStringWidth(cids, state);
+    length = getStringLength(cids, state);
     return success;
 }
 
-double PdfFont::GetWordSpacingWidth(const PdfTextState& state) const
+double PdfFont::GetWordSpacingLength(const PdfTextState& state) const
 {
-    const_cast<PdfFont&>(*this).initWordSpacingWidth();
-    return getCharWidth(m_wordSpacingWidthRaw, state, false);
+    const_cast<PdfFont&>(*this).initWordSpacingLength();
+    return getCharLength(m_WordSpacingLengthRaw, state, false);
 }
 
-double PdfFont::GetCharWidth(char32_t codePoint, const PdfTextState& state, bool ignoreCharSpacing) const
+double PdfFont::GetCharLength(char32_t codePoint, const PdfTextState& state, bool ignoreCharSpacing) const
 {
     // Ignore failures
-    double width;
-    if (!TryGetCharWidth(codePoint, state, ignoreCharSpacing, width))
-        return GetDefaultCharWidth(state, ignoreCharSpacing);
+    double length;
+    if (!TryGetCharLength(codePoint, state, ignoreCharSpacing, length))
+        return GetDefaultCharLength(state, ignoreCharSpacing);
 
-    return width;
+    return length;
 }
 
-bool PdfFont::TryGetCharWidth(char32_t codePoint, const PdfTextState& state, double& width) const
+bool PdfFont::TryGetCharLength(char32_t codePoint, const PdfTextState& state, double& length) const
 {
-    return TryGetCharWidth(codePoint, state, false, width);
+    return TryGetCharLength(codePoint, state, false, length);
 }
 
-bool PdfFont::TryGetCharWidth(char32_t codePoint, const PdfTextState& state,
-    bool ignoreCharSpacing, double& width) const
+bool PdfFont::TryGetCharLength(char32_t codePoint, const PdfTextState& state,
+    bool ignoreCharSpacing, double& length) const
 {
     unsigned gid;
     if (TryGetGID(codePoint, PdfGlyphAccess::Width, gid))
     {
-        width = getCharWidth(m_Metrics->GetGlyphWidth(gid), state, ignoreCharSpacing);
+        length = getCharLength(m_Metrics->GetGlyphWidth(gid), state, ignoreCharSpacing);
         return true;
     }
     else
     {
-        width = getCharWidth(m_Metrics->GetDefaultWidth(), state, ignoreCharSpacing);
+        length = getCharLength(m_Metrics->GetDefaultWidth(), state, ignoreCharSpacing);
         return false;
     }
 }
 
-double PdfFont::GetDefaultCharWidth(const PdfTextState& state, bool ignoreCharSpacing) const
+double PdfFont::GetDefaultCharLength(const PdfTextState& state, bool ignoreCharSpacing) const
 {
     if (ignoreCharSpacing)
     {
@@ -379,7 +379,7 @@ vector<PdfSplittedString> PdfFont::SplitByWhiteSpaces(const PdfString& str) cons
     PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);
 }
 
-double PdfFont::GetCIDWidthRaw(unsigned cid) const
+double PdfFont::GetCIDLengthRaw(unsigned cid) const
 {
     unsigned gid;
     if (!TryMapCIDToGID(cid, PdfGlyphAccess::Width, gid))
@@ -537,38 +537,38 @@ PdfObject* PdfFont::embedFontFileData(PdfObject& descriptor, const PdfName& font
     return contents;
 }
 
-void PdfFont::initWordSpacingWidth()
+void PdfFont::initWordSpacingLength()
 {
-    if (m_wordSpacingWidthRaw >= 0)
+    if (m_WordSpacingLengthRaw >= 0)
         return;
 
     // TODO: Maybe try looking up other characters if U' ' is missing?
     // https://docs.microsoft.com/it-it/dotnet/api/system.char.iswhitespace
     unsigned gid;
     if (!TryGetGID(U' ', PdfGlyphAccess::Width, gid)
-        || !m_Metrics->TryGetGlyphWidth(gid, m_wordSpacingWidthRaw))
+        || !m_Metrics->TryGetGlyphWidth(gid, m_WordSpacingLengthRaw))
     {
-#if USE_EXPERIMENTAL_SPACING_WIDTH_INFERENCE
+#if USE_EXPERIMENTAL_SPACING_LENGTH_INFERENCE
         // See https://stackoverflow.com/a/73420359/213871
-        double widthsum = 0;
+        double lengthsum = 0;
         unsigned nonZeroCount = 0;
         for (unsigned i = 0, count = m_Metrics->GetGlyphCount(); i < count; i++)
         {
-            double width;
-            m_Metrics->TryGetGlyphWidth(i, width);
-            if (width > 0)
+            double length;
+            m_Metrics->TryGetGlyphWidth(i, length);
+            if (length > 0)
             {
-                widthsum += width;
+                lengthsum += length;
                 nonZeroCount++;
             }
         }
 
-        m_wordSpacingWidthRaw = widthsum / nonZeroCount / 7;
+        m_WordSpacingLengthRaw = lengthsum / nonZeroCount / 7;
 #else
         // pdf.js seems to just ship with an hardcoded word spacing
         // https://github.com/mozilla/pdf.js/blob/ab1297f0538c51e8e7ece037768e38a9991dcc37/src/core/evaluator.js#L2348
-        constexpr double MISSING_WORD_SPACING_WIDTH = 0.1;
-        m_wordSpacingWidthRaw = MISSING_WORD_SPACING_WIDTH;
+        constexpr double MISSING_WORD_SPACING_LENGTH = 0.1;
+        m_WordSpacingLengthRaw = MISSING_WORD_SPACING_LENGTH;
 #endif
     }
 }
@@ -578,13 +578,13 @@ void PdfFont::initImported()
     // By default do nothing
 }
 
-double PdfFont::getStringWidth(const vector<PdfCID>& cids, const PdfTextState& state) const
+double PdfFont::getStringLength(const vector<PdfCID>& cids, const PdfTextState& state) const
 {
-    double width = 0;
+    double length = 0;
     for (auto& cid : cids)
-        width += getCharWidth(GetCIDWidthRaw(cid.Id), state, false);
+        length += getCharLength(GetCIDLengthRaw(cid.Id), state, false);
 
-    return width;
+    return length;
 }
 
 double PdfFont::GetLineSpacing(const PdfTextState& state) const
@@ -978,12 +978,12 @@ bool PdfFont::IsObjectLoaded() const
 // 32 in a string when using a simple font or a composite font that defines code 32 as a
 // single - byte code.It does not apply to occurrences of the byte value 32 in multiplebyte
 // codes.
-double getCharWidth(double glyphWidth, const PdfTextState& state, bool ignoreCharSpacing)
+double getCharLength(double glyphLength, const PdfTextState& state, bool ignoreCharSpacing)
 {
     if (ignoreCharSpacing)
-        return glyphWidth * state.FontSize * state.FontScale;
+        return glyphLength * state.FontSize * state.FontScale;
     else
-        return (glyphWidth * state.FontSize + state.CharSpacing) * state.FontScale;
+        return (glyphLength * state.FontSize + state.CharSpacing) * state.FontScale;
 }
 
 string_view toString(PdfFontStretch stretch)

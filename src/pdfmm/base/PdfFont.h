@@ -154,13 +154,13 @@ public:
      *  \returns the width in PDF units
      *  \remarks Doesn't throw if string glyphs could not be partially or totally found
      */
-    double GetStringWidth(const std::string_view& str, const PdfTextState& state) const;
+    double GetStringLength(const std::string_view& str, const PdfTextState& state) const;
 
     /**
      * \param str a utf8 string of which the width should be calculated
      * \remarks Produces a partial result also in case of failures
      */
-    bool TryGetStringWidth(const std::string_view& str, const PdfTextState& state, double& width) const;
+    bool TryGetStringLength(const std::string_view& str, const PdfTextState& state, double& width) const;
 
     /** Retrieve the width of a given encoded PdfString in PDF units when
      *  drawn with the current font
@@ -168,28 +168,28 @@ public:
      *  \returns the width in PDF units
      *  \remarks Doesn't throw if string glyphs could not be partially or totally found
      */
-    double GetStringWidth(const PdfString& encodedStr, const PdfTextState& state) const;
+    double GetStringLength(const PdfString& encodedStr, const PdfTextState& state) const;
 
     /**
      * \remarks Produces a partial result also in case of failures
      */
-    bool TryGetStringWidth(const PdfString& encodedStr, const PdfTextState& state, double& width) const;
+    bool TryGetStringLength(const PdfString& encodedStr, const PdfTextState& state, double& length) const;
 
     /**
      *  \returns The spacing width
      */
-    double GetWordSpacingWidth(const PdfTextState& state) const;
+    double GetWordSpacingLength(const PdfTextState& state) const;
 
     /**
      *  \remarks Doesn't throw if characater glyph could not be found
      */
-    double GetCharWidth(char32_t codePoint, const PdfTextState& state, bool ignoreCharSpacing = false) const;
+    double GetCharLength(char32_t codePoint, const PdfTextState& state, bool ignoreCharSpacing = false) const;
 
-    bool TryGetCharWidth(char32_t codePoint, const PdfTextState& state, bool ignoreCharSpacing, double& width) const;
+    bool TryGetCharLength(char32_t codePoint, const PdfTextState& state, bool ignoreCharSpacing, double& width) const;
 
-    bool TryGetCharWidth(char32_t codePoint, const PdfTextState& state, double& width) const;
+    bool TryGetCharLength(char32_t codePoint, const PdfTextState& state, double& width) const;
 
-    double GetDefaultCharWidth(const PdfTextState& state, bool ignoreCharSpacing = false) const;
+    double GetDefaultCharLength(const PdfTextState& state, bool ignoreCharSpacing = false) const;
 
     /** Split the given string by white spaces
      * \remarks Also return separator chunks
@@ -345,7 +345,7 @@ protected:
     /**
      * Get the raw width of a CID identifier
      */
-    double GetCIDWidthRaw(unsigned cid) const;
+    double GetCIDLengthRaw(unsigned cid) const;
 
     void GetBoundingBox(PdfArray& arr) const;
 
@@ -405,14 +405,14 @@ private:
 
     void initBase(const PdfEncoding& encoding);
 
-    double getStringWidth(const std::vector<PdfCID>& cids, const PdfTextState& state) const;
+    double getStringLength(const std::vector<PdfCID>& cids, const PdfTextState& state) const;
 
     PdfObject* embedFontFileData(PdfObject& descriptor, const PdfName& fontFileName, const bufferview& data);
 
     static std::unique_ptr<PdfFont> createFontForType(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
         const PdfEncoding& encoding, PdfFontFileType type, bool preferNonCID);
 
-    void initWordSpacingWidth();
+    void initWordSpacingLength();
 
 private:
     std::string m_Name;
@@ -422,7 +422,7 @@ private:
     bool m_SubsettingEnabled;
     UsedGIDsMap m_SubsetGIDs;
     PdfCIDToGIDMapConstPtr m_cidToGidMap;
-    double m_wordSpacingWidthRaw;
+    double m_WordSpacingLengthRaw;
 
 protected:
     PdfFontMetricsConstPtr m_Metrics;

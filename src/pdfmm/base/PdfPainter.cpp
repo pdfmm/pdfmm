@@ -468,7 +468,7 @@ void PdfPainter::drawText(const std::string_view& str, double x, double y, bool 
         {
             this->DrawLine(x,
                 y + font.GetUnderlinePosition(m_TextState),
-                x + font.GetStringWidth(expStr, m_TextState),
+                x + font.GetStringLength(expStr, m_TextState),
                 y + font.GetUnderlinePosition(m_TextState));
         }
 
@@ -478,7 +478,7 @@ void PdfPainter::drawText(const std::string_view& str, double x, double y, bool 
         {
             this->DrawLine(x,
                 y + font.GetStrikeOutPosition(m_TextState),
-                x + font.GetStringWidth(expStr, m_TextState),
+                x + font.GetStringLength(expStr, m_TextState),
                 y + font.GetStrikeOutPosition(m_TextState));
         }
 
@@ -672,7 +672,7 @@ vector<string> PdfPainter::getMultiLineTextAsLines(const string_view& str, doubl
 
                 if (!startOfWord)
                 {
-                    curWidthOfLine = font.GetStringWidth(
+                    curWidthOfLine = font.GetStringLength(
                         { startOfCurrentWord, (size_t)(currentCharacter - startOfCurrentWord) },
                         m_TextState);
                 }
@@ -743,7 +743,7 @@ vector<string> PdfPainter::getMultiLineTextAsLines(const string_view& str, doubl
                     // -> Move it to the next one.
                     lines.push_back(string(lineBegin, (size_t)(startOfCurrentWord - lineBegin)));
                     lineBegin = startOfCurrentWord;
-                    curWidthOfLine = font.GetStringWidth({ startOfCurrentWord, (size_t)((currentCharacter - startOfCurrentWord) + 1) }, m_TextState);
+                    curWidthOfLine = font.GetStringLength({ startOfCurrentWord, (size_t)((currentCharacter - startOfCurrentWord) + 1) }, m_TextState);
                 }
             }
             ////else
@@ -783,10 +783,10 @@ void PdfPainter::drawTextAligned(const std::string_view& str, double x, double y
         case PdfHorizontalAlignment::Left:
             break;
         case PdfHorizontalAlignment::Center:
-            x += (width - m_TextState.Font->GetStringWidth(str, m_TextState)) / 2.0;
+            x += (width - m_TextState.Font->GetStringLength(str, m_TextState)) / 2.0;
             break;
         case PdfHorizontalAlignment::Right:
-            x += (width - m_TextState.Font->GetStringWidth(str, m_TextState));
+            x += (width - m_TextState.Font->GetStringLength(str, m_TextState));
             break;
     }
 
