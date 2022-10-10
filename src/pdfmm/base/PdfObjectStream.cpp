@@ -141,9 +141,9 @@ void PdfObjectStream::SetData(InputStream& stream, bool raw)
 {
     EnsureClosed();
     if (raw)
-        setData(stream, { DefaultFilter }, -1, true);
-    else
         setData(stream, { }, -1, true);
+    else
+        setData(stream, { DefaultFilter }, -1, true);
 }
 
 void PdfObjectStream::SetData(InputStream& stream, const PdfFilterList& filters)

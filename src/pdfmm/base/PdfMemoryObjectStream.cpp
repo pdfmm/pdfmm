@@ -62,19 +62,19 @@ void PdfMemoryObjectStream::Write(OutputStream& stream, const PdfStatefulEncrypt
     if (encrypt.HasEncrypt())
     {
         charbuff encrypted;
-        encrypt.EncryptTo(encrypted, { this->Get(), this->GetLength() });
+        encrypt.EncryptTo(encrypted, { m_buffer.data(), m_buffer.size() });
         stream.Write(encrypted);
     }
     else
     {
-        stream.Write(string_view(this->Get(), this->GetLength()));
+        stream.Write(string_view(m_buffer.data(), m_buffer.size()));
     }
 
     stream.Write("\nendstream\n");
     stream.Flush();
 }
 
-const char* PdfMemoryObjectStream::Get() const
+const char* PdfMemoryObjectStream::GetData() const
 {
     return m_buffer.data();
 }

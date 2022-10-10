@@ -337,7 +337,7 @@ void PdfImage::SetDataRaw(InputStream& stream, unsigned width, unsigned height,
     this->GetDictionary().AddKey("Width", PdfVariant(static_cast<int64_t>(width)));
     this->GetDictionary().AddKey("Height", PdfVariant(static_cast<int64_t>(height)));
     this->GetDictionary().AddKey("BitsPerComponent", PdfVariant(static_cast<int64_t>(bitsPerComponent)));
-    GetObject().GetOrCreateStream().SetData(stream);
+    GetObject().GetOrCreateStream().SetData(stream, true);
 }
 
 void PdfImage::LoadFromFile(const string_view& filename)

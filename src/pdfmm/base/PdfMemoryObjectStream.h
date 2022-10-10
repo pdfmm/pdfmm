@@ -52,7 +52,7 @@ public:
      *
      *  \returns a read-only handle to the streams data
      */
-    const char* Get() const;
+    const char* GetData() const;
 
     PdfMemoryObjectStream& operator=(const PdfMemoryObjectStream& rhs);
 
