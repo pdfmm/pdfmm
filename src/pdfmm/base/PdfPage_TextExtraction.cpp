@@ -1159,8 +1159,10 @@ void processChunks(StringChunkList& chunks, string& dest, double& length, PdfRec
     double ascent = 0;
     if (font != nullptr)
     {
-        descend = ((Vector2(0, font->GetMetrics().GetDescent()) * first.State.T_m) * first.State.CTM).GetLength();
-        ascent = ((Vector2(0, font->GetMetrics().GetAscent()) * first.State.T_m) * first.State.CTM).GetLength();
+        descend = (Vector2(0, font->GetMetrics().GetDescent() * first.State.PdfState.FontSize * first.State.PdfState.FontScale)
+            * first.State.T_rm.GetScalingRotation()).GetLength();
+        ascent = (Vector2(0, font->GetMetrics().GetAscent() * first.State.PdfState.FontSize * first.State.PdfState.FontScale)
+            * first.State.T_rm.GetScalingRotation()).GetLength();
     }
 
     bbox = PdfRect(first.Position.X, first.Position.Y - descend, length, descend + ascent);
