@@ -70,7 +70,7 @@ public:
 public:
     const string String;
     const TextState State;
-    Vector2 Pos;
+    Vector2 Position;
     const double LengthRaw;
     const double Length;
     const bool IsWhiteSpace;
@@ -528,7 +528,7 @@ void addEntryChunk(vector<PdfTextEntry> &textEntries, StringChunkList &chunks, c
     auto &firstChunk = *chunks.front();
     PDFMM_ASSERT(firstChunk.size() != 0);
     auto &firstStr = firstChunk.front();
-    if (clipRect.has_value() && !clipRect->Contains(firstStr.Pos.X, firstStr.Pos.Y))
+    if (clipRect.has_value() && !clipRect->Contains(firstStr.Position.X, firstStr.Position.Y))
     {
         chunks.clear();
         return;
@@ -591,11 +591,11 @@ void addEntryChunk(vector<PdfTextEntry> &textEntries, StringChunkList &chunks, c
     if (rotation == nullptr || options.RawCoordinates)
     {
         textEntries.push_back(PdfTextEntry{ str, pageIndex,
-            firstStr.Pos.X, firstStr.Pos.Y, length, bbox });
+            firstStr.Position.X, firstStr.Position.Y, length, bbox });
     }
     else
     {
-        Vector2 rawp(firstStr.Pos.X, firstStr.Pos.Y);
+        Vector2 rawp(firstStr.Position.X, firstStr.Position.Y);
         auto p_1 = rawp * (*rotation);
         textEntries.push_back(PdfTextEntry{ str, pageIndex,
             p_1.X, p_1.Y, length, bbox });
@@ -641,8 +641,8 @@ bool decodeString(const PdfString &str, TextState &state, string &decoded, doubl
 }
 
 StatefulString::StatefulString(const string_view &str, double lengthRaw, const TextState &state)
-    : String((string)str), State(state), Pos(state.T_rm.GetTranslationVector()),
-      LengthRaw(lengthRaw), Length(), IsWhiteSpace(utls::IsStringEmptyOrWhiteSpace(str))
+    : String((string)str), State(state), Position(state.T_rm.GetTranslationVector()),
+      LengthRaw(lengthRaw), Length((Vector2(lengthRaw, 0) * state.CTM).GetLength()), IsWhiteSpace(utls::IsStringEmptyOrWhiteSpace(str))
 {
     PDFMM_ASSERT(str.length() != 0);
 }
@@ -1133,25 +1133,35 @@ EntryOptions fromFlags(PdfTextExtractFlags flags)
 
 void processChunks(StringChunkList& chunks, string& dest, double& length)
 {
-    // TODO bbox/length
-    length = 0;
-    dest.clear();
     for (auto& chunk : chunks)
     {
         for (auto& str : *chunk)
             dest.append(str.String.data(), str.String.length());
     }
+    auto& first = chunks.front()->front();
+    auto& last = chunks.back()->back();
+    length = (last.Position - first.Position).GetLength() + last.Length;
 }
 
 void processChunks(StringChunkList& chunks, string& dest, double& length, PdfRect& bbox)
 {
-    // TODO bbox/length
-    length = 0;
-    dest.clear();
     for (auto& chunk : chunks)
     {
         for (auto& str : *chunk)
             dest.append(str.String.data(), str.String.length());
     }
-}
+    auto& first = chunks.front()->front();
+    auto& last = chunks.back()->back();
+    length = (last.Position - first.Position).GetLength() + last.Length;
+    auto font = first.State.PdfState.Font;
+    // NOTE: This is very inaccurate
+    double descend = 0;
+    double ascent = 0;
+    if (font != nullptr)
+    {
+        descend = ((Vector2(0, font->GetMetrics().GetDescent()) * first.State.T_m) * first.State.CTM).GetLength();
+        ascent = ((Vector2(0, font->GetMetrics().GetAscent()) * first.State.T_m) * first.State.CTM).GetLength();
+    }
 
+    bbox = PdfRect(first.Position.X, first.Position.Y - descend, length, descend + ascent);
+}
