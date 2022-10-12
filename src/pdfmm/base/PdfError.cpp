@@ -61,9 +61,9 @@ void PdfError::PrintErrorMsg() const
     auto name = PdfError::ErrorName(m_error);
 
     outstringstream stream;
-    stream << endl << endl << "pdfmm encountered an error. Error: " << (int)m_error << (name == nullptr ? "" : name);
+    stream << endl << endl << "pdfmm encountered an error. Error: " << (int)m_error << name;
 
-    if (msg != nullptr)
+    if (msg.length() != 0)
         stream << "\tError Description: " << msg;
 
     if (m_callStack.size() != 0)
