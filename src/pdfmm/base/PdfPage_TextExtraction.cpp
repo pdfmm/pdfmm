@@ -642,7 +642,7 @@ bool decodeString(const PdfString &str, TextState &state, string &decoded, doubl
 
 StatefulString::StatefulString(const string_view &str, double lengthRaw, const TextState &state)
     : String((string)str), State(state), Position(state.T_rm.GetTranslationVector()),
-      LengthRaw(lengthRaw), Length((Vector2(lengthRaw, 0) * state.CTM).GetLength()), IsWhiteSpace(utls::IsStringEmptyOrWhiteSpace(str))
+      LengthRaw(lengthRaw), Length((Vector2(lengthRaw, 0) * state.CTM.GetScalingRotation()).GetLength()), IsWhiteSpace(utls::IsStringEmptyOrWhiteSpace(str))
 {
     PDFMM_ASSERT(str.length() != 0);
 }
@@ -800,6 +800,7 @@ void ExtractionContext::Tf_Operator(const PdfName &fontname, double fontsize)
         mm::LogMessage(PdfLogSeverity::Warning, "Unable to provide a space size, setting default font size");
         States.Current->WordSpacingVectorRaw = Vector2(fontsize, 0);
     }
+    States.Current->ComputeSpaceLength();
 }
 
 void ExtractionContext::cm_Operator(double a, double b, double c, double d, double e, double f)
