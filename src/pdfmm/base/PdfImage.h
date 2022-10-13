@@ -16,6 +16,10 @@
 #include "PdfFilter.h"
 #include "PdfXObject.h"
 
+#ifdef PDFMM_HAVE_JPEG_LIB
+struct jpeg_decompress_struct;
+#endif // PDFMM_HAVE_JPEG_LIB
+
 namespace mm {
 
 class PdfArray;
@@ -47,9 +51,9 @@ public:
      */
     PdfImage(PdfDocument& doc, const std::string_view& prefix = { });
 
-    void DecodeTo(charbuff& buff, PdfPixelFormat format);
-    void DecodeTo(void* buffer, PdfPixelFormat format, int stride);
-    void DecodeTo(OutputStream& stream, PdfPixelFormat format, int stride = -1);
+    void DecodeTo(charbuff& buff, PdfPixelFormat format) const;
+    void DecodeTo(void* buffer, PdfPixelFormat format, int stride) const;
+    void DecodeTo(OutputStream& stream, PdfPixelFormat format, int stride = -1) const;
 
     charbuff GetDecodedCopy(PdfPixelFormat format);
 
@@ -154,6 +158,8 @@ public:
      */
     void LoadFromData(const unsigned char* data, size_t len);
 
+    void ExportTo(charbuff& buff, PdfExportFormat format, PdfArray args = {}) const;
+
 #ifdef PDFMM_HAVE_JPEG_LIB
     /** Load the image data from a JPEG file
      *  \param filename
@@ -220,7 +226,7 @@ private:
      */
     PdfImage(PdfObject& obj);
 
-    charbuff initScanLine(PdfPixelFormat format, int stride, charbuff& smask);
+    charbuff initScanLine(PdfPixelFormat format, int stride, charbuff& smask) const;
 
     unsigned getBufferSize(PdfPixelFormat format) const;
 
@@ -232,7 +238,8 @@ private:
     static PdfName colorSpaceToName(PdfColorSpace colorSpace);
 
 #ifdef PDFMM_HAVE_JPEG_LIB
-    void loadFromJpegHandle(FILE* stream, const std::string_view& filename);
+    void loadFromJpegInfo(jpeg_decompress_struct& info);
+    void exportToJpeg(charbuff& buff, const PdfArray& args) const;
 #endif // PDFMM_HAVE_JPEG_LIB
 #ifdef PDFMM_HAVE_TIFF_LIB
     void loadFromTiffHandle(void* handle);

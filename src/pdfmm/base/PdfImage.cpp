@@ -55,14 +55,14 @@ PdfImage::PdfImage(PdfDocument& doc, const string_view& prefix)
     this->SetColorSpace(PdfColorSpace::DeviceRGB);
 }
 
-void PdfImage::DecodeTo(charbuff& buffer, PdfPixelFormat format)
+void PdfImage::DecodeTo(charbuff& buffer, PdfPixelFormat format) const
 {
     buffer.resize(getBufferSize(format));
     SpanStreamDevice stream(buffer);
     DecodeTo(stream, format);
 }
 
-void PdfImage::DecodeTo(void* buffer, PdfPixelFormat format, int stride)
+void PdfImage::DecodeTo(void* buffer, PdfPixelFormat format, int stride) const
 {
     bufferspan span((char*)buffer, numeric_limits<size_t>::max());
     SpanStreamDevice stream(span);
@@ -70,7 +70,7 @@ void PdfImage::DecodeTo(void* buffer, PdfPixelFormat format, int stride)
 }
 
 // TODO: Improve performance and format support
-void PdfImage::DecodeTo(OutputStream& stream, PdfPixelFormat format, int stride)
+void PdfImage::DecodeTo(OutputStream& stream, PdfPixelFormat format, int stride) const
 {
     auto istream = GetObject().MustGetStream().GetInputStream();
     auto& mediaFilters = istream.GetMediaFilters();
@@ -113,60 +113,55 @@ void PdfImage::DecodeTo(OutputStream& stream, PdfPixelFormat format, int stride)
         {
             case PdfFilterType::DCTDecode:
             {
-                string error;
-
-                jpeg_decompress_struct jdecompress{ };
-                jpeg_error_mgr jerr{ };
+                jpeg_decompress_struct ctx;
 
                 // Setup variables for JPEGLib
-                jdecompress.out_color_space = format == PdfPixelFormat::Grayscale ? JCS_GRAYSCALE : JCS_RGB;
-                jdecompress.client_data = &error;
-                jdecompress.err = jpeg_std_error(&jerr);
-                jerr.error_exit = &JPegErrorExit;
-                jerr.emit_message = &JPegErrorOutput;
-
-                jpeg_create_decompress(&jdecompress);
-
-                if (error.length() != 0)
-                    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, error);
-
-                mm::jpeg_memory_src(&jdecompress, reinterpret_cast<JOCTET*>(buffer.data()), buffer.size());
-
-                if (jpeg_read_header(&jdecompress, TRUE) <= 0)
+                ctx.out_color_space = format == PdfPixelFormat::Grayscale ? JCS_GRAYSCALE : JCS_RGB;
+                JpegErrorHandler jerr;
+                try
                 {
-                    jpeg_destroy_decompress(&jdecompress);
-                    PDFMM_RAISE_ERROR(PdfErrorCode::UnexpectedEOF);
-                }
+                    INIT_JPEG_DECOMPRESS_CONTEXT(ctx, jerr);
 
-                jpeg_start_decompress(&jdecompress);
+                    mm::jpeg_memory_src(&ctx, reinterpret_cast<JOCTET*>(buffer.data()), buffer.size());
 
-                unsigned rowBytes = (unsigned)(jdecompress.output_width * jdecompress.output_components);
+                    if (jpeg_read_header(&ctx, TRUE) <= 0)
+                        PDFMM_RAISE_ERROR(PdfErrorCode::UnexpectedEOF);
 
-                // buffer will be deleted by jpeg_destroy_decompress
-                JSAMPARRAY jScanLine = (*jdecompress.mem->alloc_sarray)(reinterpret_cast<j_common_ptr>(&jdecompress), JPOOL_IMAGE, rowBytes, 1);
-                if (smaskData.size() == 0)
-                {
-                    for (unsigned i = 0; i < jdecompress.output_height; i++)
+                    jpeg_start_decompress(&ctx);
+
+                    unsigned rowBytes = (unsigned)(ctx.output_width * ctx.output_components);
+
+                    // buffer will be deleted by jpeg_destroy_decompress
+                    JSAMPARRAY jScanLine = (*ctx.mem->alloc_sarray)(reinterpret_cast<j_common_ptr>(&ctx), JPOOL_IMAGE, rowBytes, 1);
+                    if (smaskData.size() == 0)
                     {
-                        jpeg_read_scanlines(&jdecompress, jScanLine, 1);
-                        fetchScanLine((unsigned char*)scanLine.data(),
-                            format, m_Width, jScanLine[0]);
-                        stream.Write(scanLine.data(), scanLine.size());
+                        for (unsigned i = 0; i < ctx.output_height; i++)
+                        {
+                            jpeg_read_scanlines(&ctx, jScanLine, 1);
+                            fetchScanLine((unsigned char*)scanLine.data(),
+                                format, m_Width, jScanLine[0]);
+                            stream.Write(scanLine.data(), scanLine.size());
+                        }
+                    }
+                    else
+                    {
+                        for (unsigned i = 0; i < ctx.output_height; i++)
+                        {
+                            jpeg_read_scanlines(&ctx, jScanLine, 1);
+                            fetchScanLine((unsigned char*)scanLine.data(), format,
+                                m_Width, jScanLine[0], (const unsigned char*)smaskData.data()
+                                + i * ctx.output_width);
+                            stream.Write(scanLine.data(), scanLine.size());
+                        }
                     }
                 }
-                else
+                catch (...)
                 {
-                    for (unsigned i = 0; i < jdecompress.output_height; i++)
-                    {
-                        jpeg_read_scanlines(&jdecompress, jScanLine, 1);
-                        fetchScanLine((unsigned char*)scanLine.data(), format,
-                            m_Width, jScanLine[0], (const unsigned char*)smaskData.data()
-                                + i * jdecompress.output_width);
-                        stream.Write(scanLine.data(), scanLine.size());
-                    }
+                    jpeg_destroy_decompress(&ctx);
+                    throw;
                 }
 
-                jpeg_destroy_decompress(&jdecompress);
+                jpeg_destroy_decompress(&ctx);
                 break;
             }
             case PdfFilterType::CCITTFaxDecode:
@@ -192,7 +187,7 @@ PdfImage::PdfImage(PdfObject& obj)
     m_Height = static_cast<unsigned>(this->GetDictionary().MustFindKey("Height").GetNumber());
 }
 
-charbuff PdfImage::initScanLine(PdfPixelFormat format, int stride, charbuff& smaskData)
+charbuff PdfImage::initScanLine(PdfPixelFormat format, int stride, charbuff& smaskData) const
 {
     unsigned defaultStride;
     switch (format)
@@ -203,12 +198,18 @@ charbuff PdfImage::initScanLine(PdfPixelFormat format, int stride, charbuff& sma
             auto smaskObj = GetObject().GetDictionary().FindKey("SMask");
             if (smaskObj != nullptr)
             {
-                unique_ptr<PdfImage> smask;
+                unique_ptr<const PdfImage> smask;
                 if (PdfXObject::TryCreateFromObject(*smaskObj, smask))
                     smask->GetObject().MustGetStream().CopyTo(smaskData);
             }
 
             defaultStride = 4 * m_Width;
+            break;
+        }
+        case PdfPixelFormat::RGB24:
+        case PdfPixelFormat::BGR24:
+        {
+            defaultStride = 4 * ((3 * m_Width + 3) / 4);
             break;
         }
         case PdfPixelFormat::Grayscale:
@@ -240,6 +241,9 @@ unsigned PdfImage::getBufferSize(PdfPixelFormat format) const
         case PdfPixelFormat::RGBA:
         case PdfPixelFormat::BGRA:
             return 4 * m_Width * m_Height;
+        case PdfPixelFormat::RGB24:
+        case PdfPixelFormat::BGR24:
+            return 4 * ((3 * m_Width + 3) / 4) * m_Height;
         case PdfPixelFormat::Grayscale:
             return m_Width * m_Height;
         default:
@@ -421,116 +425,144 @@ void PdfImage::LoadFromData(const unsigned char* data, size_t len)
     PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, "Unknown magic number");
 }
 
+void PdfImage::ExportTo(charbuff& buff, PdfExportFormat format, PdfArray args) const
+{
+    buff.clear();
+    switch (format)
+    {
+        case PdfExportFormat::Png:
+            PDFMM_RAISE_ERROR(PdfErrorCode::NotImplemented);
+        case PdfExportFormat::Jpeg:
+#ifdef PDFMM_HAVE_JPEG_LIB
+            exportToJpeg(buff, args);
+#else
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "Missing jpeg support");
+#endif
+            break;
+        default:
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+    }
+}
+
 #ifdef PDFMM_HAVE_JPEG_LIB
 
 void PdfImage::LoadFromJpeg(const string_view& filename)
 {
     FILE* file = utls::fopen(filename, "rb");
+    jpeg_decompress_struct ctx;
+    JpegErrorHandler jerr;
     try
     {
-        loadFromJpegHandle(file, filename);
+        INIT_JPEG_DECOMPRESS_CONTEXT(ctx, jerr);
+        jpeg_stdio_src(&ctx, file);
+
+        loadFromJpegInfo(ctx);
+
+        // Do not apply any filters as JPEG data is already DCT encoded.
+        FileStreamDevice input(filename);
+        this->SetDataRaw(input, ctx.output_width, ctx.output_height, 8);
     }
     catch (...)
     {
+        jpeg_destroy_decompress(&ctx);
         fclose(file);
         throw;
     }
 
+    jpeg_destroy_decompress(&ctx);
     fclose(file);
 }
 
-void PdfImage::loadFromJpegHandle(FILE* inStream, const string_view& filename)
+void PdfImage::exportToJpeg(charbuff& destBuff, const PdfArray& args) const
 {
-    struct jpeg_decompress_struct cinfo;
-    struct jpeg_error_mgr jerr;
-
-    cinfo.err = jpeg_std_error(&jerr);
-    jerr.error_exit = &JPegErrorExit;
-    jerr.emit_message = &JPegErrorOutput;
-
-    jpeg_create_decompress(&cinfo);
-
-    jpeg_stdio_src(&cinfo, inStream);
-
-    if (jpeg_read_header(&cinfo, TRUE) <= 0)
+    int jquality = 85;
+    double quality;
+    if (args.GetSize() >= 1 && args[0].TryGetReal(quality))
     {
-        jpeg_destroy_decompress(&cinfo);
-        PDFMM_RAISE_ERROR(PdfErrorCode::UnexpectedEOF);
+        // Assume first argument is jpeg quality in range [0, 1]
+        jquality = (int)(std::clamp(quality, 0.0, 1.0) * 100);
     }
 
-    jpeg_start_decompress(&cinfo);
+    charbuff inputBuff;
+    DecodeTo(inputBuff, PdfPixelFormat::RGB24);
 
-    // I am not sure whether this switch is fully correct.
-    // it should handle all cases though.
-    // Index jpeg files might look strange as jpeglib+
-    // returns 1 for them.
-    switch (cinfo.output_components)
+    jpeg_compress_struct ctx;
+    JpegErrorHandler jerr;
+
+    try
     {
-        case 3:
-        {
-            this->SetColorSpace(PdfColorSpace::DeviceRGB);
-            break;
-        }
-        case 4:
-        {
-            this->SetColorSpace(PdfColorSpace::DeviceCMYK);
-            // The jpeg-doc ist not specific in this point, but cmyk's seem to be stored
-            // in a inverted fashion. Fix by attaching a decode array
-            PdfArray decode;
-            decode.Add(1.0);
-            decode.Add(0.0);
-            decode.Add(1.0);
-            decode.Add(0.0);
-            decode.Add(1.0);
-            decode.Add(0.0);
-            decode.Add(1.0);
-            decode.Add(0.0);
+        INIT_JPEG_COMPRESS_CONTEXT(ctx, jerr);
 
-            this->GetDictionary().AddKey("Decode", decode);
-            break;
-        }
-        default:
+        JpegBufferDestination jdest;
+        mm::SetJpegBufferDestination(ctx, destBuff, jdest);
+
+        ctx.image_width = m_Width;
+        ctx.image_height = m_Height;
+        ctx.input_components = 3;
+        ctx.in_color_space = JCS_RGB;
+
+        jpeg_set_defaults(&ctx);
+
+        jpeg_set_quality(&ctx, jquality, TRUE);
+        jpeg_start_compress(&ctx, TRUE);
+
+        unsigned rowsize = 4 * ((m_Width * 3 + 3) / 4);
+        JSAMPROW row_pointer[1];
+        for (unsigned i = 0; i < m_Height; i++)
         {
-            this->SetColorSpace(PdfColorSpace::DeviceGray);
-            break;
+            row_pointer[0] = (unsigned char*)(inputBuff.data() + i * rowsize);
+            (void)jpeg_write_scanlines(&ctx, row_pointer, 1);
         }
+
+        jpeg_finish_compress(&ctx);
+    }
+    catch (...)
+    {
+        jpeg_destroy_compress(&ctx);
+        throw;
     }
 
-    // Set the filters key to DCTDecode
-    this->GetObject().GetDictionary().AddKey(PdfName::KeyFilter, PdfName("DCTDecode"));
-
-    // Do not apply any filters as JPEG data is already DCT encoded.
-    FileStreamDevice input(filename);
-    this->SetDataRaw(input, cinfo.output_width, cinfo.output_height, 8);
-    jpeg_destroy_decompress(&cinfo);
+    jpeg_destroy_compress(&ctx);
 }
 
 void PdfImage::LoadFromJpegData(const unsigned char* data, size_t len)
 {
-    struct jpeg_decompress_struct cinfo;
-    struct jpeg_error_mgr jerr;
+    jpeg_decompress_struct ctx;
+    JpegErrorHandler jerr;
 
-    cinfo.err = jpeg_std_error(&jerr);
-    jerr.error_exit = &JPegErrorExit;
-    jerr.emit_message = &JPegErrorOutput;
-
-    jpeg_create_decompress(&cinfo);
-
-    jpeg_memory_src(&cinfo, data, len);
-
-    if (jpeg_read_header(&cinfo, TRUE) <= 0)
+    try
     {
-        jpeg_destroy_decompress(&cinfo);
+        INIT_JPEG_DECOMPRESS_CONTEXT(ctx, jerr);
+        jpeg_memory_src(&ctx, data, len);
+
+        loadFromJpegInfo(ctx);
+
+        SpanStreamDevice input((const char*)data, len);
+        this->SetDataRaw(input, ctx.output_width, ctx.output_height, 8);
+    }
+    catch (...)
+    {
+        jpeg_destroy_decompress(&ctx);
+        throw;
+    }
+    jpeg_destroy_decompress(&ctx);
+}
+
+void PdfImage::loadFromJpegInfo(jpeg_decompress_struct& ctx)
+{
+    if (jpeg_read_header(&ctx, TRUE) <= 0)
+    {
+        jpeg_destroy_decompress(&ctx);
         PDFMM_RAISE_ERROR(PdfErrorCode::UnexpectedEOF);
     }
 
-    jpeg_start_decompress(&cinfo);
+    jpeg_start_decompress(&ctx);
 
     // I am not sure whether this switch is fully correct.
     // it should handle all cases though.
     // Index jpeg files might look strange as jpeglib+
     // returns 1 for them.
-    switch (cinfo.output_components)
+    switch (ctx.output_components)
     {
         case 3:
         {
@@ -553,20 +585,17 @@ void PdfImage::LoadFromJpegData(const unsigned char* data, size_t len)
             decode.Add(0.0);
 
             this->GetDictionary().AddKey("Decode", decode);
+            break;
         }
-        break;
         default:
+        {
             this->SetColorSpace(PdfColorSpace::DeviceGray);
             break;
+        }
     }
 
     // Set the filters key to DCTDecode
     this->GetDictionary().AddKey(PdfName::KeyFilter, PdfName("DCTDecode"));
-
-    SpanStreamDevice input((const char*)data, len);
-    this->SetDataRaw(input, cinfo.output_width, cinfo.output_height, 8);
-
-    jpeg_destroy_decompress(&cinfo);
 }
 
 #endif // PDFMM_HAVE_JPEG_LIB
@@ -1250,6 +1279,17 @@ void fetchScanLine(unsigned char* dstScanLine, PdfPixelFormat format, unsigned w
 {
     switch (format)
     {
+        case PdfPixelFormat::RGBA:
+        {
+            for (unsigned i = 0; i < width; i++)
+            {
+                dstScanLine[i * 4 + 0] = srcScanLine[i * 3 + 0];
+                dstScanLine[i * 4 + 1] = srcScanLine[i * 3 + 1];
+                dstScanLine[i * 4 + 2] = srcScanLine[i * 3 + 2];
+                dstScanLine[i * 4 + 3] = 255;
+            }
+            break;
+        }
         case PdfPixelFormat::BGRA:
         {
             for (unsigned i = 0; i < width; i++)
@@ -1261,14 +1301,23 @@ void fetchScanLine(unsigned char* dstScanLine, PdfPixelFormat format, unsigned w
             }
             break;
         }
-        case PdfPixelFormat::RGBA:
+        case PdfPixelFormat::RGB24:
         {
             for (unsigned i = 0; i < width; i++)
             {
-                dstScanLine[i * 4 + 0] = srcScanLine[i * 3 + 0];
-                dstScanLine[i * 4 + 1] = srcScanLine[i * 3 + 1];
-                dstScanLine[i * 4 + 2] = srcScanLine[i * 3 + 2];
-                dstScanLine[i * 4 + 3] = 255;
+                dstScanLine[i * 3 + 0] = srcScanLine[i * 3 + 0];
+                dstScanLine[i * 3 + 1] = srcScanLine[i * 3 + 1];
+                dstScanLine[i * 3 + 2] = srcScanLine[i * 3 + 2];
+            }
+            break;
+        }
+        case PdfPixelFormat::BGR24:
+        {
+            for (unsigned i = 0; i < width; i++)
+            {
+                dstScanLine[i * 3 + 0] = srcScanLine[i * 3 + 2];
+                dstScanLine[i * 3 + 1] = srcScanLine[i * 3 + 1];
+                dstScanLine[i * 3 + 2] = srcScanLine[i * 3 + 0];
             }
             break;
         }
@@ -1282,6 +1331,17 @@ void fetchScanLine(unsigned char* dstScanLine, PdfPixelFormat format, unsigned w
 {
     switch (format)
     {
+        case PdfPixelFormat::RGBA:
+        {
+            for (unsigned i = 0; i < width; i++)
+            {
+                dstScanLine[i * 4 + 0] = srcScanLine[i * 3 + 0];
+                dstScanLine[i * 4 + 1] = srcScanLine[i * 3 + 1];
+                dstScanLine[i * 4 + 2] = srcScanLine[i * 3 + 2];
+                dstScanLine[i * 4 + 3] = srcAphaLine[i];
+            }
+            break;
+        }
         case PdfPixelFormat::BGRA:
         {
             for (unsigned i = 0; i < width; i++)
@@ -1293,14 +1353,23 @@ void fetchScanLine(unsigned char* dstScanLine, PdfPixelFormat format, unsigned w
             }
             break;
         }
-        case PdfPixelFormat::RGBA:
+        case PdfPixelFormat::RGB24:
         {
             for (unsigned i = 0; i < width; i++)
             {
-                dstScanLine[i * 4 + 0] = srcScanLine[i * 3 + 0];
-                dstScanLine[i * 4 + 1] = srcScanLine[i * 3 + 1];
-                dstScanLine[i * 4 + 2] = srcScanLine[i * 3 + 2];
-                dstScanLine[i * 4 + 3] = srcAphaLine[i];
+                dstScanLine[i * 3 + 0] = srcScanLine[i * 3 + 0];
+                dstScanLine[i * 3 + 1] = srcScanLine[i * 3 + 1];
+                dstScanLine[i * 3 + 2] = srcScanLine[i * 3 + 2];
+            }
+            break;
+        }
+        case PdfPixelFormat::BGR24:
+        {
+            for (unsigned i = 0; i < width; i++)
+            {
+                dstScanLine[i * 3 + 0] = srcScanLine[i * 3 + 2];
+                dstScanLine[i * 3 + 1] = srcScanLine[i * 3 + 1];
+                dstScanLine[i * 3 + 2] = srcScanLine[i * 3 + 0];
             }
             break;
         }

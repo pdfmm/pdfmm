@@ -106,7 +106,7 @@ public:
 
     PdfObjectOutputStream GetOutputStream(const PdfFilterList& filters, bool append = false);
 
-    PdfObjectInputStream GetInputStream(bool raw = false);
+    PdfObjectInputStream GetInputStream(bool raw = false) const;
 
     /** Set the data contents copying from a buffer
      *  All data will be Flate-encoded.
@@ -197,7 +197,7 @@ protected:
 
     virtual std::unique_ptr<OutputStream> getOutputStream() = 0;
 
-    void EnsureClosed();
+    void EnsureClosed() const;
 
     PdfObject& GetParent() { return *m_Parent; }
 

@@ -46,10 +46,10 @@ PdfObjectOutputStream PdfObjectStream::GetOutputStream(const PdfFilterList& filt
     return PdfObjectOutputStream(*this, PdfFilterList(filters), append);
 }
 
-PdfObjectInputStream PdfObjectStream::GetInputStream(bool raw)
+PdfObjectInputStream PdfObjectStream::GetInputStream(bool raw) const
 {
     EnsureClosed();
-    return PdfObjectInputStream(*this, raw);
+    return PdfObjectInputStream(const_cast<PdfObjectStream&>(*this), raw);
 }
 
 void PdfObjectStream::CopyTo(charbuff& buffer, bool raw) const
@@ -195,7 +195,7 @@ void PdfObjectStream::InitData(InputStream& stream, size_t size)
     stream.CopyTo(output, size);
 }
 
-void PdfObjectStream::EnsureClosed()
+void PdfObjectStream::EnsureClosed() const
 {
     PDFMM_RAISE_LOGIC_IF(m_locked, "The stream should have no read/write operations in progress");
 }

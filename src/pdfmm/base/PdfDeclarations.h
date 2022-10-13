@@ -194,6 +194,12 @@ enum class PdfFilterType
     Crypt
 };
 
+enum class PdfExportFormat
+{
+    Png = 1,        ///< NOTE: Not yet supported
+    Jpeg = 2,
+};
+
 /**
  * Enum for the font descriptor flags
  *
@@ -324,6 +330,8 @@ enum class PdfPixelFormat
     Unknown = 0,
     RGBA,
     BGRA,
+    RGB24,
+    BGR24,
     Grayscale,
 };
 

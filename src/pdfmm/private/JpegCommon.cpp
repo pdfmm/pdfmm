@@ -1,3 +1,4 @@
+#include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "JpegCommon.h"
 #include <string>
 
@@ -5,27 +6,89 @@ extern "C" {
 #include <jerror.h>
 }
 
+using namespace mm;
 using namespace std;
 
-/*
- * Handlers for errors inside the JPeg library
- */
+constexpr unsigned BLOCK_SIZE = 4096;
+
+static void setErrorHandler(jpeg_common_struct& ctx, JpegErrorHandler& handler);
+
+// Handlers for JPeg library
 extern "C"
 {
-    void JPegErrorExit(j_common_ptr cinfo)
+    void cust_error_exit(j_common_ptr ctx)
     {
-        auto& error = *reinterpret_cast<string*>(cinfo->client_data);
-        error.resize(JMSG_LENGTH_MAX);
-        /* Create the message */
-        (*cinfo->err->format_message) (cinfo, error.data());
-
-        jpeg_destroy(cinfo);
+        auto myerr = (JpegErrorHandler*)ctx->err;
+        longjmp(myerr->setjmp_buffer, 1);
     }
 
-    void JPegErrorOutput(j_common_ptr, int)
+    void cust_emit_message(j_common_ptr, int)
     {
+        // Do nothing
+    }
+
+    void buff_dest_init(j_compress_ptr ctx)
+    {
+        auto& dest = *(JpegBufferDestination*)(ctx->dest);
+
+        // Some room in the buffer must be available at this point
+        dest.buff->resize(BLOCK_SIZE);
+
+        // Point to allocated data
+        ctx->dest->next_output_byte = (unsigned char*)dest.buff->data();
+        ctx->dest->free_in_buffer = BLOCK_SIZE;
+    }
+
+    boolean buff_dest_empty_buffer(j_compress_ptr ctx)
+    {
+        auto& dest = *(JpegBufferDestination*)(ctx->dest);
+
+        size_t oldsize = dest.buff->size();
+        dest.buff->resize(oldsize + BLOCK_SIZE);
+
+        // Point to newly allocated data
+        ctx->dest->next_output_byte = (unsigned char*)(dest.buff->data() + oldsize);
+        ctx->dest->free_in_buffer = dest.buff->size() - oldsize;
+        return TRUE;
+    }
+
+    void buff_dest_term(j_compress_ptr ctx)
+    {
+        auto& dest = *(JpegBufferDestination*)(ctx->dest);
+
+        // Resize vector to number of bytes actually used
+        dest.buff->resize(dest.buff->size() - ctx->dest->free_in_buffer);
     }
 };
+
+void mm::InitJpegDecompressContext(jpeg_decompress_struct& ctx, JpegErrorHandler& handler)
+{
+    setErrorHandler((jpeg_common_struct&)ctx, handler);
+    jpeg_create_decompress(&ctx);
+}
+
+void mm::InitJpegCompressContext(jpeg_compress_struct& ctx, JpegErrorHandler& handler)
+{
+    setErrorHandler((jpeg_common_struct&)ctx, handler);
+    jpeg_create_compress(&ctx);
+}
+
+void mm::SetJpegBufferDestination(jpeg_compress_struct& ctx, charbuff& buff, JpegBufferDestination& handler)
+{
+    handler.pub.init_destination = buff_dest_init;
+    handler.pub.empty_output_buffer = buff_dest_empty_buffer;
+    handler.pub.term_destination = buff_dest_term;
+    handler.buff = &buff;
+    ctx.dest = (jpeg_destination_mgr*)&handler;
+}
+
+void setErrorHandler(jpeg_common_struct& ctx, JpegErrorHandler& handler)
+{
+    jpeg_std_error(&handler.pub);
+    handler.pub.error_exit = &cust_error_exit;
+    handler.pub.emit_message = &cust_emit_message;
+    ctx.err = (jpeg_error_mgr*)&handler;
+}
 
 /*
  * memsrc.c
@@ -78,10 +141,10 @@ METHODDEF(void) init_source(j_decompress_ptr)
  * some sort of output image, no matter how corrupted.
  */
 
-METHODDEF(boolean) fill_input_buffer(j_decompress_ptr cinfo)
+METHODDEF(boolean) fill_input_buffer(j_decompress_ptr ctx)
 {
-    my_src_ptr src = reinterpret_cast<my_src_ptr>(cinfo->src);
-    WARNMS(cinfo, JWRN_JPEG_EOF);
+    my_src_ptr src = reinterpret_cast<my_src_ptr>(ctx->src);
+    WARNMS(ctx, JWRN_JPEG_EOF);
 
     /* Create a fake EOI marker */
     src->eoi_buffer[0] = static_cast<JOCTET>(0xFF);
@@ -101,16 +164,16 @@ METHODDEF(boolean) fill_input_buffer(j_decompress_ptr cinfo)
  * it really isn't supposed to happen ... and the decompressor will never
  * skip more than 64K anyway.
  */
-METHODDEF(void) skip_input_data(j_decompress_ptr cinfo, long num_bytes)
+METHODDEF(void) skip_input_data(j_decompress_ptr ctx, long num_bytes)
 {
-    my_src_ptr src = reinterpret_cast<my_src_ptr>(cinfo->src);
+    my_src_ptr src = reinterpret_cast<my_src_ptr>(ctx->src);
 
     if (num_bytes > 0)
     {
         while (num_bytes > static_cast<long>(src->pub.bytes_in_buffer))
         {
             num_bytes -= static_cast<long>(src->pub.bytes_in_buffer);
-            fill_input_buffer(cinfo);
+            fill_input_buffer(ctx);
             /* note we assume that fill_input_buffer will never return FALSE,
              * so suspension need not be handled.
              */
@@ -145,7 +208,7 @@ METHODDEF(void) term_source(j_decompress_ptr)
 /*
  * Prepare for input from a memory buffer.
  */
-void mm::jpeg_memory_src(j_decompress_ptr cinfo, const JOCTET* buffer, size_t bufsize)
+void mm::jpeg_memory_src(j_decompress_ptr ctx, const JOCTET* buffer, size_t bufsize)
 {
     my_src_ptr src;
 
@@ -156,15 +219,15 @@ void mm::jpeg_memory_src(j_decompress_ptr cinfo, const JOCTET* buffer, size_t bu
      * manager serially with the same JPEG object. Caveat programmer.
      */
 
-    if (cinfo->src == nullptr)
+    if (ctx->src == nullptr)
     {
         // first time for this JPEG object?
-        cinfo->src = static_cast<struct jpeg_source_mgr*>(
-            (*cinfo->mem->alloc_small) (reinterpret_cast<j_common_ptr>(cinfo), JPOOL_PERMANENT,
+        ctx->src = static_cast<struct jpeg_source_mgr*>(
+            (*ctx->mem->alloc_small) (reinterpret_cast<j_common_ptr>(ctx), JPOOL_PERMANENT,
                 sizeof(my_source_mgr)));
     }
 
-    src = reinterpret_cast<my_src_ptr>(cinfo->src);
+    src = reinterpret_cast<my_src_ptr>(ctx->src);
     src->pub.init_source = init_source;
     src->pub.fill_input_buffer = fill_input_buffer;
     src->pub.skip_input_data = skip_input_data;
