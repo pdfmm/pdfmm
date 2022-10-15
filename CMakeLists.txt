@@ -285,3 +285,11 @@ endif()
 if(PDFMM_BUILD_STATIC)
     export(TARGETS pdfmm_static pdfmm_private FILE "${PROJECT_BINARY_DIR}/pdfmmConfig.cmake")
 endif()
+
+set(CPACK_PACKAGE_VENDOR "Francesco Pretto")
+set(CPACK_PACKAGE_CONTACT "ceztko@gmail.com")
+set(CPACK_PACKAGE_CONTACT "https://github.com/pdfmm/pdfmm")
+set(CPACK_PACKAGE_VERSION ${PDFMM_LIBVERSION})
+set(CPACK_GENERATOR "DEB")
+include(CPack)
+
