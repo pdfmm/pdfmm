@@ -233,3 +233,11 @@ if(PDFMM_SHARED)
 else()
     export(TARGETS pdfmm_static pdfmm_private FILE "${PROJECT_BINARY_DIR}/pdfmmConfig.cmake")
 endif()
+
+# Enable packaging
+set(CPACK_PACKAGE_DESCRIPTION "A C++ PDF manipulation library forked from PoDoFo")
+set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/pdfmm/pdfmm")
+set(CPACK_PACKAGE_VENDOR "Francesco Pretto")
+set(CPACK_PACKAGE_CONTACT "ceztko@gmail.com")
+set(CPACK_PACKAGE_VERSION ${PDFMM_LIBVERSION})
+include(CPack)
