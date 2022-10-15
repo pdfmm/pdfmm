@@ -1,5 +1,6 @@
 ## Authors
 
+* Stéphane Charette <stephanecharette@gmail.com>
 * Dominik Seichter <domseichter@web.de>
 * Leonard Rosenthol <leonardr@pdfsages.com>
 * Craig Ringer <craig@postnewspapers.com.au>
