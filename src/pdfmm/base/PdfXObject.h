@@ -32,7 +32,11 @@ class Matrix;
  */
 class PDFMM_API PdfXObject : public PdfDictionaryElement
 {
-protected:
+    friend class PdfXObjectForm;
+    friend class PdfImage;
+    friend class PdfXObjectPostScript;
+
+private:
     PdfXObject(PdfDocument& doc, PdfXObjectType subType, const std::string_view& prefix);
     PdfXObject(PdfObject& obj, PdfXObjectType subType);
 
@@ -46,9 +50,6 @@ public:
 
     template <typename XObjectT>
     static bool TryCreateFromObject(const PdfObject& obj, std::unique_ptr<const XObjectT>& xobj);
-
-    static std::string ToString(PdfXObjectType type);
-    static PdfXObjectType FromString(const std::string& str);
 
     virtual PdfRect GetRect() const = 0;
 
@@ -64,8 +65,8 @@ public:
     inline PdfXObjectType GetType() const { return m_Type; }
 
 private:
-    static bool tryCreateFromObject(const PdfObject& obj, PdfXObjectType targetType, PdfXObject*& xobj);
-    static bool tryCreateFromObject(const PdfObject& obj, const std::type_info& targetType, PdfXObject*& xobj);
+    static bool tryCreateFromObject(const PdfObject& obj, PdfXObjectType xobjType, PdfXObject*& xobj);
+    static bool tryCreateFromObject(const PdfObject& obj, const std::type_info& typeInfo, PdfXObject*& xobj);
     void initIdentifiers(const std::string_view& prefix);
     static PdfXObjectType getPdfXObjectType(const PdfObject& obj);
 

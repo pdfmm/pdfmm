@@ -62,6 +62,8 @@
 #include "base/PdfAcroForm.h"
 #include "base/PdfAction.h"
 #include "base/PdfAnnotation.h"
+#include "base/PdfAnnotation_Types.h"
+#include "base/PdfAnnotationWidget.h"
 #include "base/PdfContents.h"
 #include "base/PdfDestination.h"
 #include "base/PdfDocument.h"

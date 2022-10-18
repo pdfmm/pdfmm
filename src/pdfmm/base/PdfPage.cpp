@@ -26,7 +26,7 @@ static PdfResources* getResources(PdfObject& obj, const deque<PdfObject*>& listO
 PdfPage::PdfPage(PdfDocument& parent, const PdfRect& size)
     : PdfDictionaryElement(parent, "Page"), m_Contents(nullptr)
 {
-    InitNewPage(size);
+    initNewPage(size);
 }
 
 PdfPage::PdfPage(PdfObject& obj, const deque<PdfObject*>& listOfParents)
@@ -63,12 +63,12 @@ bool PdfPage::HasRotation(double& teta) const
     return true;
 }
 
-void PdfPage::InitNewPage(const PdfRect& size)
+void PdfPage::initNewPage(const PdfRect& size)
 {
     SetMediaBox(size);
 }
 
-void PdfPage::EnsureContentsCreated()
+void PdfPage::ensureContentsCreated()
 {
     if (m_Contents != nullptr)
         return;
@@ -78,7 +78,7 @@ void PdfPage::EnsureContentsCreated()
         m_Contents->GetObject().GetIndirectReference());
 }
 
-void PdfPage::EnsureResourcesCreated()
+void PdfPage::ensureResourcesCreated()
 {
     if (m_Resources != nullptr)
         return;
@@ -88,7 +88,7 @@ void PdfPage::EnsureResourcesCreated()
 
 PdfObjectStream& PdfPage::GetStreamForAppending(PdfStreamAppendFlags flags)
 {
-    EnsureContentsCreated();
+    ensureContentsCreated();
     return m_Contents->GetStreamForAppending(flags);
 }
 
@@ -162,7 +162,7 @@ PdfRect PdfPage::CreateStandardPageSize(const PdfPageSize pageSize, bool landsca
     return rect;
 }
 
-const PdfObject* PdfPage::GetInheritedKeyFromObject(const string_view& key, const PdfObject& inObject, int depth) const
+const PdfObject* PdfPage::getInheritedKeyFromObject(const string_view& key, const PdfObject& inObject, int depth) const
 {
     const PdfObject* obj = nullptr;
 
@@ -197,18 +197,18 @@ const PdfObject* PdfPage::GetInheritedKeyFromObject(const string_view& key, cons
         }
 
         if (obj != nullptr)
-            obj = GetInheritedKeyFromObject(key, *obj, depth + 1);
+            obj = getInheritedKeyFromObject(key, *obj, depth + 1);
     }
 
     return obj;
 }
 
-PdfRect PdfPage::GetPageBox(const string_view& inBox) const
+PdfRect PdfPage::getPageBox(const string_view& inBox) const
 {
     PdfRect	pageBox;
 
     // Take advantage of inherited values - walking up the tree if necessary
-    auto obj = GetInheritedKeyFromObject(inBox, this->GetObject());
+    auto obj = getInheritedKeyFromObject(inBox, this->GetObject());
 
     // assign the value of the box from the array
     if (obj != nullptr && obj->IsArray())
@@ -221,13 +221,13 @@ PdfRect PdfPage::GetPageBox(const string_view& inBox) const
     {
         // If those page boxes are not specified then
         // default to CropBox per PDF Spec (3.6.2)
-        pageBox = GetPageBox("CropBox");
+        pageBox = getPageBox("CropBox");
     }
     else if (inBox == "CropBox")
     {
         // If crop box is not specified then
         // default to MediaBox per PDF Spec (3.6.2)
-        pageBox = GetPageBox("MediaBox");
+        pageBox = getPageBox("MediaBox");
     }
 
     return pageBox;
@@ -237,7 +237,7 @@ int PdfPage::GetRotationRaw() const
 {
     int rot = 0;
 
-    auto obj = GetInheritedKeyFromObject("Rotate", this->GetObject());
+    auto obj = getInheritedKeyFromObject("Rotate", this->GetObject());
     if (obj != nullptr && (obj->IsNumber() || obj->GetReal()))
         rot = static_cast<int>(obj->GetNumber());
 
@@ -278,29 +278,35 @@ unsigned PdfPage::GetAnnotationCount() const
     return arr == nullptr ? 0 : arr->GetSize();
 }
 
-PdfAnnotation* PdfPage::CreateAnnotation(PdfAnnotationType annotType, const PdfRect& rect)
+PdfAnnotation& PdfPage::CreateAnnotation(PdfAnnotationType annotType, const PdfRect& rect)
 {
-    PdfAnnotation* pAnnot = new PdfAnnotation(*this, annotType, rect);
-    PdfReference   ref = pAnnot->GetObject().GetIndirectReference();
+    auto annot = PdfAnnotation::Create(*this, annotType, rect);
+    createAnnotation(annot.get());
+    return *annot.release();
+}
+
+
+PdfAnnotation& PdfPage::createAnnotation(const type_info& typeInfo, const PdfRect& rect)
+{
+    auto annot = PdfAnnotation::Create(*this, typeInfo, rect);
+    createAnnotation(annot.get());
+    return *annot.release();
+}
+
+
+void PdfPage::createAnnotation(PdfAnnotation* annot)
+{
+    auto ref = annot->GetObject().GetIndirectReference();
 
     auto& arr = GetOrCreateAnnotationsArray();
     arr.Add(ref);
-    m_mapAnnotations[&pAnnot->GetObject()] = pAnnot;
 
-    // Default set print flag
-    auto flags = pAnnot->GetFlags();
-    pAnnot->SetFlags(flags | PdfAnnotationFlags::Print);
-
-    return pAnnot;
+    m_mapAnnotations[&annot->GetObject()] = annot;
 }
 
-PdfAnnotation* PdfPage::GetAnnotation(unsigned index)
+PdfAnnotation& PdfPage::GetAnnotation(unsigned index)
 {
-    PdfAnnotation* annot;
-    PdfReference ref;
-
     auto arr = GetAnnotationsArray();
-
     if (arr == nullptr)
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
@@ -308,14 +314,19 @@ PdfAnnotation* PdfPage::GetAnnotation(unsigned index)
         PDFMM_RAISE_ERROR(PdfErrorCode::ValueOutOfRange);
 
     auto& obj = arr->FindAt(index);
-    annot = m_mapAnnotations[&obj];
+    auto annot = m_mapAnnotations[&obj];
     if (annot == nullptr)
     {
-        annot = new PdfAnnotation(*this, obj);
-        m_mapAnnotations[&obj] = annot;
+        unique_ptr<PdfAnnotation> newAnnot;
+        if (!PdfAnnotation::TryCreateFromObject(obj, newAnnot))
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Invalid annotation at index {}", index);
+
+        newAnnot->SetPage(*this);
+        annot = newAnnot.get();
+        m_mapAnnotations[&obj] = newAnnot.release();
     }
 
-    return annot;
+    return *annot;
 }
 
 void PdfPage::DeleteAnnotation(unsigned index)
@@ -390,7 +401,7 @@ void PdfPage::DeleteAnnotation(PdfObject& annotObj)
 bool PdfPage::SetPageWidth(int newWidth)
 {
     // Take advantage of inherited values - walking up the tree if necessary
-    auto mediaBoxObj = const_cast<PdfObject*>(GetInheritedKeyFromObject("MediaBox", this->GetObject()));
+    auto mediaBoxObj = const_cast<PdfObject*>(getInheritedKeyFromObject("MediaBox", this->GetObject()));
 
     // assign the value of the box from the array
     if (mediaBoxObj != nullptr && mediaBoxObj->IsArray())
@@ -402,7 +413,7 @@ bool PdfPage::SetPageWidth(int newWidth)
         mediaBoxArr[2] = PdfObject(newWidth + dLeftMediaBox);
 
         // Take advantage of inherited values - walking up the tree if necessary
-        auto cropBoxObj = const_cast<PdfObject*>(GetInheritedKeyFromObject("CropBox", this->GetObject()));
+        auto cropBoxObj = const_cast<PdfObject*>(getInheritedKeyFromObject("CropBox", this->GetObject()));
 
         if (cropBoxObj != nullptr && cropBoxObj->IsArray())
         {
@@ -427,7 +438,7 @@ bool PdfPage::SetPageWidth(int newWidth)
 bool PdfPage::SetPageHeight(int newHeight)
 {
     // Take advantage of inherited values - walking up the tree if necessary
-    auto obj = const_cast<PdfObject*>(GetInheritedKeyFromObject("MediaBox", this->GetObject()));
+    auto obj = const_cast<PdfObject*>(getInheritedKeyFromObject("MediaBox", this->GetObject()));
 
     // assign the value of the box from the array
     if (obj != nullptr && obj->IsArray())
@@ -438,7 +449,7 @@ bool PdfPage::SetPageHeight(int newHeight)
         mediaBoxArr[3] = PdfObject(newHeight + bottom);
 
         // Take advantage of inherited values - walking up the tree if necessary
-        auto cropBoxObj = const_cast<PdfObject*>(GetInheritedKeyFromObject("CropBox", this->GetObject()));
+        auto cropBoxObj = const_cast<PdfObject*>(getInheritedKeyFromObject("CropBox", this->GetObject()));
 
         if (cropBoxObj != nullptr && cropBoxObj->IsArray())
         {
@@ -563,7 +574,7 @@ void PdfPage::SetICCProfile(const string_view& csTag, InputStream& stream,
 
 PdfContents& PdfPage::GetOrCreateContents()
 {
-    EnsureContentsCreated();
+    ensureContentsCreated();
     return *m_Contents;
 }
 
@@ -587,7 +598,7 @@ PdfElement& PdfPage::getElement() const
 
 PdfResources& PdfPage::GetOrCreateResources()
 {
-    EnsureResourcesCreated();
+    ensureResourcesCreated();
     return *m_Resources;
 }
 
@@ -625,32 +636,32 @@ PdfResources& PdfPage::MustGetResources()
 
 PdfRect PdfPage::GetMediaBox() const
 {
-    return GetPageBox("MediaBox");
+    return getPageBox("MediaBox");
 }
 
 PdfRect PdfPage::GetCropBox() const
 {
-    return GetPageBox("CropBox");
+    return getPageBox("CropBox");
 }
 
 PdfRect PdfPage::GetTrimBox() const
 {
-    return GetPageBox("TrimBox");
+    return getPageBox("TrimBox");
 }
 
 PdfRect PdfPage::GetBleedBox() const
 {
-    return GetPageBox("BleedBox");
+    return getPageBox("BleedBox");
 }
 
 PdfRect PdfPage::GetArtBox() const
 {
-    return GetPageBox("ArtBox");
+    return getPageBox("ArtBox");
 }
 
 const PdfObject* PdfPage::GetInheritedKey(const PdfName& name) const
 {
-    return this->GetInheritedKeyFromObject(name.GetString().c_str(), this->GetObject());
+    return this->getInheritedKeyFromObject(name.GetString().c_str(), this->GetObject());
 }
 
 // https://stackoverflow.com/a/2021986/213871

@@ -64,6 +64,8 @@ enum class PdfAnnotationType
     Model3D,        // PDF 1.6
     RichMedia,      // PDF 1.7 ADBE ExtensionLevel 3 ALX: Petr P. Petrov
     WebMedia,       // PDF 1.7 IPDF ExtensionLevel 3
+    Redact,         // PDF 1.7
+    Projection,     // PDF 2.0
 };
 
 /** Flags that control the appearance of a PdfAnnotation.
@@ -109,25 +111,24 @@ struct PdfAppearanceIdentity final
  */
 class PDFMM_API PdfAnnotation : public PdfDictionaryElement
 {
-public:
-    /** Create a new annotation object
-     *
-     *  \param page the parent page of this annotation
-     *  \param eAnnot type of the annotation
-     *  \param rect the rectangle in which the annotation will appear on the page
-     *  \param parent parent of this annotation
-     *
-     *  \see PdfPage::CreateAnnotation
-     */
+    friend class PdfPage;
+
+protected:
     PdfAnnotation(PdfPage& page, PdfAnnotationType annotType, const PdfRect& rect);
+    PdfAnnotation(PdfObject& obj, PdfAnnotationType annotType);
 
-    /** Create a PdfAnnotation from an existing object
-     *
-     *  \param obj the annotations object
-     *  \param page the page of the annotation
-     */
-    PdfAnnotation(PdfPage& page, PdfObject& obj);
+public:
+    static bool TryCreateFromObject(PdfObject& obj, std::unique_ptr<PdfAnnotation>& xobj);
 
+    static bool TryCreateFromObject(const PdfObject& obj, std::unique_ptr<const PdfAnnotation>& xobj);
+
+    template <typename TAnnotation>
+    static bool TryCreateFromObject(PdfObject& obj, std::unique_ptr<TAnnotation>& xobj);
+
+    template <typename TAnnotation>
+    static bool TryCreateFromObject(const PdfObject& obj, std::unique_ptr<const TAnnotation>& xobj);
+
+public:
     /** Set an appearance stream for this object
      *  to specify its visual appearance
      *  \param obj an XObject
@@ -223,103 +224,6 @@ public:
      */
     nullable<PdfString> GetContents() const;
 
-    /** Set the destination for link annotations
-     *  \param destination target of the link
-     *
-     *  \see GetDestination
-     */
-    void SetDestination(const std::shared_ptr<PdfDestination>& destination);
-
-    /** Get the destination of a link annotations
-     *
-     *  \returns a destination object
-     *  \see SetDestination
-     */
-    std::shared_ptr<PdfDestination> GetDestination() const;
-
-    /**
-     *  \returns true if this annotation has an destination
-     */
-    bool HasDestination() const;
-
-    /** Set the action that is executed for this annotation
-     *  \param action an action object
-     *
-     *  \see GetAction
-     */
-    void SetAction(const std::shared_ptr<PdfAction>& action);
-
-    /** Get the action that is executed for this annotation
-     *  \returns an action object. The action object is owned
-     *           by the PdfAnnotation.
-     *
-     *  \see SetAction
-     */
-    std::shared_ptr<PdfAction> GetAction() const;
-
-    /**
-     *  \returns true if this annotation has an action
-     */
-    bool HasAction() const;
-
-    /** Sets whether this annotation is initialy open.
-     *  You should always set this true for popup annotations.
-     *  \param b if true open it
-     */
-    void SetOpen(bool b);
-
-    /**
-     * \returns true if this annotation should be opened immediately
-     *          by the viewer
-     */
-    bool GetOpen() const;
-
-    /**
-     * \returns true if this annotation has a file attachement
-     */
-    bool HasFileAttachement() const;
-
-    /** Set a file attachment for this annotation.
-     *  The type of this annotation has to be
-     *  PdfAnnotationType::FileAttachement for file
-     *  attachements to work.
-     *
-     *  \param rFileSpec a file specification
-     */
-    void SetFileAttachement(const std::shared_ptr<PdfFileSpec>& fileSpec);
-
-    /** Get a file attachement of this annotation.
-     *  \returns a file specification object. The file specification object is owned
-     *           by the PdfAnnotation.
-     *
-     *  \see SetFileAttachement
-     */
-    std::shared_ptr<PdfFileSpec> GetFileAttachement() const;
-
-
-    /** Get the quad points associated with the annotation (if appropriate).
-     *  This array is used in text markup annotations to describe the
-     *  regions affected by the markup (i.e. the hilighted words, one
-     *  quadrilateral per word)
-     *
-     *  \returns a PdfArray of 8xn numbers describing the
-     *           x,y coordinates of BL BR TR TL corners of the
-     *           quadrilaterals. If inappropriate, returns
-     *           an empty array.
-     */
-    PdfArray GetQuadPoints() const;
-
-    /** Set the quad points associated with the annotation (if appropriate).
-     *  This array is used in text markup annotations to describe the
-     *  regions affected by the markup (i.e. the hilighted words, one
-     *  quadrilateral per word)
-     *
-     *  \param quadPoints a PdfArray of 8xn numbers describing the
-     *           x,y coordinates of BL BR TR TL corners of the
-     *           quadrilaterals.
-     */
-    void SetQuadPoints(const PdfArray& quadPoints);
-
     /** Get the color key of the Annotation dictionary
      *  which defines the color of the annotation,
      *  as per 8.4 of the pdf spec. The PdfArray contains
@@ -388,19 +292,46 @@ public:
     inline PdfPage* GetPage() const { return m_Page; }
 
 private:
-    std::shared_ptr<PdfDestination> getDestination();
-    std::shared_ptr<PdfAction> getAction();
-    std::shared_ptr<PdfFileSpec> getFileAttachment();
+    static std::unique_ptr<PdfAnnotation> Create(PdfPage& page, PdfAnnotationType annotType, const PdfRect& rect);
+
+    static std::unique_ptr<PdfAnnotation> Create(PdfPage& page, const std::type_info& typeInfo, const PdfRect& rect);
+
+    void SetPage(PdfPage& page) { m_Page = &page; }
+
+private:
+    static bool tryCreateFromObject(const PdfObject& obj, PdfAnnotationType targetType, PdfAnnotation*& xobj);
+    static bool tryCreateFromObject(const PdfObject& obj, const std::type_info& typeInfo, PdfAnnotation*& xobj);
+    static PdfAnnotationType getAnnotationType(const std::type_info& typeInfo);
+    static PdfAnnotationType getAnnotationType(const PdfObject& obj);
     PdfObject* getAppearanceStream(PdfAppearanceType appearance, const PdfName& state) const;
     PdfDictionary* getAppearanceDictionary() const;
 
 private:
     PdfAnnotationType m_AnnotationType;
-    std::shared_ptr<PdfDestination> m_Destination;
-    std::shared_ptr<PdfAction> m_Action;
-    std::shared_ptr<PdfFileSpec> m_FileSpec;
     PdfPage* m_Page;
 };
+
+template<typename TAnnotation>
+inline bool PdfAnnotation::TryCreateFromObject(PdfObject& obj, std::unique_ptr<TAnnotation>& xobj)
+{
+    PdfAnnotation* xobj_;
+    if (!tryCreateFromObject(obj, typeid(TAnnotation), xobj_))
+        return false;
+
+    xobj.reset((TAnnotation*)xobj_);
+    return true;
+}
+
+template<typename TAnnotation>
+inline bool PdfAnnotation::TryCreateFromObject(const PdfObject& obj, std::unique_ptr<const TAnnotation>& xobj)
+{
+    PdfAnnotation* xobj_;
+    if (!tryCreateFromObject(obj, typeid(TAnnotation), xobj_))
+        return false;
+
+    xobj.reset((const TAnnotation*)xobj_);
+    return true;
+}
 
 // helper function, to avoid code duplication
 void SetAppearanceStreamForObject(PdfObject& obj, PdfXObjectForm& xobj, PdfAppearanceType appearance, const PdfName& state);

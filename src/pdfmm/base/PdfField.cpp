@@ -36,7 +36,7 @@ PdfField::PdfField(PdfFieldType fieldType, PdfDocument& doc, PdfAnnotation* widg
 }
 
 PdfField::PdfField(PdfFieldType fieldType, PdfPage& page, const PdfRect& rect)
-    : PdfField(fieldType, page.GetDocument(), page.CreateAnnotation(PdfAnnotationType::Widget, rect))
+    : PdfField(fieldType, page.GetDocument(), &page.CreateAnnotation(PdfAnnotationType::Widget, rect))
 {
     init(&page.GetDocument().GetOrCreateAcroForm());
 }
@@ -96,9 +96,9 @@ unique_ptr<PdfField> PdfField::createChildField(PdfPage* page, const PdfRect& re
     }
     else
     {
-        PdfAnnotation* annot = page->CreateAnnotation(PdfAnnotationType::Widget, rect);
-        childObj = &annot->GetObject();
-        (void)tryCreateField(type, *childObj, annot, field);
+        auto& annot = page->CreateAnnotation(PdfAnnotationType::Widget, rect);
+        childObj = &annot.GetObject();
+        (void)tryCreateField(type, *childObj, &annot, field);
     }
 
     auto& dict = GetDictionary();

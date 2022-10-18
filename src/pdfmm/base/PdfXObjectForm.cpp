@@ -130,7 +130,6 @@ void PdfXObjectForm::initXObject(const PdfRect& rect)
     PdfArray bbox;
     rect.ToArray(bbox);
     this->GetObject().GetDictionary().AddKey("BBox", bbox);
-    this->GetObject().GetDictionary().AddKey(PdfName::KeySubtype, PdfName(ToString(PdfXObjectType::Form)));
     this->GetObject().GetDictionary().AddKey("FormType", PdfVariant(static_cast<int64_t>(1))); // only 1 is only defined in the specification.
     this->GetObject().GetDictionary().AddKey("Matrix", m_Matrix);
 }

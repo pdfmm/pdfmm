@@ -173,7 +173,10 @@ public:
      *
      *  \returns the annotation object which is owned by the PdfPage
      */
-    PdfAnnotation* CreateAnnotation(PdfAnnotationType annotType, const PdfRect& rect);
+    template <typename TAnnotation>
+    TAnnotation& CreateAnnotation(const PdfRect& rect);
+
+    PdfAnnotation& CreateAnnotation(PdfAnnotationType annotType, const PdfRect& rect);
 
     /** Get the annotation with index index of the current page.
      *  \param index the index of the annotation to retrieve
@@ -182,7 +185,7 @@ public:
      *
      *  \see GetAnnotationCount
      */
-    PdfAnnotation* GetAnnotation(unsigned index);
+    PdfAnnotation& GetAnnotation(unsigned index);
 
     /** Delete the annotation with index index from this page.
      *  \param index the index of the annotation to delete
@@ -231,11 +234,15 @@ public:
     PdfResources& MustGetResources();
 
 private:
+    PdfAnnotation& createAnnotation(const std::type_info& typeInfo, const PdfRect& rect);
+
     PdfResources* getResources() const override;
 
     PdfObject* getContentsObject() const override;
 
     PdfElement& getElement() const override;
+
+    void createAnnotation(PdfAnnotation* annot);
 
     PdfObjectStream& GetStreamForAppending(PdfStreamAppendFlags flags) override;
 
@@ -245,21 +252,21 @@ private:
      *
      * \param size page size
      */
-    void InitNewPage(const PdfRect& size);
+    void initNewPage(const PdfRect& size);
 
-    void EnsureContentsCreated();
-    void EnsureResourcesCreated();
+    void ensureContentsCreated();
+    void ensureResourcesCreated();
 
     /** Get the bounds of a specified page box in PDF units.
      * This function is internal, since there are wrappers for all standard boxes
      *  \returns PdfRect the page box
      */
-    PdfRect GetPageBox(const std::string_view& inBox) const;
+    PdfRect getPageBox(const std::string_view& inBox) const;
 
     /** Method for getting a key value that could be inherited (such as the boxes, resources, etc.)
      *  \returns PdfObject - the result of the key fetching or nullptr
      */
-    const PdfObject* GetInheritedKeyFromObject(const std::string_view& key, const PdfObject& inObject, int depth = 0) const;
+    const PdfObject* getInheritedKeyFromObject(const std::string_view& key, const PdfObject& inObject, int depth = 0) const;
 
 private:
     PdfArray* GetAnnotationsArray() const;
@@ -279,6 +286,12 @@ private:
     std::unique_ptr<PdfResources> m_Resources;
     AnnotationDirectMap m_mapAnnotations;
 };
+
+template<typename TAnnotation>
+TAnnotation& PdfPage::CreateAnnotation(const PdfRect& rect)
+{
+    return static_cast<TAnnotation&>(createAnnotation(typeid(TAnnotation), rect));
+}
 
 };
 

@@ -22,11 +22,14 @@
 using namespace std;
 using namespace mm;
 
+static string_view toString(PdfXObjectType type);
+static PdfXObjectType fromString(const string_view& str);
+
 PdfXObject::PdfXObject(PdfDocument& doc, PdfXObjectType subType, const string_view& prefix)
     : PdfDictionaryElement(doc, "XObject"), m_Type(subType)
 {
     initIdentifiers(prefix);
-    this->GetObject().GetDictionary().AddKey(PdfName::KeySubtype, PdfName(ToString(subType)));
+    this->GetObject().GetDictionary().AddKey(PdfName::KeySubtype, PdfName(toString(subType)));
 }
 
 PdfXObject::PdfXObject(PdfObject& obj, PdfXObjectType subType)
@@ -61,7 +64,7 @@ bool PdfXObject::TryCreateFromObject(const PdfObject& obj, unique_ptr<const PdfX
     return true;
 }
 
-bool PdfXObject::tryCreateFromObject(const PdfObject& obj, PdfXObjectType targetType, PdfXObject*& xobj)
+bool PdfXObject::tryCreateFromObject(const PdfObject& obj, PdfXObjectType xobjType, PdfXObject*& xobj)
 {
     auto typeObj = obj.GetDictionary().GetKey(PdfName::KeyType);
     if (typeObj == nullptr
@@ -73,7 +76,7 @@ bool PdfXObject::tryCreateFromObject(const PdfObject& obj, PdfXObjectType target
     }
 
     auto type = getPdfXObjectType(obj);
-    if (targetType != PdfXObjectType::Unknown && type != targetType)
+    if (xobjType != PdfXObjectType::Unknown && type != xobjType)
     {
         xobj = nullptr;
         return false;
@@ -106,39 +109,13 @@ bool PdfXObject::tryCreateFromObject(const PdfObject& obj, PdfXObjectType target
 
 PdfXObjectType PdfXObject::getPdfXObjectType(const PdfObject& obj)
 {
+    const PdfName* name;
     auto subTypeObj = obj.GetDictionary().FindKey(PdfName::KeySubtype);
-    if (subTypeObj == nullptr || !subTypeObj->IsName())
+    if (subTypeObj == nullptr || !subTypeObj->TryGetName(name))
         return PdfXObjectType::Unknown;
 
-    auto subtype = obj.GetDictionary().FindKey(PdfName::KeySubtype)->GetName().GetString();
-    return FromString(subtype);
-}
-
-string PdfXObject::ToString(PdfXObjectType type)
-{
-    switch (type)
-    {
-        case PdfXObjectType::Form:
-            return "Form";
-        case PdfXObjectType::Image:
-            return "Image";
-        case PdfXObjectType::PostScript:
-            return "PS";
-        default:
-            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
-    }
-}
-
-PdfXObjectType PdfXObject::FromString(const string& str)
-{
-    if (str == "Form")
-        return PdfXObjectType::Form;
-    else if (str == "Image")
-        return PdfXObjectType::Image;
-    else if (str == "PS")
-        return PdfXObjectType::PostScript;
-    else
-        return PdfXObjectType::Unknown;
+    auto subtype = name->GetString();
+    return fromString(subtype);
 }
 
 Matrix PdfXObject::GetMatrix() const
@@ -164,14 +141,14 @@ void PdfXObject::SetMatrix(const Matrix& m)
     GetObject().GetDictionary().AddKey("Matrix", std::move(arr));
 }
 
-bool PdfXObject::tryCreateFromObject(const PdfObject& obj, const type_info& targetType, PdfXObject*& xobj)
+bool PdfXObject::tryCreateFromObject(const PdfObject& obj, const type_info& typeInfo, PdfXObject*& xobj)
 {
     PdfXObjectType xobjType;
-    if (targetType == typeid(PdfXObjectForm))
+    if (typeInfo == typeid(PdfXObjectForm))
         xobjType = PdfXObjectType::Form;
-    else if (targetType == typeid(PdfImage))
+    else if (typeInfo == typeid(PdfImage))
         xobjType = PdfXObjectType::Image;
-    else if (targetType == typeid(PdfXObjectPostScript))
+    else if (typeInfo == typeid(PdfXObjectPostScript))
         xobjType = PdfXObjectType::PostScript;
     else
         PDFMM_RAISE_ERROR(PdfErrorCode::InternalLogic);
@@ -191,4 +168,31 @@ void PdfXObject::initIdentifiers(const string_view& prefix)
         out << prefix << this->GetObject().GetIndirectReference().ObjectNumber();
 
     m_Identifier = PdfName(out.GetString());
+}
+
+string_view toString(PdfXObjectType type)
+{
+    switch (type)
+    {
+        case PdfXObjectType::Form:
+            return "Form"sv;
+        case PdfXObjectType::Image:
+            return "Image"sv;
+        case PdfXObjectType::PostScript:
+            return "PS"sv;
+        default:
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
+    }
+}
+
+PdfXObjectType fromString(const string_view& str)
+{
+    if (str == "Form")
+        return PdfXObjectType::Form;
+    else if (str == "Image")
+        return PdfXObjectType::Image;
+    else if (str == "PS")
+        return PdfXObjectType::PostScript;
+    else
+        return PdfXObjectType::Unknown;
 }
