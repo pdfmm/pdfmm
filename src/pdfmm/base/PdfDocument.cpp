@@ -16,20 +16,19 @@
 #include "PdfArray.h"
 #include "PdfDictionary.h"
 #include "PdfImmediateWriter.h"
-#include "PdfObject.h"
 #include "PdfObjectStream.h"
 #include "PdfIndirectObjectList.h"
 #include "PdfAcroForm.h"
 #include "PdfDestination.h"
 #include "PdfFileSpec.h"
-#include "PdfFont.h"
 #include "PdfFontMetrics.h"
 #include "PdfInfo.h"
 #include "PdfNameTree.h"
 #include "PdfOutlines.h"
 #include "PdfPage.h"
 #include "PdfPageCollection.h"
-#include "PdfXObject.h"
+#include "PdfXObjectForm.h"
+#include "PdfImage.h"
 
 using namespace std;
 using namespace mm;
@@ -106,7 +105,12 @@ void PdfDocument::Init()
         m_AcroForm.reset(new PdfAcroForm(*acroformObj));
 }
 
-const PdfDocument& PdfDocument::Append(const PdfDocument& doc, bool appendAll)
+void PdfDocument::Append(const PdfDocument& doc)
+{
+    append(doc, true);
+}
+
+void PdfDocument::append(const PdfDocument& doc, bool appendAll)
 {
     unsigned difference = static_cast<unsigned>(m_Objects.GetSize() + m_Objects.GetFreeObjects().size());
 
@@ -188,10 +192,9 @@ const PdfDocument& PdfDocument::Append(const PdfDocument& doc, bool appendAll)
 
     // TODO: merge name trees
     // ToDictionary -> then iteratate over all keys and add them to the new one
-    return *this;
 }
 
-const PdfDocument& PdfDocument::InsertExistingPageAt(const PdfDocument& doc, unsigned pageIndex, unsigned atIndex)
+void PdfDocument::InsertExistingPageAt(const PdfDocument& doc, unsigned pageIndex, unsigned atIndex)
 {
     // copy of PdfDocument::Append, only restricts which page to add
     unsigned difference = static_cast<unsigned>(m_Objects.GetSize() + m_Objects.GetFreeObjects().size());
@@ -277,25 +280,18 @@ const PdfDocument& PdfDocument::InsertExistingPageAt(const PdfDocument& doc, uns
 
     // TODO: merge name trees
     // ToDictionary -> then iteratate over all keys and add them to the new one
-    return *this;
 }
 
-PdfRect PdfDocument::FillXObjectFromDocumentPage(PdfXObject& xobj, const PdfDocument& doc, unsigned pageIndex, bool useTrimBox)
+PdfRect PdfDocument::FillXObjectFromPage(PdfXObjectForm& xobj, const PdfPage& page, bool useTrimBox)
 {
-    unsigned difference = static_cast<unsigned>(m_Objects.GetSize() + m_Objects.GetFreeObjects().size());
-    Append(doc, false);
-    auto& page = doc.GetPages().GetPage(pageIndex);
-    return FillXObjectFromPage(xobj, page, useTrimBox, difference);
-}
+    unsigned difference = 0;
+    auto& sourceDoc = page.GetDocument();
+    if (this != &sourceDoc)
+    {
+        difference = static_cast<unsigned>(m_Objects.GetSize() + m_Objects.GetFreeObjects().size());
+        append(sourceDoc, false);
+    }
 
-PdfRect PdfDocument::FillXObjectFromExistingPage(PdfXObject& xobj, unsigned pageIndex, bool useTrimBox)
-{
-    auto& page = m_Pages->GetPage(pageIndex);
-    return FillXObjectFromPage(xobj, page, useTrimBox, 0);
-}
-
-PdfRect PdfDocument::FillXObjectFromPage(PdfXObject& xobj, const PdfPage& page, bool useTrimBox, unsigned difference)
-{
     // TODO: remove unused objects: page, ...
 
     auto& pageObj = m_Objects.MustGetObject(PdfReference(page.GetObject().GetIndirectReference().ObjectNumber()
@@ -555,4 +551,14 @@ bool PdfDocument::IsDocAssemblyAllowed() const
 bool PdfDocument::IsHighPrintAllowed() const
 {
     return GetEncrypt() == nullptr ? true : GetEncrypt()->IsHighPrintAllowed();
+}
+
+unique_ptr<PdfImage> PdfDocument::CreateImage(const string_view& prefix)
+{
+    return unique_ptr<PdfImage>(new PdfImage(*this, prefix));
+}
+
+unique_ptr<PdfXObjectForm> PdfDocument::CreateXObjectForm(const PdfRect& rect, const string_view& prefix)
+{
+    return unique_ptr<PdfXObjectForm>(new PdfXObjectForm(*this, rect, prefix));
 }

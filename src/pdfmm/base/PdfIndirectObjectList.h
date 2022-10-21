@@ -10,10 +10,8 @@
 #define PDF_INDIRECT_OBJECT_LIST_H
 
 #include <list>
-#include <set>
 #include <unordered_set>
 
-#include "PdfDeclarations.h"
 #include "PdfReference.h"
 
 namespace mm {

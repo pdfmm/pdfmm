@@ -9,8 +9,6 @@
 #ifndef PDF_DOCUMENT_H
 #define PDF_DOCUMENT_H
 
-#include "PdfDeclarations.h"
-
 #include "PdfTrailer.h"
 #include "PdfCatalog.h"
 #include "PdfIndirectObjectList.h"
@@ -19,18 +17,15 @@
 #include "PdfMetadata.h"
 #include "PdfPageCollection.h"
 #include "PdfNameTree.h"
+#include "PdfXObjectForm.h"
+#include "PdfImage.h"
 
 namespace mm {
 
 class PdfDestination;
-class PdfDictionary;
 class PdfFileSpec;
-class PdfFont;
 class PdfInfo;
 class PdfOutlines;
-class PdfPage;
-class PdfRect;
-class PdfXObject;
 class PdfEncrypt;
 
 /** PdfDocument is the core interface for working with PDF documents.
@@ -51,6 +46,7 @@ class PdfEncrypt;
 class PDFMM_API PdfDocument
 {
     friend class PdfMetadata;
+    friend class PdfXObjectForm;
 
 public:
     /** Close down/destruct the PdfDocument
@@ -87,10 +83,9 @@ public:
 
     /** Appends another PdfDocument to this document.
      *  \param doc the document to append
-     *  \param appendAll specifies whether pages and outlines are appended too
      *  \returns this document
      */
-    const PdfDocument& Append(const PdfDocument& doc, bool appendAll = true);
+    void Append(const PdfDocument& doc);
 
     /** Inserts existing page from another PdfDocument to this document.
      *  \param doc the document to append from
@@ -98,37 +93,7 @@ public:
      *  \param atIndex index at which to add the page in this document
      *  \returns this document
      */
-    const PdfDocument& InsertExistingPageAt(const PdfDocument& doc, unsigned pageIndex, unsigned atIndex);
-
-    /** Fill an existing empty PdfXObject from a page of another document.
-     *  This will append the other document to this one.
-     *  \param xobj pointer to the PdfXObject
-     *  \param doc the document to embed into the PdfXObject
-     *  \param pageIndex index of page to embed into the PdfXObject
-     *  \param useTrimBox if true try to use page's TrimBox for size of PdfXObject
-     *  \returns the bounding box
-     */
-    PdfRect FillXObjectFromDocumentPage(PdfXObject& xobj, const PdfDocument& doc, unsigned pageIndex, bool useTrimBox);
-
-    /** Fill an existing empty PdfXObject from an existing page from the current document.
-     *  If you need a page from another document use FillXObjectFromDocumentPage(), or
-     *  append the document manually.
-     *  \param xobj pointer to the PdfXObject
-     *  \param pageIndex index of page to embed into the PdfXObject
-     *  \param useTrimBox if true try to use page's TrimBox for size of PdfXObject
-     *  \returns the bounding box
-     */
-    PdfRect FillXObjectFromExistingPage(PdfXObject& xobj, unsigned pageIndex, bool useTrimBox);
-
-    /** Fill an existing empty PdfXObject from an existing page pointer from the current document.
-     *  This is the implementation for FillXObjectFromDocumentPage() and FillXObjectFromExistingPage(),
-     *  you should use those directly instead of this.
-     *  \param xobj pointer to the PdfXObject
-     *  \param page pointer to the page to embed into PdfXObject
-     *  \param useTrimBox if true try to use page's TrimBox for size of PdfXObject
-     *  \returns the bounding box
-     */
-    PdfRect FillXObjectFromPage(PdfXObject& xobj, const PdfPage& page, bool useTrimBox, unsigned difference);
+    void InsertExistingPageAt(const PdfDocument& doc, unsigned pageIndex, unsigned atIndex);
 
     /** Attach a file to the document.
      *  \param rFileSpec a file specification
@@ -150,6 +115,13 @@ public:
     void AddNamedDestination(const PdfDestination& dest, const PdfString& name);
 
     void CollectGarbage();
+
+    /** Constuct a new PdfImage object
+     *  \param prefix optional prefix for XObject-name
+     */
+    std::unique_ptr<PdfImage> CreateImage(const std::string_view& prefix = { });
+
+    std::unique_ptr<PdfXObjectForm> CreateXObjectForm(const PdfRect& rect, const std::string_view& prefix = { });
 
     /** Checks if printing this document is allowed.
      *  Every PDF-consuming application has to adhere to this value!
@@ -344,9 +316,13 @@ protected:
     virtual PdfVersion GetPdfVersion() const = 0;
 
     /** Get the PDF version of the document
- *  \returns PdfVersion version of the pdf document
- */
+     *  \returns PdfVersion version of the pdf document
+     */
     virtual void SetPdfVersion(PdfVersion version) = 0;
+
+private:
+    PdfRect FillXObjectFromPage(PdfXObjectForm& xobj, const PdfPage& page, bool useTrimBox);
+    void append(const PdfDocument& doc, bool appendAll);
 
 private:
     PdfDocument& operator=(const PdfDocument&) = delete;

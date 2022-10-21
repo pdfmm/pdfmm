@@ -9,11 +9,9 @@
 #ifndef PDF_PAGES_TREE_CACHE_H
 #define PDF_PAGES_TREE_CACHE_H
 
-#include "PdfDeclarations.h"
+#include "PdfPage.h"
 
 namespace mm {
-
-class PdfPage;
 
 /**
  *  This class implements a cache infront of a PdfPageTree

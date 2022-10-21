@@ -58,9 +58,9 @@ enum class PdfHighlightingMode
 
 enum class PdfFieldFlags
 {
-    ReadOnly = 0x0001,
-    Required = 0x0002,
-    NoExport = 0x0004
+    ReadOnly = 1,
+    Required = 2,
+    NoExport = 4
 };
 
 class PDFMM_API PdfField : public PdfDictionaryElement

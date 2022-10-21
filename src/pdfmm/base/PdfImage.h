@@ -9,11 +9,6 @@
 #ifndef PDF_IMAGE_H
 #define PDF_IMAGE_H
 
-#include "PdfDeclarations.h"
-
-#include <cstdio>
-
-#include "PdfFilter.h"
 #include "PdfXObject.h"
 
 #ifdef PDFMM_HAVE_JPEG_LIB
@@ -41,16 +36,18 @@ class PdfIndirectObjectList;
 class PDFMM_API PdfImage final : public PdfXObject
 {
     friend class PdfXObject;
+    friend class PdfDocument;
 
-public:
+private:
     /** Constuct a new PdfImage object
      *  This is an overloaded constructor.
      *
      *  \param parent parent document
      *  \param prefix optional prefix for XObject-name
      */
-    PdfImage(PdfDocument& doc, const std::string_view& prefix = { });
+    PdfImage(PdfDocument& doc, const std::string_view& prefix);
 
+public:
     void DecodeTo(charbuff& buff, PdfPixelFormat format) const;
     void DecodeTo(void* buffer, PdfPixelFormat format, int stride) const;
     void DecodeTo(OutputStream& stream, PdfPixelFormat format, int stride = -1) const;

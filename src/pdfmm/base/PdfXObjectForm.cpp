@@ -21,32 +21,6 @@ PdfXObjectForm::PdfXObjectForm(PdfDocument& doc, const PdfRect& rect, const stri
     initXObject(rect);
 }
 
-PdfXObjectForm::PdfXObjectForm(PdfDocument& doc, const PdfDocument& sourceDoc, unsigned pageIndex, const string_view& prefix, bool useTrimBox)
-    : PdfXObject(doc, PdfXObjectType::Form, prefix)
-{
-    initXObject(m_Rect);
-
-    // Implementation note: source document must be different from distination
-    if (&doc == reinterpret_cast<const PdfDocument*>(&sourceDoc))
-        PDFMM_RAISE_ERROR(PdfErrorCode::InternalLogic);
-
-    // After filling set correct BBox, independent of rotation
-    m_Rect = doc.FillXObjectFromDocumentPage(*this, sourceDoc, pageIndex, useTrimBox);
-
-    initAfterPageInsertion(sourceDoc, pageIndex);
-}
-
-PdfXObjectForm::PdfXObjectForm(PdfDocument& doc, unsigned pageIndex, const string_view& prefix, bool useTrimBox)
-    : PdfXObject(doc, PdfXObjectType::Form, prefix)
-{
-    initXObject(m_Rect);
-
-    // After filling set correct BBox, independent of rotation
-    m_Rect = doc.FillXObjectFromExistingPage(*this, pageIndex, useTrimBox);
-
-    initAfterPageInsertion(doc, pageIndex);
-}
-
 PdfXObjectForm::PdfXObjectForm(PdfObject& obj)
     : PdfXObject(obj, PdfXObjectType::Form)
 {
@@ -56,6 +30,13 @@ PdfXObjectForm::PdfXObjectForm(PdfObject& obj)
     auto resources = obj.GetDictionary().FindKey("Resources");
     if (resources != nullptr)
         m_Resources.reset(new PdfResources(*resources));
+}
+
+void PdfXObjectForm::FillXObjectFromPage(const PdfPage& page, bool useTrimBox)
+{
+    // After filling set correct BBox, independent of rotation
+    m_Rect = GetDocument().FillXObjectFromPage(*this, page, useTrimBox);
+    initAfterPageInsertion(page);
 }
 
 void PdfXObjectForm::EnsureResourcesCreated()
@@ -134,13 +115,13 @@ void PdfXObjectForm::initXObject(const PdfRect& rect)
     this->GetObject().GetDictionary().AddKey("Matrix", m_Matrix);
 }
 
-void PdfXObjectForm::initAfterPageInsertion(const PdfDocument& doc, unsigned pageIndex)
+void PdfXObjectForm::initAfterPageInsertion(const PdfPage& page)
 {
     PdfArray bbox;
     m_Rect.ToArray(bbox);
     this->GetObject().GetDictionary().AddKey("BBox", bbox);
 
-    int rotation = doc.GetPages().GetPage(pageIndex).GetRotationRaw();
+    int rotation = page.GetRotationRaw();
     // correct negative rotation
     if (rotation < 0)
         rotation = 360 + rotation;

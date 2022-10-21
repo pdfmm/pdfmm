@@ -15,11 +15,14 @@
 
 namespace mm {
 
+    class PdfPage;
+
 class PDFMM_API PdfXObjectForm final : public PdfXObject, public PdfCanvas
 {
+    friend class PdfDocument;
     friend class PdfXObject;
 
-public:
+private:
     /** Create a new XObject with a specified dimension
      *  in a given document
      *
@@ -28,29 +31,16 @@ public:
      *  \param prefix optional prefix for XObject-name
      */
     PdfXObjectForm(PdfDocument& doc, const PdfRect& rect,
-        const std::string_view& prefix = { });
+        const std::string_view& prefix);
 
+public:
     /** Create a new XObject from a page of another document
      *  in a given document
      *
-     *  \param doc the parent document of the XObject
-     *  \param sourceDoc the document to create the XObject from
-     *  \param pageIndex the page-number in doc to create the XObject from
-     *  \param prefix optional prefix for XObject-name
+     *  \param page the document to create the XObject from
      *	\param useTrimBox if true try to use trimbox for size of xobject
      */
-    PdfXObjectForm(PdfDocument& doc, const PdfDocument& sourceDoc,
-        unsigned pageIndex, const std::string_view& prefix = { }, bool useTrimBox = false);
-
-    /** Create a new XObject from an existing page
-     *
-     *  \param doc the document to create the XObject at
-     *  \param pageIndex the page-number in doc to create the XObject from
-     *  \param prefix optional prefix for XObject-name
-     *  \param useTrimBox if true try to use trimbox for size of xobject
-     */
-    PdfXObjectForm(PdfDocument& doc, unsigned pageIndex,
-        const std::string_view& prefix = { }, bool useTrimBox = false);
+    void FillXObjectFromPage(const PdfPage& page, bool useTrimBox = false);
 
 public:
     /** Ensure resources initialized on this XObject
@@ -81,7 +71,7 @@ private:
     PdfElement& getElement() const override;
     PdfObjectStream& GetStreamForAppending(PdfStreamAppendFlags flags) override;
     void initXObject(const PdfRect& rect);
-    void initAfterPageInsertion(const PdfDocument& doc, unsigned pageIndex);
+    void initAfterPageInsertion(const PdfPage& page);
 
 private:
     PdfElement& GetElement() = delete;

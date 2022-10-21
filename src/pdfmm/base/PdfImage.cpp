@@ -1183,10 +1183,10 @@ void LoadFromPngContent(PdfImage& image, png_structp png, png_infop info)
             len = width * height;
         }
         SpanStreamDevice smaskinput(smask);
-        PdfImage smakeImage(image.GetDocument());
-        smakeImage.SetColorSpace(PdfColorSpace::DeviceGray);
-        smakeImage.SetData(smaskinput, width, height, 8);
-        image.SetSoftmask(smakeImage);
+        auto smakeImage = image.GetDocument().CreateImage();
+        smakeImage->SetColorSpace(PdfColorSpace::DeviceGray);
+        smakeImage->SetData(smaskinput, width, height, 8);
+        image.SetSoftmask(*smakeImage);
     }
 
     // Set color space

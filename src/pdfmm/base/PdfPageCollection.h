@@ -18,7 +18,6 @@
 namespace mm {
 
 class PdfObject;
-class PdfPage;
 class PdfRect;
 
 /** Class for managing the tree of Pages in a PDF document
