@@ -284,13 +284,13 @@ PdfObjectOutputStream::PdfObjectOutputStream(PdfObjectStream& stream, PdfFilterL
     else if (m_filters.size() == 1)
     {
         parent.GetDictionary().AddKey(PdfName::KeyFilter,
-            PdfName(PdfFilterFactory::FilterTypeToName(m_filters.front())));
+            PdfName(mm::FilterToName(m_filters.front())));
     }
     else // filters.size() > 1
     {
         PdfArray arrFilters;
         for (auto filterType : m_filters)
-            arrFilters.Add(PdfName(PdfFilterFactory::FilterTypeToName(filterType)));
+            arrFilters.Add(PdfName(mm::FilterToName(filterType)));
 
         parent.GetDictionary().AddKey(PdfName::KeyFilter, arrFilters);
     }

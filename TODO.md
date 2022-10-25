@@ -1,13 +1,9 @@
 ### 0.10.x (Summer 2022)
-- Refactor/Review PdfField hierarchy. Finish API review
-- PdfImage: make it read only, remove SetImageData()
-- Make PdfObjectStream not filter by default in PdfMemDocument
-
-Ideas:
-- PdfObject::TryFindKeyAsSafe()
+- Refactor/Review PdfAnnoation/PdfField hierarchy. Finish API review
 - Evaluate rename PdfDocument::GetFontManager() -> GetFonts()
 
 ### After 0.10
+- Make PdfObjectStream not filter by default in PdfMemDocument
 - PdfElement: Optmize, keep dictionary/array pointer. Add GetObjectPtr()
 - PdfPageCollection::CreatePage() with PdfPageSize or default inferred from doc
 - Fix PdfFontMetrics handling of symbol encoding
@@ -27,6 +23,9 @@ either assume UTF-8 and/or checks for used codepoints
 - Check/Review doxygen doc
 - Move IO System headers to common/
 - Extract Matrix PdfMath.h -> Matrix.h, move it to common/
+
+Ideas:
+- PdfObject::TryFindKeyAsSafe()
 
 ### After 1.0
 - Added version of PdfFont::TryGetSubstituteFont for rendering

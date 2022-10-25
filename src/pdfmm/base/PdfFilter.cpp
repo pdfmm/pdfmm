@@ -18,33 +18,6 @@
 using namespace std;
 using namespace mm;
 
-// All known filters
-static const char* s_filters[] = {
-    "ASCIIHexDecode",
-    "ASCII85Decode",
-    "LZWDecode",
-    "FlateDecode",
-    "RunLengthDecode",
-    "CCITTFaxDecode",
-    "JBIG2Decode",
-    "DCTDecode",
-    "JPXDecode",
-    "Crypt",
-};
-
-static const char* s_shortFilters[] = {
-    "AHx",
-    "A85",
-    "LZW",
-    "Fl",
-    "RL",
-    "CCF",
-    "", // There is no shortname for JBIG2Decode
-    "DCT",
-    "", // There is no shortname for JPXDecode
-    "", // There is no shortname for Crypt
-};
-
 static bool isMediaFilter(PdfFilterType filterType);
 
 // An OutputStream class that actually perform the encoding
@@ -135,7 +108,7 @@ protected:
         catch (PdfError& e)
         {
             PDFMM_PUSH_FRAME_INFO(e, "PdfFilter::EndDecode() failed in filter of type {}",
-                PdfFilterFactory::FilterTypeToName(m_filter->GetType()));
+                mm::FilterToName(m_filter->GetType()));
             m_FilterFailed = true;
             throw;
         }
@@ -358,31 +331,6 @@ unique_ptr<InputStream> PdfFilterFactory::createDecodeStream(const PdfFilterList
     return std::make_unique<PdfBufferedDecodeStream>(stream, filters, dictionary);
 }
 
-PdfFilterType PdfFilterFactory::FilterNameToType(const string_view& name, bool supportShortNames)
-{
-    for (unsigned i = 0; i < std::size(s_filters); i++)
-    {
-        if (name == s_filters[i])
-            return static_cast<PdfFilterType>(i + 1);
-    }
-
-    if (supportShortNames)
-    {
-        for (unsigned i = 0; i < std::size(s_shortFilters); i++)
-        {
-            if (name == s_shortFilters[i])
-                return static_cast<PdfFilterType>(i + 1);
-        }
-    }
-
-    PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, name);
-}
-
-const char* PdfFilterFactory::FilterTypeToName(PdfFilterType filterType)
-{
-    return s_filters[static_cast<unsigned>(filterType) - 1];
-}
-
 PdfFilterList PdfFilterFactory::CreateFilterList(const PdfObject& filtersObj, PdfFilterList& mediaFilters)
 {
     PdfFilterList filters;
@@ -429,7 +377,7 @@ PdfFilterList PdfFilterFactory::CreateFilterList(const PdfObject& filtersObj, Pd
 
 void PdfFilterFactory::addFilterTo(PdfFilterList& filters, PdfFilterList& mediaFilters, const string_view& filter)
 {
-    auto type = PdfFilterFactory::FilterNameToType(filter);
+    auto type = mm::NameToFilter(filter);
     if (isMediaFilter(type))
     {
         mediaFilters.push_back(type);

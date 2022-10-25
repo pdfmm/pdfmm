@@ -335,22 +335,6 @@ public:
     static std::unique_ptr<InputStream> CreateDecodeStream(const std::shared_ptr<InputStream>& stream,
         const PdfFilterList& filters);
 
-    /** Converts a filter name to the corresponding enum
-     *  \param name of the filter without leading
-     *  \param supportShortNames The PDF Reference supports several
-     *         short names for filters (e.g. AHx for AsciiHexDecode), if true
-     *         support for these short names will be enabled.
-     *         This is often used in inline images.
-     *  \returns the filter as enum
-     */
-    static PdfFilterType FilterNameToType(const std::string_view& name, bool supportShortNames = true);
-
-    /** Converts a filter type enum to the corresponding PdfName
-     *  \param filterType a filter type
-     *  \returns the filter as name
-     */
-    static const char* FilterTypeToName(PdfFilterType filterType);
-
     /** The passed PdfObject has to be a dictionary with a Filters key,
      *  a (possibly empty) array of filter names or a filter name.
      *

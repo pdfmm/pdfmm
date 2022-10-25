@@ -346,24 +346,6 @@ public:
      */
     static PdfColor FromArray(const PdfArray& arr);
 
-    /**
-     *  Convert a name into a colorspace enum.
-     *
-     *  \param name name representing a colorspace such as DeviceGray
-     *  \returns colorspace enum or PdfColorSpace_Unknown if name is unknown
-     *  \see GetNameForColorSpace
-     */
-    static PdfColorSpace GetColorSpaceForName(const PdfName& name);
-
-    /*
-     *  Convert a colorspace enum value into a name such as DeviceRGB
-     *
-     *  \param colorSpace a colorspace
-     *  \returns a name
-     *  \see GetColorSpaceForName
-     */
-    static PdfName GetNameForColorSpace(PdfColorSpace colorSpace);
-
     /** Creates a colorspace object from a color to insert into resources.
      *
      *  \param document a pointer to the owner document of the generated object

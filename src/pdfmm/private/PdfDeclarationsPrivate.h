@@ -144,11 +144,37 @@ namespace mm
 
     std::string_view GetPdfVersionName(PdfVersion version);
 
+    /**
+     *  Convert a name into a colorspace enum.
+     *
+     *  \param name name representing a colorspace such as DeviceGray
+     *  \returns colorspace enum or PdfColorSpace_Unknown if name is unknown
+     *  \see GetNameForColorSpace
+     */
+    PdfColorSpace NameToColorSpaceRaw(const std::string_view& name);
+
+    /*
+     *  Convert a colorspace enum value into a name such as DeviceRGB
+     *
+     *  \param colorSpace a colorspace
+     *  \returns a name
+     *  \see GetColorSpaceForName
+     */
+    std::string_view ColorSpaceToNameRaw(PdfColorSpace colorSpace);
+
     constexpr double DEG2RAD = std::numbers::pi / 180;
     constexpr double RAD2DEG = 180 / std::numbers::pi;
 
     std::vector<std::string> ToPdfKeywordsList(const std::string_view& str);
     std::string ToPdfKeywordsString(const cspan<std::string>&keywords);
+
+    PdfFilterType NameToFilter(const std::string_view& name);
+
+    PdfFilterType NameToFilterShort(const std::string_view& name);
+
+    std::string_view FilterToName(PdfFilterType filterType);
+
+    std::string_view FilterToNameShort(PdfFilterType filterType);
 
     /** Log a message to the logging system defined for pdfmm.
      *  \param logSeverity the severity of the log message

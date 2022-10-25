@@ -1,4 +1,5 @@
 ## Version 0.10.0
+- PdfImage: Cleaned/reviewed/fixed SetData()/SetDataRaw()
 - Renamed PdfPageTree -> PdfPageCollection
 - Added XMP metadata reading/saving. Added PdfMetadata class
 - Added text extraction API

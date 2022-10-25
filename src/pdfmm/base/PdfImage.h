@@ -20,8 +20,17 @@ namespace mm {
 class PdfArray;
 class PdfDocument;
 class InputStream;
-class PdfObject;
-class PdfIndirectObjectList;
+
+struct PdfImageInfo
+{
+    unsigned Width;
+    unsigned Height;
+    PdfFilterList Filters;
+    PdfColorSpace ColorSpace;
+    PdfArray ColorSpaceArray;
+    unsigned char BitsPerComponent;
+    PdfArray Decode;
+};
 
 /** A PdfImage object is needed when ever you want to embedd an image
  *  file into a PDF document.
@@ -30,8 +39,6 @@ class PdfIndirectObjectList;
  *
  *  \see GetImageReference
  *  \see PdfPainter::DrawImage
- *
- *  \see SetImageData
  */
 class PDFMM_API PdfImage final : public PdfXObject
 {
@@ -48,23 +55,11 @@ private:
     PdfImage(PdfDocument& doc, const std::string_view& prefix);
 
 public:
-    void DecodeTo(charbuff& buff, PdfPixelFormat format) const;
-    void DecodeTo(void* buffer, PdfPixelFormat format, int stride) const;
-    void DecodeTo(OutputStream& stream, PdfPixelFormat format, int stride = -1) const;
+    void DecodeTo(charbuff& buff, PdfPixelFormat format, int rowSize = -1) const;
+    void DecodeTo(const bufferspan& buff, PdfPixelFormat format, int rowSize = -1) const;
+    void DecodeTo(OutputStream& stream, PdfPixelFormat format, int rowSize = -1) const;
 
     charbuff GetDecodedCopy(PdfPixelFormat format);
-
-    /** Set the color space of this image. The default value is
-     *  PdfColorSpace::DeviceRGB.
-     *  \param colorSpace one of PdfColorSpace::DeviceGray, PdfColorSpace::DeviceRGB and
-     *                     PdfColorSpace::DeviceCMYK, PdfColorSpace::Indexed
-     *  \param indexedData this parameter is required only for PdfColorSpace::Indexed and
-     *       it contains string with one number and then color palette, like "/DeviceRGB 15 <000000 00FF00...>"
-     *       or the string array can be a resource name.
-     *
-     *  \see SetImageICCProfile to set an ICC profile instead of a simple colorspace
-     */
-    void SetColorSpace(PdfColorSpace colorSpace, const PdfArray* indexedData = nullptr);
 
     /** Get the color space of the image
     *
@@ -101,100 +96,52 @@ public:
      */
     unsigned GetHeight() const;
 
-    /** Set the actual image data from an input stream
+    /** Set the actual image data from a buffer
      *
-     *  The image data will be flate compressed.
-     *  If you want no compression or another filter to be applied
-     *  use the overload of SetImageData which takes a filter list
-     *  as argument.
-     *
-     *  \param stream stream supplieding raw image data
+     *  \param buffer buffer supplying image data
      *  \param width width of the image in pixels
      *  \param height height of the image in pixels
-     *  \param bitsPerComponent bits per color component of the image (depends on the image colorspace you have set
-     *                           but is 8 in most cases)
+     *  \param format pixel format of the bitmap
+     *  \param rowSize length of the row, if negative the default is used
      *
-     *  \see SetImageData
      */
-    void SetData(InputStream& stream, unsigned width, unsigned height,
-        unsigned bitsPerComponent);
+    void SetData(const bufferview& buffer, unsigned width, unsigned height,
+        PdfPixelFormat format, int rowSize = -1);
 
     /** Set the actual image data from an input stream
      *
-     *  \param stream stream suplying raw image data
+     *  \param stream stream supplying raw image data
      *  \param width width of the image in pixels
      *  \param height height of the image in pixels
-     *  \param bitsPerComponent bits per color component of the image (depends on the image colorspace you have set
-     *                           but is 8 in most cases)
-     *  \param filters these filters will be applied to compress the image data
+     *  \param format pixel format of the bitmap
+     *  \param rowSize length of the row, if negative the default is used
      */
     void SetData(InputStream& stream, unsigned width, unsigned height,
-                      unsigned bitsPerComponent, PdfFilterList& filters);
+        PdfPixelFormat format, int rowSize = -1);
 
-    /** Set the actual image data from an input stream.
-     *  The data has to be encoded already and an appropriate
-     *  filters key entry has to be set manually before!
+    /** Set the actual image encoded data from a buffer
      *
-     *  \param stream stream supplieding raw image data
-     *  \param width width of the image in pixels
-     *  \param height height of the image in pixels
-     *  \param bitsPerComponent bits per color component of the image (depends on the image colorspace you have set
-     *                           but is 8 in most cases)
+     *  \param buffer buffer supplying image data
+     *  \param info parameters describing the encoded image data
      */
-    void SetDataRaw(InputStream& stream, unsigned width, unsigned height,
-        unsigned bitsPerComponent);
+    void SetDataRaw(const bufferview& buffer, const PdfImageInfo& info);
+
+    /** Set the actual image encoded data from an input stream.
+     *
+     *  \param stream stream supplying encoded image data
+     *  \param info parameters describing the encoded image data
+     */
+    void SetDataRaw(InputStream& stream, const PdfImageInfo& info);
 
     /** Load the image data from a file
-     *  \param filename
      */
-    void LoadFromFile(const std::string_view& filename);
+    void LoadFromFile(const std::string_view& filepath);
 
     /** Load the image data from bytes
-     *  \param data bytes
-     *  \param len number of bytes
      */
-    void LoadFromData(const unsigned char* data, size_t len);
+    void LoadFromBuffer(const bufferview& buffer);
 
     void ExportTo(charbuff& buff, PdfExportFormat format, PdfArray args = {}) const;
-
-#ifdef PDFMM_HAVE_JPEG_LIB
-    /** Load the image data from a JPEG file
-     *  \param filename
-     */
-    void LoadFromJpeg(const std::string_view& filename);
-
-    /** Load the image data from JPEG bytes
-     *  \param data JPEG bytes
-     *  \param len number of bytes
-     */
-    void LoadFromJpegData(const unsigned char* data, size_t len);
-
-#endif // PDFMM_HAVE_JPEG_LIB
-#ifdef PDFMM_HAVE_TIFF_LIB
-    /** Load the image data from a TIFF file
-     *  \param filename
-     */
-    void LoadFromTiff(const std::string_view& filename);
-
-    /** Load the image data from TIFF bytes
-     *  \param data TIFF bytes
-     *  \param len number of bytes
-     */
-    void LoadFromTiffData(const unsigned char* data, size_t len);
-
-#endif // PDFMM_HAVE_TIFF_LIB
-#ifdef PDFMM_HAVE_PNG_LIB
-    /** Load the image data from a PNG file
-     *  \param filename
-     */
-    void LoadFromPng(const std::string_view& filename);
-
-    /** Load the image data from PNG bytes
-     *  \param data PNG bytes
-     *  \param len number of bytes
-     */
-    void LoadFromPngData(const unsigned char* data, size_t len);
-#endif // PDFMM_HAVE_PNG_LIB
 
     /** Set an color/chroma-key mask on an image.
      *  The masked color will not be painted, i.e. masked as being transparent.
@@ -223,26 +170,51 @@ private:
      */
     PdfImage(PdfObject& obj);
 
-    charbuff initScanLine(PdfPixelFormat format, int stride, charbuff& smask) const;
+    charbuff initScanLine(PdfPixelFormat format, int rowSize, charbuff& smask) const;
 
     unsigned getBufferSize(PdfPixelFormat format) const;
 
-    /** Converts a PdfColorSpace enum to a name key which can be used in a
-     *  PDF dictionary.
-     *  \param colorSpace a valid colorspace
-     *  \returns a valid key for this colorspace.
-     */
-    static PdfName colorSpaceToName(PdfColorSpace colorSpace);
-
 #ifdef PDFMM_HAVE_JPEG_LIB
-    void loadFromJpegInfo(jpeg_decompress_struct& info);
+    void loadFromJpegInfo(jpeg_decompress_struct& ctx, PdfImageInfo& info);
     void exportToJpeg(charbuff& buff, const PdfArray& args) const;
+    /** Load the image data from a JPEG file
+     *  \param filename
+     */
+    void loadFromJpeg(const std::string_view& filename);
+
+    /** Load the image data from JPEG bytes
+     *  \param data JPEG bytes
+     *  \param len number of bytes
+     */
+    void loadFromJpegData(const unsigned char* data, size_t len);
 #endif // PDFMM_HAVE_JPEG_LIB
+
 #ifdef PDFMM_HAVE_TIFF_LIB
     void loadFromTiffHandle(void* handle);
+    /** Load the image data from a TIFF file
+     *  \param filename
+     */
+    void loadFromTiff(const std::string_view& filename);
+
+    /** Load the image data from TIFF bytes
+     *  \param data TIFF bytes
+     *  \param len number of bytes
+     */
+    void loadFromTiffData(const unsigned char* data, size_t len);
 #endif // PDFMM_HAVE_TIFF_LIB
+
 #ifdef PDFMM_HAVE_PNG_LIB
     void loadFromPngHandle(FILE* stream);
+    /** Load the image data from a PNG file
+     *  \param filename
+     */
+    void loadFromPng(const std::string_view& filename);
+
+    /** Load the image data from PNG bytes
+     *  \param data PNG bytes
+     *  \param len number of bytes
+     */
+    void loadFromPngData(const unsigned char* data, size_t len);
 #endif // PDFMM_HAVE_PNG_LIB
 
 private:

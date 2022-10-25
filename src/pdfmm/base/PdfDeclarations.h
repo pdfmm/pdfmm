@@ -328,11 +328,11 @@ enum class PdfColorSpace
 enum class PdfPixelFormat
 {
     Unknown = 0,
-    RGBA,
-    BGRA,
+    Grayscale,
     RGB24,
     BGR24,
-    Grayscale,
+    RGBA,
+    BGRA,
 };
 
 /**

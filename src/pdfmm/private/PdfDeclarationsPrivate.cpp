@@ -1,3 +1,4 @@
+#include "PdfDeclarationsPrivate.h"
 /**
  * Copyright (C) 2005 by Dominik Seichter <domseichter@web.de>
  * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
@@ -94,6 +95,178 @@ string_view mm::GetPdfVersionName(PdfVersion version)
             return s_PdfVersions[7].Name;
         case PdfVersion::V2_0:
             return s_PdfVersions[8].Name;
+        default:
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+    }
+}
+
+/*
+    DeviceGray,
+    DeviceRGB,
+    DeviceCMYK,
+    CalGray,
+    CalRGB,
+    Lab,            ///< CIE-Lab
+    ICCBased,
+    Indexed,
+    Pattern,
+    Separation,
+    DeviceN
+*/
+PdfColorSpace mm::NameToColorSpaceRaw(const string_view& name)
+{
+    if (name == "DeviceGray")
+        return PdfColorSpace::DeviceGray;
+    else if (name == "DeviceRGB")
+        return PdfColorSpace::DeviceRGB;
+    else if (name == "DeviceCMYK")
+        return PdfColorSpace::DeviceCMYK;
+    else if (name == "CalGray")
+        return PdfColorSpace::CalGray;
+    else if (name == "Lab")
+        return PdfColorSpace::Lab;
+    else if (name == "ICCBased")
+        return PdfColorSpace::ICCBased;
+    else if (name == "Indexed")
+        return PdfColorSpace::Indexed;
+    else if (name == "Pattern")
+        return PdfColorSpace::Pattern;
+    else if (name == "Separation")
+        return PdfColorSpace::Separation;
+    else if (name == "DeviceN")
+        return PdfColorSpace::DeviceN;
+    else
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::CannotConvertColor, "Unsupported colorspace name: {}", name);
+}
+
+string_view mm::ColorSpaceToNameRaw(PdfColorSpace colorSpace)
+{
+    switch (colorSpace)
+    {
+        case PdfColorSpace::DeviceGray:
+            return "DeviceGray"sv;
+        case PdfColorSpace::DeviceRGB:
+            return "DeviceRGB"sv;
+        case PdfColorSpace::DeviceCMYK:
+            return "DeviceCMYK"sv;
+        case PdfColorSpace::CalGray:
+            return "CalGray"sv;
+        case PdfColorSpace::Lab:
+            return "Lab"sv;
+        case PdfColorSpace::ICCBased:
+            return "ICCBased"sv;
+        case PdfColorSpace::Indexed:
+            return "Indexed"sv;
+        case PdfColorSpace::Pattern:
+            return "Pattern"sv;
+        case PdfColorSpace::Separation:
+            return "Separation"sv;
+        case PdfColorSpace::DeviceN:
+            return "DeviceN"sv;
+        case PdfColorSpace::Unknown:
+        default:
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+    }
+}
+
+PdfFilterType mm::NameToFilter(const string_view& name)
+{
+    if (name == "ASCIIHexDecode")
+        return PdfFilterType::ASCIIHexDecode;
+    else if (name == "ASCII85Decode")
+        return PdfFilterType::ASCII85Decode;
+    else if (name == "LZWDecode")
+        return PdfFilterType::LZWDecode;
+    else if (name == "FlateDecode")
+        return PdfFilterType::FlateDecode;
+    else if (name == "RunLengthDecode")
+        return PdfFilterType::RunLengthDecode;
+    else if (name == "CCITTFaxDecode")
+        return PdfFilterType::CCITTFaxDecode;
+    else if (name == "JBIG2Decode")
+        return PdfFilterType::JBIG2Decode;
+    else if (name == "DCTDecode")
+        return PdfFilterType::DCTDecode;
+    else if (name == "JPXDecode")
+        return PdfFilterType::JPXDecode;
+    else if (name == "Crypt")
+        return PdfFilterType::Crypt;
+    else
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, name);
+}
+
+PdfFilterType mm::NameToFilterShort(const string_view& name)
+{
+    if (name == "AHx")
+        return PdfFilterType::ASCIIHexDecode;
+    else if (name == "A85")
+        return PdfFilterType::ASCII85Decode;
+    else if (name == "LZW")
+        return PdfFilterType::LZWDecode;
+    else if (name == "Fl")
+        return PdfFilterType::FlateDecode;
+    else if (name == "RL")
+        return PdfFilterType::RunLengthDecode;
+    else if (name == "CCF")
+        return PdfFilterType::CCITTFaxDecode;
+    else if (name == "DCT")
+        return PdfFilterType::DCTDecode;
+    // No short names for JBIG2Decode, JPXDecode, Crypt
+    else
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, name);
+}
+
+string_view mm::FilterToName(PdfFilterType filterType)
+{
+    switch (filterType)
+    {
+        case PdfFilterType::ASCIIHexDecode:
+            return "ASCIIHexDecode";
+        case PdfFilterType::ASCII85Decode:
+            return "ASCII85Decode";
+        case PdfFilterType::LZWDecode:
+            return "LZWDecode";
+        case PdfFilterType::FlateDecode:
+            return "FlateDecode";
+        case PdfFilterType::RunLengthDecode:
+            return "RunLengthDecode";
+        case PdfFilterType::CCITTFaxDecode:
+            return "CCITTFaxDecode";
+        case PdfFilterType::JBIG2Decode:
+            return "JBIG2Decode";
+        case PdfFilterType::DCTDecode:
+            return "DCTDecode";
+        case PdfFilterType::JPXDecode:
+            return "JPXDecode";
+        case PdfFilterType::Crypt:
+            return "Crypt";
+        default:
+            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+    }
+}
+
+string_view mm::FilterToNameShort(PdfFilterType filterType)
+{
+    switch (filterType)
+    {
+        case PdfFilterType::ASCIIHexDecode:
+            return "AHx";
+        case PdfFilterType::ASCII85Decode:
+            return "A85";
+        case PdfFilterType::LZWDecode:
+            return "LZW";
+        case PdfFilterType::FlateDecode:
+            return "Fl";
+        case PdfFilterType::RunLengthDecode:
+            return "RL";
+        case PdfFilterType::CCITTFaxDecode:
+            return "CCF";
+        case PdfFilterType::DCTDecode:
+            return "DCT";
+        // No short names for the following
+        case PdfFilterType::JBIG2Decode:
+        case PdfFilterType::JPXDecode:
+        case PdfFilterType::Crypt:
         default:
             PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
     }

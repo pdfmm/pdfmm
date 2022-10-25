@@ -1040,59 +1040,6 @@ PdfObject* PdfColor::BuildColorSpace(PdfDocument& document) const
     return nullptr;
 }
 
-PdfColorSpace PdfColor::GetColorSpaceForName(const PdfName& name)
-{
-    PdfColorSpace ePdfColorSpace = PdfColorSpace::Unknown;
-
-    if (name == "DeviceGray")
-    {
-        ePdfColorSpace = PdfColorSpace::DeviceGray;
-    }
-    else if (name == "DeviceRGB")
-    {
-        ePdfColorSpace = PdfColorSpace::DeviceRGB;
-    }
-    else if (name == "DeviceCMYK")
-    {
-        ePdfColorSpace = PdfColorSpace::DeviceCMYK;
-    }
-    else if (name == "Indexed")
-    {
-        ePdfColorSpace = PdfColorSpace::Indexed;
-    }
-    else
-    {
-        // TODO: other are not supported at the moment
-        mm::LogMessage(PdfLogSeverity::Information, "Unsupported colorspace name: {}", name.GetString());
-    }
-
-    return ePdfColorSpace;
-}
-
-PdfName PdfColor::GetNameForColorSpace(PdfColorSpace colorSpace)
-{
-    switch (colorSpace)
-    {
-        case PdfColorSpace::DeviceGray:
-            return PdfName("DeviceGray");
-        case PdfColorSpace::DeviceRGB:
-            return PdfName("DeviceRGB");
-        case PdfColorSpace::DeviceCMYK:
-            return PdfName("DeviceCMYK");
-        case PdfColorSpace::Separation:
-            return PdfName("Separation");
-        case PdfColorSpace::Lab:
-            return PdfName("Lab");
-        case PdfColorSpace::Indexed:
-            return PdfName("Indexed");
-        case PdfColorSpace::Unknown:
-        default:
-            mm::LogMessage(PdfLogSeverity::Information, "Unsupported colorspace enum: {}", (int)colorSpace);
-            return PdfName();
-    }
-
-}
-
 PdfColor PdfNamedColor::FromRGBString(const string_view& name)
 {
     // This method cannot use PdfTokenizer::GetHexValue() as static values used there have
