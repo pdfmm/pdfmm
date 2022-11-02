@@ -66,10 +66,13 @@ bool PdfXObject::TryCreateFromObject(const PdfObject& obj, unique_ptr<const PdfX
 
 bool PdfXObject::tryCreateFromObject(const PdfObject& obj, PdfXObjectType xobjType, PdfXObject*& xobj)
 {
-    auto typeObj = obj.GetDictionary().GetKey(PdfName::KeyType);
-    if (typeObj == nullptr
-        || !typeObj->IsName()
-        || typeObj->GetName().GetString() != "XObject")
+    const PdfDictionary* dict;
+    const PdfObject* typeObj;
+    const PdfName* name;
+    if (!obj.TryGetDictionary(dict)
+        || (typeObj = dict->GetKey(PdfName::KeyType)) == nullptr
+        || !typeObj->TryGetName(name)
+        || name->GetString() != "XObject")
     {
         xobj = nullptr;
         return false;
