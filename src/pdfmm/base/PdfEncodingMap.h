@@ -84,6 +84,8 @@ public:
      * CMap: proper CMap or PdfIndentityEncoding and other
      * predefined CMap names as well (ISO 32000-1:2008 Table 118
      * Predefined CJK CMap names, currently not implemented)
+     * \remarks This is a low level information. Use PdfEncoding::IsSimpleEncoding()
+     * to dermine if the encoding is really a simple one
      */
     PdfEncodingMapType GetType() const { return m_Type; }
 

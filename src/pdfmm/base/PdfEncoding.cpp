@@ -508,7 +508,7 @@ bool PdfEncoding::GetToUnicodeMapSafe(const PdfEncodingMap*& toUnicode) const
     // Fallback to main /Encoding entry. It is a valid
     // ToUnicode map for simple encodings
     toUnicode = m_Encoding.get();
-    return m_Encoding->GetType() == PdfEncodingMapType::Simple;
+    return IsSimpleEncoding();
 }
 
 // Handle missing mapped code by just appending current
