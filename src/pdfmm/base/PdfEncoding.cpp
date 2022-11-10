@@ -354,6 +354,11 @@ void PdfEncoding::ExportToFont(PdfFont& font, PdfEncodingExportFlags flags) cons
     }
 }
 
+PdfStringScanContext PdfEncoding::StartStringScan(const PdfString& encodedStr)
+{
+    return PdfStringScanContext(encodedStr.GetRawData(), *this);
+}
+
 bool PdfEncoding::tryExportObjectTo(PdfDictionary& dictionary, bool wantCIDMapping) const
 {
     if (wantCIDMapping && !HasCIDMapping())
@@ -683,4 +688,48 @@ size_t PdfEncoding::GetNextId()
 {
     static atomic<size_t> s_nextid = CustomEncodingStartId;
     return s_nextid++;
+}
+
+PdfStringScanContext::PdfStringScanContext(const string_view& encodedstr, const PdfEncoding& encoding) :
+    m_it(encodedstr.begin()),
+    m_end(encodedstr.end()),
+    m_encoding(&encoding.GetEncodingMap()),
+    m_limits(m_encoding->GetLimits()),
+    m_toUnicode(&encoding.GetToUnicodeMapSafe())
+{
+}
+
+bool PdfStringScanContext::IsEndOfString() const
+{
+    return m_it == m_end;
+}
+
+bool PdfStringScanContext::TryScan(PdfCID& cid, string& utf8str, vector<codepoint>& codepoints)
+{
+    bool success = true;
+    if (!m_encoding->TryGetNextCID(m_it, m_end, cid))
+    {
+        PdfCharCode unit = fetchFallbackCharCode(m_it, m_end, m_limits);
+        cid = PdfCID(unit);
+        success = false;
+    }
+
+    if (m_toUnicode->TryGetCodePoints(cid.Unit, codepoints))
+    {
+        for (size_t i = 0; i < codepoints.size(); i++)
+        {
+            char32_t codePoint = codepoints[i];
+            if (codePoint != U'\0' && utf8::internal::is_code_point_valid(codePoint))
+            {
+                // Validate codepoints to insert
+                utf8::unchecked::append((uint32_t)codepoints[i], std::back_inserter(utf8str));
+            }
+        }
+    }
+    else
+    {
+        success = false;
+    }
+
+    return success;
 }

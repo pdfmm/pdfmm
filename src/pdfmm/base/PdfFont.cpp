@@ -36,7 +36,7 @@ using namespace std;
 using namespace cmn;
 using namespace mm;
 
-static double getCharLength(double glyphLength, const PdfTextState& state, bool ignoreCharSpacing);
+static double getGlyphLength(double glyphLength, const PdfTextState& state, bool ignoreCharSpacing);
 static string_view toString(PdfFontStretch stretch);
 
 PdfFont::PdfFont(PdfDocument& doc, const PdfFontMetricsConstPtr& metrics,
@@ -296,7 +296,7 @@ bool PdfFont::TryGetStringLength(const string_view& str, const PdfTextState& sta
     bool success = tryConvertToGIDs(str, PdfGlyphAccess::Width, gids);
     length = 0;
     for (unsigned i = 0; i < gids.size(); i++)
-        length += getCharLength(m_Metrics->GetGlyphWidth(gids[i]), state, false);
+        length += getGlyphLength(m_Metrics->GetGlyphWidth(gids[i]), state, false);
 
     return success;
 }
@@ -320,10 +320,39 @@ bool PdfFont::TryGetStringLength(const PdfString& encodedStr, const PdfTextState
     return success;
 }
 
+bool PdfFont::TryScanString(const PdfString& encodedStr, const PdfTextState& state, string& utf8str, vector<double>& lengths, vector<unsigned>& positions) const
+{
+    utf8str.clear();
+    lengths.clear();
+    positions.clear();
+
+    if (encodedStr.IsEmpty())
+        return true;
+
+    auto context = m_Encoding->StartStringScan(encodedStr);
+    vector<codepoint> codepoints;
+    PdfCID cid;
+    bool success = true;
+    unsigned prevOffset = 0;
+    double length;
+    while (!context.IsEndOfString())
+    {
+        if (!context.TryScan(cid, utf8str, codepoints))
+            success = false;
+
+        length = getGlyphLength(GetCIDLengthRaw(cid.Id), state, false);
+        lengths.push_back(length);
+        positions.push_back(prevOffset);
+        prevOffset = (unsigned)utf8str.length();
+    }
+
+    return false;
+}
+
 double PdfFont::GetWordSpacingLength(const PdfTextState& state) const
 {
     const_cast<PdfFont&>(*this).initWordSpacingLength();
-    return getCharLength(m_WordSpacingLengthRaw, state, false);
+    return getGlyphLength(m_WordSpacingLengthRaw, state, false);
 }
 
 double PdfFont::GetCharLength(char32_t codePoint, const PdfTextState& state, bool ignoreCharSpacing) const
@@ -347,12 +376,12 @@ bool PdfFont::TryGetCharLength(char32_t codePoint, const PdfTextState& state,
     unsigned gid;
     if (TryGetGID(codePoint, PdfGlyphAccess::Width, gid))
     {
-        length = getCharLength(m_Metrics->GetGlyphWidth(gid), state, ignoreCharSpacing);
+        length = getGlyphLength(m_Metrics->GetGlyphWidth(gid), state, ignoreCharSpacing);
         return true;
     }
     else
     {
-        length = getCharLength(m_Metrics->GetDefaultWidth(), state, ignoreCharSpacing);
+        length = getGlyphLength(m_Metrics->GetDefaultWidth(), state, ignoreCharSpacing);
         return false;
     }
 }
@@ -582,7 +611,7 @@ double PdfFont::getStringLength(const vector<PdfCID>& cids, const PdfTextState& 
 {
     double length = 0;
     for (auto& cid : cids)
-        length += getCharLength(GetCIDLengthRaw(cid.Id), state, false);
+        length += getGlyphLength(GetCIDLengthRaw(cid.Id), state, false);
 
     return length;
 }
@@ -978,7 +1007,7 @@ bool PdfFont::IsObjectLoaded() const
 // 32 in a string when using a simple font or a composite font that defines code 32 as a
 // single - byte code.It does not apply to occurrences of the byte value 32 in multiplebyte
 // codes.
-double getCharLength(double glyphLength, const PdfTextState& state, bool ignoreCharSpacing)
+double getGlyphLength(double glyphLength, const PdfTextState& state, bool ignoreCharSpacing)
 {
     if (ignoreCharSpacing)
         return glyphLength * state.FontSize * state.FontScale;

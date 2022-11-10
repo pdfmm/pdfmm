@@ -24,6 +24,32 @@ namespace mm
         SkipToUnicode = 1,  ///< Skip exporting a /ToUnicode entry
     };
 
+    /** A PDF string context to interatively scan a string
+     * and collect both CID and unicode codepoints
+     */
+    class PDFMM_API PdfStringScanContext
+    {
+        friend class PdfEncoding;
+
+    private:
+        PdfStringScanContext(const std::string_view& encodedstr, const PdfEncoding& encoding);
+
+    public:
+        bool IsEndOfString() const;
+
+        /** Advance string reading
+         * \return true if success
+         */
+        bool TryScan(PdfCID& cid, std::string& utf8str, std::vector<codepoint>& codepoints);
+
+    private:
+        std::string_view::iterator m_it;
+        std::string_view::iterator m_end;
+        const PdfEncodingMap* m_encoding;
+        PdfEncodingLimits m_limits;
+        const PdfEncodingMap* m_toUnicode;
+    };
+
     /**
      * A PdfEncoding is in PdfFont to transform a text string
      * into a representation so that it can be displayed in a
@@ -95,6 +121,8 @@ namespace mm
         char32_t GetCodePoint(unsigned charCode) const;
 
         void ExportToFont(PdfFont& font, PdfEncodingExportFlags flags = { }) const;
+
+        PdfStringScanContext StartStringScan(const PdfString& encodedStr);
 
     public:
         /** This return the first char code used in the encoding

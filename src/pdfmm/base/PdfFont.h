@@ -175,6 +175,14 @@ public:
      */
     bool TryGetStringLength(const PdfString& encodedStr, const PdfTextState& state, double& length) const;
 
+    /** Scan string decoding unicode codepoints and obtaining glyphs lengths
+     * \param lengths lengths of the glyphs
+     * \param positions position of the CIDs in the utf8string
+     * \remarks Produces a partial result also in case of failures
+     */
+    bool TryScanString(const PdfString& encodedStr, const PdfTextState& state, std::string& utf8str,
+        std::vector<double>& lengths, std::vector<unsigned>& positions) const;
+
     /**
      *  \returns The spacing width
      */

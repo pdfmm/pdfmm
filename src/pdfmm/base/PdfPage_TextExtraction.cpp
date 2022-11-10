@@ -51,28 +51,31 @@ struct TextState
     void ComputeDependentState();
     void ComputeSpaceLength();
     void ComputeT_rm();
-
     double GetWordSpacingLength() const;
-    double GetCharLength(char32_t ch) const;
-    double GetStringLength(const string_view& str) const;        // utf8 string
-    double GetStringLength(const PdfString& encodedStr) const;   // pdf encoded
+    void ScanString(const PdfString& encodedStr, string& decoded, vector<double>& lengths, vector<unsigned>& positions);
 };
 
 class StatefulString
 {
 public:
-    StatefulString(const string_view &str, double lengthRaw, const TextState &state);
+    StatefulString(string&& str, const TextState& state, vector<double>&& rawLengths, vector<unsigned>&& positions);
 public:
     bool BeginsWithWhiteSpace() const;
     bool EndsWithWhiteSpace() const;
     StatefulString GetTrimmedBegin() const;
     StatefulString GetTrimmedEnd() const;
+    double GetLengthRaw() const;
+    double GetLength() const;
+private:
+    vector<double> computeLengths(const vector<double>& rawLengths);
 public:
     const string String;
     const TextState State;
-    Vector2 Position;
-    const double LengthRaw;
-    const double Length;
+    const vector<double> RawLengths;
+    const vector<double> Lengths;
+    // Glyph position in the string
+    const vector<unsigned> StringPositions;
+    const Vector2 Position;
     const bool IsWhiteSpace;
 };
 
@@ -157,14 +160,14 @@ public:
 };
 
 
-static bool decodeString(const PdfString &str, TextState &state, string &decoded, double &length);
+static bool decodeString(const PdfString &str, TextState &state, string &decoded,
+    vector<double> &lengths, vector<unsigned>& positions);
 static bool areEqual(double lhs, double rhs);
 static bool isWhiteSpaceChunk(const StringChunk &chunk);
 static void splitChunkBySpaces(vector<StringChunkPtr> &splittedChunks, const StringChunk &chunk);
 static void splitStringBySpaces(vector<StatefulString> &separatedStrings, const StatefulString &string);
 static void trimSpacesBegin(StringChunk &chunk);
 static void trimSpacesEnd(StringChunk &chunk);
-static double getStringLength(const string_view &str, const TextState &state);
 static void addEntry(vector<PdfTextEntry> &textEntries, StringChunkList &strings,
     const string_view &pattern, const EntryOptions &options, const nullable<PdfRect> &clipRect,
     int pageIndex, const Matrix* rotation);
@@ -175,6 +178,9 @@ static void processChunks(StringChunkList& chunks, string& str, double& length);
 static void processChunks(StringChunkList& chunks, string& str, double& length, PdfRect& bbox);
 static void read(const PdfVariantStack& stack, double &tx, double &ty);
 static void read(const PdfVariantStack& stack, double &a, double &b, double &c, double &d, double &e, double &f);
+static void getSubstringIndices(const StatefulString& str,
+    unsigned lowerPos, unsigned upperLimitPos,
+    unsigned& lowerIndex, unsigned& upperLimitIndex);
 static EntryOptions fromFlags(PdfTextExtractFlags flags);
 
 void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const PdfTextExtractParams& params) const
@@ -190,6 +196,9 @@ void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const string_view& pa
     // Look FIGURE 4.1 Graphics objects
     PdfContentsReader reader(*this);
     PdfContent content;
+    vector<double> lengths;
+    vector<unsigned> positions;
+    string decoded;
     while (reader.TryReadNext(content))
     {
         switch (content.Type)
@@ -288,7 +297,7 @@ void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const string_view& pa
                     {
                         ASSERT(context.BlockOpen, "No text block open");
 
-                        auto str = content.Stack[0].GetString();
+                        auto& str = content.Stack[0].GetString();
                         if (content.Operator == PdfOperator::DoubleQuote)
                         {
                             // Operator " arguments: aw ac string "
@@ -296,12 +305,11 @@ void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const string_view& pa
                             context.States.Current->PdfState.WordSpacing = content.Stack[2].GetReal();
                         }
 
-                        string decoded;
-                        double length;
-                        if (decodeString(str, *context.States.Current, decoded, length)
+                        if (decodeString(str, *context.States.Current, decoded, lengths, positions)
                             && decoded.length() != 0)
                         {
-                            context.PushString(StatefulString(decoded, length, *context.States.Current), true);
+                            context.PushString(StatefulString(std::move(decoded), *context.States.Current,
+                                std::move(lengths), std::move(positions)), true);
                         }
 
                         if (content.Operator == PdfOperator::Quote
@@ -323,12 +331,11 @@ void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const string_view& pa
                             auto& obj = array[i];
                             if (obj.IsString())
                             {
-                                string decoded;
-                                double length;
-                                if (decodeString(obj.GetString(), *context.States.Current, decoded, length)
+                                if (decodeString(obj.GetString(), *context.States.Current, decoded, lengths, positions)
                                     && decoded.length() != 0)
                                 {
-                                    context.PushString(StatefulString(decoded, length, *context.States.Current));
+                                    context.PushString(StatefulString(std::move(decoded), *context.States.Current,
+                                        std::move(lengths), std::move(positions)));
                                 }
                             }
                             else if (obj.IsNumberOrReal())
@@ -620,31 +627,47 @@ void read(const PdfVariantStack& tokens, double & a, double & b, double & c, dou
     a = tokens[5].GetReal();
 }
 
-bool decodeString(const PdfString &str, TextState &state, string &decoded, double &length)
+bool decodeString(const PdfString &str, TextState &state, string &decoded,
+    vector<double>& lengths, vector<unsigned>& positions)
 {
     if (state.PdfState.Font == nullptr)
     {
-        length = 0;
         if (!str.IsHex())
         {
             // As a fallback try to retrieve the raw string
+            // CHECK-ME: Maybe intrepret them as PdfDocEncoding?
             decoded = str.GetString();
+            lengths.resize(decoded.length());
+            positions.reserve(decoded.length());
+            for (unsigned i = 0; i < decoded.length(); i++)
+                positions.push_back(i);
+
             return true;
         }
 
+        decoded.clear();
+        lengths.clear();
+        positions.clear();
         return false;
     }
 
-    decoded = state.PdfState.Font->GetEncoding().ConvertToUtf8(str);
-    length = state.GetStringLength(str);
+    state.ScanString(str, decoded, lengths, positions);
     return true;
 }
 
-StatefulString::StatefulString(const string_view &str, double lengthRaw, const TextState &state)
-    : String((string)str), State(state), Position(state.T_rm.GetTranslationVector()),
-      LengthRaw(lengthRaw), Length((Vector2(lengthRaw, 0) * state.CTM.GetScalingRotation()).GetLength()), IsWhiteSpace(utls::IsStringEmptyOrWhiteSpace(str))
+StatefulString::StatefulString(string&& str, const TextState& state,
+        vector<double>&& lengths, vector<unsigned>&& positions) :
+    String(std::move(str)),
+    State(state),
+    RawLengths(std::move(lengths)),
+    Lengths(computeLengths(RawLengths)),
+    StringPositions(std::move(positions)),
+    Position(state.T_rm.GetTranslationVector()),
+    IsWhiteSpace(utls::IsStringEmptyOrWhiteSpace(String))
 {
-    PDFMM_ASSERT(str.length() != 0);
+    PDFMM_ASSERT(String.length() != 0);
+    PDFMM_ASSERT(RawLengths.size() != 0);
+    PDFMM_ASSERT(StringPositions.size() != 0);
 }
 
 StatefulString StatefulString::GetTrimmedBegin() const
@@ -665,17 +688,31 @@ StatefulString StatefulString::GetTrimmedBegin() const
     // First, advance the x position by finding the space string size with the current font
     auto state = State;
     double spacestrLength = 0;
-    size_t trimmedLen = prev - str.begin();
+    unsigned trimmedLen = (unsigned)(prev - str.begin());
+    unsigned lowerLimIndex = 0;
     if (trimmedLen != 0)
     {
         auto spacestr = str.substr(0, trimmedLen);
-        spacestrLength = getStringLength(spacestr, state);
-        state.T_m.Apply<Tx>(spacestrLength);
+        double length = 0;
+        for (unsigned i = 0; i < StringPositions.size(); i++)
+        {
+            if (StringPositions[i] >= trimmedLen)
+            {
+                lowerLimIndex = i;
+                break;
+            }
+
+            length += Lengths[i];
+        }
+
+        state.T_m.Apply<Tx>(length);
         state.ComputeDependentState();
     }
 
     // After, rewrite the string without spaces
-    return StatefulString(str.substr(trimmedLen), LengthRaw - spacestrLength, state);
+    return StatefulString(str.substr(trimmedLen), state,
+        { RawLengths.begin() + lowerLimIndex, RawLengths.end() },
+        { StringPositions.begin() + lowerLimIndex, StringPositions.end() });
 }
 
 bool StatefulString::BeginsWithWhiteSpace() const
@@ -711,7 +748,51 @@ bool StatefulString::EndsWithWhiteSpace() const
 StatefulString StatefulString::GetTrimmedEnd() const
 {
     string trimmedStr = utls::TrimSpacesEnd(String);
-    return StatefulString(trimmedStr, getStringLength(trimmedStr, State), State);
+    unsigned positionIndexLimit = (unsigned)StringPositions.size();
+    if (trimmedStr.length() != String.length())
+    {
+        for (int i = StringPositions.size() - 1; i >= 0; i--)
+        {
+            if (StringPositions[i] < (unsigned)trimmedStr.length())
+            {
+                positionIndexLimit = i + 1;
+                break;
+            }
+        }
+    }
+    return StatefulString(std::move(trimmedStr), State,
+        { Lengths.begin(), Lengths.begin() + positionIndexLimit },
+        { StringPositions.begin(), StringPositions.begin() + positionIndexLimit });
+}
+
+double StatefulString::GetLengthRaw() const
+{
+    double length = 0;
+    for (unsigned i = 0; i < RawLengths.size(); i++)
+        length += RawLengths[i];
+
+    return length;
+}
+
+double StatefulString::GetLength() const
+{
+    double length = 0;
+    for (unsigned i = 0; i < Lengths.size(); i++)
+        length += Lengths[i];
+
+    return length;
+}
+
+vector<double> StatefulString::computeLengths(const vector<double>& rawLengths)
+{
+    // NOTE: the lengths are transformed accordingly to text state but
+    // are not CTM transformed
+    vector<double> ret;
+    ret.reserve(rawLengths.size());
+    for (unsigned i = 0; i < rawLengths.size(); i++)
+        ret.push_back((Vector2(rawLengths[i], 0) * State.CTM.GetScalingRotation()).GetLength());
+
+    return ret;
 }
 
 TextStateStack::TextStateStack()
@@ -857,7 +938,7 @@ void ExtractionContext::PushString(const StatefulString &str, bool pushchunk)
     if (pushchunk)
         pushChunk();
 
-    States.Current->T_m.Apply<Tx>(str.LengthRaw);
+    States.Current->T_m.Apply<Tx>(str.GetLengthRaw());
     States.Current->ComputeDependentState();
     PrevChunkT_rm_Pos = States.Current->T_rm.GetTranslationVector();
 }
@@ -929,7 +1010,7 @@ void ExtractionContext::tryAddEntry(const StatefulString& currStr)
 
                     // Add "fake" space
                     if (!(prevString->EndsWithWhiteSpace() || currStr.BeginsWithWhiteSpace()))
-                        Chunk->push_back(StatefulString(" ", distance, prevString->State));
+                        Chunk->push_back(StatefulString(" ", prevString->State, { distance }, { 0 }));
                 }
             }
         }
@@ -964,8 +1045,8 @@ void splitChunkBySpaces(vector<StringChunkPtr> &splittedChunks, const StringChun
     for (auto &str : chunk)
     {
         auto separatedChunk = std::make_unique<StringChunk>();
-        bool previousWhiteSpace = true;
         splitStringBySpaces(separatedStrings, str);
+        bool previousWhiteSpace = true;
         for (auto &separatedStr : separatedStrings)
         {
             if (separatedChunk->size() != 0 && separatedStr.IsWhiteSpace != previousWhiteSpace)
@@ -992,26 +1073,47 @@ void splitStringBySpaces(vector<StatefulString> &separatedStrings, const Statefu
 
     string separatedStr;
     auto state = str.State;
+    unsigned previousPos = 0;
+    unsigned lowerPosLim = previousPos;
+    unsigned upperPosLim = (unsigned)str.String.length();
+    unsigned lowerPosLimIndex;
+    unsigned upperPosLimIndex;
 
     auto pushString = [&]() {
-        double length = getStringLength(separatedStr, state);
-        separatedStrings.push_back({ separatedStr , length, state });
-        separatedStr.clear();
+        getSubstringIndices(str, lowerPosLim, upperPosLim, lowerPosLimIndex, upperPosLimIndex);
+        double length = 0;
+        for (unsigned i = lowerPosLimIndex; i < upperPosLimIndex; i++)
+            length += str.Lengths[i];
+
+        separatedStrings.push_back(StatefulString(std::move(separatedStr), state,
+            { str.Lengths.begin() + lowerPosLimIndex, str.Lengths.begin() + upperPosLimIndex },
+            { str.StringPositions.begin() + lowerPosLimIndex, str.StringPositions.begin() + upperPosLimIndex }));
+        lowerPosLim = previousPos;
+        upperPosLim = (unsigned)str.String.length();
+
         state.T_m.Apply<Tx>(length);
         state.ComputeDependentState();
     };
 
+    // NOTE: This function shall NOT trim spaces, just split
     bool isPreviousWhiteSpace = true;
-    for (int i = 0; i < (int)str.String.size(); i++)
+    auto it = str.String.begin();
+    auto end = str.String.end();
+    do
     {
-        char ch = str.String[i];
-        bool isCurrentWhiteSpace = std::isspace((unsigned char)ch) != 0;
+        char32_t cp = utf8::next(it, end);
+        bool isCurrentWhiteSpace = utls::IsWhiteSpace(cp);
         if (separatedStr.length() != 0 && isCurrentWhiteSpace != isPreviousWhiteSpace)
+        {
+            upperPosLim = previousPos;
             pushString();
+        }
 
-        separatedStr.push_back(ch);
+        utf8::unchecked::append((uint32_t)cp, std::back_inserter(separatedStr));
+
+        previousPos = (unsigned)(it - str.String.begin());
         isPreviousWhiteSpace = isCurrentWhiteSpace;
-    }
+    } while (it != end);
 
     // Push back last string, if present
     if (separatedStr.length() != 0)
@@ -1059,14 +1161,6 @@ void trimSpacesEnd(StringChunk &chunk)
     }
 }
 
-double getStringLength(const string_view &str, const TextState &state)
-{
-    if (state.PdfState.Font == nullptr)
-        return 0;
-
-    return state.GetStringLength(str);
-}
-
 bool isWhiteSpaceChunk(const StringChunk &chunk)
 {
     for (auto &str : chunk)
@@ -1104,32 +1198,9 @@ double TextState::GetWordSpacingLength() const
     return PdfState.Font->GetWordSpacingLength(PdfState);
 }
 
-double TextState::GetCharLength(char32_t ch) const
+void TextState::ScanString(const PdfString& encodedStr, string& decoded, vector<double>& lengths, vector<unsigned>& positions)
 {
-    return PdfState.Font->GetCharLength(ch, PdfState);
-}
-
-double TextState::GetStringLength(const string_view& str) const
-{
-    return PdfState.Font->GetStringLength(str, PdfState);
-}
-
-double TextState::GetStringLength(const PdfString& encodedStr) const
-{
-    return PdfState.Font->GetStringLength(encodedStr, PdfState);
-}
-
-EntryOptions fromFlags(PdfTextExtractFlags flags)
-{
-    EntryOptions ret;
-    ret.IgnoreCase = (flags & PdfTextExtractFlags::IgnoreCase) != PdfTextExtractFlags::None;
-    ret.MatchWholeWord = (flags & PdfTextExtractFlags::MatchWholeWord) != PdfTextExtractFlags::None;
-    ret.RegexPattern = (flags & PdfTextExtractFlags::RegexPattern) != PdfTextExtractFlags::None;
-    ret.TokenizeWords = (flags & PdfTextExtractFlags::TokenizeWords) != PdfTextExtractFlags::None;
-    ret.TrimSpaces = (flags & PdfTextExtractFlags::KeepWhiteTokens) == PdfTextExtractFlags::None || ret.TokenizeWords;
-    ret.ComputeBoundingBox = (flags & PdfTextExtractFlags::ComputeBoundingBox) != PdfTextExtractFlags::None;
-    ret.RawCoordinates = (flags & PdfTextExtractFlags::RawCoordinates) != PdfTextExtractFlags::None;
-    return ret;
+    (void)PdfState.Font->TryScanString(encodedStr, PdfState, decoded, lengths, positions);
 }
 
 void processChunks(StringChunkList& chunks, string& dest, double& length)
@@ -1141,7 +1212,7 @@ void processChunks(StringChunkList& chunks, string& dest, double& length)
     }
     auto& first = chunks.front()->front();
     auto& last = chunks.back()->back();
-    length = (last.Position - first.Position).GetLength() + last.Length;
+    length = (last.Position - first.Position).GetLength() + last.GetLength();
 }
 
 void processChunks(StringChunkList& chunks, string& dest, double& length, PdfRect& bbox)
@@ -1153,7 +1224,7 @@ void processChunks(StringChunkList& chunks, string& dest, double& length, PdfRec
     }
     auto& first = chunks.front()->front();
     auto& last = chunks.back()->back();
-    length = (last.Position - first.Position).GetLength() + last.Length;
+    length = (last.Position - first.Position).GetLength() + last.GetLength();
     auto font = first.State.PdfState.Font;
     // NOTE: This is very inaccurate
     double descend = 0;
@@ -1167,4 +1238,41 @@ void processChunks(StringChunkList& chunks, string& dest, double& length, PdfRec
     }
 
     bbox = PdfRect(first.Position.X, first.Position.Y - descend, length, descend + ascent);
+}
+
+void getSubstringIndices(const StatefulString& str, unsigned lowerPosLim, unsigned upperPosLim,
+    unsigned& lowerPosLimIndex, unsigned& upperPosLimIndex)
+{
+    lowerPosLimIndex = std::numeric_limits<unsigned>::max();
+    upperPosLimIndex = 0;
+    for (unsigned i = 0; i < str.StringPositions.size(); i++)
+    {
+        if (str.StringPositions[i] >= lowerPosLim)
+        {
+            lowerPosLimIndex = i;
+            break;
+        }
+    }
+
+    for (int i = str.StringPositions.size() - 1; i >= 0; i--)
+    {
+        if (str.StringPositions[i] < upperPosLim)
+        {
+            upperPosLimIndex = i + 1;
+            break;
+        }
+    }
+}
+
+EntryOptions fromFlags(PdfTextExtractFlags flags)
+{
+    EntryOptions ret;
+    ret.IgnoreCase = (flags & PdfTextExtractFlags::IgnoreCase) != PdfTextExtractFlags::None;
+    ret.MatchWholeWord = (flags & PdfTextExtractFlags::MatchWholeWord) != PdfTextExtractFlags::None;
+    ret.RegexPattern = (flags & PdfTextExtractFlags::RegexPattern) != PdfTextExtractFlags::None;
+    ret.TokenizeWords = (flags & PdfTextExtractFlags::TokenizeWords) != PdfTextExtractFlags::None;
+    ret.TrimSpaces = (flags & PdfTextExtractFlags::KeepWhiteTokens) == PdfTextExtractFlags::None || ret.TokenizeWords;
+    ret.ComputeBoundingBox = (flags & PdfTextExtractFlags::ComputeBoundingBox) != PdfTextExtractFlags::None;
+    ret.RawCoordinates = (flags & PdfTextExtractFlags::RawCoordinates) != PdfTextExtractFlags::None;
+    return ret;
 }
