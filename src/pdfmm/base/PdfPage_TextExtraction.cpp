@@ -177,7 +177,7 @@ static void addEntryChunk(vector<PdfTextEntry> &textEntries, StringChunkList &st
     int pageIndex, const Matrix* rotation);
 static void processChunks(StringChunkList& chunks, string& str, vector<double>& lengths, vector<unsigned>& positions);
 static double computeLength(vector<double>& lengths, unsigned lowerIndex, unsigned upperIndexLimit);
-static bool isMatchWholeWordSubstring(const string_view& str, const string_view& pattern, unsigned& matchPos);
+static bool isMatchWholeWordSubstring(const string_view& str, const string_view& pattern, size_t& matchPos);
 static PdfRect computeBoundingBox(const TextState& textState, double length);
 static void read(const PdfVariantStack& stack, double &tx, double &ty);
 static void read(const PdfVariantStack& stack, double &a, double &b, double &c, double &d, double &e, double &f);
@@ -570,7 +570,7 @@ void addEntryChunk(vector<PdfTextEntry> &textEntries, StringChunkList &chunks, c
         {
             if (options.ExtractSubstring)
             {
-                string::size_type pos;
+                size_t pos;
                 if (options.MatchWholeWord)
                 {
                     if (options.IgnoreCase)
@@ -1271,7 +1271,7 @@ double computeLength(vector<double>& lengths, unsigned lowerIndex, unsigned uppe
 
 // Verify if the string matches the pattern and verify
 // presence of delimiters for whole word match
-bool isMatchWholeWordSubstring(const string_view& str, const string_view& pattern, unsigned& matchPos)
+bool isMatchWholeWordSubstring(const string_view& str, const string_view& pattern, size_t& matchPos)
 {
     bool prevDelimiter;
     auto found = str.find(pattern);
@@ -1303,11 +1303,11 @@ bool isMatchWholeWordSubstring(const string_view& str, const string_view& patter
             goto NoMatch;
     }
 
-    matchPos = (unsigned)found;
+    matchPos = found;
     return true;
 
 NoMatch:
-    matchPos = numeric_limits<unsigned>::max();
+    matchPos = string_view::npos;
     return false;
 }
 
