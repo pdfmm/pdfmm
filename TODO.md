@@ -12,6 +12,7 @@
   Now the new trailer is written but the doc still has the old one
 - Check PdfSignature to have correct /ByteRange and /Contents
 values in the dictionary after signing with SignDocument
+- Evaluate move more utf8::next to utf8::unchecked::next
 - Add PdfString(string&&) and PdfName(string&&) constructors that
 either assume UTF-8 and/or checks for used codepoints
 - Added PdfResources::GetResource with enum type

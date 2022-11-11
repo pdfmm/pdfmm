@@ -163,6 +163,7 @@ enum class PdfTextExtractFlags
     RegexPattern = 16,
     ComputeBoundingBox = 32,    ///< NOTE: Currently the bounding is inaccurate
     RawCoordinates = 64,
+    ExtractSubstring = 128,     ///< NOTE: Extract the matched substring
 };
 
 enum class PdfXObjectType

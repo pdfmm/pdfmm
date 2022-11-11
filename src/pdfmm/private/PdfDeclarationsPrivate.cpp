@@ -33,6 +33,7 @@ constexpr unsigned BUFFER_SIZE = 4096;
 static const locale s_cachedLocale("C");
 
 static void removeTrailingZeroes(string& str);
+static bool isStringDelimter(char32_t ch);
 
 struct VersionIdentity
 {
@@ -325,6 +326,16 @@ const locale& utls::GetInvariantLocale()
     return s_cachedLocale;
 }
 
+bool utls::IsValidUtf8String(const string_view& str)
+{
+    return utf8::is_valid(str);
+}
+
+bool utls::IsStringDelimiter(char32_t ch)
+{
+    return IsWhiteSpace(ch) || isStringDelimter(ch);
+}
+
 bool utls::IsWhiteSpace(char32_t ch)
 {
     // Taken from https://docs.microsoft.com/en-us/dotnet/api/system.char.iswhitespace
@@ -363,6 +374,52 @@ bool utls::IsWhiteSpace(char32_t ch)
         default:
             return false;
     }
+}
+
+bool isStringDelimter(char32_t ch)
+{
+    // TODO: More Unicode punctuation/delimiters
+    // See ICU or Char.IsPunctuation https://github.com/dotnet/corert/blob/master/src/System.Private.CoreLib/shared/System/Char.cs
+    switch (ch)
+    {
+        case U'!':
+        case U'"':
+        case U'#':
+        case U'$':
+        case U'%':
+        case U'&':
+        case U'\'':
+        case U'(':
+        case U')':
+        case U'*':
+        case U'+':
+        case U',':
+        case U'-':
+        case U'.':
+        case U'/':
+        case U':':
+        case U';':
+        case U'<':
+        case U'=':
+        case U'>':
+        case U'?':
+        case U'@':
+        case U'[':
+        case U'\\':
+        case U']':
+        case U'^':
+        case U'_':
+        case U'`':
+        case U'{':
+        case U'|':
+        case U'}':
+        case U'~':
+            return true;
+        default:
+            return false;
+    }
+
+    return false;
 }
 
 bool utls::IsStringEmptyOrWhiteSpace(const string_view& str)

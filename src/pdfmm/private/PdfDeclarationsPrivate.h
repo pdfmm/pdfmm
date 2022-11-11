@@ -198,6 +198,10 @@ namespace utls
 {
     const std::locale& GetInvariantLocale();
 
+    bool IsValidUtf8String(const std::string_view& str);
+
+    bool IsStringDelimiter(char32_t ch);
+
     bool IsWhiteSpace(char32_t ch);
 
     bool IsStringEmptyOrWhiteSpace(const std::string_view& str);

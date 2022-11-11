@@ -88,6 +88,7 @@ struct EntryOptions
     bool RegexPattern;
     bool ComputeBoundingBox;
     bool RawCoordinates;
+    bool ExtractSubstring;
 };
 
 using StringChunk = list<StatefulString>;
@@ -121,7 +122,7 @@ struct ExtractionContext
 {
 public:
     ExtractionContext(vector<PdfTextEntry> &entries, const PdfPage &page, const string_view &pattern,
-        const EntryOptions &options, const nullable<PdfRect> &clipRect);
+        PdfTextExtractFlags flags, const nullable<PdfRect> &clipRect);
 public:
     void BeginText();
     void EndText();
@@ -174,14 +175,15 @@ static void addEntry(vector<PdfTextEntry> &textEntries, StringChunkList &strings
 static void addEntryChunk(vector<PdfTextEntry> &textEntries, StringChunkList &strings,
     const string_view &pattern, const EntryOptions& options, const nullable<PdfRect> &clipRect,
     int pageIndex, const Matrix* rotation);
-static void processChunks(StringChunkList& chunks, string& str, double& length);
-static void processChunks(StringChunkList& chunks, string& str, double& length, PdfRect& bbox);
+static void processChunks(StringChunkList& chunks, string& str, vector<double>& lengths, vector<unsigned>& positions);
+static double computeLength(vector<double>& lengths, unsigned lowerIndex, unsigned upperIndexLimit);
+static bool isMatchWholeWordSubstring(const string_view& str, const string_view& pattern, unsigned& matchPos);
+static PdfRect computeBoundingBox(const TextState& textState, double length);
 static void read(const PdfVariantStack& stack, double &tx, double &ty);
 static void read(const PdfVariantStack& stack, double &a, double &b, double &c, double &d, double &e, double &f);
-static void getSubstringIndices(const StatefulString& str,
-    unsigned lowerPos, unsigned upperLimitPos,
+static void getSubstringIndices(const vector<unsigned>& positions, unsigned lowerPos, unsigned upperLimitPos,
     unsigned& lowerIndex, unsigned& upperLimitIndex);
-static EntryOptions fromFlags(PdfTextExtractFlags flags);
+static EntryOptions optionsFromFlags(PdfTextExtractFlags flags);
 
 void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const PdfTextExtractParams& params) const
 {
@@ -191,7 +193,7 @@ void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const PdfTextExtractP
 void PdfPage::ExtractTextTo(vector<PdfTextEntry>& entries, const string_view& pattern,
     const PdfTextExtractParams& params) const
 {
-    ExtractionContext context(entries, *this, pattern, fromFlags(params.Flags), params.ClipRect);
+    ExtractionContext context(entries, *this, pattern, params.Flags, params.ClipRect);
 
     // Look FIGURE 4.1 Graphics objects
     PdfContentsReader reader(*this);
@@ -541,25 +543,20 @@ void addEntryChunk(vector<PdfTextEntry> &textEntries, StringChunkList &chunks, c
         return;
     }
 
-    nullable<PdfRect> bbox;
     string str;
-    double length;
-    if (options.ComputeBoundingBox)
-    {
-        PdfRect bbox_;
-        processChunks(chunks, str, length, bbox_);
-        bbox = bbox_;
-    }
-    else
-    {
-        processChunks(chunks, str, length);
-    }
-
+    vector<double> lengths;
+    vector<unsigned> positions;
+    processChunks(chunks, str, lengths, positions);
+    unsigned lowerIndex = 0;
+    unsigned upperIndexLimit = (unsigned)lengths.size();
+    auto state = firstStr.State;
     if (pattern.length() != 0)
     {
+        PDFMM_INVARIANT(utls::IsValidUtf8String(pattern));
         bool match;
         if (options.RegexPattern)
         {
+            PDFMM_ASSERT(!(options.MatchWholeWord || options.ExtractSubstring));
             auto flags = regex_constants::ECMAScript;
             if (options.IgnoreCase)
                 flags |= regex_constants::icase;
@@ -571,19 +568,56 @@ void addEntryChunk(vector<PdfTextEntry> &textEntries, StringChunkList &chunks, c
         }
         else
         {
-            if (options.MatchWholeWord)
+            if (options.ExtractSubstring)
             {
-                if (options.IgnoreCase)
-                    match = utls::ToLower(str) == utls::ToLower(pattern);
+                string::size_type pos;
+                if (options.MatchWholeWord)
+                {
+                    if (options.IgnoreCase)
+                        match = isMatchWholeWordSubstring(utls::ToLower(str), utls::ToLower(pattern), pos);
+                    else
+                        match = isMatchWholeWordSubstring(str, pattern, pos);
+                }
                 else
-                    match = str == pattern;
+                {
+                    if (options.IgnoreCase)
+                        pos = utls::ToLower(str).find(utls::ToLower(pattern));
+                    else
+                        pos = str.find(pattern);
+                    match = pos != string::npos;
+                }
+
+                if (match)
+                {
+                    getSubstringIndices(positions, (unsigned)pos, (unsigned)(pos + pattern.size()),
+                        lowerIndex, upperIndexLimit);
+
+                    // Assign actual found matched substring
+                    if (pos != 0 || str.size() != pattern.size())
+                        str = str.substr(pos, pattern.size());
+
+                    // Compute substring translation and apply it
+                    double substringTx = computeLength(lengths, 0, lowerIndex);
+                    state.T_m.Apply<Tx>(substringTx);
+                    state.ComputeT_rm();
+                }
             }
             else
             {
-                if (options.IgnoreCase)
-                    match = utls::ToLower(str).find(utls::ToLower(pattern)) != string::npos;
+                if (options.MatchWholeWord)
+                {
+                    if (options.IgnoreCase)
+                        match = utls::ToLower(str) == utls::ToLower(pattern);
+                    else
+                        match = str == pattern;
+                }
                 else
-                    match = str.find(pattern) != string::npos;
+                {
+                    if (options.IgnoreCase)
+                        match = utls::ToLower(str).find(utls::ToLower(pattern)) != string::npos;
+                    else
+                        match = str.find(pattern) != string::npos;
+                }
             }
         }
 
@@ -594,15 +628,21 @@ void addEntryChunk(vector<PdfTextEntry> &textEntries, StringChunkList &chunks, c
         }
     }
 
+    double length = computeLength(lengths, lowerIndex, upperIndexLimit);
+    nullable<PdfRect> bbox;
+    if (options.ComputeBoundingBox)
+        bbox = computeBoundingBox(state, length);
+
     // Rotate to canonical frame
+    auto strPosition = state.T_rm.GetTranslationVector();
     if (rotation == nullptr || options.RawCoordinates)
     {
         textEntries.push_back(PdfTextEntry{ str, pageIndex,
-            firstStr.Position.X, firstStr.Position.Y, length, bbox });
+            strPosition.X, strPosition.Y, length, bbox });
     }
     else
     {
-        Vector2 rawp(firstStr.Position.X, firstStr.Position.Y);
+        Vector2 rawp(strPosition.X, strPosition.Y);
         auto p_1 = rawp * (*rotation);
         textEntries.push_back(PdfTextEntry{ str, pageIndex,
             p_1.X, p_1.Y, length, bbox });
@@ -689,7 +729,7 @@ StatefulString StatefulString::GetTrimmedBegin() const
     auto state = State;
     double spacestrLength = 0;
     unsigned trimmedLen = (unsigned)(prev - str.begin());
-    unsigned lowerLimIndex = 0;
+    unsigned lowerIndex = 0;
     if (trimmedLen != 0)
     {
         auto spacestr = str.substr(0, trimmedLen);
@@ -698,7 +738,7 @@ StatefulString StatefulString::GetTrimmedBegin() const
         {
             if (StringPositions[i] >= trimmedLen)
             {
-                lowerLimIndex = i;
+                lowerIndex = i;
                 break;
             }
 
@@ -706,13 +746,13 @@ StatefulString StatefulString::GetTrimmedBegin() const
         }
 
         state.T_m.Apply<Tx>(length);
-        state.ComputeDependentState();
+        state.ComputeT_rm();
     }
 
     // After, rewrite the string without spaces
     return StatefulString(str.substr(trimmedLen), state,
-        { RawLengths.begin() + lowerLimIndex, RawLengths.end() },
-        { StringPositions.begin() + lowerLimIndex, StringPositions.end() });
+        { RawLengths.begin() + lowerIndex, RawLengths.end() },
+        { StringPositions.begin() + lowerIndex, StringPositions.end() });
 }
 
 bool StatefulString::BeginsWithWhiteSpace() const
@@ -828,15 +868,18 @@ void TextStateStack::push(const TextState & state)
     m_current = &m_states.top();
 }
 
-ExtractionContext::ExtractionContext(vector<PdfTextEntry> &entries, const PdfPage &page, const string_view &pattern,
-    const EntryOptions & options, const nullable<PdfRect>& clipRect) :
+ExtractionContext::ExtractionContext(vector<PdfTextEntry>& entries, const PdfPage& page, const string_view& pattern,
+    PdfTextExtractFlags flags , const nullable<PdfRect>& clipRect) :
     m_page(page),
     PageIndex(page.GetPageNumber() - 1),
     Pattern(pattern),
-    Options(options),
+    Options(optionsFromFlags(flags)),
     ClipRect(clipRect),
     Entries(entries)
 {
+    if (Options.ExtractSubstring && pattern.empty())
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "Unsupported ExtractSubstring flag with empty pattern");
+
     // Determine page rotation transformation
     double teta;
     if (page.HasRotation(teta))
@@ -867,13 +910,9 @@ void ExtractionContext::Tf_Operator(const PdfName &fontname, double fontsize)
     double spacingLengthRaw = 0;
     States.Current->PdfState.FontSize = fontsize;
     if (fontObj == nullptr || (States.Current->PdfState.Font = doc.GetFontManager().GetLoadedFont(*fontObj)) == nullptr)
-    {
         mm::LogMessage(PdfLogSeverity::Warning, "Unable to find font object {}", fontname.GetString());
-    }
     else
-    {
         spacingLengthRaw = States.Current->GetWordSpacingLength();
-    }
 
     States.Current->WordSpacingVectorRaw = Vector2(spacingLengthRaw, 0);
     if (spacingLengthRaw == 0)
@@ -939,7 +978,7 @@ void ExtractionContext::PushString(const StatefulString &str, bool pushchunk)
         pushChunk();
 
     States.Current->T_m.Apply<Tx>(str.GetLengthRaw());
-    States.Current->ComputeDependentState();
+    States.Current->ComputeT_rm();
     PrevChunkT_rm_Pos = States.Current->T_rm.GetTranslationVector();
 }
 
@@ -1074,25 +1113,25 @@ void splitStringBySpaces(vector<StatefulString> &separatedStrings, const Statefu
     string separatedStr;
     auto state = str.State;
     unsigned previousPos = 0;
-    unsigned lowerPosLim = previousPos;
+    unsigned lowerPos = previousPos;
     unsigned upperPosLim = (unsigned)str.String.length();
-    unsigned lowerPosLimIndex;
+    unsigned lowerPosIndex;
     unsigned upperPosLimIndex;
-
+    
     auto pushString = [&]() {
-        getSubstringIndices(str, lowerPosLim, upperPosLim, lowerPosLimIndex, upperPosLimIndex);
+        getSubstringIndices(str.StringPositions, lowerPos, upperPosLim, lowerPosIndex, upperPosLimIndex);
         double length = 0;
-        for (unsigned i = lowerPosLimIndex; i < upperPosLimIndex; i++)
+        for (unsigned i = lowerPosIndex; i < upperPosLimIndex; i++)
             length += str.Lengths[i];
 
         separatedStrings.push_back(StatefulString(std::move(separatedStr), state,
-            { str.Lengths.begin() + lowerPosLimIndex, str.Lengths.begin() + upperPosLimIndex },
-            { str.StringPositions.begin() + lowerPosLimIndex, str.StringPositions.begin() + upperPosLimIndex }));
-        lowerPosLim = previousPos;
+            { str.Lengths.begin() + lowerPosIndex, str.Lengths.begin() + upperPosLimIndex },
+            { str.StringPositions.begin() + lowerPosIndex, str.StringPositions.begin() + upperPosLimIndex }));
+        lowerPos = previousPos;
         upperPosLim = (unsigned)str.String.length();
 
         state.T_m.Apply<Tx>(length);
-        state.ComputeDependentState();
+        state.ComputeT_rm();
     };
 
     // NOTE: This function shall NOT trim spaces, just split
@@ -1203,60 +1242,113 @@ void TextState::ScanString(const PdfString& encodedStr, string& decoded, vector<
     (void)PdfState.Font->TryScanString(encodedStr, PdfState, decoded, lengths, positions);
 }
 
-void processChunks(StringChunkList& chunks, string& dest, double& length)
+// Concatenate all strings, lengths and string positions
+void processChunks(StringChunkList& chunks, string& dest, vector<double>& lengths, vector<unsigned>& positions)
 {
+    unsigned offsetPosition = 0;
     for (auto& chunk : chunks)
     {
         for (auto& str : *chunk)
+        {
             dest.append(str.String.data(), str.String.length());
+            lengths.insert(lengths.end(), str.Lengths.begin(), str.Lengths.end());
+            for (unsigned i = 0; i < str.StringPositions.size(); i++)
+                positions.push_back(offsetPosition + str.StringPositions[i]);
+
+            offsetPosition += (unsigned)str.String.length();
+        }
     }
-    auto& first = chunks.front()->front();
-    auto& last = chunks.back()->back();
-    length = (last.Position - first.Position).GetLength() + last.GetLength();
 }
 
-void processChunks(StringChunkList& chunks, string& dest, double& length, PdfRect& bbox)
+double computeLength(vector<double>& lengths, unsigned lowerIndex, unsigned upperIndexLimit)
 {
-    for (auto& chunk : chunks)
+    double length = 0;
+    for (unsigned i = lowerIndex; i < upperIndexLimit; i++)
+        length += lengths[i];
+
+    return length;
+}
+
+// Verify if the string matches the pattern and verify
+// presence of delimiters for whole word match
+bool isMatchWholeWordSubstring(const string_view& str, const string_view& pattern, unsigned& matchPos)
+{
+    bool prevDelimiter;
+    auto found = str.find(pattern);
+    string_view::const_iterator it;
+    string_view::const_iterator end;
+    char32_t cp;
+    if (found == string_view::npos)
+        goto NoMatch;
+
+    it = str.begin();
+    end = str.begin() + found;
+
+    prevDelimiter = true;
+    while (it != end)
     {
-        for (auto& str : *chunk)
-            dest.append(str.String.data(), str.String.length());
+        cp = utf8::unchecked::next(it);
+        prevDelimiter = utls::IsStringDelimiter(cp);
     }
-    auto& first = chunks.front()->front();
-    auto& last = chunks.back()->back();
-    length = (last.Position - first.Position).GetLength() + last.GetLength();
-    auto font = first.State.PdfState.Font;
+
+    if (!prevDelimiter)
+        goto NoMatch;
+
+    it = str.begin() + found + pattern.length();
+    end = str.end();
+    if (it != end)
+    {
+        cp = utf8::unchecked::next(it);
+        if (!utls::IsStringDelimiter(cp))
+            goto NoMatch;
+    }
+
+    matchPos = (unsigned)found;
+    return true;
+
+NoMatch:
+    matchPos = numeric_limits<unsigned>::max();
+    return false;
+}
+
+PdfRect computeBoundingBox(const TextState& textState, double length)
+{
     // NOTE: This is very inaccurate
+    // TODO1: Handle multiple text/pdf states
+    // TODO2: Handle actual font glyphs (HARD)
     double descend = 0;
     double ascent = 0;
+    auto font = textState.PdfState.Font;
     if (font != nullptr)
     {
-        descend = (Vector2(0, font->GetMetrics().GetDescent() * first.State.PdfState.FontSize * first.State.PdfState.FontScale)
-            * first.State.T_rm.GetScalingRotation()).GetLength();
-        ascent = (Vector2(0, font->GetMetrics().GetAscent() * first.State.PdfState.FontSize * first.State.PdfState.FontScale)
-            * first.State.T_rm.GetScalingRotation()).GetLength();
+        descend = (Vector2(0, font->GetMetrics().GetDescent() * textState.PdfState.FontSize * textState.PdfState.FontScale)
+            * textState.T_rm.GetScalingRotation()).GetLength();
+        ascent = (Vector2(0, font->GetMetrics().GetAscent() * textState.PdfState.FontSize * textState.PdfState.FontScale)
+            * textState.T_rm.GetScalingRotation()).GetLength();
     }
 
-    bbox = PdfRect(first.Position.X, first.Position.Y - descend, length, descend + ascent);
+    auto position = textState.T_rm.GetTranslationVector();
+    return PdfRect(position.X, position.Y - descend, length, descend + ascent);
 }
 
-void getSubstringIndices(const StatefulString& str, unsigned lowerPosLim, unsigned upperPosLim,
-    unsigned& lowerPosLimIndex, unsigned& upperPosLimIndex)
+void getSubstringIndices(const vector<unsigned>& positions, unsigned lowerPos, unsigned upperPosLim,
+    unsigned& lowerPosIndex, unsigned& upperPosLimIndex)
 {
-    lowerPosLimIndex = std::numeric_limits<unsigned>::max();
+    // CHECK-ME: Evaluate optimize with bisection as positions is sorted
+    lowerPosIndex = std::numeric_limits<unsigned>::max();
     upperPosLimIndex = 0;
-    for (unsigned i = 0; i < str.StringPositions.size(); i++)
+    for (unsigned i = 0; i < positions.size(); i++)
     {
-        if (str.StringPositions[i] >= lowerPosLim)
+        if (positions[i] >= lowerPos)
         {
-            lowerPosLimIndex = i;
+            lowerPosIndex = i;
             break;
         }
     }
 
-    for (int i = str.StringPositions.size() - 1; i >= 0; i--)
+    for (int i = positions.size() - 1; i >= 0; i--)
     {
-        if (str.StringPositions[i] < upperPosLim)
+        if (positions[i] < upperPosLim)
         {
             upperPosLimIndex = i + 1;
             break;
@@ -1264,7 +1356,7 @@ void getSubstringIndices(const StatefulString& str, unsigned lowerPosLim, unsign
     }
 }
 
-EntryOptions fromFlags(PdfTextExtractFlags flags)
+EntryOptions optionsFromFlags(PdfTextExtractFlags flags)
 {
     EntryOptions ret;
     ret.IgnoreCase = (flags & PdfTextExtractFlags::IgnoreCase) != PdfTextExtractFlags::None;
@@ -1274,5 +1366,16 @@ EntryOptions fromFlags(PdfTextExtractFlags flags)
     ret.TrimSpaces = (flags & PdfTextExtractFlags::KeepWhiteTokens) == PdfTextExtractFlags::None || ret.TokenizeWords;
     ret.ComputeBoundingBox = (flags & PdfTextExtractFlags::ComputeBoundingBox) != PdfTextExtractFlags::None;
     ret.RawCoordinates = (flags & PdfTextExtractFlags::RawCoordinates) != PdfTextExtractFlags::None;
+    ret.ExtractSubstring = (flags & PdfTextExtractFlags::ExtractSubstring) != PdfTextExtractFlags::None;
+
+    if (ret.RegexPattern)
+    {
+        if (ret.MatchWholeWord)
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "RegexPattern is incompatible with MatchWholeWord flag");
+
+        if (ret.ExtractSubstring)
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "RegexPattern is currently unsupported with ExtractSubstring");
+    }
+
     return ret;
 }
