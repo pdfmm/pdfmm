@@ -748,10 +748,15 @@ StatefulString StatefulString::GetTrimmedBegin() const
         state.ComputeT_rm();
     }
 
+    // Fixed string positions after trim
+    auto positions = vector<unsigned>(StringPositions.begin() + lowerIndex, StringPositions.end());
+    for (unsigned i = 0; i < positions.size(); i++)
+        positions[i] -= trimmedLen;
+
     // After, rewrite the string without spaces
     return StatefulString(str.substr(trimmedLen), state,
         { RawLengths.begin() + lowerIndex, RawLengths.end() },
-        { StringPositions.begin() + lowerIndex, StringPositions.end() });
+        std::move(positions));
 }
 
 bool StatefulString::BeginsWithWhiteSpace() const
@@ -1123,9 +1128,14 @@ void splitStringBySpaces(vector<StatefulString> &separatedStrings, const Statefu
         for (unsigned i = lowerPosIndex; i < upperPosLimIndex; i++)
             length += str.Lengths[i];
 
+        // Fixed string positions after split
+        auto positions = vector<unsigned>(str.StringPositions.begin() + lowerPosIndex, str.StringPositions.begin() + upperPosLimIndex);
+        for (unsigned i = 0; i < positions.size(); i++)
+            positions[i] -= lowerPos;
+
         separatedStrings.push_back(StatefulString(std::move(separatedStr), state,
             { str.Lengths.begin() + lowerPosIndex, str.Lengths.begin() + upperPosLimIndex },
-            { str.StringPositions.begin() + lowerPosIndex, str.StringPositions.begin() + upperPosLimIndex }));
+            std::move(positions)));
         lowerPos = previousPos;
         upperPosLim = (unsigned)str.String.length();
 
