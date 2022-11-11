@@ -727,7 +727,6 @@ StatefulString StatefulString::GetTrimmedBegin() const
 
     // First, advance the x position by finding the space string size with the current font
     auto state = State;
-    double spacestrLength = 0;
     unsigned trimmedLen = (unsigned)(prev - str.begin());
     unsigned lowerIndex = 0;
     if (trimmedLen != 0)
