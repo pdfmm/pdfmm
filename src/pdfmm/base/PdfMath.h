@@ -32,6 +32,9 @@ namespace mm
         Vector2 operator-(const Vector2& v) const;
         Vector2 operator*(const Matrix& m) const;
 
+        Vector2& operator+=(const Vector2& v);
+        Vector2& operator-=(const Vector2& v);
+
     public:
         Vector2(const Vector2&) = default;
         Vector2& operator=(const Vector2&) = default;

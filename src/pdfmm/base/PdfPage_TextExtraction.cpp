@@ -160,6 +160,11 @@ public:
     bool BlockOpen = false;
 };
 
+struct GlyphAddress
+{
+    unsigned StringIndex;
+    unsigned GlyphIndex;
+};
 
 static bool decodeString(const PdfString &str, TextState &state, string &decoded,
     vector<double> &lengths, vector<unsigned>& positions);
@@ -175,10 +180,13 @@ static void addEntry(vector<PdfTextEntry> &textEntries, StringChunkList &strings
 static void addEntryChunk(vector<PdfTextEntry> &textEntries, StringChunkList &strings,
     const string_view &pattern, const EntryOptions& options, const nullable<PdfRect> &clipRect,
     int pageIndex, const Matrix* rotation);
-static void processChunks(StringChunkList& chunks, string& str, vector<double>& lengths, vector<unsigned>& positions);
-static double computeLength(vector<double>& lengths, unsigned lowerIndex, unsigned upperIndexLimit);
+static void processChunks(const StringChunkList& chunks, string& destString,
+    vector<unsigned>& positions, vector<const StatefulString*>& strings,
+    vector<GlyphAddress>& glyphAddresses);
+static double computeLength(const vector<const StatefulString*>& strings, const vector<GlyphAddress>& glyphAddresses,
+    unsigned lowerIndex, unsigned upperIndex);
 static bool isMatchWholeWordSubstring(const string_view& str, const string_view& pattern, size_t& matchPos);
-static PdfRect computeBoundingBox(const TextState& textState, double length);
+static PdfRect computeBoundingBox(const TextState& textState, double boxWidth);
 static void read(const PdfVariantStack& stack, double &tx, double &ty);
 static void read(const PdfVariantStack& stack, double &a, double &b, double &c, double &d, double &e, double &f);
 static void getSubstringIndices(const vector<unsigned>& positions, unsigned lowerPos, unsigned upperLimitPos,
@@ -544,12 +552,13 @@ void addEntryChunk(vector<PdfTextEntry> &textEntries, StringChunkList &chunks, c
     }
 
     string str;
-    vector<double> lengths;
     vector<unsigned> positions;
-    processChunks(chunks, str, lengths, positions);
+    vector<const StatefulString*> strings;
+    vector<GlyphAddress> glyphAddresses;
+    processChunks(chunks, str, positions, strings, glyphAddresses);
     unsigned lowerIndex = 0;
-    unsigned upperIndexLimit = (unsigned)lengths.size();
-    auto state = firstStr.State;
+    unsigned upperIndexLimit = (unsigned)glyphAddresses.size();
+    auto textState = firstStr.State;
     if (pattern.length() != 0)
     {
         PDFMM_INVARIANT(utls::IsValidUtf8String(pattern));
@@ -596,10 +605,13 @@ void addEntryChunk(vector<PdfTextEntry> &textEntries, StringChunkList &chunks, c
                     if (pos != 0 || str.size() != pattern.size())
                         str = str.substr(pos, pattern.size());
 
-                    // Compute substring translation and apply it
-                    double substringTx = computeLength(lengths, 0, lowerIndex);
-                    state.T_m.Apply<Tx>(substringTx);
-                    state.ComputeT_rm();
+                    if (lowerIndex != 0)
+                    {
+                        // Compute substring translation and apply it
+                        // TODO: Handle vertical scritps
+                        double substringTx = computeLength(strings, glyphAddresses, 0, lowerIndex - 1);
+                        textState.T_rm.Apply<Tx>(substringTx);
+                    }
                 }
             }
             else
@@ -628,24 +640,24 @@ void addEntryChunk(vector<PdfTextEntry> &textEntries, StringChunkList &chunks, c
         }
     }
 
-    double length = computeLength(lengths, lowerIndex, upperIndexLimit);
+    double strLength = computeLength(strings, glyphAddresses, lowerIndex, upperIndexLimit - 1);
     nullable<PdfRect> bbox;
     if (options.ComputeBoundingBox)
-        bbox = computeBoundingBox(state, length);
+        bbox = computeBoundingBox(textState, strLength);
 
     // Rotate to canonical frame
-    auto strPosition = state.T_rm.GetTranslationVector();
+    auto strPosition = textState.T_rm.GetTranslationVector();
     if (rotation == nullptr || options.RawCoordinates)
     {
         textEntries.push_back(PdfTextEntry{ str, pageIndex,
-            strPosition.X, strPosition.Y, length, bbox });
+            strPosition.X, strPosition.Y, strLength, bbox });
     }
     else
     {
         Vector2 rawp(strPosition.X, strPosition.Y);
         auto p_1 = rawp * (*rotation);
         textEntries.push_back(PdfTextEntry{ str, pageIndex,
-            p_1.X, p_1.Y, length, bbox });
+            p_1.X, p_1.Y, strLength, bbox });
     }
 
     chunks.clear();
@@ -1062,7 +1074,6 @@ void ExtractionContext::tryAddEntry(const StatefulString& currStr)
             // Current entry is not on same line
             TryPushChunk();
             addEntry();
-
         }
     }
 }
@@ -1252,30 +1263,64 @@ void TextState::ScanString(const PdfString& encodedStr, string& decoded, vector<
 }
 
 // Concatenate all strings, lengths and string positions
-void processChunks(StringChunkList& chunks, string& dest, vector<double>& lengths, vector<unsigned>& positions)
+void processChunks(const StringChunkList& chunks, string& destString,
+    vector<unsigned>& positions, vector<const StatefulString*>& strings,
+    vector<GlyphAddress>& glyphAddresses)
 {
     unsigned offsetPosition = 0;
+    unsigned stringIndex;
     for (auto& chunk : chunks)
     {
         for (auto& str : *chunk)
         {
-            dest.append(str.String.data(), str.String.length());
-            lengths.insert(lengths.end(), str.Lengths.begin(), str.Lengths.end());
+            destString.append(str.String.data(), str.String.length());
+            stringIndex = (unsigned)strings.size();
+            strings.push_back(&str);
             for (unsigned i = 0; i < str.StringPositions.size(); i++)
+            {
+                glyphAddresses.push_back(GlyphAddress{ stringIndex, i });
                 positions.push_back(offsetPosition + str.StringPositions[i]);
+            }
 
             offsetPosition += (unsigned)str.String.length();
         }
     }
 }
 
-double computeLength(vector<double>& lengths, unsigned lowerIndex, unsigned upperIndexLimit)
+// TODO: Handle vertical scritps
+double computeLength(const vector<const StatefulString*>& strings, const vector<GlyphAddress>& glyphAddresses,
+    unsigned lowerIndex, unsigned upperIndex)
 {
-    double length = 0;
-    for (unsigned i = lowerIndex; i < upperIndexLimit; i++)
-        length += lengths[i];
+    PDFMM_ASSERT(lowerIndex <= upperIndex);
+    auto& fromAddr = glyphAddresses[lowerIndex];
+    auto& toAddr = glyphAddresses[upperIndex];
+    if (fromAddr.StringIndex == toAddr.StringIndex)
+    {
+        // NOTE: Include the last glyph
+        auto str = strings[fromAddr.StringIndex];
+        double length = 0;
+        for (unsigned i = 0; i <= toAddr.GlyphIndex; i++)
+            length += str->Lengths[i];
 
-    return length;
+        return length;
+    }
+    else
+    {
+        auto fromStr = strings[fromAddr.StringIndex];
+        auto toStr = strings[toAddr.StringIndex];
+
+        // Advance the position before the first glyph
+        auto fromPosition = fromStr->Position;
+        for (unsigned i = 0; i < fromAddr.GlyphIndex; i++)
+            fromPosition += Vector2(fromStr->Lengths[i], 0);
+
+        // NOTE: Include the last glyph
+        auto toPosition = toStr->Position;
+        for (unsigned i = 0; i <= toAddr.GlyphIndex; i++)
+            toPosition += Vector2(toStr->Lengths[i], 0);
+
+        return (fromPosition - toPosition).GetLength();
+    }
 }
 
 // Verify if the string matches the pattern and verify
@@ -1320,24 +1365,27 @@ NoMatch:
     return false;
 }
 
-PdfRect computeBoundingBox(const TextState& textState, double length)
+PdfRect computeBoundingBox(const TextState& textState, double boxWidth)
 {
     // NOTE: This is very inaccurate
     // TODO1: Handle multiple text/pdf states
     // TODO2: Handle actual font glyphs (HARD)
+    // TODO3: Handle vertical scritps
     double descend = 0;
     double ascent = 0;
-    auto font = textState.PdfState.Font;
+    auto& pdfState = textState.PdfState;
+    auto font = pdfState.Font;
+    auto transform = textState.T_rm.GetScalingRotation();
     if (font != nullptr)
     {
-        descend = (Vector2(0, font->GetMetrics().GetDescent() * textState.PdfState.FontSize * textState.PdfState.FontScale)
-            * textState.T_rm.GetScalingRotation()).GetLength();
-        ascent = (Vector2(0, font->GetMetrics().GetAscent() * textState.PdfState.FontSize * textState.PdfState.FontScale)
-            * textState.T_rm.GetScalingRotation()).GetLength();
+        descend = (Vector2(0, font->GetMetrics().GetDescent() * pdfState.FontSize * pdfState.FontScale)
+            * transform).GetLength();
+        ascent = (Vector2(0, font->GetMetrics().GetAscent() * pdfState.FontSize * pdfState.FontScale)
+            * transform).GetLength();
     }
 
     auto position = textState.T_rm.GetTranslationVector();
-    return PdfRect(position.X, position.Y - descend, length, descend + ascent);
+    return PdfRect(position.X, position.Y - descend, boxWidth, descend + ascent);
 }
 
 void getSubstringIndices(const vector<unsigned>& positions, unsigned lowerPos, unsigned upperPosLim,

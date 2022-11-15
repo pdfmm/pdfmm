@@ -217,6 +217,20 @@ Vector2 Vector2::operator*(const Matrix& m) const
     );
 }
 
+Vector2& Vector2::operator+=(const Vector2& v)
+{
+    X += v.X;
+    Y += v.Y;
+    return *this;
+}
+
+Vector2& Vector2::operator-=(const Vector2& v)
+{
+    X -= v.X;
+    Y -= v.Y;
+    return *this;
+}
+
 Matrix mm::GetFrameRotationTransform(const PdfRect& rect, double teta)
 {
     auto R = Matrix::CreateRotation(teta);
