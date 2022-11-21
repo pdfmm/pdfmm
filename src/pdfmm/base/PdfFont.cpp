@@ -346,7 +346,7 @@ bool PdfFont::TryScanString(const PdfString& encodedStr, const PdfTextState& sta
         prevOffset = (unsigned)utf8str.length();
     }
 
-    return false;
+    return success;
 }
 
 double PdfFont::GetWordSpacingLength(const PdfTextState& state) const
