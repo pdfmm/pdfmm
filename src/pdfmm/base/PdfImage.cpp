@@ -9,10 +9,6 @@
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfImage.h"
 
-#ifdef PDFMM_HAVE_JPEG_LIB
-#include <pdfmm/private/JpegCommon.h>
-#endif // PDFMM_HAVE_JPEG_LIB
-
 #ifdef PDFMM_HAVE_TIFF_LIB
 extern "C" {
 #include <tiffio.h>
@@ -23,6 +19,7 @@ extern "C" {
 
 #include <pdfmm/private/FileSystem.h>
 #include <pdfmm/private/PdfFiltersPrivate.h>
+#include <pdfmm/private/ImageUtils.h>
 
 #include "PdfDocument.h"
 #include "PdfDictionary.h"
@@ -43,11 +40,6 @@ static void pngReadData(png_structp pngPtr, png_bytep data, png_size_t length);
 static void LoadFromPngContent(PdfImage& image, png_structp png, png_infop info);
 #endif // PDFMM_HAVE_PNG_LIB
 
-static void fetchScanLineRGB(unsigned char* dstScanLine, unsigned width,
-    PdfPixelFormat format, const unsigned char* srcScanLine);
-static void fetchScanLineRGB(unsigned char* dstScanLine, unsigned width,
-    PdfPixelFormat format, const unsigned char* srcScanLine,
-    const unsigned char* srcAphaLine);
 static void fetchPDFScanLineRGB(unsigned char* dstScanLine,
     unsigned width, const unsigned char* srcScanLine, PdfPixelFormat srcPixelFormat);
 
@@ -74,8 +66,8 @@ void PdfImage::DecodeTo(OutputStream& stream, PdfPixelFormat format, int rowSize
 {
     auto istream = GetObject().MustGetStream().GetInputStream();
     auto& mediaFilters = istream.GetMediaFilters();
-    charbuff buffer;
-    ContainerStreamDevice device(buffer);
+    charbuff imageData;
+    ContainerStreamDevice device(imageData);
     istream.CopyTo(device);
 
     charbuff smaskData;
@@ -83,28 +75,16 @@ void PdfImage::DecodeTo(OutputStream& stream, PdfPixelFormat format, int rowSize
 
     if (mediaFilters.size() == 0)
     {
-        if (GetColorSpace() != PdfColorSpace::DeviceRGB)
-            PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedImageFormat);
-
-        unsigned srcRowSize = m_Width * 3;
-        if (smaskData.size() == 0)
+        switch (GetColorSpace())
         {
-            for (unsigned i = 0; i < m_Height; i++)
-            {
-                fetchScanLineRGB((unsigned char*)scanLine.data(),
-                     m_Width, format, (const unsigned char*)buffer.data() + i * srcRowSize);
-                stream.Write(scanLine.data(), scanLine.size());
-            }
-        }
-        else
-        {
-            for (unsigned i = 0; i < m_Height; i++)
-            {
-                fetchScanLineRGB((unsigned char*)scanLine.data(),
-                    m_Width, format, (const unsigned char*)buffer.data() + i * srcRowSize,
-                    (const unsigned char*)smaskData.data() + i * m_Width);
-                stream.Write(scanLine.data(), scanLine.size());
-            }
+            case PdfColorSpace::DeviceRGB:
+                utls::FetchImageRGB(stream, m_Width, m_Height, format, (const unsigned char*)imageData.data(), smaskData, scanLine);
+                break;
+            case PdfColorSpace::DeviceGray:
+                utls::FetchImageGrayScale(stream, m_Width, m_Height, format, (const unsigned char*)imageData.data(), smaskData, scanLine);
+                break;
+            default:
+                PDFMM_RAISE_ERROR(PdfErrorCode::UnsupportedImageFormat);
         }
     }
     else
@@ -113,6 +93,7 @@ void PdfImage::DecodeTo(OutputStream& stream, PdfPixelFormat format, int rowSize
         {
             case PdfFilterType::DCTDecode:
             {
+#ifdef PDFMM_HAVE_JPEG_LIB
                 jpeg_decompress_struct ctx;
 
                 // Setup variables for JPEGLib
@@ -122,7 +103,7 @@ void PdfImage::DecodeTo(OutputStream& stream, PdfPixelFormat format, int rowSize
                 {
                     INIT_JPEG_DECOMPRESS_CONTEXT(ctx, jerr);
 
-                    mm::jpeg_memory_src(&ctx, reinterpret_cast<JOCTET*>(buffer.data()), buffer.size());
+                    mm::jpeg_memory_src(&ctx, reinterpret_cast<JOCTET*>(imageData.data()), imageData.size());
 
                     if (jpeg_read_header(&ctx, TRUE) <= 0)
                         PDFMM_RAISE_ERROR(PdfErrorCode::UnexpectedEOF);
@@ -133,27 +114,7 @@ void PdfImage::DecodeTo(OutputStream& stream, PdfPixelFormat format, int rowSize
 
                     // buffer will be deleted by jpeg_destroy_decompress
                     JSAMPARRAY jScanLine = (*ctx.mem->alloc_sarray)(reinterpret_cast<j_common_ptr>(&ctx), JPOOL_IMAGE, rowBytes, 1);
-                    if (smaskData.size() == 0)
-                    {
-                        for (unsigned i = 0; i < ctx.output_height; i++)
-                        {
-                            jpeg_read_scanlines(&ctx, jScanLine, 1);
-                            fetchScanLineRGB((unsigned char*)scanLine.data(),
-                                m_Width, format, jScanLine[0]);
-                            stream.Write(scanLine.data(), scanLine.size());
-                        }
-                    }
-                    else
-                    {
-                        for (unsigned i = 0; i < ctx.output_height; i++)
-                        {
-                            jpeg_read_scanlines(&ctx, jScanLine, 1);
-                            fetchScanLineRGB((unsigned char*)scanLine.data(), m_Width, format,
-                                jScanLine[0], (const unsigned char*)smaskData.data()
-                                + i * ctx.output_width);
-                            stream.Write(scanLine.data(), scanLine.size());
-                        }
-                    }
+                    utls::FetchImageJPEG(stream, format, &ctx, jScanLine, smaskData, scanLine);
                 }
                 catch (...)
                 {
@@ -162,6 +123,9 @@ void PdfImage::DecodeTo(OutputStream& stream, PdfPixelFormat format, int rowSize
                 }
 
                 jpeg_destroy_decompress(&ctx);
+#else
+                PDFMM_RAISE_ERROR_INFO(PdfErrorCode::NotImplemented, "Missing jpeg support");
+#endif
                 break;
             }
             case PdfFilterType::CCITTFaxDecode:
@@ -1346,110 +1310,6 @@ unsigned PdfImage::getBufferSize(PdfPixelFormat format) const
             return 4 * ((m_Width + 3) / 4) * m_Height;
         default:
             PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
-    }
-}
-
-void fetchScanLineRGB(unsigned char* dstScanLine, unsigned width, PdfPixelFormat format,
-    const unsigned char* srcScanLine)
-{
-    switch (format)
-    {
-        case PdfPixelFormat::RGBA:
-        {
-            for (unsigned i = 0; i < width; i++)
-            {
-                dstScanLine[i * 4 + 0] = srcScanLine[i * 3 + 0];
-                dstScanLine[i * 4 + 1] = srcScanLine[i * 3 + 1];
-                dstScanLine[i * 4 + 2] = srcScanLine[i * 3 + 2];
-                dstScanLine[i * 4 + 3] = 255;
-            }
-            break;
-        }
-        case PdfPixelFormat::BGRA:
-        {
-            for (unsigned i = 0; i < width; i++)
-            {
-                dstScanLine[i * 4 + 0] = srcScanLine[i * 3 + 2];
-                dstScanLine[i * 4 + 1] = srcScanLine[i * 3 + 1];
-                dstScanLine[i * 4 + 2] = srcScanLine[i * 3 + 0];
-                dstScanLine[i * 4 + 3] = 255;
-            }
-            break;
-        }
-        case PdfPixelFormat::RGB24:
-        {
-            for (unsigned i = 0; i < width; i++)
-            {
-                dstScanLine[i * 3 + 0] = srcScanLine[i * 3 + 0];
-                dstScanLine[i * 3 + 1] = srcScanLine[i * 3 + 1];
-                dstScanLine[i * 3 + 2] = srcScanLine[i * 3 + 2];
-            }
-            break;
-        }
-        case PdfPixelFormat::BGR24:
-        {
-            for (unsigned i = 0; i < width; i++)
-            {
-                dstScanLine[i * 3 + 0] = srcScanLine[i * 3 + 2];
-                dstScanLine[i * 3 + 1] = srcScanLine[i * 3 + 1];
-                dstScanLine[i * 3 + 2] = srcScanLine[i * 3 + 0];
-            }
-            break;
-        }
-        default:
-            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, "Unsupported pixel format");
-    }
-}
-
-void fetchScanLineRGB(unsigned char* dstScanLine, unsigned width, PdfPixelFormat format,
-    const unsigned char* srcScanLine, const unsigned char* srcAphaLine)
-{
-    switch (format)
-    {
-        case PdfPixelFormat::RGBA:
-        {
-            for (unsigned i = 0; i < width; i++)
-            {
-                dstScanLine[i * 4 + 0] = srcScanLine[i * 3 + 0];
-                dstScanLine[i * 4 + 1] = srcScanLine[i * 3 + 1];
-                dstScanLine[i * 4 + 2] = srcScanLine[i * 3 + 2];
-                dstScanLine[i * 4 + 3] = srcAphaLine[i];
-            }
-            break;
-        }
-        case PdfPixelFormat::BGRA:
-        {
-            for (unsigned i = 0; i < width; i++)
-            {
-                dstScanLine[i * 4 + 0] = srcScanLine[i * 3 + 2];
-                dstScanLine[i * 4 + 1] = srcScanLine[i * 3 + 1];
-                dstScanLine[i * 4 + 2] = srcScanLine[i * 3 + 0];
-                dstScanLine[i * 4 + 3] = srcAphaLine[i];
-            }
-            break;
-        }
-        case PdfPixelFormat::RGB24:
-        {
-            for (unsigned i = 0; i < width; i++)
-            {
-                dstScanLine[i * 3 + 0] = srcScanLine[i * 3 + 0];
-                dstScanLine[i * 3 + 1] = srcScanLine[i * 3 + 1];
-                dstScanLine[i * 3 + 2] = srcScanLine[i * 3 + 2];
-            }
-            break;
-        }
-        case PdfPixelFormat::BGR24:
-        {
-            for (unsigned i = 0; i < width; i++)
-            {
-                dstScanLine[i * 3 + 0] = srcScanLine[i * 3 + 2];
-                dstScanLine[i * 3 + 1] = srcScanLine[i * 3 + 1];
-                dstScanLine[i * 3 + 2] = srcScanLine[i * 3 + 0];
-            }
-            break;
-        }
-        default:
-            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedImageFormat, "Unsupported pixel format");
     }
 }
 
