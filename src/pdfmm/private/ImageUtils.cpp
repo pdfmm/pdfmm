@@ -29,7 +29,7 @@ void utls::FetchImageRGB(OutputStream& stream, unsigned width, unsigned heigth, 
     {
         for (unsigned i = 0; i < heigth; i++)
         {
-            fetchScanLineGrayScale((unsigned char*)scanLine.data(),
+            fetchScanLineRGB((unsigned char*)scanLine.data(),
                 width, format, imageData + i * srcRowSize);
             stream.Write(scanLine.data(), scanLine.size());
         }
@@ -38,7 +38,7 @@ void utls::FetchImageRGB(OutputStream& stream, unsigned width, unsigned heigth, 
     {
         for (unsigned i = 0; i < heigth; i++)
         {
-            fetchScanLineGrayScale((unsigned char*)scanLine.data(),
+            fetchScanLineRGB((unsigned char*)scanLine.data(),
                 width, format, imageData + i * srcRowSize,
                 (const unsigned char*)smaskData.data() + i * width);
             stream.Write(scanLine.data(), scanLine.size());
@@ -54,7 +54,7 @@ void utls::FetchImageGrayScale(OutputStream& stream, unsigned width, unsigned he
     {
         for (unsigned i = 0; i < heigth; i++)
         {
-            fetchScanLineRGB((unsigned char*)scanLine.data(),
+            fetchScanLineGrayScale((unsigned char*)scanLine.data(),
                 width, format, imageData + i * srcRowSize);
             stream.Write(scanLine.data(), scanLine.size());
         }
@@ -63,7 +63,7 @@ void utls::FetchImageGrayScale(OutputStream& stream, unsigned width, unsigned he
     {
         for (unsigned i = 0; i < heigth; i++)
         {
-            fetchScanLineRGB((unsigned char*)scanLine.data(),
+            fetchScanLineGrayScale((unsigned char*)scanLine.data(),
                 width, format, imageData + i * srcRowSize,
                 (const unsigned char*)smaskData.data() + i * width);
             stream.Write(scanLine.data(), scanLine.size());
