@@ -293,7 +293,7 @@ void PdfArray::insert(const PdfArray::iterator& pos,
     const InputIterator& last)
 {
     auto document = GetObjectDocument();
-    iterator it1 = first;
+    InputIterator it1 = first;
     iterator it2 = pos;
     for (; it1 != last; it1++, it2++)
     {
