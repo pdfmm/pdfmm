@@ -227,6 +227,10 @@ void PdfPageCollection::DeletePage(unsigned atIndex)
             atIndex);
         PDFMM_RAISE_ERROR(PdfErrorCode::PageNotFound);
     }
+
+    // After removing the page the /OpenAction entry may be invalidated,
+    // prompting an error using Acrobat. Remove it for safer behavior
+    GetDocument().GetCatalog().GetDictionary().RemoveKey("OpenAction");
 }
 
 PdfObject* PdfPageCollection::getPageNode(unsigned index, PdfObject& parent,
