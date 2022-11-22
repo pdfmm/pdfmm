@@ -204,6 +204,7 @@ PdfColorSpace PdfImage::GetColorSpace() const
     if (colorSpace == nullptr)
         return PdfColorSpace::Unknown;
 
+    // CHECK-ME: Check if this is correct in the general case
     if (colorSpace->IsArray())
         return PdfColorSpace::Indexed;
 
@@ -332,9 +333,16 @@ void PdfImage::SetDataRaw(InputStream& stream, const PdfImageInfo& info)
         dict.AddKey("Decode", info.Decode);
 
     if (info.ColorSpaceArray.GetSize() == 0)
+    {
         dict.AddKey("ColorSpace", PdfName(mm::ColorSpaceToNameRaw(info.ColorSpace)));
+    }
     else
+    {
+        PdfArray arr;
+        arr.Add(PdfName(mm::ColorSpaceToNameRaw(info.ColorSpace)));
+        arr.insert(arr.begin(), info.ColorSpaceArray.begin(), info.ColorSpaceArray.end());
         dict.AddKey("ColorSpace", info.ColorSpaceArray);
+    }
 
     GetObject().GetOrCreateStream().SetData(stream, true);
 
