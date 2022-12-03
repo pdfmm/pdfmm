@@ -15,7 +15,6 @@
 namespace mm {
 
 class PdfEncrypt;
-class PdfObject;
 class PdfIndirectObjectList;
 class PdfDictionary;
 class PdfArray;

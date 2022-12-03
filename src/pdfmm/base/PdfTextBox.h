@@ -36,17 +36,13 @@ namespace mm
         };
 
     private:
-        PdfTextBox(PdfObject& obj, PdfAnnotation* widget);
+        PdfTextBox(PdfAcroForm& acroform, const std::shared_ptr<PdfField>& parent);
+
+        PdfTextBox(PdfAnnotationWidget& widget, const std::shared_ptr<PdfField>& parent);
+
+        PdfTextBox(PdfObject& obj, PdfAcroForm* acroform);
 
     public:
-        /** Create a new PdfTextBox
-         */
-        PdfTextBox(PdfDocument& doc, PdfAnnotation* widget, bool insertInAcroform);
-
-        /** Create a new PdfTextBox
-         */
-        PdfTextBox(PdfPage& page, const PdfRect& rect);
-
         /** Sets the text contents of this text field.
          *
          *  \param text the text of this field
@@ -174,8 +170,11 @@ namespace mm
          */
         bool IsRichText() const;
 
+        PdfTextBox* GetParent();
+        const PdfTextBox* GetParent() const;
+
     private:
-        void Init();
+        void init();
     };
 }
 

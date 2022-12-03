@@ -7,6 +7,7 @@
 #define PDF_ANNOTATION_ACTION_BASE_H
 
 #include "PdfAnnotation.h"
+#include "PdfAction.h"
 
 namespace mm {
 

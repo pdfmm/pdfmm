@@ -41,10 +41,6 @@ void HelloWorld(const string_view& filename)
     // directly on a PdfPage object.
     PdfPainter painter;
 
-    // This pointer will hold the page object later.
-    // PdfSimpleWriter can write several PdfPage's to a PDF file.
-    PdfPage* page;
-
     // A PdfFont object is required to draw text on a PdfPage using a PdfPainter.
     // pdfmm will find the font using fontconfig on your system and embedd truetype
     // fonts automatically in the PDF file.
@@ -58,7 +54,7 @@ void HelloWorld(const string_view& filename)
         // 
         // You have to pass only one argument, i.e. the page size of the page to create.
         // There are predefined enums for some common page sizes.
-        page = document.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+        auto& page = document.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
 
         // If the page cannot be created because of an error (e.g. ePdfError_OutOfMemory )
         // a nullptr pointer is returned.
@@ -77,7 +73,7 @@ void HelloWorld(const string_view& filename)
         // The created PdfFont will be deleted by the PdfDocument.
         PdfFontSearchParams params;
         params.AutoSelect = PdfFontAutoSelectBehavior::Standard14;
-        font = document.GetFontManager().GetFont("Helvetica", params);
+        font = document.GetFonts().GetFont("Helvetica", params);
 
         // If the PdfFont object cannot be allocated return an error.
         if (font == nullptr)
@@ -103,9 +99,9 @@ void HelloWorld(const string_view& filename)
         //
         // All coordinates in pdfmm are in PDF units.
         // You can also use PdfPainterMM which takes coordinates in 1/1000th mm.
-        painter.DrawText("Hello World!", 56.69, page->GetRect().GetHeight() - 56.69);
+        painter.DrawText("Hello World!", 56.69, page.GetRect().GetHeight() - 56.69);
 
-        DemoBase14Fonts(painter, *page, document, params);
+        DemoBase14Fonts(painter, page, document, params);
 
         painter.FinishDrawing();
 
@@ -232,7 +228,7 @@ void DemoBase14Fonts(PdfPainter& painter, PdfPage& page, PdfDocument& document, 
         string text = (string)demo_text;
         text.append(GetBase14FontName(i));
 
-        PdfFont* font = document.GetFontManager().GetFont(GetBase14FontName(i), params);
+        PdfFont* font = document.GetFonts().GetFont(GetBase14FontName(i), params);
         if (font == nullptr)
             throw runtime_error("Font not found");
 
@@ -263,7 +259,7 @@ void DemoBase14Fonts(PdfPainter& painter, PdfPage& page, PdfDocument& document, 
         else
             text = (string)demo_text2.substr(i, 1);
 
-        PdfFont* font = document.GetFontManager().GetFont("Helvetica", params);
+        PdfFont* font = document.GetFonts().GetFont("Helvetica", params);
         painter.GetTextState().SetFont(font, 12);
         height = font->GetMetrics().GetLineSpacing();
         width = font->GetStringLength(text, painter.GetTextState());
@@ -277,7 +273,7 @@ void DemoBase14Fonts(PdfPainter& painter, PdfPage& page, PdfDocument& document, 
         if (i > 0)
         {
             // draw again, with non-Base14 font
-            PdfFont* font2 = document.GetFontManager().GetFont("Arial", params);
+            PdfFont* font2 = document.GetFonts().GetFont("Arial", params);
             painter.GetTextState().SetFont(font2, 12);
             height = font2->GetMetrics().GetLineSpacing();
             width = font2->GetStringLength((string_view)text, painter.GetTextState());

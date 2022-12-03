@@ -16,15 +16,20 @@ namespace mm
     /** A radio button
      * TODO: This is just a stub
      */
-    class PDFMM_API PdfRadioButton : public PdfButton
+    class PDFMM_API PdfRadioButton : public PdfToggleButton
     {
         friend class PdfField;
-    private:
-        PdfRadioButton(PdfObject& obj, PdfAnnotation* widget);
-    public:
-        PdfRadioButton(PdfDocument& doc, PdfAnnotation* widget, bool insertInAcroform);
 
-        PdfRadioButton(PdfPage& page, const PdfRect& rect);
+    private:
+        PdfRadioButton(PdfAcroForm& acroform, const std::shared_ptr<PdfField>& parent);
+
+        PdfRadioButton(PdfAnnotationWidget& widget, const std::shared_ptr<PdfField>& parent);
+
+        PdfRadioButton(PdfObject& obj, PdfAcroForm* acroform);
+
+    public:
+        PdfRadioButton* GetParent();
+        const PdfRadioButton* GetParent() const;
     };
 }
 

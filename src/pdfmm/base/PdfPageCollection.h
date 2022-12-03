@@ -56,8 +56,8 @@ public:
      *  \param index page index, 0-based
      *  \returns a pointer to the requested page
      */
-    PdfPage& GetPage(unsigned index);
-    const PdfPage& GetPage(unsigned index) const;
+    PdfPage& GetPageAt(unsigned index);
+    const PdfPage& GetPageAt(unsigned index) const;
 
     /** Return a PdfPage for the specified Page reference.
      *  The returned page is owned by the pages tree and
@@ -77,18 +77,7 @@ public:
      *  \param size a PdfRect specifying the size of the page (i.e the /MediaBox key) in PDF units
      *  \returns a pointer to a PdfPage object
      */
-    PdfPage* CreatePage(const PdfRect& size);
-
-    /** Creates several new page objects and inserts them into the internal
-     *  page tree.
-     *  The new pages are owned by the pages tree and will get deleted along
-     *  with it!
-     *  Note: this function will attach all new pages onto the same page node
-     *  which can cause the tree to be unbalanced if
-     *
-     *  \param sizes a vector of PdfRect specifying the size of each of the pages to create (i.e the /MediaBox key) in PDF units
-     */
-    void CreatePages(const std::vector<PdfRect>& sizes);
+    PdfPage& CreatePage(const PdfRect& size);
 
     /** Creates a new page object and inserts it at index atIndex.
      *  The returned page is owned by the pages tree and will get deleted along
@@ -98,7 +87,7 @@ public:
      *  \param atIndex index where to insert the new page (0-based)
      *  \returns a pointer to a PdfPage object
      */
-    PdfPage* InsertPage(unsigned atIndex, const PdfRect& size);
+    PdfPage& CreatePageAt(unsigned atIndex, const PdfRect& size);
 
     /**  Delete the specified page object from the internal pages tree.
      *   It does NOT remove any PdfObjects from memory - just the reference from the tree
@@ -110,7 +99,7 @@ public:
      *
      *   \see PdfMemDocument::DeletePages
      */
-    void DeletePage(unsigned atIndex);
+    void RemovePageAt(unsigned atIndex);
 
 private:
     /**

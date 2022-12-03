@@ -15,7 +15,7 @@ TEST_CASE("TestImage1")
 {
     PdfMemDocument doc;
     doc.Load(TestUtils::GetTestInputFilePath("TestImage1.pdf"));
-    auto& page = doc.GetPages().GetPage(0);
+    auto& page = doc.GetPages().GetPageAt(0);
     auto& resources = page.MustGetResources();
     auto imageObj = resources.GetResource("XObject", "XOb5");
     unique_ptr<PdfImage> image;

@@ -57,6 +57,28 @@ private:
     PdfObject* m_Owner;
 };
 
+class PdfIndirectIterableBase
+{
+    template <typename TObject, typename TListIterator>
+    friend class PdfArrayIndirectIterableBase;
+
+    template <typename TObject, typename TMapIterator>
+    friend class PdfDictionaryIndirectIterableBase;
+
+private:
+    PdfIndirectIterableBase();
+
+    PdfIndirectIterableBase(PdfDataContainer& container);
+
+protected:
+    static PdfObject* GetObject(const PdfIndirectObjectList& list, const PdfReference& ref);
+
+    PdfIndirectObjectList* GetObjects() const { return m_Objects; }
+
+private:
+    PdfIndirectObjectList* m_Objects;
+};
+
 }
 
 #endif // PDF_CONTAINER_DATATYPE_H

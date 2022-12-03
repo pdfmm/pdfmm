@@ -504,6 +504,116 @@ enum class PdfStandard14FontType
     ZapfDingbats,
 };
 
+/** The type of the annotation.
+ *  PDF supports different annotation types, each of
+ *  them has different keys and propeties.
+ *
+ *  Not all annotation types listed here are supported yet.
+ *
+ *  Please make also sure that the annotation type you use is
+ *  supported by the PDF version you are using.
+ */
+enum class PdfAnnotationType
+{
+    Unknown = 0,
+    Text,                       // - supported
+    Link,                       // - supported
+    FreeText,       // PDF 1.3  // - supported
+    Line,           // PDF 1.3  // - supported
+    Square,         // PDF 1.3
+    Circle,         // PDF 1.3
+    Polygon,        // PDF 1.5
+    PolyLine,       // PDF 1.5
+    Highlight,      // PDF 1.3
+    Underline,      // PDF 1.3
+    Squiggly,       // PDF 1.4
+    StrikeOut,      // PDF 1.3
+    Stamp,          // PDF 1.3
+    Caret,          // PDF 1.5
+    Ink,            // PDF 1.3
+    Popup,          // PDF 1.3  // - supported
+    FileAttachement,// PDF 1.3
+    Sound,          // PDF 1.2
+    Movie,          // PDF 1.2
+    Widget,         // PDF 1.2  // - supported
+    Screen,         // PDF 1.5
+    PrinterMark,    // PDF 1.4
+    TrapNet,        // PDF 1.3
+    Watermark,      // PDF 1.6
+    Model3D,        // PDF 1.6
+    RichMedia,      // PDF 1.7 ADBE ExtensionLevel 3 ALX: Petr P. Petrov
+    WebMedia,       // PDF 1.7 IPDF ExtensionLevel 3
+    Redact,         // PDF 1.7
+    Projection,     // PDF 2.0
+};
+
+/** Flags that control the appearance of a PdfAnnotation.
+ *  You can OR them together and pass it to
+ *  PdfAnnotation::SetFlags.
+ */
+enum class PdfAnnotationFlags
+{
+    None = 0x0000,
+    Invisible = 0x0001,
+    Hidden = 0x0002,
+    Print = 0x0004,
+    NoZoom = 0x0008,
+    NoRotate = 0x0010,
+    NoView = 0x0020,
+    ReadOnly = 0x0040,
+    Locked = 0x0080,
+    ToggleNoView = 0x0100,
+    LockedContents = 0x0200,
+};
+
+/** The type of PDF field
+ */
+enum class PdfFieldType
+{
+    Unknown = 0,
+    PushButton,
+    CheckBox,
+    RadioButton,
+    TextBox,
+    ComboBox,
+    ListBox,
+    Signature,
+};
+
+/** The possible highlighting modes
+ *  for a PdfField. I.e the visual effect
+ *  that is to be used when the mouse
+ *  button is pressed.
+ *
+ *  The default value is
+ *  PdfHighlightingMode::Invert
+ */
+enum class PdfHighlightingMode
+{
+    Unknown = 0,
+    None,           ///< Do no highlighting
+    Invert,         ///< Invert the PdfField
+    InvertOutline,  ///< Invert the fields border
+    Push,           ///< Display the fields down appearance (requires an additional appearance stream to be set)
+};
+
+enum class PdfFieldFlags
+{
+    ReadOnly = 1,
+    Required = 2,
+    NoExport = 4
+};
+
+/**
+ * Type of the annotation appearance.
+ */
+enum class PdfAppearanceType
+{
+    Normal = 0, ///< Normal appearance
+    Rollover,   ///< Rollover appearance; the default is PdfAnnotationAppearance::Normal
+    Down        ///< Down appearance; the default is PdfAnnotationAppearance::Normal
+};
+
 /**
  * List of PDF stream content operators
  */
@@ -647,6 +757,7 @@ ENABLE_BITMASK_OPERATORS(mm::PdfFontAutoSelectBehavior);
 ENABLE_BITMASK_OPERATORS(mm::PdfFontDescriptorFlags);
 ENABLE_BITMASK_OPERATORS(mm::PdfGlyphAccess);
 ENABLE_BITMASK_OPERATORS(mm::PdfTextExtractFlags);
+ENABLE_BITMASK_OPERATORS(mm::PdfAnnotationFlags);
 
 /**
  * \mainpage

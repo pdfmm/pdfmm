@@ -11,8 +11,7 @@
 
 #include "PdfDeclarations.h"
 
-#include "PdfElement.h"
-#include "PdfArray.h"
+#include "PdfAnnotationCollection.h"
 #include "PdfCanvas.h"
 #include "PdfRect.h"
 #include "PdfContents.h"
@@ -69,8 +68,6 @@ private:
     PdfPage(PdfObject& obj, const std::deque<PdfObject*>& listOfParents);
 
 public:
-    virtual ~PdfPage();
-
     void ExtractTextTo(std::vector<PdfTextEntry>& entries,
         const PdfTextExtractParams& params) const;
 
@@ -162,52 +159,10 @@ public:
      */
     void SetRotationRaw(int rotation);
 
-    /** Get the number of annotations associated with this page
-     * \ returns int number of annotations
-     */
-    unsigned GetAnnotationCount() const;
+    template <typename TField>
+    TField& CreateField(const std::string_view& name, const PdfRect& rect);
 
-    /** Create a new annotation to this page.
-     *  \param annotType the type of the annotation
-     *  \param rect rectangle of the annotation on the page
-     *
-     *  \returns the annotation object which is owned by the PdfPage
-     */
-    template <typename TAnnotation>
-    TAnnotation& CreateAnnotation(const PdfRect& rect);
-
-    PdfAnnotation& CreateAnnotation(PdfAnnotationType annotType, const PdfRect& rect);
-
-    /** Get the annotation with index index of the current page.
-     *  \param index the index of the annotation to retrieve
-     *
-     *  \returns a annotation object. The annotation object is owned by the PdfPage.
-     *
-     *  \see GetAnnotationCount
-     */
-    PdfAnnotation& GetAnnotation(unsigned index);
-
-    /** Delete the annotation with index index from this page.
-     *  \param index the index of the annotation to delete
-     *
-     *  \see GetAnnotationCount
-     */
-    void DeleteAnnotation(unsigned index);
-
-    /** Delete the annotation with the given object
-     *  \param annotObj the object of an annotation
-     *
-     *  \see GetAnnotationCount
-     */
-    void DeleteAnnotation(PdfObject& annotObj);
-
-    /** Method for getting a value that can be inherited
-     *  Possible names that can be inherited according to
-     *  the PDF specification are: Resources, MediaBox, CropBox and Rotate
-     *
-     *  \returns PdfObject - the result of the key fetching or nullptr
-     */
-    const PdfObject* GetInheritedKey(const PdfName& name) const;
+    PdfField& CreateField(const std::string_view& name, PdfFieldType fieldType, const PdfRect& rect);
 
     /** Set an ICC profile for this page
      *
@@ -232,17 +187,17 @@ public:
     inline PdfResources* GetResources() { return m_Resources.get(); }
     const PdfResources& MustGetResources() const;
     PdfResources& MustGetResources();
+    inline PdfAnnotationCollection& GetAnnotations() { return m_Annotations; }
+    inline const PdfAnnotationCollection& GetAnnotations() const { return m_Annotations; }
 
 private:
-    PdfAnnotation& createAnnotation(const std::type_info& typeInfo, const PdfRect& rect);
+    PdfField& createField(const std::string_view& name, const std::type_info& typeInfo, const PdfRect& rect);
 
     PdfResources* getResources() const override;
 
     PdfObject* getContentsObject() const override;
 
     PdfElement& getElement() const override;
-
-    void createAnnotation(PdfAnnotation* annot);
 
     PdfObjectStream& GetStreamForAppending(PdfStreamAppendFlags flags) override;
 
@@ -263,15 +218,6 @@ private:
      */
     PdfRect getPageBox(const std::string_view& inBox) const;
 
-    /** Method for getting a key value that could be inherited (such as the boxes, resources, etc.)
-     *  \returns PdfObject - the result of the key fetching or nullptr
-     */
-    const PdfObject* getInheritedKeyFromObject(const std::string_view& key, const PdfObject& inObject, int depth = 0) const;
-
-private:
-    PdfArray* GetAnnotationsArray() const;
-    PdfArray& GetOrCreateAnnotationsArray();
-
 private:
     PdfElement& GetElement() = delete;
     const PdfElement& GetElement() const = delete;
@@ -279,18 +225,15 @@ private:
     const PdfObject* GetContentsObject() const = delete;
 
 private:
-    using AnnotationDirectMap = std::map<PdfObject*, PdfAnnotation*>;
-
-private:
     std::unique_ptr<PdfContents> m_Contents;
     std::unique_ptr<PdfResources> m_Resources;
-    AnnotationDirectMap m_mapAnnotations;
+    PdfAnnotationCollection m_Annotations;
 };
 
-template<typename TAnnotation>
-TAnnotation& PdfPage::CreateAnnotation(const PdfRect& rect)
+template<typename TField>
+TField& PdfPage::CreateField(const std::string_view& name, const PdfRect & rect)
 {
-    return static_cast<TAnnotation&>(createAnnotation(typeid(TAnnotation), rect));
+    return static_cast<TField&>(createField(name, typeid(TField), rect));
 }
 
 };

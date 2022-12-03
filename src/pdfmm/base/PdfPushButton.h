@@ -19,14 +19,15 @@ namespace mm
     class PDFMM_API PdfPushButton : public PdfButton
     {
         friend class PdfField;
+
     private:
-        PdfPushButton(PdfObject& obj, PdfAnnotation* widget);
+        PdfPushButton(PdfAcroForm& acroform, const std::shared_ptr<PdfField>& parent);
+
+        PdfPushButton(PdfAnnotationWidget& widget, const std::shared_ptr<PdfField>& parent);
+
+        PdfPushButton(PdfObject& obj, PdfAcroForm* acroform);
 
     public:
-        PdfPushButton(PdfDocument& doc, PdfAnnotation* widget, bool insertInAcroform);
-
-        PdfPushButton(PdfPage& page, const PdfRect& rect);
-
         /** Set the rollover caption of this button
          *  which is displayed when the cursor enters the field
          *  without the mouse button being pressed
@@ -52,8 +53,11 @@ namespace mm
          */
         nullable<PdfString> GetAlternateCaption() const;
 
+        PdfPushButton* GetParent();
+        const PdfPushButton* GetParent() const;
+
     private:
-        void Init();
+        void init();
     };
 }
 

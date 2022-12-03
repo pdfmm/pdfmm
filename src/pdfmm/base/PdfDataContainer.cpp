@@ -74,3 +74,28 @@ PdfDocument* PdfDataContainer::GetObjectDocument()
 {
     return m_Owner == nullptr ? nullptr : m_Owner->GetDocument();
 }
+
+PdfIndirectIterableBase::PdfIndirectIterableBase()
+    : m_Objects(nullptr) { }
+
+PdfIndirectIterableBase::PdfIndirectIterableBase(PdfDataContainer& container)
+{
+    auto owner = container.GetOwner();
+    if (owner == nullptr)
+    {
+        m_Objects = nullptr;
+    }
+    else
+    {
+        auto document = owner->GetDocument();
+        if (document == nullptr)
+            m_Objects = nullptr;
+        else
+            m_Objects = &document->GetObjects();
+    }
+}
+
+PdfObject* PdfIndirectIterableBase::GetObject(const PdfIndirectObjectList& list, const PdfReference& ref)
+{
+    return list.GetObject(ref);
+}

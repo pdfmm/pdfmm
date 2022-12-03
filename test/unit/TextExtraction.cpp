@@ -15,7 +15,7 @@ TEST_CASE("TextExtraction1")
 {
     PdfMemDocument doc;
     doc.Load(TestUtils::GetTestInputFilePath("TextExtraction1.pdf"));
-    auto& page = doc.GetPages().GetPage(0);
+    auto& page = doc.GetPages().GetPageAt(0);
     vector<PdfTextEntry> entries;
     page.ExtractTextTo(entries);
 

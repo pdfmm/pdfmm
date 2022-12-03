@@ -39,10 +39,6 @@ void HelloWorld(const string_view& filename)
     // directly on a PdfPage object.
     PdfPainter painter;
 
-    // This pointer will hold the page object later.
-    // PdfSimpleWriter can write several PdfPage's to a PDF file.
-    PdfPage* page;
-
     // A PdfFont object is required to draw text on a PdfPage using a PdfPainter.
     // pdfmm will find the font using fontconfig on your system and embedd truetype
     // fonts automatically in the PDF file.
@@ -56,7 +52,7 @@ void HelloWorld(const string_view& filename)
         // 
         // You have to pass only one argument, i.e. the page size of the page to create.
         // There are predefined enums for some common page sizes.
-        page = document.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+        auto& page = document.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
 
         // Set the page as drawing target for the PdfPainter.
         // Before the painter can draw, a page has to be set first.
@@ -67,7 +63,7 @@ void HelloWorld(const string_view& filename)
         // PDF file. If Arial is not available, a default font will be used.
         // 
         // The created PdfFont will be deleted by the PdfDocument.
-        font = document.GetFontManager().GetFont("Arial");
+        font = document.GetFonts().GetFont("Arial");
 
         // If the PdfFont object cannot be allocated return an error.
         if (font == nullptr)
@@ -92,10 +88,10 @@ void HelloWorld(const string_view& filename)
         // The position specifies the start of the baseline of the text.
         // 
         // All coordinates in pdfmm are in PDF units.
-        painter.DrawText("ABCDEFGHIKLMNOPQRSTVXYZ", 56.69, page->GetRect().GetHeight() - 56.69);
+        painter.DrawText("ABCDEFGHIKLMNOPQRSTVXYZ", 56.69, page.GetRect().GetHeight() - 56.69);
 
         // Add also some non-ASCII characters (Cyrillic alphabet)
-        painter.DrawText("АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЬЫЭЮЯ", 56.69, page->GetRect().GetHeight() - 80);
+        painter.DrawText("АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЬЫЭЮЯ", 56.69, page.GetRect().GetHeight() - 80);
 
         // Tell pdfmm that the page has been drawn completely.
         // This required to optimize drawing operations inside in pdfmm

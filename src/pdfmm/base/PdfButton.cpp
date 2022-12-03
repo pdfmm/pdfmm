@@ -7,24 +7,26 @@
  */
 
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
-
 #include "PdfButton.h"
+#include "PdfDictionary.h"
 
 using namespace std;
 using namespace mm;
 
-PdfButton::PdfButton(PdfFieldType fieldType, PdfDocument& doc, PdfAnnotation* widget, bool insertInAcrofrom)
-    : PdfField(fieldType, doc, widget, insertInAcrofrom)
+PdfButton::PdfButton(PdfAcroForm& acroform, PdfFieldType fieldType,
+        const shared_ptr<PdfField>& parent)
+    : PdfField(acroform, fieldType, parent)
 {
 }
 
-PdfButton::PdfButton(PdfFieldType fieldType, PdfObject& object, PdfAnnotation* widget)
-    : PdfField(fieldType, object, widget)
+PdfButton::PdfButton(PdfAnnotationWidget& widget, PdfFieldType fieldType,
+        const shared_ptr<PdfField>& parent)
+    : PdfField(widget, fieldType, parent)
 {
 }
 
-PdfButton::PdfButton(PdfFieldType fieldType, PdfPage& page, const PdfRect& rect)
-    : PdfField(fieldType, page, rect)
+PdfButton::PdfButton(PdfObject& obj, PdfAcroForm* acroform, PdfFieldType fieldType)
+    : PdfField(obj, acroform, fieldType)
 {
 }
 
@@ -57,4 +59,21 @@ nullable<PdfString> PdfButton::GetCaption() const
         return mk->GetDictionary().MustFindKey("CA").GetString();
 
     return { };
+}
+
+PdfToggleButton::PdfToggleButton(PdfAcroForm& acroform, PdfFieldType fieldType,
+    const shared_ptr<PdfField>& parent)
+    : PdfButton(acroform, fieldType, parent)
+{
+}
+
+PdfToggleButton::PdfToggleButton(PdfAnnotationWidget& widget, PdfFieldType fieldType,
+    const shared_ptr<PdfField>& parent)
+    : PdfButton(widget, fieldType, parent)
+{
+}
+
+PdfToggleButton::PdfToggleButton(PdfObject& obj, PdfAcroForm* acroform, PdfFieldType fieldType)
+    : PdfButton(obj, acroform, fieldType)
+{
 }

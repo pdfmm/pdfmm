@@ -8,29 +8,30 @@
 
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfPushButton.h"
+#include "PdfDictionary.h"
 
 using namespace std;
 using namespace mm;
 
-PdfPushButton::PdfPushButton(PdfObject& obj, PdfAnnotation* widget)
-    : PdfButton(PdfFieldType::PushButton, obj, widget)
+PdfPushButton::PdfPushButton(PdfAcroForm& acroform, const shared_ptr<PdfField>& parent)
+    : PdfButton(acroform, PdfFieldType::PushButton, parent)
 {
-    // NOTE: We assume initialization was performed in the given object
+    init();
 }
 
-PdfPushButton::PdfPushButton(PdfDocument& doc, PdfAnnotation* widget, bool insertInAcroform)
-    : PdfButton(PdfFieldType::PushButton, doc, widget, insertInAcroform)
+PdfPushButton::PdfPushButton(PdfAnnotationWidget& widget, const shared_ptr<PdfField>& parent)
+    : PdfButton(widget, PdfFieldType::PushButton, parent)
 {
-    Init();
+    init();
 }
 
-PdfPushButton::PdfPushButton(PdfPage& page, const PdfRect& rect)
-    : PdfButton(PdfFieldType::PushButton, page, rect)
+PdfPushButton::PdfPushButton(PdfObject& obj, PdfAcroForm* acroform)
+    : PdfButton(obj, acroform, PdfFieldType::PushButton)
 {
-    Init();
+    // NOTE: Do not call init() here
 }
 
-void PdfPushButton::Init()
+void PdfPushButton::init()
 {
     // make a push button
     this->SetFieldFlag(static_cast<int>(ePdfButton_PushButton), true);
@@ -65,4 +66,14 @@ nullable<PdfString>  PdfPushButton::GetAlternateCaption() const
         return mk->GetDictionary().MustFindKey("AC").GetString();
 
     return { };
+}
+
+PdfPushButton* PdfPushButton::GetParent()
+{
+    return GetParentTyped<PdfPushButton>(PdfFieldType::PushButton);
+}
+
+const PdfPushButton* PdfPushButton::GetParent() const
+{
+    return GetParentTyped<PdfPushButton>(PdfFieldType::PushButton);
 }

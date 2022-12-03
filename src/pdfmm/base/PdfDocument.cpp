@@ -151,7 +151,7 @@ void PdfDocument::append(const PdfDocument& doc, bool appendAll)
         // append all pages now to our page tree
         for (unsigned i = 0; i < doc.GetPages().GetCount(); i++)
         {
-            auto& page = doc.GetPages().GetPage(i);
+            auto& page = doc.GetPages().GetPageAt(i);
             auto& obj = m_Objects.MustGetObject(PdfReference(page.GetObject().GetIndirectReference().ObjectNumber()
                 + difference, page.GetObject().GetIndirectReference().GenerationNumber()));
             if (obj.IsDictionary() && obj.GetDictionary().HasKey("Parent"))
@@ -161,7 +161,7 @@ void PdfDocument::append(const PdfDocument& doc, bool appendAll)
             auto inherited = inheritableAttributes;
             while (!inherited->IsNull())
             {
-                auto attribute = page.GetInheritedKey(*inherited);
+                auto attribute = page.GetDictionary().FindKeyParent(*inherited);
                 if (attribute != nullptr)
                 {
                     PdfObject attributeCopy(*attribute);
@@ -240,7 +240,7 @@ void PdfDocument::InsertExistingPageAt(const PdfDocument& doc, unsigned pageInde
         if (i != pageIndex)
             continue;
 
-        auto& page = doc.GetPages().GetPage(i);
+        auto& page = doc.GetPages().GetPageAt(i);
         auto& obj = m_Objects.MustGetObject(PdfReference(page.GetObject().GetIndirectReference().ObjectNumber()
             + difference, page.GetObject().GetIndirectReference().GenerationNumber()));
         if (obj.IsDictionary() && obj.GetDictionary().HasKey("Parent"))
@@ -250,7 +250,7 @@ void PdfDocument::InsertExistingPageAt(const PdfDocument& doc, unsigned pageInde
         const PdfName* inherited = inheritableAttributes;
         while (!inherited->IsNull())
         {
-            auto attribute = page.GetInheritedKey(*inherited);
+            auto attribute = page.GetDictionary().FindKeyParent(*inherited);
             if (attribute != nullptr)
             {
                 PdfObject attributeCopy(*attribute);

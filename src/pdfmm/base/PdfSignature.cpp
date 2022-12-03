@@ -21,33 +21,34 @@
 using namespace std;
 using namespace mm;
 
-PdfSignature::PdfSignature(PdfPage& page, const PdfRect& rect)
-    : PdfField(PdfFieldType::Signature, page, rect), m_ValueObj(nullptr)
+PdfSignature::PdfSignature(PdfAcroForm& acroform, const shared_ptr<PdfField>& parent) :
+    PdfField(acroform, PdfFieldType::Signature, parent),
+    m_ValueObj(nullptr)
 {
-
-    Init(page.GetDocument().GetOrCreateAcroForm());
+    init(acroform);
 }
 
-PdfSignature::PdfSignature(PdfDocument& doc, PdfAnnotation* widget, bool insertInAcroform)
-    : PdfField(PdfFieldType::Signature, doc, widget, insertInAcroform), m_ValueObj(nullptr)
+PdfSignature::PdfSignature(PdfAnnotationWidget& widget, const shared_ptr<PdfField>& parent) :
+    PdfField(widget, PdfFieldType::Signature, parent),
+    m_ValueObj(nullptr)
 {
-    Init(doc.GetOrCreateAcroForm());
+    init(widget.GetDocument().GetOrCreateAcroForm());
 }
 
-PdfSignature::PdfSignature(PdfObject& obj, PdfAnnotation* widget)
-    : PdfField(PdfFieldType::Signature, obj, widget), m_ValueObj(nullptr)
+PdfSignature::PdfSignature(PdfObject& obj, PdfAcroForm* acroform) :
+    PdfField(obj, acroform, PdfFieldType::Signature),
+    m_ValueObj(this->GetObject().GetDictionary().FindKey("V"))
 {
-    // do not call Init() here
-    m_ValueObj = this->GetObject().GetDictionary().FindKey("V");
+    // NOTE: Do not call init() here
 }
 
 void PdfSignature::SetAppearanceStream(PdfXObjectForm& obj, PdfAppearanceType appearance, const PdfName& state)
 {
-    GetWidgetAnnotation()->SetAppearanceStream(obj, appearance, state);
+    GetWidget()->SetAppearanceStream(obj, appearance, state);
     (void)this->GetOrCreateAppearanceCharacteristics();
 }
 
-void PdfSignature::Init(PdfAcroForm& acroForm)
+void PdfSignature::init(PdfAcroForm& acroForm)
 {
     // TABLE 8.68 Signature flags: SignaturesExist (1) | AppendOnly (2)
     // This will open signature panel when inspecting PDF with acrobat,
@@ -206,6 +207,16 @@ void PdfSignature::EnsureValueObject()
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 
     GetObject().GetDictionary().AddKey("V", m_ValueObj->GetIndirectReference());
+}
+
+PdfSignature* PdfSignature::GetParent()
+{
+    return GetParentTyped<PdfSignature>(PdfFieldType::Signature);
+}
+
+const PdfSignature* PdfSignature::GetParent() const
+{
+    return GetParentTyped<PdfSignature>(PdfFieldType::Signature);
 }
 
 PdfSignatureBeacons::PdfSignatureBeacons()

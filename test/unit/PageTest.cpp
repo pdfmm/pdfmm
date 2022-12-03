@@ -14,8 +14,8 @@ using namespace mm;
 TEST_CASE("testEmptyContentsStream")
 {
     PdfMemDocument doc;
-    PdfPage* page1 = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
-    auto& annot1 = page1->CreateAnnotation<PdfAnnotationPopup>(PdfRect(300.0, 20.0, 250.0, 50.0));
+    auto& page1 = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+    auto& annot1 = page1.GetAnnotations().CreateAnnot<PdfAnnotationPopup>(PdfRect(300.0, 20.0, 250.0, 50.0));
     PdfString title("Author: Dominik Seichter");
     annot1.SetContents(title);
     annot1.SetOpen(true);
@@ -27,9 +27,9 @@ TEST_CASE("testEmptyContentsStream")
     PdfMemDocument doc2;
     doc2.Load(filename);
     REQUIRE(doc2.GetPages().GetCount() == 1);
-    auto& page2 = doc2.GetPages().GetPage(0);
-    REQUIRE(page2.GetAnnotationCount() == 1);
-    auto& annot2 = page2.GetAnnotation(0);
+    auto& page2 = doc2.GetPages().GetPageAt(0);
+    REQUIRE(page2.GetAnnotations().GetCount() == 1);
+    auto& annot2 = page2.GetAnnotations().GetAnnotAt(0);
     REQUIRE(annot2.GetContents() == title);
 
     auto& pageObj = page2.GetObject();

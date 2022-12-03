@@ -18,9 +18,9 @@ TEST_CASE("testAppend")
     string_view example = "BT (Hello) Tj ET";
 
     PdfMemDocument doc;
-    PdfPage* page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+    auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
 
-    auto& contents = page->GetOrCreateContents();
+    auto& contents = page.GetOrCreateContents();
     auto& stream = contents.GetStreamForAppending();
     stream.SetData(example);
 
@@ -31,7 +31,7 @@ TEST_CASE("testAppend")
     painter.GetGraphicsState().SetFillColor(PdfColor(1.0, 1.0, 1.0));
     painter.FinishDrawing();
 
-    PdfCanvasInputDevice input(doc.GetPages().GetPage(0));
+    PdfCanvasInputDevice input(doc.GetPages().GetPageAt(0));
     string out;
     StringStreamDevice output(out);
     input.CopyTo(output);

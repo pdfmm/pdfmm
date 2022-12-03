@@ -1,8 +1,11 @@
 ### 0.10.x (Summer 2022)
-- Refactor/Review PdfAnnoation/PdfField hierarchy. Finish API review
-- Evaluate rename PdfDocument::GetFontManager() -> GetFonts()
+- PdfAnnotation/PdfField: Finish API review
+- Make PdfMemDocument do collect garbage by default
 
 ### After 0.10
+- Add PdfAnnotation::GetRectRaw, make GetRect() return normalized rotation rect
+- Add PdfField::GetChildren()
+- PdfPage: Add iteration on PdfPage*. See PdfAnnotationCollection
 - Make PdfObjectStream not filter by default in PdfMemDocument
 - PdfElement: Optmize, keep dictionary/array pointer. Add GetObjectPtr()
 - PdfPageCollection::CreatePage() with PdfPageSize or default inferred from doc
@@ -19,11 +22,11 @@ either assume UTF-8 and/or checks for used codepoints
 - Add a PdfRect-like class PdfCorners that avoid coordinates normalization
   by default
 - Add PdfPage::GetRectRaw(), make GetRect() return normalized rotation rect
-- Make PdfMemDocument do collect garbage by default
 - Check PdfStreamedDocument working
 - Check/Review doxygen doc
 - Move IO System headers to common/
 - Extract Matrix PdfMath.h -> Matrix.h, move it to common/
+- PdfToggleButton: Add proper IsChecked/ExportValue handling
 
 Ideas:
 - PdfObject::TryFindKeyAsSafe()

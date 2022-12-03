@@ -1,4 +1,7 @@
 ## Version 0.10.0
+- PdfField/PdfAnntation: Fully reworked the hierarchy
+  and added proper fields ownership
+- Added PdfField::GetParent(), PdfField::GetChildren()
 - PdfImage: Cleaned/reviewed/fixed SetData()/SetDataRaw()
 - Renamed PdfPageTree -> PdfPageCollection
 - Added XMP metadata reading/saving. Added PdfMetadata class

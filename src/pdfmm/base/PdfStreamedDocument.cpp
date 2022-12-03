@@ -37,7 +37,7 @@ void PdfStreamedDocument::init(PdfVersion version, PdfSaveOptions opts)
 
 void PdfStreamedDocument::Close()
 {
-    GetFontManager().EmbedFonts();
+    GetFonts().EmbedFonts();
     this->GetObjects().Finish();
 }
 

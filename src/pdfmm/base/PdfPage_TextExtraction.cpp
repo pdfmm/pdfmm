@@ -925,7 +925,7 @@ void ExtractionContext::Tf_Operator(const PdfName &fontname, double fontsize)
     auto &doc = m_page.GetDocument();
     double spacingLengthRaw = 0;
     States.Current->PdfState.FontSize = fontsize;
-    if (fontObj == nullptr || (States.Current->PdfState.Font = doc.GetFontManager().GetLoadedFont(*fontObj)) == nullptr)
+    if (fontObj == nullptr || (States.Current->PdfState.Font = doc.GetFonts().GetLoadedFont(*fontObj)) == nullptr)
         mm::LogMessage(PdfLogSeverity::Warning, "Unable to find font object {}", fontname.GetString());
     else
         spacingLengthRaw = States.Current->GetWordSpacingLength();

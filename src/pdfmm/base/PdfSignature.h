@@ -19,6 +19,8 @@
 
 namespace mm {
 
+class PdfAcroForm;
+
 enum class PdfCertPermission
 {
     NoPerms = 1,
@@ -37,21 +39,16 @@ struct PdfSignatureBeacons
 
 class PDFMM_API PdfSignature : public PdfField
 {
+    friend class PdfField;
+
+private:
+    PdfSignature(PdfAcroForm& acroform, const std::shared_ptr<PdfField>& parent);
+
+    PdfSignature(PdfAnnotationWidget& widget, const std::shared_ptr<PdfField>& parent);
+
+    PdfSignature(PdfObject& obj, PdfAcroForm* acroform);
+
 public:
-    PdfSignature(PdfPage& page, const PdfRect& rect);
-
-    /** Create a new PdfSignature
-     *  \param bInit creates a signature field with/without a /V key
-     */
-    PdfSignature(PdfDocument& doc, PdfAnnotation* widget, bool insertInAcroform);
-
-    /** Creates a PdfSignature from an existing PdfAnnotation, which should
-     *  be an annotation with a field type Sig.
-     *	\param obj the object
-     *	\param widget the annotation to create from
-     */
-    PdfSignature(PdfObject& obj, PdfAnnotation* widget);
-
     /** Set an appearance stream for this signature field
      *  to specify its visual appearance
      *  \param obj an XObject
@@ -143,11 +140,14 @@ public:
      */
     void EnsureValueObject();
 
+    PdfSignature* GetParent();
+    const PdfSignature* GetParent() const;
+
 protected:
     PdfObject* getValueObject() const;
 
 private:
-    void Init(PdfAcroForm& acroForm);
+    void init(PdfAcroForm& acroForm);
 
 private:
     PdfObject* m_ValueObj;

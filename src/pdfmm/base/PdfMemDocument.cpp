@@ -313,13 +313,13 @@ void PdfMemDocument::beforeWrite(PdfSaveOptions opts)
         GetMetadata().SetModifyDate(PdfDate(), true);
     }
 
-    GetFontManager().EmbedFonts();
+    GetFonts().EmbedFonts();
 }
 
 void PdfMemDocument::deletePages(unsigned atIndex, unsigned pageCount)
 {
     for (unsigned i = 0; i < pageCount; i++)
-        this->GetPages().DeletePage(atIndex);
+        this->GetPages().RemovePageAt(atIndex);
 }
 
 const PdfMemDocument& PdfMemDocument::InsertPages(const PdfMemDocument& doc, unsigned atIndex, unsigned pageCount)

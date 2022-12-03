@@ -274,7 +274,7 @@ public:
 
     PdfOutlines* GetOutlines() { return m_Outlines.get(); }
 
-    PdfFontManager& GetFontManager() { return m_FontManager; }
+    PdfFontManager& GetFonts() { return m_FontManager; }
 
 protected:
     /** Construct a new (empty) PdfDocument

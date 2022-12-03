@@ -15,7 +15,7 @@
 
 namespace mm {
 
-    class PdfPage;
+class PdfPage;
 
 class PDFMM_API PdfXObjectForm final : public PdfXObject, public PdfCanvas
 {

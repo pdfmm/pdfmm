@@ -286,11 +286,11 @@ void testEncrypt(PdfEncrypt& encrypt)
 void createEncryptedPdf(const string_view& filename)
 {
     PdfMemDocument doc;
-    auto page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
+    auto& page = doc.GetPages().CreatePage(PdfPage::CreateStandardPageSize(PdfPageSize::A4));
     PdfPainter painter;
     painter.SetCanvas(page);
 
-    auto font = doc.GetFontManager().GetFont("LiberationSans");
+    auto font = doc.GetFonts().GetFont("LiberationSans");
     if (font == nullptr)
         FAIL("Coult not find Arial font");
 

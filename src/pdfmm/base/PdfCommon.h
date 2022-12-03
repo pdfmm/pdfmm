@@ -16,6 +16,8 @@ class PDFMM_API PdfCommon final
     PdfCommon() = delete;
 
 public:
+    static void AddFontDirectory(const std::string_view& path);
+
     /** Set a global static LogMessageCallback functor to replace stderr output in LogMessageInternal.
      *  \param logMessageCallback the pointer to the new callback functor object
      *  \returns the pointer to the previous callback functor object

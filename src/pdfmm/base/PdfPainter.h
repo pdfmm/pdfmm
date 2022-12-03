@@ -181,7 +181,7 @@ public:
      *  \see PdfPage \see PdfXObject
      *  \see FinishPage()
      */
-    void SetCanvas(PdfCanvas* page);
+    void SetCanvas(PdfCanvas& page);
 
     /** Finish drawing onto a canvas.
      *

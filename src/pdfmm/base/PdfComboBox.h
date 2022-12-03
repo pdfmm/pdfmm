@@ -18,14 +18,15 @@ namespace mm
     class PDFMM_API PdfComboBox : public PdChoiceField
     {
         friend class PdfField;
+
     private:
-        PdfComboBox(PdfObject& obj, PdfAnnotation* widget);
+        PdfComboBox(PdfAcroForm& acroform, const std::shared_ptr<PdfField>& parent);
+
+        PdfComboBox(PdfAnnotationWidget& widget, const std::shared_ptr<PdfField>& parent);
+
+        PdfComboBox(PdfObject& obj, PdfAcroForm* acroform);
 
     public:
-        PdfComboBox(PdfDocument& doc, PdfAnnotation* widget, bool insertInAcroform);
-
-        PdfComboBox(PdfPage& page, const PdfRect& rect);
-
         /**
          * Sets the combobox to be editable
          *
@@ -40,6 +41,8 @@ namespace mm
          */
         bool IsEditable() const;
 
+        PdfComboBox* GetParent();
+        const PdfComboBox* GetParent() const;
     };
 }
 

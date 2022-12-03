@@ -10,23 +10,25 @@
 #include "PdfChoiceField.h"
 
 #include "PdfArray.h"
+#include "PdfDictionary.h"
 
 using namespace std;
 using namespace mm;
 
-
-PdChoiceField::PdChoiceField(PdfFieldType fieldType, PdfDocument& doc, PdfAnnotation* widget, bool insertInAcroform)
-    : PdfField(fieldType, doc, widget, insertInAcroform)
+PdChoiceField::PdChoiceField(PdfAcroForm& acroform, PdfFieldType fieldType,
+        const shared_ptr<PdfField>& parent)
+    : PdfField(acroform, fieldType, parent)
 {
 }
 
-PdChoiceField::PdChoiceField(PdfFieldType fieldType, PdfObject& obj, PdfAnnotation* widget)
-    : PdfField(fieldType, obj, widget)
+PdChoiceField::PdChoiceField(PdfAnnotationWidget& widget, PdfFieldType fieldType,
+        const shared_ptr<PdfField>& parent)
+    : PdfField(widget, fieldType, parent)
 {
 }
 
-PdChoiceField::PdChoiceField(PdfFieldType fieldType, PdfPage& page, const PdfRect& rect)
-    : PdfField(fieldType, page, rect)
+PdChoiceField::PdChoiceField(PdfObject& obj, PdfAcroForm* acroform, PdfFieldType fieldType)
+    : PdfField(obj, acroform, fieldType)
 {
 }
 

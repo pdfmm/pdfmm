@@ -9,24 +9,26 @@
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfComboBox.h"
 
+using namespace std;
 using namespace mm;
 
-PdfComboBox::PdfComboBox(PdfObject& obj, PdfAnnotation* widget)
-    : PdChoiceField(PdfFieldType::ComboBox, obj, widget)
-{
-    // NOTE: We assume initialization was performed in the given object
-}
 
-PdfComboBox::PdfComboBox(PdfDocument& doc, PdfAnnotation* widget, bool insertInAcroform)
-    : PdChoiceField(PdfFieldType::ComboBox, doc, widget, insertInAcroform)
+PdfComboBox::PdfComboBox(PdfAcroForm& acroform, const shared_ptr<PdfField>& parent)
+    : PdChoiceField(acroform, PdfFieldType::ComboBox, parent)
 {
     this->SetFieldFlag(static_cast<int>(ePdfListField_Combo), true);
 }
 
-PdfComboBox::PdfComboBox(PdfPage& page, const PdfRect& rect)
-    : PdChoiceField(PdfFieldType::ComboBox, page, rect)
+PdfComboBox::PdfComboBox(PdfAnnotationWidget& widget, const shared_ptr<PdfField>& parent)
+    : PdChoiceField(widget, PdfFieldType::ComboBox, parent)
 {
     this->SetFieldFlag(static_cast<int>(ePdfListField_Combo), true);
+}
+
+PdfComboBox::PdfComboBox(PdfObject& obj, PdfAcroForm* acroform)
+    : PdChoiceField(obj, acroform, PdfFieldType::ComboBox)
+{
+    // NOTE: Do not do other initializations here
 }
 
 void PdfComboBox::SetEditable(bool edit)
@@ -37,4 +39,14 @@ void PdfComboBox::SetEditable(bool edit)
 bool PdfComboBox::IsEditable() const
 {
     return this->GetFieldFlag(static_cast<int>(ePdfListField_Edit), false);
+}
+
+PdfComboBox* PdfComboBox::GetParent()
+{
+    return GetParentTyped<PdfComboBox>(PdfFieldType::ComboBox);
+}
+
+const PdfComboBox* PdfComboBox::GetParent() const
+{
+    return GetParentTyped<PdfComboBox>(PdfFieldType::ComboBox);
 }

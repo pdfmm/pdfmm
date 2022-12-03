@@ -9,20 +9,30 @@
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfRadioButton.h"
 
+using namespace std;
 using namespace mm;
 
-PdfRadioButton::PdfRadioButton(PdfObject& obj, PdfAnnotation* widget)
-    : PdfButton(PdfFieldType::RadioButton, obj, widget)
-{
-    // NOTE: We assume initialization was performed in the given object
-}
-
-PdfRadioButton::PdfRadioButton(PdfDocument& doc, PdfAnnotation* widget, bool insertInAcroform)
-    : PdfButton(PdfFieldType::RadioButton, doc, widget, insertInAcroform)
+PdfRadioButton::PdfRadioButton(PdfAcroForm& acroform, const shared_ptr<PdfField>& parent)
+    : PdfToggleButton(acroform, PdfFieldType::RadioButton, parent)
 {
 }
 
-PdfRadioButton::PdfRadioButton(PdfPage& page, const PdfRect& rect)
-    : PdfButton(PdfFieldType::RadioButton, page, rect)
+PdfRadioButton::PdfRadioButton(PdfAnnotationWidget& widget, const shared_ptr<PdfField>& parent)
+    : PdfToggleButton(widget, PdfFieldType::RadioButton, parent)
 {
+}
+
+PdfRadioButton::PdfRadioButton(PdfObject& obj, PdfAcroForm* acroform)
+    : PdfToggleButton(obj, acroform, PdfFieldType::RadioButton)
+{
+}
+
+PdfRadioButton* PdfRadioButton::GetParent()
+{
+    return GetParentTyped<PdfRadioButton>(PdfFieldType::RadioButton);
+}
+
+const PdfRadioButton* PdfRadioButton::GetParent() const
+{
+    return GetParentTyped<PdfRadioButton>(PdfFieldType::RadioButton);
 }

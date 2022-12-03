@@ -87,15 +87,15 @@ PdfPainter::~PdfPainter() noexcept(false)
     }
 }
 
-void PdfPainter::SetCanvas(PdfCanvas* canvas)
+void PdfPainter::SetCanvas(PdfCanvas& canvas)
 {
     // Ignore setting the same canvas twice
-    if (m_canvas == canvas)
+    if (m_canvas == &canvas)
         return;
 
     finishDrawing();
 
-    m_canvas = canvas;
+    m_canvas = &canvas;
     m_stream = nullptr;
 }
 

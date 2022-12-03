@@ -9,93 +9,13 @@
 #ifndef PDF_ANNOTATION_H
 #define PDF_ANNOTATION_H
 
-#include "PdfDeclarations.h"
-
 #include "PdfElement.h"
-#include "PdfAction.h"
-#include "PdfDestination.h"
+#include "PdfRect.h"
 
 namespace mm {
 
-class PdfFileSpec;
-class PdfName;
 class PdfPage;
-class PdfRect;
-class PdfReference;
-class PdfString;
 class PdfXObjectForm;
-
-/** The type of the annotation.
- *  PDF supports different annotation types, each of
- *  them has different keys and propeties.
- *
- *  Not all annotation types listed here are supported yet.
- *
- *  Please make also sure that the annotation type you use is
- *  supported by the PDF version you are using.
- */
-enum class PdfAnnotationType
-{
-    Unknown = 0,
-    Text,                       // - supported
-    Link,                       // - supported
-    FreeText,       // PDF 1.3  // - supported
-    Line,           // PDF 1.3  // - supported
-    Square,         // PDF 1.3
-    Circle,         // PDF 1.3
-    Polygon,        // PDF 1.5
-    PolyLine,       // PDF 1.5
-    Highlight,      // PDF 1.3
-    Underline,      // PDF 1.3
-    Squiggly,       // PDF 1.4
-    StrikeOut,      // PDF 1.3
-    Stamp,          // PDF 1.3
-    Caret,          // PDF 1.5
-    Ink,            // PDF 1.3
-    Popup,          // PDF 1.3  // - supported
-    FileAttachement,// PDF 1.3
-    Sound,          // PDF 1.2
-    Movie,          // PDF 1.2
-    Widget,         // PDF 1.2  // - supported
-    Screen,         // PDF 1.5
-    PrinterMark,    // PDF 1.4
-    TrapNet,        // PDF 1.3
-    Watermark,      // PDF 1.6
-    Model3D,        // PDF 1.6
-    RichMedia,      // PDF 1.7 ADBE ExtensionLevel 3 ALX: Petr P. Petrov
-    WebMedia,       // PDF 1.7 IPDF ExtensionLevel 3
-    Redact,         // PDF 1.7
-    Projection,     // PDF 2.0
-};
-
-/** Flags that control the appearance of a PdfAnnotation.
- *  You can OR them together and pass it to
- *  PdfAnnotation::SetFlags.
- */
-enum class PdfAnnotationFlags
-{
-    None = 0x0000,
-    Invisible = 0x0001,
-    Hidden = 0x0002,
-    Print = 0x0004,
-    NoZoom = 0x0008,
-    NoRotate = 0x0010,
-    NoView = 0x0020,
-    ReadOnly = 0x0040,
-    Locked = 0x0080,
-    ToggleNoView = 0x0100,
-    LockedContents = 0x0200,
-};
-
-/**
- * Type of the annotation appearance.
- */
-enum class PdfAppearanceType
-{
-    Normal = 0, ///< Normal appearance
-    Rollover,   ///< Rollover appearance; the default is PdfAnnotationAppearance::Normal
-    Down        ///< Down appearance; the default is PdfAnnotationAppearance::Normal
-};
 
 struct PdfAppearanceIdentity final
 {
@@ -111,7 +31,7 @@ struct PdfAppearanceIdentity final
  */
 class PDFMM_API PdfAnnotation : public PdfDictionaryElement
 {
-    friend class PdfPage;
+    friend class PdfAnnotationCollection;
 
 protected:
     PdfAnnotation(PdfPage& page, PdfAnnotationType annotType, const PdfRect& rect);
@@ -164,11 +84,9 @@ public:
     void SetRect(const PdfRect& rect);
 
     /** Set the flags of this annotation.
-     *  \param uiFlags is an unsigned 32bit integer with different
-     *                 PdfAnnotationFlags OR'ed together.
      *  \see GetFlags
      */
-    void SetFlags(PdfAnnotationFlags uiFlags);
+    void SetFlags(PdfAnnotationFlags flags);
 
     /** Get the flags of this annotation.
      *  \returns the flags which is an unsigned 32bit integer with different
@@ -289,7 +207,10 @@ public:
      *
      *  \returns the page of this PdfField
      */
-    inline PdfPage* GetPage() const { return m_Page; }
+    inline PdfPage* GetPage() { return m_Page; }
+    inline const PdfPage* GetPage() const { return m_Page; }
+    PdfPage& MustGetPage();
+    const PdfPage& MustGetPage() const;
 
 private:
     static std::unique_ptr<PdfAnnotation> Create(PdfPage& page, PdfAnnotationType annotType, const PdfRect& rect);
@@ -312,7 +233,7 @@ private:
 };
 
 template<typename TAnnotation>
-inline bool PdfAnnotation::TryCreateFromObject(PdfObject& obj, std::unique_ptr<TAnnotation>& xobj)
+bool PdfAnnotation::TryCreateFromObject(PdfObject& obj, std::unique_ptr<TAnnotation>& xobj)
 {
     PdfAnnotation* xobj_;
     if (!tryCreateFromObject(obj, typeid(TAnnotation), xobj_))
@@ -323,7 +244,7 @@ inline bool PdfAnnotation::TryCreateFromObject(PdfObject& obj, std::unique_ptr<T
 }
 
 template<typename TAnnotation>
-inline bool PdfAnnotation::TryCreateFromObject(const PdfObject& obj, std::unique_ptr<const TAnnotation>& xobj)
+bool PdfAnnotation::TryCreateFromObject(const PdfObject& obj, std::unique_ptr<const TAnnotation>& xobj)
 {
     PdfAnnotation* xobj_;
     if (!tryCreateFromObject(obj, typeid(TAnnotation), xobj_))
@@ -337,7 +258,5 @@ inline bool PdfAnnotation::TryCreateFromObject(const PdfObject& obj, std::unique
 void SetAppearanceStreamForObject(PdfObject& obj, PdfXObjectForm& xobj, PdfAppearanceType appearance, const PdfName& state);
 
 };
-
-ENABLE_BITMASK_OPERATORS(mm::PdfAnnotationFlags);
 
 #endif // PDF_ANNOTATION_H

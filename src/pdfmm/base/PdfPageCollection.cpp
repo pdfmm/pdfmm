@@ -43,7 +43,7 @@ unsigned PdfPageCollection::GetCount() const
     return getChildCount(GetObject());
 }
 
-PdfPage& PdfPageCollection::GetPage(unsigned index)
+PdfPage& PdfPageCollection::GetPageAt(unsigned index)
 {
     if (index >= GetCount())
         PDFMM_RAISE_ERROR(PdfErrorCode::PageNotFound);
@@ -51,7 +51,7 @@ PdfPage& PdfPageCollection::GetPage(unsigned index)
     return getPage(index);
 }
 
-const PdfPage& PdfPageCollection::GetPage(unsigned index) const
+const PdfPage& PdfPageCollection::GetPageAt(unsigned index) const
 {
     if (index >= GetCount())
         PDFMM_RAISE_ERROR(PdfErrorCode::PageNotFound);
@@ -161,16 +161,16 @@ void PdfPageCollection::InsertPage(unsigned atIndex, const vector<PdfObject*>& p
     m_cache.InsertPlaceHolders(atIndex, (unsigned)pages.size());
 }
 
-PdfPage* PdfPageCollection::CreatePage(const PdfRect& size)
+PdfPage& PdfPageCollection::CreatePage(const PdfRect& size)
 {
     auto page = new PdfPage(*GetRoot().GetDocument(), size);
     unsigned index = this->GetCount();
     InsertPage(index, &page->GetObject());
     m_cache.SetPage(index, page);
-    return page;
+    return *page;
 }
 
-PdfPage* PdfPageCollection::InsertPage(unsigned atIndex, const PdfRect& size)
+PdfPage& PdfPageCollection::CreatePageAt(unsigned atIndex, const PdfRect& size)
 {
     auto page = new PdfPage(*GetRoot().GetDocument(), size);
     unsigned pageCount = this->GetCount();
@@ -179,26 +179,10 @@ PdfPage* PdfPageCollection::InsertPage(unsigned atIndex, const PdfRect& size)
 
     InsertPage(atIndex, &page->GetObject());
     m_cache.SetPage(atIndex, page);
-    return page;
+    return *page;
 }
 
-void PdfPageCollection::CreatePages(const vector<PdfRect>& sizes)
-{
-    vector<PdfPage*> pages;
-    vector<PdfObject*> objects;
-    for (auto& rect : sizes)
-    {
-        auto page = new PdfPage(*GetRoot().GetDocument(), rect);
-        pages.push_back(page);
-        objects.push_back(&page->GetObject());
-    }
-
-    unsigned index = this->GetCount();
-    InsertPage(index, objects);
-    m_cache.SetPages(index, pages);
-}
-
-void PdfPageCollection::DeletePage(unsigned atIndex)
+void PdfPageCollection::RemovePageAt(unsigned atIndex)
 {
     // Delete from cache
     m_cache.DeletePage(atIndex);

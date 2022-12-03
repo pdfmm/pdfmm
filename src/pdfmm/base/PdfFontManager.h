@@ -53,6 +53,7 @@ class PDFMM_API PdfFontManager final
     friend class PdfMemDocument;
     friend class PdfStreamedDocument;
     friend class PdfFont;
+    friend class PdfCommon;
 
     PdfFontManager(const PdfFontManager&) = delete;
     PdfFontManager& operator=(const PdfFontManager&) = delete;
@@ -105,8 +106,6 @@ public:
     static PdfFontMetricsConstPtr GetFontMetrics(const std::string_view& fontName,
         const PdfFontSearchParams& params = { });
 
-    static void AddFontDirectory(const std::string_view& path);
-
 #if defined(_WIN32) && defined(PDFMM_HAVE_WIN32GDI)
     PdfFont* GetFont(HFONT font, const PdfFontCreateParams& params = { });
 #endif
@@ -144,6 +143,8 @@ private:
     /** Returns a new ABCDEF+ like font subset prefix
      */
     std::string GenerateSubsetPrefix();
+
+    static void AddFontDirectory(const std::string_view& path);
 
 private:
     /** A private structure, which represents a cached font

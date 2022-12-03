@@ -8,23 +8,23 @@
 
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfCheckBox.h"
+#include "PdfDictionary.h"
 
+using namespace std;
 using namespace mm;
 
-
-PdfCheckBox::PdfCheckBox(PdfObject& obj, PdfAnnotation* widget)
-    : PdfButton(PdfFieldType::CheckBox, obj, widget)
-{
-    // NOTE: We assume initialization was performed in the given object
-}
-
-PdfCheckBox::PdfCheckBox(PdfDocument& doc, PdfAnnotation* widget, bool insertInAcroform)
-    : PdfButton(PdfFieldType::CheckBox, doc, widget, insertInAcroform)
+PdfCheckBox::PdfCheckBox(PdfAcroForm& acroform, const shared_ptr<PdfField>& parent)
+    : PdfToggleButton(acroform, PdfFieldType::CheckBox, parent)
 {
 }
 
-PdfCheckBox::PdfCheckBox(PdfPage& page, const PdfRect& rect)
-    : PdfButton(PdfFieldType::CheckBox, page, rect)
+PdfCheckBox::PdfCheckBox(PdfAnnotationWidget& widget, const shared_ptr<PdfField>& parent)
+    : PdfToggleButton(widget, PdfFieldType::CheckBox, parent)
+{
+}
+
+PdfCheckBox::PdfCheckBox(PdfObject& obj, PdfAcroForm* acroform)
+    : PdfToggleButton(obj, acroform, PdfFieldType::CheckBox)
 {
 }
 
@@ -71,4 +71,14 @@ bool PdfCheckBox::IsChecked() const
     }
 
     return false;
+}
+
+PdfCheckBox* PdfCheckBox::GetParent()
+{
+    return GetParentTyped<PdfCheckBox>(PdfFieldType::CheckBox);
+}
+
+const PdfCheckBox* PdfCheckBox::GetParent() const
+{
+    return GetParentTyped<PdfCheckBox>(PdfFieldType::CheckBox);
 }

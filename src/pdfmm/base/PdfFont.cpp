@@ -124,7 +124,7 @@ bool PdfFont::TryGetSubstituteFont(PdfFontCreateFlags initFlags, PdfFont*& subst
         return false;
     }
 
-    substFont = GetDocument().GetFontManager().AddImported(std::move(newFont));
+    substFont = GetDocument().GetFonts().AddImported(std::move(newFont));
     return true;
 }
 
@@ -211,7 +211,7 @@ void PdfFont::InitImported(bool wantEmbed, bool wantSubset)
 
     if (m_SubsettingEnabled)
     {
-        m_SubsetPrefix = GetDocument().GetFontManager().GenerateSubsetPrefix();
+        m_SubsetPrefix = GetDocument().GetFonts().GenerateSubsetPrefix();
         PDFMM_ASSERT(!m_SubsetPrefix.empty());
         fontName = m_SubsetPrefix + fontName;
     }

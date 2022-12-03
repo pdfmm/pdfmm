@@ -7,6 +7,8 @@
 #define PDF_ANNOTATION_TYPES_H
 
 #include "PdfAnnotationActionBase.h"
+#include "PdfFileSpec.h"
+#include "PdfDestination.h"
 
 namespace mm {
 
@@ -44,7 +46,7 @@ namespace mm {
          *           x,y coordinates of BL BR TR TL corners of the
          *           quadrilaterals.
          */
-        void SetQuadPoints(const nullable<PdfArray&> quadPoints)
+        void SetQuadPoints(nullable<const PdfArray&> quadPoints)
         {
             auto& dict = static_cast<T&>(*this).GetDictionary();
             if (quadPoints == nullptr)

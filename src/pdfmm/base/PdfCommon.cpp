@@ -7,6 +7,7 @@
 
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfCommon.h"
+#include "PdfFontManager.h"
 
 using namespace std;
 using namespace mm;
@@ -20,6 +21,11 @@ PdfLogSeverity s_MaxLogSeverity = PdfLogSeverity::Information;
 
 
 static LogMessageCallback s_LogMessageCallback;
+
+void PdfCommon::AddFontDirectory(const string_view& path)
+{
+    PdfFontManager::AddFontDirectory(path);
+}
 
 void PdfCommon::SetLogMessageCallback(const LogMessageCallback& logMessageCallback)
 {

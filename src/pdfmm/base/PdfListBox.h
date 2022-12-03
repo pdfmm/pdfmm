@@ -18,13 +18,17 @@ namespace mm
     class PDFMM_API PdfListBox : public PdChoiceField
     {
         friend class PdfField;
+
     private:
-        PdfListBox(PdfObject& obj, PdfAnnotation* widget);
+        PdfListBox(PdfAcroForm& acroform, const std::shared_ptr<PdfField>& parent);
+
+        PdfListBox(PdfAnnotationWidget& widget, const std::shared_ptr<PdfField>& parent);
+
+        PdfListBox(PdfObject& obj, PdfAcroForm* acroform);
 
     public:
-        PdfListBox(PdfDocument& doc, PdfAnnotation* widget, bool insertInAcroform);
-
-        PdfListBox(PdfPage& page, const PdfRect& rect);
+        PdfListBox* GetParent();
+        const PdfListBox* GetParent() const;
     };
 }
 

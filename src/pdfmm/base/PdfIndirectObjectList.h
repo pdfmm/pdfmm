@@ -12,14 +12,9 @@
 #include <list>
 #include <unordered_set>
 
-#include "PdfReference.h"
+#include "PdfObject.h"
 
 namespace mm {
-
-class PdfDocument;
-class PdfObject;
-class PdfObjectStream;
-class PdfVariant;
 
 using PdfReferenceList = std::deque<PdfReference>;
 

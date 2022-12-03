@@ -8,28 +8,30 @@
 
 #include <pdfmm/private/PdfDeclarationsPrivate.h>
 #include "PdfTextBox.h"
+#include "PdfDictionary.h"
 
+using namespace std;
 using namespace mm;
 
-PdfTextBox::PdfTextBox(PdfObject& obj, PdfAnnotation* widget)
-    : PdfField(PdfFieldType::TextBox, obj, widget)
+PdfTextBox::PdfTextBox(PdfAcroForm& acroform, const shared_ptr<PdfField>& parent)
+    : PdfField(acroform, PdfFieldType::TextBox, parent)
 {
-    // NOTE: We assume initialization was performed in the given object
+    init();
 }
 
-PdfTextBox::PdfTextBox(PdfDocument& doc, PdfAnnotation* widget, bool insertInAcroform)
-    : PdfField(PdfFieldType::TextBox, doc, widget, insertInAcroform)
+PdfTextBox::PdfTextBox(PdfAnnotationWidget& widget, const shared_ptr<PdfField>& parent)
+    : PdfField(widget, PdfFieldType::TextBox, parent)
 {
-    Init();
+    init();
 }
 
-PdfTextBox::PdfTextBox(PdfPage& page, const PdfRect& rect)
-    : PdfField(PdfFieldType::TextBox, page, rect)
+PdfTextBox::PdfTextBox(PdfObject& obj, PdfAcroForm* acroform)
+    : PdfField(obj, acroform, PdfFieldType::TextBox)
 {
-    Init();
+    // NOTE: Do not call init() here
 }
 
-void PdfTextBox::Init()
+void PdfTextBox::init()
 {
     if (!GetObject().GetDictionary().HasKey("DS"))
         GetObject().GetDictionary().AddKey("DS", PdfString("font: 12pt Helvetica"));
@@ -143,4 +145,14 @@ void PdfTextBox::SetRichText(bool richText)
 bool PdfTextBox::IsRichText() const
 {
     return this->GetFieldFlag(static_cast<int>(PdfTextBox_RichText), false);
+}
+
+PdfTextBox* PdfTextBox::GetParent()
+{
+    return GetParentTyped<PdfTextBox>(PdfFieldType::TextBox);
+}
+
+const PdfTextBox* PdfTextBox::GetParent() const
+{
+    return GetParentTyped<PdfTextBox>(PdfFieldType::TextBox);
 }

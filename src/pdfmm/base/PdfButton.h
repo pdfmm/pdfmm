@@ -15,21 +15,17 @@ namespace mm
 {
     class PDFMM_API PdfButton : public PdfField
     {
-        friend class PdfField;
-    protected:
-        enum
-        {
-            ePdfButton_NoToggleOff = 0x0004000,
-            ePdfButton_Radio = 0x0008000,
-            ePdfButton_PushButton = 0x0010000,
-            ePdfButton_RadioInUnison = 0x2000000
-        };
+        friend class PdfPushButton;
+        friend class PdfToggleButton;
 
-        PdfButton(PdfFieldType fieldType, PdfDocument& doc, PdfAnnotation* widget, bool insertInAcrofrom);
+    private:
+        PdfButton(PdfAcroForm& acroform, PdfFieldType fieldType,
+            const std::shared_ptr<PdfField>& parent);
 
-        PdfButton(PdfFieldType fieldType, PdfObject& object, PdfAnnotation* widget);
+        PdfButton(PdfAnnotationWidget& widget, PdfFieldType fieldType,
+            const std::shared_ptr<PdfField>& parent);
 
-        PdfButton(PdfFieldType fieldType, PdfPage& page, const PdfRect& rect);
+        PdfButton(PdfObject& obj, PdfAcroForm* acroform, PdfFieldType fieldType);
 
     public:
         /**
@@ -57,6 +53,21 @@ namespace mm
          *  \returns the caption of this button
          */
         nullable<PdfString> GetCaption() const;
+    };
+
+    class PDFMM_API PdfToggleButton : public PdfButton
+    {
+        friend class PdfCheckBox;
+        friend class PdfRadioButton;
+
+    private:
+        PdfToggleButton(PdfAcroForm& acroform, PdfFieldType fieldType,
+            const std::shared_ptr<PdfField>& parent);
+
+        PdfToggleButton(PdfAnnotationWidget& widget, PdfFieldType fieldType,
+            const std::shared_ptr<PdfField>& parent);
+
+        PdfToggleButton(PdfObject& obj, PdfAcroForm* acroform, PdfFieldType fieldType);
     };
 }
 

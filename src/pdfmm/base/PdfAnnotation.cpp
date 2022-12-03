@@ -12,12 +12,7 @@
 #include "PdfDocument.h"
 #include "PdfArray.h"
 #include "PdfDictionary.h"
-#include "PdfDate.h"
-#include "PdfAction.h"
-#include "PdfFileSpec.h"
 #include "PdfPage.h"
-#include "PdfRect.h"
-#include "PdfVariant.h"
 #include "PdfXObjectForm.h"
 #include "PdfAnnotationWidget.h"
 #include "PdfAnnotation_Types.h"
@@ -112,6 +107,22 @@ void mm::SetAppearanceStreamForObject(PdfObject& obj, PdfXObjectForm& xobj,
 unique_ptr<PdfAnnotation> PdfAnnotation::Create(PdfPage& page, const type_info& typeInfo, const PdfRect& rect)
 {
     return Create(page, getAnnotationType(typeInfo), rect);
+}
+
+PdfPage& PdfAnnotation::MustGetPage()
+{
+    if (m_Page == nullptr)
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
+
+    return *m_Page;
+}
+
+const PdfPage& PdfAnnotation::MustGetPage() const
+{
+    if (m_Page == nullptr)
+        PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
+
+    return *m_Page;
 }
 
 unique_ptr<PdfAnnotation> PdfAnnotation::Create(PdfPage& page, PdfAnnotationType annotType, const PdfRect& rect)
@@ -270,9 +281,9 @@ PdfDictionary* PdfAnnotation::getAppearanceDictionary() const
     return apDict;
 }
 
-void PdfAnnotation::SetFlags(PdfAnnotationFlags uiFlags)
+void PdfAnnotation::SetFlags(PdfAnnotationFlags flags)
 {
-    GetDictionary().AddKey("F", PdfVariant(static_cast<int64_t>(uiFlags)));
+    GetDictionary().AddKey("F", PdfVariant(static_cast<int64_t>(flags)));
 }
 
 PdfAnnotationFlags PdfAnnotation::GetFlags() const

@@ -23,23 +23,17 @@ namespace mm
      */
     class PDFMM_API PdChoiceField : public PdfField
     {
-        friend class PdfField;
-    protected:
-        enum
-        {
-            ePdfListField_Combo = 0x0020000,
-            ePdfListField_Edit = 0x0040000,
-            ePdfListField_Sort = 0x0080000,
-            ePdfListField_MultiSelect = 0x0200000,
-            ePdfListField_NoSpellcheck = 0x0400000,
-            ePdfListField_CommitOnSelChange = 0x4000000
-        };
+        friend class PdfListBox;
+        friend class PdfComboBox;
 
-        PdChoiceField(PdfFieldType fieldType, PdfDocument& doc, PdfAnnotation* widget, bool insertInAcroform);
+    private:
+        PdChoiceField(PdfAcroForm& acroform, PdfFieldType fieldType,
+            const std::shared_ptr<PdfField>& parent);
 
-        PdChoiceField(PdfFieldType fieldType, PdfObject& obj, PdfAnnotation* widget);
+        PdChoiceField(PdfAnnotationWidget& widget, PdfFieldType fieldType,
+            const std::shared_ptr<PdfField>& parent);
 
-        PdChoiceField(PdfFieldType fieldType, PdfPage& page, const PdfRect& rect);
+        PdChoiceField(PdfObject& obj, PdfAcroForm* acroform, PdfFieldType fieldType);
 
     public:
         /**

@@ -16,16 +16,18 @@ namespace mm
 {
     /** A checkbox can be checked or unchecked by the user
      */
-    class PDFMM_API PdfCheckBox : public PdfButton
+    class PDFMM_API PdfCheckBox : public PdfToggleButton
     {
         friend class PdfField;
+
     private:
-        PdfCheckBox(PdfObject& obj, PdfAnnotation* widget);
+        PdfCheckBox(PdfAcroForm& acroform, const std::shared_ptr<PdfField>& parent);
+
+        PdfCheckBox(PdfAnnotationWidget& widget, const std::shared_ptr<PdfField>& parent);
+
+        PdfCheckBox(PdfObject& obj, PdfAcroForm* acroform);
+
     public:
-        PdfCheckBox(PdfDocument& doc, PdfAnnotation* widget, bool insertInAcroform);
-
-        PdfCheckBox(PdfPage& page, const PdfRect& rect);
-
         /** Set the appearance stream which is displayed when the checkbox
          *  is checked.
          *
@@ -50,6 +52,9 @@ namespace mm
          * \returns true if the checkbox is checked
          */
         bool IsChecked() const;
+
+        PdfCheckBox* GetParent();
+        const PdfCheckBox* GetParent() const;
 
     private:
 

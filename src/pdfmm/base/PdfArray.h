@@ -21,7 +21,7 @@ using PdfArrayList = std::vector<PdfObject>;
  * Helper class to iterate through array indirect objects
  */
 template <typename TObject, typename TListIterator>
-class PdfArrayIndirectIterableBase final
+class PdfArrayIndirectIterableBase final : public PdfIndirectIterableBase
 {
     friend class PdfArray;
 
@@ -41,9 +41,10 @@ public:
         using pointer = void;
         using reference = void;
         using iterator_category = std::forward_iterator_tag;
-    private:
+    public:
         iterator();
-        iterator(const TListIterator& iterator);
+    private:
+        iterator(TListIterator&& iterator, PdfIndirectObjectList* objects);
     public:
         iterator(const iterator&) = default;
         iterator& operator=(const iterator&) = default;
@@ -56,6 +57,7 @@ public:
         value_type resolve();
     private:
         TListIterator m_iterator;
+        PdfIndirectObjectList* m_objects;
     };
 
 public:
@@ -310,7 +312,7 @@ PdfArrayIndirectIterableBase<TObject, TListIterator>::PdfArrayIndirectIterableBa
 
 template<typename TObject, typename TListIterator>
 PdfArrayIndirectIterableBase<TObject, TListIterator>::PdfArrayIndirectIterableBase(PdfArray& arr)
-    : m_arr(&arr) { }
+    : PdfIndirectIterableBase(arr), m_arr(&arr) { }
 
 template<typename TObject, typename TListIterator>
 typename PdfArrayIndirectIterableBase<TObject, TListIterator>::iterator PdfArrayIndirectIterableBase<TObject, TListIterator>::begin() const
@@ -318,7 +320,7 @@ typename PdfArrayIndirectIterableBase<TObject, TListIterator>::iterator PdfArray
     if (m_arr == nullptr)
         return iterator();
     else
-        return iterator(m_arr->begin());
+        return iterator(m_arr->begin(), GetObjects());
 }
 
 template<typename TObject, typename TListIterator>
@@ -327,15 +329,15 @@ typename PdfArrayIndirectIterableBase<TObject, TListIterator>::iterator PdfArray
     if (m_arr == nullptr)
         return iterator();
     else
-        return iterator(m_arr->end());
+        return iterator(m_arr->end(), GetObjects());
 }
 
 template<typename TObject, typename TListIterator>
-PdfArrayIndirectIterableBase<TObject, TListIterator>::iterator::iterator() { }
+PdfArrayIndirectIterableBase<TObject, TListIterator>::iterator::iterator() : m_objects(nullptr) { }
 
 template<typename TObject, typename TListIterator>
-PdfArrayIndirectIterableBase<TObject, TListIterator>::iterator::iterator(const TListIterator& iterator)
-    : m_iterator(iterator) { }
+PdfArrayIndirectIterableBase<TObject, TListIterator>::iterator::iterator(TListIterator&& iterator, PdfIndirectObjectList* objects)
+    : m_iterator(std::move(iterator)), m_objects(objects) { }
 
 template<typename TObject, typename TListIterator>
 bool PdfArrayIndirectIterableBase<TObject, TListIterator>::iterator::operator==(const iterator& rhs) const
@@ -374,9 +376,10 @@ typename PdfArrayIndirectIterableBase<TObject, TListIterator>::iterator::value_t
     TObject& robj = *m_iterator;
     TObject* indirectobj;
     PdfReference ref;
-    if (robj.TryGetReference(ref)
+    if (m_objects != nullptr
+        && robj.TryGetReference(ref)
         && ref.IsIndirect()
-        && (indirectobj = robj.GetDocument()->GetObjects().GetObject(ref)) != nullptr)
+        && (indirectobj = GetObject(*m_objects, ref)) != nullptr)
     {
        return indirectobj;
     }
