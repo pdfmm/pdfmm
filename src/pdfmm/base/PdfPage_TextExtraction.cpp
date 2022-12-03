@@ -807,7 +807,7 @@ StatefulString StatefulString::GetTrimmedEnd() const
     unsigned positionIndexLimit = (unsigned)StringPositions.size();
     if (trimmedStr.length() != String.length())
     {
-        for (int i = StringPositions.size() - 1; i >= 0; i--)
+        for (int i = (int)StringPositions.size() - 1; i >= 0; i--)
         {
             if (StringPositions[i] < (unsigned)trimmedStr.length())
             {
@@ -1403,7 +1403,7 @@ void getSubstringIndices(const vector<unsigned>& positions, unsigned lowerPos, u
         }
     }
 
-    for (int i = positions.size() - 1; i >= 0; i--)
+    for (int i = (int)positions.size() - 1; i >= 0; i--)
     {
         if (positions[i] < upperPosLim)
         {
