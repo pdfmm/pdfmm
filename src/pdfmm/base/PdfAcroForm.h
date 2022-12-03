@@ -173,7 +173,7 @@ private:
 template<typename TField>
 TField& PdfAcroForm::CreateField(const std::string_view& name)
 {
-    return static_cast<TField&>(createField(typeid(TField), name));
+    return static_cast<TField&>(createField(name, typeid(TField)));
 }
 
 };
