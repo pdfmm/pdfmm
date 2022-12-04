@@ -341,17 +341,23 @@ void PdfIndirectObjectList::CollectGarbage()
 
     unordered_set<PdfReference> referencedOjects;
     visitObject(m_Document->GetTrailer().GetObject(), referencedOjects);
+    vector<PdfObject*> objectsToDelete;
     ObjectList newlist(CompareObject);
     for (PdfObject* obj : m_Objects)
     {
-        if (referencedOjects.find(obj->GetIndirectReference()) == referencedOjects.end())
+        auto& ref = obj->GetIndirectReference();
+        if (referencedOjects.find(ref) == referencedOjects.end())
         {
-            SafeAddFreeObject(obj->GetIndirectReference());
+            SafeAddFreeObject(ref);
+            objectsToDelete.push_back(obj);
             continue;
         }
 
         newlist.insert(obj);
     }
+
+    for (auto obj : objectsToDelete)
+        delete obj;
 
     m_Objects.swap(newlist);
 }
