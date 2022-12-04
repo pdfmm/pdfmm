@@ -134,36 +134,33 @@ void PdfWriter::WritePdfObjects(OutputStreamDevice& device, const PdfIndirectObj
 {
     for (PdfObject* obj : objects)
     {
-        if (m_IncrementalUpdate)
+        if (m_IncrementalUpdate && !obj->IsDirty())
         {
-            if (!obj->IsDirty())
+            if (m_rewriteXRefTable)
             {
-                if (m_rewriteXRefTable)
+                PdfParserObject* parserObject = dynamic_cast<PdfParserObject*>(obj);
+                if (parserObject != nullptr)
                 {
-                    PdfParserObject* parserObject = dynamic_cast<PdfParserObject*>(obj);
-                    if (parserObject != nullptr)
+                    // Try to see if we can just write the reference to previous entry
+                    // without rewriting the entry
+
+                    // the reference looks like "0 0 R", while the object identifier like "0 0 obj", thus add two letters
+                    size_t objRefLength = obj->GetIndirectReference().ToString().length() + 2;
+
+                    // the offset points just after the "0 0 obj" string
+                    if (parserObject->GetOffset() - objRefLength > 0)
                     {
-                        // Try to see if we can just write the reference to previous entry
-                        // without rewriting the entry
-
-                        // the reference looks like "0 0 R", while the object identifier like "0 0 obj", thus add two letters
-                        size_t objRefLength = obj->GetIndirectReference().ToString().length() + 2;
-
-                        // the offset points just after the "0 0 obj" string
-                        if (parserObject->GetOffset() - objRefLength > 0)
-                        {
-                            xref.AddInUseObject(obj->GetIndirectReference(), parserObject->GetOffset() - objRefLength);
-                            continue;
-                        }
+                        xref.AddInUseObject(obj->GetIndirectReference(), parserObject->GetOffset() - objRefLength);
+                        continue;
                     }
                 }
-                else
-                {
-                    // The object will not be output in the XRef entries but it will be
-                    // counted in trailer's /Size
-                    xref.AddInUseObject(obj->GetIndirectReference(), nullptr);
-                    continue;
-                }
+            }
+            else
+            {
+                // The object will not be output in the XRef entries but it will be
+                // counted in trailer's /Size
+                xref.AddInUseObject(obj->GetIndirectReference(), nullptr);
+                continue;
             }
         }
 

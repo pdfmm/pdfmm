@@ -39,7 +39,7 @@ public:
      */
     PdfObjectStreamParser(PdfParserObject& parser, PdfIndirectObjectList& objects, const std::shared_ptr<charbuff>& buffer);
 
-    void Parse(ObjectIdList const&);
+    void Parse(const ObjectIdList& list);
 
 private:
     void ReadObjectsFromStream(char* buffer, size_t lBufferLen, int64_t lNum, int64_t lFirst, ObjectIdList const&);

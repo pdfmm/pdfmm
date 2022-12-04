@@ -29,7 +29,7 @@ PdfObjectStreamParser::PdfObjectStreamParser(PdfParserObject& parser,
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 }
 
-void PdfObjectStreamParser::Parse(ObjectIdList const& list)
+void PdfObjectStreamParser::Parse(const ObjectIdList& list)
 {
     int64_t num = m_Parser->GetDictionary().FindKeyAs<int64_t>("N", 0);
     int64_t first = m_Parser->GetDictionary().FindKeyAs<int64_t>("First", 0);
