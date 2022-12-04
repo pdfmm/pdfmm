@@ -102,7 +102,6 @@ void PdfParser::Reset()
 
     m_Trailer = nullptr;
     m_entries.Clear();
-    m_ObjectStreams.clear();
 
     m_Encrypt = nullptr;
 
@@ -705,6 +704,7 @@ void PdfParser::ReadObjectsInternal(InputStreamDevice& device)
 {
     // Read objects
     vector<unsigned> compressedIndices;
+    map<int64_t, vector<int64_t>> compressedObjects;
     for (unsigned i = 0; i < m_entries.GetSize(); i++)
     {
         auto& entry = m_entries[i];
@@ -792,7 +792,7 @@ void PdfParser::ReadObjectsInternal(InputStreamDevice& device)
                     break;
                 }
                 case XRefEntryType::Compressed:
-                    compressedIndices.push_back(i);
+                    compressedObjects[entry.ObjectNumber].push_back(i);
                     break;
                 default:
                     PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
@@ -817,14 +817,13 @@ void PdfParser::ReadObjectsInternal(InputStreamDevice& device)
     // Note that even if demand loading is enabled we still currently read all
     // objects from the stream into memory then free the stream.
     //
-    for (unsigned i = 0; i < compressedIndices.size(); i++)
+    for (auto& pair : compressedObjects)
     {
-        auto& entry = m_entries[compressedIndices[i]];
 #ifndef VERBOSE_DEBUG_DISABLED
         if (m_LoadOnDemand)
             cerr << "Demand loading on, but can't demand-load from object stream." << endl;
 #endif
-        ReadCompressedObjectFromStream((uint32_t)entry.ObjectNumber, static_cast<int>(entry.Index));
+        ReadCompressedObjectFromStream((uint32_t)pair.first, pair.second);
     }
 
     if (!m_LoadOnDemand)
@@ -843,18 +842,8 @@ void PdfParser::ReadObjectsInternal(InputStreamDevice& device)
     UpdateDocumentVersion();
 }
 
-void PdfParser::ReadCompressedObjectFromStream(uint32_t objNo, int index)
+void PdfParser::ReadCompressedObjectFromStream(uint32_t objNo, const cspan<int64_t>& objectList)
 {
-    // NOTE: index of the compressed object is ignored since
-    // we eagerly read all the objects from the stream
-    (void)index;
-
-    // If we already have read all objects from this stream just return
-    if (m_ObjectStreams.find(objNo) != m_ObjectStreams.end())
-        return;
-
-    m_ObjectStreams.insert(objNo);
-
     // generation number of object streams is always 0
     auto streamObj = dynamic_cast<PdfParserObject*>(m_Objects->GetObject(PdfReference(objNo, 0)));
     if (streamObj == nullptr)
@@ -870,19 +859,8 @@ void PdfParser::ReadCompressedObjectFromStream(uint32_t objNo, int index)
         }
     }
 
-    PdfObjectStreamParser::ObjectIdList list;
-    for (unsigned i = 0; i < m_entries.GetSize(); i++)
-    {
-        auto& entry = m_entries[i];
-        if (entry.Parsed && entry.Type == XRefEntryType::Compressed &&
-            m_entries[i].ObjectNumber == objNo)
-        {
-            list.push_back(static_cast<int64_t>(i));
-        }
-    }
-
     PdfObjectStreamParser parserObject(*streamObj, *m_Objects, m_buffer);
-    parserObject.Parse(list);
+    parserObject.Parse(objectList);
 }
 
 void PdfParser::FindTokenBackward(InputStreamDevice& device, const char* token, size_t range)

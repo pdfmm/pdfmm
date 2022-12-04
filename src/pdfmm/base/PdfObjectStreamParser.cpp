@@ -29,7 +29,7 @@ PdfObjectStreamParser::PdfObjectStreamParser(PdfParserObject& parser,
         PDFMM_RAISE_ERROR(PdfErrorCode::InvalidHandle);
 }
 
-void PdfObjectStreamParser::Parse(const ObjectIdList& list)
+void PdfObjectStreamParser::Parse(const cspan<int64_t>& objectList)
 {
     int64_t num = m_Parser->GetDictionary().FindKeyAs<int64_t>("N", 0);
     int64_t first = m_Parser->GetDictionary().FindKeyAs<int64_t>("First", 0);
@@ -37,11 +37,12 @@ void PdfObjectStreamParser::Parse(const ObjectIdList& list)
     charbuff buffer;
     m_Parser->GetOrCreateStream().CopyTo(buffer);
 
-    this->ReadObjectsFromStream(buffer.data(), buffer.size(), num, first, list);
+    this->readObjectsFromStream(buffer.data(), buffer.size(), num, first, objectList);
     m_Parser = nullptr;
 }
 
-void PdfObjectStreamParser::ReadObjectsFromStream(char* buffer, size_t bufferLen, int64_t num, int64_t first, ObjectIdList const& list)
+void PdfObjectStreamParser::readObjectsFromStream(char* buffer, size_t bufferLen,
+    int64_t num, int64_t first, const cspan<int64_t>& objectList)
 {
     SpanStreamDevice device(buffer, bufferLen);
     PdfTokenizer tokenizer(m_buffer);
@@ -67,7 +68,7 @@ void PdfObjectStreamParser::ReadObjectsFromStream(char* buffer, size_t bufferLen
         PdfTokenizer variantTokenizer(m_buffer);
         variantTokenizer.ReadNextVariant(device, var); // NOTE: The stream is already decrypted
 
-        bool shouldRead = std::find(list.begin(), list.end(), objNo) != list.end();
+        bool shouldRead = std::find(objectList.begin(), objectList.end(), objNo) != objectList.end();
 #ifndef VERBOSE_DEBUG_DISABLED
         std::cerr << "ReadObjectsFromStream STREAM=" << m_Parser->GetIndirectReference().ToString() <<
             ", OBJ=" << objNo <<

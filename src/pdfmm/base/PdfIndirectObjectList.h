@@ -16,7 +16,7 @@
 
 namespace mm {
 
-using PdfReferenceList = std::deque<PdfReference>;
+using ReferenceList = std::deque<PdfReference>;
 
 /** A list of PdfObjects that constitutes the indirect object list
  *  of the document
@@ -351,14 +351,14 @@ public:
 
     /** \returns a list of free references in this vector
      */
-    inline const PdfReferenceList& GetFreeObjects() const { return m_FreeObjects; }
+    inline const ReferenceList& GetFreeObjects() const { return m_FreeObjects; }
 
 private:
     PdfDocument* m_Document;
     bool m_CanReuseObjectNumbers;
     ObjectList m_Objects;
     unsigned m_ObjectCount;
-    PdfReferenceList m_FreeObjects;
+    ReferenceList m_FreeObjects;
     ObjectNumList m_UnavailableObjects;
 
     ObserverList m_observers;

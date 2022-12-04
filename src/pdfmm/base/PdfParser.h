@@ -285,7 +285,7 @@ private:
      *  \param index index of the object which should be parsed
      *
      */
-    void ReadCompressedObjectFromStream(uint32_t objNo, int index);
+    void ReadCompressedObjectFromStream(uint32_t objNo, const cspan<int64_t>& objectList);
 
     /** Checks the magic number at the start of the pdf file
      *  and sets the m_PdfVersion member to the correct version
@@ -348,8 +348,6 @@ private:
     std::unique_ptr<PdfEncrypt> m_Encrypt;
 
     std::string m_password;
-
-    std::set<int> m_ObjectStreams;
 
     bool m_StrictParsing;
     bool m_IgnoreBrokenObjects;

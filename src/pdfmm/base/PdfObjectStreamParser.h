@@ -27,7 +27,6 @@ class PdfIndirectObjectList;
 class PdfObjectStreamParser
 {
 public:
-    using ObjectIdList = std::vector<int64_t>;
     /**
      * Create a new PdfObjectStreamParserObject from an existing
      * PdfParserObject. The PdfParserObject will be removed and deleted.
@@ -39,10 +38,10 @@ public:
      */
     PdfObjectStreamParser(PdfParserObject& parser, PdfIndirectObjectList& objects, const std::shared_ptr<charbuff>& buffer);
 
-    void Parse(const ObjectIdList& list);
+    void Parse(const cspan<int64_t>& objectList);
 
 private:
-    void ReadObjectsFromStream(char* buffer, size_t lBufferLen, int64_t lNum, int64_t lFirst, ObjectIdList const&);
+    void readObjectsFromStream(char* buffer, size_t lBufferLen, int64_t lNum, int64_t lFirst, const cspan<int64_t>& list);
 
 private:
     PdfParserObject* m_Parser;
