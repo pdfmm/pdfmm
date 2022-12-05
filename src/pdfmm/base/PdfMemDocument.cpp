@@ -313,6 +313,12 @@ void PdfMemDocument::beforeWrite(PdfSaveOptions opts)
         GetMetadata().SetModifyDate(PdfDate(), true);
     }
 
+    if ((opts & PdfSaveOptions::NoCollectGarbage) ==
+        PdfSaveOptions::None)
+    {
+        CollectGarbage();
+    }
+
     GetFonts().EmbedFonts();
 }
 

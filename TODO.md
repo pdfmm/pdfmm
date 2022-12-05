@@ -1,6 +1,5 @@
 ### 0.10.x (Summer 2022)
 - PdfAnnotation/PdfField: Finish API review
-- Make PdfMemDocument do collect garbage by default
 
 ### After 0.10
 - Add PdfAnnotation::GetRectRaw, make GetRect() return normalized rotation rect

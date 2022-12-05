@@ -1,4 +1,5 @@
 ## Version 0.10.0
+- PdfMemDocument does collect garbage by default when saving
 - PdfField/PdfAnntation: Fully reworked the hierarchy
   and added proper fields ownership
 - Added PdfField::GetParent(), PdfField::GetChildren()

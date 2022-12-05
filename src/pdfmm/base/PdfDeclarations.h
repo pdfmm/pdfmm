@@ -422,6 +422,7 @@ enum class PdfSaveOptions
 {
     None,
     // NOTE: Make room for some more options to come later
+    NoCollectGarbage = 4,
     NoModifyDateUpdate = 8,
     Clean = 16,
 };
