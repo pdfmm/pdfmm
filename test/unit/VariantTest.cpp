@@ -78,7 +78,8 @@ TEST_CASE("testIsDirtyTrue")
 
     string temp;
     StringStreamDevice out(temp);
-    doc.Save(out);
+    // NOTE: Save the document but prevent indirect objects from being collected
+    doc.Save(out, PdfSaveOptions::NoCollectGarbage);
 
     // IsDirty should be false after saving
     TestObjectsDirty(*objBool, *objNum, *objReal, *objStr, *objRef, *objArray, *objDict, *objStream, *objVariant, false);
@@ -112,11 +113,11 @@ TEST_CASE("testIsDirtyTrue")
     TestObjectsDirty(*objBool, *objNum, *objReal, *objStr, *objRef, *objArray, *objDict, *objStream, *objVariant, true);
 
     temp.clear();
-    doc.Save(out);
+    // NOTE: Save the document but prevent indirect objects from being collected
+    doc.Save(out, PdfSaveOptions::NoCollectGarbage);
 
     // IsDirty should be false after saving
     TestObjectsDirty(*objBool, *objNum, *objReal, *objStr, *objRef, *objArray, *objDict, *objStream, *objVariant, false);
-
 }
 
 TEST_CASE("testIsDirtyFalse")
