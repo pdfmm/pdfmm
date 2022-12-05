@@ -88,7 +88,7 @@ PdfIndirectObjectList::PdfIndirectObjectList(PdfDocument& document, const PdfInd
     m_Objects(CompareObject),
     m_ObjectCount(rhs.m_ObjectCount),
     m_FreeObjects(rhs.m_FreeObjects),
-    m_UnavailableObjects(rhs.m_UnavailableObjects),
+    m_unavailableObjects(rhs.m_unavailableObjects),
     m_StreamFactory(nullptr)
 {
     // Copy all objects from source, resetting parent and indirect reference
@@ -173,6 +173,9 @@ unique_ptr<PdfObject> PdfIndirectObjectList::ReplaceObject(const PdfReference& r
 unique_ptr<PdfObject> PdfIndirectObjectList::removeObject(const iterator& it, bool markAsFree)
 {
     auto obj = *it;
+    if (m_objectStreams.find(obj->GetIndirectReference().ObjectNumber()) != m_objectStreams.end())
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, "Can't remove a compressed object stream");
+
     if (markAsFree)
         SafeAddFreeObject(obj->GetIndirectReference());
 
@@ -199,7 +202,7 @@ PdfReference PdfIndirectObjectList::getNextFreeObject()
 
         // Check also if the object number it not available,
         // e.g. it reached maximum generation number (65535)
-        if (m_UnavailableObjects.find(nextObjectNum) == m_UnavailableObjects.end())
+        if (m_unavailableObjects.find(nextObjectNum) == m_unavailableObjects.end())
             break;
 
         nextObjectNum++;
@@ -273,7 +276,7 @@ int32_t PdfIndirectObjectList::tryAddFreeObject(uint32_t objnum, uint32_t gennum
     // NOTE: gennum is uint32 to accomodate overflows from callers
     if (gennum >= MaxXRefGenerationNum)
     {
-        m_UnavailableObjects.insert(gennum);
+        m_unavailableObjects.insert(gennum);
         return -1;
     }
 
@@ -298,6 +301,11 @@ void PdfIndirectObjectList::AddFreeObject(const PdfReference& reference)
         // When append free objects from external doc we need plus one number objects
         TryIncrementObjectCount(reference);
     }
+}
+
+void PdfIndirectObjectList::AddObjectStream(uint32_t objectNum)
+{
+    m_objectStreams.insert(objectNum);
 }
 
 void PdfIndirectObjectList::addNewObject(PdfObject* obj)
@@ -346,7 +354,8 @@ void PdfIndirectObjectList::CollectGarbage()
     for (PdfObject* obj : m_Objects)
     {
         auto& ref = obj->GetIndirectReference();
-        if (referencedOjects.find(ref) == referencedOjects.end())
+        if (referencedOjects.find(ref) == referencedOjects.end()
+            && m_objectStreams.find(ref.ObjectNumber()) == m_objectStreams.end())
         {
             SafeAddFreeObject(ref);
             objectsToDelete.push_back(obj);

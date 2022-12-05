@@ -247,7 +247,7 @@ private:
     // Use deque as many insertions are here way faster than with using std::list
     // This is especially useful for PDFs like PDFReference17.pdf with
     // lots of free objects.
-    using ObjectNumList = std::set<uint32_t>;
+    using ObjectNumSet = std::set<uint32_t>;
     using ReferenceSet = std::set<PdfReference>;
     using ReferencePointers = std::list<PdfReference*>;
     using ReferencePointersList = std::vector<ReferencePointers>;
@@ -298,6 +298,12 @@ private:
      *  \see GetCanReuseObjectNumbers
      */
     void AddFreeObject(const PdfReference& reference);
+
+    /** Add the reference object number as an object stream
+     * \remarks These objects are usually compressed and can't be removed,
+     * that's why the generation number is irrelevant
+     */
+    void AddObjectStream(uint32_t objectNum);
 
     std::unique_ptr<PdfObject> RemoveObject(const PdfReference& ref, bool markAsFree);
 
@@ -359,7 +365,8 @@ private:
     ObjectList m_Objects;
     unsigned m_ObjectCount;
     ReferenceList m_FreeObjects;
-    ObjectNumList m_UnavailableObjects;
+    ObjectNumSet m_unavailableObjects;
+    ObjectNumSet m_objectStreams;
 
     ObserverList m_observers;
     StreamFactory* m_StreamFactory;

@@ -824,6 +824,7 @@ void PdfParser::ReadObjectsInternal(InputStreamDevice& device)
             cerr << "Demand loading on, but can't demand-load from object stream." << endl;
 #endif
         ReadCompressedObjectFromStream((uint32_t)pair.first, pair.second);
+        m_Objects->AddObjectStream((uint32_t)pair.first);
     }
 
     if (!m_LoadOnDemand)
