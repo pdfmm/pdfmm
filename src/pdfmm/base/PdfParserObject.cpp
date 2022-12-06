@@ -238,11 +238,11 @@ ReadStream:
     if (m_Encrypt != nullptr)
     {
         auto input = m_Encrypt->CreateEncryptionInputStream(*m_device, static_cast<size_t>(size), GetIndirectReference());
-        getOrCreateStream().InitData(*input, static_cast<ssize_t>(size));
+        getOrCreateStream().InitData(*input, static_cast<ssize_t>(size), PdfFilterFactory::CreateFilterList(*this));
     }
     else
     {
-        getOrCreateStream().InitData(*m_device, static_cast<ssize_t>(size));
+        getOrCreateStream().InitData(*m_device, static_cast<ssize_t>(size), PdfFilterFactory::CreateFilterList(*this));
     }
 }
 

@@ -342,10 +342,10 @@ public:
      *
      *  \returns a list of filters
      */
-    static PdfFilterList CreateFilterList(const PdfObject& filtersObj, PdfFilterList& mediaFilters);
+    static PdfFilterList CreateFilterList(const PdfObject& filtersObj);
 
 private:
-    static void addFilterTo(PdfFilterList& filters, PdfFilterList& mediaFilters, const std::string_view& filterName);
+    static void addFilterTo(PdfFilterList& filters, const std::string_view& filterName);
     static std::unique_ptr<InputStream> createDecodeStream(const PdfFilterList& filters,
         const std::shared_ptr<InputStream>& stream, const PdfDictionary* dictionary);
 

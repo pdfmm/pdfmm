@@ -123,6 +123,6 @@ size_t PdfStreamedObjectStream::GetLength() const
 
 PdfStreamedObjectStream& PdfStreamedObjectStream::operator=(const PdfStreamedObjectStream& rhs)
 {
-    CopyFrom(rhs);
+    CopyDataFrom(rhs);
     return *this;
 }

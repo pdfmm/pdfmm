@@ -34,8 +34,9 @@ class PDFMM_API PdfStreamedObjectStream final : public PdfObjectStream
 {
     class ObjectOutputStream;
     friend class ObjectOutputStream;
+    friend class PdfImmediateWriter;
 
-public:
+private:
     /** Create a new PdfDeviceObjectStream object which has a parent PdfObject.
      *  The stream will be deleted along with the parent.
      *  This constructor will be called by PdfObject::Stream() for you.
@@ -45,6 +46,7 @@ public:
      */
     PdfStreamedObjectStream(PdfObject& parent, OutputStreamDevice& device);
 
+public:
     ~PdfStreamedObjectStream();
 
     /** Set an encryption object which is used to encrypt

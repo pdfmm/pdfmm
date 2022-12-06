@@ -57,8 +57,8 @@ private:
         bool append);
     PdfObjectOutputStream(PdfObjectStream& stream);
 private:
-    PdfObjectOutputStream(PdfObjectStream& stream, PdfFilterList&& filters,
-        bool append, bool preserveFilter);
+    PdfObjectOutputStream(PdfObjectStream& stream, nullable<PdfFilterList> filters,
+        bool append);
 protected:
     void writeBuffer(const char* buffer, size_t size) override;
     void flush() override;
@@ -66,7 +66,7 @@ public:
     PdfObjectOutputStream& operator=(PdfObjectOutputStream&& rhs) noexcept;
 private:
     PdfObjectStream* m_stream;
-    PdfFilterList m_filters;
+    nullable<PdfFilterList> m_filters;
     std::unique_ptr<OutputStream> m_output;
 };
 
@@ -88,8 +88,10 @@ class PDFMM_API PdfObjectStream
     friend class PdfParserObject;
     friend class PdfObjectInputStream;
     friend class PdfObjectOutputStream;
+    friend class PdfStreamedObjectStream;
+    friend class PdfMemoryObjectStream;
 
-protected:
+private:
     /** Create a new PdfObjectStream object which has a parent PdfObject.
      *  The stream will be deleted along with the parent.
      *  This constructor will be called by PdfObject::Stream() for you.
@@ -178,6 +180,8 @@ public:
      */
     virtual size_t GetLength() const = 0;
 
+    const PdfFilterList& GetFilters() { return m_Filters; }
+
     /** Create a copy of a PdfObjectStream object
      *  \param rhs the object to clone
      *  \returns a reference to this object
@@ -191,7 +195,13 @@ protected:
      */
     virtual void Write(OutputStream& stream, const PdfStatefulEncrypt& encrypt) = 0;
 
-    virtual void CopyFrom(const PdfObjectStream& rhs);
+    /** Copy data and non data fields from rhs
+     */
+    virtual void CopyDataFrom(const PdfObjectStream& rhs);
+
+    /** Copy non data fields from rhs
+     */
+    void CopyFrom(const PdfObjectStream& rhs);
 
     virtual std::unique_ptr<InputStream> getInputStream() = 0;
 
@@ -202,7 +212,7 @@ protected:
     PdfObject& GetParent() { return *m_Parent; }
 
 private:
-    void InitData(InputStream& stream, size_t len);
+    void InitData(InputStream& stream, size_t len, PdfFilterList&& filterList);
 
 private:
     std::unique_ptr<InputStream> getInputStream(bool raw, PdfFilterList& mediaFilters);
@@ -214,6 +224,7 @@ private:
 
 private:
     PdfObject* m_Parent;
+    PdfFilterList m_Filters;
     bool m_locked;
 };
 

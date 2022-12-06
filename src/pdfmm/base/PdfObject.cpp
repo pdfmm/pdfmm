@@ -233,6 +233,26 @@ void PdfObject::Write(OutputStreamDevice& device, PdfWriteFlags writeMode,
 
     if (m_Stream != nullptr)
     {
+        // Try to compress the flate compress the stream if it has no filters,
+        // the compression is not disabled and it's not the /MetaData object,
+        // which must be unfiltered as per PDF/A
+        const PdfObject* metadataObj;
+        if ((writeMode & PdfWriteFlags::NoFlateCompress) == PdfWriteFlags::None
+            && m_Stream->GetFilters().size() == 0
+            && (m_Document == nullptr 
+                || (metadataObj = m_Document->GetCatalog().GetMetadataObject()) == nullptr
+                || m_IndirectReference != metadataObj->GetIndirectReference()))
+        {
+            PdfObject object;
+            auto& stream = object.GetOrCreateStream();
+            {
+                auto output = stream.GetOutputStream({ PdfFilterType::FlateDecode });
+                auto input = m_Stream->GetInputStream();
+                input.CopyTo(output);
+            }
+            stream.MoveTo(const_cast<PdfObject&>(*this));
+        }
+
         // Set length if it is a key
         auto fileStream = dynamic_cast<PdfStreamedObjectStream*>(m_Stream.get());
         if (fileStream == nullptr)
@@ -408,6 +428,9 @@ void PdfObject::MoveStreamFrom(PdfObject& obj)
 {
     PDFMM_ASSERT(m_IsDelayedLoadDone && m_Variant.GetDataType() == PdfDataType::Dictionary);
     moveStreamFrom(obj);
+
+    // Fix the /Filter key for both objects after
+    // the stream has been moved
     // TODO: We could optimize and avoid checking
     // that both objects are dictionaries
     auto& dict = obj.GetDictionary();

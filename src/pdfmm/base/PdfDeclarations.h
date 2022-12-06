@@ -66,7 +66,7 @@ using CIDToGIDMap = std::map<unsigned, unsigned>;
 /**
  * Enum to identify different versions of the PDF file format
  */
-enum class PdfVersion
+enum class PdfVersion : uint8_t
 {
     Unknown = 0,
     V1_0 = 10,       ///< PDF 1.0
@@ -85,7 +85,7 @@ enum class PdfVersion
  */
 constexpr PdfVersion PdfVersionDefault = PdfVersion::V1_4;
 
-enum class PdfALevel
+enum class PdfALevel : uint8_t
 {
     Unknown = 0,
     L1B,
@@ -108,7 +108,7 @@ enum class PdfStringState : uint8_t
     Unicode,            ///< The string uses characters that are in the whole Unicode charset
 };
 
-enum class PdfEncodingMapType
+enum class PdfEncodingMapType : uint8_t
 {
     Indeterminate,              ///< Indeterminate map type, such as identity encodings
     Simple,                     ///< A legacy encoding, such as built-in or difference
@@ -123,11 +123,12 @@ enum class PdfWriteFlags
     None = 0,
     Clean = 1,             ///< Create a PDF that is readable in a text editor, i.e. insert spaces and linebreaks between tokens
     NoInlineLiteral = 2,   ///< Don't write spaces before literal types (numerical, references, null)
+    NoFlateCompress = 4,
 
     // NOTE: The following flags are actually never set but
     // they are kept for documenting some PDF peculiarities
     // when writing compact code
-    NoPDFAPreserve = 4,    ///< When writing compact (PdfWriteFlags::Clean is unset) code, preserving PDF/A compliance is not required
+    NoPDFAPreserve = 256,    ///< When writing compact (PdfWriteFlags::Clean is unset) code, preserving PDF/A compliance is not required
 };
 
 /**
@@ -166,7 +167,7 @@ enum class PdfTextExtractFlags
     ExtractSubstring = 128,     ///< NOTE: Extract the matched substring
 };
 
-enum class PdfXObjectType
+enum class PdfXObjectType : uint8_t
 {
     Unknown = 0,
     Form,
@@ -180,7 +181,7 @@ enum class PdfXObjectType
  * Common filters are PdfFilterType::FlateDecode (i.e. Zip) or
  * PdfFilterType::ASCIIHexDecode
  */
-enum class PdfFilterType
+enum class PdfFilterType : uint8_t
 {
     None = 0,                  ///< Do not use any filtering
     ASCIIHexDecode,            ///< Converts data from and to hexadecimal. Increases size of the data by a factor of 2! \see PdfHexFilter
@@ -206,7 +207,7 @@ enum class PdfExportFormat
  *
  * See ISO 32000-1:2008 Table 121 — Font flags
  */
-enum class PdfFontDescriptorFlags
+enum class PdfFontDescriptorFlags : uint32_t
 {
     None        = 0,
     FixedPitch  = 1 << 0,
@@ -240,7 +241,7 @@ enum class PdfFontStretch
  * as per the value Standard14. To know that, refer to
  * PdfFontMetrics::GetFontFileType()
  */
-enum class PdfFontType
+enum class PdfFontType : uint8_t
 {
     Unknown = 0,
     Type1,
@@ -250,7 +251,7 @@ enum class PdfFontType
     CIDTrueType, ///< This is a "CIDFontType2"
 };
 
-enum class PdfFontFileType
+enum class PdfFontFileType : uint8_t
 {
     // Table 126 – Embedded font organization for various font types
     Unknown = 0,
@@ -310,7 +311,7 @@ enum class PdfFontMatchBehaviorFlags
  * Enum for the colorspaces supported
  * by PDF.
  */
-enum class PdfColorSpace
+enum class PdfColorSpace : uint8_t
 {
     Unknown = 0,
     DeviceGray,
@@ -420,11 +421,13 @@ enum class PdfHorizontalAlignment
 
 enum class PdfSaveOptions
 {
-    None,
-    // NOTE: Make room for some more options to come later
-    NoCollectGarbage = 4,
-    NoModifyDateUpdate = 8,
-    Clean = 16,
+    None = 0,
+    _Reserved1 = 1,
+    _Reserved2 = 2,
+    NoFlateCompress = 4,
+    NoCollectGarbage = 8,
+    NoModifyDateUpdate = 16,
+    Clean = 32,
 };
 
 /**
@@ -514,7 +517,7 @@ enum class PdfStandard14FontType
  *  Please make also sure that the annotation type you use is
  *  supported by the PDF version you are using.
  */
-enum class PdfAnnotationType
+enum class PdfAnnotationType : uint8_t
 {
     Unknown = 0,
     Text,                       // - supported
@@ -552,7 +555,7 @@ enum class PdfAnnotationType
  *  You can OR them together and pass it to
  *  PdfAnnotation::SetFlags.
  */
-enum class PdfAnnotationFlags
+enum class PdfAnnotationFlags : uint32_t
 {
     None = 0x0000,
     Invisible = 0x0001,
@@ -569,7 +572,7 @@ enum class PdfAnnotationFlags
 
 /** The type of PDF field
  */
-enum class PdfFieldType
+enum class PdfFieldType : uint32_t
 {
     Unknown = 0,
     PushButton,
@@ -598,7 +601,7 @@ enum class PdfHighlightingMode
     Push,           ///< Display the fields down appearance (requires an additional appearance stream to be set)
 };
 
-enum class PdfFieldFlags
+enum class PdfFieldFlags : uint8_t
 {
     ReadOnly = 1,
     Required = 2,

@@ -18,8 +18,6 @@
 using namespace std;
 using namespace mm;
 
-static bool isMediaFilter(PdfFilterType filterType);
-
 // An OutputStream class that actually perform the encoding
 class PdfFilteredEncodeStream : public OutputStream
 {
@@ -331,7 +329,7 @@ unique_ptr<InputStream> PdfFilterFactory::createDecodeStream(const PdfFilterList
     return std::make_unique<PdfBufferedDecodeStream>(stream, filters, dictionary);
 }
 
-PdfFilterList PdfFilterFactory::CreateFilterList(const PdfObject& filtersObj, PdfFilterList& mediaFilters)
+PdfFilterList PdfFilterFactory::CreateFilterList(const PdfObject& filtersObj)
 {
     PdfFilterList filters;
     const PdfObject* filterKeyObj = nullptr;
@@ -354,7 +352,7 @@ PdfFilterList PdfFilterFactory::CreateFilterList(const PdfObject& filtersObj, Pd
 
     if (filterKeyObj->IsName())
     {
-        addFilterTo(filters, mediaFilters, filterKeyObj->GetName().GetString());
+        addFilterTo(filters, filterKeyObj->GetName().GetString());
     }
     else if (filterKeyObj->IsArray())
     {
@@ -363,7 +361,7 @@ PdfFilterList PdfFilterFactory::CreateFilterList(const PdfObject& filtersObj, Pd
             if (!filter->IsName())
                 PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, "Filter array contained unexpected non-name type");
 
-            addFilterTo(filters, mediaFilters, filter->GetName().GetString());
+            addFilterTo(filters, filter->GetName().GetString());
         }
     }
     else
@@ -375,20 +373,10 @@ PdfFilterList PdfFilterFactory::CreateFilterList(const PdfObject& filtersObj, Pd
 }
 
 
-void PdfFilterFactory::addFilterTo(PdfFilterList& filters, PdfFilterList& mediaFilters, const string_view& filter)
+void PdfFilterFactory::addFilterTo(PdfFilterList& filters, const string_view& filter)
 {
     auto type = mm::NameToFilter(filter);
-    if (isMediaFilter(type))
-    {
-        mediaFilters.push_back(type);
-    }
-    else
-    {
-        if (mediaFilters.size() != 0)
-            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, "Inconsistent filter with regular filters after media ones");
-
-        filters.push_back(type);
-    }
+    filters.push_back(type);
 }
 
 void PdfFilter::BeginEncode(OutputStream& output)
@@ -514,26 +502,4 @@ void PdfFilter::FailEncodeDecode()
         m_OutputStream->Flush();
 
     m_OutputStream = nullptr;
-}
-
-bool isMediaFilter(PdfFilterType filterType)
-{
-    switch (filterType)
-    {
-        case PdfFilterType::ASCIIHexDecode:
-        case PdfFilterType::ASCII85Decode:
-        case PdfFilterType::LZWDecode:
-        case PdfFilterType::FlateDecode:
-        case PdfFilterType::RunLengthDecode:
-        case PdfFilterType::Crypt:
-            return false;
-        case PdfFilterType::CCITTFaxDecode:
-        case PdfFilterType::JBIG2Decode:
-        case PdfFilterType::DCTDecode:
-        case PdfFilterType::JPXDecode:
-            return true;
-        case PdfFilterType::None:
-        default:
-            PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
-    }
 }

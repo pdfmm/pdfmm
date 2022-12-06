@@ -1,4 +1,5 @@
 ## Version 0.10.0
+- PdfObject: Flate compress on write objects that have no filters
 - PdfMemDocument does collect garbage by default when saving
 - PdfField/PdfAnntation: Fully reworked the hierarchy
   and added proper fields ownership

@@ -31,11 +31,14 @@ class PdfObject;
  */
 class PDFMM_API PdfMemoryObjectStream final : public PdfObjectStream
 {
+    friend class PdfObject;
     friend class PdfIndirectObjectList;
+    friend class PdfImmediateWriter;
 
-public:
+private:
     PdfMemoryObjectStream(PdfObject& parent);
 
+public:
     ~PdfMemoryObjectStream();
 
     void Write(OutputStream& stream, const PdfStatefulEncrypt& encrypt) override;
@@ -59,10 +62,7 @@ public:
 protected:
     std::unique_ptr<InputStream> getInputStream() override;
     std::unique_ptr<OutputStream> getOutputStream() override;
-    void CopyFrom(const PdfObjectStream& rhs) override;
-
-private:
-    void copyFrom(const PdfMemoryObjectStream& rhs);
+    void CopyDataFrom(const PdfObjectStream& rhs) override;
 
  private:
     charbuff m_buffer;

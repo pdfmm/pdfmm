@@ -5,7 +5,7 @@
 - Add PdfAnnotation::GetRectRaw, make GetRect() return normalized rotation rect
 - Add PdfField::GetChildren()
 - PdfPage: Add iteration on PdfPage*. See PdfAnnotationCollection
-- Make PdfObjectStream not filter by default in PdfMemDocument
+- Make PdfObjectStream not flate filter by default in PdfMemDocument?
 - PdfElement: Optmize, keep dictionary/array pointer. Add GetObjectPtr()
 - PdfPageCollection::CreatePage() with PdfPageSize or default inferred from doc
 - Fix PdfFontMetrics handling of symbol encoding

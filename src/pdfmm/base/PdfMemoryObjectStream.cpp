@@ -39,7 +39,7 @@ unique_ptr<OutputStream> PdfMemoryObjectStream::getOutputStream()
     return unique_ptr<OutputStream>(new StringStreamDevice(m_buffer));
 }
 
-void PdfMemoryObjectStream::CopyFrom(const PdfObjectStream& rhs)
+void PdfMemoryObjectStream::CopyDataFrom(const PdfObjectStream& rhs)
 {
     const PdfMemoryObjectStream* memstream = dynamic_cast<const PdfMemoryObjectStream*>(&rhs);
     if (memstream == nullptr)
@@ -48,12 +48,8 @@ void PdfMemoryObjectStream::CopyFrom(const PdfObjectStream& rhs)
         return;
     }
 
-    copyFrom(*memstream);
-}
-
-void PdfMemoryObjectStream::copyFrom(const PdfMemoryObjectStream& rhs)
-{
-    m_buffer = rhs.m_buffer;
+    m_buffer = memstream->m_buffer;
+    CopyFrom(rhs);
 }
 
 void PdfMemoryObjectStream::Write(OutputStream& stream, const PdfStatefulEncrypt& encrypt)
@@ -86,6 +82,6 @@ size_t PdfMemoryObjectStream::GetLength() const
 
 PdfMemoryObjectStream& PdfMemoryObjectStream::operator=(const PdfMemoryObjectStream& rhs)
 {
-    CopyFrom(rhs);
+    CopyDataFrom(rhs);
     return *this;
 }
