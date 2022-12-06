@@ -1,3 +1,4 @@
 - [ ] Checked coding [style](https://github.com/pdfmm/pdfmm/blob/master/CODING-STYLE.md)
-- [ ] Accept to license the code under the terms of the [LGPL 2.1](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html)
+- [ ] Accept to license the code under the terms of the [LGPL 2.0](https://spdx.org/licenses/LGPL-2.0-or-later.html) or later
+- [ ] Accept to license the code under the terms of the [MPL 2.0](https://spdx.org/licenses/MPL-2.0)
 - [ ] Added attribution in [AUTHORS.md](https://github.com/pdfmm/pdfmm/blob/master/AUTHORS.md)
