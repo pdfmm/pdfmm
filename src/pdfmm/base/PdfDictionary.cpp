@@ -143,7 +143,7 @@ PdfObject* PdfDictionary::findKey(const string_view& key) const
         return nullptr;
 
     if (obj->IsReference())
-        return &GetIndirectObject(obj->GetReference());
+        return GetIndirectObject(obj->GetReference());
     else
         return obj;
 

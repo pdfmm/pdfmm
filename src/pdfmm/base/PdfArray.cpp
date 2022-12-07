@@ -37,14 +37,32 @@ void PdfArray::RemoveAt(unsigned idx)
     SetDirty();
 }
 
-const PdfObject& PdfArray::FindAt(unsigned idx) const
+const PdfObject* PdfArray::FindAt(unsigned idx) const
 {
     return findAt(idx);
 }
 
-PdfObject& PdfArray::FindAt(unsigned idx)
+PdfObject* PdfArray::FindAt(unsigned idx)
 {
     return findAt(idx);
+}
+
+const PdfObject& PdfArray::MustFindAt(unsigned idx) const
+{
+    auto obj = findAt(idx);
+    if (obj == nullptr)
+        PDFMM_RAISE_ERROR(PdfErrorCode::NoObject);
+
+    return *obj;
+}
+
+PdfObject& PdfArray::MustFindAt(unsigned idx)
+{
+    auto obj = findAt(idx);
+    if (obj == nullptr)
+        PDFMM_RAISE_ERROR(PdfErrorCode::NoObject);
+
+    return *obj;
 }
 
 PdfArray& PdfArray::operator=(const PdfArray& rhs)
@@ -237,16 +255,16 @@ PdfObject& PdfArray::getAt(unsigned idx) const
     return const_cast<PdfArray&>(*this).m_Objects[idx];
 }
 
-PdfObject& PdfArray::findAt(unsigned idx) const
+PdfObject* PdfArray::findAt(unsigned idx) const
 {
     if (idx >= (unsigned)m_Objects.size())
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::ValueOutOfRange, "Index is out of bounds");
 
-    PdfObject& obj = const_cast<PdfArray&>(*this).m_Objects[idx];
+    auto& obj = const_cast<PdfArray&>(*this).m_Objects[idx];
     if (obj.IsReference())
         return GetIndirectObject(obj.GetReference());
     else
-        return obj;
+        return &obj;
 }
 
 size_t PdfArray::size() const

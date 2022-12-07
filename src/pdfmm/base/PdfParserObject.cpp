@@ -227,7 +227,7 @@ ReadStream:
             auto& filters = filterObj->GetArray();
             for (unsigned i = 0; i < filters.GetSize(); i++)
             {
-                auto& obj = filters.FindAt(i);
+                auto& obj = filters.MustFindAt(i);
                 if (obj.IsName() && obj.GetName() == "Crypt")
                     m_Encrypt = nullptr;
             }

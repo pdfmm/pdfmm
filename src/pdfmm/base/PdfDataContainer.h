@@ -43,7 +43,7 @@ public:
 
 protected:
     virtual void ResetDirtyInternal() = 0;
-    PdfObject& GetIndirectObject(const PdfReference& reference) const;
+    PdfObject* GetIndirectObject(const PdfReference& reference) const;
     PdfDocument* GetObjectDocument();
     void SetDirty();
     bool IsIndirectReferenceAllowed(const PdfObject& obj);

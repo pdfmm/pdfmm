@@ -24,8 +24,11 @@ PdfCanvasInputDevice::PdfCanvasInputDevice(const PdfCanvas& canvas)
             auto& contentsArr = contents->GetArray();
             for (unsigned i = 0; i < contentsArr.GetSize(); i++)
             {
-                auto& streamObj = contentsArr.FindAt(i);
-                m_contents.push_back(&streamObj);
+                auto streamObj = contentsArr.FindAt(i);
+                if (streamObj == nullptr)
+                    continue;
+
+                m_contents.push_back(streamObj);
             }
         }
         else if (contents->IsDictionary())

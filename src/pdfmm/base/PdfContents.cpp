@@ -81,8 +81,9 @@ PdfObjectStream & PdfContents::GetStreamForAppending(PdfStreamAppendFlags flags)
         charbuff buffer;
         for (unsigned i = 0; i < arr->GetSize(); i++)
         {
-            auto stream = arr->FindAt(i).GetStream();
-            if (stream != nullptr)
+            PdfObjectStream* stream;
+            auto streamObj = arr->FindAt(i);
+            if (streamObj != nullptr && (stream = streamObj->GetStream()) != nullptr)
             {
                 BufferStreamDevice device(buffer);
                 stream->CopyTo(device);

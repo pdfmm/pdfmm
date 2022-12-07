@@ -135,8 +135,11 @@ public:
      *  \param idx
      *  \returns pointer to the found value. nullptr if the index was out of the boundaries
      */
-    const PdfObject& FindAt(unsigned idx) const;
-    PdfObject& FindAt(unsigned idx);
+    const PdfObject* FindAt(unsigned idx) const;
+    PdfObject* FindAt(unsigned idx);
+
+    const PdfObject& MustFindAt(unsigned idx) const;
+    PdfObject& MustFindAt(unsigned idx);
 
     void RemoveAt(unsigned idx);
 
@@ -283,7 +286,7 @@ private:
     PdfObject& add(PdfObject&& obj);
     iterator insertAt(const iterator& pos, PdfObject&& obj);
     PdfObject& getAt(unsigned idx) const;
-    PdfObject& findAt(unsigned idx) const;
+    PdfObject* findAt(unsigned idx) const;
 
 private:
     PdfArrayList m_Objects;

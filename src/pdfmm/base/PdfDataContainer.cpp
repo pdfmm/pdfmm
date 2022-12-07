@@ -31,7 +31,7 @@ void PdfDataContainer::ResetDirty()
     ResetDirtyInternal();
 }
 
-PdfObject& PdfDataContainer::GetIndirectObject(const PdfReference& ref) const
+PdfObject* PdfDataContainer::GetIndirectObject(const PdfReference& ref) const
 {
     if (m_Owner == nullptr)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Object is a reference but does not have an owner");
@@ -40,14 +40,7 @@ PdfObject& PdfDataContainer::GetIndirectObject(const PdfReference& ref) const
     if (document == nullptr)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Object owner is not part of any document");
 
-    auto ret = document->GetObjects().GetObject(ref);
-    if (ret == nullptr)
-    {
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Can't find object {} {} R",
-            ref.ObjectNumber(), ref.GenerationNumber());
-    }
-
-    return *ret;
+    return document->GetObjects().GetObject(ref);
 }
 
 void PdfDataContainer::SetDirty()

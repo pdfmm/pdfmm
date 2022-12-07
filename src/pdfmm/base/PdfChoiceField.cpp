@@ -89,7 +89,7 @@ PdfString PdChoiceField::GetItem(unsigned index) const
             PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
         }
         else
-            return itemArray.FindAt(0).GetString();
+            return itemArray.MustFindAt(0).GetString();
     }
 
     return item.GetString();
@@ -116,7 +116,7 @@ nullable<PdfString> PdChoiceField::GetItemDisplayText(int index) const
             PDFMM_RAISE_ERROR(PdfErrorCode::InvalidDataType);
         }
         else
-            return itemArray.FindAt(1).GetString();
+            return itemArray.MustFindAt(1).GetString();
     }
 
     return item.GetString();
@@ -153,7 +153,7 @@ int PdChoiceField::GetSelectedIndex() const
     auto& optArray = opt->GetArray();
     for (unsigned i = 0; i < optArray.GetSize(); i++)
     {
-        auto& found = optArray.FindAt(i);
+        auto& found = optArray.MustFindAt(i);
         if (found.IsString())
         {
             if (found.GetString() == value)
@@ -162,7 +162,7 @@ int PdChoiceField::GetSelectedIndex() const
         else if (found.IsArray())
         {
             auto& arr = found.GetArray();
-            if (arr.FindAt(0).GetString() == value)
+            if (arr.MustFindAt(0).GetString() == value)
                 return i;
         }
         else
