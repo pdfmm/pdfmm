@@ -1,3 +1,9 @@
+/**
+ * SPDX-FileCopyrightText: (C) 2022 Francesco Pretto <ceztko@gmail.com>
+ * SPDX-License-Identifier: LGPL-2.0-or-later
+ * SPDX-License-Identifier: MPL-2.0
+ */
+
 #ifndef PDFMM_OPERATOR_UTILS_H
 #define PDFMM_OPERATOR_UTILS_H
 

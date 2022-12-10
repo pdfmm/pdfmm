@@ -1,3 +1,9 @@
+/**
+ * SPDX-FileCopyrightText: (C) 2022 Francesco Pretto <ceztko@gmail.com>
+ * SPDX-License-Identifier: LGPL-2.0-or-later
+ * SPDX-License-Identifier: MPL-2.0
+ */
+
 #ifndef COMMON_NULLABLE_H
 #define COMMON_NULLABLE_H
 #pragma once

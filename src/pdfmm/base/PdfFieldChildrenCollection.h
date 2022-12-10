@@ -1,6 +1,7 @@
-/*
+/**
  * SPDX-FileCopyrightText: (C) 2022 Francesco Pretto <ceztko@gmail.com>
- * SPDX-License-Identifier: LGPL-2.1
+ * SPDX-License-Identifier: LGPL-2.0-or-later
+ * SPDX-License-Identifier: MPL-2.0
  */
 
 #ifndef PDF_FIELD_CHILDREN_COLLECTION_H

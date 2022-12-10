@@ -1,9 +1,7 @@
 /**
- * Copyright (C) 2010 by Dominik Seichter <domseichter@web.de>
- * Copyright (C) 2022 by Francesco Pretto <ceztko@gmail.com>
- *
- * Licensed under GNU Library General Public License 2.0 or later.
- * Some rights reserved. See COPYING, AUTHORS.
+ * SPDX-FileCopyrightText: (C) 2010 Dominik Seichter <domseichter@web.de>
+ * SPDX-FileCopyrightText: (C) 2021 Francesco Pretto <ceztko@gmail.com>
+ * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
 #include "PdfDeclarationsPrivate.h"

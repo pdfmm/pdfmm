@@ -1,10 +1,8 @@
 /**
- * Copyright (C) 2011 by Dominik Seichter <domseichter@web.de>
- * Copyright (C) 2011 by Petr Pytelka
- * Copyright (C) 2020 by Francesco Pretto <ceztko@gmail.com>
- *
- * Licensed under GNU Library General Public License 2.0 or later.
- * Some rights reserved. See COPYING, AUTHORS.
+ * SPDX-FileCopyrightText: (C) 2011 Dominik Seichter <domseichter@web.de>
+ * SPDX-FileCopyrightText: (C) 2011 Petr Pytelka
+ * SPDX-FileCopyrightText: (C) 2020 Francesco Pretto <ceztko@gmail.com>
+ * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
 #ifndef PDF_SIGNATURE_H
