@@ -1,4 +1,5 @@
 ## Version 0.10.0
+- Renamed PdfDocument::GetNameTree() -> GetNames()
 - PdfObject: Flate compress on write objects that have no filters
 - PdfMemDocument does collect garbage by default when saving
 - PdfField/PdfAnntation: Fully reworked the hierarchy

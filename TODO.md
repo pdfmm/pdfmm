@@ -2,6 +2,8 @@
 - PdfAnnotation/PdfField: Finish API review
 
 ### After 0.10
+- Check accessibility of PdfEncrypt.h classe, check AESV3 namings
+- PdfFilterFactory: Move CreateFilterList somewhere else (PdfFilter), make it private
 - Add PdfAnnotation::GetRectRaw, make GetRect() return normalized rotation rect
 - Add PdfField::GetChildren()
 - PdfPage: Add iteration on PdfPage*. See PdfAnnotationCollection

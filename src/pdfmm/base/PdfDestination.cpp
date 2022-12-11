@@ -95,7 +95,7 @@ unique_ptr<PdfDestination> PdfDestination::Create(PdfObject& obj)
     }
     else if (obj.GetDataType() == PdfDataType::String)
     {
-        auto names = doc.GetNameTree();
+        auto names = doc.GetNames();
         if (names == nullptr)
             PDFMM_RAISE_ERROR(PdfErrorCode::NoObject);
 

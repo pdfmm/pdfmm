@@ -268,7 +268,7 @@ public:
 
     PdfAcroForm* GetAcroForm() { return m_AcroForm.get(); }
 
-    PdfNameTree* GetNameTree() { return m_NameTree.get(); }
+    PdfNameTree* GetNames() { return m_NameTree.get(); }
 
     PdfOutlines* GetOutlines() { return m_Outlines.get(); }
 

@@ -2275,7 +2275,7 @@ TEST_CASE("testNestedNameTree")
         PdfMemDocument doc;
         doc.LoadFromBuffer(buffer);
 
-        auto names = doc.GetNameTree();
+        auto names = doc.GetNames();
         if (names != nullptr)
         {
             PdfDictionary dict;
@@ -2312,7 +2312,7 @@ TEST_CASE("testLoopingNameTree")
     PdfMemDocument doc;
     doc.LoadFromBuffer(strNoLoop);
 
-    auto names = doc.GetNameTree();
+    auto names = doc.GetNames();
     if (names != nullptr)
     {
         PdfDictionary dict;
@@ -2340,7 +2340,7 @@ TEST_CASE("testLoopingNameTree")
         PdfMemDocument doc;
         doc.LoadFromBuffer(strSelfLoop);
 
-        auto names = doc.GetNameTree();
+        auto names = doc.GetNames();
         if (names != nullptr)
         {
             PdfDictionary dict;
@@ -2376,7 +2376,7 @@ TEST_CASE("testLoopingNameTree")
         PdfMemDocument doc;
         doc.LoadFromBuffer(strAncestorLoop);
 
-        auto names = doc.GetNameTree();
+        auto names = doc.GetNames();
         if (names != nullptr)
         {
             PdfDictionary dict;
