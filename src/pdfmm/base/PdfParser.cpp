@@ -266,8 +266,8 @@ void PdfParser::ReadNextTrailer(InputStreamDevice& device)
 
                 try
                 {
-                    if (m_visitedXRefOffsets.find(offset) == m_visitedXRefOffsets.end())
-                        ReadXRefContents(device, offset);
+                    if (m_visitedXRefOffsets.find((size_t)offset) == m_visitedXRefOffsets.end())
+                        ReadXRefContents(device, (size_t)offset);
                     else
                         mm::LogMessage(PdfLogSeverity::Warning, "XRef contents at offset {} requested twice, skipping the second read",
                             static_cast<int64_t>(offset));
