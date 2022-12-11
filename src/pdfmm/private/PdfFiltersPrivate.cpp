@@ -33,7 +33,7 @@ public:
     {
         m_Predictor = static_cast<int>(decodeParms.FindKeyAs<int64_t>("Predictor", 1));
         m_Colors = static_cast<int>(decodeParms.FindKeyAs<int64_t>("Colors", 1));
-        m_BytesPerComponent = static_cast<int>(decodeParms.FindKeyAs<int64_t>("BitsPerComponent", 8));
+        m_BitsPerComponent = static_cast<int>(decodeParms.FindKeyAs<int64_t>("BitsPerComponent", 8));
         m_ColumnCount = static_cast<int>(decodeParms.FindKeyAs<int64_t>("Columns", 1));
         m_EarlyChange = static_cast<int>(decodeParms.FindKeyAs<int64_t>("EarlyChange", 1));
 
@@ -49,8 +49,8 @@ public:
         }
 
         m_CurrRowIndex = 0;
-        m_BytesPerPixel = (m_BytesPerComponent * m_Colors) >> 3;
-        m_Rows = (m_ColumnCount * m_Colors * m_BytesPerComponent) >> 3;
+        m_BytesPerPixel = (m_BitsPerComponent * m_Colors) >> 3;
+        m_Rows = (m_ColumnCount * m_Colors * m_BitsPerComponent) >> 3;
 
         m_Prev.resize(m_Rows);
         memset(m_Prev.data(), 0, sizeof(char) * m_Rows);
@@ -80,7 +80,7 @@ public:
                 {
                     case 2: // Tiff Predictor
                     {
-                        if (m_BytesPerComponent == 8)
+                        if (m_BitsPerComponent == 8)
                         {   // Same as png sub
                             int prev = (m_CurrRowIndex - m_BytesPerPixel < 0
                                 ? 0 : m_Prev[m_CurrRowIndex - m_BytesPerPixel]);
@@ -182,7 +182,7 @@ public:
 private:
     int m_Predictor;
     int m_Colors;
-    int m_BytesPerComponent;
+    int m_BitsPerComponent;
     int m_ColumnCount;
     int m_EarlyChange;
     int m_BytesPerPixel;     // Bytes per pixel
