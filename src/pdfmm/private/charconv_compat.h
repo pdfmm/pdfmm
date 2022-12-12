@@ -7,7 +7,7 @@
 #if defined(__GNUC__) && !defined(__clang__) && __GNUC__ < 11
 #define WANT_FROM_CHARS
 #define WANT_CHARS_FORMAT
-#elif defined(__clang__) && __clang_major__ < 14
+#elif defined(__clang__)
 #define WANT_FROM_CHARS
 #endif
 
