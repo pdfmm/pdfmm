@@ -19,7 +19,7 @@
 // AES-256 dependencies :
 // SASL
 #include <stringprep.h>
-#include <idn-free.h> // The entry point to the Windows memory de-allocation function
+#include <idn-free.h>
 #include <openssl/sha.h>
 #include <openssl/aes.h>
 #endif // PDFMM_HAVE_LIBIDN
@@ -44,6 +44,37 @@ PdfEncryptAlgorithm::RC4V1 |
 PdfEncryptAlgorithm::RC4V2 |
 PdfEncryptAlgorithm::AESV2;
 #endif // PDFMM_HAVE_LIBIDN
+
+#if OPENSSL_VERSION_MAJOR >= 3
+
+#include <openssl/provider.h>
+
+struct OpenSSLInit
+{
+    OpenSSLInit()
+    {
+        // NOTE: Load required legacy providers, such as RC4, together regular ones,
+        // as explained in https://wiki.openssl.org/index.php/OpenSSL_3.0#Providers
+        m_legacyProvider = OSSL_PROVIDER_load(NULL, "legacy");
+        if (m_legacyProvider == nullptr)
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Unable to load legacy providers in OpenSSL >= 3.x.x");
+
+        m_defaultProvider = OSSL_PROVIDER_load(NULL, "default");
+        if (m_defaultProvider == nullptr)
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Unable to load default providers in OpenSSL >= 3.x.x");
+    }
+
+    ~OpenSSLInit()
+    {
+        OSSL_PROVIDER_unload(m_legacyProvider);
+        OSSL_PROVIDER_unload(m_defaultProvider);
+    }
+
+    OSSL_PROVIDER *m_legacyProvider;
+    OSSL_PROVIDER *m_defaultProvider;
+} s_openSSLInit;
+
+#endif // OPENSSL_VERSION_MAJOR >= 3
 
 // Default value for P (permissions) = no permission
 #define PERMS_DEFAULT (PdfPermissions)0xFFFFF0C0
