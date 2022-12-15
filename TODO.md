@@ -2,13 +2,17 @@
 - PdfAnnotation/PdfField: Finish API review
 
 ### After 0.10
+- Use exceptions in PdfImage jpeg error handling instead of
+setjmp/longjmp. Put #pragma warnings to ignore the warning in Windows
+about C linkage and exceptions (is a safe operation)
+- PdfDate: Consider making PdfDate::Now() and PdfDate::UTCNow() and have
+default constructor to be default epoch time instead
 - Check accessibility of PdfEncrypt.h classe, check AESV3 namings
 - PdfFilterFactory: Move CreateFilterList somewhere else (PdfFilter), make it private
 - Add PdfAnnotation::GetRectRaw, make GetRect() return normalized rotation rect
-- Add PdfField::GetChildren()
 - PdfPage: Add iteration on PdfPage*. See PdfAnnotationCollection
 - Make PdfObjectStream not flate filter by default in PdfMemDocument?
-- PdfElement: Optmize, keep dictionary/array pointer. Add GetObjectPtr()
+- PdfElement: Optimize, keep dictionary/array pointer. Add GetObjectPtr()
 - PdfPageCollection::CreatePage() with PdfPageSize or default inferred from doc
 - Fix PdfFontMetrics handling of symbol encoding
 - Fix/complete handling of text extraction in rotated pages
