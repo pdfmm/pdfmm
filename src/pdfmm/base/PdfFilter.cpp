@@ -74,10 +74,10 @@ public:
         const PdfDictionary* decodeParms)
         : m_OutputStream(std::move(outputStream)), m_FilterFailed(false)
     {
-        if (outputStream == nullptr)
+        if (m_OutputStream == nullptr)
             PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Output stream must be not null");
 
-        init(*outputStream, filterType, decodeParms);
+        init(*m_OutputStream, filterType, decodeParms);
     }
 
 protected:
