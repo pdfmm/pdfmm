@@ -120,16 +120,16 @@ private:
 class PdfBufferedDecodeStream : public InputStream, private OutputStream
 {
 public:
-    PdfBufferedDecodeStream(const shared_ptr<InputStream>& inputStream, const PdfFilterList& filters, const PdfDictionary* dictionary)
+    PdfBufferedDecodeStream(const shared_ptr<InputStream>& inputStream, const PdfFilterList& filters, const PdfDictionary* decodeParms)
         : m_inputEof(false), m_inputStream(inputStream), m_offset(0)
     {
         PdfFilterList::const_reverse_iterator it = filters.rbegin();
-        m_filterStream.reset(new PdfFilteredDecodeStream(*this, *it, dictionary));
+        m_filterStream.reset(new PdfFilteredDecodeStream(*this, *it, decodeParms));
         it++;
 
         while (it != filters.rend())
         {
-            m_filterStream.reset(new PdfFilteredDecodeStream(std::move(m_filterStream), *it, dictionary));
+            m_filterStream.reset(new PdfFilteredDecodeStream(std::move(m_filterStream), *it, decodeParms));
             it++;
         }
     }
@@ -299,32 +299,11 @@ unique_ptr<OutputStream> PdfFilterFactory::CreateEncodeStream(const shared_ptr<O
 }
 
 unique_ptr<InputStream> PdfFilterFactory::CreateDecodeStream(const shared_ptr<InputStream>& stream,
-    const PdfFilterList& filters, const PdfDictionary& dictionary)
+    const PdfFilterList& filters, const PdfDictionary* decodeParms)
 {
-    return createDecodeStream(filters, stream, &dictionary);
-}
-
-unique_ptr<InputStream> PdfFilterFactory::CreateDecodeStream(const shared_ptr<InputStream>& stream,
-    const PdfFilterList& filters)
-{
-    return createDecodeStream(filters, stream, nullptr);
-}
-
-unique_ptr<InputStream> PdfFilterFactory::createDecodeStream(const PdfFilterList& filters,
-    const shared_ptr<InputStream>& stream, const PdfDictionary* dictionary)
-{
+    PDFMM_RAISE_LOGIC_IF(stream == nullptr, "Cannot create an DecodeStream from an empty stream");
     PDFMM_RAISE_LOGIC_IF(filters.size() == 0, "Cannot create an DecodeStream from an empty list of filters");
-
-    // TODO: Add also support for DP? (used in inline images)
-    const PdfObject* decodeParams;
-    if (dictionary != nullptr
-        && (decodeParams = dictionary->FindKey("DecodeParms")) != nullptr
-        && decodeParams->IsDictionary())
-    {
-        dictionary = &decodeParams->GetDictionary();
-    }
-
-    return std::make_unique<PdfBufferedDecodeStream>(stream, filters, dictionary);
+    return std::make_unique<PdfBufferedDecodeStream>(stream, filters, decodeParms);
 }
 
 PdfFilterList PdfFilterFactory::CreateFilterList(const PdfObject& filtersObj)

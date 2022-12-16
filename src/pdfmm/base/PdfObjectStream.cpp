@@ -70,7 +70,8 @@ void PdfObjectStream::CopyToSafe(charbuff& buffer) const
 void PdfObjectStream::CopyTo(OutputStream& stream, bool raw) const
 {
     PdfFilterList mediaFilters;
-    auto inputStream = const_cast<PdfObjectStream&>(*this).getInputStream(raw, mediaFilters);
+    const PdfDictionary* decodeParms;
+    auto inputStream = const_cast<PdfObjectStream&>(*this).getInputStream(raw, mediaFilters, decodeParms);
     if (mediaFilters.size() != 0)
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::UnsupportedFilter, "Unsupported expansion with media filters. Use GetInputStream(true) instead");
         
@@ -81,7 +82,8 @@ void PdfObjectStream::CopyTo(OutputStream& stream, bool raw) const
 void PdfObjectStream::CopyToSafe(OutputStream& stream) const
 {
     PdfFilterList mediaFilters;
-    auto inputStream = const_cast<PdfObjectStream&>(*this).getInputStream(false, mediaFilters);
+    const PdfDictionary* decodeParms;
+    auto inputStream = const_cast<PdfObjectStream&>(*this).getInputStream(false, mediaFilters, decodeParms);
     inputStream->CopyTo(stream);
     stream.Flush();
 }
@@ -160,15 +162,27 @@ void PdfObjectStream::SetData(InputStream& stream, const PdfFilterList& filters)
     setData(stream, filters, -1, true);
 }
 
-unique_ptr<InputStream> PdfObjectStream::getInputStream(bool raw, PdfFilterList& mediaFilters)
+unique_ptr<InputStream> PdfObjectStream::getInputStream(bool raw, PdfFilterList& mediaFilters,
+    const PdfDictionary*& mediaDecodeParms)
 {
-    if (raw)
+    if (raw || m_Filters.size() == 0)
     {
+        mediaDecodeParms = nullptr;
         return getInputStream();
     }
     else
     {
+        const PdfDictionary* decodeParms = nullptr;
+        auto decodeParmsObj = m_Parent->GetDictionary().FindKey("DecodeParms");
+        if (decodeParmsObj != nullptr)
+            (void)decodeParmsObj->TryGetDictionary(decodeParms);
+
         auto filters = stripMediaFilters(m_Filters, mediaFilters);
+        if (mediaFilters.size() == 0)
+            mediaDecodeParms = nullptr;
+        else
+            mediaDecodeParms = decodeParms;
+
         if (filters.size() == 0)
         {
             return getInputStream();
@@ -176,7 +190,7 @@ unique_ptr<InputStream> PdfObjectStream::getInputStream(bool raw, PdfFilterList&
         else
         {
             return PdfFilterFactory::CreateDecodeStream(getInputStream(),
-                filters, m_Parent->GetDictionary());
+                filters, decodeParms);
         }
     }
 }
@@ -210,7 +224,7 @@ void PdfObjectStream::EnsureClosed() const
 }
 
 PdfObjectInputStream::PdfObjectInputStream()
-    : m_stream(nullptr) { }
+    : m_stream(nullptr), m_MediaDecodeParms(nullptr) { }
 
 PdfObjectInputStream::~PdfObjectInputStream()
 {
@@ -221,13 +235,14 @@ PdfObjectInputStream::~PdfObjectInputStream()
 PdfObjectInputStream::PdfObjectInputStream(PdfObjectInputStream&& rhs) noexcept
 {
     utls::move(rhs.m_stream, m_stream);
+    utls::move(rhs.m_MediaDecodeParms, m_MediaDecodeParms);
 }
 
 PdfObjectInputStream::PdfObjectInputStream(PdfObjectStream& stream, bool raw)
     : m_stream(&stream)
 {
     m_stream->m_locked = true;
-    m_input = stream.getInputStream(raw, m_MediaFilters);
+    m_input = stream.getInputStream(raw, m_MediaFilters, m_MediaDecodeParms);
 }
 
 size_t PdfObjectInputStream::readBuffer(char* buffer, size_t size, bool& eof)

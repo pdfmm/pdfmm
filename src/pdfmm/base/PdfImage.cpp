@@ -19,6 +19,8 @@ extern "C" {
 #include <pdfmm/private/PdfFiltersPrivate.h>
 #include <pdfmm/private/ImageUtils.h>
 
+#include <pdfium/core/fxcodec/fax/faxmodule.h>
+
 #include "PdfDocument.h"
 #include "PdfDictionary.h"
 #include "PdfArray.h"
@@ -63,6 +65,7 @@ void PdfImage::DecodeTo(const bufferspan& buffer, PdfPixelFormat format, int row
 void PdfImage::DecodeTo(OutputStream& stream, PdfPixelFormat format, int rowSize) const
 {
     auto istream = GetObject().MustGetStream().GetInputStream();
+    auto& dict = GetDictionary();
     auto& mediaFilters = istream.GetMediaFilters();
     charbuff imageData;
     ContainerStreamDevice device(imageData);
@@ -127,6 +130,31 @@ void PdfImage::DecodeTo(OutputStream& stream, PdfPixelFormat format, int rowSize
                 break;
             }
             case PdfFilterType::CCITTFaxDecode:
+            {
+                int k = 0;
+                bool endOfLine = false;
+                bool encodedByteAlign = false;
+                bool blackIs1 = false;
+                int columns = 1728;
+                int rows = 0;
+                auto decodeParms = istream.GetMediaDecodeParms();
+                if (decodeParms != nullptr)
+                {
+                    k = (int)decodeParms->FindKeyAs<int64>("K");
+                    endOfLine = decodeParms->FindKeyAs<bool>("EndOfLine");
+                    encodedByteAlign = decodeParms->FindKeyAs<bool>("EncodedByteAlign");
+                    blackIs1 = decodeParms->FindKeyAs<bool>("BlackIs1");
+                    columns = (int)decodeParms->FindKeyAs<int64>("Columns", 1728);
+                    rows = (int)decodeParms->FindKeyAs<int64>("Rows");
+                }
+                auto decoder = fxcodec::FaxModule::CreateDecoder(
+                    pdfium::span<const uint8_t>((const uint8_t *)imageData.data(), imageData.size()),
+                    (int)m_Width, (int)m_Height, k, endOfLine, encodedByteAlign, blackIs1, columns, rows);
+
+                utls::FetchImageBW(stream, m_Width, m_Height,
+                    format, *decoder, smaskData, scanLine);
+                break;
+            }
             case PdfFilterType::JBIG2Decode:
             case PdfFilterType::JPXDecode:
             default:

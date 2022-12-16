@@ -11,7 +11,7 @@ add_definitions(-DHAS_UNCAUGHT_EXCEPTIONS=1)
 set(PDFMM_INCLUDE_DIRS
     ${CMAKE_CURRENT_BINARY_DIR}
     "${PROJECT_SOURCE_DIR}/src"
-    "${PROJECT_SOURCE_DIR}/3rdparty/include"
+    "${PROJECT_SOURCE_DIR}/3rdparty"
     CACHE INTERNAL "pdfmm include directories"
 )
 
@@ -41,15 +41,21 @@ endif()
 # Set visual studio source group
 source_group("" FILES ${PDFMM_SOURCES})
 
-foreach(subdir common base contrib)
-    file(GLOB_RECURSE SOURCE_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "${subdir}/*")
+macro(add_source subdir subdir_path)
+    file(GLOB_RECURSE SOURCE_FILES "${subdir_path}/*")
     # Set visual studio source group
     source_group(${subdir} FILES ${SOURCE_FILES})
+    message("subdir: ${subdir}")
+    message("SOURCE FILES: ${SOURCE_FILES}")
     # Add subdir to source files
     list(APPEND PDFMM_SOURCES ${SOURCE_FILES})
     # Set non private headers for install
     set(HEADER_FILES ${SOURCE_FILES})
     list(FILTER HEADER_FILES EXCLUDE REGEX "\.cpp$")
+endmacro()
+
+foreach(subdir common base contrib)
+    add_source(${subdir} "${CMAKE_CURRENT_SOURCE_DIR}/${subdir}")
     install(FILES ${HEADER_FILES} DESTINATION "include/pdfmm/${subdir}")
 endforeach()
 
@@ -60,6 +66,8 @@ if(NOT PDFMM_HAVE_FONTCONFIG)
         base/PdfFontConfigWrapper.cpp
     )
 endif()
+
+add_source("3rdparty/pdfium" "${PROJECT_SOURCE_DIR}/3rdparty/pdfium")
 
 if(NOT PDFMM_BUILD_SHARED AND NOT PDFMM_BUILD_STATIC)
     message(FATAL_ERROR "At least one of PDFMM_BUILD_SHARED and PODOF_BUILD_STATIC must be set")

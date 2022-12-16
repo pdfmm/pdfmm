@@ -319,19 +319,14 @@ public:
      *  \param filters a list of filters
      *  \param stream write all data to this OutputStream
      *         after it has been decoded.
-     *  \param dictionary pointer to a dictionary that might
-     *         contain additional parameters for stream decoding.
-     *         This method will look for a key named DecodeParms
-     *         in this dictionary and pass the information found
-     *         in that dictionary to the filters.
+     *  \param decodeParms reference to a dictionary that might
+     *         contain additional parameters for stream decoding
      *  \returns a new OutputStream that has to be deleted by the caller.
      *
      *  \see PdfFilterFactory::CreateFilterList
      */
     static std::unique_ptr<InputStream> CreateDecodeStream(const std::shared_ptr<InputStream>& stream,
-        const PdfFilterList& filters, const PdfDictionary& dictionary);
-    static std::unique_ptr<InputStream> CreateDecodeStream(const std::shared_ptr<InputStream>& stream,
-        const PdfFilterList& filters);
+        const PdfFilterList& filters, const PdfDictionary* decodeParms = nullptr);
 
     /** The passed PdfObject has to be a dictionary with a Filters key,
      *  a (possibly empty) array of filter names or a filter name.
@@ -344,8 +339,6 @@ public:
 
 private:
     static void addFilterTo(PdfFilterList& filters, const std::string_view& filterName);
-    static std::unique_ptr<InputStream> createDecodeStream(const PdfFilterList& filters,
-        const std::shared_ptr<InputStream>& stream, const PdfDictionary* dictionary);
 
 private:
     PdfFilterFactory() = delete;
