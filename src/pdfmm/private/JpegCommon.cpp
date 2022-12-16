@@ -16,11 +16,19 @@ static void setErrorHandler(jpeg_common_struct& ctx, JpegErrorHandler& handler);
 // Handlers for JPeg library
 extern "C"
 {
+// NOTE: Ignore MSVC warning C4297 ("function assumed not to throw
+// an exception but does") because of extern "C": we will catch
+// the exeception in a C++ method
+#pragma warning(push)
+#pragma warning(disable: 4297)
     void cust_error_exit(j_common_ptr ctx)
     {
-        auto myerr = (JpegErrorHandler*)ctx->err;
-        longjmp(myerr->setjmp_buffer, 1);
+        std::string error;
+        error.resize(JMSG_LENGTH_MAX);
+        (*ctx->err->format_message) ((jpeg_common_struct*)&ctx, error.data()); \
+        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InternalLogic, error);
     }
+#pragma warning(pop)
 
     void cust_emit_message(j_common_ptr, int)
     {
@@ -84,9 +92,9 @@ void mm::SetJpegBufferDestination(jpeg_compress_struct& ctx, charbuff& buff, Jpe
 
 void setErrorHandler(jpeg_common_struct& ctx, JpegErrorHandler& handler)
 {
-    jpeg_std_error(&handler.pub);
-    handler.pub.error_exit = &cust_error_exit;
-    handler.pub.emit_message = &cust_emit_message;
+    jpeg_std_error(&handler);
+    handler.error_exit = &cust_error_exit;
+    handler.emit_message = &cust_emit_message;
     ctx.err = (jpeg_error_mgr*)&handler;
 }
 

@@ -2,9 +2,6 @@
 - PdfAnnotation/PdfField: Finish API review
 
 ### After 0.10
-- Use exceptions in PdfImage jpeg error handling instead of
-setjmp/longjmp. Put #pragma warnings to ignore the warning in Windows
-about C linkage and exceptions (is a safe operation)
 - PdfDate: Consider making PdfDate::Now() and PdfDate::UTCNow() and have
 default constructor to be default epoch time instead
 - Check accessibility of PdfEncrypt.h classe, check AESV3 namings

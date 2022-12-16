@@ -99,7 +99,7 @@ void PdfImage::DecodeTo(OutputStream& stream, PdfPixelFormat format, int rowSize
                 JpegErrorHandler jerr;
                 try
                 {
-                    INIT_JPEG_DECOMPRESS_CONTEXT(ctx, jerr);
+                    InitJpegDecompressContext(ctx, jerr);
 
                     mm::jpeg_memory_src(&ctx, reinterpret_cast<JOCTET*>(imageData.data()), imageData.size());
 
@@ -468,7 +468,7 @@ void PdfImage::loadFromJpeg(const string_view& filename)
     JpegErrorHandler jerr;
     try
     {
-        INIT_JPEG_DECOMPRESS_CONTEXT(ctx, jerr);
+        InitJpegDecompressContext(ctx, jerr);
         jpeg_stdio_src(&ctx, file);
 
         PdfImageInfo info;
@@ -506,7 +506,7 @@ void PdfImage::exportToJpeg(charbuff& destBuff, const PdfArray& args) const
 
     try
     {
-        INIT_JPEG_COMPRESS_CONTEXT(ctx, jerr);
+        InitJpegCompressContext(ctx, jerr);
 
         JpegBufferDestination jdest;
         mm::SetJpegBufferDestination(ctx, destBuff, jdest);
@@ -547,7 +547,7 @@ void PdfImage::loadFromJpegData(const unsigned char* data, size_t len)
 
     try
     {
-        INIT_JPEG_DECOMPRESS_CONTEXT(ctx, jerr);
+        InitJpegDecompressContext(ctx, jerr);
         jpeg_memory_src(&ctx, data, len);
 
         PdfImageInfo info;
