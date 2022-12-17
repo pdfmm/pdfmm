@@ -4,6 +4,9 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
+#ifndef IMAGE_UTILS_H
+#define IMAGE_UTILS_H
+
 #include <pdfmm/base/PdfOutputStream.h>
 
 #ifdef PDFMM_HAVE_JPEG_LIB
@@ -34,3 +37,5 @@ namespace utls
         JSAMPARRAY jScanLine, const mm::charbuff& smaskData, mm::charbuff& scanLine);
 #endif // PDFMM_HAVE_JPEG_LIB
 }
+
+#endif // IMAGE_UTILS_H
