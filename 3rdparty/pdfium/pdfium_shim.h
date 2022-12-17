@@ -3,6 +3,7 @@
 // This is a shim of several macros/functions/types
 // that is needed to compile stripped pdium code
 
+#include <cstring>
 #include <vector>
 #include <algorithm>
 #include <numerics/safe_math.h>
