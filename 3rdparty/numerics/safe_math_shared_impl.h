@@ -16,7 +16,7 @@
 #include <type_traits>
 
 #include "safe_conversions.h"
-#include "build/build_config.h"
+#include "build_config.h"
 
 #if BUILDFLAG(IS_ASMJS)
 // Optimized safe math instructions are incompatible with asmjs.
