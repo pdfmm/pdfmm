@@ -65,7 +65,6 @@ void PdfImage::DecodeTo(const bufferspan& buffer, PdfPixelFormat format, int row
 void PdfImage::DecodeTo(OutputStream& stream, PdfPixelFormat format, int rowSize) const
 {
     auto istream = GetObject().MustGetStream().GetInputStream();
-    auto& dict = GetDictionary();
     auto& mediaFilters = istream.GetMediaFilters();
     charbuff imageData;
     ContainerStreamDevice device(imageData);
