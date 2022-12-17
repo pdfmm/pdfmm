@@ -1,4 +1,6 @@
 ## Version 0.10.0
+- PdfDate: Introduced PdfDate::LocalNow() and PdfDate::UtcNow()
+  and default constructor is epoch time instead
 - Renamed PdfDocument::GetNameTree() -> GetNames()
 - PdfObject: Flate compress on write objects that have no filters
 - PdfMemDocument does collect garbage by default when saving

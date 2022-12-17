@@ -308,7 +308,7 @@ void PdfMemDocument::beforeWrite(PdfSaveOptions opts)
     if ((opts & PdfSaveOptions::NoModifyDateUpdate) ==
         PdfSaveOptions::None)
     {
-        GetMetadata().SetModifyDate(PdfDate(), true);
+        GetMetadata().SetModifyDate(PdfDate::LocalNow(), true);
     }
 
     if ((opts & PdfSaveOptions::NoCollectGarbage) ==

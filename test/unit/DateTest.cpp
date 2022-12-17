@@ -19,8 +19,8 @@ static void deconstruct(const PdfDate& date, date::year_month_day& ymd, date::hh
 
 static void checkExpected(const string_view& datestr, bool expectedValid)
 {
-    PdfDate date;
-    bool valid = PdfDate::TryParse(datestr, date);
+    auto now = PdfDate::LocalNow();
+    bool valid = PdfDate::TryParse(datestr, now);
 
     if (datestr.empty())
     {

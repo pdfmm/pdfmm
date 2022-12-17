@@ -29,8 +29,8 @@ PdfInfo::PdfInfo(PdfObject& obj, PdfInfoInitial initial)
 
 void PdfInfo::init(PdfInfoInitial initial)
 {
-    PdfDate date;
-    PdfString str = date.ToString();
+    auto now = PdfDate::LocalNow();
+    PdfString str = now.ToString();
 
     if ((initial & PdfInfoInitial::WriteCreationTime) == PdfInfoInitial::WriteCreationTime)
         this->GetObject().GetDictionary().AddKey("CreationDate", str);

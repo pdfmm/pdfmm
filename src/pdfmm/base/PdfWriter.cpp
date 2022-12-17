@@ -246,8 +246,8 @@ void PdfWriter::CreateFileIdentifier(PdfString& identifier, const PdfObject& tra
     auto infoObj = trailer.GetDictionary().GetKey("Info");
     if (infoObj == nullptr)
     {
-        PdfDate date;
-        PdfString dateString = date.ToString();
+        auto now = PdfDate::LocalNow();
+        PdfString dateString = now.ToString();
 
         info.reset(new PdfObject());
         info->GetDictionary().AddKey("CreationDate", dateString);

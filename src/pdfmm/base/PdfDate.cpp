@@ -55,20 +55,28 @@ static bool tryParseW3C(const string_view & dateStr, chrono::seconds & secondsFr
 static void inferTimeComponents(int y, int m, int d, int h, int M, int s,
     bool hasZoneShift, int zoneShift, int zoneHour, int zoneMin,
     chrono::seconds & secondsFromEpoch, nullable<chrono::minutes>&minutesFromUtc);
+static chrono::seconds getSecondsFromEpoch();
 
 PdfDate::PdfDate()
-{
-    m_MinutesFromUtc = chrono::minutes(getLocalOffesetFromUTCMinutes());
-    // Cast now() to seconds. We assume system_clock epoch is
-    //  always 1970/1/1 UTC in all platforms, like in C++20
-    auto now = chrono::time_point_cast<chrono::seconds>(chrono::system_clock::now());
-    // We forget about realtionship with UTC, convert to local seconds
-    m_SecondsFromEpoch = chrono::seconds(now.time_since_epoch());
-}
+    : m_SecondsFromEpoch()
+{ }
 
 PdfDate::PdfDate(const chrono::seconds& secondsFromEpoch, const nullable<chrono::minutes>& offsetFromUTC)
     : m_SecondsFromEpoch(secondsFromEpoch), m_MinutesFromUtc(offsetFromUTC)
 {
+}
+
+PdfDate PdfDate::LocalNow()
+{
+    auto minutesFromUtc = chrono::minutes(getLocalOffesetFromUTCMinutes());
+    auto secondsFromEpoch = getSecondsFromEpoch();
+    return PdfDate(secondsFromEpoch, minutesFromUtc);
+}
+
+PdfDate PdfDate::UtcNow()
+{
+    auto secondsFromEpoch = getSecondsFromEpoch();
+    return PdfDate(secondsFromEpoch, { });
 }
 
 PdfDate PdfDate::Parse(const string_view& dateStr)
@@ -392,6 +400,15 @@ void inferTimeComponents(int y, int m, int d, int h, int M, int s,
     {
         minutesFromUtc = { };
     }
+}
+
+chrono::seconds getSecondsFromEpoch()
+{
+    // Cast now() to seconds. We assume system_clock epoch is
+    //  always 1970/1/1 UTC in all platforms, like in C++20
+    auto now = chrono::time_point_cast<chrono::seconds>(chrono::system_clock::now());
+    // We forget about realtionship with UTC, convert to local seconds
+    return chrono::seconds(now.time_since_epoch());
 }
 
 // degski, https://stackoverflow.com/a/57520245/213871

@@ -33,16 +33,21 @@ namespace mm {
 class PDFMM_API PdfDate final
 {
 public:
-    /** Create a PdfDate object with the current date and time.
+    /** Create a PdfDate with epoch time (1/1/1970 00:00:00)
      */
     PdfDate();
 
-    /** Create a PdfDate with a specified date and time
-     *  \param t the date and time of this object
-     *
-     *  \see IsValid()
+    /** Create a PdfDate with a specified date/time and offset from UTC
+     *  \param secondsFromEpoch seconds from UTC epoch (1/1/1970 00:00:00)
+     *  \minutesFromUTC Offset in minutes from UTC
      */
-    PdfDate(const std::chrono::seconds& secondsFromEpoch, const nullable<std::chrono::minutes>& offsetFromUTC);
+    PdfDate(const std::chrono::seconds& secondsFromEpoch,
+        const nullable<std::chrono::minutes>& minutesFromUTC);
+
+public:
+    static PdfDate LocalNow();
+
+    static PdfDate UtcNow();
 
     /** Create a PdfDate with a specified date and time
      *  \param dateStr the date and time of this object
