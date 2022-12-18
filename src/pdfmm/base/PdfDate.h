@@ -33,12 +33,12 @@ namespace mm {
 class PDFMM_API PdfDate final
 {
 public:
-    /** Create a PdfDate with epoch time (1/1/1970 00:00:00)
+    /** Create a PdfDate with epoch time (1/1/1970 00:00:00 UTC)
      */
     PdfDate();
 
     /** Create a PdfDate with a specified date/time and offset from UTC
-     *  \param secondsFromEpoch seconds from UTC epoch (1/1/1970 00:00:00)
+     *  \param secondsFromEpoch seconds from epoch (1/1/1970 00:00:00 UTC)
      *  \minutesFromUTC Offset in minutes from UTC
      */
     PdfDate(const std::chrono::seconds& secondsFromEpoch,

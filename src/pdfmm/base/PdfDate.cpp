@@ -128,11 +128,10 @@ bool PdfDate::TryParseW3C(const string_view& dateStr, PdfDate& date)
 PdfString PdfDate::createStringRepresentation(bool w3cstring) const
 {
     string offset;
-    chrono::hh_mm_ss<chrono::seconds> time;
-    chrono::year_month_day ymd;
+    std::chrono::minutes minutesFromUtc{};
     if (m_MinutesFromUtc.has_value())
     {
-        auto minutesFromUtc = *m_MinutesFromUtc;
+        minutesFromUtc = *m_MinutesFromUtc;
         int minutesFromUtci = (int)minutesFromUtc.count();
         unsigned offseth = std::abs(minutesFromUtci) / 60;
         unsigned offsetm = std::abs(minutesFromUtci) % 60;
@@ -144,29 +143,17 @@ PdfString PdfDate::createStringRepresentation(bool w3cstring) const
         {
             bool plus = minutesFromUtci > 0 ? true : false;
             if (w3cstring)
-            {
                 utls::FormatTo(offset, "{}{:02}:{:02}", plus ? '+' : '-', offseth, offsetm);
-            }
             else
-            {
                 utls::FormatTo(offset, "{}{:02}'{:02}'", plus ? '+' : '-', offseth, offsetm);
-            }
         }
+    }
 
-        // Assume sys time
-        auto secondsFromEpoch = (chrono::sys_seconds)(m_SecondsFromEpoch + minutesFromUtc);
-        auto dp = chrono::floor<chrono::days>(secondsFromEpoch);
-        ymd = chrono::year_month_day(dp);
-        time = chrono::hh_mm_ss<chrono::seconds>(chrono::floor<chrono::seconds>(secondsFromEpoch - dp));
-    }
-    else
-    {
-        // Assume local time
-        auto secondsFromEpoch = (chrono::local_seconds)m_SecondsFromEpoch;
-        auto dp = chrono::floor<chrono::days>(secondsFromEpoch);
-        ymd = chrono::year_month_day(dp);
-        time = chrono::hh_mm_ss<chrono::seconds>(chrono::floor<chrono::seconds>(secondsFromEpoch - dp));
-    }
+    // Decompose the date
+    auto secondsFromEpoch = (chrono::sys_seconds)(m_SecondsFromEpoch + minutesFromUtc);
+    auto dp = chrono::floor<chrono::days>(secondsFromEpoch);
+    auto ymd = chrono::year_month_day(dp);
+    auto time = chrono::hh_mm_ss<chrono::seconds>(chrono::floor<chrono::seconds>(secondsFromEpoch - dp));
 
     short y = (short)(int)ymd.year();
     unsigned char m = (unsigned char)(unsigned)ymd.month();
@@ -398,6 +385,11 @@ void inferTimeComponents(int y, int m, int d, int h, int M, int s,
     }
     else
     {
+        // ISO 32000-1:2008, 7.9.4 Dates:
+        // "If no UT information is specified, the relationship of
+        // the specified time to UT shall be considered to be GMT"
+        // NOTE: UTC is the successor of GMT and in PDF context
+        // can be assumed to the same
         minutesFromUtc = { };
     }
 }

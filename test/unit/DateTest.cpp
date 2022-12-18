@@ -66,6 +66,30 @@ TEST_CASE("testCreateDateFromString")
     checkExpected("INVALID", false);
 }
 
+TEST_CASE("testRoundTrip")
+{
+    auto testRoundTrip = [](const string_view& datestr)
+    {
+        string dateStr1 = (string)datestr;
+        auto date1 = PdfDate::Parse(dateStr1);
+        string dateStr2 = date1.ToString().GetString();
+        auto date2 = PdfDate::Parse(dateStr2);
+        REQUIRE(dateStr1 == dateStr2);
+        REQUIRE(date1 == date2);
+    };
+
+    testRoundTrip("D:20221217220858+01'00'");
+    testRoundTrip("D:20221217220858");
+}
+
+TEST_CASE("testNoZoneShift")
+{
+    auto date1 = PdfDate::Parse("D:20221217220858+00'00'");
+    auto date2 = PdfDate::Parse("D:20221217220858");
+    // No zone shift should be equivalent to UTC
+    REQUIRE(date1.GetSecondsFromEpoch() == date2.GetSecondsFromEpoch());
+}
+
 TEST_CASE("testAdditional")
 {
     struct name_date
