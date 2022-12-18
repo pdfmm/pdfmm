@@ -45,8 +45,6 @@ macro(add_source subdir subdir_path)
     file(GLOB_RECURSE SOURCE_FILES "${subdir_path}/*")
     # Set visual studio source group
     source_group(${subdir} FILES ${SOURCE_FILES})
-    message("subdir: ${subdir}")
-    message("SOURCE FILES: ${SOURCE_FILES}")
     # Add subdir to source files
     list(APPEND PDFMM_SOURCES ${SOURCE_FILES})
     # Set non private headers for install
