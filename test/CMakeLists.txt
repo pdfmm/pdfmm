@@ -1,6 +1,7 @@
 set(PDF_TEST_RESOURCE_PATH "${PROJECT_SOURCE_DIR}/extern/resources")
 if(NOT EXISTS "${PDF_TEST_RESOURCE_PATH}")
-    message(FATAL_ERROR "Resources path doesn't exists: try fetch git submodules")
+    message(WARNING "Test resources path doesn't exists, tests disabled. Try fetch git submodules if you want tests to be enabled")
+    return()
 endif()
 
 set(PDF_TEST_OUTPUT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/out")

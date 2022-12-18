@@ -19,7 +19,10 @@ int main(int argc, char* argv[])
     // Add a fonts directory for more consistents run
     auto fontPath = TestUtils::GetTestInputPath() / "Fonts";
     if (!fs::exists(fontPath))
-        throw runtime_error("Missing Fonts directory");
+    {
+        throw runtime_error("Missing Fonts directory. Ensure you have correctly "
+            "fetched \"extern/resources\" git submodule");
+    }
 
     PdfCommon::AddFontDirectory(fontPath.u8string());
     PdfCommon::SetMaxLoggingSeverity(PdfLogSeverity::Warning);
