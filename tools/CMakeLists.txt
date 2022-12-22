@@ -3,7 +3,7 @@ set(PODOFO_LIBRARIES ${PDFMM_LIBRARIES})
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 add_subdirectory(podofobox)
-#add_subdirectory(podofocolor)
+add_subdirectory(podofocolor)
 #add_subdirectory(podofocountpages)
 #add_subdirectory(podofocrop)
 #add_subdirectory(podofoencrypt)
