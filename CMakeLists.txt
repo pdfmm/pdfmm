@@ -127,14 +127,7 @@ if (MSVC)
     # for now, turn off these warnings.
     add_compile_definitions(_CRT_SECURE_NO_DEPRECATE)
 else()
-    message("Using gcc specific compiler options")
-
-    # If the user hasn't specifically said whether they want
-    # -fvisibility=hidden or not, turn it on if it's said to
-    # be supported, off for other gcc versions.
-    if(NOT DEFINED PDFMM_USE_VISIBILITY)
-        set(PDFMM_USE_VISIBILITY ${PDFMM_HAVE_GCC_SYMBOL_VISIBILITY})
-    endif()
+    message("Using gcc/clang specific compiler options")
 
     # TODO: Remove -Wno-format-truncation after porting the
     # code to std::fmt as it will be unuseful
@@ -150,13 +143,9 @@ else()
     if(NOT WIN32)
         add_definitions(-W)
     endif()
-    # If they've enabled the use of symbol visibility, use it.
-    if(PDFMM_USE_VISIBILITY)
-        add_definitions(
-            -DPDFMM_HAVE_GCC_SYMBOL_VISIBILITY
-            -fvisibility=hidden
-            )
-    endif()
+
+    # By default hide symbols
+    add_definitions(-fvisibility=hidden)
 endif()
 
 find_package(ZLIB REQUIRED)

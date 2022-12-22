@@ -7013,326 +7013,298 @@ string_view mm::GetStandard14FontBaseName(PdfStandard14FontType stdFont)
     }
 }
 
-shared_ptr<const PdfFontMetricsStandard14> PdfFontMetricsStandard14::GetInstance(
+const Standard14FontData& mm::GetStandard14FontData(
     PdfStandard14FontType std14Font)
 {
     // The following metrics were copied from libharu
     // /StemV, /ItalicAngle, /FontWeight, /Flags, /FontFamily,
     // /FontStretch and default width values were copied from
     // Acrobat Pro by performing font embedding
-    static vector<shared_ptr<PdfFontMetricsStandard14>> PDFMM_BUILTIN_FONTS = {
-        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
-            PdfStandard14FontType::TimesRoman, {
-                CHAR_DATA_TIMES_ROMAN,
-                (unsigned)std::size(CHAR_DATA_TIMES_ROMAN),
-                PdfFontDescriptorFlags::Symbolic | PdfFontDescriptorFlags::Serif,
-                1000,
-                PdfFontStretch::Normal,
-                727,
-                -273,
-                450,
-                662,
-                0,
-                400,
-                80,
-                -1,
-                262,
-                -100,
-                PdfRect(-168, -218, 1000, 898)
-            }
-        )),
-        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
-            PdfStandard14FontType::TimesItalic, {
-                CHAR_DATA_TIMES_ITALIC,
-                (unsigned)std::size(CHAR_DATA_TIMES_ITALIC),
-                PdfFontDescriptorFlags::Symbolic | PdfFontDescriptorFlags::Serif | PdfFontDescriptorFlags::Italic,
-                1000,
-                PdfFontStretch::Normal,
-                727,
-                -273,
-                441,
-                653,
-                -17,
-                400,
-                72,
-                -1,
-                262,
-                -100,
-                PdfRect(-169, -217, 1010, 883)
-            }
-        )),
-        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
-            PdfStandard14FontType::TimesBold, {
-                CHAR_DATA_TIMES_BOLD,
-                (unsigned)std::size(CHAR_DATA_TIMES_BOLD),
-                PdfFontDescriptorFlags::Symbolic | PdfFontDescriptorFlags::Serif,
-                1000,
-                PdfFontStretch::Normal,
-                727,
-                -273,
-                461,
-                676,
-                0,
-                700,
-                136,
-                -1,
-                262,
-                -100,
-                PdfRect(-168, -218, 1000, 935)
-            }
-        )),
-        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
-            PdfStandard14FontType::TimesBoldItalic, {
-                CHAR_DATA_TIMES_BOLD_ITALIC,
-                (unsigned)std::size(CHAR_DATA_TIMES_BOLD_ITALIC),
-                PdfFontDescriptorFlags::Symbolic | PdfFontDescriptorFlags::Serif | PdfFontDescriptorFlags::Italic,
-                1000,
-                PdfFontStretch::Normal,
-                727,
-                -273,
-                462,
-                669,
-                -17,
-                700,
-                124,
-                -1,
-                262,
-                -100,
-                PdfRect(-200, -218, 996, 921)
-            }
-        )),
-        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
-            PdfStandard14FontType::Helvetica, {
-                CHAR_DATA_HELVETICA,
-                (unsigned)std::size(CHAR_DATA_HELVETICA),
-                PdfFontDescriptorFlags::Symbolic,
-                1000,
-                PdfFontStretch::Normal,
-                750,
-                -250,
-                523,
-                718,
-                0,
-                400,
-                88,
-                -1,
-                290,
-                -100,
-                PdfRect(-166, -225, 1000, 931)
-            }
-        )),
-        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
-            PdfStandard14FontType::HelveticaOblique, {
-                CHAR_DATA_HELVETICA_OBLIQUE,
-                (unsigned)std::size(CHAR_DATA_HELVETICA_OBLIQUE),
-                PdfFontDescriptorFlags::Symbolic | PdfFontDescriptorFlags::Italic,
-                1000,
-                PdfFontStretch::Normal,
-                750,
-                -250,
-                532,
-                718,
-                -12,
-                400,
-                92,
-                -1,
-                290,
-                -100,
-                PdfRect(-170, -225, 1116, 931)
-            }
-        )),
-        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
-            PdfStandard14FontType::HelveticaBold, {
-               CHAR_DATA_HELVETICA_BOLD,
-                (unsigned)std::size(CHAR_DATA_HELVETICA_BOLD),
-                PdfFontDescriptorFlags::Symbolic,
-                1000,
-                PdfFontStretch::Normal,
-                750,
-                -250,
-                532,
-                718,
-                0,
-                700,
-                136,
-                -1,
-                290,
-                -100,
-                PdfRect(-170, -228, 1003, 962)
-            }
-        )),
-        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
-            PdfStandard14FontType::HelveticaBoldOblique, {
-                CHAR_DATA_HELVETICA_BOLD_OBLIQUE,
-                (unsigned)std::size(CHAR_DATA_HELVETICA_BOLD_OBLIQUE),
-                PdfFontDescriptorFlags::Symbolic | PdfFontDescriptorFlags::Italic,
-                1000,
-                PdfFontStretch::Normal,
-                750,
-                -250,
-                532,
-                718,
-                -12,
-                700,
-                140,
-                -1,
-                290,
-                -100,
-                PdfRect(-174, -228, 1114, 962)
-            }
-        )),
-        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
-            PdfStandard14FontType::Courier, {
-                CHAR_DATA_COURIER,
-                315,
-                PdfFontDescriptorFlags::Symbolic | PdfFontDescriptorFlags::Serif,
-                1000,
-                PdfFontStretch::Normal,
-                627,
-                -373,
-                426,
-                562,
-                0,
-                500,
-                56,
-                -1,
-                261,
-                -224,
-                PdfRect(-23, -250, 715, 805)
-            }
-        )),
-        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
-            PdfStandard14FontType::CourierOblique, {
-                CHAR_DATA_COURIER_OBLIQUE,
-                315,
-                PdfFontDescriptorFlags::Symbolic | PdfFontDescriptorFlags::Serif | PdfFontDescriptorFlags::Italic,
-                1000,
-                PdfFontStretch::Normal,
-                627,
-                -373,
-                426,
-                562,
-                -11,
-                500,
-                56,
-                -1,
-                261,
-                -224,
-                PdfRect(-27, -250, 849, 805)
-            }
-        )),
-        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
-            PdfStandard14FontType::CourierBold, {
-                CHAR_DATA_COURIER_BOLD,
-                315,
-                PdfFontDescriptorFlags::Symbolic | PdfFontDescriptorFlags::Serif,
-                1000,
-                PdfFontStretch::Normal,
-                627,
-                -373,
-                439,
-                562,
-                0,
-                700,
-                92,
-                -1,
-                261,
-                -224,
-                PdfRect(-113, -250, 749, 801)
-            }
-        )),
-        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
-            PdfStandard14FontType::CourierBoldOblique, {
-                CHAR_DATA_COURIER_BOLD_OBLIQUE,
-                315,
-                PdfFontDescriptorFlags::Symbolic | PdfFontDescriptorFlags::Serif | PdfFontDescriptorFlags::Italic,
-                1000,
-                PdfFontStretch::Normal,
-                627,
-                -373,
-                439,
-                562,
-                -11,
-                700,
-                92,
-                -1,
-                261,
-                -224,
-                PdfRect(-57, -250, 869, 801)
-            }
-        )),
-        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
-            PdfStandard14FontType::Symbol, {
-                CHAR_DATA_SYMBOL,
-                (unsigned)std::size(CHAR_DATA_SYMBOL),
-                PdfFontDescriptorFlags::Symbolic,
-                0,
-                PdfFontStretch::Unknown,
-                683,
-                -217,
-                462,
-                669,
-                0,
-                -1,
-                75,
-                92,
-                341,
-                -100,
-                PdfRect(-180, -293, 1090, 1010)
-            }
-        )),
-        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
-            PdfStandard14FontType::ZapfDingbats, {
-                CHAR_DATA_ZAPF_DINGBATS,
-                (unsigned)std::size(CHAR_DATA_ZAPF_DINGBATS),
-                PdfFontDescriptorFlags::Symbolic,
-                0,
-                PdfFontStretch::Unknown,
-                683,
-                -217,
-                462,
-                669,
-                0,
-                -1,
-                75,
-                50,
-                341,
-                -100,
-                PdfRect(-1, -143, 981, 820)
-            }
-        ))
+    static Standard14FontData PDFMM_BUILTIN_STD14FONT_DATA[] = {
+        {
+            CHAR_DATA_TIMES_ROMAN,
+            (unsigned)std::size(CHAR_DATA_TIMES_ROMAN),
+            PdfFontDescriptorFlags::Symbolic | PdfFontDescriptorFlags::Serif,
+            1000,
+            PdfFontStretch::Normal,
+            727,
+            -273,
+            450,
+            662,
+            0,
+            400,
+            80,
+            -1,
+            262,
+            -100,
+            PdfRect(-168, -218, 1000, 898)
+        },
+        {
+            CHAR_DATA_TIMES_ITALIC,
+            (unsigned)std::size(CHAR_DATA_TIMES_ITALIC),
+            PdfFontDescriptorFlags::Symbolic | PdfFontDescriptorFlags::Serif | PdfFontDescriptorFlags::Italic,
+            1000,
+            PdfFontStretch::Normal,
+            727,
+            -273,
+            441,
+            653,
+            -17,
+            400,
+            72,
+            -1,
+            262,
+            -100,
+            PdfRect(-169, -217, 1010, 883)
+        },
+        {
+            CHAR_DATA_TIMES_BOLD,
+            (unsigned)std::size(CHAR_DATA_TIMES_BOLD),
+            PdfFontDescriptorFlags::Symbolic | PdfFontDescriptorFlags::Serif,
+            1000,
+            PdfFontStretch::Normal,
+            727,
+            -273,
+            461,
+            676,
+            0,
+            700,
+            136,
+            -1,
+            262,
+            -100,
+            PdfRect(-168, -218, 1000, 935)
+        },
+        {
+            CHAR_DATA_TIMES_BOLD_ITALIC,
+            (unsigned)std::size(CHAR_DATA_TIMES_BOLD_ITALIC),
+            PdfFontDescriptorFlags::Symbolic | PdfFontDescriptorFlags::Serif | PdfFontDescriptorFlags::Italic,
+            1000,
+            PdfFontStretch::Normal,
+            727,
+            -273,
+            462,
+            669,
+            -17,
+            700,
+            124,
+            -1,
+            262,
+            -100,
+            PdfRect(-200, -218, 996, 921)
+        },
+        {
+            CHAR_DATA_HELVETICA,
+            (unsigned)std::size(CHAR_DATA_HELVETICA),
+            PdfFontDescriptorFlags::Symbolic,
+            1000,
+            PdfFontStretch::Normal,
+            750,
+            -250,
+            523,
+            718,
+            0,
+            400,
+            88,
+            -1,
+            290,
+            -100,
+            PdfRect(-166, -225, 1000, 931)
+        },
+        {
+            CHAR_DATA_HELVETICA_OBLIQUE,
+            (unsigned)std::size(CHAR_DATA_HELVETICA_OBLIQUE),
+            PdfFontDescriptorFlags::Symbolic | PdfFontDescriptorFlags::Italic,
+            1000,
+            PdfFontStretch::Normal,
+            750,
+            -250,
+            532,
+            718,
+            -12,
+            400,
+            92,
+            -1,
+            290,
+            -100,
+            PdfRect(-170, -225, 1116, 931)
+        },
+        {
+            CHAR_DATA_HELVETICA_BOLD,
+            (unsigned)std::size(CHAR_DATA_HELVETICA_BOLD),
+            PdfFontDescriptorFlags::Symbolic,
+            1000,
+            PdfFontStretch::Normal,
+            750,
+            -250,
+            532,
+            718,
+            0,
+            700,
+            136,
+            -1,
+            290,
+            -100,
+            PdfRect(-170, -228, 1003, 962)
+        },
+        {
+            CHAR_DATA_HELVETICA_BOLD_OBLIQUE,
+            (unsigned)std::size(CHAR_DATA_HELVETICA_BOLD_OBLIQUE),
+            PdfFontDescriptorFlags::Symbolic | PdfFontDescriptorFlags::Italic,
+            1000,
+            PdfFontStretch::Normal,
+            750,
+            -250,
+            532,
+            718,
+            -12,
+            700,
+            140,
+            -1,
+            290,
+            -100,
+            PdfRect(-174, -228, 1114, 962)
+        },
+        {
+            CHAR_DATA_COURIER,
+            315,
+            PdfFontDescriptorFlags::Symbolic | PdfFontDescriptorFlags::Serif,
+            1000,
+            PdfFontStretch::Normal,
+            627,
+            -373,
+            426,
+            562,
+            0,
+            500,
+            56,
+            -1,
+            261,
+            -224,
+            PdfRect(-23, -250, 715, 805)
+        },
+        {
+            CHAR_DATA_COURIER_OBLIQUE,
+            315,
+            PdfFontDescriptorFlags::Symbolic | PdfFontDescriptorFlags::Serif | PdfFontDescriptorFlags::Italic,
+            1000,
+            PdfFontStretch::Normal,
+            627,
+            -373,
+            426,
+            562,
+            -11,
+            500,
+            56,
+            -1,
+            261,
+            -224,
+            PdfRect(-27, -250, 849, 805)
+        },
+        {
+            CHAR_DATA_COURIER_BOLD,
+            315,
+            PdfFontDescriptorFlags::Symbolic | PdfFontDescriptorFlags::Serif,
+            1000,
+            PdfFontStretch::Normal,
+            627,
+            -373,
+            439,
+            562,
+            0,
+            700,
+            92,
+            -1,
+            261,
+            -224,
+            PdfRect(-113, -250, 749, 801)
+        },
+        {
+            CHAR_DATA_COURIER_BOLD_OBLIQUE,
+            315,
+            PdfFontDescriptorFlags::Symbolic | PdfFontDescriptorFlags::Serif | PdfFontDescriptorFlags::Italic,
+            1000,
+            PdfFontStretch::Normal,
+            627,
+            -373,
+            439,
+            562,
+            -11,
+            700,
+            92,
+            -1,
+            261,
+            -224,
+            PdfRect(-57, -250, 869, 801)
+        },
+        {
+            CHAR_DATA_SYMBOL,
+            (unsigned)std::size(CHAR_DATA_SYMBOL),
+            PdfFontDescriptorFlags::Symbolic,
+            0,
+            PdfFontStretch::Unknown,
+            683,
+            -217,
+            462,
+            669,
+            0,
+            -1,
+            75,
+            92,
+            341,
+            -100,
+            PdfRect(-180, -293, 1090, 1010)
+        },
+        {
+            CHAR_DATA_ZAPF_DINGBATS,
+            (unsigned)std::size(CHAR_DATA_ZAPF_DINGBATS),
+            PdfFontDescriptorFlags::Symbolic,
+            0,
+            PdfFontStretch::Unknown,
+            683,
+            -217,
+            462,
+            669,
+            0,
+            -1,
+            75,
+            50,
+            341,
+            -100,
+            PdfRect(-1, -143, 981, 820)
+        }
     };
 
     switch (std14Font)
     {
         case PdfStandard14FontType::TimesRoman:
-            return PDFMM_BUILTIN_FONTS[0];
+            return PDFMM_BUILTIN_STD14FONT_DATA[0];
         case PdfStandard14FontType::TimesItalic:
-            return PDFMM_BUILTIN_FONTS[1];
+            return PDFMM_BUILTIN_STD14FONT_DATA[1];
         case PdfStandard14FontType::TimesBold:
-            return PDFMM_BUILTIN_FONTS[2];
+            return PDFMM_BUILTIN_STD14FONT_DATA[2];
         case PdfStandard14FontType::TimesBoldItalic:
-            return PDFMM_BUILTIN_FONTS[3];
+            return PDFMM_BUILTIN_STD14FONT_DATA[3];
         case PdfStandard14FontType::Helvetica:
-            return PDFMM_BUILTIN_FONTS[4];
+            return PDFMM_BUILTIN_STD14FONT_DATA[4];
         case PdfStandard14FontType::HelveticaOblique:
-            return PDFMM_BUILTIN_FONTS[5];
+            return PDFMM_BUILTIN_STD14FONT_DATA[5];
         case PdfStandard14FontType::HelveticaBold:
-            return PDFMM_BUILTIN_FONTS[6];
+            return PDFMM_BUILTIN_STD14FONT_DATA[6];
         case PdfStandard14FontType::HelveticaBoldOblique:
-            return PDFMM_BUILTIN_FONTS[7];
+            return PDFMM_BUILTIN_STD14FONT_DATA[7];
         case PdfStandard14FontType::Courier:
-            return PDFMM_BUILTIN_FONTS[8];
+            return PDFMM_BUILTIN_STD14FONT_DATA[8];
         case PdfStandard14FontType::CourierOblique:
-            return PDFMM_BUILTIN_FONTS[9];
+            return PDFMM_BUILTIN_STD14FONT_DATA[9];
         case PdfStandard14FontType::CourierBold:
-            return PDFMM_BUILTIN_FONTS[10];
+            return PDFMM_BUILTIN_STD14FONT_DATA[10];
         case PdfStandard14FontType::CourierBoldOblique:
-            return PDFMM_BUILTIN_FONTS[11];
+            return PDFMM_BUILTIN_STD14FONT_DATA[11];
         case PdfStandard14FontType::Symbol:
-            return PDFMM_BUILTIN_FONTS[12];
+            return PDFMM_BUILTIN_STD14FONT_DATA[12];
         case PdfStandard14FontType::ZapfDingbats:
-            return PDFMM_BUILTIN_FONTS[13];
+            return PDFMM_BUILTIN_STD14FONT_DATA[13];
         case PdfStandard14FontType::Unknown:
         default:
             PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "Invalid Standard14 font type");

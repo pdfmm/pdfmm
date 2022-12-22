@@ -38,47 +38,42 @@
  */
 
 // Automatically defined by CMake when building a shared library
-#if defined (pdfmm_EXPORTS)
-    #define COMPILING_SHARED_PDFMM
-    #undef USING_SHARED_PDFMM
-#endif
-
-// Automatically defined by CMake when building a shared library
 #if defined(pdfmm_shared_EXPORTS)
     #define COMPILING_SHARED_PDFMM
-    #undef USING_SHARED_PDFMM
 #endif
 
 // Sanity check - can't be both compiling and using shared pdfmm
-#if defined(COMPILING_SHARED_PDFMM) && defined(USING_SHARED_PDFMM)
-    #error "Both COMPILING_SHARED_PDFMM and USING_SHARED_PDFMM defined!"
+#if defined(COMPILING_SHARED_PDFMM) && defined(STATIC_PDFMM)
+    #error "Both COMPILING_SHARED_PDFMM and STATIC_PDFMM defined!"
 #endif
 
 // Define COMPILING_SHARED_PDFMM when building the pdfmm library as a
-// DLL. When building code that uses that DLL, define USING_SHARED_PDFMM.
+// DLL. When building code that uses that DLL, define STATIC_PDFMM.
 //
 // Building or linking to a static library does not require either
 // preprocessor symbol.
+#ifdef STATIC_PDFMM
+
+#define PDFMM_API
+#define PDFMM_EXPORT
+#define PDFMM_IMPORT
+
+#else // SHARED_PDFMM
+
 #if defined(_WIN32)
-    #if defined(COMPILING_SHARED_PDFMM)
-        #define PDFMM_API __declspec(dllexport)
-	#elif defined(USING_SHARED_PDFMM)
-		#define PDFMM_API __declspec(dllimport)
-    #else
-        #define PDFMM_API
-    #endif
+    #define PDFMM_EXPORT __declspec(dllexport)
+    #define PDFMM_IMPORT __declspec(dllimport)
 #else
-    #if defined(PDFMM_HAVE_GCC_SYMBOL_VISIBILITY)
-        // Forces inclusion of a symbol in the symbol table, so
-        // software outside the current library can use it.
-        #define PDFMM_API __attribute__ ((visibility("default")))
-        // Within a section exported with PDFMM_API, forces a symbol to be
-        // private to the library / app. Good for private members.
-        #define PDFMM_INTERNAL __attribute__ ((visibility("internal")))
-    #else
-        #define PDFMM_API
-        #define PDFMM_INTERNAL
-    #endif
+    #define PDFMM_EXPORT __attribute__ ((visibility("default")))
+    #define PDFMM_IMPORT
+#endif
+
+#endif // STATIC_PDFMM
+
+#if defined(COMPILING_SHARED_PDFMM)
+#define PDFMM_API PDFMM_EXPORT
+#else
+#define PDFMM_API PDFMM_IMPORT
 #endif
 
 // Throwable classes must always be exported by all binaries when
@@ -86,10 +81,8 @@
 // ensures this.
 #ifdef _WIN32
   #define PDFMM_EXCEPTION_API(api) api
-#elif defined(PDFMM_HAVE_GCC_SYMBOL_VISIBILITY)
+#elif
   #define PDFMM_EXCEPTION_API(api) PDFMM_API
-#else
-  #define PDFMM_EXCEPTION_API(api)
 #endif
 
 // Set up some other compiler-specific but not platform-specific macros

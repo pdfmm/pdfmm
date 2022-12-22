@@ -147,7 +147,6 @@ namespace mm
      *
      *  \param name name representing a colorspace such as DeviceGray
      *  \returns colorspace enum or PdfColorSpace_Unknown if name is unknown
-     *  \see GetNameForColorSpace
      */
     PdfColorSpace NameToColorSpaceRaw(const std::string_view& name);
 
@@ -156,7 +155,6 @@ namespace mm
      *
      *  \param colorSpace a colorspace
      *  \returns a name
-     *  \see GetColorSpaceForName
      */
     std::string_view ColorSpaceToNameRaw(PdfColorSpace colorSpace);
 

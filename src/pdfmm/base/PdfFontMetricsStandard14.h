@@ -137,7 +137,7 @@ public:
 
 private:
     PdfStandard14FontType m_Std14FontType;
-    Standard14FontData m_data;
+    const Standard14FontData& m_data;
     // /Widths parsed from a font object, if available
     std::unique_ptr<std::vector<double>> m_parsedWidths;
 

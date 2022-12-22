@@ -44,6 +44,9 @@ thread_local unsigned s_recursionDepth = 0;
 
 static const locale s_cachedLocale("C");
 
+extern PDFMM_IMPORT PdfLogSeverity s_MaxLogSeverity;
+extern PDFMM_IMPORT LogMessageCallback s_LogMessageCallback;
+
 static void removeTrailingZeroes(string& str);
 static bool isStringDelimter(char32_t ch);
 
@@ -72,6 +75,52 @@ void formatTo(string& str, TInt value)
     array<char, numeric_limits<TInt>::digits10> arr;
     auto res = std::to_chars(arr.data(), arr.data() + arr.size(), value);
     str.append(arr.data(), res.ptr - arr.data());
+}
+
+
+void mm::LogMessage(PdfLogSeverity logSeverity, const string_view& msg)
+{
+    if (logSeverity > s_MaxLogSeverity)
+        return;
+
+    if (s_LogMessageCallback == nullptr)
+    {
+        string_view prefix;
+        bool ouputstderr = false;
+        switch (logSeverity)
+        {
+            case PdfLogSeverity::Error:
+                prefix = "ERROR: ";
+                ouputstderr = true;
+                break;
+            case PdfLogSeverity::Warning:
+                prefix = "WARNING: ";
+                ouputstderr = true;
+                break;
+            case PdfLogSeverity::Debug:
+                prefix = "DEBUG: ";
+                break;
+            case PdfLogSeverity::Information:
+                break;
+            default:
+                PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
+        }
+
+        ostream* stream;
+        if (ouputstderr)
+            stream = &cerr;
+        else
+            stream = &cout;
+
+        if (!prefix.empty())
+            *stream << prefix;
+
+        *stream << msg << endl;
+    }
+    else
+    {
+        s_LogMessageCallback(logSeverity, msg);
+    }
 }
 
 PdfVersion mm::GetPdfVersion(const string_view& str)

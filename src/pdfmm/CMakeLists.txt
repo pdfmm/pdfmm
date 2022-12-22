@@ -81,7 +81,7 @@ if(PDFMM_BUILD_STATIC)
         CLEAN_DIRECT_OUTPUT 1
         OUTPUT_NAME "pdfmm"
     )
-    set(USING_SHARED_PDFMM FALSE)
+    set(WANT_SHARED_PDFMM FALSE)
     install(TARGETS pdfmm_static
         RUNTIME DESTINATION "bin"
         LIBRARY DESTINATION "${LIBDIRNAME}"
@@ -106,7 +106,7 @@ if(PDFMM_BUILD_SHARED)
     )
     # Since we're building a shared pdfmm, prefer to depend on this one for
     # tests and tools over the static library (if built).
-    set(USING_SHARED_PDFMM TRUE)
+    set(WANT_SHARED_PDFMM TRUE)
     install(TARGETS pdfmm_shared
         RUNTIME DESTINATION "bin"
         LIBRARY DESTINATION "${LIBDIRNAME}"
@@ -138,7 +138,7 @@ endif()
 # Use these flags when compiling code that includes pdfmm headers.
 # Failure to do so will result in compilation or link-time errors
 # on some platforms, and can even cause undefined results at runtime.
-if(WIN32 AND USING_SHARED_PDFMM)
+if(WIN32 AND WANT_SHARED_PDFMM)
     set(PDFMM_CFLAGS "-DUSING_SHARED_PDFMM" CACHE INTERNAL "Extra flags required when linking to pdfmm")
 else()
     set(PDFMM_CFLAGS "" CACHE INTERNAL "Extra flags required when linking to pdfmm")

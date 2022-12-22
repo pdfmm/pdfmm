@@ -8,7 +8,7 @@
 #define PDF_FONT_STANDARD14_DATA_H
 
 #include "PdfDeclarationsPrivate.h"
-#include <pdfmm/base/PdfRect.h>
+#include <pdfmm/base/PdfFontMetricsStandard14.h>
 
 namespace mm {
 
@@ -27,6 +27,8 @@ const unsigned short* GetStd14FontWidths(PdfStandard14FontType stdFont, unsigned
 const Std14CPToGIDMap& GetStd14CPToGIDMap(PdfStandard14FontType stdFont);
 
 bufferview GetStandard14FontFileData(PdfStandard14FontType stdFont);
+
+const Standard14FontData& GetStandard14FontData(PdfStandard14FontType std14Font);
 
 };
 

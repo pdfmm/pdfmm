@@ -103,6 +103,26 @@ string utls::GetAttributeValue(xmlAttrPtr attr)
     return string((const char*)content);
 }
 
+string utls::GetAttributeName(xmlAttrPtr attr)
+{
+    return GetNodeName((xmlNodePtr)attr);
+}
+
+string utls::GetNodeName(xmlNodePtr node)
+{
+    if (node->ns == nullptr)
+    {
+        return (const char*)node->name;
+    }
+    else
+    {
+        string nodename((const char*)node->ns->prefix);
+        nodename.push_back(':');
+        nodename.append((const char*)node->name);
+        return nodename;
+    }
+}
+
 void utls::InitXml()
 {
     LIBXML_TEST_VERSION;

@@ -282,6 +282,91 @@ unsigned PdfFontMetricsStandard14::GetFontFileLength3() const
     return 0;
 }
 
+shared_ptr<const PdfFontMetricsStandard14> PdfFontMetricsStandard14::GetInstance(
+    PdfStandard14FontType std14Font)
+{
+    static shared_ptr<PdfFontMetricsStandard14> PDFMM_BUILTIN_FONTS[] = {
+        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
+            PdfStandard14FontType::TimesRoman, mm::GetStandard14FontData(PdfStandard14FontType::TimesRoman)
+        )),
+        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
+            PdfStandard14FontType::TimesItalic, mm::GetStandard14FontData(PdfStandard14FontType::TimesItalic)
+        )),
+        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
+            PdfStandard14FontType::TimesBold, mm::GetStandard14FontData(PdfStandard14FontType::TimesBold)
+        )),
+        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
+            PdfStandard14FontType::TimesBoldItalic, mm::GetStandard14FontData(PdfStandard14FontType::TimesBoldItalic)
+        )),
+        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
+            PdfStandard14FontType::Helvetica, mm::GetStandard14FontData(PdfStandard14FontType::Helvetica)
+        )),
+        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
+            PdfStandard14FontType::HelveticaOblique, mm::GetStandard14FontData(PdfStandard14FontType::HelveticaOblique)
+        )),
+        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
+            PdfStandard14FontType::HelveticaBold, mm::GetStandard14FontData(PdfStandard14FontType::HelveticaBold)
+        )),
+        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
+            PdfStandard14FontType::HelveticaBoldOblique, mm::GetStandard14FontData(PdfStandard14FontType::HelveticaBoldOblique)
+        )),
+        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
+            PdfStandard14FontType::Courier, mm::GetStandard14FontData(PdfStandard14FontType::Courier)
+        )),
+        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
+            PdfStandard14FontType::CourierOblique, mm::GetStandard14FontData(PdfStandard14FontType::CourierOblique)
+        )),
+        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
+            PdfStandard14FontType::CourierBold, mm::GetStandard14FontData(PdfStandard14FontType::CourierBold)
+        )),
+        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
+            PdfStandard14FontType::CourierBoldOblique, mm::GetStandard14FontData(PdfStandard14FontType::CourierBoldOblique)
+        )),
+        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
+            PdfStandard14FontType::Symbol, mm::GetStandard14FontData(PdfStandard14FontType::Symbol)
+        )),
+        shared_ptr<PdfFontMetricsStandard14>(new PdfFontMetricsStandard14(
+            PdfStandard14FontType::ZapfDingbats, mm::GetStandard14FontData(PdfStandard14FontType::ZapfDingbats)
+        ))
+    };
+
+    switch (std14Font)
+    {
+        case PdfStandard14FontType::TimesRoman:
+            return PDFMM_BUILTIN_FONTS[0];
+        case PdfStandard14FontType::TimesItalic:
+            return PDFMM_BUILTIN_FONTS[1];
+        case PdfStandard14FontType::TimesBold:
+            return PDFMM_BUILTIN_FONTS[2];
+        case PdfStandard14FontType::TimesBoldItalic:
+            return PDFMM_BUILTIN_FONTS[3];
+        case PdfStandard14FontType::Helvetica:
+            return PDFMM_BUILTIN_FONTS[4];
+        case PdfStandard14FontType::HelveticaOblique:
+            return PDFMM_BUILTIN_FONTS[5];
+        case PdfStandard14FontType::HelveticaBold:
+            return PDFMM_BUILTIN_FONTS[6];
+        case PdfStandard14FontType::HelveticaBoldOblique:
+            return PDFMM_BUILTIN_FONTS[7];
+        case PdfStandard14FontType::Courier:
+            return PDFMM_BUILTIN_FONTS[8];
+        case PdfStandard14FontType::CourierOblique:
+            return PDFMM_BUILTIN_FONTS[9];
+        case PdfStandard14FontType::CourierBold:
+            return PDFMM_BUILTIN_FONTS[10];
+        case PdfStandard14FontType::CourierBoldOblique:
+            return PDFMM_BUILTIN_FONTS[11];
+        case PdfStandard14FontType::Symbol:
+            return PDFMM_BUILTIN_FONTS[12];
+        case PdfStandard14FontType::ZapfDingbats:
+            return PDFMM_BUILTIN_FONTS[13];
+        case PdfStandard14FontType::Unknown:
+        default:
+            PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidFontFile, "Invalid Standard14 font type");
+    }
+}
+
+
 bool PdfFontMetricsStandard14::getIsBoldHint() const
 {
     switch (m_Std14FontType)

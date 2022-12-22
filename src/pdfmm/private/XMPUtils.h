@@ -16,4 +16,18 @@ namespace mm
     void UpdateOrCreateXMPMetadata(std::unique_ptr<PdfXMPPacket>& packet, const PdfXMPMetadata& metatata);
 }
 
+// Low level XMP functions
+namespace utls
+{
+    enum class XMPListType
+    {
+        LangAlt, ///< ISO 16684-1:2019 "8.2.2.4 Language alternative"
+        Seq,
+        Bag,
+    };
+
+    void SetListNodeContent(xmlDocPtr doc, xmlNodePtr node, XMPListType seqType,
+        const mm::cspan<std::string>& value, xmlNodePtr& newNode);
+}
+
 #endif // PDFMM_PDFA_FUNCTIONS_H

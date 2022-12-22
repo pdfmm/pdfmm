@@ -11,15 +11,13 @@
 using namespace std;
 using namespace mm;
 
-
 #ifdef DEBUG
-PdfLogSeverity s_MaxLogSeverity = PdfLogSeverity::Debug;
+PDFMM_EXPORT PdfLogSeverity s_MaxLogSeverity = PdfLogSeverity::Debug;
 #else
-PdfLogSeverity s_MaxLogSeverity = PdfLogSeverity::Information;
+PDFMM_EXPORT PdfLogSeverity s_MaxLogSeverity = PdfLogSeverity::Information;
 #endif // DEBUG
 
-
-static LogMessageCallback s_LogMessageCallback;
+PDFMM_EXPORT LogMessageCallback s_LogMessageCallback;
 
 void PdfCommon::AddFontDirectory(const string_view& path)
 {
@@ -44,49 +42,4 @@ PdfLogSeverity PdfCommon::GetMaxLoggingSeverity()
 bool PdfCommon::IsLoggingSeverityEnabled(PdfLogSeverity logSeverity)
 {
     return logSeverity <= s_MaxLogSeverity;
-}
-
-void mm::LogMessage(PdfLogSeverity logSeverity, const string_view& msg)
-{
-    if (logSeverity > s_MaxLogSeverity)
-        return;
-
-    if (s_LogMessageCallback == nullptr)
-    {
-        string_view prefix;
-        bool ouputstderr = false;
-        switch (logSeverity)
-        {
-            case PdfLogSeverity::Error:
-                prefix = "ERROR: ";
-                ouputstderr = true;
-                break;
-            case PdfLogSeverity::Warning:
-                prefix = "WARNING: ";
-                ouputstderr = true;
-                break;
-            case PdfLogSeverity::Debug:
-                prefix = "DEBUG: ";
-                break;
-            case PdfLogSeverity::Information:
-                break;
-            default:
-                PDFMM_RAISE_ERROR(PdfErrorCode::InvalidEnumValue);
-        }
-
-        ostream* stream;
-        if (ouputstderr)
-            stream = &cerr;
-        else
-            stream = &cout;
-
-        if (!prefix.empty())
-            *stream << prefix;
-
-        *stream << msg << endl;
-    }
-    else
-    {
-        s_LogMessageCallback(logSeverity, msg);
-    }
 }
