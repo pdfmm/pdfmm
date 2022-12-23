@@ -6,7 +6,7 @@ endif()
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/pdfmm_config.h.in" "${CMAKE_CURRENT_BINARY_DIR}/pdfmm_config.h")
 
 # Needed for <date/date.h>
-add_definitions(-DHAS_UNCAUGHT_EXCEPTIONS=1)
+add_compile_definitions(HAS_UNCAUGHT_EXCEPTIONS=1)
 
 set(PDFMM_INCLUDE_DIRS
     ${CMAKE_CURRENT_BINARY_DIR}
@@ -33,7 +33,7 @@ install(FILES ${PDFMM_BASE_HEADERS} DESTINATION "include/pdfmm")
 install(FILES ${PDFMM_CONFIG_HEADER} DESTINATION "include/pdfmm/base")
 
 set(PDFMM_SOURCES ${PDFMM_BASE_HEADERS} ${PDFMM_CONFIG_HEADER})
-if(WIN32 AND PDFMM_BUILD_SHARED)
+if(WIN32 AND PDFMM_SHARED)
     # If we build for windows systems, we also include the resource file
     list(APPEND PDFMM_SOURCES pdfmm.rc)
 endif()
@@ -67,11 +67,7 @@ endif()
 
 add_source("3rdparty/pdfium" "${PROJECT_SOURCE_DIR}/3rdparty/pdfium")
 
-if(NOT PDFMM_BUILD_SHARED AND NOT PDFMM_BUILD_STATIC)
-    message(FATAL_ERROR "At least one of PDFMM_BUILD_SHARED and PODOF_BUILD_STATIC must be set")
-endif()
-
-if(PDFMM_BUILD_STATIC)
+if(PDFMM_STATIC)
     message("Building static pdfmm library")
     add_library(pdfmm_static STATIC ${PDFMM_SOURCES})
     target_link_libraries(pdfmm_static pdfmm_private ${PDFMM_LIB_DEPENDS})
@@ -81,7 +77,6 @@ if(PDFMM_BUILD_STATIC)
         CLEAN_DIRECT_OUTPUT 1
         OUTPUT_NAME "pdfmm"
     )
-    set(WANT_SHARED_PDFMM FALSE)
     install(TARGETS pdfmm_static
         RUNTIME DESTINATION "bin"
         LIBRARY DESTINATION "${LIBDIRNAME}"
@@ -91,7 +86,7 @@ if(PDFMM_BUILD_STATIC)
         CACHE INTERNAL "Which pdfmm library variant to depend on")
 endif()
 
-if(PDFMM_BUILD_SHARED)
+if(PDFMM_SHARED)
     message("Building shared pdfmm library")
     add_library(pdfmm_shared SHARED ${PDFMM_SOURCES})
     target_link_libraries(pdfmm_shared PRIVATE pdfmm_private PRIVATE ${PDFMM_LIB_DEPENDS})
@@ -106,7 +101,6 @@ if(PDFMM_BUILD_SHARED)
     )
     # Since we're building a shared pdfmm, prefer to depend on this one for
     # tests and tools over the static library (if built).
-    set(WANT_SHARED_PDFMM TRUE)
     install(TARGETS pdfmm_shared
         RUNTIME DESTINATION "bin"
         LIBRARY DESTINATION "${LIBDIRNAME}"
@@ -138,8 +132,8 @@ endif()
 # Use these flags when compiling code that includes pdfmm headers.
 # Failure to do so will result in compilation or link-time errors
 # on some platforms, and can even cause undefined results at runtime.
-if(WIN32 AND WANT_SHARED_PDFMM)
-    set(PDFMM_CFLAGS "-DUSING_SHARED_PDFMM" CACHE INTERNAL "Extra flags required when linking to pdfmm")
+if(STATIC_PDFMM)
+    set(PDFMM_CFLAGS "-DPDFMM_STATIC" CACHE INTERNAL "Extra flags required when linking to pdfmm")
 else()
     set(PDFMM_CFLAGS "" CACHE INTERNAL "Extra flags required when linking to pdfmm")
 endif()

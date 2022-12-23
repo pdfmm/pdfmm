@@ -43,22 +43,22 @@
 #endif
 
 // Sanity check - can't be both compiling and using shared pdfmm
-#if defined(COMPILING_SHARED_PDFMM) && defined(STATIC_PDFMM)
-    #error "Both COMPILING_SHARED_PDFMM and STATIC_PDFMM defined!"
+#if defined(SHARED_PDFMM) && defined(STATIC_PDFMM)
+    #error "Both SHARED_PDFMM and STATIC_PDFMM defined!"
 #endif
 
-// Define COMPILING_SHARED_PDFMM when building the pdfmm library as a
+// Define SHARED_PDFMM when building the pdfmm library as a
 // DLL. When building code that uses that DLL, define STATIC_PDFMM.
 //
 // Building or linking to a static library does not require either
 // preprocessor symbol.
-#ifdef STATIC_PDFMM
+#ifdef PDFMM_STATIC
 
 #define PDFMM_API
 #define PDFMM_EXPORT
 #define PDFMM_IMPORT
 
-#else // SHARED_PDFMM
+#elif PDFMM_SHARED
 
 #if defined(_WIN32)
     #define PDFMM_EXPORT __declspec(dllexport)
@@ -68,12 +68,14 @@
     #define PDFMM_IMPORT
 #endif
 
-#endif // STATIC_PDFMM
-
 #if defined(COMPILING_SHARED_PDFMM)
 #define PDFMM_API PDFMM_EXPORT
 #else
 #define PDFMM_API PDFMM_IMPORT
+#endif
+
+#else
+#error Neither STATIC_PDFMM or SHARED_PDFMM defined
 #endif
 
 // Throwable classes must always be exported by all binaries when

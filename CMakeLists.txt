@@ -50,32 +50,12 @@ if(NOT PDFMM_BUILD_LIB_ONLY)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/target)
 endif()
 
-# If the user hasn't told use specifically what they want, build only
-# a static library or only a shared library on Windows.
-if(NOT DEFINED PDFMM_BUILD_SHARED AND NOT DEFINED PDFMM_BUILD_STATIC)
-    if(WIN32)
-        set(PDFMM_BUILD_STATIC FALSE)
-        set(PDFMM_BUILD_SHARED TRUE)
-    else()
-        set(PDFMM_BUILD_STATIC TRUE)
-        set(PDFMM_BUILD_SHARED FALSE)
-    endif()
-endif()
-
-if(DEFINED PDFMM_BUILD_SHARED AND NOT DEFINED PDFMM_BUILD_STATIC)
-    if(PDFMM_BUILD_SHARED)
-        set(PDFMM_BUILD_STATIC FALSE)
-    else()
-        set(PDFMM_BUILD_STATIC TRUE)
-    endif()
-endif()
-
-if(NOT DEFINED PDFMM_BUILD_SHARED AND DEFINED PDFMM_BUILD_STATIC)
-    if(PDFMM_BUILD_STATIC)
-        set(PDFMM_BUILD_SHARED FALSE)
-    else()
-        set(PDFMM_BUILD_SHARED TRUE)
-    endif()
+option(PDFMM_SHARED "Build shared libraries (.dll/.so)" ON)
+if(PDFMM_SHARED)
+    add_compile_definitions(PDFMM_SHARED)
+else()
+    set(PDFMM_STATIC TRUE)
+    add_compile_definitions(PDFMM_STATIC)
 endif()
 
 if(DEFINED LIB_SUFFIX)
@@ -267,10 +247,8 @@ endif()
 # To use these dependencies set PDFMM_DIR to the pdfmm BUILD directory in
 # your build (eg -DPDFMM_DIR=/path/to/pdfmm when running cmake to configure
 # the app that'll use pdfmm). See: find_package(...) in the cmake docs.
-if(PDFMM_BUILD_SHARED)
+if(PDFMM_SHARED)
     export(TARGETS pdfmm_shared FILE "${PROJECT_BINARY_DIR}/pdfmmConfig.cmake")
-endif()
-
-if(PDFMM_BUILD_STATIC)
+else()
     export(TARGETS pdfmm_static pdfmm_private FILE "${PROJECT_BINARY_DIR}/pdfmmConfig.cmake")
 endif()
