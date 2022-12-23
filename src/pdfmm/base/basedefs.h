@@ -81,7 +81,7 @@
 // ensures this.
 #ifdef _WIN32
   #define PDFMM_EXCEPTION_API(api) api
-#elif
+#else
   #define PDFMM_EXCEPTION_API(api) PDFMM_API
 #endif
 
