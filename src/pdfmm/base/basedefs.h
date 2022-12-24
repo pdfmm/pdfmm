@@ -60,7 +60,7 @@
 
 #elif PDFMM_SHARED
 
-#if defined(_WIN32)
+#if defined(_MSC_VER)
     #define PDFMM_EXPORT __declspec(dllexport)
     #define PDFMM_IMPORT __declspec(dllimport)
 #else

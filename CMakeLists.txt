@@ -123,9 +123,6 @@ else()
     if(NOT WIN32)
         add_definitions(-W)
     endif()
-
-    # By default hide symbols
-    add_definitions(-fvisibility=hidden)
 endif()
 
 find_package(ZLIB REQUIRED)

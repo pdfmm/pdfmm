@@ -33,9 +33,16 @@ install(FILES ${PDFMM_BASE_HEADERS} DESTINATION "include/pdfmm")
 install(FILES ${PDFMM_CONFIG_HEADER} DESTINATION "include/pdfmm/base")
 
 set(PDFMM_SOURCES ${PDFMM_BASE_HEADERS} ${PDFMM_CONFIG_HEADER})
-if(WIN32 AND PDFMM_SHARED)
-    # If we build for windows systems, we also include the resource file
-    list(APPEND PDFMM_SOURCES pdfmm.rc)
+if(PDFMM_SHARED)
+    if(WIN32)
+        # If we build for windows systems, we also include the resource file
+        list(APPEND PDFMM_SOURCES pdfmm.rc)
+    endif()
+    
+    if (NOT MSVC)
+        # By default hide symbols on gcc/clang
+        add_definitions(-fvisibility=hidden)
+    endif()
 endif()
 
 # Set visual studio source group

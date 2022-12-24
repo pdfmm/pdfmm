@@ -524,7 +524,7 @@ PdfAnnotationType PdfAnnotation::getAnnotationType(const type_info& typeInfo)
 {
     if (typeInfo == typeid(PdfAnnotationText))
         return PdfAnnotationType::Text;
-    if (typeInfo == typeid(PdfAnnotationLink))
+    else if (typeInfo == typeid(PdfAnnotationLink))
         return PdfAnnotationType::Link;
     else if (typeInfo == typeid(PdfAnnotationFreeText))
         return PdfAnnotationType::FreeText;
