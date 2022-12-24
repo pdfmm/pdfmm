@@ -109,6 +109,9 @@ if (MSVC)
 else()
     message("Using gcc/clang specific compiler options")
 
+    # By default hide symbols on gcc/clang
+    add_compile_options(-fvisibility=hidden)
+
     # TODO: Remove -Wno-format-truncation after porting the
     # code to std::fmt as it will be unuseful
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Woverloaded-virtual -Wswitch -Wcast-qual -Wwrite-strings -Wredundant-decls -Wreorder -Wno-format-truncation -Wno-unknown-pragmas -Wno-unknown-warning-option")

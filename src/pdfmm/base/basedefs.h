@@ -64,8 +64,13 @@
     #define PDFMM_EXPORT __declspec(dllexport)
     #define PDFMM_IMPORT __declspec(dllimport)
 #else
+    // NOTE: In non MSVC compilers https://gcc.gnu.org/wiki/Visibility,
+    // it's not necessary to distinct between exporting and importing
+    // the symbols and for correct working of RTTI features is better
+    // always set default visibility both when compiling and when using
+    // the library. The symbol will not be re-exported by other libraries
     #define PDFMM_EXPORT __attribute__ ((visibility("default")))
-    #define PDFMM_IMPORT
+    #define PDFMM_IMPORT __attribute__ ((visibility("default")))
 #endif
 
 #if defined(COMPILING_SHARED_PDFMM)
