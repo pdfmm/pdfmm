@@ -34,7 +34,7 @@ void PdfResources::AddResource(const PdfName& type, const PdfName& key, const Pd
     if (obj == nullptr)
         dict.RemoveKey(key);
     else
-        dict.AddKeyIndirect(key, obj);
+        dict.AddKeyIndirect(key, *obj);
 }
 
 PdfDictionaryIndirectIterable PdfResources::GetResourceIterator(const string_view& type)

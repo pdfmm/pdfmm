@@ -1,5 +1,3 @@
-- PdfDictionary::AddKeyIndirect should accept reference
-
 ### After 0.10
 - Review PdfNameTree/PdfFileSpec
 - Check accessibility of PdfEncrypt.h classe, check AESV3 namings

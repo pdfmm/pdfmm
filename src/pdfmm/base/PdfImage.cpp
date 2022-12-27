@@ -265,7 +265,7 @@ void PdfImage::SetICCProfile(InputStream& stream, unsigned colorComponents, PdfC
 
 void PdfImage::SetSoftmask(const PdfImage& softmask)
 {
-    GetDictionary().AddKeyIndirect("SMask", &softmask.GetObject());
+    GetDictionary().AddKeyIndirect("SMask", softmask.GetObject());
 }
 
 void PdfImage::SetData(const bufferview& buffer, unsigned width, unsigned height, PdfPixelFormat format, int rowSize)

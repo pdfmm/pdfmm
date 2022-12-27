@@ -559,7 +559,7 @@ void PdfFont::EmbedFontFileOpenType(PdfObject& descriptor, const bufferview& dat
 PdfObject* PdfFont::embedFontFileData(PdfObject& descriptor, const PdfName& fontFileName, const bufferview& data)
 {
     auto contents = GetDocument().GetObjects().CreateDictionaryObject();
-    descriptor.GetDictionary().AddKeyIndirect(fontFileName, contents);
+    descriptor.GetDictionary().AddKeyIndirect(fontFileName, *contents);
     contents->GetOrCreateStream().SetData(data);
     return contents;
 }

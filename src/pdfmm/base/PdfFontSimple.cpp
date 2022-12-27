@@ -81,7 +81,7 @@ void PdfFontSimple::Init()
         // descriptor. Instead Standard14 fonts don't need any
         // metrics descriptor if the font is not embedded
         auto descriptorObj = GetDocument().GetObjects().CreateDictionaryObject("FontDescriptor");
-        this->GetObject().GetDictionary().AddKeyIndirect("FontDescriptor", descriptorObj);
+        this->GetObject().GetDictionary().AddKeyIndirect("FontDescriptor", *descriptorObj);
         FillDescriptor(descriptorObj->GetDictionary());
         m_Descriptor = descriptorObj;
     }
@@ -97,7 +97,7 @@ void PdfFontSimple::embedFont()
     this->getWidthsArray(arr);
 
     auto widthsObj = GetDocument().GetObjects().CreateObject(std::move(arr));
-    this->GetObject().GetDictionary().AddKeyIndirect("Widths", widthsObj);
+    this->GetObject().GetDictionary().AddKeyIndirect("Widths", *widthsObj);
 
     if (GetType() == PdfFontType::Type3)
     {

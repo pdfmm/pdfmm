@@ -171,7 +171,7 @@ public:
      *  \throws PdfError::InvalidHandle on nullptr obj or if the object can't
      *  be added as an indirect reference
      */
-    void AddKeyIndirect(const PdfName& key, const PdfObject* obj);
+    void AddKeyIndirect(const PdfName& key, const PdfObject& obj);
 
     /** Add a key to the dictionary.
      *  If an existing key of this name exists, its value is replaced and

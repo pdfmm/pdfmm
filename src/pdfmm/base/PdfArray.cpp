@@ -101,13 +101,10 @@ PdfObject& PdfArray::Add(PdfObject&& obj)
     return ret;
 }
 
-void PdfArray::AddIndirect(const PdfObject* obj)
+void PdfArray::AddIndirect(const PdfObject& obj)
 {
-    if (obj == nullptr)
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Given object shall not be null");
-
-    if (IsIndirectReferenceAllowed(*obj))
-        add(obj->GetIndirectReference());
+    if (IsIndirectReferenceAllowed(obj))
+        add(obj.GetIndirectReference());
     else
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Given object shall allow indirect insertion");
 

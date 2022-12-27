@@ -66,7 +66,7 @@ namespace mm {
             {
                 auto& ref = static_cast<T&>(*this);
                 m_AppearanceCharacteristics.reset(new PdfAppearanceCharacteristics(ref.GetDocument()));
-                ref.GetDictionary().AddKeyIndirect("MK", &m_AppearanceCharacteristics->GetObject());
+                ref.GetDictionary().AddKeyIndirect("MK", m_AppearanceCharacteristics->GetObject());
             }
 
             return *m_AppearanceCharacteristics;

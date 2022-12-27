@@ -63,7 +63,7 @@ const PdfDictionary& PdfDictionaryElement::GetDictionary() const
 }
 
 PdfArrayElement::PdfArrayElement(PdfDocument& parent)
-    : PdfElement(*parent.GetObjects().CreateObject(PdfArray()),
+    : PdfElement(*parent.GetObjects().CreateArrayObject(),
         PdfDataType::Array)
 {
 }

@@ -145,7 +145,7 @@ public:
 
     PdfObject& Add(PdfObject&& obj);
 
-    void AddIndirect(const PdfObject* obj);
+    void AddIndirect(const PdfObject& obj);
 
     PdfObject& AddIndirectSafe(const PdfObject& obj);
 

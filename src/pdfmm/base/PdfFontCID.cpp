@@ -93,7 +93,7 @@ void PdfFontCID::initImported()
 
     // The FontDescriptor, should be an indirect object:
     auto descriptorObj = this->GetObject().GetDocument()->GetObjects().CreateDictionaryObject("FontDescriptor");
-    m_descendantFont->GetDictionary().AddKeyIndirect("FontDescriptor", descriptorObj);
+    m_descendantFont->GetDictionary().AddKeyIndirect("FontDescriptor", *descriptorObj);
     FillDescriptor(descriptorObj->GetDictionary());
     m_descriptor = descriptorObj;
 }

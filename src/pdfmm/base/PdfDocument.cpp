@@ -44,12 +44,12 @@ PdfDocument::PdfDocument(bool empty) :
         m_Trailer.reset(new PdfTrailer(*m_TrailerObj));
 
         m_Catalog.reset(new PdfCatalog(*catalog));
-        m_TrailerObj->GetDictionary().AddKeyIndirect("Root", catalog);
+        m_TrailerObj->GetDictionary().AddKeyIndirect("Root", *catalog);
 
         auto info = m_Objects.CreateDictionaryObject();
         m_Info.reset(new PdfInfo(*info,
             PdfInfoInitial::WriteProducer | PdfInfoInitial::WriteCreationTime));
-        m_TrailerObj->GetDictionary().AddKeyIndirect("Info", info);
+        m_TrailerObj->GetDictionary().AddKeyIndirect("Info", *info);
 
         Init();
     }
@@ -498,7 +498,7 @@ void PdfDocument::SetTrailer(unique_ptr<PdfObject> obj)
     {
         info = m_Objects.CreateDictionaryObject();
         m_Info.reset(new PdfInfo(*info));
-        m_TrailerObj->GetDictionary().AddKeyIndirect("Info", info);
+        m_TrailerObj->GetDictionary().AddKeyIndirect("Info", *info);
     }
     else
     {

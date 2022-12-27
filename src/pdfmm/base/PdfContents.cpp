@@ -23,7 +23,7 @@ PdfContents::PdfContents(PdfPage &parent, PdfObject &obj)
 }
 
 PdfContents::PdfContents(PdfPage &parent) 
-    : m_parent(&parent), m_object(parent.GetObject().GetDocument()->GetObjects().CreateArrayObject())
+    : m_parent(&parent), m_object(parent.GetDocument().GetObjects().CreateArrayObject())
 {
     reset();
 }
@@ -32,7 +32,7 @@ void PdfContents::Reset(PdfObject* obj)
 {
     if (obj == nullptr)
     {
-        m_object = m_parent->GetObject().GetDocument()->GetObjects().CreateArrayObject();
+        m_object = m_parent->GetDocument().GetObjects().CreateArrayObject();
     }
     else
     {
@@ -48,7 +48,7 @@ void PdfContents::Reset(PdfObject* obj)
 
 void PdfContents::reset()
 {
-    m_parent->GetObject().GetDictionary().AddKeyIndirect("Contents", m_object);
+    m_parent->GetObject().GetDictionary().AddKeyIndirect("Contents", *m_object);
 }
 
 PdfObjectStream & PdfContents::GetStreamForAppending(PdfStreamAppendFlags flags)
@@ -61,10 +61,10 @@ PdfObjectStream & PdfContents::GetStreamForAppending(PdfStreamAppendFlags flags)
     else if (m_object->IsDictionary())
     {
         // Create a /Contents array and put the current stream into it
-        auto newObjArray = m_parent->GetObject().GetDocument()->GetObjects().CreateObject(PdfArray());
-        m_parent->GetObject().GetDictionary().AddKeyIndirect("Contents", newObjArray);
+        auto newObjArray = m_parent->GetDocument().GetObjects().CreateArrayObject();
+        m_parent->GetObject().GetDictionary().AddKeyIndirect("Contents", *newObjArray);
         arr = &newObjArray->GetArray();
-        arr->AddIndirect(m_object);
+        arr->AddIndirect(*m_object);
         m_object = newObjArray;
     }
     else
@@ -91,8 +91,8 @@ PdfObjectStream & PdfContents::GetStreamForAppending(PdfStreamAppendFlags flags)
         if (buffer.size() != 0)
         {
             arr->Clear();
-            auto newobj = m_object->GetDocument()->GetObjects().CreateDictionaryObject();
-            arr->AddIndirect(newobj);
+            auto newobj = m_parent->GetDocument().GetObjects().CreateDictionaryObject();
+            arr->AddIndirect(*newobj);
             auto &stream = newobj->GetOrCreateStream();
             auto output = stream.GetOutputStream();
             output.Write("q\n");
@@ -103,7 +103,7 @@ PdfObjectStream & PdfContents::GetStreamForAppending(PdfStreamAppendFlags flags)
     }
 
     // Create a new stream, add it to the array, return it
-    PdfObject * newStm = m_object->GetDocument()->GetObjects().CreateDictionaryObject();
+    PdfObject * newStm = m_parent->GetDocument().GetObjects().CreateDictionaryObject();
     if ((flags & PdfStreamAppendFlags::Prepend) == PdfStreamAppendFlags::Prepend)
         arr->insert(arr->begin(), newStm->GetIndirectReference());
     else

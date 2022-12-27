@@ -77,13 +77,10 @@ PdfObject& PdfDictionary::AddKey(const PdfName& key, PdfObject&& obj)
     return addKey(key, std::move(obj));
 }
 
-void PdfDictionary::AddKeyIndirect(const PdfName& key, const PdfObject* obj)
+void PdfDictionary::AddKeyIndirect(const PdfName& key, const PdfObject& obj)
 {
-    if (obj == nullptr)
-        PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Given object shall not be null");
-
-    if (IsIndirectReferenceAllowed(*obj))
-        (void)addKey(key, obj->GetIndirectReference());
+    if (IsIndirectReferenceAllowed(obj))
+        (void)addKey(key, obj.GetIndirectReference());
     else
         PDFMM_RAISE_ERROR_INFO(PdfErrorCode::InvalidHandle, "Given object shall allow indirect insertion");
 }

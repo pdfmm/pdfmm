@@ -34,7 +34,7 @@ PdfObject& PdfCatalog::GetOrCreateMetadataObject()
         return *metadata;
 
     metadata = GetDocument().GetObjects().CreateDictionaryObject("Metadata", "XML");
-    dict.AddKeyIndirect("Metadata", metadata);
+    dict.AddKeyIndirect("Metadata", *metadata);
     return *metadata;
 }
 
